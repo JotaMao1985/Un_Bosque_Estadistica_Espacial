@@ -1,0 +1,104 @@
+{
+  "python": "3.11.14",
+  "ejecutable": "/opt/homebrew/Caskroom/mambaforge/base/envs/geo_env/bin/python",
+  "semilla": 2026,
+  "paquetes": {
+    "geopandas": "1.1.1",
+    "shapely": "2.1.2",
+    "pyproj": "3.7.2",
+    "libpysal": "4.14.1",
+    "esda": "2.9.0",
+    "spreg": "1.9.0",
+    "pointpats": "2.5.5",
+    "splot": "1.1.7",
+    "skgstat": "1.0.22",
+    "rasterio": "1.4.4",
+    "contextily": "1.7.1",
+    "mapclassify": "2.10.0",
+    "numpy": "2.3.4",
+    "pandas": "2.3.3",
+    "scipy": "1.16.3",
+    "sklearn": "1.7.2",
+    "matplotlib": "3.10.7"
+  },
+  "cruces_r_python": {
+    "n_condados": {
+      "r": 100,
+      "python": 100,
+      "coincide": true,
+      "explicada": null
+    },
+    "epsg": {
+      "r": 3857,
+      "python": 3857,
+      "coincide": true,
+      "explicada": null
+    },
+    "area_km2": {
+      "r": 127.1,
+      "python": 127.1,
+      "coincide": true,
+      "explicada": null
+    },
+    "card_media": {
+      "r": 4.9,
+      "python": 4.9,
+      "coincide": true,
+      "explicada": null
+    },
+    "moran_I": {
+      "r": 0.147741,
+      "python": 0.147741,
+      "coincide": true,
+      "explicada": null
+    },
+    "rho_SAR": {
+      "r": 0.131721,
+      "python": 0.131721,
+      "coincide": true,
+      "explicada": null
+    },
+    "lambda_SEM": {
+      "r": 0.339925,
+      "python": 0.339925,
+      "coincide": true,
+      "explicada": null
+    },
+    "fisher_tam": {
+      "r": [
+        32,
+        34,
+        19,
+        11,
+        4
+      ],
+      "python": [
+        32,
+        34,
+        19,
+        11,
+        4
+      ],
+      "coincide": true,
+      "explicada": null
+    },
+    "quant_tam": {
+      "r": [
+        13,
+        25,
+        13,
+        26,
+        23
+      ],
+      "python": [
+        24,
+        27,
+        11,
+        19,
+        19
+      ],
+      "coincide": false,
+      "explicada": "classInt usa [a,b) y mapclassify (a,b]; SID74 tiene 39 empates justo en los cortes. Caso trabajado del cap. 3."
+    }
+  }
+}

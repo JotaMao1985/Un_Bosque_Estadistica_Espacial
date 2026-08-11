@@ -1,0 +1,85 @@
+{
+  "columbus": {
+    "n": 49,
+    "aristas_reina": 118,
+    "grado_reina": 4.8163265306,
+    "aristas_torre": 100,
+    "grado_torre": 4.0816326531,
+    "perdida_pct": 15.2542372881,
+    "aristas_gal": 116,
+    "grado_gal": 4.7346938776
+  },
+  "nc": {
+    "n_condados": 100,
+    "cortes_quantile": [0, 1, 4, 5, 10, 44],
+    "tam_quantile": [13, 25, 13, 26, 23],
+    "tam_quantile_py": [24, 27, 11, 19, 19],
+    "movidos": 13,
+    "cortes_fisher": [0, 2.5, 6.5, 12.5, 26, 44],
+    "tam_fisher": [32, 34, 19, 11, 4],
+    "empates_en_cortes": 39,
+    "sid74_total": 667,
+    "sid74_media": 6.67
+  },
+  "clima": {
+    "n_estaciones": 361,
+    "corr": -0.9791106046,
+    "r2": 0.958657576,
+    "gradiente": -5.5638752172,
+    "intercepto": 28.5083285659,
+    "temp_media": 22.4033240997,
+    "alt_media": 1097.2576177285,
+    "alt_max": 3716
+  },
+  "ventanas": {
+    "n_sedes": 2209,
+    "area_urbana": 370.0898165103,
+    "n_urbana": 2107,
+    "lambda_urbana": 5.6932125825,
+    "area_dc": 1633.1403988709,
+    "n_dc": 2208,
+    "lambda_dc": 1.3519964368,
+    "factor_lambda": 4.2109671503,
+    "razon_area": 4.4128217692,
+    "razon_sedes": 1.0479354533,
+    "area_extra": 1263.0505823606,
+    "sedes_extra": 101,
+    "lambda_extra": 0.0799651268
+  },
+  "desercion": {
+    "n_departamentos": 33,
+    "n_municipios": 1121,
+    "media": 3.8619447308,
+    "sd": 1.2702412645,
+    "minimo": 1.71,
+    "maximo": 6.733125,
+    "recorrido": 5.023125,
+    "recorrido_en_sd": 3.9544652976,
+    "moran_I": 0.0635960159,
+    "moran_esperado": -0.0322580645,
+    "moran_z": 0.84877892,
+    "moran_p": 0.198002161,
+    "islas": 1,
+    "subgrafos": 2,
+    "grado_medio": 4.4848484848
+  },
+  "escala": {
+    "n_municipal": 1121,
+    "moran_municipal": 0.3809079276,
+    "p_municipal": 6.0084674603e-101,
+    "n_departamental": 33,
+    "moran_departamental": 0.0635960159,
+    "p_departamental": 0.198002161,
+    "caida_pct": 83.304097589,
+    "islas_municipal": 2,
+    "subgrafos_municipal": 3,
+    "grado_municipal": 5.8537020517
+  },
+  "mapa_cortes": [1.71, 2.8489977011, 3.442626087, 3.9482162162, 5.122679803, 6.733125],
+  "mapa_n": 33,
+  "meta": {
+    "generado": "2026-08-03",
+    "semilla": 2026,
+    "r": "R version 4.4.1 (2024-06-14)"
+  }
+}

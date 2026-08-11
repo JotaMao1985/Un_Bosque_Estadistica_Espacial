@@ -1,0 +1,508 @@
+{
+  "elipsoide": {
+    "a": 6378137,
+    "b": 6356752.3142451793,
+    "a_menos_b": 21384.6857548207,
+    "aplanamiento_inv": 298.257223563,
+    "e2": 0.00669438,
+    "radios": {
+      "lat": [0, 4.711, 40, 59.9139, 80],
+      "M": [6335439.3272928195, 6335868.4731312543, 6361815.8264336325, 6383369.9449136397, 6397643.3264172487],
+      "N": [6378137, 6378281.0094369147, 6386976.1657063318, 6394181.1558260815, 6398943.4599268073],
+      "razon_N_M": [1.0067394967, 1.0066940367, 1.003954899, 1.0016936526, 1.0002032207]
+    },
+    "esfera_vs_elipsoide": {
+      "origen": "Bogotá",
+      "destino": "Oslo",
+      "d_esfera_m": 9265992.2157246619,
+      "d_elipsoide_m": 9266484.0695336144,
+      "dif_m": 491.8538089525,
+      "dif_pct": 0.0053078795
+    },
+    "datum": {
+      "origen_epsg": 4326,
+      "destino_epsg": 4218,
+      "destino_nombre": "Bogota 1975",
+      "towgs84": [307, 304, -318],
+      "ciudad": ["Bogotá", "Medellín", "Cúcuta", "Leticia", "Quibdó"],
+      "desplazamiento_m": [492.0715426704, 483.3096133934, 497.2900874175, 501.168341827, 479.5472969396],
+      "desp_medio_m": 490.6773764496,
+      "desp_min_m": 479.5472969396,
+      "desp_max_m": 501.168341827
+    }
+  },
+  "grados": {
+    "lat": [0, 4.711, 10, 20, 30, 40, 45, 50, 59.9139, 70, 80],
+    "lon_m_elipsoide": [111319.4907932736, 110945.908636103, 109639.3221054624, 104646.9309332806, 96485.9740837231, 85393.4091296043, 78846.334709795, 71695.2196060255, 55944.3981013817, 38186.113293304, 19393.2468013869],
+    "lat_m_elipsoide": [110574.3885577988, 110583.4633282476, 110611.186562063, 110710.6149311091, 110860.9255660793, 111044.2608792116, 111141.5484742094, 111238.6808599568, 111419.2781434688, 111568.2585155149, 111663.2009260276],
+    "lon_m_esfera": [111195.1011774839, 110819.4343168508, 109505.755825001, 104489.0609018683, 96297.4768270793, 85179.9426495647, 78626.3110895063, 71474.3009302451, 55741.6674726477, 38030.5382034552, 19308.5890003343],
+    "lat_m_esfera": [111195.1011774839, 111195.1011774838, 111195.1011774839, 111195.1011774841, 111195.101177484, 111195.1011774841, 111195.1011774843, 111195.1011774846, 111195.1011774838, 111195.1011774839, 111195.1011774841],
+    "lon_pct_del_ecuador": [100, 99.6644054383, 98.4906787878, 94.0059374936, 86.6748252226, 76.7102045842, 70.8288675666, 64.4049115704, 50.2557078753, 34.3031692125, 17.4212500104],
+    "bogota_vs_oslo": 1.9831459878,
+    "lat_esfera_constante": 8e-10,
+    "lat_elipsoide_recorrido_m": 1088.8123682288,
+    "euclidea": {
+      "n_pares": 1991,
+      "n_estaciones": 361,
+      "km_por_grado_med": 110.6116377792,
+      "km_por_grado_min": 109.0835262174,
+      "km_por_grado_max": 111.2969269154,
+      "recorrido_pct": 2.0290879611,
+      "corr": 0.9999942823
+    }
+  },
+  "proyecciones": {
+    "n_paises": 177,
+    "n_dibujados": 8,
+    "dibujado": "continentes disueltos; la razón de área se mide sobre los países sin disolver",
+    "lat_corte": 84,
+    "n_indicatrices": 30,
+    "radio_km": 500,
+    "tabla": {
+      "nombre": ["Mercator", "Web Mercator (3857)", "Mollweide", "Equal Earth", "Robinson", "Azimutal equidistante (Bogotá)"],
+      "familia": ["conforme", "ni conforme ni equivalente", "equivalente sobre la esfera", "equivalente", "compromiso", "equidistante desde el centro"],
+      "omega_med_grados": [1.9549e-06, 0.2888806989, 26.8486737738, 31.1372794053, 23.1911823307, 25.6670988722],
+      "omega_max_grados": [8.1606e-06, 0.3848497659, 81.1909838987, 57.6206792983, 52.3052009638, 110.7539037862],
+      "s_med": [1.3311019188, 1.3378301362, 1.0033725591, 0.999999986, 0.9074691929, 1.5719792008],
+      "s_min": [1.0000000206, 1.0067395172, 0.99665561, 0.9999999558, 0.820897036, 1.0141961824],
+      "s_max": [3.9799174269, 3.9866230859, 1.0067394889, 0.9999999899, 1.1887448221, 10.2934997355],
+      "razon_med": [1.2096276124, 1.2163873116, 1.0043180546, 0.9999742151, 0.8801345321, 1.6142896889],
+      "razon_min": [1.0006730134, 1.0074122128, 0.8817247842, 0.8869174974, 0.8209094332, 1.0009453084],
+      "razon_max": [19.6446089313, 19.6505491778, 1.0105309063, 1.0048255997, 1.5996283852, 301.1565224416],
+      "estiramiento": [19.6313967385, 19.5059668011, 1.1460842707, 1.1329414547, 1.9486051939, 300.872105504],
+      "conforme": [true, false, false, false, false, false],
+      "equivalente": [false, false, false, true, false, false]
+    },
+    "mercator": {
+      "lat": [0, 30, 45, 60],
+      "escala": [1.0000000206, 1.1537339226, 1.4118448442, 1.9949731812],
+      "area": [1.0000000206, 1.3311019188, 1.993305742, 3.9799174269],
+      "sec_phi": [1, 1.1547005384, 1.4142135624, 2]
+    },
+    "ninguna_conforme_y_equivalente": true
+  },
+  "epsg": {
+    "n_municipios": 1122,
+    "continente": {
+      "n": 1120,
+      "max_3116_pct": 1.5501213573,
+      "max_9377_pct": 0.9490068395,
+      "med_3116_pct": 0.0442485925,
+      "med_9377_pct": 0.1336906368,
+      "peor_municipio": "La Guadalupe",
+      "peor_dpto": "Guain<U+00ED>a"
+    },
+    "archipielago": {
+      "n": 2,
+      "municipios": ["San Andr<U+00E9>s", "Providencia"],
+      "max_3116_pct": 1.7242388367,
+      "max_9377_pct": 2.0889537731
+    },
+    "gana_9377_peor_caso_continental": true,
+    "gana_3116_mediana_continental": true,
+    "gana_3116_pais_entero": true,
+    "referencia": "área geodésica sobre el elipsoide GRS80 (lwgeom), no sobre la esfera de s2",
+    "filas": [
+      {
+        "codigo": 3857,
+        "nombre": "Web Mercator",
+        "tipo": "Mercator esférico",
+        "razon_med": 1.0160792243,
+        "razon_min": 1.0067473447,
+        "razon_max": 1.062705071,
+        "estiramiento": 1.0555826907,
+        "peor_municipio": "Providencia",
+        "peor_dpto": "Archipi<U+00E9>lago de San Andr<U+00E9>s, Providencia y Santa Catalina",
+        "peor_razon": 1.062705071,
+        "n_sobre_1pct": 917
+      },
+      {
+        "codigo": 3116,
+        "nombre": "MAGNA-SIRGAS / Colombia Bogotá zone",
+        "tipo": "transversa de Mercator, k = 1",
+        "razon_med": 1.0004427565,
+        "razon_min": 1.0000001311,
+        "razon_max": 1.0172423884,
+        "estiramiento": 1.017242255,
+        "peor_municipio": "San Andr<U+00E9>s",
+        "peor_dpto": "Archipi<U+00E9>lago de San Andr<U+00E9>s, Providencia y Santa Catalina",
+        "peor_razon": 1.0172423884,
+        "n_sobre_1pct": 7
+      },
+      {
+        "codigo": 9377,
+        "nombre": "MAGNA-SIRGAS 2018 / Origen-Nacional",
+        "tipo": "transversa de Mercator, k = 0,9992",
+        "razon_med": 0.9994344381,
+        "razon_min": 0.9984008547,
+        "razon_max": 1.0208895377,
+        "estiramiento": 1.0225247033,
+        "peor_municipio": "San Andr<U+00E9>s",
+        "peor_dpto": "Archipi<U+00E9>lago de San Andr<U+00E9>s, Providencia y Santa Catalina",
+        "peor_razon": 1.0208895377,
+        "n_sobre_1pct": 2
+      }
+    ],
+    "bandas": {
+      "banda": ["<1°", "1-2°", "2-3°", "3-4°", "4-5°", ">5°"],
+      "n": [458, 410, 152, 76, 18, 8],
+      "err_3116_pct": [0.0090989892, 0.0616903343, 0.177502263, 0.347298549, 0.561813401, 1.3519771093],
+      "err_9377_pct": [0.1277645537, 0.0777744391, 0.1907455227, 0.4290597129, 0.2406942518, 0.7837773895]
+    },
+    "gana_9377_lejos": true,
+    "gana_3116_cerca": true
+  },
+  "etiquetar": {
+    "n_localidades": 20,
+    "crs_original": "MAGNA-SIRGAS 2018 / Origen-Nacional",
+    "set_crs_max_delta": 0,
+    "transform_max_delta": 4890691.5753432354,
+    "transform_n_movidas": 57840,
+    "n_vertices": 57840,
+    "bbox_bien": [-74.449779528, 3.731030342, -73.986534278, 4.836779095],
+    "bbox_mal": [4839065.9651104817, 1970411.5557369913, 4890617.5888089575, 2092552.1179709076],
+    "lon_absurda": 4890617.5888089575,
+    "area_bien_km2": 1635.0562944955,
+    "area_original_km2": 1633.1403988717,
+    "silencioso": {
+      "desde": 4686,
+      "hasta": 4326,
+      "desplazamiento_m": 0,
+      "contraste_desde": 4218,
+      "contraste_desplazamiento_m": 492.0715426704
+    }
+  },
+  "medir": {
+    "colombia": {
+      "area_esfera_km2": 1143256.9870237217,
+      "area_elipsoide_km2": 1138265.6414667417,
+      "area_9377_km2": 1138792.3368575503,
+      "dif_esfera_km2": 4991.34555698,
+      "dif_esfera_pct": 0.4385044558,
+      "dif_9377_pct": 0.0462717464
+    },
+    "municipios": {
+      "n": 1122,
+      "razon_med": 1.0043656732,
+      "razon_min": 1.0037736385,
+      "razon_max": 1.0044907641,
+      "equivalente_a_municipios": 1078
+    },
+    "distancias": {
+      "n_pares": 1991,
+      "dif_med_m": -1190.6357928889,
+      "dif_max_m": 8882.565603382,
+      "dif_pct_med": -0.3772092171,
+      "bogota_oslo_dif_m": 491.8538089525
+    }
+  },
+  "discrepancias": [
+    {
+      "que": "st_area con s2 y sin s2 no dan el mismo número",
+      "motivo": "s2 integra sobre una ESFERA y lwgeom sobre el ELIPSOIDE. Sobre Colombia la esfera infla el área un 0.43850 % — 4991 km2 —, más que la suma de los municipios más pequeños.",
+      "r": 1138265.6414667417,
+      "python": 1143256.9870237217,
+      "donde": "capítulo 2, módulo 6",
+      "como_recuperar": "sf_use_s2(FALSE) mide sobre el elipsoide; GeoPandas .to_crs(9377).area proyecta"
+    },
+    {
+      "que": "Mollweide sale con s distinto de 1 aunque es equivalente",
+      "motivo": "PROJ implementa Mollweide sobre la ESFERA. Medida contra el elipsoide, su escala de área se desvía hasta 0.00674 · es la misma brecha esfera/elipsoide del módulo 6, no un defecto de la proyección. Equal Earth, que PROJ sí resuelve sobre el elipsoide, da s = 1 exacto.",
+      "r": 1.0033725591,
+      "python": 0.999999986,
+      "donde": "capítulo 2, módulo 3",
+      "como_recuperar": "comparar contra la esfera autálica en vez de contra el elipsoide"
+    }
+  ],
+  "formatos": {
+    "n_rasgos": 20,
+    "shapefile": {
+      "n_archivos": 4,
+      "archivos": ["prueba.dbf", "prueba.prj", "prueba.shp", "prueba.shx"],
+      "tiene_cpg": false,
+      "bytes": 1584607,
+      "n_campos": 9,
+      "n_campos_largos": 5,
+      "ejemplos_antes": ["departamento", "desercion_escolar_2024", "nombre_del_municipio_largo", "es_area_no_municipalizada", "fecha_de_corte"],
+      "ejemplos_despues": ["dprtmnt", "d__2024", "nmbr___", "es_r_n_", "fch_d_c"],
+      "truncado_simple": false,
+      "tipo_fecha_antes": "Date",
+      "tipo_fecha_despues": "Date",
+      "tipo_logico_antes": "logical",
+      "tipo_logico_despues": "integer",
+      "n_con_tilde": 0,
+      "tildes_sobreviven": 20
+    },
+    "gpkg": {
+      "bytes": 1695744,
+      "n_campos": 9,
+      "nombres_intactos": true,
+      "tipo_fecha_despues": "Date",
+      "tipo_logico_despues": "logical",
+      "razon_sobre_shp": 1.0701353711
+    },
+    "geojson": {
+      "bytes": 5294319,
+      "razon_sobre_shp": 3.3410927757
+    },
+    "pais": {
+      "gpkg_mb": 77.89453125,
+      "geojson_mb": 200.849395752,
+      "razon": 2.578478778
+    }
+  },
+  "csv_sf": {
+    "n": 361,
+    "centroide_bien": [-74.7107202216, 5.4519390582],
+    "centroide_mal": [5.4519390582, -74.7107202216],
+    "desplazamiento_km_med": 10293.1357101606,
+    "desplazamiento_km_min": 8660.307497713,
+    "desplazamiento_km_max": 11541.8699762203,
+    "caja_bien": [-81.73, -4.19, -67.49, 13.36],
+    "caja_mal": [-4.19, -81.73, 13.36, -67.49],
+    "destino": {
+      "nombre": ["(mar abierto)", "Antarctica"],
+      "n": [6, 355]
+    },
+    "n_en_tierra": 355,
+    "n_en_mar": 6,
+    "n_en_colombia": 0,
+    "hubo_aviso": false,
+    "coma_decimal": {
+      "ejemplo_lon": "-69,94000",
+      "clase_leida": "character",
+      "as_numeric_da": null,
+      "n_na": 5
+    }
+  },
+  "posicional": {
+    "n_sedes": 2209,
+    "n_localidades": 20,
+    "semilla_ruido": 2226,
+    "redondeos": [
+      {
+        "decimales": 4,
+        "n_posiciones": 2160,
+        "desplaz_med_m": 4.2753309291,
+        "desplaz_max_m": 7.8185998844,
+        "n_cambian": 3,
+        "pct_cambian": 0.1358080579
+      },
+      {
+        "decimales": 3,
+        "n_posiciones": 2046,
+        "desplaz_med_m": 42.3854704101,
+        "desplaz_max_m": 77.5937446862,
+        "n_cambian": 11,
+        "pct_cambian": 0.4979628791
+      },
+      {
+        "decimales": 2,
+        "n_posiciones": 360,
+        "desplaz_med_m": 427.1357874346,
+        "desplaz_max_m": 768.6594180576,
+        "n_cambian": 181,
+        "pct_cambian": 8.1937528293
+      }
+    ],
+    "ruidos": [
+      {
+        "sigma_m": 50,
+        "desplaz_med_m": 61.9031400698,
+        "desplaz_max_m": 202.6700102531,
+        "n_cambian": 17,
+        "pct_cambian": 0.769578995
+      },
+      {
+        "sigma_m": 150,
+        "desplaz_med_m": 183.3265182348,
+        "desplaz_max_m": 554.6910899554,
+        "n_cambian": 58,
+        "pct_cambian": 2.6256224536
+      },
+      {
+        "sigma_m": 500,
+        "desplaz_med_m": 626.2879574161,
+        "desplaz_max_m": 2016.8205468372,
+        "n_cambian": 299,
+        "pct_cambian": 13.5355364418
+      }
+    ],
+    "men_descartada": {
+      "fuente": "x5ay-984n (MEN, sedes nacionales) — descartada en T0.4",
+      "n_sedes": 2403,
+      "n_posiciones": 398,
+      "sedes_por_posicion": 6.0376884422
+    },
+    "sesgo": {
+      "sigma_m": 150,
+      "n_replicas": 200,
+      "tasa_global_pct": 3.0339520145,
+      "emc_global_pct": 0.021603334,
+      "n_localidades_con_30": 17,
+      "localidad": ["Los Martires", "Santa Fe", "Teusaquillo", "Antonio Narino", "Rafael Uribe Uribe", "Tunjuelito", "Barrios Unidos", "Bosa", "Puente Aranda", "San Cristobal", "Ciudad Bolivar", "Usaquen", "Kennedy", "Usme", "Engativa", "Suba", "Fontibon"],
+      "n": [35, 30, 56, 43, 120, 67, 63, 146, 94, 128, 149, 130, 262, 107, 258, 356, 97],
+      "tasa_pct": [12.4285714286, 10.8666666667, 10.0178571429, 9.9651162791, 7.7041666667, 6.7910447761, 5.873015873, 3.6952054795, 3.2127659574, 3.08203125, 2.2214765101, 2.1115384615, 1.9103053435, 1.2570093458, 1.0813953488, 0.6193820225, 0.2216494845],
+      "area_km2": [6.5007637118, 45.0769406268, 14.164211825, 4.8696477037, 13.8061316, 9.8910700203, 11.8790741139, 23.8861858166, 17.2761530949, 48.9977186926, 129.7443233523, 65.0656966322, 38.5128148288, 214.6365736735, 35.8084459794, 100.3547012318, 33.2143820838],
+      "compacidad": [1.6924119245, 0.9702212267, 1.1589627592, 2.4793637455, 1.3989435443, 2.3563298096, 1.1291100649, 1.4274254815, 1.0324345083, 0.8215158439, 0.5989417052, 0.742834829, 0.8150827305, 0.5068663569, 0.902534917, 0.6536712119, 1.0729903625],
+      "corr_pearson": 0.6243549453,
+      "corr_spearman": 0.6838235294,
+      "tasa_min_pct": 0.2216494845,
+      "tasa_max_pct": 12.4285714286,
+      "razon_max_min": 56.073089701,
+      "peor": "Los Martires",
+      "mejor": "Fontibon"
+    },
+    "por_estrato": {
+      "estrato": [1, 2, 3, 4, 5, 6],
+      "n": [118, 701, 884, 164, 56, 25],
+      "pct": [2.2203389831, 2.347360913, 3.9134615385, 3.8018292683, 1.3392857143, 0.06],
+      "monotono_en_estrato": false
+    },
+    "sedes_por_posicion_2dec": 6.1361111111,
+    "n_muestra_mapa": 700,
+    "n_posiciones_2dec": 360
+  },
+  "topologia": {
+    "lazo": {
+      "area_antes": 0,
+      "area_despues": 2,
+      "valido_antes": false,
+      "razon": "Self-intersection[1 1]",
+      "tipo_despues": "MULTIPOLYGON",
+      "n_partes_despues": 2
+    },
+    "municipios": {
+      "n": 1122,
+      "n_invalidos": 0
+    },
+    "crudo": {
+      "n": 33,
+      "n_invalidos": 0
+    },
+    "de9im": {
+      "caso": ["disjuntos", "tocan", "solapan", "contiene", "iguales"],
+      "matriz": ["FF2FF1212", "FF2F11212", "212101212", "212FF1FF2", "2FFF1FFF2"],
+      "predicado": ["st_disjoint", "st_touches", "st_overlaps", "st_contains", "st_equals"]
+    },
+    "buffer": {
+      "grados_area_km2": 8e-10,
+      "m9377_area_km2": 3.1401573746,
+      "m3857_area_km2": 3.1401573746,
+      "m3857_area_real_km2": 3.0983762166,
+      "m3857_radio_real_m": 993.0980721333
+    }
+  },
+  "ingenieria": {
+    "join": {
+      "n_puntos": 2209,
+      "n_poligonos": 20,
+      "pares_fuerza_bruta": 44180,
+      "pares_tras_cajas": 3978,
+      "reduccion": 11.106083459,
+      "aciertos_exactos": 2208,
+      "sin_poligono": 1
+    },
+    "geohash": {
+      "alfabeto": "0123456789bcdefghjkmnpqrstuvwxyz",
+      "base": 32,
+      "vectores_canonicos": [
+        {
+          "lon": -5.6,
+          "lat": 42.6,
+          "esperado": "ezs42",
+          "obtenido": "ezs42"
+        },
+        {
+          "lon": -122.4194,
+          "lat": 37.7749,
+          "esperado": "9q8yyk8y",
+          "obtenido": "9q8yyk8y"
+        }
+      ],
+      "round_trip": {
+        "n_puntos": 11045,
+        "n_dentro": 11045,
+        "completo": true
+      },
+      "niveles": [
+        {
+          "longitud": 4,
+          "n_celdas": 10,
+          "n_dentro": 2209,
+          "celda_ancho_km": 39.0071220374,
+          "celda_alto_km": 19.4368359375
+        },
+        {
+          "longitud": 5,
+          "n_celdas": 50,
+          "n_dentro": 2209,
+          "celda_ancho_km": 4.8758902547,
+          "celda_alto_km": 4.8592089844
+        },
+        {
+          "longitud": 6,
+          "n_celdas": 503,
+          "n_dentro": 2209,
+          "celda_ancho_km": 1.2189725637,
+          "celda_alto_km": 0.607401123
+        },
+        {
+          "longitud": 7,
+          "n_celdas": 1930,
+          "n_dentro": 2209,
+          "celda_ancho_km": 0.1523715705,
+          "celda_alto_km": 0.1518502808
+        },
+        {
+          "longitud": 8,
+          "n_celdas": 2152,
+          "n_dentro": 2209,
+          "celda_ancho_km": 0.0380928926,
+          "celda_alto_km": 0.0189812851
+        }
+      ],
+      "frontera": [
+        {
+          "longitud": 4,
+          "n_distinto": 24,
+          "pct_distinto": 1.0864644636
+        },
+        {
+          "longitud": 5,
+          "n_distinto": 120,
+          "pct_distinto": 5.4323223178
+        },
+        {
+          "longitud": 6,
+          "n_distinto": 570,
+          "pct_distinto": 25.8035310095
+        },
+        {
+          "longitud": 7,
+          "n_distinto": 1734,
+          "pct_distinto": 78.4970574921
+        },
+        {
+          "longitud": 8,
+          "n_distinto": 2097,
+          "pct_distinto": 94.9298325034
+        }
+      ],
+      "d_vecino_mediana_m": 148.6307964968,
+      "d_vecino_media_m": 218.3240911908
+    }
+  },
+  "meta": {
+    "capitulo": 2,
+    "titulo": "SIG, sistemas de referencia y georreferenciación con sf",
+    "semana": "2-3",
+    "generado": "2026-08-07",
+    "semilla": 2026,
+    "r": "R version 4.4.1 (2024-06-14)",
+    "gdal": "3.8.5",
+    "geos": "3.13.0",
+    "proj": "9.5.1",
+    "anclas_verificadas": 29
+  }
+}

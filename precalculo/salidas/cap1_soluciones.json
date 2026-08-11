@@ -1,0 +1,182 @@
+{
+  "e1": {
+    "titulo": "Quitarle a Snow su bomba",
+    "enunciado": "Con `HistData::Snow.deaths` y `Snow.pumps`, calcula para cada muerte la bomba más próxima. Después repite el cálculo ELIMINANDO la bomba de Broad Street de la lista. ¿Cuánto se alejan de su bomba las muertes que la tenían como más próxima? ¿Y las demás? ¿Qué te dice la comparación entre los dos grupos?",
+    "pasos": [
+      {
+        "paso": "Muertes y bombas leídas",
+        "valor": "578 muertes, 13 bombas"
+      },
+      {
+        "paso": "Muertes cuya bomba más próxima es Broad Street",
+        "valor": 359
+      },
+      {
+        "paso": "Distancia media a su bomba, con Broad Street",
+        "valor": 1.611682076
+      },
+      {
+        "paso": "Distancia media a su bomba, sin Broad Street",
+        "valor": 3.3426512622
+      },
+      {
+        "paso": "Cuánto se alejan esas muertes (factor)",
+        "valor": 2.0740140453
+      },
+      {
+        "paso": "Y las demás muertes, cuánto se alejan (factor)",
+        "valor": 1
+      }
+    ],
+    "solucion": {
+      "n_suyas": 359,
+      "n_otras": 219,
+      "d_con_broad_suyas": 1.611682076,
+      "d_sin_broad_suyas": 3.3426512622,
+      "factor_suyas": 2.0740140453,
+      "d_con_broad_otras": 1.9568535305,
+      "d_sin_broad_otras": 1.9568535305,
+      "factor_otras": 1,
+      "exceso_pct": 107.4014045334
+    },
+    "lectura": "Las muertes de la celda de Broad Street se alejan de forma sustancial cuando se retira esa bomba, mientras que las demás no se mueven: por construcción, quitar una bomba solo afecta a quien la tenía como más próxima. El ejercicio deja ver que el argumento de Snow es GEOMÉTRICO —una concentración alrededor de un punto— y no epidemiológico: el dato por sí solo no distingue el agua de cualquier otra cosa que estuviera en esa esquina. Lo que convierte el mapa en evidencia es el mecanismo que Snow ya sospechaba, no el mapa solo. Esa distinción vuelve en el capítulo 3 (falacia ecológica) y en el 8 (los tres orígenes de la dependencia)."
+  },
+  "e2": {
+    "titulo": "El intervalo de confianza que miente",
+    "enunciado": "Con `carga_municipios()`, toma la cobertura neta municipal. Calcula (a) el error estándar de la media suponiendo independencia, por remuestreo de municipios uno a uno, y (b) el mismo error estándar remuestreando DEPARTAMENTOS enteros. Con cada uno construye el intervalo al 95 %. Después identifica el conjunto de valores de referencia que el intervalo ingenuo descartaría y el honesto no: ¿sobre qué coberturas objetivo llevarían los dos métodos a conclusiones OPUESTAS?",
+    "pasos": [
+      {
+        "paso": "Municipios con dato de cobertura",
+        "valor": 1121
+      },
+      {
+        "paso": "Departamentos (bloques del remuestreo)",
+        "valor": 33
+      },
+      {
+        "paso": "Media de la cobertura neta (%)",
+        "valor": 81.0185191793
+      },
+      {
+        "paso": "e.e. remuestreando municipios",
+        "valor": 0.4519573283
+      },
+      {
+        "paso": "e.e. remuestreando departamentos",
+        "valor": 0.9493788782
+      },
+      {
+        "paso": "Factor de subestimación",
+        "valor": 2.1005940577
+      }
+    ],
+    "solucion": {
+      "n": 1121,
+      "n_bloques": 33,
+      "nboot": 4000,
+      "media": 81.0185191793,
+      "ee_iid": 0.4519573283,
+      "ee_bloques": 0.9493788782,
+      "factor": 2.1005940577,
+      "n_eff": 254.05125663,
+      "ic_iid": [80.1326990863, 81.9043392723],
+      "ic_bloques": [79.1577707557, 82.8792676029],
+      "ancho_iid": 1.7716401861,
+      "ancho_bloques": 3.7214968472,
+      "zona_desacuerdo_inferior": [79.1577707557, 80.1326990863],
+      "zona_desacuerdo_superior": [81.9043392723, 82.8792676029],
+      "ancho_zona_desacuerdo": 1.9498566611,
+      "contiene": true
+    },
+    "lectura": "Los dos intervalos están centrados en el mismo sitio: la media no cambia. Lo que cambia es la anchura, y con ella lo que se puede afirmar. Sobre los dos tramos de desacuerdo el método ingenuo declara una diferencia significativa donde el honesto no la ve. Ése es el daño exacto de ignorar la dependencia espacial: no sesga la estimación, sesga la CONFIANZA. Y fíjate en el orden de magnitud del n efectivo: 1 121 municipios informan como unos pocos cientos, no como 1 121."
+  },
+  "e3": {
+    "titulo": "Cuántas estaciones hacen falta de verdad",
+    "enunciado": "Con las 361 estaciones del IDEAM, estima la correlación media entre pares mediante un correlograma por bandas de distancia. Con esa correlación y la fórmula del tamaño de muestra efectivo, responde: (a) ¿a cuántas estaciones independientes equivale la red actual? (b) Si quisieras la precisión de 25 estaciones independientes, ¿cuántas correlacionadas necesitarías? (c) ¿Y la de 50? ¿Hay algún número de estaciones que baste?",
+    "pasos": [
+      {
+        "paso": "Estaciones",
+        "valor": 361
+      },
+      {
+        "paso": "I de Moran de la primera banda (0-25 km)",
+        "valor": 0.606348194
+      },
+      {
+        "paso": "Correlación media entre pares, ponderada por pares",
+        "valor": 0.0314555721
+      },
+      {
+        "paso": "n efectivo de la red actual",
+        "valor": 29.2924233237
+      },
+      {
+        "paso": "Techo de información: 1/rho",
+        "valor": 31.7908698444
+      }
+    ],
+    "solucion": {
+      "n": 361,
+      "bandas_km": [0, 25, 50, 100, 175, 300, 500, 800],
+      "moran_por_banda": [0.606348194, 0.5709433411, 0.3001496815, 0.1744989117, 0.0805992971, -0.0881923155, -0.0034261725],
+      "pares_por_banda": [277, 806, 2794, 6302, 12975, 19427, 16040],
+      "rho_medio": 0.0314555721,
+      "n_eff": 29.2924233237,
+      "pct_informacion": 8.114244688,
+      "techo": 31.7908698444,
+      "n_para_25": 113.353924276,
+      "objetivo_25_alcanzable": true,
+      "objetivo_50_alcanzable": false,
+      "objetivo_100_alcanzable": false
+    },
+    "lectura": "El apartado (c) es el que enseña. Con correlación positiva constante el tamaño efectivo tiene un TECHO en 1/rho: añadir estaciones deja de aportar información mucho antes de lo que cualquiera esperaría. Ojo con el modelo, eso sí: la fórmula de equicorrelación supone que todas las parejas se parecen lo mismo, y el correlograma dice justo lo contrario —la correlación decae con la distancia—. Por eso el resultado es una COTA orientativa y no una cifra de diseño; el cálculo exacto necesita la matriz de correlación entera, que es lo que llega en el capítulo 9."
+  },
+  "e4": {
+    "titulo": "¿Cuál es «la» correlación?",
+    "enunciado": "Toma el puntaje medio de Saber 11 y el porcentaje de hogares con internet, por municipio. Calcula su correlación (a) por municipio, (b) agrupando los municipios en 150 conglomerados espaciales con k-medias sobre sus centroides, y (c) por departamento. Escribe cuál de las tres es la correlación entre puntaje e internet en Colombia.",
+    "pasos": [
+      {
+        "paso": "Municipios con las dos variables",
+        "valor": 1113
+      },
+      {
+        "paso": "r por municipio",
+        "valor": 0.5020179191
+      },
+      {
+        "paso": "r por conglomerado (150 grupos)",
+        "valor": 0.5652758463
+      },
+      {
+        "paso": "r por departamento (33 unidades)",
+        "valor": 0.8056024772
+      }
+    ],
+    "solucion": {
+      "k_intermedia": 150,
+      "municipal": {
+        "n": 1113,
+        "r": 0.5020179191
+      },
+      "conglomerado": {
+        "n": 150,
+        "r": 0.5652758463
+      },
+      "departamental": {
+        "n": 33,
+        "r": 0.8056024772
+      },
+      "subida_mun_dep_pct": 60.4728529699,
+      "monotona": true,
+      "respuesta": "Ninguna de las tres, y las tres. La pregunta está mal planteada: «la correlación entre puntaje e internet en Colombia» no existe hasta que se dice sobre qué unidades se calcula. Las tres cifras son correctas y responden a tres preguntas distintas."
+    },
+    "lectura": "Éste es el problema de la unidad de área modificable (MAUP) en su forma más simple, el efecto ESCALA. El capítulo 3 añade el efecto ZONIFICACIÓN —misma escala, distinta partición— y la falacia ecológica, que es lo que pasa cuando la correlación entre agregados se lee como si fuera la correlación entre personas. Fíjate en que el enunciado agrupa por cercanía y no por departamento: así queda claro que el efecto es de la escala y no de dónde estén las fronteras."
+  },
+  "meta": {
+    "capitulo": 1,
+    "semilla": 2026,
+    "n_ejercicios": 4,
+    "generado": "2026-08-06",
+    "r": "R version 4.4.1 (2024-06-14)"
+  }
+}

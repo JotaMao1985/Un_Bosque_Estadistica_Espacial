@@ -1,0 +1,1471 @@
+{
+  "snow": {
+    "n_muertes": 578,
+    "n_bombas": 13,
+    "n_segmentos": 528,
+    "n_vertices_calle": 1241,
+    "bomba_broad": 7,
+    "n_mas_cerca_broad": 359,
+    "pct_mas_cerca_broad": 62.1107266436,
+    "pct_esperado_uniforme": 7.6923076923,
+    "razon_sobre_uniforme": 8.0743944637,
+    "dist_media_broad": 2.2854141061,
+    "dist_mediana_broad": 2.1679868536,
+    "dist_media_su_bomba": 1.7424650319,
+    "razon_primera_segunda": 0.5785348516,
+    "n_en_poligono": 578,
+    "n_coinciden_tobler": 578,
+    "pct_coinciden_tobler": 100,
+    "fecha_pico": "1854-09-01",
+    "ataques_pico": 143,
+    "fecha_mango": "1854-09-08",
+    "ataques_dia_mango": 12,
+    "ataques_antes_mango": 516,
+    "ataques_desde_mango": 55,
+    "pct_ataques_antes_mango": 90.3677758319,
+    "caida_hasta_mango_pct": 91.6083916084,
+    "muertes_tabla": 616,
+    "n_dias_tabla": 44,
+    "n_dias_con_fecha": 43,
+    "n_dias_sin_fecha": 1,
+    "serie_fecha": ["1854-08-19", "1854-08-20", "1854-08-21", "1854-08-22", "1854-08-23", "1854-08-24", "1854-08-25", "1854-08-26", "1854-08-27", "1854-08-28", "1854-08-29", "1854-08-30", "1854-08-31", "1854-09-01", "1854-09-02", "1854-09-03", "1854-09-04", "1854-09-05", "1854-09-06", "1854-09-07", "1854-09-08", "1854-09-09", "1854-09-10", "1854-09-11", "1854-09-12", "1854-09-13", "1854-09-14", "1854-09-15", "1854-09-16", "1854-09-17", "1854-09-18", "1854-09-19", "1854-09-20", "1854-09-21", "1854-09-22", "1854-09-23", "1854-09-24", "1854-09-25", "1854-09-26", "1854-09-27", "1854-09-28", "1854-09-29", "1854-09-30"],
+    "serie_ataques": [1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 8, 56, 143, 116, 54, 46, 36, 20, 28, 12, 11, 5, 5, 1, 3, 0, 1, 4, 2, 3, 0, 0, 2, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+    "serie_muertes": [1, 0, 2, 0, 0, 2, 0, 0, 1, 0, 1, 2, 3, 70, 127, 76, 71, 45, 37, 32, 30, 24, 18, 15, 6, 13, 6, 8, 6, 5, 2, 3, 0, 0, 2, 3, 0, 0, 2, 0, 2, 1, 0]
+  },
+  "puntual_canonico": {
+    "japanesepines": {
+      "nombre": "Pinos japoneses",
+      "fuente": "Numata (1961), vía spatstat.data",
+      "n": 65,
+      "area": 1,
+      "lambda": 65,
+      "nn_media": 0.0659866063,
+      "nn_sd": 0.0312936961,
+      "nn_esperada": 0.0620173673,
+      "clark_evans": 1.0640020553,
+      "clark_evans_donnelly": 1.0075072432
+    },
+    "redwood": {
+      "nombre": "Plántulas de secuoya",
+      "fuente": "Strauss (1975) / Ripley (1977), vía spatstat.data",
+      "n": 62,
+      "area": 1,
+      "lambda": 62,
+      "nn_media": 0.0392843243,
+      "nn_sd": 0.0258998689,
+      "nn_esperada": 0.0635000635,
+      "clark_evans": 0.6186501573,
+      "clark_evans_donnelly": 0.5849906266
+    },
+    "cells": {
+      "nombre": "Células biológicas",
+      "fuente": "Crick y Ripley, vía spatstat.data",
+      "n": 42,
+      "area": 1,
+      "lambda": 42,
+      "nn_media": 0.1289728746,
+      "nn_sd": 0.0176503299,
+      "nn_esperada": 0.077151675,
+      "clark_evans": 1.6716795148,
+      "clark_evans_donnelly": 1.5604256061
+    }
+  },
+  "area_canonico": {
+    "nombre": "SIDS de Carolina del Norte, 1974-78",
+    "fuente": "Cressie (1993) / Bivand, Pebesma y Gómez-Rubio (2013), vía sf",
+    "n": 100,
+    "sid74_total": 667,
+    "bir74_total": 329962,
+    "tasa_media": 2.0455960298,
+    "tasa_sd": 1.5733399933,
+    "tasa_min": 0,
+    "tasa_max": 9.5541401274,
+    "tasa_global": 2.0214448937,
+    "diferencia_media_global": 0.0241511362,
+    "diferencia_media_global_pct": 1.1947462059,
+    "soporte": {
+      "cor_conteo_nacimientos": 0.8572054753,
+      "cor_conteo_area": 0.406713365,
+      "cor_tasa_nacimientos": -0.0132950513,
+      "razon_nacimientos": 87.0483870968
+    },
+    "crs_epsg": 4267,
+    "crs_nombre": "NAD27 (EPSG:4267)"
+  },
+  "geo_canonico": {
+    "nombre": "Metales pesados en la vega del Mosa (meuse)",
+    "fuente": "Burrough y McDonnell (1998) / Pebesma, vía sp",
+    "n": 155,
+    "zinc_media": 469.7161290323,
+    "zinc_sd": 367.073787742,
+    "zinc_min": 113,
+    "zinc_max": 1839,
+    "log_zinc_media": 5.8857758522,
+    "log_zinc_sd": 0.7218810568,
+    "asimetria_zinc": 1.4578155447,
+    "corr_dist_rio": -0.7394275589,
+    "crs_epsg": 28992
+  },
+  "colombia": {
+    "puntual": {
+      "nombre": "Sedes educativas de Bogotá",
+      "fuente": "Secretaría de Educación del Distrito, v. 12.25 (CC BY-SA 4.0)",
+      "n": 2209,
+      "n_urbana": 2107,
+      "area_urbana_km2": 370.0898165103,
+      "lambda_urbana": 5.6932125825,
+      "area_dc_km2": 1633.1403988709,
+      "n_dc": 2208,
+      "lambda_dc": 1.3519964368,
+      "factor_lambda": 4.2109671503
+    },
+    "area": {
+      "nombre": "Deserción escolar municipal",
+      "fuente": "Ministerio de Educación Nacional, 2024",
+      "n": 1122,
+      "n_con_dato": 1121,
+      "media": 3.4235771632,
+      "sd": 1.7666986857,
+      "minimo": 0,
+      "maximo": 14.81
+    },
+    "geo": {
+      "nombre": "Temperatura media anual, estaciones del IDEAM 1991-2020",
+      "fuente": "IDEAM, vía datos.gov.co",
+      "n": 361,
+      "t_media": 22.4033240997,
+      "t_sd": 5.4718816617,
+      "t_min": 6.4,
+      "t_max": 30.4,
+      "alt_media": 1097.2576177285,
+      "alt_max": 3716,
+      "corr_alt": -0.9791106046,
+      "gradiente": -5.5638752172
+    }
+  },
+  "tobler": {
+    "meuse": {
+      "bandas": [
+        {
+          "d1": 0,
+          "d2": 150,
+          "centro": 75,
+          "I": 0.5537842123,
+          "p": 0,
+          "n_pares": 166,
+          "grado": 2.1419354839
+        },
+        {
+          "d1": 150,
+          "d2": 300,
+          "centro": 225,
+          "I": 0.4331063365,
+          "p": 0,
+          "n_pares": 530,
+          "grado": 6.8387096774
+        },
+        {
+          "d1": 300,
+          "d2": 500,
+          "centro": 400,
+          "I": 0.1703824721,
+          "p": 1.34e-07,
+          "n_pares": 905,
+          "grado": 11.6774193548
+        },
+        {
+          "d1": 500,
+          "d2": 750,
+          "centro": 625,
+          "I": -0.0448210361,
+          "p": 0.9170797943,
+          "n_pares": 1317,
+          "grado": 16.9935483871
+        },
+        {
+          "d1": 750,
+          "d2": 1100,
+          "centro": 925,
+          "I": -0.1634454748,
+          "p": 1,
+          "n_pares": 1828,
+          "grado": 23.5870967742
+        },
+        {
+          "d1": 1100,
+          "d2": 1600,
+          "centro": 1350,
+          "I": -0.0357034104,
+          "p": 0.9307490613,
+          "n_pares": 2146,
+          "grado": 27.6903225806
+        },
+        {
+          "d1": 1600,
+          "d2": 2400,
+          "centro": 2000,
+          "I": 0.0119625648,
+          "p": 0.1455754486,
+          "n_pares": 2598,
+          "grado": 33.5225806452
+        }
+      ],
+      "esperado": -0.0064935065
+    },
+    "ideam": {
+      "bandas": [
+        {
+          "d1": 0,
+          "d2": 25,
+          "centro": 12.5,
+          "I": 0.606348194,
+          "p": 0,
+          "n_pares": 277,
+          "grado": 1.5346260388
+        },
+        {
+          "d1": 25,
+          "d2": 50,
+          "centro": 37.5,
+          "I": 0.5709433411,
+          "p": 0,
+          "n_pares": 806,
+          "grado": 4.4653739612
+        },
+        {
+          "d1": 50,
+          "d2": 100,
+          "centro": 75,
+          "I": 0.3001496815,
+          "p": 0,
+          "n_pares": 2794,
+          "grado": 15.4792243767
+        },
+        {
+          "d1": 100,
+          "d2": 175,
+          "centro": 137.5,
+          "I": 0.1744989117,
+          "p": 0,
+          "n_pares": 6302,
+          "grado": 34.9141274238
+        },
+        {
+          "d1": 175,
+          "d2": 300,
+          "centro": 237.5,
+          "I": 0.0805992971,
+          "p": 0,
+          "n_pares": 12975,
+          "grado": 71.8836565097
+        },
+        {
+          "d1": 300,
+          "d2": 500,
+          "centro": 400,
+          "I": -0.0881923155,
+          "p": 1,
+          "n_pares": 19427,
+          "grado": 107.6288088643
+        },
+        {
+          "d1": 500,
+          "d2": 800,
+          "centro": 650,
+          "I": -0.0034261725,
+          "p": 0.537658802,
+          "n_pares": 16040,
+          "grado": 88.864265928
+        }
+      ],
+      "esperado": -0.0027777778
+    },
+    "permutado": {
+      "bandas": [
+        {
+          "d1": 0,
+          "d2": 25,
+          "centro": 12.5,
+          "I": -0.0253357115,
+          "p": 0.6229252837,
+          "n_pares": 277,
+          "grado": 1.5346260388
+        },
+        {
+          "d1": 25,
+          "d2": 50,
+          "centro": 37.5,
+          "I": -0.0056339055,
+          "p": 0.5241886686,
+          "n_pares": 806,
+          "grado": 4.4653739612
+        },
+        {
+          "d1": 50,
+          "d2": 100,
+          "centro": 75,
+          "I": -0.0042744517,
+          "p": 0.523697139,
+          "n_pares": 2794,
+          "grado": 15.4792243767
+        },
+        {
+          "d1": 100,
+          "d2": 175,
+          "centro": 137.5,
+          "I": -0.0101443335,
+          "p": 0.6719079883,
+          "n_pares": 6302,
+          "grado": 34.9141274238
+        },
+        {
+          "d1": 175,
+          "d2": 300,
+          "centro": 237.5,
+          "I": -0.0070030654,
+          "p": 0.6585625392,
+          "n_pares": 12975,
+          "grado": 71.8836565097
+        },
+        {
+          "d1": 300,
+          "d2": 500,
+          "centro": 400,
+          "I": -0.0078310555,
+          "p": 0.7903374356,
+          "n_pares": 19427,
+          "grado": 107.6288088643
+        },
+        {
+          "d1": 500,
+          "d2": 800,
+          "centro": 650,
+          "I": 0.0020741099,
+          "p": 0.2396543155,
+          "n_pares": 16040,
+          "grado": 88.864265928
+        }
+      ],
+      "esperado": -0.0027777778
+    },
+    "residuos_altitud": {
+      "bandas": [
+        {
+          "d1": 0,
+          "d2": 25,
+          "centro": 12.5,
+          "I": 0.4257999245,
+          "p": 1e-10,
+          "n_pares": 277,
+          "grado": 1.5346260388
+        },
+        {
+          "d1": 25,
+          "d2": 50,
+          "centro": 37.5,
+          "I": 0.3639600063,
+          "p": 0,
+          "n_pares": 806,
+          "grado": 4.4653739612
+        },
+        {
+          "d1": 50,
+          "d2": 100,
+          "centro": 75,
+          "I": 0.2640802093,
+          "p": 0,
+          "n_pares": 2794,
+          "grado": 15.4792243767
+        },
+        {
+          "d1": 100,
+          "d2": 175,
+          "centro": 137.5,
+          "I": 0.1340095986,
+          "p": 0,
+          "n_pares": 6302,
+          "grado": 34.9141274238
+        },
+        {
+          "d1": 175,
+          "d2": 300,
+          "centro": 237.5,
+          "I": -0.0147459886,
+          "p": 0.8774461783,
+          "n_pares": 12975,
+          "grado": 71.8836565097
+        },
+        {
+          "d1": 300,
+          "d2": 500,
+          "centro": 400,
+          "I": -0.0400761831,
+          "p": 0.9999999989,
+          "n_pares": 19427,
+          "grado": 107.6288088643
+        },
+        {
+          "d1": 500,
+          "d2": 800,
+          "centro": 650,
+          "I": -0.0428071836,
+          "p": 0.9999999974,
+          "n_pares": 16040,
+          "grado": 88.864265928
+        }
+      ],
+      "esperado": -0.0027777778
+    },
+    "clark_evans": {
+      "redwood": 0.6186501573,
+      "japanesepines": 1.0640020553,
+      "cells": 1.6716795148
+    },
+    "caida_por_altitud_pct": 29.776334998
+  },
+  "inferencia": {
+    "n": 256,
+    "k": 16,
+    "nrep": 3000,
+    "jitter": 1e-09,
+    "escala_h": "distancia euclídea entre centros de celda, medida en pasos de retícula",
+    "sigma": 1,
+    "t_critico": 1.9693105698,
+    "rejilla": [
+      {
+        "phi": 0,
+        "rho_vecino": 0,
+        "rho_diagonal": 0,
+        "ee_ingenuo": 0.0625222426,
+        "ee_real": 0.0620054323,
+        "ee_exacto": 0.0625,
+        "factor": 0.9917339772,
+        "cobertura": 0.953,
+        "emc_cobertura": 0.003863979,
+        "n_eff": 256,
+        "efecto_diseno": 1,
+        "inflacion_varianza": 0.9835362815,
+        "s2_esperada": 1,
+        "s2_medida": 1.0027097867
+      },
+      {
+        "phi": 0.5,
+        "rho_vecino": 0.1353352832,
+        "rho_diagonal": 0.0591057466,
+        "ee_ingenuo": 0.0623396013,
+        "ee_real": 0.0857176008,
+        "ee_exacto": 0.0859856167,
+        "factor": 1.3750104108,
+        "cobertura": 0.8473333333,
+        "emc_cobertura": 0.0065665708,
+        "n_eff": 135.2534586191,
+        "efecto_diseno": 1.8927427262,
+        "inflacion_varianza": 1.8906536297,
+        "s2_esperada": 0.9964990481,
+        "s2_medida": 0.996927391
+      },
+      {
+        "phi": 1,
+        "rho_vecino": 0.3678794412,
+        "rho_diagonal": 0.2431167344,
+        "ee_ingenuo": 0.061798004,
+        "ee_real": 0.1501353407,
+        "ee_exacto": 0.1478423459,
+        "factor": 2.42945291,
+        "cobertura": 0.587,
+        "emc_cobertura": 0.0089894568,
+        "n_eff": 45.7511810441,
+        "efecto_diseno": 5.5954839669,
+        "inflacion_varianza": 5.9022414419,
+        "s2_esperada": 0.9819784942,
+        "s2_medida": 0.9811543211
+      },
+      {
+        "phi": 2,
+        "rho_vecino": 0.6065306597,
+        "rho_diagonal": 0.4930686914,
+        "ee_ingenuo": 0.0600893186,
+        "ee_real": 0.2679945041,
+        "ee_exacto": 0.2657166997,
+        "factor": 4.4599358155,
+        "cobertura": 0.335,
+        "emc_cobertura": 0.0086173275,
+        "n_eff": 14.1632297613,
+        "efecto_diseno": 18.0749733157,
+        "inflacion_varianza": 19.8910274788,
+        "s2_esperada": 0.9330393203,
+        "s2_medida": 0.9329204882
+      },
+      {
+        "phi": 4,
+        "rho_vecino": 0.7788007831,
+        "rho_diagonal": 0.7021885013,
+        "ee_ingenuo": 0.055615192,
+        "ee_real": 0.4370228288,
+        "ee_exacto": 0.4403036456,
+        "factor": 7.857975732,
+        "cobertura": 0.197,
+        "emc_cobertura": 0.0072615655,
+        "n_eff": 5.1581674595,
+        "efecto_diseno": 49.6300288832,
+        "inflacion_varianza": 61.7477826052,
+        "s2_esperada": 0.8092940044,
+        "s2_medida": 0.8086220791
+      },
+      {
+        "phi": 8,
+        "rho_vecino": 0.8824969026,
+        "rho_diagonal": 0.8379668856,
+        "ee_ingenuo": 0.047762939,
+        "ee_real": 0.6188822991,
+        "ee_exacto": 0.6302273181,
+        "factor": 12.9573747269,
+        "cobertura": 0.1223333333,
+        "emc_cobertura": 0.0059824156,
+        "n_eff": 2.5177091096,
+        "efecto_diseno": 101.6797369583,
+        "inflacion_varianza": 167.8935598143,
+        "s2_esperada": 0.6051775021,
+        "s2_medida": 0.6077266032
+      },
+      {
+        "phi": 16,
+        "rho_vecino": 0.9394130628,
+        "rho_diagonal": 0.9154053122,
+        "ee_ingenuo": 0.0379872704,
+        "ee_real": 0.7783475713,
+        "ee_exacto": 0.7825844811,
+        "factor": 20.4896946421,
+        "cobertura": 0.0753333333,
+        "emc_cobertura": 0.004818652,
+        "n_eff": 1.6328170891,
+        "efecto_diseno": 156.7842483422,
+        "inflacion_varianza": 419.8275865277,
+        "s2_esperada": 0.3890813791,
+        "s2_medida": 0.3891949232
+      }
+    ],
+    "cobertura_independiente": 0.953,
+    "cobertura_phi4": 0.197,
+    "factor_phi4": 7.857975732,
+    "n_eff_phi4": 5.1581674595,
+    "efecto_diseno_phi4": 49.6300288832,
+    "inflacion_varianza_phi4": 61.7477826052,
+    "s2_esperada_phi4": 0.8092940044
+  },
+  "inferencia_real": {
+    "n_municipios": 1121,
+    "n_departamentos": 33,
+    "nboot": 4000,
+    "media": 3.4235771632,
+    "ee_analitico": 0.052766669,
+    "ee_bootstrap_iid": 0.0526902327,
+    "ee_bootstrap_bloques": 0.2196243764,
+    "factor": 4.1682180039,
+    "n_eff": 64.5215456118,
+    "pct_informacion": 5.7557132571,
+    "ic_iid": [3.3203062041, 3.5268481224],
+    "ic_bloques": [2.9931212919, 3.8540330346],
+    "ancho_iid": 0.2065419183,
+    "ancho_bloques": 0.8609117426
+  },
+  "n_efectivo": {
+    "formula": "n_eff = n / (1 + (n-1) rho)",
+    "rhos": [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8],
+    "enes": [25, 50, 100, 250, 500, 1000],
+    "rejilla": [
+      {
+        "n": 25,
+        "n_eff": [25, 20.1612903226, 16.8918918919, 11.3636363636, 7.3529411765, 4.3103448276, 3.0487804878, 1.9230769231, 1.2376237624],
+        "pct": [100, 80.6451612903, 67.5675675676, 45.4545454545, 29.4117647059, 17.2413793103, 12.1951219512, 7.6923076923, 4.9504950495]
+      },
+      {
+        "n": 50,
+        "n_eff": [50, 33.5570469799, 25.2525252525, 14.4927536232, 8.4745762712, 4.6296296296, 3.1847133758, 1.9607843137, 1.2437810945],
+        "pct": [100, 67.1140939597, 50.5050505051, 28.9855072464, 16.9491525424, 9.2592592593, 6.3694267516, 3.9215686275, 2.4875621891]
+      },
+      {
+        "n": 100,
+        "n_eff": [100, 50.2512562814, 33.5570469799, 16.8067226891, 9.1743119266, 4.8076923077, 3.2573289902, 1.9801980198, 1.246882793],
+        "pct": [100, 50.2512562814, 33.5570469799, 16.8067226891, 9.1743119266, 4.8076923077, 3.2573289902, 1.9801980198, 1.246882793]
+      },
+      {
+        "n": 250,
+        "n_eff": [250, 71.6332378223, 41.8060200669, 18.5873605948, 9.6525096525, 4.9212598425, 3.3025099075, 1.9920318725, 1.2487512488],
+        "pct": [100, 28.6532951289, 16.7224080268, 7.4349442379, 3.861003861, 1.968503937, 1.321003963, 0.796812749, 0.4995004995]
+      },
+      {
+        "n": 500,
+        "n_eff": [500, 83.4724540902, 45.5373406193, 19.267822736, 9.8231827112, 4.9603174603, 3.3178500332, 1.996007984, 1.2493753123],
+        "pct": [100, 16.694490818, 9.1074681239, 3.8535645472, 1.9646365422, 0.9920634921, 0.6635700066, 0.3992015968, 0.2498750625]
+      },
+      {
+        "n": 1000,
+        "n_eff": [1000, 90.991810737, 47.664442326, 19.6270853778, 9.910802775, 4.9800796813, 3.3255736615, 1.998001998, 1.2496875781],
+        "pct": [100, 9.0991810737, 4.7664442326, 1.9627085378, 0.9910802775, 0.4980079681, 0.3325573661, 0.1998001998, 0.1249687578]
+      }
+    ],
+    "caso_n1000_rho001": 90.991810737,
+    "exacto_campo": [
+      {
+        "phi": 0,
+        "n_eff": 256,
+        "pct": 100
+      },
+      {
+        "phi": 0.5,
+        "n_eff": 135.2534586191,
+        "pct": 52.8333822731
+      },
+      {
+        "phi": 1,
+        "n_eff": 45.7511810441,
+        "pct": 17.8715550954
+      },
+      {
+        "phi": 2,
+        "n_eff": 14.1632297613,
+        "pct": 5.5325116255
+      },
+      {
+        "phi": 4,
+        "n_eff": 5.1581674595,
+        "pct": 2.0149091639
+      },
+      {
+        "phi": 8,
+        "n_eff": 2.5177091096,
+        "pct": 0.9834801209
+      },
+      {
+        "phi": 16,
+        "n_eff": 1.6328170891,
+        "pct": 0.6378191754
+      }
+    ],
+    "desercion_municipal": 64.5215456118,
+    "desercion_n": 1121,
+    "desercion_pct": 5.7557132571,
+    "rho_del_titular": {
+      "n": 1121,
+      "n_eff_publicado": 64.5215456118,
+      "implicito": 0.0146196798,
+      "estimado": 0.0021242543,
+      "n_eff_con_estimado": 331.7387719662,
+      "razon_rho": 6.8822642863,
+      "razon_n_eff": 5.141519299,
+      "I_primera_banda": 0.2882024967,
+      "n_bandas": 7,
+      "pares_totales": 573306,
+      "pares_lejanos": 312508,
+      "bandas": [
+        {
+          "d1": 0,
+          "d2": 25,
+          "I": 0.2882024967,
+          "pares": 3482,
+          "islas": 156
+        },
+        {
+          "d1": 25,
+          "d2": 50,
+          "I": 0.2870733053,
+          "pares": 9756,
+          "islas": 47
+        },
+        {
+          "d1": 50,
+          "d2": 100,
+          "I": 0.1810417344,
+          "pares": 31482,
+          "islas": 13
+        },
+        {
+          "d1": 100,
+          "d2": 175,
+          "I": 0.0758220381,
+          "pares": 63507,
+          "islas": 3
+        },
+        {
+          "d1": 175,
+          "d2": 300,
+          "I": -0.052893668,
+          "pares": 127896,
+          "islas": 2
+        },
+        {
+          "d1": 300,
+          "d2": 500,
+          "I": -0.0549104602,
+          "pares": 184612,
+          "islas": 2
+        },
+        {
+          "d1": 500,
+          "d2": 800,
+          "I": 0.0249121516,
+          "pares": 152571,
+          "islas": 0
+        }
+      ],
+      "metodo": "correlograma por bandas sobre los puntos interiores de los municipios, I de Moran por banda y promedio ponderado por el número de pares de cada una — el método del ejercicio 3"
+    }
+  },
+  "una_realizacion": {
+    "n": 256,
+    "k": 16,
+    "phi": 4,
+    "n_realizaciones": 1000,
+    "media_del_proceso": 0,
+    "media_de_las_medias": 0.0207776926,
+    "sd_de_las_medias": 0.4214459097,
+    "media_min": -1.2313491382,
+    "media_max": 1.3686486795,
+    "pct_rechaza_ingenuo": 82,
+    "emc_rechaza": 1.2149074039,
+    "pct_esperado_si_valiera": 5,
+    "pct_rechaza_modulo4": 80.3,
+    "discrepancia_con_modulo4": 1.7,
+    "sd_espacial_media": 0.8890490786,
+    "sd_espacial_min": 0.6055432334,
+    "sd_espacial_max": 1.3782464364,
+    "medias_muestra": [0.1048800029, 0.4700825839, 0.1952287936, -0.4111954332, 0.2442256591, -0.0289439086, -0.5169165248, 0.3193019552, 0.3055841113, -0.3401232822, -0.7861191786, -1.1431609775],
+    "variograma": {
+      "lags": [1, 2, 3, 4, 5, 6, 7, 8],
+      "teorico": [0.2211992169, 0.3934693403, 0.5276334473, 0.6321205588, 0.7134952031, 0.7768698399, 0.8262260565, 0.8646647168],
+      "media": [0.2573559467, 0.4144596839, 0.5291182435, 0.6336924656, 0.7178457587, 0.7763288654, 0.8234470378, 0.8598726901],
+      "q05": [0.2142743109, 0.3209898928, 0.3822494401, 0.4302709122, 0.4691613342, 0.4841921118, 0.4963451477, 0.5045240669],
+      "q95": [0.3051485846, 0.5237966883, 0.7042336019, 0.8873273286, 1.0348607782, 1.1539911725, 1.2709190474, 1.3905082377]
+    },
+    "banda_rel_lag4": 0.7230526045
+  },
+  "realizaciones_vistas": [
+    {
+      "id": 1,
+      "media": 0.1048800029,
+      "sd": 0.937812186,
+      "variograma": [0.2505606592, 0.3745864371, 0.4548081632, 0.553996243, 0.6253730917, 0.7221417807, 0.8236601205, 0.9135783645],
+      "desvio_rel_max": 0.1380224936,
+      "lag_desvio_max": 3,
+      "desvio_rel_lag4": 0.1235908479,
+      "lags_fuera_banda": 0
+    },
+    {
+      "id": 2,
+      "media": 0.4700825839,
+      "sd": 0.9096668055,
+      "variograma": [0.2775788319, 0.457469636, 0.5576635045, 0.6300359162, 0.7039085114, 0.8067058436, 0.8660896777, 0.9012472925],
+      "desvio_rel_max": 0.2548816208,
+      "lag_desvio_max": 1,
+      "desvio_rel_lag4": 0.003297856,
+      "lags_fuera_banda": 0
+    },
+    {
+      "id": 3,
+      "media": 0.1952287936,
+      "sd": 1.0739143854,
+      "variograma": [0.2490699033, 0.3997071979, 0.5069493493, 0.6561835022, 0.8212522526, 0.9421448302, 1.0432210009, 1.1478520295],
+      "desvio_rel_max": 0.3275111234,
+      "lag_desvio_max": 8,
+      "desvio_rel_lag4": 0.038067016,
+      "lags_fuera_banda": 0
+    }
+  ],
+  "agregacion_soporte": {
+    "nc": {
+      "total_condados": 667,
+      "n_celdas": 100,
+      "total_rectangulos": 2621,
+      "inflacion_pct": 292.9535232384,
+      "total_por_area": 667,
+      "condado_caso": {
+        "nombre": "Mecklenburg",
+        "indice": 68,
+        "sids": 44,
+        "n_celdas_toca": 5,
+        "celdas_tocadas": [44, 45, 54, 55, 64],
+        "aporte_predicado": 220,
+        "exceso": 176,
+        "exceso_total": 1954,
+        "pct_del_exceso": 9.0071647902,
+        "roce_pct": 0.0023145804,
+        "roce_aporte_area": 0.0010184154,
+        "fraccion_total_pct": 100,
+        "reparto": [
+          {
+            "celda": 44,
+            "fila": 5,
+            "columna": 4,
+            "fraccion_pct": 30.6757734533,
+            "aporte_area": 13.4973403194
+          },
+          {
+            "celda": 45,
+            "fila": 5,
+            "columna": 5,
+            "fraccion_pct": 21.6438378266,
+            "aporte_area": 9.5232886437
+          },
+          {
+            "celda": 54,
+            "fila": 6,
+            "columna": 4,
+            "fraccion_pct": 32.9826980267,
+            "aporte_area": 14.5123871318
+          },
+          {
+            "celda": 55,
+            "fila": 6,
+            "columna": 5,
+            "fraccion_pct": 14.695376113,
+            "aporte_area": 6.4659654897
+          },
+          {
+            "celda": 64,
+            "fila": 7,
+            "columna": 4,
+            "fraccion_pct": 0.0023145804,
+            "aporte_area": 0.0010184154
+          }
+        ]
+      }
+    },
+    "colombia": {
+      "n_departamentos": 33,
+      "dif_media_abs": 0.3682426059,
+      "dif_max": 2.1245280868,
+      "cor_reglas": 0.9294669746,
+      "moran_sin_ponderar": 0.0635960159,
+      "moran_por_area": 0.0352581459,
+      "p_por_area": 0.2707490018
+    }
+  },
+  "escala": {
+    "n_municipal": 1121,
+    "moran_municipal": 0.3809079276,
+    "p_municipal": 0,
+    "islas_municipal": 2,
+    "subgrafos_municipal": 3,
+    "grado_municipal": 5.8537020517,
+    "n_departamental": 33,
+    "moran_departamental": 0.0635960159,
+    "p_departamental": 0.198002161,
+    "grado_departamental": 4.4848484848,
+    "islas_departamental": 1,
+    "caida_pct": 83.304097589,
+    "moran_municipal_n_total": 0.3815887282,
+    "moran_departamental_n_total": 0.0655833914
+  },
+  "discrepancias": [
+    {
+      "id": "moran_islas",
+      "que": "El I de Moran de la deserción municipal",
+      "valor_r": 0.3809079276,
+      "valor_python": 0.3815887282,
+      "diferencia": 0.0006808006,
+      "causa": "Con zero.policy = TRUE, spdep::moran.test toma n = unidades CON vecinos (1 119 de 1 121, porque hay 2 islas) mientras esda.Moran toma n = todas las unidades. Mismo grafo, misma fórmula, dos convenios sobre qué es una unidad sin vecinos.",
+      "va_a": "capítulo 6, módulo 9 (islas y zero.policy)"
+    },
+    {
+      "id": "moran_islas_dep",
+      "que": "El I de Moran de la deserción departamental",
+      "valor_r": 0.0635960159,
+      "valor_python": 0.0655833914,
+      "diferencia": 0.0019873755,
+      "causa": "El mismo convenio, a escala departamental: San Andrés queda como isla de la contigüidad y los dos programas la cuentan distinto. Con 33 unidades la diferencia relativa es mayor que con 1 121.",
+      "va_a": "capítulo 6, módulo 9 (islas y zero.policy)"
+    },
+    {
+      "id": "tipo_geometria_nc",
+      "que": "El tipo de geometría de los 100 condados de nc.shp",
+      "valor_r": 100,
+      "valor_python": 6,
+      "diferencia": 94,
+      "causa": "sf informa MULTIPOLYGON para los 100 porque ése es el tipo declarado de la CAPA; shapely mira cada geometría y solo 6 condados tienen más de una parte, así que geopandas informa Polygon para los otros 94. La geometría es idéntica: lo que difiere es qué se considera el tipo de un rasgo.",
+      "va_a": "capítulo 1, módulo 9 (anatomía de un objeto sf)"
+    }
+  ],
+  "escala_correlacion": {
+    "n_variables": 8,
+    "n_pares": 13,
+    "n_suben": 8,
+    "n_bajan": 5,
+    "n_invierten": 1,
+    "pares": [
+      {
+        "a": "cobertura",
+        "b": "s11_pct_internet",
+        "a_etiqueta": "Cobertura neta (%)",
+        "b_etiqueta": "Hogares con internet (%)",
+        "r_municipal": 0.3345183434,
+        "r_departamental": 0.5451418715,
+        "razon": 1.6296322226,
+        "cambio_pct": 62.9632222646,
+        "invierte_signo": false
+      },
+      {
+        "a": "cobertura",
+        "b": "s11_edu_madre_media",
+        "a_etiqueta": "Cobertura neta (%)",
+        "b_etiqueta": "Educación de la madre (escala ordinal)",
+        "r_municipal": 0.4213715117,
+        "r_departamental": 0.6350258793,
+        "razon": 1.5070451172,
+        "cambio_pct": 50.7045117233,
+        "invierte_signo": false
+      },
+      {
+        "a": "cobertura",
+        "b": "s11_pct_oficial",
+        "a_etiqueta": "Cobertura neta (%)",
+        "b_etiqueta": "Colegios oficiales (%)",
+        "r_municipal": -0.405396128,
+        "r_departamental": -0.3057728792,
+        "razon": 0.7542570294,
+        "cambio_pct": -24.5742970628,
+        "invierte_signo": false
+      },
+      {
+        "a": "s11_punt_medio",
+        "b": "s11_pct_internet",
+        "a_etiqueta": "Puntaje medio Saber 11",
+        "b_etiqueta": "Hogares con internet (%)",
+        "r_municipal": 0.5020179191,
+        "r_departamental": 0.8056024772,
+        "razon": 1.6047285298,
+        "cambio_pct": 60.4728529764,
+        "invierte_signo": false
+      },
+      {
+        "a": "s11_punt_medio",
+        "b": "s11_cob_internet",
+        "a_etiqueta": "Puntaje medio Saber 11",
+        "b_etiqueta": "Cobertura del dato de internet (%)",
+        "r_municipal": 0.2727499456,
+        "r_departamental": 0.4794237695,
+        "razon": 1.7577410273,
+        "cambio_pct": 75.7741027252,
+        "invierte_signo": false
+      },
+      {
+        "a": "s11_punt_medio",
+        "b": "s11_edu_madre_media",
+        "a_etiqueta": "Puntaje medio Saber 11",
+        "b_etiqueta": "Educación de la madre (escala ordinal)",
+        "r_municipal": 0.30167303,
+        "r_departamental": 0.3723110496,
+        "razon": 1.2341542415,
+        "cambio_pct": 23.4154241454,
+        "invierte_signo": false
+      },
+      {
+        "a": "s11_punt_medio",
+        "b": "s11_pct_oficial",
+        "a_etiqueta": "Puntaje medio Saber 11",
+        "b_etiqueta": "Colegios oficiales (%)",
+        "r_municipal": -0.3724064039,
+        "r_departamental": -0.5470002766,
+        "razon": 1.4688261828,
+        "cambio_pct": 46.8826182757,
+        "invierte_signo": false
+      },
+      {
+        "a": "s11_pct_internet",
+        "b": "s11_edu_madre_media",
+        "a_etiqueta": "Hogares con internet (%)",
+        "b_etiqueta": "Educación de la madre (escala ordinal)",
+        "r_municipal": 0.5789320031,
+        "r_departamental": 0.5514688353,
+        "razon": 0.9525623602,
+        "cambio_pct": -4.7437639783,
+        "invierte_signo": false
+      },
+      {
+        "a": "s11_pct_internet",
+        "b": "s11_pct_oficial",
+        "a_etiqueta": "Hogares con internet (%)",
+        "b_etiqueta": "Colegios oficiales (%)",
+        "r_municipal": -0.4883041364,
+        "r_departamental": -0.6329607707,
+        "razon": 1.2962429018,
+        "cambio_pct": 29.6242901779,
+        "invierte_signo": false
+      },
+      {
+        "a": "s11_pct_internet",
+        "b": "s11_estrato_medio",
+        "a_etiqueta": "Hogares con internet (%)",
+        "b_etiqueta": "Estrato medio",
+        "r_municipal": 0.280919998,
+        "r_departamental": -0.1960200158,
+        "razon": -0.6977787881,
+        "cambio_pct": -169.777878809,
+        "invierte_signo": true
+      },
+      {
+        "a": "s11_edu_madre_media",
+        "b": "s11_pct_oficial",
+        "a_etiqueta": "Educación de la madre (escala ordinal)",
+        "b_etiqueta": "Colegios oficiales (%)",
+        "r_municipal": -0.5644923799,
+        "r_departamental": -0.6454452705,
+        "razon": 1.1434082966,
+        "cambio_pct": 14.3408296619,
+        "invierte_signo": false
+      },
+      {
+        "a": "s11_edu_madre_media",
+        "b": "s11_estrato_medio",
+        "a_etiqueta": "Educación de la madre (escala ordinal)",
+        "b_etiqueta": "Estrato medio",
+        "r_municipal": 0.3592765963,
+        "r_departamental": 0.1121015604,
+        "razon": 0.3120202139,
+        "cambio_pct": -68.7979786079,
+        "invierte_signo": false
+      },
+      {
+        "a": "s11_pct_oficial",
+        "b": "s11_estrato_medio",
+        "a_etiqueta": "Colegios oficiales (%)",
+        "b_etiqueta": "Estrato medio",
+        "r_municipal": -0.3608594129,
+        "r_departamental": -0.2750350153,
+        "razon": 0.762166665,
+        "cambio_pct": -23.7833335033,
+        "invierte_signo": false
+      }
+    ],
+    "principal": {
+      "a": "s11_punt_medio",
+      "b": "s11_pct_internet",
+      "r_municipal": 0.5020179191,
+      "r_departamental": 0.8056024772,
+      "barrido": [
+        {
+          "umbral": 1,
+          "n": 1113,
+          "r": 0.5020179191
+        },
+        {
+          "umbral": 10,
+          "n": 1113,
+          "r": 0.5020179191
+        },
+        {
+          "umbral": 30,
+          "n": 1097,
+          "r": 0.5144493648
+        },
+        {
+          "umbral": 100,
+          "n": 911,
+          "r": 0.608643859
+        },
+        {
+          "umbral": 300,
+          "n": 510,
+          "r": 0.7506650075
+        }
+      ],
+      "diferencia_umbral_30": 0.0124314457,
+      "estable_ante_unidades_pequenas": true,
+      "monotono": true,
+      "recorrido_barrido": 0.2486470884
+    },
+    "caso_aviso": {
+      "a": "s11_pct_internet",
+      "b": "s11_estrato_medio",
+      "r_municipal": 0.280919998,
+      "r_departamental": -0.1960200158,
+      "nota": "El estrato quedó congelado en T0.4 como caso de aviso: su ausencia no es aleatoria. Se muestra como advertencia, no como resultado."
+    }
+  },
+  "agregacion": {
+    "k": 64,
+    "s": 0.6,
+    "rango_correlacion": 6,
+    "corr_teorica_base": 0.36,
+    "mecanismo": "El componente independiente es ruido blanco y el compartido es un campo suave: promediar cancela el primero y conserva el segundo.",
+    "niveles": [
+      {
+        "bloque": 1,
+        "n_unidades": 4096,
+        "celdas_por_unidad": 1,
+        "corr": 0.3507466226
+      },
+      {
+        "bloque": 2,
+        "n_unidades": 1024,
+        "celdas_por_unidad": 4,
+        "corr": 0.6620976985
+      },
+      {
+        "bloque": 4,
+        "n_unidades": 256,
+        "celdas_por_unidad": 16,
+        "corr": 0.8681915507
+      },
+      {
+        "bloque": 8,
+        "n_unidades": 64,
+        "celdas_por_unidad": 64,
+        "corr": 0.9591152361
+      },
+      {
+        "bloque": 16,
+        "n_unidades": 16,
+        "celdas_por_unidad": 256,
+        "corr": 0.9895435632
+      }
+    ],
+    "corr_base": 0.3507466226,
+    "corr_max": 0.9895435632,
+    "subida_pct": 182.1249014074
+  },
+  "ecosistema": {
+    "r_version": "R version 4.4.1 (2024-06-14)",
+    "paquetes": [
+      {
+        "nombre": "sf",
+        "papel": "Geometría vectorial: leer, escribir, proyectar, medir, unir",
+        "version": "1.0.22"
+      },
+      {
+        "nombre": "spatstat",
+        "papel": "Patrones puntuales: ppp, K, G, F, ppm",
+        "version": "3.5.1"
+      },
+      {
+        "nombre": "spdep",
+        "papel": "Vecindad y pesos espaciales: nb, listw, Moran, LISA",
+        "version": "1.4.2"
+      },
+      {
+        "nombre": "gstat",
+        "papel": "Geoestadística: variograma y kriging",
+        "version": "2.1.5"
+      },
+      {
+        "nombre": "tmap",
+        "papel": "Mapas temáticos con gramática de capas",
+        "version": "4.2"
+      },
+      {
+        "nombre": "spatialreg",
+        "papel": "Econometría espacial: SAR, SEM, SDM, impactos",
+        "version": "1.4.3"
+      },
+      {
+        "nombre": "terra",
+        "papel": "Datos ráster: leer, recortar, remuestrear y hacer álgebra de mapas",
+        "version": "1.8.80"
+      },
+      {
+        "nombre": "stars",
+        "papel": "Cubos espacio-temporales y ráster con dimensiones con nombre",
+        "version": "0.7.1"
+      },
+      {
+        "nombre": "classInt",
+        "papel": "Cortes de clase para coropletos: cuantiles, Jenks, Fisher",
+        "version": "0.4.11"
+      },
+      {
+        "nombre": "sfdep",
+        "papel": "Interfaz tidy sobre spdep, para encadenar con dplyr",
+        "version": "0.2.5"
+      }
+    ],
+    "sistema": {
+      "GDAL": "3.8.5",
+      "GEOS": "3.13.0",
+      "PROJ": "9.5.1"
+    }
+  },
+  "anatomia": {
+    "nc": {
+      "filas": 100,
+      "columnas": 15,
+      "columnas_atributo": 14,
+      "tipo_geom": "MULTIPOLYGON",
+      "n_multipolygon": 100,
+      "n_partes_multiples": 6,
+      "n_vertices": 2529,
+      "bbox": [-84.3238525391, 33.8819923401, -75.4569778442, 36.5896492004],
+      "bytes_sf": 143192,
+      "bytes_atributos": 24632,
+      "bytes_geometria": 116280,
+      "pct_geometria": 81.2056539471
+    },
+    "clases": {
+      "sfg": "XY, POINT, sfg",
+      "sfc": "sfc_POINT, sfc",
+      "sf": "sf, data.frame",
+      "sfg_bytes": 424,
+      "sfc_bytes": 4392,
+      "sf_bytes": 6488
+    },
+    "ppp": {
+      "clase": "ppp",
+      "n": 65,
+      "ventana_tipo": "rectangle",
+      "ventana_area": 1,
+      "marcado": false,
+      "bytes": 4056
+    }
+  },
+  "cv_espacial": {
+    "n": 361,
+    "k_vecinos": 5,
+    "n_pliegues": 10,
+    "variable": "temperatura media anual (°C)",
+    "sd_variable": 5.4718816617,
+    "rmse_aleatoria": 3.163068919,
+    "rmse_bloques": 5.5461948224,
+    "inflacion_pct": 75.3422060824,
+    "razon": 1.7534220608,
+    "r2_aleatoria": 0.6658481142,
+    "r2_bloques": -0.0273462716,
+    "tam_pliegues": [1, 2, 8, 28, 30, 50, 56, 60, 62, 64],
+    "tam_pliegue_min": 1,
+    "tam_pliegue_max": 64,
+    "frontera": "El desarrollo (blockCV, spatialsample, tamaño de bloque guiado por el rango del variograma y área de aplicabilidad) es del capítulo 10."
+  },
+  "diseno_modelo": {
+    "n": 361,
+    "area_total_km2": 1138101.6238589941,
+    "area_min_km2": 22.2701372611,
+    "area_max_km2": 103601.8058775238,
+    "razon_areas": 4652.0506210953,
+    "t_media_simple": 22.4033240997,
+    "t_media_area": 24.9728055916,
+    "brecha_c": 2.5694814919,
+    "alt_media_simple": 1097.2576177285,
+    "alt_media_area": 478.9926127487
+  },
+  "glosario": {
+    "titulo": "Notación de Estadística Espacial",
+    "nota": "La notación unificada de los diez capítulos. La columna «Texto guía» remite a Bivand, Pebesma y Gómez-Rubio (2013) para datos de área y geoestadística, y a Baddeley, Rubak y Turner (2015) para patrones puntuales.",
+    "columnas": [
+      {
+        "clave": "simbolo",
+        "titulo": "Símbolo",
+        "tipo": "mate"
+      },
+      {
+        "clave": "nombre",
+        "titulo": "Qué es",
+        "tipo": "texto"
+      },
+      {
+        "clave": "guia",
+        "titulo": "Texto guía",
+        "tipo": "texto"
+      },
+      {
+        "clave": "en_r",
+        "titulo": "En R",
+        "tipo": "codigo"
+      }
+    ],
+    "filas": [
+      {
+        "simbolo": "s",
+        "nombre": "Una localización del dominio",
+        "guia": "Bivand §1.2",
+        "en_r": "st_coordinates()"
+      },
+      {
+        "simbolo": "D",
+        "nombre": "El dominio de estudio",
+        "guia": "Bivand §1.2",
+        "en_r": "st_bbox()"
+      },
+      {
+        "simbolo": "Z(s)",
+        "nombre": "El valor del proceso en la localización s",
+        "guia": "Bivand §8.1",
+        "en_r": "x$variable"
+      },
+      {
+        "simbolo": "h",
+        "nombre": "Vector (o distancia) de separación entre dos localizaciones",
+        "guia": "Bivand §8.4",
+        "en_r": "st_distance()"
+      },
+      {
+        "simbolo": "C(h)",
+        "nombre": "Covarianza entre dos puntos separados h",
+        "guia": "Bivand §8.4",
+        "en_r": "gstat::variogram()"
+      },
+      {
+        "simbolo": "\\gamma(h)",
+        "nombre": "Semivariograma",
+        "guia": "Bivand §8.4",
+        "en_r": "gstat::variogram()"
+      },
+      {
+        "simbolo": "\\lambda",
+        "nombre": "Intensidad de un patrón puntual",
+        "guia": "Baddeley §6.2",
+        "en_r": "spatstat.geom::intensity()"
+      },
+      {
+        "simbolo": "\\bar{d}_{\\min}",
+        "nombre": "Distancia media al vecino más próximo",
+        "guia": "Baddeley §8.2",
+        "en_r": "mean(spatstat.geom::nndist())"
+      },
+      {
+        "simbolo": "R",
+        "nombre": "Índice de Clark-Evans: lo observado frente a lo que daría el azar",
+        "guia": "Baddeley §8.2",
+        "en_r": "spatstat.explore::clarkevans()['naive']"
+      },
+      {
+        "simbolo": "W",
+        "nombre": "Matriz de pesos espaciales",
+        "guia": "Bivand §9.2",
+        "en_r": "spdep::nb2listw()"
+      },
+      {
+        "simbolo": "Wy",
+        "nombre": "Rezago espacial: la media de los vecinos",
+        "guia": "Bivand §9.3",
+        "en_r": "spdep::lag.listw()"
+      },
+      {
+        "simbolo": "I",
+        "nombre": "Índice de Moran (autocorrelación global)",
+        "guia": "Bivand §9.3",
+        "en_r": "spdep::moran.test()"
+      },
+      {
+        "simbolo": "n_{\\text{eff}}",
+        "nombre": "Tamaño de muestra efectivo",
+        "guia": "Cressie §1.3",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\rho",
+        "nombre": "Coeficiente de retardo espacial (SAR)",
+        "guia": "Bivand §9.4",
+        "en_r": "spatialreg::lagsarlm()"
+      },
+      {
+        "simbolo": "G_i^*",
+        "nombre": "Estadístico de Getis-Ord local",
+        "guia": "Bivand §9.3",
+        "en_r": "spdep::localG()"
+      }
+    ]
+  },
+  "arbol": {
+    "titulo": "¿Qué método necesito?",
+    "raiz": "tipo",
+    "nodos": [
+      {
+        "id": "tipo",
+        "pregunta": "¿Qué es aleatorio en tu dato?",
+        "opciones": [
+          {
+            "texto": "La LOCALIZACIÓN de los eventos",
+            "destino": "puntual"
+          },
+          {
+            "texto": "El VALOR sobre unidades territoriales fijas",
+            "destino": "area"
+          },
+          {
+            "texto": "El VALOR de algo que existe en todo punto",
+            "destino": "geo"
+          }
+        ]
+      },
+      {
+        "id": "puntual",
+        "pregunta": "Patrón puntual. ¿Qué preguntas?",
+        "opciones": [
+          {
+            "texto": "¿Hay agregación o regularidad?",
+            "destino": "hoja_k",
+            "metodo": "K de Ripley, g(r), envolventes",
+            "capitulo": 4
+          },
+          {
+            "texto": "¿Dónde es más intenso?",
+            "destino": "hoja_kde",
+            "metodo": "Estimación por núcleos de la intensidad",
+            "capitulo": 5
+          },
+          {
+            "texto": "¿Qué covariables lo explican?",
+            "destino": "hoja_ppm",
+            "metodo": "ppm, proceso de Poisson inhomogéneo",
+            "capitulo": 5
+          }
+        ]
+      },
+      {
+        "id": "area",
+        "pregunta": "Dato de área. ¿Qué preguntas?",
+        "opciones": [
+          {
+            "texto": "¿Lo cercano se parece?",
+            "destino": "hoja_moran",
+            "metodo": "I de Moran, c de Geary, LISA, G*",
+            "capitulo": 7
+          },
+          {
+            "texto": "¿Cómo defino quién es vecino?",
+            "destino": "hoja_w",
+            "metodo": "poly2nb, knn2nb, dnearneigh, nb2listw",
+            "capitulo": 6
+          },
+          {
+            "texto": "¿Qué explica la variable?",
+            "destino": "hoja_sar",
+            "metodo": "SAR, SEM, SDM, GWR",
+            "capitulo": 8
+          }
+        ]
+      },
+      {
+        "id": "geo",
+        "pregunta": "Dato geoestadístico. ¿Qué preguntas?",
+        "opciones": [
+          {
+            "texto": "¿Cómo decae la dependencia?",
+            "destino": "hoja_vario",
+            "metodo": "Variograma empírico y modelo teórico",
+            "capitulo": 9
+          },
+          {
+            "texto": "¿Cuánto vale donde no medí?",
+            "destino": "hoja_krig",
+            "metodo": "Kriging ordinario, universal o con deriva",
+            "capitulo": 9
+          },
+          {
+            "texto": "¿Cuánto me fío de mi modelo predictivo?",
+            "destino": "hoja_cv",
+            "metodo": "Validación cruzada espacial por bloques",
+            "capitulo": 10
+          }
+        ]
+      }
+    ]
+  },
+  "meta": {
+    "capitulo": 1,
+    "titulo": "Datos espaciales y la primera ley de la geografía",
+    "semana": 1,
+    "generado": "2026-08-10",
+    "semilla": 2026,
+    "r": "R version 4.4.1 (2024-06-14)",
+    "anclas_verificadas": 29
+  }
+}

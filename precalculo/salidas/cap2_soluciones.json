@@ -1,0 +1,309 @@
+{
+  "e1": {
+    "titulo": "Tres municipios, cuatro sistemas y una decisión que cambia",
+    "enunciado": "Carga la capa municipal con `carga_municipios()` y quédate con los municipios CONTINENTALES cuyos centroides estén: (a) sobre el meridiano central de EPSG:3116, (b) a la distancia mediana de él y (c) lo más lejos posible. Calcula el área de los tres en EPSG:3116, EPSG:9377 y EPSG:3857, y compárala con el área geodésica sobre el elipsoide (`sf_use_s2(FALSE)` y `st_area` sobre lon/lat). ¿Qué sistema elegirías para un informe nacional si el criterio es el PEOR error? Ahora añade San Andrés a los tres. ¿Cambia tu respuesta? ¿Y si el criterio fuera el error MEDIANO en lugar del peor?",
+    "pasos": [
+      {
+        "paso": "Municipio sobre el meridiano central",
+        "valor": "Cubarral (Meta), a 0.0022°"
+      },
+      {
+        "paso": "Municipio a la distancia mediana",
+        "valor": "Marulanda (Caldas), a 1.2057°"
+      },
+      {
+        "paso": "Municipio continental más lejano",
+        "valor": "La Guadalupe (Guain<U+00ED>a), a 7.0760°"
+      },
+      {
+        "paso": "Área geodésica de los tres (km²)",
+        "valor": [1157.8557429563, 376.7927022046, 1160.8733270854]
+      },
+      {
+        "paso": "Error de EPSG:3116 en los tres (%)",
+        "valor": [0.0008407179, 0.0442740249, 1.5501213573]
+      },
+      {
+        "paso": "Error de EPSG:9377 en los tres (%)",
+        "valor": [-0.1238430554, -0.0014428516, 0.9490068395]
+      },
+      {
+        "paso": "Error de EPSG:3857 en los tres (%)",
+        "valor": [1.1187766634, 1.5081163598, 0.7344668664]
+      },
+      {
+        "paso": "Peor error de cada uno, sin la isla (%)",
+        "valor": [1.5501213573, 0.9490068395, 1.5081163598]
+      },
+      {
+        "paso": "Peor error de 3116 y 9377 añadiendo San Andrés (%)",
+        "valor": [1.7242388367, 2.0889537731]
+      }
+    ],
+    "solucion": {
+      "municipios": ["Cubarral", "Marulanda", "La Guadalupe"],
+      "departamentos": ["Meta", "Caldas", "Guain<U+00ED>a"],
+      "grados_al_meridiano": [0.0022140208, 1.2056600694, 7.075991167],
+      "area_elipsoide_km2": [1157.8557429563, 376.7927022046, 1160.8733270854],
+      "area_3116_km2": [1157.8654772574, 376.9595234994, 1178.8682724596],
+      "area_9377_km2": [1156.421819027, 376.7872656451, 1171.8900943569],
+      "area_3857_km2": [1170.8095628041, 382.475174589, 1169.3995570342],
+      "err_3116_pct": [0.0008407179, 0.0442740249, 1.5501213573],
+      "err_9377_pct": [-0.1238430554, -0.0014428516, 0.9490068395],
+      "err_3857_pct": [1.1187766634, 1.5081163598, 0.7344668664],
+      "peor_3116_pct": 1.5501213573,
+      "peor_9377_pct": 0.9490068395,
+      "peor_3857_pct": 1.5081163598,
+      "mediano_3116_pct": 0.0442740249,
+      "mediano_9377_pct": 0.1238430554,
+      "elegido_continente": "EPSG:9377",
+      "isla": "San Andr<U+00E9>s",
+      "isla_grados_al_meridiano": 7.6401168232,
+      "err_3116_isla_pct": 1.7242388367,
+      "err_9377_isla_pct": 2.0889537731,
+      "peor_3116_con_isla_pct": 1.7242388367,
+      "peor_9377_con_isla_pct": 2.0889537731,
+      "elegido_con_isla": "EPSG:3116",
+      "la_isla_cambia_la_respuesta": true
+    },
+    "lectura": "EPSG:3116 es exacto donde se definió —sobre su meridiano central el error de área es cero por construcción, porque k = 1— y se degrada al alejarse. EPSG:9377 renuncia a ese cero, con k = 0,9992, a cambio de que el peor caso del país sea más pequeño: por eso el IGAC lo adoptó como origen único nacional, y por eso gana cuando el criterio es el peor error continental. Pero pierde cuando el criterio es el error MEDIANO, porque paga el factor de escala en todas partes; y pierde también, del revés, en cuanto entra San Andrés: el archipiélago está 700 km mar adentro y le queda más cerca el meridiano de 3116 que el de 9377. Un solo municipio de 1 122 puede dar la vuelta a la recomendación. Ese es el resultado que hay que llevarse: «¿qué CRS uso?» no tiene respuesta sin decir PARA QUÉ, SOBRE QUÉ EXTENSIÓN y CON QUÉ CRITERIO. Y fíjate en que 3857 pierde con cualquiera de los tres criterios: es un sistema para teselas de mapa web, no para medir."
+  },
+  "e2": {
+    "titulo": "Un buffer de 500 metros que no mide 500 metros",
+    "enunciado": "Con las 2 209 sedes educativas de Bogotá, cuenta para cada una cuántas otras caen dentro de un radio de 200, 500 y 1 000 m. Hazlo dos veces: (a) proyectando a EPSG:9377 y usando `st_buffer(x, r)` en metros, y (b) dejando el objeto en EPSG:4326 y usando `st_buffer(x, (r/1000)/111.32)`, que es la conversión de kilómetros a grados en el ecuador. ¿A cuántas sedes les cambia la cuenta con cada radio? ¿La cuenta equivocada sale de más o de menos, y por qué? Y para terminar: calcula cuánto mediría ese mismo buffer en grados, en la dirección este-oeste, a la latitud de Bogotá y a la de Oslo (59,9139°).",
+    "pasos": [
+      {
+        "paso": "Sedes",
+        "valor": 2209
+      },
+      {
+        "paso": "Radio 200 m · sedes con la cuenta cambiada",
+        "valor": 27
+      },
+      {
+        "paso": "Radio 500 m · sedes con la cuenta cambiada",
+        "valor": 161
+      },
+      {
+        "paso": "Radio 1 000 m · sedes con la cuenta cambiada",
+        "valor": 399
+      },
+      {
+        "paso": "Radio real este-oeste a la latitud de Bogotá (m), con 500 m nominales",
+        "valor": 498.3641845798
+      },
+      {
+        "paso": "El mismo, a la latitud de Oslo (m)",
+        "valor": 250.650418003
+      }
+    ],
+    "solucion": {
+      "n_sedes": 2209,
+      "radios": [
+        {
+          "radio_m": 200,
+          "total_bien": 2942,
+          "total_grados": 2914,
+          "n_cambian": 27,
+          "pct_cambian": 1.2222725215,
+          "sesgo_total": -28
+        },
+        {
+          "radio_m": 500,
+          "total_bien": 14678,
+          "total_grados": 14510,
+          "n_cambian": 161,
+          "pct_cambian": 7.2883657764,
+          "sesgo_total": -168
+        },
+        {
+          "radio_m": 1000,
+          "total_bien": 50922,
+          "total_grados": 50466,
+          "n_cambian": 399,
+          "pct_cambian": 18.0624717067,
+          "sesgo_total": -456
+        }
+      ],
+      "lat_media_bogota": 4.6359447587,
+      "radio_ns_m": 499.1555874955,
+      "radio_eo_bogota_m": 498.3641845798,
+      "radio_eo_oslo_m": 250.650418003,
+      "achatamiento_bogota": 0.9984145166,
+      "achatamiento_oslo": 0.5021488776,
+      "cuenta_de_menos": true
+    },
+    "lectura": "Un buffer en grados no es un círculo sobre el terreno: es una elipse, más achatada cuanto más lejos del ecuador, porque un grado de longitud encoge con el coseno de la latitud y uno de latitud casi no (módulo 2). En Bogotá el achatamiento es de menos de medio punto porcentual, y aun así basta para mover la cuenta de cientos de sedes: el buffer queda un poco corto por los dos lados y se deja fuera a los vecinos que estaban justo en el borde. Fíjate en que el efecto CRECE con el radio, porque cuantos más vecinos hay cerca del borde, más se cae alguno. Y en que el error es sistemático, no aleatorio: siempre cuenta de menos. La versión peligrosa de este error no es la de Bogotá sino la de Oslo, donde el mismo código produce un buffer que en la dirección este-oeste mide la mitad de lo que dice — y ese código se escribe una vez cerca del ecuador y se reutiliza en otra parte."
+  },
+  "e3": {
+    "titulo": "Un archivo con el 12 % de las filas invertidas",
+    "enunciado": "Toma las 361 estaciones del IDEAM e invierte la longitud y la latitud del 12 % de las filas, elegidas al azar con `set.seed(2026)`. Ahora olvida cuáles invertiste. Escribe una regla que las señale usando solo la caja envolvente de Colombia (lon de -82,0 a -66,5; lat de -4,5 a 13,5) y calcula sus verdaderos positivos, falsos positivos, falsos negativos, precisión y exhaustividad. Después invierte las señaladas y comprueba cuántas filas quedan bien. ¿Por qué funciona tan bien AQUÍ, y en qué país fallaría?",
+    "pasos": [
+      {
+        "paso": "Filas totales",
+        "valor": 361
+      },
+      {
+        "paso": "Filas invertidas a propósito",
+        "valor": 43
+      },
+      {
+        "paso": "Filas señaladas por la regla",
+        "valor": 43
+      },
+      {
+        "paso": "Verdaderos positivos",
+        "valor": 43
+      },
+      {
+        "paso": "Falsos positivos",
+        "valor": 0
+      },
+      {
+        "paso": "Falsos negativos",
+        "valor": 0
+      },
+      {
+        "paso": "Filas correctas tras invertir las señaladas",
+        "valor": 361
+      }
+    ],
+    "solucion": {
+      "n": 361,
+      "n_invertidas": 43,
+      "pct_invertidas": 11.9113573407,
+      "caja": [-82, -66.5, -4.5, 13.5],
+      "vp": 43,
+      "fp": 0,
+      "fn": 0,
+      "vn": 318,
+      "precision": 1,
+      "exhaustividad": 1,
+      "n_arregladas_bien": 361,
+      "pct_arregladas_bien": 100,
+      "solapan_las_cajas": false
+    },
+    "lectura": "La regla acierta de pleno, y conviene entender por qué: el intervalo de longitudes de Colombia y el de latitudes NO SE SOLAPAN —uno vive en los negativos de dos cifras y el otro entre -4,5 y 13,5—, así que invertir saca al punto de la caja sin excepción. Donde esa condición no se cumple, la regla se calla: en un país que ocupe longitudes y latitudes del mismo rango (Chad, por ejemplo, o cualquier punto cerca del meridiano de Greenwich y del ecuador a la vez) hay filas invertidas que caen dentro del país y no hay forma geométrica de distinguirlas. Ahí la única defensa es la de la fuente: que el CSV declare el orden y que alguien lo lea."
+  },
+  "e4": {
+    "titulo": "El vecino más próximo aguanta; el umbral de vecindad, no",
+    "enunciado": "Para las 361 estaciones del IDEAM calcula dos matrices de distancias: la euclídea sobre las columnas de longitud y latitud, y la geodésica con `st_distance`. Primero: ¿a cuántas estaciones les cambia el vecino MÁS PRÓXIMO? Segundo: define vecindad por umbral —como hace `spdep::dnearneigh`— a 25, 50, 100 y 200 km, usando `km/111.32` grados en un caso y metros en el otro, y cuenta en cuántos PARES discrepan las dos definiciones. Explica por qué los dos resultados son tan distintos.",
+    "pasos": [
+      {
+        "paso": "Estaciones y pares",
+        "valor": "361 estaciones, 64980 pares"
+      },
+      {
+        "paso": "Estaciones a las que les cambia el vecino más próximo",
+        "valor": 0
+      },
+      {
+        "paso": "Correlación entre las dos matrices de distancia",
+        "valor": 0.9999942246
+      },
+      {
+        "paso": "Pares que discrepan con umbral de 25 km",
+        "valor": 7
+      },
+      {
+        "paso": "Pares que discrepan con umbral de 200 km",
+        "valor": 107
+      },
+      {
+        "paso": "Y eso, sobre los pares que SÍ son vecinos a 200 km (%)",
+        "valor": 0.8488021577
+      }
+    ],
+    "solucion": {
+      "n": 361,
+      "n_pares": 64980,
+      "n_cambia_vecino": 0,
+      "pct_cambia_vecino": 0,
+      "corr_grados_metros": 0.9999942246,
+      "umbrales": [
+        {
+          "umbral_km": 25,
+          "pares_grados": 270,
+          "pares_geodesica": 277,
+          "discrepan": 7,
+          "pct_discrepan": 0.0107725454,
+          "pct_sobre_los_vecinos": 2.5270758123
+        },
+        {
+          "umbral_km": 50,
+          "pares_grados": 1074,
+          "pares_geodesica": 1082,
+          "discrepan": 8,
+          "pct_discrepan": 0.0123114805,
+          "pct_sobre_los_vecinos": 0.7393715342
+        },
+        {
+          "umbral_km": 100,
+          "pares_grados": 3844,
+          "pares_geodesica": 3877,
+          "discrepan": 33,
+          "pct_discrepan": 0.0507848569,
+          "pct_sobre_los_vecinos": 0.8511735878
+        },
+        {
+          "umbral_km": 200,
+          "pares_grados": 12499,
+          "pares_geodesica": 12606,
+          "discrepan": 107,
+          "pct_discrepan": 0.1646660511,
+          "pct_sobre_los_vecinos": 0.8488021577
+        }
+      ],
+      "anisotropia": 0.9954762457,
+      "lat_media": 5.4519390582,
+      "vecino_intacto": true,
+      "umbral_falla": true
+    },
+    "lectura": "El vecino más próximo no cambia para ninguna estación, y el umbral discrepa en cientos de pares. Las dos cosas salen del mismo dato y no se contradicen. El vecino más próximo es una pregunta de ORDEN: sobrevive a cualquier deformación que no altere el ranking, y en Colombia un grado de longitud mide el 99,67 % de uno de latitud, así que la deformación es demasiado leve para invertir un orden. El umbral es una pregunta de MAGNITUD: hay un corte, y todo par que caiga cerca de él cambia de lado con que la distancia se mueva un 0,3 %. Por eso el número de discrepancias crece con el umbral —hay más pares cerca del corte— y por eso una definición de vecindad por distancia es más frágil que una por k vecinos. Es la decisión que abre el capítulo 6: `dnearneigh` contra `knearneigh` no es cuestión de gusto."
+  },
+  "e5": {
+    "titulo": "Un requisito, y la tolerancia que implica",
+    "enunciado": "El requisito del proyecto es: «como mucho el 1 % de las sedes puede quedar asignado a una localidad que no es la suya». Con las 2 209 sedes de Bogotá y las 20 localidades, añade a las coordenadas un ruido gaussiano isótropo de desviación sigma metros y estima, promediando 40 realizaciones, la proporción de sedes que cambian de localidad. Barre sigma y despeja el mayor valor que cumple el requisito. ¿Qué precisión de geocodificación estás exigiendo, entonces?",
+    "pasos": [
+      {
+        "paso": "Sedes y localidades",
+        "valor": "2209 sedes, 20 localidades"
+      },
+      {
+        "paso": "Sigma barridos (m)",
+        "valor": [10, 25, 50, 75, 100, 150, 250]
+      },
+      {
+        "paso": "Tasa de reasignación en cada uno (%)",
+        "valor": [0.1810774106, 0.5160706202, 0.892937981, 1.4203259393, 1.9861928474, 3.0771842463, 5.4198732458]
+      },
+      {
+        "paso": "Objetivo",
+        "valor": "1 % de reasignación"
+      },
+      {
+        "paso": "Sigma máximo admisible (m)",
+        "valor": 52.1484375
+      }
+    ],
+    "solucion": {
+      "n_sedes": 2209,
+      "n_localidades": 20,
+      "objetivo_pct": 1,
+      "sigma_barrido_m": [10, 25, 50, 75, 100, 150, 250],
+      "tasa_pct": [0.1810774106, 0.5160706202, 0.892937981, 1.4203259393, 1.9861928474, 3.0771842463, 5.4198732458],
+      "sigma_max_m": 52.1484375,
+      "tasa_en_sigma_max_pct": 1.0036215482,
+      "decimales_equivalentes": 3.3293318973,
+      "n_replicas": 40
+    },
+    "lectura": "El requisito «1 % mal asignado» se traduce en una tolerancia de unas pocas decenas de metros, que es MÁS EXIGENTE de lo que suena y más de lo que muchos geocodificadores por dirección garantizan. Ese es el valor del ejercicio: los requisitos se escriben en unidades de resultado («1 % mal asignado») y las fuentes se compran en unidades de posición («precisión de nivel de calle»), y traducir de unas a otras es trabajo, no intuición. La traducción además no es universal: depende de la GEOMETRÍA de las unidades, así que el mismo requisito sobre municipios grandes toleraría un error mucho mayor. Es la contracara del sesgo del módulo 9."
+  },
+  "meta": {
+    "capitulo": 2,
+    "semilla": 2026,
+    "n_ejercicios": 5,
+    "generado": "2026-08-05",
+    "r": "R version 4.4.1 (2024-06-14)"
+  }
+}

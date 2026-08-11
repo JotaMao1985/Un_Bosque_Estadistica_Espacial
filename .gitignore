@@ -1,0 +1,70 @@
+# Lista blanca: se ignora todo lo de la raíz y se reactiva solo lo que forma parte
+# del proyecto. La carpeta de trabajo tiene 431 MB en `datos/` —crudo y procesado—
+# que no deben acabar en un repositorio público.
+#
+# Al añadir una carpeta nueva al proyecto hay que añadir también su `!/carpeta/`,
+# y comprobarlo con `git check-ignore -v ruta`: la lista blanca se traga en
+# silencio cualquier cosa que no esté aquí.
+/*
+
+!/.gitignore
+!/.nojekyll
+!/README.md
+!/index.html
+!/PLAN_Material_Estadistica_Espacial.md
+!/PLAN_Mejora_Capitulo1.md
+!/Htmls_Espacial/
+!/plantilla/
+!/precalculo/
+!/ensamblado/
+
+# Dentro de lo reactivado, esto nunca se versiona.
+
+# Material con derechos de autor: los libros de texto NO se versionan ni se
+# publican. Este repositorio va a GitHub Pages (público); subir un libro
+# escaneado sería redistribución no autorizada, además de inflar el historial.
+# Cubre además el `Rplots.pdf` de 8 MB que deja Rscript al abrir un dispositivo
+# gráfico sin nombre de archivo.
+*.pdf
+*.epub
+
+# Datos geográficos sueltos. El módulo 7 del capítulo 2 escribe su shapefile de
+# demostración en `tempdir()`, pero una ejecución interactiva de ese bloque deja
+# `prueba.shp` y compañía —3 MB— en la carpeta desde la que se lanzó R. La lista
+# blanca ya los excluye en la raíz; estas líneas los excluyen TAMBIÉN dentro de
+# `precalculo/` y `Htmls_Espacial/`, que sí están reactivadas.
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.sbn
+*.sbx
+*.gpkg
+*.geojson
+
+# El caché de cómputo del capítulo 3: 33 MB de .rds que `genera_cap3.R` rehace
+# solo si faltan. Cae DENTRO de `!/precalculo/`, así que hay que excluirlo aparte.
+precalculo/cache/
+*.rds
+
+# macOS
+.DS_Store
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*_cache/
+*_files/
+
+# Cachés de Python (los scripts de ensamblado importan módulos locales)
+__pycache__/
+*.pyc
+
+# Guiones temporales que escribe precalculo/verifica_bloques.py
+precalculo/.tmp_verifica/
+
+# Temporales de ofimática
+~$*
+*.tmp
