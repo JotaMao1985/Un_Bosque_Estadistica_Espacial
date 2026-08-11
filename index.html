@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Material de estudio interactivo de Estadística Espacial (20929) — Universidad El Bosque, 2026-II. Diez capítulos autocontenidos con mapas, simuladores y código en R y Python.">
+    <meta name="author" content="Universidad El Bosque — Matemáticas y Ciencia de Datos">
+    <title>Estadística Espacial — Menú Principal UnBosque</title>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- External Resources -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind Configuration — la misma paleta que los capítulos -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Montserrat', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#012820',
+                        secondary: '#FF6600',
+                        navy: '#012820',
+                        gold: '#FFC24B',
+                        bg: '#F8FAFC',
+                        surface: '#FFFFFF',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #F8FAFC;
+            color: #1E293B;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Gradiente institucional: el verde de El Bosque hacia el naranja de acento */
+        .bosque-gradient {
+            background: linear-gradient(140deg, #012820 0%, #FF6600 100%);
+        }
+
+        .bosque-header {
+            background: linear-gradient(180deg, #012820 0%, #01412F 100%);
+        }
+
+        .bosque-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .bosque-card:hover {
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+            transform: translateY(-5px);
+        }
+
+        .bosque-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #012820, #FF6600);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .bosque-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-number {
+            position: absolute;
+            right: 15px;
+            top: -10px;
+            font-size: 5rem;
+            font-weight: 800;
+            color: rgba(1, 40, 32, 0.05);
+            z-index: 0;
+            line-height: 1;
+        }
+
+        .card-content {
+            z-index: 1;
+            padding: 2rem 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            color: #012820;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            color: #64748B;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            flex-grow: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-btn {
+            display: inline-flex;
+            align-items: center;
+            color: #FF6600;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card-btn i {
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .bosque-card:hover .card-btn {
+            color: #012820;
+        }
+
+        .bosque-card:hover .card-btn i {
+            transform: translateX(4px);
+        }
+
+        /* La semana del cronograma, arriba a la izquierda de cada tarjeta */
+        .card-semana {
+            display: inline-block;
+            /* `.card-content` es flex en columna: sin esto, el inline-block se
+               estira a todo el ancho de la tarjeta por align-items: stretch y
+               la píldora deja de parecer una píldora. */
+            align-self: flex-start;
+            background: #F1F5F4;
+            color: #012820;
+            border: 1px solid #D8E6E0;
+            padding: 0.2rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        /* Los capítulos que aún no existen NO son enlaces: se ven, para que el
+           estudiante tenga el mapa del curso, pero no prometen una página que
+           devolvería un 404. */
+        .bosque-card.pendiente {
+            box-shadow: none;
+            border: 1px dashed #CBD5E1;
+            background: #FCFDFD;
+        }
+
+        .bosque-card.pendiente:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .bosque-card.pendiente::before {
+            display: none;
+        }
+
+        .bosque-card.pendiente .card-title {
+            color: #64748B;
+        }
+
+        .bosque-card.pendiente .card-number {
+            color: rgba(100, 116, 139, 0.06);
+        }
+
+        .etiqueta-pendiente {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #94A3B8;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        header {
+            padding: 4rem 1.5rem;
+            text-align: center;
+            color: white;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-bosque {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.4rem 1.2rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Va por CLASE, no por elemento. El preflight de Tailwind resetea
+           `h1 { font-size: inherit; font-weight: inherit }` y el CDN lo
+           inyecta en tiempo de ejecución, DESPUÉS de este bloque: una regla
+           `h1 {...}` tiene la misma especificidad y pierde por orden, así que
+           el título salía a 16 px y peso 400 —más pequeño que su propio
+           subtítulo, que sí funciona porque `p.subtitle` lleva clase—. */
+        .titulo-principal {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        p.subtitle {
+            font-size: 1.15rem;
+            opacity: 0.9;
+            max-width: 640px;
+            margin: 0 auto;
+            font-weight: 400;
+        }
+
+        main {
+            flex-grow: 1;
+        }
+
+        .seccion-titulo {
+            color: #012820;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+        }
+
+        .seccion-nota {
+            color: #64748B;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        footer {
+            background-color: #012820;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 4rem;
+        }
+
+        footer a {
+            color: #FFC24B;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .titulo-principal { font-size: 2.2rem; }
+            header { padding: 3rem 1rem; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="bosque-header">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="badge-bosque">Universidad El Bosque · 2026-II</div>
+            <h1 class="titulo-principal">Estadística Espacial</h1>
+            <p class="subtitle">Material de estudio interactivo del curso 20929. Cada capítulo es una página
+                autocontenida con mapas, simuladores y el mismo análisis resuelto en R y en Python.</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+
+        <h2 class="seccion-titulo">Capítulos publicados</h2>
+        <p class="seccion-nota">Listos para estudiar. Cada uno trae doce módulos, autoevaluación y ejercicios
+            guiados.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <!-- Capítulo 1 -->
+            <a href="Htmls_Espacial/capitulo-1-datos-espaciales.html" class="block group">
+                <div class="bosque-card">
+                    <div class="card-number">1</div>
+                    <div class="card-content">
+                        <span class="card-semana">Semana 1</span>
+                        <div class="flex items-center gap-3 mb-3 relative z-10">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
+                                <i class="fas fa-map-location-dot"></i>
+                            </div>
+                            <h2 class="card-title mb-0">Datos espaciales y la primera ley</h2>
+                        </div>
+                        <p class="card-desc">Del mapa del cólera de John Snow a los tres tipos de dato espacial.
+                            La ley de Tobler medida en vez de citada, por qué se rompe la inferencia clásica y qué
+                            queda del tamaño de muestra cuando hay dependencia.</p>
+                        <div>
+                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Capítulo 2 -->
+            <a href="Htmls_Espacial/capitulo-2-crs-georreferenciacion.html" class="block group">
+                <div class="bosque-card">
+                    <div class="card-number">2</div>
+                    <div class="card-content">
+                        <span class="card-semana">Semanas 2–3</span>
+                        <div class="flex items-center gap-3 mb-3 relative z-10">
+                            <div class="w-10 h-10 rounded-lg bg-orange-50 text-secondary flex items-center justify-center">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <h2 class="card-title mb-0">CRS y georreferenciación</h2>
+                        </div>
+                        <p class="card-desc">La Tierra no es plana ni una esfera: geoide, elipsoide y datum.
+                            Cuánto mide un grado, por qué proyectar siempre destruye algo y cómo se maneja todo eso
+                            con <code>sf</code>.</p>
+                        <div>
+                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Capítulo 3 -->
+            <a href="Htmls_Espacial/capitulo-3-cartografia-maup.html" class="block group">
+                <div class="bosque-card">
+                    <div class="card-number">3</div>
+                    <div class="card-content">
+                        <span class="card-semana">Semanas 4–5</span>
+                        <div class="flex items-center gap-3 mb-3 relative z-10">
+                            <div class="w-10 h-10 rounded-lg bg-amber-50 text-gold flex items-center justify-center">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <h2 class="card-title mb-0">Cartografía estadística y el MAUP</h2>
+                        </div>
+                        <p class="card-desc">Qué decisiones hay dentro de un coropleto. Normalizar o mentir,
+                            por qué R y Python discrepan al clasificar, y el problema de la unidad de área
+                            modificable con dato colombiano.</p>
+                        <div>
+                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+
+        <h2 class="seccion-titulo mt-16">En preparación</h2>
+        <p class="seccion-nota">El resto del cronograma. Aparecen aquí para que tengas el mapa completo del curso;
+            todavía no hay página que abrir.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <div class="bosque-card pendiente">
+                <div class="card-number">4</div>
+                <div class="card-content">
+                    <span class="card-semana">Semanas 6–7</span>
+                    <div class="flex items-center gap-3 mb-3 relative z-10">
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
+                            <i class="fas fa-braille"></i>
+                        </div>
+                        <h2 class="card-title mb-0">Patrones puntuales</h2>
+                    </div>
+                    <p class="card-desc">Descripción, aleatoriedad espacial completa (CSR) y las funciones de
+                        resumen <em>G</em>, <em>F</em>, <em>K</em> y <em>g</em>.</p>
+                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
+                </div>
+            </div>
+
+            <div class="bosque-card pendiente">
+                <div class="card-number">5</div>
+                <div class="card-content">
+                    <span class="card-semana">Semanas 8–9</span>
+                    <div class="flex items-center gap-3 mb-3 relative z-10">
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <h2 class="card-title mb-0">Intensidad y procesos puntuales</h2>
+                    </div>
+                    <p class="card-desc">Estimación de intensidad por núcleos y modelamiento de procesos
+                        puntuales.</p>
+                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
+                </div>
+            </div>
+
+            <div class="bosque-card pendiente">
+                <div class="card-number">6</div>
+                <div class="card-content">
+                    <span class="card-semana">Semanas 10–11</span>
+                    <div class="flex items-center gap-3 mb-3 relative z-10">
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
+                            <i class="fas fa-diagram-project"></i>
+                        </div>
+                        <h2 class="card-title mb-0">Datos de área y matriz de pesos</h2>
+                    </div>
+                    <p class="card-desc">Quién es vecino de quién, y cuánto depende de esa decisión todo lo que
+                        viene después.</p>
+                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
+                </div>
+            </div>
+
+            <div class="bosque-card pendiente">
+                <div class="card-number">7</div>
+                <div class="card-content">
+                    <span class="card-semana">Semanas 12–13</span>
+                    <div class="flex items-center gap-3 mb-3 relative z-10">
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
+                            <i class="fas fa-chart-area"></i>
+                        </div>
+                        <h2 class="card-title mb-0">Autocorrelación global y local</h2>
+                    </div>
+                    <p class="card-desc">La I de Moran y los indicadores locales de asociación espacial.</p>
+                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
+                </div>
+            </div>
+
+            <div class="bosque-card pendiente">
+                <div class="card-number">8</div>
+                <div class="card-content">
+                    <span class="card-semana">Semana 14</span>
+                    <div class="flex items-center gap-3 mb-3 relative z-10">
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
+                            <i class="fas fa-scale-balanced"></i>
+                        </div>
+                        <h2 class="card-title mb-0">Econometría espacial</h2>
+                    </div>
+                    <p class="card-desc">Modelos SAR, SEM y SDM, y regresión geográficamente ponderada (GWR).</p>
+                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
+                </div>
+            </div>
+
+            <div class="bosque-card pendiente">
+                <div class="card-number">9</div>
+                <div class="card-content">
+                    <span class="card-semana">Semana 15</span>
+                    <div class="flex items-center gap-3 mb-3 relative z-10">
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
+                            <i class="fas fa-mountain-sun"></i>
+                        </div>
+                        <h2 class="card-title mb-0">Geoestadística</h2>
+                    </div>
+                    <p class="card-desc">El variograma y el kriging: predecir donde no se midió.</p>
+                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
+                </div>
+            </div>
+
+            <div class="bosque-card pendiente">
+                <div class="card-number">10</div>
+                <div class="card-content">
+                    <span class="card-semana">Semana 16</span>
+                    <div class="flex items-center gap-3 mb-3 relative z-10">
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h2 class="card-title mb-0">ML espacial y proyecto integrador</h2>
+                    </div>
+                    <p class="card-desc">Aprendizaje automático con dependencia espacial, datos espacio-temporales
+                        y el proyecto final.</p>
+                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Cómo está hecho: es material de un curso de estadística, y de dónde
+             salen las cifras forma parte de lo que se enseña. -->
+        <div class="mt-16 bg-white rounded-2xl border border-slate-200 p-8">
+            <h2 class="seccion-titulo"><i class="fas fa-flask-vial mr-2" style="color:#FF6600;"></i>Cómo está hecho
+                este material</h2>
+            <p class="text-slate-600 leading-relaxed mb-4" style="max-width: 72ch;">
+                Ninguna cifra de estas páginas está escrita a mano. Todas las calcula R desde las fuentes
+                primarias, viajan al navegador en un JSON y un arnés de auditoría las recalcula de forma
+                independiente en Python antes de publicar: si las dos vías no coinciden, el capítulo no sale.
+                Los bloques de código se <em>ejecutan</em> de verdad y se contrasta su salida contra la que
+                anuncian.
+            </p>
+            <p class="text-slate-600 leading-relaxed" style="max-width: 72ch;">
+                Los datos son en su mayoría colombianos —sedes educativas de Bogotá, estaciones del IDEAM,
+                deserción escolar municipal— junto a los casos canónicos de la literatura, para que puedas
+                contrastar cada número contra el libro de texto.
+            </p>
+            <div class="mt-6">
+                <a href="https://github.com/JotaMao1985/Un_Bosque_Estadistica_Espacial"
+                   class="card-btn" style="color:#FF6600;">
+                    Ver el código en GitHub <i class="fas fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="mb-2"><strong>Universidad El Bosque</strong> — Matemáticas y Ciencia de Datos</p>
+            <p class="mb-2">Estadística Espacial (20929) · 2026-II</p>
+            <p class="text-xs" style="color:#9FBDB2;">Material de estudio interactivo. Publicado con GitHub Pages.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
