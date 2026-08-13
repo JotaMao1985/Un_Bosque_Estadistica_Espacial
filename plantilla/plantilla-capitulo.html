@@ -865,10 +865,38 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    /* `width` cambia de valor con el ancho de pantalla porque en móvil y en
+       escritorio la tabla ancha es dos problemas distintos, y no el mismo
+       problema en dos tamaños.
+
+       A 375 px repartir el ancho entre seis columnas deja columnas de
+       treinta píxeles: ahí lo correcto es NO repartir. `max-content`
+       significa «ninguna celda salta de línea, nunca»: la tabla mide lo
+       que mida y el envoltorio de arriba se encarga de desplazarla.
+
+       En escritorio hay ancho de sobra, y ahí esa misma regla se vuelve el
+       defecto. Una celda con una frase de sesenta caracteres se convierte
+       ella sola en una columna de 510 px, y así la tabla de los tres tipos
+       de dato del módulo 2 del capítulo 1 medía 2 143 px dentro de un
+       contenedor de 812. Lo caro no era desplazarse 1 331 px: era que la
+       cabecera de fila —«Patrón puntual»— se iba por la izquierda al
+       hacerlo, así que al llegar a la quinta columna ya no se sabía de
+       qué fila se estaba leyendo. Una tabla que hay que memorizar para
+       poder leerla no está haciendo su trabajo.
+
+       El cambio no toca a las tablas que ya cabían: con `min-width: 100%`
+       una tabla corta medía el 100 % por los dos caminos. Medido sobre los
+       tres capítulos —50 tablas— solo cambian las 7 que hoy se desbordan. */
     .tabla-scroll table {
       margin-bottom: 0;
       min-width: 100%;
-      width: max-content;
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .tabla-scroll table {
+        width: max-content;
+      }
     }
 
     table {
@@ -900,6 +928,33 @@
 
     table tr:hover {
       background-color: #fff7ed;
+    }
+
+    /* Matriz de dos ejes: los sujetos encabezan las columnas y los atributos
+       encabezan las filas, de modo que las dos primeras bandas —la de arriba y
+       la de la izquierda— son cabeceras y el resto son datos. La usa la tabla
+       de los tres tipos de dato del módulo 2 del capítulo 1. */
+
+    /* La celda de la esquina no encabeza nada: ni la fila de los sujetos ni la
+       columna de los atributos. Va como `<td>` vacío y no como `<th>` —es lo
+       que recomienda la WAI para las tablas de dos ejes— para que un lector
+       de pantalla no anuncie una cabecera que no existe. El precio es que hay
+       que pintarla a mano: `table th` le da el verde a las cabeceras, y un
+       `<td>` no entra en ese selector, así que sin esta regla queda un hueco
+       blanco en la esquina de la banda verde. */
+    .tabla-matriz thead td {
+      background-color: #012820;
+      border-bottom: none;
+    }
+
+    /* El reparto automático le daría a la columna de los atributos el mismo
+       ancho que a las de contenido, y no lo necesita: sus etiquetas son de
+       dos palabras y las de al lado llevan las frases largas. Estrechándola
+       al 22 % los sujetos ganan unos 30 px cada uno, que es donde el ancho
+       hace falta. Va en porcentaje y no en píxeles porque el contenedor mide
+       812 px en el cuerpo del módulo y 760 dentro de una tarjeta. */
+    .tabla-matriz th[scope="row"] {
+      width: 22%;
     }
 
     /* Session Header - CSS Puro */
@@ -2951,15 +3006,38 @@
       vertical-align: middle;
     }
 
+    /* Estas dos declaraciones iban por POSICIÓN —`td:not(:first-child)`—, y
+       eso funcionaba mientras todos los glosarios usaran las columnas por
+       defecto, donde la prosa va primera y las tres siguientes son cortas.
+       Pero `columnas` es configurable —lo celebra el propio
+       `iniciarGlosarios()`— y el glosario de notación del capítulo 1 las
+       reordena: el símbolo primero y «Qué es» segunda. La regla caía
+       entonces justo al revés y le ponía `white-space: nowrap` a frases de
+       sesenta y cinco caracteres —«Índice de Clark-Evans: lo observado
+       frente a lo que daría el azar»—. Una celda que no puede partirse fija
+       el ancho mínimo de su columna, así que la tabla se quedaba en 919 px
+       dentro de un panel de 774 y solo se podía leer desplazándola.
+
+       Ahora van por el `tipo` que la columna ya declaraba y que el generador
+       tiraba a la basura al pintar. Es el dato del que de verdad dependen:
+       un símbolo, una cita y una llamada a R no se parten nunca; una frase
+       sí. Y al no depender del sitio, la regla vale para el orden de
+       columnas que elija cualquier capítulo. */
+    .glosario-panel tbody td.glos-mate,
+    .glosario-panel tbody td.glos-referencia,
+    .glosario-panel tbody td.glos-codigo {
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* Va DESPUÉS de las reglas por tipo, y gana el empate de especificidad
+       por orden de aparición, a propósito: el realce de la primera columna
+       sí es posicional. Sea un símbolo o un concepto, la columna de la
+       izquierda es la que se lee como etiqueta de la fila. */
     .glosario-panel tbody td:first-child {
       text-align: left;
       font-weight: 500;
       color: #1e293b;
-    }
-
-    .glosario-panel tbody td:not(:first-child) {
-      text-align: center;
-      white-space: nowrap;
     }
 
     .glosario-panel code {
@@ -3613,12 +3691,14 @@
 
       <p>Cuando un resultado tiene un desarrollo algebraico que no todos los lectores necesitan, va en una
         <strong>derivación plegable</strong>: quien acepta la fórmula sigue leyendo sin tropezar con media página de
-        álgebra, y quien quiere el porqué lo abre.</p>
+        álgebra, y quien quiere el porqué lo abre. El rótulo del botón es libre y admite fórmula —conviene que diga
+        <em>qué</em> se demuestra ahí dentro, porque quien decide si abre lo decide sin haberlo abierto—; el motor lo
+        conserva y solo lo cambia por «Ocultar el desarrollo» mientras está desplegado.</p>
 
       <div class="derivacion">
         <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-demo">
           <i class="fas fa-square-root-variable" aria-hidden="true"></i>
-          <span class="derivacion-texto">Ver el desarrollo paso a paso</span>
+          <span class="derivacion-texto">Ver por qué \(|\rho_k| \le 1\)</span>
           <i class="fas fa-chevron-down" aria-hidden="true"></i>
         </button>
         <div class="derivacion-panel" id="der-demo" hidden>
@@ -5106,6 +5186,12 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     // (aria-controls apuntando al id del .derivacion-panel, que arranca
     // con el atributo hidden). El desarrollo va en un <ol class="derivacion-pasos">.
     //
+    // El rótulo del botón, dentro de .derivacion-texto, es LIBRE y puede
+    // llevar fórmula: el motor lo conserva y solo lo sustituye por «Ocultar
+    // el desarrollo» mientras el panel está abierto. Un rótulo que nombra lo
+    // que hay dentro —«Ver de dónde sale \(1/(2\sqrt{\lambda})\)»— vale más
+    // que uno genérico, porque quien decide si abre lo decide desde fuera.
+    //
     // loadModule() ya pasa KaTeX por TODO el módulo, incluidos los paneles
     // ocultos, así que las fórmulas están renderizadas antes del primer clic;
     // katexEn(panel) aquí es la red de seguridad para contenido inyectado
@@ -5346,7 +5432,7 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     // contenedor con data-glosario="id".
     //
     // `columnas` es una lista de {clave, titulo, tipo} con tipo en
-    // 'texto' | 'mate' | 'codigo'. Es opcional: sin ella se usan las
+    // 'texto' | 'referencia' | 'mate' | 'codigo'. Es opcional: sin ella se usan las
     // cuatro por defecto (Concepto · Este material · Texto guía · En R).
     // Cada fila es un objeto con las claves que declaren las columnas.
     //
@@ -5382,6 +5468,12 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         // Un guion largo se deja tal cual: envolverlo en $…$ dispara un
         // aviso de KaTeX y además se ve peor.
         const mate = txt => (txt && txt !== '—') ? `$${txt}$` : (txt || '');
+        // `referencia` —una cita como «Bivand §8.4»— no aparece aquí a
+        // propósito: se PINTA igual que `texto`, texto plano, y solo se
+        // distingue al darle estilo, donde sí importa que no se parta entre
+        // el autor y la sección. Es un tipo del vocabulario, no una rama de
+        // este `if`; si algún día una cita necesitara enlace o cursiva, este
+        // es el sitio donde añadirla.
         const celda = (fila, col) => {
           const v = fila[col.clave];
           if (col.tipo === 'mate')   return mate(v);
@@ -5403,7 +5495,7 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
                   <tr>${cols.map(c => `<th scope="col">${c.titulo}</th>`).join('')}</tr>
                 </thead>
                 <tbody>
-                  ${g.filas.map(f => `<tr>${cols.map(c => `<td>${celda(f, c)}</td>`).join('')}</tr>`).join('')}
+                  ${g.filas.map(f => `<tr>${cols.map(c => `<td class="glos-${c.tipo || 'texto'}">${celda(f, c)}</td>`).join('')}</tr>`).join('')}
                 </tbody>
               </table>
             </div>
@@ -6742,12 +6834,26 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       mainContent.querySelectorAll('.derivacion-boton').forEach(boton => {
         const panel = document.getElementById(boton.getAttribute('aria-controls'));
         if (!panel) return;
+        const texto = boton.querySelector('.derivacion-texto');
+        // El rótulo de cerrado es EL QUE TRAE EL MARCADO, no una cadena fija.
+        // Antes se reponía con 'Ver el desarrollo paso a paso', así que un
+        // botón escrito a medida —«Ver de dónde sale 1/(2√λ)», el del módulo
+        // 3 del capítulo 1— volvía de su primer clic con OTRO rótulo, y el
+        // capítulo perdía en silencio lo que había escrito. Nadie lo veía en
+        // el marcado: el defecto solo existía después de tocar el botón.
+        //
+        // Se captura en el PRIMER CLIC y no aquí, y la diferencia importa:
+        // loadModule() llama a esta función ANTES de renderMathInElement, así
+        // que al iniciar el rótulo todavía es `\(...\)` sin componer y
+        // reponerlo dejaría el TeX crudo dentro del botón. En el primer clic
+        // ya está renderizado, y lo que se guarda es el KaTeX compuesto.
+        let rotuloCerrado = null;
         boton.addEventListener('click', () => {
           const abierto = boton.getAttribute('aria-expanded') === 'true';
+          if (rotuloCerrado === null && texto) rotuloCerrado = texto.innerHTML;
           boton.setAttribute('aria-expanded', String(!abierto));
           panel.hidden = abierto;
-          const texto = boton.querySelector('.derivacion-texto');
-          if (texto) texto.textContent = abierto ? 'Ver el desarrollo paso a paso' : 'Ocultar el desarrollo';
+          if (texto) texto.innerHTML = abierto ? rotuloCerrado : 'Ocultar el desarrollo';
           if (!abierto) katexEn(panel);
         });
       });

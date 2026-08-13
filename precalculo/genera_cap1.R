@@ -1635,7 +1635,12 @@ D$glosario <- list(
   columnas = list(
     list(clave = "simbolo", titulo = "Símbolo", tipo = "mate"),
     list(clave = "nombre",  titulo = "Qué es",  tipo = "texto"),
-    list(clave = "guia",    titulo = "Texto guía", tipo = "texto"),
+    # `referencia`, no `texto`: una cita es atomica. Con `texto` el CSS la
+    # deja partirse, y «Baddeley §6.2» se rompia en dos lineas entre el
+    # autor y la seccion. Tampoco es `mate` —el § no es matematica y KaTeX
+    # protesta—, que es lo que traian las columnas por defecto heredadas
+    # de Muestreo, donde esa columna guardaba notacion y no una cita.
+    list(clave = "guia",    titulo = "Texto guía", tipo = "referencia"),
     list(clave = "en_r",    titulo = "En R",    tipo = "codigo")
   ),
   filas = list(

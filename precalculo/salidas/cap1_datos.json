@@ -1262,7 +1262,7 @@
       {
         "clave": "guia",
         "titulo": "Texto guía",
-        "tipo": "texto"
+        "tipo": "referencia"
       },
       {
         "clave": "en_r",

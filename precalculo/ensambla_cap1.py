@@ -529,30 +529,45 @@ MOD2 = cabecera(
         limpiamente en tres: cambian las <em>posiciones</em>, cambian los <em>valores</em> sobre unidades fijas, o
         cambia <em>dónde miramos</em> un campo que ya estaba ahí. La tabla resume lo que acabas de hacer.</p>
 
-      <table>
+      <!-- Los tres tipos van en las COLUMNAS y los cinco atributos en las filas,
+           que es la transpuesta de como se escribiría de primeras. Dos razones.
+           La de forma: al revés, las celdas de prosa —«El valor de algo que
+           existe en todo punto y se observa en unos pocos»— caían cada una en su
+           columna y llevaban la tabla a 2 143 px dentro de un contenedor de 812,
+           con la cabecera de fila fuera de cuadro al desplazarse.
+           La de fondo, que es la que manda: lo que este módulo compara son los
+           tres tipos ENTRE SÍ, y comparar se hace mirando en paralelo, no en
+           fila. Con los tipos por columnas cada fila pasa a ser una pregunta
+           —«¿qué es aleatorio?»— contestada tres veces una al lado de la otra,
+           que es exactamente el gesto que pide el párrafo de arriba. -->
+      <table class="tabla-matriz">
         <caption>Los tres tipos de dato espacial: qué es aleatorio, qué se estima y en qué capítulo se desarrolla.</caption>
         <thead>
-          <tr><th scope="col">Tipo</th><th scope="col">Qué es aleatorio</th><th scope="col">Qué se estima</th>
-            <th scope="col">Canónico</th><th scope="col">Colombiano</th><th scope="col">Caps.</th></tr>
+          <tr><td></td>
+            <th scope="col">Patrón puntual</th>
+            <th scope="col">Dato de área</th>
+            <th scope="col">Geoestadístico</th></tr>
         </thead>
         <tbody>
-          <tr><th scope="row">Patrón puntual</th>
+          <tr><th scope="row">Qué es aleatorio</th>
             <td>La <strong>localización</strong> de los eventos, y cuántos hay</td>
-            <td>Intensidad \\(\\lambda\\), agregación o regularidad</td>
-            <td>{pc['japanesepines']['nombre']} ({pc['japanesepines']['n']})</td>
-            <td>{co['puntual']['nombre']} ({ent(co['puntual']['n'])})</td>
-            <td>4 y 5</td></tr>
-          <tr><th scope="row">Dato de área</th>
             <td>El <strong>valor</strong>, sobre unidades territoriales fijas</td>
+            <td>El <strong>valor</strong> de algo que existe en todo punto y se observa en unos pocos</td></tr>
+          <tr><th scope="row">Qué se estima</th>
+            <td>Intensidad \\(\\lambda\\), agregación o regularidad</td>
             <td>Autocorrelación, modelos SAR/SEM</td>
+            <td>Variograma, predicción por kriging</td></tr>
+          <tr><th scope="row">Canónico</th>
+            <td>{pc['japanesepines']['nombre']} ({pc['japanesepines']['n']})</td>
             <td>{ac['nombre']} ({ac['n']})</td>
+            <td>{gc['nombre']} ({gc['n']})</td></tr>
+          <tr><th scope="row">Colombiano</th>
+            <td>{co['puntual']['nombre']} ({ent(co['puntual']['n'])})</td>
             <td>{co['area']['nombre']} ({ent(co['area']['n'])})</td>
-            <td>6, 7 y 8</td></tr>
-          <tr><th scope="row">Geoestadístico</th>
-            <td>El <strong>valor</strong> de algo que existe en todo punto y se observa en unos pocos</td>
-            <td>Variograma, predicción por kriging</td>
-            <td>{gc['nombre']} ({gc['n']})</td>
-            <td>{co['geo']['nombre']} ({co['geo']['n']})</td>
+            <td>{co['geo']['nombre']} ({co['geo']['n']})</td></tr>
+          <tr><th scope="row">Capítulos</th>
+            <td>4 y 5</td>
+            <td>6, 7 y 8</td>
             <td>9</td></tr>
         </tbody>
       </table>
@@ -900,6 +915,67 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           distancia observada de {n(pc['japanesepines']['nn_media'])} que viste en el módulo 2, y el cociente da
           {n(pc['japanesepines']['clark_evans'])}.</p>
       </div>
+
+      <p>Ese denominador no es un convenio ni una constante tabulada: sale de la definición de CSR en cinco pasos,
+        y vale la pena recorrerlos porque por el camino aparecen dos cosas que el curso usa después —la función
+        \\(G\\) del capítulo 4, que asoma sola en el paso 3, y el punto exacto por donde se cuela la ventana
+        infinita del efecto de borde—.</p>
+
+      <div class="derivacion">
+        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-vecino-csr">
+          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+          <span class="derivacion-texto">Ver de dónde sale \\(E[\\bar{{d}}_{{\\min}}] = 1/(2\\sqrt{{\\lambda}})\\)</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="derivacion-panel" id="der-vecino-csr" hidden>
+          <ol class="derivacion-pasos">
+            <li>
+              <p>Se parte de lo único que afirma CSR, que es una regla sobre <strong>conteos</strong> y no sobre
+                distancias: el número de puntos que caen en una región de área \\(A\\) es Poisson de media
+                \\(\\lambda A\\), y regiones disjuntas no se enteran unas de otras. No se añade nada más en todo
+                el desarrollo.</p>
+              $$N(A) \\sim \\text{{Poisson}}(\\lambda A)$$
+            </li>
+            <li>
+              <p>La distancia \\(D\\) al vecino más próximo no es un conteo, pero su <em>cola</em> sí lo es, y ese
+                es el truco entero: que el vecino esté a más de \\(r\\) es exactamente que el disco de radio
+                \\(r\\) centrado en el punto esté <strong>vacío</strong>. El disco tiene área \\(\\pi r^2\\), así
+                que basta pedirle a la Poisson de media \\(\\lambda\\pi r^2\\) la probabilidad de que no salga
+                nadie:</p>
+              $$P(D > r) = P\\bigl(N(\\pi r^2) = 0\\bigr) = e^{{-\\lambda \\pi r^2}}$$
+            </li>
+            <li>
+              <p>Fíjate en que eso no es un paso intermedio cualquiera: es la <strong>distribución completa</strong>
+                de la distancia al vecino, no solo su promedio. Su acumulada, \\(G(r) = 1 - e^{{-\\lambda\\pi r^2}}\\),
+                es la <strong>función \\(G\\) teórica</strong> bajo CSR, la curva contra la que el capítulo 4
+                compara la \\(G\\) empírica de un patrón. Clark-Evans se queda con un solo resumen de esta curva
+                —su media—, y esa renuncia es justo la que le cuesta la escala.</p>
+            </li>
+            <li>
+              <p>Para una variable no negativa la media es el área bajo la cola, así que no hace falta derivar
+                \\(G\\) para conseguir la densidad ni integrar por partes: se integra lo que ya se tiene.</p>
+              $$E[D] = \\int_0^{{\\infty}} P(D > r)\\, dr = \\int_0^{{\\infty}} e^{{-\\lambda \\pi r^2}}\\, dr$$
+            </li>
+            <li>
+              <p>Y lo que queda es la integral gaussiana,
+                \\(\\int_0^{{\\infty}} e^{{-a r^2}}\\, dr = \\tfrac{{1}}{{2}}\\sqrt{{\\pi/a}}\\), con
+                \\(a = \\lambda\\pi\\). El \\(\\pi\\) que trajo el área del disco se cancela contra el de la
+                integral y no sobrevive ni una constante suelta:</p>
+              $$E[D] = \\frac{{1}}{{2}}\\sqrt{{\\frac{{\\pi}}{{\\lambda\\pi}}}} = \\frac{{1}}{{2\\sqrt{{\\lambda}}}}$$
+            </li>
+          </ol>
+          <p class="derivacion-resultado">Ese es el denominador de la cuarta columna de la tabla, y la fórmula se
+            lee sola: \\(\\lambda\\) son puntos por unidad de área, luego \\(1/\\sqrt{{\\lambda}}\\) es una
+            distancia —por eso \\(R\\) sale sin unidades por construcción y no por convenio—. La raíz avisa
+            además de que la densidad no se paga en línea recta: al doblar \\(\\lambda\\), la distancia esperada
+            al vecino no cae a la mitad, sino a \\(1/\\sqrt{{2}}\\) de lo que era.</p>
+        </div>
+      </div>
+
+      <p>Y conviene retener de dónde salió, porque se paga más abajo: el disco del paso 2 se contó
+        <strong>entero</strong>, y eso supone que el proceso sigue existiendo más allá del borde de la ventana.
+        Para un punto pegado al borde eso es falso —parte de su disco cae donde nadie observó nada—, y de ahí, y
+        no de ningún ajuste empírico, viene la corrección que se comenta tras la tabla.</p>
 
       <p>La tabla hace esa misma división para los tres. Lleva a propósito la columna del denominador, que suele
         omitirse: sin ella el índice hay que creérselo, y con ella se comprueba con una calculadora.</p>
