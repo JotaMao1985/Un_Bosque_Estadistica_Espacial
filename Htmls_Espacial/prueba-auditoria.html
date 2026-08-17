@@ -865,10 +865,38 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    /* `width` cambia de valor con el ancho de pantalla porque en móvil y en
+       escritorio la tabla ancha es dos problemas distintos, y no el mismo
+       problema en dos tamaños.
+
+       A 375 px repartir el ancho entre seis columnas deja columnas de
+       treinta píxeles: ahí lo correcto es NO repartir. `max-content`
+       significa «ninguna celda salta de línea, nunca»: la tabla mide lo
+       que mida y el envoltorio de arriba se encarga de desplazarla.
+
+       En escritorio hay ancho de sobra, y ahí esa misma regla se vuelve el
+       defecto. Una celda con una frase de sesenta caracteres se convierte
+       ella sola en una columna de 510 px, y así la tabla de los tres tipos
+       de dato del módulo 2 del capítulo 1 medía 2 143 px dentro de un
+       contenedor de 812. Lo caro no era desplazarse 1 331 px: era que la
+       cabecera de fila —«Patrón puntual»— se iba por la izquierda al
+       hacerlo, así que al llegar a la quinta columna ya no se sabía de
+       qué fila se estaba leyendo. Una tabla que hay que memorizar para
+       poder leerla no está haciendo su trabajo.
+
+       El cambio no toca a las tablas que ya cabían: con `min-width: 100%`
+       una tabla corta medía el 100 % por los dos caminos. Medido sobre los
+       tres capítulos —50 tablas— solo cambian las 7 que hoy se desbordan. */
     .tabla-scroll table {
       margin-bottom: 0;
       min-width: 100%;
-      width: max-content;
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .tabla-scroll table {
+        width: max-content;
+      }
     }
 
     table {
@@ -900,6 +928,33 @@
 
     table tr:hover {
       background-color: #fff7ed;
+    }
+
+    /* Matriz de dos ejes: los sujetos encabezan las columnas y los atributos
+       encabezan las filas, de modo que las dos primeras bandas —la de arriba y
+       la de la izquierda— son cabeceras y el resto son datos. La usa la tabla
+       de los tres tipos de dato del módulo 2 del capítulo 1. */
+
+    /* La celda de la esquina no encabeza nada: ni la fila de los sujetos ni la
+       columna de los atributos. Va como `<td>` vacío y no como `<th>` —es lo
+       que recomienda la WAI para las tablas de dos ejes— para que un lector
+       de pantalla no anuncie una cabecera que no existe. El precio es que hay
+       que pintarla a mano: `table th` le da el verde a las cabeceras, y un
+       `<td>` no entra en ese selector, así que sin esta regla queda un hueco
+       blanco en la esquina de la banda verde. */
+    .tabla-matriz thead td {
+      background-color: #012820;
+      border-bottom: none;
+    }
+
+    /* El reparto automático le daría a la columna de los atributos el mismo
+       ancho que a las de contenido, y no lo necesita: sus etiquetas son de
+       dos palabras y las de al lado llevan las frases largas. Estrechándola
+       al 22 % los sujetos ganan unos 30 px cada uno, que es donde el ancho
+       hace falta. Va en porcentaje y no en píxeles porque el contenedor mide
+       812 px en el cuerpo del módulo y 760 dentro de una tarjeta. */
+    .tabla-matriz th[scope="row"] {
+      width: 22%;
     }
 
     /* Session Header - CSS Puro */
@@ -2951,15 +3006,38 @@
       vertical-align: middle;
     }
 
+    /* Estas dos declaraciones iban por POSICIÓN —`td:not(:first-child)`—, y
+       eso funcionaba mientras todos los glosarios usaran las columnas por
+       defecto, donde la prosa va primera y las tres siguientes son cortas.
+       Pero `columnas` es configurable —lo celebra el propio
+       `iniciarGlosarios()`— y el glosario de notación del capítulo 1 las
+       reordena: el símbolo primero y «Qué es» segunda. La regla caía
+       entonces justo al revés y le ponía `white-space: nowrap` a frases de
+       sesenta y cinco caracteres —«Índice de Clark-Evans: lo observado
+       frente a lo que daría el azar»—. Una celda que no puede partirse fija
+       el ancho mínimo de su columna, así que la tabla se quedaba en 919 px
+       dentro de un panel de 774 y solo se podía leer desplazándola.
+
+       Ahora van por el `tipo` que la columna ya declaraba y que el generador
+       tiraba a la basura al pintar. Es el dato del que de verdad dependen:
+       un símbolo, una cita y una llamada a R no se parten nunca; una frase
+       sí. Y al no depender del sitio, la regla vale para el orden de
+       columnas que elija cualquier capítulo. */
+    .glosario-panel tbody td.glos-mate,
+    .glosario-panel tbody td.glos-referencia,
+    .glosario-panel tbody td.glos-codigo {
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* Va DESPUÉS de las reglas por tipo, y gana el empate de especificidad
+       por orden de aparición, a propósito: el realce de la primera columna
+       sí es posicional. Sea un símbolo o un concepto, la columna de la
+       izquierda es la que se lee como etiqueta de la fila. */
     .glosario-panel tbody td:first-child {
       text-align: left;
       font-weight: 500;
       color: #1e293b;
-    }
-
-    .glosario-panel tbody td:not(:first-child) {
-      text-align: center;
-      white-space: nowrap;
     }
 
     .glosario-panel code {
@@ -5292,6 +5370,12 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
     // (aria-controls apuntando al id del .derivacion-panel, que arranca
     // con el atributo hidden). El desarrollo va en un <ol class="derivacion-pasos">.
     //
+    // El rótulo del botón, dentro de .derivacion-texto, es LIBRE y puede
+    // llevar fórmula: el motor lo conserva y solo lo sustituye por «Ocultar
+    // el desarrollo» mientras el panel está abierto. Un rótulo que nombra lo
+    // que hay dentro —«Ver de dónde sale \(1/(2\sqrt{\lambda})\)»— vale más
+    // que uno genérico, porque quien decide si abre lo decide desde fuera.
+    //
     // loadModule() ya pasa KaTeX por TODO el módulo, incluidos los paneles
     // ocultos, así que las fórmulas están renderizadas antes del primer clic;
     // katexEn(panel) aquí es la red de seguridad para contenido inyectado
@@ -5532,7 +5616,7 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
     // contenedor con data-glosario="id".
     //
     // `columnas` es una lista de {clave, titulo, tipo} con tipo en
-    // 'texto' | 'mate' | 'codigo'. Es opcional: sin ella se usan las
+    // 'texto' | 'referencia' | 'mate' | 'codigo'. Es opcional: sin ella se usan las
     // cuatro por defecto (Concepto · Este material · Texto guía · En R).
     // Cada fila es un objeto con las claves que declaren las columnas.
     //
@@ -5568,6 +5652,12 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
         // Un guion largo se deja tal cual: envolverlo en $…$ dispara un
         // aviso de KaTeX y además se ve peor.
         const mate = txt => (txt && txt !== '—') ? `$${txt}$` : (txt || '');
+        // `referencia` —una cita como «Bivand §8.4»— no aparece aquí a
+        // propósito: se PINTA igual que `texto`, texto plano, y solo se
+        // distingue al darle estilo, donde sí importa que no se parta entre
+        // el autor y la sección. Es un tipo del vocabulario, no una rama de
+        // este `if`; si algún día una cita necesitara enlace o cursiva, este
+        // es el sitio donde añadirla.
         const celda = (fila, col) => {
           const v = fila[col.clave];
           if (col.tipo === 'mate')   return mate(v);
@@ -5589,7 +5679,7 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
                   <tr>${cols.map(c => `<th scope="col">${c.titulo}</th>`).join('')}</tr>
                 </thead>
                 <tbody>
-                  ${g.filas.map(f => `<tr>${cols.map(c => `<td>${celda(f, c)}</td>`).join('')}</tr>`).join('')}
+                  ${g.filas.map(f => `<tr>${cols.map(c => `<td class="glos-${c.tipo || 'texto'}">${celda(f, c)}</td>`).join('')}</tr>`).join('')}
                 </tbody>
               </table>
             </div>
@@ -6032,6 +6122,14 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
       const cp = geomapaCapa(d, o);
       const clase = cp.clase, nCl = cp.cortes ? cp.cortes.length - 1 : 0;
       const geom = geomapaGeom(d);
+      // Qué rasgo va resaltado lo puede decir EL DATO (`d.resaltado`, que
+      // escribe geo.R) además de la opción de siempre. Los dos conviven y no
+      // usan el mismo convenio, a propósito y dicho en voz alta: lo que viene
+      // de R es 1-basado —como `resaltado2`, como `aristas`— y la opción, que
+      // es de este lado, sigue siendo el índice 0-basado del bucle. Unificarlos
+      // por dentro habría movido en silencio el resalte de quien ya usara la
+      // opción.
+      const iRes = d.resaltado != null ? d.resaltado - 1 : null;
       geom.forEach((rasgo, i) => {
         // OJO con el «sin dato»: `isFinite(null)` es TRUE en JS, porque
         // Number(null) es 0. Con la comprobación de antes, un municipio
@@ -6046,7 +6144,9 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
         } else {
           relleno = geomapaTinta(GEOMAPA_SIN_DATO);
         }
-        if (o.resaltado != null && o.resaltado === i) relleno = geomapaTinta(GEOMAPA_ACENTO);
+        if ((o.resaltado != null && o.resaltado === i) || iRes === i) {
+          relleno = geomapaTinta(GEOMAPA_ACENTO);
+        }
         ctx.fillStyle = relleno;
         ctx.strokeStyle = geomapaTinta('rgba(255,255,255,.85)');
         ctx.lineWidth = 0.8;
@@ -6055,7 +6155,96 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
           ctx.fill(p); ctx.stroke(p);
         });
       });
+      geomapaPintaLineas(ctx, d, aj, o);
       geomapaPintaSuperpuestos(ctx, d, aj, o);
+    }
+
+    // Polilíneas SOBRE el coropleto (T2.7 del capítulo 1). El caso que las
+    // módulo 7 del capítulo 1: una rejilla de 100 rectángulos encima de los
+    // condados de Carolina del Norte, para enseñar por qué sumar «lo que se
+    // toca» devuelve 2 621 muertes donde había 667.
+    //
+    // TRES DECISIONES QUE NO SON DE ESTILO:
+    //
+    //  1. Van DESPUÉS de los polígonos. La rejilla no es el territorio: es la
+    //     retícula ajena que se le pone encima, y el orden de dibujo es lo
+    //     que dice cuál de las dos manda.
+    //  2. Las resaltadas se RELLENAN además de trazarse. Con solo el trazo el
+    //     lector ve una cuadrícula con unas líneas más gruesas; con el relleno
+    //     ve «este condado cae en estas cinco casillas», que es la frase que
+    //     el mapa tiene que decir sin palabras.
+    //  3. El rótulo lleva halo blanco. Cae sobre el coropleto y sobre el
+    //     propio relleno del resalte, y un número que no se lee no es un
+    //     número: sería un mapa bonito en el sitio donde hace falta una
+    //     demostración.
+    //
+    // `o.etiquetasLineas` va emparejada con `d.lineas_resaltadas`, no con
+    // `d.lineas`: son cinco rótulos para cinco celdas, no cien.
+    function geomapaPintaLineas(ctx, d, aj, o) {
+      if (!d.lineas || !d.lineas.length || o.lineas === false) return;
+      const dpr = o.dpr || 1;
+      const idx = d.lineas_resaltadas || [];
+      const res = new Set(idx.map(k => k - 1));       // R es 1-indexado
+      const trazo = seg => {
+        const p = new Path2D();
+        for (let i = 0; i < seg.length; i += 2) {
+          const px = aj.x(seg[i]), py = aj.y(seg[i + 1]);
+          if (i === 0) p.moveTo(px, py); else p.lineTo(px, py);
+        }
+        return p;
+      };
+
+      ctx.save();
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+
+      // La retícula entera, fina y apagada.
+      ctx.strokeStyle = geomapaTinta(o.colorLineas || 'rgba(1,40,32,.50)');
+      ctx.lineWidth = (o.anchoLineas || 0.7) * dpr;
+      d.lineas.forEach((seg, k) => { if (!res.has(k)) ctx.stroke(trazo(seg)); });
+
+      // Las resaltadas. `closePath()` no añade nada a una celda de rejilla
+      // —ya vuelve a su primer vértice— y es lo que permite rellenar; una
+      // polilínea abierta no llega aquí, porque a una calle no se la resalta.
+      ctx.strokeStyle = geomapaTinta('#8a3d00');
+      ctx.lineWidth = 2.1 * dpr;
+      ctx.fillStyle = geomapaTinta('rgba(255,102,0,.22)');
+      res.forEach(k => {
+        const seg = d.lineas[k];
+        if (!seg) return;
+        const p = trazo(seg);
+        p.closePath();
+        ctx.fill(p);
+        ctx.stroke(p);
+      });
+
+      // Los rótulos, en el centro de la caja de cada celda resaltada.
+      const rot = o.etiquetasLineas;
+      if (rot && rot.length) {
+        const px = Math.max(9, Math.min(ctx.canvas.width, ctx.canvas.height) * 0.038);
+        ctx.font = `700 ${px}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        idx.forEach((k, j) => {
+          const texto = rot[j];
+          const seg = d.lineas[k - 1];
+          if (texto == null || texto === '' || !seg) return;
+          let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+          for (let i = 0; i < seg.length; i += 2) {
+            const X = aj.x(seg[i]), Y = aj.y(seg[i + 1]);
+            if (X < x0) x0 = X;
+            if (X > x1) x1 = X;
+            if (Y < y0) y0 = Y;
+            if (Y > y1) y1 = Y;
+          }
+          ctx.strokeStyle = geomapaTinta('rgba(255,255,255,.92)');
+          ctx.lineWidth = 3.4 * dpr;
+          ctx.strokeText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+          ctx.fillStyle = geomapaTinta('#012820');
+          ctx.fillText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+        });
+      }
+      ctx.restore();
     }
 
     // Capas de puntos sobre el coropleto: símbolos proporcionales y dot
@@ -6501,7 +6690,41 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
         if (cp.cortes) cortes = cp.cortes;
       }
       if (d.modo === 'rejilla' && d.cortes) cortes = d.cortes;
-      if (!cortes) return etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '';
+
+      // Lo que un coropleto puede llevar encima y NO es una clase: el rasgo
+      // resaltado y la retícula ajena (T2.7 del cap. 1). Si no se rotulan, el mapa
+      // módulo 7 pinta tres cosas y explica una — y las dos que se callan son
+      // justamente las que demuestran el doble conteo.
+      const extras = [];
+      if (d.modo === 'poligonos') {
+        if (d.resaltado != null) {
+          extras.push(muestra(geomapaTinta(GEOMAPA_ACENTO),
+            esc(o.nombreResaltado || 'unidad resaltada')));
+        }
+        if (d.lineas && d.lineas.length && o.lineas !== false) {
+          extras.push(`<span class="geomapa-clase">
+          <span class="geomapa-muestra" style="background:transparent;border:1px solid ${geomapaTinta('rgba(1,40,32,.5)')}"></span>
+          <span>${d.lineas.length} ${esc(o.nombreLineas || 'líneas superpuestas')}</span>
+        </span>`);
+          if (d.lineas_resaltadas && d.lineas_resaltadas.length) {
+            extras.push(`<span class="geomapa-clase">
+          <span class="geomapa-muestra" style="background:${geomapaTinta('rgba(255,102,0,.22)')};border:2px solid ${geomapaTinta('#8a3d00')}"></span>
+          <span>${d.lineas_resaltadas.length} ${esc(o.nombreLineasResaltadas || 'resaltadas')}</span>
+        </span>`);
+          }
+        }
+      }
+
+      const pie = etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '';
+      if (!cortes) {
+        // Sin cortes puede seguir habiendo algo que rotular: un coropleto que
+        // solo enseña geometría y una retícula es un mapa legítimo, y antes de
+        // T2.7 del capítulo 1 se quedaba sin leyenda porque la única salida era la
+        // de las clases.
+        return extras.length
+          ? `<div class="geomapa-leyenda">${extras.join('')}</div>` + pie
+          : pie;
+      }
       const n = cortes.length - 1;
       const fmt = fmtCon(decimales(cortes));
       const cajas = [];
@@ -6509,8 +6732,8 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
         cajas.push(muestra(geomapaColor(o.paleta, n > 1 ? i / (n - 1) : 0.5),
           `${fmt(cortes[i])} – ${fmt(cortes[i + 1])}`));
       }
-      return `<div class="geomapa-leyenda">${cajas.join('')}</div>` +
-             (etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '');
+      cajas.push(...extras);
+      return `<div class="geomapa-leyenda">${cajas.join('')}</div>` + pie;
     }
 
     // El texto alternativo. Estaba escrito dos veces —al crear el nodo y en
@@ -6550,7 +6773,20 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
         }
       }
       if (d.n2 && o.puntos2 !== false) s += `, más ${d.n2} de una segunda capa`;
-      if (d.lineas && o.lineas !== false) s += ` sobre ${d.lineas.length} líneas de fondo`;
+      if (d.lineas && o.lineas !== false) {
+        // En un patrón puntual las líneas van DEBAJO —son las calles del
+        // Soho— y en un coropleto van ENCIMA —son la rejilla del módulo 7—.
+        // Decir «de fondo» en los dos casos describiría un mapa que no está,
+        // y describir mal es peor que no describir: quien no ve el lienzo no
+        // tiene cómo enterarse.
+        s += d.modo === 'poligonos'
+          ? `, con ${d.lineas.length} líneas superpuestas`
+          : ` sobre ${d.lineas.length} líneas de fondo`;
+        if (d.lineas_resaltadas && d.lineas_resaltadas.length)
+          s += `, de las que ${d.lineas_resaltadas.length} van resaltadas`;
+      }
+      if (d.modo === 'poligonos' && d.resaltado != null)
+        s += `, con una unidad destacada`;
       if (d.leyenda) s += `. ${d.leyenda}`;
       return s;
     }
@@ -6793,12 +7029,26 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
       mainContent.querySelectorAll('.derivacion-boton').forEach(boton => {
         const panel = document.getElementById(boton.getAttribute('aria-controls'));
         if (!panel) return;
+        const texto = boton.querySelector('.derivacion-texto');
+        // El rótulo de cerrado es EL QUE TRAE EL MARCADO, no una cadena fija.
+        // Antes se reponía con 'Ver el desarrollo paso a paso', así que un
+        // botón escrito a medida —«Ver de dónde sale 1/(2√λ)», el del módulo
+        // 3 del capítulo 1— volvía de su primer clic con OTRO rótulo, y el
+        // capítulo perdía en silencio lo que había escrito. Nadie lo veía en
+        // el marcado: el defecto solo existía después de tocar el botón.
+        //
+        // Se captura en el PRIMER CLIC y no aquí, y la diferencia importa:
+        // loadModule() llama a esta función ANTES de renderMathInElement, así
+        // que al iniciar el rótulo todavía es `\(...\)` sin componer y
+        // reponerlo dejaría el TeX crudo dentro del botón. En el primer clic
+        // ya está renderizado, y lo que se guarda es el KaTeX compuesto.
+        let rotuloCerrado = null;
         boton.addEventListener('click', () => {
           const abierto = boton.getAttribute('aria-expanded') === 'true';
+          if (rotuloCerrado === null && texto) rotuloCerrado = texto.innerHTML;
           boton.setAttribute('aria-expanded', String(!abierto));
           panel.hidden = abierto;
-          const texto = boton.querySelector('.derivacion-texto');
-          if (texto) texto.textContent = abierto ? 'Ver el desarrollo paso a paso' : 'Ocultar el desarrollo';
+          if (texto) texto.innerHTML = abierto ? rotuloCerrado : 'Ocultar el desarrollo';
           if (!abierto) katexEn(panel);
         });
       });
