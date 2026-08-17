@@ -354,7 +354,7 @@ buena cara.
 
 | # | Módulo | Contenido clave |
 |---|---|---|
-| 1 | La Tierra no es plana ni una esfera | Geoide, elipsoide, datum; WGS84 vs. MAGNA-SIRGAS |
+| 1 | La Tierra no es plana ni una esfera | **Qué es un SIG** (Simple Features, vector vs. ráster, por qué `sf` y no QGIS); geoide, elipsoide, datum; WGS84 vs. MAGNA-SIRGAS |
 | 2 | Latitud y longitud no son coordenadas cartesianas | Un grado de longitud en Bogotá, en Oslo y en el ecuador |
 | 3 | Proyectar es elegir qué destruir | Conforme, equivalente, equidistante; indicatriz de Tissot |
 | 4 | EPSG en la práctica | 4326 · 3857 y sus pecados · **3116 y 9377 para Colombia** |
@@ -2392,3 +2392,59 @@ simuladores miden cero tinta sobre un capítulo perfecto.
 | Gerrymandering: escaños de A con el 64.00 % de los votos | **2 a 4** de 5 |
 | El estrato invierte el signo con el umbral | **-0.05765 → 0.63128** |
 | Estudiantes sin polígono en el mapa | **290** |
+
+---
+
+### A.15 · La sigla que solo estaba en el título: la entrada sobre el SIG (2026-08-14)
+
+**Cómo salió.** Preguntando dónde cubre el material el primer tema del syllabus —«Sistemas de
+información geográfica (SIG); sistemas de referencia de coordenadas y proyecciones; distorsión y
+criterios de elección»—. Las dos últimas partes estaban de sobra: la distorsión, **medida**, en el
+módulo 3 (seis proyecciones, indicatriz de Tissot, ω y la razón de área), y los criterios de
+elección en el módulo 4, con el archipiélago dando la vuelta a la recomendación. La primera, no.
+
+`grep -o "Sistemas de [Ii]nformación [Gg]eográfica"` sobre todo el sitio: **cero resultados**. La
+sigla aparecía en el título del capítulo, en el `<title>` y en el metadato del JSON, y en ninguna
+línea de prosa. El capítulo entraba directo al elipsoide. El syllabus, en cambio, no solo nombra el
+tema: le pone estrategia —«Exposición de SIG y sistemas de referencia; laboratorio de manejo de
+geometrías con `sf`»—. Estaba el laboratorio y faltaba la exposición.
+
+**Por qué se coló.** El §6 de este plan no le dio módulo propio, y el auditor de prosa solo puede
+denunciar lo que su `DEBE_CUBRIR` declara: los veintisiete temas de la lista estaban todos, así que
+el informe daba verde sobre un capítulo con un hueco. Es la misma forma de fallo que A.10 —el
+arnés solo ve lo que se le enseña a ver—, aplicada al temario en vez de a las cifras.
+
+**Qué se hizo.** Cinco párrafos y una caja `.definition` al abrir el módulo 1, antes del geoide:
+
+1. qué es un SIG, y por qué la definición de manual («capturar, almacenar, analizar, representar»)
+   describe igual de bien a una hoja de cálculo — lo que separa a un SIG de una tabla es que **la
+   posición es un atributo de primera clase**;
+2. las tres piezas que convierten una tabla en una capa —geometría con tipo, CRS declarado,
+   operaciones que respetan la geometría—, anclada en las 20 localidades de Bogotá y sus 57 840
+   vértices, que son datos del propio capítulo;
+3. **Simple Features** (OGC, ISO 19125) como el estándar que hace que R, Python, PostGIS y QGIS
+   entiendan la misma geometría, y de dónde viene el nombre del paquete `sf`;
+4. vectorial contra ráster, y que este curso vive casi entero en el vectorial;
+5. por qué el SIG del curso se escribe y no se pulsa —**un clic no deja rastro**—, con GDAL, GEOS y
+   PROJ nombrados como los motores compartidos con QGIS;
+6. y el reparto del capítulo: módulos 1–6, el sistema de referencia; 7–11, el dato y sus
+   operaciones. Cierra con la frase que el auditor ahora exige: **una capa sin sistema de referencia
+   declarado no es una capa**.
+
+**Dónde NO se puso, y por qué.** No en un módulo 13. Renumerar habría arrastrado el `modulo:` de las
+doce preguntas del quiz y las remisiones «Módulo N» repartidas por la prosa y por la
+retroalimentación, a cambio de nada: lo que faltaba era encuadre, no una unidad de trabajo. El
+objetivo del módulo 1 se amplió en la misma edición, porque el encabezado es un contrato (§9.1).
+
+**Lo que se cerró detrás.** Cuatro entradas nuevas en `DEBE_CUBRIR` (`sistema de información
+geográfica`, `simple features`, `ráster`, `qgis`) y dos en `AFIRMACIONES` (`atributo de primera` y
+`no es una capa`), más `19125` en `ESTRUCTURALES`. Sin eso, el hueco se reabre en la siguiente
+reescritura y nadie se entera. Arnés completo después: **135 comprobaciones de prosa sin fallos**,
+110 de 110 defectos inyectados cazados, 72 de 72 guardas del ensamblador, ninguna cifra calculada
+fuera de R, consola limpia y KaTeX intacto.
+
+**Lección para los capítulos que faltan.** El `DEBE_CUBRIR` de un capítulo se escribe **desde el
+temario del syllabus**, no desde el índice de módulos que uno acaba de redactar. Redactado desde el
+índice, el auditor confirma que el capítulo dice lo que dice — que es justo lo que no hace falta
+comprobar.
+
