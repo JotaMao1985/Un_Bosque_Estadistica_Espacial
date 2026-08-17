@@ -198,11 +198,75 @@ def mapa_html(ident, titulo):
 # =====================================================================
 # Regla del ritmo, primera: el módulo NO abre pidiendo trabajo. Abre
 # situando, y el primer componente llega cuando ya hay algo que mirar.
+#
+# LA ENTRADA SOBRE EL SIG (2026-08-14). El §6 del plan no le daba módulo
+# propio y el capítulo entraba directo al elipsoide, así que la sigla del
+# título —«SIG, sistemas de referencia y georreferenciación»— era lo único
+# que la nombraba: el temario del syllabus pide «exposición de SIG y
+# sistemas de referencia» y el material la daba por sabida. Va AQUÍ y no en
+# un módulo 13 porque renumerar arrastraría el `modulo:` de las doce
+# preguntas del quiz y las tres decenas de remisiones «Módulo N» de la
+# prosa, a cambio de nada: lo que faltaba eran cinco párrafos de encuadre,
+# no una unidad de trabajo. El encabezado del módulo es un contrato (§9.1),
+# así que su objetivo se amplía en la misma edición.
 _dt = el["datum"]
 MOD1 = cabecera(
     1, "La Tierra no es plana ni una esfera", "Geoid, ellipsoid, datum",
-    "Distinguir geoide, elipsoide y datum, y medir qué cuesta confundirlos."
+    "Situar el curso dentro de un SIG, y distinguir geoide, elipsoide y datum "
+    "midiendo qué cuesta confundirlos."
 ) + f"""
+      <p>El curso empieza por una palabra que el syllabus da por sabida y conviene no dar por
+      sabida: <strong>sistema de información geográfica</strong>, SIG. La definición de manual
+      —un sistema para capturar, almacenar, consultar, analizar y representar datos referidos a
+      la superficie terrestre— es correcta y sirve de poco, porque describe igual de bien a una
+      hoja de cálculo con una columna de direcciones. Lo que de verdad separa a un SIG de una
+      tabla es más estrecho y más útil: en un SIG <strong>la posición es un atributo de primera
+      clase</strong>. No es un dato que acompaña a la fila, es un dato sobre el que se pregunta,
+      y las preguntas que admite —qué contiene a qué, qué toca a qué, qué queda a menos de
+      quinientos metros de qué— no se responden ordenando ni filtrando las demás columnas.</p>
+
+      <div class="definition">
+        <h3>Qué convierte una tabla en una capa</h3>
+        <p>Tres piezas, y si falta una no hay SIG. La primera es una <strong>geometría</strong>
+        por fila, con tipo propio —punto, línea, polígono— y no dos columnas numéricas: las
+        {ent(et['n_localidades'])} localidades de Bogotá con las que trabaja este capítulo suman
+        {firma(ent(et['n_vertices']), ' vértices')}, y eso no cabe en un par de columnas. La
+        segunda es un <strong>sistema de referencia declarado</strong>, que dice qué significan
+        esos números; sin él la geometría es aritmética sin unidades. La tercera es un juego de
+        <strong>operaciones que respetan la geometría</strong> —intersecar, unir, medir, contar
+        lo que cae dentro—, que ninguna base de datos corriente ofrece. La tercera es la que se
+        ve, la segunda es la que se olvida, y este capítulo trata sobre todo de la segunda.</p>
+      </div>
+
+      <p>Que esas tres piezas signifiquen lo mismo en R, en Python, en PostGIS y en QGIS no es
+      casualidad: hay un estándar debajo, <strong>Simple Features</strong>, del Open Geospatial
+      Consortium (OGC) y recogido en la norma ISO 19125. Fija los siete tipos de geometría
+      corrientes, cómo se escriben y qué quiere decir que dos geometrías se toquen. El paquete
+      <code>sf</code> se llama así por él —<em>simple features</em>—, y por eso una capa escrita
+      desde R se abre sin traducción en GeoPandas o en QGIS. Ese es el modelo
+      <strong>vectorial</strong>: objetos discretos con frontera. Hay un segundo modelo, el
+      <strong>ráster</strong> —una rejilla regular de celdas, que es como se guardan las
+      imágenes de satélite y los modelos de elevación—, y este curso lo usa poco: del variograma
+      a la econometría espacial, casi todo lo que viene después ocurre sobre datos
+      vectoriales.</p>
+
+      <p>Falta decir por qué el SIG de este curso se escribe en vez de pulsarse. No es que QGIS
+      sea peor —para mirar una capa, componer un mapa o corregir una geometría a mano es mejor,
+      y conviene tenerlo instalado—: es que <strong>un clic no deja rastro</strong>. Un análisis
+      hecho con el ratón no se vuelve a ejecutar sobre los datos del año siguiente, no lo puede
+      revisar otra persona y no se sostiene en un informe. Así que aquí el SIG es <code>sf</code>
+      sobre R, con GeoPandas al lado, y por debajo corren los mismos motores que usa QGIS: GDAL
+      para leer y escribir, GEOS para la geometría plana y PROJ para las transformaciones de
+      coordenadas. Es la misma maquinaria, gobernada desde un guion en vez de desde un menú.</p>
+
+      <p>Con eso ya se puede repartir el capítulo. Los módulos 1 a 6 son la segunda pieza de la
+      lista: qué es un sistema de referencia, qué destruye una proyección, cuál elegir y qué
+      pasa si se etiqueta mal. Los módulos 7 a 11 son la primera y la tercera: en qué formato
+      vive una capa, cómo se construye desde un CSV, cómo se valida y cómo se opera sobre ella
+      cuando las filas se cuentan por millones. Y la advertencia que los cose: <strong>una capa
+      sin sistema de referencia declarado no es una capa</strong>, es una tabla de números que
+      se parecen a coordenadas.</p>
+
       <p>Todo lo que este curso va a hacer —contar puntos, comparar áreas, ajustar un
       variograma— empieza por una pregunta que parece de otra asignatura: <em>¿sobre qué
       superficie estamos midiendo?</em> La respuesta corta es que sobre ninguna sola. La Tierra
@@ -1372,7 +1436,7 @@ MODULOS = MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6 + MOD7 + MOD8 + MOD9 + MOD10 +
 # courseData + los datos del precálculo
 # =====================================================================
 TITULOS = [
-    ("La Tierra no es plana ni una esfera", "Geoide, elipsoide y datum"),
+    ("La Tierra no es plana ni una esfera", "Qué es un SIG · geoide y datum"),
     ("Latitud y longitud no son cartesianas", "Cuánto mide un grado"),
     ("Proyectar es elegir qué destruir", "Tissot y las tres familias"),
     ("EPSG en la práctica", "4326, 3857, 3116 y 9377"),

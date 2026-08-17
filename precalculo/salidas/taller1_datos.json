@@ -1,0 +1,785 @@
+{
+  "meta": {
+    "taller": 1,
+    "titulo": "Taller 1 · Datos espaciales, sistemas de referencia y georreferenciación",
+    "capitulos": [1, 2],
+    "semilla": 20261,
+    "n_municipios": 60,
+    "n_patrones": 30,
+    "n_variantes": 1000,
+    "n_estaciones": 40,
+    "generado": "2026-08-13"
+  },
+  "reglas": {
+    "estaciones": "Tus 40 estaciones son las 40 más próximas al punto interior de tu municipio, medidas en EPSG:9377. La suma de sus altitudes tiene que coincidir con el dígito de verificación de tu fila; si no coincide, la selección está mal y todo lo que construyas encima lo estará también.",
+    "variante": "Tu variante son los TRES últimos dígitos de tu número de documento, leídos como número de 0 a 999."
+  },
+  "municipios": [
+    {
+      "llave": "7082276B69506367450690",
+      "municipio": "San Roque",
+      "departamento": "Antioquia",
+      "suma_altitud": 51173
+    },
+    {
+      "llave": "7082276B51026070835233",
+      "municipio": "Támesis",
+      "departamento": "Antioquia",
+      "suma_altitud": 61276
+    },
+    {
+      "llave": "7082276B17110786625118",
+      "municipio": "Quípama",
+      "departamento": "Boyacá",
+      "suma_altitud": 71652
+    },
+    {
+      "llave": "7082276B62780892273101",
+      "municipio": "Sora",
+      "departamento": "Boyacá",
+      "suma_altitud": 79286
+    },
+    {
+      "llave": "7082276B21893770290746",
+      "municipio": "Tota",
+      "departamento": "Boyacá",
+      "suma_altitud": 80672
+    },
+    {
+      "llave": "7082276B74376648695935",
+      "municipio": "Manizales",
+      "departamento": "Caldas",
+      "suma_altitud": 55273
+    },
+    {
+      "llave": "7082276B91002945363484",
+      "municipio": "Belén De Los Andaquíes",
+      "departamento": "Caquetá",
+      "suma_altitud": 49448
+    },
+    {
+      "llave": "7082276B13474155488733",
+      "municipio": "Morales",
+      "departamento": "Bolívar",
+      "suma_altitud": 27858
+    },
+    {
+      "llave": "7082276B11088178486316",
+      "municipio": "Pinillos",
+      "departamento": "Bolívar",
+      "suma_altitud": 11052
+    },
+    {
+      "llave": "7082276B44826680756830",
+      "municipio": "Angelópolis",
+      "departamento": "Antioquia",
+      "suma_altitud": 61774
+    },
+    {
+      "llave": "7082276B24533406562220",
+      "municipio": "Anorí",
+      "departamento": "Antioquia",
+      "suma_altitud": 41976
+    },
+    {
+      "llave": "7082276B53063145531643",
+      "municipio": "Betania",
+      "departamento": "Antioquia",
+      "suma_altitud": 64581
+    },
+    {
+      "llave": "7082276B86795157011208",
+      "municipio": "Campamento",
+      "departamento": "Antioquia",
+      "suma_altitud": 44851
+    },
+    {
+      "llave": "7082276B52790973649265",
+      "municipio": "Cisneros",
+      "departamento": "Antioquia",
+      "suma_altitud": 55983
+    },
+    {
+      "llave": "7082276B2459455127895",
+      "municipio": "Concepción",
+      "departamento": "Antioquia",
+      "suma_altitud": 56573
+    },
+    {
+      "llave": "7082276B92581613564352",
+      "municipio": "Guarne",
+      "departamento": "Antioquia",
+      "suma_altitud": 58389
+    },
+    {
+      "llave": "7082276B97169896974876",
+      "municipio": "Heliconia",
+      "departamento": "Antioquia",
+      "suma_altitud": 59723
+    },
+    {
+      "llave": "7082276B26769987150825",
+      "municipio": "San Luis",
+      "departamento": "Antioquia",
+      "suma_altitud": 53957
+    },
+    {
+      "llave": "7082276B28495435415002",
+      "municipio": "Lenguazaque",
+      "departamento": "Cundinamarca",
+      "suma_altitud": 90459
+    },
+    {
+      "llave": "7082276B59131277031860",
+      "municipio": "Nimaima",
+      "departamento": "Cundinamarca",
+      "suma_altitud": 70488
+    },
+    {
+      "llave": "7082276B58958206907814",
+      "municipio": "Subachoque",
+      "departamento": "Cundinamarca",
+      "suma_altitud": 72801
+    },
+    {
+      "llave": "7082276B91973001860083",
+      "municipio": "Baraya",
+      "departamento": "Huila",
+      "suma_altitud": 32796
+    },
+    {
+      "llave": "7082276B60713931967074",
+      "municipio": "Pitalito",
+      "departamento": "Huila",
+      "suma_altitud": 50274
+    },
+    {
+      "llave": "7082276B65922719732159",
+      "municipio": "Villavieja",
+      "departamento": "Huila",
+      "suma_altitud": 36609
+    },
+    {
+      "llave": "7082276B35872323079688",
+      "municipio": "Distracción",
+      "departamento": "La Guajira",
+      "suma_altitud": 11869
+    },
+    {
+      "llave": "7082276B24784892913162",
+      "municipio": "Hatonuevo",
+      "departamento": "La Guajira",
+      "suma_altitud": 11869
+    },
+    {
+      "llave": "7082276B40499260653390",
+      "municipio": "Morales",
+      "departamento": "Cauca",
+      "suma_altitud": 55307
+    },
+    {
+      "llave": "7082276B51071963604741",
+      "municipio": "Piendamó",
+      "departamento": "Cauca",
+      "suma_altitud": 52627
+    },
+    {
+      "llave": "7082276B82675854286902",
+      "municipio": "Canalete",
+      "departamento": "Córdoba",
+      "suma_altitud": 12411
+    },
+    {
+      "llave": "7082276B90107957997642",
+      "municipio": "Cienaga De Oro",
+      "departamento": "Córdoba",
+      "suma_altitud": 6909
+    },
+    {
+      "llave": "7082276B84273930819596",
+      "municipio": "Moñitos",
+      "departamento": "Córdoba",
+      "suma_altitud": 5507
+    },
+    {
+      "llave": "7082276B76169675802972",
+      "municipio": "Fómeque",
+      "departamento": "Cundinamarca",
+      "suma_altitud": 68661
+    },
+    {
+      "llave": "7082276B26264709784086",
+      "municipio": "Fosca",
+      "departamento": "Cundinamarca",
+      "suma_altitud": 57421
+    },
+    {
+      "llave": "7082276B90187187212426",
+      "municipio": "Gachetá",
+      "departamento": "Cundinamarca",
+      "suma_altitud": 77919
+    },
+    {
+      "llave": "7082276B33620598114960",
+      "municipio": "Gama",
+      "departamento": "Cundinamarca",
+      "suma_altitud": 77039
+    },
+    {
+      "llave": "7082276B39966756415454",
+      "municipio": "Bolivar",
+      "departamento": "Santander",
+      "suma_altitud": 55413
+    },
+    {
+      "llave": "7082276B77867476816808",
+      "municipio": "Cimitarra",
+      "departamento": "Santander",
+      "suma_altitud": 50382
+    },
+    {
+      "llave": "7082276B43213471639741",
+      "municipio": "Guavatá",
+      "departamento": "Santander",
+      "suma_altitud": 70060
+    },
+    {
+      "llave": "7082276B5814206039603",
+      "municipio": "Nueva Granada",
+      "departamento": "Magdalena",
+      "suma_altitud": 7160
+    },
+    {
+      "llave": "7082276B2618998543770",
+      "municipio": "Remolino",
+      "departamento": "Magdalena",
+      "suma_altitud": 5885
+    },
+    {
+      "llave": "7082276B16396199828486",
+      "municipio": "San Martín",
+      "departamento": "Meta",
+      "suma_altitud": 52372
+    },
+    {
+      "llave": "7082276B70460159125708",
+      "municipio": "Chachagüí",
+      "departamento": "Nariño",
+      "suma_altitud": 67467
+    },
+    {
+      "llave": "7082276B86818396743416",
+      "municipio": "Linares",
+      "departamento": "Nariño",
+      "suma_altitud": 66423
+    },
+    {
+      "llave": "7082276B88389252568355",
+      "municipio": "Providencia",
+      "departamento": "Nariño",
+      "suma_altitud": 66423
+    },
+    {
+      "llave": "7082276B22938058716201",
+      "municipio": "Pupiales",
+      "departamento": "Nariño",
+      "suma_altitud": 61990
+    },
+    {
+      "llave": "7082276B34643153596427",
+      "municipio": "Jamundí",
+      "departamento": "Valle del Cauca",
+      "suma_altitud": 52976
+    },
+    {
+      "llave": "7082276B32488030547396",
+      "municipio": "Paz De Ariporo",
+      "departamento": "Casanare",
+      "suma_altitud": 64940
+    },
+    {
+      "llave": "7082276B29346978372960",
+      "municipio": "Socorro",
+      "departamento": "Santander",
+      "suma_altitud": 79754
+    },
+    {
+      "llave": "7082276B91357442595153",
+      "municipio": "Carmen De Apicala",
+      "departamento": "Tolima",
+      "suma_altitud": 55952
+    },
+    {
+      "llave": "7082276B32656810983952",
+      "municipio": "Fresno",
+      "departamento": "Tolima",
+      "suma_altitud": 57643
+    },
+    {
+      "llave": "7082276B3940342655765",
+      "municipio": "Herveo",
+      "departamento": "Tolima",
+      "suma_altitud": 54624
+    },
+    {
+      "llave": "7082276B37284243870531",
+      "municipio": "San Sebastián De Mariquita",
+      "departamento": "Tolima",
+      "suma_altitud": 60046
+    },
+    {
+      "llave": "7082276B61520359869131",
+      "municipio": "Medio San Juan (Andagoya)",
+      "departamento": "Chocó",
+      "suma_altitud": 54118
+    },
+    {
+      "llave": "7082276B77502299141728",
+      "municipio": "Nuquí",
+      "departamento": "Chocó",
+      "suma_altitud": 54539
+    },
+    {
+      "llave": "7082276B69715084527622",
+      "municipio": "Dabeiba",
+      "departamento": "Antioquia",
+      "suma_altitud": 46240
+    },
+    {
+      "llave": "7082276B96310661388282",
+      "municipio": "Amalfi",
+      "departamento": "Antioquia",
+      "suma_altitud": 43798
+    },
+    {
+      "llave": "7082276B62736204649279",
+      "municipio": "Hato Corozal",
+      "departamento": "Casanare",
+      "suma_altitud": 69295
+    },
+    {
+      "llave": "7082276B17700118356894",
+      "municipio": "Aldana",
+      "departamento": "Nariño",
+      "suma_altitud": 61990
+    },
+    {
+      "llave": "7082276B57881293772314",
+      "municipio": "Rio Iró (Santa Rita)",
+      "departamento": "Chocó",
+      "suma_altitud": 61942
+    },
+    {
+      "llave": "7082276B34884302801431",
+      "municipio": "San José Del Guaviare",
+      "departamento": "Guaviare",
+      "suma_altitud": 36301
+    }
+  ],
+  "patrones": [
+    {
+      "n": 49,
+      "area": 1,
+      "lambda": 49,
+      "nn_media": 0.1113593431,
+      "nn_esperada": 0.0714285714,
+      "clark_evans": 1.5590308031,
+      "clark_evans_donnelly": 1.4632337832
+    },
+    {
+      "n": 56,
+      "area": 1,
+      "lambda": 56,
+      "nn_media": 0.1100073933,
+      "nn_esperada": 0.0668153105,
+      "clark_evans": 1.6464399031,
+      "clark_evans_donnelly": 1.5520231555
+    },
+    {
+      "n": 45,
+      "area": 1,
+      "lambda": 45,
+      "nn_media": 0.113777285,
+      "nn_esperada": 0.0745355992,
+      "clark_evans": 1.5264824611,
+      "clark_evans_donnelly": 1.428458067
+    },
+    {
+      "n": 58,
+      "area": 1,
+      "lambda": 58,
+      "nn_media": 0.1017589441,
+      "nn_esperada": 0.0656532164,
+      "clark_evans": 1.5499460597,
+      "clark_evans_donnelly": 1.4626603912
+    },
+    {
+      "n": 60,
+      "area": 1,
+      "lambda": 60,
+      "nn_media": 0.0652014275,
+      "nn_esperada": 0.0645497224,
+      "clark_evans": 1.0100961717,
+      "clark_evans_donnelly": 0.9542000623
+    },
+    {
+      "n": 76,
+      "area": 1,
+      "lambda": 76,
+      "nn_media": 0.0546664287,
+      "nn_esperada": 0.0573539335,
+      "clark_evans": 0.9531417529,
+      "clark_evans_donnelly": 0.9064550425
+    },
+    {
+      "n": 67,
+      "area": 1,
+      "lambda": 67,
+      "nn_media": 0.0651306918,
+      "nn_esperada": 0.0610847222,
+      "clark_evans": 1.0662353775,
+      "clark_evans_donnelly": 1.0105007264
+    },
+    {
+      "n": 86,
+      "area": 1,
+      "lambda": 86,
+      "nn_media": 0.0253218815,
+      "nn_esperada": 0.0539163866,
+      "clark_evans": 0.4696509366,
+      "clark_evans_donnelly": 0.4480660729
+    },
+    {
+      "n": 75,
+      "area": 1,
+      "lambda": 75,
+      "nn_media": 0.0372925806,
+      "nn_esperada": 0.0577350269,
+      "clark_evans": 0.6459264432,
+      "clark_evans_donnelly": 0.6140709287
+    },
+    {
+      "n": 68,
+      "area": 1,
+      "lambda": 68,
+      "nn_media": 0.061958246,
+      "nn_esperada": 0.0606339063,
+      "clark_evans": 1.0218415698,
+      "clark_evans_donnelly": 0.9688343343
+    },
+    {
+      "n": 46,
+      "area": 1,
+      "lambda": 46,
+      "nn_media": 0.0736356537,
+      "nn_esperada": 0.0737209781,
+      "clark_evans": 0.998842604,
+      "clark_evans_donnelly": 0.9354268822
+    },
+    {
+      "n": 47,
+      "area": 1,
+      "lambda": 47,
+      "nn_media": 0.0785475124,
+      "nn_esperada": 0.0729324957,
+      "clark_evans": 1.0769892299,
+      "clark_evans_donnelly": 1.0093691191
+    },
+    {
+      "n": 42,
+      "area": 1,
+      "lambda": 42,
+      "nn_media": 0.0741325626,
+      "nn_esperada": 0.077151675,
+      "clark_evans": 0.9608678305,
+      "clark_evans_donnelly": 0.8969199858
+    },
+    {
+      "n": 85,
+      "area": 1,
+      "lambda": 85,
+      "nn_media": 0.0585188029,
+      "nn_esperada": 0.0542326145,
+      "clark_evans": 1.0790334104,
+      "clark_evans_donnelly": 1.0291420947
+    },
+    {
+      "n": 55,
+      "area": 1,
+      "lambda": 55,
+      "nn_media": 0.0712269418,
+      "nn_esperada": 0.0674199862,
+      "clark_evans": 1.0564662764,
+      "clark_evans_donnelly": 0.9953151826
+    },
+    {
+      "n": 61,
+      "area": 1,
+      "lambda": 61,
+      "nn_media": 0.0313293653,
+      "nn_esperada": 0.06401844,
+      "clark_evans": 0.4893803309,
+      "clark_evans_donnelly": 0.4625295455
+    },
+    {
+      "n": 42,
+      "area": 1,
+      "lambda": 42,
+      "nn_media": 0.0748739262,
+      "nn_esperada": 0.077151675,
+      "clark_evans": 0.9704770021,
+      "clark_evans_donnelly": 0.9058896462
+    },
+    {
+      "n": 55,
+      "area": 1,
+      "lambda": 55,
+      "nn_media": 0.0722857885,
+      "nn_esperada": 0.0674199862,
+      "clark_evans": 1.0721715112,
+      "clark_evans_donnelly": 1.0101113563
+    },
+    {
+      "n": 47,
+      "area": 1,
+      "lambda": 47,
+      "nn_media": 0.1202302065,
+      "nn_esperada": 0.0729324957,
+      "clark_evans": 1.648513537,
+      "clark_evans_donnelly": 1.5450095605
+    },
+    {
+      "n": 58,
+      "area": 1,
+      "lambda": 58,
+      "nn_media": 0.0638666153,
+      "nn_esperada": 0.0656532164,
+      "clark_evans": 0.9727873027,
+      "clark_evans_donnelly": 0.9180044994
+    },
+    {
+      "n": 55,
+      "area": 1,
+      "lambda": 55,
+      "nn_media": 0.1005561655,
+      "nn_esperada": 0.0674199862,
+      "clark_evans": 1.4914889646,
+      "clark_evans_donnelly": 1.405157594
+    },
+    {
+      "n": 40,
+      "area": 1,
+      "lambda": 40,
+      "nn_media": 0.0813341417,
+      "nn_esperada": 0.0790569415,
+      "clark_evans": 1.0288045573,
+      "clark_evans_donnelly": 0.9585822454
+    },
+    {
+      "n": 51,
+      "area": 1,
+      "lambda": 51,
+      "nn_media": 0.0711052078,
+      "nn_esperada": 0.0700140042,
+      "clark_evans": 1.0155855044,
+      "clark_evans_donnelly": 0.9544597433
+    },
+    {
+      "n": 52,
+      "area": 1,
+      "lambda": 52,
+      "nn_media": 0.0715617215,
+      "nn_esperada": 0.0693375245,
+      "clark_evans": 1.0320778243,
+      "clark_evans_donnelly": 0.9705802653
+    },
+    {
+      "n": 42,
+      "area": 1,
+      "lambda": 42,
+      "nn_media": 0.0432019736,
+      "nn_esperada": 0.077151675,
+      "clark_evans": 0.5599615771,
+      "clark_evans_donnelly": 0.5226949159
+    },
+    {
+      "n": 53,
+      "area": 1,
+      "lambda": 53,
+      "nn_media": 0.0721413942,
+      "nn_esperada": 0.068680282,
+      "clark_evans": 1.0503945541,
+      "clark_evans_donnelly": 0.9884191588
+    },
+    {
+      "n": 72,
+      "area": 1,
+      "lambda": 72,
+      "nn_media": 0.0299715358,
+      "nn_esperada": 0.0589255651,
+      "clark_evans": 0.5086338284,
+      "clark_evans_donnelly": 0.4830155701
+    },
+    {
+      "n": 50,
+      "area": 1,
+      "lambda": 50,
+      "nn_media": 0.0729240225,
+      "nn_esperada": 0.0707106781,
+      "clark_evans": 1.0313014161,
+      "clark_evans_donnelly": 0.9685905428
+    },
+    {
+      "n": 55,
+      "area": 1,
+      "lambda": 55,
+      "nn_media": 0.0712902121,
+      "nn_esperada": 0.0674199862,
+      "clark_evans": 1.0574047261,
+      "clark_evans_donnelly": 0.9961993123
+    },
+    {
+      "n": 77,
+      "area": 1,
+      "lambda": 77,
+      "nn_media": 0.0272202149,
+      "nn_esperada": 0.0569802882,
+      "clark_evans": 0.4777128325,
+      "clark_evans_donnelly": 0.4544706972
+    }
+  ],
+  "variantes": {
+    "base": 0,
+    "m0": [10, 32, 45, 34, 16, 11, 4, 23, 27, 1, 35, 47, 47, 5, 49, 35, 46, 9, 26, 41, 34, 3, 55, 48, 19, 34, 49, 42, 39, 43, 21, 54, 38, 16, 42, 20, 45, 26, 0, 21, 11, 58, 48, 36, 43, 47, 19, 51, 9, 42, 25, 27, 37, 11, 22, 57, 54, 32, 25, 42, 49, 51, 37, 20, 42, 49, 29, 3, 16, 31, 27, 46, 29, 44, 6, 15, 59, 9, 39, 42, 2, 34, 15, 9, 55, 36, 9, 6, 24, 42, 34, 43, 5, 35, 40, 40, 22, 37, 30, 2, 26, 23, 56, 22, 2, 37, 55, 20, 56, 53, 21, 18, 59, 17, 48, 5, 59, 24, 0, 42, 10, 15, 9, 17, 7, 43, 5, 53, 29, 43, 29, 19, 45, 12, 11, 38, 3, 24, 40, 36, 23, 58, 31, 6, 55, 3, 53, 22, 14, 2, 13, 45, 57, 17, 58, 37, 1, 39, 22, 47, 21, 41, 40, 15, 21, 13, 41, 24, 34, 31, 30, 44, 8, 15, 42, 20, 19, 59, 40, 51, 5, 7, 44, 45, 23, 41, 21, 13, 24, 1, 59, 29, 40, 52, 18, 25, 17, 28, 8, 2, 37, 43, 0, 52, 33, 16, 21, 29, 28, 27, 31, 53, 22, 30, 33, 3, 32, 41, 56, 28, 8, 21, 13, 38, 10, 26, 41, 52, 8, 10, 18, 50, 8, 25, 12, 21, 31, 4, 53, 46, 18, 38, 2, 55, 38, 54, 43, 46, 20, 11, 17, 27, 8, 2, 20, 19, 15, 17, 14, 44, 41, 55, 50, 42, 8, 27, 49, 38, 20, 17, 38, 44, 17, 32, 30, 59, 31, 49, 11, 13, 10, 29, 59, 32, 18, 43, 11, 49, 18, 22, 12, 42, 27, 45, 28, 51, 17, 57, 9, 56, 15, 30, 51, 50, 52, 27, 32, 26, 44, 30, 21, 52, 35, 13, 53, 23, 16, 7, 7, 41, 44, 32, 36, 53, 52, 35, 53, 16, 14, 54, 25, 28, 18, 45, 50, 0, 58, 3, 5, 37, 41, 13, 39, 50, 9, 33, 51, 5, 41, 15, 15, 9, 57, 52, 47, 3, 4, 38, 42, 2, 48, 45, 10, 37, 56, 29, 8, 4, 30, 3, 30, 53, 37, 22, 34, 41, 56, 37, 0, 50, 1, 5, 39, 55, 8, 22, 30, 44, 2, 3, 21, 22, 31, 38, 38, 52, 28, 29, 2, 16, 37, 55, 55, 31, 19, 37, 58, 45, 39, 20, 19, 29, 36, 51, 39, 10, 28, 17, 43, 40, 35, 52, 43, 5, 4, 4, 28, 19, 27, 13, 19, 37, 37, 21, 30, 48, 57, 43, 35, 20, 15, 15, 29, 46, 24, 5, 36, 5, 30, 53, 49, 23, 25, 26, 48, 12, 36, 15, 45, 44, 45, 4, 54, 19, 5, 7, 40, 32, 47, 25, 33, 37, 2, 46, 2, 4, 32, 5, 41, 4, 11, 43, 56, 14, 18, 40, 49, 16, 51, 26, 46, 14, 40, 31, 26, 12, 46, 17, 24, 5, 29, 30, 41, 34, 52, 45, 40, 50, 48, 33, 2, 25, 50, 51, 34, 17, 54, 5, 35, 0, 18, 47, 13, 45, 8, 0, 23, 1, 2, 59, 59, 14, 9, 18, 34, 3, 36, 25, 16, 28, 3, 44, 8, 27, 11, 19, 4, 49, 27, 37, 15, 47, 47, 33, 36, 48, 9, 21, 6, 4, 50, 29, 22, 17, 49, 16, 27, 34, 18, 1, 12, 54, 37, 46, 33, 33, 58, 35, 48, 44, 51, 0, 59, 19, 12, 33, 15, 19, 28, 23, 36, 59, 9, 57, 32, 11, 35, 46, 16, 5, 11, 14, 40, 50, 36, 8, 23, 30, 54, 42, 24, 48, 29, 27, 51, 51, 17, 38, 36, 9, 36, 18, 36, 0, 23, 52, 59, 53, 7, 10, 57, 51, 56, 56, 6, 25, 5, 54, 7, 2, 53, 23, 9, 12, 0, 15, 46, 7, 30, 56, 13, 41, 34, 54, 33, 42, 1, 8, 27, 54, 50, 56, 17, 29, 25, 4, 21, 28, 53, 16, 15, 50, 1, 35, 37, 19, 25, 11, 41, 10, 49, 48, 17, 42, 11, 42, 20, 18, 34, 0, 55, 35, 25, 19, 16, 30, 39, 0, 0, 4, 27, 57, 47, 31, 24, 28, 38, 24, 46, 28, 26, 56, 55, 53, 25, 10, 40, 10, 36, 47, 21, 41, 51, 46, 32, 42, 27, 24, 36, 5, 35, 31, 53, 52, 57, 32, 12, 28, 27, 49, 54, 5, 43, 46, 58, 53, 13, 25, 44, 35, 8, 53, 50, 10, 58, 31, 29, 27, 7, 43, 31, 8, 30, 32, 56, 48, 31, 1, 27, 51, 4, 55, 23, 13, 46, 0, 40, 39, 43, 38, 50, 47, 53, 28, 39, 44, 8, 55, 48, 33, 51, 26, 58, 43, 28, 52, 7, 57, 36, 25, 35, 48, 46, 21, 56, 59, 40, 25, 6, 22, 27, 0, 43, 18, 44, 12, 23, 20, 55, 41, 20, 17, 39, 59, 34, 7, 26, 54, 23, 12, 39, 26, 38, 20, 58, 38, 56, 44, 47, 3, 40, 1, 25, 8, 46, 37, 15, 24, 3, 12, 58, 1, 31, 36, 26, 49, 20, 56, 30, 23, 9, 36, 26, 6, 7, 7, 26, 27, 49, 47, 49, 5, 35, 39, 33, 7, 35, 2, 51, 13, 37, 6, 23, 11, 6, 48, 57, 46, 9, 9, 13, 53, 48, 47, 45, 2, 5, 2, 56, 40, 16, 14, 57, 31, 40, 39, 3, 45, 56, 39, 42, 7, 17, 18, 31, 22, 59, 12, 8, 34, 52, 43, 59, 58, 31, 55, 12, 10, 9, 10, 31, 45, 45, 11, 47, 47, 50, 10, 26, 55, 54, 26, 16, 41, 28, 57, 9, 12, 41, 23, 6, 35, 15, 45, 44, 1, 54, 4, 50, 48, 49, 7, 16, 15, 25, 29, 47, 6, 59, 30, 34, 53, 57, 13, 51, 56, 58, 4, 17, 57, 51, 2, 35, 22, 4, 37, 18, 1, 46, 56, 58, 40, 6, 50, 24, 58, 35, 19, 43, 55],
+    "p0": [21, 22, 20, 13, 19, 27, 10, 19, 29, 13, 21, 22, 19, 11, 19, 0, 29, 11, 5, 8, 22, 23, 8, 13, 2, 17, 21, 9, 4, 16, 11, 6, 8, 2, 22, 11, 8, 27, 5, 18, 6, 25, 19, 11, 12, 21, 9, 24, 6, 13, 22, 25, 5, 12, 29, 8, 24, 27, 5, 21, 25, 23, 17, 2, 23, 26, 15, 19, 22, 19, 7, 1, 24, 8, 29, 2, 6, 0, 23, 17, 16, 28, 26, 8, 23, 23, 24, 18, 7, 4, 27, 9, 5, 9, 2, 21, 22, 24, 12, 27, 7, 10, 17, 11, 2, 20, 26, 10, 5, 8, 20, 20, 17, 29, 5, 17, 29, 16, 16, 14, 6, 10, 21, 19, 8, 19, 18, 24, 18, 26, 12, 17, 19, 14, 18, 13, 22, 20, 1, 18, 26, 8, 10, 24, 22, 18, 12, 0, 15, 15, 25, 10, 14, 27, 23, 1, 22, 26, 13, 27, 17, 19, 22, 20, 15, 20, 24, 18, 4, 11, 28, 20, 21, 3, 16, 28, 14, 14, 13, 17, 19, 18, 28, 5, 0, 1, 7, 18, 14, 29, 22, 19, 28, 17, 17, 9, 25, 25, 1, 7, 25, 18, 14, 0, 22, 24, 12, 1, 3, 14, 27, 13, 7, 9, 2, 13, 21, 10, 7, 28, 28, 28, 17, 6, 22, 1, 16, 21, 16, 4, 28, 28, 15, 0, 19, 4, 5, 17, 7, 14, 6, 7, 25, 5, 20, 15, 22, 20, 0, 1, 15, 18, 14, 3, 14, 16, 25, 4, 19, 10, 12, 10, 23, 12, 8, 8, 3, 23, 13, 1, 2, 17, 17, 8, 20, 28, 23, 22, 3, 29, 26, 4, 5, 6, 3, 15, 9, 29, 14, 2, 10, 29, 20, 23, 9, 11, 11, 18, 19, 22, 11, 18, 0, 6, 26, 1, 25, 22, 7, 8, 23, 6, 27, 12, 26, 11, 15, 21, 11, 7, 2, 15, 0, 25, 25, 6, 18, 5, 7, 18, 29, 17, 21, 9, 25, 0, 0, 9, 2, 26, 4, 13, 9, 13, 23, 16, 18, 25, 22, 0, 27, 13, 15, 28, 7, 15, 22, 12, 28, 26, 20, 18, 0, 4, 19, 14, 6, 29, 11, 24, 7, 17, 7, 8, 9, 3, 26, 28, 23, 24, 25, 12, 1, 18, 3, 24, 17, 24, 1, 7, 3, 6, 21, 4, 10, 3, 21, 0, 5, 28, 16, 4, 16, 16, 21, 15, 4, 12, 20, 3, 3, 26, 4, 9, 21, 8, 14, 8, 29, 15, 2, 27, 17, 3, 24, 23, 12, 28, 5, 28, 13, 13, 27, 0, 22, 18, 3, 7, 11, 16, 23, 15, 27, 21, 4, 14, 1, 26, 3, 19, 16, 4, 20, 3, 22, 4, 16, 8, 6, 11, 0, 25, 29, 18, 1, 24, 4, 23, 12, 12, 26, 29, 24, 0, 10, 7, 13, 21, 14, 26, 10, 14, 11, 9, 12, 29, 12, 4, 10, 26, 7, 2, 25, 15, 0, 24, 24, 0, 21, 9, 2, 26, 13, 11, 22, 22, 24, 12, 11, 13, 21, 25, 19, 21, 18, 7, 10, 6, 17, 1, 2, 17, 14, 17, 24, 24, 3, 2, 14, 15, 24, 5, 9, 0, 21, 8, 10, 19, 0, 8, 2, 1, 22, 28, 0, 27, 6, 24, 13, 10, 16, 23, 24, 15, 29, 15, 14, 9, 23, 28, 10, 10, 18, 14, 0, 1, 24, 5, 18, 9, 0, 27, 21, 8, 27, 21, 13, 4, 16, 22, 20, 9, 7, 29, 21, 29, 22, 7, 27, 9, 5, 0, 20, 23, 10, 28, 3, 16, 20, 10, 21, 16, 20, 7, 14, 18, 13, 2, 3, 25, 6, 26, 17, 9, 3, 14, 21, 19, 20, 29, 22, 24, 26, 19, 2, 9, 21, 27, 27, 18, 28, 29, 29, 28, 8, 21, 16, 19, 15, 17, 0, 12, 4, 29, 26, 19, 11, 10, 27, 27, 15, 18, 14, 20, 8, 20, 11, 11, 10, 17, 5, 0, 16, 29, 10, 5, 29, 7, 22, 17, 12, 9, 23, 15, 6, 1, 14, 8, 27, 20, 17, 28, 9, 10, 29, 11, 24, 25, 1, 10, 29, 26, 27, 24, 9, 1, 25, 29, 4, 9, 2, 25, 18, 29, 28, 26, 11, 11, 18, 20, 28, 13, 12, 16, 8, 28, 9, 29, 15, 5, 10, 0, 19, 22, 0, 5, 3, 2, 27, 8, 29, 8, 20, 10, 19, 9, 22, 2, 26, 2, 28, 15, 25, 15, 2, 3, 10, 28, 21, 25, 27, 6, 26, 10, 1, 7, 13, 0, 26, 13, 17, 23, 16, 4, 6, 14, 3, 7, 15, 26, 27, 20, 20, 22, 13, 22, 3, 11, 2, 26, 17, 26, 29, 13, 5, 18, 26, 11, 27, 20, 6, 8, 21, 6, 11, 7, 23, 24, 3, 6, 1, 10, 17, 27, 4, 26, 0, 7, 4, 21, 17, 11, 0, 26, 19, 3, 27, 25, 27, 23, 27, 3, 27, 20, 24, 1, 16, 25, 25, 8, 24, 14, 29, 15, 12, 16, 16, 6, 16, 6, 5, 28, 3, 7, 25, 18, 7, 3, 5, 18, 10, 1, 14, 25, 17, 4, 22, 10, 29, 15, 15, 21, 10, 12, 9, 2, 25, 16, 11, 28, 15, 28, 8, 12, 14, 12, 12, 4, 28, 2, 2, 16, 17, 16, 9, 23, 10, 28, 25, 27, 11, 4, 21, 14, 25, 18, 20, 28, 25, 16, 25, 29, 4, 4, 8, 3, 20, 14, 8, 10, 24, 17, 28, 22, 24, 14, 12, 23, 0, 12, 18, 21, 3, 7, 28, 28, 26, 11, 18, 24, 26, 11, 24, 15, 29, 11, 22, 14, 21, 21, 5, 2, 10, 9, 0, 6, 2, 28, 5, 23, 19, 28, 18, 13, 16, 4, 12, 19, 15, 7, 5, 13, 11, 5, 2, 25, 15, 2, 8, 0, 26, 23, 5, 27, 25, 20, 27, 0, 23, 1, 22, 0, 16, 27, 2, 0, 23, 27, 2, 12, 22, 27, 17, 3, 15, 19, 18, 26, 24, 15]
+  },
+  "t3": {
+    "bandas": 6,
+    "A": [
+      {
+        "d1": 0,
+        "d2": 30,
+        "n_pares": 409,
+        "sin_vecinos": 75,
+        "I": 0.6504997694
+      },
+      {
+        "d1": 30,
+        "d2": 70,
+        "n_pares": 1582,
+        "sin_vecinos": 21,
+        "I": 0.4962861699
+      },
+      {
+        "d1": 70,
+        "d2": 130,
+        "n_pares": 4168,
+        "sin_vecinos": 5,
+        "I": 0.216208033
+      },
+      {
+        "d1": 130,
+        "d2": 220,
+        "n_pares": 8490,
+        "sin_vecinos": 5,
+        "I": 0.1399119839
+      },
+      {
+        "d1": 220,
+        "d2": 380,
+        "n_pares": 16875,
+        "sin_vecinos": 3,
+        "I": 0.029330971
+      },
+      {
+        "d1": 380,
+        "d2": 650,
+        "n_pares": 21109,
+        "sin_vecinos": 2,
+        "I": -0.0970284377
+      }
+    ],
+    "B": [
+      {
+        "d1": 0,
+        "d2": 30,
+        "n_pares": 409,
+        "sin_vecinos": 75,
+        "I": 0.6504997694
+      },
+      {
+        "d1": 0,
+        "d2": 70,
+        "n_pares": 1991,
+        "sin_vecinos": 15,
+        "I": 0.5713851522
+      },
+      {
+        "d1": 0,
+        "d2": 130,
+        "n_pares": 6159,
+        "sin_vecinos": 5,
+        "I": 0.3420381361
+      },
+      {
+        "d1": 0,
+        "d2": 220,
+        "n_pares": 14649,
+        "sin_vecinos": 3,
+        "I": 0.2293827357
+      },
+      {
+        "d1": 0,
+        "d2": 380,
+        "n_pares": 31524,
+        "sin_vecinos": 1,
+        "I": 0.1224244525
+      },
+      {
+        "d1": 0,
+        "d2": 650,
+        "n_pares": 52633,
+        "sin_vecinos": 0,
+        "I": 0.0108905744
+      }
+    ]
+  },
+  "t5": {
+    "municipio": "San Rafael",
+    "departamento": "Antioquia",
+    "n_puntos": 8,
+    "caja_declarada": [-75.4, 5.96, -74.84, 6.54],
+    "d_real_km": 26.8440521576,
+    "d_declarada_m": 0.2416609195,
+    "veces": 111081.4781978636,
+    "en_buffer_500": 8,
+    "area_declarada_m2": 0.3248
+  },
+  "t6": {
+    "variable": "puntaje medio de Saber 11 por municipio",
+    "n": 1113,
+    "k_vecinos": 5,
+    "n_pliegues": 10,
+    "sd_variable": 21.4504225246,
+    "rmse_aleatoria": 13.4953653656,
+    "rmse_bloques": 17.7757628652,
+    "r2_aleatoria": 0.6041801305,
+    "r2_bloques": 0.3132719395,
+    "tam_pliegues": [23, 78, 86, 90, 91, 105, 123, 127, 190, 200]
+  },
+  "t7": {
+    "n_estaciones": 361,
+    "n_parejas": 64980,
+    "km_por_grado_manual": 111.32,
+    "moran_esperado": -0.0027777778,
+    "lat_min": -4.19,
+    "lat_max": 13.36,
+    "error_grados_pct_mediano": 0.2066924027,
+    "error_grados_pct_max": 2.6285001795,
+    "radio_esfera_s2_m": 6371010,
+    "brecha_esfera_elipsoide_pct_mediana": 0.3682554025,
+    "brecha_esfera_elipsoide_pct_max": 0.5611554784,
+    "km_por_grado_lon_sur": 111.022468859,
+    "km_por_grado_lon_norte": 108.3073948963
+  }
+}

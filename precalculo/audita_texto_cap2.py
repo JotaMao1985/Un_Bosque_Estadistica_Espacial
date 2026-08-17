@@ -46,6 +46,7 @@ ESTRUCTURALES = {
     "1.0.22", "3.5.1", "1.4.2", "2.1.5", "4.2", "0.4.11", "0.2.5",
     "3.8.5", "3.13.0", "9.5.1", "4.4.1",      # GDAL, GEOS, PROJ y R
     "4.0",                                    # CC BY 4.0
+    "19125",                                  # la norma ISO de Simple Features
     "20", "24",                               # pp. 20-24 de Snyder
     "73", "74",                               # los meridianos centrales, en grados enteros
     "50", "150", "500", "200", "1000",        # los sigma y radios nominales del enunciado
@@ -59,6 +60,13 @@ ESTRUCTURALES = {
 # El temario que el §6 del plan le asigna al capítulo 2. Los tokens son
 # largos a propósito: buscar «crs» daría OK dentro de cualquier cosa.
 DEBE_CUBRIR = [
+    # El temario del syllabus abre con la sigla, y el capítulo la daba por
+    # sabida: hasta el 2026-08-14 «SIG» solo aparecía en el título. Estas
+    # cuatro entradas existen para que no se pueda volver a caer.
+    ("qué es un SIG", "sistema de información geográfica"),
+    ("el estándar Simple Features", "simple features"),
+    ("el modelo vectorial frente al ráster", "ráster"),
+    ("por qué el SIG del curso se escribe y no se pulsa", "qgis"),
     ("el geoide y el elipsoide", "elipsoide"),
     ("el datum y su desplazamiento", "datum"),
     ("MAGNA-SIRGAS", "magna-sirgas"),
@@ -98,6 +106,10 @@ FUENTES = [
 # una reescritura, el capítulo deja de decir lo que el plan le encarga y
 # nadie se entera: el HTML seguiría siendo válido y la consola limpia.
 AFIRMACIONES = [
+    ("declara que la posición es un atributo de primera clase",
+     "atributo de primera"),
+    ("dice que una capa sin CRS declarado no es una capa",
+     "no es una capa"),
     ("dice que un CRS mal puesto no da error",
      "no da error"),
     ("advierte de que el achatamiento cambia el tamaño de las cosas",

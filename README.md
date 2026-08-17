@@ -55,6 +55,14 @@ cifras, no las cifras.
 Los bloques de código tampoco se creen a sí mismos: `verifica_bloques.py` los **ejecuta**
 y contrasta la salida real contra el `#>` que anuncian.
 
+Y hay una tercera cosa que ni los resultados ni las causas destapan: **el dato que se
+declara y no lo pinta nadie**. `courseData` traía tres campos que la barra lateral no leía,
+y como no producían comportamiento, ninguna comprobación de comportamiento podía verlos —ni
+el arnés, ni la consola del navegador—. Bajo esa cobertura el esquema llegó a partirse en
+dos entre el capítulo 1 y el 2 sin que nada lo dijera. `campos_vivos.py` compara la
+declaración contra la lectura, documento por documento, y exige además que el esquema no
+diverja.
+
 ---
 
 ## Cómo se construye un capítulo
@@ -105,11 +113,13 @@ Para verificarlo todo:
 precalculo/audita_todo.sh
 ```
 
-Son siete pasos: el precálculo recalculado en Python, un arnés que le inyecta defectos a
+Son ocho pasos: el precálculo recalculado en Python, un arnés que le inyecta defectos a
 ese auditor para probar que sabe fallar, otro que hace lo mismo con las guardas del
-ensamblador, la ejecución real de los bloques de código, las cifras de la prosa, un arnés
-para el auditor de prosa y el recuento del sitio. Tarda unos 40 minutos y termina en
-`ARNÉS COMPLETO EN VERDE` o no termina.
+ensamblador, la ejecución real de los bloques de código, el contrato entre el dato y quien
+lo pinta, las cifras de la prosa, un arnés para el auditor de prosa y el recuento del
+sitio. Tarda unas cuatro horas y media —la mayor parte en los arneses de inyección, que
+arrancan el auditor entero una vez por defecto— y termina en `ARNÉS COMPLETO EN VERDE` o
+no termina. Con `--rapido` se salta esos arneses y baja a unos minutos.
 
 ---
 
@@ -143,14 +153,19 @@ orden que documenta `FUENTES.md`.
 
 | Carpeta | Qué contiene |
 |---|---|
-| `Htmls_Espacial/` | Los capítulos publicados, más dos bancos de prueba del motor |
+| `Htmls_Espacial/` | Los capítulos publicados y los talleres, más dos bancos de prueba del motor |
 | `precalculo/` | Los guiones de R que calculan, los de Python que ensamblan y todos los auditores |
 | `precalculo/salidas/` | El precálculo: los JSON y CSV que consume el navegador |
 | `plantilla/` | La plantilla base de la que salen todos los capítulos |
 | `index.html` | La portada del sitio |
 
 Los archivos `prueba-auditoria.html` y `prueba-geomapa.html` son bancos de prueba del
-motor, no material del curso. `cuenta_sitio.py` los cuenta aparte por esa razón.
+motor, no material del curso. `cuenta_sitio.py` los cuenta aparte por esa razón, y por la
+razón contraria cuenta los `taller-*.html` en su propia tabla: son material, pero no son
+capítulos —no tienen autoevaluación y sus módulos no van contra los 120 del plan—.
+
+Los talleres se construyen con la misma cadena (`genera_taller1.R` → `ensambla_taller1.py`
+→ `audita_taller1.py`) y corren por su propio bucle dentro de `audita_todo.sh`.
 
 ---
 

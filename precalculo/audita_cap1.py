@@ -1283,7 +1283,14 @@ def main() -> int:
     gl = D["glosario"]
     claves = [c["clave"] for c in gl["columnas"]]
     a.cierto(len(claves) == len(set(claves)), "las columnas del glosario no se repiten")
-    a.cierto(all(c["tipo"] in ("texto", "mate", "codigo") for c in gl["columnas"]),
+    # El vocabulario tiene que ir al dia con el del componente, en
+    # `iniciarGlosarios()` de la plantilla. `referencia` se anadio para las
+    # citas: no son prosa —no deben partirse entre el autor y la seccion— ni
+    # matematica —el § no lo es—. Esta guarda es lo unico que ata las dos
+    # listas, y se gano el sueldo: canto el dia que el tipo entro en la
+    # plantilla y no aqui.
+    a.cierto(all(c["tipo"] in ("texto", "referencia", "mate", "codigo")
+                 for c in gl["columnas"]),
              "cada columna declara un tipo que el componente entiende")
     simbolos = [f["simbolo"] for f in gl["filas"]]
     a.cierto(len(simbolos) == len(set(simbolos)), "ningún símbolo repetido",

@@ -83,13 +83,28 @@ def revisa(ruta: pathlib.Path) -> tuple[list[str], int, set[str]]:
     return culpables, exentas, vistos
 
 
+# Los ensamblados que NO son material del curso: fixtures del arnés, que
+# existen para romperse. Se nombran uno a uno —lista corta y explícita—
+# en vez de excluirse con un patrón, porque un patrón se lleva por delante
+# lo que no debe el día que alguien nombra un archivo parecido.
+NO_SON_MATERIAL = {"ensambla_demo_auditoria.py"}
+
+
 def ensambladores() -> list[pathlib.Path]:
-    """Los ensambladores de capítulo, descubiertos y no listados a mano.
+    """Todos los ensambladores de material, descubiertos y no listados.
 
     Con una lista, el capítulo 4 nacería sin esta comprobación y nadie se
     enteraría hasta que alguien la echara de menos.
+
+    EL PATRÓN SE AMPLIÓ EN C8 DEL TALLER 1, y por lo mismo que existe esta
+    función. Buscaba `ensambla_cap*.py`, así que `ensambla_taller1.py`
+    —2 000 líneas de prosa con cifras interpoladas— quedaba fuera de la
+    única comprobación que mira la CAUSA del defecto del 61.7. El taller
+    habría nacido sin ella y el informe habría seguido diciendo «3
+    ensambladores revisados» tan campante.
     """
-    return sorted(p for p in PRECALCULO.glob("ensambla_cap*.py"))
+    return sorted(p for p in PRECALCULO.glob("ensambla_*.py")
+                  if p.name not in NO_SON_MATERIAL)
 
 
 def barre(rutas: list[pathlib.Path], verboso: bool = True) -> int:

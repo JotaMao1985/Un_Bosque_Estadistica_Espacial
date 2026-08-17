@@ -8,7 +8,7 @@
     content="Plantilla base para los capítulos del material de estudio interactivo de Estadística Espacial (Universidad El Bosque): cajas, código R/Python en pestañas, simuladores con Chart.js, mapas interactivos, autoevaluación y ejercicios guiados.">
   <meta name="author" content="Javier Mauricio Sierra">
   <meta name="keywords" content="estadística espacial, autocorrelación espacial, índice de Moran, LISA, patrones puntuales, kriging, variograma, econometría espacial, SAR, GWR, MAUP, sf, spdep, gstat, spatstat, material de estudio, simulador, autoevaluación, R, Python, UnBosque">
-  <title>Plantilla de capítulo — Estadística Espacial</title>
+  <title>Taller 1 · Datos espaciales, sistemas de referencia y georreferenciación — Estadística Espacial</title>
 
   <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1959,6 +1959,57 @@
       font-weight: 500;
     }
 
+
+    /* El distintivo de peso de cada tarea. Va pegado al título del
+       enunciado porque el peso es parte del enunciado: saber que una tarea
+       vale el 20 % cambia cuánto tiempo merece. */
+    .badge-peso {
+      display: inline-block;
+      background: #012820;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.1rem 0.5rem;
+      border-radius: 50px;
+      vertical-align: middle;
+      margin-left: 0.35rem;
+    }
+
+    /* La respuesta del modelo que T7 pone a auditar. Va con marca de cita
+       y en otra familia de color para que se lea como material ajeno y no
+       como afirmación del taller: la diferencia importa cuando lo que se
+       pide es dudar de ella. */
+    .cita-ia {
+      margin: 1rem 0;
+      padding: 0.9rem 1.1rem;
+      background: #f1f5f9;
+      border-left: 4px solid #64748b;
+      border-radius: 0.4rem;
+      color: #334155;
+      font-size: 0.94rem;
+    }
+
+    .cita-ia p {
+      margin: 0 0 0.7rem 0;
+    }
+
+    /* Los literales de una tarea: a), b), c)… con aire entre ellos, que es
+       lo que hace que se lean como preguntas distintas y no como un párrafo
+       troceado. */
+    .lista-literales {
+      margin: 0.75rem 0 0 0;
+      padding-left: 1.6rem;
+    }
+
+    .lista-literales > li {
+      margin-bottom: 0.55rem;
+      color: #1e293b;
+    }
+
+    .lista-literales > li:last-child {
+      margin-bottom: 0;
+    }
+
     /* ------------------------------------------------------------------
        Componente .ciclo — diagrama de etapas recorrible
        ------------------------------------------------------------------
@@ -3534,8 +3585,8 @@
           <div>
             <h1 class="text-xl font-bold text-white leading-tight tracking-tight" style="margin:0;">Estadística Espacial
             </h1>
-            <p class="text-xs text-white/70 font-medium tracking-wide" style="margin:0; text-align:left;">PLANTILLA BASE •
-              5 MÓDULOS DE DEMOSTRACIÓN • UNBOSQUE 2026-II</p>
+            <p class="text-xs text-white/70 font-medium tracking-wide" style="margin:0; text-align:left;">TALLER 1 • CAPÍTULOS 1 Y 2 •
+              ESCRITO 60 % + DEFENSA 40 % • UNBOSQUE 2026-II</p>
           </div>
         </div>
       </div>
@@ -3621,8 +3672,8 @@
       <div class="mt-6 pt-6 border-t border-white/20 text-center">
         <p class="text-white font-medium" style="text-align:center;">Diseñado por <span class="text-gold">Javier
             Mauricio Sierra</span></p>
-        <p class="text-xs mt-1 text-white/60" style="text-align:center;">Estadística Espacial (20929) • Plantilla de
-          capítulo • UnBosque 2026-II</p>
+        <p class="text-xs mt-1 text-white/60" style="text-align:center;">Estadística Espacial (20929) • Taller 1 de 2 •
+          Corte I • UnBosque 2026-II</p>
       </div>
     </div>
   </footer>
@@ -3633,7 +3684,7 @@
   </button>
 
   <!-- ============================================================ -->
-  <!-- MÓDULO 1 · Cajas y tipografía                                 -->
+  <!-- MÓDULO 1 · Cómo se trabaja este taller                          -->
   <!-- ============================================================ -->
   <template id="module-1">
     <div class="animate-fade-in">
@@ -3641,175 +3692,89 @@
         <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
           <span>Módulo 1</span>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Cajas y tipografía <span
-            class="text-gray-400 font-normal text-2xl">/ Boxes &amp; type</span></h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Cómo se trabaja este taller
+          <span class="text-gray-400 font-normal text-2xl">/ Read this first</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
-            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Objetivo</h3>
-            <p class="text-gray-600 text-sm" style="margin:0;">Ver de un vistazo todos los bloques de contenido
-              disponibles. Copia el que necesites y sustituye el texto.</p>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Nada. Este módulo no se califica: fija las reglas, resuelve tu variante y dice cómo se califica todo lo demás.</p>
           </div>
         </div>
       </div>
 
-      <div class="ciclo" data-ciclo="demo">
-        <ol class="ciclo-etapas" role="tablist" aria-label="Etapas del ciclo">
-          <li class="ciclo-etapa" role="presentation">
-            <button type="button" class="ciclo-boton" role="tab"
-              aria-selected="true" aria-controls="ciclo-demo-planear" tabindex="0">
-              <span class="ciclo-numero">Etapa 1</span>
-              <span class="ciclo-titulo">Planear</span>
-              <span class="ciclo-resumen">¿Qué se quiere responder?</span>
-            </button>
-          </li>
-          <li class="ciclo-etapa" role="presentation">
-            <button type="button" class="ciclo-boton" role="tab"
-              aria-selected="false" aria-controls="ciclo-demo-hacer" tabindex="-1">
-              <span class="ciclo-numero">Etapa 2</span>
-              <span class="ciclo-titulo">Hacer</span>
-              <span class="ciclo-resumen">Ejecutar y medir</span>
-            </button>
-          </li>
-          <li class="ciclo-etapa" role="presentation">
-            <button type="button" class="ciclo-boton" role="tab"
-              aria-selected="false" aria-controls="ciclo-demo-comprobar" tabindex="-1">
-              <span class="ciclo-numero">Etapa 3</span>
-              <span class="ciclo-titulo">Comprobar</span>
-              <span class="ciclo-resumen">¿Se sostiene?</span>
-            </button>
-          </li>
-        </ol>
-        <p class="ciclo-retorno">El ciclo se recorre con clic o con las flechas del teclado, y vuelve al principio cuantas veces haga falta.</p>
-        <div class="ciclo-panel" id="ciclo-demo-planear" role="tabpanel">
-          <div class="ciclo-campo">
-            <span class="ciclo-etiqueta">Qué haces</span>
-            <p>Se describe la etapa en una o dos frases. Este componente es para procedimientos que se <strong>recorren</strong> y en los que se vuelve atrás; si los pasos nunca se repiten, usa la caja <code>.diagram</code> con una lista y ya está.</p>
-          </div>
-          <div class="ciclo-campo">
-            <span class="ciclo-etiqueta">Con qué</span>
-            <p>Aquí van las funciones concretas: <code>funcion()</code> en R, <code>metodo()</code> en Python.</p>
-          </div>
-          <div class="ciclo-campo ciclo-vuelta">
-            <span class="ciclo-etiqueta">Qué te devuelve atrás</span>
-            <p>La etapa 1 es el principio: no se vuelve a ella desde ningún sitio salvo desde el diagnóstico final.</p>
-          </div>
-        </div>
-        <div class="ciclo-panel" id="ciclo-demo-hacer" role="tabpanel" hidden>
-          <div class="ciclo-campo">
-            <span class="ciclo-etiqueta">Qué haces</span>
-            <p>Las fórmulas de KaTeX funcionan dentro del panel, incluidas las de bloque: $\hat{y}_{t} = \phi y_{t-1}$.</p>
-          </div>
-          <div class="ciclo-campo">
-            <span class="ciclo-etiqueta">Con qué</span>
-            <p><code>otra_funcion(x, opcion = TRUE)</code></p>
-          </div>
-          <div class="ciclo-campo ciclo-vuelta">
-            <span class="ciclo-etiqueta">Qué te devuelve atrás</span>
-            <p>Si el resultado no converge, se vuelve a la etapa 1 con otra especificación.</p>
-          </div>
-        </div>
-        <div class="ciclo-panel" id="ciclo-demo-comprobar" role="tabpanel" hidden>
-          <div class="ciclo-campo">
-            <span class="ciclo-etiqueta">Qué haces</span>
-            <p>La última etapa es la que cierra el ciclo: su resultado decide si se termina o si se vuelve al principio.</p>
-          </div>
-          <div class="ciclo-campo">
-            <span class="ciclo-etiqueta">Con qué</span>
-            <p><code>diagnostico(ajuste)</code></p>
-          </div>
-          <div class="ciclo-campo ciclo-vuelta">
-            <span class="ciclo-etiqueta">Qué te devuelve atrás</span>
-            <p>Si la comprobación falla, el ciclo entero empieza otra vez. Esa flecha de vuelta es lo que una lista numerada no sabe dibujar.</p>
-          </div>
-        </div>
-      </div>
-
-      <p>Este es un párrafo normal. El cuerpo del texto va justificado y con interlineado 1.625. Los términos técnicos
-        se marcan en <strong>negrita</strong> la primera vez, y su equivalente en inglés va en <em>cursiva entre
-        paréntesis</em> (<em>technical term</em>).</p>
+      <p>Este taller cubre los capítulos 1 y 2. No se evalúa que sepas escribir código ni que recuerdes
+        fórmulas: se evalúa que <strong>uses un concepto para decidir</strong>, que digas qué
+        <em>no</em> significa una cifra, y que reconozcas un procedimiento equivocado cuyo resultado se
+        ve perfectamente razonable. Son tres cosas distintas y las tres se califican por separado.</p>
 
       <div class="definition">
-        <h4><i class="fas fa-book mr-2" aria-hidden="true"></i>Definición: cómo se usa esta caja</h4>
-        <p style="margin-bottom:0;">Verde. Para definiciones formales y enunciados que el estudiante debe poder citar.
-          Admite fórmulas en línea como $\rho_k = \gamma_k / \gamma_0$ y en bloque:</p>
-        $$\bar{y} = \frac{1}{T}\sum_{t=1}^{T} y_t$$
+        <h3>Sobre usar inteligencia artificial: úsala</h3>
+        <p>No hace falta pedir permiso ni justificarse. Puedes consultar cualquier modelo, para
+          cualquier parte, tantas veces como quieras. El taller está diseñado dando por hecho que lo
+          vas a hacer, y por eso <strong>ninguna tarea se contesta con lo que un modelo sabe sin tus
+          datos</strong>: cada quien trabaja sobre un municipio, un patrón y unas estaciones distintas.</p>
+        <p>Dos condiciones, y las dos son parte de la nota:</p>
+        <ol class="lista-literales" type="1">
+          <li><strong>Declara al final qué consultaste y qué verificaste.</strong> Una frase por
+            consulta basta: qué preguntaste, qué te respondió y cómo comprobaste si era cierto. Vale el
+            <strong>10&nbsp;%</strong> de la nota del escrito, y se califica la honestidad y la
+            precisión de la declaración, no la cantidad de consultas. Declarar «usé IA para todo y
+            verifiqué las cifras contra mi propia salida» puntúa; no declarar nada, no.</li>
+          <li><strong>Cualquier decisión que entregues tienes que poder sostenerla en la defensa.</strong>
+            Si en la defensa no puedes explicar por qué elegiste lo que elegiste, esa tarea
+            <strong>se recalifica</strong>. No es una amenaza: es lo que hace que valga la pena entender
+            lo que entregas, y es la razón por la que la defensa pesa el 40&nbsp;%.</li>
+        </ol>
+        <p style="margin-bottom:0;">Dicho de otro modo: la IA te puede ahorrar el trabajo mecánico. No
+          te puede ahorrar el criterio, porque el criterio es lo único que se evalúa.</p>
       </div>
 
       <div class="note">
-        <p><strong>Nota.</strong> Naranja. Para matices, conexiones con otros capítulos y observaciones que enriquecen
-          sin ser imprescindibles.</p>
+        <p style="margin-bottom:0;"><strong>El material que necesitas.</strong> Todo lo que se pide
+          está en los dos capítulos, y conviene tenerlos abiertos al lado:
+          <a href="capitulo-1-datos-espaciales.html">capítulo 1 · Datos espaciales y la primera ley
+          de la geografía</a> y <a href="capitulo-2-crs-georreferenciacion.html">capítulo 2 · SIG,
+          sistemas de referencia y georreferenciación con sf</a>. El
+          <a href="capitulo-3-cartografia-maup.html">capítulo 3</a> no entra en este taller.</p>
+      </div>
+
+      <p>La entrega es un <strong>informe</strong> —el formato es libre, pero cada respuesta tiene que
+        poder leerse sola— más una <strong>defensa de 5 a 7 minutos</strong> en clase. En la defensa te
+        tocan tres preguntas al azar de un banco que está publicado con este taller, y ese banco cubre
+        <em>todo</em> el temario de los dos capítulos, no solo lo que aparece en las tareas.</p>
+
+      <p>Lo primero es resolver tu variante. Los datos de casi todas las tareas dependen de ella, así
+        que si te equivocas aquí te equivocas en todo lo demás.</p>
+
+      <div class="simulador" data-simulador="taller1-variante">
+        <h4><i class="fas fa-fingerprint" aria-hidden="true"></i> Tu variante</h4>
+        <p class="simulador-intro">Escribe los <strong>tres últimos dígitos</strong> de tu número de
+          documento. Se queda guardada en este navegador, así que aparece resuelta en cada tarea.</p>
+        <div class="simulador-controles"></div>
+        <div class="simulador-lectura"></div>
       </div>
 
       <div class="warning">
-        <p><strong>Advertencia.</strong> Roja. Para errores frecuentes y trampas. Si un resultado puede malinterpretarse,
-          va aquí, y conviene que diga <em>por qué</em> falla, no solo que falla.</p>
+        <p style="margin-bottom:0;"><strong>Comprueba el dígito de verificación antes de seguir.</strong>
+          Tus 40 estaciones no vienen en una lista: vienen definidas por una regla,
+          y tus 40 estaciones son las 40 más próximas al punto interior de tu municipio, medidas en EPSG:9377. La suma de sus altitudes tiene que coincidir con el dígito de verificación de tu fila; si no coincide, la selección está mal y todo lo que construyas encima lo estará también. Si la suma no coincide,
+          seleccionaste otras estaciones y todo lo que construyas encima estará mal —sin que nada te
+          avise—. Esa es, por sí sola, media lección del capítulo 2.</p>
       </div>
 
-      <div class="formula">
-        <p>Azul claro. Para fórmulas centrales que se consultan de un vistazo:</p>
-        $$\nabla y_t = y_t - y_{t-1} = (1 - B)\, y_t$$
-      </div>
-
-      <p>Cuando un resultado tiene un desarrollo algebraico que no todos los lectores necesitan, va en una
-        <strong>derivación plegable</strong>: quien acepta la fórmula sigue leyendo sin tropezar con media página de
-        álgebra, y quien quiere el porqué lo abre. El rótulo del botón es libre y admite fórmula —conviene que diga
-        <em>qué</em> se demuestra ahí dentro, porque quien decide si abre lo decide sin haberlo abierto—; el motor lo
-        conserva y solo lo cambia por «Ocultar el desarrollo» mientras está desplegado.</p>
-
-      <div class="derivacion">
-        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-demo">
-          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
-          <span class="derivacion-texto">Ver por qué \(|\rho_k| \le 1\)</span>
-          <i class="fas fa-chevron-down" aria-hidden="true"></i>
-        </button>
-        <div class="derivacion-panel" id="der-demo" hidden>
-          <ol class="derivacion-pasos">
-            <li>
-              <p>Cada paso va en un <code>&lt;li&gt;</code> y se numera solo. Empieza por lo que ya se sabe:</p>
-              $$\gamma_k = \operatorname{Cov}(y_t,\, y_{t-k})$$
-            </li>
-            <li>
-              <p>El texto de cada paso dice <strong>qué se hace y por qué</strong>, no solo qué queda. Aquí se divide
-                entre $\gamma_0$, que es la varianza del proceso:</p>
-              $$\rho_k = \frac{\gamma_k}{\gamma_0}$$
-            </li>
-            <li>
-              <p>Y se cierra con la propiedad que se quería justificar: $\rho_k$ no tiene unidades y $|\rho_k| \le 1$
-                por la desigualdad de Cauchy–Schwarz.</p>
-            </li>
-          </ol>
-          <p class="derivacion-resultado">La banda inferior recoge el resultado al que se quería llegar, para que
-            quien abra la caja y la recorra de un vistazo se lleve la conclusión.</p>
-        </div>
-      </div>
-
-      <table>
-        <caption class="sr-only">Ejemplo de tabla</caption>
-        <thead>
-          <tr>
-            <th scope="col">Concepto</th>
-            <th scope="col">Símbolo</th>
-            <th scope="col">En R</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Media muestral</td><td>$\bar{y}$</td><td><code>mean()</code></td></tr>
-          <tr><td>Varianza muestral</td><td>$s^2$</td><td><code>var()</code></td></tr>
-        </tbody>
-      </table>
-
-      <div class="diagram">
-        <ol>
-          <li>La caja <code>.diagram</code> sirve para secuencias de pasos y esquemas.</li>
-          <li>Admite listas ordenadas, SVG en línea y texto centrado.</li>
-        </ol>
+      <div class="note">
+        <p style="margin-bottom:0;"><strong>Qué pesa cada cosa.</strong> El escrito vale el
+          60&nbsp;% y la defensa el 40&nbsp;%. Dentro del escrito: T1 el 10&nbsp;%, T2 el 15&nbsp;%,
+          T3 el 20&nbsp;%, T4 el 15&nbsp;%, T5 el 15&nbsp;%, T6 el 10&nbsp;% y T7 el 15&nbsp;%. La
+          rúbrica completa —con las cinco dimensiones y qué distingue el nivel alto en cada una— está
+          en el último módulo, y conviene leerla <em>antes</em> de escribir, no después.</p>
       </div>
     </div>
   </template>
 
   <!-- ============================================================ -->
-  <!-- MÓDULO 2 · Código en dos lenguajes                            -->
+  <!-- MÓDULO 2 · El régimen que no se ve                              -->
   <!-- ============================================================ -->
   <template id="module-2">
     <div class="animate-fade-in">
@@ -3817,57 +3782,108 @@
         <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
           <span>Módulo 2</span>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Código en dos lenguajes <span
-            class="text-gray-400 font-normal text-2xl">/ Code tabs</span></h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El régimen que no se ve
+          <span class="text-gray-400 font-normal text-2xl">/ T1 · Clark-Evans</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
-            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Objetivo</h3>
-            <p class="text-gray-600 text-sm" style="margin:0;">Mostrar el mismo cálculo en el lenguaje principal del
-              curso y en su equivalente, con pestañas.</p>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Interpretar un índice: qué decide, a qué escala, y qué se queda sin ver. Vale el 10 % del escrito.</p>
           </div>
         </div>
       </div>
 
-      <p>Un bloque suelto se escribe con <code>&lt;pre&gt;&lt;code class="language-r"&gt;</code>. El envoltorio con los
-        botones de copiar y ocultar se añade solo. <strong>Recuerda escapar</strong> <code>&amp;lt;</code> para el
-        operador de asignación de R.</p>
+      <div class="simulador" data-simulador="taller1-variante">
+        <h4><i class="fas fa-fingerprint" aria-hidden="true"></i> Tu variante</h4>
+        <p class="simulador-intro">Escribe los <strong>tres últimos dígitos</strong> de tu número de
+          documento. </p>
+        <div class="simulador-controles"></div>
+        <div class="simulador-lectura"></div>
+      </div>
 
-      <pre><code class="language-r"># Un bloque suelto, sin pestañas
-x &lt;- rnorm(100)
-mean(x)</code></pre>
+      <p>Arriba tienes <strong>tu</strong> patrón puntual, con las cifras que lo describen. Las cifras
+        ya están calculadas: esta tarea no es de cómputo. Lo que se evalúa es qué concluyes con ellas
+        y —sobre todo— qué te cuidas de <em>no</em> concluir.</p>
 
-      <p>Cuando hay equivalente en otro lenguaje, van en pestañas:</p>
+      <div class="geomapa" data-geomapa="taller1-patron"></div>
+
+      <div class="definition">
+        <h3>Lo que tienes delante</h3>
+        <p>De tu patrón se publican \(n\), el área de la ventana, la distancia media observada al
+          vecino más próximo \(\bar{d}_{\min}\), la que daría el azar
+          \(E[\bar{d}_{\min}] = 1/(2\sqrt{\lambda})\), y el índice de Clark-Evans
+          \(R = \bar{d}_{\min} / E[\bar{d}_{\min}]\) en sus dos versiones: la ingenua y la
+          corregida por efecto de borde (Donnelly).</p>
+        <p style="margin-bottom:0;">El módulo 3 del capítulo 1 tiene la deducción de
+          \(1/(2\sqrt{\lambda})\) en su derivación plegable, y el recuadro sobre qué le pasa a
+          \(R\) cuando la repulsión de cerca y la agregación de lejos se compensan. Los dos hacen
+          falta aquí.</p>
+      </div>
+
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T1.</span><strong>El régimen que no se ve
+          </strong> <span class="badge-peso">10&nbsp;%</span><br>Con las cifras de tu patrón y su mapa:</p>
+        <ol class="lista-literales" type="a">
+          <li>Di en qué régimen está tu patrón y <strong>justifícalo con las dos distancias</strong>, no con el índice solo. Si tu conclusión no se sostiene mirando el mapa, dilo: eso es parte de la respuesta y no un problema.</li>
+          <li>¿Qué <strong>no</strong> prueba tu \(R\)? Contesta con la escala a la que mira el índice, no con significancia estadística.</li>
+          <li>Un compañero tiene un \(R\) casi igual al tuyo con un \(n\) muy distinto. ¿Significan lo mismo los dos números? Justifica con la fórmula del denominador.</li>
+          <li>Tu \(R\) corregido por borde es menor que el ingenuo. Explica en una frase por qué la corrección va en esa dirección y no en la otra, y di si el cambio te movería la conclusión de (a).</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t1-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ejercicio-panel pista" id="t1-pista" hidden>
+          <p style="margin:0;">La cifra sola no decide: hay al menos dos familias de patrón que producen el mismo \(R\). Si el índice no te alcanza para (a), no lo fuerces —busca una segunda medición que mire una escala distinta a la del vecino más próximo, y dila—. El capítulo 4 vive de eso, pero para este taller basta con algo que puedas contar sobre el mapa.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <p style="margin-bottom:0;"><strong>Si quieres rehacer las cifras, aquí está por dónde.</strong>
+          No es obligatorio —las cifras publicadas son las buenas— pero (a) se contesta mucho mejor si
+          además mides algo por tu cuenta.</p>
+      </div>
 
       <div class="code-tabs">
-        <div class="code-tabs-nav" role="tablist" aria-label="Ejemplo de pestañas">
+        <div class="code-tabs-nav" role="tablist" aria-label="Tu patrón, en R y en Python">
           <button class="code-tab-btn active" data-lang="r" role="tab" aria-selected="true">R</button>
           <button class="code-tab-btn" data-lang="python" role="tab" aria-selected="false">Python</button>
         </div>
         <div class="code-tab-panel" data-lang="r">
-          <pre><code class="language-r">set.seed(2026)
-x &lt;- rnorm(200)
-c(media = mean(x), desv = sd(x))</code></pre>
+          <pre><code class="language-r arranque">library(spatstat.geom)
+
+# Las coordenadas de tu patron estan en el JSON del taller, cuantizadas a
+# 0..4096 sobre una ventana unidad. Tambien puedes leerlas del mapa de
+# arriba: boton derecho, inspeccionar, o copiarlas del codigo fuente.
+p &lt;- ppp(x, y, window = owin(c(0, 1), c(0, 1)))
+
+mean(nndist(p))                       # la observada
+0.5 / sqrt(npoints(p) / area.owin(p$window))   # la que daria el azar
+
+# Y una segunda medicion, a otra escala:
+quadratcount(p, nx = 4, ny = 4)</code></pre>
         </div>
         <div class="code-tab-panel" data-lang="python" hidden>
-          <pre><code class="language-python">import numpy as np
+          <pre><code class="language-python arranque">import numpy as np
+from scipy.spatial import cKDTree
 
-rng = np.random.default_rng(2026)
-x = rng.standard_normal(200)
-print(x.mean(), x.std(ddof=1))</code></pre>
+# xy: tus puntos, dos columnas, sobre la ventana unidad
+arbol = cKDTree(xy)
+d, _ = arbol.query(xy, k=2)
+d[:, 1].mean()                        # la observada
+0.5 / np.sqrt(len(xy))                # la que daria el azar
+
+# La misma segunda medicion, contando por cuadrantes:
+np.histogram2d(xy[:, 0], xy[:, 1], bins=4, range=[[0, 1], [0, 1]])[0]</code></pre>
         </div>
-      </div>
-
-      <div class="warning">
-        <p><strong>Regla del curso:</strong> todo bloque de código se <em>ejecuta</em> antes de publicarlo, y si un
-          comentario anuncia una salida (<code># 0.1386</code>), esa cifra sale de la ejecución real, nunca de memoria.
-          Y comprueba que el bloque sea autónomo: si usa un objeto que nunca se define, al estudiante le falla.</p>
       </div>
     </div>
   </template>
 
   <!-- ============================================================ -->
-  <!-- MÓDULO 3 · Simuladores                                        -->
+  <!-- MÓDULO 3 · El intervalo que miente                              -->
   <!-- ============================================================ -->
   <template id="module-3">
     <div class="animate-fade-in">
@@ -3875,85 +3891,115 @@ print(x.mean(), x.std(ddof=1))</code></pre>
         <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
           <span>Módulo 3</span>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Simuladores <span
-            class="text-gray-400 font-normal text-2xl">/ Interactive widgets</span></h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El intervalo que miente
+          <span class="text-gray-400 font-normal text-2xl">/ T2 · Broken standard errors</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
-            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Objetivo</h3>
-            <p class="text-gray-600 text-sm" style="margin:0;">Los tres tipos de control disponibles —deslizador, menú
-              e interruptor— y las dos fábricas de gráficos, línea y barras.</p>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Medir sobre datos propios y traducir el resultado a una frase defendible. Vale el 15 % del escrito.</p>
           </div>
         </div>
       </div>
-
-      <div class="simulador" data-simulador="demo-deslizadores">
-        <h4><i class="fas fa-sliders-h" aria-hidden="true"></i> Deslizadores y gráfico de línea</h4>
-        <p class="simulador-intro">Dos deslizadores construidos con <code>crearControles</code> sobre un
-          <code>crearGraficoLinea</code>. El ruido viene de <code>generarRuidoNormal</code> con semilla fija, así que
-          la serie es la misma en cada carga y el deslizador aísla el efecto del parámetro.</p>
+      <div class="simulador" data-simulador="taller1-variante">
+        <h4><i class="fas fa-fingerprint" aria-hidden="true"></i> Tu variante</h4>
+        <p class="simulador-intro">Escribe los <strong>tres últimos dígitos</strong> de tu número de
+          documento. </p>
         <div class="simulador-controles"></div>
-        <div class="grafico-wrapper" style="height:220px;">
-          <canvas aria-label="Serie simulada con tendencia y ruido ajustables" role="img"></canvas>
-        </div>
         <div class="simulador-lectura"></div>
       </div>
 
-      <div class="simulador" data-simulador="demo-correlograma">
-        <h4><i class="fas fa-signal" aria-hidden="true"></i> Menú desplegable y gráfico de barras</h4>
-        <p class="simulador-intro">Un <code>crearSelector</code> elige la serie y <code>crearGraficoBarras</code> dibuja
-          el correlograma con su banda de referencia. La ACF sale de <code>calcularACF</code> y la PACF de
-          <code>calcularPACF</code> (Durbin–Levinson), las dos verificadas contra R.</p>
-        <div class="simulador-controles"></div>
-        <p class="grafico-etiqueta">ACF</p>
-        <div class="grafico-wrapper" style="height:200px;">
-          <canvas aria-label="Función de autocorrelación de la serie elegida" role="img"></canvas>
-        </div>
-        <p class="grafico-etiqueta">PACF</p>
-        <div class="grafico-wrapper" style="height:200px;">
-          <canvas aria-label="Función de autocorrelación parcial de la serie elegida" role="img"></canvas>
-        </div>
-        <div class="simulador-lectura"></div>
+      <p>Aquí sí hay que calcular, y sobre <strong>tus</strong> 40 estaciones. El
+        capítulo 1 midió esto mismo sobre las 361 del país; tú lo vas a hacer sobre un
+        vecindario, que es donde la dependencia espacial pega más fuerte.</p>
+
+      <div class="warning">
+        <p style="margin-bottom:0;">Antes de nada, <strong>verifica tu selección</strong> con el dígito
+          de la tira de arriba. Un intervalo perfectamente calculado sobre las estaciones equivocadas
+          se ve idéntico a uno correcto, y esa es exactamente la clase de error que este curso enseña a
+          no cometer.</p>
       </div>
 
-      <div class="mapa-estacional" data-mapa="demo-mapa">
-        <p class="mapa-estacional-titulo">Mapa estacional (demostración)</p>
-        <div class="mapa-estacional-marco">
-          <div class="mapa-estacional-rejilla" role="table" aria-label="Mapa estacional (demostración)"></div>
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T2.</span><strong>El intervalo que miente
+          </strong> <span class="badge-peso">15&nbsp;%</span><br>Con la temperatura media anual de tus estaciones:</p>
+        <ol class="lista-literales" type="a">
+          <li>Calcula la media, el intervalo de confianza al 95&nbsp;% <em>clásico</em> —el que supone independencia—, la correlación con el vecino más próximo, el tamaño de muestra efectivo \(n_{\text{eff}}\) y el intervalo corregido. Repórtalos en una tabla.</li>
+          <li>Escribe <strong>una sola frase</strong>, sin jerga, que un funcionario de la Secretaría de Ambiente pueda leer y usar. Que se entienda qué se sabe y con cuánta certeza.</li>
+          <li>El intervalo clásico estaba mal. ¿El problema está en la <strong>estimación</strong> o en la <strong>confianza</strong>? No respondas «en las dos»: decide y justifica.</li>
+          <li>\(n_{\text{eff}}\) supone que todas las parejas están igual de correlacionadas. Eso es falso en el espacio. Di por qué es falso y —lo que importa— <strong>en qué dirección</strong> te engaña el resultado que acabas de calcular.</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t2-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
         </div>
-        <div class="mapa-estacional-leyenda"></div>
-        <p class="mapa-estacional-nota"></p>
-      </div>
-
-      <div class="tabla-ranking" data-ranking="demo">
-        <p class="tabla-ranking-titulo">Tabla comparativa ordenable (demostración)</p>
-        <div class="tabla-ranking-marco" aria-label="Tabla comparativa ordenable (demostración)"></div>
-        <p class="tabla-ranking-estado" role="status" aria-live="polite"></p>
-        <p class="tabla-ranking-pie"></p>
-      </div>
-
-      <div class="simulador" data-simulador="demo-interruptores">
-        <h4><i class="fas fa-toggle-on" aria-hidden="true"></i> Interruptores</h4>
-        <p class="simulador-intro"><code>crearInterruptores</code> para activar transformaciones acumulables. La lectura
-          numérica de abajo se actualiza con <code>actualizarLectura</code>.</p>
-        <div class="simulador-controles"></div>
-        <div class="grafico-wrapper" style="height:220px;">
-          <canvas aria-label="Serie con las transformaciones activadas" role="img"></canvas>
+        <div class="ejercicio-panel pista" id="t2-pista" hidden>
+          <p style="margin:0;">Los dos intervalos tienen que tener el MISMO centro: si no, hay un error de montaje y no un hallazgo. Lo que cambia es la anchura. Y para (c), pregúntate qué cifra se movió al corregir: si el centro no se movió, la respuesta se cae sola.</p>
         </div>
-        <div class="simulador-lectura"></div>
       </div>
+      <div class="code-tabs">
+        <div class="code-tabs-nav" role="tablist" aria-label="El intervalo corregido, en R y en Python">
+          <button class="code-tab-btn active" data-lang="r" role="tab" aria-selected="true">R</button>
+          <button class="code-tab-btn" data-lang="python" role="tab" aria-selected="false">Python</button>
+        </div>
+        <div class="code-tab-panel" data-lang="r">
+          <pre><code class="language-r arranque">library(sf); library(spdep)
 
-      <div class="note">
-        <p><strong>Contrato:</strong> registra <code>SIMULADORES['id'] = function (raiz) { …; return [charts]; }</code>
-          y devuelve <strong>siempre</strong> los <code>Chart</code> creados: es lo que permite destruirlos al cambiar
-          de módulo. El cómputo pesado (ajustes ARIMA, rejillas, remuestreos) <strong>no</strong> va aquí: se
-          precalcula en R y se incrusta como JSON.</p>
+est &lt;- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
+mun &lt;- st_read("datos/procesado/colombia_adm2.gpkg", quiet = TRUE)
+
+# Tu municipio, por su llave (la tienes en la tira de arriba):
+yo  &lt;- mun[mun$shapeID == TU_LLAVE, ]
+p   &lt;- st_point_on_surface(st_geometry(yo))
+
+# Las 40 mas proximas EN 9377, que es como esta definida la regla:
+d   &lt;- as.numeric(st_distance(p, est))
+mis &lt;- est[order(d)[1:40], ]
+sum(mis$altitud_m)          # tu digito de verificacion
+
+t &lt;- mis$t_media_anual
+n &lt;- length(t)
+media &lt;- mean(t)
+ee_clasico &lt;- sd(t) / sqrt(n)
+
+# La correlacion con el vecino mas proximo, que es lo que rompe el ee:
+nb   &lt;- knn2nb(knearneigh(st_coordinates(mis), k = 1))
+rho  &lt;- moran.test(t, nb2listw(nb, style = "W"))$estimate[["Moran I statistic"]]
+n_eff &lt;- n / (1 + (n - 1) * rho)</code></pre>
+        </div>
+        <div class="code-tab-panel" data-lang="python" hidden>
+          <pre><code class="language-python arranque">import geopandas as gpd, numpy as np
+from scipy.spatial import cKDTree
+
+est = gpd.read_file("datos/procesado/colombia_estaciones_clima.gpkg")
+mun = gpd.read_file("datos/procesado/colombia_adm2.gpkg")
+
+yo = mun[mun.shapeID == TU_LLAVE]
+p  = yo.geometry.representative_point().iloc[0]
+
+d   = np.hypot(est.geometry.x - p.x, est.geometry.y - p.y)
+mis = est.iloc[np.argsort(d.to_numpy(), kind="stable")[:40]]
+mis.altitud_m.sum()          # tu digito de verificacion
+
+t = mis.t_media_anual.to_numpy()
+n = len(t)
+ee_clasico = t.std(ddof=1) / np.sqrt(n)
+
+# La correlacion con el vecino mas proximo, a mano y sin heredar convenios:
+xy = np.c_[mis.geometry.x, mis.geometry.y]
+_, vec = cKDTree(xy).query(xy, k=2)
+z = t - t.mean()
+rho = (z * z[vec[:, 1]]).sum() / (z ** 2).sum()
+n_eff = n / (1 + (n - 1) * rho)</code></pre>
+        </div>
       </div>
     </div>
   </template>
 
   <!-- ============================================================ -->
-  <!-- MÓDULO 4 · Autoevaluación y ejercicios                        -->
+  <!-- MÓDULO 4 · La auditoría                                         -->
   <!-- ============================================================ -->
   <template id="module-4">
     <div class="animate-fade-in">
@@ -3961,140 +4007,518 @@ print(x.mean(), x.std(ddof=1))</code></pre>
         <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
           <span>Módulo 4</span>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Autoevaluación y ejercicios
-          <span class="text-gray-400 font-normal text-2xl">/ Self-assessment</span></h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">La auditoría
+          <span class="text-gray-400 font-normal text-2xl">/ T3 · Which one is wrong</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
-            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Objetivo</h3>
-            <p class="text-gray-600 text-sm" style="margin:0;">Los cuatro tipos de pregunta y el ejercicio con pista y
-              solución desplegables.</p>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Encontrar el procedimiento equivocado detrás de un resultado que se ve razonable. Vale el 20 % del escrito, y es la tarea más difícil.</p>
           </div>
         </div>
       </div>
 
-      <p>Cada capítulo cierra con una autoevaluación y una tanda de ejercicios guiados. Prueba las cuatro preguntas de
-        abajo: falla una a propósito para ver la <strong>pista</strong> y el segundo intento.</p>
+      <p>Las dos tablas de abajo son <strong>correlogramas reales</strong> de la temperatura media anual
+        de las 361 estaciones del IDEAM, por bandas de distancia. Las produjo el mismo
+        guion, sobre los mismos datos, cambiando <strong>una línea</strong>. Los dos decaen. Los dos
+        parecen razonables.</p>
 
-      <div class="quiz" data-quiz="demo">
-        <h4><i class="fas fa-circle-question" aria-hidden="true"></i> Autoevaluación</h4>
-        <p class="text-sm" style="margin-bottom:0;">Una pregunta de cada tipo. Cada opción lleva su propia
-          retroalimentación, también las incorrectas.</p>
-        <div class="quiz-progreso" role="presentation"><div class="quiz-progreso-barra"></div></div>
-        <div class="quiz-preguntas"></div>
-        <div class="quiz-resumen" role="status" hidden></div>
-        <div class="quiz-marcador">
-          <span class="quiz-conteo"></span>
-          <button type="button" class="quiz-reiniciar">Reiniciar</button>
+      <p><strong>Uno de los dos está mal.</strong> No es un error de cálculo: es un procedimiento que
+        mide algo distinto de lo que dice medir. Esta tarea es idéntica para todos —no depende de tu
+        variante— porque lo que se evalúa es auditar un procedimiento, y el procedimiento es el mismo
+        para cualquiera.</p>
+
+      <table>
+        <caption>Dos correlogramas de la misma variable sobre las mismas
+          361 estaciones, con las mismas 6 bandas. «Parejas» son las
+          parejas de estaciones que caen en la banda; «sin vecino», las estaciones que no tienen
+          ninguna a esa distancia.</caption>
+        <thead>
+          <tr><th scope="col" rowspan="2">Banda (km)</th>
+            <th scope="col" colspan="3">Resultado A</th>
+            <th scope="col" colspan="3">Resultado B</th></tr>
+          <tr><th scope="col">Parejas</th><th scope="col">Sin vecino</th><th scope="col">I</th>
+            <th scope="col">Parejas</th><th scope="col">Sin vecino</th><th scope="col">I</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">0–30</th><td>409</td><td>75</td><td>0.65050</td><td>409</td><td>75</td><td>0.65050</td></tr>
+          <tr><th scope="row">30–70</th><td>1 582</td><td>21</td><td>0.49629</td><td>1 991</td><td>15</td><td>0.57139</td></tr>
+          <tr><th scope="row">70–130</th><td>4 168</td><td>5</td><td>0.21621</td><td>6 159</td><td>5</td><td>0.34204</td></tr>
+          <tr><th scope="row">130–220</th><td>8 490</td><td>5</td><td>0.13991</td><td>14 649</td><td>3</td><td>0.22938</td></tr>
+          <tr><th scope="row">220–380</th><td>16 875</td><td>3</td><td>0.02933</td><td>31 524</td><td>1</td><td>0.12242</td></tr>
+          <tr><th scope="row">380–650</th><td>21 109</td><td>2</td><td>-0.09703</td><td>52 633</td><td>0</td><td>0.01089</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <p style="margin-bottom:0;">Las columnas de <strong>parejas</strong> y <strong>sin vecino</strong>
+          no están de adorno. Casi ningún informe publica esas dos columnas, y por eso casi ningún
+          correlograma publicado se puede auditar. Aquí sí.</p>
+      </div>
+
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T3.</span><strong>La auditoría
+          </strong> <span class="badge-peso">20&nbsp;%</span><br>Sobre los dos resultados de la tabla:</p>
+        <ol class="lista-literales" type="a">
+          <li>Di cuál está mal. La evidencia tiene que ser <strong>interna a la tabla</strong>: algo que se pueda comprobar con los números que ves, sin recalcular nada y sin apelar a lo que ya sabías. Escribe la comprobación que hiciste, con cifras.</li>
+          <li>Nombra el procedimiento equivocado: ¿qué mide de verdad la columna mala, si no es lo que su encabezado dice?</li>
+          <li>Cuantifica el daño en la banda donde más se note, y explica por qué se nota justo ahí y no en otra.</li>
+          <li>El resultado correcto tiene una banda con \(I\) <strong>negativo</strong> y el equivocado no. Un lector apresurado diría que el negativo es el error. Explica por qué el negativo es esperable y qué significa.</li>
+          <li>¿Por qué este error <strong>no</strong> se vería mirando un mapa de las estaciones?</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t3-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ejercicio-panel pista" id="t3-pista" hidden>
+          <p style="margin:0;">Compara las dos columnas de parejas entre sí, no cada una contra tu intuición. Y fíjate en la primera banda: es idéntica en los dos. Que un defecto no aparezca en la primera fila te dice en qué consiste el defecto.</p>
         </div>
       </div>
 
-      <div class="exercise">
-        <h4><i class="fas fa-pen-to-square mr-2" aria-hidden="true"></i>Ejercicios propuestos</h4>
-        <p class="text-sm" style="margin-bottom:0.5rem;">Intenta cada uno <strong>antes</strong> de abrir nada. La pista
-          dice por dónde entrar sin dar la respuesta; la solución trae el código y las cifras reales.</p>
-
-        <div class="ejercicio-guiado">
-          <p class="ejercicio-enunciado"><span class="ejercicio-numero">1.</span>Enunciado del ejercicio. Debe pedir algo
-            concreto y comprobable, no "explora la serie".</p>
-          <div class="ejercicio-acciones">
-            <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="demo-e1-pista">
-              <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista <i class="fas fa-chevron-down" aria-hidden="true"></i>
-            </button>
-            <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="demo-e1-sol">
-              <i class="fas fa-key" aria-hidden="true"></i> Solución <i class="fas fa-chevron-down" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="ejercicio-panel pista" id="demo-e1-pista" hidden>
-            <p style="margin:0;">La pista orienta sin resolver: señala el concepto que hay que aplicar, o advierte de la
-              trampa en la que se suele caer. Si la pista ya contiene la respuesta, no es una pista.</p>
-          </div>
-          <div class="ejercicio-panel solucion" id="demo-e1-sol" hidden>
-            <p><strong>Respuesta breve primero</strong>, y después el desarrollo.</p>
-            <pre><code class="language-r"># El codigo de la solucion se muestra ya desplegado.
-# Las cifras de los comentarios salen de precalculo/genera_soluciones.R,
-# que resuelve el ejercicio de verdad. Nunca se escriben de memoria.
-set.seed(2026)
-round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
-            <p style="margin-bottom:0;">Cierra explicando <em>por qué</em> la respuesta es esa y qué pasaría si el
-              estudiante hubiera tomado el camino equivocado.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="references">
-        <h3><i class="fas fa-book-open mr-2" aria-hidden="true"></i>Lecturas de este capítulo</h3>
-        <ul style="margin-bottom:0;">
-          <li>Autor, <em>Título del texto guía</em> (ed.), <strong>capítulos o secciones exactas</strong> — qué aporta.
-            Marca el recurso de acceso abierto con su enlace.</li>
-        </ul>
+      <div class="warning">
+        <p style="margin-bottom:0;"><strong>Un aviso sobre pedirle esto a un modelo.</strong> Puedes
+          hacerlo, y conviene que lo hagas: preguntale «¿está bien este correlograma?» y guarda la
+          respuesta para T7. Lo que se califica aquí es tu comprobación con cifras, así que una
+          respuesta que diga «parece correcto, decae como se espera» no te sirve —pero es un dato
+          valiosísimo sobre qué preguntas contesta bien un modelo y cuáles no—.</p>
       </div>
     </div>
   </template>
 
   <!-- ============================================================ -->
-  <!-- MÓDULO 5 · Glosario de notación y rúbrica                     -->
-  <!-- Injertados en T0.2 desde el material de Muestreo.             -->
+  <!-- MÓDULO 5 · Cuatro sistemas, una decisión                        -->
   <!-- ============================================================ -->
   <template id="module-5">
     <div class="animate-fade-in">
       <div class="border-b border-gray-100 pb-6 mb-6">
-        <h2 class="text-2xl font-bold text-primary" style="margin:0;">Glosario de notación y rúbrica</h2>
-        <p class="text-gray-600 text-sm" style="margin:0;">Los dos componentes que este curso trajo de Muestreo: la
-          tabla de notación —imprescindible aquí, donde conviven la notación de procesos puntuales, la de datos de
-          área y la geoestadística— y la rúbrica analítica del proyecto integrador.</p>
+        <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
+          <span>Módulo 5</span>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Cuatro sistemas, una decisión
+          <span class="text-gray-400 font-normal text-2xl">/ T4 · Picking a CRS</span></h2>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
+          <span class="text-xl">🎯</span>
+          <div>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Elegir un sistema de referencia con una cifra de distorsión delante, no con una consigna. Vale el 15 % del escrito.</p>
+          </div>
+        </div>
       </div>
+      <div class="simulador" data-simulador="taller1-variante">
+        <h4><i class="fas fa-fingerprint" aria-hidden="true"></i> Tu variante</h4>
+        <p class="simulador-intro">Escribe los <strong>tres últimos dígitos</strong> de tu número de
+          documento. </p>
+        <div class="simulador-controles"></div>
+        <div class="simulador-lectura"></div>
+      </div>
+
+      <p>Tu municipio se puede medir en cuatro sistemas, y los cuatro son legítimos. Ninguno es «el
+        correcto» en abstracto: cada uno destruye algo distinto, y cuál conviene depende de qué vas a
+        hacer y —esto es lo que casi nunca se dice— <strong>de dónde está tu municipio</strong>.</p>
 
       <div class="definition">
-        <h3>Cuándo usar el glosario</h3>
-        <p style="margin-bottom:0;">Una vez por capítulo, al final, y siempre con las <strong>tres columnas de
-          equivalencia</strong>: cómo se escribe aquí, cómo lo escribe el texto guía y cómo se llama el objeto en R.
-          Los campos de notación van en LaTeX <strong>sin delimitadores</strong>: el componente los envuelve en
-          <code>$…$</code> al pintar. Ojo, un acento dentro de <code>$…$</code> dispara un aviso de KaTeX: usa
-          <code>\text{...}</code> o quita el acento. Los campos <code>concepto</code> sí admiten acentos.</p>
-      </div>
-
-      <div class="glosario-notacion" data-glosario="demo-notacion"></div>
-
-      <div class="note">
-        <h3>Cuándo usar la rúbrica</h3>
-        <p style="margin-bottom:0;">Solo para entregables evaluables con criterios múltiples —en este curso, el
-          proyecto integrador del capítulo 10—. Cada criterio necesita su <code>foco</code>: la frase que dice
-          <em>qué mide</em>. Sin ella, una rúbrica se lee como una lista de castigos.</p>
-      </div>
-
-      <div class="rubrica" data-rubrica="demo-rubrica"></div>
-
-      <div class="note">
-        <h3>Cuándo usar <code>.geomapa</code></h3>
-        <p style="margin-bottom:0;">Siempre que haya geometría. Los datos los produce
-          <code>precalculo/geo.R</code> en coordenadas <strong>cuantizadas sobre un encuadre cuadrado</strong>,
-          que es lo que garantiza que la escala en x y en y sea la misma; el lienzo se ciñe después a la forma
-          real del dato. Cinco modos: <code>poligonos</code>, <code>puntos</code>, <code>grafo</code>,
-          <code>rejilla</code> y <code>proyeccion</code>. Los cortes de clase los calcula R con
-          <code>classInt</code>, nunca el navegador.</p>
-      </div>
-
-      <div class="geomapa" data-geomapa="demo-mapa"></div>
-
-      <div class="warning">
-        <h3>Dos cosas que no se pueden olvidar</h3>
-        <p style="margin-bottom:0;">Si un simulador cambia la fuente del mapa, hay que llamar a
-          <code>raiz.__geomapa.dibuja()</code>: eso repinta el lienzo <strong>y también la leyenda, el título y
-          el <code>aria-label</code></strong>. Y el mapa lleva siempre texto alternativo: para quien no lo ve,
-          ese texto <em>es</em> el mapa.</p>
-      </div>
-
-      <div class="references">
-        <h3><i class="fas fa-book-open mr-2" aria-hidden="true"></i>Lecturas de este capítulo</h3>
+        <h3>Los cuatro</h3>
         <ul style="margin-bottom:0;">
-          <li>Autor, <em>Título del texto guía</em> (ed.), <strong>capítulos o secciones exactas</strong> — qué aporta.
-            Marca el recurso de acceso abierto con su enlace.</li>
+          <li><strong>EPSG:4326</strong> — WGS 84, grados. Con <code>sf</code> las medidas salen por s2,
+            sobre una esfera de radio 6 371 010 m.</li>
+          <li><strong>EPSG:3857</strong> — Web Mercator, el de los mapas del navegador.</li>
+          <li><strong>EPSG:3116</strong> — MAGNA-SIRGAS / Bogotá, con origen en Bogotá.</li>
+          <li><strong>EPSG:9377</strong> — MAGNA-SIRGAS / Origen Nacional, el que usa el material.</li>
         </ul>
+      </div>
+
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T4.</span><strong>Cuatro sistemas, una decisión
+          </strong> <span class="badge-peso">15&nbsp;%</span><br>Sobre el municipio que te tocó:</p>
+        <ol class="lista-literales" type="a">
+          <li>Mide su <strong>área</strong> y una <strong>distancia</strong> característica —el ancho de su caja envolvente, por ejemplo— en los cuatro sistemas. Preséntalo en una tabla con las ocho cifras y di cuál tomas como referencia y por qué.</li>
+          <li>Elige uno para trabajar y justifícalo <strong>con la cifra de distorsión que mediste</strong>. «Es el oficial de Colombia» no puntúa: eso no es una medición.</li>
+          <li>¿En cuál de los cuatro un <em>buffer</em> de 500 m mide de verdad 500 m? Compruébalo y explica por qué en los otros no.</li>
+          <li>Tu compañero de al lado tiene un municipio en otra parte del país. ¿Su respuesta a (b) tiene que ser la misma que la tuya? Explica de qué depende, nombrando el origen de EPSG:3116.</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t4-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ejercicio-panel pista" id="t4-pista" hidden>
+          <p style="margin:0;">El área en 4326 no es un número que se pueda leer sin más: fíjate en las UNIDADES que devuelve <code>st_area</code> en cada caso, y no compares grados cuadrados con metros cuadrados. Y para (d), busca dónde está el origen de 3116 antes de opinar.</p>
+        </div>
+      </div>
+      <div class="code-tabs">
+        <div class="code-tabs-nav" role="tablist" aria-label="Los cuatro sistemas, en R y en Python">
+          <button class="code-tab-btn active" data-lang="r" role="tab" aria-selected="true">R</button>
+          <button class="code-tab-btn" data-lang="python" role="tab" aria-selected="false">Python</button>
+        </div>
+        <div class="code-tab-panel" data-lang="r">
+          <pre><code class="language-r arranque">library(sf); library(units)
+
+mun &lt;- st_read("datos/procesado/colombia_adm2.gpkg", quiet = TRUE)
+yo  &lt;- mun[mun$shapeID == TU_LLAVE, ]
+
+for (epsg in c(4326, 3857, 3116, 9377)) {
+  y &lt;- st_transform(yo, epsg)
+  cat(epsg, ": area =", format(st_area(y)), "
+")
+}
+
+# Y el buffer, que es donde se nota:
+b &lt;- st_buffer(st_transform(yo, 9377), 500)</code></pre>
+        </div>
+        <div class="code-tab-panel" data-lang="python" hidden>
+          <pre><code class="language-python arranque">import geopandas as gpd
+
+mun = gpd.read_file("datos/procesado/colombia_adm2.gpkg")
+yo = mun[mun.shapeID == TU_LLAVE]
+
+for epsg in (4326, 3857, 3116, 9377):
+    y = yo.to_crs(epsg)
+    print(epsg, y.area.iloc[0], y.total_bounds)
+
+# Ojo: geopandas avisa al calcular areas en grados, y el aviso es el
+# punto de la tarea. No lo silencies: leelo.</code></pre>
+        </div>
       </div>
     </div>
   </template>
 
+  <!-- ============================================================ -->
+  <!-- MÓDULO 6 · Reetiquetar no es reproyectar                        -->
+  <!-- ============================================================ -->
+  <template id="module-6">
+    <div class="animate-fade-in">
+      <div class="border-b border-gray-100 pb-6 mb-6">
+        <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
+          <span>Módulo 6</span>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Reetiquetar no es reproyectar
+          <span class="text-gray-400 font-normal text-2xl">/ T5 · st_set_crs vs st_transform</span></h2>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
+          <span class="text-xl">🎯</span>
+          <div>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Reconocer, por sus síntomas, un objeto espacial perfectamente bien formado y completamente equivocado. Vale el 15 % del escrito.</p>
+          </div>
+        </div>
+      </div>
+      <div class="simulador" data-simulador="taller1-variante">
+        <h4><i class="fas fa-fingerprint" aria-hidden="true"></i> Tu variante</h4>
+        <p class="simulador-intro">Escribe los <strong>tres últimos dígitos</strong> de tu número de
+          documento. </p>
+        <div class="simulador-controles"></div>
+        <div class="simulador-lectura"></div>
+      </div>
+
+      <p>Las dos funciones se parecen en el nombre y no se parecen en nada más.
+        <code>st_transform</code> <strong>recalcula</strong> las coordenadas; <code>st_set_crs</code>
+        se limita a <strong>declarar</strong> que ya estaban en ese sistema. Si la declaración es
+        falsa, no falla nada: el objeto queda bien formado, sin avisos, y todo lo que venga después
+        estará mal.</p>
+
+      <div class="note">
+        <p><strong>Un ejemplo resuelto, sobre un municipio que no le toca a nadie.</strong> Se tomaron
+          las 8 estaciones más próximas a San Rafael (Antioquia), en
+          grados, y se declararon —sin transformar— como metros de EPSG:9377. Las dos primeras
+          estaciones están a <strong>26.84 km</strong> la una de la otra. Después de
+          la declaración falsa, <code>st_distance</code> devuelve
+          <strong>0.24166</strong> «metros»: la misma pareja, medida dos veces, con
+          un factor de <strong>111 081</strong> entre las dos cifras.</p>
+        <p style="margin-bottom:0;">Y el síntoma que se ve sin calcular nada: el país entero cabe en
+          una caja de <strong>0.3248</strong> «metros cuadrados», así que un
+          <em>buffer</em> de 500 m se traga las 8 estaciones de golpe.</p>
+      </div>
+
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T5.</span><strong>Reetiquetar no es reproyectar
+          </strong> <span class="badge-peso">15&nbsp;%</span><br>Ejecuta el código de abajo sobre <strong>tus</strong> estaciones y mira la salida:</p>
+        <ol class="lista-literales" type="a">
+          <li>Describe lo que ves. ¿Qué síntoma delata que algo va mal? Nómbralo <strong>antes</strong> de arreglarlo y sin usar la palabra «error»: di qué cifra concreta es imposible y por qué.</li>
+          <li>Arréglalo. Muestra la misma medición antes y después, y di qué función usaste y por qué esa y no la otra.</li>
+          <li>¿Qué habría pasado aguas abajo si nadie lo nota? Haz un <em>join</em> espacial de tus estaciones contra los municipios con el objeto mal declarado y cuenta cuántas se quedan sin municipio. Después repítelo bien.</li>
+          <li>Si <code>st_set_crs</code> es tan peligroso, ¿por qué existe? Describe un caso real en que <strong>sí</strong> es la función correcta y <code>st_transform</code> sería el error.</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t5-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ejercicio-panel pista" id="t5-pista" hidden>
+          <p style="margin:0;">Mira la caja envolvente (<code>st_bbox</code>) antes que ninguna otra cosa: es donde el disparate se ve de un golpe y sin calcular nada. Y para (d), piensa en un archivo que llega SIN sistema declarado y del que sabes de dónde salió.</p>
+        </div>
+      </div>
+      <div class="code-tabs">
+        <div class="code-tabs-nav" role="tablist" aria-label="El defecto, para que lo produzcas tú">
+          <button class="code-tab-btn active" data-lang="r" role="tab" aria-selected="true">R</button>
+          <button class="code-tab-btn" data-lang="python" role="tab" aria-selected="false">Python</button>
+        </div>
+        <div class="code-tab-panel" data-lang="r">
+          <pre><code class="language-r arranque">library(sf)
+
+est &lt;- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
+mis &lt;- est[TUS_40, ]                  # las tuyas, con la regla del modulo 1
+
+# Se pasan a grados, que es como llegan la mayoria de los CSV del mundo:
+mis_ll &lt;- st_transform(mis, 4326)
+
+# Y ahora la linea del defecto. NO transforma: solo declara.
+mal &lt;- st_set_crs(mis_ll, 9377)
+
+st_bbox(mal)
+st_distance(mal[1, ], mal[2, ])
+sum(lengths(st_intersects(st_buffer(mal[1, ], 500), mal)))</code></pre>
+        </div>
+        <div class="code-tab-panel" data-lang="python" hidden>
+          <pre><code class="language-python arranque">import geopandas as gpd
+
+est = gpd.read_file("datos/procesado/colombia_estaciones_clima.gpkg")
+mis = est.iloc[TUS_40]
+
+mis_ll = mis.to_crs(4326)
+
+# La misma linea, en geopandas: set_crs(allow_override=True) no reproyecta.
+mal = mis_ll.set_crs(9377, allow_override=True)
+
+print(mal.total_bounds)
+print(mal.geometry.iloc[0].distance(mal.geometry.iloc[1]))
+print(mal.buffer(500).iloc[0].intersects(mal.geometry).sum())</code></pre>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ============================================================ -->
+  <!-- MÓDULO 7 · La fuga                                              -->
+  <!-- ============================================================ -->
+  <template id="module-7">
+    <div class="animate-fade-in">
+      <div class="border-b border-gray-100 pb-6 mb-6">
+        <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
+          <span>Módulo 7</span>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">La fuga
+          <span class="text-gray-400 font-normal text-2xl">/ T6 · Spatial leakage</span></h2>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
+          <span class="text-xl">🎯</span>
+          <div>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Decidir qué número reportar cuando hay dos, los dos son correctos y no dicen lo mismo. Vale el 10 % del escrito.</p>
+          </div>
+        </div>
+      </div>
+
+      <p>Un modelo predice el <strong>puntaje medio de Saber 11 por municipio</strong> a partir de la posición: la media de
+        los 5 municipios más próximos del conjunto de entrenamiento. Nada sofisticado,
+        y a propósito: lo que sigue no lo produce el modelo.</p>
+
+      <p>Se validó dos veces sobre los mismos 1 113 municipios, con
+        10 pliegues las dos veces. Lo único que cambia es <strong>cómo se reparten</strong>
+        los municipios entre pliegues: al azar, o por bloques geográficos.</p>
+
+      <table>
+        <caption>El mismo modelo, los mismos datos, dos formas de repartir los pliegues.</caption>
+        <thead>
+          <tr><th scope="col">Reparto de los pliegues</th><th scope="col">RMSE</th>
+            <th scope="col">R²</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Al azar</th><td>13.4954</td>
+            <td>0.6042</td></tr>
+          <tr><th scope="row">Por bloques geográficos</th><td>17.7758</td>
+            <td>0.3133</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <p style="margin-bottom:0;">Los bloques geográficos salen <strong>desiguales</strong> —de
+          23 a 200 municipios— y eso no es un defecto del
+          montaje: es la geografía del país, con los municipios apiñados en la región andina. El RMSE
+          se calculó agrupando los errores de los 10 pliegues, no promediando
+          10 valores de RMSE, justamente para que un pliegue pequeño no pese lo mismo
+          que uno grande.</p>
+      </div>
+
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T6.</span><strong>La fuga
+          </strong> <span class="badge-peso">10&nbsp;%</span><br>Con las dos filas de la tabla:</p>
+        <ol class="lista-literales" type="a">
+          <li>Explica la diferencia con el vocabulario de los capítulos. ¿Qué información tenía el modelo en la validación aleatoria que no tiene en la de bloques?</li>
+          <li>¿Cuál de los dos R² reportarías a la Secretaría de Educación, y <strong>qué pregunta responde cada uno</strong>? Las dos partes cuentan: hay un uso legítimo para cada cifra.</li>
+          <li>El modelo solo usa la posición. Si le añadieras una covariable —digamos el porcentaje de colegios oficiales— ¿esperarías que la brecha entre los dos R² se agrandara o se encogiera? Justifica; no hace falta que lo calcules.</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t6-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ejercicio-panel pista" id="t6-pista" hidden>
+          <p style="margin:0;">La pregunta de (a) no es «cuál está bien». Las dos validaciones están bien calculadas: responden a preguntas distintas sobre dónde va a usarse el modelo. Piensa en un municipio cuyos vecinos SÍ están en el entrenamiento y en otro cuyo vecindario entero quedó fuera.</p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ============================================================ -->
+  <!-- MÓDULO 8 · Auditar a la IA                                      -->
+  <!-- ============================================================ -->
+  <template id="module-8">
+    <div class="animate-fade-in">
+      <div class="border-b border-gray-100 pb-6 mb-6">
+        <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
+          <span>Módulo 8</span>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Auditar a la IA
+          <span class="text-gray-400 font-normal text-2xl">/ T7 · Grade the machine</span></h2>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
+          <span class="text-xl">🎯</span>
+          <div>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Emitir un veredicto sobre tres afirmaciones plausibles, con una cifra detrás de cada uno. Vale el 15 % del escrito.</p>
+          </div>
+        </div>
+      </div>
+
+      <p>A un modelo de lenguaje se le preguntó por el material de estos dos capítulos. Esto fue lo que
+        contestó, literalmente. <strong>Una de las tres afirmaciones es correcta, una es cierta a
+        medias y una es falsa.</strong></p>
+
+      <blockquote class="cita-ia">
+        <p><strong>1.</strong> «Bajo la hipótesis nula de independencia, el valor esperado del índice
+          de Moran no es cero sino \(-1/(n-1)\). Con las 361 estaciones del IDEAM
+          eso da -0.002778, así que un \(I\) ligeramente negativo no indica
+          repulsión: indica ausencia de estructura.»</p>
+        <p><strong>2.</strong> «En Colombia da prácticamente igual calcular distancias sobre
+          coordenadas geográficas o sobre coordenadas proyectadas, porque el país está sobre el
+          ecuador y ahí un grado de longitud mide casi lo mismo que uno de latitud. El error que se
+          comete es despreciable para cualquier análisis práctico.»</p>
+        <p style="margin-bottom:0;"><strong>3.</strong> «Un índice de Clark-Evans igual a 1 demuestra
+          que el patrón es aleatorio, es decir, que fue generado por un proceso de Poisson homogéneo.
+          Si \(R\) da 1, se acepta la hipótesis de aleatoriedad espacial completa.»</p>
+      </blockquote>
+
+      <div class="definition">
+        <h3>Las cifras que necesitas para el veredicto</h3>
+        <p>Todas salen del mismo dato con el que trabajaste en T2 y T3 —las
+          361 estaciones del IDEAM— y están calculadas sobre sus
+          64 980 parejas:</p>
+        <ul>
+          <li>Tomar «un grado son 111.32 km» y medir en línea recta sobre grados se desvía de la
+            distancia real un <strong>0.21&nbsp;%</strong> de
+            mediana, y hasta un <strong>2.63&nbsp;%</strong>.</li>
+          <li>Un grado de longitud mide 111.02 km en el extremo sur del
+            país (latitud -4.19°) y 108.31 km en el
+            norte (latitud 13.36°).</li>
+          <li>Y una que casi nunca se mira: la <strong>misma</strong> distancia medida sobre la esfera
+            que usa <code>sf</code> y sobre el elipsoide WGS 84 difiere un
+            <strong>0.37&nbsp;%</strong> de mediana, y
+            hasta un 0.56&nbsp;%.</li>
+        </ul>
+        <p style="margin-bottom:0;">Compara esas tres cifras entre sí antes de escribir nada. El orden
+          en que quedan es el corazón de esta tarea.</p>
+      </div>
+
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T7.</span><strong>Auditar a la IA
+          </strong> <span class="badge-peso">15&nbsp;%</span><br>Sobre las tres afirmaciones de arriba:</p>
+        <ol class="lista-literales" type="a">
+          <li>Clasifica cada una como <strong>correcta</strong>, <strong>a medias</strong> o <strong>falsa</strong>, y sustenta cada veredicto con una cifra o con un contraejemplo. Un veredicto sin evidencia no puntúa, aunque acierte.</li>
+          <li>La que sea falsa: reescríbela de modo que quede correcta <strong>sin cambiar de tema</strong>. Tiene que seguir hablando de lo mismo.</li>
+          <li>La que sea «a medias»: di exactamente dónde se rompe. Qué parte es cierta, qué parte no lo es, y qué cifra de las de arriba lo demuestra.</li>
+          <li>Cierra con una frase: ¿qué tipo de pregunta contesta bien un modelo sobre este material y qué tipo contesta mal? Apóyate en lo que te pasó al usarlo durante el taller, no en una opinión general.</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t7-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ejercicio-panel pista" id="t7-pista" hidden>
+          <p style="margin:0;">Para la falsa, el contraejemplo lo tienes en tu propio módulo 2: hay más de una forma de que un patrón dé \(R\) cerca de 1. Para la de a medias, no discutas si el error es grande o pequeño: compáralo con OTRA fuente de error que la afirmación no menciona y que está en la lista de arriba.</p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ============================================================ -->
+  <!-- MÓDULO 9 · Cómo se califica, y la defensa                       -->
+  <!-- ============================================================ -->
+  <template id="module-9">
+    <div class="animate-fade-in">
+      <div class="border-b border-gray-100 pb-6 mb-6">
+        <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
+          <span>Módulo 9</span>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Cómo se califica, y la defensa
+          <span class="text-gray-400 font-normal text-2xl">/ Rubric and viva</span></h2>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
+          <span class="text-xl">🎯</span>
+          <div>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Nada. Este módulo se lee ANTES de escribir el informe, no después.</p>
+          </div>
+        </div>
+      </div>
+
+      <p>La rúbrica está aquí, entera y por adelantado, porque una rúbrica que se conoce al recibir la
+        nota no sirve para aprender nada. Léela antes de escribir: las cinco dimensiones no miden lo
+        mismo, y un informe con todas las cifras correctas puede quedarse a mitad de tabla si no dice
+        qué significan.</p>
+
+      <div class="rubrica" data-rubrica="taller1"></div>
+
+      <h3>La defensa</h3>
+      <p>De 5 a 7 minutos, en clase, individual. Se sacan <strong>tres preguntas al azar</strong> de
+        las 24 de abajo. El banco está publicado a propósito: no se trata de
+        sorprenderte, se trata de que llegues sabiendo. Fíjate en que el banco cubre
+        <strong>todo</strong> el temario de los dos capítulos, incluidos los módulos que ninguna tarea
+        del escrito toca.</p>
+
+      <div class="warning">
+        <p style="margin-bottom:0;"><strong>La regla que ata las dos partes.</strong> Además de las
+          tres del banco, se te puede preguntar por cualquier decisión que hayas entregado por
+          escrito. Si no puedes sostenerla, esa tarea <strong>se recalifica</strong>. No es un castigo
+          por usar IA —usarla está bien y se declara—: es lo que distingue haber entendido de haber
+          entregado.</p>
+      </div>
+
+      <table>
+        <caption>El banco de la defensa. Te tocan tres, al azar.</caption>
+        <thead>
+          <tr><th scope="col">#</th><th scope="col">Tema</th><th scope="col">Pregunta</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">1</th><td>Cap. 1 · Snow</td><td>El mapa de Snow es un argumento geométrico, no epidemiológico. ¿Qué quiere decir eso, y qué NO probó Snow con su mapa?</td></tr>
+          <tr><th scope="row">2</th><td>Cap. 1 · Tipos de dato</td><td>Los tres tipos de dato espacial se distinguen por QUÉ es aleatorio. Dilo para los tres, y pon un ejemplo colombiano de cada uno.</td></tr>
+          <tr><th scope="row">3</th><td>Cap. 1 · Ventana</td><td>¿Por qué la ventana de observación forma parte del estimador en un patrón puntual? Enseña qué le pasa a λ si la cambias.</td></tr>
+          <tr><th scope="row">4</th><td>Cap. 1 · Tobler</td><td>El correlograma del capítulo cae al quitar la altitud. ¿Qué parte de la dependencia era dependencia y qué parte era una covariable disfrazada?</td></tr>
+          <tr><th scope="row">5</th><td>Cap. 1 · Moran</td><td>¿Por qué E[I] no vale cero bajo la hipótesis nula? ¿De dónde sale el −1/(n−1)?</td></tr>
+          <tr><th scope="row">6</th><td>Cap. 1 · Inferencia</td><td>Con autocorrelación positiva, ¿el error estándar clásico sale grande o pequeño? ¿Y qué le pasa entonces a la cobertura del intervalo?</td></tr>
+          <tr><th scope="row">7</th><td>Cap. 1 · n efectivo</td><td>n_eff tiene un techo cuando n crece. ¿Cuál es y qué significa tenerlo delante?</td></tr>
+          <tr><th scope="row">8</th><td>Cap. 1 · Estacionariedad</td><td>Estacionariedad e isotropía no son lo mismo. Da un fenómeno colombiano que sea estacionario y anisótropo.</td></tr>
+          <tr><th scope="row">9</th><td>Cap. 1 · Una realización</td><td>¿Por qué el problema de la realización única no se arregla tomando más datos?</td></tr>
+          <tr><th scope="row">10</th><td>Cap. 1 · Escala y MAUP</td><td>El efecto escala y el efecto zonificación del MAUP son distintos. Explica los dos con la deserción municipal.</td></tr>
+          <tr><th scope="row">11</th><td>Cap. 1 · Soporte</td><td>¿Qué es el soporte de un dato y por qué no se puede cambiar sin pagar algo?</td></tr>
+          <tr><th scope="row">12</th><td>Cap. 1 · Ecosistema</td><td>¿Qué hace sf que sp no hacía, y por qué el curso usa terra y no raster?</td></tr>
+          <tr><th scope="row">13</th><td>Cap. 1 · Anatomía de sf</td><td>Un objeto sf, uno sfc y uno sfg. ¿Qué guarda cada uno y dónde vive el CRS?</td></tr>
+          <tr><th scope="row">14</th><td>Cap. 1 · CV espacial</td><td>¿Por qué una validación cruzada aleatoria infla el desempeño de un modelo espacial? Explícalo sin usar la palabra «fuga».</td></tr>
+          <tr><th scope="row">15</th><td>Cap. 2 · Geoide</td><td>Geoide, elipsoide y datum. ¿Cuál de los tres es una superficie física?</td></tr>
+          <tr><th scope="row">16</th><td>Cap. 2 · Grados</td><td>¿Por qué un grado de longitud no mide lo mismo en Leticia que en la Guajira? Da las dos cifras aproximadas.</td></tr>
+          <tr><th scope="row">17</th><td>Cap. 2 · Proyecciones</td><td>«Proyectar es elegir qué destruir». ¿Qué destruye Web Mercator y por qué se usa igual?</td></tr>
+          <tr><th scope="row">18</th><td>Cap. 2 · EPSG</td><td>3116 y 9377 son los dos MAGNA-SIRGAS. ¿En qué se diferencian y cuándo conviene cada uno?</td></tr>
+          <tr><th scope="row">19</th><td>Cap. 2 · set_crs</td><td>Enseña con un ejemplo la diferencia entre st_set_crs y st_transform, y di cómo se detecta el error si alguien las confunde.</td></tr>
+          <tr><th scope="row">20</th><td>Cap. 2 · s2</td><td>¿Qué cambia en sf cuando s2 está activado? ¿Sobre qué superficie mide?</td></tr>
+          <tr><th scope="row">21</th><td>Cap. 2 · Formatos</td><td>Shapefile, GeoPackage y GeoJSON. Da una razón técnica para no usar shapefile en este curso.</td></tr>
+          <tr><th scope="row">22</th><td>Cap. 2 · Topología</td><td>¿Qué es una geometría inválida y por qué st_make_valid no siempre es la respuesta?</td></tr>
+          <tr><th scope="row">23</th><td>Cap. 2 · Joins</td><td>¿Para qué sirve un índice espacial en un join, y qué pasa si los dos objetos están en CRS distintos?</td></tr>
+          <tr><th scope="row">24</th><td>Transversal</td><td>De todo lo que entregaste, ¿qué decisión te costó más y por qué? Defiéndela.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
 
   <script>
     // ================================================================
@@ -4128,13 +4552,49 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     // ================================================================
     const courseData = {
       modules: [
-        { id: 1, title: "Cajas y tipografía", duration: "5 min" },
-        { id: 2, title: "Código en dos lenguajes", duration: "5 min" },
-        { id: 3, title: "Simuladores", duration: "8 min" },
-        { id: 4, title: "Autoevaluación y ejercicios", duration: "8 min" },
-        { id: 5, title: "Glosario de notación y rúbrica", duration: "6 min" }
+        { id: 1, title: "Cómo se trabaja este taller", duration: "6 min" },
+        { id: 2, title: "T1 · El régimen que no se ve", duration: "20 min" },
+        { id: 3, title: "T2 · El intervalo que miente", duration: "40 min" },
+        { id: 4, title: "T3 · La auditoría", duration: "45 min" },
+        { id: 5, title: "T4 · Cuatro sistemas, una decisión", duration: "40 min" },
+        { id: 6, title: "T5 · Reetiquetar no es reproyectar", duration: "40 min" },
+        { id: 7, title: "T6 · La fuga", duration: "20 min" },
+        { id: 8, title: "T7 · Auditar a la IA", duration: "35 min" },
+        { id: 9, title: "Cómo se califica, y la defensa", duration: "10 min" }
       ]
     };
+
+    // El taller entero, tal como sale de precalculo/genera_taller1.R. Nada
+    // de lo que hay aquí es una respuesta: son los datos del enunciado.
+    const DATOS_T1 = {"meta": {"taller": 1, "titulo": "Taller 1 · Datos espaciales, sistemas de referencia y georreferenciación", "capitulos": [1, 2], "semilla": 20261, "n_municipios": 60, "n_patrones": 30, "n_variantes": 1000, "n_estaciones": 40, "generado": "2026-08-13"}, "reglas": {"estaciones": "Tus 40 estaciones son las 40 más próximas al punto interior de tu municipio, medidas en EPSG:9377. La suma de sus altitudes tiene que coincidir con el dígito de verificación de tu fila; si no coincide, la selección está mal y todo lo que construyas encima lo estará también.", "variante": "Tu variante son los TRES últimos dígitos de tu número de documento, leídos como número de 0 a 999."}, "municipios": [{"llave": "7082276B69506367450690", "municipio": "San Roque", "departamento": "Antioquia", "suma_altitud": 51173}, {"llave": "7082276B51026070835233", "municipio": "Támesis", "departamento": "Antioquia", "suma_altitud": 61276}, {"llave": "7082276B17110786625118", "municipio": "Quípama", "departamento": "Boyacá", "suma_altitud": 71652}, {"llave": "7082276B62780892273101", "municipio": "Sora", "departamento": "Boyacá", "suma_altitud": 79286}, {"llave": "7082276B21893770290746", "municipio": "Tota", "departamento": "Boyacá", "suma_altitud": 80672}, {"llave": "7082276B74376648695935", "municipio": "Manizales", "departamento": "Caldas", "suma_altitud": 55273}, {"llave": "7082276B91002945363484", "municipio": "Belén De Los Andaquíes", "departamento": "Caquetá", "suma_altitud": 49448}, {"llave": "7082276B13474155488733", "municipio": "Morales", "departamento": "Bolívar", "suma_altitud": 27858}, {"llave": "7082276B11088178486316", "municipio": "Pinillos", "departamento": "Bolívar", "suma_altitud": 11052}, {"llave": "7082276B44826680756830", "municipio": "Angelópolis", "departamento": "Antioquia", "suma_altitud": 61774}, {"llave": "7082276B24533406562220", "municipio": "Anorí", "departamento": "Antioquia", "suma_altitud": 41976}, {"llave": "7082276B53063145531643", "municipio": "Betania", "departamento": "Antioquia", "suma_altitud": 64581}, {"llave": "7082276B86795157011208", "municipio": "Campamento", "departamento": "Antioquia", "suma_altitud": 44851}, {"llave": "7082276B52790973649265", "municipio": "Cisneros", "departamento": "Antioquia", "suma_altitud": 55983}, {"llave": "7082276B2459455127895", "municipio": "Concepción", "departamento": "Antioquia", "suma_altitud": 56573}, {"llave": "7082276B92581613564352", "municipio": "Guarne", "departamento": "Antioquia", "suma_altitud": 58389}, {"llave": "7082276B97169896974876", "municipio": "Heliconia", "departamento": "Antioquia", "suma_altitud": 59723}, {"llave": "7082276B26769987150825", "municipio": "San Luis", "departamento": "Antioquia", "suma_altitud": 53957}, {"llave": "7082276B28495435415002", "municipio": "Lenguazaque", "departamento": "Cundinamarca", "suma_altitud": 90459}, {"llave": "7082276B59131277031860", "municipio": "Nimaima", "departamento": "Cundinamarca", "suma_altitud": 70488}, {"llave": "7082276B58958206907814", "municipio": "Subachoque", "departamento": "Cundinamarca", "suma_altitud": 72801}, {"llave": "7082276B91973001860083", "municipio": "Baraya", "departamento": "Huila", "suma_altitud": 32796}, {"llave": "7082276B60713931967074", "municipio": "Pitalito", "departamento": "Huila", "suma_altitud": 50274}, {"llave": "7082276B65922719732159", "municipio": "Villavieja", "departamento": "Huila", "suma_altitud": 36609}, {"llave": "7082276B35872323079688", "municipio": "Distracción", "departamento": "La Guajira", "suma_altitud": 11869}, {"llave": "7082276B24784892913162", "municipio": "Hatonuevo", "departamento": "La Guajira", "suma_altitud": 11869}, {"llave": "7082276B40499260653390", "municipio": "Morales", "departamento": "Cauca", "suma_altitud": 55307}, {"llave": "7082276B51071963604741", "municipio": "Piendamó", "departamento": "Cauca", "suma_altitud": 52627}, {"llave": "7082276B82675854286902", "municipio": "Canalete", "departamento": "Córdoba", "suma_altitud": 12411}, {"llave": "7082276B90107957997642", "municipio": "Cienaga De Oro", "departamento": "Córdoba", "suma_altitud": 6909}, {"llave": "7082276B84273930819596", "municipio": "Moñitos", "departamento": "Córdoba", "suma_altitud": 5507}, {"llave": "7082276B76169675802972", "municipio": "Fómeque", "departamento": "Cundinamarca", "suma_altitud": 68661}, {"llave": "7082276B26264709784086", "municipio": "Fosca", "departamento": "Cundinamarca", "suma_altitud": 57421}, {"llave": "7082276B90187187212426", "municipio": "Gachetá", "departamento": "Cundinamarca", "suma_altitud": 77919}, {"llave": "7082276B33620598114960", "municipio": "Gama", "departamento": "Cundinamarca", "suma_altitud": 77039}, {"llave": "7082276B39966756415454", "municipio": "Bolivar", "departamento": "Santander", "suma_altitud": 55413}, {"llave": "7082276B77867476816808", "municipio": "Cimitarra", "departamento": "Santander", "suma_altitud": 50382}, {"llave": "7082276B43213471639741", "municipio": "Guavatá", "departamento": "Santander", "suma_altitud": 70060}, {"llave": "7082276B5814206039603", "municipio": "Nueva Granada", "departamento": "Magdalena", "suma_altitud": 7160}, {"llave": "7082276B2618998543770", "municipio": "Remolino", "departamento": "Magdalena", "suma_altitud": 5885}, {"llave": "7082276B16396199828486", "municipio": "San Martín", "departamento": "Meta", "suma_altitud": 52372}, {"llave": "7082276B70460159125708", "municipio": "Chachagüí", "departamento": "Nariño", "suma_altitud": 67467}, {"llave": "7082276B86818396743416", "municipio": "Linares", "departamento": "Nariño", "suma_altitud": 66423}, {"llave": "7082276B88389252568355", "municipio": "Providencia", "departamento": "Nariño", "suma_altitud": 66423}, {"llave": "7082276B22938058716201", "municipio": "Pupiales", "departamento": "Nariño", "suma_altitud": 61990}, {"llave": "7082276B34643153596427", "municipio": "Jamundí", "departamento": "Valle del Cauca", "suma_altitud": 52976}, {"llave": "7082276B32488030547396", "municipio": "Paz De Ariporo", "departamento": "Casanare", "suma_altitud": 64940}, {"llave": "7082276B29346978372960", "municipio": "Socorro", "departamento": "Santander", "suma_altitud": 79754}, {"llave": "7082276B91357442595153", "municipio": "Carmen De Apicala", "departamento": "Tolima", "suma_altitud": 55952}, {"llave": "7082276B32656810983952", "municipio": "Fresno", "departamento": "Tolima", "suma_altitud": 57643}, {"llave": "7082276B3940342655765", "municipio": "Herveo", "departamento": "Tolima", "suma_altitud": 54624}, {"llave": "7082276B37284243870531", "municipio": "San Sebastián De Mariquita", "departamento": "Tolima", "suma_altitud": 60046}, {"llave": "7082276B61520359869131", "municipio": "Medio San Juan (Andagoya)", "departamento": "Chocó", "suma_altitud": 54118}, {"llave": "7082276B77502299141728", "municipio": "Nuquí", "departamento": "Chocó", "suma_altitud": 54539}, {"llave": "7082276B69715084527622", "municipio": "Dabeiba", "departamento": "Antioquia", "suma_altitud": 46240}, {"llave": "7082276B96310661388282", "municipio": "Amalfi", "departamento": "Antioquia", "suma_altitud": 43798}, {"llave": "7082276B62736204649279", "municipio": "Hato Corozal", "departamento": "Casanare", "suma_altitud": 69295}, {"llave": "7082276B17700118356894", "municipio": "Aldana", "departamento": "Nariño", "suma_altitud": 61990}, {"llave": "7082276B57881293772314", "municipio": "Rio Iró (Santa Rita)", "departamento": "Chocó", "suma_altitud": 61942}, {"llave": "7082276B34884302801431", "municipio": "San José Del Guaviare", "departamento": "Guaviare", "suma_altitud": 36301}], "patrones": [{"n": 49, "area": 1, "lambda": 49, "nn_media": 0.1113593431, "nn_esperada": 0.0714285714, "clark_evans": 1.5590308031, "clark_evans_donnelly": 1.4632337832}, {"n": 56, "area": 1, "lambda": 56, "nn_media": 0.1100073933, "nn_esperada": 0.0668153105, "clark_evans": 1.6464399031, "clark_evans_donnelly": 1.5520231555}, {"n": 45, "area": 1, "lambda": 45, "nn_media": 0.113777285, "nn_esperada": 0.0745355992, "clark_evans": 1.5264824611, "clark_evans_donnelly": 1.428458067}, {"n": 58, "area": 1, "lambda": 58, "nn_media": 0.1017589441, "nn_esperada": 0.0656532164, "clark_evans": 1.5499460597, "clark_evans_donnelly": 1.4626603912}, {"n": 60, "area": 1, "lambda": 60, "nn_media": 0.0652014275, "nn_esperada": 0.0645497224, "clark_evans": 1.0100961717, "clark_evans_donnelly": 0.9542000623}, {"n": 76, "area": 1, "lambda": 76, "nn_media": 0.0546664287, "nn_esperada": 0.0573539335, "clark_evans": 0.9531417529, "clark_evans_donnelly": 0.9064550425}, {"n": 67, "area": 1, "lambda": 67, "nn_media": 0.0651306918, "nn_esperada": 0.0610847222, "clark_evans": 1.0662353775, "clark_evans_donnelly": 1.0105007264}, {"n": 86, "area": 1, "lambda": 86, "nn_media": 0.0253218815, "nn_esperada": 0.0539163866, "clark_evans": 0.4696509366, "clark_evans_donnelly": 0.4480660729}, {"n": 75, "area": 1, "lambda": 75, "nn_media": 0.0372925806, "nn_esperada": 0.0577350269, "clark_evans": 0.6459264432, "clark_evans_donnelly": 0.6140709287}, {"n": 68, "area": 1, "lambda": 68, "nn_media": 0.061958246, "nn_esperada": 0.0606339063, "clark_evans": 1.0218415698, "clark_evans_donnelly": 0.9688343343}, {"n": 46, "area": 1, "lambda": 46, "nn_media": 0.0736356537, "nn_esperada": 0.0737209781, "clark_evans": 0.998842604, "clark_evans_donnelly": 0.9354268822}, {"n": 47, "area": 1, "lambda": 47, "nn_media": 0.0785475124, "nn_esperada": 0.0729324957, "clark_evans": 1.0769892299, "clark_evans_donnelly": 1.0093691191}, {"n": 42, "area": 1, "lambda": 42, "nn_media": 0.0741325626, "nn_esperada": 0.077151675, "clark_evans": 0.9608678305, "clark_evans_donnelly": 0.8969199858}, {"n": 85, "area": 1, "lambda": 85, "nn_media": 0.0585188029, "nn_esperada": 0.0542326145, "clark_evans": 1.0790334104, "clark_evans_donnelly": 1.0291420947}, {"n": 55, "area": 1, "lambda": 55, "nn_media": 0.0712269418, "nn_esperada": 0.0674199862, "clark_evans": 1.0564662764, "clark_evans_donnelly": 0.9953151826}, {"n": 61, "area": 1, "lambda": 61, "nn_media": 0.0313293653, "nn_esperada": 0.06401844, "clark_evans": 0.4893803309, "clark_evans_donnelly": 0.4625295455}, {"n": 42, "area": 1, "lambda": 42, "nn_media": 0.0748739262, "nn_esperada": 0.077151675, "clark_evans": 0.9704770021, "clark_evans_donnelly": 0.9058896462}, {"n": 55, "area": 1, "lambda": 55, "nn_media": 0.0722857885, "nn_esperada": 0.0674199862, "clark_evans": 1.0721715112, "clark_evans_donnelly": 1.0101113563}, {"n": 47, "area": 1, "lambda": 47, "nn_media": 0.1202302065, "nn_esperada": 0.0729324957, "clark_evans": 1.648513537, "clark_evans_donnelly": 1.5450095605}, {"n": 58, "area": 1, "lambda": 58, "nn_media": 0.0638666153, "nn_esperada": 0.0656532164, "clark_evans": 0.9727873027, "clark_evans_donnelly": 0.9180044994}, {"n": 55, "area": 1, "lambda": 55, "nn_media": 0.1005561655, "nn_esperada": 0.0674199862, "clark_evans": 1.4914889646, "clark_evans_donnelly": 1.405157594}, {"n": 40, "area": 1, "lambda": 40, "nn_media": 0.0813341417, "nn_esperada": 0.0790569415, "clark_evans": 1.0288045573, "clark_evans_donnelly": 0.9585822454}, {"n": 51, "area": 1, "lambda": 51, "nn_media": 0.0711052078, "nn_esperada": 0.0700140042, "clark_evans": 1.0155855044, "clark_evans_donnelly": 0.9544597433}, {"n": 52, "area": 1, "lambda": 52, "nn_media": 0.0715617215, "nn_esperada": 0.0693375245, "clark_evans": 1.0320778243, "clark_evans_donnelly": 0.9705802653}, {"n": 42, "area": 1, "lambda": 42, "nn_media": 0.0432019736, "nn_esperada": 0.077151675, "clark_evans": 0.5599615771, "clark_evans_donnelly": 0.5226949159}, {"n": 53, "area": 1, "lambda": 53, "nn_media": 0.0721413942, "nn_esperada": 0.068680282, "clark_evans": 1.0503945541, "clark_evans_donnelly": 0.9884191588}, {"n": 72, "area": 1, "lambda": 72, "nn_media": 0.0299715358, "nn_esperada": 0.0589255651, "clark_evans": 0.5086338284, "clark_evans_donnelly": 0.4830155701}, {"n": 50, "area": 1, "lambda": 50, "nn_media": 0.0729240225, "nn_esperada": 0.0707106781, "clark_evans": 1.0313014161, "clark_evans_donnelly": 0.9685905428}, {"n": 55, "area": 1, "lambda": 55, "nn_media": 0.0712902121, "nn_esperada": 0.0674199862, "clark_evans": 1.0574047261, "clark_evans_donnelly": 0.9961993123}, {"n": 77, "area": 1, "lambda": 77, "nn_media": 0.0272202149, "nn_esperada": 0.0569802882, "clark_evans": 0.4777128325, "clark_evans_donnelly": 0.4544706972}], "variantes": {"base": 0, "m0": [10, 32, 45, 34, 16, 11, 4, 23, 27, 1, 35, 47, 47, 5, 49, 35, 46, 9, 26, 41, 34, 3, 55, 48, 19, 34, 49, 42, 39, 43, 21, 54, 38, 16, 42, 20, 45, 26, 0, 21, 11, 58, 48, 36, 43, 47, 19, 51, 9, 42, 25, 27, 37, 11, 22, 57, 54, 32, 25, 42, 49, 51, 37, 20, 42, 49, 29, 3, 16, 31, 27, 46, 29, 44, 6, 15, 59, 9, 39, 42, 2, 34, 15, 9, 55, 36, 9, 6, 24, 42, 34, 43, 5, 35, 40, 40, 22, 37, 30, 2, 26, 23, 56, 22, 2, 37, 55, 20, 56, 53, 21, 18, 59, 17, 48, 5, 59, 24, 0, 42, 10, 15, 9, 17, 7, 43, 5, 53, 29, 43, 29, 19, 45, 12, 11, 38, 3, 24, 40, 36, 23, 58, 31, 6, 55, 3, 53, 22, 14, 2, 13, 45, 57, 17, 58, 37, 1, 39, 22, 47, 21, 41, 40, 15, 21, 13, 41, 24, 34, 31, 30, 44, 8, 15, 42, 20, 19, 59, 40, 51, 5, 7, 44, 45, 23, 41, 21, 13, 24, 1, 59, 29, 40, 52, 18, 25, 17, 28, 8, 2, 37, 43, 0, 52, 33, 16, 21, 29, 28, 27, 31, 53, 22, 30, 33, 3, 32, 41, 56, 28, 8, 21, 13, 38, 10, 26, 41, 52, 8, 10, 18, 50, 8, 25, 12, 21, 31, 4, 53, 46, 18, 38, 2, 55, 38, 54, 43, 46, 20, 11, 17, 27, 8, 2, 20, 19, 15, 17, 14, 44, 41, 55, 50, 42, 8, 27, 49, 38, 20, 17, 38, 44, 17, 32, 30, 59, 31, 49, 11, 13, 10, 29, 59, 32, 18, 43, 11, 49, 18, 22, 12, 42, 27, 45, 28, 51, 17, 57, 9, 56, 15, 30, 51, 50, 52, 27, 32, 26, 44, 30, 21, 52, 35, 13, 53, 23, 16, 7, 7, 41, 44, 32, 36, 53, 52, 35, 53, 16, 14, 54, 25, 28, 18, 45, 50, 0, 58, 3, 5, 37, 41, 13, 39, 50, 9, 33, 51, 5, 41, 15, 15, 9, 57, 52, 47, 3, 4, 38, 42, 2, 48, 45, 10, 37, 56, 29, 8, 4, 30, 3, 30, 53, 37, 22, 34, 41, 56, 37, 0, 50, 1, 5, 39, 55, 8, 22, 30, 44, 2, 3, 21, 22, 31, 38, 38, 52, 28, 29, 2, 16, 37, 55, 55, 31, 19, 37, 58, 45, 39, 20, 19, 29, 36, 51, 39, 10, 28, 17, 43, 40, 35, 52, 43, 5, 4, 4, 28, 19, 27, 13, 19, 37, 37, 21, 30, 48, 57, 43, 35, 20, 15, 15, 29, 46, 24, 5, 36, 5, 30, 53, 49, 23, 25, 26, 48, 12, 36, 15, 45, 44, 45, 4, 54, 19, 5, 7, 40, 32, 47, 25, 33, 37, 2, 46, 2, 4, 32, 5, 41, 4, 11, 43, 56, 14, 18, 40, 49, 16, 51, 26, 46, 14, 40, 31, 26, 12, 46, 17, 24, 5, 29, 30, 41, 34, 52, 45, 40, 50, 48, 33, 2, 25, 50, 51, 34, 17, 54, 5, 35, 0, 18, 47, 13, 45, 8, 0, 23, 1, 2, 59, 59, 14, 9, 18, 34, 3, 36, 25, 16, 28, 3, 44, 8, 27, 11, 19, 4, 49, 27, 37, 15, 47, 47, 33, 36, 48, 9, 21, 6, 4, 50, 29, 22, 17, 49, 16, 27, 34, 18, 1, 12, 54, 37, 46, 33, 33, 58, 35, 48, 44, 51, 0, 59, 19, 12, 33, 15, 19, 28, 23, 36, 59, 9, 57, 32, 11, 35, 46, 16, 5, 11, 14, 40, 50, 36, 8, 23, 30, 54, 42, 24, 48, 29, 27, 51, 51, 17, 38, 36, 9, 36, 18, 36, 0, 23, 52, 59, 53, 7, 10, 57, 51, 56, 56, 6, 25, 5, 54, 7, 2, 53, 23, 9, 12, 0, 15, 46, 7, 30, 56, 13, 41, 34, 54, 33, 42, 1, 8, 27, 54, 50, 56, 17, 29, 25, 4, 21, 28, 53, 16, 15, 50, 1, 35, 37, 19, 25, 11, 41, 10, 49, 48, 17, 42, 11, 42, 20, 18, 34, 0, 55, 35, 25, 19, 16, 30, 39, 0, 0, 4, 27, 57, 47, 31, 24, 28, 38, 24, 46, 28, 26, 56, 55, 53, 25, 10, 40, 10, 36, 47, 21, 41, 51, 46, 32, 42, 27, 24, 36, 5, 35, 31, 53, 52, 57, 32, 12, 28, 27, 49, 54, 5, 43, 46, 58, 53, 13, 25, 44, 35, 8, 53, 50, 10, 58, 31, 29, 27, 7, 43, 31, 8, 30, 32, 56, 48, 31, 1, 27, 51, 4, 55, 23, 13, 46, 0, 40, 39, 43, 38, 50, 47, 53, 28, 39, 44, 8, 55, 48, 33, 51, 26, 58, 43, 28, 52, 7, 57, 36, 25, 35, 48, 46, 21, 56, 59, 40, 25, 6, 22, 27, 0, 43, 18, 44, 12, 23, 20, 55, 41, 20, 17, 39, 59, 34, 7, 26, 54, 23, 12, 39, 26, 38, 20, 58, 38, 56, 44, 47, 3, 40, 1, 25, 8, 46, 37, 15, 24, 3, 12, 58, 1, 31, 36, 26, 49, 20, 56, 30, 23, 9, 36, 26, 6, 7, 7, 26, 27, 49, 47, 49, 5, 35, 39, 33, 7, 35, 2, 51, 13, 37, 6, 23, 11, 6, 48, 57, 46, 9, 9, 13, 53, 48, 47, 45, 2, 5, 2, 56, 40, 16, 14, 57, 31, 40, 39, 3, 45, 56, 39, 42, 7, 17, 18, 31, 22, 59, 12, 8, 34, 52, 43, 59, 58, 31, 55, 12, 10, 9, 10, 31, 45, 45, 11, 47, 47, 50, 10, 26, 55, 54, 26, 16, 41, 28, 57, 9, 12, 41, 23, 6, 35, 15, 45, 44, 1, 54, 4, 50, 48, 49, 7, 16, 15, 25, 29, 47, 6, 59, 30, 34, 53, 57, 13, 51, 56, 58, 4, 17, 57, 51, 2, 35, 22, 4, 37, 18, 1, 46, 56, 58, 40, 6, 50, 24, 58, 35, 19, 43, 55], "p0": [21, 22, 20, 13, 19, 27, 10, 19, 29, 13, 21, 22, 19, 11, 19, 0, 29, 11, 5, 8, 22, 23, 8, 13, 2, 17, 21, 9, 4, 16, 11, 6, 8, 2, 22, 11, 8, 27, 5, 18, 6, 25, 19, 11, 12, 21, 9, 24, 6, 13, 22, 25, 5, 12, 29, 8, 24, 27, 5, 21, 25, 23, 17, 2, 23, 26, 15, 19, 22, 19, 7, 1, 24, 8, 29, 2, 6, 0, 23, 17, 16, 28, 26, 8, 23, 23, 24, 18, 7, 4, 27, 9, 5, 9, 2, 21, 22, 24, 12, 27, 7, 10, 17, 11, 2, 20, 26, 10, 5, 8, 20, 20, 17, 29, 5, 17, 29, 16, 16, 14, 6, 10, 21, 19, 8, 19, 18, 24, 18, 26, 12, 17, 19, 14, 18, 13, 22, 20, 1, 18, 26, 8, 10, 24, 22, 18, 12, 0, 15, 15, 25, 10, 14, 27, 23, 1, 22, 26, 13, 27, 17, 19, 22, 20, 15, 20, 24, 18, 4, 11, 28, 20, 21, 3, 16, 28, 14, 14, 13, 17, 19, 18, 28, 5, 0, 1, 7, 18, 14, 29, 22, 19, 28, 17, 17, 9, 25, 25, 1, 7, 25, 18, 14, 0, 22, 24, 12, 1, 3, 14, 27, 13, 7, 9, 2, 13, 21, 10, 7, 28, 28, 28, 17, 6, 22, 1, 16, 21, 16, 4, 28, 28, 15, 0, 19, 4, 5, 17, 7, 14, 6, 7, 25, 5, 20, 15, 22, 20, 0, 1, 15, 18, 14, 3, 14, 16, 25, 4, 19, 10, 12, 10, 23, 12, 8, 8, 3, 23, 13, 1, 2, 17, 17, 8, 20, 28, 23, 22, 3, 29, 26, 4, 5, 6, 3, 15, 9, 29, 14, 2, 10, 29, 20, 23, 9, 11, 11, 18, 19, 22, 11, 18, 0, 6, 26, 1, 25, 22, 7, 8, 23, 6, 27, 12, 26, 11, 15, 21, 11, 7, 2, 15, 0, 25, 25, 6, 18, 5, 7, 18, 29, 17, 21, 9, 25, 0, 0, 9, 2, 26, 4, 13, 9, 13, 23, 16, 18, 25, 22, 0, 27, 13, 15, 28, 7, 15, 22, 12, 28, 26, 20, 18, 0, 4, 19, 14, 6, 29, 11, 24, 7, 17, 7, 8, 9, 3, 26, 28, 23, 24, 25, 12, 1, 18, 3, 24, 17, 24, 1, 7, 3, 6, 21, 4, 10, 3, 21, 0, 5, 28, 16, 4, 16, 16, 21, 15, 4, 12, 20, 3, 3, 26, 4, 9, 21, 8, 14, 8, 29, 15, 2, 27, 17, 3, 24, 23, 12, 28, 5, 28, 13, 13, 27, 0, 22, 18, 3, 7, 11, 16, 23, 15, 27, 21, 4, 14, 1, 26, 3, 19, 16, 4, 20, 3, 22, 4, 16, 8, 6, 11, 0, 25, 29, 18, 1, 24, 4, 23, 12, 12, 26, 29, 24, 0, 10, 7, 13, 21, 14, 26, 10, 14, 11, 9, 12, 29, 12, 4, 10, 26, 7, 2, 25, 15, 0, 24, 24, 0, 21, 9, 2, 26, 13, 11, 22, 22, 24, 12, 11, 13, 21, 25, 19, 21, 18, 7, 10, 6, 17, 1, 2, 17, 14, 17, 24, 24, 3, 2, 14, 15, 24, 5, 9, 0, 21, 8, 10, 19, 0, 8, 2, 1, 22, 28, 0, 27, 6, 24, 13, 10, 16, 23, 24, 15, 29, 15, 14, 9, 23, 28, 10, 10, 18, 14, 0, 1, 24, 5, 18, 9, 0, 27, 21, 8, 27, 21, 13, 4, 16, 22, 20, 9, 7, 29, 21, 29, 22, 7, 27, 9, 5, 0, 20, 23, 10, 28, 3, 16, 20, 10, 21, 16, 20, 7, 14, 18, 13, 2, 3, 25, 6, 26, 17, 9, 3, 14, 21, 19, 20, 29, 22, 24, 26, 19, 2, 9, 21, 27, 27, 18, 28, 29, 29, 28, 8, 21, 16, 19, 15, 17, 0, 12, 4, 29, 26, 19, 11, 10, 27, 27, 15, 18, 14, 20, 8, 20, 11, 11, 10, 17, 5, 0, 16, 29, 10, 5, 29, 7, 22, 17, 12, 9, 23, 15, 6, 1, 14, 8, 27, 20, 17, 28, 9, 10, 29, 11, 24, 25, 1, 10, 29, 26, 27, 24, 9, 1, 25, 29, 4, 9, 2, 25, 18, 29, 28, 26, 11, 11, 18, 20, 28, 13, 12, 16, 8, 28, 9, 29, 15, 5, 10, 0, 19, 22, 0, 5, 3, 2, 27, 8, 29, 8, 20, 10, 19, 9, 22, 2, 26, 2, 28, 15, 25, 15, 2, 3, 10, 28, 21, 25, 27, 6, 26, 10, 1, 7, 13, 0, 26, 13, 17, 23, 16, 4, 6, 14, 3, 7, 15, 26, 27, 20, 20, 22, 13, 22, 3, 11, 2, 26, 17, 26, 29, 13, 5, 18, 26, 11, 27, 20, 6, 8, 21, 6, 11, 7, 23, 24, 3, 6, 1, 10, 17, 27, 4, 26, 0, 7, 4, 21, 17, 11, 0, 26, 19, 3, 27, 25, 27, 23, 27, 3, 27, 20, 24, 1, 16, 25, 25, 8, 24, 14, 29, 15, 12, 16, 16, 6, 16, 6, 5, 28, 3, 7, 25, 18, 7, 3, 5, 18, 10, 1, 14, 25, 17, 4, 22, 10, 29, 15, 15, 21, 10, 12, 9, 2, 25, 16, 11, 28, 15, 28, 8, 12, 14, 12, 12, 4, 28, 2, 2, 16, 17, 16, 9, 23, 10, 28, 25, 27, 11, 4, 21, 14, 25, 18, 20, 28, 25, 16, 25, 29, 4, 4, 8, 3, 20, 14, 8, 10, 24, 17, 28, 22, 24, 14, 12, 23, 0, 12, 18, 21, 3, 7, 28, 28, 26, 11, 18, 24, 26, 11, 24, 15, 29, 11, 22, 14, 21, 21, 5, 2, 10, 9, 0, 6, 2, 28, 5, 23, 19, 28, 18, 13, 16, 4, 12, 19, 15, 7, 5, 13, 11, 5, 2, 25, 15, 2, 8, 0, 26, 23, 5, 27, 25, 20, 27, 0, 23, 1, 22, 0, 16, 27, 2, 0, 23, 27, 2, 12, 22, 27, 17, 3, 15, 19, 18, 26, 24, 15]}, "t3": {"bandas": 6, "A": [{"d1": 0, "d2": 30, "n_pares": 409, "sin_vecinos": 75, "I": 0.6504997694}, {"d1": 30, "d2": 70, "n_pares": 1582, "sin_vecinos": 21, "I": 0.4962861699}, {"d1": 70, "d2": 130, "n_pares": 4168, "sin_vecinos": 5, "I": 0.216208033}, {"d1": 130, "d2": 220, "n_pares": 8490, "sin_vecinos": 5, "I": 0.1399119839}, {"d1": 220, "d2": 380, "n_pares": 16875, "sin_vecinos": 3, "I": 0.029330971}, {"d1": 380, "d2": 650, "n_pares": 21109, "sin_vecinos": 2, "I": -0.0970284377}], "B": [{"d1": 0, "d2": 30, "n_pares": 409, "sin_vecinos": 75, "I": 0.6504997694}, {"d1": 0, "d2": 70, "n_pares": 1991, "sin_vecinos": 15, "I": 0.5713851522}, {"d1": 0, "d2": 130, "n_pares": 6159, "sin_vecinos": 5, "I": 0.3420381361}, {"d1": 0, "d2": 220, "n_pares": 14649, "sin_vecinos": 3, "I": 0.2293827357}, {"d1": 0, "d2": 380, "n_pares": 31524, "sin_vecinos": 1, "I": 0.1224244525}, {"d1": 0, "d2": 650, "n_pares": 52633, "sin_vecinos": 0, "I": 0.0108905744}]}, "t5": {"municipio": "San Rafael", "departamento": "Antioquia", "n_puntos": 8, "caja_declarada": [-75.4, 5.96, -74.84, 6.54], "d_real_km": 26.8440521576, "d_declarada_m": 0.2416609195, "veces": 111081.4781978636, "en_buffer_500": 8, "area_declarada_m2": 0.3248}, "t6": {"variable": "puntaje medio de Saber 11 por municipio", "n": 1113, "k_vecinos": 5, "n_pliegues": 10, "sd_variable": 21.4504225246, "rmse_aleatoria": 13.4953653656, "rmse_bloques": 17.7757628652, "r2_aleatoria": 0.6041801305, "r2_bloques": 0.3132719395, "tam_pliegues": [23, 78, 86, 90, 91, 105, 123, 127, 190, 200]}, "t7": {"n_estaciones": 361, "n_parejas": 64980, "km_por_grado_manual": 111.32, "moran_esperado": -0.0027777778, "lat_min": -4.19, "lat_max": 13.36, "error_grados_pct_mediano": 0.2066924027, "error_grados_pct_max": 2.6285001795, "radio_esfera_s2_m": 6371010, "brecha_esfera_elipsoide_pct_mediana": 0.3682554025, "brecha_esfera_elipsoide_pct_max": 0.5611554784, "km_por_grado_lon_sur": 111.022468859, "km_por_grado_lon_norte": 108.3073948963}};
+    const MAPAS_T1 = {"patron-01": {"modo": "puntos", "titulo": "Patrón 01", "leyenda": "49 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 49, "pts": [4037, 1028, 3817, 2384, 3194, 3409, 2794, 3701, 3454, 137, 3613, 1052, 3253, 838, 889, 2111, 4076, 1993, 3410, 2406, 2858, 3050, 744, 465, 2239, 1832, 2982, 1387, 1489, 2830, 2897, 2473, 1159, 3441, 1451, 3743, 175, 2790, 2295, 752, 868, 3902, 1517, 457, 3502, 3194, 176, 372, 2994, 240, 325, 3324, 2248, 2870, 1469, 1826, 2517, 3184, 889, 1203, 3683, 1637, 125, 1186, 1921, 2258, 2051, 3897, 134, 1880, 2805, 863, 689, 823, 2335, 1154, 1781, 1554, 2531, 2466, 821, 2924, 2127, 139, 527, 3684, 3204, 3937, 1125, 2700, 3940, 401, 505, 2398, 2812, 2052, 664, 1585], "ventana": [0, 0, 4096, 4096]}, "patron-02": {"modo": "puntos", "titulo": "Patrón 02", "leyenda": "56 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 56, "pts": [2908, 2940, 1509, 2154, 621, 4074, 1821, 3343, 1052, 3508, 371, 3361, 760, 1210, 3436, 3467, 1453, 3714, 3029, 846, 3578, 1594, 3749, 4003, 1051, 2019, 2622, 2217, 2402, 445, 3138, 2279, 1124, 3076, 2327, 1019, 2358, 3138, 2261, 1493, 2165, 1950, 3194, 1599, 1588, 1686, 281, 2047, 300, 2458, 758, 3227, 3453, 1166, 3830, 2835, 1318, 2736, 3118, 3881, 3535, 2025, 3753, 655, 3220, 52, 568, 67, 407, 1696, 21, 1250, 1389, 310, 3771, 55, 2060, 2916, 2126, 126, 331, 2862, 1387, 1276, 1781, 2521, 3282, 3002, 470, 664, 2886, 3512, 2900, 1854, 3923, 1819, 988, 121, 2510, 1791, 1408, 800, 3973, 2282, 26, 42, 3045, 1264, 817, 2369, 3994, 1126], "ventana": [0, 0, 4096, 4096]}, "patron-03": {"modo": "puntos", "titulo": "Patrón 03", "leyenda": "45 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 45, "pts": [799, 1922, 1516, 2791, 1549, 3539, 2023, 1670, 2214, 1033, 3846, 431, 3858, 798, 2108, 2955, 3348, 1067, 3059, 3168, 900, 3214, 3236, 1955, 3580, 3756, 905, 656, 96, 1402, 1106, 1559, 1778, 3179, 3092, 542, 3687, 2519, 4050, 3534, 1502, 901, 2606, 886, 3892, 1818, 3585, 1464, 1137, 2725, 1329, 4081, 4011, 3982, 4040, 3051, 1736, 8, 477, 1073, 1827, 1367, 1428, 2148, 2119, 3844, 1029, 1045, 14, 323, 311, 2537, 2598, 3436, 3131, 2815, 2678, 28, 2634, 2454, 2117, 3410, 711, 2672, 3191, 1582, 292, 2899, 778, 2254], "ventana": [0, 0, 4096, 4096]}, "patron-04": {"modo": "puntos", "titulo": "Patrón 04", "leyenda": "58 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 58, "pts": [1804, 3497, 3071, 881, 3137, 3901, 3374, 3490, 2559, 1103, 1811, 2160, 1534, 1505, 2399, 1472, 3967, 204, 3394, 1974, 2172, 2372, 902, 1770, 3484, 1363, 2119, 1320, 3122, 1416, 3951, 2487, 3100, 2660, 3961, 1047, 1432, 2938, 2836, 3262, 2757, 1931, 1333, 645, 3465, 292, 845, 216, 2008, 4083, 3996, 3225, 2451, 3211, 3398, 2499, 2880, 3653, 1505, 2553, 2826, 2505, 697, 2771, 3564, 649, 287, 3990, 3096, 366, 3285, 3065, 837, 650, 255, 2670, 2599, 2259, 716, 1473, 154, 2060, 1657, 3854, 71, 3456, 1104, 1411, 4054, 3593, 1282, 133, 2071, 3702, 2396, 716, 609, 2355, 2695, 247, 215, 39, 1434, 3536, 182, 1058, 1331, 2143, 4007, 1982, 1028, 3808, 1926, 930, 498, 674], "ventana": [0, 0, 4096, 4096]}, "patron-05": {"modo": "puntos", "titulo": "Patrón 05", "leyenda": "60 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 60, "pts": [2259, 884, 22, 3314, 251, 3650, 1616, 946, 2595, 3863, 982, 3805, 805, 3207, 2281, 3181, 2868, 2528, 99, 2060, 517, 2476, 206, 2320, 3352, 21, 3215, 2592, 2718, 1216, 3086, 1822, 2344, 1670, 1335, 1147, 132, 2052, 2520, 2108, 2068, 2550, 2029, 274, 3590, 2086, 3315, 1999, 715, 32, 3353, 3862, 750, 317, 2244, 2771, 3572, 633, 1063, 1827, 494, 1731, 757, 1570, 3989, 1911, 2337, 2405, 1555, 2650, 863, 1611, 2012, 1689, 3325, 923, 1962, 3348, 2195, 833, 2555, 2349, 1866, 3343, 3915, 1722, 2702, 929, 1111, 960, 274, 1756, 3720, 722, 2224, 3830, 1513, 406, 2816, 1143, 3585, 3596, 2366, 2442, 3049, 995, 3584, 3692, 583, 1206, 1493, 1463, 919, 3400, 3018, 123, 472, 2202, 4088, 2913], "ventana": [0, 0, 4096, 4096]}, "patron-06": {"modo": "puntos", "titulo": "Patrón 06", "leyenda": "76 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 76, "pts": [1672, 4074, 1367, 3111, 729, 3422, 539, 1895, 2773, 588, 2510, 399, 791, 3644, 268, 4029, 320, 3604, 3808, 494, 30, 2011, 2553, 1109, 1577, 793, 3112, 2850, 3669, 2692, 3954, 853, 3089, 87, 1870, 3579, 1251, 2913, 1679, 3765, 2947, 191, 250, 316, 170, 4076, 1657, 1796, 1655, 898, 1265, 2508, 3883, 2632, 508, 2549, 2192, 1443, 796, 2899, 4004, 2173, 1909, 873, 1764, 1683, 204, 2686, 550, 464, 3386, 144, 1282, 2466, 268, 2798, 880, 2012, 3253, 3730, 29, 2066, 1752, 2927, 268, 1738, 1218, 1836, 2711, 862, 1428, 4079, 2293, 3021, 3758, 1966, 3797, 1539, 2279, 835, 2878, 2638, 2865, 1779, 874, 1608, 3622, 279, 1577, 3170, 2556, 1401, 3822, 1691, 3497, 2775, 1649, 2999, 3895, 870, 2767, 1319, 612, 690, 3815, 3545, 3350, 2416, 1975, 2998, 578, 744, 685, 90, 323, 431, 1699, 2224, 3904, 1630, 268, 12, 2410, 993, 2834, 2627, 3167, 2165, 2022, 1825, 3096, 3673], "ventana": [0, 0, 4096, 4096]}, "patron-07": {"modo": "puntos", "titulo": "Patrón 07", "leyenda": "67 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 67, "pts": [2549, 596, 1651, 3016, 859, 4042, 1560, 3098, 850, 2869, 3144, 2798, 1010, 2522, 2359, 994, 1086, 3537, 3725, 1646, 1825, 1917, 2178, 1206, 3979, 3760, 2881, 499, 392, 141, 2114, 3520, 404, 153, 2653, 1419, 2642, 2458, 450, 2870, 3998, 3886, 2604, 3436, 1905, 718, 703, 864, 954, 54, 365, 916, 2593, 3893, 114, 2544, 1877, 3414, 2901, 4020, 1847, 1985, 3909, 2249, 3702, 2962, 2348, 1105, 1605, 2897, 4, 599, 3980, 687, 1802, 2331, 1638, 1003, 2974, 1502, 977, 3917, 2887, 2688, 2845, 1753, 2024, 1001, 1102, 2660, 3275, 2161, 978, 3963, 3772, 1572, 3785, 220, 3117, 3517, 2905, 3118, 275, 410, 3473, 3224, 1235, 3098, 766, 444, 3522, 1674, 104, 3362, 517, 3240, 2684, 411, 3153, 1899, 3103, 408, 814, 999, 883, 4084, 641, 1721, 629, 3687, 3858, 2438, 3242, 984], "ventana": [0, 0, 4096, 4096]}, "patron-08": {"modo": "puntos", "titulo": "Patrón 08", "leyenda": "86 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 86, "pts": [1244, 3990, 994, 1956, 1284, 1810, 1175, 1719, 1051, 1775, 1048, 1812, 1438, 1592, 885, 1838, 1307, 1835, 1177, 1660, 1184, 1676, 968, 1487, 1222, 1808, 1004, 1603, 2488, 2099, 2516, 2060, 2552, 2044, 2630, 1873, 2328, 1995, 2604, 1783, 2520, 1892, 2383, 1809, 1806, 716, 1898, 772, 2196, 517, 2129, 499, 2034, 738, 1963, 801, 3339, 1460, 3025, 1425, 3182, 1659, 3443, 1481, 3203, 1531, 3126, 1528, 3111, 1461, 3123, 1528, 3014, 604, 3145, 462, 3067, 219, 3120, 581, 2145, 2560, 2020, 2819, 2057, 2286, 2035, 2518, 2052, 2768, 2356, 2750, 2141, 2746, 2059, 2894, 1377, 3628, 1594, 3461, 1502, 3683, 1645, 3661, 1704, 3738, 1412, 3362, 1736, 3585, 3257, 3562, 3065, 3620, 3171, 3753, 2912, 4017, 3076, 3915, 2419, 455, 2340, 559, 2645, 440, 2556, 565, 2485, 722, 2529, 414, 2323, 407, 2039, 754, 2234, 664, 3231, 90, 2781, 77, 2815, 56, 2970, 175, 2767, 18, 86, 836, 110, 656, 82, 1054, 144, 917, 111, 1030, 132, 979, 115, 945, 1356, 209, 1361, 161, 1274, 93, 1556, 204, 1258, 91], "ventana": [0, 0, 4096, 4096]}, "patron-09": {"modo": "puntos", "titulo": "Patrón 09", "leyenda": "75 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 75, "pts": [1209, 556, 1180, 949, 1285, 968, 1248, 1073, 3626, 509, 3612, 314, 3569, 64, 3691, 413, 3541, 326, 3402, 117, 3546, 67, 3501, 381, 3505, 158, 3112, 36, 1897, 1548, 1918, 1518, 2022, 1464, 1962, 1672, 2077, 1547, 1284, 3565, 1059, 3585, 1242, 3332, 1205, 3179, 978, 430, 683, 9, 692, 96, 610, 599, 663, 896, 349, 548, 448, 327, 1705, 502, 1652, 960, 1127, 2019, 1307, 1623, 1296, 1828, 1342, 1611, 1320, 1572, 3431, 3695, 3304, 3340, 3460, 3557, 888, 4055, 1242, 3912, 3797, 2327, 3530, 2519, 3856, 2445, 3782, 2230, 4000, 1838, 3686, 3858, 3371, 3794, 287, 2152, 107, 2190, 84, 1925, 134, 2422, 416, 1855, 1974, 2068, 1830, 2338, 1863, 2061, 1776, 1732, 1811, 1680, 1680, 2025, 1910, 2013, 1846, 2242, 1767, 2170, 458, 226, 520, 430, 3171, 3990, 4038, 335, 4092, 277, 3721, 75, 4033, 397, 3118, 3739, 2879, 3792, 3269, 3723, 3128, 3784, 3132, 3863], "ventana": [0, 0, 4096, 4096]}, "patron-10": {"modo": "puntos", "titulo": "Patrón 10", "leyenda": "68 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 68, "pts": [1205, 2820, 3215, 1197, 3941, 716, 1070, 3615, 2143, 3348, 1132, 3431, 622, 726, 3244, 3812, 2136, 246, 827, 1243, 3892, 2808, 2880, 1035, 2209, 1808, 2632, 1457, 2406, 2662, 2667, 2294, 3504, 2361, 2457, 2152, 3481, 3661, 3612, 704, 1036, 1637, 2121, 3621, 1185, 3877, 3578, 2584, 3778, 3883, 3317, 2472, 3409, 3479, 1106, 2249, 2163, 969, 481, 1452, 3586, 3313, 968, 2695, 553, 2592, 3949, 1137, 2628, 1386, 2925, 801, 1754, 3390, 1036, 750, 3849, 3184, 3828, 2016, 1898, 1216, 3050, 875, 19, 74, 1710, 1112, 1039, 1495, 3973, 3322, 3815, 285, 2064, 2353, 1780, 1592, 2027, 3367, 104, 633, 3131, 2976, 3547, 1985, 3755, 1019, 3351, 296, 2299, 733, 1520, 4042, 2913, 3045, 2532, 1252, 3060, 3759, 697, 2493, 1586, 3565, 441, 1300, 3507, 426, 786, 2817, 1464, 3558, 95, 1671, 2942, 1050], "ventana": [0, 0, 4096, 4096]}, "patron-11": {"modo": "puntos", "titulo": "Patrón 11", "leyenda": "46 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 46, "pts": [1423, 2404, 1395, 3154, 2019, 3553, 1683, 2583, 1738, 1143, 1728, 3031, 2091, 2792, 2182, 3074, 1018, 2272, 1065, 2564, 2191, 1484, 2223, 710, 665, 2718, 1716, 3395, 1954, 2501, 2009, 944, 2689, 1407, 521, 3144, 1334, 2774, 2529, 922, 1374, 3443, 2626, 3103, 1822, 1526, 1048, 3052, 699, 2394, 1503, 2072, 1870, 678, 2375, 3513, 344, 2926, 2333, 2456, 1821, 2218, 1068, 1962, 2028, 1234, 482, 2197, 353, 2594, 1608, 839, 2393, 1239, 2576, 2661, 2449, 1643, 1085, 3350, 2529, 598, 1961, 3258, 812, 3200, 2731, 1126, 795, 2049, 2405, 2897], "ventana": [0, 0, 4096, 4096]}, "patron-12": {"modo": "puntos", "titulo": "Patrón 12", "leyenda": "47 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 47, "pts": [1522, 3204, 3034, 2478, 191, 2192, 2005, 700, 2581, 1160, 2244, 3629, 2475, 688, 1741, 1768, 571, 2091, 2399, 185, 1535, 3815, 310, 657, 2164, 1629, 2034, 1255, 2974, 2505, 865, 345, 3822, 813, 768, 2170, 3511, 2891, 73, 2954, 2753, 1443, 243, 3872, 3110, 76, 1519, 2415, 2438, 541, 4076, 2937, 463, 710, 2877, 0, 2937, 1397, 3073, 1990, 2358, 2314, 2876, 406, 1720, 1626, 3964, 3948, 3165, 2447, 279, 339, 1460, 3758, 3345, 3919, 3942, 3433, 3056, 3798, 3135, 2371, 1224, 3244, 1190, 667, 2553, 2684, 1958, 724, 243, 839, 162, 347], "ventana": [0, 0, 4096, 4096]}, "patron-13": {"modo": "puntos", "titulo": "Patrón 13", "leyenda": "42 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 42, "pts": [2845, 2652, 1430, 906, 1563, 1194, 2045, 2022, 2761, 3259, 2308, 2130, 1056, 1452, 1747, 1860, 2060, 2594, 3560, 2725, 3445, 3121, 2840, 2356, 3098, 3142, 865, 1974, 1876, 2816, 2096, 912, 1334, 1384, 1100, 2194, 1309, 1972, 1863, 1571, 2197, 2918, 1414, 2405, 2022, 1314, 2653, 2969, 1617, 687, 3228, 2682, 3409, 2273, 2463, 2512, 3266, 3394, 1115, 1742, 1799, 2374, 1023, 1152, 1572, 1568, 687, 1611, 1826, 1073, 3106, 2257, 2189, 1560, 1493, 2761, 1610, 2127, 3749, 3029, 795, 1339, 3698, 2474], "ventana": [0, 0, 4096, 4096]}, "patron-14": {"modo": "puntos", "titulo": "Patrón 14", "leyenda": "85 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 85, "pts": [2902, 2483, 1402, 2678, 3911, 861, 578, 1120, 2714, 3774, 722, 1488, 1899, 2620, 2147, 1741, 793, 2106, 3643, 1881, 1122, 2562, 284, 3796, 754, 2724, 144, 3959, 1252, 1124, 1703, 742, 1564, 3877, 1309, 576, 3224, 2465, 3640, 2650, 3673, 1749, 3833, 2562, 2551, 1358, 1592, 2371, 437, 2604, 1007, 2393, 1861, 1637, 3568, 4001, 3083, 2933, 1037, 3632, 4041, 2710, 1963, 1114, 1257, 759, 1752, 545, 2093, 982, 426, 1016, 3567, 3226, 1553, 30, 442, 2807, 2091, 3694, 2236, 3446, 1670, 1799, 312, 2815, 3440, 3721, 3159, 3599, 1225, 3817, 287, 472, 3346, 1979, 1228, 3111, 1922, 1115, 2799, 655, 2269, 2926, 2081, 531, 1914, 2298, 1090, 2699, 3184, 1312, 312, 2857, 1489, 3381, 3724, 3042, 3249, 3645, 3047, 118, 306, 3981, 2659, 3540, 1425, 2358, 1798, 1908, 3954, 1125, 1394, 2213, 3139, 3632, 3197, 710, 3409, 3600, 1597, 2277, 1633, 1671, 2315, 3714, 729, 3316, 3205, 3887, 1362, 3191, 225, 2375, 327, 2268, 1390, 1328, 2593, 2717, 1844, 1979, 743, 3700, 3919, 668, 987, 1789, 360, 41], "ventana": [0, 0, 4096, 4096]}, "patron-15": {"modo": "puntos", "titulo": "Patrón 15", "leyenda": "55 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 55, "pts": [1303, 959, 1400, 1617, 1063, 1666, 3255, 2755, 2818, 2135, 1730, 1813, 1197, 505, 1549, 753, 3015, 2948, 1610, 1136, 3751, 2396, 3518, 2662, 2040, 632, 1922, 2409, 2506, 2780, 1302, 1908, 3066, 1976, 690, 1469, 2962, 2423, 2261, 997, 611, 761, 2098, 1588, 1045, 1305, 3279, 2380, 2323, 657, 3228, 3168, 1739, 543, 507, 1059, 1953, 267, 3428, 2116, 2373, 1830, 2227, 1312, 1884, 1075, 2191, 2062, 1705, 1484, 2686, 2481, 3473, 3031, 1633, 2106, 993, 974, 1658, 191, 730, 1750, 2753, 3041, 875, 678, 2535, 2188, 1300, 2196, 2842, 2720, 1476, 450, 1360, 1265, 2467, 1534, 762, 1194, 2792, 1855, 3282, 1800, 1907, 2056, 2393, 2486, 1647, 2385], "ventana": [0, 0, 4096, 4096]}, "patron-16": {"modo": "puntos", "titulo": "Patrón 16", "leyenda": "61 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 61, "pts": [374, 3953, 174, 3875, 1024, 193, 1068, 37, 888, 295, 3984, 2017, 74, 1153, 170, 1266, 4014, 1354, 3964, 1363, 3094, 2222, 3326, 2554, 3227, 2468, 3190, 2230, 3413, 2314, 3314, 2360, 3189, 2450, 3363, 2316, 3610, 2331, 281, 3203, 1744, 3522, 1842, 3444, 1788, 3422, 1893, 3303, 1735, 3306, 1746, 3365, 1749, 3586, 2249, 3906, 2289, 4004, 33, 2580, 77, 2600, 87, 2503, 169, 2729, 702, 771, 562, 870, 538, 1255, 332, 1136, 369, 1257, 1335, 3178, 1624, 3479, 1456, 3631, 1422, 3560, 1111, 3492, 1539, 3613, 1143, 3619, 1789, 479, 2138, 365, 2079, 562, 2175, 1015, 2279, 1111, 1477, 2547, 1450, 2678, 1379, 2582, 1128, 2439, 1035, 2453, 2610, 2070, 2670, 2187, 2541, 2099, 2713, 2247, 2750, 2274, 2797, 2217], "ventana": [0, 0, 4096, 4096]}, "patron-17": {"modo": "puntos", "titulo": "Patrón 17", "leyenda": "42 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 42, "pts": [2556, 796, 2428, 2713, 2169, 3293, 3120, 2949, 2427, 3184, 2492, 1880, 2211, 3618, 1771, 1072, 2806, 3634, 3240, 2019, 3462, 2643, 3124, 1490, 2180, 2976, 2078, 2529, 2668, 1205, 1992, 817, 2248, 1104, 2724, 2823, 2390, 1501, 2847, 2177, 1983, 1421, 2514, 3716, 1880, 2888, 2901, 3344, 2889, 1807, 2470, 2348, 2667, 1555, 2566, 3438, 3481, 2241, 3049, 2608, 2308, 611, 2719, 2537, 1748, 3242, 2255, 2137, 1697, 1364, 3199, 2350, 2097, 1699, 3323, 1726, 2722, 3117, 1940, 3476, 2804, 944, 1789, 2602], "ventana": [0, 0, 4096, 4096]}, "patron-18": {"modo": "puntos", "titulo": "Patrón 18", "leyenda": "55 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 55, "pts": [2276, 1734, 3387, 2379, 3410, 2122, 2133, 2149, 1626, 493, 1619, 2686, 72, 639, 643, 2391, 4008, 1841, 570, 2789, 4045, 2990, 577, 1932, 2522, 3605, 3277, 96, 564, 814, 764, 2608, 3907, 3048, 850, 1018, 3808, 881, 2632, 1432, 2908, 1208, 1445, 301, 3969, 893, 782, 3437, 3284, 3298, 2285, 583, 2160, 2493, 909, 1886, 2905, 103, 2, 3692, 3221, 4070, 2102, 1255, 1037, 2588, 1598, 1416, 337, 1973, 3883, 3288, 3815, 2410, 1480, 4027, 2634, 3466, 1687, 1749, 3607, 40, 70, 1934, 3200, 3564, 1728, 3807, 1354, 803, 2484, 3355, 3214, 1004, 538, 2334, 159, 2188, 2346, 1330, 2608, 3778, 3859, 70, 3248, 63, 530, 2428, 3834, 1917], "ventana": [0, 0, 4096, 4096]}, "patron-19": {"modo": "puntos", "titulo": "Patrón 19", "leyenda": "47 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 47, "pts": [455, 160, 376, 1219, 988, 863, 3770, 2807, 1188, 3635, 15, 3516, 2368, 38, 2220, 4080, 2074, 555, 170, 1875, 3574, 426, 1297, 499, 2438, 3243, 2994, 3224, 3981, 56, 1518, 1345, 913, 1765, 1087, 1249, 3149, 2688, 3423, 1446, 4009, 1359, 2886, 4041, 1586, 2584, 950, 2983, 2491, 3756, 2068, 1107, 3440, 2143, 3771, 3405, 2692, 2148, 2426, 1612, 41, 2710, 831, 2363, 3027, 1311, 2756, 232, 1986, 3552, 1693, 1878, 3360, 94, 177, 513, 2059, 2373, 3822, 1768, 2052, 3118, 1481, 870, 2771, 1011, 4037, 450, 432, 3206, 1622, 3020, 947, 168], "ventana": [0, 0, 4096, 4096]}, "patron-20": {"modo": "puntos", "titulo": "Patrón 20", "leyenda": "58 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 58, "pts": [1412, 993, 1844, 1054, 632, 1126, 2536, 3152, 691, 1278, 2313, 3606, 129, 2400, 2927, 2500, 1255, 3271, 2415, 1633, 2512, 2901, 3378, 2608, 950, 2062, 1878, 1693, 4029, 1193, 714, 2368, 3897, 4004, 3237, 3122, 1154, 1483, 1170, 1850, 2178, 835, 3909, 3693, 3137, 3983, 534, 554, 3098, 3354, 3727, 3245, 1, 1405, 670, 517, 1366, 1533, 2209, 4088, 525, 2414, 569, 2049, 1245, 256, 667, 2334, 3643, 1185, 2706, 3230, 2271, 1341, 1440, 2718, 3406, 3984, 642, 462, 1444, 642, 3332, 174, 2178, 650, 2358, 1376, 2204, 3752, 3130, 1249, 1760, 2292, 3778, 3493, 3032, 2885, 963, 1442, 1182, 3210, 1678, 2495, 2827, 2679, 3065, 2706, 2523, 2533, 3301, 1638, 3251, 2766, 802, 1846], "ventana": [0, 0, 4096, 4096]}, "patron-21": {"modo": "puntos", "titulo": "Patrón 21", "leyenda": "55 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 55, "pts": [2608, 395, 2060, 600, 3186, 2817, 3877, 868, 503, 543, 3917, 3682, 1481, 1570, 2954, 3719, 485, 3651, 2140, 2186, 1258, 196, 1753, 1864, 2899, 110, 1502, 3318, 334, 1591, 2375, 988, 1859, 3988, 1999, 3347, 2271, 3635, 2183, 2785, 2951, 2544, 3091, 1216, 1576, 2246, 3542, 1681, 451, 140, 3602, 527, 2161, 262, 2526, 2246, 4096, 2601, 1119, 1145, 3160, 3409, 14, 920, 2969, 2069, 1140, 590, 4062, 2063, 360, 1949, 2161, 1490, 2744, 1278, 2618, 2820, 4081, 3015, 984, 1684, 3358, 2438, 411, 4040, 1901, 1204, 1587, 83, 1401, 908, 312, 1104, 1795, 356, 1130, 2961, 600, 2826, 2726, 1798, 122, 531, 895, 3618, 3480, 3169, 20, 1815], "ventana": [0, 0, 4096, 4096]}, "patron-22": {"modo": "puntos", "titulo": "Patrón 22", "leyenda": "40 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 40, "pts": [1516, 3366, 3214, 2363, 1584, 2145, 1978, 1578, 1880, 2731, 3155, 2805, 1897, 1944, 2583, 2500, 2226, 1959, 1865, 3517, 929, 2719, 3046, 1813, 2423, 3618, 2568, 2089, 1736, 1381, 2273, 3160, 1582, 3052, 3653, 2250, 1042, 3016, 948, 2375, 1217, 2581, 1268, 1581, 1402, 1873, 1923, 2396, 1622, 2526, 2192, 2794, 3399, 1801, 2895, 2308, 2608, 3242, 2305, 1478, 1222, 2190, 1901, 3120, 3557, 2630, 2117, 3783, 2731, 1777, 1639, 3808, 2833, 2785, 2034, 1253, 1431, 1288, 1674, 1686], "ventana": [0, 0, 4096, 4096]}, "patron-23": {"modo": "puntos", "titulo": "Patrón 23", "leyenda": "51 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 51, "pts": [1843, 2466, 920, 1724, 2682, 2338, 1254, 1961, 839, 2232, 2798, 3009, 1551, 1520, 782, 2699, 582, 1288, 2692, 2737, 1136, 1532, 2093, 2833, 2147, 2540, 1815, 3056, 1129, 1011, 2526, 3077, 1638, 1989, 1580, 2607, 3370, 2669, 2244, 2252, 1267, 2472, 3262, 2315, 856, 1129, 1626, 1241, 2993, 2745, 2208, 3327, 3128, 3183, 478, 1668, 2372, 2816, 1943, 2070, 2982, 2185, 1285, 2779, 618, 2467, 707, 1986, 1504, 985, 1503, 3064, 1516, 2330, 1759, 1724, 2473, 2550, 2876, 3333, 2516, 3360, 2504, 2103, 1127, 2211, 908, 830, 1923, 3343, 2949, 2466, 1326, 1248, 986, 2504, 3361, 2976, 1807, 2771, 825, 1459], "ventana": [0, 0, 4096, 4096]}, "patron-24": {"modo": "puntos", "titulo": "Patrón 24", "leyenda": "52 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 52, "pts": [2255, 1152, 3122, 2154, 2086, 735, 938, 3145, 3405, 2770, 2543, 3111, 2580, 1468, 715, 2399, 2417, 2048, 2484, 927, 1631, 3060, 1425, 2607, 1905, 1193, 2397, 2427, 2936, 1580, 2739, 1902, 2610, 441, 3542, 2420, 1699, 2311, 2773, 2931, 529, 2645, 1280, 2932, 2853, 2347, 2312, 1675, 2836, 764, 1959, 1853, 3242, 3086, 2933, 1094, 2271, 2687, 1014, 2874, 1155, 2064, 1393, 3277, 2144, 1438, 1022, 2339, 3154, 847, 2981, 3169, 3128, 2705, 2214, 394, 1751, 2786, 2683, 2571, 607, 2982, 2360, 631, 3010, 545, 3080, 1347, 1334, 2342, 1877, 1522, 3203, 2429, 2635, 1174, 887, 2630, 1091, 3377, 1866, 905, 3011, 1883], "ventana": [0, 0, 4096, 4096]}, "patron-25": {"modo": "puntos", "titulo": "Patrón 25", "leyenda": "42 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 42, "pts": [2260, 2734, 2210, 2763, 2321, 2931, 2387, 2649, 2282, 3132, 2071, 2817, 2126, 2995, 2128, 2618, 2465, 3206, 2476, 2381, 2169, 2949, 448, 1483, 258, 1586, 237, 1695, 360, 1772, 4037, 1790, 27, 2035, 63, 2503, 297, 1488, 276, 1617, 558, 1374, 544, 1689, 3656, 1762, 3842, 1384, 3709, 1357, 3435, 1370, 1969, 121, 1707, 1024, 1732, 1356, 2087, 1540, 2075, 1376, 2234, 1051, 1851, 1075, 1563, 1249, 1755, 1377, 3219, 1005, 3084, 1058, 3178, 1182, 3094, 1345, 82, 1561, 298, 1792, 73, 2231], "ventana": [0, 0, 4096, 4096]}, "patron-26": {"modo": "puntos", "titulo": "Patrón 26", "leyenda": "53 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 53, "pts": [942, 1696, 1271, 2516, 1310, 1693, 728, 954, 3669, 3234, 1894, 596, 1579, 715, 3302, 3218, 3211, 2220, 3030, 2443, 527, 1469, 1779, 1003, 994, 2856, 3049, 2804, 2390, 1393, 907, 2340, 2117, 1397, 837, 2064, 660, 2664, 3287, 2628, 345, 2129, 1291, 1132, 1391, 3068, 1491, 2108, 514, 1797, 2241, 1151, 2764, 2543, 1147, 2016, 1601, 1712, 427, 1073, 1591, 1239, 3543, 2722, 1090, 941, 1207, 1432, 2210, 624, 3866, 2997, 2102, 1668, 2869, 3192, 3742, 2383, 1009, 1208, 1757, 1453, 1756, 2434, 558, 2329, 3491, 2229, 965, 3126, 2698, 2838, 1490, 2796, 2342, 898, 2073, 927, 797, 1421, 3304, 2937, 3812, 2671, 660, 2956], "ventana": [0, 0, 4096, 4096]}, "patron-27": {"modo": "puntos", "titulo": "Patrón 27", "leyenda": "72 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 72, "pts": [1143, 1541, 1075, 1393, 986, 1478, 1212, 1564, 808, 1601, 985, 1699, 1071, 1433, 1125, 1814, 1020, 1418, 1305, 1532, 1335, 1626, 2402, 3433, 2639, 3644, 2380, 3452, 2593, 3410, 2454, 3166, 2522, 3702, 2469, 3476, 2191, 3414, 2350, 3508, 2671, 3255, 2176, 205, 2174, 27, 2174, 101, 228, 3362, 799, 3872, 825, 3972, 840, 3763, 607, 3751, 529, 3809, 1103, 3715, 808, 3795, 686, 3982, 1825, 3890, 1614, 3615, 1827, 3642, 1822, 3690, 1948, 3680, 1577, 3732, 1823, 3751, 1901, 3861, 327, 2445, 311, 2869, 358, 2550, 512, 2576, 170, 2340, 592, 2384, 191, 2605, 246, 1775, 438, 1773, 382, 1612, 1287, 608, 1079, 574, 1171, 414, 1377, 647, 1367, 532, 3286, 286, 3288, 188, 3008, 369, 3084, 43, 3072, 4, 3090, 25, 3199, 196, 2382, 76, 2377, 30, 2392, 138, 2395, 208, 2738, 121, 2967, 3795, 2692, 3957, 2818, 3884, 2713, 3792], "ventana": [0, 0, 4096, 4096]}, "patron-28": {"modo": "puntos", "titulo": "Patrón 28", "leyenda": "50 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 50, "pts": [3999, 3351, 2511, 2583, 2497, 3278, 2004, 632, 1319, 3928, 1461, 2733, 1876, 1503, 3093, 3812, 3990, 3360, 1659, 953, 1074, 1118, 592, 335, 2148, 3176, 534, 3850, 2069, 2087, 218, 754, 3602, 3523, 405, 1380, 3742, 3113, 3550, 2883, 2565, 3920, 1435, 3417, 1341, 1912, 3857, 177, 3794, 41, 333, 385, 2915, 168, 2933, 1557, 2856, 2003, 3648, 1464, 926, 1433, 1306, 4023, 2837, 3868, 1418, 2729, 3591, 3099, 2710, 2234, 1422, 4052, 2103, 981, 1360, 3718, 1392, 2842, 3120, 2550, 1946, 3973, 1816, 1671, 3338, 3430, 797, 803, 3840, 2670, 1510, 535, 3222, 1442, 304, 3427, 1689, 3719], "ventana": [0, 0, 4096, 4096]}, "patron-29": {"modo": "puntos", "titulo": "Patrón 29", "leyenda": "55 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 55, "pts": [2266, 1387, 1584, 2205, 1103, 2060, 3808, 2696, 3428, 3229, 3283, 1721, 3264, 1273, 1750, 1566, 3311, 2153, 2711, 859, 2533, 1168, 727, 2156, 1972, 458, 2781, 2812, 2006, 792, 806, 1798, 3098, 2691, 2566, 1712, 1929, 2132, 1603, 1305, 1077, 2530, 1436, 1965, 2932, 1531, 1318, 1714, 1455, 621, 3555, 1238, 2828, 2217, 3540, 2940, 3453, 1491, 1769, 1081, 3594, 2171, 2857, 588, 3081, 990, 1975, 1361, 3336, 898, 2921, 2478, 2267, 887, 1157, 1495, 3621, 2497, 1347, 883, 2684, 1407, 2496, 660, 2596, 2416, 1447, 2589, 2831, 1147, 3466, 1928, 2979, 3011, 1869, 1856, 3032, 1944, 2152, 1686, 3376, 2711, 2138, 1129, 1738, 606, 1802, 2410, 3909, 2419], "ventana": [0, 0, 4096, 4096]}, "patron-30": {"modo": "puntos", "titulo": "Patrón 30", "leyenda": "77 puntos sobre una ventana unidad", "caja": [0, 0, 1, 1], "q": 4096, "n": 77, "pts": [3677, 3875, 3682, 3662, 3515, 4073, 3777, 3883, 3611, 4045, 3719, 3957, 3634, 3979, 4061, 3330, 3928, 3023, 3908, 3176, 4070, 3285, 4032, 2990, 3831, 2960, 1036, 2185, 1047, 2763, 966, 2521, 1104, 2568, 1891, 3894, 1983, 3961, 1822, 3743, 1869, 3903, 1958, 3936, 1811, 4057, 4090, 3247, 4068, 3496, 2571, 107, 3623, 3858, 3510, 3940, 3705, 3815, 3739, 3932, 3923, 384, 3980, 396, 4037, 358, 1941, 536, 2169, 870, 2010, 841, 1899, 581, 2028, 665, 1836, 805, 3182, 3283, 3439, 3317, 3325, 3388, 3259, 3265, 3266, 3289, 3315, 3483, 3130, 3338, 3338, 3579, 2770, 3603, 3091, 3892, 3418, 3607, 2897, 3593, 3064, 3732, 3073, 3937, 3757, 1714, 3475, 1514, 3738, 1626, 3654, 1788, 1440, 2105, 878, 2301, 1240, 2254, 1210, 1977, 1288, 2125, 990, 1904, 1531, 2043, 1365, 2187, 977, 1914, 992, 1889, 2114, 2647, 2101, 2480, 2385, 2430, 2351, 2654, 2335, 2689, 2384, 2849, 2458, 2674, 2960, 658, 2931, 501, 3221, 362], "ventana": [0, 0, 4096, 4096]}};
+
+    const n5 = (x, d = 5) => Number(x).toFixed(d);
+    const milC = x => Number(x).toLocaleString('es-CO');
+
+    // La variante viva. Sobrevive al cambio de módulo porque loadModule()
+    // vacía mainContent en cada salto: sin esto, el mapa de T1 no sabría
+    // qué patrón pintar en cuanto el estudiante navegara.
+    const T1_LLAVE_GUARDADA = 'taller1-variante';
+    let T1_VARIANTE = null;
+    try {
+      const g = window.localStorage.getItem(T1_LLAVE_GUARDADA);
+      if (g !== null) T1_VARIANTE = parseInt(g, 10);
+    } catch (e) { /* navegador sin almacenamiento: se pide cada vez */ }
+
+    function t1Resuelve(v) {
+      if (!Number.isInteger(v) || v < 0 || v >= DATOS_T1.meta.n_variantes) return null;
+      const idx = DATOS_T1.variantes;
+      return {
+        variante: v,
+        municipio: DATOS_T1.municipios[idx.m0[v]],
+        patron: DATOS_T1.patrones[idx.p0[v]],
+        // El mapa se busca por el MISMO índice que la ficha de cifras: si
+        // alguna vez dejaran de ir emparejados, el estudiante vería un
+        // dibujo que no es el de sus números.
+        mapa_id: 'patron-' + String(idx.p0[v] + 1).padStart(2, '0'),
+      };
+    }
 
     // Los datos del capítulo se incrustan aquí, generados por
     // precalculo/genera_*.R:  const DATOS_CAPn = { ... };
@@ -5709,30 +6169,68 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       ]
     };
 
-    RUBRICAS['demo-rubrica'] = {
-      titulo: 'Rúbrica de demostración',
+    RUBRICAS['taller1'] = {
+      titulo: 'Cómo se califica el escrito',
       puntos: 100,
-      intro: 'Estructura de la rúbrica del proyecto integrador. La real se redacta en la tarea T6.4.',
-      nota: 'Cada criterio se puntúa de forma independiente; los niveles son excluyentes.',
+      intro: 'Las cinco dimensiones se puntúan por separado sobre CADA tarea, y la nota del escrito '
+           + 'es la suma ponderada por el peso de la tarea. Un informe con todas las cifras correctas '
+           + 'puede quedarse a mitad de tabla: las cifras son la dimensión de menos peso.',
+      nota: 'La defensa vale aparte el 40 % de la nota final, y puede recalificar cualquier tarea '
+          + 'cuya decisión no se sostenga.',
       criterios: [
         {
-          clave: 'A', nombre: 'Pertinencia del método espacial', puntos: 25,
-          foco: 'Mide si el método elegido responde a la pregunta y al <strong>tipo de dato</strong>: no se krigea un patrón puntual ni se ajusta un SAR sin retículo.',
+          clave: 'A', nombre: 'Apropiación conceptual', puntos: 25,
+          foco: 'Mide si usas el concepto para <strong>decidir</strong>, no para definirlo. Repetir '
+              + 'la definición correcta puntúa poco; aplicarla a tu caso puntúa todo.',
           niveles: [
-            { nombre: 'Excelente', rango: '22–25', observa: 'Elige el método correcto y justifica por qué los alternativos no aplican.' },
-            { nombre: 'Aceptable', rango: '15–21', observa: 'Elige un método correcto pero no descarta explícitamente los otros.' },
-            { nombre: 'Insuficiente', rango: '8–14', observa: 'El método es defendible pero la justificación no conecta con el tipo de dato.' },
-            { nombre: 'No logrado', rango: '0–7', observa: 'El método no corresponde al tipo de dato analizado.' }
+            { nombre: 'Excelente', rango: '22–25', observa: 'Usa el concepto para tomar una decisión y explica por qué descarta la alternativa.' },
+            { nombre: 'Aceptable', rango: '15–21', observa: 'Aplica el concepto correctamente pero no descarta explícitamente lo que no eligió.' },
+            { nombre: 'Insuficiente', rango: '8–14', observa: 'Define bien y aplica a medias: el concepto queda de adorno junto a la respuesta.' },
+            { nombre: 'No logrado', rango: '0–7', observa: 'Reproduce una definición sin conectarla con el caso.' }
           ]
         },
         {
-          clave: 'B', nombre: 'Corrección técnica en R', puntos: 25,
-          foco: 'Mide si el análisis <strong>se reproduce</strong>: CRS declarado, W justificada, semilla fija y código que corre de arriba abajo.',
+          clave: 'B', nombre: 'Interpretación de resultados', puntos: 25,
+          foco: 'Mide si dices qué significa la cifra <strong>y qué no significa</strong>. El límite '
+              + 'de lo que un número prueba es parte de la respuesta, no un añadido.',
           niveles: [
-            { nombre: 'Excelente', rango: '22–25', observa: 'El código corre en limpio y cada decisión técnica está declarada.' },
-            { nombre: 'Aceptable', rango: '15–21', observa: 'Corre con ajustes menores; alguna decisión queda implícita.' },
-            { nombre: 'Insuficiente', rango: '8–14', observa: 'Corre a trozos o depende de objetos que no se definen.' },
-            { nombre: 'No logrado', rango: '0–7', observa: 'No se reproduce.' }
+            { nombre: 'Excelente', rango: '22–25', observa: 'Dice qué significa, qué no significa y a qué escala vale. Traduce a lenguaje llano sin perder precisión.' },
+            { nombre: 'Aceptable', rango: '15–21', observa: 'Interpreta bien pero no acota: da la conclusión sin sus límites.' },
+            { nombre: 'Insuficiente', rango: '8–14', observa: 'Describe la cifra («R es 1.02») en vez de interpretarla.' },
+            { nombre: 'No logrado', rango: '0–7', observa: 'Concluye algo que la cifra no sostiene.' }
+          ]
+        },
+        {
+          clave: 'C', nombre: 'Comprensión del procedimiento', puntos: 20,
+          foco: 'Mide si explicas <strong>por qué</strong> el procedimiento hace lo que hace: qué '
+              + 'supone, dónde entra ese supuesto y qué pasa cuando es falso.',
+          niveles: [
+            { nombre: 'Excelente', rango: '18–20', observa: 'Nombra el supuesto, dice dónde entra y qué consecuencia tiene romperlo.' },
+            { nombre: 'Aceptable', rango: '12–17', observa: 'Explica el procedimiento correctamente sin llegar a sus supuestos.' },
+            { nombre: 'Insuficiente', rango: '6–11', observa: 'Describe los pasos como una receta.' },
+            { nombre: 'No logrado', rango: '0–5', observa: 'Aplica el procedimiento sin poder explicarlo.' }
+          ]
+        },
+        {
+          clave: 'D', nombre: 'Auditoría y refutación', puntos: 20,
+          foco: 'Mide si detectas lo que está mal con <strong>evidencia interna</strong>, sin apelar '
+              + 'a autoridad ni a «me parece». Es lo que se juega en T3 y en T7.',
+          niveles: [
+            { nombre: 'Excelente', rango: '18–20', observa: 'Encuentra el defecto y lo demuestra con una comprobación reproducible sobre los datos dados.' },
+            { nombre: 'Aceptable', rango: '12–17', observa: 'Encuentra el defecto pero la evidencia es parcial o externa.' },
+            { nombre: 'Insuficiente', rango: '6–11', observa: 'Sospecha del resultado correcto, o acierta sin poder mostrar por qué.' },
+            { nombre: 'No logrado', rango: '0–5', observa: 'Acepta lo que se le da, o rechaza sin argumento.' }
+          ]
+        },
+        {
+          clave: 'E', nombre: 'Declaración de uso de IA', puntos: 10,
+          foco: 'Mide la <strong>honestidad y la precisión</strong> de la declaración, no la cantidad '
+              + 'de consultas. Usar IA para todo y verificarlo todo puntúa el máximo.',
+          niveles: [
+            { nombre: 'Excelente', rango: '9–10', observa: 'Dice qué preguntó, qué le respondieron y cómo lo comprobó, incluyendo al menos un caso en que el modelo se equivocó.' },
+            { nombre: 'Aceptable', rango: '6–8', observa: 'Declara el uso pero no cómo verificó.' },
+            { nombre: 'Insuficiente', rango: '3–5', observa: 'Declaración genérica («usé IA de apoyo») sin detalle.' },
+            { nombre: 'No logrado', rango: '0–2', observa: 'No declara, o la declaración no corresponde con el informe.' }
           ]
         }
       ]
@@ -6752,7 +7250,14 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       geomapasVivos = [];
     }
 
-    GEOMAPAS['demo-mapa'] = { fuente: {"modo": "poligonos", "titulo": "Retícula de demostración", "leyenda": "valor sintético", "caja": [0, 0, 1, 0.6667], "q": 4096, "n": 24, "geom": [[[0, 0, 683, 0, 683, 1024, 0, 1024]], [[683, 0, 1365, 0, 1365, 1024, 683, 1024]], [[1365, 0, 2048, 0, 2048, 1024, 1365, 1024]], [[2048, 0, 2731, 0, 2731, 1024, 2048, 1024]], [[2731, 0, 3413, 0, 3413, 1024, 2731, 1024]], [[3413, 0, 4096, 0, 4096, 1024, 3413, 1024]], [[0, 1024, 683, 1024, 683, 2048, 0, 2048]], [[683, 1024, 1365, 1024, 1365, 2048, 683, 2048]], [[1365, 1024, 2048, 1024, 2048, 2048, 1365, 2048]], [[2048, 1024, 2731, 1024, 2731, 2048, 2048, 2048]], [[2731, 1024, 3413, 1024, 3413, 2048, 2731, 2048]], [[3413, 1024, 4096, 1024, 4096, 2048, 3413, 2048]], [[0, 2048, 683, 2048, 683, 3072, 0, 3072]], [[683, 2048, 1365, 2048, 1365, 3072, 683, 3072]], [[1365, 2048, 2048, 2048, 2048, 3072, 1365, 3072]], [[2048, 2048, 2731, 2048, 2731, 3072, 2048, 3072]], [[2731, 2048, 3413, 2048, 3413, 3072, 2731, 3072]], [[3413, 2048, 4096, 2048, 4096, 3072, 3413, 3072]], [[0, 3072, 683, 3072, 683, 4096, 0, 4096]], [[683, 3072, 1365, 3072, 1365, 4096, 683, 4096]], [[1365, 3072, 2048, 3072, 2048, 4096, 1365, 4096]], [[2048, 3072, 2731, 3072, 2731, 4096, 2048, 4096]], [[2731, 3072, 3413, 3072, 3413, 4096, 2731, 4096]], [[3413, 3072, 4096, 3072, 4096, 4096, 3413, 4096]]], "valor": [1.0, 2.5, 4.0, 5.5, 7.0, 8.5, 2.0, 4.5, 7.0, 9.5, 12.0, 14.5, 3.0, 6.5, 10.0, 13.5, 17.0, 20.5, 4.0, 8.5, 13.0, 17.5, 22.0, 26.5], "cortes": [1.0, 4.5, 8.5, 14.5, 26.5], "clase": [1, 1, 1, 2, 2, 3, 1, 2, 2, 3, 3, 4, 1, 2, 3, 3, 4, 4, 1, 3, 3, 4, 4, 4], "estilo": "quantile"}, paleta: 'verde' };
+    GEOMAPAS['taller1-patron'] = {
+      fuente: function () {
+        const r = t1Resuelve(T1_VARIANTE);
+        return r ? MAPAS_T1[r.mapa_id] : null;
+      },
+      paleta: 'verde',
+      alto: 380,
+    };
 
     const TABLAS_RANKING = {};
 
@@ -6954,131 +7459,92 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     // cómo se combinan los controles y las dos fábricas de gráficos.
     // ================================================================
 
-    // --- Deslizadores sobre un gráfico de línea ----------------------
-    SIMULADORES['demo-deslizadores'] = function (raiz) {
-      const n = 120;
-      const params = { pendiente: 0.4, ruido: 3 };
-      const ruidoBase = generarRuidoNormal(n, 20260726);
-      const etiquetas = Array.from({ length: n }, (_, i) => String(i + 1));
+    // --- El buscador de variante -------------------------------------
+    // Ninguna aritmética: la fila viene precalculada en R. El navegador
+    // busca, no calcula, y por eso no hay ninguna función de dispersión
+    // escrita dos veces en dos lenguajes.
+    SIMULADORES['taller1-variante'] = function (raiz) {
+      const controles = raiz.querySelector('.simulador-controles');
+      const lectura = raiz.querySelector('.simulador-lectura');
+      const idInput = 'doc-' + Math.random().toString(36).slice(2, 8);
+      controles.innerHTML = `
+        <div class="control-grupo">
+          <label for="${idInput}">Últimos tres dígitos de tu documento</label>
+          <input id="${idInput}" type="text" inputmode="numeric" maxlength="3"
+                 placeholder="000" style="max-width:7rem; font-family:'Fira Code', monospace;
+                 font-size:1.1rem; text-align:center; padding:0.4rem;">
+        </div>`;
+      const campo = controles.querySelector('input');
 
-      function serie() {
-        return ruidoBase.map((e, t) => params.pendiente * t + params.ruido * e);
+      function pinta() {
+        const r = t1Resuelve(T1_VARIANTE);
+        if (!r) {
+          lectura.innerHTML = `<p style="margin:0;">Escribe tus tres últimos dígitos
+            (de <code>000</code> a <code>999</code>) para ver qué te toca.</p>`;
+          return;
+        }
+        const m = r.municipio, p = r.patron;
+        lectura.innerHTML = `
+          <table>
+            <caption class="sr-only">Tu variante del taller</caption>
+            <tbody>
+              <tr><th scope="row">Variante</th><td colspan="3"><code>${String(r.variante).padStart(3, '0')}</code></td></tr>
+              <tr><th scope="row">Tu municipio</th>
+                  <td colspan="3"><strong>${m.municipio}</strong> (${m.departamento})</td></tr>
+              <tr><th scope="row">Su llave en la MGN</th><td colspan="3"><code>${m.llave}</code></td></tr>
+              <tr><th scope="row">Dígito de verificación</th>
+                  <td colspan="3">la suma de las altitudes de tus ${DATOS_T1.meta.n_estaciones}
+                      estaciones tiene que dar <strong>${milC(m.suma_altitud)}</strong> m</td></tr>
+              <tr><th scope="row">Tu patrón</th>
+                  <td>n = <strong>${p.n}</strong></td>
+                  <td>área = ${n5(p.area)}</td>
+                  <td>λ = ${n5(p.lambda)}</td></tr>
+              <tr><th scope="row">Sus distancias</th>
+                  <td>observada = <strong>${n5(p.nn_media)}</strong></td>
+                  <td>la del azar = ${n5(p.nn_esperada)}</td>
+                  <td></td></tr>
+              <tr><th scope="row">Clark-Evans</th>
+                  <td>R = <strong>${n5(p.clark_evans)}</strong></td>
+                  <td>corregido = ${n5(p.clark_evans_donnelly)}</td>
+                  <td></td></tr>
+            </tbody>
+          </table>`;
       }
 
-      const g = crearGraficoLinea(raiz.querySelector('canvas'), etiquetas, [{
-        label: 'Serie simulada',
-        data: serie(),
-        borderColor: COLORES_GRAFICO.primario,
-        backgroundColor: COLORES_GRAFICO.primario,
-        borderWidth: 1.8,
-        pointRadius: 0
-      }]);
-
-      function pintar() {
-        const y = serie();
-        g.data.datasets[0].data = y;
-        g.update('none');
-        actualizarLectura(raiz.querySelector('.simulador-lectura'), [
-          { etiqueta: 'T =', valor: n },
-          { etiqueta: 'último valor =', valor: y[n - 1].toFixed(2) },
-          { etiqueta: 'varianza =', valor: varianzaMuestral(y).toFixed(2) }
-        ]);
+      function aplica(v) {
+        T1_VARIANTE = v;
+        try { window.localStorage.setItem(T1_LLAVE_GUARDADA, String(v)); } catch (e) { /* sin almacenamiento */ }
+        // Todas las tiras de la página, no solo esta: el módulo 1 puede
+        // tener dos y quedarían discrepando entre sí.
+        document.querySelectorAll('.simulador[data-simulador="taller1-variante"]')
+          .forEach(otra => { if (otra.__t1pinta) otra.__t1pinta(); });
+        // Y el mapa del patrón, si el módulo actual lo tiene. Ojo con el
+        // caso que se comió T1 entero en la verificación de C9: si el
+        // módulo se abrió SIN variante, `iniciarGeomapas()` se fue por su
+        // rama de «sin datos» —`fuente()` devuelve null— y salió sin dejar
+        // `__geomapa` en el contenedor. Repintar entonces no repinta nada:
+        // el estudiante que escribe sus tres dígitos DENTRO de T1, que es
+        // donde está la segunda tira y por tanto el camino natural, veía la
+        // ficha resolverse y el mapa seguir sin aparecer. Solo volvía si
+        // salía del módulo y regresaba. Así que un contenedor sin cablear
+        // no se repinta: se CABLEA, y para eso hay que llamar al
+        // inicializador, no al método que ese contenedor todavía no tiene.
+        // (`iniciarGeomapas()` recorre todos los mapas del módulo, que hoy
+        // es exactamente este; el `some` evita llamarlo cuando ya está.)
+        const mapas = [...document.querySelectorAll('[data-geomapa="taller1-patron"]')];
+        if (mapas.some(g => !g.__geomapa)) iniciarGeomapas();
+        mapas.forEach(g => { if (g.__geomapa) g.__geomapa.dibuja(); });
       }
 
-      crearControles(raiz.querySelector('.simulador-controles'), [
-        { clave: 'pendiente', etiqueta: 'Pendiente de la tendencia', min: 0, max: 2, paso: 0.1 },
-        { clave: 'ruido', etiqueta: 'Desviación del ruido', min: 0, max: 10, paso: 0.5 }
-      ], params, pintar);
-
-      pintar();
-      return [g];
+      raiz.__t1pinta = pinta;
+      campo.addEventListener('input', () => {
+        const limpio = campo.value.replace(/\D/g, '').slice(0, 3);
+        if (limpio !== campo.value) campo.value = limpio;
+        if (limpio.length === 3) aplica(parseInt(limpio, 10));
+      });
+      if (Number.isInteger(T1_VARIANTE)) campo.value = String(T1_VARIANTE).padStart(3, '0');
+      pinta();
     };
-
-    // --- Menú desplegable sobre correlogramas de barras ---------------
-    SIMULADORES['demo-correlograma'] = function (raiz) {
-      const n = 200, K = 24;
-      const ruido = generarRuidoNormal(n, 20260726);
-      const caminata = ruido.reduce((acc, e) => (acc.push((acc[acc.length - 1] || 0) + e), acc), []);
-      const SERIES = { ruido: ruido, caminata: caminata };
-      const params = { serie: 'ruido' };
-      const rezagos = etiquetasRezago(K);
-      const c = raiz.querySelectorAll('canvas');
-
-      const gAcf = crearGraficoBarras(c[0], rezagos, calcularACF(SERIES[params.serie], K),
-        { etiqueta: 'ACF', lineas: lineasBanda(n), tituloX: 'Rezago k' });
-      const gPacf = crearGraficoBarras(c[1], rezagos, calcularPACF(calcularACF(SERIES[params.serie], K), K),
-        { etiqueta: 'PACF', color: COLORES_GRAFICO.terciario, lineas: lineasBanda(n), tituloX: 'Rezago k' });
-
-      function pintar() {
-        const y = SERIES[params.serie];
-        const acf = calcularACF(y, K);
-        gAcf.data.datasets[0].data = acf;
-        gPacf.data.datasets[0].data = calcularPACF(acf, K);
-        gAcf.update('none');
-        gPacf.update('none');
-        const fuera = acf.filter(r => Math.abs(r) > banda(n)).length;
-        actualizarLectura(raiz.querySelector('.simulador-lectura'), [
-          { etiqueta: 'T =', valor: n },
-          { etiqueta: 'banda =', valor: `±${banda(n).toFixed(4)}` },
-          { etiqueta: 'r₁ =', valor: acf[0].toFixed(4) },
-          { etiqueta: 'rezagos fuera de la banda:', valor: `${fuera} de ${K}` }
-        ]);
-      }
-
-      crearSelector(raiz.querySelector('.simulador-controles'), {
-        clave: 'serie', etiqueta: 'Serie', opciones: [
-          { valor: 'ruido', texto: 'Ruido blanco' },
-          { valor: 'caminata', texto: 'Caminata aleatoria' }
-        ]
-      }, params, pintar);
-
-      pintar();
-      return [gAcf, gPacf];
-    };
-
-    // --- Interruptores que acumulan transformaciones ------------------
-    SIMULADORES['demo-interruptores'] = function (raiz) {
-      const n = 120;
-      const ruidoBase = generarRuidoNormal(n, 20260726);
-      // Serie estrictamente positiva y con crecimiento, para que el
-      // logaritmo tenga sentido
-      const base = ruidoBase.map((e, t) => 100 * Math.exp(0.015 * t) * (1 + 0.06 * e));
-      const params = { log: false, diferenciar: false };
-
-      const g = crearGraficoLinea(raiz.querySelector('canvas'), [], [{
-        label: 'Serie',
-        data: [],
-        borderColor: COLORES_GRAFICO.primario,
-        backgroundColor: COLORES_GRAFICO.primario,
-        borderWidth: 1.8,
-        pointRadius: 0
-      }]);
-
-      function pintar() {
-        let y = base.slice();
-        let nombre = 'Serie original';
-        if (params.log) { y = y.map(v => Math.log(v)); nombre = 'log(y)'; }
-        if (params.diferenciar) { y = diferenciar(y, 1); nombre = '∇ ' + nombre; }
-        g.data.labels = y.map((_, i) => String(i + 1));
-        g.data.datasets[0].data = y;
-        g.data.datasets[0].label = nombre;
-        g.update('none');
-        actualizarLectura(raiz.querySelector('.simulador-lectura'), [
-          { etiqueta: 'n =', valor: y.length },
-          { etiqueta: 'media =', valor: (y.reduce((a, v) => a + v, 0) / y.length).toFixed(4) },
-          { etiqueta: 'varianza =', valor: varianzaMuestral(y).toPrecision(4) }
-        ]);
-      }
-
-      crearInterruptores(raiz.querySelector('.simulador-controles'), [
-        { clave: 'log', etiqueta: 'Logaritmo' },
-        { clave: 'diferenciar', etiqueta: 'Primera diferencia ∇' }
-      ], params, pintar);
-
-      pintar();
-      return [g];
-    };
-
     // ================================================================
     // Autoevaluación de demostración: una pregunta de cada tipo
     //
@@ -7114,77 +7580,7 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       };
     };
 
-    AUTOEVALUACIONES['demo'] = [
-      {
-        tipo: 'opcion',
-        modulo: 1,
-        pregunta: 'Una sola respuesta correcta. ¿Qué caja se usa para un error frecuente?',
-        pista: 'Piensa en el color que usarías para avisar de un peligro.',
-        opciones: [
-          { texto: 'La caja <code>.warning</code> (roja).', correcta: true,
-            retro: 'Las cajas rojas se reservan para trampas y errores frecuentes, y deben explicar <em>por qué</em> se falla, no solo que se falla.' },
-          { texto: 'La caja <code>.definition</code> (verde).', correcta: false,
-            retro: 'La verde es para definiciones formales, lo que el estudiante debe poder citar.' },
-          { texto: 'La caja <code>.note</code> (naranja).', correcta: false,
-            retro: 'La naranja es para matices y conexiones que enriquecen sin ser imprescindibles.' },
-          { texto: 'La caja <code>.formula</code> (azul).', correcta: false,
-            retro: 'La azul destaca fórmulas centrales que se consultan de un vistazo.' }
-        ]
-      },
-      {
-        tipo: 'numerica',
-        modulo: 3,
-        pregunta: 'Respuesta numérica con tolerancia. Si $T = 100$, ¿cuánto vale $1.96/\\sqrt{T}$? Da tres decimales.',
-        pista: '$\\sqrt{100} = 10$.',
-        respuesta: 0.196,
-        tolerancia: 0.0006,
-        retroAcierto: '$1.96/10 = 0.196$. Acepta coma o punto como separador decimal, y la tolerancia se declara en la propia pregunta.',
-        retroFallo: 'Es $1.96/\\sqrt{100} = 0.196$. Un error habitual es dividir entre $T$ en vez de entre $\\sqrt{T}$.'
-      },
-      {
-        tipo: 'grafico',
-        modulo: 3,
-        alto: 200,
-        descripcionGrafico: 'Correlograma de una serie de ruido blanco, con todas las barras dentro de la banda',
-        pregunta: 'Lectura de gráfico: la pregunta dibuja su propio Chart.js. ¿Qué muestra este correlograma?',
-        pista: 'Fíjate en si alguna barra se sale de la banda punteada.',
-        dibujar: canvas => {
-          const y = generarRuidoNormal(200, 20260726);
-          return crearGraficoBarras(canvas, etiquetasRezago(24), calcularACF(y, 24),
-            { etiqueta: 'ACF', lineas: lineasBanda(200), tituloX: 'Rezago k' });
-        },
-        opciones: [
-          { texto: 'Ruido blanco: no queda estructura lineal.', correcta: true,
-            retro: 'Todas las barras caen dentro de la banda. Con 24 rezagos, que una o dos se asomen sería normal por azar.' },
-          { texto: 'Una serie con tendencia sin quitar.', correcta: false,
-            retro: 'Eso daría un decaimiento lento y casi lineal desde $r_1 \\approx 1$.' },
-          { texto: 'Una serie con estacionalidad de periodo 12.', correcta: false,
-            retro: 'La estacionalidad deja picos en los rezagos 12 y 24, y aquí no los hay.' },
-          { texto: 'Una serie sobrediferenciada.', correcta: false,
-            retro: 'La sobrediferenciación deja $r_1$ cerca de $-0.5$, muy por fuera de la banda.' }
-        ]
-      },
-      {
-        tipo: 'multiple',
-        modulo: 3,
-        pregunta: 'Varias respuestas correctas. Marca <strong>todo</strong> lo que un simulador debe hacer.',
-        pista: 'Son dos. Piensa en qué pasa al cambiar de módulo y de dónde deben salir los cálculos pesados.',
-        // También en las `multiple` cada opción lleva su `retro`: al fallar, el
-        // desglose explica opción por opción dónde falló el razonamiento.
-        opciones: [
-          { texto: 'Devolver los <code>Chart</code> creados, para poder destruirlos.', correcta: true,
-            retro: 'Si no los devuelves, al cambiar de módulo el gráfico anterior sigue vivo y se van acumulando instancias de Chart.js.' },
-          { texto: 'Dejar el cómputo pesado en R y traerlo precalculado como JSON.', correcta: true,
-            retro: 'El capítulo es autocontenido y el navegador no es sitio para un ajuste largo: se precalcula en R y se incrusta.' },
-          { texto: 'Ajustar modelos ARIMA en el navegador.', correcta: false,
-            retro: 'No es viable: el ajuste tarda y congela la página. Por eso existe <code>precalculo/</code>.' },
-          { texto: 'Descargar los datos con <code>fetch</code> al abrir el capítulo.', correcta: false,
-            retro: 'Rompe la regla del archivo autocontenido: sin conexión (o en Pages con CORS) el capítulo se queda vacío. Los datos van incrustados.' }
-        ],
-        retroAcierto: 'Las dos. Si no devuelves los gráficos se acumulan al navegar entre módulos, y el cómputo pesado en el navegador congela la página.',
-        retroFallo: 'Las correctas son las dos primeras.'
-      }
-    ];
+    AUTOEVALUACIONES['taller1-sin-quiz'] = [];
 
   </script>
 

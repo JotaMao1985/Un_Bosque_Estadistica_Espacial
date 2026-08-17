@@ -12,9 +12,15 @@
 #   2. prueba_auditor_capN  — le inyecta defectos a ese auditor
 #   3. prueba_ensambla_capN — le inyecta defectos a las guardas del ENSAMBLADOR
 #   4. verifica_bloques.py  — ejecuta los bloques y contrasta sus `#>`
-#   5. audita_texto_*.py    — las cifras de la prosa, incluidas las de KaTeX
-#   6. prueba_texto.py      — le inyecta defectos al auditor de prosa
-#   7. cuenta_sitio.py      — los totales, contados y no recordados
+#   5. campos_vivos.py      — ningún campo de courseData se declara sin leerse
+#   6. audita_texto_*.py    — las cifras de la prosa, incluidas las de KaTeX
+#   7. prueba_texto.py      — le inyecta defectos al auditor de prosa
+#   8. cuenta_sitio.py      — los totales, contados y no recordados
+#
+# Los TALLERES corren por un bucle propio (C8 del Taller 1): no son
+# capítulos —sin quiz, sin ejercicios guiados, y con una familia de
+# comprobación que los capítulos no tienen— y meterlos en el bucle de
+# `capN` habría exigido que fingieran serlo.
 #
 # El paso 3 es de T1.3.n y cubre un hueco que llevaba abierto desde T1.2: las
 # guardas de compilación miran **el hueco entre archivos** —entre el dato y el
@@ -82,6 +88,25 @@ for N in 1 2 3 4 5 6 7 8 9 10; do
   fi
 done
 
+# Los TALLERES, que no son capítulos y por eso no caben en el bucle de
+# arriba: no tienen ejercicios guiados ni autoevaluación, su HTML no se
+# llama `capitulo-*`, y su auditor comprueba una familia entera que los
+# capítulos no tienen —que el enunciado no filtre la respuesta—.
+#
+# El bucle es propio y descubre igual que el otro: el día que haya un
+# taller 2, lo hereda sin tocar nada. Sin esto, el Taller 1 habría nacido
+# fuera del arnés, que es justo lo que C8 existe para impedir.
+for N in 1 2 3 4; do
+  [ -f "precalculo/salidas/taller${N}_datos.json" ] || continue
+  [ -f "precalculo/audita_taller${N}.py" ] || continue
+  paso "precálculo del taller ${N} · audita_taller${N}.py (Python, independiente)" \
+       "$PY_GEO" "precalculo/audita_taller${N}.py"
+  if [ "$RAPIDO" -eq 0 ] && [ -f "precalculo/prueba_auditor_taller${N}.py" ]; then
+    paso "precálculo del taller ${N} · prueba_auditor_taller${N}.py (inyección)" \
+         python3 "precalculo/prueba_auditor_taller${N}.py"
+  fi
+done
+
 # Va ANTES de los auditores de prosa y con su autoprueba dentro: cuesta
 # 0,1 s y mira la causa del defecto que aquéllos vigilan por el resultado.
 # El 61.7 del capítulo 1 pasó meses con los dos auditores en verde porque
@@ -90,6 +115,16 @@ done
 # 4 lo hereda sin tocar nada. Nació en T2.2.
 paso "sin_aritmetica.py — ninguna cifra de la prosa se calcula fuera de R" \
      python3 precalculo/sin_aritmetica.py --prueba
+
+# Del 2026-08-14, y por la misma razón que el de arriba: mira el CONTRATO
+# entre el dato y quien lo pinta, que es donde no llega ninguna comprobación
+# de comportamiento. `courseData` declaraba tres campos que la barra lateral
+# no leía, y por eso su esquema pudo partirse en dos —capítulo 1 con
+# `shortTitle`, capítulos 2 y 3 con `subtitle`— sin que nada lo dijera.
+# Descubre los documentos solo, bancos y talleres incluidos: fue justo el
+# banco hecho a mano en T0.3 el que quedó atrás cuando se arregló.
+paso "campos_vivos.py — ningún campo de courseData se declara y no se lee" \
+     python3 precalculo/campos_vivos.py --prueba
 
 paso "verifica_bloques.py — los bloques de código y sus #>" \
      python3 precalculo/verifica_bloques.py --todos
@@ -104,6 +139,13 @@ for N in 1 2 3 4 5 6 7 8 9 10; do
   [ -f "precalculo/audita_texto_cap${N}.py" ] || continue
   paso "audita_texto_cap${N}.py — las cifras de la prosa del capítulo ${N}" \
        sh -c "cd precalculo && python3 audita_texto_cap${N}.py"
+done
+
+# Y los auditores de prosa de los talleres, por el mismo bucle propio.
+for N in 1 2 3 4; do
+  [ -f "precalculo/audita_texto_taller${N}.py" ] || continue
+  paso "audita_texto_taller${N}.py — las cifras de la prosa del taller ${N}" \
+       sh -c "cd precalculo && python3 audita_texto_taller${N}.py"
 done
 
 if [ "$RAPIDO" -eq 0 ]; then

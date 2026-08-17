@@ -222,6 +222,68 @@
       background: white;
     }
 
+    /* Las DOS LÍNEAS del elemento de navegación (2026-08-14).
+       `courseData` declaraba `subtitle` y `duration` y `renderNavigation()`
+       solo pintaba `title`: cien cadenas escritas con cuidado —entre los
+       tres capítulos, el taller, los dos bancos y esta plantilla— muertas en
+       el HTML, y encima con DOS esquemas distintos, porque nada que no se
+       pinta se puede ver divergir. `campos_vivos.py` lo vigila desde aquel
+       día; esto es la mitad visible del arreglo.
+
+       El punto de `::before` se alinea con la PRIMERA línea, no con el
+       centro del bloque: centrado, en un título de dos renglones el punto
+       queda flotando entre los dos y deja de leerse como viñeta. */
+    .nav-item {
+      align-items: flex-start;
+    }
+
+    .nav-item::before {
+      margin-top: 0.4375rem;
+    }
+
+    .nav-item-texto {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-width: 0;
+      gap: 0.0625rem;
+    }
+
+    .nav-item-sub {
+      font-size: 0.75rem;
+      font-weight: 400;
+      line-height: 1.35;
+      color: #9ca3af;
+      transition: color 0.2s ease;
+    }
+
+    .nav-item:hover .nav-item-sub {
+      color: #4b5563;
+    }
+
+    /* Sobre el degradado verde-naranja del elemento activo, el gris #9ca3af
+       queda por debajo de 3:1. El blanco al 82 % pasa de 5:1 contra los dos
+       extremos del degradado. */
+    .nav-item.active .nav-item-sub {
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    /* La duración va en la SEGUNDA línea, junto al subtítulo, y no en una
+       columna propia a la derecha. Probado de las dos maneras el
+       2026-08-14: con «12 min» compitiendo por el ancho de la primera
+       línea, los títulos del capítulo 1 pasaban de dos renglones a tres y
+       la barra crecía de 96 a 120 px por elemento. El tiempo es dato
+       secundario; no puede pagarlo el título. */
+    .nav-item-sub .sep {
+      opacity: 0.55;
+    }
+
+    .nav-item-visto {
+      flex-shrink: 0;
+      margin-left: 0.5rem;
+      margin-top: 0.125rem;
+    }
+
     /* Fallback para asegurar visibilidad del sidebar */
     @media (min-width: 768px) {
       #sidebar {
@@ -3585,10 +3647,62 @@
           <span class="text-xl">🎯</span>
           <div>
             <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Objetivo</h3>
-            <p class="text-gray-600 text-sm" style="margin:0;">Distinguir geoide, elipsoide y datum, y medir qué cuesta confundirlos.</p>
+            <p class="text-gray-600 text-sm" style="margin:0;">Situar el curso dentro de un SIG, y distinguir geoide, elipsoide y datum midiendo qué cuesta confundirlos.</p>
           </div>
         </div>
       </div>
+
+      <p>El curso empieza por una palabra que el syllabus da por sabida y conviene no dar por
+      sabida: <strong>sistema de información geográfica</strong>, SIG. La definición de manual
+      —un sistema para capturar, almacenar, consultar, analizar y representar datos referidos a
+      la superficie terrestre— es correcta y sirve de poco, porque describe igual de bien a una
+      hoja de cálculo con una columna de direcciones. Lo que de verdad separa a un SIG de una
+      tabla es más estrecho y más útil: en un SIG <strong>la posición es un atributo de primera
+      clase</strong>. No es un dato que acompaña a la fila, es un dato sobre el que se pregunta,
+      y las preguntas que admite —qué contiene a qué, qué toca a qué, qué queda a menos de
+      quinientos metros de qué— no se responden ordenando ni filtrando las demás columnas.</p>
+
+      <div class="definition">
+        <h3>Qué convierte una tabla en una capa</h3>
+        <p>Tres piezas, y si falta una no hay SIG. La primera es una <strong>geometría</strong>
+        por fila, con tipo propio —punto, línea, polígono— y no dos columnas numéricas: las
+        20 localidades de Bogotá con las que trabaja este capítulo suman
+        <strong>57 840</strong> vértices, y eso no cabe en un par de columnas. La
+        segunda es un <strong>sistema de referencia declarado</strong>, que dice qué significan
+        esos números; sin él la geometría es aritmética sin unidades. La tercera es un juego de
+        <strong>operaciones que respetan la geometría</strong> —intersecar, unir, medir, contar
+        lo que cae dentro—, que ninguna base de datos corriente ofrece. La tercera es la que se
+        ve, la segunda es la que se olvida, y este capítulo trata sobre todo de la segunda.</p>
+      </div>
+
+      <p>Que esas tres piezas signifiquen lo mismo en R, en Python, en PostGIS y en QGIS no es
+      casualidad: hay un estándar debajo, <strong>Simple Features</strong>, del Open Geospatial
+      Consortium (OGC) y recogido en la norma ISO 19125. Fija los siete tipos de geometría
+      corrientes, cómo se escriben y qué quiere decir que dos geometrías se toquen. El paquete
+      <code>sf</code> se llama así por él —<em>simple features</em>—, y por eso una capa escrita
+      desde R se abre sin traducción en GeoPandas o en QGIS. Ese es el modelo
+      <strong>vectorial</strong>: objetos discretos con frontera. Hay un segundo modelo, el
+      <strong>ráster</strong> —una rejilla regular de celdas, que es como se guardan las
+      imágenes de satélite y los modelos de elevación—, y este curso lo usa poco: del variograma
+      a la econometría espacial, casi todo lo que viene después ocurre sobre datos
+      vectoriales.</p>
+
+      <p>Falta decir por qué el SIG de este curso se escribe en vez de pulsarse. No es que QGIS
+      sea peor —para mirar una capa, componer un mapa o corregir una geometría a mano es mejor,
+      y conviene tenerlo instalado—: es que <strong>un clic no deja rastro</strong>. Un análisis
+      hecho con el ratón no se vuelve a ejecutar sobre los datos del año siguiente, no lo puede
+      revisar otra persona y no se sostiene en un informe. Así que aquí el SIG es <code>sf</code>
+      sobre R, con GeoPandas al lado, y por debajo corren los mismos motores que usa QGIS: GDAL
+      para leer y escribir, GEOS para la geometría plana y PROJ para las transformaciones de
+      coordenadas. Es la misma maquinaria, gobernada desde un guion en vez de desde un menú.</p>
+
+      <p>Con eso ya se puede repartir el capítulo. Los módulos 1 a 6 son la segunda pieza de la
+      lista: qué es un sistema de referencia, qué destruye una proyección, cuál elegir y qué
+      pasa si se etiqueta mal. Los módulos 7 a 11 son la primera y la tercera: en qué formato
+      vive una capa, cómo se construye desde un CSV, cómo se valida y cómo se opera sobre ella
+      cuando las filas se cuentan por millones. Y la advertencia que los cose: <strong>una capa
+      sin sistema de referencia declarado no es una capa</strong>, es una tabla de números que
+      se parecen a coordenadas.</p>
 
       <p>Todo lo que este curso va a hacer —contar puntos, comparar áreas, ajustar un
       variograma— empieza por una pregunta que parece de otra asignatura: <em>¿sobre qué
@@ -5254,7 +5368,7 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
     // ================================================================
     const courseData = {
       modules: [
-        { id: 1, title: "La Tierra no es plana ni una esfera", subtitle: "Geoide, elipsoide y datum" },
+        { id: 1, title: "La Tierra no es plana ni una esfera", subtitle: "Qué es un SIG · geoide y datum" },
         { id: 2, title: "Latitud y longitud no son cartesianas", subtitle: "Cuánto mide un grado" },
         { id: 3, title: "Proyectar es elegir qué destruir", subtitle: "Tissot y las tres familias" },
         { id: 4, title: "EPSG en la práctica", subtitle: "4326, 3857, 3116 y 9377" },
@@ -5299,14 +5413,27 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
     // ================================================================
     // Navegación de módulos
     // ================================================================
+    // `subtitle` y `duration` son OPCIONALES y se pintan solo si están: no
+    // todos los documentos del sitio estiman tiempos, y un `undefined`
+    // impreso en la barra lateral no da error, da una barra con basura.
+    // `campos_vivos.py` comprueba lo contrario —que ningún campo declarado
+    // en `courseData` se quede sin leer—, que es como esto llevaba tres
+    // capítulos roto sin que nadie lo viera.
     function renderNavigation() {
-      moduleNav.innerHTML = courseData.modules.map(module => `
+      moduleNav.innerHTML = courseData.modules.map(module => {
+        const meta = [module.subtitle, module.duration].filter(Boolean)
+          .join('<span class="sep"> · </span>');
+        return `
                 <button type="button" class="nav-item ${module.id === currentModuleId ? 'active' : ''}"
                      onclick="loadModule(${module.id})"${module.id === currentModuleId ? ' aria-current="page"' : ''}>
-                    ${module.title}
-                    ${completedModules.has(module.id) ? '<i class="fas fa-check-circle ml-auto text-green-400" aria-hidden="true"></i>' : ''}
+                    <span class="nav-item-texto">
+                      <span>${module.title}</span>
+                      ${meta ? `<span class="nav-item-sub">${meta}</span>` : ''}
+                    </span>
+                    ${completedModules.has(module.id) ? '<i class="fas fa-check-circle nav-item-visto text-green-400" aria-hidden="true"></i>' : ''}
                 </button>
-            `).join('');
+            `;
+      }).join('');
     }
 
     function loadModule(id) {

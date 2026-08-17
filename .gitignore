@@ -68,3 +68,21 @@ precalculo/.tmp_verifica/
 # Temporales de ofimática
 ~$*
 *.tmp
+
+# ---------------------------------------------------------------------
+# TALLER 1, mientras esté vivo. Este repositorio es público y se despliega
+# en GitHub Pages, así que lo que esté versionado es material entregado.
+#
+# `genera_taller1.R` construye los 30 patrones puntuales SABIENDO de qué
+# familia es cada uno —agregado, regular, aleatorio o mixto—, que es
+# exactamente lo que la tarea T1 pide identificar. Leerlo, o volverlo a
+# ejecutar, es la respuesta. Los JSON que produce SÍ se versionan: llevan
+# el enunciado y los datos, y ninguna respuesta.
+#
+# Se levanta este bloque —y se hace commit del guion— DESPUÉS de calificar,
+# para que el taller quede en el historial como el resto del material.
+# Ver PLAN_Taller_1_Caps_1_2.md.
+# ---------------------------------------------------------------------
+precalculo/genera_taller1.R
+precalculo/verifica_taller1.R
+precalculo/salidas/privado/
