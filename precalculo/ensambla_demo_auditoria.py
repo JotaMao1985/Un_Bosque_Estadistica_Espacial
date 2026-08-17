@@ -611,14 +611,13 @@ MOD6 = f"""
 MODULOS = MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6
 
 COURSE_DATA = """    const courseData = {
-      title: "Estadística Espacial",
       modules: [
-        { id: 1, title: "La escala se lleva la autocorrelación", shortTitle: "Escala", duration: "6 min" },
-        { id: 2, title: "R y Python sobre el mismo dato", shortTitle: "Código", duration: "8 min" },
-        { id: 3, title: "La ventana cambia lambda", shortTitle: "Ventana", duration: "6 min" },
-        { id: 4, title: "Autoevaluación y ejercicios", shortTitle: "Autoevaluación", duration: "8 min" },
-        { id: 5, title: "Glosario de notación y rúbrica", shortTitle: "Glosario", duration: "4 min" },
-        { id: 6, title: "Cierre: discrepancias declaradas", shortTitle: "Cierre", duration: "4 min" }
+        { id: 1, title: "La escala se lleva la autocorrelación", duration: "6 min" },
+        { id: 2, title: "R y Python sobre el mismo dato", duration: "8 min" },
+        { id: 3, title: "La ventana cambia lambda", duration: "6 min" },
+        { id: 4, title: "Autoevaluación y ejercicios", duration: "8 min" },
+        { id: 5, title: "Glosario de notación y rúbrica", duration: "4 min" },
+        { id: 6, title: "Cierre: discrepancias declaradas", duration: "4 min" }
       ]
     };
 

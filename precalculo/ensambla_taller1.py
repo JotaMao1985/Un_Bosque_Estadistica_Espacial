@@ -949,23 +949,22 @@ MODULOS = MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6 + MOD7 + MOD8 + MOD9
 # dejaría el panel en blanco sin un solo error en consola: es el modo de
 # fallo más caro de este motor y el que T0.5 tardó más en encontrar.
 MODULOS_NAV = [
-    ("Cómo se trabaja este taller", "Instrucciones", "6 min"),
-    ("T1 · El régimen que no se ve", "T1 · Régimen", "20 min"),
-    ("T2 · El intervalo que miente", "T2 · Intervalo", "40 min"),
-    ("T3 · La auditoría", "T3 · Auditoría", "45 min"),
-    ("T4 · Cuatro sistemas, una decisión", "T4 · CRS", "40 min"),
-    ("T5 · Reetiquetar no es reproyectar", "T5 · set_crs", "40 min"),
-    ("T6 · La fuga", "T6 · Fuga", "20 min"),
-    ("T7 · Auditar a la IA", "T7 · Auditar la IA", "35 min"),
-    ("Cómo se califica, y la defensa", "Rúbrica y defensa", "10 min"),
+    ("Cómo se trabaja este taller", "6 min"),
+    ("T1 · El régimen que no se ve", "20 min"),
+    ("T2 · El intervalo que miente", "40 min"),
+    ("T3 · La auditoría", "45 min"),
+    ("T4 · Cuatro sistemas, una decisión", "40 min"),
+    ("T5 · Reetiquetar no es reproyectar", "40 min"),
+    ("T6 · La fuga", "20 min"),
+    ("T7 · Auditar a la IA", "35 min"),
+    ("Cómo se califica, y la defensa", "10 min"),
 ]
 
 _mods = ",\n".join(
-    f'        {{ id: {i + 1}, title: "{t}", shortTitle: "{s}", duration: "{d}" }}'
-    for i, (t, s, d) in enumerate(MODULOS_NAV))
+    f'        {{ id: {i + 1}, title: "{t}", duration: "{d}" }}'
+    for i, (t, d) in enumerate(MODULOS_NAV))
 
 COURSE_DATA = f"""    const courseData = {{
-      title: "Taller 1 · Estadística Espacial",
       modules: [
 {_mods}
       ]

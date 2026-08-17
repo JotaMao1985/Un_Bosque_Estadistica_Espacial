@@ -2310,28 +2310,27 @@ MODULOS = (MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6 + MOD7 + MOD8 + MOD9
 # ahí sus cifras con `n5()`, así que NINGUNA cifra del JavaScript está
 # escrita: no puede quedarse vieja cuando el precálculo cambie.
 MODULOS_NAV = [
-    ("El mapa que cambió la epidemiología", "Snow", "12 min"),
-    ("Los tres tipos de dato espacial", "Tres tipos", "14 min"),
-    ("La primera ley de Tobler", "Tobler", "10 min"),
-    ("Por qué se rompe la inferencia clásica", "Inferencia rota", "12 min"),
-    ("Tamaño de muestra efectivo", "n efectivo", "8 min"),
-    ("Estacionariedad y una sola realización", "Una realización", "10 min"),
-    ("Escala, soporte y agregación", "Escala y MAUP", "14 min"),
-    ("El ecosistema de R espacial", "Ecosistema", "8 min"),
-    ("Anatomía de un objeto sf", "Anatomía de sf", "8 min"),
-    ("Dependencia espacial en ciencia de datos", "CV espacial", "13 min"),
-    ("Glosario de notación del curso", "Glosario", "5 min"),
-    ("Autoevaluación y ejercicios guiados", "Autoevaluación", "15 min"),
+    ("El mapa que cambió la epidemiología", "12 min"),
+    ("Los tres tipos de dato espacial", "14 min"),
+    ("La primera ley de Tobler", "10 min"),
+    ("Por qué se rompe la inferencia clásica", "12 min"),
+    ("Tamaño de muestra efectivo", "8 min"),
+    ("Estacionariedad y una sola realización", "10 min"),
+    ("Escala, soporte y agregación", "14 min"),
+    ("El ecosistema de R espacial", "8 min"),
+    ("Anatomía de un objeto sf", "8 min"),
+    ("Dependencia espacial en ciencia de datos", "13 min"),
+    ("Glosario de notación del curso", "5 min"),
+    ("Autoevaluación y ejercicios guiados", "15 min"),
 ]
 
 _mods = ",\n".join(
-    f'        {{ id: {i + 1}, title: "{t}", shortTitle: "{s}", duration: "{d}" }}'
-    for i, (t, s, d) in enumerate(MODULOS_NAV))
+    f'        {{ id: {i + 1}, title: "{t}", duration: "{d}" }}'
+    for i, (t, d) in enumerate(MODULOS_NAV))
 
 _sim = {"campos": M["campos"], "realizaciones": M["realizaciones"]}
 
 COURSE_DATA = f"""    const courseData = {{
-      title: "Estadística Espacial",
       modules: [
 {_mods}
       ]

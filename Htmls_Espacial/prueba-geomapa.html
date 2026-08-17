@@ -222,6 +222,68 @@
       background: white;
     }
 
+    /* Las DOS LÍNEAS del elemento de navegación (2026-08-14).
+       `courseData` declaraba `subtitle` y `duration` y `renderNavigation()`
+       solo pintaba `title`: cien cadenas escritas con cuidado —entre los
+       tres capítulos, el taller, los dos bancos y esta plantilla— muertas en
+       el HTML, y encima con DOS esquemas distintos, porque nada que no se
+       pinta se puede ver divergir. `campos_vivos.py` lo vigila desde aquel
+       día; esto es la mitad visible del arreglo.
+
+       El punto de `::before` se alinea con la PRIMERA línea, no con el
+       centro del bloque: centrado, en un título de dos renglones el punto
+       queda flotando entre los dos y deja de leerse como viñeta. */
+    .nav-item {
+      align-items: flex-start;
+    }
+
+    .nav-item::before {
+      margin-top: 0.4375rem;
+    }
+
+    .nav-item-texto {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-width: 0;
+      gap: 0.0625rem;
+    }
+
+    .nav-item-sub {
+      font-size: 0.75rem;
+      font-weight: 400;
+      line-height: 1.35;
+      color: #9ca3af;
+      transition: color 0.2s ease;
+    }
+
+    .nav-item:hover .nav-item-sub {
+      color: #4b5563;
+    }
+
+    /* Sobre el degradado verde-naranja del elemento activo, el gris #9ca3af
+       queda por debajo de 3:1. El blanco al 82 % pasa de 5:1 contra los dos
+       extremos del degradado. */
+    .nav-item.active .nav-item-sub {
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    /* La duración va en la SEGUNDA línea, junto al subtítulo, y no en una
+       columna propia a la derecha. Probado de las dos maneras el
+       2026-08-14: con «12 min» compitiendo por el ancho de la primera
+       línea, los títulos del capítulo 1 pasaban de dos renglones a tres y
+       la barra crecía de 96 a 120 px por elemento. El tiempo es dato
+       secundario; no puede pagarlo el título. */
+    .nav-item-sub .sep {
+      opacity: 0.55;
+    }
+
+    .nav-item-visto {
+      flex-shrink: 0;
+      margin-left: 0.5rem;
+      margin-top: 0.125rem;
+    }
+
     /* Fallback para asegurar visibilidad del sidebar */
     @media (min-width: 768px) {
       #sidebar {
@@ -4053,14 +4115,13 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     // en la misma sesión: esta plantilla ya se quedó atrás una vez.
     // ================================================================
     const courseData = {
-      title: "Estadística Espacial",
       modules: [
-        { id: 1, title: "Cajas y tipografía", shortTitle: "Cajas", duration: "5 min" },
-        { id: 2, title: "Código en dos lenguajes", shortTitle: "Código", duration: "5 min" },
-        { id: 3, title: "Simuladores", shortTitle: "Simuladores", duration: "8 min" },
-        { id: 4, title: "Autoevaluación y ejercicios", shortTitle: "Autoevaluación", duration: "8 min" },
-        { id: 5, title: "Glosario de notación y rúbrica", shortTitle: "Glosario y rúbrica", duration: "6 min" },
-        { id: 6, title: "Mapas: los cinco modos y las capas", shortTitle: "Geomapa", duration: "12 min" }
+        { id: 1, title: "Cajas y tipografía", duration: "5 min" },
+        { id: 2, title: "Código en dos lenguajes", duration: "5 min" },
+        { id: 3, title: "Simuladores", duration: "8 min" },
+        { id: 4, title: "Autoevaluación y ejercicios", duration: "8 min" },
+        { id: 5, title: "Glosario de notación y rúbrica", duration: "6 min" },
+        { id: 6, title: "Mapas: los cinco modos y las capas", duration: "12 min" }
       ]
     };
 
@@ -4089,14 +4150,27 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     // ================================================================
     // Navegación de módulos
     // ================================================================
+    // `subtitle` y `duration` son OPCIONALES y se pintan solo si están: no
+    // todos los documentos del sitio estiman tiempos, y un `undefined`
+    // impreso en la barra lateral no da error, da una barra con basura.
+    // `campos_vivos.py` comprueba lo contrario —que ningún campo declarado
+    // en `courseData` se quede sin leer—, que es como esto llevaba tres
+    // capítulos roto sin que nadie lo viera.
     function renderNavigation() {
-      moduleNav.innerHTML = courseData.modules.map(module => `
+      moduleNav.innerHTML = courseData.modules.map(module => {
+        const meta = [module.subtitle, module.duration].filter(Boolean)
+          .join('<span class="sep"> · </span>');
+        return `
                 <button type="button" class="nav-item ${module.id === currentModuleId ? 'active' : ''}"
                      onclick="loadModule(${module.id})"${module.id === currentModuleId ? ' aria-current="page"' : ''}>
-                    ${module.title}
-                    ${completedModules.has(module.id) ? '<i class="fas fa-check-circle ml-auto text-green-400" aria-hidden="true"></i>' : ''}
+                    <span class="nav-item-texto">
+                      <span>${module.title}</span>
+                      ${meta ? `<span class="nav-item-sub">${meta}</span>` : ''}
+                    </span>
+                    ${completedModules.has(module.id) ? '<i class="fas fa-check-circle nav-item-visto text-green-400" aria-hidden="true"></i>' : ''}
                 </button>
-            `).join('');
+            `;
+      }).join('');
     }
 
     function loadModule(id) {

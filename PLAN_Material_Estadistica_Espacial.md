@@ -2448,3 +2448,55 @@ temario del syllabus**, no desde el índice de módulos que uno acaba de redacta
 índice, el auditor confirma que el capítulo dice lo que dice — que es justo lo que no hace falta
 comprobar.
 
+---
+
+### A.16 · El campo que se declara y no lo pinta nadie (2026-08-14)
+
+**Cómo salió.** De A.15, de refilón: al cambiar el subtítulo del módulo 1 en `courseData`, la barra
+lateral no cambió. `renderNavigation()` pintaba `title` y nada más.
+
+**Lo que había debajo era peor que un campo muerto.** El recuento completo:
+
+| Documento | Declaraba | Se pintaba |
+|---|---|---|
+| capítulo 1 · taller 1 · dos bancos · plantilla | `title`, `shortTitle`, `duration` | solo `title` |
+| capítulos 2 y 3 | `title`, `subtitle` | solo `title` |
+| todos los de la izquierda | `courseData.title` | nada |
+
+Cien cadenas escritas con cuidado y muertas en el HTML. Y la consecuencia de verdad no es el
+desperdicio: es que **el esquema se partió en dos** —`shortTitle` en el capítulo 1, `subtitle` en el
+2— y nada podía verlo. Un campo que no se lee no produce comportamiento, así que ninguna
+comprobación de comportamiento lo alcanza: ni el arnés de prosa, ni las guardas del ensamblador, ni
+la consola. La divergencia nació el día que se escribió el capítulo 2 y sobrevivió al capítulo 3, al
+taller y a la publicación del sitio.
+
+**Qué se hizo.** `renderNavigation()` pinta ahora una segunda línea con `subtitle` y `duration`, las
+dos opcionales, unidas por «·». `shortTitle` se **borró**, no se renombró: sus valores son
+abreviaturas —«Tobler», «Glosario», «Autoevaluación»—, y una abreviatura bajo su propio título
+completo es ruido, no información. `courseData.title` se borró también: duplicaba la cabecera, que
+cada ensamblador ya estampa.
+
+**Una decisión de maquetación que hubo que medir, no razonar.** La duración se probó primero como
+columna propia a la derecha del título. Se veía razonable y estaba mal: al robarle ancho a la
+primera línea, los títulos del capítulo 1 pasaban de dos renglones a tres y los elementos crecían de
+89 a 120 px. Bajada a la segunda línea, junto al subtítulo, los títulos recuperan el ancho completo.
+Es la regla del §9 aplicada al CSS: **antes de justificar una maquetación con un argumento
+cuantitativo, medirla**.
+
+**La guarda: `campos_vivos.py`.** Compara la DECLARACIÓN contra la LECTURA en cada documento que
+tenga un `courseData`, y exige además que el núcleo del esquema no diverja (`id`, `modules`, `title`
+obligatorios; `subtitle` y `duration` opcionales). Descubre los documentos solo —bancos y talleres
+incluidos— y se rompe a sí mismo con `--prueba`, como `sin_aritmetica.py`. Entra en `audita_todo.sh`
+como paso 5.
+
+**Se ganó el sitio en la primera pasada.** Cazó `prueba-geomapa.html`, el banco que se ensambló a
+mano en T0.3 y cuyo guion de sincronización solo copia el motor del `.geomapa` y su JSON, no la
+barra lateral. Era el único documento del sitio que el arreglo no alcanzaba, y sin la guarda se
+habría quedado con `shortTitle` y con el `renderNavigation()` viejo — es decir, el banco de pruebas
+probando una versión del componente que ya no existe, que es exactamente el defecto que T2.1a
+escribió `sincroniza_prueba_geomapa.py` para impedir.
+
+**Lo que queda abierto, y es tuyo.** Los capítulos 2 y 3 tienen subtítulos de verdad; el capítulo 1
+y el taller solo tienen duración, porque sus `shortTitle` no servían y no me pareció que escribir
+veintiuna líneas nuevas en capítulos ya publicados fuera de este cambio. Si los quieres, se
+escriben: son doce del capítulo 1 y nueve del taller.
