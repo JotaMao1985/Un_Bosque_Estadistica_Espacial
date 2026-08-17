@@ -143,14 +143,19 @@ orden que documenta `FUENTES.md`.
 
 | Carpeta | Qué contiene |
 |---|---|
-| `Htmls_Espacial/` | Los capítulos publicados, más dos bancos de prueba del motor |
+| `Htmls_Espacial/` | Los capítulos publicados y los talleres, más dos bancos de prueba del motor |
 | `precalculo/` | Los guiones de R que calculan, los de Python que ensamblan y todos los auditores |
 | `precalculo/salidas/` | El precálculo: los JSON y CSV que consume el navegador |
 | `plantilla/` | La plantilla base de la que salen todos los capítulos |
 | `index.html` | La portada del sitio |
 
 Los archivos `prueba-auditoria.html` y `prueba-geomapa.html` son bancos de prueba del
-motor, no material del curso. `cuenta_sitio.py` los cuenta aparte por esa razón.
+motor, no material del curso. `cuenta_sitio.py` los cuenta aparte por esa razón, y por la
+razón contraria cuenta los `taller-*.html` en su propia tabla: son material, pero no son
+capítulos —no tienen autoevaluación y sus módulos no van contra los 120 del plan—.
+
+Los talleres se construyen con la misma cadena (`genera_taller1.R` → `ensambla_taller1.py`
+→ `audita_taller1.py`) y corren por su propio bucle dentro de `audita_todo.sh`.
 
 ---
 
