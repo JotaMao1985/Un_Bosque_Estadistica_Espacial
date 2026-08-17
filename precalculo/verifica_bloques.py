@@ -65,8 +65,13 @@ FUENTES = [RAIZ / "sitio" / "estadistica-espacial", RAIZ / "Htmls_Espacial"]
 TMP = Path(os.environ.get("TMPDIR", "/tmp")) / "verifica_espacial"
 
 SEP = "###BLOQUE-%d###"
+# La clase admite algo DESPUÉS del lenguaje, y eso no es laxitud: es lo
+# que permite marcar un bloque como `arranque`. Con el patrón cerrado
+# —`class="language-r"` exacto— un bloque con una segunda clase quedaba
+# INVISIBLE para este guion, que es la peor de las opciones: ni se
+# ejecuta, ni se cuenta, ni se dice. Ahora se ve, se cuenta y se declara.
 BLOQUE_RE = re.compile(
-    r'<pre><code class="language-(r|python)">(.*?)</code></pre>', re.S)
+    r'<pre><code class="language-(r|python)([^"]*)">(.*?)</code></pre>', re.S)
 # Números con signo, decimales y notación científica; `1e-13` incluido.
 NUM_RE = re.compile(r'-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?')
 
@@ -87,10 +92,18 @@ def python_geo() -> str:
 def extrae(textos):
     bloques = []
     for nombre, texto in textos:
-        for lang, cuerpo in BLOQUE_RE.findall(texto):
+        for lang, extra, cuerpo in BLOQUE_RE.findall(texto):
             bloques.append({
                 "archivo": nombre,
                 "lang": lang,
+                # Un bloque de ARRANQUE es código que el lector va a
+                # ejecutar sobre SUS datos: lleva marcadores en vez de
+                # valores (`TU_LLAVE`, `TUS_40`) y no anuncia salida,
+                # porque no hay una salida única que anunciar. Ejecutarlo
+                # aquí daría un error que no es del material, y además
+                # envenenaría la sesión encadenada de los capítulos.
+                # Nace con el Taller 1; ver PLAN_Taller_1_Caps_1_2.md.
+                "arranque": "arranque" in extra,
                 "codigo": html_mod.unescape(cuerpo),
             })
     return bloques
@@ -174,9 +187,19 @@ def main():
     bloques = extrae(textos)
     n_r = sum(b["lang"] == "r" for b in bloques)
     n_py = sum(b["lang"] == "python" for b in bloques)
-    n_anunciadas = sum(len(esperados(b["codigo"])) for b in bloques)
+    n_arranque = sum(b["arranque"] for b in bloques)
+    ejecutables = [b for b in bloques if not b["arranque"]]
+    n_anunciadas = sum(len(esperados(b["codigo"])) for b in ejecutables)
     print(f"Bloques encontrados: {n_r} de R, {n_py} de Python · "
-          f"{n_anunciadas} cifras anunciadas\n")
+          f"{n_anunciadas} cifras anunciadas")
+    if n_arranque:
+        # Se DICE cuántos se dejan fuera y de qué archivo. Un guion que
+        # salta bloques en silencio informa «todo verde» sobre un material
+        # que no ha mirado.
+        de = sorted({b["archivo"] for b in bloques if b["arranque"]})
+        print(f"  {n_arranque} bloque(s) de ARRANQUE, no ejecutados ni "
+              f"contrastados: {', '.join(de)}")
+    print()
 
     # La guarda que la versión de DOE no tenía. Sin ella este guion sale
     # en verde sobre cualquier documento que no anuncie nada, y el verde
@@ -184,7 +207,7 @@ def main():
     if not bloques:
         print("!! ABORTA: el documento no tiene ningún bloque de código.")
         return 1
-    if n_anunciadas == 0:
+    if ejecutables and n_anunciadas == 0:
         print("!! ABORTA: hay bloques de código pero NINGUNA línea `#>`.")
         print("   No hay nada que contrastar, así que este guion no puede")
         print("   decir que el capítulo esté bien. Un 0 de 0 en verde es")
@@ -196,20 +219,20 @@ def main():
     # `library()`, eso lo caza la revisión de autonomía del capítulo, no
     # este guion: aquí interesa que las CIFRAS cuadren.
     resultados["r"] = corre(
-        bloques, "r",
+        ejecutables, "r",
         'suppressMessages({library(sf); library(sp); library(spdep);\n'
         '  library(spatialreg); library(gstat); library(spatstat);\n'
         '  library(spData); library(classInt); library(jsonlite)})\n'
         'options(warn = 1)',
         [str(RSCRIPT), "--vanilla"], ".R", 'cat("\\n' + SEP + '\\n")')
     resultados["python"] = corre(
-        bloques, "python",
+        ejecutables, "python",
         "import warnings; warnings.filterwarnings('ignore')",
         [python_geo()], ".py", 'print("\\n' + SEP + '\\n")')
 
     total_ok = total = 0
     fallos = []
-    for i, b in enumerate(bloques):
+    for i, b in enumerate(ejecutables):
         r = resultados[b["lang"]]
         if not r:
             continue
