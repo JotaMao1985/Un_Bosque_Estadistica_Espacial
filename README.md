@@ -1,7 +1,7 @@
 # Estadística Espacial · Universidad El Bosque
 
 Material de estudio interactivo del curso **Estadística Espacial (20929)**, programa de
-Matemáticas y Ciencia de Datos, 2026-II.
+Estadística, 2026-II.
 
 **→ [Ver el material publicado](https://jotamao1985.github.io/Un_Bosque_Estadistica_Espacial/)**
 
@@ -179,4 +179,4 @@ sea público.
 
 ---
 
-Universidad El Bosque · Facultad de Ciencias · Matemáticas y Ciencia de Datos
+Universidad El Bosque · Facultad de Ciencias · Estadística
