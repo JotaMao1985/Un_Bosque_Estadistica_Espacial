@@ -3408,6 +3408,11 @@
       }
 
       .rubrica-nivel-marca {
+        /* El `flex: 0 0 5.6rem` de arriba fija la BASE, y al pasar el nivel
+           a columna la base deja de ser el ancho y pasa a ser el alto: la
+           marca se estira a 5.6rem con 1.2rem de contenido y deja un hueco
+           vacío del tamaño del propio texto. Se restituye a `auto`. */
+        flex: 0 0 auto;
         flex-direction: row;
         align-items: baseline;
         gap: 0.5rem;

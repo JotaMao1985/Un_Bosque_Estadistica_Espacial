@@ -3251,6 +3251,11 @@
       }
 
       .rubrica-nivel-marca {
+        /* El `flex: 0 0 5.6rem` de arriba fija la BASE, y al pasar el nivel
+           a columna la base deja de ser el ancho y pasa a ser el alto: la
+           marca se estira a 5.6rem con 1.2rem de contenido y deja un hueco
+           vacío del tamaño del propio texto. Se restituye a `auto`. */
+        flex: 0 0 auto;
         flex-direction: row;
         align-items: baseline;
         gap: 0.5rem;
@@ -5987,6 +5992,14 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       const cp = geomapaCapa(d, o);
       const clase = cp.clase, nCl = cp.cortes ? cp.cortes.length - 1 : 0;
       const geom = geomapaGeom(d);
+      // Qué rasgo va resaltado lo puede decir EL DATO (`d.resaltado`, que
+      // escribe geo.R) además de la opción de siempre. Los dos conviven y no
+      // usan el mismo convenio, a propósito y dicho en voz alta: lo que viene
+      // de R es 1-basado —como `resaltado2`, como `aristas`— y la opción, que
+      // es de este lado, sigue siendo el índice 0-basado del bucle. Unificarlos
+      // por dentro habría movido en silencio el resalte de quien ya usara la
+      // opción.
+      const iRes = d.resaltado != null ? d.resaltado - 1 : null;
       geom.forEach((rasgo, i) => {
         // OJO con el «sin dato»: `isFinite(null)` es TRUE en JS, porque
         // Number(null) es 0. Con la comprobación de antes, un municipio
@@ -6001,7 +6014,9 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         } else {
           relleno = geomapaTinta(GEOMAPA_SIN_DATO);
         }
-        if (o.resaltado != null && o.resaltado === i) relleno = geomapaTinta(GEOMAPA_ACENTO);
+        if ((o.resaltado != null && o.resaltado === i) || iRes === i) {
+          relleno = geomapaTinta(GEOMAPA_ACENTO);
+        }
         ctx.fillStyle = relleno;
         ctx.strokeStyle = geomapaTinta('rgba(255,255,255,.85)');
         ctx.lineWidth = 0.8;
@@ -6010,7 +6025,96 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
           ctx.fill(p); ctx.stroke(p);
         });
       });
+      geomapaPintaLineas(ctx, d, aj, o);
       geomapaPintaSuperpuestos(ctx, d, aj, o);
+    }
+
+    // Polilíneas SOBRE el coropleto (T2.7 del capítulo 1). El caso que las
+    // módulo 7 del capítulo 1: una rejilla de 100 rectángulos encima de los
+    // condados de Carolina del Norte, para enseñar por qué sumar «lo que se
+    // toca» devuelve 2 621 muertes donde había 667.
+    //
+    // TRES DECISIONES QUE NO SON DE ESTILO:
+    //
+    //  1. Van DESPUÉS de los polígonos. La rejilla no es el territorio: es la
+    //     retícula ajena que se le pone encima, y el orden de dibujo es lo
+    //     que dice cuál de las dos manda.
+    //  2. Las resaltadas se RELLENAN además de trazarse. Con solo el trazo el
+    //     lector ve una cuadrícula con unas líneas más gruesas; con el relleno
+    //     ve «este condado cae en estas cinco casillas», que es la frase que
+    //     el mapa tiene que decir sin palabras.
+    //  3. El rótulo lleva halo blanco. Cae sobre el coropleto y sobre el
+    //     propio relleno del resalte, y un número que no se lee no es un
+    //     número: sería un mapa bonito en el sitio donde hace falta una
+    //     demostración.
+    //
+    // `o.etiquetasLineas` va emparejada con `d.lineas_resaltadas`, no con
+    // `d.lineas`: son cinco rótulos para cinco celdas, no cien.
+    function geomapaPintaLineas(ctx, d, aj, o) {
+      if (!d.lineas || !d.lineas.length || o.lineas === false) return;
+      const dpr = o.dpr || 1;
+      const idx = d.lineas_resaltadas || [];
+      const res = new Set(idx.map(k => k - 1));       // R es 1-indexado
+      const trazo = seg => {
+        const p = new Path2D();
+        for (let i = 0; i < seg.length; i += 2) {
+          const px = aj.x(seg[i]), py = aj.y(seg[i + 1]);
+          if (i === 0) p.moveTo(px, py); else p.lineTo(px, py);
+        }
+        return p;
+      };
+
+      ctx.save();
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+
+      // La retícula entera, fina y apagada.
+      ctx.strokeStyle = geomapaTinta(o.colorLineas || 'rgba(1,40,32,.50)');
+      ctx.lineWidth = (o.anchoLineas || 0.7) * dpr;
+      d.lineas.forEach((seg, k) => { if (!res.has(k)) ctx.stroke(trazo(seg)); });
+
+      // Las resaltadas. `closePath()` no añade nada a una celda de rejilla
+      // —ya vuelve a su primer vértice— y es lo que permite rellenar; una
+      // polilínea abierta no llega aquí, porque a una calle no se la resalta.
+      ctx.strokeStyle = geomapaTinta('#8a3d00');
+      ctx.lineWidth = 2.1 * dpr;
+      ctx.fillStyle = geomapaTinta('rgba(255,102,0,.22)');
+      res.forEach(k => {
+        const seg = d.lineas[k];
+        if (!seg) return;
+        const p = trazo(seg);
+        p.closePath();
+        ctx.fill(p);
+        ctx.stroke(p);
+      });
+
+      // Los rótulos, en el centro de la caja de cada celda resaltada.
+      const rot = o.etiquetasLineas;
+      if (rot && rot.length) {
+        const px = Math.max(9, Math.min(ctx.canvas.width, ctx.canvas.height) * 0.038);
+        ctx.font = `700 ${px}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        idx.forEach((k, j) => {
+          const texto = rot[j];
+          const seg = d.lineas[k - 1];
+          if (texto == null || texto === '' || !seg) return;
+          let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+          for (let i = 0; i < seg.length; i += 2) {
+            const X = aj.x(seg[i]), Y = aj.y(seg[i + 1]);
+            if (X < x0) x0 = X;
+            if (X > x1) x1 = X;
+            if (Y < y0) y0 = Y;
+            if (Y > y1) y1 = Y;
+          }
+          ctx.strokeStyle = geomapaTinta('rgba(255,255,255,.92)');
+          ctx.lineWidth = 3.4 * dpr;
+          ctx.strokeText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+          ctx.fillStyle = geomapaTinta('#012820');
+          ctx.fillText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+        });
+      }
+      ctx.restore();
     }
 
     // Capas de puntos sobre el coropleto: símbolos proporcionales y dot
@@ -6456,7 +6560,41 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         if (cp.cortes) cortes = cp.cortes;
       }
       if (d.modo === 'rejilla' && d.cortes) cortes = d.cortes;
-      if (!cortes) return etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '';
+
+      // Lo que un coropleto puede llevar encima y NO es una clase: el rasgo
+      // resaltado y la retícula ajena (T2.7 del cap. 1). Si no se rotulan, el mapa
+      // módulo 7 pinta tres cosas y explica una — y las dos que se callan son
+      // justamente las que demuestran el doble conteo.
+      const extras = [];
+      if (d.modo === 'poligonos') {
+        if (d.resaltado != null) {
+          extras.push(muestra(geomapaTinta(GEOMAPA_ACENTO),
+            esc(o.nombreResaltado || 'unidad resaltada')));
+        }
+        if (d.lineas && d.lineas.length && o.lineas !== false) {
+          extras.push(`<span class="geomapa-clase">
+          <span class="geomapa-muestra" style="background:transparent;border:1px solid ${geomapaTinta('rgba(1,40,32,.5)')}"></span>
+          <span>${d.lineas.length} ${esc(o.nombreLineas || 'líneas superpuestas')}</span>
+        </span>`);
+          if (d.lineas_resaltadas && d.lineas_resaltadas.length) {
+            extras.push(`<span class="geomapa-clase">
+          <span class="geomapa-muestra" style="background:${geomapaTinta('rgba(255,102,0,.22)')};border:2px solid ${geomapaTinta('#8a3d00')}"></span>
+          <span>${d.lineas_resaltadas.length} ${esc(o.nombreLineasResaltadas || 'resaltadas')}</span>
+        </span>`);
+          }
+        }
+      }
+
+      const pie = etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '';
+      if (!cortes) {
+        // Sin cortes puede seguir habiendo algo que rotular: un coropleto que
+        // solo enseña geometría y una retícula es un mapa legítimo, y antes de
+        // T2.7 del capítulo 1 se quedaba sin leyenda porque la única salida era la
+        // de las clases.
+        return extras.length
+          ? `<div class="geomapa-leyenda">${extras.join('')}</div>` + pie
+          : pie;
+      }
       const n = cortes.length - 1;
       const fmt = fmtCon(decimales(cortes));
       const cajas = [];
@@ -6464,8 +6602,8 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         cajas.push(muestra(geomapaColor(o.paleta, n > 1 ? i / (n - 1) : 0.5),
           `${fmt(cortes[i])} – ${fmt(cortes[i + 1])}`));
       }
-      return `<div class="geomapa-leyenda">${cajas.join('')}</div>` +
-             (etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '');
+      cajas.push(...extras);
+      return `<div class="geomapa-leyenda">${cajas.join('')}</div>` + pie;
     }
 
     // El texto alternativo. Estaba escrito dos veces —al crear el nodo y en
@@ -6505,7 +6643,20 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         }
       }
       if (d.n2 && o.puntos2 !== false) s += `, más ${d.n2} de una segunda capa`;
-      if (d.lineas && o.lineas !== false) s += ` sobre ${d.lineas.length} líneas de fondo`;
+      if (d.lineas && o.lineas !== false) {
+        // En un patrón puntual las líneas van DEBAJO —son las calles del
+        // Soho— y en un coropleto van ENCIMA —son la rejilla del módulo 7—.
+        // Decir «de fondo» en los dos casos describiría un mapa que no está,
+        // y describir mal es peor que no describir: quien no ve el lienzo no
+        // tiene cómo enterarse.
+        s += d.modo === 'poligonos'
+          ? `, con ${d.lineas.length} líneas superpuestas`
+          : ` sobre ${d.lineas.length} líneas de fondo`;
+        if (d.lineas_resaltadas && d.lineas_resaltadas.length)
+          s += `, de las que ${d.lineas_resaltadas.length} van resaltadas`;
+      }
+      if (d.modo === 'poligonos' && d.resaltado != null)
+        s += `, con una unidad destacada`;
       if (d.leyenda) s += `. ${d.leyenda}`;
       return s;
     }
