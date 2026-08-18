@@ -259,8 +259,11 @@ MOD1 = cabecera(
           una semana desde que se reparte, y la defensa va después: lo que entregues ese martes es
           lo que se te preguntará en clase. <strong>No se aceptan entregas tarde</strong>: lo que no
           esté en Brightspace a esa hora no se califica.</p>
-        <p><strong>La plantilla:</strong> <a href="../entrega/plantilla_taller1.tex">el archivo
-          <code>.tex</code></a> · <a href="../entrega/plantilla_taller1.pdf">cómo se ve compilada</a>.
+        <p><strong>La plantilla:</strong>
+          <a href="../entrega/plantilla_taller1.tex" download target="_blank" rel="noopener">descargar
+          la plantilla (<code>.tex</code>)</a> ·
+          <a href="../entrega/plantilla_taller1.pdf" target="_blank" rel="noopener">ver el PDF
+          compilado</a>. Los dos se abren aparte para que no pierdas esta página.
           Si no tienes LaTeX instalado, sube el <code>.tex</code> a Overleaf y compila allí: no usa
           ningún paquete fuera de lo estándar ni ningún archivo externo, así que no hay nada que
           configurar.</p>
