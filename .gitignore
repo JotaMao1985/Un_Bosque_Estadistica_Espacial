@@ -14,6 +14,7 @@
 !/PLAN_Material_Estadistica_Espacial.md
 !/PLAN_Mejora_Capitulo1.md
 !/Htmls_Espacial/
+!/entrega/
 !/plantilla/
 !/precalculo/
 !/ensamblado/
@@ -26,6 +27,26 @@
 # Cubre además el `Rplots.pdf` de 8 MB que deja Rscript al abrir un dispositivo
 # gráfico sin nombre de archivo.
 *.pdf
+
+# Excepción de UN archivo, no de la regla. El PDF compilado de la plantilla de
+# entrega del Taller 1 es material propio, pesa 317 KB y lo enlaza el módulo 1
+# para quien quiera ver cómo queda el documento antes de instalar LaTeX. Lo de
+# arriba sigue valiendo para todo lo demás: un libro escaneado no entra por
+# aquí, y si algún día hace falta otro PDF se añade otra línea como ésta y se
+# comprueba con `git check-ignore -v`.
+!/entrega/plantilla_taller1.pdf
+
+# Y los subproductos de LaTeX, que se regeneran al compilar. La carpeta
+# `entrega/` está en la lista blanca, así que TODO lo que caiga dentro entra
+# salvo que se diga: sin estas líneas, un `latexmk` metía 1300 líneas de .log
+# y .fls en el commit.
+/entrega/*.aux
+/entrega/*.fdb_latexmk
+/entrega/*.fls
+/entrega/*.log
+/entrega/*.out
+/entrega/*.toc
+/entrega/*.synctex.gz
 *.epub
 
 # Datos geográficos sueltos. El módulo 7 del capítulo 2 escribe su shapefile de

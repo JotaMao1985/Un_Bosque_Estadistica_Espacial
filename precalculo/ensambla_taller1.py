@@ -244,10 +244,26 @@ MOD1 = cabecera(
           <a href="capitulo-3-cartografia-maup.html">capítulo 3</a> no entra en este taller.</p>
       </div>
 
-      <p>La entrega es un <strong>informe</strong> —el formato es libre, pero cada respuesta tiene que
-        poder leerse sola— más una <strong>defensa de 5 a 7 minutos</strong> en clase. En la defensa te
-        tocan tres preguntas al azar de un banco que está publicado con este taller, y ese banco cubre
-        <em>todo</em> el temario de los dos capítulos, no solo lo que aparece en las tareas.</p>
+      <p>La entrega es un <strong>informe en PDF</strong>, compilado con LaTeX a partir de la
+        plantilla que hay aquí abajo, más una <strong>defensa de 5 a 7 minutos</strong> en clase. En la
+        defensa te tocan tres preguntas al azar de un banco que está publicado con este taller, y ese
+        banco cubre <em>todo</em> el temario de los dos capítulos, no solo lo que aparece en las
+        tareas.</p>
+
+      <div class="note">
+        <p><strong>Cómo se entrega.</strong> Un solo PDF por <strong>Brightspace</strong>, con el
+          nombre <code>T1_Apellido_XXX.pdf</code>, donde <code>XXX</code> son tus tres últimos
+          dígitos. Máximo <strong>13 páginas</strong> sin contar el anexo, y cada tarea trae su
+          límite de palabras impreso en la plantilla.</p>
+        <p><strong>La plantilla:</strong> <a href="../entrega/plantilla_taller1.tex">el archivo
+          <code>.tex</code></a> · <a href="../entrega/plantilla_taller1.pdf">cómo se ve compilada</a>.
+          Si no tienes LaTeX instalado, sube el <code>.tex</code> a Overleaf y compila allí: no usa
+          ningún paquete fuera de lo estándar ni ningún archivo externo, así que no hay nada que
+          configurar.</p>
+        <p style="margin-bottom:0;">Trae una <strong>hoja de cifras</strong> en la página 2 con todo
+          lo que se te pide calcular. Rellénala <em>antes</em> de escribir prosa: es lo que hace que
+          cada tarea discuta números ya decididos en vez de irlos improvisando.</p>
+      </div>
 
       <p>Lo primero es resolver tu variante. Los datos de casi todas las tareas dependen de ella, así
         que si te equivocas aquí te equivocas en todo lo demás.</p>
