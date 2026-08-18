@@ -257,7 +257,8 @@ MOD1 = cabecera(
           límite de palabras impreso en la plantilla.</p>
         <p><strong>Fecha de entrega: martes 25 de agosto de 2026, 9:00&nbsp;a.&nbsp;m.</strong> Es
           una semana desde que se reparte, y la defensa va después: lo que entregues ese martes es
-          lo que se te preguntará en clase.</p>
+          lo que se te preguntará en clase. <strong>No se aceptan entregas tarde</strong>: lo que no
+          esté en Brightspace a esa hora no se califica.</p>
         <p><strong>La plantilla:</strong> <a href="../entrega/plantilla_taller1.tex">el archivo
           <code>.tex</code></a> · <a href="../entrega/plantilla_taller1.pdf">cómo se ve compilada</a>.
           Si no tienes LaTeX instalado, sube el <code>.tex</code> a Overleaf y compila allí: no usa
