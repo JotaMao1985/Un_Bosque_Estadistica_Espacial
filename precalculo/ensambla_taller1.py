@@ -255,6 +255,9 @@ MOD1 = cabecera(
           nombre <code>T1_Apellido_XXX.pdf</code>, donde <code>XXX</code> son tus tres últimos
           dígitos. Máximo <strong>13 páginas</strong> sin contar el anexo, y cada tarea trae su
           límite de palabras impreso en la plantilla.</p>
+        <p><strong>Fecha de entrega: martes 25 de agosto de 2026, 9:00&nbsp;a.&nbsp;m.</strong> Es
+          una semana desde que se reparte, y la defensa va después: lo que entregues ese martes es
+          lo que se te preguntará en clase.</p>
         <p><strong>La plantilla:</strong> <a href="../entrega/plantilla_taller1.tex">el archivo
           <code>.tex</code></a> · <a href="../entrega/plantilla_taller1.pdf">cómo se ve compilada</a>.
           Si no tienes LaTeX instalado, sube el <code>.tex</code> a Overleaf y compila allí: no usa
