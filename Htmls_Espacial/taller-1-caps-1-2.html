@@ -3854,9 +3854,11 @@
         <div class="code-tab-panel" data-lang="r">
           <pre><code class="language-r arranque">library(spatstat.geom)
 
-# Las coordenadas de tu patron estan en el JSON del taller, cuantizadas a
-# 0..4096 sobre una ventana unidad. Tambien puedes leerlas del mapa de
-# arriba: boton derecho, inspeccionar, o copiarlas del codigo fuente.
+# Las coordenadas de tu patron estan debajo del mapa de arriba: despliega
+# "Ver los datos en una tabla" y copia las dos columnas, que ya vienen en
+# la ventana unidad. (Tambien viajan en el codigo fuente de la pagina, en
+# MAPAS_T1, bajo la clave que dice el titulo de tu mapa, cuantizadas a
+# 0..4096: por ahi hay que dividirlas entre 4096.)
 p &lt;- ppp(x, y, window = owin(c(0, 1), c(0, 1)))
 
 mean(nndist(p))                       # la observada
@@ -3869,7 +3871,8 @@ quadratcount(p, nx = 4, ny = 4)</code></pre>
           <pre><code class="language-python arranque">import numpy as np
 from scipy.spatial import cKDTree
 
-# xy: tus puntos, dos columnas, sobre la ventana unidad
+# xy: tus puntos, dos columnas, sobre la ventana unidad. Salen de la
+# tabla que hay debajo del mapa de arriba, en "Ver los datos en una tabla".
 arbol = cKDTree(xy)
 d, _ = arbol.query(xy, k=2)
 d[:, 1].mean()                        # la observada
@@ -7257,6 +7260,18 @@ print(mal.buffer(500).iloc[0].intersects(mal.geometry).sum())</code></pre>
       },
       paleta: 'verde',
       alto: 380,
+      tabla: function (d) {
+        const filas = [];
+        for (let i = 0; i < d.n; i++) {
+          filas.push(`<tr><th scope="row">${i + 1}</th>`
+            + `<td>${(d.pts[2 * i] / d.q).toFixed(4)}</td>`
+            + `<td>${(d.pts[2 * i + 1] / d.q).toFixed(4)}</td></tr>`);
+        }
+        return `<table><caption>${d.titulo}: las ${d.n} coordenadas, en la `
+          + `ventana unidad y listas para <code>ppp()</code>.</caption><thead><tr>`
+          + `<th scope="col">Punto</th><th scope="col">x</th>`
+          + `<th scope="col">y</th></tr></thead><tbody>${filas.join('')}</tbody></table>`;
+      },
     };
 
     const TABLAS_RANKING = {};
@@ -7533,7 +7548,23 @@ print(mal.buffer(500).iloc[0].intersects(mal.geometry).sum())</code></pre>
         // es exactamente este; el `some` evita llamarlo cuando ya está.)
         const mapas = [...document.querySelectorAll('[data-geomapa="taller1-patron"]')];
         if (mapas.some(g => !g.__geomapa)) iniciarGeomapas();
-        mapas.forEach(g => { if (g.__geomapa) g.__geomapa.dibuja(); });
+        mapas.forEach(g => {
+          if (!g.__geomapa) return;
+          g.__geomapa.dibuja();
+          // Y la tabla de respaldo A MANO, porque `dibuja()` no la toca:
+          // `iniciarGeomapas()` la pinta UNA vez con el dato inicial y
+          // luego solo se repintan lienzo y leyenda. Sin esta línea, quien
+          // corrige un dígito ve el mapa nuevo con las coordenadas del
+          // patrón anterior debajo, y la tabla aquí no es un resumen: es
+          // EL dato con el que se rehacen las cifras. Es la misma trampa
+          // que el componente documenta para la leyenda congelada, un
+          // escalón más abajo.
+          const det = g.querySelector('.geomapa-tabla');
+          const spec = GEOMAPAS[g.dataset.geomapa];
+          const d = spec && (typeof spec.fuente === 'function' ? spec.fuente() : spec.fuente);
+          if (det && d && spec.tabla)
+            det.innerHTML = '<summary>Ver los datos en una tabla</summary>' + spec.tabla(d);
+        });
       }
 
       raiz.__t1pinta = pinta;

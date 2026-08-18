@@ -326,9 +326,11 @@ MOD2 = cabecera(
 """ + tabs("Tu patrón, en R y en Python",
       """library(spatstat.geom)
 
-# Las coordenadas de tu patron estan en el JSON del taller, cuantizadas a
-# 0..4096 sobre una ventana unidad. Tambien puedes leerlas del mapa de
-# arriba: boton derecho, inspeccionar, o copiarlas del codigo fuente.
+# Las coordenadas de tu patron estan debajo del mapa de arriba: despliega
+# "Ver los datos en una tabla" y copia las dos columnas, que ya vienen en
+# la ventana unidad. (Tambien viajan en el codigo fuente de la pagina, en
+# MAPAS_T1, bajo la clave que dice el titulo de tu mapa, cuantizadas a
+# 0..4096: por ahi hay que dividirlas entre 4096.)
 p &lt;- ppp(x, y, window = owin(c(0, 1), c(0, 1)))
 
 mean(nndist(p))                       # la observada
@@ -339,7 +341,8 @@ quadratcount(p, nx = 4, ny = 4)""",
       """import numpy as np
 from scipy.spatial import cKDTree
 
-# xy: tus puntos, dos columnas, sobre la ventana unidad
+# xy: tus puntos, dos columnas, sobre la ventana unidad. Salen de la
+# tabla que hay debajo del mapa de arriba, en "Ver los datos en una tabla".
 arbol = cKDTree(xy)
 d, _ = arbol.query(xy, k=2)
 d[:, 1].mean()                        # la observada
@@ -1005,6 +1008,37 @@ COURSE_DATA = f"""    const courseData = {{
 
 # El mapa del patrón, como FUNCIÓN y no como literal: depende del documento.
 # El coste está declarado en la cabecera de este archivo.
+# La tabla de respaldo del mapa de T1, y por qué no es un adorno.
+#
+# El lienzo es un `<canvas>`: los 40 puntos son PÍXELES, no elementos, así
+# que inspeccionar el mapa no devuelve una sola coordenada. Sin esta tabla
+# la única vía para rehacer las cifras era abrir el código fuente y buscar
+# `MAPAS_T1`, y el propio bloque de arranque llegó a mandar al estudiante a
+# «botón derecho, inspeccionar», que no lleva a ninguna parte.
+#
+# Y hay una razón más seria que la comodidad. T1 se responde MIRANDO el
+# mapa —esa es la tarea—, así que sin tabla la única tarea del taller que
+# exige ver un dibujo era, para quien usa lector de pantalla, «Patrón 22,
+# 40 unidades» y nada más. El componente contempla esta tabla justamente
+# para eso: para quien no ve el mapa, la tabla ES el mapa.
+#
+# Las coordenadas van ya divididas por `q` —en la ventana unidad, que es
+# como las pide `ppp()`— y no en los enteros 0..4096 del JSON: el
+# estudiante no tiene por qué deshacer una cuantización que existe para
+# ahorrar bytes. Cuatro decimales, que es justo lo que 1/4096 resuelve.
+TABLA_PATRON_JS = """      tabla: function (d) {
+        const filas = [];
+        for (let i = 0; i < d.n; i++) {
+          filas.push(`<tr><th scope="row">${i + 1}</th>`
+            + `<td>${(d.pts[2 * i] / d.q).toFixed(4)}</td>`
+            + `<td>${(d.pts[2 * i + 1] / d.q).toFixed(4)}</td></tr>`);
+        }
+        return `<table><caption>${d.titulo}: las ${d.n} coordenadas, en la `
+          + `ventana unidad y listas para <code>ppp()</code>.</caption><thead><tr>`
+          + `<th scope="col">Punto</th><th scope="col">x</th>`
+          + `<th scope="col">y</th></tr></thead><tbody>${filas.join('')}</tbody></table>`;
+      }"""
+
 GEOMAPAS_JS = """    GEOMAPAS['taller1-patron'] = {
       fuente: function () {
         const r = t1Resuelve(T1_VARIANTE);
@@ -1012,6 +1046,7 @@ GEOMAPAS_JS = """    GEOMAPAS['taller1-patron'] = {
       },
       paleta: 'verde',
       alto: 380,
+""" + TABLA_PATRON_JS + """,
     };
 """
 
@@ -1089,7 +1124,23 @@ SIMULADORES_JS = """    // --- El buscador de variante -------------------------
         // es exactamente este; el `some` evita llamarlo cuando ya está.)
         const mapas = [...document.querySelectorAll('[data-geomapa="taller1-patron"]')];
         if (mapas.some(g => !g.__geomapa)) iniciarGeomapas();
-        mapas.forEach(g => { if (g.__geomapa) g.__geomapa.dibuja(); });
+        mapas.forEach(g => {
+          if (!g.__geomapa) return;
+          g.__geomapa.dibuja();
+          // Y la tabla de respaldo A MANO, porque `dibuja()` no la toca:
+          // `iniciarGeomapas()` la pinta UNA vez con el dato inicial y
+          // luego solo se repintan lienzo y leyenda. Sin esta línea, quien
+          // corrige un dígito ve el mapa nuevo con las coordenadas del
+          // patrón anterior debajo, y la tabla aquí no es un resumen: es
+          // EL dato con el que se rehacen las cifras. Es la misma trampa
+          // que el componente documenta para la leyenda congelada, un
+          // escalón más abajo.
+          const det = g.querySelector('.geomapa-tabla');
+          const spec = GEOMAPAS[g.dataset.geomapa];
+          const d = spec && (typeof spec.fuente === 'function' ? spec.fuente() : spec.fuente);
+          if (det && d && spec.tabla)
+            det.innerHTML = '<summary>Ver los datos en una tabla</summary>' + spec.tabla(d);
+        });
       }
 
       raiz.__t1pinta = pinta;
