@@ -126,6 +126,16 @@ paso "sin_aritmetica.py — ninguna cifra de la prosa se calcula fuera de R" \
 paso "campos_vivos.py — ningún campo de courseData se declara y no se lee" \
      python3 precalculo/campos_vivos.py --prueba
 
+# Del 2026-08-18, y de la misma familia que los dos de arriba: mira el CSS que
+# el navegador llega a LEER, no el que está escrito. El injerto de T0.2 dejó dos
+# `*/` huérfanos en la plantilla, y un `*/` huérfano no se descarta: se lleva por
+# delante la regla siguiente. `.glosario-notacion` y `.rubrica` llevaban desde
+# entonces sin existir en las seis páginas, con el contenedor de la rúbrica del
+# Taller 1 pintándose sin caja. Ninguna comprobación de comportamiento podía
+# verlo —el componente aparece y funciona— y el navegador tampoco avisa.
+paso "comentarios_cerrados.py — ningún \`*/\` suelto se lleva una regla por delante" \
+     python3 precalculo/comentarios_cerrados.py --prueba
+
 paso "verifica_bloques.py — los bloques de código y sus #>" \
      python3 precalculo/verifica_bloques.py --todos
 
