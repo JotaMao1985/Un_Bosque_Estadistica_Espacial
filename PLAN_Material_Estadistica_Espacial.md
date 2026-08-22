@@ -1,7 +1,12 @@
 # Plan de implementación: Material de estudio — Estadística Espacial 2026-II
 
-**Estado:** 🟢 **T2.4–T2.6 HECHAS el 2026-08-05: EL CAPÍTULO 3 ESTÁ EN PIE y con él se cierra el
-Corte I (semanas 1–4). Siguiente: Checkpoint 2 y la Fase 3 (capítulos 4 y 5, patrones puntuales).**
+**Estado:** 🟡 **T3.1 HECHA el 2026-08-22: EL PRECÁLCULO DEL CAPÍTULO 4 ESTÁ EN PIE.**
+28 anclas, reproducible byte a byte, cinco ejercicios calculados y una librería nueva
+(`puntual.R`). El riesgo que el plan declaraba para este capítulo estaba **mal atribuido**: lo caro
+no es el número de puntos, es la corrección isotrópica contra la ventana real —555 veces la de
+traslación—. Ver **A.17** y las tres decisiones de la Fase 3.
+Siguiente: **T3.1b** (el auditor en Python y su arnés), **T3.2** (el ensamblado) y **T3.3**.
+✅ **T2.4–T2.6 (2026-08-05)** — el capítulo 3 en pie, y con él cerrado el Corte I (semanas 1–4).
 ✅ **T2.4 + T2.4b + T2.5 + T2.6 (2026-08-05)** — **el capítulo 3 está precalculado, ensamblado,
 auditado y verificado en el navegador.** `Htmls_Espacial/capitulo-3-cartografia-maup.html`,
 **621 KB**: 12 módulos, 10 simuladores, 9 mapas, 8 preguntas y 4 ejercicios —**vuelta al molde**,
