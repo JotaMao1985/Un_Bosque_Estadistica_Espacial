@@ -897,11 +897,61 @@ Retropropagación del conmutador de daltonismo y de las capas nuevas del `.geoma
 
 ### Fase 3 — Corte II: capítulos 4 y 5 (patrones puntuales)
 
-**T3.1–T3.3 — Capítulo 4** · *Alcance: L* — el precálculo de envolventes es el más caro del curso
+**LAS TRES DECISIONES DE JAVIER DEL 2026-08-21**, tomadas antes de escribir una línea y sobre una
+medición, no sobre una costumbre. El riesgo que el plan declaraba para este capítulo —«las
+envolventes son caras»— **resultó estar mal atribuido**: no lo caro es el número de puntos ni
+simular, es **la corrección isotrópica contra la ventana real**. Ver **A.17**.
+
+1. **Las envolventes se precalculan con corrección de TRASLACIÓN sobre la ventana íntegra**
+   (0,42 s por estimación → ~7 min por envolvente de 999). La **isotrópica se calcula UNA vez por
+   patrón**, no 999, y el capítulo publica en el módulo 10 la diferencia en la estimación **y su
+   coste medido**. Nada se simplifica y nada se abarata en silencio: el capítulo dice qué corrección
+   usa y por qué. *Descartadas:* isotrópica sobre ventana simplificada a 702 vértices (~2,5 h por
+   envolvente, y obligaría a declarar que la ventana del precálculo no es la que el capítulo 1
+   publicó) e isotrópica íntegra con `nsim = 99` (~3,5 h, y sube el p-valor mínimo a 0,01
+   justo en el capítulo cuyo módulo 11 trata de ese número).
+2. **Se desvía del molde como el capítulo 2, y por el mismo motivo: cubre dos semanas.**
+   **12 preguntas** —8 del quiz más un bloque intermedio de trampas— y **5 ejercicios guiados**.
+3. **Los 85 puntos duplicados del patrón colombiano se quedan, y son material.** Las 2 209 sedes
+   ocupan 2 166 coordenadas distintas: 42 se repiten, hasta 3 en un mismo punto, porque varias sedes
+   comparten edificio. Un patrón con duplicados **no es un proceso puntual simple** y se le nota
+   —G(0) > 0—, así que el módulo 7 lo **mide** en vez de afirmarlo. *Descartadas:* colapsar a 2 166
+   (cambia n y con él λ, cifra congelada en T0.4 y ya publicada en el capítulo 1) y `rjitter`
+   (inventa coordenadas que no están en el dato).
+
+**T3.1 — Precálculo del capítulo 4** · *Alcance: L* · *Dep.: Checkpoint 2* · ✅ **HECHA (2026-08-22)**
+`precalculo/genera_cap4.R` (12 módulos, **28 anclas** que **paran**), la sección del capítulo 4 en
+`genera_soluciones.R` (**5** ejercicios, por la decisión 2) y una librería nueva.
+- **Componente nuevo: `precalculo/puntual.R`**, la librería de patrones puntuales de los capítulos 4
+  y 5. No vive en `geo.R` porque los capítulos 1–3 no necesitan spatstat, que tarda en adjuntarse.
+  Existe porque `ppp_rebaraja()` la usan DOS guiones y encierra una convención que ya se equivocó
+  dos veces; copiada en dos archivos se desincroniza sin que nada falle. Ver **A.18**.
+- **Salidas:** `cap4_datos.json` 98,7 KB, `cap4_mapas.json` 60,2 KB (presupuesto declarado de 150,
+  y se usó el 40 %), `cap4_soluciones.json` 12,2 KB, más cuatro CSV. **Reproducible byte a byte.**
+- **Reproducibilidad, con una excepción declarada:** el módulo 10 publica CUÁNTO TARDA cada
+  corrección de borde, y eso depende de la máquina. Los tiempos viven en la caché `.rds`, así que
+  dos ejecuciones seguidas son idénticas byte a byte; borrar la caché mueve cuatro cifras. Lo
+  reproducible —y lo que el capítulo afirma— es el orden de magnitud entre ellas.
+- **Lo que el precálculo midió y no estaba en ningún sitio:** la isotrópica cuesta **555 veces** la
+  de traslación sobre la ventana real; sin corregir, K se queda hasta un **29,6 %** por debajo; bajo
+  CSR puro, **522 de 999 simulaciones (52,3 %)** se salen de la banda puntual al 95 %; y la banda por
+  defecto **se ensancha** un 85 % al subir `nsim`, porque su nivel es 2·nrank/(nsim+1) y no el mismo.
+
+**T3.1b — Auditor del precálculo y su arnés** · *Alcance: M* · ⬜ **PENDIENTE**
+`audita_cap4.py` sobre `audita_base.py`, recalculando en Python; `prueba_auditor_cap4.py`. Los
+tiempos del módulo 10 entran como **discrepancia declarada**, no como fallo: no son reproducibles
+por naturaleza.
+
+**T3.2 — Ensamblado del capítulo 4** · *Alcance: L* · ⬜ **PENDIENTE** — 12 módulos, ~11 simuladores,
+**12 preguntas y 5 ejercicios** (la desviación del molde, declarada).
+
+**T3.3 — Verificación** · *Alcance: M* · ⬜ **PENDIENTE**
+
 **T3.4–T3.6 — Capítulo 5** · *Alcance: L*
 
 ### ✅ Checkpoint 3 — Módulo II cerrado
 - [ ] Semanas 6–9 cubiertas · [ ] las envolventes precalculadas y sus `nsim` documentados
+- [ ] La corrección de borde de cada envolvente, escrita en el material al lado de la envolvente
 
 ---
 
@@ -2500,3 +2550,89 @@ escribió `sincroniza_prueba_geomapa.py` para impedir.
 y el taller solo tienen duración, porque sus `shortTitle` no servían y no me pareció que escribir
 veintiuna líneas nuevas en capítulos ya publicados fuera de este cambio. Si los quieres, se
 escriben: son doce del capítulo 1 y nueve del taller.
+
+### A.17 · El riesgo del capítulo 4 estaba mal atribuido (2026-08-21)
+
+El §6 declara, para el capítulo 4: «las envolventes son caras. Todas se precalculan en R». Cierto
+el remedio, **equivocada la causa**, y la diferencia decide el diseño del precálculo. Medido sobre
+el patrón colombiano en su ventana urbana —2 107 sedes dentro, **27 partes y 13 767 vértices**—,
+una sola estimación:
+
+| Operación | Segundos |
+|---|---|
+| Simular una realización CSR (`rpoispp`) | **0,05** |
+| `Kest` corrección de **borde** | **0,05** |
+| `Kest` corrección de **traslación** | **0,42** |
+| `Gest` corrección `km` | **0,05** |
+| `Kest` corrección **isotrópica** | **127,05** |
+| `pcf` (g) isotrópica | **128,93** |
+
+No es n: `lansing` tiene 2 251 puntos —más que el patrón colombiano— y su envolvente de K con
+`nsim = 9` tarda 0,11 s, porque su ventana es un rectángulo. `chorley`, con 1 036 puntos y ventana
+poligonal, tarda 3,98 s. **Lo que se paga es el perímetro contra el que hay que corregir**, y la
+isotrópica de Ripley lo recorre por pareja de puntos. Una envolvente de 999 simulaciones con la
+isotrópica sobre esta ventana son **35 horas**; con traslación, **7 minutos**.
+
+Y simplificar la ventana la abarata sin mover el dato, lo cual es la segunda mitad del hallazgo:
+
+| Ventana | Vértices | Área km² | Δárea | n dentro | `Kest` iso |
+|---|---|---|---|---|---|
+| Urbana original | 13 767 | 370,1 | — | 2 107 | 125,51 s |
+| `ms_simplify(keep = 0,20)` | 2 768 | 370,1 | +0,01 % | 2 107 | 30,97 s |
+| `ms_simplify(keep = 0,05)` | 702 | 370,1 | +0,01 % | 2 108 | **8,87 s** |
+| `ms_simplify(keep = 0,01)` | 140 | 367,5 | **−0,70 %** | 2 092 | 2,03 s |
+| D.C. (una sola parte) | 6 251 | 1 633,1 | — | 2 208 | 250,07 s |
+| Rectángulo envolvente | 4 | — | — | 2 107 | 0,01 s |
+
+Dos cosas que esa tabla enseña y que no estaban en ningún sitio. **La primera:** el suelo no es la
+complejidad de la ventana sino lo que encierra —la del D.C. tiene la mitad de vértices que la urbana
+y cuesta el doble, porque abarca 4,4 veces más área y por tanto más parejas dentro del alcance de r—.
+**La segunda:** entre `keep = 0,05` y `keep = 0,01` hay un acantilado. Bajar a 702 vértices no mueve
+el área ni un 0,01 % y mete un punto; bajar a 140 se come 0,70 % del área y **quince sedes**, que es
+justo el tipo de pérdida que no se ve en un mapa y sí en un λ.
+
+**Lo que se hizo con esto** está en la decisión 1 de la Fase 3: traslación para las 999
+simulaciones, isotrópica una vez, y la tabla entera publicada como contenido del módulo 10 —que es,
+literalmente, «correcciones isotrópica, de traslación y de Ripley; qué pasa si se ignoran»—. El
+precálculo más caro del curso resultó ser también su módulo mejor documentado, y **ningún libro de
+texto trae este cuadro**: los ejemplos canónicos viven en rectángulos.
+
+Nota de método: la medición se hizo en el scratchpad, no en `precalculo/`, y no dejó rastro en el
+proyecto. Lo que viaja al repositorio es la decisión y la tabla, no el guion de medir.
+
+### A.18 · Tres convenios de spatstat que no se pueden suponer (2026-08-22)
+
+Los tres aparecieron escribiendo `genera_cap4.R`, los tres los cazó una comprobación escrita antes
+de que hubiera nada que cazar, y los tres cambian una cifra sin romper nada. Van aquí porque el
+capítulo 5 usa el mismo paquete y va a tropezar con los mismos.
+
+**1. `quadratcount()` y `cut(X, quadrats(X, nx, ny))` no reparten igual los puntos del borde.** Son
+dos funciones del mismo paquete. Con `redwood` —coordenadas a dos decimales, y con nx = 5 los bordes
+caen en 0,2, 0,4, 0,6 y 0,8— los dos repartos dan multiconjuntos de conteos **distintos**: uno tiene
+una celda con 9 puntos y el otro ninguna. `quadratcount()` bina con `cut()` (intervalos abiertos por
+la izquierda, el más bajo cerrado por los dos lados), y como el χ² sale de `quadrat.test()`, que
+cuenta con `quadratcount()`, **esa** es la convención que manda. La demostración del módulo 5 —dos
+patrones con el χ² *idéntico*— se apoya en usar una sola convención de punta a punta; con dos, los
+conteos salían *casi* iguales, que es la forma más cara de estar mal. La comprobación compara los
+CONTEOS y no los χ²: dos vectores de conteos distintos pueden dar χ² parecidos.
+
+**2. El nombre del argumento no es el de la columna.** Se pide `correction = "translate"` y el
+objeto `fv` devuelve la columna `trans`. Pedirla por el nombre del argumento devuelve `NULL`, y el
+error salta después, en `approx()`, con un mensaje que no menciona ninguno de los dos nombres. Los
+dos viven declarados juntos en `puntual.R`.
+
+**3. La corrección de Clark-Evans que traen los libros no existe para una ventana real.**
+`clarkevans()` devuelve la de Donnelly **solo si la ventana es un rectángulo** —su fórmula lleva el
+perímetro de uno—. Sobre `cells` la devuelve; sobre la ventana urbana de Bogotá, de 27 partes, no:
+ahí quedan `naive` y `cdf`. El ejercicio E5 lo pedía por su nombre y murió con «subíndice fuera de
+los límites». Se quedó **dentro** del ejercicio, porque la lección es justamente esa: la corrección
+canónica supone una forma de ventana que el dato real no tiene.
+
+**Y uno que no es un convenio sino un error de concepto propio, que la ejecución destapó:** la banda
+de `envelope()` **no se estrecha** al subir `nsim`. Se ensancha —de 0,0228 con 19 simulaciones a
+0,0422 con 999— porque por defecto es el mínimo-máximo de las simulaciones y su nivel puntual es
+2·nrank/(nsim+1): con 19 es un contraste al 10 % y con 999 al 0,2 %. Son contrastes distintos, no la
+misma banda mejor estimada. Manteniendo el nivel fijo al 5 % la banda sí se estrecha, un 23 % de 39
+a 999 simulaciones. Las dos series se leen al revés, y por eso el módulo 11 publica las dos. La
+primera versión del comentario afirmaba lo contrario; la corrigió el `message()` de la propia
+ejecución, no una relectura.

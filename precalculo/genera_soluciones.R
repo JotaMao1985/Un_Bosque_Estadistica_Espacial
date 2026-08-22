@@ -1271,6 +1271,420 @@ solucion_cap3 <- function() {
 }
 
 # =====================================================================
+solucion_cap4 <- function() {
+  message("Capítulo 4 · los cinco ejercicios guiados")
+  suppressPackageStartupMessages({
+    library(spatstat); library(spatstat.data); library(data.table)
+  })
+  source(file.path(AQUI, "puntual.R"))   # ppp_rebaraja() y compañía
+  set.seed(SEMILLA)
+  E <- list()
+
+  # CINCO Y NO CUATRO: el capítulo cubre dos semanas, como el 2. Es la
+  # decisión 2 de Javier del 2026-08-21, declarada en la Fase 3 del plan.
+  PROC <- "datos/procesado"
+  cole <- st_read(file.path(PROC, "bogota_colegios.gpkg"), quiet = TRUE)
+  v_urb <- st_read(file.path(PROC, "bogota_ventana_urbana.gpkg"), quiet = TRUE)
+  v_dc  <- st_read(file.path(PROC, "bogota_ventana_dc.gpkg"), quiet = TRUE)
+  XY <- st_coordinates(cole)
+  p_urb <- suppressWarnings(ppp(XY[, 1], XY[, 2],
+                                window = as.owin(st_geometry(st_union(v_urb)))))
+  p_dc  <- suppressWarnings(ppp(XY[, 1], XY[, 2],
+                                window = as.owin(st_geometry(st_union(v_dc)))))
+  data(japanesepines); data(cells); data(swedishpines)
+
+  # -------------------------------------------------------------------
+  # E1 · La ventana que decides
+  #
+  # El módulo 1 enseña que la ventana forma parte del estimador. Este
+  # ejercicio añade la ventana que NADIE declara y todo el mundo usa sin
+  # darse cuenta: la envolvente convexa de los propios puntos, que es lo
+  # que sale cuando uno no tiene una ventana y deja que el dato la ponga.
+  # Tiene un problema del que el capítulo no ha hablado todavía: la
+  # estima a la baja por construcción, porque no hay ningún punto fuera.
+  # -------------------------------------------------------------------
+  message("  E1 · la ventana que decides")
+  casco <- convexhull.xy(XY[, 1], XY[, 2])
+  p_cas <- ppp(XY[, 1], XY[, 2], window = casco)
+  vent <- function(p, nombre) list(
+    ventana = nombre, n = npoints(p),
+    area_km2 = r10(area.owin(p$window) / 1e6),
+    lambda_km2 = r10(npoints(p) / (area.owin(p$window) / 1e6)))
+  v1 <- vent(p_urb, "Perímetro urbano"); v2 <- vent(p_dc, "Distrito Capital")
+  v3 <- vent(p_cas, "Envolvente convexa de las sedes")
+  lams <- c(v1$lambda_km2, v2$lambda_km2, v3$lambda_km2)
+
+  E$e1 <- list(
+    titulo = "La ventana que decides",
+    enunciado = paste(
+      "Con las 2 209 sedes educativas de Bogotá, estima la intensidad del",
+      "patrón bajo tres ventanas: el perímetro urbano, el Distrito Capital",
+      "completo y la envolvente convexa de las propias sedes. Da las tres",
+      "lambdas en sedes por km². Después decide: si un titular dice «en",
+      "Bogotá hay 5,7 colegios por kilómetro cuadrado», ¿cuál de las tres",
+      "ventanas lo respalda, y qué habría que añadir a la frase para que",
+      "sea verdad? Explica por qué la tercera ventana no es neutral."),
+    pasos = list(
+      list(paso = "Sedes en el perímetro urbano", valor = v1$n),
+      list(paso = "Sedes en el D.C.", valor = v2$n),
+      list(paso = "Sedes en la envolvente convexa", valor = v3$n),
+      list(paso = "Área urbana (km²)", valor = v1$area_km2),
+      list(paso = "Área del D.C. (km²)", valor = v2$area_km2),
+      list(paso = "Área de la envolvente convexa (km²)", valor = v3$area_km2),
+      list(paso = "Cociente entre la lambda mayor y la menor",
+           valor = r10(max(lams) / min(lams)))),
+    solucion = list(
+      urbana = v1, dc = v2, casco = v3,
+      lambda_max = r10(max(lams)), lambda_min = r10(min(lams)),
+      factor = r10(max(lams) / min(lams)),
+      # La envolvente convexa mete dentro suelo donde no hay ni puede
+      # haber sedes —los cerros, el borde del río— y deja fuera, por
+      # construcción, todo el suelo urbano más allá de la sede más
+      # extrema. Ni una sola sede cae fuera: n es el total.
+      casco_deja_fuera = as.integer(nrow(cole) - npoints(p_cas)),
+      casco_vs_urbana_area = r10(v3$area_km2 / v1$area_km2)),
+    lectura = paste(
+      "Las tres lambdas describen el mismo dato y se llevan un factor de",
+      sprintf("%.2f.", max(lams) / min(lams)),
+      "La frase del titular solo es verdad con la ventana urbana, y para",
+      "serlo tiene que decirlo: «5,7 sedes por km² DE SUELO URBANO». Sin",
+      "esa coletilla la cifra no es ni verdadera ni falsa, es incompleta.",
+      "La envolvente convexa merece párrafo aparte porque es la que sale",
+      "sola: no deja fuera ni una sede —eso es lo que la define— y por eso",
+      "parece la elección objetiva, la que «no decide nada». Decide lo",
+      "mismo que las otras dos y encima lo esconde, porque el borde lo",
+      "ponen los puntos más extremos y no la geografía. Una ventana es una",
+      "afirmación sobre dónde PODRÍA haber habido puntos, y esa afirmación",
+      "se defiende con el mapa, no con el dato.")
+  )
+
+  # -------------------------------------------------------------------
+  # E2 · El chi² que no ve
+  #
+  # La misma demostración del módulo 5 sobre OTRO patrón, para que el
+  # estudiante la repita en vez de recordarla, y sobre uno regular en vez
+  # de agregado: el rebarajado destruye la regularidad igual que destruía
+  # la agregación, y el chi² sigue sin enterarse.
+  # -------------------------------------------------------------------
+  message("  E2 · el chi² que no ve")
+  NXE <- 5L
+  sw_reb <- ppp_rebaraja(swedishpines, NXE, NXE, 4127L)
+  chi_de <- function(p) {
+    te <- suppressWarnings(quadrat.test(p, nx = NXE, ny = NXE))
+    list(chi2 = r10(te$statistic), gl = as.integer(te$parameter["df"]),
+         p_valor = signif(te$p.value, 6))
+  }
+  l_de <- function(p) {
+    k <- Kest(p, correction = PPP_CORR)
+    rg <- ppp_rejilla_r(k)
+    l <- sqrt(ppp_curva(k, PPP_CORR_COL, rg) / pi)
+    list(max_desvio = r10(max(abs(l - rg))),
+         r_max = r10(rg[which.max(abs(l - rg))]),
+         signo = if (l[which.max(abs(l - rg))] < rg[which.max(abs(l - rg))])
+           "por debajo (regular)" else "por encima (agregado)")
+  }
+  c1 <- chi_de(swedishpines); c2 <- chi_de(sw_reb)
+  k1 <- l_de(swedishpines);   k2 <- l_de(sw_reb)
+  ce1 <- r10(clarkevans(swedishpines)[["naive"]])
+  ce2 <- r10(clarkevans(sw_reb)[["naive"]])
+
+  E$e2 <- list(
+    titulo = "El chi² que no ve",
+    enunciado = paste(
+      "Toma `swedishpines` y construye un segundo patrón que conserve",
+      "EXACTAMENTE cuántos árboles caen en cada celda de una rejilla 5x5,",
+      "pero repartiéndolos al azar dentro de la suya. Calcula para los dos",
+      "el chi² del test de cuadrantes, el índice de Clark-Evans y el",
+      "máximo de |L(r) - r|. ¿Cuáles de las tres cifras los distinguen y",
+      "cuál no? Di en una frase qué es exactamente lo que el chi² no mira."),
+    pasos = list(
+      list(paso = "chi² del patrón original", valor = c1$chi2),
+      list(paso = "chi² del patrón rebarajado", valor = c2$chi2),
+      list(paso = "Diferencia entre los dos chi²", valor = r10(c2$chi2 - c1$chi2)),
+      list(paso = "R de Clark-Evans, original", valor = ce1),
+      list(paso = "R de Clark-Evans, rebarajado", valor = ce2),
+      list(paso = "max |L(r)-r|, original", valor = k1$max_desvio),
+      list(paso = "max |L(r)-r|, rebarajado", valor = k2$max_desvio)),
+    solucion = list(
+      nx = NXE, n = npoints(swedishpines),
+      original = c(c1, k1, list(clark_evans = ce1)),
+      rebarajado = c(c2, k2, list(clark_evans = ce2)),
+      chi2_identico = as.integer(isTRUE(all.equal(c1$chi2, c2$chi2))),
+      ce_cae = r10(ce1 - ce2),
+      desvio_cae_pct = r10(100 * (k1$max_desvio - k2$max_desvio) / k1$max_desvio)),
+    lectura = paste(
+      "El chi² es el mismo hasta el último decimal, y no por casualidad:",
+      "se calcula SOLO con cuántos puntos hay en cada celda, y eso es",
+      "justo lo que la rebaraja conserva. Clark-Evans y L sí los separan,",
+      "porque miran distancias entre puntos y no conteos por caja. Lo que",
+      "el chi² no mira es la posición dentro de la celda; dicho de otro",
+      "modo, es ciego a toda estructura de escala menor que el cuadrante.",
+      "Por eso pasar el test de cuadrantes no es un certificado de",
+      "aleatoriedad: es un certificado de que los CONTEOS son compatibles",
+      "con la aleatoriedad, que es mucho menos.")
+  )
+
+  # -------------------------------------------------------------------
+  # E3 · El cuadrante que rechaza por el motivo equivocado
+  #
+  # El módulo 6 barre el tamaño de celda sobre la ventana urbana. Aquí se
+  # barre sobre las DOS ventanas y se comparan los rechazos. Los dos
+  # rechazan; el ejercicio es entender que no están diciendo lo mismo.
+  # -------------------------------------------------------------------
+  message("  E3 · el cuadrante que rechaza por el motivo equivocado")
+  NXS <- c(2L, 3L, 4L, 5L, 6L, 8L, 10L, 12L, 15L, 20L)
+  barre <- function(p, nombre) rbindlist(lapply(NXS, function(k) {
+    te <- suppressWarnings(quadrat.test(p, nx = k, ny = k))
+    qc <- as.vector(quadratcount(p, nx = k, ny = k))
+    esp <- as.vector(te$expected)
+    data.table(ventana = nombre, nx = k, celdas = length(qc),
+               vacias = sum(qc == 0), pct_vacias = r10(100 * mean(qc == 0)),
+               chi2 = r10(te$statistic), gl = as.integer(te$parameter["df"]),
+               p_valor = signif(te$p.value, 6),
+               esperanza_min = r10(min(esp)),
+               celdas_esperanza_baja = sum(esp < 5),
+               rechaza = as.integer(te$p.value < 0.05))
+  }))
+  b_urb <- barre(p_urb, "urbana"); b_dc <- barre(p_dc, "dc")
+
+  E$e3 <- list(
+    titulo = "El cuadrante que rechaza por el motivo equivocado",
+    enunciado = paste(
+      "Aplica el test de cuadrantes a las sedes de Bogotá con rejillas de",
+      "2x2 hasta 20x20, primero sobre el perímetro urbano y después sobre",
+      "el Distrito Capital completo. Anota en cada caso el chi², el",
+      "p-valor, cuántas celdas quedan vacías y cuántas tienen esperanza",
+      "menor que 5. Los dos rechazan la hipótesis de intensidad constante.",
+      "Explica por qué NO están diciendo lo mismo, y cuál de los dos",
+      "rechazos no dice nada sobre cómo se distribuyen los colegios."),
+    pasos = list(
+      list(paso = "Tamaños de rejilla barridos", valor = length(NXS)),
+      list(paso = "Rechazos al 5 %, ventana urbana", valor = as.integer(sum(b_urb$rechaza))),
+      list(paso = "Rechazos al 5 %, ventana D.C.", valor = as.integer(sum(b_dc$rechaza))),
+      list(paso = "Celdas vacías con 10x10, urbana (%)",
+           valor = b_urb$pct_vacias[b_urb$nx == 10L]),
+      list(paso = "Celdas vacías con 10x10, D.C. (%)",
+           valor = b_dc$pct_vacias[b_dc$nx == 10L]),
+      list(paso = "chi² con 10x10, urbana", valor = b_urb$chi2[b_urb$nx == 10L]),
+      list(paso = "chi² con 10x10, D.C.", valor = b_dc$chi2[b_dc$nx == 10L])),
+    solucion = list(
+      nxs = NXS, urbana = as.list(b_urb), dc = as.list(b_dc),
+      rechazos_urbana = as.integer(sum(b_urb$rechaza)),
+      rechazos_dc = as.integer(sum(b_dc$rechaza)),
+      chi2_veces = r10(b_dc$chi2[b_dc$nx == 10L] / b_urb$chi2[b_urb$nx == 10L]),
+      vacias_veces = r10(b_dc$pct_vacias[b_dc$nx == 10L] /
+                         max(b_urb$pct_vacias[b_urb$nx == 10L], 1e-9)),
+      primera_esperanza_baja_urbana = b_urb$nx[b_urb$celdas_esperanza_baja > 0][1],
+      primera_esperanza_baja_dc = b_dc$nx[b_dc$celdas_esperanza_baja > 0][1]),
+    lectura = paste(
+      "Los dos rechazan, y el del D.C. rechaza mucho más fuerte. Pero el",
+      "D.C. incluye Sumapaz, los cerros orientales y el suelo rural: celdas",
+      "enteras con cero sedes porque allí no vive nadie, no porque los",
+      "colegios se eviten. Ese chi² mide que la CIUDAD no ocupa todo el",
+      "Distrito, que es cierto y no es una propiedad del patrón puntual.",
+      "El rechazo sobre la ventana urbana sí habla de los colegios. La",
+      "regla que queda: antes de interpretar un test sobre un patrón,",
+      "hay que poder defender que la ventana es el sitio donde los puntos",
+      "PODRÍAN haber estado. Si no, el test contesta a una pregunta sobre",
+      "la ventana disfrazada de pregunta sobre el dato.")
+  )
+
+  # -------------------------------------------------------------------
+  # E4 · La envolvente dice una cosa y el test otra
+  #
+  # El caso está elegido midiendo, no de memoria: se probaron
+  # `japanesepines`, `cells` y `swedishpines`, y `cells` es el único que
+  # cumple las dos cosas a la vez —se sale de la banda puntual en un
+  # tercio largo de los nodos Y no rechaza en el test global sobre la K
+  # cruda—. El ejercicio es explicar cómo puede ser.
+  #
+  # Las cifras exactas no se escriben en este comentario a propósito:
+  # dependen de la semilla y viven en el JSON. Un comentario con un
+  # número dentro es un número más que puede quedarse viejo, y ya se me
+  # quedó viejo una vez al cambiar la semilla de 4028 a 4128.
+  # -------------------------------------------------------------------
+  message("  E4 · la envolvente dice una cosa y el test otra")
+  set.seed(4128L)
+  env_c <- envelope(cells, Kest, nsim = 999L, correction = PPP_CORR,
+                    savefuns = TRUE, verbose = FALSE)
+  ok <- is.finite(env_c$obs) & is.finite(env_c$lo) & is.finite(env_c$hi)
+  fuera <- (env_c$obs < env_c$lo | env_c$obs > env_c$hi) & ok
+  rmax <- max(env_c$r)
+  tramos <- lapply(c(0.2, 0.4, 1.0), function(f) {
+    ri <- c(0, f * rmax)
+    list(r_max = r10(ri[2]),
+         fraccion_del_rango = f,
+         dclf_p = signif(dclf.test(env_c, rinterval = ri)$p.value, 6),
+         mad_p  = signif(mad.test(env_c, rinterval = ri)$p.value, 6))
+  })
+  set.seed(4128L)
+  env_l <- envelope(cells, Lest, nsim = 999L, correction = PPP_CORR,
+                    savefuns = TRUE, verbose = FALSE)
+
+  E$e4 <- list(
+    titulo = "La envolvente dice una cosa y el test otra",
+    enunciado = paste(
+      "Calcula la envolvente de K para `cells` con 999 simulaciones de CSR",
+      "y corrección de traslación. Cuenta en cuántos nodos de r la curva",
+      "observada se sale de la banda. Después aplica el test global de",
+      "desviación (dclf) sobre la K cruda en todo el rango de r, y",
+      "repítelo restringiendo r al 20 % y al 40 % del rango. Por último,",
+      "repite el test global sobre L en vez de sobre K. Reúne los cinco",
+      "p-valores y explica cómo es posible que el mismo patrón, con las",
+      "mismas simulaciones, pase de no rechazar a rechazar al máximo."),
+    pasos = list(
+      list(paso = "Nodos de r evaluados", valor = as.integer(sum(ok))),
+      list(paso = "Nodos en que la observada se sale de la banda",
+           valor = as.integer(sum(fuera))),
+      list(paso = "dclf sobre K, rango completo", valor = tramos[[3]]$dclf_p),
+      list(paso = "dclf sobre K, r <= 20 % del rango", valor = tramos[[1]]$dclf_p),
+      list(paso = "dclf sobre K, r <= 40 % del rango", valor = tramos[[2]]$dclf_p),
+      list(paso = "dclf sobre L, rango completo",
+           valor = signif(dclf.test(env_l)$p.value, 6))),
+    solucion = list(
+      nsim = 999L, correccion = PPP_CORR,
+      nodos = as.integer(sum(ok)), nodos_fuera = as.integer(sum(fuera)),
+      pct_fuera = r10(100 * sum(fuera) / sum(ok)),
+      r_primero_fuera = if (any(fuera)) r10(env_c$r[which(fuera)[1]]) else NA_real_,
+      tramos = tramos,
+      dclf_L = signif(dclf.test(env_l)$p.value, 6),
+      mad_L  = signif(mad.test(env_l)$p.value, 6),
+      p_minimo = r10(1 / (999 + 1))),
+    lectura = paste(
+      "Las dos cosas son ciertas y no se contradicen: la banda puntual y",
+      "el test global no contestan a la misma pregunta. Pero el giro del",
+      "ejercicio está en los otros tres p-valores. El estadístico de dclf",
+      "integra (K observada - K media)² sobre r, y K crece como r², así",
+      "que las desviaciones a r grande pesan cientos de veces más que las",
+      "de r pequeño. En `cells` toda la señal está a r pequeño —las",
+      "células se estorban a corta distancia— y el rango largo la ahoga.",
+      "Restringir r, o usar L, que está estabilizada en varianza, la",
+      "devuelve. Conclusión incómoda y necesaria: el test global no es una",
+      "máquina objetiva; el estadístico y el rango de r son decisiones del",
+      "analista, se toman ANTES de mirar y se declaran. Es el mismo",
+      "problema de escala del capítulo 3, ahora dentro del contraste.")
+  )
+
+  # -------------------------------------------------------------------
+  # E5 · El borde empuja siempre hacia el mismo lado
+  # -------------------------------------------------------------------
+  message("  E5 · el borde empuja siempre hacia el mismo lado")
+  ks <- lapply(c("none", "border", "translate"), function(cr)
+    Kest(p_urb, correction = cr))
+  names(ks) <- c("none", "border", "translate")
+  col_de <- c(none = "un", border = "border", translate = "trans")
+  rg <- ppp_rejilla_r(ks$translate)
+  cur <- lapply(names(ks), function(nm) ppp_curva(ks[[nm]], col_de[[nm]], rg))
+  names(cur) <- names(ks)
+  dif <- (cur$translate - cur$none) / pmax(cur$translate, 1e-9)
+  i_max <- which.max(dif)
+  # LA CORRECCIÓN DEL LIBRO NO EXISTE PARA ESTA VENTANA, y eso es parte
+  # del ejercicio. `clarkevans()` devuelve la de Donnelly solo si la
+  # ventana es un RECTÁNGULO —su fórmula lleva el perímetro de uno—, y la
+  # de Bogotá tiene 27 partes. Para una ventana cualquiera queda la
+  # corrección por la función de distribución (`cdf`), y la de guarda
+  # exige una región de guarda que aquí no hay. Se comprueba en vez de
+  # darlo por supuesto: la primera versión de este ejercicio pedía
+  # Donnelly y murió con «subíndice fuera de los límites».
+  ce_todas <- clarkevans(p_urb)
+  if (is.rectangle(p_urb$window))
+    stop("la ventana urbana salió rectangular: este ejercicio se apoya en que no lo sea")
+  if (!all(c("naive", "cdf") %in% names(ce_todas)))
+    stop("clarkevans ya no devuelve `naive` y `cdf` para una ventana poligonal")
+  ce_naive <- r10(ce_todas[["naive"]])
+  ce_cdf   <- r10(ce_todas[["cdf"]])
+  ce_donnelly_disponible <- as.integer("Donnelly" %in% names(ce_todas))
+  # Y la contraprueba, sobre un patrón que SÍ vive en un rectángulo:
+  # allí la de Donnelly aparece. La diferencia no es del paquete, es de
+  # la forma de la ventana.
+  ce_cells <- clarkevans(cells)
+
+  E$e5 <- list(
+    titulo = "El borde empuja siempre hacia el mismo lado",
+    enunciado = paste(
+      "Sobre las sedes del perímetro urbano, estima K(r) sin corrección de",
+      "borde, con corrección de borde simple y con corrección de",
+      "traslación. Calcula en qué porcentaje se queda la versión sin",
+      "corregir por debajo de la corregida, y a qué distancia r es máxima",
+      "esa diferencia. Después compara el índice de Clark-Evans sin",
+      "corregir con el de Donnelly. Responde: al ignorar el efecto de",
+      "borde, ¿el patrón parece más agregado o más regular de lo que es?",
+      "¿Por qué el sesgo tiene siempre el mismo signo?"),
+    pasos = list(
+      list(paso = "Sedes en la ventana", valor = npoints(p_urb)),
+      list(paso = "Sesgo máximo de K sin corregir (%)", valor = r10(100 * dif[i_max])),
+      list(paso = "r en que el sesgo es máximo (m)", valor = r10(rg[i_max])),
+      list(paso = "R de Clark-Evans sin corregir", valor = ce_naive),
+      list(paso = "R de Clark-Evans corregida por cdf", valor = ce_cdf),
+      list(paso = "Diferencia entre las dos R", valor = r10(ce_cdf - ce_naive)),
+      list(paso = "¿Existe la corrección de Donnelly para esta ventana?",
+           valor = ce_donnelly_disponible)),
+    solucion = list(
+      n = npoints(p_urb),
+      perimetro_km = r10(perimeter(p_urb$window) / 1000),
+      sesgo_max_pct = r10(100 * dif[i_max]), r_sesgo_max = r10(rg[i_max]),
+      k_sin_corregir = r10(cur$none[i_max]), k_traslacion = r10(cur$translate[i_max]),
+      k_borde = r10(cur$border[i_max]),
+      clark_evans_naive = ce_naive, clark_evans_cdf = ce_cdf,
+      donnelly_disponible = ce_donnelly_disponible,
+      donnelly_en_cells = r10(unname(ce_cells[["Donnelly"]])),
+      ventana_rectangular = as.integer(is.rectangle(p_urb$window)),
+      # Las dos R dicen «agregado» (R < 1); la corregida lo dice con más
+      # fuerza. La cifra decide la dirección, no la intuición.
+      direccion = if (ce_cdf > ce_naive) "la corrección sube R" else "la corrección baja R"),
+    lectura = paste(
+      "Sin corregir, K se queda hasta un",
+      sprintf("%.1f %%", 100 * dif[i_max]),
+      "por debajo, y el signo no es casualidad: un punto cerca del borde",
+      "tiene vecinos fuera de la ventana que nadie observó, así que el",
+      "estimador cuenta menos vecinos de los que hay. Faltan siempre",
+      "vecinos, nunca sobran. Por eso ignorar el borde empuja SIEMPRE",
+      "hacia «más regular de lo que es», y por eso el error es peligroso:",
+      "no añade ruido, añade una dirección. Con una ventana como la de",
+      "Bogotá —27 partes y un perímetro larguísimo para su área— hay mucho",
+      "más borde que en el cuadrado de un libro de texto, y el sesgo crece",
+      "con r porque a r grande casi todos los discos tocan el borde.",
+      "Clark-Evans lo confirma por su lado: R pasa de", sprintf("%.4f", ce_naive),
+      "sin corregir a", sprintf("%.4f", ce_cdf), "con la corrección, o sea",
+      "que sin corregir el patrón parecía MENOS agregado de lo que es.",
+      "Y hay una lección de más, que solo aparece con datos reales: la",
+      "corrección de Donnelly, la que traen los libros, NO está disponible",
+      "aquí. Su fórmula lleva el perímetro de un rectángulo, y la ventana",
+      "de Bogotá no lo es; sobre `cells`, que vive en el cuadrado unidad,",
+      "spatstat la devuelve sin problema. La corrección canónica supone una",
+      "forma de ventana que el dato real no tiene, y quien no lo comprueba",
+      "acaba pidiendo una cifra que no existe.")
+  )
+
+  E$meta <- list(capitulo = 4L, semilla = SEMILLA, n_ejercicios = 5L,
+                 correccion = PPP_CORR, nsim = 999L,
+                 generado = format(Sys.Date()))
+
+  txt4 <- jsonlite::toJSON(E, auto_unbox = TRUE, digits = 10,
+                           null = "null", na = "null")
+  if (grepl('"NA"', txt4, fixed = TRUE))
+    stop("cap4_soluciones.json: hay NA escritos como la cadena \"NA\"")
+  writeLines(txt4, file.path(SALIDAS, "cap4_soluciones.json"), useBytes = TRUE)
+  message(sprintf("  cap4_soluciones.json: %.1f KB",
+                  file.size(file.path(SALIDAS, "cap4_soluciones.json")) / 1024))
+
+  message(sprintf("  E1 · lambda urbana %.4f, D.C. %.4f, casco %.4f (factor %.2f)",
+                  v1$lambda_km2, v2$lambda_km2, v3$lambda_km2, max(lams)/min(lams)))
+  message(sprintf("  E2 · chi2 %.6f en los dos; R cae de %.4f a %.4f",
+                  c1$chi2, ce1, ce2))
+  message(sprintf("  E3 · rechazos: urbana %d/%d, D.C. %d/%d; vacías 10x10: %.1f %% y %.1f %%",
+                  sum(b_urb$rechaza), length(NXS), sum(b_dc$rechaza), length(NXS),
+                  b_urb$pct_vacias[b_urb$nx == 10L], b_dc$pct_vacias[b_dc$nx == 10L]))
+  message(sprintf("  E4 · %d/%d nodos fuera; dclf K completo p=%.4f, r<=20 %% p=%.4f, L p=%.4f",
+                  sum(fuera), sum(ok), tramos[[3]]$dclf_p, tramos[[1]]$dclf_p,
+                  E$e4$solucion$dclf_L))
+  message(sprintf("  E5 · sesgo máximo %.1f %% en r=%.0f m; R %.4f -> %.4f (Donnelly disponible: %s)",
+                  100 * dif[i_max], rg[i_max], ce_naive, ce_cdf,
+                  if (ce_donnelly_disponible == 1L) "sí" else "no"))
+  invisible(E)
+}
+
+# =====================================================================
 for (cap in CAPS) {
   fn <- get0(paste0("solucion_cap", cap))
   if (is.null(fn)) stop(sprintf("no hay soluciones para el capítulo %d todavía", cap))
