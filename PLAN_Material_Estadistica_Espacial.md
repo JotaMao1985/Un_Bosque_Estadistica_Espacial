@@ -1,11 +1,12 @@
 # Plan de implementación: Material de estudio — Estadística Espacial 2026-II
 
-**Estado:** 🟡 **T3.1 HECHA el 2026-08-22: EL PRECÁLCULO DEL CAPÍTULO 4 ESTÁ EN PIE.**
-28 anclas, reproducible byte a byte, cinco ejercicios calculados y una librería nueva
-(`puntual.R`). El riesgo que el plan declaraba para este capítulo estaba **mal atribuido**: lo caro
-no es el número de puntos, es la corrección isotrópica contra la ventana real —555 veces la de
-traslación—. Ver **A.17** y las tres decisiones de la Fase 3.
-Siguiente: **T3.1b** (el auditor en Python y su arnés), **T3.2** (el ensamblado) y **T3.3**.
+**Estado:** 🟡 **T3.1 + T3.1b HECHAS el 2026-08-22: EL PRECÁLCULO DEL CAPÍTULO 4 ESTÁ EN PIE Y
+AUDITADO.** 28 anclas, reproducible byte a byte, cinco ejercicios calculados, una librería nueva
+(`puntual.R`) y una auditoría independiente de **420 comprobaciones, 0 fallos**, con arnés de
+**96 inyecciones, 96 cazadas**. El riesgo que el plan declaraba para este capítulo estaba **mal
+atribuido**: lo caro no es el número de puntos, es la corrección isotrópica contra la ventana
+real —555 veces la de traslación—. Ver **A.17**, **A.18**, **A.19** y las tres decisiones de la
+Fase 3. Siguiente: **T3.2** (el ensamblado) y **T3.3** (la verificación).
 ✅ **T2.4–T2.6 (2026-08-05)** — el capítulo 3 en pie, y con él cerrado el Corte I (semanas 1–4).
 ✅ **T2.4 + T2.4b + T2.5 + T2.6 (2026-08-05)** — **el capítulo 3 está precalculado, ensamblado,
 auditado y verificado en el navegador.** `Htmls_Espacial/capitulo-3-cartografia-maup.html`,
@@ -942,10 +943,26 @@ simular, es **la corrección isotrópica contra la ventana real**. Ver **A.17**.
   CSR puro, **522 de 999 simulaciones (52,3 %)** se salen de la banda puntual al 95 %; y la banda por
   defecto **se ensancha** un 85 % al subir `nsim`, porque su nivel es 2·nrank/(nsim+1) y no el mismo.
 
-**T3.1b — Auditor del precálculo y su arnés** · *Alcance: M* · ⬜ **PENDIENTE**
-`audita_cap4.py` sobre `audita_base.py`, recalculando en Python; `prueba_auditor_cap4.py`. Los
-tiempos del módulo 10 entran como **discrepancia declarada**, no como fallo: no son reproducibles
-por naturaleza.
+**T3.1b — Auditor del precálculo y su arnés** · *Alcance: M* · *Dep.: T3.1* · ✅ **HECHA (2026-08-22)**
+`audita_cap4.py` sobre `audita_base.py` — **420 comprobaciones, 0 fallos, 7 saltadas declaradas**—
+y `prueba_auditor_cap4.py`, **96 inyecciones, 96 cazadas**.
+- **La independencia es la más fuerte de las tres auditorías hasta ahora: se reimplementa la K de
+  Ripley entera.** Las distancias salen de scipy; el peso de la corrección de traslación se escribe
+  con su fórmula cerrada para rectángulos, (a−|dx|)(b−|dy|); los conteos por cuadrante se binan con
+  el convenio de `cut()` reproducido a mano; las esperanzas por celda salen de recortar cada celda
+  contra la ventana con shapely; la Poisson la pone scipy. La K sin corregir de Bogotá se recuenta
+  sobre **2,2 millones de parejas** con un árbol k-d.
+- **Tres convenios de spatstat se fijaron MIDIENDO antes de escribir el auditor**, y cada uno valía
+  una auditoría entera de falsos fallos: la normalización es **n(n−1)** y no n²; se cuenta con
+  **`<=`** (lo decide `cells`, que tiene una pareja justo sobre un nodo y spatstat la incluye); y el
+  **último nodo** es otra historia, porque `japanesepines` tiene 8 parejas a distancia exactamente
+  r_max y ahí spatstat no las cuenta. Ese nodo se salta **declarándolo**, no ensanchando la
+  tolerancia hasta que pase.
+- **Cuatro defectos reales cazados en la primera pasada**, y dos de ellos importan. Ver **A.19**.
+- **Retropropagado a `audita_base.py`:** la cuantización del `.geomapa` se validaba solo sobre
+  `geom`, así que en un mapa de modo `puntos` una `q` mentida pasaba. Ahora se validan también
+  `pts`, `lineas` y `puntos2`. Los capítulos 1, 2, 3 y el taller siguen en verde con la
+  comprobación nueva: **1075/0, 449/0, 356/0 y 531/0**.
 
 **T3.2 — Ensamblado del capítulo 4** · *Alcance: L* · ⬜ **PENDIENTE** — 12 módulos, ~11 simuladores,
 **12 preguntas y 5 ejercicios** (la desviación del molde, declarada).
@@ -2560,7 +2577,8 @@ escriben: son doce del capítulo 1 y nueve del taller.
 
 El §6 declara, para el capítulo 4: «las envolventes son caras. Todas se precalculan en R». Cierto
 el remedio, **equivocada la causa**, y la diferencia decide el diseño del precálculo. Medido sobre
-el patrón colombiano en su ventana urbana —2 107 sedes dentro, **27 partes y 13 767 vértices**—,
+el patrón colombiano en su ventana urbana —2 107 sedes dentro, **22 piezas, 5 agujeros y 13 767
+vértices**—,
 una sola estimación:
 
 | Operación | Segundos |
@@ -2628,7 +2646,7 @@ dos viven declarados juntos en `puntual.R`.
 
 **3. La corrección de Clark-Evans que traen los libros no existe para una ventana real.**
 `clarkevans()` devuelve la de Donnelly **solo si la ventana es un rectángulo** —su fórmula lleva el
-perímetro de uno—. Sobre `cells` la devuelve; sobre la ventana urbana de Bogotá, de 27 partes, no:
+perímetro de uno—. Sobre `cells` la devuelve; sobre la ventana urbana de Bogotá, de 22 piezas, no:
 ahí quedan `naive` y `cdf`. El ejercicio E5 lo pedía por su nombre y murió con «subíndice fuera de
 los límites». Se quedó **dentro** del ejercicio, porque la lección es justamente esa: la corrección
 canónica supone una forma de ventana que el dato real no tiene.
@@ -2641,3 +2659,50 @@ misma banda mejor estimada. Manteniendo el nivel fijo al 5 % la banda sí se est
 a 999 simulaciones. Las dos series se leen al revés, y por eso el módulo 11 publica las dos. La
 primera versión del comentario afirmaba lo contrario; la corrigió el `message()` de la propia
 ejecución, no una relectura.
+
+### A.19 · Lo que cazó el auditor del capítulo 4, y lo que cazó el arnés al auditor (2026-08-22)
+
+`audita_cap4.py` dio **4 fallos en su primera pasada** sobre un precálculo que ya estaba commiteado,
+con sus 28 anclas en verde y reproducible byte a byte. Ninguno de los cuatro lo habría encontrado
+una relectura, porque los cuatro son de la clase que este proyecto persigue: **la operación que
+devuelve algo plausible en vez de fallar.**
+
+**1. `partes` no eran partes, y la cifra viajó hasta el plan.** El generador publicaba
+`length(owin$bdry)` bajo ese nombre, y eso no cuenta piezas: cuenta **componentes de frontera**, o
+sea piezas *más* agujeros. La ventana urbana son **22 piezas disjuntas y 5 agujeros**, no 27 partes.
+Se escribió «27 partes» en el generador, en el anexo A.17, en el ejercicio E5 y en un mensaje de
+commit. Lo destapó el auditor porque shapely cuenta las piezas por su lado y no coincidía.
+*Y el arreglo se equivocó también, lo cual es la mitad interesante:* el segundo intento clasificaba
+cada componente por el signo de su área —spatstat recorre los agujeros al revés— y daba **23 + 3 =
+26**, uno menos que las componentes, porque hay anillos degenerados de área casi nula donde el signo
+no decide nada. Clasificar por el signo era adivinar con aspecto de medir. La cuenta buena sale de
+la estructura explícita del polígono de `sf` —un MULTIPOLYGON es una lista de piezas y cada pieza
+una lista de anillos— y lleva una guarda que **para** si piezas y agujeros no suman las componentes.
+
+**2. La K sin corregir no vale cero en el origen: vale 6 839.** Son las parejas a distancia
+exactamente cero, es decir **las 79 sedes coincidentes del módulo 7**. El átomo de los duplicados,
+que el capítulo enseña en G, se cuela también en K. La afirmación del módulo 10 —«sin corregir, K
+queda siempre por debajo»— es falsa exactamente ahí, y por un motivo que es material del capítulo,
+no un defecto. Pasó a ser «**para r > 0**», con su guarda propia, y el valor en el origen se publica
+en vez de recortarse: enlaza los módulos 7 y 10 con una cifra.
+
+**3. `r10()` redondea DECIMALES, no cifras significativas.** λ en m² vale 5,7e-06, y a diez
+decimales de eso sobreviven cinco cifras. La identidad «λ en m² es λ en km² entre un millón» no
+puede exigirse con tolerancia relativa de 1e-9 sobre un número que el propio formato de publicación
+ya truncó. Se comprueba contra el redondeo que de verdad hay, con tolerancia absoluta.
+
+**Y lo que el ARNÉS le cazó al auditor**, que es la otra mitad del trabajo:
+
+**4. `swedishpines` se publicaba y no lo miraba nadie.** El módulo 3 publica sus siete cifras y el
+ejercicio E2 trabaja entero sobre él, pero el CSV de coordenadas solo llevaba los tres patrones que
+se dibujan. El arnés le cambió la R de Donnelly y el auditor no se enteró: sin coordenadas, no había
+nada contra qué recalcular. Ahora el CSV lleva los cuatro y E2 se recalcula de verdad —su χ² con el
+convenio de `cut()` y su R con scipy— en vez de comprobarse consigo mismo.
+
+**5. Un hueco en el NÚCLEO COMPARTIDO, que llevaba ahí desde T0.3.** `audita_geomapa()` validaba la
+cuantización declarada solo sobre `geom`, la geometría de polígonos. En un mapa de modo `puntos` una
+`q` mentida pasaba sin más. Los capítulos 1 a 3 nunca lo notaron porque sus mapas llevan `geom` y la
+comprobación mordía ahí; el capítulo 4 es el primero cuyos **siete mapas son todos de puntos**.
+Ahora se validan también `pts`, `lineas` y `puntos2`, y los cuatro auditores anteriores siguen en
+verde con la comprobación nueva: **1075/0, 449/0, 356/0 y 531/0**. Es el mismo patrón de A.10 y de
+T0.5: el defecto del núcleo sobrevive en todos los que lo usan, informando «limpio».

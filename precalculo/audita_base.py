@@ -189,27 +189,42 @@ def audita_geomapa(a: Auditoria, mapa: dict, nombre: str, presupuesto_kb: float 
     cod = mapa.get("codificacion", "absoluta")
     a.cierto(cod in ("absoluta", "delta"),
              f"{nombre}: la codificación de la geometría va declarada", cod)
-    if mapa.get("geom"):
+    # TODAS LAS COORDENADAS, NO SOLO LAS DE `geom`. Hasta el capítulo 4
+    # esto miraba únicamente los polígonos, y por eso una `q` mentida
+    # pasaba sin más en un mapa de modo `puntos`: lo destapó el arnés de
+    # inyección del capítulo 4, cuyos siete mapas son todos de ese modo.
+    # Los capítulos 1 a 3 nunca lo notaron porque sus mapas llevan `geom`
+    # y la comprobación sí mordía ahí. Las coordenadas de `pts`, de las
+    # polilíneas de fondo y de la capa `puntos2` viven en la MISMA
+    # cuantización, así que se validan igual.
+    def _coords_de(parte, delta=False):
+        if delta:
+            xs, ys, ax, ay = [], [], 0, 0
+            for i in range(0, len(parte), 2):
+                ax = parte[i] if i == 0 else ax + parte[i]
+                ay = parte[i + 1] if i == 0 else ay + parte[i + 1]
+                xs.append(ax); ys.append(ay)
+            return xs + ys
+        return list(parte)
+
+    partes_xy = []
+    for rasgo in mapa.get("geom") or []:
+        for parte in rasgo:
+            partes_xy.append(_coords_de(parte, cod == "delta"))
+    for campo in ("pts", "puntos2"):
+        if mapa.get(campo):
+            partes_xy.append(list(mapa[campo]))
+    for linea in mapa.get("lineas") or []:
+        partes_xy.append(list(linea))
+
+    if partes_xy:
         q = mapa.get("q") or 4096
-        lo = hi = None
-        for rasgo in mapa["geom"]:
-            for parte in rasgo:
-                if cod == "delta":
-                    xs, ys = [], []
-                    ax = ay = 0
-                    for i in range(0, len(parte), 2):
-                        ax = parte[i] if i == 0 else ax + parte[i]
-                        ay = parte[i + 1] if i == 0 else ay + parte[i + 1]
-                        xs.append(ax); ys.append(ay)
-                else:
-                    xs, ys = parte[0::2], parte[1::2]
-                for v in xs + ys:
-                    lo = v if lo is None else min(lo, v)
-                    hi = v if hi is None else max(hi, v)
-        a.cierto(lo is not None and -1 <= lo and hi <= q + 1,
-                 f"{nombre}: los vértices caen dentro de la cuantización declarada",
+        todos = [v for parte in partes_xy for v in parte]
+        lo, hi = min(todos), max(todos)
+        a.cierto(-1 <= lo and hi <= q + 1,
+                 f"{nombre}: las coordenadas caen dentro de la cuantización declarada",
                  f"[{lo}, {hi}] con q = {q}")
-        a.cierto(hi is not None and hi > q * 0.5,
+        a.cierto(hi > q * 0.5,
                  f"{nombre}: y la ocupan de verdad (la q no está inflada)",
                  f"máximo {hi} de {q}")
 

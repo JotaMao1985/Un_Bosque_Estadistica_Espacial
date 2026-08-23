@@ -1581,8 +1581,9 @@ solucion_cap4 <- function() {
   # LA CORRECCIÓN DEL LIBRO NO EXISTE PARA ESTA VENTANA, y eso es parte
   # del ejercicio. `clarkevans()` devuelve la de Donnelly solo si la
   # ventana es un RECTÁNGULO —su fórmula lleva el perímetro de uno—, y la
-  # de Bogotá tiene 27 partes. Para una ventana cualquiera queda la
-  # corrección por la función de distribución (`cdf`), y la de guarda
+  # de Bogotá tiene 22 piezas y 5 agujeros. Para una ventana cualquiera
+  # queda la corrección por la función de distribución (`cdf`), y la de
+  # guarda
   # exige una región de guarda que aquí no hay. Se comprueba en vez de
   # darlo por supuesto: la primera versión de este ejercicio pedía
   # Donnelly y murió con «subíndice fuera de los límites».
@@ -1641,7 +1642,8 @@ solucion_cap4 <- function() {
       "vecinos, nunca sobran. Por eso ignorar el borde empuja SIEMPRE",
       "hacia «más regular de lo que es», y por eso el error es peligroso:",
       "no añade ruido, añade una dirección. Con una ventana como la de",
-      "Bogotá —27 partes y un perímetro larguísimo para su área— hay mucho",
+      "Bogotá —22 piezas, 5 agujeros y un perímetro larguísimo para su área—",
+      "hay mucho",
       "más borde que en el cuadrado de un libro de texto, y el sesgo crece",
       "con r porque a r grande casi todos los discos tocan el borde.",
       "Clark-Evans lo confirma por su lado: R pasa de", sprintf("%.4f", ce_naive),

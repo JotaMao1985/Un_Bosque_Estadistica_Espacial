@@ -21,8 +21,9 @@
 #     0,11 s, porque su ventana es un RECTÁNGULO. Lo que se paga es el
 #     perímetro contra el que hay que corregir, y la isotrópica de
 #     Ripley lo recorre por pareja de puntos: 127 s por estimación
-#     contra 0,42 s de la traslación, sobre las 27 partes y los 13 767
-#     vértices del perímetro urbano de Bogotá. Con la isotrópica, una
+#     contra 0,42 s de la traslación, sobre las 22 piezas, 5 agujeros y
+#     13 767 vértices del perímetro urbano de Bogotá. Con la isotrópica,
+#     una
 #     envolvente de 999 son 35 horas. La isotrópica se calcula UNA vez
 #     por patrón —no 999— y el módulo 10 publica la diferencia en la
 #     ESTIMACIÓN y el coste. Ver A.17 del plan.
@@ -182,8 +183,12 @@ ancla(npoints(bei),         3604, "bei (Condit, Barro Colorado)", tol = 0)
 ancla(npoints(lansing),     2251, "lansing (Gerrard)", tol = 0)
 ancla(npoints(chorley),     1036, "chorley (Diggle)", tol = 0)
 
+# `n_anclas` se rellena al final, cuando ya están todas contadas: aquí
+# valdría 14 y el auditor comprobaría un número que no significa nada.
 D$meta <- list(
   capitulo = 4L, generado = format(Sys.Date()), semilla = SEMILLA,
+  semillas = list(csr = SEM_CSR, ciego = SEM_CIEGO, envolventes = SEM_ENV,
+                  thomas = SEM_THOMAS),
   nsim_envolventes = NSIM_ENV, nsim_escala = NSIM_ESCALA,
   # La corrección de borde de las envolventes viaja EN EL DATO, no en la
   # prosa del ensamblador: el Checkpoint 3 exige que el material la diga
@@ -203,19 +208,63 @@ message("1. el objeto ppp y la ventana")
 # La ventana como objeto medible: partes y vértices. No es una curiosidad
 # geométrica —es la variable que decide el coste de todo el capítulo, y
 # el módulo 10 vuelve sobre ella con el cronómetro en la mano.
-resumen_ventana <- function(p, fuera, nombre, descripcion) {
+# `length(owin$bdry)` NO CUENTA PIEZAS: cuenta COMPONENTES DE FRONTERA, y
+# un polígono con un agujero aporta dos —su contorno exterior y el del
+# agujero—. La ventana urbana son 22 piezas disjuntas y 5 agujeros, que
+# suman 27; llamar «27 partes» a eso publica una cifra que no significa
+# lo que su nombre dice, y así se escribió hasta que el auditor en
+# Python, que cuenta las piezas con shapely, no coincidió. Se publican
+# las tres, porque las tres se usan: las piezas describen la ciudad, los
+# agujeros explican parte del perímetro, y las componentes son lo que
+# recorre la corrección isotrópica.
+#
+# CONTAR PIEZAS Y AGUJEROS NO ES CONTAR COMPONENTES DE FRONTERA.
+# `length(owin$bdry)` da 27 para la ventana urbana, y eso NO son 27
+# piezas: son 22 piezas disjuntas más 5 agujeros. Publicarlo como
+# «27 partes» —que es como se escribió primero, hasta en el plan— es
+# publicar una cifra que no significa lo que su nombre dice, y lo cazó el
+# auditor en Python al contar las piezas con shapely.
+#
+# El segundo intento fue clasificar cada componente por el signo de su
+# área, porque spatstat recorre los agujeros al revés. TAMPOCO: sale
+# 23 + 3 = 26, uno menos que las componentes, porque hay anillos
+# degenerados de área prácticamente nula donde el signo no decide nada.
+# Clasificar por el signo era adivinar con aspecto de medir.
+#
+# Se cuentan donde la estructura está EXPLÍCITA: en el polígono de sf, un
+# MULTIPOLYGON es una lista de piezas y cada pieza una lista de anillos,
+# el primero exterior y los demás agujeros. Y se comprueba que la suma
+# cuadre con las componentes de spatstat, que es una comprobación que
+# puede fallar.
+piezas_y_agujeros <- function(ventana_sf) {
+  g <- sf::st_geometry(sf::st_union(ventana_sf))[[1]]
+  if (inherits(g, "MULTIPOLYGON")) {
+    list(piezas = length(g),
+         agujeros = sum(vapply(g, function(pieza) length(pieza) - 1L, 0L)))
+  } else {
+    list(piezas = 1L, agujeros = length(g) - 1L)
+  }
+}
+
+resumen_ventana <- function(p, ventana_sf, fuera, nombre, descripcion) {
   a <- area.owin(p$window)
+  pa <- piezas_y_agujeros(ventana_sf)
+  if (pa$piezas + pa$agujeros != length(p$window$bdry))
+    stop(sprintf("%s: %d piezas y %d agujeros no suman las %d componentes de frontera de spatstat",
+                 nombre, pa$piezas, pa$agujeros, length(p$window$bdry)))
   list(nombre = nombre, descripcion = descripcion,
        n = npoints(p), fuera = fuera,
        area_km2 = r10(a / 1e6), perimetro_km = r10(perimeter(p$window) / 1000),
        lambda_km2 = r10(npoints(p) / (a / 1e6)),
-       partes = length(p$window$bdry), vertices = ppp_vertices(p$window))
+       piezas = pa$piezas, agujeros = pa$agujeros,
+       componentes_frontera = length(p$window$bdry),
+       vertices = ppp_vertices(p$window))
 }
 D$m1 <- list(
   sedes_total = nrow(cole),
-  urbana = resumen_ventana(p_urb, fuera_urb, "Perímetro urbano",
+  urbana = resumen_ventana(p_urb, v_urb, fuera_urb, "Perímetro urbano",
                            "El suelo urbano de Bogotá, sin los cerros ni la ruralidad del D.C."),
-  dc = resumen_ventana(p_dc, fuera_dc, "Distrito Capital",
+  dc = resumen_ventana(p_dc, v_dc, fuera_dc, "Distrito Capital",
                        "El D.C. completo, incluida Sumapaz y los cerros orientales"),
   # El cociente es LA cifra del módulo: el mismo dato, la misma ciudad y
   # dos intensidades que se llevan un factor de más de cuatro. La ventana
@@ -303,6 +352,15 @@ regimen <- function(p, nombre, fuente, regimen) {
   esperada <- 0.5 / sqrt(n / a)
   list(nombre = nombre, fuente = fuente, regimen = regimen,
        n = n, area = r10(a), lambda = r10(n / a),
+       # La ventana viaja CON el patrón. Sin ella, el auditor en Python
+       # tendría que transcribir a mano que `redwood` vive en
+       # [0,1]x[-1,0] y `swedishpines` en [0,96]x[0,100], y una
+       # transcripción a mano en el control es exactamente lo que el
+       # control existe para no tener que creerse.
+       ventana = r10(c(p$window$xrange[1], p$window$yrange[1],
+                       p$window$xrange[2], p$window$yrange[2])),
+       ventana_rectangular = as.integer(is.rectangle(p$window)),
+       perimetro = r10(perimeter(p$window)),
        nn_media = r10(mean(nn)), nn_sd = r10(sd(nn)),
        nn_min = r10(min(nn)), nn_max = r10(max(nn)),
        nn_esperada = r10(esperada),
@@ -734,7 +792,8 @@ names(curvas_b) <- CORRECCIONES
 k_teo_b <- curva(bordes$translate$fv, "theo", rg_b)
 
 D$m10 <- list(
-  ventana = list(partes = length(p_urb$window$bdry),
+  ventana = list(piezas = D$m1$urbana$piezas, agujeros = D$m1$urbana$agujeros,
+                 componentes_frontera = D$m1$urbana$componentes_frontera,
                  vertices = ppp_vertices(p_urb$window),
                  perimetro_km = r10(perimeter(p_urb$window) / 1000)),
   r = r6(rg_b), k_teo = k_teo_b,
@@ -742,6 +801,16 @@ D$m10 <- list(
     correccion = cr, segundos = r6(bordes[[cr]]$segundos),
     k = curvas_b[[cr]],
     l_menos_r = r6(sqrt(curvas_b[[cr]] / pi) - rg_b))),
+  # EL ÁTOMO DE LOS DUPLICADOS APARECE TAMBIÉN AQUÍ, y lo destapó el
+  # auditor. En r = 0 la K SIN corregir no vale cero: vale lo que aportan
+  # las parejas a distancia exactamente cero, que son las 79 sedes
+  # coincidentes del módulo 7. Es el mismo átomo que allí se ve en G,
+  # ahora en K, y por eso la afirmación «sin corregir siempre queda por
+  # debajo» vale PARA r > 0 y no en el origen. Se publica en vez de
+  # recortar la curva: los duplicados no son una anécdota del dato, se
+  # cuelan en todos los estimadores, y eso enlaza los módulos 7 y 10.
+  k_cero_sin_corregir = curvas_b$none[1],
+  k_cero_traslacion = curvas_b$translate[1],
   # QUÉ PASA SI SE IGNORA, en una cifra: cuánto se pierde de K en el
   # tramo largo por no corregir. Es una subestimación, siempre, y por eso
   # el patrón parece más regular de lo que es.
@@ -765,6 +834,8 @@ D$m10 <- list(
 # Las dos afirmaciones del módulo, comprobadas y no supuestas.
 if (D$m10$sesgo_max_pct <= 0)
   stop("sin corregir, K ya no queda por debajo: el módulo 10 afirma que sí")
+if (any(curvas_b$none[-1] > curvas_b$translate[-1] + 1e-9))
+  stop("sin corregir, K supera a la corregida en algún r > 0: el módulo 10 afirma que no")
 if (bordes$isotropic$segundos <= bordes$translate$segundos)
   stop("la isotrópica ya no es la cara: la decisión 1 se apoyaba en que lo fuera")
 message(sprintf("  coste: iso=%.1fs  trans=%.2fs  border=%.2fs  none=%.2fs  (x%.0f)",
@@ -951,7 +1022,7 @@ message("mapas")
 # mismo objeto y conviene que el material los separe en voz alta.
 # Cada parte del contorno viaja como una polilínea. El identificador de
 # parte es L2 en un POLYGON y L3 en un MULTIPOLYGON, y la ventana urbana
-# es de las segundas: sin mirar las dos columnas, las 27 partes salen
+# es de las segundas: sin mirar las dos columnas, las piezas salen
 # empalmadas en una sola línea que cruza la ciudad.
 partes_de <- function(ventana, presupuesto) {
   s <- geo_simplifica(ventana, presupuesto = presupuesto, verbose = FALSE)
@@ -1009,6 +1080,9 @@ MAPAS$meta <- list(capitulo = 4L, generado = D$meta$generado)
 # =====================================================================
 message("salidas")
 
+# El conteo de anclas se sella AQUÍ, con todas ya comprobadas.
+D$meta$n_anclas <- N_ANCLAS
+
 txt_datos <- jsonlite::toJSON(D, auto_unbox = TRUE, digits = 10,
                               null = "null", na = "null")
 if (grepl('"NA"', txt_datos, fixed = TRUE))
@@ -1035,8 +1109,17 @@ data.table::fwrite(data.table(
   clase = cole$clase[en_urb], zona = cole$zona[en_urb],
   estrato = cole$estrato[en_urb]),
   file.path(SALIDAS, "cap4_bogota_urbana.csv"))
+# LOS CUATRO, no los tres que se dibujan. `swedishpines` no tiene mapa
+# —el módulo 3 enseña tres regímenes y con cuatro imágenes se pierde la
+# terna— pero SÍ tiene cifras publicadas en el módulo 3 y es el patrón
+# sobre el que trabaja el ejercicio E2. Sin sus coordenadas aquí, el
+# auditor no puede recalcular ninguna de las dos cosas, y de hecho no
+# podía: el arnés de inyección le cambió la R de Donnelly y no se enteró
+# nadie. Un dato publicado sin fuente auditable es un dato en el que hay
+# que creer.
 data.table::fwrite(rbindlist(lapply(
-  list(cells = cells, japanesepines = japanesepines, redwood = redwood),
+  list(cells = cells, japanesepines = japanesepines, redwood = redwood,
+       swedishpines = swedishpines),
   function(z) data.table(x = z$x, y = z$y)), idcol = "patron"),
   file.path(SALIDAS, "cap4_regimenes.csv"))
 data.table::fwrite(data.table(
