@@ -985,12 +985,32 @@ código de verdad.
   `cuenta_sitio.py` en verde con los cinco archivos enlazados, consola limpia en los doce módulos y
   los siete mapas con tinta. El precálculo sigue reproducible byte a byte y el auditor, en 420/0.
 
-**T3.3 — Verificación y cierre del Corte II (cap. 4)** · *Alcance: M* · ⬜ **PENDIENTE**
-Falta el auditor de prosa `audita_texto_cap4.py` con su arnés, la lectura de ritmo del §9.1 sobre
-los doce módulos, y el recorrido con la consola instrumentada **forzando `chart.draw()`** —la
-trampa de A.13, que aquí volvió a aparecer: con el panel del navegador oculto los lienzos de
-Chart.js quedan a ancho cero y un control ingenuo los daría por vacíos—. Sin desbordamiento a
-1 280, 375 ni 318 px.
+**T3.3 — Verificación y cierre del capítulo 4** · *Alcance: M* · *Dep.: T3.2* · ⬜ **PENDIENTE**
+
+Los cuatro trabajos que quedan, con sus puntos de enganche ya localizados:
+
+1. **`precalculo/audita_texto_cap4.py`** — el auditor de prosa. El molde es
+   `audita_texto_cap3.py` (189 líneas): toda la maquinaria vive en `audita_texto_base.py` y el
+   archivo del capítulo solo declara QUÉ comprobar. Tiene que exigir que **toda cifra de la prosa**
+   esté en `cap4_datos.json` o en `cap4_soluciones.json`, que el capítulo cubra los doce módulos que
+   el §6 le asigna, que cite sus fuentes, la accesibilidad del marcado y de los `.geomapa`, las
+   tildes y los enlaces relativos. **El presupuesto de geometría de este capítulo es 150 KB**
+   (declarado en T3.1: 2 107 + 2 208 puntos son el DATO, no geometría de fondo simplificable), y el
+   archivo real usa 60,2 KB.
+2. **Su arnés, dentro de `prueba_texto.py`** — no es un archivo nuevo. Hay que añadir la entrada
+   `"cap4": ("audita_texto_cap4.py", "CAP4_HTML", …)` al registro de la línea ~99, escribir
+   `defectos_cap4()` siguiendo `defectos_cap3()` (línea ~522) y añadirla al diccionario de la línea
+   ~604.
+3. **El recorrido con la consola instrumentada**, los doce módulos, **forzando `chart.draw()`**.
+   Es la trampa de A.13 y en T3.2 volvió a aparecer con otra cara: **con el panel del navegador
+   oculto, los lienzos de Chart.js quedan a ancho cero** —los `.geomapa` no, porque
+   `iniciarGeomapas()` les fija el tamaño— y un control ingenuo daría los diez simuladores por
+   vacíos. Ya se comprobó con el panel activo que traen sus datos y pintan al forzar
+   `resize/update/draw`; falta el recorrido completo. Sin desbordamiento horizontal a **1 280, 375
+   ni 318 px**.
+4. **La lectura de ritmo del §9.1** sobre los doce módulos, y `audita_todo.sh` entero, que recoge
+   solo el capítulo 4 automáticamente (su bucle busca `audita_capN.py` y `prueba_auditor_capN.py`)
+   pero necesita que el auditor de prosa exista para incluirlo.
 
 **T3.4–T3.6 — Capítulo 5** · *Alcance: L*
 
