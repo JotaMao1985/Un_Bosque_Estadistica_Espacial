@@ -43,6 +43,21 @@ Devuelve 1 si algo falla.
 CAP2_DATOS, CAP2_MAPAS y CAP2_SOLUCIONES permiten apuntar a copias con
 defectos inyectados: es lo que hace `prueba_auditor_cap2.py`. Los archivos
 publicados no se tocan nunca.
+
+LOS RÓTULOS TIENEN PRESUPUESTO: 57 CARACTERES, PREFIJO INCLUIDO.
+`Auditoria.cierto()` rellena el rótulo hasta 58 antes del detalle, así que
+uno de 58 o más queda pegado a su detalle por un solo espacio y el arnés
+—que lee el informe con una expresión regular para saber qué
+comprobaciones se han visto fallar— no puede separarlos: la comprobación
+deja de contarse como cubierta aunque haya fallado. No rompe nada que se
+vea; corrompe el recuento de cobertura, en silencio.
+
+Este archivo llegó a tener 69 rótulos pasados. Se acortaron el 2026-08-24
+moviendo el matiz al DETALLE, que no paga presupuesto —«declara False,
+recalculado False» dice más que «coincide con el recálculo» y ocupa cero—,
+y acortando el nombre de las vistas de proyección con
+`audita_base.rotulos_de_vistas()`. Nueve quedan justo en 57: al añadir o
+renombrar cualquier cosa aquí, medir.
 """
 from __future__ import annotations
 
@@ -57,7 +72,7 @@ warnings.filterwarnings("ignore")
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from audita_base import (Auditoria, audita_geomapa, carga as _carga,
-                         decimales, sin_nan)
+                         decimales, rotulos_de_vistas, sin_nan)
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 PRECALCULO = RAIZ / "precalculo"
@@ -253,7 +268,7 @@ def main() -> int:
                  for i in range(len(G["lat"]) - 1)),
              "el grado de latitud CRECE con la latitud (achatamiento)")
     a.cierto(G["lat_esfera_constante"] < 1e-6,
-             "sobre la esfera el grado de latitud es constante, y eso es el artefacto",
+             "sobre la esfera el grado de latitud es constante",
              f"recorrido {G['lat_esfera_constante']:.2e} m")
     a.cierto(G["lat_elipsoide_recorrido_m"] > 1000,
              "sobre el elipsoide recorre más de un kilómetro",
@@ -307,16 +322,17 @@ def main() -> int:
         # LAS BANDERAS SE RECALCULAN, NO SE LEEN. Un JSON que dice de sí
         # mismo que una proyección es conforme no es evidencia de nada.
         a.cierto(T["conforme"][i] == (max(oms) < 1e-6),
-                 f"{nombre}: la bandera «conforme» coincide con el recálculo",
-                 f"declara {T['conforme'][i]}")
+                 f"{nombre}: «conforme» recalculada",
+                 f"declara {T['conforme'][i]}, recalculado {max(oms) < 1e-6}")
         a.cierto(T["equivalente"][i] == (max(abs(x - 1) for x in ss) < 1e-3),
-                 f"{nombre}: la bandera «equivalente» coincide con el recálculo",
-                 f"declara {T['equivalente'][i]}")
+                 f"{nombre}: «equivalente» recalculada",
+                 f"declara {T['equivalente'][i]}, "
+                 f"recalculado {max(abs(x - 1) for x in ss) < 1e-3}")
 
     # El teorema de Tissot: ninguna proyección del plano puede ser las dos
     # cosas. Se comprueba sobre las banderas RECALCULADAS arriba.
     a.cierto(not any(c and e for c, e in zip(T["conforme"], T["equivalente"])),
-             "ninguna proyección es conforme Y equivalente (teorema de Tissot)")
+             "ninguna es conforme Y equivalente (Tissot)")
     a.cierto(sum(T["conforme"]) >= 1 and sum(T["equivalente"]) >= 1,
              "hay al menos una de cada familia",
              f"{sum(T['conforme'])} conformes, {sum(T['equivalente'])} equivalentes")
@@ -356,7 +372,7 @@ def main() -> int:
     a.igual(len(areas_csv), len(mun), "filas del CSV de áreas")
     a.cierto(np.allclose(np.sort(ver) / 1e6,
                          np.sort(areas_csv["area_elipsoide_km2"].values), rtol=1e-4),
-             "el área geodésica de pyproj coincide con la de lwgeom en los 1 122",
+             "pyproj y lwgeom dan la misma área geodésica",
              f"máx dif rel {np.max(np.abs(np.sort(ver)/1e6 / np.sort(areas_csv['area_elipsoide_km2'].values) - 1)):.2e}")
 
     for cod, col in ((3116, "area_3116_km2"), (9377, "area_9377_km2"),
@@ -405,10 +421,12 @@ def main() -> int:
     # nunca auditar una bandera, auditar el hecho que la bandera afirma.
     a.cierto(D["epsg"]["gana_9377_peor_caso_continental"] ==
              bool(e9377[~insular].max() < e3116[~insular].max()),
-             "«9377 gana el peor caso continental» coincide con el recálculo")
+             "«9377 gana el peor caso continental»",
+             f"recalculado {bool(e9377[~insular].max() < e3116[~insular].max())}")
     a.cierto(D["epsg"]["gana_3116_mediana_continental"] ==
              bool(np.median(e3116[~insular]) < np.median(e9377[~insular])),
-             "«3116 gana la mediana continental» coincide con el recálculo")
+             "«3116 gana la mediana continental»",
+             f"recalculado {bool(np.median(e3116[~insular]) < np.median(e9377[~insular]))}")
     a.cierto(D["epsg"]["gana_3116_pais_entero"] ==
              bool(e3116.max() < e9377.max()),
              "«3116 gana el país entero» coincide con el recálculo")
@@ -458,7 +476,7 @@ def main() -> int:
     a.igual(sil["desplazamiento_m"], 0.0,
             "reetiquetar 4686 como 4326 NO mueve nada (coinciden)", tol=0.5)
     a.cierto(sil["contraste_desplazamiento_m"] > 400,
-             "y el datum viejo sí: no toda etiqueta equivocada hace daño",
+             "y el datum viejo sí desplaza",   # no toda etiqueta equivocada hace daño
              f"{sil['contraste_desplazamiento_m']:.2f} m")
 
     # -----------------------------------------------------------------
@@ -472,10 +490,10 @@ def main() -> int:
     a.igual(100 * (ME["area_esfera_km2"] - ME["area_elipsoide_km2"]) / ME["area_elipsoide_km2"],
             ME["dif_esfera_pct"], "el porcentaje cuadra con los dos valores", tol=1e-6)
     a.cierto(0.3 < ME["dif_esfera_pct"] < 0.7,
-             "y está en el orden que la geodesia predice para esta latitud",
+             "y en el orden que predice la geodesia",
              f"{ME['dif_esfera_pct']:.5f} %")
     a.cierto(abs(ME["dif_9377_pct"]) < abs(ME["dif_esfera_pct"]),
-             "proyectar a 9377 se acerca más al elipsoide que la esfera de s2")
+             "9377 se acerca al elipsoide más que la esfera")
     MU = D["medir"]["municipios"]
     a.cierto(MU["equivalente_a_municipios"] > 10,
              "el error de la esfera equivale a decenas de municipios",
@@ -546,7 +564,8 @@ def main() -> int:
              "y la mayoría aterriza en la Antártida",
              f"{max(CS['destino']['n'])} de {CS['n']}")
     a.cierto(all(-90 <= v <= 90 for v in (CS["caja_mal"][1], CS["caja_mal"][3])),
-             "las coordenadas invertidas siguen siendo latitudes válidas: por eso nadie avisa")
+             "las invertidas siguen siendo latitudes válidas",
+             "por eso nadie avisa")
     a.cierto(CS["hubo_aviso"] is False, "st_as_sf no dio ni un aviso")
     a.igual(CS["coma_decimal"]["n_na"], 5,
             "y la coma decimal convierte las cinco coordenadas en NA")
@@ -565,7 +584,7 @@ def main() -> int:
         a.cierto(r["desplaz_med_m"] > 0, f"y el desplazamiento medio a {dg} dec es positivo",
                  f"{r['desplaz_med_m']:.2f} m")
     a.cierto(PO["redondeos"][2]["n_posiciones"] < PO["n_sedes"] / 5,
-             "con dos decimales las sedes colapsan en menos de un quinto de posiciones",
+             "con dos decimales quedan menos de n/5 posiciones",
              f"{PO['redondeos'][2]['n_posiciones']} de {PO['n_sedes']}")
     a.igual(PO["n_sedes"] / PO["redondeos"][2]["n_posiciones"],
             PO["sedes_por_posicion_2dec"], "sedes por posición", tol=1e-6)
@@ -605,10 +624,11 @@ def main() -> int:
     a.igual(float(np.corrcoef(tasa, comp)[0, 1]), SG["corr_pearson"],
             "correlación de la tasa con perímetro/área", tol=1e-6)
     a.cierto(SG["corr_pearson"] > 0.4,
-             "y es sustancial: el sesgo es GEOMÉTRICO, no socioeconómico",
+             "y es sustancial: el sesgo es GEOMÉTRICO",
              f"Pearson {SG['corr_pearson']:.5f}, Spearman {SG['corr_spearman']:.5f}")
     a.cierto(PO["por_estrato"]["monotono_en_estrato"] is False,
-             "mientras que por estrato NO hay patrón monótono, y eso también se publica")
+             "por estrato NO hay patrón monótono",
+             "y eso también se publica")
 
     # -----------------------------------------------------------------
     a.titulo("Módulo 10 · topología y DE-9IM")
@@ -646,7 +666,7 @@ def main() -> int:
              "un buffer de 1 000 m en metros mide pi km²",
              f"{BF['m9377_area_km2']:.5f}")
     a.cierto(BF["m3857_radio_real_m"] < 1000,
-             "y el mismo buffer «de 1 000 m» en 3857 mide menos sobre el terreno",
+             "el buffer «de 1 000 m» en 3857 mide menos",
              f"{BF['m3857_radio_real_m']:.2f} m")
 
     # -----------------------------------------------------------------
@@ -689,7 +709,7 @@ def main() -> int:
              "la celda encoge al alargar el geohash")
     a.cierto(all(f["pct_distinto"] <= GH["frontera"][i + 1]["pct_distinto"]
                  for i, f in enumerate(GH["frontera"][:-1])),
-             "y cuanto más fino el geohash, más vecinos quedan al otro lado")
+             "más fino el geohash, más vecinos al otro lado")
 
     # -----------------------------------------------------------------
     a.titulo("Los mapas")
@@ -709,31 +729,42 @@ def main() -> int:
         n = len(ind["x"])
         a.igual(n, P["n_indicatrices"], f"{v['nombre']}: y son las de la rejilla")
         for campo in ("y", "a", "b", "s", "omega", "orient"):
-            a.igual(len(ind[campo]), n, f"{v['nombre']}: el vector {campo} tiene el mismo n")
+            a.igual(len(ind[campo]), n, f"{v['nombre']}: el vector {campo} tiene n")
         a.cierto(all(x >= y for x, y in zip(ind["a"], ind["b"])),
-                 f"{v['nombre']}: el semieje mayor nunca es menor que el menor")
+                 f"{v['nombre']}: a ≥ b en los semiejes",
+                 "el semieje mayor nunca es menor que el menor")
         a.cierto(all(o >= 0 for o in ind["omega"]),
-                 f"{v['nombre']}: la deformación angular nunca es negativa")
+                 f"{v['nombre']}: omega nunca es negativa",
+                 f"mínima {min(ind['omega']):.2e} (deformación angular)")
         a.cierto(all(s > 0 for s in ind["s"]),
-                 f"{v['nombre']}: la escala de área siempre es positiva")
+                 f"{v['nombre']}: s siempre es positiva",
+                 f"mínima {min(ind['s']):.4f} (escala de área)")
         a.cierto(ind["rq"] > 0, f"{v['nombre']}: el radio base es positivo",
                  f"{ind['rq']:.2f}")
         a.cierto(all(-4096 * 3 <= q <= 4096 * 4 for q in ind["x"] + ind["y"]),
-                 f"{v['nombre']}: las indicatrices caen en un entorno razonable del lienzo")
+                 f"{v['nombre']}: indicatrices en el lienzo",
+                 f"[{min(ind['x'] + ind['y'])}, {max(ind['x'] + ind['y'])}] "
+                 f"dentro de [{-4096 * 3}, {4096 * 4}]")
         # a*b tiene que ser s: son la misma cantidad por dos caminos
         peor = max(abs(aa * bb - ss) for aa, bb, ss in zip(ind["a"], ind["b"], ind["s"]))
-        a.cierto(peor < 1e-3, f"{v['nombre']}: a·b = s en todas las indicatrices",
+        a.cierto(peor < 1e-3, f"{v['nombre']}: a·b = s en todas",
                  f"peor dif {peor:.2e}")
 
     # La relación de aspecto: el criterio duro de T0.3. Un mapa con la
     # escala en x distinta de la de y es un mapa mal dibujado.
     for nombre, mapa in M.items():
-        cajas = ([(v["nombre"], v["caja"]) for v in mapa["vistas"]]
+        # El MISMO rótulo corto que usa `audita_geomapa`, y por el mismo
+        # motivo: si aquí se rotulara con el nombre largo de la vista, la
+        # mitad de estas comprobaciones volvería a arrastrar su detalle.
+        cajas = ([(e, v["caja"]) for e, v in
+                  zip(rotulos_de_vistas([v["nombre"] for v in mapa["vistas"]]),
+                      mapa["vistas"])]
                  if mapa.get("modo") == "proyeccion" else [("", mapa["caja"])])
         for etq, caja in cajas:
             ancho = caja[2] - caja[0]; alto = caja[3] - caja[1]
             a.cierto(ancho > 0 and alto > 0,
-                     f"{nombre}{'/' + etq if etq else ''}: la caja tiene área positiva")
+                     f"{nombre}{'/' + etq if etq else ''}: la caja tiene área",
+                     f"{ancho:.1f} × {alto:.1f}, las dos positivas")
 
     # -----------------------------------------------------------------
     a.titulo("Formato y coherencia general")
@@ -767,7 +798,7 @@ def main() -> int:
     # pequeñas, que son casi todas las del capítulo— pero su cobertura
     # tiene un techo, y callarlo la convertiría en una garantía falsa.
     grandes = [r for r, _ in decimales(D) if True]
-    a.salta("el tope de decimales sobre magnitudes de siete cifras enteras",
+    a.salta("el tope de decimales con siete cifras enteras",
             "un double no puede llevar más de ~10 decimales ahí: la comprobación no puede fallar")
 
     a.igual(D["meta"]["capitulo"], 2, "el capítulo declarado")
@@ -785,7 +816,7 @@ def main() -> int:
     e1 = S["e1"]["solucion"]
     a.cierto(e1["la_isla_cambia_la_respuesta"] ==
              (e1["elegido_continente"] != e1["elegido_con_isla"]),
-             "E1: «la isla cambia la respuesta» coincide con las dos elecciones")
+             "E1: «la isla cambia la respuesta» cuadra")
     a.cierto(e1["elegido_continente"] == "EPSG:9377",
              "E1: sobre el continente gana 9377, como su diseño promete")
     e2 = S["e2"]["solucion"]
@@ -793,7 +824,8 @@ def main() -> int:
                  for i in range(len(e2["radios"]) - 1)),
              "E2: cuanto mayor el radio, más sedes cambian de cuenta")
     a.cierto(e2["cuenta_de_menos"] is True,
-             "E2: y el buffer en grados cuenta SIEMPRE de menos (sesgo con signo)")
+             "E2: el buffer en grados cuenta de menos",
+             "siempre, o sea sesgo con signo")
     a.cierto(e2["achatamiento_oslo"] < e2["achatamiento_bogota"],
              "E2: el achatamiento es mucho peor en Oslo que en Bogotá",
              f"{e2['achatamiento_oslo']:.5f} vs {e2['achatamiento_bogota']:.5f}")
@@ -801,12 +833,13 @@ def main() -> int:
     a.igual(e3["vp"] + e3["fn"], e3["n_invertidas"], "E3: la tabla de confusión cuadra")
     a.igual(e3["vp"] + e3["fp"] + e3["fn"] + e3["vn"], e3["n"], "E3: y suma el total")
     a.cierto(e3["solapan_las_cajas"] is False,
-             "E3: y funciona porque los rangos de lon y lat de Colombia NO se solapan")
+             "E3: los rangos de lon y lat NO se solapan",
+             "por eso funciona")
     e4 = S["e4"]["solucion"]
     a.cierto(e4["vecino_intacto"] == (e4["n_cambia_vecino"] == 0),
              "E4: la bandera del vecino coincide con su conteo")
     a.cierto(e4["umbral_falla"] is True,
-             "E4: y el umbral sí discrepa, que es el contraste del ejercicio")
+             "E4: y el umbral sí discrepa")
     a.cierto(all(e4["umbrales"][i]["discrepan"] <= e4["umbrales"][i + 1]["discrepan"]
                  for i in range(len(e4["umbrales"]) - 1)),
              "E4: las discrepancias crecen con el umbral")

@@ -37,6 +37,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import re
 import sys
 
 
@@ -148,6 +149,44 @@ def sin_nan(o, ruta=""):
             yield ruta
 
 
+def rotulos_de_vistas(nombres: list[str]) -> list[str]:
+    """La forma CORTA de cada vista de un mapa, para el rótulo del informe.
+
+    El nombre de una vista es texto para el estudiante —«MAGNA-SIRGAS /
+    Origen Nacional (9377)» gasta 37 caracteres— y un rótulo tiene 57
+    contando el prefijo. Con el nombre del mapa delante,
+    `proyecciones_colombia/MAGNA-SIRGAS / Origen Nacional (9377):` mide 61
+    ÉL SOLO: no hay texto que quepa detrás, así que acortar la afirmación no
+    arregla nada. Lo que sobra es el nombre bonito.
+
+    Del rótulo solo se necesita que distinga una vista de las otras del
+    MISMO mapa, y para un CRS eso es su código EPSG, que además es su
+    identificador canónico. Se usa cuando el nombre lo trae entre
+    paréntesis. Cuando no lo trae, se recorta a 12 caracteres por frontera
+    de palabra: «Equal Earth» y «Mollweide» caben enteros y «Azimutal
+    equidistante (Bogotá)» queda en «Azimutal». No se usa el paréntesis en
+    ese caso porque «Bogotá» no identifica una proyección.
+
+    Y si dos vistas colapsaran en el mismo corto, se devuelven los largos:
+    un rótulo ambiguo es peor que uno largo. Dos comprobaciones distintas
+    con el mismo rótulo se funden en una sola al contar cobertura, que es
+    EXACTAMENTE el defecto que esto viene a arreglar.
+    """
+    cortos = []
+    for n in nombres:
+        m = re.search(r"\((\d{4,5})\)\s*$", n)      # (9377), (3857)…
+        if m:
+            cortos.append(m.group(1))
+            continue
+        limpio = re.sub(r"\s*\([^()]*\)\s*$", "", n).strip()
+        if len(limpio) <= 12:
+            cortos.append(limpio)
+        else:
+            corte = limpio[:12].rsplit(" ", 1)[0] if " " in limpio[:13] else limpio[:12]
+            cortos.append(corte)
+    return cortos if len(set(cortos)) == len(cortos) else list(nombres)
+
+
 def audita_geomapa(a: Auditoria, mapa: dict, nombre: str, presupuesto_kb: float = 120.0):
     """Las comprobaciones que valen para CUALQUIER `.geomapa`.
 
@@ -163,15 +202,17 @@ def audita_geomapa(a: Auditoria, mapa: dict, nombre: str, presupuesto_kb: float 
 
     cajas = []
     if modo == "proyeccion":
-        for v in mapa.get("vistas", []):
-            cajas.append((v.get("nombre", "?"), v.get("caja"), v.get("q")))
+        vistas = mapa.get("vistas", [])
+        etqs = rotulos_de_vistas([v.get("nombre", "?") for v in vistas])
+        for v, etq in zip(vistas, etqs):
+            cajas.append((etq, v.get("caja"), v.get("q")))
     else:
         cajas.append(("", mapa.get("caja"), mapa.get("q")))
 
     for etq, caja, q in cajas:
         et = f"{nombre}{'/' + etq if etq else ''}"
         if not caja or len(caja) != 4:
-            a.cierto(False, f"{et}: la caja tiene cuatro números", str(caja))
+            a.cierto(False, f"{et}: la caja tiene 4 números", str(caja))
             continue
         a.cierto(caja[0] < caja[2] and caja[1] < caja[3],
                  f"{et}: la caja está ordenada",
@@ -184,7 +225,7 @@ def audita_geomapa(a: Auditoria, mapa: dict, nombre: str, presupuesto_kb: float 
         # dentro de ella. Una q mentida se ve enseguida: los vértices se
         # salen del rango o no llegan ni a la mitad.
         a.cierto(q in (1024, 2048, 4096),
-                 f"{et}: la cuantización es una de las del componente", str(q))
+                 f"{et}: la q es válida", f"{q} (de 1024, 2048, 4096)")
 
     cod = mapa.get("codificacion", "absoluta")
     # 44 caracteres de texto: con `proyecciones_colombia:` delante se iba a 67
