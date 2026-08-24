@@ -40,6 +40,22 @@ Devuelve 1 si algo falla.
 Las variables de entorno CAP1_DATOS, CAP1_MAPAS y CAP1_SOLUCIONES
 permiten apuntar a copias con defectos inyectados: es lo que hace
 `prueba_auditor_cap1.py`. Los archivos publicados no se tocan nunca.
+
+LOS RÓTULOS TIENEN PRESUPUESTO: 57 CARACTERES, PREFIJO INCLUIDO.
+`Auditoria.cierto()` rellena el rótulo hasta 58 antes del detalle, así que
+uno de 58 o más queda pegado a su detalle por un solo espacio y
+`prueba_auditor_base.py` —que lee este informe con una expresión regular
+para saber qué comprobaciones se han visto fallar— no puede separarlos.
+El detalle cambia entre la pasada limpia y la rota, así que la
+comprobación deja de contarse como cubierta AUNQUE HAYA FALLADO. No rompe
+nada que se vea: corrompe el recuento de cobertura, en silencio.
+
+Este archivo llegó a tener 83 rótulos pasados. Se acortaron el 2026-08-24
+sin perder nada, moviendo el matiz al DETALLE, que no paga presupuesto, y
+quitando lo que la propia comparación ya demuestra —`a.igual()` imprime
+las dos cifras, así que «es el de su campo» sobra en el rótulo—.
+Veintidós quedan entre 55 y 57: al añadir o renombrar cualquier cosa
+aquí, medir.
 """
 from __future__ import annotations
 
@@ -219,7 +235,7 @@ def main() -> int:
              "y el aleatorio queda a un lado y otro de 1")
     for k in ("redwood", "japanesepines", "cells"):
         a.igual(ce[k], D["puntual_canonico"][k]["clark_evans"],
-                f"Clark-Evans de {k} coincide entre las dos secciones")
+                f"Clark-Evans de {k}, en las dos secciones")
 
     # =================================================================
     a.titulo("1c · nc.shp, leído por geopandas")
@@ -324,8 +340,8 @@ def main() -> int:
     z = (me.zinc.to_numpy() - me.zinc.mean()) / me.zinc.std(ddof=1)
     a.igual((z ** 3).mean(), pub["asimetria_zinc"], "asimetría del zinc", 1e-7)
     a.cierto(pub["asimetria_zinc"] > 0.5,
-             "el zinc es asimétrico a la derecha, que es por lo que se toma log",
-             f"{pub['asimetria_zinc']:.5f}")
+             "el zinc es asimétrico a la derecha",
+             f"{pub['asimetria_zinc']:.5f}, por eso se toma log")
     a.igual(np.corrcoef(lz, me["dist"].to_numpy())[0, 1], pub["corr_dist_rio"],
             "correlación log-zinc con la distancia al río", 1e-8)
 
@@ -397,7 +413,7 @@ def main() -> int:
     a.igual(mi.I, esc["moran_municipal_n_total"],
             "I de Moran municipal (convenio n = todas)", 1e-6)
     a.cierto(abs(mi.I - esc["moran_municipal"]) > 1e-9,
-             "  y NO coincide con el de spdep, como la discrepancia anuncia",
+             "  y NO coincide con el de spdep",
              f"{mi.I:.7f} frente a {esc['moran_municipal']:.7f}")
     # El convenio de spdep se reconstruye aquí para no darlo por bueno de
     # palabra: I_spdep = I_esda * (n_con_vecinos / n_total).
@@ -409,7 +425,7 @@ def main() -> int:
             esc["grado_municipal"], "grado medio de la vecindad", 1e-7)
     a.igual(w_mun.n_components, esc["subgrafos_municipal"], "subgrafos")
     a.cierto(esc["islas_municipal"] >= 1,
-             "el dato trae islas, que es el caso de zero.policy del cap. 6",
+             "el dato trae islas (zero.policy, cap. 6)",
              str(esc["islas_municipal"]))
 
     # Y el mismo cálculo a escala departamental, re-derivando la
@@ -516,7 +532,7 @@ def main() -> int:
     a.igual(exceso.sum(), caso["exceso_total"], "  y es el exceso total que se publica")
     i_caso = int(exceso.to_numpy().argmax())
     a.cierto(int((exceso == exceso.max()).sum()) == 1,
-             "el criterio del mapa —el que más infla— señala a UN condado",
+             "el criterio del mapa señala a UN condado",
              f"{int((exceso == exceso.max()).sum())} con el máximo")
     a.cierto(str(nc2264["NAME"].iloc[i_caso]) == caso["nombre"],
              "  y en Python sale el mismo",
@@ -549,7 +565,7 @@ def main() -> int:
         calc[fila_col(cel.centroid)] = cel.intersection(gcaso).area / acaso
     pub_rep = {(r["fila"], r["columna"]): r for r in caso["reparto"]}
     a.cierto(set(calc) == set(pub_rep),
-             "las celdas del reparto son exactamente las que el condado toca",
+             "las celdas del reparto son las que el condado toca",
              f"{sorted(calc)} / {sorted(pub_rep)}")
     for clave in sorted(set(calc) & set(pub_rep)):
         f, c = clave
@@ -563,14 +579,14 @@ def main() -> int:
             caso["fraccion_total_pct"],
             "  y el total que la tabla de respaldo publica es esa suma", 1e-7)
     a.igual(sum(r["aporte_area"] for r in caso["reparto"]), caso["sids"],
-            "  y los aportes por área suman sus muertes, no cinco veces sus muertes",
+            "  y los aportes por área suman sus muertes",   # no cinco veces
             1e-7)
     a.igual(min(r["fraccion_pct"] for r in caso["reparto"]), caso["roce_pct"],
             "la celda del roce es la de menos área", 1e-12)
     a.igual(min(r["aporte_area"] for r in caso["reparto"]), caso["roce_aporte_area"],
             "  y su aporte por área es el menor", 1e-12)
     a.cierto(caso["roce_pct"] < 1,
-             "  el roce recibe menos del 1 % del condado y aun así se lleva el conteo entero",
+             "  el roce recibe menos del 1 % del condado",
              f"{caso['roce_pct']} % del área, {caso['aporte_predicado'] // caso['n_celdas_toca']} muertes")
 
     # --- Y ahora el MAPA, contra la geometría y no contra el otro JSON --
@@ -590,7 +606,7 @@ def main() -> int:
     # que el auditor le hace a `n` contra `geom`, y existe por la misma
     # razón — una cifra declarada que puede discrepar de lo que hay.
     a.igual(len(ma["lineas"]), ma["n_lineas"],
-            "  y el n_lineas declarado es el número de polilíneas guardadas")
+            "  y el n_lineas declarado es el que hay")
     a.igual(ma["resaltado"], caso["indice"], "  el condado del caso, resaltado")
     a.igual(len(ma["lineas_resaltadas"]), caso["n_celdas_toca"],
             "  y tantas celdas resaltadas como toca")
@@ -612,14 +628,14 @@ def main() -> int:
         anillo = Polygon(desq(ma["lineas"][k1 - 1]))
         dibujadas.add(fila_col(anillo.centroid))
     a.cierto(dibujadas == set(calc),
-             "los rectángulos que el LIENZO resalta son los que el condado toca",
+             "lo que el LIENZO resalta es lo que el condado toca",
              f"{sorted(dibujadas)} / {sorted(calc)}")
     # Y el polígono resaltado es de verdad el condado del caso: el resalte
     # es un índice 1-basado sobre `geom`, y un desplazamiento de uno pinta
     # de naranja al condado vecino sin que nada falle.
     pintado = Polygon(desq(ma["geom"][ma["resaltado"] - 1][0]))
     a.cierto(gcaso.contains(pintado.centroid),
-             "  y el polígono que se pinta de naranja cae dentro del condado del caso",
+             "  y el naranja cae dentro del condado del caso",
              f"a {gcaso.centroid.distance(pintado.centroid):.0f} pies de su centroide")
 
     # --- Colombia: la misma variable por dos reglas de agregación ----
@@ -691,7 +707,8 @@ def main() -> int:
              "diferencia": float("nan"), "causa": "", "va_a": ""}
     for d in D["discrepancias"]:
         a.cierto(len(d["causa"]) > 60,
-                 f"«{d['id']}»: la causa está explicada, no solo nombrada")
+                 f"«{d['id']}»: la causa está explicada",
+                 f"{len(d['causa'])} caracteres, no solo el nombre")
         a.cierto("capítulo" in d["va_a"],
                  f"«{d['id']}»: se dice a qué capítulo va", d["va_a"])
         a.igual(abs(d["valor_python"] - d["valor_r"]), d["diferencia"],
@@ -699,7 +716,7 @@ def main() -> int:
         a.cierto(d["diferencia"] > 0,
                  f"«{d['id']}»: y no es una discrepancia de cero")
     a.igual(disc.get("moran_islas", VACIA)["valor_python"], mi.I,
-            "«moran_islas»: Python reproduce el valor que la ficha le asigna", 1e-6)
+            "«moran_islas»: Python reproduce el de la ficha", 1e-6)
     a.igual(disc.get("moran_islas", VACIA)["valor_r"], esc["moran_municipal"],
             "«moran_islas»: y el de R es el que publica el módulo 7", 1e-9)
     a.igual(disc.get("moran_islas_dep", VACIA)["valor_python"], mid.I,
@@ -708,7 +725,7 @@ def main() -> int:
             (nc.geometry.geom_type == "MultiPolygon").sum(),
             "«tipo_geometria_nc»: Python reproduce el suyo")
     a.igual(disc.get("tipo_geometria_nc", VACIA)["valor_r"], an["n_multipolygon"],
-            "«tipo_geometria_nc»: y el de R es el que publica el módulo 9")
+            "«tipo_geometria_nc»: y el de R es el del módulo 9")
 
     # =================================================================
     a.titulo("2c · La correlación a dos escalas")
@@ -762,7 +779,7 @@ def main() -> int:
         a.igual(100 * (p["razon"] - 1), p["cambio_pct"],
                 f"  y su cambio porcentual", 1e-6)
         a.cierto(abs(p["r_municipal"]) > 0.20,
-                 f"  el par {p['a']}~{p['b']} tiene señal municipal",
+                 f"{p['a']}~{p['b']}: señal municipal",
                  f"{p['r_municipal']:.5f}")
         a.cierto(p["invierte_signo"] ==
                  (math.copysign(1, p["r_municipal"]) !=
@@ -853,7 +870,7 @@ def main() -> int:
             "inflación de varianza con phi=4")
     a.igual(fila[i4]["s2_esperada"], inf["s2_esperada_phi4"], "E[s^2] con phi=4")
     a.cierto(inf["inflacion_varianza_phi4"] > inf["efecto_diseno_phi4"],
-             "con phi=4 la varianza declarada se queda más corta de lo que se ensancha la real",
+             "con phi=4 la declarada se queda más corta que la real",
              f"{inf['inflacion_varianza_phi4']:.5f} frente a {inf['efecto_diseno_phi4']:.5f}")
     a.cierto(0 < inf["s2_esperada_phi4"] < 1,
              "y la razón está publicada: E[s^2] es menor que sigma^2",
@@ -910,7 +927,7 @@ def main() -> int:
     a.igual(1000 / (1 + 999 * 0.01), ne["caso_n1000_rho001"],
             "el caso n=1000, rho=0.01", 1e-7)
     a.cierto(ne["caso_n1000_rho001"] < 100,
-             "con rho=0.01 y n=1000 queda menos del 10 % de la información",
+             "con rho=0.01 y n=1000 queda menos del 10 %",
              f"{ne['caso_n1000_rho001']:.5f}")
     for e in ne["exacto_campo"]:
         a.igual(100 * e["n_eff"] / D["inferencia"]["n"], e["pct"],
@@ -987,7 +1004,7 @@ def main() -> int:
     a.igual(len(rt["bandas"]), rt["n_bandas"], "el correlograma trae las bandas que declara")
     suma_pares = suma_I = 0.0
     for b in rt["bandas"]:
-        etq = f"rho por bandas {b['d1']}-{b['d2']} km"
+        etq = f"rho {b['d1']}-{b['d2']} km"
         vec = DistanceBand(xy_m, threshold=b["d2"] * 1000, binary=True,
                            silence_warnings=True).neighbors
         if b["d1"] > 0:
@@ -1012,7 +1029,7 @@ def main() -> int:
     a.igual(sum(b["pares"] for b in rt["bandas"] if b["I"] < 0), rt["pares_lejanos"],
             "los pares con correlación negativa que cita la prosa")
     a.cierto(rt["bandas"][0]["I"] > 10 * rt["estimado"],
-             "entre vecinos la correlación es mucho mayor que su promedio",
+             "entre vecinos la correlación supera su promedio",
              f"{rt['bandas'][0]['I']:.5f} contra {rt['estimado']:.7f}")
 
     # =================================================================
@@ -1041,7 +1058,7 @@ def main() -> int:
              "los módulos 4 y 6 miden lo mismo y cuadran",
              f"{ur['discrepancia_con_modulo4'] / emc_conj:.2f} errores de Monte Carlo")
     a.cierto(ur["pct_rechaza_ingenuo"] > 50,
-             "la mayoría de las realizaciones engañarían al análisis ingenuo",
+             "la mayoría engañaría al análisis ingenuo",
              f"{ur['pct_rechaza_ingenuo']:.5f} %")
     vg = ur["variograma"]
     a.igual(len(vg["lags"]), len(vg["teorico"]), "el variograma tiene un teórico por lag")
@@ -1055,7 +1072,7 @@ def main() -> int:
                  for i in range(len(vg["teorico"]) - 1)),
              "el variograma teórico crece con el lag")
     a.cierto(ur["banda_rel_lag4"] > 0.2,
-             "una sola realización se desvía sustancialmente del proceso",
+             "una sola realización se desvía del proceso",
              f"{ur['banda_rel_lag4']:.5f}")
 
     # --- Los tres variogramas del simulador, RECALCULADOS DESDE EL MAPA ---
@@ -1095,7 +1112,7 @@ def main() -> int:
     for fila, mapa in zip(rv, mr):
         q = f"realización {fila['id']}"
         a.igual(mapa["id"], fila["id"], f"{q}: el mapa y su fila llevan el mismo id")
-        a.igual(mapa["nx"], ur["k"], f"{q}: el mapa está en la rejilla que publica el módulo")
+        a.igual(mapa["nx"], ur["k"], f"{q}: el mapa va en la rejilla del módulo")
         a.igual(mapa["ny"], ur["k"], f"{q}: y es cuadrada")
         # Antes de reconstruir nada: que la rejilla declarada case con las
         # celdas que hay. Sin esto, un `nx` incoherente no daba un informe
@@ -1112,7 +1129,7 @@ def main() -> int:
         lo, hi = mapa["rango"]
         z = np.asarray(mapa["zq"], float) / mapa["zqmax"] * (hi - lo) + lo
         a.igual(float(z.mean()), fila["media"],
-                f"{q}: su media espacial, rehecha desde el campo dibujado", 2e-3)
+                f"{q}: su media, rehecha desde el campo", 2e-3)
         a.igual(float(z.std(ddof=1)), fila["sd"], f"{q}: y su sd espacial", 2e-3)
         fil, col = np.divmod(np.arange(mapa["nx"] * mapa["ny"]), mapa["nx"])
         dist = np.hypot(fil[:, None] - fil[None, :], col[:, None] - col[None, :])
@@ -1129,7 +1146,7 @@ def main() -> int:
         curvas.append(fila["variograma"])
         for k, h in enumerate(vg["lags"]):
             a.igual(propio[k], fila["variograma"][k],
-                    f"{q}: su variograma en el rezago {h} es el de su campo", 5e-3)
+                    f"{q}: su variograma en el rezago {h}", 5e-3)
         # Y las cifras que la prosa y la lectura estrenan sobre esa curva.
         rel = [abs(fila["variograma"][k] - vg["teorico"][k]) / vg["teorico"][k]
                for k in range(len(vg["lags"]))]
@@ -1230,7 +1247,8 @@ def main() -> int:
     a.igual(min(cv["tam_pliegues"]), cv["tam_pliegue_min"], "el pliegue menor")
     a.igual(max(cv["tam_pliegues"]), cv["tam_pliegue_max"], "el pliegue mayor")
     a.cierto("capítulo 10" in cv["frontera"],
-             "la frontera con el capítulo 10 queda declarada en el propio dato")
+             "la frontera con el capítulo 10 va en el dato",
+             cv["frontera"][:40])
 
     # =================================================================
     a.titulo("8b · ¿Diseño o modelo? La red del IDEAM, pesada por Thiessen")
@@ -1260,7 +1278,7 @@ def main() -> int:
     a.igual(av.max() / av.min(), dm["razon_areas"], "  y su razón", 1e-4)
     a.igual(tv.mean(), dm["t_media_simple"], "temperatura media sin ponderar", 1e-8)
     a.igual((tv * av).sum() / av.sum(), dm["t_media_area"],
-            "  y ponderada por el territorio que representa cada estación", 1e-8)
+            "  y ponderada por el territorio de cada estación", 1e-8)
     a.igual((tv * av).sum() / av.sum() - tv.mean(), dm["brecha_c"],
             "  la brecha, en grados", 1e-8)
     a.igual(hv.mean(), dm["alt_media_simple"], "altitud media de las estaciones", 1e-7)
@@ -1271,7 +1289,7 @@ def main() -> int:
              "la red NO es una muestra de igual probabilidad",
              f"×{dm['razon_areas']:.5f} entre la mayor y la menor celda")
     a.cierto(dm["alt_media_simple"] > dm["alt_media_area"],
-             "y el desequilibrio va hacia arriba: sobremuestrea la cordillera",
+             "el desequilibrio sobremuestrea la cordillera",
              f"{dm['alt_media_simple']:.5f} m frente a {dm['alt_media_area']:.5f} m")
     a.cierto(dm["brecha_c"] > 1,
              "  así que la media muestral no estima la del país",
@@ -1321,11 +1339,11 @@ def main() -> int:
     for n in ar["nodos"]:
         for o in n["opciones"]:
             if o["destino"] in ids:
-                a.cierto(True, f"«{o['texto'][:40]}» lleva a un nodo del árbol")
+                a.cierto(True, f"«{o['texto'][:24]}»: lleva a un nodo del árbol")
             else:
                 hojas += 1
                 a.cierto("metodo" in o and "capitulo" in o,
-                         f"«{o['texto'][:40]}» es hoja y trae método y capítulo",
+                         f"«{o['texto'][:24]}»: hoja con método y capítulo",
                          str(o.get("capitulo")))
                 a.cierto(1 <= o["capitulo"] <= 10,
                          f"  y su capítulo está en el curso")
@@ -1473,7 +1491,7 @@ def main() -> int:
                 if not dentro:
                     mal.append((idx, v, cl))
             a.cierto(not mal,
-                     f"'{k}': cada valor cae en la clase que sus cortes le asignan",
+                     f"'{k}': cada valor cae en la clase de sus cortes",
                      "" if not mal else f"{len(mal)} fuera, p. ej. {mal[:3]}")
             # Y que ninguna clase declarada quede vacía sin que `tam` lo diga.
             for cl in range(1, len(cortes)):
