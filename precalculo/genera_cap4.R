@@ -79,6 +79,10 @@ NSIM_ESCALA <- c(19L, 39L, 99L, 999L)  # el simulador de nsim del módulo 11
 N_R         <- 101L   # nodos de la rejilla de r: el JSON se lee, no se integra
 
 r10 <- function(x) round(as.numeric(x), 10)
+# `r6` sube aquí porque el módulo 3 ya la necesita para sus histogramas:
+# definida más abajo, el precálculo moría con «no se pudo encontrar la
+# función r6» en el primer histograma.
+r6 <- function(x) signif(as.numeric(x), 6)
 
 # LOS P-VALORES NO PASAN POR r10(), y esto lo destapó la primera pasada
 # del módulo 2: el chi2 de la ventana urbana da p ~ 1e-62 y `round(.,10)`
@@ -186,7 +190,7 @@ ancla(npoints(chorley),     1036, "chorley (Diggle)", tol = 0)
 # `n_anclas` se rellena al final, cuando ya están todas contadas: aquí
 # valdría 14 y el auditor comprobaría un número que no significa nada.
 D$meta <- list(
-  capitulo = 4L, generado = format(Sys.Date()), semilla = SEMILLA,
+  capitulo = 4L, semanas = "6-7", generado = format(Sys.Date()), semilla = SEMILLA,
   semillas = list(csr = SEM_CSR, ciego = SEM_CIEGO, envolventes = SEM_ENV,
                   thomas = SEM_THOMAS),
   nsim_envolventes = NSIM_ENV, nsim_escala = NSIM_ESCALA,
@@ -322,6 +326,29 @@ D$m2 <- list(
   # que la calcule en m2 va a leer 5,7e-06 y tiene que reconocerla.
   lambda_urbana_ha  = r10(npoints(p_urb) / (A_URB / 1e4)),
   urbana = q_urb, japanesepines = q_jap, bei = q_bei,
+  # EL REPARTO OBSERVADO, AGRUPADO, Y SU REFERENCIA DE POISSON.
+  #
+  # Se publican agrupados y no celda a celda por dos motivos, y el primero
+  # lo destapó mirar el simulador funcionando: una celda de la ventana
+  # urbana tiene 96 sedes, así que un histograma con una barra por valor
+  # posible salían 97 barras, casi todas a cero. Ilegible.
+  #
+  # El segundo es la regla D10: la curva de referencia la calcula R con
+  # `ppois` sobre los mismos bordes, no el navegador. Antes el simulador
+  # evaluaba la Poisson en JavaScript, que es una cifra naciendo fuera de
+  # R aunque sea una curva de modelo.
+  #
+  # La referencia es UNA Poisson de media común, y las celdas de esta
+  # ventana NO tienen la misma área porque el perímetro las recorta. Eso
+  # no es un descuido: es parte de por qué el ajuste falla, y por eso se
+  # rotula como referencia y no como ajuste.
+  urbana_hist = local({
+    v <- as.vector(quadratcount(p_urb, nx = 10, ny = 10))
+    h <- hist(v, breaks = 18, plot = FALSE)
+    list(centros = r6(h$mids), bordes = r6(h$breaks),
+         conteo = as.integer(h$counts),
+         teorico = r6(diff(ppois(h$breaks, mean(v))) * length(v)))
+  }),
   # bei es el contraste canónico: 3 604 árboles cuya intensidad varía
   # con la elevación del terreno, y por eso su chi2 es enorme. El
   # capítulo 5 lo modela; aquí solo se constata que lambda no es una
@@ -373,6 +400,16 @@ regimen <- function(p, nombre, fuente, regimen) {
          mean(nn) / (0.5 * sqrt(a / n) +
                      (0.0514 + 0.0412 / sqrt(n)) * perimeter(p$window) / n)))
 }
+# La DISTRIBUCIÓN de la distancia al vecino, no solo su media: el
+# simulador del módulo 3 la pinta, y con la media sola habría que
+# inventarse la forma en el navegador. Veinte cajas por patrón.
+histo_nn <- function(p, cajas = 20L) {
+  nn <- nndist(p)
+  br <- seq(0, max(nn), length.out = cajas + 1L)
+  h <- hist(nn, breaks = br, plot = FALSE)
+  list(centros = r6(h$mids), conteo = as.integer(h$counts), max = r6(max(nn)))
+}
+
 D$m3 <- list(
   cells = regimen(cells, "Células biológicas", "Crick y Ripley, vía spatstat.data", "regular"),
   japanesepines = regimen(japanesepines, "Pinos japoneses", "Numata (1961)", "aleatorio"),
@@ -399,6 +436,10 @@ if (!(D$m3$cells$clark_evans > 1 &&
       D$m3$redwood$clark_evans < 1 &&
       abs(D$m3$japanesepines$clark_evans - 1) < 0.15))
   stop("los tres regímenes ya no se ordenan como el módulo 3 afirma")
+
+for (nm in c("cells", "japanesepines", "redwood", "swedishpines"))
+  D$m3[[nm]]$histograma_nn <- histo_nn(get(nm))
+D$m3$bogota$histograma_nn <- histo_nn(p_urb)
 
 message(sprintf("  R: cells=%.4f  japanesepines=%.4f  redwood=%.4f  bogota=%.4f",
                 D$m3$cells$clark_evans, D$m3$japanesepines$clark_evans,
@@ -456,7 +497,11 @@ D$m4$R_csr <- list(
   q025 = r10(unname(quantile(Rs, 0.025))), q975 = r10(unname(quantile(Rs, 0.975))),
   # Cuántas de las 2 000 realizaciones de azar puro darían, leídas a ojo,
   # un veredicto equivocado si el umbral fuera «R < 1 es agregado».
-  bajo_1 = sum(Rs < 1), sobre_1 = sum(Rs > 1))
+  bajo_1 = sum(Rs < 1), sobre_1 = sum(Rs > 1),
+  # El histograma de las 2 000 R del azar puro. Es la imagen que hace
+  # entendible el módulo 11 seis módulos antes de llegar a él.
+  hist_centros = r6(hist(Rs, breaks = 30, plot = FALSE)$mids),
+  hist_conteo = as.integer(hist(Rs, breaks = 30, plot = FALSE)$counts))
 message(sprintf("  R bajo CSR: media=%.4f  recorrido [%.4f, %.4f]  IC95 [%.4f, %.4f]",
                 D$m4$R_csr$media, D$m4$R_csr$min, D$m4$R_csr$max,
                 D$m4$R_csr$q025, D$m4$R_csr$q975))
@@ -575,7 +620,6 @@ message(sprintf("  redwood rechaza en %d de %d tamaños · esperanza < 5 desde n
 # estimador de bordes trabaja sobre los intervalos que se le den— y `pcf`
 # directamente necesita rejilla fina para el suavizado. Se calcula con lo
 # que spatstat elija y se INTERPOLA para publicar.
-r6 <- function(x) signif(as.numeric(x), 6)
 rejilla_r <- function(fv, n = N_R) ppp_rejilla_r(fv, n)
 curva <- function(fv, col, rg) r6(ppp_curva(fv, col, rg))
 

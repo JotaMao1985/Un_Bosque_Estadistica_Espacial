@@ -1,12 +1,14 @@
 # Plan de implementación: Material de estudio — Estadística Espacial 2026-II
 
 **Estado:** 🟡 **T3.1 + T3.1b HECHAS el 2026-08-22: EL PRECÁLCULO DEL CAPÍTULO 4 ESTÁ EN PIE Y
-AUDITADO.** 28 anclas, reproducible byte a byte, cinco ejercicios calculados, una librería nueva
+AUDITADO Y ENSAMBLADO (T3.2 el 2026-08-23).** 28 anclas, reproducible byte a byte, cinco
+ejercicios calculados, una librería nueva
 (`puntual.R`) y una auditoría independiente de **420 comprobaciones, 0 fallos**, con arnés de
 **96 inyecciones, 96 cazadas**. El riesgo que el plan declaraba para este capítulo estaba **mal
 atribuido**: lo caro no es el número de puntos, es la corrección isotrópica contra la ventana
 real —555 veces la de traslación—. Ver **A.17**, **A.18**, **A.19** y las tres decisiones de la
-Fase 3. Siguiente: **T3.2** (el ensamblado) y **T3.3** (la verificación).
+Fase 3. **El capítulo 4 está en pie: 544 KB, 12 módulos, 10 simuladores, 7 mapas.**
+Siguiente: **T3.3** (el auditor de prosa y la verificación en el navegador).
 ✅ **T2.4–T2.6 (2026-08-05)** — el capítulo 3 en pie, y con él cerrado el Corte I (semanas 1–4).
 ✅ **T2.4 + T2.4b + T2.5 + T2.6 (2026-08-05)** — **el capítulo 3 está precalculado, ensamblado,
 auditado y verificado en el navegador.** `Htmls_Espacial/capitulo-3-cartografia-maup.html`,
@@ -964,10 +966,31 @@ y `prueba_auditor_cap4.py`, **96 inyecciones, 96 cazadas**.
   `pts`, `lineas` y `puntos2`. Los capítulos 1, 2, 3 y el taller siguen en verde con la
   comprobación nueva: **1075/0, 449/0, 356/0 y 531/0**.
 
-**T3.2 — Ensamblado del capítulo 4** · *Alcance: L* · ⬜ **PENDIENTE** — 12 módulos, ~11 simuladores,
-**12 preguntas y 5 ejercicios** (la desviación del molde, declarada).
+**T3.2 — Ensamblado del capítulo 4** · *Alcance: L* · *Dep.: T3.1b* · ✅ **HECHA (2026-08-23)**
+`precalculo/ensambla_cap4.py` → `Htmls_Espacial/capitulo-4-patrones-puntuales.html`, **544 KB**:
+12 módulos, 10 simuladores, 7 mapas, **12 preguntas y 5 ejercicios** —la desviación declarada, por
+las dos semanas—, y **11 pares de bloques R/Python con 81 de 81 cifras verificadas** ejecutando el
+código de verdad.
+- **Los bloques de Python NO traducen llamadas a spatstat, porque no existe equivalente:**
+  reimplementan la matemática con numpy y scipy —el binado de `cut()`, el peso de traslación con su
+  fórmula cerrada, la K sin corregir con un árbol k-d, la envolvente simulada a mano—. Es el mismo
+  camino largo que recorre `audita_cap4.py`, así que se sabe que llega al mismo sitio.
+- **Retropropagado:** la portada estrena su tarjeta del capítulo 4 y el **capítulo 3 estrena su
+  enlace hacia adelante**, como el 1 lo estrenó hacia el 2.
+- **Dos cosas que se corrigieron mirando el capítulo funcionando**, no leyéndolo: el histograma de
+  cuadrantes salía con 97 barras —una celda tiene 96 sedes— y la curva de Poisson se evaluaba en
+  JavaScript, que es una cifra naciendo fuera de R aunque sea de modelo. Ahora el histograma va
+  agrupado y su referencia la calcula `ppois` en el precálculo.
+- **Verificado:** `sin_aritmetica.py` 0 cifras calculadas en la prosa, `campos_vivos.py` y
+  `cuenta_sitio.py` en verde con los cinco archivos enlazados, consola limpia en los doce módulos y
+  los siete mapas con tinta. El precálculo sigue reproducible byte a byte y el auditor, en 420/0.
 
-**T3.3 — Verificación** · *Alcance: M* · ⬜ **PENDIENTE**
+**T3.3 — Verificación y cierre del Corte II (cap. 4)** · *Alcance: M* · ⬜ **PENDIENTE**
+Falta el auditor de prosa `audita_texto_cap4.py` con su arnés, la lectura de ritmo del §9.1 sobre
+los doce módulos, y el recorrido con la consola instrumentada **forzando `chart.draw()`** —la
+trampa de A.13, que aquí volvió a aparecer: con el panel del navegador oculto los lienzos de
+Chart.js quedan a ancho cero y un control ingenuo los daría por vacíos—. Sin desbordamiento a
+1 280, 375 ni 318 px.
 
 **T3.4–T3.6 — Capítulo 5** · *Alcance: L*
 
