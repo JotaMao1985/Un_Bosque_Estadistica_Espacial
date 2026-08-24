@@ -293,7 +293,7 @@ MOD1 = cabecera(
             descargar <code>taller1_departamentos.gpkg</code></a> — los departamentos del país. Es
             la capa contra la que <strong>T5(c)</strong> te pide hacer el <em>join</em> espacial.</li>
         </ul>
-        <p style="margin-bottom:0;">Unos 10 MB en total. Se abren con <code>st_read()</code> en R o
+        <p style="margin-bottom:0;">Unos 11 MB en total. Se abren con <code>st_read()</code> en R o
           con <code>geopandas.read_file()</code> en Python, y llegan ya en <strong>EPSG:9377</strong>:
           para empezar no hay que reproyectar nada —en T4 y en T5 sí vas a reproyectar, y a
           propósito—. Son datos de terceros que se redistribuyen <strong>con atribución</strong>: las

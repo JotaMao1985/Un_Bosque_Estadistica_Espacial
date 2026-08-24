@@ -169,8 +169,10 @@ message("4. escribiendo en ", DESTINO)
 escribe <- function(x, nombre) {
   f <- file.path(DESTINO, paste0(nombre, ".gpkg"))
   st_write(x, f, layer = nombre, delete_dsn = TRUE, quiet = TRUE)
-  message(sprintf("   %-28s %5.1f MB · %d rasgos",
-                  basename(f), file.size(f) / 1024^2, nrow(x)))
+  # MB decimales, que es la unidad en que el plan midió la decisión (5,5 y
+  # 5,2): mezclarla con MiB deja dos cifras distintas para el mismo archivo.
+  message(sprintf("   %-28s %5.2f MB · %d rasgos",
+                  basename(f), file.size(f) / 1e6, nrow(x)))
   f
 }
 
@@ -246,8 +248,8 @@ cat(sprintf("  %s vértices de municipio, los mismos que en la MGN\n",
 cat(sprintf("  los 60 dígitos de verificación rehechos desde lo publicado: intactos\n"))
 cat(sprintf("  %d de las %d estaciones caen fuera de todo departamento aun bien declaradas\n",
             fuera, nrow(est_p)))
-cat(sprintf("  %.1f MB en total en %s/\n",
-            sum(file.size(c(f_est, f_mun, f_dep))) / 1024^2, DESTINO))
+cat(sprintf("  %.2f MB en total en %s/\n",
+            sum(file.size(c(f_est, f_mun, f_dep))) / 1e6, DESTINO))
 cat(sprintf("  %d anclas, todas en pie\n", N_ANCLAS))
 cat(strrep("-", 70), "\n", sep = "")
 cat("  Recordatorios:\n")

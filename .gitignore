@@ -69,7 +69,7 @@
 # existían en `datos/procesado/` —86 MB de los 431 de `datos/`, y un 404 en
 # Pages—: el taller pedía correr código sobre un archivo inalcanzable desde
 # fuera de esta máquina. Estos tres son el extracto mínimo que lo arregla
-# —10,4 MB, los produce `precalculo/datos_taller1.R`— y el módulo 1 los
+# —10,9 MB, los produce `precalculo/datos_taller1.R`— y el módulo 1 los
 # enlaza.
 #
 # La regla de arriba sigue valiendo para todo lo demás, y en particular
