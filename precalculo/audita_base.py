@@ -187,8 +187,14 @@ def audita_geomapa(a: Auditoria, mapa: dict, nombre: str, presupuesto_kb: float 
                  f"{et}: la cuantización es una de las del componente", str(q))
 
     cod = mapa.get("codificacion", "absoluta")
+    # 44 caracteres de texto: con `proyecciones_colombia:` delante se iba a 67
+    # y arrastraba su detalle en el informe del capítulo 2 exactamente igual
+    # que los dos de más abajo. Aquí no lo cazó nadie porque el detector vive
+    # en el arnés del taller y los mapas del taller tienen nombres cortos: es
+    # el mismo defecto, latente. «de la geometría» sobra —esto audita un
+    # geomapa— y el detalle ya imprime cuál es.
     a.cierto(cod in ("absoluta", "delta"),
-             f"{nombre}: la codificación de la geometría va declarada", cod)
+             f"{nombre}: la codificación va declarada", cod)
     # TODAS LAS COORDENADAS, NO SOLO LAS DE `geom`. Hasta el capítulo 4
     # esto miraba únicamente los polígonos, y por eso una `q` mentida
     # pasaba sin más en un mapa de modo `puntos`: lo destapó el arnés de
@@ -221,11 +227,27 @@ def audita_geomapa(a: Auditoria, mapa: dict, nombre: str, presupuesto_kb: float 
         q = mapa.get("q") or 4096
         todos = [v for parte in partes_xy for v in parte]
         lo, hi = min(todos), max(todos)
+        # LOS DOS RÓTULOS DE AQUÍ ABAJO TIENEN PRESUPUESTO: 57 CARACTERES
+        # CONTANDO `{nombre}: `. `Auditoria.cierto()` rellena el rótulo hasta
+        # 58 antes del detalle, así que uno de 58 o más se queda sin relleno,
+        # queda pegado a su detalle por un solo espacio, y quien lee el
+        # informe con una expresión regular —`prueba_auditor_taller1.py`— no
+        # puede separarlos: el mismo control cuenta como un tipo distinto por
+        # cada valor del detalle, y la cobertura sale subestimada SIN QUE NADA
+        # FALLE. El rótulo largo no rompe la comprobación; rompe el recuento
+        # de qué comprobaciones se han visto fallar.
+        #
+        # Va por la TERCERA vez. Se acortaron cinco rótulos, volvió a pasar en
+        # uno escrito después, y volvió otra vez aquí: estas dos líneas nacieron
+        # cortas y se alargaron al ampliarlas a todas las coordenadas para el
+        # capítulo 4 —donde `proyecciones_colombia:` gasta 23 de los 57—.
+        # Por eso el texto va corto y CON HOLGURA, y la explicación vive en
+        # este comentario y en el detalle, que no paga presupuesto.
         a.cierto(-1 <= lo and hi <= q + 1,
-                 f"{nombre}: las coordenadas caen dentro de la cuantización declarada",
+                 f"{nombre}: las coordenadas caben en la q",
                  f"[{lo}, {hi}] con q = {q}")
         a.cierto(hi > q * 0.5,
-                 f"{nombre}: y la ocupan de verdad (la q no está inflada)",
+                 f"{nombre}: y la q no está inflada",
                  f"máximo {hi} de {q}")
 
     kb = len(json.dumps(mapa, ensure_ascii=False).encode("utf-8")) / 1024
