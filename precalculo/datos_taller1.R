@@ -50,7 +50,7 @@
 # `last_change` en su tabla `gpkg_contents`, así que dos pasadas seguidas
 # dejan tres archivos con MD5 distinto y una geometría idéntica —los 60
 # dígitos de verificación se rehacen abajo y lo prueban—. Eso significa
-# que reejecutarlo por costumbre antes de un commit mete 10,4 MB de diff
+# que reejecutarlo por costumbre antes de un commit mete 10,9 MB de diff
 # que no cambian nada: NO se reejecuta salvo que cambie la fuente o el
 # catálogo del JSON.
 #
