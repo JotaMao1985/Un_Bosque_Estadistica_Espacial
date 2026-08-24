@@ -162,6 +162,22 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: o["patron-05"].__setitem__("pts", o["patron-12"]["pts"]))
     obj("la cuantización declarada no es una de las del componente", "mapas",
         lambda o: o["patron-08"].__setitem__("q", 3000))
+    # LA HERMANA DE LA DE ARRIBA, y la añadió el propio informe de este arnés.
+    # Las dos comprobaciones de la q son distintas: una mira que las
+    # coordenadas no se SALGAN de la q, y ésta que la LLENEN. Sin la segunda,
+    # un mapa quantizado de verdad a 1024 y declarado a 4096 pasa limpio: no
+    # se sale de nada, y se dibuja en una esquina del lienzo. Hasta el
+    # 2026-08-24 nadie la atacaba, y no se veía porque el rótulo era largo y
+    # el recuento de tipos la daba por cubierta; en cuanto el rótulo cupo, el
+    # informe la nombró. Es la misma historia que el `n_parejas` de C9: lo que
+    # destapa la deuda es que el arnés diga en voz alta lo que NO ataca.
+    #
+    # Encoger las coordenadas mueve también d_min, así que esto lo caza además
+    # el contraste mapa-contra-cifras. No es un defecto de la inyección: es
+    # que un mapa así está mal por dos motivos a la vez.
+    obj("un mapa declara una q que sus coordenadas no llenan", "mapas",
+        lambda o: o["patron-11"].__setitem__(
+            "pts", [int(v * 0.3) for v in o["patron-11"]["pts"]]))
     obj("la caja de un mapa queda desordenada", "mapas",
         lambda o: o["patron-02"].__setitem__("caja", [1.0, 1.0, 0.0, 0.0]))
 
