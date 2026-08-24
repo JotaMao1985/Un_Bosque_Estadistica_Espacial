@@ -156,6 +156,7 @@ orden que documenta `FUENTES.md`.
 | `Htmls_Espacial/` | Los capítulos publicados y los talleres, más dos bancos de prueba del motor |
 | `precalculo/` | Los guiones de R que calculan, los de Python que ensamblan y todos los auditores |
 | `precalculo/salidas/` | El precálculo: los JSON y CSV que consume el navegador |
+| `entrega/` | Lo que el estudiante se descarga de un taller: la plantilla LaTeX y sus datos |
 | `plantilla/` | La plantilla base de la que salen todos los capítulos |
 | `index.html` | La portada del sitio |
 
@@ -166,6 +167,14 @@ capítulos —no tienen autoevaluación y sus módulos no van contra los 120 del
 
 Los talleres se construyen con la misma cadena (`genera_taller1.R` → `ensambla_taller1.py`
 → `audita_taller1.py`) y corren por su propio bucle dentro de `audita_todo.sh`.
+
+`entrega/datos/` es la única excepción a la regla de que `datos/` no se versiona, y existe
+por un motivo que ningún auditor de cifras podía ver: **una tarea que manda ejecutar código
+necesita que su dato sea alcanzable desde fuera de la máquina que lo construyó.** Tres tareas
+del Taller 1 apuntaban a `datos/procesado/`, que da 404 en Pages. Son 10,4 MB —las 361
+estaciones del IDEAM, los 60 municipios asignados y los 33 departamentos, sin simplificar,
+porque simplificar la geometría cambiaría las cifras de las variantes ya repartidas—, los
+produce `precalculo/datos_taller1.R` y el `.gitignore` los deja pasar de uno en uno.
 
 ---
 

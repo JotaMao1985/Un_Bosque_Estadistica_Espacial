@@ -272,6 +272,36 @@ MOD1 = cabecera(
           cada tarea discuta números ya decididos en vez de irlos improvisando.</p>
       </div>
 
+      <div class="note">
+        <p><strong>Los datos que necesitas.</strong> Son tres archivos, y son exactamente los mismos
+          con los que se construyó este taller: no están recortados ni simplificados. Descárgalos a
+          una carpeta llamada <code>datos/</code> <strong>al lado de tu script</strong>. Los bloques
+          de código de las tareas están escritos con esas rutas, así que corren tal cual y no tienes
+          que tocar ninguna.</p>
+        <ul class="lista-literales">
+          <li><a href="../entrega/datos/taller1_estaciones.gpkg" download target="_blank" rel="noopener">
+            descargar <code>taller1_estaciones.gpkg</code></a> — las
+            {ent(t7['n_estaciones'])} estaciones del IDEAM con su altitud y su temperatura media
+            anual. De aquí salen <strong>tus {meta['n_estaciones']}</strong>, con la regla de aquí
+            abajo: es el archivo de <strong>T2</strong> y de <strong>T5</strong>.</li>
+          <li><a href="../entrega/datos/taller1_municipios.gpkg" download target="_blank" rel="noopener">
+            descargar <code>taller1_municipios.gpkg</code></a> — los
+            {meta['n_municipios']} municipios que reparte la tabla de variantes, con su geometría
+            completa. El tuyo está aquí, y es lo que <strong>T4</strong> mide en los cuatro sistemas
+            y lo que <strong>T2</strong> necesita para encontrar tu punto interior.</li>
+          <li><a href="../entrega/datos/taller1_departamentos.gpkg" download target="_blank" rel="noopener">
+            descargar <code>taller1_departamentos.gpkg</code></a> — los departamentos del país. Es
+            la capa contra la que <strong>T5(c)</strong> te pide hacer el <em>join</em> espacial.</li>
+        </ul>
+        <p style="margin-bottom:0;">Unos 10 MB en total. Se abren con <code>st_read()</code> en R o
+          con <code>geopandas.read_file()</code> en Python, y llegan ya en <strong>EPSG:9377</strong>:
+          para empezar no hay que reproyectar nada —en T4 y en T5 sí vas a reproyectar, y a
+          propósito—. Son datos de terceros que se redistribuyen <strong>con atribución</strong>: las
+          estaciones son del <strong>IDEAM</strong> (normales climatológicas, CC BY-SA 4.0) y los
+          límites municipales y departamentales, del <strong>DANE</strong> (Marco Geoestadístico
+          Nacional) por vía de geoBoundaries (CC BY 4.0).</p>
+      </div>
+
       <p>Lo primero es resolver tu variante. Los datos de casi todas las tareas dependen de ella, así
         que si te equivocas aquí te equivocas en todo lo demás.</p>
 
@@ -411,8 +441,8 @@ MOD3 = cabecera(
       "El intervalo corregido, en R y en Python",
       """library(sf); library(spdep)
 
-est &lt;- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
-mun &lt;- st_read("datos/procesado/colombia_adm2.gpkg", quiet = TRUE)
+est &lt;- st_read("datos/taller1_estaciones.gpkg", quiet = TRUE)
+mun &lt;- st_read("datos/taller1_municipios.gpkg", quiet = TRUE)
 
 # Tu municipio, por su llave (la tienes en la tira de arriba):
 yo  &lt;- mun[mun$shapeID == TU_LLAVE, ]
@@ -435,8 +465,8 @@ n_eff &lt;- n / (1 + (n - 1) * rho)""",
       """import geopandas as gpd, numpy as np
 from scipy.spatial import cKDTree
 
-est = gpd.read_file("datos/procesado/colombia_estaciones_clima.gpkg")
-mun = gpd.read_file("datos/procesado/colombia_adm2.gpkg")
+est = gpd.read_file("datos/taller1_estaciones.gpkg")
+mun = gpd.read_file("datos/taller1_municipios.gpkg")
 
 yo = mun[mun.shapeID == TU_LLAVE]
 p  = yo.geometry.representative_point().iloc[0]
@@ -584,7 +614,7 @@ MOD5 = cabecera(
       "Los cuatro sistemas, en R y en Python",
       """library(sf); library(units)
 
-mun &lt;- st_read("datos/procesado/colombia_adm2.gpkg", quiet = TRUE)
+mun &lt;- st_read("datos/taller1_municipios.gpkg", quiet = TRUE)
 yo  &lt;- mun[mun$shapeID == TU_LLAVE, ]
 
 for (epsg in c(4326, 3857, 3116, 9377)) {
@@ -596,7 +626,7 @@ for (epsg in c(4326, 3857, 3116, 9377)) {
 b &lt;- st_buffer(st_transform(yo, 9377), 500)""",
       """import geopandas as gpd
 
-mun = gpd.read_file("datos/procesado/colombia_adm2.gpkg")
+mun = gpd.read_file("datos/taller1_municipios.gpkg")
 yo = mun[mun.shapeID == TU_LLAVE]
 
 for epsg in (4326, 3857, 3116, 9377):
@@ -644,8 +674,8 @@ MOD6 = cabecera(
         "Arréglalo. Muestra la misma medición antes y después, y di qué función usaste y por qué "
         "esa y no la otra.",
         "¿Qué habría pasado aguas abajo si nadie lo nota? Haz un <em>join</em> espacial de tus "
-        "estaciones contra los municipios con el objeto mal declarado y cuenta cuántas se quedan "
-        "sin municipio. Después repítelo bien.",
+        "estaciones contra los <strong>departamentos</strong> con el objeto mal declarado y cuenta "
+        "cuántas se quedan sin departamento. Después repítelo bien.",
         "Si <code>st_set_crs</code> es tan peligroso, ¿por qué existe? Describe un caso real en que "
         "<strong>sí</strong> es la función correcta y <code>st_transform</code> sería el error."],
        "Mira la caja envolvente (<code>st_bbox</code>) antes que ninguna otra cosa: es donde el "
@@ -654,7 +684,7 @@ MOD6 = cabecera(
       "El defecto, para que lo produzcas tú",
       """library(sf)
 
-est &lt;- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
+est &lt;- st_read("datos/taller1_estaciones.gpkg", quiet = TRUE)
 mis &lt;- est[TUS_40, ]                  # las tuyas, con la regla del modulo 1
 
 # Se pasan a grados, que es como llegan la mayoria de los CSV del mundo:
@@ -668,7 +698,7 @@ st_distance(mal[1, ], mal[2, ])
 sum(lengths(st_intersects(st_buffer(mal[1, ], 500), mal)))""",
       """import geopandas as gpd
 
-est = gpd.read_file("datos/procesado/colombia_estaciones_clima.gpkg")
+est = gpd.read_file("datos/taller1_estaciones.gpkg")
 mis = est.iloc[TUS_40]
 
 mis_ll = mis.to_crs(4326)

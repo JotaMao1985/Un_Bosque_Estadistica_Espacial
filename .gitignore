@@ -64,6 +64,22 @@
 *.gpkg
 *.geojson
 
+# Excepción de TRES archivos, no de la regla. T2, T4 y T5 del Taller 1 —el
+# 45 % del escrito— mandan ejecutar código sobre datos que hasta ahora solo
+# existían en `datos/procesado/` —86 MB de los 431 de `datos/`, y un 404 en
+# Pages—: el taller pedía correr código sobre un archivo inalcanzable desde
+# fuera de esta máquina. Estos tres son el extracto mínimo que lo arregla
+# —10,4 MB, los produce `precalculo/datos_taller1.R`— y el módulo 1 los
+# enlaza.
+#
+# La regla de arriba sigue valiendo para todo lo demás, y en particular
+# para `datos/`, que es lo que la lista blanca de la raíz está para
+# excluir. Comprobar cualquier cambio con `git check-ignore -v` sobre los
+# tres Y sobre uno de `datos/procesado/`, que tiene que seguir ignorado.
+!/entrega/datos/taller1_estaciones.gpkg
+!/entrega/datos/taller1_municipios.gpkg
+!/entrega/datos/taller1_departamentos.gpkg
+
 # El caché de cómputo del capítulo 3: 33 MB de .rds que `genera_cap3.R` rehace
 # solo si faltan. Cae DENTRO de `!/precalculo/`, así que hay que excluirlo aparte.
 precalculo/cache/
