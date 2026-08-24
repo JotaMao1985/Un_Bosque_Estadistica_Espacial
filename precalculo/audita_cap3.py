@@ -56,6 +56,22 @@ Devuelve 1 si algo falla.
 CAP3_DATOS, CAP3_MAPAS y CAP3_SOLUCIONES permiten apuntar a copias con
 defectos inyectados: es lo que hace `prueba_auditor_cap3.py`. Los archivos
 publicados no se tocan nunca.
+
+LOS RÓTULOS TIENEN PRESUPUESTO: 57 CARACTERES, PREFIJO INCLUIDO.
+`Auditoria.cierto()` rellena el rótulo hasta 58 antes del detalle, así que
+uno de 58 o más queda pegado a su detalle por un solo espacio y
+`prueba_auditor_base.py` —que lee este informe con una expresión regular
+para saber qué comprobaciones se han visto fallar— no puede separarlos.
+El detalle cambia entre la pasada limpia y la rota, así que la
+comprobación deja de contarse como cubierta AUNQUE HAYA FALLADO. No rompe
+nada que se vea: corrompe el recuento de cobertura, en silencio.
+
+Este archivo llegó a tener 12 rótulos pasados —el que menos de los
+cuatro—. Se acortaron el 2026-08-24 moviendo el matiz al DETALLE, que no
+paga presupuesto («conserva topología» se lee mejor al lado del `corr =
+0.98…` que lo sostiene), o al comentario cuando era una referencia interna
+(«la causa de A.2»). Seis quedan entre 55 y 57: al añadir o renombrar
+cualquier cosa aquí, medir.
 """
 from __future__ import annotations
 
@@ -294,11 +310,11 @@ def main() -> int:
              f"py {tam_q_py} · R {tam_q_r}")
     a.igual(sum(tam_q_py), sum(tam_q_r), "y las dos reparten los 100 condados")
 
-    # Y la CAUSA: los empates justo en los cortes. Se recuentan.
+    # Y la CAUSA de A.2: los empates justo en los cortes. Se recuentan.
     cortes_r = D["m3"]["cortes_cuantiles"]
     n_emp_py = int(sum((sid == c).sum() for c in cortes_r[1:-1]))
     a.igual(n_emp_py, D["m3"]["n_empatados"],
-            "empates justo en los cortes de cuantiles (la causa de A.2)")
+            "empates justo en los cortes de cuantiles")
     a.cierto(n_emp_py > 0, "y hay empates de verdad", f"{n_emp_py} condados")
     for e in D["m3"]["empates_en_cortes"]:
         a.igual(int((sid == e["corte"]).sum()), e["n_iguales"],
@@ -359,7 +375,7 @@ def main() -> int:
         mio = cvd(anc["entrada"], anc["tipo"])
         iguales = sum(1 for x, y in zip(mio, anc["salida"]) if x.upper() == y.upper())
         a.igual(iguales, len(anc["entrada"]),
-                f"daltonismo {anc['tipo']}: colores idénticos a los publicados")
+                f"daltonismo {anc['tipo']}: colores como los publicados")
         n_anclas_ok += iguales
     a.cierto(n_anclas_ok == D["m5"]["n_comparaciones_cvd"],
              "y el total coincide con el que el JSON declara",
@@ -371,7 +387,7 @@ def main() -> int:
                         ("tritanopia", "matriz_tritanopia")):
         pub = np.array(D["m5"][clave]).reshape(3, 3)
         a.igual(float(np.abs(pub - M_CVD[tipo]).max()), 0.0,
-                f"matriz de {tipo} = la publicada por Machado et al. (2009)", tol=1e-6)
+                f"matriz de {tipo} = la de Machado et al. (2009)", tol=1e-6)
 
     # Las distancias perceptuales, recalculadas con un CIELAB propio
     for p in D["m5"]["paletas"]:
@@ -418,10 +434,10 @@ def main() -> int:
                      f"error relativo máximo {c['max_error_rel']:.3e}")
         else:
             a.cierto(c["corr"] < 0.99,
-                     "cont: NO alcanza la proporcionalidad exacta (conserva topología)",
-                     f"corr = {c['corr']:.6f}")
+                     "cont: NO alcanza la proporcionalidad exacta",
+                     f"corr = {c['corr']:.6f}, conserva topología")
     a.cierto(D["m7"]["contraste_olson"]["cv_razon"] < 1e-8,
-             "Olson propio y el del paquete difieren solo en un factor global",
+             "Olson propio y el del paquete: solo un factor global",
              f"cv de la razón = {D['m7']['contraste_olson']['cv_razon']:.3e}")
 
     # El barrido del contiguo: tiene que MEJORAR el error al iterar más
@@ -607,7 +623,7 @@ def main() -> int:
     s1000 = em[em["n"] >= 1000]
     r_mil = float(np.corrcoef(s1000["x"], s1000["p"])[0, 1])
     a.cierto((r_sin < 0) != (r_mil < 0),
-             "el estrato SÍ invierte el signo con el umbral (recalculado)",
+             "el estrato SÍ invierte el signo con el umbral",
              f"{r_sin:+.5f} -> {r_mil:+.5f}")
     a.cierto(D["m11"]["estrato"]["invierte_signo"] is True,
              "y la bandera publicada coincide con el recálculo")
@@ -658,7 +674,7 @@ def main() -> int:
             lo, hi = cortes[k - 1], cortes[k]
             if not (lo - 1e-9 <= x <= hi + 1e-9):
                 malos += 1
-        a.igual(malos, 0, f"capa {cp['id']}: cada valor cae en el intervalo de SU clase")
+        a.igual(malos, 0, f"capa {cp['id']}: cada valor cae en su intervalo")
         n_nulos = sum(1 for x in val if x is None)
         a.igual(n_nulos, cp["n_sin_dato"], f"capa {cp['id']}: los sin dato declarados")
         a.igual(sum(cp["tam"]), 1122 - n_nulos, f"capa {cp['id']}: las clases reparten el resto")
@@ -689,7 +705,7 @@ def main() -> int:
     cajas7 = {k: tuple(M[k]["caja"]) for k in
               ("dep_coropleto", "dep_ncont", "dep_dorling", "dep_cont", "dep_hexbin")}
     a.igual(len(set(cajas7.values())), 1,
-            "los cinco mapas del módulo 7 comparten caja de cuantización")
+            "los cinco mapas del módulo 7 comparten caja")
     # Y la comprobación que puede fallar de verdad: el cartograma tiene
     # que ocupar MENOS lienzo que el coropleto.
     def extension(m):
@@ -697,7 +713,7 @@ def main() -> int:
         xs, ys = g[0::2], g[1::2]
         return (max(xs) - min(xs)) * (max(ys) - min(ys))
     a.cierto(extension(M["dep_ncont"]) < extension(M["dep_coropleto"]),
-             "el cartograma de Olson ocupa menos lienzo que el coropleto",
+             "Olson ocupa menos lienzo que el coropleto",
              f"{extension(M['dep_ncont'])} < {extension(M['dep_coropleto'])}")
 
     a.igual(M["nc_esquemas"]["n"], 100, "el mapa de nc trae los 100 condados")
