@@ -90,11 +90,11 @@
       "med_3116_pct": 0.0442485925,
       "med_9377_pct": 0.1336906368,
       "peor_municipio": "La Guadalupe",
-      "peor_dpto": "Guain<U+00ED>a"
+      "peor_dpto": "Guainía"
     },
     "archipielago": {
       "n": 2,
-      "municipios": ["San Andr<U+00E9>s", "Providencia"],
+      "municipios": ["San Andrés", "Providencia"],
       "max_3116_pct": 1.7242388367,
       "max_9377_pct": 2.0889537731
     },
@@ -112,7 +112,7 @@
         "razon_max": 1.062705071,
         "estiramiento": 1.0555826907,
         "peor_municipio": "Providencia",
-        "peor_dpto": "Archipi<U+00E9>lago de San Andr<U+00E9>s, Providencia y Santa Catalina",
+        "peor_dpto": "Archipiélago de San Andrés, Providencia y Santa Catalina",
         "peor_razon": 1.062705071,
         "n_sobre_1pct": 917
       },
@@ -124,8 +124,8 @@
         "razon_min": 1.0000001311,
         "razon_max": 1.0172423884,
         "estiramiento": 1.017242255,
-        "peor_municipio": "San Andr<U+00E9>s",
-        "peor_dpto": "Archipi<U+00E9>lago de San Andr<U+00E9>s, Providencia y Santa Catalina",
+        "peor_municipio": "San Andrés",
+        "peor_dpto": "Archipiélago de San Andrés, Providencia y Santa Catalina",
         "peor_razon": 1.0172423884,
         "n_sobre_1pct": 7
       },
@@ -137,8 +137,8 @@
         "razon_min": 0.9984008547,
         "razon_max": 1.0208895377,
         "estiramiento": 1.0225247033,
-        "peor_municipio": "San Andr<U+00E9>s",
-        "peor_dpto": "Archipi<U+00E9>lago de San Andr<U+00E9>s, Providencia y Santa Catalina",
+        "peor_municipio": "San Andrés",
+        "peor_dpto": "Archipiélago de San Andrés, Providencia y Santa Catalina",
         "peor_razon": 1.0208895377,
         "n_sobre_1pct": 2
       }
@@ -215,12 +215,12 @@
     }
   ],
   "formatos": {
-    "n_rasgos": 20,
+    "n_rasgos": 60,
     "shapefile": {
       "n_archivos": 4,
       "archivos": ["prueba.dbf", "prueba.prj", "prueba.shp", "prueba.shx"],
       "tiene_cpg": false,
-      "bytes": 1584607,
+      "bytes": 3061791,
       "n_campos": 9,
       "n_campos_largos": 5,
       "ejemplos_antes": ["departamento", "desercion_escolar_2024", "nombre_del_municipio_largo", "es_area_no_municipalizada", "fecha_de_corte"],
@@ -230,20 +230,20 @@
       "tipo_fecha_despues": "Date",
       "tipo_logico_antes": "logical",
       "tipo_logico_despues": "integer",
-      "n_con_tilde": 0,
-      "tildes_sobreviven": 20
+      "n_con_tilde": 40,
+      "tildes_sobreviven": 60
     },
     "gpkg": {
-      "bytes": 1695744,
+      "bytes": 3182592,
       "n_campos": 9,
       "nombres_intactos": true,
       "tipo_fecha_despues": "Date",
       "tipo_logico_despues": "logical",
-      "razon_sobre_shp": 1.0701353711
+      "razon_sobre_shp": 1.0394543586
     },
     "geojson": {
-      "bytes": 5294319,
-      "razon_sobre_shp": 3.3410927757
+      "bytes": 10202086,
+      "razon_sobre_shp": 3.3320647948
     },
     "pais": {
       "gpkg_mb": 77.89453125,
@@ -497,7 +497,7 @@
     "capitulo": 2,
     "titulo": "SIG, sistemas de referencia y georreferenciación con sf",
     "semana": "2-3",
-    "generado": "2026-08-07",
+    "generado": "2026-08-25",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "gdal": "3.8.5",

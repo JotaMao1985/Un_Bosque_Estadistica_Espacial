@@ -13,7 +13,7 @@
       },
       {
         "paso": "Municipio continental más lejano",
-        "valor": "La Guadalupe (Guain<U+00ED>a), a 7.0760°"
+        "valor": "La Guadalupe (Guainía), a 7.0760°"
       },
       {
         "paso": "Área geodésica de los tres (km²)",
@@ -42,7 +42,7 @@
     ],
     "solucion": {
       "municipios": ["Cubarral", "Marulanda", "La Guadalupe"],
-      "departamentos": ["Meta", "Caldas", "Guain<U+00ED>a"],
+      "departamentos": ["Meta", "Caldas", "Guainía"],
       "grados_al_meridiano": [0.0022140208, 1.2056600694, 7.075991167],
       "area_elipsoide_km2": [1157.8557429563, 376.7927022046, 1160.8733270854],
       "area_3116_km2": [1157.8654772574, 376.9595234994, 1178.8682724596],
@@ -57,7 +57,7 @@
       "mediano_3116_pct": 0.0442740249,
       "mediano_9377_pct": 0.1238430554,
       "elegido_continente": "EPSG:9377",
-      "isla": "San Andr<U+00E9>s",
+      "isla": "San Andrés",
       "isla_grados_al_meridiano": 7.6401168232,
       "err_3116_isla_pct": 1.7242388367,
       "err_9377_isla_pct": 2.0889537731,
@@ -303,7 +303,7 @@
     "capitulo": 2,
     "semilla": 2026,
     "n_ejercicios": 5,
-    "generado": "2026-08-05",
+    "generado": "2026-08-25",
     "r": "R version 4.4.1 (2024-06-14)"
   }
 }

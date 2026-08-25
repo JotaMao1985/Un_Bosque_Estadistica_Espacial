@@ -2,162 +2,162 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 05667,San Rafael,Antioquia,Municipio,2.95,1,3,2,1,1
 05670,San Roque,Antioquia,Municipio,3.31,2,3,3,1,1
 05674,San Vicente,Antioquia,Municipio,2.84,1,3,2,1,1
-05679,Santa B<U+00E1>rbara,Antioquia,Municipio,3.09,2,3,2,1,1
+05679,Santa Bárbara,Antioquia,Municipio,3.09,2,3,2,1,1
 05697,El Santuario,Antioquia,Municipio,3.55,2,3,3,2,2
 05736,Segovia,Antioquia,Municipio,7.66,3,5,5,3,2
 05756,Sonson,Antioquia,Municipio,3.27,2,3,3,1,1
-05761,Sopetr<U+00E1>n,Antioquia,Municipio,3.44,2,3,3,2,2
-05789,T<U+00E1>mesis,Antioquia,Municipio,1.41,1,1,1,1,1
-05790,Taraz<U+00E1>,Antioquia,Municipio,6.57,3,5,4,2,2
+05761,Sopetrán,Antioquia,Municipio,3.44,2,3,3,2,2
+05789,Támesis,Antioquia,Municipio,1.41,1,1,1,1,1
+05790,Tarazá,Antioquia,Municipio,6.57,3,5,4,2,2
 05792,Tarso,Antioquia,Municipio,1.62,1,1,1,1,1
-05809,Titirib<U+00ED>,Antioquia,Municipio,2.69,1,2,2,1,1
+05809,Titiribí,Antioquia,Municipio,2.69,1,2,2,1,1
 05842,Uramita,Antioquia,Municipio,6.73,3,5,4,2,2
 05854,Valdivia,Antioquia,Municipio,3.59,2,3,3,2,2
-05856,Valpara<U+00ED>so,Antioquia,Municipio,1.73,1,1,1,1,1
-05858,Vegach<U+00ED>,Antioquia,Municipio,4.44,2,4,3,2,2
+05856,Valparaíso,Antioquia,Municipio,1.73,1,1,1,1,1
+05858,Vegachí,Antioquia,Municipio,4.44,2,4,3,2,2
 05861,Venecia,Antioquia,Municipio,4.24,2,4,3,2,2
-05885,Yal<U+00ED>,Antioquia,Municipio,3.55,2,3,3,2,2
+05885,Yalí,Antioquia,Municipio,3.55,2,3,3,2,2
 05887,Yarumal,Antioquia,Municipio,2.26,1,2,2,1,1
-05890,Yolomb<U+00F3>,Antioquia,Municipio,2.86,1,3,2,1,1
+05890,Yolombó,Antioquia,Municipio,2.86,1,3,2,1,1
 05895,Zaragoza,Antioquia,Municipio,3.38,2,3,3,1,1
-08001,Barranquilla,Atl<U+00E1>ntico,Municipio,1.65,1,1,1,1,1
-08078,Baranoa,Atl<U+00E1>ntico,Municipio,2.36,1,2,2,1,1
-08137,Campo de la Cruz,Atl<U+00E1>ntico,Municipio,3.32,2,3,3,1,1
-08141,Candelaria,Atl<U+00E1>ntico,Municipio,4.92,2,5,4,2,2
-08296,Galapa,Atl<U+00E1>ntico,Municipio,3.26,2,3,3,1,1
-08372,Juan de Acosta,Atl<U+00E1>ntico,Municipio,3.78,2,4,3,2,2
-08421,Luruaco,Atl<U+00E1>ntico,Municipio,3.28,2,3,3,1,1
-08433,Malambo,Atl<U+00E1>ntico,Municipio,1.97,1,2,1,1,1
-08436,Manat<U+00ED>,Atl<U+00E1>ntico,Municipio,1.86,1,1,1,1,1
-08520,Palmar de Varela,Atl<U+00E1>ntico,Municipio,2.58,1,2,2,1,1
-08549,Pioj<U+00F3>,Atl<U+00E1>ntico,Municipio,2.35,1,2,2,1,1
-08558,Polonuevo,Atl<U+00E1>ntico,Municipio,3.87,2,4,3,2,2
-08560,Ponedera,Atl<U+00E1>ntico,Municipio,3.97,2,4,3,2,2
-08573,Puerto Colombia,Atl<U+00E1>ntico,Municipio,3.03,2,3,2,1,1
-08606,Repel<U+00F3>n,Atl<U+00E1>ntico,Municipio,0.69,1,1,1,1,1
-08634,Sabanagrande,Atl<U+00E1>ntico,Municipio,3.03,2,3,2,1,1
-08638,Sabanalarga,Atl<U+00E1>ntico,Municipio,2.33,1,2,2,1,1
-08675,Santa Luc<U+00ED>a,Atl<U+00E1>ntico,Municipio,1.83,1,1,1,1,1
-08685,Santo Tom<U+00E1>s,Atl<U+00E1>ntico,Municipio,1.06,1,1,1,1,1
-08758,Soledad,Atl<U+00E1>ntico,Municipio,2.69,1,2,2,1,1
-08770,Suan,Atl<U+00E1>ntico,Municipio,0.62,1,1,1,1,1
-08832,Tubar<U+00E1>,Atl<U+00E1>ntico,Municipio,2.28,1,2,2,1,1
-08849,Usiacur<U+00ED>,Atl<U+00E1>ntico,Municipio,1.82,1,1,1,1,1
-13006,Ach<U+00ED>,Bol<U+00ED>var,Municipio,3.94,2,4,3,2,2
-13030,Altos del Rosario,Bol<U+00ED>var,Municipio,3.91,2,4,3,2,2
-13042,Arenal,Bol<U+00ED>var,Municipio,2.43,1,2,2,1,1
-13052,Arjona,Bol<U+00ED>var,Municipio,2.84,1,3,2,1,1
-13062,Arroyohondo,Bol<U+00ED>var,Municipio,4.87,2,5,4,2,2
-13074,Barranco de Loba,Bol<U+00ED>var,Municipio,5.76,2,5,4,2,2
-15183,Chita,Boyac<U+00E1>,Municipio,2.83,1,3,2,1,1
-15185,Chitaraque,Boyac<U+00E1>,Municipio,5.17,2,5,4,2,2
-15187,Chivat<U+00E1>,Boyac<U+00E1>,Municipio,2.16,1,2,2,1,1
-15189,Ci<U+00E9>nega,Boyac<U+00E1>,Municipio,1.63,1,1,1,1,1
-15204,C<U+00F3>mbita,Boyac<U+00E1>,Municipio,3.24,2,3,2,1,1
-15212,Coper,Boyac<U+00E1>,Municipio,1.86,1,1,1,1,1
-15215,Corrales,Boyac<U+00E1>,Municipio,2.72,1,2,2,1,1
-15218,Covarach<U+00ED>a,Boyac<U+00E1>,Municipio,1.39,1,1,1,1,1
-15223,Cubar<U+00E1>,Boyac<U+00E1>,Municipio,4.97,2,5,4,2,2
-15224,Cucaita,Boyac<U+00E1>,Municipio,1.4,1,1,1,1,1
-15226,Cu<U+00ED>tiva,Boyac<U+00E1>,Municipio,1.31,1,1,1,1,1
-15232,Ch<U+00ED>quiza,Boyac<U+00E1>,Municipio,1.41,1,1,1,1,1
-15236,Chivor,Boyac<U+00E1>,Municipio,3,2,3,2,1,1
-15238,Duitama,Boyac<U+00E1>,Municipio,2.22,1,2,2,1,1
-15244,El Cocuy,Boyac<U+00E1>,Municipio,1.21,1,1,1,1,1
-15248,El Espino,Boyac<U+00E1>,Municipio,0.69,1,1,1,1,1
-15272,Firavitoba,Boyac<U+00E1>,Municipio,1.78,1,1,1,1,1
-15276,Floresta,Boyac<U+00E1>,Municipio,3.35,2,3,3,1,1
-15293,Gachantiv<U+00E1>,Boyac<U+00E1>,Municipio,4.33,2,4,3,2,2
-15296,Gameza,Boyac<U+00E1>,Municipio,1.8,1,1,1,1,1
-15299,Garagoa,Boyac<U+00E1>,Municipio,1.66,1,1,1,1,1
-15317,Guacamayas,Boyac<U+00E1>,Municipio,0.97,1,1,1,1,1
-15322,Guateque,Boyac<U+00E1>,Municipio,1.87,1,1,1,1,1
-15325,Guayat<U+00E1>,Boyac<U+00E1>,Municipio,2.52,1,2,2,1,1
-15332,G<U+00FC>ic<U+00E1>n,Boyac<U+00E1>,Municipio,0.46,1,1,1,1,1
-15362,Iza,Boyac<U+00E1>,Municipio,3.59,2,3,3,2,2
-15367,Jenesano,Boyac<U+00E1>,Municipio,0.86,1,1,1,1,1
-15368,Jeric<U+00F3>,Boyac<U+00E1>,Municipio,2.1,1,2,2,1,1
-15377,Labranzagrande,Boyac<U+00E1>,Municipio,2.49,1,2,2,1,1
-15380,La Capilla,Boyac<U+00E1>,Municipio,0.89,1,1,1,1,1
-15401,La Victoria,Boyac<U+00E1>,Municipio,0.65,1,1,1,1,1
-15403,La Uvita,Boyac<U+00E1>,Municipio,0.51,1,1,1,1,1
-15407,Villa de Leyva,Boyac<U+00E1>,Municipio,2.1,1,2,2,1,1
-15425,Macanal,Boyac<U+00E1>,Municipio,2.51,1,2,2,1,1
-15442,Marip<U+00ED>,Boyac<U+00E1>,Municipio,2.04,1,2,2,1,1
-15455,Miraflores,Boyac<U+00E1>,Municipio,2.59,1,2,2,1,1
-15464,Mongua,Boyac<U+00E1>,Municipio,2.02,1,2,2,1,1
-15466,Mongu<U+00ED>,Boyac<U+00E1>,Municipio,0.93,1,1,1,1,1
-15469,Moniquir<U+00E1>,Boyac<U+00E1>,Municipio,3.67,2,4,3,2,2
-15476,Motavita,Boyac<U+00E1>,Municipio,1.64,1,1,1,1,1
-15480,Muzo,Boyac<U+00E1>,Municipio,1.56,1,1,1,1,1
-15494,Nuevo Col<U+00F3>n,Boyac<U+00E1>,Municipio,0.84,1,1,1,1,1
-15500,Oicat<U+00E1>,Boyac<U+00E1>,Municipio,3.69,2,4,3,2,2
-15507,Otanche,Boyac<U+00E1>,Municipio,2.51,1,2,2,1,1
-15511,Pachavita,Boyac<U+00E1>,Municipio,1.82,1,1,1,1,1
-15514,P<U+00E1>ez,Boyac<U+00E1>,Municipio,2.13,1,2,2,1,1
-15516,Paipa,Boyac<U+00E1>,Municipio,2.94,1,3,2,1,1
-15518,Pajarito,Boyac<U+00E1>,Municipio,1.54,1,1,1,1,1
-15522,Panqueba,Boyac<U+00E1>,Municipio,2,1,2,2,1,1
-15531,Pauna,Boyac<U+00E1>,Municipio,2.86,1,3,2,1,1
-15533,Paya,Boyac<U+00E1>,Municipio,0.47,1,1,1,1,1
-15537,Paz de R<U+00ED>o,Boyac<U+00E1>,Municipio,1.86,1,1,1,1,1
-15542,Pesca,Boyac<U+00E1>,Municipio,0.79,1,1,1,1,1
-15550,Pisba,Boyac<U+00E1>,Municipio,3.2,2,3,2,1,1
-15572,Puerto Boyac<U+00E1>,Boyac<U+00E1>,Municipio,3.39,2,3,3,1,1
-15580,Qu<U+00ED>pama,Boyac<U+00E1>,Municipio,1.59,1,1,1,1,1
-15599,Ramiriqu<U+00ED>,Boyac<U+00E1>,Municipio,4.34,2,4,3,2,2
-15600,R<U+00E1>quira,Boyac<U+00E1>,Municipio,3.18,2,3,2,1,1
-15621,Rond<U+00F3>n,Boyac<U+00E1>,Municipio,2.52,1,2,2,1,1
-15632,Saboy<U+00E1>,Boyac<U+00E1>,Municipio,1.39,1,1,1,1,1
-15638,S<U+00E1>chica,Boyac<U+00E1>,Municipio,3.81,2,4,3,2,2
-15646,Samac<U+00E1>,Boyac<U+00E1>,Municipio,1.89,1,1,1,1,1
-15660,San Eduardo,Boyac<U+00E1>,Municipio,0.84,1,1,1,1,1
-15664,San Jos<U+00E9> de Pare,Boyac<U+00E1>,Municipio,3.21,2,3,2,1,1
-15667,San Luis de Gaceno,Boyac<U+00E1>,Municipio,6,3,5,4,2,2
-15673,San Mateo,Boyac<U+00E1>,Municipio,1.05,1,1,1,1,1
-15676,San Miguel de Sema,Boyac<U+00E1>,Municipio,1.36,1,1,1,1,1
-15681,San Pablo de Borbur,Boyac<U+00E1>,Municipio,1.76,1,1,1,1,1
-15686,Santana,Boyac<U+00E1>,Municipio,4.19,2,4,3,2,2
-15690,Santa Mar<U+00ED>a,Boyac<U+00E1>,Municipio,1.52,1,1,1,1,1
-15693,Santa Rosa de Viterbo,Boyac<U+00E1>,Municipio,2.39,1,2,2,1,1
-15696,Santa Sof<U+00ED>a,Boyac<U+00E1>,Municipio,3.35,2,3,3,1,1
-15720,Sativanorte,Boyac<U+00E1>,Municipio,3.97,2,4,3,2,2
-15723,Sativasur,Boyac<U+00E1>,Municipio,0,1,1,1,1,1
-15740,Siachoque,Boyac<U+00E1>,Municipio,1.76,1,1,1,1,1
-15753,Soat<U+00E1>,Boyac<U+00E1>,Municipio,0.89,1,1,1,1,1
-15755,Socot<U+00E1>,Boyac<U+00E1>,Municipio,1.47,1,1,1,1,1
-15757,Socha,Boyac<U+00E1>,Municipio,2.76,1,2,2,1,1
-15759,Sogamoso,Boyac<U+00E1>,Municipio,1.99,1,2,2,1,1
-15761,Somondoco,Boyac<U+00E1>,Municipio,2.54,1,2,2,1,1
-15762,Sora,Boyac<U+00E1>,Municipio,0.74,1,1,1,1,1
-15763,Sotaquir<U+00E1>,Boyac<U+00E1>,Municipio,1.71,1,1,1,1,1
-15764,Sorac<U+00E1>,Boyac<U+00E1>,Municipio,2.53,1,2,2,1,1
-15774,Susac<U+00F3>n,Boyac<U+00E1>,Municipio,4.64,2,4,3,2,2
-15776,Sutamarch<U+00E1>n,Boyac<U+00E1>,Municipio,2.09,1,2,2,1,1
-15778,Sutatenza,Boyac<U+00E1>,Municipio,0.84,1,1,1,1,1
-15790,Tasco,Boyac<U+00E1>,Municipio,1.24,1,1,1,1,1
-15798,Tenza,Boyac<U+00E1>,Municipio,2.05,1,2,2,1,1
-15804,Tiban<U+00E1>,Boyac<U+00E1>,Municipio,1.51,1,1,1,1,1
-15808,Tinjac<U+00E1>,Boyac<U+00E1>,Municipio,4.45,2,4,3,2,2
-15810,Tipacoque,Boyac<U+00E1>,Municipio,1.1,1,1,1,1,1
-15814,Toca,Boyac<U+00E1>,Municipio,2.2,1,2,2,1,1
-15816,Tog<U+00FC><U+00ED>,Boyac<U+00E1>,Municipio,6.25,3,5,4,2,2
-15820,T<U+00F3>paga,Boyac<U+00E1>,Municipio,2.01,1,2,2,1,1
-15822,Tota,Boyac<U+00E1>,Municipio,1.86,1,1,1,1,1
-15832,Tunungu<U+00E1>,Boyac<U+00E1>,Municipio,0.73,1,1,1,1,1
-15835,Turmequ<U+00E9>,Boyac<U+00E1>,Municipio,0.93,1,1,1,1,1
-15837,Tuta,Boyac<U+00E1>,Municipio,2.51,1,2,2,1,1
-15839,Tutaz<U+00E1>,Boyac<U+00E1>,Municipio,1.91,1,1,1,1,1
-15842,Umbita,Boyac<U+00E1>,Municipio,1.17,1,1,1,1,1
-15861,Ventaquemada,Boyac<U+00E1>,Municipio,2.83,1,3,2,1,1
-15879,Viracach<U+00E1>,Boyac<U+00E1>,Municipio,1.86,1,1,1,1,1
-15897,Zetaquira,Boyac<U+00E1>,Municipio,1,1,1,1,1,1
+08001,Barranquilla,Atlántico,Municipio,1.65,1,1,1,1,1
+08078,Baranoa,Atlántico,Municipio,2.36,1,2,2,1,1
+08137,Campo de la Cruz,Atlántico,Municipio,3.32,2,3,3,1,1
+08141,Candelaria,Atlántico,Municipio,4.92,2,5,4,2,2
+08296,Galapa,Atlántico,Municipio,3.26,2,3,3,1,1
+08372,Juan de Acosta,Atlántico,Municipio,3.78,2,4,3,2,2
+08421,Luruaco,Atlántico,Municipio,3.28,2,3,3,1,1
+08433,Malambo,Atlántico,Municipio,1.97,1,2,1,1,1
+08436,Manatí,Atlántico,Municipio,1.86,1,1,1,1,1
+08520,Palmar de Varela,Atlántico,Municipio,2.58,1,2,2,1,1
+08549,Piojó,Atlántico,Municipio,2.35,1,2,2,1,1
+08558,Polonuevo,Atlántico,Municipio,3.87,2,4,3,2,2
+08560,Ponedera,Atlántico,Municipio,3.97,2,4,3,2,2
+08573,Puerto Colombia,Atlántico,Municipio,3.03,2,3,2,1,1
+08606,Repelón,Atlántico,Municipio,0.69,1,1,1,1,1
+08634,Sabanagrande,Atlántico,Municipio,3.03,2,3,2,1,1
+08638,Sabanalarga,Atlántico,Municipio,2.33,1,2,2,1,1
+08675,Santa Lucía,Atlántico,Municipio,1.83,1,1,1,1,1
+08685,Santo Tomás,Atlántico,Municipio,1.06,1,1,1,1,1
+08758,Soledad,Atlántico,Municipio,2.69,1,2,2,1,1
+08770,Suan,Atlántico,Municipio,0.62,1,1,1,1,1
+08832,Tubará,Atlántico,Municipio,2.28,1,2,2,1,1
+08849,Usiacurí,Atlántico,Municipio,1.82,1,1,1,1,1
+13006,Achí,Bolívar,Municipio,3.94,2,4,3,2,2
+13030,Altos del Rosario,Bolívar,Municipio,3.91,2,4,3,2,2
+13042,Arenal,Bolívar,Municipio,2.43,1,2,2,1,1
+13052,Arjona,Bolívar,Municipio,2.84,1,3,2,1,1
+13062,Arroyohondo,Bolívar,Municipio,4.87,2,5,4,2,2
+13074,Barranco de Loba,Bolívar,Municipio,5.76,2,5,4,2,2
+15183,Chita,Boyacá,Municipio,2.83,1,3,2,1,1
+15185,Chitaraque,Boyacá,Municipio,5.17,2,5,4,2,2
+15187,Chivatá,Boyacá,Municipio,2.16,1,2,2,1,1
+15189,Ciénega,Boyacá,Municipio,1.63,1,1,1,1,1
+15204,Cómbita,Boyacá,Municipio,3.24,2,3,2,1,1
+15212,Coper,Boyacá,Municipio,1.86,1,1,1,1,1
+15215,Corrales,Boyacá,Municipio,2.72,1,2,2,1,1
+15218,Covarachía,Boyacá,Municipio,1.39,1,1,1,1,1
+15223,Cubará,Boyacá,Municipio,4.97,2,5,4,2,2
+15224,Cucaita,Boyacá,Municipio,1.4,1,1,1,1,1
+15226,Cuítiva,Boyacá,Municipio,1.31,1,1,1,1,1
+15232,Chíquiza,Boyacá,Municipio,1.41,1,1,1,1,1
+15236,Chivor,Boyacá,Municipio,3,2,3,2,1,1
+15238,Duitama,Boyacá,Municipio,2.22,1,2,2,1,1
+15244,El Cocuy,Boyacá,Municipio,1.21,1,1,1,1,1
+15248,El Espino,Boyacá,Municipio,0.69,1,1,1,1,1
+15272,Firavitoba,Boyacá,Municipio,1.78,1,1,1,1,1
+15276,Floresta,Boyacá,Municipio,3.35,2,3,3,1,1
+15293,Gachantivá,Boyacá,Municipio,4.33,2,4,3,2,2
+15296,Gameza,Boyacá,Municipio,1.8,1,1,1,1,1
+15299,Garagoa,Boyacá,Municipio,1.66,1,1,1,1,1
+15317,Guacamayas,Boyacá,Municipio,0.97,1,1,1,1,1
+15322,Guateque,Boyacá,Municipio,1.87,1,1,1,1,1
+15325,Guayatá,Boyacá,Municipio,2.52,1,2,2,1,1
+15332,Güicán,Boyacá,Municipio,0.46,1,1,1,1,1
+15362,Iza,Boyacá,Municipio,3.59,2,3,3,2,2
+15367,Jenesano,Boyacá,Municipio,0.86,1,1,1,1,1
+15368,Jericó,Boyacá,Municipio,2.1,1,2,2,1,1
+15377,Labranzagrande,Boyacá,Municipio,2.49,1,2,2,1,1
+15380,La Capilla,Boyacá,Municipio,0.89,1,1,1,1,1
+15401,La Victoria,Boyacá,Municipio,0.65,1,1,1,1,1
+15403,La Uvita,Boyacá,Municipio,0.51,1,1,1,1,1
+15407,Villa de Leyva,Boyacá,Municipio,2.1,1,2,2,1,1
+15425,Macanal,Boyacá,Municipio,2.51,1,2,2,1,1
+15442,Maripí,Boyacá,Municipio,2.04,1,2,2,1,1
+15455,Miraflores,Boyacá,Municipio,2.59,1,2,2,1,1
+15464,Mongua,Boyacá,Municipio,2.02,1,2,2,1,1
+15466,Monguí,Boyacá,Municipio,0.93,1,1,1,1,1
+15469,Moniquirá,Boyacá,Municipio,3.67,2,4,3,2,2
+15476,Motavita,Boyacá,Municipio,1.64,1,1,1,1,1
+15480,Muzo,Boyacá,Municipio,1.56,1,1,1,1,1
+15494,Nuevo Colón,Boyacá,Municipio,0.84,1,1,1,1,1
+15500,Oicatá,Boyacá,Municipio,3.69,2,4,3,2,2
+15507,Otanche,Boyacá,Municipio,2.51,1,2,2,1,1
+15511,Pachavita,Boyacá,Municipio,1.82,1,1,1,1,1
+15514,Páez,Boyacá,Municipio,2.13,1,2,2,1,1
+15516,Paipa,Boyacá,Municipio,2.94,1,3,2,1,1
+15518,Pajarito,Boyacá,Municipio,1.54,1,1,1,1,1
+15522,Panqueba,Boyacá,Municipio,2,1,2,2,1,1
+15531,Pauna,Boyacá,Municipio,2.86,1,3,2,1,1
+15533,Paya,Boyacá,Municipio,0.47,1,1,1,1,1
+15537,Paz de Río,Boyacá,Municipio,1.86,1,1,1,1,1
+15542,Pesca,Boyacá,Municipio,0.79,1,1,1,1,1
+15550,Pisba,Boyacá,Municipio,3.2,2,3,2,1,1
+15572,Puerto Boyacá,Boyacá,Municipio,3.39,2,3,3,1,1
+15580,Quípama,Boyacá,Municipio,1.59,1,1,1,1,1
+15599,Ramiriquí,Boyacá,Municipio,4.34,2,4,3,2,2
+15600,Ráquira,Boyacá,Municipio,3.18,2,3,2,1,1
+15621,Rondón,Boyacá,Municipio,2.52,1,2,2,1,1
+15632,Saboyá,Boyacá,Municipio,1.39,1,1,1,1,1
+15638,Sáchica,Boyacá,Municipio,3.81,2,4,3,2,2
+15646,Samacá,Boyacá,Municipio,1.89,1,1,1,1,1
+15660,San Eduardo,Boyacá,Municipio,0.84,1,1,1,1,1
+15664,San José de Pare,Boyacá,Municipio,3.21,2,3,2,1,1
+15667,San Luis de Gaceno,Boyacá,Municipio,6,3,5,4,2,2
+15673,San Mateo,Boyacá,Municipio,1.05,1,1,1,1,1
+15676,San Miguel de Sema,Boyacá,Municipio,1.36,1,1,1,1,1
+15681,San Pablo de Borbur,Boyacá,Municipio,1.76,1,1,1,1,1
+15686,Santana,Boyacá,Municipio,4.19,2,4,3,2,2
+15690,Santa María,Boyacá,Municipio,1.52,1,1,1,1,1
+15693,Santa Rosa de Viterbo,Boyacá,Municipio,2.39,1,2,2,1,1
+15696,Santa Sofía,Boyacá,Municipio,3.35,2,3,3,1,1
+15720,Sativanorte,Boyacá,Municipio,3.97,2,4,3,2,2
+15723,Sativasur,Boyacá,Municipio,0,1,1,1,1,1
+15740,Siachoque,Boyacá,Municipio,1.76,1,1,1,1,1
+15753,Soatá,Boyacá,Municipio,0.89,1,1,1,1,1
+15755,Socotá,Boyacá,Municipio,1.47,1,1,1,1,1
+15757,Socha,Boyacá,Municipio,2.76,1,2,2,1,1
+15759,Sogamoso,Boyacá,Municipio,1.99,1,2,2,1,1
+15761,Somondoco,Boyacá,Municipio,2.54,1,2,2,1,1
+15762,Sora,Boyacá,Municipio,0.74,1,1,1,1,1
+15763,Sotaquirá,Boyacá,Municipio,1.71,1,1,1,1,1
+15764,Soracá,Boyacá,Municipio,2.53,1,2,2,1,1
+15774,Susacón,Boyacá,Municipio,4.64,2,4,3,2,2
+15776,Sutamarchán,Boyacá,Municipio,2.09,1,2,2,1,1
+15778,Sutatenza,Boyacá,Municipio,0.84,1,1,1,1,1
+15790,Tasco,Boyacá,Municipio,1.24,1,1,1,1,1
+15798,Tenza,Boyacá,Municipio,2.05,1,2,2,1,1
+15804,Tibaná,Boyacá,Municipio,1.51,1,1,1,1,1
+15808,Tinjacá,Boyacá,Municipio,4.45,2,4,3,2,2
+15810,Tipacoque,Boyacá,Municipio,1.1,1,1,1,1,1
+15814,Toca,Boyacá,Municipio,2.2,1,2,2,1,1
+15816,Togüí,Boyacá,Municipio,6.25,3,5,4,2,2
+15820,Tópaga,Boyacá,Municipio,2.01,1,2,2,1,1
+15822,Tota,Boyacá,Municipio,1.86,1,1,1,1,1
+15832,Tununguá,Boyacá,Municipio,0.73,1,1,1,1,1
+15835,Turmequé,Boyacá,Municipio,0.93,1,1,1,1,1
+15837,Tuta,Boyacá,Municipio,2.51,1,2,2,1,1
+15839,Tutazá,Boyacá,Municipio,1.91,1,1,1,1,1
+15842,Umbita,Boyacá,Municipio,1.17,1,1,1,1,1
+15861,Ventaquemada,Boyacá,Municipio,2.83,1,3,2,1,1
+15879,Viracachá,Boyacá,Municipio,1.86,1,1,1,1,1
+15897,Zetaquira,Boyacá,Municipio,1,1,1,1,1,1
 17001,Manizales,Caldas,Municipio,3.06,2,3,2,1,1
 17013,Aguadas,Caldas,Municipio,3.24,2,3,2,1,1
 17042,Anserma,Caldas,Municipio,3.81,2,4,3,2,2
 17050,Aranzazu,Caldas,Municipio,3.3,2,3,3,1,1
-17088,Belalc<U+00E1>zar,Caldas,Municipio,5.08,2,5,4,2,2
-17174,Chinchin<U+00E1>,Caldas,Municipio,5.53,2,5,4,2,2
+17088,Belalcázar,Caldas,Municipio,5.08,2,5,4,2,2
+17174,Chinchiná,Caldas,Municipio,5.53,2,5,4,2,2
 17272,Filadelfia,Caldas,Municipio,4.64,2,4,3,2,2
 17380,La Dorada,Caldas,Municipio,4.41,2,4,3,2,2
 17388,La Merced,Caldas,Municipio,3.91,2,4,3,2,2
@@ -167,106 +167,106 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 17446,Marulanda,Caldas,Municipio,2.97,2,3,2,1,1
 17486,Neira,Caldas,Municipio,3.8,2,4,3,2,2
 17495,Norcasia,Caldas,Municipio,2.37,1,2,2,1,1
-17513,P<U+00E1>cora,Caldas,Municipio,3.89,2,4,3,2,2
+17513,Pácora,Caldas,Municipio,3.89,2,4,3,2,2
 17524,Palestina,Caldas,Municipio,3.87,2,4,3,2,2
 17541,Pensilvania,Caldas,Municipio,3.55,2,3,3,2,2
 17616,Risaralda,Caldas,Municipio,6.41,3,5,4,2,2
 17653,Salamina,Caldas,Municipio,2.25,1,2,2,1,1
-17662,Saman<U+00E1>,Caldas,Municipio,2.45,1,2,2,1,1
-17665,San Jos<U+00E9>,Caldas,Municipio,1.95,1,2,1,1,1
-17777,Sup<U+00ED>a,Caldas,Municipio,3.15,2,3,2,1,1
+17662,Samaná,Caldas,Municipio,2.45,1,2,2,1,1
+17665,San José,Caldas,Municipio,1.95,1,2,1,1,1
+17777,Supía,Caldas,Municipio,3.15,2,3,2,1,1
 17867,Victoria,Caldas,Municipio,4.82,2,5,4,2,2
-17873,Villamar<U+00ED>a,Caldas,Municipio,3.27,2,3,3,1,1
+17873,Villamaría,Caldas,Municipio,3.27,2,3,3,1,1
 17877,Viterbo,Caldas,Municipio,3.27,2,3,3,1,1
-18001,Florencia,Caquet<U+00E1>,Municipio,5.93,3,5,4,2,2
-18029,Albania,Caquet<U+00E1>,Municipio,6.66,3,5,4,2,2
-18094,Bel<U+00E9>n de los Andaquies,Caquet<U+00E1>,Municipio,6.12,3,5,4,2,2
-18247,El Doncello,Caquet<U+00E1>,Municipio,5.42,2,5,4,2,2
-18256,El Paujil,Caquet<U+00E1>,Municipio,7.8,3,5,5,3,2
-13140,Calamar,Bol<U+00ED>var,Municipio,2.11,1,2,2,1,1
-13160,Cantagallo,Bol<U+00ED>var,Municipio,4.09,2,4,3,2,2
-13188,Cicuco,Bol<U+00ED>var,Municipio,5.17,2,5,4,2,2
-13212,C<U+00F3>rdoba,Bol<U+00ED>var,Municipio,1.47,1,1,1,1,1
-13222,Clemencia,Bol<U+00ED>var,Municipio,3.13,2,3,2,1,1
-13244,El Carmen de Bol<U+00ED>var,Bol<U+00ED>var,Municipio,3.55,2,3,3,2,2
-13248,El Guamo,Bol<U+00ED>var,Municipio,3.19,2,3,2,1,1
-13268,El Pe<U+00F1><U+00F3>n,Bol<U+00ED>var,Municipio,3.96,2,4,3,2,2
-13300,Hatillo de Loba,Bol<U+00ED>var,Municipio,4.12,2,4,3,2,2
-13430,Magangu<U+00E9>,Bol<U+00ED>var,Municipio,3.94,2,4,3,2,2
-13433,Mahates,Bol<U+00ED>var,Municipio,2.82,1,2,2,1,1
-13440,Margarita,Bol<U+00ED>var,Municipio,3.97,2,4,3,2,2
-13442,Mar<U+00ED>a la Baja,Bol<U+00ED>var,Municipio,3.39,2,3,3,1,1
-13458,Montecristo,Bol<U+00ED>var,Municipio,5.83,2,5,4,2,2
-13468,Momp<U+00F3>s,Bol<U+00ED>var,Municipio,3.95,2,4,3,2,2
-13473,Morales,Bol<U+00ED>var,Municipio,3.49,2,3,3,2,2
-13490,Norosi,Bol<U+00ED>var,Municipio,1.63,1,1,1,1,1
-13549,Pinillos,Bol<U+00ED>var,Municipio,4.43,2,4,3,2,2
-13580,Regidor,Bol<U+00ED>var,Municipio,6.29,3,5,4,2,2
-13600,R<U+00ED>o Viejo,Bol<U+00ED>var,Municipio,3.85,2,4,3,2,2
-13620,San Crist<U+00F3>bal,Bol<U+00ED>var,Municipio,3.18,2,3,2,1,1
-13647,San Estanislao,Bol<U+00ED>var,Municipio,3.41,2,3,3,1,1
-13654,San Jacinto,Bol<U+00ED>var,Municipio,3.12,2,3,2,1,1
-13655,San Jacinto del Cauca,Bol<U+00ED>var,Municipio,4.47,2,4,3,2,2
-13657,San Juan Nepomuceno,Bol<U+00ED>var,Municipio,3.73,2,4,3,2,2
-13667,San Mart<U+00ED>n de Loba,Bol<U+00ED>var,Municipio,5.1,2,5,4,2,2
-13670,San Pablo,Bol<U+00ED>var,Municipio,2.39,1,2,2,1,1
-13673,Santa Catalina,Bol<U+00ED>var,Municipio,2.73,1,2,2,1,1
-13683,Santa Rosa,Bol<U+00ED>var,Municipio,1.76,1,1,1,1,1
-13688,Santa Rosa del Sur,Bol<U+00ED>var,Municipio,3.95,2,4,3,2,2
-13744,Simit<U+00ED>,Bol<U+00ED>var,Municipio,3.6,2,3,3,2,2
-13760,Soplaviento,Bol<U+00ED>var,Municipio,1.08,1,1,1,1,1
-13780,Talaigua Nuevo,Bol<U+00ED>var,Municipio,2.15,1,2,2,1,1
-13810,Tiquisio,Bol<U+00ED>var,Municipio,3.16,2,3,2,1,1
-13836,Turbaco,Bol<U+00ED>var,Municipio,2.84,1,3,2,1,1
-13838,Turban<U+00E1>,Bol<U+00ED>var,Municipio,3.1,2,3,2,1,1
-13873,Villanueva,Bol<U+00ED>var,Municipio,1.11,1,1,1,1,1
-13894,Zambrano,Bol<U+00ED>var,Municipio,2.32,1,2,2,1,1
-15022,Almeida,Boyac<U+00E1>,Municipio,2.05,1,2,2,1,1
-15047,Aquitania,Boyac<U+00E1>,Municipio,3.86,2,4,3,2,2
-15051,Arcabuco,Boyac<U+00E1>,Municipio,1.28,1,1,1,1,1
-15087,Bel<U+00E9>n,Boyac<U+00E1>,Municipio,2.8,1,2,2,1,1
-15090,Berbeo,Boyac<U+00E1>,Municipio,1.49,1,1,1,1,1
-15092,Bet<U+00E9>itiva,Boyac<U+00E1>,Municipio,2.4,1,2,2,1,1
-15097,Boavita,Boyac<U+00E1>,Municipio,1.64,1,1,1,1,1
-15104,Boyac<U+00E1>,Boyac<U+00E1>,Municipio,2.01,1,2,2,1,1
-15106,Brice<U+00F1>o,Boyac<U+00E1>,Municipio,0.82,1,1,1,1,1
-15109,Buenavista,Boyac<U+00E1>,Municipio,2.94,1,3,2,1,1
-15114,Busbanz<U+00E1>,Boyac<U+00E1>,Municipio,2.27,1,2,2,1,1
-15131,Caldas,Boyac<U+00E1>,Municipio,2.68,1,2,2,1,1
-15135,Campohermoso,Boyac<U+00E1>,Municipio,0.69,1,1,1,1,1
-15162,Cerinza,Boyac<U+00E1>,Municipio,0.6,1,1,1,1,1
-15172,Chinavita,Boyac<U+00E1>,Municipio,1.9,1,1,1,1,1
-15176,Chiquinquir<U+00E1>,Boyac<U+00E1>,Municipio,1.94,1,2,1,1,1
-15180,Chiscas,Boyac<U+00E1>,Municipio,1.06,1,1,1,1,1
+18001,Florencia,Caquetá,Municipio,5.93,3,5,4,2,2
+18029,Albania,Caquetá,Municipio,6.66,3,5,4,2,2
+18094,Belén de los Andaquies,Caquetá,Municipio,6.12,3,5,4,2,2
+18247,El Doncello,Caquetá,Municipio,5.42,2,5,4,2,2
+18256,El Paujil,Caquetá,Municipio,7.8,3,5,5,3,2
+13140,Calamar,Bolívar,Municipio,2.11,1,2,2,1,1
+13160,Cantagallo,Bolívar,Municipio,4.09,2,4,3,2,2
+13188,Cicuco,Bolívar,Municipio,5.17,2,5,4,2,2
+13212,Córdoba,Bolívar,Municipio,1.47,1,1,1,1,1
+13222,Clemencia,Bolívar,Municipio,3.13,2,3,2,1,1
+13244,El Carmen de Bolívar,Bolívar,Municipio,3.55,2,3,3,2,2
+13248,El Guamo,Bolívar,Municipio,3.19,2,3,2,1,1
+13268,El Peñón,Bolívar,Municipio,3.96,2,4,3,2,2
+13300,Hatillo de Loba,Bolívar,Municipio,4.12,2,4,3,2,2
+13430,Magangué,Bolívar,Municipio,3.94,2,4,3,2,2
+13433,Mahates,Bolívar,Municipio,2.82,1,2,2,1,1
+13440,Margarita,Bolívar,Municipio,3.97,2,4,3,2,2
+13442,María la Baja,Bolívar,Municipio,3.39,2,3,3,1,1
+13458,Montecristo,Bolívar,Municipio,5.83,2,5,4,2,2
+13468,Mompós,Bolívar,Municipio,3.95,2,4,3,2,2
+13473,Morales,Bolívar,Municipio,3.49,2,3,3,2,2
+13490,Norosi,Bolívar,Municipio,1.63,1,1,1,1,1
+13549,Pinillos,Bolívar,Municipio,4.43,2,4,3,2,2
+13580,Regidor,Bolívar,Municipio,6.29,3,5,4,2,2
+13600,Río Viejo,Bolívar,Municipio,3.85,2,4,3,2,2
+13620,San Cristóbal,Bolívar,Municipio,3.18,2,3,2,1,1
+13647,San Estanislao,Bolívar,Municipio,3.41,2,3,3,1,1
+13654,San Jacinto,Bolívar,Municipio,3.12,2,3,2,1,1
+13655,San Jacinto del Cauca,Bolívar,Municipio,4.47,2,4,3,2,2
+13657,San Juan Nepomuceno,Bolívar,Municipio,3.73,2,4,3,2,2
+13667,San Martín de Loba,Bolívar,Municipio,5.1,2,5,4,2,2
+13670,San Pablo,Bolívar,Municipio,2.39,1,2,2,1,1
+13673,Santa Catalina,Bolívar,Municipio,2.73,1,2,2,1,1
+13683,Santa Rosa,Bolívar,Municipio,1.76,1,1,1,1,1
+13688,Santa Rosa del Sur,Bolívar,Municipio,3.95,2,4,3,2,2
+13744,Simití,Bolívar,Municipio,3.6,2,3,3,2,2
+13760,Soplaviento,Bolívar,Municipio,1.08,1,1,1,1,1
+13780,Talaigua Nuevo,Bolívar,Municipio,2.15,1,2,2,1,1
+13810,Tiquisio,Bolívar,Municipio,3.16,2,3,2,1,1
+13836,Turbaco,Bolívar,Municipio,2.84,1,3,2,1,1
+13838,Turbaná,Bolívar,Municipio,3.1,2,3,2,1,1
+13873,Villanueva,Bolívar,Municipio,1.11,1,1,1,1,1
+13894,Zambrano,Bolívar,Municipio,2.32,1,2,2,1,1
+15022,Almeida,Boyacá,Municipio,2.05,1,2,2,1,1
+15047,Aquitania,Boyacá,Municipio,3.86,2,4,3,2,2
+15051,Arcabuco,Boyacá,Municipio,1.28,1,1,1,1,1
+15087,Belén,Boyacá,Municipio,2.8,1,2,2,1,1
+15090,Berbeo,Boyacá,Municipio,1.49,1,1,1,1,1
+15092,Betéitiva,Boyacá,Municipio,2.4,1,2,2,1,1
+15097,Boavita,Boyacá,Municipio,1.64,1,1,1,1,1
+15104,Boyacá,Boyacá,Municipio,2.01,1,2,2,1,1
+15106,Briceño,Boyacá,Municipio,0.82,1,1,1,1,1
+15109,Buenavista,Boyacá,Municipio,2.94,1,3,2,1,1
+15114,Busbanzá,Boyacá,Municipio,2.27,1,2,2,1,1
+15131,Caldas,Boyacá,Municipio,2.68,1,2,2,1,1
+15135,Campohermoso,Boyacá,Municipio,0.69,1,1,1,1,1
+15162,Cerinza,Boyacá,Municipio,0.6,1,1,1,1,1
+15172,Chinavita,Boyacá,Municipio,1.9,1,1,1,1,1
+15176,Chiquinquirá,Boyacá,Municipio,1.94,1,2,1,1,1
+15180,Chiscas,Boyacá,Municipio,1.06,1,1,1,1,1
 05002,Abejorral,Antioquia,Municipio,2.9,1,3,2,1,1
-05004,Abriaqu<U+00ED>,Antioquia,Municipio,0,1,1,1,1,1
-05021,Alejandr<U+00ED>a,Antioquia,Municipio,1.42,1,1,1,1,1
-05030,Amag<U+00E1>,Antioquia,Municipio,5.04,2,5,4,2,2
+05004,Abriaquí,Antioquia,Municipio,0,1,1,1,1,1
+05021,Alejandría,Antioquia,Municipio,1.42,1,1,1,1,1
+05030,Amagá,Antioquia,Municipio,5.04,2,5,4,2,2
 05034,Andes,Antioquia,Municipio,4.33,2,4,3,2,2
-05036,Angel<U+00F3>polis,Antioquia,Municipio,0.98,1,1,1,1,1
+05036,Angelópolis,Antioquia,Municipio,0.98,1,1,1,1,1
 05038,Angostura,Antioquia,Municipio,2.96,1,3,2,1,1
-05040,Anor<U+00ED>,Antioquia,Municipio,5.94,3,5,4,2,2
+05040,Anorí,Antioquia,Municipio,5.94,3,5,4,2,2
 05044,Anza,Antioquia,Municipio,2.19,1,2,2,1,1
 05055,Argelia,Antioquia,Municipio,3.13,2,3,2,1,1
 05059,Armenia,Antioquia,Municipio,3.64,2,4,3,2,2
 05091,Betania,Antioquia,Municipio,2.21,1,2,2,1,1
 05093,Betulia,Antioquia,Municipio,2.72,1,2,2,1,1
-05101,Ciudad Bol<U+00ED>var,Antioquia,Municipio,7.45,3,5,5,3,2
-05107,Brice<U+00F1>o,Antioquia,Municipio,2.8,1,2,2,1,1
-05113,Buritic<U+00E1>,Antioquia,Municipio,8.01,3,5,5,3,2
-05120,C<U+00E1>ceres,Antioquia,Municipio,5.8,2,5,4,2,2
+05101,Ciudad Bolívar,Antioquia,Municipio,7.45,3,5,5,3,2
+05107,Briceño,Antioquia,Municipio,2.8,1,2,2,1,1
+05113,Buriticá,Antioquia,Municipio,8.01,3,5,5,3,2
+05120,Cáceres,Antioquia,Municipio,5.8,2,5,4,2,2
 05125,Caicedo,Antioquia,Municipio,1.86,1,1,1,1,1
 05134,Campamento,Antioquia,Municipio,3.74,2,4,3,2,2
-05142,Caracol<U+00ED>,Antioquia,Municipio,3.27,2,3,3,1,1
+05142,Caracolí,Antioquia,Municipio,3.27,2,3,3,1,1
 05145,Caramanta,Antioquia,Municipio,2.24,1,2,2,1,1
 05148,El Carmen de Viboral,Antioquia,Municipio,3.55,2,3,3,2,2
 05150,Carolina,Antioquia,Municipio,2.4,1,2,2,1,1
-05172,Chigorod<U+00F3>,Antioquia,Municipio,5.48,2,5,4,2,2
+05172,Chigorodó,Antioquia,Municipio,5.48,2,5,4,2,2
 05190,Cisneros,Antioquia,Municipio,2.35,1,2,2,1,1
-05197,Cocorn<U+00E1>,Antioquia,Municipio,3.28,2,3,3,1,1
-05206,Concepci<U+00F3>n,Antioquia,Municipio,1.76,1,1,1,1,1
+05197,Cocorná,Antioquia,Municipio,3.28,2,3,3,1,1
+05206,Concepción,Antioquia,Municipio,1.76,1,1,1,1,1
 05209,Concordia,Antioquia,Municipio,3.9,2,4,3,2,2
-05237,Don Mat<U+00ED>as,Antioquia,Municipio,6.31,3,5,4,2,2
+05237,Don Matías,Antioquia,Municipio,6.31,3,5,4,2,2
 05250,El Bagre,Antioquia,Municipio,4.61,2,4,3,2,2
 05264,Entrerrios,Antioquia,Municipio,1.48,1,1,1,1,1
 05282,Fredonia,Antioquia,Municipio,1.89,1,1,1,1,1
@@ -278,42 +278,42 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 05347,Heliconia,Antioquia,Municipio,4.93,2,5,4,2,2
 05353,Hispania,Antioquia,Municipio,4.11,2,4,3,2,2
 05361,Ituango,Antioquia,Municipio,3.85,2,4,3,2,2
-05368,Jeric<U+00F3>,Antioquia,Municipio,2.37,1,2,2,1,1
+05368,Jericó,Antioquia,Municipio,2.37,1,2,2,1,1
 05390,La Pintada,Antioquia,Municipio,3.66,2,4,3,2,2
-05400,La Uni<U+00F3>n,Antioquia,Municipio,4.27,2,4,3,2,2
+05400,La Unión,Antioquia,Municipio,4.27,2,4,3,2,2
 05425,Maceo,Antioquia,Municipio,3.05,2,3,2,1,1
 05440,Marinilla,Antioquia,Municipio,3.86,2,4,3,2,2
 05467,Montebello,Antioquia,Municipio,3.37,2,3,3,1,1
-05483,Nari<U+00F1>o,Antioquia,Municipio,5.19,2,5,4,2,2
-05495,Nech<U+00ED>,Antioquia,Municipio,6.44,3,5,4,2,2
+05483,Nariño,Antioquia,Municipio,5.19,2,5,4,2,2
+05495,Nechí,Antioquia,Municipio,6.44,3,5,4,2,2
 05501,Olaya,Antioquia,Municipio,2.49,1,2,2,1,1
-05541,Pe<U+00F1>ol,Antioquia,Municipio,2.58,1,2,2,1,1
+05541,Peñol,Antioquia,Municipio,2.58,1,2,2,1,1
 05543,Peque,Antioquia,Municipio,1.74,1,1,1,1,1
 05576,Pueblorrico,Antioquia,Municipio,3.16,2,3,2,1,1
-05579,Puerto Berr<U+00ED>o,Antioquia,Municipio,2.85,1,3,2,1,1
+05579,Puerto Berrío,Antioquia,Municipio,2.85,1,3,2,1,1
 05585,Puerto Nare,Antioquia,Municipio,3.37,2,3,3,1,1
 05591,Puerto Triunfo,Antioquia,Municipio,2.57,1,2,2,1,1
 05604,Remedios,Antioquia,Municipio,6.53,3,5,4,2,2
 05607,Retiro,Antioquia,Municipio,3.41,2,3,3,1,1
 05628,Sabanalarga,Antioquia,Municipio,0.64,1,1,1,1,1
 05642,Salgar,Antioquia,Municipio,4.21,2,4,3,2,2
-05647,San Andr<U+00E9>s,Antioquia,Municipio,3.9,2,4,3,2,2
+05647,San Andrés,Antioquia,Municipio,3.9,2,4,3,2,2
 05649,San Carlos,Antioquia,Municipio,2.92,1,3,2,1,1
 05652,San Francisco,Antioquia,Municipio,7.46,3,5,5,3,2
-05658,San Jos<U+00E9> de la Monta<U+00F1>a,Antioquia,Municipio,0.99,1,1,1,1,1
-05659,San Juan de Urab<U+00E1>,Antioquia,Municipio,2.03,1,2,2,1,1
+05658,San José de la Montaña,Antioquia,Municipio,0.99,1,1,1,1,1
+05659,San Juan de Urabá,Antioquia,Municipio,2.03,1,2,2,1,1
 05660,San Luis,Antioquia,Municipio,3.37,2,3,3,1,1
 05664,San Pedro,Antioquia,Municipio,3.39,2,3,3,1,1
 05665,San Pedro de Uraba,Antioquia,Municipio,3.19,2,3,2,1,1
-25295,Gachancip<U+00E1>,Cundinamarca,Municipio,4.48,2,4,3,2,2
+25295,Gachancipá,Cundinamarca,Municipio,4.48,2,4,3,2,2
 25335,Guayabetal,Cundinamarca,Municipio,2.27,1,2,2,1,1
-25339,Guti<U+00E9>rrez,Cundinamarca,Municipio,0.78,1,1,1,1,1
-25368,Jerusal<U+00E9>n,Cundinamarca,Municipio,3.32,2,3,3,1,1
-25372,Jun<U+00ED>n,Cundinamarca,Municipio,2.11,1,2,2,1,1
+25339,Gutiérrez,Cundinamarca,Municipio,0.78,1,1,1,1,1
+25368,Jerusalén,Cundinamarca,Municipio,3.32,2,3,3,1,1
+25372,Junín,Cundinamarca,Municipio,2.11,1,2,2,1,1
 25377,La Calera,Cundinamarca,Municipio,3.85,2,4,3,2,2
 25386,La Mesa,Cundinamarca,Municipio,3.58,2,3,3,2,2
 25394,La Palma,Cundinamarca,Municipio,2.09,1,2,2,1,1
-25398,La Pe<U+00F1>a,Cundinamarca,Municipio,4.46,2,4,3,2,2
+25398,La Peña,Cundinamarca,Municipio,4.46,2,4,3,2,2
 25402,La Vega,Cundinamarca,Municipio,1.95,1,2,1,1,1
 25407,Lenguazaque,Cundinamarca,Municipio,2.64,1,2,2,1,1
 25426,Macheta,Cundinamarca,Municipio,1.82,1,1,1,1,1
@@ -321,8 +321,8 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 25436,Manta,Cundinamarca,Municipio,1.14,1,1,1,1,1
 25438,Medina,Cundinamarca,Municipio,4.86,2,5,4,2,2
 25473,Mosquera,Cundinamarca,Municipio,2.5,1,2,2,1,1
-25483,Nari<U+00F1>o,Cundinamarca,Municipio,2.14,1,2,2,1,1
-25486,Nemoc<U+00F3>n,Cundinamarca,Municipio,4.17,2,4,3,2,2
+25483,Nariño,Cundinamarca,Municipio,2.14,1,2,2,1,1
+25486,Nemocón,Cundinamarca,Municipio,4.17,2,4,3,2,2
 25488,Nilo,Cundinamarca,Municipio,3.69,2,4,3,2,2
 25489,Nimaima,Cundinamarca,Municipio,2.61,1,2,2,1,1
 25491,Nocaima,Cundinamarca,Municipio,2.27,1,2,2,1,1
@@ -333,7 +333,7 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 25530,Paratebueno,Cundinamarca,Municipio,5,2,5,4,2,2
 25535,Pasca,Cundinamarca,Municipio,2.1,1,2,2,1,1
 25572,Puerto Salgar,Cundinamarca,Municipio,2.63,1,2,2,1,1
-25580,Pul<U+00ED>,Cundinamarca,Municipio,4.1,2,4,3,2,2
+25580,Pulí,Cundinamarca,Municipio,4.1,2,4,3,2,2
 25592,Quebradanegra,Cundinamarca,Municipio,4.03,2,4,3,2,2
 25594,Quetame,Cundinamarca,Municipio,1.21,1,1,1,1,1
 25596,Quipile,Cundinamarca,Municipio,5.19,2,5,4,2,2
@@ -343,17 +343,17 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 25649,San Bernardo,Cundinamarca,Municipio,2.92,1,3,2,1,1
 25653,San Cayetano,Cundinamarca,Municipio,5.97,3,5,4,2,2
 25658,San Francisco,Cundinamarca,Municipio,2.83,1,3,2,1,1
-25662,San Juan de R<U+00ED>o Seco,Cundinamarca,Municipio,1.9,1,1,1,1,1
+25662,San Juan de Río Seco,Cundinamarca,Municipio,1.9,1,1,1,1,1
 25718,Sasaima,Cundinamarca,Municipio,6.42,3,5,4,2,2
-25736,Sesquil<U+00E9>,Cundinamarca,Municipio,3.38,2,3,3,1,1
-25740,Sibat<U+00E9>,Cundinamarca,Municipio,3.53,2,3,3,2,2
+25736,Sesquilé,Cundinamarca,Municipio,3.38,2,3,3,1,1
+25740,Sibaté,Cundinamarca,Municipio,3.53,2,3,3,2,2
 25743,Silvania,Cundinamarca,Municipio,5.48,2,5,4,2,2
 25745,Simijaca,Cundinamarca,Municipio,2.92,1,3,2,1,1
 25754,Soacha,Cundinamarca,Municipio,4.04,2,4,3,2,2
-25758,Sop<U+00F3>,Cundinamarca,Municipio,2.78,1,2,2,1,1
+25758,Sopó,Cundinamarca,Municipio,2.78,1,2,2,1,1
 25769,Subachoque,Cundinamarca,Municipio,2.1,1,2,2,1,1
 25772,Suesca,Cundinamarca,Municipio,4.32,2,4,3,2,2
-25777,Supat<U+00E1>,Cundinamarca,Municipio,3.05,2,3,2,1,1
+25777,Supatá,Cundinamarca,Municipio,3.05,2,3,2,1,1
 25779,Susa,Cundinamarca,Municipio,1.71,1,1,1,1,1
 25781,Sutatausa,Cundinamarca,Municipio,2.79,1,2,2,1,1
 25785,Tabio,Cundinamarca,Municipio,2.37,1,2,2,1,1
@@ -363,22 +363,22 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 25805,Tibacuy,Cundinamarca,Municipio,4.34,2,4,3,2,2
 25807,Tibirita,Cundinamarca,Municipio,1.41,1,1,1,1,1
 25815,Tocaima,Cundinamarca,Municipio,6.44,3,5,4,2,2
-25817,Tocancip<U+00E1>,Cundinamarca,Municipio,3.45,2,3,3,2,2
-25823,Topaip<U+00ED>,Cundinamarca,Municipio,5.04,2,5,4,2,2
-25839,Ubal<U+00E1>,Cundinamarca,Municipio,1.07,1,1,1,1,1
+25817,Tocancipá,Cundinamarca,Municipio,3.45,2,3,3,2,2
+25823,Topaipí,Cundinamarca,Municipio,5.04,2,5,4,2,2
+25839,Ubalá,Cundinamarca,Municipio,1.07,1,1,1,1,1
 25841,Ubaque,Cundinamarca,Municipio,2.03,1,2,2,1,1
 25843,Villa de San Diego de Ubate,Cundinamarca,Municipio,2.58,1,2,2,1,1
 25845,Une,Cundinamarca,Municipio,1.22,1,1,1,1,1
-25851,<U+00DA>tica,Cundinamarca,Municipio,0.8,1,1,1,1,1
+25851,Útica,Cundinamarca,Municipio,0.8,1,1,1,1,1
 25862,Vergara,Cundinamarca,Municipio,1.45,1,1,1,1,1
-25867,Vian<U+00ED>,Cundinamarca,Municipio,2.56,1,2,2,1,1
-25871,Villag<U+00F3>mez,Cundinamarca,Municipio,2.51,1,2,2,1,1
-25873,Villapinz<U+00F3>n,Cundinamarca,Municipio,1.67,1,1,1,1,1
+25867,Vianí,Cundinamarca,Municipio,2.56,1,2,2,1,1
+25871,Villagómez,Cundinamarca,Municipio,2.51,1,2,2,1,1
+25873,Villapinzón,Cundinamarca,Municipio,1.67,1,1,1,1,1
 25875,Villeta,Cundinamarca,Municipio,4.68,2,4,3,2,2
-25878,Viot<U+00E1>,Cundinamarca,Municipio,4.19,2,4,3,2,2
-25885,Yacop<U+00ED>,Cundinamarca,Municipio,3.12,2,3,2,1,1
-25898,Zipac<U+00F3>n,Cundinamarca,Municipio,3.85,2,4,3,2,2
-25899,Zipaquir<U+00E1>,Cundinamarca,Municipio,4.51,2,4,3,2,2
+25878,Viotá,Cundinamarca,Municipio,4.19,2,4,3,2,2
+25885,Yacopí,Cundinamarca,Municipio,3.12,2,3,2,1,1
+25898,Zipacón,Cundinamarca,Municipio,3.85,2,4,3,2,2
+25899,Zipaquirá,Cundinamarca,Municipio,4.51,2,4,3,2,2
 41001,Neiva,Huila,Municipio,5.75,2,5,4,2,2
 41006,Acevedo,Huila,Municipio,4.64,2,4,3,2,2
 41013,Agrado,Huila,Municipio,2.2,1,2,2,1,1
@@ -388,15 +388,15 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 41078,Baraya,Huila,Municipio,4.19,2,4,3,2,2
 41132,Campoalegre,Huila,Municipio,3.88,2,4,3,2,2
 41206,Colombia,Huila,Municipio,4.21,2,4,3,2,2
-41244,El<U+00ED>as,Huila,Municipio,1.89,1,1,1,1,1
-41298,Garz<U+00F3>n,Huila,Municipio,3.96,2,4,3,2,2
+41244,Elías,Huila,Municipio,1.89,1,1,1,1,1
+41298,Garzón,Huila,Municipio,3.96,2,4,3,2,2
 41306,Gigante,Huila,Municipio,4.44,2,4,3,2,2
 41319,Guadalupe,Huila,Municipio,3.08,2,3,2,1,1
 41357,Iquira,Huila,Municipio,5.2,2,5,4,2,2
 41359,Isnos,Huila,Municipio,4.4,2,4,3,2,2
 41378,La Argentina,Huila,Municipio,4.78,2,4,4,2,2
 41396,La Plata,Huila,Municipio,3.21,2,3,2,1,1
-41483,N<U+00E1>taga,Huila,Municipio,3.18,2,3,2,1,1
+41483,Nátaga,Huila,Municipio,3.18,2,3,2,1,1
 41503,Oporapa,Huila,Municipio,3.27,2,3,3,1,1
 41518,Paicol,Huila,Municipio,4.07,2,4,3,2,2
 41524,Palermo,Huila,Municipio,4.57,2,4,3,2,2
@@ -405,20 +405,20 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 41551,Pitalito,Huila,Municipio,4.64,2,4,3,2,2
 41615,Rivera,Huila,Municipio,4.85,2,5,4,2,2
 41660,Saladoblanco,Huila,Municipio,5.21,2,5,4,2,2
-41668,San Agust<U+00ED>n,Huila,Municipio,3.7,2,4,3,2,2
-41676,Santa Mar<U+00ED>a,Huila,Municipio,3.97,2,4,3,2,2
+41668,San Agustín,Huila,Municipio,3.7,2,4,3,2,2
+41676,Santa María,Huila,Municipio,3.97,2,4,3,2,2
 41770,Suaza,Huila,Municipio,4.96,2,5,4,2,2
 41791,Tarqui,Huila,Municipio,4.5,2,4,3,2,2
 41797,Tesalia,Huila,Municipio,3.75,2,4,3,2,2
 41799,Tello,Huila,Municipio,5.48,2,5,4,2,2
 41801,Teruel,Huila,Municipio,5.4,2,5,4,2,2
-41807,Timan<U+00E1>,Huila,Municipio,4.26,2,4,3,2,2
+41807,Timaná,Huila,Municipio,4.26,2,4,3,2,2
 41872,Villavieja,Huila,Municipio,3.63,2,4,3,2,2
-41885,Yaguar<U+00E1>,Huila,Municipio,2.2,1,2,2,1,1
+41885,Yaguará,Huila,Municipio,2.2,1,2,2,1,1
 44035,Albania,La Guajira,Municipio,2.58,1,2,2,1,1
 44078,Barrancas,La Guajira,Municipio,3.52,2,3,3,2,2
 44090,Dibulla,La Guajira,Municipio,4.32,2,4,3,2,2
-44098,Distracci<U+00F3>n,La Guajira,Municipio,4.78,2,4,4,2,2
+44098,Distracción,La Guajira,Municipio,4.78,2,4,4,2,2
 44110,El Molino,La Guajira,Municipio,4.05,2,4,3,2,2
 44279,Fonseca,La Guajira,Municipio,4.57,2,4,3,2,2
 44378,Hatonuevo,La Guajira,Municipio,3.08,2,3,2,1,1
@@ -429,27 +429,27 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 44855,Urumita,La Guajira,Municipio,1.56,1,1,1,1,1
 44874,Villanueva,La Guajira,Municipio,4.08,2,4,3,2,2
 47030,Algarrobo,Magdalena,Municipio,2.85,1,3,2,1,1
-18410,La Monta<U+00F1>ita,Caquet<U+00E1>,Municipio,6.83,3,5,5,2,2
-18460,Mil<U+00E1>n,Caquet<U+00E1>,Municipio,4.75,2,4,4,2,2
-18479,Morelia,Caquet<U+00E1>,Municipio,10.28,4,5,5,3,2
-18592,Puerto Rico,Caquet<U+00E1>,Municipio,5.57,2,5,4,2,2
-18610,San Jos<U+00E9> del Fragua,Caquet<U+00E1>,Municipio,6.91,3,5,5,2,2
-18860,Valpara<U+00ED>so,Caquet<U+00E1>,Municipio,5,2,5,4,2,2
-19001,Popay<U+00E1>n,Cauca,Municipio,3.38,2,3,3,1,1
+18410,La Montañita,Caquetá,Municipio,6.83,3,5,5,2,2
+18460,Milán,Caquetá,Municipio,4.75,2,4,4,2,2
+18479,Morelia,Caquetá,Municipio,10.28,4,5,5,3,2
+18592,Puerto Rico,Caquetá,Municipio,5.57,2,5,4,2,2
+18610,San José del Fragua,Caquetá,Municipio,6.91,3,5,5,2,2
+18860,Valparaíso,Caquetá,Municipio,5,2,5,4,2,2
+19001,Popayán,Cauca,Municipio,3.38,2,3,3,1,1
 19022,Almaguer,Cauca,Municipio,2.24,1,2,2,1,1
 19050,Argelia,Cauca,Municipio,4.77,2,4,4,2,2
 19075,Balboa,Cauca,Municipio,5.29,2,5,4,2,2
-19100,Bol<U+00ED>var,Cauca,Municipio,2.35,1,2,2,1,1
+19100,Bolívar,Cauca,Municipio,2.35,1,2,2,1,1
 19110,Buenos Aires,Cauca,Municipio,1.88,1,1,1,1,1
-19130,Cajib<U+00ED>o,Cauca,Municipio,3,2,3,2,1,1
+19130,Cajibío,Cauca,Municipio,3,2,3,2,1,1
 19137,Caldono,Cauca,Municipio,2.18,1,2,2,1,1
 19142,Caloto,Cauca,Municipio,2.74,1,2,2,1,1
 19212,Corinto,Cauca,Municipio,3.2,2,3,2,1,1
 19256,El Tambo,Cauca,Municipio,4.76,2,4,4,2,2
 19290,Florencia,Cauca,Municipio,5.67,2,5,4,2,2
 19300,Guachene,Cauca,Municipio,1.7,1,1,1,1,1
-19355,Inz<U+00E1>,Cauca,Municipio,2.27,1,2,2,1,1
-19364,Jambal<U+00F3>,Cauca,Municipio,2.4,1,2,2,1,1
+19355,Inzá,Cauca,Municipio,2.27,1,2,2,1,1
+19364,Jambaló,Cauca,Municipio,2.4,1,2,2,1,1
 19392,La Sierra,Cauca,Municipio,1.77,1,1,1,1,1
 19397,La Vega,Cauca,Municipio,4.14,2,4,3,2,2
 19450,Mercaderes,Cauca,Municipio,3.85,2,4,3,2,2
@@ -457,131 +457,131 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 19473,Morales,Cauca,Municipio,3.33,2,3,3,1,1
 19513,Padilla,Cauca,Municipio,1.98,1,2,2,1,1
 19517,Paez,Cauca,Municipio,4.05,2,4,3,2,2
-19532,Pat<U+00ED>a,Cauca,Municipio,3.09,2,3,2,1,1
+19532,Patía,Cauca,Municipio,3.09,2,3,2,1,1
 19533,Piamonte,Cauca,Municipio,3.47,2,3,3,2,2
-19548,Piendam<U+00F3>,Cauca,Municipio,2.77,1,2,2,1,1
+19548,Piendamó,Cauca,Municipio,2.77,1,2,2,1,1
 19573,Puerto Tejada,Cauca,Municipio,2.29,1,2,2,1,1
-19585,Purac<U+00E9>,Cauca,Municipio,3.44,2,3,3,2,2
+19585,Puracé,Cauca,Municipio,3.44,2,3,3,2,2
 19622,Rosas,Cauca,Municipio,2.6,1,2,2,1,1
-19693,San Sebasti<U+00E1>n,Cauca,Municipio,2.25,1,2,2,1,1
+19693,San Sebastián,Cauca,Municipio,2.25,1,2,2,1,1
 19698,Santander de Quilichao,Cauca,Municipio,3.48,2,3,3,2,2
 19701,Santa Rosa,Cauca,Municipio,5.86,2,5,4,2,2
 19743,Silvia,Cauca,Municipio,2.42,1,2,2,1,1
 19760,Sotara,Cauca,Municipio,2.08,1,2,2,1,1
-19780,Su<U+00E1>rez,Cauca,Municipio,3.82,2,4,3,2,2
+19780,Suárez,Cauca,Municipio,3.82,2,4,3,2,2
 19785,Sucre,Cauca,Municipio,3.47,2,3,3,2,2
-19807,Timb<U+00ED>o,Cauca,Municipio,3.69,2,4,3,2,2
+19807,Timbío,Cauca,Municipio,3.69,2,4,3,2,2
 19821,Toribio,Cauca,Municipio,4.64,2,4,3,2,2
-19824,Totor<U+00F3>,Cauca,Municipio,3.49,2,3,3,2,2
+19824,Totoró,Cauca,Municipio,3.49,2,3,3,2,2
 19845,Villa Rica,Cauca,Municipio,3.67,2,4,3,2,2
 20011,Aguachica,Cesar,Municipio,4.08,2,4,3,2,2
-20013,Agust<U+00ED>n Codazzi,Cesar,Municipio,5.71,2,5,4,2,2
+20013,Agustín Codazzi,Cesar,Municipio,5.71,2,5,4,2,2
 20032,Astrea,Cesar,Municipio,6.63,3,5,4,2,2
 20060,Bosconia,Cesar,Municipio,7.3,3,5,5,3,2
 20175,Chimichagua,Cesar,Municipio,4.32,2,4,3,2,2
-20178,Chiriguan<U+00E1>,Cesar,Municipio,5.63,2,5,4,2,2
-20228,Curuman<U+00ED>,Cesar,Municipio,5.67,2,5,4,2,2
+20178,Chiriguaná,Cesar,Municipio,5.63,2,5,4,2,2
+20228,Curumaní,Cesar,Municipio,5.67,2,5,4,2,2
 20238,El Copey,Cesar,Municipio,6.98,3,5,5,3,2
 20250,El Paso,Cesar,Municipio,6.65,3,5,4,2,2
 20295,Gamarra,Cesar,Municipio,4.53,2,4,3,2,2
-20310,Gonz<U+00E1>lez,Cesar,Municipio,5.75,2,5,4,2,2
+20310,González,Cesar,Municipio,5.75,2,5,4,2,2
 20383,La Gloria,Cesar,Municipio,5.75,2,5,4,2,2
 20517,Pailitas,Cesar,Municipio,3.47,2,3,3,2,2
 20550,Pelaya,Cesar,Municipio,5.41,2,5,4,2,2
-20614,R<U+00ED>o de Oro,Cesar,Municipio,7.73,3,5,5,3,2
+20614,Río de Oro,Cesar,Municipio,7.73,3,5,5,3,2
 20621,La Paz,Cesar,Municipio,6.3,3,5,4,2,2
 20710,San Alberto,Cesar,Municipio,5.95,3,5,4,2,2
 20750,San Diego,Cesar,Municipio,6.53,3,5,4,2,2
-20770,San Mart<U+00ED>n,Cesar,Municipio,3.38,2,3,3,1,1
+20770,San Martín,Cesar,Municipio,3.38,2,3,3,1,1
 20787,Tamalameque,Cesar,Municipio,4.25,2,4,3,2,2
-23001,Monter<U+00ED>a,C<U+00F3>rdoba,Municipio,2.98,2,3,2,1,1
-23068,Ayapel,C<U+00F3>rdoba,Municipio,3.3,2,3,3,1,1
-23079,Buenavista,C<U+00F3>rdoba,Municipio,3.81,2,4,3,2,2
-23090,Canalete,C<U+00F3>rdoba,Municipio,3.41,2,3,3,1,1
-23162,Ceret<U+00E9>,C<U+00F3>rdoba,Municipio,3.17,2,3,2,1,1
-23168,Chim<U+00E1>,C<U+00F3>rdoba,Municipio,2.87,1,3,2,1,1
-23182,Chin<U+00FA>,C<U+00F3>rdoba,Municipio,3.15,2,3,2,1,1
-23189,Ci<U+00E9>naga de Oro,C<U+00F3>rdoba,Municipio,4.28,2,4,3,2,2
-23300,Cotorra,C<U+00F3>rdoba,Municipio,2.53,1,2,2,1,1
-23350,La Apartada,C<U+00F3>rdoba,Municipio,4.61,2,4,3,2,2
-23417,Lorica,C<U+00F3>rdoba,Municipio,4.03,2,4,3,2,2
-23419,Los C<U+00F3>rdobas,C<U+00F3>rdoba,Municipio,4.87,2,5,4,2,2
-23464,Momil,C<U+00F3>rdoba,Municipio,1.33,1,1,1,1,1
-23466,Montel<U+00ED>bano,C<U+00F3>rdoba,Municipio,3.43,2,3,3,2,2
-23500,Mo<U+00F1>itos,C<U+00F3>rdoba,Municipio,2.95,1,3,2,1,1
-23555,Planeta Rica,C<U+00F3>rdoba,Municipio,1.67,1,1,1,1,1
-23570,Pueblo Nuevo,C<U+00F3>rdoba,Municipio,3.52,2,3,3,2,2
-23574,Puerto Escondido,C<U+00F3>rdoba,Municipio,3.53,2,3,3,2,2
-23586,Pur<U+00ED>sima,C<U+00F3>rdoba,Municipio,4.05,2,4,3,2,2
-23660,Sahag<U+00FA>n,C<U+00F3>rdoba,Municipio,2.81,1,2,2,1,1
-23670,San Andr<U+00E9>s Sotavento,C<U+00F3>rdoba,Municipio,3.44,2,3,3,2,2
-23672,San Antero,C<U+00F3>rdoba,Municipio,2.93,1,3,2,1,1
-23675,San Bernardo del Viento,C<U+00F3>rdoba,Municipio,2.33,1,2,2,1,1
-23678,San Carlos,C<U+00F3>rdoba,Municipio,4.04,2,4,3,2,2
-23682,San Jos<U+00E9> de Ur<U+00E9>,C<U+00F3>rdoba,Municipio,8.54,3,5,5,3,2
-23686,San Pelayo,C<U+00F3>rdoba,Municipio,3.18,2,3,2,1,1
-23815,Tuch<U+00ED>n,C<U+00F3>rdoba,Municipio,3.07,2,3,2,1,1
-23855,Valencia,C<U+00F3>rdoba,Municipio,4.51,2,4,3,2,2
+23001,Montería,Córdoba,Municipio,2.98,2,3,2,1,1
+23068,Ayapel,Córdoba,Municipio,3.3,2,3,3,1,1
+23079,Buenavista,Córdoba,Municipio,3.81,2,4,3,2,2
+23090,Canalete,Córdoba,Municipio,3.41,2,3,3,1,1
+23162,Cereté,Córdoba,Municipio,3.17,2,3,2,1,1
+23168,Chimá,Córdoba,Municipio,2.87,1,3,2,1,1
+23182,Chinú,Córdoba,Municipio,3.15,2,3,2,1,1
+23189,Ciénaga de Oro,Córdoba,Municipio,4.28,2,4,3,2,2
+23300,Cotorra,Córdoba,Municipio,2.53,1,2,2,1,1
+23350,La Apartada,Córdoba,Municipio,4.61,2,4,3,2,2
+23417,Lorica,Córdoba,Municipio,4.03,2,4,3,2,2
+23419,Los Córdobas,Córdoba,Municipio,4.87,2,5,4,2,2
+23464,Momil,Córdoba,Municipio,1.33,1,1,1,1,1
+23466,Montelíbano,Córdoba,Municipio,3.43,2,3,3,2,2
+23500,Moñitos,Córdoba,Municipio,2.95,1,3,2,1,1
+23555,Planeta Rica,Córdoba,Municipio,1.67,1,1,1,1,1
+23570,Pueblo Nuevo,Córdoba,Municipio,3.52,2,3,3,2,2
+23574,Puerto Escondido,Córdoba,Municipio,3.53,2,3,3,2,2
+23586,Purísima,Córdoba,Municipio,4.05,2,4,3,2,2
+23660,Sahagún,Córdoba,Municipio,2.81,1,2,2,1,1
+23670,San Andrés Sotavento,Córdoba,Municipio,3.44,2,3,3,2,2
+23672,San Antero,Córdoba,Municipio,2.93,1,3,2,1,1
+23675,San Bernardo del Viento,Córdoba,Municipio,2.33,1,2,2,1,1
+23678,San Carlos,Córdoba,Municipio,4.04,2,4,3,2,2
+23682,San José de Uré,Córdoba,Municipio,8.54,3,5,5,3,2
+23686,San Pelayo,Córdoba,Municipio,3.18,2,3,2,1,1
+23815,Tuchín,Córdoba,Municipio,3.07,2,3,2,1,1
+23855,Valencia,Córdoba,Municipio,4.51,2,4,3,2,2
 25001,Agua de Dios,Cundinamarca,Municipio,3.67,2,4,3,2,2
-25019,Alb<U+00E1>n,Cundinamarca,Municipio,7.29,3,5,5,3,2
+25019,Albán,Cundinamarca,Municipio,7.29,3,5,5,3,2
 25035,Anapoima,Cundinamarca,Municipio,2.82,1,2,2,1,1
 25040,Anolaima,Cundinamarca,Municipio,4.05,2,4,3,2,2
-25053,Arbel<U+00E1>ez,Cundinamarca,Municipio,3.14,2,3,2,1,1
-25086,Beltr<U+00E1>n,Cundinamarca,Municipio,4.39,2,4,3,2,2
+25053,Arbeláez,Cundinamarca,Municipio,3.14,2,3,2,1,1
+25086,Beltrán,Cundinamarca,Municipio,4.39,2,4,3,2,2
 25095,Bituima,Cundinamarca,Municipio,2.1,1,2,2,1,1
-25099,Bojac<U+00E1>,Cundinamarca,Municipio,2.36,1,2,2,1,1
+25099,Bojacá,Cundinamarca,Municipio,2.36,1,2,2,1,1
 25120,Cabrera,Cundinamarca,Municipio,1.38,1,1,1,1,1
 25123,Cachipay,Cundinamarca,Municipio,5.27,2,5,4,2,2
-25126,Cajic<U+00E1>,Cundinamarca,Municipio,3.29,2,3,3,1,1
-25148,Caparrap<U+00ED>,Cundinamarca,Municipio,3.42,2,3,3,1,1
+25126,Cajicá,Cundinamarca,Municipio,3.29,2,3,3,1,1
+25148,Caparrapí,Cundinamarca,Municipio,3.42,2,3,3,1,1
 25151,Caqueza,Cundinamarca,Municipio,2.4,1,2,2,1,1
 25154,Carmen de Carupa,Cundinamarca,Municipio,2.04,1,2,2,1,1
-25168,Chaguan<U+00ED>,Cundinamarca,Municipio,5.38,2,5,4,2,2
-25175,Ch<U+00ED>a,Cundinamarca,Municipio,3.36,2,3,3,1,1
+25168,Chaguaní,Cundinamarca,Municipio,5.38,2,5,4,2,2
+25175,Chía,Cundinamarca,Municipio,3.36,2,3,3,1,1
 25178,Chipaque,Cundinamarca,Municipio,1.94,1,2,1,1,1
-25181,Choach<U+00ED>,Cundinamarca,Municipio,1.75,1,1,1,1,1
-25183,Chocont<U+00E1>,Cundinamarca,Municipio,1.8,1,1,1,1,1
+25181,Choachí,Cundinamarca,Municipio,1.75,1,1,1,1,1
+25183,Chocontá,Cundinamarca,Municipio,1.8,1,1,1,1,1
 25200,Cogua,Cundinamarca,Municipio,2.74,1,2,2,1,1
 25214,Cota,Cundinamarca,Municipio,2.95,1,3,2,1,1
-25224,Cucunub<U+00E1>,Cundinamarca,Municipio,3.82,2,4,3,2,2
+25224,Cucunubá,Cundinamarca,Municipio,3.82,2,4,3,2,2
 25245,El Colegio,Cundinamarca,Municipio,4.63,2,4,3,2,2
-25258,El Pe<U+00F1><U+00F3>n,Cundinamarca,Municipio,2.12,1,2,2,1,1
+25258,El Peñón,Cundinamarca,Municipio,2.12,1,2,2,1,1
 25260,El Rosal,Cundinamarca,Municipio,4.33,2,4,3,2,2
-25269,Facatativ<U+00E1>,Cundinamarca,Municipio,2.83,1,3,2,1,1
+25269,Facatativá,Cundinamarca,Municipio,2.83,1,3,2,1,1
 25279,Fomeque,Cundinamarca,Municipio,3.93,2,4,3,2,2
 25281,Fosca,Cundinamarca,Municipio,2.12,1,2,2,1,1
 25286,Funza,Cundinamarca,Municipio,1.78,1,1,1,1,1
-25288,F<U+00FA>quene,Cundinamarca,Municipio,1.22,1,1,1,1,1
-25290,Fusagasug<U+00E1>,Cundinamarca,Municipio,3.77,2,4,3,2,2
+25288,Fúquene,Cundinamarca,Municipio,1.22,1,1,1,1,1
+25290,Fusagasugá,Cundinamarca,Municipio,3.77,2,4,3,2,2
 25293,Gachala,Cundinamarca,Municipio,1.32,1,1,1,1,1
-25297,Gachet<U+00E1>,Cundinamarca,Municipio,2.57,1,2,2,1,1
+25297,Gachetá,Cundinamarca,Municipio,2.57,1,2,2,1,1
 25299,Gama,Cundinamarca,Municipio,0.88,1,1,1,1,1
 25307,Girardot,Cundinamarca,Municipio,4.05,2,4,3,2,2
 25312,Granada,Cundinamarca,Municipio,3.16,2,3,2,1,1
-25317,Guachet<U+00E1>,Cundinamarca,Municipio,1.62,1,1,1,1,1
+25317,Guachetá,Cundinamarca,Municipio,1.62,1,1,1,1,1
 25320,Guaduas,Cundinamarca,Municipio,2.85,1,3,2,1,1
 25322,Guasca,Cundinamarca,Municipio,3.12,2,3,2,1,1
-25324,Guataqu<U+00ED>,Cundinamarca,Municipio,2.01,1,2,2,1,1
+25324,Guataquí,Cundinamarca,Municipio,2.01,1,2,2,1,1
 25326,Guatavita,Cundinamarca,Municipio,2.74,1,2,2,1,1
 25328,Guayabal de Siquima,Cundinamarca,Municipio,3.49,2,3,3,2,2
 63190,Circasia,Quindio,Municipio,3.45,2,3,3,2,2
-63212,C<U+00F3>rdoba,Quindio,Municipio,3.47,2,3,3,2,2
+63212,Córdoba,Quindio,Municipio,3.47,2,3,3,2,2
 63272,Filandia,Quindio,Municipio,3.95,2,4,3,2,2
-63302,G<U+00E9>nova,Quindio,Municipio,5.14,2,5,4,2,2
+63302,Génova,Quindio,Municipio,5.14,2,5,4,2,2
 63401,La Tebaida,Quindio,Municipio,5.03,2,5,4,2,2
 63470,Montenegro,Quindio,Municipio,5.4,2,5,4,2,2
 63548,Pijao,Quindio,Municipio,4.53,2,4,3,2,2
 63594,Quimbaya,Quindio,Municipio,4.74,2,4,4,2,2
 63690,Salento,Quindio,Municipio,1.95,1,2,1,1,1
 66001,Pereira,Risaralda,Municipio,5.49,2,5,4,2,2
-66045,Ap<U+00ED>a,Risaralda,Municipio,4.58,2,4,3,2,2
-66088,Bel<U+00E9>n de Umbr<U+00ED>a,Risaralda,Municipio,5.06,2,5,4,2,2
-66318,Gu<U+00E1>tica,Risaralda,Municipio,3.48,2,3,3,2,2
+66045,Apía,Risaralda,Municipio,4.58,2,4,3,2,2
+66088,Belén de Umbría,Risaralda,Municipio,5.06,2,5,4,2,2
+66318,Guática,Risaralda,Municipio,3.48,2,3,3,2,2
 66383,La Celia,Risaralda,Municipio,3.52,2,3,3,2,2
 66400,La Virginia,Risaralda,Municipio,6.15,3,5,4,2,2
 66440,Marsella,Risaralda,Municipio,5.28,2,5,4,2,2
 66572,Pueblo Rico,Risaralda,Municipio,3.42,2,3,3,1,1
-66594,Quinch<U+00ED>a,Risaralda,Municipio,3.78,2,4,3,2,2
+66594,Quinchía,Risaralda,Municipio,3.78,2,4,3,2,2
 66682,Santa Rosa de Cabal,Risaralda,Municipio,5.57,2,5,4,2,2
 66687,Santuario,Risaralda,Municipio,7.8,3,5,5,3,2
 68013,Aguada,Santander,Municipio,0.44,1,1,1,1,1
@@ -591,76 +591,76 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 68079,Barichara,Santander,Municipio,1.67,1,1,1,1,1
 68081,Barrancabermeja,Santander,Municipio,3.48,2,3,3,2,2
 68092,Betulia,Santander,Municipio,3.53,2,3,3,2,2
-68101,Bol<U+00ED>var,Santander,Municipio,2.4,1,2,2,1,1
+68101,Bolívar,Santander,Municipio,2.4,1,2,2,1,1
 68121,Cabrera,Santander,Municipio,0.42,1,1,1,1,1
 68132,California,Santander,Municipio,1.46,1,1,1,1,1
 68147,Capitanejo,Santander,Municipio,1.23,1,1,1,1,1
-68152,Carcas<U+00ED>,Santander,Municipio,2.25,1,2,2,1,1
-68160,Cepit<U+00E1>,Santander,Municipio,5.59,2,5,4,2,2
+68152,Carcasí,Santander,Municipio,2.25,1,2,2,1,1
+68160,Cepitá,Santander,Municipio,5.59,2,5,4,2,2
 68162,Cerrito,Santander,Municipio,3.19,2,3,2,1,1
-68167,Charal<U+00E1>,Santander,Municipio,2.41,1,2,2,1,1
+68167,Charalá,Santander,Municipio,2.41,1,2,2,1,1
 68169,Charta,Santander,Municipio,3.79,2,4,3,2,2
 68176,Chima,Santander,Municipio,1.18,1,1,1,1,1
-68179,Chipat<U+00E1>,Santander,Municipio,0.4,1,1,1,1,1
+68179,Chipatá,Santander,Municipio,0.4,1,1,1,1,1
 68190,Cimitarra,Santander,Municipio,4.13,2,4,3,2,2
-68207,Concepci<U+00F3>n,Santander,Municipio,2.42,1,2,2,1,1
+68207,Concepción,Santander,Municipio,2.42,1,2,2,1,1
 68209,Confines,Santander,Municipio,2.21,1,2,2,1,1
-68211,Contrataci<U+00F3>n,Santander,Municipio,0.18,1,1,1,1,1
+68211,Contratación,Santander,Municipio,0.18,1,1,1,1,1
 68217,Coromoro,Santander,Municipio,1.71,1,1,1,1,1
-68229,Curit<U+00ED>,Santander,Municipio,3.31,2,3,3,1,1
-68235,El Carmen de Chucur<U+00ED>,Santander,Municipio,4.06,2,4,3,2,2
+68229,Curití,Santander,Municipio,3.31,2,3,3,1,1
+68235,El Carmen de Chucurí,Santander,Municipio,4.06,2,4,3,2,2
 68245,El Guacamayo,Santander,Municipio,1.08,1,1,1,1,1
-68250,El Pe<U+00F1><U+00F3>n,Santander,Municipio,2.84,1,3,2,1,1
-68255,El Play<U+00F3>n,Santander,Municipio,3.18,2,3,2,1,1
+68250,El Peñón,Santander,Municipio,2.84,1,3,2,1,1
+68255,El Playón,Santander,Municipio,3.18,2,3,2,1,1
 68264,Encino,Santander,Municipio,1.53,1,1,1,1,1
 68266,Enciso,Santander,Municipio,1.54,1,1,1,1,1
-68271,Flori<U+00E1>n,Santander,Municipio,2.38,1,2,2,1,1
+68271,Florián,Santander,Municipio,2.38,1,2,2,1,1
 68276,Floridablanca,Santander,Municipio,4.82,2,5,4,2,2
-68296,Gal<U+00E1>n,Santander,Municipio,1.69,1,1,1,1,1
+68296,Galán,Santander,Municipio,1.69,1,1,1,1,1
 68298,Gambita,Santander,Municipio,2.18,1,2,2,1,1
 68318,Guaca,Santander,Municipio,3.04,2,3,2,1,1
 68320,Guadalupe,Santander,Municipio,1.95,1,2,1,1,1
-68322,Guapot<U+00E1>,Santander,Municipio,3.53,2,3,3,2,2
-68324,Guavat<U+00E1>,Santander,Municipio,5.14,2,5,4,2,2
-68327,G<U+00FC>epsa,Santander,Municipio,4.66,2,4,3,2,2
+68322,Guapotá,Santander,Municipio,3.53,2,3,3,2,2
+68324,Guavatá,Santander,Municipio,5.14,2,5,4,2,2
+68327,Güepsa,Santander,Municipio,4.66,2,4,3,2,2
 68344,Hato,Santander,Municipio,2.31,1,2,2,1,1
-68368,Jes<U+00FA>s Mar<U+00ED>a,Santander,Municipio,1.94,1,2,1,1,1
-68370,Jord<U+00E1>n,Santander,Municipio,2.58,1,2,2,1,1
+68368,Jesús María,Santander,Municipio,1.94,1,2,1,1,1
+68370,Jordán,Santander,Municipio,2.58,1,2,2,1,1
 68377,La Belleza,Santander,Municipio,3.65,2,4,3,2,2
-68385,Land<U+00E1>zuri,Santander,Municipio,3.72,2,4,3,2,2
+68385,Landázuri,Santander,Municipio,3.72,2,4,3,2,2
 68397,La Paz,Santander,Municipio,1.92,1,2,1,1,1
-68406,Lebr<U+00ED>ja,Santander,Municipio,4.82,2,5,4,2,2
+68406,Lebríja,Santander,Municipio,4.82,2,5,4,2,2
 68418,Los Santos,Santander,Municipio,2.2,1,2,2,1,1
 68425,Macaravita,Santander,Municipio,1.2,1,1,1,1,1
-47058,Ariguan<U+00ED>,Magdalena,Municipio,1.78,1,1,1,1,1
+47058,Ariguaní,Magdalena,Municipio,1.78,1,1,1,1,1
 47161,Cerro San Antonio,Magdalena,Municipio,6.28,3,5,4,2,2
 47170,Chibolo,Magdalena,Municipio,3.18,2,3,2,1,1
-47189,Ci<U+00E9>naga,Magdalena,Municipio,5.29,2,5,4,2,2
+47189,Ciénaga,Magdalena,Municipio,5.29,2,5,4,2,2
 47205,Concordia,Magdalena,Municipio,3.97,2,4,3,2,2
 47245,El Banco,Magdalena,Municipio,2.81,1,2,2,1,1
-47258,El Pi<U+00F1>on,Magdalena,Municipio,3.3,2,3,3,1,1
-47268,El Ret<U+00E9>n,Magdalena,Municipio,2.15,1,2,2,1,1
-47288,Fundaci<U+00F3>n,Magdalena,Municipio,1.57,1,1,1,1,1
+47258,El Piñon,Magdalena,Municipio,3.3,2,3,3,1,1
+47268,El Retén,Magdalena,Municipio,2.15,1,2,2,1,1
+47288,Fundación,Magdalena,Municipio,1.57,1,1,1,1,1
 47318,Guamal,Magdalena,Municipio,3.19,2,3,2,1,1
 47460,Nueva Granada,Magdalena,Municipio,1.5,1,1,1,1,1
 47541,Pedraza,Magdalena,Municipio,1.9,1,1,1,1,1
-47545,Piji<U+00F1>o del Carmen,Magdalena,Municipio,4.73,2,4,4,2,2
+47545,Pijiño del Carmen,Magdalena,Municipio,4.73,2,4,4,2,2
 47551,Pivijay,Magdalena,Municipio,5.81,2,5,4,2,2
 47555,Plato,Magdalena,Municipio,1.39,1,1,1,1,1
 47570,Puebloviejo,Magdalena,Municipio,2.6,1,2,2,1,1
 47605,Remolino,Magdalena,Municipio,3.59,2,3,3,2,2
 47660,Sabanas de San Angel,Magdalena,Municipio,2.92,1,3,2,1,1
 47675,Salamina,Magdalena,Municipio,2.17,1,2,2,1,1
-47692,San Sebasti<U+00E1>n de Buenavista,Magdalena,Municipio,1.62,1,1,1,1,1
-47703,San Zen<U+00F3>n,Magdalena,Municipio,2.98,2,3,2,1,1
+47692,San Sebastián de Buenavista,Magdalena,Municipio,1.62,1,1,1,1,1
+47703,San Zenón,Magdalena,Municipio,2.98,2,3,2,1,1
 47707,Santa Ana,Magdalena,Municipio,2.02,1,2,2,1,1
-47720,Santa B<U+00E1>rbara de Pinto,Magdalena,Municipio,1.7,1,1,1,1,1
+47720,Santa Bárbara de Pinto,Magdalena,Municipio,1.7,1,1,1,1,1
 47745,Sitionuevo,Magdalena,Municipio,3.83,2,4,3,2,2
 47798,Tenerife,Magdalena,Municipio,1.3,1,1,1,1,1
-47960,Zapay<U+00E1>n,Magdalena,Municipio,3.4,2,3,3,1,1
+47960,Zapayán,Magdalena,Municipio,3.4,2,3,3,1,1
 47980,Zona Bananera,Magdalena,Municipio,2.44,1,2,2,1,1
-50006,Acac<U+00ED>as,Meta,Municipio,4.53,2,4,3,2,2
-50110,Barranca de Up<U+00ED>a,Meta,Municipio,6.95,3,5,5,2,2
+50006,Acacías,Meta,Municipio,4.53,2,4,3,2,2
+50110,Barranca de Upía,Meta,Municipio,6.95,3,5,5,2,2
 50124,Cabuyaro,Meta,Municipio,4.47,2,4,3,2,2
 50150,Castilla la Nueva,Meta,Municipio,4.57,2,4,3,2,2
 50223,Cubarral,Meta,Municipio,4.82,2,5,4,2,2
@@ -673,62 +673,62 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 50318,Guamal,Meta,Municipio,5.9,2,5,4,2,2
 50330,Mesetas,Meta,Municipio,4.01,2,4,3,2,2
 50370,Uribe,Meta,Municipio,4.18,2,4,3,2,2
-50400,Lejan<U+00ED>as,Meta,Municipio,3.83,2,4,3,2,2
-50573,Puerto L<U+00F3>pez,Meta,Municipio,3.76,2,4,3,2,2
+50400,Lejanías,Meta,Municipio,3.83,2,4,3,2,2
+50573,Puerto López,Meta,Municipio,3.76,2,4,3,2,2
 50606,Restrepo,Meta,Municipio,2.36,1,2,2,1,1
 50680,San Carlos de Guaroa,Meta,Municipio,8.11,3,5,5,3,2
 50683,San Juan de Arama,Meta,Municipio,5.46,2,5,4,2,2
 50686,San Juanito,Meta,Municipio,3.06,2,3,2,1,1
-50689,San Mart<U+00ED>n,Meta,Municipio,6.95,3,5,5,2,2
-52036,Ancuy<U+00E1>,Nari<U+00F1>o,Municipio,1.05,1,1,1,1,1
-52051,Arboleda,Nari<U+00F1>o,Municipio,1.27,1,1,1,1,1
-52083,Bel<U+00E9>n,Nari<U+00F1>o,Municipio,1.75,1,1,1,1,1
-52110,Buesaco,Nari<U+00F1>o,Municipio,2.16,1,2,2,1,1
-52203,Col<U+00F3>n,Nari<U+00F1>o,Municipio,3.38,2,3,3,1,1
-52207,Consaca,Nari<U+00F1>o,Municipio,3.29,2,3,3,1,1
-52210,Contadero,Nari<U+00F1>o,Municipio,1.49,1,1,1,1,1
-52215,C<U+00F3>rdoba,Nari<U+00F1>o,Municipio,1.48,1,1,1,1,1
-52224,Cuaspud,Nari<U+00F1>o,Municipio,1.48,1,1,1,1,1
-52227,Cumbal,Nari<U+00F1>o,Municipio,0.86,1,1,1,1,1
-52233,Cumbitara,Nari<U+00F1>o,Municipio,4.72,2,4,4,2,2
-52240,Chachag<U+00FC><U+00ED>,Nari<U+00F1>o,Municipio,2.55,1,2,2,1,1
-52254,El Pe<U+00F1>ol,Nari<U+00F1>o,Municipio,0.41,1,1,1,1,1
-52256,El Rosario,Nari<U+00F1>o,Municipio,2.43,1,2,2,1,1
-52258,El Tabl<U+00F3>n de G<U+00F3>mez,Nari<U+00F1>o,Municipio,1.52,1,1,1,1,1
-52287,Funes,Nari<U+00F1>o,Municipio,0.73,1,1,1,1,1
-52320,Guaitarilla,Nari<U+00F1>o,Municipio,0.15,1,1,1,1,1
-52323,Gualmat<U+00E1>n,Nari<U+00F1>o,Municipio,1.73,1,1,1,1,1
-52352,Iles,Nari<U+00F1>o,Municipio,1.9,1,1,1,1,1
-52354,Imu<U+00E9>s,Nari<U+00F1>o,Municipio,0.44,1,1,1,1,1
-52378,La Cruz,Nari<U+00F1>o,Municipio,1.52,1,1,1,1,1
-52385,La Llanada,Nari<U+00F1>o,Municipio,2.58,1,2,2,1,1
-52399,La Uni<U+00F3>n,Nari<U+00F1>o,Municipio,1.59,1,1,1,1,1
-52411,Linares,Nari<U+00F1>o,Municipio,2.37,1,2,2,1,1
-52418,Los Andes,Nari<U+00F1>o,Municipio,2.61,1,2,2,1,1
-52480,Nari<U+00F1>o,Nari<U+00F1>o,Municipio,0.65,1,1,1,1,1
-52565,Providencia,Nari<U+00F1>o,Municipio,3.52,2,3,3,2,2
-52573,Puerres,Nari<U+00F1>o,Municipio,2.06,1,2,2,1,1
-52585,Pupiales,Nari<U+00F1>o,Municipio,1.55,1,1,1,1,1
-52612,Ricaurte,Nari<U+00F1>o,Municipio,2.55,1,2,2,1,1
-52685,San Bernardo,Nari<U+00F1>o,Municipio,2.19,1,2,2,1,1
-52687,San Lorenzo,Nari<U+00F1>o,Municipio,2.33,1,2,2,1,1
-52694,San Pedro de Cartago,Nari<U+00F1>o,Municipio,3.4,2,3,3,1,1
-52699,Santacruz,Nari<U+00F1>o,Municipio,2.79,1,2,2,1,1
-52720,Sapuyes,Nari<U+00F1>o,Municipio,0.6,1,1,1,1,1
-52786,Taminango,Nari<U+00F1>o,Municipio,1.8,1,1,1,1,1
-52788,Tangua,Nari<U+00F1>o,Municipio,0.81,1,1,1,1,1
-52838,T<U+00FA>querres,Nari<U+00F1>o,Municipio,1.59,1,1,1,1,1
-52885,Yacuanquer,Nari<U+00F1>o,Municipio,1.29,1,1,1,1,1
+50689,San Martín,Meta,Municipio,6.95,3,5,5,2,2
+52036,Ancuyá,Nariño,Municipio,1.05,1,1,1,1,1
+52051,Arboleda,Nariño,Municipio,1.27,1,1,1,1,1
+52083,Belén,Nariño,Municipio,1.75,1,1,1,1,1
+52110,Buesaco,Nariño,Municipio,2.16,1,2,2,1,1
+52203,Colón,Nariño,Municipio,3.38,2,3,3,1,1
+52207,Consaca,Nariño,Municipio,3.29,2,3,3,1,1
+52210,Contadero,Nariño,Municipio,1.49,1,1,1,1,1
+52215,Córdoba,Nariño,Municipio,1.48,1,1,1,1,1
+52224,Cuaspud,Nariño,Municipio,1.48,1,1,1,1,1
+52227,Cumbal,Nariño,Municipio,0.86,1,1,1,1,1
+52233,Cumbitara,Nariño,Municipio,4.72,2,4,4,2,2
+52240,Chachagüí,Nariño,Municipio,2.55,1,2,2,1,1
+52254,El Peñol,Nariño,Municipio,0.41,1,1,1,1,1
+52256,El Rosario,Nariño,Municipio,2.43,1,2,2,1,1
+52258,El Tablón de Gómez,Nariño,Municipio,1.52,1,1,1,1,1
+52287,Funes,Nariño,Municipio,0.73,1,1,1,1,1
+52320,Guaitarilla,Nariño,Municipio,0.15,1,1,1,1,1
+52323,Gualmatán,Nariño,Municipio,1.73,1,1,1,1,1
+52352,Iles,Nariño,Municipio,1.9,1,1,1,1,1
+52354,Imués,Nariño,Municipio,0.44,1,1,1,1,1
+52378,La Cruz,Nariño,Municipio,1.52,1,1,1,1,1
+52385,La Llanada,Nariño,Municipio,2.58,1,2,2,1,1
+52399,La Unión,Nariño,Municipio,1.59,1,1,1,1,1
+52411,Linares,Nariño,Municipio,2.37,1,2,2,1,1
+52418,Los Andes,Nariño,Municipio,2.61,1,2,2,1,1
+52480,Nariño,Nariño,Municipio,0.65,1,1,1,1,1
+52565,Providencia,Nariño,Municipio,3.52,2,3,3,2,2
+52573,Puerres,Nariño,Municipio,2.06,1,2,2,1,1
+52585,Pupiales,Nariño,Municipio,1.55,1,1,1,1,1
+52612,Ricaurte,Nariño,Municipio,2.55,1,2,2,1,1
+52685,San Bernardo,Nariño,Municipio,2.19,1,2,2,1,1
+52687,San Lorenzo,Nariño,Municipio,2.33,1,2,2,1,1
+52694,San Pedro de Cartago,Nariño,Municipio,3.4,2,3,3,1,1
+52699,Santacruz,Nariño,Municipio,2.79,1,2,2,1,1
+52720,Sapuyes,Nariño,Municipio,0.6,1,1,1,1,1
+52786,Taminango,Nariño,Municipio,1.8,1,1,1,1,1
+52788,Tangua,Nariño,Municipio,0.81,1,1,1,1,1
+52838,Túquerres,Nariño,Municipio,1.59,1,1,1,1,1
+52885,Yacuanquer,Nariño,Municipio,1.29,1,1,1,1,1
 54003,Abrego,Norte de Santander,Municipio,5.12,2,5,4,2,2
 54051,Arboledas,Norte de Santander,Municipio,3.01,2,3,2,1,1
-54125,C<U+00E1>cota,Norte de Santander,Municipio,1.02,1,1,1,1,1
-54172,Chin<U+00E1>cota,Norte de Santander,Municipio,3.52,2,3,3,2,2
-54174,Chitag<U+00E1>,Norte de Santander,Municipio,2.04,1,2,2,1,1
-54206,Convenci<U+00F3>n,Norte de Santander,Municipio,3.97,2,4,3,2,2
+54125,Cácota,Norte de Santander,Municipio,1.02,1,1,1,1,1
+54172,Chinácota,Norte de Santander,Municipio,3.52,2,3,3,2,2
+54174,Chitagá,Norte de Santander,Municipio,2.04,1,2,2,1,1
+54206,Convención,Norte de Santander,Municipio,3.97,2,4,3,2,2
 54223,Cucutilla,Norte de Santander,Municipio,1.07,1,1,1,1,1
 54245,El Carmen,Norte de Santander,Municipio,4.63,2,4,3,2,2
 54250,El Tarra,Norte de Santander,Municipio,5.16,2,5,4,2,2
-54347,Herr<U+00E1>n,Norte de Santander,Municipio,2.6,1,2,2,1,1
+54347,Herrán,Norte de Santander,Municipio,2.6,1,2,2,1,1
 54385,La Esperanza,Norte de Santander,Municipio,5.49,2,5,4,2,2
 54398,La Playa,Norte de Santander,Municipio,1.74,1,1,1,1,1
 54418,Lourdes,Norte de Santander,Municipio,1.94,1,2,1,1,1
@@ -742,57 +742,57 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 54680,Santiago,Norte de Santander,Municipio,4.73,2,4,4,2,2
 54743,Silos,Norte de Santander,Municipio,2.67,1,2,2,1,1
 54800,Teorama,Norte de Santander,Municipio,2.34,1,2,2,1,1
-54810,Tib<U+00FA>,Norte de Santander,Municipio,6.15,3,5,4,2,2
+54810,Tibú,Norte de Santander,Municipio,6.15,3,5,4,2,2
 54871,Villa Caro,Norte de Santander,Municipio,1.63,1,1,1,1,1
 63001,Armenia,Quindio,Municipio,5.02,2,5,4,2,2
 63111,Buenavista,Quindio,Municipio,3.04,2,3,2,1,1
 63130,Calarca,Quindio,Municipio,4.54,2,4,3,2,2
 73563,Prado,Tolima,Municipio,3.22,2,3,2,1,1
-73585,Purificaci<U+00F3>n,Tolima,Municipio,2.73,1,2,2,1,1
+73585,Purificación,Tolima,Municipio,2.73,1,2,2,1,1
 73616,Rioblanco,Tolima,Municipio,5.59,2,5,4,2,2
 73622,Roncesvalles,Tolima,Municipio,1.87,1,1,1,1,1
 73624,Rovira,Tolima,Municipio,4.22,2,4,3,2,2
-73671,Salda<U+00F1>a,Tolima,Municipio,1.51,1,1,1,1,1
+73671,Saldaña,Tolima,Municipio,1.51,1,1,1,1,1
 73675,San Antonio,Tolima,Municipio,1.56,1,1,1,1,1
 73678,San Luis,Tolima,Municipio,3.95,2,4,3,2,2
 73686,Santa Isabel,Tolima,Municipio,3.19,2,3,2,1,1
-73770,Su<U+00E1>rez,Tolima,Municipio,3.8,2,4,3,2,2
+73770,Suárez,Tolima,Municipio,3.8,2,4,3,2,2
 73854,Valle de San Juan,Tolima,Municipio,1.03,1,1,1,1,1
 73861,Venadillo,Tolima,Municipio,1.99,1,2,2,1,1
 73870,Villahermosa,Tolima,Municipio,3.75,2,4,3,2,2
 73873,Villarrica,Tolima,Municipio,4.4,2,4,3,2,2
-76020,Alcal<U+00E1>,Valle del Cauca,Municipio,7.36,3,5,5,3,2
-76036,Andaluc<U+00ED>a,Valle del Cauca,Municipio,6.42,3,5,4,2,2
+76020,Alcalá,Valle del Cauca,Municipio,7.36,3,5,5,3,2
+76036,Andalucía,Valle del Cauca,Municipio,6.42,3,5,4,2,2
 76041,Ansermanuevo,Valle del Cauca,Municipio,7.18,3,5,5,3,2
 76054,Argelia,Valle del Cauca,Municipio,6.35,3,5,4,2,2
-76100,Bol<U+00ED>var,Valle del Cauca,Municipio,8.07,3,5,5,3,2
+76100,Bolívar,Valle del Cauca,Municipio,8.07,3,5,5,3,2
 76111,Guadalajara de Buga,Valle del Cauca,Municipio,4.91,2,5,4,2,2
 76113,Bugalagrande,Valle del Cauca,Municipio,5.56,2,5,4,2,2
 76122,Caicedonia,Valle del Cauca,Municipio,7.48,3,5,5,3,2
 76126,Calima El Darien,Valle del Cauca,Municipio,4.76,2,4,4,2,2
 76001,Cali,Valle del Cauca,Municipio,4.41,2,4,3,2,2
-76243,El <U+00C1>guila,Valle del Cauca,Municipio,6.29,3,5,4,2,2
+76243,El Águila,Valle del Cauca,Municipio,6.29,3,5,4,2,2
 76246,El Cairo,Valle del Cauca,Municipio,7.09,3,5,5,3,2
 76248,El Cerrito,Valle del Cauca,Municipio,4.22,2,4,3,2,2
 76250,El Dovio,Valle del Cauca,Municipio,6.59,3,5,4,2,2
 76275,Florida,Valle del Cauca,Municipio,6.23,3,5,4,2,2
 76306,Ginebra,Valle del Cauca,Municipio,5.05,2,5,4,2,2
-76318,Guacar<U+00ED>,Valle del Cauca,Municipio,4.99,2,5,4,2,2
-76364,Jamund<U+00ED>,Valle del Cauca,Municipio,5.89,2,5,4,2,2
+76318,Guacarí,Valle del Cauca,Municipio,4.99,2,5,4,2,2
+76364,Jamundí,Valle del Cauca,Municipio,5.89,2,5,4,2,2
 76377,La Cumbre,Valle del Cauca,Municipio,6.42,3,5,4,2,2
-76400,La Uni<U+00F3>n,Valle del Cauca,Municipio,6.49,3,5,4,2,2
+76400,La Unión,Valle del Cauca,Municipio,6.49,3,5,4,2,2
 76403,La Victoria,Valle del Cauca,Municipio,7.13,3,5,5,3,2
 76497,Obando,Valle del Cauca,Municipio,3.84,2,4,3,2,2
 76520,Palmira,Valle del Cauca,Municipio,5.14,2,5,4,2,2
 76563,Pradera,Valle del Cauca,Municipio,7.5,3,5,5,3,2
 76606,Restrepo,Valle del Cauca,Municipio,4.18,2,4,3,2,2
-76616,Riofr<U+00ED>o,Valle del Cauca,Municipio,5.63,2,5,4,2,2
+76616,Riofrío,Valle del Cauca,Municipio,5.63,2,5,4,2,2
 76622,Roldanillo,Valle del Cauca,Municipio,3.63,2,4,3,2,2
 76670,San Pedro,Valle del Cauca,Municipio,5.61,2,5,4,2,2
 76736,Sevilla,Valle del Cauca,Municipio,7.38,3,5,5,3,2
 76823,Toro,Valle del Cauca,Municipio,6.11,3,5,4,2,2
 76828,Trujillo,Valle del Cauca,Municipio,4.58,2,4,3,2,2
-76834,Tulu<U+00E1>,Valle del Cauca,Municipio,5.68,2,5,4,2,2
+76834,Tuluá,Valle del Cauca,Municipio,5.68,2,5,4,2,2
 76845,Ulloa,Valle del Cauca,Municipio,7.58,3,5,5,3,2
 76863,Versalles,Valle del Cauca,Municipio,4.66,2,4,3,2,2
 76869,Vijes,Valle del Cauca,Municipio,7.09,3,5,5,3,2
@@ -804,17 +804,17 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 81794,Tame,Arauca,Municipio,4.25,2,4,3,2,2
 85015,Chameza,Casanare,Municipio,3.19,2,3,2,1,1
 85136,La Salina,Casanare,Municipio,3.14,2,3,2,1,1
-85139,Man<U+00ED>,Casanare,Municipio,6.9,3,5,5,2,2
-85225,Nunch<U+00ED>a,Casanare,Municipio,2.59,1,2,2,1,1
-85230,Orocu<U+00E9>,Casanare,Municipio,5.48,2,5,4,2,2
+85139,Maní,Casanare,Municipio,6.9,3,5,5,2,2
+85225,Nunchía,Casanare,Municipio,2.59,1,2,2,1,1
+85230,Orocué,Casanare,Municipio,5.48,2,5,4,2,2
 85250,Paz de Ariporo,Casanare,Municipio,3.24,2,3,2,1,1
 85279,Recetor,Casanare,Municipio,5,2,5,4,2,2
 85300,Sabanalarga,Casanare,Municipio,4.24,2,4,3,2,2
-85315,S<U+00E1>cama,Casanare,Municipio,6.25,3,5,4,2,2
+85315,Sácama,Casanare,Municipio,6.25,3,5,4,2,2
 85325,San Luis de Palenque,Casanare,Municipio,4.84,2,5,4,2,2
-85400,T<U+00E1>mara,Casanare,Municipio,5.46,2,5,4,2,2
+85400,Támara,Casanare,Municipio,5.46,2,5,4,2,2
 85410,Tauramena,Casanare,Municipio,3.19,2,3,2,1,1
-68432,M<U+00E1>laga,Santander,Municipio,1.28,1,1,1,1,1
+68432,Málaga,Santander,Municipio,1.28,1,1,1,1,1
 68444,Matanza,Santander,Municipio,2.6,1,2,2,1,1
 68464,Mogotes,Santander,Municipio,3.57,2,3,3,2,2
 68468,Molagavita,Santander,Municipio,0.63,1,1,1,1,1
@@ -823,7 +823,7 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 68502,Onzaga,Santander,Municipio,3.56,2,3,3,2,2
 68522,Palmar,Santander,Municipio,1.3,1,1,1,1,1
 68524,Palmas del Socorro,Santander,Municipio,3.15,2,3,2,1,1
-68533,P<U+00E1>ramo,Santander,Municipio,3.22,2,3,2,1,1
+68533,Páramo,Santander,Municipio,3.22,2,3,2,1,1
 68547,Piedecuesta,Santander,Municipio,6.08,3,5,4,2,2
 68549,Pinchote,Santander,Municipio,1.47,1,1,1,1,1
 68572,Puente Nacional,Santander,Municipio,1.74,1,1,1,1,1
@@ -831,59 +831,59 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 68575,Puerto Wilches,Santander,Municipio,4.79,2,5,4,2,2
 68615,Rionegro,Santander,Municipio,4.75,2,4,4,2,2
 68655,Sabana de Torres,Santander,Municipio,5.3,2,5,4,2,2
-68669,San Andr<U+00E9>s,Santander,Municipio,1.15,1,1,1,1,1
+68669,San Andrés,Santander,Municipio,1.15,1,1,1,1,1
 68673,San Benito,Santander,Municipio,2.27,1,2,2,1,1
 68679,San Gil,Santander,Municipio,3.45,2,3,3,2,2
-68682,San Joaqu<U+00ED>n,Santander,Municipio,0.56,1,1,1,1,1
-68684,San Jos<U+00E9> de Miranda,Santander,Municipio,2.49,1,2,2,1,1
+68682,San Joaquín,Santander,Municipio,0.56,1,1,1,1,1
+68684,San José de Miranda,Santander,Municipio,2.49,1,2,2,1,1
 68686,San Miguel,Santander,Municipio,2.48,1,2,2,1,1
-68689,San Vicente de Chucur<U+00ED>,Santander,Municipio,5.38,2,5,4,2,2
-68705,Santa B<U+00E1>rbara,Santander,Municipio,1.3,1,1,1,1,1
-68720,Santa Helena del Op<U+00F3>n,Santander,Municipio,2.64,1,2,2,1,1
+68689,San Vicente de Chucurí,Santander,Municipio,5.38,2,5,4,2,2
+68705,Santa Bárbara,Santander,Municipio,1.3,1,1,1,1,1
+68720,Santa Helena del Opón,Santander,Municipio,2.64,1,2,2,1,1
 68745,Simacota,Santander,Municipio,3.36,2,3,3,1,1
 68755,Socorro,Santander,Municipio,2.62,1,2,2,1,1
 68770,Suaita,Santander,Municipio,2.63,1,2,2,1,1
 68773,Sucre,Santander,Municipio,2.31,1,2,2,1,1
-68780,Surat<U+00E1>,Santander,Municipio,0.91,1,1,1,1,1
+68780,Suratá,Santander,Municipio,0.91,1,1,1,1,1
 68820,Tona,Santander,Municipio,4.8,2,5,4,2,2
-68855,Valle de San Jos<U+00E9>,Santander,Municipio,2.62,1,2,2,1,1
-68861,V<U+00E9>lez,Santander,Municipio,3.81,2,4,3,2,2
+68855,Valle de San José,Santander,Municipio,2.62,1,2,2,1,1
+68861,Vélez,Santander,Municipio,3.81,2,4,3,2,2
 68867,Vetas,Santander,Municipio,4.06,2,4,3,2,2
 68872,Villanueva,Santander,Municipio,3.27,2,3,3,1,1
 68895,Zapatoca,Santander,Municipio,2.31,1,2,2,1,1
 70110,Buenavista,Sucre,Municipio,5.05,2,5,4,2,2
 70124,Caimito,Sucre,Municipio,3.98,2,4,3,2,2
-70204,Colos<U+00F3>,Sucre,Municipio,2.26,1,2,2,1,1
+70204,Colosó,Sucre,Municipio,2.26,1,2,2,1,1
 70215,Corozal,Sucre,Municipio,2.23,1,2,2,1,1
-70221,Cove<U+00F1>as,Sucre,Municipio,3.23,2,3,2,1,1
-70230,Chal<U+00E1>n,Sucre,Municipio,2.66,1,2,2,1,1
+70221,Coveñas,Sucre,Municipio,3.23,2,3,2,1,1
+70230,Chalán,Sucre,Municipio,2.66,1,2,2,1,1
 70233,El Roble,Sucre,Municipio,3.42,2,3,3,1,1
 70235,Galeras,Sucre,Municipio,3.34,2,3,3,1,1
 70265,Guaranda,Sucre,Municipio,5.01,2,5,4,2,2
-70400,La Uni<U+00F3>n,Sucre,Municipio,1.46,1,1,1,1,1
+70400,La Unión,Sucre,Municipio,1.46,1,1,1,1,1
 70418,Los Palmitos,Sucre,Municipio,3,2,3,2,1,1
 70429,Majagual,Sucre,Municipio,3.6,2,3,3,2,2
 70473,Morroa,Sucre,Municipio,1.65,1,1,1,1,1
 70508,Ovejas,Sucre,Municipio,3.57,2,3,3,2,2
 70523,Palmito,Sucre,Municipio,3.08,2,3,2,1,1
-70670,Sampu<U+00E9>s,Sucre,Municipio,3.04,2,3,2,1,1
+70670,Sampués,Sucre,Municipio,3.04,2,3,2,1,1
 70678,San Benito Abad,Sucre,Municipio,3.18,2,3,2,1,1
 70702,San Juan de Betulia,Sucre,Municipio,1.99,1,2,2,1,1
 70708,San Marcos,Sucre,Municipio,5.03,2,5,4,2,2
 70713,San Onofre,Sucre,Municipio,3.13,2,3,2,1,1
 70717,San Pedro,Sucre,Municipio,2.78,1,2,2,1,1
-70742,Sinc<U+00E9>,Sucre,Municipio,2.83,1,3,2,1,1
+70742,Sincé,Sucre,Municipio,2.83,1,3,2,1,1
 70771,Sucre,Sucre,Municipio,2.48,1,2,2,1,1
-70820,Santiago de Tol<U+00FA>,Sucre,Municipio,2.67,1,2,2,1,1
+70820,Santiago de Tolú,Sucre,Municipio,2.67,1,2,2,1,1
 70823,Toluviejo,Sucre,Municipio,3.2,2,3,2,1,1
 73024,Alpujarra,Tolima,Municipio,2.73,1,2,2,1,1
 73026,Alvarado,Tolima,Municipio,3.6,2,3,3,2,2
 73030,Ambalema,Tolima,Municipio,3.18,2,3,2,1,1
-73043,Anzo<U+00E1>tegui,Tolima,Municipio,3.28,2,3,3,1,1
+73043,Anzoátegui,Tolima,Municipio,3.28,2,3,3,1,1
 73055,Armero,Tolima,Municipio,2.69,1,2,2,1,1
 73067,Ataco,Tolima,Municipio,3.66,2,4,3,2,2
 73124,Cajamarca,Tolima,Municipio,3.71,2,4,3,2,2
-73148,Carmen de Apical<U+00E1>,Tolima,Municipio,2.26,1,2,2,1,1
+73148,Carmen de Apicalá,Tolima,Municipio,2.26,1,2,2,1,1
 73152,Casabianca,Tolima,Municipio,3.36,2,3,3,1,1
 73168,Chaparral,Tolima,Municipio,2.86,1,3,2,1,1
 73200,Coello,Tolima,Municipio,1.81,1,1,1,1,1
@@ -898,8 +898,8 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 73347,Herveo,Tolima,Municipio,2.57,1,2,2,1,1
 73349,Honda,Tolima,Municipio,3.41,2,3,3,1,1
 73352,Icononzo,Tolima,Municipio,2.46,1,2,2,1,1
-73408,L<U+00E9>rida,Tolima,Municipio,2.27,1,2,2,1,1
-73411,L<U+00ED>bano,Tolima,Municipio,3.23,2,3,2,1,1
+73408,Lérida,Tolima,Municipio,2.27,1,2,2,1,1
+73411,Líbano,Tolima,Municipio,3.23,2,3,2,1,1
 73443,Mariquita,Tolima,Municipio,2.68,1,2,2,1,1
 73449,Melgar,Tolima,Municipio,2.72,1,2,2,1,1
 73461,Murillo,Tolima,Municipio,2.96,1,3,2,1,1
@@ -909,213 +909,213 @@ divipola,municipio,departamento,tipo,desercion,clase_equal,clase_quantile,clase_
 73547,Piedras,Tolima,Municipio,2.1,1,2,2,1,1
 73555,Planadas,Tolima,Municipio,5.21,2,5,4,2,2
 05266,Envigado,Antioquia,Municipio,3.93,2,4,3,2,2
-05360,Itag<U+00FC><U+00ED>,Antioquia,Municipio,4.58,2,4,3,2,2
-27425,Medio Atrato,Choc<U+00F3>,Municipio,0.47,1,1,1,1,1
+05360,Itagüí,Antioquia,Municipio,4.58,2,4,3,2,2
+27425,Medio Atrato,Chocó,Municipio,0.47,1,1,1,1,1
 99524,La Primavera,Vichada,Municipio,5.16,2,5,4,2,2
-05364,Jard<U+00ED>n,Antioquia,Municipio,3.67,2,4,3,2,2
-27491,N<U+00F3>vita,Choc<U+00F3>,Municipio,4.06,2,4,3,2,2
-27450,Medio San Juan,Choc<U+00F3>,Municipio,1.68,1,1,1,1,1
-27660,San Jos<U+00E9> del Palmar,Choc<U+00F3>,Municipio,5.86,2,5,4,2,2
-27205,Condoto,Choc<U+00F3>,Municipio,3.72,2,4,3,2,2
+05364,Jardín,Antioquia,Municipio,3.67,2,4,3,2,2
+27491,Nóvita,Chocó,Municipio,4.06,2,4,3,2,2
+27450,Medio San Juan,Chocó,Municipio,1.68,1,1,1,1,1
+27660,San José del Palmar,Chocó,Municipio,5.86,2,5,4,2,2
+27205,Condoto,Chocó,Municipio,3.72,2,4,3,2,2
 85010,Aguazul,Casanare,Municipio,3.62,2,4,3,2,2
 54874,Villa del Rosario,Norte de Santander,Municipio,5.68,2,5,4,2,2
-27430,Medio Baud<U+00F3>,Choc<U+00F3>,Municipio,0.68,1,1,1,1,1
-27810,Uni<U+00F3>n Panamericana,Choc<U+00F3>,Municipio,5.93,3,5,4,2,2
-27787,Tad<U+00F3>,Choc<U+00F3>,Municipio,1.81,1,1,1,1,1
-27160,C<U+00E9>rtegui,Choc<U+00F3>,Municipio,3.13,2,3,2,1,1
-27135,El Cant<U+00F3>n del San Pablo,Choc<U+00F3>,Municipio,2.51,1,2,2,1,1
+27430,Medio Baudó,Chocó,Municipio,0.68,1,1,1,1,1
+27810,Unión Panamericana,Chocó,Municipio,5.93,3,5,4,2,2
+27787,Tadó,Chocó,Municipio,1.81,1,1,1,1,1
+27160,Cértegui,Chocó,Municipio,3.13,2,3,2,1,1
+27135,El Cantón del San Pablo,Chocó,Municipio,2.51,1,2,2,1,1
 99773,Cumaribo,Vichada,Municipio,5.5,2,5,4,2,2
 17614,Riosucio,Caldas,Municipio,2.04,1,2,2,1,1
-27077,Bajo Baud<U+00F3>,Choc<U+00F3>,Municipio,0.51,1,1,1,1,1
-66456,Mistrat<U+00F3>,Risaralda,Municipio,7.86,3,5,5,3,2
-27495,Nuqu<U+00ED>,Choc<U+00F3>,Municipio,3.54,2,3,3,2,2
-27245,El Carmen de Atrato,Choc<U+00F3>,Municipio,1.74,1,1,1,1,1
-27025,Alto Baudo,Choc<U+00F3>,Municipio,1.57,1,1,1,1,1
+27077,Bajo Baudó,Chocó,Municipio,0.51,1,1,1,1,1
+66456,Mistrató,Risaralda,Municipio,7.86,3,5,5,3,2
+27495,Nuquí,Chocó,Municipio,3.54,2,3,3,2,2
+27245,El Carmen de Atrato,Chocó,Municipio,1.74,1,1,1,1,1
+27025,Alto Baudo,Chocó,Municipio,1.57,1,1,1,1,1
 05376,La Ceja,Antioquia,Municipio,2.71,1,2,2,1,1
 05129,Caldas,Antioquia,Municipio,4.97,2,5,4,2,2
-99001,Puerto Carre<U+00F1>o,Vichada,Municipio,8.45,3,5,5,3,2
-27001,Quibd<U+00F3>,Choc<U+00F3>,Municipio,1.38,1,1,1,1,1
-05656,San Jer<U+00F3>nimo,Antioquia,Municipio,7.41,3,5,5,3,2
+99001,Puerto Carreño,Vichada,Municipio,8.45,3,5,5,3,2
+27001,Quibdó,Chocó,Municipio,1.38,1,1,1,1,1
+05656,San Jerónimo,Antioquia,Municipio,7.41,3,5,5,3,2
 05079,Barbosa,Antioquia,Municipio,4.42,2,4,3,2,2
 05690,Santo Domingo,Antioquia,Municipio,2.52,1,2,2,1,1
 05847,Urrao,Antioquia,Municipio,3.76,2,4,3,2,2
-81591,Puerto Rond<U+00F3>n,Arauca,Municipio,5.6,2,5,4,2,2
-05042,Santaf<U+00E9> de Antioquia,Antioquia,Municipio,3.67,2,4,3,2,2
+81591,Puerto Rondón,Arauca,Municipio,5.6,2,5,4,2,2
+05042,Santafé de Antioquia,Antioquia,Municipio,3.67,2,4,3,2,2
 05086,Belmira,Antioquia,Municipio,3.88,2,4,3,2,2
 05411,Liborina,Antioquia,Municipio,1.06,1,1,1,1,1
-27075,Bah<U+00ED>a Solano,Choc<U+00F3>,Municipio,6.92,3,5,5,2,2
-05873,Vig<U+00ED>a del Fuerte,Antioquia,Municipio,1.65,1,1,1,1,1
-05310,G<U+00F3>mez Plata,Antioquia,Municipio,4.96,2,5,4,2,2
-27099,Bojaya,Choc<U+00F3>,Municipio,0.48,1,1,1,1,1
+27075,Bahía Solano,Chocó,Municipio,6.92,3,5,5,2,2
+05873,Vigía del Fuerte,Antioquia,Municipio,1.65,1,1,1,1,1
+05310,Gómez Plata,Antioquia,Municipio,4.96,2,5,4,2,2
+27099,Bojaya,Chocó,Municipio,0.48,1,1,1,1,1
 05686,Santa Rosa de Osos,Antioquia,Municipio,2.92,1,3,2,1,1
 05315,Guadalupe,Antioquia,Municipio,2.03,1,2,2,1,1
-05138,Ca<U+00F1>asgordas,Antioquia,Municipio,2.98,2,3,2,1,1
-05475,Murind<U+00F3>,Antioquia,Municipio,1.19,1,1,1,1,1
+05138,Cañasgordas,Antioquia,Municipio,2.98,2,3,2,1,1
+05475,Murindó,Antioquia,Municipio,1.19,1,1,1,1,1
 81065,Arauquita,Arauca,Municipio,5.35,2,5,4,2,2
 81736,Saravena,Arauca,Municipio,4.43,2,4,3,2,2
 05819,Toledo,Antioquia,Municipio,3.25,2,3,3,1,1
 81001,Arauca,Arauca,Municipio,6.76,3,5,4,2,2
 05234,Dabeiba,Antioquia,Municipio,5.84,2,5,4,2,2
-68307,Gir<U+00F3>n,Santander,Municipio,4.43,2,4,3,2,2
+68307,Girón,Santander,Municipio,4.43,2,4,3,2,2
 68001,Bucaramanga,Santander,Municipio,4.48,2,4,3,2,2
 05031,Amalfi,Antioquia,Municipio,6.03,3,5,4,2,2
-05893,Yond<U+00F3>,Antioquia,Municipio,3.07,2,3,2,1,1
-27150,Carmen del Darien,Choc<U+00F3>,Municipio,2.78,1,2,2,1,1
+05893,Yondó,Antioquia,Municipio,3.07,2,3,2,1,1
+27150,Carmen del Darien,Chocó,Municipio,2.78,1,2,2,1,1
 54377,Labateca,Norte de Santander,Municipio,0.76,1,1,1,1,1
 54518,Pamplona,Norte de Santander,Municipio,4.94,2,5,4,2,2
 54820,Toledo,Norte de Santander,Municipio,1.92,1,2,1,1,1
-27372,Jurad<U+00F3>,Choc<U+00F3>,Municipio,0.89,1,1,1,1,1
-05480,Mutat<U+00E1>,Antioquia,Municipio,7.37,3,5,5,3,2
+27372,Juradó,Chocó,Municipio,0.89,1,1,1,1,1
+05480,Mutatá,Antioquia,Municipio,7.37,3,5,5,3,2
 54099,Bochalema,Norte de Santander,Municipio,3.61,2,3,3,2,2
 54239,Durania,Norte de Santander,Municipio,4.95,2,5,4,2,2
-54128,Cachir<U+00E1>,Norte de Santander,Municipio,3.47,2,3,3,2,2
+54128,Cachirá,Norte de Santander,Municipio,3.47,2,3,3,2,2
 54405,Los Patios,Norte de Santander,Municipio,3.63,2,4,3,2,2
 05147,Carepa,Antioquia,Municipio,3.07,2,3,2,1,1
-27615,Riosucio,Choc<U+00F3>,Municipio,1.49,1,1,1,1,1
+27615,Riosucio,Chocó,Municipio,1.49,1,1,1,1,1
 54313,Gramalote,Norte de Santander,Municipio,2.08,1,2,2,1,1
-23580,Puerto Libertador,C<U+00F3>rdoba,Municipio,5.34,2,5,4,2,2
-05045,Apartad<U+00F3>,Antioquia,Municipio,4.8,2,5,4,2,2
+23580,Puerto Libertador,Córdoba,Municipio,5.34,2,5,4,2,2
+05045,Apartadó,Antioquia,Municipio,4.8,2,5,4,2,2
 05154,Caucasia,Antioquia,Municipio,3.96,2,4,3,2,2
 54109,Bucarasica,Norte de Santander,Municipio,2.88,1,3,2,1,1
 54261,El Zulia,Norte de Santander,Municipio,5.79,2,5,4,2,2
-23807,Tierralta,C<U+00F3>rdoba,Municipio,5.78,2,5,4,2,2
-27800,Ungu<U+00ED>a,Choc<U+00F3>,Municipio,7.45,3,5,5,3,2
-54498,Oca<U+00F1>a,Norte de Santander,Municipio,4.22,2,4,3,2,2
+23807,Tierralta,Córdoba,Municipio,5.78,2,5,4,2,2
+27800,Unguía,Chocó,Municipio,7.45,3,5,5,3,2
+54498,Ocaña,Norte de Santander,Municipio,4.22,2,4,3,2,2
 05837,Turbo,Antioquia,Municipio,4.47,2,4,3,2,2
-27006,Acand<U+00ED>,Choc<U+00F3>,Municipio,5.56,2,5,4,2,2
-05490,Necocl<U+00ED>,Antioquia,Municipio,5.23,2,5,4,2,2
+27006,Acandí,Chocó,Municipio,5.56,2,5,4,2,2
+05490,Necoclí,Antioquia,Municipio,5.23,2,5,4,2,2
 05051,Arboletes,Antioquia,Municipio,4.11,2,4,3,2,2
-13001,Cartagena,Bol<U+00ED>var,Municipio,3.33,2,3,3,1,1
+13001,Cartagena,Bolívar,Municipio,3.33,2,3,3,1,1
 20570,Pueblo Bello,Cesar,Municipio,4.34,2,4,3,2,2
 20001,Valledupar,Cesar,Municipio,4.03,2,4,3,2,2
 47053,Aracataca,Magdalena,Municipio,3.15,2,3,2,1,1
-99624,Santa Rosal<U+00ED>a,Vichada,Municipio,6.3,3,5,4,2,2
-54001,C<U+00FA>cuta,Norte de Santander,Municipio,4.28,2,4,3,2,2
+99624,Santa Rosalía,Vichada,Municipio,6.3,3,5,4,2,2
+54001,Cúcuta,Norte de Santander,Municipio,4.28,2,4,3,2,2
 66170,Dosquebradas,Risaralda,Municipio,5.83,2,5,4,2,2
-15491,Nobsa,Boyac<U+00E1>,Municipio,2.84,1,3,2,1,1
-15806,Tibasosa,Boyac<U+00E1>,Municipio,3.88,2,4,3,2,2
+15491,Nobsa,Boyacá,Municipio,2.84,1,3,2,1,1
+15806,Tibasosa,Boyacá,Municipio,3.88,2,4,3,2,2
 76130,Candelaria,Valle del Cauca,Municipio,5.09,2,5,4,2,2
 76147,Cartago,Valle del Cauca,Municipio,5.18,2,5,4,2,2
 85125,Hato Corozal,Casanare,Municipio,4.49,2,4,3,2,2
-13650,San Fernando,Bol<U+00ED>var,Municipio,5.41,2,5,4,2,2
+13650,San Fernando,Bolívar,Municipio,5.41,2,5,4,2,2
 85440,Villanueva,Casanare,Municipio,3.79,2,4,3,2,2
-86219,Col<U+00F3>n,Putumayo,Municipio,3.56,2,3,3,2,2
+86219,Colón,Putumayo,Municipio,3.56,2,3,3,2,2
 86569,Puerto Caicedo,Putumayo,Municipio,4.79,2,5,4,2,2
 86749,Sibundoy,Putumayo,Municipio,2.52,1,2,2,1,1
 86760,Santiago,Putumayo,Municipio,5.35,2,5,4,2,2
 86865,Valle del Guamuez,Putumayo,Municipio,7.33,3,5,5,3,2
-88001,San Andr<U+00E9>s,"Archipi<U+00E9>lago de San Andr<U+00E9>s, Providencia y Santa Catalina",Isla,2.01,1,2,2,1,1
-91540,Puerto Nari<U+00F1>o,Amazonas,Municipio,3.62,2,4,3,2,2
+88001,San Andrés,"Archipiélago de San Andrés, Providencia y Santa Catalina",Isla,2.01,1,2,2,1,1
+91540,Puerto Nariño,Amazonas,Municipio,3.62,2,4,3,2,2
 91001,Leticia,Amazonas,Municipio,5.61,2,5,4,2,2
-91798,Tarapac<U+00E1>,Amazonas,<U+00C1>rea no municipalizada,2.2,1,2,2,1,1
-91263,El Encanto,Amazonas,<U+00C1>rea no municipalizada,3.09,2,3,2,1,1
-91536,Puerto Arica,Amazonas,<U+00C1>rea no municipalizada,0,1,1,1,1,1
-91530,Puerto Alegr<U+00ED>a,Amazonas,<U+00C1>rea no municipalizada,5.23,2,5,4,2,2
-91407,La Pedrera,Amazonas,<U+00C1>rea no municipalizada,1.79,1,1,1,1,1
-91405,La Chorrera,Amazonas,<U+00C1>rea no municipalizada,14.81,5,5,5,5,2
-91669,Puerto Santander,Amazonas,<U+00C1>rea no municipalizada,0.75,1,1,1,1,1
-97666,Taraira,Vaup<U+00E9>s,Municipio,0,1,1,1,1,1
-91460,Miriti - Paran<U+00E1>,Amazonas,<U+00C1>rea no municipalizada,3.27,2,3,3,1,1
-91430,La Victoria,Amazonas,<U+00C1>rea no municipalizada,0,1,1,1,1,1
+91798,Tarapacá,Amazonas,Área no municipalizada,2.2,1,2,2,1,1
+91263,El Encanto,Amazonas,Área no municipalizada,3.09,2,3,2,1,1
+91536,Puerto Arica,Amazonas,Área no municipalizada,0,1,1,1,1,1
+91530,Puerto Alegría,Amazonas,Área no municipalizada,5.23,2,5,4,2,2
+91407,La Pedrera,Amazonas,Área no municipalizada,1.79,1,1,1,1,1
+91405,La Chorrera,Amazonas,Área no municipalizada,14.81,5,5,5,5,2
+91669,Puerto Santander,Amazonas,Área no municipalizada,0.75,1,1,1,1,1
+97666,Taraira,Vaupés,Municipio,0,1,1,1,1,1
+91460,Miriti - Paraná,Amazonas,Área no municipalizada,3.27,2,3,3,1,1
+91430,La Victoria,Amazonas,Área no municipalizada,0,1,1,1,1,1
 86757,San Miguel,Putumayo,Municipio,6.56,3,5,4,2,2
-86568,Puerto As<U+00ED>s,Putumayo,Municipio,6.08,3,5,4,2,2
-86573,Legu<U+00ED>zamo,Putumayo,Municipio,8.81,3,5,5,3,2
-52560,Potos<U+00ED>,Nari<U+00F1>o,Municipio,1.32,1,1,1,1,1
-97511,Pacoa,Vaup<U+00E9>s,<U+00C1>rea no municipalizada,7.83,3,5,5,3,2
-52356,Ipiales,Nari<U+00F1>o,Municipio,2.48,1,2,2,1,1
+86568,Puerto Asís,Putumayo,Municipio,6.08,3,5,4,2,2
+86573,Leguízamo,Putumayo,Municipio,8.81,3,5,5,3,2
+52560,Potosí,Nariño,Municipio,1.32,1,1,1,1,1
+97511,Pacoa,Vaupés,Área no municipalizada,7.83,3,5,5,3,2
+52356,Ipiales,Nariño,Municipio,2.48,1,2,2,1,1
 86320,Orito,Putumayo,Municipio,6.64,3,5,4,2,2
-52022,Aldana,Nari<U+00F1>o,Municipio,1.32,1,1,1,1,1
-18785,Solita,Caquet<U+00E1>,Municipio,5.41,2,5,4,2,2
-52317,Guachucal,Nari<U+00F1>o,Municipio,0.71,1,1,1,1,1
-52506,Ospina,Nari<U+00F1>o,Municipio,0.73,1,1,1,1,1
-86571,Puerto Guzm<U+00E1>n,Putumayo,Municipio,11.5,4,5,5,4,2
-86885,Villagarz<U+00F3>n,Putumayo,Municipio,5.65,2,5,4,2,2
-97889,Yavarat<U+00E9>,Vaup<U+00E9>s,<U+00C1>rea no municipalizada,8.39,3,5,5,3,2
-18205,Curillo,Caquet<U+00E1>,Municipio,7.83,3,5,5,3,2
-18756,Solano,Caquet<U+00E1>,Municipio,6.66,3,5,4,2,2
+52022,Aldana,Nariño,Municipio,1.32,1,1,1,1,1
+18785,Solita,Caquetá,Municipio,5.41,2,5,4,2,2
+52317,Guachucal,Nariño,Municipio,0.71,1,1,1,1,1
+52506,Ospina,Nariño,Municipio,0.73,1,1,1,1,1
+86571,Puerto Guzmán,Putumayo,Municipio,11.5,4,5,5,4,2
+86885,Villagarzón,Putumayo,Municipio,5.65,2,5,4,2,2
+97889,Yavaraté,Vaupés,Área no municipalizada,8.39,3,5,5,3,2
+18205,Curillo,Caquetá,Municipio,7.83,3,5,5,3,2
+18756,Solano,Caquetá,Municipio,6.66,3,5,4,2,2
 86755,San Francisco,Putumayo,Municipio,2.92,1,3,2,1,1
-52001,Pasto,Nari<U+00F1>o,Municipio,2.1,1,2,2,1,1
-52683,Sandon<U+00E1>,Nari<U+00F1>o,Municipio,2.15,1,2,2,1,1
-52435,Mallama,Nari<U+00F1>o,Municipio,2.88,1,3,2,1,1
-52381,La Florida,Nari<U+00F1>o,Municipio,1.71,1,1,1,1,1
+52001,Pasto,Nariño,Municipio,2.1,1,2,2,1,1
+52683,Sandoná,Nariño,Municipio,2.15,1,2,2,1,1
+52435,Mallama,Nariño,Municipio,2.88,1,3,2,1,1
+52381,La Florida,Nariño,Municipio,1.71,1,1,1,1,1
 86001,Mocoa,Putumayo,Municipio,5.3,2,5,4,2,2
-52019,Alb<U+00E1>n,Nari<U+00F1>o,Municipio,1.72,1,1,1,1,1
-52260,El Tambo,Nari<U+00F1>o,Municipio,1.69,1,1,1,1,1
-18150,Cartagena del Chair<U+00E1>,Caquet<U+00E1>,Municipio,8.76,3,5,5,3,2
-52678,Samaniego,Nari<U+00F1>o,Municipio,2.43,1,2,2,1,1
-94885,La Guadalupe,Guain<U+00ED>a,<U+00C1>rea no municipalizada,1.09,1,1,1,1,1
-52693,San Pablo,Nari<U+00F1>o,Municipio,1.4,1,1,1,1,1
-97161,Caruru,Vaup<U+00E9>s,Municipio,3.54,2,3,3,2,2
-97001,Mit<U+00FA>,Vaup<U+00E9>s,Municipio,5.06,2,5,4,2,2
-52079,Barbacoas,Nari<U+00F1>o,Municipio,4.81,2,5,4,2,2
-52540,Policarpa,Nari<U+00F1>o,Municipio,3.66,2,4,3,2,2
+52019,Albán,Nariño,Municipio,1.72,1,1,1,1,1
+52260,El Tambo,Nariño,Municipio,1.69,1,1,1,1,1
+18150,Cartagena del Chairá,Caquetá,Municipio,8.76,3,5,5,3,2
+52678,Samaniego,Nariño,Municipio,2.43,1,2,2,1,1
+94885,La Guadalupe,Guainía,Área no municipalizada,1.09,1,1,1,1,1
+52693,San Pablo,Nariño,Municipio,1.4,1,1,1,1,1
+97161,Caruru,Vaupés,Municipio,3.54,2,3,3,2,2
+97001,Mitú,Vaupés,Municipio,5.06,2,5,4,2,2
+52079,Barbacoas,Nariño,Municipio,4.81,2,5,4,2,2
+52540,Policarpa,Nariño,Municipio,3.66,2,4,3,2,2
 95200,Miraflores,Guaviare,Municipio,5.74,2,5,4,2,2
-52835,San Andres de Tumaco,Nari<U+00F1>o,Municipio,3.83,2,4,3,2,2
+52835,San Andres de Tumaco,Nariño,Municipio,3.83,2,4,3,2,2
 05615,Rionegro,Antioquia,Municipio,4.1,2,4,3,2,2
 20443,Manaure,Cesar,Municipio,3.84,2,4,3,2,2
-94001,In<U+00ED>rida,Guain<U+00ED>a,Municipio,5.19,2,5,4,2,2
-27580,R<U+00ED>o Iro,Choc<U+00F3>,Municipio,2.43,1,2,2,1,1
+94001,Inírida,Guainía,Municipio,5.19,2,5,4,2,2
+27580,Río Iro,Chocó,Municipio,2.43,1,2,2,1,1
 95025,El Retorno,Guaviare,Municipio,5.32,2,5,4,2,2
-94887,Pana Pana,Guain<U+00ED>a,<U+00C1>rea no municipalizada,0.32,1,1,1,1,1
-94883,San Felipe,Guain<U+00ED>a,<U+00C1>rea no municipalizada,5.46,2,5,4,2,2
-27413,Llor<U+00F3>,Choc<U+00F3>,Municipio,0.37,1,1,1,1,1
-97777,Papunaua,Vaup<U+00E9>s,<U+00C1>rea no municipalizada,0,1,1,1,1,1
-54344,Hacar<U+00ED>,Norte de Santander,Municipio,2.94,1,3,2,1,1
+94887,Pana Pana,Guainía,Área no municipalizada,0.32,1,1,1,1,1
+94883,San Felipe,Guainía,Área no municipalizada,5.46,2,5,4,2,2
+27413,Lloró,Chocó,Municipio,0.37,1,1,1,1,1
+97777,Papunaua,Vaupés,Área no municipalizada,0,1,1,1,1,1
+54344,Hacarí,Norte de Santander,Municipio,2.94,1,3,2,1,1
 54720,Sardinata,Norte de Santander,Municipio,5.27,2,5,4,2,2
 66075,Balboa,Risaralda,Municipio,6.48,3,5,4,2,2
 85001,Yopal,Casanare,Municipio,3.28,2,3,3,1,1
 85430,Trinidad,Casanare,Municipio,4.73,2,4,4,2,2
-15001,Tunja,Boyac<U+00E1>,Municipio,2.82,1,2,2,1,1
-52427,Mag<U+00FC>i,Nari<U+00F1>o,Municipio,3.61,2,3,3,2,2
-52405,Leiva,Nari<U+00F1>o,Municipio,3.73,2,4,3,2,2
+15001,Tunja,Boyacá,Municipio,2.82,1,2,2,1,1
+52427,Magüi,Nariño,Municipio,3.61,2,3,3,2,2
+52405,Leiva,Nariño,Municipio,3.73,2,4,3,2,2
 95015,Calamar,Guaviare,Municipio,2.67,1,2,2,1,1
-52621,Roberto Pay<U+00E1>n,Nari<U+00F1>o,Municipio,1.07,1,1,1,1,1
-52520,Francisco Pizarro,Nari<U+00F1>o,Municipio,1.72,1,1,1,1,1
+52621,Roberto Payán,Nariño,Municipio,1.07,1,1,1,1,1
+52520,Francisco Pizarro,Nariño,Municipio,1.72,1,1,1,1,1
 50350,La Macarena,Meta,Municipio,8.03,3,5,5,3,2
-52473,Mosquera,Nari<U+00F1>o,Municipio,1.23,1,1,1,1,1
-52490,Olaya Herrera,Nari<U+00F1>o,Municipio,1.44,1,1,1,1,1
-52696,Santa B<U+00E1>rbara,Nari<U+00F1>o,Municipio,1.71,1,1,1,1,1
-52390,La Tola,Nari<U+00F1>o,Municipio,3.6,2,3,3,2,2
+52473,Mosquera,Nariño,Municipio,1.23,1,1,1,1,1
+52490,Olaya Herrera,Nariño,Municipio,1.44,1,1,1,1,1
+52696,Santa Bárbara,Nariño,Municipio,1.71,1,1,1,1,1
+52390,La Tola,Nariño,Municipio,3.6,2,3,3,2,2
 41349,Hobo,Huila,Municipio,3.91,2,4,3,2,2
-52250,El Charco,Nari<U+00F1>o,Municipio,2.09,1,2,2,1,1
+52250,El Charco,Nariño,Municipio,2.09,1,2,2,1,1
 19318,Guapi,Cauca,Municipio,1.93,1,2,1,1,1
-94888,Morichal,Guain<U+00ED>a,<U+00C1>rea no municipalizada,10,4,5,5,3,2
-95001,San Jos<U+00E9> del Guaviare,Guaviare,Municipio,5.02,2,5,4,2,2
-19809,Timbiqu<U+00ED>,Cauca,Municipio,2.03,1,2,2,1,1
-18753,San Vicente del Cagu<U+00E1>n,Caquet<U+00E1>,Municipio,7.8,3,5,5,3,2
+94888,Morichal,Guainía,Área no municipalizada,10,4,5,5,3,2
+95001,San José del Guaviare,Guaviare,Municipio,5.02,2,5,4,2,2
+19809,Timbiquí,Cauca,Municipio,2.03,1,2,2,1,1
+18753,San Vicente del Caguán,Caquetá,Municipio,7.8,3,5,5,3,2
 50450,Puerto Concordia,Meta,Municipio,8.87,3,5,5,3,2
 50590,Puerto Rico,Meta,Municipio,6.53,3,5,4,2,2
-94884,Puerto Colombia,Guain<U+00ED>a,<U+00C1>rea no municipalizada,2.83,1,3,2,1,1
+94884,Puerto Colombia,Guainía,Área no municipalizada,2.83,1,3,2,1,1
 50711,Vistahermosa,Meta,Municipio,6.8,3,5,5,2,2
-19418,L<U+00F3>pez,Cauca,Municipio,3.45,2,3,3,2,2
-50325,Mapirip<U+00E1>n,Meta,Municipio,12.29,5,5,5,4,2
+19418,López,Cauca,Municipio,3.45,2,3,3,2,2
+50325,Mapiripán,Meta,Municipio,12.29,5,5,5,4,2
 50577,Puerto Lleras,Meta,Municipio,5.77,2,5,4,2,2
-94343,Barranco Minas,Guain<U+00ED>a,Municipio,4.4,2,4,3,2,2
-94886,Cacahual,Guain<U+00ED>a,<U+00C1>rea no municipalizada,2.03,1,2,2,1,1
+94343,Barranco Minas,Guainía,Municipio,4.4,2,4,3,2,2
+94886,Cacahual,Guainía,Área no municipalizada,2.03,1,2,2,1,1
 76233,Dagua,Valle del Cauca,Municipio,4.11,2,4,3,2,2
 76109,Buenaventura,Valle del Cauca,Municipio,3.31,2,3,3,1,1
 50001,Villavicencio,Meta,Municipio,4.11,2,4,3,2,2
-27250,El Litoral del San Juan,Choc<U+00F3>,Municipio,1.49,1,1,1,1,1
-73001,Ibagu<U+00E9>,Tolima,Municipio,4.18,2,4,3,2,2
-27745,Sip<U+00ED>,Choc<U+00F3>,Municipio,1.48,1,1,1,1,1
-11001,"Bogot<U+00E1>, D.C.","Bogot<U+00E1>, D.C.",Municipio,2.49,1,2,2,1,1
+27250,El Litoral del San Juan,Chocó,Municipio,1.49,1,1,1,1,1
+73001,Ibagué,Tolima,Municipio,4.18,2,4,3,2,2
+27745,Sipí,Chocó,Municipio,1.48,1,1,1,1,1
+11001,"Bogotá, D.C.","Bogotá, D.C.",Municipio,2.49,1,2,2,1,1
 47001,Santa Marta,Magdalena,Municipio,4.66,2,4,3,2,2
 44001,Riohacha,La Guajira,Municipio,3.65,2,4,3,2,2
 44847,Uribia,La Guajira,Municipio,1.62,1,1,1,1,1
-88564,Providencia,"Archipi<U+00E9>lago de San Andr<U+00E9>s, Providencia y Santa Catalina",Municipio,1.41,1,1,1,1,1
+88564,Providencia,"Archipiélago de San Andrés, Providencia y Santa Catalina",Municipio,1.41,1,1,1,1,1
 85162,Monterrey,Casanare,Municipio,3.07,2,3,2,1,1
-50568,Puerto Gait<U+00E1>n,Meta,Municipio,3.95,2,4,3,2,2
+50568,Puerto Gaitán,Meta,Municipio,3.95,2,4,3,2,2
 20045,Becerril,Cesar,Municipio,5.42,2,5,4,2,2
-27361,Istmina,Choc<U+00F3>,Municipio,3.36,2,3,3,1,1
+27361,Istmina,Chocó,Municipio,3.36,2,3,3,1,1
 70001,Sincelejo,Sucre,Municipio,3.02,2,3,2,1,1
-05001,Medell<U+00ED>n,Antioquia,Municipio,3.18,2,3,2,1,1
-05240,Eb<U+00E9>jico,Antioquia,Municipio,3.2,2,3,2,1,1
+05001,Medellín,Antioquia,Municipio,3.18,2,3,2,1,1
+05240,Ebéjico,Antioquia,Municipio,3.2,2,3,2,1,1
 05212,Copacabana,Antioquia,Municipio,3.81,2,4,3,2,2
 05088,Bello,Antioquia,Municipio,3.92,2,4,3,2,2
 05308,Girardota,Antioquia,Municipio,4.38,2,4,3,2,2
-27073,Bagad<U+00F3>,Choc<U+00F3>,Municipio,0.82,1,1,1,1,1
-27600,R<U+00ED>o Quito,Choc<U+00F3>,Municipio,2.72,1,2,2,1,1
-27050,Atrato,Choc<U+00F3>,Municipio,2.24,1,2,2,1,1
+27073,Bagadó,Chocó,Municipio,0.82,1,1,1,1,1
+27600,Río Quito,Chocó,Municipio,2.72,1,2,2,1,1
+27050,Atrato,Chocó,Municipio,2.24,1,2,2,1,1
 20400,La Jagua de Ibirico,Cesar,Municipio,4.88,2,5,4,2,2
 85263,Pore,Casanare,Municipio,4.63,2,4,3,2,2
 05631,Sabaneta,Antioquia,Municipio,3.53,2,3,3,2,2

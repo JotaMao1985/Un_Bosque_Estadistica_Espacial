@@ -79,7 +79,25 @@ SALIDAS = PRECALCULO / "salidas"
 # cuando la Fase 7 publique.
 CARPETAS = [RAIZ / "sitio" / "estadistica-espacial", RAIZ / "Htmls_Espacial"]
 
-MOJIBAKE_RE = re.compile(r"<[0-9a-f]{2}>")
+# LAS DOS FORMAS EN QUE UNA TILDE SOBREVIVE ROTA A UN GENERADOR.
+#
+# `<c3><b3>` es la de T0.5: `jsonlite` escribiendo los BYTES crudos del
+# UTF-8 cuando R arranca con LC_CTYPE=C. Ver A.10 y `utf8.R`.
+#
+# `<U+00E9>` es la otra, y la encontró T3.3 con los capítulos 2 y 3 ya
+# publicados. Es la notación con que R imprime un carácter que su regional
+# no sabe representar, y `jsonlite` la escribe igual de callada. **No la
+# cazaba nada**: el patrón de arriba exige dos dígitos en MINÚSCULA, y
+# aquí hay una `U`, un `+` y cuatro en mayúscula.
+#
+# Y es la peor de las dos, porque no se ve. `<c3><b3>` llega al navegador
+# como texto y salta a la vista; `<U+00E1>` tiene forma de ETIQUETA, así
+# que el analizador de HTML se lo traga entero y la letra **desaparece**:
+# la tabla del módulo 2 del capítulo 3 se leía «Bogot, D.C.», «Medelln»,
+# «Atlntico», «Bolvar», «Ccuta». Ni un error en consola, ni un carácter
+# raro; solo palabras a las que les falta una letra. Un capítulo puede
+# publicarse así y dar 130/0, que es exactamente lo que pasó.
+MOJIBAKE_RE = re.compile(r"<[0-9a-f]{2}>|<U\+[0-9A-Fa-f]{4,6}>")
 
 # El tope de peso de un capítulo, y qué es de verdad.
 #
@@ -878,7 +896,7 @@ class Auditor:
         print("\n=== Codificación ==========================================")
         crudos = MOJIBAKE_RE.findall(self.doc)
         self.exige(not crudos,
-                   "ningún byte crudo <xx> en el documento",
+                   "ninguna tilde rota <xx> ni <U+XXXX> en el documento",
                    "" if not crudos else f"{len(crudos)} apariciones: "
                                          f"{sorted(set(crudos))[:8]}")
         self.exige("charset=\"utf-8\"" in self.doc.lower()
@@ -912,7 +930,25 @@ class Auditor:
         nadie toque una línea.
         """
         print("\n=== Enlaces ===============================================")
-        todos = re.findall(r'href="([^"#]+)"', self.doc)
+        # SOBRE EL CUERPO, NO SOBRE EL DOCUMENTO, y lo destapó T3.3 al
+        # reensamblar los capítulos 2 y 3 sobre una plantilla que estrena
+        # el resumen de repaso del quiz. Ese resumen construye sus enlaces
+        # con una plantilla de JavaScript:
+        #
+        #     `<a href="${r.href}">${r.etiqueta}</a>`
+        #
+        # y buscando sobre `self.doc` —que incluye el `<script>` final—
+        # `${r.href}` casaba como enlace local y se denunciaba como roto.
+        # Un falso positivo sobre material correcto, y de los caros: habría
+        # aparecido en los cuatro capítulos en cuanto alguien los
+        # reensamblara, con el auditor señalando una cadena que no es una
+        # ruta sino código.
+        #
+        # `self.cuerpo` es el documento sin `<style>`, sin `<script>` y sin
+        # comentarios, pero CON las `<template>` de los módulos, que es
+        # donde viven los enlaces que un lector puede pulsar. No se pierde
+        # cobertura: lo que sale del alcance es código, no marcado.
+        todos = re.findall(r'href="([^"#]+)"', self.cuerpo)
         locales = [h for h in todos
                    if not h.startswith(("http", "mailto", "data:", "#"))]
         rotos = [h for h in locales if not (self.carpeta / h).exists()]

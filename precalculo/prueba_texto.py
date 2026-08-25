@@ -44,6 +44,7 @@ una colección de casos bonitos:
    9. un CORTE DE CLASE del .geomapa cambiado           ← propia de este curso
   10. el `n` declarado del .geomapa deja de cuadrar con su geometría
   11. una tilde convertida en bytes crudos <c3><b3>     ← propia, T0.5
+      o en el escape <U+00F3> de R                     ← propia, T3.3
   12. una afirmación que el capítulo no puede dejar de decir
   13. una cifra de la tabla de discrepancias declaradas
 
@@ -223,6 +224,14 @@ def defectos_demo() -> list[tuple[str, str, str]]:
         ("una tilde del mapa sale como bytes crudos <c3><b3>",
          '"titulo": "Deserción escolar',
          '"titulo": "Deserci<c3><b3>n escolar'),
+        # LA OTRA FORMA, y la que no cazaba nadie hasta T3.3: la notación
+        # `<U+00F3>` con que R imprime lo que su regional no representa.
+        # Es peor que la anterior porque NO SE VE: tiene forma de etiqueta,
+        # así que el navegador se la traga y la letra desaparece sin más.
+        # Los capítulos 2 y 3 se publicaron así.
+        ("una tilde del mapa sale como escape de R <U+00F3>",
+         '"leyenda": "deserci',
+         '"leyenda": "deserci<U+00F3>'),
 
         # --- Segunda tanda: mecanismos que la primera dejó sin probar ---
         #
@@ -711,6 +720,8 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         # --- 11. La codificación --------------------------------------
         ("una tilde se convierte en bytes crudos",
          "Perímetro urbano", "Per<c3><ad>metro urbano"),
+        ("una tilde se convierte en el escape <U+00ED> de R",
+         "Perímetro urbano", "Per<U+00ED>metro urbano", True),
         # --- 12. Afirmaciones que el capítulo no puede dejar de decir --
         ("desaparece que ignorar el borde no añade ruido sino dirección",
          "no añade ruido", "no cambia gran cosa", True),
