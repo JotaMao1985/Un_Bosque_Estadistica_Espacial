@@ -60,6 +60,24 @@ HASTA DÓNDE LLEGA LA INDEPENDENCIA, DECLARADO Y NO INSINUADO
 Ejecutar con el Python de geo_env (el que tiene geopandas):
     "$(python3 -c 'import json;print(json.load(open("precalculo/versiones_py.json"))["ejecutable"])')" \\
         precalculo/audita_cap4.py
+
+LOS RÓTULOS TIENEN PRESUPUESTO: 57 CARACTERES, PREFIJO INCLUIDO.
+`Auditoria.cierto()` rellena el rótulo hasta 58 antes del detalle, así que
+uno de 58 o más queda pegado a su detalle por un solo espacio y
+`prueba_auditor_base.py` —que lee este informe con una expresión regular
+para saber qué comprobaciones se han visto fallar— no puede separarlos.
+El detalle cambia entre la pasada limpia y la rota, así que la
+comprobación deja de contarse como cubierta AUNQUE HAYA FALLADO. No rompe
+nada que se vea: corrompe el recuento de cobertura, en silencio.
+
+Este archivo llegó a tener 82 rótulos pasados, el que más de los cuatro.
+Se acortaron el 2026-08-24 sin perder nada: el matiz que sobraba bajó al
+DETALLE, que no paga presupuesto —«sin corregir parecía menos agregado»
+se lee mejor al lado del `1.02 < 1.14` que lo sostiene—, o a un comentario
+cuando era una nota para quien lee el código y no para quien lee el
+informe. Catorce quedan entre 55 y 57: al añadir o renombrar cualquier
+cosa aquí, medir. Desde este mismo día el arnés lo avisa solo
+(`avisa_rotulos_largos()` en `prueba_auditor_base.py`).
 """
 from __future__ import annotations
 
@@ -236,7 +254,7 @@ def main() -> int:
         a.igual(len(piezas), pub["piezas"], f"m1/{clave}: piezas disjuntas de la ventana")
         a.igual(agujeros, pub["agujeros"], f"m1/{clave}: agujeros de la ventana")
         a.igual(len(piezas) + agujeros, pub["componentes_frontera"],
-                f"m1/{clave}: piezas y agujeros suman las componentes de frontera")
+                f"m1/{clave}: piezas + agujeros = componentes")
         # Los puntos dentro, con el criterio de shapely. Que coincida con
         # el de spatstat NO es trivial —son dos motores decidiendo qué es
         # «dentro»— y por eso se comprueba en vez de suponerse.
@@ -260,7 +278,7 @@ def main() -> int:
     # La afirmación del módulo, comprobada como afirmación y no como cifra:
     # el numerador apenas se mueve y el denominador se cuadruplica.
     a.cierto(D["m1"]["aumento_n_pct"] < 10 and D["m1"]["cociente_area"] > 4,
-             "m1: n sube poco y el área se multiplica (la tesis del módulo)",
+             "m1: n sube poco y el área se multiplica",   # la tesis del módulo
              f"n +{D['m1']['aumento_n_pct']:.1f} %, área x{D['m1']['cociente_area']:.2f}")
 
     # -----------------------------------------------------------------
@@ -285,7 +303,7 @@ def main() -> int:
     a.igual(int(np.sum(obs[vivas] == 0)), q["vacios"], "m2: celdas vacías")
     a.igual(int(np.max(obs[vivas])), q["maximo"], "m2: la celda más poblada")
     a.igual(int(np.sum(esp[vivas] < 5)), q["celdas_esperanza_baja"],
-            "m2: celdas con esperanza < 5 (el supuesto que el módulo 5 discute)")
+            "m2: celdas con esperanza < 5")   # el supuesto que discute el módulo 5
     a.cierto(q["p_valor"] > 0, "m2: el p-valor publicado no es cero",
              f"{q['p_valor']:.3g}")
     a.cerca(math.log10(q["p_valor"]), q["p_log10"], "m2: el log10 del p-valor", 1e-6)
@@ -309,7 +327,7 @@ def main() -> int:
     a.cerca(qj["dispersion"] * qj["gl"], qj["chi2"],
             "m2: chi² = dispersión x gl en celdas de igual área", 1e-6)
     a.cierto(abs(q["dispersion"] * q["gl"] - q["chi2"]) > 1e-6,
-             "m2: y NO vale sobre la ventana urbana, cuyas celdas no son iguales",
+             "m2: y NO vale sobre la ventana urbana",   # sus celdas no son iguales
              f"{q['dispersion'] * q['gl']:.2f} contra {q['chi2']:.2f}")
 
     # -----------------------------------------------------------------
@@ -339,14 +357,14 @@ def main() -> int:
                 f"m3/{nm}: perímetro del rectángulo", 1e-9)
         a.cierto(x.min() >= v[0] and x.max() <= v[2] and
                  y.min() >= v[1] and y.max() <= v[3],
-                 f"m3/{nm}: todos los puntos caen dentro de la ventana publicada")
+                 f"m3/{nm}: todos los puntos caen en la ventana")
         ce, nn = clark_evans_ingenuo(x, y, pub["area"])
         a.cerca(float(np.mean(nn)), pub["nn_media"], f"m3/{nm}: distancia media al vecino")
         a.cerca(float(np.std(nn, ddof=1)), pub["nn_sd"], f"m3/{nm}: desviación de esa distancia")
         a.cerca(float(np.min(nn)), pub["nn_min"], f"m3/{nm}: la menor")
         a.cerca(float(np.max(nn)), pub["nn_max"], f"m3/{nm}: la mayor")
         a.cerca(0.5 / math.sqrt(len(x) / pub["area"]), pub["nn_esperada"],
-                f"m3/{nm}: la distancia que daría el azar, 1/(2 raíz de lambda)")
+                f"m3/{nm}: la del azar, 1/(2 raíz de lambda)")
         a.cerca(ce, pub["clark_evans"], f"m3/{nm}: R de Clark-Evans ingenuo")
         # Donnelly, escrito aquí con su fórmula: es la tercera vez que se
         # escribe en el proyecto (R, el capítulo 1 y esto) y las tres tienen
@@ -413,7 +431,7 @@ def main() -> int:
     # comparan los CONTEOS celda a celda, que es lo que la rebaraja
     # promete conservar. Dos vectores distintos pueden dar chi2 parecidos.
     a.cierto(np.array_equal(c1, c2),
-             "m5: el rebarajado conserva EXACTAMENTE el conteo de cada celda",
+             "m5: el rebarajado conserva cada conteo",
              f"difieren en {int(np.sum(c1 != c2))} celdas")
 
     # LOS 25 CONTEOS PUBLICADOS, uno a uno contra este recuento (T3.3).
@@ -442,7 +460,7 @@ def main() -> int:
     rec = np.array([[int(c1[i, ny5 - 1 - k]) for i in range(cel["nx"])]
                     for k in range(ny5)])
     a.cierto(np.array_equal(pub1, rec),
-             "m5: los 25 conteos publicados son los del recuento independiente",
+             "m5: los 25 conteos son los del recuento propio",
              f"difieren en {int(np.sum(pub1 != rec))} celdas")
     a.cierto(np.array_equal(pub2, rec),
              "m5: y los del rebarajado, los mismos",
@@ -453,7 +471,7 @@ def main() -> int:
     a.cerca(chi5, m5["original"]["chi2"], "m5: chi² del original, recalculado", 1e-6)
     a.cerca(chi5, m5["rebarajado"]["chi2"], "m5: y el del rebarajado es el mismo", 1e-6)
     a.igual(m5["original"]["chi2"], m5["rebarajado"]["chi2"],
-            "m5: los dos chi² publicados coinciden hasta el último decimal", 1e-9)
+            "m5: los dos chi² coinciden al último decimal", 1e-9)
     # Y lo que sí los separa.
     arb1 = cKDTree(np.c_[x1, y1]); arb2 = cKDTree(np.c_[x2, y2])
     nn1 = arb1.query(np.c_[x1, y1], k=2)[0][:, 1]
@@ -479,9 +497,9 @@ def main() -> int:
                  f"m6/{clave}: los grados de libertad son celdas - 1")
         a.cierto(all((b["p_valor"][i] < 0.05) == (b["rechaza"][i] == 1)
                      for i in range(n_filas)),
-                 f"m6/{clave}: la bandera de rechazo corresponde a su p-valor")
+                 f"m6/{clave}: la bandera de rechazo cuadra con su p")
         a.cierto(all(b["celdas"][i] <= m6["nxs"][i] ** 2 for i in range(n_filas)),
-                 f"m6/{clave}: nunca hay más celdas vivas que celdas de la rejilla")
+                 f"m6/{clave}: no hay más celdas vivas que de rejilla")
     # La afirmación del módulo: al afinar la celda se rompe el supuesto.
     b = m6["redwood"]
     primera = next((m6["nxs"][i] for i in range(len(b["nx"]))
@@ -513,7 +531,7 @@ def main() -> int:
     a.cerca(float(np.mean(nn_u == 0)), dup["g_empirica_en_cero"],
             "m7: G empírica en r=0 = fracción de puntos coincidentes", 1e-6)
     a.igual(dup["g_km_en_cero"], 0.0,
-            "m7: y el estimador de Kaplan-Meier la pone a cero por convenio")
+            "m7: y Kaplan-Meier la pone a cero por convenio")
     a.cerca(100 * float(np.mean(nn_u == 0)), m7["bogota"]["coincidentes_pct"],
             "m7: el porcentaje de coincidentes", 1e-6)
     a.salta("los estimadores km de G y F",
@@ -525,15 +543,16 @@ def main() -> int:
         a.igual(len(g["r_f"]), len(g["f_obs"]), f"m7/{nm}: y la F también")
         a.cierto(all(g["g_obs"][i] <= g["g_obs"][i + 1] + 1e-9
                      for i in range(len(g["g_obs"]) - 1)),
-                 f"m7/{nm}: G no decrece (es una función de distribución)")
+                 f"m7/{nm}: G no decrece, es una distribución")
         a.cierto(g["g_obs"][-1] <= 1.0 + 1e-9, f"m7/{nm}: G no pasa de 1")
-        a.cierto(0 <= g["g_mediana"], f"m7/{nm}: la mediana de la distancia al vecino es positiva")
+        a.cierto(0 <= g["g_mediana"], f"m7/{nm}: la mediana al vecino es positiva")
 
     # -----------------------------------------------------------------
     a.titulo("8 · K de Ripley, reimplementada")
     # -----------------------------------------------------------------
     a.cierto(D["meta"]["correccion_envolventes"] == "translate",
-             "la corrección declarada en el dato es la de traslación (decisión 1)")
+             "la corrección declarada es la de traslación",   # decisión 1
+             D["meta"]["correccion_envolventes"])
     for nm in CON_CURVA:
         d = reg[reg.patron == nm]
         pub = D["m8"][nm]
@@ -551,7 +570,7 @@ def main() -> int:
         err = float(np.max(np.abs(K[:n_comp] - np.array(pub["k_obs"][:n_comp])) /
                            np.maximum(np.abs(pub["k_obs"][:n_comp]), 1e-12)))
         a.cierto(err < TOL_CURVA,
-                 f"m8/{nm}: K con corrección de traslación, reimplementada",
+                 f"m8/{nm}: K de traslación, reimplementada",
                  f"error relativo máximo {err:.2e} en {n_comp} nodos")
         # K teórica ES pi r², exacto.
         a.cierto(float(np.max(np.abs(np.array(pub["k_teo"]) - math.pi * r ** 2))) < 1e-5,
@@ -564,7 +583,7 @@ def main() -> int:
                  f"m8/{nm}: L - r corresponde a L y a r")
         i = int(np.argmax(np.abs(np.array(pub["l_menos_r"]))))
         a.cerca(abs(pub["l_menos_r"][i]), pub["max_desvio"],
-                f"m8/{nm}: el máximo desvío publicado es el de su curva", 1e-6)
+                f"m8/{nm}: el máximo desvío es el de su curva", 1e-6)
         a.cerca(r[i], pub["r_max_desvio"], f"m8/{nm}: y la r en que ocurre", 1e-6)
 
     # -----------------------------------------------------------------
@@ -577,12 +596,12 @@ def main() -> int:
         g = D["m9"][nm]
         a.igual(len(g["r"]), len(g["g_obs"]), f"m9/{nm}: la curva tiene una r por valor")
         a.cierto(all(abs(v - 1.0) < 1e-12 for v in g["g_teo"]),
-                 f"m9/{nm}: g teórica vale 1 en todo r (es la definición de CSR)")
+                 f"m9/{nm}: g teórica vale 1 en todo r (CSR)")
         a.cerca(max(g["g_obs"][1:]), g["g_max"],
                 f"m9/{nm}: la g máxima publicada es la de su curva", 1e-6)
         a.cierto(g["correccion"] == "translate", f"m9/{nm}: declara la corrección usada")
     a.cierto(D["m9"]["redwood"]["g_max"] > D["m9"]["japanesepines"]["g_max"],
-             "m9: el patrón agregado tiene la g más alta que el aleatorio")
+             "m9: el agregado tiene la g más alta")
 
     # -----------------------------------------------------------------
     a.titulo("10 · Efectos de borde")
@@ -598,8 +617,8 @@ def main() -> int:
     err = float(np.nanmax(np.abs(K_un[1:] - np.array(corr["none"]["k"][1:])) /
                           np.maximum(np.abs(corr["none"]["k"][1:]), 1e-12)))
     a.cierto(err < TOL_CURVA,
-             "m10: la K SIN corregir, recontada con un árbol k-d sobre 2,2 millones de parejas",
-             f"error relativo máximo {err:.2e}")
+             "m10: la K SIN corregir, recontada con un árbol k-d",
+             f"error relativo máximo {err:.2e} sobre 2,2 millones de parejas")
     # La dirección del sesgo: sin corregir SIEMPRE por debajo. Es la
     # afirmación del módulo y se comprueba nodo a nodo, no de media.
     kn = np.array(corr["none"]["k"]); kt = np.array(corr["translate"]["k"])
@@ -610,23 +629,23 @@ def main() -> int:
     # la desigualdad se invierte por un motivo que es material del
     # capítulo, no un defecto.
     a.cierto(bool(np.all(kn[1:] <= kt[1:] + 1e-9)),
-             "m10: para r > 0, K sin corregir queda por debajo de la corregida en TODOS los nodos",
+             "m10: para r > 0, K sin corregir < corregida",   # en TODOS los nodos
              f"nodos incumplidos: {int(np.sum(kn[1:] > kt[1:] + 1e-9))}")
     a.igual(kn[0], m10["k_cero_sin_corregir"],
             "m10: la K sin corregir en r = 0 es la publicada")
     a.igual(kt[0], m10["k_cero_traslacion"], "m10: y la corregida vale cero ahí")
     a.cierto(m10["k_cero_sin_corregir"] > 0,
-             "m10: el átomo de los duplicados asoma en K, igual que en G",
+             "m10: el átomo de los duplicados asoma en K",   # igual que en G
              f"K(0) sin corregir = {m10['k_cero_sin_corregir']:g}")
     # Y la identidad que lo cierra: ese K(0) son exactamente las parejas
     # coincidentes, con la normalización del estimador.
     n_u = len(XU)
     pares_cero = int(np.sum(cKDTree(XU).count_neighbors(cKDTree(XU), 0.0)) - n_u)
     a.cerca(pares_cero * A_URB / (n_u * (n_u - 1)), m10["k_cero_sin_corregir"],
-            "m10: y ese valor son las parejas a distancia cero, recontadas", TOL_CURVA)
+            "m10: y son las parejas a distancia cero", TOL_CURVA)
     i = int(np.argmax((kt - kn) / np.maximum(kt, 1e-9)))
     a.cerca(100 * (kt[i] - kn[i]) / kt[i], m10["sesgo_max_pct"],
-            "m10: el sesgo máximo publicado es el de las curvas publicadas", 1e-4)
+            "m10: el sesgo máximo es el de las curvas", 1e-4)
     a.cerca(r10_[i], m10["r_sesgo_max"], "m10: y la r en que ocurre", 1e-4)
     a.igual(m10["ventana"]["piezas"], D["m1"]["urbana"]["piezas"],
             "m10: la ventana que describe es la misma del módulo 1")
@@ -644,7 +663,7 @@ def main() -> int:
     a.cierto(t_iso > t_tr, "m10: la isotrópica es más cara que la de traslación",
              f"{t_iso:.1f} s contra {t_tr:.2f} s")
     a.cerca(t_iso / t_tr, coste["veces_isotropica_sobre_traslacion"],
-            "m10: cuántas veces más cara, contra los tiempos publicados", 1e-4)
+            "m10: cuántas veces más cara, con los tiempos", 1e-4)
     a.cerca(t_iso * D["meta"]["nsim_envolventes"] / 3600,
             coste["horas_envolvente_isotropica"],
             "m10: las horas que costaría una envolvente isotrópica", 1e-4)
@@ -652,7 +671,7 @@ def main() -> int:
             coste["minutos_envolvente_traslacion"],
             "m10: los minutos que cuesta con traslación", 1e-4)
     a.cierto(coste["veces_isotropica_sobre_traslacion"] > 50,
-             "m10: la diferencia de coste es de dos órdenes de magnitud (la decisión 1)",
+             "m10: el coste difiere en dos órdenes",   # la decisión 1
              f"x{coste['veces_isotropica_sobre_traslacion']:.0f}")
 
     # -----------------------------------------------------------------
@@ -665,32 +684,32 @@ def main() -> int:
     a.cerca(1 / (m11["nsim"] + 1), m11["p_minimo"],
             "m11: el p mínimo alcanzable es 1/(nsim+1)", 1e-9)
     a.igual(m11["nsim"], D["meta"]["nsim_envolventes"],
-            "m11: el nsim del módulo es el declarado en la metainformación")
+            "m11: el nsim del módulo es el de la meta")
     for nm in ("bogota", "redwood", "japanesepines"):
         e = m11[nm]
         lo, hi, obs = np.array(e["lo"]), np.array(e["hi"]), np.array(e["obs"])
-        a.igual(len(lo), len(hi), f"m11/{nm}: la banda tiene tantos suelos como techos")
+        a.igual(len(lo), len(hi), f"m11/{nm}: tantos suelos como techos")
         a.cierto(bool(np.all(lo <= hi + 1e-12)),
-                 f"m11/{nm}: el suelo de la banda nunca supera al techo")
+                 f"m11/{nm}: el suelo nunca supera al techo")
         sale = bool(np.any((obs < lo - 1e-9) | (obs > hi + 1e-9)))
         a.igual(int(sale), e["sale"],
-                f"m11/{nm}: la bandera «se sale» corresponde a la curva y a la banda")
+                f"m11/{nm}: «se sale» cuadra con curva y banda")
         a.cierto(e["correccion"] == "translate", f"m11/{nm}: declara su corrección")
         a.igual(e["nsim"], m11["nsim"], f"m11/{nm}: declara su nsim")
     # LA CIFRA DEL MÓDULO: la tasa de salida bajo CSR no se parece al 5 %.
     for clave in ("tasa_salida_bogota", "tasa_salida_redwood"):
         ts = m11[clave]
         a.cerca(100 * ts["fuera"] / ts["nsim"], ts["pct"],
-                f"m11: {clave} es el porcentaje de sus propios conteos", 1e-6)
-        a.cierto(ts["fuera"] <= ts["nsim"], f"m11: {clave} no cuenta más salidas que simulaciones")
+                f"m11: {clave} es el % de sus conteos", 1e-6)
+        a.cierto(ts["fuera"] <= ts["nsim"], f"m11: {clave} no cuenta más salidas que nsim")
     a.cierto(m11["tasa_salida_bogota"]["pct"] > 20,
-             "m11: bajo CSR, la banda puntual al 95 % la cruza muchísimo más del 5 %",
+             "m11: bajo CSR la banda puntual se cruza mucho más",
              f"{m11['tasa_salida_bogota']['pct']:.1f} %")
     # La escala de nsim, y las dos afirmaciones opuestas del módulo.
     esc = m11["escala_nsim"]
     for z in esc:
         a.cerca(2 / (z["nsim"] + 1), z["nivel_defecto"],
-                f"m11/nsim={z['nsim']}: el nivel de la banda por defecto es 2/(nsim+1)", 1e-9)
+                f"m11/nsim={z['nsim']}: el nivel por defecto es 2/(nsim+1)", 1e-9)
         a.cerca((z["nsim"] + 1) * 0.05 / 2, z["nrank_para_5pct"],
                 f"m11/nsim={z['nsim']}: el nrank que daría el 5 %", 1e-9)
         a.cerca(2 * z["nrank_usado"] / (z["nsim"] + 1), z["nivel_real"],
@@ -698,25 +717,25 @@ def main() -> int:
         a.cerca(1 / (z["nsim"] + 1), z["p_minimo"],
                 f"m11/nsim={z['nsim']}: su p mínimo", 1e-9)
         a.igual(int(abs(z["nivel_real"] - 0.05) < 0.005), z["alcanza_5pct"],
-                f"m11/nsim={z['nsim']}: la bandera de alcanzable corresponde a su nivel")
+                f"m11/nsim={z['nsim']}: la bandera de alcanzable cuadra")
     anchos_def = [z["ancho_defecto"] for z in esc]
     a.cierto(all(anchos_def[i] < anchos_def[i + 1] for i in range(len(anchos_def) - 1)),
-             "m11: a nrank = 1 la banda SE ENSANCHA con nsim (lo contrario de lo que se supone)",
+             "m11: a nrank = 1 la banda SE ENSANCHA con nsim",   # lo contrario de lo que se supone
              str([round(v, 5) for v in anchos_def]))
     alc = [z for z in esc if z["alcanza_5pct"] == 1]
     a.cierto(len(alc) >= 2, "m11: al menos dos nsim del barrido alcanzan el 5 %")
     anchos5 = [z["ancho_5pct"] for z in alc]
     a.cierto(all(anchos5[i] >= anchos5[i + 1] for i in range(len(anchos5) - 1)),
-             "m11: a nivel FIJO la banda se estrecha, que es la dirección contraria",
+             "m11: a nivel FIJO la banda se estrecha",   # la dirección contraria
              str([round(v, 5) for v in anchos5]))
     a.cierto(esc[0]["alcanza_5pct"] == 0,
-             "m11: con 19 simulaciones la banda al 5 % no existe (nrank tendría que ser 0,5)",
+             "m11: con 19 simulaciones no hay banda al 5 %",   # nrank tendría que ser 0,5
              f"nrank necesario {esc[0]['nrank_para_5pct']}")
     tg = m11["test_global"]
     for k, v in tg.items():
         a.cierto(0 < v <= 1, f"m11: el p-valor de {k} está en (0, 1]", str(v))
         a.cierto(v >= m11["p_minimo"] - 1e-12,
-                 f"m11: {k} no baja del p mínimo que permite nsim", str(v))
+                 f"m11: {k} no baja del p mínimo de nsim", str(v))
 
     # -----------------------------------------------------------------
     a.titulo("12 · Los cinco ejercicios")
@@ -776,22 +795,25 @@ def main() -> int:
                  f"E3/{clave}: la bandera de rechazo corresponde al p-valor")
     a.cierto(s3["dc"]["pct_vacias"][s3["nxs"].index(10)] >
              s3["urbana"]["pct_vacias"][s3["nxs"].index(10)],
-             "E3: la ventana del D.C. tiene más celdas vacías (la tesis del ejercicio)")
+             "E3: la ventana del D.C. tiene más celdas vacías")
     # E4: los p-valores y su recorrido.
     s4 = S["e4"]["solucion"]
     a.cerca(100 * s4["nodos_fuera"] / s4["nodos"], s4["pct_fuera"],
             "E4: el porcentaje de nodos fuera de la banda", 1e-6)
     ps = [t["dclf_p"] for t in s4["tramos"]] + [s4["dclf_L"]]
     a.cierto(max(ps) / min(ps) > 10,
-             "E4: los p-valores del mismo patrón se separan en más de un orden de magnitud",
+             "E4: los p-valores se separan más de un orden",
              f"de {min(ps)} a {max(ps)}")
     a.cierto(s4["dclf_L"] < 0.05 <= max(t["dclf_p"] for t in s4["tramos"]),
-             "E4: sobre L rechaza y sobre la K cruda en todo el rango no (el giro del ejercicio)")
+             "E4: sobre L rechaza y sobre la K cruda no",
+             "en todo el rango: es el giro del ejercicio")
     # E5: el sesgo y la corrección que no existe.
     s5 = S["e5"]["solucion"]
     a.cierto(s5["sesgo_max_pct"] > 0, "E5: el sesgo sin corregir es positivo")
     a.cierto(s5["clark_evans_cdf"] < s5["clark_evans_naive"],
-             "E5: corregir el borde baja R, o sea que sin corregir parecía menos agregado")
+             "E5: corregir el borde baja R",
+             f"{s5['clark_evans_cdf']:.5f} < {s5['clark_evans_naive']:.5f}: "
+             f"sin corregir parecía menos agregado")
     a.igual(s5["donnelly_disponible"], 0,
             "E5: la corrección de Donnelly NO existe para esta ventana")
     a.igual(s5["ventana_rectangular"], 0, "E5: porque la ventana no es un rectángulo")
@@ -810,26 +832,26 @@ def main() -> int:
         if nombre in M:
             audita_geomapa(a, M[nombre], nombre, presupuesto_kb=150.0)
             a.cierto(M[nombre]["modo"] == "puntos",
-                     f"mapas/{nombre}: es del modo `puntos`, que es el del capítulo")
+                     f"mapas/{nombre}: es del modo `puntos`", "el del capítulo")
     a.igual(M["patron_urbano"]["n"], D["m1"]["urbana"]["n"],
-            "mapas: el mapa urbano pinta tantas sedes como el módulo 1 cuenta")
+            "mapas: el urbano pinta las sedes del módulo 1")
     a.igual(M["patron_dc"]["n"], D["m1"]["dc"]["n"],
             "mapas: y el del D.C., las suyas")
     a.igual(M["redwood"]["n"], D["m3"]["redwood"]["n"], "mapas: redwood, sus plántulas")
     a.igual(M["ceguera_original"]["n"], M["ceguera_rebarajado"]["n"],
-            "mapas: los dos patrones del módulo 5 tienen el mismo número de puntos")
+            "mapas: los dos patrones del módulo 5, mismo n")
     a.cierto(len(M["patron_urbano"].get("lineas", [])) > 1,
-             "mapas: el contorno urbano viaja como varias polilíneas, no como una",
+             "mapas: el contorno urbano son varias polilíneas",
              f"{len(M['patron_urbano'].get('lineas', []))} partes")
     # El contorno DIBUJADO es más simple que el ANALIZADO, a propósito, y
     # el capítulo lo dice. Aquí se comprueba que de verdad lo sea.
     vert_dibujados = sum(len(l) // 2 for l in M["patron_urbano"].get("lineas", []))
     a.cierto(vert_dibujados < D["m1"]["urbana"]["vertices"],
-             "mapas: el contorno que se dibuja está simplificado frente al que se analiza",
+             "mapas: el contorno dibujado va simplificado",
              f"{vert_dibujados} contra {D['m1']['urbana']['vertices']}")
     kb = p_mapas.stat().st_size / 1024
-    a.cierto(kb <= 150, "mapas: el archivo cabe en el presupuesto declarado de 150 KB",
-             f"{kb:.1f} KB")
+    a.cierto(kb <= 150, "mapas: el archivo cabe en su presupuesto",
+             f"{kb:.1f} KB de 150")
 
     # -----------------------------------------------------------------
     a.titulo("14 · Formato")
