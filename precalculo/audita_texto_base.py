@@ -786,14 +786,34 @@ class Auditor:
         ejercicios = [v for k, v in obj.items()
                       if k.startswith("e") and isinstance(v, dict) and "pasos" in v]
         # Las filas publicadas: paso -> texto de la celda.
-        # La celda NO puede contener un `</td>`, y no es un detalle: una
+        #
+        # LA CELDA no puede contener un `</td>`, y no es un detalle: una
         # tabla de varias columnas —como la de `st_set_crs` del capítulo 2,
         # con «vértices movidos» y «máximo desplazamiento» en la misma
         # fila— dejaría que un `.*?` perezoso emparejara el encabezado con
         # el `<td>` de la SEGUNDA columna. Así esas filas no casan, que es
         # lo correcto: no son pasos de solución.
+        #
+        # Y LA CLAVE tampoco puede contener un `</th>`, que es la mitad que
+        # faltaba y encontró T3.3. El `(.*?)` del encabezado no estaba
+        # acotado a su propia fila: con `re.S`, ante una tabla de varias
+        # columnas el motor no falla ahí, sino que **sigue tragando** —
+        # párrafos, simuladores, bloques de código enteros— hasta dar con
+        # el primer `</th><td>…</td></tr>` de una sola columna que haya más
+        # abajo en el documento. Ese, que es una fila de solución legítima,
+        # quedaba absorbido dentro de la clave y desaparecía del índice.
+        #
+        # Se cobró UNA fila en cada capítulo publicado: «Muertes y bombas
+        # leídas» en el 1, tres en el 2, «Cuantiles vs. Head/tails» en el 3
+        # y «Sedes en el perímetro urbano» en el 4. En los tres primeros el
+        # paso perdido no era numérico y el auditor no tenía nada que
+        # contrastar, así que informó verde; en el cuarto sí lo era y por
+        # eso saltó. La forma de fallo es la peor: el recuento «N de N» se
+        # leía completo porque el denominador contaba pasos del JSON, no
+        # filas del HTML.
         filas = dict(re.findall(
-            r'<tr><th scope="row">(.*?)</th><td>((?:(?!</td>).)*)</td></tr>',
+            r'<tr><th scope="row">((?:(?!</th>).)*)</th>'
+            r'<td>((?:(?!</td>).)*)</td></tr>',
             self.doc, re.S))
 
         def leer(txt):

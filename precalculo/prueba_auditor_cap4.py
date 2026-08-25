@@ -232,6 +232,25 @@ def defectos():
         "datos", lambda d: d["m5"].__setitem__("nn_rebarajado", 0.0717171717))
     obj("6 · rebarajar deja de separar a los vecinos",
         "datos", lambda d: d["m5"].__setitem__("nn_cociente", 1.0171717171))
+    # LOS 25 CONTEOS QUE EL CAPÍTULO SACA A LA TABLA DE RESPALDO (T3.3).
+    # Sin estas cuatro, las comprobaciones que los contrastan nunca se
+    # habrían visto fallar, que es indistinguible desde fuera de ser
+    # incapaces de fallar.
+    obj("6 · un conteo publicado del original deja de ser el del recuento",
+        "datos", lambda d: d["m5"]["celdas"]["original"][2].__setitem__(0, 7))
+    obj("6 · un conteo publicado del rebarajado deja de ser el mismo",
+        "datos", lambda d: d["m5"]["celdas"]["rebarajado"][0].__setitem__(4, 3))
+    # LA ORIENTACIÓN, que es donde esto se rompe si se rompe: la tabla
+    # publica las filas de arriba abajo y el recuento las indexa hacia
+    # arriba. Invertirlas deja las 25 cifras intactas —suman lo mismo, son
+    # las mismas— y sin embargo la tabla diría otra cosa que el mapa. Una
+    # comparación escrita sin darle la vuelta pasaría esta inyección.
+    obj("6 · las filas de la tabla del módulo 5 salen del revés",
+        "datos", lambda d: d["m5"]["celdas"].__setitem__(
+            "original", list(reversed(d["m5"]["celdas"]["original"])))),
+    obj("6 · los 25 conteos dejan de sumar los puntos del patrón",
+        "datos", lambda d: (d["m5"]["celdas"]["original"][1].__setitem__(3, 8),
+                            d["m5"]["celdas"]["rebarajado"][1].__setitem__(3, 8)))
 
     # --- 7. Curvas alteradas en un solo nodo --------------------------
     obj("7 · la K de cells cambia en un nodo interior",

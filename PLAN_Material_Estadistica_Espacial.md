@@ -1,14 +1,21 @@
 # Plan de implementación: Material de estudio — Estadística Espacial 2026-II
 
-**Estado:** 🟡 **T3.1 + T3.1b HECHAS el 2026-08-22: EL PRECÁLCULO DEL CAPÍTULO 4 ESTÁ EN PIE Y
-AUDITADO Y ENSAMBLADO (T3.2 el 2026-08-23).** 28 anclas, reproducible byte a byte, cinco
-ejercicios calculados, una librería nueva
-(`puntual.R`) y una auditoría independiente de **420 comprobaciones, 0 fallos**, con arnés de
-**96 inyecciones, 96 cazadas**. El riesgo que el plan declaraba para este capítulo estaba **mal
-atribuido**: lo caro no es el número de puntos, es la corrección isotrópica contra la ventana
-real —555 veces la de traslación—. Ver **A.17**, **A.18**, **A.19** y las tres decisiones de la
-Fase 3. **El capítulo 4 está en pie: 544 KB, 12 módulos, 10 simuladores, 7 mapas.**
-Siguiente: **T3.3** (el auditor de prosa y la verificación en el navegador).
+**Estado:** 🟢 **EL CAPÍTULO 4 ESTÁ CERRADO (T3.1 → T3.3, del 2026-08-22 al 2026-08-24).**
+`Htmls_Espacial/capitulo-4-patrones-puntuales.html`, **547 KB**: 12 módulos, 10 simuladores, 7 mapas,
+12 preguntas y 5 ejercicios —la desviación declarada, por las dos semanas—, **30 anclas** que paran
+el precálculo, reproducible byte a byte, una librería nueva (`puntual.R`) y **11 pares de bloques
+R/Python con 81 de 81 cifras verificadas ejecutando el código**. Auditorías: `audita_cap4.py`
+**425/0 (7 saltadas declaradas)** con arnés **100/100**; `audita_texto_cap4.py` **174/0** con arnés
+**29/29**, y el arnés de prosa entero en **139/139**. Verificado en el navegador: consola limpia en
+los doce módulos, 17 lienzos con tinta y con `aria-label`, 0 gráficos huérfanos, sin desbordamiento
+a 1 280, 375 ni **318 px**.
+· **El riesgo que el plan declaraba para este capítulo estaba mal atribuido**: lo caro no es el
+número de puntos, es la corrección isotrópica contra la ventana real —555 veces la de traslación—.
+Ver **A.17**, **A.18** y las tres decisiones de la Fase 3.
+· **Tres defectos más en el cierre, y uno vivía en el núcleo compartido desde T0.5**: la clave del
+`<th>` de `soluciones()` se comía **una fila de solución en cada uno de los cuatro capítulos
+publicados**, con el recuento «N de N» leyéndose completo. Ver **A.19** y **A.20**.
+Siguiente: **T3.4–T3.6** (capítulo 5), que cierra el Checkpoint 3.
 ✅ **T2.4–T2.6 (2026-08-05)** — el capítulo 3 en pie, y con él cerrado el Corte I (semanas 1–4).
 ✅ **T2.4 + T2.4b + T2.5 + T2.6 (2026-08-05)** — **el capítulo 3 está precalculado, ensamblado,
 auditado y verificado en el navegador.** `Htmls_Espacial/capitulo-3-cartografia-maup.html`,
@@ -985,38 +992,47 @@ código de verdad.
   `cuenta_sitio.py` en verde con los cinco archivos enlazados, consola limpia en los doce módulos y
   los siete mapas con tinta. El precálculo sigue reproducible byte a byte y el auditor, en 420/0.
 
-**T3.3 — Verificación y cierre del capítulo 4** · *Alcance: M* · *Dep.: T3.2* · ⬜ **PENDIENTE**
-
-Los cuatro trabajos que quedan, con sus puntos de enganche ya localizados:
-
-1. **`precalculo/audita_texto_cap4.py`** — el auditor de prosa. El molde es
-   `audita_texto_cap3.py` (189 líneas): toda la maquinaria vive en `audita_texto_base.py` y el
-   archivo del capítulo solo declara QUÉ comprobar. Tiene que exigir que **toda cifra de la prosa**
-   esté en `cap4_datos.json` o en `cap4_soluciones.json`, que el capítulo cubra los doce módulos que
-   el §6 le asigna, que cite sus fuentes, la accesibilidad del marcado y de los `.geomapa`, las
-   tildes y los enlaces relativos. **El presupuesto de geometría de este capítulo es 150 KB**
-   (declarado en T3.1: 2 107 + 2 208 puntos son el DATO, no geometría de fondo simplificable), y el
-   archivo real usa 60,2 KB.
-2. **Su arnés, dentro de `prueba_texto.py`** — no es un archivo nuevo. Hay que añadir la entrada
-   `"cap4": ("audita_texto_cap4.py", "CAP4_HTML", …)` al registro de la línea ~99, escribir
-   `defectos_cap4()` siguiendo `defectos_cap3()` (línea ~522) y añadirla al diccionario de la línea
-   ~604.
-3. **El recorrido con la consola instrumentada**, los doce módulos, **forzando `chart.draw()`**.
-   Es la trampa de A.13 y en T3.2 volvió a aparecer con otra cara: **con el panel del navegador
-   oculto, los lienzos de Chart.js quedan a ancho cero** —los `.geomapa` no, porque
-   `iniciarGeomapas()` les fija el tamaño— y un control ingenuo daría los diez simuladores por
-   vacíos. Ya se comprobó con el panel activo que traen sus datos y pintan al forzar
-   `resize/update/draw`; falta el recorrido completo. Sin desbordamiento horizontal a **1 280, 375
-   ni 318 px**.
-4. **La lectura de ritmo del §9.1** sobre los doce módulos, y `audita_todo.sh` entero, que recoge
-   solo el capítulo 4 automáticamente (su bucle busca `audita_capN.py` y `prueba_auditor_capN.py`)
-   pero necesita que el auditor de prosa exista para incluirlo.
+**T3.3 — Verificación y cierre del capítulo 4** · *Alcance: M* · *Dep.: T3.2* · ✅ **HECHA (2026-08-24)**
+`precalculo/audita_texto_cap4.py` —**174 comprobaciones, 0 fallos**— y su arnés dentro de
+`prueba_texto.py`, **29 inyecciones, 29 cazadas**, con el arnés entero en **139/139** sobre los cinco
+sujetos. **El capítulo 4 está cerrado: 547 KB.**
+- **Tres defectos reales, y ninguno lo veía una herramienta que ya daba verde.** Ver **A.20**.
+  1. **En el núcleo compartido, desde T0.5:** la clave del `<th>` de `soluciones()` no estaba acotada
+     a su propia fila, así que ante una tabla de varias columnas seguía tragando documento hasta la
+     siguiente fila de una sola columna —y se la comía—. **Una fila de solución perdida en cada uno
+     de los cuatro capítulos publicados**, con el recuento «N de N» leyéndose completo porque el
+     denominador contaba pasos del JSON y no filas del HTML.
+  2. **Siete mapas de puntos y ninguna tabla de respaldo.** El módulo 5 afirma que la rebaraja
+     conserva el conteo de cada celda y pide mirarlo; quien no ve los dos lienzos no tenía dónde.
+     Los 25 conteos pasan a ser dato publicado: **28 → 30 anclas**, `audita_cap4.py` **420 → 425**,
+     `prueba_auditor_cap4.py` **96 → 100**, y la inyección que importa es **la de la orientación**.
+  3. **El párrafo de salida del bloque intermedio del módulo 6**, que no existía. Es el defecto que
+     fundó el §9.1 y no lo caza nada: 174/0, consola limpia, ensamblador conforme. Se escribió, y
+     **se escribió mal la primera vez** —afirmaba algo cierto solo en dos de las cuatro preguntas—;
+     se cambió por lo que sí es verdad de las cuatro.
+- **Verificado en el navegador**, los doce módulos con la consola instrumentada y `chart.draw()`
+  forzado —la trampa del panel oculto—: **17 lienzos, 17 con tinta y 17 con `aria-label`**, siete
+  `.geomapa`, los diez simuladores respondiendo a sus controles, quiz de los cuatro tipos con el
+  contador fuera del resumen, cinco ejercicios que abren su solución, **0 gráficos huérfanos tras
+  seis ciclos** y **sin desbordamiento a 1 280, 375 ni 318 px**.
+- **`verifica_bloques.py`: 81 de 81 cifras** contra la salida real, ejecutando el código.
+  `sin_aritmetica.py`, `campos_vivos.py` y `cuenta_sitio.py` en verde.
+- **Pendiente declarado, no olvidado:** `audita_texto_cap3.py` **no llama a `soluciones()`**, y no es
+  una decisión sino un olvido de T2.6 que se ve desde aquí. Sus cuatro ejercicios publican tablas de
+  paso con el mismo marcado que los demás. Arreglarlo es tocar el capítulo 3, que está cerrado; entra
+  con la primera reapertura del Corte I.
 
 **T3.4–T3.6 — Capítulo 5** · *Alcance: L*
 
-### ✅ Checkpoint 3 — Módulo II cerrado
-- [ ] Semanas 6–9 cubiertas · [ ] las envolventes precalculadas y sus `nsim` documentados
-- [ ] La corrección de borde de cada envolvente, escrita en el material al lado de la envolvente
+### 🟡 Checkpoint 3 — Módulo II: la mitad hecha
+- [x] **Semanas 6–7 cubiertas** (capítulo 4, cerrado el 2026-08-24) · [ ] semanas 8–9 (capítulo 5)
+- [x] **Las envolventes precalculadas y sus `nsim` documentados** — 999 simulaciones, y el módulo 11
+  publica que el p-valor mínimo es 1/(nsim+1) y que la banda por defecto cambia de contraste al subir
+  `nsim` en vez de afinarse
+- [x] **La corrección de borde de cada envolvente, escrita al lado de la envolvente** — traslación,
+  con la tabla de coste medido y la isotrópica calculada una vez por patrón para publicar la
+  diferencia. No es un atajo silencioso: está declarado en el módulo 10
+- [ ] Lo mismo para el capítulo 5
 
 ---
 
@@ -2749,3 +2765,117 @@ comprobación mordía ahí; el capítulo 4 es el primero cuyos **siete mapas son
 Ahora se validan también `pts`, `lineas` y `puntos2`, y los cuatro auditores anteriores siguen en
 verde con la comprobación nueva: **1075/0, 449/0, 356/0 y 531/0**. Es el mismo patrón de A.10 y de
 T0.5: el defecto del núcleo sobrevive en todos los que lo usan, informando «limpio».
+
+---
+
+### A.20 · Lo que encontró el cierre del capítulo 4, y dónde vivía (2026-08-24)
+
+**T3.3 encontró TRES defectos, y ninguno de los tres lo veía una herramienta que ya daba verde.**
+Uno estaba en el núcleo compartido de los auditores de prosa y llevaba ahí desde T0.5, cobrándose una
+fila en cada capítulo publicado. Otro es un hueco de accesibilidad del capítulo 4 que su propio
+auditor destapó en la primera pasada. El tercero no lo caza ninguna comprobación automática y solo
+sale al leer el capítulo como lo lee un estudiante, que es exactamente para lo que existe el §9.1.
+
+#### 1 · La clave del `<th>` que se comía una fila de solución, en los cuatro capítulos
+
+`audita_texto_base.soluciones()` empareja cada paso publicado con su valor del JSON leyendo las filas
+del HTML con
+
+```
+<tr><th scope="row">(.*?)</th><td>((?:(?!</td>).)*)</td></tr>
+```
+
+El guardián del `<td>` se puso en T2.x por la tabla de `st_set_crs` del capítulo 2, que tiene dos
+columnas: sin él, un `.*?` perezoso emparejaba el encabezado con el `<td>` de la SEGUNDA columna.
+**La otra mitad se quedó sin poner.** El `(.*?)` de la CLAVE no estaba acotado a su propia fila, y con
+`re.S` el motor no falla ante una tabla de varias columnas: **sigue tragando** —párrafos,
+simuladores, bloques de código enteros— hasta dar con el primer `</th><td>…</td></tr>` de una sola
+columna que haya más abajo en el documento. Esa fila, que es una fila de solución legítima, quedaba
+absorbida dentro de la clave y desaparecía del índice.
+
+Medido sobre los cuatro capítulos publicados, se cobró **una fila en cada uno**: «Muertes y bombas
+leídas» en el 1, tres en el 2, «Cuantiles vs. Head/tails» en el 3 y **«Sedes en el perímetro urbano»
+en el 4**. En los tres primeros el paso perdido no era numérico, así que el auditor no tenía nada que
+contrastar y **informaba verde**; en el cuarto sí lo era y por eso saltó. **La forma de fallo es la
+peor de todas: el recuento «N de N celdas contrastadas» se leía completo**, porque el denominador
+contaba pasos del JSON y no filas del HTML. Un contador que solo sabe contar lo que encontró no puede
+avisar de lo que no encontró.
+
+Arreglado en el núcleo: la clave se acota con `((?:(?!</th>).)*)`. El capítulo 4 pasa de 33 a **34 de
+34 celdas**, y los demás siguen en verde.
+
+**Y de paso se ve un olvido de T2.6:** `audita_texto_cap3.py` **no llama a `soluciones()`**. No es una
+decisión —sus cuatro ejercicios publican tablas de paso con el mismo marcado que los capítulos 1, 2 y
+4—, es que se quedó fuera. Queda anotado aquí y no se toca: arreglarlo es tocar el capítulo 3, que
+está cerrado y verificado, y eso no cabe en T3.3.
+
+#### 2 · Siete mapas de puntos y ninguna tabla de respaldo
+
+El auditor de prosa del capítulo 4, en su primera pasada, dio **0 de 8 registros con tabla**. Los
+capítulos 1, 2 y 3 pasaban esa comprobación porque cada uno tiene al menos un coropleto, y el
+coropleto trae la suya. **El capítulo 4 es el primero cuyos siete mapas son todos de patrones
+puntuales**, y ahí la tabla de respaldo no puede ser lo obvio: una lista de 2 107 pares de metros no
+es la vía al dato de nadie.
+
+La salida NO era relajar la comprobación. El precedente estaba escrito en el capítulo 1, en el
+comentario de `TABLA_AGREGACION`: la tabla de un mapa **da lo que el lienzo dice con colores y
+rótulos y nadie más dice**. Con esa regla, seis de los siete mapas no la necesitan —lo que dicen (n,
+área, λ, la R de cada régimen) ya está en la prosa y en sus tablas—, y **el séptimo la necesita más
+que ninguno**: el módulo 5 afirma que la rebaraja conserva el conteo de cada celda «uno a uno» y
+remata con «Míralos». Quien no ve los dos lienzos no tiene dónde mirarlo, porque el χ² idéntico que
+la prosa publica es la CONSECUENCIA de esa igualdad y no la igualdad.
+
+Así que los 25 conteos pasan a ser dato publicado:
+
+- **`genera_cap4.R`** publica `m5.celdas` con las filas de arriba abajo y las columnas de izquierda a
+  derecha —como `quadratcount()` las imprime y como se ven en el mapa—, con los rótulos de intervalo
+  de `cut()` tal cual, corchete incluido, que enseñan de paso por qué lado está cerrada cada celda.
+  Dos anclas nuevas: que las 25 coincidan en los dos patrones y que sumen los puntos. **28 → 30
+  anclas.**
+- **`audita_cap4.py`** las contrasta contra su propio recuento, que ya calculaba. Hasta ahora
+  comprobaba que `c1` y `c2` coinciden ENTRE SÍ, que es otra cosa: los dos podrían coincidir y
+  ninguno ser el reparto que el JSON publica. **420 → 425 comprobaciones.**
+- **`prueba_auditor_cap4.py`** estrena cuatro inyecciones, y **la que importa es la de la
+  orientación**: invertir las filas deja las 25 cifras intactas —suman lo mismo, son las mismas— y
+  sin embargo la tabla diría otra cosa que el mapa. Una comparación escrita sin darle la vuelta la
+  pasaría. **96 → 100 inyecciones, 100 cazadas.**
+- **`ensambla_cap4.py`** cablea la tabla a los DOS mapas del módulo, con las dos cantidades en
+  columnas de la misma fila. Con una tabla por patrón habría que recordar 25 cifras de memoria para
+  comprobar la afirmación, que es pedirle al lector justo lo que la tabla existe para ahorrarle.
+
+#### 3 · El párrafo de salida que faltaba, y que no caza ninguna herramienta
+
+La lectura de ritmo del §9.1 sobre los doce módulos: la regla 1 en verde —todos abren con entre dos y
+siete párrafos de prosa antes del primer componente— y la regla 3 también —el bloque intermedio del
+módulo 6 avisa de lo que es antes de pedir nada—. **La regla 2 no.**
+
+El bloque de «cuatro trampas» del módulo 6 tenía su párrafo de entrada y **no tenía el de salida**. El
+capítulo 2, que lleva un bloque intermedio equivalente en su módulo 6, sí lo tiene: «Si alguna se te
+ha resistido… Y ahora sí, los formatos.» El del capítulo 4 terminaba en el botón de «Reiniciar» y
+dejaba caer al lector en el módulo 7 sin una palabra. Es literalmente el defecto que fundó el §9.1 —
+«el de salida es el que se olvida, y es el que se nota»— y las herramientas decían lo de siempre:
+auditor de prosa **174/0**, consola limpia, ensamblador conforme.
+
+**Y el párrafo se escribió mal la primera vez.** Copiando el del capítulo 2 decía que «el módulo que
+la contesta va nombrado en la retroalimentación», y al comprobarlo resultó cierto solo en parte: lo
+nombran las explicaciones de las preguntas 2 y 3, no las de la 1 ni la 4. Se cambió por lo que sí es
+verdad de las cuatro —**las doce opciones traen su explicación**, comprobado sobre el marcado—. Una
+afirmación de más en la prosa es del mismo tipo que una cifra sin respaldo: el auditor no la caza
+porque no es un número.
+
+#### Lo que queda verificado
+
+`audita_texto_cap4.py` **174 comprobaciones, 0 fallos**, con arnés de **29 inyecciones, 29 cazadas**
+—y el arnés entero en **139/139** sobre los cinco sujetos—. `audita_cap4.py` **425/0** con
+**100/100**. `verifica_bloques.py` **81 de 81 cifras** contra la salida real. `sin_aritmetica.py`,
+`campos_vivos.py` y `cuenta_sitio.py` en verde. Recorrido de los doce módulos con la consola
+instrumentada y `chart.draw()` forzado: **17 lienzos, 17 con tinta y 17 con `aria-label`**, siete
+`.geomapa`, diez simuladores cuyos controles mueven lo que tienen que mover, quiz de los cuatro tipos
+con su contador fuera del resumen, cinco ejercicios que abren su solución, **0 gráficos huérfanos tras
+seis ciclos**, consola sin un solo mensaje y **sin desbordamiento horizontal a 1 280, 375 ni 318 px**.
+
+**Una lectura que no es un defecto y conviene dejar escrita**, porque desde fuera se ve como uno: en
+el segundo simulador del módulo 11 los botones `nsim = 19/39/99/999` **no mueven la curva**, y es
+correcto. La curva es el barrido de los cuatro valores a la vez —esa es su gracia—; lo que cambia con
+el botón es el panel de lecturas (nivel de la banda, `nrank` para el 5 %, si el 5 % es alcanzable, p
+mínimo). Un control que se verifique mirando solo el lienzo daría un falso positivo aquí.

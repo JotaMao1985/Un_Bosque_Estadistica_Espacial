@@ -542,6 +542,38 @@ red_reb <- ppp_rebaraja(redwood, NX5, NX5, SEM_CIEGO)
 
 q_red <- cuadrantes(redwood, NX5)
 q_reb <- cuadrantes(red_reb, NX5)
+
+# LOS 25 CONTEOS, CELDA A CELDA.
+#
+# El módulo afirma que la rebaraja conserva el conteo de cada celda «uno a
+# uno» y pide mirarlo en los dos mapas. Quien no ve los mapas no tiene
+# dónde mirarlo: el chi2 idéntico es la CONSECUENCIA de esa igualdad, no
+# la igualdad misma —dos repartos distintos pueden dar chi2 parecidos, y
+# por eso el auditor compara los conteos y no el estadístico—. Se publican
+# para que la tabla de respaldo del `.geomapa` pueda decirlo, que es la
+# vía al dato de quien no ve el lienzo (T3.3).
+#
+# ORDEN DECLARADO: filas de ARRIBA ABAJO y columnas de izquierda a
+# derecha, que es como `quadratcount()` las imprime y como se ven en el
+# mapa. Los rótulos son los intervalos de `cut()` tal cual, con su
+# corchete: enseñan de paso por qué lado está cerrada cada celda, que es
+# el convenio que el auditor reproduce a mano.
+qc_red <- quadratcount(redwood, nx = NX5, ny = NX5)
+qc_reb <- quadratcount(red_reb, nx = NX5, ny = NX5)
+por_filas <- function(qc) {
+  m <- as.matrix(qc)
+  lapply(seq_len(nrow(m)), function(i) as.integer(m[i, ]))
+}
+celdas_m5 <- list(
+  nx = NX5, ny = NX5,
+  filas_y = dimnames(qc_red)$y, columnas_x = dimnames(qc_red)$x,
+  original = por_filas(qc_red), rebarajado = por_filas(qc_reb))
+# El ancla sobre lo que la tabla va a publicar: no basta con que el chi2
+# coincida, tienen que coincidir las 25 celdas.
+ancla(sum(unlist(celdas_m5$original) != unlist(celdas_m5$rebarajado)), 0,
+      "las 25 celdas del modulo 5 tienen el mismo conteo en los dos patrones")
+ancla(sum(unlist(celdas_m5$original)), npoints(redwood),
+      "los 25 conteos del modulo 5 suman los puntos del patron")
 # La comprobación de que los conteos se conservan vive DENTRO de
 # `ppp_rebaraja()`: es de la función, no de quien la llama. Aquí queda el
 # ancla sobre lo que el módulo publica, que es el chi2 idéntico.
@@ -559,6 +591,7 @@ D$m5 <- list(
   nn_cociente = r10(mean(nndist(red_reb)) / mean(nndist(redwood))),
   ce_original = r10(clarkevans(redwood)[["naive"]]),
   ce_rebarajado = r10(clarkevans(red_reb)[["naive"]]),
+  celdas = celdas_m5,
   # Las coordenadas de los dos, para pintarlos lado a lado. 62 puntos por
   # patrón: 0,5 KB del presupuesto y son el módulo entero.
   x1 = r10(redwood$x), y1 = r10(redwood$y),

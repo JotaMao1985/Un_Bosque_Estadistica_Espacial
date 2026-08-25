@@ -415,6 +415,39 @@ def main() -> int:
     a.cierto(np.array_equal(c1, c2),
              "m5: el rebarajado conserva EXACTAMENTE el conteo de cada celda",
              f"difieren en {int(np.sum(c1 != c2))} celdas")
+
+    # LOS 25 CONTEOS PUBLICADOS, uno a uno contra este recuento (T3.3).
+    #
+    # El capítulo los saca a la tabla de respaldo del mapa: para quien no
+    # ve los dos lienzos, esa tabla ES el módulo, así que sus cifras
+    # necesitan el mismo control que las de la prosa. Hasta aquí el
+    # auditor comprobaba que c1 y c2 coinciden ENTRE SÍ, que es otra cosa:
+    # los dos podrían coincidir y ninguno ser el reparto que el JSON
+    # publica.
+    #
+    # ORIENTACIÓN, que es donde esto se rompe si se rompe: el JSON publica
+    # las filas de ARRIBA ABAJO —el orden en que `quadratcount()` las
+    # imprime y en que se ven en el mapa— mientras que `conteos_rejilla`
+    # indexa [ix, iy] con iy creciendo HACIA ARRIBA. La fila k de arriba
+    # es, por tanto, iy = ny - 1 - k. Comparar sin darle la vuelta pasaría
+    # sobre una matriz simétrica y fallaría sobre cualquier otra.
+    cel = m5["celdas"]
+    ny5 = cel["ny"]
+    a.igual(len(cel["original"]), ny5, "m5: la tabla publica ny filas")
+    a.igual(len(cel["columnas_x"]), cel["nx"], "m5: y nx columnas")
+    pub1 = np.array([[cel["original"][k][i] for i in range(cel["nx"])]
+                     for k in range(ny5)])
+    pub2 = np.array([[cel["rebarajado"][k][i] for i in range(cel["nx"])]
+                     for k in range(ny5)])
+    rec = np.array([[int(c1[i, ny5 - 1 - k]) for i in range(cel["nx"])]
+                    for k in range(ny5)])
+    a.cierto(np.array_equal(pub1, rec),
+             "m5: los 25 conteos publicados son los del recuento independiente",
+             f"difieren en {int(np.sum(pub1 != rec))} celdas")
+    a.cierto(np.array_equal(pub2, rec),
+             "m5: y los del rebarajado, los mismos",
+             f"difieren en {int(np.sum(pub2 != rec))} celdas")
+    a.igual(int(pub1.sum()), m5["n"], "m5: los 25 conteos suman los puntos del patrón")
     esp5 = np.full(c1.shape, c1.sum() / c1.size)
     chi5, _ = chi2_cuadrantes(c1.ravel(), esp5.ravel())
     a.cerca(chi5, m5["original"]["chi2"], "m5: chi² del original, recalculado", 1e-6)

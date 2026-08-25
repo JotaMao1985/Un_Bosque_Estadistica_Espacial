@@ -781,7 +781,12 @@ MOD6 = cabecera(
         aquí; ninguna requiere lo que viene después.</p>
 
 {quiz_html('cap4-trampas', 'Cuatro trampas de patrones puntuales',
-           'Un bloque intermedio, no el examen: si fallas una, vuelve al módulo que la cubre.')}""" + CIERRE
+           'Un bloque intermedio, no el examen: si fallas una, vuelve al módulo que la cubre.')}
+
+      <p>Las doce opciones traen su explicación, así que una fallada deja tanto como una
+        acertada. Y con esto cierra la primera mitad del capítulo: hasta aquí se ha contado
+        en cajas, y siempre ha habido que elegir la caja. Lo que viene deja de contar y
+        empieza a medir distancias, que es lo que quita esa elección de en medio.</p>""" + CIERRE
 
 
 # =====================================================================
@@ -1243,6 +1248,50 @@ def _etq(texto):
     return ", etiqueta: " + json.dumps(texto, ensure_ascii=False)
 
 
+# ---------------------------------------------------------------------
+# LA TABLA DE RESPALDO DE LOS DOS MAPAS DEL MÓDULO 5 (T3.3)
+#
+# Por qué solo estos dos, y por qué estos dos SÍ. El resto de los mapas
+# del capítulo son patrones puntuales cuya tabla serían sus coordenadas,
+# y una lista de 2 107 pares de metros no es la vía al dato de nadie: lo
+# que esos mapas dicen —n, área, lambda, la R de cada régimen— ya está en
+# la prosa y en sus tablas.
+#
+# El módulo 5 es el caso contrario. Afirma que la rebaraja conserva el
+# conteo de cada celda «uno a uno» y remata con «Míralos». Quien no ve los
+# dos lienzos no tiene dónde mirarlo: el chi² idéntico que la prosa
+# publica es la CONSECUENCIA de esa igualdad, no la igualdad. Para ese
+# lector, esta tabla es el módulo.
+#
+# La forma la fija el precedente de `TABLA_AGREGACION` del capítulo 1: las
+# dos cantidades que hay que comparar van en COLUMNAS de la misma fila.
+# Con una tabla por patrón habría que recordar 25 cifras de memoria para
+# comprobar la afirmación, que es pedirle al lector justo lo que la tabla
+# existe para ahorrarle.
+#
+# Las 25 cifras salen de `D4.m5.celdas`, que las calcula `quadratcount()`
+# en R y recuenta `audita_cap4.py` con su propio binado. Aquí no se cuenta
+# nada: se transcribe.
+TABLA_CEGUERA = """, tabla: function () {
+        const c = D4.m5.celdas;
+        let filas = '';
+        for (let k = 0; k < c.ny; k++) {
+          for (let i = 0; i < c.nx; i++) {
+            filas += `<tr><th scope="row">fila ${k + 1} (y en ${c.filas_y[k]}), `
+              + `columna ${i + 1} (x en ${c.columnas_x[i]})</th>`
+              + `<td>${c.original[k][i]}</td><td>${c.rebarajado[k][i]}</td></tr>`;
+          }
+        }
+        return `<table><caption>Los cuadrantes de la rejilla ${c.nx}\u00d7${c.ny}: `
+          + `cuántas plántulas caen en cada uno antes y después de rebarajar. `
+          + `Las filas van de arriba abajo, como en el mapa.</caption>`
+          + `<thead><tr><th scope="col">Celda</th><th scope="col">Original</th>`
+          + `<th scope="col">Rebarajado</th></tr></thead><tbody>${filas}</tbody>`
+          + `<tfoot><tr><th scope="row">Total</th><td>${D4.m5.n}</td>`
+          + `<td>${D4.m5.n}</td></tr></tfoot></table>`;
+      }"""
+
+
 GEOMAPAS_JS = (
     geomapa('cap4-urbano', 'patron_urbano',
             _etq('Las 2 107 sedes educativas que caen dentro del perímetro urbano de '
@@ -1261,10 +1310,10 @@ GEOMAPAS_JS = (
                    'árboles madre.'))
     + geomapa('cap4-ceguera-original', 'ceguera_original',
               _etq('Las plántulas de secuoya con la rejilla de cuadrantes encima: los '
-                   'grumos se ven dentro de las celdas.'))
+                   'grumos se ven dentro de las celdas.') + TABLA_CEGUERA)
     + geomapa('cap4-ceguera-rebarajado', 'ceguera_rebarajado',
               _etq('El mismo número de puntos en cada celda, repartidos al azar dentro '
-                   'de la suya: mismo chi cuadrado, sin grumos.'))
+                   'de la suya: mismo chi cuadrado, sin grumos.') + TABLA_CEGUERA)
 )
 
 

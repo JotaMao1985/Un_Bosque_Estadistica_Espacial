@@ -98,6 +98,8 @@ SUJETOS = {
              PROYECTO / "Htmls_Espacial", "capitulo-2-crs-georreferenciacion.html"),
     "cap3": ("audita_texto_cap3.py", "CAP3_HTML",
              PROYECTO / "Htmls_Espacial", "capitulo-3-cartografia-maup.html"),
+    "cap4": ("audita_texto_cap4.py", "CAP4_HTML",
+             PROYECTO / "Htmls_Espacial", "capitulo-4-patrones-puntuales.html"),
 }
 
 
@@ -600,8 +602,145 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
     ]
 
 
+def defectos_cap4() -> list[tuple[str, str, str]]:
+    """Los defectos del capítulo 4, construidos DESDE su precálculo.
+
+    Cubre las familias de los anteriores y estrena TRES que solo este
+    capítulo puede probar:
+
+     23. **la tabla de respaldo de los dos mapas del módulo 5**, que es la
+         única vía al dato de quien no ve los dos lienzos: el módulo
+         afirma que la rebaraja conserva el conteo de cada celda y remata
+         con «Míralos». Sin la tabla, esa afirmación no es comprobable
+         para ese lector, y el capítulo entero se apoya en ella;
+     24. **la corrección de borde declarada**, que es la decisión cara de
+         la Fase 3: si desaparece la frase, el capítulo usa traslación y
+         no lo dice, que es exactamente el atajo silencioso que la
+         decisión existe para no dar;
+     25. **la aritmética del p-valor mínimo**, sin la cual el módulo 11
+         deja de explicar por qué 1/(nsim+1) no es una convención.
+
+    UNA FAMILIA QUE AQUÍ NO SE PUEDE PROBAR, y se dice en voz alta: los
+    siete mapas de este capítulo son de modo `puntos` y **ninguno
+    clasifica**, así que no hay un solo corte de clase que alterar. La
+    inyección 9 —el corte del `.geomapa` cambiado— no tiene sujeto en el
+    capítulo 4. La rama hermana sí se ejercita: el `n` declarado que deja
+    de cuadrar con su geometría.
+    """
+    D = json.loads((SALIDAS / "cap4_datos.json").read_text(encoding="utf-8"))
+    S = json.loads((SALIDAS / "cap4_soluciones.json").read_text(encoding="utf-8"))
+    m1, m2, m3, m5 = D["m1"], D["m2"], D["m3"], D["m5"]
+    m7, m8, m9, m10, m11 = D["m7"], D["m8"], D["m9"], D["m10"], D["m11"]
+
+    def f(x, d=5):
+        return f"{float(x):.{d}f}"
+
+    def perturba(x, d=5):
+        t = f(x, d)
+        return t[:-1] + ("1" if t[-1] != "1" else "2")
+
+    return [
+        # --- 1. Dentro de una fórmula de KaTeX. El punto ciego. --------
+        # La lambda urbana aparece DOS veces con dos redondeos distintos:
+        # a cinco decimales en la prosa y a cuatro dentro de la fórmula.
+        # Ésta es la de la fórmula, que es la que el auditor de DOE no
+        # miraba.
+        ("cifra inventada DENTRO de una fórmula de KaTeX",
+         f"= {f(m1['urbana']['lambda_km2'], 4)}\\ \\text{{sedes/km}}^2",
+         f"= {perturba(m1['urbana']['lambda_km2'], 4)}\\ \\text{{sedes/km}}^2"),
+        # --- 2. En el texto corrido -----------------------------------
+        ("el área de la ventana urbana, cambiada en la prosa",
+         f"<strong>{f(m1['urbana']['area_km2'])}</strong> km²",
+         f"<strong>{perturba(m1['urbana']['area_km2'])}</strong> km²"),
+        ("el factor entre las dos intensidades, cambiado",
+         f"<strong>{f(m1['factor_lambda'])}</strong>",
+         f"<strong>{perturba(m1['factor_lambda'])}</strong>"),
+        ("el índice de dispersión de los cuadrantes, cambiado",
+         f"<strong>{f(m2['urbana']['dispersion'])}</strong>",
+         f"<strong>{perturba(m2['urbana']['dispersion'])}</strong>"),
+        ("la R de Clark-Evans de las sedes, cambiada en su tabla",
+         f"<strong>{f(m3['bogota']['clark_evans'])}</strong>",
+         f"<strong>{perturba(m3['bogota']['clark_evans'])}</strong>"),
+        ("el átomo de G en r = 0, cambiado",
+         f"<strong>{f(m7['bogota']['g_emp_en_cero'], 6)}</strong>",
+         f"<strong>{perturba(m7['bogota']['g_emp_en_cero'], 6)}</strong>"),
+        ("el máximo de g sobre las secuoyas, cambiado",
+         f"<strong>{f(m9['redwood']['g_max'])}</strong>",
+         f"<strong>{perturba(m9['redwood']['g_max'])}</strong>"),
+        ("el sesgo máximo de la K sin corregir, cambiado",
+         f"<strong>{f(m10['sesgo_max_pct'])}</strong> %",
+         f"<strong>{perturba(m10['sesgo_max_pct'])}</strong> %"),
+        ("el porcentaje de simulaciones nulas que se salen, cambiado",
+         f"<strong>{f(m11['tasa_salida_bogota']['pct'])}</strong> %",
+         f"<strong>{perturba(m11['tasa_salida_bogota']['pct'])}</strong> %"),
+        ("cuánto se ensancha la banda por defecto, cambiado",
+         f"—{f(m11['escala_resumen']['veces_defecto'])} veces",
+         f"—{perturba(m11['escala_resumen']['veces_defecto'])} veces"),
+        # --- 3. En la solución de un ejercicio ------------------------
+        ("una cifra de la solución del ejercicio 1",
+         f"<td>{S['e1']['solucion']['area_km2'] if 'area_km2' in S['e1']['solucion'] else S['e1']['pasos'][3]['valor']}</td>",
+         f"<td>{perturba(S['e1']['pasos'][3]['valor'], 10)}</td>"),
+        ("una cifra de la solución del ejercicio 5",
+         f"<td>{S['e5']['pasos'][3]['valor']}</td>",
+         f"<td>{perturba(S['e5']['pasos'][3]['valor'], 10)}</td>"),
+        # --- 4. Un tema del temario que desaparece --------------------
+        ("el capítulo deja de hablar del MAUP",
+         "MAUP", "problema-de-la-unidad", True),
+        ("el capítulo deja de nombrar la correlación de pares",
+         "correlación de pares", "la otra función", True),
+        ("el capítulo deja de nombrar el test de desviación global",
+         "desviación global", "el otro contraste", True),
+        # --- 5. Una fuente que desaparece -----------------------------
+        ("desaparece la cita a Ripley", "Ripley", "un autor", True),
+        ("desaparece la cita a Besag", "Besag", "otro autor", True),
+        ("desaparece la cita a Donnelly", "Donnelly", "la del libro", True),
+        # --- 6. Accesibilidad -----------------------------------------
+        ("un <canvas> se queda sin aria-label",
+         'aria-label="K y L sobre el mismo patrón',
+         'data-label="K y L sobre el mismo patrón'),
+        ("el marcador del quiz se aplana dentro del resumen",
+         '<div class="quiz-resumen" role="status" hidden></div>\n        <div class="quiz-marcador">',
+         '<div class="quiz-resumen" role="status" hidden>\n        <div class="quiz-marcador">'),
+        # --- 23. LA TABLA DE RESPALDO DEL MÓDULO 5 --------------------
+        ("los dos mapas del módulo 5 se quedan sin tabla de respaldo",
+         ", tabla: function () {", ", sinTabla: function () {", True),
+        # --- 10. El .geomapa: el n que deja de cuadrar ----------------
+        ("el n declarado del patrón urbano deja de cuadrar con su geometría",
+         f'"n": {m1["urbana"]["n"]}, "pts"',
+         f'"n": {m1["urbana"]["n"] - 4}, "pts"'),
+        # --- 11. La codificación --------------------------------------
+        ("una tilde se convierte en bytes crudos",
+         "Perímetro urbano", "Per<c3><ad>metro urbano"),
+        # --- 12. Afirmaciones que el capítulo no puede dejar de decir --
+        ("desaparece que ignorar el borde no añade ruido sino dirección",
+         "no añade ruido", "no cambia gran cosa", True),
+        ("desaparece la razón del signo del sesgo",
+         "Faltan vecinos, nunca sobran", "Los vecinos van y vienen", True),
+        # --- 24. LA CORRECCIÓN DECLARADA, la decisión cara de la Fase 3
+        # OJO CON LA MAYÚSCULA Y CON EL SALTO DE LÍNEA. El auditor busca
+        # sobre `texto_plano`, que va en minúsculas y con los espacios
+        # colapsados; el arnés sustituye sobre el HTML CRUDO, donde la
+        # frase abre oración y la siguiente lleva un salto y ocho espacios
+        # en medio. Escribir aquí la forma del auditor da «el texto a
+        # sustituir no aparece», que es un fallo de la prueba disfrazado
+        # de fallo del capítulo.
+        ("desaparece que la corrección elegida no es un atajo silencioso",
+         "No es un atajo silencioso", "Es lo que se suele hacer", True),
+        # --- 25. LA ARITMÉTICA DEL P-VALOR MÍNIMO --------------------
+        ("desaparece que el p-valor mínimo es aritmética y no convención",
+         "aritmética.", "lo habitual.", True),
+        ("desaparece que subir nsim cambia de contraste",
+         "cambia de contraste", "afina la misma banda", True),
+        # --- 7. El enlace local roto ---------------------------------
+        ("el enlace al capítulo 3 apunta a un archivo que no existe",
+         'href="capitulo-3-cartografia-maup.html"',
+         'href="capitulo-3-cartografia-maupp.html"'),
+    ]
+
+
 DEFECTOS = {"demo": defectos_demo, "cap1": defectos_cap1,
-            "cap2": defectos_cap2, "cap3": defectos_cap3}
+            "cap2": defectos_cap2, "cap3": defectos_cap3,
+            "cap4": defectos_cap4}
 
 
 def corre(clave: str, ruta_html: pathlib.Path) -> tuple[int, str]:
