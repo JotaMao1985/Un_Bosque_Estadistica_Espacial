@@ -54,6 +54,15 @@ import subprocess
 import sys
 import tempfile
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
+# La ÚNICA pieza que este arnés comparte con el de los capítulos, y la
+# comparte porque nació aquí y les hacía falta a ellos: el detector de
+# rótulos largos. El resto de la maquinaria sigue duplicada a propósito
+# —un taller no tiene la forma de un capítulo—, pero tener dos copias de
+# esto significaría arreglarlo dos veces la próxima vez.
+from prueba_auditor_base import avisa_rotulos_largos  # noqa: E402
+
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 PRECALCULO = RAIZ / "precalculo"
 SALIDAS = PRECALCULO / "salidas"
@@ -335,23 +344,12 @@ def main() -> int:
     todas = nombres(salida, "OK ")
     vistas_fallar: set[str] = set()
 
-    # EL DETECTOR QUE FALTABA. `Auditoria` rellena el rótulo hasta 58
-    # caracteres antes del detalle; uno más largo se queda sin relleno y
-    # arrastra su detalle, que cambia entre la pasada limpia y la pasada
-    # rota. Resultado: el mismo control cuenta como dos comprobaciones
-    # distintas y la cobertura sale subestimada **sin que nada falle**.
-    #
-    # Pasó dos veces. La primera se arregló acortando cinco rótulos; la
-    # segunda reapareció en un rótulo escrito después, porque acortar no
-    # impide volver a alargar. Esto no acorta nada: avisa, que es lo que
-    # convierte el defecto en visible en vez de en recurrente.
-    ANCHO = 58
-    largos = sorted(x for x in todas if len(x) >= ANCHO)
-    if largos:
-        print(f"\n  ---  {len(largos)} rótulo(s) de {ANCHO} caracteres o más: arrastran su "
-              f"detalle y\n       falsean el recuento de cobertura. Acórtalos en el auditor:")
-        for x in largos:
-            print(f"         ({len(x)}) {x[:70]}")
+    # El detector de rótulos largos vive en `prueba_auditor_base.py` desde
+    # el 2026-08-24. Nació aquí —éste era el único arnés que contaba TIPOS
+    # y por eso el único que notaba el defecto—, y se subió al núcleo en
+    # cuanto se vio que los cuatro capítulos tenían el mismo agujero sin
+    # nadie mirándolo: 83 rótulos largos en el 1, 69 en el 2, 12 en el 3.
+    avisa_rotulos_largos(todas)
 
     lista = defectos()
     cazados = 0
