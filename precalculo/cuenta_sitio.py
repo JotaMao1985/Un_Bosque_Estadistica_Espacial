@@ -15,6 +15,12 @@ Cambios respecto a la versión de Muestreo:
   · Cuenta los **`.geomapa`**, que allí no existían y aquí son ~35 del
     objetivo, con su desglose por modo. Un capítulo que prometa un mapa
     en modo `grafo` y no lo tenga se ve aquí.
+  · Separa los **preparciales** (`preparcial-*.html`), que no son ni una
+    cosa ni la otra: no enseñan contenido nuevo, así que sus módulos no van
+    contra los 120 del §8, pero sí tienen autoevaluación, que es lo que un
+    taller no tiene. Sin su propio cubo, el primero que se publicó dejó este
+    contador en rojo el 2026-08-25 — que es exactamente lo que el aviso de
+    «archivo sin clasificar» existe para hacer.
   · Separa los **capítulos** de los **bancos de prueba** (`prueba-*.html`):
     el fixture de T0.5 y el del `.geomapa` no son material del curso y
     sumarlos a los totales sería inflarlos.
@@ -115,12 +121,13 @@ def main() -> None:
     caps = sorted(carpeta.glob("capitulo-*.html"))
     bancos = sorted(carpeta.glob("prueba-*.html"))
     talleres = sorted(carpeta.glob("taller-*.html"))
+    preparciales = sorted(carpeta.glob("preparcial-*.html"))
 
     # Nada publicado puede quedarse fuera de los tres cubos sin que se
     # diga. Un archivo con un nombre nuevo —`parcial-1.html`, digamos—
     # no debe desaparecer del recuento en silencio: eso es exactamente lo
     # que le pasó al Taller 1 antes de C9.
-    clasificados = {p.name for p in caps + bancos + talleres}
+    clasificados = {p.name for p in caps + bancos + talleres + preparciales}
     sueltos = [p for p in sorted(carpeta.glob("*.html")) if p.name not in clasificados]
 
     if caps:
@@ -154,6 +161,18 @@ def main() -> None:
         print(f"    de ellos {arr} bloque(s) de arranque: sin línea `#>` a propósito, "
               "y `verifica_bloques.py` los declara en vez de ejecutarlos")
 
+    if preparciales:
+        # El cuarto cubo. Un preparcial no es capítulo —no enseña contenido
+        # nuevo, y sus módulos no van contra los 120 del §8— y tampoco es
+        # taller —no se califica, no se individualiza y sí tiene
+        # autoevaluación, que es justo lo que un taller no tiene—. Su columna
+        # `preguntas` es la que importa y la de `ejercicios` acompaña; las de
+        # simuladores y mapas pueden quedarse en cero sin que eso denuncie
+        # nada, porque un preparcial reutiliza los del capítulo en vez de
+        # estrenar los suyos.
+        tabla("PREPARCIALES (material del curso, fuera de los objetivos del §8)",
+              preparciales)
+
     if bancos:
         tabla("BANCOS DE PRUEBA (no son material del curso)", bancos)
 
@@ -179,14 +198,16 @@ def main() -> None:
     portada = RAIZ / "index.html"
     if portada.exists():
         texto = portada.read_text(encoding="utf-8")
-        huerfanos = [p.name for p in caps + talleres if p.name not in texto]
+        huerfanos = [p.name for p in caps + talleres + preparciales
+                     if p.name not in texto]
         print("\n  Enlaces desde la portada (index.html):")
         if huerfanos:
             for n in huerfanos:
                 print(f"    ⚠ {n} — publicado y SIN enlace desde la portada")
             problemas.append(f"{len(huerfanos)} página(s) sin enlace desde la portada")
         else:
-            print(f"    los {len(caps) + len(talleres)} archivos del curso están enlazados")
+            print(f"    los {len(caps) + len(talleres) + len(preparciales)} archivos "
+                  f"del curso están enlazados")
 
     # Desglose de los modos del .geomapa: el §4 del plan reparte los cinco
     # entre los capítulos, y así se ve cuáles siguen sin estrenarse.
@@ -197,7 +218,8 @@ def main() -> None:
     # casualidad. Contar por el nombre del contenedor habría dado una
     # tabla que parece correcta y no mide lo que dice medir.
     print("\n  Modos del .geomapa en uso (leídos del JSON incrustado):")
-    textos = [p.read_text(encoding="utf-8") for p in caps + talleres + bancos]
+    textos = [p.read_text(encoding="utf-8")
+              for p in caps + talleres + preparciales + bancos]
     for modo in MODOS:
         n = sum(len(re.findall(r'"modo":\s*"' + modo + '"', t)) for t in textos)
         print(f"    {modo:<12} {n}")
