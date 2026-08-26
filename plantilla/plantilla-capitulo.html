@@ -4966,17 +4966,42 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
 
         if (resueltas === preguntas.length && resumen) {
           const fallidas = preguntas.filter((_, i) => !estado[i].acierto);
-          const repasar = [...new Set(
-            preguntas.filter((_, i) => estado[i].intentos > 1 || !estado[i].acierto)
-              .map(p => p.modulo).filter(Boolean)
-          )].sort((a, b) => a - b);
+          // Qué repasar. Una pregunta puede declarar `modulo` —un número, que
+          // indexa los módulos DE ESTE documento— o `repaso` —{etiqueta, href},
+          // que apunta a donde sea—. Lo segundo existe porque un preparcial
+          // evalúa varios capítulos: con solo el número, su resumen mandaba a
+          // repasar el bloque que el estudiante acababa de hacer.
+          const porRepasar = new Map();
+          preguntas.forEach((p, i) => {
+            if (estado[i].intentos <= 1 && estado[i].acierto) return;
+            if (p.repaso && p.repaso.etiqueta) {
+              porRepasar.set('r:' + p.repaso.etiqueta, p.repaso);
+            } else if (p.modulo) {
+              porRepasar.set('m:' + p.modulo, {
+                orden: p.modulo,
+                etiqueta: `Módulo ${p.modulo}: <strong>` +
+                  `${(courseData.modules[p.modulo - 1] || {}).title || ''}</strong>`
+              });
+            }
+          });
+          const repasar = [...porRepasar.values()].sort((a, b) =>
+            (a.orden || 0) - (b.orden || 0) || a.etiqueta.localeCompare(b.etiqueta));
+          // La rama de «impecable» se decide por los FALLOS, no por si la lista
+          // de repaso salió vacía. Eran lo mismo mientras toda pregunta
+          // declarara `modulo`; con `repaso` opcional, una pregunta sin ninguno
+          // de los dos habría dado «Resultado: 5 de 11» seguido de «acertaste
+          // todo», que es la clase de contradicción que nadie prueba.
+          const impecable = fallidas.length === 0 && alSegundo === 0;
           resumen.innerHTML =
             `<h5>Resultado: ${alPrimero + alSegundo} de ${preguntas.length}` +
             `${fallidas.length ? '' : ' · impecable'}</h5>` +
             (repasar.length
-              ? `<p style="margin:0;">Te costaron preguntas de estos módulos, así que vale la pena volver a ellos:</p>
-                 <ul>${repasar.map(m => `<li>Módulo ${m}: <strong>${(courseData.modules[m - 1] || {}).title || ''}</strong></li>`).join('')}</ul>`
-              : `<p style="margin:0;">Acertaste todo al primer intento. Puedes pasar al siguiente capítulo.</p>`);
+              ? `<p style="margin:0;">Te costaron preguntas de aquí, así que vale la pena volver:</p>
+                 <ul>${repasar.map(r => `<li>${r.href
+                     ? `<a href="${r.href}">${r.etiqueta}</a>` : r.etiqueta}</li>`).join('')}</ul>`
+              : (impecable
+                  ? `<p style="margin:0;">Acertaste todo al primer intento. Puedes seguir adelante.</p>`
+                  : `<p style="margin:0;">Revisa la retroalimentación de las que te costaron antes de seguir.</p>`));
           resumen.hidden = false;
           katexEn(resumen);
         }
