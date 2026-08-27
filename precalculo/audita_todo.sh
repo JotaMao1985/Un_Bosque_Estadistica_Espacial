@@ -22,6 +22,17 @@
 # comprobación que los capítulos no tienen— y meterlos en el bucle de
 # `capN` habría exigido que fingieran serlo.
 #
+# Los PREPARCIALES, por un tercer bucle, y por la misma razón elevada al
+# cuadrado: no enseñan contenido nuevo (no son capítulos) y no se
+# califican ni se individualizan (no son talleres). Además traen dos
+# comprobaciones que no existen en ningún otro sitio: un ALCANCE
+# verificable —qué módulos entran y cuáles no, leído del HTML publicado— y
+# una familia de SINCRONÍA, que compara cada cifra reutilizada contra la
+# ruta del capítulo de la que salió. Esa segunda es la razón de fondo de
+# que esto exista: el día que se regenere un capítulo y una cifra se mueva,
+# el preparcial queda mintiendo sin que nada más lo diga, porque su propio
+# JSON sigue siendo internamente coherente (§12.4 del plan).
+#
 # El paso 3 es de T1.3.n y cubre un hueco que llevaba abierto desde T1.2: las
 # guardas de compilación miran **el hueco entre archivos** —entre el dato y el
 # cableado que lo dibuja—, que es donde los auditores no llegan y donde han
@@ -107,6 +118,28 @@ for N in 1 2 3 4; do
   fi
 done
 
+# Los PREPARCIALES. El bucle descubre igual que los otros dos: el día que
+# haya un preparcial del Corte II, lo hereda sin tocar una línea.
+for N in 1 2 3 4; do
+  [ -f "precalculo/salidas/preparcial${N}_datos.json" ] || continue
+  [ -f "precalculo/audita_preparcial${N}.py" ] || continue
+  paso "precálculo del preparcial ${N} · audita_preparcial${N}.py (Python, independiente)" \
+       "$PY_GEO" "precalculo/audita_preparcial${N}.py"
+  # El arnés del ALCANCE corre siempre, también con --rapido, por la misma
+  # razón que `prueba_ensambla_capN`: cuesta 0,06 s. Y vigila algo que
+  # ningún otro paso mira — que la frontera del temario siga donde el plan
+  # la puso (D1). Si un capítulo publica un módulo más, el alcance del
+  # preparcial cambia en silencio y sus 30 módulos dejan de ser 30.
+  if [ -f "precalculo/prueba_alcance_preparcial${N}.py" ]; then
+    paso "alcance del preparcial ${N} · prueba_alcance_preparcial${N}.py (inyección)" \
+         python3 "precalculo/prueba_alcance_preparcial${N}.py"
+  fi
+  if [ "$RAPIDO" -eq 0 ] && [ -f "precalculo/prueba_auditor_preparcial${N}.py" ]; then
+    paso "precálculo del preparcial ${N} · prueba_auditor_preparcial${N}.py (inyección)" \
+         python3 "precalculo/prueba_auditor_preparcial${N}.py"
+  fi
+done
+
 # Va ANTES de los auditores de prosa y con su autoprueba dentro: cuesta
 # 0,1 s y mira la causa del defecto que aquéllos vigilan por el resultado.
 # El 61.7 del capítulo 1 pasó meses con los dos auditores en verde porque
@@ -156,6 +189,17 @@ for N in 1 2 3 4; do
   [ -f "precalculo/audita_texto_taller${N}.py" ] || continue
   paso "audita_texto_taller${N}.py — las cifras de la prosa del taller ${N}" \
        sh -c "cd precalculo && python3 audita_texto_taller${N}.py"
+done
+
+# Y los de los preparciales. Hoy este bucle no encuentra nada y se salta
+# entero: `audita_texto_preparcial1.py` es P3.1 y no está escrita. Está
+# puesto ya a propósito, para que el día que nazca entre al arnés sin que
+# nadie tenga que acordarse de volver aquí — que es exactamente el defecto
+# que C8 del Taller 1 existe para no repetir.
+for N in 1 2 3 4; do
+  [ -f "precalculo/audita_texto_preparcial${N}.py" ] || continue
+  paso "audita_texto_preparcial${N}.py — las cifras de la prosa del preparcial ${N}" \
+       sh -c "cd precalculo && python3 audita_texto_preparcial${N}.py"
 done
 
 if [ "$RAPIDO" -eq 0 ]; then

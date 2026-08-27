@@ -12,14 +12,15 @@ con mapas, simuladores, autoevaluación y el mismo análisis resuelto en R y en 
 
 ## Estado
 
-Tres de los diez capítulos del plan están publicados.
+Cuatro de los diez capítulos del plan están publicados, y con ellos el **Taller 1** y el
+**preparcial del Corte I**, que no son capítulos y se cuentan aparte.
 
 | # | Capítulo | Semana | Estado |
 |---|---|---|---|
 | 1 | Datos espaciales y la primera ley de la geografía | 1 | Publicado |
 | 2 | SIG, sistemas de referencia y georreferenciación con `sf` | 2–3 | Publicado |
 | 3 | Cartografía estadística y el MAUP | 4–5 | Publicado |
-| 4 | Patrones puntuales: CSR y funciones de resumen | 6–7 | En preparación |
+| 4 | Patrones puntuales: CSR y funciones de resumen | 6–7 | Publicado |
 | 5 | Intensidad por núcleos y procesos puntuales | 8–9 | En preparación |
 | 6 | Datos de área y la matriz de pesos espaciales | 10–11 | En preparación |
 | 7 | Autocorrelación espacial global y local | 12–13 | En preparación |
@@ -27,8 +28,13 @@ Tres de los diez capítulos del plan están publicados.
 | 9 | Geoestadística: variograma y kriging | 15 | En preparación |
 | 10 | ML espacial, datos espacio-temporales y proyecto | 16 | En preparación |
 
-Lo publicado suma 36 módulos, 30 simuladores, 29 mapas, 36 preguntas de autoevaluación,
-13 ejercicios guiados y 30 bloques de código en cada lenguaje.
+Los cuatro capítulos suman 48 módulos, 40 simuladores, 36 mapas, 48 preguntas de
+autoevaluación, 18 ejercicios guiados y 41 bloques de código en cada lenguaje. Fuera de esa
+cuenta van el Taller 1 —9 módulos y 7 ejercicios— y el preparcial del Corte I —7 módulos y
+36 preguntas que cubren los 30 módulos de los capítulos 1 a 3 que entran en el parcial—.
+
+Ninguna de esas cifras está escrita de memoria: las cuenta `cuenta_sitio.py`, que es también
+quien avisa si aparece un HTML que no encaja en ninguna de sus cuatro tablas.
 
 ---
 
@@ -153,7 +159,7 @@ orden que documenta `FUENTES.md`.
 
 | Carpeta | Qué contiene |
 |---|---|
-| `Htmls_Espacial/` | Los capítulos publicados y los talleres, más dos bancos de prueba del motor |
+| `Htmls_Espacial/` | Los capítulos publicados, los talleres y los preparciales, más dos bancos de prueba del motor |
 | `precalculo/` | Los guiones de R que calculan, los de Python que ensamblan y todos los auditores |
 | `precalculo/salidas/` | El precálculo: los JSON y CSV que consume el navegador |
 | `entrega/` | Lo que el estudiante se descarga de un taller: la plantilla LaTeX y sus datos |
@@ -167,6 +173,27 @@ capítulos —no tienen autoevaluación y sus módulos no van contra los 120 del
 
 Los talleres se construyen con la misma cadena (`genera_taller1.R` → `ensambla_taller1.py`
 → `audita_taller1.py`) y corren por su propio bucle dentro de `audita_todo.sh`.
+
+**Y hay un cuarto cubo, el de los `preparcial-*.html`.** Un preparcial no es un capítulo
+—no enseña contenido nuevo— ni un taller —no se califica, no se individualiza y se puede
+repetir—, así que sus totales tampoco van contra los 120 módulos del plan: mezclarlos
+inflaría el avance del temario con material que no enseña temario. Se construye con la
+cadena de siempre (`genera_preparcial1.R` → `ensambla_preparcial1.py` →
+`audita_preparcial1.py`) y corre por su **tercer bucle** dentro de `audita_todo.sh`.
+
+Ese bucle vigila dos cosas que no existen en ningún otro sitio del repositorio:
+
+- **El alcance.** Qué módulos entran en el parcial y cuáles no, leído del HTML publicado de
+  los capítulos y no de una lista escrita a mano. Si un capítulo publica un módulo más, el
+  alcance cambia en silencio y `prueba_alcance_preparcial1.py` lo para.
+- **La sincronía.** Un preparcial no recalcula: **cita** cifras que ya calcularon los
+  capítulos, y guarda de cada una el archivo y la ruta de la que salió. El día que se
+  regenere un capítulo y una de esas cifras se mueva, la pregunta queda mintiendo sin que
+  nada más lo diga, porque el JSON del preparcial sigue siendo internamente coherente. Esa
+  familia es la razón principal de que tenga auditor propio.
+
+Los tres bucles descubren por convención: un preparcial del Corte II entra al arnés sin
+tocar una línea de `audita_todo.sh`.
 
 `entrega/datos/` es la única excepción a la regla de que `datos/` no se versiona, y existe
 por un motivo que ningún auditor de cifras podía ver: **una tarea que manda ejecutar código

@@ -204,6 +204,7 @@ PRESENTA = {
     "tobler_esperado":      (5, ""),
     "tobler_caida_alt":     (5, "%"),
     "inf_cobertura_ind":    (5, ""),
+    "inf_cobertura_phi16":  (5, ""),
     "neff_desercion":       (2, ""),
     "neff_desercion_n":     (0, ""),
     "neff_rho_implicito":   (5, ""),
@@ -213,9 +214,12 @@ PRESENTA = {
     "realiz_rechaza":       (0, "%"),
     "realiz_esperado":      (0, "%"),
     "realiz_sd_medias":     (5, ""),
+    "realiz_emc":           (5, "puntos"),
     "escala_moran_mun":     (5, ""),
     "escala_moran_dep":     (5, ""),
     "escala_caida":         (5, "%"),
+    "escala_n_dep":         (0, ""),
+    "anat_filas":           (0, ""),
     "anat_pct_geom":        (5, "%"),
     "anat_vertices":        (0, ""),
     "anat_multiples":       (0, ""),
@@ -227,7 +231,10 @@ PRESENTA = {
     "epsg_3116_med":        (5, "%"),
     "epsg_9377_med":        (5, "%"),
     "etiq_silencioso":      (0, "m"),
+    "etiq_n_localidades":   (0, ""),
     "form_campos_largos":   (0, ""),
+    "form_n_rasgos":        (0, ""),
+    "form_n_campos":        (0, ""),
     "form_logico":          (0, ""),
     "form_gpkg_razon":      (5, ""),
     "form_geojson_razon":   (5, ""),
@@ -265,6 +272,7 @@ PRESENTA = {
     "medir_dist_max":       (2, "m"),
     "grad_bogota_oslo":     (5, "veces"),
     # Los cálculos nuevos que cita el catálogo, por su ruta dentro de `nuevo`.
+    "euclidea_grados.n_estaciones":    (0, ""),
     "euclidea_grados.error_med_pct":   (5, "%"),
     "euclidea_grados.error_max_pct":   (5, "%"),
     "euclidea_grados.pct_sobreestima": (0, "%"),
@@ -501,8 +509,9 @@ BLOQUE_A = [
              op("Que el intervalo nominal al 95 % cubre cada vez menos a medida que crece la "
                 "dependencia.", True,
                 f"Con datos independientes la cobertura es {c('inf_cobertura_ind')}, lo prometido. "
-                f"Con dependencia fuerte cae a {c('inf_cobertura_phi4')}: el intervalo dice 95 y "
-                "y cumple mucho menos."),
+                f"Con dependencia fuerte cae a {c('inf_cobertura_phi4')}, y en el extremo derecho "
+                f"de la curva a {c('inf_cobertura_phi16')}: el intervalo sigue diciendo 95 y cada "
+                "vez cumple menos."),
              op("Que el intervalo se vuelve más ancho al aumentar la dependencia.", False,
                 "Es al revés, y ahí está la trampa: la fórmula clásica no sabe que hay dependencia, "
                 "así que <em>no</em> ensancha nada. El intervalo se queda igual de estrecho mientras "
@@ -536,22 +545,24 @@ BLOQUE_A = [
          f"clásica rechaza la hipótesis nula el {c('realiz_rechaza')} de las veces cuando "
          f"debería rechazarla el {c('realiz_esperado')}, y la media de cada realización varía "
          f"con una desviación de {c('realiz_sd_medias')}. ¿Qué problema ilustra?",
-         "En la realidad no hay mil realizaciones: hay una.",
+         f"En la realidad no hay {c('realiz_n')} realizaciones: hay una.",
          opciones=[
              op("Que con una sola realización no se puede separar lo que dice el proceso de lo "
                 "que dice esa realización concreta.", True,
-                "Es el problema fundamental del capítulo 1. Las mil realizaciones existen en la "
-                "simulación para <em>medir</em> esa variabilidad; en un mapa real solo se ve una, y "
-                "no viene marcada como típica o atípica."),
+                f"Es el problema fundamental del capítulo 1. Las {c('realiz_n')} realizaciones "
+                "existen en la simulación para <em>medir</em> esa variabilidad; en un mapa "
+                "real solo se ve una, y no viene marcada como típica o atípica."),
              op("Que el estimador de la media está sesgado.", False,
                 "No lo está: la media de las medias cae sobre la media del proceso. Lo que es "
                 "grande es su dispersión, y eso es varianza, no sesgo."),
-             op("Que mil realizaciones son pocas para estabilizar el resultado.", False,
-                "El error de Monte Carlo del porcentaje de rechazo es de poco más de un punto: mil "
-                "bastan de sobra. El problema no es cuántas se simulan, es cuántas se observan."),
+             op(f"Que {c('realiz_n')} realizaciones son pocas para estabilizar el resultado.",
+                False,
+                f"El error de Monte Carlo del porcentaje de rechazo es de {c('realiz_emc')}: "
+                f"{c('realiz_n')} bastan de sobra. El problema no es cuántas se simulan, es "
+                "cuántas se observan."),
              op("Que la semilla elegida produce un caso extremo.", False,
-                "El resultado es el agregado de mil semillas distintas. Culpar a la semilla es "
-                "justamente el razonamiento que el experimento desmonta.")]),
+                f"El resultado es el agregado de {c('realiz_n')} semillas distintas. Culpar a "
+                "la semilla es justamente el razonamiento que el experimento desmonta.")]),
 
     preg("opcion", "cap1", 7,
          f"La deserción escolar tiene un Moran I de {c('escala_moran_mun')} a nivel "
@@ -572,7 +583,7 @@ BLOQUE_A = [
                 "Es cierto que no es la misma cantidad —cambian las unidades, los vecinos y n— y "
                 "conviene decirlo. Pero eso explica por qué la comparación es delicada, no por qué "
                 "la caída va en esta dirección y no en la contraria."),
-             op("Que con 33 unidades el test pierde potencia.", False,
+             op(f"Que con {c('escala_n_dep')} unidades el test pierde potencia.", False,
                 "Confunde magnitud con significación. La potencia afecta al valor p, no al valor del "
                 "índice: aquí lo que cae es el índice mismo.")]),
 
@@ -597,7 +608,7 @@ BLOQUE_A = [
                 "responde preguntas de patrón: no tiene función K ni pruebas de aleatoriedad.")]),
 
     preg("opcion", "cap1", 9,
-         f"En los 100 condados de <code>nc</code>, la geometría ocupa el "
+         f"En los {c('anat_filas')} condados de <code>nc</code>, la geometría ocupa el "
          f"{c('anat_pct_geom')} de los bytes del objeto, con {c('anat_vertices')} vértices "
          f"y {c('anat_multiples')} condados formados por más de una parte. ¿Qué implica "
          f"para el trabajo con el archivo?",
@@ -608,8 +619,12 @@ BLOQUE_A = [
                 "La mayor parte de los bytes son coordenadas. Es la razón de que este material "
                 "presupueste la geometría aparte y la simplifique con tolerancia medida."),
              op("Que conviene guardar en shapefile, que es más compacto.", False,
-                "El formato no cambia dónde está el peso, y el shapefile trae de propina el truncado "
-                "de nombres de campo y la pérdida del tipo lógico del módulo 7 del capítulo 2."),
+                f"Compacto lo es —el GeoPackage pesa {c('form_gpkg_razon')}&nbsp;veces el "
+                "shapefile—, pero eso no cambia dónde está el peso: la geometría es la misma "
+                "en los dos, y "
+                "quien la guarda cambia de envase, no de tamaño. Y el shapefile trae de propina el "
+                "truncado de nombres de campo y la pérdida del tipo lógico del módulo 7 del "
+                "capítulo 2."),
              op("Que los condados con varias partes son un defecto de la fuente que hay que "
                 "corregir.", False,
                 "Son islas y enclaves reales. Un <code>MULTIPOLYGON</code> con varias partes es "
@@ -622,14 +637,18 @@ BLOQUE_A = [
     preg("numerica", "cap1", 10,
          f"Un modelo de temperatura sobre las estaciones del IDEAM da un RMSE de "
          f"{c('cv_rmse_alea')} con validación cruzada aleatoria y de {c('cv_rmse_bloques')} "
-         f"con validación cruzada por bloques espaciales. ¿En qué porcentaje infla el "
-         f"desempeño la validación aleatoria? Da dos decimales.",
-         "Compara los dos errores: ¿cuánto más pequeño parece el error con la CV aleatoria?",
+         f"con validación cruzada por bloques espaciales. ¿En qué porcentaje es el error por "
+         f"bloques mayor que el que anuncia la validación aleatoria? Da dos decimales.",
+         "La base es el error que anuncia la CV aleatoria: ¿cuánto hay que subirlo, en tanto por "
+         "ciento de sí mismo, para llegar al de bloques?",
          respuesta=float(val("cv_inflacion")), tolerancia=1.0,
          retroAcierto=f"Un {c('cv_inflacion')}. Con la CV aleatoria el vecino de cada punto suele "
                       f"caer en el pliegue de entrenamiento, así que el modelo se evalúa sobre "
                       f"puntos que ya conoce por interpolación.",
-         retroFallo=f"Es un {c('cv_inflacion')}. Y hay una cifra que lo dice todavía más claro: el "
+         retroFallo=f"Es un {c('cv_inflacion')}. Si te salió un porcentaje bastante menor, "
+                    f"tomaste como base el error por bloques en vez del de la CV aleatoria: lo que "
+                    f"se infla es el optimista, así que el denominador es él. Y hay una cifra que "
+                    f"lo dice todavía más claro: el "
                     f"R² por bloques es {c('cv_r2_bloques')} —negativo—, es decir, peor que "
                     f"predecir siempre la media. El mismo modelo que parecía explicar buena parte "
                     f"de la varianza no explica nada en cuanto se le pide extrapolar a una zona "
@@ -693,13 +712,15 @@ BLOQUE_B = [
          "usar es el de curvatura primo vertical.",
          respuesta=float(N2["correcto"]), tolerancia=5.0,
          retroAcierto=f"{n(N2['correcto'], 1)}&nbsp;m. En el ecuador serían "
-                      f"{n(val('grad_lon_elip')[0], 1)}: el grado se acorta con la latitud, y en "
-                      f"sigue acortándose según se sube en latitud.",
+                      f"{n(val('grad_lon_elip')[0], 1)}&nbsp;m, que es el máximo: el grado de "
+                      f"longitud se acorta con el coseno de la latitud y sigue encogiendo hasta "
+                      f"valer cero en el polo.",
          retroFallo=f"Son {n(N2['correcto'], 1)}&nbsp;m, y cada respuesta equivocada tiene "
                     f"nombre. Si te salió {dist(N2, 's2_esfera')}, es lo que devuelve "
                     f"<code>st_distance()</code> tal cual: en este entorno <code>sf</code> usa "
-                    f"s2, que mide sobre una <strong>esfera</strong>, y se queda "
-                    f"{n(N2['dif_s2_m'], 1)}&nbsp;m corto por grado. Si te salió "
+                    f"s2, que mide sobre una <strong>esfera</strong>, y su diferencia con el "
+                    f"elipsoide es de {n(N2['dif_s2_m'], 1)}&nbsp;m por grado — mide de menos. "
+                    f"Si te salió "
                     f"{dist(N2, 'olvida_coseno')}, olvidaste el coseno de la latitud y publicaste "
                     f"el grado del ecuador. Y si te salió {dist(N2, 'radio_meridional')}, usaste "
                     f"el radio meridional <em>M</em> en vez del primo vertical <em>N</em>."),
@@ -708,24 +729,31 @@ BLOQUE_B = [
          "El gráfico compara seis proyecciones por la <strong>razón de área máxima</strong> "
          "que introducen: cuántas veces se agranda la zona más distorsionada respecto de la "
          "menos distorsionada. ¿Qué se lee?",
-         "Mira cuál es la barra más alta y recuerda de qué familia es esa proyección.",
+         "Dos de las seis conservan los ángulos. Mira dónde caen respecto de las dos que "
+         "conservan el área.",
          alto=240,
-         descripcionGrafico="Barras de la razón de área máxima de seis proyecciones, con Mercator "
-                            "muy por encima del resto",
+         descripcionGrafico="Barras de la razón de área máxima de seis proyecciones: las dos "
+                            "equivalentes —Mollweide y Equal Earth— casi sin distorsión, "
+                            "Robinson algo por encima de ellas, las dos conformes —Mercator y "
+                            "Web Mercator— un orden de magnitud más arriba, y la azimutal "
+                            "equidistante por encima de todas",
          dibujar="""canvas => {
             const g = DATOS_PRE1.graficos.g_proyecciones;
             return crearGraficoBarras(canvas, g.nombre, g.razon_max,
               { etiqueta: 'Razón de área máxima', tituloX: 'Proyección' });
           }""",
          opciones=[
-             op("Que Mercator conserva los ángulos y a cambio destruye las áreas más que ninguna "
-                "otra de las seis.", True,
-                "Es el intercambio que define a una proyección conforme. Su distorsión angular media "
-                "es prácticamente cero y su razón de área se dispara: lo que conserva y lo que "
-                "sacrifica son la misma decisión vista por los dos lados."),
+             op("Que las dos proyecciones que conservan los ángulos deforman el área mucho más "
+                "que las dos que la conservan.", True,
+                "Es el intercambio que define a una proyección conforme: la distorsión angular "
+                "media de Mercator es prácticamente cero, y lo paga en área. La barra más alta, "
+                "eso sí, no es suya: es la azimutal equidistante, que no conserva ángulos ni "
+                "áreas sino distancias desde un punto. Destruir el área no es cosa solo de las "
+                "conformes — es el precio de conservar cualquier otra cosa."),
              op("Que Mercator es la peor proyección de las seis.", False,
-                "«Peor» no significa nada sin decir para qué. Para navegar trazando rumbos "
-                "constantes es la que hay que usar; para un mapa de coropletos es la que no."),
+                "«Peor» no significa nada sin decir para qué: para navegar trazando rumbos "
+                "constantes es la que hay que usar, y para un mapa de coropletos es la que no. "
+                "Y en área, mírala bien, Mercator no es siquiera la barra más alta."),
              op("Que las proyecciones con menos distorsión de área son las más exactas.", False,
                 "Son las más exactas <em>en área</em>, y a cambio deforman ángulos y formas. Ninguna "
                 "proyección es conforme y equivalente a la vez: es un resultado, no una limitación "
@@ -758,7 +786,8 @@ BLOQUE_B = [
                 "para teselas de fondo, no para el cálculo que sostiene el mapa.")]),
 
     preg("multiple", "cap2", 5,
-         f"Sobre las mismas 20 localidades: <code>st_set_crs()</code> desplaza los vértices "
+         f"Sobre las mismas {c('etiq_n_localidades')} localidades: <code>st_set_crs()</code> "
+         f"desplaza los vértices "
          f"{c('etiq_set_crs')}; un <code>st_transform()</code> de verdad los desplaza hasta "
          f"{c('etiq_transform')}; y un <code>st_transform()</code> de EPSG:4686 a EPSG:4326 "
          f"los desplaza {c('etiq_silencioso')}. Marca <strong>todo</strong> lo cierto.",
@@ -812,23 +841,26 @@ BLOQUE_B = [
                 "reproyectar no es una opción.")]),
 
     preg("multiple", "cap2", 7,
-         f"Guardando los mismos 20 rasgos en tres formatos: el shapefile trunca "
+         f"Guardando {c('form_n_rasgos')} rasgos en tres formatos: el shapefile trunca "
          f"{c('form_campos_largos')} nombres de campo a diez caracteres y convierte los "
          f"campos lógicos en {c('form_logico')}; el GeoPackage pesa "
-         f"{c('form_gpkg_razon')} veces el shapefile y el GeoJSON {c('form_geojson_razon')}. "
+         f"{c('form_gpkg_razon')}&nbsp;veces el shapefile y el GeoJSON "
+         f"{c('form_geojson_razon')}. "
          f"Marca <strong>todo</strong> lo cierto.",
          "Son dos, y las dos son pérdidas de información, no de espacio.",
          opciones=[
              op("El shapefile trunca los nombres de campo a diez caracteres.", True,
-                "Y lo hace en silencio. Cinco de nueve columnas cambiaron de nombre sin un aviso: "
-                "el guion que las lea después por su nombre largo no encuentra nada."),
+                f"Y lo hace en silencio: {c('form_campos_largos')} de las "
+                f"{c('form_n_campos')} columnas cambiaron de nombre sin un aviso, y el guion que "
+                "las lea después por su nombre largo no encuentra nada."),
              op("El shapefile pierde el tipo lógico: lo guarda como entero.", True,
                 "Un <code>TRUE</code> vuelve como <code>1</code>. Cualquier condición escrita contra "
                 "el tipo original deja de comportarse igual, y tampoco avisa."),
              op("El GeoPackage pesa mucho más que el shapefile.", False,
-                f"Pesa {c('form_gpkg_razon')} veces el shapefile: apenas más, y a cambio conserva "
+                f"Pesa {c('form_gpkg_razon')}&nbsp;veces el shapefile: apenas más, y a cambio "
+                f"conserva "
                 f"los nombres y los tipos en un solo archivo. El GeoJSON sí es el pesado, "
-                f"con {c('form_geojson_razon')} veces."),
+                f"con {c('form_geojson_razon')}&nbsp;veces."),
              op("El GeoJSON es el formato más compacto de los tres.", False,
                 "Es el más voluminoso con diferencia: es texto, y las coordenadas ocupan mucho "
                 "escritas en decimal.")],
@@ -841,7 +873,8 @@ BLOQUE_B = [
     preg("opcion", "cap2", 8,
          f"Al construir un objeto <code>sf</code> desde un CSV con las columnas en el orden "
          f"equivocado, los puntos se desplazan {c('csv_desplaz_med')} de media, "
-         f"{c('csv_en_colombia')} de las 361 estaciones caen dentro de Colombia y "
+         f"{c('csv_en_colombia')} de las {cn('euclidea_grados.n_estaciones')} estaciones "
+         f"caen dentro de Colombia y "
          f"<code>sf</code> avisó: {c('csv_hubo_aviso')}. ¿Cuál es la comprobación mínima "
          f"antes de seguir?",
          "El error no está en el CRS ni en los datos: está en qué columna se leyó como qué.",
@@ -881,8 +914,10 @@ BLOQUE_B = [
                 "Puede que sí, pero no es lo que estas cifras muestran. La correlación con la "
                 "compacidad apunta a la geometría de las zonas, no a la calidad de las direcciones."),
              op("Que el error posicional es irrelevante si la tasa global es baja.", False,
-                "Es exactamente la conclusión que el desglose desmiente, y la razón de que el "
-                "módulo exista.")]),
+                "Una tasa global baja dice que el error es raro, no que sea inofensivo. Si se "
+                "repartiera al azar, promediar lo diluiría; concentrado en localidades de una "
+                "forma determinada, cualquier comparación entre localidades hereda ese sesgo y "
+                "lo lee como diferencia real.")]),
 
     preg("opcion", "cap2", 10,
          f"Un polígono con una autointersección declara un área de {c('topo_area_antes')} y, "
@@ -914,10 +949,10 @@ BLOQUE_B = [
          f"¿Cuántas veces menos trabajo es? Da dos decimales.",
          "Divide los pares de antes entre los de después.",
          respuesta=float(val("ing_reduccion")), tolerancia=0.2,
-         retroAcierto=f"{c('ing_reduccion')} veces. Y el filtro de cajas es solo el primer paso: "
+         retroAcierto=f"{c('ing_reduccion')}. Y el filtro de cajas es solo el primer paso: "
                       f"descarta lo imposible barato para que la comprobación geométrica cara se "
                       f"haga sobre una fracción de ellos.",
-         retroFallo=f"Son {c('ing_reduccion')} veces. El orden importa: si te salió un número "
+         retroFallo=f"Son {c('ing_reduccion')}. El orden importa: si te salió un número "
                     f"menor que 1, dividiste al revés. La cifra que hay que retener es que el "
                     f"índice no cambia el resultado del <em>join</em>, solo el trabajo que "
                     f"cuesta llegar a él."),
@@ -1011,10 +1046,12 @@ BLOQUE_C = [
          "y head/tails—, sobre el mismo dato y el mismo <em>k</em>. ¿Qué se lee?",
          "Compara la barra más alta con la más baja, y fíjate en que ninguna es cero.",
          alto=300,
-         descripcionGrafico="Barras del porcentaje de municipios que cambian de clase en cada "
-                            "uno de los diez pares que forman los cinco esquemas de "
-                            "clasificación: intervalos iguales, cuantiles, Fisher-Jenks, "
-                            "desviación estándar y head/tails",
+         descripcionGrafico=f"Barras del porcentaje de municipios que cambian de clase en cada "
+                            f"uno de los diez pares que forman los cinco esquemas de "
+                            f"clasificación —intervalos iguales, cuantiles, Fisher-Jenks, "
+                            f"desviación estándar y head/tails—: la barra más alta llega al "
+                            f"{c('c3m4_discordante')}, la más baja al {c('c3m4_concordante')}, "
+                            f"y ninguna es cero",
          # Los rótulos van abreviados y en dos líneas, y el enunciado los
          # nombra enteros. Con los nombres completos, diez pares en un lienzo
          # de este ancho salen rotados y solapados: el gráfico se vuelve
@@ -1163,9 +1200,9 @@ BLOQUE_C = [
                 "individual."),
              op("Que hace falta aumentar el número de repeticiones por escala para estabilizar "
                 "la curva.", False,
-                "La curva ya es estable en la parte derecha, y donde se abre —con pocas zonas— "
-                "la dispersión no es error de simulación: es que con pocas zonas el resultado "
-                "depende de verdad de cuáles sean."),
+                "El número de repeticiones no es el problema. Con muchas zonas la curva ya es "
+                "estable; con pocas, el resultado depende de verdad de cuáles sean esas zonas, y "
+                "eso no se arregla repitiendo más: es el fenómeno que el módulo mide."),
              op("Que la relación entre educación de la madre y puntaje se refuerza al subir de "
                 "escala.", False,
                 "Lo que sube es un número calculado sobre otras unidades. La relación entre las "
@@ -1205,14 +1242,15 @@ BLOQUE_D = [
                 "posiciones no las puso el fenómeno.")]),
 
     preg("grafico", "cap1", 6,
-         "El gráfico traza el variograma teórico de un proceso y, encima, lo que devuelven mil "
-         "realizaciones suyas: la media de las mil y la banda entre los percentiles 5 y 95. "
-         "¿Qué se lee?",
+         f"El gráfico traza el variograma teórico de un proceso y, encima, lo que devuelven "
+         f"{c('realiz_n')} realizaciones suyas: la media de todas ellas y la banda entre los "
+         f"percentiles 5 y 95. ¿Qué se lee?",
          "Fíjate en cuánto se abre la banda a medida que crece el retardo, y en dónde cae la "
          "media.",
          alto=250,
-         descripcionGrafico="Variograma teórico, media de mil realizaciones y banda entre los "
-                            "percentiles 5 y 95, que se ensancha conforme crece el retardo",
+         descripcionGrafico=f"Variograma teórico, media de {c('realiz_n')} realizaciones y "
+                            f"banda entre los percentiles 5 y 95, que se ensancha conforme "
+                            f"crece el retardo",
          dibujar="""canvas => {
             const g = DATOS_PRE1.graficos.g_variograma;
             const gris = { backgroundColor: 'transparent', pointRadius: 0, borderWidth: 1.5,
@@ -1221,7 +1259,7 @@ BLOQUE_D = [
               { label: 'Teórico', data: g.teorico, borderColor: COLORES_GRAFICO.primario,
                 backgroundColor: 'transparent', borderDash: [6, 4],
                 pointRadius: 0, borderWidth: 2 },
-              { label: 'Media de las mil realizaciones', data: g.media,
+              { label: 'Media de las realizaciones', data: g.media,
                 borderColor: COLORES_GRAFICO.secundario, backgroundColor: 'transparent',
                 tension: 0.25, pointRadius: 3, borderWidth: 2 },
               Object.assign({ label: 'Percentil 5', data: g.q05 }, gris),
@@ -1231,13 +1269,17 @@ BLOQUE_D = [
          opciones=[
              op("Que una sola realización puede quedar muy lejos del variograma del proceso, y "
                 "tanto más cuanto mayor es el retardo.", True,
-                "La media de las mil cae sobre el teórico; la banda dice lo que le puede pasar a "
-                "una. Con un solo mapa —que es lo que siempre se tiene— se está en algún punto "
-                "de esa banda, sin saber en cuál."),
+                "La banda dice lo que le puede pasar a una realización, y se abre conforme "
+                "crece el retardo. Con un solo mapa —que es lo que siempre se tiene— se está en "
+                "algún punto de esa banda, sin saber en cuál."),
              op("Que el estimador del variograma está sesgado en los retardos grandes.", False,
-                "La media de las realizaciones sigue al teórico en todo el recorrido: no hay "
-                "sesgo apreciable. Lo que crece es la dispersión, porque en los retardos grandes "
-                "hay menos pares que promediar."),
+                "El sesgo que propone no está donde lo pone: en los retardos grandes la media "
+                "de las realizaciones y el teórico van juntos, y lo que crece ahí es la "
+                "dispersión —hay menos pares que promediar—, que es varianza y no sesgo. La "
+                "única separación visible está en el retardo más corto, y tampoco es del "
+                "estimador: cada retardo agrupa los pares que caen a media unidad de él, y en el "
+                "primero eso mezcla los vecinos de al lado con los de la diagonal, que están "
+                "más lejos."),
              op("Que el proceso deja de ser estacionario a partir de cierto retardo.", False,
                 "El proceso simulado es estacionario por construcción. Confundir la apertura de "
                 "la banda con una pérdida de estacionariedad es leer una propiedad del estimador "
@@ -1437,12 +1479,22 @@ def js_pregunta(q):
     secas —un número— el resumen del cuestionario resolvería
     `courseData.modules[m-1]`, que en este documento son los BLOQUES del
     preparcial: mandaría a repasar el bloque recién hecho.
+
+    Y lleva `orden`, que no es decorativo. El motor ordena la lista de
+    repaso con `(a.orden || 0) - (b.orden || 0) || localeCompare(etiqueta)`:
+    sin `orden` las tres claves valen 0, gana el desempate alfabético y la
+    lista sale «módulo 1, módulo 10, módulo 11, módulo 2, módulo 3…».
+    Se vio en el navegador, fallando el bloque A entero (P3.3); ninguna de
+    las 112 comprobaciones del auditor lo miraba, porque el orden lo decide
+    el motor en tiempo de ejecución y no el JSON. Capítulo por cien más
+    módulo ordena también el bloque D, que cruza los tres capítulos.
     """
     etiqueta = (f"Cap. {q['doc'][3]} · módulo {q['modulo']} — "
                 f"{_titulo_modulo(q['doc'], q['modulo'])}")
     campos = [
         f"        tipo: {js_str(q['tipo'])}",
-        f"        repaso: {{ etiqueta: {js_str(etiqueta)}, "
+        f"        repaso: {{ orden: {int(q['doc'][3]) * 100 + q['modulo']}, "
+        f"etiqueta: {js_str(etiqueta)}, "
         f"href: {js_str(ALC.DOCS[q['doc']])} }}",
         f"        pregunta: {js_str(q['pregunta'])}",
         f"        pista: {js_str(q['pista'])}",
@@ -1738,10 +1790,12 @@ print(f"n = {len(bien)} | tipo = {bien.geom_type.iloc[0]} | "
       f"EPSG = {bien.crs.to_epsg()}")
 #&gt; n = 361 | tipo = Point | EPSG = 4326
 
+# La comprobacion: la caja envolvente, en las unidades que toca.
 x0, y0, x1, y1 = bien.total_bounds
 print(f"caja: lon [{x0:.2f}, {x1:.2f}]  lat [{y0:.2f}, {y1:.2f}]")
 #&gt; caja: lon [-81.73, -67.49]  lat [-4.19, 13.36]
 
+# Y asi se ve el MISMO dato con las columnas al reves:
 mal = gpd.GeoDataFrame(est, crs=4326,
                        geometry=gpd.points_from_xy(est.lat, est.lon))
 x0, y0, x1, y1 = mal.total_bounds
@@ -1782,7 +1836,9 @@ print(f"el archivo viene en EPSG:{loc.crs.to_epsg()}")
 mal  = loc.set_crs(4326, allow_override=True)   # la ETIQUETA
 bien = loc.to_crs(4326)                         # las COORDENADAS
 
-print(f"vertices que mueve set_crs: {int((mal.geometry != loc.geometry).sum())}")
+# get_coordinates() da una fila por VERTICE, como st_coordinates()
+xy_mal, xy_loc = mal.get_coordinates(), loc.get_coordinates()
+print(f"vertices que mueve set_crs: {int((xy_mal.x != xy_loc.x).sum())}")
 #&gt; vertices que mueve set_crs: 0
 
 print(f"set_crs -&gt; xmin = {mal.total_bounds[0]:.1f}")
@@ -1804,7 +1860,7 @@ bog &lt;- st_sfc(st_point(c(-74.0721, 4.7110)), crs = 4326)
 med &lt;- st_sfc(st_point(c(-75.5636, 6.2518)), crs = 4326)
 
 previo &lt;- sf_use_s2()   # el estado de s2 es GLOBAL: se deja como estaba
-sf_use_s2(TRUE)         # el de serie: s2 mide sobre una ESFERA
+sf_use_s2(TRUE)         # el de serie: s2 mide sobre una ESFERA de 6 371 010 m
 cat(sprintf("st_distance tal cual        = %.0f m\\n",
             as.numeric(st_distance(bog, med))))
 #&gt; st_distance tal cual        = 237921 m
@@ -1851,13 +1907,17 @@ cat(sprintf("I = %.6f | E[I] sin estructura = %.6f\\n",
       '''import geopandas as gpd, numpy as np, json, esda
 from libpysal.weights import Queen
 
+# La ruta de nc.shp sale de versiones.json; en R la da system.file().
 nc = gpd.read_file(json.load(open("precalculo/versiones.json"))["rutas"]["nc_shp"])
+
+# 1) quien toca a quien
 w = Queen.from_dataframe(nc, use_index=False, silence_warnings=True)
 print(f"n = {len(nc)} | vecinos por condado = "
       f"{np.mean(list(w.cardinalities.values())):.1f}")
 #&gt; n = 100 | vecinos por condado = 4.9
 
-mi = esda.Moran(nc["SID74"].values, w)   # esda normaliza los pesos por fila
+# 2) y 3) en una: esda normaliza los pesos por fila y calcula el indice
+mi = esda.Moran(nc["SID74"].values, w)
 print(f"I = {mi.I:.6f} | E[I] sin estructura = {mi.EI:.6f}")
 #&gt; I = 0.147741 | E[I] sin estructura = -0.010101''') + f"""
       <p>El valor esperado bajo independencia <strong>no es cero</strong>: es −1/(n−1), y por eso el
@@ -1888,6 +1948,8 @@ cat("condados justo en un corte:", sum(sid %in% cortes), "\\n")
 sid = pd.read_csv("precalculo/salidas/cap3_nc.csv")["sid74"].to_numpy()
 
 q = mc.Quantiles(sid, k=5)
+# mapclassify lista solo los limites SUPERIORES: son los mismos cortes
+# que da R, sin el minimo delante. Lo que si cambia son los tamanos.
 print("cortes:", [float(b) for b in q.bins])
 #&gt; cortes: [1.0, 4.0, 5.0, 10.0, 44.0]
 print("tamanos:", np.bincount(q.yb, minlength=5))
@@ -1924,6 +1986,8 @@ v = pd.read_csv("precalculo/salidas/cap3_municipios_edu_madre.csv",
 print(f"municipio    n = {len(v):4d}   r = {v.x.corr(v.p):.7f}")
 #&gt; municipio    n = 1114   r = 0.3033294
 
+# Agregar con media PONDERADA por el numero de estudiantes, no simple:
+# un municipio de 200 estudiantes no pesa lo mismo que uno de 20 000.
 v["dpto"] = v.divipola.str[:2]
 pond = lambda s: pd.Series({"x": np.average(s.x, weights=s.n),
                             "p": np.average(s.p, weights=s.n)})
@@ -2276,6 +2340,19 @@ def main() -> int:
         problemas.append(f"{mods} plantillas de módulo y {declarados} declaradas en la "
                          f"navegación: un botón llevaría a un panel en blanco sin un "
                          f"solo error en consola")
+    # El catálogo se llama «los DIEZ errores» en tres sitios de la prosa —el
+    # título del módulo, su primer párrafo y el cierre del módulo 1—, y esas
+    # tres son cifras escritas con letra: no pasan por `cifra()`, así que
+    # `sin_aritmetica.py` no las ve y envejecen en silencio (§12.4). Aquí no
+    # se interpolan —«Los 10 errores» se lee peor y el título es un nombre—:
+    # se ata el nombre al recuento, que es la otra mitad de la regla.
+    NOMBRE_RECUENTO = {10: "diez"}
+    palabra = NOMBRE_RECUENTO.get(len(ERRORES))
+    if palabra is None or marcado.count(f"{palabra} errores") < 2:
+        problemas.append(f"el catálogo tiene {len(ERRORES)} errores y la prosa los "
+                         f"llama «{palabra or '?'}»: hay tres sitios que lo escriben "
+                         f"con letra y no se actualizan solos")
+
     # Los 30 módulos del temario tienen que estar NOMBRADOS, no contados. Un
     # preparcial que promete cubrir el temario y se deja tres módulos sin
     # mencionar manda a estudiar a ciegas justo donde no hay preguntas.

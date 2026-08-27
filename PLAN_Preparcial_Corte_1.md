@@ -58,7 +58,25 @@ cifra del capítulo y la del preparcial.
 · **Y encontró dos cosas de contenido el mismo día.** La grave: **la respuesta correcta caía la
 primera en las 29 preguntas con opciones**, así que el preparcial se aprobaba marcando siempre la
 (a). Ver §12.6.
-Siguiente: **P2.4** (los seis ejercicios guiados) y **P1.2** (el auditor).
+✅ **P3.0 hecha (2026-08-26), revisada y aprobada por Javier.** La auditoría de contenido, en
+**seis pasadas**: los cuatro bloques, los seis procedimientos y los dos módulos que enmarcan.
+**36 de 36 preguntas contestadas a ciegas**, 6 de 6 gráficos contrastados contra su serie, 116 de
+116 retroalimentaciones y los 29 comentarios de código leídos. **32 hallazgos, los 32 aplicados**
+—también los del cubo D, por decisión de Javier—, y **cinco de ellos bloqueaban repartir con todo el
+arnés en verde**. El informe es `AUDITORIA_CONTENIDO_P30.md`.
+· **Lo que el arnés no podía ver, y ahora está escrito como método:** seis vías de defecto, cada una
+cazada por una comprobación distinta y ninguna sustituible por otra. Ver §12.7.
+· El precálculo pasó de **119 a 126 cifras reutilizadas**; el ensamblador ganó **una guarda nueva**,
+probada por inyección. Cadena entera en verde: 112/112 del auditor, 71/71 cifras `#>`, **461/461**
+encadenado con los cuatro capítulos y el taller.
+✅ **P1.3 hecha (2026-08-26).** `prueba_auditor_preparcial1.py`, 615 líneas: **87 inyecciones,
+87 cazadas**, sobre las tres superficies que el auditor lee —el JSON (56), el HTML publicado (23) y
+los tres capítulos (8)—. Y no se conforma con «87 de 87»: **95 de 95 tipos de comprobación se han
+visto fallar**, y los tres que no están en listas separadas con su motivo. **Checkpoint 1 cerrado.**
+· **Salió en rojo cuatro veces, y las cuatro por defectos del arnés**, no del auditor. La peor: el
+reordenador de opciones producía JavaScript roto y **el auditor moría al analizar** — código de
+salida ≠ 0, así que el arnés lo contaba como cazado. De ahí nace `revento()`. Ver §6.
+Siguiente: **P2.4** (los seis ejercicios guiados), que es lo que queda de la fase 2.
 
 ---
 
@@ -81,20 +99,36 @@ con seis días por delante; el preparcial tiene que estar repartido antes, reali
 | P0.2 · el motor | 🟡 **mitad hecha**: el resumen ya sabe apuntar a otro documento y está retropropagado a los cinco documentos. Falta el **enlace profundo** (`#mN`) |
 | P1.1 · `genera_preparcial1.R` | ✅ hecha, 14 anclas, reproducible |
 | P1.2 · `audita_preparcial1.py` | ✅ hecha, 112 comprobaciones en 5 familias, 0 fallos |
-| P1.3 · arnés de inyección del auditor | ⛔ **no empezada — es la que queda de la fase 1** |
+| P1.3 · arnés de inyección del auditor | ✅ **hecha (2026-08-26)**: 87 inyecciones, 87 cazadas, **95 de 95 tipos vistos fallar** |
 | P2.1 · esqueleto y los dos módulos marco | ✅ hecha |
 | P2.2 · bloques A y B, 22 preguntas | ✅ hecha |
 | P2.3 · bloque C, procedimientos y bloque D | ✅ hecha, 36 preguntas, 30/30 módulos, 71/71 cifras `#>` |
 | P2.4 · los seis ejercicios guiados | ⛔ **no empezada — es la que queda de la fase 2** |
-| P3.0 · **auditoría de contenido** | ⛔ **no empezada — es la SIGUIENTE, y es la que ninguna herramienta puede hacer** |
+| P3.0 · **auditoría de contenido** | ✅ **hecha (2026-08-26)**, revisada y aprobada por Javier. 32 hallazgos, los 32 aplicados. Informe en `AUDITORIA_CONTENIDO_P30.md` |
 | P3.1 · `audita_texto_preparcial1.py` | ⛔ no empezada. Ver §12.4: hay una clase de defecto que hoy solo caza leer |
-| P3.2 · cubo, bucle, lista blanca, portada | 🟡 **mitad hecha**: cubo de `cuenta_sitio.py`, enlace desde `index.html` y línea del `.gitignore`, hechos. Falta el **bucle de `audita_todo.sh`** —ya no está bloqueado: P1.2 existe— y el README |
-| P3.3 · verificación y cierre | ⛔ no empezada |
+| P3.2 · cubo, bucle, lista blanca, portada | ✅ **hecha (2026-08-26, noche)**: los 5 criterios. El bucle descubre solo —probado con un preparcial 2 falso: 19 → 22 pasos— y el README está al día |
+| P3.3 · verificación y cierre | ✅ **hecha (2026-08-26, noche)**: los 6 criterios en verde y 1 hallazgo aplicado. El sello llegó con P3.2: `ARNÉS COMPLETO EN VERDE`, 19 pasos, 0 rojos |
 
-**Lo publicado ahora mismo:** `Htmls_Espacial/preparcial-corte-1.html`, 373 KB, **7 módulos**, **36
-preguntas** que cubren **los 30 módulos** del alcance, y **6 pares R/Python** verificados
+**Lo publicado ahora mismo:** `Htmls_Espacial/preparcial-corte-1.html`, **379,1 KiB**, **7 módulos**,
+**36 preguntas** que cubren **los 30 módulos** del alcance, y **6 pares R/Python** verificados
 ejecutándolos. Lo que falta para cerrar la fase 2 son los seis ejercicios guiados (P2.4), que entran
 entre el bloque D y el catálogo de errores y renumeran solos el módulo de cierre del 7 al 8.
+
+**Y esto es lo primero que hay que mirar al abrir una sesión nueva: NADA DE ESTO ESTÁ COMITEADO.**
+`git status` enseña seis cosas, y conviene saber qué es cada una antes de tocarlas:
+
+| | Qué es |
+|---|---|
+| `M Htmls_Espacial/preparcial-corte-1.html` | el documento publicado, con los 32 arreglos de P3.0 dentro |
+| `M precalculo/ensambla_preparcial1.py` | los arreglos de P3.0 y **una guarda de salida nueva** (el nombre del catálogo atado a `len(ERRORES)`) |
+| `M precalculo/genera_preparcial1.R` | 7 claves reutilizadas nuevas y 5 campos `que` corregidos |
+| `M precalculo/salidas/preparcial1_datos.json` | el precálculo regenerado: **126 cifras**, eran 119 |
+| `M PLAN_Preparcial_Corte_1.md` | este archivo |
+| `?? precalculo/prueba_auditor_preparcial1.py` | **el arnés de P1.3, sin rastrear** |
+
+Y **`AUDITORIA_CONTENIDO_P30.md` no aparece en `git status`**: la lista blanca de la raíz lo atrapa
+(`.gitignore:8:/*`). Para versionarlo hace falta un `!/AUDITORIA_CONTENIDO_P30.md`, como el que ya
+tiene este plan en la línea 126. **Es una decisión de Javier, no del guion, y sigue sin tomarse.**
 
 ### 0.2 · Lo primero que hay que saber, antes de tocar nada
 
@@ -114,8 +148,13 @@ entre el bloque D y el catálogo de errores y renumeran solos el módulo de cier
    preparcial**, porque las cifras pueden haberse movido — ya pasó el mismo día, ver §12.4.
 4. **Las glosas verbales son cifras a mano.** «Un 7 % más», «tres veces mejor», «Son 140 KB»: no
    pasan por ningún formateador, así que `sin_aritmetica.py` no las ve y envejecen mal. Se cazaron
-   diecisiete escribiendo P2.2 y dos más escribiendo P2.3. Al redactar cualquier cosa nueva, **no
-   reformular una cifra en palabras**: o se cita por su clave, o no se dice.
+   diecisiete escribiendo P2.2, dos más escribiendo P2.3 y **una quincena más en P3.0**. Al
+   redactar cualquier cosa nueva, **no reformular una cifra en palabras**: o se cita por su clave, o
+   no se dice. **Y la regla tiene dos mitades:** cuando la primera no se puede —el rótulo de un
+   lienzo vive dentro de JavaScript y un bloque de código no se interpola, regla 6— la que queda es
+   la segunda, quitar el número. Y cuando citarla empeora el texto —«Los **10** errores que se
+   repiten» es peor que «los diez», porque el título es un nombre y no un recuento— se mecaniza por
+   fuera: hay una guarda en el ensamblador que ata el nombre a `len(ERRORES)`.
 5. **Las opciones se barajan solas, y por eso ninguna retroalimentación puede nombrar una
    posición.** El ensamblador reordena las opciones de cada pregunta con una semilla derivada del
    JSON y de la identidad de la pregunta —reproducible byte a byte—, porque escritas de una en una
@@ -129,7 +168,24 @@ entre el bloque D y el catálogo de errores y renumeran solos el módulo de cier
 7. **El auditor no arranca con `python3` a secas.** Necesita geopandas, pyproj y mapclassify: el
    intérprete es el de `geo_env`, y su ruta está en `precalculo/versiones_py.json`.
 8. **El plan ya se versiona** (`!/PLAN_Preparcial_Corte_1.md` en el `.gitignore`, línea 126). Nada
-   de esto está comiteado todavía: la decisión del commit es de Javier.
+   de esto está comiteado todavía: la decisión del commit es de Javier. `AUDITORIA_CONTENIDO_P30.md`
+   **sigue fuera** de la lista blanca, y también es decisión suya.
+9. **El campo `que` de una cifra reutilizada NO es documentación interna: se publica.** El comentario
+   del generador lo llama «lo que el redactor de la pregunta lee para no volver al capítulo», y el
+   catálogo de errores del módulo 7 lo imprime literal —cada `<li>` es `cifra(clave) — que(clave)`—.
+   Cinco de esos campos tenían defectos y ninguna pasada sobre preguntas podía verlos. **Y el nombre
+   de la ruta no describe lo que mide:** `m2.r_conteo_tasa` correlaciona el conteo con el *puntaje
+   medio*, no con una tasa, y escribir el `que` leyendo el nombre publicó esa confusión (P3.0, A-4).
+10. **El `descripcionGrafico` es contenido, no metadato.** Es el `aria-label` del lienzo y la **única**
+   descripción que recibe quien usa lector de pantalla. Un rótulo que existe y no está vacío cuenta
+   como accesible para el arnés, y **ninguna comprobación mira si dice la verdad ni si basta para
+   contestar la pregunta**. Las dos cosas hay que preguntárselas a mano: uno decía que Mercator
+   destruye el área más que ninguna —y es la tercera de seis— y otro describía la estructura de un
+   gráfico de barras sin una sola magnitud, con una pista que mandaba a comparar barras (P3.0).
+11. **El arnés de P1.3 falla del revés que un auditor.** Si `prueba_auditor_preparcial1.py` se pone en
+   rojo, la primera hipótesis es que el defecto está **en la inyección**, no en el auditor: salió en
+   rojo cuatro veces y las cuatro fue así. La regla: **cambiar el archivo no es mover la
+   comprobación** — una inyección puede no ser «inerte» y seguir sin probar nada.
 
 ### 0.3 · La cadena, en orden
 
@@ -145,43 +201,52 @@ python3 precalculo/campos_vivos.py                       # el contrato dato ↔ 
 python3 precalculo/cuenta_sitio.py                       # los totales y el enlace de portada
 ```
 
-`audita_todo.sh` **todavía no conoce el preparcial**: su bucle es P3.2, que ya no está bloqueado
-—`audita_preparcial1.py` existe— pero sigue queriendo la prosa de P3.1 para nacer completo. Mientras
-tanto, lo de arriba es lo que hay. El intérprete de `geo_env` sale de `precalculo/versiones_py.json`;
-`python3` a secas no tiene geopandas ni pyproj y el auditor no arranca.
+Y **aparte, porque tarda minutos y no es para cada cambio** —son 89 invocaciones del auditor,
+cada una releyendo los GeoPackage—:
+
+```
+python3 precalculo/prueba_auditor_preparcial1.py         # el arnés de inyección (87/87)
+python3 precalculo/verifica_bloques.py --todos           # los 461 bloques del sitio entero
+```
+
+El segundo hay que correrlo **siempre que se toque un bloque de código del preparcial**: los bloques
+de R del sitio se ejecutan en una sola sesión y el estado de `sf_use_s2()` es global (§12.5).
+
+**`audita_todo.sh` ya conoce el preparcial** (P3.2, 2026-08-26): tercer bucle propio, que corre el
+auditor, el arnés del alcance —también con `--rapido`, cuesta 0,06 s— y, cuando exista, el de la
+prosa. Así que para dar algo por cerrado basta con:
+
+```
+precalculo/audita_todo.sh --rapido    # 19 pasos, segundos
+precalculo/audita_todo.sh             # + los arneses de inyección, minutos
+```
+
+La lista de nueve órdenes de arriba sigue sirviendo para trabajar —es más rápida y dice más de cada
+paso—, pero ya no es la única forma de pasar el arnés entero. El intérprete de `geo_env` sale de
+`precalculo/versiones_py.json`; `python3` a secas no tiene geopandas ni pyproj y el auditor no
+arranca.
 
 ### 0.4 · Qué hacer a continuación, y en qué orden
 
-**Primero P3.0, la auditoría de contenido**, y por delante de P1.3 a propósito. Las dos protegen
-cosas distintas y a seis días del parcial el orden importa: **una clave equivocada llega a los
-estudiantes; un auditor sin probar, no**. Todo el arnés comprueba la forma —cuántas correctas hay,
-que la retroalimentación exista y sea distinta, que las cifras no se hayan movido— y ninguna
-comprobación sabe si lo que la opción correcta *dice* es verdad. Ese punto ciego es de construcción,
-no un descuido, y ya se cobró una pieza (§12.6). El §8 la especifica entera, con el protocolo y los
-cuatro cubos de hallazgo.
+✅ **P3.0 ya está hecha, revisada y aprobada (2026-08-26).** Se puso por delante de P1.3 a
+propósito —«una clave equivocada llega a los estudiantes; un auditor sin probar, no»— y la decisión
+se pagó sola: **cinco defectos bloqueaban repartir y los cinco pasaban las 112 comprobaciones del
+auditor**. El informe es `AUDITORIA_CONTENIDO_P30.md` y las seis vías por las que se cazaron están en
+**§12.7**, que es lo que hay que leer antes de auditar cualquier cosa nueva de este documento.
 
-**Después P1.3**, el arnés de inyección del auditor, y con más motivo que antes: el auditor acaba
-de encontrar dos defectos de contenido el día que nació, así que ahora hay algo que proteger. Sin el
-arnés, el verde de sus 112 comprobaciones está sin probar — y las tres variables de entorno que
-necesita (`PREPARCIAL1_DATOS`, `PREPARCIAL1_HTML`, `PREPARCIAL1_CAPS`) ya existen justo para eso.
+✅ **P1.3 hecha (2026-08-26), y con ella el Checkpoint 1.**
+`prueba_auditor_preparcial1.py`: **87 inyecciones, 87 cazadas**, y **95 de 95 tipos de comprobación
+vistos fallar**. El detalle está en el §6; lo que conviene saber antes de tocarlo:
 
-**El modelo a copiar es `precalculo/prueba_auditor_taller1.py`**, que es el arnés más parecido: usa
-variables de entorno igual, escribe sobre copias, empieza y acaba con un control sin inyectar nada,
-y no se conforma con «N de N» —cuenta además cuántas comprobaciones **distintas** se han visto
-fallar alguna vez, que es lo que destapa una familia entera incapaz de fallar—. Lo que este arnés
-tiene de propio, y hay que resolverlo antes de escribir la primera inyección:
-
-- **Tres archivos que envenenar, no uno.** El JSON (`PREPARCIAL1_DATOS`), el HTML con las 36
-  preguntas (`PREPARCIAL1_HTML`) y la carpeta de los capítulos (`PREPARCIAL1_CAPS`). Las familias
-  3, 4 y 5 solo se pueden romper tocando el HTML, y la 2 solo se rompe de verdad moviendo el
-  capítulo.
-- **Las inyecciones del HTML son sobre texto, no sobre JSON.** Vaciar una `retro`, duplicar la de
-  una hermana, poner dos correctas en una `opcion`, mandar el `repaso` a `cap3.m10` —que está fuera
-  del alcance—, copiar el texto de la correcta dentro del enunciado, y **volver a poner la correcta
-  la primera en todas**, que es la que nació de un defecto real.
-- **La trampa de `A.3`**: ninguna cifra inyectada puede existir ya en el archivo, o la inyección es
-  inerte y el arnés cuenta un acierto que no ha ocurrido. Se comprueba que la copia **cambió** antes
-  de ejecutar el auditor.
+- **Envenena tres superficies**, y hacen falta las tres: el JSON (56 inyecciones), el HTML publicado
+  con las 36 preguntas (23) y los tres `capN_datos.json` (8). Las familias 3, 4 y 5 solo se rompen
+  tocando el HTML —las preguntas no están en el JSON—, y la 2 solo se rompe **de verdad** moviendo
+  un capítulo debajo, que es la forma que el defecto tiene en la realidad (§12.4).
+- **Tarda unos minutos.** Son 89 invocaciones del auditor, cada una releyendo los GeoPackage. No es
+  para la cadena rápida.
+- **Salió en rojo cuatro veces y las cuatro fueron culpa del arnés**, no del auditor. Si se vuelve a
+  poner en rojo, la primera hipótesis es ésa. La regla que resume las cuatro: **cambiar el archivo
+  no es mover la comprobación** — una inyección puede no ser «inerte» y seguir sin probar nada.
 
 **Y P2.4**, los seis ejercicios guiados, que es lo que queda de la fase 2. El andamiaje está
 montado: se inserta `mod_ejercicios` en `CONSTRUCTORES` entre `mod_bloque_d` y `mod_errores` y la
@@ -192,15 +257,32 @@ Si la fecha aprieta, el §9 dice qué se suelta y qué cuesta cada recorte. Lo q
 la cobertura de los 30 módulos, la retroalimentación por opción, la familia de sincronía y el enlace
 desde la portada.
 
-### 0.5 · Los checkpoints que quedan
+### 0.5 · Qué falta para repartir, en orden de urgencia
 
-- **Checkpoint 2 · el preparcial completo, sin publicar.** Las 36 preguntas y los 30 de 30 módulos
-  ya están (P2.3); falta P2.4, los 6 ejercicios. Y falta lo que ninguna herramienta hace: **la
-  lectura de Javier de los cuatro bloques enteros, como los lee un estudiante** — el ritmo no lo
-  caza nada de lo que hay montado, y ahora que las opciones van barajadas conviene leer también si
-  alguna pregunta quedó rara al reordenarse.
-- **Checkpoint 3 · listo para repartir.** Arnés completo en verde, enlazado desde la portada, leído
-  entero, y la pregunta de cierre: **¿qué quedó dicho y no mostrado?**
+**Quedan seis días y el preparcial ya se puede repartir tal como está.** Conviene decirlo así de
+claro, porque las cuatro tareas que faltan **no son todas iguales de urgentes** y el §9 —la ruta
+corta— existe justo para no confundirlas:
+
+| | Qué es | ¿Bloquea repartir? |
+|---|---|---|
+| **La lectura de Javier** | los cuatro bloques enteros, como los lee un estudiante | **Sí.** Es la mitad del Checkpoint 2 que P3.0 no puede sustituir |
+| ~~**P3.2** · el bucle y el README~~ | ✅ hecha: `audita_todo.sh` ya conoce el preparcial | **Ya no** |
+| **P2.4** · los 6 ejercicios guiados | la dimensión de *producir*, no solo reconocer | No. El §9 lo da por soltable |
+| **P3.1** · `audita_texto_preparcial1.py` | mecaniza las cifras de la prosa | No. Protege el **futuro**, no este reparto |
+| ~~**P3.3** · navegador y cierre~~ | ✅ hecha salvo el sello, que es de P3.2 | **Ya no**, salvo por el sello |
+
+**Checkpoint 2 · el preparcial completo.** Las 36 preguntas y los 30 de 30 módulos están, y **P3.0
+está hecha y aprobada**: el contenido queda auditado afirmación por afirmación. Falta **P2.4** —y sus
+ejercicios pasan por el protocolo del §8 con las seis vías del §12.7 delante— y falta **la lectura de
+Javier**: el ritmo no lo caza nada de lo que hay montado, y ahora que las opciones van barajadas
+conviene mirar si alguna pregunta quedó rara al reordenarse.
+
+**Checkpoint 3 · listo para repartir.** Arnés completo en verde, enlazado desde la portada, leído
+entero, y la pregunta de cierre: **¿qué quedó dicho y no mostrado?**
+
+**Si la fecha aprieta**, el orden que yo seguiría es: **P3.3** (media hora, y caza cosas que solo se
+ven en el navegador) → **la lectura de Javier** → **P3.2** (el bucle) → y P2.4 y P3.1 después del
+parcial, si es que llegan.
 
 ---
 
@@ -453,15 +535,16 @@ y pandas/numpy para los CSV. Cinco familias, más un preámbulo de formato.
 **Verificación:** `<geo_env>/python precalculo/audita_preparcial1.py` · la prueba manual de la familia 2, por los dos lados: moviendo el capítulo y moviendo el preparcial.
 **Dependencias:** P1.1. **Archivos:** 1. **Alcance: M.**
 
-### P1.3 — `prueba_auditor_preparcial1.py`
+### ✅ P1.3 — `prueba_auditor_preparcial1.py` · **HECHA (2026-08-26)**
 
 **Descripción.** Le inyecta defectos al auditor para probar que sabe fallar. Sin esto, el verde de
 P1.2 no significa nada: es la lección de `A.3` del plan del material.
 
-**Criterios de aceptación:**
-- [ ] **≥ 40 inyecciones, 40 cazadas**, con al menos 5 por familia.
-- [ ] Ninguna cifra inyectada existe ya en el archivo (la trampa de `A.3`).
-- [ ] Escribe sobre copias, nunca sobre lo publicado (convenio de las variables de entorno).
+**Criterios de aceptación — los tres, con margen:**
+- [x] **≥ 40 inyecciones, 40 cazadas**, con al menos 5 por familia. **87 y 87**, repartidas 11 · 36 · 17 · 11 · 7 · 5.
+- [x] Ninguna cifra inyectada existe ya en el archivo (la trampa de `A.3`). Y **una vuelta más**: se comprueba que la copia cambió *y* que el auditor **informó** en vez de morir.
+- [x] Escribe sobre copias, nunca sobre lo publicado. Los **cinco** archivos —el JSON, el HTML y los tres capítulos— se comparan byte a byte al cerrar.
+- [x] **Añadido:** 95 de 95 tipos de comprobación se han visto fallar. Los 3 que no, con su motivo escrito y en listas separadas.
 
 **Lo que ya está puesto para que esto se pueda escribir:** el auditor lee por
 `PREPARCIAL1_DATOS` (el JSON), `PREPARCIAL1_HTML` (las preguntas) y `PREPARCIAL1_CAPS` (la carpeta
@@ -469,11 +552,35 @@ de los `capN_datos.json`). La tercera hace falta y las otras dos no bastaban: la
 que existe de verdad no la provoca el preparcial, la provoca que un capítulo se mueva debajo, y sin
 poder mover el capítulo esa familia solo se prueba por el lado que nunca falla solo.
 
-**Verificación:** `python3 precalculo/prueba_auditor_preparcial1.py`.
-**Dependencias:** P1.2. **Archivos:** 1. **Alcance: S.**
+**Lo que costó, y es lo que este archivo enseña.** El arnés salió en rojo **cuatro veces**, y
+**las cuatro por defectos del arnés, no del auditor**:
 
-### ✅ Checkpoint 1 — el precálculo, y el auditor que sabe fallar
-- [ ] Reproducible byte a byte · auditor en verde · arnés 40/40.
+| Intento | Qué pasó |
+|---|---|
+| 51/53 | `meta["n_reutilizado"]` en vez de `n_reutilizadas`: la inyección **añadía una clave nueva**. Cambiaba el archivo —así que no era «inerte»— y no movía la comprobación |
+| 51/53 | el reordenador de opciones producía JavaScript roto y **el auditor moría al analizar**. El código de salida era ≠ 0, así que el arnés lo contaba como cazado |
+| 75/77 | el bloque D con **dos** capítulos seguía pasando: el umbral es `>= 2`. Costó dos intentos ver que había que dejarlo en uno |
+| 86/87 | `SOLO_FUENTES` declaraba cinco comprobaciones «imposibles de atacar» y **cuatro sí lo eran**: las escondía como cubiertas, que es lo que esa lista existe para no hacer |
+
+De ahí salen las tres cosas que este arnés tiene y el del taller no: **`revento()`**, que distingue
+«el auditor informó» de «el auditor murió»; la regla de que **cambiar el archivo no es mover la
+comprobación**; y **tres listas separadas** en vez de una, porque «no lo he atacado», «no puedo
+atacarlo» y «no puede fallar» son tres cosas y mezclarlas es cómo se esconde una laguna.
+
+**Y dos cosas del auditor que el arnés destapó, y que no son defectos:**
+· `col_esf` —la columna con la que se comprueba el radio de s2— **no se lee del capítulo, se lee de
+la copia de `reutilizado`**. Envenenar `cap2_datos.json` dispara la familia 2 y **no** esa
+comprobación: hacen falta las dos inyecciones, y están las dos.
+· La comprobación **«hay 36 preguntas publicadas en 4 bloques»** lleva la cifra dentro del nombre,
+así que **no puede verse fallar bajo el mismo nombre**; y su condición es `total > 0`, falsa solo
+cuando ya explotó todo lo demás.
+
+**Verificación:** `python3 precalculo/prueba_auditor_preparcial1.py` → **87 de 87 · TIPOS 95 de 95**.
+Tarda unos minutos: son 89 invocaciones del auditor, cada una releyendo los GeoPackage.
+**Dependencias:** P1.2. **Archivos:** 1 (615 líneas). **Alcance: S** — se quedó en M.
+
+### ✅ Checkpoint 1 — el precálculo, y el auditor que sabe fallar · **CERRADO (2026-08-26)**
+- [x] Reproducible byte a byte · auditor en verde (112/112) · **arnés 87/87, y 95 de 95 tipos**.
 
 ---
 
@@ -566,7 +673,7 @@ de calcular los distractores en vez de inventarlos, y es lo que hace que fallar 
 
 ## 8. Fase 3 — El arnés y la publicación
 
-### P3.0 — La auditoría de contenido, que es la que ninguna herramienta puede hacer
+### ✅ P3.0 — La auditoría de contenido · **HECHA (2026-08-26), revisada y aprobada**
 
 **Por qué existe, y por qué no es «revisar por encima».** Todo el arnés de este documento comprueba
 **la forma**: que haya exactamente una correcta, que toda opción lleve retroalimentación distinta de
@@ -614,22 +721,41 @@ seis días del parcial:
 | **C · redacción / ortografía** | se entiende, pero está mal escrito o se lee mal | No |
 | **D · sugerencia** | mejoraría, y es opinión | No |
 
-**Criterios de aceptación:**
-- [ ] Las 36 preguntas contestadas a ciegas y las discrepancias con la clave, resueltas una a una.
-- [ ] Por cada pregunta, dicho explícitamente que **ningún distractor es cierto**.
-- [ ] Las 6 de gráfico, contrastadas **contra la serie**, con el cálculo escrito.
-- [ ] Las 116 retroalimentaciones y los 28 comentarios generales, leídos.
-- [ ] Los 12 bloques de código: equivalencia entre pestañas y comentarios ciertos.
-- [ ] Cada hallazgo en su cubo, y **todo A y B llevado a `ensambla_preparcial1.py`** — nunca al HTML, que es un artefacto (§1, regla 5).
-- [ ] La cadena entera en verde **después** de los arreglos: tocar prosa rompe `sin_aritmetica`, la guarda de posiciones o un `#>` con una facilidad sorprendente.
+**Criterios de aceptación — los siete, cumplidos:**
+- [x] Las 36 preguntas contestadas a ciegas y las discrepancias con la clave, resueltas una a una. **36 de 36; una discrepancia, y era un hallazgo.**
+- [x] Por cada pregunta, dicho explícitamente que **ningún distractor es cierto**. Con **ocho salvedades razonadas** —distractores de premisa cierta y conclusión falsa—, todas revisadas y aceptadas.
+- [x] Las 6 de gráfico, contrastadas **contra la serie**, con el cálculo escrito. **6 de 6, y dos dieron hallazgo.**
+- [x] Las 116 retroalimentaciones y los 28 comentarios generales, leídos. **116 de 116**, más los 29 comentarios de los bloques de código.
+- [x] Los 12 bloques de código: equivalencia entre pestañas y comentarios ciertos. **Ningún comentario falso; dos pestañas que no calculaban lo mismo.**
+- [x] Cada hallazgo en su cubo, y **todo A y B llevado a `ensambla_preparcial1.py`**. **32 de 32 aplicados**, incluidos los del cubo D.
+- [x] La cadena entera en verde **después** de los arreglos. 112/112, 71/71, **461/461** encadenado.
 
 **Se hace por bloques, no de una pasada.** Un informe escrito del tirón sobre 330 afirmaciones
 pierde fidelidad hacia el final, y esto se puede interrumpir: A, B, C, D, procedimientos, y los dos
 módulos que enmarcan.
 
-**Verificación:** el informe por cubos · la cadena del §0.3 en verde · y lo que ninguna herramienta
-sustituye, la lectura de Javier (Checkpoint 2).
-**Dependencias:** P2.3. **Archivos:** 1–2. **Alcance: L.**
+**Lo que se hizo, y no fue una pasada:** seis, en el orden del §8 —bloques A, B, C, D, los seis
+procedimientos y los dos módulos que enmarcan—. El informe entero, con el razonamiento de cada
+hallazgo y lo que se revisó **sin** encontrar nada, está en **`AUDITORIA_CONTENIDO_P30.md`** (raíz).
+
+**Los cinco que bloqueaban repartir, y que todo el arnés daba por buenos:**
+
+| | Qué estaba mal |
+|---|---|
+| **B-1** · A10 | el enunciado y la pista pedían lo contrario que la clave: 42.97 % contra 75.34 %, con tolerancia 1.0 |
+| **A-1** · B3 | la opción correcta decía que Mercator destruye el área más que ninguna de las seis, y es **la tercera** |
+| **A-2** · B7 | «los mismos 20 rasgos» contra `n_rasgos` = 60, y ni eran «los mismos» |
+| **B-2** · C4 | el `aria-label` no daba una sola magnitud: con lector de pantalla la pregunta era incontestable |
+| **A-3** · D2 | el veredicto era correcto y **la razón que lo sostenía, falsa** |
+| **A-4** · módulo 7 | el catálogo llamaba «tasa» a un puntaje medio, contradiciendo a C2 y al capítulo 3 |
+
+**Tres decisiones de Javier al abrir la tarea**, y quedan como precedente: el informe vive en la raíz;
+**entran los 82 párrafos de prosa de los módulos que enmarcan**, no solo el cuestionario; y **los
+hallazgos del cubo D se aplican**, no solo se anotan.
+
+**Verificación:** el informe por cubos · la cadena del §0.3 en verde · y la lectura de Javier, hecha
+y conforme (2026-08-26).
+**Dependencias:** P2.3. **Archivos:** 3 (`genera_preparcial1.R`, `ensambla_preparcial1.py`, el informe). **Alcance: L.**
 
 ### P3.1 — `audita_texto_preparcial1.py` y sus inyecciones
 
@@ -645,28 +771,58 @@ sustituye, la lectura de Javier (Checkpoint 2).
 **Descripción.** Lo que impide que el preparcial nazca fuera del arnés, que es justo el defecto que
 C8 del Taller 1 existe para no repetir.
 
-**Criterios de aceptación:**
-- [ ] `cuenta_sitio.py` abre el cubo `preparcial-*.html`, con su tabla y su nota de por qué sus totales no van contra los 120 módulos del §8.
-- [ ] `audita_todo.sh` gana su bucle propio (`preparcial${N}_datos.json` + `audita_preparcial${N}.py` + arnés + prosa), que **descubre solo**: un preparcial del Corte II lo hereda sin tocar nada.
-- [ ] `index.html` enlaza el preparcial en su propia sección; `cuenta_sitio.py` deja de listarlo como huérfano.
-- [ ] `!/PLAN_Preparcial_Corte_1.md` en `.gitignore`, comprobado con `git check-ignore -v`.
-- [ ] `README.md` al día: la tabla de estado y la explicación del cuarto cubo.
+**Criterios de aceptación** (los cinco cerrados el 2026-08-26 por la noche):
+- [x] `cuenta_sitio.py` abre el cubo `preparcial-*.html`, con su tabla y su nota. Ya estaba, del adelanto del 25.
+- [x] `audita_todo.sh` gana su bucle propio, y **descubre solo**. Probado por inyección: con un `preparcial2_datos.json` y un `audita_preparcial2.py` falsos, el guion pasa de **19 a 22 pasos** —auditor, alcance y prosa— sin tocar una línea. Los ficheros falsos se retiraron.
+- [x] `index.html` enlaza el preparcial en su propia sección. Ya estaba; `cuenta_sitio.py` confirma «los 6 archivos del curso están enlazados».
+- [x] `!/PLAN_Preparcial_Corte_1.md` en `.gitignore`: `git check-ignore -v` no devuelve nada sobre este archivo, que es lo que se buscaba.
+- [x] `README.md` al día. **Y llevaba un capítulo de retraso, cosa que este criterio no preveía:** decía «Tres de los diez capítulos» y contaba 36 módulos, 30 simuladores y 13 ejercicios. El capítulo 4 se cerró en `cec913c` y está enlazado en la portada sin distintivo. Corregido a los totales que imprime `cuenta_sitio.py` —48 módulos, 40 simuladores, 36 mapas, 48 preguntas, 18 ejercicios, 41 bloques por lenguaje—, comprobados contra su salida y no copiados de memoria.
 
-**Verificación:** `precalculo/audita_todo.sh --rapido` sin ningún «archivo sin clasificar» ni huérfano de portada.
-**Dependencias:** P3.1. **Archivos:** 5. **Alcance: M.**
+**Tres decisiones de diseño del bucle, por si hay un Corte II:**
+1. **Es un tercer bucle, no una rama del de talleres.** Un preparcial no enseña contenido nuevo (no es capítulo) y no se califica ni se individualiza (no es taller). Meterlo en cualquiera de los dos le habría exigido fingir que es lo que no es — el mismo argumento de C8 del Taller 1.
+2. **El arnés del alcance corre también con `--rapido`**, por la razón que el propio guion aplica a `prueba_ensambla_capN`: cuesta **0,06 s**, y gatearlo solo serviría para no correrlo nunca. Es lo único que vigila que la frontera del temario (D1) siga donde el plan la puso.
+3. **El bucle de la prosa está escrito y hoy no encuentra nada.** `audita_texto_preparcial1.py` es P3.1 y no existe; el bucle se salta entero y en silencio. Está puesto ya para que el día que nazca entre al arnés sin que nadie tenga que acordarse de volver aquí. **Esto es lo que desbloquea la dependencia de P3.1:** ya no hace falta que P3.1 exista para que P3.2 esté completa.
+
+**Verificación:** ✅ `ARNÉS COMPLETO EN VERDE`, código de salida 0, **19 pasos, 0 en rojo**, sin ningún «archivo sin clasificar» ni huérfano de portada.
+**Dependencias:** ~~P3.1~~ — ver el punto 3. **Archivos:** 5 → **se tocaron 2** (`audita_todo.sh`, `README.md`); los otros tres ya estaban. **Alcance: M.**
 
 ### P3.3 — Verificación en el navegador y cierre
 
-**Criterios de aceptación:**
-- [ ] Consola limpia en los 8 módulos.
-- [ ] Sin desbordamiento horizontal a 1 280, 375 y **318 px**.
-- [ ] Todo lienzo con tinta y con `aria-label`; 0 gráficos huérfanos.
-- [ ] Los cuatro bloques recorridos **fallando a propósito**: la pista sale al primer fallo, la respuesta al segundo, y el resumen manda al módulo correcto del capítulo correcto.
-- [ ] Peso medido y declarado.
-- [ ] **¿Qué quedó dicho y no mostrado?** Recorrido explícito del documento buscando lo que se afirma sin enseñarse.
+**Criterios de aceptación** (recorridos el 2026-08-26 por la noche; los 8 módulos son **7**
+mientras P2.4 no exista, y el octavo habrá que re-verificarlo cuando nazca):
+- [x] Consola limpia en los 7 módulos. Único mensaje: el aviso de `cdn.tailwindcss.com`, que sale en todo el sitio y es de diseño.
+- [x] Sin desbordamiento horizontal a 1 280, 375 y **318 px**. 21 medidas —7 módulos × 3 anchos—, ninguna desborda.
+- [x] Todo lienzo con tinta y con `aria-label`; 0 gráficos huérfanos. **6 de 6**, y son exactamente las 6 preguntas de tipo `grafico`.
+- [x] Los cuatro bloques recorridos **fallando a propósito**: **36 de 36** dan pista al primer fallo, retroalimentación marcada `mal` al segundo y revelan la respuesta. El resumen sale en los cuatro. **Y aquí salió el hallazgo, ver abajo.**
+- [x] Peso medido: **388 161 bytes = 379,1 KiB**, 99,9 KiB comprimido. (El ensamblador imprime «376 KB» porque mide **caracteres**, no bytes: 3 370 de diferencia son las tildes. Las dos cifras son correctas y miden cosas distintas.)
+- [x] **¿Qué quedó dicho y no mostrado?** Recorrido hecho. Una cosa, y es la de siempre: **el enlace de repaso promete un módulo y entrega un capítulo** (ver abajo).
+- [x] El sello `audita_todo.sh` en `ARNÉS COMPLETO EN VERDE` — **llegó con P3.2**, la misma noche: 19 pasos, 0 rojos, código de salida 0.
+
+**El hallazgo, y es de los que solo se ven en el navegador.** Fallando el bloque A entero, la lista
+de «vale la pena volver» salía **«módulo 1, módulo 10, módulo 11, módulo 2, módulo 3…»**. El motor
+ordena con `(a.orden || 0) - (b.orden || 0) || localeCompare(etiqueta)` y **ninguna de las 36
+preguntas declaraba `orden`**: las 36 claves valían 0, ganaba el desempate alfabético y «10» va
+antes que «2». Lo veía cualquier estudiante que fallara más de dos preguntas de A o de B —los dos
+bloques de 11 módulos— y también el D, que además desordenaba entre capítulos.
+· **Ninguna de las 112 comprobaciones del auditor podía verlo**, y no por descuido: el orden lo
+decide el motor **en tiempo de ejecución**, y el auditor lee el JSON y el HTML, que son correctos.
+Es la séptima vía del §12.7, y la única que hasta hoy no tenía ejemplo.
+· **Arreglado en `ensambla_preparcial1.py`, una línea:** `repaso` lleva ahora
+`orden: capítulo × 100 + módulo`, que ordena también el bloque D cruzando los tres capítulos.
+Verificado en el navegador: A da 1→11, B da 1→11, C da 1→8 y D da cap1 m2, cap1 m6, cap2 m2,
+cap2 m9, cap2 m11, cap3 m8. **No se tocó el motor**, así que no hay retropropagación que hacer.
+· Cadena entera repasada después: 112/112, 71/71, `sin_aritmetica` y `campos_vivos` en verde.
+
+**Lo dicho y no mostrado, que NO se arregló aquí porque es P0.2.** El resumen escribe «Cap. 1 ·
+módulo 5 — Tamaño de muestra efectivo» y el enlace lleva a **la cabecera del capítulo**, no al
+módulo 5. Comprobado el porqué: **los tres capítulos no tienen una sola ancla `id="mN"`** —sus
+módulos se cargan desde `<template>` con JavaScript—, así que el enlace profundo no es añadir
+`#m5` a un `href`: pide motor. Es exactamente la mitad que le falta a P0.2 y el §9 ya la da por
+soltable. **El sustituto que nombra el §9 ya está puesto** y verificado: la tabla estática «La ruta
+de repaso completa» del módulo 7, que lista los 30 módulos en orden.
 
 **Verificación:** `precalculo/audita_todo.sh` completo en `ARNÉS COMPLETO EN VERDE`.
-**Dependencias:** P3.2. **Archivos:** 0–2. **Alcance: S.**
+**Dependencias:** P3.2. **Archivos:** 0–2 → **se tocó 1** (`ensambla_preparcial1.py`). **Alcance: S.**
 
 ### ✅ Checkpoint 3 — listo para repartir
 - [ ] Arnés completo en verde · enlazado desde la portada · leído entero.
@@ -941,3 +1097,40 @@ efectivo con el ρ sin redondear; lo único que el preparcial puede leer es el �
 JSON con diez cifras. Los dos caminos se separan 1,8·10⁻⁷ sobre 64,5. La tolerancia es la del ancla
 del propio generador —1e-6— y queda dicho por qué: apretarla sería exigirle al preparcial que
 reprodujera un número que no tiene forma de ver.
+
+### 12.7 · Las seis vías por las que un defecto de contenido llega a verse
+
+Lo más reutilizable que dejó P3.0, y la razón de que el protocolo del §8 tenga los pasos que tiene.
+**Cada uno de los seis defectos graves lo cazó una comprobación distinta, y ninguna habría cazado a
+los otros cinco.** Los seis pasaron las 112 comprobaciones del auditor sin despeinarse.
+
+| Vía | Qué caza | El caso |
+|---|---|---|
+| **Contestar a ciegas** | que la clave sea la respuesta a la pregunta que se hizo | **A10**: enunciado y pista pedían la caída relativa al error por bloques; la clave la calculaba sobre el aleatorio |
+| **Calcular sobre la serie** | que la opción correcta sea cierta *sobre estos datos* | **B3**: «Mercator destruye el área más que ninguna» es lo que predice la enseñanza estándar, y aquí es la tercera de seis |
+| **Preguntar qué recibe quien no ve el gráfico** | que el `aria-label` sea cierto **y suficiente** | **C4**: describía la estructura y ni una magnitud, con una pista que manda a comparar barras |
+| **Leer las retros como afirmaciones** | que la razón que sostiene un veredicto correcto también lo sea | **D2**: «la media sigue al teórico en todo el recorrido» — en el primer retardo va un 16 % por encima |
+| **Contar los comentarios de cada pestaña** | que las dos enseñen lo mismo, no solo que devuelvan lo mismo | **Procedimientos**: 14 comentarios en R contra 6 en Python, con dos rutinas sin ninguno en Python |
+| **Leer el `que` como texto publicado** | que la descripción de una cifra la nombre bien | **Módulo 7**: el catálogo imprime `cifra — que`, y cinco `que` tenían defectos |
+
+**Y dos clases que merecen nombre propio, porque se repetirán:**
+
+**El nombre de una ruta no es una descripción de lo que mide.** El capítulo 3 bautizó su cifra
+`m2.r_conteo_tasa` por el *concepto* que ilustra —el contraste conteo/tasa del módulo «Normalizar o
+mentir»—. Quien escribió el `que` del preparcial leyó el nombre de la ruta en vez de mirar la cifra, y
+el documento acabó llamando «tasa» a un puntaje medio, contradiciendo a su propia pregunta C2 y al
+capítulo del que salía.
+
+**La regla D10 tiene dos mitades, y a veces toca la segunda.** «O se cita por su clave, o no se dice»
+se aplicó por la primera casi siempre. Dos veces no se pudo, por motivos distintos: el «mil» del
+rótulo de un lienzo **no se puede citar** —vive dentro de JavaScript y un bloque de código no se
+interpola (§0.2, regla 6)—, así que se quitó el número; y «Los diez errores que se repiten» sí se
+podía citar, y citarlo lo empeoraba —«Los 10 errores» se lee peor porque **el título es un nombre, no
+un recuento**—, así que se mecanizó por fuera: **una guarda nueva** en el ensamblador ata el nombre a
+`len(ERRORES)`, y se ha visto fallar.
+
+**Lo que sigue sin poder mecanizarse.** P3.1 puede cazar la mayoría de las cifras de la prosa, y P3.0
+le deja una veintena de casos de prueba reales. Lo que **no** puede: si lo que una opción correcta
+*dice* es verdad, si un enunciado pide lo que su clave contesta, si una retro explica o solo asegura,
+si un `aria-label` alcanza, y si las dos pestañas enseñan lo mismo. Por eso el §9 no suelta P3.0
+aunque apriete la fecha, y por eso **P2.4 nace pasando por este protocolo**.

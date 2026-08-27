@@ -137,6 +137,7 @@ REUSA <- list(
   r("inf_factor_phi4",     "cap1",  4, "inferencia.factor_phi4",           "Veces que se subestima el error estándar ingenuo"),
   r("inf_inflacion",       "cap1",  4, "inferencia.inflacion_varianza_phi4", "Porcentaje en que la varianza real supera a la ingenua"),
   r("inf_real_factor",     "cap1",  4, "inferencia_real.factor",           "Veces que se subestima el error estándar sobre el dato real: bootstrap por bloques contra iid"),
+  r("inf_cobertura_phi16", "cap1",  4, "inferencia.rejilla[7].cobertura",  "Cobertura real del IC al 95 % en el extremo derecho de la curva (phi = 16)"),
 
   r("neff_desercion",      "cap1",  5, "n_efectivo.desercion_municipal",   "Tamaño efectivo de los 1121 municipios con deserción"),
   r("neff_desercion_n",    "cap1",  5, "n_efectivo.desercion_n",           "Municipios con dato de deserción"),
@@ -148,10 +149,12 @@ REUSA <- list(
   r("realiz_esperado",     "cap1",  6, "una_realizacion.pct_esperado_si_valiera", "Porcentaje que debería rechazar si la prueba fuera válida"),
   r("realiz_sd_medias",    "cap1",  6, "una_realizacion.sd_de_las_medias", "Desviación de la media entre 1000 realizaciones del mismo proceso"),
   r("realiz_n",            "cap1",  6, "una_realizacion.n_realizaciones",  "Realizaciones simuladas del proceso"),
+  r("realiz_emc",          "cap1",  6, "una_realizacion.emc_rechaza",      "Error de Monte Carlo del porcentaje de rechazo, en puntos porcentuales"),
 
   r("escala_moran_mun",    "cap1",  7, "escala.moran_municipal",           "Moran I de la deserción a nivel municipal"),
   r("escala_moran_dep",    "cap1",  7, "escala.moran_departamental",       "Moran I de la misma variable agregada a departamento"),
   r("escala_caida",        "cap1",  7, "escala.caida_pct",                 "Porcentaje en que cae el Moran I al agregar"),
+  r("escala_n_dep",        "cap1",  7, "escala.n_departamental",           "Unidades del nivel departamental: el n con el que se calcula el Moran agregado"),
   r("soporte_inflacion",   "cap1",  7, "agregacion_soporte.nc.inflacion_pct", "Porcentaje en que se infla el total al repartir por rectángulos sin ponderar por área"),
 
   r("eco_gdal",            "cap1",  8, "ecosistema.sistema.GDAL",          "Versión de GDAL bajo sf"),
@@ -159,13 +162,14 @@ REUSA <- list(
   r("eco_proj",            "cap1",  8, "ecosistema.sistema.PROJ",          "Versión de PROJ bajo sf"),
 
   r("anat_pct_geom",       "cap1",  9, "anatomia.nc.pct_geometria",        "Porcentaje de los bytes de un objeto sf que ocupa la geometría"),
+  r("anat_filas",          "cap1",  9, "anatomia.nc.filas",                "Condados de nc: las filas del objeto sf"),
   r("anat_vertices",       "cap1",  9, "anatomia.nc.n_vertices",           "Vértices de los 100 condados de nc"),
   r("anat_multiples",      "cap1",  9, "anatomia.nc.n_partes_multiples",   "Condados con más de una parte (MULTIPOLYGON de verdad)"),
   r("anat_ppp_n",          "cap1",  9, "anatomia.ppp.n",                   "Puntos del ppp de los pinos japoneses"),
 
-  r("cv_rmse_alea",        "cap1", 10, "cv_espacial.rmse_aleatoria",       "RMSE con validación cruzada aleatoria (°C)"),
-  r("cv_rmse_bloques",     "cap1", 10, "cv_espacial.rmse_bloques",         "RMSE con validación cruzada por bloques espaciales (°C)"),
-  r("cv_inflacion",        "cap1", 10, "cv_espacial.inflacion_pct",        "Porcentaje en que se infla el desempeño estimado con validación cruzada aleatoria"),
+  r("cv_rmse_alea",        "cap1", 10, "cv_espacial.rmse_aleatoria",       "RMSE con validación cruzada aleatoria"),
+  r("cv_rmse_bloques",     "cap1", 10, "cv_espacial.rmse_bloques",         "RMSE con validación cruzada por bloques espaciales"),
+  r("cv_inflacion",        "cap1", 10, "cv_espacial.inflacion_pct",        "Porcentaje en que el error por bloques supera al que anuncia la validación aleatoria"),
   r("cv_r2_bloques",       "cap1", 10, "cv_espacial.r2_bloques",           "R2 por bloques: negativo, peor que predecir la media"),
 
   r("glos_n_filas",        "cap1", 11, "glosario.filas",                   "Entradas del glosario de notación del curso", vector = TRUE),
@@ -195,6 +199,7 @@ REUSA <- list(
   r("etiq_set_crs",        "cap2",  5, "etiquetar.set_crs_max_delta",      "Desplazamiento de los vértices al reetiquetar con st_set_crs"),
   r("etiq_lon_absurda",    "cap2",  5, "etiquetar.lon_absurda",            "Longitud que queda tras reetiquetar mal: ninguna Tierra tiene esa coordenada"),
   r("etiq_silencioso",     "cap2",  5, "etiquetar.silencioso.desplazamiento_m", "Desplazamiento de un st_transform 4686->4326: cero, y tampoco avisa"),
+  r("etiq_n_localidades",  "cap2",  5, "etiquetar.n_localidades",          "Localidades de Bogotá sobre las que se hace el ensayo de reetiquetado"),
 
   r("medir_dif_esfera",    "cap2",  6, "medir.colombia.dif_esfera_km2",    "km2 de diferencia al medir Colombia sobre esfera o elipsoide"),
   r("medir_dif_esfera_pct","cap2",  6, "medir.colombia.dif_esfera_pct",    "Diferencia relativa al medir el área de Colombia sobre la esfera en vez del elipsoide"),
@@ -202,6 +207,8 @@ REUSA <- list(
   r("medir_equiv_mun",     "cap2",  6, "medir.municipios.equivalente_a_municipios", "A cuántos municipios equivale el error acumulado"),
 
   r("form_campos_largos",  "cap2",  7, "formatos.shapefile.n_campos_largos", "Campos cuyo nombre trunca el shapefile a 10 caracteres"),
+  r("form_n_rasgos",       "cap2",  7, "formatos.n_rasgos",                "Rasgos guardados en los tres formatos: NO son las localidades de m5"),
+  r("form_n_campos",       "cap2",  7, "formatos.shapefile.n_campos",      "Columnas del conjunto que se guarda en los tres formatos"),
   r("form_gpkg_razon",     "cap2",  7, "formatos.gpkg.razon_sobre_shp",    "Tamaño del GeoPackage respecto del shapefile"),
   r("form_geojson_razon",  "cap2",  7, "formatos.geojson.razon_sobre_shp", "Tamaño del GeoJSON respecto del shapefile"),
   r("form_logico",         "cap2",  7, "formatos.shapefile.tipo_logico_despues", "En qué se convierte un logical al pasar por shapefile"),
@@ -232,9 +239,9 @@ REUSA <- list(
   r("c3m1_pct",            "cap3",  1, "m1.pct_distintos",                 "Porcentaje de configuraciones que dan un mapa distinto"),
   r("c3m1_vacias",         "cap3",  1, "m1.n_con_clase_vacia",             "Configuraciones que dejan alguna clase vacía"),
 
-  r("c3m2_r",              "cap3",  2, "m2.r_conteo_tasa",                 "Correlación de Pearson entre conteo y tasa"),
+  r("c3m2_r",              "cap3",  2, "m2.r_conteo_tasa",                 "Correlación de Pearson entre el conteo de estudiantes y el puntaje medio"),
   r("c3m2_rho",            "cap3",  2, "m2.rho_conteo_tasa",               "Correlación de Spearman entre los dos ordenamientos"),
-  r("c3m2_solape",         "cap3",  2, "m2.solape_top20",                  "Municipios comunes a los 20 primeros por conteo y por tasa"),
+  r("c3m2_solape",         "cap3",  2, "m2.solape_top20",                  "Municipios comunes a los 20 primeros por conteo y por puntaje medio"),
   r("c3m2_pct_est",        "cap3",  2, "m2.pct_estudiantes_top10",         "Porcentaje de estudiantes que vive en los 10 municipios con más conteo"),
   r("c3m2_pct_mun",        "cap3",  2, "m2.pct_municipios_top10",          "Porcentaje de municipios que son esos diez"),
 
