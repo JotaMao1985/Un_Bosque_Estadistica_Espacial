@@ -334,9 +334,16 @@ def defectos() -> list[tuple[str, str, str, object]]:
     # Solo se puede romper tocando el HTML: las preguntas no están en el
     # JSON.
     # =================================================================
+    # Las tres inyecciones de abajo anclan en `orden`, no en la etiqueta, y
+    # es una lección pagada: anclaban en `repaso: { etiqueta: "Cap. 1 · módulo
+    # 11` y P3.3 metió `orden` entre la llave y la etiqueta. Las tres dejaron
+    # de encontrar su texto, el arnés las marcó INERTE —la trampa de A.3, que
+    # se niega a contar como cazado lo que no llegó a romper nada— y el paso
+    # salió en rojo con el auditor intacto. `orden` es identidad derivada
+    # (capítulo × 100 + módulo); la etiqueta es prosa, y la prosa se reescribe.
     txt("una pregunta desaparece del bloque A", "html",
-        '        tipo: "opcion",\n        repaso: { etiqueta: "Cap. 1 · módulo 11',
-        '        tipo: "opcion",\n        BORRADA: { etiqueta: "Cap. 1 · módulo 11')
+        '        tipo: "opcion",\n        repaso: { orden: 111,',
+        '        tipo: "opcion",\n        BORRADA: { orden: 111,')
     txt("una pregunta manda a repasar un módulo fuera del alcance", "html",
         'etiqueta: "Cap. 3 · módulo 8 — MAUP I · el efecto escala", href: '
         '"capitulo-3-cartografia-maup.html" },\n        pregunta: "El gráfico traza la '
@@ -410,11 +417,11 @@ def defectos() -> list[tuple[str, str, str, object]]:
         '{ texto: "Un valor por debajo de 1 indica agregación.", correcta: true,',
         '{ texto: "Un valor por debajo de 1 indica agregación.", correcta: false,')
     txt("un bloque pierde uno de los cuatro tipos", "html",
-        '        tipo: "grafico",\n        repaso: { etiqueta: "Cap. 1 · módulo 4',
-        '        tipo: "opcion",\n        repaso: { etiqueta: "Cap. 1 · módulo 4')
+        '        tipo: "grafico",\n        repaso: { orden: 104,',
+        '        tipo: "opcion",\n        repaso: { orden: 104,')
     txt("un bloque se inventa un tipo que el motor no sabe pintar", "html",
-        '        tipo: "numerica",\n        repaso: { etiqueta: "Cap. 1 · módulo 5',
-        '        tipo: "abierta",\n        repaso: { etiqueta: "Cap. 1 · módulo 5')
+        '        tipo: "numerica",\n        repaso: { orden: 105,',
+        '        tipo: "abierta",\n        repaso: { orden: 105,')
 
     # =================================================================
     # FAMILIA 5 · No filtración: ni el enunciado, ni la pista, ni la
