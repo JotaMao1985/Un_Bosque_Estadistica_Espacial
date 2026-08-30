@@ -49,6 +49,26 @@ def corre(py, auditor, archivos, rutas):
     return res.returncode, res.stdout + res.stderr
 
 
+def revento(salida: str) -> bool:
+    """Distingue «el auditor informó de un fallo» de «el auditor MURIÓ».
+
+    LA LECCIÓN ES DEL PREPARCIAL (2026-08-26) Y NUNCA SUBIÓ AQUÍ, que es
+    justo el patrón que este proyecto persigue: el defecto del núcleo
+    sobrevive en todos los que lo usan, informando «limpio». Allí una
+    inyección producía JavaScript roto, el auditor moría al analizarlo y
+    salía con código != 0 — así que el arnés la contaba como CAZADA sin
+    que ninguna comprobación se hubiera visto fallar. `prueba_auditor_
+    preparcial1.py` tiene su propio bucle y su propio `revento()` desde
+    entonces; los arneses de los capítulos 1 a 4, del taller y del 5 usan
+    ESTE bucle, y hasta hoy no lo distinguían.
+
+    Una inyección que mata al auditor no prueba nada: prueba que el
+    auditor no sabe leer un archivo roto, que es un defecto del auditor y
+    no una captura.
+    """
+    return "Traceback (most recent call last)" in salida
+
+
 def resumen(salida: str) -> str:
     m = re.search(r"(\d+) comprobaciones · (\d+) fallos", salida)
     return m.group(0) if m else "(sin resumen)"
@@ -107,8 +127,25 @@ def avisa_rotulos_largos(todas: set[str]) -> int:
 
 
 def arnes(titulo: str, py: str, auditor: pathlib.Path, salidas: pathlib.Path,
-          archivos: dict, lista, pista_generadores: str) -> int:
-    """Ejecuta la tanda entera. `lista` es [(nombre, clave, tipo, acción)]."""
+          archivos: dict, lista, pista_generadores: str,
+          agrupa=None, inatacables=frozenset()) -> int:
+    """Ejecuta la tanda entera. `lista` es [(nombre, clave, tipo, acción)].
+
+    `agrupa` y `inatacables` son OPCIONALES y suben aquí desde el arnés del
+    taller, que era el único que los tenía. Sin ellos el informe cuenta
+    INSTANCIAS, y eso engaña en cuanto un auditor repite la misma
+    comprobación por cada mapa o por cada patrón: atacar el mapa 5 prueba
+    exactamente lo mismo que atacar el 2, así que un «165 sin ver fallar»
+    asusta sin informar. Con `tipo` —una función que colapsa las
+    instancias de un mismo mecanismo en un solo nombre— se informan los
+    dos números, y el que manda es el de TIPOS.
+
+    `inatacables` es la otra mitad, y no es una laguna: hay comprobaciones
+    que un arnés NO PUEDE romper por construcción, porque no leen el JSON
+    que él envenena —contrastan contra las fuentes primarias, o auditan la
+    propia reimplementación del auditor—. Se listan aparte para no
+    contarlas como deuda ni esconderlas como cubiertas.
+    """
     for _, nombre in archivos.values():
         if not (salidas / nombre).exists():
             print(f"PARADO: falta {salidas / nombre}. Ejecuta antes {pista_generadores}")
@@ -175,14 +212,22 @@ def arnes(titulo: str, py: str, auditor: pathlib.Path, salidas: pathlib.Path,
         rutas[clave] = rota
 
         codigo, salida = corre(py, auditor, archivos, rutas)
-        ok = codigo != 0
+        murio = revento(salida)
+        ok = codigo != 0 and not murio
         cazados += ok
         print(f"  {'OK ' if ok else 'MAL'}  {nombre_d}")
-        print(f"        {resumen(salida)}")
-        if ok:
-            vistas_fallar |= nombres(salida, "MAL")
+        if murio:
+            # No se cuenta como cazada NI como no detectada: es un fallo
+            # del propio auditor, que tiene que informar y no morirse.
+            fallos_del_arnes += 1
+            ultima = [l for l in salida.strip().splitlines() if l.strip()][-1][:70]
+            print(f"        REVENTÓ · el auditor murió en vez de informar: {ultima}")
         else:
-            print("        NO DETECTADO — el auditor dio el archivo por bueno")
+            print(f"        {resumen(salida)}")
+            if ok:
+                vistas_fallar |= nombres(salida, "MAL")
+            else:
+                print("        NO DETECTADO — el auditor dio el archivo por bueno")
 
     # --- CONTROL DE SALIDA -------------------------------------------
     codigo, salida = corre(py, auditor, archivos, limpias)
@@ -196,6 +241,27 @@ def arnes(titulo: str, py: str, auditor: pathlib.Path, salidas: pathlib.Path,
 
     print("\n" + "=" * 66)
     print(f"  {cazados} de {len(lista)} defectos cazados")
+    if agrupa is not None:
+        tipos_todos = {agrupa(x) for x in todas} - set(inatacables)
+        tipos_vistos = {agrupa(x) for x in vistas_fallar} & tipos_todos
+        tipos_nunca = sorted(tipos_todos - tipos_vistos)
+        print(f"  instancias: {len(vistas_fallar)} de {len(todas)} se han visto fallar")
+        print(f"  TIPOS:      {len(tipos_vistos)} de {len(tipos_todos)} se han visto fallar")
+        if inatacables:
+            print(f"  ({len(inatacables)} tipo(s) más que este arnés no puede atacar "
+                  f"por construcción, listados abajo)")
+        if tipos_nunca:
+            # Una comprobación que nunca ha fallado puede estar bien escrita
+            # o ser incapaz de fallar, y desde fuera se ven igual. Los tipos
+            # sin atacar se listan ENTEROS: son la lista de trabajo del
+            # próximo que toque esto, no una nota al pie.
+            print(f"\n  {len(tipos_nunca)} tipo(s) que este arnés todavía no ataca:")
+            for x in tipos_nunca:
+                print(f"      · {x}")
+        if inatacables:
+            print(f"\n  {len(inatacables)} tipo(s) inatacables por construcción:")
+            for x in sorted(inatacables):
+                print(f"      · {x}")
     if fallos_del_arnes:
         print(f"  {fallos_del_arnes} inyecciones fallaron POR CULPA DEL ARNÉS, no del auditor")
     print(f"  {len(vistas_fallar)} de {len(todas)} comprobaciones se han visto fallar")
