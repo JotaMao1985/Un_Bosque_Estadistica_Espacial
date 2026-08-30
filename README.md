@@ -21,7 +21,7 @@ Cuatro de los diez capítulos del plan están publicados, y con ellos el **Talle
 | 2 | SIG, sistemas de referencia y georreferenciación con `sf` | 2–3 | Publicado |
 | 3 | Cartografía estadística y el MAUP | 4–5 | Publicado |
 | 4 | Patrones puntuales: CSR y funciones de resumen | 6–7 | Publicado |
-| 5 | Intensidad por núcleos y procesos puntuales | 8–9 | En preparación |
+| 5 | Intensidad por núcleos y procesos puntuales | 8–10 | En preparación |
 | 6 | Datos de área y la matriz de pesos espaciales | 10–11 | En preparación |
 | 7 | Autocorrelación espacial global y local | 12–13 | En preparación |
 | 8 | Econometría espacial: SAR, SEM, SDM y GWR | 14 | En preparación |
