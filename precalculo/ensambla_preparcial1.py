@@ -399,6 +399,15 @@ def cn(ruta):
 c = cifra
 N1 = D["nuevo"]["n_efectivo"]
 N2 = D["nuevo"]["grado_longitud"]
+# Las cinco que ganaron distractores para poder viajar a un banco del LMS,
+# donde una pregunta de respuesta abierta no entra. Nombrar aquí la cifra de
+# cada error concreto es además mejor retroalimentación que «un porcentaje
+# bastante menor»: quien se equivocó se reconoce en el número.
+N3 = D["nuevo"]["convenio_intervalo"]
+N5 = D["nuevo"]["cv_inflacion"]
+N6 = D["nuevo"]["indice_espacial"]
+N8 = D["nuevo"]["caida_color"]
+N9 = D["nuevo"]["efecto_escala"]
 
 
 def dist(item, id_):
@@ -645,9 +654,13 @@ BLOQUE_A = [
          retroAcierto=f"Un {c('cv_inflacion')}. Con la CV aleatoria el vecino de cada punto suele "
                       f"caer en el pliegue de entrenamiento, así que el modelo se evalúa sobre "
                       f"puntos que ya conoce por interpolación.",
-         retroFallo=f"Es un {c('cv_inflacion')}. Si te salió un porcentaje bastante menor, "
+         retroFallo=f"Es un {c('cv_inflacion')}. Si te salió {dist(N5, 'base_bloques')}, "
                     f"tomaste como base el error por bloques en vez del de la CV aleatoria: lo que "
-                    f"se infla es el optimista, así que el denominador es él. Y hay una cifra que "
+                    f"se infla es el optimista, así que el denominador es él. Si te salió "
+                    f"{dist(N5, 'razon')}, diste la razón entre los dos errores y no el "
+                    f"incremento: ese 100 % de partida ya está en el modelo. Y si te salió "
+                    f"{dist(N5, 'cuadraticos')}, comparaste los errores cuadráticos en vez de sus "
+                    f"raíces, que es hablar de MSE donde la pregunta dice RMSE. Y hay una cifra que "
                     f"lo dice todavía más claro: el "
                     f"R² por bloques es {c('cv_r2_bloques')} —negativo—, es decir, peor que "
                     f"predecir siempre la media. El mismo modelo que parecía explicar buena parte "
@@ -952,8 +965,13 @@ BLOQUE_B = [
          retroAcierto=f"{c('ing_reduccion')}. Y el filtro de cajas es solo el primer paso: "
                       f"descarta lo imposible barato para que la comprobación geométrica cara se "
                       f"haga sobre una fracción de ellos.",
-         retroFallo=f"Son {c('ing_reduccion')}. El orden importa: si te salió un número "
-                    f"menor que 1, dividiste al revés. La cifra que hay que retener es que el "
+         retroFallo=f"Son {c('ing_reduccion')}. El orden importa: si te salió "
+                    f"{dist(N6, 'al_reves')}, dividiste al revés, y eso es la fracción de "
+                    f"trabajo que queda. Si te salió {dist(N6, 'olvida_el_resto')}, contaste "
+                    f"los pares que se ahorran y olvidaste los que quedan por comparar: el "
+                    f"trabajo no baja a cero. Y {dist(N6, 'pct_reduccion')} es el porcentaje "
+                    f"en que se reduce, que describe el mismo hecho y no es el mismo número. "
+                    f"La cifra que hay que retener es que el "
                     f"índice no cambia el resultado del <em>join</em>, solo el trabajo que "
                     f"cuesta llegar a él."),
 ]
@@ -1033,9 +1051,14 @@ BLOQUE_C = [
                       f"intervalo por {c('c3m3_convenio_r')} y Python por "
                       f"{c('c3m3_convenio_py')}: los que valen justo el corte caen a un lado "
                       f"o al otro según el programa.",
-         retroFallo=f"Son {cn('convenio_intervalo.movidos_primera')}. Si contestaste 0, diste "
-                    f"por hecho que «clasificación por cuantiles» significa exactamente lo "
-                    f"mismo en los dos programas. Significa lo mismo salvo por el lado cerrado "
+         retroFallo=f"Son {cn('convenio_intervalo.movidos_primera')}. Si contestaste "
+                    f"{dist(N3, 'ninguno')}, diste por hecho que «clasificación por cuantiles» "
+                    f"significa exactamente lo mismo en los dos programas. Si contestaste "
+                    f"{dist(N3, 'primera_clase_r')}, diste el tamaño de la primera clase en R "
+                    f"y no la diferencia entre las dos. Y si contestaste "
+                    f"{dist(N3, 'todos_los_empates')}, contaste los condados empatados en "
+                    f"cualquiera de los cinco cortes, cuando la pregunta es por los que se "
+                    f"mueven en el primero. Significa lo mismo salvo por el lado cerrado "
                     f"del intervalo, y con {c('c3m3_empatados')} condados empatados justo en "
                     f"un corte eso basta para publicar dos mapas distintos con el mismo pie."),
 
@@ -1095,8 +1118,13 @@ BLOQUE_C = [
          retroAcierto=f"{c('c3m5_caida')}. Dos colores que en la pantalla de quien hace el "
                       f"mapa son opuestos llegan a una parte de sus lectores como el mismo "
                       f"color.",
-         retroFallo=f"Es {c('c3m5_caida')}. Si te salió algo cercano a la propia distancia bajo "
-                    f"deuteranopia, diste lo que queda en vez de lo que se pierde. Y la cifra "
+         retroFallo=f"Es {c('c3m5_caida')}. Si te salió {dist(N8, 'lo_que_queda')}, diste el "
+                    f"porcentaje que QUEDA en vez del que se pierde. Si te salió "
+                    f"{dist(N8, 'diferencia')}, diste la caída en unidades de distancia "
+                    f"perceptual y no en porcentaje. Y si te salió "
+                    f"{dist(N8, 'base_deuteranopia')}, dividiste por la distancia bajo "
+                    f"deuteranopia en vez de por la de partida: se cae DESDE la visión típica, "
+                    f"así que la base es ella. Y la cifra "
                     f"suelta no es el argumento: el módulo simula {c('c3m5_comparaciones')} "
                     f"comparaciones de color, porque lo que hay que poder defender no es un par "
                     f"de colores sino la paleta entera."),
@@ -1374,7 +1402,13 @@ BLOQUE_D = [
                       f"llevarse al parcial: a nivel municipal la correlación no sube, baja a "
                       f"{c('c3m8_r_mun')}. La agregación no empuja siempre en la misma "
                       f"dirección.",
-         retroFallo=f"Es {c('c3m8_subida')}. Agregar no mejora la medida: promedia dentro de "
+         retroFallo=f"Es {c('c3m8_subida')}. Si te salió {dist(N9, 'base_departamento')}, "
+                    f"tomaste como base la correlación agregada en vez de la individual: se "
+                    f"sube DESDE el individuo. Si te salió {dist(N9, 'razon')}, diste la razón "
+                    f"y no el incremento. Y si te salió {dist(N9, 'con_municipio')}, agregaste "
+                    f"a municipio en vez de a departamento, donde la correlación no sube: baja, "
+                    f"y el signo lo está diciendo. "
+                    f"Agregar no mejora la medida: promedia dentro de "
                     f"cada unidad y se lleva la variación entre individuos, que es la que "
                     f"tiraba de la correlación hacia abajo. Solo el {c('c3m8_pct_var')} de la "
                     f"varianza total vive entre municipios; el resto está dentro de ellos, y la "

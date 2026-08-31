@@ -276,15 +276,32 @@ def decimales_del_material(q: dict) -> int:
 
 
 def numerica_a_opciones(q: dict, nuevo: dict, dec: int):
-    """Cuatro opciones desde el precálculo, o `None` si no hay distractores."""
-    clave = None
-    for k, v in nuevo.items():
-        c = v.get("correcto")
-        if c is not None and abs(c - q["respuesta"]) <= q["tolerancia"] and v.get("distractores"):
-            clave = k
-            break
-    if clave is None:
+    """Cuatro opciones desde el precálculo, o `None` si no hay distractores.
+
+    El emparejamiento va por MÓDULO y por valor, y no solo por valor. Emparejar
+    por valor a secas funcionó mientras hubo dos ítems con distractores y dejó
+    de funcionar en cuanto hubo siete: la reducción del índice espacial vale
+    11,10608 con tolerancia 0,2 y los condados que se mueven de clase valen 11
+    con tolerancia 0,5, así que **cada uno cae dentro de la tolerancia del
+    otro**. Sin el módulo, una de las dos preguntas se habría llevado los
+    distractores de la otra —tres cifras plausibles, explicaciones que hablan
+    de otra cosa— sin que nada fallara.
+    """
+    # `repaso.orden` es 105 para cap1.m5 y 211 para cap2.m11.
+    orden = q["repaso"]["orden"]
+    modulo = f"cap{orden // 100}.m{orden % 100}"
+    candidatos = [
+        k for k, v in nuevo.items()
+        if v.get("distractores") and v.get("modulo") == modulo
+        and v.get("correcto") is not None
+        and abs(v["correcto"] - q["respuesta"]) <= q["tolerancia"]
+    ]
+    if len(candidatos) > 1:
+        sys.exit(f"PARADO: {modulo} tiene {len(candidatos)} cálculos nuevos que "
+                 f"encajan con la misma pregunta: {candidatos}")
+    if not candidatos:
         return None, None
+    clave = candidatos[0]
 
     fmt = lambda x: f"{x:.{dec}f}"                                    # noqa: E731
     prosa = q["retroFallo"].replace("&nbsp;", " ")
