@@ -430,7 +430,21 @@ N3 <- list(
   tam_r = tam_r, tam_python = tam_py,
   primera_clase_r = tam_r[1], primera_clase_python = tam_py[1],
   movidos_primera = tam_py[1] - tam_r[1],
-  error = "clasificar por cuantiles con el intervalo cerrado por el otro lado"
+  error = "clasificar por cuantiles con el intervalo cerrado por el otro lado",
+  # La pregunta se responde restando dos cifras del propio enunciado, así que
+  # los tres distractores son las tres formas de restar mal: no restar,
+  # devolver uno de los dos sumandos, y contar los empates de TODOS los cortes
+  # cuando se pregunta por el primero.
+  decimales = 0,
+  correcto = tam_py[1] - tam_r[1],
+  distractores = list(
+    list(id = "ninguno", valor = 0,
+         error = "dar por hecho que «clasificación por cuantiles» significa exactamente lo mismo en los dos programas: significa lo mismo salvo por el lado cerrado del intervalo"),
+    list(id = "primera_clase_r", valor = tam_r[1],
+         error = "dar el tamaño de la primera clase en R en vez de la diferencia entre las dos"),
+    list(id = "todos_los_empates", valor = val("c3m3_empatados"),
+         error = "contar los condados empatados en CUALQUIERA de los cinco cortes, cuando la pregunta es por los que se mueven en el primero")
+  )
 )
 
 # ---------------------------------------------------------------------
@@ -464,8 +478,97 @@ N4 <- list(
   error = "medir distancias euclídeas sobre grados y convertirlas con un factor fijo"
 )
 
+
+# ---------------------------------------------------------------------
+# N5 a N9 · LOS DISTRACTORES DE LAS CINCO NUMÉRICAS QUE NO LOS TENÍAN
+#
+# Las siete preguntas numéricas del preparcial se responden escribiendo un
+# número, y ahí la retroalimentación de fallo puede describir el error en
+# prosa. Un banco de la Biblioteca de Preguntas NO admite respuesta
+# numérica: o la pregunta viaja convertida en opción múltiple, con tres
+# distractores que sean errores concretos, o no viaja. Dos los tenían
+# (N1 y N2); estas cinco nombraban el error sin cifra.
+#
+# Cada bloque lleva un ANCLA que recalcula la respuesta publicada desde
+# sus dos ingredientes. No es ceremonia: un distractor se construye sobre
+# una interpretación de lo que esa cifra significa —cuál es la base del
+# porcentaje, en qué sentido va la razón—, y si la interpretación fuera
+# falsa el distractor sería otro número perfectamente plausible. El ancla
+# comprueba la interpretación, no la aritmética.
+# ---------------------------------------------------------------------
+ancla_pct <- function(nm, calculado, publicado) {
+  if (!isTRUE(abs(calculado - publicado) < 1e-6))
+    para("ANCLA ROTA en ", nm, ": la cifra publicada es ", publicado,
+         " y de sus ingredientes sale ", calculado,
+         ".\n  Los distractores se apoyan en lo que esa cifra SIGNIFICA; si no",
+         " sale de ahí, significan otra cosa.")
+  publicado
+}
+
+# N5 · Lo que la validación cruzada aleatoria esconde (cap. 1, módulo 10)
+ra <- val("cv_rmse_alea"); rb <- val("cv_rmse_bloques")
+N5 <- list(
+  modulo = "cap1.m10", decimales = 5,
+  correcto = ancla_pct("cv_inflacion", (rb - ra) / ra * 100, val("cv_inflacion")),
+  distractores = list(
+    list(id = "base_bloques", valor = (rb - ra) / rb * 100,
+         error = "tomar como base el error por bloques en vez del de la validación aleatoria: lo que se infla es el optimista, así que el denominador es él"),
+    list(id = "razon", valor = rb / ra * 100,
+         error = "dar la razón entre los dos errores en vez del incremento: el 100 % de partida ya está en el modelo, y lo que se pregunta es cuánto se le añade"),
+    list(id = "cuadraticos", valor = (rb^2 - ra^2) / ra^2 * 100,
+         error = "comparar los errores CUADRÁTICOS en vez de sus raíces, que es comparar MSE cuando la pregunta habla de RMSE")
+  )
+)
+
+# N6 · Lo que ahorra el índice espacial (cap. 2, módulo 11)
+pb <- val("ing_pares_bruta"); pc <- val("ing_pares_cajas")
+N6 <- list(
+  modulo = "cap2.m11", decimales = 5,
+  correcto = ancla_pct("ing_reduccion", pb / pc, val("ing_reduccion")),
+  distractores = list(
+    list(id = "al_reves", valor = pc / pb,
+         error = "dividir al revés: eso es la fracción de trabajo que queda, no las veces que se reduce"),
+    list(id = "olvida_el_resto", valor = (pb - pc) / pc,
+         error = "contar solo los pares que se ahorran y olvidar los que quedan por comparar: el trabajo no baja a cero, baja a los pares tras el filtro"),
+    list(id = "pct_reduccion", valor = (pb - pc) / pb * 100,
+         error = "dar el porcentaje en que se reduce en vez de las veces: describen el mismo hecho y no son el mismo número")
+  )
+)
+
+# N8 · El rojo y el verde bajo deuteranopia (cap. 3, módulo 5)
+dn <- val("c3m5_dE_normal"); dd <- val("c3m5_dE_deuter")
+N8 <- list(
+  modulo = "cap3.m5", decimales = 5,
+  correcto = ancla_pct("c3m5_caida", (dn - dd) / dn * 100, val("c3m5_caida")),
+  distractores = list(
+    list(id = "lo_que_queda", valor = dd / dn * 100,
+         error = "dar el porcentaje de distancia que QUEDA en vez del que se pierde"),
+    list(id = "diferencia", valor = dn - dd,
+         error = "dar la caída en unidades de distancia perceptual en vez de en porcentaje"),
+    list(id = "base_deuteranopia", valor = (dn - dd) / dd * 100,
+         error = "dividir por la distancia bajo deuteranopia en vez de por la de partida: se cae DESDE la visión típica, así que la base es ella")
+  )
+)
+
+# N9 · El efecto escala del MAUP (cap. 3, módulo 8)
+ri <- val("c3m8_r_ind"); rd <- val("c3m8_r_dep"); rmun <- val("c3m8_r_mun")
+N9 <- list(
+  modulo = "cap3.m8", decimales = 5,
+  correcto = ancla_pct("c3m8_subida", (rd - ri) / ri * 100, val("c3m8_subida")),
+  distractores = list(
+    list(id = "base_departamento", valor = (rd - ri) / rd * 100,
+         error = "tomar como base la correlación agregada en vez de la individual: se sube DESDE el individuo, así que el denominador es él"),
+    list(id = "razon", valor = rd / ri * 100,
+         error = "dar la razón entre las dos correlaciones en vez del incremento: el 100 % de partida ya está contado"),
+    list(id = "con_municipio", valor = (rmun - ri) / ri * 100,
+         error = "agregar a MUNICIPIO en vez de a departamento, donde la correlación no sube: baja, y el signo lo dice")
+  )
+)
+
 NUEVO <- list(n_efectivo = N1, grado_longitud = N2,
-              convenio_intervalo = N3, euclidea_grados = N4)
+              convenio_intervalo = N3, euclidea_grados = N4,
+              cv_inflacion = N5, indice_espacial = N6,
+              caida_color = N8, efecto_escala = N9)
 
 # ---------------------------------------------------------------------
 # LA GUARDA DE LOS DISTRACTORES, y existe por dos defectos propios.

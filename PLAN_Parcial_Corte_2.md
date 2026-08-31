@@ -656,7 +656,7 @@ sale mal, el Corte I ya está en Brightspace y no hay conversación que tener.
 |---|---|
 | `precalculo/exporta_brightspace.py` | lee el HTML **publicado** y escribe el paquete QTI 1.2 con las extensiones `d2l_2p0` |
 | `precalculo/audita_brightspace.py` | contrasta el ZIP contra el documento del que salió |
-| `parcial/brightspace/banco_brightspace.zip` | **31 ítems** · 24 Multiple Choice, 7 Multi-Select · 124/124 opciones con explicación · 6 imágenes · 246 KB |
+| `parcial/brightspace/banco_brightspace.zip` | **36 ítems** · 29 Multiple Choice, 7 Multi-Select · 144/144 opciones con explicación · 6 imágenes · 249 KB |
 | `parcial/brightspace/sonda_brightspace.zip` | 3 ítems, uno de cada forma, 32 KB — **se sube primero** |
 
 ```bash
@@ -676,11 +676,11 @@ del reloj.
 
 ### 8.2 Las dos auditorías, y por qué hacen falta las dos
 
-`audita_paquete.py` (de la skill) da **374 de 374**: el paquete es coherente como
+`audita_paquete.py` (de la skill) da **429 de 429**: el paquete es coherente como
 paquete D2L. Pero un ZIP puede pasar sus 374 comprobaciones **con la clave equivocada**,
 porque dentro del ZIP no hay nada con qué contrastarla.
 
-`audita_brightspace.py` da **158 de 158** y es el que mira eso: vuelve a leer el HTML,
+`audita_brightspace.py` da **173 de 173** y es el que mira eso: vuelve a leer el HTML,
 lee el ZIP con un analizador de XML —no con el código que lo escribió— y enfrenta el
 texto de cada opción, qué opciones puntúan, y **que la retroalimentación de cada opción
 sea la suya**, que es el defecto que la skill avisa que nadie nota hasta después de
@@ -692,37 +692,116 @@ Comprueba además dos cosas propias de este banco:
 - **Ningún distractor de una numérica cae dentro de la tolerancia** de su pregunta. Uno
   que cayera dentro haría la pregunta imposible: dos opciones serían la respuesta y solo
   una puntuaría.
-- **El reparto de la correcta**: 1: 5 · 2: 1 · 3: 10 · 4: 8 de 24. El preparcial llegó a
+- **El reparto de la correcta**: 1: 8 · 2: 2 · 3: 10 · 4: 9 de 29. El preparcial llegó a
   publicar la correcta siempre la primera (§12.6 de su plan) y esa no se repite.
 
-### 8.3 · H12 · Cinco preguntas numéricas no pueden viajar, y decirlo es la única salida honesta
+### 8.3 · H12 · Cinco preguntas numéricas no podían viajar · **RESUELTO (2026-08-30)**
 
 La Biblioteca de Preguntas **no importa respuesta numérica**. Una `numerica` solo puede
 ir convertida en opción múltiple, y para eso hacen falta tres distractores que sean
-errores concretos, no ruido.
+errores concretos, no ruido. De las siete, dos los tenían calculados y **cinco nombraban
+el error en prosa sin cifra** —«si te salió un porcentaje bastante menor»—. El banco
+salió con 31 ítems y esas cinco declaradas fuera.
 
-De las siete, **dos los tienen calculados** en el precálculo —`n_efectivo` y
-`grado_longitud`, con su cifra y el error que la produce escritos en
-`preparcial1_datos.json`—. Las otras cinco nombran el error en prosa —«si te salió un
-porcentaje bastante menor», «si te salió un número menor que 1»— **sin cifra**.
+**Ya están dentro.** `genera_preparcial1.R` calcula los **quince distractores** que
+faltaban, y el banco pasa a **36 de 36 preguntas**.
 
-| Fuera del banco | Módulo |
-|---|---|
-| `EE_C1_A10` | Cap. 1 · módulo 10 — Dependencia espacial en ciencia de datos |
-| `EE_C1_B11` | Cap. 2 · módulo 11 — Ingeniería de datos geoespaciales |
-| `EE_C1_C03` | Cap. 3 · módulo 3 — Esquemas de clasificación |
-| `EE_C1_C05` | Cap. 3 · módulo 5 — Color |
-| `EE_C1_D05` | Cap. 3 · módulo 8 — MAUP I · el efecto escala |
+| Ítem | Módulo | Los tres errores que ahora tienen nombre y cifra |
+|---|---|---|
+| `cv_inflacion` | cap1.m10 | tomar como base el error por bloques · dar la razón y no el incremento · comparar MSE donde la pregunta dice RMSE |
+| `indice_espacial` | cap2.m11 | dividir al revés · olvidar los pares que quedan por comparar · dar el porcentaje en vez de las veces |
+| `convenio_intervalo` | cap3.m3 | no restar · dar la primera clase de R · contar los empates de los cinco cortes y no los del primero |
+| `caida_color` | cap3.m5 | dar lo que queda · dar la diferencia en unidades y no en porcentaje · dividir por la distancia de llegada |
+| `efecto_escala` | cap3.m8 | tomar como base la correlación agregada · dar la razón · agregar a municipio, donde **baja** |
 
-**Inventarles aquí un distractor sería escribir a mano un número del material**, que es
-la única regla que este repositorio no rompe. El guion las deja fuera y las nombra una a
-una en el informe; el auditor comprueba que lo que falta sea exactamente eso y nada más.
+**Nada se escribió a mano.** Los quince salen de cifras que el precálculo ya publicaba, y
+cada bloque lleva un **ancla que recalcula la respuesta publicada desde sus ingredientes**
+antes de construir sus distractores. No es ceremonia: un distractor se apoya en lo que esa
+cifra *significa* —cuál es la base del porcentaje, en qué sentido va la razón—, y si la
+interpretación fuera falsa el distractor sería otro número perfectamente plausible. El
+ancla comprueba la interpretación, no la aritmética.
 
-**La tarea que abre:** calcular esos quince distractores en `genera_preparcial1.R`, cada
-uno con el error que lo produce, y reescribir las cinco `retroFallo` para que los nombren.
-Es contenido, no código, y **regenera el preparcial publicado** — así que no se toca a dos
-días del parcial del Corte I. Va después, y al hacerlo el banco pasa de 31 a 36 ítems sin
-tocar el exportador.
+**Y la retroalimentación mejoró como efecto secundario.** Las cinco `retroFallo` decían
+«si te salió un porcentaje bastante menor»; ahora dicen la cifra. Quien se equivocó se
+reconoce en el número, que era el estándar que ya cumplían las otras dos.
+
+El resto del precálculo es **idéntico**: `reutilizado`, `graficos` y `errores` no se
+mueven ni un bit. Las preguntas, sus respuestas y sus tolerancias tampoco. El documento
+pasa de 373 a 381 KB, todo de retroalimentación.
+
+#### Los dos defectos que aparecieron al hacerlo
+
+**El emparejamiento del exportador era ambiguo, y en silencio.** Casaba la pregunta con su
+cálculo **por valor**, lo que bastaba con dos ítems y dejó de bastar con siete: la
+reducción del índice espacial vale 11,10608 con tolerancia 0,2 y los condados que se mueven
+de clase valen 11 con tolerancia 0,5, así que **cada uno cae dentro de la tolerancia del
+otro**. Una de las dos preguntas se habría llevado los distractores de la otra —tres cifras
+plausibles con explicaciones que hablan de otra cosa— sin que nada fallara. Ahora empareja
+por **módulo y valor**, y para si un módulo tiene más de un candidato.
+
+**Los quince distractores nacían sin auditor.** El auditor seguía en 112 comprobaciones
+después de publicarlos: quince cifras nuevas que nadie miraba. Ahora son **145**, con una
+familia que recalcula cada distractor por su fórmula y comprueba que la explicación
+corresponda al valor —un distractor mal emparejado con su error manda al estudiante a
+buscar una equivocación que no cometió—. La independencia aquí es **menor** que la de N1 a
+N4 y está dicha en el código: no salen de la fuente primaria sino de cifras que el propio
+auditor ya verificó contra ella en la familia 2.
+
+Y el recorrido de la comprobación de separación pasó de una **lista escrita a mano**
+—`("N1", N1), ("N2", N2)`— a recorrer todo lo que tenga distractores. Esa lista es
+exactamente cómo los quince llegaron a publicarse sin que nada los mirara.
+
+#### El tercer defecto, que es el mismo de siempre por cuarta vez
+
+Generalizar aquella lista renombró la comprobación, y el nombre nuevo
+—`grado_longitud: los distractores se distinguen a 1 decimales`— mide **60
+caracteres**. `Auditoria.cierto()` rellena el rótulo hasta 58 antes del detalle, así que
+uno de 58 o más se queda pegado a su detalle por un solo espacio, y `nombres()` corta por
+dos: el rótulo que sale MAL deja de ser el mismo que salió OK. **La comprobación se ataca,
+falla, y el arnés no la cuenta como cubierta.** Nada falla; lo que se corrompe es el
+recuento de qué se ha visto fallar, en silencio.
+
+`audita_base.py` ya lleva escrito el presupuesto —57 caracteres— y la frase «va por la
+TERCERA vez». Ésta es la cuarta.
+
+Lo que la hizo posible es que **el detector existía y no miraba aquí**.
+`avisa_rotulos_largos()` subió al núcleo en `3754728` y lo llama `arnes()`, por donde
+pasan los cuatro capítulos y el taller. El arnés del preparcial tiene su propio `main()`
+y era el único sin ese ojo encima. Ahora lo llama: acortar el rótulo arregla la instancia
+—y ya se acortaron cinco en T0.5, uno en C5b y dos más en 2026-08-24—; engancharlo es lo
+que hace que no vuelva.
+
+Con la familia nueva atacada, el arnés pasa de 87 a **106 inyecciones**: cuatro formas de
+romper cada ítem —mover los tres valores, renombrar un identificador, poner una opción que
+no se distingue del correcto, y mover la respuesta de la que cuelgan todos—, que son los
+cuatro modos reales de equivocarse al añadir un ítem nuevo.
+
+Resultado: **106 de 106 defectos cazados y 128 de 128 tipos vistos fallar.** La lista de
+«tipos que este arnés todavía no ataca» desaparece entera.
+
+**Y el detector, al engancharlo, cazó a la primera un rótulo que no era de esta sesión:**
+`5. No filtración: ni el enunciado, ni la pista, ni la posición`, 62 caracteres, el
+resumen de la familia 5. Se comprobó que no fuera un falso positivo —esa línea se emite
+como comprobación y su detalle es `4 compr. 0 fallos 0 saltadas`, que **cambia** entre la
+pasada limpia y la rota—, así que arrastraba el defecto entero y su rótulo no podía verse
+cubierto nunca. Acortado a 53.
+
+De paso, el título de la familia 1 decía «Las cuatro cifras nuevas, desde la fuente
+primaria» cuando ya son ocho y solo las cuatro primeras salen de la fuente primaria. Ahora
+dice lo que hay.
+
+### 8.3.1 · La cadena entera, medida el 2026-08-30
+
+| Comprobación | Antes | Ahora |
+|---|---|---|
+| `audita_preparcial1.py` | 112 | **145** · 0 fallos, 0 saltadas |
+| `prueba_auditor_preparcial1.py` | 87 inyecciones · 34 tipos sin atacar | **106** · **128/128 tipos** |
+| `prueba_alcance_preparcial1.py` | 8/8 | 8/8 |
+| `sin_aritmetica.py` | limpio | limpio · 7 ensambladores |
+| `campos_vivos.py` | limpio | limpio · 10 documentos |
+| `verifica_bloques.py` | 71/71 | 71/71 |
+| `audita_paquete.py` (skill) | 374/374 · 31 ítems | **429/429 · 36 ítems** |
+| `audita_brightspace.py` | 158/158 | **173/173** |
 
 ### 8.4 Lo que queda por hacer, y es de Brightspace, no de aquí
 

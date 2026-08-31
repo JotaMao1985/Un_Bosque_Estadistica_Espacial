@@ -62,6 +62,12 @@ SALIDAS = PRECALCULO / "salidas"
 HTMLS = RAIZ / "Htmls_Espacial"
 AUDITOR = PRECALCULO / "audita_preparcial1.py"
 
+# La ÚNICA pieza que este arnés comparte con los otros, por el mismo motivo
+# por el que subió al núcleo: tener dos copias significa arreglarlo dos veces
+# la próxima vez, y este defecto ya va por la cuarta.
+sys.path.insert(0, str(PRECALCULO))
+from prueba_auditor_base import avisa_rotulos_largos            # noqa: E402
+
 DATOS = SALIDAS / "preparcial1_datos.json"
 HTML = HTMLS / "preparcial-corte-1.html"
 CAPS = ["cap1_datos.json", "cap2_datos.json", "cap3_datos.json"]
@@ -237,6 +243,34 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("N3: el reparto de Python deja de sumar los 100 condados", "datos",
         lambda o: o["nuevo"]["convenio_intervalo"].__setitem__(
             "tam_python", [24, 27, 11, 19, 18]))
+
+    # -----------------------------------------------------------------
+    # LOS QUINCE DISTRACTORES que se calcularon para que las cinco
+    # numéricas pudieran viajar a un banco del LMS. Nacieron sin arnés: el
+    # auditor los comprobaba y nada comprobaba al auditor sobre ellos, que
+    # es la mitad que este archivo existe para cubrir.
+    #
+    # Cuatro formas de romperlos, y cada una nombra un modo real de
+    # equivocarse al añadir un ítem nuevo: mover un valor, renombrar un
+    # identificador, poner dos opciones que no se distinguen, y mover la
+    # respuesta de la que cuelgan todos.
+    # -----------------------------------------------------------------
+    CON_DISTRACTORES = ("cv_inflacion", "indice_espacial", "caida_color",
+                        "efecto_escala", "convenio_intervalo")
+    for k in CON_DISTRACTORES:
+        obj(f"{k}: los tres distractores se mueven", "datos",
+            lambda o, k=k: [d.__setitem__("valor", d["valor"] * 2 + 7)
+                            for d in o["nuevo"][k]["distractores"]])
+        obj(f"{k}: un distractor cambia de identificador", "datos",
+            lambda o, k=k: o["nuevo"][k]["distractores"][0].__setitem__(
+                "id", "renombrado_a_mano"))
+        obj(f"{k}: un distractor deja de distinguirse del correcto", "datos",
+            lambda o, k=k: o["nuevo"][k]["distractores"][0].__setitem__(
+                "valor", o["nuevo"][k]["correcto"]))
+    for k in ("cv_inflacion", "indice_espacial", "caida_color", "efecto_escala"):
+        obj(f"{k}: la respuesta deja de salir de sus ingredientes", "datos",
+            lambda o, k=k: o["nuevo"][k].__setitem__(
+                "correcto", o["nuevo"][k]["correcto"] * 1.5 + 1))
     obj("N4: el error del peor par se mueve", "datos",
         lambda o: o["nuevo"]["euclidea_grados"].__setitem__(
             "error_max_pct", 3.1234567891))
@@ -690,6 +724,15 @@ def main() -> int:  # noqa: C901
         n = re.sub(r"^g_\w+:", "un gráfico:", n)
         n = re.sub(r"^bloque-[abcd]", "un bloque", n)
         return n
+
+    # EL DETECTOR DE RÓTULOS LARGOS, que vigilaba a los cuatro capítulos y al
+    # taller y no a este arnés, porque aquéllos pasan por `arnes()` y éste
+    # tiene su propio `main()`. El defecto volvió por CUARTA vez justo aquí,
+    # al renombrar la comprobación de separación de distractores: 60
+    # caracteres, y su rótulo dejó de reconocerse entre la pasada limpia y la
+    # rota. Llamarlo desde aquí es la diferencia entre haberlo arreglado y
+    # que no vuelva.
+    avisa_rotulos_largos(todas)
 
     tipos_todos = ({tipo_de(x) for x in todas} - SOLO_FUENTES - FUERA_DE_ALCANCE
                    - {x for x in todas if NOMBRE_VARIABLE.match(x)})

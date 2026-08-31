@@ -413,7 +413,7 @@ def main() -> int:  # noqa: C901
     a.cierto(fecha_ok, "la fecha del parcial es una fecha", meta["fecha_parcial"])
 
     # =================================================================
-    fam.abre(1, "Las cuatro cifras nuevas, desde la fuente primaria")
+    fam.abre(1, "Las cifras nuevas, y sus distractores")
 
     # --- N1 · tamaño efectivo, contra el CSV de municipios ------------
     N1 = NUEVO["n_efectivo"]
@@ -571,8 +571,71 @@ def main() -> int:  # noqa: C901
     a.igual(est["estacion"].to_numpy()[iu[1][peor]], N4["peor_par"]["b"],
             "N4: y la segunda")
 
+    # --- N5, N6, N8, N9 y los tres de N3 · los quince distractores que
+    #     se calcularon para que las cinco numéricas pudieran viajar a un
+    #     banco del LMS.
+    #
+    # La independencia aquí es MENOR que la de N1 a N4, y se dice: no salen
+    # de la fuente primaria sino de cifras que este mismo auditor ya verificó
+    # contra ella en la familia 2. Lo que se comprueba es la FÓRMULA —qué
+    # error concreto produce cada número— y no el dato. Un distractor cuya
+    # explicación no corresponda a su valor es peor que no tenerlo: manda al
+    # estudiante a buscar un error que no cometió.
+    v = lambda k: float(REU[k]["valor"])                        # noqa: E731
+    ra, rb = v("cv_rmse_alea"), v("cv_rmse_bloques")
+    pb, pc = v("ing_pares_bruta"), v("ing_pares_cajas")
+    dn, dd = v("c3m5_dE_normal"), v("c3m5_dE_deuter")
+    ri, rd, rmun = v("c3m8_r_ind"), v("c3m8_r_dep"), v("c3m8_r_mun")
+    esperado = {
+        "cv_inflacion": ((rb - ra) / ra * 100, {
+            "base_bloques": (rb - ra) / rb * 100,
+            "razon": rb / ra * 100,
+            "cuadraticos": (rb ** 2 - ra ** 2) / ra ** 2 * 100}),
+        "indice_espacial": (pb / pc, {
+            "al_reves": pc / pb,
+            "olvida_el_resto": (pb - pc) / pc,
+            "pct_reduccion": (pb - pc) / pb * 100}),
+        "caida_color": ((dn - dd) / dn * 100, {
+            "lo_que_queda": dd / dn * 100,
+            "diferencia": dn - dd,
+            "base_deuteranopia": (dn - dd) / dd * 100}),
+        "efecto_escala": ((rd - ri) / ri * 100, {
+            "base_departamento": (rd - ri) / rd * 100,
+            "razon": rd / ri * 100,
+            "con_municipio": (rmun - ri) / ri * 100}),
+        "convenio_intervalo": (None, {
+            "ninguno": 0.0,
+            "primera_clase_r": float(N3["primera_clase_r"]),
+            "todos_los_empates": v("c3m3_empatados")}),
+    }
+    publica = {"cv_inflacion": "cv_inflacion", "indice_espacial": "ing_reduccion",
+               "caida_color": "c3m5_caida", "efecto_escala": "c3m8_subida"}
+    for nm, (correcto, ds) in esperado.items():
+        bloque = NUEVO[nm]
+        if correcto is not None:
+            # 1e-6 y no 1e-9: los ingredientes se publican redondeados a diez
+            # decimales por `r10()`, así que un porcentaje derivado de ellos
+            # arrastra ~1e-9 por construcción. Apretar más no comprobaría la
+            # fórmula, comprobaría el redondeo del capítulo. Es la misma
+            # tolerancia que usa el ancla del generador.
+            a.igual(correcto, bloque["correcto"],
+                    f"{nm}: la respuesta sale de sus ingredientes", 1e-6)
+            a.igual(bloque["correcto"], v(publica[nm]),
+                    f"{nm}: y es la que publicaba el capítulo", 1e-6)
+        tiene = {d["id"]: float(d["valor"]) for d in bloque["distractores"]}
+        a.cierto(set(tiene) == set(ds), f"{nm}: los tres distractores que se esperan",
+                 " · ".join(sorted(tiene)))
+        for ident, valor in ds.items():
+            a.igual(valor, tiene.get(ident, float("nan")),
+                    f"{nm}: el distractor «{ident}»", 1e-9)
+
     # --- La separación de los distractores, que no es cosmética -------
-    for nombre, bloque in (("N1", N1), ("N2", N2)):
+    # Se recorre TODO lo que tenga distractores, y no una lista escrita a
+    # mano: el día que se añada un ítem más, entra solo. Escribirla a mano
+    # es como los quince distractores llegaron a publicarse sin que ninguna
+    # comprobación los mirara.
+    for nombre, bloque in sorted((k, x) for k, x in NUEVO.items()
+                                 if x.get("distractores")):
         dec = int(bloque["decimales"])
         vistos = {round(float(bloque["correcto"]), dec): "el correcto"}
         choque = None
@@ -581,9 +644,14 @@ def main() -> int:  # noqa: C901
             if v in vistos:
                 choque = f"{d['id']} y {vistos[v]}"
             vistos[v] = d["id"]
+        # El rótulo lleva PRESUPUESTO de 57 caracteres, y los decimales van
+        # al detalle por eso: con ellos dentro, «convenio_intervalo» lo
+        # pasaba a 64 y rompía el recuento de cobertura del arnés sin que
+        # nada fallara. Es la CUARTA vez que este defecto vuelve; ver
+        # `avisa_rotulos_largos()`.
         a.cierto(choque is None,
-                 f"{nombre}: los distractores se distinguen a {dec} decimales",
-                 choque or "")
+                 f"{nombre}: los distractores se distinguen",
+                 f"a {dec} decimal(es)" + (f" · choca {choque}" if choque else ""))
 
     # =================================================================
     fam.abre(2, "Sincronía: las cifras citadas siguen siendo esas")
@@ -864,7 +932,7 @@ def main() -> int:  # noqa: C901
              f"{len(problemas)} problema(s): " + "; ".join(problemas[:3]))
 
     # =================================================================
-    fam.abre(5, "No filtración: ni el enunciado, ni la pista, ni la posición")
+    fam.abre(5, "No filtración: ni enunciado, ni pista, ni posición")
     filtra, posicional = [], []
     # «las dos primeras» SOLO cuando va sola —seguida de punto, coma o final
     # de frase— o cuando nombra opciones. «las dos primeras clases» y «la
