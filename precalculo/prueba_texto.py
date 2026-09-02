@@ -101,6 +101,8 @@ SUJETOS = {
              PROYECTO / "Htmls_Espacial", "capitulo-3-cartografia-maup.html"),
     "cap4": ("audita_texto_cap4.py", "CAP4_HTML",
              PROYECTO / "Htmls_Espacial", "capitulo-4-patrones-puntuales.html"),
+    "cap5": ("audita_texto_cap5.py", "CAP5_HTML",
+             PROYECTO / "Htmls_Espacial", "capitulo-5-intensidad-nucleos.html"),
 }
 
 
@@ -749,9 +751,231 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
     ]
 
 
+def defectos_cap5() -> list[tuple[str, str, str]]:
+    """Los defectos del capítulo 5, construidos DESDE su precálculo.
+
+    Cubre las familias de los anteriores y estrena SEIS que solo este
+    capítulo puede probar, todas alrededor de lo que estrena el capítulo:
+    superficies en vez de geometría.
+
+     26. **un CORTE DE CLASE del `.geomapa` cambiado.** La familia 9 del
+         fixture llevaba sin sujeto desde el capítulo 1: los mapas de los
+         capítulos 1 a 4 son de puntos y **ninguno clasifica**, así que no
+         había un solo corte que alterar —el auditor del 4 lo dejó dicho
+         en voz alta—. Los tres rásteres de éste sí clasifican, y aquí la
+         rama se ejercita por fin sobre un sujeto de verdad.
+     27. **un σ del deslizador que deja de casar con el del dato.** Es la
+         trampa de T1.2 y T1.3 en su tercera forma: no emparejar por
+         índice, sino emparejar por una clave escrita dos veces. El
+         `find()` del navegador devolvería `undefined` y el mapa saldría
+         **en blanco con la consola limpia**.
+     28. **una superficie con escala de color propia.** Las siete
+         comparten escala a propósito: normalizada cada una contra su
+         máximo, las siete saldrían igual de intensas y el mapa afirmaría
+         justo lo contrario que la tabla del módulo 2.
+     29. **una superficie que llega sin empaquetar.** El decodificador de
+         la plantilla espera `zqm`/`zqd`; con el array `zq` entero
+         dibujaría en blanco, otra vez sin un error en consola.
+     30. **la tabla de respaldo del deslizador**, que es la única vía al
+         dato de quien no ve el lienzo: el módulo 2 dice «mueve el
+         deslizador y mira la ciudad», y de sus siete máximos la prosa
+         solo publica el primero y el último. Es el A.20.2 del capítulo 4
+         en este capítulo.
+     31. **el `niveles` del mapa por sector**, sin el cual un código de
+         marca no se puede contrastar contra nada.
+
+    UNA FAMILIA QUE AQUÍ NO SE PUEDE PROBAR, y se dice en voz alta: la 1,
+    la cifra inventada DENTRO de una fórmula de KaTeX. Este capítulo
+    publica cinco fórmulas y **ninguna lleva una medición dentro**: sus
+    únicos dígitos son estructurales —el 1 de `\\frac{1}{e(u)}`, el `i=1`
+    de un sumatorio, los subíndices de `\\lambda_1` y `\\beta_0`—. Cambiar
+    uno rompería la matemática, no fabricaría una cifra falsa, y además
+    caería bajo la regla del entero pequeño del propio auditor: la
+    inyección sería INERTE. La rama sí está ejercitada, por los capítulos
+    1 a 4, que publican cifras medidas dentro de sus fórmulas.
+    """
+    D = json.loads((SALIDAS / "cap5_datos.json").read_text(encoding="utf-8"))
+    S = json.loads((SALIDAS / "cap5_soluciones.json").read_text(encoding="utf-8"))
+    M = json.loads((SALIDAS / "cap5_mapas.json").read_text(encoding="utf-8"))
+    m1, m3, m4, m6 = D["m1"], D["m3"], D["m4"], D["m6"]
+    m7, m8, m9, m10, m11 = D["m7"], D["m8"], D["m9"], D["m10"], D["m11"]
+    dv = {d["modelo"]: d for d in m11["divergencia"]}
+
+    def f(x, d=5):
+        return f"{float(x):.{d}f}"
+
+    def perturba(x, d=5):
+        t = f(x, d)
+        return t[:-1] + ("1" if t[-1] != "1" else "2")
+
+    # Una cifra en notación científica se perturba en su MANTISA, no en su
+    # exponente: cambiar 1.794e-10 por 1.794e-11 daría un número de otro
+    # orden, que es un defecto mucho más grosero que el que se quiere
+    # imitar —el dígito mal copiado—.
+    def perturba_g(x):
+        t = f"{abs(float(x)):g}"
+        mant, _, exp = t.partition("e")
+        mant = mant[:-1] + ("1" if mant[-1] != "1" else "2")
+        return mant + ("e" + exp if exp else "")
+
+    return [
+        # --- 2. En el texto corrido -----------------------------------
+        ("el área de la ventana de Kennedy, cambiada en la prosa",
+         f"<strong>{f(m1['ventana']['area_km2'], 2)}</strong> km²",
+         f"<strong>{perturba(m1['ventana']['area_km2'], 2)}</strong> km²"),
+        ("cuánto discrepan los cuatro selectores sobre la ciudad, cambiado",
+         f"<strong>{f(m3['urbana']['razon'])}</strong> veces",
+         f"<strong>{perturba(m3['urbana']['razon'])}</strong> veces"),
+        ("la horquilla entre corregir y no corregir el borde, cambiada",
+         f"<strong>{f(m4['horquilla_pct'])}</strong> puntos porcentuales",
+         f"<strong>{perturba(m4['horquilla_pct'])}</strong> puntos porcentuales"),
+        ("la mediana de la superficie de P(oficial), cambiada",
+         f"<strong>{f(m6['bogota']['p_mediana'], 4)}</strong>",
+         f"<strong>{perturba(m6['bogota']['p_mediana'], 4)}</strong>"),
+        ("la razón del bulto de la curva rhohat colombiana, cambiada",
+         f"<strong>{f(m7['bogota']['curva']['razon_bulto'])}</strong> veces",
+         f"<strong>{perturba(m7['bogota']['curva']['razon_bulto'])}</strong> veces"),
+        ("cuánto mueve la cuadratura al coeficiente, cambiado",
+         f"<strong>{f(m8['cuadratura']['rango_pendiente_en_ee'])}</strong> errores estándar",
+         f"<strong>{perturba(m8['cuadratura']['rango_pendiente_en_ee'])}</strong> errores estándar"),
+        # LA RAMA NUEVA DEL NÚCLEO (T3.6): una cifra en notación
+        # científica. Hasta este capítulo el índice guardaba la mantisa
+        # suelta y el extractor se llevaba el literal entero, así que
+        # ninguna de estas se podía respaldar. Sin esta inyección, el
+        # arreglo no tendría quien lo vigile.
+        ("el número de condición del ajuste crudo, cambiado en su mantisa",
+         f"<strong>{m9['crudo']['cond_reciproco']:g}</strong>",
+         f"<strong>{perturba_g(m9['crudo']['cond_reciproco'])}</strong>"),
+        ("cuánto mejora el condicionamiento al centrar, cambiado",
+         f"<strong>{m9['mejora_condicion']:g}</strong> veces mejor",
+         f"<strong>{perturba_g(m9['mejora_condicion'])}</strong> veces mejor"),
+        ("el primer radio en que la K se sale de la banda, cambiado",
+         f"<strong>{f(m10['primer_r_fuera_m'])}</strong> m",
+         f"<strong>{perturba(m10['primer_r_fuera_m'])}</strong> m"),
+        ("cuántas veces más rápido es el ajuste con traslación, cambiado",
+         f"<strong>{f(dv['Thomas']['veces_mas_rapido'])}</strong> veces más rápido",
+         f"<strong>{perturba(dv['Thomas']['veces_mas_rapido'])}</strong> veces más rápido"),
+        ("el índice de dispersión del Hawkes, cambiado",
+         f"<strong>{f(m11['hawkes']['dispersion_hawkes'])}</strong>",
+         f"<strong>{perturba(m11['hawkes']['dispersion_hawkes'])}</strong>"),
+        # --- 3. En la solución de un ejercicio ------------------------
+        ("una cifra de la solución del ejercicio 2",
+         f"<td>{S['e2']['pasos'][2]['valor']:g}</td>",
+         f"<td>{perturba(S['e2']['pasos'][2]['valor'], 10)}</td>"),
+        ("una cifra de la solución del ejercicio 5",
+         f"<td>{S['e5']['pasos'][4]['valor']:g}</td>",
+         f"<td>{perturba(S['e5']['pasos'][4]['valor'], 10)}</td>"),
+        # --- 4. Un tema del temario que desaparece --------------------
+        ("el capítulo deja de hablar de rhohat",
+         "rhohat", "la-otra-curva", True),
+        ("el capítulo deja de nombrar el contraste mínimo",
+         "contraste mínimo", "el otro ajuste", True),
+        ("el capítulo deja de formular el proyecto integrador",
+         "proyecto integrador", "trabajo de fin de bloque", True),
+        # --- 5. Una fuente que desaparece -----------------------------
+        ("desaparece la cita a Cronie", "Cronie", "un autor", True),
+        ("desaparece la cita a Berman", "Berman", "otro autor", True),
+        ("desaparece la cita a Ogata", "Ogata", "cierto autor", True),
+        # --- 6. Accesibilidad -----------------------------------------
+        ("un <canvas> se queda sin aria-label",
+         'aria-label="Kennedy: las 262 sedes',
+         'data-label="Kennedy: las 262 sedes'),
+        ("el marcador del quiz se aplana dentro del resumen",
+         '<div class="quiz-resumen" role="status" hidden></div>\n        <div class="quiz-marcador">',
+         '<div class="quiz-resumen" role="status" hidden>\n        <div class="quiz-marcador">'),
+        # --- 26. EL CORTE DE CLASE, por fin con sujeto ----------------
+        ("un corte de clase del ráster de proporción deja de ser el de R",
+         '"cortes": [0, ' + f"{M['proporcion_oficial']['cortes'][1]:g}",
+         '"cortes": [0, ' + perturba_g(M['proporcion_oficial']['cortes'][1])),
+        # --- 10. El .geomapa: el n que deja de cuadrar ----------------
+        ("el n declarado del patrón por sector deja de cuadrar con su geometría",
+         f'"n": {M["sector_puntos"]["n"]}, "pts"',
+         f'"n": {M["sector_puntos"]["n"] - 3}, "pts"'),
+        # --- 31. Los niveles de la marca ------------------------------
+        ("el mapa por sector se queda sin los niveles de su marca",
+         '"niveles": ["oficial"', '"_niveles": ["oficial"'),
+        # --- 27, 28, 29, 30. Las siete superficies del deslizador -----
+        ("un σ del deslizador deja de casar con el del dato",
+         f'"sigma_m": {json.dumps(D["m2"]["familia"]["sigmas_m"][0])}',
+         f'"sigma_m": {perturba(D["m2"]["familia"]["sigmas_m"][0], 4)}'),
+        ("una superficie del deslizador se queda con escala propia",
+         '"escala_comun"', '"escala_propia"'),
+        ("una superficie del deslizador llega sin empaquetar",
+         '"zqd"', '"zq"'),
+        ("el deslizador se queda sin su tabla de respaldo",
+         ", tabla: function () {", ", sinTabla: function () {", True),
+        # --- 11. La codificación --------------------------------------
+        ("una tilde se convierte en bytes crudos",
+         "núcleos", "n<c3><ba>cleos"),
+        ("una tilde se convierte en el escape <U+00FA> de R",
+         "núcleos", "n<U+00FA>cleos", True),
+        # --- 12. Afirmaciones que el capítulo no puede dejar de decir --
+        ("desaparece que «el ancho óptimo» no es una propiedad del patrón",
+         "no es una propiedad del patrón", "es difícil de elegir", True),
+        ("desaparece que las tres correcciones dan mapas igual de plausibles",
+         "los tres salen plausibles", "cuesta distinguirlos", True),
+        ("desaparece que llamar «demanda» a un mapa es una decisión",
+         "es una decisión, no una descripción", "conviene pensarlo", True),
+        ("desaparece qué es un residuo en un proceso puntual",
+         "No hay un residuo por observación", "Los residuos salen aparte", True),
+        ("desaparece que cambiar la corrección de kppm es otra respuesta",
+         "es otra respuesta", "tarda menos", True),
+        ("desaparece que la fuente del caso trabajado no llegó",
+         "La fuente no llegó", "La fuente se consultó", True),
+        # --- LOS MECANISMOS QUE NINGÚN CAPÍTULO HABÍA VISTO FALLAR ---
+        # El arnés imprime cuántas comprobaciones se ha visto caer, y al
+        # mirar la lista de este capítulo quedaban dentro de `geomapas()`
+        # y de `accesibilidad()` mecanismos enteros que nadie había
+        # tumbado nunca: no instancias repetidas de algo ya demostrado,
+        # sino caminos de código distintos. Se atacan aquí uno a uno.
+        ("un contenedor .geomapa se queda sin su registro",
+         'data-geomapa="cap5-oferta"', 'data-geomapa="cap5-oferta-2"'),
+        ("un .geomapa deja de declarar su modo",
+         '{"modo": "rejilla", "titulo": "Proporción',
+         '{"_modo": "rejilla", "titulo": "Proporción'),
+        ("un ráster se queda sin sus cortes de clase",
+         '"rango": [0, 1], "cortes"', '"rango": [0, 1], "_cortes"'),
+        ("el mapa por sector deja de declarar el tipo de su marca",
+         '"marcas_tipo": "categoria"', '"marcas_tipo": "vaya usted a saber"'),
+        ("ningún mapa declara ya su etiqueta accesible",
+         "etiqueta: ", "rotulo: ", True),
+        ("el capítulo deja de declarar que los cortes los calcula classInt",
+         "classInt", "otra-cosa", True),
+        ("la geometría de un mapa se sale de su presupuesto",
+         '"pts": [', '"relleno": "' + "x" * 130_000 + '", "pts": ['),
+        ("un <canvas> se queda sin role=\"img\"",
+         '<canvas role="img" aria-label="El pico contra',
+         '<canvas aria-label="El pico contra'),
+        ("un desplegable de ejercicio pierde su aria-controls",
+         'aria-expanded="false" aria-controls="cap5-e1-sol"',
+         'aria-expanded="false" data-controls="cap5-e1-sol"'),
+        # LA FAMILIA 1 POR SU OTRA PUERTA (T3.6). No es «una cifra falsa
+        # dentro de una fórmula» —este capítulo no publica ninguna cifra
+        # medida dentro de KaTeX— sino lo que la haría INVISIBLE: un `<`
+        # sin escapar dentro de una fórmula, tras el cual el despojador de
+        # etiquetas se traga todo hasta el siguiente `>`. La fórmula de
+        # Hawkes lo llevaba, y por eso existe ahora la guarda del núcleo.
+        ("una fórmula recupera su «<» sin escapar",
+         r"\sum_{t_i &lt; t}", r"\sum_{t_i < t}"),
+        ("un bloque de pestañas R/Python se queda sin role=tablist",
+         'class="code-tabs-nav" role="tablist" aria-label="La ventana de Kennedy',
+         'class="code-tabs-nav" aria-label="La ventana de Kennedy'),
+        ("un bloque de autoevaluación se queda sin su marcado",
+         '<div class="quiz" data-quiz="cap5-quiz">',
+         '<div class="cuestionario" data-quiz="cap5-quiz">'),
+        # --- 7. El enlace local roto ---------------------------------
+        ("el enlace al capítulo 4 apunta a un archivo que no existe",
+         'href="capitulo-4-patrones-puntuales.html"',
+         'href="capitulo-4-patrones-puntualess.html"'),
+        # --- Peso -----------------------------------------------------
+        ("el capítulo se pasa de su propio tope de peso",
+         "</body>", "<!--" + "y" * 320_000 + "-->\n</body>"),
+    ]
+
+
 DEFECTOS = {"demo": defectos_demo, "cap1": defectos_cap1,
             "cap2": defectos_cap2, "cap3": defectos_cap3,
-            "cap4": defectos_cap4}
+            "cap4": defectos_cap4, "cap5": defectos_cap5}
 
 
 def corre(clave: str, ruta_html: pathlib.Path) -> tuple[int, str]:

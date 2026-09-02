@@ -142,7 +142,9 @@ REUSA <- list(
   r("neff_desercion",      "cap1",  5, "n_efectivo.desercion_municipal",   "Tamaño efectivo de los 1121 municipios con deserción"),
   r("neff_desercion_n",    "cap1",  5, "n_efectivo.desercion_n",           "Municipios con dato de deserción"),
   r("neff_pct",            "cap1",  5, "n_efectivo.desercion_pct",         "Porcentaje de la información nominal que queda tras la autocorrelación"),
-  r("neff_rho_implicito",  "cap1",  5, "n_efectivo.rho_del_titular.implicito", "rho implícito en ese n efectivo"),
+  r("neff_rho_implicito",  "cap1",  5, "n_efectivo.rho_del_titular.implicito", "El rho que la equicorrelación NECESITARÍA para dar ese n efectivo: se despeja de él, no se estima"),
+  r("neff_rho_estimado",   "cap1",  5, "n_efectivo.rho_del_titular.estimado", "La correlación media entre pares medida de verdad sobre el mapa, con el correlograma de 7 bandas"),
+  r("neff_con_estimado",   "cap1",  5, "n_efectivo.rho_del_titular.n_eff_con_estimado", "n efectivo que daría la correlación media medida, en vez del rho retro-transformado"),
   r("neff_I_primera_banda","cap1",  5, "n_efectivo.rho_del_titular.I_primera_banda", "Moran I de la primera banda: la correlación de los vecinos inmediatos, que NO es el rho medio"),
 
   r("realiz_rechaza",      "cap1",  6, "una_realizacion.pct_rechaza_ingenuo", "Porcentaje de veces que la prueba ingenua rechaza siendo cierta H0"),
@@ -195,7 +197,7 @@ REUSA <- list(
   r("epsg_3116_med",       "cap2",  4, "epsg.continente.med_3116_pct",     "Error de área mediano con EPSG:3116"),
   r("epsg_9377_med",       "cap2",  4, "epsg.continente.med_9377_pct",     "Error de área mediano con EPSG:9377"),
 
-  r("etiq_transform",      "cap2",  5, "etiquetar.transform_max_delta",    "Desplazamiento máximo de los vértices al reproyectar de verdad, con st_transform"),
+  r("etiq_transform",      "cap2",  5, "etiquetar.transform_max_delta",    "Cambio máximo del NÚMERO de la coordenada al reproyectar de verdad: de metros a grados, así que no es una distancia ni va en metros"),
   r("etiq_set_crs",        "cap2",  5, "etiquetar.set_crs_max_delta",      "Desplazamiento de los vértices al reetiquetar con st_set_crs"),
   r("etiq_lon_absurda",    "cap2",  5, "etiquetar.lon_absurda",            "Longitud que queda tras reetiquetar mal: ninguna Tierra tiene esa coordenada"),
   r("etiq_silencioso",     "cap2",  5, "etiquetar.silencioso.desplazamiento_m", "Desplazamiento de un st_transform 4686->4326: cero, y tampoco avisa"),
@@ -206,7 +208,7 @@ REUSA <- list(
   r("medir_dist_max",      "cap2",  6, "medir.distancias.dif_max_m",       "Diferencia máxima entre distancia esférica y geodésica, en metros"),
   r("medir_equiv_mun",     "cap2",  6, "medir.municipios.equivalente_a_municipios", "A cuántos municipios equivale el error acumulado"),
 
-  r("form_campos_largos",  "cap2",  7, "formatos.shapefile.n_campos_largos", "Campos cuyo nombre trunca el shapefile a 10 caracteres"),
+  r("form_campos_largos",  "cap2",  7, "formatos.shapefile.n_campos_largos", "Campos cuyo nombre desfigura el shapefile quitándoles vocales: NO los trunca a 10"),
   r("form_n_rasgos",       "cap2",  7, "formatos.n_rasgos",                "Rasgos guardados en los tres formatos: NO son las localidades de m5"),
   r("form_n_campos",       "cap2",  7, "formatos.shapefile.n_campos",      "Columnas del conjunto que se guarda en los tres formatos"),
   r("form_gpkg_razon",     "cap2",  7, "formatos.gpkg.razon_sobre_shp",    "Tamaño del GeoPackage respecto del shapefile"),
@@ -226,7 +228,8 @@ REUSA <- list(
   r("topo_area_antes",     "cap2", 10, "topologia.lazo.area_antes",        "Área del polígono con autointersección antes de repararlo"),
   r("topo_area_despues",   "cap2", 10, "topologia.lazo.area_despues",      "Área tras st_make_valid"),
   r("topo_buffer_grados",  "cap2", 10, "topologia.buffer.grados_area_km2", "Área de un buffer de radio 1 000 construido sobre grados, leída como km²"),
-  r("topo_buffer_3857",    "cap2", 10, "topologia.buffer.m3857_area_real_km2", "Área real de ese buffer hecho en Web Mercator"),
+  r("topo_buffer_3857",    "cap2", 10, "topologia.buffer.m3857_area_real_km2", "Área real de ese buffer hecho en Web Mercator: parece bien y no lo está"),
+  r("topo_buffer_9377",    "cap2", 10, "topologia.buffer.m9377_area_km2",  "Área del mismo buffer pedido sobre EPSG:9377, que es el que sale bien"),
 
   r("ing_reduccion",       "cap2", 11, "ingenieria.join.reduccion",        "Veces que el índice espacial reduce los pares a comparar"),
   r("ing_pares_bruta",     "cap2", 11, "ingenieria.join.pares_fuerza_bruta", "Pares por fuerza bruta"),
@@ -267,6 +270,7 @@ REUSA <- list(
   r("c3m7_n_puntos",       "cap3",  7, "m7.dot_density.n_puntos",          "Puntos dibujados"),
   r("c3m7_hexagonos",      "cap3",  7, "m7.hexbin.n_hexagonos",            "Hexágonos del hexbin"),
   r("c3m7_razon_simbolos", "cap3",  7, "m7.simbolos.razon_valor",          "Razón entre el valor mayor y el menor en símbolos proporcionales"),
+  r("c3m7_radio_simbolos", "cap3",  7, "m7.simbolos.radio_max_rel",        "Veces que el círculo mayor supera al menor EN RADIO, con el área bien construida"),
 
   r("c3m8_r_ind",          "cap3",  8, "m8.r_individuo",                   "Correlación educación de la madre / puntaje, a nivel individual"),
   r("c3m8_r_mun",          "cap3",  8, "m8.r_municipio",                   "Correlación educación de la madre / puntaje, agregada a municipio"),
@@ -337,7 +341,7 @@ N1 <- list(
     list(id = "resta_lineal", valor = n1 * (1 - rho),
          error = "descontar la correlación linealmente, como si quitara una fracción de las observaciones en vez de dividir por el efecto de diseño"),
     list(id = "rho_primera_banda", valor = neff(n1, I1),
-         error = "meter en la fórmula el Moran I de la primera banda de distancia en vez del rho medio: la correlación de los vecinos inmediatos no es la correlación media"),
+         error = "meter en la fórmula el Moran I de la primera banda de distancia: la correlación de los vecinos inmediatos no es la que la equicorrelación pide, que es una sola para todos los pares"),
     list(id = "multiplica", valor = n1 * (1 + (n1 - 1) * rho),
          error = "multiplicar por el efecto de diseño en vez de dividir")
   ),
@@ -438,8 +442,8 @@ N3 <- list(
   decimales = 0,
   correcto = tam_py[1] - tam_r[1],
   distractores = list(
-    list(id = "ninguno", valor = 0,
-         error = "dar por hecho que «clasificación por cuantiles» significa exactamente lo mismo en los dos programas: significa lo mismo salvo por el lado cerrado del intervalo"),
+    list(id = "primera_clase_python", valor = tam_py[1],
+         error = "dar el tamaño de la primera clase en Python en vez de cuántos condados ENTRAN en ella al cambiar de convenio"),
     list(id = "primera_clase_r", valor = tam_r[1],
          error = "dar el tamaño de la primera clase en R en vez de la diferencia entre las dos"),
     list(id = "todos_los_empates", valor = val("c3m3_empatados"),
@@ -545,8 +549,8 @@ N8 <- list(
          error = "dar el porcentaje de distancia que QUEDA en vez del que se pierde"),
     list(id = "diferencia", valor = dn - dd,
          error = "dar la caída en unidades de distancia perceptual en vez de en porcentaje"),
-    list(id = "base_deuteranopia", valor = (dn - dd) / dd * 100,
-         error = "dividir por la distancia bajo deuteranopia en vez de por la de partida: se cae DESDE la visión típica, así que la base es ella")
+    list(id = "base_suma", valor = (dn - dd) / (dn + dd) * 100,
+         error = "normalizar por la SUMA de las dos distancias —la diferencia relativa simétrica, que se usa cuando ninguno de los dos valores es el de partida— en vez de por la de partida, que aquí sí existe: se cae DESDE la visión típica")
   )
 )
 
@@ -560,8 +564,8 @@ N9 <- list(
          error = "tomar como base la correlación agregada en vez de la individual: se sube DESDE el individuo, así que el denominador es él"),
     list(id = "razon", valor = rd / ri * 100,
          error = "dar la razón entre las dos correlaciones en vez del incremento: el 100 % de partida ya está contado"),
-    list(id = "con_municipio", valor = (rmun - ri) / ri * 100,
-         error = "agregar a MUNICIPIO en vez de a departamento, donde la correlación no sube: baja, y el signo lo dice")
+    list(id = "base_municipio", valor = (rd - rmun) / rmun * 100,
+         error = "medir la subida desde la correlación MUNICIPAL en vez de desde la del estudiante: el enunciado agrega de estudiantes a departamentos, no de municipios a departamentos")
   )
 )
 
@@ -614,6 +618,38 @@ vario <- en_ruta(CAPS$cap1, "una_realizacion.variograma")
 curva8 <- en_ruta(CAPS$cap3, "m8.curva")
 pares4 <- en_ruta(CAPS$cap3, "m4.pares")
 
+# La forma de la curva del efecto escala, resumida AQUI y no en el
+# ensamblador. El texto alternativo de esa pregunta tiene que decir donde
+# hace cima y entre que dos escalas cruza la linea del valor individual, y
+# esas dos cosas son cifras: si las decidiera el ensamblador —con un
+# which.max en Python— serian cifras nacidas fuera de R, que es justo lo
+# que D10 prohibe. El `alt` viejo decia que la curva baja y ya: describia
+# una monotonia que la curva NO tiene, y el capitulo abre ese tramo con
+# «Y ni siquiera es monotono».
+zonas8 <- vapply(curva8, function(x) x$zonas, numeric(1))
+media8 <- vapply(curva8, function(x) x$media, numeric(1))
+i_cima <- which.max(media8)
+r_ind8 <- val("c3m8_r_ind")
+i_cruce <- which(media8 < r_ind8)[1]
+if (is.na(i_cruce) || i_cruce == 1L)
+  para("la curva del efecto escala no cruza por debajo del valor individual ",
+       "despues de empezar por encima: el texto alternativo de C08 daria por ",
+       "hecho un cruce que no hay")
+if (i_cima == 1L || i_cima == length(media8))
+  para("la cima de la curva del efecto escala cae en un extremo: el texto ",
+       "alternativo la describe como una cima interior")
+
+# El texto alternativo de D04 afirma que el grado de longitud baja EN TODO el
+# recorrido, y es esa afirmación la que le permite a quien no ve la figura
+# refutar el distractor «el error importa poco, porque la curva es suave». Es
+# cierta por el coseno y aun así se comprueba: una afirmación de forma sin
+# guarda es exactamente como el `alt` de g_escala llegó a describir una
+# monotonia que su curva no tenia.
+elip_lon <- val("grad_lon_elip")
+if (!all(diff(elip_lon) < 0))
+  para("la curva de los metros por grado de longitud deja de bajar en todo su ",
+       "recorrido, y el texto alternativo de D04 lo afirma")
+
 GRAFICOS <- list(
   g_cobertura = list(
     modulo = "cap1.m4", titulo = "Cobertura real de un IC al 95 % según la dependencia",
@@ -641,15 +677,22 @@ GRAFICOS <- list(
   ),
   g_escala = list(
     modulo = "cap3.m8", titulo = "La correlación según el número de zonas",
-    zonas = vapply(curva8, function(x) x$zonas, numeric(1)),
-    media = vapply(curva8, function(x) x$media, numeric(1)),
-    sd = vapply(curva8, function(x) x$sd, numeric(1))
+    zonas = zonas8, media = media8,
+    sd = vapply(curva8, function(x) x$sd, numeric(1)),
+    # La forma va en un subobjeto y no suelta al lado de las series: la
+    # guarda de abajo exige que todo lo que cuelgue del gráfico mida lo
+    # mismo, y tiene razón —una serie corta dibujaría un gráfico truncado
+    # sin avisar—. Esto no es una serie, es su resumen.
+    forma = list(
+      cima_zonas = zonas8[i_cima], cima_media = media8[i_cima],
+      cruce_antes = zonas8[i_cruce - 1], cruce_despues = zonas8[i_cruce]
+    )
   )
 )
 
 for (nm in names(GRAFICOS)) {
   serie <- GRAFICOS[[nm]]
-  largos <- vapply(serie[!names(serie) %in% c("modulo", "titulo")], length, integer(1))
+  largos <- vapply(serie[!names(serie) %in% c("modulo", "titulo", "forma")], length, integer(1))
   if (length(unique(largos)) != 1)
     para("el gráfico ", nm, " tiene series de largos distintos: ",
          paste(largos, collapse = ", "))
@@ -710,7 +753,7 @@ ERRORES <- list(
       c("c3m3_empatados", "c3m3_convenio_r", "c3m3_convenio_py"),
       "R y Python dan particiones distintas del mismo dato con el mismo nombre"),
   err("buffer_grados", "Hacer un buffer o medir un área en grados", "cap2", 10,
-      c("topo_buffer_grados", "topo_buffer_3857"),
+      c("topo_buffer_grados", "topo_buffer_3857", "topo_buffer_9377"),
       "el resultado sale en grados cuadrados, que no son ninguna superficie")
 )
 

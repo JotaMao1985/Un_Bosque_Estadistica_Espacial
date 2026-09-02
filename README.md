@@ -12,7 +12,7 @@ con mapas, simuladores, autoevaluación y el mismo análisis resuelto en R y en 
 
 ## Estado
 
-Cuatro de los diez capítulos del plan están publicados, y con ellos el **Taller 1** y el
+Cinco de los diez capítulos del plan están publicados, y con ellos el **Taller 1** y el
 **preparcial del Corte I**, que no son capítulos y se cuentan aparte.
 
 | # | Capítulo | Semana | Estado |
@@ -21,17 +21,24 @@ Cuatro de los diez capítulos del plan están publicados, y con ellos el **Talle
 | 2 | SIG, sistemas de referencia y georreferenciación con `sf` | 2–3 | Publicado |
 | 3 | Cartografía estadística y el MAUP | 4–5 | Publicado |
 | 4 | Patrones puntuales: CSR y funciones de resumen | 6–7 | Publicado |
-| 5 | Intensidad por núcleos y procesos puntuales | 8–9 | En preparación |
+| 5 | Intensidad por núcleos y procesos puntuales | 8–10 | Publicado |
 | 6 | Datos de área y la matriz de pesos espaciales | 10–11 | En preparación |
 | 7 | Autocorrelación espacial global y local | 12–13 | En preparación |
 | 8 | Econometría espacial: SAR, SEM, SDM y GWR | 14 | En preparación |
 | 9 | Geoestadística: variograma y kriging | 15 | En preparación |
 | 10 | ML espacial, datos espacio-temporales y proyecto | 16 | En preparación |
 
-Los cuatro capítulos suman 48 módulos, 40 simuladores, 36 mapas, 48 preguntas de
-autoevaluación, 18 ejercicios guiados y 41 bloques de código en cada lenguaje. Fuera de esa
+Los cinco capítulos suman 60 módulos, 51 simuladores, 42 mapas, 60 preguntas de
+autoevaluación, 23 ejercicios guiados y 53 bloques de código en cada lenguaje. Fuera de esa
 cuenta van el Taller 1 —9 módulos y 7 ejercicios— y el preparcial del Corte I —7 módulos y
 36 preguntas que cubren los 30 módulos de los capítulos 1 a 3 que entran en el parcial—.
+
+El capítulo 5 es **el primero que publica superficies** en vez de geometría, y eso le cambia el
+presupuesto: sus diez rásteres de intensidad pesan 296 KB empaquetados —máscara aparte y
+diferencias por fila, el 49 % del crudo— de los 755 KB del documento. Un contorno se simplifica sin
+perder contenido; **un ráster no se simplifica, se muestrea**, y muestrear menos es dibujar la
+rejilla en vez del núcleo. Por eso ahí el peso deja de ser un objetivo y pasa a ser una cifra que se
+declara.
 
 Ninguna de esas cifras está escrita de memoria: las cuenta `cuenta_sitio.py`, que es también
 quien avisa si aparece un HTML que no encaja en ninguna de sus cuatro tablas.

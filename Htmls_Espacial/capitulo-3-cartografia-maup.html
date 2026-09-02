@@ -7512,7 +7512,44 @@ for u in (0, 30, 300, 1000):
       }
     }
 
+    // El ráster puede viajar EMPAQUETADO: la máscara en tiradas y los
+    // valores en diferencias por fila. Es el gemelo de `expande()` de
+    // `precalculo/rejilla_comprime.py`, y si los dos dejan de hacer lo
+    // mismo el mapa no revienta —sale mentido, que es peor—. Por eso el
+    // ensamblador comprueba la ida y vuelta en Python antes de escribir
+    // nada, y aquí solo se reconstituye.
+    //
+    // NO es una cifra naciendo fuera de R: R calculó el array entero y
+    // esto lo vuelve a montar. La razón de empaquetarlo es que el 60,6 %
+    // de un ráster completo son la cifra -1 repetida, y una KDE es suave.
+    function geomapaRejillaZq(d) {
+      if (d.zq) return d.zq;
+      if (!d.zqm || !d.zqd) return null;
+      const n = d.nx * d.ny, zq = new Int32Array(n);
+      let i = 0, dentro = d.zqm0 === 1;
+      for (let t = 0; t < d.zqm.length; t++) {
+        const largo = d.zqm[t];
+        for (let k = 0; k < largo; k++) zq[i++] = dentro ? 0 : -1;
+        dentro = !dentro;
+      }
+      let p = 0;
+      for (let y = 0; y < d.ny; y++) {
+        let acumulado = 0, primero = true;
+        for (let x = 0; x < d.nx; x++) {
+          const k = y * d.nx + x;
+          if (zq[k] < 0) continue;
+          acumulado = primero ? d.zqd[p] : acumulado + d.zqd[p];
+          p++; primero = false;
+          zq[k] = acumulado;
+        }
+      }
+      d.zq = zq;                 // se reconstituye UNA vez por superficie
+      return zq;
+    }
+
     function geomapaPintaRejilla(ctx, d, aj, o) {
+      const zq = geomapaRejillaZq(d);
+      if (!zq) return;
       const q = d.q || 4096;
       const c = geomapaCajaQ(d.caja, q);
       const x0 = aj.x(c.x0), x1 = aj.x(c.x1);
@@ -7520,7 +7557,7 @@ for u in (0, 30, 300, 1000):
       const cw = (x1 - x0) / d.nx, ch = (y1 - y0) / d.ny;
       for (let r = 0; r < d.ny; r++) {
         for (let cc = 0; cc < d.nx; cc++) {
-          const z = d.zq[r * d.nx + cc];
+          const z = zq[r * d.nx + cc];
           if (z < 0) continue;                          // celda sin dato
           ctx.fillStyle = geomapaColor(o.paleta, z / d.zqmax);
           // +1 para que no queden costuras blancas entre celdas

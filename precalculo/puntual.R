@@ -102,3 +102,136 @@ ppp_rebaraja <- function(p, nx, ny = nx, semilla) {
     stop("ppp_rebaraja: los conteos por celda no se conservaron")
   q
 }
+
+# =====================================================================
+# LO QUE AÑADE EL CAPÍTULO 5 (T3.4)
+#
+# Tres convenciones que se midieron el 2026-08-28 (anexo A.21 del plan) y
+# que, sueltas, se vuelven a equivocar. Van aquí por el mismo motivo por
+# el que `ppp_rebaraja()` vino en T3.1: las necesita más de un guion y
+# cada una encierra algo que ya salió mal o que sale mal solo.
+# =====================================================================
+
+#' Una familia de superficies KDE del MISMO patrón, con UNA sola regla
+#'
+#' Es el deslizador de sigma del módulo 1, y la decisión 4 de la Fase 3
+#' vive dentro de esta función en forma de tres guardas.
+#'
+#' POR QUÉ NO BASTA CON LLAMAR A `density()` SIETE VECES.
+#'
+#'  1. LA ESCALA. `geo_rejilla()` normaliza cada superficie contra su
+#'     propio máximo, que es lo correcto para un mapa suelto y es lo que
+#'     publican los diez rásteres del capítulo 1. Para una FAMILIA es
+#'     justo lo contrario de lo que hay que hacer: lo que el módulo 2
+#'     enseña es que al abrir el núcleo la superficie se APLANA —la
+#'     intensidad máxima cae de 63,8 por km2 con sigma = 100 m a 9,4 con
+#'     sigma = 1600 m— y con siete escalas distintas las siete salen
+#'     igual de picudas. El mapa contradiría al texto con la tinta más
+#'     convincente de las dos. Por eso se devuelve `escala`, y por eso
+#'     `geo_rejilla()` estrenó el argumento del mismo nombre.
+#'
+#'  2. LA REJILLA. Las siete superficies tienen que ir sobre la MISMA
+#'     rejilla o el deslizador da saltos que no son del dato. Se calcula
+#'     una vez y se impone a todas.
+#'
+#'  3. LA CELDA CONTRA EL SIGMA MÁS ESTRECHO, que es la decisión 4
+#'     entera. Una celda más ancha que el núcleo no dibuja el núcleo:
+#'     dibuja la rejilla. Sobre la ciudad completa la celda más fina que
+#'     el presupuesto pagaba medía 245 m y el selector más estrecho pide
+#'     236 m, y de ahí salió bajar el deslizador a Kennedy —caja de
+#'     7,5 x 7,7 km, celda de 78 m—. Si alguien mueve `nx` o alarga
+#'     `sigmas` por abajo, esto para. Sin la guarda, la decisión se
+#'     erosiona en silencio y el mapa vuelve a mentir sin que nadie
+#'     cambie una línea de prosa.
+ppp_kde_familia <- function(p, sigmas, nx, celdas_por_sigma = 3) {
+  if (length(sigmas) < 2L) stop("ppp_kde_familia: una familia son dos o más sigmas")
+  if (is.unsorted(sigmas, strictly = TRUE))
+    stop("ppp_kde_familia: los sigmas tienen que ir de menor a mayor y sin repetir")
+
+  b  <- as.rectangle(p$window)
+  ny <- max(1L, as.integer(round(nx * diff(b$yrange) / diff(b$xrange))))
+  celda <- diff(b$xrange) / nx
+
+  if (celda * celdas_por_sigma > min(sigmas))
+    stop(sprintf(paste0("ppp_kde_familia: la celda mide %.0f m y el sigma más estrecho es %.0f m.\n",
+                        "  Hacen falta %d celdas por sigma y hay %.1f. Ver la decisión 4 de la Fase 3:\n",
+                        "  una celda más ancha que el núcleo no dibuja el núcleo, dibuja la rejilla."),
+                 celda, min(sigmas), celdas_por_sigma, min(sigmas) / celda))
+
+  ims <- lapply(sigmas, function(s) density(p, sigma = s, dimyx = c(ny, nx)))
+
+  maximos <- vapply(ims, function(im) max(im), numeric(1))
+  # La caída de la punta al abrir el núcleo NO es una suposición del
+  # texto: es la afirmación del módulo 2, y aquí se comprueba. Si alguna
+  # vez no cayera, lo que está mal es la frase, no el dato.
+  if (is.unsorted(rev(maximos), strictly = TRUE))
+    stop("ppp_kde_familia: la intensidad máxima no cae al abrir el núcleo, que es lo que el módulo 2 afirma")
+
+  fin <- unlist(lapply(ims, function(im) as.numeric(im$v)[is.finite(as.numeric(im$v))]))
+  list(sigmas = as.numeric(sigmas), imagenes = ims,
+       nx = as.integer(nx), ny = ny, celda = celda,
+       caja = c(b$xrange[1], b$yrange[1], b$xrange[2], b$yrange[2]),
+       escala = c(min(fin), max(fin)),
+       maximos = maximos)
+}
+
+#' Ajustar un modelo de conglomerado NOMBRANDO la corrección, siempre
+#'
+#' `correccion` NO TIENE VALOR POR DEFECTO, y esa ausencia es la función.
+#'
+#' `kppm(p ~ 1, "Thomas")` no menciona ninguna corrección de borde. Por
+#' dentro estima K y la pide con el `correction` por defecto, que sobre
+#' una ventana no rectangular devuelve `border`, `trans` e `iso`, y de
+#' las tres toma la ISOTRÓPICA —lo que spatstat marca como columna
+#' recomendada; `fvnames(K, ".y")` devuelve `iso`—. Sobre las 22 piezas
+#' del perímetro urbano eso son los 127 s del A.17, pagados sin haberlos
+#' pedido: 126,3 s contra 0,4 s con traslación.
+#'
+#' Y AQUÍ VIENE LO QUE HACE FALTA SABER ANTES DE PONER EL ARGUMENTO
+#' BARATO. Se midió qué le pasa al ajuste, no solo al reloj:
+#'
+#'                    kappa          escala      mu
+#'   isotrópica     2,108e-07        932 m      27,10
+#'   traslación     1,109e-07      1 320 m      52,35
+#'   diferencia        48,2 %       41,6 %      93,2 %
+#'
+#' Un ajuste describe la ciudad como conglomerados de 27 sedes con escala
+#' de 932 m; el otro, como conglomerados de 52 con escala de 1 320 m. No
+#' es la misma respuesta redondeada distinto: **el contraste mínimo no
+#' ajusta el modelo al patrón, lo ajusta a una ESTIMACIÓN de K**, y
+#' cambiar de estimador mueve los parámetros más que cambiar de modelo.
+#'
+#' Por eso 263 veces de velocidad no se compran calladas. Quien llame
+#' nombra la corrección, la corrección sale con el ajuste, y el módulo 11
+#' publica los dos.
+ppp_kppm <- function(p, modelo, correccion, tendencia = ~1) {
+  if (missing(correccion))
+    stop(paste0("ppp_kppm: hay que NOMBRAR la corrección. No hay defecto a propósito:\n",
+                "  cambiarla mueve kappa un 48 %, la escala un 42 % y mu un 93 %.\n",
+                "  Ver A.21.2 del plan. Las de esta ventana: \"iso\" o \"", PPP_CORR, "\"."))
+  if (!correccion %in% c("iso", "isotropic", PPP_CORR, "border"))
+    stop(sprintf("ppp_kppm: corrección desconocida: %s", correccion))
+
+  t0  <- proc.time()[["elapsed"]]
+  fit <- kppm(p, trend = tendencia, clusters = modelo,
+              statargs = list(correction = correccion))
+  segundos <- proc.time()[["elapsed"]] - t0
+
+  pa <- fit$clustpar
+  if (is.null(pa) || !length(pa))
+    stop(sprintf("ppp_kppm: el ajuste de %s no devolvió parámetros de conglomerado", modelo))
+
+  # `mu` NO significa lo mismo en los tres modelos, y publicarlo bajo un
+  # solo nombre sería publicar tres cosas como si fueran una. En Thomas y
+  # en Matérn es el número esperado de puntos por conglomerado —27, 52—;
+  # en el LGCP es la media del campo gaussiano en escala logarítmica
+  # —-12,33—, que no se cuenta en sedes. El nombre viaja con el número.
+  mu_que <- if (modelo %in% c("Thomas", "MatClust")) "puntos por conglomerado"
+            else if (modelo == "LGCP") "media del campo log-gaussiano"
+            else NA_character_
+
+  list(ajuste = fit, modelo = modelo, correccion = correccion,
+       segundos = segundos,
+       parametros = as.list(pa),
+       mu = as.numeric(fit$mu), mu_que = mu_que)
+}

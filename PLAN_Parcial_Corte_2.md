@@ -11,10 +11,15 @@ Brightspace del Corte I está construido, auditado por dos vías y listo para su
 Las tres compuertas de §0.3 siguen sin abrir, y hasta que se abran no se escribe
 nada de las fases 1 a 6.
 
-> **Este plan no toca el parcial del 1 de septiembre.** Está a dos días; el
-> preparcial ya está publicado y cumple su papel. Lo que sí hace es **usar ese día
-> como medición**: es la única oportunidad de ver la sala, los equipos y los
-> navegadores antes de decidir nada. Ver **T0.2**.
+> **Este plan no escribe ni una pregunta del parcial del 1 de septiembre**, y sigue
+> sin escribirla. El preparcial ya está publicado y cumple su papel, y ese día se
+> usa además **como medición**: es la única oportunidad de ver la sala, los equipos
+> y los navegadores antes de decidir nada. Ver **T0.2**.
+>
+> Lo que sí acabó dándole al parcial 1, el **2026-08-31**, es el banco de este §8:
+> un segundo paquete sin pistas y cuatro *question pools* que reparten un examen
+> distinto a cada estudiante. Está en el **§8.6**. Era el camino de aborto del
+> parcial 2 y **sirvió antes al parcial 1**, que es lo que P6 anticipaba.
 
 ---
 
@@ -674,6 +679,11 @@ guiones sí, porque son herramienta.
 entradas del ZIP. El barajado de opciones va con semilla derivada del identificador, no
 del reloj.
 
+> **Desde el 2026-08-31 los bancos son dos**, y esta sección describe solo el primero. El
+> segundo —el del parcial del Corte I, sin pistas y con otros identificadores— está en el
+> **§8.6**. Ese día el exportador cambió los títulos, así que **este ZIP se reexportó**: pesa
+> 244 KB y su huella es `022c48d…`, no la que tuviera antes. Ver §8.6.4.
+
 ### 8.2 Las dos auditorías, y por qué hacen falta las dos
 
 `audita_paquete.py` (de la skill) da **429 de 429**: el paquete es coherente como
@@ -803,7 +813,13 @@ dice lo que hay.
 | `audita_paquete.py` (skill) | 374/374 · 31 ítems | **429/429 · 36 ítems** |
 | `audita_brightspace.py` | 158/158 | **173/173** |
 
+> Medido otra vez el **2026-08-31**, `audita_paquete.py` da **431** sobre este mismo banco.
+> No cambió nada aquí: la skill trae dos comprobaciones más. Se anota para que la
+> diferencia contra el 429 de esta tabla no se lea como una regresión.
+
 ### 8.4 Lo que queda por hacer, y es de Brightspace, no de aquí
+
+Los tres pasos valen igual para los dos bancos; el orden entre ellos lo fija el **§8.6**.
 
 1. **Subir primero `sonda_brightspace.zip`** —3 ítems— y comprobar en la Biblioteca que
    el Multi-Select se ve y se califica como Multi-Select. La skill avisa de que esa forma
@@ -819,3 +835,162 @@ depende de `d2l_items.py`, que es de la skill y no de este repositorio. Meterlo 
 arnés haría que `audita_todo.sh` fallara en cualquier máquina sin la skill instalada, y
 el arnés tiene que poder correr entero desde un clon limpio. Se audita a mano, con los
 dos comandos de §8.2, y esta línea existe para que la ausencia no se lea como olvido.
+
+---
+
+### 8.6 · El banco del parcial del Corte I, y un examen distinto por estudiante · **HECHO (2026-08-31)**
+
+Este plan dice en su cabecera que no toca el parcial del 1 de septiembre. Lo sigue sin
+tocar: **no se escribió ni una pregunta nueva**. Lo que se hizo fue contestar una pregunta
+que llegó el 31 —cómo dar un examen distinto a cada estudiante con el banco que ya
+existe— y dejar el banco en condiciones de responderla. El §8 se escribió como camino de
+aborto del parcial 2; **acabó sirviendo primero al parcial 1**, que es exactamente lo que
+P6 decía que pasaría.
+
+#### 8.6.1 La decisión: individualizar por SELECCIÓN, no por datos
+
+`censo_banco.py` ya planteaba la disyuntiva para el parcial 2 —selección o datos— y aquí
+se resolvió sola, por aritmética y por calendario:
+
+- **Por datos** habría que pasar por `genera_preparcial1.R` y por el documento publicado,
+  porque aquí ninguna cifra se escribe a mano. Es el trabajo de la Fase 1 entera, y el
+  parcial era al día siguiente.
+- **Por selección** no cuesta nada: son cuatro *question pools* del cuestionario sobre el
+  banco ya importado.
+
+| pool | de dónde | saca |
+|---|---|---|
+| Cap. 1 | `A01`–`A11` (11 ítems) | 4 |
+| Cap. 2 | `B01`–`B11` (11) | 4 |
+| Cap. 3 | `C01`–`C08` (8) | 3 |
+| Transferencia | `D01`–`D06` (6) | 3 |
+
+**14 preguntas · 121 968 000 formas.** Con 12 estudiantes, la probabilidad de que dos
+reciban el mismo examen es **5×10⁻⁷**. El solape esperado entre dos exámenes es de **5,5
+preguntas de 14 (40 %)**, y no importa tanto como parece: las opciones ya van con
+`shuffle="yes"` en los 36 ítems, así que una pregunta compartida le sale a cada uno en
+otra posición y con las opciones en otro orden. Si se quisiera menos solape, `3+3+2+2` lo
+baja al 28 % a cambio de un examen de 10 preguntas — menos copia y menos medición.
+
+**Por qué los pools son cuatro y no tres.** El bloque `D` no es un capítulo: son las
+preguntas de transferencia y de cálculo, y **seis de ellas caen sobre módulos que `A`,
+`B` o `C` ya tocan** —`A02`/`D01` y `A06`/`D02` en el capítulo 1; `B02`/`D04`,
+`B09`/`D03`, `B11`/`D06` en el 2; `C08`/`D05` en el 3—. No son formas paralelas de la
+misma pregunta y no se pueden intercambiar: `C08` pide leer un gráfico y `D05` calcular
+un porcentaje sobre las mismas cifras. Van en su propio pool porque mezclarlas con las
+conceptuales repartiría dificultad al azar.
+
+#### 8.6.2 Lo que hubo que arreglar para que el banco sirviera de parcial
+
+**Las pistas.** Los 36 enunciados llevaban su `Pista:` dentro — correcto en un preparcial,
+regalado en un parcial. El exportador ya tenía `--sin-pista` sin usar.
+
+**El prefijo, escrito a mano en el auditor.** El banco del parcial tiene que llevar
+identificadores distintos: `qmd_globalid` es `uuid5(qid)`, así que dos bancos con los
+mismos `qid` llegan a la Biblioteca con el mismo identificador global. Pero
+`audita_brightspace.py` tenía `EE_C1_` escrito dentro (su familia 1), y un banco con otro
+prefijo **se habría quedado sin auditor** — no fallando, sino declarando ausentes los 36
+ítems. Ahora es `--prefijo`, con `EE_C1` por defecto para que el comando del §8.2 siga
+igual, y con una guarda que **para** si ningún ítem del ZIP empieza por el prefijo pedido,
+en vez de escupir 36 líneas rojas que no dicen qué pasó. Es la misma clase de defecto que
+el §8.3 documenta dos veces: un convenio escrito a mano en dos sitios.
+
+**Los títulos duplicados.** El título salía de `q["repaso"]["etiqueta"]`, el rótulo del
+módulo, así que los seis pares de arriba llegaban a la Biblioteca **con nombre idéntico**.
+Quien arma los pools elige por ese nombre: `D01` habría podido entrar en el pool
+conceptual del capítulo 1 sin que nada avisara. Ahora el identificador va delante —`A02 ·
+Cap. 1 · módulo 2 — …`—, los 36 títulos son únicos, y de paso los cuatro bloques quedan
+contiguos al ordenar por nombre, que convierte el armado de cada pool en una selección de
+un tirón.
+
+> **El rótulo del módulo sí se sigue repitiendo, y tiene que repetirse.** `C08 · Cap. 3 ·
+> módulo 8 — MAUP I · el efecto escala` y `D05 · Cap. 3 · módulo 8 — MAUP I · el efecto
+> escala` no son la misma pregunta duplicada: son dos preguntas **sobre el mismo módulo**,
+> y el rótulo dice de qué módulo se responde, que es lo que hace falta para repasar y para
+> calificar. Lo que estaba mal era que ese rótulo fuera el nombre *entero*; el
+> identificador delante es lo que las distingue. `C08` pide leer el gráfico del efecto
+> escala; `D05` pide calcular en qué porcentaje sube la correlación al agregar. Los seis
+> pares del §8.6.1 son todos así.
+
+#### 8.6.3 Lo que hay, medido
+
+| | |
+|---|---|
+| `parcial/brightspace_parcial/banco_brightspace.zip` | **36 ítems** · 29 MC, 7 MS · 144/144 opciones con explicación · 6 imágenes · 242 KB |
+| `parcial/brightspace_parcial/sonda_brightspace.zip` | 3 ítems, uno de cada forma · 32 KB |
+| prefijo · título | `EE_P1` · «Estadística Espacial · Parcial I» |
+
+```bash
+precalculo/exporta_brightspace.py --html Htmls_Espacial/preparcial-corte-1.html \
+    --datos precalculo/salidas/preparcial1_datos.json \
+    --prefijo EE_P1 --titulo "Estadística Espacial · Parcial I" \
+    --salida parcial/brightspace_parcial --sin-pista --sonda
+
+<geo_env>/python precalculo/audita_brightspace.py \
+    --html Htmls_Espacial/preparcial-corte-1.html \
+    --datos precalculo/salidas/preparcial1_datos.json \
+    --zip parcial/brightspace_parcial/banco_brightspace.zip --prefijo EE_P1
+```
+
+| comprobación | |
+|---|---|
+| `audita_brightspace.py` · banco del parcial | **173/173** · 0 fallos, 0 saltadas |
+| `audita_brightspace.py` · banco del preparcial (regresión) | **173/173** · comando del §8.2 sin tocar |
+| `audita_paquete.py` (skill) · banco | **431/431** |
+| `audita_paquete.py` (skill) · sonda | **53/53** |
+
+Y tres cosas comprobadas, no supuestas: **0 apariciones de «Pista:»** frente a las 36 del
+banco del preparcial · **0 identificadores globales compartidos** entre los dos bancos ·
+**reproducible byte a byte** en dos ejecuciones seguidas
+(`9777249…` el banco, `a3c9c31…` la sonda). La carpeta nueva queda fuera del `.gitignore`
+como la otra, comprobado con `git check-ignore`.
+
+#### 8.6.4 La deriva del ZIP del preparcial · **CERRADA (2026-08-31)**
+
+El cambio de títulos vive en el exportador, y el ZIP guardado en `parcial/brightspace/` se
+había escrito antes: reexportarlo daba otra huella —`c84fa1b…` el guardado contra
+`022c48d…` el nuevo—. No era un defecto del banco, cuyas 173 y 431 seguían limpias; era
+que el §8.1 presumía de reproducir byte a byte un ZIP que ya no reproducía.
+
+**Se cerró por la vía barata: reexportar.** No había nada subido a Brightspace todavía,
+así que no costó nada, y los dos bancos llevan ahora el mismo convenio de títulos — que es
+lo que hace que la Biblioteca se pueda leer con los dos dentro.
+
+```bash
+precalculo/exporta_brightspace.py --html Htmls_Espacial/preparcial-corte-1.html \
+    --datos precalculo/salidas/preparcial1_datos.json \
+    --prefijo EE_C1 --titulo "Estadística Espacial · Corte I" \
+    --salida parcial/brightspace --sonda
+```
+
+| | |
+|---|---|
+| `parcial/brightspace/banco_brightspace.zip` | 36 ítems · 244 KB · `022c48d…` |
+| `parcial/brightspace/sonda_brightspace.zip` | 3 ítems · 32 KB · `d7c0a99…` |
+| `audita_brightspace.py` | **173/173** · 0 fallos, 0 saltadas |
+| `audita_paquete.py` (skill) · banco y sonda | **431/431** y **53/53** |
+
+La huella nueva es **exactamente la que este apartado predijo** antes de reexportar, que es
+la comprobación de que la deriva era la de los títulos y no otra cosa. Vuelve a reproducir
+byte a byte, los 36 títulos son únicos en los dos bancos, el del preparcial **conserva sus
+36 pistas** —las pierde solo el del parcial— y los dos siguen sin compartir un solo
+identificador global.
+
+#### 8.6.5 Lo que esto no compra, y se dice ahora
+
+Las 36 preguntas son las autoevaluaciones del preparcial, **publicado con su respuesta
+correcta y la retroalimentación de cada opción**. Los pools impiden copiarse del vecino;
+no impiden llegar con las respuestas memorizadas. Si el parcial mide preparación sobre el
+preparcial, está bien — pero es una decisión, no un efecto secundario, y por eso queda
+escrita. Preguntas nuevas exigirían la Fase 1 de este plan, que es justo lo que este
+camino de aborto existe para no tener que improvisar.
+
+#### 8.6.6 El orden de subida, con dos bancos
+
+1. `parcial/brightspace_parcial/sonda_brightspace.zip` — los tres pasos del §8.4.
+2. Si entra, `parcial/brightspace_parcial/banco_brightspace.zip`.
+3. Los cuatro pools del §8.6.1 en el cuestionario.
+4. El banco del preparcial (`EE_C1`) **solo si se va a usar como repaso dentro del LMS**.
+   Ya está reexportado con el convenio de títulos nuevo (§8.6.4), así que los dos pueden
+   convivir en la Biblioteca: no comparten un solo identificador global, y cada pregunta se
+   lee por su bloque y su número sin tener que abrirla.

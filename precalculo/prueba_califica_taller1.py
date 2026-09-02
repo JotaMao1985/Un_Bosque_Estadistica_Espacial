@@ -16,7 +16,9 @@ calificado sobre una cuenta que nadie rehízo.
 
 CÓMO FUNCIONA. Monta un curso de mentira en una carpeta temporal
 —`CALIFICA_RAIZ`, el mismo convenio de `_ruta()` de los ensambladores—,
-copia allí las cifras esperadas de una variante real, genera su hoja con
+pone allí las cifras esperadas de una variante real —copiadas de
+`calificacion/esperado/` si están, y si no producidas por R en la propia
+carpeta temporal—, genera su hoja con
 la propia herramienta, y a partir de esa hoja buena fabrica una copia
 rota por cada defecto. **Las hojas de verdad no se tocan nunca.**
 
@@ -182,21 +184,52 @@ def pruebas_de_aritmetica(raiz: pathlib.Path, hoja: pathlib.Path, base: str) -> 
     return salidas
 
 
-def main() -> int:
-    fuente = RAIZ / "calificacion" / "esperado" / f"{VARIANTE:03d}.json"
-    if not fuente.exists():
-        print(f"\nPARADO: el arnés necesita {fuente.relative_to(RAIZ)}. Prodúcelo con:\n\n"
-              f"  precalculo/rscript.sh precalculo/verifica_taller1.R {DOCUMENTO} "
-              f"--json calificacion/esperado/\n")
-        return 1
+def cifras_esperadas(destino: pathlib.Path) -> None:
+    """Deja el `NNN.json` de la variante de prueba en el curso de mentira.
 
+    Si `calificacion/esperado/` ya lo tiene, se copia y no se paga R. Si no
+    —y ese es el caso NORMAL, porque el LEEME manda vaciar esa carpeta antes
+    de calificar de verdad— se le pide a R, que es donde nacen las cifras.
+
+    Lo que no se hace, y es el motivo de que esto sea una función y no una
+    constante: guardar aquí dentro una copia de las cifras. Este archivo SÍ
+    se versiona, y una cifra esperada escrita aquí sería la familia del
+    patrón —la respuesta de T1— publicada en git.
+
+    Hasta el 2026-08-27 esto exigía el archivo en la carpeta real y paraba si
+    no estaba. Era una dependencia entre el arnés y unos datos de ejemplo que
+    la propia documentación manda borrar: seguir el LEEME al pie de la letra
+    dejaba sin arnés el paso «antes de repartir notas», que es justo cuando
+    más falta hace.
+    """
+    destino.mkdir(parents=True, exist_ok=True)
+    nombre = f"{VARIANTE:03d}.json"
+
+    fuente = RAIZ / "calificacion" / "esperado" / nombre
+    if fuente.exists():
+        shutil.copy(fuente, destino / nombre)
+        print(f"  cifras esperadas: copiadas de calificacion/esperado/{nombre}")
+        return
+
+    print(f"  cifras esperadas: no están en calificacion/esperado/; se las pido a R "
+          f"(tarda un minuto)…")
+    r = subprocess.run([str(AQUI / "rscript.sh"), str(AQUI / "verifica_taller1.R"),
+                        DOCUMENTO, "--json", f"{destino}{os.sep}"],
+                       cwd=RAIZ, capture_output=True, text=True)
+    if r.returncode != 0 or not (destino / nombre).exists():
+        cola = "\n".join((r.stdout + r.stderr).strip().splitlines()[-8:])
+        raise SystemExit(
+            f"\nPARADO: el arnés necesita las cifras de la variante {VARIANTE:03d} y R no "
+            f"las produjo.\n\nLo último que dijo R:\n\n{cola}\n")
+    print(f"  cifras esperadas: {nombre} producido por R, dentro del curso de mentira")
+
+
+def main() -> int:
     temporal = pathlib.Path(tempfile.mkdtemp(prefix="prueba_califica_"))
     try:
-        (temporal / "esperado").mkdir()
-        shutil.copy(fuente, temporal / "esperado" / f"{VARIANTE:03d}.json")
-
         print("\n=== prueba_califica_taller1.py ===")
         print(f"  curso de mentira en {temporal}")
+        cifras_esperadas(temporal / "esperado")
 
         cod, sal = corre(temporal, "--nuevo", f"{DOCUMENTO}:Conejillo De Indias")
         if cod != 0:

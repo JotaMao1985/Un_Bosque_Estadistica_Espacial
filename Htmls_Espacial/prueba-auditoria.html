@@ -5150,17 +5150,42 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
 
         if (resueltas === preguntas.length && resumen) {
           const fallidas = preguntas.filter((_, i) => !estado[i].acierto);
-          const repasar = [...new Set(
-            preguntas.filter((_, i) => estado[i].intentos > 1 || !estado[i].acierto)
-              .map(p => p.modulo).filter(Boolean)
-          )].sort((a, b) => a - b);
+          // Qué repasar. Una pregunta puede declarar `modulo` —un número, que
+          // indexa los módulos DE ESTE documento— o `repaso` —{etiqueta, href},
+          // que apunta a donde sea—. Lo segundo existe porque un preparcial
+          // evalúa varios capítulos: con solo el número, su resumen mandaba a
+          // repasar el bloque que el estudiante acababa de hacer.
+          const porRepasar = new Map();
+          preguntas.forEach((p, i) => {
+            if (estado[i].intentos <= 1 && estado[i].acierto) return;
+            if (p.repaso && p.repaso.etiqueta) {
+              porRepasar.set('r:' + p.repaso.etiqueta, p.repaso);
+            } else if (p.modulo) {
+              porRepasar.set('m:' + p.modulo, {
+                orden: p.modulo,
+                etiqueta: `Módulo ${p.modulo}: <strong>` +
+                  `${(courseData.modules[p.modulo - 1] || {}).title || ''}</strong>`
+              });
+            }
+          });
+          const repasar = [...porRepasar.values()].sort((a, b) =>
+            (a.orden || 0) - (b.orden || 0) || a.etiqueta.localeCompare(b.etiqueta));
+          // La rama de «impecable» se decide por los FALLOS, no por si la lista
+          // de repaso salió vacía. Eran lo mismo mientras toda pregunta
+          // declarara `modulo`; con `repaso` opcional, una pregunta sin ninguno
+          // de los dos habría dado «Resultado: 5 de 11» seguido de «acertaste
+          // todo», que es la clase de contradicción que nadie prueba.
+          const impecable = fallidas.length === 0 && alSegundo === 0;
           resumen.innerHTML =
             `<h5>Resultado: ${alPrimero + alSegundo} de ${preguntas.length}` +
             `${fallidas.length ? '' : ' · impecable'}</h5>` +
             (repasar.length
-              ? `<p style="margin:0;">Te costaron preguntas de estos módulos, así que vale la pena volver a ellos:</p>
-                 <ul>${repasar.map(m => `<li>Módulo ${m}: <strong>${(courseData.modules[m - 1] || {}).title || ''}</strong></li>`).join('')}</ul>`
-              : `<p style="margin:0;">Acertaste todo al primer intento. Puedes pasar al siguiente capítulo.</p>`);
+              ? `<p style="margin:0;">Te costaron preguntas de aquí, así que vale la pena volver:</p>
+                 <ul>${repasar.map(r => `<li>${r.href
+                     ? `<a href="${r.href}">${r.etiqueta}</a>` : r.etiqueta}</li>`).join('')}</ul>`
+              : (impecable
+                  ? `<p style="margin:0;">Acertaste todo al primer intento. Puedes seguir adelante.</p>`
+                  : `<p style="margin:0;">Revisa la retroalimentación de las que te costaron antes de seguir.</p>`));
           resumen.hidden = false;
           katexEn(resumen);
         }
@@ -6534,7 +6559,44 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
       }
     }
 
+    // El ráster puede viajar EMPAQUETADO: la máscara en tiradas y los
+    // valores en diferencias por fila. Es el gemelo de `expande()` de
+    // `precalculo/rejilla_comprime.py`, y si los dos dejan de hacer lo
+    // mismo el mapa no revienta —sale mentido, que es peor—. Por eso el
+    // ensamblador comprueba la ida y vuelta en Python antes de escribir
+    // nada, y aquí solo se reconstituye.
+    //
+    // NO es una cifra naciendo fuera de R: R calculó el array entero y
+    // esto lo vuelve a montar. La razón de empaquetarlo es que el 60,6 %
+    // de un ráster completo son la cifra -1 repetida, y una KDE es suave.
+    function geomapaRejillaZq(d) {
+      if (d.zq) return d.zq;
+      if (!d.zqm || !d.zqd) return null;
+      const n = d.nx * d.ny, zq = new Int32Array(n);
+      let i = 0, dentro = d.zqm0 === 1;
+      for (let t = 0; t < d.zqm.length; t++) {
+        const largo = d.zqm[t];
+        for (let k = 0; k < largo; k++) zq[i++] = dentro ? 0 : -1;
+        dentro = !dentro;
+      }
+      let p = 0;
+      for (let y = 0; y < d.ny; y++) {
+        let acumulado = 0, primero = true;
+        for (let x = 0; x < d.nx; x++) {
+          const k = y * d.nx + x;
+          if (zq[k] < 0) continue;
+          acumulado = primero ? d.zqd[p] : acumulado + d.zqd[p];
+          p++; primero = false;
+          zq[k] = acumulado;
+        }
+      }
+      d.zq = zq;                 // se reconstituye UNA vez por superficie
+      return zq;
+    }
+
     function geomapaPintaRejilla(ctx, d, aj, o) {
+      const zq = geomapaRejillaZq(d);
+      if (!zq) return;
       const q = d.q || 4096;
       const c = geomapaCajaQ(d.caja, q);
       const x0 = aj.x(c.x0), x1 = aj.x(c.x1);
@@ -6542,7 +6604,7 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
       const cw = (x1 - x0) / d.nx, ch = (y1 - y0) / d.ny;
       for (let r = 0; r < d.ny; r++) {
         for (let cc = 0; cc < d.nx; cc++) {
-          const z = d.zq[r * d.nx + cc];
+          const z = zq[r * d.nx + cc];
           if (z < 0) continue;                          // celda sin dato
           ctx.fillStyle = geomapaColor(o.paleta, z / d.zqmax);
           // +1 para que no queden costuras blancas entre celdas

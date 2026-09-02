@@ -224,8 +224,22 @@ def audita_geomapa(a: Auditoria, mapa: dict, nombre: str, presupuesto_kb: float 
         # las declaradas Y las coordenadas tienen que caer de verdad
         # dentro de ella. Una q mentida se ve enseguida: los vértices se
         # salen del rango o no llegan ni a la mitad.
-        a.cierto(q in (1024, 2048, 4096),
-                 f"{et}: la q es válida", f"{q} (de 1024, 2048, 4096)")
+        # EL MODO `rejilla` NO CUANTIZA NADA, Y EXIGIRLE UNA `q` ERA UN
+        # HUECO DEL NÚCLEO, NO UN DESCUIDO DE QUIEN LO PUBLICA. Un ráster
+        # no lleva vértices: lleva una caja en coordenadas absolutas y una
+        # matriz de valores. La `q` solo sirve para llevar la caja al
+        # marco en el que dibuja el motor, y el pintor la da por 4096 si
+        # falta. Los diez rásteres del capítulo 1 se publican sin `q`
+        # desde T1.2 y por eso NUNCA han cruzado esta función —`audita_cap1`
+        # los comprueba aparte—; el capítulo 5 es el primero cuyo ráster
+        # vive sobre una ventana proyectada de verdad y lo destapó.
+        # A cambio de no pedir `q`, se le pide lo suyo, más abajo.
+        if modo == "rejilla":
+            a.cierto(q is None or q in (1024, 2048, 4096),
+                     f"{et}: la q, si la trae, es válida", str(q))
+        else:
+            a.cierto(q in (1024, 2048, 4096),
+                     f"{et}: la q es válida", f"{q} (de 1024, 2048, 4096)")
 
     cod = mapa.get("codificacion", "absoluta")
     # 44 caracteres de texto: con `proyecciones_colombia:` delante se iba a 67
@@ -290,6 +304,36 @@ def audita_geomapa(a: Auditoria, mapa: dict, nombre: str, presupuesto_kb: float 
         a.cierto(hi > q * 0.5,
                  f"{nombre}: y la q no está inflada",
                  f"máximo {hi} de {q}")
+
+    # EL CONTRATO PROPIO DEL RÁSTER, que es lo que sustituye a la `q`.
+    # Sin esto, cambiar `nx` por su cuenta, perder celdas por el camino o
+    # publicar un valor por encima de la cuantización declarada pasaba sin
+    # que nada lo mirara: el modo `rejilla` llevaba desde T0.3 en la lista
+    # de los cinco y sin una sola comprobación propia en el núcleo.
+    if modo == "rejilla":
+        nx, ny = mapa.get("nx"), mapa.get("ny")
+        zq, zqmax = mapa.get("zq"), mapa.get("zqmax")
+        a.cierto(isinstance(nx, int) and isinstance(ny, int) and nx > 0 and ny > 0,
+                 f"{nombre}: la rejilla declara sus dos lados", f"{nx} x {ny}")
+        a.cierto(isinstance(zq, list) and isinstance(zqmax, (int, float)) and zqmax > 0,
+                 f"{nombre}: el ráster trae valores y cuantización", str(zqmax))
+        # COMPROBAR UN VALOR Y USARLO NO ES LO MISMO, y aquí se separaron
+        # dos líneas: se validaba que `zqmax` fuera positivo y a
+        # continuación se usaba sin condicionar, así que un `zqmax` nulo
+        # MATABA al auditor en vez de que informara. Lo destapó el arnés
+        # del capítulo 5 el mismo día que `revento()` subió a distinguir
+        # «informó» de «murió»: antes de eso, ese reventón se habría
+        # contado como captura.
+        if (isinstance(zq, list) and zq and isinstance(nx, int) and isinstance(ny, int)
+                and isinstance(zqmax, (int, float)) and zqmax > 0):
+            a.igual(len(zq), nx * ny, f"{nombre}: hay una celda por posición")
+            lo_z, hi_z = min(zq), max(zq)
+            # -1 es «celda sin dato», el convenio que el pintor lee para
+            # saltarse lo que cae fuera de la ventana. Cualquier otro
+            # negativo es un valor corrupto disfrazado de máscara.
+            a.cierto(lo_z >= -1, f"{nombre}: ningún valor por debajo de -1", str(lo_z))
+            a.cierto(hi_z <= zqmax, f"{nombre}: nada se sale de la cuantización",
+                     f"{hi_z} de {zqmax}")
 
     kb = len(json.dumps(mapa, ensure_ascii=False).encode("utf-8")) / 1024
     a.cierto(kb <= presupuesto_kb, f"{nombre}: cabe en el presupuesto",

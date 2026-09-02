@@ -793,12 +793,27 @@ def hojas_en_disco(cual: str | None) -> list[pathlib.Path]:
 #
 # Autocontenidos y sin una sola petición a la red: se abren desde el
 # disco, se imprimen a PDF y se suben a Brightspace sin depender de nada.
-# Usan el verde institucional del `.tex` de entrega —RGB(0,102,51)— y no
-# la librería de capítulo: esos 270 KB están hechos para geomapas,
-# simuladores y autoevaluaciones, y un reporte de notas no tiene ninguna
-# de las tres.
+#
+# Llevan la cara del material del curso —el verde, el naranja, el degradado
+# entre los dos, la cabecera en degradado vertical, las tablas de cabecera
+# verde sólida y las cajas con filete izquierdo— pero COPIADA, no importada:
+# se traen los tokens, no la librería de capítulo. Esos 270 KB están hechos
+# para geomapas, simuladores y autoevaluaciones —un reporte de notas no
+# tiene ninguna de las tres— y además cuelgan de SIETE CDN externos, que es
+# exactamente lo que un documento con notas dentro no debe necesitar para
+# abrirse. La propiedad de la que estos reportes presumen es que se abren
+# desde el disco dentro de tres años; importar la librería la perdería.
+#
+# OJO A LOS DOS VERDES. El `.tex` de entrega define `ubosque` como
+# RGB(0,102,51) = #006633, y el material HTML usa #012820. No son el mismo
+# verde, y el proyecto lleva los dos. Estos reportes siguen al MATERIAL, por
+# decisión del 2026-08-27: es la cara que el estudiante ha tenido delante
+# todo el semestre. Si algún día se unifican, este es uno de los tres sitios
+# donde hay que mirar.
 # =====================================================================
-VERDE = "#006633"
+VERDE = "#012820"        # el del material HTML, no el del .tex
+VERDE_HONDO = "#001F18"  # el pie del degradado de la cabecera
+NARANJA = "#FF6600"
 COLOR_NIVEL = {
     "Excelente":    ("#0b7a3b", "#e6f4ec"),
     "Aceptable":    ("#1d5fa8", "#e8f0fa"),
@@ -820,26 +835,36 @@ def esc(x) -> str:
 
 
 CSS = """
-:root { --verde: %s; --tinta: #1E293B; --tenue: #64748B; --linea: #E2E8F0; }
+:root { --verde: %(verde)s; --hondo: %(hondo)s; --naranja: %(naranja)s;
+  --tinta: #1E293B; --tenue: #64748B; --linea: #E2E8F0; --claro: #F0FDF4; }
 * { box-sizing: border-box; }
-body { margin: 0; background: #F8FAFC; color: var(--tinta); line-height: 1.55;
+body { margin: 0; background: #F8FAFC; color: var(--tinta); line-height: 1.6;
   font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 15px; }
 .hoja { max-width: 1000px; margin: 0 auto; background: #fff; padding: 0 0 3rem; }
-header { background: var(--verde); color: #fff; padding: 1.8rem 2.2rem; }
+
+/* La cabecera del material: degradado vertical del verde al verde hondo, y
+   pegada abajo la franja de 4 px con el degradado de identidad. Van como dos
+   capas de `background` para no tener que tocar el marcado de los reportes. */
+header {
+  background:
+    linear-gradient(140deg, var(--verde) 0%%, var(--naranja) 100%%) bottom / 100%% 4px no-repeat,
+    linear-gradient(180deg, var(--verde) 0%%, var(--hondo) 100%%);
+  color: #fff; padding: 1.8rem 2.2rem 2rem; }
 header h1 { margin: 0 0 .2rem; font-size: 1.55rem; font-weight: 700; }
 header .sub { opacity: .88; font-size: .95rem; }
 header .curso { opacity: .7; font-size: .8rem; letter-spacing: .09em;
   text-transform: uppercase; margin-bottom: .5rem; }
 main { padding: 0 2.2rem; }
 h2 { font-size: 1.05rem; text-transform: uppercase; letter-spacing: .06em;
-  color: var(--verde); border-bottom: 2px solid var(--linea); padding-bottom: .4rem;
-  margin: 2.4rem 0 1rem; }
+  color: var(--verde); border-bottom: 2px solid rgba(255,102,0,.25);
+  padding-bottom: .5rem; margin: 2.4rem 0 1rem; }
 table { border-collapse: collapse; width: 100%%; font-size: .88rem; }
-th, td { padding: .45rem .6rem; border-bottom: 1px solid var(--linea); text-align: left;
-  vertical-align: top; }
-th { font-weight: 600; font-size: .78rem; text-transform: uppercase;
-  letter-spacing: .04em; color: var(--tenue); }
+th, td { padding: .45rem .6rem; text-align: left; vertical-align: top; }
+th { background: var(--verde); color: #fff; font-weight: 600; font-size: .78rem;
+  letter-spacing: .03em; }
+td { border-bottom: 1px solid var(--linea); }
+tbody tr:nth-child(even) td { background: #F9FAFB; }
 td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 .marco { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.6rem 0 0; }
 .caja { flex: 1 1 170px; border: 1px solid var(--linea); border-radius: 10px;
@@ -848,27 +873,36 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
   color: var(--tenue); }
 .caja .v { font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums;
   line-height: 1.2; }
-.caja.final { background: var(--verde); border-color: var(--verde); color: #fff; }
-.caja.final .et { color: rgba(255,255,255,.8); }
+/* La final lleva el degradado de identidad porque es la cifra que se busca. */
+.caja.final { background: linear-gradient(140deg, var(--verde) 0%%, var(--naranja) 100%%);
+  border-color: var(--verde); color: #fff; }
+.caja.final .et { color: rgba(255,255,255,.85); }
 .pildora { display: inline-block; padding: .1rem .5rem; border-radius: 999px;
   font-size: .74rem; font-weight: 600; white-space: nowrap; }
 .aviso { border-left: 4px solid #a32020; background: #fbeaea; padding: .8rem 1rem;
-  border-radius: 0 8px 8px 0; margin: 1rem 0; font-size: .9rem; }
-.nota { border-left: 4px solid var(--verde); background: #f2f8f4; padding: .7rem 1rem;
-  border-radius: 0 8px 8px 0; margin: .5rem 0 1.2rem; font-size: .9rem; }
+  border-radius: 0 .75rem .75rem 0; margin: 1rem 0; font-size: .9rem; }
+.nota { border-left: 4px solid var(--verde); background: var(--claro);
+  padding: .9rem 1.1rem; border-radius: 0 .75rem .75rem 0; margin: .5rem 0 1.2rem;
+  font-size: .9rem; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
 .tenue { color: var(--tenue); font-size: .85rem; }
 .mono { font-family: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: .84rem; }
 .celda { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
 footer { margin: 3rem 2.2rem 0; padding-top: 1rem; border-top: 1px solid var(--linea);
   color: var(--tenue); font-size: .8rem; }
+
+/* Impreso, el color deja de ser decoración: la píldora de la rúbrica y el
+   verde de las cabeceras son lo que distingue un nivel de otro. Se piden
+   explícitamente en vez de dejar que el navegador los blanquee al imprimir. */
 @media print {
   body { background: #fff; font-size: 11.5px; }
   .hoja { max-width: none; }
+  header, th, .pildora, .caja.final, .nota, .aviso {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   h2 { page-break-after: avoid; }
   table, .marco { page-break-inside: avoid; }
 }
-""" % VERDE
+""" % {"verde": VERDE, "hondo": VERDE_HONDO, "naranja": NARANJA}
 
 
 def _envuelve(titulo: str, cuerpo: str, extra_css: str = "") -> str:

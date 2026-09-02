@@ -165,7 +165,7 @@ PRESENTA = {
     # que son millones de metros, y de paso obliga a mezclar el separador de
     # millar con la coma decimal, que en los capítulos no aparece nunca.
     "etiq_set_crs":         (0, "m"),
-    "etiq_transform":       (0, "m"),
+    "etiq_transform":       (0, ""),
     "etiq_lon_absurda":     (0, "°"),
     "csv_desplaz_med":      (0, "km"),
     "csv_en_colombia":      (0, ""),
@@ -193,6 +193,7 @@ PRESENTA = {
     # desmentir: el área no es pequeña, es que no es un área.
     "topo_buffer_grados":   (10, "km²"),
     "topo_buffer_3857":     (5, "km²"),
+    "topo_buffer_9377":     (5, "km²"),
     # --- las que citan las preguntas de los bloques A y B ---
     "snow_pct_broad":       (5, "%"),
     "snow_razon_uniforme":  (5, "veces"),
@@ -210,6 +211,8 @@ PRESENTA = {
     "neff_rho_implicito":   (5, ""),
     "neff_pct":             (5, "%"),
     "neff_I_primera_banda": (5, ""),
+    "neff_rho_estimado":    (5, ""),
+    "neff_con_estimado":    (5, ""),
     "realiz_n":             (0, ""),
     "realiz_rechaza":       (0, "%"),
     "realiz_esperado":      (0, "%"),
@@ -264,6 +267,7 @@ PRESENTA = {
     "c3m7_n_puntos":        (0, ""),
     "c3m7_hexagonos":       (0, ""),
     "c3m7_razon_simbolos":  (5, "veces"),
+    "c3m7_radio_simbolos":  (5, "veces"),
     "c3m8_r_mun":           (5, ""),
     "c3m8_pct_var":         (5, "%"),
     # --- las que citan las preguntas del bloque D, que cruzan capítulos ---
@@ -397,6 +401,10 @@ def cn(ruta):
 
 
 c = cifra
+# Las series que dibujan los seis gráficos. El texto alternativo las CITA en
+# vez de describirlas de memoria: un `alt` escrito a mano envejece con el
+# precálculo y nadie lo nota, porque nadie lo lee salvo quien no ve la figura.
+GR = D["graficos"]
 N1 = D["nuevo"]["n_efectivo"]
 N2 = D["nuevo"]["grado_longitud"]
 # Las cinco que ganaron distractores para poder viajar a un banco del LMS,
@@ -501,8 +509,13 @@ BLOQUE_A = [
          "(φ crece hacia la derecha). ¿Qué se lee?",
          "Mira dónde empieza la curva y adónde llega, y compárala con la línea del 95 %.",
          alto=230,
-         descripcionGrafico="Curva descendente de la cobertura real de un IC nominal al 95 % "
-                            "conforme aumenta la dependencia espacial, con la línea del 95 % de referencia",
+         descripcionGrafico=f"Curva de la cobertura real de un intervalo de confianza nominal "
+                            f"al 95 %, con un punto por cada valor del parámetro de dependencia "
+                            f"φ del eje horizontal "
+                            f"({', '.join(n(x, 1) for x in GR['g_cobertura']['phi'])}). La "
+                            f"cobertura vale, en ese mismo orden, "
+                            f"{', '.join(n(x, 3) for x in GR['g_cobertura']['cobertura'])}. "
+                            f"Una línea horizontal de puntos marca el 95 % nominal",
          dibujar="""canvas => {
             const g = DATOS_PRE1.graficos.g_cobertura;
             return crearGraficoLinea(canvas, g.phi.map(x => String(x)), [
@@ -533,20 +546,32 @@ BLOQUE_A = [
                 "información aporta cada una, y eso es el tamaño efectivo del módulo 5.")]),
 
     preg("numerica", "cap1", 5,
-         f"Los {c('neff_desercion_n')} municipios con dato de deserción tienen una "
-         f"correlación media de {c('neff_rho_implicito')}. ¿Cuál es el tamaño efectivo de "
-         f"muestra? Da dos decimales.",
-         "n<sub>eff</sub> = n / (1 + (n−1)ρ).",
+         f"Sobre los {c('neff_desercion_n')} municipios con dato de deserción, el ρ que la "
+         f"equicorrelación <em>necesitaría</em> para explicar la pérdida de información ya "
+         f"medida vale {c('neff_rho_implicito')}. ¿A qué tamaño efectivo de muestra "
+         f"equivale? Da dos decimales.",
+         "n<sub>eff</sub> es el número de observaciones independientes que darían la misma "
+         "varianza de la media. La fórmula que lo despeja está en el módulo 5 del capítulo 1; "
+         "fíjate en qué supone sobre la correlación entre pares antes de meter el ρ que te dan.",
          respuesta=float(val("neff_desercion")), tolerancia=0.5,
          retroAcierto=f"{c('neff_desercion')}: los {c('neff_desercion_n')} municipios "
                       f"aportan solo el {c('neff_pct')} de la información que tendrían "
-                      f"si fueran independientes.",
+                      f"si fueran independientes. Y fíjate en de dónde salió ese ρ: no se "
+                      f"estimó, se <strong>despejó</strong> de ese mismo tamaño efectivo, "
+                      f"que a su vez viene del cociente entre los dos remuestreos del módulo "
+                      f"4. La cuenta lo devuelve por construcción. La correlación media de "
+                      f"verdad —la medida sobre el mapa con el correlograma de bandas— es "
+                      f"{c('neff_rho_estimado')}, y con ella los mismos municipios "
+                      f"informarían como {c('neff_con_estimado')}. Esa distancia no es un "
+                      f"fallo del montaje: es la medida de cuánto se aparta la realidad del "
+                      f"supuesto de equicorrelación, que en el espacio siempre es falso.",
          retroFallo=f"Son {c('neff_desercion')}. Si te salió {dist(N1, 'resta_lineal')}, "
                     f"descontaste la correlación linealmente en vez de dividir por el efecto "
                     f"de diseño. Si te salió {dist(N1, 'rho_primera_banda')}, usaste el Moran "
                     f"de la primera banda ({c('neff_I_primera_banda')}) como si fuera el ρ "
-                    f"medio: la correlación de los vecinos inmediatos no es la correlación "
-                    f"media. Y si te salió {dist(N1, 'multiplica')}, multiplicaste por el "
+                    f"único que la fórmula pide: la correlación de los vecinos inmediatos no "
+                    f"vale para todos los pares, que es justo lo que la equicorrelación "
+                    f"supone. Y si te salió {dist(N1, 'multiplica')}, multiplicaste por el "
                     f"efecto de diseño en vez de dividir."),
 
     preg("opcion", "cap1", 6,
@@ -631,9 +656,9 @@ BLOQUE_A = [
                 f"Compacto lo es —el GeoPackage pesa {c('form_gpkg_razon')}&nbsp;veces el "
                 "shapefile—, pero eso no cambia dónde está el peso: la geometría es la misma "
                 "en los dos, y "
-                "quien la guarda cambia de envase, no de tamaño. Y el shapefile trae de propina el "
-                "truncado de nombres de campo y la pérdida del tipo lógico del módulo 7 del "
-                "capítulo 2."),
+                "quien la guarda cambia de envase, no de tamaño. Y el shapefile trae de propina la "
+                "desfiguración de los nombres de campo —no los trunca: les quita las vocales— y la "
+                "pérdida del tipo lógico, las dos del módulo 7 del capítulo 2."),
              op("Que los condados con varias partes son un defecto de la fuente que hay que "
                 "corregir.", False,
                 "Son islas y enclaves reales. Un <code>MULTIPOLYGON</code> con varias partes es "
@@ -648,8 +673,8 @@ BLOQUE_A = [
          f"{c('cv_rmse_alea')} con validación cruzada aleatoria y de {c('cv_rmse_bloques')} "
          f"con validación cruzada por bloques espaciales. ¿En qué porcentaje es el error por "
          f"bloques mayor que el que anuncia la validación aleatoria? Da dos decimales.",
-         "La base es el error que anuncia la CV aleatoria: ¿cuánto hay que subirlo, en tanto por "
-         "ciento de sí mismo, para llegar al de bloques?",
+         "Es un cambio relativo entre los dos errores, así que hay una decisión que tomar antes "
+         "de calcular: cuál de los dos es el punto de partida.",
          respuesta=float(val("cv_inflacion")), tolerancia=1.0,
          retroAcierto=f"Un {c('cv_inflacion')}. Con la CV aleatoria el vecino de cada punto suele "
                       f"caer en el pliegue de entrenamiento, así que el modelo se evalúa sobre "
@@ -721,8 +746,9 @@ BLOQUE_B = [
          f"¿Cuántos metros mide un grado de longitud a la latitud de Bogotá "
          f"({n(N2['lat'], 3)}°), medido sobre el elipsoide WGS84? Da el valor en metros, "
          f"con un decimal.",
-         "Un grado de longitud se acorta con el coseno de la latitud, y el radio que hay que "
-         "usar es el de curvatura primo vertical.",
+         "El arco de paralelo del módulo 2 del capítulo 2 pide un radio, y el elipsoide no "
+         "tiene uno: tiene dos radios de curvatura en cada punto, distintos entre sí. "
+         "Comprueba también sobre qué superficie está midiendo la función que uses.",
          respuesta=float(N2["correcto"]), tolerancia=5.0,
          retroAcierto=f"{n(N2['correcto'], 1)}&nbsp;m. En el ecuador serían "
                       f"{n(val('grad_lon_elip')[0], 1)}&nbsp;m, que es el máximo: el grado de "
@@ -740,29 +766,32 @@ BLOQUE_B = [
 
     preg("grafico", "cap2", 3,
          "El gráfico compara seis proyecciones por la <strong>razón de área máxima</strong> "
-         "que introducen: cuántas veces se agranda la zona más distorsionada respecto de la "
-         "menos distorsionada. ¿Qué se lee?",
-         "Dos de las seis conservan los ángulos. Mira dónde caen respecto de las dos que "
-         "conservan el área.",
+         "que introducen: cuántas veces se agranda el país más distorsionado respecto de su "
+         "área real sobre el elipsoide. ¿Qué se lee?",
+         "Fíjate en de qué familia es cada barra, y en cuál es la más alta de todas.",
          alto=240,
-         descripcionGrafico="Barras de la razón de área máxima de seis proyecciones: las dos "
-                            "equivalentes —Mollweide y Equal Earth— casi sin distorsión, "
-                            "Robinson algo por encima de ellas, las dos conformes —Mercator y "
-                            "Web Mercator— un orden de magnitud más arriba, y la azimutal "
-                            "equidistante por encima de todas",
+         descripcionGrafico=f"Barras de la razón de área máxima, una por proyección: "
+                            f"{'; '.join(f'{nom} {n(v, 2)}' for nom, v in zip(GR['g_proyecciones']['nombre'], GR['g_proyecciones']['razon_max']))}. "
+                            f"El eje llega hasta la mayor de las seis, así que solo se ven tres "
+                            f"barras: las dos de Mercator, bajas, y la azimutal; las otras tres "
+                            f"no se despegan del eje",
          dibujar="""canvas => {
             const g = DATOS_PRE1.graficos.g_proyecciones;
             return crearGraficoBarras(canvas, g.nombre, g.razon_max,
               { etiqueta: 'Razón de área máxima', tituloX: 'Proyección' });
           }""",
          opciones=[
-             op("Que las dos proyecciones que conservan los ángulos deforman el área mucho más "
-                "que las dos que la conservan.", True,
+             op("Que las dos proyecciones de Mercator deforman el área mucho más que Mollweide "
+                "y Equal Earth.", True,
                 "Es el intercambio que define a una proyección conforme: la distorsión angular "
-                "media de Mercator es prácticamente cero, y lo paga en área. La barra más alta, "
-                "eso sí, no es suya: es la azimutal equidistante, que no conserva ángulos ni "
-                "áreas sino distancias desde un punto. Destruir el área no es cosa solo de las "
-                "conformes — es el precio de conservar cualquier otra cosa."),
+                "media de Mercator es prácticamente cero, y lo paga en área. Ojo con el plural, "
+                "que en la tabla del capítulo no cuadra: <strong>la única conforme de las seis "
+                "es Mercator</strong>; Web Mercator hereda su geometría y su factura de área "
+                "pero no es conforme —ni equivalente—, y Mollweide es equivalente solo sobre la "
+                "esfera. La barra más alta, además, no es de ninguna de las dos: es la azimutal "
+                "equidistante, que no conserva ángulos ni áreas sino distancias desde un punto. "
+                "Destruir el área no es cosa solo de las conformes — es el precio de conservar "
+                "cualquier otra cosa."),
              op("Que Mercator es la peor proyección de las seis.", False,
                 "«Peor» no significa nada sin decir para qué: para navegar trazando rumbos "
                 "constantes es la que hay que usar, y para un mapa de coropletos es la que no. "
@@ -779,14 +808,18 @@ BLOQUE_B = [
          f"Para los municipios continentales de Colombia, el error de área con EPSG:3116 "
          f"llega como máximo al {c('epsg_3116_max')} y con EPSG:9377 al "
          f"{c('epsg_9377_max')}. Pero las medianas van al revés: {c('epsg_3116_med')} con "
-         f"3116 y {c('epsg_9377_med')} con 9377. Vas a publicar un mapa de áreas de todo el "
-         f"país. ¿Cuál eliges y por qué?",
+         f"3116 y {c('epsg_9377_med')} con 9377. Vas a publicar un mapa de áreas del país "
+         f"continental. ¿Cuál eliges y por qué?",
          "¿Qué municipio decide si un mapa nacional está bien: el típico o el peor?",
          opciones=[
              op("EPSG:9377, porque acota el peor caso, que es el que rompe un mapa nacional.", True,
-                "En un mapa que cubre el país entero, la cifra que hay que poder defender es la del "
-                "municipio peor representado. 9377 está pensado para eso: es el origen único "
-                "nacional."),
+                "En un mapa que cubre el continente entero, la cifra que hay que poder defender es "
+                "la del municipio peor representado. 9377 está pensado para eso: es el origen único "
+                "nacional. Y fíjate en que el enunciado dice <strong>continental</strong> a "
+                "propósito: con San Andrés y Providencia dentro, el peor caso lo gana 3116, porque "
+                "el archipiélago está setecientos kilómetros mar adentro y le queda más cerca su "
+                "meridiano. Dos municipios de 1 122 dan la vuelta a la recomendación, y es el "
+                "remate del módulo 4."),
              op("EPSG:3116, porque su mediana es mejor.", False,
                 "La mediana premia al municipio típico, y los municipios pequeños son mayoría. Pero "
                 "nadie audita un mapa nacional por su municipio mediano: lo audita por el que se ve "
@@ -801,9 +834,10 @@ BLOQUE_B = [
     preg("multiple", "cap2", 5,
          f"Sobre las mismas {c('etiq_n_localidades')} localidades: <code>st_set_crs()</code> "
          f"desplaza los vértices "
-         f"{c('etiq_set_crs')}; un <code>st_transform()</code> de verdad los desplaza hasta "
-         f"{c('etiq_transform')}; y un <code>st_transform()</code> de EPSG:4686 a EPSG:4326 "
-         f"los desplaza {c('etiq_silencioso')}. Marca <strong>todo</strong> lo cierto.",
+         f"{c('etiq_set_crs')}; un <code>st_transform()</code> de verdad les cambia el número "
+         f"hasta en {c('etiq_transform')} unidades, porque los pasa de metros a grados; y un "
+         f"<code>st_transform()</code> de EPSG:4686 a EPSG:4326 los desplaza "
+         f"{c('etiq_silencioso')}. Marca <strong>todo</strong> lo cierto.",
          "Fíjate en que hay dos operaciones distintas que desplazan cero. Son dos.",
          opciones=[
              op("<code>st_set_crs()</code> no mueve ningún vértice: solo cambia la etiqueta.", True,
@@ -854,18 +888,21 @@ BLOQUE_B = [
                 "reproyectar no es una opción.")]),
 
     preg("multiple", "cap2", 7,
-         f"Guardando {c('form_n_rasgos')} rasgos en tres formatos: el shapefile trunca "
-         f"{c('form_campos_largos')} nombres de campo a diez caracteres y convierte los "
+         f"Guardando {c('form_n_rasgos')} rasgos en tres formatos: el shapefile desfigura "
+         f"{c('form_campos_largos')} nombres de campo quitándoles las vocales y convierte los "
          f"campos lógicos en {c('form_logico')}; el GeoPackage pesa "
          f"{c('form_gpkg_razon')}&nbsp;veces el shapefile y el GeoJSON "
          f"{c('form_geojson_razon')}. "
          f"Marca <strong>todo</strong> lo cierto.",
          "Son dos, y las dos son pérdidas de información, no de espacio.",
          opciones=[
-             op("El shapefile trunca los nombres de campo a diez caracteres.", True,
+             op("El shapefile desfigura los nombres de campo largos: les quita vocales.", True,
                 f"Y lo hace en silencio: {c('form_campos_largos')} de las "
                 f"{c('form_n_campos')} columnas cambiaron de nombre sin un aviso, y el guion que "
-                "las lea después por su nombre largo no encuentra nada."),
+                "las lea después por su nombre largo no encuentra nada. No es un truncado —"
+                "<code>departamento</code> no queda en <code>departamen</code> sino en "
+                "<code>dprtmnt</code>—, y por eso no se puede deshacer: para que los diez "
+                "caracteres sigan siendo únicos, GDAL sacrifica las vocales."),
              op("El shapefile pierde el tipo lógico: lo guarda como entero.", True,
                 "Un <code>TRUE</code> vuelve como <code>1</code>. Cualquier condición escrita contra "
                 "el tipo original deja de comportarse igual, y tampoco avisa."),
@@ -936,15 +973,18 @@ BLOQUE_B = [
          f"Un polígono con una autointersección declara un área de {c('topo_area_antes')} y, "
          f"tras <code>st_make_valid()</code>, de {c('topo_area_despues')}. Un buffer de "
          f"radio 1 000 construido sobre coordenadas en grados da "
-         f"{c('topo_buffer_grados')}, cuando el mismo buffer bien hecho mide "
-         f"{c('topo_buffer_3857')}. ¿Qué tienen en común los dos casos?",
+         f"{c('topo_buffer_grados')}, cuando el mismo radio pedido sobre EPSG:9377 da "
+         f"{c('topo_buffer_9377')}. ¿Qué tienen en común los dos casos?",
          "¿Cuál de las dos operaciones lanzó un error?",
          opciones=[
              op("Que las dos devuelven un número en vez de fallar, y ese número parece una medida.",
                 True,
-                "Un área de cero y un área ridículamente pequeña son resultados, no "
-                "excepciones. Nada en el flujo se detiene, y lo que sigue trabaja con ellos como si "
-                "fueran superficies."),
+                f"Un área de cero y un área ridículamente pequeña son resultados, no "
+                f"excepciones. Nada en el flujo se detiene, y lo que sigue trabaja con ellos como si "
+                f"fueran superficies. Y hay un tercer caso todavía más callado: el mismo radio "
+                f"pedido sobre Web Mercator devuelve un círculo perfectamente creíble cuya área "
+                f"real es {c('topo_buffer_3857')} en vez de {c('topo_buffer_9377')} — nada avisa, "
+                f"y ahí no hay ningún número absurdo que delate el fallo."),
              op("Que las dos se arreglan con <code>st_make_valid()</code>.", False,
                 "<code>st_make_valid()</code> arregla la topología del primero. No tiene nada que "
                 "decir sobre el segundo, que es geométricamente válido: lo que está mal son las "
@@ -960,7 +1000,9 @@ BLOQUE_B = [
          f"Cruzar {c('ing_pares_bruta')} pares por fuerza bruta se reduce a "
          f"{c('ing_pares_cajas')} tras el filtro de cajas envolventes del índice espacial. "
          f"¿Cuántas veces menos trabajo es? Da dos decimales.",
-         "Divide los pares de antes entre los de después.",
+         "«Cuántas veces menos trabajo» compara los dos recuentos, y hay dos cosas que decidir "
+         "antes de dividir: cuál va arriba, y si lo que cuenta son los pares que quedan por "
+         "comparar o los que el filtro ahorra.",
          respuesta=float(val("ing_reduccion")), tolerancia=0.2,
          retroAcierto=f"{c('ing_reduccion')}. Y el filtro de cajas es solo el primer paso: "
                       f"descarta lo imposible barato para que la comprobación geométrica cara se "
@@ -1043,17 +1085,19 @@ BLOQUE_C = [
          f"{', '.join(ent(x) for x in val('c3m3_cortes'))}. La primera clase se lleva "
          f"{cn('convenio_intervalo.primera_clase_r')} condados en R y "
          f"{cn('convenio_intervalo.primera_clase_python')} en Python, con el mismo dato y el "
-         f"mismo esquema. ¿Cuántos condados cambia de sitio esa diferencia de convenio?",
-         "No hay que recalcular nada: la respuesta está en las dos cifras que da el "
-         "enunciado.",
+         f"mismo esquema. ¿Cuántos condados <strong>entran en la primera clase</strong> al "
+         f"cambiar de convenio?",
+         "Los dos programas parten el mismo dato en los mismos cortes. Lo único que cambia es "
+         "de qué lado del corte cae quien vale exactamente lo que vale el corte.",
          respuesta=float(val_nuevo("convenio_intervalo.movidos_primera")), tolerancia=0.5,
          retroAcierto=f"{cn('convenio_intervalo.movidos_primera')} condados. R cierra el "
                       f"intervalo por {c('c3m3_convenio_r')} y Python por "
                       f"{c('c3m3_convenio_py')}: los que valen justo el corte caen a un lado "
                       f"o al otro según el programa.",
          retroFallo=f"Son {cn('convenio_intervalo.movidos_primera')}. Si contestaste "
-                    f"{dist(N3, 'ninguno')}, diste por hecho que «clasificación por cuantiles» "
-                    f"significa exactamente lo mismo en los dos programas. Si contestaste "
+                    f"{dist(N3, 'primera_clase_python')}, diste el tamaño de la primera clase "
+                    f"en Python, que es cuántos condados hay en ella y no cuántos entran al "
+                    f"cambiar de convenio. Si contestaste "
                     f"{dist(N3, 'primera_clase_r')}, diste el tamaño de la primera clase en R "
                     f"y no la diferencia entre las dos. Y si contestaste "
                     f"{dist(N3, 'todos_los_empates')}, contaste los condados empatados en "
@@ -1113,7 +1157,8 @@ BLOQUE_C = [
          f"En visión típica, la distancia perceptual entre el rojo y el verde de una paleta "
          f"vale {c('c3m5_dE_normal')}; simulando deuteranopia sobre esos mismos dos colores "
          f"baja a {c('c3m5_dE_deuter')}. ¿En qué porcentaje cae? Da dos decimales.",
-         "Es la caída relativa respecto del valor de partida, no la diferencia a secas.",
+         "Un porcentaje de caída necesita una base. Decide cuál de los dos valores lo es, y "
+         "qué es exactamente lo que cae.",
          respuesta=float(val("c3m5_caida")), tolerancia=1.0,
          retroAcierto=f"{c('c3m5_caida')}. Dos colores que en la pantalla de quien hace el "
                       f"mapa son opuestos llegan a una parte de sus lectores como el mismo "
@@ -1122,9 +1167,10 @@ BLOQUE_C = [
                     f"porcentaje que QUEDA en vez del que se pierde. Si te salió "
                     f"{dist(N8, 'diferencia')}, diste la caída en unidades de distancia "
                     f"perceptual y no en porcentaje. Y si te salió "
-                    f"{dist(N8, 'base_deuteranopia')}, dividiste por la distancia bajo "
-                    f"deuteranopia en vez de por la de partida: se cae DESDE la visión típica, "
-                    f"así que la base es ella. Y la cifra "
+                    f"{dist(N8, 'base_suma')}, normalizaste por la SUMA de las dos distancias. "
+                    f"Esa es la diferencia relativa simétrica, y se usa cuando ninguno de los "
+                    f"dos valores es el punto de partida; aquí sí lo hay, porque se cae DESDE "
+                    f"la visión típica. Y la cifra "
                     f"suelta no es el argumento: el módulo simula {c('c3m5_comparaciones')} "
                     f"comparaciones de color, porque lo que hay que poder defender no es un par "
                     f"de colores sino la paleta entera."),
@@ -1142,11 +1188,15 @@ BLOQUE_C = [
                 "Es lo que aporta una gramática frente a una función con veinte argumentos: el "
                 "esquema, el <em>k</em> y la paleta dejan de estar enterrados en valores por "
                 "defecto y pasan a ser verbos que alguien puede leer."),
-             op("Que el mapa sale más bonito que con la función de dibujo de <code>sf</code>.",
-                False,
-                "Las cosas por defecto están mejor elegidas, es verdad, y no es lo que la "
-                "gramática aporta. Un mapa bonito con un esquema sin declarar sigue sin poder "
-                "revisarse."),
+             op("Que el mapa, al quedar escrito con verbos, sigue valiendo en cualquier versión "
+                "del paquete.", False,
+                f"Al revés, y es el aviso con el que abre el módulo: la versión 4 cambió la API "
+                f"respecto de la 3 —la estética va en <code>fill=</code> y la clasificación en "
+                f"un <code>tm_scale_*()</code>, donde antes había <code>col=</code> y "
+                f"<code>style=</code>—, así que la mayoría de los tutoriales en línea no corren "
+                f"aquí. Lo que la gramática deja explícito es la <em>decisión</em>, no el nombre "
+                f"del argumento; por eso los {c('c3m6_verbos')} verbos de este capítulo están "
+                f"verificados contra el paquete instalado y no escritos de memoria."),
              op("Que el paquete elige por ti el esquema de clasificación adecuado.", False,
                 "Elige uno por defecto, que no es lo mismo que el adecuado. Aceptar el valor por "
                 "defecto es una decisión tan cartográfica como cualquier otra, y la gramática la "
@@ -1173,11 +1223,13 @@ BLOQUE_C = [
                 "significa nada.", True,
                 "Los puntos se reparten dentro de la unidad. Lo que informa es cuántos hay y "
                 "cómo se concentran; leer dónde cae uno concreto es leer el dibujo, no el dato."),
-             op("Los símbolos proporcionales resuelven el problema, porque el área del círculo "
-                "es proporcional al valor.", False,
-                "Resuelven el sesgo del área de la unidad y traen el suyo: con esa razón entre "
-                "el valor mayor y el menor, el círculo grande se come a sus vecinos y el pequeño "
-                "desaparece."),
+             op("En unos símbolos proporcionales bien construidos, el radio del círculo es "
+                "proporcional al valor.", False,
+                f"Es el error clásico, y el capítulo lo nombra así: lo proporcional al valor es "
+                f"el <strong>área</strong>, no el radio. Poner el radio proporcional exagera las "
+                f"diferencias al cuadrado. Con esta variable, bien construido, el círculo mayor "
+                f"tiene {c('c3m7_radio_simbolos')} el radio del menor; con el radio proporcional "
+                f"tendría {c('c3m7_razon_simbolos')}, y el mapa sería ilegible."),
              op("El hexbin es preferible siempre, porque todas sus celdas tienen la misma área.",
                 False,
                 "La igualdad de área es una ventaja real y una pérdida real a la vez: desaparecen "
@@ -1196,9 +1248,16 @@ BLOQUE_C = [
          "Mira hacia qué lado del gráfico se acerca la curva a la línea de puntos, y hacia "
          "cuál se aleja.",
          alto=250,
-         descripcionGrafico="Curva de la correlación media según el número de zonas de "
-                            "agregación: muy por encima de la línea del valor individual con "
-                            "pocas zonas, y por debajo de ella con muchas",
+         descripcionGrafico=f"Curva de la correlación media según el número de zonas de "
+                            f"agregación, con un punto por cada escala del eje horizontal "
+                            f"({', '.join(ent(x) for x in GR['g_escala']['zonas'])} zonas). La "
+                            f"correlación vale, en ese mismo orden, "
+                            f"{', '.join(n(x, 4) for x in GR['g_escala']['media'])}: no baja de "
+                            f"forma continua, sino que hace cima en "
+                            f"{n(GR['g_escala']['forma']['cima_media'], 4)} con "
+                            f"{ent(GR['g_escala']['forma']['cima_zonas'])} zonas. Una línea "
+                            f"horizontal de puntos marca el valor calculado sobre estudiantes "
+                            f"individuales, {c('c3m8_r_ind')}",
          dibujar="""canvas => {
             const g = DATOS_PRE1.graficos.g_escala;
             const ind = DATOS_PRE1.reutilizado.c3m8_r_ind.valor;
@@ -1219,7 +1278,11 @@ BLOQUE_C = [
                 f"individuos, que es la que tiraba de la correlación hacia abajo; con muchas "
                 f"zonas queda poca gente en cada una y aparece el ruido de las medias pequeñas. "
                 f"Sobre los 33 departamentos reales el valor es {c('c3m8_r_dep')}, frente a "
-                f"{c('c3m8_r_ind')} sobre estudiantes: es el efecto escala del MAUP."),
+                f"{c('c3m8_r_ind')} sobre estudiantes: es el efecto escala del MAUP. Y en la "
+                f"curva la caída no es continua: hace cima con "
+                f"{ent(GR['g_escala']['forma']['cima_zonas'])} zonas y solo cruza por debajo "
+                f"del valor individual entre las {ent(GR['g_escala']['forma']['cruce_antes'])} "
+                f"y las {ent(GR['g_escala']['forma']['cruce_despues'])}."),
              op("Que la correlación verdadera es la de las zonas grandes, porque tiene menos "
                 "ruido.", False,
                 "«Menos ruido» y «más cerca de la verdad» no son lo mismo. Lo que se ha quitado "
@@ -1276,9 +1339,20 @@ BLOQUE_D = [
          "Fíjate en cuánto se abre la banda a medida que crece el retardo, y en dónde cae la "
          "media.",
          alto=250,
-         descripcionGrafico=f"Variograma teórico, media de {c('realiz_n')} realizaciones y "
-                            f"banda entre los percentiles 5 y 95, que se ensancha conforme "
-                            f"crece el retardo",
+         descripcionGrafico=f"Variograma con cuatro líneas sobre los retardos "
+                            f"{ent(GR['g_variograma']['lags'][0])} a "
+                            f"{ent(GR['g_variograma']['lags'][-1])}. El teórico va de "
+                            f"{n(GR['g_variograma']['teorico'][0], 4)} a "
+                            f"{n(GR['g_variograma']['teorico'][-1], 4)}; la media de "
+                            f"{c('realiz_n')} realizaciones, de "
+                            f"{n(GR['g_variograma']['media'][0], 4)} a "
+                            f"{n(GR['g_variograma']['media'][-1], 4)}. Las otras dos son los "
+                            f"percentiles 5 y 95 de las realizaciones, dibujados como dos líneas "
+                            f"sin relleno entre ellas: en el primer retardo valen "
+                            f"{n(GR['g_variograma']['q05'][0], 4)} y "
+                            f"{n(GR['g_variograma']['q95'][0], 4)}, y en el último "
+                            f"{n(GR['g_variograma']['q05'][-1], 4)} y "
+                            f"{n(GR['g_variograma']['q95'][-1], 4)}",
          dibujar="""canvas => {
             const g = DATOS_PRE1.graficos.g_variograma;
             const gris = { backgroundColor: 'transparent', pointRadius: 0, borderWidth: 1.5,
@@ -1357,9 +1431,12 @@ BLOQUE_D = [
          "lee?",
          "Compara la curva con la línea de puntos en el extremo derecho del gráfico.",
          alto=250,
-         descripcionGrafico="Curva descendente de los metros que mide un grado de longitud "
-                            "conforme sube la latitud, con la línea de referencia del valor en "
-                            "el ecuador",
+         descripcionGrafico=f"Curva de los metros que mide un grado de longitud sobre el "
+                            f"elipsoide WGS84 según la latitud, que baja en todo el recorrido: "
+                            f"{ent(GR['g_grado']['elipsoide'][0])} m en el ecuador y "
+                            f"{ent(GR['g_grado']['elipsoide'][-1])} m a "
+                            f"{ent(GR['g_grado']['lat'][-1])}° de latitud. Una línea "
+                            f"horizontal de puntos marca el valor del ecuador",
          dibujar="""canvas => {
             const g = DATOS_PRE1.graficos.g_grado;
             return crearGraficoLinea(canvas, g.lat.map(x => String(x)), [
@@ -1375,9 +1452,11 @@ BLOQUE_D = [
              op("Que convertir grados a metros con un factor fijo sobreestima la distancia en "
                 "todas partes salvo en el ecuador, y cada vez más al subir en latitud.", True,
                 f"La curva solo toca la línea de puntos en un extremo. Entre Bogotá y Oslo el "
-                f"grado se acorta {c('grad_bogota_oslo')}, y sobre las estaciones del IDEAM la "
-                f"diferencia entre medir bien y medir con un factor fijo llega a "
-                f"{c('medir_dist_max')}."),
+                f"grado se acorta {c('grad_bogota_oslo')}, y sobre los pares de estaciones del "
+                f"IDEAM el factor fijo se pasa hasta un "
+                f"{cn('euclidea_grados.error_max_pct')}. No lo confundas con la diferencia entre "
+                f"medir sobre la esfera o sobre el elipsoide, que en esas mismas estaciones llega "
+                f"a {c('medir_dist_max')}: es otro error, del módulo 6, y bastante menor."),
              op("Que el grado de latitud también se acorta al subir hacia el polo.", False,
                 "El gráfico no dice nada de la latitud: la única curva que hay es la de la "
                 "longitud. Y el grado de latitud hace lo contrario, alargarse, porque el "
@@ -1396,7 +1475,8 @@ BLOQUE_D = [
          f"La correlación entre la educación de la madre y el puntaje vale {c('c3m8_r_ind')} "
          f"calculada sobre estudiantes y {c('c3m8_r_dep')} sobre las medias departamentales. "
          f"¿En qué porcentaje sube al agregar? Da dos decimales.",
-         "Es la subida relativa respecto del valor calculado sobre estudiantes.",
+         "Una subida en porcentaje necesita una base. Decide cuál de las dos correlaciones es "
+         "el punto de partida.",
          respuesta=float(val("c3m8_subida")), tolerancia=1.0,
          retroAcierto=f"{c('c3m8_subida')}. Y por el camino hay una sorpresa que conviene "
                       f"llevarse al parcial: a nivel municipal la correlación no sube, baja a "
@@ -1405,9 +1485,10 @@ BLOQUE_D = [
          retroFallo=f"Es {c('c3m8_subida')}. Si te salió {dist(N9, 'base_departamento')}, "
                     f"tomaste como base la correlación agregada en vez de la individual: se "
                     f"sube DESDE el individuo. Si te salió {dist(N9, 'razon')}, diste la razón "
-                    f"y no el incremento. Y si te salió {dist(N9, 'con_municipio')}, agregaste "
-                    f"a municipio en vez de a departamento, donde la correlación no sube: baja, "
-                    f"y el signo lo está diciendo. "
+                    f"y no el incremento. Y si te salió {dist(N9, 'base_municipio')}, mediste "
+                    f"la subida desde la correlación municipal ({c('c3m8_r_mun')}) en vez de "
+                    f"desde la del estudiante: el enunciado agrega de estudiantes a "
+                    f"departamentos, y el municipio no está en ese camino. "
                     f"Agregar no mejora la medida: promedia dentro de "
                     f"cada unidad y se lleva la variación entre individuos, que es la que "
                     f"tiraba de la correlación hacia abajo. Solo el {c('c3m8_pct_var')} de la "

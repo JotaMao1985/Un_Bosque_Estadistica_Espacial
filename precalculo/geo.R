@@ -568,11 +568,38 @@ geo_grafo_multi <- function(x, nbs, titulo = "", leyenda = "",
 #' original para la leyenda y para el texto alternativo.
 ZQ <- 1000L
 
+#' @param escala  rango COMÚN para una familia de superficies, `c(lo, hi)`.
+#'   Por defecto `NULL`: cada superficie se normaliza contra su propio
+#'   mínimo y máximo, que es lo que quiere un mapa suelto y lo que
+#'   publican los diez rásteres del capítulo 1.
+#'
+#'   PARA UNA FAMILIA NO SIRVE, y el capítulo 5 es la primera que hay.
+#'   Las siete superficies del deslizador de sigma son el MISMO patrón
+#'   suavizado con anchos distintos, y lo que el módulo enseña es que al
+#'   abrir el núcleo la superficie se APLANA: la intensidad máxima cae de
+#'   63,8 por km2 con sigma = 100 m a 9,4 con sigma = 1600 m. Normalizada
+#'   cada una contra su propio máximo, las siete salen igual de picudas y
+#'   el mapa afirma lo contrario que el texto —con la tinta más
+#'   convincente de las dos—. Con `escala` las siete comparten regla y la
+#'   caída se ve.
 geo_rejilla <- function(z, caja, titulo = "", leyenda = "", n_clases = 7,
-                        estilo = "equal") {
+                        estilo = "equal", escala = NULL) {
   z <- as.matrix(z)
   fin <- z[is.finite(z)]
-  lo <- min(fin); hi <- max(fin); rango <- hi - lo
+  if (is.null(escala)) {
+    lo <- min(fin); hi <- max(fin)
+  } else {
+    if (length(escala) != 2L || !all(is.finite(escala)) || escala[1] >= escala[2])
+      stop("geo_rejilla: `escala` tiene que ser c(lo, hi) finito y creciente")
+    lo <- escala[1]; hi <- escala[2]
+    # Una superficie que se sale de la escala común se publicaría
+    # recortada SIN avisar: la celda saturada se ve igual que la que
+    # justo llega. Se para aquí, que es donde se puede arreglar.
+    if (min(fin) < lo - 1e-12 || max(fin) > hi + 1e-12)
+      stop(sprintf("geo_rejilla: la superficie [%.6g, %.6g] se sale de la escala común [%.6g, %.6g]",
+                   min(fin), max(fin), lo, hi))
+  }
+  rango <- hi - lo
   ci <- classInt::classIntervals(as.numeric(fin), n = n_clases, style = estilo)
 
   # por filas, de arriba a abajo, como lo espera el navegador

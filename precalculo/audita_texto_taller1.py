@@ -138,6 +138,7 @@ def main() -> int:
             f"{len(campos)} campos en el marcado (el del buscador lo crea el motor)")
 
     a.enlaces()
+    a.formulas_escapadas()
     a.codificacion()
     a.coherencia(
         cadenas=["λ", "²", "±", "—", "«", "»", "ó", "í", "é", "ñ", "¿",

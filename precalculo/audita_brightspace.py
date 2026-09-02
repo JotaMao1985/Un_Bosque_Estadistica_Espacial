@@ -28,6 +28,13 @@ Uso:
         --html Htmls_Espacial/preparcial-corte-1.html \
         --datos precalculo/salidas/preparcial1_datos.json \
         --zip parcial/brightspace/banco_brightspace.zip
+
+`--prefijo` es el mismo que se le pasó al exportador y por defecto vale `EE_C1`,
+que es el banco del preparcial. Existe porque un segundo banco —el del parcial,
+sin las pistas— **tiene que llevar identificadores distintos**: el `qmd_globalid`
+de D2L es `uuid5(qid)`, así que dos bancos con los mismos `qid` llegan a la
+Biblioteca de Preguntas con el mismo identificador global. Estaba escrito a mano
+aquí dentro, que es como un banco se queda sin auditor: el suyo no lo reconoce.
 """
 
 from __future__ import annotations
@@ -98,12 +105,22 @@ def main() -> int:
     p.add_argument("--html", required=True)
     p.add_argument("--datos", required=True)
     p.add_argument("--zip", required=True)
+    p.add_argument("--prefijo", default="EE_C1",
+                   help="raíz del identificador con la que se exportó el banco")
     a = p.parse_args()
 
     html = Path(a.html).read_text(encoding="utf-8")
     datos = json.loads(Path(a.datos).read_text(encoding="utf-8"))
     bloques = lee_autoevaluaciones(html)
     items, citadas, presentes = lee_paquete(a.zip)
+
+    # Un prefijo que no es el del ZIP haría fallar la cobertura entera con
+    # 36 líneas rojas que no dicen lo que pasa. Se para y se nombra.
+    if not any(et.startswith(f"{a.prefijo}_") for et in items):
+        hallados = sorted({et.rsplit("_", 1)[0] for et in items})
+        sys.exit(f"PARADO: ningún ítem de {a.zip} empieza por «{a.prefijo}_».\n"
+                 "        El ZIP trae: " + ", ".join(hallados) +
+                 "\n        Pásame el mismo --prefijo con el que se exportó.")
 
     au = Auditoria("Banco contrastado contra su documento")
 
@@ -113,7 +130,7 @@ def main() -> int:
     for nombre, preguntas in bloques.items():
         letra = nombre.split("-")[-1].upper()
         for i, q in enumerate(preguntas, 1):
-            et = f"EE_C1_{letra}{i:02d}"
+            et = f"{a.prefijo}_{letra}{i:02d}"
             esperadas[et] = q
             if et not in items:
                 ausentes.append((et, q["tipo"]))

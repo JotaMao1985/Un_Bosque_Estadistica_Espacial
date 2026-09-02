@@ -365,7 +365,12 @@ def main() -> int:
         letra = nombre.split("-")[-1].upper()
         for i, q in enumerate(preguntas, 1):
             qid = f"{a.prefijo}_{letra}{i:02d}"
-            titulo = q["repaso"]["etiqueta"]
+            # El identificador va DELANTE del rótulo del módulo. Seis módulos
+            # traen dos preguntas —la conceptual y la de transferencia— y el
+            # rótulo es el mismo para las dos, así que en la Biblioteca de
+            # Preguntas aparecerían dos entradas con idéntico nombre. Quien
+            # arma los pools del cuestionario las elige por ese nombre.
+            titulo = f"{letra}{i:02d} · {q['repaso']['etiqueta']}"
             tipo, img = q["tipo"], None
 
             if tipo == "numerica":
