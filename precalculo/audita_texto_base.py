@@ -337,6 +337,26 @@ class Auditor:
                     m = f"{a:.{d}e}".split("e")[0]
                     c.add(m)
                     c.add(m.rstrip("0").rstrip("."))
+            # Y LA NOTACIÓN CIENTÍFICA ENTERA, exponente incluido. Hueco del
+            # núcleo destapado por el capítulo 5 (T3.6) y de la familia del
+            # A.22: la rama de arriba indexa la MANTISA suelta —`5.4386`—
+            # mientras que el extractor de cifras se lleva el literal
+            # COMPLETO, `5.4386e-06`, porque su patrón incluye el exponente.
+            # Los dos lados eran correctos y no se encontraban, así que
+            # **toda cifra que un capítulo publique en notación científica
+            # salía como «sin respaldo»**. No es un punto ciego —el auditor
+            # las denuncia, no las deja pasar— pero sí un falso positivo, y
+            # un auditor que denuncia lo que está bien se acaba desactivando.
+            #
+            # No quita filo, al contrario que la mantisa suelta: lo que se
+            # añade es la cadena entera, que un texto solo escribe a
+            # propósito. Los capítulos 1 a 4 no lo notaron porque ninguno
+            # publica una cifra así en la prosa; el 5 publica trece —los
+            # errores estándar de `ppm` son del orden de 1e-6—.
+            if a > 0:
+                c.add(f"{a:g}")
+                for d in range(0, 8):
+                    c.add(f"{a:.{d}e}")
         elif isinstance(o, str):
             junto = re.sub(r"(?<=\d)[\s  ](?=\d{3}\b)", "", o)
             for x in re.findall(r"\d+(?:\.\d+)?", junto):
@@ -801,8 +821,19 @@ class Auditor:
             p = SALIDAS / json_soluciones
             obj = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
+        # LAS DOS FORMAS EN QUE UN CAPÍTULO GUARDA SUS EJERCICIOS, y esto
+        # es la deuda de T2.6 saldada en T3.6. Los capítulos 1, 2, 4 y 5
+        # los publican como claves `e1`…`e5`; el 3 los publica como una
+        # LISTA bajo `ejercicios`. `audita_texto_cap3.py` no llamaba a esta
+        # comprobación, así que la diferencia nunca se notó — y al llamarla
+        # por fin devolvió «0 de 0 celdas contrastadas», que es la forma
+        # más silenciosa de no comprobar nada: un verde sobre una tabla
+        # vacía. Se acepta la lista, y sus cuatro ejercicios entran.
         ejercicios = [v for k, v in obj.items()
                       if k.startswith("e") and isinstance(v, dict) and "pasos" in v]
+        if not ejercicios and isinstance(obj.get("ejercicios"), list):
+            ejercicios = [v for v in obj["ejercicios"]
+                          if isinstance(v, dict) and "pasos" in v]
         # Las filas publicadas: paso -> texto de la celda.
         #
         # LA CELDA no puede contener un `</td>`, y no es un detalle: una
@@ -829,10 +860,35 @@ class Auditor:
         # eso saltó. La forma de fallo es la peor: el recuento «N de N» se
         # leía completo porque el denominador contaba pasos del JSON, no
         # filas del HTML.
-        filas = dict(re.findall(
-            r'<tr><th scope="row">((?:(?!</th>).)*)</th>'
-            r'<td>((?:(?!</td>).)*)</td></tr>',
-            self.doc, re.S))
+        FILA_RE = (r'<tr><th scope="row">((?:(?!</th>).)*)</th>'
+                   r'<td>((?:(?!</td>).)*)</td></tr>')
+
+        # CADA EJERCICIO SE BUSCA EN SU PROPIO PANEL, y no en el documento
+        # entero. Hallazgo de T3.6, y otra vez de la familia del A.22: la
+        # versión anterior metía todas las filas del capítulo en UN dict,
+        # así que dos ejercicios con un paso del mismo nombre se pisaban
+        # —el dict se queda con el último— y el primero se contrastaba
+        # contra la celda del segundo. En el capítulo 3 pasa de verdad: el
+        # ejercicio 1 y el 2 publican los dos «Municipios con dato», con
+        # 1 121 y 1 113, y los dos están BIEN; el auditor denunciaba el
+        # primero por decir lo que dice el segundo.
+        #
+        # Lo grave no es el falso positivo, que se ve. Es la otra mitad:
+        # si una celda estuviera mal y coincidiera con la de su homónima
+        # de otro ejercicio, esto habría dado verde.
+        paneles = [m.start() for m in
+                   re.finditer(r'<div class="ejercicio-panel solucion"', self.doc)]
+        trozos = [self.doc[a:b] for a, b in zip(paneles, paneles[1:] + [len(self.doc)])]
+        por_ejercicio = [dict(re.findall(FILA_RE, z, re.S)) for z in trozos]
+        alineado = len(por_ejercicio) == len(ejercicios)
+        if not alineado:
+            # Se DICE cuando no se puede alinear, en vez de caer al modo
+            # flojo en silencio: un auditor que se relaja sin avisar es
+            # peor que uno que no comprueba.
+            print(f"  ---  {len(paneles)} paneles de solución para "
+                  f"{len(ejercicios)} ejercicios: no se pueden alinear, así que "
+                  f"las filas se buscan en todo el documento")
+        filas = dict(re.findall(FILA_RE, self.doc, re.S))
 
         def leer(txt):
             """El número que un humano lee en la celda, o None si no lo es."""
@@ -850,14 +906,16 @@ class Auditor:
 
         revisadas = comparadas = 0
         malas = []
-        for e in ejercicios:
+        for k, e in enumerate(ejercicios):
+            aqui = por_ejercicio[k] if alineado else filas
             for p in e["pasos"]:
                 v, paso = p["valor"], html_mod.unescape(str(p["paso"]))
                 if isinstance(v, bool) or not isinstance(v, (int, float)):
                     continue
                 revisadas += 1
-                celda = next((c for k, c in filas.items()
-                              if html_mod.unescape(re.sub(r"<[^>]+>", "", k)).strip() == paso.strip()),
+                celda = next((c for etq, c in aqui.items()
+                              if html_mod.unescape(re.sub(r"<[^>]+>", "", etq)).strip()
+                              == paso.strip()),
                              None)
                 if celda is None:
                     malas.append(f"«{paso[:40]}» no aparece en ninguna tabla")
@@ -885,6 +943,33 @@ class Auditor:
                    + ("" if not malas else f" · MAL: {malas[:4]}"))
 
     # -----------------------------------------------------------------
+    def formulas_escapadas(self) -> None:
+        """Ningún `<` crudo dentro de una fórmula, y no es una manía de estilo.
+
+        Hueco del núcleo destapado leyendo el capítulo 5 (T3.6). KaTeX
+        escribe las desigualdades tal cual —`\sum_{t_i < t}`— y ese `<` va
+        al HTML sin escapar. El navegador lo aguanta, así que la fórmula se
+        ve bien y la consola queda limpia; pero **cualquier despojador de
+        etiquetas se traga desde ahí hasta el siguiente `>`**, y eso incluye
+        a `_extrae_prosa()`. Medido sobre el módulo 11 de aquel capítulo: se
+        comía el resto de la fórmula y el `</div>` que la cerraba.
+
+        Lo que eso significa es lo peor que puede significar aquí: una cifra
+        inventada DESPUÉS de un `<` dentro de una fórmula **no la vería
+        `cifras()`**. Es exactamente el punto ciego de la familia 1, el que
+        costó un tercio de los decimales de cinco capítulos en Diseño de
+        Experimentos, reapareciendo por otra puerta.
+
+        Se escribe `&lt;` en el ensamblador: KaTeX recibe el `<` ya
+        desescapado por el navegador y la matemática no cambia.
+        """
+        print("\n=== Las fórmulas, enteras =================================")
+        crudas = [f for f in re.findall(r"\$\$.*?\$\$", self.cuerpo, re.S) if "<" in f]
+        self.exige(not crudas,
+                   "ninguna fórmula lleva un «<» sin escapar",
+                   "" if not crudas else
+                   f"{len(crudas)} fórmula(s), la primera: {' '.join(crudas[0].split())[:70]}")
+
     def codificacion(self) -> None:
         """Bytes crudos donde debería haber una tilde.
 

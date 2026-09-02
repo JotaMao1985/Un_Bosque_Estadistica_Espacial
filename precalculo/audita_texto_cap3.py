@@ -173,11 +173,21 @@ def main() -> int:
     )
     print(f"\n=== audita_texto_cap3.py · {a.ruta.name} ===")
     a.cifras()
+    # LA DEUDA DE T2.6, SALDADA EN T3.6. Este auditor no llamaba a
+    # `soluciones()`, y no era una decisión: era un olvido que se vio desde
+    # el capítulo 4 y quedó anotado en el plan. Los cuatro ejercicios del
+    # capítulo 3 publican sus tablas de paso con el mismo marcado que los
+    # de los capítulos 1, 2, 4 y 5, así que la comprobación tenía sujeto y
+    # debía estar corriendo sobre ellas desde el principio. Añadirla NO
+    # toca el capítulo, que sigue cerrado y byte a byte como estaba: lo
+    # que cambia es cuánto se le mira.
+    a.soluciones("cap3_soluciones.json")
     a.temario(DEBE_CUBRIR)
     a.fuentes(FUENTES)
     a.afirmaciones(AFIRMACIONES)
     a.accesibilidad()
     a.geomapas()
+    a.formulas_escapadas()
     a.codificacion()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)

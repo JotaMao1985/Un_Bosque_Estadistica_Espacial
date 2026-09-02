@@ -28,6 +28,47 @@ deja en **0,46 s** — pero **mueve los parámetros ajustados un 48 %**, así qu
 otra respuesta, y el módulo 11 publica las dos. Y el riesgo verdadero resultó ser **el peso del ráster**: una sola superficie de
 KDE a 183 m de celda pesa **39,8 KB**, cuando el capítulo 4 gastó 60,2 KB en todos sus mapas juntos.
 Ver **A.21**. **Las cinco decisiones de Javier están tomadas y escritas en la Fase 3.**
+🟢 **EL CAPÍTULO 5 ESTÁ CERRADO (T3.4 → T3.6, del 2026-08-28 al 2026-08-30).**
+`Htmls_Espacial/capitulo-5-intensidad-nucleos.html`, **755 KB**: 12 módulos, 11 simuladores,
+6 mapas, **12 preguntas y 5 ejercicios** —la desviación declarada, por las tres semanas—,
+**18 anclas** que paran el precálculo, reproducible byte a byte, y **12 pares de bloques R/Python
+con 133 de 133 cifras verificadas ejecutando el código**. Auditorías: `audita_cap5.py` **297/0/0**
+con arnés **151/151**; `audita_texto_cap5.py` **213/0** con **50 inyecciones, 50 cazadas**, y el
+arnés de prosa entero en **191/191** sobre los seis sujetos. Verificado en el navegador: consola
+limpia en los doce módulos, 17 lienzos con tinta y con `aria-label`, 0 gráficos huérfanos tras seis
+ciclos, y sin desbordamiento a 1 280, 375 ni **318 px**.
+· **Es el primer capítulo que publica SUPERFICIES**, y eso le cambia el presupuesto: 296 KB de
+ráster empaquetado —606 sin empaquetar, el 49 %— más 34 de mapas de puntos. Un contorno se
+simplifica; **un ráster se muestrea**, y muestrear menos es dibujar la rejilla en vez del núcleo.
+· **Ocho hallazgos en el cierre, y CINCO viven en el núcleo compartido**: toda cifra en notación
+científica salía «sin respaldo», un `<` sin escapar dentro de una fórmula escondía el resto de la
+fórmula del auditor, dos ejercicios con un paso homónimo se pisaban, y la deuda de T2.6 —el
+capítulo 3 sin `soluciones()`— resultó ser una forma de JSON distinta que devolvía «0 de 0». Ver
+**A.24**.
+· ✅ **T3.6 HECHA (2026-08-30).** `audita_texto_cap5.py` con **su propio `TOPE_KB` de 820** —la
+aritmética va escrita en su encabezado— y **50 inyecciones** en `prueba_texto.py`, diez de ellas
+sobre mecanismos que **ningún capítulo había visto fallar nunca**. El arnés obligó además a subir
+**siete cifras del capítulo a cinco decimales**: no encontró un fallo en lo que probaba, encontró
+que lo que se le daba a probar no era comprobable.
+· **Y la lectura de los doce módulos (§9.1) encontró lo que no ve ninguna herramienta**: el módulo
+2 terminaba en el pie de una figura y el 9 desembocaba en un `<h3>` — el párrafo de salida, otra
+vez—, más cuatro tropiezos de redacción.
+
+· ✅ **T3.5 HECHA (2026-08-30).** `ensambla_cap5.py` → **751 KB**: los **12 módulos**, 11
+simuladores, 6 mapas, **12 preguntas y 5 ejercicios** —la desviación declarada por la decisión 1— y
+**12 pares de bloques R/Python con 133 de 133 cifras verificadas ejecutando el código**. El reparto
+del peso lo declara el propio ensamblador: **296 KB de ráster** (606 sin empaquetar, el 49 %), 34 de
+mapas de puntos y 421 de todo lo demás. `sin_aritmetica.py` 0 cifras en la prosa, `campos_vivos.py`
+en verde y **`cuenta_sitio.py` vuelve a verde**: la tarjeta de la portada apaga el único rojo del
+repositorio.
+· **Y encontró dos mandos que no llegaban al estudiante**, ninguno visible desde ninguna
+herramienta: **el único simulador que el capítulo tenía escrito llevaba muerto desde que se
+escribió** —llamaba a cuatro nombres que no existen— y **la retroalimentación por opción de los
+capítulos 3 y 4 no se dibuja nunca**, porque escribieron `respuesta` donde el motor lee `retro`:
+**68 explicaciones publicadas que no ve nadie**, con la consola limpia. Ver **A.23**.
+· **La decisión 2 se REVIERTE, por escrito:** la fuente de `Demirel et al. (2026)` no llegó
+—el precálculo la publica como `caso_demirel: null`— así que el módulo 5 se escribe con el hilo
+colombiano, que era lo que la propia decisión preveía. Siguiente: **T3.6**.
 · ✅ **T3.4 y T3.4b HECHAS (2026-08-28 y 29).** `genera_cap5.R` con **18 anclas**, reproducible byte
 a byte, sus cinco ejercicios guiados y siete salidas; `audita_cap5.py` **297/0/0** con la KDE
 reimplementada por suma directa; `prueba_auditor_cap5.py` **151 inyecciones, 151 cazadas, 156 de 156
@@ -38,7 +79,7 @@ ellos habría dejado el deslizador buscando por una clave escrita con dos precis
 · **Y CUATRO HUECOS DEL NÚCLEO COMPARTIDO**, ninguno visible desde el capítulo que los sufría: el
 modo `rejilla` sin contrato desde T0.3, el arnés contando reventones como capturas, el informe
 contando instancias en vez de tipos, y una comprobación que validaba un valor y lo usaba sin
-condicionar dos líneas más abajo. Ver **A.22**. Siguiente: **T3.5**, el ensamblado.
+condicionar dos líneas más abajo. Ver **A.22**.
 ✅ **T2.4–T2.6 (2026-08-05)** — el capítulo 3 en pie, y con él cerrado el Corte I (semanas 1–4).
 ✅ **T2.4 + T2.4b + T2.5 + T2.6 (2026-08-05)** — **el capítulo 3 está precalculado, ensamblado,
 auditado y verificado en el navegador.** `Htmls_Espacial/capitulo-3-cartografia-maup.html`,
@@ -187,9 +228,11 @@ semestre 7, 2 créditos, 4 h/semana, 63 h presenciales + 32 h independientes.
 
 ---
 
-## 0. Cómo retomar el capítulo 5 en otra sesión
+## 0. Cómo retomar el trabajo en otra sesión
 
-*(escrito el 2026-08-30, con el molde del §0 del plan del preparcial, que existe por lo mismo)*
+*(escrito el 2026-08-30, con el molde del §0 del plan del preparcial, que existe por lo mismo.
+**Actualizado el mismo día al cerrar T3.6**: el capítulo 5 está cerrado y lo que sigue es la Fase 4,
+el capítulo 6)*
 
 ### 0.1 · Cómo arrancar la conversación nueva
 
@@ -197,40 +240,44 @@ Abrirla **en esta misma carpeta** (`Bosque 2026/Estadistica espacial/`) y pedir 
 archivo** antes de tocar nada. Todo lo que sigue está para que no haya que reconstruir nada de
 memoria.
 
-### 0.2 · LO PRIMERO, ANTES DE TOCAR NADA: no hay nada comiteado
+### 0.2 · Dónde vive el trabajo
 
-Rama **`cierre-capitulo-4`** —el nombre se quedó viejo: lo que lleva dentro es el capítulo 5—,
-último commit **`861be42` del 2026-08-28**. `git status` enseña **30 archivos**, y conviene saber
-qué es cada grupo antes de decidir qué hacer con ellos:
+Rama **`capitulo-5-intensidad-nucleos`**. El precálculo del capítulo y su auditor entraron en
+`b2838c6`, y el arranque del ensamblado en `300fa3b`; los cuatro huecos del núcleo (A.22) y el
+decodificador de ráster, con los ocho documentos regenerados detrás, en `66f9368` y `f9fbd29`.
+
+**Sin comitear, al cerrar T3.5 el 2026-08-30**, cinco archivos:
 
 | Qué | Archivos | Por qué está tocado |
 |---|---|---|
-| **El capítulo 5** | `genera_cap5.R`, `audita_cap5.py`, `prueba_auditor_cap5.py`, `ensambla_cap5.py`, `rejilla_comprime.py`, 8 salidas en `salidas/`, y el HTML | Es el trabajo nuevo |
-| **El núcleo compartido** | `audita_base.py`, `prueba_auditor_base.py`, `geo.R`, `puntual.R`, `plantilla-capitulo.html` | Cuatro huecos del núcleo (A.22) y dos componentes nuevos |
-| **Los ocho HTML publicados** | `capitulo-1..4`, `taller-1`, `preparcial-corte-1`, las dos pruebas | **Regenerados** porque la plantilla estrenó el decodificador de ráster. Crecieron ~1,7 KB cada uno |
-| **Los planes** | `PLAN_Material...md`, `README.md` | Las cinco decisiones, T3.4/T3.4b cerradas, A.21 y A.22 |
+| **El capítulo 5** | `precalculo/ensambla_cap5.py` y su HTML | Los módulos 3 a 12, las 12 preguntas, los 5 ejercicios, el preámbulo de JavaScript que faltaba y las correcciones de la lectura |
+| **Su auditor de prosa** | `audita_texto_cap5.py` (nuevo) y sus 50 inyecciones en `prueba_texto.py` | T3.6 |
+| **El núcleo de los auditores de prosa** | `audita_texto_base.py` y los siete que lo llaman | Cuatro huecos (A.24), y por eso los siete estrenan `formulas_escapadas()` |
+| **La portada** | `index.html` | Estrena la tarjeta del capítulo 5, y con ella `cuenta_sitio.py` vuelve a verde |
+| **Los planes** | `PLAN_Material...md`, `README.md` | T3.5 y T3.6 cerradas, la decisión 2 revertida, **A.23** y **A.24** |
 
-**Lo que hay que entender de esa tabla:** tocar el núcleo obligó a regenerar los ocho documentos, y
-eso está verificado sin regresión (§0.4). Pero mientras no se comitee, un `git checkout` de la
-plantilla dejaría ocho HTML con un decodificador que su plantilla ya no tiene.
+**Lo que hay que entender:** el precálculo **no se ha tocado** —`cap5_datos.json`,
+`cap5_mapas.json`, `cap5_soluciones.json` y los cinco CSV son los de T3.4, byte a byte—, así que
+`audita_cap5.py` sigue en **297/0/0**. Lo que cambió es quién los lee. Y **tocar el núcleo de los
+auditores de prosa obliga a la verificación aditiva**, que está hecha: los siete auditores de texto
+en 0 fallos y el arnés en 191/191.
 
 ### 0.3 · El estado, tarea por tarea
 
 | Tarea | Estado |
 |---|---|
-| Las **cinco decisiones** de la Fase 3 | ✅ tomadas y escritas. **No queda ninguna abierta** |
+| Las **cinco decisiones** de la Fase 3 | ✅ tomadas. La **2 se revirtió por escrito** el 2026-08-30: la fuente de `Demirel et al.` no llegó |
 | **T3.4** · `genera_cap5.R` | ✅ hecha. **18 anclas**, reproducible byte a byte, 5 ejercicios guiados, 8 salidas |
 | **T3.4b** · auditor y arnés | ✅ hecha. **297/0/0** y **151 inyecciones, 151 cazadas, 156 de 156 tipos** |
-| **T3.5** · `ensambla_cap5.py` | 🟡 **2 de 12 módulos.** La maquinaria entera está: compresión, decodificador, deslizador por σ, 25/25 cifras verificadas |
-| **T3.6** · verificación y cierre | ⛔ no empezada |
+| **T3.5** · `ensambla_cap5.py` | ✅ hecha. **12 módulos**, 11 simuladores, 6 mapas, 12 preguntas, 5 ejercicios, **133/133 cifras verificadas** y la tarjeta de la portada |
+| **T3.6** · verificación y cierre | ✅ hecha. `audita_texto_cap5.py` **213/0**, **50 inyecciones y 50 cazadas**, arnés entero **191/191**, y los doce módulos leídos |
 
-**Lo publicado ahora mismo:** `Htmls_Espacial/capitulo-5-intensidad-nucleos.html`, **451 KB**, 2
-módulos, 1 simulador, 1 mapa, 2+2 bloques R/Python. **No es publicable** y el ensamblador lo dice:
-devuelve 1 con «EN CONSTRUCCIÓN: 2 de 12 módulos».
+**Lo publicado:** `Htmls_Espacial/capitulo-5-intensidad-nucleos.html`, **755 KB**, 12 módulos, 11
+simuladores, 6 mapas, 12+12 bloques R/Python, 12 preguntas en dos autoevaluaciones y 5 ejercicios
+guiados. **El capítulo está cerrado, y con él la Fase 3 y el Checkpoint 3.**
 
-**`cuenta_sitio.py` está EN ROJO, por un motivo declarado y solo uno:** el capítulo está en la
-carpeta y sin enlace desde la portada. Se queda así hasta que esté completo — enlazarlo antes sería
-anunciar un capítulo de dos módulos. Es el único rojo del repositorio.
+**`cuenta_sitio.py` VOLVIÓ A VERDE:** los siete archivos del curso están enlazados desde la portada.
+No queda ningún rojo en el repositorio.
 
 ### 0.4 · La cadena, en orden, con los comandos exactos
 
@@ -239,7 +286,7 @@ precalculo/rscript.sh precalculo/genera_cap5.R          # 18 anclas · usa la ca
 precalculo/rscript.sh precalculo/genera_soluciones.R 5  # los 5 ejercicios
 <geo_env>/python precalculo/audita_cap5.py              # 297/0/0
 python3 precalculo/prueba_auditor_cap5.py               # 151/151 · 156/156 tipos · ~4 min
-python3 precalculo/ensambla_cap5.py                     # devuelve 1 hasta los 12 módulos
+python3 precalculo/ensambla_cap5.py                # 12/12 módulos, devuelve 0
 python3 precalculo/verifica_bloques.py --html Htmls_Espacial/capitulo-5-intensidad-nucleos.html
 ```
 
@@ -254,24 +301,33 @@ cinco auditores de prosa en 0 fallos; `campos_vivos` y `sin_aritmetica` en verde
 
 ### 0.5 · Qué hacer a continuación, y en qué orden
 
-1. **Los módulos 3 a 12 de `ensambla_cap5.py`.** La maquinaria no hay que tocarla: el molde de un
-   módulo son `cabecera()`, prosa en f-strings, `tabs()` con los bloques ya formados, `sim()`,
-   `mapa_html()` y `CIERRE`. Subir `MODULOS_ESCRITOS` a la vez que se escriben.
-2. **La autoevaluación de 12 preguntas y los 5 ejercicios**, que es la desviación declarada por la
-   decisión 1. Las soluciones ya están calculadas en `cap5_soluciones.json`.
-3. **La tarjeta de la portada**, que apaga el único rojo.
-4. **T3.6**: `audita_texto_cap5.py` con **su propio `TOPE_KB`** —700 no llega a los ~810 KB
-   previstos y subirlo para todos dejaría ciego al capítulo 2—, sus inyecciones en `prueba_texto.py`
-   y el recorrido en el navegador con la consola instrumentada.
+**La Fase 3 está cerrada.** Lo que sigue es la **Fase 4**: el capítulo 6, datos de área y la matriz
+de pesos espaciales, con la cadena de siempre —T4.1 precálculo, T4.1b auditor y arnés, T4.2
+ensamblado, T4.3 verificación y cierre—.
 
-**Una dependencia externa, declarada:** el módulo 5 tiene el caso trabajado de `Demirel et al.
-(2026)` por la decisión 2, y **hace falta su fuente**. Sin ella el módulo se escribe con el hilo
-colombiano —que ya se sostiene solo: los tres mapas de oferta, cobertura y demanda— y la decisión se
-revierte **por escrito**.
+**Dos deudas declaradas del Corte I**, que no son de este capítulo y esperan la misma reapertura:
 
-**Tres deudas declaradas que NO son de este capítulo** y no hay que resolver aquí: los diez rásteres
-del capítulo 1 podrían cruzar ya el núcleo y no lo hacen; `audita_texto_cap3.py` no llama a
-`soluciones()`; las dos entran con la primera reapertura del Corte I.
+1. **Los capítulos 3 y 4 publican 68 retroalimentaciones por opción que el motor no lee**, porque
+   usan la clave `respuesta` en vez de `retro` —más 3 explicaciones de preguntas numéricas por lo
+   mismo—. El estudiante ve «Correcto.» a secas, con la consola limpia. Es un cambio de una palabra
+   por opción, pero obliga a **regenerar dos capítulos cerrados** y a repetir sobre ellos la cadena
+   del §0.4; y el 3 es material del preparcial. Ver **A.23.2**.
+2. **Los diez rásteres del capítulo 1** podrían cruzar el núcleo de `audita_cap1.py` desde A.22 y
+   siguen auditándose a mano.
+
+~~3. `audita_texto_cap3.py` no llama a `soluciones()`~~ ✅ **SALDADA en T3.6**, y no era una línea:
+devolvía «0 de 0 celdas contrastadas» porque aquel capítulo guarda sus ejercicios en otra forma.
+Ver **A.24.4**.
+
+**Y lo que el capítulo 5 deja mejor de lo que lo encontró**, por si el 6 lo necesita: el núcleo de
+los auditores de prosa estrena cuatro cosas —la notación científica indexada entera, la guarda de
+las fórmulas con un `<` sin escapar, las tablas de solución acotadas a su propio ejercicio y las dos
+formas de guardar los ejercicios en el JSON—. Ver **A.24**.
+
+**Un aviso para quien verifique en el panel del navegador:** con el panel oculto los temporizadores
+se estrangulan y `innerHeight` vale 0, así que un recorrido de módulos con `await` no termina nunca
+y el desplazamiento no se mueve. **No es del capítulo** —el 4 se comporta igual—: hay que recorrer
+los módulos de forma síncrona o con el panel al frente.
 
 ### 0.6 · Las trampas que ya se pagaron, para no volver a pagarlas
 
@@ -289,6 +345,17 @@ del capítulo 1 podrían cruzar ya el núcleo y no lo hacen; `audita_texto_cap3.
    y el recuento de cobertura sale corrupto.
 7. **Un auditor que muere no informa.** Ante un archivo roto hay que informar y seguir, no reventar
    — el arnés ya distingue las dos cosas, pero la que sirve es la primera.
+8. **`n5`, la paleta y las fábricas de control NO las trae la plantilla:** las define cada capítulo.
+   Un `ReferenceError` en un simulador se lleva por delante a TODOS los del módulo, porque el bucle
+   de `iniciarSimuladores()` no atrapa, y lo que queda es un lienzo en blanco (A.23.1).
+9. **La retroalimentación por opción se llama `retro`, y la de las numéricas `retroAcierto` /
+   `retroFallo`.** Con cualquier otro nombre el motor no la lee, `cerrar()` la convierte en cadena
+   vacía y el estudiante ve «Correcto.» a secas (A.23.2).
+10. **`rhohat` es ALEATORIO** —usa una cuadratura muestreada—, así que su curva necesita
+    `set.seed()` para que la cifra publicada la pueda reproducir alguien.
+11. **R imprime un vector con nombres a siete cifras significativas**, no con los decimales que se
+    le pidieron a `round()`. Ocho `#>` del capítulo fallaron por eso y por nada más; se arreglan con
+    `print(..., digits = n)`, no aflojando lo que se anuncia.
 
 ---
 
@@ -1177,9 +1244,14 @@ nombraba en ninguna parte**: el peso del ráster.
    proyecto **formulado**, no solo cerrar el diagnóstico del ajuste. Corregidos el §6, el README y el
    Checkpoint 3. **Presupuesto: 12 preguntas y 5 ejercicios**, el del capítulo 4 y por el mismo
    motivo —cubre más de una semana—, y no el molde de 8 y 4.
-2. **`Demirel et al. (2026)` ENTRA COMO CASO TRABAJADO DEL MÓDULO 5**, y con eso se cierra la
-   pregunta 5 del §10, abierta desde el 2026-08-04. **Con una dependencia declarada:** hace falta la
-   referencia completa o el PDF antes de escribir ese módulo. Un caso trabajado sin su fuente delante
+2. ⛔ **REVERTIDA EL 2026-08-30, POR ESCRITO Y NO EN SILENCIO** —que es lo que la propia decisión
+   exigía—. La fuente no llegó: el precálculo publica `caso_demirel: null` y el módulo 5 se escribió
+   con el hilo colombiano, que ya se sostiene solo con sus tres capas de oferta, bachillerato y
+   evaluados. **El módulo lo dice en su propio texto**, en una caja, en vez de quedarse el título y
+   rellenarlo de memoria. La pregunta 5 del §10 vuelve a quedar abierta.
+   · Lo que la decisión decía: **`Demirel et al. (2026)` ENTRA COMO CASO TRABAJADO DEL MÓDULO 5**,
+   y con eso se cierra la pregunta 5 del §10, abierta desde el 2026-08-04. **Con una dependencia
+   declarada:** hace falta la referencia completa o el PDF antes de escribir ese módulo. Un caso trabajado sin su fuente delante
    no se escribe —se esperaría a tenerla—, porque D10 no admite cifras que no se puedan leer en su
    origen. Si la fuente no llega a tiempo, el módulo 5 se escribe con el hilo colombiano y esta
    decisión se revierte **por escrito**, no en silencio.
@@ -1309,11 +1381,11 @@ declarados inatacables por construcción.
       **ningún mecanismo** sin verse fallar, y que el arnés imprima la lista de lo que queda para
       que nadie tenga que fiarse de esa frase.
 
-**T3.5 — Ensamblado del capítulo 5** · *Alcance: L* · *Dep.: T3.4b* · 🟡 **EN CURSO (2026-08-30)**
-`precalculo/ensambla_cap5.py` → `Htmls_Espacial/capitulo-5-intensidad-nucleos.html`.
-**Hecho: la maquinaria entera y los módulos 1 y 2.** El documento va por 451 KB con 1 simulador, el
-mapa de la familia, 2+2 bloques R/Python y **25 de 25 cifras verificadas ejecutando el código**.
-`sin_aritmetica.py` 0 en la prosa, `campos_vivos.py` en verde.
+**T3.5 — Ensamblado del capítulo 5** · *Alcance: L* · *Dep.: T3.4b* · ✅ **HECHA (2026-08-30)**
+`precalculo/ensambla_cap5.py` → `Htmls_Espacial/capitulo-5-intensidad-nucleos.html`, **751 KB**:
+**12 módulos, 11 simuladores, 6 mapas, 12 preguntas y 5 ejercicios** —la desviación declarada por la
+decisión 1, porque el capítulo cubre tres semanas— y **12 pares de bloques R/Python con 133 de 133
+cifras verificadas ejecutando el código**.
 - ✅ **La compresión del ráster, con su prueba de ida y vuelta.** `precalculo/rejilla_comprime.py`:
   máscara en tiradas y valores en diferencias por fila. Los diez rásteres pasan de **606 KB a
   297** —el 49 %, medido— y `ida_y_vuelta()` comprime y deshace EN EL ACTO antes de escribir nada:
@@ -1336,44 +1408,86 @@ mapa de la familia, 2+2 bloques R/Python y **25 de 25 cifras verificadas ejecuta
   independencia de verdad vive en el auditor, que sí suma directo; un bloque de enseñanza debe
   enseñar el algoritmo, no competir con él.
 
-**Lo que falta:** los módulos 3 a 12, la autoevaluación de 12 preguntas, los cinco ejercicios
-guiados y la tarjeta de la portada. `cuenta_sitio.py` está **en rojo por un motivo declarado** —el
-capítulo está en la carpeta y sin enlace— y así se queda hasta que esté completo: enlazarlo antes
-sería anunciar un capítulo de dos módulos.
-- [ ] El peso del capítulo dentro de lo declarado, con el reparto del ráster **declarado**.
-- [ ] Pares R/Python en todos los bloques, con `verifica_bloques.py` ejecutándolos de verdad.
-- [ ] **El deslizador de σ busca su superficie POR SU σ, nunca por su posición.** El capítulo 1 ya
-      pagó esta lección dos veces —anexos T1.2 y T1.3— y la dejó escrita en su propio código:
-      `campoDePhi()` y `realizacionDeId()` existen porque emparejar dos listas por índice las
-      descuadró en silencio. El capítulo 5 tiene exactamente esa forma: una lista de σ en el dato y
-      una de rásteres en los mapas.
+- [x] **El peso del capítulo dentro de lo declarado, con el reparto del ráster declarado.** Y lo
+      declara el ensamblador, no este plan: **296 KB de ráster** —606 sin empaquetar, el 49 %— más
+      **34 KB de mapas de puntos** y **421 KB de todo lo demás**. Sale por debajo de los ~810 KB que
+      la decisión 5 preveía, y **sin recortar nada**: los diez rásteres van completos.
+- [x] **Pares R/Python en los doce bloques, con `verifica_bloques.py` ejecutándolos de verdad:
+      133 de 133.** Ocho cifras no cuadraron en la primera pasada y **ninguna era un error de
+      cuenta**: eran los dígitos con que R imprime un vector con nombres. Se arreglaron pidiéndole a
+      `print` los que hacen falta, no aflojando lo anunciado. La novena habría sido peor: el bloque
+      del módulo 5 truncaba σ a cuatro decimales y su KDE salía distinta en la quinta cifra, así que
+      ahora **el bloque llama a `bw.CvL` en vez de escribir el número**.
+- [x] **El deslizador de σ busca su superficie POR SU σ, nunca por su posición.** Comprobado en el
+      navegador: las siete σ del dato casan con las siete superficies de los mapas, y mover el
+      deslizador de un extremo al otro cambia el σ que el mapa dibuja.
+- [x] **La tarjeta de la portada**, que apaga el único rojo: `cuenta_sitio.py` vuelve a verde con
+      los siete archivos del curso enlazados.
+- **Dos defectos reales, y los dos son componentes que se cuentan y no funcionan.** Ver **A.23**.
+  El primero estaba en este mismo capítulo —su único simulador llevaba muerto desde que se
+  escribió— y el segundo está **publicado en los capítulos 3 y 4**: 68 explicaciones por opción que
+  el motor no lee. El ensamblador del 5 lo comprueba y para.
+- **Verificado en el navegador con la consola instrumentada**, que es lo que obligaba haber tocado
+  el JavaScript: **17 lienzos, 17 con tinta y 17 con `aria-label`** en los doce módulos, consola
+  **limpia**, los **once simuladores respondiendo a sus controles** —comprobando que el gráfico o la
+  lectura cambian, no que el botón exista—, el deslizador de σ moviendo la superficie que el mapa
+  dibuja, los **cinco ejercicios abriendo su solución** con sus 4/6/6/4/5 filas de paso, las **dos
+  autoevaluaciones dando su retroalimentación por opción** (211, 131 y 113 caracteres donde los
+  capítulos 3 y 4 dan cadena vacía), **0 gráficos huérfanos tras seis ciclos** por los doce módulos,
+  **0 `$` sin resolver en la prosa y 0 `katex-error`**, y **sin desbordamiento a 1 280, 375 ni
+  318 px** — que aquí importaba porque es el primer capítulo con tablas de cinco columnas.
+  · Lo que queda para T3.6 es la lectura de los doce módulos **como los lee un estudiante** (§9.1),
+  que no la hace ninguna herramienta.
 
-**T3.6 — Verificación y cierre** · *Alcance: M* · *Dep.: T3.5*
-`audita_texto_cap5.py` y sus inyecciones dentro de `prueba_texto.py`, más la verificación en el
-navegador con la consola instrumentada y `chart.draw()` forzado.
-- [ ] Los 12 módulos leídos **como los lee un estudiante** (§9.1): el ritmo no lo caza ninguna
-      herramienta, y el capítulo 4 encontró así su tercer defecto.
-- [ ] **`audita_texto_cap5.py` pasa su PROPIO tope a `peso()`, no el de la casa.** Consecuencia
-      directa de la decisión 5 y hay que llegar con la cuenta hecha: `TOPE_KB` vale 700 y el capítulo
-      va a rondar los 810, así que con el tope de la casa el auditor daría rojo. Subir `TOPE_KB` para
-      todos NO vale: la cota que lo ata al arnés es **por encima del tamaño del documento y por
-      debajo de ese tamaño + 312 KB** —`prueba_texto.py` tumba la comprobación inyectando 312 KB de
-      comentario—, así que un tope de 850 dejaría CIEGO al capítulo 2, que pesa 515. `peso()` ya
-      acepta el tope por argumento y el fixture de demostración ya lo usa así.
+**T3.6 — Verificación y cierre** · *Alcance: M* · *Dep.: T3.5* · ✅ **HECHA (2026-08-30)**
+`precalculo/audita_texto_cap5.py` —**213 comprobaciones, 0 fallos**— y sus inyecciones dentro de
+`prueba_texto.py`, **50 inyectadas y 50 cazadas**, con el arnés entero en **191/191** sobre los seis
+sujetos. **El capítulo 5 está cerrado: 755 KB.**
+- [x] **Los 12 módulos leídos como los lee un estudiante** (§9.1), y encontró lo que no caza nada:
+      el **módulo 2 terminaba en el pie de una figura** —el simulador y el mapa se comían el final y
+      nadie cerraba la tesis— y el **9 desembocaba directamente en un `<h3>`**. Es el tercer defecto
+      del capítulo 4 repitiéndose: **el párrafo de salida es el que se olvida.** Más cuatro
+      tropiezos de redacción, uno de ellos una frase dicha dos veces seguidas.
+- [x] **`audita_texto_cap5.py` pasa su PROPIO tope a `peso()`: 820 KB.** La aritmética va escrita en
+      su encabezado y no es una marca de agua: el documento pesa 755, subir `TOPE_KB` para todos
+      dejaría ciego al capítulo 2 —la cota es *tamaño < tope < tamaño + 312 KB*—, y 820 deja 65 KB
+      de margen y 243 por debajo de lo que el arnés necesita perforar.
+- [x] **Dos comprobaciones propias que el núcleo no puede hacer**, y las dos leen el DOCUMENTO y no
+      el precálculo: las siete superficies del deslizador —σ, escala común, empaquetado, rejilla y
+      su propio techo de peso— quedan fuera de `geomapas()` porque su `fuente` es una función.
+      Escritas al revés la primera vez —comparando dos JSON entre sí— y lo destapó el arnés al ir a
+      inyectarles defectos: **una comprobación que no mira el HTML no se puede tumbar tocando el
+      HTML**, así que habría entrado en la lista de las que nadie ha visto fallar.
+- [x] **Diez inyecciones sobre mecanismos que ningún capítulo había visto fallar**: el corte de
+      clase de un `.geomapa` —que hasta aquí no tenía sujeto, porque los mapas de los capítulos 1 a
+      4 son de puntos y ninguno clasifica—, el registro que falta, el modo sin declarar, la etiqueta
+      accesible, el presupuesto de geometría, `classInt`, `role="img"`, `aria-controls`, el marcado
+      del quiz y `role="tablist"`.
+- [x] **La deuda declarada de T3.3, saldada — y no era una línea.** `audita_texto_cap3.py` no
+      llamaba a `soluciones()`; al llamarla devolvió **«0 de 0 celdas contrastadas»**, porque aquel
+      capítulo guarda sus ejercicios como una lista y los demás como claves `e1`…`e5`. El núcleo
+      acepta las dos formas y **24 celdas del capítulo 3 que nadie miraba entran a contrastarse**.
+      El capítulo sigue byte a byte como estaba: lo que cambia es cuánto se le mira.
+- **Ocho hallazgos, y CINCO son del núcleo compartido.** Ver **A.24**. Verificado aditivo después de
+      cada cambio del núcleo, que es lo que exige tocarlo: `audita_texto` **demo 78, cap1 150, cap2
+      136, cap3 132, cap4 175, cap5 213, taller1 59**, todos en 0 fallos, y el arnés en **191/191**.
+      Los auditores de datos, intactos: **1075/449/356/425/297**, `taller1` **531**, `preparcial1`
+      **112**.
 
-- [ ] **La deuda declarada de T3.3 entra aquí** si el Corte I no se reabre antes:
-      `audita_texto_cap3.py` no llama a `soluciones()`, y sus cuatro ejercicios publican tablas de
-      paso con el mismo marcado que los demás.
-
-### 🟡 Checkpoint 3 — Módulo II: la mitad hecha
-- [x] **Semanas 6–7 cubiertas** (capítulo 4, cerrado el 2026-08-24) · [ ] semanas 8–10 (capítulo 5)
+### ✅ Checkpoint 3 — Módulo II cerrado (2026-08-30)
+- [x] **Semanas 6–7 cubiertas** (capítulo 4, cerrado el 2026-08-24) · [x] **semanas 8–10 cubiertas**
+  (capítulo 5, cerrado el 2026-08-30)
 - [x] **Las envolventes precalculadas y sus `nsim` documentados** — 999 simulaciones, y el módulo 11
   publica que el p-valor mínimo es 1/(nsim+1) y que la banda por defecto cambia de contraste al subir
   `nsim` en vez de afinarse
 - [x] **La corrección de borde de cada envolvente, escrita al lado de la envolvente** — traslación,
   con la tabla de coste medido y la isotrópica calculada una vez por patrón para publicar la
   diferencia. No es un atajo silencioso: está declarado en el módulo 10
-- [ ] Lo mismo para el capítulo 5
+- [x] **Lo mismo para el capítulo 5**: la envolvente del módulo 10 va con **999 simulaciones** sobre
+  el MODELO AJUSTADO y no sobre CSR, con corrección de **traslación** declarada en el dato, y el
+  módulo publica que su nivel puntual es 0,2 % y que con 39 simulaciones la banda no se afina sino
+  que **cambia de contraste**. Y el módulo 11 añade el caso que el capítulo 4 no tenía: una llamada
+  —`kppm`— que **elige la corrección por ti**, la más cara, sin mencionarla, y mueve μ un 93 %
 
 ---
 
@@ -3470,3 +3584,154 @@ Las comprobaciones que nunca se han visto fallar son de dos clases que desde fue
 
 Una es naturaleza y la otra sería deuda. Se declaran las seis, con su motivo, en vez de dejarlas en
 el montón de «no vistas fallar».
+
+---
+
+### A.23 · Dos mandos que no llegaban al estudiante (T3.5, 2026-08-30)
+
+El ensamblado de los módulos 3 a 12 encontró **dos defectos de la misma familia, y ninguno de los
+dos lo veía nada**: ni el ensamblador, ni `sin_aritmetica.py`, ni `campos_vivos.py`, ni la consola
+del navegador. Los dos son **componentes que se cuentan, se dibujan en la página y no funcionan**,
+que es el modo de fallo que este proyecto persigue desde el A.10.
+
+#### A.23.1 · El único simulador del capítulo llevaba muerto desde que se escribió
+
+Los módulos 1 y 2 se escribieron en la sesión anterior llamando a `grafico()`, `deslizador()`,
+`n5()` y `COLOR`. **Ninguno de los cuatro existe.** `n5` y la paleta no los trae la plantilla —los
+define cada capítulo, y es exactamente la lección del A.13 nº 4—; `grafico()` y `deslizador()` se
+inventaron ahí y no se escribieron en ninguna parte.
+
+Lo que hace que esto valga un anexo no es el olvido, es **lo que informaban las herramientas
+mientras tanto**: el ensamblador decía «1 simulador», `verifica_bloques.py` daba 25 de 25 cifras y
+el §0.3 del plan lo publicaba como maquinaria hecha. Un simulador que revienta al construirse no
+deja hueco en la página: deja **el lienzo en blanco**, y encima el bucle de
+`iniciarSimuladores()` **no atrapa**, así que el primer `ReferenceError` se habría llevado por
+delante a todos los demás simuladores del módulo.
+
+El arreglo es el preámbulo de JavaScript del capítulo —`n5`, `mil5`, `exp5`, `C5`, `lectura5`,
+`botonera5`, `deslizador5`, `grafico5`, `curva5` y `ejesXY`—, copiado de donde ya funcionaba: la
+botonera y el deslizador son los del capítulo 1, con su `.geomapa-boton` y su `.control-slider`,
+que son **clases de la casa y no marcado inventado**.
+
+#### A.23.2 · La retroalimentación por opción de los capítulos 3 y 4 no se dibuja nunca
+
+Escribiendo las doce preguntas de este capítulo apareció el segundo, y es peor porque está
+**publicado**. El motor de autoevaluación de la plantilla lee `op.retro` para la explicación de
+cada opción y `p.retroAcierto` / `p.retroFallo` para las numéricas. Los capítulos 1 y 2 usan esos
+nombres. **Los capítulos 3 y 4 escribieron `respuesta` y `explicacion`.**
+
+| Documento | Opciones con `retro` | Opciones con `respuesta` |
+|---|---|---|
+| `capitulo-1-datos-espaciales.html` | 47 | 0 |
+| `capitulo-2-crs-georreferenciacion.html` | 40 | 0 |
+| **`capitulo-3-cartografia-maup.html`** | **0** | **28** |
+| **`capitulo-4-patrones-puntuales.html`** | **0** | **40** |
+| `capitulo-5-intensidad-nucleos.html` | 40 | 0 |
+
+Y la consecuencia exacta: `cerrar()` tiene una guarda defensiva —`textoRetro || ''`, puesta en su
+día para que no saliera la palabra «undefined»— que convierte la clave equivocada en **cadena
+vacía**. El estudiante que acierta ve «**Correcto.**» y nada más; el que falla, «**No es esa.**» y
+nada más. Son **68 explicaciones por opción y 3 de preguntas numéricas** escritas, verificadas,
+publicadas y que no llegan a nadie, sin un solo error en consola. La guarda que evitó una fealdad
+tapó un defecto: es el A.10 otra vez, con otra cara.
+
+**En el capítulo 5 se usan los nombres del motor, y el ensamblador lo COMPRUEBA**: si aparece
+`respuesta:` o `explicacion:` en el documento, o si alguna opción se queda sin `retro`,
+`ensambla_cap5.py` para y no publica. La comprobación cuesta dos líneas y es de las que solo se
+escriben después de pagar el defecto una vez.
+
+**Deuda declarada, no resuelta aquí:** arreglarlo en los capítulos 3 y 4 es cambiar una palabra por
+opción, pero obliga a **regenerar dos capítulos cerrados** y a repetir la cadena de verificación del
+§0.4 sobre los dos —y el capítulo 3 es material del preparcial del Corte I—. Entra con la primera
+reapertura del Corte I, junto a la deuda de `audita_texto_cap3.py` y a la de los diez rásteres del
+capítulo 1. **Son ya tres, y las tres esperan la misma reapertura.**
+
+---
+
+### A.24 · Lo que destapó el auditor de prosa del capítulo 5 (T3.6, 2026-08-30)
+
+Ocho hallazgos, y **cinco son del NÚCLEO compartido**, no de este capítulo. Es el A.22 otra vez,
+en el otro auditor: ideas correctas que vivían en una forma que no protegía a nadie, y que solo se
+ven cuando llega un capítulo que las pisa.
+
+#### A.24.1 · Toda cifra en notación científica salía «sin respaldo»
+
+El índice de cifras conocidas guardaba, para los valores por debajo de 1e-3, **la mantisa suelta**:
+`5.4386`. El extractor de cifras, en cambio, se lleva el literal **completo**, `5.4386e-06`, porque
+su patrón incluye el exponente. Los dos lados eran correctos y no se encontraban.
+
+Los capítulos 1 a 4 no lo notaron porque **ninguno publica una cifra así en la prosa**. El 5 publica
+trece —los errores estándar de `ppm` son de orden 1e-6 y el número de condición de 1e-10—, y el
+auditor las denunció todas. No es un punto ciego, es un falso positivo; pero un auditor que denuncia
+lo que está bien se acaba desactivando, que es la peor forma de perderlo. El índice aprende ahora la
+forma entera, que un texto solo escribe a propósito y por tanto no quita filo a la regla.
+
+#### A.24.2 · Un `<` sin escapar dentro de una fórmula esconde el resto de la fórmula
+
+La fórmula de Hawkes lleva `\sum_{t_i < t}`. Ese `<` viajaba **crudo** al HTML: el navegador lo
+aguanta y KaTeX la dibuja bien, así que no había nada que ver. Pero **cualquier despojador de
+etiquetas se traga desde ahí hasta el siguiente `>`**, y `_extrae_prosa()` es uno: medido, se comía
+el resto de la fórmula y el `</div>` que la cerraba.
+
+Lo que eso significa es lo peor que puede significar aquí: **una cifra inventada después de un `<`
+dentro de una fórmula no la vería `cifras()`**. Es el punto ciego de la familia 1 —el que costó un
+tercio de los decimales de cinco capítulos en Diseño de Experimentos— reapareciendo por otra puerta.
+Ahora hay guarda en el núcleo, `formulas_escapadas()`, la llaman los siete auditores de prosa, los
+siete documentos dan cero, y el arnés la ve fallar.
+
+#### A.24.3 · Dos ejercicios con un paso del mismo nombre se pisaban
+
+`soluciones()` metía **todas** las filas de solución del capítulo en un solo diccionario, así que dos
+ejercicios con un paso homónimo se sobrescribían y el primero se contrastaba contra la celda del
+segundo. En el capítulo 3 pasa de verdad: los ejercicios 1 y 2 publican los dos «Municipios con
+dato», con **1 121** y **1 113**, y los dos están bien.
+
+El falso positivo se ve. Lo que no se ve es la otra mitad: **si una celda estuviera mal y coincidiera
+con la de su homónima, esto habría dado verde**. Ahora cada ejercicio se busca dentro de su propio
+panel de solución, y cuando los paneles no se pueden alinear con los ejercicios el auditor lo
+**dice** en vez de caer al modo flojo en silencio.
+
+#### A.24.4 · La deuda de T2.6, saldada — y no era una línea
+
+`audita_texto_cap3.py` no llamaba a `soluciones()`, y el plan lo tenía anotado como olvido desde
+T3.3. Añadir la llamada devolvió **«0 de 0 celdas contrastadas»**: un verde sobre una tabla vacía,
+que es la forma más silenciosa de no comprobar nada. La causa es que aquel capítulo guarda sus
+ejercicios como una **lista** bajo `ejercicios`, y los demás como claves `e1`…`e5`. El núcleo acepta
+ahora las dos formas, y **24 celdas del capítulo 3 que nadie miraba entran a contrastarse**. El
+capítulo no se ha tocado: sigue byte a byte como estaba, y lo que cambia es cuánto se le mira.
+
+#### A.24.5 · Siete cifras del capítulo 5 estaban por debajo de la regla de los cinco decimales
+
+El arnés inyectó perturbaciones de un dígito sobre `5.30`, `17.5`, `1.58`, `0.13`, `59`, `268` y
+`5.15`, y **el auditor no se enteró de ninguna**: con tan pocos decimales el índice de comparaciones
+absorbe el cambio. No era un defecto del auditor sino de lo que el capítulo publicaba — la regla de
+T0.5 dice que **toda cifra de la que el texto argumenta va con cinco decimales**, y estas siete se
+habían quedado cortas. Subidas, las siete inyecciones pasan a cazarse.
+
+Es el mejor resultado que puede dar un arnés: no encontró un fallo en lo que prueba, encontró que
+**lo que se le daba a probar no era comprobable**.
+
+#### A.24.6 · Y tres del capítulo, que sí eran suyos
+
+**La prosa citaba de memoria la salida de sus propios bloques de Python.** Tres cifras —`24.79`,
+`1.7e-10` y `224.07`— estaban escritas a mano en el texto para comentar la columna de Python. Son
+ciertas y `verifica_bloques.py` las ejecuta, pero **no salen de ningún JSON**, así que si el bloque
+cambiara la prosa mentiría en silencio. Ahora el texto remite al bloque en vez de transcribirlo.
+
+**Y faltaba la tabla de respaldo del deslizador**, que es el A.20.2 del capítulo 4 en este capítulo:
+siete superficies, y de sus siete máximos la prosa solo publicaba el primero y el último. Los cinco
+de en medio vivían únicamente dentro del simulador. Para quien no ve el lienzo, esa tabla ES el
+módulo 2.
+
+#### A.24.7 · Y dos que solo aparecen leyendo, que es lo que dice el §9.1
+
+Ninguna herramienta los ve, y hubo que leer los doce módulos como los lee un estudiante:
+
+1. **El módulo 2 terminaba en el pie de una figura.** El simulador y el mapa se comían el final y
+   el lector pasaba al módulo siguiente sin que nadie cerrara la tesis. Es el tercer defecto del
+   capítulo 4 repitiéndose: **el párrafo de salida es el que se olvida.** El módulo 9 tenía el mismo
+   defecto en otra forma —su simulador desembocaba directamente en un `<h3>`—.
+2. **Cuatro tropiezos de redacción**: una frase del JSON y otra mía diciendo lo mismo seguidas
+   («no población sana. No es población sana»), una afirmación falsa sobre lo que separaba a las dos
+   columnas de un bloque, un `<code>` que partía una frase en dos porque la cadena del JSON traía su
+   propia coma, y un `bw.relrisk` que se leía como si fuera uno de los cuatro selectores.

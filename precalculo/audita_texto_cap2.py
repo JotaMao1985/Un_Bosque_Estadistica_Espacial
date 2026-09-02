@@ -185,6 +185,7 @@ def main() -> int:
     a.afirmaciones(AFIRMACIONES)
     a.accesibilidad()
     a.geomapas()
+    a.formulas_escapadas()
     a.codificacion()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)
