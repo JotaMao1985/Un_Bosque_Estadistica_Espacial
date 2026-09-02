@@ -598,13 +598,13 @@ def main() -> int:  # noqa: C901
         "caida_color": ((dn - dd) / dn * 100, {
             "lo_que_queda": dd / dn * 100,
             "diferencia": dn - dd,
-            "base_deuteranopia": (dn - dd) / dd * 100}),
+            "base_suma": (dn - dd) / (dn + dd) * 100}),
         "efecto_escala": ((rd - ri) / ri * 100, {
             "base_departamento": (rd - ri) / rd * 100,
             "razon": rd / ri * 100,
-            "con_municipio": (rmun - ri) / ri * 100}),
+            "base_municipio": (rd - rmun) / rmun * 100}),
         "convenio_intervalo": (None, {
-            "ninguno": 0.0,
+            "primera_clase_python": float(N3["primera_clase_python"]),
             "primera_clase_r": float(N3["primera_clase_r"]),
             "todos_los_empates": v("c3m3_empatados")}),
     }

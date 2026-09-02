@@ -86,6 +86,12 @@ Siguiente: **P2.4** (los seis ejercicios guiados), que es lo que queda de la fas
 (`Bosque 2026/Estadistica espacial/`) y pedir que lea **este archivo** antes de tocar nada. Todo lo
 que sigue está pensado para que no haga falta reconstruir nada de memoria.
 
+> **Actualización del 2026-08-31 — lee el §13 antes que el §0.1.** El preparcial pasó una
+> **segunda auditoría de contenido**, esta vez entrando por el banco de Brightspace que sale de
+> él, y **se tocaron 19 de las 36 preguntas**. El §0.1 de abajo sigue describiendo el estado del
+> 26 de agosto y es correcto salvo en eso. Lo nuevo, incluido lo que quedó sin arreglar y por
+> qué, está en el **§13**.
+
 ### 0.1 · Estado al 2026-08-26, por la tarde
 
 **El parcial es el martes 1 de septiembre de 2026.** Este estado se escribió el **miércoles 26**,
@@ -1134,3 +1140,287 @@ le deja una veintena de casos de prueba reales. Lo que **no** puede: si lo que u
 *dice* es verdad, si un enunciado pide lo que su clave contesta, si una retro explica o solo asegura,
 si un `aria-label` alcanza, y si las dos pestañas enseñan lo mismo. Por eso el §9 no suelta P3.0
 aunque apriete la fecha, y por eso **P2.4 nace pasando por este protocolo**.
+
+---
+
+## 13. La segunda auditoría de contenido, entrando por el banco del LMS (2026-08-31)
+
+### 13.1 · Por qué existe, y en qué se distingue de P3.0
+
+P3.0 auditó el documento leyéndolo. Ésta lo auditó **desde el banco de Brightspace que sale de
+él** —`exporta_brightspace.py` lee el HTML publicado, así que el banco es el documento visto por
+otra puerta—, y encontró **una clase de defecto que P3.0 no podía ver**: la que solo aparece
+cuando se le quita al lector todo lo demás y se le deja únicamente el enunciado, la pista y las
+cuatro opciones.
+
+**El punto de partida era engañoso.** Los tres auditores mecánicos estaban en verde antes de
+empezar: `audita_paquete.py` 429/429, `audita_brightspace.py` 173/173, la sonda 51/51, y
+`audita_preparcial1.py` 145/145. **Ninguno se puso rojo en ningún momento de esta auditoría**, ni
+antes ni después de los dieciséis arreglos. Es §12.7 otra vez, en su forma más pura: los defectos
+de contenido pasan las comprobaciones sin despeinarse, porque las comprobaciones miran otra cosa.
+
+### 13.2 · El método: tres superficies y ocho miradas que no se solapan
+
+Lo primero fue **partir el banco en tres superficies**, con un extractor que lee el ZIP con un
+analizador de XML y no con el código que lo escribió:
+
+| Superficie | Qué lleva |
+|---|---|
+| **completa** | 36 ítems · 144 opciones · clave, puntaje y las 144 retros |
+| **ciega** | lo que ve el estudiante: enunciado, pista y opciones. **Sin clave ni retro** |
+| **clave aparte** | la respuesta, en las letras de la superficie ciega |
+
+La superficie ciega lleva **las opciones repermutadas por un hash del identificador**, y eso no es
+cosmético: si conservara el orden del XML, quien la contestara podría acertar por la posición y no
+por la opción, y la medida no mediría nada.
+
+Sobre esas superficies, **ocho agentes con una vía cada uno**, diseñados sobre el §12.7: no ocho
+revisores del mismo texto, sino ocho miradas que no se solapan.
+
+| Agente | Qué caza | Entrada |
+|---|---|---|
+| CIEGO-SUPERFICIE | que la clave se adivine por la forma | solo la ciega |
+| CIEGO-EXPERTO | ítems ambiguos, con dos defendibles, o que no exigen el curso | solo la ciega |
+| CLAVE-CAP1 / 2 / 3 | que la correcta sea cierta **sobre estos datos** | completa + capítulo |
+| RETROS | la razón falsa que sostiene un veredicto correcto | completa + capítulos |
+| DISTRACTORES | distractores descartables de un vistazo | completa |
+| GRÁFICOS | figura ilegible o `alt` insuficiente | los 6 PNG + completa |
+
+Los dos agentes ciegos **escribieron sus respuestas en un archivo antes de abrir la clave**, y ese
+archivo se corrigió después de forma independiente. Sin ese paso el resultado no sería una medida,
+sería una opinión.
+
+### 13.3 · La medida que lo cambió todo: 33 de 36 a ciegas
+
+Un agente al que se le **prohibió razonar sobre estadística espacial** —solo heurísticas de forma:
+la más larga, la más matizada, descartar absolutos, el eco del enunciado— contestó:
+
+| | Aciertos | Azar |
+|---|---|---|
+| Opción única | 26 / 29 | 7,2 |
+| Multi-select | **7 / 7** | 1,2 |
+| **Total** | **33 / 36 (92 %)** | ~23 % |
+
+Los **29 ítems que marcó con confianza ALTA salieron los 29 correctos**, y falló exactamente los
+tres donde ninguna heurística disparó.
+
+Y el otro agente ciego —un estadístico espacial competente que no ha tomado este curso— contestó
+**36 de 36**. Las dos cifras dicen cosas distintas y las dos importan:
+
+- **La clave está sana.** Ni una clave equivocada, ni un multi-select cuyo cardinal contradiga su
+  pista, ni una base de porcentaje desalineada en las siete numéricas. El defecto que más caro
+  cuesta —calificar mal— no estaba.
+- **El banco no discrimina.** Separa a quien sabe estadística espacial de quien no; no separa a
+  quien estudió *este material* de quien no lo estudió.
+
+**La causa medida, y es una sola:** la clave es la opción **más larga en 20 de los 29** ítems de
+opción única, cuando el azar esperaría 7,2. Mide **77 caracteres de media contra 47** de sus
+distractores. Tiene una explicación honesta —la correcta es la matizada, y matizar cuesta
+palabras— y un arreglo que no es acortar la clave sino **alargar los distractores hasta que
+compitan**.
+
+### 13.4 · Los diecinueve arreglos
+
+Todos verificados uno a uno contra `cap{1,2,3}_datos.json`, contra `genera_cap2.R` y contra la
+prosa del capítulo publicado **antes** de tocar nada. Dos de los que los agentes calificaron de
+duda resultaron bloqueantes al comprobarlos, y uno que parecía menor resultó ser el peor del banco.
+
+**Los que decían algo falso** (5)
+
+| Ítem | Qué decía | Qué dice la fuente |
+|---|---|---|
+| **B07** | la clave: «el shapefile **trunca** los nombres de campo a diez caracteres» | «**No los trunca: los desfigura**» — quedan en siete: `dprtmnt`, `d__2024`. `truncado_simple = false` |
+| **A05** | «los municipios **tienen una correlación media** de 0.01462» | ese es el ρ *implícito*; «**No es una estimación de nada: es una retro-transformación**». La correlación media es 0.00212, y con ella el n<sub>eff</sub> es 331.73877 |
+| **B03** | «las **dos** proyecciones que conservan los ángulos» | `proyecciones.tabla.conforme = [T,F,F,F,F,F]`. Web Mercator es «ni conforme ni equivalente» |
+| **B10** | «el mismo buffer **bien hecho** mide 3.09838 km²» | esa es `m3857_area_real_km2`, el buffer *mal* hecho. El bueno es 3.14016 = π |
+| **D04** | la retro: «el factor fijo llega a **8882.57 m**» | esa cifra es `d_real - d_e_esf`, esfera contra elipsoide. El factor fijo se pasa un 2.50648 % |
+
+B07 es el que más caro salía: **calificaba mal a quien había estudiado el módulo 7**, que existe
+justamente para desmontar esa creencia repetida de memoria.
+
+**Los que pedían una cosa y contestaban otra** (2)
+
+- **B04** daba cifras continentales y preguntaba por «todo el país», donde el criterio del peor caso
+  —el que la clave invoca— **lo gana 3116**, no 9377. Es el remate del módulo 4, la caja «El
+  archipiélago da la vuelta a la recomendación». Ahora el enunciado dice «el país continental» y la
+  retro cuenta el giro.
+- **B05** llamaba «m» a 4 890 692, que es la diferencia entre coordenadas en metros y en grados. El
+  capítulo la imprime **sin unidad a propósito**. Ahora dice «unidades, porque los pasa de metros a
+  grados», y `PRESENTA` ya no le pone metros.
+
+**Los distractores que eran verdaderos** (2, los dos con la retro concediéndolo)
+
+- **C07** · «los símbolos proporcionales resuelven el problema, porque el **área** del círculo es
+  proporcional al valor» — cierto por partida doble, en un ítem que dice «marca **todo** lo cierto».
+  Ahora dice «el **radio**», que es «el error clásico» que el propio capítulo nombra.
+- **C06** · «el mapa sale más bonito que con la función de dibujo de `sf`», con retro que abría «es
+  verdad». Y el capítulo **no compara `tmap` con `plot.sf()` en ningún punto**: la concesión no la
+  sostenía nada. Ahora el distractor es el aviso con el que abre el módulo, que la 4 cambió la API
+  respecto de la 3.
+
+**Las siete pistas de los ítems numéricos** (A05, A10, B02, B11, C03, C05, D05)
+
+Un solo defecto repetido siete veces, y el segundo en tamaño después del de la longitud: **la pista
+nombraba la operación exacta**, y como los tres distractores de cada ítem encarnan «la operación
+equivocada», la pista los refutaba uno a uno antes de que el estudiante calculara. `B11` decía
+literalmente «Divide los pares de antes entre los de después» y mataba los tres.
+
+El principio del arreglo: **la pista dice qué hay que decidir, no cómo decidirlo.** «Cuántas veces
+menos trabajo compara los dos recuentos, y hay dos cosas que decidir antes de dividir: cuál va
+arriba, y si lo que cuenta son los pares que quedan o los que el filtro ahorra.»
+
+`C03` pedía además **cerrar su enunciado**: su pista resolvía por decreto una ambigüedad real
+—«cambia de sitio» podía leerse sobre los cinco cortes—, así que quitarla sin más habría dejado el
+ítem ambiguo. Ahora pregunta «cuántos condados **entran en la primera clase**», que es lo que
+`movidos_primera` calcula.
+
+**Medido después, con un agente ciego al que solo se le dio enunciado + pista + opciones: los
+distractores en pie pasan de 0 o 1 por ítem a 15 de 21.** Ese mismo agente encontró **tres pistas
+mías que seguían delatando por la misma razón que estaba arreglando** —en A05 había reproducido casi
+literalmente la retro del distractor 3.46— y sus tres redacciones son las que quedaron.
+
+**Los tres distractores muertos** (C03, C05, D05)
+
+No los mataba la pista: se descartaban solos.
+
+| Ítem | Muerto | Por qué | Nuevo | Error que encarna |
+|---|---|---|---|---|
+| C03 | `0` | imposible en cuanto el enunciado da 13 y 24 | **24** | el tamaño de la primera clase en Python, que no es cuántos entran en ella |
+| C05 | `1691.10687` | una caída del 1 691 %, y el máximo es 100 | **89.42418** | normalizar por la **suma** de las dos distancias |
+| D05 | `-16.37432` | negativo, y el enunciado dice «sube» | **68.99440** | medir la subida desde la correlación **municipal** |
+
+El de D05 es el más instructivo de los tres: el viejo quería castigar el uso de la correlación
+municipal y no podía, porque salía negativo. El nuevo usa esa misma cifra —0.30333, la sorpresa del
+módulo 8— como **base** en vez de como destino, y así el error queda vivo y con signo positivo.
+
+**Y uno que no era del capítulo 2 pero era el mismo defecto:** la retro de `A09` decía «el truncado
+de nombres de campo… del módulo 7 del capítulo 2» y remitía al estudiante al módulo que lo desmiente.
+
+**Los cinco `alt`: cuatro que eran la clave parafraseada y uno que dejaba fuera a quien no ve** (A04, B03, C08, D02 y D04)
+
+Un agente contestó los seis ítems de gráfico **sin ver una sola imagen**, solo con el `alt`. El
+atributo viaja en el `<img>` que Brightspace publica, así que lo lee cualquiera que abra el
+inspector —y es lo único que recibe quien usa lector de pantalla—.
+
+El principio: **el `alt` describe los datos y deja la lectura por hacer.** `g_grado` ya lo hacía y
+fue el modelo. Los cuatro nuevos citan la serie del gráfico en vez de resumirla:
+
+| `alt` | Antes | Ahora |
+|---|---|---|
+| `g_cobertura` | «Curva **descendente** … conforme aumenta la dependencia» = la clave | los siete φ y sus siete coberturas, y la línea del 95 % |
+| `g_proyecciones` | «las **dos conformes** —Mercator y Web Mercator—», que la tabla desmiente | las seis proyecciones con su razón de área, y el aviso de que solo tres barras se ven |
+| `g_escala` | «por encima con pocas zonas y por debajo con muchas» = la clave, y describía una **monotonía que no hay** | las nueve escalas y sus nueve correlaciones, la cima, y la línea del valor individual |
+| `g_variograma` | «**banda** … que se ensancha conforme crece el retardo» = la clave, y no hay banda | teórico, media y los dos percentiles en el primer retardo y en el último |
+
+**Y una cifra nueva que hubo que calcular en R para poder escribirlos.** El `alt` de `g_escala`
+tiene que decir dónde hace cima la curva y entre qué dos escalas cruza la línea del valor
+individual, y eso son cifras: decidirlas en el ensamblador con un `which.max` de Python sería
+**parirlas fuera de R**, que es lo que D10 prohíbe. Van en un subobjeto `forma` del gráfico, con dos
+guardas que paran el precálculo si la curva dejara de tener cima interior o dejara de cruzar. Y el
+subobjeto está exceptuado por nombre en la guarda de largos iguales, que si no lo tomaría por una
+serie corta.
+
+**Verificado igual que las pistas**, con un agente al que solo se le dio enunciado, pista y `alt`,
+y que tenía que decir **cuántos pasos de razonamiento** le costaba contestar. Antes: cuatro ítems en
+cero pasos. Después: **los seis en uno o más**. Ese agente encontró además que `g_escala` seguía
+regalando media clave —«la curva pasa por debajo entre las 400 y las 700 zonas»— y que el aviso de
+escala de `g_proyecciones` clasificaba a Robinson como «baja» cuando es invisible como las otras
+dos. Las dos correcciones están puestas: **el cruce salió del `alt` y entró en la retro del
+acierto**, que es donde enseña en vez de filtrar.
+
+**Y el quinto, que era el modelo.** `g_grado` describía la forma sin una sola magnitud, y ese mismo
+verificador encontró que su austeridad tenía un coste que solo paga quien no ve la figura: **no
+podía refutar el distractor «el error importa poco, porque la curva es suave»**, porque no sabía si
+la caída era del 5 % o del 80 %. El vidente lo descarta mirando el eje. Ahora dice los dos extremos
+—111 319 m en el ecuador y 19 393 m a 80°—, sigue siendo el más corto de los seis, y **afirma que la
+curva baja en todo el recorrido con una guarda detrás** que para el precálculo si dejara de hacerlo.
+Que un `alt` sea corto no lo hace bueno: lo hace bueno que quien solo lo oye pueda contestar y
+descartar lo mismo que quien mira.
+
+**Las tres guardas nuevas se vieron fallar**, inyectando el defecto que cada una vigila: la cima en
+un extremo, la curva que no cruza, y la serie que deja de bajar. La segunda inyección enseñó además
+algo que no se buscaba: **se puso después del `which.max`, así que la guarda no disparó, el guion
+corrió entero y escribió el JSON con un 99 dentro**. Lo cazó `audita_preparcial1.py` a la primera
+—«el HTML lleva ESTE precálculo, no uno anterior»—, que es exactamente la familia 2 haciendo su
+trabajo sobre una contaminación real y no simulada.
+
+### 13.5 · Las vías nuevas, que es lo reutilizable
+
+El §12.7 lista seis vías, y el §8 de P3.3 añadió la séptima. Esta auditoría añade **cuatro más**, y
+las tres primeras son mecanizables:
+
+| Vía | Qué caza | El caso |
+|---|---|---|
+| **Contestar solo por la forma** | que la clave se adivine sin saber el tema | 33 de 36 con «la más larga» y «la más matizada» |
+| **Contestar como experto sin el curso** | ítems que no exigen el material, y claves ambiguas | 36 de 36 · la caja «fallé y al ver la clave la entiendo» salió **vacía** |
+| **Preguntar si la pista mata al distractor** | pistas que nombran la operación en vez del concepto | las siete numéricas, `B11` mataba los tres |
+| **Leer el distractor buscando si es verdad** | opciones ciertas en un ítem que pide «marca todo lo cierto» | C07 y C06, las dos con la retro concediéndolo |
+
+**Tres guardas que este arnés podría tener y no tiene**, y las tres son baratas:
+
+1. **`len(clave) − max(len(distractores)) > 20`** en un ítem de opción única. Habría cazado los
+   veinte de golpe.
+2. **La pista no contiene ningún verbo de operación** —divide, resta, multiplica, toma como base—
+   cuando el ítem es numérico.
+3. **Ningún distractor numérico cae fuera del rango posible de su magnitud**: un tamaño efectivo
+   mayor que *n*, una caída de más del 100 %, un porcentaje negativo donde el enunciado dice «sube».
+   Los tres casos de §13.4 los caza una sola regla escrita por magnitud.
+
+**Y la lección de método, que vale más que las tres guardas:** cinco de los defectos de esta
+auditoría son la misma familia —**el nombre de una cifra no es lo que la cifra mide**—, la misma que
+§12.7 ya había nombrado con `m2.r_conteo_tasa`. La comprobación que los cazó todos no fue leer el
+JSON: fue **abrir el `.R` y mirar cómo se calcula la cifra antes de aceptar cómo el enunciado la
+nombra**. Cuando se le dijo eso a los agentes en el encargo, la productividad se multiplicó.
+
+### 13.6 · Lo que queda, y por qué no se hizo
+
+Nada de esto está arreglado. Se deja escrito porque **el banco no está limpio** y la próxima sesión
+tiene que saberlo:
+
+1. **La clave es la más larga en 20 de 29.** Es el defecto que explica el 33/36, y no se arregla en
+   un sitio: es redacción, ítem por ítem, alargando los distractores. Es la tarea grande.
+2. **`g_proyecciones.png` dibuja tres de sus seis barras con altura cero píxeles**, porque el eje
+   llega a 301,16 por la azimutal. El `alt` ya lo avisa —así que quien no ve la figura recibe *más*
+   información que quien la ve—, pero **la figura sigue sin arreglarse**: pide escala logarítmica, o
+   rotular cada barra con su valor. De paso, «Robinson» y «Azimutal equidistante (Bogotá)» se
+   solapan en el eje.
+3. **`g_variograma.png` dibuja los percentiles 5 y 95 con el mismo color y el mismo grosor**, así
+   que las dos entradas de la leyenda son indistinguibles; solo las separa la posición vertical. Y
+   el enunciado y la pista siguen llamándolos «la banda» cuando no hay relleno entre las dos líneas:
+   o se rellena, o el enunciado deja de llamarla banda.
+4. **«Da dos decimales» en 5 ítems** cuyas opciones traen cinco. Es un resto del formato numérico:
+   al convertirse en opción múltiple, el campo de entrada desapareció y la instrucción quedó
+   huérfana.
+5. **`C05` dice «el rojo y el verde de una paleta»** y `m5.rojo_verde` es un par construido a
+   propósito a la misma luminosidad, con colores que no pertenecen a ninguna de las siete paletas.
+   Quien vaya a comprobar la cifra en la tabla del módulo 5 no la encontrará.
+6. **`B10` hereda una cifra dudosa de aguas arriba:** el «buffer de radio 1 000 sobre grados» se
+   construye en `genera_cap2.R:907` con `st_buffer(..., 0.01)` y s2 activo, así que ese 0.01 se
+   interpreta como metros. El ítem es fiel al capítulo; el defecto, si lo es, está en el generador
+   del capítulo 2 y arreglarlo regenera `cap2_datos.json`, el capítulo y el preparcial.
+
+### 13.7 · La cadena, medida el 2026-08-31
+
+| Comprobación | Antes | Después |
+|---|---|---|
+| `audita_preparcial1.py` | 145/145 | **145/145** · 0 fallos, 0 saltadas |
+| `prueba_auditor_preparcial1.py` | 106 · 128/128 tipos | **106 · 128/128** |
+| `audita_paquete.py` · banco | 429/429 | **431/431** |
+| `audita_paquete.py` · sonda | 51/51 | **53/53** |
+| `audita_brightspace.py` | 173/173 | **173/173** |
+| `verifica_bloques.py --todos` | 594/594 | **594/594** |
+| `sin_aritmetica.py` · `campos_vivos.py` | limpio | limpio |
+| `prueba_alcance_preparcial1.py` | 8/8 | **8/8** |
+| cifras reutilizadas | 126 | **130** |
+
+Las cuatro cifras nuevas son `topo_buffer_9377`, `neff_rho_estimado`, `neff_con_estimado` y
+`c3m7_radio_simbolos`. **Ninguna se escribió a mano**, y cada distractor sustituido se movió en sus
+**tres** sitios a la vez: la definición en `genera_preparcial1.R`, la `retroFallo` del ensamblador,
+y el recálculo independiente de `audita_preparcial1.py` —que es el que comprueba que la explicación
+corresponda al valor, y el que habría fallado si me hubiera dejado uno—.
+
+**Consecuencia que hay que recordar:** esto tocó el documento publicado.
+`preparcial-corte-1.html` pasa de **393 979 a 398 985 bytes** —el ensamblador imprime «381 KB» y
+«386 KB» porque mide **caracteres**, no bytes; las dos cifras son correctas y miden cosas
+distintas, como ya avisaba P3.3—. El banco se reexportó y quedó en `parcial/brightspace/`, que sigue fuera de
+git. **Nada de esto está comiteado**, y el parcial es el 1 de septiembre.
