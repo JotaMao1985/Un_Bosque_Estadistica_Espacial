@@ -317,7 +317,9 @@ message("E. modulo 5 - umbral de distancia")
 curva_umbral <- function(cent, umbrales, n) {
   lapply(umbrales, function(u) {
     nb <- suppressWarnings(dnearneigh(cent, 0, u))
-    c(list(umbral = r4(u)), resumen_nb(nb, n))
+    # `umbral_km` va aquí y no se calcula en la prosa: dividir entre mil en
+    # el ensamblador es aritmética en el texto, que es lo que D10 prohíbe.
+    c(list(umbral = r4(u), umbral_km = r4(u / 1000)), resumen_nb(nb, n))
   })
 }
 u_col <- seq(d1_col * 0.4, d1_col * 1.6, length.out = 7)
@@ -328,6 +330,14 @@ D$m5 <- list(
                   # El bloque de código del capítulo usa `d1 / 2`, que no es
                   # ninguno de los siete puntos de la curva. Su cifra se publica
                   # aquí para que el `#>` salga del JSON y no de una regla de tres.
+                  # LA MITAD, entera: la prosa dice «con la mitad de lo que
+                  # hace falta» y el bloque de código usa `d1 / 2`. Publicar
+                  # solo las islas obligaba a la prosa a citar otro punto de
+                  # la curva —el de 0,6·d1— para dar los subgrafos, así que
+                  # el texto y el código hablaban de umbrales distintos con
+                  # la misma palabra.
+                  la_mitad = resumen_nb(suppressWarnings(
+                    dnearneigh(col_cent, 0, d1_col / 2)), nrow(col)),
                   islas_en_la_mitad = sum(card(suppressWarnings(
                     dnearneigh(col_cent, 0, d1_col / 2))) == 0),
                   curva = curva_umbral(col_cent, u_col, nrow(col))),

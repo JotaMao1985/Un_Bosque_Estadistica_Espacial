@@ -274,7 +274,9 @@ en 0 fallos y el arnés en 191/191.
 | **La revisión del capítulo 5** (2026-09-02) | ✅ hecha. 8 hallazgos, los tres arreglados y dos gemelos más; el barajado de los cinco capítulos y **A.23.2 saldada** |
 | Las **tres decisiones** de la Fase 4 | ✅ tomadas el 2026-09-03 sobre el cronómetro del **A.25** |
 | **T4.1** · `genera_cap6.R` | ✅ hecha. **6 anclas**, reproducible byte a byte, dos tableros y 2 salidas |
-| **T4.1b** · auditor y arnés | ✅ hecha. **218/0/2** y **86 inyecciones, 86 cazadas, 76 de 76 tipos** |
+| **T4.1b** · auditor y arnés | ✅ hecha. **218/0/2** y **88 inyecciones, 88 cazadas, 76 de 76 tipos** |
+| **T4.2** · `ensambla_cap6.py` | ✅ hecha. **12 módulos**, 6 simuladores, 2 mapas, 13 preguntas, 5 ejercicios y **108/108 cifras verificadas ejecutando el código** |
+| **T4.3** · verificación y cierre | ✅ hecha. `audita_texto_cap6.py` **128/0**, **27 inyecciones y 27 cazadas**, arnés entero **218/218**, los doce módulos leídos y la portada al día |
 
 **Lo publicado:** `Htmls_Espacial/capitulo-5-intensidad-nucleos.html`, **755 KB**, 12 módulos, 11
 simuladores, 6 mapas, 12+12 bloques R/Python, 12 preguntas en dos autoevaluaciones y 5 ejercicios
@@ -287,8 +289,12 @@ No queda ningún rojo en el repositorio.
 
 ```
 precalculo/rscript.sh precalculo/genera_cap6.R          # 6 anclas · cachea poly2nb (42 s)
+precalculo/rscript.sh precalculo/genera_soluciones.R 6  # los 5 ejercicios
 <geo_env>/python precalculo/audita_cap6.py             # 218/0/2 · 2 s con su cache, 9 sin ella
-python3 precalculo/prueba_auditor_cap6.py              # 86/86 · 76/76 tipos · ~2 min
+python3 precalculo/prueba_auditor_cap6.py              # 88/88 · 76/76 tipos · ~2 min
+python3 precalculo/ensambla_cap6.py                    # 12/12 módulos, devuelve 0
+python3 precalculo/verifica_bloques.py --html Htmls_Espacial/capitulo-6-pesos-espaciales.html
+<geo_env>/python precalculo/audita_texto_cap6.py       # 128/0
 
 precalculo/rscript.sh precalculo/genera_cap5.R          # 18 anclas · usa la cache
 precalculo/rscript.sh precalculo/genera_soluciones.R 5  # los 5 ejercicios
@@ -309,10 +315,16 @@ cinco auditores de prosa en 0 fallos; `campos_vivos` y `sin_aritmetica` en verde
 
 ### 0.5 · Qué hacer a continuación, y en qué orden
 
-**La Fase 3 está cerrada, y la Fase 4 va por la mitad de su primera tarea.** ✅ **T4.1 y T4.1b
-hechas el 2026-09-03**: el precálculo del capítulo 6 con sus 6 anclas, `audita_cap6.py` en
-**218/0/2** y su arnés en **86/86 con 76 de 76 tipos**. Lo que sigue es **T4.2**, el ensamblado, y
-después **T4.3**, la verificación y el cierre.
+**La Fase 3 está cerrada y el CAPÍTULO 6 TAMBIÉN (T4.1 → T4.3, todas el 2026-09-03).**
+`Htmls_Espacial/capitulo-6-pesos-espaciales.html`, **580 KB**: 12 módulos, 6 simuladores, 2 mapas,
+**13 preguntas y 5 ejercicios**, 6 anclas, reproducible byte a byte, y **11 pares de bloques
+R/Python con 108 de 108 cifras verificadas ejecutando el código**. Auditorías: `audita_cap6.py`
+**218/0/2** con arnés **88/88 y 76 de 76 tipos**; `audita_texto_cap6.py` **128/0** con **27
+inyecciones, 27 cazadas**, y el arnés de prosa entero en **218/218** sobre los siete sujetos.
+Verificado en el navegador: consola limpia en los doce módulos, 8 lienzos con tinta y con
+`aria-label`, y sin desbordamiento a 1 280, 375 ni **318 px**.
+
+Lo que sigue es **T4.4–T4.6: el capítulo 7**, autocorrelación espacial global y local.
 
 **El auditor de este capítulo recalcula con `libpysal`, no con `spdep`**, y eso lo hace el más
 independiente que ha tenido ningún capítulo: dos bibliotecas ajenas contestando la misma pregunta.
@@ -3927,3 +3939,47 @@ la cache guarda lo que ESTE auditor calculó —no lo que R publicó, así que l
 toca— y **la llave es el tamaño y la fecha del `.gpkg`**, de modo que si el dato cambia la cache se
 descarta sola. Una cache que sobrevive a su fuente es un auditor que aprueba lo que ya no mira.
 De 9 s a 2, y el arnés de diez minutos a dos.
+
+---
+
+### A.27 · Lo que destapó el cierre del capítulo 6 (T4.2 y T4.3, 2026-09-03)
+
+Cinco hallazgos, y los tres primeros **no se ven mirando la página**: se ven midiendo, ejecutando y
+contando.
+
+#### A.27.1 · Los seis gráficos no pintaban, y la consola estaba limpia
+
+Cada simulador creaba su `Chart` con sus datos y sus ejes, `Chart.getChart(cv)` devolvía la
+instancia, el lienzo medía 1472 × 468 y **tenía cero píxeles**. Faltaba `animation: false`, que la
+casa lleva desde el capítulo 5: con la animación puesta, el primer trazo se aplaza a un fotograma
+que en este montaje —el módulo se clona de una plantilla y se inserta— no llega nunca. Se encontró
+midiendo la tinta del lienzo, que es la comprobación que el capítulo 5 estrenó en su A.23.1.
+
+#### A.27.2 · Un `#>` que mataba la sesión de R entera
+
+El bloque del módulo 11 llamaba a `nb2listw(reina, "W")`. El segundo argumento posicional de
+`nb2listw` **no es `style`: es `glist`**. R falla con «glist wrong length» y se lleva por delante
+todos los bloques posteriores, así que `verifica_bloques.py` daba 44 de 96 y la causa estaba a
+sesenta líneas de donde se leía el rojo.
+
+#### A.27.3 · Los bloques de Python no imprimían nada
+
+Se escribieron con expresiones sueltas, como en un REPL. `verifica_bloques.py` los ejecuta **como
+guion**, así que ninguna de sus cifras salía. Reescritos con `print()` y encadenados de verdad
+—cada bloque construye sobre lo que definió el anterior—: **108 de 108 cifras, 0 discrepancias**.
+
+#### A.27.4 · «La mitad» decía dos cosas distintas
+
+La prosa del módulo 5 decía «con la mitad de lo que hace falta, 17 de los 49 barrios se quedan sin
+vecinos» y el bloque de código de al lado usaba `d1 / 2`, que deja **28**. La prosa citaba el punto
+de 0,6·d1 de la curva porque era el único con subgrafos publicados. Ahora el precálculo publica el
+resumen entero de la mitad, y el texto y el código hablan del mismo umbral.
+
+#### A.27.5 · Y una limitación del auditor de prosa, medida y declarada
+
+`cifras()` comprueba que toda cifra del texto exista en el JSON. En este capítulo **los enteros de
+tres cifras no son auditables por esa vía**: cambiar «18 parejas» por 331 pasa, y por 8887 se caza.
+El índice tiene decenas de miles de entradas y un entero corto cae dentro por azar — es la
+debilidad que `sin_aritmetica.py` documenta, aquí con sujeto y con la frontera medida. Lo que sí
+los protege es `audita_cap6.py`, que los recalcula uno a uno con libpysal. Las inyecciones del
+arnés lo dicen en su nombre en vez de disimularlo con una cifra grotesca.

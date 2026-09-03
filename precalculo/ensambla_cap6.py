@@ -825,8 +825,8 @@ MOD5 = cabecera(
         uniforme</strong>. Un umbral que en una ciudad da tres vecinos, en el campo da cero.</p>
 
       <p>Sobre Columbus se ve entero moviendo el umbral. Con la mitad de lo que hace falta,
-        {firma(ent(m5["columbus"]["curva"][1]["islas"]), " de los 49 barrios")} se quedan sin
-        vecinos y el mapa se parte en {ent(m5["columbus"]["curva"][1]["subgrafos"])} pedazos. Con
+        {firma(ent(m5["columbus"]["la_mitad"]["islas"]), " de los 49 barrios")} se quedan sin
+        vecinos y el mapa se parte en {ent(m5["columbus"]["la_mitad"]["subgrafos"])} pedazos. Con
         el doble, el grado medio sube a {n(m5["columbus"]["curva"][6]["grado"], 4)} y la vecindad
         deja de distinguir nada: casi todo el mundo es vecino de casi todo el mundo.</p>
 
@@ -1104,7 +1104,7 @@ MOD10 = cabecera(
 {tabs("El rezago espacial", R10.format(**_SUB10), PY10.format(**_SUB10))}
       <p>Y una advertencia que el capítulo 7 va a cobrar: esa correlación de
         {n(m10["correlacion"], 4)} <strong>depende de la W que se eligió</strong>. Con la torre, con
-        k = 4 o con un umbral de {n(m5["municipios"]["curva"][0]["umbral"], 0)} metros sale otra, y
+        k = 4 o con un umbral de {ent(m5["municipios"]["curva"][0]["umbral_km"])} km sale otra, y
         ninguna es la verdadera. El índice de Moran hereda entera esa dependencia, y por eso este
         capítulo va antes que aquel.</p>
 """ + CIERRE
@@ -1187,9 +1187,23 @@ MOD12 = cabecera(
         anécdota; encontrarlo en otro mapa es lo que lo convierte en método.</p>
 {EJ}
       <p>Con esto el capítulo cierra sus piezas: qué es un vecino, cuánto pesa cada uno, qué se hace
-        con eso y qué pasa cuando alguien no tiene ninguno. El capítulo 7 hace la única pregunta que
-        falta —<em>¿lo cercano se parece más de lo que cabría esperar por azar?</em>— y su respuesta
-        va a depender, entera, de la W que se haya elegido aquí.</p>
+        con eso y qué pasa cuando alguien no tiene ninguno.</p>
+
+      <div class="tip-box">
+        <h4>Dónde sigue esto</h4>
+        <p style="margin-bottom:0;">El <strong>capítulo 7</strong> hace la única pregunta que falta
+          —<em>¿lo cercano se parece más de lo que cabría esperar por azar?</em>— y su respuesta va a
+          depender, entera, de la W que se haya elegido aquí: el índice de Moran es la correlación
+          entre <em>y</em> y <em>Wy</em>, así que hereda esta decisión completa. Los anteriores son
+          <a href="capitulo-1-datos-espaciales.html">Datos espaciales y la primera ley de la
+          geografía</a>, <a href="capitulo-2-crs-georreferenciacion.html">SIG, sistemas de
+          referencia y georreferenciación</a>,
+          <a href="capitulo-3-cartografia-maup.html">Cartografía estadística y el MAUP</a> —de donde
+          viene el aviso de que la unidad de agregación es una decisión—,
+          <a href="capitulo-4-patrones-puntuales.html">Patrones puntuales</a> y
+          <a href="capitulo-5-intensidad-nucleos.html">Intensidad por núcleos</a>, que son los dos
+          capítulos donde lo aleatorio era la posición y no el valor.</p>
+      </div>
 """ + CIERRE
 
 
@@ -1224,12 +1238,30 @@ def geomapa(ident, clave, extra=""):
             + json.dumps(clave, ensure_ascii=False) + "]" + extra + "\n    };\n")
 
 
+TABLA_W = """, tabla: function () {
+        const cs = D6.m2.criterios;
+        const filas = cs.map(c =>
+          `<tr><th scope="row">${c.etiqueta}</th>`
+          + `<td>${mil6(c.pares)}</td><td>${mil6(c.enlaces)}</td>`
+          + `<td>${n6(c.grado)}</td><td>${mil6(c.islas)}</td>`
+          + `<td>${mil6(c.subgrafos)}</td></tr>`).join('');
+        return `<table><caption>Los diez criterios sobre los mismos `
+          + `${mil6(D6.m2.n)} barrios de Columbus. «Parejas» cuenta {i, j} y `
+          + `«enlaces» cuenta i \u2192 j: en una vecindad asim\u00e9trica no son `
+          + `el doble uno del otro.</caption>`
+          + `<thead><tr><th scope="col">Criterio</th><th scope="col">Parejas</th>`
+          + `<th scope="col">Enlaces</th><th scope="col">Grado medio</th>`
+          + `<th scope="col">Islas</th><th scope="col">Subgrafos</th></tr></thead>`
+          + `<tbody>${filas}</tbody></table>`;
+      }"""
+
+
 GEOMAPAS_JS = (
     "    const MAPAS_CAP6 = " + json.dumps(M, ensure_ascii=False) + ";\n"
     + geomapa("cap6-w", "cap6-w", _etq(
         "Los 49 barrios de Columbus con el grafo del criterio de vecindad elegido: "
         "cada línea une dos unidades que ese criterio considera vecinas, y un punto rojo "
-        "es una unidad que se ha quedado sin ninguna."))
+        "es una unidad que se ha quedado sin ninguna.") + TABLA_W)
     + geomapa("cap6-municipios", "cap6-municipios", _etq(
         "Los 1 122 municipios de Colombia unidos por contigüidad reina: 3 285 parejas, "
         "grado medio 5,86 y dos municipios sin vecinos, San Andrés y Providencia, "
@@ -1315,8 +1347,8 @@ JS_PREAMBULO = r"""
           // `animation: false` NO es una preferencia de estilo: es la
           // diferencia entre que el gráfico se dibuje y que no. Con la
           // animación puesta, Chart.js aplaza el primer trazo a un
-          // fotograma que en este montaje —el módulo se clona de un
-          // <template> y se inserta— no llega a pintar nunca: la
+          // fotograma que en este montaje —el módulo se clona de una
+          // plantilla y se inserta— no llega a pintar nunca: la
           // instancia existe, tiene sus datos y sus ejes, y el lienzo se
           // queda con CERO píxeles. Se vio midiendo la tinta, no mirando.
           responsive: true, maintainAspectRatio: false, animation: false,

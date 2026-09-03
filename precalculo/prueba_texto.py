@@ -103,6 +103,8 @@ SUJETOS = {
              PROYECTO / "Htmls_Espacial", "capitulo-4-patrones-puntuales.html"),
     "cap5": ("audita_texto_cap5.py", "CAP5_HTML",
              PROYECTO / "Htmls_Espacial", "capitulo-5-intensidad-nucleos.html"),
+    "cap6": ("audita_texto_cap6.py", "CAP6_HTML",
+             PROYECTO / "Htmls_Espacial", "capitulo-6-pesos-espaciales.html"),
 }
 
 
@@ -973,9 +975,157 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
     ]
 
 
+def defectos_cap6() -> list[tuple[str, str, str]]:
+    """Los defectos del capítulo 6, construidos DESDE su precálculo.
+
+    Cubre las familias de los anteriores y estrena TRES que solo este
+    capítulo puede probar, las tres alrededor de lo que estrena: un grafo
+    en vez de una superficie.
+
+     32. **una arista del mapa que deja de casar con su módulo.** El mapa
+         del constructor publica diez variantes y cada una lleva su
+         recuento; si el del mapa deja de ser el de la prosa, el
+         estudiante ve un grafo que no es el que la tabla describe. Es la
+         forma que toma aquí la trampa de T1.2: dos copias de la misma
+         cifra que se pueden desincronizar.
+     33. **la tabla de respaldo del constructor, quitada.** Es la única
+         vía al dato de quien no ve el lienzo, y el módulo 2 pide
+         justamente comparar diez criterios entre sí.
+     34. **el `simetrica` de un criterio, invertido en la tabla.** La
+         prosa del módulo 4 se apoya en que k = 3 NO es simétrica; una
+         tabla que diga lo contrario deja al capítulo contradiciéndose
+         consigo mismo sin que nada falle.
+
+    Y DOS INYECCIONES QUE VIVEN EN EL OTRO ARNÉS, no aquí: la variante
+    del mapa que pierde sus aristas y el `simetrica` invertido atacan el
+    JSON del precálculo, que este auditor no lee —lee el TEXTO—. Las dos
+    están en `prueba_auditor_cap6.py`, donde sí tienen sujeto.
+
+    UNA FAMILIA QUE AQUÍ NO SE PUEDE PROBAR, y se dice en voz alta: la
+    cifra inventada DENTRO de una fórmula de KaTeX. **Este capítulo no
+    publica ninguna fórmula**: sus doce módulos explican vecindad, pesos y
+    rezago con tablas y grafos, y la única notación matemática —D⁻¹A— va
+    en texto con superíndices. La rama está ejercitada por los capítulos
+    1 a 5, que sí publican cifras medidas dentro de sus fórmulas.
+    """
+    D = json.loads((SALIDAS / "cap6_datos.json").read_text(encoding="utf-8"))
+    S = json.loads((SALIDAS / "cap6_soluciones.json").read_text(encoding="utf-8"))
+    m1, m2, m3 = D["m1"], D["m2"], D["m3"]
+    m4, m5, m7 = D["m4"], D["m5"], D["m7"]
+    m9, m10, m11 = D["m9"], D["m10"], D["m11"]
+    CR = {c["id"]: c for c in m2["criterios"]}
+
+    def f(x, d=5):
+        return f"{float(x):.{d}f}"
+
+    def perturba(x, d=5):
+        t = f(x, d)
+        return t[:-1] + ("1" if t[-1] != "1" else "2")
+
+    def ent(x):
+        return f"{int(round(float(x))):,}".replace(",", "\u202f")
+
+    return [
+        # --- 2. En el texto corrido -----------------------------------
+        ("la media de CRIME, cambiada en la prosa",
+         f"<strong>{f(m1['columbus']['variables']['crime']['media'], 4)}</strong>",
+         f"<strong>{perturba(m1['columbus']['variables']['crime']['media'], 4)}</strong>"),
+        ("el grado medio de la reina de Columbus, cambiado",
+         f"<strong>{f(m3['reina']['grado'], 4)}</strong>",
+         f"<strong>{perturba(m3['reina']['grado'], 4)}</strong>"),
+        # LOS ENTEROS DE TRES CIFRAS DE ESTE CAPÍTULO NO SON AUDITABLES
+        # POR `cifras()`, y se dice en vez de disimularlo con una
+        # inyección grotesca. Medido: cambiar «18 parejas» por 331 pasa,
+        # y por 8887 se caza. El índice del auditor tiene decenas de
+        # miles de entradas —dos JSON con cinco decimales— y un entero
+        # corto cae dentro por azar. Es la debilidad que `sin_aritmetica`
+        # documenta, aquí con sujeto. Lo que SÍ los protege es
+        # `audita_cap6.py`, que los recalcula uno a uno con libpysal.
+        ("las parejas que solo tiene la reina, cambiadas a una cifra imposible",
+         f"<strong>{ent(m3['solo_reina'])}</strong> parejas",
+         "<strong>8 887</strong> parejas"),
+        ("los pares no recíprocos de k = 3, cambiados a una cifra imposible",
+         f"<strong>{ent(m4['columbus'][2]['asimetricos'])}</strong> pares",
+         "<strong>8 913</strong> pares"),
+        ("el grado tras simetrizar, cambiado",
+         f"<strong>{f(m4['simetrizada_k3']['grado'], 4)}</strong>",
+         f"<strong>{perturba(m4['simetrizada_k3']['grado'], 4)}</strong>"),
+        ("el umbral sin islas de Columbus, cambiado",
+         f"<strong>{f(m2['umbral_sin_islas'], 4)}</strong>",
+         f"<strong>{perturba(m2['umbral_sin_islas'], 4)}</strong>"),
+        ("el umbral municipal en km, cambiado",
+         f"<strong>{f(m5['municipios']['umbral_sin_islas_km'], 1)}</strong> km",
+         f"<strong>{f(float(m5['municipios']['umbral_sin_islas_km']) + 313, 1)}</strong> km"),
+        ("el grado medio en el umbral municipal, cambiado",
+         f"<strong>{f(m5['municipios']['en_el_umbral']['grado'], 1)}</strong>",
+         f"<strong>{perturba(m5['municipios']['en_el_umbral']['grado'], 1)}</strong>"),
+        ("el peso del vecino de la unidad pequeña, cambiado",
+         f"<strong>{f(m7['estilos'][1]['peso_min'], 4)}</strong>",
+         f"<strong>{perturba(m7['estilos'][1]['peso_min'], 4)}</strong>"),
+        ("la correlación entre la deserción y su rezago, cambiada",
+         f"<strong>{f(m10['correlacion'], 4)}</strong>",
+         f"<strong>{perturba(m10['correlacion'], 4)}</strong>"),
+        ("la desviación del rezago, cambiada",
+         f"<strong>{f(m10['wy']['sd'], 4)}</strong>",
+         f"<strong>{perturba(m10['wy']['sd'], 4)}</strong>"),
+        ("las casillas ocupadas de Columbus, cambiadas",
+         f"<strong>{ent(m11['columbus']['no_ceros'])}</strong>",
+         "<strong>8 931</strong>"),
+
+        # --- 3. En una tabla ------------------------------------------
+        ("el grado de la esfera de influencia, cambiado en la tabla",
+         f'<td>{ent(CR["esfera"]["pares"])}</td><td>{f(CR["esfera"]["grado"], 4)}</td>',
+         f'<td>{ent(CR["esfera"]["pares"])}</td><td>{perturba(CR["esfera"]["grado"], 4)}</td>'),
+        ("la suma del estilo S, cambiada en la tabla",
+         f'<td>{f(m7["estilos"][2]["suma_total"], 4)}</td>',
+         f'<td>{perturba(m7["estilos"][2]["suma_total"], 4)}</td>'),
+
+        # --- 4. En una solución de ejercicio --------------------------
+        ("un paso de la solución del ejercicio 1, alterado",
+         f'<td>{S["e1"]["pasos"][0]["valor"]:g}</td>',
+         f'<td>{int(S["e1"]["pasos"][0]["valor"]) + 3}</td>'),
+        ("un paso de la solución del ejercicio 4, alterado",
+         f'<td>{S["e4"]["pasos"][1]["valor"]:g}</td>',
+         f'<td>{perturba(S["e4"]["pasos"][1]["valor"], 10)}</td>'),
+
+        # --- 5. Afirmaciones y temario --------------------------------
+        ("se cae la afirmación de que W la elige quien analiza",
+         "la elige quien analiza", "la trae el dato", True),
+        ("se cae la afirmación de que promediar contrae",
+         "promediar contrae", "promediar no cambia nada", True),
+        ("se cae un tema del temario (zero.policy)",
+         "zero.policy", "cero-politica", True),
+
+        # --- 6. Accesibilidad y marcado -------------------------------
+        ("un lienzo sin aria-label",
+         '<canvas role="img" aria-label="Diez definiciones de vecino sobre los mismos 49 barrios">',
+         '<canvas role="img">'),
+        ("un .geomapa renombrado, que lo deja sin fuente",
+         'data-geomapa="cap6-w"', 'data-geomapa="cap6-w-2"'),
+        ("la tabla de respaldo del constructor, quitada",
+         "tabla: function ()", "tablaFuera: function ()"),
+        ("el desplegable de un ejercicio, descableado",
+         'aria-expanded="false" aria-controls="cap6-e1-sol"',
+         'aria-expanded="false" data-controls="cap6-e1-sol"'),
+        ("el contenedor de la autoevaluación, renombrado",
+         '<div class="quiz" data-quiz="cap6-quiz">',
+         '<div class="cuestionario" data-quiz="cap6-quiz">'),
+
+        # --- 8. Codificación, enlaces y peso --------------------------
+        ("una tilde convertida en bytes crudos",
+         "Contigüidad reina", "Contig<c3><bc>idad reina"),
+        ("un enlace a un hermano, roto",
+         'href="capitulo-4-patrones-puntuales.html"',
+         'href="capitulo-4-patrones-puntualez.html"'),
+        ("el documento desbocado",
+         "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
+    ]
+
+
 DEFECTOS = {"demo": defectos_demo, "cap1": defectos_cap1,
             "cap2": defectos_cap2, "cap3": defectos_cap3,
-            "cap4": defectos_cap4, "cap5": defectos_cap5}
+            "cap4": defectos_cap4, "cap5": defectos_cap5,
+            "cap6": defectos_cap6}
 
 
 def corre(clave: str, ruta_html: pathlib.Path) -> tuple[int, str]:
