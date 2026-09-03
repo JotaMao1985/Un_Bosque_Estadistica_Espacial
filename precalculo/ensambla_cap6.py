@@ -178,19 +178,32 @@ def mapa_html(ident, titulo):
 """
 
 
+# EL SUBTÍTULO ES EL DE LA BARRA LATERAL Y VA EN ESPAÑOL; el inglés es la
+# glosa del `<h2>`. Son dos cosas distintas y la primera versión las
+# confundió: `courseData` acabó con «Areal data» de subtítulo, que es lo
+# único que un estudiante ve en el índice del capítulo.
 TITULOS = (
-    ("El dato de área", "Areal data"),
-    ("Vecindad", "The decision that conditions everything"),
-    ("Contigüidad", "Rook, queen, and higher orders"),
-    ("k vecinos más próximos", "Always k, and symmetry broken"),
-    ("Umbral de distancia", "Islands and uneven density"),
-    ("Vecindades geométricas", "Delaunay, Gabriel, sphere of influence"),
-    ("De vecinos a pesos", "Styles B, W, S, C and U"),
-    ("El flujo de `spdep`", "And sfdep as a tidy interface"),
-    ("Islas y `zero.policy`", "What R does with a unit that has no neighbours"),
-    ("El rezago espacial Wy", "The average of the neighbours"),
-    ("W es un grafo", "Adjacency, message passing and GNNs"),
-    ("Autoevaluación y ejercicios", "Self-assessment and guided exercises"),
+    ("El dato de área", "Qué se observa y qué es aleatorio"),
+    ("Vecindad", "La decisión que condiciona todo lo demás"),
+    ("Contigüidad", "Torre, reina y órdenes superiores"),
+    ("k vecinos más próximos", "Siempre k, y la simetría rota"),
+    ("Umbral de distancia", "Islas y densidad desigual"),
+    ("Vecindades geométricas", "Delaunay, Gabriel y esfera de influencia"),
+    ("De vecinos a pesos", "Los estilos B, W, S, C y U"),
+    ("El flujo de `spdep`", "Y `sfdep` como interfaz tidy"),
+    ("Islas y `zero.policy`", "Qué hace R con quien no tiene vecinos"),
+    ("El rezago espacial Wy", "La media de los vecinos"),
+    ("W es un grafo", "Adyacencia, paso de mensajes y GNN"),
+    ("Autoevaluación y ejercicios", "Trece preguntas y cinco ejercicios"),
+)
+
+INGLES = (
+    "Areal data", "The decision that conditions everything",
+    "Rook, queen and higher orders", "Always k, and symmetry broken",
+    "Distance thresholds and islands", "Geometric neighbourhoods",
+    "From neighbours to weights", "The spdep workflow",
+    "Islands and zero.policy", "The spatial lag", "W is a graph",
+    "Self-assessment and guided exercises",
 )
 
 # =====================================================================
@@ -621,7 +634,7 @@ EJ = "".join(ejercicio(i + 1, e) for i, e in enumerate(EJERCICIOS))
 # LOS MÓDULOS
 # =====================================================================
 MOD1 = cabecera(
-    1, *TITULOS[0],
+    1, TITULOS[0][0], INGLES[0],
     "Entender qué es lo aleatorio cuando el dato viene por unidades ya "
     "dibujadas, y por qué eso cambia la pregunta.") + f"""
       <p>Los dos capítulos anteriores preguntaban <em>dónde</em>. Un patrón puntual es una lista de
@@ -668,7 +681,7 @@ MOD1 = cabecera(
 """ + CIERRE
 
 MOD2 = cabecera(
-    2, *TITULOS[1],
+    2, TITULOS[1][0], INGLES[1],
     "Ver que «vecino» no es un hecho del mapa sino una decisión, y que la "
     "decisión cambia el grafo entero.") + f"""
       <p>Todo lo que viene después —el rezago, el índice de Moran del capítulo 7, los modelos del
@@ -711,7 +724,7 @@ MOD2 = cabecera(
 """ + CIERRE
 
 MOD3 = cabecera(
-    3, *TITULOS[2],
+    3, TITULOS[2][0], INGLES[2],
     "Distinguir torre de reina, ver dónde difieren y entender que la "
     "contigüidad de orden superior no acumula.") + f"""
       <p>La contigüidad es el criterio más antiguo y el más usado: son vecinos los que
@@ -753,7 +766,7 @@ MOD3 = cabecera(
 """ + CIERRE
 
 MOD4 = cabecera(
-    4, *TITULOS[3],
+    4, TITULOS[3][0], INGLES[3],
     "Ver que k vecinos garantiza el grado y rompe la simetría, y qué "
     "consecuencias tiene cada una de las dos cosas.") + f"""
       <p>El criterio siguiente no mira las fronteras: mira las distancias entre centros y se queda
@@ -803,7 +816,7 @@ MOD4 = cabecera(
 
 
 MOD5 = cabecera(
-    5, *TITULOS[4],
+    5, TITULOS[4][0], INGLES[4],
     "Entender que un umbral de distancia reparte vecinos de forma desigual "
     "cuando la densidad lo es, y que quitar islas no conecta el grafo.") + f"""
       <p>El tercer criterio es el más directo de explicar: son vecinos los que están a menos de
@@ -860,7 +873,7 @@ MOD5 = cabecera(
 """ + CIERRE
 
 MOD6 = cabecera(
-    6, *TITULOS[5],
+    6, TITULOS[5][0], INGLES[5],
     "Conocer las vecindades que salen de la geometría del propio patrón, y "
     "ver que están anidadas unas dentro de otras.") + f"""
       <p>Las tres familias anteriores necesitan una decisión humana: qué cuenta como tocarse,
@@ -902,7 +915,7 @@ MOD6 = cabecera(
 """ + CIERRE
 
 MOD7 = cabecera(
-    7, *TITULOS[6],
+    7, TITULOS[6][0], INGLES[6],
     "Pasar de «quiénes son vecinos» a «cuánto pesa cada uno», y ver que el "
     "estilo cambia lo que la fila significa.") + f"""
       <p>Hasta aquí W ha sido un grafo: hay arista o no la hay. Para calcular algo hace falta el
@@ -960,7 +973,7 @@ MOD7 = cabecera(
 """ + CIERRE
 
 MOD8 = cabecera(
-    8, *TITULOS[7],
+    8, TITULOS[7][0], INGLES[7],
     "Recorrer el flujo completo de `spdep` y ver que `sfdep` es la misma "
     "maquinaria con otra sintaxis.") + f"""
       <p>Todo lo que este capítulo ha explicado se escribe en R con tres llamadas, y siempre en el
@@ -998,7 +1011,7 @@ MOD8 = cabecera(
 
 
 MOD9 = cabecera(
-    9, *TITULOS[8],
+    9, TITULOS[8][0], INGLES[8],
     "Saber qué hace R con una unidad sin vecinos, y por qué la salida "
     "cómoda es la que engaña.") + f"""
       <p>Los criterios de contigüidad tienen un caso que los de k vecinos no: <strong>alguien
@@ -1051,7 +1064,7 @@ MOD9 = cabecera(
 """ + CIERRE
 
 MOD10 = cabecera(
-    10, *TITULOS[9],
+    10, TITULOS[9][0], INGLES[9],
     "Calcular el rezago espacial, leerlo como lo que es —una media de "
     "vecinos— y ver que suaviza.") + f"""
       <p>Con la vecindad elegida y los pesos puestos, la operación que da sentido a todo es una
@@ -1097,7 +1110,7 @@ MOD10 = cabecera(
 """ + CIERRE
 
 MOD11 = cabecera(
-    11, *TITULOS[10],
+    11, TITULOS[10][0], INGLES[10],
     "Ver W como la matriz de adyacencia de un grafo, y reconocer el rezago "
     "como el paso de mensajes de una red neuronal sobre grafos.") + f"""
       <p>Todo lo que este capítulo ha construido tiene otro nombre en otra disciplina, y merece la
@@ -1154,7 +1167,7 @@ MOD11 = cabecera(
 
 
 MOD12 = cabecera(
-    12, *TITULOS[11],
+    12, TITULOS[11][0], INGLES[11],
     "Comprobar lo aprendido y practicar sobre un mapa que el capítulo no "
     "ha usado, que es donde se ve si el método viaja.") + f"""
       <p>El capítulo ha defendido una sola idea desde el módulo 2, y conviene decirla entera antes

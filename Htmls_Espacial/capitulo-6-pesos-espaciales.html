@@ -3899,7 +3899,7 @@ print(round(reina.mean_neighbors, 4), round(torre.mean_neighbors, 4))
           <span>Módulo 3</span>
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Contigüidad
-          <span class="text-gray-400 font-normal text-2xl">/ Rook, queen, and higher orders</span></h2>
+          <span class="text-gray-400 font-normal text-2xl">/ Rook, queen and higher orders</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -4100,7 +4100,7 @@ print(sum(len(v) for v in k3.neighbors.values()), pares(k3))
           <span>Módulo 5</span>
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Umbral de distancia
-          <span class="text-gray-400 font-normal text-2xl">/ Islands and uneven density</span></h2>
+          <span class="text-gray-400 font-normal text-2xl">/ Distance thresholds and islands</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -4217,7 +4217,7 @@ print(justo.n_components)
           <span>Módulo 6</span>
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Vecindades geométricas
-          <span class="text-gray-400 font-normal text-2xl">/ Delaunay, Gabriel, sphere of influence</span></h2>
+          <span class="text-gray-400 font-normal text-2xl">/ Geometric neighbourhoods</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -4314,7 +4314,7 @@ print(len(pset(delaunay)), len(pset(gabriel)), len(pset(relativa)))
           <span>Módulo 7</span>
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">De vecinos a pesos
-          <span class="text-gray-400 font-normal text-2xl">/ Styles B, W, S, C and U</span></h2>
+          <span class="text-gray-400 font-normal text-2xl">/ From neighbours to weights</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -4439,7 +4439,7 @@ print([round(float(estilo(A, e).sum()), 4) for e in &quot;BWSCU&quot;])
           <span>Módulo 8</span>
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El flujo de `spdep`
-          <span class="text-gray-400 font-normal text-2xl">/ And sfdep as a tidy interface</span></h2>
+          <span class="text-gray-400 font-normal text-2xl">/ The spdep workflow</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -4528,7 +4528,7 @@ print(pares(w))
           <span>Módulo 9</span>
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Islas y `zero.policy`
-          <span class="text-gray-400 font-normal text-2xl">/ What R does with a unit that has no neighbours</span></h2>
+          <span class="text-gray-400 font-normal text-2xl">/ Islands and zero.policy</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -4633,7 +4633,7 @@ print(wm.n_components)
           <span>Módulo 10</span>
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El rezago espacial Wy
-          <span class="text-gray-400 font-normal text-2xl">/ The average of the neighbours</span></h2>
+          <span class="text-gray-400 font-normal text-2xl">/ The spatial lag</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -4748,7 +4748,7 @@ print(round(float(100 * (1 - wy[con].std(ddof=1) / y.std(ddof=1))), 4))
           <span>Módulo 11</span>
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">W es un grafo
-          <span class="text-gray-400 font-normal text-2xl">/ Adjacency, message passing and GNNs</span></h2>
+          <span class="text-gray-400 font-normal text-2xl">/ W is a graph</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -5061,18 +5061,18 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     // ================================================================
     const courseData = {
       modules: [
-        { id: 1, title: "El dato de área", subtitle: "Areal data" },
-        { id: 2, title: "Vecindad", subtitle: "The decision that conditions everything" },
-        { id: 3, title: "Contigüidad", subtitle: "Rook, queen, and higher orders" },
-        { id: 4, title: "k vecinos más próximos", subtitle: "Always k, and symmetry broken" },
-        { id: 5, title: "Umbral de distancia", subtitle: "Islands and uneven density" },
-        { id: 6, title: "Vecindades geométricas", subtitle: "Delaunay, Gabriel, sphere of influence" },
-        { id: 7, title: "De vecinos a pesos", subtitle: "Styles B, W, S, C and U" },
-        { id: 8, title: "El flujo de `spdep`", subtitle: "And sfdep as a tidy interface" },
-        { id: 9, title: "Islas y `zero.policy`", subtitle: "What R does with a unit that has no neighbours" },
-        { id: 10, title: "El rezago espacial Wy", subtitle: "The average of the neighbours" },
-        { id: 11, title: "W es un grafo", subtitle: "Adjacency, message passing and GNNs" },
-        { id: 12, title: "Autoevaluación y ejercicios", subtitle: "Self-assessment and guided exercises" },
+        { id: 1, title: "El dato de área", subtitle: "Qué se observa y qué es aleatorio" },
+        { id: 2, title: "Vecindad", subtitle: "La decisión que condiciona todo lo demás" },
+        { id: 3, title: "Contigüidad", subtitle: "Torre, reina y órdenes superiores" },
+        { id: 4, title: "k vecinos más próximos", subtitle: "Siempre k, y la simetría rota" },
+        { id: 5, title: "Umbral de distancia", subtitle: "Islas y densidad desigual" },
+        { id: 6, title: "Vecindades geométricas", subtitle: "Delaunay, Gabriel y esfera de influencia" },
+        { id: 7, title: "De vecinos a pesos", subtitle: "Los estilos B, W, S, C y U" },
+        { id: 8, title: "El flujo de `spdep`", subtitle: "Y `sfdep` como interfaz tidy" },
+        { id: 9, title: "Islas y `zero.policy`", subtitle: "Qué hace R con quien no tiene vecinos" },
+        { id: 10, title: "El rezago espacial Wy", subtitle: "La media de los vecinos" },
+        { id: 11, title: "W es un grafo", subtitle: "Adyacencia, paso de mensajes y GNN" },
+        { id: 12, title: "Autoevaluación y ejercicios", subtitle: "Trece preguntas y cinco ejercicios" },
       ]
     };
 
