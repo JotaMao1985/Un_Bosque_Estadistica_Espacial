@@ -271,6 +271,10 @@ en 0 fallos y el arnés en 191/191.
 | **T3.4b** · auditor y arnés | ✅ hecha. **297/0/0** y **151 inyecciones, 151 cazadas, 156 de 156 tipos** |
 | **T3.5** · `ensambla_cap5.py` | ✅ hecha. **12 módulos**, 11 simuladores, 6 mapas, 12 preguntas, 5 ejercicios, **133/133 cifras verificadas** y la tarjeta de la portada |
 | **T3.6** · verificación y cierre | ✅ hecha. `audita_texto_cap5.py` **213/0**, **50 inyecciones y 50 cazadas**, arnés entero **191/191**, y los doce módulos leídos |
+| **La revisión del capítulo 5** (2026-09-02) | ✅ hecha. 8 hallazgos, los tres arreglados y dos gemelos más; el barajado de los cinco capítulos y **A.23.2 saldada** |
+| Las **tres decisiones** de la Fase 4 | ✅ tomadas el 2026-09-03 sobre el cronómetro del **A.25** |
+| **T4.1** · `genera_cap6.R` | ✅ hecha. **6 anclas**, reproducible byte a byte, dos tableros y 2 salidas |
+| **T4.1b** · auditor y arnés | ✅ hecha. **218/0/2** y **86 inyecciones, 86 cazadas, 76 de 76 tipos** |
 
 **Lo publicado:** `Htmls_Espacial/capitulo-5-intensidad-nucleos.html`, **755 KB**, 12 módulos, 11
 simuladores, 6 mapas, 12+12 bloques R/Python, 12 preguntas en dos autoevaluaciones y 5 ejercicios
@@ -282,6 +286,10 @@ No queda ningún rojo en el repositorio.
 ### 0.4 · La cadena, en orden, con los comandos exactos
 
 ```
+precalculo/rscript.sh precalculo/genera_cap6.R          # 6 anclas · cachea poly2nb (42 s)
+<geo_env>/python precalculo/audita_cap6.py             # 218/0/2 · 2 s con su cache, 9 sin ella
+python3 precalculo/prueba_auditor_cap6.py              # 86/86 · 76/76 tipos · ~2 min
+
 precalculo/rscript.sh precalculo/genera_cap5.R          # 18 anclas · usa la cache
 precalculo/rscript.sh precalculo/genera_soluciones.R 5  # los 5 ejercicios
 <geo_env>/python precalculo/audita_cap5.py              # 297/0/0
@@ -301,9 +309,15 @@ cinco auditores de prosa en 0 fallos; `campos_vivos` y `sin_aritmetica` en verde
 
 ### 0.5 · Qué hacer a continuación, y en qué orden
 
-**La Fase 3 está cerrada.** Lo que sigue es la **Fase 4**: el capítulo 6, datos de área y la matriz
-de pesos espaciales, con la cadena de siempre —T4.1 precálculo, T4.1b auditor y arnés, T4.2
-ensamblado, T4.3 verificación y cierre—.
+**La Fase 3 está cerrada, y la Fase 4 va por la mitad de su primera tarea.** ✅ **T4.1 y T4.1b
+hechas el 2026-09-03**: el precálculo del capítulo 6 con sus 6 anclas, `audita_cap6.py` en
+**218/0/2** y su arnés en **86/86 con 76 de 76 tipos**. Lo que sigue es **T4.2**, el ensamblado, y
+después **T4.3**, la verificación y el cierre.
+
+**El auditor de este capítulo recalcula con `libpysal`, no con `spdep`**, y eso lo hace el más
+independiente que ha tenido ningún capítulo: dos bibliotecas ajenas contestando la misma pregunta.
+Lo que libpysal no trae —los cinco estilos, las componentes conexas, la asimetría— está
+reimplementado por definición. Ver **A.26**.
 
 **Dos deudas declaradas del Corte I**, que no son de este capítulo y esperan la misma reapertura:
 
@@ -3834,3 +3848,82 @@ municipios: Delaunay **3 353 aristas / grado 5,977**, Gabriel **2 527 / 4,504**,
 Columbus es el laboratorio —diez W, baratas, canónicas, comparables entre sí— y los municipios son
 el caso real, con una sola W y las patologías que solo trae un dato de verdad. La comparación entre
 los dos es material del capítulo, no un accidente del presupuesto.
+
+---
+
+### A.26 · Lo que cazó el auditor del capítulo 6, y lo que le cazó su arnés (T4.1b, 2026-09-03)
+
+Tres hallazgos, y **el primero vivía en el núcleo compartido desde T0.3**. Los tres son de la misma
+familia que este proyecto lleva persiguiendo desde el A.10: **la operación que devuelve algo
+plausible en vez de fallar**.
+
+#### A.26.1 · El grafo se dibujaba incompleto en toda vecindad ASIMÉTRICA
+
+`geo_grafo()` y `geo_grafo_multi()` extraían las aristas quedándose con los vecinos `j > i`. Eso es
+correcto **si y solo si la vecindad es simétrica**, y hasta aquí todas lo eran: contigüidad reina, y
+poco más. Una vecindad de k vecinos no lo es —«ser de los tres más próximos» no es recíproco—, así
+que si `j < i` y `j` no tiene a `i` entre los suyos, **esa arista no la emite nadie**.
+
+| Variante de Columbus | Aristas dibujadas | Parejas reales | Perdidas |
+|---|---:|---:|---:|
+| k = 1 | 28 | 36 | **8** |
+| k = 3 | 73 | 94 | **21** |
+| k = 6 | 148 | 178 | **30** |
+
+El constructor de W —el simulador central del capítulo— habría dibujado **cinco de sus diez grafos
+incompletos**, con la consola limpia y un recuento que cuadraba consigo mismo. Lo cazó
+`audita_cap6.py` contrastando las aristas del mapa contra las parejas que cuenta libpysal, que es
+exactamente para lo que existe un auditor que no comparte código con el generador.
+
+Arreglado con `aristas_no_dirigidas()` en `geo.R`. **Comprobado que no mueve nada de lo publicado**:
+se regeneraron los cinco capítulos y la única diferencia en sus JSON es la fecha de `generado`.
+Ningún capítulo anterior publicó un grafo asimétrico, así que el defecto era latente — y este
+capítulo publica cinco.
+
+#### A.26.2 · Media arista no existe
+
+`resumen_nb()` contaba `sum(grados) / 2`. Con `k3` eso da **73,5**, que no es una cifra inexacta:
+es una cifra que no significa nada, y habría llegado al documento con aspecto de dato. Ahora se
+publican las tres columnas que hacen falta —`enlaces` dirigidos, `pares` distintos y `simetrica`—,
+que además son justo lo que el módulo 4 enseña.
+
+#### A.26.3 · Y una comprobación del auditor que no podía fallar
+
+El arnés no solo comprueba que el auditor cace los defectos: comprueba **que cada comprobación se
+haya visto fallar alguna vez**. Una del auditor no aparecía nunca en esa lista, y el motivo estaba
+escrito en ella: `a.cierto(any(...) or True, ...)`. El `or True` la hacía incondicional. **Una
+comprobación que siempre pasa es peor que ninguna, porque suma al recuento.**
+
+#### A.26.4 · Y dos huecos más, encontrados por el arnés y no por la lectura
+
+- **La simetría publicada en el módulo 2 no la comprobaba nadie.** El auditor la miraba en el módulo
+  4 y no allí, así que una `k3` declarada simétrica pasaba entera.
+- **`audita_geomapa` exige que el modo sea UNO DE LOS CINCO, no que sea el suyo.** Un mapa de este
+  capítulo publicado como `poligonos` se dibujaría sin una sola arista —que es todo el capítulo— y
+  pasaría. Ahora los dos mapas declaran que son grafos.
+
+#### A.26.5 · La independencia, y por qué aquí es la mejor de las seis
+
+«Qué es un vecino» tiene dos implementaciones maduras y ajenas: `spdep` en R, que generó las
+cifras, y **`libpysal` en Python, que las recalcula**. No es una segunda opinión del mismo motor.
+Que la reina de Columbus dé 118 parejas y grado 4,8163 en las dos, y la municipal 3 285 con sus
+2 islas y sus 3 subgrafos, es lo que hace que la cifra signifique algo.
+
+Y lo que libpysal no trae se reimplementa por definición: **los cinco estilos de peso** desde la
+adyacencia binaria —incluido el `S` de estabilización de varianza, el único con una fórmula que se
+puede escribir mal sin que nada falle—, **las componentes conexas con un recorrido en anchura
+escrito a mano** —importar un `n_components` sería auditar una biblioteca con ella misma— y **la
+asimetría**, contando los pares en los que `j` es vecino de `i` pero `i` no lo es de `j`.
+
+Declarado y no insinuado: la independencia es **NULA** para la esfera de influencia —libpysal no la
+trae, así que se auditan sus propiedades— y **NULA** para la comparación `spdep` ↔ `sfdep`, que son
+dos interfaces del mismo motor. Las dos están en la lista de saltadas del auditor.
+
+#### A.26.6 · Y una cache que hay que mirar con cuidado
+
+El auditor tarda 9 s, de los que 8 son construir la contigüidad de los 1 122 municipios con
+libpysal. El arnés lo ejecuta **86 veces**. Se cachea, con las dos cautelas que lo hacen honesto:
+la cache guarda lo que ESTE auditor calculó —no lo que R publicó, así que la independencia no se
+toca— y **la llave es el tamaño y la fecha del `.gpkg`**, de modo que si el dato cambia la cache se
+descarta sola. Una cache que sobrevive a su fuente es un auditor que aprueba lo que ya no mira.
+De 9 s a 2, y el arnés de diez minutos a dos.

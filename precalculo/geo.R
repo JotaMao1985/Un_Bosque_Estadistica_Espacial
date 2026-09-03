@@ -497,6 +497,26 @@ geo_puntos <- function(xy, ventana = NULL, marcas = NULL, titulo = "",
 }
 
 #' Modo `grafo` — grafo de vecindad sobre los centroides
+#' Las aristas NO DIRIGIDAS de una vecindad, sin repetir ninguna
+#'
+#' Quedarse con `j > i` es correcto SOLO si la vecindad es simétrica, y
+#' hasta el capítulo 6 todas lo eran. Una vecindad de k vecinos no lo es:
+#' si j < i y j no tiene a i entre los suyos, esa arista no la emite
+#' nadie y el grafo se dibuja INCOMPLETO —con la consola limpia y un
+#' recuento que cuadra consigo mismo—. Medido sobre Columbus: k=1 perdía
+#' 8 de 36 aristas, k=3 perdía 21 de 94 y k=6, 30 de 178.
+#'
+#' Lo cazó `audita_cap6.py` contrastando las aristas del mapa contra las
+#' parejas que cuenta libpysal, que es justo para lo que existe un
+#' auditor independiente.
+aristas_no_dirigidas <- function(nb) {
+  ar <- do.call(rbind, lapply(seq_along(nb), function(i) {
+    j <- nb[[i]]; j <- j[j > 0]
+    if (length(j) == 0) NULL else cbind(pmin(i, j), pmax(i, j))
+  }))
+  if (is.null(ar)) NULL else unique(ar)
+}
+
 geo_grafo <- function(x, nb, titulo = "", leyenda = "", presupuesto = 6000L,
                       verbose = TRUE) {
   stopifnot(inherits(x, "sf"))
@@ -509,11 +529,7 @@ geo_grafo <- function(x, nb, titulo = "", leyenda = "", presupuesto = 6000L,
   qx <- function(v) as.integer(round((v - (cx - r/2)) / r * QMAX))
   qy <- function(v) as.integer(round((v - (cy - r/2)) / r * QMAX))
 
-  # aristas i<j para no dibujar cada una dos veces
-  ar <- do.call(rbind, lapply(seq_along(nb), function(i) {
-    j <- nb[[i]]; j <- j[j > i]
-    if (length(j) == 0) NULL else cbind(i, j)
-  }))
+  ar <- aristas_no_dirigidas(nb)
   base$modo    <- "grafo"
   base$nodos   <- as.integer(rbind(qx(cen[, 1]), qy(cen[, 2])))
   base$aristas <- if (is.null(ar)) integer(0) else as.integer(t(ar))  # pares 1-indexados
@@ -540,10 +556,7 @@ geo_grafo_multi <- function(x, nbs, titulo = "", leyenda = "",
   rx <- caja[3] - caja[1]; ry <- caja[4] - caja[2]; r <- max(rx, ry)
 
   variantes <- lapply(nbs, function(nb) {
-    ar <- do.call(rbind, lapply(seq_along(nb), function(i) {
-      j <- nb[[i]]; j <- j[j > i]
-      if (length(j) == 0) NULL else cbind(i, j)
-    }))
+    ar <- aristas_no_dirigidas(nb)
     grados <- as.integer(vapply(nb, function(v) if (identical(v, 0L)) 0L else length(v), integer(1)))
     list(aristas = if (is.null(ar)) integer(0) else as.integer(t(ar)),
          grados  = grados,
