@@ -41,6 +41,7 @@ import json
 import re
 import pathlib
 import sys
+from baraja_opciones import baraja_documento
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
@@ -2206,6 +2207,11 @@ def main() -> int:
                            QUIZ_JS, "AUTOEVALUACIONES", max_lineas=90)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
+    # El orden de las opciones se decide en `baraja_opciones.py`, y es la
+    # corrección del 2026-09-02: escritas de una en una, las 51 preguntas de
+    # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
+    doc = baraja_documento(doc, "cap2")
+
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- Guardas de salida ----------------------------------------------

@@ -60,6 +60,7 @@ import os
 import re
 import pathlib
 import sys
+from baraja_opciones import baraja_documento
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 SALIDAS = RAIZ / "precalculo" / "salidas"
@@ -3484,7 +3485,7 @@ QUIZ_JS = r"""
             retro: 'Las dos pueden estar perfectamente calculadas. Eso es exactamente el MAUP.' }
         ],
         retroAcierto: 'Las dos. La unidad de análisis es una decisión de modelado, no de presentación.',
-        retroFallo: 'Las correctas son las dos primeras. Módulo 7.'
+        retroFallo: 'Las dos ciertas son que las dos cifras pueden diferir con el mismo dato y que agregar no siempre sube la correlación. Módulo 7.'
       },
       {
         tipo: 'opcion', modulo: 6,
@@ -3618,7 +3619,7 @@ QUIZ_JS = r"""
               + 'mucho. Baja, no se anula.' }
         ],
         retroAcierto: 'Y eso anuncia el capítulo 9: el kriging con deriva externa.',
-        retroFallo: 'Las correctas son las dos primeras. Módulo 3.'
+        retroFallo: 'Las dos ciertas son que buena parte de la dependencia la explica la altitud y que permutar las temperaturas entre las mismas estaciones desploma la I. Módulo 3.'
       },
       {
         tipo: 'grafico', modulo: 4,
@@ -3714,7 +3715,7 @@ QUIZ_JS = r"""
               + 'arriba. Módulo 8.' }
         ],
         retroAcierto: 'Ante una diferencia, la primera pregunta es «¿estamos midiendo lo mismo?».',
-        retroFallo: 'Las correctas son las dos primeras. Módulo 9.'
+        retroFallo: 'Las dos ciertas son la del tipo de la CAPA frente al de cada rasgo y la de las unidades sin vecinos en el I de Moran. Módulo 9.'
       },
       {
         tipo: 'opcion', modulo: 10,
@@ -3863,6 +3864,11 @@ def main() -> int:
                            QUIZ_JS, "AUTOEVALUACIONES", max_lineas=90)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
+    # El orden de las opciones se decide en `baraja_opciones.py`, y es la
+    # corrección del 2026-09-02: escritas de una en una, las 51 preguntas de
+    # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
+    doc = baraja_documento(doc, "cap1")
+
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- Guardas de salida ----------------------------------------------

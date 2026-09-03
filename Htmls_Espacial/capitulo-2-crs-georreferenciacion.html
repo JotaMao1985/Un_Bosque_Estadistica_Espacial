@@ -8710,11 +8710,11 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
           { texto: 'st_transform(x, 9377): hay que reproyectar a 9377.', correcta: false,
             retro: 'st_transform tomaría esos metros COMO SI fueran grados y los recalcularía desde ahí. '
               + 'El resultado sería un objeto en 9377 con la geometría destruida. Módulo 5.' },
+          { texto: 'st_transform(x, 4326) para dejarlo en grados de verdad.', correcta: false,
+            retro: 'Mismo problema: partiría de una etiqueta falsa. Primero se corrige la etiqueta. Módulo 5.' },
           { texto: 'Nada: 4326 y 9377 describen el mismo elipsoide.', correcta: false,
             retro: 'Comparten el elipsoide GRS80, sí, pero uno es geográfico y el otro proyectado: '
-              + 'las unidades son distintas. Módulo 4.' },
-          { texto: 'st_transform(x, 4326) para dejarlo en grados de verdad.', correcta: false,
-            retro: 'Mismo problema: partiría de una etiqueta falsa. Primero se corrige la etiqueta. Módulo 5.' }
+              + 'las unidades son distintas. Módulo 4.' }
         ],
         retroAcierto: 'La regla: st_set_crs arregla metadatos, st_transform mueve coordenadas.',
         retroFallo: 'Vuelve al módulo 5: reetiquetar y reproyectar hacen cosas opuestas.'
@@ -8739,14 +8739,14 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
           { texto: 'Con sf_use_s2(TRUE) sobre lon/lat, mide sobre una esfera.', correcta: true,
             retro: 'Sí: s2 hace geometría esférica, y sobre Colombia eso infla el área un '
               + n5(DATOS_CAP2.medir.colombia.dif_esfera_pct) + ' %.' },
+          { texto: 'Los tres caminos dan el mismo número si el dato es correcto.', correcta: false,
+            retro: 'No: sobre Colombia se separan en ' + Math.round(DATOS_CAP2.medir.colombia.dif_esfera_km2)
+              + ' km². Que el dato sea correcto no hace que las superficies coincidan. Módulo 6.' },
           { texto: 'Con sf_use_s2(FALSE) y lwgeom instalado, mide sobre el elipsoide.', correcta: true,
             retro: 'Correcto, y es la referencia que este capítulo usa para todas sus razones de área.' },
           { texto: 'Sobre un objeto proyectado a EPSG:9377 devuelve metros cuadrados planos.', correcta: true,
             retro: 'Sí. Y para Colombia se queda a ' + n5(Math.abs(DATOS_CAP2.medir.colombia.dif_9377_pct))
-              + ' % del área elipsoidal.' },
-          { texto: 'Los tres caminos dan el mismo número si el dato es correcto.', correcta: false,
-            retro: 'No: sobre Colombia se separan en ' + Math.round(DATOS_CAP2.medir.colombia.dif_esfera_km2)
-              + ' km². Que el dato sea correcto no hace que las superficies coincidan. Módulo 6.' }
+              + ' % del área elipsoidal.' }
         ],
         retroAcierto: 'Tres caminos, tres superficies, tres números. Hay que declarar cuál se usó.',
         retroFallo: 'Módulo 6: el interruptor sf_use_s2() cambia la superficie sobre la que se mide.'
@@ -8757,19 +8757,19 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
           + 'y las áreas en todo el planeta. ¿Qué le contestas?',
         pista: 'Piensa en qué implica ser conforme para la escala de área.',
         opciones: [
+          { texto: 'Que sí, es lo que hace Mercator.', correcta: false,
+            retro: 'Mercator es conforme, y por eso mismo su escala de área llega a '
+              + n5(DATOS_CAP2.proyecciones.tabla.s_max[0], 3) + ' en la rejilla. Módulo 3.' },
+          { texto: 'Que puede funcionar si se limita a una región pequeña.', correcta: false,
+            retro: 'En una región pequeña el error se hace despreciable, pero no cero; y la afirmación '
+              + 'era «en todo el planeta». Módulo 3.' },
           { texto: 'Que es imposible: conforme implica s = a², y s = 1 exigiría escala 1 en todo punto, '
               + 'o sea una isometría, que la curvatura prohíbe.', correcta: true,
             retro: 'Exacto. Es el teorema de Tissot, y el capítulo lo comprueba sobre las seis '
               + 'proyecciones: ninguna sale con las dos banderas.' },
-          { texto: 'Que puede funcionar si se limita a una región pequeña.', correcta: false,
-            retro: 'En una región pequeña el error se hace despreciable, pero no cero; y la afirmación '
-              + 'era «en todo el planeta». Módulo 3.' },
           { texto: 'Que sí, es lo que hace Equal Earth.', correcta: false,
             retro: 'Equal Earth es equivalente (s = 1) pero su deformación angular llega a '
-              + n5(DATOS_CAP2.proyecciones.tabla.omega_max_grados[3], 3) + '°. Módulo 3.' },
-          { texto: 'Que sí, es lo que hace Mercator.', correcta: false,
-            retro: 'Mercator es conforme, y por eso mismo su escala de área llega a '
-              + n5(DATOS_CAP2.proyecciones.tabla.s_max[0], 3) + ' en la rejilla. Módulo 3.' }
+              + n5(DATOS_CAP2.proyecciones.tabla.omega_max_grados[3], 3) + '°. Módulo 3.' }
         ],
         retroAcierto: 'Y es un teorema, no una limitación tecnológica.',
         retroFallo: 'Módulo 3: conforme y equivalente son incompatibles.'
@@ -8786,15 +8786,15 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
           + 'sin reproyectar. ¿Qué se ve?',
         pista: 'Piensa en el datum, no en la proyección.',
         opciones: [
-          { texto: 'Un desplazamiento sistemático de unos cientos de metros.', correcta: true,
-            retro: 'Sí: el datum Bogotá 1975 desplaza en promedio '
-              + n5(DATOS_CAP2.elipsoide.datum.desp_medio_m, 2) + ' m respecto de WGS84.' },
-          { texto: 'Nada raro: las coordenadas geográficas son universales.', correcta: false,
-            retro: 'Una latitud y una longitud no significan nada sin decir sobre qué datum. Módulo 1.' },
           { texto: 'Un error que crece hacia los bordes del mapa.', correcta: false,
             retro: 'Eso describiría un error de proyección. El de datum es aproximadamente constante. Módulo 1.' },
           { texto: 'Un mensaje de error al cargar la capa.', correcta: false,
-            retro: 'Ninguna de las dos capas es inválida: las dos son coordenadas legítimas. Módulo 1.' }
+            retro: 'Ninguna de las dos capas es inválida: las dos son coordenadas legítimas. Módulo 1.' },
+          { texto: 'Nada raro: las coordenadas geográficas son universales.', correcta: false,
+            retro: 'Una latitud y una longitud no significan nada sin decir sobre qué datum. Módulo 1.' },
+          { texto: 'Un desplazamiento sistemático de unos cientos de metros.', correcta: true,
+            retro: 'Sí: el datum Bogotá 1975 desplaza en promedio '
+              + n5(DATOS_CAP2.elipsoide.datum.desp_medio_m, 2) + ' m respecto de WGS84.' }
         ],
         retroAcierto: 'Y no hay aviso: por eso hay que mirar el datum antes de superponer nada.',
         retroFallo: 'Módulo 1.'
@@ -8806,18 +8806,18 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
           + n5(DATOS_CAP2.grados.euclidea.corr) + '. ¿Puedes usarla?',
         pista: '¿Para qué la vas a usar? Esa es la pregunta.',
         opciones: [
-          { texto: 'Depende: sirve para ordenar, y falla en cuanto haya un umbral de por medio.', correcta: true,
-            retro: 'Exacto, y el ejercicio 4 lo mide: el vecino más próximo no cambia para ninguna '
-              + 'estación, y un umbral de vecindad a 200 km discrepa en más de cien pares.' },
           { texto: 'Sí, sin más: una correlación tan alta la valida para cualquier uso.', correcta: false,
             retro: 'Una medida puede ser buenísima en promedio y romper la decisión concreta que tomas '
               + 'con ella. Módulo 2.' },
-          { texto: 'No, nunca: los grados no son metros.', correcta: false,
-            retro: 'Cierto que no son metros, pero eso no la inutiliza para todo. La respuesta honesta '
-              + 'es «depende de para qué». Módulo 2.' },
           { texto: 'Sí, porque Colombia está cerca del ecuador.', correcta: false,
             retro: 'Ayuda, pero no es la razón: el problema no es el tamaño del error sino si tu uso '
-              + 'es sensible a él. Módulo 2.' }
+              + 'es sensible a él. Módulo 2.' },
+          { texto: 'Depende: sirve para ordenar, y falla en cuanto haya un umbral de por medio.', correcta: true,
+            retro: 'Exacto, y el ejercicio 4 lo mide: el vecino más próximo no cambia para ninguna '
+              + 'estación, y un umbral de vecindad a 200 km discrepa en más de cien pares.' },
+          { texto: 'No, nunca: los grados no son metros.', correcta: false,
+            retro: 'Cierto que no son metros, pero eso no la inutiliza para todo. La respuesta honesta '
+              + 'es «depende de para qué». Módulo 2.' }
         ],
         retroAcierto: 'Ordenar y umbralizar son preguntas distintas, y solo una sobrevive.',
         retroFallo: 'Módulo 2, y el ejercicio 4.'
@@ -8829,15 +8829,15 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
         datos: 'proyecciones',
         pista: 'Fíjate en si alguna barra está pegada a cero en las dos cosas.',
         opciones: [
-          { texto: 'Que existe una proyección con ω = 0 y s = 1 a la vez.', correcta: true,
-            retro: 'Correcto: no existe, y el gráfico lo enseña. Es el teorema de Tissot.' },
+          { texto: 'Que Robinson no conserva ninguna de las dos.', correcta: false,
+            retro: 'Se lee igualmente: es la fila de compromiso.' },
           { texto: 'Que Mercator conserva los ángulos.', correcta: false,
             retro: 'Eso sí se lee: su ω máxima es '
               + n5(DATOS_CAP2.proyecciones.tabla.omega_max_grados[0], 5) + '°.' },
+          { texto: 'Que existe una proyección con ω = 0 y s = 1 a la vez.', correcta: true,
+            retro: 'Correcto: no existe, y el gráfico lo enseña. Es el teorema de Tissot.' },
           { texto: 'Que Equal Earth conserva las áreas.', correcta: false,
-            retro: 'También se lee: su escala de área es 1,000 en toda la rejilla.' },
-          { texto: 'Que Robinson no conserva ninguna de las dos.', correcta: false,
-            retro: 'Se lee igualmente: es la fila de compromiso.' }
+            retro: 'También se lee: su escala de área es 1,000 en toda la rejilla.' }
         ],
         retroAcierto: 'Y es un teorema, no una casualidad de estas seis.',
         retroFallo: 'Módulo 3.'
@@ -8901,18 +8901,18 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
           + 'caracteres de su geohash. ¿Cuál es el problema?',
         pista: 'Piensa en dos puntos separados por un corte de la rejilla.',
         opciones: [
-          { texto: 'Que el ' + n5(DATOS_CAP2.ingenieria.geohash.frontera[2].pct_distinto)
-              + ' % de las sedes tiene a su vecino más próximo en otra celda.', correcta: true,
-            retro: 'Exacto. La proximidad en el texto no es la proximidad en el espacio, y falla '
-              + 'justo en los bordes. Es el MAUP con otra ropa.' },
+          { texto: 'Que hay que reconstruirlo si el dato cambia de CRS.', correcta: false,
+            retro: 'El geohash se define sobre lon/lat, así que eso no es lo que falla. Módulo 11.' },
           { texto: 'Que el geohash no es determinista.', correcta: false,
             retro: 'Lo es completamente: mismo punto, mismo código siempre. Módulo 11.' },
           { texto: 'Que las celdas son demasiado grandes para una ciudad.', correcta: false,
             retro: 'Con 6 caracteres miden unos '
               + n5(DATOS_CAP2.ingenieria.geohash.niveles[2].celda_ancho_km, 2) + ' km de lado, '
               + 'que es razonable. El problema son los bordes, no el tamaño. Módulo 11.' },
-          { texto: 'Que hay que reconstruirlo si el dato cambia de CRS.', correcta: false,
-            retro: 'El geohash se define sobre lon/lat, así que eso no es lo que falla. Módulo 11.' }
+          { texto: 'Que el ' + n5(DATOS_CAP2.ingenieria.geohash.frontera[2].pct_distinto)
+              + ' % de las sedes tiene a su vecino más próximo en otra celda.', correcta: true,
+            retro: 'Exacto. La proximidad en el texto no es la proximidad en el espacio, y falla '
+              + 'justo en los bordes. Es el MAUP con otra ropa.' }
         ],
         retroAcierto: 'Y afinar la rejilla lo empeora: con 7 caracteres sube al '
           + n5(DATOS_CAP2.ingenieria.geohash.frontera[3].pct_distinto) + ' %.',
@@ -8924,16 +8924,16 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
           + 'menor de lo que esperabas. ¿Qué compruebas primero?',
         pista: 'Hay un valor que una geometría rota devuelve sin quejarse.',
         opciones: [
+          { texto: 'La versión de GEOS.', correcta: false,
+            retro: 'Muy raramente es eso. Primero lo barato y frecuente: validar. Módulo 10.' },
+          { texto: 'Que no falten filas en la tabla de atributos.', correcta: false,
+            retro: 'Se vería en el conteo. El cero de una geometría inválida no se ve en ningún sitio. Módulo 10.' },
           { texto: 'st_is_valid(): una geometría inválida devuelve área 0 sin dar error.', correcta: true,
             retro: 'Eso es. Es el modo de fallo dominante del curso: la operación que devuelve un '
               + 'valor plausible en vez de fallar.' },
           { texto: 'El CRS, porque seguro está en grados.', correcta: false,
             retro: 'Es una buena segunda comprobación, pero un área en grados cuadrados sale absurda, '
-              + 'no «un poco menor». Módulo 10.' },
-          { texto: 'Que no falten filas en la tabla de atributos.', correcta: false,
-            retro: 'Se vería en el conteo. El cero de una geometría inválida no se ve en ningún sitio. Módulo 10.' },
-          { texto: 'La versión de GEOS.', correcta: false,
-            retro: 'Muy raramente es eso. Primero lo barato y frecuente: validar. Módulo 10.' }
+              + 'no «un poco menor». Módulo 10.' }
         ],
         retroAcierto: 'Validar es lo primero que se hace con una capa de fuera, no lo último.',
         retroFallo: 'Módulo 10.'

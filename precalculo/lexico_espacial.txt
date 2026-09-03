@@ -1,0 +1,170 @@
+# lexico_espacial.txt — el vocabulario que el diccionario es_CO no trae y el
+# material sí usa, revisado a mano una vez para no volver a revisarlo.
+#
+# QUÉ ES
+# La pasada de ortografía (`ortografia.py`) le da la prosa de un capítulo a
+# hunspell con el diccionario es_CO de LibreOffice. Ese diccionario no conoce
+# el léxico de la estadística espacial, ni los nombres propios de la
+# literatura, ni los identificadores de R, ni la mitad de las palabras
+# españolas perfectamente correctas que usa este material. Sin esta lista, la
+# pasada devuelve 137 palabras sobre el capítulo 5 y ninguna es una errata:
+# un auditor que denuncia lo que está bien se acaba desactivando, que es la
+# lección del A.24.1.
+#
+# QUÉ NO ES
+# No es un permiso. Cada palabra de aquí se leyó en su frase antes de
+# entrar. Una que se cuele mal escrita queda mal escrita para siempre y en
+# todos los capítulos, así que esta lista se amplía leyendo, nunca pegando la
+# salida de la pasada.
+#
+# Revisada por primera vez el 2026-09-02 sobre el capítulo 5 (R0.1).
+
+# --- Estadística espacial y su jerga -------------------------------------
+covariable
+covariables
+inhomogéneo
+inhomogénea
+isotrópica
+autoexcitación
+autoexcitados
+ráster
+rhohat
+rho
+percentiles
+sismología
+epidemiológico
+georreferenciación
+KDE
+CSR
+MAUP
+AIC
+EMV
+EPSG
+
+# --- Nombres propios de la literatura y de los datos ----------------------
+Berman
+Turner
+Cronie
+Lieshout
+Diggle
+Loader
+Scott
+Fisher
+Ogata
+Hawkes
+Cox
+Matérn
+Thomas
+Beilschmiedia
+Bosa
+Fey
+
+# --- R, sus funciones, sus argumentos y sus conjuntos de datos ------------
+ppm
+kppm
+bei
+grad
+redwood
+japanesepines
+swedishpines
+gaussian
+epanechnikov
+quartic
+disc
+dcen
+nd
+Intercept
+NULL
+try
+log
+xc
+yc
+JSON
+Python
+
+# --- Símbolos y literales de una sola letra ------------------------------
+# El extractor los ve como palabras porque el material los escribe en prosa
+# —«con σ pequeño», «la ventana W»—, no dentro de una fórmula.
+σ
+λ
+ρ
+α
+β
+κ
+μ
+m
+n
+s
+x
+z
+P
+W
+K
+R
+
+# --- Español correcto que el es_CO no trae -------------------------------
+deslizador
+modelarla
+Modelarla
+corregirle
+desincronizar
+acelerón
+carísima
+suroccidente
+correlacionan
+correlacionaran
+Compárense
+desplázalo
+Encuéntralo
+Percentil
+
+# --- Los glosarios en inglés del encabezado de cada módulo ---------------
+# Cada título lleva su traducción —«De contar a suavizar / From counting to
+# smoothing»—, y los mensajes de R se citan en su idioma.
+From
+counting
+smoothing
+The
+kernel
+matters
+little
+Bandwidth
+selectors
+Edge
+correction
+for
+intensity
+Kernel
+heat
+map
+Relative
+relative
+risk
+and
+Covariates
+Covariables
+inhomogeneous
+process
+Poisson
+Fitting
+with
+Model
+diagnostics
+Cluster
+exciting
+self
+processes
+Self
+assessment
+guided
+exercises
+criterion
+was
+maximised
+at
+right
+hand
+end
+of
+interval
+sd

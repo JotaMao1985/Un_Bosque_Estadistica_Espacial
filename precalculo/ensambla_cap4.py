@@ -47,6 +47,7 @@ from __future__ import annotations
 import json
 import pathlib
 import sys
+from baraja_opciones import baraja_documento
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
@@ -132,18 +133,25 @@ def tabs(etiqueta, r_code, py_code):
 """
 
 
-def sim(ident, titulo, pie="", alto=260):
-    """Un simulador con su lienzo de Chart.js.
+def sim(ident, titulo, pie="", alto=260, mandos=True):
+    """Un simulador con su lienzo de Chart.js —o una figura fija, si no lleva mandos.
+
+    `mandos=False` es para los que no tienen ninguno. `cap4-cuadrantes` es una
+    figura fija —la rejilla la fija el precálculo— y publicaba un contenedor de
+    mandos vacío, un icono de deslizadores y un párrafo que decía «Elige el
+    tamaño de la rejilla». Lo destapó la revisión del capítulo 5 (2026-09-02)
+    buscando el gemelo de su módulo 8.
 
     `.grafico-wrapper` CON ALTURA EXPLÍCITA es el contrato de la
     plantilla: inventarse una clase deja el canvas a cero de alto,
     Chart.js crea el gráfico sin quejarse y el simulador sale en blanco
     con la consola limpia (defecto nº 5 de A.13).
     """
+    icono = "fa-sliders" if mandos else "fa-chart-column"
     return f"""      <div class="simulador" data-simulador="{ident}">
-        <h4><i class="fas fa-sliders" aria-hidden="true"></i> {titulo}</h4>
+        <h4><i class="fas {icono}" aria-hidden="true"></i> {titulo}</h4>
         {f'<p class="simulador-intro">{pie}</p>' if pie else ''}
-        <div class="simulador-controles"></div>
+{'        <div class="simulador-controles"></div>' + chr(10) if mandos else ''}\
         <div class="grafico-wrapper" style="height:{alto}px;">
           <canvas role="img" aria-label="{titulo}"></canvas>
         </div>
@@ -352,7 +360,7 @@ MOD2 = cabecera(
         a la Poisson que tocaría si λ fuera constante. Mira cómo se separan.</p>
 
 {sim('cap4-cuadrantes', 'Contar en cuadrantes',
-     'Elige el tamaño de la rejilla: la barra es el reparto observado y la línea, el que daría una intensidad constante.', 300)}
+     'La rejilla es fija —la que declara la lectura—: la barra es el reparto observado de sedes por celda y la línea, el que daría una intensidad constante.', 300, mandos=False)}
 
       <p>Lo que acabas de ver no es que Bogotá tenga «mucha» o «poca» intensidad, sino que
         <strong>no tiene una sola</strong>. A partir de aquí, un número deja de servir y hay
@@ -2018,6 +2026,11 @@ def main() -> int:
                            QUIZ_JS, "AUTOEVALUACIONES", max_lineas=90)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
+    # El orden de las opciones se decide en `baraja_opciones.py`, y es la
+    # corrección del 2026-09-02: escritas de una en una, las 51 preguntas de
+    # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
+    doc = baraja_documento(doc, "cap4")
+
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- El recuento, contado y no recordado --------------------------

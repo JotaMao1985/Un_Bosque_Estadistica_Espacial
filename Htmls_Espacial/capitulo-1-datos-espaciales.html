@@ -9955,14 +9955,14 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           { texto: 'Un patrón puntual: lo aleatorio es dónde ocurren.', correcta: true,
             retro: 'Eso es. Y por eso la pregunta natural será «¿se agrupan más de lo que cabría esperar por azar?», '
               + 'que es el capítulo 4.' },
-          { texto: 'Dato de área, porque los accidentes pasan en calles.', correcta: false,
-            retro: 'Sería dato de área si contaras accidentes POR barrio. Con las coordenadas sueltas, la '
-              + 'localización es el dato. Módulo 2.' },
+          { texto: 'Depende del software que uses.', correcta: false,
+            retro: 'El tipo lo pone la pregunta, no la herramienta. El software viene después.' },
           { texto: 'Dato geoestadístico: hay un valor en cada punto de la ciudad.', correcta: false,
             retro: 'No hay "cantidad de accidente" en cada esquina esperando a ser medida. Eso sí pasa con la '
               + 'temperatura, y es la diferencia que separa los dos tipos. Módulo 2.' },
-          { texto: 'Depende del software que uses.', correcta: false,
-            retro: 'El tipo lo pone la pregunta, no la herramienta. El software viene después.' }
+          { texto: 'Dato de área, porque los accidentes pasan en calles.', correcta: false,
+            retro: 'Sería dato de área si contaras accidentes POR barrio. Con las coordenadas sueltas, la '
+              + 'localización es el dato. Módulo 2.' }
         ],
         retroAcierto: 'La pregunta «¿qué es aleatorio?» es la que reparte los diez capítulos.',
         retroFallo: 'Ve al módulo 2: los tres tipos, cada uno con su canónico y su gemelo colombiano.'
@@ -9974,12 +9974,12 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           + 'lo que deberían.',
         pista: 'Piensa en si dos observaciones vecinas aportan información nueva o información repetida.',
         opciones: [
-          { texto: 'Verdadero', correcta: true,
-            retro: 'Y el capítulo lo mide: con dato colombiano real el error estándar honesto es '
-              + n5(D1.inferencia_real.factor) + ' veces el ingenuo.' },
           { texto: 'Falso', correcta: false,
             retro: 'Observaciones que se parecen aportan menos información de la que su número sugiere, así que '
-              + 'la fórmula clásica infla la confianza. Módulo 4.' }
+              + 'la fórmula clásica infla la confianza. Módulo 4.' },
+          { texto: 'Verdadero', correcta: true,
+            retro: 'Y el capítulo lo mide: con dato colombiano real el error estándar honesto es '
+              + n5(D1.inferencia_real.factor) + ' veces el ingenuo.' }
         ],
         retroAcierto: 'Y no es un matiz: la cobertura de un intervalo nominal al 95 % baja a '
           + n5(D1.inferencia.cobertura_phi4) + ' en el ejemplo del módulo 4.',
@@ -9991,15 +9991,15 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           + '¿A cuántas observaciones independientes equivalen?',
         pista: 'La fórmula es n / (1 + (n-1) rho). Haz la cuenta con la cabeza antes de mirar.',
         opciones: [
+          { texto: 'Las 1 000: la correlación no afecta al tamaño de muestra.', correcta: false,
+            retro: 'Afecta, y mucho. Ése es justo el módulo 5.' },
           { texto: 'Alrededor de 10', correcta: true,
             retro: 'Exactamente ' + n5(D1.n_efectivo.rejilla[D1.n_efectivo.rejilla.length - 1].n_eff[4])
               + '. Y no es que "pierdas" 990: es que nunca las tuviste.' },
-          { texto: 'Alrededor de 900', correcta: false,
-            retro: 'Esa sería la intuición de "pierdo un 10 %", y falla por dos órdenes de magnitud. Módulo 5.' },
           { texto: 'Alrededor de 100', correcta: false,
             retro: 'Cerca del techo con rho = 0,01, no con 0,10. Con rho = 0,10 el techo es 10. Módulo 5.' },
-          { texto: 'Las 1 000: la correlación no afecta al tamaño de muestra.', correcta: false,
-            retro: 'Afecta, y mucho. Ése es justo el módulo 5.' }
+          { texto: 'Alrededor de 900', correcta: false,
+            retro: 'Esa sería la intuición de "pierdo un 10 %", y falla por dos órdenes de magnitud. Módulo 5.' }
         ],
         retroAcierto: 'Y lo importante es el techo: n_eff tiende a 1/rho, así que añadir datos deja de servir.',
         retroFallo: 'Módulo 5. La respuesta corta: hay un techo, y está en 1/rho.'
@@ -10013,17 +10013,17 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           { texto: 'Las dos cifras pueden ser muy distintas aunque el dato sea el mismo.', correcta: true,
             retro: 'El par principal del capítulo va de ' + n5(D1.escala_correlacion.principal.r_municipal)
               + ' a ' + n5(D1.escala_correlacion.principal.r_departamental) + '.' },
-          { texto: 'Agregar no siempre sube la correlación: a veces la baja o le cambia el signo.', correcta: true,
-            retro: 'De los ' + D1.escala_correlacion.n_pares + ' pares reales del capítulo, '
-              + D1.escala_correlacion.n_suben + ' suben, ' + D1.escala_correlacion.n_bajan + ' bajan y '
-              + D1.escala_correlacion.n_invierten + ' invierte el signo.' },
           { texto: 'La cifra departamental es la buena, porque tiene menos ruido.', correcta: false,
             retro: 'Ninguna de las dos es "la buena": responden a preguntas distintas. Módulo 7 y ejercicio 4.' },
           { texto: 'Si difieren, es que una de las dos está mal calculada.', correcta: false,
-            retro: 'Las dos pueden estar perfectamente calculadas. Eso es exactamente el MAUP.' }
+            retro: 'Las dos pueden estar perfectamente calculadas. Eso es exactamente el MAUP.' },
+          { texto: 'Agregar no siempre sube la correlación: a veces la baja o le cambia el signo.', correcta: true,
+            retro: 'De los ' + D1.escala_correlacion.n_pares + ' pares reales del capítulo, '
+              + D1.escala_correlacion.n_suben + ' suben, ' + D1.escala_correlacion.n_bajan + ' bajan y '
+              + D1.escala_correlacion.n_invierten + ' invierte el signo.' }
         ],
         retroAcierto: 'Las dos. La unidad de análisis es una decisión de modelado, no de presentación.',
-        retroFallo: 'Las correctas son las dos primeras. Módulo 7.'
+        retroFallo: 'Las dos ciertas son que las dos cifras pueden diferir con el mismo dato y que agregar no siempre sube la correlación. Módulo 7.'
       },
       {
         tipo: 'opcion', modulo: 6,
@@ -10047,17 +10047,17 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           + 'aleatoria de 10 pliegues. ¿Qué esperas que pase?',
         pista: 'Piensa en qué tan lejos está cada punto de prueba del punto de entrenamiento más próximo.',
         opciones: [
-          { texto: 'El desempeño estimado saldrá mejor de lo que el modelo consigue de verdad.', correcta: true,
-            retro: 'El capítulo lo mide: el RMSE real es un ' + n5(D1.cv_espacial.inflacion_pct)
-              + ' % mayor que el que anuncia la CV aleatoria. Módulo 10.' },
-          { texto: 'Saldrá peor, porque los pliegues rompen la estructura espacial.', correcta: false,
-            retro: 'Al revés: la CV aleatoria deja vecinos en entrenamiento y prueba, y eso AYUDA al modelo de '
-              + 'forma artificial. Módulo 10.' },
           { texto: 'Saldrá igual: la validación cruzada es insensible al tipo de dato.', correcta: false,
             retro: 'El R² del ejemplo pasa de ' + n5(D1.cv_espacial.r2_aleatoria) + ' a '
               + n5(D1.cv_espacial.r2_bloques) + '. No es igual. Módulo 10.' },
           { texto: 'Depende del algoritmo: con árboles no pasa.', correcta: false,
-            retro: 'Pasa con cualquier algoritmo. La fuga la pone el reparto de los pliegues, no el modelo.' }
+            retro: 'Pasa con cualquier algoritmo. La fuga la pone el reparto de los pliegues, no el modelo.' },
+          { texto: 'Saldrá peor, porque los pliegues rompen la estructura espacial.', correcta: false,
+            retro: 'Al revés: la CV aleatoria deja vecinos en entrenamiento y prueba, y eso AYUDA al modelo de '
+              + 'forma artificial. Módulo 10.' },
+          { texto: 'El desempeño estimado saldrá mejor de lo que el modelo consigue de verdad.', correcta: true,
+            retro: 'El capítulo lo mide: el RMSE real es un ' + n5(D1.cv_espacial.inflacion_pct)
+              + ' % mayor que el que anuncia la CV aleatoria. Módulo 10.' }
         ],
         retroAcierto: 'Y el remedio no es "usar siempre bloques": es saber a qué pregunta responde cada reparto.',
         retroFallo: 'Módulo 10.'
@@ -10068,13 +10068,13 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           + 'de los dos tiene necesariamente un error.',
         pista: 'Piensa en si los dos están respondiendo exactamente a la misma pregunta.',
         opciones: [
+          { texto: 'Verdadero: el mismo cálculo da el mismo número', correcta: false,
+            retro: 'Solo si de verdad es el mismo cálculo. La primera pregunta ante una diferencia es «¿estamos '
+              + 'midiendo lo mismo?», no «¿cuál está mal?». Módulo 9.' },
           { texto: 'Falso: pueden estar midiendo cosas distintas', correcta: true,
             retro: 'Este capítulo publica discrepancias documentadas entre R y Python y ninguna es un error: son '
               + 'convenios distintos. sf dice que los ' + D1.anatomia.nc.filas + ' condados de nc son '
-              + 'MULTIPOLYGON y shapely dice que solo ' + D1.anatomia.nc.n_partes_multiples + '.' },
-          { texto: 'Verdadero: el mismo cálculo da el mismo número', correcta: false,
-            retro: 'Solo si de verdad es el mismo cálculo. La primera pregunta ante una diferencia es «¿estamos '
-              + 'midiendo lo mismo?», no «¿cuál está mal?». Módulo 9.' }
+              + 'MULTIPOLYGON y shapely dice que solo ' + D1.anatomia.nc.n_partes_multiples + '.' }
         ],
         retroAcierto: 'Y la distinción que importa: una discrepancia DECLARADA es material didáctico; una sin '
           + 'explicar es un fallo.',
@@ -10086,15 +10086,15 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           + 'de observación por otra más grande, con casi los mismos puntos dentro. ¿Qué pasa?',
         pista: 'Mira qué hay en el denominador y qué NO aparece en la notación.',
         opciones: [
+          { texto: 'Cambia poco, porque los puntos son casi los mismos.', correcta: false,
+            retro: 'Los puntos sí, el área no. En Bogotá las sedes se multiplican por poco más de 1 y el área por '
+              + 'mucho más.' },
           { texto: 'La intensidad cambia, y puede cambiar mucho: la ventana es parte del estimador.',
             correcta: true,
             retro: 'Con las sedes de Bogotá el factor es ' + n5(D1.colombia.puntual.factor_lambda)
               + ' según se use el perímetro urbano o el Distrito completo. Módulo 2.' },
           { texto: 'No cambia: la intensidad es una propiedad del patrón.', correcta: false,
             retro: 'Ojalá. El área está en el denominador, así que elegir la ventana es elegir el resultado.' },
-          { texto: 'Cambia poco, porque los puntos son casi los mismos.', correcta: false,
-            retro: 'Los puntos sí, el área no. En Bogotá las sedes se multiplican por poco más de 1 y el área por '
-              + 'mucho más.' },
           { texto: 'Solo cambia si la ventana deja fuera algún punto.', correcta: false,
             retro: 'Cambia igual aunque no deje fuera ninguno: basta con que crezca el área.' }
         ],
@@ -10124,16 +10124,16 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           + 'retirara el mango de la bomba. ¿Qué se sigue de ahí?',
         pista: 'Ojo con confundir "el brote se apagó después" con "se apagó por eso".',
         opciones: [
-          { texto: 'Que el mapa no puede atribuirle a la retirada del mango el final del brote.', correcta: true,
-            retro: 'El ' + n5(D1.snow.fecha_mango === null ? 0 : D1.snow.caida_hasta_mango_pct)
-              + ' % de la caída ya había ocurrido ese día. Snow tenía razón sobre el agua, pero no por este dato.' },
           { texto: 'Que la retirada del mango fue lo que apagó el brote.', correcta: false,
             retro: 'Es la lectura cómoda, y el dato la contradice: la curva ya venía cayendo. Módulo 1.' },
           { texto: 'Que los datos de Snow están mal digitalizados.', correcta: false,
             retro: 'Están bien: coinciden con los polígonos de Thiessen en '
               + D1.snow.n_coinciden_tobler + ' de ' + D1.snow.n_muertes + '.' },
           { texto: 'Que la teoría del aire viciado era la correcta.', correcta: false,
-            retro: 'Nada de esto rehabilita el miasma. Lo que dice es que ESTE dato no prueba lo que se le atribuye.' }
+            retro: 'Nada de esto rehabilita el miasma. Lo que dice es que ESTE dato no prueba lo que se le atribuye.' },
+          { texto: 'Que el mapa no puede atribuirle a la retirada del mango el final del brote.', correcta: true,
+            retro: 'El ' + n5(D1.snow.fecha_mango === null ? 0 : D1.snow.caida_hasta_mango_pct)
+              + ' % de la caída ya había ocurrido ese día. Snow tenía razón sobre el agua, pero no por este dato.' }
         ],
         retroAcierto: 'El argumento de Snow es geométrico: una concentración alrededor de un punto.',
         retroFallo: 'Módulo 1, la segunda mitad.'
@@ -10147,17 +10147,17 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           { texto: 'Buena parte de esa dependencia la explica la altitud, no la distancia.', correcta: true,
             retro: 'Al quitarla, la I baja a ' + n5(D1.tobler.residuos_altitud.bandas[0].I) + ': un '
               + n5(D1.tobler.caida_por_altitud_pct) + ' % menos.' },
+          { texto: 'Un valor tan alto solo puede salir de un error de cálculo.', correcta: false,
+            retro: 'Es un valor perfectamente normal en un dato climático. Módulo 3.' },
           { texto: 'Permutando las temperaturas entre las mismas estaciones, la I se desploma.', correcta: true,
             retro: 'Cae a ' + n5(D1.tobler.permutado.bandas[0].I) + '. Ese control es lo que descarta que la '
               + 'estructura la ponga la geometría.' },
-          { texto: 'Un valor tan alto solo puede salir de un error de cálculo.', correcta: false,
-            retro: 'Es un valor perfectamente normal en un dato climático. Módulo 3.' },
           { texto: 'Como la altitud explica parte, la dependencia espacial desaparece.', correcta: false,
             retro: 'No desaparece: queda ' + n5(D1.tobler.residuos_altitud.bandas[0].I) + ', que sigue siendo '
               + 'mucho. Baja, no se anula.' }
         ],
         retroAcierto: 'Y eso anuncia el capítulo 9: el kriging con deriva externa.',
-        retroFallo: 'Las correctas son las dos primeras. Módulo 3.'
+        retroFallo: 'Las dos ciertas son que buena parte de la dependencia la explica la altitud y que permutar las temperaturas entre las mismas estaciones desploma la I. Módulo 3.'
       },
       {
         tipo: 'grafico', modulo: 4,
@@ -10178,11 +10178,9 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
                          y: { title: { display: true, text: 'error estándar' } } } });
         },
         opciones: [
-          { texto: 'El e.e. ingenuo no ve la correlación, así que subestima cada vez más al crecer phi.',
-            correcta: true,
-            retro: 'Con phi = ' + D1.inferencia.rejilla[4].phi + ' el real es '
-              + n5(D1.inferencia.rejilla[4].factor) + ' veces el ingenuo. La fórmula clásica solo mira la '
-              + 'dispersión de los datos, no cómo se relacionan entre sí.' },
+          { texto: 'Con phi grande hay menos datos, y por eso sube el error.', correcta: false,
+            retro: 'Hay siempre ' + D1.inferencia.n + ' celdas. Lo que baja es la información que aportan: el n '
+              + 'efectivo pasa de ' + D1.inferencia.n + ' a ' + n5(D1.inferencia.n_eff_phi4) + '.' },
           { texto: 'La media está cada vez peor estimada al crecer phi.', correcta: false,
             retro: 'La media sigue bien estimada: la simulación da '
               + n5(D1.una_realizacion.media_de_las_medias) + ' con media verdadera '
@@ -10190,9 +10188,11 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
               + 'Ésa es la parte que hace el fallo difícil de ver.' },
           { texto: 'El e.e. real crece porque la varianza del proceso crece con phi.', correcta: false,
             retro: 'La varianza marginal es la misma para todo phi; lo que cambia es la covarianza entre celdas.' },
-          { texto: 'Con phi grande hay menos datos, y por eso sube el error.', correcta: false,
-            retro: 'Hay siempre ' + D1.inferencia.n + ' celdas. Lo que baja es la información que aportan: el n '
-              + 'efectivo pasa de ' + D1.inferencia.n + ' a ' + n5(D1.inferencia.n_eff_phi4) + '.' }
+          { texto: 'El e.e. ingenuo no ve la correlación, así que subestima cada vez más al crecer phi.',
+            correcta: true,
+            retro: 'Con phi = ' + D1.inferencia.rejilla[4].phi + ' el real es '
+              + n5(D1.inferencia.rejilla[4].factor) + ' veces el ingenuo. La fórmula clásica solo mira la '
+              + 'dispersión de los datos, no cómo se relacionan entre sí.' }
         ],
         retroAcierto: 'Y no es un sesgo de la estimación: es un sesgo de la confianza.',
         retroFallo: 'Módulo 4.'
@@ -10222,11 +10222,11 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           { texto: 'Con el I de Moran de la deserción.', correcta: false,
             retro: 'Son cosas distintas: una es autocorrelación de un dato real, la otra la tasa de error de un '
               + 'contraste sobre un campo simulado.' },
-          { texto: 'Con el n efectivo de los municipios.', correcta: false,
-            retro: 'El n efectivo cuantifica la pérdida de información, no la tasa de rechazo.' },
           { texto: 'Con ninguna: es una cifra independiente.', correcta: false,
             retro: 'Justo eso es lo que hay que desconfiar. Dos módulos midiendo lo mismo sin compararse es como '
-              + 'se cuelan las incoherencias. Módulos 4 y 6.' }
+              + 'se cuelan las incoherencias. Módulos 4 y 6.' },
+          { texto: 'Con el n efectivo de los municipios.', correcta: false,
+            retro: 'El n efectivo cuantifica la pérdida de información, no la tasa de rechazo.' }
         ],
         retroAcierto: 'Dos cifras que deberían coincidir y viven a dos módulos de distancia son las que nadie compara.',
         retroFallo: 'Módulo 6, la caja de aviso.'
@@ -10236,24 +10236,24 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
         pregunta: 'Sobre las discrepancias declaradas entre R y Python, marca <strong>todo</strong> lo que sea cierto.',
         pista: 'Son dos, y las dos tienen que ver con qué se está midiendo, no con quién se equivoca.',
         opciones: [
-          { texto: 'sf informa el tipo de la CAPA y shapely el de cada rasgo; por eso los conteos difieren.',
-            correcta: true,
-            retro: 'sf dice ' + D1.anatomia.nc.n_multipolygon + ' MULTIPOLYGON y shapely solo '
-              + D1.anatomia.nc.n_partes_multiples + '. La geometría es idéntica.' },
-          { texto: 'spdep y esda cuentan distinto las unidades sin vecinos al calcular el I de Moran.',
-            correcta: true,
-            retro: n5(D1.escala.moran_municipal) + ' frente a ' + n5(D1.escala.moran_municipal_n_total)
-              + '. Se recupera uno desde el otro multiplicando por (n − islas)/n.' },
           { texto: 'Una discrepancia sin explicar y una documentada valen lo mismo si el material las publica.',
             correcta: false,
             retro: 'No: el auditor del capítulo lleva la lista de las conocidas y FALLA ante una que no esté. '
               + 'Ésa es la diferencia entre material didáctico y un error.' },
           { texto: 'Las discrepancias vienen de que GDAL y GEOS son distintos en cada lenguaje.', correcta: false,
             retro: 'Son las MISMAS bibliotecas: R y Python las llaman a las dos. El desacuerdo está en la capa de '
-              + 'arriba. Módulo 8.' }
+              + 'arriba. Módulo 8.' },
+          { texto: 'spdep y esda cuentan distinto las unidades sin vecinos al calcular el I de Moran.',
+            correcta: true,
+            retro: n5(D1.escala.moran_municipal) + ' frente a ' + n5(D1.escala.moran_municipal_n_total)
+              + '. Se recupera uno desde el otro multiplicando por (n − islas)/n.' },
+          { texto: 'sf informa el tipo de la CAPA y shapely el de cada rasgo; por eso los conteos difieren.',
+            correcta: true,
+            retro: 'sf dice ' + D1.anatomia.nc.n_multipolygon + ' MULTIPOLYGON y shapely solo '
+              + D1.anatomia.nc.n_partes_multiples + '. La geometría es idéntica.' }
         ],
         retroAcierto: 'Ante una diferencia, la primera pregunta es «¿estamos midiendo lo mismo?».',
-        retroFallo: 'Las correctas son las dos primeras. Módulo 9.'
+        retroFallo: 'Las dos ciertas son la del tipo de la CAPA frente al de cada rasgo y la de las unidades sin vecinos en el I de Moran. Módulo 9.'
       },
       {
         tipo: 'opcion', modulo: 10,
@@ -10261,13 +10261,13 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
           + 'espaciales es la correcta.',
         pista: 'Depende de a qué pregunta quieras que responda el modelo.',
         opciones: [
-          { texto: 'Falso: depende de la pregunta', correcta: true,
-            retro: 'La de bloques responde a «¿cuánto me fío en una zona donde no he medido?». Si la pregunta '
-              + 'fuera rellenar huecos entre estaciones existentes, la aleatoria sería la adecuada.' },
           { texto: 'Verdadero: con coordenadas, siempre bloques', correcta: false,
             retro: 'Es la conclusión fácil de un módulo que se pasa midiendo lo mal que sale la aleatoria. Pero '
               + 'elegir el reparto es declarar a qué pregunta se responde, y hacerlo por defecto es responder a '
-              + 'la que no era. Módulo 10.' }
+              + 'la que no era. Módulo 10.' },
+          { texto: 'Falso: depende de la pregunta', correcta: true,
+            retro: 'La de bloques responde a «¿cuánto me fío en una zona donde no he medido?». Si la pregunta '
+              + 'fuera rellenar huecos entre estaciones existentes, la aleatoria sería la adecuada.' }
         ],
         retroAcierto: 'Y por eso el material publica las dos y dice qué mide cada una.',
         retroFallo: 'Módulo 10, la caja de aviso final.'

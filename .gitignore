@@ -125,3 +125,9 @@ precalculo/verifica_taller1.R
 precalculo/salidas/privado/
 !/PLAN_Preparcial_Corte_1.md
 !/PLAN_Parcial_Corte_2.md
+
+# El plan de la revisión del capítulo 5 (2026-09-02) entra como los demás planes:
+# es lo que dice por qué los cinco capítulos cambiaron de golpe. El informe que
+# produjo —`AUDITORIA_CONTENIDO_CAP5.md`— NO entra, igual que el del preparcial:
+# los informes de auditoría se quedan en la carpeta de trabajo.
+!/PLAN_Revision_Capitulo_5.md

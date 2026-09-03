@@ -574,6 +574,18 @@ def main() -> int:
         limpias[nombre] = tmp / origen.name
         shutil.copy(origen, limpias[nombre])
 
+    # Los módulos que el ensamblador importa viajan con él, y NO son
+    # superficies: no se envenenan, porque no son entrada del capítulo sino
+    # parte de la herramienta. Sin esta copia el arnés muere en el control de
+    # entrada con un ModuleNotFoundError, que es un rojo que no dice nada del
+    # ensamblador. Lo estrenó `baraja_opciones.py` el 2026-09-02.
+    for auxiliar in ("baraja_opciones.py",):
+        origen = ENSAMBLADOR.parent / auxiliar
+        if not origen.exists():
+            print(f"PARADO: falta {origen}")
+            return 1
+        shutil.copy(origen, tmp / auxiliar)
+
     print("=" * 70)
     print("  prueba_ensambla_cap1.py — el arnés de las guardas de compilación")
     print("=" * 70)

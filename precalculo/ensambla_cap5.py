@@ -47,6 +47,7 @@ from __future__ import annotations
 import json
 import pathlib
 import sys
+from baraja_opciones import baraja_documento
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from rejilla_comprime import ida_y_vuelta
@@ -136,12 +137,25 @@ def tabs(etiqueta, r_code, py_code):
 """
 
 
-def sim(ident, titulo, pie="", alto=260):
+def sim(ident, titulo, pie="", alto=260, mandos=True):
+    """Un componente con su lienzo, su lectura y —si los tiene— sus mandos.
+
+    `mandos=False` es para los que NO los tienen, y no es cosmética. Hasta la
+    revisión del 2026-09-02 esta función emitía siempre el
+    `<div class="simulador-controles">`, así que el Hawkes del módulo 11 —una
+    figura fija: no hay nada que mover— publicaba un contenedor vacío con
+    `margin: 20px 0`, o sea CUARENTA PÍXELES de hueco muerto entre su párrafo
+    y su gráfico, y un icono de deslizadores en el título anunciando mandos que
+    no existen. El lector los busca. La hoja de estilos ya tenía previsto el
+    caso —`.simulador-intro + .grafico-wrapper` quita el margen igual que
+    `.simulador-controles + .grafico-wrapper`—, así que quitarlo no descuadra
+    nada.
+    """
+    icono = "fa-sliders" if mandos else "fa-chart-column"
     return f"""      <div class="simulador" data-simulador="{ident}">
-        <h4><i class="fas fa-sliders" aria-hidden="true"></i> {titulo}</h4>
+        <h4><i class="fas {icono}" aria-hidden="true"></i> {titulo}</h4>
         {f'<p class="simulador-intro">{pie}</p>' if pie else ''}
-        <div class="simulador-controles"></div>
-        <div class="grafico-wrapper" style="height:{alto}px;">
+{'        <div class="simulador-controles"></div>' + chr(10) if mandos else ''}        <div class="grafico-wrapper" style="height:{alto}px;">
           <canvas role="img" aria-label="{titulo}"></canvas>
         </div>
         <div class="simulador-lectura"></div>
@@ -369,10 +383,11 @@ MOD1 = cabecera(
       </div>
 
 {mapa_html("cap5-kennedy", "Kennedy: las 262 sedes educativas dentro de la ventana")}
-      <p class="pie-figura">La ventana no es la caja: es el contorno de la localidad, con sus
-        entrantes y su borde irregular. Todo lo que este capítulo estime —cada superficie, cada
-        corrección de borde, cada integral— se hace contra esta forma y no contra el rectángulo
-        que la contiene.</p>
+      <p class="pie-figura">El mapa dibuja las sedes y nada más. La ventana con la que trabaja
+        el capítulo no se ve ahí, y no es el rectángulo que las enmarca: es el contorno de la
+        localidad, con sus entrantes y su borde irregular. Todo lo que aquí se estime —cada
+        superficie, cada corrección de borde, cada integral— se hace contra esa forma y no contra
+        la caja.</p>
 
       <p>Con la ventana puesta, el punto de partida es el del capítulo anterior. Sobre una
         rejilla de {m1["cuadrantes"]["nx"]} × {m1["cuadrantes"]["nx"]} celdas, la más vacía tiene
@@ -730,9 +745,10 @@ MOD4 = cabecera(
       </div>
 
 {sim("cap5-borde", "Las tres correcciones, y lo que le hacen a la masa",
-      "Cambia el ancho y mira la barra de n. Lo que interesa no es cuál está más "
-      "alta, sino que las dos desviaciones crecen con σ: el problema del borde no "
-      "es un detalle fijo, escala con el núcleo.")}
+      "Los tres anchos van en el eje y los dos botones cambian lo que se mide: la masa "
+      "integrada contra n, o su desviación en tanto por ciento. Lo que interesa no es "
+      "cuál barra está más alta, sino que las dos desviaciones crecen con σ: el problema "
+      "del borde no es un detalle fijo, escala con el núcleo.")}
       <p>Entre no corregir y corregir por defecto hay
         {firma(n(m4["horquilla_pct"]), " puntos porcentuales")} a σ =
         {ent(m4["sigmas_m"][-1])} m. Y la horquilla también se ve en el pico del mapa: sin
@@ -1367,8 +1383,9 @@ MOD8 = cabecera(
       </div>
 
 {sim("cap5-cuadratura", "La cuadratura, y lo que le hace a lo que se lee",
-      "Cambia nd y mira las dos cosas a la vez: la banda del coeficiente —que apenas "
-      "se mueve— y el AIC, que se mueve lo que decide un modelo.")}
+      "Los dos botones recorren la misma cuadratura —de nd = 50 a nd = 300— y la miran de "
+      "dos maneras: la banda del coeficiente, que apenas se mueve, y el AIC, que se mueve "
+      "lo que decide un modelo.")}
       <p>La regla que sale de aquí es corta: <strong>la cuadratura viaja con el modelo</strong>.
         Comparar dos <code>ppm</code> por AIC solo vale si los dos se ajustaron con la misma, y
         eso hay que escribirlo, porque el defecto no aparece en ninguna de las dos llamadas.</p>
@@ -1864,7 +1881,7 @@ MOD11 = cabecera(
 {sim("cap5-hawkes", "Un Hawkes contra un Poisson de su misma tasa",
       "Los dos procesos tienen el mismo número de eventos y la misma tasa media. "
       "Lo único distinto es cómo se reparten, y el índice de dispersión lo mide: "
-      "vale 1 bajo Poisson.")}
+      "vale 1 bajo Poisson.", mandos=False)}
       <p>Con {ent(_hw["n_eventos"])} eventos cada uno, el índice de dispersión del Hawkes vale
         {firma(n(_hw["dispersion_hawkes"]))} y el del Poisson
         {firma(n(_hw["dispersion_poisson"]))}: {n(_hw["veces_mas_agregado"], 1)} veces más
@@ -2080,7 +2097,7 @@ GEOMAPAS_JS = (
     FAMILIA_JS
     + geomapa('cap5-kennedy', 'kennedy_puntos',
               _etq('Las 262 sedes educativas que caen dentro de la ventana de Kennedy, '
-                   'sobre el contorno de la localidad.'))
+                   'dibujadas como una nube de puntos.'))
     + "    GEOMAPAS['cap5-familia'] = {\n"
       "      fuente: () => superficieDeSigma(D5.m2.familia.sigmas_m[famIdx]),\n"
       "      paleta: 'naranja',\n"
@@ -2653,7 +2670,7 @@ QUIZ_JS = r"""
         pista: 'Son dos. Una tiene que ver con lo que se conserva y la otra con lo que cuesta.',
         pregunta: 'Marca <strong>todo</strong> lo que es cierto de la corrección de borde en la KDE.',
         retroAcierto: 'Las dos: solo la de Diggle conserva el conteo, y ninguna de las tres cuesta nada apreciable.',
-        retroFallo: 'Las correctas son la primera y la segunda.',
+        retroFallo: 'Las dos ciertas son que solo la de Diggle conserva el conteo y que ninguna de las tres cuesta nada apreciable.',
         opciones: [
           { texto: 'Solo <code>diggle = TRUE</code> hace que la integral devuelva n exactamente', correcta: true,
             retro: 'Divide en el punto donde ESTÁ el dato, así que cada punto aporta exactamente 1. Medido a σ = ' + n5(D5.m4.sigmas_m[2], 0) + ' m: ' + n5(D5.m4.tabla[2].masa_diggle, 2) + ' contra n = ' + D5.m4.n + '.' },
@@ -2731,7 +2748,7 @@ QUIZ_JS = r"""
         pista: 'Son dos. Piensa en qué delata a un selector que ha chocado con su intervalo.',
         pregunta: 'Un selector devuelve exactamente ' + n5(D5.m3.topes[0].sigma, 4) + ', que es el extremo derecho de su intervalo de búsqueda. Marca <strong>todo</strong> lo que es cierto.',
         retroAcierto: 'Las dos: no ha encontrado un óptimo dentro del intervalo, y el valor devuelto no lo delata por sí solo.',
-        retroFallo: 'Las correctas son la primera y la tercera.',
+        retroFallo: 'Las dos ciertas son que no ha encontrado un óptimo dentro del intervalo y que el valor devuelto no lo delata por sí solo.',
         opciones: [
           { texto: 'No ha seleccionado nada: ha chocado con la pared del intervalo', correcta: true,
             retro: 'El criterio seguía subiendo cuando se acabó el rango. Publicar ese número como «el ancho óptimo» sería falso.' },
@@ -2775,7 +2792,7 @@ QUIZ_JS = r"""
         pista: 'Son dos, y las dos van de argumentos que no aparecen en la llamada.',
         pregunta: 'Sobre <code>ppm</code>, marca <strong>todo</strong> lo que es cierto.',
         retroAcierto: 'Las dos: el AIC depende de la cuadratura, y el ajuste con coordenadas crudas devuelve coeficientes sin errores estándar.',
-        retroFallo: 'Las correctas son la primera y la tercera.',
+        retroFallo: 'Las dos ciertas son que el AIC depende de la cuadratura y que el ajuste con coordenadas crudas devuelve coeficientes sin errores estándar.',
         opciones: [
           { texto: 'Dos ppm ajustados con cuadraturas distintas no se pueden comparar por AIC', correcta: true,
             retro: 'El AIC sale de la verosimilitud APROXIMADA por la cuadratura. Entre nd = ' + D5.m8.cuadratura.tabla[0].nd + ' y nd = ' + D5.m8.cuadratura.tabla[3].nd + ' el AIC se mueve ' + n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos sin que cambie el modelo.' },
@@ -2899,6 +2916,11 @@ def main() -> int:
                            QUIZ_JS.lstrip("\n"), "AUTOEVALUACIONES", max_lineas=90)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
+    # El orden de las opciones se decide en `baraja_opciones.py`, y es la
+    # corrección del 2026-09-02: escritas de una en una, las 51 preguntas de
+    # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
+    doc = baraja_documento(doc, "cap5")
+
     DESTINO.write_text(doc, encoding="utf-8")
 
     marcado = doc[:doc.rindex("\n  <script>")]
