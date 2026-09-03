@@ -3640,11 +3640,24 @@ tapó un defecto: es el A.10 otra vez, con otra cara.
 `ensambla_cap5.py` para y no publica. La comprobación cuesta dos líneas y es de las que solo se
 escriben después de pagar el defecto una vez.
 
-**Deuda declarada, no resuelta aquí:** arreglarlo en los capítulos 3 y 4 es cambiar una palabra por
-opción, pero obliga a **regenerar dos capítulos cerrados** y a repetir la cadena de verificación del
-§0.4 sobre los dos —y el capítulo 3 es material del preparcial del Corte I—. Entra con la primera
-reapertura del Corte I, junto a la deuda de `audita_texto_cap3.py` y a la de los diez rásteres del
-capítulo 1. **Son ya tres, y las tres esperan la misma reapertura.**
+~~**Deuda declarada, no resuelta aquí.**~~ ✅ **SALDADA el 2026-09-03**, en la reapertura que trajo
+el barajado de las opciones: los cinco capítulos se regeneraban de todas formas, así que la palabra
+por opción salía gratis. **68 opciones** pasan de `respuesta` a `retro` —28 en el capítulo 3 y 40 en
+el 4— y **las tres numéricas** cambian su `explicacion` por `retroAcierto` y `retroFallo`, con el
+mismo texto en las dos: es la explicación que su autor escribió una vez, y ahora llega a los dos
+lectores en vez de a ninguno.
+
+**Y era peor de lo que esta ficha decía.** La guarda de `cerrar()` —`textoRetro || ''`— salva a las
+opciones, pero no a las numéricas: allí el mensaje se arma con una plantilla,
+`` `La respuesta es ${p.respuesta}. ${p.retroFallo}` ``, que interpola el valor ausente ANTES de que
+la guarda vea nada. Comprobado en el navegador sobre el capítulo 3 publicado: quien fallaba la
+numérica leía **«No es esa. La respuesta es 224. undefined»**. Un defecto silencioso que llevaba
+meses escribiéndole «undefined» al estudiante.
+
+Los dos ensambladores llevan ahora la guarda del capítulo 5 —`respuesta:`/`explicacion:` en el
+documento, y toda opción con su `retro`—, más una tercera para las numéricas, y **las tres se han
+visto disparar** sobre copias envenenadas. Quedan en pie las otras dos deudas de la lista: la de los
+diez rásteres del capítulo 1 —`audita_texto_cap3.py` se saldó en T3.6—.
 
 ---
 

@@ -45,6 +45,7 @@ Uso:  python3 precalculo/ensambla_cap4.py
 from __future__ import annotations
 
 import json
+import re
 import pathlib
 import sys
 from baraja_opciones import baraja_documento
@@ -1809,45 +1810,46 @@ QUIZ_JS = r"""
         pregunta: 'Un informe dice «en Bogotá hay 5,7 colegios por km²». ¿Qué le falta para ser una afirmación completa?',
         opciones: [
           { texto: 'Decir cuál es la ventana de observación', correcta: true,
-            respuesta: 'Eso es. Con el perímetro urbano salen ' + n5(D4.m1.urbana.lambda_km2, 4) + ' sedes/km²; con el Distrito Capital entero, ' + n5(D4.m1.dc.lambda_km2, 4) + '. La misma ciudad y el mismo dato, con un factor de ' + n5(D4.m1.factor_lambda, 2) + ' entre las dos.' },
+            retro: 'Eso es. Con el perímetro urbano salen ' + n5(D4.m1.urbana.lambda_km2, 4) + ' sedes/km²; con el Distrito Capital entero, ' + n5(D4.m1.dc.lambda_km2, 4) + '. La misma ciudad y el mismo dato, con un factor de ' + n5(D4.m1.factor_lambda, 2) + ' entre las dos.' },
           { texto: 'Nada: la intensidad es una propiedad del dato',
-            respuesta: 'No lo es. La intensidad es n dividido por el área de la ventana, y la ventana la elige quien analiza.' },
+            retro: 'No lo es. La intensidad es n dividido por el área de la ventana, y la ventana la elige quien analiza.' },
           { texto: 'Decir cuántos colegios hay en total',
-            respuesta: 'Ayuda, pero no arregla el problema: el número de sedes apenas cambia entre las dos ventanas — sube un ' + n5(D4.m1.aumento_n_pct, 1) + ' % — y la intensidad se cuadruplica.' },
+            retro: 'Ayuda, pero no arregla el problema: el número de sedes apenas cambia entre las dos ventanas — sube un ' + n5(D4.m1.aumento_n_pct, 1) + ' % — y la intensidad se cuadruplica.' },
           { texto: 'Usar hectáreas en vez de km²',
-            respuesta: 'La unidad no cambia el problema: la misma cifra en hectáreas es ' + n5(D4.m2.lambda_urbana_ha, 4) + ', y sigue dependiendo de qué ventana se usó.' }
+            retro: 'La unidad no cambia el problema: la misma cifra en hectáreas es ' + n5(D4.m2.lambda_urbana_ha, 4) + ', y sigue dependiendo de qué ventana se usó.' }
         ] },
       {
         tipo: 'opcion',
         pregunta: 'Dos patrones tienen exactamente el mismo χ² en el test de cuadrantes. ¿Qué se puede concluir?',
         opciones: [
           { texto: 'Nada sobre su estructura a escala menor que la celda', correcta: true,
-            respuesta: 'Correcto, y el módulo 5 lo construye a propósito: los dos patrones dan χ² = ' + n5(D4.m5.original.chi2, 4) + ' y su distancia media al vecino se multiplica por ' + n5(D4.m5.nn_cociente, 2) + '.' },
+            retro: 'Correcto, y el módulo 5 lo construye a propósito: los dos patrones dan χ² = ' + n5(D4.m5.original.chi2, 4) + ' y su distancia media al vecino se multiplica por ' + n5(D4.m5.nn_cociente, 2) + '.' },
           { texto: 'Que son el mismo patrón',
-            respuesta: 'No. El χ² solo usa cuántos puntos hay en cada celda, así que dos repartos idénticos por celda le dan el mismo número aunque los puntos estén colocados de forma opuesta.' },
+            retro: 'No. El χ² solo usa cuántos puntos hay en cada celda, así que dos repartos idénticos por celda le dan el mismo número aunque los puntos estén colocados de forma opuesta.' },
           { texto: 'Que los dos son aleatorios',
-            respuesta: 'Tampoco: el χ² del módulo 5 rechaza en los dos casos. Lo que no distingue es la estructura DENTRO de cada celda.' },
+            retro: 'Tampoco: el χ² del módulo 5 rechaza en los dos casos. Lo que no distingue es la estructura DENTRO de cada celda.' },
           { texto: 'Que tienen la misma intensidad',
-            respuesta: 'Eso sí es cierto si comparten ventana y n, pero es mucho menos de lo que la pregunta pide.' }
+            retro: 'Eso sí es cierto si comparten ventana y n, pero es mucho menos de lo que la pregunta pide.' }
         ] },
       {
         tipo: 'multiple',
         pregunta: 'El test de cuadrantes sobre las sedes de Bogotá con una rejilla 10×10 rechaza con un p-valor minúsculo. ¿Qué afirmaciones son correctas?',
         opciones: [
           { texto: 'La intensidad no es constante en la ventana', correcta: true,
-            respuesta: 'Sí: el índice de dispersión vale ' + n5(D4.m2.urbana.dispersion, 2) + ' y bajo Poisson valdría 1.' },
+            retro: 'Sí: el índice de dispersión vale ' + n5(D4.m2.urbana.dispersion, 2) + ' y bajo Poisson valdría 1.' },
           { texto: 'Parte de las celdas tienen esperanza menor que 5, así que la aproximación χ² es discutible', correcta: true,
-            respuesta: 'Cierto: son ' + D4.m2.urbana.celdas_esperanza_baja + ' de ' + D4.m2.urbana.celdas + ' celdas vivas, porque la ventana las recorta.' },
+            retro: 'Cierto: son ' + D4.m2.urbana.celdas_esperanza_baja + ' de ' + D4.m2.urbana.celdas + ' celdas vivas, porque la ventana las recorta.' },
           { texto: 'Los colegios se atraen entre sí',
-            respuesta: 'El test de cuadrantes no puede decir eso: solo mira conteos por celda, no relaciones entre puntos.' },
+            retro: 'El test de cuadrantes no puede decir eso: solo mira conteos por celda, no relaciones entre puntos.' },
           { texto: 'Con otra rejilla el veredicto sería el mismo',
-            respuesta: 'No está garantizado. Sobre las secuoyas, el barrido del módulo 6 rechaza en ' + D4.m6.redwood_rechazos + ' de ' + D4.m6.nxs.length + ' tamaños; el más grueso no rechaza.' }
+            retro: 'No está garantizado. Sobre las secuoyas, el barrido del módulo 6 rechaza en ' + D4.m6.redwood_rechazos + ' de ' + D4.m6.nxs.length + ' tamaños; el más grueso no rechaza.' }
         ] },
       {
         tipo: 'numerica',
         pregunta: 'Con 999 simulaciones, ¿cuál es el p-valor más pequeño que una envolvente puede dar?',
         respuesta: D4.m11.p_minimo, tolerancia: 0.0002,
-        explicacion: 'Es 1/(nsim+1) = ' + n5(D4.m11.p_minimo) + '. No es una convención ni un redondeo: con 999 simulaciones no existe un p menor, por bien que se separe la curva observada.'
+        retroAcierto: 'Es 1/(nsim+1) = ' + n5(D4.m11.p_minimo) + '. No es una convención ni un redondeo: con 999 simulaciones no existe un p menor, por bien que se separe la curva observada.',
+        retroFallo: 'Es 1/(nsim+1) = ' + n5(D4.m11.p_minimo) + '. No es una convención ni un redondeo: con 999 simulaciones no existe un p menor, por bien que se separe la curva observada.'
       }
     ];
 
@@ -1857,97 +1859,98 @@ QUIZ_JS = r"""
         pregunta: '¿Cuáles son las DOS propiedades que definen la aleatoriedad espacial completa (CSR)?',
         opciones: [
           { texto: 'El número de puntos en una región es Poisson, y dado ese número las posiciones son uniformes e independientes', correcta: true,
-            respuesta: 'Eso es, y la primera es la que se olvida. Por eso dos realizaciones del mismo proceso no tienen el mismo n: en ' + miles4(D4.m4.n_realizaciones) + ' simulaciones el conteo va de ' + D4.m4.conteo_min + ' a ' + D4.m4.conteo_max + '.' },
+            retro: 'Eso es, y la primera es la que se olvida. Por eso dos realizaciones del mismo proceso no tienen el mismo n: en ' + miles4(D4.m4.n_realizaciones) + ' simulaciones el conteo va de ' + D4.m4.conteo_min + ' a ' + D4.m4.conteo_max + '.' },
           { texto: 'Las posiciones son uniformes y el número de puntos es fijo',
-            respuesta: 'La segunda mitad es falsa: si n fuera fijo no habría variabilidad de conteos, y la varianza observada es ' + n5(D4.m4.conteo_var, 2) + ', prácticamente igual a la media.' },
+            retro: 'La segunda mitad es falsa: si n fuera fijo no habría variabilidad de conteos, y la varianza observada es ' + n5(D4.m4.conteo_var, 2) + ', prácticamente igual a la media.' },
           { texto: 'Los puntos están equiespaciados y no se tocan',
-            respuesta: 'Eso describe un patrón REGULAR, que es lo contrario de aleatorio. Las células tienen R = ' + n5(D4.m3.cells.clark_evans, 4) + '.' },
+            retro: 'Eso describe un patrón REGULAR, que es lo contrario de aleatorio. Las células tienen R = ' + n5(D4.m3.cells.clark_evans, 4) + '.' },
           { texto: 'La intensidad es constante y los puntos se atraen débilmente',
-            respuesta: 'La atracción, aunque sea débil, ya no es CSR: sería un proceso de conglomerado.' }
+            retro: 'La atracción, aunque sea débil, ya no es CSR: sería un proceso de conglomerado.' }
         ] },
       {
         tipo: 'opcion',
         pregunta: 'Una realización de CSR PURO da un índice de Clark-Evans de 0,90. ¿Qué se concluye?',
         opciones: [
           { texto: 'Nada, porque el azar solo ya produce ese valor con frecuencia', correcta: true,
-            respuesta: 'Exacto. Sobre ' + miles4(D4.m4.R_csr.n) + ' realizaciones de azar puro, R recorrió de ' + n5(D4.m4.R_csr.min, 3) + ' a ' + n5(D4.m4.R_csr.max, 3) + ', y ' + miles4(D4.m4.R_csr.bajo_1) + ' de ellas quedaron por debajo de 1.' },
+            retro: 'Exacto. Sobre ' + miles4(D4.m4.R_csr.n) + ' realizaciones de azar puro, R recorrió de ' + n5(D4.m4.R_csr.min, 3) + ' a ' + n5(D4.m4.R_csr.max, 3) + ', y ' + miles4(D4.m4.R_csr.bajo_1) + ' de ellas quedaron por debajo de 1.' },
           { texto: 'Que el patrón está agregado',
-            respuesta: 'Ese es justo el error que el módulo 4 desmonta: comparar una R contra 1 sin saber cuánto se mueve el azar.' },
+            retro: 'Ese es justo el error que el módulo 4 desmonta: comparar una R contra 1 sin saber cuánto se mueve el azar.' },
           { texto: 'Que hay un error en la simulación',
-            respuesta: 'No: el intervalo central del 95 % de R bajo CSR va de ' + n5(D4.m4.R_csr.q025, 3) + ' a ' + n5(D4.m4.R_csr.q975, 3) + ', y 0,90 cae dentro.' },
+            retro: 'No: el intervalo central del 95 % de R bajo CSR va de ' + n5(D4.m4.R_csr.q025, 3) + ' a ' + n5(D4.m4.R_csr.q975, 3) + ', y 0,90 cae dentro.' },
           { texto: 'Que la ventana es demasiado pequeña',
-            respuesta: 'El tamaño de la ventana influye en la precisión, pero el valor observado es perfectamente compatible con CSR.' }
+            retro: 'El tamaño de la ventana influye en la precisión, pero el valor observado es perfectamente compatible con CSR.' }
         ] },
       {
         tipo: 'opcion',
         pregunta: '¿Qué distingue a la función G de la función F?',
         opciones: [
           { texto: 'G mide desde los puntos del patrón; F, desde sitios cualesquiera de la ventana', correcta: true,
-            respuesta: 'Eso es. Por eso separan los regímenes en direcciones opuestas: un patrón agregado tiene vecinos cerca (G sube pronto) y deja huecos grandes (F sube tarde).' },
+            retro: 'Eso es. Por eso separan los regímenes en direcciones opuestas: un patrón agregado tiene vecinos cerca (G sube pronto) y deja huecos grandes (F sube tarde).' },
           { texto: 'G usa distancias y F usa conteos',
-            respuesta: 'Las dos usan distancias. Lo que cambia es desde dónde se miden.' },
+            retro: 'Las dos usan distancias. Lo que cambia es desde dónde se miden.' },
           { texto: 'G corrige el efecto de borde y F no',
-            respuesta: 'Las dos admiten corrección de borde; ninguna la lleva incorporada por definición.' },
+            retro: 'Las dos admiten corrección de borde; ninguna la lleva incorporada por definición.' },
           { texto: 'G vale para patrones agregados y F para regulares',
-            respuesta: 'Las dos valen para cualquier patrón: son descripciones, no tests específicos de un régimen.' }
+            retro: 'Las dos valen para cualquier patrón: son descripciones, no tests específicos de un régimen.' }
         ] },
       {
         tipo: 'numerica',
         pregunta: 'La G empírica de las sedes de Bogotá vale 0,037494 en r = 0. ¿Cuántas sedes comparten coordenada exacta con otra?',
         respuesta: D4.m7.bogota.coincidentes, tolerancia: 0.5,
-        explicacion: 'Son ' + D4.m7.bogota.coincidentes + ' sedes, el ' + n5(D4.m7.bogota.coincidentes_pct, 2) + ' % del patrón, con hasta ' + D4.m7.duplicados.maximo_por_sitio + ' en un mismo punto: sedes distintas en el mismo edificio. Un patrón con duplicados no es un proceso puntual simple, y el salto de G en r = 0 es exactamente esa fracción.'
+        retroAcierto: 'Son ' + D4.m7.bogota.coincidentes + ' sedes, el ' + n5(D4.m7.bogota.coincidentes_pct, 2) + ' % del patrón, con hasta ' + D4.m7.duplicados.maximo_por_sitio + ' en un mismo punto: sedes distintas en el mismo edificio. Un patrón con duplicados no es un proceso puntual simple, y el salto de G en r = 0 es exactamente esa fracción.',
+        retroFallo: 'Son ' + D4.m7.bogota.coincidentes + ' sedes, el ' + n5(D4.m7.bogota.coincidentes_pct, 2) + ' % del patrón, con hasta ' + D4.m7.duplicados.maximo_por_sitio + ' en un mismo punto: sedes distintas en el mismo edificio. Un patrón con duplicados no es un proceso puntual simple, y el salto de G en r = 0 es exactamente esa fracción.'
       },
       {
         tipo: 'opcion',
         pregunta: 'K(r) de un patrón sigue por encima de su valor teórico a 500 m, aunque la agregación real ocurre a 20 m. ¿Por qué?',
         opciones: [
           { texto: 'Porque K es acumulativa y arrastra los vecinos ya contados', correcta: true,
-            respuesta: 'Eso es, y es lo que g(r) arregla mirando solo el anillo de radio r. Sobre las secuoyas, g alcanza ' + n5(D4.m9.redwood.g_max, 2) + ' en r = ' + n5(D4.m9.redwood.r_g_max, 4) + ' y vuelve a 1 mucho antes de que K se despegue.' },
+            retro: 'Eso es, y es lo que g(r) arregla mirando solo el anillo de radio r. Sobre las secuoyas, g alcanza ' + n5(D4.m9.redwood.g_max, 2) + ' en r = ' + n5(D4.m9.redwood.r_g_max, 4) + ' y vuelve a 1 mucho antes de que K se despegue.' },
           { texto: 'Porque el efecto de borde infla K a distancias grandes',
-            respuesta: 'El efecto de borde va en el sentido contrario: sin corregir, K se queda por DEBAJO, hasta un ' + n5(D4.m10.sesgo_max_pct, 1) + ' % en este capítulo.' },
+            retro: 'El efecto de borde va en el sentido contrario: sin corregir, K se queda por DEBAJO, hasta un ' + n5(D4.m10.sesgo_max_pct, 1) + ' % en este capítulo.' },
           { texto: 'Porque la corrección de traslación falla a r grande',
-            respuesta: 'No: el arrastre es una propiedad de la definición de K, no un defecto de la corrección.' },
+            retro: 'No: el arrastre es una propiedad de la definición de K, no un defecto de la corrección.' },
           { texto: 'Porque la ventana no es rectangular',
-            respuesta: 'El arrastre ocurre igual en una ventana rectangular. Es acumulación, no geometría.' }
+            retro: 'El arrastre ocurre igual en una ventana rectangular. Es acumulación, no geometría.' }
         ] },
       {
         tipo: 'multiple',
         pregunta: 'Sobre el efecto de borde, ¿qué es cierto?',
         opciones: [
           { texto: 'Sin corregir, K queda por debajo de su valor real', correcta: true,
-            respuesta: 'Siempre, y por eso el sesgo tiene dirección: un punto del borde tiene vecinos fuera que nadie observó. Aquí llega al ' + n5(D4.m10.sesgo_max_pct, 1) + ' %.' },
+            retro: 'Siempre, y por eso el sesgo tiene dirección: un punto del borde tiene vecinos fuera que nadie observó. Aquí llega al ' + n5(D4.m10.sesgo_max_pct, 1) + ' %.' },
           { texto: 'Ignorarlo hace que el patrón parezca más regular de lo que es', correcta: true,
-            respuesta: 'Correcto: faltan vecinos, nunca sobran, así que el patrón parece menos agregado.' },
+            retro: 'Correcto: faltan vecinos, nunca sobran, así que el patrón parece menos agregado.' },
           { texto: 'La corrección isotrópica y la de traslación cuestan lo mismo',
-            respuesta: 'No sobre una ventana real: aquí la isotrópica cuesta ×' + n5(D4.m10.coste.veces_isotropica_sobre_traslacion, 0) + ' lo que la de traslación, porque recorre el perímetro pareja a pareja.' },
+            retro: 'No sobre una ventana real: aquí la isotrópica cuesta ×' + n5(D4.m10.coste.veces_isotropica_sobre_traslacion, 0) + ' lo que la de traslación, porque recorre el perímetro pareja a pareja.' },
           { texto: 'El sesgo crece con r', correcta: true,
-            respuesta: 'Sí: a r grande casi todos los discos tocan el borde. El máximo se alcanza en r = ' + n5(D4.m10.r_sesgo_max, 0) + ' m.' }
+            retro: 'Sí: a r grande casi todos los discos tocan el borde. El máximo se alcanza en r = ' + n5(D4.m10.r_sesgo_max, 0) + ' m.' }
         ] },
       {
         tipo: 'opcion',
         pregunta: 'La curva observada se sale de la banda del 95 % en un tramo corto de r. ¿Qué se puede afirmar?',
         opciones: [
           { texto: 'Poco: la banda es puntual y mirarla entera son muchos contrastes a la vez', correcta: true,
-            respuesta: 'Eso es. De las ' + miles4(D4.m11.tasa_salida_bogota.nsim) + ' simulaciones de CSR puro con que se construyó la banda, el ' + n5(D4.m11.tasa_salida_bogota.pct, 1) + ' % se sale de ella en algún r. Para la curva entera hace falta un test global.' },
+            retro: 'Eso es. De las ' + miles4(D4.m11.tasa_salida_bogota.nsim) + ' simulaciones de CSR puro con que se construyó la banda, el ' + n5(D4.m11.tasa_salida_bogota.pct, 1) + ' % se sale de ella en algún r. Para la curva entera hace falta un test global.' },
           { texto: 'Que el patrón no es CSR, con p < 0,05',
-            respuesta: 'Ese es exactamente el error que el módulo 11 desmonta: el 5 % es el nivel de CADA r por separado, no el de la curva.' },
+            retro: 'Ese es exactamente el error que el módulo 11 desmonta: el 5 % es el nivel de CADA r por separado, no el de la curva.' },
           { texto: 'Que hay que aumentar nsim hasta que deje de salirse',
-            respuesta: 'Peor todavía: subir nsim con la banda por defecto la ENSANCHA, porque su nivel es 2/(nsim+1) y cambia con nsim.' },
+            retro: 'Peor todavía: subir nsim con la banda por defecto la ENSANCHA, porque su nivel es 2/(nsim+1) y cambia con nsim.' },
           { texto: 'Que la corrección de borde es insuficiente',
-            respuesta: 'No hay nada en el enunciado que apunte al borde; y la banda se construye con la misma corrección que la curva.' }
+            retro: 'No hay nada en el enunciado que apunte al borde; y la banda se construye con la misma corrección que la curva.' }
         ] },
       {
         tipo: 'opcion',
         pregunta: 'Se pasa de 39 a 999 simulaciones sin tocar nada más. ¿Qué le ocurre a la banda por defecto de envelope()?',
         opciones: [
           { texto: 'Se ensancha, porque su nivel puntual es 2/(nsim+1) y ha cambiado', correcta: true,
-            respuesta: 'Eso es, y es contraintuitivo: la banda por defecto es el mínimo-máximo de las simulaciones. A lo largo del barrido se ensancha ×' + n5(D4.m11.escala_resumen.veces_defecto, 2) + '. Manteniendo el nivel fijo al 5 %, en cambio, se estrecha.' },
+            retro: 'Eso es, y es contraintuitivo: la banda por defecto es el mínimo-máximo de las simulaciones. A lo largo del barrido se ensancha ×' + n5(D4.m11.escala_resumen.veces_defecto, 2) + '. Manteniendo el nivel fijo al 5 %, en cambio, se estrecha.' },
           { texto: 'Se estrecha, porque hay más información',
-            respuesta: 'Es lo que uno espera y no es lo que pasa: con nrank = 1 el nivel pasa de ' + n5(D4.m11.escala_nsim[1].nivel_defecto, 3) + ' a ' + n5(D4.m11.escala_nsim[3].nivel_defecto, 3) + ', o sea que son contrastes distintos.' },
+            retro: 'Es lo que uno espera y no es lo que pasa: con nrank = 1 el nivel pasa de ' + n5(D4.m11.escala_nsim[1].nivel_defecto, 3) + ' a ' + n5(D4.m11.escala_nsim[3].nivel_defecto, 3) + ', o sea que son contrastes distintos.' },
           { texto: 'No cambia: la banda solo depende del patrón',
-            respuesta: 'Depende de las simulaciones, y por tanto de cuántas haya.' },
+            retro: 'Depende de las simulaciones, y por tanto de cuántas haya.' },
           { texto: 'Se estrecha exactamente a la mitad',
-            respuesta: 'Ni se estrecha ni hay una regla tan simple.' }
+            retro: 'Ni se estrecha ni hay una regla tan simple.' }
         ] }
     ];
 """
@@ -2064,6 +2067,29 @@ def main() -> int:
         problemas.append(f"R y Python descuadrados: {bl_r} y {bl_py}")
     if lienzos != con_alt:
         problemas.append(f"lienzos sin aria-label: {lienzos - con_alt}")
+    # LA CLAVE DE LA RETROALIMENTACIÓN, COMPROBADA Y NO SUPUESTA (A.23.2).
+    # Este capítulo escribió `respuesta` y `explicacion` donde el motor lee
+    # `retro`, `retroAcierto` y `retroFallo`, y sus explicaciones por opción NO
+    # SE DIBUJARON NUNCA: quien acertaba veía «Correcto.» y nada más, y quien
+    # fallaba una numérica veía «La respuesta es N. undefined», porque la
+    # guarda de `cerrar()` no puede salvar una plantilla que ya interpoló el
+    # valor ausente. Se saldó el 2026-09-03; esto es para que no vuelva.
+    opciones_quiz = doc.count("{ texto:")
+    retros = doc.count("retro: '")
+    if "respuesta: '" in doc or "explicacion: '" in doc:
+        problemas.append("hay opciones con la clave `respuesta`/`explicacion`: "
+                         "el motor lee `retro`, `retroAcierto` y `retroFallo`, "
+                         "y lo que no lee no se dibuja")
+    if retros != opciones_quiz:
+        problemas.append(f"opciones de quiz sin `retro`: {opciones_quiz - retros} "
+                         f"de {opciones_quiz}")
+    for q in re.finditer(r"tipo: 'numerica'", doc):
+        bloque = doc[q.start():q.start() + 1600]
+        corte = bloque.find("tipo: '", 12)
+        bloque = bloque[:corte] if corte > 0 else bloque
+        if "retroAcierto:" not in bloque or "retroFallo:" not in bloque:
+            problemas.append("una numérica sin `retroAcierto` o sin `retroFallo`: "
+                             "quien falle verá «undefined» detrás de la respuesta")
     if problemas:
         print("\n  PROBLEMAS:")
         for p in problemas:

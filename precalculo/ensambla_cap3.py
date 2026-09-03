@@ -1804,97 +1804,98 @@ QUIZ_JS = f"""
         pregunta: 'Un mapa muestra el NÚMERO de casos de una enfermedad por municipio. ¿Qué está mostrando sobre todo?',
         opciones: [
           {{ texto: 'Dónde vive más gente', correcta: true,
-            respuesta: 'Exacto. Un conteo es casi siempre un mapa de población. En este capítulo, los 10 municipios más oscuros del mapa de conteos concentran el ' + n5(D3.m2.pct_estudiantes_top10, 2) + ' % de los estudiantes.' }},
+            retro: 'Exacto. Un conteo es casi siempre un mapa de población. En este capítulo, los 10 municipios más oscuros del mapa de conteos concentran el ' + n5(D3.m2.pct_estudiantes_top10, 2) + ' % de los estudiantes.' }},
           {{ texto: 'Dónde el riesgo es mayor',
-            respuesta: 'No: para eso hace falta normalizar por población. El conteo y la tasa ordenan el país de formas casi independientes — aquí su rho de Spearman es ' + n5(D3.m2.rho_conteo_tasa) + '.' }},
+            retro: 'No: para eso hace falta normalizar por población. El conteo y la tasa ordenan el país de formas casi independientes — aquí su rho de Spearman es ' + n5(D3.m2.rho_conteo_tasa) + '.' }},
           {{ texto: 'Dónde el sistema de salud funciona peor',
-            respuesta: 'No, y menos aún: eso exigiría normalizar y además controlar por otros factores.' }},
+            retro: 'No, y menos aún: eso exigiría normalizar y además controlar por otros factores.' }},
           {{ texto: 'Nada: los conteos no se pueden mapear',
-            respuesta: 'Sí se pueden, y a veces conviene (un cartograma con conteos es informativo). Lo que no se puede es leerlos como si fueran tasas.' }}
+            retro: 'Sí se pueden, y a veces conviene (un cartograma con conteos es informativo). Lo que no se puede es leerlos como si fueran tasas.' }}
         ] }},
       {{
         tipo: 'opcion',
         pregunta: '¿Por qué classInt (R) y mapclassify (Python) dan clases distintas con "quantile" sobre el mismo dato?',
         opciones: [
           {{ texto: 'Porque cierran el intervalo por lados distintos y hay empates justo en los cortes', correcta: true,
-            respuesta: 'Eso es. R usa [a, b) y Python (a, b]. En SID74 hay ' + D3.m3.n_empatados + ' condados empatados justo en un corte, y ahí se decide todo.' }},
+            retro: 'Eso es. R usa [a, b) y Python (a, b]. En SID74 hay ' + D3.m3.n_empatados + ' condados empatados justo en un corte, y ahí se decide todo.' }},
           {{ texto: 'Porque usan algoritmos de cuantiles distintos',
-            respuesta: 'No: los cuantiles coinciden. Lo que difiere es a qué lado del corte va un valor que cae exactamente encima.' }},
+            retro: 'No: los cuantiles coinciden. Lo que difiere es a qué lado del corte va un valor que cae exactamente encima.' }},
           {{ texto: 'Por errores de redondeo en coma flotante',
-            respuesta: 'No. La diferencia es sistemática y se reproduce exactamente; el redondeo daría discrepancias erráticas.' }},
+            retro: 'No. La diferencia es sistemática y se reproduce exactamente; el redondeo daría discrepancias erráticas.' }},
           {{ texto: 'Porque Python ordena los datos y R no',
-            respuesta: 'Los dos ordenan. La diferencia es el convenio del intervalo.' }}
+            retro: 'Los dos ordenan. La diferencia es el convenio del intervalo.' }}
         ] }},
       {{
         tipo: 'multiple',
         pregunta: '¿Cuáles de estas decisiones cambian el mapa sin cambiar ni un dato? (varias)',
         opciones: [
           {{ texto: 'El esquema de clasificación', correcta: true,
-            respuesta: 'Sí: entre los dos esquemas más discordantes cambia de clase el ' + n5(D3.m4.pct_max, 2) + ' % de los municipios.' }},
+            retro: 'Sí: entre los dos esquemas más discordantes cambia de clase el ' + n5(D3.m4.pct_max, 2) + ' % de los municipios.' }},
           {{ texto: 'El número de clases k', correcta: true,
-            respuesta: 'Sí: las ' + D3.m1.n_configuraciones + ' combinaciones de esquema y k producen ' + D3.m1.n_mapas_distintos + ' particiones distintas.' }},
+            retro: 'Sí: las ' + D3.m1.n_configuraciones + ' combinaciones de esquema y k producen ' + D3.m1.n_mapas_distintos + ' particiones distintas.' }},
           {{ texto: 'La unidad territorial de agregación', correcta: true,
-            respuesta: 'Sí, y es la más consecuente: es el MAUP.' }},
+            retro: 'Sí, y es la más consecuente: es el MAUP.' }},
           {{ texto: 'El número de decimales con que se guarda el dato',
-            respuesta: 'Con estos datos no: los cortes no caen en decimales tan finos. No es de la misma familia que las otras tres.' }}
+            retro: 'Con estos datos no: los cortes no caen en decimales tan finos. No es de la misma familia que las otras tres.' }}
         ] }},
       {{
         tipo: 'numerica',
         pregunta: 'Con k = 5 y la deserción municipal, ¿cuántos municipios reciben la MISMA clase bajo los cinco esquemas?',
         respuesta: D3.m4.n_estables, tolerancia: 0,
         pista: 'Son menos del 20 % de los ' + D3.m4.n + ' municipios con dato.',
-        explicacion: 'Solo ' + D3.m4.n_estables + ' de ' + D3.m4.n + ' — el ' + n5(D3.m4.pct_estables, 2) + ' %. Para los demás, la clase es una consecuencia del esquema.' }},
+        retroAcierto: 'Solo ' + D3.m4.n_estables + ' de ' + D3.m4.n + ' — el ' + n5(D3.m4.pct_estables, 2) + ' %. Para los demás, la clase es una consecuencia del esquema.',
+        retroFallo: 'Solo ' + D3.m4.n_estables + ' de ' + D3.m4.n + ' — el ' + n5(D3.m4.pct_estables, 2) + ' %. Para los demás, la clase es una consecuencia del esquema.' }},
       {{
         tipo: 'opcion',
         pregunta: 'Una paleta rojo-verde se ve perfectamente en tu pantalla. ¿Basta con eso?',
         opciones: [
           {{ texto: 'No: hay que medir si sobrevive al daltonismo, y lo que la salva es el recorrido de luminosidad', correcta: true,
-            respuesta: 'Exacto. Un rojo y un verde a la MISMA luminosidad pierden el ' + n5(D3.m5.rojo_verde.caida_pct, 2) + ' % de su distancia perceptual bajo deuteranopía.' }},
+            retro: 'Exacto. Un rojo y un verde a la MISMA luminosidad pierden el ' + n5(D3.m5.rojo_verde.caida_pct, 2) + ' % de su distancia perceptual bajo deuteranopía.' }},
           {{ texto: 'Sí, si los colores son suficientemente distintos',
-            respuesta: '«Distintos» para quién. La distancia hay que medirla en un espacio perceptual y bajo la visión del lector, no de quien dibuja.' }},
+            retro: '«Distintos» para quién. La distancia hay que medirla en un espacio perceptual y bajo la visión del lector, no de quien dibuja.' }},
           {{ texto: 'Basta con añadir una leyenda clara',
-            respuesta: 'La leyenda ayuda, pero si dos clases del mapa son indistinguibles el lector no puede usarla.' }},
+            retro: 'La leyenda ayuda, pero si dos clases del mapa son indistinguibles el lector no puede usarla.' }},
           {{ texto: 'Solo importa si el mapa se va a imprimir',
-            respuesta: 'Importa siempre: alrededor del 8 % de los hombres tiene alguna forma de daltonismo.' }}
+            retro: 'Importa siempre: alrededor del 8 % de los hombres tiene alguna forma de daltonismo.' }}
         ] }},
       {{
         tipo: 'opcion',
         pregunta: 'La correlación educación-puntaje vale ' + n5(D3.m8.r_individuo, 4) + ' entre estudiantes y ' + n5(D3.m8.r_departamento, 4) + ' entre departamentos. ¿Por qué sube?',
         opciones: [
           {{ texto: 'Porque al agregar se destruye la variación dentro de las unidades y solo queda la de entre unidades', correcta: true,
-            respuesta: 'Eso es. Aquí la varianza entre municipios es apenas el ' + n5(D3.m8.pct_var_entre, 2) + ' % de la total: el resto desaparece al promediar.' }},
+            retro: 'Eso es. Aquí la varianza entre municipios es apenas el ' + n5(D3.m8.pct_var_entre, 2) + ' % de la total: el resto desaparece al promediar.' }},
           {{ texto: 'Porque hay menos observaciones y el ruido baja',
-            respuesta: 'El número de observaciones afecta a la precisión, no al valor esperado de la correlación. Lo que cambia es qué variación queda.' }},
+            retro: 'El número de observaciones afecta a la precisión, no al valor esperado de la correlación. Lo que cambia es qué variación queda.' }},
           {{ texto: 'Porque los departamentos son más homogéneos',
-            respuesta: 'Al revés: son más heterogéneos entre sí. Lo que se pierde es la heterogeneidad interna.' }},
+            retro: 'Al revés: son más heterogéneos entre sí. Lo que se pierde es la heterogeneidad interna.' }},
           {{ texto: 'Es un artefacto del cálculo y no significa nada',
-            respuesta: 'No es un artefacto: es un efecto real y sistemático, y tiene nombre — el efecto escala del MAUP.' }}
+            retro: 'No es un artefacto: es un efecto real y sistemático, y tiene nombre — el efecto escala del MAUP.' }}
         ] }},
       {{
         tipo: 'opcion',
         pregunta: 'Manteniendo 33 zonas y cambiando solo dónde van las fronteras, ¿qué le pasa a la correlación?',
         opciones: [
           {{ texto: 'Varía mucho: sobre 1 000 trazados contiguos va de ' + n5(D3.m9.contiguas.min, 3) + ' a ' + n5(D3.m9.contiguas.max, 3), correcta: true,
-            respuesta: 'Sí. Y el trazado departamental real cae en el percentil ' + n5(D3.m9.contiguas.percentil_real, 1) + ': no tiene nada de especial.' }},
+            retro: 'Sí. Y el trazado departamental real cae en el percentil ' + n5(D3.m9.contiguas.percentil_real, 1) + ': no tiene nada de especial.' }},
           {{ texto: 'No cambia: con el mismo número de zonas el resultado es el mismo',
-            respuesta: 'Eso sería cierto si solo importara la escala. El efecto zonificación dice justo lo contrario.' }},
+            retro: 'Eso sería cierto si solo importara la escala. El efecto zonificación dice justo lo contrario.' }},
           {{ texto: 'Cambia poco, dentro del error de muestreo',
-            respuesta: 'El recorrido es de ' + n5(D3.m9.recorrido_contiguas, 3) + ' unidades de correlación: mucho más que cualquier error de muestreo.' }},
+            retro: 'El recorrido es de ' + n5(D3.m9.recorrido_contiguas, 3) + ' unidades de correlación: mucho más que cualquier error de muestreo.' }},
           {{ texto: 'Baja siempre, porque las zonas aleatorias son peores',
-            respuesta: 'Ni baja siempre ni las aleatorias son «peores»: con ponderación por tamaño, las arbitrarias dan una media MÁS alta (' + n5(D3.m9.arbitrarias.media, 3) + ').' }}
+            retro: 'Ni baja siempre ni las aleatorias son «peores»: con ponderación por tamaño, las arbitrarias dan una media MÁS alta (' + n5(D3.m9.arbitrarias.media, 3) + ').' }}
         ] }},
       {{
         tipo: 'opcion',
         pregunta: 'Un informe dice: «en los departamentos con madres más educadas se puntúa más, luego un estudiante con madre más educada puntúa más». ¿Qué falla?',
         opciones: [
           {{ texto: 'Salta del nivel agregado al individual sin justificarlo: es la falacia ecológica', correcta: true,
-            respuesta: 'Exacto. Aquí las dos correlaciones existen pero valen cosas distintas (' + n5(D3.m10.r_departamento, 3) + ' y ' + n5(D3.m10.r_individuo, 3) + '), y en otros casos hasta cambian de signo.' }},
+            retro: 'Exacto. Aquí las dos correlaciones existen pero valen cosas distintas (' + n5(D3.m10.r_departamento, 3) + ' y ' + n5(D3.m10.r_individuo, 3) + '), y en otros casos hasta cambian de signo.' }},
           {{ texto: 'Nada: si vale para los departamentos, vale para las personas',
-            respuesta: 'No se deduce. Una correlación entre agregados es una afirmación sobre las unidades, no sobre quienes las componen.' }},
+            retro: 'No se deduce. Una correlación entre agregados es una afirmación sobre las unidades, no sobre quienes las componen.' }},
           {{ texto: 'Que la correlación no implica causalidad',
-            respuesta: 'También es cierto, pero el error específico aquí es otro: el salto de nivel.' }},
+            retro: 'También es cierto, pero el error específico aquí es otro: el salto de nivel.' }},
           {{ texto: 'Que 33 departamentos son pocos para correlacionar',
-            respuesta: 'El tamaño afecta a la precisión, no al problema de nivel. Con 1 000 departamentos la falacia seguiría siendo falacia.' }}
+            retro: 'El tamaño afecta a la precisión, no al problema de nivel. Con 1 000 departamentos la falacia seguiría siendo falacia.' }}
         ] }}
     ];
 """
@@ -2075,6 +2076,29 @@ def main() -> int:
         problemas.append(f"R y Python descuadrados: {bl_r} y {bl_py}")
     if lienzos != con_alt:
         problemas.append(f"lienzos sin aria-label: {lienzos - con_alt}")
+    # LA CLAVE DE LA RETROALIMENTACIÓN, COMPROBADA Y NO SUPUESTA (A.23.2).
+    # Este capítulo escribió `respuesta` y `explicacion` donde el motor lee
+    # `retro`, `retroAcierto` y `retroFallo`, y sus explicaciones por opción NO
+    # SE DIBUJARON NUNCA: quien acertaba veía «Correcto.» y nada más, y quien
+    # fallaba una numérica veía «La respuesta es N. undefined», porque la
+    # guarda de `cerrar()` no puede salvar una plantilla que ya interpoló el
+    # valor ausente. Se saldó el 2026-09-03; esto es para que no vuelva.
+    opciones_quiz = doc.count("{ texto:")
+    retros = doc.count("retro: '")
+    if "respuesta: '" in doc or "explicacion: '" in doc:
+        problemas.append("hay opciones con la clave `respuesta`/`explicacion`: "
+                         "el motor lee `retro`, `retroAcierto` y `retroFallo`, "
+                         "y lo que no lee no se dibuja")
+    if retros != opciones_quiz:
+        problemas.append(f"opciones de quiz sin `retro`: {opciones_quiz - retros} "
+                         f"de {opciones_quiz}")
+    for q in re.finditer(r"tipo: 'numerica'", doc):
+        bloque = doc[q.start():q.start() + 1600]
+        corte = bloque.find("tipo: '", 12)
+        bloque = bloque[:corte] if corte > 0 else bloque
+        if "retroAcierto:" not in bloque or "retroFallo:" not in bloque:
+            problemas.append("una numérica sin `retroAcierto` o sin `retroFallo`: "
+                             "quien falle verá «undefined» detrás de la respuesta")
     if problemas:
         print("\n  PROBLEMAS:")
         for p in problemas:

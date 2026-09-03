@@ -12,11 +12,13 @@ en el Checkpoint A **barajar los cinco capítulos** y **arreglar los tres hallaz
 verificado y con dos gemelos más encontrados al hacerlo. El informe, con lo aplicado en su §5,
 es [`AUDITORIA_CONTENIDO_CAP5.md`](AUDITORIA_CONTENIDO_CAP5.md).
 
-**Lo que queda en pie, y no es de esta tanda:** la deuda **A.23.2** —los capítulos 3 y 4
-escriben `respuesta` donde el motor lee `retro`, y sus **68** explicaciones por opción no se
-dibujan— sigue viva y ahora es más barata que nunca: es una palabra por opción, y los dos
-capítulos ya se regeneran limpios. Y **N1, N2, N3, N4 y N5** se quedan anotados, que es lo que
-el alcance decidió.
+**Y la deuda A.23.2, saldada con esto (2026-09-03):** 68 opciones de los capítulos 3 y 4 pasan de
+`respuesta` a `retro` y las tres numéricas ganan sus dos claves. Se hizo en esta misma reapertura
+porque los cinco capítulos se regeneraban igual. De paso se midió que era peor de lo declarado:
+quien fallaba la numérica del capítulo 3 leía «La respuesta es 224. **undefined**». Ver el §6 del
+informe.
+
+**Lo que queda anotado y no se toca:** **N1, N2, N3, N4 y N5**, que es lo que el alcance decidió.
 
 ### Las dos decisiones de Javier (2026-09-02)
 
