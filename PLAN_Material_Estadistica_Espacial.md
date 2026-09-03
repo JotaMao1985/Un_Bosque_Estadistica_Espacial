@@ -3748,3 +3748,89 @@ Ninguna herramienta los ve, y hubo que leer los doce módulos como los lee un es
    («no población sana. No es población sana»), una afirmación falsa sobre lo que separaba a las dos
    columnas de un bloque, un `<code>` que partía una frase en dos porque la cadena del JSON traía su
    propia coma, y un `bw.relrisk` que se leía como si fuera uno de los cuatro selectores.
+
+---
+
+### A.25 · El cronómetro del capítulo 6: no tiene problema de tiempo, tiene uno de peso (2026-09-03)
+
+Mismo método que A.17 y A.21, y el mismo sitio: **la medición vive en el scratchpad y aquí viaja la
+tabla y la decisión, no el guion**. Y por tercera vez seguida, **el riesgo que el plan tenía escrito
+para el capítulo no es el riesgo del capítulo**.
+
+#### A.25.1 · Lo único caro es `poly2nb`, y es precálculo
+
+| Operación (1 122 municipios salvo nota) | Segundos |
+|---|---|
+| `poly2nb` reina | **41,67** |
+| `poly2nb` torre | **43,07** |
+| `poly2nb` reina sobre nc (100) | 0,46 |
+| `poly2nb` reina sobre las 20 localidades | 0,07 |
+| `knearneigh` k = 1, 4, 8 | 0,02–0,03 |
+| `dnearneigh` a 30, 50 y 167 km | 0,02 |
+| `tri2nb` (Delaunay) · `gabrielneigh` · `relativeneigh` | 0,07–0,09 |
+| `nb2listw` en los cinco estilos · `lag.listw` | < 0,01 |
+
+Todo lo demás es instantáneo. Los 42 s de la contigüidad municipal se pagan **una vez**, en el
+precálculo, y no vuelven a aparecer: el navegador recibe aristas, no polígonos que intersecar.
+
+#### A.25.2 · El peso: diez definiciones de W sobre los municipios son 465 KB
+
+El presupuesto de un `.geomapa` es **120 KB**. Las diez variantes que el §6 pide para el constructor
+de W, medidas con `geo_grafo_multi` —que ya comparte la geometría, así que esto es después de la
+optimización del A.5—:
+
+| Tablero | n | Total | Geometría | Aristas | Aristas de las 10 |
+|---|---:|---:|---:|---:|---:|
+| **`columbus`** (Anselin) | 49 | **18,9 KB** | 12,2 | 6,7 | 891 |
+| **`nc`** | 100 | **38,5 KB** | 25,8 | 12,7 | 1 754 |
+| **Localidades de Bogotá** | 20 | **56,3 KB** | 52,2 | 4,1 | 607 |
+| **Departamentos** | 33 | **63,9 KB** | 57,1 | 6,8 | 1 029 |
+| **Municipios** | 1 122 | **465,4 KB** | 137,6 | **327,8** | 39 415 |
+
+Dos cosas que la tabla dice y no son evidentes:
+
+1. **La geometría municipal no se puede simplificar más.** `geo_simplifica` avisa de que el suelo de
+   1 122 rasgos son **12 547 vértices**: pedir 3 000, 6 000 o 12 000 da exactamente el mismo archivo.
+   Un contorno se simplifica; **mil contornos no**, porque cada uno necesita sus vértices mínimos.
+   El mapa de coropletas municipal solo —sin una sola arista— ya pesa **126,6 KB**.
+2. **Pocas unidades no significa poco peso.** Los 33 departamentos pesan más que los 100 condados de
+   `nc`: 57 KB de geometría contra 26. La frontera amazónica y la costa caribe traen más vértices que
+   cien condados rectangulares. **El coste de un tablero lo pone su contorno, no su n** — y el número
+   de aristas, que es lo que uno teme, es la parte barata en todos menos en los municipios.
+
+#### A.25.3 · Y tres cifras que ya son material
+
+- **Las canónicas de Anselin salen exactas**: Columbus reina **118 aristas, grado 4,8163**; torre
+  **100 y 4,0816**. El tablero se valida solo.
+- **El umbral mínimo que conecta a todos los municipios es 166,8 km**, y a esa distancia el grafo
+  tiene **100 651 aristas y grado medio 179,4**. El módulo 5 tiene ahí su lección entera: el umbral
+  que no deja islas convierte la vecindad en un sinsentido. **Y es impublicable como dibujo**, lo
+  cual es exactamente lo que hay que enseñar: esa W se mira como número, no como mapa.
+- **`knearneigh(k = 1)` sobre los municipios deja 280 subgrafos**, y **k = 4 no es simétrica** — las
+  dos afirmaciones que el §6 pone en los módulos 4 y 5, medidas.
+
+#### A.25.4 · Una dependencia que falta
+
+**`soi.graph` —la esfera de influencia del módulo 6— exige el paquete `dbscan`, que no está
+instalado** ni figura en `instala.R`. Las otras tres vecindades geométricas sí están y dan, sobre los
+municipios: Delaunay **3 353 aristas / grado 5,977**, Gabriel **2 527 / 4,504**, vecindad relativa
+**1 528 / 2,724**.
+
+#### A.25.5 · Las tres decisiones, tomadas por Javier el 2026-09-03
+
+1. ✅ **El constructor de W corre sobre `columbus`.** 18,9 KB con las diez definiciones, 49 unidades
+   que se ven una a una —que es lo que un constructor necesita— y el tablero **valida sus propias
+   cifras**: reina 118 aristas y grado 4,8163, torre 100 y 4,0816, las de Anselin, exactas.
+2. ✅ **El hilo colombiano entra como coropleta municipal con UNA vecindad**, la contigüidad reina.
+   Conserva lo que no se puede mudar de tablero: **las 2 islas y los 3 subgrafos** de los que sale
+   el `zero.policy` del módulo 9, y el rezago Wy del módulo 10 sobre la deserción. Ronda los 170 KB
+   y **el módulo lo declara**, igual que el capítulo 5 declaró su ráster.
+3. ✅ **`dbscan` se instala.** Ya está: **1.2.4**, declarado en `instala.R` con el porqué —lo exige
+   `soi.graph`, y sin él la llamada no avisa: muere—, inventariado en `entorno.R` y escrito en
+   `versiones.json`. `entorno.R` vuelve a dar **29 de 29**. Con él, la esfera de influencia mide
+   **104 aristas y grado 4,2449** sobre Columbus, y 2 685 / 4,7861 sobre los municipios.
+
+**Lo que las tres deciden juntas:** el capítulo tiene **dos tableros y cada uno hace lo suyo**.
+Columbus es el laboratorio —diez W, baratas, canónicas, comparables entre sí— y los municipios son
+el caso real, con una sola W y las patologías que solo trae un dato de verdad. La comparación entre
+los dos es material del capítulo, no un accidente del presupuesto.

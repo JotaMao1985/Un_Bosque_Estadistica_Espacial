@@ -1,5 +1,5 @@
 {
-  "generado": "2026-08-03",
+  "generado": "2026-09-03",
   "r": "R version 4.4.1 (2024-06-14)",
   "plataforma": "aarch64-apple-darwin20",
   "rscript": "/Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/bin/Rscript",
@@ -23,6 +23,7 @@
     "spdep": "1.4.2",
     "spatialreg": "1.4.3",
     "sfdep": "0.2.5",
+    "dbscan": "1.2.4",
     "gstat": "2.1.5",
     "spatstat": "3.5.1",
     "spatstat.geom": "3.7.2",

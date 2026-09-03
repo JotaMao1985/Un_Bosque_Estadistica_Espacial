@@ -1,0 +1,11 @@
+id,etiqueta,enlaces,pares,grado,islas,subgrafos
+reina,Contigüidad reina,236,118,4.8163,0,1
+torre,Contigüidad torre,200,100,4.0816,0,1
+k1,1 vecino más próximo,49,36,1,0,13
+k3,3 vecinos más próximos,147,94,3,0,1
+k6,6 vecinos más próximos,294,178,6,0,1
+d_mitad,Umbral: la mitad del mínimo conexo,34,17,0.6939,28,33
+d_conexo,Umbral mínimo sin islas,252,126,5.1429,0,2
+delaunay,Delaunay,268,134,5.4694,0,1
+gabriel,Gabriel,184,92,3.7551,0,1
+esfera,Esfera de influencia,208,104,4.2449,0,1

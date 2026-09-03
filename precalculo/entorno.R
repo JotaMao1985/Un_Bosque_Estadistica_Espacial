@@ -40,7 +40,7 @@ if (requireNamespace("sf", quietly = TRUE)) sf::sf_use_s2(TRUE)
 # ---------------------------------------------------------------------
 PAQUETES <- c(
   "sf", "terra", "sp", "units", "jsonlite",
-  "spdep", "spatialreg", "sfdep", "gstat", "spatstat",
+  "spdep", "spatialreg", "sfdep", "dbscan", "gstat", "spatstat",
   "spatstat.geom", "spatstat.explore", "spatstat.model", "spatstat.data",
   "tmap", "classInt", "RColorBrewer", "spData", "HistData",
   "stars", "blockCV", "spatialsample", "GWmodel", "rmapshaper"

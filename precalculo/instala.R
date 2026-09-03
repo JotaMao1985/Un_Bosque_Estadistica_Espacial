@@ -19,6 +19,11 @@ options(repos = c(CRAN = "https://cran.rstudio.com"))
 PAQUETES <- c(
   # --- datos de área y econometría espacial (caps. 6, 7, 8) ---
   "spdep", "spatialreg", "sfdep",
+  # `dbscan` no se usa para agrupar: lo EXIGE `spdep::soi.graph`, la
+  # esfera de influencia del módulo 6 del capítulo 6, y sin él la llamada
+  # muere con «dbscan required» — no con un aviso, con un error. Añadido
+  # el 2026-09-03, por decisión de Javier tras el cronómetro del A.25.
+  "dbscan",
   # --- geoestadística (cap. 9) ---
   "gstat",
   # --- patrones puntuales (caps. 4, 5). spatstat es meta-paquete y
