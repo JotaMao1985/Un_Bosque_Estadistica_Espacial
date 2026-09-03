@@ -172,6 +172,10 @@ def asimetricos(vecinos: dict) -> int:
     return sum(1 for i in vecinos for j in vecinos[i] if i not in vecinos[j])
 
 
+def crime_de(col):
+    return col["CRIME"].to_numpy(dtype=float)
+
+
 def de_w(w) -> dict:
     """Los vecinos de un objeto de libpysal, con índices 0..n-1."""
     orden = {k: i for i, k in enumerate(w.id_order)}
@@ -222,6 +226,11 @@ def main() -> int:  # noqa: C901
             "Columbus: media de CRIME", tol=1e-4)
     a.igual(col["CRIME"].std(ddof=1), D["m1"]["columbus"]["variables"]["crime"]["sd"],
             "Columbus: desviación de CRIME", tol=1e-4)
+    # Y que NO se publique un área: el tablero no tiene CRS y cualquier
+    # cifra de superficie sería inventada. Se comprueba la ausencia, que es
+    # una decisión y no un olvido.
+    a.cierto("area_km2" not in D["m1"]["columbus"],
+             "Columbus: no publica área, porque no tiene CRS")
 
     mun = gpd.read_file(PROCESADO / "colombia_adm2.gpkg")
     llave = __import__("pandas").read_csv(PROCESADO / "municipios_llave.csv",
@@ -255,7 +264,7 @@ def main() -> int:  # noqa: C901
     d = np.sqrt(((xy[:, None, :] - xy[None, :, :]) ** 2).sum(-1))
     np.fill_diagonal(d, np.inf)
     umbral = d.min(axis=1).max()
-    a.igual(umbral, D["m2"]["umbral_sin_islas_m"],
+    a.igual(umbral, D["m2"]["umbral_sin_islas"],
             "Columbus: el umbral que no deja islas", tol=1e-3)
     nb_col["d_mitad"] = banda(d, umbral * 0.5)
     nb_col["d_conexo"] = banda(d, umbral)
@@ -392,6 +401,13 @@ def main() -> int:  # noqa: C901
     a.igual(D["m8"]["dif_max"], 0.0, "y su rezago no difiere", tol=1e-9)
     a.igual(D["m8"]["n_pares_spdep"], resumen(nb_col["reina"])["pares"],
             "y coinciden con lo que cuenta libpysal")
+    # Los tres rezagos que el bloque de código imprime, recalculados por
+    # el producto W·y. Es la misma cifra por la que `verifica_bloques.py`
+    # ejecutará el bloque: si el auditor y el bloque no coincidieran,
+    # habría dos verdades publicadas en la misma página.
+    wy3 = (pesos_estilo(nb_col["reina"], "W") @ crime_de(col))[:3]
+    for k, (calc, publ) in enumerate(zip(wy3, D["m8"]["wy_primeros"]), 1):
+        a.igual(calc, publ, f"el rezago publicado nº {k}", tol=1e-4)
 
     # -----------------------------------------------------------------
     a.titulo("9 · Islas y zero.policy, sobre el dato real")

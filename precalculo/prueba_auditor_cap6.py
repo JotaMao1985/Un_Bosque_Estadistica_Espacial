@@ -113,7 +113,7 @@ def defectos():
     obj("2 · Gabriel cambia de tamaño",
         "datos", lambda d: crit(d, "gabriel").__setitem__("pares", 87))
     obj("2 · el umbral sin islas de Columbus cambia",
-        "datos", lambda d: d["m2"].__setitem__("umbral_sin_islas_m", 0.7131313131))
+        "datos", lambda d: d["m2"].__setitem__("umbral_sin_islas", 0.7131313131))
 
     # --- 3. Enlaces contra parejas (el defecto propio) ----------------
     obj("3 · k3 dice que sus enlaces son sus parejas",
@@ -125,6 +125,8 @@ def defectos():
         "datos", lambda d: crit(d, "k6").__setitem__("enlaces", 287))
 
     # --- 4. La simetría declarada -------------------------------------
+    obj("1 · Columbus publica un área que no tiene",
+        "datos", lambda d: d["m1"]["columbus"].__setitem__("area_km2", 17.1313))
     obj("4 · k3 se declara simétrica",
         "datos", lambda d: crit(d, "k3").__setitem__("simetrica", True))
     obj("4 · los pares asimétricos de k=4 cambian",
@@ -258,6 +260,8 @@ def defectos():
     obj("8 · spdep deja de coincidir con libpysal",
         "datos", lambda d: d["m8"].__setitem__("n_pares_spdep", 117) or
                            d["m8"].__setitem__("n_pares_sfdep", 117))
+    obj("8 · un rezago publicado cambia",
+        "datos", lambda d: d["m8"]["wy_primeros"].__setitem__(0, 27.13131))
     obj("8 · las islas del subconjunto del rezago cambian",
         "datos", lambda d: d["m10"].__setitem__("islas_en_el_subconjunto", 7))
     obj("3 · las parejas que solo tiene la reina cambian",

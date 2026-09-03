@@ -1972,6 +1972,187 @@ solucion_cap5 <- function() {
 }
 
 # =====================================================================
+# CAPÍTULO 6 — «Datos de área y la matriz de pesos espaciales»
+#
+# LOS CINCO TRABAJAN SOBRE `nc`, NO SOBRE COLUMBUS NI SOBRE COLOMBIA.
+# Misma regla que en el capítulo 5: los módulos ya enseñaron cada
+# hallazgo sobre sus dos tableros, y repetirlo allí sería pedir que se
+# recite. Un hallazgo que solo aparece donde te lo enseñaron es una
+# anécdota; encontrarlo en otro mapa es lo que lo convierte en método.
+# =====================================================================
+solucion_cap6 <- function() {
+  message("Capítulo 6 · los cinco ejercicios guiados")
+  suppressPackageStartupMessages(library(spdep))
+  set.seed(SEMILLA)
+  E <- list()
+
+  nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
+  nc <- sf::st_transform(nc, 32617)
+  cent <- suppressWarnings(sf::st_centroid(sf::st_geometry(nc)))
+  xy <- sf::st_coordinates(cent)
+  pares <- function(nb) {
+    ij <- do.call(rbind, lapply(seq_along(nb), function(i) {
+      j <- nb[[i]]; j <- j[j > 0]
+      if (length(j) == 0) NULL else cbind(pmin(i, j), pmax(i, j))
+    }))
+    if (is.null(ij)) 0L else nrow(unique(ij))
+  }
+
+  message("  E1 · reina contra torre")
+  reina <- poly2nb(nc, queen = TRUE)
+  torre <- poly2nb(nc, queen = FALSE)
+  E$e1 <- list(
+    titulo = "La esquina que cambia el grado",
+    enunciado = paste(
+      "Sobre los 100 condados de <code>nc</code>, construye la contigüidad reina y la torre.",
+      "Di cuántas parejas une cada una, cuántas hay SOLO en la reina y cuánto se mueve el grado",
+      "medio. Después contesta: ¿puede la torre tener más vecinos que la reina en algún condado?",
+      "Justifícalo con la definición, no con el dato."),
+    pasos = list(
+      list(paso = "Parejas por contigüidad reina", valor = pares(reina)),
+      list(paso = "Parejas por contigüidad torre", valor = pares(torre)),
+      list(paso = "Parejas que solo tiene la reina", valor = pares(reina) - pares(torre)),
+      list(paso = "Grado medio con la reina", valor = r10(mean(card(reina)))),
+      list(paso = "Grado medio con la torre", valor = r10(mean(card(torre)))),
+      list(paso = "Condados cuyo grado cambia", valor = sum(card(reina) != card(torre)))),
+    solucion = list(
+      lectura = paste(
+        "No puede. La torre exige compartir un TRAMO de frontera y la reina se conforma con un",
+        "punto, así que toda pareja de la torre lo es también de la reina: la torre está",
+        "contenida en la reina. La diferencia son los contactos de esquina, que sobre fronteras",
+        "administrativas irregulares son pocos y sobre una retícula regular serían la mitad del",
+        "grafo. El criterio importa lo que la geometría le deje importar.")))
+
+  message("  E2 · k vecinos y la simetría")
+  k4 <- knn2nb(knearneigh(cent, k = 4))
+  asim <- sum(vapply(seq_along(k4), function(i)
+    sum(vapply(k4[[i]], function(j) !(i %in% k4[[j]]), logical(1))), numeric(1)))
+  sim4 <- make.sym.nb(k4)
+  E$e2 <- list(
+    titulo = "La reciprocidad rota",
+    enunciado = paste(
+      "Construye la vecindad de los 4 vecinos más próximos sobre <code>nc</code>. Comprueba si es",
+      "simétrica y cuenta los pares (i, j) en los que j es vecino de i pero i no lo es de j.",
+      "Simetrízala con <code>make.sym.nb</code> y di qué le pasa al grado. Después contesta:",
+      "¿por qué la suma de la matriz W estandarizada por filas NO cambia al simetrizar?"),
+    pasos = list(
+      list(paso = "¿Es simétrica k = 4? (1 = sí)", valor = as.integer(is.symmetric.nb(k4))),
+      list(paso = "Pares no recíprocos", valor = asim),
+      list(paso = "Enlaces dirigidos con k = 4", valor = sum(card(k4))),
+      list(paso = "Parejas distintas con k = 4", valor = pares(k4)),
+      list(paso = "Grado medio tras simetrizar", valor = r10(mean(card(sim4)))),
+      list(paso = "Grado máximo tras simetrizar", valor = max(card(sim4)))),
+    solucion = list(
+      lectura = paste(
+        "Porque el estilo W divide cada fila por su propio grado, así que TODA fila suma 1 tenga",
+        "los vecinos que tenga: la suma de la matriz vale n antes y después. Lo que cambia no es",
+        "el total sino el reparto, y con él la influencia de cada vecino. Simetrizar compra la",
+        "simetría al precio de perder lo que hacía atractivo al criterio: que el grado valiera k.")))
+
+  message("  E3 · el umbral y los subgrafos")
+  d1 <- max(unlist(nbdists(knn2nb(knearneigh(cent, k = 1)), cent)))
+  nb_justo <- suppressWarnings(dnearneigh(cent, 0, d1))
+  ds <- sort(unique(as.numeric(dist(xy))))
+  ds <- ds[ds >= d1]
+  lo <- 1L; hi <- length(ds)
+  while (lo < hi) {
+    mid <- (lo + hi) %/% 2L
+    nbm <- suppressWarnings(dnearneigh(cent, 0, ds[mid]))
+    if (n.comp.nb(nbm)$nc == 1L) hi <- mid else lo <- mid + 1L
+  }
+  d_conexo <- ds[lo]
+  nb_conexo <- suppressWarnings(dnearneigh(cent, 0, d_conexo))
+  E$e3 <- list(
+    titulo = "El umbral que no conecta",
+    enunciado = paste(
+      "Calcula el umbral de distancia MÍNIMO que no deja ningún condado sin vecinos sobre",
+      "<code>nc</code>. Comprueba cuántos subgrafos tiene el grafo en ese umbral. Después busca el",
+      "umbral mínimo que además lo deja CONEXO, y di cuánto crece el grado medio entre los dos.",
+      "Contesta: ¿por qué no basta con quitar las islas?"),
+    pasos = list(
+      list(paso = "Umbral mínimo sin islas (m)", valor = r10(d1)),
+      list(paso = "Subgrafos en ese umbral", valor = n.comp.nb(nb_justo)$nc),
+      list(paso = "Grado medio en ese umbral", valor = r10(mean(card(nb_justo)))),
+      list(paso = "Umbral mínimo que conecta (m)", valor = r10(d_conexo)),
+      list(paso = "Grado medio ahí", valor = r10(mean(card(nb_conexo)))),
+      list(paso = "Cuánto crece el grado (veces)",
+           valor = r10(mean(card(nb_conexo)) / mean(card(nb_justo))))),
+    solucion = list(
+      lectura = paste(
+        "Porque no tener islas y ser conexo son propiedades distintas. Que nadie esté solo",
+        "garantiza que toda unidad tiene con quién promediar; que el grafo sea conexo garantiza",
+        "que la información puede viajar de cualquier unidad a cualquier otra, y es lo que casi",
+        "siempre importa. Comprarla sube el umbral, y con él el grado medio: la vecindad se",
+        "vuelve menos informativa justo cuando se vuelve utilizable.")))
+
+  message("  E4 · los cinco estilos")
+  y <- 1000 * nc$SID74 / nc$BIR74
+  cors <- vapply(c("B", "W", "S", "C", "U"), function(e) {
+    lw <- nb2listw(reina, style = e)
+    r10(cor(y, lag.listw(lw, y)))
+  }, numeric(1))
+  E$e4 <- list(
+    titulo = "El estilo que mueve la conclusión",
+    enunciado = paste(
+      "Sobre <code>nc</code>, calcula la tasa de muerte súbita infantil por mil nacimientos",
+      "(<code>SID74 / BIR74</code>) y su rezago espacial bajo los cinco estilos de",
+      "<code>nb2listw</code>. Da la correlación entre la tasa y su rezago en cada uno.",
+      "Contesta: tres de los cinco dan EXACTAMENTE la misma correlación. ¿Cuáles y por qué?"),
+    pasos = list(
+      list(paso = "Correlación con el estilo B", valor = unname(cors["B"])),
+      list(paso = "Correlación con el estilo W", valor = unname(cors["W"])),
+      list(paso = "Correlación con el estilo S", valor = unname(cors["S"])),
+      list(paso = "Correlación con el estilo C", valor = unname(cors["C"])),
+      list(paso = "Correlación con el estilo U", valor = unname(cors["U"])),
+      list(paso = "Estilos que coinciden con B",
+           valor = sum(abs(cors - cors["B"]) < 1e-12))),
+    solucion = list(
+      lectura = paste(
+        "B, C y U. Los tres son la MISMA matriz multiplicada por una constante —C por n dividido",
+        "entre el total, U por uno entre el total— y una constante no mueve una correlación.",
+        "Los que sí la cambian son W y S, que es exactamente lo que hacen: tratar a las filas de",
+        "forma distinta según su grado. Elegir entre B, C y U es una decisión de escala; elegir",
+        "entre esos y W o S es una decisión sobre qué significa el rezago.")))
+
+  message("  E5 · el rezago contrae")
+  lw <- nb2listw(reina, style = "W")
+  wy <- lag.listw(lw, y)
+  E$e5 <- list(
+    titulo = "La contracción del rezago",
+    enunciado = paste(
+      "Con la misma tasa del ejercicio anterior y la contigüidad reina estandarizada por filas,",
+      "compara la distribución de la tasa con la de su rezago: media, desviación típica y",
+      "correlación. Después contesta: si dibujas los dos mapas con la MISMA escala de color,",
+      "¿cuál se verá más plano y por qué? ¿Es eso una propiedad del territorio?"),
+    pasos = list(
+      list(paso = "Media de la tasa", valor = r10(mean(y))),
+      list(paso = "Media del rezago", valor = r10(mean(wy))),
+      list(paso = "Desviación de la tasa", valor = r10(sd(y))),
+      list(paso = "Desviación del rezago", valor = r10(sd(wy))),
+      list(paso = "Contracción de la desviación (%)",
+           valor = r10(100 * (1 - sd(wy) / sd(y)))),
+      list(paso = "Correlación entre la tasa y su rezago", valor = r10(cor(y, wy)))),
+    solucion = list(
+      lectura = paste(
+        "El del rezago, y no dice nada sobre Carolina del Norte: promediar contrae. La media de",
+        "varios números está más cerca del centro que los números que la forman, y el rezago es",
+        "esa media hecha una vez por condado. Publicar los dos mapas con la misma escala sugiere",
+        "que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la",
+        "operación. Las medias coinciden porque promediar no mueve el centro; las desviaciones no.")))
+
+  E$meta <- list(capitulo = 6L, semilla = SEMILLA, n_ejercicios = 5L,
+                 generado = format(Sys.Date()))
+
+  txt6 <- jsonlite::toJSON(E, auto_unbox = TRUE, digits = 10, null = "null", na = "null")
+  if (grepl('"NA"', txt6, fixed = TRUE))
+    stop("cap6_soluciones.json: hay NA escritos como la cadena \"NA\"")
+  writeLines(txt6, file.path(SALIDAS, "cap6_soluciones.json"), useBytes = TRUE)
+  message(sprintf("  cap6_soluciones.json: %.1f KB",
+                  file.size(file.path(SALIDAS, "cap6_soluciones.json")) / 1024))
+  invisible(E)
+}
+
+# =====================================================================
 for (cap in CAPS) {
   fn <- get0(paste0("solucion_cap", cap))
   if (is.null(fn)) stop(sprintf("no hay soluciones para el capítulo %d todavía", cap))

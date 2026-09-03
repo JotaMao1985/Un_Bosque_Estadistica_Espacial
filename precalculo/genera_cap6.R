@@ -173,8 +173,12 @@ D$m1 <- list(
       crime = list(media = r4(mean(col$CRIME)), sd = r4(sd(col$CRIME)),
                    min = r4(min(col$CRIME)), max = r4(max(col$CRIME))),
       hoval = list(media = r4(mean(col$HOVAL)), sd = r4(sd(col$HOVAL))),
-      inc   = list(media = r4(mean(col$INC)),   sd = r4(sd(col$INC)))),
-    area_km2 = r4(sum(as.numeric(st_area(col))) / 1e6)),
+      inc   = list(media = r4(mean(col$INC)),   sd = r4(sd(col$INC))))),
+  # SIN ÁREA, Y A PROPÓSITO. El `columbus.gpkg` de spData no trae CRS: sus
+  # coordenadas están en unidades arbitrarias, así que `st_area` devolvía
+  # un número que al redondear daba CERO y que no habría significado nada
+  # aunque no lo diera. Un tablero de laboratorio no necesita escala; lo
+  # que necesita es que nadie publique una que no tiene.
   municipios = list(
     n = nrow(mun),
     con_dato = sum(ok_des),
@@ -224,7 +228,7 @@ ETQ_W <- c(reina = "Contigüidad reina", torre = "Contigüidad torre",
 
 D$m2 <- list(
   tablero = "columbus", n = nrow(col),
-  umbral_sin_islas_m = r4(d1_col),
+  umbral_sin_islas = r4(d1_col),
   criterios = lapply(names(W_COL), function(k) {
     c(list(id = k, etiqueta = unname(ETQ_W[k])), resumen_nb(W_COL[[k]], nrow(col)))
   }),
@@ -287,13 +291,15 @@ KS <- 1:8
 D$m4 <- list(
   columbus = lapply(KS, function(k) {
     nb <- knn2nb(knearneigh(col_cent, k = k))
-    c(list(k = k, simetrica = is.symmetric.nb(nb), asimetricos = asimetria(nb)),
-      resumen_nb(nb, nrow(col)))
+    # `simetrica` la trae ya `resumen_nb`: repetirla aquí escribía la MISMA
+    # clave dos veces en el JSON, y jsonlite las escribe las dos sin
+    # quejarse. Quien lea el archivo se queda con una de ellas según la
+    # biblioteca, que es la peor forma de tener razón.
+    c(list(k = k, asimetricos = asimetria(nb)), resumen_nb(nb, nrow(col)))
   }),
   municipios_k4 = {
     nb <- knn2nb(knearneigh(mun_cent, k = 4))
-    c(list(k = 4L, simetrica = is.symmetric.nb(nb), asimetricos = asimetria(nb)),
-      resumen_nb(nb, nrow(mun)))
+    c(list(k = 4L, asimetricos = asimetria(nb)), resumen_nb(nb, nrow(mun)))
   },
   # `make.sym.nb` fuerza la simetría añadiendo las aristas que faltan: el
   # grado deja de valer k, que es justo lo que había que entender.
@@ -319,6 +325,11 @@ d1_mun <- max(unlist(nbdists(knn2nb(knearneigh(mun_cent, k = 1)), mun_cent)))
 
 D$m5 <- list(
   columbus = list(umbral_sin_islas = r4(d1_col),
+                  # El bloque de código del capítulo usa `d1 / 2`, que no es
+                  # ninguno de los siete puntos de la curva. Su cifra se publica
+                  # aquí para que el `#>` salga del JSON y no de una regla de tres.
+                  islas_en_la_mitad = sum(card(suppressWarnings(
+                    dnearneigh(col_cent, 0, d1_col / 2))) == 0),
                   curva = curva_umbral(col_cent, u_col, nrow(col))),
   municipios = list(
     umbral_sin_islas_m = r4(d1_mun),
@@ -408,6 +419,10 @@ lag_sfdep <- if (requireNamespace("sfdep", quietly = TRUE)) {
 
 D$m8 <- list(
   pasos = c("poly2nb", "nb2listw", "lag.listw"),
+  # Los tres primeros rezagos, que el bloque de código imprime. Sin ellos
+  # el bloque tendría que escribirlos a mano, y `verifica_bloques.py` los
+  # ejecuta: una cifra escrita a mano ahí no es un descuido, es un fallo.
+  wy_primeros = r5(head(lag_spdep, 3)),
   sfdep_disponible = !is.null(lag_sfdep),
   # La diferencia máxima entre las dos vías: se publica el número, no la
   # promesa de que coinciden.
@@ -435,6 +450,12 @@ lw_mun <- nb2listw(mun_reina, style = "W", zero.policy = TRUE)
 
 D$m9 <- list(
   islas = length(islas_i),
+  # Los índices, en las DOS bases. R cuenta desde 1 y Python desde 0, y el
+  # capítulo publica un bloque en cada lenguaje: restar uno en el
+  # ensamblador sería aritmética en la prosa, que es justo lo que D10
+  # prohíbe y `sin_aritmetica.py` caza.
+  islas_i = as.integer(islas_i),
+  islas_i0 = as.integer(islas_i - 1L),
   islas_nombre = as.character(mun$municipio[islas_i]),
   islas_departamento = as.character(mun$departamento[islas_i]),
   subgrafos = comp_mun$nc,
