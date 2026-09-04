@@ -231,36 +231,52 @@ semestre 7, 2 créditos, 4 h/semana, 63 h presenciales + 32 h independientes.
 ## 0. Cómo retomar el trabajo en otra sesión
 
 *(escrito el 2026-08-30, con el molde del §0 del plan del preparcial, que existe por lo mismo.
-**Actualizado el mismo día al cerrar T3.6**: el capítulo 5 está cerrado y lo que sigue es la Fase 4,
-el capítulo 6)*
+**Actualizado el 2026-09-04 al cerrar T4.3**: el capítulo 6 está cerrado, la Fase 4 va por la mitad,
+y lo que sigue es **T4.4–T4.6, el capítulo 7**)*
 
 ### 0.1 · Cómo arrancar la conversación nueva
 
-Abrirla **en esta misma carpeta** (`Bosque 2026/Estadistica espacial/`) y pedir que lea **este
-archivo** antes de tocar nada. Todo lo que sigue está para que no haya que reconstruir nada de
-memoria.
+Abrirla **en esta misma carpeta** (`Bosque 2026/Estadistica espacial/`) y pegar esto, que no pide
+reconstruir nada de memoria:
+
+```
+Lee PLAN_Material_Estadistica_Espacial.md empezando por su §0, antes de tocar nada.
+El capítulo 6 está cerrado (T4.1 → T4.3) y lo que sigue es T4.4–T4.6: el capítulo 7,
+autocorrelación espacial global y local. Arranca por T4.4 —el precálculo—, y hazlo
+midiendo antes de decidir, como el A.25 hizo con el 6.
+Antes de escribir nada dime dos cosas: si publico los cinco commits locales, y qué
+midió el cronómetro del capítulo 7.
+```
+
+**Nada empieza sin dos respuestas**, y las dos están abajo: si se **publican los cinco commits que
+están solo en local** (§0.2) y **qué mide el cronómetro del capítulo 7** antes de que se decida su
+forma (§0.5). La segunda no es ceremonia: en el capítulo 6 el cronómetro cambió el diseño entero
+—resultó que el riesgo no era el tiempo sino el peso— y el capítulo 7 hereda ese mismo dato de área.
 
 ### 0.2 · Dónde vive el trabajo
 
-Rama **`capitulo-5-intensidad-nucleos`**. El precálculo del capítulo y su auditor entraron en
-`b2838c6`, y el arranque del ensamblado en `300fa3b`; los cuatro huecos del núcleo (A.22) y el
-decodificador de ráster, con los ocho documentos regenerados detrás, en `66f9368` y `f9fbd29`.
+Rama **`main`**, **árbol de trabajo limpio**. `origin/main` está en `8c3df3a`, así que **el capítulo
+6 entero está sin publicar**: cinco commits que existen solo en este disco.
 
-**Sin comitear, al cerrar T3.5 el 2026-08-30**, cinco archivos:
+| Commit | Qué entró |
+|---|---|
+| `1593bdc` | **T4.1** · `genera_cap6.R`, 6 anclas, dos tableros, y el A.25: el riesgo escrito no era el riesgo |
+| `b5db47f` | **T4.1b** · `audita_cap6.py` recalculando con `libpysal`; encontró que `geo_grafo_multi` dibujaba el grafo incompleto |
+| `7842dc0` | **T4.2** · `ensambla_cap6.py`: 12 módulos, dos tableros, 108 de 108 cifras verificadas ejecutando el código |
+| `14018e7` | El subtítulo de la barra lateral iba en inglés, que es lo único que se ve en el índice |
+| `7901bba` | **T4.3** · el capítulo cerrado, `audita_texto_cap6.py` en 128/0 y el arnés de prosa en 218/218 |
 
-| Qué | Archivos | Por qué está tocado |
-|---|---|---|
-| **El capítulo 5** | `precalculo/ensambla_cap5.py` y su HTML | Los módulos 3 a 12, las 12 preguntas, los 5 ejercicios, el preámbulo de JavaScript que faltaba y las correcciones de la lectura |
-| **Su auditor de prosa** | `audita_texto_cap5.py` (nuevo) y sus 50 inyecciones en `prueba_texto.py` | T3.6 |
-| **El núcleo de los auditores de prosa** | `audita_texto_base.py` y los siete que lo llaman | Cuatro huecos (A.24), y por eso los siete estrenan `formulas_escapadas()` |
-| **La portada** | `index.html` | Estrena la tarjeta del capítulo 5, y con ella `cuenta_sitio.py` vuelve a verde |
-| **Los planes** | `PLAN_Material...md`, `README.md` | T3.5 y T3.6 cerradas, la decisión 2 revertida, **A.23** y **A.24** |
+**El `push` no se hace sin decirlo.** Es la respuesta por defecto que quedó escrita en la revisión
+del capítulo 5 y sigue en pie, porque publicar aquí no es guardar: **el sitio se sirve de `main`**
+—no hay rama `gh-pages`—, así que `git push origin main` pone el capítulo 6 delante de los
+estudiantes en el mismo acto. Un solo comando:
 
-**Lo que hay que entender:** el precálculo **no se ha tocado** —`cap5_datos.json`,
-`cap5_mapas.json`, `cap5_soluciones.json` y los cinco CSV son los de T3.4, byte a byte—, así que
-`audita_cap5.py` sigue en **297/0/0**. Lo que cambió es quién los lee. Y **tocar el núcleo de los
-auditores de prosa obliga a la verificación aditiva**, que está hecha: los siete auditores de texto
-en 0 fallos y el arnés en 191/191.
+```
+git push origin main
+```
+
+**Otras ramas vivas, ninguna pendiente:** `capitulo-5-intensidad-nucleos` y `taller-1-y-entrada-sig`
+están fusionadas en `main` y se pueden borrar cuando estorben.
 
 ### 0.3 · El estado, tarea por tarea
 
@@ -277,15 +293,22 @@ en 0 fallos y el arnés en 191/191.
 | **T4.1b** · auditor y arnés | ✅ hecha. **218/0/2** y **88 inyecciones, 88 cazadas, 76 de 76 tipos** |
 | **T4.2** · `ensambla_cap6.py` | ✅ hecha. **12 módulos**, 6 simuladores, 2 mapas, 13 preguntas, 5 ejercicios y **108/108 cifras verificadas ejecutando el código** |
 | **T4.3** · verificación y cierre | ✅ hecha. `audita_texto_cap6.py` **128/0**, **27 inyecciones y 27 cazadas**, arnés entero **218/218**, los doce módulos leídos y la portada al día |
+| **T4.4–T4.6** · el capítulo 7 | ⬜ **lo siguiente**. Ver §0.5 |
 
-**Lo publicado:** `Htmls_Espacial/capitulo-5-intensidad-nucleos.html`, **755 KB**, 12 módulos, 11
-simuladores, 6 mapas, 12+12 bloques R/Python, 12 preguntas en dos autoevaluaciones y 5 ejercicios
-guiados. **El capítulo está cerrado, y con él la Fase 3 y el Checkpoint 3.**
-
-**`cuenta_sitio.py` VOLVIÓ A VERDE:** los siete archivos del curso están enlazados desde la portada.
-No queda ningún rojo en el repositorio.
+**Lo publicado —seis capítulos—**, contado por `cuenta_sitio.py` y no recordado: **72 módulos, 57
+simuladores, 44 geomapas, 73 preguntas, 28 ejercicios guiados y 306 cifras `#>`**, con los 8
+archivos del curso enlazados desde la portada. `Htmls_Espacial/capitulo-6-pesos-espaciales.html`
+pesa **580 KB**. **No queda ningún rojo en el repositorio.**
 
 ### 0.4 · La cadena, en orden, con los comandos exactos
+
+Lo primero, y lo único que hay que recordar antes de dar por cerrado un capítulo:
+
+```
+precalculo/audita_todo.sh --rapido      # el arnés entero, y dice ARNÉS COMPLETO EN VERDE
+```
+
+La cadena de un capítulo, en orden —aquí la del 6, que es el molde para el 7—:
 
 ```
 precalculo/rscript.sh precalculo/genera_cap6.R          # 6 anclas · cachea poly2nb (42 s)
@@ -295,27 +318,29 @@ python3 precalculo/prueba_auditor_cap6.py              # 88/88 · 76/76 tipos ·
 python3 precalculo/ensambla_cap6.py                    # 12/12 módulos, devuelve 0
 python3 precalculo/verifica_bloques.py --html Htmls_Espacial/capitulo-6-pesos-espaciales.html
 <geo_env>/python precalculo/audita_texto_cap6.py       # 128/0
-
-precalculo/rscript.sh precalculo/genera_cap5.R          # 18 anclas · usa la cache
-precalculo/rscript.sh precalculo/genera_soluciones.R 5  # los 5 ejercicios
-<geo_env>/python precalculo/audita_cap5.py              # 297/0/0
-python3 precalculo/prueba_auditor_cap5.py               # 151/151 · 156/156 tipos · ~4 min
-python3 precalculo/ensambla_cap5.py                # 12/12 módulos, devuelve 0
-python3 precalculo/verifica_bloques.py --html Htmls_Espacial/capitulo-5-intensidad-nucleos.html
+python3 precalculo/prueba_texto.py                     # 218/218 sobre los siete sujetos
+python3 precalculo/cuenta_sitio.py                     # los totales, contados
 ```
 
-`<geo_env>` sale de `precalculo/versiones_py.json`, clave `ejecutable`. **Nunca `Rscript` a pelo:**
-el del PATH es Homebrew y no tiene `sf`, y arranca en `LC_CTYPE=C`, donde `jsonlite` escribe las
-tildes rotas sin fallar.
+`<geo_env>` sale de `precalculo/versiones_py.json`, clave `ejecutable`
+(`/opt/homebrew/Caskroom/mambaforge/base/envs/geo_env/bin/python`). **Nunca `Rscript` a pelo:** el
+del PATH es Homebrew, no tiene `sf`, y arranca en `LC_CTYPE=C`, donde `jsonlite` escribe las tildes
+rotas sin fallar.
+
+**`baraja_opciones.py` no se invoca a mano.** Lo llama cada ensamblador justo antes de escribir el
+HTML, así que un capítulo nuevo lo hereda con una línea; su propio arnés vive en
+`python3 precalculo/baraja_opciones.py --prueba` (13 comprobaciones). Existe porque las **51
+preguntas de los cinco primeros capítulos tenían la correcta en la primera posición**: el motor no
+baraja.
 
 **Verificado sin regresión el 2026-08-30**, y es lo que hay que repetir tras tocar el núcleo:
 `audita_cap1..4` **1075/449/356/425**, `taller1` **531**, `preparcial1` **112**, todos en 0 fallos;
-los seis arneses en **103/103, 91/91, 56/56, 100/100, 67/67, 151/151** con cero reventones; los
-cinco auditores de prosa en 0 fallos; `campos_vivos` y `sin_aritmetica` en verde.
+los arneses sin reventones; los auditores de prosa en 0 fallos; `campos_vivos` y `sin_aritmetica` en
+verde.
 
 ### 0.5 · Qué hacer a continuación, y en qué orden
 
-**La Fase 3 está cerrada y el CAPÍTULO 6 TAMBIÉN (T4.1 → T4.3, todas el 2026-09-03).**
+**La Fase 3 está cerrada y el CAPÍTULO 6 TAMBIÉN** (T4.1 → T4.3, el 2026-09-03).
 `Htmls_Espacial/capitulo-6-pesos-espaciales.html`, **580 KB**: 12 módulos, 6 simuladores, 2 mapas,
 **13 preguntas y 5 ejercicios**, 6 anclas, reproducible byte a byte, y **11 pares de bloques
 R/Python con 108 de 108 cifras verificadas ejecutando el código**. Auditorías: `audita_cap6.py`
@@ -324,36 +349,44 @@ inyecciones, 27 cazadas**, y el arnés de prosa entero en **218/218** sobre los 
 Verificado en el navegador: consola limpia en los doce módulos, 8 lienzos con tinta y con
 `aria-label`, y sin desbordamiento a 1 280, 375 ni **318 px**.
 
-Lo que sigue es **T4.4–T4.6: el capítulo 7**, autocorrelación espacial global y local.
+**Lo que sigue es T4.4–T4.6: el capítulo 7**, autocorrelación espacial global y local. Su temario,
+sus 11 simuladores y sus datos están en el **§6**; su riesgo declarado es el **módulo 10**, la
+corrección de multiplicidad, que se implementa contra `spdep::localmoran_perm` con
+`p.adjust.method` y se contrasta con las cifras de GeoDa documentadas en Anselin & Rey.
 
-**El auditor de este capítulo recalcula con `libpysal`, no con `spdep`**, y eso lo hace el más
-independiente que ha tenido ningún capítulo: dos bibliotecas ajenas contestando la misma pregunta.
-Lo que libpysal no trae —los cinco estilos, las componentes conexas, la asimetría— está
-reimplementado por definición. Ver **A.26**.
+**Tres cosas que el capítulo 7 hereda del 6, y conviene decidirlas con el cronómetro delante:**
 
-**Dos deudas declaradas del Corte I**, que no son de este capítulo y esperan la misma reapertura:
+1. **La W del capítulo 7 ya está construida y auditada.** El 6 publica `cap6_datos.json` con diez
+   criterios sobre Columbus y la reina municipal sobre 1 122 municipios; el 7 no tiene por qué
+   recalcularlos, y el módulo 7 —«Moran es sensible a W»— es exactamente la continuación del 6.
+2. **El peso es el riesgo, no el tiempo.** El A.25 lo midió: la geometría municipal tiene un suelo
+   de 12 547 vértices y no baja de ahí. El 6 lo resolvió con **dos tableros** —Columbus para lo que
+   se dibuja, los municipios para lo que se calcula—, y esa decisión sigue disponible.
+3. **`audita_cap7.py` puede recalcular con `esda`**, como el 6 lo hizo con `libpysal`: dos
+   bibliotecas ajenas contestando la misma pregunta. Pero **`spdep` y `esda` NO dan el mismo I de
+   Moran cuando hay islas**, y está medido desde T1.1: sobre el mismo grafo, **0,38091 contra
+   0,38159**, porque con `zero.policy = TRUE` R toma **n = unidades CON vecinos** (1 119 de 1 121) y
+   Python toma **n = todas**; el paso de una a otra es exactamente el factor 1 119/1 121. Ninguna
+   está mal — son dos convenios. Pero este capítulo **vive de ese índice**, así que hay que fijar
+   por escrito qué hace cada biblioteca con las islas ANTES de contrastar, o el auditor va a llamar
+   defecto a una diferencia de convenio. Ver **A.11**, que además deja el caso trabajado servido.
 
-1. **Los capítulos 3 y 4 publican 68 retroalimentaciones por opción que el motor no lee**, porque
-   usan la clave `respuesta` en vez de `retro` —más 3 explicaciones de preguntas numéricas por lo
-   mismo—. El estudiante ve «Correcto.» a secas, con la consola limpia. Es un cambio de una palabra
-   por opción, pero obliga a **regenerar dos capítulos cerrados** y a repetir sobre ellos la cadena
-   del §0.4; y el 3 es material del preparcial. Ver **A.23.2**.
+**Dos deudas declaradas, y ninguna es de este capítulo:**
+
+1. ~~Los capítulos 3 y 4 publican 68 retroalimentaciones que el motor no lee~~ ✅ **SALDADA el
+   2026-09-02** (A.23.2). Se midió en vivo que una numérica fallada imprimía «La respuesta es 224.
+   undefined»; se arreglaron 68 opciones y 3 numéricas, y los tres ensambladores estrenan guardas
+   que se vieron dispararse sobre copias envenenadas.
 2. **Los diez rásteres del capítulo 1** podrían cruzar el núcleo de `audita_cap1.py` desde A.22 y
    siguen auditándose a mano.
 
-~~3. `audita_texto_cap3.py` no llama a `soluciones()`~~ ✅ **SALDADA en T3.6**, y no era una línea:
-devolvía «0 de 0 celdas contrastadas» porque aquel capítulo guarda sus ejercicios en otra forma.
-Ver **A.24.4**.
-
-**Y lo que el capítulo 5 deja mejor de lo que lo encontró**, por si el 6 lo necesita: el núcleo de
-los auditores de prosa estrena cuatro cosas —la notación científica indexada entera, la guarda de
-las fórmulas con un `<` sin escapar, las tablas de solución acotadas a su propio ejercicio y las dos
-formas de guardar los ejercicios en el JSON—. Ver **A.24**.
+**Y las notas N1–N5 de la revisión del capítulo 5** siguen anotadas y deliberadamente sin arreglar:
+son mejoras, no defectos, y la decisión de aquel día fue «corregir, no rediseñar».
 
 **Un aviso para quien verifique en el panel del navegador:** con el panel oculto los temporizadores
 se estrangulan y `innerHeight` vale 0, así que un recorrido de módulos con `await` no termina nunca
-y el desplazamiento no se mueve. **No es del capítulo** —el 4 se comporta igual—: hay que recorrer
-los módulos de forma síncrona o con el panel al frente.
+y el desplazamiento no se mueve. **No es del capítulo** —el 4 se comporta igual—: hay que emular el
+viewport y fijar la figura con `position: fixed`, o recorrer los módulos con el panel al frente.
 
 ### 0.6 · Las trampas que ya se pagaron, para no volver a pagarlas
 
@@ -382,6 +415,21 @@ los módulos de forma síncrona o con el panel al frente.
 11. **R imprime un vector con nombres a siete cifras significativas**, no con los decimales que se
     le pidieron a `round()`. Ocho `#>` del capítulo fallaron por eso y por nada más; se arreglan con
     `print(..., digits = n)`, no aflojando lo que se anuncia.
+12. **Todo `Chart` de la casa lleva `animation: false`.** Sin él el primer trazo se aplaza a un
+    fotograma que en este montaje —el módulo se clona de una plantilla y se inserta— no llega nunca:
+    seis gráficos con instancia, con ejes y con **cero píxeles**, y la consola limpia (A.27.1).
+13. **El segundo argumento posicional de `nb2listw` NO es `style`: es `glist`.** R falla con «glist
+    wrong length» y **se lleva por delante todos los bloques posteriores**, así que el rojo se lee a
+    sesenta líneas de donde está la causa (A.27.2).
+14. **Los bloques de Python se ejecutan COMO GUION, no como REPL.** Una expresión suelta no imprime
+    nada, y sus cifras no llegan a `verifica_bloques.py`: van con `print()` (A.27.3).
+15. **`sum(grados) / 2` NO es el número de aristas si el grafo es asimétrico**, y las vecindades de
+    k vecinos lo son casi siempre. Hay que publicar `enlaces`, `pares` y `simetrica` por separado, y
+    ese mismo error tenía a `geo_grafo_multi` dibujando el grafo incompleto desde T0.3.
+16. **`cifras()` no protege a los enteros de tres cifras.** Está medido: cambiar «18 parejas» por
+    331 pasa y por 8887 se caza, porque el índice tiene decenas de miles de entradas y un entero
+    corto cae dentro por azar. Lo que sí los protege es el auditor del precálculo, que los recalcula
+    uno a uno (A.27.5).
 
 ---
 
