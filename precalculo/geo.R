@@ -216,6 +216,19 @@ geo_cortes <- function(v, n = 5, estilo = "quantile") {
 #'              150 KB: pagarla cuatro veces son 600 KB, y el presupuesto
 #'              del capítulo entero es de 120.
 #'
+#'              Una capa puede ser CATEGÓRICA (T4.4): `list(id=, tipo =
+#'              "categoria", valor = <códigos enteros 1..K o NA>, niveles =
+#'              <K rótulos>, colores = <K colores hex>)`. Existe porque un
+#'              mapa LISA son cinco categorías fijas —no significativo y los
+#'              cuatro cuadrantes— con una leyenda que no es de intervalos,
+#'              y el de Gi* son siete. `classInt` no puede con eso: sobre
+#'              Columbus con Bonferroni la capa queda con UN solo valor y
+#'              `classIntervals` muere con «single unique value» (A.28). Los
+#'              colores viajan desde R porque son parte del dato —rojo es
+#'              alto-alto en toda la literatura— y no una elección del
+#'              navegador; el NA es «sin dato o sin vecinos» y se pinta
+#'              sin color, como en las capas numéricas.
+#'
 #'   `q`        cuantización de ESTE mapa. Por defecto QMAX (4096). Un
 #'              mapa de 1 122 municipios sobre un lienzo de 900 px no
 #'              necesita 4096 pasos —el error de 1/1024 son 0,88 px, o sea
@@ -313,6 +326,28 @@ geo_poligonos <- function(x, valor = NULL, n_clases = 5, estilo = "quantile",
   )
   if (!is.null(capas)) {
     out$capas <- lapply(capas, function(cp) {
+      if (identical(cp$tipo, "categoria")) {
+        # CAPA CATEGÓRICA: códigos 1..K contra `niveles`, NA = sin dato o
+        # sin vecinos. No pasa por `geo_cortes`: no hay intervalos que
+        # calcular, y una capa con un solo nivel presente —Bonferroni
+        # sobre Columbus— es un resultado, no un error.
+        v <- as.integer(cp$valor)
+        if (length(v) != nrow(x))
+          stop(sprintf("la capa '%s' trae %d valores y la geometria tiene %d rasgos",
+                       cp$id %||% "?", length(v), nrow(x)))
+        niv <- as.character(cp$niveles)
+        if (length(niv) < 2L) stop(sprintf("la capa categorica '%s' necesita al menos dos niveles", cp$id %||% "?"))
+        if (is.null(cp$colores) || length(cp$colores) != length(niv))
+          stop(sprintf("la capa categorica '%s' necesita un color por nivel (%d)", cp$id %||% "?", length(niv)))
+        pres <- v[!is.na(v)]
+        if (length(pres) && (min(pres) < 1L || max(pres) > length(niv)))
+          stop(sprintf("la capa categorica '%s' trae codigos fuera de 1..%d", cp$id %||% "?", length(niv)))
+        return(list(id = cp$id, etiqueta = cp$etiqueta %||% cp$id,
+                    leyenda = cp$leyenda %||% "", tipo = "categoria",
+                    valor = v, niveles = niv, colores = as.character(cp$colores),
+                    tam = as.integer(table(factor(v, levels = seq_along(niv)))),
+                    n_sin_dato = sum(is.na(v))))
+      }
       v <- as.numeric(cp$valor)
       if (length(v) != nrow(x))
         stop(sprintf("la capa '%s' trae %d valores y la geometria tiene %d rasgos",

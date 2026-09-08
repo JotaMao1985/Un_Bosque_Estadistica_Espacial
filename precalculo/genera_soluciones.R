@@ -2153,6 +2153,201 @@ solucion_cap6 <- function() {
 }
 
 # =====================================================================
+# CAPÍTULO 7 — «Autocorrelación espacial global y local»
+#
+# LOS CINCO TRABAJAN SOBRE `nc`, NO SOBRE COLUMBUS NI SOBRE COLOMBIA.
+# Misma regla que en el 5 y en el 6. Y la variable es la tasa de SIDS de
+# 1979 por mil nacimientos, con la contigüidad reina: un dato real, con
+# 100 condados, que el capítulo no ha mirado antes.
+#
+# El p y las réplicas son los del capítulo (decisión 3 del A.28): el de
+# rangos con 24 999 permutaciones. Si el generador cambia ese convenio,
+# esto tiene que cambiar con él, y por eso está escrito una sola vez.
+# =====================================================================
+solucion_cap7 <- function() {
+  message("Capítulo 7 · los cinco ejercicios guiados")
+  suppressPackageStartupMessages(library(spdep))
+  set.seed(SEMILLA)
+  E <- list()
+  NSIM <- 24999L; P_COL <- "Pr(folded) Sim"; ALFA <- 0.05
+
+  nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
+  nc <- sf::st_transform(nc, 32617)
+  y <- 1000 * nc$SID79 / nc$BIR79
+  nb <- poly2nb(nc, queen = TRUE)
+  lw <- nb2listw(nb, style = "W")
+  z <- as.numeric(scale(y)); wz <- lag.listw(lw, z)
+
+  message("  E1 · el índice a mano")
+  mt <- moran.test(y, lw)
+  mn <- moran.test(y, lw, randomisation = FALSE)
+  set.seed(SEMILLA); mc <- moran.mc(y, lw, nsim = 999)
+  E$e1 <- list(
+    titulo = "El índice, pieza a pieza",
+    enunciado = paste(
+      "Sobre los 100 condados de <code>nc</code>, calcula la tasa de SIDS de 1979 por mil",
+      "nacimientos (<code>1000 * SID79 / BIR79</code>) y su I de Moran con la contigüidad reina",
+      "estandarizada por filas. Da E[I], la varianza por aleatorización y la z; luego el p por",
+      "permutación con 999 réplicas. Después contesta: ¿por qué E[I] es negativa y no cero, y",
+      "por qué el p por permutación no puede ser menor que 0,001?"),
+    pasos = list(
+      list(paso = "I de Moran", valor = r10(mt$estimate[1])),
+      list(paso = "E[I] = -1/(n-1)", valor = r10(mt$estimate[2])),
+      list(paso = "Varianza por aleatorización", valor = r10(mt$estimate[3])),
+      list(paso = "z por aleatorización", valor = r10(mt$statistic)),
+      list(paso = "z por normalidad", valor = r10(mn$statistic)),
+      list(paso = "p por permutación (999 réplicas)", valor = r10(mc$p.value))),
+    solucion = list(
+      lectura = paste(
+        "E[I] es -1/(n-1) porque z'Wz suma productos de pares DISTINTOS: bajo la hipótesis nula",
+        "cada z_i z_j con i distinto de j tiene esperanza -1/(n-1) —los valores están tipificados",
+        "y suman cero, así que un valor alto obliga a los demás a compensar—, y ese sesgo se",
+        "desvanece con n pero nunca es cero. El p por permutación cuenta cuántas de las 999",
+        "réplicas igualan o superan la I observada y suma uno por la propia observación: el",
+        "menor valor posible es 1/(999 + 1). No es que el efecto sea débil; es que el método no",
+        "puede decir más con esas réplicas.")))
+
+  message("  E2 · la pendiente es I, salvo cuando no")
+  pend_W <- unname(coef(lm(wz ~ z))[2])
+  lwB <- nb2listw(nb, style = "B")
+  wzB <- lag.listw(lwB, z)
+  pend_B <- unname(coef(lm(wzB ~ z))[2])
+  I_B <- moran.test(y, lwB)$estimate[1]
+  cuad <- ifelse(z >= 0, ifelse(wz >= 0, "AA", "AB"), ifelse(wz >= 0, "BA", "BB"))
+  E$e2 <- list(
+    titulo = "La recta del diagrama",
+    enunciado = paste(
+      "Tipifica la tasa (z) y calcula su rezago Wz con la W estandarizada por filas. Ajusta la",
+      "recta de Wz sobre z y compara la pendiente con la I de Moran. Cuenta los condados en cada",
+      "cuadrante. Repite la recta con la W BINARIA (estilo B) y compara otra vez con la I bajo",
+      "ese estilo. Después contesta: ¿por qué la pendiente coincide con I en un caso y no en el",
+      "otro?"),
+    pasos = list(
+      list(paso = "Pendiente de Wz sobre z (estilo W)", valor = r10(pend_W)),
+      list(paso = "I de Moran (estilo W)", valor = r10(mt$estimate[1])),
+      list(paso = "Condados alto-alto", valor = sum(cuad == "AA")),
+      list(paso = "Condados bajo-bajo", valor = sum(cuad == "BB")),
+      list(paso = "Pendiente con la W binaria (estilo B)", valor = r10(pend_B)),
+      list(paso = "I de Moran con la W binaria", valor = r10(I_B))),
+    solucion = list(
+      lectura = paste(
+        "I = (n/S0) · z'Wz / z'z y la pendiente de mínimos cuadrados de Wz sobre z es z'Wz / z'z,",
+        "así que las dos coinciden exactamente cuando n/S0 = 1, es decir, cuando W está",
+        "estandarizada por filas y cada fila suma uno. Con la W binaria S0 es el número de",
+        "enlaces, n/S0 ya no vale uno y la pendiente se separa de I por ese factor. El diagrama",
+        "de Moran es una lectura de I, no una definición: solo lo es bajo el estilo W.")))
+
+  message("  E3 · Geary contra Moran")
+  gt <- geary.test(y, lw)
+  i_max <- which.max(y)
+  y2 <- y; y2[i_max] <- y2[i_max] * 3
+  E$e3 <- list(
+    titulo = "El condado disparado",
+    enunciado = paste(
+      "Calcula la c de Geary de la tasa con la misma W, su z y 1 - c, y compáralo con I.",
+      "Después localiza el condado de mayor tasa, multiplícala por tres y recalcula I y c.",
+      "Contesta: ¿cuál de los dos índices se movió más, y qué mide cada uno para que pase eso?"),
+    pasos = list(
+      list(paso = "c de Geary", valor = r10(gt$estimate[1])),
+      list(paso = "z de Geary", valor = r10(gt$statistic)),
+      list(paso = "1 - c", valor = r10(1 - gt$estimate[1])),
+      list(paso = "I de Moran", valor = r10(mt$estimate[1])),
+      list(paso = "I con el condado disparado", valor = r10(moran.test(y2, lw)$estimate[1])),
+      list(paso = "c con el condado disparado", valor = r10(geary.test(y2, lw)$estimate[1]))),
+    solucion = list(
+      lectura = paste(
+        "El que se movió fue I, y hacia CERO: cayó casi a la mitad, mientras c apenas se",
+        "desplazó. Un solo valor extremo domina la varianza que normaliza a los dos índices.",
+        "En Moran, el producto del condado disparado con sus vecinos crece como el valor, pero",
+        "el denominador crece como su cuadrado, así que I se hunde hacia su valor nulo. En",
+        "Geary, las diferencias al cuadrado con los vecinos y la varianza crecen las dos como el",
+        "cuadrado, y c se queda donde estaba —y en el límite tiende a 1, su propio valor nulo—.",
+        "Ninguno es robusto: el extremo esconde la autocorrelación en los dos, solo que a",
+        "velocidades distintas. Por eso 1 - c y I se parecen cuando el dato es manso, y cuando",
+        "discrepan la discrepancia señala un atípico que hay que ir a mirar.")))
+
+  message("  E4 · el mapa LISA que miente")
+  lmp <- localmoran_perm(y, lw, nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE)
+  lmp999 <- localmoran_perm(y, lw, nsim = 999L, iseed = SEMILLA, no_repeat_in_row = TRUE)
+  p <- lmp[, P_COL]; p999 <- lmp999[, P_COL]
+  q <- as.character(attr(lmp, "quadr")$mean)
+  sig <- p < ALFA
+  E$e4 <- list(
+    titulo = "El mapa que sale por defecto",
+    enunciado = paste(
+      "Calcula los I locales de la tasa con <code>localmoran_perm</code>, primero con 999",
+      "réplicas y luego con 24 999, y usa el p por rangos (<code>Pr(folded) Sim</code>).",
+      "Cuenta los condados significativos al 5 % sin corregir, con Bonferroni y con FDR, y da",
+      "el número mínimo de réplicas para que Bonferroni sea alcanzable con n = 100. Después",
+      "contesta: ¿cuántos alto-alto y bajo-bajo quedan sin corregir, y qué diría el mapa de",
+      "999 réplicas con Bonferroni?"),
+    pasos = list(
+      list(paso = "Significativos al 5 % sin corregir (24 999)", valor = sum(sig)),
+      list(paso = "Significativos con Bonferroni (24 999)", valor = sum(p.adjust(p, "bonferroni") < ALFA)),
+      list(paso = "Significativos con FDR (24 999)", valor = sum(p.adjust(p, "fdr") < ALFA)),
+      list(paso = "Réplicas mínimas para Bonferroni con n = 100", valor = as.integer(ceiling(100 / ALFA) - 1)),
+      list(paso = "Alto-alto sin corregir", valor = sum(sig & q == "High-High")),
+      list(paso = "Bajo-bajo sin corregir", valor = sum(sig & q == "Low-Low")),
+      list(paso = "Significativos con Bonferroni (999)", valor = sum(p.adjust(p999, "bonferroni") < ALFA))),
+    solucion = list(
+      lectura = paste(
+        "Con 999 réplicas el p por rangos no baja de 0,001 y Bonferroni pide p < 0,05/100 =",
+        "0,0005: ningún condado puede sobrevivir, y el mapa «corregido» sale vacío no porque no",
+        "haya conglomerados sino porque el procedimiento no puede verlos. Hacen falta al menos",
+        "1 999 réplicas para que UNO pueda. Y sin corregir, cien tests al 5 % esperan cinco",
+        "falsos positivos aunque no haya nada: el mapa por defecto de GeoDa o de spdep enseña",
+        "esos cinco con el mismo rojo que los verdaderos. FDR está en medio: controla la",
+        "proporción de falsos entre los que declara, no la probabilidad de declarar alguno.")))
+
+  message("  E5 · Gi* no es LISA")
+  gs <- localG_perm(y, nb2listw(include.self(nb), style = "W"), nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE)
+  gz <- as.numeric(gs); gp <- attr(gs, "internals")[, P_COL]
+  caliente <- gp < ALFA & gz > 0; frio <- gp < ALFA & gz < 0
+  atipico <- sig & q %in% c("High-Low", "Low-High")
+  E$e5 <- list(
+    titulo = "Intensidad, no similitud",
+    enunciado = paste(
+      "Calcula la Gi* de Getis-Ord de la tasa (con el condado incluido entre sus propios",
+      "vecinos y W estandarizada por filas, 24 999 réplicas) y cuenta los puntos calientes y",
+      "fríos al 5 %. Cruza con el LISA del ejercicio anterior: ¿cuántos condados son atípicos",
+      "espaciales (alto-bajo o bajo-alto) significativos para LISA, y cuántos de ellos ve Gi*?",
+      "Después contesta: ¿qué mide Gi* que hace que un alto-bajo no le importe?"),
+    pasos = list(
+      list(paso = "Puntos calientes al 5 %", valor = sum(caliente)),
+      list(paso = "Puntos fríos al 5 %", valor = sum(frio)),
+      list(paso = "Atípicos espaciales significativos (LISA)", valor = sum(atipico)),
+      list(paso = "Atípicos que Gi* declara calientes o fríos", valor = sum(atipico & (caliente | frio))),
+      # El atípico alto-bajo sale FRÍO y el bajo-alto sale CALIENTE: Gi* lo
+      # pinta del color de su vecindad, el contrario a su propio valor.
+      list(paso = "Atípicos pintados del color contrario a su valor",
+           valor = sum(atipico & ((q == "High-Low" & frio) | (q == "Low-High" & caliente)))),
+      list(paso = "Gi* máxima (z)", valor = r10(max(gz))),
+      list(paso = "Condados alto-alto que Gi* llama calientes", valor = sum(sig & q == "High-High" & caliente))),
+    solucion = list(
+      lectura = paste(
+        "Gi* suma los valores de la vecindad —el condado incluido— y la compara con lo que",
+        "sumaría una vecindad cualquiera: mide INTENSIDAD, si la zona es alta o baja en",
+        "conjunto. LISA multiplica la desviación del condado por la de sus vecinos: mide",
+        "SIMILITUD, si se parece a lo que le rodea. Los dos atípicos no desaparecen en el mapa",
+        "de Gi*: salen pintados del color de sus vecinos, que es el contrario al suyo. El",
+        "condado alto entre bajos queda FRÍO, porque la suma de su vecindad es baja; el bajo",
+        "entre altos, CALIENTE. No es que uno acierte y el otro no: contestan preguntas",
+        "distintas, y el mapa de puntos calientes no tiene una categoría para «distinto de lo",
+        "que le rodea». Quien lea solo Gi* verá una zona fría donde hay un condado alto.")))
+
+  E$meta <- list(capitulo = 7L, semilla = SEMILLA, n_ejercicios = 5L,
+                 nsim = NSIM, p = P_COL, generado = format(Sys.Date()))
+
+  txt7 <- jsonlite::toJSON(E, auto_unbox = TRUE, digits = 10, null = "null", na = "null")
+  if (grepl('"NA"', txt7, fixed = TRUE))
+    stop("cap7_soluciones.json: hay NA escritos como la cadena \"NA\"")
+  writeLines(txt7, file.path(SALIDAS, "cap7_soluciones.json"), useBytes = TRUE)
+  message(sprintf("  cap7_soluciones.json: %.1f KB",
+                  file.size(file.path(SALIDAS, "cap7_soluciones.json")) / 1024))
+  invisible(E)
+}
+
+# =====================================================================
 for (cap in CAPS) {
   fn <- get0(paste0("solucion_cap", cap))
   if (is.null(fn)) stop(sprintf("no hay soluciones para el capítulo %d todavía", cap))
