@@ -209,6 +209,31 @@ def main() -> None:
             print(f"    los {len(caps) + len(talleres) + len(preparciales)} archivos "
                   f"del curso están enlazados")
 
+        # Y LA OTRA MITAD, que faltaba: un capítulo publicado NO puede seguir
+        # anunciado como «Próximamente» más abajo.
+        #
+        # Existe porque pasó TRES VECES seguidas. La portada se mantiene a
+        # mano, y al publicar los capítulos 4, 5 y 6 se añadió la tarjeta
+        # nueva sin quitar la vieja: durante semanas el estudiante abría el
+        # capítulo 4 desde arriba y lo encontraba abajo con un reloj y un
+        # «Próximamente». El enlace estaba —así que la comprobación de
+        # huérfanos daba verde— y el defecto vivía en la MISMA página, tres
+        # secciones más abajo. Se encontró leyendo la portada, no contándola.
+        tarjetas = re.findall(
+            r'class="bosque-card( pendiente)?"[\s\S]{0,1400}?card-number">(\d+)<', texto)
+        publicadas = {n for clase, n in tarjetas if not clase.strip()}
+        pendientes = {n for clase, n in tarjetas if clase.strip()}
+        dobles = sorted(publicadas & pendientes, key=int)
+        if dobles:
+            for n in dobles:
+                print(f"    ⚠ el capítulo {n} sale como publicado Y como "
+                      f"«En preparación» en la misma portada")
+            problemas.append(
+                f"{len(dobles)} capítulo(s) anunciados a la vez como publicados y pendientes")
+        else:
+            print(f"    y ninguno de los {len(publicadas)} publicados sigue "
+                  f"anunciado como pendiente")
+
     # Desglose de los modos del .geomapa: el §4 del plan reparte los cinco
     # entre los capítulos, y así se ve cuáles siguen sin estrenarse.
     #
