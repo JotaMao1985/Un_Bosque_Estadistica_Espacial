@@ -274,26 +274,39 @@ regenerar y verificar los dos capítulos anteriores; aquí son seis.
 
 ### 0.2 · Dónde vive el trabajo
 
-Rama **`main`**, **árbol de trabajo limpio**. ✅ **Publicado el 2026-09-09**: `origin/main` está en
-`bbc0290`, con los cuatro commits de T4.4 y T4.4b, y el capítulo 4 corregido está delante de los
-estudiantes. **Queda un solo commit en local, y es esta nota**: el §0 diciendo que se publicó, que
-no puede publicarse antes de escribirse. Lo que entró, para el registro:
+Rama **`main`**, **árbol de trabajo limpio**. ✅ **Publicado el 2026-09-09 en dos tandas**:
+`origin/main` llegó a `fd3ad59` con los seis commits de abajo, y **el capítulo 4 corregido y los
+capítulos 5 y 6 están delante de los estudiantes**. **Queda un solo commit en local, y es esta
+nota**: el §0 diciendo que se publicó, que no puede publicarse antes de escribirse.
+
+**Y verificado en vivo, no supuesto:** los tres capítulos que se tocaron los sirve Pages **byte a
+byte idénticos** a los del repositorio, con los espacios finos en la prosa (9, 14 y 18) y **cero
+dentro de los bloques de código**. Comprobarlo es una descarga y un `sha256`; conviene hacerlo
+siempre que se publique un capítulo en vivo, porque Pages tarda en reconstruir y «hice push» no es
+«está publicado».
 
 | Commit | Qué entró |
 |---|---|
 | `a225f95` | **T4.4** · `genera_cap7.R`, 13 anclas, la GAL de Anselin en su orden, la capa categórica en `geo.R`, y el A.28 |
-| `7b68ae7` | **El capítulo 4 corregido**: la F que publicaba era falsa —`distmap()` está rota en esta máquina— y vivía dentro de una saltada del auditor; con ella, el índice de dispersión con su nula real y una retroalimentación que se contradecía. **Toca un capítulo en vivo** |
+| `7b68ae7` | **El capítulo 4 corregido**: la F que publicaba era falsa —`distmap()` está rota en esta máquina— y vivía dentro de una saltada del auditor; con ella, el índice de dispersión con su nula real y una retroalimentación que se contradecía. **Capítulo en vivo** |
 | `c45dbee` | **T4.4b** · `audita_cap7.py` con `esda` (576/0/4) y `prueba_auditor_cap7.py` (213/213, 231 de 231 tipos), y el A.29 |
+| `ccc872a` | **El A.30**: la revisión de contenido del capítulo 4, once subsecciones |
+| `0a9c208` | **`ent()` escribe el fino en los capítulos 5 y 6**, y con ello los tres `#>` que el 6 publicaba con separador de millares. **Dos capítulos en vivo** |
+| `fd3ad59` | **A.30.10 cerrado**, con lo que enseñó sobre el punto ciego de `verifica_bloques.py` |
 
-**El `push` no se hace sin decirlo.** Es la respuesta por defecto que quedó escrita en la revisión
-del capítulo 5 y sigue en pie, porque publicar aquí no es guardar: **el sitio se sirve de `main`**
-—no hay rama `gh-pages`—, así que `git push origin main` pone el capítulo 4 corregido delante de
-los estudiantes en el mismo acto (el 7 todavía no tiene HTML, así que de él no publica nada). Un
-solo comando:
+**El `push` no se hace sin decirlo, y sigue en pie.** Es la respuesta por defecto que quedó escrita
+en la revisión del capítulo 5, porque publicar aquí no es guardar: **el sitio se sirve de `main`**
+—no hay rama `gh-pages`—, así que `git push origin main` pone lo que haya delante de los
+estudiantes en el mismo acto. Un solo comando:
 
 ```
 git push origin main
 ```
+
+**Y una trampa del propio §0, pagada el 2026-09-09:** `git log origin/main..HEAD` cuenta contra una
+referencia **local** del remoto, que se queda vieja en cuanto otra sesión publica. Sin `git fetch`
+delante, este párrafo dijo «cinco commits sin publicar, tres tocan capítulos en vivo» cuando eran
+cuatro y uno. **`git fetch` antes de contar**, siempre.
 
 **Otras ramas vivas, ninguna pendiente:** `capitulo-5-intensidad-nucleos` y `taller-1-y-entrada-sig`
 están fusionadas en `main` y se pueden borrar cuando estorben.
@@ -311,11 +324,13 @@ están fusionadas en `main` y se pueden borrar cuando estorben.
 | Las **tres decisiones** de la Fase 4 | ✅ tomadas el 2026-09-03 sobre el cronómetro del **A.25** |
 | **T4.1** · `genera_cap6.R` | ✅ hecha. **6 anclas**, reproducible byte a byte, dos tableros y 2 salidas |
 | **T4.1b** · auditor y arnés | ✅ hecha. **218/0/2** y **88 inyecciones, 88 cazadas, 76 de 76 tipos** |
-| **T4.2** · `ensambla_cap6.py` | ✅ hecha. **12 módulos**, 6 simuladores, 2 mapas, 13 preguntas, 5 ejercicios y **108/108 cifras verificadas ejecutando el código** |
+| **T4.2** · `ensambla_cap6.py` | ✅ hecha. **12 módulos**, 6 simuladores, 2 mapas, 13 preguntas, 5 ejercicios y **103/103 cifras verificadas ejecutando el código** (eran 108 hasta el 2026-09-09: tres `#>` llevaban separador de millares y cada millar contaba como dos cifras) |
 | **T4.3** · verificación y cierre | ✅ hecha. `audita_texto_cap6.py` **128/0**, **27 inyecciones y 27 cazadas**, arnés entero **218/218**, los doce módulos leídos y la portada al día |
 | El **cronómetro del capítulo 7** y sus **cuatro decisiones** | ✅ medido y tomadas el 2026-09-08. Ver **A.28** |
 | **T4.4** · `genera_cap7.R` | ✅ hecha el 2026-09-08. **13 anclas**, reproducible byte a byte, 5 ejercicios sobre `nc`, 7 salidas, y la capa categórica del `.geomapa` en `geo.R`. Ver **A.29** |
 | **T4.4b** · auditor y arnés | ✅ hecha el 2026-09-08. `audita_cap7.py` **576/0/4** con `esda`; `prueba_auditor_cap7.py` **213 inyecciones, 213 cazadas, 231 de 231 tipos** y 53 inatacables declarados. Ver **A.29.5** |
+| **La revisión del capítulo 4** (2026-09-08) | ✅ hecha y publicada. **9 rojos y 15 naranjas**, todos los rojos arreglados. La F del módulo 7 era falsa y vivía dentro de una saltada del auditor. `genera_cap4.R` sube a **42 anclas** y `audita_cap4.py` a **449/0/8**. Ver **A.30** |
+| **`ent()` en los capítulos 5 y 6** (2026-09-09) | ✅ hecha y publicada. Los seis capítulos escriben el fino, y salió que el 6 publicaba tres `#>` con separador de millares que `verifica_bloques.py` no puede ver. Ver **A.30.10** |
 | **T4.5–T4.6** · ensamblado, verificación y cierre | ⬜ **lo siguiente**. Ver §0.5 |
 
 **Lo publicado —seis capítulos—**, contado por `cuenta_sitio.py` y no recordado: **72 módulos, 57
@@ -372,7 +387,7 @@ verde.
 **La Fase 3 está cerrada y el CAPÍTULO 6 TAMBIÉN** (T4.1 → T4.3, el 2026-09-03).
 `Htmls_Espacial/capitulo-6-pesos-espaciales.html`, **580 KB**: 12 módulos, 6 simuladores, 2 mapas,
 **13 preguntas y 5 ejercicios**, 6 anclas, reproducible byte a byte, y **11 pares de bloques
-R/Python con 108 de 108 cifras verificadas ejecutando el código**. Auditorías: `audita_cap6.py`
+R/Python con 103 de 103 cifras verificadas ejecutando el código**. Auditorías: `audita_cap6.py`
 **218/0/2** con arnés **88/88 y 76 de 76 tipos**; `audita_texto_cap6.py` **128/0** con **27
 inyecciones, 27 cazadas**, y el arnés de prosa entero en **218/218** sobre los siete sujetos.
 Verificado en el navegador: consola limpia en los doce módulos, 8 lienzos con tinta y con
@@ -433,6 +448,30 @@ Lo que T4.5 hereda ya decidido:
 
 **Y las notas N1–N5 de la revisión del capítulo 5** siguen anotadas y deliberadamente sin arreglar:
 son mejoras, no defectos, y la decisión de aquel día fue «corregir, no rediseñar».
+
+**Lo que deja abierto la revisión del capítulo 4 (A.30). Nada de esto bloquea T4.5**, y va aquí
+para que no se pierda entre los anexos:
+
+1. **La craft de los distractores**, que es la única que cuesta escritura y no código. Igualar
+   longitudes movió todas las métricas objetivas —la clave era la más larga en 10 de 10 y quedó en
+   4 de 11— y **no movió la nota del agente ciego**, que sigue en 10 de 11. La enfermedad no es la
+   longitud: es que la clave se escribe con cuidado y los distractores deprisa. Es trabajo por
+   pregunta y hay que presupuestarlo (**A.30.6**). Y hay una consecuencia para el capítulo 7:
+   escribir sus preguntas con esto delante sale mucho más barato que arreglarlas después.
+2. **Tres comprobaciones para el arnés**, las tres baratas y las tres nacidas de un defecto real:
+   · que `verifica_bloques.py` compare la cifra anunciada **como token** y no como subcadena —hoy
+   un `#>` con separador de millares le pasa, y le pasó (**A.30.10**)—;
+   · que alguien cuente que los **finos dentro de `<pre><code>` sean cero** en los seis capítulos;
+   · que `baraja_opciones.py` mida **el montón** —longitudes, arranques gemelos, absolutos
+   repartidos—, que es lo incontaminable, y no solo las posiciones (**A.30.6**).
+3. **`campos_vivos.py` mira `courseData` y no `DATOS_CAPN`**, que es donde vivían los campos
+   muertos del capítulo 4: una R de Donnelly que su propio ejercicio 5 declara inexistente para la
+   ventana de Bogotá, un `bei` de 3 604 puntos que nadie dibuja, y una semilla que no siembra nada.
+4. **El capítulo 4 cierra 9 de sus 12 módulos en un bloque de código sin párrafo de salida**, contra
+   la regla 2 del §9.1. No es la convención de la casa: los capítulos 2, 5 y 6 la cumplen 12 de 12.
+5. **La frontera con `genera_soluciones.R`**, que mete `chi²` por `χ²`, `10x10` por `10×10`,
+   millares sin separador y **9 y 10 decimales** en unas tablas de solución que el estudiante lee,
+   en un capítulo cuya regla de publicación son cinco.
 
 **Un aviso para quien verifique en el panel del navegador:** con el panel oculto los temporizadores
 se estrangulan y `innerHeight` vale 0, así que un recorrido de módulos con `await` no termina nunca
@@ -4066,6 +4105,10 @@ sesenta líneas de donde se leía el rojo.
 Se escribieron con expresiones sueltas, como en un REPL. `verifica_bloques.py` los ejecuta **como
 guion**, así que ninguna de sus cifras salía. Reescritos con `print()` y encadenados de verdad
 —cada bloque construye sobre lo que definió el anterior—: **108 de 108 cifras, 0 discrepancias**.
+
+*(Ese 108 pasó a **103** el 2026-09-09, y no porque se perdiera nada: tres de aquellos `#>` llevaban
+el separador de millares y cada millar contaba como dos cifras. El A.30.10 lo cuenta, junto con el
+motivo de que este mismo guion los diera por buenos.)*
 
 #### A.27.4 · «La mitad» decía dos cosas distintas
 
