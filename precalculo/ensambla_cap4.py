@@ -76,13 +76,32 @@ def n(x, d=5):
 
 
 def ent(x):
-    """Entero con espacio fino U+202F. NO usar dentro de KaTeX."""
-    return f"{int(round(float(x))):,}".replace(",", " ")
+    """Entero con espacio fino U+202F. NO usar dentro de KaTeX.
+
+    El espacio ES el fino irrompible, y hubo que decirlo dos veces: la
+    revisión del 2026-09-08 encontró que el docstring prometía U+202F y la
+    línea de abajo escribía un U+0020 corriente, así que «2 209» podía
+    partirse de renglón como «2» y «209». Los capítulos 1, 2 y 3 sí usaban
+    el fino —38, 45 y 33 en lo publicado—; el 4 tenía UNO, y venía del
+    ayudante de JavaScript. Los capítulos 5 y 6 heredaron la misma errata.
+    """
+    return f"{int(round(float(x))):,}".replace(",", "\u202f")
 
 
 def ent_mate(x):
     """El mismo entero para DENTRO de una fórmula: KaTeX no entiende U+202F."""
     return f"{int(round(float(x))):,}".replace(",", r"\,")
+
+
+def n_signo(x, d=5):
+    """La cifra con su signo explícito y el menos tipográfico U+2212.
+
+    Existe para el módulo 8, donde lo que se lee no es la magnitud sino el
+    signo: «-0,08463» con guion corto, en un capítulo que escribe «L − r»
+    con menos tipográfico, es la misma inconsistencia que el informe
+    señalaba en los ejercicios.
+    """
+    return f"{float(x):+.{d}f}".replace("-", "\u2212")
 
 
 def firma(valor, unidad=""):
@@ -345,20 +364,38 @@ MOD2 = cabecera(
         {firma(ent(m2['urbana']['vacios']))} celdas con cero.</p>
 
       <p>El índice de dispersión —la varianza de los conteos dividida por su media— vale
-        {firma(n(m2['urbana']['dispersion'], 5))}. Bajo Poisson valdría 1. El χ² del test de
-        cuadrantes es {firma(n(m2['urbana']['chi2'], 2))} con
+        {firma(n(m2['urbana']['dispersion'], 5))}. En los libros, la frase que sigue es
+        «bajo Poisson valdría 1», y <strong>aquí sería falsa</strong>. Vale 1 cuando las
+        celdas miden lo mismo; estas no, porque el perímetro las recorta, y sus esperanzas
+        van de {n(m2['urbana']['esperanza_min'], 2)} a
+        {n(m2['urbana']['esperanza_max'], 1)}. Con esas áreas, un Poisson
+        <em>homogéneo</em> daría {firma(n(m2['urbana']['dispersion_nula'], 5))}.</p>
+
+      <div class="key-insight">
+        <p style="margin:0;">El exceso sobre 1 no lo pone el patrón: lo pone la rejilla. Si las
+        celdas tienen esperanzas E<sub>j</sub>, el índice esperado bajo Poisson homogéneo es
+        <strong>1 + S²(E)/Ē</strong> —uno más la variación relativa de las propias celdas—, y
+        solo vale 1 cuando todas miden igual. Así que lo que hay que explicar no es el
+        {n(m2['urbana']['dispersion'], 2)} entero: es lo que sobra por encima de
+        {n(m2['urbana']['dispersion_nula'], 2)}.</p>
+      </div>
+
+      <p>El χ² del test <strong>no</strong> tiene ese problema, y por eso es el que se
+        publica: calcula la esperanza de cada celda como λ|A<sub>j</sub>|, o sea que ya
+        corrige el área. Vale {firma(n(m2['urbana']['chi2'], 2))} con
         {ent(m2['urbana']['gl'])} grados de libertad, y su p-valor es del orden de
         10<sup>{n(m2['urbana']['p_log10'], 1)}</sup>.</p>
 
-      <p>Antes de celebrar ese rechazo, una advertencia que el módulo 5 va a cobrarse: el
+      <p>Antes de celebrar ese rechazo, una advertencia que el módulo 6 va a cobrarse: el
         χ² supone que la esperanza de cada celda no es minúscula, y aquí
         {firma(ent(m2['urbana']['celdas_esperanza_baja']))} de las
         {ent(m2['urbana']['celdas'])} celdas vivas tienen esperanza menor que 5, porque la
         ventana las recorta. El número sigue siendo enorme, pero conviene saber sobre qué
         se apoya.</p>
 
-      <p>El simulador reparte la rejilla que elijas y enseña el histograma de conteos junto
-        a la Poisson que tocaría si λ fuera constante. Mira cómo se separan.</p>
+      <p>El simulador de abajo usa la rejilla que fija el precálculo y enseña el histograma
+        de conteos junto a la Poisson que tocaría si λ fuera constante. Mira cómo se
+        separan.</p>
 
 {sim('cap4-cuadrantes', 'Contar en cuadrantes',
      'La rejilla es fija —la que declara la lectura—: la barra es el reparto observado de sedes por celda y la línea, el que daría una intensidad constante.', 300, mandos=False)}
@@ -460,18 +497,20 @@ MOD3 = cabecera(
         Están <strong>agregadas</strong>. Todavía no sabemos a qué escala ni cuánto, y esas
         dos preguntas son los módulos 7 a 9.</p>
 
-      <p>El simulador de abajo genera patrones de los tres tipos con la intensidad que
-        elijas y enseña su R junto a la distribución de distancias al vecino. Muévelo para
-        ver algo que el módulo 4 va a convertir en el problema central: cuánto se mueve R
-        cuando el patrón no cambia de naturaleza, solo de realización.</p>
+      <p>El simulador de abajo recorre los cinco patrones de la tabla —los cuatro canónicos
+        y el colombiano— y enseña la R de cada uno junto a su distribución de distancias al
+        vecino. Recórrelos: son cinco procesos distintos, y su R los ordena. Lo que ninguno
+        de los cinco puede enseñar, porque cada uno es una sola realización, es cuánto se
+        mueve la R de un patrón que NO cambia de naturaleza. Eso lo mide el módulo
+        siguiente, y es el problema central del capítulo.</p>
 
 {sim('cap4-regimenes', 'Los tres regímenes, y cuánto se mueve su R',
-     'Elige el régimen y el número de puntos: la barra es la distribución de distancias al vecino más próximo.', 300)}
+     'Elige el patrón: la barra es su distribución de distancias al vecino más próximo, y la lectura, su R.', 300)}
 
-      <p>Si has movido el control unas cuantas veces habrás visto que la R del patrón
-        aleatorio no se queda quieta en 1. Ese temblor no es ruido del simulador: es la
-        propiedad que define el azar, y no tenerla en cuenta es el error más común al
-        interpretar un patrón puntual. El módulo siguiente la mide.</p>
+      <p>Fíjate en los pinos japoneses, que son los aleatorios: su R no da 1 exacto. Podría
+        ser que el patrón no sea del todo aleatorio, o podría ser que el azar, sin más, no
+        entregue nunca un 1 clavado. Con una sola realización de cada proceso no hay manera
+        de saber cuál de las dos. El módulo siguiente simula dos mil y lo zanja.</p>
 
 {tabs('El índice de Clark-Evans sobre los tres canónicos',
       '''data(cells); data(japanesepines); data(redwood)
@@ -533,13 +572,25 @@ MOD4 = cabecera(
         {n(m4['R_csr']['media'], 5)} y un intervalo central del 95 % entre
         {n(m4['R_csr']['q025'], 5)} y {n(m4['R_csr']['q975'], 5)}.</p>
 
+      <p>Detente en esa media, porque no es 1 y debería serlo. El módulo 3 enseñó que bajo
+        aleatoriedad R ronda 1, y aquí dos mil realizaciones de aleatoriedad pura la dejan en
+        {firma(n(m4['R_csr']['media'], 5))}. No es azar: es <strong>sesgo del
+        estimador</strong>. R usa la distancia observada al vecino más próximo, y a un punto
+        pegado al borde su vecino de verdad puede caer fuera de la ventana, donde nadie
+        miró; entonces la distancia que se mide es más larga que la real y R sube. El mismo
+        mecanismo que el módulo 10 va a medir sobre K, visto aquí primero. Por eso los pinos
+        japoneses del módulo 3, que son los aleatorios, dan
+        {n(m3['japanesepines']['clark_evans'], 5)}: casi exactamente el centro de esta nube,
+        y no el 1 del libro. Corregido el borde, esa misma R baja a
+        {n(m3['japanesepines']['clark_evans_donnelly'], 5)}.</p>
+
       <p>Léelo despacio, porque tiene consecuencias. Si el criterio fuera «R menor que 1
         significa agregación», {firma(ent(m4['R_csr']['bajo_1']))} de las
         {ent(m4['R_csr']['n'])} realizaciones de azar puro darían veredicto de agregado. Una
         R sola, sin saber cuánto se mueve el azar, no dice nada.</p>
 
 {sim('cap4-poisson', 'Las dos propiedades de CSR',
-     'Cambia λ y mira el reparto de conteos contra la Poisson teórica; el segundo control enseña cuánto se mueve la R del azar.', 300)}
+     'Conmuta entre las dos propiedades: la primera enseña el reparto de conteos contra la Poisson teórica y la segunda, cuánto se mueve la R del azar.', 300)}
 
       <p>Ese temblor es la razón de ser de las envolventes de simulación, que llegan en el
         módulo 11. Antes hay que ver qué herramientas describen un patrón, y empezar por la
@@ -708,7 +759,15 @@ MOD5 = cabecera(
     "patrones que comparten su χ² hasta el último decimal."
 ) + f"""      <p>El test de cuadrantes es el más antiguo y el más fácil de explicar: se parte la
         ventana en celdas, se cuenta cuántos puntos caen en cada una y se compara ese reparto
-        con el que daría una intensidad constante. El estadístico es el χ² de siempre.</p>
+        con el que daría el azar. El estadístico es el χ² de siempre.</p>
+
+      <p>Conviene decir contra qué se contrasta, porque casi todo el mundo lo dice mal. La
+        hipótesis nula <strong>no</strong> es «λ es constante»: es el <strong>proceso de
+        Poisson homogéneo</strong> del módulo 4, que son las <em>dos</em> propiedades
+        juntas —λ constante <em>y</em> puntos independientes—. Un rechazo dice que algo de
+        ese paquete falla, y <strong>no dice cuál de las dos</strong>: un patrón con λ
+        perfectamente constante cuyos puntos se agrupen rechaza igual. Guarda esta frase:
+        el módulo 6 va a apoyarse en ella y una de las preguntas del capítulo la cobra.</p>
 
       <div class="formula-box">
         <p>$$\\chi^2 = \\sum_{{j=1}}^{{m}} \\frac{{(O_j - E_j)^2}}{{E_j}},
@@ -766,7 +825,7 @@ MOD6 = cabecera(
 
       <p>Se barre el mismo patrón con rejillas de 2×2 a 20×20 y se anota el χ² y su
         p-valor. Sobre <code>redwood</code>, {firma(ent(m6['redwood_rechazos']))} de los
-        {ent(_n_tam)} tamaños rechazan la hipótesis de intensidad constante. El que no
+        {ent(_n_tam)} tamaños rechazan la hipótesis de Poisson homogéneo. El que no
         rechaza es el más grueso, y no porque el patrón sea distinto: porque con cuatro
         celdas no hay resolución para ver los grumos.</p>
 
@@ -777,7 +836,7 @@ MOD6 = cabecera(
         entregue: hay una decisión del analista, que se declara.</p>
 
 {sim('cap4-barrido', 'El veredicto en función de la celda',
-     'Barre el tamaño de la rejilla sobre los tres patrones y mira dónde cambia el veredicto y dónde se rompe el supuesto.', 300)}
+     'Barre el tamaño de la rejilla sobre los tres patrones: en rojo los tamaños que rechazan al 5 % y en gris los que no. Mira dónde cambia el veredicto y dónde se rompe el supuesto.', 300)}
 
       <p>La lectura del capítulo 3 vale palabra por palabra: la escala no es un detalle de
         implementación, es parte del resultado, y un test de cuadrantes sin su tamaño de
@@ -876,11 +935,14 @@ MOD8 = cabecera(
       <p>Sobre las sedes de Bogotá, L − r alcanza su máximo de
         {firma(n(m8['bogota']['max_desvio'], 2), ' m')} a una distancia de
         {firma(n(m8['bogota']['r_max_desvio'], 0), ' m')}, siempre por encima de cero: el
-        patrón está agregado a todas las escalas medidas. Los tres canónicos ordenan sus
-        desvíos como cabía esperar —{n(m8['cells']['max_desvio'], 5)} en las células,
-        {n(m8['japanesepines']['max_desvio'], 5)} en los pinos y
-        {n(m8['redwood']['max_desvio'], 5)} en las secuoyas— con el signo de cada uno
-        marcando su régimen.</p>
+        patrón está agregado a todas las escalas medidas. Y en los tres canónicos el
+        <strong>signo</strong> es el que dice el régimen, así que va escrito:
+        {n_signo(m8['cells']['desvio_con_signo'])} en las células,
+        {n_signo(m8['japanesepines']['desvio_con_signo'])} en los pinos y
+        {n_signo(m8['redwood']['desvio_con_signo'])} en las secuoyas. Las dos primeras por
+        <em>debajo</em> de la recta —regularidad— y la tercera por encima. Fíjate en que la
+        mayor desviación en magnitud es la de las células, que son las regulares: el tamaño
+        dice cuánto se separa un patrón del azar, y solo el signo dice hacia dónde.</p>
 
       <p>Ese <em>a todas las escalas</em> es a la vez la fuerza de K y su problema, y el
         módulo siguiente lo desmonta: una función acumulativa arrastra lo que ya contó, así
@@ -994,14 +1056,23 @@ MOD9 = cabecera(
      'Las dos curvas del mismo dato: mira hasta dónde sigue K separada de su teórica y dónde vuelve g a 1.', 300)}
 
       <p>Sobre las secuoyas, g alcanza {firma(n(m9['redwood']['g_max'], 5))} a una distancia
-        de {firma(n(m9['redwood']['r_g_max'], 5))} y vuelve a rondar 1 mucho antes de que K
-        se despegue de su teórica. Esa distancia es <strong>el tamaño de los grumos</strong>,
-        y K no la sabe decir.</p>
+        de {firma(n(m9['redwood']['r_g_max'], 5))} y ha vuelto a 1 en
+        {firma(n(m9['redwood']['r_vuelve_a_1'], 4))}, <strong>mientras K sigue por encima
+        de su teórica y no vuelve</strong>. Esa distancia a la que g regresa es
+        <strong>el tamaño de los grumos</strong>, y K no la sabe decir: se despegó al
+        principio y arrastra ese despegue hasta el final.</p>
 
-      <p>Sobre las sedes de Bogotá, g llega a {firma(n(m9['bogota']['g_max'], 5))} en
-        {firma(n(m9['bogota']['r_g_max'], 0), ' m')}. Es una agregación moderada y a escala
-        de manzana, no de barrio: los colegios se agrupan a la distancia a la que se agrupan
-        las manzanas construidas, que es una lectura urbana y no estadística.</p>
+      <p>Sobre las sedes de Bogotá g no tiene pico: vale
+        {firma(n(m9['bogota']['g_max'], 5))} en el primer nodo del barrido
+        —{n(m9['bogota']['r_g_max'], 0)} m— y baja desde ahí. Ese máximo en el borde
+        izquierdo <strong>no es una escala característica</strong>: es donde empieza a
+        mirarse, y la estructura fina que habría debajo no se ve porque el barrido no llega.
+        Lo que sí dice la curva es hasta dónde llega el exceso, y la respuesta es que
+        <strong>no se acaba</strong>: g no regresa a 1 en ningún punto del barrido, y en el
+        último nodo —{n(m9['bogota']['r'][-1], 0)} m— todavía vale
+        {n(m9['bogota']['g_obs'][-1], 5)}. La agregación de los colegios no es de manzana:
+        sigue habiendo exceso de parejas a escala de kilómetros, que es lo mismo que el
+        módulo 8 vio en L − r, positiva en todas las escalas medidas.</p>
 
       <p>La contrapartida de g es que hay que estimarla suavizando, y ahí entra un ancho de
         banda que el capítulo 5 va a discutir en serio. La pestaña de Python de abajo enseña
@@ -1123,7 +1194,7 @@ MOD11 = cabecera(
         aritmética.</p>
 
 {sim('cap4-nsim', 'Cuántas simulaciones, y a qué nivel',
-     'Sube nsim con la banda por defecto y con el nivel fijo al 5 %: las dos series se leen al revés.', 300)}
+     'Las cuatro columnas son el barrido entero; el mando resalta una y la lee. Compara la serie roja —la banda por defecto— con la verde —nivel fijo al 5 %—: se leen al revés.', 300)}
 
       <p>Y aquí está la trampa que casi todo el mundo pisa. La banda que <code>envelope()</code>
         dibuja por defecto es el <em>mínimo y el máximo</em> de las simulaciones, cuyo nivel
@@ -1354,17 +1425,30 @@ SIMULADORES_JS = r"""
         `<span class="lectura-valor">${v}</span></span>`).join('');
     }
 
-    function botones4(raiz, ops, alPulsar, activo) {
+    // EL GRUPO ES PARTE DEL BOTÓN, y no lo era. `cap4-kl` mete DOS grupos
+    // en el mismo contenedor —los cuatro patrones y las dos vistas— y al
+    // limpiar `.sim-btn` a secas, elegir un patrón borraba la marca de la
+    // vista: el gráfico seguía enseñando L − r y ningún botón lo decía.
+    // Marcando el grupo, cada uno limpia el suyo. Los simuladores de un
+    // solo grupo no notan la diferencia.
+    function botones4(raiz, ops, alPulsar, activo, grupo) {
       const cont = raiz.querySelector('.simulador-controles');
       if (!cont) return;
+      const g = grupo || 'principal';
       cont.innerHTML = '';
       ops.forEach((op, i) => {
         const b = document.createElement('button');
         b.className = 'sim-btn' + (i === (activo || 0) ? ' active' : '');
+        b.dataset.grupo = g;
+        b.setAttribute('aria-pressed', i === (activo || 0) ? 'true' : 'false');
         b.textContent = op.etiqueta;
         b.onclick = () => {
-          cont.querySelectorAll('.sim-btn').forEach(x => x.classList.remove('active'));
+          cont.querySelectorAll(`.sim-btn[data-grupo="${g}"]`).forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-pressed', 'false');
+          });
           b.classList.add('active');
+          b.setAttribute('aria-pressed', 'true');
           alPulsar(op.valor);
         };
         cont.appendChild(b);
@@ -1454,7 +1538,7 @@ SIMULADORES_JS = r"""
         data: { labels: [], datasets: [] },
         options: { responsive: true, maintainAspectRatio: false,
           scales: { y: { beginAtZero: true, title: { display: true, text: 'realizaciones' } },
-                    x: { title: { display: true, text: '' } } } }
+                    x: { type: 'category', ticks: { callback: function (v) { return this.getLabelForValue(v); } }, title: { display: true, text: '' } } } }
       });
       const pinta = () => {
         if (vista === 'conteo') {
@@ -1504,14 +1588,19 @@ SIMULADORES_JS = r"""
       const g = new Chart(ctx, {
         data: { labels: [], datasets: [] },
         options: { responsive: true, maintainAspectRatio: false,
+          // El color codifica «rechaza al 5 %» y una leyenda de un solo
+          // recuadro gris rotulado «χ²» decía justo lo contrario. Se
+          // apaga y el código de color va en el pie, en palabras.
+          plugins: { legend: { display: false } },
           scales: { y: { type: 'logarithmic', title: { display: true, text: 'χ² (escala log)' } },
-                    x: { title: { display: true, text: 'lado de la rejilla (nx)' } } } }
+                    x: { type: 'category', ticks: { callback: function (v) { return this.getLabelForValue(v); } }, title: { display: true, text: 'lado de la rejilla (nx)' } } } }
       });
       const pinta = () => {
         const b = D4.m6[CLAVES[i]];
         g.data.labels = b.nx;
         g.data.datasets = [{ type: 'bar', label: 'χ²', data: b.chi2,
           backgroundColor: b.rechaza.map(r => r ? C4.rojo : C4.gris) }];
+        g.options.scales.y.min = Math.min.apply(null, b.chi2) / 2;
         g.update();
         const rech = b.rechaza.reduce((a, v) => a + v, 0);
         const primeraBaja = b.nx[b.celdas_esperanza_baja.findIndex(v => v > 0)];
@@ -1598,11 +1687,23 @@ SIMULADORES_JS = r"""
           g.options.scales.y.title.text = 'L(r) − r';
         }
         g.update();
+        // LO QUE ESTA LECTURA PUEDE DECIR Y LO QUE NO. Antes ponía
+        // «regular» en cuanto L − r salía negativa, así que a los pinos
+        // japoneses —los ALEATORIOS del capítulo— los llamaba regulares, y
+        // ningún patrón podía salir compatible con CSR. Pero este simulador
+        // no tiene banda del azar: una desviación sola no establece un
+        // régimen, que es exactamente lo que enseña el módulo 4. Así que
+        // dice hacia dónde se va la curva, con su signo, y deja el
+        // veredicto para la envolvente del módulo 11.
         lectura4(raiz, [
           ['patrón', d.nombre], ['corrección', d.correccion],
-          ['máx |L − r|', n5(d.max_desvio, d.max_desvio > 10 ? 2 : 5)],
+          ['L − r en el máximo', (d.desvio_con_signo > 0 ? '+' : '−')
+            + n5(Math.abs(d.desvio_con_signo), Math.abs(d.desvio_con_signo) > 10 ? 2 : 5)],
           ['a distancia r', n5(d.r_max_desvio, d.r_max_desvio > 10 ? 0 : 4)],
-          ['lectura', d.l_menos_r[50] > 0 ? 'agregado' : 'regular']
+          ['hacia dónde', d.desvio_con_signo > 0
+            ? 'por encima de la recta (agregación)'
+            : 'por debajo de la recta (regularidad)'],
+          ['¿es significativo?', 'hace falta la envolvente del módulo 11']
         ]);
       };
       const cont = raiz.querySelector('.simulador-controles');
@@ -1614,12 +1715,16 @@ SIMULADORES_JS = r"""
       [['Ver K', 'K'], ['Ver L − r', 'L']].forEach(([etq, v], j) => {
         const b = document.createElement('button');
         b.className = 'sim-btn' + (v === vista ? ' active' : '');
+        b.dataset.grupo = 'vista';
+        b.setAttribute('aria-pressed', v === vista ? 'true' : 'false');
         b.textContent = etq;
         b.onclick = () => {
-          cont.querySelectorAll('.sim-btn').forEach(x => {
-            if (x.textContent.startsWith('Ver')) x.classList.remove('active');
+          cont.querySelectorAll('.sim-btn[data-grupo="vista"]').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-pressed', 'false');
           });
           b.classList.add('active');
+          b.setAttribute('aria-pressed', 'true');
           vista = v; pinta();
         };
         cont.appendChild(b);
@@ -1743,7 +1848,7 @@ SIMULADORES_JS = r"""
             borderDash: [5, 4], pointRadius: 0 }
         ];
         g.update();
-        const ts = D4.m11.tasa_salida_bogota;
+        const ts = e.tasa_salida;   // la del patrón elegido, no una cableada
         lectura4(raiz, [
           ['patrón', e.nombre],
           ['simulaciones', miles4(e.nsim)],
@@ -1777,15 +1882,23 @@ SIMULADORES_JS = r"""
           scales: { y: { beginAtZero: true, title: { display: true, text: 'ancho medio de la banda' } } } }
       });
       let i = 0;
+      // El barrido entero ya está en el eje x, así que el mando no puede
+      // «cambiar el gráfico»: lo que hace es señalar en él. Sin esto los
+      // cuatro botones dejaban el lienzo idéntico mientras el pie mandaba
+      // moverlos, que es el defecto que la revisión llamó «mando que no
+      // mueve el dibujo».
+      const apaga = c => c + '55';
       const pinta = () => {
         const z = esc[i];
+        g.data.datasets[0].backgroundColor = esc.map((_, k) => k === i ? C4.rojo : apaga(C4.rojo));
+        g.data.datasets[1].backgroundColor = esc.map((_, k) => k === i ? C4.verde : apaga(C4.verde));
+        g.update();
         lectura4(raiz, [
           ['nsim', z.nsim],
           ['nivel de la banda por defecto', n5(z.nivel_defecto, 4)],
           ['nrank para el 5 %', n5(z.nrank_para_5pct, 2)],
           ['¿alcanza el 5 %?', z.alcanza_5pct ? 'sí' : 'no'],
-          ['p mínimo', n5(z.p_minimo)],
-          ['por defecto se ensancha', '×' + n5(D4.m11.escala_resumen.veces_defecto, 2)]
+          ['p mínimo', n5(z.p_minimo)]
         ]);
       };
       botones4(raiz, esc.map((z, k) => ({ etiqueta: 'nsim = ' + z.nsim, valor: k })),
@@ -1809,48 +1922,54 @@ QUIZ_JS = r"""
         tipo: 'opcion',
         pregunta: 'Un informe dice «en Bogotá hay 5,7 colegios por km²». ¿Qué le falta para ser una afirmación completa?',
         opciones: [
-          { texto: 'Decir cuál es la ventana de observación', correcta: true,
+          { texto: 'Decir cuál es la ventana de observación usada', correcta: true,
             retro: 'Eso es. Con el perímetro urbano salen ' + n5(D4.m1.urbana.lambda_km2, 4) + ' sedes/km²; con el Distrito Capital entero, ' + n5(D4.m1.dc.lambda_km2, 4) + '. La misma ciudad y el mismo dato, con un factor de ' + n5(D4.m1.factor_lambda, 2) + ' entre las dos.' },
-          { texto: 'Nada: la intensidad es una propiedad del dato',
+          { texto: 'La intensidad es una propiedad del dato, no del recinto',
             retro: 'No lo es. La intensidad es n dividido por el área de la ventana, y la ventana la elige quien analiza.' },
-          { texto: 'Decir cuántos colegios hay en total',
+          { texto: 'Decir cuántos colegios hay en total en la ciudad',
             retro: 'Ayuda, pero no arregla el problema: el número de sedes apenas cambia entre las dos ventanas — sube un ' + n5(D4.m1.aumento_n_pct, 1) + ' % — y la intensidad se cuadruplica.' },
-          { texto: 'Usar hectáreas en vez de km²',
+          { texto: 'Usar hectáreas, que es la unidad de la escala urbana',
             retro: 'La unidad no cambia el problema: la misma cifra en hectáreas es ' + n5(D4.m2.lambda_urbana_ha, 4) + ', y sigue dependiendo de qué ventana se usó.' }
         ] },
       {
         tipo: 'opcion',
         pregunta: 'Dos patrones tienen exactamente el mismo χ² en el test de cuadrantes. ¿Qué se puede concluir?',
         opciones: [
-          { texto: 'Nada sobre su estructura a escala menor que la celda', correcta: true,
+          { texto: 'Que sus conteos por celda coinciden, y nada de lo que hay dentro', correcta: true,
             retro: 'Correcto, y el módulo 5 lo construye a propósito: los dos patrones dan χ² = ' + n5(D4.m5.original.chi2, 4) + ' y su distancia media al vecino se multiplica por ' + n5(D4.m5.nn_cociente, 2) + '.' },
-          { texto: 'Que son el mismo patrón',
+          { texto: 'Poco: el χ² solo compara la intensidad media de los dos',
             retro: 'No. El χ² solo usa cuántos puntos hay en cada celda, así que dos repartos idénticos por celda le dan el mismo número aunque los puntos estén colocados de forma opuesta.' },
-          { texto: 'Que los dos son aleatorios',
+          { texto: 'Que los dos colocan sus puntos de una manera muy parecida',
             retro: 'Tampoco: el χ² del módulo 5 rechaza en los dos casos. Lo que no distingue es la estructura DENTRO de cada celda.' },
-          { texto: 'Que tienen la misma intensidad',
+          { texto: 'Que ninguno de los dos se aparta de una intensidad constante',
             retro: 'Eso sí es cierto si comparten ventana y n, pero es mucho menos de lo que la pregunta pide.' }
         ] },
       {
         tipo: 'multiple',
         pregunta: 'El test de cuadrantes sobre las sedes de Bogotá con una rejilla 10×10 rechaza con un p-valor minúsculo. ¿Qué afirmaciones son correctas?',
         opciones: [
-          { texto: 'La intensidad no es constante en la ventana', correcta: true,
-            retro: 'Sí: el índice de dispersión vale ' + n5(D4.m2.urbana.dispersion, 2) + ' y bajo Poisson valdría 1.' },
-          { texto: 'Parte de las celdas tienen esperanza menor que 5, así que la aproximación χ² es discutible', correcta: true,
+          { texto: 'El patrón no es compatible con un Poisson homogéneo', correcta: true,
+            retro: 'Eso es exactamente lo que dice el test, ni más ni menos: la nula es el Poisson homogéneo, y se rechaza.' },
+          { texto: 'Hay celdas con esperanza menor que 5, y ahí el χ² es discutible', correcta: true,
             retro: 'Cierto: son ' + D4.m2.urbana.celdas_esperanza_baja + ' de ' + D4.m2.urbana.celdas + ' celdas vivas, porque la ventana las recorta.' },
-          { texto: 'Los colegios se atraen entre sí',
-            retro: 'El test de cuadrantes no puede decir eso: solo mira conteos por celda, no relaciones entre puntos.' },
-          { texto: 'Con otra rejilla el veredicto sería el mismo',
-            retro: 'No está garantizado. Sobre las secuoyas, el barrido del módulo 6 rechaza en ' + D4.m6.redwood_rechazos + ' de ' + D4.m6.nxs.length + ' tamaños; el más grueso no rechaza.' }
+          { texto: 'La intensidad no es constante dentro de la ventana urbana observada',
+            retro: 'No queda demostrado. La nula que se rechaza son las DOS propiedades juntas, así que el rechazo es compatible con una λ perfectamente constante cuyos puntos se agrupen. El test no reparte la culpa.' },
+          { texto: 'Los colegios se atraen entre sí a las distancias más cortas',
+            retro: 'Tampoco, y por el mismo motivo que la anterior: el test solo mira conteos por celda. Las dos afirmaciones son simétricas y las dos van más allá de lo que el χ² puede sostener.' }
         ] },
       {
-        tipo: 'numerica',
-        pregunta: 'Con 999 simulaciones, ¿cuál es el p-valor más pequeño que una envolvente puede dar?',
-        respuesta: D4.m11.p_minimo, tolerancia: 0.0002,
-        retroAcierto: 'Es 1/(nsim+1) = ' + n5(D4.m11.p_minimo) + '. No es una convención ni un redondeo: con 999 simulaciones no existe un p menor, por bien que se separe la curva observada.',
-        retroFallo: 'Es 1/(nsim+1) = ' + n5(D4.m11.p_minimo) + '. No es una convención ni un redondeo: con 999 simulaciones no existe un p menor, por bien que se separe la curva observada.'
-      }
+        tipo: 'opcion',
+        pregunta: 'Sobre las secuoyas, el test de cuadrantes rechaza con rejilla 5×5 y NO rechaza con 2×2. ¿Qué se hace con eso?',
+        opciones: [
+          { texto: 'Declarar el tamaño de celda, que es parte del resultado y no del método', correcta: true,
+            retro: 'Eso es. De los ' + D4.m6.nxs.length + ' tamaños barridos rechazan ' + D4.m6.redwood_rechazos + '; el que no lo hace es el más grueso, y no porque el patrón cambie sino porque con cuatro celdas no hay resolución. Es el efecto de escala del MAUP, con otro nombre.' },
+          { texto: 'Quedarse con la rejilla fina, porque es la que mejor resuelve los grumos',
+            retro: 'Es la que más resuelve y también la que rompe el supuesto: desde nx = ' + D4.m6.redwood_nx_esperanza_baja + ' aparecen celdas con esperanza menor que 5. Elegir por resolución es elegir un χ² en el que ya no se puede confiar.' },
+          { texto: 'Fiarse de la rejilla gruesa, que es la que respeta la aproximación del χ²',
+            retro: 'Respeta el supuesto y no ve nada: con 2×2 no rechaza un patrón que está claramente agregado. Elegir por el supuesto es elegir la ceguera.' },
+          { texto: 'Promediar los p-valores de los diez tamaños y quedarse con esa media',
+            retro: 'No existe tal cosa: los diez contrastes se hacen sobre el mismo dato, no son independientes, y su promedio no tiene distribución nula conocida. La salida no es aritmética: es declarar la escala.' }
+        ] }
     ];
 
     AUTOEVALUACIONES['cap4-quiz'] = [
@@ -1858,26 +1977,26 @@ QUIZ_JS = r"""
         tipo: 'opcion',
         pregunta: '¿Cuáles son las DOS propiedades que definen la aleatoriedad espacial completa (CSR)?',
         opciones: [
-          { texto: 'El número de puntos en una región es Poisson, y dado ese número las posiciones son uniformes e independientes', correcta: true,
+          { texto: 'El conteo de cada región sigue una Poisson y, dado ese conteo, las posiciones son uniformes', correcta: true,
             retro: 'Eso es, y la primera es la que se olvida. Por eso dos realizaciones del mismo proceso no tienen el mismo n: en ' + miles4(D4.m4.n_realizaciones) + ' simulaciones el conteo va de ' + D4.m4.conteo_min + ' a ' + D4.m4.conteo_max + '.' },
-          { texto: 'Las posiciones son uniformes y el número de puntos es fijo',
+          { texto: 'Las posiciones son uniformes e independientes y el número total de puntos está fijado',
             retro: 'La segunda mitad es falsa: si n fuera fijo no habría variabilidad de conteos, y la varianza observada es ' + n5(D4.m4.conteo_var, 2) + ', prácticamente igual a la media.' },
-          { texto: 'Los puntos están equiespaciados y no se tocan',
+          { texto: 'Los puntos guardan entre sí una distancia mínima y por eso se reparten parejos',
             retro: 'Eso describe un patrón REGULAR, que es lo contrario de aleatorio. Las células tienen R = ' + n5(D4.m3.cells.clark_evans, 4) + '.' },
-          { texto: 'La intensidad es constante y los puntos se atraen débilmente',
+          { texto: 'La intensidad es constante en la ventana y los puntos se atraen entre sí débilmente',
             retro: 'La atracción, aunque sea débil, ya no es CSR: sería un proceso de conglomerado.' }
         ] },
       {
         tipo: 'opcion',
-        pregunta: 'Una realización de CSR PURO da un índice de Clark-Evans de 0,90. ¿Qué se concluye?',
+        pregunta: 'Una realización de un proceso CSR da un índice de Clark-Evans de 0,95. ¿Qué se concluye?',
         opciones: [
-          { texto: 'Nada, porque el azar solo ya produce ese valor con frecuencia', correcta: true,
+          { texto: 'Que ese valor cae dentro de lo que el azar produce a menudo', correcta: true,
             retro: 'Exacto. Sobre ' + miles4(D4.m4.R_csr.n) + ' realizaciones de azar puro, R recorrió de ' + n5(D4.m4.R_csr.min, 3) + ' a ' + n5(D4.m4.R_csr.max, 3) + ', y ' + miles4(D4.m4.R_csr.bajo_1) + ' de ellas quedaron por debajo de 1.' },
-          { texto: 'Que el patrón está agregado',
+          { texto: 'Que el patrón está agregado, porque su R quedó por debajo de 1',
             retro: 'Ese es justo el error que el módulo 4 desmonta: comparar una R contra 1 sin saber cuánto se mueve el azar.' },
-          { texto: 'Que hay un error en la simulación',
-            retro: 'No: el intervalo central del 95 % de R bajo CSR va de ' + n5(D4.m4.R_csr.q025, 3) + ' a ' + n5(D4.m4.R_csr.q975, 3) + ', y 0,90 cae dentro.' },
-          { texto: 'Que la ventana es demasiado pequeña',
+          { texto: 'Que la simulación falló, porque bajo CSR R debería dar 1',
+            retro: 'No: el intervalo central del 95 % de R bajo CSR va de ' + n5(D4.m4.R_csr.q025, 3) + ' a ' + n5(D4.m4.R_csr.q975, 3) + ', y 0,95 cae holgadamente dentro. No hay nada que arreglar.' },
+          { texto: 'Que la ventana es demasiado pequeña para que R sea informativo',
             retro: 'El tamaño de la ventana influye en la precisión, pero el valor observado es perfectamente compatible con CSR.' }
         ] },
       {
@@ -1886,57 +2005,57 @@ QUIZ_JS = r"""
         opciones: [
           { texto: 'G mide desde los puntos del patrón; F, desde sitios cualesquiera de la ventana', correcta: true,
             retro: 'Eso es. Por eso separan los regímenes en direcciones opuestas: un patrón agregado tiene vecinos cerca (G sube pronto) y deja huecos grandes (F sube tarde).' },
-          { texto: 'G usa distancias y F usa conteos',
+          { texto: 'G mide distancias entre puntos del patrón y F cuenta puntos dentro de discos',
             retro: 'Las dos usan distancias. Lo que cambia es desde dónde se miden.' },
-          { texto: 'G corrige el efecto de borde y F no',
+          { texto: 'G lleva incorporada la corrección de borde y F se estima sin corregirla',
             retro: 'Las dos admiten corrección de borde; ninguna la lleva incorporada por definición.' },
-          { texto: 'G vale para patrones agregados y F para regulares',
+          { texto: 'G describe bien los patrones agregados y F describe bien los regulares',
             retro: 'Las dos valen para cualquier patrón: son descripciones, no tests específicos de un régimen.' }
         ] },
       {
         tipo: 'numerica',
-        pregunta: 'La G empírica de las sedes de Bogotá vale 0,037494 en r = 0. ¿Cuántas sedes comparten coordenada exacta con otra?',
+        pregunta: 'La G empírica de las sedes de Bogotá EN LA VENTANA URBANA vale 0,037494 en r = 0. ¿Cuántas de esas sedes comparten coordenada exacta con otra?',
         respuesta: D4.m7.bogota.coincidentes, tolerancia: 0.5,
         retroAcierto: 'Son ' + D4.m7.bogota.coincidentes + ' sedes, el ' + n5(D4.m7.bogota.coincidentes_pct, 2) + ' % del patrón, con hasta ' + D4.m7.duplicados.maximo_por_sitio + ' en un mismo punto: sedes distintas en el mismo edificio. Un patrón con duplicados no es un proceso puntual simple, y el salto de G en r = 0 es exactamente esa fracción.',
-        retroFallo: 'Son ' + D4.m7.bogota.coincidentes + ' sedes, el ' + n5(D4.m7.bogota.coincidentes_pct, 2) + ' % del patrón, con hasta ' + D4.m7.duplicados.maximo_por_sitio + ' en un mismo punto: sedes distintas en el mismo edificio. Un patrón con duplicados no es un proceso puntual simple, y el salto de G en r = 0 es exactamente esa fracción.'
+        retroFallo: 'Son ' + D4.m7.bogota.coincidentes + ' = 0,037494 × ' + miles4(D4.m7.bogota.n) + ', las sedes que caen DENTRO de la ventana urbana. Si te salió 83 multiplicaste por las ' + miles4(D4.m1.sedes_total) + ' georreferenciadas: el módulo 1 avisó de que ppp() descarta las que quedan fuera. La G es una proporción sobre la ventana, siempre.'
       },
       {
         tipo: 'opcion',
         pregunta: 'K(r) de un patrón sigue por encima de su valor teórico a 500 m, aunque la agregación real ocurre a 20 m. ¿Por qué?',
         opciones: [
           { texto: 'Porque K es acumulativa y arrastra los vecinos ya contados', correcta: true,
-            retro: 'Eso es, y es lo que g(r) arregla mirando solo el anillo de radio r. Sobre las secuoyas, g alcanza ' + n5(D4.m9.redwood.g_max, 2) + ' en r = ' + n5(D4.m9.redwood.r_g_max, 4) + ' y vuelve a 1 mucho antes de que K se despegue.' },
-          { texto: 'Porque el efecto de borde infla K a distancias grandes',
+            retro: 'Eso es, y es lo que g(r) arregla mirando solo el anillo de radio r. Sobre las secuoyas, g alcanza ' + n5(D4.m9.redwood.g_max, 2) + ' en r = ' + n5(D4.m9.redwood.r_g_max, 4) + ' y vuelve a 1 mientras K sigue despegada de su teórica.' },
+          { texto: 'Porque el efecto de borde infla K a las distancias grandes',
             retro: 'El efecto de borde va en el sentido contrario: sin corregir, K se queda por DEBAJO, hasta un ' + n5(D4.m10.sesgo_max_pct, 1) + ' % en este capítulo.' },
-          { texto: 'Porque la corrección de traslación falla a r grande',
+          { texto: 'Porque la intensidad del patrón crece con la distancia medida',
             retro: 'No: el arrastre es una propiedad de la definición de K, no un defecto de la corrección.' },
-          { texto: 'Porque la ventana no es rectangular',
+          { texto: 'Porque la ventana de observación no es un rectángulo simple',
             retro: 'El arrastre ocurre igual en una ventana rectangular. Es acumulación, no geometría.' }
         ] },
       {
         tipo: 'multiple',
-        pregunta: 'Sobre el efecto de borde, ¿qué es cierto?',
+        pregunta: 'Sobre el efecto de borde en la estimación de K, ¿qué es cierto?',
         opciones: [
-          { texto: 'Sin corregir, K queda por debajo de su valor real', correcta: true,
-            retro: 'Siempre, y por eso el sesgo tiene dirección: un punto del borde tiene vecinos fuera que nadie observó. Aquí llega al ' + n5(D4.m10.sesgo_max_pct, 1) + ' %.' },
           { texto: 'Ignorarlo hace que el patrón parezca más regular de lo que es', correcta: true,
-            retro: 'Correcto: faltan vecinos, nunca sobran, así que el patrón parece menos agregado.' },
-          { texto: 'La corrección isotrópica y la de traslación cuestan lo mismo',
-            retro: 'No sobre una ventana real: aquí la isotrópica cuesta ×' + n5(D4.m10.coste.veces_isotropica_sobre_traslacion, 0) + ' lo que la de traslación, porque recorre el perímetro pareja a pareja.' },
-          { texto: 'El sesgo crece con r', correcta: true,
-            retro: 'Sí: a r grande casi todos los discos tocan el borde. El máximo se alcanza en r = ' + n5(D4.m10.r_sesgo_max, 0) + ' m.' }
+            retro: 'Correcto, y en una sola dirección: a un punto pegado al borde le faltan vecinos que nadie observó, así que K queda por DEBAJO de su valor real — aquí hasta un ' + n5(D4.m10.sesgo_max_pct, 1) + ' %.' },
+          { texto: 'El sesgo crece con r, porque a r grande más discos tocan el borde', correcta: true,
+            retro: 'Sí, y de forma monótona: el déficit llega a su máximo del ' + n5(D4.m10.sesgo_max_pct, 1) + ' % en el último r medido, ' + n5(D4.m10.r_sesgo_max, 0) + ' m.' },
+          { texto: 'Es ruido: se compensa entre los puntos del centro y los del borde',
+            retro: 'No se compensa, y esa es la frase del módulo 10: no añade ruido, añade DIRECCIÓN. A los puntos del centro no les sobran vecinos que cancelen los que le faltan al borde. Faltan siempre, nunca sobran.' },
+          { texto: 'La corrección isotrópica y la de traslación cuestan lo mismo de calcular',
+            retro: 'No sobre una ventana de verdad: aquí la isotrópica cuesta ' + n5(D4.m10.coste.veces_isotropica_sobre_traslacion, 0) + ' veces lo que la de traslación, porque recorre el perímetro pareja a pareja.' }
         ] },
       {
         tipo: 'opcion',
         pregunta: 'La curva observada se sale de la banda del 95 % en un tramo corto de r. ¿Qué se puede afirmar?',
         opciones: [
-          { texto: 'Poco: la banda es puntual y mirarla entera son muchos contrastes a la vez', correcta: true,
+          { texto: 'Que la banda es puntual, y mirarla entera son muchos contrastes a la vez', correcta: true,
             retro: 'Eso es. De las ' + miles4(D4.m11.tasa_salida_bogota.nsim) + ' simulaciones de CSR puro con que se construyó la banda, el ' + n5(D4.m11.tasa_salida_bogota.pct, 1) + ' % se sale de ella en algún r. Para la curva entera hace falta un test global.' },
-          { texto: 'Que el patrón no es CSR, con p < 0,05',
+          { texto: 'Que el patrón no es CSR, con un p menor que 0,05 para la curva entera',
             retro: 'Ese es exactamente el error que el módulo 11 desmonta: el 5 % es el nivel de CADA r por separado, no el de la curva.' },
-          { texto: 'Que hay que aumentar nsim hasta que deje de salirse',
-            retro: 'Peor todavía: subir nsim con la banda por defecto la ENSANCHA, porque su nivel es 2/(nsim+1) y cambia con nsim.' },
-          { texto: 'Que la corrección de borde es insuficiente',
+          { texto: 'Que conviene subir nsim para estrechar la banda y así confirmarlo',
+            retro: 'Ajustar nsim mirando el resultado es fabricar el resultado. Y además no funciona por un motivo que la última pregunta de este cuestionario te va a pedir: la banda por defecto no es la misma banda cuando cambia nsim.' },
+          { texto: 'Que la corrección de borde que se usó es insuficiente en ese tramo',
             retro: 'No hay nada en el enunciado que apunte al borde; y la banda se construye con la misma corrección que la curva.' }
         ] },
       {
@@ -1945,11 +2064,11 @@ QUIZ_JS = r"""
         opciones: [
           { texto: 'Se ensancha, porque su nivel puntual es 2/(nsim+1) y ha cambiado', correcta: true,
             retro: 'Eso es, y es contraintuitivo: la banda por defecto es el mínimo-máximo de las simulaciones. A lo largo del barrido se ensancha ×' + n5(D4.m11.escala_resumen.veces_defecto, 2) + '. Manteniendo el nivel fijo al 5 %, en cambio, se estrecha.' },
-          { texto: 'Se estrecha, porque hay más información',
+          { texto: 'Se estrecha, porque con más simulaciones hay más información sobre CSR',
             retro: 'Es lo que uno espera y no es lo que pasa: con nrank = 1 el nivel pasa de ' + n5(D4.m11.escala_nsim[1].nivel_defecto, 3) + ' a ' + n5(D4.m11.escala_nsim[3].nivel_defecto, 3) + ', o sea que son contrastes distintos.' },
-          { texto: 'No cambia: la banda solo depende del patrón',
+          { texto: 'No cambia: la banda queda determinada por el patrón y su ventana',
             retro: 'Depende de las simulaciones, y por tanto de cuántas haya.' },
-          { texto: 'Se estrecha exactamente a la mitad',
+          { texto: 'Su ancho cae como uno partido por raíz de nsim, así que se reduce',
             retro: 'Ni se estrecha ni hay una regla tan simple.' }
         ] }
     ];

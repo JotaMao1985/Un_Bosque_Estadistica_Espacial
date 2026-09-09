@@ -306,14 +306,33 @@ cuadrantes <- function(p, nx, ny = nx) {
   obs <- as.vector(qc); esp <- as.vector(te$expected)
   list(nx = nx, ny = ny, celdas = length(obs),
        n_obs = sum(obs), media = r10(mean(obs)), var = r10(var(obs)),
-       # El índice de dispersión: var/media. Bajo Poisson vale 1, y es la
-       # cifra que el chi2 escala. Se publica aparte porque el módulo 6 lo
-       # hace variar con el tamaño de celda y necesita la serie.
+       # El índice de dispersión: var/media. Se publica aparte porque el
+       # módulo 6 lo hace variar con el tamaño de celda y necesita la serie.
        dispersion = r10(var(obs) / mean(obs)),
+       # Y LA NULA CONTRA LA QUE SE COMPARA, que NO siempre es 1. Este
+       # campo nace de la revisión de contenido del 2026-09-08: el módulo 2
+       # publicaba «vale 25,91; bajo Poisson valdría 1» sobre una rejilla
+       # recortada contra una ventana de 22 piezas y 5 agujeros, donde las
+       # 65 celdas vivas tienen esperanzas de 0,10 a 53,4. Ahí, bajo un
+       # Poisson HOMOGÉNEO, el índice no vale 1: vale 15,2.
+       #
+       # La fórmula es exacta y se deriva en dos líneas. Con N_j ~ Poisson
+       # independientes de media E_j, sobre m celdas:
+       #     E[media] = Ē           E[var] = Ē + S²(E)
+       # luego el cociente esperado es 1 + S²(E)/Ē. Cuando todas las
+       # celdas miden lo mismo S²(E) = 0 y se recupera el 1 de los libros;
+       # el exceso sobre 1 es exactamente la variación de las ÁREAS, que
+       # no es una propiedad del patrón sino de la rejilla.
+       #
+       # El chi2 del test no está tocado por esto: usa E_j = lambda|A_j| y
+       # por tanto ya corrige las áreas. Lo que estaba mal era la cifra de
+       # al lado, puesta como si dijera lo mismo.
+       dispersion_nula = r10(1 + var(esp) / mean(esp)),
        vacios = sum(obs == 0), maximo = max(obs),
        chi2 = r10(te$statistic), gl = as.integer(te$parameter["df"]),
        p_valor = pval(te$p.value), p_log10 = plog(te$p.value),
-       esperanza_min = r10(min(esp)), celdas_esperanza_baja = sum(esp < 5))
+       esperanza_min = r10(min(esp)), esperanza_max = r10(max(esp)),
+       celdas_esperanza_baja = sum(esp < 5))
 }
 q_urb <- suppressWarnings(cuadrantes(p_urb, 10))
 q_jap <- cuadrantes(japanesepines, 5)
@@ -361,6 +380,26 @@ D$m2 <- list(
 # en el cuadrado unidad, así que ahí tiene que cuadrar exacto.
 ancla(q_jap$chi2, q_jap$dispersion * q_jap$gl,
       "chi2 = indice de dispersion x gl, en celdas de igual area", tol = 1e-6)
+
+# LA OTRA CARA DE ESA MISMA ANCLA, que faltaba y es la que se pagó. Si en
+# celdas de igual área el chi2 ES el índice de dispersión por los grados
+# de libertad, entonces en celdas DESIGUALES el índice mide otra cosa, y
+# hay que saber cuánto. Dos comprobaciones:
+#
+#  1. donde las celdas son iguales —japanesepines en un cuadrado— la nula
+#     tiene que ser 1, o la fórmula está mal escrita;
+#  2. donde no lo son —la ventana urbana— la fórmula se contrasta contra
+#     una simulación de Poisson homogéneo sobre esas MISMAS áreas.
+ancla(q_jap$dispersion_nula, 1, "la nula del índice de dispersión en celdas iguales",
+      tol = 1e-9)
+local({
+  set.seed(SEM_CSR + 200L)
+  esp <- as.vector(suppressWarnings(quadrat.test(p_urb, nx = 10, ny = 10))$expected)
+  sim <- replicate(4000, { N <- rpois(length(esp), esp); var(N) / mean(N) })
+  ancla(mean(sim), q_urb$dispersion_nula,
+        "la nula del índice de dispersión, simulada sobre las áreas recortadas",
+        tol = 0.15)
+})
 
 message(sprintf("  urbana 10x10: chi2=%.1f (gl=%d, p=10^%.1f) · %d celdas con esperanza < 5",
                 q_urb$chi2, q_urb$gl, q_urb$p_log10, q_urb$celdas_esperanza_baja))
@@ -676,11 +715,39 @@ message("7. las funciones G y F")
 # distancia cero. No es un error de spatstat ni un detalle: es que la
 # corrección de borde y el atomo viven en el mismo punto de la curva, y
 # el módulo lo enseña poniendo las dos una encima de otra.
+# LA F NO SALE DE `Fest`, Y ESO VA DECLARADO. La revisión de contenido
+# del 2026-09-08 encontró que la F publicada era falsa —F(0,003) = 0,379
+# sobre `cells`, donde 42 discos de ese radio cubren el 0,12 % del
+# cuadrado— y aisló la causa: `Fest` se apoya en `distmap()`, la
+# transformada de distancia compilada, que en esta instalación devuelve
+# 0,492 donde la distancia exacta es 0,7071. `nncross`, `bdist.points`,
+# `crossdist` y `pairdist` sí son exactas, y sobre ellas se escribe
+# `ppp_F_borde()` en `puntual.R`. G no está tocada: se apoya en `nndist`,
+# que es exacta, y el arnés ya la recalculaba.
+#
+# El r y la lambda siguen saliendo de `Fest`: `r` es aritmética sobre el
+# tamaño de la ventana y `theo` = 1 - exp(-lambda pi r^2) coincide con el
+# cálculo por fuerza bruta hasta la quinta cifra. Lo único que se
+# reemplaza es la columna EMPÍRICA, que es la que estaba rota.
 gf <- function(p, nombre) {
   g <- Gest(p, correction = c("km", "none"))   # `none` da la columna `raw`
-  f <- Fest(p, correction = "km")
+  f <- Fest(p, correction = "km")              # solo por su `r` y su `theo`
   rg_g <- rejilla_r(g); rg_f <- rejilla_r(f)
   nn <- nndist(p)
+  fb <- ppp_F_borde(p, rg_f)
+  # La teórica se escribe, no se hereda: así el arnés compara dos
+  # implementaciones y no una consigo misma. Y se compara EN LA REJILLA
+  # NATIVA de spatstat, no en la de publicación: interpolar una curva
+  # convexa a 101 nodos mete un error de 1,25e-4 que no es desacuerdo de
+  # fórmula sino de rejilla, y auditar contra él escondería la señal
+  # detrás del ruido del propio arnés. En su rejilla la diferencia es
+  # exactamente cero.
+  ancla(max(abs(ppp_F_teorica(intensity(p), f$r) - as.numeric(f$theo))), 0,
+        sprintf("la F teórica escrita a mano contra la de spatstat en %s", nombre),
+        tol = 1e-12)
+  # Se publica la escrita a mano, evaluada en los nodos de publicación:
+  # es la exacta, sin el error de interpolar.
+  f_teo <- ppp_F_teorica(intensity(p), rg_f)
   list(nombre = nombre, n = npoints(p),
        # G(0) > 0 SOLO puede pasar con puntos duplicados, y es la cifra
        # que la decisión 3 de Javier convierte en material.
@@ -688,7 +755,8 @@ gf <- function(p, nombre) {
        coincidentes_pct = r10(100 * sum(nn == 0) / npoints(p)),
        r_g = r6(rg_g), g_obs = curva(g, "km", rg_g), g_teo = curva(g, "theo", rg_g),
        g_emp = curva(g, "raw", rg_g), g_emp_en_cero = r6(g[["raw"]][1]),
-       r_f = r6(rg_f), f_obs = curva(f, "km", rg_f), f_teo = curva(f, "theo", rg_f),
+       r_f = r6(rg_f), f_obs = r6(fb$f), f_teo = r6(f_teo),
+       f_sitios = fb$n_sitios, f_sitios_efectivos = fb$n_efectivos,
        # La distancia a la que G alcanza la mitad de los puntos: una sola
        # cifra que resume la curva y se puede comparar entre patrones.
        g_mediana = r6(unname(quantile(nn, 0.5))))
@@ -698,6 +766,43 @@ D$m7 <- list(
   japanesepines = gf(japanesepines, "Pinos japoneses"),
   redwood = gf(redwood, "Plántulas de secuoya"),
   bogota = gf(p_urb, "Sedes educativas, ventana urbana"))
+
+# EL ANCLA QUE HABRÍA CAZADO LA F ROTA EN EL PRIMER INTENTO, y que no
+# existía. Bajo CSR la F empírica TIENE que seguir a la teórica: es la
+# definición del proceso, no una propiedad que haya que estimar. Promediar
+# sobre réplicas separa el sesgo del estimador —que es lo que se audita—
+# del ruido de muestreo de una realización suelta. Con lambda = 400 y 20
+# réplicas el error del estimador de muestra reducida es de 0,002; la
+# `Fest` averiada erraba por más de 0,5, así que esto la para en seco.
+local({
+  set.seed(SEM_CSR + 100L)
+  lam <- 400; M <- 20L
+  rg  <- seq(0, 2 / sqrt(lam), length.out = 40)
+  acc <- matrix(NA_real_, M, length(rg))
+  for (k in seq_len(M)) acc[k, ] <- ppp_F_borde(rpoispp(lam, win = owin()), rg)$f
+  ancla(max(abs(colMeans(acc) - ppp_F_teorica(lam, rg))), 0,
+        "la F empírica sigue a la teórica bajo CSR (20 réplicas)", tol = 0.01)
+})
+
+# Y LA AFIRMACIÓN DEL MÓDULO, convertida en ancla: la pareja G/F separa
+# los regímenes en direcciones OPUESTAS. Si algún día deja de cumplirse,
+# el módulo 7 estaría enseñando algo que su propia figura desmiente —que
+# es exactamente lo que pasó mientras la F estuvo rota.
+local({
+  mitad <- function(r, y) r[which.min(abs(y - 0.5))]
+  for (nm in c("cells", "redwood")) {
+    d <- D$m7[[nm]]
+    rf <- mitad(d$r_f, d$f_obs)
+    rg <- mitad(d$r_g, d$g_obs)
+    antes_G <- rg < rf
+    esperado <- (nm == "redwood")   # agregado: G sube antes; regular: al revés
+    if (antes_G != esperado)
+      stop(sprintf("ANCLA ROTA · en %s, G alcanza 0,5 en r=%.4f y F en r=%.4f: %s",
+                   nm, rg, rf,
+                   "el módulo 7 afirma lo contrario para este régimen"))
+    N_ANCLAS <<- N_ANCLAS + 1L
+  }
+})
 
 # LOS DUPLICADOS, MEDIDOS. Que el patrón real no sea simple no es un
 # defecto del dato: son sedes distintas en el mismo edificio. Pero rompe
@@ -758,6 +863,16 @@ kl <- function(p, nombre) {
        # El máximo de |L(r) - r| resume la desviación en una cifra, y es
        # la que el test de desviación del módulo 11 formaliza.
        max_desvio = r6(max(abs(sqrt(kobs / pi) - rg))),
+       # Y EL MISMO VALOR CON SU SIGNO, que es lo que de verdad dice el
+       # régimen. Nace de la revisión del 2026-09-08: el módulo 8 publicaba
+       # los tres valores ABSOLUTOS bajo la frase «con el signo de cada uno
+       # marcando su régimen». El lector veía +0,085 en las células
+       # (regulares) y +0,056 en las secuoyas (agregadas) y, con la regla
+       # del párrafo anterior —por encima hay agregación—, concluía que las
+       # células están MÁS agregadas que las secuoyas. La lectura
+       # exactamente invertida, provocada por la frase que prometía el
+       # signo sobre unas cifras que no lo llevaban.
+       desvio_con_signo = r6((sqrt(kobs / pi) - rg)[which.max(abs(sqrt(kobs / pi) - rg))]),
        r_max_desvio = r6(rg[which.max(abs(sqrt(kobs / pi) - rg))]))
 }
 D$m8 <- list(
@@ -775,6 +890,18 @@ ancla(max(abs(D$m8$japanesepines$k_teo - pi * rg_j^2)), 0,
 # agregado por encima. Es la lectura que el módulo enseña.
 if (!(D$m8$cells$l_menos_r[50] < 0 && D$m8$redwood$l_menos_r[50] > 0))
   stop("L - r ya no ordena los regímenes como el módulo 8 afirma")
+# Y EL SIGNO DEL DESVÍO PUBLICADO, que es lo que la prosa lee. Sin esto,
+# publicar el valor absoluto bajo una frase que promete el signo vuelve a
+# ser posible y nada lo dice.
+for (nm in c("cells", "japanesepines", "redwood")) {
+  esperado <- if (nm == "redwood") 1 else -1
+  if (sign(D$m8[[nm]]$desvio_con_signo) != esperado)
+    stop(sprintf("ANCLA ROTA · el desvio de L-r en %s tiene signo %+d y el módulo 8 lee %+d",
+                 nm, sign(D$m8[[nm]]$desvio_con_signo), esperado))
+  ancla(abs(D$m8[[nm]]$desvio_con_signo), D$m8[[nm]]$max_desvio,
+        sprintf("el desvio con signo de %s coincide en magnitud con el absoluto", nm),
+        tol = 1e-9)
+}
 message(sprintf("  max|L-r|: cells=%.4f  japanesepines=%.4f  redwood=%.4f  bogota=%.1f m",
                 D$m8$cells$max_desvio, D$m8$japanesepines$max_desvio,
                 D$m8$redwood$max_desvio, D$m8$bogota$max_desvio))
@@ -802,7 +929,23 @@ gr <- function(p, nombre) {
        g_max = r6(max(gobs[-1])), r_g_max = r6(rg[which.max(replace(gobs, 1, -Inf))]),
        # La distancia a la que g cruza el 1 por última vez: el alcance de
        # la estructura, que K no sabe decir.
-       r_ultimo_cruce = r6(rg[max(which(abs(gobs - 1) > 0.05))]))
+       #
+       # OJO A LO QUE MIDE, porque la revisión del 2026-09-08 lo usó mal y
+       # hubo que separarlo en dos. `r_ultimo_cruce` es el último r en que g
+       # se APARTA de 1, en cualquier dirección; sobre `redwood` eso cae en
+       # el último nodo del barrido, pero porque a r grande g baja POR
+       # DEBAJO de 1, no porque el exceso siga ahí. Para «hasta dónde llega
+       # la agregación» hace falta la otra cifra.
+       r_ultimo_cruce = r6(rg[max(which(abs(gobs - 1) > 0.05))]),
+       # El primer r DESPUÉS del máximo en que g regresa a 1: el alcance
+       # del exceso de parejas, que es lo que el módulo 9 llama el tamaño
+       # de los grumos. NA cuando g no vuelve dentro del rango medido —el
+       # caso de Bogotá, y decirlo es más informativo que una cifra.
+       r_vuelve_a_1 = local({
+         i0 <- which.max(gobs)
+         j <- which(gobs[i0:length(gobs)] <= 1)
+         if (!length(j)) NA_real_ else r6(rg[i0 + j[1] - 1L])
+       }))
 }
 D$m9 <- list(
   cells = gr(cells, "Células biológicas"),
@@ -965,7 +1108,14 @@ ts_bog <- tasa_salida(env_bog); ts_red <- tasa_salida(env_red)
 rg_e <- rejilla_r(env_bog)
 serie_env <- function(env, nombre) {
   rg <- rejilla_r(env)
+  # LA TASA DE SALIDA VIAJA CON SU PATRÓN, y eso nace de la revisión del
+  # 2026-09-08: el simulador leía `tasa_salida_bogota` cableada dentro de
+  # `pinta()`, así que con «Pinos japoneses» seleccionado la tabla decía
+  # «patrón: Pinos japoneses» en la primera fila y el 52,3 % de Bogotá en
+  # la última. El dato ya se calculaba para dos de los tres; ahora para
+  # los tres, y dentro del patrón al que pertenece.
   list(nombre = nombre, nsim = NSIM_ENV, correccion = CORR,
+       tasa_salida = tasa_salida(env),
        r = r6(rg), obs = curva(env, "obs", rg), teo = curva(env, "theo", rg),
        lo = curva(env, "lo", rg), hi = curva(env, "hi", rg),
        # Si la observada se sale, y dónde. La primera r en que se sale es

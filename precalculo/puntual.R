@@ -235,3 +235,84 @@ ppp_kppm <- function(p, modelo, correccion, tendencia = ~1) {
        parametros = as.list(pa),
        mu = as.numeric(fit$mu), mu_que = mu_que)
 }
+
+
+# =====================================================================
+# LA FUNCIÓN F, CALCULADA SIN `Fest`
+#
+# POR QUÉ EXISTE. La revisión de contenido del capítulo 4 (2026-09-08)
+# encontró que la F que el módulo 7 publicaba era FALSA: para `cells`
+# —42 puntos en el cuadrado unidad— daba F(0,003) = 0,379 cuando
+# cuarenta y dos discos de ese radio cubren el 0,12 % del cuadrado. La
+# figura enseñaba lo contrario de lo que su propio párrafo decía: F subía
+# antes que G en los cuatro patrones.
+#
+# LA CAUSA, AISLADA. `Fest` se apoya en `distmap()`, la transformada de
+# distancia compilada, y en esta instalación `distmap` está rota:
+#
+#   · sobre UN punto en el centro del cuadrado unidad devuelve una
+#     distancia máxima de 0,492 donde la exacta es 0,7071;
+#   · comparada con `nncross` SOBRE LOS MISMOS SITIOS, el error máximo es
+#     de 0,25 y el medio de 0,216;
+#   · las cuatro correcciones de `Fest` —raw, cs, rs, km— dan lo mismo,
+#     así que no es un convenio del estimador de Kaplan-Meier.
+#
+# Mientras tanto `nncross`, `bdist.points`, `crossdist`, `pairdist` y
+# `distfun` devuelven el valor exacto: la avería está en la transformada
+# de distancia, no en la aritmética de spatstat. `Fest` se usaba UNA sola
+# vez en todo el repositorio, en `genera_cap4.R`; `genera_cap5.R` usa
+# `distfun`, que es correcta.
+#
+# POR QUÉ NO SE ESPERA A QUE SE ARREGLE EL PAQUETE. Porque el auditor del
+# capítulo declaraba esta cifra como SALTADA, y la declaraba con estas
+# palabras: «los estimadores km de G y F — no hay segunda
+# implementación». El defecto vivía dentro de la saltada. Escribir la F
+# aquí no es solo repararla: es darle al auditor la segunda
+# implementación que le faltaba, que es lo que impide que esto vuelva a
+# pasar.
+#
+# EL ESTIMADOR ES EL DE MUESTRA REDUCIDA (border / reduced-sample), y se
+# elige por ser el único que se puede escribir entero y defender en una
+# línea: de los sitios cuya distancia al borde supera r —los únicos donde
+# la respuesta no depende de lo que no se observó— se cuenta qué
+# fracción tiene un punto a distancia r o menos. Sin convenios internos y
+# sin nada que creerse.
+# =====================================================================
+
+#' F de espacio vacío por muestra reducida, con distancias exactas
+#'
+#' @param p    patrón puntual (`ppp`)
+#' @param rg   vector de radios en los que evaluar
+#' @param lado número de sitios por lado de la rejilla de muestreo
+#' @return lista con `f` (la curva en `rg`), `n_sitios` y `n_efectivos`
+#'   (cuántos sitios sobreviven a la muestra reducida en el mayor r)
+ppp_F_borde <- function(p, rg, lado = 400L) {
+  w  <- p$window
+  gx <- seq(w$xrange[1], w$xrange[2], length.out = lado)
+  gy <- seq(w$yrange[1], w$yrange[2], length.out = lado)
+  G  <- expand.grid(x = gx, y = gy)
+  # `ppp()` descarta lo que cae fuera de la ventana, que es justo lo que
+  # se quiere: los sitios de F son los del RECINTO, no los de su caja.
+  sitios <- suppressWarnings(ppp(G$x, G$y, window = w, check = FALSE))
+  if (npoints(sitios) < 100L)
+    stop("ppp_F_borde: la rejilla dejó menos de 100 sitios dentro de la ventana")
+
+  d <- nncross(sitios, p, what = "dist")   # distancia al punto más cercano
+  b <- bdist.points(sitios)                # distancia al borde de la ventana
+
+  f <- vapply(rg, function(r) {
+    usables <- b > r
+    if (!any(usables)) return(NA_real_)
+    mean(d[usables] <= r)
+  }, numeric(1))
+
+  list(f = f, n_sitios = npoints(sitios),
+       n_efectivos = sum(b > max(rg)))
+}
+
+#' La F teórica bajo CSR: 1 - exp(-lambda pi r^2)
+#'
+#' Se escribe en vez de heredarse de `Fest$theo` por el mismo motivo que
+#' la de arriba: para que el arnés pueda comparar dos implementaciones y
+#' no una consigo misma.
+ppp_F_teorica <- function(lambda, rg) 1 - exp(-lambda * pi * rg^2)

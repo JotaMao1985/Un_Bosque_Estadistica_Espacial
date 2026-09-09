@@ -534,9 +534,102 @@ def main() -> int:
             "m7: y Kaplan-Meier la pone a cero por convenio")
     a.cerca(100 * float(np.mean(nn_u == 0)), m7["bogota"]["coincidentes_pct"],
             "m7: el porcentaje de coincidentes", 1e-6)
-    a.salta("los estimadores km de G y F",
-            "son estimadores de supervivencia con convenio interno de spatstat; "
+    a.salta("el estimador km de G",
+            "es un estimador de supervivencia con convenio interno de spatstat; "
             "no hay segunda implementación. Se audita la G empírica, que sí es exacta")
+
+    # -----------------------------------------------------------------
+    # LA F, RECALCULADA AQUÍ. Hasta el 2026-09-08 esto era una SALTADA
+    # —«no hay segunda implementación»— y el defecto vivía justo dentro:
+    # `Fest` se apoya en `distmap()`, que en la máquina del precálculo
+    # devuelve 0,492 donde la distancia exacta es 0,7071, y la F publicada
+    # era falsa por medio punto. La figura del módulo 7 enseñaba lo
+    # contrario de lo que su propio párrafo decía y nadie lo veía, porque
+    # el único sitio donde se habría visto estaba declarado como no
+    # auditable.
+    #
+    # LA LECCIÓN, y va escrita para que no se repita: cuando no hay
+    # segunda implementación, la salida NO es dejar de mirar. O se
+    # escribe la segunda —esto son quince líneas— o se audita una
+    # PROPIEDAD que sí se pueda comprobar. Aquí se hacen las dos cosas.
+    # -----------------------------------------------------------------
+    a.titulo("7b · la F de espacio vacío, reimplementada")
+
+    def f_borde(P, x0, y0, x1, y1, rg, lado=400):
+        """F por muestra reducida sobre una ventana RECTANGULAR.
+
+        Los tres canónicos viven en un rectángulo, así que la distancia
+        al borde es exacta y de una línea. Bogotá no, y por eso se audita
+        aparte: ver más abajo.
+        """
+        gx = np.linspace(x0, x1, lado)
+        gy = np.linspace(y0, y1, lado)
+        S = np.stack(np.meshgrid(gx, gy, indexing="ij"), -1).reshape(-1, 2)
+        d = cKDTree(P).query(S, k=1)[0]
+        b = np.minimum.reduce([S[:, 0] - x0, x1 - S[:, 0],
+                               S[:, 1] - y0, y1 - S[:, 1]])
+        return np.array([np.mean(d[b > r] <= r) if np.any(b > r) else np.nan
+                         for r in rg])
+
+    for nm in ("cells", "japanesepines", "redwood"):
+        g = m7[nm]
+        P = reg[reg.patron == nm][["x", "y"]].to_numpy()
+        x0, y0, x1, y1 = D["m3"][nm]["ventana"]
+        rg = np.array(g["r_f"])
+        mio = f_borde(P, x0, y0, x1, y1, rg)
+        # La tolerancia es de rejilla, no de fórmula: R muestrea 400x400
+        # sobre la caja y Python otro tanto, y los sitios no caen en los
+        # mismos sitios. 0,01 sobre una curva que va de 0 a 1 es holgado
+        # para eso y ridículamente estrecho para el defecto que se busca,
+        # que erraba por más de 0,5.
+        # `igual` y no `cerca`: `cerca` es tolerancia RELATIVA y aquí el
+        # valor publicado es 0, así que su base sería 1e-12 y cualquier
+        # diferencia fallaría.
+        a.igual(float(np.nanmax(np.abs(mio - np.array(g["f_obs"])))), 0.0,
+                f"m7/{nm}: la F publicada, recalculada en Python", tol=0.01)
+        # Y LA PROPIEDAD, que es lo que de verdad protege: bajo CSR la F
+        # empírica sigue a la teórica. Aquí se comprueba que la teórica
+        # publicada es la fórmula y no otra cosa.
+        lam = len(P) / ((x1 - x0) * (y1 - y0))
+        a.igual(float(np.max(np.abs(1 - np.exp(-lam * np.pi * rg ** 2)
+                                    - np.array(g["f_teo"])))), 0.0,
+                f"m7/{nm}: la F teórica es 1 - exp(-lambda pi r^2)", tol=1e-5)
+
+    # LA AFIRMACIÓN DEL MÓDULO, auditada: G y F separan los regímenes en
+    # direcciones OPUESTAS. Mientras la F estuvo rota esto era falso en
+    # los tres, y ninguna comprobación de cifras podía decirlo porque
+    # ninguna cifra suelta estaba mal: lo que estaba mal era la curva.
+    def _mitad(r, y):
+        return r[int(np.argmin(np.abs(np.array(y) - 0.5)))]
+
+    for nm, agregado in (("cells", False), ("redwood", True)):
+        g = m7[nm]
+        rG = _mitad(g["r_g"], g["g_obs"])
+        rF = _mitad(g["r_f"], g["f_obs"])
+        a.cierto((rG < rF) == agregado,
+                 f"m7/{nm}: {'G sube antes que F' if agregado else 'F sube antes que G'}"
+                 f", como afirma el módulo",
+                 f"G→0,5 en {rG:.4f} · F→0,5 en {rF:.4f}")
+
+    a.salta("la F de Bogotá, recalculada",
+            "su ventana tiene 22 piezas y 5 agujeros, y la distancia al borde de un "
+            "polígono con agujeros no se escribe en una línea. Se auditan sus "
+            "propiedades —monotonía, recorrido y los sitios efectivos— y la F de los "
+            "tres canónicos, que sí son rectángulos, se recalcula entera")
+
+    for nm in ("cells", "japanesepines", "redwood", "bogota"):
+        g = m7[nm]
+        a.cierto(all(g["f_obs"][i] <= g["f_obs"][i + 1] + 1e-9
+                     for i in range(len(g["f_obs"]) - 1)),
+                 f"m7/{nm}: F no decrece, es una distribución")
+        a.cierto(0.0 <= min(g["f_obs"]) and max(g["f_obs"]) <= 1.0 + 1e-9,
+                 f"m7/{nm}: F se queda entre 0 y 1")
+        a.cierto(g["f_sitios"] > 10000,
+                 f"m7/{nm}: la F se muestreó sobre sitios suficientes",
+                 g["f_sitios"])
+        a.cierto(g["f_sitios_efectivos"] > 0,
+                 f"m7/{nm}: y la muestra reducida deja sitios en el mayor r",
+                 g["f_sitios_efectivos"])
     for nm in ("cells", "japanesepines", "redwood", "bogota"):
         g = m7[nm]
         a.igual(len(g["r_g"]), len(g["g_obs"]), f"m7/{nm}: la curva G tiene una r por valor")
