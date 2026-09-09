@@ -246,8 +246,8 @@ semestre 7, 2 créditos, 4 h/semana, 63 h presenciales + 32 h independientes.
 **Actualizado el 2026-09-04 al cerrar T4.3**: el capítulo 6 está cerrado, la Fase 4 va por la mitad,
 y lo que sigue es **T4.4–T4.6, el capítulo 7**. **Retocado el 2026-09-08 al arrancar T4.4**: los seis
 commits están publicados, el cronómetro del 7 está en A.28 y sus cuatro decisiones, tomadas.
-**Actualizado el 2026-09-08 al cerrar T4.4b**: el capítulo 7 está precalculado y auditado, hay cuatro
-commits sin publicar y lo que sigue es **T4.5, el ensamblado**, que estrena la capa categórica
+**Actualizado el 2026-09-08 al cerrar T4.4b**: el capítulo 7 está precalculado y auditado, T4.4 y T4.4b
+están publicados y lo que sigue es **T4.5, el ensamblado**, que estrena la capa categórica
 del `.geomapa` en la plantilla)*
 
 ### 0.1 · Cómo arrancar la conversación nueva
@@ -262,21 +262,22 @@ ensamblado, que estrena la capa categórica de polígonos del .geomapa en la pla
 —lado del navegador— y por eso toca los seis capítulos publicados. Léete A.28 y A.29
 antes de escribir prosa: el p del capítulo, la GAL en su orden y las siete filas del
 módulo 10 están decididos allí.
-Antes de escribir nada dime dos cosas: si publico los cuatro commits locales —uno corrige
-tres afirmaciones falsas del capítulo 4, que está en vivo— y cómo vas a verificar los
-seis capítulos sin regresión después de tocar la plantilla.
+Antes de escribir nada dime dos cosas: si publico el commit local que queda —es solo el
+§0 diciendo que lo anterior se publicó— y cómo vas a verificar los seis capítulos sin
+regresión después de tocar la plantilla.
 ```
 
-**Nada empieza sin dos respuestas**, y las dos están abajo: si se **publican los cuatro commits que
-están solo en local** (§0.2) y **cómo se verifica la plantilla sin regresión** (§0.5, punto 1). La
+**Nada empieza sin dos respuestas**, y las dos están abajo: si se **publica el commit que queda en
+local** (§0.2) y **cómo se verifica la plantilla sin regresión** (§0.5, punto 1). La
 segunda no es ceremonia: el conmutador de daltonismo del capítulo 3 tocó la plantilla y hubo que
 regenerar y verificar los dos capítulos anteriores; aquí son seis.
 
 ### 0.2 · Dónde vive el trabajo
 
-Rama **`main`**, **árbol de trabajo limpio**. `origin/main` está en `b7a04dc` —los seis commits del
-capítulo 6 se publicaron el 2026-09-08— y **hay cuatro commits que existen solo en este disco**: los
-tres de la tabla y este mismo §0, que otra vez se escribe antes de contarse:
+Rama **`main`**, **árbol de trabajo limpio**. ✅ **Publicado el 2026-09-09**: `origin/main` está en
+`bbc0290`, con los cuatro commits de T4.4 y T4.4b, y el capítulo 4 corregido está delante de los
+estudiantes. **Queda un solo commit en local, y es esta nota**: el §0 diciendo que se publicó, que
+no puede publicarse antes de escribirse. Lo que entró, para el registro:
 
 | Commit | Qué entró |
 |---|---|
