@@ -4631,10 +4631,47 @@ corriente**, así que «2 209» podía partirse de renglón como «2» y «209»
 | capítulo 5 | 0 | 0 |
 | capítulo 6 | 0 | 0 |
 
-El único del capítulo 4 venía del ayudante de JavaScript, no de `ent()`. **La errata entró con el
-capítulo 4 y los capítulos 5 y 6 la heredaron**: sus `ensambla_cap*.py` siguen escribiendo el
-espacio partible, y arreglarlo son dos líneas que **no mueven ninguna cifra**. Queda pendiente y se
-declara aquí para que no se pierda.
+El único del capítulo 4 venía del ayudante de JavaScript, no de `ent()`. La errata entró con el
+capítulo 4 y los capítulos 5 y 6 la heredaron.
+
+✅ **Cerrado el 2026-09-09**, y la frase que había aquí —«son dos líneas que no mueven ninguna
+cifra»— era falsa. Eran dos líneas y movieron algo, pero no donde se esperaba. Los seis capítulos
+escriben ya el fino (38, 45, 33, 9, 14 y 18 en lo publicado), y por el camino salieron dos cosas
+que valen más que el arreglo:
+
+**Los bloques de código pedían el número sin separador con `ent(x).replace(" ", "")`**, un idioma
+que dependía de que el separador fuese un espacio NORMAL. Al volverse fino, esos once `replace` se
+quedaron sin efecto **en silencio** y el separador se coló dentro del código:
+`hawkes(0.5, 0.8, 1.4, 4 000, 5030)` no es R válido. Un bloque de código no quiere el millar
+separado: quiere el número tal como lo teclea quien lo escribe, y esa es una intención distinta de
+la de `ent()`. Ahora la dice una función, `ent_codigo()`, en vez de un `replace` a la salida —en el
+capítulo 6 alimentaba además los once diccionarios `_SUB*`, que van enteros a plantillas de código,
+o sea 30 llamadas más—.
+
+**Y al migrarlas apareció un defecto que ya estaba publicado en el capítulo 6:**
+
+| lo que el `#>` anunciaba | lo que el código imprime de verdad |
+|---|---|
+| `#> [1] 1 006 1 105` | `1006 1105` |
+| `#> [1 005, 1 104]` | `[1005, 1104]` |
+| `#> [1] 2 401` | `2401` |
+
+**`verifica_bloques.py` lo daba por bueno** —108 de 108— y lo seguirá dando con cualquier
+separador de millares, porque **su comprobación es de subcadena**: «1 006» tokeniza como «1» y
+«006», y las dos están dentro de «1006». Comprobado ejecutando el comparador, no supuesto. Lo que
+sí habría cazado es el R inválido, porque la sesión encadenada aborta y el guion devuelve rojo. De
+las dos mitades del daño, el arnés veía una.
+
+**Lo que lo cazó entero fue una comprobación de tres líneas que no existe en el arnés:** sustituir
+el fino por un espacio normal en el HTML nuevo y exigir que vuelva a ser **idéntico byte a byte** al
+publicado. El capítulo 5 lo es; el 6 no, y la diferencia son exactamente esas seis líneas. Un
+cambio que se anuncia como «solo tipográfico» se puede demostrar tipográfico, y conviene hacerlo
+siempre que se toque un formateador.
+
+**Pendiente que sale de aquí:** que `verifica_bloques.py` compare la cifra anunciada **como token**
+y no como subcadena, o al menos que avise cuando un `#>` contenga un separador de millares. Y que
+`cuenta_sitio.py` —o quien corresponda— cuente los finos dentro de `<pre><code>`, que deben ser
+**cero en los seis capítulos**, como lo son hoy.
 
 #### A.30.11 · El estado en que queda, y lo que sigue abierto
 
@@ -4657,7 +4694,10 @@ de 1, no porque el exceso siga ahí.
 **Abierto, por orden de valor:**
 
 1. **La craft de los distractores** (A.30.6), que es presupuesto de escritura y decisión de Javier.
-2. **`ent()` en los capítulos 5 y 6** (A.30.10): dos líneas, ninguna cifra se mueve.
+2. ~~**`ent()` en los capítulos 5 y 6**~~ ✅ **hecho el 2026-09-09** (A.30.10), y destapó que el
+   capítulo 6 publicaba código con separador de millares y que `verifica_bloques.py` no puede
+   verlo. En su lugar quedan las dos comprobaciones que salen de ahí: comparar el `#>` **como
+   token** y no como subcadena, y contar que los finos dentro de `<pre><code>` sean cero.
 3. **Las métricas del montón en `baraja_opciones.py`**: longitudes, arranques gemelos, absolutos.
 4. **`campos_vivos.py` mira `courseData` y no `DATOS_CAP4`**, que es donde vivían los campos
    muertos. Bajo esa cobertura viajaba al navegador una R de Donnelly que el ejercicio 5 declara
