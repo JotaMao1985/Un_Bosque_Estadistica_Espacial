@@ -245,7 +245,10 @@ semestre 7, 2 créditos, 4 h/semana, 63 h presenciales + 32 h independientes.
 *(escrito el 2026-08-30, con el molde del §0 del plan del preparcial, que existe por lo mismo.
 **Actualizado el 2026-09-04 al cerrar T4.3**: el capítulo 6 está cerrado, la Fase 4 va por la mitad,
 y lo que sigue es **T4.4–T4.6, el capítulo 7**. **Retocado el 2026-09-08 al arrancar T4.4**: los seis
-commits están publicados, el cronómetro del 7 está en A.28 y sus cuatro decisiones, tomadas)*
+commits están publicados, el cronómetro del 7 está en A.28 y sus cuatro decisiones, tomadas.
+**Actualizado el 2026-09-08 al cerrar T4.4b**: el capítulo 7 está precalculado y auditado, hay cuatro
+commits sin publicar y lo que sigue es **T4.5, el ensamblado**, que estrena la capa categórica
+del `.geomapa` en la plantilla)*
 
 ### 0.1 · Cómo arrancar la conversación nueva
 
@@ -254,38 +257,38 @@ reconstruir nada de memoria:
 
 ```
 Lee PLAN_Material_Estadistica_Espacial.md empezando por su §0, antes de tocar nada.
-El capítulo 6 está cerrado (T4.1 → T4.3) y lo que sigue es T4.4–T4.6: el capítulo 7,
-autocorrelación espacial global y local. Arranca por T4.4 —el precálculo—, y hazlo
-midiendo antes de decidir, como el A.25 hizo con el 6.
-Antes de escribir nada dime dos cosas: si publico los cinco commits locales, y qué
-midió el cronómetro del capítulo 7.
+El capítulo 7 está precalculado y auditado (T4.4 y T4.4b) y lo que sigue es T4.5, el
+ensamblado, que estrena la capa categórica de polígonos del .geomapa en la plantilla
+—lado del navegador— y por eso toca los seis capítulos publicados. Léete A.28 y A.29
+antes de escribir prosa: el p del capítulo, la GAL en su orden y las siete filas del
+módulo 10 están decididos allí.
+Antes de escribir nada dime dos cosas: si publico los cuatro commits locales —uno corrige
+tres afirmaciones falsas del capítulo 4, que está en vivo— y cómo vas a verificar los
+seis capítulos sin regresión después de tocar la plantilla.
 ```
 
-**Nada empieza sin dos respuestas**, y las dos están abajo: si se **publican los cinco commits que
-están solo en local** (§0.2) y **qué mide el cronómetro del capítulo 7** antes de que se decida su
-forma (§0.5). La segunda no es ceremonia: en el capítulo 6 el cronómetro cambió el diseño entero
-—resultó que el riesgo no era el tiempo sino el peso— y el capítulo 7 hereda ese mismo dato de área.
+**Nada empieza sin dos respuestas**, y las dos están abajo: si se **publican los cuatro commits que
+están solo en local** (§0.2) y **cómo se verifica la plantilla sin regresión** (§0.5, punto 1). La
+segunda no es ceremonia: el conmutador de daltonismo del capítulo 3 tocó la plantilla y hubo que
+regenerar y verificar los dos capítulos anteriores; aquí son seis.
 
 ### 0.2 · Dónde vive el trabajo
 
-Rama **`main`**, **árbol de trabajo limpio**. ✅ **Publicado el 2026-09-08**: `origin/main` está en
-`b7a04dc`, la rama va a la par y el capítulo 6 está delante de los estudiantes. Eran **seis** commits
-y no cinco —el sexto era esta misma actualización del §0, que se escribió antes de contarse—. Lo que
-entró, para el registro:
+Rama **`main`**, **árbol de trabajo limpio**. `origin/main` está en `b7a04dc` —los seis commits del
+capítulo 6 se publicaron el 2026-09-08— y **hay cuatro commits que existen solo en este disco**: los
+tres de la tabla y este mismo §0, que otra vez se escribe antes de contarse:
 
 | Commit | Qué entró |
 |---|---|
-| `1593bdc` | **T4.1** · `genera_cap6.R`, 6 anclas, dos tableros, y el A.25: el riesgo escrito no era el riesgo |
-| `b5db47f` | **T4.1b** · `audita_cap6.py` recalculando con `libpysal`; encontró que `geo_grafo_multi` dibujaba el grafo incompleto |
-| `7842dc0` | **T4.2** · `ensambla_cap6.py`: 12 módulos, dos tableros, 108 de 108 cifras verificadas ejecutando el código |
-| `14018e7` | El subtítulo de la barra lateral iba en inglés, que es lo único que se ve en el índice |
-| `7901bba` | **T4.3** · el capítulo cerrado, `audita_texto_cap6.py` en 128/0 y el arnés de prosa en 218/218 |
-| `b7a04dc` | El §0 al día tras T4.3 |
+| `a225f95` | **T4.4** · `genera_cap7.R`, 13 anclas, la GAL de Anselin en su orden, la capa categórica en `geo.R`, y el A.28 |
+| `7b68ae7` | **El capítulo 4 corregido**: la F que publicaba era falsa —`distmap()` está rota en esta máquina— y vivía dentro de una saltada del auditor; con ella, el índice de dispersión con su nula real y una retroalimentación que se contradecía. **Toca un capítulo en vivo** |
+| `c45dbee` | **T4.4b** · `audita_cap7.py` con `esda` (576/0/4) y `prueba_auditor_cap7.py` (213/213, 231 de 231 tipos), y el A.29 |
 
 **El `push` no se hace sin decirlo.** Es la respuesta por defecto que quedó escrita en la revisión
 del capítulo 5 y sigue en pie, porque publicar aquí no es guardar: **el sitio se sirve de `main`**
-—no hay rama `gh-pages`—, así que `git push origin main` pone el capítulo 6 delante de los
-estudiantes en el mismo acto. Un solo comando:
+—no hay rama `gh-pages`—, así que `git push origin main` pone el capítulo 4 corregido delante de
+los estudiantes en el mismo acto (el 7 todavía no tiene HTML, así que de él no publica nada). Un
+solo comando:
 
 ```
 git push origin main
