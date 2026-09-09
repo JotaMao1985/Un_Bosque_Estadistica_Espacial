@@ -4353,3 +4353,327 @@ auditor y del propio arnés:
 La primera tanda dio 123 de 124 con **144 de 253 tipos**; la tercera, 213 de 213 con 231 de 231.
 La diferencia no está en el auditor —que apenas cambió— sino en el arnés: 89 inyecciones más
 para los mecanismos que la primera lista de «todavía no ataca» tenía escritos, uno por uno.
+
+---
+
+### A.30 · La revisión de contenido del capítulo 4: tres afirmaciones falsas, y la peor vivía dentro de una saltada (2026-09-08)
+
+El encargo fue leer el capítulo 4 entero —redacción, coherencia narrativa, pertinencia de figuras
+y simuladores, y si las preguntas evalúan lo que deben— con el capítulo ya publicado y **el arnés
+mecánico en verde de punta a punta**: `audita_cap4.py` 425/0, `audita_texto_cap4.py` 175/0 y
+`verifica_bloques.py` ejecutando los 22 bloques y confirmando 81 de 81 cifras `#>`. La revisión
+encontró nueve defectos rojos. Ninguno lo veía ninguna de las tres herramientas, y **eso no es
+casualidad: es la forma del hallazgo**. Los tres sitios donde no miraba nadie son el valor de
+referencia contra el que se compara una cifra correcta, la distancia entre lo que un párrafo
+promete y lo que su componente hace, y el montón de las preguntas visto en agregado.
+
+#### A.30.1 · La F que el capítulo publicaba era falsa, y `distmap()` es la causa
+
+El módulo 7 enseña la pareja G/F con una regla: *un patrón agregado deja mucho hueco, así que su G
+sube pronto y su F tarde*. La figura dibujaba **lo contrario en los cuatro patrones**. Para
+`cells` —42 puntos en el cuadrado unidad— publicaba F(0,003) = **0,379**, cuando cuarenta y dos
+discos de ese radio cubren el **0,12 %** del cuadrado.
+
+La causa se aisló en tres pasos, y ninguno requiere creerse nada:
+
+1. **Fuerza bruta.** La F empírica sobre una rejilla de 700×700 sitios da 0,00117 donde la
+   publicada decía 0,379 — y coincide con la `f_teo` del propio JSON.
+2. **Sobre CSR generado al vuelo**, donde la F empírica *tiene* que seguir a la teórica por
+   construcción, `Fest` da **0,197** en r = 0,00195 con `theo` = 0,00044. Y **las cuatro
+   correcciones** —`raw`, `cs`, `rs`, `km`— dan lo mismo, así que no es un convenio del estimador
+   de Kaplan-Meier.
+3. **La avería, aislada.** `Fest` se apoya en `distmap()`, la transformada de distancia compilada.
+   Sobre **un solo punto en el centro del cuadrado unidad** devuelve una distancia máxima de
+   **0,492** donde la exacta es **0,7071**, y converge a ~0,5 al afinar la rejilla (dimyx 64 →
+   0,4845; 128 → 0,4922; 512 → 0,4980). Comparada con `nncross` **sobre los mismos 4 096 sitios**,
+   el error máximo es **0,25** y el medio **0,216**. Mientras tanto `distfun`, `nncross`,
+   `crossdist`, `bdist.points` y `pairdist` devuelven el valor exacto: **la avería está en la
+   transformada de distancia, no en la aritmética de spatstat**.
+
+*(R 4.4.1 · `spatstat.geom` 3.7.2 · `spatstat.explore` 3.8.0, con avisos de «built under R version
+4.4.3».)*
+
+**El alcance está acotado y es una buena noticia:** `Fest` se usaba **una sola vez en todo el
+repositorio**, en `genera_cap4.R`. `genera_cap5.R` usa `distfun`, que es correcta. Ningún otro
+capítulo está tocado.
+
+#### A.30.2 · Dónde vivía: dentro de la única saltada que la cubría
+
+Esto es lo que hay que llevarse del anexo. `audita_cap4.py` declaraba esta cifra como **saltada**,
+y la declaraba con estas palabras:
+
+> «los estimadores km de G y F — son estimadores de supervivencia con convenio interno de spatstat;
+> **no hay segunda implementación**. Se audita la G empírica, que sí es exacta»
+
+Lo único que el auditor comprobaba sobre F era que `f_obs` tuviera la misma longitud que `r_f`. El
+defecto vivía **dentro de la saltada**, y por eso sobrevivió a 425 comprobaciones en verde.
+
+**La regla que sale de aquí, y que vale para los diez capítulos: cuando no hay segunda
+implementación, la salida no es dejar de mirar.** O se escribe la segunda —`ppp_F_borde()` en
+`puntual.R` son quince líneas: muestra reducida sobre `nncross` + `bdist.points`, sin convenios
+internos y defendible en una frase— o se audita una **propiedad** que sí se pueda comprobar. Aquí
+se hacen las dos cosas:
+
+- el auditor **recalcula la F entera en Python** para los tres canónicos (los que viven en un
+  rectángulo, donde la distancia al borde se escribe en una línea) y coincide hasta **1e-5**;
+- dos anclas nuevas en el generador comprueban lo que habría cazado esto al primer intento: que
+  **bajo CSR la F empírica sigue a la teórica** —promediada sobre 20 réplicas con λ = 400, el error
+  del estimador es 0,002; la `Fest` averiada erraba por más de 0,5— y que **G y F separan los
+  regímenes en direcciones opuestas**, que es la afirmación del módulo convertida en comprobación.
+
+Una saltada declarada es honesta; **una saltada que nadie revisita es donde un error vive años.**
+Las que quedan en el capítulo 4 son ocho, y conviene releerlas con esa luz.
+
+#### A.30.3 · «Bajo Poisson valdría 1», sobre unas celdas donde vale 15,23
+
+El módulo 2 publicaba: *«El índice de dispersión vale 25,90966. Bajo Poisson valdría 1»*. La
+segunda frase es la de los libros y **aquí era falsa**. El índice vale 1 bajo Poisson **solo si las
+celdas miden lo mismo**, y la rejilla 10×10 se recorta contra una ventana de 22 piezas y 5
+agujeros: las 65 celdas vivas tienen esperanzas de **0,10 a 53,4**.
+
+| | valor |
+|---|---|
+| Índice observado | **25,910** |
+| Lo que el capítulo decía que valdría bajo Poisson | **1** |
+| Lo que **vale**, con estas celdas | **15,230** · IC 95 % [13,9 – 16,5] sobre 4 000 réplicas |
+| Con celdas de igual área | **1,000** ✅ |
+
+El exceso real es de **×1,7**, no de ×25,9. Y la fórmula es exacta y se deriva en dos líneas: con
+Nⱼ ~ Poisson(Eⱼ) independientes, E[media] = Ē y E[var] = Ē + S²(E), luego el cociente esperado es
+**1 + S²(E)/Ē**. El exceso sobre 1 **no lo pone el patrón: lo pone la rejilla**, y eso es material
+del capítulo, no una nota al pie — enlaza con el MAUP del módulo 6 por su cara aritmética.
+
+Lo que lo agravaba: el capítulo ponía esa cifra **al lado del χ²**, que sí está bien calculado
+—usa Eⱼ = λ|Aⱼ| y por tanto corrige las áreas—, como si las dos dijeran lo mismo. Ahora se publica
+`dispersion_nula` con su fórmula, anclada contra simulación y contra el caso de celdas iguales
+(donde debe dar 1 exacto), y el texto dice cuál de las dos cifras es la que se sostiene y por qué.
+
+*(El capítulo 5 hace la misma comparación y **está bien**: sus intervalos son de igual anchura y
+además publica la dispersión del Poisson medida, no supuesta.)*
+
+#### A.30.4 · La nula del test de cuadrantes no es «λ constante», y el quiz premiaba esa lectura
+
+El módulo 6 decía *«9 de los 10 tamaños rechazan la hipótesis de intensidad constante»*. La nula
+del test es el **proceso de Poisson homogéneo**: λ constante **más** independencia. Un rechazo es
+compatible con inhomogeneidad, con interacción a λ constante, o con las dos.
+
+Demostrado, no argumentado: un proceso de Thomas con **λ constante por construcción** es rechazado
+por el χ² de cuadrantes 5×5 en **499 de 500 realizaciones**.
+
+Y la contradicción estaba **dentro de una sola pregunta**: «La intensidad no es constante en la
+ventana» iba marcada como correcta, mientras «Los colegios se atraen entre sí» iba como incorrecta
+con la retro *«el test de cuadrantes no puede decir eso»*. La retro del distractor es cierta y
+**por eso mismo condenaba a la clave**. Ahora el módulo 5 nombra la nula en un párrafo propio, el 6
+la usa bien, y la pregunta lleva **dos distractores simétricos** que son falsos por la misma razón
+—lo que convierte el defecto en el material que al capítulo le faltaba.
+
+*Detalle con gracia:* `genera_cap4.R` declaraba `SEM_THOMAS <- 4029L`, «el proceso de conglomerado
+del módulo 3». La semilla viajaba al navegador dentro del JSON, **el auditor comprobaba que fuera
+distinta de las otras tres**, y no se usaba con `set.seed()` en ningún sitio. El proceso que habría
+enseñado esta distinción estaba declarado y sin construir.
+
+#### A.30.5 · El signo que se prometía y no se imprimía
+
+El módulo 8 publicaba *«—0,08463 en las células, 0,01473 en los pinos y 0,05581 en las secuoyas—
+**con el signo de cada uno marcando su régimen**»*. Los tres valores eran **máx |L − r|**, sin
+signo. Con la regla del párrafo anterior —por encima hay agregación— el estudiante leía que las
+**células, que son regulares, están más agregadas que las secuoyas**: la lectura exactamente
+invertida, provocada por la frase que prometía el signo.
+
+| patrón | publicado | valor real | régimen |
+|---|---|---|---|
+| `cells` | 0,08463 | **−0,08463** | regular |
+| `japanesepines` | 0,01473 | **−0,01473** | aleatorio |
+| `redwood` | 0,05581 | **+0,05581** | agregado |
+
+Se publica `desvio_con_signo` con un ancla que exige que el signo coincida con el régimen
+declarado, y la prosa lo escribe con el menos tipográfico. De paso el módulo gana la lección que
+tenía escondida: **la magnitud dice cuánto se separa un patrón del azar y solo el signo dice hacia
+dónde** — y la mayor magnitud de las tres es la del patrón regular.
+
+#### A.30.6 · Las preguntas: el montón, otra vez, y un termómetro que se satura
+
+**La retro de una pregunta era falsa contra el propio precálculo.** Decía *«el intervalo central
+del 95 % de R bajo CSR va de 0,913 a 1,205, y 0,90 cae dentro»*, imprimiendo en la misma frase los
+dos números que la desmienten: `q025 = 0,913064`. Y solo **33 de 2 000** realizaciones de azar puro
+dieron R ≤ 0,90, así que «con frecuencia» tampoco.
+
+**Una pregunta era huérfana de su bloque, y el bloque lo prometía por escrito.** El texto que abre
+las cuatro trampas del módulo 6 dice *«ninguna requiere lo que viene después»*, y la cuarta pedía
+el p mínimo de una envolvente con 999 simulaciones: contenido del módulo 11. Se sustituyó por una
+del módulo 6, que no tenía ninguna.
+
+**Y el montón.** El §12.6 del preparcial dejó dicho que las autoevaluaciones se aprobaban marcando
+siempre la primera, y `baraja_opciones.py` lo arregló. La auditoría del capítulo 5 dejó anotada
+**la otra mitad, sin pagar**: «barajar no arregla eso; lo arregla igualar el cuerpo de los
+distractores». Aquí se midió con un **agente ciego** —sin acceso al capítulo y con prohibición
+explícita de usar estadística— y el resultado fue **10 de 10 en las preguntas con opciones**, más
+una numérica deducida por filtración. La clave era **la opción más larga en 9 de las 10**.
+
+Lo que se hizo, y lo que se aprendió, que no es lo mismo:
+
+| medida | antes | después |
+|---|---|---|
+| Clave = la opción más larga | **10 de 10** | **4 de 11** |
+| Rango de longitud dentro de una pregunta | 20 a 64 caracteres | **8,5 de media** |
+| Arranques gemelos entre dos opciones | 3 | **0** |
+| Absolutos («siempre», «solo», «exactamente») en un distractor y no en la clave | 2 | **0** |
+| **Aciertos del agente ciego** | **11 de 11** | **10 de 11** |
+
+**La última fila es el hallazgo.** Igualar longitudes movió todas las métricas objetivas y **no
+movió la nota del ciego**: en la segunda pasada cambió de pista y usó los absolutos, los arranques
+gemelos y las mayúsculas del enunciado; rotas también esas, en la tercera declaró que **conoce la
+materia en 8 de las 12 preguntas** y que reconstruyó la vía superficial *después* de saber la
+respuesta.
+
+De ahí salen dos cosas para el resto del material:
+
+1. **El sesgo de longitud era un síntoma, no la enfermedad.** La enfermedad es que **la clave se
+   escribe con cuidado y los distractores deprisa**, y eso no se arregla contando caracteres: se
+   arregla escribiendo cada distractor como el error real y nombrable de alguien que estudió a
+   medias. Es trabajo por pregunta y hay que presupuestarlo.
+2. **El agente ciego vale para descubrir, no para regresionar.** Un agente que sabe estadística
+   encuentra *alguna* justificación superficial para la respuesta que ya conoce, así que su nota
+   tiene suelo. Lo que sí es incontaminable son las métricas mecánicas de la tabla, y son las que
+   conviene automatizar. **Queda pendiente**: `baraja_opciones.py` es el sitio natural para
+   medirlas —longitudes, arranques gemelos, absolutos repartidos— y hoy solo mira posiciones.
+
+#### A.30.7 · Los tres párrafos que mandaban mover mandos que no existen
+
+Es la familia del A.23.1 y del H3 del capítulo 5, y aquí aparecía **tres veces en un capítulo**:
+
+- **`cap4-cuadrantes`**: el párrafo decía *«el simulador reparte la rejilla que elijas»* y el pie
+  del mismo componente, dos líneas más abajo, *«la rejilla es fija»*. Y lo que más dice: **el
+  docstring de `sim()` documenta que la revisión del capítulo 5 ya cazó este defecto** y lo arregló
+  —le quitó el contenedor de mandos vacío, el icono de deslizadores y el pie que decía «elige el
+  tamaño»—. **El arreglo tocó el componente y se detuvo ahí.** El párrafo que lo motiva se quedó.
+- **`cap4-regimenes`**: tres promesas seguidas de un generador que no existe —*«genera patrones de
+  los tres tipos con la intensidad que elijas»*, *«elige el régimen y el número de puntos»*, *«si
+  has movido el control unas cuantas veces habrás visto que la R no se queda quieta»*— sobre un
+  selector de cinco conjuntos precalculados con **una sola realización por patrón y una R fija**.
+  El puente 3→4 descansaba en una experiencia que el lector no podía tener.
+- **`cap4-poisson`**: *«cambia λ»* sin control de λ.
+
+**La lección de mecanización:** un arreglo de esta familia no está hecho hasta que se revisa **el
+párrafo que motiva el componente, el pie y el párrafo de salida**, no solo el componente. Y es
+automatizable: los mandos se declaran en `botones4`/`sim(mandos=)` y los verbos de instrucción
+—«cambia», «mueve», «elige», «sube»— están en la prosa contigua.
+
+#### A.30.8 · Lo que solo se vio abriendo el capítulo
+
+Con el navegador, y forzando el tamaño del lienzo porque **con el panel oculto Chromium suspende
+`requestAnimationFrame` y todo `<canvas>` fuera de la ventana devuelve cero píxeles de tinta** —un
+censo ingenuo habría declarado en blanco a dos simuladores que funcionan—:
+
+- **Dos ejes numeraban el índice de la barra, no la magnitud que su rótulo anunciaba.**
+  `cap4-poisson` rotulaba «puntos en la realización» con etiquetas 41…95 y dibujaba ticks
+  **0, 2, 4 … 54**; `cap4-barrido` rotulaba «lado de la rejilla (nx)» con etiquetas 2…20 y dibujaba
+  **0 … 9**. Causa común: el gráfico se construye con `data: { labels: [], datasets: [] }` y la
+  escala de categorías se queda en modo índice aunque después se le asignen las etiquetas. Lo peor
+  estaba en la vista (2) de `cap4-poisson`, cuya lección entera es *«R se mueve alrededor de 1»*:
+  **el 1 no aparecía en ninguna parte del eje**. Se arregla declarando `type: 'category'` y
+  forzando el rótulo con `getLabelForValue`.
+- **Un simulador enseñaba siempre la cifra de otro patrón.** `cap4-envolvente` leía
+  `D4.m11.tasa_salida_bogota` cableada dentro de `pinta()`: con «Pinos japoneses» seleccionado, la
+  primera fila de la tabla decía «Pinos japoneses» y la última el 52,3 % de Bogotá. Ahora la tasa
+  viaja **dentro de cada patrón** (51,05 · 52,15 · 52,25 %).
+- **Una lectura llamaba «regular» al patrón aleatorio del capítulo.** `cap4-kl` decidía el régimen
+  con `l_menos_r[50] > 0 ? 'agregado' : 'regular'`, sin rama para el azar, así que los pinos
+  japoneses salían regulares y **ningún patrón podía salir compatible con CSR** — el veredicto que
+  el capítulo entero enseña a emitir. Ahora dice hacia dónde se va la curva, con su signo, y remite
+  a la envolvente del módulo 11 para el veredicto.
+- **Elegir patrón borraba la vista seleccionada.** `botones4` limpiaba `.active` de todos los
+  `.sim-btn` del contenedor, y `cap4-kl` mete dos grupos en el mismo. El grupo pasa a ser parte del
+  botón, y de paso se añade `aria-pressed`.
+- **Una barra con altura cero, y era la que el párrafo comentaba.** En el eje logarítmico de
+  `cap4-barrido` el mínimo automático coincide con el dato menor, así que la barra de **nx = 2** —la
+  única que no rechaza, y la que el cierre discute— no se veía. Y el rojo/gris codificaba «rechaza
+  al 5 %» sin leyenda, mientras la leyenda mostraba un único recuadro **gris** rotulado «χ²».
+- **Los cuatro mandos de `cap4-nsim` no tocaban el lienzo**, y el pie ordenaba moverlos. El barrido
+  entero ya está en el eje x: ahora el mando **resalta** su columna, que es lo que un mando puede
+  hacer sobre una figura que ya lo enseña todo.
+
+Lo que salió bien y conviene no tocar: **los 17 lienzos dibujan**, la consola está **limpia en los
+12 módulos**, en móvil (375×812) **no hay desbordamiento horizontal en ninguno**, y el par de
+mapas de la ceguera del módulo 5 y `cap4-bordes` son las dos mejores piezas del capítulo.
+
+#### A.30.9 · Dos cosas que la revisión dio por rotas y no lo estaban
+
+Se anotan porque el coste de un falso positivo en un informe es que el siguiente se lea con menos
+confianza.
+
+- **Los `aria-label` de los geomapas parecían copia del título.** Lo son en el HTML estático, pero
+  el motor **reescribe el `innerHTML` entero al arrancar** y pone la etiqueta redactada de
+  `spec.etiqueta` («Patrón agregado: 62 plántulas de secuoya, en grumos alrededor de los árboles
+  madre»). Leer el artefacto no bastaba; había que leer el motor. *(Lo que sí queda: los **10
+  lienzos de simulador** llevan `aria-label` idéntico a su `<h4>`, y el mecanismo bueno ya existe
+  en el archivo sin usarse.)*
+- **Los mapas del módulo 1 parecían no dibujar su ventana.** Sí la dibujan: no en una capa `geom`
+  sino en `lineas` —15 polilíneas y 875 vértices para el perímetro urbano—. *(Lo que sí queda:
+  `cells`, `japanesepines` y `redwood` se dibujan **sin ventana ninguna**, y son precisamente los
+  tres que introducen el concepto de régimen.)*
+
+Y una tercera, más barata: un `<=` sin escapar dentro de un `<th>` de las soluciones **se renderiza
+bien**, porque el tokenizador de HTML5 no abre etiqueta con `<` seguido de un carácter que no es
+letra. Es suerte, no diseño, y va escrito como tal.
+
+#### A.30.10 · La errata tipográfica que se propagó a dos capítulos más
+
+`ent()` prometía en su docstring «entero con espacio fino U+202F» y escribía un **U+0020
+corriente**, así que «2 209» podía partirse de renglón como «2» y «209». Medido en lo publicado:
+
+| documento | U+202F antes | después |
+|---|---:|---:|
+| capítulo 1 | 38 | 38 |
+| capítulo 2 | 45 | 45 |
+| capítulo 3 | 33 | 33 |
+| **capítulo 4** | **1** | **9** |
+| capítulo 5 | 0 | 0 |
+| capítulo 6 | 0 | 0 |
+
+El único del capítulo 4 venía del ayudante de JavaScript, no de `ent()`. **La errata entró con el
+capítulo 4 y los capítulos 5 y 6 la heredaron**: sus `ensambla_cap*.py` siguen escribiendo el
+espacio partible, y arreglarlo son dos líneas que **no mueven ninguna cifra**. Queda pendiente y se
+declara aquí para que no se pierda.
+
+#### A.30.11 · El estado en que queda, y lo que sigue abierto
+
+```
+genera_cap4.R ........... 42 anclas (antes 30)
+audita_cap4.py .......... 449 comprobaciones · 0 fallos · 8 saltadas (antes 425 y 7)
+prueba_auditor_cap4.py .. 100 de 100 defectos inyectados cazados
+audita_texto_cap4.py .... 175 / 0      prueba_texto.py ......... verde
+verifica_bloques.py ..... 81 / 81      campos_vivos · sin_aritmetica · cuenta_sitio ... verde
+navegador ............... consola limpia en los 12 módulos · 17 lienzos con tinta · 0 «undefined»
+```
+
+Tres campos que se calculaban y nadie pintaba pasaron a ser material: la **R de Donnelly** —que
+convierte el «temblor» del módulo 4 en el sesgo del estimador que es, con los pinos japoneses
+pasando de 1,06400 a 1,00751—, la **tasa de salida por patrón**, y un campo nuevo,
+`r_vuelve_a_1`, que hubo que separar de `r_ultimo_cruce` porque **no medían lo mismo**: sobre
+`redwood` el segundo cae en el último nodo del barrido, pero porque a r grande g baja **por debajo**
+de 1, no porque el exceso siga ahí.
+
+**Abierto, por orden de valor:**
+
+1. **La craft de los distractores** (A.30.6), que es presupuesto de escritura y decisión de Javier.
+2. **`ent()` en los capítulos 5 y 6** (A.30.10): dos líneas, ninguna cifra se mueve.
+3. **Las métricas del montón en `baraja_opciones.py`**: longitudes, arranques gemelos, absolutos.
+4. **`campos_vivos.py` mira `courseData` y no `DATOS_CAP4`**, que es donde vivían los campos
+   muertos. Bajo esa cobertura viajaba al navegador una R de Donnelly que el ejercicio 5 declara
+   inexistente para la ventana de Bogotá, un `bei` de 3 604 puntos que nadie dibuja —y que es justo
+   el testigo de ventana rectangular que le falta a una afirmación sin cifra del módulo 10— y la
+   semilla del Thomas que no siembra nada.
+5. **El bloque de código cierra 9 de los 12 módulos sin párrafo de salida** (regla 2 del §9.1). No
+   es la convención de la casa: los capítulos 2, 5 y 6 la cumplen **12 de 12**. El capítulo 4 es el
+   peor de los seis.
+6. **La frontera con `genera_soluciones.R`**, que mete `chi²` por `χ²`, `10x10` por `10×10`,
+   millares sin separador y **9 y 10 decimales** en unas tablas de solución que el estudiante lee,
+   en un capítulo cuya regla son cinco.
+
+**Y el aviso que vale para el capítulo 7 en adelante:** los defectos de esta revisión no se
+encontraron leyendo cifras —el arnés ya las había leído todas y estaban bien— sino **leyendo el
+capítulo como lo lee un estudiante y abriéndolo en un navegador**. El §9.1 dijo que el ritmo no lo
+caza ninguna comprobación automática; esto añade que tampoco lo cazan **el valor de referencia de
+una cifra correcta, el signo que se promete y no se imprime, ni el mando que un párrafo manda mover
+y no existe**.
