@@ -82,6 +82,15 @@ el motor de quiz en modo examen · ítems de mapa y de simulador · autoguardado
 navegador con reanudación · exportación de respuestas a un archivo · calificador con
 reportes · auditor y arnés de inyección · un ítem abierto que se califica a mano.
 
+> **Aviso cruzado añadido el 2026-09-09 · el Taller 2 publica 36 preguntas del capítulo 4.**
+> `PLAN_Taller_2_Cap_4.md` construye un taller del **capítulo 4** que se reparte el 21 de
+> septiembre y se sustenta el 8 de octubre, con un **banco de 36 preguntas y 12 afirmaciones
+> falsas publicados dentro del enunciado**. El alcance de este parcial son los capítulos 4 y 5,
+> así que **hay solapamiento de temario garantizado**. Una pregunta que aparezca en los dos
+> documentos es una respuesta que el estudiante ya tiene. No es un problema si se decide a
+> propósito —reutilizarlas es legítimo si se sabe que están publicadas—, y sí lo es si nadie
+> mira. Se comprueba en **T1.1**.
+
 **No entra, y se dice ahora para no discutirlo en la semana 10:** servidor, login,
 monitoreo en vivo y cronómetro de servidor (H10) · ejecución de código del estudiante ·
 preguntas de capítulos del Corte I —el parcial 2 es del Corte II— · versión móvil ·
@@ -382,6 +391,9 @@ hay que partirla.
       examen perfecto y uno en blanco (H6).
 - [ ] Al menos un ítem de **mapa** y uno de **simulador**, o G3 queda cerrada y se va por A (H7).
 - [ ] Un ítem abierto para lo que no se autocalifica, con su rúbrica (H6 de LPF, §H5).
+- [ ] **Cotejado contra el banco publicado del Taller 2** (36 preguntas y 12 afirmaciones falsas
+      del capítulo 4, en `Htmls_Espacial/taller-2-cap-4.html`): ninguna coincidencia **por
+      accidente**. Las que se reutilicen, declaradas como reutilizadas. Ver el aviso del §0.4.
 
 **Verificación:** leerlo en voz alta contra el cronograma del §5 del plan del material:
 los módulos que cita tienen que ser de los capítulos 4 y 5 y de ningún otro.
