@@ -1,6 +1,18 @@
 # Plan de implementación: Material de estudio — Estadística Espacial 2026-II
 
-**Estado:** 🟢 **EL CAPÍTULO 4 ESTÁ CERRADO (T3.1 → T3.3, del 2026-08-22 al 2026-08-24).**
+**Estado:** 🟡 **EL CAPÍTULO 7 ARRANCÓ EL 2026-09-08 POR DONDE ARRANCARON EL 4, EL 5 Y EL 6: MIDIENDO.**
+Se cronometraron las operaciones de los doce módulos y se pesaron los cinco tableros candidatos, y
+por cuarta vez el cronómetro corrige al plan: **todo `spdep` es instantáneo, incluso lo local sobre
+1 121 municipios**, y lo caro está donde nadie miraba —**simplificar la geometría municipal cuesta
+125 s por llamada** y el 6 lo paga entero en cada regeneración—. El riesgo del módulo 10 sí es el
+riesgo, pero por una razón que el plan no nombraba: **con 999 permutaciones Bonferroni es
+inalcanzable sobre 1 121 unidades** —el p por rangos no baja de 0,001 y el umbral es 4,5·10⁻⁵—,
+y `spdep` devuelve **tres p distintos por unidad** que dan 228, 325 y 224 significativos sobre el
+mismo mapa. Y **`oldcol` y el `columbus.gpkg` traen los 49 barrios en órdenes distintos**: la GAL
+de Anselin solo reproduce sus cifras sobre el suyo. Ver **A.28**. **Las cuatro decisiones de Javier
+están tomadas y escritas allí.** Los seis commits del capítulo 6 **se publicaron el 2026-09-08**.
+
+🟢 **EL CAPÍTULO 4 ESTÁ CERRADO (T3.1 → T3.3, del 2026-08-22 al 2026-08-24).**
 `Htmls_Espacial/capitulo-4-patrones-puntuales.html`, **547 KB**: 12 módulos, 10 simuladores, 7 mapas,
 12 preguntas y 5 ejercicios —la desviación declarada, por las dos semanas—, **30 anclas** que paran
 el precálculo, reproducible byte a byte, una librería nueva (`puntual.R`) y **11 pares de bloques
@@ -232,7 +244,8 @@ semestre 7, 2 créditos, 4 h/semana, 63 h presenciales + 32 h independientes.
 
 *(escrito el 2026-08-30, con el molde del §0 del plan del preparcial, que existe por lo mismo.
 **Actualizado el 2026-09-04 al cerrar T4.3**: el capítulo 6 está cerrado, la Fase 4 va por la mitad,
-y lo que sigue es **T4.4–T4.6, el capítulo 7**)*
+y lo que sigue es **T4.4–T4.6, el capítulo 7**. **Retocado el 2026-09-08 al arrancar T4.4**: los seis
+commits están publicados, el cronómetro del 7 está en A.28 y sus cuatro decisiones, tomadas)*
 
 ### 0.1 · Cómo arrancar la conversación nueva
 
@@ -255,8 +268,10 @@ forma (§0.5). La segunda no es ceremonia: en el capítulo 6 el cronómetro camb
 
 ### 0.2 · Dónde vive el trabajo
 
-Rama **`main`**, **árbol de trabajo limpio**. `origin/main` está en `8c3df3a`, así que **el capítulo
-6 entero está sin publicar**: cinco commits que existen solo en este disco.
+Rama **`main`**, **árbol de trabajo limpio**. ✅ **Publicado el 2026-09-08**: `origin/main` está en
+`b7a04dc`, la rama va a la par y el capítulo 6 está delante de los estudiantes. Eran **seis** commits
+y no cinco —el sexto era esta misma actualización del §0, que se escribió antes de contarse—. Lo que
+entró, para el registro:
 
 | Commit | Qué entró |
 |---|---|
@@ -265,6 +280,7 @@ Rama **`main`**, **árbol de trabajo limpio**. `origin/main` está en `8c3df3a`,
 | `7842dc0` | **T4.2** · `ensambla_cap6.py`: 12 módulos, dos tableros, 108 de 108 cifras verificadas ejecutando el código |
 | `14018e7` | El subtítulo de la barra lateral iba en inglés, que es lo único que se ve en el índice |
 | `7901bba` | **T4.3** · el capítulo cerrado, `audita_texto_cap6.py` en 128/0 y el arnés de prosa en 218/218 |
+| `b7a04dc` | El §0 al día tras T4.3 |
 
 **El `push` no se hace sin decirlo.** Es la respuesta por defecto que quedó escrita en la revisión
 del capítulo 5 y sigue en pie, porque publicar aquí no es guardar: **el sitio se sirve de `main`**
@@ -293,7 +309,10 @@ están fusionadas en `main` y se pueden borrar cuando estorben.
 | **T4.1b** · auditor y arnés | ✅ hecha. **218/0/2** y **88 inyecciones, 88 cazadas, 76 de 76 tipos** |
 | **T4.2** · `ensambla_cap6.py` | ✅ hecha. **12 módulos**, 6 simuladores, 2 mapas, 13 preguntas, 5 ejercicios y **108/108 cifras verificadas ejecutando el código** |
 | **T4.3** · verificación y cierre | ✅ hecha. `audita_texto_cap6.py` **128/0**, **27 inyecciones y 27 cazadas**, arnés entero **218/218**, los doce módulos leídos y la portada al día |
-| **T4.4–T4.6** · el capítulo 7 | ⬜ **lo siguiente**. Ver §0.5 |
+| El **cronómetro del capítulo 7** y sus **cuatro decisiones** | ✅ medido y tomadas el 2026-09-08. Ver **A.28** |
+| **T4.4** · `genera_cap7.R` | ✅ hecha el 2026-09-08. **13 anclas**, reproducible byte a byte, 5 ejercicios sobre `nc`, 7 salidas, y la capa categórica del `.geomapa` en `geo.R`. Ver **A.29** |
+| **T4.4b** · auditor y arnés | ✅ hecha el 2026-09-08. `audita_cap7.py` **576/0/4** con `esda`; `prueba_auditor_cap7.py` **213 inyecciones, 213 cazadas, 231 de 231 tipos** y 53 inatacables declarados. Ver **A.29.5** |
+| **T4.5–T4.6** · ensamblado, verificación y cierre | ⬜ **lo siguiente**. Ver §0.5 |
 
 **Lo publicado —seis capítulos—**, contado por `cuenta_sitio.py` y no recordado: **72 módulos, 57
 simuladores, 44 geomapas, 73 preguntas, 28 ejercicios guiados y 306 cifras `#>`**, con los 8
@@ -308,19 +327,25 @@ Lo primero, y lo único que hay que recordar antes de dar por cerrado un capítu
 precalculo/audita_todo.sh --rapido      # el arnés entero, y dice ARNÉS COMPLETO EN VERDE
 ```
 
-La cadena de un capítulo, en orden —aquí la del 6, que es el molde para el 7—:
+La cadena de un capítulo, en orden —aquí la del 7, hasta donde está hecha; lo que falta lleva
+el nombre que tendrá—:
 
 ```
-precalculo/rscript.sh precalculo/genera_cap6.R          # 6 anclas · cachea poly2nb (42 s)
-precalculo/rscript.sh precalculo/genera_soluciones.R 6  # los 5 ejercicios
-<geo_env>/python precalculo/audita_cap6.py             # 218/0/2 · 2 s con su cache, 9 sin ella
-python3 precalculo/prueba_auditor_cap6.py              # 88/88 · 76/76 tipos · ~2 min
-python3 precalculo/ensambla_cap6.py                    # 12/12 módulos, devuelve 0
-python3 precalculo/verifica_bloques.py --html Htmls_Espacial/capitulo-6-pesos-espaciales.html
-<geo_env>/python precalculo/audita_texto_cap6.py       # 128/0
-python3 precalculo/prueba_texto.py                     # 218/218 sobre los siete sujetos
+precalculo/rscript.sh precalculo/genera_cap7.R          # 13 anclas · 39 s con la cache de la simplificación, 165 sin ella
+precalculo/rscript.sh precalculo/genera_soluciones.R 7  # los 5 ejercicios, sobre nc
+precalculo/prueba_reproducible.sh precalculo/genera_cap7.R cap7_datos.json cap7_mapas.json
+<geo_env>/python precalculo/audita_cap7.py             # 576/0/4 · 10 s con sus dos caches
+python3 precalculo/prueba_auditor_cap7.py              # 124 inyecciones · ~25 min
+python3 precalculo/ensambla_cap7.py                    # T4.5: no existe todavía
+python3 precalculo/verifica_bloques.py --html Htmls_Espacial/capitulo-7-autocorrelacion.html
+<geo_env>/python precalculo/audita_texto_cap7.py       # T4.6: no existe todavía
+python3 precalculo/prueba_texto.py
 python3 precalculo/cuenta_sitio.py                     # los totales, contados
 ```
+
+**Las dos caches del 7 llevan llave** —tamaño y fecha del `.gpkg`—: `cap7_mun_simplificado.rds`
+(la simplificación, 125 s) y `audita_cap7_local.json` (los locales de `esda`, 8 s). Si el dato
+cambia, se rehacen solas.
 
 `<geo_env>` sale de `precalculo/versiones_py.json`, clave `ejecutable`
 (`/opt/homebrew/Caskroom/mambaforge/base/envs/geo_env/bin/python`). **Nunca `Rscript` a pelo:** el
@@ -349,10 +374,32 @@ inyecciones, 27 cazadas**, y el arnés de prosa entero en **218/218** sobre los 
 Verificado en el navegador: consola limpia en los doce módulos, 8 lienzos con tinta y con
 `aria-label`, y sin desbordamiento a 1 280, 375 ni **318 px**.
 
-**Lo que sigue es T4.4–T4.6: el capítulo 7**, autocorrelación espacial global y local. Su temario,
-sus 11 simuladores y sus datos están en el **§6**; su riesgo declarado es el **módulo 10**, la
-corrección de multiplicidad, que se implementa contra `spdep::localmoran_perm` con
-`p.adjust.method` y se contrasta con las cifras de GeoDa documentadas en Anselin & Rey.
+**El capítulo 7 está precalculado y auditado (T4.4 y T4.4b, 2026-09-08); lo que sigue es T4.5,
+el ensamblado.** Su temario, sus 11 simuladores y sus datos están en el **§6**; el cronómetro y
+las cuatro decisiones en **A.28**, y lo que el precálculo y el auditor destaparon en **A.29**.
+Lo que T4.5 hereda ya decidido:
+
+1. **El `.geomapa` estrena la CAPA CATEGÓRICA de polígonos, y el lado del navegador está por
+   escribir.** `geo.R` ya la publica —`tipo: "categoria"`, `valor` con códigos 1..K o `null`,
+   `niveles`, `colores`, `tam`, `n_sin_dato`— y `audita_cap7.py` la valida; la plantilla tiene que
+   pintarla con los colores que vienen del dato y una leyenda de categorías, no de intervalos. Toca
+   la plantilla como el conmutador de daltonismo del 3: **regenerar y verificar los seis
+   capítulos sin regresión** antes de cerrar.
+2. **Los mapas y sus pesos:** `cap7-columbus` (17 KB, cinco capas), `cap7-w` (26 KB, once
+   vecindades con la GAL la primera), `cap7-municipios` (**147 KB compactos**, cinco capas, y **el
+   módulo 9 lo declara** como el 5 declaró su ráster), y las dos rejillas de Getis-Ord (1,4 KB cada
+   una). `cap7_mapas.json` pesa 184 KB.
+3. **Cada simulador tiene ya su dato:** las 999 réplicas del histograma del módulo 3, la rejilla de
+   potencia (4 n × 10 ρ), los 49 puntos con POLYID del diagrama clicable, las curvas de los dos
+   picos del módulo 5, las once W del 7, las tres capas LISA conmutables del 10 y el cruce LISA × Gi\*
+   del 11. **El navegador no calcula ninguna cifra que el texto cite** (D10).
+4. **El p del capítulo es el plegado por rangos con 24 999 réplicas y `no_repeat_in_row = TRUE`**,
+   y la prosa tiene que decir las dos cosas: que es el convenio de GeoDa y de `esda`, y que el valor
+   por defecto de `spdep` muestrea con reemplazo y da p mayores (A.29.1).
+5. **Lo que el §6 decía y no es así**, para que la prosa no lo repita: `localmoran_perm` no tiene
+   `p.adjust.method` —la corrección va por `hotspot()` o `p.adjust()`—, su columna «analítica» no
+   lo es, y las cifras de GeoDa de Anselin & Rey no están a mano: el checkpoint 4 se ancla a
+   Anselin (1995), a Getis y Ord (1996) vía `spdep` y a `esda`.
 
 **Tres cosas que el capítulo 7 hereda del 6, y conviene decidirlas con el cronómetro delante:**
 
@@ -4031,3 +4078,274 @@ El índice tiene decenas de miles de entradas y un entero corto cae dentro por a
 debilidad que `sin_aritmetica.py` documenta, aquí con sujeto y con la frontera medida. Lo que sí
 los protege es `audita_cap6.py`, que los recalcula uno a uno con libpysal. Las inyecciones del
 arnés lo dicen en su nombre en vez de disimularlo con una cifra grotesca.
+
+---
+
+### A.28 · El cronómetro del capítulo 7: lo caro no es `spdep`, y Bonferroni no se puede alcanzar (2026-09-08)
+
+Mismo método que A.17, A.21 y A.25, y el mismo sitio: **la medición vive en el scratchpad y aquí
+viaja la tabla y la decisión, no el guion**. Dos guiones, `cronometra_cap7.R` y `cronometra_cap7b.R`,
+sobre los cinco tableros que el §6 nombra —Columbus, `nc`, Auckland, la rejilla de Getis-Ord y los
+municipios— y con todas las operaciones de los doce módulos. Y por cuarta vez seguida, **el riesgo
+escrito no es exactamente el riesgo**: el módulo 10 sí es el difícil, pero por una razón que el plan
+no nombraba.
+
+#### A.28.1 · Todo `spdep` es instantáneo; lo caro es simplificar la geometría
+
+| Operación | Columbus (49) | Municipios (1 121 con dato) |
+|---|---:|---:|
+| `moran.test` (normalidad o aleatorización) | 0,00 s | 0,01 s |
+| `moran.mc` 999 · 9 999 · 99 999 réplicas | 0,02 · 0,19 · 1,8 s | 0,12 · 1,2 · **12,5 s** |
+| `geary.mc` 9 999 | 0,49 s | 1,7 s |
+| `nblag` + `sp.correlogram` (orden 6 · 8) | 0,02 s | 1,2 + 2,1 s |
+| `joincount.mc` 9 999 | 1,2 s | 2,7 s |
+| rango real de I (eigen denso) | 0,00 s | 0,30 s |
+| `localmoran` analítico | 0,00 s | 0,00 s |
+| `localmoran_perm` 999 · 9 999 · 24 999 | 0,01 · 0,10 · — | 0,35 · 3,4 · **9,2 s** |
+| `hotspot()` con FDR y Bonferroni | 0,00 s | 0,00 s |
+| `localG_perm` 9 999 (Gi\*) | 0,11 s | 3,8 s |
+| `localC_perm` 999 | 0,01 s | — |
+| Auckland (167) · `localmoran_perm` 9 999 | 0,38 s | |
+| Getis-Ord (256) · `localG_perm` 9 999 | 0,43 s | |
+| Potencia: 4 n × 10 ρ × 500 réplicas, vectorizada | **1,7 s en total** | |
+| Potencia: una celda con 500 `moran.test` | 1,9 s | |
+| **`geo_simplifica` sobre los 1 121 municipios** | | **125 s por llamada** |
+
+Dos cosas que la tabla dice:
+
+1. **El capítulo 7 no tiene problema de tiempo en `spdep`, ni siquiera en lo local.** 24 999
+   permutaciones del LISA municipal son 9 s, y `spdep` no guarda las réplicas —el objeto pesa lo
+   que la tabla de resultados—, así que tampoco hay problema de memoria. La rejilla de potencia
+   entera, vectorizada, cuesta menos que una sola celda hecha con `moran.test` en bucle.
+2. **Lo caro es lo que ningún cronómetro anterior midió: `geo_simplifica` sobre los municipios**,
+   125 s por llamada, y cuesta lo mismo con presupuesto alcanzable (13 000 vértices, 118 s) que
+   inalcanzable (12 000, 125 s): lo que se paga son las **catorce bisecciones de `ms_simplify`**,
+   no el suelo. `st_simplify` a 500 m tarda 0,3 s pero no conserva la topología. El capítulo 3 lo
+   cachea (`mun_simplificado_1122.rds`); **el 6 lo paga entero en cada regeneración** y nadie lo
+   vio porque `poly2nb` se llevaba la atención.
+
+#### A.28.2 · El peso, tablero por tablero
+
+Cada tablero con las cinco capas que el capítulo publica sobre la misma geometría: el dato, LISA
+sin corrección, LISA con Bonferroni, LISA con FDR y Gi\*.
+
+| Tablero | n | Geometría | Con las 5 capas |
+|---|---:|---:|---:|
+| **Columbus** | 49 | 11,7 KB | **12,9 KB** |
+| `nc` | 100 | 24,9 KB | 26,9 KB |
+| Auckland | 167 | 38,9 KB | 42,4 KB |
+| Departamentos | 33 | 56,8 KB | — |
+| **Rejilla de Getis-Ord** 16×16 | 256 | — | **1,2 KB** |
+| **Municipios** | 1 122 | 126,4 KB | **146,5 KB** |
+| Municipios con el grafo reina encima (`cap6-municipios`) | | | 165,3 KB |
+
+Y lo que no es mapa pesa poco: el diagrama de Moran municipal completo (z y Wz a cinco decimales)
+18,5 KB, 999 réplicas de I para un histograma 8,2 KB, y el LISA municipal por unidad —Iᵢ, p y
+cuadrante— 17,5 KB.
+
+#### A.28.3 · El módulo 10: con 999 permutaciones Bonferroni no existe, y hay tres p por unidad
+
+El p de permutación por rangos no puede bajar de **1/(nsim + 1)**. Bonferroni al 5 % sobre n
+unidades exige p < 0,05/n, así que hacen falta **al menos ⌈n/0,05⌉ − 1 réplicas** para que UNA
+unidad pueda sobrevivir: **979 en Columbus y 22 419 en los municipios**. Con las 999 por defecto,
+sobre 1 121 municipios Bonferroni no deja nada, y no porque no haya conglomerados: porque el
+procedimiento no puede verlos.
+
+Y `localmoran_perm` devuelve **tres p distintos por unidad**, y ninguno es el analítico —eso lo
+leí mal la primera vez y lo corrigió la ayuda de `spdep` al escribir el generador—: su columna
+`Pr(z != E(Ii))` es una **aproximación normal con la media y la desviación de las permutaciones**,
+`Pr(z != E(Ii)) Sim` es el **rango bilateral** y `Pr(folded) Sim` el **rango plegado**, el convenio
+de GeoDa y de `esda`. El analítico de verdad es el de `localmoran()`. Sobre la deserción municipal:
+
+| p usado, al 5 % | Sin corregir | Bonferroni | Holm | FDR |
+|---|---:|---:|---:|---:|
+| Rango plegado, 999 réplicas | 325 | **0** | 0 | 93 |
+| Rango plegado, 24 999 réplicas | 326 | **8** | 8 | 94 |
+| Rango bilateral, 999 | 228 | 0 | 0 | 49 |
+| Rango bilateral, 24 999 | 228 | 0 | 0 | 56 |
+| Normal con momentos permutados, 24 999 | 222 | 22 | 23 | 64 |
+| Analítico (`localmoran`) | 223 | 23 | 23 | 64 |
+
+Entre 999 y 24 999 réplicas **los cuadrantes no cambian en ninguna unidad**, pero el conjunto
+significativo al 5 % por rangos cambia en **19**. Y sobre Columbus, con 999 réplicas, Bonferroni
+no deja **ninguna** unidad: eso reventó la primera pesada, porque una capa con un solo valor no
+la clasifica `classInt`.
+
+Un detalle más que el §6 daba por hecho: **`localmoran_perm` no tiene `p.adjust.method`** en
+`spdep` 1.4.2. La corrección va por `hotspot(obj, Prname, cutoff, p.adjust = )` o por
+`p.adjust()` sobre la columna elegida.
+
+#### A.28.4 · Lo que ya es material, y lo que es obligación
+
+- **`oldcol` y el `columbus.gpkg` traen los 49 barrios en ÓRDENES DISTINTOS**, y cada lista de
+  vecinos va con el suyo: `COL.nb` con `COL.OLD` y `col.gal.nb` con el `.gpkg`. Mezclarlos da
+  I = 0,342 con la misma variable y la misma W. Reordenando el `.gpkg` por `POLYID` —es una
+  permutación exacta, y CRIME, HOVAL, INC y los centroides coinciden al bit— la GAL de Anselin
+  reproduce sus cifras: **I = 0,510951, E[I] = −0,020833, z = 5,6341 por aleatorización
+  (5,6754 por normalidad), c de Geary 0,529870 con z = 4,7605**, y la pendiente de Wz sobre z
+  es exactamente I. Anselin (1995) publica 0,511 y z = 5,63.
+- **La GAL no es la reina.** `COL.nb` tiene 116 parejas y la reina de `poly2nb` 118: una pareja
+  solo en la GAL y tres solo en la reina, en seis barrios. Esas tres esquinas mueven I de 0,511
+  a **0,500**. Es el módulo 7 en una línea, y sale del propio tablero.
+- **El rango real de I** no es [−1, 1]: [−0,705, 1,042] con la GAL, [−0,678, 1,033] con la reina,
+  [−0,869, 1,053] sobre los municipios. El módulo 2 lo tiene medido en vez de afirmado.
+- **Bajo las diez W del capítulo 6**, el I de CRIME va de 0,383 (el umbral a medias, p = 0,04) a
+  0,597 (un vecino), y solo esa definición queda al borde. Bajo seis W municipales, la deserción
+  va de 0,308 a 0,406 y todas dan p ≈ 0. **La sensibilidad es de magnitud, no siempre de
+  veredicto**, y así hay que enseñarla.
+- **La celda 120 de Getis-Ord** da G₃₀ = 1,2220 y G₃₀\* = 1,4508 por la ecuación 14.2, y 1,4479
+  con n − 1 en la varianza, que es como la ayuda de `spdep` dice que lo publican Getis y Ord (1996,
+  p. 267). Se ancla a esa cifra declarando la procedencia en dos pasos.
+- **Las islas municipales salen con Iᵢ = 0, p = NA y cuadrante «bajo-bajo»**: el rezago cero de
+  `zero.policy` las clasifica como si sus vecinos fueran promedio. Es el módulo 9 del 6
+  reapareciendo, y el mapa LISA las tiene que dibujar como «sin vecinos», no como conglomerado.
+- **El convenio `spdep` ↔ `esda` de A.11 se confirma sobre la deserción**: 0,38091 y 0,38159, con el
+  factor 1 121/1 119 exacto. Va a `discrepancias`, que el auditor ya sabe leer.
+- **El correlograma de Columbus exige `zero.policy` desde el orden 6**: a esa distancia el retículo
+  tiene seis subgrafos y unidades sin vecinos. Sobre 49 barrios, el orden 6 ya es el borde.
+- **El `.geomapa` no tiene capa categórica de polígonos.** `geo_poligonos` clasifica toda capa con
+  `classInt`, y un mapa LISA son cinco categorías fijas con leyenda propia; el de Gi\*, siete. Es
+  una extensión del motor —lado R en `geo.R`, lado navegador en la plantilla—, y toca la plantilla
+  como el conmutador de daltonismo del capítulo 3: exige la verificación sin regresión de los seis
+  capítulos publicados.
+- **No hay copia local de Anselin & Rey**, así que el checkpoint 4 no se puede cumplir al pie de la
+  letra. Lo que sí es reproducible: Anselin (1995) sobre Columbus, Getis y Ord (1996) sobre su
+  rejilla, y `esda` como recálculo independiente con el convenio de GeoDa.
+
+#### A.28.5 · Las cuatro decisiones, tomadas por Javier el 2026-09-08
+
+1. ✅ **Los tableros: Columbus, los municipios y la rejilla de Getis-Ord.** Igual que el 6: Columbus
+   como laboratorio (12,9 KB con sus cinco capas), los municipios como caso real (~150 KB,
+   declarados en su módulo, como el 5 declaró su ráster) y la rejilla 16×16 del artículo original
+   (1,2 KB) para el módulo 11. **Auckland y `nc` quedan fuera de los mapas**: sumarían 70 KB sin una
+   cifra anclada que aportar. `nc` sigue en los bloques de código como cruce con Python.
+2. ✅ **La GAL de Anselin (1988) es la W canónica de Columbus.** `spdep::oldcol` con los polígonos
+   del `.gpkg` reordenados por `POLYID`, en los módulos 2 a 5, porque es la W que valida las anclas.
+   Las diez W del capítulo 6 se reconstruyen sobre ese mismo orden y entran en el simulador del
+   módulo 7 con la GAL como undécima. **El checkpoint 4 se reescribe**: las anclas son Anselin
+   (1995), Getis y Ord (1996) vía `spdep`, y `esda` como recálculo con el convenio de GeoDa.
+3. ✅ **El p del capítulo es el de rangos, con 24 999 réplicas.** El convenio de GeoDa y de `esda`,
+   con réplicas suficientes para que Bonferroni sea alcanzable: 8 municipios sobreviven, 94 con
+   FDR, 326 sin corregir. Cuesta 9 s de precálculo. **Los otros dos p se publican en el módulo 10
+   como material**, con la tabla de recuentos de A.28.3: la corrección de multiplicidad empieza
+   por saber cuál p se está corrigiendo.
+4. ✅ **La cache de la simplificación vive solo en el 7.** Con llave de tamaño y fecha del `.gpkg`
+   más el presupuesto, como manda A.26.6. **El capítulo 6 se deja como está**: sigue pagando sus
+   125 s en cada regeneración, y queda anotado aquí en vez de tocar un capítulo cerrado y recién
+   publicado.
+
+**Lo que las cuatro deciden juntas:** el capítulo hereda del 6 sus dos tableros y su reparto —Columbus
+para lo que se ve, los municipios para lo que pasa de verdad— y añade lo que este capítulo tiene de
+propio: **un convenio explícito sobre qué p se corrige y con cuántas réplicas**, que es exactamente
+lo que el mapa LISA «por defecto» esconde.
+
+---
+
+### A.29 · Lo que destapó el precálculo del capítulo 7, y lo que le cazó su auditor (T4.4 y T4.4b, 2026-09-08)
+
+`genera_cap7.R` corre en 39 s con la cache de la simplificación —125 s sin ella—, comprueba **13
+anclas**, escribe 47,4 KB de datos, 184,4 KB de mapas y cinco CSV, y es **reproducible byte a
+byte**. `audita_cap7.py` recalcula con `esda` y con fórmulas escritas a mano: **576 comprobaciones,
+0 fallos, 4 saltadas declaradas**, en 9,7 s con sus dos caches. Pero lo que vale no es el verde
+final: es lo que hubo que aprender para que el verde significara algo. **Ocho convenios que
+separan a `spdep` de `esda`, y dos de ellos son hallazgos**: uno cambia el capítulo y el otro es
+un defecto de `esda`.
+
+#### A.29.1 · `spdep` permuta CON reemplazo por defecto, y GeoDa y `esda` sin él
+
+El auditor comparaba los p por rangos de `localmoran_perm` con los de `esda.Moran_Local` bajo la
+tolerancia de Monte Carlo, y **17 de los 49 barrios de Columbus quedaban fuera, todos en la misma
+dirección**: el p de `spdep` mayor. Con 99 999 permutaciones y otra semilla, igual. No era ruido.
+La causa está en un argumento que nadie mira: `no_repeat_in_row = FALSE`, el valor por defecto,
+**muestrea los vecinos de cada unidad con reemplazo**; GeoDa y `esda` permutan sin él. Con
+`no_repeat_in_row = TRUE` los p caen sobre los de `esda` —0,00488 frente a 0,00456, 0,00720 frente
+a 0,00716— y **los Iᵢ no cambian ni un bit**: solo el p. Es exactamente el convenio de GeoDa que la
+decisión 3 del A.28 adoptó, así que el generador lo fija en sus siete llamadas y lo declara en su
+cabecera. Un estudiante que reproduzca el capítulo con el valor por defecto de `spdep` verá p
+mayores y sabrá por qué.
+
+#### A.29.2 · La z de Gi* de `esda` con pesos por filas está mal, y se demuestra a mano
+
+Con `transform = "R"` y `star = True`, `esda.G_Local` 2.9.0 da para el barrio 9 de Columbus una
+z de **0,891**; `spdep::localG` da **2,521**. Las ecuaciones de Ord y Getis (1995) escritas a mano
+—G = Σwx/Σx, E = Wᵢ/n, Var = (nS₁ − Wᵢ²)/(n−1) · s²/(n²x̄²)— dan **2,521**: la varianza de `esda`
+es exactamente ocho veces mayor de lo que debe. En binario, las tres coinciden al bit. Y como la
+z de Gi\* es **invariante a reescalar cada fila** —G, E y la desviación se multiplican por el mismo
+factor—, el auditor recalcula con pesos binarios, comprueba además contra la fórmula a mano, y
+deja escrita una comprobación que exige que la versión por filas de `esda` **no** dé la z
+publicada: si un día `esda` lo arregla, esa comprobación fallará y avisará de que el defecto
+declarado ya no existe.
+
+#### A.29.3 · Los otros seis convenios, para no volver a pagarlos
+
+| Convenio | `spdep` | `esda` | Cómo se concilia |
+|---|---|---|---|
+| p de Moran global | unilateral | **bilateral** por defecto | `two_tailed = False` |
+| z de Geary | (E − c)/sd, positiva | (c − E)/sd, negativa | cambiar el signo |
+| c de Geary con islas | n = con vecinos | n = todas | factor (n_con − 1)/(n − 1) |
+| I local (`mlvar = TRUE`) | varianza poblacional | muestral | factor n/(n − 1), exacto |
+| p normal con momentos permutados | bilateral | unilateral | 2·p |
+| esperanza del join count con islas | **n_B y n_W sobre todas, denominador n_con(n_con − 1)** | — | reproducir tal cual |
+
+El último es una mezcla de convenios dentro de `spdep` mismo —`joincount.multi` con
+`zero.policy`— que sin conocerla deja la esperanza municipal un 0,36 % más baja de lo publicado.
+
+#### A.29.4 · Y lo que el generador enseñó al escribirse
+
+- **`localmoran_perm` no devuelve el p analítico.** Su columna `Pr(z != E(Ii))` usa la media y la
+  desviación de las permutaciones; el analítico de verdad es el de `localmoran()`. El módulo 10
+  publica **siete filas**: plegado y bilateral con 999 y con 24 999 réplicas, normal con momentos
+  permutados con las dos, y el analítico.
+- **Con islas, la identidad «pendiente = I» se cumple sobre TODAS las unidades**, no sobre las que
+  tienen vecinos —al revés de lo que uno espera—, porque `spdep` divide por n_con y S0 también vale
+  n_con. Y **la suma de los Iᵢ entre S0 no da el I de `spdep`: da el de `esda`**, 0,381589 contra
+  0,380908, con el factor 1 121/1 119 exacto. Es la discrepancia de A.11 vista desde lo local, y el
+  módulo 8 la publica con ese nombre.
+- **El barrio disparado arrastra a I hacia cero y a c hacia uno caiga donde caiga.** Con el factor 8
+  sobre el de mayor CRIME, I pasa de 0,511 a 0,052 y c de 0,530 a 0,909. La primera versión
+  disparaba «el más conectado», que resultó ser el de MENOR CRIME: multiplicar 0,22 por ocho no es
+  un pico, y las dos curvas salían planas por eso.
+- **Sobre Columbus, Bonferroni con 999 réplicas deja pasar 3 barrios y con 24 999 deja 1.** Es el
+  mismo suelo que en los municipios, mirado del otro lado: con 999 réplicas el p no puede ser
+  menor que 0,001 pero tampoco distinguir 0,0010 de 0,0012, y el umbral de Bonferroni cae en
+  0,00102. Los dos tableros enseñan que la resolución del p es parte del método.
+- **La GAL de Anselin no es la reina**: una pareja solo en la GAL, tres solo en la reina, y esas
+  tres esquinas mueven I de 0,511 a 0,500. `libpysal` trae un `columbus.gal` de 118 parejas, que es
+  la reina y no la GAL de 1988: la GAL se valida por sus diferencias con la reina, no por sí misma.
+- **Los cinco ejercicios corren sobre `nc`**, y dos de sus lecturas se escribieron al revés antes
+  de mirar el dato: en `nc` el condado disparado hunde a I y casi no mueve a c, y los dos atípicos
+  espaciales **no desaparecen en el mapa de Gi\*: salen pintados del color de sus vecinos**, el
+  contrario al suyo. Se reescribieron con lo medido.
+- **La tolerancia de Monte Carlo lleva un √2.** Los dos p son estimaciones, así que la diferencia
+  tiene varianza 2p(1 − p)/nsim: sin el √2, ocho municipios de 2 238 comparaciones caían a 4,0–4,5
+  sigmas sin sesgo alguno, que es justo lo que produce una tolerancia corta.
+
+#### A.29.5 · Lo que le cazó el arnés al auditor (T4.4b)
+
+`prueba_auditor_cap7.py`: **213 inyecciones, 213 cazadas, 231 de 231 tipos vistos fallar**, 53
+tipos inatacables por construcción —los que contrastan contra el CSV o contra la fuente primaria,
+que el arnés no envenena— listados con su motivo, control de salida limpio y los archivos
+publicados byte a byte igual. Hicieron falta tres tandas, y las dos primeras cazaron cosas del
+auditor y del propio arnés:
+
+- **El auditor reventaba en vez de informar.** Al quitarle la fila analítica de la tabla del
+  módulo 10, `audita_cap7.py` moría con un `KeyError` en lugar de decir que faltaba: la trampa 7
+  del §0.6, otra vez. Ahora la tabla se comprueba entera primero y cada fila se lee con un valor
+  por defecto que hace fallar la comprobación, no el proceso. Lo mismo en `capa_cat`: una capa con
+  un rasgo de menos indexaba fuera del vector.
+- **Trece rótulos de 58 caracteres o más**, todos de las mismas dos familias: los del join count,
+  que llevaban los nombres de nivel enteros («no municipalizada o isla-no municipalizada o isla
+  observado», 76), y los de los mapas, que llevaban el id entero (`cap7-getisord-valor` más el texto
+  del núcleo). El arnés deja de contar esos rótulos como cubiertos y no avisa de nada más; se
+  acortaron con alias.
+- **Los inatacables se declaraban con el rótulo crudo y el arnés compara TIPOS**: «municipios: Gi\*
+  (z), con esda» no es «tablero · Gi\* (z), con esda» después de agrupar, así que 22 de ellos caían
+  en «todavía no ataca» en vez de en «inatacables». Se reescribieron como tipos.
+- **Cuatro inyecciones caían dentro de la tolerancia o en la clave equivocada**: 21 significativos
+  contra los 18 de `esda` no supera un margen de 3; −0,017 como media de las réplicas está a menos
+  de 0,02 de la de `esda`; «las dos varianzas» viven en el módulo 3 y no en el 2. Una inyección
+  que no rompe nada no prueba nada, y el informe de tipos sin ver fallar es lo que las delata.
+
+La primera tanda dio 123 de 124 con **144 de 253 tipos**; la tercera, 213 de 213 con 231 de 231.
+La diferencia no está en el auditor —que apenas cambió— sino en el arnés: 89 inyecciones más
+para los mecanismos que la primera lista de «todavía no ataca» tenía escritos, uno por uno.
