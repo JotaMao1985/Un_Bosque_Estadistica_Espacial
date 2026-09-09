@@ -125,6 +125,28 @@ precalculo/verifica_taller1.R
 precalculo/salidas/privado/
 !/PLAN_Preparcial_Corte_1.md
 !/PLAN_Parcial_Corte_2.md
+!/PLAN_Taller_2_Cap_4.md
+
+# ---------------------------------------------------------------------
+# TALLER 2 (capítulo 4), mientras esté vivo. Mismo trato que el Taller 1,
+# y por las mismas dos razones.
+#
+# `genera_taller2.R` construye los patrones puntuales SABIENDO de qué
+# familia es cada uno, que es lo que la tarea T2 pide clasificar; y
+# `verifica_taller2.R` imprime las respuestas para calificar. Los JSON que
+# producen SÍ se versionan: llevan enunciado y datos, y ninguna respuesta.
+#
+# Estas dos líneas se escriben ANTES de que los archivos existan, a
+# propósito. En el Taller 1 el bloque se añadió con el guion ya escrito, y
+# entre una cosa y otra hubo una ventana en la que un commit distraído
+# habría publicado la solución en un repositorio que se despliega en
+# GitHub Pages. Aquí la ventana no llega a abrirse.
+#
+# Se levanta el bloque —y se hace commit de los dos guiones— DESPUÉS de
+# calificar, si Javier lo decide. Ver PLAN_Taller_2_Cap_4.md, §0 y C9.
+# ---------------------------------------------------------------------
+precalculo/genera_taller2.R
+precalculo/verifica_taller2.R
 
 # El plan de la revisión del capítulo 5 (2026-09-02) entra como los demás planes:
 # es lo que dice por qué los cinco capítulos cambiaron de golpe. El informe que
