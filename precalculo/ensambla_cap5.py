@@ -76,8 +76,33 @@ def n(x, d=5):
 
 
 def ent(x):
-    """Entero con espacio fino U+202F. NO usar dentro de KaTeX."""
-    return f"{int(round(float(x))):,}".replace(",", " ")
+    """Entero con espacio fino U+202F. NO usar dentro de KaTeX.
+
+    El espacio ES el fino irrompible, y hubo que decirlo dos veces: la
+    revisión del capítulo 4 (2026-09-08, A.30.10) encontró que el docstring
+    prometía U+202F y la línea de abajo escribía un U+0020 corriente, así que
+    «2 209» podía partirse de renglón como «2» y «209». Los capítulos 1, 2 y 3
+    sí usaban el fino —38, 45 y 33 en lo publicado—; el 4 tenía UNO, y venía
+    del ayudante de JavaScript. Este capítulo heredó la errata del 4.
+    """
+    return f"{int(round(float(x))):,}".replace(",", "\u202f")
+
+
+def ent_codigo(x):
+    """Entero SIN separador de millares, para dentro de un bloque de código.
+
+    Existe porque el idioma que había —`ent_codigo(x)`— dependía de
+    que el separador fuese un espacio NORMAL, y dejó de funcionar en silencio
+    el día que `ent()` empezó a escribir el fino que su docstring prometía
+    (A.30.10). El síntoma habría sido caro: `hawkes(0.5, 0.8, 1.4, 4 000, 5030)`
+    no es R válido, y un `#>` con «2 107» no coincide con el «2107» que R
+    imprime de verdad.
+
+    Un bloque de código no quiere el millar separado; quiere el número tal como
+    lo escribiría quien lo teclea. Eso es una intención distinta de la de `ent()`
+    y por eso tiene su propia función en vez de un `replace` a la salida.
+    """
+    return str(int(round(float(x))))
 
 
 def ent_mate(x):
@@ -877,9 +902,9 @@ _SUB5 = dict(
                   for k in ("oferta", "grado_11", "estudiantes")),
     CORS=" ".join(n(m5[k], 4) for k in ("cor_oferta_grado11", "cor_oferta_estudiantes",
                                         "cor_grado11_estudiantes")),
-    N=ent(m5["capas"]["oferta"]["n"]).replace(" ", ""),
-    N11=ent(m5["capas"]["grado_11"]["n"]).replace(" ", ""),
-    TOT=ent(m5["capas"]["estudiantes"]["total"]).replace(" ", ""),
+    N=ent_codigo(m5["capas"]["oferta"]["n"]),
+    N11=ent_codigo(m5["capas"]["grado_11"]["n"]),
+    TOT=ent_codigo(m5["capas"]["estudiantes"]["total"]),
     PCT=n(m5["capas"]["grado_11"]["pct_de_las_sedes"], 4))
 
 _desc = " y ".join(f'<code>bw.{s}</code>' for s in m5["rejilla"]["selectores_descartados"])
@@ -1015,8 +1040,8 @@ _SUB6 = dict(
                                   m6["chorley"]["prop_global"],
                                   m6["chorley"]["p_max"])),
     PROP=n(m6["bogota"]["prop_global"], 4),
-    OFI=ent(m6["bogota"]["oficiales"]).replace(" ", ""),
-    PRI=ent(m6["bogota"]["privadas"]).replace(" ", ""))
+    OFI=ent_codigo(m6["bogota"]["oficiales"]),
+    PRI=ent_codigo(m6["bogota"]["privadas"]))
 
 _ch, _bg = m6["chorley"], m6["bogota"]
 
@@ -1311,9 +1336,9 @@ _cu = m8["cuadratura"]
 _SUB8 = dict(
     LAM=f'{m8["homogeneo"]["lambda_mle_m2"]:g}',
     LAMKM=n(m8["homogeneo"]["lambda_km2"], 4),
-    FIC=ent(_cu["defecto_ficticios"]).replace(" ", ""),
+    FIC=ent_codigo(_cu["defecto_ficticios"]),
     AIC1=n(_cu["tabla"][1]["aic"], 5),
-    FIC3=ent(_cu["tabla"][-1]["ficticios"]).replace(" ", ""),
+    FIC3=ent_codigo(_cu["tabla"][-1]["ficticios"]),
     AIC3=n(_cu["tabla"][-1]["aic"], 5))
 
 MOD8 = cabecera(
@@ -1761,8 +1786,8 @@ _SUB11 = dict(
 
 _SUB11B = dict(
     MU=f'{_hw["mu"]:g}', ALPHA=f'{_hw["alpha"]:g}', BETA=f'{_hw["beta"]:g}',
-    TMAX=ent(_hw["T"]).replace(" ", ""), SEM=str(D["meta"]["semillas"]["hawkes"]),
-    HAW=" ".join((ent(_hw["n_eventos"]).replace(" ", ""),
+    TMAX=ent_codigo(_hw["T"]), SEM=str(D["meta"]["semillas"]["hawkes"]),
+    HAW=" ".join((ent_codigo(_hw["n_eventos"]),
                   n(_hw["tasa_simulada"], 5), n(_hw["tasa_teorica"], 6))),
     DISP=" ".join(n(v, 10) for v in (_hw["dispersion_hawkes"], _hw["dispersion_poisson"],
                                      _hw["veces_mas_agregado"])))

@@ -3689,8 +3689,8 @@
         media <strong>35.1288</strong> y desviación
         <strong>16.7321</strong>.</p>
 
-      <p>El otro son los <strong>1 122</strong> municipios de Colombia con su
-        deserción escolar —1 121 con dato, media
+      <p>El otro son los <strong>1 122</strong> municipios de Colombia con su
+        deserción escolar —1 121 con dato, media
         <strong>3,4236 %</strong>, desviación
         1.7667 y
         6 ceros exactos—, el mismo hilo que viene
@@ -3974,8 +3974,8 @@ print(p_torre &lt;= p_reina)
       </div>
 
       <p>Sobre el dato real la elección pesa menos de lo que parece: los municipios dan
-        3 285 parejas por reina y
-        3 198 por torre, un grado medio de
+        3 285 parejas por reina y
+        3 198 por torre, un grado medio de
         5.8556 contra
         5.7005. Con fronteras irregulares los contactos de
         esquina son pocos; con una retícula regular —un ráster, un tablero— son la mitad del
@@ -4082,8 +4082,8 @@ print(sum(len(v) for v in k3.neighbors.values()), pares(k3))
       </div>
 
       <p>Sobre los municipios pasa lo mismo y más marcado: k = 4 deja
-        <strong>1 084</strong> pares asimétricos sobre
-        4 488 enlaces. Y aquí aparece la otra cara del criterio:
+        <strong>1 084</strong> pares asimétricos sobre
+        4 488 enlaces. Y aquí aparece la otra cara del criterio:
         con k vecinos <strong>no hay islas nunca</strong> —el archipiélago de San Andrés queda
         unido al continente por 700 km de mar—, lo cual resuelve un problema del módulo 9 creando
         uno peor: una vecindad que no significa nada.</p>
@@ -4189,7 +4189,7 @@ print(justo.n_components)
       <p>En los municipios de Colombia el umbral mínimo sin islas es de
         <strong>166.8</strong> km —la distancia que separa a
         San Andrés de su vecino más próximo—. A esa distancia el grafo tiene
-        <strong>100 450</strong> parejas y un grado medio de
+        <strong>100 450</strong> parejas y un grado medio de
         <strong>179.1</strong>: cada municipio sería vecino de
         ciento setenta y nueve, y el más conectado de
         368.</p>
@@ -4296,9 +4296,9 @@ print(len(pset(delaunay)), len(pset(gabriel)), len(pset(relativa)))
         </div>
       </div>
 
-      <p>Sobre los municipios el orden se conserva —3 353,
-        2 527 y 1 528 parejas— y la
-        esfera de influencia queda en medio con 2 685. Ninguna deja
+      <p>Sobre los municipios el orden se conserva —3 353,
+        2 527 y 1 528 parejas— y la
+        esfera de influencia queda en medio con 2 685. Ninguna deja
         islas, ni siquiera con San Andrés: al no mirar fronteras, el archipiélago acaba unido a la
         costa. <strong>Es la misma solución tramposa que los k vecinos</strong>, con otro nombre.</p>
     </div>
@@ -4545,7 +4545,7 @@ print(pares(w))
       <p>Con contigüidad reina, <strong>2</strong> de los 1 122 municipios no tocan a
         nadie: <strong>San Andrés, Providencia</strong>, las dos del archipiélago de San Andrés. Y el
         mapa se parte en <strong>3</strong> subgrafos, de tamaños
-        1 120 · 1 · 1: el continente, y cada isla por su
+        1 120 · 1 · 1: el continente, y cada isla por su
         cuenta.</p>
 
       <h3>Lo primero que hace R es lo correcto: fallar</h3>
@@ -4570,7 +4570,7 @@ print(pares(w))
 
 # Dos municipios no tocan a nadie, y son islas de verdad
 which(card(nb) == 0)
-#&gt; [1] 1 006 1 105
+#&gt; [1] 1006 1105
 
 # Sin `zero.policy`, construir los pesos FALLA. Y es lo correcto:
 # una fila vacía no tiene media.
@@ -4589,7 +4589,7 @@ n.comp.nb(nb)$nc
 # libpysal no falla: avisa. Es el mismo problema con otra política.
 islas = [i for i, v in wm.neighbors.items() if len(v) == 0]
 print(sorted(islas))
-#&gt; [1 005, 1 104]
+#&gt; [1005, 1104]
 
 print(wm.n_components)
 #&gt; 3</code></pre>
@@ -4652,7 +4652,7 @@ print(wm.n_components)
         media.</p>
 
       <p>Sobre la deserción municipal, calculado sobre los
-        <strong>1 121</strong> municipios con dato —quitando las
+        <strong>1 121</strong> municipios con dato —quitando las
         2 islas, que es la primera de las tres salidas del
         módulo anterior— la correlación entre la deserción de un municipio y la media de sus
         vecinos es <strong>0.5677</strong>. <strong>Lo cercano se parece</strong>, y esa
@@ -4677,7 +4677,7 @@ print(wm.n_components)
 
       <p>No es un artefacto: <strong>promediar contrae</strong>. La media de varios números está
         más cerca del centro que los números que la forman, y el rezago es exactamente eso hecho
-        1 121 veces. La consecuencia práctica es de mapa: si se dibujan
+        1 121 veces. La consecuencia práctica es de mapa: si se dibujan
         <em>y</em> y <em>Wy</em> con la misma escala de color, el segundo <strong>siempre</strong>
         se ve más plano, y eso no dice nada sobre el territorio — dice que uno es un promedio del
         otro.</p>
@@ -4764,13 +4764,13 @@ print(round(float(100 * (1 - wy[con].std(ddof=1) / y.std(ddof=1))), 4))
         lo que en teoría de grafos se llama, sin más, pesos.</p>
 
       <p>Lo primero que eso explica es la forma de la matriz. Columbus tiene
-        <strong>2 401</strong> casillas y solo
+        <strong>2 401</strong> casillas y solo
         <strong>236</strong> están ocupadas: un
         <strong>9,83 %</strong>. En los municipios la densidad baja a
         <strong>0,5219 %</strong>. <strong>W es dispersa siempre</strong>,
         y por eso <code>spdep</code> no guarda una matriz sino listas de vecinos: una matriz densa
-        de 1 122 × 1 122 son 1 258 884 números para guardar
-        6 570.</p>
+        de 1 122 × 1 122 son 1 258 884 números para guardar
+        6 570.</p>
 
       <h3>Estandarizar por filas es normalizar por el grado</h3>
 
@@ -4793,7 +4793,7 @@ print(round(float(100 * (1 - wy[con].std(ddof=1) / y.std(ddof=1))), 4))
           <pre><code class="language-r"># W es la matriz de adyacencia de un grafo, y es DISPERSA
 A &lt;- nb2mat(reina, style = &quot;B&quot;)
 length(A)
-#&gt; [1] 2 401
+#&gt; [1] 2401
 sum(A &gt; 0)
 #&gt; [1] 236
 

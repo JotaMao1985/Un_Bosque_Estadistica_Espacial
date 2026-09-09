@@ -66,8 +66,33 @@ def n(x, d=5):
 
 
 def ent(x):
-    """Entero con espacio fino U+202F. NO usar dentro de KaTeX."""
-    return f"{int(round(float(x))):,}".replace(",", " ")
+    """Entero con espacio fino U+202F. NO usar dentro de KaTeX.
+
+    El espacio ES el fino irrompible, y hubo que decirlo dos veces: la
+    revisión del capítulo 4 (2026-09-08, A.30.10) encontró que el docstring
+    prometía U+202F y la línea de abajo escribía un U+0020 corriente, así que
+    «2 209» podía partirse de renglón como «2» y «209». Los capítulos 1, 2 y 3
+    sí usaban el fino —38, 45 y 33 en lo publicado—; el 4 tenía UNO, y venía
+    del ayudante de JavaScript. Este capítulo heredó la errata del 4.
+    """
+    return f"{int(round(float(x))):,}".replace(",", "\u202f")
+
+
+def ent_codigo(x):
+    """Entero SIN separador de millares, para dentro de un bloque de código.
+
+    Existe porque el idioma que había —`ent_codigo(x)`— dependía de
+    que el separador fuese un espacio NORMAL, y dejó de funcionar en silencio
+    el día que `ent()` empezó a escribir el fino que su docstring prometía
+    (A.30.10). El síntoma habría sido caro: `hawkes(0.5, 0.8, 1.4, 4 000, 5030)`
+    no es R válido, y un `#>` con «2 107» no coincide con el «2107» que R
+    imprime de verdad.
+
+    Un bloque de código no quiere el millar separado; quiere el número tal como
+    lo escribiría quien lo teclea. Eso es una intención distinta de la de `ent()`
+    y por eso tiene su propia función en vez de un `replace` a la salida.
+    """
+    return str(int(round(float(x))))
 
 
 def firma(valor, unidad=""):
@@ -535,17 +560,17 @@ print(np.abs(D_inv @ A - estilo(A, &quot;W&quot;)).max())
 print(round(100 * (A &gt; 0).sum() / A.size, 4))
 #&gt; {DENS}'''
 
-_SUB1 = dict(NCOL=ent(m1["columbus"]["n"]).replace(" ", ""),
-             NMUN=ent(m1["municipios"]["n"]).replace(" ", ""),
+_SUB1 = dict(NCOL=ent_codigo(m1["columbus"]["n"]),
+             NMUN=ent_codigo(m1["municipios"]["n"]),
              CRIME=n(m1["columbus"]["variables"]["crime"]["media"], 4))
-_SUB2 = dict(PR=ent(CRIT["reina"]["pares"]), PT=ent(CRIT["torre"]["pares"]),
+_SUB2 = dict(PR=ent_codigo(CRIT["reina"]["pares"]), PT=ent_codigo(CRIT["torre"]["pares"]),
              GR=n(CRIT["reina"]["grado"], 4), GT=n(CRIT["torre"]["grado"], 4))
-_SUB3 = dict(SOLO=ent(m3["solo_reina"]),
-             O1=ent(m3["ordenes"][0]["pares"]), O2=ent(m3["ordenes"][1]["pares"]),
-             O3=ent(m3["ordenes"][2]["pares"]))
+_SUB3 = dict(SOLO=ent_codigo(m3["solo_reina"]),
+             O1=ent_codigo(m3["ordenes"][0]["pares"]), O2=ent_codigo(m3["ordenes"][1]["pares"]),
+             O3=ent_codigo(m3["ordenes"][2]["pares"]))
 _K3 = m4["columbus"][2]
-_SUB4 = dict(EK3=ent(_K3["enlaces"]), PK3=ent(_K3["pares"]),
-             NPARES=ent(_K3["pares"]), ASIM=ent(_K3["asimetricos"]),
+_SUB4 = dict(EK3=ent_codigo(_K3["enlaces"]), PK3=ent_codigo(_K3["pares"]),
+             NPARES=ent_codigo(_K3["pares"]), ASIM=ent_codigo(_K3["asimetricos"]),
              GSIM=n(m4["simetrizada_k3"]["grado"], 4))
 
 
@@ -554,33 +579,33 @@ _SUB4 = dict(EK3=ent(_K3["enlaces"]), PK3=ent(_K3["pares"]),
 # publicada: la curva va de 0,4·d1 a 1,6·d1. Las islas de la mitad se
 # publican aparte para que el `#>` salga del JSON y no de una regla de tres.
 _SUB5 = dict(U=n(m5["columbus"]["umbral_sin_islas"], 4),
-             I1=ent(m5["columbus"]["islas_en_la_mitad"]),
-             I2=ent(m5["columbus"]["curva"][3]["islas"]),
-             S2=ent(m5["columbus"]["curva"][3]["subgrafos"]))
-_SUB6 = dict(PS=ent(GEOM["esfera"]["pares"]), PD=ent(GEOM["delaunay"]["pares"]), PG=ent(GEOM["gabriel"]["pares"]),
-             PR=ent(GEOM["relativa"]["pares"]))
+             I1=ent_codigo(m5["columbus"]["islas_en_la_mitad"]),
+             I2=ent_codigo(m5["columbus"]["curva"][3]["islas"]),
+             S2=ent_codigo(m5["columbus"]["curva"][3]["subgrafos"]))
+_SUB6 = dict(PS=ent_codigo(GEOM["esfera"]["pares"]), PD=ent_codigo(GEOM["delaunay"]["pares"]), PG=ent_codigo(GEOM["gabriel"]["pares"]),
+             PR=ent_codigo(GEOM["relativa"]["pares"]))
 # R imprime `236` y Python `236.0`: dos formatos para la misma cifra, y
 # los dos salen del JSON. Escribir uno de ellos a mano es lo que
 # `verifica_bloques.py` existe para cazar.
-_SUB7 = dict(SBi=ent(EST["B"]["suma_total"]), SWi=ent(EST["W"]["suma_total"]),
-             SSi=ent(EST["S"]["suma_total"]), SCi=ent(EST["C"]["suma_total"]),
-             SUi=ent(EST["U"]["suma_total"]),
+_SUB7 = dict(SBi=ent_codigo(EST["B"]["suma_total"]), SWi=ent_codigo(EST["W"]["suma_total"]),
+             SSi=ent_codigo(EST["S"]["suma_total"]), SCi=ent_codigo(EST["C"]["suma_total"]),
+             SUi=ent_codigo(EST["U"]["suma_total"]),
              SBf=n(EST["B"]["suma_total"], 1), SWf=n(EST["W"]["suma_total"], 1),
              SSf=n(EST["S"]["suma_total"], 1), SCf=n(EST["C"]["suma_total"], 1),
              SUf=n(EST["U"]["suma_total"], 1),
              CW=n(EST["W"]["cor_con_crime"], 4))
-_SUB8 = dict(DIFi=ent(m8["dif_max"]), NP=ent(m8["n_pares_spdep"]),
+_SUB8 = dict(DIFi=ent_codigo(m8["dif_max"]), NP=ent_codigo(m8["n_pares_spdep"]),
              WY=" ".join(n(v, 4) for v in m8["wy_primeros"]),
              WY_PY=", ".join(n(v, 4) for v in m8["wy_primeros"]))
 
 
-_SUB9 = dict(I1=ent(m9["islas_i"][0]), I2=ent(m9["islas_i"][1]),
-             ERR=m9["error_sin_zero_policy"], NC=ent(m9["subgrafos"]),
-             ISLAS_PY="[" + ", ".join(ent(i) for i in m9["islas_i0"]) + "]")
+_SUB9 = dict(I1=ent_codigo(m9["islas_i"][0]), I2=ent_codigo(m9["islas_i"][1]),
+             ERR=m9["error_sin_zero_policy"], NC=ent_codigo(m9["subgrafos"]),
+             ISLAS_PY="[" + ", ".join(ent_codigo(i) for i in m9["islas_i0"]) + "]")
 _SUB10 = dict(COR=n(m10["correlacion"], 4), SDY=n(m10["y"]["sd"], 4),
               SDWY=n(m10["wy"]["sd"], 4), CONTRA=n(m10["contraccion_pct"], 4))
 _C11 = m11["columbus"]
-_SUB11 = dict(CAS=ent(_C11["casillas"]), OCU=ent(_C11["no_ceros"]),
+_SUB11 = dict(CAS=ent_codigo(_C11["casillas"]), OCU=ent_codigo(_C11["no_ceros"]),
               DINV=n(_C11["d_inv_a_igual_w"], 0), PROD=n(_C11["lag_es_producto"], 0),
               DENS=n(_C11["densidad_pct"], 4))
 

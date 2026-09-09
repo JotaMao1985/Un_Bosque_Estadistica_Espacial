@@ -4301,9 +4301,9 @@ print(round(float(e.sum()), 2), round(float(e.min()), 4))
         <thead><tr><th scope="col">Mapa</th><th scope="col">Qué cuenta</th>
           <th scope="col">Unidades</th><th scope="col">Máximo por km²</th></tr></thead>
         <tbody>
-            <tr><th scope="row">Oferta</th><td>todas las sedes educativas</td><td>2 107 sedes</td><td>14.54</td></tr>
-            <tr><th scope="row">Bachillerato</th><td>solo las sedes con grado 11</td><td>1 062 sedes (50.4 %)</td><td>9.54</td></tr>
-            <tr><th scope="row">Estudiantes</th><td>las mismas sedes, pesadas por sus evaluados</td><td>145 362 evaluados</td><td>1578.81</td></tr>
+            <tr><th scope="row">Oferta</th><td>todas las sedes educativas</td><td>2 107 sedes</td><td>14.54</td></tr>
+            <tr><th scope="row">Bachillerato</th><td>solo las sedes con grado 11</td><td>1 062 sedes (50.4 %)</td><td>9.54</td></tr>
+            <tr><th scope="row">Estudiantes</th><td>las mismas sedes, pesadas por sus evaluados</td><td>145 362 evaluados</td><td>1578.81</td></tr>
         </tbody>
       </table>
 
@@ -4343,7 +4343,7 @@ print(round(float(e.sum()), 2), round(float(e.min()), 4))
       </div>
 
       <p class="pie-figura">El mismo σ, la misma rejilla y las mismas
-        1 062 sedes: lo único que cambia es que cada punto pesa por
+        1 062 sedes: lo único que cambia es que cada punto pesa por
         sus evaluados en vez de por uno. Compárense los dos mapas en el norte y en el suroccidente
         —donde las manchas no coinciden es donde el edificio y el estudiante dejan de ser la
         misma cosa—.</p>
@@ -4458,7 +4458,7 @@ print([round(float(np.corrcoef(a[MASK], b[MASK])[0, 1]), 4)
       <p>La comprobación que hace honesto el tercero está en el precálculo y no en el mapa: la
         KDE pesada integra <strong>la suma de los pesos</strong>, no el número de puntos, así que
         su integral sobre la ciudad tiene que dar los
-        145 362 evaluados. Es la identidad del módulo 4 con
+        145 362 evaluados. Es la identidad del módulo 4 con
         pesos, y es lo que dice que la superficie cuenta estudiantes.</p>
     </div>
   </template>
@@ -4533,7 +4533,7 @@ print([round(float(np.corrcoef(a[MASK], b[MASK])[0, 1]), 4)
       <h3>Y el caso colombiano, que no es riesgo</h3>
 
       <p>La misma matemática sobre <strong>709</strong> sedes oficiales y
-        <strong>1 398</strong> privadas, y aquí el capítulo dice en voz alta que
+        <strong>1 398</strong> privadas, y aquí el capítulo dice en voz alta que
         <strong>esto no es riesgo epidemiológico sino proporción de tipo</strong>. Nadie
         «contrae» ser oficial: no hay casos ni controles, hay dos poblaciones completas. Publicar
         el mapa llamándolo riesgo importaría una palabra que aquí no significa nada.</p>
@@ -4689,7 +4689,7 @@ print(round(float(np.nanmax(p_of)), 4), int(of.sum()), int((~of).sum()))
 
       <h3>El caso canónico, y por qué es el caso canónico</h3>
 
-      <p><strong>3 604</strong> árboles de <em>Beilschmiedia</em> en Barro Colorado, con
+      <p><strong>3 604</strong> árboles de <em>Beilschmiedia</em> en Barro Colorado, con
         la elevación y la pendiente del terreno <strong>medidas aparte</strong>, no derivadas de
         los propios árboles. Esa independencia es lo que hace honesta la pregunta: si la
         covariable saliera del patrón, la curva estaría contestándose sola.</p>
@@ -4869,7 +4869,7 @@ print(round(float(R[ok].max() / R[ok].min()), 4),
         cuadratura y convertir todo el problema en una <strong>regresión de Poisson ponderada</strong>
         sobre los puntos del dato <em>más</em> una malla de puntos ficticios. Cuántos ficticios lo
         decide el argumento <code>nd</code>, y su valor por defecto —100— pone
-        <strong>4 140</strong> puntos ficticios sobre esta ventana.</p>
+        <strong>4 140</strong> puntos ficticios sobre esta ventana.</p>
 
       <table class="tabla-datos">
         <caption>El mismo modelo con cuatro cuadraturas</caption>
@@ -4877,10 +4877,10 @@ print(round(float(R[ok].max() / R[ok].min()), 4),
           <th scope="col">Pendiente</th><th scope="col">Error estándar</th>
           <th scope="col">AIC</th></tr></thead>
         <tbody>
-            <tr><th scope="row">50</th><td>1 099</td><td>-6.7247e-06</td><td>5.4386e-06</td><td>55097.08</td></tr>
-            <tr><th scope="row">100</th><td>4 140</td><td>-6.6091e-06</td><td>5.4394e-06</td><td>55091.81</td></tr>
-            <tr><th scope="row">200</th><td>15 764</td><td>-6.6441e-06</td><td>5.4385e-06</td><td>55091.80</td></tr>
-            <tr><th scope="row">300</th><td>35 495</td><td>-7.3105e-06</td><td>5.4336e-06</td><td>55101.00</td></tr>
+            <tr><th scope="row">50</th><td>1 099</td><td>-6.7247e-06</td><td>5.4386e-06</td><td>55097.08</td></tr>
+            <tr><th scope="row">100</th><td>4 140</td><td>-6.6091e-06</td><td>5.4394e-06</td><td>55091.81</td></tr>
+            <tr><th scope="row">200</th><td>15 764</td><td>-6.6441e-06</td><td>5.4385e-06</td><td>55091.80</td></tr>
+            <tr><th scope="row">300</th><td>35 495</td><td>-7.3105e-06</td><td>5.4336e-06</td><td>55101.00</td></tr>
         </tbody>
       </table>
 
@@ -5126,7 +5126,7 @@ print(f&quot;{cond_rec((UX - UX.mean()) / 1000, (UY - UY.mean()) / 1000):.4g}&qu
 
       <p>Las dos columnas dan condicionamientos parecidos y no iguales —el bloque publica los
         dos— porque R lo mide sobre la matriz de diseño de la cuadratura, con sus
-        4 140 ficticios dentro, y Python sobre las coordenadas del dato,
+        4 140 ficticios dentro, y Python sobre las coordenadas del dato,
         sin modelo ninguno. Los dos caen en el orden de 1.794e-10, que es lo
         que el módulo afirma: <strong>el problema estaba en los números antes de que hubiera
         modelo</strong>.</p>
@@ -5470,7 +5470,7 @@ for r in (500.0, 1000.0, 2000.0):
         <div class="simulador-lectura"></div>
       </div>
 
-      <p>Con 4 577 eventos cada uno, el índice de dispersión del Hawkes vale
+      <p>Con 4 577 eventos cada uno, el índice de dispersión del Hawkes vale
         <strong>5.15454</strong> y el del Poisson
         <strong>0.95789</strong>: 5.4 veces más
         agregado con <em>la misma tasa media</em>. Es la lección del capítulo 4 en una dimensión
