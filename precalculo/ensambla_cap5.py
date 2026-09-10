@@ -386,9 +386,12 @@ MOD1 = cabecera(
       <h3>La ventana de trabajo: una localidad</h3>
 
       <p>Bajamos de la ciudad a <strong>{m1["ventana"]["nombre"]}</strong>. El motivo es técnico
-        y el módulo 3 lo explica entero: sobre la ciudad completa, la celda más fina que el mapa
-        puede pagar es más ancha que el núcleo más estrecho que querríamos dibujar, y un mapa así
-        no dibuja el núcleo — dibuja su propia rejilla. Kennedy es una caja de
+        y el módulo 3 lo explica entero: sobre la ciudad completa la celda más fina que el mapa
+        puede pagar mide {n(m5["rejilla"]["celda_m"], 0)} m, y para que lo que se vea sea el
+        núcleo y no la rejilla hacen falta {ent(FAM["celdas_por_sigma"])} celdas dentro de σ — o
+        sea un suelo de {n(m5["rejilla"]["sigma_minimo_dibujable_m"], 0)} m, más ancho que el
+        núcleo más estrecho que los selectores van a pedir. Un mapa por debajo de ese suelo no
+        dibuja el núcleo — dibuja su propia rejilla. Kennedy es una caja de
         {n(m1["ventana"]["caja_x_km"], 1)} × {n(m1["ventana"]["caja_y_km"], 1)} km con
         {firma(ent(m1["ventana"]["n"]), " sedes")} sobre
         {firma(n(m1["ventana"]["area_km2"], 2), " km²")}, o sea
@@ -573,7 +576,8 @@ _QUE_OPTIMIZA = {
             "1/λ̂ sobre los puntos devuelva el área de la ventana."),
     "scott": ("<code>bw.scott</code>",
               "nada: es la regla de referencia normal de Scott, "
-              "sd·n<sup>−1/6</sup>, en forma cerrada y sin buscar."),
+              "sd·n<sup>−1/6</sup>, en forma cerrada y sin buscar. Y no devuelve "
+              "<em>un</em> ancho: devuelve uno por eje."),
 }
 
 _TOPES = "; ".join(
@@ -613,6 +617,19 @@ MOD3 = cabecera(
         {n(m3["urbana"]["sigmas_m"]["diggle"], 0)}—. El mismo dato, el mismo método y cuatro
         respuestas que no convergen al crecer la ventana: <strong>divergen</strong>.</p>
 
+      <p>Y hay una cuarta fila que ni siquiera contesta lo mismo que las otras tres.
+        <strong><code>bw.scott</code> no devuelve un ancho: devuelve dos</strong> —
+        <code>sigma.x</code> y <code>sigma.y</code>—, porque la regla de referencia normal se
+        aplica a cada coordenada por separado. La columna de arriba trae el primero. Sobre
+        {m1["ventana"]["nombre"]}, que es casi cuadrada, los dos casi coinciden:
+        {n(m3["kennedy"]["sigmas_m"]["scott"], 0)} m a lo ancho y
+        {n(m3["kennedy"]["scott_y_m"], 0)} m a lo alto. Sobre la ciudad, que es larga y estrecha,
+        no: {firma(n(m3["urbana"]["sigmas_m"]["scott"], 0), " m")} contra
+        {firma(n(m3["urbana"]["scott_y_m"], 0), " m")}. Se dice aquí porque quien ejecute
+        <code>bw.scott(p)</code> va a ver dos números y tiene que saber por qué — y porque es el
+        ejemplo más limpio de lo que este módulo defiende: los cuatro no dan respuestas distintas
+        a la misma pregunta, es que <strong>no se les está preguntando lo mismo</strong>.</p>
+
 {sim("cap5-selectores", "Los cuatro selectores sobre las dos ventanas",
       "Cambia de ventana y mira dos cosas: cuánto se abre el abanico y si el orden "
       "de los cuatro se conserva. La línea marca el σ mínimo que la rejilla de la "
@@ -638,8 +655,10 @@ MOD3 = cabecera(
           aviso se pierde entre los demás y el número sigue su camino hasta el mapa. Lo que sí
           lo delata es <strong>compararlo con el borde del intervalo de búsqueda</strong>:
           <code>bw.ppl</code> sobre <code>japanesepines</code> devuelve exactamente
-          {n(m3["topes"][0]["sigma"], 4)}, que es la mitad del lado de su ventana unitaria y el
-          tope por defecto del rango. Un óptimo que coincide con el borde al último decimal no
+          {n(m3["topes"][0]["sigma"], 4)}, que es la mitad de la <em>diagonal</em> de su ventana
+          unitaria — y no es una casualidad geométrica: es el tope por defecto del rango, porque
+          <code>bw.ppl</code> busca hasta <code>diameter(W)/2</code> y el diámetro de un cuadrado
+          es su diagonal. Un óptimo que coincide con el borde al último decimal no
           es un óptimo.</p>
         <p style="margin-bottom:0;">El ejercicio 1 del módulo 12 pide encontrar el caso entre
           doce, y es exactamente esta comprobación.</p>
@@ -1051,12 +1070,23 @@ MOD6 = cabecera(
     "la guarda que impide publicarlo del revés.") + f"""
       <p>Todo lo anterior estima <em>una</em> intensidad. Muchas preguntas reales no van de
         cuántos hay, sino de <strong>qué proporción</strong>: dónde pesan más los casos que los
-        controles, dónde pesa más lo público que lo privado. Y eso es un
-        <strong>cociente de dos intensidades</strong> estimadas sobre la misma ventana.</p>
+        controles, dónde pesa más lo público que lo privado. Eso se contesta comparando
+        <strong>dos intensidades</strong> estimadas sobre la misma ventana y con el mismo ancho, y
+        la comparación se puede escribir de dos maneras.</p>
 
       <div class="formula-destacada">
         $$\\hat p(u) \;=\; \\frac{{\\hat\\lambda_1(u)}}{{\\hat\\lambda_1(u) + \\hat\\lambda_0(u)}}$$
       </div>
+
+      <p>La de arriba es la <strong>probabilidad de caso</strong>: dado que en $u$ hay un evento,
+        con qué probabilidad es del tipo 1. La otra es el <strong>riesgo relativo</strong>
+        propiamente dicho, que sí es un <strong>cociente de dos intensidades</strong> —
+        $\\hat r(u) = \\hat\\lambda_1(u) / \\hat\\lambda_0(u)$—: cuántas veces
+        más denso está el tipo 1 que el 0. Llevan la misma información —una es
+        $\\hat r/(1+\\hat r)$ de la otra— pero no la misma escala: la probabilidad vive entre 0 y 1
+        y el riesgo relativo entre 0 e infinito. <code>relrisk</code> devuelve la primera salvo
+        que se le pida <code>relative = TRUE</code>, y este material publica la primera porque
+        tiene tope y se puede pintar con una escala fija.</p>
 
       <p>La forma tiene una ventaja que no es evidente: <strong>la corrección de borde del módulo
         4 se cancela</strong>. Numerador y denominador la llevan igual, así que un mapa de
@@ -1107,8 +1137,10 @@ MOD6 = cabecera(
 {mapa_html("cap5-proporcion", "P(oficial): proporción de sedes oficiales sobre el total")}
       <p class="pie-figura">La escala va fija de 0 a 1 y no se normaliza contra el máximo del
         mapa: una proporción tiene una escala propia, y normalizarla haría que el mapa dijera
-        «aquí es donde más» en vez de «aquí vale tanto». El blanco del centro no es ausencia de
-        colegios — es ausencia de colegios <em>oficiales</em>.</p>
+        «aquí es donde más» en vez de «aquí vale tanto». Por eso la rampa es divergente, y su
+        blanco no es un vacío: es el punto medio, donde hay tantas oficiales como privadas. Los
+        que hablan son los dos extremos — el marrón oscuro es ausencia de <em>oficiales</em>, no
+        ausencia de colegios; el verde oscuro, ausencia de privadas.</p>
 
 {mapa_html("cap5-sector", "Las mismas sedes, por sector, sin suavizar")}
       <p class="pie-figura">El mapa de puntos es el control de la superficie: enseña de dónde
@@ -1516,10 +1548,15 @@ MOD9 = cabecera(
 
       <p>Con el modelo legible, la lectura es directa: el coeficiente de <code>xc</code> vale
         {n(_ce["coef"][1], 4)} por kilómetro hacia el este —negativo, así que la intensidad baja
-        yendo al este— y su z es {n(_ce["z"][1], 2)}; el de <code>yc</code> es cuatro veces menor
-        en valor absoluto y su z, {n(_ce["z"][2], 2)}, no llega a separarse de cero.
-        <strong>La ciudad tiene gradiente este-oeste y no norte-sur</strong>, y eso es una
-        afirmación contrastable, no una impresión de mirar el mapa.</p>
+        yendo al este— y su z es {n(_ce["z"][1], 2)}; el de <code>yc</code> vale
+        {n(_ce["coef"][2], 4)} y su z, {n(_ce["z"][2], 2)}, no llega a separarse de cero.
+        <strong>Del gradiente este-oeste hay evidencia; del norte-sur, no la hay</strong> — y esas
+        dos frases no son la misma. Lo que la tabla autoriza a escribir es que la intensidad baja
+        hacia el este a un ritmo medido, y nada sobre el norte: no haber encontrado un gradiente
+        norte-sur no es haber encontrado que no lo hay, como el propio módulo va a enseñar tres
+        párrafos más abajo con la tercera parametrización. Y conviene notar además qué contrasta
+        cada z: <code>~ xc + yc</code> compara cada coeficiente con cero por separado, no el uno
+        con el otro.</p>
 
       <div class="nota-lateral">
         <h4>Trampa 2: el <code>try()</code> que no atrapa nada</h4>
@@ -1534,8 +1571,10 @@ MOD9 = cabecera(
       </div>
 
 {sim("cap5-ppm", "Tres ajustes del mismo patrón, y cuál se puede leer",
-      "Las barras son |z| por coeficiente: el ajuste crudo no tiene ninguna, y esa "
-      "ausencia es todo el módulo. La lectura trae el número de condición.")}
+      "Las barras son |z| por coeficiente, sin el intercepto —su |z| no se interpreta en "
+      "un <code>ppm</code>, y es tan grande que con él dentro los demás no se ven—. La "
+      "línea naranja es el 1,96 con el que se leen: el ajuste crudo no tiene ninguna "
+      "barra, y esa ausencia es todo el módulo. La lectura trae el número de condición.")}
       <p>Pásese por los tres y mírese la barra que falta. El primero no tiene ninguna, y sin
         embargo su AIC es el mismo que el del segundo: <strong>el modelo está bien ajustado y solo
         es ilegible</strong>. Es una distinción que conviene tener clara antes de la siguiente
@@ -1637,13 +1676,24 @@ MOD10 = cabecera(
         <strong>Dos:</strong> se resume con la K <em>inhomogénea</em>, que divide cada pareja por
         la intensidad estimada en sus dos puntos — sin eso, el gradiente este-oeste del propio
         modelo aparecería como agregación. <strong>Tres:</strong> la referencia ya no es la
-        teórica de CSR sino la <strong>media de las simulaciones</strong>, porque un objeto
-        <code>envelope</code> sobre un modelo ajustado no trae columna teórica y no tendría
-        sentido que la trajera.</p>
+        teórica de CSR sino la <strong>media de las simulaciones</strong>. Y conviene decir por
+        qué, porque la razón no es que no haya teórica: para cualquier Poisson
+        <em>inhomogéneo</em> la K inhomogénea vale $\pi r^2$ —es justo el motivo de dividir cada
+        pareja por su intensidad—. Lo que pasa es que un objeto <code>envelope</code> sobre un
+        modelo ajustado no trae esa columna, y hace bien: el sesgado aquí es el
+        <strong>estimador</strong>, por la corrección de borde y por una λ̂ sacada del propio
+        dato, y la media de las simulaciones comete el mismo sesgo, así que es la referencia
+        justa. En estos datos las dos casi coinciden y se puede comprobar: la media de las
+        {ent(m10["nsim"])} queda a menos de {pct(m10["mmean_vs_teorica_pct"], 2)} de $\pi r^2$ en
+        los {ent(m10["n_nodos"])} nodos.</p>
 
 {sim("cap5-envolvente", "K inhomogénea contra la banda del modelo ajustado",
       "La banda gris son las {NSIM} simulaciones del modelo; la línea verde, el patrón "
-      "real. Mira dónde se separa y desde qué radio.".replace("{NSIM}", ent(m10["nsim"])))}
+      "real. La vista de entrada las divide por la media del modelo, porque K crece como "
+      "el cuadrado del radio y en sus propias unidades las cuatro curvas se superponen: "
+      "ahí el modelo es la línea del 1, y lo que se lee es cuántas veces hay más parejas "
+      "de las que produciría. Mira dónde se separa, desde qué radio y hasta cuál — los "
+      "otros dos botones dan la K sin dividir.".replace("{NSIM}", ent(m10["nsim"])))}
       <p>La respuesta es que <strong>no basta</strong>. La K observada se sale de la banda en el
         {firma(pct(m10["pct_r_fuera_de_banda"], 0))} de los radios, desde
         {firma(n(m10["primer_r_fuera_m"]), " m")} —el primer nodo distinto de cero— y por
@@ -1990,8 +2040,9 @@ MOD12 = cabecera(
         explicación, así que equivocarse aquí vale tanto como acertar.</p>
 
 {quiz_html('cap5-quiz', 'Autoevaluación del capítulo 5',
-           'Ocho preguntas sobre ancho de banda, corrección de borde, riesgo relativo, '
-           'covariables, ppm y modelos de conglomerado.')}
+           'Ocho preguntas sobre el estimador por núcleos, el ancho de banda, los '
+           'selectores, la KDE como mapa de calor, covariables, ppm, el diagnóstico '
+           'del ajuste y los procesos autoexcitados.')}
 
       <p>Y cinco ejercicios guiados con su solución calculada —uno más que el molde, porque el
         capítulo cubre tres semanas—. Los cinco terminan en una decisión que hay que defender, y
@@ -2533,12 +2584,25 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       });
       const pinta = () => {
         const a = D5.m9[CLAVES[i]];
-        g.data.labels = a.nombres;
+        // EL INTERCEPTO NO ENTRA EN LAS BARRAS, y su ausencia es lo que
+        // hace legible el gráfico. Su |z| vale 553,7 en el ajuste centrado
+        // y 239,1 en el de la distancia, contra 4,82 y 1,22 de los
+        // coeficientes que el módulo comenta. Medido sobre el lienzo
+        // publicado (2026-09-09): con él dentro, el eje llegaba a 600 y la
+        // barra de `xc` medía 1,39 px, la de `yc` 0,49 y la línea de 1,96
+        // quedaba a 0,57 px del suelo — o sea que la comparación que el
+        // texto pide hacer («−4,82 sí, −1,70 no llega a separarse de
+        // cero») no se podía ver. Y no se pierde nada: el |z| del
+        // intercepto de un `ppm` no se interpreta, porque contrasta que la
+        // intensidad de fondo sea 1 por unidad de área, que no es una
+        // hipótesis de nadie.
+        const nom = a.nombres.slice(1);
+        g.data.labels = nom;
         g.data.datasets = [
           { type: 'bar', label: a.singular ? 'sin errores estándar: no hay z' : '|z| por coeficiente',
-            data: a.z ? a.z.map(Math.abs) : a.nombres.map(() => 0),
+            data: a.z ? a.z.slice(1).map(Math.abs) : nom.map(() => 0),
             backgroundColor: a.singular ? C5.rojo : C5.verde },
-          { type: 'line', label: '|z| = 1.96', data: a.nombres.map(() => 1.96),
+          { type: 'line', label: '|z| = 1.96', data: nom.map(() => 1.96),
             borderColor: C5.naranja, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0 }
         ];
         g.update();
@@ -2557,24 +2621,48 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     };
 
     // --- Módulo 10 · la envolvente sobre el modelo ajustado ----------
+    // LA VISTA POR DEFECTO ES LA RAZÓN, Y NO ES UNA PREFERENCIA DE ESTILO.
+    //
+    // K crece como r², así que en unidades de K la banda y la observada son
+    // dos cifras enormes y casi iguales. Medido sobre el lienzo publicado
+    // (2026-09-09): en la vista lineal la separación entre la observada y
+    // el techo vale 1,15 px COMO MÁXIMO sobre un eje de 151, y en r = 59 m
+    // —el radio que el párrafo de salida nombra— vale 0,01 px. Las cuatro
+    // series se superponían en una sola parábola, así que la figura
+    // enseñaba lo contrario de su propio veredicto: quien mirara antes de
+    // leer concluía que el modelo ajusta.
+    //
+    // Dividir por la media de las simulaciones quita el r² y deja lo que el
+    // módulo quiere leer: cuántas VECES hay más parejas de las que el
+    // modelo produce. Es `plot(env, ./mmean ~ r)` de spatstat.
+    //
+    // La división la hace el navegador sobre cifras que R publica, a la
+    // vista y sobre el mismo dato, igual que la del deslizador del módulo 2.
     SIMULADORES['cap5-envolvente'] = function (raiz) {
       const c = D5.m10.curva;
       let escala = 0;
+      const razon = v => v.map((y, k) => y / c.mmean[k]);
       const g = grafico5(raiz, 'line', { datasets: [] }, {
         parsing: false, scales: ejesXY('r (metros)', 'K inhomogénea'),
         plugins: { legend: { labels: { filter: it => it.text !== '' } } }
       });
       const pinta = () => {
+        const rel = escala === 0;
+        const Y = rel ? razon : (v => v);
         g.data.datasets = [
-          { label: 'techo de la banda', data: curva5(c.r, c.hi), borderColor: C5.gris,
+          { label: 'techo de la banda', data: curva5(c.r, Y(c.hi)), borderColor: C5.gris,
             pointRadius: 0, fill: '+1', backgroundColor: C5.grisSuave },
-          { label: '', data: curva5(c.r, c.lo), borderColor: C5.gris, pointRadius: 0 },
-          { label: 'media de las simulaciones', data: curva5(c.r, c.mmean),
+          { label: '', data: curva5(c.r, Y(c.lo)), borderColor: C5.gris, pointRadius: 0 },
+          { label: rel ? 'el modelo, que aquí vale 1' : 'media de las simulaciones',
+            data: curva5(c.r, Y(c.mmean)),
             borderColor: C5.naranja, borderDash: [6, 4], pointRadius: 0 },
-          { label: 'K inhomogénea observada', data: curva5(c.r, c.obs),
+          { label: 'K inhomogénea observada', data: curva5(c.r, Y(c.obs)),
             borderColor: C5.verde, borderWidth: 3, pointRadius: 0 }
         ];
-        g.options.scales.y.type = escala === 1 ? 'logarithmic' : 'linear';
+        g.options.scales.y.type = escala === 2 ? 'logarithmic' : 'linear';
+        g.options.scales.y.title.text = rel
+          ? 'K observada ÷ K media del modelo'
+          : 'K inhomogénea';
         g.update();
         lectura5(raiz, [
           ['modelo simulado', D5.m10.modelo],
@@ -2585,7 +2673,7 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
           ['desde r =', n5(D5.m10.primer_r_fuera_m, 0) + ' m'],
           ['veredicto', D5.m10.veredicto]]);
       };
-      botonera5(raiz, ['Escala lineal', 'Escala logarítmica'],
+      botonera5(raiz, ['Veces la media del modelo', 'K, escala lineal', 'K, escala logarítmica'],
                 k => { escala = k; pinta(); }, 0);
       pinta();
       return [g];
@@ -2692,42 +2780,42 @@ QUIZ_JS = r"""
         ] },
       {
         tipo: 'multiple',
-        pista: 'Son dos. Una tiene que ver con lo que se conserva y la otra con lo que cuesta.',
+        pista: 'Son dos. Compruébalas contra la tabla del módulo 4: la integral a tres anchos, y los tres cronómetros.',
         pregunta: 'Marca <strong>todo</strong> lo que es cierto de la corrección de borde en la KDE.',
         retroAcierto: 'Las dos: solo la de Diggle conserva el conteo, y ninguna de las tres cuesta nada apreciable.',
         retroFallo: 'Las dos ciertas son que solo la de Diggle conserva el conteo y que ninguna de las tres cuesta nada apreciable.',
         opciones: [
           { texto: 'Solo <code>diggle = TRUE</code> hace que la integral devuelva n exactamente', correcta: true,
             retro: 'Divide en el punto donde ESTÁ el dato, así que cada punto aporta exactamente 1. Medido a σ = ' + n5(D5.m4.sigmas_m[2], 0) + ' m: ' + n5(D5.m4.tabla[2].masa_diggle, 2) + ' contra n = ' + D5.m4.n + '.' },
-          { texto: 'Las tres opciones cuestan prácticamente lo mismo', correcta: true,
+          { texto: 'Las tres correcciones cuestan prácticamente lo mismo', correcta: true,
             retro: 'Cronometrado: ' + n5(D5.m4.coste_segundos.defecto, 2) + ' s por defecto, ' + n5(D5.m4.coste_segundos.sin_corregir, 2) + ' s sin corregir y ' + n5(D5.m4.coste_segundos.diggle, 2) + ' s con Diggle. La KDE se paga por píxel, no por perímetro.' },
           { texto: 'Sin corregir, la desviación no depende del ancho de banda',
-            retro: 'Depende, y mucho: la fuga pasa de ' + n5(D5.m4.tabla[0].fuga_sin_corregir_pct, 2) + ' % a σ = ' + n5(D5.m4.sigmas_m[0], 0) + ' m a ' + n5(D5.m4.tabla[2].fuga_sin_corregir_pct, 2) + ' % a σ = ' + n5(D5.m4.sigmas_m[2], 0) + '.' },
+            retro: 'Depende, y mucho: la fuga pasa de ' + n5(D5.m4.tabla[0].fuga_sin_corregir_pct, 2) + ' % a σ = ' + n5(D5.m4.sigmas_m[0], 0) + ' m a ' + n5(D5.m4.tabla[2].fuga_sin_corregir_pct, 2) + ' % a σ = ' + n5(D5.m4.sigmas_m[2], 0) + ' m.' },
           { texto: 'Un mapa sin corregir se distingue del corregido a simple vista',
             retro: 'No se distingue: los tres mapas de calor salen plausibles. Por eso la comprobación es la integral y no la mirada.' }
         ] },
       {
         tipo: 'numerica',
-        pista: 'Tres celdas por sigma, y la celda de Kennedy mide 77.8 m.',
-        pregunta: 'La rejilla de Kennedy tiene celdas de ' + n5(D5.m2.familia.celda_m, 1) + ' m y el capítulo exige al menos ' + D5.meta.rejilla.celdas_por_sigma + ' celdas por σ para que el mapa dibuje el núcleo y no la rejilla. ¿Cuál es el σ más estrecho que ese mapa puede dibujar, en metros?',
-        respuesta: D5.m2.familia.sigmas_m[0], tolerancia: 1,
+        pista: 'Al partir las columnas por la mitad, la celda se duplica. Cuántas celdas por σ hace falta lo dice el módulo 2.',
+        pregunta: 'El mapa de Kennedy se dibuja hoy en una rejilla de ' + D5.m2.familia.nx + ' columnas, con celdas de ' + n5(D5.m2.familia.celda_m, 1) + ' m. Si se rehiciera con <strong>la mitad</strong> de columnas, ¿cuál sería el σ más estrecho que podría dibujar sin que lo que se vea sea la rejilla, en metros?',
+        respuesta: D5.m2.familia.sigmas_m[2], tolerancia: 2,
         unidad: 'm',
-        retroAcierto: 'Son ' + n5(D5.m2.familia.celda_m, 1) + ' × ' + D5.meta.rejilla.celdas_por_sigma + ' = ' + n5(D5.m2.familia.sigmas_m[0], 1) + ' m, y ese suelo NO es una preferencia: es lo que decide bajar el deslizador de la ciudad entera a una localidad.',
-        retroFallo: 'Es la celda por el número de celdas exigidas: ' + n5(D5.m2.familia.celda_m, 1) + ' × ' + D5.meta.rejilla.celdas_por_sigma + '. Una celda más ancha que el núcleo no dibuja el núcleo: dibuja la rejilla.'
+        retroAcierto: 'Con la mitad de columnas la celda pasa a ' + n5(2 * D5.m2.familia.celda_m, 1) + ' m, y el suelo son ' + D5.meta.rejilla.celdas_por_sigma + ' celdas por σ: ' + n5(D5.m2.familia.sigmas_m[2], 1) + ' m, que es la tercera parada del deslizador. El presupuesto del ráster no es presentación: decide qué selectores se pueden dibujar, y el módulo 5 descarta dos por esto.',
+        retroFallo: 'Media rejilla es celda doble: ' + n5(2 * D5.m2.familia.celda_m, 1) + ' m. Y el suelo son ' + D5.meta.rejilla.celdas_por_sigma + ' celdas por σ —eso lo dice el módulo 2, no el enunciado—, así que ' + n5(2 * D5.m2.familia.celda_m, 1) + ' × ' + D5.meta.rejilla.celdas_por_sigma + ' = ' + n5(D5.m2.familia.sigmas_m[2], 1) + ' m.'
       },
       {
         tipo: 'opcion',
         pista: 'Los niveles de un factor se ordenan alfabéticamente.',
         pregunta: 'Se marca un patrón con <code>factor(c("oficial", "privado"))</code> y se llama a <code>relrisk</code>. El mapa que sale, ¿qué probabilidad pinta?',
         opciones: [
-          { texto: 'P(privado), porque devuelve el SEGUNDO nivel del factor', correcta: true,
-            retro: 'Y es el defecto que casi publica el módulo 6 al revés: el mapa correcto con el título contrario, todo corriendo y sin un aviso. La guarda que lo caza no es leer la ayuda: es comprobar que donde el mapa es máximo los vecinos son de ese tipo. Medido aquí: ' + n5(100 * D5.m6.bogota.orientacion_verificada, 0) + ' % de oficiales en el máximo, contra ' + n5(100 * D5.m6.bogota.prop_global, 0) + ' % global.' },
-          { texto: 'P(oficial), porque es el primer nivel',
+          { texto: 'P(privado), porque relrisk devuelve la del SEGUNDO nivel del factor', correcta: true,
+            retro: 'Y es el defecto que casi publica el módulo 6 al revés: el mapa correcto con el título contrario, todo corriendo y sin un aviso. La guarda que lo caza no es leer la ayuda: es comprobar que donde el mapa es máximo los vecinos son de ese tipo. Medido sobre el mapa que el capítulo SÍ publica —P(oficial), con el orden de niveles fijado a mano—: en su máximo el ' + n5(100 * D5.m6.bogota.orientacion_verificada, 0) + ' % de los vecinos son oficiales, contra el ' + n5(100 * D5.m6.bogota.prop_global, 0) + ' % de toda la ciudad.' },
+          { texto: 'P(oficial), porque el primer nivel es el que se pinta y el segundo la referencia',
             retro: 'Justo al revés. El primer nivel es la referencia; lo que se pinta es el segundo.' },
-          { texto: 'Las dos, en dos capas',
-            retro: 'Con dos niveles devuelve una sola superficie: la otra es su complemento a uno.' },
-          { texto: 'Depende del sigma',
-            retro: 'El sigma cambia lo suave que sale el mapa, no de qué nivel es la probabilidad.' }
+          { texto: 'Las dos a la vez, devueltas como dos superficies complementarias',
+            retro: 'Con dos niveles devuelve una sola superficie: la otra es su complemento a uno, y no hace falta pintarla.' },
+          { texto: 'Depende del σ, porque decide qué nivel domina el cociente',
+            retro: 'El σ cambia lo suave que sale el mapa, no de qué nivel es la probabilidad. El nivel lo decide el factor, antes de suavizar nada.' }
         ] }
     ];
 
@@ -2739,20 +2827,20 @@ QUIZ_JS = r"""
         opciones: [
           { texto: 'Que las vecindades se solapen y que sus bordes no los ponga una rejilla', correcta: true,
             retro: 'Eso es. Contar en celdas ya era suavizar con un núcleo de caja y sin solapamiento; lo que cambia es el peso y la vecindad, no la idea. Sobre Kennedy los cuadrantes daban entre ' + n5(D5.m1.cuadrantes.intensidad_min_km2, 1) + ' y ' + n5(D5.m1.cuadrantes.intensidad_max_km2, 1) + ' sedes por km².' },
-          { texto: 'Que la estimación sea insesgada y que no dependa de la ventana',
+          { texto: 'Que la estimación sea insesgada y que deje de depender de la ventana',
             retro: 'Ni una ni otra: la KDE sigue dependiendo de la ventana —el módulo 4 va justo de eso— y su corrección de borde por defecto ni siquiera conserva el conteo.' },
-          { texto: 'Que no haga falta elegir ningún parámetro',
-            retro: 'Al revés: el tamaño de celda se cambia por σ, que decide todavía más. El módulo 2 lo mide.' },
-          { texto: 'Que funcione con patrones marcados',
-            retro: 'Las marcas son otra cosa —el módulo 6— y el conteo por cuadrantes también admite separarlas.' }
+          { texto: 'Que no haga falta elegir ningún parámetro y que la integral devuelva n sin pedírselo',
+            retro: 'Las dos al revés: el tamaño de celda se cambia por σ, que decide todavía más (módulo 2), y la corrección por defecto se pasa un ' + n5(D5.m4.tabla[2].exceso_defecto_pct, 2) + ' % (módulo 4).' },
+          { texto: 'Que la marca de cada punto entre en la estimación y que el borde deje de importar',
+            retro: 'Las marcas son otra cosa —el módulo 6— y el borde importa más, no menos: el módulo 4 va justo de eso.' }
         ] },
       {
         tipo: 'numerica',
-        pista: 'La corrección de Diggle divide en el punto donde está el dato.',
-        pregunta: 'Se estima la intensidad de las ' + D5.m4.n + ' sedes de Kennedy con <code>diggle = TRUE</code> y se integra la superficie sobre la ventana. ¿Qué valor da?',
-        respuesta: D5.m4.n, tolerancia: 0.5,
-        retroAcierto: 'Da n exactamente, a cualquier σ: es la única de las tres correcciones que conserva el conteo, y lo hace por construcción.',
-        retroFallo: 'Da ' + D5.m4.n + ', el número de puntos. Es la identidad que define el estimador, y solo la corrección de Diggle la cumple: por defecto se pasa un ' + n5(D5.m4.tabla[2].exceso_defecto_pct, 2) + ' % y sin corregir se queda un ' + n5(-D5.m4.tabla[2].fuga_sin_corregir_pct, 2) + ' % corta.'
+        pista: 'Cada evento trae en media α/β descendientes, y cada descendiente los suyos, y así sucesivamente.',
+        pregunta: 'Un proceso de Hawkes tiene tasa de fondo μ = ' + D5.m11.hawkes.mu + ', salto α = ' + D5.m11.hawkes.alpha + ' y decaimiento β = ' + D5.m11.hawkes.beta + '. ¿Cuál es su tasa media de eventos por unidad de tiempo?',
+        respuesta: D5.m11.hawkes.tasa_teorica, tolerancia: 0.02,
+        retroAcierto: 'μ es solo la tasa de los que llegan de fuera. Cada uno dispara en media α/β = ' + n5(D5.m11.hawkes.razon_ramificacion, 4) + ' descendientes, y la cascada suma una serie geométrica: μ/(1 − α/β) = ' + n5(D5.m11.hawkes.tasa_teorica, 4) + '. La simulación del capítulo da ' + n5(D5.m11.hawkes.tasa_simulada, 4) + '.',
+        retroFallo: 'No es μ: μ es solo la tasa de los eventos que llegan de fuera. Cada evento dispara en media α/β = ' + n5(D5.m11.hawkes.razon_ramificacion, 4) + ' descendientes, cada uno de ellos los suyos, y la serie geométrica da μ/(1 − α/β) = ' + n5(D5.m11.hawkes.tasa_teorica, 4) + '. Que α/β sea menor que 1 es justo lo que impide que el proceso explote.'
       },
       {
         tipo: 'opcion',
@@ -2761,16 +2849,16 @@ QUIZ_JS = r"""
         opciones: [
           { texto: 'El ancho: cambiar de núcleo mueve el pico un ' + n5(D5.m2.nucleos.max_dif_pct, 1) + ' % y cambiar de ancho un ' + n5(D5.m2.familia.caida_pct, 0) + ' %', correcta: true,
             retro: 'Y las cuatro superficies de núcleo distinto correlacionan por encima de ' + n5(Math.min.apply(null, Object.values(D5.m2.nucleos.cor_con_gaussiano)), 3) + ' entre sí: a efectos de lo que un lector ve, son el mismo mapa.' },
-          { texto: 'El núcleo, porque decide la forma del peso',
-            retro: 'Decide la forma, pero al mismo σ las cuatro dan casi la misma superficie: el pico se mueve solo un ' + n5(D5.m2.nucleos.max_dif_pct, 1) + ' %.' },
-          { texto: 'Los dos por igual',
-            retro: 'No: hay un factor de trece entre lo que mueve uno y lo que mueve el otro, medido sobre el mismo patrón.' },
-          { texto: 'Depende del número de puntos',
-            retro: 'El número de puntos afecta a la varianza de la estimación, no a cuál de las dos decisiones domina.' }
+          { texto: 'El núcleo: cambiar de núcleo mueve el pico un ' + n5(D5.m2.familia.caida_pct, 0) + ' % y cambiar de ancho un ' + n5(D5.m2.nucleos.max_dif_pct, 1) + ' %',
+            retro: 'Son las dos cifras del módulo 2, cambiadas de sitio. Al mismo σ las cuatro superficies de núcleo distinto son casi la misma: el pico se mueve solo un ' + n5(D5.m2.nucleos.max_dif_pct, 1) + ' %.' },
+          { texto: 'Los dos por igual: cada uno mueve el pico alrededor de un ' + n5(D5.m2.familia.caida_pct / 2, 0) + ' %',
+            retro: 'No se reparten: hay un factor de trece entre lo que mueve uno y lo que mueve el otro, medido sobre el mismo patrón y la misma ventana.' },
+          { texto: 'Depende del número de puntos: con ' + D5.m4.n + ' sedes ninguna de las dos llega al 10 %',
+            retro: 'El número de puntos afecta a la varianza de la estimación, no a cuál de las dos decisiones domina — y el ancho mueve el pico un ' + n5(D5.m2.familia.caida_pct, 0) + ' %.' }
         ] },
       {
         tipo: 'multiple',
-        pista: 'Son dos. Piensa en qué delata a un selector que ha chocado con su intervalo.',
+        pista: 'Son dos. Una va de lo que R hizo con el número; la otra, de dónde quedó dicho que había pasado algo.',
         pregunta: 'Un selector devuelve exactamente ' + n5(D5.m3.topes[0].sigma, 4) + ', que es el extremo derecho de su intervalo de búsqueda. Marca <strong>todo</strong> lo que es cierto.',
         retroAcierto: 'Las dos: no ha encontrado un óptimo dentro del intervalo, y el valor devuelto no lo delata por sí solo.',
         retroFallo: 'Las dos ciertas son que no ha encontrado un óptimo dentro del intervalo y que el valor devuelto no lo delata por sí solo.',
@@ -2789,32 +2877,32 @@ QUIZ_JS = r"""
         pista: 'Mira las unidades de cada uno de los tres mapas.',
         pregunta: 'De los tres mapas del módulo 5 —todas las sedes, las sedes con grado 11 y esas mismas pesadas por sus evaluados—, ¿cuál es «el mapa de la demanda educativa»?',
         opciones: [
-          { texto: 'Ninguno por sí solo: llamarlo así es una decisión que hay que escribir', correcta: true,
+          { texto: 'Ninguno por sí solo: llamarlo así es una decisión, y hay que escribirla', correcta: true,
             retro: 'Los tres se parecen —correlacionan ' + n5(D5.m5.cor_oferta_grado11, 3) + ', ' + n5(D5.m5.cor_oferta_estudiantes, 3) + ' y ' + n5(D5.m5.cor_grado11_estudiantes, 3) + '— y ninguno cuenta lo mismo. El tercero además cuenta a los estudiantes donde ESTUDIAN, no donde viven.' },
-          { texto: 'El tercero, porque cuenta estudiantes',
+          { texto: 'El de las sedes pesadas por sus evaluados, porque cuenta estudiantes',
             retro: 'Es el más cercano, pero cuenta estudiantes ya matriculados: es demanda ATENDIDA, que es casi lo contrario de demanda insatisfecha.' },
-          { texto: 'El primero, porque incluye todas las sedes',
+          { texto: 'El de todas las sedes, porque incluye la oferta educativa completa',
             retro: 'Ese es oferta, no demanda: dice dónde hay colegio. Y además incluye sedes de primaria, que no tienen grado 11.' },
-          { texto: 'El segundo, porque restringe a bachillerato',
+          { texto: 'El de las sedes con grado 11, porque restringe a quien puede atender bachillerato',
             retro: 'Sigue siendo oferta, solo que de bachillerato: son ' + n5(D5.m5.capas.grado_11.pct_de_las_sedes, 1) + ' % de las sedes, medidas en edificios.' }
         ] },
       {
         tipo: 'opcion',
         pista: 'Mira dónde caen el máximo y el mínimo de una curva rhohat.',
-        pregunta: 'Una curva <code>rhohat</code> da una razón de ' + n5(D5.m7.bogota.curva.razon, 0) + ' entre su ρ máximo y su mínimo, pero el <code>ppm</code> lineal sobre la misma covariable da z = −1.22. ¿Se contradicen?',
+        pregunta: 'Una curva <code>rhohat</code> da una razón de ' + n5(D5.m7.bogota.curva.razon, 0) + ' entre su ρ máximo y su mínimo, pero el <code>ppm</code> lineal sobre la misma covariable da z = ' + n5(D5.m9.distancia.z[1], 2) + '. ¿Se contradicen?',
         opciones: [
           { texto: 'No: la razón de ' + n5(D5.m7.bogota.curva.razon, 0) + ' es casi toda cola, y en el bulto vale ' + n5(D5.m7.bogota.curva.razon_bulto, 2), correcta: true,
             retro: 'Restringida al tramo entre los percentiles 5 y 95 de la covariable observada en los puntos, la curva varía ' + n5(D5.m7.bogota.curva.razon_bulto, 2) + ' veces: la cola infla el titular ' + n5(D5.m7.bogota.curva.cola_infla, 1) + ' veces. Y no es del dato colombiano: sobre bei la elevación pasa de ' + n5(D5.m7.bei.elevacion.razon, 1) + ' a ' + n5(D5.m7.bei.elevacion.razon_bulto, 2) + '.' },
-          { texto: 'Sí: uno de los dos está mal calculado',
+          { texto: 'Sí: uno de los dos está mal calculado y hay que repetir el ajuste',
             retro: 'Los dos están bien calculados. Lo que pasa es que miden cosas distintas sobre tramos distintos de la covariable.' },
-          { texto: 'No, porque el ppm es más fiable que rhohat',
+          { texto: 'No, porque el ppm es más fiable que rhohat y hay que quedarse con su z',
             retro: 'El ppm supone una forma —log-lineal— que la relación puede no tener. Ni más ni menos fiable: menos flexible.' },
           { texto: 'Sí, y hay que quedarse con la razón porque no supone nada',
             retro: 'rhohat supone menos, pero su máximo y su mínimo viven donde casi no hay puntos con los que estimarlos. Por eso este material publica las dos razones.' }
         ] },
       {
         tipo: 'multiple',
-        pista: 'Son dos, y las dos van de argumentos que no aparecen en la llamada.',
+        pista: 'Son dos, y las dos van de decisiones que no se ven en la llamada.',
         pregunta: 'Sobre <code>ppm</code>, marca <strong>todo</strong> lo que es cierto.',
         retroAcierto: 'Las dos: el AIC depende de la cuadratura, y el ajuste con coordenadas crudas devuelve coeficientes sin errores estándar.',
         retroFallo: 'Las dos ciertas son que el AIC depende de la cuadratura y que el ajuste con coordenadas crudas devuelve coeficientes sin errores estándar.',
@@ -2833,13 +2921,13 @@ QUIZ_JS = r"""
         pista: 'La banda del módulo 10 no se simula contra CSR.',
         pregunta: 'La K inhomogénea del patrón urbano se sale de la banda de su modelo ajustado en el ' + n5(D5.m10.pct_r_fuera_de_banda, 0) + ' % de los radios. ¿Qué se concluye?',
         opciones: [
-          { texto: 'Que la intensidad variable no explica la agregación: hace falta un proceso de conglomerado', correcta: true,
+          { texto: 'Que la intensidad variable no explica por sí sola la agregación del patrón', correcta: true,
             retro: 'Esa es la bisagra del capítulo. Modelar la intensidad explica DÓNDE hay más colegios, no que estén cerca unos de otros más de lo que ese «dónde» implica. Y el módulo 11 enseña que el ajuste de conglomerado depende de con qué corrección se estimó K: sobre este patrón, μ pasa de ' + n5(D5.m11.ajustes[0].mu, 1) + ' a ' + n5(D5.m11.ajustes[1].mu, 1) + '.' },
-          { texto: 'Que el modelo está mal ajustado y hay que añadir covariables',
+          { texto: 'Que el modelo está mal ajustado y bastaría con añadirle covariables',
             retro: 'Podría ayudar, pero la K inhomogénea ya descuenta la intensidad estimada: lo que sobra son parejas cercanas, y eso no lo arregla una covariable de gran escala.' },
           { texto: 'Que la banda es demasiado estrecha por usar ' + D5.m10.nsim + ' simulaciones',
             retro: 'Al revés: con ' + D5.m10.nsim + ' simulaciones y la banda por defecto el nivel puntual es ' + n5(D5.m10.nivel_puntual_pct, 1) + ' %, más exigente que el 5 % de una envolvente de 39.' },
-          { texto: 'Que el patrón no es un proceso puntual simple por los duplicados',
+          { texto: 'Que el patrón no es un proceso puntual simple, y son los duplicados los que lo agregan',
             retro: 'Tiene duplicados —' + D5.m11.duplicados.repetidos + ' sitios repetidos— pero quitarlos mueve los parámetros del ajuste como mucho un ' + n5(D5.m11.duplicados.cambio_maximo_pct, 1) + ' %. No son la explicación.' }
         ] }
     ];

@@ -648,7 +648,30 @@ geo_rejilla <- function(z, caja, titulo = "", leyenda = "", n_clases = 7,
                    min(fin), max(fin), lo, hi))
   }
   rango <- hi - lo
-  ci <- classInt::classIntervals(as.numeric(fin), n = n_clases, style = estilo)
+
+  # LOS CORTES VAN SOBRE LA ESCALA QUE SE PINTA, no sobre esta superficie.
+  #
+  # Con `escala` el ráster se cuantiza contra el rango COMÚN, pero los
+  # cortes se calculaban contra `fin` —los valores de ESTA superficie—, así
+  # que la leyenda recorría la rampa entera en las siete del capítulo 5
+  # mientras el mapa de sigma = 1867 m solo llegaba a un tercio de ella.
+  # O sea: la leyenda renormalizaba por superficie justo lo que el pie de
+  # figura promete que NO se renormaliza, y con la tinta más convincente de
+  # las dos. Encontrado el 2026-09-09; estaba tapado porque las siete
+  # leyendas imprimían «0.0000 – 0.0000» por un problema de unidades.
+  #
+  # Con escala común los cortes son de anchura igual sobre [lo, hi] y por
+  # tanto IDÉNTICOS en toda la familia, que es lo que «una sola escala»
+  # significa. Para otros estilos «común» no está definido —un corte por
+  # cuantiles depende de la distribución de cada superficie— y se para.
+  if (is.null(escala)) {
+    brks <- classInt::classIntervals(as.numeric(fin), n = n_clases,
+                                     style = estilo)$brks
+  } else {
+    if (!identical(estilo, "equal"))
+      stop("geo_rejilla: con `escala` comun los cortes son de anchura igual sobre el rango comun; `estilo` tiene que ser \"equal\"")
+    brks <- seq(lo, hi, length.out = n_clases + 1L)
+  }
 
   # por filas, de arriba a abajo, como lo espera el navegador
   plano <- as.numeric(t(z))
@@ -660,7 +683,7 @@ geo_rejilla <- function(z, caja, titulo = "", leyenda = "", n_clases = 7,
        caja = as.numeric(caja), nx = ncol(z), ny = nrow(z),
        zq = as.integer(zq), zqmax = ZQ,
        rango = c(lo, hi),
-       cortes = as.numeric(ci$brks))
+       cortes = as.numeric(brks))
 }
 
 # ---------------------------------------------------------------------

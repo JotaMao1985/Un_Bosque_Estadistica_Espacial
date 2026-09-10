@@ -312,6 +312,26 @@ SIGMAS <- round(SIG_LO * FAM_RAZON^(seq(0, 1, length.out = FAM_N)), 4)
 
 fam <- ppp_kde_familia(p_ken, SIGMAS, nx = NX_KEN, celdas_por_sigma = FAM_CELDAS)
 
+# LA SUPERFICIE SE PUBLICA EN LA UNIDAD QUE SU LEYENDA DECLARA.
+#
+# `density.ppp` devuelve la intensidad en unidades del CRS —sedes por m²,
+# del orden de 1e-05— y los mapas de este capítulo rotulan su leyenda
+# «sedes por km2». Mientras el ráster viajaba en m² y el rótulo decía km²,
+# la leyenda que el navegador dibujaba era «0.0000 – 0.0000» siete veces:
+# la plantilla elige decimales por el recorrido de los cortes, veía 3e-05 y
+# aplicaba toFixed(4). El de evaluados no imprimía ceros y decía 0.0016
+# donde su propia lectura dice 1578,81. Encontrado en pantalla el
+# 2026-09-09; ningún auditor lo veía porque todos comparan CIFRAS, y estas
+# eran correctas: lo que estaba mal era su unidad frente a su rótulo.
+#
+# Se escala aquí y no en `geo_rejilla()`: la función no puede saber en qué
+# unidad habla el rótulo que le pasan, y el resto del capítulo ya publica
+# esta familia en km² (`max_km2`). `zq` no cambia —la cuantización es
+# (z - lo)/(hi - lo), invariante a un factor común— así que el ráster
+# publicado es byte a byte el mismo y solo se mueven `rango` y `cortes`.
+M2_A_KM2   <- 1e6
+FAM_ESC_KM2 <- fam$escala * M2_A_KM2
+
 # Los cuatro selectores, sobre Kennedy y sobre la ciudad. Que sobre la
 # ciudad discrepen 5,3 veces y sobre Kennedy solo 1,8 no es ruido: es
 # contenido del módulo 3, y sale de la misma llamada.
@@ -320,6 +340,23 @@ selectores <- function(p) c(
   CvL = as.numeric(bw.CvL(p)),       scott = as.numeric(bw.scott(p))[1])
 SEL_KEN <- cacheado("sel_kennedy", selectores(p_ken))
 SEL_URB <- cacheado("sel_urbana",  selectores(p_urb))
+
+# Y EL SEGUNDO ANCHO DE bw.scott, QUE NO ES UN DETALLE DE IMPLEMENTACIÓN.
+#
+# `bw.scott` no devuelve un ancho: devuelve DOS, `sigma.x` y `sigma.y`, uno
+# por eje, porque la regla de referencia normal se aplica a cada coordenada
+# por separado. `selectores()` se queda con el primero —que es lo que hace
+# falta para comparar los cuatro en una sola columna— y hasta el 2026-09-09
+# el capítulo no lo decía en ninguna parte, así que publicaba como «el ancho
+# de Scott» la mitad de su respuesta. Sobre la ciudad, que es larga y
+# estrecha, los dos difieren un 76 %.
+#
+# Va en su propia variable y con su propia clave de cache en vez de crecer
+# `selectores()`: ese vector son LOS CUATRO SELECTORES y lo consumen la
+# tabla, las razones y las cuatro barras del simulador. Un quinto elemento
+# los rompería, y además dejaría la cache vieja diciendo otra cosa.
+SCOTT_Y_KEN <- cacheado("scott_y_kennedy", as.numeric(bw.scott(p_ken))[2])
+SCOTT_Y_URB <- cacheado("scott_y_urbana",  as.numeric(bw.scott(p_urb))[2])
 
 D$m2 <- list(
   sigma_m = SIG_REF,
@@ -334,7 +371,7 @@ D$m2 <- list(
     sigmas_m = r10(fam$sigmas),
     max_km2 = r10(fam$maximos * 1e6),
     caida_pct = r10(100 * (max(fam$maximos) - min(fam$maximos)) / max(fam$maximos)),
-    escala = r10(fam$escala)))
+    escala = r10(FAM_ESC_KM2)))
 
 message(sprintf("   nucleos: el maximo varia %.1f%% · anchos: varia %.1f%%",
                 D$m2$nucleos$max_dif_pct, D$m2$familia$caida_pct))
@@ -375,9 +412,11 @@ con_nombres <- function(v) {
 D$m3 <- list(
   kennedy = list(n = npoints(p_ken),
                  sigmas_m = con_nombres(SEL_KEN),
+                 scott_y_m = r10(SCOTT_Y_KEN),
                  razon = r10(max(SEL_KEN) / min(SEL_KEN))),
   urbana  = list(n = npoints(p_urb),
                  sigmas_m = con_nombres(SEL_URB),
+                 scott_y_m = r10(SCOTT_Y_URB),
                  razon = r10(max(SEL_URB) / min(SEL_URB))),
   topes = list(tope_ppl, tope_rrisk))
 
@@ -950,6 +989,19 @@ D$m10 <- list(
   pct_r_fuera_de_banda = r10(pct_fuera),
   primer_r_fuera_m = r10(min(rg_env[dentro_r][fuera[dentro_r]])),
   curva = list(r = r10(rg_env), obs = r10(obs), lo = r10(lo), hi = r10(hi), mmean = r10(mme)),
+  # LA TEÓRICA EXISTE, Y ES pi r^2. Para cualquier proceso de Poisson
+  # INHOMOGÉNEO la K inhomogénea vale pi r^2 —es la razón entera de que
+  # exista K_inhom: dividir cada pareja por su intensidad quita la
+  # tendencia—. El objeto `envelope` sobre un modelo ajustado no trae esa
+  # columna, y el módulo decía que «no tendría sentido que la trajera», lo
+  # cual borra el resultado que hace útil al estimador. Aquí se mide cuánto
+  # se aleja de ella la media de las simulaciones, que es lo que el módulo
+  # usa de referencia: si la media reprodujera pi r^2 exactamente, daría
+  # igual cuál se tomara; lo que justifica preferir la media es que el
+  # ESTIMADOR está sesgado —corrección de borde, y lambda estimada del
+  # propio dato— y la media comete el mismo sesgo.
+  mmean_vs_teorica_pct = r10(100 * max(abs(
+    mme[dentro_r] / (pi * rg_env[dentro_r]^2) - 1))),
   # La lectura, que es lo que el módulo tiene que dejar dicho.
   veredicto = "la intensidad variable no explica la agregación: hace falta un proceso de conglomerado")
 
@@ -1105,12 +1157,12 @@ message("mapas")
 # forma —una lista de sigmas en el dato y una de rásteres en los mapas—
 # así que cada ráster lleva su sigma y el ensamblador lo busca por él.
 MAPAS$kennedy_familia <- lapply(seq_along(fam$sigmas), function(i) {
-  g <- geo_rejilla(fam$imagenes[[i]], fam$caja, escala = fam$escala,
+  g <- geo_rejilla(fam$imagenes[[i]] * M2_A_KM2, fam$caja, escala = FAM_ESC_KM2,
                    titulo = sprintf("Kennedy · sigma = %.0f m", fam$sigmas[i]),
                    leyenda = "sedes por km2")
   # La escala es COMÚN a las siete: se declara en cada una para que el
   # auditor pueda comprobar que ninguna se salió por su cuenta.
-  c(g, list(sigma_m = r10(fam$sigmas[i]), escala_comun = r10(fam$escala)))
+  c(g, list(sigma_m = r10(fam$sigmas[i]), escala_comun = r10(FAM_ESC_KM2)))
 })
 
 MAPAS$kennedy_puntos <- geo_puntos(
@@ -1120,11 +1172,11 @@ MAPAS$kennedy_puntos <- geo_puntos(
 
 # Los dos mapas del módulo 5 que NO son el mismo mapa.
 MAPAS$ciudad_oferta <- geo_rejilla(
-  kde_oferta, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),
+  kde_oferta * M2_A_KM2, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),
   titulo = sprintf("Sedes educativas · sigma = %.0f m", SIG_CIUDAD),
   leyenda = "sedes por km2")
 MAPAS$ciudad_estudiantes <- geo_rejilla(
-  kde_est, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),
+  kde_est * M2_A_KM2, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),
   titulo = sprintf("Evaluados en Saber 11 · sigma = %.0f m", SIG_CIUDAD),
   leyenda = "evaluados por km2")
 
