@@ -335,7 +335,83 @@ ignorados y viven en la copia principal. `verifica_bloques.py` mata la sesión d
 `cache/dep_disuelto_1122.rds` y reporta 47 bloques con discrepancias, que es un falso rojo
 espectacular. Se arregla enlazando o copiando esas dos carpetas desde la copia principal.
 
-**Siguiente: C10** (el calificador), o la decisión sobre M-14, que es lo que manda.
+**C10 HECHA (2026-09-10)** · `precalculo/verifica_taller2.R`, **1 321 líneas, fuera de git a
+propósito** (`.gitignore:149`, comprobado con `git check-ignore`): imprime el régimen de los tres
+patrones de cada trío, que es T2(a) y T2(b) enteras. Molde: `verifica_taller1.R`, estructura
+copiada — `ancla()`, `arranque()`, una hoja por tarea, `--lista`, `avisa_colisiones()`,
+`exige_ignorado()` antes de escribir un byte. **No entra en el arnés**, y `audita_todo.sh` no lo
+recoge: nombra a `verifica_bloques.py` explícitamente y no hay ningún glob que lo alcance.
+
+```
+precalculo/rscript.sh precalculo/verifica_taller2.R 1012345678
+precalculo/rscript.sh precalculo/verifica_taller2.R --lista curso.txt      # documento, nombre, portada
+precalculo/rscript.sh precalculo/verifica_taller2.R --patrones             # los 60 y su régimen
+precalculo/rscript.sh precalculo/verifica_taller2.R --localidades          # la clave de T1 y de T1(d)
+precalculo/rscript.sh precalculo/verifica_taller2.R 1012345678 --json calificacion/esperado/
+```
+
+**Lo que deduce en vez de recordar**, que es lo que hace que la herramienta signifique algo: las
+familias salen del CSV publicado por Clark-Evans, y la prueba de que la deducción es la buena es
+que encuentra **un patrón de cada régimen en cada uno de los doce tríos** y **los 24 propios
+agregados**, sin que eso esté escrito en ninguna parte. Márgenes reales, impresos en cada pasada:
+agregado hasta **R = 0,8260**, aleatorio de **0,9661 a 1,1236**, regular desde **1,3883**.
+**Lo que no duplica:** el orden de los mapas de T2 se **lee del HTML publicado**
+(`ORDEN_MAPAS_T2`), no se copia — si el ensamblador cambiara la permutación y el calificador no se
+enterara, el emparejamiento impreso sería falso y nadie lo notaría.
+**143 anclas** en el arranque, todas en pie: las 16 localidades rehechas desde el GeoPackage (peor
+desvío en área 5,0e-9 km²), los 60 dibujos contra el CSV (1,22e-4, que es el medio paso de
+cuantización), las 60 G, K, L y g contra el JSON (**5,04e-9**) y los 12 recuentos de nodos fuera de
+banda. Probado sobre **36 documentos** que cubren las 16 localidades, los 12 tríos, las 12
+envolventes y todos los contrastes: 36 hojas, cero errores, 100 s.
+
+**M-14, confirmado por tercera vez y con la cifra más dura hasta ahora.** Medido contra
+`ppp_F_borde()` —la F del capítulo 4, sobre rejilla de sondas y `nncross`—: el peor desacuerdo
+sobre los 60 patrones es **0,9662**, sobre una función que vive en [0, 1]. Dicho de la forma en que
+lo ve un estudiante, para el trío 03: **la F publicada llega a 0,99 en r = 0,010, donde la de
+verdad vale 0,046**. Por eso `hoja_t2()` **se niega** a imprimir cualquier lectura apoyada en F y
+declara T2 no calificable, mientras imprime el emparejamiento —que sale de las coordenadas y sí es
+correcto—.
+
+**M-18 · NUEVO, y lo encontró este guion: el pico/media publicado sale de una rejilla que no es la
+del enunciado.** `genera_taller2.R` calcula `t5` con `DIMYX <- 80L`; el bloque de código de T5 le
+fija al estudiante `dimyx = 256`. Medido sobre las 16: con 80 el cociente publicado se reproduce
+**exacto** (peor desvío 0,000000) y los 16 recuentos de focos cuadran; con 256 el peor desvío es
+**0,680577** —Ciudad Bolívar, 18,33 publicado contra 17,65— y **15 de los 16 difieren ya en el
+segundo decimal**, que es la precisión a la que el informe lo publica («un pico de X veces»).
+Los recuentos con 256 fallan en 2 de 16 (Usme 2→3, Barrios Unidos 3→4), que es el 14 de 16 de M-17.
+**Por qué importa y no es cosmético:** M-9 eligió el cociente pico/media *precisamente* por ser
+continuo y estable, y es el instrumento con el que T5 se califica; el enunciado avisa de que el
+**entero** de los focos depende del ráster y **del cociente no dice nada**. El estudiante cuidadoso
+que siga el bloque al pie de la letra reportará una discrepancia que el taller le dice que no
+debería existir. **Dos salidas, y son de Javier:** (1) el enunciado extiende el aviso del ráster al
+cociente —es una frase, y de paso es la lección de T5(c)—, o (2) el precálculo regenera `t5` con
+`dimyx = 256`. Mientras tanto la hoja imprime **las dos cifras** y avisa variante por variante.
+**No se tocó el ensamblador**: la decisión probablemente se la come la regeneración de M-14.
+
+**M-19 · la clave de T1(c) es sistemáticamente gruesa, y hay que saberlo antes de corregir.** La
+rejilla más fina en que **ninguna** celda baja de 5 es **k = 2 en nueve de las dieciséis**, **k = 3
+en cuatro** y **no existe en tres** (Usme, Tunjuelito, Los Mártires). No es un defecto —el
+enunciado ya contempla «si no existe ninguna, dilo y sostenlo»—, es que con una ventana poligonal
+casi cualquier k deja una astilla de área minúscula y esa astilla **es** una celda. Un k = 2 no se
+puede marcar como error de bulto. Y de los trece que sí tienen rejilla legible, **cuatro no
+rechazan en ella** (Rafael Uribe, Fontibón, Barrios Unidos, Antonio Nariño) habiendo rechazado con
+el 5×5 ilegible: ahí está la sustancia de la tarea.
+
+**Una trampa del `.geomapa` que costó un ancla rota y conviene dejar escrita.** El encuadre de un
+geomapa cuantiza sobre el **lado mayor** de la caja, centrado —`r = max(rx, ry)`, ver
+`geomapaCajaQ()` en la plantilla y `geo_partes()` en R—, **no eje por eje**. Decodificar por ejes,
+que es lo primero que uno escribe, desplaza el eje corto hasta **6e-2** y hace saltar el ancla del
+dibujo. Saltó, y por eso está escrito aquí.
+
+**Lo que C10 NO hace, y va dicho en la cabecera del guion:** no pone notas —compara cifras y
+presenta la evidencia—, no ejecuta `genera_taller2.R`, y **no para** por M-14 ni por M-18. Esa
+última es una decisión, no un descuido: `ancla()` para ante lo que no se sabe, y estos dos están
+medidos y escritos aquí esperando una decisión; convertirlos en un `stop()` habría sido una forma
+elegante de no escribir la herramienta. Lo que hace en su lugar es gritarlos en cada pasada, con la
+cifra, y negarse a imprimir la clave que dependa de ellos.
+
+**Siguiente: la decisión sobre M-14 —regenerar, que de paso cierra la fuga de `datos_taller2.R` y
+M-18—, y C10b/C11, que son de calendario y no de construcción.**
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -1245,10 +1321,21 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
       **`genera_taller2.R` y `verifica_taller2.R` ignorados**
 - [ ] `git check-ignore` confirma los dos que NO deben viajar
 
-**C10 · El calificador** — `precalculo/verifica_taller2.R` — **Tamaño: M**
-- [ ] recalcula las cifras esperadas de **un** documento · `--lista curso.txt` para los 12 ·
+**C10 · El calificador** — `precalculo/verifica_taller2.R` — **Tamaño: M** — **HECHA (2026-09-10)**
+- [x] recalcula las cifras esperadas de **un** documento · `--lista curso.txt` para los 12 ·
       **para** si la portada no cuadra con la lista (§5.2) · **no entra en el arnés**, porque
       imprime las respuestas y el arnés deja registro
+- [x] 1 321 líneas · 143 anclas en el arranque · 55 cifras por hoja · probado sobre 36 documentos
+      que cubren las 16 localidades, los 12 tríos, las 12 envolventes y todos los contrastes
+- [x] el §5.2 comprobado con el caso real del Taller 1 —el que tecleó 102 en vez de 480—: para
+      antes de imprimir una sola cifra y dice cuál es cuál
+- [x] `--json` se niega a escribir en una ruta que git no ignore, y lo comprueba **antes** de
+      crear el directorio
+- [x] deduce las familias en vez de recordarlas, y lee `ORDEN_MAPAS_T2` del HTML publicado en vez
+      de copiarlo
+- **Encontró dos cosas que no estaban:** **M-18** (el pico/media de T5 sale de `dimyx = 80` y el
+  enunciado pide `dimyx = 256`) y **M-19** (la clave de T1(c) es k = 2 en nueve de las dieciséis y
+  no existe en tres). Las dos en el §0.
 
 **C10b · El control de la semana 9** — en clase, entre el 28 de septiembre y el 2 de octubre — **Tamaño: S**
 - **Descripción:** los doce leen en voz alta su localidad, su n y su λ (§5.3). No se califica.
