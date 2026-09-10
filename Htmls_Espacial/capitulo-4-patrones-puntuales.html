@@ -8201,7 +8201,14 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
     // costó un ReferenceError que se llevó por delante
     // `iniciarSimuladores()` entero (A.13, nº 4).
     const n5 = (x, d) => Number(x).toFixed(d == null ? 5 : d);
-    const miles4 = x => Math.round(Number(x)).toLocaleString('es-ES').replace(/\./g, ' ');
+    // OJO A LOS CUATRO DÍGITOS. `toLocaleString('es-ES')` NO separa los
+    // millares de cuatro cifras —«2000», pero «13 767»—, que es la regla del
+    // español; `ent()`, en Python, los separa siempre. Con las dos convivían,
+    // la prosa decía «2 000 realizaciones» y la lectura del gráfico de ese
+    // mismo módulo «2000». Se agrupa a mano para que el navegador escriba lo
+    // que escribe la prosa, y el fino es el mismo U+202F.
+    const miles4 = x => String(Math.round(Number(x)))
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
     // CONTRATO DEL MOTOR: un simulador DEVUELVE sus gráficos. No existe
     // `registrarGrafico`.
@@ -8278,10 +8285,16 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         ['rejilla', q.nx + ' × ' + q.ny],
         ['celdas vivas', q.celdas],
         ['índice de dispersión', n5(q.dispersion, 3)],
-        ['bajo Poisson valdría', '1'],
+        // LA NULA CORRECTA, y no el 1 de los libros. Esta fila decía «bajo
+        // Poisson valdría 1» sobre una rejilla recortada donde vale 15,23: es
+        // el defecto R1 del A.30.3, que se arregló en la prosa y en el quiz y
+        // se quedó vivo AQUÍ. Tres superficies para una misma afirmación —el
+        // párrafo, la lectura del simulador y la retroalimentación— y la del
+        // medio no la mira ningún auditor.
+        ['bajo Poisson valdría', n5(q.dispersion_nula, 2) + ' · no 1, porque las celdas no miden igual'],
         ['χ²', n5(q.chi2, 2)],
         ['la celda más poblada', q.maximo + ' sedes'],
-        ['celdas con esperanza < 5', q.celdas_esperanza_baja]
+        ['celdas con esperanza &lt; 5', q.celdas_esperanza_baja]
       ]);
       return [g];
     };
@@ -8335,7 +8348,7 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         if (vista === 'conteo') {
           g.data.labels = m.hist_k;
           g.data.datasets = [
-            { type: 'bar', label: 'simulaciones', data: m.hist_obs, backgroundColor: C4.verde },
+            { type: 'bar', label: 'realizaciones', data: m.hist_obs, backgroundColor: C4.verde },
             { type: 'line', label: 'Poisson teórica', data: m.hist_teorico,
               borderColor: C4.naranja, borderDash: [6, 4], pointRadius: 0, tension: 0.3 }
           ];
@@ -8350,7 +8363,7 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         } else {
           g.data.labels = m.R_csr.hist_centros.map(c => n5(c, 3));
           g.data.datasets = [
-            { type: 'bar', label: 'R de realizaciones de CSR PURO',
+            { type: 'bar', label: 'R de realizaciones de azar puro',
               data: m.R_csr.hist_conteo, backgroundColor: C4.morado }
           ];
           g.options.scales.x.title.text = 'índice de Clark-Evans';
@@ -8358,7 +8371,7 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
             ['media de R', n5(m.R_csr.media)],
             ['recorrido', n5(m.R_csr.min, 3) + ' – ' + n5(m.R_csr.max, 3)],
             ['intervalo central 95 %', n5(m.R_csr.q025, 3) + ' – ' + n5(m.R_csr.q975, 3)],
-            ['darían «agregado» leyendo R < 1', miles4(m.R_csr.bajo_1) + ' de ' + miles4(m.R_csr.n)]
+            ['darían «agregado» leyendo R &lt; 1', miles4(m.R_csr.bajo_1) + ' de ' + miles4(m.R_csr.n)]
           ]);
         }
         g.update();
@@ -8399,7 +8412,7 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
           ['patrón', ETQ[i]],
           ['tamaños barridos', b.nx.length],
           ['rechazan al 5 %', rech + ' de ' + b.nx.length],
-          ['esperanza < 5 desde nx', primeraBaja == null ? '—' : primeraBaja],
+          ['esperanza &lt; 5 desde nx', primeraBaja == null ? '—' : primeraBaja],
           ['χ² con nx = 2', n5(b.chi2[0], 2)],
           ['χ² con nx = 20', n5(b.chi2[b.chi2.length - 1], 2)]
         ]);
