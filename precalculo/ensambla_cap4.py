@@ -442,6 +442,15 @@ print([round(chi2, 2), int(vivas.sum()) - 1])
 #&gt; [456.12, 64]
 print(round(obs[vivas].var(ddof=1) / obs[vivas].mean(), 4))
 #&gt; 25.9097''')}
+
+      <p>Fíjate en el comentario del bloque de Python, porque no es una nota de estilo: para
+        reproducir el χ² hay que reproducir <strong>el binado</strong>, y el de
+        <code>quadratcount</code> es el de <code>cut()</code> —intervalos abiertos por la
+        izquierda, con el más bajo cerrado por los dos lados—. Los puntos que caen justo sobre
+        el borde de una celda se reparten según ese convenio, y con otro salen conteos
+        <em>casi</em> iguales, que es la forma más cara de estar mal. El módulo 5 vuelve sobre
+        esto, y allí el convenio decide la demostración entera.</p>
+
 """ + CIERRE
 
 
@@ -534,6 +543,14 @@ for nm in ("cells", "japanesepines", "redwood"):
 #&gt; cells 1.6717
 #&gt; japanesepines 1.064
 #&gt; redwood 0.6187''')}
+
+      <p>Las dos pestañas calculan lo mismo por caminos distintos —spatstat en R, un árbol k-d
+        en Python— y llegan a la misma cifra hasta el cuarto decimal. Eso es lo que hace
+        creíble una R, no que la imprima un paquete con buen nombre. Pero fíjate en cuál se
+        pide: <code>clarkevans(p)[["naive"]]</code>, la versión <em>sin corregir</em>. Guarda
+        esa palabra: el módulo siguiente va a enseñar que esa R no está centrada en 1, y el 10
+        va a decir por qué.</p>
+
 """ + CIERRE
 
 
@@ -613,6 +630,15 @@ print([round(float(conteos.mean()), 3), round(float(conteos.var(ddof=1)), 3)])
 # OJO: R y Python NO comparten generador de numeros aleatorios, asi que
 # las cifras simuladas difieren aunque la semilla sea la misma. Lo que
 # coincide es la PROPIEDAD: media y varianza rondan las dos lambda|W|.''')}
+
+      <p>El aviso del bloque de Python es el que importa, y vale para todo el capítulo: R y
+        Python <strong>no comparten generador de números aleatorios</strong>, así que la misma
+        semilla no da las mismas simulaciones. Lo que se reproduce no es la cifra, es la
+        <em>propiedad</em> —media y varianza rondando las dos λ|W|—, y por eso el capítulo
+        publica las cifras de R y comprueba las propiedades en Python. Con eso ya está dicho
+        contra qué se compara un patrón; lo que falta es con qué medirlo, y la herramienta más
+        antigua es también la que peor ve.</p>
+
 """ + CIERRE
 
 
@@ -806,7 +832,14 @@ MOD5 = cabecera(
         del tamaño de la celda, ¿qué tamaño hay que elegir? Y si la respuesta cambia el
         veredicto, ¿de quién es el veredicto?</p>
 
-{TABS_M5}""" + CIERRE
+{TABS_M5}
+      <p>La rebaraja del código es la demostración entera, y por eso se escribe en las dos
+        pestañas en vez de citarse: se conservan los conteos por celda y se tira todo lo demás.
+        Que el χ² salga idéntico <strong>hasta el último decimal</strong> no es una coincidencia
+        afortunada, es una consecuencia aritmética de que el estadístico solo lea esos conteos.
+        Queda la pregunta que abre el módulo siguiente: si el tamaño de la celda decide lo que
+        el test puede ver, ¿quién elige el tamaño?</p>
+""" + CIERRE
 
 
 # =====================================================================
@@ -903,7 +936,14 @@ MOD7 = cabecera(
         convenio</em>, así que la corrección y el átomo viven en el mismo punto de la curva
         y el segundo desaparece de la vista. Por eso el capítulo dibuja las dos.</p>
 
-{TABS_M7}""" + CIERRE
+{TABS_M7}
+      <p>Las dos pestañas cuentan lo mismo de dos maneras y las dos dan
+        {ent(m7['bogota']['coincidentes'])}: en R, leyendo la G empírica en r = 0; en Python,
+        contando cuántas distancias al vecino más próximo valen exactamente cero. Que dos
+        caminos tan distintos coincidan es lo que convierte el átomo en un hecho del dato y no
+        en un artefacto del estimador. G y F miran una sola escala —la del vecino más
+        próximo—; el módulo siguiente mira todas a la vez.</p>
+""" + CIERRE
 
 
 # =====================================================================
@@ -948,7 +988,14 @@ MOD8 = cabecera(
         módulo siguiente lo desmonta: una función acumulativa arrastra lo que ya contó, así
         que no sirve para decir <em>dónde</em> está la estructura.</p>
 
-{TABS_M8}""" + CIERRE
+{TABS_M8}
+      <p>El comentario del bloque de R señala algo que conviene no pasar por alto: la curva se
+        calcula en la rejilla que elige spatstat y se <em>publica</em> en una de 101 nodos, así
+        que el máximo cae en una r vecina y el valor difiere en la tercera cifra. No es un
+        error de nadie: es que una curva y su resumen se miden en rejillas distintas, y decirlo
+        cuesta menos que dejar al lector comparando dos números que no cuadran. Ese máximo, sin
+        embargo, arrastra todo lo contado antes — y de ahí el módulo siguiente.</p>
+""" + CIERRE
 
 
 TABS_M9 = tabs(
@@ -1078,7 +1125,14 @@ MOD9 = cabecera(
         banda que el capítulo 5 va a discutir en serio. La pestaña de Python de abajo enseña
         la versión cruda, sin suavizar, para que se vea qué compra el suavizado.</p>
 
-{TABS_M9}""" + CIERRE
+{TABS_M9}
+      <p>La pestaña de Python es aquí la interesante, porque no reproduce a spatstat: calcula la
+        g <em>cruda</em>, contando parejas por anillo sin suavizar. Sale más alta y más
+        dentada, y esa diferencia es lo que compra el suavizado —a cambio de un ancho de banda
+        que hay que elegir, y que el capítulo 5 discute en serio—. Con G, F, K y g el patrón ya
+        está descrito; lo que sigue es si podemos creernos las curvas, y la respuesta empieza
+        por el borde de la ventana.</p>
+""" + CIERRE
 
 
 # =====================================================================
@@ -1145,7 +1199,14 @@ MOD10 = cabecera(
         parejas a distancia exactamente cero, es decir las sedes coincidentes. El átomo de
         los duplicados asoma en todos los estimadores, no solo en G.</p>
 
-{TABS_M10}""" + CIERRE
+{TABS_M10}
+      <p>El bloque de R deja fuera, a propósito, los segundos que tarda cada corrección: no son
+        reproducibles —dependen de la máquina— y publicarlos como salida esperada sería anunciar
+        una cifra que nadie puede comprobar. Se anuncia la <em>relación</em>, que es lo que el
+        módulo afirma, y se invita a medir los tiempos en la máquina de cada cual. Con el borde
+        corregido las curvas ya son creíbles; lo que todavía no hay es una vara para decir si
+        una separación es grande, y eso es el módulo siguiente.</p>
+""" + CIERRE
 
 
 # =====================================================================
@@ -1212,7 +1273,14 @@ MOD11 = cabecera(
         {n(ESC[19]['nrank_para_5pct'], 5)}, y los rangos son enteros. Elegir nsim no es
         elegir precisión, es elegir qué contrastes existen.</p>
 
-{TABS_M11}""" + CIERRE
+{TABS_M11}
+      <p>Fíjate en la última línea del bloque de R: el test global <strong>reutiliza las mismas
+        simulaciones</strong> que la banda —el bloque lo hace con {ent(_e39['nsim'])} y no hacen falta otras
+        tantas—, y esa es la razón práctica de que no haya excusa para leer la banda entera
+        como si fuera un contraste: el contraste correcto ya está pagado. Con esto el capítulo tiene sus cuatro
+        piezas —una ventana declarada, una escala elegida, una curva corregida y una referencia
+        simulada—, y lo que queda es usarlas.</p>
+""" + CIERRE
 
 
 # =====================================================================
