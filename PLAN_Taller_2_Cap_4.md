@@ -120,7 +120,86 @@ tenía, `entrega/plantilla_taller1.tex`, y aquí no existe ni hay tarea que la c
 se publica límite de páginas**, que preferí omitir antes que inventarlo. La hora límite del martes
 6 tampoco está fijada.
 
-**Siguiente: C5b**, y va con las notas del §7.1.
+**C5b HECHA (2026-09-10)**: el mismo `ensambla_taller2.py` añade **T3, T4, T5 y las dos
+rúbricas**. El HTML pasa a **1 124 KB** y a **siete módulos**, con **5 tareas al 8 %** —los pesos
+suman el 40 % del escrito y el ensamblador lo comprueba—, **6 tiras de variante** (todas menos la
+de rúbricas), **8 lienzos con `aria-label`** y **2 rúbricas de 100 puntos**. Verde otra vez:
+auditor **180 · 0 · 0**, `sin_aritmetica.py` y `campos_vivos.py` limpios, **0 desbordamientos a
+1 280, 375 y 318 px en los siete módulos**, **24 fórmulas KaTeX** y **0 gráficos huérfanos tras
+seis ciclos** (42 cargas de módulo). Consola sin errores.
+**Los tres informes que las tareas ponen a auditar se RENDERIZAN, no se escriben**: cada uno cita
+cifras de la variante de quien lee. Nace de una comprobación: la primera versión del informe de
+T4 decía «se sale en prácticamente todos los nodos» y **era falsa en media docena de las doce**
+—en la primera envolvente son 16 de 159—. Un informe con la premisa falsa hunde la tarea, porque
+el estudiante refuta la aritmética y no llega nunca al error, que es de razonamiento. Ahora los
+tres dicen cifras ciertas y sacan de ellas conclusiones que no se siguen.
+**Falta C6**: el banco de 36 y las 12 afirmaciones falsas, que van en el módulo 7.
+
+**M-15 · T4(a) NO PUEDE «ENTREGAR EL SESGO YA MEDIDO»: no está publicado.** El JSON publica de
+cada localidad **solo** identidad, n, área y λ —el auditor lo exige así—, de modo que ni el sesgo
+de borde ni el cociente perímetro/área viajan. T4(a) reescrita: el estudiante los **calcula**, con
+el bloque que se le da, y eso sigue sin repetir el ejercicio `e5` porque no pide las tres
+correcciones sino dos, sobre **dos** ventanas de forma opuesta. Medido el 2026-09-10 a **r = 1 km**:
+el déficit de la K sin corregir va del **8,8 % en Usme** (perímetro/área 0,507) al **45,5 % en
+Antonio Nariño** (2,479), y **ordena monótonamente por perímetro/área** en la muestra medida — es
+decir, T4(b) tiene respuesta y con holgura. *(M-12 daba 20,3 %–33,9 %: es la misma cosa medida a
+otra escala de r, no una contradicción.)*
+
+**M-16 · T4(b) NO PUEDE PEDIR EL TEST GLOBAL: el patrón de la envolvente no se publica.** La
+envolvente viaja como curvas —`r`, `obs`, `lo`, `hi`, `teo`— y las coordenadas que la produjeron no
+están ni en el JSON ni en el CSV, así que el estudiante no puede correr `dclf.test` como el plan
+preveía. Lo que **sí** puede es contar los nodos fuera de banda, comparar el recuento con lo que
+esperaría de una banda puntual al 5 % y decir **por qué el recuento tampoco decide** —que los 513
+nodos de una K acumulada no son independientes—. Eso es el módulo 11 y no lo cubre ninguna
+superficie publicada. Medido: los recuentos van de **3 de 513 (0,6 %)** a **219 de 513 (42,7 %)**,
+así que la comparación con el 5 % esperado da conversación en las dos direcciones.
+
+**M-17 · EL RECUENTO DE FOCOS DE T5 NO ES REPRODUCIBLE SIN LA REJILLA, y el JSON no la publica.**
+Contar componentes conexas por encima de un umbral depende del ráster sobre el que se dibuje la
+superficie. Barrido el 2026-09-10 sobre las dieciséis: con `dimyx = 64/128/256/512` cuadran
+15/12/14/13 recuentos, y probando además `diggle = TRUE`, `edge = FALSE` y la media como `n/área`,
+**ninguna combinación reproduce las dieciséis**; el error del `pico_informe` no baja del **3,7 %**
+en el mejor caso. Con la mejor —`dimyx = 256`, media de la superficie— **catorce de dieciséis
+recuentos coinciden exactamente y dos se van por uno** (Usme 2→3, Barrios Unidos 3→4), y el pico se
+reproduce con un error de hasta 3,6 % (Teusaquillo).
+**No bloquea T5**, y la razón está en el propio plan: M-9 ya cambió el estadístico de «contar
+componentes» a **pico / intensidad media** justamente porque el entero es grosero. Así que el
+enunciado **fija la rejilla en el bloque de código** (`dimyx = 256`), el instrumento de la tarea es
+el cociente pico/media, y el recuento se pide como observación —«si no te coincide, dilo y explica
+de qué depende ese entero»—, que además es el tercer mando de la misma familia que T1 y T5(c).
+Comprobado de punta a punta sobre San Cristóbal: pico 4,8213 contra 4,8137 publicado, 1 foco contra
+1, y los cuatro selectores dan σ de **296 a 1 696** —un factor 5,7— con pico/media de **3,34 a
+8,03**. La refutación de M-9 —«entre anchos igualmente defendibles la cifra se mueve por un factor
+de X»— está viva.
+
+**UN DUPLICADO MÁS, y este contra los EJERCICIOS.** Cotejando T3, T4 y T5 antes de cerrar apareció
+que **T4(a) preguntaba «¿en qué dirección empuja el sesgo, y por qué siempre en la misma?»**, que es
+**literalmente lo que pide el ejercicio guiado 5** del capítulo —y que además roza la pregunta 10—.
+El §3.5 había mirado ese ejercicio y había concluido que la diferencia estaba en «no pedir las tres
+correcciones»: miró el *procedimiento* y no la *pregunta*. Corregido: T4(a) pregunta ahora **cuál de
+las dos ventanas sufre más y por cuánto**, T4(b) por qué lo predice perímetro/área, y el enunciado
+**dice en voz alta** que la dirección del sesgo ya se trabajó en `e5` y aquí no se vuelve a
+preguntar. Es el tercer duplicado que este taller encuentra cotejando, y el primero contra los
+ejercicios: los dos anteriores fueron contra las preguntas. **La regla del §3.7 se amplía**: no
+basta con cotejar contra las dos superficies, hay que cotejar **la pregunta**, no el procedimiento.
+
+**T3(b) · «el r donde g alcanza su máximo» es una cifra degenerada.** Medido sobre los 24: vale
+**r = 0,005 en 23 de ellos** —el primer nodo de la rejilla— porque en un proceso agregado g decrece
+desde el origen, así que ese literal pedía a los doce la misma respuesta y encima un artefacto de
+resolución. Sustituido por **cuánto vale g en su máximo**, que va de **2,01 a 11,41** y sí es suya.
+Las otras dos cifras del literal se conservan y también separan: g vuelve a 1 entre **r = 0,070 y
+r = 0,170**, y K allí vale entre **1,46 y 3,41 veces** πr².
+**Y la premisa del informe de T3 se comprobó antes de escribirla**: L − r es positiva en r = 0,20
+en **los 24**, así que el informe dice una verdad sobre el patrón de cada quien y de ella saca una
+conclusión falsa para todos. Eso es lo que la tarea necesita.
+
+**Los cuatro bloques nuevos se ejecutaron.** El de T3 reproduce K, L y g del enunciado con error
+**5·10⁻⁹**; el de T4(a) da los déficits de arriba; el de T5 reproduce pico y focos. Y el de T1 y
+el de T2 siguen corriendo. **Ocho de los ocho bloques del taller se han ejecutado de verdad**, que
+es lo que `verifica_bloques.py` no puede hacer aquí: sin línea `#>` no hay cifra anunciada que
+contrastar, y en un taller no puede haberla.
+
+**Siguiente: C6**, el banco de 36 y las doce afirmaciones falsas, en el módulo 7 que ya existe.
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -453,9 +532,10 @@ está agregado hasta esa distancia»*.
 
 - (a) ¿Es cierta esa conclusión? Refútala o confírmala **con g**, y di en qué r ocurre de verdad
       la agregación.
-- (b) Da **las dos cifras** de tu patrón: el r donde g alcanza su máximo y el r donde g vuelve a
-      1, y el valor de K en ese segundo r. Con esas tres cifras, escribe la frase que el informe
-      tendría que haber escrito.
+- (b) Da **las dos cifras** de tu patrón: ~~el r donde g alcanza su máximo~~ **cuánto vale g en su
+      máximo** (corregido en C5b: el r del máximo vale 0,005 en 23 de los 24 — ver §0) y el r donde
+      g vuelve a 1, y el valor de K en ese segundo r. Con esas tres cifras, escribe la frase que el
+      informe tendría que haber escrito.
 - (c) Ahora sobre **tu localidad real**: K y g dicen lo mismo a todas las escalas. ¿Contradice eso
       lo que acabas de responder? (No: es λ inhomogénea, y eso es el módulo 2.)
 
@@ -466,13 +546,16 @@ está agregado hasta esa distancia»*.
 
 Dos mitades, las dos de refutación.
 
-- (a) **El borde.** Se le da el sesgo de K sin corregir, medido en **su** localidad y en una de
-      forma opuesta (una compacta y una alargada). ¿En qué dirección empuja el sesgo, y por qué
-      siempre en la misma? ¿Por qué el cociente perímetro/área predice cuál de las dos sufre más?
+- (a) **El borde.** ~~Se le da el sesgo de K sin corregir~~ **lo calcula él** (M-15: no está
+      publicado), en **su** localidad y en una de forma opuesta (una compacta y una alargada).
+      ~~¿En qué dirección empuja el sesgo, y por qué siempre en la misma?~~ **Eso es literalmente
+      el ejercicio `e5` y se retiró en C5b — ver §0.** ¿Cuál de las dos sufre más, y por qué el
+      cociente perímetro/área lo predice?
 - (b) **La banda.** Se le dan **dos** envolventes del mismo patrón con las mismas simulaciones: la
-      completa, y una con el rango de r **recortado después de mirar la curva**. La segunda «sale»
-      de la banda; la primera no. Di qué está mal y por qué el p-valor de la segunda no es un
-      p-valor.
+      completa, y una con el rango de r **recortado después de mirar la curva**. Di qué está mal y
+      por qué el p-valor de la segunda no es un p-valor. **Y cuenta los nodos fuera de banda en
+      todo el rango, y dice por qué el recuento tampoco decide** (M-16: el test global no lo puede
+      correr, porque el patrón de la envolvente no se publica — ver §0).
 - (c) La envolvente simula CSR. De las dos propiedades que definen CSR, **¿cuál de las dos está
       usando `envelope()` cuando genera cada réplica con el mismo n que tu patrón, y cuál está
       dando por buena sin comprobarla?**
@@ -947,10 +1030,12 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
 
 **C5 · El enunciado** — `precalculo/ensambla_taller2.py`
 > **PARTIDA EN C5a Y C5b, como el Taller 1 y por la razón de su encabezado: cada paso deja un HTML
-> que ABRE Y FUNCIONA. C5a — esqueleto, cabecera y pie, CSS propio, buscador del §5.2, T1 y T2 —
-> está HECHA (2026-09-09)**; ver el §0, que trae también los dos defectos que la construcción
-> encontró (**M-13**, la caja de T1, y **M-14**, `Fest()`) y la fuga de `datos_taller2.R`.
-> **C5b — T3, T4, T5 y las dos rúbricas — está pendiente.**
+> que ABRE Y FUNCIONA. LAS DOS ESTÁN HECHAS**: C5a el 2026-09-09 —esqueleto, cabecera y pie, CSS
+> propio, buscador del §5.2, T1 y T2— y C5b el 2026-09-10 —T3, T4, T5 y las dos rúbricas—. Ver el
+> §0, que trae los **cinco** defectos que la construcción encontró (**M-13** la caja de T1,
+> **M-14** `Fest()`, **M-15** el sesgo que no viaja, **M-16** el test global que no se puede correr
+> y **M-17** la rejilla de los focos), el duplicado con el ejercicio `e5` y la fuga de
+> `datos_taller2.R`. **Queda C6**, que va dentro del módulo 7 que ya existe.
 - **Descripción:** el HTML autocontenido con la librería del material: enunciado de las cuatro
   tareas, buscador de variante **con el documento reflejado (§5.2)**, mapas, curvas, rúbrica del
   escrito y rúbrica de la defensa.

@@ -1992,6 +1992,28 @@
       margin-bottom: 0;
     }
 
+    /* El informe que las tareas ponen a auditar. Va con marca de cita y en
+       otra familia de color para que se lea como MATERIAL AJENO y no como
+       afirmación del taller: la diferencia importa cuando lo que se pide
+       es dudar de ella. */
+    .cita-ia {
+      margin: 1rem 0;
+      padding: 0.9rem 1.1rem;
+      background: #f1f5f9;
+      border-left: 4px solid #64748b;
+      border-radius: 0.4rem;
+      color: #334155;
+      font-size: 0.94rem;
+    }
+
+    .cita-ia p {
+      margin: 0 0 0.7rem 0;
+    }
+
+    .cita-ia p:last-child {
+      margin-bottom: 0;
+    }
+
     /* La línea de identificación que va literal en la portada. Se lee como
        lo que es —algo que se copia, no que se interpreta— y por eso va en
        monoespaciada y con el fondo del curso.
@@ -4294,6 +4316,600 @@ print(np.c_[rg, G, F][:12])</code></pre>
     </div>
   </template>
 
+  <!-- ============================================================ -->
+  <!-- MÓDULO 4 · Dónde está la estructura                             -->
+  <!-- ============================================================ -->
+  <template id="module-4">
+    <div class="animate-fade-in">
+      <div class="border-b border-gray-100 pb-6 mb-6">
+        <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
+          <span>Módulo 4</span>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Dónde está la estructura
+          <span class="text-gray-400 font-normal text-2xl">/ T3 · K, L and g</span></h2>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
+          <span class="text-xl">🎯</span>
+          <div>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Refutar una conclusión correcta de premisa con la función que sí resuelve la escala. Vale el 8 % del taller.</p>
+          </div>
+        </div>
+      </div>
+      <div class="simulador" data-simulador="taller2-variante">
+        <h4><i class="fas fa-fingerprint" aria-hidden="true"></i> Tu variante</h4>
+        <p class="simulador-intro">Escribe tu número de documento <strong>completo</strong>,
+          no los tres últimos dígitos. </p>
+        <div class="simulador-controles"></div>
+        <div class="simulador-lectura"></div>
+      </div>
+
+      <p>Las dos tareas anteriores miraban el vecino más próximo y el espacio vacío. Las dos son
+        funciones de <em>una</em> distancia por punto, y las dos se quedan sin decir nada en cuanto
+        la pregunta es <strong>a qué distancia</strong> pasa lo que pasa. Para eso están \(K\) y
+        \(g\), que son el módulo 8 y el módulo 9.</p>
+
+      <p>Aquí trabajas sobre <strong>tu patrón</strong> —el que el buscador llama
+        <code>p</code> más dos dígitos—, que no es ninguno de los tres de T2.</p>
+
+      <div class="geomapa" data-geomapa="taller2-propio"></div>
+
+      <div class="simulador" data-simulador="taller2-propio-curvas">
+        <h4><i class="fas fa-chart-line" aria-hidden="true"></i> Las tres curvas de tu patrón</h4>
+        <p class="simulador-intro">\(K(r)\) contra su valor bajo CSR, la transformación
+          \(L(r) - r\) contra el cero, y \(g(r)\) contra el uno. Las tres sobre la misma
+          rejilla de \(r\), y las tres con corrección de traslación.</p>
+        <div class="trio-rejilla">
+          <div>
+            <p class="grafico-titulo">K(r) y πr²</p>
+            <div class="grafico-wrapper" style="height:230px;">
+              <canvas role="img" aria-label="Función K de tu patrón frente a su valor teórico bajo CSR"></canvas>
+            </div>
+          </div>
+          <div>
+            <p class="grafico-titulo">L(r) − r</p>
+            <div class="grafico-wrapper" style="height:230px;">
+              <canvas role="img" aria-label="Transformación L menos r de tu patrón, contra la línea del cero"></canvas>
+            </div>
+          </div>
+          <div>
+            <p class="grafico-titulo">g(r)</p>
+            <div class="grafico-wrapper" style="height:230px;">
+              <canvas role="img" aria-label="Correlación de pares g de tu patrón, contra la línea del uno"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="simulador-lectura"></div>
+      </div>
+
+      <p>Y este es el informe que tienes que auditar. Lo produjo un modelo de lenguaje al que se le
+        dieron estas mismas curvas, y se cita <strong>literal</strong>:</p>
+
+      <div class="cita-ia" data-informe="t3"></div>
+
+      <div class="definition">
+        <h3>Lo que separa a las dos funciones</h3>
+        <p>\(K(r)\) cuenta, alrededor de cada punto, <strong>todos</strong> los vecinos que hay
+          hasta la distancia \(r\). Es acumulada: lo que entra en el círculo a 20 m sigue dentro
+          del círculo a 500 m. \(g(r)\) mira solo el <strong>anillo</strong> de radio \(r\), y
+          por eso puede volver a su valor de referencia cuando la estructura se acaba.</p>
+        <p style="margin-bottom:0;">Los módulos 8 y 9 del capítulo 4 construyen las dos, y el 9
+          explica por qué \(g\) es más legible. La corrección de traslación con la que están
+          calculadas es el módulo 10, y es la misma que usa el bloque de código de aquí abajo.</p>
+      </div>
+
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T3.</span><strong>Dónde está la estructura
+          </strong> <span class="badge-peso">8&nbsp;%</span><br>Con tus tres curvas y el informe de arriba:</p>
+        <ol class="lista-literales" type="a">
+          <li>¿Es cierta la conclusión del informe? <strong>Refútala o confírmala con \(g\)</strong>, y di en qué \(r\) ocurre de verdad la agregación de tu patrón. Fíjate en que la <em>premisa</em> del informe es correcta: compruébala antes de discutir la conclusión.</li>
+          <li>Da <strong>tres cifras tuyas</strong>: cuánto vale \(g\) en su máximo, en qué \(r\) vuelve \(g\) a 1, y cuánto vale \(K\) en ese segundo \(r\) —comparado con lo que valdría bajo CSR—. Con esas tres cifras, escribe <strong>la frase que el informe tendría que haber escrito</strong>.</li>
+          <li>Ahora sobre <strong>tu localidad real</strong>, la de T1: calcula \(K\) y \(g\) de sus sedes. ¿Dicen lo mismo a todas las escalas, o se separan como en tu patrón generado? ¿Contradice eso lo que acabas de responder en (a)? Nombra el módulo del capítulo 4 que explica la diferencia.</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t3-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ejercicio-panel pista" id="t3-pista" hidden>
+          <p style="margin:0;">La premisa y la conclusión del informe no fallan en el mismo sitio, y ahí está la tarea: una es verdad y la otra no se sigue de ella. Para (b), la cifra que más cuesta leer es la tercera: \(K\) en un \(r\) donde \(g\) ya volvió a 1 no dice que siga habiendo agregación <em>ahí</em>, dice otra cosa — y decir cuál es la respuesta. Para (c), acuérdate de qué supone \(K\) sobre λ.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <p style="margin-bottom:0;"><strong>Cómo rehacer las tres curvas.</strong> Salen del CSV que
+          descargaste, y con estas líneas dan <em>exactamente</em> las de arriba. Para (c) reutiliza
+          el <code>p_poly</code> que construiste en T1.</p>
+      </div>
+
+      <div class="code-tabs">
+        <div class="code-tabs-nav" role="tablist" aria-label="K, L y g de tu patrón">
+          <button class="code-tab-btn active" data-lang="r" role="tab" aria-selected="true">R</button>
+          <button class="code-tab-btn" data-lang="python" role="tab" aria-selected="false">Python</button>
+        </div>
+        <div class="code-tab-panel" data-lang="r">
+          <pre><code class="language-r arranque">library(spatstat.geom)
+library(spatstat.explore)
+
+MI_PATRON &lt;- ""              # "p19" si el tuyo es el 19: lo dice el buscador
+
+pat &lt;- read.csv("datos/taller2_patrones.csv")
+uno &lt;- subset(pat, patron == MI_PATRON)
+stopifnot(nrow(uno) &gt; 0)      # si para, ese patron no es el tuyo
+p   &lt;- ppp(uno$x, uno$y, window = owin(c(0, 1), c(0, 1)))
+
+# La MISMA rejilla y la MISMA correccion que las curvas de arriba. K y g
+# se calculan en su rejilla nativa y se interpolan, que es lo que hizo el
+# precalculo: con esto las cifras coinciden hasta el noveno decimal.
+rg &lt;- seq(0, 0.25, length.out = 51)
+aK &lt;- Kest(p, correction = "translate")
+ag &lt;- pcf(p, correction = "translate")
+K  &lt;- approx(aK$r, aK$trans, xout = rg, rule = 2)$y
+g  &lt;- approx(ag$r, ag$trans, xout = rg, rule = 2)$y
+L  &lt;- sqrt(pmax(K, 0) / pi) - rg
+
+datos &lt;- data.frame(r = rg, K = K, teorica = pi * rg^2, L_menos_r = L, g = g)
+head(datos, 12)
+
+# Y (c), sobre tu localidad real: el mismo par de funciones sobre el
+# `p_poly` de T1. Ojo con las unidades: aqui r va en METROS.
+# plot(Kest(p_poly, correction = "translate"))
+# plot(pcf(p_poly,  correction = "translate"))</code></pre>
+        </div>
+        <div class="code-tab-panel" data-lang="python" hidden>
+          <pre><code class="language-python arranque">import numpy as np, pandas as pd
+
+MI_PATRON = ""               # "p19" si el tuyo es el 19
+
+pat = pd.read_csv("datos/taller2_patrones.csv")
+uno = pat[pat.patron == MI_PATRON][["x", "y"]].to_numpy()
+assert len(uno), "ese patron no es el tuyo"
+
+# El peso de la correccion de traslacion es el area de solape de la
+# ventana consigo misma desplazada por el vector que une los dos puntos.
+# Para el cuadrado unidad eso es exactamente (1-|dx|)(1-|dy|). Es la
+# misma funcion que publica el modulo 8 del capitulo 4.
+def K_traslacion(x, y, r):
+    n = len(x)
+    dx = np.abs(x[:, None] - x[None, :]); dy = np.abs(y[:, None] - y[None, :])
+    dist = np.hypot(dx, dy)
+    sol = np.clip(1 - dx, 0, None) * np.clip(1 - dy, 0, None)
+    m = ~np.eye(n, dtype=bool)
+    return np.array([float((1 / sol[m])[dist[m] &lt;= rr].sum())
+                     for rr in r]) / (n * (n - 1))
+
+rg = np.linspace(0, 0.25, 51)
+K = K_traslacion(uno[:, 0], uno[:, 1], rg)
+L = np.sqrt(np.maximum(K, 0) / np.pi) - rg
+
+# g por derivada numerica de K: g(r) = K'(r) / (2 pi r). Es mas ruidosa
+# que la de spatstat —que suaviza con un nucleo— asi que sirve para ver
+# DONDE vuelve a 1, no para citar su maximo. Ese citalo de la tabla.
+g = np.gradient(K, rg) / (2 * np.pi * np.maximum(rg, 1e-9))
+
+print(np.c_[rg, K, np.pi * rg ** 2, L, g][:12])</code></pre>
+        </div>
+      </div>
+
+    </div>
+  </template>
+
+  <!-- ============================================================ -->
+  <!-- MÓDULO 5 · El borde y la banda                                  -->
+  <!-- ============================================================ -->
+  <template id="module-5">
+    <div class="animate-fade-in">
+      <div class="border-b border-gray-100 pb-6 mb-6">
+        <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
+          <span>Módulo 5</span>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El borde y la banda
+          <span class="text-gray-400 font-normal text-2xl">/ T4 · Edge and envelope</span></h2>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
+          <span class="text-xl">🎯</span>
+          <div>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Dos refutaciones: un sesgo que siempre empuja al mismo lado, y una banda leída al revés. Vale el 8 % del taller.</p>
+          </div>
+        </div>
+      </div>
+      <div class="simulador" data-simulador="taller2-variante">
+        <h4><i class="fas fa-fingerprint" aria-hidden="true"></i> Tu variante</h4>
+        <p class="simulador-intro">Escribe tu número de documento <strong>completo</strong>,
+          no los tres últimos dígitos. </p>
+        <div class="simulador-controles"></div>
+        <div class="simulador-lectura"></div>
+      </div>
+
+      <h3>La primera mitad · el borde</h3>
+
+      <p>Cuando cuentas vecinos alrededor de un punto que está cerca del límite de la ventana, parte
+        de su círculo cae fuera y ahí no hay datos. Si no se corrige, esos vecinos que no se pueden
+        contar se cuentan como <strong>ausencias</strong>. Aquí lo vas a medir en dos ventanas de
+        forma deliberadamente opuesta: <strong>la tuya</strong> y la de contraste que te asignó el
+        buscador.</p>
+
+      <div class="trio-rejilla">
+        <div class="geomapa" data-geomapa="taller2-localidad"></div>
+        <div class="geomapa" data-geomapa="taller2-contraste"></div>
+      </div>
+
+      <h3>La segunda mitad · la banda</h3>
+
+      <p>Debajo tienes una envolvente de simulación calculada sobre un patrón que <strong>no es el
+        tuyo</strong> ni tiene por qué serlo: lo que se audita es <em>la lectura que alguien hizo de
+        ella</em>. A la izquierda, el rango completo de \(r\). A la derecha, <strong>el mismo
+        cálculo</strong> —las mismas simulaciones, la misma curva— recortado al tramo que el informe
+        eligió <em>después</em> de mirar.</p>
+
+      <div class="simulador" data-simulador="taller2-envolvente">
+        <h4><i class="fas fa-wave-square" aria-hidden="true"></i> La envolvente, entera y recortada</h4>
+        <p class="simulador-intro">La banda es la de <code>envelope()</code> con las simulaciones que
+          declara la lectura de abajo. Los dos paneles son el mismo cálculo: cambia el rango que se
+          mira, no lo que se calculó.</p>
+        <div class="trio-rejilla">
+          <div>
+            <p class="grafico-titulo">Todo el rango de r</p>
+            <div class="grafico-wrapper" style="height:250px;">
+              <canvas role="img" aria-label="Envolvente de K sobre todo el rango de r, con la banda de simulación y la curva observada"></canvas>
+            </div>
+          </div>
+          <div>
+            <p class="grafico-titulo">El tramo que eligió el informe</p>
+            <div class="grafico-wrapper" style="height:250px;">
+              <canvas role="img" aria-label="La misma envolvente restringida al tramo que el informe eligió después de mirar la curva"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="simulador-lectura"></div>
+      </div>
+
+      <p>Y este es el informe, citado <strong>literal</strong>:</p>
+
+      <div class="cita-ia" data-informe="t4"></div>
+
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T4.</span><strong>El borde y la banda
+          </strong> <span class="badge-peso">8&nbsp;%</span><br>Las dos mitades, y las dos son de refutación:</p>
+        <ol class="lista-literales" type="a">
+          <li><strong>El borde.</strong> Calcula \(K\) con corrección de traslación y sin corregir, en tu localidad y en la de contraste, y da el <strong>déficit</strong> de la versión sin corregir en un \(r\) que declares. <strong>¿Cuál de las dos ventanas sufre más, y por cuánto?</strong> (Con dos correcciones basta: no calcules las tres.)</li>
+          <li>Da el cociente <strong>perímetro/área</strong> de las dos ventanas y ponlo al lado de los dos déficits. <strong>¿Por qué ese cociente predice cuál de las dos sufre más?</strong> Contesta con lo que le pasa a un punto cualquiera de cada ventana, no con la correlación entre las dos columnas.</li>
+          <li><strong>La banda.</strong> El informe restringe \(r\) a un tramo y da un p-valor. Di por qué <strong>ese p-valor no es un p-valor</strong>. La respuesta tiene que nombrar <em>cuándo</em> se eligió el tramo.</li>
+          <li>Cuenta cuántos nodos se salen de la banda en <strong>todo</strong> el rango y da el porcentaje. Con una banda puntual al 5&nbsp;%, ¿cuántos esperarías si el patrón fuera CSR? Compara las dos cifras — y después explica por qué <strong>tu recuento tampoco decide</strong>: qué haría falta suponer sobre los nodos para que el 5&nbsp;% fuera el listón, y por qué \(K\) no lo cumple.</li>
+          <li>La envolvente simula CSR. De las <strong>dos</strong> propiedades que definen CSR, ¿cuál está usando <code>envelope()</code> al generar cada réplica con el mismo \(n\) que el patrón observado, y cuál está dando por buena <strong>sin comprobarla</strong>?</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t4-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ejercicio-panel pista" id="t4-pista" hidden>
+          <p style="margin:0;">Para (a) y (b): que el sesgo va siempre en la misma dirección ya lo trabajaste en el ejercicio 5 del capítulo, así que aquí no se pregunta. Lo que aquí se pregunta es por qué las dos ventanas no lo sufren igual — piensa en un punto pegado al borde y en uno del centro, y en qué proporción de cada ventana está «pegada al borde». Para (c), la pregunta no es si el tramo es raro: es en qué orden ocurrieron mirar y elegir, y decir solo que «no es un p-valor» no es responderla. Y para (d), fíjate en que \(K\) es acumulada: lo que pasa en un nodo no es independiente de lo que pasa en el siguiente.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <p style="margin-bottom:0;"><strong>Dónde está esto en el capítulo, y qué NO se repite.</strong>
+          El efecto de borde es el módulo 10 y las envolventes el 11. El ejercicio guiado 5 del
+          capítulo ya te hizo calcular las tres correcciones y explicar por qué el sesgo tiene
+          siempre el mismo signo: <em>eso no se vuelve a preguntar aquí</em>. Lo que aquí se
+          pregunta es por qué dos ventanas distintas lo sufren de forma distinta, que es la forma
+          de la ventana y no aparece en ningún ejercicio. Y el ejercicio 4 restringe el rango de
+          \(r\) <strong>declarándolo de antemano</strong>; el informe de abajo lo restringe
+          <strong>después de mirar</strong>, y esa es toda la diferencia.</p>
+      </div>
+
+      <div class="note">
+        <p style="margin-bottom:0;"><strong>El bloque de abajo resuelve la primera mitad.</strong>
+          La segunda no lleva código: la envolvente y su banda están publicadas arriba y en el
+          código fuente de esta página, y contar nodos fuera de banda es contar.</p>
+      </div>
+
+      <div class="code-tabs">
+        <div class="code-tabs-nav" role="tablist" aria-label="El sesgo de borde en dos ventanas de forma opuesta">
+          <button class="code-tab-btn active" data-lang="r" role="tab" aria-selected="true">R</button>
+          <button class="code-tab-btn" data-lang="python" role="tab" aria-selected="false">Python</button>
+        </div>
+        <div class="code-tab-panel" data-lang="r">
+          <pre><code class="language-r arranque">library(sf)
+library(spatstat.geom)
+library(spatstat.explore)
+
+loc &lt;- st_read("datos/taller2_localidades.gpkg", quiet = TRUE)
+sed &lt;- st_read("datos/taller2_sedes.gpkg",       quiet = TRUE)
+xy  &lt;- st_coordinates(sed)
+
+# El deficit de K sin corregir, y la forma de la ventana, en una sola
+# funcion para poder llamarla dos veces sin copiar nada.
+mide &lt;- function(nombre, r_ref = 1000) {
+  mia &lt;- loc[loc$localidad == nombre, ]
+  stopifnot(nrow(mia) == 1)
+  p   &lt;- ppp(xy[, 1], xy[, 2], window = as.owin(st_union(mia)))
+  rg  &lt;- seq(0, 2000, by = 50)
+  kn  &lt;- Kest(p, correction = "none",      r = rg)   # sin corregir
+  kt  &lt;- Kest(p, correction = "translate",  r = rg)   # corregida
+  i   &lt;- which(rg == r_ref)
+  per &lt;- as.numeric(st_length(st_cast(st_geometry(mia), "MULTILINESTRING"))) / 1000
+  are &lt;- as.numeric(st_area(mia)) / 1e6
+  c(n = npoints(p), deficit_pct = 100 * (1 - kn$un[i] / kt$trans[i]),
+    perimetro_area = per / are)
+}
+
+rbind(propia    = mide("Suba"),            # tu localidad
+      contraste = mide("Antonio Narino"))  # la que te dio el buscador</code></pre>
+        </div>
+        <div class="code-tab-panel" data-lang="python" hidden>
+          <pre><code class="language-python arranque">import geopandas as gpd, numpy as np
+
+loc = gpd.read_file("datos/taller2_localidades.gpkg")
+sed = gpd.read_file("datos/taller2_sedes.gpkg")
+
+# Python no tiene Kest, asi que la correccion de traslacion hay que
+# escribirla. Para una ventana POLIGONAL el peso ya no es el producto de
+# dos lados: es el area de solape del poligono consigo mismo desplazado.
+def K_dos(nombre, r_ref=1000.0):
+    mia = loc[loc.localidad == nombre].geometry.union_all()
+    pts = sed[sed.geometry.covered_by(mia)]
+    x = pts.geometry.x.to_numpy(); y = pts.geometry.y.to_numpy()
+    n = len(x); A = mia.area
+    dx = x[:, None] - x[None, :]; dy = y[:, None] - y[None, :]
+    d = np.hypot(dx, dy)
+    m = ~np.eye(n, dtype=bool)
+    cerca = m &amp; (d &lt;= r_ref)
+    sin = A * cerca.sum() / (n * (n - 1))          # sin corregir
+    # El peso de traslacion, poligono a poligono. Son pocos pares: solo
+    # los que estan a menos de r_ref, y sobre esos se paga el solape.
+    from shapely import affinity
+    ii, jj = np.where(cerca)
+    peso = np.array([mia.intersection(
+        affinity.translate(mia, float(dx[a, b]), float(dy[a, b]))).area
+        for a, b in zip(ii, jj)])
+    con = A * A * np.sum(1 / peso) / (n * (n - 1) * A)
+    per = mia.exterior.length if mia.geom_type == "Polygon" else mia.length
+    return dict(n=n, deficit_pct=100 * (1 - sin / con),
+                perimetro_area=(per / 1000) / (A / 1e6))
+
+print(K_dos("Suba"))              # tu localidad
+print(K_dos("Antonio Narino"))    # la de contraste</code></pre>
+        </div>
+      </div>
+
+    </div>
+  </template>
+
+  <!-- ============================================================ -->
+  <!-- MÓDULO 6 · El mismo problema con otro mando                     -->
+  <!-- ============================================================ -->
+  <template id="module-6">
+    <div class="animate-fade-in">
+      <div class="border-b border-gray-100 pb-6 mb-6">
+        <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
+          <span>Módulo 6</span>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El mismo problema con otro mando
+          <span class="text-gray-400 font-normal text-2xl">/ T5 · The bandwidth</span></h2>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
+          <span class="text-xl">🎯</span>
+          <div>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Reconocer la misma decisión bajo otro nombre, y sostener una elección ante quien va a usarla. Vale el 8 % del taller.</p>
+          </div>
+        </div>
+      </div>
+      <div class="simulador" data-simulador="taller2-variante">
+        <h4><i class="fas fa-fingerprint" aria-hidden="true"></i> Tu variante</h4>
+        <p class="simulador-intro">Escribe tu número de documento <strong>completo</strong>,
+          no los tres últimos dígitos. </p>
+        <div class="simulador-controles"></div>
+        <div class="simulador-lectura"></div>
+      </div>
+
+      <p>Llevas tres capítulos encontrándote la misma pregunta con tres nombres. En el capítulo 3
+        era el tamaño de la unidad; en el módulo 6 del capítulo 4, el tamaño del cuadrante —el que
+        elegiste tú en <strong>T1</strong>—; y ahora es el <strong>ancho de banda</strong> de una
+        estimación por núcleos. Esta tarea es la única que sale del capítulo 4, y se queda en los
+        <strong>tres primeros módulos</strong> del capítulo 5.</p>
+
+      <p>Alguien mandó a la Secretaría de Educación un informe sobre <strong>tu</strong> localidad.
+        Se cita <strong>literal</strong>:</p>
+
+      <div class="cita-ia" data-informe="t5"></div>
+
+      <div class="definition">
+        <h3>Qué es «un foco», exactamente</h3>
+        <p>Sin una definición no hay nada que contar, así que el informe declara la suya y tú usas
+          <strong>la misma</strong>: un foco es una <strong>componente conexa</strong> de la región
+          donde la intensidad estimada supera <strong>el doble de la intensidad media</strong> de la
+          superficie.</p>
+        <p style="margin-bottom:0;">Es una definición razonable y es arbitraria, las dos cosas a la
+          vez. Y el entero que produce <strong>depende de la rejilla</strong> sobre la que dibujes
+          la superficie, así que el bloque de código de abajo <em>fija la rejilla</em>: úsala tal
+          cual, y si aun así tu recuento no coincide con el del informe, eso es parte de lo que
+          tienes que contar en (a).</p>
+      </div>
+
+      <p>El taller <strong>no publica ninguna superficie</strong>: publica el σ y lo que se afirma
+        con él. El mapa lo haces tú, que es de lo que va la tarea.</p>
+
+      <div class="ejercicio-guiado">
+        <p class="ejercicio-enunciado"><span class="ejercicio-numero">T5.</span><strong>El mismo problema con otro mando
+          </strong> <span class="badge-peso">8&nbsp;%</span><br>Sobre tu localidad, con el σ del informe y con los cuatro selectores:</p>
+        <ol class="lista-literales" type="a">
+          <li><strong>Reproduce el mapa</strong> con el σ del informe y la rejilla del bloque. ¿Cuántos focos cuentas con la definición de arriba, y cuánto vale tu cociente <strong>pico/media</strong>? Si tu recuento no coincide con el del informe, dilo y explica de qué depende ese entero.</li>
+          <li>Vuelve a estimar con los <strong>cuatro selectores</strong> del módulo 3 del capítulo 5. Da los cuatro σ, y cuánto se mueve el cociente pico/media entre ellos —el factor entre el mayor y el menor—. <strong>¿La afirmación del informe sobrevive a alguno de los cuatro?</strong></li>
+          <li>En T1 elegiste una rejilla y aquí un ancho. <strong>¿Cuál de las dos decisiones movió más tu conclusión</strong>, y por qué son <strong>la misma decisión</strong> con dos nombres? Cita tus dos cifras, las de T1 y las de aquí.</li>
+          <li>Elige el σ que <strong>defenderías ante la Secretaría de Educación</strong> y sostén la elección. «El que da <code>bw.diggle</code>» no puntúa si no dices <em>qué optimiza</em> ese selector y por qué eso es lo que le conviene a esta pregunta.</li>
+        </ol>
+        <div class="ejercicio-acciones">
+          <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t5-pista">
+            <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ejercicio-panel pista" id="t5-pista" hidden>
+          <p style="margin:0;">El informe no miente en su cuenta: con su σ, esos focos están ahí. La pregunta es si habría escrito lo mismo con otro ancho igual de defendible — y quién decidió que ese ancho fuera el suyo. Para (c), lo que tienen en común la rejilla y el ancho es que las dos fijan <strong>a qué escala</strong> se está mirando, y ninguna de las dos sale del dato. Para (d), cada selector optimiza una cosa distinta y ninguno optimiza «tener razón».</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <p style="margin-bottom:0;"><strong>La rejilla del bloque no es decorativa.</strong>
+          <code>dimyx</code> fija cuántos píxeles tiene la superficie, y de eso depende el recuento
+          de componentes conexas. Si la cambias, cambia tu respuesta a (a) — y ese es, por cierto,
+          un tercer mando de la misma familia.</p>
+      </div>
+
+      <div class="code-tabs">
+        <div class="code-tabs-nav" role="tablist" aria-label="La intensidad por núcleos, los focos y los cuatro selectores">
+          <button class="code-tab-btn active" data-lang="r" role="tab" aria-selected="true">R</button>
+          <button class="code-tab-btn" data-lang="python" role="tab" aria-selected="false">Python</button>
+        </div>
+        <div class="code-tab-panel" data-lang="r">
+          <pre><code class="language-r arranque">library(sf)
+library(spatstat.geom)
+library(spatstat.explore)
+
+MI_LOCALIDAD &lt;- ""      # el nombre EXACTO del buscador
+MI_SIGMA     &lt;- 0       # el sigma del informe, en metros
+
+loc &lt;- st_read("datos/taller2_localidades.gpkg", quiet = TRUE)
+sed &lt;- st_read("datos/taller2_sedes.gpkg",       quiet = TRUE)
+mia &lt;- loc[loc$localidad == MI_LOCALIDAD, ]
+stopifnot(nrow(mia) == 1, MI_SIGMA &gt; 0)
+xy  &lt;- st_coordinates(sed)
+p   &lt;- ppp(xy[, 1], xy[, 2], window = as.owin(st_union(mia)))
+
+# La superficie, con la rejilla FIJADA. No la cambies para (a).
+focos &lt;- function(sigma) {
+  d &lt;- density(p, sigma = sigma, dimyx = 256)
+  m &lt;- mean(d)                                  # la intensidad media
+  cc &lt;- connected(solutionset(d &gt; 2 * m))       # las componentes conexas
+  c(sigma = sigma, pico_media = max(d) / m, focos = length(levels(cc)))
+}
+
+d &lt;- density(p, sigma = MI_SIGMA, dimyx = 256)
+plot(d, main = MI_LOCALIDAD); plot(p, add = TRUE, pch = 20, cex = 0.4)
+focos(MI_SIGMA)
+
+# Los cuatro selectores del modulo 3. bw.scott devuelve DOS anchos, uno
+# por eje: se toma el primero, y decir por que es parte de (d).
+sel &lt;- c(diggle = bw.diggle(p), ppl = bw.ppl(p),
+         CvL = bw.CvL(p), scott = bw.scott(p)[1])
+round(sel)
+t(sapply(sel, focos))</code></pre>
+        </div>
+        <div class="code-tab-panel" data-lang="python" hidden>
+          <pre><code class="language-python arranque">import geopandas as gpd, numpy as np
+from scipy.ndimage import gaussian_filter, label
+
+MI_LOCALIDAD = ""       # el nombre EXACTO del buscador
+MI_SIGMA = 0            # el sigma del informe, en metros
+
+loc = gpd.read_file("datos/taller2_localidades.gpkg")
+sed = gpd.read_file("datos/taller2_sedes.gpkg")
+mia = loc[loc.localidad == MI_LOCALIDAD].geometry.union_all()
+pts = sed[sed.geometry.covered_by(mia)]
+assert len(pts) and MI_SIGMA &gt; 0
+
+# La misma rejilla de 256, y la ventana como MASCARA: fuera del poligono
+# no hay superficie, y contar focos sobre el rectangulo entero seria
+# contar sobre una ventana que no es la tuya (que es T1 otra vez).
+x0, y0, x1, y1 = mia.bounds
+nx = ny = 256
+gx = np.linspace(x0, x1, nx); gy = np.linspace(y0, y1, ny)
+paso = (x1 - x0) / (nx - 1)
+rej = np.zeros((ny, nx))
+ix = np.clip(((pts.geometry.x - x0) / paso).astype(int), 0, nx - 1)
+iy = np.clip(((pts.geometry.y - y0) / paso).astype(int), 0, ny - 1)
+np.add.at(rej, (iy, ix), 1.0)
+
+from shapely.geometry import Point
+dentro = np.array([[mia.covers(Point(a, b)) for a in gx] for b in gy])
+sup = gaussian_filter(rej, MI_SIGMA / paso) / paso ** 2
+sup[~dentro] = np.nan
+
+m = np.nanmean(sup)
+print("pico/media =", float(np.nanmax(sup) / m))
+etiq, n_focos = label(np.nan_to_num(sup) &gt; 2 * m)
+print("focos =", int(n_focos))
+
+# AVISO: esto NO es density.ppp. No corrige el borde, y cerca del limite
+# se queda corta — que es justo lo que mide el ejercicio e2 del capitulo
+# 5. Sirve para ver el mapa; para las cifras que entregues, usa R.</code></pre>
+        </div>
+      </div>
+
+    </div>
+  </template>
+
+  <!-- ============================================================ -->
+  <!-- MÓDULO 7 · Cómo se califica, y la defensa                       -->
+  <!-- ============================================================ -->
+  <template id="module-7">
+    <div class="animate-fade-in">
+      <div class="border-b border-gray-100 pb-6 mb-6">
+        <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
+          <span>Módulo 7</span>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Cómo se califica, y la defensa
+          <span class="text-gray-400 font-normal text-2xl">/ Rubrics and the oral defence</span></h2>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
+          <span class="text-xl">🎯</span>
+          <div>
+            <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Qué se evalúa aquí</h3>
+            <p class="text-gray-600 text-sm" style="margin:0;">Nada. Este módulo no se califica: dice cómo se califica todo lo demás, y conviene leerlo antes de escribir.</p>
+          </div>
+        </div>
+      </div>
+
+      <p>El taller tiene <strong>dos instrumentos</strong> y los dos se califican con rúbrica
+        publicada: el <strong>escrito</strong>, que vale el 40&nbsp;%, y la <strong>sustentación
+        oral</strong>, que vale el 60&nbsp;%. Las dos rúbricas están aquí abajo. Pulsa cualquier
+        criterio para ver sus cuatro niveles.</p>
+
+      <h3>La rúbrica del escrito · 40&nbsp;%</h3>
+
+      <div class="rubrica" data-rubrica="taller2-escrito"></div>
+
+      <h3>La rúbrica de la sustentación · 60&nbsp;%</h3>
+
+      <p>La sustentación es el <strong>jueves 8 de octubre</strong>, en una sola sesión, y son
+        <strong>siete minutos</strong> por persona. No es una confirmación del escrito: es el
+        instrumento que más pesa, y por eso su rúbrica se publica con el mismo detalle.</p>
+
+      <div class="rubrica" data-rubrica="taller2-defensa"></div>
+
+      <div class="note">
+        <p><strong>Cómo se sortean las preguntas del banco, y por qué así.</strong> El banco tiene
+          <strong>36</strong> preguntas y son doce estudiantes a tres preguntas cada uno: 12 × 3 =
+          36. El sorteo es <strong>sin reemplazo</strong> y se hace <em>antes</em> de la sesión, no
+          durante. Eso significa que <strong>a nadie le repiten una pregunta que ya se oyó</strong>,
+          y que el orden en que te toque defender no te da ventaja ni te la quita. La refutación en
+          vivo funciona igual: hay <strong>doce afirmaciones falsas distintas</strong>, una por
+          persona.</p>
+        <p style="margin-bottom:0;">El banco se publica <strong>con este enunciado</strong>, entero.
+          No hay preguntas sorpresa: hay treinta y seis preguntas que puedes preparar, y de ellas te
+          tocan tres.</p>
+      </div>
+
+      <div class="warning">
+        <p style="margin-bottom:0;"><strong>La regla que le da dientes a todo lo anterior.</strong>
+          Una decisión que entregues por escrito y <strong>no puedas sostener en la
+          sustentación</strong> se recalifica. Va aquí, en el enunciado, y no en un correo: es lo
+          que hace que valga la pena entender lo que entregas, y es la razón por la que el reparto
+          es 40/60 y no al revés.</p>
+      </div>
+
+      <div class="note">
+        <p style="margin-bottom:0;"><strong>Qué se entrega, otra vez y en corto.</strong> Un PDF, el
+          <strong>martes 6 de octubre</strong>, con la <strong>línea de identificación</strong>
+          copiada literal en la portada y la <strong>bitácora</strong> de media página. Sin
+          cualquiera de las dos, la entrega está incompleta. Y en una clase de la semana del 28 de
+          septiembre traes tres cifras en voz alta: tu localidad, tu <em>n</em> y tu λ.</p>
+      </div>
+    </div>
+  </template>
+
   <script>
     // ================================================================
     // Configuración del capítulo
@@ -4328,7 +4944,11 @@ print(np.c_[rg, G, F][:12])</code></pre>
       modules: [
         { id: 1, title: "Cómo se trabaja este taller", duration: "8 min" },
         { id: 2, title: "T1 · La ventana que no declaraste", duration: "50 min" },
-        { id: 3, title: "T2 · El régimen que las dos funciones no ven igual", duration: "45 min" }
+        { id: 3, title: "T2 · El régimen que las dos funciones no ven igual", duration: "45 min" },
+        { id: 4, title: "T3 · Dónde está la estructura", duration: "45 min" },
+        { id: 5, title: "T4 · El borde y la banda", duration: "50 min" },
+        { id: 6, title: "T5 · El mismo problema con otro mando", duration: "45 min" },
+        { id: 7, title: "Cómo se califica, y la defensa", duration: "12 min" }
       ]
     };
 
@@ -4391,6 +5011,75 @@ print(np.c_[rg, G, F][:12])</code></pre>
       return Object.assign({}, r.mapas_trio[k], {
         titulo: 'Mapa ' + LETRAS_T2[i],
         leyenda: 'patrón sin etiquetar, en la ventana unidad'
+      });
+    }
+
+    // --- Los informes que las tareas ponen a auditar -------------------
+    // Se RENDERIZAN, no se escriben en el ensamblador, y por dos razones.
+    // La primera es la regla del material: la premisa del informe de T3
+    // cita el último r en que L − r sigue siendo positiva, y ese r es
+    // distinto para cada patrón — escrito a mano sería una cifra sin
+    // respaldo en el JSON. La segunda es más seria: una premisa falsa
+    // hunde la tarea, porque el estudiante refutaría lo que no es. Así
+    // cada informe dice una verdad sobre SU variante y saca de ella una
+    // conclusión que no se sigue.
+    const INFORMES_T2 = {
+      t3: function (r) {
+        const P = DATOS_T2.patrones[r.v.propio - 1];
+        let ult = 0;
+        for (let i = 0; i < P.r.length; i++) if (P.L[i] > 0) ult = P.r[i];
+        return `<p>«He calculado la función K de Ripley y su transformación L sobre el patrón.
+          <strong>La curva L − r es positiva hasta r = ${n5(ult, 3)}</strong>, de modo que el
+          patrón <strong>está agregado hasta esa distancia</strong>. La agregación se extiende, por
+          tanto, a lo largo de todo ese rango de escalas.»</p>
+          <p style="margin-bottom:0; font-style:italic;">— respuesta de un modelo de lenguaje al que
+          se le dieron estas mismas curvas.</p>`;
+      },
+      t4: function (r) {
+        // Los dos recuentos se cuentan aquí, sobre las curvas publicadas.
+        // La primera versión de este informe decía «en prácticamente
+        // todos los nodos» y era FALSA para media docena de las doce
+        // envolventes —en la primera son 16 de 159—. Un informe con una
+        // premisa falsa hunde la tarea: el estudiante refuta la
+        // aritmética y no llega nunca al error, que es de razonamiento.
+        const e = DATOS_T2.envolventes[r.v.envolvente - 1];
+        let enTramo = 0, fueraTramo = 0;
+        for (let i = 0; i < e.r.length; i++) {
+          if (e.r[i] < e.tramo[0] || e.r[i] > e.tramo[1]) continue;
+          enTramo++;
+          if (e.obs[i] > e.hi[i] || e.obs[i] < e.lo[i]) fueraTramo++;
+        }
+        return `<p>«Calculé la envolvente de K con <strong>${e.nsim} simulaciones</strong> de CSR
+          y examiné el rango <strong>r ∈ [${n5(e.tramo[0], 4)}, ${n5(e.tramo[1], 4)}]</strong>,
+          que es donde la curva observada se separa de la teórica. En ese rango la observada se sale
+          de la banda del 95&nbsp;% en <strong>${fueraTramo} de ${enTramo}</strong>
+          ${enTramo === 1 ? 'nodo evaluado' : 'nodos evaluados'}. Como la curva abandona la banda del 95&nbsp;%, <strong>el patrón se aparta de
+          la aleatoriedad espacial completa con p &lt; 0,05</strong>.»</p>
+          <p style="margin-bottom:0; font-style:italic;">— informe recibido junto con la figura de
+          arriba.</p>`;
+      },
+      t5: function (r) {
+        const t = DATOS_T2.t5[r.v.localidad];
+        return `<p>«Estimé la intensidad de las sedes educativas de <strong>${r.v.localidad}</strong>
+          por el método de núcleos, con un ancho de banda de <strong>σ = ${t.sigma_informe}
+          metros</strong>. El mapa resultante muestra <strong>${t.focos_informe}
+          ${t.focos_informe === 1 ? 'foco' : 'focos'} de concentración</strong> de oferta
+          educativa, con un pico de <strong>${n5(t.pico_informe, 2)} veces</strong> la intensidad
+          media de la localidad. Recomendamos concentrar la inversión en
+          ${t.focos_informe === 1 ? 'esa zona' : 'esas zonas'}.»</p>
+          <p style="margin-bottom:0; font-style:italic;">— informe entregado a la Secretaría de
+          Educación. Un foco es una componente conexa de la región donde la intensidad supera el
+          doble de la media.</p>`;
+      }
+    };
+
+    function t2PintaInformes() {
+      const r = t2Resuelve(T2_DOC);
+      document.querySelectorAll('[data-informe]').forEach(caja => {
+        const f = INFORMES_T2[caja.dataset.informe];
+        caja.innerHTML = (r && f) ? f(r)
+          : `<p style="margin:0;">Resuelve tu variante ahí arriba para leer el informe que tienes
+             que auditar.</p>`;
       });
     }
 
@@ -5992,10 +6681,131 @@ print(np.c_[rg, G, F][:12])</code></pre>
       ]
     };
 
-    // Las dos rúbricas del taller —la del escrito y la de la defensa— se
-    // registran en C5b, con el módulo que las muestra. Aquí no queda
-    // ninguna: una rúbrica de demostración dentro de un taller que se
-    // califica se lee como la rúbrica del taller.
+    RUBRICAS['taller2-escrito'] = {
+      titulo: 'Rúbrica del escrito',
+      total: 100,
+      intro: 'El escrito vale el <strong>40&nbsp;%</strong> de la nota del taller. Estas cinco '
+        + 'dimensiones se aplican al informe completo, no tarea por tarea: una misma tarea puede '
+        + 'estar bien interpretada y mal comunicada. Pulsa cada una para ver sus cuatro niveles.',
+      nota: 'Los niveles son excluyentes y cada dimensión se puntúa por separado. Lo que decide el '
+        + 'nivel alto nunca es la cantidad de análisis: es que la cifra se use para decidir.',
+      rotuloAnula: 'Sin esto la entrega está incompleta',
+      anulan: [
+        'La <strong>línea de identificación</strong> del buscador, copiada literal en la portada.',
+        'La <strong>bitácora</strong>: media página declarando qué consultaste con IA, qué te '
+          + 'respondió y cómo lo verificaste.'
+      ],
+      criterios: [
+        {
+          clave: 'A', nombre: 'Apropiación conceptual', puntos: 20,
+          foco: 'Mide si usas el concepto <strong>para decidir</strong>, no para definir. Repetir '
+            + 'qué es una ventana no puntúa; elegir una y sostener por qué, sí.',
+          niveles: [
+            { nombre: 'Excelente', rango: '18–20', observa: 'Cada concepto aparece resolviendo una decisión concreta del análisis, y se nombra el módulo que lo sostiene.' },
+            { nombre: 'Aceptable', rango: '13–17', observa: 'Los conceptos son correctos y se aplican, pero alguno queda enunciado sin llegar a decidir nada.' },
+            { nombre: 'Insuficiente', rango: '7–12', observa: 'Predomina la definición sobre el uso: se explica qué es cada cosa y después se decide por otra vía.' },
+            { nombre: 'No logrado', rango: '0–6', observa: 'Los conceptos se citan mal o no aparecen donde harían falta.' }
+          ]
+        },
+        {
+          clave: 'B', nombre: 'Interpretación de resultados', puntos: 25,
+          foco: 'Mide si dices qué significa <strong>y qué no significa</strong> la cifra. Una '
+            + 'interpretación que no acota su alcance está a medias.',
+          niveles: [
+            { nombre: 'Excelente', rango: '22–25', observa: 'Cada cifra se lee con su escala y su supuesto, y se dice explícitamente qué queda fuera de lo que prueba.' },
+            { nombre: 'Aceptable', rango: '16–21', observa: 'Las lecturas son correctas; el límite de lo que prueban se menciona solo en algunas.' },
+            { nombre: 'Insuficiente', rango: '9–15', observa: 'Se leen las cifras en la dirección correcta pero se les hace decir más de lo que dicen.' },
+            { nombre: 'No logrado', rango: '0–8', observa: 'La lectura contradice la cifra, o la cifra se reporta sin lectura.' }
+          ]
+        },
+        {
+          clave: 'C', nombre: 'Comprensión del procedimiento', puntos: 20,
+          foco: 'Mide si explicas <strong>por qué el procedimiento hace lo que hace</strong>: qué '
+            + 'calcula, contra qué compara y qué supone para poder compararlo.',
+          niveles: [
+            { nombre: 'Excelente', rango: '18–20', observa: 'Se explica el mecanismo —qué entra en el estimador y contra qué se contrasta— y se conecta con la decisión tomada.' },
+            { nombre: 'Aceptable', rango: '13–17', observa: 'El procedimiento se describe bien; el porqué queda implícito en alguna de las tareas.' },
+            { nombre: 'Insuficiente', rango: '7–12', observa: 'Se describe la receta —los pasos— sin llegar al mecanismo.' },
+            { nombre: 'No logrado', rango: '0–6', observa: 'El procedimiento se aplica sin que se pueda ver que se entendió.' }
+          ]
+        },
+        {
+          clave: 'D', nombre: 'Auditoría y refutación', puntos: 25,
+          foco: 'Mide si detectas el defecto <strong>con evidencia interna</strong>: con tus '
+            + 'propias cifras, no apelando a autoridad ni a que «suena raro». Cuatro de las cinco '
+            + 'tareas son de refutación, y por eso esta dimensión pesa como la B.',
+          niveles: [
+            { nombre: 'Excelente', rango: '22–25', observa: 'Nombra el defecto, lo demuestra con una cifra propia y dice qué habría que haber hecho en su lugar.' },
+            { nombre: 'Aceptable', rango: '16–21', observa: 'Detecta los defectos y los sostiene, pero alguno se argumenta sin la cifra que lo probaría.' },
+            { nombre: 'Insuficiente', rango: '9–15', observa: 'Sospecha del resultado y no llega a identificar dónde está el error.' },
+            { nombre: 'No logrado', rango: '0–8', observa: 'Da por bueno el procedimiento defectuoso, o lo rechaza sin evidencia.' }
+          ]
+        },
+        {
+          clave: 'E', nombre: 'Comunicación y honestidad', puntos: 10,
+          foco: 'Se califica sobre la <strong>bitácora</strong>, y se contrasta en la '
+            + 'sustentación. Aquí también se descuenta resolver una variante que no es la tuya, y '
+            + 'ese descuento <strong>tiene piso: no baja de 6</strong>.',
+          niveles: [
+            { nombre: 'Excelente', rango: '9–10', observa: 'La bitácora dice qué se consultó, qué respondió y cómo se verificó, y lo verificado se puede rastrear en el informe.' },
+            { nombre: 'Aceptable', rango: '7–8', observa: 'Declara el uso de IA con precisión razonable; la verificación se menciona sin detallarse.' },
+            { nombre: 'Insuficiente', rango: '4–6', observa: 'La bitácora existe pero es genérica, o el informe no cuadra con lo que declara.' },
+            { nombre: 'No logrado', rango: '0–3', observa: 'No hay bitácora, o lo que declara es falso.' }
+          ]
+        }
+      ]
+    };
+
+    RUBRICAS['taller2-defensa'] = {
+      titulo: 'Rúbrica de la sustentación',
+      total: 100,
+      intro: 'La sustentación vale el <strong>60&nbsp;%</strong> de la nota del taller. Son siete '
+        + 'minutos repartidos en tres bloques, y cada bloque tiene su peso dentro de esta rúbrica.',
+      nota: 'Los tres bloques se califican por separado. El tiempo no es un criterio: quedarse '
+        + 'corto no descuenta si lo dicho responde.',
+      rotuloAnula: 'Lo que se recalifica',
+      anulan: [
+        'Una decisión entregada por escrito que <strong>no se puede sostener aquí</strong>: esa '
+          + 'tarea del escrito se vuelve a calificar con lo que se pueda sostener.'
+      ],
+      criterios: [
+        {
+          clave: 'I', nombre: 'Su variante · 2 min', puntos: 30,
+          foco: 'Defiendes <strong>una</strong> decisión de tu escrito, y la elige el profesor '
+            + 'después de haberlo leído. No es un resumen del informe: es sostener una elección.',
+          niveles: [
+            { nombre: 'Excelente', rango: '27–30', observa: 'Reconstruye la decisión con su cifra, dice qué alternativa descartó y por qué, y reconoce lo que su elección deja fuera.' },
+            { nombre: 'Aceptable', rango: '19–26', observa: 'Sostiene la decisión con su cifra; la alternativa descartada queda sin argumentar.' },
+            { nombre: 'Insuficiente', rango: '11–18', observa: 'Repite lo que escribió sin poder justificarlo cuando se le pregunta por qué.' },
+            { nombre: 'No logrado', rango: '0–10', observa: 'No reconoce su propia decisión, o la contradice.' }
+          ]
+        },
+        {
+          clave: 'II', nombre: 'Banco · 3 min, tres preguntas', puntos: 45,
+          foco: 'Tres preguntas de un banco de <strong>36 publicado con este enunciado</strong>, '
+            + 'sorteadas <strong>sin reemplazo</strong> entre los doce. Cubren los once módulos del '
+            + 'capítulo 4, no solo lo que tocan las tareas.',
+          niveles: [
+            { nombre: 'Excelente', rango: '40–45', observa: 'Las tres bien, con el mecanismo y no solo con la conclusión, y sin necesitar que se le reformule la pregunta.' },
+            { nombre: 'Aceptable', rango: '29–39', observa: 'Dos de tres con solvencia, o las tres correctas pero apoyadas en la definición memorizada.' },
+            { nombre: 'Insuficiente', rango: '16–28', observa: 'Una de tres, o responde en la dirección correcta sin poder sostener por qué.' },
+            { nombre: 'No logrado', rango: '0–15', observa: 'No responde ninguna, o las respuestas contradicen el material.' }
+          ]
+        },
+        {
+          clave: 'III', nombre: 'Refutación en vivo · 2 min', puntos: 25,
+          foco: 'Se lee una <strong>afirmación falsa</strong> sobre el capítulo —una distinta por '
+            + 'persona— y hay que decir por qué lo es. No vale decir que es falsa: hay que decir '
+            + 'dónde se rompe.',
+          niveles: [
+            { nombre: 'Excelente', rango: '22–25', observa: 'Localiza el punto exacto donde la afirmación falla y propone el enunciado correcto.' },
+            { nombre: 'Aceptable', rango: '16–21', observa: 'Reconoce que es falsa y señala la zona del error sin acabar de precisarlo.' },
+            { nombre: 'Insuficiente', rango: '9–15', observa: 'Duda de la afirmación por intuición, sin poder decir qué está mal.' },
+            { nombre: 'No logrado', rango: '0–8', observa: 'Da la afirmación por buena.' }
+          ]
+        }
+      ]
+    };
 
     // ================================================================
     // .geomapa — el motor de mapas del curso (v1, tarea T0.3)
@@ -7118,6 +7928,58 @@ print(np.c_[rg, G, F][:12])</code></pre>
       },
     };
 
+    // El patrón propio de T3. Sí lleva título —es «tu patrón», no hay
+    // nada que ocultar— y lleva la misma tabla de respaldo: T3(b) pide
+    // tres cifras suyas, y quien no ve el lienzo tiene que poder
+    // rehacerlas.
+    GEOMAPAS['taller2-propio'] = {
+      fuente: function () {
+        const r = t2Resuelve(T2_DOC);
+        if (!r) return null;
+        return Object.assign({}, MAPAS_T2.patrones[r.v.propio - 1], {
+          leyenda: 'tu patrón generado, en la ventana unidad'
+        });
+      },
+      paleta: 'verde',
+      alto: 380,
+      tabla: function (d) {
+        const filas = [];
+        for (let i = 0; i < d.n; i++) {
+          filas.push(`<tr><th scope="row">${i + 1}</th>`
+            + `<td>${(d.pts[2 * i] / d.q).toFixed(4)}</td>`
+            + `<td>${(d.pts[2 * i + 1] / d.q).toFixed(4)}</td></tr>`);
+        }
+        return `<table><caption>${d.titulo}: las ${d.n} coordenadas, en la `
+          + `ventana unidad y listas para <code>ppp()</code>.</caption><thead><tr>`
+          + `<th scope="col">Punto</th><th scope="col">x</th>`
+          + `<th scope="col">y</th></tr></thead><tbody>${filas.join('')}</tbody></table>`;
+      },
+    };
+
+    // La localidad de CONTRASTE de T4(a). Es un registro aparte y no el
+    // mismo con un argumento porque los dos mapas conviven en el mismo
+    // módulo: `.geomapa` resuelve su fuente por el id del registro, así
+    // que dos vistas distintas a la vez necesitan dos registros.
+    GEOMAPAS['taller2-contraste'] = {
+      fuente: function () {
+        const r = t2Resuelve(T2_DOC);
+        if (!r) return null;
+        const m = MAPAS_T2.localidades[r.v.contraste];
+        if (!m) return null;
+        return Object.assign({}, m, { titulo: r.v.contraste });
+      },
+      get etiqueta() {
+        const r = t2Resuelve(T2_DOC);
+        if (!r) return 'Mapa sin variante resuelta';
+        const L = DATOS_T2.localidades[r.v.contraste];
+        return 'El contorno de ' + r.v.contraste + ', la localidad de contraste de T4. '
+          + 'Dentro caen ' + L.n + ' sedes educativas y su área es de '
+          + n5(L.area_km2, 2) + ' kilómetros cuadrados.';
+      },
+      paleta: 'verde',
+      alto: 340,
+    };
+
     const TABLAS_RANKING = {};
 
     function distanciaRanking(columna, valor) {
@@ -7403,13 +8265,16 @@ print(np.c_[rg, G, F][:12])</code></pre>
       function aplica(txt) {
         T2_DOC = txt;
         try { window.localStorage.setItem(T2_LLAVE, txt); } catch (e) { /* sin almacenamiento */ }
-        // Todas las tiras de la página, no solo esta: un módulo puede
-        // tener dos y quedarían discrepando entre sí.
-        document.querySelectorAll('.simulador[data-simulador="taller2-variante"]')
-          .forEach(otra => { if (otra.__t2pinta) otra.__t2pinta(); });
-        // Las curvas del trío, si el módulo actual las tiene.
-        document.querySelectorAll('.simulador[data-simulador="taller2-trio-curvas"]')
-          .forEach(otra => { if (otra.__t2curvas) otra.__t2curvas(); });
+        // TODO lo que dependa de la variante, de una vez y sin lista: cada
+        // simulador del taller deja su repintado en `__t2repinta`, así que
+        // añadir uno nuevo no obliga a acordarse de venir aquí. La lista
+        // por nombre que había antes es la clase de cosa que se queda a
+        // medias en cuanto llegan T3, T4 y T5 — y se queda a medias en
+        // silencio, con la ficha resuelta y la curva vieja debajo.
+        document.querySelectorAll('.simulador').forEach(s => {
+          if (s.__t2repinta) s.__t2repinta();
+        });
+        t2PintaInformes();
         // Y los mapas. Ojo con el caso que se comió T1 entero en la
         // verificación del Taller 1: si el módulo se abrió SIN variante,
         // `iniciarGeomapas()` se fue por su rama de «sin datos» —`fuente()`
@@ -7439,10 +8304,14 @@ print(np.c_[rg, G, F][:12])</code></pre>
         envolverTablas();
       }
 
-      raiz.__t2pinta = pinta;
+      raiz.__t2repinta = pinta;
       campo.addEventListener('input', () => aplica(campo.value));
       campo.value = T2_DOC;
       pinta();
+      // Los informes de T3, T4 y T5 viven fuera de cualquier simulador
+      // —son citas dentro de la prosa— así que alguien tiene que pintarlos
+      // al cargar el módulo. Lo hace la tira, que está en todos.
+      t2PintaInformes();
     };
 
     // --- Las tres parejas de curvas de T2 -----------------------------
@@ -7519,7 +8388,192 @@ print(np.c_[rg, G, F][:12])</code></pre>
         envolverTablas();
       }
 
-      raiz.__t2curvas = pinta;
+      raiz.__t2repinta = pinta;
+      pinta();
+      return graficos;
+    };
+
+    // --- Las tres curvas del patrón propio (T3) -----------------------
+    // K contra πr², L − r contra el cero y g contra el uno. Las tres
+    // referencias se dibujan como una serie más y no como una anotación:
+    // una línea que se puede leer en la leyenda y apagar con un clic es
+    // más honesta que una raya pintada sobre el lienzo.
+    SIMULADORES['taller2-propio-curvas'] = function (raiz) {
+      const lienzos = [...raiz.querySelectorAll('canvas')];
+      const lectura = raiz.querySelector('.simulador-lectura');
+      const ejes = tit => ({
+        scales: {
+          x: { title: { display: true, text: 'r' },
+               ticks: { maxTicksLimit: 6, font: { family: 'Montserrat', size: 11 } },
+               grid: { display: false } },
+          y: { title: { display: true, text: tit },
+               ticks: { font: { family: 'Fira Code', size: 11 } },
+               grid: { color: 'rgba(148, 163, 184, 0.2)' } }
+        }
+      });
+      const serie = (etq, color, guion) => ({
+        label: etq, data: [], borderColor: color, backgroundColor: color,
+        borderWidth: guion ? 1.6 : 2, pointRadius: 0,
+        borderDash: guion ? [5, 3] : undefined
+      });
+      const graficos = [
+        crearGraficoLinea(lienzos[0], [], [serie('K(r)', COLORES_GRAFICO.primario),
+          serie('πr² (CSR)', COLORES_GRAFICO.gris, true)], ejes('K')),
+        crearGraficoLinea(lienzos[1], [], [serie('L(r) − r', COLORES_GRAFICO.primario),
+          serie('cero', COLORES_GRAFICO.gris, true)], ejes('L − r')),
+        crearGraficoLinea(lienzos[2], [], [serie('g(r)', COLORES_GRAFICO.secundario),
+          serie('uno (CSR)', COLORES_GRAFICO.gris, true)], ejes('g'))
+      ];
+
+      function pinta() {
+        const r = t2Resuelve(T2_DOC);
+        if (!r) {
+          graficos.forEach(g => {
+            g.data.labels = [];
+            g.data.datasets.forEach(ds => { ds.data = []; });
+            g.update('none');
+          });
+          lectura.innerHTML = `<p style="margin:0;">Resuelve tu variante arriba y aquí aparecerán
+            las tres curvas de tu patrón.</p>`;
+          return;
+        }
+        const P = DATOS_T2.patrones[r.v.propio - 1];
+        const etiquetas = P.r.map(x => n5(x, 3));
+        // πr² se calcula aquí porque es la CURVA DE REFERENCIA, no un dato:
+        // es la definición de CSR, no una cifra del precálculo. Todo lo
+        // que sí es dato —K, L, g— viene del JSON sin tocarlo.
+        const teo = P.r.map(x => Math.PI * x * x);
+        graficos[0].data.datasets[0].data = P.K;
+        graficos[0].data.datasets[1].data = teo;
+        graficos[1].data.datasets[0].data = P.L;
+        graficos[1].data.datasets[1].data = P.r.map(() => 0);
+        graficos[2].data.datasets[0].data = P.g;
+        graficos[2].data.datasets[1].data = P.r.map(() => 1);
+        const nombres = ['K de tu patrón frente a πr²', 'L menos r de tu patrón frente al cero',
+                         'g de tu patrón frente al uno'];
+        graficos.forEach((g, i) => {
+          g.data.labels = etiquetas;
+          g.update('none');
+          g.canvas.setAttribute('aria-label', nombres[i] + ', sobre r de ' + etiquetas[0]
+            + ' a ' + etiquetas[etiquetas.length - 1]
+            + '. Los valores están en la tabla que hay debajo.');
+        });
+
+        const paso = 5;
+        const filas = [];
+        for (let j = 0; j < P.r.length; j += paso) {
+          filas.push(`<tr><th scope="row">${n5(P.r[j], 3)}</th>`
+            + `<td>${n5(P.K[j], 5)}</td><td>${n5(Math.PI * P.r[j] * P.r[j], 5)}</td>`
+            + `<td>${n5(P.L[j], 5)}</td><td>${n5(P.g[j], 3)}</td></tr>`);
+        }
+        lectura.innerHTML = `<details class="geomapa-tabla"><summary>Ver las curvas en una
+          tabla</summary><table><caption>K, su valor bajo CSR, L − r y g de tu patrón, una fila
+          de cada ${paso} valores de r.</caption><thead><tr><th scope="col">r</th>
+          <th scope="col">K(r)</th><th scope="col">πr²</th><th scope="col">L(r) − r</th>
+          <th scope="col">g(r)</th></tr></thead><tbody>${filas.join('')}</tbody></table></details>`;
+        envolverTablas();
+      }
+
+      raiz.__t2repinta = pinta;
+      pinta();
+      return graficos;
+    };
+
+    // --- La envolvente de T4(b), entera y recortada --------------------
+    // Los DOS paneles salen de las MISMAS series. Eso no es una comodidad
+    // de programación: es el enunciado. Si el panel recortado se
+    // recalculara, el estudiante podría contestar «son análisis
+    // distintos» y tendría razón — y la tarea, que pregunta por el orden
+    // entre mirar y elegir, se quedaría sin objeto.
+    SIMULADORES['taller2-envolvente'] = function (raiz) {
+      const lienzos = [...raiz.querySelectorAll('canvas')];
+      const lectura = raiz.querySelector('.simulador-lectura');
+      const opciones = {
+        plugins: {
+          legend: { labels: { font: { family: 'Montserrat', size: 11 }, boxWidth: 22,
+            filter: item => item.text !== '' } },
+          tooltip: { backgroundColor: '#012820', titleFont: { family: 'Montserrat' },
+            bodyFont: { family: 'Fira Code' } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'r' },
+               ticks: { maxTicksLimit: 6, font: { family: 'Montserrat', size: 11 } },
+               grid: { display: false } },
+          y: { title: { display: true, text: 'K(r)' },
+               ticks: { font: { family: 'Fira Code', size: 11 } },
+               grid: { color: 'rgba(148, 163, 184, 0.2)' } }
+        }
+      };
+      const bandas = () => ([
+        { label: 'banda de simulación', data: [], borderColor: 'rgba(26,115,88,.35)',
+          backgroundColor: 'rgba(124,192,170,.30)', borderWidth: 1, pointRadius: 0, fill: '+1' },
+        { label: '', data: [], borderColor: 'rgba(26,115,88,.35)', borderWidth: 1,
+          pointRadius: 0, fill: false },
+        { label: 'K teórica (CSR)', data: [], borderColor: COLORES_GRAFICO.gris,
+          borderWidth: 1.6, borderDash: [5, 3], pointRadius: 0 },
+        { label: 'K observada', data: [], borderColor: COLORES_GRAFICO.secundario,
+          borderWidth: 2, pointRadius: 0 }
+      ]);
+      const graficos = lienzos.map(l => crearGraficoLinea(l, [], bandas(), opciones));
+
+      function pinta() {
+        const r = t2Resuelve(T2_DOC);
+        if (!r) {
+          graficos.forEach(g => {
+            g.data.labels = [];
+            g.data.datasets.forEach(ds => { ds.data = []; });
+            g.update('none');
+          });
+          lectura.innerHTML = `<p style="margin:0;">Resuelve tu variante arriba y aquí aparecerá
+            tu envolvente.</p>`;
+          return;
+        }
+        const e = DATOS_T2.envolventes[r.v.envolvente - 1];
+        const dentroTramo = e.r.map(x => x >= e.tramo[0] && x <= e.tramo[1]);
+        const vistas = [e.r.map(() => true), dentroTramo];
+        graficos.forEach((g, k) => {
+          const m = vistas[k];
+          const corta = a => a.filter((_, i) => m[i]);
+          g.data.labels = corta(e.r).map(x => n5(x, 4));
+          g.data.datasets[0].data = corta(e.lo);
+          g.data.datasets[1].data = corta(e.hi);
+          g.data.datasets[2].data = corta(e.teo);
+          g.data.datasets[3].data = corta(e.obs);
+          g.update('none');
+          g.canvas.setAttribute('aria-label', (k === 0
+            ? 'Envolvente de K sobre todo el rango de r'
+            : 'La misma envolvente restringida al tramo que eligió el informe')
+            + ', con la banda de simulación, la curva teórica bajo CSR y la observada. '
+            + 'Los recuentos están en la tabla que hay debajo.');
+        });
+
+        // El recuento se hace AQUÍ, sobre las curvas publicadas, y no se
+        // lee del campo `nodos_fuera` del JSON. Las dos cifras tienen que
+        // coincidir y el auditor lo comprueba; contarlas otra vez en el
+        // navegador es lo que hace que el estudiante pueda repetir el
+        // recuento y salirle lo mismo.
+        let fuera = 0, fueraTramo = 0, enTramo = 0;
+        for (let i = 0; i < e.r.length; i++) {
+          const sale = e.obs[i] > e.hi[i] || e.obs[i] < e.lo[i];
+          if (sale) fuera++;
+          if (dentroTramo[i]) { enTramo++; if (sale) fueraTramo++; }
+        }
+        lectura.innerHTML = `<table><caption class="sr-only">Recuento de nodos fuera de
+          banda</caption><tbody>
+          <tr><th scope="row">Simulaciones de la envolvente</th><td>${e.nsim}</td></tr>
+          <tr><th scope="row">Nodos de r evaluados</th><td>${e.nodos}</td></tr>
+          <tr><th scope="row">Nodos fuera de la banda, en todo el rango</th>
+              <td><strong>${fuera}</strong></td></tr>
+          <tr><th scope="row">El tramo que eligió el informe</th>
+              <td>de r = ${n5(e.tramo[0], 4)} a r = ${n5(e.tramo[1], 4)}, que son
+                  ${enTramo} nodos</td></tr>
+          <tr><th scope="row">Nodos fuera de la banda dentro de ese tramo</th>
+              <td><strong>${fueraTramo}</strong></td></tr>
+          </tbody></table>`;
+        envolverTablas();
+      }
+
+      raiz.__t2repinta = pinta;
       pinta();
       return graficos;
     };
