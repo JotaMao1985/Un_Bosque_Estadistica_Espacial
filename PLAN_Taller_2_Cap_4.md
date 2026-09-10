@@ -28,7 +28,20 @@ guarda rechaza el JSON si contiene «agregado», «aleatorio», «regular», «T
 **La construcción corrigió al plan SIETE veces**: **M-2 corregida**, **M-6**, **M-7**, **M-8**,
 **M-9**, **M-10** y **M-11**. Las dos más caras: M-6 invalidaba una tabla ya escrita aquí, y M-10
 tumbó el diseño de T4(b) que este plan daba por bueno.
-**Siguiente: C2b** (el dato que descarga el estudiante) y **C3** (el auditor en Python).
+**C2b HECHA**: `datos_taller2.R` escribe `entrega/datos/taller2_{sedes,localidades}.gpkg` y
+`taller2_patrones.csv`, verificados **abriéndolos desde fuera del repositorio** con `sf` y con
+geopandas, y ya en la lista blanca del `.gitignore`. Comprueba además que **las 60 curvas del CSV
+cuadran con las del JSON**: sin eso, una desincronización entre el reparto y el enunciado sería
+invisible —los dos correrían en verde y el estudiante calcularía sobre otros puntos—.
+**C3 HECHA**: `audita_taller2.py`, **146 comprobaciones, 0 fallos, 0 saltadas**, recalculando en
+Python con geopandas/scipy. **Cazó una fuga en su primera pasada**: el JSON publicaba el campo
+`sigma_sembrado`, cuyo nombre le anuncia al estudiante que ese ancho está plantado. Renombrado a
+`sigma_informe`.
+**Y antes, leyendo el JSON a ojo, apareció otra**: los tríos viajaban siempre en el orden
+(agregado, aleatorio, regular) y la posición 1 tenía la G mayor en **12 de 12**. `unname()` quita
+los nombres, no la posición. Barajado, con guarda en el generador y comprobación propia en el
+auditor.
+**Siguiente: C4** (el arnés de inyección) y **C5** (el ensamblador).
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
