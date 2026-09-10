@@ -293,7 +293,49 @@ porque es justo la duda que el propio arnés imprime al final de cada corrida.
 pasada del auditor indexa el JSON de 530 KB y tarda **6 s**; los capítulos, con JSON de ~100 KB,
 tardan menos de uno.
 
-**Siguiente: C8** (navegador) y **C9** (integración), o la decisión sobre M-14, que es lo que manda.
+**C8 y C9 HECHAS (2026-09-10).**
+
+**C8 · el navegador**, con sus cuatro puntos cerrados: **0 desbordamientos a 1 280, 375 y 318 px**
+en los siete módulos; el **buscador con cinco documentos distintos** —1012345678, 52987341,
+1030512004, 80123456 y 1098765432— resuelve cinco variantes distintas, con cinco localidades,
+cinco patrones y cinco tríos; **las curvas pintan tinta de verdad**, medida contando píxeles no
+blancos del lienzo —unos 14 000 de 171 396 en cada uno de los tres de T3, que es lo que distingue
+un gráfico dibujado de un gráfico vacío que se ve igual de bien en una captura—; y **los tres
+archivos descargables responden 200** servidos desde el sitio. Más lo que ya se venía comprobando
+en cada paso: consola sin errores, 0 gráficos huérfanos tras seis ciclos y `aria-label` en los
+ocho lienzos del marcado.
+
+**Y una medición de regalo, sobre el reparto:** las 1000 variantes usan **los 24 patrones propios y
+los 12 tríos**, con un mínimo de 32 y 48 filas respectivamente, y las **12 envolventes se reparten
+entre 77 y 84 filas cada una**. Ninguna se queda sin salir, que es lo que haría que una envolvente
+publicada no la viera nadie.
+
+**C9 · la integración, y el arnés lo descubrió todo solo.** `audita_todo.sh --rapido` termina en
+**ARNÉS COMPLETO EN VERDE** y nombra el taller 2 en **cinco** sitios distintos sin que se haya
+tocado una línea de ese guion: `audita_taller2.py` por el bucle del §7, `ensambla_taller2.py` en
+`sin_aritmetica.py`, `taller-2-cap-4.html` en `campos_vivos.py` y en `comentarios_cerrados.py`, y
+`audita_texto_taller2.py` por su propio bucle. Eso es exactamente lo que el §7 pedía comprobar —«la
+comprobación de C9 no es añadirlo, es verificar que el arnés lo encontró»—.
+`cuenta_sitio.py` lo clasifica en el cubo de talleres (7 módulos, 5 ejercicios, 2 rúbricas, 7
+geomapas, 4 simuladores) y ahora dice **«los 9 archivos del curso están enlazados»**, porque
+`index.html` lleva su tarjeta junto a la del Taller 1. `README.md` actualizado. Y el `.gitignore`
+ya estaba: se escribió **antes** de que los archivos existieran, a propósito, y
+`git check-ignore` confirma las dos caras — `genera_taller2.R` y `verifica_taller2.R` **no viajan**,
+y los tres `entrega/datos/taller2_*`, el plan y `salidas/taller2_banco.md` **sí**.
+
+**LO QUE C9 SIGNIFICA, Y HAY QUE DECIRLO ANTES DE FUSIONAR:** la tarjeta de `index.html` hace el
+taller **alcanzable desde la portada**, y la portada es lo que despliega en Pages. Mientras esto
+viva en la rama no publica nada; **el día que se fusione, se publica un taller cuya T2 descansa
+sobre curvas F que no son la función de espacio vacío (M-14)**. La rama está lista; la decisión de
+fusionarla no lo está.
+
+**Nota para quien retome esto en un worktree:** el arnés general dio un paso en rojo por una razón
+que no era del material — a un worktree le faltan `datos/` y `precalculo/cache/`, que están
+ignorados y viven en la copia principal. `verifica_bloques.py` mata la sesión de R al no encontrar
+`cache/dep_disuelto_1122.rds` y reporta 47 bloques con discrepancias, que es un falso rojo
+espectacular. Se arregla enlazando o copiando esas dos carpetas desde la copia principal.
+
+**Siguiente: C10** (el calificador), o la decisión sobre M-14, que es lo que manda.
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -1188,10 +1230,14 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
 ### Fase 4 · Cierre
 
 **C8 · Verificación en el navegador** — **Tamaño: S**
-- [ ] los tres anchos · el buscador con cinco documentos distintos · las curvas con tinta ·
+> **HECHA (2026-09-10).** Ver el §0.
+- [x] los tres anchos · el buscador con cinco documentos distintos · las curvas con tinta ·
       el dato descargable se abre
 
 **C9 · Integración en el repositorio** — **Tamaño: S**
+> **HECHA (2026-09-10).** `audita_todo.sh --rapido` en **ARNÉS COMPLETO EN VERDE**, y nombra el
+> taller 2 en cinco sitios sin haberlo tocado. Ver el §0, incluida la advertencia sobre lo que
+> significa fusionar la rama.
 - [ ] `audita_todo.sh --rapido` **nombra el taller 2 en su salida** (no se edita: lo descubre por
       los nombres del §7; si no aparece, el nombre está mal) · `cuenta_sitio.py` en verde ·
       `index.html` con la tarjeta nueva, junto a la del Taller 1 · `README.md` actualizado ·
