@@ -128,9 +128,15 @@ def main() -> int:
     CAMPOS_LOC = {"cod_loca", "localidad", "n", "area_km2", "lambda"}
     sobra = sorted({c for v in D["localidades"].values() for c in set(v) - CAMPOS_LOC})
     falta = sorted({c for v in D["localidades"].values() for c in CAMPOS_LOC - set(v)})
+    # EL RÓTULO TIENE 57 CARACTERES DE PRESUPUESTO: `Auditoria.cierto()`
+    # rellena hasta 58 antes del detalle, y uno de 58 o más se queda sin
+    # relleno, pegado a su detalle, y `prueba_auditor_base.nombres()` ya no
+    # puede separarlos. La enumeración de los campos es DETALLE y por eso
+    # baja al detalle, donde además sale de `CAMPOS_LOC` y no puede
+    # quedarse desfasada de lo que se comprueba.
     a.cierto(not sobra and not falta,
-             "de cada localidad se publica SOLO identidad, n, área y lambda",
-             f"sobra {sobra} · falta {falta}")
+             "de cada localidad solo viajan los campos previstos",
+             f"{', '.join(sorted(CAMPOS_LOC))} · sobra {sobra} · falta {falta}")
 
     CAMPOS_T5 = {"localidad", "sigma_informe", "pico_informe", "focos_informe"}
     sobra5 = sorted({c for v in D["t5"].values() for c in set(v) - CAMPOS_T5})
@@ -174,8 +180,14 @@ def main() -> int:
         # que ser el mismo. Sin esta comprobación, renombrar el campo sin
         # tocar la clave pasaba entero: el enunciado imprimiría un nombre
         # y el mapa otro, con todo lo demás cuadrando.
+        # El rótulo lleva el nombre de la localidad DELANTE, así que su
+        # presupuesto son 57 menos ese nombre: con «Rafael Uribe Uribe»
+        # quedaban 39 y el texto gastaba 44, de modo que los cuatro nombres
+        # largos se comían el relleno y arrastraban su detalle —que aquí es
+        # otra vez el nombre—. Va corto y CON HOLGURA: la explicación vive
+        # en el comentario de arriba, que no paga presupuesto.
         a.cierto(pub.get("localidad") == nom,
-                 f"{nom}: su campo `localidad` coincide con su clave",
+                 f"{nom}: `localidad` es la clave",
                  str(pub.get("localidad")))
         Li = loc[loc.localidad == nom].iloc[0]
         area = Li.geometry.area / 1e6
