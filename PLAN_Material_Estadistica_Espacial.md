@@ -274,10 +274,11 @@ regenerar y verificar los dos capítulos anteriores; aquí son seis.
 
 ### 0.2 · Dónde vive el trabajo
 
-Rama **`main`**. ✅ **Todo publicado**: `origin/main` está en `811a299`, y con él **la portada
-corregida y el capítulo 4 entero —revisión, ejercicios, mapas y los nueve párrafos de salida que
-le faltaban— delante de los estudiantes**, más los capítulos 5 y 6 con su espacio fino. **Queda un solo commit en local, y es esta nota**: el §0
-diciendo que se publicó, que no puede publicarse antes de escribirse.
+Rama **`main`**. ✅ **Todo publicado**: `origin/main` llega a `b4afd06`, y con él **la portada
+corregida y el capítulo 4 entero —revisión, ejercicios, mapas, los nueve párrafos de salida que le
+faltaban y el orden del módulo 1— delante de los estudiantes**, más los capítulos 5 y 6 con su
+espacio fino. **Queda un solo commit en local, y es esta nota**: el §0 diciendo que se publicó, que
+no puede publicarse antes de escribirse.
 
 **El árbol NO está limpio, y no es cosa de este hilo:** hay trabajo sin confirmar del **Taller 2**
 sobre el capítulo 5 —`ensambla_cap5.py`, `genera_cap5.R`, `geo.R`, sus dos JSON y el HTML del
@@ -314,6 +315,8 @@ entrado **después**, en dos tandas más:
 | `849b4ae` | El §0 anterior |
 | `c33ed29` · `1f9a1bb` | **Taller 2**, C4: su arnés y los tres agujeros que encontró en su auditor |
 | `811a299` | **Los nueve párrafos de salida del capítulo 4**: la regla 2 del §9.1 se olvidaba en 9 de sus 12 módulos, siempre en el bloque de código. Ahora 0 de 12. **Capítulo en vivo** |
+| `b5a293a` | El §0 anterior |
+| `b4afd06` | **El módulo 1 daba tres recuentos de sedes** —2 209, 2 208 y 2 107— y explicaba dos párrafos después por qué no coinciden. Lo encontró Javier leyendo; ningún auditor podía verlo. **Capítulo en vivo** |
 
 **El `push` no se hace sin decirlo, y sigue en pie.** Es la respuesta por defecto que quedó escrita
 en la revisión del capítulo 5, porque publicar aquí no es guardar: **el sitio se sirve de `main`**
