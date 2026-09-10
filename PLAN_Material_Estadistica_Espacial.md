@@ -274,9 +274,9 @@ regenerar y verificar los dos capítulos anteriores; aquí son seis.
 
 ### 0.2 · Dónde vive el trabajo
 
-Rama **`main`**. ✅ **Todo publicado**: `origin/main` está en `b1c95ed`, y con él **la portada
-corregida y el capítulo 4 entero —revisión, ejercicios y mapas— delante de los estudiantes**, más
-los capítulos 5 y 6 con su espacio fino. **Queda un solo commit en local, y es esta nota**: el §0
+Rama **`main`**. ✅ **Todo publicado**: `origin/main` está en `811a299`, y con él **la portada
+corregida y el capítulo 4 entero —revisión, ejercicios, mapas y los nueve párrafos de salida que
+le faltaban— delante de los estudiantes**, más los capítulos 5 y 6 con su espacio fino. **Queda un solo commit en local, y es esta nota**: el §0
 diciendo que se publicó, que no puede publicarse antes de escribirse.
 
 **El árbol NO está limpio, y no es cosa de este hilo:** hay trabajo sin confirmar del **Taller 2**
@@ -311,6 +311,9 @@ entrado **después**, en dos tandas más:
 | `8ab846f` · `3432a72` · `de23722` · `e803c60` | **Taller 2**, C1 a C3: precálculo, dato de entrega y auditor |
 | `449792b` | **Los cinco ejercicios del capítulo 4** hablan el idioma del capítulo: `χ²`, `10×10`, `≤`, millares con fino y cinco decimales en vez de diez. **Capítulo en vivo** |
 | `b1c95ed` | **Los dos últimos `chi²`**, en los títulos de los mapas del módulo 5 y en una etiqueta accesible. **Capítulo en vivo** |
+| `849b4ae` | El §0 anterior |
+| `c33ed29` · `1f9a1bb` | **Taller 2**, C4: su arnés y los tres agujeros que encontró en su auditor |
+| `811a299` | **Los nueve párrafos de salida del capítulo 4**: la regla 2 del §9.1 se olvidaba en 9 de sus 12 módulos, siempre en el bloque de código. Ahora 0 de 12. **Capítulo en vivo** |
 
 **El `push` no se hace sin decirlo, y sigue en pie.** Es la respuesta por defecto que quedó escrita
 en la revisión del capítulo 5, porque publicar aquí no es guardar: **el sitio se sirve de `main`**
@@ -351,7 +354,8 @@ están fusionadas en `main` y se pueden borrar cuando estorben.
 | **`ent()` en los capítulos 5 y 6** (2026-09-09) | ✅ hecha y publicada. Los seis capítulos escriben el fino, y salió que el 6 publicaba tres `#>` con separador de millares que `verifica_bloques.py` no puede ver. Ver **A.30.10** |
 | **La portada** (2026-09-09) | ✅ hecha y publicada. Anunciaba como «Próximamente» los capítulos 4, 5 y 6, publicados desde hacía semanas; se quitaron las tres tarjetas y `cuenta_sitio.py` estrena la guarda que lo impide, comprobada fallando |
 | **Los ejercicios del capítulo 4** (2026-09-09) | ✅ hecha y publicada. `genera_soluciones.R` escribía `chi²`, `10x10`, `L(r) - r`, millares sin separador y hasta diez decimales; y su E3 contradecía al módulo sobre la nula del test. Los decimales se formatean al renderizar, que es lo que la comprobación de celdas sabe verificar. Ver **A.30.11** |
-| **El Taller 2 del capítulo 4** | 🔄 **en curso en otra sesión**, con plan propio en `PLAN_Taller_2_Cap_4.md`. C1 a C3 publicadas —precálculo, dato de entrega y auditor—; su trabajo sobre el capítulo 5 está **sin confirmar** en el árbol |
+| **Los párrafos de salida del capítulo 4** (2026-09-09) | ✅ hecha y publicada. La regla 2 del §9.1 se olvidaba en **9 de los 12 módulos**, siempre en el bloque de código; ahora son **0 de 12**. Ver §0.5, punto 4 |
+| **El Taller 2 del capítulo 4** | 🔄 **en curso en otra sesión**, con plan propio en `PLAN_Taller_2_Cap_4.md`. C1 a C4 publicadas —precálculo, dato de entrega, auditor y su arnés—; su trabajo sobre el capítulo 5 sigue **sin confirmar** en el árbol |
 | **T4.5–T4.6** · ensamblado, verificación y cierre | ⬜ **lo siguiente**. Ver §0.5 |
 
 **Lo publicado —seis capítulos—**, contado por `cuenta_sitio.py` y no recordado: **72 módulos, 57
@@ -488,8 +492,19 @@ para que no se pierda entre los anexos:
 3. **`campos_vivos.py` mira `courseData` y no `DATOS_CAPN`**, que es donde vivían los campos
    muertos del capítulo 4: una R de Donnelly que su propio ejercicio 5 declara inexistente para la
    ventana de Bogotá, un `bei` de 3 604 puntos que nadie dibuja, y una semilla que no siembra nada.
-4. **El capítulo 4 cierra 9 de sus 12 módulos en un bloque de código sin párrafo de salida**, contra
-   la regla 2 del §9.1. No es la convención de la casa: los capítulos 2, 5 y 6 la cumplen 12 de 12.
+4. ~~**El capítulo 4 cierra 9 de sus 12 módulos en un bloque de código sin párrafo de salida**~~
+   ✅ **hecho el 2026-09-09.** Ahora son **0 de 12**. Los nueve cierres no son relleno: cada uno
+   dice lo que el código enseña y la prosa no había dicho —el binado de `cut()` en el 2, la R
+   `naive` en el 3, los dos generadores que no comparten semilla en el 4, la rejilla de cálculo
+   frente a la de publicación en el 8, los segundos que no se anuncian en el 10— y entrega el
+   módulo siguiente, que es la otra mitad de la regla 2.
+
+   **Y una cifra mal citada que solo se ve leyendo el párrafo junto a su bloque:** el cierre del
+   módulo 11 decía «no hacen falta otras 999» al lado de un bloque que corre con `nsim = 39`. Se
+   citó la envolvente del capítulo en vez de la del bloque que se estaba cerrando, y **el auditor
+   de prosa no podía verlo**: 999 existe en el precálculo, así que la cifra era «conocida». Lo que
+   estaba mal no era el número sino cuál de los dos — la misma familia que el índice de dispersión
+   comparado contra 1 (**A.30.3**).
 5. ~~**La frontera con `genera_soluciones.R`**~~ ✅ **hecha el 2026-09-09.** Los cinco ejercicios
    escriben ya `χ²`, `10×10`, `≤`, el menos tipográfico, los millares con espacio fino y cinco
    decimales. Los decimales se formatean **al renderizar** y no en R: el JSON conserva sus diez
