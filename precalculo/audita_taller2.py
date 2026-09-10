@@ -161,12 +161,28 @@ def main() -> int:
              f"las {len(usables)} localidades usables son las que pasan n >= {MIN_SEDES}",
              str(set(D["localidades"]) ^ set(usables)))
 
+    # UN AUDITOR QUE REVIENTA NO INFORMA, y el arnés de C4 cuenta la
+    # muerte con código != 0 como «cazado» sin que ninguna comprobación
+    # se haya visto fallar. Es la lección del preparcial del 2026-08-26,
+    # y aquí la volvieron a destapar seis inyecciones: una localidad
+    # renombrada, una sección que desaparece y un campo que falta hacían
+    # morir a este auditor con KeyError o IndexError. Ahora informa.
     for nom, pub in D["localidades"].items():
+        if not a.cierto(nom in dentro, f"{nom}: existe en el GeoPackage"):
+            continue
+        # El nombre de la CLAVE y el campo `localidad` de dentro tienen
+        # que ser el mismo. Sin esta comprobación, renombrar el campo sin
+        # tocar la clave pasaba entero: el enunciado imprimiría un nombre
+        # y el mapa otro, con todo lo demás cuadrando.
+        a.cierto(pub.get("localidad") == nom,
+                 f"{nom}: su campo `localidad` coincide con su clave",
+                 str(pub.get("localidad")))
         Li = loc[loc.localidad == nom].iloc[0]
         area = Li.geometry.area / 1e6
-        a.igual(len(dentro[nom]), pub["n"], f"{nom}: n geométrico")
-        a.cerca(area, pub["area_km2"], f"{nom}: área en km²", rel=1e-6)
-        a.cerca(len(dentro[nom]) / area, pub["lambda"], f"{nom}: lambda", rel=1e-6)
+        a.igual(len(dentro[nom]), pub.get("n"), f"{nom}: n geométrico")
+        a.cerca(area, pub.get("area_km2", float("nan")), f"{nom}: área en km²", rel=1e-6)
+        a.cerca(len(dentro[nom]) / area, pub.get("lambda", float("nan")),
+                f"{nom}: lambda", rel=1e-6)
 
     # -----------------------------------------------------------------
     a.titulo("El defecto del bounding box, con la convención de R (DOS colas)")
@@ -198,6 +214,14 @@ def main() -> int:
     vuelcos = []
     ninguna5 = []
     for nom in D["localidades"]:
+        # El mismo `.iloc[0]` sin guardar que ya mató a este auditor una
+        # vez, dos secciones más arriba. Lo encontró el arnés de C4 con
+        # una inyección de mojibake, que renombra una clave y deja este
+        # bucle buscando una localidad que no existe. Guardar UNA
+        # aparición y no las dos es exactamente la trampa de alcance que
+        # el Taller 1 ya pagó.
+        if nom not in dentro:
+            continue
         Li = loc[loc.localidad == nom].iloc[0]
         pts = np.c_[dentro[nom].geometry.x.values, dentro[nom].geometry.y.values]
         _, p_pol, esp = quadrat_dos_colas(pts, Li.geometry, caja=False)
@@ -232,7 +256,7 @@ def main() -> int:
         # G de Kaplan-Meier (lo que publica R) contra la G cruda de aquí:
         # sobre la ventana unidad y con estos n la diferencia es pequeña
         # pero real, así que la tolerancia es holgada y se declara.
-        for i in range(24):
+        for i in range(min(24, len(D.get("patrones", [])))):
             pub = D["patrones"][i]
             xy = P[P.patron == f"p{i + 1:02d}"][["x", "y"]].to_numpy()
             rg = np.array(pub["r"])
@@ -249,12 +273,12 @@ def main() -> int:
     # predice la clase. Es el defecto que ocurrió el 2026-09-09.
     j_corto = 10
     clase_pos = {0: [], 1: [], 2: []}
-    for t in D["trios"]:
+    for t in D.get("trios", []):
         gs = [t[k]["G"][j_corto] for k in range(3)]
         orden = np.argsort(gs)          # 0 = el más regular, 2 = el más agregado
         for pos, rango in enumerate(np.argsort(orden)):
             clase_pos[pos].append(int(rango))
-    n_trios = len(D["trios"])
+    n_trios = max(len(D.get("trios", [])), 1)
     for pos in range(3):
         mayoria = max(clase_pos[pos].count(c) for c in (0, 1, 2))
         a.cierto(mayoria <= n_trios * 0.6,
@@ -263,7 +287,8 @@ def main() -> int:
 
     # -----------------------------------------------------------------
     a.titulo("Las envolventes de T4(b)")
-    for i, e in enumerate(D["envolventes"]):
+    a.cierto("envolventes" in D, "la sección de envolventes existe")
+    for i, e in enumerate(D.get("envolventes", [])):
         obs = np.array(e["obs"]); lo = np.array(e["lo"]); hi = np.array(e["hi"])
         fuera = int(((obs > hi) | (obs < lo)).sum())
         a.igual(fuera, e["nodos_fuera"],
@@ -274,7 +299,8 @@ def main() -> int:
 
     # -----------------------------------------------------------------
     a.titulo("El reparto de las 1000 variantes")
-    V = D["variantes"]
+    a.cierto("variantes" in D, "la sección de variantes existe")
+    V = D.get("variantes", [])
     a.igual(len(V), 1000, "filas de la tabla")
     claves = [v["clave"] for v in V]
     a.cierto(claves == [f"{k:03d}" for k in range(1000)],
@@ -288,11 +314,11 @@ def main() -> int:
              "la localidad de contraste de T4(a) nunca es la propia")
     a.cierto(all(v["localidad"] in D["localidades"] for v in V),
              "toda variante apunta a una localidad publicada")
-    a.cierto(all(1 <= v["propio"] <= len(D["patrones"]) for v in V),
+    a.cierto(all(1 <= v["propio"] <= len(D.get("patrones", [])) for v in V),
              "todo índice de patrón propio existe")
-    a.cierto(all(1 <= v["trio"] <= len(D["trios"]) for v in V),
+    a.cierto(all(1 <= v["trio"] <= len(D.get("trios", [])) for v in V),
              "todo índice de trío existe")
-    a.cierto(all(1 <= v["envolvente"] <= len(D["envolventes"]) for v in V),
+    a.cierto(all(1 <= v["envolvente"] <= len(D.get("envolventes", [])) for v in V),
              "todo índice de envolvente existe")
 
     return a.cierre()
