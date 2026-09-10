@@ -95,7 +95,7 @@ comprobación de F al auditor** —es el agujero que permitió esto— y regener
 pintará las curvas buenas en cuanto el JSON las traiga.
 
 **FUGA · `precalculo/datos_taller2.R` está versionado, ya está en `origin/main` y REVELA LAS
-FAMILIAS.** El `.gitignore` ignora `genera_taller2.R` precisamente porque «construye los patrones
+FAMILIAS.** ✅ **CERRADA EL 2026-09-10 — ver el final del §0.** El `.gitignore` ignora `genera_taller2.R` precisamente porque «construye los patrones
 puntuales SABIENDO de qué familia es cada uno, que es lo que la tarea T2 pide clasificar» — y deja
 pasar `datos_taller2.R`, que hace lo mismo: `set.seed(20262)`, `genera_agregado()` = `rThomas`,
 `genera_aleatorio()` = `rpoispp`, `genera_regular()` = `rSSI`, `ps <- list(agregado = …,
@@ -547,7 +547,74 @@ Cristóbal dice ahora «1 foco · pico de 4.82 veces» y el bloque a 256 da **4.
 estudiante lo reproduce exacto. El precálculo tarda ahora **66 s** en vez de 17 (256² son diez
 veces los píxeles de 80²), que es un precio razonable para algo que se corre una vez.
 
-**Siguiente: la fuga de `datos_taller2.R`, y C10b/C11, que son de calendario y no de construcción.**
+**LA FUGA CERRADA (2026-09-10), y con ella la fase 1 entera.** Tenía tres salidas y se hicieron
+las dos que sirven, porque cada una cierra una mitad distinta:
+
+**1. El guion deja de saber generar.** `datos_taller2.R` se versiona —tiene que hacerlo: es lo que
+permite reconstruir el dato del enunciado desde fuera, que es la lección del Taller 1— y hasta hoy
+repetía dentro los sesenta sorteos con `set.seed(20262)` y las tres funciones generadoras, metidas
+en una lista cuyos **nombres** eran los tres regímenes. Publicaba, sin que nadie lo mirara, cuántas
+familias hay, cómo se llaman, **que cada trío trae una de cada** —lo que convierte la clasificación
+de T2 en un emparejamiento— y, corriéndolo, cuál es cuál.
+Ahora las coordenadas las escribe el precálculo, que no viaja, y ese guion solo las **copia y las
+comprueba**. Pierde la capacidad de regenerar por su cuenta, que es exactamente lo que se quería
+que perdiera, y su sección C queda **más fuerte**: en vez de «regenero y me da lo mismo» dice «lo
+que se entrega reproduce las curvas publicadas», que es la propiedad que importa y no necesita
+saber la semilla. Sigue en **300 comprobaciones** (60 × 5 columnas).
+
+**2. La semilla pasa de 20262 a 20263, y eso desactiva la copia que ya está en `origin/main`.**
+Reescribir el archivo hoy no borra el historial: cualquiera puede sacar la versión vieja con
+`git show`. Lo que sí se puede es **hacerla inútil**. Comprobado corriéndola contra el material
+nuevo: para en su propia sección C con
+`PARADO: la G del propio 1 no cuadra con el JSON (dif 2.53e-01). El dato entregado y el enunciado
+describen patrones DISTINTOS`. Es decir: quien la desentierre y la ejecute obtiene sesenta patrones
+que **no son los del taller**, y el guion se lo dice. Se pudo hacer porque **no se ha repartido**;
+después de repartir, esta línea no se toca (§9).
+
+**Lo que NO cierra ninguna de las dos, y hay que decirlo:** el historial sigue enseñando el
+**diseño** —que hay tres regímenes, cómo se llaman y que cada trío trae uno de cada—. Eso sobrevive
+a cualquier semilla y solo lo borra reescribir la historia de un repositorio público. **Es decisión
+de Javier y no se tocó.** El enunciado sigue sin decirlo, que era el objetivo: «el enunciado no dice
+cuántas familias hay, ni cómo se llaman, ni que en cada trío haya una de cada».
+
+**La guarda que faltaba, en dos sitios.** Dentro del propio guion —se lee a sí mismo y **para** si
+vuelve a llevar `rThomas(`, `rpoispp(`, `rSSI(` o `set.seed(` fuera de un comentario; los literales
+van partidos para que la guarda no se cace a sí misma— y en `audita_taller2.py`, sección nueva
+**«Lo que un estudiante puede leer en el repositorio»**, que es la que faltaba: el auditor vigilaba
+el JSON y nunca los guiones que sí viajan. Las dos comprobaciones **se probaron a mano** —añadiendo
+al final del guion una línea con `rpoispp(…)` y otra con `list(agregado = …, aleatorio = …,
+regular = …)`, y las dos se pusieron en rojo con el defecto exacto entre corchetes— y después se
+declararon `INATACABLES` en el arnés, porque leen **texto de código** y el arnés envenena JSON.
+Atacarlas desde el arnés exigiría que `prueba_auditor_base.py` sustituyera también archivos de
+código, y ese archivo lo comparten los siete capítulos.
+
+**Y la resembrada destapó un defecto de verdad, que llevaba latente todo el tiempo.**
+`audita_taller2.py` se puso en rojo en dos envolventes: recontaba **70** nodos fuera de banda donde
+el JSON publicaba **71**. La causa: el generador contaba a precisión completa y publicaba las
+curvas **redondeadas a seis decimales**, así que un nodo que se salía por menos de 5e-7 entraba en
+el recuento publicado y **no** en el que el estudiante puede hacer — y T4(d) le pide contar los
+nodos fuera de banda **sobre la banda que tiene delante**. Con la semilla 20262 las dos cuentas
+coincidían por suerte. Arreglado invirtiendo el orden: se redondea primero y se cuenta después, así
+que el recuento publicado es por construcción el que sale de las tres columnas publicadas. **El
+auditor hizo su trabajo; lo que faltaba eran datos que ejercitaran la comprobación.**
+
+**Qué se movió, y qué no.** Cambian los 60 patrones, las 12 envolventes y las 1000 variantes —todo
+lo que depende de la semilla—. **No cambia nada de las 16 localidades ni de `t5`**: M-1, M-2, M-3 y
+M-6 siguen palabra por palabra, porque salen del dato de Bogotá y no del sorteo. Las guardas del
+generador aguantaron todas: **42 anclas verdes** (una más, la del CSV nuevo), 24 propios agregados,
+un régimen de cada en cada trío, dispersión de T5 de 1,47 a 5,79 y mínimo 2 de 4 selectores
+contradiciendo al informe. Márgenes de clasificación con la semilla nueva: agregado hasta
+**R = 0,8155**, aleatorio de **0,9491 a 1,0868**, regular desde **1,3590** — siguen sin solaparse.
+
+**Verde en toda la cadena:** auditor **185 · 0 · 0** (dos más, las de la fuga) · arnés **49 de 49**
+y **34 de 34 tipos** · texto **84 · 0** · `sin_aritmetica.py` y `campos_vivos.py` limpios ·
+`cuenta_sitio.py` con los nueve enlazados · calificador con sus **143 anclas** en pie, M-14 y M-18
+resueltos, y su clave de T2 coincidiendo punto por punto con lo que dibuja el navegador (mapas
+A/B/C con n = 100/169/102 para la variante 678, y los tres regímenes separados otra vez en G − F).
+**0 desbordamientos a 318 px en los siete módulos** con los bloques desplegados, consola limpia.
+
+**Siguiente: C10b y C11, que son de calendario y no de construcción.** La fase de construcción
+queda cerrada: no hay ningún defecto abierto sobre el material.
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del

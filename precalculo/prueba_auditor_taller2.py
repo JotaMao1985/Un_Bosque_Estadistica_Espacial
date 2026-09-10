@@ -58,6 +58,20 @@ INATACABLES = frozenset({
     "y son Antonio Nariño, Rafael Uribe y Barrios Unidos",
     "en 4 de las 16 ninguna celda llega a esperanza 5",
     "patrones en el CSV entregado",
+    # Las dos de la fuga (2026-09-10) leen el TEXTO de
+    # `precalculo/datos_taller2.R`, no el JSON que este arnés envenena,
+    # así que no hay inyección posible desde aquí. No se declaran a la
+    # ligera: las dos se probaron a mano el día que se escribieron,
+    # añadiendo al final del guion una línea con `rpoispp(...)` y otra
+    # con `list(agregado = …, aleatorio = …, regular = …)`, y las dos se
+    # pusieron en rojo con el defecto exacto entre corchetes. Está
+    # anotado en el §0 del plan.
+    #
+    # Atacarlas desde el arnés exigiría que `prueba_auditor_base.py`
+    # sustituyera también archivos de código, y ese archivo lo comparten
+    # los siete capítulos: no se toca por dos comprobaciones.
+    "datos_taller2.R no sabe generar patrones",
+    "datos_taller2.R no nombra los regímenes",
 })
 
 

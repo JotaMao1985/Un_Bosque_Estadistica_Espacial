@@ -356,6 +356,47 @@ def main() -> int:
                  f"{mayoria} de {n_trios}")
 
     # -----------------------------------------------------------------
+    # LO QUE UN ESTUDIANTE PUEDE LEER EN EL REPOSITORIO.
+    #
+    # El JSON ya se vigila arriba, pero la fuga del §0 no estaba en el
+    # JSON: estaba en `datos_taller2.R`, que SÍ se versiona —tiene que
+    # hacerlo, es lo que permite reconstruir el dato del enunciado desde
+    # fuera— y que hasta el 2026-09-10 regeneraba los sesenta patrones
+    # con `set.seed()` y las tres funciones generadoras, metidas en una
+    # lista cuyos nombres eran los tres regímenes. Publicaba, sin que
+    # nadie lo mirara, cuántas familias hay, cómo se llaman, que cada
+    # trío trae una de cada, y —corriéndolo— cuál es cuál.
+    #
+    # `genera_taller2.R` está en `.gitignore` exactamente por eso. Esta
+    # comprobación es la que faltaba: mirar también los guiones que sí
+    # viajan. Se ignoran los comentarios, porque el arreglo se explica en
+    # ellos y explicar un defecto cerrado no lo reabre.
+    a.titulo("Lo que un estudiante puede leer en el repositorio")
+    GENERADORES = ["rThomas(", "rpoispp(", "rSSI(", "set.seed("]
+    FAMILIAS_EN_CODIGO = ["agregado", "aleatorio", "regular"]
+    versionados = [RAIZ / "precalculo" / "datos_taller2.R"]
+    for ruta in versionados:
+        if not ruta.exists():
+            a.salta(f"{ruta.name} · fuga de generación", "el archivo no está")
+            continue
+        vivas = [ln for ln in ruta.read_text(encoding="utf-8").splitlines()
+                 if not ln.lstrip().startswith("#")]
+        cuerpo = "\n".join(vivas)
+        # La guarda del propio guion parte sus literales para no cazarse
+        # a sí misma; aquí se ignoran esas líneas por la misma razón.
+        cuerpo = "\n".join(ln for ln in vivas if "paste0(" not in ln)
+        malos = [g for g in GENERADORES if g in cuerpo]
+        a.cierto(not malos, f"{ruta.name} no sabe generar patrones", str(malos))
+        # Los tres regímenes como identificadores del código —no dentro de
+        # una cadena de una guarda, que es legítimo— dirían cuántas
+        # familias hay y cómo se llaman.
+        asignaciones = [ln for ln in vivas
+                        if any(f"{f} =" in ln or f"{f} <-" in ln for f in FAMILIAS_EN_CODIGO)]
+        a.cierto(not asignaciones,
+                 f"{ruta.name} no nombra los regímenes",
+                 str(asignaciones[:2]))
+
+    # -----------------------------------------------------------------
     a.titulo("Las envolventes de T4(b)")
     a.cierto("envolventes" in D, "la sección de envolventes existe")
     for i, e in enumerate(D.get("envolventes", [])):
