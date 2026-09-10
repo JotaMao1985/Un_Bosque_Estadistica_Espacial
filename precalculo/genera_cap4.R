@@ -1294,10 +1294,10 @@ rejilla_lineas <- function(w, nx) {
 }
 lin5 <- rejilla_lineas(redwood$window, NX5)
 MAPAS$ceguera_original <- geo_puntos(cbind(redwood$x, redwood$y), lineas = lin5,
-  titulo = sprintf("Original · chi² = %.4f", D$m5$original$chi2),
+  titulo = sprintf("Original · χ² = %.4f", D$m5$original$chi2),
   leyenda = "plántula")
 MAPAS$ceguera_rebarajado <- geo_puntos(cbind(D$m5$x2, D$m5$y2), lineas = lin5,
-  titulo = sprintf("Rebarajado dentro de cada celda · chi² = %.4f", D$m5$rebarajado$chi2),
+  titulo = sprintf("Rebarajado dentro de cada celda · χ² = %.4f", D$m5$rebarajado$chi2),
   leyenda = "punto")
 
 MAPAS$meta <- list(capitulo = 4L, generado = D$meta$generado)

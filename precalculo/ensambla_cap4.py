@@ -1439,7 +1439,7 @@ GEOMAPAS_JS = (
                    'grumos se ven dentro de las celdas.') + TABLA_CEGUERA)
     + geomapa('cap4-ceguera-rebarajado', 'ceguera_rebarajado',
               _etq('El mismo número de puntos en cada celda, repartidos al azar dentro '
-                   'de la suya: mismo chi cuadrado, sin grumos.') + TABLA_CEGUERA)
+                   'de la suya: mismo χ², sin grumos.') + TABLA_CEGUERA)
 )
 
 
