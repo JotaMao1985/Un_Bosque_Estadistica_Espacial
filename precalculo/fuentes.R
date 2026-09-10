@@ -34,12 +34,48 @@ descarga <- function(url, destino, forzar = FALSE) {
 huella <- function(ruta) {
   if (requireNamespace("digest", quietly = TRUE))
     return(digest::digest(file = ruta, algo = "sha256"))
-  # Sin `digest` se cae a shasum, que en macOS viene de serie. Si tampoco
-  # está, se declara NA en vez de fingir una huella.
-  out <- suppressWarnings(tryCatch(
-    system2("shasum", c("-a", "256", shQuote(ruta)), stdout = TRUE, stderr = FALSE),
-    error = function(e) NA_character_))
-  if (length(out) == 1 && !is.na(out)) sub(" .*$", "", out) else NA_character_
+
+  # Sin `digest` se cae a la herramienta del sistema, y no es la misma en
+  # los dos: `shasum` viene de serie en macOS y NO EXISTE en Windows,
+  # donde el equivalente de serie es `certutil`.
+  cruda <- if (.Platform$OS.type == "windows") {
+    salida <- suppressWarnings(tryCatch(
+      system2("certutil", c("-hashfile", shQuote(ruta), "SHA256"),
+              stdout = TRUE, stderr = FALSE),
+      error = function(e) character(0)))
+    # certutil imprime un rótulo, luego la huella y luego un «completed
+    # successfully». Y según la versión de Windows la parte de en medio
+    # lleva espacios entre pares de bytes, así que no se puede tomar «la
+    # segunda línea»: se busca la que quede en 64 dígitos hexadecimales.
+    hex <- gsub("[^0-9a-fA-F]", "", salida)
+    hex[nchar(hex) == 64L][1]
+  } else {
+    salida <- suppressWarnings(tryCatch(
+      system2("shasum", c("-a", "256", shQuote(ruta)), stdout = TRUE, stderr = FALSE),
+      error = function(e) character(0)))
+    sub(" .*$", "", salida)[1]
+  }
+
+  # Y si tampoco hay herramienta, se PARA. La versión anterior devolvía
+  # NA y seguía: `procedencia.json` salía con `sha256: null` y el material
+  # se publicaba sin la cifra que fija la fuente. En macOS no se notó
+  # nunca porque `shasum` está siempre; en Windows habría pasado SIEMPRE,
+  # y en silencio. Es el mismo patrón que persigue `utf8.R` —la operación
+  # que devuelve algo plausible en vez de fallar— aplicado a la regla de
+  # la casa: una fuente que cambia bajo los pies sin huella que lo
+  # delate deja el material descuadrado sin que nada avise.
+  if (is.na(cruda) || !grepl("^[0-9a-fA-F]{64}$", cruda)) {
+    stop("PARADO: no pude calcular el SHA-256 de ", ruta, ".\n",
+         "  No está el paquete `digest` y ",
+         if (.Platform$OS.type == "windows") "`certutil`" else "`shasum`",
+         " tampoco respondió.\n",
+         "  Sin huella, procedencia.json quedaría sin la cifra que fija la\n",
+         "  fuente. Instala el paquete, que es la vía buena en los dos\n",
+         "  sistemas y no depende de qué traiga el sistema operativo:\n\n",
+         "      install.packages(\"digest\")",
+         call. = FALSE)
+  }
+  tolower(cruda)
 }
 
 RUTA_PROCEDENCIA <- "datos/procesado/procedencia.json"

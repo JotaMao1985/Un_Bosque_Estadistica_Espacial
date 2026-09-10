@@ -53,25 +53,57 @@
 #
 #     source("precalculo/utf8.R")
 #
-# Y se invoca SIEMPRE con el envoltorio, que fija la regional y el R
-# correcto de una vez:
+# Y se invoca SIEMPRE con el envoltorio de la plataforma, que resuelve
+# de una vez el R correcto:
 #
-#     precalculo/rscript.sh precalculo/genera_loquesea.R
+#     precalculo/rscript.sh   precalculo/genera_loquesea.R    (macOS)
+#     .\precalculo\rscript.ps1 precalculo\genera_loquesea.R    (Windows)
+#
+# Los dos NO hacen lo mismo, y conviene saberlo antes de leer el mensaje
+# de parada de abajo. En macOS el `.sh` **fija** la regional, porque
+# `Rscript` arranca en `LC_CTYPE=C`. En Windows no hay nada que fijar
+# —desde R 4.2 la compilación UCRT ya es UTF-8 nativa— y tampoco se
+# podría: `LC_ALL=es_ES.UTF-8` no es sintaxis de allí. Por eso allí el
+# remedio no es un envoltorio sino una versión de R, y por eso esta
+# guarda tiene que decir cosas distintas según dónde corra: mandar a
+# alguien a `rscript.sh` desde Windows es mandarlo a un archivo que no
+# existe.
 # =====================================================================
 
 local({
   if (!isTRUE(l10n_info()$`UTF-8`)) {
+    # Con `-e` no hay ningún .R en commandArgs, y el mensaje terminaba
+    # diciendo «rscript.sh NA»: una instrucción que no se puede copiar.
+    args  <- commandArgs(trailingOnly = FALSE)
+    guion <- args[grepl("\\.R$", args)][1]
+    if (is.na(guion)) guion <- ""
+
+    remedio <- if (.Platform$OS.type == "windows") {
+      paste0(
+        "  En Windows esto no lo arregla ningún envoltorio: es la versión de R.\n",
+        "  Desde R 4.2 la compilación UCRT usa UTF-8 como codificación nativa,\n",
+        "  así que si estás viendo esto tu R es anterior a 4.2, o no es UCRT.\n",
+        "  Instala R 4.4 desde https://cran.r-project.org/bin/windows/base/\n",
+        "  y vuelve a correr:\n\n",
+        "      .\\precalculo\\rscript.ps1 ", guion, "\n\n",
+        "  (LC_ALL=es_ES.UTF-8 no sirve aquí: las regionales de Windows se\n",
+        "   llaman Spanish_Colombia.utf8, y apuntar a una que no existe deja\n",
+        "   a R en C otra vez y en silencio.)")
+    } else {
+      paste0(
+        "  Hay que arrancar el proceso ya en UTF-8:\n\n",
+        "      precalculo/rscript.sh ", guion, "\n\n",
+        "  (o  LC_ALL=es_ES.UTF-8 Rscript ...)")
+    }
+
     stop("PARADO: R arrancó con LC_CTYPE = \"", Sys.getlocale("LC_CTYPE"),
          "\", que no es UTF-8.\n",
          "  En ese estado jsonlite escribe las tildes como <c3><b3> y NO falla:\n",
          "    jsonlite::toJSON(\"Deserción\")  #> [\"Deserci<c3><b3>n\"]\n",
          "  y el material saldría corrompido en silencio.\n\n",
          "  No se arregla desde aquí: R parsea el archivo ENTERO antes de\n",
-         "  ejecutar nada, así que tus literales acentuados ya se leyeron mal.\n",
-         "  Hay que arrancar el proceso ya en UTF-8:\n\n",
-         "      precalculo/rscript.sh ", paste(commandArgs(trailingOnly = FALSE)[
-           grepl("\\.R$", commandArgs(trailingOnly = FALSE))][1], collapse = ""), "\n\n",
-         "  (o  LC_ALL=es_ES.UTF-8 Rscript ...)",
+         "  ejecutar nada, así que tus literales acentuados ya se leyeron mal.\n\n",
+         remedio,
          call. = FALSE)
   }
 

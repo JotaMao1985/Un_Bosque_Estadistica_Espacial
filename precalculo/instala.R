@@ -3,13 +3,16 @@
 #
 # Material de Estadística Espacial 2026-II (20929).
 #
-# OJO: hay dos R en esta máquina y solo una sirve. Este script tiene que
-# correrse con
-#   /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/bin/Rscript
-# El Rscript del PATH es Homebrew 4.6.0 y no tiene ni sf.
+# Se corre con el envoltorio de la plataforma, que ya resuelve cuál es el
+# R bueno —en macOS hay dos y solo una tiene `sf`; en Windows `Rscript.exe`
+# ni siquiera está en el PATH—:
+#
+#     precalculo/rscript.sh   precalculo/instala.R    (macOS)
+#     .\precalculo\rscript.ps1 precalculo\instala.R    (Windows)
 #
 # Todos los paquetes de la lista tienen binario arm64 verificado el
-# 2026-08-03, así que ninguno debería compilar.
+# 2026-08-03, así que en macOS ninguno debería compilar. En Windows CRAN
+# publica binario de todos, así que tampoco.
 # =====================================================================
 
 options(repos = c(CRAN = "https://cran.rstudio.com"))
@@ -17,6 +20,13 @@ options(repos = c(CRAN = "https://cran.rstudio.com"))
 # El orden importa poco (R resuelve dependencias), pero se agrupa por
 # para-qué-sirve para que se lea como el plan.
 PAQUETES <- c(
+  # --- lo que usa TODO el precálculo, y que hasta ahora no estaba aquí ---
+  # Los tres llegaban de rebote como dependencia de los de abajo, así que
+  # en esta máquina «ya estaban» y nadie los echó de menos. Depender de
+  # una dependencia transitiva es depender de que nadie cambie la suya.
+  # `digest` es además el que calcula el SHA-256 de `huella()`: sin él, en
+  # Windows no hay huella —`shasum` no existe allí— y `fuentes.R` para.
+  "sf", "jsonlite", "digest",
   # --- datos de área y econometría espacial (caps. 6, 7, 8) ---
   "spdep", "spatialreg", "sfdep",
   # `dbscan` no se usa para agrupar: lo EXIGE `spdep::soi.graph`, la

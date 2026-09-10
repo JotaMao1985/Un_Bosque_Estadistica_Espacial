@@ -46,7 +46,11 @@ PAQUETES <- c(
   "stars", "blockCV", "spatialsample", "GWmodel", "rmapshaper"
 )
 
-registra_versiones <- function(destino = "precalculo/versiones.json") {
+# `forzar` existe porque re-congelar el acta es legítimo —el día que se
+# suba de R, o que se publique desde otra máquina— pero nunca es un efecto
+# secundario de haber corrido la prueba de humo. Ver la guarda de abajo.
+registra_versiones <- function(destino = "precalculo/versiones.json",
+                               forzar = FALSE) {
   vers <- vapply(PAQUETES, function(p) {
     if (requireNamespace(p, quietly = TRUE)) as.character(packageVersion(p)) else NA_character_
   }, character(1))
@@ -71,6 +75,64 @@ registra_versiones <- function(destino = "precalculo/versiones.json") {
                      biblioteca = .libPaths()[1]),
     paquetes  = as.list(vers)
   )
+  # ---------------------------------------------------------------------
+  # GUARDA DE PROCEDENCIA
+  #
+  # Este archivo NO es un informe de la máquina que lo corre: es el ACTA
+  # de la máquina que publicó el material. La diferencia no se ve mientras
+  # haya una sola máquina, y por eso el fallo estuvo aquí desde el
+  # principio sin morder.
+  #
+  # Muerde en cuanto hay una segunda. `registra_versiones()` se llama sola
+  # al final de la prueba de humo de este mismo archivo —el paso natural
+  # de «compruebo que mi entorno funciona»—, así que en un Windows recién
+  # montado, comprobar el entorno REESCRIBÍA el acta: `plataforma` pasaba
+  # a x86_64-w64-mingw32, `rutas` a rutas C:\..., y el capítulo 1 publica
+  # esa tabla de versiones en su módulo de reproducibilidad.
+  #
+  # Y no se puede resolver separando las rutas de las cifras, que sería lo
+  # limpio: la forma de este archivo ESTÁ PUBLICADA. El capítulo 1 lo cita
+  # cuatro veces y el preparcial dos, en bloques de código que leen
+  # `["rutas"]["nc_shp"]` y que `verifica_bloques.py` ejecuta. Partir el
+  # archivo obligaría a regenerar capítulo y preparcial, que es justo lo
+  # que no se hace con material ya repartido.
+  #
+  # Así que el acta no se parte: se defiende. Escribir sobre un acta ajena
+  # tiene que ser un acto deliberado, no la consecuencia de haber mirado.
+  # ---------------------------------------------------------------------
+  if (!forzar && file.exists(destino)) {
+    previo <- tryCatch(jsonlite::fromJSON(destino), error = function(e) NULL)
+    if (!is.null(previo)) {
+      difiere <- c(
+        if (!identical(previo$plataforma, info$plataforma))
+          paste0("  plataforma:  acta = ", previo$plataforma, "\n",
+                 "               esta = ", info$plataforma),
+        if (!identical(previo$r, info$r))
+          paste0("  R:           acta = ", previo$r, "\n",
+                 "               esta = ", info$r))
+      if (length(difiere)) {
+        stop("PARADO: ", destino, " lo escribió otra máquina.\n\n",
+             paste(difiere, collapse = "\n"), "\n\n",
+             "  Ese archivo es el acta de la máquina que PUBLICÓ el material, no\n",
+             "  un informe de la que lo corre. El capítulo 1 publica su tabla de\n",
+             "  versiones, y ensambla_cap1.py, ensambla_preparcial1.py,\n",
+             "  ensambla_demo_auditoria.py y audita_cap1.py leen sus `rutas` para\n",
+             "  cargar nc.shp y columbus.gpkg de la biblioteca de R de ESA máquina.\n",
+             "  Sobrescribirlo desde aquí dejaría el material diciendo que se\n",
+             "  generó donde no se generó, y las rutas apuntando a un disco ajeno.\n\n",
+             "  Generar y calcular NO necesitan tocarlo: solo lo escribe esta\n",
+             "  función, y solo la llama la prueba de humo de entorno.R.\n\n",
+             "  Si de verdad toca re-congelar el acta —se sube de R, o se pasa a\n",
+             "  publicar desde aquí— es un acto deliberado y se pide así:\n\n",
+             "      registra_versiones(forzar = TRUE)\n\n",
+             "  ...y entonces hay que regenerar el material, porque las cifras\n",
+             "  publicadas salieron de la máquina que el acta acaba de dejar de\n",
+             "  describir.",
+             call. = FALSE)
+      }
+    }
+  }
+
   jsonlite::write_json(info, destino, auto_unbox = TRUE, pretty = TRUE)
   invisible(info)
 }
@@ -187,7 +249,12 @@ if (sys.nframe() == 0L) {
     cat("FALLAN:", paste(names(ok)[!ok], collapse = ", "), "\n")
   }
 
-  registra_versiones()
-  cat("versiones.json escrito.\n")
+  # La guarda de procedencia puede parar aquí, y no debe llevarse por
+  # delante el informe: lo que esta prueba mide es si el entorno CALCULA,
+  # y eso ya está medido tres líneas más arriba. Que el acta no se toque
+  # es una noticia, no un fallo del entorno.
+  cat(tryCatch({ registra_versiones(); "versiones.json escrito." },
+               error = function(e) paste0("versiones.json NO se tocó.\n",
+                                          conditionMessage(e))), "\n")
   if (any(!ok)) quit(status = 1L)
 }

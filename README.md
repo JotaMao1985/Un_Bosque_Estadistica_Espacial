@@ -127,6 +127,49 @@ python3 precalculo/ensambla_cap1.py
 es el de Homebrew y no tiene `sf`, y `Rscript` arranca en `LC_CTYPE=C`, donde `jsonlite`
 escribe las tildes rotas **sin fallar**—.
 
+### En Windows
+
+```powershell
+.\precalculo\rscript.ps1 precalculo\genera_cap1.R
+python precalculo\ensambla_cap1.py
+```
+
+`rscript.ps1` es el hermano del `.sh`, y **no hace lo mismo**: de las dos trampas, allí
+una cambia de forma y la otra desaparece. La del R equivocado sigue, pero al revés —el
+problema no es que sobren R, es que `Rscript.exe` no está en el `PATH` (el instalador de
+CRAN no lo añade) y que cada versión instalada tiene su propia biblioteca de usuario, así
+que arrancar la 4.6 cuando `sf` se instaló bajo la 4.4 da «there is no package called
+'sf'» sin decir por qué—. Por eso el envoltorio busca el R y prefiere la versión que
+`versiones.json` declara.
+
+La de la codificación, en cambio, **no existe en Windows**: desde R 4.2 la compilación
+UCRT usa UTF-8 como codificación nativa. Y si la máquina fuera vieja, el envoltorio no
+podría arreglarlo —`LC_ALL=es_ES.UTF-8` no es sintaxis de allí, y apuntar a una regional
+inexistente devuelve a R a `C` en silencio—, así que allí el remedio es la versión de R y
+no un envoltorio. `utf8.R` lo dice con esas palabras cuando para, porque mandar a alguien
+desde Windows a `rscript.sh` es mandarlo a un archivo que no existe.
+
+Todo esto está **medido en un Windows 11 real**, no deducido: R arranca allí en
+`LC_CTYPE = English_United States.utf8` con `l10n_info()$`UTF-8`` en `TRUE`, y `huella()` sin
+`digest` cae en `certutil` y devuelve el mismo SHA-256 que `shasum` en macOS. Esa prueba
+destapó tres cosas que ninguna lectura del código habría dado:
+
+- **El instalador de CRAN en silencio no escribe la clave del registro**, y además cae en
+  `Program Files (x86)` porque su Inno Setup es de 32 bits. Con el registro vacío y sin `PATH`,
+  la única vía que le queda al envoltorio es recorrer las carpetas — por eso las recorre.
+- **`rscript.ps1` tiene que guardarse en UTF-8 CON BOM.** Windows PowerShell 5.1 —el que trae
+  Windows de serie— lee los `.ps1` como Windows-1252 si no lo encuentra, y cada tilde de sus
+  mensajes sale rota sin que nada falle. El archivo lleva una guarda que lo dice en voz alta si
+  el BOM se pierde al editarlo desde un Mac.
+- **Y el BOM solo arregla la mitad.** La consola de Windows sigue escribiendo en una página de
+  códigos heredada, así que «aquí» pasó de `aquA-` a `aqu?`: dos fallos distintos con el mismo
+  aspecto. Hace falta fijar también `[Console]::OutputEncoding`.
+
+**Lo que en Windows todavía no corre es el arnés.** `audita_todo.sh` es un guion de shell
+y `verifica_bloques.py` codifica `rscript.sh` en una constante, así que la cadena de
+generación es portable y la de verificación no. Reproducir el material en Windows sirve
+para volver a calcular; para dar el visto bueno hace falta la máquina de siempre.
+
 Para verificarlo todo:
 
 ```bash
