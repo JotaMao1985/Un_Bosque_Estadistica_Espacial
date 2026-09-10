@@ -50,7 +50,77 @@ Taller 1); **faltaba una comprobación entera** —renombrar el campo `localidad
 pasaba limpio—; y **una comprobación cuyo `detalle` cambia entre pasar y fallar es invisible para
 el recuento por tipos**, porque produce dos nombres distintos. El auditor pasa de 146 a **180
 comprobaciones**.
-**Siguiente: C5**, y va con las notas del §7.1.
+**C5a HECHA (2026-09-09)**: `precalculo/ensambla_taller2.py` →
+`Htmls_Espacial/taller-2-cap-4.html` (1 067 KB, de los que 698 son los dos JSON incrustados,
+M-11). Trae el esqueleto, la cabecera y el pie, el CSS propio, el **buscador del §5.2** y **T1 y
+T2**. Verde: el auditor sigue en **180 · 0 · 0**, `sin_aritmetica.py` y `campos_vivos.py` limpios,
+consola sin errores y **sin desbordamiento a 1 280, 375 y 318 px** en los tres módulos; seis
+ciclos de módulo dejan **0 gráficos huérfanos**. **Los cuatro bloques de código se ejecutaron de
+verdad** —no solo se escribieron—, y ahí aparecieron dos de los tres hallazgos de abajo.
+**C5b sigue**: T3, T4, T5 y las dos rúbricas. Las anclas y los mecanismos, en el §7.1.
+
+**M-13 · LA CAJA DE T1 ES LA DEL POLÍGONO, NO LA DE LOS PUNTOS. El criterio de C2 estaba
+equivocado.** C2 dice «la ventana de caja sale de `owin(range(x), range(y))`». Medido el
+2026-09-09 sobre las dieciséis, con la convención de dos colas: con la caja del **polígono** salen
+**exactamente** las cifras de M-2 —Antonio Nariño 0,4536 sobre el polígono y < 0,0001 sobre la
+caja, Barrios Unidos **0,0106**, Los Mártires **0,0605**, Tunjuelito 0,0006— y el recorrido de
+T1(a) —Kennedy **32,8 %**, Usme **61,7 %**—. Con la caja de los **puntos** no sale ninguna de las
+dos cosas, y **el conjunto que vuelca cambia**: pasa a ser Antonio Nariño, Rafael Uribe y **Los
+Mártires** en vez de Barrios Unidos. Es M-6 otra vez, con otra convención. **Manda el polígono**,
+que es además el error natural —tienes el polígono y tomas su extensión— y es lo que el enunciado
+publica. C2 queda corregido por esta línea.
+
+**M-14 · `Fest()` ESTÁ ROTO EN ESTA INSTALACIÓN DE R, Y LAS 60 CURVAS F DEL JSON NO SON LA
+FUNCIÓN DE ESPACIO VACÍO. BLOQUEA T2.** Con `spatstat.geom` 3.7.2 y `spatstat.explore` 3.8.0,
+`distmap.ppp()` devuelve distancias **al cuadrado**, y `Fest()` las lee como distancias. La prueba
+cabe en dos líneas: un **solo punto** en el centro del cuadrado unidad tiene F(0,1) = π·0,01 =
+**0,0314**, y `Fest()` publica **0,40204**; y `max(distmap())` de ese punto vale **0,4922**, que es
+0,7071 **al cuadrado**. El efecto sobre lo publicado está medido: **las 36 F de los tríos llegan a
+0,99 entre r = 0,010 y r = 0,140** —la mayoría en el segundo o tercer nodo de 51— y **las tres F de
+un mismo trío se separan entre sí 0,045 y 0,078, contra 0,35 a 0,60 que se separan las tres G**.
+Es decir: en la pantalla las tres F son la misma curva, y T2(a) —«empareja con lo que mira cada
+función»— se queda sin la mitad de su evidencia.
+**Por qué no lo vio nadie:** `audita_taller2.py` recalcula **G y solo G** contra el CSV, y la
+sección C de `datos_taller2.R` compara **solo G** contra el JSON. F no la comprueba nada.
+**El capítulo 4 se salvó por casualidad y conviene saber por qué**: `genera_cap4.R` **no usa
+`Fest()`** —calcula F a mano sobre una rejilla de 400 × 400 sondas, `f_sitios: 160000`— y su
+`f_obs` sigue a su `f_teo` decimal a decimal. G, K, L y g del Taller 2 **están sanas**:
+comprobado que en cada trío una K/πr² ronda 1, otra queda por debajo y otra por encima.
+**Qué hay que hacer, y no es en el ensamblador:** rehacer F en `genera_taller2.R` y en
+`datos_taller2.R` con el camino del capítulo 4 (rejilla de sondas + `nncross`), **añadir la
+comprobación de F al auditor** —es el agujero que permitió esto— y regenerar. Se puede: el taller
+**no se ha repartido**. Hasta entonces **T2 no se publica**; el ensamblador ya está escrito y
+pintará las curvas buenas en cuanto el JSON las traiga.
+
+**FUGA · `precalculo/datos_taller2.R` está versionado, ya está en `origin/main` y REVELA LAS
+FAMILIAS.** El `.gitignore` ignora `genera_taller2.R` precisamente porque «construye los patrones
+puntuales SABIENDO de qué familia es cada uno, que es lo que la tarea T2 pide clasificar» — y deja
+pasar `datos_taller2.R`, que hace lo mismo: `set.seed(20262)`, `genera_agregado()` = `rThomas`,
+`genera_aleatorio()` = `rpoispp`, `genera_regular()` = `rSSI`, `ps <- list(agregado = …,
+aleatorio = …, regular = …)` y `trios[[i]] <- ps[o]`. Su propia sección C **demuestra** que
+reproduce los patrones publicados: compara las 60 curvas contra el JSON y para si difieren. Correr
+ese guion e imprimir `names(trios[[i]])` es la respuesta de T2 entera. La guarda que tiene solo
+mira los **identificadores** (`p01`, `t03a`), no los **nombres de las variables**.
+**Y de paso deja ver una cosa que el §3 daba por otra**: los **24 patrones «propios» son todos
+agregados** —`propios[[i]] <- genera_agregado()`—, así que «clasifica el régimen de el tuyo» tiene
+la misma respuesta para los doce; y el trío **no contiene** el patrón propio, son tres patrones
+aparte. Por eso **T2 se escribió sobre el trío** (los tres regímenes, que es el módulo 3) y el
+patrón propio se deja a T3, que es donde el propio plan ya presupone la agregación —«di en qué r
+ocurre **de verdad** la agregación»—: pedir en T2 que clasifiquen lo que T3 les cuenta era regalar
+el literal.
+**Decisión pendiente de Javier**, porque tiene tres salidas y ninguna es gratis: ignorar el guion
+ahora (no borra el historial público), reescribirlo para que no genere nada (tampoco borra el
+historial), o **regenerar con otra semilla** aprovechando que no se ha repartido —que es lo único
+que cierra la fuga de verdad, y que hay que hacer de todas formas por M-14—.
+
+**Tres decisiones del enunciado que traje por precedente del Taller 1 y hay que confirmar antes de
+publicar**, porque este plan no las fija en ninguna parte: el canal y el nombre del archivo
+(**Brightspace**, `T2_Apellido_TuDocumento.pdf`), que **no hay plantilla LaTeX** —el Taller 1 sí la
+tenía, `entrega/plantilla_taller1.tex`, y aquí no existe ni hay tarea que la construya— y que **no
+se publica límite de páginas**, que preferí omitir antes que inventarlo. La hora límite del martes
+6 tampoco está fijada.
+
+**Siguiente: C5b**, y va con las notas del §7.1.
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -757,7 +827,23 @@ plan:
   queda sin nada que comprobar. No es un descuido —el mapa **tiene** que ser dinámico— y no queda
   sin cubrir: `audita_taller2.py` audita los mapas contra el JSON, uno por uno.
 - **Y la corrección del §5.2 vive aquí**: el buscador pide el documento COMPLETO y lo imprime tal
-  como se tecleó. El JSON ya guarda lo necesario.
+  como se tecleó. El JSON ya guarda lo necesario. **Escrito en C5a con un diente más**: por debajo
+  de **seis dígitos no resuelve nada** y lo dice en pantalla. Si tecleando tres dígitos saliera un
+  resultado, estaríamos reconstruyendo el agujero por el que en el Taller 1 tres de doce
+  resolvieron la variante ajena.
+- **AÑADIDO EN C5a · los tres mapas del trío van en un orden distinto al de las tres curvas.**
+  Medido antes de escribir: en el JSON `trios[i][k]` y `MAPAS_T2.trios[i][k]` son el mismo patrón
+  en las tres posiciones de los doce tríos, así que enseñarlos en el mismo orden convertía T2(a) en
+  «A con 1, B con 2, C con 3» y acertaba todo el mundo sin mirar. La permutación vive en
+  `ORDEN_MAPAS`, una fila por trío, y el ensamblador **para** si alguna es la identidad. Coste
+  declarado: quien lea el código fuente puede deshacerla — y no es evitable, porque las
+  coordenadas viajan en el CSV y el emparejamiento **siempre** es recalculable. Por eso T2(a) dice
+  en el enunciado que un emparejamiento sin argumento no puntúa.
+- **AÑADIDO EN C5a · los bloques de código llevan el dato del estudiante VACÍO y dos guardas que
+  paran.** `MI_LOCALIDAD <- ""` y `MI_N <- 0`, con `stopifnot(nrow(mia) == 1)` y
+  `stopifnot(npoints(p_poly) == MI_N)`. La primera versión traía `"Suba"` de ejemplo, y un
+  ejemplo que corre es un ejemplo que alguien entrega: es la familia de fallo del §5.2 otra vez,
+  por la puerta del bloque de código.
 
 **Lo que C5 NO puede escribir:** ninguna cifra a mano, y **ninguna respuesta**. El JSON entero viaja
 dentro del HTML porque el buscador lo necesita, así que todo lo interpolado es legible con «ver
@@ -860,6 +946,11 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
 ### Fase 3 · El HTML
 
 **C5 · El enunciado** — `precalculo/ensambla_taller2.py`
+> **PARTIDA EN C5a Y C5b, como el Taller 1 y por la razón de su encabezado: cada paso deja un HTML
+> que ABRE Y FUNCIONA. C5a — esqueleto, cabecera y pie, CSS propio, buscador del §5.2, T1 y T2 —
+> está HECHA (2026-09-09)**; ver el §0, que trae también los dos defectos que la construcción
+> encontró (**M-13**, la caja de T1, y **M-14**, `Fest()`) y la fuga de `datos_taller2.R`.
+> **C5b — T3, T4, T5 y las dos rúbricas — está pendiente.**
 - **Descripción:** el HTML autocontenido con la librería del material: enunciado de las cuatro
   tareas, buscador de variante **con el documento reflejado (§5.2)**, mapas, curvas, rúbrica del
   escrito y rúbrica de la defensa.
