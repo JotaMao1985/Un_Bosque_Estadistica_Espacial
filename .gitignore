@@ -148,6 +148,18 @@ precalculo/salidas/privado/
 precalculo/genera_taller2.R
 precalculo/verifica_taller2.R
 
+# El dato que el estudiante DESCARGA sí viaja, y esto no es simetría: el
+# enunciado del Taller 2 manda ejecutar código sobre estos archivos, así
+# que si no están en el repositorio el taller no se puede resolver desde
+# fuera de este equipo. El Taller 1 lo aprendió tarde —se repartió el 13
+# de agosto apuntando a una carpeta que da 404 fuera de aquí, y hubo que
+# publicar el dato en un segundo commit el 18 (`22f4fcc`)—. Los produce
+# `precalculo/datos_taller2.R`, que sí se versiona: no resuelve nada, solo
+# reparte. Ver PLAN_Taller_2_Cap_4.md, C2b.
+!/entrega/datos/taller2_sedes.gpkg
+!/entrega/datos/taller2_localidades.gpkg
+!/entrega/datos/taller2_patrones.csv
+
 # El plan de la revisión del capítulo 5 (2026-09-02) entra como los demás planes:
 # es lo que dice por qué los cinco capítulos cambiaron de golpe. El informe que
 # produjo —`AUDITORIA_CONTENIDO_CAP5.md`— NO entra, igual que el del preparcial:
