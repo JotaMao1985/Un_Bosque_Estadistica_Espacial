@@ -27,6 +27,14 @@ PAQUETES <- c(
   # `digest` es además el que calcula el SHA-256 de `huella()`: sin él, en
   # Windows no hay huella —`shasum` no existe allí— y `fuentes.R` para.
   "sf", "jsonlite", "digest",
+  # --- lo que usan los `datos_*.R` para DESCARGAR y armar las fuentes ---
+  # Mismo caso que los de arriba: llegaban de rebote y nadie los echó de
+  # menos. `stringi` lo usa `llave_divipola.R` para normalizar los nombres
+  # de municipio; `data.table` lo usan `datos_saber11.R` y `verifica_t04.R`
+  # para los 130 MB del CSV del ICFES, que con `read.csv` no es viable; y
+  # `sp` lo usa `datos_clima.R`. Sin ellos, reconstruir `datos/` desde cero
+  # falla en el tercer guion de la cadena.
+  "stringi", "data.table", "sp",
   # --- datos de área y econometría espacial (caps. 6, 7, 8) ---
   "spdep", "spatialreg", "sfdep",
   # `dbscan` no se usa para agrupar: lo EXIGE `spdep::soi.graph`, la

@@ -9,14 +9,17 @@ Las cifras las escribe `datos/procesado/procedencia.json`, que generan los scrip
 **Reproducir todo, en este orden:**
 
 ```bash
-R=/Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/bin/Rscript
-$R precalculo/datos_colombia.R && $R precalculo/llave_divipola.R && \
-$R precalculo/datos_bogota.R && $R precalculo/datos_clima.R && \
-$R precalculo/datos_saber11.R && $R precalculo/verifica_t04.R
+for g in datos_colombia llave_divipola datos_bogota datos_clima datos_saber11 verifica_t04; do precalculo/rscript.sh "precalculo/$g.R" || { echo "PARADO en $g"; break; }; done
 ```
 
 El orden importa: `llave_divipola.R` produce `municipios_llave.csv`, del que dependen los tres que
 vienen detrás a través de `carga_municipios()`.
+
+La invocación va por `rscript.sh` y no por una ruta de R escrita aquí: esa ruta es de una máquina
+concreta, y desde que existe el envoltorio hay dos —`rscript.sh` en macOS, `rscript.ps1` en
+Windows—. **Las instrucciones completas, con los requisitos previos y la versión de PowerShell,
+están en el README, en «Descargar los datos».** Aquí solo se documenta el orden y el porqué;
+duplicar el procedimiento en dos sitios es cómo terminan discrepando.
 
 ---
 

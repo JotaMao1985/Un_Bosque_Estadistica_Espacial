@@ -207,8 +207,64 @@ una fuente que cambia bajo los pies deja el material descuadrado en silencio.
 La procedencia completa, verificada ejecutando y no leída de una ficha de metadatos, está
 en [`precalculo/FUENTES.md`](precalculo/FUENTES.md).
 
-**Los 431 MB de `datos/` no se versionan.** Se reconstruyen con los `datos_*.R`, en el
-orden que documenta `FUENTES.md`.
+### Descargar los datos
+
+**Los 431 MB de `datos/` no se versionan** —345 MB de crudo y 86 MB de procesado—, así que
+en un clon recién hecho esa carpeta no existe. La reconstruyen los `datos_*.R`, que descargan
+cada fuente de su portal oficial, comprueban su huella SHA-256 y dejan las capas listas en
+`datos/procesado/`.
+
+**Antes:** hace falta R 4.4 y los paquetes del stack. Se instalan de una vez, y desde la
+carpeta del curso:
+
+```bash
+precalculo/rscript.sh precalculo/instala.R
+```
+
+```powershell
+.\precalculo\rscript.ps1 precalculo\instala.R
+```
+
+**Después, la descarga.** Es una sola orden; en macOS:
+
+```bash
+for g in datos_colombia llave_divipola datos_bogota datos_clima datos_saber11 verifica_t04; do precalculo/rscript.sh "precalculo/$g.R" || { echo "PARADO en $g"; break; }; done
+```
+
+Y en Windows, con PowerShell:
+
+```powershell
+foreach ($g in 'datos_colombia','llave_divipola','datos_bogota','datos_clima','datos_saber11','verifica_t04') { .\precalculo\rscript.ps1 "precalculo\$g.R"; if ($LASTEXITCODE -ne 0) { Write-Host "PARADO en $g"; break } }
+```
+
+Las dos paran en el primer guion que falle en vez de seguir con los datos a medias.
+
+**El orden no es decorativo.** `llave_divipola.R` produce `municipios_llave.csv`, del que
+dependen los tres siguientes a través de `carga_municipios()`. Y `verifica_t04.R` va al final
+porque no genera nada: **vuelve a abrir los archivos ya escritos y los remide por un camino
+distinto al del generador**, y sale con estado distinto de cero si alguna cifra no cuadra. Un
+verificador que repitiera el cálculo del generador solo comprobaría que R es determinista.
+
+**Tres cosas que conviene saber antes de lanzarlo:**
+
+- **Se corre desde la carpeta del curso**, no desde `precalculo/`. Los guiones resuelven sus
+  rutas contra la raíz del repositorio, así que desde dentro de `precalculo/` fallan con «no se
+  puede abrir la conexión» sobre un archivo que sí existe. El envoltorio de PowerShell lo
+  comprueba y lo dice; el de macOS todavía no.
+- **Volver a lanzarlo no vuelve a descargar.** `descarga()` reutiliza el archivo si ya está en
+  `datos/crudo/`, así que reintentar tras un corte de red retoma donde se quedó. Lo que sí se
+  recalcula, y se reescribe, es todo `datos/procesado/`.
+- **En Windows, la primera vez PowerShell se negará** a ejecutar el `.ps1`: es la directiva de
+  ejecución, no un fallo del archivo. `Unblock-File .\precalculo\rscript.ps1` o invocarlo con
+  `powershell -ExecutionPolicy Bypass -File ...`. El encabezado del guion lo explica.
+
+Lo más pesado son `COL_ADM2.geojson` (201 MB, los 1 122 municipios) y `saber11_20224.csv`
+(130 MB, los microdatos del ICFES). El resto son megas sueltos.
+
+**Los datos del taller no hay que reconstruirlos**: `entrega/datos/` sí está versionado —es la
+única excepción a la regla— porque una tarea que manda ejecutar código necesita que su dato sea
+alcanzable desde fuera de la máquina que lo construyó. `datos_taller1.R` y `datos_taller2.R`
+solo se corren si se cambia el taller.
 
 ---
 
