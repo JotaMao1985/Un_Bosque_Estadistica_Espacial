@@ -153,6 +153,32 @@ def defectos() -> list[tuple[str, str, str, object]]:
             t.sort(key=lambda c: c["G"][10])       # el regular, siempre primero
     obj("los tríos van ordenados al revés, y también delata", "datos", reordena_medio)
 
+    # --- 4b. La F, que es por donde entró M-14 ------------------------
+    # Estas tres existen porque el arnés, la primera vez que se corrió
+    # con las comprobaciones nuevas, las declaró «tipos que todavía no
+    # ataca». Una comprobación que nadie ha visto fallar es
+    # indistinguible de una que no puede fallar, y la F ya se coló una
+    # vez precisamente así: el auditor recalculaba G y solo G.
+    #
+    # La primera reproduce M-14 tal cual: la F rota saturaba en el
+    # segundo o tercer nodo de 51, y por eso se pasa de la cota de la
+    # unión —los discos de radio r no cubren tanta área— por un factor de
+    # cuarenta. Es la inyección que el auditor viejo se habría comido.
+    obj("la F satura enseguida, que es exactamente M-14", "datos",
+        lambda o: o["patrones"][0].__setitem__(
+            "F", [0.0] + [min(1.0, 0.40 + 0.06 * i) for i in range(
+                len(o["patrones"][0]["F"]) - 1)]))
+    obj("una F baja en un nodo y deja de ser monótona", "datos",
+        lambda o: o["trios"][5][1].__setitem__(
+            "F", (lambda v: v[:20] + [max(0.0, v[20] - 0.30)] + v[21:])(
+                list(o["trios"][5][1]["F"]))))
+    # Y una que NO viola la cota ni la monotonía: solo se aparta de la
+    # curva de verdad. Si esta se cazara sola por la cota, la comprobación
+    # de las sondas no estaría demostrando nada por su cuenta.
+    obj("una F se aparta de la de verdad sin violar la cota", "datos",
+        lambda o: o["patrones"][9].__setitem__(
+            "F", [min(1.0, v * 0.80) for v in o["patrones"][9]["F"]]))
+
     # --- 5. Las envolventes ------------------------------------------
     obj("el recuento de nodos fuera de banda se infla", "datos",
         lambda o: o["envolventes"][0].__setitem__("nodos_fuera", 99))

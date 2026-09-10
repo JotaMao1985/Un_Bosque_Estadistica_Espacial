@@ -265,6 +265,76 @@ def main() -> int:
             a.cierto(dif < 0.08, f"patrón propio {i + 1:02d}: su G cuadra con la del CSV",
                      f"máx dif {dif:.4f}")
 
+        # -------------------------------------------------------------
+        # LA F, QUE ES EL AGUJERO POR EL QUE SE COLÓ M-14.
+        #
+        # Hasta el 2026-09-10 este auditor recalculaba G y solo G, y la
+        # sección C de `datos_taller2.R` comparaba G y solo G. Nadie
+        # miraba la F, y la F publicada llevaba toda la construcción sin
+        # ser la función de espacio vacío: `Fest()` se apoya en
+        # `distmap.ppp()`, que en esta instalación devuelve distancias AL
+        # CUADRADO. Se apartaba hasta 0,9662 sobre una función que vive
+        # en [0, 1] y ni un solo check se puso en rojo.
+        #
+        # Se comprueban DOS cosas, y la primera es la que importa porque
+        # no depende de reimplementar nada:
+        #
+        #   (1) LA COTA DE LA UNIÓN. Los discos de radio r alrededor de
+        #       los n puntos cubren como mucho n·pi·r² de área, así que
+        #       la fracción de la ventana erosionada que queda a menos de
+        #       r de algún punto no puede pasar de n·pi·r²/|W_-r|. Es
+        #       aritmética, no una segunda implementación: una F que la
+        #       viole no es una F, venga de donde venga. La rota la
+        #       violaba por un factor de 40 en el segundo nodo.
+        #   (2) LA CURVA ENTERA, recalculada aquí con la misma rejilla de
+        #       sondas de `ppp_F_borde()` pero con `cKDTree` en vez de
+        #       `nncross`. Eso sí son dos implementaciones distintas, y
+        #       por eso la tolerancia puede ser estrecha.
+        # -------------------------------------------------------------
+        LADO_SONDAS = 400
+        gx = np.linspace(0.0, 1.0, LADO_SONDAS)
+        GX, GY = np.meshgrid(gx, gx)
+        sondas = np.c_[GX.ravel(), GY.ravel()]
+        # distancia al borde del cuadrado unidad
+        b_sondas = np.minimum(np.minimum(sondas[:, 0], 1 - sondas[:, 0]),
+                              np.minimum(sondas[:, 1], 1 - sondas[:, 1]))
+
+        def F_sondas(xy, rg):
+            d, _ = cKDTree(xy).query(sondas, k=1)
+            out = np.empty(len(rg))
+            for k, r in enumerate(rg):
+                usable = b_sondas > r
+                out[k] = (d[usable] <= r).mean() if usable.any() else np.nan
+            return out
+
+        peor_cota, peor_f, peor_mono = 0.0, 0.0, 0.0
+        familias = [("patrones", f"p{i + 1:02d}", D.get("patrones", [])[i])
+                    for i in range(len(D.get("patrones", [])))]
+        for t, tres in enumerate(D.get("trios", [])):
+            for j in range(3):
+                familias.append(("trios", f"t{t + 1:02d}{'abc'[j]}", tres[j]))
+        for _, ident, pub in familias:
+            xy = P[P.patron == ident][["x", "y"]].to_numpy()
+            rg = np.array(pub["r"])
+            Fp = np.array(pub["F"])
+            n = len(xy)
+            erosion = np.clip(1 - 2 * rg, 0, None) ** 2
+            with np.errstate(divide="ignore", invalid="ignore"):
+                cota = np.where(erosion > 0,
+                                np.minimum(1.0, n * np.pi * rg ** 2 / np.maximum(erosion, 1e-12)),
+                                1.0)
+            peor_cota = max(peor_cota, float(np.max(Fp - cota)))
+            peor_mono = max(peor_mono, float(np.max(np.maximum(0.0, -np.diff(Fp)))))
+            peor_f = max(peor_f, float(np.nanmax(np.abs(Fp - F_sondas(xy, rg)))))
+        a.cierto(peor_cota <= 1e-9,
+                 "ninguna F se pasa de la cota de la unión",
+                 f"peor exceso {peor_cota:.6f}")
+        a.cierto(peor_mono <= 1e-9, "las 60 F son monótonas no decrecientes",
+                 f"peor bajada {peor_mono:.2e}")
+        a.cierto(peor_f < 1e-8,
+                 "las 60 F se recalculan sobre 400x400 sondas",
+                 f"peor dif {peor_f:.2e}")
+
     # -----------------------------------------------------------------
     a.titulo("Que la posición del trío no delate la familia")
     # Se clasifica cada patrón por su propia G a corta distancia: los

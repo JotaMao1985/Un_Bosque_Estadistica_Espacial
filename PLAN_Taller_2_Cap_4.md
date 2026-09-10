@@ -71,7 +71,9 @@ que es además el error natural —tienes el polígono y tomas su extensión— 
 publica. C2 queda corregido por esta línea.
 
 **M-14 · `Fest()` ESTÁ ROTO EN ESTA INSTALACIÓN DE R, Y LAS 60 CURVAS F DEL JSON NO SON LA
-FUNCIÓN DE ESPACIO VACÍO. BLOQUEA T2.** Con `spatstat.geom` 3.7.2 y `spatstat.explore` 3.8.0,
+FUNCIÓN DE ESPACIO VACÍO. BLOQUEA T2.** ✅ **CERRADA EL 2026-09-10 — ver el final del §0.**
+Lo que sigue es el diagnóstico tal como se escribió; el arreglo y la medición de lo que
+costaba están abajo. Con `spatstat.geom` 3.7.2 y `spatstat.explore` 3.8.0,
 `distmap.ppp()` devuelve distancias **al cuadrado**, y `Fest()` las lee como distancias. La prueba
 cabe en dos líneas: un **solo punto** en el centro del cuadrado unidad tiene F(0,1) = π·0,01 =
 **0,0314**, y `Fest()` publica **0,40204**; y `max(distmap())` de ese punto vale **0,4922**, que es
@@ -328,6 +330,11 @@ taller **alcanzable desde la portada**, y la portada es lo que despliega en Page
 viva en la rama no publica nada; **el día que se fusione, se publica un taller cuya T2 descansa
 sobre curvas F que no son la función de espacio vacío (M-14)**. La rama está lista; la decisión de
 fusionarla no lo está.
+> **Actualización del 2026-09-10:** M-14 está cerrada y las F son las buenas, así que este párrafo
+> ya no bloquea la fusión. Lo que queda antes de publicar es **M-18** —el estudiante no puede
+> reproducir el pico/media del informe de T5— y la **fuga de `datos_taller2.R`**. Ninguno de los
+> dos hace falso el enunciado; el primero lo hace contradictorio consigo mismo y el segundo
+> regala la respuesta de T2 a quien clone el repositorio.
 
 **Nota para quien retome esto en un worktree:** el arnés general dio un paso en rojo por una razón
 que no era del material — a un worktree le faltan `datos/` y `precalculo/cache/`, que están
@@ -410,8 +417,88 @@ medidos y escritos aquí esperando una decisión; convertirlos en un `stop()` ha
 elegante de no escribir la herramienta. Lo que hace en su lugar es gritarlos en cada pasada, con la
 cifra, y negarse a imprimir la clave que dependa de ellos.
 
-**Siguiente: la decisión sobre M-14 —regenerar, que de paso cierra la fuga de `datos_taller2.R` y
-M-18—, y C10b/C11, que son de calendario y no de construcción.**
+**M-14 CERRADA (2026-09-10) · las F regeneradas, y T2 vuelve a tener su evidencia.**
+
+Lo que se hizo, y en este orden:
+
+1. **`genera_taller2.R`**: `Fest()` fuera. La F sale de `ppp_F_borde()` (en `puntual.R`), que es
+   el camino que ya usaba `genera_cap4.R` — rejilla de 400 × 400 sondas, `nncross` para la
+   distancia al punto más cercano y `bdist.points` para descartar las sondas a menos de r del
+   borde. Las tres son exactas; `distmap()` no. Devuelve la curva ya en la rejilla de publicación,
+   así que la F ni siquiera se interpola.
+2. **`datos_taller2.R`**: la misma decisión, para que las dos mitades no se separen. Y su
+   sección C **pasa de comparar una columna a comparar las cinco**: `300 curvas comparadas contra
+   el JSON (60 patrones × 5 columnas), todas cuadran`. Comparar solo G fue el agujero.
+3. **`audita_taller2.py`**: tres comprobaciones nuevas. La que importa **no reimplementa nada** —
+   es la **cota de la unión**: los discos de radio r alrededor de n puntos cubren como mucho
+   n·πr² de área, así que F(r) ≤ n·πr²/|W₋ᵣ|. Una F que la viole no es una F, venga de donde
+   venga. Las otras dos son la monotonía y la curva entera recalculada con `cKDTree` en vez de
+   `nncross`, que sí son dos implementaciones distintas.
+4. **Regenerar.** 16,8 s, 41 anclas verdes.
+
+**La regeneración no movió NADA más, y está comprobado campo a campo:** el diff del JSON viejo
+contra el nuevo son **2 239 valores de F y la fecha de generación**, y **una sola diferencia fuera
+de la columna F** (`meta/generado`). El CSV de los patrones sale **byte a byte idéntico**. Es
+decir: las 1000 variantes, las 16 localidades, los 24 propios, los 12 tríos, las 12 envolventes y
+la sección t5 siguen exactamente donde estaban, y con ellos C1, C2b y todos los anclajes del plan.
+La semilla no se tocó — quitar una llamada a `Fest()` no consume números aleatorios.
+
+**Lo que estaba roto era peor de lo que decía M-14, y ahora se puede medir.** La cifra que importa
+para T2(a) es el hueco **G − F en r = 0,05**, que es la firma con la que se distingue un régimen de
+otro. Doce patrones de cada régimen:
+
+| régimen | con la F rota | con la F buena |
+|---|---|---|
+| agregado | **+0,012** [−0,053, +0,099] | **+0,662** [+0,486, +0,775] |
+| aleatorio | **−0,261** [−0,462, −0,128] | **−0,005** [−0,117, +0,099] |
+| regular | −1,000 [−1,000, −0,780] | −0,732 [−0,857, −0,479] |
+
+No era «media evidencia perdida»: **era evidencia que apuntaba al revés**. Con la F rota el
+agregado —cuya firma es G ≫ F— daba +0,01, indistinguible de cero, y el aleatorio —cuya firma es
+G ≈ F— daba −0,26, que es lo que debería dar un regular. **Un estudiante que razonara
+correctamente sobre las curvas publicadas habría clasificado el agregado como aleatorio y el
+aleatorio como regular.** Con la F buena los tres rangos **no se solapan** y van en la dirección
+del libro. Y de paso: la F rota ya estaba en 0,99 en una mediana de **44 de sus 51 nodos** —el
+86 % de la curva dibujada era una recta plana—; la buena, en 18 de 51.
+
+**Verde en toda la cadena**, y cada cosa comprobada donde se puede ver:
+`audita_taller2.py` **183 · 0 · 0** (eran 180; las tres nuevas son las de la F) ·
+`audita_texto_taller2.py` **84 · 0** · `sin_aritmetica.py` y `campos_vivos.py` limpios ·
+`cuenta_sitio.py` con los nueve enlazados · HTML reensamblado a **1 146 KB**, 7 módulos, 5 tareas.
+En el navegador, con la variante 678 cargada: consola sin errores, los tres mapas del trío con
+n = 162/149/162 —que es el emparejamiento que el calificador predice—, los tres lienzos de curvas
+con 11 000–12 200 píxeles de tinta y **0 desbordamientos a 1 280, 375 y 318 px en los siete
+módulos con los bloques de código DESPLEGADOS**, que es el caso duro y no se había probado antes.
+
+**Y la confirmación que más tranquiliza, porque venía escrita de antes:** `verifica_taller2.R` —el
+calificador de C10, escrito ayer sin saber cómo iba a quedar esto— dice ahora
+`F publicada contra la honesta: 5.05e-09 — M-14 RESUELTO, se puede calificar T2`, y su hoja de T2
+ha dejado de negarse a imprimir la clave. Tres implementaciones independientes de F —R por sondas,
+scipy por `cKDTree` y la del calificador— coinciden en 5e-9, que es el redondeo a diez decimales
+del JSON.
+
+**Lo que el arnés obligó a añadir.** `prueba_auditor_taller2.py` declaró las tres comprobaciones
+nuevas como «tipos que todavía no ataca», que en este proyecto es el mismo estado que «no se sabe
+si pueden fallar» — y es exactamente así como la F se coló la primera vez. Se le añadieron **tres
+inyecciones**: una F que satura enseguida (M-14 reproducido tal cual, y viola la cota por un factor
+de cuarenta), una F que baja en un nodo, y una que se aparta de la verdadera **sin** violar la cota
+— esta última existe para que la comprobación de las sondas tenga que demostrar algo por su
+cuenta. Con ellas el arnés pasa de **46 a 49 inyecciones, 49 de 49 cazadas**, y —lo que importa—
+de **31 de 34 tipos vistos fallar a 34 de 34**, que es la primera vez que este arnés no deja
+ninguna comprobación sin demostrar. El arnés además señaló que dos rótulos míos pasaban de 58
+caracteres y falseaban su recuento de cobertura; acortados.
+> Quedan **5 rótulos largos que no son de este trabajo** —cuatro son «<localidad>: su campo
+> `localidad` coincide con su clave <localidad>» y uno el de los campos publicados—. Falsean el
+> recuento de cobertura del auditor entero, no solo el de la F. No se tocaron aquí.
+
+**Lo que sigue abierto y NO lo toca esto:** **M-18** (el pico/media de T5 sale de `dimyx = 80` y el
+enunciado pide 256) —la puerta estaba abierta al regenerar y se dejó pasar a propósito, porque
+tiene dos salidas y la buena puede ser la de prosa, que es además la lección de T5(c)— y **la fuga
+de `datos_taller2.R`**, que solo se cierra cambiando la semilla, y cambiar la semilla ya no es
+gratis: rehace las 1000 variantes y con ellas todos los anclajes que esta regeneración acaba de
+dejar intactos.
+
+**Siguiente: M-18, la fuga, y C10b/C11, que son de calendario y no de construcción.**
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del

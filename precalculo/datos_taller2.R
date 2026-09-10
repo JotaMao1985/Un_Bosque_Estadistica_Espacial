@@ -37,6 +37,7 @@ suppressPackageStartupMessages({
 
 AQUI <- "precalculo"
 source(file.path(AQUI, "utf8.R"))
+source(file.path(AQUI, "puntual.R"))   # ppp_F_borde(): ver `curvas()` abajo
 
 DESTINO <- file.path("entrega", "datos")
 dir.create(DESTINO, showWarnings = FALSE, recursive = TRUE)
@@ -81,12 +82,19 @@ a_rejilla <- function(fv, colu) {
   as.numeric(approx(x[ok], y[ok], xout = RG, rule = 2)$y)
 }
 suppressPackageStartupMessages(library(spatstat.explore))
+# La F NO sale de `Fest`, y tiene que ser la MISMA decisión que toma
+# `genera_taller2.R`: en esta instalación `distmap.ppp()` devuelve
+# distancias al cuadrado y `Fest()` las lee como distancias (M-14 del
+# plan). `ppp_F_borde()` la calcula sobre una rejilla de sondas con
+# `nncross` y `bdist.points`, que sí son exactas, y ya en la rejilla de
+# publicación. Si las dos mitades usaran caminos distintos, la
+# comprobación C de abajo lo diría — que es exactamente para lo que está.
 curvas <- function(p) {
-  G <- Gest(p); FF <- Fest(p)
+  G <- Gest(p)
   K <- Kest(p, correction = "translate"); g <- pcf(p, correction = "translate")
   Kv <- a_rejilla(K, "trans")
   list(r = round(RG, 10), G = round(a_rejilla(G, "km"), 10),
-       F = round(a_rejilla(FF, "km"), 10), K = round(Kv, 10),
+       F = round(ppp_F_borde(p, RG)$f, 10), K = round(Kv, 10),
        L = round(sqrt(pmax(Kv, 0) / pi) - RG, 10),
        g = round(a_rejilla(g, "trans"), 10))
 }
@@ -151,8 +159,13 @@ for (prohibida in c("agregado", "aleatorio", "regular", "thomas", "familia"))
 message("C · La comprobación que importa: ¿cuadra con el JSON publicado?")
 # Sin esto, una desincronización entre este guion y el precálculo sería
 # invisible: los dos correrían en verde y el estudiante calcularía sobre
-# otros puntos. Se compara la G del primer propio y la de cada posición
-# de los tríos, que es lo que T2 pide leer.
+# otros puntos.
+#
+# SE COMPARAN LAS CINCO CURVAS, no solo la G. Comparar solo G fue el
+# agujero que dejó pasar M-14 durante toda la construcción: la F llevaba
+# meses sin ser la función de espacio vacío y ni esta comprobación ni el
+# auditor la miraban. Una comprobación que mira una de cinco columnas da
+# la misma sensación de verde que una que las mira todas.
 jd <- jsonlite::fromJSON(file.path(SALIDAS, "taller2_datos.json"), simplifyVector = FALSE)
 cmp <- function(a, b, que, tol = 1e-8) {
   d <- max(abs(as.numeric(a) - as.numeric(b)))
@@ -160,12 +173,25 @@ cmp <- function(a, b, que, tol = 1e-8) {
     stop(sprintf("PARADO: %s no cuadra con el JSON (dif %.2e). El dato entregado y el enunciado describen patrones DISTINTOS", que, d))
   invisible(TRUE)
 }
-for (i in seq_len(N_PROPIOS))
-  cmp(curvas(propios[[i]])$G, unlist(jd$patrones[[i]]$G), sprintf("la G del propio %d", i))
-for (i in seq_len(N_TRIOS)) for (j in 1:3)
-  cmp(curvas(trios[[i]][[j]])$G, unlist(jd$trios[[i]][[j]]$G),
-      sprintf("la G del trío %d posición %s", i, letters[j]))
-message(sprintf("    %d curvas comparadas contra el JSON, todas cuadran", N_PROPIOS + N_TRIOS * 3L))
+COLUMNAS <- c("G", "F", "K", "L", "g")
+n_cmp <- 0L
+for (i in seq_len(N_PROPIOS)) {
+  cv <- curvas(propios[[i]])
+  for (co in COLUMNAS) {
+    cmp(cv[[co]], unlist(jd$patrones[[i]][[co]]), sprintf("la %s del propio %d", co, i))
+    n_cmp <- n_cmp + 1L
+  }
+}
+for (i in seq_len(N_TRIOS)) for (j in 1:3) {
+  cv <- curvas(trios[[i]][[j]])
+  for (co in COLUMNAS) {
+    cmp(cv[[co]], unlist(jd$trios[[i]][[j]][[co]]),
+        sprintf("la %s del trío %d posición %s", co, i, letters[j]))
+    n_cmp <- n_cmp + 1L
+  }
+}
+message(sprintf("    %d curvas comparadas contra el JSON (%d patrones x %d columnas), todas cuadran",
+                n_cmp, N_PROPIOS + N_TRIOS * 3L, length(COLUMNAS)))
 
 for (f in list.files(DESTINO, pattern = "^taller2_", full.names = TRUE))
   message(sprintf("    %-42s %6.1f KB", f, file.size(f) / 1024))
