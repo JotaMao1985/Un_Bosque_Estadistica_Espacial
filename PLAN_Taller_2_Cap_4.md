@@ -199,7 +199,48 @@ el de T2 siguen corriendo. **Ocho de los ocho bloques del taller se han ejecutad
 es lo que `verifica_bloques.py` no puede hacer aquí: sin línea `#>` no hay cifra anunciada que
 contrastar, y en un taller no puede haberla.
 
-**Siguiente: C6**, el banco de 36 y las doce afirmaciones falsas, en el módulo 7 que ya existe.
+**C6 HECHA (2026-09-10)**: el módulo 7 publica las **36 preguntas** del banco y las **12
+afirmaciones falsas**. El HTML queda en **1 138 KB**. El ensamblador **imprime la tabla de
+cobertura y para** si el reparto no cuadra: `1:3 2:3 3:3 4:6 5:3 6:3 7:3 8:3 9:3 10:3 11:3`, con
+el módulo 4 al doble por el §3.6. Comprueba además que **12 × 3 agotan el banco sin repetir
+ninguna** —sobre doce documentos ficticios, no razonado sobre el papel—, que las doce afirmaciones
+son distintas, que **ningún módulo se queda sin afirmación falsa** y que ninguna pregunta está
+redactada como si tuviera opciones. La **lista legible desde fuera** se escribe en cada
+construcción: `precalculo/salidas/taller2_banco.md`, con el aviso de para qué existe.
+
+**EL COTEJO SE HIZO ANTES DE ESCRIBIR, y descartó seis candidatas del banco** — entre ellas «¿qué
+distingue G de F?» (es la pregunta 7), «¿cuáles son las dos propiedades de CSR?» (la 5), «¿por qué
+K sigue por encima si la agregación es a 20 m?» (la 9) y «¿en qué dirección empuja el sesgo de
+borde?» (el ejercicio 5). Quedan escritas en el encabezado del banco para que no vuelvan a entrar.
+
+**Y RELEER LAS DOCE AFIRMACIONES FALSAS TUMBÓ SEIS**, que es el hallazgo de C6 y merece quedar
+escrito porque las razones son de cuatro tipos distintos:
+1. **Dos eran preguntas de este mismo banco**, palabra por palabra —«dos realizaciones de CSR
+   tienen el mismo n» y «el índice de dispersión vale 1 siempre»—. Al mismo estudiante le podían
+   tocar la pregunta y su afirmación.
+2. **Una publicaba la respuesta de T3**: «L − r por encima de cero significa agregación a esa
+   distancia» es, literalmente, lo que afirma el informe que T3 manda refutar.
+3. **Otra publicaba la de T4** y además era la pregunta 11 del capítulo: «se sale de la banda en
+   algún r, luego p < 0,05».
+4. **Y una no era falsa.** «Cambiar la ventana cambia λ pero no cambia el veredicto del test» se
+   escribió pensando en T1 — y M-2 dice que **el veredicto vuelca en 3 de las 16 localidades**, de
+   modo que para las otras trece la afirmación *se cumple*. Una afirmación «falsa» que resulta
+   cierta para tres cuartas partes del curso no es una refutación: es una trampa, y habría estallado
+   en voz alta delante de doce personas. **El criterio «falsa de forma verificable, no discutible»
+   hay que aplicarlo con la medición en la mano, no con la intuición.**
+
+**UNA DECISIÓN QUE EL PLAN NO TOMABA: las doce afirmaciones falsas SE PUBLICAN**, igual que el
+banco. Razón: lo que el §4.5 quiere evitar es que el duodécimo tenga ventaja sobre el primero, y
+eso lo resuelven las **doce distintas**, no el secreto; y publicarlas es coherente con el banco,
+que se publica «a propósito: no se trata de sorprenderte, se trata de que llegues sabiendo».
+Reversible en un minuto: se retira el bloque del módulo 7 y el catálogo se queda solo en
+`salidas/taller2_banco.md`. **Si Javier prefiere lo contrario, es un cambio de tres líneas.**
+
+**Falta C7** (las cifras de la prosa), **C8** (navegador), **C9** (integración) y **C10** (el
+calificador). Y siguen vivos **M-14** —que bloquea la publicación de T2 hasta regenerar las curvas
+F— y la fuga de `datos_taller2.R`.
+
+**Siguiente: C7**, o la decisión sobre M-14, que es lo que manda.
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -1050,6 +1091,10 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
 - **Dependencias:** C1, C2, C2b · **Tamaño: L**
 
 **C6 · El banco de la defensa y el catálogo de refutaciones** — dentro de C5
+> **HECHA (2026-09-10).** Las 36 y las 12 viven en `ensambla_taller2.py` y se publican en el
+> módulo 7; la lista legible desde fuera es `precalculo/salidas/taller2_banco.md`. El ensamblador
+> imprime la cobertura y para si el reparto no cuadra. Ver el §0: releer las doce afirmaciones
+> falsas tumbó seis, y una de ellas **no era falsa**.
 - **Descripción:** **36** preguntas con el reparto del §4.2 (6 del módulo 4, 3 de cada uno de los
   otros diez), **12 afirmaciones falsas** para el bloque de refutación en vivo —una por
   estudiante—, y la rúbrica de la defensa.

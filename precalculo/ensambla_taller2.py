@@ -105,6 +105,9 @@ def _ruta(var: str, defecto: pathlib.Path) -> pathlib.Path:
 
 PLANTILLA = _ruta("TALLER2_PLANTILLA", RAIZ / "plantilla" / "plantilla-capitulo.html")
 DESTINO = _ruta("TALLER2_DESTINO", RAIZ / "Htmls_Espacial" / "taller-2-cap-4.html")
+# La lista del banco que se lee DESDE FUERA del taller: la necesita el
+# blueprint del parcial 2 para no repetir una pregunta ya publicada.
+BANCO_FUERA = _ruta("TALLER2_BANCO_DESTINO", SALIDAS / "taller2_banco.md")
 
 D = json.loads(_ruta("TALLER2_DATOS", SALIDAS / "taller2_datos.json")
                .read_text(encoding="utf-8"))
@@ -1223,6 +1226,243 @@ print("focos =", int(n_focos))
 
 
 # =====================================================================
+# C6 · El banco de la defensa y el catálogo de refutaciones
+# =====================================================================
+# TREINTA Y SEIS, y el número no es redondo por gusto: es 12 × 3, que es
+# lo que exige el sorteo SIN REEMPLAZO del §4.5. Con una sola sesión nadie
+# sale del aula, así que el duodécimo ha oído las preguntas de los once
+# anteriores; con 36 = 12 × 3 el banco se agota exactamente al terminar y
+# a nadie le repiten una pregunta que ya se oyó.
+#
+# EL REPARTO POR MÓDULO ES EL DEL §4.2: seis del módulo 4 y tres de cada
+# uno de los otros diez. El módulo 4 va sobre-representado porque es el
+# único que el escrito apenas toca (§3.6) — es el más conceptual, el más
+# fácil de responder con una frase memorizada y el que mejor se evalúa en
+# vivo. El ensamblador comprueba el reparto y PARA si no cuadra.
+#
+# CADA UNA COTEJADA CONTRA LAS DOS SUPERFICIES PUBLICADAS, que es la regla
+# del §3.7 y la que este plan ya se saltó dos veces: las 12 preguntas de
+# autoevaluación del capítulo 4 Y sus 5 ejercicios guiados. Y con la
+# ampliación que trajo C5b: se coteja LA PREGUNTA, no el procedimiento —
+# T4(a) pasó el cotejo del §3.5 mirando el procedimiento y preguntaba
+# literalmente lo mismo que el ejercicio 5.
+#
+# Lo que quedó fuera por ese cotejo, y conviene que esté escrito para que
+# no vuelva a entrar:
+#   · «¿qué distingue G de F?» ................. es la pregunta 7
+#   · «¿cuáles son las dos propiedades de CSR?» . es la pregunta 5
+#   · «¿por qué K sigue por encima si la agregación es a 20 m?» . la 9
+#   · «¿en qué dirección empuja el sesgo de borde y por qué siempre en la
+#     misma?» .................................. es el ejercicio 5
+#   · «cuenta las celdas con esperanza < 5 sobre Bogotá» .. el ejercicio 3
+#   · «de 39 a 999 simulaciones, ¿qué le pasa a la banda?» . la 12
+#
+# NINGUNA CIFRA DEL CAPÍTULO. El §0 del plan lo pide en su punto 4: este
+# taller calcula lo suyo desde las fuentes y no reutiliza cifras de otros
+# documentos, para que regenerar el capítulo 4 no lo invalide. Las 36 son
+# conceptuales por esa razón además de por ser orales.
+BANCO_DEFENSA = [
+    # --- Módulo 1 · Qué es un proceso puntual ------------------------
+    (1, "La ventana es parte del estimador",
+     "En los tres capítulos anteriores el dato traía su sitio puesto y lo que variaba era el "
+     "valor. Aquí se invierte. Di qué es exactamente lo aleatorio en un patrón puntual, y qué "
+     "cosa de los capítulos anteriores deja de existir cuando se invierte."),
+    (1, "Coordenadas sin ventana",
+     "Alguien te entrega las coordenadas de un patrón y nada más. ¿Qué no puedes calcular "
+     "todavía, y por qué no basta con dibujar un rectángulo alrededor de los puntos?"),
+    (1, "Del punto al área",
+     "Un mismo fenómeno se puede estudiar como patrón puntual o agregado a unidades areales. "
+     "¿Qué se pierde al pasar del primero al segundo, y qué se gana?"),
+
+    # --- Módulo 2 · La intensidad λ ----------------------------------
+    (2, "Cuándo describe λ al patrón",
+     "El estimador de λ es una división. ¿Bajo qué condición ese único número describe el "
+     "patrón, y cómo comprobarías si se cumple sin correr ningún test?"),
+    (2, "El índice de dispersión que no vale 1",
+     "«Bajo Poisson el índice de dispersión vale 1» es falso en cuanto las celdas no miden lo "
+     "mismo. Explica por qué, y di contra qué habría que compararlo en su lugar."),
+    (2, "Inhomogénea no es agregada",
+     "Que λ dependa de la posición y que los puntos se atraigan producen mapas parecidos y son "
+     "cosas distintas. Explica la diferencia y di por qué se confunden tanto."),
+
+    # --- Módulo 3 · Los tres regímenes -------------------------------
+    (3, "Qué mecanismo produce cada régimen",
+     "Los tres regímenes son aleatorio, regular y agregado. Di qué mecanismo físico produce "
+     "cada uno, y por qué «regular» no quiere decir «ordenado en cuadrícula»."),
+    (3, "De dónde sale el denominador",
+     "Clark-Evans divide la distancia media observada al vecino más próximo por la que daría el "
+     "azar. ¿De dónde sale ese denominador, y qué tendría que pasar para que la división dejara "
+     "de ser informativa?"),
+    (3, "Agregado aquí, regular allá",
+     "Un patrón puede estar agregado a una escala y ser regular a otra. ¿Qué le pasa entonces al "
+     "índice de Clark-Evans, y qué habría que medir para verlo?"),
+
+    # --- Módulo 4 · CSR · seis, por el §3.6 --------------------------
+    (4, "Dos realizaciones, dos n",
+     "Dos realizaciones del mismo proceso de Poisson homogéneo no tienen el mismo número de "
+     "puntos. ¿Por qué, y qué error comete quien espera que sí?"),
+    (4, "La firma de Poisson",
+     "Que la media y la varianza del número de puntos valgan aproximadamente lo mismo es la "
+     "firma de Poisson. ¿Por qué ninguna otra distribución de conteos hace eso, y cómo lo "
+     "comprobarías simulando?"),
+    (4, "Cuánto se mueve el azar",
+     "Sobre realizaciones de CSR puro, el índice de Clark-Evans recorre un intervalo ancho y su "
+     "media no cae exactamente en 1. Son dos hechos distintos: explica cada uno."),
+    (4, "Una nula que casi nunca es cierta",
+     "CSR es la hipótesis nula de casi todo el capítulo, y en datos reales casi nunca se "
+     "cumple. ¿Por qué se usa igual como referencia? ¿Qué se gana?"),
+    (4, "Qué falla cuando falla",
+     "Rechazar CSR no dice cuál de sus dos propiedades falla. Describe un patrón concreto donde "
+     "falle una y otro donde falle la otra, y di cómo los distinguirías."),
+    (4, "«Se ve aleatorio»",
+     "Un colega mira un mapa y dice que el patrón «se ve aleatorio». ¿Por qué eso no es un "
+     "argumento, y qué es lo mínimo que habría que enseñar para convertirlo en uno?"),
+
+    # --- Módulo 5 · El test de cuadrantes ----------------------------
+    (5, "Contra qué se contrasta",
+     "La hipótesis nula del test de cuadrantes no es «λ es constante». ¿Cuál es, y por qué esa "
+     "diferencia cambia lo que puedes afirmar cuando rechazas?"),
+    (5, "Los esperados de una celda recortada",
+     "Cuando la ventana recorta las celdas, los esperados dejan de ser iguales entre sí. ¿De "
+     "dónde salen entonces, y qué pasaría si los repartieras por igual de todos modos?"),
+    (5, "El convenio del binado",
+     "El binado de <code>quadratcount</code> es el de <code>cut()</code>: abierto por la "
+     "izquierda, con el más bajo cerrado por los dos lados. ¿Por qué ese convenio puede mover "
+     "el χ², y en qué clase de datos lo mueve más?"),
+
+    # --- Módulo 6 · El tamaño del cuadrante --------------------------
+    (6, "Resolver contra suponer",
+     "«La escala que más resuelve es la que rompe el supuesto.» Explica esa tensión y di qué "
+     "hace con ella un analista honesto."),
+    (6, "El MAUP con otro nombre",
+     "El tamaño del cuadrante y el tamaño de la unidad areal del capítulo 3 son el mismo "
+     "problema. Di en qué son el mismo y en qué no."),
+    (6, "Qué falta en el pie",
+     "¿Qué tiene que aparecer siempre junto al resultado de un test de cuadrantes para que sea "
+     "reproducible, y por qué sin eso el resultado está incompleto?"),
+
+    # --- Módulo 7 · Las funciones G y F ------------------------------
+    (7, "Las dos y el borde",
+     "G y F se estiman sobre una ventana finita, así que las dos sufren el efecto de borde. "
+     "¿Lo sufren igual? Di cuál se ve más afectada y por qué."),
+    (7, "Los sitios de F",
+     "F se mide desde sitios cualesquiera de la ventana. ¿Cómo se eligen esos sitios en la "
+     "práctica, y qué decisión del analista se esconde ahí?"),
+    (7, "Misma G, distinta F",
+     "Dos patrones tienen la misma G y distinta F. ¿Qué sabes de ellos? ¿Y si tuvieran la misma "
+     "F y distinta G?"),
+
+    # --- Módulo 8 · La función K de Ripley ---------------------------
+    (8, "Por qué se divide por λ",
+     "K(r) es el número esperado de vecinos a distancia r o menos de un punto cualquiera, "
+     "dividido por la intensidad. ¿Por qué se divide por la intensidad, y qué se consigue?"),
+    (8, "La recta de Besag",
+     "La transformación de Besag convierte una parábola en una recta. Si la información es la "
+     "misma, ¿por qué importa para leer la curva?"),
+    (8, "Los pesos del estimador",
+     "El estimador de K lleva unos pesos que multiplican cada pareja de puntos. ¿Qué papel "
+     "juegan, y qué estarías estimando si todos valieran 1?"),
+
+    # --- Módulo 9 · La correlación de pares g(r) ---------------------
+    (9, "El anillo y el disco",
+     "g(r) mira el anillo de radio r y K(r) el disco entero. ¿Qué gana g con eso, y qué pierde?"),
+    (9, "La distancia a la que g vuelve a 1",
+     "La distancia a la que g regresa a 1 se lee como una propiedad física del patrón. ¿Cuál "
+     "es, y qué tendrías que ver en el mapa para confirmarla?"),
+    (9, "Un máximo en el borde izquierdo",
+     "En un patrón real, g puede no tener pico y alcanzar su máximo en el primer nodo del "
+     "barrido. ¿Qué significa eso, y por qué NO es una escala característica?"),
+
+    # --- Módulo 10 · Efectos de borde --------------------------------
+    (10, "Lo que cuesta corregir",
+     "Las tres correcciones clásicas corrigen, y no cuestan lo mismo. ¿Cuál es la cara, por qué "
+     "lo es, y en qué clase de ventana se nota la diferencia?"),
+    (10, "Descartar o pesar",
+     "La corrección de borde descarta puntos y la de traslación los pesa. ¿Qué le pasa a la "
+     "precisión del estimador con cada una, y por qué?"),
+    (10, "Por qué crece con r",
+     "El efecto de borde no pesa igual a todas las distancias. Explica qué fracción de los "
+     "discos toca el borde a r pequeño y a r grande, y qué se sigue de ahí."),
+
+    # --- Módulo 11 · Envolventes de simulación -----------------------
+    (11, "Las simulaciones contra su propia banda",
+     "Construyes una banda con simulaciones de CSR y después compruebas cuántas de esas MISMAS "
+     "simulaciones se salen de ella en algún r. ¿Qué esperarías encontrar, y por qué?"),
+    (11, "Dos resúmenes de la misma curva",
+     "Un test de desviación global resume la curva entera en un número antes de compararla. Di "
+     "qué resumen usa el dclf y cuál el MAD, y ante qué clase de desviación se separan."),
+    (11, "Simular con la misma ventana",
+     "La envolvente simula CSR con la misma ventana y la misma intensidad que el patrón "
+     "observado. ¿Por qué las dos cosas tienen que ser las mismas? ¿Qué pasaría si simularas "
+     "sobre un rectángulo?"),
+]
+
+# LAS DOCE AFIRMACIONES FALSAS, una por estudiante. Doce y no una: con
+# sesión única, repetir la refutación se la regala al que defiende al
+# final (§4.5).
+#
+# CADA UNA ES FALSA DE FORMA VERIFICABLE CON EL MATERIAL, no discutible.
+# Ese es el criterio de aceptación, y descartó dos candidatas que parecían
+# buenas: «si g vale 1 en todo r el patrón es CSR» —cierto que no basta,
+# pero el capítulo no da con qué demostrarlo— y «G y F son deducibles una
+# de la otra», que exige un contraejemplo que el material no trae.
+#
+# SE PUBLICAN, y es una decisión que el plan no tomaba. Va declarada en
+# el §0. La razón: lo que el §4.5 quiere evitar es que el duodécimo tenga
+# ventaja sobre el primero, y eso lo resuelven las DOCE distintas, no el
+# secreto. Y publicarlas es coherente con el banco, que se publica «a
+# propósito: no se trata de sorprenderte, se trata de que llegues
+# sabiendo». Si Javier prefiere que no viajen, se retira este bloque del
+# módulo 7 y el catálogo se queda en la lista de `salidas/`.
+# SEIS DE LAS DOCE PRIMERAS SE CAYERON AL RELEERLAS, y las razones valen
+# más que las afirmaciones:
+#   · «dos realizaciones de CSR tienen el mismo n» y «el índice de
+#     dispersión vale 1 siempre» eran, palabra por palabra, dos preguntas
+#     de este mismo banco. Al mismo estudiante le podían tocar las dos.
+#   · «L − r por encima de cero significa agregación a esa distancia» es
+#     LO QUE AFIRMA EL INFORME DE T3. Publicarla aquí es publicar la
+#     respuesta de una tarea del escrito.
+#   · «cambiar la ventana cambia λ pero no el veredicto» era peor: además
+#     de rozar T1, NO ES FALSA para la mayoría. Medido en M-2: el
+#     veredicto vuelca en 3 de las 16 localidades y en las otras 13 el
+#     enunciado literalmente se cumple. Una afirmación «falsa» que resulta
+#     cierta para tres cuartas partes del curso no es una refutación, es
+#     una trampa.
+#   · «se sale de la banda en algún r, luego p < 0,05» es la pregunta 11
+#     del capítulo y además el error del informe de T4.
+#   · «Clark-Evans vale exactamente 1 si el patrón es aleatorio» es la
+#     pregunta 4 de este banco.
+AFIRMACIONES_FALSAS = [
+    (5, "El test de cuadrantes contrasta la hipótesis de que λ es constante."),
+    (11, "La banda de una envolvente es un intervalo de confianza para la K verdadera del "
+         "patrón observado."),
+    (4, "Si un patrón no rechaza el test de cuadrantes, se puede concluir que es CSR."),
+    (10, "Ignorar la corrección de borde le añade ruido a la estimación de K, pero no la sesga."),
+    (2, "El estimador n/|W| devuelve la intensidad en las unidades del fenómeno, sea cual sea "
+        "el sistema de coordenadas."),
+    (7, "F(r) se calcula sobre los puntos del patrón, igual que G(r), pero midiendo hacia atrás."),
+    (8, "La transformación de Besag no es solo un cambio de forma: L detecta estructura que K "
+        "no llega a ver."),
+    (10, "Las tres correcciones de borde devuelven la misma curva K; solo se diferencian en el "
+         "tiempo de cómputo."),
+    (1, "En un patrón puntual el dato es la posición, así que los mismos puntos observados en "
+        "dos ventanas distintas son el mismo patrón."),
+    (6, "El tamaño de la celda del test de cuadrantes es un detalle de implementación: el "
+        "veredicto no depende de él."),
+    (9, "El máximo de g(r) señala el tamaño de los grumos del patrón."),
+    (3, "El índice de Clark-Evans mira todas las escalas del patrón a la vez."),
+]
+
+_banco = "\n".join(
+    f"""          <tr><th scope="row">{i + 1}</th><td>{m}</td><td>{tema}</td><td>{preg}</td></tr>"""
+    for i, (m, tema, preg) in enumerate(BANCO_DEFENSA))
+
+_falsas = "\n".join(
+    f"""          <tr><th scope="row">{i + 1}</th><td>{m}</td><td>{af}</td></tr>"""
+    for i, (m, af) in enumerate(AFIRMACIONES_FALSAS))
+
+
+# =====================================================================
 # MÓDULO 7 · Cómo se califica, y la defensa
 # =====================================================================
 # Las dos rúbricas se publican DENTRO del taller, con el mismo detalle. La
@@ -1230,6 +1470,8 @@ print("focos =", int(n_focos))
 # menos detalle que la del escrito sería calificar a ciegas el instrumento
 # que más pesa. El banco de 36 preguntas y las 12 afirmaciones falsas
 # llegan en C6.
+n_banco, n_falsas = len(BANCO_DEFENSA), len(AFIRMACIONES_FALSAS)
+
 MOD7 = cabecera(
     7, "Cómo se califica, y la defensa", "Rubrics and the oral defence",
     "Nada. Este módulo no se califica: dice cómo se califica todo lo "
@@ -1253,16 +1495,62 @@ MOD7 = cabecera(
 
       <div class="note">
         <p><strong>Cómo se sortean las preguntas del banco, y por qué así.</strong> El banco tiene
-          <strong>36</strong> preguntas y son doce estudiantes a tres preguntas cada uno: 12 × 3 =
-          36. El sorteo es <strong>sin reemplazo</strong> y se hace <em>antes</em> de la sesión, no
-          durante. Eso significa que <strong>a nadie le repiten una pregunta que ya se oyó</strong>,
-          y que el orden en que te toque defender no te da ventaja ni te la quita. La refutación en
-          vivo funciona igual: hay <strong>doce afirmaciones falsas distintas</strong>, una por
-          persona.</p>
-        <p style="margin-bottom:0;">El banco se publica <strong>con este enunciado</strong>, entero.
-          No hay preguntas sorpresa: hay treinta y seis preguntas que puedes preparar, y de ellas te
-          tocan tres.</p>
+          <strong>{n_banco}</strong> preguntas y son doce estudiantes a tres preguntas cada uno:
+          12 × 3 = {n_banco}. El sorteo es <strong>sin reemplazo</strong> y se hace <em>antes</em> de
+          la sesión, no durante. Eso significa que <strong>a nadie le repiten una pregunta que ya se
+          oyó</strong>, y que el orden en que te toque defender no te da ventaja ni te la quita. La
+          refutación en vivo funciona igual: hay <strong>{n_falsas} afirmaciones falsas
+          distintas</strong>, una por persona.</p>
+        <p style="margin-bottom:0;">Las dos listas se publican <strong>con este enunciado</strong>,
+          enteras. No hay preguntas sorpresa: hay {n_banco} preguntas y {n_falsas} afirmaciones que
+          puedes preparar, y de ellas te tocan tres y una. Que estén publicadas no las hace fáciles:
+          casi todas piden un <em>mecanismo</em>, y un mecanismo no se memoriza en la fila.</p>
       </div>
+
+      <h3>El banco de la defensa · {n_banco} preguntas</h3>
+
+      <p>Cubre <strong>los once módulos</strong> del capítulo 4, incluidos los que ninguna tarea del
+        escrito toca. El módulo 4 —CSR— va con el doble de preguntas que los demás, y es a propósito:
+        es el que el escrito apenas roza y el que mejor se evalúa en voz alta.</p>
+
+      <div class="note">
+        <p style="margin-bottom:0;"><strong>Ninguna de estas {n_banco} repite una pregunta de
+          autoevaluación ni un ejercicio guiado del capítulo.</strong> Se cotejaron una a una contra
+          las dos listas, y varias candidatas se cayeron por eso — entre ellas «¿qué distingue G de
+          F?» y «¿cuáles son las dos propiedades de CSR?», que son preguntas del capítulo palabra
+          por palabra. Si al prepararte encuentras una que sí se parece a algo ya publicado,
+          dilo: es un defecto y se corrige.</p>
+      </div>
+
+      <table>
+        <caption>El banco de la defensa. Te tocan tres, sorteadas sin reemplazo entre los doce.</caption>
+        <thead>
+          <tr><th scope="col">#</th><th scope="col">Mód.</th><th scope="col">Tema</th>
+              <th scope="col">Pregunta</th></tr>
+        </thead>
+        <tbody>
+{_banco}
+        </tbody>
+      </table>
+
+      <h3>La refutación en vivo · {n_falsas} afirmaciones falsas</h3>
+
+      <p>En los dos últimos minutos se te lee <strong>una</strong> de estas, y tienes que decir
+        <strong>por qué es falsa</strong>. Todas lo son, y todas lo son de forma comprobable con el
+        capítulo: no hay ninguna discutible, ninguna que dependa de una convención y ninguna trampa
+        de redacción. Decir «es falsa» no puntúa: hay que decir <em>dónde se rompe</em> y, si puedes,
+        cómo tendría que estar enunciada para ser cierta.</p>
+
+      <table>
+        <caption>El catálogo de refutaciones. Te leen una.</caption>
+        <thead>
+          <tr><th scope="col">#</th><th scope="col">Mód.</th>
+              <th scope="col">Afirmación — todas son FALSAS</th></tr>
+        </thead>
+        <tbody>
+{_falsas}
+        </tbody>
+      </table>
 
       <div class="warning">
         <p style="margin-bottom:0;"><strong>La regla que le da dientes a todo lo anterior.</strong>
@@ -2432,9 +2720,22 @@ def main() -> int:
     # script y se vigilan con la lista corta: los nombres de los
     # generadores, que no tienen ninguna excusa para aparecer en ninguna
     # parte.
-    PROHIBIDAS_PROSA = ("familia del patrón", "está agregado", "es aleatorio",
+    # Las de la prosa se afinaron en C6, y el motivo es instructivo: la
+    # lista traía «es aleatorio», que saltó con una AFIRMACIÓN FALSA del
+    # catálogo de refutaciones —«el índice de Clark-Evans vale exactamente
+    # 1 cuando el patrón es aleatorio»—. Una guarda que salta con el
+    # castellano corriente se acaba desactivando entera, que es peor que
+    # no tenerla. Una fuga de verdad en este taller siempre habla del
+    # patrón DE QUIEN LEE, o de cómo está compuesto un trío, o de cuál de
+    # las dos ventanas de T1 es la buena. Eso es lo que se vigila.
+    PROHIBIDAS_PROSA = ("familia del patrón",
+                        "tu patrón está agregado", "tu patrón es aleatorio",
+                        "tu patrón es regular", "el régimen de tu patrón",
                         "la ventana correcta es", "la ventana buena es",
-                        "el régimen es", "el régimen de tu patrón es")
+                        "la ventana defectuosa es",
+                        "uno de cada familia", "una de cada familia",
+                        "uno de cada régimen", "uno de cada uno de los tres",
+                        "el mapa a es el", "el mapa b es el", "el mapa c es el")
     PROHIBIDAS_TODO = ("familia del patrón", "rthomas", "rssi", "rpoispp",
                        "proceso de thomas")
     filtradas = [p for p in PROHIBIDAS_PROSA if p in marcado.lower()]
@@ -2471,13 +2772,121 @@ def main() -> int:
         if sobra:
             print(f"  ---  {que}(s) registrados y no usados: {sobra}")
 
+    # --- C6 · el banco, su reparto y el sorteo ---------------------------
+    # La tabla de cobertura se IMPRIME, no se supone. Es el criterio de
+    # aceptación de C6, y existe porque un banco puede tener 36 preguntas
+    # y dejar un módulo entero fuera sin que nada se ponga rojo.
+    MODULOS_CAP4 = 11
+    PREGUNTAS_POR_MODULO = 3
+    MODULO_DOBLE = 4               # CSR, el que el escrito apenas toca (§3.6)
+    ALUMNOS, POR_ALUMNO = 12, 3
+
+    cobertura = {m: 0 for m in range(1, MODULOS_CAP4 + 1)}
+    for m, _, _ in BANCO_DEFENSA:
+        if m in cobertura:
+            cobertura[m] += 1
+        else:
+            problemas.append(f"el banco tiene una pregunta del módulo {m}, "
+                             f"que no existe en el capítulo 4")
+    print("\n  Banco de la defensa · cobertura por módulo")
+    linea = "   ".join(f"{m}:{c}" for m, c in cobertura.items())
+    print(f"    {linea}")
+    esperado = {m: (PREGUNTAS_POR_MODULO * 2 if m == MODULO_DOBLE else PREGUNTAS_POR_MODULO)
+                for m in cobertura}
+    if len(BANCO_DEFENSA) != ALUMNOS * POR_ALUMNO:
+        problemas.append(f"el banco tiene {len(BANCO_DEFENSA)} preguntas y el sorteo sin "
+                         f"reemplazo del §4.5 exige exactamente "
+                         f"{ALUMNOS} × {POR_ALUMNO} = {ALUMNOS * POR_ALUMNO}")
+    vacios = sorted(m for m, c in cobertura.items() if c == 0)
+    if vacios:
+        problemas.append(f"módulos del capítulo 4 sin ninguna pregunta en el banco: {vacios}")
+    desvia = {m: (cobertura[m], esperado[m]) for m in cobertura if cobertura[m] != esperado[m]}
+    if desvia:
+        problemas.append(f"el reparto del §4.2 no cuadra (módulo: tiene/debe): {desvia}")
+    print(f"    {len(BANCO_DEFENSA)} preguntas · {MODULO_DOBLE} lleva {cobertura[MODULO_DOBLE]} "
+          f"y los otros {PREGUNTAS_POR_MODULO} cada uno")
+
+    # Que el banco se agote EXACTAMENTE con doce estudiantes, comprobado
+    # sobre doce documentos ficticios y no razonado sobre el papel. Con
+    # 36 = 12 × 3 la propiedad es aritmética, pero el que se equivoca en
+    # una aritmética evidente delante de doce personas es siempre el que
+    # no la comprobó.
+    import random as _random
+    sorteo = list(range(len(BANCO_DEFENSA)))
+    _random.Random(20262).shuffle(sorteo)
+    reparto = [sorteo[i * POR_ALUMNO:(i + 1) * POR_ALUMNO] for i in range(ALUMNOS)]
+    repartidas = [q for grupo in reparto for q in grupo]
+    if sorted(repartidas) != list(range(len(BANCO_DEFENSA))):
+        problemas.append("un sorteo de prueba sobre 12 documentos NO agota el banco "
+                         "exactamente: alguna pregunta se repite o se queda sin salir")
+    elif any(len(g) != POR_ALUMNO for g in reparto):
+        problemas.append("el sorteo de prueba no reparte tres preguntas por estudiante")
+    else:
+        print(f"    sorteo de prueba: {ALUMNOS} estudiantes × {POR_ALUMNO} preguntas "
+              f"agotan el banco sin repetir ninguna")
+
+    # Las doce afirmaciones falsas, una por estudiante y ninguna repetida.
+    if len(AFIRMACIONES_FALSAS) != ALUMNOS:
+        problemas.append(f"hay {len(AFIRMACIONES_FALSAS)} afirmaciones falsas y hacen falta "
+                         f"{ALUMNOS}: con sesión única, repetir una se la regala al que "
+                         f"defiende al final (§4.5)")
+    textos = [a for _, a in AFIRMACIONES_FALSAS]
+    if len(set(textos)) != len(textos):
+        problemas.append("hay dos afirmaciones falsas iguales")
+    mods_falsas = sorted({m for m, _ in AFIRMACIONES_FALSAS})
+    sin_falsa = sorted(set(range(1, MODULOS_CAP4 + 1)) - set(mods_falsas))
+    if sin_falsa:
+        problemas.append(f"módulos del capítulo 4 sin ninguna afirmación falsa: {sin_falsa} "
+                         f"— con {len(AFIRMACIONES_FALSAS)} afirmaciones y {MODULOS_CAP4} "
+                         f"módulos caben todos")
+    print(f"    {len(AFIRMACIONES_FALSAS)} afirmaciones falsas, sobre los módulos {mods_falsas}")
+
+    # Ninguna pregunta puede nombrar la posición de una opción: el banco es
+    # ORAL y no tiene opciones, así que la comprobación es que no se haya
+    # colado la redacción de un quiz.
+    POSICIONES = ("las dos primeras", "la primera opción", "la última opción",
+                  "marca todo lo que", "señala la opción")
+    coladas = [f"{i + 1}" for i, (_, _, q) in enumerate(BANCO_DEFENSA)
+               if any(x in q.lower() for x in POSICIONES)]
+    if coladas:
+        problemas.append(f"pregunta(s) del banco redactadas como si tuvieran opciones: {coladas}")
+
+    # Y la lista legible DESDE FUERA, que es lo que el blueprint del
+    # parcial 2 necesita para no regalar una respuesta ya publicada
+    # (§10, riesgo alto). Se escribe siempre, con el mismo guion.
+    lista = ["# El banco del Taller 2, legible desde fuera", "",
+             "Lo escribe `precalculo/ensambla_taller2.py` cada vez que construye el taller.",
+             "**No se edita a mano.**", "",
+             "Existe por el riesgo alto del §10 del `PLAN_Taller_2_Cap_4.md`: el parcial 2 cubre",
+             "los capítulos 4 y 5, y este banco se publica con el taller. Una pregunta repetida",
+             "entre los dos documentos es una respuesta ya publicada. Quien escriba el *blueprint*",
+             "del parcial (`PLAN_Parcial_Corte_2.md`, T1.1) tiene que leer esta lista y decidir:",
+             "evitarlas, o reutilizarlas **a propósito** y declararlo.", "",
+             f"## Las {len(BANCO_DEFENSA)} preguntas del banco", ""]
+    for i, (m, tema, preg) in enumerate(BANCO_DEFENSA, 1):
+        limpio = re.sub(r"<[^>]+>", "", preg)
+        lista.append(f"{i}. **[mód. {m} · {tema}]** {limpio}")
+    lista += ["", f"## Las {len(AFIRMACIONES_FALSAS)} afirmaciones falsas de la refutación en vivo",
+              "", "Todas son FALSAS. Se leen en voz alta, una por estudiante.", ""]
+    for i, (m, af) in enumerate(AFIRMACIONES_FALSAS, 1):
+        lista.append(f"{i}. **[mód. {m}]** {af.replace('&lt;', '<').replace('&gt;', '>')}")
+    lista.append("")
+    BANCO_FUERA.parent.mkdir(parents=True, exist_ok=True)
+    BANCO_FUERA.write_text("\n".join(lista), encoding="utf-8")
+    try:
+        donde_banco = BANCO_FUERA.relative_to(RAIZ)
+    except ValueError:
+        donde_banco = BANCO_FUERA
+    print(f"    lista legible desde fuera: {donde_banco}")
+
     print()
     if problemas:
         for p in problemas:
             print(f"  MAL  {p}")
         print(f"\n  {len(problemas)} problema(s).\n")
         return 1
-    print("  Ensamblado limpio: instrucciones + T1..T5 + las dos rúbricas (C5b).\n")
+    print("  Ensamblado limpio: instrucciones + T1..T5 + las dos rúbricas + el banco "
+          "(C5a + C5b + C6).\n")
     return 0
 
 
