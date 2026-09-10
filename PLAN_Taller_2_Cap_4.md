@@ -240,7 +240,60 @@ Reversible en un minuto: se retira el bloque del módulo 7 y el catálogo se que
 calificador). Y siguen vivos **M-14** —que bloquea la publicación de T2 hasta regenerar las curvas
 F— y la fuga de `datos_taller2.R`.
 
-**Siguiente: C7**, o la decisión sobre M-14, que es lo que manda.
+**C7 HECHA (2026-09-10)**: `precalculo/audita_texto_taller2.py`, **84 comprobaciones, 0 fallos**,
+y `prueba_texto.py` lo adopta como **sujeto nuevo con 20 inyecciones, 20 cazadas**.
+`audita_todo.sh` lo descubre solo por el nombre: su bucle `for N in 1 2 3 4` ya buscaba
+`audita_texto_taller${N}.py`, que es exactamente para lo que el §7 dice que los nombres no son
+negociables.
+
+**El `TOPE_KB` propio, con su aritmética escrita en la cabecera.** El de la casa vale 700 y este
+documento pesa **1 141 KB**, así que necesita el suyo — y no como marca de agua sino como cota con
+dos extremos: por abajo el tamaño de hoy, y **por arriba la ceguera del arnés**, que tumba esa
+comprobación inyectando **+312 KB**. Si el tope pasara de 1 141 + 312 = **1 453**, la inyección ya
+no lo rebasaría y la comprobación quedaría verde para siempre. **1 250** deja 109 KB de
+crecimiento y 203 de margen contra el punto ciego. Está escrito ahí para que quien lo suba sepa
+que hay que mirar las dos cosas.
+
+**HALLAZGO · `formulas_escapadas()` llevaba pasando POR VACUIDAD en tres documentos publicados.**
+Miraba **solo** `$$…$$`, y el Taller 2 no tiene ninguna: sus **48** fórmulas son todas `\(…\)`.
+Igual el **Taller 1 (18 en línea, 0 de bloque)** y el **capítulo 2 (22 y 0)**. La comprobación
+existe por un defecto que el capítulo 5 destapó en T3.6 —un `<` crudo dentro de una fórmula se come
+el HTML hasta el siguiente `>`, y con él **cualquier cifra inventada que venga detrás**, que es el
+punto ciego de la familia 1 reapareciendo por otra puerta— y para tres documentos salía verde sin
+haber mirado una sola fórmula suya. **Ampliada a las dos formas** en `audita_texto_base.py`, con la
+medición que la hace segura: **ninguno de los doce documentos del sitio tiene un `<` crudo en una
+fórmula en línea**, así que no rompe a nadie. Y ahora imprime cuántas mira de cada clase —«0 de
+bloque, 48 en línea»—, para que la vacuidad se vea en vez de esconderse detrás de un OK.
+
+**DOS INYECCIONES MAL ESCRITAS, y el arnés me las cazó a mí en vez de al auditor**, que es para lo
+que está: «chi2» como sustituto de χ² **ya existía** en el bloque de Python de T1
+(`from scipy.stats import chi2`) y el arnés lo rechaza —un valor inyectado que ya está no prueba
+nada—; y sustituir χ² **solo en su primera aparición** dejaba las otras dos, con el defecto
+inyectado y el documento todavía correcto. La segunda es la que enseña: **el cuarto campo
+`en_todas` no es opcional cuando la cadena aparece más de una vez.** Lo mismo con la fila del
+catálogo de refutaciones: reescribir su contenido dejaba la fila en pie y el recuento seguía dando
+12; hay que **retirarla**.
+
+**LO QUE LA VERIFICACIÓN DE C7 ENCONTRÓ FUERA DEL TALLER.** El arnés de prosa completo da **236 de
+238**, y los dos que faltan **no son míos ni del Taller 2**: son del **capítulo 4**, y fallan con
+«el texto a sustituir no aparece». Es imposible que los cause el cambio de arriba —ese fallo ocurre
+**antes** de correr el auditor—. Causa: el commit `449792b` reescribió los ejercicios guiados del
+capítulo 4 y sus soluciones dejaron de viajar en un `<td>`; ahora las pinta el JavaScript desde el
+JSON incrustado. `prueba_texto.py` **no se ha tocado desde entonces**, así que dos de sus treinta
+inyecciones llevan **inertes** desde aquel commit: el arnés informa «no detectado» cuando en
+realidad nunca llegó a inyectar nada. Queda como tarea aparte; no es de este taller y el capítulo 4
+está publicado.
+
+**El Taller 1 sigue fuera del arnés de prosa.** `audita_texto_taller1.py` existe y
+`audita_todo.sh` lo corre, pero `prueba_texto.py` no lo tiene como sujeto: **ninguna de sus
+comprobaciones se ha visto fallar nunca**. El Taller 2 es el primer taller que entra. Anotado aquí
+porque es justo la duda que el propio arnés imprime al final de cada corrida.
+
+**Coste declarado:** el sujeto nuevo añade unos **2 minutos** a `prueba_texto.py` completo. Cada
+pasada del auditor indexa el JSON de 530 KB y tarda **6 s**; los capítulos, con JSON de ~100 KB,
+tardan menos de uno.
+
+**Siguiente: C8** (navegador) y **C9** (integración), o la decisión sobre M-14, que es lo que manda.
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -1119,6 +1172,9 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
 - **Dependencias:** C5 · **Tamaño: M**
 
 **C7 · Las cifras de la prosa** — `precalculo/audita_texto_taller2.py`
+> **HECHA (2026-09-10).** 84 comprobaciones · 0 fallos, y 20 inyecciones nuevas en
+> `prueba_texto.py`, 20 cazadas. Ver el §0: el tope propio y su aritmética, y el hallazgo de que
+> `formulas_escapadas()` pasaba por vacuidad en tres documentos publicados.
 - **Criterios de aceptación:** toda cifra del texto tiene respaldo en el JSON · `TOPE_KB` propio
   con su aritmética escrita en el encabezado · inyecciones añadidas a `prueba_texto.py`
 - **Verificación:** verde, y el arnés de prosa entero sin regresión sobre los demás sujetos

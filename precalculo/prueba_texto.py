@@ -105,6 +105,12 @@ SUJETOS = {
              PROYECTO / "Htmls_Espacial", "capitulo-5-intensidad-nucleos.html"),
     "cap6": ("audita_texto_cap6.py", "CAP6_HTML",
              PROYECTO / "Htmls_Espacial", "capitulo-6-pesos-espaciales.html"),
+    # El PRIMER taller que entra aquí, y conviene decir que el Taller 1 NO
+    # está: `audita_texto_taller1.py` existe y corre en `audita_todo.sh`,
+    # pero ninguna de sus comprobaciones se ha visto fallar nunca. Está
+    # anotado en el §0 del PLAN_Taller_2_Cap_4.md.
+    "taller2": ("audita_texto_taller2.py", "TALLER2_HTML",
+                PROYECTO / "Htmls_Espacial", "taller-2-cap-4.html"),
 }
 
 
@@ -1122,10 +1128,113 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
     ]
 
 
+def defectos_taller2() -> list[tuple[str, str, str]]:
+    """Los defectos del Taller 2 · C7.
+
+    Un taller se rompe por sitios distintos que un capítulo, y por eso su
+    lista no se copia de la de un capítulo: además de las cifras, los
+    enlaces y el peso, hay que poder ver fallar **las guardas propias de un
+    taller** —que la prosa no publique una respuesta, que el banco tenga
+    sus 36 filas y el catálogo sus 12, y que la aritmética del sorteo esté
+    impresa donde el estudiante la lee—.
+
+    Las cadenas son literales del HTML publicado y no se construyen desde
+    el JSON, al revés que en los capítulos: aquí lo que se inyecta no son
+    cifras del precálculo sino ESTRUCTURA del enunciado, y una estructura
+    no tiene de dónde derivarse. El arnés avisa solo si alguna deja de
+    aparecer —«el texto a sustituir no aparece»—, que es la protección
+    que hacía falta.
+    """
+    return [
+        # --- 1. Una cifra de la prosa sin respaldo en el precálculo ----
+        ("una cifra inventada se cuela en la prosa",
+         "<p>Este taller cubre el <strong>capítulo 4 entero</strong>",
+         "<p>El taller mide 93.24681 unidades. Este taller cubre el "
+         "<strong>capítulo 4 entero</strong>"),
+
+        # --- 2. El temario, por sus dos extremos ----------------------
+        ("se cae el sorteo sin reemplazo del temario",
+         "sin reemplazo", "sin repuesto"),
+        ("se cae el supuesto de las esperanzas de T1",
+         "esperanza menor que 5", "esperanza pequeña"),
+
+        # --- 3. Las afirmaciones que el taller no puede dejar de decir -
+        ("el taller deja de decir que la IA se usa sin pedir permiso",
+         "No hace falta pedir permiso", "Hay que pedir permiso"),
+        ("el taller deja de declarar que el sesgo de borde ya se trabajó en e5",
+         "no se vuelve a preguntar aquí", "conviene repasarlo"),
+        ("el taller deja de declarar que el orden de los mapas no es el de las curvas",
+         "El orden no coincide", "Los mapas van en el mismo orden"),
+
+        # --- 4. La guarda propia de un taller: una respuesta publicada -
+        ("la prosa publica el régimen del patrón del estudiante",
+         "<p>Aquí trabajas sobre <strong>tu patrón</strong>",
+         "<p>Como tu patrón es regular, aquí trabajas sobre <strong>tu patrón</strong>"),
+        ("la prosa nombra el generador de los patrones",
+         "<p>Las dos tareas anteriores miraban",
+         "<p>Los patrones salen de rThomas. Las dos tareas anteriores miraban"),
+
+        # --- 5. El banco y el catálogo, que son C6 --------------------
+        ("el banco pierde una de sus 36 preguntas",
+         '<tr><th scope="row">7</th><td>3</td><td>Qué mecanismo produce cada régimen</td>',
+         '<tr hidden><th scope="row">7</th><td>3</td><td>Qué mecanismo</td>'),
+        # La fila se RETIRA, no se reescribe: sustituir su contenido dejaba
+        # la fila en pie y el recuento seguía dando 12. El comentario HTML
+        # desaparece en `_extrae_prosa()`, que es lo que hace una fila que
+        # de verdad se ha caído.
+        ("el catálogo pierde una de sus 12 afirmaciones",
+         '<tr><th scope="row">11</th><td>9</td><td>El máximo de g(r) señala el tamaño '
+         'de los grumos del patrón.</td></tr>',
+         '<!-- fila retirada -->'),
+        ("la aritmética del sorteo deja de cuadrar",
+         "12 × 3", "12 × 4"),
+
+        # --- 6. Accesibilidad de lo que este documento sí tiene -------
+        ("un lienzo de curvas se queda sin aria-label",
+         '<canvas role="img" aria-label="Funciones G y F del primer par de curvas de tu trío">',
+         '<canvas role="img" data-alt="Funciones G y F del primer par">'),
+        ("un plegable se queda sin aria-expanded",
+         '<button type="button" class="ejercicio-boton" aria-expanded="false" '
+         'aria-controls="t1-pista">',
+         '<button type="button" class="ejercicio-boton" aria-controls="t1-pista">'),
+        ("un plegable apunta a un panel que no existe",
+         'aria-controls="t2-pista"', 'aria-controls="t2-pista-que-no-esta"'),
+
+        # --- 7. Enlaces, fórmulas, codificación y estructura ----------
+        ("el enlace al capítulo 4 apunta a un archivo que no existe",
+         'href="capitulo-4-patrones-puntuales.html"',
+         'href="capitulo-4-patrones-puntualess.html"'),
+        ("una fórmula en línea lleva un «<» sin escapar",
+         "\\(k \\times k\\)", "\\(k < k\\)"),
+        ("una tilde se rompe en bytes crudos",
+         "patrones puntuales", "patrones puntu<c3><a1>les"),
+        ("una plantilla de módulo se queda sin cerrar",
+         "  </template>\n", "  <!-- cerrada -->\n"),
+        # DOS cosas mal en la primera versión de esta inyección, y las dos
+        # instructivas. «chi2» no sirve como sustituto: ya está en el
+        # bloque de Python de T1 (`from scipy.stats import chi2`), y el
+        # arnés lo rechaza —con razón— porque un valor inyectado que ya
+        # existe no prueba nada. Y el cuarto campo hace falta: χ² aparece
+        # tres veces, así que sustituir solo la primera dejaba las otras
+        # dos y `coherencia()` seguía encontrándolo. El defecto se
+        # inyectaba y el documento seguía siendo correcto.
+        ("el texto pierde el χ² de T1",
+         "χ²", "ji cuadrado", True),
+
+        # --- 8. Peso ---------------------------------------------------
+        # +312 KB sobre un documento de 1 138 y un tope de 1 250: la cuenta
+        # está escrita en la cabecera de `audita_texto_taller2.py`, y si
+        # alguien sube el tope por encima de 1 450 esta inyección deja de
+        # rebasarlo y la comprobación se queda ciega.
+        ("el taller se pasa de su propio tope de peso",
+         "</body>", "<!--" + "y" * 320_000 + "-->\n</body>"),
+    ]
+
+
 DEFECTOS = {"demo": defectos_demo, "cap1": defectos_cap1,
             "cap2": defectos_cap2, "cap3": defectos_cap3,
             "cap4": defectos_cap4, "cap5": defectos_cap5,
-            "cap6": defectos_cap6}
+            "cap6": defectos_cap6, "taller2": defectos_taller2}
 
 
 def corre(clave: str, ruta_html: pathlib.Path) -> tuple[int, str]:
