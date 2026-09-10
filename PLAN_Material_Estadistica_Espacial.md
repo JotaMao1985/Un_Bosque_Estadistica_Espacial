@@ -274,25 +274,43 @@ regenerar y verificar los dos capítulos anteriores; aquí son seis.
 
 ### 0.2 · Dónde vive el trabajo
 
-Rama **`main`**, **árbol de trabajo limpio**. ✅ **Publicado el 2026-09-09 en dos tandas**:
-`origin/main` llegó a `fd3ad59` con los seis commits de abajo, y **el capítulo 4 corregido y los
-capítulos 5 y 6 están delante de los estudiantes**. **Queda un solo commit en local, y es esta
-nota**: el §0 diciendo que se publicó, que no puede publicarse antes de escribirse.
+Rama **`main`**. ✅ **Todo publicado**: `origin/main` está en `b1c95ed`, y con él **la portada
+corregida y el capítulo 4 entero —revisión, ejercicios y mapas— delante de los estudiantes**, más
+los capítulos 5 y 6 con su espacio fino. **Queda un solo commit en local, y es esta nota**: el §0
+diciendo que se publicó, que no puede publicarse antes de escribirse.
 
-**Y verificado en vivo, no supuesto:** los tres capítulos que se tocaron los sirve Pages **byte a
-byte idénticos** a los del repositorio, con los espacios finos en la prosa (9, 14 y 18) y **cero
-dentro de los bloques de código**. Comprobarlo es una descarga y un `sha256`; conviene hacerlo
-siempre que se publique un capítulo en vivo, porque Pages tarda en reconstruir y «hice push» no es
-«está publicado».
+**El árbol NO está limpio, y no es cosa de este hilo:** hay trabajo sin confirmar del **Taller 2**
+sobre el capítulo 5 —`ensambla_cap5.py`, `genera_cap5.R`, `geo.R`, sus dos JSON y el HTML del
+capítulo 5— y un `prueba_auditor_taller2.py` sin seguir. Eso lo cierra su sesión. **Ojo a que ahí
+hay un capítulo en vivo modificado en disco**: cuando se confirme y publique, el 5 cambia para los
+estudiantes.
+
+**Y verificado en vivo, no supuesto.** Cada tanda que tocó un capítulo se comprobó descargando lo
+que sirve Pages y comparando el `sha256` contra el repositorio: idéntico en los capítulos 4, 5 y 6
+y en la portada. Merece la pena por dos razones: Pages tarda en reconstruir —«hice push» no es
+«está publicado»— y **contar el resultado publicado encuentra lo que el cambio no tocó**. Así
+salieron los dos `chi²` de `b1c95ed`: vivían en los títulos de los mapas, que se escriben en
+`genera_cap4.R` y no donde yo había estado mirando.
+
+**Y una advertencia sobre cómo verificar:** el primer bucle que escribí para esto concluyó ocho
+veces seguidas que Pages «seguía sirviendo la versión anterior». Era falso —estaba al día desde el
+primer intento—: lo que fallaba era mi propio contador, que devolvía vacío, y leí ese vacío como
+«mal» en vez de como «no he medido nada». **Una comprobación que devuelve cero resultados no dice
+que algo esté mal: dice que no midió.**
+
+Las dos primeras tandas del día están contadas en **A.29** (capítulo 7) y **A.30** (la revisión
+del capítulo 4): `a225f95`, `7b68ae7`, `c45dbee`, `ccc872a`, `0a9c208` y `fd3ad59`. Lo que ha
+entrado **después**, en dos tandas más:
 
 | Commit | Qué entró |
 |---|---|
-| `a225f95` | **T4.4** · `genera_cap7.R`, 13 anclas, la GAL de Anselin en su orden, la capa categórica en `geo.R`, y el A.28 |
-| `7b68ae7` | **El capítulo 4 corregido**: la F que publicaba era falsa —`distmap()` está rota en esta máquina— y vivía dentro de una saltada del auditor; con ella, el índice de dispersión con su nula real y una retroalimentación que se contradecía. **Capítulo en vivo** |
-| `c45dbee` | **T4.4b** · `audita_cap7.py` con `esda` (576/0/4) y `prueba_auditor_cap7.py` (213/213, 231 de 231 tipos), y el A.29 |
-| `ccc872a` | **El A.30**: la revisión de contenido del capítulo 4, once subsecciones |
-| `0a9c208` | **`ent()` escribe el fino en los capítulos 5 y 6**, y con ello los tres `#>` que el 6 publicaba con separador de millares. **Dos capítulos en vivo** |
-| `fd3ad59` | **A.30.10 cerrado**, con lo que enseñó sobre el punto ciego de `verifica_bloques.py` |
+| `bee41cb` | El §0 anterior |
+| `bee09d0` | El `.gitignore` del **Taller 2**, antes de que sus guiones existan |
+| `c6f613e` | **La portada anunciaba como «Próximamente» los capítulos 4, 5 y 6**, publicados desde hacía semanas, y la guarda que lo impide. **Página en vivo** |
+| `30a9051` · `a80ade9` | El plan del **Taller 2** y lo que le toca al parcial 2 |
+| `8ab846f` · `3432a72` · `de23722` · `e803c60` | **Taller 2**, C1 a C3: precálculo, dato de entrega y auditor |
+| `449792b` | **Los cinco ejercicios del capítulo 4** hablan el idioma del capítulo: `χ²`, `10×10`, `≤`, millares con fino y cinco decimales en vez de diez. **Capítulo en vivo** |
+| `b1c95ed` | **Los dos últimos `chi²`**, en los títulos de los mapas del módulo 5 y en una etiqueta accesible. **Capítulo en vivo** |
 
 **El `push` no se hace sin decirlo, y sigue en pie.** Es la respuesta por defecto que quedó escrita
 en la revisión del capítulo 5, porque publicar aquí no es guardar: **el sitio se sirve de `main`**
@@ -331,6 +349,9 @@ están fusionadas en `main` y se pueden borrar cuando estorben.
 | **T4.4b** · auditor y arnés | ✅ hecha el 2026-09-08. `audita_cap7.py` **576/0/4** con `esda`; `prueba_auditor_cap7.py` **213 inyecciones, 213 cazadas, 231 de 231 tipos** y 53 inatacables declarados. Ver **A.29.5** |
 | **La revisión del capítulo 4** (2026-09-08) | ✅ hecha y publicada. **9 rojos y 15 naranjas**, todos los rojos arreglados. La F del módulo 7 era falsa y vivía dentro de una saltada del auditor. `genera_cap4.R` sube a **42 anclas** y `audita_cap4.py` a **449/0/8**. Ver **A.30** |
 | **`ent()` en los capítulos 5 y 6** (2026-09-09) | ✅ hecha y publicada. Los seis capítulos escriben el fino, y salió que el 6 publicaba tres `#>` con separador de millares que `verifica_bloques.py` no puede ver. Ver **A.30.10** |
+| **La portada** (2026-09-09) | ✅ hecha y publicada. Anunciaba como «Próximamente» los capítulos 4, 5 y 6, publicados desde hacía semanas; se quitaron las tres tarjetas y `cuenta_sitio.py` estrena la guarda que lo impide, comprobada fallando |
+| **Los ejercicios del capítulo 4** (2026-09-09) | ✅ hecha y publicada. `genera_soluciones.R` escribía `chi²`, `10x10`, `L(r) - r`, millares sin separador y hasta diez decimales; y su E3 contradecía al módulo sobre la nula del test. Los decimales se formatean al renderizar, que es lo que la comprobación de celdas sabe verificar. Ver **A.30.11** |
+| **El Taller 2 del capítulo 4** | 🔄 **en curso en otra sesión**, con plan propio en `PLAN_Taller_2_Cap_4.md`. C1 a C3 publicadas —precálculo, dato de entrega y auditor—; su trabajo sobre el capítulo 5 está **sin confirmar** en el árbol |
 | **T4.5–T4.6** · ensamblado, verificación y cierre | ⬜ **lo siguiente**. Ver §0.5 |
 
 **Lo publicado —seis capítulos—**, contado por `cuenta_sitio.py` y no recordado: **72 módulos, 57
@@ -469,9 +490,13 @@ para que no se pierda entre los anexos:
    ventana de Bogotá, un `bei` de 3 604 puntos que nadie dibuja, y una semilla que no siembra nada.
 4. **El capítulo 4 cierra 9 de sus 12 módulos en un bloque de código sin párrafo de salida**, contra
    la regla 2 del §9.1. No es la convención de la casa: los capítulos 2, 5 y 6 la cumplen 12 de 12.
-5. **La frontera con `genera_soluciones.R`**, que mete `chi²` por `χ²`, `10x10` por `10×10`,
-   millares sin separador y **9 y 10 decimales** en unas tablas de solución que el estudiante lee,
-   en un capítulo cuya regla de publicación son cinco.
+5. ~~**La frontera con `genera_soluciones.R`**~~ ✅ **hecha el 2026-09-09.** Los cinco ejercicios
+   escriben ya `χ²`, `10×10`, `≤`, el menos tipográfico, los millares con espacio fino y cinco
+   decimales. Los decimales se formatean **al renderizar** y no en R: el JSON conserva sus diez
+   para el auditor numérico, y la comprobación de celdas de `audita_texto_base` lee los decimales
+   de la celda, así que publicar con cinco es una promesa que sabe verificar. De paso salió que el
+   enunciado de E3 seguía diciendo «la hipótesis de intensidad constante», que el **A.30.4** había
+   corregido en el módulo: un ejercicio que contradice a su capítulo es peor que uno mal redactado.
 
 **Un aviso para quien verifique en el panel del navegador:** con el panel oculto los temporizadores
 se estrangulan y `innerHeight` vale 0, así que un recorrido de módulos con `await` no termina nunca
