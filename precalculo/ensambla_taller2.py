@@ -1087,12 +1087,21 @@ print(K_dos("Antonio Narino"))    # la de contraste''')}
 # 39,8 KB por superficie y dieciséis serían 640 KB (C2). Se publica el σ y
 # lo que el informe afirma, y la superficie la calcula el estudiante.
 #
-# LA REJILLA VA FIJADA EN EL BLOQUE DE CÓDIGO, y hace falta: el recuento
-# de componentes conexas por encima de un umbral depende del ráster.
-# Medido con `dimyx = 256`, catorce de los dieciséis recuentos publicados
-# se reproducen exactamente y dos se van por uno. Por eso el instrumento
-# de la tarea es el cociente pico/media —que es lo que M-9 decidió— y el
-# entero se pide como observación, no como cifra que haya que igualar.
+# LA REJILLA VA FIJADA EN EL BLOQUE DE CÓDIGO, y hace falta: tanto el
+# recuento de componentes conexas como el cociente pico/media dependen del
+# ráster. `dimyx = 256` es la MISMA constante que usa el precálculo —el
+# `DIMYX` de `genera_taller2.R`—, y que lo sea no es cosmético: mientras
+# el precálculo estuvo en 80 y este bloque en 256, quince de los dieciséis
+# cocientes publicados no cuadraban a los dos decimales con que el informe
+# los cita, y el estudiante que siguiera el bloque al pie de la letra
+# encontraba una discrepancia que el enunciado le decía que no existía.
+# Es M-18 del plan, cerrada el 2026-09-10. Con las dos en 256, los
+# dieciséis cocientes y los dieciséis recuentos se reproducen exactos, y
+# `verifica_taller2.R` lo comprueba en cada pasada.
+#
+# El instrumento de la tarea sigue siendo el cociente pico/media —que es
+# lo que M-9 decidió—: es continuo y separa los cuatro selectores en las
+# dieciséis, mientras que el entero de los focos empata a menudo.
 MOD6 = cabecera(
     6, "El mismo problema con otro mando", "T5 · The bandwidth",
     "Reconocer la misma decisión bajo otro nombre, y sostener una elección "
@@ -1128,8 +1137,9 @@ MOD6 = cabecera(
        "Sobre tu localidad, con el σ del informe y con los cuatro selectores:",
        ["<strong>Reproduce el mapa</strong> con el σ del informe y la rejilla del bloque. "
         "¿Cuántos focos cuentas con la definición de arriba, y cuánto vale tu cociente "
-        "<strong>pico/media</strong>? Si tu recuento no coincide con el del informe, dilo y "
-        "explica de qué depende ese entero.",
+        "<strong>pico/media</strong>? Las dos cifras tienen que darte <em>exactamente</em> las "
+        "del informe: si no te dan, algo cambiaste respecto del bloque —y lo más probable es "
+        "que sea la rejilla—. Di qué fue, y de paso ya tienes media respuesta a (c).",
         "Vuelve a estimar con los <strong>cuatro selectores</strong> del módulo 3 del capítulo 5. "
         "Da los cuatro σ, y cuánto se mueve el cociente pico/media entre ellos —el factor entre el "
         "mayor y el menor—. <strong>¿La afirmación del informe sobrevive a alguno de los "
@@ -1147,9 +1157,11 @@ MOD6 = cabecera(
        "Para (d), cada selector optimiza una cosa distinta y ninguno optimiza «tener razón».") + f"""
       <div class="note">
         <p style="margin-bottom:0;"><strong>La rejilla del bloque no es decorativa.</strong>
-          <code>dimyx</code> fija cuántos píxeles tiene la superficie, y de eso depende el recuento
-          de componentes conexas. Si la cambias, cambia tu respuesta a (a) — y ese es, por cierto,
-          un tercer mando de la misma familia.</p>
+          <code>dimyx</code> fija cuántos píxeles tiene la superficie, y de eso dependen
+          <strong>las dos</strong> cifras que se te piden: el recuento de focos y el cociente
+          pico/media. Con la rejilla del bloque reproduces el informe exactamente; si la cambias,
+          cambia tu respuesta a (a) — y ese es, por cierto, un <strong>tercer mando</strong> de la
+          misma familia, que nadie te ha pedido que declares y que también decide lo que ves.</p>
       </div>
 
 {tabs('La intensidad por núcleos, los focos y los cuatro selectores',

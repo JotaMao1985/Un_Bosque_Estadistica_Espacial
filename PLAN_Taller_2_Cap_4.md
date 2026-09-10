@@ -380,7 +380,7 @@ declara T2 no calificable, mientras imprime el emparejamiento —que sale de las
 correcto—.
 
 **M-18 · NUEVO, y lo encontró este guion: el pico/media publicado sale de una rejilla que no es la
-del enunciado.** `genera_taller2.R` calcula `t5` con `DIMYX <- 80L`; el bloque de código de T5 le
+del enunciado.** ✅ **CERRADA EL 2026-09-10 — ver el final del §0.** `genera_taller2.R` calcula `t5` con `DIMYX <- 80L`; el bloque de código de T5 le
 fija al estudiante `dimyx = 256`. Medido sobre las 16: con 80 el cociente publicado se reproduce
 **exacto** (peor desvío 0,000000) y los 16 recuentos de focos cuadran; con 256 el peor desvío es
 **0,680577** —Ciudad Bolívar, 18,33 publicado contra 17,65— y **15 de los 16 difieren ya en el
@@ -498,7 +498,56 @@ de `datos_taller2.R`**, que solo se cierra cambiando la semilla, y cambiar la se
 gratis: rehace las 1000 variantes y con ellas todos los anclajes que esta regeneración acaba de
 dejar intactos.
 
-**Siguiente: M-18, la fuga, y C10b/C11, que son de calendario y no de construcción.**
+**M-18 CERRADA (2026-09-10) · las dos rejillas son la misma, y ahora hay tres sitios donde
+cuadra.** Se eligió la salida (2) —regenerar `t5` con `dimyx = 256`— y no la de prosa, por dos
+razones y ninguna es la consistencia:
+
+1. **256 es la rejilla correcta en sus propios términos.** 80 está por debajo del `dimyx` por
+   defecto de `density.ppp` (128) y deja unos 200 m de píxel en las localidades grandes: **menos de
+   tres píxeles por σ**, que es una superficie infrarresuelta. Con 256 son unos nueve.
+2. **La otra salida ensuciaba la señal de T5.** Dejar el desajuste obligaba al enunciado a
+   confesar que el informe usó otro ráster, y entonces el estudiante ya no puede atribuir su
+   desacuerdo con el informe a lo que T5 discute —el σ que alguien eligió sin declararlo—, porque
+   hay un segundo desacuerdo metido de matute. El ráster sigue siendo el **tercer mando** y el
+   enunciado lo sigue diciendo; lo que ya no hace es inyectarlo en la premisa.
+
+**Qué movió, exactamente:** el diff del JSON son **20 valores, todos dentro de `/t5`** — 16 picos,
+2 σ (Rafael Uribe 301→300, Puente Aranda 300→250) y 2 recuentos de focos (Usme 2→3, Barrios
+Unidos 3→4, que son justamente los dos que M-17 había medido como discrepantes). **Cero cambios
+fuera de `/t5`**: patrones, curvas, variantes, envolventes y localidades intactos. Las dos guardas
+duras del generador aguantaron —dispersión mínima **1,47** ≥ 1,40 (Teusaquillo) y **mínimo 2 de 4
+selectores** contradicen al informe (Kennedy)—, así que T5 conserva su filo: el cociente sigue
+moviéndose entre selectores de **1,47 a 5,79 veces**.
+
+**Lo que el arreglo dejó desfasado, y también se arregló** —porque una prosa que describe un
+desajuste que ya no existe es el mismo defecto que M-18 al revés—:
+
+- el comentario de MOD6 en `ensambla_taller2.py` decía «medido con `dimyx = 256`, catorce de los
+  dieciséis recuentos se reproducen y dos se van por uno». Ya no: se reproducen los dieciséis, y el
+  comentario ahora explica **por qué las tres constantes tienen que ser la misma**;
+- **T5(a)** decía «si tu recuento no coincide con el del informe, dilo y explica de qué depende ese
+  entero» — un condicional que ya no se dispara nunca. Ahora **promete** lo contrario y lo
+  convierte en autocomprobación: «las dos cifras tienen que darte *exactamente* las del informe:
+  si no te dan, algo cambiaste respecto del bloque —y lo más probable es que sea la rejilla—. Di
+  qué fue, y de paso ya tienes media respuesta a (c)». Es mejor tarea que antes: pasa de anticipar
+  un fallo a dar un anclaje que se puede verificar, como el `stopifnot` de T1;
+- la nota de la rejilla ahora dice que de `dimyx` dependen **las dos** cifras, no solo el entero.
+
+**Y el calificador cambió de forma, no solo de constante.** `verifica_taller2.R` ya no compara «la
+del precálculo contra la del bloque» —eso era andamiaje de un defecto abierto—: comprueba lo único
+que manda, **que el cociente publicado se reproduzca con la rejilla que el enunciado fija**, y solo
+si falla paga el cálculo con la rejilla vieja, para decir cuál de las tres constantes se movió.
+Dice ahora `T5 · pico/media con dimyx = 256: peor desvío 4.97e-09 — M-18 RESUELTO`, y su hoja de T5
+ha pasado de avisar de que no se puede penalizar la diferencia a explicar que una diferencia
+**significa** que el estudiante cambió el bloque.
+
+**Verde otra vez:** auditor **183 · 0 · 0** · texto **84 · 0** · `sin_aritmetica.py` y
+`campos_vivos.py` limpios · portada con los nueve enlazados. En el navegador, el informe de San
+Cristóbal dice ahora «1 foco · pico de 4.82 veces» y el bloque a 256 da **4.8213 · 1 foco**: el
+estudiante lo reproduce exacto. El precálculo tarda ahora **66 s** en vez de 17 (256² son diez
+veces los píxeles de 80²), que es un precio razonable para algo que se corre una vez.
+
+**Siguiente: la fuga de `datos_taller2.R`, y C10b/C11, que son de calendario y no de construcción.**
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
