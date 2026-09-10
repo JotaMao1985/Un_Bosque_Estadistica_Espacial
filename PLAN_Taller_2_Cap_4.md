@@ -613,8 +613,50 @@ resueltos, y su clave de T2 coincidiendo punto por punto con lo que dibuja el na
 A/B/C con n = 100/169/102 para la variante 678, y los tres regímenes separados otra vez en G − F).
 **0 desbordamientos a 318 px en los siete módulos** con los bloques desplegados, consola limpia.
 
-**Siguiente: C10b y C11, que son de calendario y no de construcción.** La fase de construcción
-queda cerrada: no hay ningún defecto abierto sobre el material.
+**C10b · EL INSTRUMENTO HECHO (2026-09-10), y el §5.3 corregido de camino.** El control es una
+actividad de aula del 28 de septiembre al 2 de octubre, así que lo único construible hoy es la hoja
+que Javier se lleva a clase: `verifica_taller2.R --control curso.txt > control.txt`. Una fila por
+estudiante con lo que tiene que leer en voz alta y una casilla que marcar; debajo, la línea
+completa de su portada para cotejarla carácter a carácter cuando una fila no cuadre; aviso de
+colisiones **antes** de entrar al aula; y una guarda que **para** si la hoja llevara una sola
+respuesta —probada inyectándole una—.
+
+**Y al construirla se cayó el §5.3.** Decía que cada quien lee «su localidad, su n y su λ», y esas
+tres **no identifican una variante**: n y λ son función de la localidad, así que las tres llevan un
+solo dato. Medido sobre **200 000 sorteos** de doce documentos:
+
+| lo que se lee en voz alta | listas con dos indistinguibles |
+|---|---|
+| localidad, n y λ *(el §5.3 original)* | **99,66 %** |
+| … + la localidad de contraste | **99,66 %** — no añade nada (M-20) |
+| … + el patrón | 10,81 % |
+| **localidad, n, λ, patrón y trío** | **0,00 %** |
+
+Es decir: el control tal como estaba escrito **habría dado verde a dos estudiantes que hubieran
+intercambiado documentos dentro de la misma localidad**, que es exactamente el fallo que existe
+para cazar — y con 16 localidades y 12 personas eso pasa casi siempre. Una lista de doce sorteada
+al azar para probar la hoja salió con **cuatro en Puente Aranda y tres en Bosa**. Ahora se leen
+cinco cosas, y no coincide nadie.
+
+**M-20 · LA LOCALIDAD DE CONTRASTE DE T4(a) NO INDIVIDUALIZA: hay DOS en las dieciséis.** Salió al
+ver que el contraste no aportaba nada al control. Medido: **Antonio Nariño en 13 de las 16
+localidades y Usme en las otras 3**, es decir **el 81,4 % de las 1000 variantes comparte
+contraste**. La causa es la regla misma —«la de forma opuesta por perímetro/área»— y que Antonio
+Nariño es el extremo de esa columna, así que es «la opuesta» de casi todo el mundo.
+**Qué significa y qué no.** La tarea sigue siendo correcta: T4(a) pide cuál de las dos ventanas
+sufre más y por qué el cociente lo predice, y ese razonamiento es de cada quien. Lo que **no** es
+cierto es que el contraste individualice: el §5.1 lo vende como una de las cuatro cosas que fija la
+variante, y en la práctica fija una de dos. **Consecuencia práctica: el déficit y el
+perímetro/área de la localidad de contraste son la MISMA pareja de cifras para once o doce de los
+doce**, y eso es un literal compartible en una tarea diseñada para que no los haya.
+**Se deja como está y es decisión de Javier**, porque tiene dos lecturas legítimas y no es un
+defecto: un patrón de referencia **común** para toda la clase es defendible —todos comparan contra
+el mismo extremo, y lo que se califica es la comparación—, y cambiarlo obliga a tocar la regla del
+generador y a regenerar otra vez. Si se quisiera individualizar, el arreglo es barato: en vez de
+«la más opuesta», tomar la k-ésima más opuesta con k rotando por variante.
+
+**Siguiente: C11, y el reparto.** La fase de construcción queda cerrada: no hay ningún defecto
+abierto sobre el material, y el único apunte vivo —M-20— es una decisión de diseño, no un fallo.
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -1227,8 +1269,18 @@ calificar* a *antes de entregar*, que es donde sirve.
 ### 5.3 El control de la semana 9 · **lo que el calendario nuevo hace posible**
 
 Con siete días de plazo no cabía. Con **quince**, sí: en una clase de la **semana 9** (28 sep – 2
-oct), cada estudiante enseña **tres cifras** —su localidad, su n y su λ— y nada más. Cinco minutos
-para los doce, quince contando las preguntas.
+oct), cada estudiante enseña unas pocas cifras de su variante y nada más. Cinco minutos para los
+doce, quince contando las preguntas.
+
+> ⚠️ **CORREGIDO AL CONSTRUIR C10b (2026-09-10): NO son tres cifras, son cinco.** Este párrafo
+> decía «su localidad, su n y su λ», y esas tres **no identifican una variante**: n y λ son
+> *función* de la localidad, así que las tres llevan un solo dato. Medido sobre **200 000 sorteos**
+> de doce documentos: **el 99,66 % de las listas deja a dos estudiantes indistinguibles**. El
+> control habría dado verde a dos que hubieran intercambiado documentos dentro de la misma
+> localidad — que es exactamente el fallo que existe para cazar. Y la localidad de contraste
+> tampoco ayuda: hay **una sola por localidad** (ver M-20). Añadiendo el **patrón** y el **trío** la
+> cifra baja a **0,00 %** en 100 000 sorteos. Por eso se leen **cinco**: localidad, n, λ, patrón y
+> trío. Lo emite `verifica_taller2.R --control`.
 
 Sirve para tres cosas, y ninguna la resuelve el §5.2 solo:
 
@@ -1541,9 +1593,22 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
   no existe en tres). Las dos en el §0.
 
 **C10b · El control de la semana 9** — en clase, entre el 28 de septiembre y el 2 de octubre — **Tamaño: S**
-- **Descripción:** los doce leen en voz alta su localidad, su n y su λ (§5.3). No se califica.
-- **Criterios de aceptación:**
-  - [ ] los doce pares (documento, localidad) cotejados contra la lista del curso **en el aula**
+- **Descripción:** los doce leen en voz alta ~~su localidad, su n y su λ~~ **su localidad, su n, su
+  λ, su patrón y su trío** (§5.3, corregido). No se califica.
+- **EL INSTRUMENTO ESTÁ HECHO (2026-09-10)**, que es lo único de C10b que se puede construir antes
+  de repartir: `precalculo/rscript.sh precalculo/verifica_taller2.R --control curso.txt > control.txt`
+  - [x] una fila por estudiante con las cinco cosas y una casilla `[ ]` que marcar
+  - [x] debajo, la **línea completa de la portada** de cada uno, para cotejarla carácter a carácter
+        cuando una fila no cuadre (§5.2)
+  - [x] **avisa de las colisiones** —dos con la misma variante— antes de entrar al aula, porque a
+        esos dos el control no los puede distinguir
+  - [x] **no lleva ni una respuesta, y lo comprueba antes de imprimir**: la hoja se genera en
+        memoria, se busca en ella «agregado», «aleatorio», «regular», «familia», «régimen»,
+        «thomas», «chi2» y «p-valor», y **para** si aparece alguna. Probado inyectando una.
+  - [x] el arranque escribe por `message()` (stderr), así que el `>` deja en el archivo la hoja
+        y nada más
+- **Criterios de aceptación, para el día** (28 sep – 2 oct):
+  - [ ] los doce cotejados contra la lista del curso **en el aula**
   - [ ] quien tenga una discrepancia se corrige **ahí**, con 4 días aún por delante
 - **Dependencias:** el taller repartido · **Tamaño: S**
 
