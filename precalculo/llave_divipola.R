@@ -45,6 +45,33 @@ suppressPackageStartupMessages({
 #      detalle administrativo: 18 de las 1 122 unidades no son municipios.
 URL_DIVIPOLA <- "https://www.datos.gov.co/resource/gdxc-w37w.json?$limit=2000"
 
+# El MEN 2024, que hasta ahora NO SE DESCARGABA.
+#
+# Este guion leía `datos/crudo/men_2024.json` directamente, y ningún guion
+# del repositorio lo traía: el archivo existía en la máquina del autor
+# desde T0.4 y nadie lo echó de menos. En un clon recién hecho la cadena
+# moría aquí, con un «lexical error» sobre un archivo inexistente. Se
+# descubrió reproduciendo el README en un Windows limpio; ninguna
+# comprobación local podía verlo, porque el que lee y el que debería
+# escribir estaban en la misma máquina.
+#
+# La consulta NO es «el conjunto entero»: son 6 de sus 39 columnas, con el
+# año fijado. Está reconstruida contra el archivo que generó el material
+# publicado y lo reproduce BYTE A BYTE —misma huella SHA-256—, que es la
+# única forma honesta de añadir una descarga a una fuente que ya está
+# publicada: si devolviera otra cosa, las cifras de los capítulos 6, 7 y 8
+# dejarían de corresponder con su origen.
+#
+# Las comillas del `$where` van como %27: crudas también funcionan hoy,
+# pero un servidor quisquilloso no es algo contra lo que valga la pena
+# apostar en una cadena que tiene que correr en máquinas ajenas.
+URL_MEN <- paste0(
+  "https://www.datos.gov.co/resource/nudc-7mev.json",
+  "?$select=c_digo_municipio,municipio,c_digo_departamento,departamento,",
+  "deserci_n,cobertura_neta",
+  "&$where=a_o=%272024%27",
+  "&$limit=5000")
+
 # ---------------------------------------------------------------------
 # Normalización
 # ---------------------------------------------------------------------
@@ -119,7 +146,8 @@ SIN_DATO_MEN <- c("GUAINIA|MAPIRIPANA" = "94663")
 message("cargando capas y MEN 2024")
 gb2 <- sf::st_read("datos/procesado/colombia_adm2.gpkg", quiet = TRUE)
 gb1 <- sf::st_read("datos/procesado/colombia_adm1.gpkg", quiet = TRUE)
-men <- jsonlite::fromJSON("datos/crudo/men_2024.json")
+f_men <- descarga(URL_MEN, "datos/crudo/men_2024.json")
+men <- jsonlite::fromJSON(f_men)
 
 # departamento de cada municipio POR GEOMETRÍA, no por nombre
 cen <- suppressWarnings(sf::st_point_on_surface(sf::st_geometry(gb2)))
@@ -335,3 +363,19 @@ utils::write.csv(salida, "datos/procesado/municipios_llave.csv",
 message(sprintf("\nmunicipios_llave.csv escrito: %d filas, %.0f KB (antes: un GeoPackage de 78 MB)",
                 nrow(salida), file.size("datos/procesado/municipios_llave.csv") / 1024))
 message("casos_territoriales.json escrito: ", length(CASOS), " casos documentados.")
+
+# La fuente #2 de FUENTES.md se declaraba «fijada por SHA-256» y no lo
+# estaba: no tenía entrada en procedencia.json porque nadie la descargaba.
+# Ahora sí, y con ello la reejecución canta si el MEN cambia bajo los pies.
+registra_procedencia(list(MEN_2024 = list(
+  archivo = "men_2024.json", n = nrow(men),
+  url = URL_MEN,
+  fuente = "Ministerio de Educacion Nacional (MEN), estadisticas en educacion basica por municipio",
+  redistribuidor = "datos.gov.co (Socrata)",
+  licencia = "CC BY-SA 4.0",
+  fuente_url = "https://www.datos.gov.co/d/nudc-7mev",
+  columnas = c("c_digo_municipio", "municipio", "c_digo_departamento",
+               "departamento", "deserci_n", "cobertura_neta"),
+  anio = 2024,
+  sha256 = huella(f_men), descargado = as.character(Sys.Date()),
+  uso = "desercion y cobertura neta municipales, capitulos 6, 7 y 8")))

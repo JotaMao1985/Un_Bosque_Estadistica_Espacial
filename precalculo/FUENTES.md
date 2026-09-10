@@ -34,6 +34,20 @@ duplicar el procedimiento en dos sitios es cómo terminan discrepando.
 | 4 | Normales climatológicas 1991-2020 | **IDEAM** (`nsz2-kzcq`, datos.gov.co) | CC BY-SA 4.0 | SHA-256 | cap. 9 |
 | 5 | Microdatos Saber 11, periodo 20224 | **ICFES** (`kgxf-xxbe`, datos.gov.co) | CC BY-SA 4.0 | SHA-256 | caps. 3, 4, 5, 6, 7, 8 |
 
+**Un segundo vacío, y este era peor.** Hasta 2026-09-10 la fuente #2 **no se descargaba**:
+`llave_divipola.R` leía `datos/crudo/men_2024.json` directamente y ningún guion del repositorio
+lo traía. El archivo existía en la máquina del autor desde T0.4, así que la cadena siempre
+corría ahí y **nunca fue reproducible desde cero**: en un clon recién hecho moría en el segundo
+guion con un «lexical error» sobre un archivo inexistente. Y como nadie lo descargaba, tampoco
+tenía entrada en `procedencia.json` — es decir, esta misma tabla lo declaraba «fijado por
+SHA-256» y no lo estaba.
+
+Se descubrió reproduciendo el README en un Windows limpio. Ninguna comprobación local podía
+verlo: el que lee y el que debería escribir vivían en la misma máquina. Ahora `llave_divipola.R`
+lo descarga con la consulta de Socrata reconstruida —6 de las 39 columnas, año fijado— que
+reproduce **byte a byte** el archivo con el que se generó el material publicado, misma huella
+`26cd3abc…aae9`, y lo registra en `procedencia.json`, que pasa de 6 a 7 fuentes.
+
 **Por qué la huella SHA-256.** geoBoundaries se puede fijar por commit; datos.gov.co no.
 Sus conjuntos se reemplazan en sitio y la URL sigue siendo la misma. Sin huella, una fuente
 que cambia bajo los pies pasa desapercibida y el material deja de cuadrar en silencio.
