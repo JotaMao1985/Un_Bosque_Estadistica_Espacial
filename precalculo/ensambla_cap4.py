@@ -267,10 +267,20 @@ MOD1 = cabecera(
 
       <p>El perímetro urbano encierra {firma(n(m1['urbana']['area_km2'], 5), ' km²')} y deja
         {firma(ent(m1['urbana']['n']))} sedes dentro; el Distrito Capital,
-        {firma(n(m1['dc']['area_km2'], 5), ' km²')} y {firma(ent(m1['dc']['n']))}. Fíjate en
-        lo que pasa con esos dos pares de números. Al pasar de una ventana a otra el
-        numerador sube un {n(m1['aumento_n_pct'], 5)} %, porque el suelo rural del D.C. casi
-        no tiene colegios; el denominador se multiplica por {n(m1['cociente_area'], 5)}.</p>
+        {firma(n(m1['dc']['area_km2'], 5), ' km²')} y {firma(ent(m1['dc']['n']))}.</p>
+
+      <p><strong>Ninguna de las dos es {ent(m1['sedes_total'])}</strong>, y conviene entender
+        por qué antes de seguir: elegir una ventana no es solo elegir un denominador, es
+        elegir también <em>qué sedes cuentan</em>. Cada recinto se queda con las que caen
+        dentro y descarta el resto —{firma(ent(m1['urbana']['fuera']))} quedan fuera del
+        perímetro urbano y {firma(ent(m1['dc']['fuera']))} del Distrito Capital—, así que la
+        n cambia con la ventana igual que cambia el área. Los tres números son correctos y
+        son tres cosas distintas: las georreferenciadas, las del D.C. y las urbanas.</p>
+
+      <p>Fíjate ahora en lo que pasa con esos dos pares de números. Al pasar de una ventana a
+        otra el numerador sube un {n(m1['aumento_n_pct'], 5)} %, porque el suelo rural del
+        D.C. casi no tiene colegios; el denominador se multiplica por
+        {n(m1['cociente_area'], 5)}.</p>
 
       <div class="key-insight">
         <p style="margin:0;">La misma ciudad, el mismo dato y dos intensidades que se llevan
@@ -281,12 +291,11 @@ MOD1 = cabecera(
         es ni verdadera ni falsa: está incompleta.</p>
       </div>
 
-      <p>Hay un detalle que el mapa esconde y el código no: al construir el <code>ppp</code>
-        con el perímetro urbano, {firma(ent(m1['urbana']['fuera']))} sedes quedan
-        <strong>fuera</strong> y se descartan. Con el D.C. solo se descarta
-        {ent(m1['dc']['fuera'])}. Ese descarte lo hace <code>ppp()</code> con un aviso que
-        nadie lee, y cambia n sin cambiar nada visible. Ahí empieza a decidirse el
-        resultado.</p>
+      <p>Y ese descarte tiene una propiedad que el mapa esconde y el código no: lo hace
+        <code>ppp()</code> por su cuenta, con un aviso que nadie lee. El dibujo se ve igual,
+        nada falla y el recuento ya es otro — <strong>cambia n sin cambiar nada visible</strong>.
+        Ahí empieza a decidirse el resultado, y es la primera de las tres decisiones que este
+        capítulo obliga a declarar.</p>
 
 {tabs('El objeto ppp y sus dos ventanas',
       '''library(sf); library(spatstat)
