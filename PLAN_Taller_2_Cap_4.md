@@ -655,8 +655,40 @@ el mismo extremo, y lo que se califica es la comparación—, y cambiarlo obliga
 generador y a regenerar otra vez. Si se quisiera individualizar, el arreglo es barato: en vez de
 «la más opuesta», tomar la k-ésima más opuesta con k rotando por variante.
 
-**Siguiente: C11, y el reparto.** La fase de construcción queda cerrada: no hay ningún defecto
-abierto sobre el material, y el único apunte vivo —M-20— es una decisión de diseño, no un fallo.
+**C11 · EL INSTRUMENTO HECHO (2026-09-10).** Como C10b, la tarea ocurre en octubre y lo
+construible hoy es la herramienta:
+`verifica_taller2.R --sustentacion curso.txt > sorteo.txt`.
+
+Hace lo que el §4.5 pide **con fecha** —«el sorteo se hace antes de la sesión, no durante, y queda
+registrado»—: reparte las 36 preguntas del banco entre los doce **sin reemplazo**, asigna a cada
+uno una de las 12 afirmaciones falsas, y **comprueba las tres cosas que hacen que el sorteo
+signifique algo** (36 extracciones, 36 distintas, el banco agotado exactamente); si alguna falla,
+para y no se usa. Por estudiante imprime además sus tres preguntas con el texto entero, su
+afirmación, las casillas de **portada cotejada** y **bitácora leída**, y las seis decisiones
+candidatas de su variante con un hueco para la elegida y su razón — **la elección es de Javier
+habiendo leído el escrito**, y la herramienta no lo intenta.
+
+**Reproducible sin tener que acordarse de un número:** la semilla sale del contenido de la lista
+del curso y se imprime en la hoja, así que la misma lista da siempre el mismo sorteo —comprobado
+byte a byte— y `--semilla N` lo fuerza cuando haya que volver a sortear a propósito.
+**Y el banco no se copia:** se lee de `salidas/taller2_banco.md` y se **coteja contra el HTML
+publicado**; si uno de los dos está rancio, para. Probado quitándole una pregunta al `.md`.
+Detalle que costó una medición: la expresión que cuenta las filas del HTML tiene que ser laxa en el
+texto de la celda, porque la pregunta 18 lleva `<code>` dentro y una expresión estricta daba 35 de
+36 para siempre.
+
+**⚠️ Y sale un riesgo operativo que el plan no tenía escrito: el §4.5 supone EXACTAMENTE doce.**
+36 = 12 × 3. Con once sobran tres preguntas, con trece faltan tres, y en los dos casos el sorteo
+sin reemplazo deja de cuadrar. El guion **para** con la aritmética delante en vez de sortear con
+repetición en silencio — probado con una lista de once. Si el curso cambia de tamaño hay que
+decidirlo **antes** del jueves 8, y es barato: sobran y no pasa nada, o faltan y hay que escribir
+tres preguntas más.
+
+**Siguiente: el reparto del lunes 21.** La fase de construcción queda cerrada — C1…C11 tienen
+hecho todo lo que se puede hacer antes de repartir, no hay ningún defecto abierto sobre el
+material, y los dos apuntes vivos son decisiones y no fallos: **M-20** (el contraste de T4(a) no
+individualiza) y las **tres logísticas de entrega** del §0 que siguen sin confirmar —canal y nombre
+del archivo, que no hay plantilla LaTeX, y que no se publica límite de páginas ni hora—.
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -1615,12 +1647,33 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
 **C11 · La lectura de los doce escritos** — entre el 6 y el 8 de octubre — **Tamaño: M**
 - **Descripción:** leer las doce entregas y elegir, para cada estudiante, **la decisión que va a
   defender** en el bloque de 2 min. Es lo que los dos días de margen compran.
-- **Criterios de aceptación:**
+- **EL INSTRUMENTO ESTÁ HECHO (2026-09-10)**, que es lo construible antes de la entrega:
+  `precalculo/rscript.sh precalculo/verifica_taller2.R --sustentacion curso.txt > sorteo.txt`
+  - [x] **el sorteo sin reemplazo hecho y registrado**, que es lo que el §4.5 pide con fecha: 36
+        extracciones, 36 preguntas distintas, el banco agotado exactamente, y **para** si alguna
+        de esas tres cosas no se cumple
+  - [x] **una afirmación falsa distinta por estudiante**, del catálogo de 12
+  - [x] **reproducible sin acordarse de nada**: la semilla sale del contenido de la lista, se
+        imprime en la hoja, y `--semilla N` la fuerza para volver a sortear a propósito.
+        Comprobado: la misma lista da un sorteo idéntico byte a byte, y `--semilla` otro distinto
+  - [x] el banco **no se copia**: se lee de `salidas/taller2_banco.md`, que escribe el ensamblador,
+        y se **coteja contra el HTML publicado** — si uno de los dos está rancio, para. Probado
+        quitándole una pregunta al `.md`
+  - [x] por estudiante, la casilla de **portada cotejada** (§5.2) y **bitácora leída** (§6), y las
+        seis decisiones candidatas que su variante le obligó a tomar, con un hueco para la elegida
+        y otro para la razón. **La elección la hace Javier habiendo leído el escrito**: eso no lo
+        puede hacer una herramienta y no lo intenta
+- **⚠️ EL §4.5 SUPONE EXACTAMENTE DOCE, y el guion lo hace explícito.** 36 = 12 × 3. Con once
+  estudiantes sobran tres preguntas y con trece faltan tres, y en los dos casos el sorteo sin
+  reemplazo deja de cuadrar. El guion **para** con la aritmética delante en vez de sortear con
+  repetición en silencio. Si el curso cambia de tamaño hay que decidir —sobran y no pasa nada, o
+  faltan y hay que escribir tres preguntas más— y decidirlo **antes** del jueves 8.
+- **Criterios de aceptación, para los días** (6 – 8 de octubre):
   - [ ] una decisión elegida y anotada por estudiante, con la razón
   - [ ] **la bitácora de cada uno leída** (§6): es lo que se contrasta en la sustentación
   - [ ] comprobado que la portada de cada uno cuadra con su documento (§5.2): quien resolvió una
         variante ajena se detecta **aquí**, antes de la sustentación, no al calificar
-  - [ ] el sorteo sin reemplazo del banco (§4.5) hecho y registrado **antes** del jueves
+  - [x] el sorteo sin reemplazo del banco (§4.5) hecho y registrado **antes** del jueves
 - **Dependencias:** el taller entregado · **Tamaño: M**
 
 ### Checkpoint C
