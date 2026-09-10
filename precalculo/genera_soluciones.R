@@ -1359,14 +1359,14 @@ solucion_cap4 <- function() {
   )
 
   # -------------------------------------------------------------------
-  # E2 · El chi² que no ve
+  # E2 · El χ² que no ve
   #
   # La misma demostración del módulo 5 sobre OTRO patrón, para que el
   # estudiante la repita en vez de recordarla, y sobre uno regular en vez
   # de agregado: el rebarajado destruye la regularidad igual que destruía
-  # la agregación, y el chi² sigue sin enterarse.
+  # la agregación, y el χ² sigue sin enterarse.
   # -------------------------------------------------------------------
-  message("  E2 · el chi² que no ve")
+  message("  E2 · el χ² que no ve")
   NXE <- 5L
   sw_reb <- ppp_rebaraja(swedishpines, NXE, NXE, 4127L)
   chi_de <- function(p) {
@@ -1389,22 +1389,22 @@ solucion_cap4 <- function() {
   ce2 <- r10(clarkevans(sw_reb)[["naive"]])
 
   E$e2 <- list(
-    titulo = "El chi² que no ve",
+    titulo = "El χ² que no ve",
     enunciado = paste(
       "Toma `swedishpines` y construye un segundo patrón que conserve",
-      "EXACTAMENTE cuántos árboles caen en cada celda de una rejilla 5x5,",
+      "EXACTAMENTE cuántos árboles caen en cada celda de una rejilla 5×5,",
       "pero repartiéndolos al azar dentro de la suya. Calcula para los dos",
-      "el chi² del test de cuadrantes, el índice de Clark-Evans y el",
-      "máximo de |L(r) - r|. ¿Cuáles de las tres cifras los distinguen y",
-      "cuál no? Di en una frase qué es exactamente lo que el chi² no mira."),
+      "el χ² del test de cuadrantes, el índice de Clark-Evans y el",
+      "máximo de |L(r) − r|. ¿Cuáles de las tres cifras los distinguen y",
+      "cuál no? Di en una frase qué es exactamente lo que el χ² no mira."),
     pasos = list(
-      list(paso = "chi² del patrón original", valor = c1$chi2),
-      list(paso = "chi² del patrón rebarajado", valor = c2$chi2),
-      list(paso = "Diferencia entre los dos chi²", valor = r10(c2$chi2 - c1$chi2)),
+      list(paso = "χ² del patrón original", valor = c1$chi2),
+      list(paso = "χ² del patrón rebarajado", valor = c2$chi2),
+      list(paso = "Diferencia entre los dos χ²", valor = r10(c2$chi2 - c1$chi2)),
       list(paso = "R de Clark-Evans, original", valor = ce1),
       list(paso = "R de Clark-Evans, rebarajado", valor = ce2),
-      list(paso = "max |L(r)-r|, original", valor = k1$max_desvio),
-      list(paso = "max |L(r)-r|, rebarajado", valor = k2$max_desvio)),
+      list(paso = "max |L(r) − r|, original", valor = k1$max_desvio),
+      list(paso = "max |L(r) − r|, rebarajado", valor = k2$max_desvio)),
     solucion = list(
       nx = NXE, n = npoints(swedishpines),
       original = c(c1, k1, list(clark_evans = ce1)),
@@ -1413,11 +1413,11 @@ solucion_cap4 <- function() {
       ce_cae = r10(ce1 - ce2),
       desvio_cae_pct = r10(100 * (k1$max_desvio - k2$max_desvio) / k1$max_desvio)),
     lectura = paste(
-      "El chi² es el mismo hasta el último decimal, y no por casualidad:",
+      "El χ² es el mismo hasta el último decimal, y no por casualidad:",
       "se calcula SOLO con cuántos puntos hay en cada celda, y eso es",
       "justo lo que la rebaraja conserva. Clark-Evans y L sí los separan,",
       "porque miran distancias entre puntos y no conteos por caja. Lo que",
-      "el chi² no mira es la posición dentro de la celda; dicho de otro",
+      "el χ² no mira es la posición dentro de la celda; dicho de otro",
       "modo, es ciego a toda estructura de escala menor que el cuadrante.",
       "Por eso pasar el test de cuadrantes no es un certificado de",
       "aleatoriedad: es un certificado de que los CONTEOS son compatibles",
@@ -1451,22 +1451,22 @@ solucion_cap4 <- function() {
     titulo = "El cuadrante que rechaza por el motivo equivocado",
     enunciado = paste(
       "Aplica el test de cuadrantes a las sedes de Bogotá con rejillas de",
-      "2x2 hasta 20x20, primero sobre el perímetro urbano y después sobre",
-      "el Distrito Capital completo. Anota en cada caso el chi², el",
+      "2×2 hasta 20×20, primero sobre el perímetro urbano y después sobre",
+      "el Distrito Capital completo. Anota en cada caso el χ², el",
       "p-valor, cuántas celdas quedan vacías y cuántas tienen esperanza",
-      "menor que 5. Los dos rechazan la hipótesis de intensidad constante.",
+      "menor que 5. Los dos rechazan la hipótesis de Poisson homogéneo.",
       "Explica por qué NO están diciendo lo mismo, y cuál de los dos",
       "rechazos no dice nada sobre cómo se distribuyen los colegios."),
     pasos = list(
       list(paso = "Tamaños de rejilla barridos", valor = length(NXS)),
       list(paso = "Rechazos al 5 %, ventana urbana", valor = as.integer(sum(b_urb$rechaza))),
       list(paso = "Rechazos al 5 %, ventana D.C.", valor = as.integer(sum(b_dc$rechaza))),
-      list(paso = "Celdas vacías con 10x10, urbana (%)",
+      list(paso = "Celdas vacías con 10×10, urbana (%)",
            valor = b_urb$pct_vacias[b_urb$nx == 10L]),
-      list(paso = "Celdas vacías con 10x10, D.C. (%)",
+      list(paso = "Celdas vacías con 10×10, D.C. (%)",
            valor = b_dc$pct_vacias[b_dc$nx == 10L]),
-      list(paso = "chi² con 10x10, urbana", valor = b_urb$chi2[b_urb$nx == 10L]),
-      list(paso = "chi² con 10x10, D.C.", valor = b_dc$chi2[b_dc$nx == 10L])),
+      list(paso = "χ² con 10×10, urbana", valor = b_urb$chi2[b_urb$nx == 10L]),
+      list(paso = "χ² con 10×10, D.C.", valor = b_dc$chi2[b_dc$nx == 10L])),
     solucion = list(
       nxs = NXS, urbana = as.list(b_urb), dc = as.list(b_dc),
       rechazos_urbana = as.integer(sum(b_urb$rechaza)),
@@ -1480,7 +1480,7 @@ solucion_cap4 <- function() {
       "Los dos rechazan, y el del D.C. rechaza mucho más fuerte. Pero el",
       "D.C. incluye Sumapaz, los cerros orientales y el suelo rural: celdas",
       "enteras con cero sedes porque allí no vive nadie, no porque los",
-      "colegios se eviten. Ese chi² mide que la CIUDAD no ocupa todo el",
+      "colegios se eviten. Ese χ² mide que la CIUDAD no ocupa todo el",
       "Distrito, que es cierto y no es una propiedad del patrón puntual.",
       "El rechazo sobre la ventana urbana sí habla de los colegios. La",
       "regla que queda: antes de interpretar un test sobre un patrón,",
@@ -1525,20 +1525,20 @@ solucion_cap4 <- function() {
     titulo = "La envolvente dice una cosa y el test otra",
     enunciado = paste(
       "Calcula la envolvente de K para `cells` con 999 simulaciones de CSR",
-      "y corrección de traslación. Cuenta en cuántos nodos de r la curva",
-      "observada se sale de la banda. Después aplica el test global de",
-      "desviación (dclf) sobre la K cruda en todo el rango de r, y",
-      "repítelo restringiendo r al 20 % y al 40 % del rango. Por último,",
-      "repite el test global sobre L en vez de sobre K. Reúne los cinco",
-      "p-valores y explica cómo es posible que el mismo patrón, con las",
-      "mismas simulaciones, pase de no rechazar a rechazar al máximo."),
+      "y corrección de traslación. Cuenta en cuántos de los valores de r",
+      "evaluados la curva observada se sale de la banda. Después aplica el",
+      "test global de desviación (dclf) sobre la K cruda en todo el rango",
+      "de r, y repítelo restringiendo r al 20 % y al 40 % del rango. Por",
+      "último, repite el test global sobre L en vez de sobre K. Reúne los",
+      "cinco p-valores y explica cómo es posible que el mismo patrón, con",
+      "las mismas simulaciones, pase de no rechazar a rechazar al máximo."),
     pasos = list(
-      list(paso = "Nodos de r evaluados", valor = as.integer(sum(ok))),
-      list(paso = "Nodos en que la observada se sale de la banda",
+      list(paso = "Valores de r evaluados", valor = as.integer(sum(ok))),
+      list(paso = "Valores de r en que la observada se sale de la banda",
            valor = as.integer(sum(fuera))),
       list(paso = "dclf sobre K, rango completo", valor = tramos[[3]]$dclf_p),
-      list(paso = "dclf sobre K, r <= 20 % del rango", valor = tramos[[1]]$dclf_p),
-      list(paso = "dclf sobre K, r <= 40 % del rango", valor = tramos[[2]]$dclf_p),
+      list(paso = "dclf sobre K, r ≤ 20 % del rango", valor = tramos[[1]]$dclf_p),
+      list(paso = "dclf sobre K, r ≤ 40 % del rango", valor = tramos[[2]]$dclf_p),
       list(paso = "dclf sobre L, rango completo",
            valor = signif(dclf.test(env_l)$p.value, 6))),
     solucion = list(
@@ -1554,7 +1554,7 @@ solucion_cap4 <- function() {
       "Las dos cosas son ciertas y no se contradicen: la banda puntual y",
       "el test global no contestan a la misma pregunta. Pero el giro del",
       "ejercicio está en los otros tres p-valores. El estadístico de dclf",
-      "integra (K observada - K media)² sobre r, y K crece como r², así",
+      "integra (K observada − K media)² sobre r, y K crece como r², así",
       "que las desviaciones a r grande pesan cientos de veces más que las",
       "de r pequeño. En `cells` toda la señal está a r pequeño —las",
       "células se estorban a corta distancia— y el rango largo la ahoga.",
@@ -1619,7 +1619,7 @@ solucion_cap4 <- function() {
       list(paso = "R de Clark-Evans corregida por cdf", valor = ce_cdf),
       list(paso = "Diferencia entre las dos R", valor = r10(ce_cdf - ce_naive)),
       list(paso = "¿Existe la corrección de Donnelly para esta ventana?",
-           valor = ce_donnelly_disponible)),
+           valor = if (ce_donnelly_disponible == 1L) "sí" else "no")),
     solucion = list(
       n = npoints(p_urb),
       perimetro_km = r10(perimeter(p_urb$window) / 1000),
@@ -1674,7 +1674,7 @@ solucion_cap4 <- function() {
                   v1$lambda_km2, v2$lambda_km2, v3$lambda_km2, max(lams)/min(lams)))
   message(sprintf("  E2 · chi2 %.6f en los dos; R cae de %.4f a %.4f",
                   c1$chi2, ce1, ce2))
-  message(sprintf("  E3 · rechazos: urbana %d/%d, D.C. %d/%d; vacías 10x10: %.1f %% y %.1f %%",
+  message(sprintf("  E3 · rechazos: urbana %d/%d, D.C. %d/%d; vacías 10×10: %.1f %% y %.1f %%",
                   sum(b_urb$rechaza), length(NXS), sum(b_dc$rechaza), length(NXS),
                   b_urb$pct_vacias[b_urb$nx == 10L], b_dc$pct_vacias[b_dc$nx == 10L]))
   message(sprintf("  E4 · %d/%d nodos fuera; dclf K completo p=%.4f, r<=20 %% p=%.4f, L p=%.4f",

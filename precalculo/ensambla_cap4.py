@@ -1218,6 +1218,51 @@ MOD11 = cabecera(
 # =====================================================================
 # MÓDULO 12 · Autoevaluación y ejercicios guiados
 # =====================================================================
+def valor_paso(v):
+    """El valor de un paso de solución, formateado como el resto del capítulo.
+
+    POR QUÉ AQUÍ Y NO EN R. `genera_soluciones.R` redondea a diez decimales
+    con `r10()` y hace bien: el JSON es el precálculo, y el auditor numérico
+    lo compara con esa precisión. Lo que estaba mal era volcarlo CRUDO a la
+    página: el estudiante leía «Área urbana (km²) 370.0898165101» en un
+    capítulo cuya regla de publicación son cinco decimales, y «2107» donde la
+    prosa escribe «2 107». Lo destapó la revisión del 2026-09-08 (A.30.11).
+
+    Y no rompe la comprobación de `audita_texto_base.soluciones()`, que es lo
+    que había que mirar antes de tocar nada: esa comprobación **lee los
+    decimales de la celda** y exige que el valor del JSON redondeado a esos
+    mismos coincida, en vez de asumir una tolerancia. Publicar con cinco es
+    una promesa que sabe verificar; los millares se los quita antes de
+    interpretar el número, incluido el fino.
+    """
+    if isinstance(v, bool):
+        return "sí" if v else "no"
+    if isinstance(v, int):
+        return ent(v)
+    if isinstance(v, float):
+        # Un flotante que es un entero se publica como entero: escribir
+        # «513.00000» donde hay un conteo es la clase de cifra que
+        # `mide_punto_ciego.py` señaló como peor protegida, pero al revés.
+        # El menos tipográfico, como en el resto del capítulo. La
+        # comprobación de `audita_texto_base` lo convierte a «-» antes de
+        # interpretar el número, así que esto no la estorba.
+        return (ent(v) if float(v).is_integer()
+                else n(v, 5).replace("-", "\u2212"))
+    return str(v)
+
+
+def esc_celda(t):
+    """El rótulo de un paso, escapado antes de entrar en el `<th>`.
+
+    Los rótulos vienen de `genera_soluciones.R` y se volcaban crudos. Uno
+    traía `r <= 20 % del rango`: se renderiza bien por pura suerte —el
+    tokenizador de HTML5 no abre etiqueta con `<` seguido de un carácter que
+    no es letra— y bastaba un rótulo que empezara por `<a` para partir la
+    tabla. El rótulo ya dice `≤`; esto es el cinturón.
+    """
+    return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def ejercicio(k, e):
     """El marcado de la CASA, no uno inventado.
 
@@ -1227,7 +1272,8 @@ def ejercicio(k, e):
     los botones muertos, sin un solo error en consola (A.13).
     """
     pasos = "".join(
-        f"                <tr><th scope=\"row\">{p['paso']}</th><td>{p['valor']}</td></tr>\n"
+        f"                <tr><th scope=\"row\">{esc_celda(p['paso'])}</th>"
+        f"<td>{valor_paso(p['valor'])}</td></tr>\n"
         for p in e["pasos"])
     return f"""
         <div class="ejercicio-guiado">
