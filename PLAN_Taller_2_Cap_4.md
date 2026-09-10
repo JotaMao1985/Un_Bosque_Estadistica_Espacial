@@ -15,7 +15,20 @@ de resultados y comprensión de procedimientos**, no ejecución de código.
 
 ## 0. Cómo retomar esto en otra sesión
 
-**Estado al 2026-09-09: PLANEADO, NADA CONSTRUIDO. Defensa en UNA sesión (decidido).**
+**Estado al 2026-09-09: C1 HECHA (C1a + C1b). Defensa en UNA sesión (decidido).**
+`precalculo/genera_taller2.R` corre en verde con **41 anclas** en **11,5 s**, es **reproducible
+byte a byte** (dos corridas, mismos `sha256`) y escribe `taller2_datos.json` (531,0 KB) y
+`taller2_mapas.json` (167,5 KB). Nueve secciones: A fuentes · B las 16 localidades · C el defecto
+del bounding box · D los patrones generados · E el σ sembrado de T5 · F las envolventes de T4(b) ·
+G el sesgo de borde · H las 1000 variantes · I la escritura.
+**Ninguna respuesta viaja**: la convención es que todo campo cuyo nombre empieza por punto es una
+respuesta, `sin_puntos()` los quita y `revisa_publicable()` vuelve a mirar el resultado; además una
+guarda rechaza el JSON si contiene «agregado», «aleatorio», «regular», «Thomas», «rSSI» o
+«familia».
+**La construcción corrigió al plan SIETE veces**: **M-2 corregida**, **M-6**, **M-7**, **M-8**,
+**M-9**, **M-10** y **M-11**. Las dos más caras: M-6 invalidaba una tabla ya escrita aquí, y M-10
+tumbó el diseño de T4(b) que este plan daba por bueno.
+**Siguiente: C2b** (el dato que descarga el estudiante) y **C3** (el auditor en Python).
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -162,25 +175,24 @@ Chapinero (n = 26) y Santa Fe (n = 29). Las 16 restantes van de **n = 35** (Los 
 **n = 356** (Suba), y de **λ = 0,50/km²** (Usme) a **λ = 8,76/km²** (Rafael Uribe Uribe).
 Ese recorrido de 17 veces en λ es lo que hace que dos estudiantes no puedan copiarse una frase.
 
-**M-2 · El defecto del *bounding box* cambia el veredicto, pero solo en 2 a 4 de las 16.**
-Aplicar el test de cuadrantes sobre la caja envolvente en vez de sobre el polígono de la localidad
-mete celdas que caen **fuera** de la ventana y las cuenta como vacías. Con rejilla 5×5:
+**M-2 · El defecto del *bounding box* cambia el veredicto en 3 de las 16.**
+⚠️ **CORREGIDA AL CONSTRUIR C1 (2026-09-09). La primera versión de esta tabla era de UNA cola y el
+estudiante verá DOS.** Ver M-6. Estas son las cifras que da R, con la pertenencia geométrica de M-7
+y rejilla 5×5:
 
 | Localidad | p sobre la caja | p sobre el polígono | ¿cambia el veredicto? |
 |---|---|---|---|
-| Antonio Nariño | < 0,0001 | **0,7340** | **sí** |
-| Los Mártires | 0,0303 | **0,4900** | **sí** |
-| Rafael Uribe Uribe | < 0,0001 | **0,0564** | **sí** |
-| Barrios Unidos | 0,0053 | 0,0468 | no (los dos rechazan) |
-| Tunjuelito | < 0,0001 | 0,0005 | no |
+| Antonio Nariño | < 0,0001 | **0,4536** | **sí** |
+| Rafael Uribe Uribe | < 0,0001 | **0,1926** | **sí** |
+| Barrios Unidos | 0,0106 | **0,0936** | **sí** |
+| Los Mártires | 0,0605 | 0,9801 | no — **la caja tampoco rechaza** |
+| Tunjuelito | < 0,0001 | 0,0006 | no |
 | Suba, Kennedy, Engativá, … | < 0,0001 | < 0,0001 | no |
 
-Probado con k = 3, 4, 5, 6 y 7: el recuento de cambios de veredicto se mueve entre **2 y 4 de 16**
-y **nunca llega a la mitad**. No hay rejilla que lo arregle. **Consecuencia de diseño:** T1 no
-puede pedir «¿cambió el veredicto?» como si fuera la pregunta; la pregunta es **cuánto se movió el
-χ² y por qué**, y el cambio de veredicto es el caso extremo que le toca a tres estudiantes. Eso, de
-hecho, es mejor: hace que T1(c) —«un compañero dice que a él también le rechazó»— tenga sustancia
-real en el aula.
+**Consecuencia de diseño, que no cambia:** T1 no puede pedir «¿cambió el veredicto?» como si fuera
+la pregunta —solo le toca a tres—; la pregunta es **cuánto se movió el χ²** y qué dice el supuesto.
+El cambio de veredicto es el caso extremo, y hace que T1(d) —«un compañero dice que a él también le
+rechazó»— tenga sustancia real en el aula.
 
 **M-3 · El supuesto del χ² se cae, y se cae de forma distinta para cada estudiante.** Con
 rejilla 5×5 sobre **una** localidad, la fracción de celdas con esperanza menor que 5 va del
@@ -221,11 +233,84 @@ K = 1,34). Sobre procesos de Thomas generados, en cambio, el contraste es limpio
 otra mitad de la lección —«aquí sí hay agregación a toda escala, y la razón es que λ no es
 constante», que es el módulo 2 y el puente al capítulo 5—.
 
+**M-6 · R y Python dan p-valores distintos sobre el MISMO χ², y R es quien manda aquí.**
+Encontrado al construir C1: el cruce R↔Python del generador reventó su ancla. Sobre Antonio Nariño
+los dos calculan **χ² = 12,1443 con 16 g.l.**, con las mismas 17 esperadas y las mismas observadas
+—dígito a dígito—, y publican **p = 0,4536 (R) y p = 0,7340 (Python)**. Ninguno está mal:
+`quadrat.test()` de spatstat es de **dos colas por defecto** y el `1 - chi2.cdf()` de scipy es la
+cola superior. `2 × min(0,266, 0,734) = 0,532`, y sobre el n geométrico, 0,4536.
+
+**Manda R**, por dos razones que no son de gusto: el estudiante corre R, y **el capítulo 4 llama a
+`quadrat.test()` con el defecto en sus cuatro apariciones**, así que el taller tiene que decir lo
+mismo que el capítulo. Y no es un decimal: **el conjunto que vuelca cambia con la convención** —a
+dos colas son Antonio Nariño, Rafael Uribe y Barrios Unidos; a una eran Antonio Nariño, Rafael
+Uribe y **Los Mártires**—. Si esto se hubiera colado, tres estudiantes habrían defendido una
+respuesta que su propio R contradice.
+
+**M-7 · Siete sedes de 2 209 no están en la localidad que su `cod_loca` dice.** Seis caen dentro de
+**otra** localidad y una no cae dentro de ninguna, a distancias de **0,57 m a 219,20 m** (mediana
+11,28). Ninguna está sobre dos polígonos a la vez.
+
+**La regla del taller es GEOMÉTRICA** —«tus sedes son las que caen dentro del polígono de tu
+localidad»— porque es la que el estudiante obtiene: él construye el `ppp` con el polígono como
+ventana y `ppp()` descarta lo de fuera. Nueve localidades cambian de n, y **Antonio Nariño gana
+una** (42 → 43), lo que mueve su χ² y su p. Si el enunciado publicara el n del atributo, la primera
+cifra del taller no le cuadraría al estudiante y el resto se leería con desconfianza.
+
+**M-8 · T4(a) tiene contraste de sobra.** El cociente perímetro/área va de **0,507 km⁻¹ en Usme** a
+**2,479 en Antonio Nariño**, un factor de **4,9**. El par de contraste de cada estudiante sale de
+ahí y no de un sorteo: se empareja con la localidad más lejana en ese cociente.
+
 **M-5 (de regalo) · Los duplicados exactos son reales y están mal repartidos.** Sedes que
 comparten coordenada exacta con otra: **22 en Suba**, 17 en Engativá, 8 en Usaquén y en Bosa,
 6 en Kennedy, **0 en San Cristóbal, Antonio Nariño y Los Mártires**. Es G(0) > 0 y es un problema
 del dato, no del modelo. Es la reserva de T1 si la adyacencia con `e3` resulta demasiado estrecha
 (§3.5).
+
+**M-9 · El estadístico de T5 que el plan tenía escrito no servía, y el buscador se pegaba al borde.**
+El plan decía «un informe afirma que hay N focos». Medido: contar componentes conexas es un
+**entero grosero** —en San Cristóbal vale 1 con los cuatro selectores y con casi cualquier σ, y lo
+mismo en Antonio Nariño y Los Mártires, así que allí no hay nada que refutar—; y maximizar la
+separación empujaba σ al extremo inferior y hacía que el informe afirmara **41 focos en Suba**, un
+número que nadie escribiría.
+
+Sustituido por **pico / intensidad media**, que es continuo, está siempre definido y lo separan los
+cuatro selectores en las dieciséis —de **1,45 en Teusaquillo a 5,83 en Fontibón**—. Y con una
+segunda corrección: **el σ sembrado tiene que caer DENTRO del rango de los cuatro selectores**. Si
+cae fuera, el defecto se descarta de un vistazo; dentro, el informe usó un ancho que cualquier
+selector habría devuelto, y la refutación pasa a ser la buena —«entre anchos igualmente defendibles
+la cifra se mueve por un factor de X»—, que es el módulo 2 del capítulo 5. Los candidatos incluyen
+los propios σ de los selectores, y con eso **el informe queda contradicho por al menos 2 de los 4
+en las dieciséis**.
+
+**M-10 · El diseño de T4(b) que este plan daba por bueno NO funciona.** Decía: dos envolventes del
+mismo patrón, la completa y una con el rango de r recortado *post hoc*, y que la segunda saliera
+significativa. Medido sobre **30 patrones de CSR con nsim = 39** y **15 con nsim = 999**: el recorte
+posterior **no fabrica significancia de forma fiable** —con 39 el p de `dclf.test` es discreto con
+suelo 1/40 y nunca bajó de 0,05; con 999 tampoco se consiguió en 120 intentos—. Se comprobó aparte
+que **`rinterval` sí se respeta** (el estadístico y el p cambian con el intervalo): el diseño era el
+equivocado, no la implementación.
+
+**Se activó el repuesto que este plan ya tenía escrito.** Con nsim = 39 y nrank = 1 la banda es
+puntual al 5 %, y **17 de 30 patrones de CSR se salen de ella en algún nodo**. El informe lee esa
+salida como «significativo»; el estudiante cuenta los nodos, los compara con los esperados y corre
+el test global —que **no rechaza en ninguna de las 12 envolventes publicadas**, con p de 0,350 a
+1,000—. Es la inspección múltiple del módulo 11, medida y no afirmada, y nsim = 39 es además lo que
+usa el propio módulo 11 del capítulo 4.
+
+**M-11 · El peso, medido y declarado.** Los dos JSON suman **698,5 KB**: 531,0 de datos —296 de
+envolventes, 131 de las 1000 variantes, 98 de los tríos, 65 de los patrones— y 167,5 de mapas.
+Bajó de 924 KB por **dos vías que no tocan el contenido**: seis decimales en vez de diez en las
+curvas de envolvente —el décimo decimal de una K en la ventana unidad es ruido de coma flotante— y
+**600 vértices por localidad en vez de 8 000**, que es el presupuesto pensado para los 1 122
+municipios y no para dieciséis contornos pequeños. Lo que queda es contenido: las envolventes van
+en la rejilla de 513 nodos de spatstat porque el recuento de nodos fuera de banda que T4(b) pide
+contar se hace sobre ella.
+
+**M-12 · T4(a) tiene respuesta, y por poco.** El déficit de K sin corregir va del **20,3 % en
+Usaquén al 33,9 % en Engativá**, y siempre en la misma dirección —las dieciséis—. Su correlación
+con perímetro/área es **0,586**: predice, pero no con holgura. La guarda del guion para por debajo
+de 0,5, así que si al regenerar bajara, T4(a) habría que reescribirla.
 
 ---
 
@@ -631,6 +716,11 @@ ponga en rojo. La comprobación de C9 no es «añadirlo», es **verificar que el
 ### Fase 1 · Datos y variantes
 
 **C1 · Las 1000 variantes y sus cifras** — `precalculo/genera_taller2.R`
+> **PARTIDA EL 2026-09-09 en C1a y C1b**, usando la salida que este mismo plan dejaba abierta
+> («si crece más, se parte»). **C1a — las 16 localidades, el defecto del bounding box, el supuesto
+> del χ² y el par de contraste de T4(a) — está HECHA**: secciones A, B y C del guion, 31 anclas en
+> verde, y cuatro correcciones al plan (M-2, M-6, M-7, M-8). **C1b — los patrones generados, el σ
+> sembrado de T5, las envolventes de T4(b) y el reparto de las 1000 filas — está pendiente.**
 - **Descripción:** 16 localidades usables, ~24 patrones generados con familia conocida solo por el
   guion, y 1000 filas que emparejan localidad, patrón, localidad de contraste, recorte de r **y el
   σ sembrado de T5**.
