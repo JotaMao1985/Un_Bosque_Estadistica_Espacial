@@ -41,7 +41,16 @@ Python con geopandas/scipy. **Cazó una fuga en su primera pasada**: el JSON pub
 (agregado, aleatorio, regular) y la posición 1 tenía la G mayor en **12 de 12**. `unname()` quita
 los nombres, no la posición. Barajado, con guarda en el generador y comprobación propia en el
 auditor.
-**Siguiente: C4** (el arnés de inyección) y **C5** (el ensamblador).
+**C4 HECHA**: `prueba_auditor_taller2.py`, **46 inyecciones, 46 cazadas, TIPOS 31 de 31** —todas
+las comprobaciones del auditor se han visto fallar alguna vez—, con los dos controles limpios y
+cero fallos del propio arnés. **Encontró tres agujeros que 146 comprobaciones en verde no podían
+delatar**: el auditor **moría en vez de informar** ante seis inyecciones (y el mismo `.iloc[0]` sin
+guardar estaba **dos veces** — guardar una aparición y no la otra es la trampa de alcance del
+Taller 1); **faltaba una comprobación entera** —renombrar el campo `localidad` sin tocar su clave
+pasaba limpio—; y **una comprobación cuyo `detalle` cambia entre pasar y fallar es invisible para
+el recuento por tipos**, porque produce dos nombres distintos. El auditor pasa de 146 a **180
+comprobaciones**.
+**Siguiente: C5**, y va con las notas del §7.1.
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -721,6 +730,38 @@ solo. Y `audita_todo.sh` ya tiene **tres bucles propios** que recorren `N in 1 2
 hereda sin tocar nada»*. **Consecuencia:** si un archivo se llama de otra forma —`audita_t2.py`,
 `taller2_cap4_datos.json`— el taller **nace fuera del arnés en silencio**, sin que ningún paso se
 ponga en rojo. La comprobación de C9 no es «añadirlo», es **verificar que el arnés lo encontró**.
+
+---
+
+### 7.1 Los mecanismos del ensamblador, leídos el 2026-09-09
+
+C5 no estrena nada: `ensambla_taller1.py` (1 357 líneas) ya resolvió el molde y **conviene copiarle
+la estructura entera antes de escribir prosa**. Lo que hay que saber, y que no se deduce del
+plan:
+
+- **Se parte en C5a y C5b, y el Taller 1 lo hizo así por una razón que se declara en su encabezado:**
+  *«cada paso deja un HTML que ABRE Y FUNCIONA»*, con la navegación declarando solo los módulos que
+  existen. C5a = esqueleto + buscador de variante + T1 y T2; C5b = T3 a T5, las dos rúbricas y el
+  banco (que es C6).
+- **El ensamblador no escribe HTML: sustituye regiones de la plantilla.** Dos funciones,
+  `reemplaza_region(texto, abre, cierra, nuevo, que, max_lineas)` y `sustituye(texto, ancla, nuevo,
+  que)`, y las dos **paran** si el ancla no aparece o si la región cambia de tamaño más de lo
+  previsto. Las anclas de la plantilla son literales: `const courseData = {`, el comentario
+  `MÓDULO 1 · Cajas y tipografía`, `RUBRICAS['demo-rubrica'] = {`, `GEOMAPAS['demo-mapa'] =`,
+  `SIMULADORES['demo-deslizadores']` y `AUTOEVALUACIONES['demo'] = [`.
+- **La variante vive en `localStorage`**, y no es una comodidad: `loadModule()` vacía `mainContent`
+  en cada salto de módulo, así que sin eso el mapa de T2 no sabría qué patrón pintar.
+- **El mapa de la variante se registra como FUNCIÓN, no como literal**, y eso tiene un coste que hay
+  que declarar igual que lo declara el Taller 1: `audita_texto_base.geomapas()` solo sabe mirar
+  dentro de un `.geomapa` cuyo origen sea un literal, así que esa familia del auditor de prosa se
+  queda sin nada que comprobar. No es un descuido —el mapa **tiene** que ser dinámico— y no queda
+  sin cubrir: `audita_taller2.py` audita los mapas contra el JSON, uno por uno.
+- **Y la corrección del §5.2 vive aquí**: el buscador pide el documento COMPLETO y lo imprime tal
+  como se tecleó. El JSON ya guarda lo necesario.
+
+**Lo que C5 NO puede escribir:** ninguna cifra a mano, y **ninguna respuesta**. El JSON entero viaja
+dentro del HTML porque el buscador lo necesita, así que todo lo interpolado es legible con «ver
+código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
 
 ---
 
