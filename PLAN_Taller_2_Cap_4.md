@@ -145,7 +145,9 @@ correcciones sino dos, sobre **dos** ventanas de forma opuesta. Medido el 2026-0
 el déficit de la K sin corregir va del **8,8 % en Usme** (perímetro/área 0,507) al **45,5 % en
 Antonio Nariño** (2,479), y **ordena monótonamente por perímetro/área** en la muestra medida — es
 decir, T4(b) tiene respuesta y con holgura. *(M-12 daba 20,3 %–33,9 %: es la misma cosa medida a
-otra escala de r, no una contradicción.)*
+otra escala de r, no una contradicción.)* **Matiz de M-20 (2026-09-10):** «monótonamente» vale
+para la muestra, no para las dieciséis — sobre las 120 parejas hay **9 invertidas** a r = 1 km,
+todas entre formas con razón de perímetro/área menor que 1,4. Por eso el contraste exige razón ≥ 2.
 
 **M-16 · T4(b) NO PUEDE PEDIR EL TEST GLOBAL: el patrón de la envolvente no se publica.** La
 envolvente viaja como curvas —`r`, `obs`, `lo`, `hi`, `teo`— y las coordenadas que la produjeron no
@@ -628,7 +630,7 @@ solo dato. Medido sobre **200 000 sorteos** de doce documentos:
 | lo que se lee en voz alta | listas con dos indistinguibles |
 |---|---|
 | localidad, n y λ *(el §5.3 original)* | **99,66 %** |
-| … + la localidad de contraste | **99,66 %** — no añade nada (M-20) |
+| … + la localidad de contraste | **99,66 %** — no añadía nada; con M-20 cerrada, **67,31 %** |
 | … + el patrón | 10,81 % |
 | **localidad, n, λ, patrón y trío** | **0,00 %** |
 
@@ -638,7 +640,7 @@ para cazar — y con 16 localidades y 12 personas eso pasa casi siempre. Una lis
 al azar para probar la hoja salió con **cuatro en Puente Aranda y tres en Bosa**. Ahora se leen
 cinco cosas, y no coincide nadie.
 
-**M-20 · LA LOCALIDAD DE CONTRASTE DE T4(a) NO INDIVIDUALIZA: hay DOS en las dieciséis.** Salió al
+**M-20 · LA LOCALIDAD DE CONTRASTE DE T4(a) NO INDIVIDUALIZA: hay DOS en las dieciséis.** ✅ **CERRADA EL 2026-09-10 — ver el final del §0.** Salió al
 ver que el contraste no aportaba nada al control. Medido: **Antonio Nariño en 13 de las 16
 localidades y Usme en las otras 3**, es decir **el 81,4 % de las 1000 variantes comparte
 contraste**. La causa es la regla misma —«la de forma opuesta por perímetro/área»— y que Antonio
@@ -684,11 +686,96 @@ repetición en silencio — probado con una lista de once. Si el curso cambia de
 decidirlo **antes** del jueves 8, y es barato: sobran y no pasa nada, o faltan y hay que escribir
 tres preguntas más.
 
+**M-20 CERRADA (2026-09-10) · el contraste rota, y el umbral que lo permite está medido.**
+
+Javier eligió individualizar. Lo que se hizo, y lo que salió al medir **antes** de tocar la regla:
+
+1. **La primera medición daba un defecto que no existía.** Comparando el déficit **máximo** de cada
+   localidad, dos parejas de la regla vieja «ordenaban mal» (Engativá y Bosa contra Antonio Nariño)
+   y la correlación con perímetro/área era 0,586. Es un artefacto: `Kest()` elige un rmax distinto
+   para cada ventana —de **621 m** en Antonio Nariño a **4590 m** en Usme—, así que el máximo
+   compara dos localidades a dos escalas. El bloque publicado y `verifica_taller2.R` fijan
+   `r = seq(0, 2000, by = 50)` y leen **r = 1000 en las dos**; ahí la correlación es **0,949**
+   (Spearman 0,962) y la regla vieja no invierte ninguna pareja. **La tarea estaba bien; lo que
+   medía otra cosa era la guarda del generador**, y se cambió de paso.
+2. **El orden NO es monótono entre formas parecidas**, y eso es lo que obliga a poner un umbral. A
+   r = 1 km hay **9 parejas invertidas de 120** —Bosa y Rafael Uribe, Fontibón y Puente Aranda,
+   Tunjuelito y Los Mártires, entre otras—, todas con razón de perímetro/área **menor que 1,4**:
+
+   | razón de perímetro/área | parejas | invertidas a r = 1 km | factor de déficit mínimo |
+   |---|---|---|---|
+   | ≥ 1,3 | 87 | 1 | 1,07 |
+   | ≥ 1,4 | 74 | 0 | 1,24 |
+   | **≥ 2,0** | **38** | **0** | **1,38** |
+
+   Se toma **2** y no 1,4 porque con 2 las 38 parejas ordenan bien **en todo el rango de r que
+   comparten las dos ventanas**, no solo en el r del bloque — y T4(a) dice «en un r que declares».
+3. **La regla nueva** (`genera_taller2.R`, §C y §H): cada localidad recibe la lista de las que le
+   doblan o le parten el cociente, de la más opuesta a la menos, y el contraste **rota** por esa
+   lista con `k %/% 16`. De **2** candidatas (Engativá) a **11** (Tunjuelito y Antonio Nariño).
+
+   | | regla vieja | regla nueva |
+   |---|---|---|
+   | localidades que salen de contraste | 2 | **16** |
+   | la más repetida | Antonio Nariño, **81,4 %** | Antonio Nariño, **21,2 %** |
+   | mayor grupo con el mismo contraste en doce (media de 200 000 sorteos) | **9,78** | **3,72** |
+   | contrastes distintos entre los doce (media) | 1,92 | 6,76 |
+
+   No llega a cero y no puede: con 16 localidades y la condición de doblar el cociente, entre doce
+   siempre se repite alguna. Pero deja de ser **el** literal de la clase.
+4. **Lo que se movió, y lo que no.** Cambian **765 valores de `contraste` de 1000** y la fecha del
+   `meta`, y nada más: **ningún otro campo de ninguna variante**, y `taller2_mapas.json` y el CSV
+   **idénticos byte a byte** —el contraste no consume el generador aleatorio—. Las 16 localidades
+   ya tenían mapa, así que el `.geomapa` de contraste no necesitó nada. **50 anclas en verde**
+   (eran 42): las parejas y el mínimo del §C, el déficit a 1 km en Antonio Nariño (**45,47 %**) y
+   Usme (**8,85 %**), **la guarda pareja a pareja** —ninguna de las 38 invierte el orden, factor
+   mínimo 1,38— y las del reparto (salen las 16, ninguna es la propia, la más repetida ≤ 30 %).
+5. **El enunciado dice la promesa en voz alta**: «una de las dos tiene al menos el **doble** de
+   perímetro/área que la otra. *Cuál de las dos* no te lo dice el enunciado — lo dice tu cálculo».
+   Y los dos bloques de código avisan de que `mide("Suba")` y `mide("Antonio Narino")` son un
+   **ejemplo**: con la regla vieja ese ejemplo **era la respuesta** de cuatro de cada cinco, que lo
+   podían correr sin tocar una letra — otra cara de M-20 que no estaba escrita.
+6. **`audita_taller2.py` · siete comprobaciones nuevas (192)**, sin fiarse del generador:
+   perímetro y área se rehacen con geopandas desde el GeoPackage. Razón mínima **2,033** en las
+   1000 variantes; salen las 16; ninguna pasa del tercio; ninguna localidad con contraste único; y
+   **el mecanismo que T4(b) pide nombrar**, con un buffer negativo: la franja de 100 m es
+   **0,92–0,98 de r·perímetro/área** en las dieciséis y ordena igual que el cociente en las 38
+   parejas. **Arnés 53 de 53 y 39 de 39 tipos**: cuatro inyecciones nuevas —una forma casi igual,
+   la regresión exacta a «la más opuesta», una localidad que nunca sale, un contraste fijo— y las
+   dos de la franja en `INATACABLES` con su prueba a mano (franja a 3000 m → [0,13 – 0,57]; el
+   polígono de Usme bajo el nombre de Antonio Nariño → 21 parejas invertidas).
+7. **Y el arnés cazó un defecto mío.** El primer borrador del bloque indexaba `pa[v["localidad"]]`
+   a pelo, y **cinco inyecciones que ya existían mataban al auditor con `KeyError`** en vez de
+   dejarle informar —la lección de C4, escrita veinte líneas más arriba en el mismo archivo—.
+   Reescrito para que una pareja sin resolver no lo tumbe, con una comprobación que las cuenta.
+
+**§5.3 rehecho con la regla nueva** (otra muestra de 200 000 listas de doce variantes distintas,
+por eso 99,69 y no 99,66):
+
+| lo que se lee en voz alta | regla vieja | regla nueva |
+|---|---|---|
+| localidad (+ n y λ) | 99,69 % | 99,69 % |
+| localidad + contraste | 99,69 % | **67,31 %** |
+| localidad + patrón + trío | 0,00 % | 0,00 % |
+
+El contraste **ya distingue**, pero el control **sigue leyendo cinco cosas y no seis**: con patrón
+y trío ya da 0,00 %, y una sexta cifra alarga los quince minutos sin comprar nada. Si el curso
+creciera y las cinco dejaran de bastar, es la siguiente — así queda escrito en `verifica_taller2.R`.
+
+**Verde en toda la cadena:** generador **50 anclas** · auditor **192 · 0 · 0** · arnés **53 de 53**
+y **39 de 39 tipos**, cero reventones · texto **84 · 0** · `sin_aritmetica.py` y `campos_vivos.py`
+limpios · calificador con sus **143 anclas** en pie y su clave de T4 siguiendo la regla nueva
+(Bosa, que antes iba contra Antonio Nariño, va ahora contra Usme: 21,4 % contra 8,8 %, con 2,82
+veces el perímetro/área) · **0 desbordamientos a 1280, 375 y 318 px en los siete módulos**,
+consola limpia. `genera_taller2.R` y `verifica_taller2.R` sincronizados con la copia principal.
+
 **Siguiente: el reparto del lunes 21.** La fase de construcción queda cerrada — C1…C11 tienen
 hecho todo lo que se puede hacer antes de repartir, no hay ningún defecto abierto sobre el
-material, y los dos apuntes vivos son decisiones y no fallos: **M-20** (el contraste de T4(a) no
-individualiza) y las **tres logísticas de entrega** del §0 que siguen sin confirmar —canal y nombre
-del archivo, que no hay plantilla LaTeX, y que no se publica límite de páginas ni hora—.
+material, y **M-20 se cerró** individualizando el contraste. Lo único vivo es una decisión y no un
+fallo: las **tres logísticas de entrega** del §0 que siguen sin confirmar —canal y nombre del
+archivo, que no hay plantilla LaTeX, y que no se publica límite de páginas ni hora—. Y cualquier
+regeneración tiene que caer **antes** del lunes 21: después, `genera_taller2.R` no se vuelve a
+correr (§9).
 **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
@@ -1266,7 +1353,9 @@ Cada variante fija cuatro cosas:
 
 1. **su localidad** — una de las **16** usables (M-1);
 2. **su patrón generado** — uno de ~24, con familia desconocida;
-3. **su localidad de contraste** para T4(a) — de forma opuesta a la suya (perímetro/área);
+3. **su localidad de contraste** para T4(a) — de forma opuesta a la suya: al menos el **doble** de
+   perímetro/área, o la mitad, **rotando** entre las que lo cumplen (M-20; hasta el 2026-09-10 era
+   siempre «la más opuesta», y eso daba dos contrastes para toda la clase);
 4. **el recorte de r** de la envolvente de T4(b).
 
 Con 16 localidades y 12 estudiantes hay colisión segura de localidad entre algunos; **eso está
@@ -1310,7 +1399,8 @@ doce, quince contando las preguntas.
 > de doce documentos: **el 99,66 % de las listas deja a dos estudiantes indistinguibles**. El
 > control habría dado verde a dos que hubieran intercambiado documentos dentro de la misma
 > localidad — que es exactamente el fallo que existe para cazar. Y la localidad de contraste
-> tampoco ayuda: hay **una sola por localidad** (ver M-20). Añadiendo el **patrón** y el **trío** la
+> tampoco ayudaba: había **una sola por localidad** (M-20; desde que se cerró sí distingue
+> —67,31 %—, pero con las cinco de abajo no hace falta). Añadiendo el **patrón** y el **trío** la
 > cifra baja a **0,00 %** en 100 000 sorteos. Por eso se leen **cinco**: localidad, n, λ, patrón y
 > trío. Lo emite `verifica_taller2.R --control`.
 
@@ -1466,7 +1556,8 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
   - [ ] T3 · el informe del modelo se **cita literal** y su afirmación es falsa de forma
         verificable con g
   - [ ] T4(a) · el sesgo de borde se mide, no se afirma, y las dos localidades del par difieren en
-        perímetro/área por un factor declarado
+        perímetro/área por un factor declarado — **el factor es 2** (M-20), y el generador comprueba
+        pareja a pareja que el déficit a r = 1 km ordena igual
   - [ ] T4(b) · el recorte de r se hace **después** de mirar la curva y con las **mismas**
         simulaciones que la envolvente completa
   - [ ] **T5 · el σ sembrado se elige BUSCANDO los N focos**, no al azar: se barre σ sobre la

@@ -59,6 +59,7 @@ archivos publicados no se tocan nunca.
 """
 from __future__ import annotations
 
+import collections
 import json
 import pathlib
 import sys
@@ -443,6 +444,67 @@ def main() -> int:
              "todo índice de trío existe")
     a.cierto(all(1 <= v["envolvente"] <= len(D.get("envolventes", [])) for v in V),
              "todo índice de envolvente existe")
+
+    # -----------------------------------------------------------------
+    # M-20 · el contraste de T4(a) tiene que cumplir DOS cosas a la vez,
+    # y son opuestas: ser un contraste de verdad —si no, T4(b) no tiene
+    # respuesta— y no ser el mismo para media clase —si no, el déficit y
+    # el perímetro/área de la ventana de contraste son un literal
+    # compartible—. Hasta el 2026-09-10 la regla era «la más opuesta» y
+    # cumplía la primera olvidando la segunda: Antonio Nariño salía en el
+    # 81,4 % de las variantes.
+    #
+    # Nada de esto se lee del JSON: perímetro y área se rehacen aquí con
+    # geopandas desde el GeoPackage, que es la misma superficie que
+    # descarga el estudiante.
+    a.titulo("M-20 · el contraste de T4(a): opuesto, y no el de todos")
+    geo = {r.localidad: r.geometry for _, r in loc.iterrows()}
+    pa = {k: (g.length / 1000) / (g.area / 1e6) for k, g in geo.items() if k in D["localidades"]}
+    # NADA DE ESTO INDEXA A PELO. Escrito con `pa[v["localidad"]]` este
+    # bloque mataba al auditor con KeyError en cinco de las inyecciones
+    # del arnés —una localidad renombrada, una que desaparece, una
+    # variante que apunta fuera, el mojibake— y una muerte no informa de
+    # nada: sale el código != 0 y ninguna comprobación se ha visto
+    # fallar. Es la misma lección de las seis inyecciones de C4, veinte
+    # líneas más arriba, y volvió a pasar al escribir esto.
+    pares = [(v["localidad"], v["contraste"]) for v in V
+             if v.get("localidad") in pa and v.get("contraste") in pa]
+    a.cierto(len(pares) == len(V), "toda pareja de T4(a) resuelve sus dos localidades",
+             f"{len(V) - len(pares)} sin resolver de {len(V)}")
+    razones = [max(pa[x], pa[y]) / min(pa[x], pa[y]) for x, y in pares]
+    a.cierto(razones and min(razones) >= 2, "el contraste dobla el perímetro/área, o lo parte",
+             f"razón mínima {min(razones):.3f}" if razones else "sin parejas que medir")
+    ctr = collections.Counter(y for _, y in pares)
+    a.cierto(len(ctr) == len(usables), "las 16 salen de contraste alguna vez",
+             f"{len(ctr)} distintas")
+    a.cierto(ctr and max(ctr.values()) / len(V) <= 0.30,
+             "ninguna es el contraste de más de un tercio",
+             f"{max(ctr, key=ctr.get)} en el {100 * max(ctr.values()) / len(V):.1f} %"
+             if ctr else "sin parejas que contar")
+    por_loc = collections.defaultdict(set)
+    for x, y in pares:
+        por_loc[x].add(y)
+    n_min = min((len(x) for x in por_loc.values()), default=0)
+    a.cierto(n_min >= 2, "ninguna localidad tiene un contraste único", f"mínimo {n_min}")
+
+    # Y EL MECANISMO, que es lo que T4(b) pide nombrar: «la fracción de
+    # la ventana pegada al borde es, para r pequeño, aproximadamente r
+    # por perímetro/área». Se comprueba con un buffer negativo, que no
+    # tiene nada que ver con cómo lo calcula el generador ni con lo que
+    # publica el JSON. A 100 m la aproximación se cumple con un 8 % de
+    # holgura y la franja ordena las 38 parejas asignables igual que el
+    # cociente — que es la promesa del enunciado.
+    R_FRANJA = 100
+    franja = {k: 1 - g.buffer(-R_FRANJA).area / g.area for k, g in geo.items() if k in pa}
+    cociente = [franja[k] / (R_FRANJA / 1000 * pa[k]) for k in pa]
+    a.cierto(cociente and 0.8 < min(cociente) and max(cociente) <= 1.0,
+             f"la franja de {R_FRANJA} m es ~r·perímetro/área",
+             f"de {min(cociente):.2f} a {max(cociente):.2f} de r·P/A"
+             if cociente else "sin ventanas que medir")
+    invertidas = {(x, y) for x, y in pares
+                  if (franja[x] > franja[y]) != (pa[x] > pa[y])}
+    a.cierto(not invertidas, "la franja ordena como el cociente en toda pareja",
+             f"{len(invertidas)} invertidas: {sorted(invertidas)[:2]}")
 
     return a.cierre()
 

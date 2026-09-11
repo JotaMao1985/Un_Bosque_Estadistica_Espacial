@@ -922,6 +922,16 @@ print(np.c_[rg, K, np.pi * rg ** 2, L, g][:12])''')}
 # puede correr el estudiante. Lo que sí puede es contar, comparar el
 # recuento con lo que esperaría, y decir por qué el recuento tampoco
 # decide. Declarado en el §0.
+#
+# LA VENTANA DE CONTRASTE ROTA DESDE EL 2026-09-10 (M-20). Hasta ese día
+# el generador emparejaba cada localidad con «la más opuesta» y, como
+# Antonio Nariño y Usme son los dos extremos del cociente, el 81,4 % de
+# las variantes recibía la misma: el déficit y el perímetro/área de esa
+# ventana eran la misma pareja de cifras para casi toda la clase, y el
+# bloque de aquí abajo —que llama `mide("Antonio Narino")` de ejemplo—
+# se podía correr sin tocar una letra. Ahora el contraste rota entre las
+# que doblan el cociente, y por eso los dos bloques dicen en voz alta
+# que sus nombres son un ejemplo.
 MOD5 = cabecera(
     5, "El borde y la banda", "T4 · Edge and envelope",
     "Dos refutaciones: un sesgo que siempre empuja al mismo lado, y una "
@@ -932,7 +942,9 @@ MOD5 = cabecera(
         de su círculo cae fuera y ahí no hay datos. Si no se corrige, esos vecinos que no se pueden
         contar se cuentan como <strong>ausencias</strong>. Aquí lo vas a medir en dos ventanas de
         forma deliberadamente opuesta: <strong>la tuya</strong> y la de contraste que te asignó el
-        buscador.</p>
+        buscador. «Opuesta» aquí es una promesa con número: una de las dos tiene al menos el
+        <strong>doble</strong> de perímetro/área que la otra. <em>Cuál de las dos</em> no te lo dice
+        el enunciado — lo dice tu cálculo, y es la mitad de lo que se pregunta.</p>
 
       <div class="trio-rejilla">
         <div class="geomapa" data-geomapa="taller2-localidad"></div>
@@ -1043,8 +1055,10 @@ mide &lt;- function(nombre, r_ref = 1000) {
     perimetro_area = per / are)
 }
 
-rbind(propia    = mide("Suba"),            # tu localidad
-      contraste = mide("Antonio Narino"))  # la que te dio el buscador''',
+# Los dos nombres son un EJEMPLO: cambialos por los tuyos. El buscador
+# te da los dos, y la pareja de cada quien es distinta.
+rbind(propia    = mide("Suba"),            # <-- tu localidad
+      contraste = mide("Antonio Narino"))  # <-- la de contraste''',
       '''import geopandas as gpd, numpy as np
 
 loc = gpd.read_file("datos/taller2_localidades.gpkg")
@@ -1075,8 +1089,9 @@ def K_dos(nombre, r_ref=1000.0):
     return dict(n=n, deficit_pct=100 * (1 - sin / con),
                 perimetro_area=(per / 1000) / (A / 1e6))
 
-print(K_dos("Suba"))              # tu localidad
-print(K_dos("Antonio Narino"))    # la de contraste''')}
+# Los dos nombres son un EJEMPLO: cambialos por los tuyos.
+print(K_dos("Suba"))              # <-- tu localidad
+print(K_dos("Antonio Narino"))    # <-- la de contraste''')}
 """ + CIERRE
 
 

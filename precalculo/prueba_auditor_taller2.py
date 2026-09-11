@@ -72,6 +72,16 @@ INATACABLES = frozenset({
     # los siete capítulos: no se toca por dos comprobaciones.
     "datos_taller2.R no sabe generar patrones",
     "datos_taller2.R no nombra los regímenes",
+    # Las dos de M-20 (2026-09-10) salen del POLÍGONO, no del JSON: la
+    # franja de borde y el cociente perímetro/área se rehacen los dos con
+    # geopandas sobre el mismo GeoPackage, así que envenenar el JSON no
+    # puede separarlos. Probadas a mano el día que se escribieron:
+    #   · con la franja a 3000 m en vez de 100, el cociente cae de
+    #     [0,92 – 0,98] a [0,13 – 0,57] y la comprobación se pone roja;
+    #   · poniendo el polígono de Usme bajo el nombre de Antonio Nariño y
+    #     dejando su cociente publicado, 21 parejas quedan invertidas.
+    "la franja de 100 m es ~r·perímetro/área",
+    "la franja ordena como el cociente en toda pareja",
 })
 
 
@@ -231,6 +241,32 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("una localidad usable se queda sin ninguna variante", "datos",
         lambda o: [v.__setitem__("localidad", "Suba")
                    for v in o["variantes"] if v["localidad"] == "Los Martires"])
+
+    # --- 6b. M-20 · el contraste de T4(a) ------------------------------
+    # Suba y Usaquén tienen perímetro/área 0,654 y 0,743: una razón de
+    # 1,14, así que T4(b) no tendría cuál de las dos sufre más.
+    obj("el contraste se empareja con una forma casi igual", "datos",
+        lambda o: o["variantes"][0].__setitem__("contraste", "Usaquen"))
+    # La regresión exacta: volver a «la más opuesta», que es lo que este
+    # guion hacía hasta el 2026-09-10. Antonio Nariño y Usme son los dos
+    # extremos de la columna, así que se reparten las dieciséis.
+    obj("el contraste vuelve a ser el más opuesto (M-20)", "datos",
+        lambda o: [v.__setitem__("contraste",
+                                 "Usme" if v["localidad"] in
+                                 ("Los Martires", "Tunjuelito", "Antonio Narino")
+                                 else "Antonio Narino")
+                   for v in o["variantes"]])
+    # Engativá solo es contraste de Tunjuelito y Antonio Nariño —son las
+    # dos únicas que le doblan el cociente—, y a las dos les sirve Usme.
+    # El cambio deja las razones intactas y una localidad sin salir.
+    obj("una localidad no sale nunca de contraste", "datos",
+        lambda o: [v.__setitem__("contraste", "Usme")
+                   for v in o["variantes"] if v["contraste"] == "Engativa"])
+    # Y el contraste fijo por localidad, que es individualizar cero sin
+    # romper ninguna razón: todas las de Suba contra Antonio Nariño.
+    obj("una localidad recupera su contraste único", "datos",
+        lambda o: [v.__setitem__("contraste", "Antonio Narino")
+                   for v in o["variantes"] if v["localidad"] == "Suba"])
 
     # --- 7. Formato ---------------------------------------------------
     txt("un NaN se cuela en los datos", "datos", '"n":356', '"n":NaN')
