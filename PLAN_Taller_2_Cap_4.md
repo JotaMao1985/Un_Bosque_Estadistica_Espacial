@@ -337,6 +337,8 @@ fusionarla no lo está.
 > reproducir el pico/media del informe de T5— y la **fuga de `datos_taller2.R`**. Ninguno de los
 > dos hace falso el enunciado; el primero lo hace contradictorio consigo mismo y el segundo
 > regala la respuesta de T2 a quien clone el repositorio.
+> **Y del 2026-09-11:** M-18, la fuga y M-20 están cerradas, así que no queda nada de lo que este
+> párrafo pedía antes de publicar. La rama se fusionó en `main` ese día — ver el final del §0.
 
 **Nota para quien retome esto en un worktree:** el arnés general dio un paso en rojo por una razón
 que no era del material — a un worktree le faltan `datos/` y `precalculo/cache/`, que están
@@ -768,6 +770,36 @@ limpios · calificador con sus **143 anclas** en pie y su clave de T4 siguiendo 
 (Bosa, que antes iba contra Antonio Nariño, va ahora contra Usme: 21,4 % contra 8,8 %, con 2,82
 veces el perímetro/área) · **0 desbordamientos a 1280, 375 y 318 px en los siete módulos**,
 consola limpia. `genera_taller2.R` y `verifica_taller2.R` sincronizados con la copia principal.
+
+**FUSIONADA EN `main` (2026-09-11) · el Taller 2 se publica diez días antes de repartirse.**
+
+Fusión `c95cc2a`, con `main` como primer padre —como la del capítulo 5—, construida en este
+worktree sobre `origin/main` y empujada desde aquí. **La copia principal no se tocó**, porque la
+otra sesión trabaja en ella: sigue en `be68325`, limpia, y se pone al día con
+`git pull --ff-only`. Hasta entonces el HTML del taller no existe allí, así que `verifica_taller2.R`
+no se corre desde esa copia.
+
+- **Siete commits de `main` entraron sin un conflicto**: la segunda revisión del capítulo 5, el
+  precálculo en Windows, el README de descarga de datos y la fuente #2. Solo `README.md` lo tocaban
+  los dos lados, y en secciones distintas.
+- **Los que tocan archivos que el Taller 2 usa no le cambian una cifra.** En `geo.R` cambió solo
+  `geo_rejilla()` —el taller no publica rásteres y `genera_taller2.R` no la llama—; en `utf8.R`,
+  solo el mensaje de parada fuera de UTF-8; y `entorno.R` no lo carga ningún guion del taller. Por
+  eso **no se regeneró nada**, y la prueba es que el HTML reensamblado sobre el árbol fusionado
+  sale **idéntico byte a byte** al comiteado.
+- **El README tenía dos frases que la fusión habría publicado falsas**, corregidas en el commit que
+  sale con ella: decía que T2 «no se puede publicar todavía» por las F de M-14, y que
+  `datos_taller2.R` escribe el CSV de patrones — lo hacía hasta que se cerró la fuga; ahora lo
+  escribe `genera_taller2.R` (línea 1005) y `datos_taller2.R` solo lo lee y lo coteja.
+- **Verde sobre el árbol fusionado:** auditor **192 · 0 · 0** · texto **84 · 0** · calificador con
+  sus **143 anclas** en pie · `cuenta_sitio.py` con los **nueve** archivos del curso enlazados y el
+  Taller 2 en su tabla · `audita_todo.sh --rapido` en **ARNÉS COMPLETO EN VERDE**, con los nueve archivos del curso enlazados y ninguno de los publicados anunciado como pendiente.
+
+**Lo que publicar hoy cambia del calendario.** La regla era «no se regenera después de repartir»,
+y el reparto sigue siendo el lunes 21. Pero desde hoy el taller está en Pages y el buscador
+funciona para cualquiera con el enlace: una regeneración antes del 21 sigue siendo posible, pero
+**ya no es invisible** — cambiaría la variante de quien lo haya abierto. En la práctica la fecha
+de congelación se adelanta a hoy, salvo decisión expresa.
 
 **Siguiente: el reparto del lunes 21.** La fase de construcción queda cerrada — C1…C11 tienen
 hecho todo lo que se puede hacer antes de repartir, no hay ningún defecto abierto sobre el

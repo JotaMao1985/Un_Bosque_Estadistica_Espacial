@@ -34,10 +34,12 @@ cuenta van los dos talleres —el 1 con 9 módulos y 7 ejercicios, el 2 con 7 m�
 las 36 preguntas de su banco de defensa— y el preparcial del Corte I —7 módulos y
 36 preguntas que cubren los 30 módulos de los capítulos 1 a 3 que entran en el parcial—.
 
-**El Taller 2 está construido pero no repartido**, y su tarea T2 no se puede publicar todavía:
-las curvas F de su precálculo no son la función de espacio vacío, porque `Fest()` devuelve
-distancias al cuadrado en la instalación de spatstat de este equipo. Está medido y escrito en el
-§0 del `PLAN_Taller_2_Cap_4.md`, con lo que hay que rehacer.
+**El Taller 2 está publicado y se reparte el lunes 21 de septiembre.** Antes de fusionarlo se
+cerraron cuatro defectos, medidos y escritos en el §0 del `PLAN_Taller_2_Cap_4.md`. El que
+conviene saber aunque no se toque el taller: **`Fest()` devuelve distancias al cuadrado en la
+instalación de spatstat de este equipo**, así que la F del taller se calcula a mano sobre una
+rejilla de sondas (`ppp_F_borde()` en `precalculo/puntual.R`) y el auditor la comprueba contra
+una cota que no depende de ninguna implementación.
 
 El capítulo 6 es **el primero que publica grafos**, y su presupuesto lo decidió una medición: las
 diez definiciones de vecindad que el temario pide pesan **465 KB sobre los 1 122 municipios** y
@@ -327,9 +329,13 @@ estaciones del IDEAM, los 60 municipios asignados y los 33 departamentos, sin si
 porque simplificar la geometría cambiaría las cifras de las variantes ya repartidas—, los
 produce `precalculo/datos_taller1.R` y el `.gitignore` los deja pasar de uno en uno.
 
-El Taller 2 hereda la lección sin repetirla: `precalculo/datos_taller2.R` escribe sus
-`taller2_sedes.gpkg`, `taller2_localidades.gpkg` y `taller2_patrones.csv` —2,0 MB— y se
-comprobó **abriéndolos desde fuera del repositorio** antes de escribir una sola tarea. Y publica
+El Taller 2 hereda la lección sin repetirla: sus `taller2_sedes.gpkg`,
+`taller2_localidades.gpkg` y `taller2_patrones.csv` —2,0 MB— se comprobaron **abriéndolos desde
+fuera del repositorio** antes de escribir una sola tarea. Los dos GeoPackage los escribe
+`precalculo/datos_taller2.R`; el CSV no, y no por descuido: los patrones se generan sabiendo de
+qué familia es cada uno, que es la respuesta de T2, así que los escribe `genera_taller2.R` —fuera
+de git mientras el taller esté vivo— y `datos_taller2.R` solo los lee y los coteja contra el JSON
+publicado. Y publica
 las capas **completas**, no solo lo que reparte: recortarlas le diría al estudiante qué entró en
 el sorteo, que es información que no le toca.
 
