@@ -7,7 +7,8 @@
 # QUÉ PRODUCE
 #   entrega/datos/taller2_sedes.gpkg        2 209 sedes educativas
 #   entrega/datos/taller2_localidades.gpkg  las 20 localidades
-#   entrega/datos/taller2_patrones.csv      los patrones generados
+#   entrega/datos/taller2_patrones.csv      los patrones, COPIADOS del
+#                                           precálculo (ver la sección B)
 #
 # EL CRITERIO QUE MANDA AQUÍ NACE DE UN FALLO REAL. El Taller 1 se
 # repartió el 2026-08-13 con un enunciado que mandaba ejecutar código
@@ -37,6 +38,7 @@ suppressPackageStartupMessages({
 
 AQUI <- "precalculo"
 source(file.path(AQUI, "utf8.R"))
+source(file.path(AQUI, "puntual.R"))   # ppp_F_borde(): ver `curvas()` abajo
 
 DESTINO <- file.path("entrega", "datos")
 dir.create(DESTINO, showWarnings = FALSE, recursive = TRUE)
@@ -63,17 +65,78 @@ st_write(loc, file.path(DESTINO, "taller2_localidades.gpkg"),
 message(sprintf("    sedes %d · localidades %d · EPSG:%d",
                 nrow(col), nrow(loc), st_crs(col)$epsg))
 
-message("B · Los patrones generados")
-# Se regeneran con la MISMA semilla que el precálculo, en el mismo orden,
-# para que las coordenadas que se entregan sean exactamente las que el
-# JSON describe. Si esto se desincroniza, el estudiante calcula sus
-# curvas sobre otros puntos que los que el enunciado le enseña, y nada
-# falla: las curvas simplemente no cuadran. Se comprueba abajo contra el
-# JSON, que es la única forma de verlo.
-SEMILLA <- 20262L
-set.seed(SEMILLA)
-VENTANA <- owin(c(0, 1), c(0, 1))
+message("B · Los patrones, COPIADOS del precálculo y no regenerados")
+# ESTE GUION YA NO GENERA NADA, Y ESA ES LA CORRECCIÓN DE LA FUGA.
+#
+# Hasta el 2026-09-10 esta sección volvía a sortear los sesenta patrones
+# con `set.seed(20262)` y las mismas tres funciones que el precálculo:
+# `rThomas` para uno, `rpoispp` para otro y `rSSI` para el tercero, con
+# los tres metidos en una lista cuyos NOMBRES eran los tres regímenes.
+# Este archivo sí se versiona —tiene que hacerlo: es lo que permite que
+# el dato del enunciado se pueda reconstruir desde fuera—, así que
+# cualquiera que clonase el repositorio tenía delante:
+#
+#   · que hay exactamente TRES regímenes y cómo se llaman,
+#   · que cada trío trae uno de cada —lo que convierte la clasificación
+#     de T2 en un emparejamiento, que es mucho más fácil—,
+#   · y, corriéndolo, la respuesta literal de cada trío.
+#
+# El `.gitignore` sacaba `genera_taller2.R` del repositorio exactamente
+# por eso, y este archivo hacía lo mismo sin que nadie lo mirase. Ver el
+# §0 del plan, «FUGA».
+#
+# Ahora las coordenadas las escribe el precálculo —que no se versiona— y
+# aquí solo se COPIAN y se COMPRUEBAN. Lo que se pierde es la capacidad
+# de reconstruir los patrones sin el precálculo; lo que se gana es que
+# ese archivo ya no sea un solucionario. La comprobación de la sección C
+# es más fuerte que antes: en vez de «regenero y me da lo mismo» dice
+# «lo que se entrega reproduce las curvas publicadas», que es la
+# propiedad que de verdad importa y no necesita saber la semilla.
 R_MAX <- 0.25; R_NODOS <- 51L; RG <- seq(0, R_MAX, length.out = R_NODOS)
+N_PROPIOS <- 24L; N_TRIOS <- 12L
+
+CSV <- file.path(DESTINO, "taller2_patrones.csv")
+if (!file.exists(CSV))
+  stop(sprintf(paste0("PARADO: no está %s. Lo escribe `genera_taller2.R`, que no se versiona ",
+                      "mientras el taller esté vivo. Sin él este guion no puede fabricar los ",
+                      "patrones, y no debe: fabricarlos era la fuga."), CSV))
+filas <- read.csv(CSV, stringsAsFactors = FALSE)
+ids <- unique(filas$patron)
+esperados <- c(sprintf("p%02d", seq_len(N_PROPIOS)),
+               unlist(lapply(seq_len(N_TRIOS), function(i)
+                 sprintf("t%02d%s", i, letters[1:3]))))
+if (!setequal(ids, esperados))
+  stop(sprintf("PARADO: el CSV trae %d identificadores y se esperaban %d",
+               length(ids), length(esperados)))
+message(sprintf("    %d patrones · %d puntos en total", length(ids), nrow(filas)))
+
+# El identificador no puede llevar la familia dentro. La letra del trío
+# es POSICIÓN, y el orden se barajó en el precálculo.
+for (prohibida in c("agregado", "aleatorio", "regular", "thomas", "familia"))
+  if (any(grepl(prohibida, filas$patron, ignore.case = TRUE)))
+    stop(sprintf("PARADO: el identificador de patrón contiene «%s»", prohibida))
+
+# Y la guarda que faltaba: que este archivo no vuelva a saber generar.
+# Se mira a sí mismo, porque la fuga no estaba en lo que producía sino
+# en lo que su propio texto enseñaba a quien lo abriera.
+yo <- paste(readLines(file.path(AQUI, "datos_taller2.R"), warn = FALSE), collapse = "\n")
+cuerpo <- paste(grep("^\\s*#", strsplit(yo, "\n")[[1]], value = TRUE, invert = TRUE),
+                collapse = "\n")
+# Los nombres van PARTIDOS a propósito. La guarda se lee a sí misma, así
+# que un literal entero en esta línea la haría fallar siempre — y una
+# guarda que siempre falla se acaba borrando, que es peor que no tenerla.
+for (prohibida in c(paste0("rTho", "mas("), paste0("rpoi", "spp("),
+                    paste0("rS", "SI("), paste0("set.", "seed(")))
+  if (grepl(prohibida, cuerpo, fixed = TRUE))
+    stop(sprintf(paste0("PARADO: este guion volvió a llevar «%s» fuera de un comentario. ",
+                        "Se versiona, así que eso es publicar cómo se construyeron los ",
+                        "patrones — la fuga del §0. Las coordenadas se copian del CSV que ",
+                        "escribe el precálculo; no se fabrican aquí."), prohibida))
+
+ppp_de <- function(id) {
+  u <- filas[filas$patron == id, ]
+  ppp(u$x, u$y, window = owin(c(0, 1), c(0, 1)), check = FALSE)
+}
 
 a_rejilla <- function(fv, colu) {
   x <- as.numeric(fv$r); y <- as.numeric(fv[[colu]])
@@ -81,78 +144,33 @@ a_rejilla <- function(fv, colu) {
   as.numeric(approx(x[ok], y[ok], xout = RG, rule = 2)$y)
 }
 suppressPackageStartupMessages(library(spatstat.explore))
+# La F NO sale de `Fest`, y tiene que ser la MISMA decisión que toma
+# `genera_taller2.R`: en esta instalación `distmap.ppp()` devuelve
+# distancias al cuadrado y `Fest()` las lee como distancias (M-14 del
+# plan). `ppp_F_borde()` la calcula sobre una rejilla de sondas con
+# `nncross` y `bdist.points`, que sí son exactas, y ya en la rejilla de
+# publicación. Si las dos mitades usaran caminos distintos, la
+# comprobación C de abajo lo diría — que es exactamente para lo que está.
 curvas <- function(p) {
-  G <- Gest(p); FF <- Fest(p)
+  G <- Gest(p)
   K <- Kest(p, correction = "translate"); g <- pcf(p, correction = "translate")
   Kv <- a_rejilla(K, "trans")
   list(r = round(RG, 10), G = round(a_rejilla(G, "km"), 10),
-       F = round(a_rejilla(FF, "km"), 10), K = round(Kv, 10),
+       F = round(ppp_F_borde(p, RG)$f, 10), K = round(Kv, 10),
        L = round(sqrt(pmax(Kv, 0) / pi) - RG, 10),
        g = round(a_rejilla(g, "trans"), 10))
 }
-lee_contraste <- function(cv) {
-  g <- cv$g; L <- cv$L; r <- cv$r
-  i_pico <- which.max(g[-1]) + 1L
-  vuelve <- which(seq_along(g) > i_pico & g <= 1.10)
-  r_vuelve <- if (length(vuelve)) r[vuelve[1]] else NA_real_
-  i_ult <- max(which(L > 0))
-  list(g_max = g[i_pico], arrastre = if (is.na(r_vuelve)) NA_real_ else r[i_ult] - r_vuelve)
-}
-genera_agregado <- function() {
-  kappa <- sample(12:30, 1); escala <- runif(1, 0.015, 0.045); mu <- sample(5:12, 1)
-  rThomas(kappa = kappa, scale = escala, mu = mu, win = VENTANA)
-}
-genera_aleatorio <- function() rpoispp(lambda = sample(120:260, 1), win = VENTANA)
-genera_regular   <- function() rSSI(r = runif(1, 0.045, 0.065), n = sample(90:150, 1), win = VENTANA)
-
-N_PROPIOS <- 24L; N_TRIOS <- 12L
-propios <- vector("list", N_PROPIOS)
-for (i in seq_len(N_PROPIOS)) {
-  repeat {
-    p <- genera_agregado()
-    if (npoints(p) < 80 || npoints(p) > 320) next
-    cv <- curvas(p); ct <- lee_contraste(cv)
-    if (is.na(ct$arrastre) || ct$arrastre < 0.05 || ct$g_max < 2) next
-    propios[[i]] <- p; break
-  }
-}
-trios <- vector("list", N_TRIOS)
-for (i in seq_len(N_TRIOS)) {
-  repeat {
-    ps <- list(agregado = genera_agregado(), aleatorio = genera_aleatorio(),
-               regular = genera_regular())
-    ns <- vapply(ps, npoints, integer(1))
-    if (any(ns < 80 | ns > 320)) next
-    cvs <- lapply(ps, curvas)
-    Gs <- do.call(cbind, lapply(cvs, function(c) c$G))
-    sep <- min(c(max(abs(Gs[,1]-Gs[,2])), max(abs(Gs[,1]-Gs[,3])), max(abs(Gs[,2]-Gs[,3]))))
-    if (sep < 0.25) next
-    o <- sample(3L)
-    trios[[i]] <- ps[o]; break
-  }
-}
-
-filas <- do.call(rbind, c(
-  lapply(seq_len(N_PROPIOS), function(i)
-    data.frame(patron = sprintf("p%02d", i), x = propios[[i]]$x, y = propios[[i]]$y)),
-  unlist(lapply(seq_len(N_TRIOS), function(i)
-    lapply(1:3, function(j)
-      data.frame(patron = sprintf("t%02d%s", i, letters[j]),
-                 x = trios[[i]][[j]]$x, y = trios[[i]][[j]]$y))), recursive = FALSE)))
-write.csv(filas, file.path(DESTINO, "taller2_patrones.csv"), row.names = FALSE)
-message(sprintf("    %d patrones · %d puntos en total",
-                length(unique(filas$patron)), nrow(filas)))
-
-# El identificador no puede llevar la familia dentro.
-for (prohibida in c("agregado", "aleatorio", "regular", "thomas", "familia"))
-  if (any(grepl(prohibida, filas$patron, ignore.case = TRUE)))
-    stop(sprintf("PARADO: el identificador de patrón contiene «%s»", prohibida))
 
 message("C · La comprobación que importa: ¿cuadra con el JSON publicado?")
 # Sin esto, una desincronización entre este guion y el precálculo sería
 # invisible: los dos correrían en verde y el estudiante calcularía sobre
-# otros puntos. Se compara la G del primer propio y la de cada posición
-# de los tríos, que es lo que T2 pide leer.
+# otros puntos.
+#
+# SE COMPARAN LAS CINCO CURVAS, no solo la G. Comparar solo G fue el
+# agujero que dejó pasar M-14 durante toda la construcción: la F llevaba
+# meses sin ser la función de espacio vacío y ni esta comprobación ni el
+# auditor la miraban. Una comprobación que mira una de cinco columnas da
+# la misma sensación de verde que una que las mira todas.
 jd <- jsonlite::fromJSON(file.path(SALIDAS, "taller2_datos.json"), simplifyVector = FALSE)
 cmp <- function(a, b, que, tol = 1e-8) {
   d <- max(abs(as.numeric(a) - as.numeric(b)))
@@ -160,12 +178,25 @@ cmp <- function(a, b, que, tol = 1e-8) {
     stop(sprintf("PARADO: %s no cuadra con el JSON (dif %.2e). El dato entregado y el enunciado describen patrones DISTINTOS", que, d))
   invisible(TRUE)
 }
-for (i in seq_len(N_PROPIOS))
-  cmp(curvas(propios[[i]])$G, unlist(jd$patrones[[i]]$G), sprintf("la G del propio %d", i))
-for (i in seq_len(N_TRIOS)) for (j in 1:3)
-  cmp(curvas(trios[[i]][[j]])$G, unlist(jd$trios[[i]][[j]]$G),
-      sprintf("la G del trío %d posición %s", i, letters[j]))
-message(sprintf("    %d curvas comparadas contra el JSON, todas cuadran", N_PROPIOS + N_TRIOS * 3L))
+COLUMNAS <- c("G", "F", "K", "L", "g")
+n_cmp <- 0L
+for (i in seq_len(N_PROPIOS)) {
+  cv <- curvas(ppp_de(sprintf("p%02d", i)))
+  for (co in COLUMNAS) {
+    cmp(cv[[co]], unlist(jd$patrones[[i]][[co]]), sprintf("la %s del propio %d", co, i))
+    n_cmp <- n_cmp + 1L
+  }
+}
+for (i in seq_len(N_TRIOS)) for (j in 1:3) {
+  cv <- curvas(ppp_de(sprintf("t%02d%s", i, letters[j])))
+  for (co in COLUMNAS) {
+    cmp(cv[[co]], unlist(jd$trios[[i]][[j]][[co]]),
+        sprintf("la %s del trío %d posición %s", co, i, letters[j]))
+    n_cmp <- n_cmp + 1L
+  }
+}
+message(sprintf("    %d curvas comparadas contra el JSON (%d patrones x %d columnas), todas cuadran",
+                n_cmp, N_PROPIOS + N_TRIOS * 3L, length(COLUMNAS)))
 
 for (f in list.files(DESTINO, pattern = "^taller2_", full.names = TRUE))
   message(sprintf("    %-42s %6.1f KB", f, file.size(f) / 1024))

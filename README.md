@@ -12,7 +12,7 @@ con mapas, simuladores, autoevaluación y el mismo análisis resuelto en R y en 
 
 ## Estado
 
-Seis de los diez capítulos del plan están publicados, y con ellos el **Taller 1** y el
+Seis de los diez capítulos del plan están publicados, y con ellos **dos talleres** y el
 **preparcial del Corte I**, que no son capítulos y se cuentan aparte.
 
 | # | Capítulo | Semana | Estado |
@@ -30,8 +30,14 @@ Seis de los diez capítulos del plan están publicados, y con ellos el **Taller 
 
 Los seis capítulos suman 72 módulos, 57 simuladores, 44 mapas, 73 preguntas de
 autoevaluación, 28 ejercicios guiados y 64 bloques de código en cada lenguaje. Fuera de esa
-cuenta van el Taller 1 —9 módulos y 7 ejercicios— y el preparcial del Corte I —7 módulos y
+cuenta van los dos talleres —el 1 con 9 módulos y 7 ejercicios, el 2 con 7 módulos, 5 tareas y
+las 36 preguntas de su banco de defensa— y el preparcial del Corte I —7 módulos y
 36 preguntas que cubren los 30 módulos de los capítulos 1 a 3 que entran en el parcial—.
+
+**El Taller 2 está construido pero no repartido**, y su tarea T2 no se puede publicar todavía:
+las curvas F de su precálculo no son la función de espacio vacío, porque `Fest()` devuelve
+distancias al cuadrado en la instalación de spatstat de este equipo. Está medido y escrito en el
+§0 del `PLAN_Taller_2_Cap_4.md`, con lo que hay que rehacer.
 
 El capítulo 6 es **el primero que publica grafos**, y su presupuesto lo decidió una medición: las
 diez definiciones de vecindad que el temario pide pesan **465 KB sobre los 1 122 municipios** y
@@ -284,8 +290,13 @@ motor, no material del curso. `cuenta_sitio.py` los cuenta aparte por esa razón
 razón contraria cuenta los `taller-*.html` en su propia tabla: son material, pero no son
 capítulos —no tienen autoevaluación y sus módulos no van contra los 120 del plan—.
 
-Los talleres se construyen con la misma cadena (`genera_taller1.R` → `ensambla_taller1.py`
-→ `audita_taller1.py`) y corren por su propio bucle dentro de `audita_todo.sh`.
+Los talleres se construyen con la misma cadena (`genera_tallerN.R` → `ensambla_tallerN.py`
+→ `audita_tallerN.py` → `audita_texto_tallerN.py`) y corren por su propio bucle dentro de
+`audita_todo.sh`, que los descubre por el nombre: el Taller 2 entró sin tocar una línea de ese
+guion. Los dos traen además una pieza que los capítulos no tienen —**un arnés que le inyecta
+defectos a su propio auditor**— y una regla que los gobierna: **el generador de un taller no se
+versiona mientras el taller esté vivo**, porque construye los patrones sabiendo de qué familia es
+cada uno, que es justo lo que se pide clasificar.
 
 **Y hay un cuarto cubo, el de los `preparcial-*.html`.** Un preparcial no es un capítulo
 —no enseña contenido nuevo— ni un taller —no se califica, no se individualiza y se puede
@@ -315,6 +326,12 @@ del Taller 1 apuntaban a `datos/procesado/`, que da 404 en Pages. Son 10,9 MB �
 estaciones del IDEAM, los 60 municipios asignados y los 33 departamentos, sin simplificar,
 porque simplificar la geometría cambiaría las cifras de las variantes ya repartidas—, los
 produce `precalculo/datos_taller1.R` y el `.gitignore` los deja pasar de uno en uno.
+
+El Taller 2 hereda la lección sin repetirla: `precalculo/datos_taller2.R` escribe sus
+`taller2_sedes.gpkg`, `taller2_localidades.gpkg` y `taller2_patrones.csv` —2,0 MB— y se
+comprobó **abriéndolos desde fuera del repositorio** antes de escribir una sola tarea. Y publica
+las capas **completas**, no solo lo que reparte: recortarlas le diría al estudiante qué entró en
+el sorteo, que es información que no le toca.
 
 ---
 

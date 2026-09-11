@@ -964,11 +964,25 @@ class Auditor:
         desescapado por el navegador y la matemática no cambia.
         """
         print("\n=== Las fórmulas, enteras =================================")
-        crudas = [f for f in re.findall(r"\$\$.*?\$\$", self.cuerpo, re.S) if "<" in f]
+        # LAS DOS FORMAS, y la segunda se añadió en C7 del Taller 2 porque
+        # la comprobación estaba pasando POR VACUIDAD en tres documentos
+        # publicados. Miraba solo `$$…$$`, y el Taller 2 no tiene ninguna:
+        # sus 48 fórmulas son todas `\(…\)`. Igual el Taller 1 (18) y el
+        # capítulo 2 (22). Un documento sin fórmulas de bloque salía verde
+        # sin que nadie hubiera mirado una sola de las suyas — que es el
+        # modo de fallo que este archivo entero existe para evitar.
+        # Medido antes de tocar nada: ninguno de los doce documentos del
+        # sitio tiene un «<» crudo en una fórmula en línea, así que ampliar
+        # la comprobación no rompe a nadie.
+        bloque = re.findall(r"\$\$.*?\$\$", self.cuerpo, re.S)
+        linea = re.findall(r"\\\(.*?\\\)", self.cuerpo, re.S)
+        crudas = [f for f in bloque + linea if "<" in f]
         self.exige(not crudas,
                    "ninguna fórmula lleva un «<» sin escapar",
-                   "" if not crudas else
-                   f"{len(crudas)} fórmula(s), la primera: {' '.join(crudas[0].split())[:70]}")
+                   (f"{len(bloque)} de bloque, {len(linea)} en línea"
+                    if not crudas else
+                    f"{len(crudas)} fórmula(s), la primera: "
+                    f"{' '.join(crudas[0].split())[:70]}"))
 
     def codificacion(self) -> None:
         """Bytes crudos donde debería haber una tilde.

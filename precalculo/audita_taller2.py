@@ -59,6 +59,7 @@ archivos publicados no se tocan nunca.
 """
 from __future__ import annotations
 
+import collections
 import json
 import pathlib
 import sys
@@ -128,9 +129,15 @@ def main() -> int:
     CAMPOS_LOC = {"cod_loca", "localidad", "n", "area_km2", "lambda"}
     sobra = sorted({c for v in D["localidades"].values() for c in set(v) - CAMPOS_LOC})
     falta = sorted({c for v in D["localidades"].values() for c in CAMPOS_LOC - set(v)})
+    # EL RÓTULO TIENE 57 CARACTERES DE PRESUPUESTO: `Auditoria.cierto()`
+    # rellena hasta 58 antes del detalle, y uno de 58 o más se queda sin
+    # relleno, pegado a su detalle, y `prueba_auditor_base.nombres()` ya no
+    # puede separarlos. La enumeración de los campos es DETALLE y por eso
+    # baja al detalle, donde además sale de `CAMPOS_LOC` y no puede
+    # quedarse desfasada de lo que se comprueba.
     a.cierto(not sobra and not falta,
-             "de cada localidad se publica SOLO identidad, n, área y lambda",
-             f"sobra {sobra} · falta {falta}")
+             "de cada localidad solo viajan los campos previstos",
+             f"{', '.join(sorted(CAMPOS_LOC))} · sobra {sobra} · falta {falta}")
 
     CAMPOS_T5 = {"localidad", "sigma_informe", "pico_informe", "focos_informe"}
     sobra5 = sorted({c for v in D["t5"].values() for c in set(v) - CAMPOS_T5})
@@ -174,8 +181,14 @@ def main() -> int:
         # que ser el mismo. Sin esta comprobación, renombrar el campo sin
         # tocar la clave pasaba entero: el enunciado imprimiría un nombre
         # y el mapa otro, con todo lo demás cuadrando.
+        # El rótulo lleva el nombre de la localidad DELANTE, así que su
+        # presupuesto son 57 menos ese nombre: con «Rafael Uribe Uribe»
+        # quedaban 39 y el texto gastaba 44, de modo que los cuatro nombres
+        # largos se comían el relleno y arrastraban su detalle —que aquí es
+        # otra vez el nombre—. Va corto y CON HOLGURA: la explicación vive
+        # en el comentario de arriba, que no paga presupuesto.
         a.cierto(pub.get("localidad") == nom,
-                 f"{nom}: su campo `localidad` coincide con su clave",
+                 f"{nom}: `localidad` es la clave",
                  str(pub.get("localidad")))
         Li = loc[loc.localidad == nom].iloc[0]
         area = Li.geometry.area / 1e6
@@ -265,6 +278,76 @@ def main() -> int:
             a.cierto(dif < 0.08, f"patrón propio {i + 1:02d}: su G cuadra con la del CSV",
                      f"máx dif {dif:.4f}")
 
+        # -------------------------------------------------------------
+        # LA F, QUE ES EL AGUJERO POR EL QUE SE COLÓ M-14.
+        #
+        # Hasta el 2026-09-10 este auditor recalculaba G y solo G, y la
+        # sección C de `datos_taller2.R` comparaba G y solo G. Nadie
+        # miraba la F, y la F publicada llevaba toda la construcción sin
+        # ser la función de espacio vacío: `Fest()` se apoya en
+        # `distmap.ppp()`, que en esta instalación devuelve distancias AL
+        # CUADRADO. Se apartaba hasta 0,9662 sobre una función que vive
+        # en [0, 1] y ni un solo check se puso en rojo.
+        #
+        # Se comprueban DOS cosas, y la primera es la que importa porque
+        # no depende de reimplementar nada:
+        #
+        #   (1) LA COTA DE LA UNIÓN. Los discos de radio r alrededor de
+        #       los n puntos cubren como mucho n·pi·r² de área, así que
+        #       la fracción de la ventana erosionada que queda a menos de
+        #       r de algún punto no puede pasar de n·pi·r²/|W_-r|. Es
+        #       aritmética, no una segunda implementación: una F que la
+        #       viole no es una F, venga de donde venga. La rota la
+        #       violaba por un factor de 40 en el segundo nodo.
+        #   (2) LA CURVA ENTERA, recalculada aquí con la misma rejilla de
+        #       sondas de `ppp_F_borde()` pero con `cKDTree` en vez de
+        #       `nncross`. Eso sí son dos implementaciones distintas, y
+        #       por eso la tolerancia puede ser estrecha.
+        # -------------------------------------------------------------
+        LADO_SONDAS = 400
+        gx = np.linspace(0.0, 1.0, LADO_SONDAS)
+        GX, GY = np.meshgrid(gx, gx)
+        sondas = np.c_[GX.ravel(), GY.ravel()]
+        # distancia al borde del cuadrado unidad
+        b_sondas = np.minimum(np.minimum(sondas[:, 0], 1 - sondas[:, 0]),
+                              np.minimum(sondas[:, 1], 1 - sondas[:, 1]))
+
+        def F_sondas(xy, rg):
+            d, _ = cKDTree(xy).query(sondas, k=1)
+            out = np.empty(len(rg))
+            for k, r in enumerate(rg):
+                usable = b_sondas > r
+                out[k] = (d[usable] <= r).mean() if usable.any() else np.nan
+            return out
+
+        peor_cota, peor_f, peor_mono = 0.0, 0.0, 0.0
+        familias = [("patrones", f"p{i + 1:02d}", D.get("patrones", [])[i])
+                    for i in range(len(D.get("patrones", [])))]
+        for t, tres in enumerate(D.get("trios", [])):
+            for j in range(3):
+                familias.append(("trios", f"t{t + 1:02d}{'abc'[j]}", tres[j]))
+        for _, ident, pub in familias:
+            xy = P[P.patron == ident][["x", "y"]].to_numpy()
+            rg = np.array(pub["r"])
+            Fp = np.array(pub["F"])
+            n = len(xy)
+            erosion = np.clip(1 - 2 * rg, 0, None) ** 2
+            with np.errstate(divide="ignore", invalid="ignore"):
+                cota = np.where(erosion > 0,
+                                np.minimum(1.0, n * np.pi * rg ** 2 / np.maximum(erosion, 1e-12)),
+                                1.0)
+            peor_cota = max(peor_cota, float(np.max(Fp - cota)))
+            peor_mono = max(peor_mono, float(np.max(np.maximum(0.0, -np.diff(Fp)))))
+            peor_f = max(peor_f, float(np.nanmax(np.abs(Fp - F_sondas(xy, rg)))))
+        a.cierto(peor_cota <= 1e-9,
+                 "ninguna F se pasa de la cota de la unión",
+                 f"peor exceso {peor_cota:.6f}")
+        a.cierto(peor_mono <= 1e-9, "las 60 F son monótonas no decrecientes",
+                 f"peor bajada {peor_mono:.2e}")
+        a.cierto(peor_f < 1e-8,
+                 "las 60 F se recalculan sobre 400x400 sondas",
+                 f"peor dif {peor_f:.2e}")
+
     # -----------------------------------------------------------------
     a.titulo("Que la posición del trío no delate la familia")
     # Se clasifica cada patrón por su propia G a corta distancia: los
@@ -284,6 +367,47 @@ def main() -> int:
         a.cierto(mayoria <= n_trios * 0.6,
                  f"la posición {pos + 1} no lleva siempre la misma familia",
                  f"{mayoria} de {n_trios}")
+
+    # -----------------------------------------------------------------
+    # LO QUE UN ESTUDIANTE PUEDE LEER EN EL REPOSITORIO.
+    #
+    # El JSON ya se vigila arriba, pero la fuga del §0 no estaba en el
+    # JSON: estaba en `datos_taller2.R`, que SÍ se versiona —tiene que
+    # hacerlo, es lo que permite reconstruir el dato del enunciado desde
+    # fuera— y que hasta el 2026-09-10 regeneraba los sesenta patrones
+    # con `set.seed()` y las tres funciones generadoras, metidas en una
+    # lista cuyos nombres eran los tres regímenes. Publicaba, sin que
+    # nadie lo mirara, cuántas familias hay, cómo se llaman, que cada
+    # trío trae una de cada, y —corriéndolo— cuál es cuál.
+    #
+    # `genera_taller2.R` está en `.gitignore` exactamente por eso. Esta
+    # comprobación es la que faltaba: mirar también los guiones que sí
+    # viajan. Se ignoran los comentarios, porque el arreglo se explica en
+    # ellos y explicar un defecto cerrado no lo reabre.
+    a.titulo("Lo que un estudiante puede leer en el repositorio")
+    GENERADORES = ["rThomas(", "rpoispp(", "rSSI(", "set.seed("]
+    FAMILIAS_EN_CODIGO = ["agregado", "aleatorio", "regular"]
+    versionados = [RAIZ / "precalculo" / "datos_taller2.R"]
+    for ruta in versionados:
+        if not ruta.exists():
+            a.salta(f"{ruta.name} · fuga de generación", "el archivo no está")
+            continue
+        vivas = [ln for ln in ruta.read_text(encoding="utf-8").splitlines()
+                 if not ln.lstrip().startswith("#")]
+        cuerpo = "\n".join(vivas)
+        # La guarda del propio guion parte sus literales para no cazarse
+        # a sí misma; aquí se ignoran esas líneas por la misma razón.
+        cuerpo = "\n".join(ln for ln in vivas if "paste0(" not in ln)
+        malos = [g for g in GENERADORES if g in cuerpo]
+        a.cierto(not malos, f"{ruta.name} no sabe generar patrones", str(malos))
+        # Los tres regímenes como identificadores del código —no dentro de
+        # una cadena de una guarda, que es legítimo— dirían cuántas
+        # familias hay y cómo se llaman.
+        asignaciones = [ln for ln in vivas
+                        if any(f"{f} =" in ln or f"{f} <-" in ln for f in FAMILIAS_EN_CODIGO)]
+        a.cierto(not asignaciones,
+                 f"{ruta.name} no nombra los regímenes",
+                 str(asignaciones[:2]))
 
     # -----------------------------------------------------------------
     a.titulo("Las envolventes de T4(b)")
@@ -320,6 +444,67 @@ def main() -> int:
              "todo índice de trío existe")
     a.cierto(all(1 <= v["envolvente"] <= len(D.get("envolventes", [])) for v in V),
              "todo índice de envolvente existe")
+
+    # -----------------------------------------------------------------
+    # M-20 · el contraste de T4(a) tiene que cumplir DOS cosas a la vez,
+    # y son opuestas: ser un contraste de verdad —si no, T4(b) no tiene
+    # respuesta— y no ser el mismo para media clase —si no, el déficit y
+    # el perímetro/área de la ventana de contraste son un literal
+    # compartible—. Hasta el 2026-09-10 la regla era «la más opuesta» y
+    # cumplía la primera olvidando la segunda: Antonio Nariño salía en el
+    # 81,4 % de las variantes.
+    #
+    # Nada de esto se lee del JSON: perímetro y área se rehacen aquí con
+    # geopandas desde el GeoPackage, que es la misma superficie que
+    # descarga el estudiante.
+    a.titulo("M-20 · el contraste de T4(a): opuesto, y no el de todos")
+    geo = {r.localidad: r.geometry for _, r in loc.iterrows()}
+    pa = {k: (g.length / 1000) / (g.area / 1e6) for k, g in geo.items() if k in D["localidades"]}
+    # NADA DE ESTO INDEXA A PELO. Escrito con `pa[v["localidad"]]` este
+    # bloque mataba al auditor con KeyError en cinco de las inyecciones
+    # del arnés —una localidad renombrada, una que desaparece, una
+    # variante que apunta fuera, el mojibake— y una muerte no informa de
+    # nada: sale el código != 0 y ninguna comprobación se ha visto
+    # fallar. Es la misma lección de las seis inyecciones de C4, veinte
+    # líneas más arriba, y volvió a pasar al escribir esto.
+    pares = [(v["localidad"], v["contraste"]) for v in V
+             if v.get("localidad") in pa and v.get("contraste") in pa]
+    a.cierto(len(pares) == len(V), "toda pareja de T4(a) resuelve sus dos localidades",
+             f"{len(V) - len(pares)} sin resolver de {len(V)}")
+    razones = [max(pa[x], pa[y]) / min(pa[x], pa[y]) for x, y in pares]
+    a.cierto(razones and min(razones) >= 2, "el contraste dobla el perímetro/área, o lo parte",
+             f"razón mínima {min(razones):.3f}" if razones else "sin parejas que medir")
+    ctr = collections.Counter(y for _, y in pares)
+    a.cierto(len(ctr) == len(usables), "las 16 salen de contraste alguna vez",
+             f"{len(ctr)} distintas")
+    a.cierto(ctr and max(ctr.values()) / len(V) <= 0.30,
+             "ninguna es el contraste de más de un tercio",
+             f"{max(ctr, key=ctr.get)} en el {100 * max(ctr.values()) / len(V):.1f} %"
+             if ctr else "sin parejas que contar")
+    por_loc = collections.defaultdict(set)
+    for x, y in pares:
+        por_loc[x].add(y)
+    n_min = min((len(x) for x in por_loc.values()), default=0)
+    a.cierto(n_min >= 2, "ninguna localidad tiene un contraste único", f"mínimo {n_min}")
+
+    # Y EL MECANISMO, que es lo que T4(b) pide nombrar: «la fracción de
+    # la ventana pegada al borde es, para r pequeño, aproximadamente r
+    # por perímetro/área». Se comprueba con un buffer negativo, que no
+    # tiene nada que ver con cómo lo calcula el generador ni con lo que
+    # publica el JSON. A 100 m la aproximación se cumple con un 8 % de
+    # holgura y la franja ordena las 38 parejas asignables igual que el
+    # cociente — que es la promesa del enunciado.
+    R_FRANJA = 100
+    franja = {k: 1 - g.buffer(-R_FRANJA).area / g.area for k, g in geo.items() if k in pa}
+    cociente = [franja[k] / (R_FRANJA / 1000 * pa[k]) for k in pa]
+    a.cierto(cociente and 0.8 < min(cociente) and max(cociente) <= 1.0,
+             f"la franja de {R_FRANJA} m es ~r·perímetro/área",
+             f"de {min(cociente):.2f} a {max(cociente):.2f} de r·P/A"
+             if cociente else "sin ventanas que medir")
+    invertidas = {(x, y) for x, y in pares
+                  if (franja[x] > franja[y]) != (pa[x] > pa[y])}
+    a.cierto(not invertidas, "la franja ordena como el cociente en toda pareja",
+             f"{len(invertidas)} invertidas: {sorted(invertidas)[:2]}")
 
     return a.cierre()
 
