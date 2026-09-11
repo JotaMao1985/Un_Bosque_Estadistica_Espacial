@@ -252,6 +252,17 @@ def tarea(num, peso, titulo, enunciado, literales, pista):
 # obligatoria de qué se consultó y qué se verificó, y aviso explícito de
 # la recalificación en la defensa. Lo que cambia es el peso: allí la
 # defensa era el 40 % y confirmaba; aquí es el 60 % y ES el instrumento.
+# EL CALENDARIO, EN UN SOLO SITIO. Se movió dos veces —del viernes 18 de
+# septiembre al martes 6 / jueves 8 de octubre el 2026-09-09, y al
+# domingo 11 / martes 13 el 2026-09-11— y la segunda vez las fechas
+# estaban escritas a mano en cuatro sitios de la prosa, y la hora en
+# ninguno. `audita_texto_taller2.py` exige las de aquí y para si reaparece
+# cualquiera de las viejas.
+ENTREGA      = "domingo 11 de octubre de 2026"
+HORA_LIMITE  = "13:00"
+SUSTENTACION = "martes 13 de octubre"
+CONTROL      = "la semana del 28 de septiembre"   # el control de C10b (§5.3)
+
 MOD1 = cabecera(
     1, "Cómo se trabaja este taller", "Read this first",
     "Nada. Este módulo no se califica: fija las reglas, resuelve tu variante "
@@ -345,15 +356,16 @@ MOD1 = cabecera(
       <h3>Cómo se entrega, y cómo se sustenta</h3>
 
       <div class="note">
-        <p><strong>El escrito: un solo PDF, el martes 6 de octubre de 2026.</strong> Se entrega
+        <p><strong>El escrito: un solo PDF, el {ENTREGA}, a más tardar a las {HORA_LIMITE}.</strong>
+          Se entrega
           por <strong>Brightspace</strong>, con el nombre
           <code>T2_Apellido_TuDocumento.pdf</code>. No se aceptan entregas tarde.</p>
         <p><strong>La portada lleva dos cosas obligatorias</strong>, y sin cualquiera de las dos
           la entrega está incompleta: la <strong>línea de identificación</strong> que te da el
           buscador de aquí abajo, copiada <em>literal</em>, y la <strong>bitácora</strong> de
           media página.</p>
-        <p style="margin-bottom:0;"><strong>La sustentación: jueves 8 de octubre, en clase, una
-          sola sesión.</strong> Son <strong>siete minutos</strong> por persona, repartidos en tres
+        <p style="margin-bottom:0;"><strong>La sustentación: {SUSTENTACION}, presencial, en el
+          espacio de la clase, una sola sesión.</strong> Son <strong>siete minutos</strong> por persona, repartidos en tres
           bloques: <strong>2 min</strong> defendiendo <em>una</em> decisión de tu escrito, que
           elige el profesor después de haberlo leído (30&nbsp;% de la defensa);
           <strong>3 min</strong> con <strong>tres preguntas</strong> de un banco publicado con
@@ -363,11 +375,12 @@ MOD1 = cabecera(
       </div>
 
       <div class="warning">
-        <p style="margin-bottom:0;"><strong>En una clase de la semana del 28 de septiembre traes
-          tres cifras.</strong> Tu localidad, su <em>n</em> y su λ, en voz alta, y nada más. No se
-          califica y no hay que entregar nada: es un control para atrapar a tiempo a quien esté
-          resolviendo una variante que no es la suya. Si eso pasa y se descubre el 6 de octubre,
-          ya no hay nada que hacer; si se descubre esa semana, quedan días de sobra.</p>
+        <p style="margin-bottom:0;"><strong>En una clase de {CONTROL} traes cinco
+          cosas.</strong> Tu localidad, su <em>n</em> y su λ, tu patrón y tu trío —las cinco están
+          en la tabla que te da el buscador—, en voz alta, y nada más. No se califica y no hay que
+          entregar nada: es un control para atrapar a tiempo a quien esté resolviendo una variante
+          que no es la suya. Si eso pasa y se descubre el día de la entrega, ya no hay nada que
+          hacer; si se descubre esa semana, quedan días de sobra.</p>
       </div>
 
       <div class="note">
@@ -1514,7 +1527,8 @@ MOD7 = cabecera(
 
       <h3>La rúbrica de la sustentación · 60&nbsp;%</h3>
 
-      <p>La sustentación es el <strong>jueves 8 de octubre</strong>, en una sola sesión, y son
+      <p>La sustentación es el <strong>{SUSTENTACION}</strong>, presencial y en el espacio de la
+        clase, en una sola sesión, y son
         <strong>siete minutos</strong> por persona. No es una confirmación del escrito: es el
         instrumento que más pesa, y por eso su rúbrica se publica con el mismo detalle.</p>
 
@@ -1589,10 +1603,11 @@ MOD7 = cabecera(
 
       <div class="note">
         <p style="margin-bottom:0;"><strong>Qué se entrega, otra vez y en corto.</strong> Un PDF, el
-          <strong>martes 6 de octubre</strong>, con la <strong>línea de identificación</strong>
-          copiada literal en la portada y la <strong>bitácora</strong> de media página. Sin
-          cualquiera de las dos, la entrega está incompleta. Y en una clase de la semana del 28 de
-          septiembre traes tres cifras en voz alta: tu localidad, tu <em>n</em> y tu λ.</p>
+          <strong>{ENTREGA}, a más tardar a las {HORA_LIMITE}</strong>, con la <strong>línea de
+          identificación</strong> copiada literal en la portada y la <strong>bitácora</strong> de
+          media página. Sin cualquiera de las dos, la entrega está incompleta. Y en una clase de
+          {CONTROL} traes cinco cosas en voz alta: tu localidad, tu <em>n</em> y tu λ, tu patrón y
+          tu trío.</p>
       </div>
 """ + CIERRE
 

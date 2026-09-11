@@ -7,8 +7,8 @@ Taller teórico-práctico sobre *Patrones puntuales: descripción, CSR y funcion
 y preparación del parcial 2. Evalúa **apropiación de conceptos, interpretación
 de resultados y comprensión de procedimientos**, no ejecución de código.
 
-**Fecha del plan:** 2026-09-09 (miércoles, semana 6) · **Calendario revisado el 2026-09-09**
-**Entrega:** martes **6 de octubre de 2026** · **Sustentación:** jueves **8 de octubre**
+**Fecha del plan:** 2026-09-09 (miércoles, semana 6) · **Calendario revisado el 2026-09-09 y otra vez el 2026-09-11**
+**Entrega:** domingo **11 de octubre de 2026, a más tardar a las 13:00** · **Sustentación:** martes **13 de octubre**, presencial, en el espacio de la clase
 **Reparto:** propuesto el lunes 21 de septiembre (§2.2) — pendiente de confirmar
 
 ---
@@ -119,8 +119,8 @@ que cierra la fuga de verdad, y que hay que hacer de todas formas por M-14—.
 publicar**, porque este plan no las fija en ninguna parte: el canal y el nombre del archivo
 (**Brightspace**, `T2_Apellido_TuDocumento.pdf`), que **no hay plantilla LaTeX** —el Taller 1 sí la
 tenía, `entrega/plantilla_taller1.tex`, y aquí no existe ni hay tarea que la construya— y que **no
-se publica límite de páginas**, que preferí omitir antes que inventarlo. La hora límite del martes
-6 tampoco está fijada.
+se publica límite de páginas**, que preferí omitir antes que inventarlo. La hora límite quedó fijada el
+2026-09-11: **13:00 del domingo 11 de octubre**, y ya está publicada.
 
 **C5b HECHA (2026-09-10)**: el mismo `ensambla_taller2.py` añade **T3, T4, T5 y las dos
 rúbricas**. El HTML pasa a **1 124 KB** y a **siete módulos**, con **5 tareas al 8 %** —los pesos
@@ -685,7 +685,7 @@ texto de la celda, porque la pregunta 18 lleva `<code>` dentro y una expresión 
 36 = 12 × 3. Con once sobran tres preguntas, con trece faltan tres, y en los dos casos el sorteo
 sin reemplazo deja de cuadrar. El guion **para** con la aritmética delante en vez de sortear con
 repetición en silencio — probado con una lista de once. Si el curso cambia de tamaño hay que
-decidirlo **antes** del jueves 8, y es barato: sobran y no pasa nada, o faltan y hay que escribir
+decidirlo **antes** del martes 13, y es barato: sobran y no pasa nada, o faltan y hay que escribir
 tres preguntas más.
 
 **M-20 CERRADA (2026-09-10) · el contraste rota, y el umbral que lo permite está medido.**
@@ -801,14 +801,57 @@ funciona para cualquiera con el enlace: una regeneración antes del 21 sigue sie
 **ya no es invisible** — cambiaría la variante de quien lo haya abierto. En la práctica la fecha
 de congelación se adelanta a hoy, salvo decisión expresa.
 
+**EL CALENDARIO SE MOVIÓ OTRA VEZ (2026-09-11), el mismo día de la fusión, y el empuje esperó.**
+Entrega **domingo 11 de octubre de 2026, a más tardar a las 13:00**; sustentación **martes 13 de
+octubre, presencial, en el espacio de la clase**. El control de la semana 9 no se mueve.
+
+- **Llegó con la fusión hecha y el arnés corriendo, antes de empujar**, y por eso el calendario viejo
+  no llegó a publicarse: el HTML fusionado decía «martes 6» y «jueves 8».
+- **Las fechas estaban escritas a mano en cuatro sitios de la prosa** —dos en el módulo 1 y dos en
+  el 7— y la hora en ninguno. Ahora viven en cuatro constantes de `ensambla_taller2.py`
+  (`ENTREGA`, `HORA_LIMITE`, `SUSTENTACION`, `CONTROL`), y `audita_texto_taller2.py` tiene una
+  sección nueva que **exige las tres nuevas y prohíbe las seis viejas**, con el dígito aislado para
+  que «6 de octubre» no case dentro de «16 de octubre». Texto **94 · 0** (eran 84).
+- **Y al tocar esos párrafos salió un defecto mío de C10b.** El enunciado seguía diciendo que al
+  control se traen **«tres cifras: tu localidad, su n y su λ»**, cuando la hoja de `--control` pide
+  **cinco** desde que el §5.3 midió que tres no distinguen a nadie — y el auditor de texto hasta lo
+  exigía, con `("el control de la semana 9", "tres cifras")`. Arreglé el plan y el calificador y
+  me dejé el enunciado: los doce habrían llegado al aula con tres cifras y se les habrían pedido
+  cinco. Corregido en los dos párrafos y en el auditor.
+- **Arnés de texto: 23 de 23**, con tres inyecciones nuevas —vuelve una fecha vieja, se pierde la
+  hora, el control vuelve a pedir menos—. **Y la primera pasada dio 22 de 23, con razón**: la
+  inyección del control solo alcanzó una de las dos menciones —la del módulo 1 está partida en dos
+  líneas en el HTML— y el auditor, que exigía que «cinco cosas» *apareciera*, pasó en verde con el
+  enunciado diciendo cinco en un módulo y tres en el otro. Es el fallo exacto de este cambio —una
+  copia al día y la otra atrás—, así que se cerró en el auditor y no en la inyección: **toda frase
+  que dice qué se trae al control tiene que decir «cinco cosas»**.
+
+**Lo que el calendario nuevo mueve, y dos cosas que no puedo cerrar yo:**
+
+1. **La sustentación cae en la semana 11, que es la del parcial 2.** El §2.2 contaba con «al menos
+   cuatro días» entre las dos; ese margen ya no existe, y **la fecha del parcial 2 sigue sin estar
+   escrita en ningún plan del repositorio**. Si es el jueves 15, quedan dos días; si fuera el mismo
+   martes, no cabe.
+2. **«En el espacio de la clase» vuelve concreta la comprobación que el §10 dejó viva**: que la
+   sesión del martes 13 sea de **2 h** y no de 1,5. Con 2 h, 12 × 8 = 96 min caben con 24 de margen
+   (§4.1); con 1,5, la refutación tiene que pasar al escrito.
+3. **La lectura de C11 va del domingo a las 13:00 al martes**: día y medio útil —la tarde del
+   domingo y el lunes—, algo menos que los dos días del calendario anterior.
+4. **T5 podría abarcar más del capítulo 5, y no se toca.** Se quedó en los módulos 1–3 porque la
+   entrega caía el segundo día de la semana 10; ahora cae después de cerrarla. La restricción deja
+   de ser necesaria, pero el taller se reparte el 21 tal como está: ensanchar una tarea ya publicada
+   es peor que dejarla estrecha. Si Javier quiere ensancharla, la ventana es antes del 21.
+
 **Siguiente: el reparto del lunes 21.** La fase de construcción queda cerrada — C1…C11 tienen
 hecho todo lo que se puede hacer antes de repartir, no hay ningún defecto abierto sobre el
 material, y **M-20 se cerró** individualizando el contraste. Lo único vivo es una decisión y no un
 fallo: las **tres logísticas de entrega** del §0 que siguen sin confirmar —canal y nombre del
-archivo, que no hay plantilla LaTeX, y que no se publica límite de páginas ni hora—. Y cualquier
+archivo, que no hay plantilla LaTeX, y que no se publica límite de páginas; la hora quedó fijada el
+2026-09-11—. Y cualquier
 regeneración tiene que caer **antes** del lunes 21: después, `genera_taller2.R` no se vuelve a
 correr (§9).
-**El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
+**Y OTRA VEZ EL 2026-09-11** —entrega el domingo 11 a las 13:00, sustentación el martes 13 en
+clase—: ver la nota del final del §0. **El calendario se movió el 2026-09-09**: la entrega pasa del 18 de septiembre al **6 de octubre**
 y la sustentación al **8**. Eso mueve el taller de la semana 7 a la **semana 10** y le cambia el
 papel: ver **§2.2**, que es lo primero que hay que leer si vienes del plan anterior. Este archivo es la fuente de verdad del
 Taller 2, igual que `PLAN_Taller_1_Caps_1_2.md` lo es del primero. Lleva el estado de cada paso
@@ -897,7 +940,7 @@ defiende. Eso tiene tres consecuencias que hay que construir, no suponer:
 | **Alcance** | **El capítulo 4 entero: los 11 módulos de contenido** | Corrige el encargo inicial («hasta el módulo 9»). Entran borde (10) y envolventes (11), y con ellos las tres tareas que la pregunta sobre corrección de borde intentaba esquivar |
 | **Dato propio** | **Los dos: localidad real + patrón generado** | Dos catálogos y dos auditorías. Es la única forma de cubrir 1–11: la ventana real sostiene 1, 2, 5, 6, 10; el patrón generado es el **único** que sostiene el contraste K–g del módulo 9 (medido, §2.2) |
 | **Formato** | **Escrito 40 % + defensa oral 60 %** | Invierte el molde del Taller 1. El banco pasa a ser el instrumento principal |
-| ~~Reparto semana 6, entrega viernes 18~~ | **REVISADO (2026-09-09): entrega martes 6 de octubre, sustentación jueves 8** | Mueve el taller a la **semana 10** y le cambia el papel (§2.2). La construcción pasa de 2 días a **27**, y con ella se cae el riesgo que dominaba el §10 |
+| ~~Reparto semana 6, entrega viernes 18~~ | **REVISADO (2026-09-09): entrega martes 6 de octubre, sustentación jueves 8** · **y otra vez (2026-09-11): entrega domingo 11 a las 13:00, sustentación martes 13** | Mueve el taller a la **semana 10** y le cambia el papel (§2.2). La construcción pasa de 2 días a **27**, y con ella se cae el riesgo que dominaba el §10 |
 | Individualización | Por número de documento, **tres últimos dígitos**, 1000 variantes | Igual que el Taller 1, **más el anclaje nuevo del §5.2** |
 | Modalidad | Individual, en casa + defensa en clase | La individualización por documento pierde sentido en grupo |
 | **Capítulo 5** | **Entra por UNA tarea (T5), no por el banco** (2026-09-09) | El escrito pasa a **cinco tareas del 8 %**. El parcial 2 cubre los capítulos 4 y 5, así que sin T5 media evaluación llegaba sin ensayo. Restringida a los módulos 1–3 por calendario (§10) |
@@ -924,8 +967,8 @@ grande que trae el calendario nuevo**, y es gratis.
 | 7 | 14 – 18 sep | capítulo 4 (cierra) |
 | 8 | 21 – 25 sep | capítulo 5 · **reparto propuesto: lunes 21** |
 | 9 | 28 sep – 2 oct | capítulo 5 |
-| 10 | 5 – 9 oct | capítulo 5 (cierra) · **ENTREGA martes 6** · **SUSTENTACIÓN jueves 8** |
-| 11 | 12 – 16 oct | **Parcial 2** |
+| 10 | 5 – 9 oct | capítulo 5 (cierra) · ~~entrega martes 6 · sustentación jueves 8~~ · **ENTREGA domingo 11, 13:00** |
+| 11 | 12 – 16 oct | **SUSTENTACIÓN martes 13**, en clase · **Parcial 2** (fecha sin fijar) |
 
 Tres consecuencias, y la tercera es una pregunta abierta que no puedo cerrar yo:
 
@@ -934,6 +977,8 @@ Tres consecuencias, y la tercera es una pregunta abierta que no puedo cerrar yo:
    en la semana siguiente —**su fecha exacta no está fijada en ningún plan del repositorio**, solo
    «semana 11»—, así que el margen es de al menos cuatro días. Cabe, y el enunciado puede decirlo
    en cuanto la fecha se sepa.
+   > **Actualización del 2026-09-11:** la sustentación pasa al martes 13, que ES la semana 11. El
+   > margen de «al menos cuatro días» ya no existe — ver el final del §0.
 2. **La sustentación ya no es el mismo día que la entrega, son dos días después.** El plan anterior
    no podía suponerlo y ahora sí: **el bloque «su variante» mejora solo**, porque el profesor elige
    qué decisión defiende cada estudiante **habiendo leído su escrito**, en vez de al azar. Recogido
@@ -1198,6 +1243,8 @@ sale gratis en peso: el taller no publica ninguna superficie.
 > **martes 6 de octubre**, el segundo día de la semana 10. Los módulos tardíos del capítulo 5 —la
 > K inhomogénea vive en el **módulo 10**— no están garantizados a esa fecha. T5 se queda en lo que
 > con seguridad se ha visto al cerrar la semana 9. Ver el riesgo en el §10.
+> **Con la entrega del domingo 11 (2026-09-11)** el capítulo 5 ya está cerrado al entregar: la
+> restricción deja de ser necesaria, y no se toca — ver el final del §0.
 
 ### T-todas · La bitácora · requisito de entrega, no tarea
 
@@ -1297,10 +1344,11 @@ se evalúa en vivo. El banco lo cubre a fondo.
 Con la defensa al 60 % deja de ser una confirmación y pasa a ser **el instrumento**. Eso obliga a
 tres cosas que el Taller 1 no necesitaba:
 
-**4.1 · Estructura fija, publicada en el enunciado. Una sola sesión, el jueves 8 de octubre**
-(decidida el 2026-09-09; fecha fijada el mismo día).
+**4.1 · Estructura fija, publicada en el enunciado. Una sola sesión, el martes 13 de octubre**
+(decidida el 2026-09-09; fecha fijada el mismo día y movida el 2026-09-11: presencial, en el espacio de la clase).
 
-Los **dos días** entre la entrega (martes 6) y la sustentación (jueves 8) no son holgura: son lo
+Los **dos días** entre la entrega (martes 6) y la sustentación (jueves 8) —**día y medio** desde el
+2026-09-11: del domingo 11 a las 13:00 al martes 13— no son holgura: son lo
 que hace que el bloque «su variante» sea una defensa y no una lotería. Doce escritos leídos en dos
 días es trabajo real y hay que contarlo — es la tarea **C11** del §8.
 
@@ -1767,7 +1815,7 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
   - [ ] quien tenga una discrepancia se corrige **ahí**, con 4 días aún por delante
 - **Dependencias:** el taller repartido · **Tamaño: S**
 
-**C11 · La lectura de los doce escritos** — entre el 6 y el 8 de octubre — **Tamaño: M**
+**C11 · La lectura de los doce escritos** — entre el 11 y el 13 de octubre — **Tamaño: M**
 - **Descripción:** leer las doce entregas y elegir, para cada estudiante, **la decisión que va a
   defender** en el bloque de 2 min. Es lo que los dos días de margen compran.
 - **EL INSTRUMENTO ESTÁ HECHO (2026-09-10)**, que es lo construible antes de la entrega:
@@ -1790,8 +1838,8 @@ código fuente». `audita_taller2.py` vuelve a mirarlo ahí, ya incrustado.
   estudiantes sobran tres preguntas y con trece faltan tres, y en los dos casos el sorteo sin
   reemplazo deja de cuadrar. El guion **para** con la aritmética delante en vez de sortear con
   repetición en silencio. Si el curso cambia de tamaño hay que decidir —sobran y no pasa nada, o
-  faltan y hay que escribir tres preguntas más— y decidirlo **antes** del jueves 8.
-- **Criterios de aceptación, para los días** (6 – 8 de octubre):
+  faltan y hay que escribir tres preguntas más— y decidirlo **antes** del martes 13.
+- **Criterios de aceptación, para los días** (11 – 13 de octubre):
   - [ ] una decisión elegida y anotada por estudiante, con la razón
   - [ ] **la bitácora de cada uno leída** (§6): es lo que se contrasta en la sustentación
   - [ ] comprobado que la portada de cada uno cuadra con su documento (§5.2): quien resolvió una
@@ -1829,11 +1877,11 @@ septiembre), no dos:
 | 14 – 17 sep | **C3** y **C4** ‖ **C5** y **C6** | La auditoría **en paralelo** con el HTML, no después |
 | 18 – 20 sep | **C7**, **C8**, Checkpoint B | Queda el fin de semana para la lectura completa del enunciado |
 | **lun 21 sep** | **C9 · reparto** | El capítulo 4 cerró el viernes 18: el taller sale con el capítulo recién terminado |
-| 21 sep – 6 oct | *(el estudiante trabaja)* · **C10** | El calificador se escribe mientras, sin prisa |
-| **28 sep – 2 oct** | **C10b · control de la semana 9** | Tres cifras por estudiante en clase (§5.3). Atrapa la variante ajena con cuatro días de margen |
-| **mar 6 oct** | **Entrega** | |
-| 6 – 8 oct | **C11** · lectura de los doce escritos | Lo que compra la separación entrega/sustentación |
-| **jue 8 oct** | **Sustentación** | Una sesión, 7 min por estudiante (§4.1) |
+| 21 sep – 11 oct | *(el estudiante trabaja)* · **C10** | El calificador se escribe mientras, sin prisa |
+| **28 sep – 2 oct** | **C10b · control de la semana 9** | Cinco cosas por estudiante en clase (§5.3). Atrapa la variante ajena con nueve días de margen |
+| **dom 11 oct, 13:00** | **Entrega** | Movida el 2026-09-11 desde el martes 6 |
+| 11 – 13 oct | **C11** · lectura de los doce escritos | Día y medio útil: la tarde del domingo y el lunes |
+| **mar 13 oct** | **Sustentación** | Presencial, en el espacio de la clase. Una sesión, 7 min por estudiante (§4.1) |
 
 **Lo que el calendario nuevo NO cambia:** C3 y C4 siguen teniendo que ir en paralelo con C5. Tener
 doce días en vez de dos hace que quepan cómodamente; no hace que puedan ir después.
@@ -1846,7 +1894,7 @@ doce días en vez de dos hace que quepan cómodamente; no hace que puedan ir des
 |---|---|---|
 | **Regenerar el precálculo después de repartir** | **Alto** | Reasigna las 1000 variantes. Una vez publicado, `genera_taller2.R` no se vuelve a ejecutar; el enunciado se corrige por el ensamblador. Es la lección del Taller 1 |
 | **El JSON publicado filtra la familia del patrón** | **Alto** | Guarda explícita en C1 y comprobación doble en C3, también contra el JSON ya incrustado en el HTML |
-| ~~La defensa al 60 % no cabe en una sesión~~ **RESUELTO (2026-09-09)** | — | **Una sesión, 7 min por estudiante**: 12 × 8 = 96 min sobre los 120 de la sesión (§4.1). Lo que queda vivo es la comprobación de que la sesión es de 2 h y no de 1,5 — si es de 1,5, la refutación pasa al escrito |
+| ~~La defensa al 60 % no cabe en una sesión~~ **RESUELTO (2026-09-09)** | — | **Una sesión, 7 min por estudiante**: 12 × 8 = 96 min sobre los 120 de la sesión (§4.1). Lo que queda vivo es la comprobación de que la sesión es de 2 h y no de 1,5 —**y desde el 2026-09-11 es concreta: la clase del martes 13**— si es de 1,5, la refutación pasa al escrito |
 | **La sesión única regala ventaja al que defiende al final** | **Medio** | Nace de la decisión de hoy: nadie sale del aula. Sorteo **sin reemplazo** sobre un banco de **36 = 12 × 3**, más **12** afirmaciones falsas distintas para la refutación (§4.5, C6). El sorteo se hace **antes** de la sesión y queda registrado |
 | **T1 se solapa con el ejercicio e3 del capítulo** | **Medio** | §3.5, y la reserva medida de M-5 (duplicados exactos, de 0 a 22 según la localidad) |
 | **T4(b) se solapa con el ejercicio e4** | **Medio** | La diferencia —recorte declarado vs. post hoc— es real pero fina. Si no se sostiene al redactar, T4(b) se sustituye por el `nsim` y la banda por defecto |

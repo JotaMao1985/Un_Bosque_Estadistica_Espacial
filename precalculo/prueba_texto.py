@@ -1221,6 +1221,27 @@ def defectos_taller2() -> list[tuple[str, str, str]]:
         ("el texto pierde el χ² de T1",
          "χ²", "ji cuadrado", True),
 
+        # --- 7b. El calendario (2026-09-11) ----------------------------
+        # Se movió dos veces, y la segunda una copia a mano que se quedara
+        # atrás habría publicado dos fechas de entrega. Las tres maneras de
+        # desmentirse: que vuelva una fecha vieja —basta con la primera de
+        # las dos apariciones—, que se pierda la hora, y que el control
+        # vuelva a pedir las tres cifras que el §5.3 midió que no bastan.
+        ("vuelve una fecha de entrega vieja",
+         "domingo 11 de octubre de 2026", "martes 6 de octubre de 2026"),
+        ("el enunciado pierde la hora límite",
+         "a más tardar a las 13:00", "a más tardar ese día", True),
+        # «tres datos» y no «tres cifras»: «tres cifras» ya está en el HTML
+        # —es lo que T3(b) pide dar: g en su máximo, el r donde vuelve a 1
+        # y K en ese r— y el arnés rechaza, con razón, un valor inyectado
+        # que ya existe, porque no probaría nada.
+        # Y alcanza UNA de las dos menciones —la del módulo 1 está partida
+        # en dos líneas en el HTML—. Es el caso que importa, una copia al
+        # día y la otra atrás, y la primera versión del auditor lo dejaba
+        # pasar: exigía que «cinco cosas» apareciera, no que no hubiera otra.
+        ("el control vuelve a pedir menos",
+         "cinco cosas", "tres datos", True),
+
         # --- 8. Peso ---------------------------------------------------
         # +312 KB sobre un documento de 1 138 y un tope de 1 250: la cuenta
         # está escrita en la cabecera de `audita_texto_taller2.py`, y si

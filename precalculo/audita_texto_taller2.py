@@ -139,7 +139,7 @@ def main() -> int:
         ("el buscador de variante", "número de documento"),
         ("la línea que va literal en la portada", "copiada literal"),
         ("el dígito de verificación", "revisa antes de seguir"),
-        ("el control de la semana 9", "tres cifras"),
+        ("el control de la semana 9", "cinco cosas"),
         ("T1 · las dos ventanas y el test de cuadrantes", "la ventana que no declaraste"),
         ("T1 · el supuesto de las esperanzas", "esperanza menor que 5"),
         ("T2 · el emparejamiento de curvas y mapas", "empareja"),
@@ -158,6 +158,37 @@ def main() -> int:
     print("\n=== Que la prosa no contenga ninguna respuesta ============")
     for frase in PROHIBIDAS:
         a.exige(frase not in a.texto_plano, f"la prosa no dice «{frase}»")
+
+    # EL CALENDARIO, UNO SOLO. Se movió dos veces, y la segunda las fechas
+    # estaban escritas a mano en cuatro sitios de la prosa: una copia que
+    # se quedara atrás publicaba dos fechas de entrega en el mismo
+    # enunciado. Las de aquí se escriben a mano A PROPÓSITO —son la segunda
+    # superficie contra la que se coteja la constante del ensamblador— y
+    # las viejas se prohíben todas, con el dígito aislado para que «6 de
+    # octubre» no case dentro de «16 de octubre».
+    print("\n=== El calendario, uno solo =============================")
+    plano = re.sub(r"\s+", " ", a.texto_plano)
+    for que, frase in [("la fecha de entrega", "domingo 11 de octubre de 2026"),
+                       ("la hora límite", "a más tardar a las 13:00"),
+                       ("la fecha de la sustentación", "martes 13 de octubre")]:
+        a.exige(frase in plano, f"el enunciado da {que}")
+    for vieja, patron in [("viernes 18", r"viernes 18\b"),
+                          ("18 de septiembre", r"(?<!\d)18 de septiembre"),
+                          ("martes 6", r"martes 6\b"),
+                          ("6 de octubre", r"(?<!\d)6 de octubre"),
+                          ("jueves 8", r"jueves 8\b"),
+                          ("8 de octubre", r"(?<![\d])8 de octubre")]:
+        a.exige(not re.search(patron, plano), f"no queda la fecha vieja «{vieja}»")
+
+    # Y EL CONTROL, POR LA MISMA RAZÓN. «cinco cosas» en el temario solo
+    # exige que aparezca UNA vez, y el enunciado lo dice en dos sitios. El
+    # arnés inyectó «tres datos» en uno solo —el otro está partido en dos
+    # líneas en el HTML y la sustitución literal no lo alcanzó— y esto pasó
+    # en verde con el enunciado contradiciéndose: 22 de 23 el 2026-09-11.
+    # Así que TODA frase que dice qué se trae al control dice cinco cosas.
+    traes = re.findall(r"\btraes (\w+) (\w+)", plano)
+    a.exige(bool(traes) and all(x == ("cinco", "cosas") for x in traes),
+            "todo «traes…» del control dice «cinco cosas»")
 
     print("\n=== Lo que el taller no puede dejar de decir ==============")
     a.afirmaciones([
