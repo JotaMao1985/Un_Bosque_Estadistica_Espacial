@@ -1088,6 +1088,42 @@ bloqueada o marcada mal, y hoy los ocho tienen respuesta — en cinco de ellos, 
 taller. Lo que hay que aceptar es que **el escrito no mide lo mismo en las 1000**, y que la rúbrica
 puntúe «no hay» tan alto como una cifra, que es lo que las claves ya dicen.
 
+**A7 (2026-09-12) · LAS DOS RÚBRICAS: LA ARITMÉTICA LIMPIA, Y DOS CONTABILIDADES DEL MISMO 40 %.**
+
+- **La aritmética está bien**, comprobada a máquina: las dos rúbricas suman 100 y **sus 32 bandas
+  cubren su rango sin un hueco ni un solape**.
+- **🔴 El escrito tenía dos contabilidades del mismo 40 % y no decía cómo se juntan.** El módulo 1
+  dice «las cinco tareas valen 8 % cada una» —y cada tarea lleva su distintivo de 8 %—, y la rúbrica
+  dice que sus cinco dimensiones «se aplican al informe completo, **no tarea por tarea**». Cinco por
+  ocho es cuarenta: hablan del mismo 40 %. Quien entregue cuatro tareas no sabía qué le cuesta, y
+  quien califica tenía que reconciliarlo doce veces. Dicho ya: **las tareas pesan lo mismo dentro
+  del informe** y la nota sale de las dimensiones sobre el informe entero; saltarse una resta en las
+  dimensiones que alimentaba, y son varias.
+- **🟠 A0-1 cerrada.** «Pertinencia», «corrección técnica», «interpretación de los resultados» y
+  «syllabus» aparecían **cero veces** en el HTML. Ahora el módulo 1 publica el mapa: **P → A y C**,
+  **T → C** (y el taller la exige además pidiendo que las cifras reproduzcan las del bloque), **I →
+  B**, y **D y E son de este taller**. Resultó ser coste 1 y no 2: bastaba publicar el mapa.
+- **🟠 La dimensión D pedía, con las mismas palabras, lo que T1(b) prohíbe.** D·Excelente: «dice qué
+  habría que haber hecho en su lugar»; T1(b): «no qué habría que hacer en su lugar». Las dos son
+  satisfacibles —la rúbrica mira el informe entero y T3(b) sí lo pide—, pero coinciden palabra por
+  palabra en sentidos opuestos. Aclarado en el foco de D, sin tocar ninguna banda.
+- **🟡 A·Excelente pide «nombrar el módulo» y solo T3(c) lo pide.** No es inalcanzable —los
+  enunciados los nombran todos—, pero un informe que conteste exactamente lo pedido y no cite
+  ninguno se queda en Aceptable, y son hasta 7 de 100. Dicho también en el foco de A.
+- **La matriz dimensión × tarea:** A la alimentan 7 apartados, B 10, C 6, D 6 y E solo la bitácora.
+  Ninguna dimensión queda huérfana —era lo que H4 temía—. **T2 es la única tarea que no toca D** y
+  **T3 la única que no toca C**; cada tarea mueve entre 65 y 90 de los 100 puntos.
+- **Los niveles se distinguen donde importa:** el salto Excelente↔Aceptable es decidible en las ocho
+  dimensiones, siempre por un recuento o por la presencia de algo con nombre. El salto de abajo se
+  apoya en un adverbio de grado en tres —A «predomina», C «implícito», E «razonable»—: ahí es donde
+  dos lectores se separarían. **No lo he tocado: cambiar una banda publicada es decisión de Javier.**
+- **Lo que A7 no pudo hacer:** el plan de auditoría pide «la concordancia entre calificadores
+  medida, no estimada», y eso necesita un segundo lector humano (P2, sin contestar). Queda
+  declarado como **no medido**.
+- **Y el calificador tiene ya dónde anotar.** Daba las respuestas y ni una casilla: ahora cada hoja
+  termina con **las dos rúbricas impresas** —requisitos de entrega primero, bandas publicadas,
+  apartados que alimentan cada dimensión y los dos avisos de arriba—, con el hueco para escribir.
+
 **Lo primero que hay que saber, antes de tocar nada:**
 
 1. **`precalculo/genera_taller2.R` tiene que quedar en `.gitignore`**, por la misma razón que el

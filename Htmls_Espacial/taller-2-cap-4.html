@@ -3941,11 +3941,25 @@
       </div>
 
       <div class="note">
-        <p style="margin-bottom:0;"><strong>Qué pesa cada cosa.</strong> El escrito vale el
-          40&nbsp;% y la sustentación el 60&nbsp;%. Dentro del escrito, las cinco tareas valen
-          8&nbsp;% cada una. La rúbrica del escrito —con sus cinco dimensiones y qué distingue el
-          nivel alto en cada una— y la rúbrica de la defensa están en el último módulo, y conviene
-          leerlas <em>antes</em> de escribir, no después.</p>
+        <p><strong>Qué pesa cada cosa.</strong> El escrito vale el 40&nbsp;% y la sustentación el
+          60&nbsp;%. Dentro del escrito, las cinco tareas <strong>pesan lo mismo</strong>: un
+          8&nbsp;% de la nota del taller cada una. Eso dice <em>cuánto ocupa</em> cada tarea en el
+          informe, no cómo se puntúa: <strong>la nota del escrito sale de las cinco dimensiones de
+          la rúbrica aplicadas al informe completo</strong>, no de sumar cinco notas por tarea.
+          Dejar una tarea sin hacer no resta un 8&nbsp;% redondo: resta en las dimensiones que esa
+          tarea alimentaba, y son varias.</p>
+        <p><strong>Y contra el syllabus del curso</strong>, que califica los talleres con tres
+          criterios: la <em>pertinencia del método espacial elegido</em> es lo que miden las
+          dimensiones <strong>A</strong> y <strong>C</strong> —elegir la ventana, la rejilla, el
+          \(r\), el σ, y sostenerlo—; la <em>corrección técnica del análisis en R</em> es
+          <strong>C</strong>, y el taller la exige además por otra vía: varios enunciados piden que
+          tus cifras <strong>reproduzcan exactamente</strong> las del bloque, porque aquí no se
+          evalúa que escribas código sino que corras el que se te da y leas bien lo que sale; y la
+          <em>interpretación de los resultados</em> es <strong>B</strong>. Las
+          dimensiones <strong>D</strong> —refutar— y <strong>E</strong> —declarar el uso de IA— son
+          de este taller, y van por encima de lo que el syllabus pide.</p>
+        <p style="margin-bottom:0;">Las dos rúbricas están en el último módulo, y conviene leerlas
+          <em>antes</em> de escribir, no después.</p>
       </div>
     </div>
   </template>
@@ -6927,7 +6941,11 @@ print("focos =", int(n_focos))
         {
           clave: 'A', nombre: 'Apropiación conceptual', puntos: 20,
           foco: 'Mide si usas el concepto <strong>para decidir</strong>, no para definir. Repetir '
-            + 'qué es una ventana no puntúa; elegir una y sostener por qué, sí.',
+            + 'qué es una ventana no puntúa; elegir una y sostener por qué, sí. Y el nivel alto '
+            + 'pide una cosa más que solo una tarea te pide explícitamente: <strong>nombrar el '
+            + 'módulo del capítulo que sostiene cada concepto</strong>. Los enunciados te los '
+            + 'nombran todos —hay un recuadro «dónde está esto en el capítulo» en casi todas las '
+            + 'tareas—, así que cuesta una línea.',
           niveles: [
             { nombre: 'Excelente', rango: '18–20', observa: 'Cada concepto aparece resolviendo una decisión concreta del análisis, y se nombra el módulo que lo sostiene.' },
             { nombre: 'Aceptable', rango: '13–17', observa: 'Los conceptos son correctos y se aplican, pero alguno queda enunciado sin llegar a decidir nada.' },
@@ -6961,7 +6979,11 @@ print("focos =", int(n_focos))
           clave: 'D', nombre: 'Auditoría y refutación', puntos: 25,
           foco: 'Mide si detectas el defecto <strong>con evidencia interna</strong>: con tus '
             + 'propias cifras, no apelando a autoridad ni a que «suena raro». Cuatro de las cinco '
-            + 'tareas son de refutación, y por eso esta dimensión pesa como la B.',
+            + 'tareas son de refutación, y por eso esta dimensión pesa como la B. '
+            + '<strong>Nombrar el defecto y arreglarlo son dos cosas distintas</strong>, y no '
+            + 'todas las tareas piden las dos: T1(b) pide expresamente que NO se arregle. Esta '
+            + 'dimensión mira el informe entero, así que el «qué habría que haber hecho» se '
+            + 'espera donde la tarea lo pide, y no donde lo prohíbe.',
           niveles: [
             { nombre: 'Excelente', rango: '22–25', observa: 'Nombra el defecto, lo demuestra con una cifra propia y dice qué habría que haber hecho en su lugar.' },
             { nombre: 'Aceptable', rango: '16–21', observa: 'Detecta los defectos y los sostiene, pero alguno se argumenta sin la cifra que lo probaría.' },
