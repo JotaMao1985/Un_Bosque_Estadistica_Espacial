@@ -947,6 +947,40 @@ Siete arreglos más, y el primero es el hallazgo más caro de toda la auditoría
   simétrica—, y los tríos **no se reparten por igual**: 96 variantes para los tríos 1–8, 88 para el
   9 y **48** para el 10, 11 y 12. Lo primero está en el calificador; lo segundo se mide en A6.
 
+**Y A3 (T3, 2026-09-12): UN PATRÓN DE LOS 24 CONTESTA AL REVÉS QUE LA CLAVE.**
+
+- **🔴 p24 no tiene ningún \(r\) en el que \(g\) vuelva a 1.** Su \(g\) baja hasta **1,0687** en
+  \(r = 0{,}140\) y **remonta a 1,1982** en el último nodo, así que en todo el rango publicado hay
+  más vecinos de los que daría la CSR. Toda T3 se apoya en lo contrario: (a) refuta al informe
+  porque \(g\) vuelve a 1 mientras \(K\) no, y (b) pide ese \(r\) y el \(K\) que hay en él.
+  Para p24 la conclusión del informe —«la agregación se extiende a lo largo de todo ese rango»— es
+  la que hay que **confirmar**, y dos de las tres cifras de (b) no existen. **El calificador
+  imprimía «g vuelve a 1 en r = NA»** y daba por buena la refutación; y el comentario de diseño de
+  este ensamblador afirmaba que «g ha vuelto a 1 entre r = 0,070 y r = 0,170» **en los 24**, que es
+  la medición sobre la que se escribió el enunciado. **Le toca a 32 de las 1000 variantes: en una
+  clase de doce, un 32 % de que alguien la tenga.** Arreglado en la letra y en la clave, sin
+  regenerar: (a) y (b) admiten ahora «no vuelve a 1 en el rango», igual que T1(c) admite «no hay
+  rejilla legible», y el calificador tiene rama propia para p24.
+- **🟠 «En qué \(r\) vuelve \(g\) a 1» era ambiguo**: en **14 de los 24** la curva vuelve a asomar
+  por encima de 1 después de su primer regreso —hasta **1,988** en p13—, y T3, a diferencia de T4,
+  **no publica banda** con la que separar el ruido. Ahora se pide la **primera** vez, con el aviso,
+  y el calificador imprime hasta dónde remonta y no baja nota a quien elija otro \(r\) y lo
+  justifique.
+- **🟡 (b) pedía el máximo de \(g\) y en 23 de los 24 está en \(r = 0\)**, que es el nodo del que
+  el módulo 9 del capítulo dice «no es una escala característica: es donde empieza a mirarse». El
+  calificador ya lo avisaba; el enunciado no, así que la mejor respuesta posible no tenía dónde
+  ponerse. Ahora (b) pregunta **dónde** cae ese punto y remite al módulo 9.
+- **🟠 El bloque de Python prometía lo único que no puede dar**: decía que su \(g\) sirve «para ver
+  dónde vuelve a 1», y ese \(r\) **no coincide con la tabla en 13 de los 24** —hasta 0,020 en
+  p21— y en p24 **señala un regreso que no existe**. Su \(K\), en cambio, se aparta menos de 0,001
+  en los 24. Escribir la \(g\) con núcleo de Epanechnikov y ancho de Stoyan —lo que hace
+  `spatstat`— mejora a 5 de 24 y sigue sin coincidir, así que no compensa: se arregla declarando
+  bien.
+- **Lo que salió limpio:** la premisa del informe se renderiza por variante y es cierta en los 24
+  (p16 → 0,210, p24 → 0,250); (c) es contestable en las dieciséis, con `pcf()` funcionando en todas
+  y un \(r_{\max}\) que va de **621 m** en Antonio Nariño a **4 590 m** en Usme; y el módulo 2 sí
+  dice lo que (c) pide nombrar.
+
 **Lo primero que hay que saber, antes de tocar nada:**
 
 1. **`precalculo/genera_taller2.R` tiene que quedar en `.gitignore`**, por la misma razón que el

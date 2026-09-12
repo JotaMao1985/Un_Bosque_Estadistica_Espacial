@@ -872,10 +872,29 @@ print(np.c_[rg, G, F][:12])''')}
 # escribe aquí, y no es un capricho: su premisa cita el último r en que
 # L − r sigue siendo positiva, que es distinto para cada patrón. Escrita
 # a mano sería una cifra sin respaldo en el JSON (D10) y, peor, sería
-# falsa para alguno de los veinticuatro. Medido antes de escribirla: L − r
-# es positiva en r = 0,20 en LOS 24, y g ha vuelto a 1 entre r = 0,070 y
-# r = 0,170 — así que la premisa del informe es cierta para todos y su
-# conclusión es falsa para todos.
+# falsa para alguno de los veinticuatro. La premisa es cierta para los 24
+# —comprobado en el navegador: p16 renderiza 0,210 y p24, 0,250—.
+#
+# LA CONCLUSIÓN, EN CAMBIO, NO ES FALSA PARA TODOS, y aquí este comentario
+# decía que sí. Lo midió la auditoría de contenido el 2026-09-12 sobre los
+# 24: **p24 no tiene ningún r en el que g vuelva a 1**. Su g baja hasta
+# 1,0687 en r = 0,140 y remonta hasta 1,1982 en el último nodo, así que en
+# todo el rango publicado hay más vecinos de los que daría la CSR y la
+# frase del informe —«la agregación se extiende a lo largo de todo ese
+# rango»— es la que hay que CONFIRMAR. Le toca a 32 de las 1000 variantes:
+# en una clase de doce, un 32 % de probabilidad de que alguien la tenga.
+# Regenerar para quitar p24 sería peor que el defecto, así que lo que se
+# arregla es la letra: (a) y (b) admiten ahora «no vuelve a 1 en el rango»,
+# igual que T1(c) admite «no hay rejilla legible». El calificador imprimía
+# «g vuelve a 1 en r = NA» y ya no.
+#
+# Y DOS COSAS MÁS QUE MIDIÓ LA MISMA PASADA, y que la letra tenía que
+# recoger: en 14 de los 24 la g vuelve a asomar por encima de 1 después de
+# su primer regreso —hasta 1,99 en p13—, así que «en qué r vuelve a 1» hay
+# que pedirlo por la PRIMERA vez y avisar de que la curva es ruidosa (T3 no
+# publica banda con la que separar el ruido); y en 23 de los 24 el máximo
+# de g cae en r = 0, que es justo el nodo del que el módulo 9 del capítulo
+# dice que «no es una escala característica: es donde empieza a mirarse».
 MOD4 = cabecera(
     4, "Dónde está la estructura", "T3 · K, L and g",
     "Refutar una conclusión correcta de premisa con la función que sí "
@@ -937,21 +956,26 @@ MOD4 = cabecera(
 """ + tarea(3, 8, "Dónde está la estructura",
        "Con tus tres curvas y el informe de arriba:",
        ["¿Es cierta la conclusión del informe? <strong>Refútala o confírmala con \(g\)</strong>, "
-        "y di en qué \(r\) ocurre de verdad la agregación de tu patrón. Fíjate en que la "
-        "<em>premisa</em> del informe es correcta: compruébala antes de discutir la conclusión.",
-        "Da <strong>tres cifras tuyas</strong>: cuánto vale \(g\) en su máximo, en qué \(r\) "
-        "vuelve \(g\) a 1, y cuánto vale \(K\) en ese segundo \(r\) —comparado con lo que "
-        "valdría bajo CSR—. Con esas tres cifras, escribe <strong>la frase que el informe tendría "
-        "que haber escrito</strong>.",
+        "y di <strong>hasta qué \(r\)</strong> llega de verdad la agregación de tu patrón —y si "
+        "tu \(g\) no vuelve a 1 en todo el rango, dilo y sostenlo: también es una respuesta—. "
+        "Fíjate en que la <em>premisa</em> del informe es correcta: compruébala antes de discutir "
+        "la conclusión.",
+        "Da <strong>tres cifras tuyas</strong>: cuánto vale \(g\) en su punto más alto —y en qué "
+        "\(r\) cae ese punto: si es el primero del barrido, el módulo 9 del capítulo dice qué "
+        "es y qué no es—, en qué \(r\) vuelve \(g\) a 1 <strong>por primera vez</strong> —la "
+        "curva es ruidosa y puede volver a asomar por encima después; y si no vuelve en todo el "
+        "rango, esa es la cifra que no tienes—, y cuánto vale \(K\) en ese segundo \(r\), "
+        "comparado con lo que valdría bajo CSR. Con esas cifras escribe <strong>la frase que el "
+        "informe tendría que haber escrito</strong>.",
         "Ahora sobre <strong>tu localidad real</strong>, la de T1: calcula \(K\) y \(g\) de sus "
         "sedes. ¿Dicen lo mismo a todas las escalas, o se separan como en tu patrón generado? "
         "¿Contradice eso lo que acabas de responder en (a)? Nombra el módulo del capítulo 4 que "
         "explica la diferencia."],
-       "La premisa y la conclusión del informe no fallan en el mismo sitio, y ahí está la tarea: "
-       "una es verdad y la otra no se sigue de ella. Para (b), la cifra que más cuesta leer es la "
-       "tercera: \(K\) en un \(r\) donde \(g\) ya volvió a 1 no dice que siga habiendo "
-       "agregación <em>ahí</em>, dice otra cosa — y decir cuál es la respuesta. Para (c), acuérdate "
-       "de qué supone \(K\) sobre λ.") + f"""
+       "La premisa y la conclusión del informe no se comprueban con la misma curva, y ahí está la "
+       "tarea: la premisa la lees en \(L - r\), y la conclusión solo la decide \(g\). Para (b), "
+       "si tu \(g\) vuelve a 1, la cifra que más cuesta leer es la tercera: \(K\) en un \(r\) "
+       "donde \(g\) ya volvió a 1 no dice que siga habiendo agregación <em>ahí</em>, dice otra "
+       "cosa — y decir cuál es la respuesta. Para (c), acuérdate de qué supone \(K\) sobre λ.") + f"""
       <div class="note">
         <p style="margin-bottom:0;"><strong>Cómo rehacer las tres curvas.</strong> Salen del CSV que
           descargaste, y con estas líneas dan <em>exactamente</em> las de arriba. Para (c) reutiliza
@@ -1011,9 +1035,13 @@ rg = np.linspace(0, 0.25, 51)
 K = K_traslacion(uno[:, 0], uno[:, 1], rg)
 L = np.sqrt(np.maximum(K, 0) / np.pi) - rg
 
-# g por derivada numerica de K: g(r) = K'(r) / (2 pi r). Es mas ruidosa
-# que la de spatstat —que suaviza con un nucleo— asi que sirve para ver
-# DONDE vuelve a 1, no para citar su maximo. Ese citalo de la tabla.
+# g por derivada numerica de K: g(r) = K'(r) / (2 pi r). La K de arriba
+# es buena —se aparta de la tabla menos de 0,001—, pero esta g NO suaviza
+# con un nucleo como la de spatstat, y eso se nota: sirve para ver la
+# FORMA de la curva y el orden de magnitud, y NO para citar ninguna de
+# las tres cifras de (b). Ni el maximo ni el r en que vuelve a 1: ese r
+# puede caer un nodo antes o despues que en la tabla, y sobre estos
+# patrones baila en mas de la mitad. Las cifras, de la tabla o de R.
 g = np.gradient(K, rg) / (2 * np.pi * np.maximum(rg, 1e-9))
 
 print(np.c_[rg, K, np.pi * rg ** 2, L, g][:12])''')}

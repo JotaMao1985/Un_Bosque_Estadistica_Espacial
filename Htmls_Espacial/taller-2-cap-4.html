@@ -4445,8 +4445,8 @@ print(np.c_[rg, G, F][:12])</code></pre>
         <p class="ejercicio-enunciado"><span class="ejercicio-numero">T3.</span><strong>Dónde está la estructura
           </strong> <span class="badge-peso">8&nbsp;%</span><br>Con tus tres curvas y el informe de arriba:</p>
         <ol class="lista-literales" type="a">
-          <li>¿Es cierta la conclusión del informe? <strong>Refútala o confírmala con \(g\)</strong>, y di en qué \(r\) ocurre de verdad la agregación de tu patrón. Fíjate en que la <em>premisa</em> del informe es correcta: compruébala antes de discutir la conclusión.</li>
-          <li>Da <strong>tres cifras tuyas</strong>: cuánto vale \(g\) en su máximo, en qué \(r\) vuelve \(g\) a 1, y cuánto vale \(K\) en ese segundo \(r\) —comparado con lo que valdría bajo CSR—. Con esas tres cifras, escribe <strong>la frase que el informe tendría que haber escrito</strong>.</li>
+          <li>¿Es cierta la conclusión del informe? <strong>Refútala o confírmala con \(g\)</strong>, y di <strong>hasta qué \(r\)</strong> llega de verdad la agregación de tu patrón —y si tu \(g\) no vuelve a 1 en todo el rango, dilo y sostenlo: también es una respuesta—. Fíjate en que la <em>premisa</em> del informe es correcta: compruébala antes de discutir la conclusión.</li>
+          <li>Da <strong>tres cifras tuyas</strong>: cuánto vale \(g\) en su punto más alto —y en qué \(r\) cae ese punto: si es el primero del barrido, el módulo 9 del capítulo dice qué es y qué no es—, en qué \(r\) vuelve \(g\) a 1 <strong>por primera vez</strong> —la curva es ruidosa y puede volver a asomar por encima después; y si no vuelve en todo el rango, esa es la cifra que no tienes—, y cuánto vale \(K\) en ese segundo \(r\), comparado con lo que valdría bajo CSR. Con esas cifras escribe <strong>la frase que el informe tendría que haber escrito</strong>.</li>
           <li>Ahora sobre <strong>tu localidad real</strong>, la de T1: calcula \(K\) y \(g\) de sus sedes. ¿Dicen lo mismo a todas las escalas, o se separan como en tu patrón generado? ¿Contradice eso lo que acabas de responder en (a)? Nombra el módulo del capítulo 4 que explica la diferencia.</li>
         </ol>
         <div class="ejercicio-acciones">
@@ -4456,7 +4456,7 @@ print(np.c_[rg, G, F][:12])</code></pre>
           </button>
         </div>
         <div class="ejercicio-panel pista" id="t3-pista" hidden>
-          <p style="margin:0;">La premisa y la conclusión del informe no fallan en el mismo sitio, y ahí está la tarea: una es verdad y la otra no se sigue de ella. Para (b), la cifra que más cuesta leer es la tercera: \(K\) en un \(r\) donde \(g\) ya volvió a 1 no dice que siga habiendo agregación <em>ahí</em>, dice otra cosa — y decir cuál es la respuesta. Para (c), acuérdate de qué supone \(K\) sobre λ.</p>
+          <p style="margin:0;">La premisa y la conclusión del informe no se comprueban con la misma curva, y ahí está la tarea: la premisa la lees en \(L - r\), y la conclusión solo la decide \(g\). Para (b), si tu \(g\) vuelve a 1, la cifra que más cuesta leer es la tercera: \(K\) en un \(r\) donde \(g\) ya volvió a 1 no dice que siga habiendo agregación <em>ahí</em>, dice otra cosa — y decir cuál es la respuesta. Para (c), acuérdate de qué supone \(K\) sobre λ.</p>
         </div>
       </div>
 
@@ -4526,9 +4526,13 @@ rg = np.linspace(0, 0.25, 51)
 K = K_traslacion(uno[:, 0], uno[:, 1], rg)
 L = np.sqrt(np.maximum(K, 0) / np.pi) - rg
 
-# g por derivada numerica de K: g(r) = K'(r) / (2 pi r). Es mas ruidosa
-# que la de spatstat —que suaviza con un nucleo— asi que sirve para ver
-# DONDE vuelve a 1, no para citar su maximo. Ese citalo de la tabla.
+# g por derivada numerica de K: g(r) = K'(r) / (2 pi r). La K de arriba
+# es buena —se aparta de la tabla menos de 0,001—, pero esta g NO suaviza
+# con un nucleo como la de spatstat, y eso se nota: sirve para ver la
+# FORMA de la curva y el orden de magnitud, y NO para citar ninguna de
+# las tres cifras de (b). Ni el maximo ni el r en que vuelve a 1: ese r
+# puede caer un nodo antes o despues que en la tabla, y sobre estos
+# patrones baila en mas de la mitad. Las cifras, de la tabla o de R.
 g = np.gradient(K, rg) / (2 * np.pi * np.maximum(rg, 1e-9))
 
 print(np.c_[rg, K, np.pi * rg ** 2, L, g][:12])</code></pre>
