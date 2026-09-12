@@ -1017,6 +1017,41 @@ a 1 h 30 · T3 de 45 min a 1 h · T4 unos 1 h 15 · T5 pendiente de A5. **Las cu
 informe —que en un taller cuyo 40 % es el escrito no es el resto, es la mitad—. La estimación total
 va de **7 a 9 h**. Las sugerencias, al cerrar A5.
 
+**Y A5 (T5, 2026-09-12): EL BLOQUE CONTABA UN FOCO DONDE NO HAY NINGUNO.**
+
+- **🔴 `focos()` devolvía 1 con la región vacía.** Cuando el ancho aplana tanto la superficie que
+  **ningún píxel supera el doble de la media** —comprobado en Antonio Nariño con el σ de Scott:
+  **0 de 25 312 píxeles**—, `solutionset()` da una región vacía y `connected()` sobre una región
+  vacía devuelve una imagen con **un nivel**. El bloque publicaba «focos = 1». No reventaba: mentía.
+  Pasa en **7 de las 64** combinaciones (16 localidades × 4 selectores) y toca a **Engativá —tres de
+  sus cuatro—, Fontibón, Tunjuelito y Antonio Nariño**: **249 de las 1000 variantes**, un **96 %**
+  de que le toque a alguien en una clase de doce. Y pega justo en (b): con la cifra falsa, Engativá
+  parecía conservar el foco del informe con tres selectores cuando la verdad es que **con tres no
+  hay ninguno**, que es la refutación más fuerte que la tarea admite. **El calificador ya lo hacía
+  bien** (`if (is.empty(s)) 0L`) y **el bloque de Python también** (`label` devuelve 0): era el de R,
+  solo. Misma forma que T1-1.
+- **🟠 El mapa de (a) dibujaba las sedes del resto de Bogotá.** `ppp()` descarta las de fuera —el
+  idioma de T1— pero se las guarda en `attr(p, "rejects")`, y `plot.ppp()` las pinta encima: **1 951
+  cruces grises** alrededor del polígono y sobre la barra de color, con un aviso que parece un
+  error. Las cifras no cambiaban; la figura, que es el entregable de (a), sí.
+- **🟡 La columna del cuarto selector se llamaba `scott.sigma.x`** — `bw.scott(p)[1]` conserva el
+  nombre. `unname()`.
+- **H2 resuelta, y al revés de lo que parecía.** El comentario prometía que decir por qué se toma
+  uno de los dos anchos de `bw.scott` «es parte de (d)», y (d) no lo pide. Añadirlo a (d) habría
+  sido **duplicar el módulo 3 del capítulo 5**, que ya lo explica entero. Se arregló el comentario.
+- **Lo que salió limpio:** (a) reproduce el pico/media y el recuento del informe **exactos en las
+  dieciséis**; los cuatro selectores corren **64 de 64** sin un error; y hay materia en todas las
+  variantes —el cociente se mueve entre selectores por un factor de **1,47 a 5,79**—.
+
+**LA CARGA DEL ESCRITO, CERRADA (2026-09-12).** Medido sobre la resolución de las cinco: **cálculo y
+decisión, 5 h 20 – 6 h 35**; escribir los cinco apartados, 1 h 30 – 2 h 30; la bitácora, 30 min.
+**Total 7 h 20 – 9 h 35**, entre 1,5 y 2 veces el tope de 5 h que Javier fijó. Tres sugerencias, en
+el §9 del informe de auditoría: (1) mover al bloque el trabajo que no se evalúa —la tabla de
+rejillas de T1(c) y el bucle de los tres patrones de T2—, que ahorra 50–70 min y no toca la rúbrica;
+(2) decir en el enunciado cuántas horas se esperan; y (3) la decisión de Javier, bajar de cinco
+tareas al 8 % a **cuatro al 10 %**, con **T3** como candidata —la más barata, la más cercana al
+capítulo y ya cubierta por el banco—, que **no toca el JSON ni las variantes**.
+
 **Lo primero que hay que saber, antes de tocar nada:**
 
 1. **`precalculo/genera_taller2.R` tiene que quedar en `.gitignore`**, por la misma razón que el

@@ -1332,12 +1332,25 @@ stopifnot(nrow(mia) == 1, MI_SIGMA &gt; 0)
 xy  &lt;- st_coordinates(sed)
 p   &lt;- ppp(xy[, 1], xy[, 2], window = as.owin(st_union(mia)))
 
+# ppp() SELECCIONA tus sedes descartando las de fuera —es lo mismo que
+# hiciste en T1—, pero se GUARDA las descartadas y plot() las dibuja
+# encima. Sin esta linea el mapa sale con las sedes del resto de Bogota
+# sembradas alrededor de tu localidad, y con un aviso que parece un error.
+attr(p, "rejects") &lt;- NULL
+
 # La superficie, con la rejilla FIJADA. No la cambies para (a).
 focos &lt;- function(sigma) {
-  d &lt;- density(p, sigma = sigma, dimyx = 256)
-  m &lt;- mean(d)                                  # la intensidad media
-  cc &lt;- connected(solutionset(d &gt; 2 * m))       # las componentes conexas
-  c(sigma = sigma, pico_media = max(d) / m, focos = length(levels(cc)))
+  d  &lt;- density(p, sigma = sigma, dimyx = 256)
+  m  &lt;- mean(d)                                 # la intensidad media
+  ss &lt;- solutionset(d &gt; 2 * m)                  # la region por encima del umbral
+  # LA GUARDA NO ES ADORNO. Si NINGUN pixel supera el doble de la media
+  # —que pasa con varios de los cuatro selectores de (b), cuando el ancho
+  # es tan grande que aplana la superficie— esa region es VACIA, y
+  # connected() sobre una region vacia devuelve una imagen con UN nivel.
+  # Sin esta linea saldria "focos = 1" donde no hay ninguno, sin avisar.
+  # Cero focos es una respuesta, y en (b) es de las mas fuertes.
+  nf &lt;- if (is.empty(ss)) 0L else length(levels(connected(ss)))
+  c(sigma = sigma, pico_media = max(d) / m, focos = nf)
 }
 
 d &lt;- density(p, sigma = MI_SIGMA, dimyx = 256)
@@ -1345,9 +1358,11 @@ plot(d, main = MI_LOCALIDAD); plot(p, add = TRUE, pch = 20, cex = 0.4)
 focos(MI_SIGMA)
 
 # Los cuatro selectores del modulo 3. bw.scott devuelve DOS anchos, uno
-# por eje: se toma el primero, y decir por que es parte de (d).
+# por eje —el modulo 3 del capitulo 5 explica por que— y aqui se toma el
+# primero. unname() para que la columna se llame "scott" y no
+# "scott.sigma.x".
 sel &lt;- c(diggle = bw.diggle(p), ppl = bw.ppl(p),
-         CvL = bw.CvL(p), scott = bw.scott(p)[1])
+         CvL = bw.CvL(p), scott = unname(bw.scott(p)[1]))
 round(sel)
 t(sapply(sel, focos))''',
       '''import geopandas as gpd, numpy as np
