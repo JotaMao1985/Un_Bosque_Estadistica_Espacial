@@ -1052,6 +1052,42 @@ rejillas de T1(c) y el bucle de los tres patrones de T2—, que ahorra 50–70 m
 tareas al 8 % a **cuatro al 10 %**, con **T3** como candidata —la más barata, la más cercana al
 capítulo y ya cubierta por el banco—, que **no toca el JSON ni las variantes**.
 
+**SUGERENCIA 1 APLICADA (2026-09-12) · los bloques asumen lo que no se califica.** Dos sitios:
+**T1(c)** imprime ahora la tabla de \(k = 2, 3, 4, 5\) con la esperanza mínima de cada uno —y de
+paso enseña el caso no contiguo de Engativá de un vistazo—, y **T2** calcula **los tres** patrones
+del trío en una pasada, los dibuja y tabula \(G\) y \(F\) en \(r = 0{,}02\), \(0{,}05\) y
+\(0{,}10\). En los dos, R y Python dan los mismos decimales; las sondas de la \(F\) se calculan una
+vez para los tres, así que T2 no tarda más. Lo que sigue siendo trabajo del estudiante es lo que la
+rúbrica mide: **decidir** con la tabla, y **emparejar y argumentar** con las curvas. **Ahorro
+estimado 50–70 min**: el cálculo baja a 4 h 20 – 5 h 30 y el total a 6 h 20 – 8 h 30, todavía por
+encima de las 5 h.
+
+**A6 (2026-09-12) · LA EQUIDAD, MEDIDA.** Las 1000 variantes son **únicas ya por (localidad,
+patrón, trío)** y el control de la semana 9 identifica al **100 %** con sus cinco cosas —con
+localidad y contraste solos identificaría a **ninguno**, que es lo que el §5.3 midió—. Los ejes:
+localidad 62–63 (razón 1,02), envolvente 77–84, propio 32–48, **trío 48–96 (2,00)** y **contraste
+12–212 (17,67)**, que es el precio de la promesa del doble de perímetro/área —las localidades
+extremas se emparejan con casi todas y las del medio con pocas— y se queda en 21,2 %, por debajo
+del 30 % que M-20 se puso.
+
+**Lo que el §5.1 daba por bueno sin cifra, y ahora la tiene.** Simulando 10 000 clases de doce:
+el **99,6 %** tiene un par que comparte localidad —**T1 y T5 enteras, el 16 % del escrito**, más la
+mitad propia de T4(a)—, con **3,35 estudiantes de doce** afectados de media; el **100 %** comparte
+trío o envolvente; y el **26,3 %** tiene un par que comparte localidad **y** trío, o sea el **24 %
+del escrito palabra por palabra**. La decisión sigue siendo correcta —la defensa es el 60 % y es
+individual—, pero al calificar hay que saberlo: **dos informes con las mismas cifras no son señal de
+nada**. `verifica_taller2.R --lista` lo imprime ahora antes de las hojas.
+
+**Y los ocho casos particulares que A1–A5 midieron se reparten así:** cero focos en T5, 249
+variantes (96,8 % de que le toque a alguien en una clase de doce) · el veredicto que vuelca, 187 ·
+sin rejilla legible, 186 · la envolvente de un nodo, 168 · el agregado más flojo, 96 · la rejilla no
+contigua, 63 · la caja que no rechaza, 62 · la \(g\) que no vuelve, 32. **El 36,4 % de las
+variantes no tiene ninguno y el 6,9 % tiene tres o cuatro**; seis juntan cuatro. **Ya no es
+desigualdad de dificultad**: antes de la auditoría cinco de los ocho llevaban a una respuesta
+bloqueada o marcada mal, y hoy los ocho tienen respuesta — en cinco de ellos, la más instructiva del
+taller. Lo que hay que aceptar es que **el escrito no mide lo mismo en las 1000**, y que la rúbrica
+puntúe «no hay» tan alto como una cifra, que es lo que las claves ya dicen.
+
 **Lo primero que hay que saber, antes de tocar nada:**
 
 1. **`precalculo/genera_taller2.R` tiene que quedar en `.gitignore`**, por la misma razón que el

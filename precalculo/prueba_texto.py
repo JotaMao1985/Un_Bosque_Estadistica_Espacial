@@ -1193,8 +1193,8 @@ def defectos_taller2() -> list[tuple[str, str, str]]:
         # se apartaba de la publicada hasta 0,9710 sobre los 36 patrones,
         # y el propio comentario prometía que las cifras coincidían.
         ("el bloque de R vuelve a calcular la F con Fest()",
-         "FF &lt;- sapply(rg, function(r) mean(dd[bb &gt; r] &lt;= r))",
-         "FF &lt;- Fest(p)$km"),
+         "F = sapply(rg, function(r) mean(dd[bb &gt; r] &lt;= r))",
+         "F = approx(Fest(p)$r, Fest(p)$km, xout = rg, rule = 2)$y"),
 
         # --- 5. El banco y el catálogo, que son C6 --------------------
         ("el banco pierde una de sus 36 preguntas",
