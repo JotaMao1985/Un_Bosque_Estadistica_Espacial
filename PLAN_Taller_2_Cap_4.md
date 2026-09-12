@@ -908,6 +908,45 @@ resolver cada tarea **a ciegas**, solo desde la página publicada, y cotejar **d
 - El calificador (`verifica_taller2.R`, fuera de git, sincronizado en las dos copias) se puso al día
   con las dos superficies: **143 anclas, todas en pie**.
 
+**Y A2 (T2, 2026-09-12) ENCONTRÓ LO QUE M-14 SE DEJÓ: EL BLOQUE QUE CORRE EL ESTUDIANTE.**
+Siete arreglos más, y el primero es el hallazgo más caro de toda la auditoría.
+
+- **🔴 El bloque de R de T2 calculaba la F con `Fest()`.** M-14 —`distmap()` devuelve distancias al
+  cuadrado y `Fest()` las lee como distancias— se cerró el 2026-09-10 sacando `Fest()` del
+  generador, de `datos_taller2.R` y del auditor. **El bloque publicado se escribió el día antes y
+  nadie volvió a mirarlo**, porque los bloques del taller son de `arranque` y
+  `verifica_bloques.py` no los ejecuta: son diez bloques que ninguna comprobación automática toca.
+  Medido sobre los **36 patrones**: la G del bloque coincide con la publicada **exactamente** en
+  los 36; su F se aparta hasta **0,9710**, y **nunca menos de 0,6258**. Para t03a daba
+  F(0,005) = 0,8756 donde la curva del enunciado vale 0,0078. Y el comentario prometía que «las
+  cifras coinciden». Ahora la F sale de la muestra reducida escrita a mano —`nncross` y
+  `bdist.points`, las dos exactas—, y reproduce la curva publicada con **5 × 10⁻⁹** en los 36. El
+  bloque de Python hace lo mismo: su F pasa de apartarse 0,22 a apartarse 5 × 10⁻⁹.
+  **Y hay guarda**: `audita_texto_taller2.py` prohíbe ahora que cualquier bloque llame a `Fest(` o
+  a `distmap(`, con su inyección en el arnés. Texto **118 · 0**, arnés **26 de 26**.
+- **🟠 «¿Discrepan G y F?» (c) tenía dos lecturas y una rama muerta en cada una.** Con la del
+  calificador —se separan— las tienen todos los tríos y la rama «construye el caso» no se abre
+  nunca; con la de manual —apuntan a regímenes distintos— no la tiene ninguno de los 36 y la que no
+  se abre es la otra. Y con la primera lectura la respuesta está literal en el módulo 7 del
+  capítulo. Ahora (c) pide comparar cada curva **con su CSR** y decir a qué régimen apunta cada
+  una: la rama se decide midiendo. La construcción que vale está comprobada por simulación —grumos
+  apretados con los **centros regulares**: discrepan entre r = 0,050 y r = 0,065, y con los centros
+  al azar la discrepancia desaparece—, así que el calificador puntúa el razonamiento y no la
+  simulación.
+- **🟠 (b) pedía «el \(r\) en el que tu curva decide» y el aleatorio no decide en ninguno.** En
+  **11 de los 12** aleatorios ninguna curva se aparta de su CSR más de 0,10 en todo el rango. Misma
+  forma que T1-1, y misma salida: «si alguna no decide en ningún \(r\), dilo y sostenlo».
+- **🟠 El desplegable de coordenadas no publica los puntos del CSV**, aunque el enunciado decía que
+  eran los mismos: publica el patrón **encajado en el recuadro del dibujo** (escala 1,0029) y
+  redondeado a cuatro decimales. Reconstruida la transformación reproduce la tabla del navegador
+  punto por punto. Una G calculada desde la tabla se aparta hasta **0,075** de la del CSV. Y la
+  tabla la puso el ensamblador porque «para quien no ve el mapa, la tabla ES el mapa», así que el
+  peor dato le tocaba a quien usa lector de pantalla. El enunciado ya lo dice y manda al CSV.
+- **🟡 Y dos que no son defectos y hay que saber al calificar:** en los doce regulares F se aparta
+  de la CSR **0,09 a 0,19** frente al **0,54 a 0,74** de G —la simetría del módulo 7 no es
+  simétrica—, y los tríos **no se reparten por igual**: 96 variantes para los tríos 1–8, 88 para el
+  9 y **48** para el 10, 11 y 12. Lo primero está en el calificador; lo segundo se mide en A6.
+
 **Lo primero que hay que saber, antes de tocar nada:**
 
 1. **`precalculo/genera_taller2.R` tiene que quedar en `.gitignore`**, por la misma razón que el

@@ -212,6 +212,25 @@ def main() -> int:
         a.exige(m is None, f"ningún comentario {que}",
                 f"«{m.group(0)}»" if m else "")
 
+    # Y QUE LOS BLOQUES NO LLAMEN A LO QUE ESTÁ ROTO. M-14: en esta
+    # instalación `distmap.ppp()` devuelve distancias AL CUADRADO y
+    # `Fest()` las lee como distancias, así que la F que sale no es la
+    # función de espacio vacío. El 2026-09-10 se sacó `Fest()` del
+    # generador, del guion de datos y del auditor — y se quedó DENTRO DEL
+    # BLOQUE QUE CORRE EL ESTUDIANTE, porque nadie miraba ahí: los bloques
+    # del taller son de `arranque` y `verifica_bloques.py` no los ejecuta.
+    # Lo encontró la auditoría de contenido el 2026-09-12, midiendo que la
+    # F del bloque se apartaba de la publicada hasta 0,9710 en los 36
+    # patrones. Esto es la guarda para que no vuelva a entrar.
+    codigo = []
+    for src in bloques:
+        for ln in html.unescape(re.sub(r"<[^>]+>", "", src)).splitlines():
+            codigo.append(re.sub(r"#.*$", "", ln))      # fuera los comentarios
+    codigo = "\n".join(codigo)
+    for llamada in ("Fest(", "distmap("):
+        a.exige(llamada not in codigo,
+                f"ningún bloque llama a `{llamada}`  (M-14)")
+
     # EL CALENDARIO, UNO SOLO. Se movió dos veces, y la segunda las fechas
     # estaban escritas a mano en cuatro sitios de la prosa: una copia que
     # se quedara atrás publicaba dos fechas de entrega en el mismo

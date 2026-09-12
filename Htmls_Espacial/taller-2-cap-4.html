@@ -4191,9 +4191,13 @@ print("celdas:", esp.size, "· con esperanza menor que 5:", int((esp &lt; 5).sum
         tarea.</p>
 
       <p>Las tres ventanas son el cuadrado unidad, así que las escalas son comparables entre sí
-        sin convertir nada. Bajo cada mapa hay un desplegable con sus coordenadas, listas para
-        <code>ppp()</code>; los mismos puntos viajan en el CSV que descargaste, bajo el
-        identificador de tu trío.</p>
+        sin convertir nada. Bajo cada mapa hay un desplegable con <strong>las coordenadas del
+        dibujo</strong>, listas para <code>ppp()</code>: son las del patrón encajadas en el
+        recuadro y redondeadas a cuatro decimales, así que la <em>forma</em> es la misma y las
+        cifras no del todo: una \(G\) calculada desde la tabla no reproduce la curva publicada.
+        Los <strong>mismos puntos con toda su precisión</strong>
+        viajan en el CSV que descargaste, bajo el identificador de tu trío, y es el CSV el que hay
+        que usar para cualquier cifra que entregues.</p>
 
       <div class="trio-rejilla">
         <div class="geomapa" data-geomapa="taller2-trio-a"></div>
@@ -4246,8 +4250,8 @@ print("celdas:", esp.size, "· con esperanza menor que 5:", int((esp &lt; 5).sum
           </strong> <span class="badge-peso">8&nbsp;%</span><br>Sobre tus tres mapas y tus tres parejas de curvas:</p>
         <ol class="lista-literales" type="a">
           <li><strong>Empareja</strong> cada pareja de curvas con su mapa: 1 con A, B o C, y así las tres. La justificación tiene que decir <strong>qué mira cada función</strong> y apoyarse en un valor de \(r\) concreto de tus curvas. Un emparejamiento sin argumento no puntúa —las coordenadas están publicadas y comprobar el emparejamiento es legítimo, pero comprobarlo no es responderlo—.</li>
-          <li>Nombra el <strong>régimen</strong> de cada uno de los tres <strong>y la escala a la que lo afirmas</strong>: da el \(r\) en el que tu curva decide, y di qué pasaría con tu veredicto si solo miraras \(r\) por encima de ese valor.</li>
-          <li>\(G\) y \(F\) no tienen por qué decir lo mismo. Mira tus tres: ¿hay alguno donde discrepen? Si en los tres coinciden, <strong>construye</strong> el caso en que no coincidirían —descríbelo con precisión suficiente para que otra persona lo pueda generar— y di qué mira cada una para que eso ocurra.</li>
+          <li>Nombra el <strong>régimen</strong> de cada uno de los tres <strong>y la escala a la que lo afirmas</strong>: da el \(r\) en el que tu curva decide —y si alguna no decide en ningún \(r\), dilo y sostenlo: también es una respuesta—, y di qué pasaría con tu veredicto si solo miraras \(r\) por encima de ese valor.</li>
+          <li>\(G\) y \(F\) no tienen por qué decir lo mismo. <strong>Compara cada una con la que daría la CSR</strong> —\(1 - e^{-\lambda \pi r^2}\) para las dos, con tu \(\lambda\)— y di, para cada uno de tus tres patrones, a qué régimen apunta \(G\) y a cuál apunta \(F\). ¿Hay alguno donde no apunten al mismo? Si en los tres apuntan al mismo, <strong>construye</strong> el caso en que no lo harían —descríbelo con precisión suficiente para que otra persona lo pueda generar— y di qué mira cada una para que eso ocurra.</li>
         </ol>
         <div class="ejercicio-acciones">
           <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="t2-pista">
@@ -4287,17 +4291,35 @@ uno &lt;- subset(pat, patron == paste0(MI_TRIO, "a"))
 stopifnot(nrow(uno) &gt; 0)              # si para, ese trio no es el tuyo
 p   &lt;- ppp(uno$x, uno$y, window = owin(c(0, 1), c(0, 1)))
 
-plot(Gest(p))
-plot(Fest(p))
-
-# Y las dos en la MISMA rejilla de r que las curvas de arriba. Ojo: a
-# Fest() no se le puede pedir esa rejilla directamente —exige un paso
-# mucho mas fino y para con un error—, asi que se calcula en la suya y se
-# interpola. Es lo que hizo el precalculo, y por eso las cifras coinciden.
+# La rejilla de r es la MISMA de las curvas de arriba. A Gest() no se le
+# puede pedir directamente, asi que se calcula en la suya y se interpola.
 rg &lt;- seq(0, 0.25, length.out = 51)
-aG &lt;- Gest(p); aF &lt;- Fest(p)
+aG &lt;- Gest(p)
 G  &lt;- approx(aG$r, aG$km, xout = rg, rule = 2)$y
-FF &lt;- approx(aF$r, aF$km, xout = rg, rule = 2)$y
+plot(aG)
+
+# LA F NO SALE DE Fest(), Y NO ES UN CAPRICHO. `Fest()` se apoya en
+# distmap(), y en esta version de spatstat distmap() devuelve distancias
+# AL CUADRADO que Fest() lee como distancias: la curva sale disparada a 1
+# en el segundo o el tercer nodo. La prueba cabe en una linea —un solo
+# punto en el centro del cuadrado unidad tiene F(0,1) = pi*0,01 = 0,0314
+# y Fest() publica 0,4020—, y si corres Fest() aqui veras que no se
+# parece a la F de tu grafico. Si tu instalacion la tiene sana, mejor:
+# esto le da igual, porque no la usa.
+#
+# Asi que la F se escribe, que es ademas su definicion. Muestra reducida:
+# de los sitios de la ventana que estan a MAS de r del borde —los unicos
+# donde la respuesta no depende de lo que no se observo—, la fraccion que
+# tiene un punto a distancia r o menos. Es lo que hizo el precalculo, y
+# por eso las cifras coinciden hasta el ultimo decimal publicado.
+sondas &lt;- expand.grid(x = seq(0, 1, length.out = 400),
+                      y = seq(0, 1, length.out = 400))
+sp &lt;- ppp(sondas$x, sondas$y, window = owin(c(0, 1), c(0, 1)), check = FALSE)
+dd &lt;- nncross(sp, p, what = "dist")     # distancia al punto mas cercano
+bb &lt;- bdist.points(sp)                  # distancia al borde de la ventana
+FF &lt;- sapply(rg, function(r) mean(dd[bb &gt; r] &lt;= r))
+plot(rg, FF, type = "l", ylim = c(0, 1), xlab = "r", ylab = "F(r)")
+
 head(data.frame(r = rg, G = G, F = FF), 12)</code></pre>
         </div>
         <div class="code-tab-panel" data-lang="python" hidden>
@@ -4317,16 +4339,20 @@ d, _ = cKDTree(uno).query(uno, k=2)
 G = np.array([(d[:, 1] &lt;= r).mean() for r in rg])
 
 # F: desde una posicion CUALQUIERA de la ventana, hasta el punto mas
-# cercano. Se muestrea la ventana en una rejilla fina.
-gx, gy = np.meshgrid(np.linspace(0, 1, 200), np.linspace(0, 1, 200))
+# cercano. Se muestrea la ventana en una rejilla fina y se usan SOLO las
+# sondas que estan a mas de r del borde —muestra reducida—, que es lo
+# mismo que hace el bloque de R y lo que hizo el precalculo. Sin ese
+# filtro la curva se queda corta cerca del borde, hasta 0,22.
+gx, gy = np.meshgrid(np.linspace(0, 1, 400), np.linspace(0, 1, 400))
 sondas = np.c_[gx.ravel(), gy.ravel()]
 dv, _ = cKDTree(uno).query(sondas, k=1)
-F = np.array([(dv &lt;= r).mean() for r in rg])
+bo = np.minimum(sondas.min(1), 1 - sondas.max(1))   # distancia al borde
+F = np.array([(dv[bo &gt; r] &lt;= r).mean() for r in rg])
 
-# ESTAS DOS NO SON LAS PUBLICADAS, y la diferencia no es un decimal:
-# las de arriba llevan la correccion de Kaplan-Meier de spatstat y estas
-# van crudas, asi que cerca del borde se quedan cortas. Sirven para ver
-# la FORMA; para citar un valor, usa las curvas del enunciado o R.
+# LA F ES LA PUBLICADA; LA G NO DEL TODO. La de arriba lleva la
+# correccion de Kaplan-Meier de spatstat y esta va cruda: sobre estos
+# patrones se apartan hasta 0,09 en el tramo empinado. Para citar un
+# valor de G usa las curvas del enunciado o R; la forma es la misma.
 print(np.c_[rg, G, F][:12])</code></pre>
         </div>
       </div>

@@ -1181,11 +1181,20 @@ def defectos_taller2() -> list[tuple[str, str, str]]:
         # auditoría de contenido las encontró a mano; el arnés existe para
         # que la próxima no haga falta encontrarla a mano.
         ("un comentario del código adjudica el contraste bueno",
-         "sobre la ventana del poligono",
-         "sobre las esperadas del contraste bueno"),
+         "celda a celda, sobre las celdas RECORTADAS",
+         "celda a celda: las esperadas del contraste bueno,"),
         ("un comentario del código nombra el generador de los patrones",
          "# La MISMA rejilla y la MISMA correccion",
          "# Los patrones salen de rpoispp. La MISMA rejilla y la MISMA correccion"),
+
+        # --- 4c. Y que el bloque no vuelva a llamar a lo que está roto -
+        # `Fest()` estuvo en este bloque hasta el 2026-09-12, tres días
+        # después de que M-14 lo sacara del generador. La F que producía
+        # se apartaba de la publicada hasta 0,9710 sobre los 36 patrones,
+        # y el propio comentario prometía que las cifras coincidían.
+        ("el bloque de R vuelve a calcular la F con Fest()",
+         "FF &lt;- sapply(rg, function(r) mean(dd[bb &gt; r] &lt;= r))",
+         "FF &lt;- Fest(p)$km"),
 
         # --- 5. El banco y el catálogo, que son C6 --------------------
         ("el banco pierde una de sus 36 preguntas",
