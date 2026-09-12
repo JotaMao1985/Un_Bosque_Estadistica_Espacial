@@ -67,6 +67,7 @@ Devuelve 1 si algo falla. TALLER2_HTML apunta a una copia con defectos.
 """
 from __future__ import annotations
 
+import html
 import pathlib
 import re
 import sys
@@ -124,6 +125,23 @@ PROHIBIDAS = [
     "rthomas", "rssi", "rpoispp", "proceso de thomas",
 ]
 
+# Y LA FAMILIA QUE SOLO APARECE DENTRO DEL CÓDIGO: la que adjudica cuál de
+# dos objetos es el bueno. No cabe en `PROHIBIDAS` porque no es una frase
+# fija —«el contraste bueno», «la ventana correcta», «la caja mala»— sino
+# un sustantivo del taller seguido de un adjetivo que decide por el
+# estudiante. Se escriben como patrones para que valgan también para el
+# par que a nadie se le ha ocurrido todavía.
+ADJUDICAN = [
+    ("adjudica cuál de dos objetos es el bueno",
+     r"\b(?:ventana|contraste|caja|poligono|polígono|rejilla|curva|opcion|opción|"
+     r"version|versión)s?\s+(?:buen[oa]|mal[oa]|correct[oa]|incorrect[oa]|"
+     r"equivocad[oa]|defectuos[oa])\b"),
+    ("dice que «la buena es» o «la mala es»",
+     r"\bl[ao]s?\s+(?:buen[oa]|mal[oa]|correct[oa]|equivocad[oa])s?\s+(?:es|son|era)\b"),
+    ("señala cuál está mal",
+     r"\b(?:el|la|los|las)\s+que\s+est[aá]\s+mal\b"),
+]
+
 
 def main() -> int:
     a = Auditor(capitulo="taller-2-cap-4.html", var_entorno="TALLER2_HTML",
@@ -158,6 +176,41 @@ def main() -> int:
     print("\n=== Que la prosa no contenga ninguna respuesta ============")
     for frase in PROHIBIDAS:
         a.exige(frase not in a.texto_plano, f"la prosa no dice «{frase}»")
+
+    # LOS COMENTARIOS DEL CÓDIGO SON PROSA, Y NADIE LOS MIRABA. La lista de
+    # arriba corre sobre `texto_plano`, y `texto_plano` quita los `<pre>` y
+    # los `<code>` (ver `audita_texto_base`, líneas 219-220): los noventa y
+    # dos comentarios de los diez bloques de este taller quedaban fuera de
+    # todas las guardas. La auditoría de contenido del 2026-09-12 encontró
+    # ahí la única filtración del documento —«las esperadas del contraste
+    # bueno», en el bloque de R de T1, tres párrafos después de prometer
+    # que «nadie te va a decir cuál de las dos está mal»—. El agujero no
+    # era del redactor: era del auditor, que prohibía «la ventana buena es»
+    # en la prosa y no leía la línea de al lado.
+    print("\n=== Y los comentarios del código, que también se leen =====")
+    bloques = re.findall(r'<code class="language-(?:r|python)[^"]*">(.*?)</code>',
+                         a.cuerpo, re.S)
+    lineas = []
+    for src in bloques:
+        for ln in html.unescape(re.sub(r"<[^>]+>", "", src)).splitlines():
+            if ln.strip().startswith("#>"):
+                continue                      # las salidas, no los comentarios
+            m = re.search(r"#(.*)$", ln)
+            if m:
+                lineas.append(m.group(1).strip())
+    coment = " · ".join(lineas).lower()
+    # Que la comprobación esté MIRANDO algo. Sin esto, un cambio en la
+    # clase de los `<code>` la dejaría verde sobre la cadena vacía, que es
+    # la forma más silenciosa de aprobar por vacuidad.
+    a.exige(len(bloques) == 10 and len(lineas) >= 50,
+            "se leen los comentarios de los diez bloques",
+            f"{len(bloques)} bloques · {len(lineas)} comentarios")
+    for frase in PROHIBIDAS:
+        a.exige(frase not in coment, f"ningún comentario dice «{frase}»")
+    for que, patron in ADJUDICAN:
+        m = re.search(patron, coment)
+        a.exige(m is None, f"ningún comentario {que}",
+                f"«{m.group(0)}»" if m else "")
 
     # EL CALENDARIO, UNO SOLO. Se movió dos veces, y la segunda las fechas
     # estaban escritas a mano en cuatro sitios de la prosa: una copia que

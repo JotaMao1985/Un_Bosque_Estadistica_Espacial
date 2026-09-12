@@ -3815,7 +3815,7 @@
           pide está publicado, y conviene tenerlo abierto al lado: el
           <a href="capitulo-4-patrones-puntuales.html">capítulo 4 · Patrones puntuales:
           descripción, CSR y funciones de resumen</a> entero, y del
-          <a href="capitulo-5-intensidad-nucleos.html">capítulo 5 · Intensidad y estimación por
+          <a href="capitulo-5-intensidad-nucleos.html">capítulo 5 · Intensidad por
           núcleos</a> solo sus tres primeros módulos, que son los que necesita T5.</p>
       </div>
 
@@ -4043,8 +4043,9 @@ c(caja = intensity(p_caja), poligono = intensity(p_poly)) * 1e6
 quadrat.test(p_caja, nx = 5, ny = 5)
 quadrat.test(p_poly, nx = 5, ny = 5)
 
-# Y el supuesto, celda a celda: las esperadas del contraste bueno.
-# tile.areas() da el area de cada cuadrante YA RECORTADO por la ventana.
+# Y el supuesto, celda a celda, sobre las celdas RECORTADAS por la
+# ventana: tile.areas() da el area de cada cuadrante ya recortado, y es
+# esa area la que reparte las esperadas.
 ar  &lt;- tile.areas(as.tess(quadratcount(p_poly, nx = 5, ny = 5)))
 esp &lt;- npoints(p_poly) * ar / sum(ar)
 c(celdas = length(esp), bajas = sum(esp &lt; 5))</code></pre>
@@ -4086,14 +4087,29 @@ def cuadrantes(pts, poly, k=5, caja=False):
     viva = ar &gt; 0
     esp = len(pts) * ar[viva] / ar[viva].sum()
     x2 = float(((obs[viva] - esp) ** 2 / esp).sum()); gl = esp.size - 1
-    # DOS COLAS, que es el defecto de spatstat::quadrat.test y lo que
-    # corre tu R. La cola superior sola da otro p-valor, y sobre estos
-    # datos llega a cambiar el veredicto: el convenio no es un decimal.
+    # DOS COLAS, que es lo que hace spatstat::quadrat.test POR DEFECTO,
+    # y lo que corre tu R. La cola superior sola da otro p-valor, y sobre
+    # estos datos llega a cambiar el veredicto: no es un decimal.
     sup = chi2.sf(x2, gl)
     return x2, gl, 2 * min(sup, 1 - sup), esp
 
-cuadrantes(xy, mia, caja=True)[:3]
-cuadrantes(xy, mia, caja=False)[:3]</code></pre>
+# Las dos ventanas, con lo que pide (a) —area e intensidad— y lo que
+# pide (c) —el recuento de esperanzas bajas—. Va con print() a proposito:
+# sin el, corrido como guion, este bloque no escribe nada en pantalla.
+def informe(nombre, poly, caja):
+    a_km2 = (box(*poly.bounds).area if caja else poly.area) / 1e6
+    x2, gl, p, esp = cuadrantes(xy, poly, caja=caja)
+    print(nombre, "· area km2:", round(a_km2, 4),
+          "· lambda:", round(len(xy) / a_km2, 4))
+    print("   X2:", round(x2, 4), "· gl:", gl, "· p:", p)
+    return esp
+
+informe("caja", mia, caja=True)
+esp = informe("poligono", mia, caja=False)
+
+# Y el supuesto, sobre las MISMAS celdas recortadas que mira el bloque de
+# R: ar[viva] aqui y tile.areas() alli son la misma area.
+print("celdas:", esp.size, "· con esperanza menor que 5:", int((esp &lt; 5).sum()))</code></pre>
         </div>
       </div>
 
@@ -4113,8 +4129,8 @@ cuadrantes(xy, mia, caja=False)[:3]</code></pre>
         <ol class="lista-literales" type="a">
           <li>Da la λ bajo las dos ventanas, en sedes por km², y di qué <strong>fracción de tu caja cae fuera</strong> del polígono de tu localidad. Con esa fracción delante: ¿de qué es intensidad la cifra de la caja, si no es de tu localidad?</li>
           <li>Da los dos χ² y los dos p-valores. <strong>Nombra el síntoma antes de arreglarlo</strong>: di qué está mal en el procedimiento, no qué habría que hacer en su lugar.</li>
-          <li><strong>Antes de leer ningún p-valor</strong>, comprueba el supuesto: cuenta cuántas de tus celdas tienen esperanza menor que 5 y da el porcentaje. Con <em>esa cifra tuya</em> decide si tu p-valor se puede leer o no. Si no se puede, busca la rejilla \(k \times k\) <strong>más fina</strong> —el \(k\) más grande— en la que ninguna celda baje de 5, y di qué veredicto da esa. Si no existe ninguna, dilo y sostenlo: también es una respuesta.</li>
-          <li>Un compañero te dice: «a mí también me rechazó con la caja, así que el error no importa». Refútalo <strong>con su cifra y con la tuya</strong> —pídele las suyas, porque no todas las localidades se comportan igual—.</li>
+          <li><strong>Antes de leer ningún p-valor</strong>, comprueba el supuesto: cuenta cuántas de tus celdas tienen esperanza menor que 5 y da el porcentaje. Con <em>esa cifra tuya</em> decide si tu p-valor se puede leer o no. Si no se puede, busca una rejilla \(k \times k\) que sí lo sea: <strong>prueba \(k = 2, 3, 4, 5\)</strong> —los cuatro, sin parar en el primero que falle—, da la esperanza <strong>mínima</strong> de cada uno, quédate con el \(k\) más grande que no baje de 5 y di qué veredicto da ese. <strong>\(k = 1\) no vale</strong>: una sola celda no compara nada contra nada, y el contraste sale con cero grados de libertad y un p-valor que no significa nada. Si no pasa ninguno de los cuatro, dilo y sostenlo: también es una respuesta.</li>
+          <li>Un compañero te dice: «a mí me rechazó con la caja y también con el polígono, así que el error no importa». Lo que tienes que refutar es <strong>que el error no importa</strong>, no que su veredicto cambie: un procedimiento puede acertar el veredicto por el camino equivocado, y eso no lo vuelve correcto. Hazlo <strong>con su cifra y con la tuya</strong> —pídele las suyas, porque no todas las localidades se comportan igual—.</li>
           <li>¿Por qué este defecto <strong>no</strong> se vería mirando el mapa del patrón?</li>
         </ol>
         <div class="ejercicio-acciones">
@@ -4124,7 +4140,7 @@ cuadrantes(xy, mia, caja=False)[:3]</code></pre>
           </button>
         </div>
         <div class="ejercicio-panel pista" id="t1-pista" hidden>
-          <p style="margin:0;">Las dos ventanas contienen los mismos puntos, así que lo que cambia no es el patrón: es el área contra la que lo estás comparando, y con ella lo que el contraste considera «uniforme». Para (c), fíjate en que bajar el \(k\) sube las esperadas y baja la resolución: hay que elegir, y elegir es la tarea. Y para (e): pregúntate qué parte de todo esto se dibuja.</p>
+          <p style="margin:0;">Las dos ventanas contienen los mismos puntos, así que lo que cambia no es el patrón: es el área contra la que lo estás comparando, y con ella lo que el contraste considera «uniforme». Para (c), fíjate en que bajar el \(k\) sube la esperanza media y baja la resolución: hay que elegir, y elegir es la tarea. Pero la que decide es la esperanza <strong>mínima</strong>, y esa no siempre sube al bajar el \(k\): depende de cómo tu contorno corte las celdas del borde. Y para (e): pregúntate qué parte de todo esto se dibuja.</p>
         </div>
       </div>
 

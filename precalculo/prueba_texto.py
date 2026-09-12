@@ -1174,6 +1174,19 @@ def defectos_taller2() -> list[tuple[str, str, str]]:
          "<p>Las dos tareas anteriores miraban",
          "<p>Los patrones salen de rThomas. Las dos tareas anteriores miraban"),
 
+        # --- 4b. Y la misma guarda, dentro de un comentario de código -
+        # Las dos cadenas que se inyectan son las que ESTUVIERON
+        # publicadas hasta el 2026-09-12 —la primera literal— y que el
+        # auditor no veía porque `texto_plano` tira los `<pre>`. La
+        # auditoría de contenido las encontró a mano; el arnés existe para
+        # que la próxima no haga falta encontrarla a mano.
+        ("un comentario del código adjudica el contraste bueno",
+         "sobre la ventana del poligono",
+         "sobre las esperadas del contraste bueno"),
+        ("un comentario del código nombra el generador de los patrones",
+         "# La MISMA rejilla y la MISMA correccion",
+         "# Los patrones salen de rpoispp. La MISMA rejilla y la MISMA correccion"),
+
         # --- 5. El banco y el catálogo, que son C6 --------------------
         ("el banco pierde una de sus 36 preguntas",
          '<tr><th scope="row">7</th><td>3</td><td>Qué mecanismo produce cada régimen</td>',

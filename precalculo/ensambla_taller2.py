@@ -314,7 +314,7 @@ MOD1 = cabecera(
           pide está publicado, y conviene tenerlo abierto al lado: el
           <a href="capitulo-4-patrones-puntuales.html">capítulo 4 · Patrones puntuales:
           descripción, CSR y funciones de resumen</a> entero, y del
-          <a href="capitulo-5-intensidad-nucleos.html">capítulo 5 · Intensidad y estimación por
+          <a href="capitulo-5-intensidad-nucleos.html">capítulo 5 · Intensidad por
           núcleos</a> solo sus tres primeros módulos, que son los que necesita T5.</p>
       </div>
 
@@ -458,6 +458,49 @@ MOD1 = cabecera(
 # Unidos y el 0,0605 de Los Mártires—; con la caja de los puntos vuelcan
 # Antonio Nariño, Rafael Uribe y LOS MÁRTIRES. Es exactamente la forma de
 # M-6: el conjunto que vuelca cambia con la convención. Ver §0 del plan.
+#
+# LO QUE CAMBIÓ LA AUDITORÍA DE CONTENIDO (A1, 2026-09-12). Seis arreglos,
+# ninguno de ellos en el JSON: la tarea es la misma y las 1000 variantes
+# no se tocan.
+#
+#   · (c) ACOTA LA BÚSQUEDA A k = 2, 3, 4, 5 Y PROHÍBE k = 1. Decía «la
+#     rejilla más fina en la que ninguna celda baje de 5, y si no existe
+#     ninguna, dilo». Siempre existe una: k = 1, una sola celda con
+#     esperanza n, y `quadrat.test(nx = 1, ny = 1)` devuelve X2 = 0 con
+#     0 grados de libertad y «p-value < 2.2e-16», que parece un rechazo
+#     rotundo y es un artefacto. En Usme, Tunjuelito y Los Mártires era la
+#     ÚNICA legible: tres de las dieciséis localidades daban un veredicto
+#     falso siguiendo la letra. El calificador ya buscaba entre 2 y 12 sin
+#     decirlo, así que además lo daba por mal. Medido el 2026-09-12 sobre
+#     las dieciséis: ninguna tiene rejilla legible por encima de k = 5, así
+#     que la horquilla que ahora se publica es la búsqueda entera.
+#
+#   · Y PIDE LA TABLA DE LOS CUATRO, no la primera que pase. En Engativá el
+#     conjunto legible NO es contiguo —k = 2 no pasa (4,70), k = 3 sí
+#     (6,03)—, y quien buscara subiendo y parara en el primer fallo
+#     concluía «ninguna». La pista decía además que bajar el k sube las
+#     esperadas; es verdad de la media y no de la mínima, que es la que
+#     manda. Las dos frases están corregidas.
+#
+#   · (d) DICE QUÉ SE REFUTA. «A mí también me rechazó con la caja» daba
+#     por hecho lo que a Los Mártires no le pasa —su caja no rechaza,
+#     p = 0,0605—, y «no todas las localidades se comportan igual» empujaba
+#     a buscar un veredicto que cambiara, cosa que solo tienen tres de
+#     dieciséis. Lo que se refuta es «el error no importa», y eso se puede
+#     refutar desde cualquiera de las dieciséis.
+#
+#   · EL COMENTARIO DEL BLOQUE DE R DECÍA CUÁL ES LA BUENA. «las esperadas
+#     del contraste bueno», tres párrafos después de prometer que «nadie te
+#     va a decir cuál de las dos está mal». `audita_texto_taller2.py`
+#     prohibía la frase en la prosa y no miraba los comentarios del código;
+#     ahora los mira, y el arnés lo inyecta.
+#
+#   · EL BLOQUE DE PYTHON NO IMPRIMÍA NADA corrido como guion, no calculaba
+#     λ ni las áreas —que es todo (a)— y tiraba las esperanzas con `[:3]`,
+#     que es lo que necesita (c). El de R hacía las tres cosas.
+#
+#   · «el defecto de spatstat» quería decir «el valor por defecto», en una
+#     tarea cuyo verbo es «nombra el defecto».
 MOD2 = cabecera(
     2, "La ventana que no declaraste", "T1 · The undeclared window",
     "Producir un defecto, nombrarlo y decidir con una cifra propia si un "
@@ -523,8 +566,9 @@ c(caja = intensity(p_caja), poligono = intensity(p_poly)) * 1e6
 quadrat.test(p_caja, nx = 5, ny = 5)
 quadrat.test(p_poly, nx = 5, ny = 5)
 
-# Y el supuesto, celda a celda: las esperadas del contraste bueno.
-# tile.areas() da el area de cada cuadrante YA RECORTADO por la ventana.
+# Y el supuesto, celda a celda, sobre las celdas RECORTADAS por la
+# ventana: tile.areas() da el area de cada cuadrante ya recortado, y es
+# esa area la que reparte las esperadas.
 ar  &lt;- tile.areas(as.tess(quadratcount(p_poly, nx = 5, ny = 5)))
 esp &lt;- npoints(p_poly) * ar / sum(ar)
 c(celdas = length(esp), bajas = sum(esp &lt; 5))''',
@@ -564,14 +608,29 @@ def cuadrantes(pts, poly, k=5, caja=False):
     viva = ar &gt; 0
     esp = len(pts) * ar[viva] / ar[viva].sum()
     x2 = float(((obs[viva] - esp) ** 2 / esp).sum()); gl = esp.size - 1
-    # DOS COLAS, que es el defecto de spatstat::quadrat.test y lo que
-    # corre tu R. La cola superior sola da otro p-valor, y sobre estos
-    # datos llega a cambiar el veredicto: el convenio no es un decimal.
+    # DOS COLAS, que es lo que hace spatstat::quadrat.test POR DEFECTO,
+    # y lo que corre tu R. La cola superior sola da otro p-valor, y sobre
+    # estos datos llega a cambiar el veredicto: no es un decimal.
     sup = chi2.sf(x2, gl)
     return x2, gl, 2 * min(sup, 1 - sup), esp
 
-cuadrantes(xy, mia, caja=True)[:3]
-cuadrantes(xy, mia, caja=False)[:3]''')}
+# Las dos ventanas, con lo que pide (a) —area e intensidad— y lo que
+# pide (c) —el recuento de esperanzas bajas—. Va con print() a proposito:
+# sin el, corrido como guion, este bloque no escribe nada en pantalla.
+def informe(nombre, poly, caja):
+    a_km2 = (box(*poly.bounds).area if caja else poly.area) / 1e6
+    x2, gl, p, esp = cuadrantes(xy, poly, caja=caja)
+    print(nombre, "· area km2:", round(a_km2, 4),
+          "· lambda:", round(len(xy) / a_km2, 4))
+    print("   X2:", round(x2, 4), "· gl:", gl, "· p:", p)
+    return esp
+
+informe("caja", mia, caja=True)
+esp = informe("poligono", mia, caja=False)
+
+# Y el supuesto, sobre las MISMAS celdas recortadas que mira el bloque de
+# R: ar[viva] aqui y tile.areas() alli son la misma area.
+print("celdas:", esp.size, "· con esperanza menor que 5:", int((esp &lt; 5).sum()))''')}
 
       <div class="warning">
         <p style="margin-bottom:0;"><strong>Si corres el bloque de Python, lee el comentario de
@@ -591,19 +650,27 @@ cuadrantes(xy, mia, caja=False)[:3]''')}
         "di qué está mal en el procedimiento, no qué habría que hacer en su lugar.",
         "<strong>Antes de leer ningún p-valor</strong>, comprueba el supuesto: cuenta cuántas de "
         "tus celdas tienen esperanza menor que 5 y da el porcentaje. Con <em>esa cifra tuya</em> "
-        "decide si tu p-valor se puede leer o no. Si no se puede, busca la rejilla "
-        "\\(k \\times k\\) <strong>más fina</strong> —el \\(k\\) más grande— en la que ninguna "
-        "celda baje de 5, y di qué veredicto da esa. Si no existe ninguna, dilo y sostenlo: "
-        "también es una respuesta.",
-        "Un compañero te dice: «a mí también me rechazó con la caja, así que el error no "
-        "importa». Refútalo <strong>con su cifra y con la tuya</strong> —pídele las suyas, "
-        "porque no todas las localidades se comportan igual—.",
+        "decide si tu p-valor se puede leer o no. Si no se puede, busca una rejilla "
+        "\\(k \\times k\\) que sí lo sea: <strong>prueba \\(k = 2, 3, 4, 5\\)</strong> —los cuatro, sin parar en el primero "
+        "que falle—, da la esperanza <strong>mínima</strong> de cada uno, quédate con el \\(k\\) "
+        "más grande que no baje de 5 y di qué veredicto da ese. <strong>\\(k = 1\\) no "
+        "vale</strong>: una sola celda no compara nada contra nada, y el contraste sale con cero "
+        "grados de libertad y un p-valor que no significa nada. Si no pasa ninguno de los cuatro, "
+        "dilo y sostenlo: también es una respuesta.",
+        "Un compañero te dice: «a mí me rechazó con la caja y también con el polígono, así que "
+        "el error no importa». Lo que tienes que refutar es <strong>que el error no "
+        "importa</strong>, no que su veredicto cambie: un procedimiento puede acertar el "
+        "veredicto por el camino equivocado, y eso no lo vuelve correcto. Hazlo <strong>con su "
+        "cifra y con la tuya</strong> —pídele las suyas, porque no todas las localidades se "
+        "comportan igual—.",
         "¿Por qué este defecto <strong>no</strong> se vería mirando el mapa del patrón?"],
        "Las dos ventanas contienen los mismos puntos, así que lo que cambia no es el patrón: es "
        "el área contra la que lo estás comparando, y con ella lo que el contraste considera "
-       "«uniforme». Para (c), fíjate en que bajar el \\(k\\) sube las esperadas y baja la "
-       "resolución: hay que elegir, y elegir es la tarea. Y para (e): pregúntate qué parte de "
-       "todo esto se dibuja.") + f"""
+       "«uniforme». Para (c), fíjate en que bajar el \\(k\\) sube la esperanza media y baja "
+       "la resolución: hay que elegir, y elegir es la tarea. Pero la que decide es la esperanza "
+       "<strong>mínima</strong>, y esa no siempre sube al bajar el \\(k\\): depende de cómo tu "
+       "contorno corte las celdas del borde. Y para (e): pregúntate qué parte de todo esto se "
+       "dibuja.") + f"""
       <div class="note">
         <p style="margin-bottom:0;"><strong>Dónde está esto en el capítulo.</strong> La ventana
           como parte del estimador es el módulo 1; la intensidad, el 2; el test de cuadrantes y su

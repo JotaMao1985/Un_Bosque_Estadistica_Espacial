@@ -858,6 +858,56 @@ Taller 2, igual que `PLAN_Taller_1_Caps_1_2.md` lo es del primero. Lleva el esta
 (C1…C10), las decisiones ya tomadas y las cuatro mediciones que las sostienen. **Leerlo entero
 antes de proponer nada.**
 
+**AUDITORÍA DE CONTENIDO (2026-09-11 y 12): T1 ARREGLADA, Y EL AUDITOR DE TEXTO YA LEE EL CÓDIGO.**
+El arnés mira que las cifras cuadren; no mira si el enunciado pregunta lo que quiere preguntar.
+Eso lo audita `AUDITORIA_CONTENIDO_TALLER2.md`, con su plan al lado en
+`PLAN_Auditoria_Taller_2.md` —los dos **fuera de git**, porque contienen respuestas—. El método es
+resolver cada tarea **a ciegas**, solo desde la página publicada, y cotejar **después** con
+`verifica_taller2.R`; al revés, la clave contamina la lectura. Hechas **A0** (contra qué se mide) y
+**A1** (T1 entera); **A2…A10** siguen.
+
+- **Siete arreglos aplicados a T1, ninguno en el JSON**: la tarea es la misma y las 1000 variantes
+  no se tocan. El más grave, **T1-1**: (c) pedía «la rejilla más fina en la que ninguna celda baje
+  de 5» y **no excluía k = 1**, que cumple siempre —una celda, esperanza *n*—. En **Usme,
+  Tunjuelito y Los Mártires** era la única, y `quadrat.test(nx = 1, ny = 1)` devuelve X2 = 0 con
+  **0 grados de libertad** y «p-value < 2.2e-16»: un rechazo rotundo que es un artefacto. Tres de
+  las dieciséis daban un veredicto falso siguiendo la letra, y el calificador —que buscaba entre 2
+  y 12 sin decirlo— lo daba por mal. Ahora el enunciado **acota a k = 2, 3, 4 y 5, prohíbe k = 1 y
+  dice por qué**. Medido sobre las dieciséis el 2026-09-12: **ninguna tiene rejilla legible por
+  encima de k = 5**, así que la horquilla publicada es la búsqueda entera y las dos superficies no
+  se pueden desmentir.
+- **Y (c) pide ahora la tabla de los cuatro, no la primera que pase.** En **Engativá** el conjunto
+  legible **no es contiguo** —k = 2 no pasa (4,70), k = 3 sí (6,03)—: quien buscara subiendo y
+  parara en el primer fallo concluía «ninguna». La pista decía además que bajar el k sube las
+  esperadas; es verdad de la media y **no de la mínima**, que es la que manda.
+- **(d) dice qué se refuta.** «A mí también me rechazó con la caja» daba por hecho lo que a Los
+  Mártires no le pasa (su caja no rechaza, p = 0,0605), y «no todas las localidades se comportan
+  igual» empujaba a buscar un **veredicto que cambiara**, que solo tienen tres de dieciséis. Lo que
+  se refuta es **«el error no importa»**, y eso se refuta desde cualquiera de las dieciséis. El
+  calificador ya aceptaba las dos vías; ahora lo dice en voz alta y prohíbe bajar nota por la
+  segunda.
+- **El bloque de R decía cuál de las dos ventanas es la buena.** «las esperadas del *contraste
+  bueno*», tres párrafos después de prometer que «nadie te va a decir cuál de las dos está mal».
+  **El agujero era del auditor, no del redactor**: `audita_texto_taller2.py` prohibía «la ventana
+  buena es» en la prosa y `texto_plano` tira los `<pre>`, así que los **92 comentarios** de los diez
+  bloques quedaban fuera de todas las guardas. Ahora la misma lista pasa también por ellos, más una
+  familia de patrones que caza al que adjudica —«el contraste bueno», «la ventana correcta»—.
+  Texto **116 · 0** (eran 94) y arnés **25 de 25** (eran 23), con dos inyecciones nuevas dentro de
+  un comentario.
+- **El bloque de Python no imprimía nada corrido como guion**, no calculaba λ ni las áreas —que es
+  todo (a)— y tiraba las esperanzas con `[:3]`, que es lo que necesita (c). Ahora da las mismas
+  cifras que R, **comprobado dígito a dígito en Rafael Uribe y Engativá**, y el recuento de
+  esperanzas bajas se imprime **una vez y sobre la misma ventana que R**: si Python contara también
+  las de la caja, (c) tendría dos respuestas distintas según el lenguaje.
+- Y dos de redacción: «el defecto de `spatstat`» quería decir «el valor por defecto», en una tarea
+  cuyo verbo es «nombra el defecto»; y el taller citaba el capítulo 5 con un título que no es el
+  publicado.
+- **Lo que queda anotado y no arreglado:** (c) no dice de qué ventana son «tus celdas». Los dos
+  bloques lo cierran calculándolo sobre el polígono y el calificador espera esa, así que en la
+  práctica no hay ambigüedad; en el texto la hay. Es decisión de Javier, y está en el informe.
+- El calificador (`verifica_taller2.R`, fuera de git, sincronizado en las dos copias) se puso al día
+  con las dos superficies: **143 anclas, todas en pie**.
+
 **Lo primero que hay que saber, antes de tocar nada:**
 
 1. **`precalculo/genera_taller2.R` tiene que quedar en `.gitignore`**, por la misma razón que el
