@@ -1778,6 +1778,27 @@ COURSE_DATA = f"""    const courseData = {{
     const LETRAS_T2 = ['A', 'B', 'C'];
 
     const n5 = (x, d = 5) => Number(x).toFixed(d);
+
+    // QUÉ NODOS CAEN DENTRO DEL TRAMO DE T4, Y POR QUÉ CON TOLERANCIA.
+    // Los dos campos vienen del mismo precálculo y REDONDEADOS DISTINTO:
+    // `r` a seis decimales (0.005859) y `tramo` a ocho (0.00585938). Una
+    // comparación estricta —`x >= tramo[0] && x <= tramo[1]`— deja fuera
+    // el nodo del que se sacó el tramo, y cuando el tramo es UN SOLO nodo
+    // se queda vacío: el informe decía «0 de 0 nodos evaluados» y luego
+    // concluía que la curva abandona la banda, el panel derecho salía en
+    // blanco y la tabla anunciaba un tramo de cero nodos. Le pasaba a las
+    // envolventes 3 y 10, que son 168 de las 1000 variantes. Media paso de
+    // tolerancia lo arregla y no puede pasarse de largo: la rejilla es
+    // uniforme, así que medio paso no alcanza al nodo siguiente.
+    // Lo encontró la auditoría de contenido el 2026-09-12, y desde
+    // entonces `audita_taller2.py` comprueba el invariante con esta misma
+    // regla. NO se sustituya por la comparación estricta.
+    const dentroTramoT2 = e => {{
+      const paso = (e.r[e.r.length - 1] - e.r[0]) / (e.r.length - 1);
+      const lo = e.tramo[0] - paso / 2, hi = e.tramo[1] + paso / 2;
+      return e.r.map(x => x >= lo && x <= hi);
+    }};
+
     const escT2 = s => String(s).replace(/&/g, '&amp;')
       .replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -1858,9 +1879,10 @@ COURSE_DATA = f"""    const courseData = {{
         // premisa falsa hunde la tarea: el estudiante refuta la
         // aritmética y no llega nunca al error, que es de razonamiento.
         const e = DATOS_T2.envolventes[r.v.envolvente - 1];
+        const dt = dentroTramoT2(e);          // con tolerancia: ver arriba
         let enTramo = 0, fueraTramo = 0;
         for (let i = 0; i < e.r.length; i++) {{
-          if (e.r[i] < e.tramo[0] || e.r[i] > e.tramo[1]) continue;
+          if (!dt[i]) continue;
           enTramo++;
           if (e.obs[i] > e.hi[i] || e.obs[i] < e.lo[i]) fueraTramo++;
         }}
@@ -2374,7 +2396,7 @@ SIMULADORES_JS2 = """
           return;
         }
         const e = DATOS_T2.envolventes[r.v.envolvente - 1];
-        const dentroTramo = e.r.map(x => x >= e.tramo[0] && x <= e.tramo[1]);
+        const dentroTramo = dentroTramoT2(e);   // con tolerancia: ver dentroTramoT2
         const vistas = [e.r.map(() => true), dentroTramo];
         graficos.forEach((g, k) => {
           const m = vistas[k];
@@ -2410,8 +2432,8 @@ SIMULADORES_JS2 = """
           <tr><th scope="row">Nodos fuera de la banda, en todo el rango</th>
               <td><strong>${fuera}</strong></td></tr>
           <tr><th scope="row">El tramo que eligió el informe</th>
-              <td>de r = ${n5(e.tramo[0], 4)} a r = ${n5(e.tramo[1], 4)}, que son
-                  ${enTramo} nodos</td></tr>
+              <td>de r = ${n5(e.tramo[0], 4)} a r = ${n5(e.tramo[1], 4)}, que
+                  ${enTramo === 1 ? 'es 1 nodo' : `son ${enTramo} nodos`}</td></tr>
           <tr><th scope="row">Nodos fuera de la banda dentro de ese tramo</th>
               <td><strong>${fueraTramo}</strong></td></tr>
           </tbody></table>`;

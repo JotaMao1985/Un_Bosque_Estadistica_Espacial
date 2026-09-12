@@ -421,6 +421,30 @@ def main() -> int:
                  f"{e['nodos']} vs {len(obs)}")
         a.cierto(fuera >= 1, f"envolvente {i + 1:02d}: se sale en algún nodo", str(fuera))
 
+        # EL TRAMO, QUE NADIE MIRABA. De él dependen tres superficies —el
+        # informe que se cita en T4(c), el panel derecho de la figura y su
+        # tabla de recuentos, y la hoja del calificador— y ninguna
+        # comprobación lo tocaba. La auditoría de contenido del 2026-09-12
+        # encontró por qué importa: `r` viene redondeado a SEIS decimales
+        # (0.005859) y `tramo` a OCHO (0.00585938), así que la comparación
+        # estricta `r >= tramo[0] and r <= tramo[1]` deja fuera el nodo del
+        # que salió el tramo. En las envolventes 3 y 10 —tramos de un solo
+        # nodo, 168 de las 1000 variantes— el informe publicaba «0 de 0
+        # nodos evaluados» y a continuación concluía que la curva abandona
+        # la banda. El navegador usa ahora medio paso de tolerancia
+        # (`dentroTramoT2`), y esto comprueba el mismo invariante con la
+        # misma regla: si alguien vuelve a la comparación estricta, o mueve
+        # un tramo, esto se cae.
+        r = np.array(e["r"])
+        paso = (r[-1] - r[0]) / (len(r) - 1)
+        dentro = (r >= e["tramo"][0] - paso / 2) & (r <= e["tramo"][1] + paso / 2)
+        a.cierto(int(dentro.sum()) >= 1,
+                 f"envolvente {i + 1:02d}: el tramo contiene algún nodo",
+                 f"{int(dentro.sum())} nodos en [{e['tramo'][0]}, {e['tramo'][1]}]")
+        sale = (obs > hi) | (obs < lo)
+        a.igual(int(sale[dentro].sum()), fuera,
+                f"envolvente {i + 1:02d}: el tramo recoge TODOS los nodos fuera de banda")
+
     # -----------------------------------------------------------------
     a.titulo("El reparto de las 1000 variantes")
     a.cierto("variantes" in D, "la sección de variantes existe")

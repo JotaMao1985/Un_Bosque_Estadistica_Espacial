@@ -218,6 +218,20 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("la curva observada se sale por todas partes", "datos",
         lambda o: o["envolventes"][8].__setitem__(
             "obs", [v * 3 for v in o["envolventes"][8]["hi"]]))
+    # EL TRAMO, que hasta el 2026-09-12 no lo miraba nadie y del que
+    # dependen el informe de T4(c), el panel derecho de la figura y la hoja
+    # del calificador. Las dos formas de romperlo: que no contenga ningún
+    # nodo —que es lo que le pasaba de hecho a las envolventes 3 y 10 con
+    # la comparación estricta— y que se corra y deje fuera excursiones.
+    obj("el tramo del informe no contiene ningún nodo", "datos",
+        lambda o: o["envolventes"][0].__setitem__(
+            "tramo", [o["envolventes"][0]["tramo"][0] + 0.0001,
+                      o["envolventes"][0]["tramo"][0] + 0.0002]))
+    obj("el tramo se corre y deja excursiones fuera", "datos",
+        lambda o: o["envolventes"][1].__setitem__(
+            "tramo", [o["envolventes"][1]["tramo"][0],
+                      (o["envolventes"][1]["tramo"][0]
+                       + o["envolventes"][1]["tramo"][1]) / 2]))
 
     # --- 6. El reparto de las 1000 variantes --------------------------
     obj("una clave de variante se sale del orden", "datos",

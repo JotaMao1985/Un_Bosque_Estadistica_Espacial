@@ -981,6 +981,42 @@ Siete arreglos más, y el primero es el hallazgo más caro de toda la auditoría
   y un \(r_{\max}\) que va de **621 m** en Antonio Nariño a **4 590 m** en Usme; y el módulo 2 sí
   dice lo que (c) pide nombrar.
 
+**Y A4 (T4, 2026-09-12): EL INFORME DE T4(c) DECÍA «0 DE 0 NODOS» Y LUEGO QUE LA CURVA SE SALE.**
+
+- **🔴 Dos campos del mismo precálculo, redondeados distinto.** `r` va a **seis** decimales
+  (`0.005859`) y `tramo` a **ocho** (`0.00585938`), y las tres superficies que los cruzan usaban una
+  comparación estricta que deja fuera el nodo del que salió el tramo. Cuando el tramo es **un solo
+  nodo**, el informe publicaba «se sale de la banda del 95 % en **0 de 0 nodos evaluados**» y a
+  renglón seguido «como la curva abandona la banda… p < 0,05»; el panel derecho de la figura salía
+  **vacío**; su tabla decía «0 nodos»; y la hoja del calificador, «0 nodos, 0 fuera (NaN)». Le pasa
+  a las envolventes **3 y 10** = **168 de las 1000 variantes**, o sea un **89 %** de que le toque a
+  alguien en una clase de doce. Y no era solo el caso extremo: las otras diez perdían los nodos de
+  los bordes —la 1 decía «69 de 161» cuando son **70 de 162**— y con ello se rompía en silencio la
+  identidad que hace la tarea, que **todos** los nodos fuera de banda del rango caen dentro del
+  tramo. Con medio paso de tolerancia se cumple en las doce. Arreglado con un único ayudante
+  `dentroTramoT2()` que usan el informe, el gráfico y la tabla, y la misma regla en el calificador.
+- **Guardas nuevas, porque el `tramo` no lo miraba nadie**: `audita_taller2.py` comprueba que cada
+  tramo contenga al menos un nodo y que recoja todos los que se salen —**216 · 0 · 0**, eran 192—,
+  con dos inyecciones nuevas en el arnés: **55 de 55**.
+- **🟡 En ocho de las doce envolventes se sale MENOS de lo que el 5 % esperaría** (0,19 % en dos de
+  ellas, frente a los 25,7 nodos que darían 513 × 5 %). (d) está bien escrita —dice «tampoco
+  decide»—, pero el calificador daba por hecho el exceso; ahora avisa de la dirección.
+- **🟡 En Antonio Nariño y Los Mártires el déficit sale `NA` a partir de r = 1800 m.** (a) deja
+  declarar el \(r\), así que conviene que el calificador lo sepa. Con el r del bloque (1000 m) no
+  pasa en ninguna de las dieciséis.
+- **Lo que aguantó, y es lo más importante de T4:** la promesa del enunciado —«una de las dos tiene
+  al menos el doble de perímetro/área»— se cumple en las **76 parejas**, con razón mínima **2,0331**
+  (Teusaquillo contra Tunjuelito) y mediana 2,50; y la de (b) —que el cociente predice cuál sufre
+  más— **no se invierte en ninguna de las 76 parejas ni en ninguno de los 40 valores de \(r\) del
+  bloque**, así que el estudiante puede declarar el \(r\) que quiera. M-20 aguanta.
+
+**LA CARGA DEL ESCRITO, contra las 5 h que Javier fija (2026-09-12).** Medido sobre la resolución
+propia, contando solo hacer las cuentas y decidir, **sin redactar**: T1 de 1 h a 1 h 30 · T2 de 1 h
+a 1 h 30 · T3 de 45 min a 1 h · T4 unos 1 h 15 · T5 pendiente de A5. **Las cuatro primeras suman de
+4 h a 5 h 15**, así que las cinco horas se agotan antes de T5, de la bitácora y de escribir el
+informe —que en un taller cuyo 40 % es el escrito no es el resto, es la mitad—. La estimación total
+va de **7 a 9 h**. Las sugerencias, al cerrar A5.
+
 **Lo primero que hay que saber, antes de tocar nada:**
 
 1. **`precalculo/genera_taller2.R` tiene que quedar en `.gitignore`**, por la misma razón que el
