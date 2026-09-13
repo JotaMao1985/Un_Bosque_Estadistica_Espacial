@@ -696,12 +696,22 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
          f"—{f(m11['escala_resumen']['veces_defecto'])} veces",
          f"—{perturba(m11['escala_resumen']['veces_defecto'])} veces"),
         # --- 3. En la solución de un ejercicio ------------------------
+        # LAS DOS ESTABAN MUERTAS y la prueba lo decía en voz baja: apuntaban
+        # al valor CRUDO del JSON —370.0898165101— y la tabla de la solución
+        # publica la cifra REDONDEADA a cinco decimales, que es la regla de
+        # la casa. «El texto a sustituir no aparece», 28 de 30 en cap4, y por
+        # tanto dos comprobaciones del auditor de texto que nadie había visto
+        # fallar nunca. Lo encontró la auditoría A8 del Taller 2 al correr el
+        # arnés entero en vez de mirar solo su propia lista. Y la perturbación
+        # iba al décimo decimal, que a cinco se redondea al mismo número: por
+        # eso las dos partes —el objetivo y el sustituto— van con f() y con la
+        # perturbación por defecto.
         ("una cifra de la solución del ejercicio 1",
-         f"<td>{S['e1']['solucion']['area_km2'] if 'area_km2' in S['e1']['solucion'] else S['e1']['pasos'][3]['valor']}</td>",
-         f"<td>{perturba(S['e1']['pasos'][3]['valor'], 10)}</td>"),
+         f"<td>{f(S['e1']['pasos'][3]['valor'])}</td>",
+         f"<td>{perturba(S['e1']['pasos'][3]['valor'])}</td>"),
         ("una cifra de la solución del ejercicio 5",
-         f"<td>{S['e5']['pasos'][3]['valor']}</td>",
-         f"<td>{perturba(S['e5']['pasos'][3]['valor'], 10)}</td>"),
+         f"<td>{f(S['e5']['pasos'][3]['valor'])}</td>",
+         f"<td>{perturba(S['e5']['pasos'][3]['valor'])}</td>"),
         # --- 4. Un tema del temario que desaparece --------------------
         ("el capítulo deja de hablar del MAUP",
          "MAUP", "problema-de-la-unidad", True),
@@ -1263,6 +1273,20 @@ def defectos_taller2() -> list[tuple[str, str, str]]:
         # pasar: exigía que «cinco cosas» apareciera, no que no hubiera otra.
         ("el control vuelve a pedir menos",
          "cinco cosas", "tres datos", True),
+
+        # --- 7c. El sorteo de la refutación (A8, 2026-09-13) -----------
+        # Las tres maneras de desandar A8: que la regla del sorteo se caiga
+        # del enunciado, que se caiga la distinción entre compartir
+        # respuesta y repetir la pregunta, y que vuelva a colarse una
+        # pregunta que pide justificar una unicidad falsa.
+        ("se cae la regla que evita defender dos veces lo mismo",
+         "refutarla no sea contestar otra vez",
+         "refutarla sea una sorpresa"),
+        ("se cae la distinción entre compartir respuesta y repetir pregunta",
+         "comparta respuesta", "diga lo mismo"),
+        ("una pregunta vuelve a pedir que se justifique una unicidad falsa",
+         "¿Qué le pasa a esa igualdad si los puntos se agrupan",
+         "¿Por qué ninguna otra distribución de conteos hace eso"),
 
         # --- 8. Peso ---------------------------------------------------
         # +312 KB sobre un documento de 1 138 y un tope de 1 250: la cuenta

@@ -1124,6 +1124,56 @@ puntúe «no hay» tan alto como una cifra, que es lo que las claves ya dicen.
   termina con **las dos rúbricas impresas** —requisitos de entrega primero, bandas publicadas,
   apartados que alimentan cada dimensión y los dos avisos de arriba—, con el hueco para escribir.
 
+**A8 (2026-09-13) · LA DEFENSA: EL MINUTO SE CUMPLE, EL SORTEO NO REPARTÍA PAREJO.** Las 36
+contestadas a ciegas y cronometradas, las 12 refutadas, y el sorteo simulado 200 000 veces.
+
+- **El criterio del minuto se cumple con margen.** La respuesta mediana son **41 s** y la más larga
+  **51**; las tres de un estudiante suman **123 s** de los **180** del bloque, y en 200 000 sorteos
+  nunca pasan de 180 —el peor reparto da 145—. Lo que sobra es todo el presupuesto para leer la
+  pregunta y pensar: el bloque está bien dimensionado y sin holgura.
+- **🔴 A8-1 · Refutar SIETE de las doce es contestar otra vez una pregunta del banco.** Tres lo
+  enuncian en la premisa de la pregunta (la falsa 1 ↔ la 16, la 6 ↔ la 23, la 7 ↔ la 26) y cuatro
+  lo tienen como respuesta (8↔32, 10↔19 y 21, 11↔29 y 30, 12↔9). **No es una fuga** —las dos listas
+  se publican enteras—: es **equidad del sorteo**. Medido: **0,74 estudiantes por clase** y el
+  **54,1 %** de las clases tienen a alguien que defiende dos veces lo mismo por 70 de los 100
+  puntos de la sustentación. Es el criterio que el propio ensamblador se puso y con el que ya había
+  tumbado seis candidatas. **No se arregló reescribiendo las siete** —con 48 ítems sobre once
+  módulos el solapamiento es estructural; para el módulo 3 se probaron cuatro sustitutas y las
+  cuatro chocaban— **sino en el sorteo**: la afirmación se asigna después de las tres preguntas,
+  evitando su choque, y esa asignación **existe siempre** (0 fallos en 20 000 sorteos, que es lo
+  que predice Hall). La regla va publicada; el mapa vive en `CHOQUES_REFUTACION`, en
+  `salidas/taller2_banco.md` y en la hoja de rúbrica del calificador.
+- **🟠 A8-2 · La pregunta 11 pedía justificar algo falso:** «¿por qué ninguna otra distribución de
+  conteos hace eso?». La equidispersión NO caracteriza a la Poisson —0 o 2 con probabilidad un
+  medio da media 1 y varianza 1—. Reescrita. **La frase viene del capítulo 4, que la afirma igual.**
+- **🟠 A8-3 · La pregunta 2 repetía el ejercicio guiado 1**, contra lo que el recuadro del propio
+  taller declara. El cotejo original se hizo contra el enunciado del ejercicio y el párrafo vive en
+  su **solución desplegable**. Reescrita, y el enunciado dice ahora la distinción que el cotejo usa
+  de verdad: compartir *respuesta* con el capítulo es inevitable; repetir la *pregunta*, no.
+- **🟠 A8-4 · La pregunta 22 presuponía una respuesta que no existe.** «Di cuál se ve más afectada
+  [por el borde], G o F»: medido sobre los tres canónicos con el criterio de la muestra reducida,
+  en `cells` le toca a **G** (40,5 % contra 24,1 %), en `redwood` a **F** (30,7 % contra 8,1 %) y
+  bajo CSR **empatan** (22,9 % y 23,7 % sobre 500 realizaciones). Reescrita a «de qué depende».
+- **🟡 A8-5 · «Sus dos propiedades» tiene dos lecturas**, porque el capítulo descompone CSR dos
+  veces y no en la misma pareja: módulo 4 «conteos Poisson + posiciones uniformes dado n», módulo 5
+  «λ constante + puntos independientes». La pregunta 14 nombra ahora la pareja.
+- **Lo que NO se arregló, y es decisión de Javier:** la dificultad no se reparte pareja. De las 36
+  hay 16 de recuerdo, 10 de comprensión y 10 de transferencia, y no están repartidas por módulo
+  —el 9 tiene sus tres de recuerdo, el 7 las tres de transferencia—. Entre el que peor y el que
+  mejor sale de una misma clase hay **4,59 puntos de los 6 posibles**; el **69,5 %** de las clases
+  tiene a alguien con tres de recuerdo y el **19,5 %**, a alguien con tres de transferencia.
+  Robusto: perturbando al azar el 40 % de mis notas la brecha se queda en 4,57, y con una vara
+  mecánica —los segundos de respuesta— el más cargado habla **136 s** contra **111**. Estratificar
+  el sorteo por terciles la bajaría a **1,58**. Etiquetar la dificultad es un juicio pedagógico,
+  no un defecto: la medida está, la decisión no es mía.
+- **Fuera de este documento, levantado:** el bloque de R del módulo 2 del **capítulo 4** sigue
+  diciendo `# El indice de dispersion: bajo Poisson vale 1` sobre la rejilla recortada donde vale
+  15,23 —la cuarta superficie del defecto R1 del A.30.3, que se arregló en la prosa, el quiz y la
+  lectura—, y es justo la frase que la pregunta 5 del banco manda refutar. Y **dos inyecciones
+  muertas** del arnés de texto del capítulo 4: apuntaban al valor crudo del JSON y la tabla publica
+  el redondeado, así que dos comprobaciones no se habían visto fallar nunca. Esas dos sí las
+  repunté, porque están en un archivo que esta tarea ya tocaba.
+
 **Lo primero que hay que saber, antes de tocar nada:**
 
 1. **`precalculo/genera_taller2.R` tiene que quedar en `.gitignore`**, por la misma razón que el

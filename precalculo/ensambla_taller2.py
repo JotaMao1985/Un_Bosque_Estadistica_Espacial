@@ -1503,9 +1503,17 @@ BANCO_DEFENSA = [
      "En los tres capítulos anteriores el dato traía su sitio puesto y lo que variaba era el "
      "valor. Aquí se invierte. Di qué es exactamente lo aleatorio en un patrón puntual, y qué "
      "cosa de los capítulos anteriores deja de existir cuando se invierte."),
+    # La segunda mitad decía «¿por qué no basta con dibujar un rectángulo
+    # alrededor de los puntos?», que es LITERALMENTE el ejercicio guiado 1
+    # del capítulo —«explica por qué la tercera ventana no es neutral»,
+    # siendo la tercera la envolvente convexa— con otra figura. Lo cazó la
+    # auditoría de contenido A8: el cotejo del §3.7 se hizo contra el
+    # enunciado del ejercicio y no contra su SOLUCIÓN publicada, que es
+    # donde vive el párrafo. Ahora pregunta por lo que hay que averiguar,
+    # no por la figura que no vale.
     (1, "Coordenadas sin ventana",
      "Alguien te entrega las coordenadas de un patrón y nada más. ¿Qué no puedes calcular "
-     "todavía, y por qué no basta con dibujar un rectángulo alrededor de los puntos?"),
+     "todavía, y qué tendrías que preguntarle a quien lo recogió para poder hacerlo?"),
     (1, "Del punto al área",
      "Un mismo fenómeno se puede estudiar como patrón puntual o agregado a unidades areales. "
      "¿Qué se pierde al pasar del primero al segundo, y qué se gana?"),
@@ -1537,19 +1545,35 @@ BANCO_DEFENSA = [
     (4, "Dos realizaciones, dos n",
      "Dos realizaciones del mismo proceso de Poisson homogéneo no tienen el mismo número de "
      "puntos. ¿Por qué, y qué error comete quien espera que sí?"),
+    # PREGUNTABA POR UNA PREMISA FALSA: «¿por qué ninguna otra distribución
+    # de conteos hace eso?». La equidispersión NO caracteriza a la Poisson
+    # —una variable que valga 0 o 2 con probabilidad un medio tiene media 1
+    # y varianza 1—, así que el estudiante que sabe probabilidad tenía que
+    # elegir entre contradecir el enunciado o repetir algo falso. La frase
+    # viene del módulo 4 del capítulo, que la afirma igual: eso es un
+    # defecto del capítulo 4 y va levantado aparte. Aquí la pregunta se
+    # queda con lo que el módulo sí sostiene, que es el diagnóstico.
     (4, "La firma de Poisson",
-     "Que la media y la varianza del número de puntos valgan aproximadamente lo mismo es la "
-     "firma de Poisson. ¿Por qué ninguna otra distribución de conteos hace eso, y cómo lo "
-     "comprobarías simulando?"),
+     "Que la media y la varianza del número de puntos valgan las dos \\(\\lambda|W|\\) es la "
+     "firma de Poisson. ¿Qué le pasa a esa igualdad si los puntos se agrupan, y cómo "
+     "comprobarías la firma simulando?"),
     (4, "Cuánto se mueve el azar",
      "Sobre realizaciones de CSR puro, el índice de Clark-Evans recorre un intervalo ancho y su "
      "media no cae exactamente en 1. Son dos hechos distintos: explica cada uno."),
     (4, "Una nula que casi nunca es cierta",
      "CSR es la hipótesis nula de casi todo el capítulo, y en datos reales casi nunca se "
      "cumple. ¿Por qué se usa igual como referencia? ¿Qué se gana?"),
+    # El capítulo descompone CSR en dos propiedades DOS VECES y no son la
+    # misma pareja: el módulo 4 da (1) conteos Poisson y (2) posiciones
+    # uniformes dado n; el módulo 5 las glosa como «λ constante y puntos
+    # independientes». La respuesta cambia según cuál se use —con la del
+    # módulo 4, el ejemplo de «(2) se cumple y (1) no» es el proceso
+    # binomial—, así que la pregunta nombra la pareja en vez de dejarla al
+    # azar de qué módulo repasó el estudiante.
     (4, "Qué falla cuando falla",
-     "Rechazar CSR no dice cuál de sus dos propiedades falla. Describe un patrón concreto donde "
-     "falle una y otro donde falle la otra, y di cómo los distinguirías."),
+     "Rechazar CSR no dice cuál de sus dos propiedades falla —\\(\\lambda\\) constante y "
+     "puntos independientes—. Describe un patrón concreto donde falle una y otro donde falle "
+     "la otra, y di cómo los distinguirías."),
     (4, "«Se ve aleatorio»",
      "Un colega mira un mapa y dice que el patrón «se ve aleatorio». ¿Por qué eso no es un "
      "argumento, y qué es lo mínimo que habría que enseñar para convertirlo en uno?"),
@@ -1578,9 +1602,18 @@ BANCO_DEFENSA = [
      "reproducible, y por qué sin eso el resultado está incompleto?"),
 
     # --- Módulo 7 · Las funciones G y F ------------------------------
+    # «Di CUÁL se ve más afectada» presupone una respuesta única, y no la
+    # hay: medido sobre los tres canónicos con el criterio de la muestra
+    # reducida —un origen está afectado si su distancia medida supera su
+    # distancia al borde—, en `cells` (regular) le toca a G, 40,5 % de
+    # orígenes contra 24,1 %; en `redwood` (agregado) le toca a F, 30,7 %
+    # contra 8,1 %; y bajo CSR empatan (22,9 % y 23,7 % sobre 500
+    # realizaciones, G peor en el 44 % de ellas). Lo que decide es cuál de
+    # las dos mide distancias más largas, y eso sí lo sostiene el módulo 7.
     (7, "Las dos y el borde",
      "G y F se estiman sobre una ventana finita, así que las dos sufren el efecto de borde. "
-     "¿Lo sufren igual? Di cuál se ve más afectada y por qué."),
+     "¿Lo sufren igual? Di de qué depende que una se lleve más borde que la otra, y en qué "
+     "clase de patrón le toca a F."),
     (7, "Los sitios de F",
      "F se mide desde sitios cualesquiera de la ventana. ¿Cómo se eligen esos sitios en la "
      "práctica, y qué decisión del analista se esconde ahí?"),
@@ -1689,6 +1722,53 @@ AFIRMACIONES_FALSAS = [
     (3, "El índice de Clark-Evans mira todas las escalas del patrón a la vez."),
 ]
 
+# QUÉ REFUTACIÓN CONTESTA QUÉ PREGUNTA DEL BANCO
+# =====================================================================
+# Lo levantó la auditoría de contenido A8, y es lo que el comentario de
+# arriba ya vio en seis candidatas descartadas sin darse cuenta de que
+# sobrevivían siete: refutar una de las doce ES, en algunos casos,
+# contestar otra vez una de las treinta y seis. Con el sorteo libre eso
+# le pasa a alguien en algo más de la mitad de las clases de doce, y ese
+# alguien defiende dos veces lo mismo mientras otro defiende cuatro cosas
+# distintas.
+#
+# NO ES UNA FUGA: las dos listas se publican enteras y todo el mundo llega
+# con las cuarenta y ocho preparadas. Es un problema de equidad del
+# sorteo, y se arregla en el sorteo: la afirmación se asigna DESPUÉS de
+# las tres preguntas, evitando su choque. El §7 lo publica como regla, y
+# la asignación sin repetición existe siempre.
+#
+# Por qué no se arregló reescribiendo las siete afirmaciones: el capítulo
+# tiene once módulos y las dos listas ya publican cuarenta y ocho ítems
+# sobre ellos. Cada intento de sustituta cae en la respuesta de otra
+# pregunta del mismo módulo — se probaron cuatro para el módulo 3 y las
+# cuatro chocaban. El solapamiento es estructural, no un descuido, y una
+# regla de sorteo lo resuelve entero y sin tocar el contenido.
+#
+# Clave: número de afirmación falsa. Valor: las preguntas del banco cuya
+# respuesta es su refutación.
+CHOQUES_REFUTACION = {
+    # «contrasta que λ es constante» ← la 16 lo enuncia en su propia premisa
+    1: (16,),
+    # «F se calcula sobre los puntos del patrón» ← la 23 arranca diciendo
+    # que F se mide desde sitios cualesquiera de la ventana
+    6: (23,),
+    # «L detecta estructura que K no ve» ← la 26 arranca con «si la
+    # información es la misma»
+    7: (26,),
+    # «las tres correcciones dan la misma curva» ← contestar la 32 exige
+    # saber que descartar y pesar no dan el mismo estimador
+    8: (32,),
+    # «el tamaño de celda no cambia el veredicto» ← la 19 y la 21 viven de
+    # que sí lo cambia
+    10: (19, 21),
+    # «el máximo de g es el tamaño de los grumos» ← la 29 dice que el
+    # tamaño es el regreso a 1, y la 30, qué NO es el máximo
+    11: (29, 30),
+    # «Clark-Evans mira todas las escalas» ← es la respuesta de la 9
+    12: (9,),
+}
+
 _banco = "\n".join(
     f"""          <tr><th scope="row">{i + 1}</th><td>{m}</td><td>{tema}</td><td>{preg}</td></tr>"""
     for i, (m, tema, preg) in enumerate(BANCO_DEFENSA))
@@ -1738,6 +1818,14 @@ MOD7 = cabecera(
           oyó</strong>, y que el orden en que te toque defender no te da ventaja ni te la quita. La
           refutación en vivo funciona igual: hay <strong>{n_falsas} afirmaciones falsas
           distintas</strong>, una por persona.</p>
+        <p><strong>Y una regla más, sobre la afirmación falsa.</strong> Se asigna
+          <em>después</em> de sortear las tres preguntas, y se elige de modo que
+          <strong>refutarla no sea contestar otra vez una de ellas</strong>. Con {n_banco}
+          preguntas y {n_falsas} afirmaciones sobre los mismos once módulos hay solapamientos
+          —la refutación de algunas es la respuesta de alguna del banco—, y sin esta regla habría
+          quien defendiera dos veces lo mismo mientras otro defiende cuatro cosas distintas. La
+          asignación sin repetición existe siempre, sea cual sea el sorteo de las preguntas, y no
+          cambia nada de lo que tienes que preparar.</p>
         <p style="margin-bottom:0;">Las dos listas se publican <strong>con este enunciado</strong>,
           enteras. No hay preguntas sorpresa: hay {n_banco} preguntas y {n_falsas} afirmaciones que
           puedes preparar, y de ellas te tocan tres y una. Que estén publicadas no las hace fáciles:
@@ -1757,6 +1845,11 @@ MOD7 = cabecera(
           F?» y «¿cuáles son las dos propiedades de CSR?», que son preguntas del capítulo palabra
           por palabra. Si al prepararte encuentras una que sí se parece a algo ya publicado,
           dilo: es un defecto y se corrige.</p>
+        <p style="margin-bottom:0;">Lo que sí ocurre, y es a propósito, es que una pregunta de
+          aquí <strong>comparta respuesta</strong> con algo del capítulo: el capítulo es el
+          material, y una pregunta oral que no se pudiera preparar con él sería otra cosa. Lo que
+          no puede ocurrir es que sea <strong>la misma pregunta</strong>, y ése es el cotejo que
+          se hizo.</p>
       </div>
 
       <table>
@@ -3109,6 +3202,30 @@ def main() -> int:
                          f"módulos caben todos")
     print(f"    {len(AFIRMACIONES_FALSAS)} afirmaciones falsas, sobre los módulos {mods_falsas}")
 
+    # EL MAPA DE CHOQUES, comprobado contra las dos listas. Un índice
+    # inventado o un módulo que no cuadra dejaría la regla del sorteo
+    # apuntando a la nada, y la regla está publicada.
+    for falsa, pregs in CHOQUES_REFUTACION.items():
+        if not 1 <= falsa <= len(AFIRMACIONES_FALSAS):
+            problemas.append(f"CHOQUES_REFUTACION: no existe la afirmación {falsa}")
+            continue
+        m_falsa = AFIRMACIONES_FALSAS[falsa - 1][0]
+        for q in pregs:
+            if not 1 <= q <= len(BANCO_DEFENSA):
+                problemas.append(f"CHOQUES_REFUTACION: no existe la pregunta {q}")
+            elif BANCO_DEFENSA[q - 1][0] != m_falsa:
+                problemas.append(
+                    f"CHOQUES_REFUTACION: la afirmación {falsa} es del módulo {m_falsa} "
+                    f"y la pregunta {q} del {BANCO_DEFENSA[q - 1][0]}; un choque de "
+                    f"contenido no cruza módulos")
+    if len(CHOQUES_REFUTACION) > len(AFIRMACIONES_FALSAS) // 2 + 2:
+        problemas.append(
+            f"CHOQUES_REFUTACION declara {len(CHOQUES_REFUTACION)} choques de "
+            f"{len(AFIRMACIONES_FALSAS)} afirmaciones: con tantos, la regla del sorteo "
+            f"puede quedarse sin asignación posible y hay que rehacer las afirmaciones")
+    print(f"    {len(CHOQUES_REFUTACION)} de {len(AFIRMACIONES_FALSAS)} refutaciones chocan "
+          f"con alguna pregunta del banco; el sorteo del §7 las evita")
+
     # Ninguna pregunta puede nombrar la posición de una opción: el banco es
     # ORAL y no tiene opciones, así que la comprobación es que no se haya
     # colado la redacción de un quiz.
@@ -3132,12 +3249,49 @@ def main() -> int:
              "evitarlas, o reutilizarlas **a propósito** y declararlo.", "",
              f"## Las {len(BANCO_DEFENSA)} preguntas del banco", ""]
     for i, (m, tema, preg) in enumerate(BANCO_DEFENSA, 1):
+        # Se quita el marcado y se baja el LaTeX a texto: esta lista la lee
+        # una persona escribiendo otro plan, no un navegador con MathJax.
         limpio = re.sub(r"<[^>]+>", "", preg)
+        limpio = (limpio.replace("\\(", "").replace("\\)", "")
+                        .replace("\\lambda", "λ").replace("\\times", "×"))
         lista.append(f"{i}. **[mód. {m} · {tema}]** {limpio}")
     lista += ["", f"## Las {len(AFIRMACIONES_FALSAS)} afirmaciones falsas de la refutación en vivo",
               "", "Todas son FALSAS. Se leen en voz alta, una por estudiante.", ""]
     for i, (m, af) in enumerate(AFIRMACIONES_FALSAS, 1):
         lista.append(f"{i}. **[mód. {m}]** {af.replace('&lt;', '<').replace('&gt;', '>')}")
+    # LO QUE LE FALTABA A ESTA LISTA, y lo pidió la auditoría A8: el
+    # blueprint del parcial 2 no necesita solo saber qué se preguntó, sino
+    # CUÁNTO se ha gastado ya de cada módulo. Un módulo con cinco ítems
+    # publicados está casi agotado para el parcial; uno con tres, no. La
+    # tabla se cuenta aquí y no se escribe a mano.
+    porm = {}
+    for m, _, _ in BANCO_DEFENSA:
+        porm.setdefault(m, [0, 0])[0] += 1
+    for m, _ in AFIRMACIONES_FALSAS:
+        porm.setdefault(m, [0, 0])[1] += 1
+    lista += ["", "## Qué refutación contesta qué pregunta", "",
+              "Lo levantó la auditoría A8. Refutar una de estas afirmaciones es, en estos casos,",
+              "contestar otra vez una pregunta del banco. El enunciado publica la regla —la",
+              "afirmación se asigna después de las tres preguntas, evitando el choque— y esta es",
+              "la tabla con la que se aplica al preparar el sorteo.", "",
+              "| Afirmación falsa | La contesta(n) la(s) pregunta(s) |", "|---:|---|"]
+    for falsa in sorted(CHOQUES_REFUTACION):
+        lista.append(f"| {falsa} | {', '.join(str(q) for q in CHOQUES_REFUTACION[falsa])} |")
+    lista += ["", f"Las otras {len(AFIRMACIONES_FALSAS) - len(CHOQUES_REFUTACION)} no chocan con "
+              "ninguna: se pueden asignar a cualquiera.", ""]
+
+    lista += ["", "## Cuánto se ha gastado de cada módulo del capítulo 4", "",
+              "Los dos instrumentos juntos, por módulo. Es lo que el *blueprint* del parcial 2",
+              "necesita para saber dónde le queda sitio: un módulo con cinco ítems ya publicados",
+              "está casi agotado, y uno con cuatro no. Los títulos de los módulos están en el",
+              "`courseData` de `Htmls_Espacial/capitulo-4-patrones-puntuales.html`.", "",
+              "| Módulo | Preguntas del banco | Afirmaciones falsas | Total publicado |",
+              "|---:|---:|---:|---:|"]
+    for m in sorted(porm):
+        b, f = porm[m]
+        lista.append(f"| {m} | {b} | {f} | {b + f} |")
+    lista += [f"| **total** | **{len(BANCO_DEFENSA)}** | **{len(AFIRMACIONES_FALSAS)}** | "
+              f"**{len(BANCO_DEFENSA) + len(AFIRMACIONES_FALSAS)}** |", ""]
     lista.append("")
     BANCO_FUERA.parent.mkdir(parents=True, exist_ok=True)
     BANCO_FUERA.write_text("\n".join(lista), encoding="utf-8")

@@ -282,6 +282,19 @@ def main() -> int:
         ("dice que las dos rúbricas se leen antes de escribir", "antes de escribir"),
         ("declara que ninguna pregunta del banco repite el capítulo",
          "ni un ejercicio guiado del capítulo"),
+        # A8 midió que refutar siete de las doce es contestar otra vez una
+        # pregunta del banco. La regla que lo arregla vive en la prosa, así
+        # que la prosa es donde hay que vigilarla: sin ella el sorteo vuelve
+        # a ser libre y a uno de cada dos grupos le toca un repetido.
+        ("publica la regla que evita defender dos veces lo mismo",
+         "refutarla no sea contestar otra vez"),
+        ("y dice que esa asignación siempre existe",
+         "sin repetición existe siempre"),
+        # La distinción que el cotejo del §3.7 usa de verdad, escrita: una
+        # pregunta del banco puede COMPARTIR RESPUESTA con el capítulo —es
+        # inevitable y es el material— y no puede ser la misma pregunta.
+        ("distingue compartir respuesta de repetir la pregunta",
+         "comparta respuesta"),
     ])
 
     # Las piezas de accesibilidad que SÍ aplican, a mano, porque la familia
@@ -322,6 +335,17 @@ def main() -> int:
     a.exige(filas_falsas == 12, "y el catálogo sus 12 afirmaciones falsas",
             f"{filas_falsas} filas")
     a.exige("12 × 3" in a.prosa_txt, "y publica la aritmética que lo sostiene")
+
+    # NINGUNA PREGUNTA PUEDE PEDIR QUE SE JUSTIFIQUE UNA UNICIDAD que el
+    # material no demuestra. La 11 preguntaba «¿por qué ninguna otra
+    # distribución de conteos hace eso?» y la equidispersión no caracteriza
+    # a la Poisson: 0 o 2 con probabilidad un medio tiene media 1 y
+    # varianza 1. El estudiante que sabe probabilidad tenía que elegir
+    # entre contradecir el enunciado o repetir algo falso. Lo cazó A8.
+    for frase in ("ninguna otra distribución", "ninguna otra distribucion",
+                  "solo la Poisson", "la única distribución"):
+        a.exige(frase not in a.prosa_txt,
+                f"ninguna pregunta del banco pide justificar «{frase}»  (A8)")
 
     a.enlaces()
     a.formulas_escapadas()

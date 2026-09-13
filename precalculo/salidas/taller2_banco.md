@@ -12,7 +12,7 @@ evitarlas, o reutilizarlas **a propósito** y declararlo.
 ## Las 36 preguntas del banco
 
 1. **[mód. 1 · La ventana es parte del estimador]** En los tres capítulos anteriores el dato traía su sitio puesto y lo que variaba era el valor. Aquí se invierte. Di qué es exactamente lo aleatorio en un patrón puntual, y qué cosa de los capítulos anteriores deja de existir cuando se invierte.
-2. **[mód. 1 · Coordenadas sin ventana]** Alguien te entrega las coordenadas de un patrón y nada más. ¿Qué no puedes calcular todavía, y por qué no basta con dibujar un rectángulo alrededor de los puntos?
+2. **[mód. 1 · Coordenadas sin ventana]** Alguien te entrega las coordenadas de un patrón y nada más. ¿Qué no puedes calcular todavía, y qué tendrías que preguntarle a quien lo recogió para poder hacerlo?
 3. **[mód. 1 · Del punto al área]** Un mismo fenómeno se puede estudiar como patrón puntual o agregado a unidades areales. ¿Qué se pierde al pasar del primero al segundo, y qué se gana?
 4. **[mód. 2 · Cuándo describe λ al patrón]** El estimador de λ es una división. ¿Bajo qué condición ese único número describe el patrón, y cómo comprobarías si se cumple sin correr ningún test?
 5. **[mód. 2 · El índice de dispersión que no vale 1]** «Bajo Poisson el índice de dispersión vale 1» es falso en cuanto las celdas no miden lo mismo. Explica por qué, y di contra qué habría que compararlo en su lugar.
@@ -21,10 +21,10 @@ evitarlas, o reutilizarlas **a propósito** y declararlo.
 8. **[mód. 3 · De dónde sale el denominador]** Clark-Evans divide la distancia media observada al vecino más próximo por la que daría el azar. ¿De dónde sale ese denominador, y qué tendría que pasar para que la división dejara de ser informativa?
 9. **[mód. 3 · Agregado aquí, regular allá]** Un patrón puede estar agregado a una escala y ser regular a otra. ¿Qué le pasa entonces al índice de Clark-Evans, y qué habría que medir para verlo?
 10. **[mód. 4 · Dos realizaciones, dos n]** Dos realizaciones del mismo proceso de Poisson homogéneo no tienen el mismo número de puntos. ¿Por qué, y qué error comete quien espera que sí?
-11. **[mód. 4 · La firma de Poisson]** Que la media y la varianza del número de puntos valgan aproximadamente lo mismo es la firma de Poisson. ¿Por qué ninguna otra distribución de conteos hace eso, y cómo lo comprobarías simulando?
+11. **[mód. 4 · La firma de Poisson]** Que la media y la varianza del número de puntos valgan las dos λ|W| es la firma de Poisson. ¿Qué le pasa a esa igualdad si los puntos se agrupan, y cómo comprobarías la firma simulando?
 12. **[mód. 4 · Cuánto se mueve el azar]** Sobre realizaciones de CSR puro, el índice de Clark-Evans recorre un intervalo ancho y su media no cae exactamente en 1. Son dos hechos distintos: explica cada uno.
 13. **[mód. 4 · Una nula que casi nunca es cierta]** CSR es la hipótesis nula de casi todo el capítulo, y en datos reales casi nunca se cumple. ¿Por qué se usa igual como referencia? ¿Qué se gana?
-14. **[mód. 4 · Qué falla cuando falla]** Rechazar CSR no dice cuál de sus dos propiedades falla. Describe un patrón concreto donde falle una y otro donde falle la otra, y di cómo los distinguirías.
+14. **[mód. 4 · Qué falla cuando falla]** Rechazar CSR no dice cuál de sus dos propiedades falla —λ constante y puntos independientes—. Describe un patrón concreto donde falle una y otro donde falle la otra, y di cómo los distinguirías.
 15. **[mód. 4 · «Se ve aleatorio»]** Un colega mira un mapa y dice que el patrón «se ve aleatorio». ¿Por qué eso no es un argumento, y qué es lo mínimo que habría que enseñar para convertirlo en uno?
 16. **[mód. 5 · Contra qué se contrasta]** La hipótesis nula del test de cuadrantes no es «λ es constante». ¿Cuál es, y por qué esa diferencia cambia lo que puedes afirmar cuando rechazas?
 17. **[mód. 5 · Los esperados de una celda recortada]** Cuando la ventana recorta las celdas, los esperados dejan de ser iguales entre sí. ¿De dónde salen entonces, y qué pasaría si los repartieras por igual de todos modos?
@@ -32,7 +32,7 @@ evitarlas, o reutilizarlas **a propósito** y declararlo.
 19. **[mód. 6 · Resolver contra suponer]** «La escala que más resuelve es la que rompe el supuesto.» Explica esa tensión y di qué hace con ella un analista honesto.
 20. **[mód. 6 · El MAUP con otro nombre]** El tamaño del cuadrante y el tamaño de la unidad areal del capítulo 3 son el mismo problema. Di en qué son el mismo y en qué no.
 21. **[mód. 6 · Qué falta en el pie]** ¿Qué tiene que aparecer siempre junto al resultado de un test de cuadrantes para que sea reproducible, y por qué sin eso el resultado está incompleto?
-22. **[mód. 7 · Las dos y el borde]** G y F se estiman sobre una ventana finita, así que las dos sufren el efecto de borde. ¿Lo sufren igual? Di cuál se ve más afectada y por qué.
+22. **[mód. 7 · Las dos y el borde]** G y F se estiman sobre una ventana finita, así que las dos sufren el efecto de borde. ¿Lo sufren igual? Di de qué depende que una se lleve más borde que la otra, y en qué clase de patrón le toca a F.
 23. **[mód. 7 · Los sitios de F]** F se mide desde sitios cualesquiera de la ventana. ¿Cómo se eligen esos sitios en la práctica, y qué decisión del analista se esconde ahí?
 24. **[mód. 7 · Misma G, distinta F]** Dos patrones tienen la misma G y distinta F. ¿Qué sabes de ellos? ¿Y si tuvieran la misma F y distinta G?
 25. **[mód. 8 · Por qué se divide por λ]** K(r) es el número esperado de vecinos a distancia r o menos de un punto cualquiera, dividido por la intensidad. ¿Por qué se divide por la intensidad, y qué se consigue?
@@ -64,3 +64,46 @@ Todas son FALSAS. Se leen en voz alta, una por estudiante.
 10. **[mód. 6]** El tamaño de la celda del test de cuadrantes es un detalle de implementación: el veredicto no depende de él.
 11. **[mód. 9]** El máximo de g(r) señala el tamaño de los grumos del patrón.
 12. **[mód. 3]** El índice de Clark-Evans mira todas las escalas del patrón a la vez.
+
+## Qué refutación contesta qué pregunta
+
+Lo levantó la auditoría A8. Refutar una de estas afirmaciones es, en estos casos,
+contestar otra vez una pregunta del banco. El enunciado publica la regla —la
+afirmación se asigna después de las tres preguntas, evitando el choque— y esta es
+la tabla con la que se aplica al preparar el sorteo.
+
+| Afirmación falsa | La contesta(n) la(s) pregunta(s) |
+|---:|---|
+| 1 | 16 |
+| 6 | 23 |
+| 7 | 26 |
+| 8 | 32 |
+| 10 | 19, 21 |
+| 11 | 29, 30 |
+| 12 | 9 |
+
+Las otras 5 no chocan con ninguna: se pueden asignar a cualquiera.
+
+
+## Cuánto se ha gastado de cada módulo del capítulo 4
+
+Los dos instrumentos juntos, por módulo. Es lo que el *blueprint* del parcial 2
+necesita para saber dónde le queda sitio: un módulo con cinco ítems ya publicados
+está casi agotado, y uno con cuatro no. Los títulos de los módulos están en el
+`courseData` de `Htmls_Espacial/capitulo-4-patrones-puntuales.html`.
+
+| Módulo | Preguntas del banco | Afirmaciones falsas | Total publicado |
+|---:|---:|---:|---:|
+| 1 | 3 | 1 | 4 |
+| 2 | 3 | 1 | 4 |
+| 3 | 3 | 1 | 4 |
+| 4 | 6 | 1 | 7 |
+| 5 | 3 | 1 | 4 |
+| 6 | 3 | 1 | 4 |
+| 7 | 3 | 1 | 4 |
+| 8 | 3 | 1 | 4 |
+| 9 | 3 | 1 | 4 |
+| 10 | 3 | 2 | 5 |
+| 11 | 3 | 1 | 4 |
+| **total** | **36** | **12** | **48** |
+

@@ -5014,6 +5014,14 @@ print("focos =", int(n_focos))
           oyó</strong>, y que el orden en que te toque defender no te da ventaja ni te la quita. La
           refutación en vivo funciona igual: hay <strong>12 afirmaciones falsas
           distintas</strong>, una por persona.</p>
+        <p><strong>Y una regla más, sobre la afirmación falsa.</strong> Se asigna
+          <em>después</em> de sortear las tres preguntas, y se elige de modo que
+          <strong>refutarla no sea contestar otra vez una de ellas</strong>. Con 36
+          preguntas y 12 afirmaciones sobre los mismos once módulos hay solapamientos
+          —la refutación de algunas es la respuesta de alguna del banco—, y sin esta regla habría
+          quien defendiera dos veces lo mismo mientras otro defiende cuatro cosas distintas. La
+          asignación sin repetición existe siempre, sea cual sea el sorteo de las preguntas, y no
+          cambia nada de lo que tienes que preparar.</p>
         <p style="margin-bottom:0;">Las dos listas se publican <strong>con este enunciado</strong>,
           enteras. No hay preguntas sorpresa: hay 36 preguntas y 12 afirmaciones que
           puedes preparar, y de ellas te tocan tres y una. Que estén publicadas no las hace fáciles:
@@ -5033,6 +5041,11 @@ print("focos =", int(n_focos))
           F?» y «¿cuáles son las dos propiedades de CSR?», que son preguntas del capítulo palabra
           por palabra. Si al prepararte encuentras una que sí se parece a algo ya publicado,
           dilo: es un defecto y se corrige.</p>
+        <p style="margin-bottom:0;">Lo que sí ocurre, y es a propósito, es que una pregunta de
+          aquí <strong>comparta respuesta</strong> con algo del capítulo: el capítulo es el
+          material, y una pregunta oral que no se pudiera preparar con él sería otra cosa. Lo que
+          no puede ocurrir es que sea <strong>la misma pregunta</strong>, y ése es el cotejo que
+          se hizo.</p>
       </div>
 
       <table>
@@ -5043,7 +5056,7 @@ print("focos =", int(n_focos))
         </thead>
         <tbody>
           <tr><th scope="row">1</th><td>1</td><td>La ventana es parte del estimador</td><td>En los tres capítulos anteriores el dato traía su sitio puesto y lo que variaba era el valor. Aquí se invierte. Di qué es exactamente lo aleatorio en un patrón puntual, y qué cosa de los capítulos anteriores deja de existir cuando se invierte.</td></tr>
-          <tr><th scope="row">2</th><td>1</td><td>Coordenadas sin ventana</td><td>Alguien te entrega las coordenadas de un patrón y nada más. ¿Qué no puedes calcular todavía, y por qué no basta con dibujar un rectángulo alrededor de los puntos?</td></tr>
+          <tr><th scope="row">2</th><td>1</td><td>Coordenadas sin ventana</td><td>Alguien te entrega las coordenadas de un patrón y nada más. ¿Qué no puedes calcular todavía, y qué tendrías que preguntarle a quien lo recogió para poder hacerlo?</td></tr>
           <tr><th scope="row">3</th><td>1</td><td>Del punto al área</td><td>Un mismo fenómeno se puede estudiar como patrón puntual o agregado a unidades areales. ¿Qué se pierde al pasar del primero al segundo, y qué se gana?</td></tr>
           <tr><th scope="row">4</th><td>2</td><td>Cuándo describe λ al patrón</td><td>El estimador de λ es una división. ¿Bajo qué condición ese único número describe el patrón, y cómo comprobarías si se cumple sin correr ningún test?</td></tr>
           <tr><th scope="row">5</th><td>2</td><td>El índice de dispersión que no vale 1</td><td>«Bajo Poisson el índice de dispersión vale 1» es falso en cuanto las celdas no miden lo mismo. Explica por qué, y di contra qué habría que compararlo en su lugar.</td></tr>
@@ -5052,10 +5065,10 @@ print("focos =", int(n_focos))
           <tr><th scope="row">8</th><td>3</td><td>De dónde sale el denominador</td><td>Clark-Evans divide la distancia media observada al vecino más próximo por la que daría el azar. ¿De dónde sale ese denominador, y qué tendría que pasar para que la división dejara de ser informativa?</td></tr>
           <tr><th scope="row">9</th><td>3</td><td>Agregado aquí, regular allá</td><td>Un patrón puede estar agregado a una escala y ser regular a otra. ¿Qué le pasa entonces al índice de Clark-Evans, y qué habría que medir para verlo?</td></tr>
           <tr><th scope="row">10</th><td>4</td><td>Dos realizaciones, dos n</td><td>Dos realizaciones del mismo proceso de Poisson homogéneo no tienen el mismo número de puntos. ¿Por qué, y qué error comete quien espera que sí?</td></tr>
-          <tr><th scope="row">11</th><td>4</td><td>La firma de Poisson</td><td>Que la media y la varianza del número de puntos valgan aproximadamente lo mismo es la firma de Poisson. ¿Por qué ninguna otra distribución de conteos hace eso, y cómo lo comprobarías simulando?</td></tr>
+          <tr><th scope="row">11</th><td>4</td><td>La firma de Poisson</td><td>Que la media y la varianza del número de puntos valgan las dos \(\lambda|W|\) es la firma de Poisson. ¿Qué le pasa a esa igualdad si los puntos se agrupan, y cómo comprobarías la firma simulando?</td></tr>
           <tr><th scope="row">12</th><td>4</td><td>Cuánto se mueve el azar</td><td>Sobre realizaciones de CSR puro, el índice de Clark-Evans recorre un intervalo ancho y su media no cae exactamente en 1. Son dos hechos distintos: explica cada uno.</td></tr>
           <tr><th scope="row">13</th><td>4</td><td>Una nula que casi nunca es cierta</td><td>CSR es la hipótesis nula de casi todo el capítulo, y en datos reales casi nunca se cumple. ¿Por qué se usa igual como referencia? ¿Qué se gana?</td></tr>
-          <tr><th scope="row">14</th><td>4</td><td>Qué falla cuando falla</td><td>Rechazar CSR no dice cuál de sus dos propiedades falla. Describe un patrón concreto donde falle una y otro donde falle la otra, y di cómo los distinguirías.</td></tr>
+          <tr><th scope="row">14</th><td>4</td><td>Qué falla cuando falla</td><td>Rechazar CSR no dice cuál de sus dos propiedades falla —\(\lambda\) constante y puntos independientes—. Describe un patrón concreto donde falle una y otro donde falle la otra, y di cómo los distinguirías.</td></tr>
           <tr><th scope="row">15</th><td>4</td><td>«Se ve aleatorio»</td><td>Un colega mira un mapa y dice que el patrón «se ve aleatorio». ¿Por qué eso no es un argumento, y qué es lo mínimo que habría que enseñar para convertirlo en uno?</td></tr>
           <tr><th scope="row">16</th><td>5</td><td>Contra qué se contrasta</td><td>La hipótesis nula del test de cuadrantes no es «λ es constante». ¿Cuál es, y por qué esa diferencia cambia lo que puedes afirmar cuando rechazas?</td></tr>
           <tr><th scope="row">17</th><td>5</td><td>Los esperados de una celda recortada</td><td>Cuando la ventana recorta las celdas, los esperados dejan de ser iguales entre sí. ¿De dónde salen entonces, y qué pasaría si los repartieras por igual de todos modos?</td></tr>
@@ -5063,7 +5076,7 @@ print("focos =", int(n_focos))
           <tr><th scope="row">19</th><td>6</td><td>Resolver contra suponer</td><td>«La escala que más resuelve es la que rompe el supuesto.» Explica esa tensión y di qué hace con ella un analista honesto.</td></tr>
           <tr><th scope="row">20</th><td>6</td><td>El MAUP con otro nombre</td><td>El tamaño del cuadrante y el tamaño de la unidad areal del capítulo 3 son el mismo problema. Di en qué son el mismo y en qué no.</td></tr>
           <tr><th scope="row">21</th><td>6</td><td>Qué falta en el pie</td><td>¿Qué tiene que aparecer siempre junto al resultado de un test de cuadrantes para que sea reproducible, y por qué sin eso el resultado está incompleto?</td></tr>
-          <tr><th scope="row">22</th><td>7</td><td>Las dos y el borde</td><td>G y F se estiman sobre una ventana finita, así que las dos sufren el efecto de borde. ¿Lo sufren igual? Di cuál se ve más afectada y por qué.</td></tr>
+          <tr><th scope="row">22</th><td>7</td><td>Las dos y el borde</td><td>G y F se estiman sobre una ventana finita, así que las dos sufren el efecto de borde. ¿Lo sufren igual? Di de qué depende que una se lleve más borde que la otra, y en qué clase de patrón le toca a F.</td></tr>
           <tr><th scope="row">23</th><td>7</td><td>Los sitios de F</td><td>F se mide desde sitios cualesquiera de la ventana. ¿Cómo se eligen esos sitios en la práctica, y qué decisión del analista se esconde ahí?</td></tr>
           <tr><th scope="row">24</th><td>7</td><td>Misma G, distinta F</td><td>Dos patrones tienen la misma G y distinta F. ¿Qué sabes de ellos? ¿Y si tuvieran la misma F y distinta G?</td></tr>
           <tr><th scope="row">25</th><td>8</td><td>Por qué se divide por λ</td><td>K(r) es el número esperado de vecinos a distancia r o menos de un punto cualquiera, dividido por la intensidad. ¿Por qué se divide por la intensidad, y qué se consigue?</td></tr>
