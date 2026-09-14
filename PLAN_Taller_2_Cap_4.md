@@ -1174,6 +1174,30 @@ contestadas a ciegas y cronometradas, las 12 refutadas, y el sorteo simulado 200
   el redondeado, así que dos comprobaciones no se habían visto fallar nunca. Esas dos sí las
   repunté, porque están en un archivo que esta tarea ya tocaba.
 
+**LAS CINCO DECISIONES DEL 2026-09-13.** Javier cierra lo que A7 y A8 dejaron encima de la mesa:
+
+| Qué | Decisión | Consecuencia |
+|---|---|---|
+| **La carga del escrito** | se queda como está | cinco tareas al 8 % y **6 h 20 – 8 h 30** medidas, contra las 5 h que él mismo fijó. No se declaran las horas ni se baja a cuatro tareas |
+| **El sorteo estratificado por dificultad** | no se aplica | la brecha de **4,59 sobre 6** queda medida y sin corregir |
+| **Los tres adverbios de grado** (A, C, E) | **anclados en el calificador, no en la banda publicada** | ver abajo |
+| **Un segundo calificador** | no lo hay | el criterio de A7 pasa de *no medido* a **no aplicable** |
+| **El Taller 3 del syllabus** | **sigue existiendo** (semana 9, covariables, 20 % del Corte II) | **mejora A0-2**: T5 deja de ser alcance añadido y pasa a ser la rampa hacia él. Abre en cambio un choque de calendario que va a A9: el Taller 3 cae **dentro** de la ventana del 21 de septiembre al 11 de octubre |
+
+**Los adverbios, anclados donde duele de verdad.** Sin segundo lector el daño no es el desacuerdo
+entre dos, es la **deriva de uno solo** entre el primer escrito y el duodécimo, leídos en el día y
+medio de C11. Por eso el anclaje va en `hoja_rubrica()` y **no** en la banda publicada: el
+estudiante ya las leyó, y lo que hace falta al calificar no es el texto de la rúbrica sino el
+recuento. Los tres son conteos sobre cosas que la rúbrica ya nombra — **A**: en cuántos de sus 7
+apartados el concepto decide algo; **C**: en cuántas tareas se dice qué entra en el estimador y
+contra qué se contrasta; **E**: las tres casillas de la bitácora. Coste 0 en lo publicado.
+
+**Y de camino salió lo que faltaba de A8.** `--sustentacion` del calificador —que es quien hace el
+sorteo de verdad— repartía las doce afirmaciones con un `sample()` libre: el enunciado publicaba
+una regla que el instrumento no aplicaba. Ahora `lee_banco()` lee el mapa de choques de
+`taller2_banco.md` —y **para** si no está, en vez de sortear libre— y `empareja_falsas()` resuelve
+un emparejamiento bipartito por caminos aumentantes. **5 000 sorteos: 0 sin solución, 0 choques.**
+
 **Lo primero que hay que saber, antes de tocar nada:**
 
 1. **`precalculo/genera_taller2.R` tiene que quedar en `.gitignore`**, por la misma razón que el
