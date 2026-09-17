@@ -6727,6 +6727,40 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
         return filas.length ? `<ul>${filas.join('')}</ul>` : '';
       }
 
+      // La frase del PRIMER fallo en una `multiple`: cuántas de las marcadas
+      // están en la respuesta y cuántas faltan. Se arma por casos porque la
+      // plantilla única que había antes no concordaba con los números: con una
+      // sola marcada salía «De las 1 que marcaste, 0 están en la respuesta», y
+      // a quien marcaba todas las correctas y alguna de más le decía «te faltan
+      // 0», que es cierto y no le dice qué sobra. Visto en el capítulo 4 el
+      // 2026-09-16.
+      //
+      // Los recuentos van en letra, que en una frase se lee mejor que la cifra;
+      // nunca pasan de cinco porque no hay más `LETRAS`, y si algún día las hay,
+      // salen en cifra en vez de romperse.
+      function recuentoMultiple(marcadas, bien, faltan) {
+        const letra = n => ['ninguna', 'una', 'dos', 'tres', 'cuatro', 'cinco'][n] || String(n);
+        let dentro;
+        if (marcadas === 1) {
+          dentro = `La que marcaste ${bien ? 'está' : 'no está'} en la respuesta`;
+        } else if (bien === marcadas) {
+          dentro = `Las ${letra(marcadas)} que marcaste están en la respuesta`;
+        } else {
+          dentro = `De las ${letra(marcadas)} que marcaste, ${letra(bien)} ` +
+            `${bien > 1 ? 'están' : 'está'} en la respuesta`;
+        }
+        // Si no falta ninguna, el fallo solo puede ser haber marcado de más.
+        if (faltan === 0) {
+          const sobran = marcadas - bien;
+          return `${dentro}, y no te falta ninguna: te ` +
+            `${sobran === 1 ? 'sobra' : 'sobran'} ${letra(sobran)}.`;
+        }
+        // «Pero» solo cuando lo marcado es todo bueno: ahí la segunda mitad sí
+        // corrige a la primera.
+        return `${dentro}, ${bien === marcadas ? 'pero' : 'y'} te ` +
+          `${faltan === 1 ? 'falta' : 'faltan'} ${letra(faltan)}.`;
+      }
+
       function mostrarPista(i, bloque) {
         const pista = bloque.querySelector('.quiz-pista');
         if (pista && preguntas[i].pista) {
@@ -6876,9 +6910,8 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
               // TODAS las opciones, así que no queda nada que explicar.
             } else if (estado[i].intentos === 1) {
               const bien = [...marcadas].filter(j => correctas.has(j)).length;
-              pista.innerHTML = `<strong>Casi.</strong> De las ${marcadas.size} que marcaste, ` +
-                `${bien} ${bien === 1 ? 'está' : 'están'} en la respuesta, y te ` +
-                `${correctas.size - bien === 1 ? 'falta' : 'faltan'} ${correctas.size - bien}. ` +
+              pista.innerHTML = `<strong>Casi.</strong> ` +
+                `${recuentoMultiple(marcadas.size, bien, correctas.size - bien)} ` +
                 (p.pista || '');
               pista.hidden = false;
               katexEn(pista);
