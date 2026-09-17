@@ -886,6 +886,20 @@ def main() -> int:
         a.cierto(all((b["p_valor"][i] < 0.05) == (b["rechaza"][i] == 1)
                      for i in range(len(b["nx"]))),
                  f"E3/{clave}: la bandera de rechazo corresponde al p-valor")
+        respetan = [b["nx"][i] for i in range(len(b["nx"]))
+                    if b["celdas_esperanza_baja"][i] == 0]
+        # `igual` compara números; esto es una lista, y va por `cierto`.
+        a.cierto(s3[f"rejillas_supuesto_{clave}"] == respetan,
+                 f"E3/{clave}: las rejillas con el supuesto, del barrido",
+                 f"{s3[f'rejillas_supuesto_{clave}']} / {respetan}")
+        # Lo que la lectura afirma de ellas: que todas rechazan, y que el
+        # supuesto no se rompe de una vez al afinar.
+        a.cierto(respetan and all(b["rechaza"][b["nx"].index(k)] == 1 for k in respetan),
+                 f"E3/{clave}: rechaza en toda rejilla con el supuesto")
+        rotas = [k for k in b["nx"] if k not in respetan]
+        a.cierto(bool(rotas) and bool(respetan) and min(rotas) < max(respetan),
+                 f"E3/{clave}: el supuesto se rompe a saltos",
+                 f"respetan {respetan}")
     a.cierto(s3["dc"]["pct_vacias"][s3["nxs"].index(10)] >
              s3["urbana"]["pct_vacias"][s3["nxs"].index(10)],
              "E3: la ventana del D.C. tiene más celdas vacías")

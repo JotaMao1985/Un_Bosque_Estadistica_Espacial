@@ -292,6 +292,17 @@ def defectos():
             "chi2", 18.7171717171))
     obj("11 · E2: la caída de R no sale de sus dos R",
         "soluciones", lambda s: s["e2"]["solucion"].__setitem__("ce_cae", 0.3131313131))
+    obj("11 · E3: las rejillas que respetan el supuesto no salen del barrido",
+        "soluciones", lambda s: s["e3"]["solucion"].__setitem__(
+            "rejillas_supuesto_dc", [2, 3]))
+    obj("11 · E3: una rejilla que respeta el supuesto deja de rechazar",
+        "soluciones", lambda s: (
+            s["e3"]["solucion"]["urbana"]["rechaza"].__setitem__(3, 0),
+            s["e3"]["solucion"]["urbana"]["p_valor"].__setitem__(3, 0.3131313131)))
+    obj("11 · E3: el supuesto vuelve a romperse de una vez al afinar",
+        "soluciones", lambda s: (
+            s["e3"]["solucion"]["urbana"]["celdas_esperanza_baja"].__setitem__(3, 1),
+            s["e3"]["solucion"].__setitem__("rejillas_supuesto_urbana", [2])))
     obj("11 · E4: el porcentaje de nodos fuera no sale de sus conteos",
         "soluciones", lambda s: s["e4"]["solucion"].__setitem__("pct_fuera", 41.7171717171))
     obj("11 · E4: sobre L deja de rechazar y se cae el giro del ejercicio",

@@ -1447,6 +1447,36 @@ solucion_cap4 <- function() {
   }))
   b_urb <- barre(p_urb, "urbana"); b_dc <- barre(p_dc, "dc")
 
+  # EL SUPUESTO, POR REJILLAS Y NO POR UMBRAL. El enunciado pide anotar
+  # cuántas celdas tienen esperanza < 5 y la solución no lo leía; lo único
+  # que guardaba era «la primera rejilla con alguna celda por debajo», que
+  # supone que afinar lo rompe de una vez. Con estas dos ventanas es falso:
+  # recortan las celdas, y la esperanza mínima sube y baja con la rejilla.
+  # Las rejillas concretas no se escriben aquí: viven en el JSON. Por eso se guardan las rejillas que lo respetan, y la lectura afirma
+  # dos cosas que aquí se comprueban antes de escribirlas.
+  respetan <- function(b) b$nx[b$celdas_esperanza_baja == 0L]
+  salta <- function(b) {
+    ok <- b$celdas_esperanza_baja == 0L
+    any(ok) && any(!ok) && which(!ok)[1] < max(which(ok))
+  }
+  rotula <- function(v) {
+    s <- paste0(v, "×", v)
+    if (length(s) == 1L) s else paste(paste(head(s, -1L), collapse = ", "), "y", tail(s, 1L))
+  }
+  for (b in list(b_urb, b_dc)) {
+    if (!length(respetan(b)))
+      stop(sprintf("E3/%s: ninguna rejilla respeta el supuesto, y la lectura cita las que sí",
+                   b$ventana[1]))
+    if (!all(b$rechaza[b$celdas_esperanza_baja == 0L] == 1L))
+      stop(sprintf("E3/%s: alguna rejilla que respeta el supuesto no rechaza, y la lectura dice que todas",
+                   b$ventana[1]))
+    if (!salta(b))
+      stop(sprintf("E3/%s: el supuesto ya no se rompe a saltos, y la lectura dice que sí",
+                   b$ventana[1]))
+  }
+  baja10_urb <- b_urb$celdas_esperanza_baja[b_urb$nx == 10L]
+  baja10_dc  <- b_dc$celdas_esperanza_baja[b_dc$nx == 10L]
+
   E$e3 <- list(
     titulo = "El cuadrante que rechaza por el motivo equivocado",
     enunciado = paste(
@@ -1466,7 +1496,15 @@ solucion_cap4 <- function() {
       list(paso = "Celdas vacías con 10×10, D.C. (%)",
            valor = b_dc$pct_vacias[b_dc$nx == 10L]),
       list(paso = "χ² con 10×10, urbana", valor = b_urb$chi2[b_urb$nx == 10L]),
-      list(paso = "χ² con 10×10, D.C.", valor = b_dc$chi2[b_dc$nx == 10L])),
+      list(paso = "χ² con 10×10, D.C.", valor = b_dc$chi2[b_dc$nx == 10L]),
+      list(paso = sprintf("Celdas con esperanza < 5 con 10×10, urbana (de %d vivas)",
+                          b_urb$celdas[b_urb$nx == 10L]), valor = baja10_urb),
+      list(paso = sprintf("Celdas con esperanza < 5 con 10×10, D.C. (de %d vivas)",
+                          b_dc$celdas[b_dc$nx == 10L]), valor = baja10_dc),
+      list(paso = "Rejillas sin ninguna celda con esperanza < 5, urbana",
+           valor = length(respetan(b_urb))),
+      list(paso = "Rejillas sin ninguna celda con esperanza < 5, D.C.",
+           valor = length(respetan(b_dc)))),
     solucion = list(
       nxs = NXS, urbana = as.list(b_urb), dc = as.list(b_dc),
       rechazos_urbana = as.integer(sum(b_urb$rechaza)),
@@ -1474,8 +1512,10 @@ solucion_cap4 <- function() {
       chi2_veces = r10(b_dc$chi2[b_dc$nx == 10L] / b_urb$chi2[b_urb$nx == 10L]),
       vacias_veces = r10(b_dc$pct_vacias[b_dc$nx == 10L] /
                          max(b_urb$pct_vacias[b_urb$nx == 10L], 1e-9)),
-      primera_esperanza_baja_urbana = b_urb$nx[b_urb$celdas_esperanza_baja > 0][1],
-      primera_esperanza_baja_dc = b_dc$nx[b_dc$celdas_esperanza_baja > 0][1]),
+      # I(): con `auto_unbox`, la rejilla única del D.C. saldría como un
+      # número suelto y no como una lista de rejillas.
+      rejillas_supuesto_urbana = I(respetan(b_urb)),
+      rejillas_supuesto_dc = I(respetan(b_dc))),
     lectura = paste(
       "Los dos rechazan, y el del D.C. rechaza mucho más fuerte. Pero el",
       "D.C. incluye Sumapaz, los cerros orientales y el suelo rural: celdas",
@@ -1486,7 +1526,20 @@ solucion_cap4 <- function() {
       "regla que queda: antes de interpretar un test sobre un patrón,",
       "hay que poder defender que la ventana es el sitio donde los puntos",
       "PODRÍAN haber estado. Si no, el test contesta a una pregunta sobre",
-      "la ventana disfrazada de pregunta sobre el dato.")
+      "la ventana disfrazada de pregunta sobre el dato.",
+      sprintf(paste(
+        "Queda el supuesto, que el enunciado pide anotar y que se mira antes",
+        "que ningún p-valor: con 10×10 ya hay %d celdas urbanas y %d del D.C.",
+        "con esperanza menor que 5, así que los dos χ² de esa rejilla se",
+        "apoyan en una aproximación que no vale. De las %d rejillas, la",
+        "urbana solo lo respeta con %s, y el D.C. solo con %s. En ninguna de",
+        "las dos se rompe de una vez al afinar: las dos ventanas recortan las",
+        "celdas del borde, y la esperanza mínima sube y baja con la rejilla en",
+        "vez de bajar siempre. En las rejillas que lo respetan, las dos",
+        "ventanas siguen rechazando, así que los dos rechazos aguantan; lo que",
+        "no se puede es apoyarlos en la de 10×10 sin decirlo."),
+        baja10_urb, baja10_dc, length(NXS),
+        rotula(respetan(b_urb)), rotula(respetan(b_dc))))
   )
 
   # -------------------------------------------------------------------
