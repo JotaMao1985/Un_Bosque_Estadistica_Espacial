@@ -911,6 +911,16 @@ MOD5 = cabecera(
 # =====================================================================
 _nx_baja = m6['redwood_nx_esperanza_baja']
 _n_tam = len(m6['nxs'])
+# Bogotá rompe el supuesto a saltos: la ventana recorta las celdas, y la
+# rejilla de 5×5 lo respeta después de que 3×3 y 4×4 lo rompieran. El
+# párrafo que cierra el simulador lo cuenta con estas cuatro rejillas, así
+# que si un precálculo nuevo lo deja de ser, el ensamblado para.
+_bog = m6['bogota']
+_kb = {nx: k for k, nx in enumerate(_bog['nx'])}
+_bog_baja = {nx: _bog['celdas_esperanza_baja'][_kb[nx]] for nx in (3, 4, 5, 6)}
+if not (_bog_baja[3] > 0 and _bog_baja[4] > 0 and _bog_baja[5] == 0 and _bog_baja[6] > 0):
+    sys.exit(f"PARADO: el módulo 6 cuenta que Bogotá rompe el supuesto en 3×3 y 4×4, "
+             f"lo respeta en 5×5 y lo vuelve a romper en 6×6, y el precálculo dice {_bog_baja}")
 MOD6 = cabecera(
     6, "El tamaño del cuadrante", "Quadrat size",
     "Reconocer el MAUP del capítulo 3 dentro de un test de patrones puntuales: "
@@ -949,7 +959,22 @@ MOD6 = cabecera(
         «correcto» que la teoría entregue: hay una decisión del analista, que se declara.</p>
 
 {sim('cap4-barrido', 'El veredicto en función de la celda',
-     'Barre el tamaño de la rejilla sobre los tres patrones: en rojo los tamaños que rechazan al 5 % y en gris los que no. Mira en cuál de los tres cambia el veredicto, y desde qué tamaño se rompe el supuesto del χ², que es cuando alguna celda espera menos de 5 puntos.', 300)}
+     'Barre el tamaño de la rejilla sobre los tres patrones: en rojo los tamaños que rechazan al 5 % y en gris los que no, y en pálido los que rompen el supuesto del χ², porque alguna celda espera menos de 5 puntos. Mira en cuál de los tres cambia el veredicto, y en cuál una rejilla más fina vuelve a respetar el supuesto.', 300)}
+
+      <p>Las sedes de Bogotá enseñan algo que las secuoyas no pueden enseñar. La ventana de
+        <code>redwood</code> es un cuadrado: todas sus celdas tienen la misma área, afinar la
+        rejilla baja a la vez la esperanza de todas, y una vez roto el supuesto ya no se
+        recupera. La ventana urbana no es un rectángulo, y recorta las celdas del borde. Bajo la
+        nula, la esperanza de una celda es proporcional a su área <em>recortada</em>, y esa área
+        depende de por dónde pasen las líneas de la rejilla, no solo de cuántas haya. Por eso
+        el supuesto se rompe a saltos: la rejilla de 3×3 ya tiene celdas con esperanza menor
+        que 5 ({ent(_bog_baja[3])} de {ent(_bog['celdas'][_kb[3]])}), la de 4×4 también
+        ({ent(_bog_baja[4])} de {ent(_bog['celdas'][_kb[4]])}), la de 5×5 no tiene ninguna
+        —su celda más pequeña espera {firma(n(_bog['esperanza_min'][_kb[5]], 2))} puntos— y la
+        de 6×6 vuelve a romperlo ({ent(_bog_baja[6])} de {ent(_bog['celdas'][_kb[6]])}).
+        «Afinar rompe el supuesto» es la tendencia, no una regla: con una ventana irregular,
+        el supuesto se comprueba rejilla por rejilla, mirando la esperanza mínima de cada
+        una.</p>
 
       <p>La lectura del capítulo 3 vale palabra por palabra: la escala no es un detalle de
         implementación, es parte del resultado, y un test de cuadrantes sin su tamaño de
@@ -1918,24 +1943,48 @@ SIMULADORES_JS = r"""
           // El color codifica «rechaza al 5 %» y una leyenda de un solo
           // recuadro gris rotulado «χ²» decía justo lo contrario. Se
           // apaga y el código de color va en el pie, en palabras.
-          plugins: { legend: { display: false } },
+          plugins: { legend: { display: false },
+            // El tooltip dice el porqué de la barra pálida: cuántas de las
+            // celdas vivas de ESA rejilla esperan menos de 5 puntos.
+            tooltip: { callbacks: {
+              title: its => 'rejilla ' + its[0].label + '×' + its[0].label,
+              label: it => 'χ² = ' + n5(it.raw, 2),
+              afterLabel: it => {
+                const b = D4.m6[CLAVES[i]], k = it.dataIndex;
+                return b.celdas_esperanza_baja[k] + ' de ' + b.celdas[k] +
+                       ' celdas vivas con esperanza < 5';
+              } } } },
           scales: { y: { type: 'logarithmic', title: { display: true, text: 'χ² (escala log)' } },
                     x: { type: 'category', ticks: { callback: function (v) { return this.getLabelForValue(v); } }, title: { display: true, text: 'lado de la rejilla (nx)' } } } }
       });
       const pinta = () => {
         const b = D4.m6[CLAVES[i]];
         g.data.labels = b.nx;
+        // DOS CODIFICACIONES, una por cada pregunta del módulo. El color dice
+        // si esa rejilla rechaza al 5 %; el relleno, si respeta el supuesto
+        // del χ²: llena si ninguna celda viva espera menos de 5 puntos,
+        // pálida con borde si alguna sí. La lectura decía «esperanza < 5
+        // desde nx = 3» para Bogotá, y era falso: la ventana recorta las
+        // celdas, y la de 5×5 lo respeta después de que 3×3 y 4×4 lo
+        // rompieran. «Desde» solo vale con celdas iguales, así que la
+        // lectura enumera las rejillas en vez de dar un umbral.
+        const rompe = b.celdas_esperanza_baja.map(v => v > 0);
+        const base = b.rechaza.map(r => r ? C4.rojo : C4.gris);
         g.data.datasets = [{ type: 'bar', label: 'χ²', data: b.chi2,
-          backgroundColor: b.rechaza.map(r => r ? C4.rojo : C4.gris) }];
+          backgroundColor: base.map((c, k) => rompe[k] ? c + '40' : c),
+          borderColor: base, borderWidth: rompe.map(r => r ? 1.5 : 0) }];
         g.options.scales.y.min = Math.min.apply(null, b.chi2) / 2;
         g.update();
         const rech = b.rechaza.reduce((a, v) => a + v, 0);
-        const primeraBaja = b.nx[b.celdas_esperanza_baja.findIndex(v => v > 0)];
+        const rejillas = pred => {
+          const ks = b.nx.filter((_, k) => pred(k)).map(v => v + '×' + v);
+          return ks.length ? ks.join(', ') : 'ninguna';
+        };
         lectura4(raiz, [
           ['patrón', ETQ[i]],
-          ['tamaños barridos', b.nx.length],
           ['rechazan al 5 %', rech + ' de ' + b.nx.length],
-          ['esperanza &lt; 5 desde nx', primeraBaja == null ? '—' : primeraBaja],
+          ['respetan el supuesto', rejillas(k => !rompe[k])],
+          ['lo respetan y rechazan', rejillas(k => !rompe[k] && b.rechaza[k])],
           ['χ² con nx = 2', n5(b.chi2[0], 2)],
           ['χ² con nx = 20', n5(b.chi2[b.chi2.length - 1], 2)]
         ]);
