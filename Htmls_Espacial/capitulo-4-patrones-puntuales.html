@@ -4452,18 +4452,22 @@ print([round(chi(c1), 4), round(chi(c2), 4)])
         veredicto depende de la celda <strong>cuando el patrón está en el filo</strong>;
         cuando es claramente aleatorio o claramente inhomogéneo, la elección no lo mueve.</p>
 
-      <p>Y en el otro extremo el problema se invierte. A partir de rejillas de
-        <strong>4</strong>×4 —<code>nx</code> es el número de celdas por
-        lado— aparecen celdas con esperanza menor que 5, que es donde la aproximación χ² deja
-        de valer. <strong>La escala que más resuelve es la que rompe el supuesto</strong>, y
-        entre las dos exigencias queda muy poco en pie: sobre las secuoyas, la única rejilla
-        de las 10 que respeta el supuesto <em>y</em> además rechaza es la de 3×3.
-        Una, de diez. No hay un tamaño «correcto» que la teoría entregue: hay una decisión
-        del analista, que se declara.</p>
+      <p>Y en el otro extremo el problema se invierte. El p-valor del test no es exacto: sale
+        de aproximar el estadístico por una distribución χ², y esa aproximación solo vale si
+        ninguna celda espera muy pocos puntos. Es el <strong>supuesto del χ²</strong> que el
+        módulo 2 dejó anotado —al menos 5 puntos esperados en cada celda—, y afinar la rejilla
+        lo rompe, porque reparte los mismos puntos entre más celdas. Sobre las secuoyas, a
+        partir de la rejilla de <strong>4</strong>×4 —<code>nx</code> es el
+        número de celdas por lado— aparecen celdas con esperanza menor que 5.
+        <strong>La escala que más resuelve es la que rompe el supuesto</strong>, y entre las
+        dos exigencias queda muy poco en pie: de las 10 rejillas, solo las dos más
+        gruesas respetan el supuesto, y la de 2×2 es justo la que no rechaza. La única que lo
+        respeta <em>y</em> además rechaza es la de 3×3. Una, de diez. No hay un tamaño
+        «correcto» que la teoría entregue: hay una decisión del analista, que se declara.</p>
 
       <div class="simulador" data-simulador="cap4-barrido">
         <h4><i class="fas fa-sliders" aria-hidden="true"></i> El veredicto en función de la celda</h4>
-        <p class="simulador-intro">Barre el tamaño de la rejilla sobre los tres patrones: en rojo los tamaños que rechazan al 5 % y en gris los que no. Mira en cuál de los tres cambia el veredicto, y dónde se rompe el supuesto.</p>
+        <p class="simulador-intro">Barre el tamaño de la rejilla sobre los tres patrones: en rojo los tamaños que rechazan al 5 % y en gris los que no. Mira en cuál de los tres cambia el veredicto, y desde qué tamaño se rompe el supuesto del χ², que es cuando alguna celda espera menos de 5 puntos.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
           <canvas role="img" aria-label="El veredicto en función de la celda"></canvas>
@@ -9012,13 +9016,13 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         pregunta: 'Sobre las secuoyas, el test de cuadrantes rechaza con rejilla 5×5 y NO rechaza con 2×2. ¿Qué se hace con eso?',
         opciones: [
           { texto: 'Quedarse con la rejilla fina, porque es la que mejor resuelve los grumos',
-            retro: 'Es la que más resuelve y también la que rompe el supuesto: desde nx = ' + D4.m6.redwood_nx_esperanza_baja + ' aparecen celdas con esperanza menor que 5. Elegir por resolución es elegir un χ² en el que ya no se puede confiar.' },
+            retro: 'Es la que más resuelve y también la que rompe el supuesto del χ², que pide al menos 5 puntos esperados en cada celda: desde nx = ' + D4.m6.redwood_nx_esperanza_baja + ' aparecen celdas con esperanza menor que 5. Elegir por resolución es elegir un χ² en el que ya no se puede confiar.' },
           { texto: 'Declarar el tamaño de celda, que es parte del resultado y no del método', correcta: true,
             retro: 'Eso es. De los ' + D4.m6.nxs.length + ' tamaños barridos rechazan ' + D4.m6.redwood_rechazos + '; el que no lo hace es el más grueso, y no porque el patrón cambie sino porque con cuatro celdas no hay resolución. Es el efecto de escala del MAUP, con otro nombre.' },
           { texto: 'Promediar los p-valores de los diez tamaños y quedarse con esa media',
             retro: 'No existe tal cosa: los diez contrastes se hacen sobre el mismo dato, no son independientes, y su promedio no tiene distribución nula conocida. La salida no es aritmética: es declarar la escala.' },
           { texto: 'Fiarse de la rejilla gruesa, que es la que respeta la aproximación del χ²',
-            retro: 'Respeta el supuesto y no ve nada: con 2×2 no rechaza un patrón que está claramente agregado. El supuesto descarta las rejillas demasiado finas, pero no elige entre las que quedan: la de 3×3 también lo respeta, y rechaza.' }
+            retro: 'Respeta el supuesto del χ² —ninguna celda espera menos de 5 puntos— y no ve nada: con 2×2 no rechaza un patrón que está claramente agregado. El supuesto descarta las rejillas demasiado finas, pero no elige entre las que quedan: la de 3×3 también lo respeta, y rechaza.' }
         ] }
     ];
 

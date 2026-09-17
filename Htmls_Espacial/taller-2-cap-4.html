@@ -4161,7 +4161,7 @@ for k in (2, 3, 4, 5):
         <ol class="lista-literales" type="a">
           <li>Da la λ bajo las dos ventanas, en sedes por km², y di qué <strong>fracción de tu caja cae fuera</strong> del polígono de tu localidad. Con esa fracción delante: ¿de qué es intensidad la cifra de la caja, si no es de tu localidad?</li>
           <li>Da los dos χ² y los dos p-valores. <strong>Nombra el síntoma antes de arreglarlo</strong>: di qué está mal en el procedimiento, no qué habría que hacer en su lugar.</li>
-          <li><strong>Antes de leer ningún p-valor</strong>, comprueba el supuesto: cuenta cuántas de tus celdas tienen esperanza menor que 5 y da el porcentaje. Con <em>esa cifra tuya</em> decide si tu p-valor se puede leer o no. Si no se puede, busca una rejilla \(k \times k\) que sí lo sea: <strong>prueba \(k = 2, 3, 4, 5\)</strong> —los cuatro, sin parar en el primero que falle—, da la esperanza <strong>mínima</strong> de cada uno, quédate con el \(k\) más grande que no baje de 5 y di qué veredicto da ese. <strong>\(k = 1\) no vale</strong>: una sola celda no compara nada contra nada, y el contraste sale con cero grados de libertad y un p-valor que no significa nada. Si no pasa ninguno de los cuatro, dilo y sostenlo: también es una respuesta.</li>
+          <li><strong>Antes de leer ningún p-valor</strong>, comprueba el supuesto del χ²: cuenta cuántas de tus celdas tienen esperanza menor que 5 y da el porcentaje. Con <em>esa cifra tuya</em> decide si tu p-valor se puede leer o no. Si no se puede, busca una rejilla \(k \times k\) que sí lo sea: <strong>prueba \(k = 2, 3, 4, 5\)</strong> —los cuatro, sin parar en el primero que falle—, da la esperanza <strong>mínima</strong> de cada uno, quédate con el \(k\) más grande que no baje de 5 y di qué veredicto da ese. <strong>\(k = 1\) no vale</strong>: una sola celda no compara nada contra nada, y el contraste sale con cero grados de libertad y un p-valor que no significa nada. Si no pasa ninguno de los cuatro, dilo y sostenlo: también es una respuesta.</li>
           <li>Un compañero te dice: «a mí me rechazó con la caja y también con el polígono, así que el error no importa». Lo que tienes que refutar es <strong>que el error no importa</strong>, no que su veredicto cambie: un procedimiento puede acertar el veredicto por el camino equivocado, y eso no lo vuelve correcto. Hazlo <strong>con su cifra y con la tuya</strong> —pídele las suyas, porque no todas las localidades se comportan igual—.</li>
           <li>¿Por qué este defecto <strong>no</strong> se vería mirando el mapa del patrón?</li>
         </ol>
@@ -4178,8 +4178,8 @@ for k in (2, 3, 4, 5):
 
       <div class="note">
         <p style="margin-bottom:0;"><strong>Dónde está esto en el capítulo.</strong> La ventana
-          como parte del estimador es el módulo 1; la intensidad, el 2; el test de cuadrantes y su
-          supuesto, el 5; y qué le pasa al veredicto cuando cambias el tamaño de la celda, el 6
+          como parte del estimador es el módulo 1; la intensidad y el supuesto del χ² —al menos 5
+          puntos esperados por celda—, el 2; el test de cuadrantes, el 5; y qué le pasa al veredicto cuando cambias el tamaño de la celda, el 6
           —que es el MAUP otra vez, con otro nombre—. Los cuatro hacen falta aquí, y ninguno de
           los cinco ejercicios guiados del capítulo responde a esta tarea: el que más se le
           acerca compara <em>dos ventanas legítimas</em> sobre Bogotá entera, y aquí lo que se
@@ -5073,7 +5073,7 @@ print("focos =", int(n_focos))
           <tr><th scope="row">16</th><td>5</td><td>Contra qué se contrasta</td><td>La hipótesis nula del test de cuadrantes no es «λ es constante». ¿Cuál es, y por qué esa diferencia cambia lo que puedes afirmar cuando rechazas?</td></tr>
           <tr><th scope="row">17</th><td>5</td><td>Los esperados de una celda recortada</td><td>Cuando la ventana recorta las celdas, los esperados dejan de ser iguales entre sí. ¿De dónde salen entonces, y qué pasaría si los repartieras por igual de todos modos?</td></tr>
           <tr><th scope="row">18</th><td>5</td><td>El convenio del binado</td><td>El binado de <code>quadratcount</code> es el de <code>cut()</code>: abierto por la izquierda, con el más bajo cerrado por los dos lados. ¿Por qué ese convenio puede mover el χ², y en qué clase de datos lo mueve más?</td></tr>
-          <tr><th scope="row">19</th><td>6</td><td>Resolver contra suponer</td><td>«La escala que más resuelve es la que rompe el supuesto.» Explica esa tensión y di qué hace con ella un analista honesto.</td></tr>
+          <tr><th scope="row">19</th><td>6</td><td>Resolver contra suponer</td><td>«La escala que más resuelve es la que rompe el supuesto.» Di cuál es ese supuesto, explica esa tensión y di qué hace con ella un analista honesto.</td></tr>
           <tr><th scope="row">20</th><td>6</td><td>El MAUP con otro nombre</td><td>El tamaño del cuadrante y el tamaño de la unidad areal del capítulo 3 son el mismo problema. Di en qué son el mismo y en qué no.</td></tr>
           <tr><th scope="row">21</th><td>6</td><td>Qué falta en el pie</td><td>¿Qué tiene que aparecer siempre junto al resultado de un test de cuadrantes para que sea reproducible, y por qué sin eso el resultado está incompleto?</td></tr>
           <tr><th scope="row">22</th><td>7</td><td>Las dos y el borde</td><td>G y F se estiman sobre una ventana finita, así que las dos sufren el efecto de borde. ¿Lo sufren igual? Di de qué depende que una se lleve más borde que la otra, y en qué clase de patrón le toca a F.</td></tr>

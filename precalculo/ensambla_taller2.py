@@ -680,7 +680,7 @@ for k in (2, 3, 4, 5):
         "¿de qué es intensidad la cifra de la caja, si no es de tu localidad?",
         "Da los dos χ² y los dos p-valores. <strong>Nombra el síntoma antes de arreglarlo</strong>: "
         "di qué está mal en el procedimiento, no qué habría que hacer en su lugar.",
-        "<strong>Antes de leer ningún p-valor</strong>, comprueba el supuesto: cuenta cuántas de "
+        "<strong>Antes de leer ningún p-valor</strong>, comprueba el supuesto del χ²: cuenta cuántas de "
         "tus celdas tienen esperanza menor que 5 y da el porcentaje. Con <em>esa cifra tuya</em> "
         "decide si tu p-valor se puede leer o no. Si no se puede, busca una rejilla "
         "\\(k \\times k\\) que sí lo sea: <strong>prueba \\(k = 2, 3, 4, 5\\)</strong> —los cuatro, sin parar en el primero "
@@ -705,8 +705,8 @@ for k in (2, 3, 4, 5):
        "dibuja.") + f"""
       <div class="note">
         <p style="margin-bottom:0;"><strong>Dónde está esto en el capítulo.</strong> La ventana
-          como parte del estimador es el módulo 1; la intensidad, el 2; el test de cuadrantes y su
-          supuesto, el 5; y qué le pasa al veredicto cuando cambias el tamaño de la celda, el 6
+          como parte del estimador es el módulo 1; la intensidad y el supuesto del χ² —al menos 5
+          puntos esperados por celda—, el 2; el test de cuadrantes, el 5; y qué le pasa al veredicto cuando cambias el tamaño de la celda, el 6
           —que es el MAUP otra vez, con otro nombre—. Los cuatro hacen falta aquí, y ninguno de
           los cinco ejercicios guiados del capítulo responde a esta tarea: el que más se le
           acerca compara <em>dos ventanas legítimas</em> sobre Bogotá entera, y aquí lo que se
@@ -1592,8 +1592,8 @@ BANCO_DEFENSA = [
 
     # --- Módulo 6 · El tamaño del cuadrante --------------------------
     (6, "Resolver contra suponer",
-     "«La escala que más resuelve es la que rompe el supuesto.» Explica esa tensión y di qué "
-     "hace con ella un analista honesto."),
+     "«La escala que más resuelve es la que rompe el supuesto.» Di cuál es ese supuesto, "
+     "explica esa tensión y di qué hace con ella un analista honesto."),
     (6, "El MAUP con otro nombre",
      "El tamaño del cuadrante y el tamaño de la unidad areal del capítulo 3 son el mismo "
      "problema. Di en qué son el mismo y en qué no."),

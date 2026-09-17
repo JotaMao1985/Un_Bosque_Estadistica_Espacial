@@ -29,7 +29,7 @@ evitarlas, o reutilizarlas **a propósito** y declararlo.
 16. **[mód. 5 · Contra qué se contrasta]** La hipótesis nula del test de cuadrantes no es «λ es constante». ¿Cuál es, y por qué esa diferencia cambia lo que puedes afirmar cuando rechazas?
 17. **[mód. 5 · Los esperados de una celda recortada]** Cuando la ventana recorta las celdas, los esperados dejan de ser iguales entre sí. ¿De dónde salen entonces, y qué pasaría si los repartieras por igual de todos modos?
 18. **[mód. 5 · El convenio del binado]** El binado de quadratcount es el de cut(): abierto por la izquierda, con el más bajo cerrado por los dos lados. ¿Por qué ese convenio puede mover el χ², y en qué clase de datos lo mueve más?
-19. **[mód. 6 · Resolver contra suponer]** «La escala que más resuelve es la que rompe el supuesto.» Explica esa tensión y di qué hace con ella un analista honesto.
+19. **[mód. 6 · Resolver contra suponer]** «La escala que más resuelve es la que rompe el supuesto.» Di cuál es ese supuesto, explica esa tensión y di qué hace con ella un analista honesto.
 20. **[mód. 6 · El MAUP con otro nombre]** El tamaño del cuadrante y el tamaño de la unidad areal del capítulo 3 son el mismo problema. Di en qué son el mismo y en qué no.
 21. **[mód. 6 · Qué falta en el pie]** ¿Qué tiene que aparecer siempre junto al resultado de un test de cuadrantes para que sea reproducible, y por qué sin eso el resultado está incompleto?
 22. **[mód. 7 · Las dos y el borde]** G y F se estiman sobre una ventana finita, así que las dos sufren el efecto de borde. ¿Lo sufren igual? Di de qué depende que una se lleve más borde que la otra, y en qué clase de patrón le toca a F.
