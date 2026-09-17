@@ -729,6 +729,27 @@ message("7. las funciones G y F")
 # tamaño de la ventana y `theo` = 1 - exp(-lambda pi r^2) coincide con el
 # cálculo por fuerza bruta hasta la quinta cifra. Lo único que se
 # reemplaza es la columna EMPÍRICA, que es la que estaba rota.
+#
+# Y LA F DE BOGOTÁ ESTUVO MAL HASTA EL 2026-09-17, por otra razón: los
+# sitios de la rejilla que caían FUERA de la ventana urbana se contaban
+# como espacio vacío —160 000 en vez de 62 762—, y la curva no pasaba de
+# 0,363. El arreglo y su historia están en `ppp_F_borde()`. Los tres
+# canónicos no cambiaron ni en un decimal, porque su caja es su ventana, y
+# el Taller 2 tampoco (comprobado sobre sus 60 patrones). Desde entonces se
+# publica cuántos sitios caen dentro, y un ancla más abajo lo vigila.
+#
+# LA J DE VAN LIESHOUT Y BADDELEY (1996) entra el mismo día, a petición de
+# Javier: J(r) = (1 - G(r)) / (1 - F(r)). Tres decisiones:
+#   · G y F se estiman IGUAL, por muestra reducida y con el mismo umbral
+#     (`ppp_G_borde` y `ppp_F_borde`). `Jest()` no sirve: llama a `Fest()`.
+#   · Se publica solo donde F <= 0,9. No es un corte de este capítulo: es
+#     el rango de lectura que el propio `Jest()` fija en su atributo
+#     `alim`. Más allá el denominador es un resto pequeño y J es ruido.
+#   · Se publica en la rejilla de F, que es donde F es exacta. La G de
+#     muestra reducida se calcula ahí mismo, sin interpolar.
+# El umbral se publica: la prosa lo cita y el auditor comprueba que sea el
+# de `Jest`, no uno elegido a ojo.
+J_UMBRAL_F <- 0.9
 gf <- function(p, nombre) {
   g <- Gest(p, correction = c("km", "none"))   # `none` da la columna `raw`
   f <- Fest(p, correction = "km")              # solo por su `r` y su `theo`
@@ -748,6 +769,23 @@ gf <- function(p, nombre) {
   # Se publica la escrita a mano, evaluada en los nodos de publicación:
   # es la exacta, sin el error de interpolar.
   f_teo <- ppp_F_teorica(intensity(p), rg_f)
+
+  # LA J, en el tramo en que F <= 0,9 (el `alim` de `Jest`). `hasta` es un
+  # prefijo de la rejilla: F no decrece, y el auditor lo comprueba.
+  g_rs <- ppp_G_borde(p, rg_f)
+  hasta <- max(which(fb$f <= J_UMBRAL_F))
+  j <- (1 - g_rs[seq_len(hasta)]) / (1 - fb$f[seq_len(hasta)])
+  k <- 2:hasta                      # r > 0: en r = 0 J vale 1 por definición…
+  # …salvo si hay duplicados, y por eso `j_en_cero` se publica aparte.
+
+  # LAS TRES MEDIANAS, que ordenan los regímenes en una línea: la distancia
+  # a la que G llega a 1/2 (ya estaba), la r a la que F llega a 1/2 —
+  # interpolada entre los dos nodos que la encierran— y la que tendrían
+  # las dos bajo CSR, que es la misma: 1 - exp(-lambda pi r^2) = 1/2.
+  i5 <- which(fb$f >= 0.5)[1]
+  f_mediana <- rg_f[i5 - 1] + (0.5 - fb$f[i5 - 1]) *
+    (rg_f[i5] - rg_f[i5 - 1]) / (fb$f[i5] - fb$f[i5 - 1])
+
   list(nombre = nombre, n = npoints(p),
        # G(0) > 0 SOLO puede pasar con puntos duplicados, y es la cifra
        # que la decisión 3 de Javier convierte en material.
@@ -756,16 +794,26 @@ gf <- function(p, nombre) {
        r_g = r6(rg_g), g_obs = curva(g, "km", rg_g), g_teo = curva(g, "theo", rg_g),
        g_emp = curva(g, "raw", rg_g), g_emp_en_cero = r6(g[["raw"]][1]),
        r_f = r6(rg_f), f_obs = r6(fb$f), f_teo = r6(f_teo),
+       f_rejilla = fb$n_rejilla,
        f_sitios = fb$n_sitios, f_sitios_efectivos = fb$n_efectivos,
        # La distancia a la que G alcanza la mitad de los puntos: una sola
        # cifra que resume la curva y se puede comparar entre patrones.
-       g_mediana = r6(unname(quantile(nn, 0.5))))
+       g_mediana = r6(unname(quantile(nn, 0.5))),
+       f_mediana = r6(f_mediana),
+       csr_mediana = r6(sqrt(log(2) / (intensity(p) * pi))),
+       r_j = r6(rg_f[seq_len(hasta)]), j_obs = r6(j),
+       j_r_lim = r6(rg_f[hasta]),
+       j_en_cero = r6(j[1]),
+       j_min = r6(min(j[k])), r_j_min = r6(rg_f[k][which.min(j[k])]),
+       j_max = r6(max(j[k])), r_j_max = r6(rg_f[k][which.max(j[k])]),
+       j_bajo_1 = sum(j[k] < 1), j_nodos = length(k))
 }
 D$m7 <- list(
   cells = gf(cells, "Células biológicas"),
   japanesepines = gf(japanesepines, "Pinos japoneses"),
   redwood = gf(redwood, "Plántulas de secuoya"),
   bogota = gf(p_urb, "Sedes educativas, ventana urbana"))
+D$m7$j_umbral_f <- J_UMBRAL_F
 
 # EL ANCLA QUE HABRÍA CAZADO LA F ROTA EN EL PRIMER INTENTO, y que no
 # existía. Bajo CSR la F empírica TIENE que seguir a la teórica: es la
@@ -804,6 +852,59 @@ local({
   }
 })
 
+# EL ANCLA QUE HABRÍA PARADO LA F DE BOGOTÁ, que tampoco existía: la
+# fracción de la rejilla que cae dentro de la ventana TIENE que ser la
+# fracción de la caja que ocupa la ventana. Con los sitios de fuera dentro,
+# la primera valía 1 y la segunda 0,394. La tolerancia es de rejilla: 400
+# sitios por lado sobre un contorno de 13 767 vértices.
+for (nm in c("cells", "japanesepines", "redwood", "bogota")) {
+  d <- D$m7[[nm]]
+  w <- if (nm == "bogota") Window(p_urb) else Window(get(nm))
+  ancla(d$f_sitios / d$f_rejilla, area(w) / area(as.rectangle(w)),
+        sprintf("los sitios de F de %s son los de la ventana, no los de su caja", nm),
+        tol = 0.02)
+}
+
+# LO QUE EL MÓDULO AFIRMA DE J, convertido en anclas. Si una regeneración
+# lo cambia, el texto miente y esto para.
+local({
+  J <- D$m7
+  if (!(J$cells$j_min > 1))
+    stop(sprintf("ANCLA ROTA · la J de las células baja de 1 (%.4f): el módulo 7 dice que no", J$cells$j_min))
+  if (!(J$bogota$j_max < 1))
+    stop(sprintf("ANCLA ROTA · la J de las sedes sube a %.4f: el módulo 7 dice que no pasa de 1", J$bogota$j_max))
+  if (!(J$redwood$j_bajo_1 > J$redwood$j_nodos / 2))
+    stop("ANCLA ROTA · la J de las secuoyas no queda por debajo de 1 en la mayoría de su rango")
+  # Los pinos aleatorios: la J recorre a los dos lados de 1. Es la lección.
+  if (!(J$japanesepines$j_min < 1 && J$japanesepines$j_max > 1))
+    stop("ANCLA ROTA · la J de los pinos japoneses ya no cruza 1: el módulo 7 dice que sí")
+  N_ANCLAS <<- N_ANCLAS + 4L
+  # Las tres medianas ordenan los regímenes, y en el aleatorio casi coinciden.
+  m <- function(nm) c(G = J[[nm]]$g_mediana, CSR = J[[nm]]$csr_mediana, F = J[[nm]]$f_mediana)
+  if (!all(diff(m("cells")) < 0))
+    stop("ANCLA ROTA · en las células las medianas no van G > CSR > F")
+  if (!all(diff(m("redwood")) > 0))
+    stop("ANCLA ROTA · en las secuoyas las medianas no van G < CSR < F")
+  if (!(max(m("japanesepines")) / min(m("japanesepines")) < 1.15))
+    stop("ANCLA ROTA · en los pinos aleatorios las tres medianas se separan más de un 15 %")
+  # Y Bogotá se lee como agregado con las mismas tres cifras.
+  if (!all(diff(m("bogota")) > 0))
+    stop("ANCLA ROTA · en las sedes las medianas no van G < CSR < F")
+  N_ANCLAS <<- N_ANCLAS + 4L
+  # Tres frases del módulo que dependen de un nodo concreto:
+  #   · «todas las plántulas que cuentan tienen ya su vecina»: J = 0 exacto
+  if (J$redwood$j_min != 0)
+    stop("ANCLA ROTA · la J de las secuoyas ya no llega a 0: el módulo dice que sí")
+  #   · «el mínimo de los pinos está justo en el último nodo dibujado»
+  if (J$japanesepines$r_j_min != J$japanesepines$j_r_lim)
+    stop("ANCLA ROTA · el mínimo de J de los pinos ya no cae en el último nodo")
+  #   · la G regular «arranca tarde y acaba por encima de la de CSR»
+  dg <- J$cells$g_obs - J$cells$g_teo
+  if (!(any(dg < 0) && tail(dg[dg != 0], 1) > 0))
+    stop("ANCLA ROTA · la G de las células no arranca debajo de CSR y acaba encima")
+  N_ANCLAS <<- N_ANCLAS + 3L
+})
+
 # LOS DUPLICADOS, MEDIDOS. Que el patrón real no sea simple no es un
 # defecto del dato: son sedes distintas en el mismo edificio. Pero rompe
 # el supuesto de todos los estimadores del capítulo, así que se publica
@@ -825,6 +926,10 @@ D$m7$duplicados <- list(
 ancla(D$m7$duplicados$g_empirica_en_cero,
       D$m7$bogota$coincidentes / npoints(p_urb),
       "G empírica en r=0 = fracción de puntos coincidentes", tol = 1e-6)
+# Y LA J LO HEREDA: su G es un recuento sin convenio, así que en r = 0 vale
+# esa misma fracción, F vale 0 y J sale 1 menos ella. El módulo lo dice.
+ancla(D$m7$bogota$j_en_cero, 1 - D$m7$bogota$coincidentes / npoints(p_urb),
+      "J en r=0 = 1 - fracción de sedes coincidentes", tol = 1e-6)
 if (D$m7$bogota$coincidentes == 0)
   stop("el patrón colombiano ya no tiene duplicados: el módulo 7 afirma que sí")
 message(sprintf("  bogota: %d sedes coincidentes (%.2f %%) · G empírica(0)=%.6f, G km(0)=%.6f · máximo %d en un sitio",

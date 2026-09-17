@@ -229,7 +229,7 @@ TITULOS = (
     ("CSR", "El proceso de Poisson homogéneo y sus dos propiedades"),
     ("El test de cuadrantes", "Y su ceguera: dos patrones con el mismo χ²"),
     ("El tamaño del cuadrante", "Esto es el MAUP otra vez"),
-    ("Las funciones G y F", "Distancias al vecino y al espacio vacío"),
+    ("Las funciones G y F", "Distancias al vecino y al espacio vacío, y su cociente J"),
     ("La función K de Ripley", "Y su transformación L"),
     ("La correlación de pares g(r)", "Por qué g es más legible que K"),
     ("Efectos de borde", "Tres correcciones, y lo que cuestan"),
@@ -784,7 +784,7 @@ TABS_M6 = tabs(
 #&gt; 20 505.74''')
 
 TABS_M7 = tabs(
-    'G, F y el átomo de los duplicados',
+    'G, F, J y el átomo de los duplicados',
     '''g &lt;- Gest(p_urb, correction = c("km", "none"))   # `none` da la columna `raw`
 
 round(c(G_empirica_en_0 = g$raw[1], G_km_en_0 = g$km[1]), 6)
@@ -793,7 +793,22 @@ round(c(G_empirica_en_0 = g$raw[1], G_km_en_0 = g$km[1]), 6)
 
 # Y ese 0,037494 son exactamente las sedes con un vecino a distancia cero
 sum(nndist(p_urb) == 0)
-#&gt; [1] 79''',
+#&gt; [1] 79
+
+# J A MANO SOBRE LAS SECUOYAS, sin Jest(): llama a Fest() por dentro.
+# Los sitios van por ppp() SIN check = FALSE, y no es un detalle: que tire
+# los que caen fuera de la ventana es justo lo que se quiere.
+w  &lt;- Window(redwood)
+s  &lt;- expand.grid(x = seq(w$xrange[1], w$xrange[2], length.out = 400),
+                  y = seq(w$yrange[1], w$yrange[2], length.out = 400))
+s  &lt;- ppp(s$x, s$y, window = w)
+dF &lt;- nncross(s, redwood, what = "dist"); bF &lt;- bdist.points(s)
+dG &lt;- nndist(redwood);                    bG &lt;- bdist.points(redwood)
+
+# Muestra reducida en los DOS lados: solo cuenta lo que esta a mas de r del borde
+J &lt;- function(r) (1 - mean(dG[bG &gt; r] &lt;= r)) / (1 - mean(dF[bF &gt; r] &lt;= r))
+round(sapply(c(0.02, 0.05, 0.08), J), 4)
+#&gt; [1] 1.0457 0.1708 0.1147''',
     '''dd, _ = cKDTree(XU).query(XU, k=2)
 nn = dd[:, 1]
 
@@ -802,7 +817,21 @@ print([int((nn == 0).sum()), round(float((nn == 0).mean()), 6)])
 
 # La G empirica es la funcion de distribucion de esas distancias, y su
 # salto en r = 0 es la fraccion de puntos coincidentes. No hay nada que
-# corregir: hay algo que declarar.''')
+# corregir: hay algo que declarar.
+
+# J A MANO SOBRE LAS SECUOYAS, con la muestra reducida en los dos lados.
+# La ventana de redwood es [0, 1] x [-1, 0]: la distancia al borde de un
+# rectangulo es la menor de las cuatro.
+P = reg[reg.patron == "redwood"][["x", "y"]].to_numpy()
+gx, gy = np.meshgrid(np.linspace(0, 1, 400), np.linspace(-1, 0, 400))
+S = np.c_[gx.ravel(), gy.ravel()]
+borde = lambda Q: np.minimum.reduce([Q[:, 0], 1 - Q[:, 0], Q[:, 1] + 1, -Q[:, 1]])
+dF, bF = cKDTree(P).query(S, k=1)[0], borde(S)
+dG, bG = cKDTree(P).query(P, k=2)[0][:, 1], borde(P)
+
+J = lambda r: (1 - (dG[bG &gt; r] &lt;= r).mean()) / (1 - (dF[bF &gt; r] &lt;= r).mean())
+print([round(float(J(r)), 4) for r in (0.02, 0.05, 0.08)])
+#&gt; [1.0457, 0.1708, 0.1147]''')
 
 TABS_M8 = tabs(
     'K, L y el desvío máximo',
@@ -1011,31 +1040,121 @@ MOD6 = cabecera(
 # =====================================================================
 # MÓDULO 7 · Las funciones G y F
 # =====================================================================
+# LO QUE ENTRÓ EL 2026-09-17, al contrastar el módulo con una explicación
+# externa de G, F y J y verificar cada frase contra spatstat, contra los
+# artículos originales y contra las curvas de este mismo JSON:
+#   · la fórmula de las dos y su curva común bajo CSR, que el Taller 2
+#     (T2c) ya daba por enseñada y el módulo no escribía;
+#   · la tabla G/F, con el «otro» punto más cercano que la fuente omitía;
+#   · de dónde salen los sitios de F, que el banco del Taller 2 pregunta, y
+#     la F de Bogotá rehecha: contaba como hueco la caja entera;
+#   · la J, con las dos advertencias verificadas que la fuente daba al
+#     revés —«J = 1 significa CSR»— o no daba —que la estimada tiembla—.
+# Y NO entra, a propósito, ningún patrón en que G y F apunten a regímenes
+# distintos: construirlo es T2(c) del Taller 2, repartido el 21 de septiembre.
 MOD7 = cabecera(
     7, "Las funciones G y F", "Nearest-neighbour and empty-space functions",
-    "Describir el patrón con distancias en vez de con conteos, y distinguir qué "
-    "mira cada una de las dos funciones."
+    "Describir el patrón con distancias en vez de con conteos, distinguir qué "
+    "mira cada una de las dos funciones y leerlas juntas en la función J."
 ) + f"""      <p>Las funciones de resumen resuelven el problema del módulo 6 por la vía de no
         tener que elegir ninguna celda: en vez de contar en cajas, miden distancias. Las dos
         primeras son hermanas y se confunden constantemente, así que conviene fijar la
         diferencia antes de mirar ninguna curva.</p>
 
       <p><strong>G(r)</strong> mira desde los <em>puntos</em>: es la proporción de puntos
-        cuyo vecino más próximo está a distancia r o menos. <strong>F(r)</strong> mira desde
-        el <em>espacio vacío</em>: se toman sitios cualesquiera de la ventana —no puntos del
-        patrón— y se mide la distancia al punto más cercano.</p>
+        cuyo vecino más próximo está a distancia r o menos. El vecino es el <em>otro</em> punto
+        más cercano, porque cada punto está a distancia cero de sí mismo.
+        <strong>F(r)</strong> mira desde el <em>espacio vacío</em>: se toman sitios
+        cualesquiera de la ventana —no puntos del patrón—, se mide la distancia de cada uno al
+        punto más cercano, y F(r) es la proporción de sitios que tienen un punto a r o menos.
+        Dicho de otra manera, es la fracción de la ventana que cubren los discos de radio r
+        centrados en los puntos. Lo que le falta hasta 1 es el hueco.</p>
 
-      <p>Separan los regímenes en direcciones opuestas, y por eso se enseñan juntas. Un
-        patrón agregado deja mucho hueco: sus puntos tienen vecinos muy cerca, así que G
-        sube pronto, pero hay zonas grandes sin nada y F sube tarde. Un patrón regular hace
-        lo contrario.</p>
+      <div class="formula-box">
+        <p>$$\\hat{{G}}(r) = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} \\mathbf{{1}}\\{{d_i \\leq r\\}}
+          \\qquad
+          \\hat{{F}}(r) = \\frac{{1}}{{m}} \\sum_{{j=1}}^{{m}} \\mathbf{{1}}\\{{e_j \\leq r\\}}$$</p>
+        <p style="margin-bottom:0;">d<sub>i</sub> es la distancia del punto i a su vecino más
+          próximo, y e<sub>j</sub> la del sitio j al punto más cercano. El <strong>1</strong>
+          en negrita vale 1 si se cumple lo que va entre llaves y 0 si no, así que cada suma
+          cuenta. Son las versiones sin corregir el borde: las corregidas cambian qué casos se
+          cuentan o cuánto pesa cada uno, no qué distancia se mide.</p>
+      </div>
+
+      <p>Las dos tienen una curva de referencia, y es <strong>la misma</strong>. Bajo CSR, que
+        un sitio no tenga ningún punto a distancia r o menos es que el disco de radio r a su
+        alrededor esté vacío. Por la primera propiedad del módulo 4, el número de puntos de ese
+        disco es una Poisson de media λπr², y la probabilidad de que valga cero es
+        e<sup>−λπr²</sup>. Para G el argumento es el mismo por la segunda propiedad: los demás
+        puntos se colocan sin saber que ese está ahí, así que mirar desde un punto del patrón
+        es mirar desde un sitio cualquiera. El resultado tiene nombre, teorema de Slivnyak, y
+        la consecuencia es que bajo CSR las dos funciones no se distinguen:</p>
+
+      <div class="formula-box">
+        <p>$$G(r) = F(r) = 1 - e^{{-\\lambda \\pi r^2}} \\qquad \\text{{bajo CSR}}$$</p>
+      </div>
+
+      <p>Contra esa curva común separan los regímenes en direcciones opuestas, y por eso se
+        enseñan juntas. Un patrón agregado deja mucho hueco: sus puntos tienen vecinos muy
+        cerca, así que G sube pronto, pero hay zonas grandes sin nada y F sube tarde. Un patrón
+        regular hace lo contrario: ningún punto tiene un vecino muy cerca, así que G tarda en
+        despegar, y no quedan huecos grandes, así que F sube antes que la de CSR.</p>
+
+      <table class="tabla-datos">
+        <caption>Las dos funciones de distancia, frente a frente.</caption>
+        <thead><tr><th scope="col"></th><th scope="col">G(r), vecino más próximo</th>
+          <th scope="col">F(r), espacio vacío</th></tr></thead>
+        <tbody>
+{fila('Desde dónde mide', 'Desde cada punto del patrón', 'Desde sitios de la ventana que no son puntos del patrón')}{fila('Hasta dónde', 'Hasta el <em>otro</em> punto más cercano', 'Hasta el punto más cercano')}{fila('Qué ve', 'Lo cerca que tiene cada punto a su vecino', 'El tamaño de los huecos')}{fila('Patrón agregado', 'Sube antes que la de CSR', 'Sube después que la de CSR')}{fila('Patrón regular', 'Arranca después, y sube más empinada', 'Sube antes que la de CSR')}{fila('Bajo CSR', '1 − e<sup>−λπr²</sup>', 'La misma')}        </tbody>
+      </table>
+
+      <p>La fila del patrón regular dice «arranca», y no «queda por debajo», a propósito: lo
+        que se lee es cuándo despega cada curva, no si queda encima o debajo en todo r. Una
+        cifra por curva lo resume, la r a la que llega a la mitad, y bajo CSR la de las dos es
+        la misma. El simulador de abajo la da en su lectura.</p>
 
 {sim('cap4-gf', 'G y F sobre los tres regímenes y sobre Bogotá',
-     'Elige el patrón: se dibujan la G y la F observadas contra las que daría CSR.', 300)}
+     'Elige el patrón: se dibujan la G y la F observadas contra la curva que las dos tendrían bajo CSR, y en gris punteado la G sin corregir el borde. La lectura da la r a la que cada curva llega a la mitad.', 300)}
 
-      <p>Cámbialo a las sedes de Bogotá —el simulador abre en las secuoyas— y mira la G
-        justo en r = 0. Ahí aparece algo que los patrones de libro no tienen, y que conviene
-        mirar de frente en vez de barrer debajo de la alfombra.</p>
+      <p>Recorre los tres de libro con la lectura a la vista. En las células la mitad tiene
+        su vecina a menos de {firma(n(m7['cells']['g_mediana'], 5))}, la mitad de los sitios
+        tiene una célula a menos de {firma(n(m7['cells']['f_mediana'], 5))}, y bajo CSR las dos
+        valdrían {n(m7['cells']['csr_mediana'], 5)}: G llega tarde y F pronto. Fíjate además en
+        que la G de las células arranca tarde pero, cuando arranca, sube tan empinada que acaba
+        por encima de la de CSR, porque todas tienen su vecina a una distancia parecida. En
+        las secuoyas el orden se invierte —{n(m7['redwood']['g_mediana'], 5)},
+        {n(m7['redwood']['f_mediana'], 5)} y {n(m7['redwood']['csr_mediana'], 5)}—, y en los
+        pinos japoneses, los aleatorios, las tres casi coinciden:
+        {n(m7['japanesepines']['g_mediana'], 5)}, {n(m7['japanesepines']['f_mediana'], 5)} y
+        {n(m7['japanesepines']['csr_mediana'], 5)}.</p>
+
+      <p>Queda por decir de dónde salen los sitios de F, porque la definición dice
+        «cualesquiera» y un ordenador necesita una lista. En la práctica son una rejilla
+        regular y fina, aquí de {ent(m7['bogota']['f_rejilla'])} sitios sobre el rectángulo que
+        encierra la ventana. En los tres patrones de libro la ventana <em>es</em> ese
+        rectángulo y cuentan todos. En Bogotá no: caen dentro de la ventana urbana
+        {firma(ent(m7['bogota']['f_sitios']))}, y solo esos valen. <strong>Un sitio fuera de la
+        ventana no está vacío: está sin observar</strong>, y contarlo como hueco hundiría la F.
+        Es la lección del módulo 1 —la ventana forma parte del estimador— aplicada a los
+        sitios. Y de los de dentro, para cada r solo se usan los que quedan a más de r del
+        borde, porque para los demás la respuesta depende de lo que haya al otro lado. Esa
+        manera de corregir el borde, descartando en vez de pesar, se llama <strong>muestra
+        reducida</strong>. A
+        {n(m7['bogota']['r_f'][-1], 0)} m, la mayor distancia del simulador, sobreviven
+        {ent(m7['bogota']['f_sitios_efectivos'])}.</p>
+
+      <p>Con esos sitios, las sedes de Bogotá leen como un patrón agregado: la mitad de las
+        sedes tiene otra a menos de {firma(n(m7['bogota']['g_mediana'], 2), ' m')} y la mitad
+        de la ventana tiene una sede a menos de {firma(n(m7['bogota']['f_mediana'], 2), ' m')},
+        cuando bajo CSR las dos serían {n(m7['bogota']['csr_mediana'], 2)} m. Pero el módulo 2
+        ya enseñó que Bogotá no tiene una sola λ, y una intensidad que cambia de una zona a otra
+        deja exactamente esa huella: vecinos cerca donde hay muchas sedes y huecos donde hay
+        pocas. Lo honesto es leerlo como <strong>exceso de vecinos cercanos y de huecos</strong>
+        respecto de CSR, no como la prueba de que las sedes se atraigan.</p>
+
+      <p>Pon el simulador en las sedes, si no lo está ya, y mira la G justo en r = 0. Ahí
+        aparece algo que los patrones de libro no tienen, y que conviene mirar de frente en vez
+        de barrer debajo de la alfombra.</p>
 
       <div class="key-insight">
         <p style="margin:0;">La G <em>empírica</em> de las sedes no arranca en cero: vale
@@ -1058,14 +1177,70 @@ MOD7 = cabecera(
         convenio</em>, así que la corrección y el átomo viven en el mismo punto de la curva
         y el segundo desaparece de la vista. Por eso el capítulo dibuja las dos.</p>
 
+      <p>G y F se leen mejor juntas que por separado, y hay una función que las junta en una
+        sola curva: la <strong>función J</strong> de van Lieshout y Baddeley (1996). Es el
+        cociente entre lo que le falta a cada una para llegar a 1.</p>
+
+      <div class="formula-box">
+        <p>$$J(r) = \\frac{{1 - G(r)}}{{1 - F(r)}}$$</p>
+      </div>
+
+      <p>Bajo CSR G y F son la misma curva, así que J vale 1 en todo r, y esa es su ventaja:
+        una referencia plana, igual que la L − r del módulo siguiente, que bajo CSR vale cero. En un patrón
+        agregado casi todos los puntos tienen ya vecino y todavía queda mucho hueco, así que el
+        numerador es pequeño, el denominador grande y J cae por debajo de 1. En uno regular
+        pasa lo contrario y J sube por encima. Para que el cociente compare lo mismo, las dos
+        funciones se estiman igual: aquí por muestra reducida, contando solo los puntos y los
+        sitios que quedan a más de r del borde. Y se dibuja solo mientras F no pasa de
+        {n(m7['j_umbral_f'], 1)}, que es el tramo que el propio spatstat recomienda leer.</p>
+
+{sim('cap4-j', 'La función J sobre los tres regímenes y sobre Bogotá',
+     'Elige el patrón: se dibuja J(r) contra la recta J = 1 que da CSR. La lectura dice hacia dónde se aparta, no qué régimen es: eso necesita saber cuánto se aparta el azar.', 300)}
+
+      <p>Recórrelos antes de creerle. En las células J queda por encima de 1 en todo su tramo
+        y llega a {firma(n(m7['cells']['j_max'], 5))}. En las secuoyas queda por debajo en
+        {ent(m7['redwood']['j_bajo_1'])} de sus {ent(m7['redwood']['j_nodos'])} distancias y
+        llega a {firma(ent(m7['redwood']['j_min']))}, cero exacto, en r = {n(m7['redwood']['r_j_min'], 5)}:
+        a esa distancia todas las plántulas que cuentan tienen ya su vecina, y todavía queda
+        hueco. Ahora los pinos japoneses, los aleatorios: su J va de
+        {firma(n(m7['japanesepines']['j_min'], 5))} a
+        {firma(n(m7['japanesepines']['j_max'], 5))}. Leída con la regla de arriba, llamaría
+        regular a un patrón aleatorio en unas distancias y agregado en otras.</p>
+
+      <p>Es el aviso del módulo 4 otra vez —ninguna función se lee sola—, y con J pesa más,
+        porque es un cociente. Cuando F se acerca a su tope el denominador es un resto pequeño y
+        cualquier temblor se agranda: el mínimo de los pinos está justo en el último nodo
+        dibujado, r = {n(m7['japanesepines']['r_j_min'], 5)}. Por eso el tramo se corta, y por
+        eso la manera de saber cuánto se aparta el azar —simular CSR y ver dónde cae la curva—
+        es la del módulo 11.</p>
+
+      <p>Y el aviso contrario, que es el del módulo 5 con otro estadístico: una J pegada a 1
+        <strong>no certifica que el patrón sea CSR</strong>. CSR da J = 1, pero la implicación
+        no va en la otra dirección. Bedford y van den Berg (1997) construyeron, sobre la recta,
+        procesos que no son de Poisson y tienen J = 1 en todo r; si en una dimensión no basta,
+        no hay por qué suponer que baste en dos.</p>
+
+      <p>Sobre las sedes de Bogotá, J queda por debajo de 1 en las
+        {ent(m7['bogota']['j_nodos'])} distancias: exceso de vecinos cercanos y de huecos a la
+        vez, con la misma cautela que antes sobre quién lo pone. Y no arranca en 1 sino en
+        {firma(n(m7['bogota']['j_en_cero'], 6))}. La G de muestra reducida es un recuento sin
+        convenio en r = 0, así que ve el átomo que Kaplan-Meier borraba: ese valor es 1 menos la
+        fracción de sedes coincidentes.</p>
+
 {TABS_M7}
-      <p>Las dos pestañas cuentan lo mismo de dos maneras y las dos dan
+      <p>La primera parte de las dos pestañas cuenta el átomo de dos maneras, y las dos dan
         {ent(m7['bogota']['coincidentes'])}: en R, leyendo la G empírica en r = 0; en Python,
         contando cuántas distancias al vecino más próximo valen exactamente cero. Que la G
         de spatstat y un recuento directo den la misma cifra es lo que convierte el átomo en
-        un hecho del dato y no en un artefacto del estimador. Con eso queda descrito lo que
-        pasa en el entorno inmediato de cada punto; lo que pasa más allá necesita otra
-        herramienta.</p>
+        un hecho del dato y no en un artefacto del estimador. La segunda parte rehace la J de
+        las secuoyas a mano, con los sitios dentro de la ventana y la muestra reducida en los
+        dos lados del cociente, sin <code>Jest()</code>, que llama por dentro a
+        <code>Fest()</code>, la función que en la máquina del precálculo devuelve distancias
+        falsas.</p>
+
+      <p>Con eso queda descrito lo que pasa en el entorno inmediato de cada punto. G, F y J
+        solo miran el punto más cercano: en cuanto r pasa de la mayor de esas distancias, G
+        vale 1 y ya no dice nada más. Lo que pasa más allá necesita otra herramienta.</p>
 """ + CIERRE
 
 
@@ -1373,7 +1548,9 @@ MOD10 = cabecera(
         por traslación, la que publica el módulo 8, vale ahí
         {ent(m10['k_cero_traslacion'])}: el átomo no se ve. Es lo mismo que el Kaplan-Meier
         le hacía a G en el módulo 7: el átomo asoma en los estimadores sin corregir y
-        desaparece de los corregidos, así que para verlo hay que mirar la versión cruda. Y la
+        desaparece de estos dos corregidos, así que para verlo en ellos hay que mirar la
+        versión cruda. No de todos los corregidos: la G de muestra reducida con la que el
+        módulo 7 arma la J es un recuento sin convenio en r = 0, y lo ve. Y la
         F no lo ve nunca: que dos sedes compartan sitio no cambia la distancia de un lugar
         vacío a la sede más cercana.</p>
 
@@ -2008,26 +2185,86 @@ SIMULADORES_JS = r"""
       });
       const pinta = () => {
         const d = D4.m7[CLAVES[i]];
+        // UNA SOLA CURVA DE CSR, y no dos. Había una «G bajo CSR» y una
+        // «F bajo CSR», cada una de su color, y el módulo dice que son la
+        // misma función: dibujadas así parecían dos referencias. Se pinta
+        // la de F, que es la fórmula evaluada en sus nodos exactos.
+        // Y LA G SIN CORREGIR, que el párrafo de Kaplan-Meier decía dibujar
+        // («por eso el capítulo dibuja las dos») y no se dibujaba: estaba
+        // en el JSON y nada la leía. En los de libro va casi encima de la
+        // corregida; en Bogotá es la única que enseña el átomo en r = 0.
+        // Va la ÚLTIMA y punteada: Chart.js pinta en orden, y debajo de la
+        // verde no se veía ni el salto que justifica dibujarla.
         g.data.datasets = [
-          { label: 'G observada', data: curva4(d.r_g, d.g_obs), borderColor: C4.verde,
+          { label: 'G corregida', data: curva4(d.r_g, d.g_obs), borderColor: C4.verde,
             pointRadius: 0, tension: 0.2 },
-          { label: 'G bajo CSR', data: curva4(d.r_g, d.g_teo), borderColor: C4.verde,
+          { label: 'F corregida', data: curva4(d.r_f, d.f_obs), borderColor: C4.naranja,
+            pointRadius: 0, tension: 0.2 },
+          { label: 'CSR, la de las dos', data: curva4(d.r_f, d.f_teo), borderColor: C4.azul,
             borderDash: [5, 4], pointRadius: 0, tension: 0.2 },
-          { label: 'F observada', data: curva4(d.r_f, d.f_obs), borderColor: C4.naranja,
-            pointRadius: 0, tension: 0.2 },
-          { label: 'F bajo CSR', data: curva4(d.r_f, d.f_teo), borderColor: C4.naranja,
-            borderDash: [5, 4], pointRadius: 0, tension: 0.2 }
+          { label: 'G sin corregir', data: curva4(d.r_g, d.g_emp), borderColor: C4.gris,
+            borderWidth: 1.5, borderDash: [2, 3], pointRadius: 0, tension: 0 }
         ];
         g.update();
+        const dec = x => n5(x, x > 10 ? 2 : 5);
         lectura4(raiz, [
           ['patrón', d.nombre], ['n', miles4(d.n)],
           ['puntos coincidentes', d.coincidentes],
-          ['G empírica en r = 0', n5(d.g_emp_en_cero, 6)],
-          ['mediana de la distancia al vecino', n5(d.g_mediana, d.g_mediana > 10 ? 1 : 4)]
+          ['G sin corregir en r = 0', n5(d.g_emp_en_cero, 6)],
+          ['G llega a la mitad en r', dec(d.g_mediana)],
+          ['F llega a la mitad en r', dec(d.f_mediana)],
+          ['las dos, bajo CSR', dec(d.csr_mediana)],
+          ['sitios de F dentro de la ventana', miles4(d.f_sitios) + ' de ' + miles4(d.f_rejilla)]
         ]);
       };
       botones4(raiz, CLAVES.map((c, k) => ({ etiqueta: ETQ[k], valor: k })),
                k => { i = k; pinta(); }, 2);
+      pinta();
+      return [g];
+    };
+
+    // --- Módulo 7 · la función J -------------------------------------
+    // La J viene hecha del precálculo, con G y F por muestra reducida y
+    // solo donde F <= 0,9. Aquí no se divide nada: un cociente calculado en
+    // el navegador sería una cifra que no auditó nadie.
+    // EJE LINEAL, NO LOGARÍTMICO. En escala log J = 1 quedaría en el centro,
+    // pero la J de las secuoyas llega a 0 —todas las plántulas que cuentan
+    // tienen ya vecina— y el cero no existe en un eje log: la curva se
+    // cortaría justo en el punto que el módulo comenta.
+    // Y LA LECTURA NO DA RÉGIMEN, por la lección que ya dejó `cap4-kl`: sin
+    // banda del azar, una J de 1,5 no distingue un patrón regular de unos
+    // pinos aleatorios, y el módulo lo enseña con esos mismos pinos.
+    SIMULADORES['cap4-j'] = function (raiz) {
+      const CLAVES = ['cells', 'japanesepines', 'redwood', 'bogota'];
+      const ETQ = ['Células', 'Pinos japoneses', 'Secuoyas', 'Sedes de Bogotá'];
+      let i = 1;
+      const ctx = raiz.querySelector('canvas').getContext('2d');
+      const g = new Chart(ctx, {
+        type: 'line', data: { datasets: [] },
+        options: { responsive: true, maintainAspectRatio: false, parsing: false,
+          scales: ejesXY('r', 'J(r)') }
+      });
+      const pinta = () => {
+        const d = D4.m7[CLAVES[i]];
+        g.data.datasets = [
+          { label: 'J observada', data: curva4(d.r_j, d.j_obs), borderColor: C4.morado,
+            pointRadius: 0, tension: 0.2 },
+          { label: 'CSR (J = 1)', data: curva4(d.r_j, d.r_j.map(() => 1)), borderColor: C4.gris,
+            borderDash: [5, 4], pointRadius: 0 }
+        ];
+        g.update();
+        const dec = x => n5(x, x > 10 ? 1 : 4);
+        lectura4(raiz, [
+          ['patrón', d.nombre],
+          ['tramo dibujado', 'r ≤ ' + dec(d.j_r_lim) + ', donde F ≤ ' + n5(D4.m7.j_umbral_f, 1)],
+          ['J en r = 0', n5(d.j_en_cero, 4)],
+          ['J mínima', n5(d.j_min, 4) + ' en r = ' + dec(d.r_j_min)],
+          ['J máxima', n5(d.j_max, 4) + ' en r = ' + dec(d.r_j_max)],
+          ['distancias con J &lt; 1', d.j_bajo_1 + ' de ' + d.j_nodos]
+        ]);
+      };
+      botones4(raiz, CLAVES.map((c, k) => ({ etiqueta: ETQ[k], valor: k })),
+               k => { i = k; pinta(); }, 1);
       pinta();
       return [g];
     };

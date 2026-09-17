@@ -264,6 +264,30 @@ def defectos():
     obj("7 · el suelo de la banda supera al techo en un nodo",
         "datos", lambda d: d["m11"]["redwood"]["lo"].__setitem__(50, 91.7171717171))
 
+    # --- La F de Bogotá y la J del módulo 7 (2026-09-17) --------------
+    # La F de Bogotá contó durante un mes los sitios de FUERA de la
+    # ventana, dentro de una comprobación SALTADA. Estas son las formas en
+    # que podría volver, y cada una tiene que ponerse en rojo.
+    obj("7 · la F de Bogotá cambia en un nodo interior",
+        "datos", lambda d: d["m7"]["bogota"]["f_obs"].__setitem__(
+            30, round(d["m7"]["bogota"]["f_obs"][30] - 0.0317171717, 10)))
+    obj("4 · los sitios de F de Bogotá vuelven a ser los de la caja",
+        "datos", lambda d: d["m7"]["bogota"].__setitem__("f_sitios", 151717))
+    obj("7 · la J de las células cambia en un nodo",
+        "datos", lambda d: d["m7"]["cells"]["j_obs"].__setitem__(15, 3.1717171717))
+    obj("12 · la J se publica más allá de donde F <= 0,9",
+        "datos", lambda d: (d["m7"]["redwood"]["r_j"].append(
+                                d["m7"]["redwood"]["r_f"][len(d["m7"]["redwood"]["r_j"])]),
+                            d["m7"]["redwood"]["j_obs"].append(0.1717171717)))
+    obj("2 · la r a la que F llega a 1/2 deja de cuadrar con la curva",
+        "datos", lambda d: d["m7"]["redwood"].__setitem__("f_mediana", 0.0717171717))
+    obj("5 · la mediana bajo CSR deja de ser sqrt(ln 2 / (lambda pi))",
+        "datos", lambda d: d["m7"]["japanesepines"].__setitem__("csr_mediana", 0.0617171717))
+    obj("5 · J en r=0 deja de ser 1 menos la fracción de coincidentes",
+        "datos", lambda d: d["m7"]["bogota"].__setitem__("j_en_cero", 0.9717171717))
+    obj("2 · el mínimo de J deja de ser el de la curva",
+        "datos", lambda d: d["m7"]["japanesepines"].__setitem__("j_min", 0.4171717171))
+
     # --- 12. Coherencia entre módulos ---------------------------------
     obj("12 · el módulo 10 describe otra ventana que el módulo 1",
         "datos", lambda d: d["m10"]["ventana"].__setitem__("piezas", 19))

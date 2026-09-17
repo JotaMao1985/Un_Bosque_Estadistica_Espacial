@@ -28,7 +28,7 @@ Seis de los diez capítulos del plan están publicados, y con ellos **dos taller
 | 9 | Geoestadística: variograma y kriging | 15 | En preparación |
 | 10 | ML espacial, datos espacio-temporales y proyecto | 16 | En preparación |
 
-Los seis capítulos suman 72 módulos, 57 simuladores, 44 mapas, 73 preguntas de
+Los seis capítulos suman 72 módulos, 58 simuladores, 44 mapas, 73 preguntas de
 autoevaluación, 28 ejercicios guiados y 64 bloques de código en cada lenguaje. Fuera de esa
 cuenta van los dos talleres —el 1 con 9 módulos y 7 ejercicios, el 2 con 7 módulos, 5 tareas y
 las 36 preguntas de su banco de defensa— y el preparcial del Corte I —7 módulos y

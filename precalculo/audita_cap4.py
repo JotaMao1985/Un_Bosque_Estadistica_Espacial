@@ -611,11 +611,113 @@ def main() -> int:
                  f", como afirma el módulo",
                  f"G→0,5 en {rG:.4f} · F→0,5 en {rF:.4f}")
 
-    a.salta("la F de Bogotá, recalculada",
-            "su ventana tiene 22 piezas y 5 agujeros, y la distancia al borde de un "
-            "polígono con agujeros no se escribe en una línea. Se auditan sus "
-            "propiedades —monotonía, recorrido y los sitios efectivos— y la F de los "
-            "tres canónicos, que sí son rectángulos, se recalcula entera")
+    # LA F DE BOGOTÁ, RECALCULADA, y esto era una SALTADA hasta el
+    # 2026-09-17 con el argumento de que «la distancia al borde de un
+    # polígono con agujeros no se escribe en una línea». Con shapely se
+    # escribe en una, y tarda dos segundos. Y el defecto vivía otra vez
+    # dentro de la saltada: `ppp_F_borde()` contaba como espacio vacío los
+    # sitios de la rejilla que caen FUERA de la ventana —160 000 en vez de
+    # 62 762— y la F publicada no pasaba de 0,363. Es la lección escrita
+    # más arriba, repetida un mes después sobre la misma curva.
+    import shapely
+
+    x0u, y0u, x1u, y1u = w_urb.bounds
+    borde_urb = w_urb.boundary
+    shapely.prepare(w_urb)
+    shapely.prepare(borde_urb)
+
+    def rejilla_poligono(W, x0, y0, x1, y1, lado=400):
+        gx = np.linspace(x0, x1, lado)
+        gy = np.linspace(y0, y1, lado)
+        S = np.stack(np.meshgrid(gx, gy, indexing="ij"), -1).reshape(-1, 2)
+        return S[shapely.contains_xy(W, S[:, 0], S[:, 1])]
+
+    S_urb = rejilla_poligono(w_urb, x0u, y0u, x1u, y1u)
+    d_sit = cKDTree(XU).query(S_urb, k=1)[0]
+    b_sit = shapely.distance(shapely.points(S_urb), borde_urb)
+    gb = m7["bogota"]
+    a.igual(len(S_urb), gb["f_sitios"],
+            "m7/bogota: sitios de F dentro de la ventana")
+    a.igual(int(np.sum(b_sit > max(gb["r_f"]))), gb["f_sitios_efectivos"],
+            "m7/bogota: sitios que sobreviven al mayor r", tol=50)
+    f_urb = np.array([np.mean(d_sit[b_sit > r] <= r) for r in gb["r_f"]])
+    a.igual(float(np.max(np.abs(f_urb - np.array(gb["f_obs"])))), 0.0,
+            "m7/bogota: la F publicada, recalculada en Python", tol=0.01)
+    a.igual(float(np.max(np.abs(
+                1 - np.exp(-len(XU) / A_URB * np.pi * np.array(gb["r_f"]) ** 2)
+                - np.array(gb["f_teo"])))), 0.0,
+            "m7/bogota: la F teórica es 1 - exp(-lambda pi r^2)", tol=1e-5)
+
+    # LA PROPIEDAD QUE HABRÍA PARADO EL DEFECTO SIN RECALCULAR NADA: la
+    # fracción de la rejilla que cae dentro es la fracción de la caja que
+    # ocupa la ventana. Para los canónicos, las dos valen 1.
+    a.igual(gb["f_sitios"] / gb["f_rejilla"],
+            A_URB / ((x1u - x0u) * (y1u - y0u)),
+            "m7/bogota: sitios/rejilla = ventana/caja",
+            tol=0.02)
+    for nm in ("cells", "japanesepines", "redwood"):
+        a.igual(m7[nm]["f_sitios"], m7[nm]["f_rejilla"],
+                f"m7/{nm}: en un rectángulo, todos dentro")
+
+    # -----------------------------------------------------------------
+    # LA J DE VAN LIESHOUT Y BADDELEY, rehecha desde cero: la G de muestra
+    # reducida con el mismo umbral que la F (b > r, d <= r), el cociente, y
+    # el tramo F <= 0,9 que el `alim` de `Jest` recomienda leer.
+    # -----------------------------------------------------------------
+    a.titulo("7c · la J, rehecha")
+
+    def g_borde(nn, b, rg):
+        return np.array([np.mean(nn[b > r] <= r) if np.any(b > r) else np.nan
+                         for r in rg])
+
+    for nm in ("cells", "japanesepines", "redwood", "bogota"):
+        g = m7[nm]
+        rg = np.array(g["r_f"])
+        F = np.array(g["f_obs"])
+        if nm == "bogota":
+            P = XU
+            b_pts = shapely.distance(shapely.points(XU), borde_urb)
+        else:
+            P = reg[reg.patron == nm][["x", "y"]].to_numpy()
+            x0, y0, x1, y1 = D["m3"][nm]["ventana"]
+            b_pts = np.minimum.reduce([P[:, 0] - x0, x1 - P[:, 0],
+                                       P[:, 1] - y0, y1 - P[:, 1]])
+        nn = cKDTree(P).query(P, k=2)[0][:, 1]
+        G = g_borde(nn, b_pts, rg)
+        hasta = int(np.max(np.nonzero(F <= 0.9)[0])) + 1
+        # LA LONGITUD PRIMERO, y si no cuadra no se compara nada más: el
+        # arnés publicó J un nodo más allá del tramo y el auditor murió con
+        # un error de numpy en vez de decir qué estaba mal.
+        largo_ok = (len(g["j_obs"]) == hasta and len(g["r_j"]) == hasta)
+        a.cierto(largo_ok, f"m7/{nm}: J solo donde F <= 0,9",
+                 f"{len(g['j_obs'])} nodos publicados, {hasta} en el tramo")
+        if not largo_ok:
+            continue
+        a.igual(float(np.max(np.abs(np.array(g["r_j"]) - rg[:hasta]))), 0.0,
+                f"m7/{nm}: J en la rejilla de F", tol=1e-9)
+        J = (1 - G[:hasta]) / (1 - F[:hasta])
+        # Relativa: J llega a 9 en las células, y un 1 % ahí es 0,09.
+        rel = np.abs(J - np.array(g["j_obs"])) / np.maximum(1.0, np.abs(J))
+        a.igual(float(np.max(rel)), 0.0,
+                f"m7/{nm}: la J, recalculada", tol=0.02)
+        k = slice(1, hasta)
+        a.cerca(float(np.min(J[k])) + 1, g["j_min"] + 1, f"m7/{nm}: el mínimo de J", 0.02)
+        a.cerca(float(np.max(J[k])), g["j_max"], f"m7/{nm}: el máximo de J", 0.02)
+        a.igual(int(np.sum(J[k] < 1)), g["j_bajo_1"],
+                f"m7/{nm}: los nodos con J < 1", tol=1)
+        a.igual(hasta - 1, g["j_nodos"], f"m7/{nm}: los nodos con r > 0")
+        a.cerca(float(np.sqrt(np.log(2) / (len(P) / (A_URB if nm == "bogota" else
+                (x1 - x0) * (y1 - y0)) * np.pi))), g["csr_mediana"],
+                f"m7/{nm}: la mediana bajo CSR", 1e-5)
+        i5 = int(np.nonzero(F >= 0.5)[0][0])
+        fm = rg[i5 - 1] + (0.5 - F[i5 - 1]) * (rg[i5] - rg[i5 - 1]) / (F[i5] - F[i5 - 1])
+        a.cerca(float(fm), g["f_mediana"], f"m7/{nm}: la r a la que F llega a 1/2", 1e-4)
+
+    a.igual(m7["j_umbral_f"], 0.9, "m7: el umbral de J es el alim de Jest")
+
+    # EL ÁTOMO LLEGA A J: su G no tiene convenio en r = 0.
+    a.cerca(m7["bogota"]["j_en_cero"], 1 - float(np.mean(nn_u == 0)),
+            "m7/bogota: J(0) = 1 − fracción de coincidentes", 1e-6)
 
     for nm in ("cells", "japanesepines", "redwood", "bogota"):
         g = m7[nm]
@@ -625,10 +727,10 @@ def main() -> int:
         a.cierto(0.0 <= min(g["f_obs"]) and max(g["f_obs"]) <= 1.0 + 1e-9,
                  f"m7/{nm}: F se queda entre 0 y 1")
         a.cierto(g["f_sitios"] > 10000,
-                 f"m7/{nm}: la F se muestreó sobre sitios suficientes",
+                 f"m7/{nm}: F sobre sitios suficientes",
                  g["f_sitios"])
         a.cierto(g["f_sitios_efectivos"] > 0,
-                 f"m7/{nm}: y la muestra reducida deja sitios en el mayor r",
+                 f"m7/{nm}: quedan sitios en el mayor r",
                  g["f_sitios_efectivos"])
     for nm in ("cells", "japanesepines", "redwood", "bogota"):
         g = m7[nm]

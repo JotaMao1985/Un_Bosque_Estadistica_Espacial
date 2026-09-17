@@ -284,16 +284,26 @@ ppp_kppm <- function(p, modelo, correccion, tendencia = ~1) {
 #' @param p    patrón puntual (`ppp`)
 #' @param rg   vector de radios en los que evaluar
 #' @param lado número de sitios por lado de la rejilla de muestreo
-#' @return lista con `f` (la curva en `rg`), `n_sitios` y `n_efectivos`
-#'   (cuántos sitios sobreviven a la muestra reducida en el mayor r)
+#' @return lista con `f` (la curva en `rg`), `n_rejilla` (lado²),
+#'   `n_sitios` (los de la rejilla que caen DENTRO de la ventana) y
+#'   `n_efectivos` (cuántos sobreviven a la muestra reducida en el mayor r)
 ppp_F_borde <- function(p, rg, lado = 400L) {
   w  <- p$window
   gx <- seq(w$xrange[1], w$xrange[2], length.out = lado)
   gy <- seq(w$yrange[1], w$yrange[2], length.out = lado)
   G  <- expand.grid(x = gx, y = gy)
-  # `ppp()` descarta lo que cae fuera de la ventana, que es justo lo que
-  # se quiere: los sitios de F son los del RECINTO, no los de su caja.
-  sitios <- suppressWarnings(ppp(G$x, G$y, window = w, check = FALSE))
+  # LOS SITIOS DE F SON LOS DEL RECINTO, NO LOS DE SU CAJA, y aquí este
+  # comentario decía que `ppp()` ya los descartaba. Con `check = FALSE` no
+  # descarta nada: ese argumento es justo el que le dice que no mire. Sobre
+  # el cuadrado unidad daba igual —la caja ES la ventana—, pero sobre la
+  # ventana urbana de Bogotá entraban los 160 000 sitios de la rejilla y
+  # solo 62 762 caen dentro. Los de fuera no están vacíos, están sin
+  # observar, y además esquivan la muestra reducida: su distancia «al
+  # borde» es positiva. La F publicada daba 0,307 a 412 m donde la de
+  # verdad da 0,807. Lo destapó la revisión del módulo 7 (2026-09-17), al
+  # ver una F que no llegaba a 0,4 en una ciudad con 2 107 sedes.
+  dentro <- inside.owin(G$x, G$y, w)
+  sitios <- ppp(G$x[dentro], G$y[dentro], window = w, check = FALSE)
   if (npoints(sitios) < 100L)
     stop("ppp_F_borde: la rejilla dejó menos de 100 sitios dentro de la ventana")
 
@@ -306,8 +316,42 @@ ppp_F_borde <- function(p, rg, lado = 400L) {
     mean(d[usables] <= r)
   }, numeric(1))
 
-  list(f = f, n_sitios = npoints(sitios),
+  list(f = f, n_rejilla = lado^2, n_sitios = npoints(sitios),
        n_efectivos = sum(b > max(rg)))
+}
+
+#' G por muestra reducida, con el MISMO criterio que la F de arriba
+#'
+#' Existe para la J del módulo 7, que es un cociente de G y F y solo tiene
+#' sentido si las dos se estiman igual: es lo que hace `Jest()`, que empareja
+#' `rs` con `rs` y `km` con `km`. Y `Jest()` no se puede usar aquí por el
+#' mismo motivo que `Fest()`: la llama por dentro, y sobre `cells` devuelve NA.
+#'
+#' POR QUÉ A MANO Y NO `Gest(correction = "rs")`, que sí está sana. Por dos
+#' cosas medidas el 2026-09-17. Interpolada desde la rejilla de 19 nodos de
+#' `Fest` sobre Bogotá, la G de 8 m salía 0,019 donde la de verdad es 0,044:
+#' el convenio de r = 0 se arrastraba medio paso. Y en su propia rejilla
+#' difiere de este recuento hasta 0,083 sobre `cells`, que con 42 puntos es
+#' un punto de 12: `Gest` cuenta por intervalos y aquí se cuenta por
+#' umbral. Escrita con el mismo umbral que la F, el cociente compara dos
+#' recuentos hechos igual y el auditor lo rehace hasta el último decimal.
+#'
+#' Sin convenio en r = 0, y por eso VE el átomo de los duplicados: sobre las
+#' sedes vale en cero la fracción de sedes coincidentes, igual que la G
+#' empírica. Kaplan-Meier lo pone a cero; este recuento, no.
+#'
+#' @param p  patrón puntual (`ppp`)
+#' @param rg vector de radios
+#' @return la curva en `rg`: de los puntos a más de r del borde, la
+#'   fracción con su vecino más próximo a r o menos
+ppp_G_borde <- function(p, rg) {
+  d <- nndist(p)
+  b <- bdist.points(p)
+  vapply(rg, function(r) {
+    usables <- b > r
+    if (!any(usables)) return(NA_real_)
+    mean(d[usables] <= r)
+  }, numeric(1))
 }
 
 #' La F teórica bajo CSR: 1 - exp(-lambda pi r^2)

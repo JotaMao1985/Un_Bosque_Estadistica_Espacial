@@ -51,6 +51,8 @@ ESTRUCTURALES = {
     # Los años de la bibliografía y de las citas del texto
     "2026", "2025", "2024", "2023", "2022", "2021", "2019", "2015", "2014",
     "2013", "2011", "1993",
+    # Los dos artículos de la J que cita el módulo 7 (2026-09-17)
+    "1996", "1997",
     "4.0",                                     # CC BY-NC-ND 4.0
     "2.ª",                                     # la edición de Bivand et al.
     # La máquina del precálculo, que el módulo 10 declara al publicar tiempos
@@ -106,6 +108,11 @@ DEBE_CUBRIR = [
     ("la distancia al vecino más próximo", "vecino más próximo"),
     ("los puntos coincidentes del patrón colombiano", "puntos coincidentes"),
     ("el convenio de Kaplan-Meier en r = 0", "kaplan-meier"),
+    # Lo que entró el 2026-09-17
+    ("la curva común de G y F bajo CSR", "es la misma"),
+    ("de dónde salen los sitios de F", "rejilla"),
+    ("la función J de van Lieshout y Baddeley", "función j"),
+    ("la G y la F por muestra reducida", "muestra reducida"),
     # Módulo 8 — la K de Ripley
     ("la función K de Ripley", "ripley"),
     ("la transformación L de Besag", "besag"),
@@ -139,7 +146,7 @@ DEBE_CUBRIR = [
 # ninguna; «mad» sí es peligroso —cabe en «madre»— y por eso no está.
 FUENTES = [
     "ripley", "besag", "clark-evans", "diggle", "loosmore", "ford",
-    "kaplan-meier", "donnelly",
+    "kaplan-meier", "donnelly", "lieshout", "bedford", "slivnyak",
     "baddeley", "cressie", "pebesma", "bivand", "moraga", "giraldo",
     "spatstat",
 ]
@@ -176,6 +183,14 @@ AFIRMACIONES = [
      "no es un proceso puntual simple"),
     ("dice que Kaplan-Meier vale cero en r = 0 por convenio, no por el dato",
      "por convenio"),
+    ("dice que un sitio fuera de la ventana no es hueco",
+     "está sin observar"),
+    ("lee Bogotá como exceso respecto de CSR y no como atracción",
+     "exceso de vecinos cercanos y de huecos"),
+    ("avisa de que J = 1 no certifica CSR",
+     "no certifica que el patrón sea csr"),
+    ("avisa de que la J estimada tiembla, y más como cociente",
+     "porque es un cociente"),
     ("explica que g mira el anillo y no el disco",
      "no el disco"),
     ("dice que ignorar el borde no añade ruido sino dirección",
