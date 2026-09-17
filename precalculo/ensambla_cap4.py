@@ -2278,7 +2278,7 @@ QUIZ_JS = r"""
           { texto: 'La intensidad no es constante dentro de la ventana urbana observada',
             retro: 'No queda demostrado. La nula que se rechaza son las DOS propiedades juntas, así que el rechazo es compatible con una λ perfectamente constante cuyos puntos se agrupen. El test no reparte la culpa.' },
           { texto: 'Los colegios se atraen entre sí a las distancias más cortas',
-            retro: 'Tampoco, y por el mismo motivo que la anterior: el test solo mira conteos por celda. Las dos afirmaciones son simétricas y las dos van más allá de lo que el χ² puede sostener.' }
+            retro: 'No queda demostrado. La nula que se rechaza son las DOS propiedades juntas, así que el rechazo es igual de compatible con puntos independientes sobre una λ que cambia dentro de la ventana, sin atracción ninguna. Le pasa lo mismo que a la afirmación de que la intensidad no es constante: cada una culpa a una sola de las dos propiedades, y el χ² no tiene con qué elegir entre ellas. Solo cuenta puntos por celda; no mide distancias entre ellos, ni cortas ni largas.' }
         ] },
       {
         tipo: 'opcion',

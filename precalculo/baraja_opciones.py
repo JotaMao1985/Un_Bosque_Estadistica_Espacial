@@ -60,10 +60,18 @@ import sys
 # Las cinco primeras vienen del preparcial, que las estrenó cazando catorce.
 # La sexta es de la revisión del capítulo 5: allí las tres que había decían
 # «Las correctas son la primera y la tercera», que ninguna de las cinco veía.
+# La séptima es de la trampa 3 del capítulo 4 (2026-09-16): las seis cazaban
+# posiciones ABSOLUTAS y aquella retro nombraba una RELATIVA —«Tampoco, y por
+# el mismo motivo que la anterior»—. En el ensamblador la opción de la
+# intensidad iba justo antes; barajada quedó detrás, y «la anterior» pasó a
+# ser una correcta. En el desglose de una `multiple` además sale sola, sin
+# ninguna retro delante a la que el «Tampoco» pueda seguir.
 #
 # Los patrones nombran LA OPCIÓN, no la palabra suelta: «la primera pregunta
 # ante una diferencia», «Módulo 1, la segunda mitad» y «la primera clase» son
-# español correcto y no son posiciones.
+# español correcto y no son posiciones. Por eso la séptima pide «que la
+# anterior» y no «la anterior» a secas: «cada una es un subconjunto de la
+# anterior» (capítulo 6, sobre la cadena de grafos) no nombra ninguna opción.
 # =====================================================================
 POSICIONALES = [
     re.compile(r"\blas (dos|tres|cuatro) primeras\b", re.I),
@@ -73,6 +81,8 @@ POSICIONALES = [
     re.compile(r"\bla de arriba\b|\bla de abajo\b", re.I),
     re.compile(r"\b(las correctas son|la correcta es|son)\s+(la|las)\s+"
                r"(primera|segunda|tercera|cuarta|última)\b", re.I),
+    re.compile(r"\bla opción (anterior|siguiente)\b|\b(que|como) la (anterior|siguiente)\b"
+               r"|\bla de antes\b|\bla de después\b", re.I),
 ]
 
 # Los campos de una pregunta que lee un estudiante. `respuesta` está aquí
@@ -335,14 +345,28 @@ def _prueba() -> int:
         exige("nombra una posición" in str(e),
               "una retroalimentación que nombra una posición para el ensamblado")
 
-    # Y lo que NO es una posición no puede dispararla.
-    bueno = doc.replace("retro: 'Eso es.'",
-                        "retro: 'Eso es. La primera pregunta ante una diferencia es de dónde sale.'")
+    # La posición RELATIVA, que es la que se escapó en la trampa 3 del cap. 4.
+    relativa = doc.replace("retro: 'Tampoco.'",
+                           "retro: 'Tampoco, y por el mismo motivo que la anterior.'")
     try:
-        baraja_documento(bueno, "cap0", verboso=False)
-        exige(True, "«la primera pregunta» no es una posición y no dispara la guarda")
-    except SystemExit:
-        exige(False, "«la primera pregunta» no es una posición y no dispara la guarda")
+        baraja_documento(relativa, "cap0", verboso=False)
+        exige(False, "«que la anterior» nombra una posición relativa y para el ensamblado")
+    except SystemExit as e:
+        exige("que la anterior" in str(e),
+              "«que la anterior» nombra una posición relativa y para el ensamblado")
+
+    # Y lo que NO es una posición no puede dispararla.
+    for frase, que in (
+            ("La primera pregunta ante una diferencia es de dónde sale.",
+             "«la primera pregunta» no es una posición y no dispara la guarda"),
+            ("No: cada una es un subconjunto de la anterior.",
+             "«un subconjunto de la anterior» (cap. 6) no es una posición y no dispara la guarda")):
+        bueno = doc.replace("retro: 'Eso es.'", f"retro: 'Eso es. {frase}'")
+        try:
+            baraja_documento(bueno, "cap0", verboso=False)
+            exige(True, que)
+        except SystemExit:
+            exige(False, que)
 
     print(f"\n{'FALLA' if fallos else 'OK'} · baraja_opciones.py · "
           f"{len(fallos)} fallo(s)")
