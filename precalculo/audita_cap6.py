@@ -369,6 +369,23 @@ def main() -> int:  # noqa: C901
     a.cierto(D["m6"]["anidamiento"]["gabriel_en_delaunay"] is True,
              "y el otro también")
 
+    # ISLAS Y PEDAZOS SON DOS CUENTAS, y el módulo las publica juntas desde
+    # que la prosa afirmó que la esfera de influencia unía el archipiélago a
+    # la costa: no lo une, lo deja en un subgrafo propio.
+    for g in D["m6"]["municipios"]:
+        tam = g["tamanos_subgrafo"]
+        a.igual(len(tam), g["subgrafos"], f"m6/{g['id']}: un tamaño por subgrafo")
+        a.igual(sum(tam), D["m1"]["municipios"]["n"],
+                f"m6/{g['id']}: los tamaños suman los municipios")
+        a.igual(min(tam), g["subgrafo_menor_n"], f"m6/{g['id']}: el subgrafo menor")
+        a.cierto(bool(tam == sorted(tam, reverse=True)),
+                 f"m6/{g['id']}: los tamaños van de mayor a menor")
+        nombres = g["subgrafo_menor_municipios"]
+        a.cierto(len(nombres) == (g["subgrafo_menor_n"] if 1 < g["subgrafos"]
+                                  and g["subgrafo_menor_n"] <= 5 else 0),
+                 f"m6/{g['id']}: los municipios del menor, o ninguno",
+                 f"{nombres}")
+
     # -----------------------------------------------------------------
     a.titulo("7 · Los cinco estilos, desde la adyacencia")
     crime = col["CRIME"].to_numpy(dtype=float)

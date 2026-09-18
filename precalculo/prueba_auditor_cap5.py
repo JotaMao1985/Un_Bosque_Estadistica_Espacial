@@ -341,6 +341,13 @@ def defectos():
         "datos", lambda d: d["m10"].__setitem__("n_nodos", 131))
     obj("15 · el primer r fuera de banda cambia",
         "datos", lambda d: d["m10"].__setitem__("primer_r_fuera_m", 1313.13))
+    obj("15 · el último r fuera de banda cambia",
+        "datos", lambda d: d["m10"].__setitem__("ultimo_r_fuera_m", 4131.31))
+    obj("15 · el tramo fuera de la banda deja de ser contiguo",
+        "datos", lambda d: d["m10"]["curva"]["obs"].__setitem__(
+            80, d["m10"]["curva"]["hi"][80] * 1.1717171717))
+    obj("15 · los nodos dentro tras el tramo dejan de cuadrar",
+        "datos", lambda d: d["m10"].__setitem__("nodos_dentro_tras_el_tramo", 17))
     obj("15 · la oferta deja de ser todas las sedes",
         "datos", lambda d: d["m5"]["capas"]["oferta"].__setitem__("n", 2113))
     obj("15 · oferta y estudiantes pasan a ser el mismo mapa",

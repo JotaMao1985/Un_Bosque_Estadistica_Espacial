@@ -175,6 +175,19 @@ def defectos():
     obj("6 · la vecindad relativa cambia de tamaño",
         "datos", lambda d: next(
             g for g in d["m6"]["columbus"] if g["id"] == "relativa").__setitem__("pares", 71))
+    obj("6 · la esfera de influencia dice unir el archipiélago",
+        "datos", lambda d: next(
+            g for g in d["m6"]["municipios"] if g["id"] == "esfera").update(
+                {"tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122,
+                 "subgrafo_menor_municipios": []}))
+    obj("6 · los subgrafos de la esfera no suman los municipios",
+        "datos", lambda d: next(
+            g for g in d["m6"]["municipios"] if g["id"] == "esfera").__setitem__(
+                "tamanos_subgrafo", [1017, 2]))
+    obj("6 · el subgrafo menor publica otros municipios",
+        "datos", lambda d: next(
+            g for g in d["m6"]["municipios"] if g["id"] == "esfera").__setitem__(
+                "subgrafo_menor_municipios", ["Leticia"]))
 
     # --- 7. Los cinco estilos -----------------------------------------
     for e, falso in (("B", 231.0), ("W", 47.0), ("S", 51.0), ("C", 53.0), ("U", 1.7131)):

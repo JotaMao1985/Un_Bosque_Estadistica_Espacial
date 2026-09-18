@@ -852,7 +852,8 @@ MOD5 = cabecera(
       <p>Sobre Columbus se ve entero moviendo el umbral. Con la mitad de lo que hace falta,
         {firma(ent(m5["columbus"]["la_mitad"]["islas"]), " de los 49 barrios")} se quedan sin
         vecinos y el mapa se parte en {ent(m5["columbus"]["la_mitad"]["subgrafos"])} pedazos. Con
-        el doble, el grado medio sube a {n(m5["columbus"]["curva"][6]["grado"], 4)} y la vecindad
+        {firma(n(m5["columbus"]["multiplos"][6], 1), " veces")} ese umbral —el punto más alto del
+        barrido—, el grado medio sube a {n(m5["columbus"]["curva"][6]["grado"], 4)} y la vecindad
         deja de distinguir nada: casi todo el mundo es vecino de casi todo el mundo.</p>
 
 {sim("cap6-umbral",
@@ -934,9 +935,22 @@ MOD6 = cabecera(
 {tabs("Las vecindades geométricas", R6.format(**_SUB6), PY6.format(**_SUB6))}
       <p>Sobre los municipios el orden se conserva —{ent(m6["municipios"][0]["pares"])},
         {ent(m6["municipios"][1]["pares"])} y {ent(m6["municipios"][2]["pares"])} parejas— y la
-        esfera de influencia queda en medio con {ent(m6["municipios"][3]["pares"])}. Ninguna deja
-        islas, ni siquiera con San Andrés: al no mirar fronteras, el archipiélago acaba unido a la
-        costa. <strong>Es la misma solución tramposa que los k vecinos</strong>, con otro nombre.</p>
+        esfera de influencia queda en medio con {ent(m6["municipios"][3]["pares"])}. Ninguna de
+        las cuatro deja islas: al no mirar fronteras, hasta San Andrés acaba con algún vecino.
+        <strong>Es la misma solución tramposa que los k vecinos</strong>, con otro nombre.</p>
+
+      <p>Pero <strong>no tener islas no es estar conectado</strong>, y la esfera de influencia lo
+        enseña en el mismo mapa: su grafo se parte en
+        {firma(ent(m6["municipios"][3]["subgrafos"]))} subgrafos, de
+        {ent(m6["municipios"][3]["tamanos_subgrafo"][0])} y
+        {ent(m6["municipios"][3]["tamanos_subgrafo"][1])} municipios, y los dos del pequeño son
+        {m6["municipios"][3]["subgrafo_menor_municipios"][0]} y
+        {m6["municipios"][3]["subgrafo_menor_municipios"][1]}: sus círculos de influencia se
+        tocan el uno al otro y no llegan a ningún municipio del continente, que es lo que
+        significa quedarse en un subgrafo de dos. Delaunay, Gabriel
+        y la relativa sí devuelven una sola pieza. Las dos propiedades se miden por separado
+        porque son distintas: <code>card()</code> a cero cuenta islas, y
+        <code>n.comp.nb()</code> cuenta pedazos.</p>
 """ + CIERRE
 
 MOD7 = cabecera(
@@ -1610,7 +1624,7 @@ QUIZ_JS = r"""
         pista: 'Son dos. Piensa en qué significa exactamente «orden 2».',
         pregunta: 'Sobre la contigüidad de orden superior con <code>nblag</code>, marca <strong>todo</strong> lo que es cierto.',
         retroAcierto: 'Las dos: el orden 2 excluye a los que ya eran vecinos de orden 1, y por eso la serie no crece sin parar.',
-        retroFallo: 'Las dos ciertas son que el orden 2 excluye a los vecinos de orden 1 y que la serie deja de crecer cuando el mapa se queda sin sitios nuevos.',
+        retroFallo: 'Las dos ciertas son que el orden 2 excluye a los vecinos de orden 1 y que la serie acaba frenándose cuando al mapa le quedan pocas unidades nuevas a las que llegar. Frenarse no es pararse: las parejas siguen subiendo, de ' + mil6(D6.m3.ordenes[0].pares) + ' a ' + mil6(D6.m3.ordenes[1].pares) + ' y de ahí a ' + mil6(D6.m3.ordenes[2].pares) + ', cada vez con un salto menor.',
         opciones: [
           { texto: 'El orden 2 son los vecinos de los vecinos que NO eran ya vecinos', correcta: true,
             retro: 'Eso es, y es la trampa de lectura del módulo: `nblag` no acumula. Sobre Columbus da ' + mil6(D6.m3.ordenes[0].pares) + ', ' + mil6(D6.m3.ordenes[1].pares) + ' y ' + mil6(D6.m3.ordenes[2].pares) + ' parejas.' },

@@ -1638,16 +1638,19 @@ print(round(100 * fuera[ok].mean(), 1), round(env.r[ok][fuera[ok]].min(), 4))
 print(round(env.r.max(), 4))
 #&gt; {RMAX}
 
-# La observada por encima del techo en TODO el rango util no es &quot;un poco
-# fuera&quot;: es el modelo entero contestando que no.
+# Todas las salidas son por ARRIBA, y ocupan un tramo con principio y
+# final: el maximo de los radios que se salen no es el ultimo del barrido.
 print(int((env.obs[ok] &gt; env.hi[ok]).sum()), int(ok.sum()))
-#&gt; 62 100'''
+#&gt; 62 100
+print(round(env.r[ok][fuera[ok]].max(), 4), round(env.r.max(), 4))
+#&gt; {ULTIMO} {RMAX}'''
 
 _SUB10 = dict(
     SEM=str(D["meta"]["semillas"]["envolventes"]),
     NIVEL=n(m10["nivel_puntual_pct"], 1),
     PCT=n(m10["pct_r_fuera_de_banda"], 1),
     PRIMER=n(m10["primer_r_fuera_m"], 4),
+    ULTIMO=n(m10["ultimo_r_fuera_m"], 4),
     RMAX=n(m10["r_max_m"], 4))
 
 MOD10 = cabecera(
@@ -1695,12 +1698,21 @@ MOD10 = cabecera(
       "de las que produciría. Mira dónde se separa, desde qué radio y hasta cuál — los "
       "otros dos botones dan la K sin dividir.".replace("{NSIM}", ent(m10["nsim"])))}
       <p>La respuesta es que <strong>no basta</strong>. La K observada se sale de la banda en el
-        {firma(pct(m10["pct_r_fuera_de_banda"], 0))} de los radios, desde
-        {firma(n(m10["primer_r_fuera_m"]), " m")} —el primer nodo distinto de cero— y por
+        {firma(pct(m10["pct_r_fuera_de_banda"], 0))} de los radios, y por
         arriba: hay muchas más parejas cercanas de las que un Poisson inhomogéneo con este
         gradiente produciría. Con {ent(m10["nsim"])} simulaciones y la banda por defecto, el nivel
         puntual es {pct(m10["nivel_puntual_pct"], 1)}, así que no es un margen que el azar
         recorra con soltura.</p>
+
+      <p>Ese porcentaje tiene <strong>principio y final</strong>, y los dos importan. La
+        observada se separa desde {firma(n(m10["primer_r_fuera_m"]), " m")} —el primer nodo
+        distinto de cero— y vuelve dentro de la banda pasados
+        {firma(n(m10["ultimo_r_fuera_m"]), " m")}, donde se queda los
+        {ent(m10["nodos_dentro_tras_el_tramo"])} nodos que restan hasta
+        {n(m10["r_max_m"])} m. Es decir: el exceso de parejas está en las escalas cortas y
+        medias, y a escala de kilómetros el modelo de intensidad ya da cuenta de lo que hay.
+        Decir «se sale de la banda» sin decir <em>dónde</em> deja fuera la mitad de la
+        información, que además es la útil: hasta dónde llega lo que el modelo no explica.</p>
 
       <p>El veredicto que el precálculo deja escrito es <strong>«{m10["veredicto"]}»</strong>.
         Modelar la intensidad
@@ -2670,7 +2682,12 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
           ['corrección de K', D5.m10.correccion],
           ['nivel puntual de la banda', n5(D5.m10.nivel_puntual_pct, 1) + ' %'],
           ['radios fuera de la banda', n5(D5.m10.pct_r_fuera_de_banda, 0) + ' %'],
-          ['desde r =', n5(D5.m10.primer_r_fuera_m, 0) + ' m'],
+          // UN TRAMO, NO UN UMBRAL. Esta fila decía «desde r = 59 m» y se
+          // leía como una cola que llega al final del barrido; la curva
+          // vuelve dentro de la banda mucho antes y ya no sale.
+          ['fuera entre r =', n5(D5.m10.primer_r_fuera_m, 0) + ' m y ' +
+                             n5(D5.m10.ultimo_r_fuera_m, 0) + ' m'],
+          ['y dentro hasta el final', n5(D5.m10.r_max_m, 0) + ' m'],
           ['veredicto', D5.m10.veredicto]]);
       };
       botonera5(raiz, ['Veces la media del modelo', 'K, escala lineal', 'K, escala logarítmica'],

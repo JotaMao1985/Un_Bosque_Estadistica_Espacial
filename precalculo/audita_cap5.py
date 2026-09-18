@@ -493,6 +493,21 @@ def main() -> int:
              f"{m10['pct_r_fuera_de_banda']:.1f} % de los r")
     a.cerca(float(r[dentro_r][fuera[dentro_r]].min()), m10["primer_r_fuera_m"],
             "envolvente: el primer r que se sale", 1e-6)
+    # EL TRAMO, NO EL UMBRAL. El módulo publicaba solo el primer r y la
+    # prosa lo leía como una cola hasta el final del barrido. Se comprueba
+    # el otro extremo, que el tramo sea contiguo —la prosa lo cuenta como
+    # un intervalo— y que después la curva se quede dentro.
+    a.cerca(float(r[dentro_r][fuera[dentro_r]].max()), m10["ultimo_r_fuera_m"],
+            "envolvente: el último r que se sale", 1e-6)
+    i_fuera = np.flatnonzero(fuera[dentro_r])
+    a.cierto(bool(np.all(np.diff(i_fuera) == 1)),
+             "envolvente: el tramo de fuera es contiguo")
+    a.igual(int(dentro_r.sum()) - (int(i_fuera.max()) + 1),
+            m10["nodos_dentro_tras_el_tramo"],
+            "envolvente: los nodos dentro tras el tramo")
+    a.cierto(m10["ultimo_r_fuera_m"] < m10["r_max_m"],
+             "envolvente: vuelve dentro antes del fin del barrido",
+             f"{m10['ultimo_r_fuera_m']:.2f} < {m10['r_max_m']:.2f}")
     a.cierto(m10["correccion"] == "translate",
              "envolvente: la corrección viaja en el dato", m10["correccion"])
 

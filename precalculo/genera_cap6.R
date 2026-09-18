@@ -340,6 +340,10 @@ D$m5 <- list(
                     dnearneigh(col_cent, 0, d1_col / 2)), nrow(col)),
                   islas_en_la_mitad = sum(card(suppressWarnings(
                     dnearneigh(col_cent, 0, d1_col / 2))) == 0),
+                  # EN VECES DEL UMBRAL MÍNIMO, porque es como la prosa lee la
+                  # curva. Decía «con el doble» del punto más alto del barrido,
+                  # y el barrido llega a 1,6 veces: el doble no está medido.
+                  multiplos = r4(u_col / d1_col),
                   curva = curva_umbral(col_cent, u_col, nrow(col))),
   municipios = list(
     umbral_sin_islas_m = r4(d1_mun),
@@ -379,7 +383,24 @@ D$m6 <- list(
               gabriel  = graph2nb(gabrielneigh(st_coordinates(mun_cent)), sym = TRUE),
               relativa = graph2nb(relativeneigh(st_coordinates(mun_cent)), sym = TRUE),
               esfera   = graph2nb(soi.graph(tri2nb(mun_cent), mun_cent), sym = TRUE))
-    lapply(names(g), function(k) c(list(id = k), resumen_nb(g[[k]], nrow(mun))))
+    # NO TENER ISLAS NO ES ESTAR CONECTADO, y con estos cuatro criterios se
+    # ve: los cuatro dejan islas = 0 y la esfera de influencia se parte en
+    # dos igualmente. La prosa lo contaba al revés —«el archipiélago acaba
+    # unido a la costa»— porque solo tenía `islas` para mirar. Así que se
+    # publica el reparto en subgrafos y, cuando el pequeño es diminuto,
+    # QUIÉN se queda en él: sin eso la prosa tendría que suponerlo.
+    lapply(names(g), function(k) {
+      comp <- n.comp.nb(g[[k]])
+      tam <- sort(as.integer(table(comp$comp.id)), decreasing = TRUE)
+      menor <- as.integer(names(which.min(table(comp$comp.id))))
+      c(list(id = k), resumen_nb(g[[k]], nrow(mun)),
+        # I(): con `auto_unbox`, el grafo de una pieza publicaría su tamaño
+        # como un número suelto y no como la lista de tamaños que es.
+        list(tamanos_subgrafo = I(tam),
+             subgrafo_menor_n = min(tam),
+             subgrafo_menor_municipios = I(if (comp$nc > 1L && min(tam) <= 5L)
+               as.character(mun$municipio[comp$comp.id == menor]) else character(0))))
+    })
   })
 
 # =====================================================================

@@ -980,6 +980,18 @@ pct_fuera <- 100 * mean(fuera[dentro_r])
 if (pct_fuera <= 0)
   stop("la K inhomogénea no se sale de la banda del modelo ajustado: la bisagra del capítulo cambió y hay que reescribir el módulo 11")
 
+# EL TRAMO TIENE FINAL, Y PUBLICARLO NO ES UN ADORNO. El módulo publicaba
+# solo `primer_r_fuera_m`, que es el patrón «el primero que cumple», y con
+# él la prosa decía «desde X» sin decir hasta dónde: se lee como una cola
+# que llega al final del barrido, y no lo es —la observada vuelve dentro
+# de la banda y se queda—. Se publican los dos extremos, y el ensamblador
+# los usa los dos. Si el tramo dejara de ser un intervalo, la prosa que lo
+# cuenta como uno pasaría a ser falsa, así que esto para.
+i_fuera <- which(fuera[dentro_r])
+if (!all(diff(i_fuera) == 1L))
+  stop(sprintf("el tramo fuera de la banda ya no es contiguo (%d nodos sueltos): el módulo 10 lo cuenta como un intervalo con principio y final",
+               sum(diff(i_fuera) != 1L)))
+
 D$m10 <- list(
   modelo = "ppm(~ xc + yc), coordenadas centradas",
   nsim = NSIM_ENV, correccion = CORR_ENV,
@@ -988,6 +1000,8 @@ D$m10 <- list(
   n_nodos = N_R,
   pct_r_fuera_de_banda = r10(pct_fuera),
   primer_r_fuera_m = r10(min(rg_env[dentro_r][fuera[dentro_r]])),
+  ultimo_r_fuera_m = r10(max(rg_env[dentro_r][fuera[dentro_r]])),
+  nodos_dentro_tras_el_tramo = sum(dentro_r) - max(i_fuera),
   curva = list(r = r10(rg_env), obs = r10(obs), lo = r10(lo), hi = r10(hi), mmean = r10(mme)),
   # LA TEÓRICA EXISTE, Y ES pi r^2. Para cualquier proceso de Poisson
   # INHOMOGÉNEO la K inhomogénea vale pi r^2 —es la razón entera de que
@@ -1005,8 +1019,9 @@ D$m10 <- list(
   # La lectura, que es lo que el módulo tiene que dejar dicho.
   veredicto = "la intensidad variable no explica la agregación: hace falta un proceso de conglomerado")
 
-message(sprintf("   K inhomogénea fuera de la banda en el %.1f%% de los r, desde %.0f m",
-                pct_fuera, D$m10$primer_r_fuera_m))
+message(sprintf("   K inhomogénea fuera de la banda en el %.1f%% de los r, de %.0f a %.0f m (y dentro en los %d nodos siguientes)",
+                pct_fuera, D$m10$primer_r_fuera_m, D$m10$ultimo_r_fuera_m,
+                D$m10$nodos_dentro_tras_el_tramo))
 
 # =====================================================================
 # MÓDULO 11 · Procesos de conglomerado, Cox y autoexcitados
