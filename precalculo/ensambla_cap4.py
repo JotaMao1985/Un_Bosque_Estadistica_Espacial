@@ -1852,9 +1852,9 @@ MOD13 = cabecera(
     "Medir, con el reloj puesto, si las decisiones de este capítulo y del anterior salen "
     "solas; y dejar por escrito las respuestas para contrastarlas en clase."
 ) + f"""      <p>El quiz del corte se presenta en Brightspace y dura <strong>{MINUTOS_SIM} minutos</strong>, con
-        calculadora y el material abierto. Son {N_SIM} preguntas: {len(SIM_C3)} del capítulo 3
-        —clasificación, color, el efecto de zonificación y la falacia ecológica, módulos
-        {MODS_C3[0]} a {MODS_C3[-1]}— y {len(SIM_C4)} de éste, de los módulos 1 a 5.</p>
+        calculadora y uso de fórmulas escritas o impresas. Son {N_SIM} preguntas: {len(SIM_C3)}
+        del capítulo 3 —clasificación, color, el efecto de zonificación y la falacia ecológica,
+        módulos {MODS_C3[0]} a {MODS_C3[-1]}— y {len(SIM_C4)} de éste, de los módulos 1 a 5.</p>
 
       <p>Abajo está un simulacro con esa misma forma. <strong>No son las preguntas del quiz</strong>:
         es una variante aparte, con otros datos, que no se usa en Brightspace. Memorizar sus
