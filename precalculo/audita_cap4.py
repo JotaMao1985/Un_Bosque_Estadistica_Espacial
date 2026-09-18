@@ -795,6 +795,21 @@ def main() -> int:
         a.cerca(max(g["g_obs"][1:]), g["g_max"],
                 f"m9/{nm}: la g máxima publicada es la de su curva", 1e-6)
         a.cierto(g["correccion"] == "translate", f"m9/{nm}: declara la corrección usada")
+        # LAS DOS DISTANCIAS DEL MÓDULO, que no son la misma y que el
+        # simulador llegó a publicar con la etiqueta cambiada: el último r
+        # en que g se aparta de 1, y el primero DESPUÉS del máximo en que
+        # regresa. La segunda es nula cuando no regresa dentro del barrido.
+        rr = np.array(g["r"]); gg = np.array(g["g_obs"])
+        lejos = np.flatnonzero(np.abs(gg - 1) > 0.05)
+        a.cerca(float(rr[lejos.max()]), g["r_ultimo_cruce"],
+                f"m9/{nm}: el último r que se aparta de 1", 1e-6)
+        i_max = int(np.argmax(gg))
+        vuelve = np.flatnonzero(gg[i_max:] <= 1)
+        esperado = float(rr[i_max + vuelve[0]]) if vuelve.size else None
+        a.cierto(g["r_vuelve_a_1"] == esperado if esperado is None
+                 else abs(g["r_vuelve_a_1"] - esperado) < 1e-6,
+                 f"m9/{nm}: el r en que g regresa a 1",
+                 f"{g['r_vuelve_a_1']} / {esperado}")
     a.cierto(D["m9"]["redwood"]["g_max"] > D["m9"]["japanesepines"]["g_max"],
              "m9: el agregado tiene la g más alta")
 

@@ -1439,7 +1439,8 @@ MOD9 = cabecera(
 
       <p>Sobre las sedes de Bogotá g no tiene pico: vale
         {firma(n(m9['bogota']['g_max'], 5))} en el primer nodo del barrido
-        —{n(m9['bogota']['r_g_max'], 0)} m— y baja desde ahí. Ese máximo en el borde
+        —{n(m9['bogota']['r_g_max'], 0)} m— y de ahí en adelante baja, con vaivenes pequeños
+        pero sin volver a acercarse a esa altura. Ese máximo en el borde
         izquierdo <strong>no es una escala característica</strong>: es donde empieza a
         mirarse, y la estructura fina que habría debajo no se ve porque el barrido no llega.
         Lo que sí dice la curva es hasta dónde llega el exceso, y la respuesta es que
@@ -2378,7 +2379,16 @@ SIMULADORES_JS = r"""
           ['patrón', gg.nombre],
           ['g máxima', n5(gg.g_max, 3)],
           ['a distancia r', n5(gg.r_g_max, gg.r_g_max > 10 ? 0 : 4)],
-          ['g vuelve a 1 pasada r', n5(gg.r_ultimo_cruce, gg.r_ultimo_cruce > 10 ? 0 : 4)],
+          // DOS CIFRAS, Y NO SON LA MISMA. Esta fila decía «g vuelve a 1
+          // pasada r» y enseñaba `r_ultimo_cruce`, que es el último r en
+          // que g se APARTA de 1 en cualquier dirección: sobre los pinos y
+          // las secuoyas cae en el último nodo del barrido, donde g vale
+          // 1.21 y 0.76. El regreso a 1 es `r_vuelve_a_1`, que es la que
+          // usa la prosa y la que vale «hasta dónde llega el exceso»; y es
+          // nula cuando g no vuelve dentro del rango medido.
+          ['g vuelve a 1 en r', gg.r_vuelve_a_1 == null ? 'no vuelve en el barrido'
+             : n5(gg.r_vuelve_a_1, gg.r_vuelve_a_1 > 10 ? 0 : 4)],
+          ['último r con g lejos de 1', n5(gg.r_ultimo_cruce, gg.r_ultimo_cruce > 10 ? 0 : 4)],
           ['máx |L − r| de K', n5(kk.max_desvio, kk.max_desvio > 10 ? 2 : 5)]
         ]);
       };

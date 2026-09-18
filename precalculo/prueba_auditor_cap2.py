@@ -129,6 +129,12 @@ def defectos():
         lambda o: o["epsg"]["archipielago"].__setitem__("max_3116_pct", 0.0041))
     add("3857 deja de perder frente a 9377 lejos del meridiano", "datos",
         lambda o: o["epsg"]["bandas"]["err_9377_pct"].__setitem__(5, 9.41732))
+    add("el cruce entre 3116 y 9377 se declara una banda tarde", "datos",
+        lambda o: o["epsg"].__setitem__("banda_cruce", ">5°"))
+    add("3116 vuelve a ganar después del cruce", "datos",
+        lambda o: o["epsg"]["bandas"]["err_9377_pct"].__setitem__(5, 1.7131313131))
+    add("el factor en la banda del cruce no sale de sus dos errores", "datos",
+        lambda o: o["epsg"].__setitem__("factor_en_cruce", 4.1313131313))
 
     # --- 4. Una BANDERA que deja de coincidir con su hecho --------------
     add("Web Mercator se declara conforme", "datos",

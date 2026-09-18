@@ -450,6 +450,20 @@ def main() -> int:
     a.cierto(B["err_9377_pct"][-1] < B["err_3116_pct"][-1],
              "más allá de 5° del meridiano de 3116, 9377 mide mejor",
              f"{B['err_9377_pct'][-1]:.5f} % vs {B['err_3116_pct'][-1]:.5f} %")
+    # DÓNDE CRUZAN, banda a banda. El módulo solo anclaba la primera y la
+    # última, y la prosa situaba el cruce en la última: ocurre antes.
+    gana9377 = [B["err_9377_pct"][i] < B["err_3116_pct"][i]
+                for i in range(len(B["banda"]))]
+    i_cruce = gana9377.index(True)
+    a.igual(B["banda"].index(D["epsg"]["banda_cruce"]), i_cruce,
+            "la banda del cruce es la primera en que 9377 gana")
+    a.cierto(all(gana9377[i_cruce:]) and not any(gana9377[:i_cruce]),
+             "y el cruce es uno solo: 3116 no vuelve a ganar",
+             f"{[b for b, g in zip(B['banda'], gana9377) if g]}")
+    a.igual(B["err_3116_pct"][i_cruce] / B["err_9377_pct"][i_cruce],
+            D["epsg"]["factor_en_cruce"], "el factor en la banda del cruce")
+    a.igual(B["err_3116_pct"][-1] / B["err_9377_pct"][-1],
+            D["epsg"]["factor_en_ultima"], "y el factor en la última banda")
 
     # -----------------------------------------------------------------
     a.titulo("Módulo 5 · reetiquetar no es reproyectar")

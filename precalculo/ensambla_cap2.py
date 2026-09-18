@@ -622,8 +622,11 @@ MOD4 = cabecera(
         </table>
       </div>
 
-      <p>Cerca del meridiano 3116 es imbatible —vale cero por construcción— y más allá de los
-      cinco grados pierde por un factor grande. Con eso podríamos cerrar el módulo
+      <p>Cerca del meridiano 3116 es imbatible —vale cero por construcción— y el cruce está en
+      la banda de {firma(ep['banda_cruce'])}: ahí su error ya es
+      {firma(n(ep['factor_en_cruce'], 2), ' veces')} el de 9377, y en la última banda,
+      {n(ep['factor_en_ultima'], 2)} veces. Conviene leer la tabla fila a fila y no por los
+      extremos: el cruce no está donde acaba la tabla, sino una banda antes. Con eso podríamos cerrar el módulo
       recomendando 9377 y quedarnos tranquilos. <strong>El dato no deja.</strong></p>
 
       <div class="warning-box">

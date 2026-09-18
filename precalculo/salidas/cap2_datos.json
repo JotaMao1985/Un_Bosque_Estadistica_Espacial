@@ -150,7 +150,10 @@
       "err_9377_pct": [0.1277645537, 0.0777744391, 0.1907455227, 0.4290597129, 0.2406942518, 0.7837773895]
     },
     "gana_9377_lejos": true,
-    "gana_3116_cerca": true
+    "gana_3116_cerca": true,
+    "banda_cruce": "4-5°",
+    "factor_en_cruce": 2.3341371753,
+    "factor_en_ultima": 1.7249503844
   },
   "etiquetar": {
     "n_localidades": 20,
@@ -497,7 +500,7 @@
     "capitulo": 2,
     "titulo": "SIG, sistemas de referencia y georreferenciación con sf",
     "semana": "2-3",
-    "generado": "2026-08-25",
+    "generado": "2026-09-17",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "gdal": "3.8.5",

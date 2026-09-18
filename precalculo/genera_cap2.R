@@ -412,6 +412,13 @@ archipielago <- list(
   n = sum(insular), municipios = mun$municipio[insular],
   max_3116_pct = r10(max(err3116[insular])), max_9377_pct = r10(max(err9377[insular])))
 
+gana_9377_banda <- por_banda$err_9377_pct < por_banda$err_3116_pct
+cruce <- which(gana_9377_banda)[1]
+if (is.na(cruce) || !all(gana_9377_banda[cruce:length(gana_9377_banda)]) ||
+    any(gana_9377_banda[seq_len(cruce - 1L)]))
+  stop(sprintf("el cruce entre 3116 y 9377 ya no es uno solo (gana 9377 en las bandas %s): la prosa del módulo 4 lo cuenta como un «a partir de»",
+               paste(por_banda$banda[gana_9377_banda], collapse = ", ")))
+
 D$epsg <- list(
   n_municipios = nrow(mun),
   continente = tierra_firme,
@@ -433,7 +440,17 @@ D$epsg <- list(
                 err_9377_pct = por_banda$err_9377_pct),
   # cuál gana, RECALCULADO
   gana_9377_lejos = as.logical(por_banda$err_9377_pct[6] < por_banda$err_3116_pct[6]),
-  gana_3116_cerca = as.logical(por_banda$err_3116_pct[1] < por_banda$err_9377_pct[1]))
+  gana_3116_cerca = as.logical(por_banda$err_3116_pct[1] < por_banda$err_9377_pct[1]),
+  # DÓNDE ESTÁ EL CRUCE, y no en qué banda nos gustaría que estuviera. Solo
+  # se anclaban la primera banda y la última, y la prosa escribía «más allá
+  # de los cinco grados pierde» mirando el extremo: pierde antes, y el
+  # factor es mayor justo en la banda que la frase dejaba fuera. Se publica
+  # la banda del cruce y el factor ahí, y se comprueba que el cruce sea uno
+  # solo: si 3116 volviera a ganar más lejos, «a partir de» sería falso.
+  banda_cruce = por_banda$banda[cruce],
+  factor_en_cruce = r10(por_banda$err_3116_pct[cruce] / por_banda$err_9377_pct[cruce]),
+  factor_en_ultima = r10(por_banda$err_3116_pct[nrow(por_banda)] /
+                         por_banda$err_9377_pct[nrow(por_banda)]))
 
 # El mapa: los departamentos coloreados por el error de área de 3116.
 dep <- st_read("datos/procesado/colombia_adm1.gpkg", quiet = TRUE)

@@ -131,6 +131,12 @@ def defectos():
         "datos", lambda d: d["m8"]["cells"].__setitem__("r_max_desvio", 0.1313131313))
     obj("2 · la g máxima no es el máximo de su curva",
         "datos", lambda d: d["m9"]["redwood"].__setitem__("g_max", 4.1717171717))
+    obj("2 · el r en que g regresa a 1 no es el de su curva",
+        "datos", lambda d: d["m9"]["redwood"].__setitem__("r_vuelve_a_1", 0.1717171717))
+    obj("2 · g declara que regresa a 1 y su curva no regresa",
+        "datos", lambda d: d["m9"]["japanesepines"].__setitem__("r_vuelve_a_1", 0.1313131313))
+    obj("2 · el último r que se aparta de 1 no es el de su curva",
+        "datos", lambda d: d["m9"]["cells"].__setitem__("r_ultimo_cruce", 0.1313131313))
     obj("2 · el sesgo máximo por no corregir no es el de las curvas",
         "datos", lambda d: d["m10"].__setitem__("sesgo_max_pct", 41.3131313131))
     obj("2 · la r del sesgo máximo no es la de las curvas",
