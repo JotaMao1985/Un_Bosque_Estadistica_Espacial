@@ -1,0 +1,149 @@
+{
+ "variante": 9,
+ "semilla": 20929,
+ "origen": "Quiz Cap3-Cap4 (20929)/exporta_quiz.py",
+ "preguntas": [
+  {
+   "n": 1,
+   "capitulo": "3",
+   "modulos": "3.3-3.4",
+   "tema": "intervalos iguales y cuantiles",
+   "tipo": "opcion",
+   "enunciado": "<p>Deserción escolar 2024 (MEN, %) en diez municipios de Magdalena:</p><table style=\"border-collapse:collapse;margin:6px 0\"><thead><tr><th style=\"padding:2px 10px;text-align:left;border-bottom:1px solid #999\">Municipio</th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Deserción</th><th style=\"padding:2px 10px;text-align:left;border-bottom:1px solid #999\">Municipio</th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Deserción</th></tr></thead><tbody><tr><td style=\"padding:2px 10px;text-align:left\">Algarrobo</td><td style=\"padding:2px 10px;text-align:right\">2.85</td><td style=\"padding:2px 10px;text-align:left\">Ariguaní</td><td style=\"padding:2px 10px;text-align:right\">1.78</td></tr><tr><td style=\"padding:2px 10px;text-align:left\">Cerro de San Antonio</td><td style=\"padding:2px 10px;text-align:right\">6.28</td><td style=\"padding:2px 10px;text-align:left\">El Piñón</td><td style=\"padding:2px 10px;text-align:right\">3.30</td></tr><tr><td style=\"padding:2px 10px;text-align:left\">El Retén</td><td style=\"padding:2px 10px;text-align:right\">2.15</td><td style=\"padding:2px 10px;text-align:left\">Pijiño del Carmen</td><td style=\"padding:2px 10px;text-align:right\">4.73</td></tr><tr><td style=\"padding:2px 10px;text-align:left\">Pivijay</td><td style=\"padding:2px 10px;text-align:right\">5.81</td><td style=\"padding:2px 10px;text-align:left\">San Sebastián de Buenavista</td><td style=\"padding:2px 10px;text-align:right\">1.62</td></tr><tr><td style=\"padding:2px 10px;text-align:left\">Santa Ana</td><td style=\"padding:2px 10px;text-align:right\">2.02</td><td style=\"padding:2px 10px;text-align:left\">Santa Marta</td><td style=\"padding:2px 10px;text-align:right\">4.66</td></tr></tbody></table><p>Se clasifican en \\(k = 5\\) clases de dos maneras: por <strong>intervalos iguales</strong> y por <strong>cuantiles</strong>. Con cuantiles quedan dos municipios en cada clase; ningún valor cae sobre un corte interior de intervalos iguales, y no hay empates. La clase 1 es la más baja en los dos esquemas.</p><p>¿Cuántos de los diez municipios reciben una clase distinta con un esquema que con el otro?</p>",
+   "opciones": [
+    "2 municipios",
+    "8 municipios",
+    "6 municipios",
+    "4 municipios"
+   ]
+  },
+  {
+   "n": 2,
+   "capitulo": "3",
+   "modulos": "3.5",
+   "tema": "familia de paleta",
+   "tipo": "opcion",
+   "enunciado": "<p>Vas a publicar un mapa municipal de <strong>la jornada predominante de las sedes educativas (mañana, tarde, única, nocturna o fin de semana)</strong>. Cada municipio queda clasificado en una sola de esas jornadas.</p><p>¿Qué familia de paleta corresponde, y por qué?</p>",
+   "opciones": [
+    "Cualitativa: las categorías no tienen orden, y con matices distintos el mapa no inventa uno.",
+    "Cualitativa: las categorías no tienen orden, y en la tabla del módulo 3.5 es la familia que menos distancia pierde bajo deuteranopía.",
+    "Divergente, con la jornada única, la que el país promueve, en el centro: la pregunta es qué unidades se apartan de ella.",
+    "Secuencial YlOrRd: con visión normal separa sus clases casi el doble que Blues (24.447 frente a 13.645)."
+   ]
+  },
+  {
+   "n": 3,
+   "capitulo": "3",
+   "modulos": "3.9",
+   "tema": "efecto zonificación",
+   "tipo": "opcion",
+   "enunciado": "<p>Una rejilla de 25 casillas vota: 15 casillas para el partido A y 10 para el B. Se reparte en 5 distritos de 5 casillas contiguas, y cada distrito elige un escaño por mayoría. Con un reparto proporcional, a A le tocarían \\(5 \\times 15/25 = 3.0\\) escaños.</p><p>Dos trazados de la misma votación. Cada casilla lleva su voto y el número de su distrito:</p><pre style=\"font-size:0.9em;line-height:1.35;\">Trazado 1          Trazado 2\nB1 B2 B2 B2 A2     B1 B1 B1 B2 A3\nA1 B1 B3 A3 A2     A4 B1 B2 A2 A3\nB1 A4 A3 A3 A3     B4 A1 A2 A2 A3\nB1 B4 A4 A4 A4     B4 B5 A5 A3 A3\nA5 A5 A5 B5 A5     A4 A4 A5 B5 A5</pre><p>Con el trazado 2, A gana 4 escaños. ¿Cuál de los dos trazados se aleja más del reparto proporcional, y a favor de qué partido?</p>",
+   "opciones": [
+    "El trazado 1, a favor de A.",
+    "El trazado 2, a favor de A.",
+    "El trazado 1, a favor de B.",
+    "El trazado 2, a favor de B."
+   ]
+  },
+  {
+   "n": 4,
+   "capitulo": "3",
+   "modulos": "3.10",
+   "tema": "falacia ecológica",
+   "tipo": "opcion",
+   "enunciado": "<p>Con los microdatos de Saber 11 (ICFES, 2022-4) se calcula, para cada municipio, la proporción de estudiantes con computador en casa y su puntaje de matemáticas medio. La correlación de Pearson entre las dos, sin ponderar, según cuántos estudiantes con respuesta tenga como mínimo el municipio:</p><table style=\"border-collapse:collapse;margin:6px 0\"><thead><tr><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Umbral (estudiantes con respuesta ≥)</th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Municipios</th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">r</th></tr></thead><tbody><tr><td style=\"padding:2px 10px;text-align:right\">0</td><td style=\"padding:2px 10px;text-align:right\">1 114</td><td style=\"padding:2px 10px;text-align:right\">0.512</td></tr><tr><td style=\"padding:2px 10px;text-align:right\">30</td><td style=\"padding:2px 10px;text-align:right\">1 097</td><td style=\"padding:2px 10px;text-align:right\">0.507</td></tr><tr><td style=\"padding:2px 10px;text-align:right\">100</td><td style=\"padding:2px 10px;text-align:right\">900</td><td style=\"padding:2px 10px;text-align:right\">0.572</td></tr><tr><td style=\"padding:2px 10px;text-align:right\">300</td><td style=\"padding:2px 10px;text-align:right\">497</td><td style=\"padding:2px 10px;text-align:right\">0.734</td></tr><tr><td style=\"padding:2px 10px;text-align:right\">1 000</td><td style=\"padding:2px 10px;text-align:right\">145</td><td style=\"padding:2px 10px;text-align:right\">0.822</td></tr></tbody></table><p>Un informe publica esta frase: «En los 1 114 municipios con al menos un estudiante con respuesta, cuanto mayor es la proporción de estudiantes con computador en casa, más alto tiende a ser el puntaje de matemáticas medio del municipio (r = 0.734).»</p><p>¿Qué le falla?</p>",
+   "opciones": [
+    "Nada: la tabla sostiene la frase tal como está escrita.",
+    "Salta de los municipios a los estudiantes.",
+    "Da como de todos los municipios la cifra de un subconjunto.",
+    "Las dos cosas: salta a los estudiantes y da la cifra de un subconjunto como si fuera de todos."
+   ]
+  },
+  {
+   "n": 5,
+   "capitulo": "4",
+   "modulos": "4.1-4.2",
+   "tema": "ventana e intensidad",
+   "tipo": "opcion",
+   "enunciado": "<p>Un conjunto de puntos georreferenciados en EPSG:9377 (coordenadas en metros) se estudia con dos ventanas: <strong>A</strong>, el municipio, y <strong>B</strong>, su casco urbano. En R:</p><pre style=\"font-size:0.9em;line-height:1.35;white-space:pre-wrap;\">&gt; length(x)\n[1] 1123\n&gt; pA &lt;- ppp(x, y, window = A)\nWarning message:\n169 points were rejected as lying outside the specified window\n&gt; pB &lt;- ppp(x, y, window = B)\nWarning message:\n346 points were rejected as lying outside the specified window\n&gt; c(area(A), area(B))\n[1] 433394968  25777878</pre><p>¿Cuál es el cociente entre la intensidad del casco urbano y la del municipio?</p>",
+   "opciones": [
+    "11.63",
+    "19.79",
+    "13.69",
+    "21.49",
+    "16.81"
+   ]
+  },
+  {
+   "n": 6,
+   "capitulo": "4",
+   "modulos": "4.2",
+   "tema": "índice de dispersión",
+   "tipo": "opcion",
+   "enunciado": "<p>Una ventana se cubre con una rejilla de 3 columnas × 2 filas; 4 celdas quedan recortadas por la ventana, así que no todas esperan el mismo número de puntos. Para cada celda, los puntos que esperaría si \\(\\lambda\\) fuera constante y los que tiene:</p><table style=\"border-collapse:collapse;margin:6px 0\"><thead><tr><th style=\"padding:2px 10px;text-align:center;border-bottom:1px solid #999\">Celda</th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Esperanza \\(E_j\\)</th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Conteo \\(O_j\\)</th></tr></thead><tbody><tr><td style=\"padding:2px 10px;text-align:center\">1</td><td style=\"padding:2px 10px;text-align:right\">2.27</td><td style=\"padding:2px 10px;text-align:right\">3</td></tr><tr><td style=\"padding:2px 10px;text-align:center\">2</td><td style=\"padding:2px 10px;text-align:right\">11.35</td><td style=\"padding:2px 10px;text-align:right\">2</td></tr><tr><td style=\"padding:2px 10px;text-align:center\">3</td><td style=\"padding:2px 10px;text-align:right\">6.22</td><td style=\"padding:2px 10px;text-align:right\">4</td></tr><tr><td style=\"padding:2px 10px;text-align:center\">4</td><td style=\"padding:2px 10px;text-align:right\">8.71</td><td style=\"padding:2px 10px;text-align:right\">10</td></tr><tr><td style=\"padding:2px 10px;text-align:center\">5</td><td style=\"padding:2px 10px;text-align:right\">11.36</td><td style=\"padding:2px 10px;text-align:right\">26</td></tr><tr><td style=\"padding:2px 10px;text-align:center\">6</td><td style=\"padding:2px 10px;text-align:right\">10.08</td><td style=\"padding:2px 10px;text-align:right\">5</td></tr></tbody></table><p>Las varianzas dividen por el número de celdas menos 1, \\(m - 1\\), como var() en R. ¿Qué índice de dispersión daría de media, aproximadamente, un Poisson homogéneo sobre esta misma rejilla?</p>",
+   "opciones": [
+    "2.50",
+    "1.42",
+    "1.66",
+    "1.00"
+   ]
+  },
+  {
+   "n": 7,
+   "capitulo": "4",
+   "modulos": "4.3-4.4",
+   "tema": "Clark-Evans y banda del azar",
+   "tipo": "opcion",
+   "enunciado": "<p>Nogales americanos (género <em>Carya</em>) de Lansing Woods, Míchigan (dato <code>lansing</code> de spatstat), en una de las dieciséis celdas de la parcela: n = 67 puntos en una ventana rectangular de 231 × 231 pies (53 361 pies²). La distancia media de cada punto a su vecino más próximo es \\(\\bar{d}\\) = 13.666 pies.</p><p>Para comparar, se simularon 2 000 realizaciones de aleatoriedad espacial completa (CSR) con la misma intensidad en la misma ventana (su número de puntos cambia de una a otra). Su índice de Clark-Evans, sin corrección de borde, tiene media 1.058 y deja el 95 % central entre 0.915 y 1.200.</p><p>¿Cuánto vale el índice de Clark-Evans de este patrón, calculado como en las simulaciones, y cuál es la conclusión bien argumentada?</p>",
+   "opciones": [
+    "R = 0.968: es menor que la media del azar (1.058), así que hay evidencia de agregación.",
+    "R = 0.968: cae dentro de la banda del azar, así que no hay evidencia contra CSR.",
+    "R = 1.024: cae dentro de la banda del azar, así que no hay evidencia contra CSR.",
+    "R = 1.024: es menor que la media del azar (1.058), así que hay evidencia de agregación."
+   ]
+  },
+  {
+   "n": 8,
+   "capitulo": "4",
+   "modulos": "4.4",
+   "tema": "las dos propiedades de CSR",
+   "tipo": "opcion",
+   "enunciado": "<p>La aleatoriedad espacial completa (CSR) en una ventana \\(W\\) se define por dos propiedades: <strong>(1)</strong> el número de puntos en \\(W\\) sigue una Poisson de media \\(\\lambda|W|\\); <strong>(2)</strong> dado ese número, las posiciones son uniformes e independientes. Es la CSR del módulo 4.4 escrita para la ventana: con la (2), la (1) ya da una Poisson de media \\(\\lambda|A|\\) en cualquier región \\(A\\) de \\(W\\).</p><p>Se simulan 2 000 realizaciones de un proceso en el cuadrado unidad con 65 puntos esperados —el montaje del módulo 4.4— y se resume. Como referencia, con ese montaje CSR da una R media de 1.058; en otras 2 000 realizaciones de un proceso con posiciones uniformes e independientes, la R media puede quedar hasta unas 0.008 por encima o por debajo de esa cifra.</p><table style=\"border-collapse:collapse;margin:6px 0\"><thead><tr><th style=\"padding:2px 10px;text-align:left;border-bottom:1px solid #999\"></th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Media</th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Varianza</th></tr></thead><tbody><tr><td style=\"padding:2px 10px;text-align:left\">Puntos en toda la ventana</td><td style=\"padding:2px 10px;text-align:right\">64.7</td><td style=\"padding:2px 10px;text-align:right\">66.9</td></tr><tr><td style=\"padding:2px 10px;text-align:left\">Puntos en el cuadrante noreste (¼ del área)</td><td style=\"padding:2px 10px;text-align:right\">28.2</td><td style=\"padding:2px 10px;text-align:right\">29.2</td></tr><tr><td style=\"padding:2px 10px;text-align:left\">Índice de Clark-Evans sin corregir (media de las 2 000)</td><td style=\"padding:2px 10px;text-align:right\">0.889</td><td style=\"padding:2px 10px;text-align:right\">—</td></tr></tbody></table><p>A la vista de estos diagnósticos, ¿qué propiedades de CSR se sostienen?</p>",
+   "opciones": [
+    "Las dos.",
+    "La (2), pero no la (1).",
+    "La (1), pero no la (2).",
+    "Ninguna de las dos."
+   ]
+  },
+  {
+   "n": 9,
+   "capitulo": "4",
+   "modulos": "4.5",
+   "tema": "χ² de cuadrantes",
+   "tipo": "opcion",
+   "enunciado": "<p>Una ventana se cubre con una rejilla de 2 columnas × 2 filas de celdas de 3 × 3 km (9 km² cada una). Algunas quedan recortadas por la ventana. Para cada celda, la fracción de su área que cae dentro y el número de puntos:</p><table style=\"border-collapse:collapse;margin:6px 0\"><thead><tr><th style=\"padding:2px 10px;text-align:center;border-bottom:1px solid #999\">Celda</th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Fracción dentro</th><th style=\"padding:2px 10px;text-align:right;border-bottom:1px solid #999\">Conteo \\(O_j\\)</th></tr></thead><tbody><tr><td style=\"padding:2px 10px;text-align:center\">1</td><td style=\"padding:2px 10px;text-align:right\">0.76</td><td style=\"padding:2px 10px;text-align:right\">25</td></tr><tr><td style=\"padding:2px 10px;text-align:center\">2</td><td style=\"padding:2px 10px;text-align:right\">0.71</td><td style=\"padding:2px 10px;text-align:right\">26</td></tr><tr><td style=\"padding:2px 10px;text-align:center\">3</td><td style=\"padding:2px 10px;text-align:right\">1.00</td><td style=\"padding:2px 10px;text-align:right\">16</td></tr><tr><td style=\"padding:2px 10px;text-align:center\">4</td><td style=\"padding:2px 10px;text-align:right\">0.83</td><td style=\"padding:2px 10px;text-align:right\">10</td></tr></tbody></table><p>¿Cuánto vale el estadístico \\(\\chi^2\\) del test de cuadrantes?</p>",
+   "opciones": [
+    "9.08",
+    "17.67",
+    "10.35",
+    "15.18"
+   ]
+  },
+  {
+   "n": 10,
+   "capitulo": "4",
+   "modulos": "4.5",
+   "tema": "lo que el χ² no ve",
+   "tipo": "multiple",
+   "enunciado": "<p>Sobre un patrón de 141 puntos en una parcela cuadrada de 120 × 120 m, el test de cuadrantes con una rejilla de 4 × 4 celdas iguales da \\(\\chi^2\\) = 71.54 con 15 grados de libertad. Ningún punto cae sobre una línea de la rejilla.</p><p>¿Cuáles de estos cambios dejan el \\(\\chi^2\\) <strong>exactamente</strong> igual? Marca todos los que lo hagan.</p><p><em>Se califica con crédito parcial: los aciertos suman, los errores restan y la nota de la pregunta no baja de 0.</em></p>",
+   "opciones": [
+    "Recolocar al azar cada punto en cualquier lugar de la parcela.",
+    "Recolocar al azar cada punto dentro de su misma celda.",
+    "Llevar un solo punto de la celda con más puntos a la celda con menos.",
+    "Sustituir cada punto por dos puntos en la misma posición.",
+    "Intercambiar el contenido de la celda con más puntos y el de la celda con menos."
+   ]
+  }
+ ]
+}

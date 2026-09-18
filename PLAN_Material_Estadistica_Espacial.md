@@ -24,6 +24,10 @@ a 1 280, 375 ni **318 px**.
 · **El riesgo que el plan declaraba para este capítulo estaba mal atribuido**: lo caro no es el
 número de puntos, es la corrección isotrópica contra la ventana real —555 veces la de traslación—.
 Ver **A.17**, **A.18** y las tres decisiones de la Fase 3.
+· **2026-09-18: el capítulo gana un módulo 13, el simulacro del quiz** (639 KB, 13 módulos). Publica
+una variante entera del quiz del corte —diez preguntas, cuatro del capítulo 3 y seis de éste—
+cronometrada a 40 minutos y **sin clave ni retroalimentación**, con un componente nuevo de la
+plantilla, `.simulacro`. Ver **A.31**.
 · **Tres defectos más en el cierre, y uno vivía en el núcleo compartido desde T0.5**: la clave del
 `<th>` de `soluciones()` se comía **una fila de solución en cada uno de los cuatro capítulos
 publicados**, con el recuento «N de N» leyéndose completo. Ver **A.19** y **A.20**.
@@ -4803,3 +4807,44 @@ capítulo como lo lee un estudiante y abriéndolo en un navegador**. El §9.1 di
 caza ninguna comprobación automática; esto añade que tampoco lo cazan **el valor de referencia de
 una cifra correcta, el signo que se promete y no se imprime, ni el mando que un párrafo manda mover
 y no existe**.
+
+
+### A.31 · El simulacro del capítulo 4: publicar un examen sin publicar sus respuestas (2026-09-18)
+
+El quiz del corte (capítulo 3 y módulos 4.1–4.5) vive **fuera de este repositorio**, en
+`Bosque 2026/Quiz Cap3-Cap4 (20929)/`, porque lleva la clave. La petición fue poner una variante al
+final del capítulo 4, como módulo nuevo, sin solución ni retroalimentación. Tres decisiones, y la
+razón de cada una.
+
+**1. La variante que se publica no está en el banco.** El banco tiene ocho variantes por pregunta y
+el cuestionario reparte una a cada estudiante. Publicar una de las ocho le daría a **uno de cada
+ocho** las preguntas de su propio quiz con tiempo ilimitado. Así que el generador construye una
+**novena** variante, con sus propios diseños y sus propios datos, que no se exporta al banco. Costó
+lo que cuesta: el espacio de diseños de P03 está agotado —con 10 votos de 25, A no puede ganar 4 de
+5 distritos, y con 15 no puede ganar menos de 2—, P07 necesitaba un recorte real de `spatstat.data`
+que cumpliera su guarda (`lansing_hickory_4x4_44`, el cuarto que existe), y P02 y P04 necesitaban
+contenido nuevo: una variable cualitativa y una frase de informe que no estuvieran ya en el banco.
+
+**2. Los equilibrios entre variantes son del banco, no del simulacro.** Las guardas que reparten las
+claves de P03, los distractores de P06 o las cuatro respuestas de P08 comparan las ocho variantes
+entre sí; la novena va sola a una página. Se acotaron a `seq_len(V)`. Lo contrario habría sido pedirle
+a una variante que no se reparte con nadie que se reparta con todas.
+
+**3. La clave no puede viajar en la página.** El componente de autoevaluación del curso incrusta sus
+respuestas y su retroalimentación en el HTML —y debe hacerlo: se corrige en el navegador—. Para un
+examen que todavía se va a aplicar eso lo regala al primero que abra el código fuente. De ahí un
+componente nuevo en la plantilla, **`.simulacro`**: marca las opciones, cuenta las respondidas, lleva
+un reloj de 40 minutos y **no corrige nada**. Lo publicado son enunciados y opciones, nada más, y
+tres sitios lo comprueban: el exportador del quiz aborta si una opción trae «Correcto», el ensamblador
+del capítulo mira que el registro no diga «correcta», «retro» ni «Correcto», y el verificador del quiz
+lo vuelve a mirar sobre el JSON.
+
+**Lo que el verificador del quiz comprueba del simulacro**, además de eso: que sean las diez
+preguntas con el número de opciones de cada una, que lo publicado coincida con la clave que se queda
+fuera del repositorio, y que exista **exactamente una opción correcta** en las cinco preguntas cuya
+cuenta se puede rehacer desde el enunciado publicado (P01, P05, P06, P08 y P09).
+
+**Un defecto propio, encontrado al abrirlo en el navegador**: la prosa del módulo anuncia el rango de
+módulos del capítulo 3 que entran, calculado del propio JSON, y decía «módulos 3.10 a 3.9». Ordenar
+`{"3.3", "3.4", "3.5", "3.9", "3.10"}` como texto pone «3.10» primero. Es la misma familia de defecto
+que el §9.1 describe: la cifra era correcta y la frase, falsa.

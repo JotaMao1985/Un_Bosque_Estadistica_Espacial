@@ -58,6 +58,11 @@ DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-4-patrones-puntuales.html"
 D = json.loads((SALIDAS / "cap4_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap4_mapas.json").read_text(encoding="utf-8"))
 S = json.loads((SALIDAS / "cap4_soluciones.json").read_text(encoding="utf-8"))
+# El simulacro del módulo 13: una variante del quiz SIN CLAVE, generada por
+# `Quiz Cap3-Cap4 (20929)/exporta_quiz.py`, que vive fuera de este repositorio porque el banco
+# lleva las respuestas. Aquí solo llegan enunciados y opciones.
+SIM = json.loads((SALIDAS / "cap4_simulacro.json").read_text(encoding="utf-8"))
+MINUTOS_SIM = 40   # los del quiz (decisión del profesor, 2026-09-16)
 
 m1, m2, m3, m4 = D["m1"], D["m2"], D["m3"], D["m4"]
 m5, m6, m7 = D["m5"], D["m6"], D["m7"]
@@ -202,6 +207,23 @@ def quiz_html(ident, titulo, bajada):
 """
 
 
+def simulacro_html(ident, titulo, bajada):
+    """El marcado que `renderSimulacro` espera: mandos, preguntas y resumen, todos vacíos."""
+    return f"""      <div class="simulacro" data-simulacro="{ident}">
+        <h4><i class="fas fa-stopwatch" aria-hidden="true"></i> {titulo}</h4>
+        <p class="text-sm" style="margin-bottom:0;">{bajada}</p>
+        <div class="simulacro-mandos">
+          <button type="button" class="simulacro-empezar"></button>
+          <span class="simulacro-reloj" role="timer" aria-live="off"></span>
+          <span class="simulacro-conteo"></span>
+          <button type="button" class="simulacro-borrar">Borrar</button>
+        </div>
+        <div class="simulacro-preguntas"></div>
+        <p class="simulacro-resumen" role="status"></p>
+      </div>
+"""
+
+
 def mapa_html(ident, titulo, controles=False):
     """El div de un `.geomapa`, y sus controles FUERA de él.
 
@@ -235,6 +257,7 @@ TITULOS = (
     ("Efectos de borde", "Tres correcciones, y lo que cuestan"),
     ("Envolventes de simulación", "Qué NO es un p-valor de envolvente"),
     ("Autoevaluación y ejercicios", "Doce preguntas y cinco ejercicios guiados"),
+    ("Simulacro del quiz", "Diez preguntas cronometradas, sin corrección"),
 )
 
 
@@ -1810,8 +1833,74 @@ MOD12 = cabecera(
 """ + CIERRE
 
 
+
+# =====================================================================
+# MÓDULO 13 · Simulacro del quiz
+# Las preguntas salen de `cap4_simulacro.json`, que escribe el generador del quiz (fuera de
+# este repositorio). Es una variante NUEVA, la 9: las ocho del banco no se publican, porque a
+# uno de cada ocho estudiantes le tocarían en el quiz las preguntas que estudió con tiempo
+# ilimitado. Y llega sin clave ni retroalimentación: este capítulo es público.
+# =====================================================================
+N_SIM = len(SIM["preguntas"])
+SIM_C3 = [q for q in SIM["preguntas"] if q["capitulo"] == "3"]
+SIM_C4 = [q for q in SIM["preguntas"] if q["capitulo"] == "4"]
+# ojo al orden: como texto, «3.10» va antes que «3.3» y la frase salía «de 3.10 a 3.9»
+MODS_C3 = sorted({m for q in SIM_C3 for m in q["modulos"].split("-")},
+                 key=lambda m: [int(z) for z in m.split(".")])
+MOD13 = cabecera(
+    13, "Simulacro del quiz", "Mock quiz",
+    "Medir, con el reloj puesto, si las decisiones de este capítulo y del anterior salen "
+    "solas; y dejar por escrito las respuestas para contrastarlas en clase."
+) + f"""      <p>El quiz del corte se presenta en Brightspace y dura <strong>{MINUTOS_SIM} minutos</strong>, con
+        calculadora y el material abierto. Son {N_SIM} preguntas: {len(SIM_C3)} del capítulo 3
+        —clasificación, color, el efecto de zonificación y la falacia ecológica, módulos
+        {MODS_C3[0]} a {MODS_C3[-1]}— y {len(SIM_C4)} de éste, de los módulos 1 a 5.</p>
+
+      <p>Abajo está un simulacro con esa misma forma. <strong>No son las preguntas del quiz</strong>:
+        es una variante aparte, con otros datos, que no se usa en Brightspace. Memorizar sus
+        respuestas no sirve de nada; lo que se repite de una variante a otra es la
+        <em>decisión</em> —qué ventana, qué esperanzas, contra qué referencia— y esa es la que
+        conviene tener automatizada antes de entrar.</p>
+
+      <div class="warning">
+        <h4>No se corrige aquí</h4>
+        <p style="margin-bottom:0;">El simulacro no trae la clave ni la retroalimentación, y no
+        las trae a propósito: esta página es pública, y una clave incrustada en ella la lee
+        cualquiera desde el código fuente. Marca, anota tus respuestas con el botón de abajo y
+        contrástalas en clase o con el material —cada pregunta dice de qué módulos sale—. En el
+        quiz de verdad sí hay retroalimentación por opción, y se abre cuando el quiz cierra.</p>
+      </div>
+
+{simulacro_html('cap4-simulacro', 'Simulacro del quiz · capítulos 3 y 4',
+                f'{N_SIM} preguntas, {MINUTOS_SIM} minutos. Se marca y se cronometra; no se corrige.')}
+      <div class="tip-box">
+        <h4>Cómo aprovecharlo</h4>
+        <p style="margin-bottom:0;">Hazlo una vez con el reloj y sin abrir nada: lo que falle
+        ahí es lo que hay que repasar. Después repítelo con el material delante y mira cuánto
+        tiempo te cuesta cada consulta, porque en el quiz ese tiempo sale del mismo presupuesto.
+        Las preguntas que más se demoran suelen ser las de cuenta a mano —la intensidad con dos
+        ventanas y el χ² con celdas recortadas—, y esas se abrevian sabiendo de antemano qué
+        entra en cada denominador.</p>
+      </div>
+""" + CIERRE
+
+
 MODULOS = (MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6
-           + MOD7 + MOD8 + MOD9 + MOD10 + MOD11 + MOD12)
+           + MOD7 + MOD8 + MOD9 + MOD10 + MOD11 + MOD12 + MOD13)
+
+
+# =====================================================================
+# El registro del simulacro: enunciados y opciones, sin clave
+# =====================================================================
+SIMULACRO_JS = (
+    "    SIMULACROS['cap4-simulacro'] = "
+    + json.dumps({"minutos": MINUTOS_SIM,
+                  "preguntas": [{"n": q["n"],
+                                 "etiqueta": f"cap. {q['capitulo']} · mód. {q['modulos'].replace('-', '–')}",
+                                 "tipo": q["tipo"], "enunciado": q["enunciado"], "opciones": q["opciones"]}
+                                for q in SIM["preguntas"]]},
+                 ensure_ascii=False, indent=6).replace("\n", "\n    ")
+    + ";\n")
 
 
 # =====================================================================
@@ -2744,7 +2833,7 @@ def main() -> int:
         "  <!-- ============================================================ -->\n"
         "  <!-- MÓDULO 1 · Cajas y tipografía",
         "\n  <script>", MODULOS.lstrip("\n") + "\n  <script>",
-        "los doce módulos", max_lineas=600)
+        "los trece módulos", max_lineas=700)
 
     vieja = [l for l in doc.splitlines() if l.startswith("    GEOMAPAS['demo-mapa'] =")]
     if len(vieja) != 1:
@@ -2769,6 +2858,9 @@ def main() -> int:
 
     doc = reemplaza_region(doc, "    AUTOEVALUACIONES['demo'] = [", "\n    ];\n",
                            QUIZ_JS, "AUTOEVALUACIONES", max_lineas=90)
+
+    doc = reemplaza_region(doc, "    SIMULACROS['demo'] = {", "\n    };\n",
+                           SIMULACRO_JS, "SIMULACROS", max_lineas=40)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
     # El orden de las opciones se decide en `baraja_opciones.py`, y es la
@@ -2798,9 +2890,21 @@ def main() -> int:
     print(f"  {lienzos} lienzos, {con_alt} con aria-label · "
           f"{ejercicios} ejercicios guiados · {quices} autoevaluaciones")
 
+    simulacros = marcado.count('data-simulacro="')
+    preguntas_sim = len(SIM["preguntas"])
+    print(f"  {simulacros} simulacro con {preguntas_sim} preguntas (variante {SIM['variante']}, sin clave)")
+
     problemas = []
-    if mods != 12:
-        problemas.append(f"módulos: {mods} (se esperan 12)")
+    if mods != 13:
+        problemas.append(f"módulos: {mods} (se esperan 13)")
+    if simulacros != 1:
+        problemas.append(f"simulacros: {simulacros} (se espera 1, el del módulo 13)")
+    # lo que se publica no puede llevar la clave: ni la marca, ni la retroalimentación
+    reg = doc[doc.index("SIMULACROS['cap4-simulacro']"):]
+    reg = reg[:reg.index("\n    };\n")]
+    for pista in ("correcta", "retro", "Correcto"):
+        if pista in reg:
+            problemas.append(f"el simulacro publica «{pista}»")
     if ejercicios != 5:
         problemas.append(f"ejercicios: {ejercicios} (la desviación declarada son 5)")
     if quices != 2:
