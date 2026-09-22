@@ -877,6 +877,76 @@
       }
     }
 
+    /* Botonera de los simuladores que eligen entre patrones o vistas en vez de
+       mover un número. La clase venía usándose desde el capítulo 2 y el motor
+       ya marcaba la opción elegida con `.active` y `aria-pressed="true"`, pero
+       NADA la pintaba: sin estas reglas los cuatro botones de «G y F sobre los
+       tres regímenes» salían como cuatro losas idénticas de 369 px —mismo
+       fondo transparente, mismo borde gris, mismo grosor de letra— y el
+       estudiante no tenía forma de ver si estaba mirando las secuoyas o las
+       células.
+
+       Pasar de rejilla a fila no es cosmético. `.simulador-controles` es una
+       rejilla de dos columnas pensada para deslizadores, y repartir cuatro
+       botones en 2x2 los estira hasta que parecen filas de una tabla en vez de
+       un control segmentado. `:has(.sim-btn)` se puede usar aquí porque
+       ninguna botonera comparte contenedor con un deslizador: los tres
+       ayudantes que las construyen (`botonera` en el 2, `botones3` en el 3,
+       `botones4` en el 4) vacían el contenedor antes de escribir. El
+       `justify-self` del botón es el plan B para un navegador que no entienda
+       `:has()`: deja la rejilla, pero al menos cada botón mide lo que mide su
+       texto y se distingue del de al lado. */
+    .simulador-controles:has(.sim-btn) {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+
+    .sim-btn {
+      justify-self: start;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 0.4rem 0.9rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      background: white;
+      color: #475569;
+      transition: all 0.2s ease;
+    }
+
+    .sim-btn:hover {
+      border-color: #FF6600;
+      color: #012820;
+    }
+
+    /* El mismo relleno que `.code-tab-btn.active`, que es el otro control
+       segmentado de la casa: dos controles que hacen lo mismo —decir cuál de
+       las opciones está puesta— deben decirlo igual. */
+    .sim-btn.active {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-color: transparent;
+      color: white;
+    }
+
+    .sim-btn:focus-visible {
+      outline: 2px solid #FF6600;
+      outline-offset: 2px;
+    }
+
+    /* Separa dos botoneras que viven en el mismo contenedor y responden a
+       preguntas distintas: en el simulador de K y L del capítulo 4, el patrón
+       por un lado y la vista (K o L - r) por el otro. Sin la raya, los seis
+       botones se leen como una sola lista de seis opciones excluyentes. */
+    .sim-sep {
+      width: 1px;
+      align-self: stretch;
+      margin: 0 0.35rem;
+      background: #cbd5e1;
+    }
+
     .control-slider {
       display: flex;
       flex-direction: column;
