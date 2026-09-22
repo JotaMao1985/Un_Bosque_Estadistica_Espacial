@@ -629,10 +629,10 @@ MOD5 = cabecera(
       </div>
 
       <div class="geomapa-controles" id="cap3-ctrl-cvd">
-        <button type="button" class="geomapa-boton activo" data-cvd="">Visión normal</button>
-        <button type="button" class="geomapa-boton" data-cvd="deuteranopia">Deuteranopía</button>
-        <button type="button" class="geomapa-boton" data-cvd="protanopia">Protanopía</button>
-        <button type="button" class="geomapa-boton" data-cvd="tritanopia">Tritanopía</button>
+        <button type="button" class="geomapa-boton activo" aria-pressed="true" data-cvd="">Visión normal</button>
+        <button type="button" class="geomapa-boton" aria-pressed="false" data-cvd="deuteranopia">Deuteranopía</button>
+        <button type="button" class="geomapa-boton" aria-pressed="false" data-cvd="protanopia">Protanopía</button>
+        <button type="button" class="geomapa-boton" aria-pressed="false" data-cvd="tritanopia">Tritanopía</button>
       </div>
 
       <p>Dos reglas prácticas para cerrar: usa paletas con recorrido de luminosidad siempre
@@ -1916,8 +1916,12 @@ CABLEADO_JS = f"""
       if (c) c.addEventListener('click', ev => {{
         const b = ev.target.closest('.geomapa-boton');
         if (!b) return;
-        c.querySelectorAll('.geomapa-boton').forEach(x => x.classList.remove('activo'));
+        c.querySelectorAll('.geomapa-boton').forEach(x => {{
+          x.classList.remove('activo');
+          x.setAttribute('aria-pressed', 'false');
+        }});
         b.classList.add('activo');
+        b.setAttribute('aria-pressed', 'true');
         geomapaConmutaCVD(b.dataset.cvd || null);
       }});
       const nc = mainContent.querySelector('[data-geomapa="cap3-nc"]');
@@ -1945,10 +1949,15 @@ CABLEADO_JS = f"""
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'geomapa-boton' + (i === activo ? ' activo' : '');
+        b.setAttribute('aria-pressed', String(i === activo));
         b.textContent = etq;
         b.onclick = () => {{
-          cont.querySelectorAll('.geomapa-boton').forEach(x => x.classList.remove('activo'));
+          cont.querySelectorAll('.geomapa-boton').forEach(x => {{
+            x.classList.remove('activo');
+            x.setAttribute('aria-pressed', 'false');
+          }});
           b.classList.add('activo');
+          b.setAttribute('aria-pressed', 'true');
           alPulsar(i);
           raiz.__geomapa.dibuja();
         }};
