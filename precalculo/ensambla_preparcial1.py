@@ -2422,6 +2422,12 @@ def main() -> int:
     doc = reemplaza_region(doc, "    AUTOEVALUACIONES['demo'] = [", "\n    ];\n",
                            QUIZ_JS, "las preguntas de los bloques", max_lineas=90)
 
+    # La plantilla trae un simulacro de demostración desde 2026-09-18. Este
+    # documento no publica ninguno, así que su registro se borra en vez de
+    # viajar muerto: el ÚNICO que lo sustituye por uno real es el capítulo 4.
+    doc = reemplaza_region(doc, "    SIMULACROS['demo'] = {", "\n    };\n",
+                           "", "el simulacro de demostración", max_lineas=40)
+
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
     DESTINO.write_text(doc, encoding="utf-8")
 

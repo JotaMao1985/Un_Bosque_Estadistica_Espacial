@@ -619,6 +619,23 @@
       }
     }
 
+    /* KaTeX no parte una fórmula en dos líneas: la que no cabe se sale de su
+       caja y el borde de la página la corta, sin aviso y sin forma de leer lo
+       que falta. `.formula` ya se desplazaba desde el principio; esto lo
+       extiende a TODA fórmula en display, esté en la prosa, en una caja de
+       derivación o dentro de un ejercicio. Hacía falta: a 375 px, seis
+       fórmulas del capítulo 4 salían de su hueco de 303, una de ellas por 531.
+       El relleno vertical no es cosmético: un contenedor que desplaza también
+       recorta, y los límites de un sumatorio y las llaves grandes sobresalen
+       de la caja de la línea. */
+    .katex-display {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-top: 0.35rem;
+      padding-bottom: 0.35rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .diagram {
       background-color: #f8fafc;
       border: 2px dashed #cbd5e1;
@@ -1676,6 +1693,184 @@
 
     .quiz-resumen ul li {
       color: #334155;
+    }
+
+    /* ------------------------------------------------------------------
+       Simulacro: un examen de práctica que se marca y se cronometra, pero
+       NO se corrige. Componente nuevo del Capítulo 4 de Estadística
+       Espacial (2026-09-18): publica las preguntas de un quiz cuya clave
+       no puede viajar en la página, porque el capítulo es público.
+       ------------------------------------------------------------------ */
+    .simulacro {
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .simulacro h4 {
+      color: #012820;
+      margin-top: 0;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .simulacro > h4 + p {
+      margin-top: 0.6rem;
+    }
+
+    .simulacro-mandos {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1rem 0 0.5rem;
+      padding-bottom: 0.9rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .simulacro-empezar,
+    .simulacro-borrar {
+      font-family: inherit;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      border-radius: 50px;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .simulacro-empezar {
+      color: white;
+      background: #012820;
+      border: none;
+    }
+
+    .simulacro-empezar:hover {
+      background: #FF6600;
+    }
+
+    .simulacro-borrar {
+      color: #012820;
+      background: white;
+      border: 1px solid rgba(1, 40, 32, 0.25);
+    }
+
+    .simulacro-borrar:hover {
+      background: #f1f5f9;
+    }
+
+    .simulacro-reloj {
+      font-family: 'Fira Code', monospace;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #012820;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .simulacro-reloj.acabado {
+      color: #b91c1c;
+    }
+
+    .simulacro-conteo {
+      font-size: 0.8125rem;
+      color: #475569;
+    }
+
+    .simulacro-pregunta {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 1.1rem 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .simulacro-etiqueta {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #475569;
+      background: #f1f5f9;
+      border-radius: 50px;
+      padding: 0.15rem 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .simulacro-enunciado {
+      color: #1f2937;
+    }
+
+    .simulacro-enunciado table {
+      border-collapse: collapse;
+    }
+
+    .simulacro-opciones {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.9rem;
+    }
+
+    .simulacro-opcion {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      color: #1f2937;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.5rem;
+      padding: 0.6rem 0.8rem;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .simulacro-opcion:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .simulacro-opcion:focus-visible {
+      outline: 2px solid #FF6600;
+      outline-offset: 1px;
+    }
+
+    .simulacro-opcion.marcada {
+      border-color: #012820;
+      background: #ecfdf5;
+    }
+
+    .simulacro-letra {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: #475569;
+      flex: none;
+    }
+
+    .simulacro-opcion.marcada .simulacro-letra {
+      color: #012820;
+    }
+
+    .simulacro-resumen {
+      font-size: 0.8125rem;
+      color: #475569;
+      margin-top: 1rem;
+    }
+
+    .simulacro-resumen b {
+      font-family: 'Fira Code', monospace;
+      color: #012820;
     }
 
     /* ------------------------------------------------------------------
@@ -4404,6 +4599,7 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
         initCodeTabs();
         iniciarSimuladores();
         iniciarAutoevaluaciones();
+        iniciarSimulacros();
         iniciarEjerciciosGuiados();
         iniciarDerivaciones();
         iniciarCiclos();
@@ -5480,6 +5676,135 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
 
       const reiniciar = raiz.querySelector('.quiz-reiniciar');
       if (reiniciar) reiniciar.onclick = () => renderAutoevaluacion(raiz, preguntas);
+    }
+
+    // ================================================================
+    // Simulacro (v1)
+    //
+    // SIMULACROS['id'] = { minutos, preguntas: [{ n, etiqueta, enunciado,
+    // opciones, tipo }] } sobre un contenedor data-simulacro="id".
+    //
+    // Se marca y se cronometra, pero NO se corrige: en la página no hay
+    // clave, ni retroalimentación, ni nada de donde deducirlas. Es lo que
+    // distingue este componente de la autoevaluación, que sí las lleva: un
+    // examen de práctica cuyas preguntas se van a aplicar no puede publicar
+    // su clave, porque viajaría en el HTML de un capítulo público.
+    //
+    // `tipo` es 'opcion' (una marca) o 'multiple' (varias). El estudiante
+    // anota sus respuestas y las contrasta después, fuera de la página.
+    // ================================================================
+    const SIMULACROS = {};
+    const RELOJES_SIMULACRO = [];
+
+    function iniciarSimulacros() {
+      // los relojes del módulo anterior siguen corriendo sobre nodos que ya
+      // no existen: se paran aquí, como los gráficos en destruirSimuladores()
+      while (RELOJES_SIMULACRO.length) clearInterval(RELOJES_SIMULACRO.pop());
+      mainContent.querySelectorAll('[data-simulacro]').forEach(raiz => {
+        const sim = SIMULACROS[raiz.dataset.simulacro];
+        if (!sim) {
+          console.warn(`Simulacro no registrado: ${raiz.dataset.simulacro}`);
+          return;
+        }
+        renderSimulacro(raiz, sim);
+      });
+    }
+
+    function renderSimulacro(raiz, sim) {
+      const contenedor = raiz.querySelector('.simulacro-preguntas');
+      const conteo = raiz.querySelector('.simulacro-conteo');
+      const resumen = raiz.querySelector('.simulacro-resumen');
+      const reloj = raiz.querySelector('.simulacro-reloj');
+      const empezar = raiz.querySelector('.simulacro-empezar');
+      const borrar = raiz.querySelector('.simulacro-borrar');
+      const marcadas = sim.preguntas.map(() => new Set());
+      contenedor.innerHTML = '';
+
+      sim.preguntas.forEach((pr, i) => {
+        const caja = document.createElement('div');
+        caja.className = 'simulacro-pregunta';
+        const varias = pr.tipo === 'multiple';
+        caja.innerHTML = `<span class="simulacro-etiqueta">${pr.n}. ${pr.etiqueta}` +
+          `${varias ? ' · varias respuestas' : ''}</span>` +
+          `<div class="simulacro-enunciado">${pr.enunciado}</div>` +
+          `<div class="simulacro-opciones" role="group" aria-label="Opciones de la pregunta ${pr.n}"></div>`;
+        const lista = caja.querySelector('.simulacro-opciones');
+        pr.opciones.forEach((texto, j) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'simulacro-opcion';
+          b.setAttribute('aria-pressed', 'false');
+          b.innerHTML = `<span class="simulacro-letra">${LETRAS[j]})</span><span>${texto}</span>`;
+          b.onclick = () => {
+            const puesta = marcadas[i].has(j);
+            if (!varias) {
+              marcadas[i].clear();
+              lista.querySelectorAll('.simulacro-opcion').forEach(o => {
+                o.classList.remove('marcada');
+                o.setAttribute('aria-pressed', 'false');
+              });
+            }
+            if (puesta) marcadas[i].delete(j); else marcadas[i].add(j);
+            b.classList.toggle('marcada', marcadas[i].has(j));
+            b.setAttribute('aria-pressed', marcadas[i].has(j) ? 'true' : 'false');
+            pinta();
+          };
+          lista.appendChild(b);
+        });
+        contenedor.appendChild(caja);
+      });
+
+      function pinta() {
+        const hechas = marcadas.filter(m => m.size > 0).length;
+        conteo.textContent = `${hechas} de ${sim.preguntas.length} marcadas`;
+        resumen.innerHTML = 'Tus respuestas: ' + sim.preguntas.map((pr, i) => {
+          const letras = [...marcadas[i]].sort().map(j => LETRAS[j]).join('');
+          return `<b>${pr.n}${letras || '—'}</b>`;
+        }).join(' · ') + '. No se corrigen aquí.';
+      }
+
+      let restante = sim.minutos * 60;
+      let tic = null;
+      function pintaReloj() {
+        const m = Math.floor(restante / 60), s = restante % 60;
+        reloj.textContent = `${m}:${String(s).padStart(2, '0')}`;
+        reloj.classList.toggle('acabado', restante === 0);
+      }
+      function para() {
+        if (tic === null) return;
+        clearInterval(tic);
+        const i = RELOJES_SIMULACRO.indexOf(tic);
+        if (i >= 0) RELOJES_SIMULACRO.splice(i, 1);
+        tic = null;
+      }
+      empezar.onclick = () => {
+        if (tic !== null) {          // corriendo: se pausa
+          para();
+          empezar.textContent = 'Seguir';
+          return;
+        }
+        if (restante === 0) restante = sim.minutos * 60;
+        tic = setInterval(() => {
+          restante = Math.max(0, restante - 1);
+          pintaReloj();
+          if (restante === 0) {
+            para();
+            empezar.textContent = `Empezar los ${sim.minutos} minutos`;
+          }
+        }, 1000);
+        RELOJES_SIMULACRO.push(tic);
+        empezar.textContent = 'Pausar';
+      };
+      borrar.onclick = () => {
+        para();
+        empezar.textContent = `Empezar los ${sim.minutos} minutos`;
+        restante = sim.minutos * 60;
+        pintaReloj();
+        renderSimulacro(raiz, sim);
+      };
+      empezar.textContent = `Empezar los ${sim.minutos} minutos`;
+      pintaReloj();
+      pinta();
     }
 
     // ================================================================
@@ -7489,6 +7814,29 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
         retroFallo: 'Repasa la discrepancia D1 del módulo 2.'
       }
     ];
+
+    // Un simulacro de demostración: se marca y se cronometra, sin corrección.
+    SIMULACROS['demo'] = {
+      minutos: 2,
+      preguntas: [
+        {
+          n: 1,
+          etiqueta: 'módulo 1 · cajas',
+          enunciado: '<p>¿Qué caja avisa de un error frecuente?</p>',
+          tipo: 'opcion',
+          opciones: ['La caja <code>.warning</code> (roja).', 'La caja <code>.definition</code> (verde).',
+                     'La caja <code>.note</code> (naranja).', 'La caja <code>.formula</code> (azul).']
+        },
+        {
+          n: 2,
+          etiqueta: 'módulo 2 · código',
+          enunciado: '<p>¿Cuáles de estas afirmaciones sobre <code>.code-tabs</code> son ciertas?</p>',
+          tipo: 'multiple',
+          opciones: ['Sirve para el mismo cálculo en dos lenguajes.', 'Cambia de pestaña sin recargar.',
+                     'Ejecuta el código en el navegador.', 'Necesita un servidor.']
+        }
+      ]
+    };
 
   </script>
 

@@ -430,13 +430,85 @@ MOD2 = cabecera(
       <div class="key-insight">
         <p style="margin:0;">Buena parte del exceso sobre 1 no lo pone el patrón: lo pone la
         rejilla. Si las celdas tienen esperanzas E<sub>j</sub>, lo que un Poisson homogéneo da
-        de media sobre esa misma rejilla es <strong>1 + S²(E)/Ē</strong>: uno, más la varianza
+        de media sobre esa misma rejilla es, <em>aproximadamente</em>,
+        <strong>1 + S²(E)/Ē</strong>: uno, más la varianza
         de esas esperanzas dividida por su media. Cuando todas las celdas miden lo mismo esa
         varianza es cero y se recupera el 1 de los libros; aquí no lo es, y la referencia sube
         hasta {n(m2['urbana']['dispersion_nula'], 2)}. Así que el
         {n(m2['urbana']['dispersion'], 2)} observado no se compara con 1, sino con ese
         {n(m2['urbana']['dispersion_nula'], 2)}, y lo único que el patrón tiene que explicar es
         lo que sobra por encima.</p>
+      </div>
+
+      <div class="derivacion">
+        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-dispersion-rejilla">
+          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+          <span class="derivacion-texto">Ver de dónde sale \\(1 + S^2(E)/\\bar{{E}}\\)</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="derivacion-panel" id="der-dispersion-rejilla" hidden>
+          <ol class="derivacion-pasos">
+            <li>
+              <p>No hace falta nada que el capítulo no haya dicho ya. De un Poisson homogéneo se
+                usan dos cosas, y son las dos propiedades que el módulo 4 escribe con todas las
+                letras: el conteo de una celda es Poisson de media \\(E_j = \\lambda|A_j|\\) —y en
+                una Poisson la varianza vale lo mismo que la media—, y los conteos de celdas
+                disjuntas son independientes. Nada más entra en el desarrollo.</p>
+              $$O_j \\sim \\text{{Poisson}}(E_j), \\qquad \\sigma_j^2 = E_j$$
+            </li>
+            <li>
+              <p>Aquí está el trabajo, y todavía no usa el proceso: vale para variables
+                independientes cualesquiera, con medias \\(\\mu_j\\) y varianzas
+                \\(\\sigma_j^2\\) <em>sin pedir que sean iguales</em>. Basta desarrollar la suma
+                de cuadrados y quedarse con las esperanzas.</p>
+              $$\\begin{{aligned}}
+                \\mathbb{{E}}\\Bigl[\\sum_j (O_j - \\bar{{O}})^2\\Bigr]
+                  &= \\sum_j \\mathbb{{E}}[O_j^2] - m\\,\\mathbb{{E}}[\\bar{{O}}^2] \\\\
+                  &= \\sum_j (\\sigma_j^2 + \\mu_j^2)
+                     - m\\Bigl(\\tfrac{{1}}{{m^2}}\\sum_j \\sigma_j^2 + \\bar{{\\mu}}^2\\Bigr)
+              \\end{{aligned}}$$
+              <p>Agrupando los dos sumandos que quedan repetidos:</p>
+              $$= \\tfrac{{m-1}}{{m}}\\sum_j \\sigma_j^2 \;+\; (m-1)\\,S^2(\\mu)$$
+              <p>y al dividir por \\(m-1\\) —el divisor de <code>var()</code>, que es justo el
+                que deja esto limpio— queda una frase entera:</p>
+              $$\\mathbb{{E}}[s^2] = \\overline{{\\sigma^2}} + S^2(\\mu)$$
+              <p>la varianza que se espera medir es la varianza media <em>dentro</em> de las
+                celdas, más la varianza <em>entre</em> lo que cada una espera.</p>
+            </li>
+            <li>
+              <p>Ahora sí entra Poisson, y los dos términos se vuelven concretos. Con
+                \\(\\sigma_j^2 = E_j\\) el primero es la media de las esperanzas; el segundo no
+                tiene nada de aleatorio, porque las esperanzas tampoco lo son: las fija la
+                rejilla al recortarse contra la ventana, antes de que caiga ningún punto.</p>
+              $$\\mathbb{{E}}[s^2] = \\bar{{E}} + S^2(E), \\qquad \\mathbb{{E}}[\\bar{{O}}] = \\bar{{E}}$$
+            </li>
+            <li>
+              <p>El índice divide lo uno por lo otro:</p>
+              $$\\frac{{\\mathbb{{E}}[s^2]}}{{\\mathbb{{E}}[\\bar{{O}}]}}
+                = \\frac{{\\bar{{E}} + S^2(E)}}{{\\bar{{E}}}}
+                = 1 + \\frac{{S^2(E)}}{{\\bar{{E}}}}$$
+              <p>Ese 1 no es una constante tabulada: es el trozo de varianza que pone el azar del
+                conteo, que en una Poisson vale exactamente la media y por eso se cancela contra
+                el denominador. Todo lo que sobra lo pone la rejilla.</p>
+            </li>
+          </ol>
+          <p class="derivacion-resultado">Dos lecturas y una advertencia. La primera: si todas
+            las celdas esperan lo mismo, \\(S^2(E) = 0\\) y vuelve el 1 de los libros —la fórmula
+            no sustituye a la regla conocida, la contiene—. La segunda: como cada punto cae en
+            alguna celda viva, las esperanzas suman \\(n\\), y por tanto \\(\\bar{{E}}\\) es la
+            media de los conteos, los {n(m2['urbana']['media'], 5)} de arriba; el primer sumando
+            del reparto estaba a la vista desde el principio. Y la advertencia es la palabra
+            «de media»: lo que esta cuenta iguala es el cociente de las dos esperanzas, mientras
+            que el índice es un cociente de dos cantidades aleatorias, cuya media no es
+            exactamente eso. Si además se condiciona a \\(n\\) —que es lo que hace el test de
+            cuadrantes, porque estima \\(\\lambda\\) del propio patrón, y es también la razón de
+            que sus grados de libertad sean \\(m-1\\) y no \\(m\\)—, los conteos dejan de ser
+            Poisson independientes y pasan a ser multinomiales: ahí la media exacta del índice es
+            \\(1 + (1 - 1/n)\\,S^2(E)/\\bar{{E}}\\). La diferencia entre las dos versiones,
+            \\(S^2(E)/(n\\bar{{E}})\\), se encoge a medida que crece \\(n\\) y aquí no mueve
+            ninguna conclusión; pero por eso la referencia se da por aproximada y no por
+            exacta.</p>
+        </div>
       </div>
 
       <p>El estadístico χ² del test de cuadrantes <strong>no</strong> arrastra ese problema,
@@ -2861,6 +2933,13 @@ def main() -> int:
 
     doc = reemplaza_region(doc, "    SIMULACROS['demo'] = {", "\n    };\n",
                            SIMULACRO_JS, "SIMULACROS", max_lineas=40)
+
+    # Y la tabla de ranking de demostración, por lo mismo. Esta llevaba ahí
+    # desde que existe el componente: el preparcial la borraba —su guarda no
+    # deja sobrevivir ningún demo— y nadie más, así que viajaba en nueve de los
+    # once documentos sin que ninguno tenga un `data-tabla-ranking` que pintar.
+    doc = reemplaza_region(doc, "    TABLAS_RANKING['demo'] = function () {", "\n    };\n",
+                           "", "la tabla de ranking de demostración", max_lineas=40)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
     # El orden de las opciones se decide en `baraja_opciones.py`, y es la

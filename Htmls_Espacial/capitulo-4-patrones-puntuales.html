@@ -619,6 +619,23 @@
       }
     }
 
+    /* KaTeX no parte una fórmula en dos líneas: la que no cabe se sale de su
+       caja y el borde de la página la corta, sin aviso y sin forma de leer lo
+       que falta. `.formula` ya se desplazaba desde el principio; esto lo
+       extiende a TODA fórmula en display, esté en la prosa, en una caja de
+       derivación o dentro de un ejercicio. Hacía falta: a 375 px, seis
+       fórmulas del capítulo 4 salían de su hueco de 303, una de ellas por 531.
+       El relleno vertical no es cosmético: un contenedor que desplaza también
+       recorta, y los límites de un sumatorio y las llaves grandes sobresalen
+       de la caja de la línea. */
+    .katex-display {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-top: 0.35rem;
+      padding-bottom: 0.35rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .diagram {
       background-color: #f8fafc;
       border: 2px dashed #cbd5e1;
@@ -4043,13 +4060,85 @@ print([round(float(dentro_urb.sum() / (v_urb.area / 1e6)), 4),
       <div class="key-insight">
         <p style="margin:0;">Buena parte del exceso sobre 1 no lo pone el patrón: lo pone la
         rejilla. Si las celdas tienen esperanzas E<sub>j</sub>, lo que un Poisson homogéneo da
-        de media sobre esa misma rejilla es <strong>1 + S²(E)/Ē</strong>: uno, más la varianza
+        de media sobre esa misma rejilla es, <em>aproximadamente</em>,
+        <strong>1 + S²(E)/Ē</strong>: uno, más la varianza
         de esas esperanzas dividida por su media. Cuando todas las celdas miden lo mismo esa
         varianza es cero y se recupera el 1 de los libros; aquí no lo es, y la referencia sube
         hasta 15.23. Así que el
         25.91 observado no se compara con 1, sino con ese
         15.23, y lo único que el patrón tiene que explicar es
         lo que sobra por encima.</p>
+      </div>
+
+      <div class="derivacion">
+        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-dispersion-rejilla">
+          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+          <span class="derivacion-texto">Ver de dónde sale \(1 + S^2(E)/\bar{E}\)</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="derivacion-panel" id="der-dispersion-rejilla" hidden>
+          <ol class="derivacion-pasos">
+            <li>
+              <p>No hace falta nada que el capítulo no haya dicho ya. De un Poisson homogéneo se
+                usan dos cosas, y son las dos propiedades que el módulo 4 escribe con todas las
+                letras: el conteo de una celda es Poisson de media \(E_j = \lambda|A_j|\) —y en
+                una Poisson la varianza vale lo mismo que la media—, y los conteos de celdas
+                disjuntas son independientes. Nada más entra en el desarrollo.</p>
+              $$O_j \sim \text{Poisson}(E_j), \qquad \sigma_j^2 = E_j$$
+            </li>
+            <li>
+              <p>Aquí está el trabajo, y todavía no usa el proceso: vale para variables
+                independientes cualesquiera, con medias \(\mu_j\) y varianzas
+                \(\sigma_j^2\) <em>sin pedir que sean iguales</em>. Basta desarrollar la suma
+                de cuadrados y quedarse con las esperanzas.</p>
+              $$\begin{aligned}
+                \mathbb{E}\Bigl[\sum_j (O_j - \bar{O})^2\Bigr]
+                  &= \sum_j \mathbb{E}[O_j^2] - m\,\mathbb{E}[\bar{O}^2] \\
+                  &= \sum_j (\sigma_j^2 + \mu_j^2)
+                     - m\Bigl(\tfrac{1}{m^2}\sum_j \sigma_j^2 + \bar{\mu}^2\Bigr)
+              \end{aligned}$$
+              <p>Agrupando los dos sumandos que quedan repetidos:</p>
+              $$= \tfrac{m-1}{m}\sum_j \sigma_j^2 \;+\; (m-1)\,S^2(\mu)$$
+              <p>y al dividir por \(m-1\) —el divisor de <code>var()</code>, que es justo el
+                que deja esto limpio— queda una frase entera:</p>
+              $$\mathbb{E}[s^2] = \overline{\sigma^2} + S^2(\mu)$$
+              <p>la varianza que se espera medir es la varianza media <em>dentro</em> de las
+                celdas, más la varianza <em>entre</em> lo que cada una espera.</p>
+            </li>
+            <li>
+              <p>Ahora sí entra Poisson, y los dos términos se vuelven concretos. Con
+                \(\sigma_j^2 = E_j\) el primero es la media de las esperanzas; el segundo no
+                tiene nada de aleatorio, porque las esperanzas tampoco lo son: las fija la
+                rejilla al recortarse contra la ventana, antes de que caiga ningún punto.</p>
+              $$\mathbb{E}[s^2] = \bar{E} + S^2(E), \qquad \mathbb{E}[\bar{O}] = \bar{E}$$
+            </li>
+            <li>
+              <p>El índice divide lo uno por lo otro:</p>
+              $$\frac{\mathbb{E}[s^2]}{\mathbb{E}[\bar{O}]}
+                = \frac{\bar{E} + S^2(E)}{\bar{E}}
+                = 1 + \frac{S^2(E)}{\bar{E}}$$
+              <p>Ese 1 no es una constante tabulada: es el trozo de varianza que pone el azar del
+                conteo, que en una Poisson vale exactamente la media y por eso se cancela contra
+                el denominador. Todo lo que sobra lo pone la rejilla.</p>
+            </li>
+          </ol>
+          <p class="derivacion-resultado">Dos lecturas y una advertencia. La primera: si todas
+            las celdas esperan lo mismo, \(S^2(E) = 0\) y vuelve el 1 de los libros —la fórmula
+            no sustituye a la regla conocida, la contiene—. La segunda: como cada punto cae en
+            alguna celda viva, las esperanzas suman \(n\), y por tanto \(\bar{E}\) es la
+            media de los conteos, los 32.41538 de arriba; el primer sumando
+            del reparto estaba a la vista desde el principio. Y la advertencia es la palabra
+            «de media»: lo que esta cuenta iguala es el cociente de las dos esperanzas, mientras
+            que el índice es un cociente de dos cantidades aleatorias, cuya media no es
+            exactamente eso. Si además se condiciona a \(n\) —que es lo que hace el test de
+            cuadrantes, porque estima \(\lambda\) del propio patrón, y es también la razón de
+            que sus grados de libertad sean \(m-1\) y no \(m\)—, los conteos dejan de ser
+            Poisson independientes y pasan a ser multinomiales: ahí la media exacta del índice es
+            \(1 + (1 - 1/n)\,S^2(E)/\bar{E}\). La diferencia entre las dos versiones,
+            \(S^2(E)/(n\bar{E})\), se encoge a medida que crece \(n\) y aquí no mueve
+            ninguna conclusión; pero por eso la referencia se da por aproximada y no por
+            exacta.</p>
+        </div>
       </div>
 
       <p>El estadístico χ² del test de cuadrantes <strong>no</strong> arrastra ese problema,
@@ -9609,31 +9698,6 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
     // ================================================================
     // Demostración del componente .tabla-ranking. Datos fijos: la plantilla no
     // incrusta ningún precálculo, igual que sus simuladores generan sus series.
-    TABLAS_RANKING['demo'] = function () {
-      return {
-        descripcion: 'Cuatro métodos ficticios. Pulsa la cabecera de cualquier columna: ' +
-          'la tabla se reordena, se renumeran los puestos y se marca el mejor valor. ' +
-          'La columna de cobertura no ordena por «menor» sino por <em>cercanía</em> al ' +
-          '95 %, que es lo que de verdad se quiere de un intervalo.',
-        columnas: [
-          { clave: 'metodo', titulo: 'Método', tipo: 'texto' },
-          { clave: 'rmse', titulo: 'RMSE', decimales: 2, mejor: 'menor' },
-          { clave: 'mase', titulo: 'MASE', decimales: 3, mejor: 'menor' },
-          { clave: 'cob', titulo: 'Cob. 95 %', tituloLargo: 'cobertura del 95 %', decimales: 1, sufijo: ' %', mejor: 'cerca', objetivo: 95 },
-          { clave: 'seg', titulo: 'Segundos', decimales: 2, mejor: 'menor' }
-        ],
-        filas: [
-          { metodo: 'Referencia simple', rmse: 42.55, mase: 1.681, cob: 93.4, seg: 0.02 },
-          { metodo: 'Modelo A', rmse: 18.92, mase: 0.621, cob: 98.4, seg: 0.44 },
-          { metodo: 'Modelo B', rmse: 20.63, mase: 0.678, cob: 92.1, seg: 118.61 },
-          { metodo: 'Modelo C', rmse: 23.17, mase: 0.759, cob: 94.3, seg: 13.09 }
-        ],
-        inicial: 'rmse',
-        destacada: 'Modelo A',
-        pie: 'El Modelo A gana por RMSE y por MASE, y sin embargo es el peor calibrado; ' +
-          'el Modelo B es el mejor calibrado y el más lento. El orden depende de la pregunta.'
-      };
-    };
 
 
     AUTOEVALUACIONES['cap4-trampas'] = [

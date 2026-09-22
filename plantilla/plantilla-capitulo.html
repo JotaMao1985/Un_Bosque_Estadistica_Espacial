@@ -619,6 +619,23 @@
       }
     }
 
+    /* KaTeX no parte una fórmula en dos líneas: la que no cabe se sale de su
+       caja y el borde de la página la corta, sin aviso y sin forma de leer lo
+       que falta. `.formula` ya se desplazaba desde el principio; esto lo
+       extiende a TODA fórmula en display, esté en la prosa, en una caja de
+       derivación o dentro de un ejercicio. Hacía falta: a 375 px, seis
+       fórmulas del capítulo 4 salían de su hueco de 303, una de ellas por 531.
+       El relleno vertical no es cosmético: un contenedor que desplaza también
+       recorta, y los límites de un sumatorio y las llaves grandes sobresalen
+       de la caja de la línea. */
+    .katex-display {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-top: 0.35rem;
+      padding-bottom: 0.35rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .diagram {
       background-color: #f8fafc;
       border: 2px dashed #cbd5e1;

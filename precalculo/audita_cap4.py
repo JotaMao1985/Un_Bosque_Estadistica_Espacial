@@ -300,6 +300,15 @@ def main() -> int:
     a.cerca(float(np.var(obs[vivas], ddof=1)), q["var"], "m2: varianza de los conteos", 1e-6)
     a.cerca(float(np.var(obs[vivas], ddof=1) / np.mean(obs[vivas])), q["dispersion"],
             "m2: índice de dispersión = var/media", 1e-6)
+    # La REFERENCIA del módulo, que hasta T2.4 no se recalculaba aquí: lo que
+    # un Poisson homogéneo daría de media sobre esta misma rejilla. La caja de
+    # derivación la deduce, así que conviene medirla y no creerla.
+    a.cerca(float(1 + np.var(esp[vivas], ddof=1) / np.mean(esp[vivas])), q["dispersion_nula"],
+            "m2: la referencia 1 + S²(E)/Ē", 1e-6)
+    # Y la identidad que la caja usa para decir que Ē ya está a la vista: las
+    # esperanzas suman n, luego su media es la media de los conteos.
+    a.cerca(float(np.mean(esp[vivas])), q["media"],
+            "m2: Ē es la media de los conteos, porque las esperanzas suman n", 1e-6)
     a.igual(int(np.sum(obs[vivas] == 0)), q["vacios"], "m2: celdas vacías")
     a.igual(int(np.max(obs[vivas])), q["maximo"], "m2: la celda más poblada")
     a.igual(int(np.sum(esp[vivas] < 5)), q["celdas_esperanza_baja"],

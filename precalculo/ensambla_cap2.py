@@ -2209,6 +2209,19 @@ def main() -> int:
     doc = reemplaza_region(doc, "    AUTOEVALUACIONES['demo'] = [", "\n    ];\n",
                            QUIZ_JS, "AUTOEVALUACIONES", max_lineas=90)
 
+    # La plantilla trae un simulacro de demostración desde 2026-09-18. Este
+    # documento no publica ninguno, así que su registro se borra en vez de
+    # viajar muerto: el ÚNICO que lo sustituye por uno real es el capítulo 4.
+    doc = reemplaza_region(doc, "    SIMULACROS['demo'] = {", "\n    };\n",
+                           "", "el simulacro de demostración", max_lineas=40)
+
+    # Y la tabla de ranking de demostración, por lo mismo. Esta llevaba ahí
+    # desde que existe el componente: el preparcial la borraba —su guarda no
+    # deja sobrevivir ningún demo— y nadie más, así que viajaba en nueve de los
+    # once documentos sin que ninguno tenga un `data-tabla-ranking` que pintar.
+    doc = reemplaza_region(doc, "    TABLAS_RANKING['demo'] = function () {", "\n    };\n",
+                           "", "la tabla de ranking de demostración", max_lineas=40)
+
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
     # El orden de las opciones se decide en `baraja_opciones.py`, y es la
     # corrección del 2026-09-02: escritas de una en una, las 51 preguntas de

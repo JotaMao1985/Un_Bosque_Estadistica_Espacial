@@ -121,6 +121,8 @@ def defectos():
         "datos", lambda d: d["m2"].__setitem__("lambda_urbana_m2", 0.0000061717))
     obj("2 · el índice de dispersión no sale de su media y su varianza",
         "datos", lambda d: d["m2"]["urbana"].__setitem__("dispersion", 7.1717171717))
+    obj("2 · la referencia del índice no sale de las esperanzas de las celdas",
+        "datos", lambda d: d["m2"]["urbana"].__setitem__("dispersion_nula", 7.3131313131))
     obj("2 · el log10 del p-valor no corresponde al p-valor",
         "datos", lambda d: d["m2"]["urbana"].__setitem__("p_log10", -41.3131313131))
     obj("2 · el porcentaje de coincidentes no sale de su conteo",
