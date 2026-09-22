@@ -1548,11 +1548,17 @@ SIMULADORES_JS = r"""
       cont.innerHTML = '';
       opciones.forEach((op, i) => {
         const b = document.createElement('button');
+        b.type = 'button';
         b.className = 'sim-btn' + (i === 0 ? ' active' : '');
+        b.setAttribute('aria-pressed', String(i === 0));
         b.textContent = op.etiqueta;
         b.onclick = () => {
-          cont.querySelectorAll('.sim-btn').forEach(x => x.classList.remove('active'));
+          cont.querySelectorAll('.sim-btn').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-pressed', 'false');
+          });
           b.classList.add('active');
+          b.setAttribute('aria-pressed', 'true');
           alPulsar(op.valor);
         };
         cont.appendChild(b);

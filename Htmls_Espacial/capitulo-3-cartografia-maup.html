@@ -895,12 +895,28 @@
        `botones4` en el 4) vacían el contenedor antes de escribir. El
        `justify-self` del botón es el plan B para un navegador que no entienda
        `:has()`: deja la rejilla, pero al menos cada botón mide lo que mide su
-       texto y se distingue del de al lado. */
-    .simulador-controles:has(.sim-btn) {
+       texto y se distingue del de al lado.
+
+       La misma regla cubre `.geomapa-boton`, que es la otra botonera de la
+       casa —la de los capítulos 1, 5 y 6— y que tenía la mitad contraria del
+       problema: color sí, porque `.geomapa-boton.activo` existe desde que se
+       escribió, pero disposición no, porque también la escriben dentro de
+       `.simulador-controles`. Ahí estaban los diez botones del constructor de
+       pesos del capítulo 6 en cinco filas de losas de 369 px. Cuando el mapa
+       pone esos mismos botones en su propio `.geomapa-controles`, que ya es
+       una fila, esto no la toca. */
+    .simulador-controles:has(.sim-btn),
+    .simulador-controles:has(.geomapa-boton) {
       display: flex;
       flex-wrap: wrap;
       align-items: stretch;
       gap: 0.5rem;
+    }
+
+    /* El plan B, aparte, porque `.geomapa-boton` ya tiene su propio aspecto y
+       lo único que necesita de aquí es no estirarse. */
+    .simulador-controles > .geomapa-boton {
+      justify-self: start;
     }
 
     .sim-btn {
@@ -8664,11 +8680,17 @@ for u in (0, 30, 300, 1000):
       cont.innerHTML = '';
       ops.forEach((op, i) => {
         const b = document.createElement('button');
+        b.type = 'button';
         b.className = 'sim-btn' + (i === (activo || 0) ? ' active' : '');
+        b.setAttribute('aria-pressed', String(i === (activo || 0)));
         b.textContent = op.etiqueta;
         b.onclick = () => {
-          cont.querySelectorAll('.sim-btn').forEach(x => x.classList.remove('active'));
+          cont.querySelectorAll('.sim-btn').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-pressed', 'false');
+          });
           b.classList.add('active');
+          b.setAttribute('aria-pressed', 'true');
           alPulsar(op.valor);
         };
         cont.appendChild(b);

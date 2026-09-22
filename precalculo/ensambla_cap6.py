@@ -1340,12 +1340,16 @@ JS_PREAMBULO = r"""
       const ini = Math.max(0, activo || 0);
       cont.innerHTML = ops.map((o, i) =>
         `<button type="button" class="geomapa-boton${i === ini ? ' activo' : ''}" ` +
-        `data-i="${i}">${o}</button>`).join('');
+        `aria-pressed="${i === ini}" data-i="${i}">${o}</button>`).join('');
       cont.addEventListener('click', e => {
         const b = e.target.closest('.geomapa-boton');
         if (!b) return;
-        cont.querySelectorAll('.geomapa-boton').forEach(x => x.classList.remove('activo'));
+        cont.querySelectorAll('.geomapa-boton').forEach(x => {
+          x.classList.remove('activo');
+          x.setAttribute('aria-pressed', 'false');
+        });
         b.classList.add('activo');
+        b.setAttribute('aria-pressed', 'true');
         alPulsar(+b.dataset.i);
       });
     }
