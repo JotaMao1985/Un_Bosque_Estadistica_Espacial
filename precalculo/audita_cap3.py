@@ -182,10 +182,33 @@ TOL_LAB = 1e-2
 
 
 def dmin_lab(hexes):
+    """Mínimo entre clases CONTIGUAS, en el orden dado. Ya no es la medida del
+    módulo 5 —depende del orden de la leyenda—; sirve para comprobar el
+    recorrido de Set1 en sus 120 órdenes."""
     lab = srgb_a_lab(hexes)
     if len(lab) < 2:
         return float("nan")
     return float(np.min(np.sqrt(((lab[1:] - lab[:-1]) ** 2).sum(axis=1))))
+
+
+def par_lab(hexes, gris=False):
+    """(distancia, i, j) del par de clases más parecido, todas contra todas,
+    con índices desde 1 como en R. En gris solo cuenta L*: |ΔL*|."""
+    lab = srgb_a_lab(hexes)
+    if gris:
+        lab = lab[:, :1]
+    mejor = (float("inf"), 0, 0)
+    for i in range(len(lab)):
+        for j in range(i + 1, len(lab)):
+            d = float(np.sqrt(((lab[i] - lab[j]) ** 2).sum()))
+            if d < mejor[0]:
+                mejor = (d, i + 1, j + 1)
+    return mejor
+
+
+def dpar_lab(hexes, gris=False):
+    """La medida del módulo 5: la distancia entre las dos clases más parecidas."""
+    return par_lab(hexes, gris)[0]
 
 
 # =====================================================================
@@ -389,18 +412,121 @@ def main() -> int:
         a.igual(float(np.abs(pub - M_CVD[tipo]).max()), 0.0,
                 f"matriz de {tipo} = la de Machado et al. (2009)", tol=1e-6)
 
-    # Las distancias perceptuales, recalculadas con un CIELAB propio
+    # Las distancias perceptuales, recalculadas con un CIELAB propio. La
+    # medida es el par MÁS PARECIDO, todas las clases contra todas, y el par
+    # se comprueba además de la distancia: cuál es el par es la mitad de la
+    # explicación del módulo (en una divergente, uno de cada brazo).
+    TIPOS = D["m5"]["tipos"]
+    a.cierto(TIPOS[0] == "deuteranopia",
+             "la primera simulación es la deuteranopía de la tabla", str(TIPOS))
+    medida = {}          # (id, vista) -> (dpar, caída)
     for p in D["m5"]["paletas"]:
-        a.igual(dmin_lab(p["colores"]), p["dmin_normal"],
-                f"paleta {p['id']}: dmin con visión normal", tol=TOL_LAB)
+        d0, i0, j0 = par_lab(p["colores"])
+        a.igual(d0, p["dpar_normal"], f"paleta {p['id']}: par más parecido, visión normal",
+                tol=TOL_LAB)
+        a.cierto([i0, j0] == list(p["par_normal"]), f"paleta {p['id']}: y es ese par",
+                 f"py {[i0, j0]} · R {p['par_normal']}")
         for sim in p["simulaciones"]:
-            a.igual(dmin_lab(sim["colores"]), sim["dmin"],
-                    f"paleta {p['id']}: dmin bajo {sim['tipo'][:6]}", tol=TOL_LAB)
-            a.igual(100 * (1 - sim["dmin"] / p["dmin_normal"]), sim["caida_pct"],
+            d, i, j = par_lab(sim["colores"])
+            a.igual(d, sim["dpar"], f"paleta {p['id']}: par bajo {sim['tipo'][:6]}", tol=TOL_LAB)
+            a.cierto([i, j] == list(sim["par"]), f"paleta {p['id']}/{sim['tipo'][:6]}: el par",
+                     f"py {[i, j]} · R {sim['par']}")
+            a.igual(100 * (1 - sim["dpar"] / p["dpar_normal"]), sim["caida_pct"],
                     f"paleta {p['id']}/{sim['tipo'][:6]}: la caída cuadra", tol=1e-6)
+            medida[(p["id"], sim["tipo"])] = (sim["dpar"], sim["caida_pct"])
+        dg, ig, jg = par_lab(p["colores"], gris=True)
+        a.igual(dg, p["gris"]["dpar"], f"paleta {p['id']}: par más parecido en gris", tol=TOL_LAB)
+        a.cierto([ig, jg] == list(p["gris"]["par"]), f"paleta {p['id']}/gris: el par",
+                 f"py {[ig, jg]} · R {p['gris']['par']}")
+        a.igual(100 * (1 - p["gris"]["dpar"] / p["dpar_normal"]), p["gris"]["caida_pct"],
+                f"paleta {p['id']}/gris: la caída cuadra", tol=1e-6)
+        medida[(p["id"], "gris")] = (p["gris"]["dpar"], p["gris"]["caida_pct"])
         lab = srgb_a_lab(p["colores"])
         a.igual(float(lab[:, 0].max() - lab[:, 0].min()), p["rango_luminosidad"],
                 f"paleta {p['id']}: rango de L*", tol=TOL_LAB)
+        dl = np.diff(lab[:, 0])
+        a.cierto(bool(np.all(dl > 0) or np.all(dl < 0)) == p["luminosidad_monotona"],
+                 f"paleta {p['id']}: la bandera de L* monótona", str(p["luminosidad_monotona"]))
+
+    # Las cuatro vistas del simulador: quién cae más y la secuencial más baja
+    PAL = {p["id"]: p for p in D["m5"]["paletas"]}
+    fam = {k: p["tipo"] for k, p in PAL.items()}
+    for v in D["m5"]["vistas"]:
+        vs = v["vista"]
+        peor = max(PAL, key=lambda k: medida[(k, vs)][1])
+        sec = min((k for k in PAL if fam[k] == "secuencial"), key=lambda k: medida[(k, vs)][0])
+        a.cierto(v["peor"] == peor and v["peor_tipo"] == fam[peor],
+                 f"vista {vs}: la que más cae", f"py {peor} · R {v['peor']}")
+        a.igual(medida[(peor, vs)][1], v["peor_caida_pct"], f"vista {vs}: su caída")
+        a.cierto(v["secuencial_min"] == sec, f"vista {vs}: la secuencial más baja",
+                 f"py {sec} · R {v['secuencial_min']}")
+        a.igual(medida[(sec, vs)][0], v["secuencial_min_dpar"], f"vista {vs}: su distancia")
+        # 1. «La que más cae es siempre una cualitativa»
+        a.cierto(fam[peor] == "cualitativo", f"vista {vs}: la que más cae es cualitativa", peor)
+    a.cierto([v["vista"] for v in D["m5"]["vistas"]] == TIPOS + ["gris"],
+             "las vistas son los tres tipos y el gris")
+
+    # 2. El suelo de las secuenciales, y que queda sobre las cualitativas
+    suelos = [(medida[(k, t)][0], k, t) for k in PAL if fam[k] == "secuencial" for t in TIPOS]
+    s_d, s_id, s_t = min(suelos)
+    su = D["m5"]["suelo_secuenciales"]
+    a.igual(s_d, su["dpar"], "el suelo de las secuenciales bajo los tres tipos")
+    a.cierto(su["id"] == s_id and su["tipo"] == s_t, "y es de esa paleta bajo ese tipo",
+             f"py {s_id}/{s_t} · R {su['id']}/{su['tipo']}")
+    cual_deu = [medida[(k, "deuteranopia")][0] for k in PAL if fam[k] == "cualitativo"]
+    a.cierto(s_d > max(cual_deu), "el suelo queda sobre las cualitativas con deuteranopía",
+             f"{s_d:.3f} > {max(cual_deu):.3f}")
+    # 3. En gris solo sobreviven las secuenciales
+    g_sec = [medida[(k, "gris")][0] for k in PAL if fam[k] == "secuencial"]
+    g_otr = [medida[(k, "gris")][0] for k in PAL if fam[k] != "secuencial"]
+    a.igual(min(g_sec), D["m5"]["gris_secuenciales_min"], "en gris, la peor secuencial")
+    a.igual(min(g_otr), D["m5"]["gris_otras_min"], "en gris, la peor de las demás")
+    a.igual(max(g_otr), D["m5"]["gris_otras_max"], "en gris, la mejor de las demás")
+    a.cierto(min(g_sec) > max(g_otr), "en gris, toda secuencial sobre todas las demás",
+             f"{min(g_sec):.3f} > {max(g_otr):.3f}")
+    # 4. Solo las secuenciales recorren L* en un único sentido, y las
+    #    cualitativas recorren menos que ninguna otra
+    a.cierto(all(PAL[k]["luminosidad_monotona"] == (fam[k] == "secuencial") for k in PAL),
+             "L* monótona si y solo si la paleta es secuencial")
+    a.cierto(max(PAL[k]["rango_luminosidad"] for k in PAL if fam[k] == "cualitativo")
+             < min(PAL[k]["rango_luminosidad"] for k in PAL if fam[k] != "cualitativo"),
+             "las cualitativas recorren menos L* que las demás")
+    # 5. En gris, cada divergente confunde un par de brazos distintos; y el
+    #    par que RdYlGn pierde bajo deuteranopía es ese mismo
+    for k in PAL:
+        if fam[k] == "divergente":
+            i, j = PAL[k]["gris"]["par"]
+            c = (PAL[k]["k"] + 1) / 2
+            a.cierto(i < c < j, f"{k}: en gris confunde un par de brazos distintos", f"{i}-{j}")
+    rg = PAL["RdYlGn"]
+    a.cierto(list(rg["simulaciones"][0]["par"]) == list(rg["gris"]["par"]),
+             "RdYlGn pierde con deuteranopía el par que el gris junta",
+             f"{rg['simulaciones'][0]['par']} · {rg['gris']['par']}")
+    a.cierto(rg["simulaciones"][0]["dpar"] < s_d, "RdYlGn baja del suelo de las secuenciales")
+    # 6. RdBu aguanta la deuteranopía
+    a.cierto(abs(PAL["RdBu"]["simulaciones"][0]["caida_pct"]) < 5,
+             "RdBu apenas cambia con deuteranopía",
+             f"{PAL['RdBu']['simulaciones'][0]['caida_pct']:.2f} %")
+    # 7. YlOrRd pierde casi la mitad y queda como Blues con visión normal
+    yl = PAL["YlOrRd"]["simulaciones"][0]
+    a.cierto(40 < yl["caida_pct"] < 50, "YlOrRd pierde casi la mitad con deuteranopía",
+             f"{yl['caida_pct']:.2f} %")
+    a.cierto(abs(yl["dpar"] / PAL["Blues"]["dpar_normal"] - 1) < 0.1,
+             "y queda casi como Blues con visión normal",
+             f"{yl['dpar']:.3f} · {PAL['Blues']['dpar_normal']:.3f}")
+
+    # Por qué no las contiguas: Set1 en todos sus órdenes
+    import itertools
+    s1 = PAL["Set1"]["colores"]
+    conts = [dmin_lab([s1[i] for i in o]) for o in itertools.permutations(range(len(s1)))]
+    os1 = D["m5"]["orden_set1"]
+    a.igual(len(conts), os1["n_ordenes"], "Set1: órdenes posibles")
+    a.igual(min(conts), os1["contiguas_min"], "Set1: contiguas en el peor orden", tol=TOL_LAB)
+    a.igual(max(conts), os1["contiguas_max"], "Set1: contiguas en el mejor orden", tol=TOL_LAB)
+    a.igual(dmin_lab(s1), os1["contiguas_brewer"], "Set1: contiguas en el de ColorBrewer",
+            tol=TOL_LAB)
+    a.igual(os1["contiguas_min"], PAL["Set1"]["dpar_normal"],
+            "el peor orden da el par más parecido", tol=1e-9)
 
     # La pareja rojo/verde: la afirmación fuerte del módulo
     rv = D["m5"]["rojo_verde"]
@@ -526,9 +652,89 @@ def main() -> int:
              f"{medias[0]:.2f} -> {medias[-1]:.2f}")
 
     # -----------------------------------------------------------------
+    a.titulo("Módulo 8 · la curva de escala y su forma")
+    # Las particiones no se pueden rehacer aquí —el sorteo es el de R—, pero
+    # todo lo que el texto AFIRMA de la curva sale de sus columnas publicadas
+    # y se recalcula: la forma, los errores y la banda. Con 30 particiones el
+    # capítulo leyó una cima y un bache que eran ruido, y nada lo miraba.
+    m8 = D["m8"]
+    for clave, n_rep in (("curva", m8["n_rep"]), ("curva_30", m8["n_rep_30"])):
+        cv = m8[clave]
+        a.cierto([c["zonas"] for c in cv] == m8["escalas"], f"{clave}: las escalas declaradas")
+        for c in cv:
+            z = c["zonas"]
+            a.igual(c["n_rep"], n_rep, f"{clave} {z}: particiones por escala")
+            a.igual(c["sd"] / math.sqrt(c["n_rep"]), c["ee"], f"{clave} {z}: el error de la media",
+                    tol=1e-9)
+            a.igual(c["media"] - 2 * c["ee"], c["lo"], f"{clave} {z}: la banda, abajo", tol=1e-9)
+            a.igual(c["media"] + 2 * c["ee"], c["hi"], f"{clave} {z}: la banda, arriba", tol=1e-9)
+            a.cierto(c["min"] <= c["media"] <= c["max"], f"{clave} {z}: la media entre min y max")
+    a.igual(m8["curva_30"][m8["escalas"].index(33)]["media"], 0.5160460159,
+            "curva_30: la de 33 zonas es la que se publicó", tol=1e-9)
+    a.igual(m8["curva_30"][m8["escalas"].index(50)]["media"], 0.5392350527,
+            "curva_30: la de 50 zonas es la que se publicó", tol=1e-9)
+
+    def forma(cv):
+        m = [c["media"] for c in cv]; e = [c["ee"] for c in cv]; sd = [c["sd"] for c in cv]
+        zp = [(m[i + 1] - m[i]) / math.sqrt(e[i + 1] ** 2 + e[i] ** 2) for i in range(len(m) - 1)]
+        return m, e, sd, zp, max(range(len(m)), key=lambda i: m[i])
+
+    m, e, sd, zp, ic = forma(m8["curva"])
+    fo, zs = m8["forma"], m8["escalas"]
+    nz = len(zs)
+    a.cierto(0 < ic < nz - 1, "la cima es interior", f"{zs[ic]} zonas")
+    a.igual(zs[ic], fo["cima_zonas"], "las zonas de la cima")
+    a.igual(m[ic], fo["cima_media"], "el r de la cima")
+    a.igual(e[ic], fo["cima_ee"], "el error en la cima")
+    a.igual(zs[-1], fo["inicio_zonas"], "la subida empieza en la escala más fina")
+    a.igual(m[-1], fo["inicio_media"], "y en su r")
+    subida = [-zp[i] for i in range(ic, nz - 1)]
+    a.igual(min(subida), fo["z_subida_min"], "el paso más justo de la subida", tol=1e-6)
+    a.cierto(min(subida) > 3, "cada paso de la subida mide más de 3 errores",
+             f"{min(subida):.2f}")
+    a.igual(zp[ic - 1], fo["z_bajada"], "la bajada tras la cima, en errores", tol=1e-6)
+    a.cierto(zp[ic - 1] > 3, "la bajada tras la cima mide más de 3 errores", f"{zp[ic - 1]:.2f}")
+    izq = m[:ic]
+    a.igual(min(izq), fo["izq_media_min"], "bajo la cima, la media más baja")
+    a.igual(max(izq), fo["izq_media_max"], "bajo la cima, la media más alta")
+    a.cierto(max(izq) - min(izq) < min(sd[:ic]),
+             "bajo la cima la media se mueve menos que una desv.",
+             f"{max(izq) - min(izq):.4f} < {min(sd[:ic]):.4f}")
+    a.cierto(all(sd[i] > sd[i + 1] for i in range(nz - 1)),
+             "la desviación crece al haber menos zonas")
+    a.igual(sd[-1], fo["sd_min"], "la desviación más pequeña")
+    a.igual(sd[0], fo["sd_max"], "la desviación más grande")
+    a.igual(sd[0] / sd[-1], fo["razon_sd"], "cuántas veces crece", tol=1e-6)
+    a.igual(max(e), fo["ee_max"], "el mayor error de la media")
+
+    m3, e3, sd3, zp3, ic3 = forma(m8["curva_30"])
+    f30 = m8["forma_30"]
+    a.igual(zs[ic3], f30["cima_zonas"], "curva_30: su cima")
+    a.cierto(ic3 != ic, "curva_30: la cima en otra escala", f"{zs[ic3]} frente a {zs[ic]}")
+    a.igual(zs[ic], f30["bache_zonas"], "curva_30: el bache, en la cima de verdad")
+    a.igual(m3[ic], f30["bache_media"], "curva_30: el r del bache")
+    bache = [-zp3[ic - 1], zp3[ic]]
+    a.cierto(min(bache) > 0, "curva_30: es un bache, más bajo que sus vecinos",
+             f"{bache[0]:.2f} y {bache[1]:.2f}")
+    a.igual(min(bache), f30["z_bache_min"], "curva_30: el bache, lado corto", tol=1e-6)
+    a.igual(max(bache), f30["z_bache_max"], "curva_30: el bache, lado largo", tol=1e-6)
+    a.cierto(max(bache) < 2, "curva_30: el bache no llega a 2 errores", f"{max(bache):.2f}")
+    a.igual(min(e3[ic - 1:ic + 2]), f30["ee_min"], "curva_30: el error menor del tramo")
+    a.igual(max(e3[ic - 1:ic + 2]), f30["ee_max"], "curva_30: el error mayor del tramo")
+
+    # -----------------------------------------------------------------
     a.titulo("Módulo 9 · zonificación y gerrymandering")
     m9 = D["m9"]
     a.igual(m9["n_particiones"], 1000, "particiones por familia")
+    # Las dos medidas de las 33 zonas, con sorteos distintos, dentro de su error
+    coh, c33 = m9["coherencia_curva"], D["m8"]["curva"][D["m8"]["escalas"].index(m9["n_zonas"])]
+    ee_c = m9["contiguas"]["sd"] / math.sqrt(m9["n_particiones"])
+    a.igual(ee_c, coh["ee_contiguas"], "el error de la media de las contiguas", tol=1e-9)
+    a.igual(c33["media"], coh["media_curva"], "la curva del módulo 8 en 33 zonas", tol=1e-12)
+    a.igual(c33["ee"], coh["ee_curva"], "y su error", tol=1e-12)
+    z_c = (c33["media"] - m9["contiguas"]["media"]) / math.sqrt(c33["ee"] ** 2 + ee_c ** 2)
+    a.igual(z_c, coh["z"], "la diferencia entre las dos, en errores", tol=1e-6)
+    a.cierto(abs(z_c) < 3, "y las dos coinciden dentro de 3 errores", f"{z_c:.2f}")
     a.igual(m9["n_zonas"], 33, "zonas por partición = departamentos reales")
     a.igual(m9["r_real"], D["m8"]["cartografica"]["r_departamento"],
             "la referencia es la departamental cartográfica", tol=1e-9)

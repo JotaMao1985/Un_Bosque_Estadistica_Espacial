@@ -89,7 +89,7 @@ def defectos():
     # --- 2. Cifras derivadas que dejan de cuadrar ---------------------
     obj("2 · el % de mapas distintos no sale de sus dos números",
         "datos", lambda d: d["m1"].__setitem__("pct_distintos", 71.4285714286))
-    obj("2 · la caída de una paleta no sale de sus dos dmin",
+    obj("2 · la caída de una paleta no sale de sus dos distancias",
         "datos", lambda d: d["m5"]["paletas"][0]["simulaciones"][0].__setitem__(
             "caida_pct", 51.1717171717))
     obj("2 · la brecha ponderada del módulo 9 no sale de sus dos medias",
@@ -225,6 +225,56 @@ def defectos():
         "datos", lambda d: d["m9"]["gerrymandering"].__setitem__("pct_A", 57.1717171717))
     obj("13 · la distribución deja de sumar las particiones válidas",
         "datos", lambda d: d["m9"]["gerrymandering"]["distribucion"][3].__setitem__("n", 7))
+
+    # --- 15. El par más parecido del módulo 5 (2026-09-24) ------------
+    # La medida pasó de «clases contiguas» a «el par más parecido», y el
+    # recuadro afirma siete cosas de la tabla. Cada una, rota por separado.
+    obj("15 · el par más parecido de una paleta cambia de distancia",
+        "datos", lambda d: d["m5"]["paletas"][5]["simulaciones"][0].__setitem__(
+            "dpar", 9.9171717171))
+    obj("15 · el par que RdYlGn pierde deja de ser el 2-4",
+        "datos", lambda d: d["m5"]["paletas"][2]["simulaciones"][0].__setitem__("par", [1, 5]))
+    obj("15 · la distancia en gris de una paleta cambia",
+        "datos", lambda d: d["m5"]["paletas"][4]["gris"].__setitem__("dpar", 3.1717171717))
+    obj("15 · una divergente pasa a tener L* monótona",
+        "datos", lambda d: d["m5"]["paletas"][4].__setitem__("luminosidad_monotona", True))
+    obj("15 · en gris cae más una divergente",
+        "datos", lambda d: d["m5"]["vistas"][3].update(peor="RdBu", peor_tipo="divergente"))
+    obj("15 · el suelo de las secuenciales cambia de vista",
+        "datos", lambda d: d["m5"]["suelo_secuenciales"].__setitem__("tipo", "tritanopia"))
+    obj("15 · la peor secuencial en gris cambia",
+        "datos", lambda d: d["m5"].__setitem__("gris_secuenciales_min", 6.0171717171))
+    obj("15 · una cualitativa recorre tanta L* como una divergente",
+        "datos", lambda d: d["m5"]["paletas"][6].__setitem__("rango_luminosidad", 57.1717171717))
+    obj("15 · el recorrido de Set1 en sus órdenes se estrecha",
+        "datos", lambda d: d["m5"]["orden_set1"].__setitem__("contiguas_max", 92.8717171717))
+    obj("15 · el peor orden de Set1 deja de dar su par",
+        "datos", lambda d: d["m5"]["orden_set1"].__setitem__("contiguas_min", 41.1717171717))
+
+    # --- 16. La curva del módulo 8 y su forma (2026-09-24) ------------
+    # Con 30 particiones el capítulo leyó en la curva una cima y un bache que
+    # eran ruido. Lo que ahora dice de su forma se comprueba, y se rompe aquí.
+    obj("16 · el error de la media deja de ser sd/raíz(n)",
+        "datos", lambda d: d["m8"]["curva"][3].__setitem__("ee", 0.0031717171))
+    obj("16 · la banda deja de ser la media ± 2 errores",
+        "datos", lambda d: d["m8"]["curva"][3].__setitem__("hi", 0.5571717171))
+    obj("16 · la cima publicada pasa a otra escala",
+        "datos", lambda d: d["m8"]["forma"].__setitem__("cima_zonas", 50))
+    obj("16 · un paso de la subida deja de medir 3 errores",
+        "datos", lambda d: d["m8"]["curva"][5].update(
+            media=0.5371717171, lo=0.5371717171 - 2 * d["m8"]["curva"][5]["ee"],
+            hi=0.5371717171 + 2 * d["m8"]["curva"][5]["ee"]))
+    obj("16 · la desviación deja de crecer al bajar de zonas",
+        "datos", lambda d: d["m8"]["curva"][2].update(
+            sd=0.0617171717, ee=0.0617171717 / 5000 ** 0.5))
+    obj("16 · la razón de desviaciones cambia",
+        "datos", lambda d: d["m8"]["forma"].__setitem__("razon_sd", 11.7171717171))
+    obj("16 · la curva de 30 deja de ser la que se publicó",
+        "datos", lambda d: d["m8"]["curva_30"][3].__setitem__("media", 0.5271717171))
+    obj("16 · el bache de la curva de 30 pasa a medir 2 errores",
+        "datos", lambda d: d["m8"]["forma_30"].__setitem__("z_bache_max", 2.1717171717))
+    obj("16 · el módulo 9 se aparta de la curva del 8",
+        "datos", lambda d: d["m9"]["contiguas"].__setitem__("media", 0.5171717171))
 
     # --- 14. Las fuentes citadas del módulo 11 ------------------------
     obj("14 · un caso histórico se queda sin fuente",

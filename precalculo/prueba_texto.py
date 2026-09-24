@@ -604,6 +604,13 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
          "lado cerrado del intervalo", "una diferencia de implementación", True),
         ("desaparece que Fisher-Jenks sí coincide",
          "coincide exactamente", "también difiere", True),
+        # --- 6b. La regla del color y la forma de la curva (2026-09-24)
+        ("el capítulo vuelve a decir que basta el recorrido de L*",
+         "en un único sentido", "con recorrido de luminosidad", True),
+        ("la cima de la curva del módulo 8 cambia",
+         f(D["m8"]["forma"]["cima_media"]), perturba(D["m8"]["forma"]["cima_media"])),
+        ("desaparece que el bache de la curva corta es ruido",
+         "se traga el bache entero", "enseña el bache", True),
         # --- 7. EL MECANISMO DEL MÓDULO 9 -----------------------------
         ("desaparece la explicación del resultado contraintuitivo",
          "Es lo contrario de lo que casi todo el mundo espera",

@@ -112,8 +112,15 @@ AFIRMACIONES = [
      "coincide exactamente"),
     ("declara que el esquema y el k son parte del resultado",
      "parte del resultado"),
+    # Hasta el 2026-09-24 era «recorrido de luminosidad», y la tabla lo
+    # desmentía: RdYlGn recorre tanta L* como una secuencial y se hunde. Lo
+    # que salva es recorrerla en un solo sentido.
     ("dice qué salva a una paleta bajo daltonismo",
-     "recorrido de luminosidad"),
+     "en un único sentido"),
+    ("dice que la medida compara todas las clases, no solo las vecinas",
+     "no solo las vecinas"),
+    ("explica por qué se hunde una divergente rojo-verde",
+     "solo se distinguen por el matiz"),
     ("advierte de que tmap 4 rompió la API de tmap 3",
      "no corren"),
     ("dice que el área del símbolo, no el radio, es proporcional al valor",
@@ -124,6 +131,13 @@ AFIRMACIONES = [
      "conservar la topología"),
     ("explica el efecto escala por la varianza que se destruye",
      "solo sobrevive"),
+    # Con 30 particiones el capítulo leyó en ruido una cima y un bache.
+    ("distingue el error de la media de la dispersión entre particiones",
+     "no baja por repetir más"),
+    ("dice que el bache de la curva corta es ruido",
+     "se traga el bache entero"),
+    ("dice que con pocas zonas decide el trazado, no el número",
+     "hasta el signo depende de por dónde pasen las fronteras"),
     ("dice que la partición real no tiene nada de especial",
      "nada de especial"),
     ("explica por qué las zonas arbitrarias dan correlaciones más altas",

@@ -1424,3 +1424,22 @@ corresponda al valor, y el que habría fallado si me hubiera dejado uno—.
 «386 KB» porque mide **caracteres**, no bytes; las dos cifras son correctas y miden cosas
 distintas, como ya avisaba P3.3—. El banco se reexportó y quedó en `parcial/brightspace/`, que sigue fuera de
 git. **Nada de esto está comiteado**, y el parcial es el 1 de septiembre.
+
+## 14. La curva del efecto escala cambió en el capítulo 3 (2026-09-24)
+
+La pregunta de lectura de gráfico del módulo 8 del capítulo 3 dibuja `m8.curva`, y esa curva se
+rehízo. Tenía **30** particiones por escala, y la forma que el capítulo leía en ella —cima en 50
+zonas y un bache en 33— era ruido: el bache no llegaba a un error de la media. Ahora son **5 000**
+por escala. El preparcial se regeneró entero, sin tocar su plan de preguntas:
+
+- el texto alternativo de `g_escala` dice ahora que la curva «hace cima en 0.5472 con 33 zonas»
+  (antes, 0.5392 con 50). El cruce con el valor individual sigue entre 400 y 700 zonas;
+- la retro del distractor «hace falta aumentar el número de repeticiones» decía «el número de
+  repeticiones no es el problema». Con 30 lo era, en parte. Ahora cita las cifras: la curva ya
+  lleva `c3m8_n_rep` = 5 000 particiones y su error de la media no pasa de `c3m8_ee_max` =
+  0.00350. Son **dos cifras reutilizadas nuevas**, así que el total pasa de 130 a **132**.
+
+`audita_preparcial1.py` y `prueba_alcance_preparcial1.py` (8/8) pasan. **El banco de Brightspace
+no se reexportó:** sigue fuera de git, el parcial ya fue, y esa pregunta conserva allí el gráfico
+(el PNG de la curva de 30) y la retro viejos hasta que alguien vuelva a correr
+`exporta_brightspace.py`.

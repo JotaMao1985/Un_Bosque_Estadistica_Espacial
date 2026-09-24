@@ -71,7 +71,8 @@ options(stringsAsFactors = FALSE)
 SEM_PART_CONT <- 3026L   # las 1 000 particiones CONTIGUAS del módulo 9
 SEM_PART_ARB  <- 3027L   # las 1 000 particiones ARBITRARIAS del módulo 9
 SEM_PUNTOS    <- 3028L   # el dot density del módulo 7
-SEM_ESCALA    <- 3029L   # las particiones de la curva de escala del módulo 8
+SEM_ESCALA    <- 3029L   # las 30 particiones por escala del módulo 8 (la curva corta)
+SEM_ESCALA_LARGA <- 3030L # las 5 000 por escala del módulo 8 (la curva que se lee)
 
 N_PARTICIONES <- 1000L
 N_ZONAS       <- 33L     # el número real de departamentos: la comparación
@@ -424,10 +425,21 @@ message(sprintf("  en la clase mas alta: %s municipios segun el esquema",
 # =====================================================================
 # E. MÓDULO 5 — Color
 #
-# La medida: la distancia perceptual MÍNIMA entre clases contiguas, en
-# CIELAB, con visión normal y bajo los tres tipos de daltonismo. Una
-# paleta no se rompe cuando "se ve rara": se rompe cuando dos clases
-# vecinas dejan de distinguirse.
+# La medida: la distancia perceptual entre las dos clases MÁS PARECIDAS de
+# la paleta, en CIELAB, con visión normal, bajo los tres tipos de
+# daltonismo y en gris. Una paleta no se rompe cuando "se ve rara": se
+# rompe cuando dos de sus clases dejan de distinguirse.
+#
+# Hasta el 2026-09-24 eran las dos clases CONTIGUAS más parecidas, y con esa
+# medida la tabla desmentía la regla que el módulo sacaba de ella: «las que
+# se hunden son las de luminosidad plana —las cualitativas—». Bajo
+# deuteranopía la que más caía era YlOrRd, secuencial, y las dos
+# cualitativas eran las que MEJOR aguantaban. El fallo estaba en la medida:
+# en una cualitativa el orden de la leyenda es arbitrario, así que «las
+# vecinas» no significa nada —reordenar Set1 movía la cifra entre 39 y 117—, y
+# en una divergente las clases que se confunden son una de cada brazo, que
+# nunca son vecinas. Leer un coroplético es buscar cada polígono en la
+# leyenda: tienen que distinguirse todas de todas.
 # =====================================================================
 message("E. modulo 5 - color")
 
@@ -447,22 +459,127 @@ PALETAS <- list(
   list(id = "Dark2",    tipo = "cualitativo", k = 5))
 
 TIPOS_CVD <- c("deuteranopia", "protanopia", "tritanopia")
+# `par` va con I(): son dos índices, y auto_unbox no debe tocarlos.
+mide_par <- function(pp, base) list(dpar = r10(pp$d), par = I(c(pp$i, pp$j)),
+                                    caida_pct = r10(100 * (1 - pp$d / base)))
 pal_med <- lapply(PALETAS, function(p) {
   cc <- brewer.pal(p$k, p$id)
-  base <- geo_paleta_dmin(cc)
+  base <- geo_paleta_par(cc)
   sim <- lapply(TIPOS_CVD, function(tp) {
     cs <- geo_cvd(cc, tp)
-    list(tipo = tp, colores = cs, dmin = r10(geo_paleta_dmin(cs)),
-         caida_pct = r10(100 * (1 - geo_paleta_dmin(cs) / base)))
+    c(list(tipo = tp, colores = cs), mide_par(geo_paleta_par(cs), base$d))
   })
   names(sim) <- TIPOS_CVD
+  lum <- methods::as(colorspace::hex2RGB(cc), "LAB")@coords[, 1]
   list(id = p$id, tipo = p$tipo, k = p$k, colores = cc,
-       dmin_normal = r10(base), simulaciones = unname(sim),
-       # La luminosidad: la variable que decide si una paleta rojo-verde
-       # sobrevive al daltonismo o no.
-       luminosidad = r10(methods::as(colorspace::hex2RGB(cc), "LAB")@coords[, 1]),
-       rango_luminosidad = r10(diff(range(methods::as(colorspace::hex2RGB(cc), "LAB")@coords[, 1]))))
+       dpar_normal = r10(base$d), par_normal = I(c(base$i, base$j)),
+       simulaciones = unname(sim),
+       # En gris solo queda la luminosidad: es la cota de lo que ningún
+       # daltonismo puede quitar, porque los tres conservan el claro-oscuro.
+       gris = mide_par(geo_paleta_par(cc, gris = TRUE), base$d),
+       luminosidad = r10(lum),
+       rango_luminosidad = r10(diff(range(lum))),
+       # El recorrido no basta: una divergente tiene tanto como una
+       # secuencial, pero lo recorre dos veces, una por brazo.
+       luminosidad_monotona = all(diff(lum) > 0) || all(diff(lum) < 0))
 })
+names(pal_med) <- vapply(PALETAS, `[[`, "", "id")
+tipo_de <- vapply(pal_med, `[[`, "", "tipo")
+
+# ---------------------------------------------------------------------
+# Lo que el módulo AFIRMA de la tabla, calculado aquí y con guarda.
+#
+# La regla vieja pasó años escrita debajo de una tabla que la desmentía,
+# porque nada la comprobaba. Cada frase del recuadro nuevo tiene aquí su
+# cifra y su stop(): si una regeneración cambia la forma, el capítulo no
+# llega a decir algo que sus datos ya no dicen.
+# ---------------------------------------------------------------------
+VISTAS <- c(TIPOS_CVD, "gris")
+medida_en <- function(p, vista)
+  if (vista == "gris") p$gris else p$simulaciones[[match(vista, TIPOS_CVD)]]
+vistas <- lapply(VISTAS, function(vs) {
+  caida <- vapply(pal_med, function(p) medida_en(p, vs)$caida_pct, 0)
+  dpar  <- vapply(pal_med, function(p) medida_en(p, vs)$dpar, 0)
+  peor <- names(which.max(caida))
+  sec <- names(dpar)[tipo_de == "secuencial"]
+  sec_min <- sec[which.min(dpar[sec])]
+  # 1. «Bajo cualquiera de los tres, y en gris, la que más cae es una cualitativa»
+  if (tipo_de[[peor]] != "cualitativo")
+    stop(sprintf("modulo 5: en la vista %s la que mas cae es %s (%s), no una cualitativa",
+                 vs, peor, tipo_de[[peor]]))
+  list(vista = vs, peor = peor, peor_tipo = tipo_de[[peor]],
+       peor_caida_pct = r10(caida[[peor]]), peor_dpar = r10(dpar[[peor]]),
+       secuencial_min = sec_min, secuencial_min_dpar = r10(dpar[[sec_min]]))
+})
+
+dpar_de <- function(id, vista) medida_en(pal_med[[id]], vista)$dpar
+ids_tipo <- function(t) names(pal_med)[tipo_de == t]
+# 2. «Bajo ninguno de los tres daltonismos una secuencial baja de X», y X
+#    está por encima de lo que dejan las cualitativas bajo deuteranopía.
+suelo <- do.call(rbind, lapply(ids_tipo("secuencial"), function(id)
+  do.call(rbind, lapply(TIPOS_CVD, function(tp)
+    data.frame(id = id, tipo = tp, dpar = dpar_de(id, tp))))))
+suelo <- suelo[which.min(suelo$dpar), ]
+cual_deu <- vapply(ids_tipo("cualitativo"), dpar_de, 0, vista = "deuteranopia")
+if (!(suelo$dpar > max(cual_deu)))
+  stop(sprintf("modulo 5: el suelo de las secuenciales (%.3f) ya no queda por encima de las cualitativas bajo deuteranopia (%.3f)",
+               suelo$dpar, max(cual_deu)))
+# 3. «En gris solo sobreviven las secuenciales»: la peor de ellas queda por
+#    encima de la mejor de todas las demás.
+gris_d <- vapply(names(pal_med), dpar_de, 0, vista = "gris")
+gris_sec <- gris_d[tipo_de == "secuencial"]; gris_otras <- gris_d[tipo_de != "secuencial"]
+if (!(min(gris_sec) > max(gris_otras)))
+  stop(sprintf("modulo 5: en gris una no secuencial (%.3f) aguanta tanto como una secuencial (%.3f)",
+               max(gris_otras), min(gris_sec)))
+# 4. «Solo las secuenciales recorren la luminosidad en un único sentido», y
+#    las cualitativas apenas la recorren.
+mono <- vapply(pal_med, `[[`, TRUE, "luminosidad_monotona")
+if (!identical(unname(mono), unname(tipo_de == "secuencial")))
+  stop("modulo 5: la luminosidad monotona ya no separa a las secuenciales de las demas")
+rango_l <- vapply(pal_med, `[[`, 0, "rango_luminosidad")
+if (!(max(rango_l[tipo_de == "cualitativo"]) < min(rango_l[tipo_de != "cualitativo"])))
+  stop("modulo 5: una cualitativa recorre tanta luminosidad como una secuencial o divergente")
+# 5. «En gris, el par que una divergente confunde es uno de cada brazo»: i por
+#    debajo del centro y j por encima. Y RdYlGn se hunde bajo deuteranopía
+#    justo en ESE par: el que la luminosidad no separaba.
+brazos <- function(p, par) par[1] < (p$k + 1) / 2 && par[2] > (p$k + 1) / 2
+for (id in ids_tipo("divergente"))
+  if (!brazos(pal_med[[id]], pal_med[[id]]$gris$par))
+    stop(sprintf("modulo 5: en gris, %s confunde dos clases del mismo brazo", id))
+rdylgn <- pal_med[["RdYlGn"]]
+if (!identical(as.integer(rdylgn$simulaciones[[1]]$par), as.integer(rdylgn$gris$par)))
+  stop("modulo 5: el par que RdYlGn pierde bajo deuteranopia ya no es el que el gris no separa")
+if (!(rdylgn$simulaciones[[1]]$dpar < suelo$dpar))
+  stop("modulo 5: RdYlGn ya no se hunde bajo deuteranopia por debajo de las secuenciales")
+# 6. RdBu, divergente como RdYlGn, aguanta la deuteranopía: su matiz va de
+#    azul a rojo, un eje que la deuteranopía no aplana.
+rdbu_deu <- pal_med[["RdBu"]]$simulaciones[[1]]
+if (!(abs(rdbu_deu$caida_pct) < 5))
+  stop(sprintf("modulo 5: RdBu pierde el %.2f %% bajo deuteranopia; el texto dice que aguanta",
+               rdbu_deu$caida_pct))
+# 7. «YlOrRd pierde casi la mitad bajo deuteranopía y se queda en casi lo
+#    mismo que Blues con visión normal»: lo que conserva es su rampa.
+ylorrd_deu <- pal_med[["YlOrRd"]]$simulaciones[[1]]
+blues_n <- pal_med[["Blues"]]$dpar_normal
+if (!(abs(ylorrd_deu$dpar / blues_n - 1) < 0.1))
+  stop(sprintf("modulo 5: YlOrRd bajo deuteranopia (%.3f) ya no se parece a Blues con vision normal (%.3f)",
+               ylorrd_deu$dpar, blues_n))
+if (!(ylorrd_deu$caida_pct > 40 && ylorrd_deu$caida_pct < 50))
+  stop(sprintf("modulo 5: YlOrRd pierde el %.2f %% bajo deuteranopia; el texto dice casi la mitad",
+               ylorrd_deu$caida_pct))
+
+# Por qué no las contiguas: Set1 en sus 120 órdenes posibles. La medida
+# contigua del peor orden es, por construcción, la del par más parecido; la
+# del mejor orden es lo que la medida vieja podía llegar a publicar.
+permuta <- function(v) if (length(v) <= 1) list(v) else
+  do.call(c, lapply(seq_along(v), function(i) lapply(permuta(v[-i]), function(r) c(v[i], r))))
+set1 <- brewer.pal(5, "Set1")
+cont_set1 <- vapply(permuta(seq_along(set1)), function(o) geo_paleta_dmin(set1[o]), 0)
+if (abs(min(cont_set1) - pal_med[["Set1"]]$dpar_normal) > 1e-9)
+  stop("modulo 5: el peor orden de Set1 no reproduce su par mas parecido")
+orden_set1 <- list(n_ordenes = length(cont_set1),
+                   contiguas_min = r10(min(cont_set1)), contiguas_max = r10(max(cont_set1)),
+                   contiguas_brewer = r10(geo_paleta_dmin(set1)))
 
 # La pareja crítica: rojo y verde a IGUAL luminosidad, que es el caso que
 # de verdad se rompe bajo daltonismo.
@@ -493,8 +610,14 @@ d_rv_deu <- dE(lab_rv_deu[1, ], lab_rv_deu[2, ])
 D$m5 <- list(
   n_comparaciones_cvd = n_cvd_ok,
   n_colores_probados = length(PALETA_PRUEBA),
-  paletas = pal_med,
+  # Sin nombres: el navegador la recorre como lista.
+  paletas = unname(pal_med),
   tipos = TIPOS_CVD,
+  vistas = vistas,
+  suelo_secuenciales = list(id = suelo$id, tipo = suelo$tipo, dpar = r10(suelo$dpar)),
+  gris_secuenciales_min = r10(min(gris_sec)),
+  gris_otras_min = r10(min(gris_otras)), gris_otras_max = r10(max(gris_otras)),
+  orden_set1 = orden_set1,
   # Las anclas que el navegador tiene que reproducir. Sin esto, la
   # implementación en JS no tendría contra qué compararse y podría
   # divergir de la de R sin que nadie lo notara.
@@ -510,9 +633,14 @@ D$m5 <- list(
     caida_pct = r10(100 * (1 - d_rv_deu / d_rv_normal))))
 message(sprintf("  geo_cvd: %d comparaciones identicas a colorspace", n_cvd_ok))
 for (p in pal_med)
-  message(sprintf("    %-9s %-11s dmin %7.3f -> deuteranopia %7.3f (%+.2f %%)  rango L* %6.2f",
-                  p$id, p$tipo, p$dmin_normal, p$simulaciones[[1]]$dmin,
-                  -p$simulaciones[[1]]$caida_pct, p$rango_luminosidad))
+  message(sprintf("    %-9s %-11s par %7.3f -> deuteranopia %7.3f (%+.2f %%)  gris %6.3f  rango L* %6.2f",
+                  p$id, p$tipo, p$dpar_normal, p$simulaciones[[1]]$dpar,
+                  -p$simulaciones[[1]]$caida_pct, p$gris$dpar, p$rango_luminosidad))
+for (v0 in vistas)
+  message(sprintf("    %-12s cae mas %-7s (%.2f %%); secuencial mas baja %s (%.3f)",
+                  v0$vista, v0$peor, v0$peor_caida_pct, v0$secuencial_min, v0$secuencial_min_dpar))
+message(sprintf("  Set1 medida entre contiguas, segun el orden: %.3f a %.3f (%d ordenes)",
+                orden_set1$contiguas_min, orden_set1$contiguas_max, orden_set1$n_ordenes))
 message(sprintf("  rojo/verde a igual luminosidad: dE %.5f -> %.5f (%.5f %% menos)",
                 d_rv_normal, d_rv_deu, D$m5$rojo_verde$caida_pct))
 
@@ -813,17 +941,127 @@ ancla(r_de_zona(z_real), r_dep_mapa,
       "r_de_zona() reproduce la particion departamental real", tol = 1e-9)
 
 ESCALAS <- c(5L, 10L, 20L, 33L, 50L, 100L, 200L, 400L, 700L)
-N_REP_ESCALA <- 30L
-set.seed(SEM_ESCALA)
-curva <- lapply(ESCALAS, function(k) {
-  rs <- vapply(seq_len(N_REP_ESCALA), function(i) {
+
+# ---------------------------------------------------------------------
+# CUÁNTAS PARTICIONES POR ESCALA, y por qué 5 000.
+#
+# Hasta el 2026-09-24 eran 30, y el capítulo leía la tabla como «sube, hace
+# cima y baja»: cima en 50 zonas y un bache en 33. Era ruido. Con 30
+# particiones el error de la media (su desviación típica entre la raíz de
+# 30) iba de 0.014 a 0.019 en esa zona de la curva, del tamaño de las
+# diferencias que la frase leía; y el propio módulo 9, que mide las 33
+# zonas con 1 000 particiones, daba 0.542 y no 0.516. Con 5 000 la curva
+# tiene una sola cima, en 33 zonas, y cada paso de la subida mide más de
+# tres errores de la diferencia.
+#
+# Las 30 no se tiran: se reproducen con su semilla de siempre y se
+# publican, porque el simulador enseña las dos curvas y la lección es
+# justo la diferencia entre ellas. El ancla comprueba que salen idénticas
+# a las que el capítulo publicó.
+# ---------------------------------------------------------------------
+N_REP_CORTA <- 30L
+N_REP_ESCALA <- 5000L
+curva_de <- function(n_rep) lapply(ESCALAS, function(k) {
+  rs <- vapply(seq_len(n_rep), function(i) {
     z <- particion_contigua(nb, k)
     r_de_zona(z[idx_ok])
   }, numeric(1))
   rs <- rs[is.finite(rs)]
   list(zonas = k, n_rep = length(rs), media = r10(mean(rs)), sd = r10(sd(rs)),
+       ee = r10(sd(rs) / sqrt(length(rs))),
        min = r10(min(rs)), max = r10(max(rs)))
 })
+set.seed(SEM_ESCALA)
+curva_30 <- curva_de(N_REP_CORTA)
+ancla(curva_30[[match(33L, ESCALAS)]]$media, 0.5160460159,
+      "la curva de 30 particiones reproduce la publicada (33 zonas)", tol = 1e-9)
+ancla(curva_30[[match(50L, ESCALAS)]]$media, 0.5392350527,
+      "la curva de 30 particiones reproduce la publicada (50 zonas)", tol = 1e-9)
+
+# 5 000 particiones por escala son unos seis minutos: se cachean. La llave
+# lleva todo lo que cambia el resultado —semilla, réplicas, escalas y
+# capa—, y la caché guarda además la curva de 30 con la que se generó, que
+# tiene que coincidir con la de ahora o la caché no es de este grafo.
+f_curva <- file.path(CACHE, sprintf("cap3_curva_escala_%d_%d_%s_%d.rds", N_REP_ESCALA,
+                                    SEM_ESCALA_LARGA, paste(ESCALAS, collapse = "-"), nrow(mun)))
+if (file.exists(f_curva) && identical(readRDS(f_curva)$curva_30, curva_30)) {
+  curva <- readRDS(f_curva)$curva
+  message("  curva de ", N_REP_ESCALA, " particiones por escala: de la cache")
+} else {
+  message("  curva de ", N_REP_ESCALA, " particiones por escala (~6 min)...")
+  set.seed(SEM_ESCALA_LARGA)
+  curva <- curva_de(N_REP_ESCALA)
+  saveRDS(list(curva = curva, curva_30 = curva_30), f_curva)
+}
+
+# --- La forma de la curva, resumida AQUÍ y con guarda ----------------
+# Lo que el texto dice de ella: sube desde la escala más fina hasta una
+# cima; cada paso de esa subida y la bajada al otro lado de la cima miden
+# más de tres errores de la diferencia; por debajo de la cima la media se
+# mueve menos que la dispersión entre particiones; y esa dispersión crece
+# en todo el recorrido a medida que hay menos zonas.
+forma_de <- function(cv) {
+  m <- vapply(cv, `[[`, 0, "media"); e <- vapply(cv, `[[`, 0, "ee")
+  s <- vapply(cv, `[[`, 0, "sd")
+  z_paso <- diff(m) / sqrt(e[-1]^2 + e[-length(e)]^2)   # de k[i] a k[i+1] zonas
+  ic <- which.max(m)
+  list(m = m, e = e, s = s, z_paso = z_paso, ic = ic)
+}
+f <- forma_de(curva)
+ic <- f$ic; nz <- length(ESCALAS)
+if (ic == 1L || ic == nz)
+  stop(sprintf("modulo 8: la cima de la curva cae en un extremo (%d zonas)", ESCALAS[ic]))
+# Subida: de nz zonas hacia la cima la media CRECE, paso a paso, > 3 errores
+z_subida <- -f$z_paso[ic:(nz - 1)]
+if (any(z_subida <= 3))
+  stop(sprintf("modulo 8: un paso de la subida mide %.2f errores; el texto la da por segura",
+               min(z_subida)))
+# La cima es cima: por debajo cae más de 3 errores. z_paso[ic - 1] va de
+# ESCALAS[ic - 1] zonas a la cima, así que es positivo si la cima es más alta.
+z_bajada <- f$z_paso[ic - 1L]
+if (z_bajada <= 3)
+  stop(sprintf("modulo 8: por debajo de la cima la media baja solo %.2f errores", z_bajada))
+# A la izquierda de la cima, la media se mueve menos que una desviación típica
+izq <- seq_len(ic - 1L)
+if (!(diff(range(f$m[izq])) < min(f$s[izq])))
+  stop("modulo 8: por debajo de la cima la media se mueve mas que la dispersion entre particiones")
+# La dispersión crece en todo el recorrido al bajar el número de zonas
+if (!all(diff(f$s) < 0))
+  stop("modulo 8: la desviacion tipica entre particiones deja de crecer al haber menos zonas")
+
+# Y lo que la curva de 30 decía, que el texto cuenta como aviso: la cima en
+# otra escala, y un bache justo en la escala de la cima verdadera, que no
+# llegaba a dos errores por ninguno de sus lados.
+f30 <- forma_de(curva_30)
+# Hondura del bache hacia cada vecino, en errores de la diferencia: positiva
+# si el vecino está más alto (que es lo que hace de 33 zonas un bache).
+z_bache <- c(abajo = -f30$z_paso[ic - 1L], arriba = f30$z_paso[ic])
+if (any(z_bache <= 0))
+  stop("modulo 8: la escala de la cima ya no es un bache en la curva de 30")
+if (f30$ic == ic || !(f30$m[ic] < f30$m[ic - 1L] && f30$m[ic] < f30$m[ic + 1L]))
+  stop("modulo 8: la curva de 30 particiones ya no pone la cima en otra escala ni el bache en la de verdad")
+if (any(z_bache >= 2))
+  stop(sprintf("modulo 8: el bache de la curva de 30 mide %.2f errores; el texto dice que es ruido",
+               max(z_bache)))
+
+forma <- list(
+  cima_zonas = ESCALAS[ic], cima_media = r10(f$m[ic]), cima_ee = r10(f$e[ic]),
+  inicio_zonas = ESCALAS[nz], inicio_media = r10(f$m[nz]),
+  z_subida_min = r10(min(z_subida)), z_bajada = r10(z_bajada),
+  izq_media_min = r10(min(f$m[izq])), izq_media_max = r10(max(f$m[izq])),
+  sd_min = r10(f$s[nz]), sd_max = r10(f$s[1]), sd_min_zonas = ESCALAS[nz],
+  sd_max_zonas = ESCALAS[1], razon_sd = r10(f$s[1] / f$s[nz]),
+  ee_max = r10(max(f$e)))
+forma_30 <- list(
+  cima_zonas = ESCALAS[f30$ic], cima_media = r10(f30$m[f30$ic]),
+  bache_zonas = ESCALAS[ic], bache_media = r10(f30$m[ic]),
+  z_bache_min = r10(min(z_bache)), z_bache_max = r10(max(z_bache)),
+  ee_min = r10(min(f30$e[(ic - 1L):(ic + 1L)])), ee_max = r10(max(f30$e[(ic - 1L):(ic + 1L)])))
+# La banda que dibuja el simulador: media ± 2 errores, calculada aquí para
+# que el navegador no sume.
+banda <- function(cv) lapply(cv, function(x) c(x, list(lo = r10(x$media - 2 * x$ee),
+                                                        hi = r10(x$media + 2 * x$ee))))
+curva <- banda(curva); curva_30 <- banda(curva_30)
 
 D$m8 <- list(
   variable = "educacion de la madre (0-9) vs. puntaje global",
@@ -841,6 +1079,10 @@ D$m8 <- list(
     r_departamento = r10(r_dep_mapa),
     desvio_departamental = r10(r_dep - r_dep_mapa)),
   curva = curva, n_rep = N_REP_ESCALA, escalas = as.integer(ESCALAS),
+  forma = forma,
+  # La curva con 30 particiones por escala, la que el capítulo publicó hasta
+  # el 2026-09-24. Se enseña al lado de la buena: es el aviso.
+  curva_30 = curva_30, n_rep_30 = N_REP_CORTA, forma_30 = forma_30,
   # La descomposición que EXPLICA el efecto: al agregar se tira la
   # varianza de dentro y solo sobrevive la de entre.
   var_total = r10(var(v$punt_global)),
@@ -848,8 +1090,13 @@ D$m8 <- list(
   pct_var_entre = r10(100 * sum(por_mun$n * (por_mun$p - mean(v$punt_global))^2) /
                         ((nrow(v) - 1) * var(v$punt_global))))
 message(sprintf("  varianza entre municipios: %.5f %% del total", D$m8$pct_var_entre))
-for (c0 in curva)
-  message(sprintf("    %4d zonas  r = %+.5f  (sd %.5f, %d rep.)", c0$zonas, c0$media, c0$sd, c0$n_rep))
+for (i in seq_along(curva))
+  message(sprintf("    %4d zonas  r = %+.5f  (sd %.5f, ee %.5f, %d rep.)   con %d: %+.5f (ee %.5f)",
+                  curva[[i]]$zonas, curva[[i]]$media, curva[[i]]$sd, curva[[i]]$ee,
+                  curva[[i]]$n_rep, N_REP_CORTA, curva_30[[i]]$media, curva_30[[i]]$ee))
+message(sprintf("  cima en %d zonas; subida con pasos de al menos %.2f errores; bache de la curva de %d: %.2f y %.2f errores",
+                forma$cima_zonas, forma$z_subida_min, N_REP_CORTA,
+                forma_30$z_bache_min, forma_30$z_bache_max))
 
 # =====================================================================
 # I. MÓDULO 9 — MAUP II, el efecto zonificación
@@ -896,8 +1143,23 @@ ma <- vapply(seq_len(N_PARTICIONES), function(i) {
 r_arb <- ma[1, ]; r_arb_sp <- ma[2, ]
 
 pctl <- function(x, v) 100 * mean(x <= v)
+# Dos medidas de la misma cosa con sorteos distintos: la curva del módulo 8
+# en 33 zonas y las 1 000 particiones contiguas de aquí. Tienen que
+# coincidir dentro de su error. Con la curva de 30 coincidían por
+# accidente de anchura —su error era de 0.019—; con la de 5 000 la
+# comparación ya discrimina, y es la que el módulo 8 cita.
+c33 <- curva[[match(N_ZONAS, ESCALAS)]]
+ee_cont <- sd(r_cont) / sqrt(length(r_cont))
+z_coher <- (c33$media - mean(r_cont)) / sqrt(c33$ee^2 + ee_cont^2)
+if (abs(z_coher) > 3)
+  stop(sprintf("modulo 9: la media de sus 33 zonas (%.5f) y la de la curva del modulo 8 (%.5f) difieren %.2f errores",
+               mean(r_cont), c33$media, z_coher))
+
 D$m9 <- list(
   n_particiones = N_PARTICIONES, n_zonas = N_ZONAS,
+  coherencia_curva = list(media_curva = c33$media, ee_curva = c33$ee,
+                          n_rep_curva = c33$n_rep, ee_contiguas = r10(ee_cont),
+                          z = r10(z_coher)),
   # La referencia es la departamental CARTOGRÁFICA: es la única que cubre
   # la misma población que las 2 000 particiones aleatorias.
   r_real = r10(r_dep_mapa),
@@ -1299,7 +1561,7 @@ D$meta <- list(
   generado = format(Sys.time(), "%Y-%m-%dT%H:%M:%S"),
   semillas = list(base = SEMILLA, particiones_contiguas = SEM_PART_CONT,
                   particiones_arbitrarias = SEM_PART_ARB, puntos = SEM_PUNTOS,
-                  escala = SEM_ESCALA),
+                  escala = SEM_ESCALA, escala_larga = SEM_ESCALA_LARGA),
   n_anclas = N_ANCLAS,
   # El coste de la geometría municipal, que es lo que decide el peso del
   # capítulo y por qué se comparte entre las cuatro capas.
