@@ -451,6 +451,21 @@ Lo que T4.5 hereda ya decidido:
    `p.adjust.method` —la corrección va por `hotspot()` o `p.adjust()`—, su columna «analítica» no
    lo es, y las cifras de GeoDa de Anselin & Rey no están a mano: el checkpoint 4 se ancla a
    Anselin (1995), a Getis y Ord (1996) vía `spdep` y a `esda`.
+6. **Las fórmulas van en `.formula`, la única caja de fórmula que la plantilla pinta** (añadido
+   el 2026-09-24, cuando los capítulos 4, 5 y 6 pasaron a ella). `.formula-box` y
+   `.formula-destacada`, las que usaban el 4 y el 5, no tienen ninguna regla CSS. La caja pone
+   letra monoespaciada, así que **la explicación va fuera**, en un párrafo con la notación en
+   KaTeX. En un teléfono de 375 px la caja deja **entre 265 y 273 px útiles**, y ese mismo día se
+   midieron ahí las fórmulas del capítulo: Moran escrito con (xᵢ − x̄)(xⱼ − x̄) ocupa
+   **256 px** —cabe, sin sitio para nada más en el renglón— y con z tipificada, 165; Geary,
+   236; Gᵢ\* con su denominador entero, 234; el Moran local, 199, pero **375 si m₂ va en el
+   mismo renglón**. Lo que no quepa se parte con `aligned` o `gathered`, como el rezago del 6, que
+   midió 286 px y cupo al pasar la etiqueta «estilo W:» a la izquierda del segundo renglón. Tres
+   cosas más, las tres ya pagadas: la matemática en línea se agrupa —`\({(n-1)/|W|}\)`— porque
+   KaTeX parte tras un operador; los decimales dentro de una fórmula van con punto (**A.13**,
+   defecto 11: con `{,}` la cifra es invisible para `cifras()`); y `ORDENES` de
+   `audita_texto_cap7.py` declara las órdenes que el capítulo escribe, para que una reescritura
+   que las vuelva texto plano dé MAL.
 
 **Tres cosas que el capítulo 7 hereda del 6, y conviene decidirlas con el cronómetro delante:**
 
