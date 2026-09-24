@@ -861,9 +861,28 @@ def main() -> int:
     a.cierto(all(e5["tasa_pct"][i] <= e5["tasa_pct"][i + 1] + 1e-9
                  for i in range(len(e5["tasa_pct"]) - 1)),
              "E5: la tasa crece monótonamente con sigma")
-    a.cierto(e5["tasa_en_sigma_max_pct"] <= e5["objetivo_pct"] * 1.2,
-             "E5: el sigma despejado cumple el requisito",
-             f"{e5['tasa_en_sigma_max_pct']:.4f} % con objetivo {e5['objetivo_pct']} %")
+    # EL SIGMA DESPEJADO ESTÁ EN EL CRUCE, NO POR DEBAJO DE ÉL (2026-09-23).
+    # Esto exigía «tasa ≤ 1,2 × objetivo», un margen a ojo que dejaba pasar
+    # la tasa de 1,0036 % que la solución publicaba como si cumpliera el 1 %.
+    # Lo que se puede exigir es que el objetivo quede a menos de tres errores
+    # de Monte Carlo de la tasa medida, y el resto de la cadena se recalcula.
+    a.cierto(abs(e5["tasa_en_sigma_max_pct"] - e5["objetivo_pct"]) <= 3 * e5["ee_tasa_400_pp"],
+             "E5: el sigma despejado está en el cruce del 1 %",
+             f"{e5['tasa_en_sigma_max_pct']:.4f} % ± {e5['ee_tasa_400_pp']:.4f}")
+    a.cerca(e5["ee_tasa_40_pp"], e5["ee_tasa_400_pp"] * (400 / 40) ** 0.5,
+            "E5: el error con 40 réplicas es el de 400 por raíz de 10", 1e-8)
+    s_b, t_b = e5["sigma_barrido_m"], e5["tasa_pct"]
+    i5 = max(i for i, s in enumerate(s_b) if s <= e5["sigma_max_m"])
+    a.cerca((t_b[i5 + 1] - t_b[i5]) / (s_b[i5 + 1] - s_b[i5]), e5["pendiente_pp_por_m"],
+            "E5: la pendiente, de los nodos que encierran el sigma", 1e-8)
+    a.cerca(e5["ee_tasa_40_pp"] / e5["pendiente_pp_por_m"], e5["ee_sigma_m"],
+            "E5: el error del sigma, error de la tasa entre pendiente", 1e-6)
+    a.cierto(e5["ancho_biseccion_m"] < e5["ee_sigma_m"],
+             "E5: la bisección afina por debajo del error del sigma")
+    a.igual(round(e5["sigma_max_m"]), e5["sigma_redondeado_m"],
+            "E5: el sigma redondeado al metro")
+    a.igual(math.floor(e5["sigma_max_m"] - e5["k_prudencia"] * e5["ee_sigma_m"]),
+            e5["sigma_prudente_m"], "E5: el sigma prudente, con su margen")
 
     return a.cierre()
 

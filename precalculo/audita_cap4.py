@@ -543,6 +543,10 @@ def main() -> int:
             "m7: y Kaplan-Meier la pone a cero por convenio")
     a.cerca(100 * float(np.mean(nn_u == 0)), m7["bogota"]["coincidentes_pct"],
             "m7: el porcentaje de coincidentes", 1e-6)
+    # El distractor de la retro del cuestionario: la fracción publicada por
+    # TODAS las sedes georreferenciadas, no por las de la ventana.
+    a.igual(round(dup["g_empirica_en_cero"] * D["m1"]["sedes_total"]),
+            dup["con_todas_las_sedes"], "m7: la fracción por todas las sedes (retro)")
     a.salta("el estimador km de G",
             "es un estimador de supervivencia con convenio interno de spatstat; "
             "no hay segunda implementación. Se audita la G empírica, que sí es exacta")

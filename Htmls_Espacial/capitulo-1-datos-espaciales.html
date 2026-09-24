@@ -1400,6 +1400,27 @@
       color: #012820;
     }
 
+    /* Cada par rótulo–valor de la lectura. Los capítulos 1 a 6 no la escriben
+       con `actualizarLectura` sino con `.lectura-item`, `.lectura-etiqueta` y
+       `.lectura-valor`, y NINGUNA de las tres tenía regla: el rótulo y el
+       valor salían pegados —«patrónPlántulas de secuoya», «n62», y «G sin
+       corregir en r = 00.000000», donde el cero del rótulo y el del valor se
+       leían como una sola cifra—. El capítulo 1 llevaba un comentario que
+       daba el defecto por conocido y redactaba sus valores para esquivarlo.
+       El hueco NO es un margen: es un espacio de verdad que los seis
+       ayudantes escriben entre las dos etiquetas, porque un margen separa a
+       la vista pero no en lo que lee un lector de pantalla ni en lo que se
+       copia. Aquí solo va el color: el rótulo apagado y el valor en el verde
+       de la casa, porque lo que se busca en una lectura es la cifra. */
+    .lectura-etiqueta {
+      color: #64748b;
+    }
+
+    .lectura-valor {
+      color: #012820;
+      font-weight: 600;
+    }
+
     /* ------------------------------------------------------------------
        Autoevaluación: preguntas de opción múltiple con retroalimentación
        por opción. Componente nuevo del Capítulo 2, reutilizable en todos
@@ -9519,7 +9540,7 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
       const caja = raiz.querySelector('.simulador-lectura');
       if (!caja) return;
       caja.innerHTML = filas.map(f =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${f[0]}</span>` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${f[0]}</span> ` +
         `<span class="lectura-valor">${f[1]}</span></span>`).join('');
     }
 
@@ -9636,13 +9657,11 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
       const g = D1.agregacion_soporte.nc, c = AGREG_CASO();
       const mapa = () => raiz.querySelector('[data-geomapa="cap1-agregacion"]');
       const pinta = () => { const m = mapa(); if (m && m.__geomapa) m.__geomapa.dibuja(); };
-      // OJO CON LA REDACCIÓN, y no es una manía: `lectura()` pega el rótulo
-      // y el valor sin separador —`.lectura-etiqueta` no lleva margen en
-      // ningún capítulo—, así que un valor que empieza por letra se lee
-      // pegado al rótulo («la reglaemparejar por…»). Los de aquí empiezan
-      // por una cifra o por una comilla angular, que sí separan. Arreglarlo
-      // en el CSS tocaría las lecturas de los tres capítulos publicados, y
-      // eso no es de esta tarea.
+      // `lectura()` pegaba el rótulo y el valor sin separador —ninguna regla
+      // pintaba `.lectura-etiqueta`—, y por eso los valores de aquí empiezan
+      // por una cifra o por una comilla angular. Desde el 2026-09-23
+      // `lectura()` escribe un espacio entre los dos y la plantilla les da
+      // color, así que la redacción ya no tiene que esquivar nada.
       const lee = () => {
         if (agregModo === 'area') {
           lectura(raiz, [['la regla', '«repartir por área» — st_interpolate_aw'],

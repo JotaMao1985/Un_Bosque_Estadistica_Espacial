@@ -1471,7 +1471,7 @@ SIMULADORES_JS = f"""
       const c = raiz.querySelector('.simulador-lectura');
       if (!c) return;
       c.innerHTML = pares.map(([k, v]) =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${{k}}</span>` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${{k}}</span> ` +
         `<span class="lectura-valor">${{v}}</span></span>`).join('');
     }}
 

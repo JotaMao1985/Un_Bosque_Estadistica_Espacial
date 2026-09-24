@@ -1400,6 +1400,27 @@
       color: #012820;
     }
 
+    /* Cada par rótulo–valor de la lectura. Los capítulos 1 a 6 no la escriben
+       con `actualizarLectura` sino con `.lectura-item`, `.lectura-etiqueta` y
+       `.lectura-valor`, y NINGUNA de las tres tenía regla: el rótulo y el
+       valor salían pegados —«patrónPlántulas de secuoya», «n62», y «G sin
+       corregir en r = 00.000000», donde el cero del rótulo y el del valor se
+       leían como una sola cifra—. El capítulo 1 llevaba un comentario que
+       daba el defecto por conocido y redactaba sus valores para esquivarlo.
+       El hueco NO es un margen: es un espacio de verdad que los seis
+       ayudantes escriben entre las dos etiquetas, porque un margen separa a
+       la vista pero no en lo que lee un lector de pantalla ni en lo que se
+       copia. Aquí solo va el color: el rótulo apagado y el valor en el verde
+       de la casa, porque lo que se busca en una lectura es la cifra. */
+    .lectura-etiqueta {
+      color: #64748b;
+    }
+
+    .lectura-valor {
+      color: #012820;
+      font-weight: 600;
+    }
+
     /* ------------------------------------------------------------------
        Autoevaluación: preguntas de opción múltiple con retroalimentación
        por opción. Componente nuevo del Capítulo 2, reutilizable en todos
@@ -9193,7 +9214,7 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
       const caja = raiz.querySelector('.simulador-lectura');
       if (!caja) return;
       caja.innerHTML = pares.map(p =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${p[0]}</span>` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${p[0]}</span> ` +
         `<span class="lectura-valor">${p[1]}</span></span>`).join('');
     }
 

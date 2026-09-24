@@ -1171,6 +1171,22 @@ MOD6 = cabecera(
 #     revés —«J = 1 significa CSR»— o no daba —que la estimada tiembla—.
 # Y NO entra, a propósito, ningún patrón en que G y F apunten a regímenes
 # distintos: construirlo es T2(c) del Taller 2, repartido el 21 de septiembre.
+#
+# LO QUE LA PROSA DE DESPUÉS DEL SIMULADOR AFIRMA DEL JSON (2026-09-23), al
+# reescribirla porque se leía inconexa: que en los tres de libro cuentan
+# todos los sitios de la rejilla y la G sin corregir vale 0 en r = 0; y que
+# la G corregida de las sedes vale 0 ahí pero en el primer nodo ya cuenta
+# las coincidentes y alguna más —la frase «no se pierden, pero van junto con
+# las que tienen su vecina a unos pocos metros»—. Antes decía que el átomo
+# «desaparece de la vista», y la verde sube a 0,0445 en los primeros 8 m.
+_libro7 = [m7[c] for c in ('cells', 'japanesepines', 'redwood')]
+_b7 = m7['bogota']
+if not (all(d['f_sitios'] == d['f_rejilla'] and d['g_emp_en_cero'] == 0 for d in _libro7)
+        and m7['duplicados']['g_km_en_cero'] == 0
+        and _b7['g_obs'][1] > _b7['g_emp_en_cero'] and _b7['g_emp'][1] > _b7['g_emp_en_cero']):
+    sys.exit("PARADO: el módulo 7 dice que en los tres de libro cuentan todos los sitios de F y "
+             "la G sin corregir vale 0 en r = 0, y que la G corregida de las sedes vale 0 ahí y "
+             "en el primer nodo ya supera la fracción de coincidentes; el JSON ya no lo sostiene")
 MOD7 = cabecera(
     7, "Las funciones G y F", "Nearest-neighbour and empty-space functions",
     "Describir el patrón con distancias en vez de con conteos, distinguir qué "
@@ -1229,54 +1245,78 @@ MOD7 = cabecera(
 
       <p>La fila del patrón regular dice «arranca», y no «queda por debajo», a propósito: lo
         que se lee es cuándo despega cada curva, no si queda encima o debajo en todo r. Una
-        cifra por curva lo resume, la r a la que llega a la mitad, y bajo CSR la de las dos es
-        la misma. El simulador de abajo la da en su lectura.</p>
+        cifra por curva lo resume: la r a la que llega a la mitad, que es su
+        <strong>mediana</strong>. La mediana de G es la distancia a la que la mitad de los
+        puntos ya tiene su vecino; la de F, la distancia a la que la mitad de los sitios ya
+        tiene un punto. Bajo CSR las dos curvas son la misma, así que sus medianas también, y
+        esa mediana común es la vara de medir. El simulador de abajo da las tres en su
+        lectura.</p>
+
+      <p>Falta una palabra de la leyenda del simulador de abajo: <em>corregida</em>. La ventana corta el
+        patrón, y un punto cerca del borde puede tener su vecino de verdad al otro lado, donde
+        no se ha observado nada; medir hasta el más cercano de dentro le da una distancia más
+        larga que la real. A un sitio de F le pasa lo mismo. Hay dos maneras de corregirlo. La
+        primera descarta: para cada r cuenta solo los puntos, o los sitios, que quedan a más de
+        r del borde, porque su disco de radio r cabe entero en la ventana y la respuesta no
+        depende de lo que haya fuera. Se llama <strong>muestra reducida</strong>, y es la de la
+        F del simulador. La segunda no descarta ninguno: de un punto cuyo vecino queda más
+        lejos que el borde sabe al menos que su distancia verdadera es mayor que la del borde,
+        y aprovecha ese dato a medias igual que el análisis de supervivencia aprovecha a
+        un paciente que deja el estudio antes del desenlace. Es el estimador de
+        <strong>Kaplan-Meier</strong>, y es el de la G. En gris punteado va además la G sin
+        corregir, para que se vea cuánto mueve la corrección y porque en Bogotá enseña algo que
+        la corregida no. El módulo 10 vuelve sobre el borde con la función K.</p>
 
 {sim('cap4-gf', 'G y F sobre los tres regímenes y sobre Bogotá',
-     'Elige el patrón: se dibujan la G y la F observadas contra la curva que las dos tendrían bajo CSR, y en gris punteado la G sin corregir el borde. La lectura da la r a la que cada curva llega a la mitad.', 300)}
+     'Elige el patrón: se dibujan la G y la F corregidas contra la curva que las dos tendrían bajo CSR, y en gris punteado la G sin corregir. La lectura da la mediana de cada una y la de CSR, que es la misma para las dos.', 300)}
 
-      <p>Recorre los tres de libro con la lectura a la vista. En las células la mitad tiene
-        su vecina a menos de {firma(n(m7['cells']['g_mediana'], 5))}, la mitad de los sitios
-        tiene una célula a menos de {firma(n(m7['cells']['f_mediana'], 5))}, y bajo CSR las dos
-        valdrían {n(m7['cells']['csr_mediana'], 5)}: G llega tarde y F pronto. Fíjate además en
-        que la G de las células arranca tarde pero, cuando arranca, sube tan empinada que acaba
-        por encima de la de CSR, porque todas tienen su vecina a una distancia parecida. En
-        las secuoyas el orden se invierte —{n(m7['redwood']['g_mediana'], 5)},
-        {n(m7['redwood']['f_mediana'], 5)} y {n(m7['redwood']['csr_mediana'], 5)}—, y en los
-        pinos japoneses, los aleatorios, las tres casi coinciden:
-        {n(m7['japanesepines']['g_mediana'], 5)}, {n(m7['japanesepines']['f_mediana'], 5)} y
-        {n(m7['japanesepines']['csr_mediana'], 5)}.</p>
+      <p>Recorre los tres patrones de libro —células, pinos japoneses y secuoyas— con la
+        lectura a la vista, comparando cada mediana con la de CSR. En las células, la mitad tiene su vecina a menos de
+        {firma(n(m7['cells']['g_mediana'], 5))} y la mitad de los sitios tiene una célula a
+        menos de {firma(n(m7['cells']['f_mediana'], 5))}, cuando bajo CSR las dos medianas
+        valdrían {n(m7['cells']['csr_mediana'], 5)}. La de G queda por encima de la de CSR y la
+        de F por debajo: G llega tarde y F pronto, que es lo que la tabla dice del patrón
+        regular. Fíjate además en que la G de las células arranca tarde pero, cuando arranca,
+        sube tan empinada que acaba por encima de la de CSR, porque todas tienen su vecina a una
+        distancia parecida: es la segunda mitad de la fila «arranca después, y sube más
+        empinada». En las secuoyas el orden se invierte: la mediana de G es
+        {n(m7['redwood']['g_mediana'], 5)}, la de CSR {n(m7['redwood']['csr_mediana'], 5)} y la
+        de F {n(m7['redwood']['f_mediana'], 5)}. G llega pronto y F tarde, que es lo que la
+        tabla dice del agregado. Y en los pinos japoneses, los aleatorios, las tres casi
+        coinciden: {n(m7['japanesepines']['g_mediana'], 5)} la de G,
+        {n(m7['japanesepines']['f_mediana'], 5)} la de F y
+        {n(m7['japanesepines']['csr_mediana'], 5)} la de CSR.</p>
 
-      <p>Queda por decir de dónde salen los sitios de F, porque la definición dice
-        «cualesquiera» y un ordenador necesita una lista. En la práctica son una rejilla
-        regular y fina, aquí de {ent(m7['bogota']['f_rejilla'])} sitios sobre el rectángulo que
-        encierra la ventana. En los tres patrones de libro la ventana <em>es</em> ese
-        rectángulo y cuentan todos. En Bogotá no: caen dentro de la ventana urbana
-        {firma(ent(m7['bogota']['f_sitios']))}, y solo esos valen. <strong>Un sitio fuera de la
-        ventana no está vacío: está sin observar</strong>, y contarlo como hueco hundiría la F.
-        Es la lección del módulo 1 —la ventana forma parte del estimador— aplicada a los
-        sitios. Y de los de dentro, para cada r solo se usan los que quedan a más de r del
-        borde, porque para los demás la respuesta depende de lo que haya al otro lado. Esa
-        manera de corregir el borde, descartando en vez de pesar, se llama <strong>muestra
-        reducida</strong>. A
+      <p>Antes de pasar a Bogotá falta una fila de la lectura, la de los sitios de F, porque es
+        la que separa a Bogotá de los otros tres. La definición de F dice «sitios cualesquiera»,
+        y un ordenador necesita una lista: en la práctica es una rejilla regular y fina, aquí de
+        {ent(m7['bogota']['f_rejilla'])} sitios sobre el rectángulo que encierra la ventana. En
+        los tres patrones de libro la ventana <em>es</em> ese rectángulo, y cuentan todos. En
+        Bogotá no: de los {ent(m7['bogota']['f_rejilla'])}, solo
+        {firma(ent(m7['bogota']['f_sitios']))} caen dentro de la ventana urbana, y solo esos
+        valen. <strong>Un sitio fuera de la ventana no está vacío: está sin observar</strong>, y
+        contarlo como hueco hundiría la F. Es la lección del módulo 1 —la ventana forma parte del
+        estimador— aplicada a los sitios. Sobre los de dentro trabaja después la muestra
+        reducida, que va dejando fuera los que quedan cerca del borde a medida que crece r: a
         {n(m7['bogota']['r_f'][-1], 0)} m, la mayor distancia del simulador, sobreviven
         {ent(m7['bogota']['f_sitios_efectivos'])}.</p>
 
-      <p>Con esos sitios, las sedes de Bogotá leen como un patrón agregado: la mitad de las
-        sedes tiene otra a menos de {firma(n(m7['bogota']['g_mediana'], 2), ' m')} y la mitad
-        de la ventana tiene una sede a menos de {firma(n(m7['bogota']['f_mediana'], 2), ' m')},
-        cuando bajo CSR las dos serían {n(m7['bogota']['csr_mediana'], 2)} m. Pero el módulo 2
-        ya enseñó que Bogotá no tiene una sola λ, y una intensidad que cambia de una zona a otra
-        deja exactamente esa huella: vecinos cerca donde hay muchas sedes y huecos donde hay
-        pocas. Lo honesto es leerlo como <strong>exceso de vecinos cercanos y de huecos</strong>
+      <p>Pon ahora el simulador en las sedes de Bogotá. Con los sitios bien contados, las sedes
+        leen como un patrón agregado: la mitad de las sedes tiene otra a menos de
+        {firma(n(m7['bogota']['g_mediana'], 2), ' m')} y la mitad de la ventana tiene una sede a
+        menos de {firma(n(m7['bogota']['f_mediana'], 2), ' m')}, cuando bajo CSR las dos
+        medianas serían {n(m7['bogota']['csr_mediana'], 2)} m. Pero el módulo 2 ya enseñó que
+        Bogotá no tiene una sola λ, y una intensidad que cambia de una zona a otra deja
+        exactamente esa huella: vecinos cerca donde hay muchas sedes y huecos donde hay pocas.
+        Lo honesto es leerlo como <strong>exceso de vecinos cercanos y de huecos</strong>
         respecto de CSR, no como la prueba de que las sedes se atraigan.</p>
 
-      <p>Pon el simulador en las sedes, si no lo está ya, y mira la G justo en r = 0. Ahí
-        aparece algo que los patrones de libro no tienen, y que conviene mirar de frente en vez
-        de barrer debajo de la alfombra.</p>
+      <p>Sigue en las sedes y mira la última fila de la lectura, la G sin corregir en r = 0. En
+        los tres patrones de libro vale cero; en las sedes, no, y conviene mirarlo de frente en
+        vez de barrer debajo de la alfombra.</p>
 
       <div class="key-insight">
-        <p style="margin:0;">La G <em>empírica</em> de las sedes no arranca en cero: vale
+        <p style="margin:0;">La G sin corregir de las sedes no arranca en cero: vale
         {firma(n(m7['duplicados']['g_empirica_en_cero'], 6))} justo en r = 0. Eso solo puede
         pasar si hay puntos <strong>coincidentes</strong>, y los hay:
         {firma(ent(m7['bogota']['coincidentes']))} sedes —el
@@ -1288,13 +1328,20 @@ MOD7 = cabecera(
         cero.</p>
       </div>
 
-      <p>Un patrón con puntos duplicados <strong>no es un proceso puntual simple</strong>, y
-        eso rompe un supuesto de todos los estimadores de este capítulo. No se ha corregido
-        —colapsarlos cambiaría n y con él la λ que el módulo 1 publicó— y por tanto se
-        declara. El detalle fino: el estimador de Kaplan-Meier de G, que es el que corrige
-        el borde, vale {n(m7['duplicados']['g_km_en_cero'], 6)} en r = 0 <em>por
-        convenio</em>, así que la corrección y el átomo viven en el mismo punto de la curva
-        y el segundo desaparece de la vista. Por eso el capítulo dibuja las dos.</p>
+      <p>Se llama <strong>simple</strong> a un proceso puntual que nunca pone dos puntos en el
+        mismo sitio. CSR lo es, y todos los estimadores de este capítulo lo suponen; un patrón
+        con puntos duplicados <strong>no es un proceso puntual simple</strong>. No se ha
+        corregido —colapsarlos cambiaría n y con él la λ que el módulo 1 publicó— y por tanto
+        se declara.</p>
+
+      <p>Y aquí se ve para qué sirve la curva gris. La G corregida, la verde, vale
+        {n(m7['duplicados']['g_km_en_cero'], 6)} en r = 0 <em>por convenio</em> de spatstat, no
+        por el dato. Las sedes coincidentes no se pierden: la verde las cuenta en cuanto r deja
+        de ser cero, y a {n(m7['bogota']['r_g'][1], 2)} m, el primer nodo del simulador, ya vale
+        {n(m7['bogota']['g_obs'][1], 6)}. Pero las cuenta junto con las que tienen su vecina a
+        unos pocos metros, así que con la verde sola no se distingue una sede que comparte
+        edificio con otra de una que la tiene al lado. La gris sí: lo que vale en r = 0 son
+        exactamente las coincidentes. Por eso el simulador dibuja las dos.</p>
 
       <p>G y F se leen mejor juntas que por separado, y hay una función que las junta en una
         sola curva: la <strong>función J</strong> de van Lieshout y Baddeley (1996). Es el
@@ -1343,12 +1390,13 @@ MOD7 = cabecera(
         {ent(m7['bogota']['j_nodos'])} distancias: exceso de vecinos cercanos y de huecos a la
         vez, con la misma cautela que antes sobre quién lo pone. Y no arranca en 1 sino en
         {firma(n(m7['bogota']['j_en_cero'], 6))}. La G de muestra reducida es un recuento sin
-        convenio en r = 0, así que ve el átomo que Kaplan-Meier borraba: ese valor es 1 menos la
-        fracción de sedes coincidentes.</p>
+        convenio en r = 0, así que ve el átomo justo donde Kaplan-Meier marca cero: ese valor es 1
+        menos la fracción de sedes coincidentes.</p>
 
 {TABS_M7}
       <p>La primera parte de las dos pestañas cuenta el átomo de dos maneras, y las dos dan
-        {ent(m7['bogota']['coincidentes'])}: en R, leyendo la G empírica en r = 0; en Python,
+        {ent(m7['bogota']['coincidentes'])}: en R, leyendo en r = 0 la G sin corregir —la columna
+        <code>raw</code>, que el código rotula empírica—; en Python,
         contando cuántas distancias al vecino más próximo valen exactamente cero. Que la G
         de spatstat y un recuento directo den la misma cifra es lo que convierte el átomo en
         un hecho del dato y no en un artefacto del estimador. La segunda parte rehace la J de
@@ -2386,7 +2434,7 @@ SIMULADORES_JS = r"""
       const c = raiz.querySelector('.simulador-lectura');
       if (!c) return;
       c.innerHTML = pares.map(([k, v]) =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${k}</span>` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${k}</span> ` +
         `<span class="lectura-valor">${v}</span></span>`).join('');
     }
 
@@ -2633,8 +2681,9 @@ SIMULADORES_JS = r"""
         // la de F, que es la fórmula evaluada en sus nodos exactos.
         // Y LA G SIN CORREGIR, que el párrafo de Kaplan-Meier decía dibujar
         // («por eso el capítulo dibuja las dos») y no se dibujaba: estaba
-        // en el JSON y nada la leía. En los de libro va casi encima de la
-        // corregida; en Bogotá es la única que enseña el átomo en r = 0.
+        // en el JSON y nada la leía. En los de libro enseña cuánto mueve la
+        // corrección —en las células, más de una décima—; en Bogotá es la
+        // única que enseña el átomo en r = 0.
         // Va la ÚLTIMA y punteada: Chart.js pinta en orden, y debajo de la
         // verde no se veía ni el salto que justifica dibujarla.
         g.data.datasets = [
@@ -2648,15 +2697,19 @@ SIMULADORES_JS = r"""
             borderWidth: 1.5, borderDash: [2, 3], pointRadius: 0, tension: 0 }
         ];
         g.update();
+        // LAS FILAS VAN EN EL ORDEN EN QUE LAS LEE LA PROSA —las tres
+        // medianas, los sitios de F, el átomo— y se llaman como ella. Antes
+        // la CSR salía como «las dos, bajo CSR», que sin el párrafo al lado
+        // no decía qué eran esas dos.
         const dec = x => n5(x, x > 10 ? 2 : 5);
         lectura4(raiz, [
           ['patrón', d.nombre], ['n', miles4(d.n)],
+          ['mediana de G', dec(d.g_mediana)],
+          ['mediana de F', dec(d.f_mediana)],
+          ['mediana de las dos bajo CSR', dec(d.csr_mediana)],
+          ['sitios de F dentro de la ventana', miles4(d.f_sitios) + ' de ' + miles4(d.f_rejilla)],
           ['puntos coincidentes', d.coincidentes],
-          ['G sin corregir en r = 0', n5(d.g_emp_en_cero, 6)],
-          ['G llega a la mitad en r', dec(d.g_mediana)],
-          ['F llega a la mitad en r', dec(d.f_mediana)],
-          ['las dos, bajo CSR', dec(d.csr_mediana)],
-          ['sitios de F dentro de la ventana', miles4(d.f_sitios) + ' de ' + miles4(d.f_rejilla)]
+          ['G sin corregir en r = 0', n5(d.g_emp_en_cero, 6)]
         ]);
       };
       botones4(raiz, CLAVES.map((c, k) => ({ etiqueta: ETQ[k], valor: k })),
@@ -3078,10 +3131,10 @@ QUIZ_JS = r"""
         ] },
       {
         tipo: 'numerica',
-        pregunta: 'La G empírica de las sedes de Bogotá EN LA VENTANA URBANA vale 0.037494 en r = 0. ¿Cuántas de esas sedes comparten coordenada exacta con otra?',
+        pregunta: 'La G sin corregir de las sedes de Bogotá EN LA VENTANA URBANA vale ' + n5(D4.m7.duplicados.g_empirica_en_cero, 6) + ' en r = 0. ¿Cuántas de esas sedes comparten coordenada exacta con otra?',
         respuesta: D4.m7.bogota.coincidentes, tolerancia: 0.5,
-        retroAcierto: 'Son ' + D4.m7.bogota.coincidentes + ' sedes, el ' + n5(D4.m7.bogota.coincidentes_pct, 2) + ' % del patrón, con hasta ' + D4.m7.duplicados.maximo_por_sitio + ' en un mismo punto: sedes distintas en el mismo edificio. Un patrón con duplicados no es un proceso puntual simple, y el salto de G en r = 0 es exactamente esa fracción.',
-        retroFallo: 'Son ' + D4.m7.bogota.coincidentes + ' = 0.037494 × ' + miles4(D4.m7.bogota.n) + ', las sedes que caen DENTRO de la ventana urbana. Si te salió 83 multiplicaste por las ' + miles4(D4.m1.sedes_total) + ' georreferenciadas: el módulo 1 avisó de que ppp() descarta las que quedan fuera. La G es una proporción sobre la ventana, siempre.'
+        retroAcierto: 'Son ' + D4.m7.bogota.coincidentes + ' sedes, el ' + n5(D4.m7.bogota.coincidentes_pct, 2) + ' % del patrón, con hasta ' + D4.m7.duplicados.maximo_por_sitio + ' en un mismo punto: sedes distintas en el mismo edificio. Un patrón con duplicados no es un proceso puntual simple, y el salto de la G sin corregir en r = 0 es exactamente esa fracción.',
+        retroFallo: 'Son ' + D4.m7.bogota.coincidentes + ' = ' + n5(D4.m7.duplicados.g_empirica_en_cero, 6) + ' × ' + miles4(D4.m7.bogota.n) + ', las sedes que caen DENTRO de la ventana urbana. Si te salió ' + D4.m7.duplicados.con_todas_las_sedes + ' multiplicaste por las ' + miles4(D4.m1.sedes_total) + ' georreferenciadas: el módulo 1 avisó de que ppp() descarta las que quedan fuera. La G es una proporción sobre la ventana, siempre.'
       },
       {
         tipo: 'opcion',

@@ -177,6 +177,8 @@ def defectos():
     obj("5 · la G empírica en r=0 deja de ser la fracción de coincidentes",
         "datos", lambda d: d["m7"]["duplicados"].__setitem__(
             "g_empirica_en_cero", 0.0417171717))
+    obj("5 · el error de la retro deja de ser fracción × todas las sedes",
+        "datos", lambda d: d["m7"]["duplicados"].__setitem__("con_todas_las_sedes", 87))
     obj("5 · la G de Kaplan-Meier en r=0 deja de valer cero",
         "datos", lambda d: d["m7"]["duplicados"].__setitem__("g_km_en_cero", 0.0171717171))
     obj("5 · la curva teórica del histograma deja de ser la Poisson",

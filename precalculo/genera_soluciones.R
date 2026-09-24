@@ -820,6 +820,41 @@ solucion_cap2 <- function() {
   }
   sigma_max <- lo
 
+  # LA BISECCIÓN AFINA MÁS DE LO QUE EL RUIDO DEJA VER (2026-09-23). La
+  # solución publicaba 52.1484375 m como «sigma máximo admisible», y la tasa
+  # medida ahí con 100 réplicas daba 1.0036 %: por encima del requisito que
+  # el propio sigma debía cumplir. No era un error de la bisección sino de
+  # lectura. Cada tasa del barrido lleva el error de Monte Carlo de sus 40
+  # réplicas, y ocho pasos de bisección bajan el intervalo a 0.1 m, muy por
+  # debajo de lo que ese error resuelve. Medido: repetida la bisección
+  # entera con 12 semillas, el sigma despejado va de 49.9 a 53.5 m, con
+  # desviación 1.28; el error que se calcula aquí abajo da 1.3.
+  #   · el error de cada tasa sale de 400 réplicas sueltas en sigma_max:
+  #     su desviación entre raíz de 40 es la de una tasa del barrido;
+  #   · la pendiente, de los dos nodos del barrido que encierran sigma_max;
+  #   · el error del sigma es el primero entre la segunda: lo que se mueve
+  #     el cruce cuando la tasa se mueve un error.
+  # Y si el 1 % es un límite duro, se deja un margen de K_PRUDENCIA errores.
+  K_PRUDENCIA <- 2
+  rep_max <- vapply(seq_len(400L), function(k) tasa_para(sigma_max, nrep = 1L), numeric(1))
+  ee_40 <- sd(rep_max) / sqrt(40)
+  ee_400 <- sd(rep_max) / sqrt(400)
+  i_lo <- max(which(rejilla <= sigma_max))
+  pendiente <- (tasas[i_lo + 1L] - tasas[i_lo]) / (rejilla[i_lo + 1L] - rejilla[i_lo])
+  ee_sigma <- ee_40 / pendiente
+  if (!(hi - lo < ee_sigma))
+    stop("E5: la bisección ya no afina por debajo del error de Monte Carlo del sigma, ",
+         "y la lectura dice que sí")
+  if (abs(mean(rep_max) - OBJETIVO) > 2 * ee_400)
+    stop(sprintf("E5: con 400 réplicas la tasa en sigma_max es %.4f %%, a más de dos errores del 1 %%: ",
+                 100 * mean(rep_max)), "la lectura dice que cae a un lado u otro según la semilla")
+  sigma_prudente <- floor(sigma_max - K_PRUDENCIA * ee_sigma)
+  # «solo las dos primeras cifras son del dato»: un sigma de dos cifras
+  # enteras y un error del orden del metro.
+  if (!(sigma_max >= 10 && sigma_max < 100 && ee_sigma >= 0.5 && ee_sigma < 5))
+    stop(sprintf("E5: sigma %.2f m con error %.2f m: la lectura dice que solo sus dos primeras cifras son del dato",
+                 sigma_max, ee_sigma))
+
   E$e5 <- list(
     titulo = "Un requisito, y la tolerancia que implica",
     enunciado = paste(
@@ -837,24 +872,54 @@ solucion_cap2 <- function() {
       list(paso = "Sigma barridos (m)", valor = rejilla),
       list(paso = "Tasa de reasignación en cada uno (%)", valor = r10(100 * tasas)),
       list(paso = "Objetivo", valor = "1 % de reasignación"),
-      list(paso = "Sigma máximo admisible (m)", valor = r10(sigma_max))
+      list(paso = "Sigma donde se detiene la bisección (m)", valor = r10(sigma_max)),
+      list(paso = "Tasa en ese sigma, con 400 réplicas (%)", valor = r10(100 * mean(rep_max))),
+      list(paso = "Error de Monte Carlo de cada tasa del barrido, con 40 réplicas (puntos)",
+           valor = r10(100 * ee_40)),
+      list(paso = sprintf("Lo que sube la tasa por metro entre %d y %d m (puntos)",
+                          rejilla[i_lo], rejilla[i_lo + 1L]),
+           valor = r10(100 * pendiente)),
+      list(paso = "Error de Monte Carlo del sigma: el error de la tasa entre la pendiente (m)",
+           valor = r10(ee_sigma)),
+      list(paso = "Sigma máximo admisible (m)",
+           valor = sprintf("unos %d; %d si el 1 %% es un límite duro",
+                           as.integer(round(sigma_max)), as.integer(sigma_prudente)))
     ),
     solucion = list(
       n_sedes = nrow(cole), n_localidades = nrow(loc),
       objetivo_pct = 1,
       sigma_barrido_m = rejilla, tasa_pct = r10(100 * tasas),
       sigma_max_m = r10(sigma_max),
-      tasa_en_sigma_max_pct = r10(100 * tasa_para(sigma_max, nrep = 100L)),
+      tasa_en_sigma_max_pct = r10(100 * mean(rep_max)), n_replicas_control = 400L,
+      ee_tasa_40_pp = r10(100 * ee_40), ee_tasa_400_pp = r10(100 * ee_400),
+      pendiente_pp_por_m = r10(100 * pendiente),
+      ee_sigma_m = r10(ee_sigma), ancho_biseccion_m = r10(hi - lo),
+      sigma_redondeado_m = as.integer(round(sigma_max)),
+      k_prudencia = K_PRUDENCIA, sigma_prudente_m = as.integer(sigma_prudente),
       # traducido a decimales de coordenada geográfica, que es como lo
       # entrega un geocodificador
       decimales_equivalentes = r10(log10(111320 / sigma_max)),
       n_replicas = 40L
     ),
     lectura = paste(
-      "El requisito «1 % mal asignado» se traduce en una tolerancia de",
-      "unas pocas decenas de metros, que es MÁS EXIGENTE de lo que",
-      "suena y más de lo que muchos geocodificadores por dirección",
-      "garantizan. Ese es el valor del ejercicio: los requisitos se",
+      sprintf(paste(
+        "El requisito «1 %% mal asignado» se traduce en una tolerancia de",
+        "unas pocas decenas de metros, unos %d, que es MÁS EXIGENTE de lo que",
+        "suena y más de lo que muchos geocodificadores por dirección",
+        "garantizan. La bisección se detiene en %.5f m, pero de esas cifras",
+        "solo las dos primeras son del dato. Con 40 réplicas cada tasa del",
+        "barrido lleva un error de Monte Carlo de %.3f puntos —el mismo del",
+        "módulo 9—, y cerca del 1 %% la tasa sube %.4f puntos por metro, así",
+        "que el sigma despejado se mueve del orden de %.1f m de una semilla a",
+        "otra. La bisección afina hasta %.3f m, por debajo de lo que el ruido",
+        "deja ver. Por lo mismo, la tasa medida en ese sigma con 400",
+        "réplicas, %.3f %%, está pegada al 1 %% y cae a un lado u otro según la",
+        "semilla. Si el requisito es un límite duro, lo prudente es dejar %d",
+        "errores de margen: %d m."),
+        as.integer(round(sigma_max)), sigma_max, 100 * ee_40, 100 * pendiente,
+        ee_sigma, hi - lo, 100 * mean(rep_max), as.integer(K_PRUDENCIA),
+        as.integer(sigma_prudente)),
+      "Ese es el valor del ejercicio: los requisitos se",
       "escriben en unidades de resultado («1 % mal asignado») y las",
       "fuentes se compran en unidades de posición («precisión de nivel de",
       "calle»), y traducir de unas a otras es trabajo, no intuición. La",
