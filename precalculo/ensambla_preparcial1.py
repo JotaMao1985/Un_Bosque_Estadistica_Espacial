@@ -270,6 +270,8 @@ PRESENTA = {
     "c3m7_radio_simbolos":  (5, "veces"),
     "c3m8_r_mun":           (5, ""),
     "c3m8_pct_var":         (5, "%"),
+    "c3m8_n_rep":           (0, ""),
+    "c3m8_ee_max":          (5, ""),
     # --- las que citan las preguntas del bloque D, que cruzan capítulos ---
     "pos_sedes_por_pos":    (5, ""),
     "ing_vecino_mediana":   (2, "m"),
@@ -1291,9 +1293,11 @@ BLOQUE_C = [
                 "individual."),
              op("Que hace falta aumentar el número de repeticiones por escala para estabilizar "
                 "la curva.", False,
-                "El número de repeticiones no es el problema. Con muchas zonas la curva ya es "
-                "estable; con pocas, el resultado depende de verdad de cuáles sean esas zonas, y "
-                "eso no se arregla repitiendo más: es el fenómeno que el módulo mide."),
+                f"La curva ya lleva {c('c3m8_n_rep')} particiones por escala, y su error de la "
+                f"media no pasa de {c('c3m8_ee_max')} en ninguna: repetir más no la movería. Lo "
+                f"que no se estabiliza repitiendo es la dispersión entre particiones cuando hay "
+                f"pocas zonas, porque es real: depende de cuáles sean esas zonas, y es el "
+                f"fenómeno que el módulo mide."),
              op("Que la relación entre educación de la madre y puntaje se refuerza al subir de "
                 "escala.", False,
                 "Lo que sube es un número calculado sobre otras unidades. La relación entre las "

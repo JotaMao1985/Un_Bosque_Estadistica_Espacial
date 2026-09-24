@@ -555,12 +555,40 @@ print([int((d[c] == 5).sum()) for c in cols])
 # =====================================================================
 # MÓDULO 5 · Color
 # =====================================================================
-_pal = "".join(fila(p["id"], p["tipo"], n(p["dmin_normal"], 3),
-                    n(p["simulaciones"][0]["dmin"], 3),
-                    n(p["simulaciones"][0]["caida_pct"], 2) + " %",
+# La columna «Deuteranopía» de la tabla y todas las cifras de la prosa leen
+# `simulaciones[0]`: que sea de verdad la deuteranopía no se supone.
+if m5["tipos"][0] != "deuteranopia" or any(p["simulaciones"][0]["tipo"] != "deuteranopia"
+                                           for p in m5["paletas"]):
+    sys.exit("PARADO: el módulo 5 lee la deuteranopía en simulaciones[0] y ahí hay otra cosa")
+_P5 = {p["id"]: p for p in m5["paletas"]}
+# Siete columnas no caben en la caja del texto por debajo de unos 1 200 px de
+# pantalla: la tabla se desplaza, y la columna de la paleta se queda pegada a
+# la izquierda para que al llegar a «En gris» se sepa de qué fila se lee. Es
+# la receta de la tabla ancha del módulo 9 del capítulo 4: `width:100%` anula
+# el `max-content` de la plantilla en el teléfono, y `overflow:visible` deja
+# que el `sticky` se agarre al envoltorio que desplaza.
+def fila_fija(*celdas):
+    return fila(*celdas).replace('<th scope="row">',
+                                 '<th scope="row" style="position:sticky; left:0; z-index:1;">', 1)
+
+
+_pal = "".join(fila_fija(p["id"], p["tipo"], n(p["dpar_normal"], 3),
+                    n(p["simulaciones"][0]["dpar"], 3),
+                    n(p["simulaciones"][0]["caida_pct"], 2) + "&nbsp;%",
+                    n(p["gris"]["dpar"], 3),
                     n(p["rango_luminosidad"], 2))
                for p in m5["paletas"])
 _rv = m5["rojo_verde"]
+_os = m5["orden_set1"]
+_set1, _dark2, _rdylgn = _P5["Set1"], _P5["Dark2"], _P5["RdYlGn"]
+_ylorrd, _blues, _rdbu = _P5["YlOrRd"], _P5["Blues"], _P5["RdBu"]
+_par_rg = _rdylgn["simulaciones"][0]["par"]
+_suelo = m5["suelo_secuenciales"]
+# La prosa dice «bajo protanopía» del suelo de las secuenciales, y nombra a
+# Blues: si R elige otra vista u otra paleta, la frase miente.
+if _suelo["tipo"] != "protanopia" or _suelo["id"] != "Blues":
+    sys.exit(f"PARADO: el suelo de las secuenciales es ahora {_suelo['id']} bajo {_suelo['tipo']}, "
+             "y la prosa del módulo 5 dice Blues bajo protanopía")
 MOD5 = cabecera(
     5, "Color", "Colour in thematic mapping",
     "Elegir la familia de paleta que corresponde al dato, y medir —no suponer— si sobrevive al daltonismo."
@@ -585,28 +613,69 @@ MOD5 = cabecera(
         suponer que una paleta que se ve bien se ve bien <em>para todo el mundo</em>. Cerca del
         8&nbsp;% de los hombres tiene alguna forma de daltonismo, así que eso hay que medirlo.</p>
 
-      <p>Se mide con la <strong>distancia perceptual mínima entre clases contiguas</strong> en
-        CIELAB: una paleta no se rompe cuando «se ve rara», se rompe cuando dos clases vecinas
-        dejan de distinguirse. Debajo, esa distancia con visión normal y bajo deuteranopía,
-        para las siete paletas del capítulo.</p>
+      <p>Se mide con la <strong>distancia perceptual entre las dos clases más parecidas</strong>
+        de la paleta, en CIELAB: una paleta no se rompe cuando «se ve rara», se rompe cuando dos
+        de sus clases dejan de distinguirse. Y son dos clases <em>cualesquiera</em>, no solo las
+        vecinas en la leyenda. Leer un coroplético es buscar el color de cada polígono en la
+        leyenda, así que cada clase tiene que distinguirse de todas las demás; y en una
+        cualitativa el orden de la leyenda ni siquiera significa nada. Medida solo entre
+        vecinas, Set1 daría entre {firma(n(_os['contiguas_min']))} y
+        {firma(n(_os['contiguas_max']))} según en cuál de sus {ent(_os['n_ordenes'])} órdenes
+        posibles se listaran sus cinco colores —{n(_os['contiguas_brewer'])} en el de
+        ColorBrewer—. La distancia entre las dos más parecidas es la del peor de esos órdenes, y
+        no depende de ninguno.</p>
+
+      <p>CIELAB describe cada color con tres números: <strong>L*</strong>, la luminosidad, que va
+        de 0 (negro) a 100 (blanco), y dos ejes de color, uno de verde a rojo y otro de azul a
+        amarillo. La tabla da esa distancia con visión normal, bajo deuteranopía —la ceguera
+        al verde, que confunde el rojo con el verde— y <strong>en gris</strong>, que es la
+        paleta fotocopiada en blanco y negro: un gris conserva la L* del color y pierde los
+        otros dos ejes, así que en gris dos clases solo se distinguen por su claro-oscuro. La
+        última columna es cuánta L* recorre cada paleta, de su clase más clara a la más
+        oscura.</p>
 
       <div class="table-wrapper">
-        <table>
-          <caption>Distancia perceptual mínima entre clases contiguas (ΔE en CIELAB), k = 5.</caption>
-          <thead><tr><th scope="col">Paleta</th><th scope="col">Familia</th>
+        <table style="position:relative; overflow:visible; width:100%; min-width:44rem;">
+          <caption>Distancia perceptual entre las dos clases más parecidas de cada paleta (ΔE en CIELAB), k = 5.</caption>
+          <thead><tr><th scope="col" style="position:sticky; left:0; z-index:2;">Paleta</th><th scope="col">Familia</th>
             <th scope="col">Normal</th><th scope="col">Deuteranopía</th>
-            <th scope="col">Caída</th><th scope="col">Recorrido de L*</th></tr></thead>
+            <th scope="col">Caída</th><th scope="col">En gris</th>
+            <th scope="col">Recorrido de L*</th></tr></thead>
           <tbody>
 {_pal}          </tbody>
         </table>
       </div>
 
       <div class="key-insight">
-        <p style="margin:0;">La última columna explica las demás. Las paletas que sobreviven
-        son las que tienen <strong>recorrido de luminosidad</strong>: aunque el matiz colapse,
-        el claro-oscuro se conserva. Las que se hunden son las de luminosidad plana —las
-        cualitativas—, y con ellas el mapa deja de leerse.</p>
+        <p style="margin:0;">Lo que ningún daltonismo quita es el claro-oscuro, y solo las
+        <strong>secuenciales</strong> lo recorren <strong>en un único sentido</strong>, de la
+        primera clase a la última. Por eso son las únicas que sobreviven a todo: en gris y bajo
+        cualquiera de los tres tipos de daltonismo. Las que se hunden son las
+        <strong>cualitativas</strong>, que casi no recorren luminosidad, y con ellas
+        <strong>RdYlGn</strong>, una divergente cuyos dos brazos solo se distinguen por el
+        matiz: rojo o verde.</p>
       </div>
+
+      <p>La tabla lo dice con cifras. En gris, la peor secuencial conserva
+        {firma(n(m5['gris_secuenciales_min']), ' ΔE')} y todas las demás paletas quedan entre
+        {n(m5['gris_otras_min'])} y {firma(n(m5['gris_otras_max']))}. Bajo deuteranopía, las
+        dos cualitativas —Set1 recorre {n(_set1['rango_luminosidad'])} puntos de L*, y Dark2
+        {n(_dark2['rango_luminosidad'])}— bajan a {firma(n(_set1['simulaciones'][0]['dpar']))}
+        y {firma(n(_dark2['simulaciones'][0]['dpar']))}. RdYlGn baja a
+        {firma(n(_rdylgn['simulaciones'][0]['dpar']))}, y el par que pierde es el de sus clases
+        {ent(_par_rg[0])} y {ent(_par_rg[1])}: una a cada lado del centro, con casi la misma
+        luminosidad, y distintas solo en ese rojo y ese verde.</p>
+
+      <p>Que una secuencial sobreviva no quiere decir que no pierda nada. YlOrRd pierde el
+        {firma(n(_ylorrd['simulaciones'][0]['caida_pct']), ' %')} bajo deuteranopía, porque su
+        amarillo-naranja-rojo es justo el matiz que la deuteranopía confunde. Pero se queda en
+        {firma(n(_ylorrd['simulaciones'][0]['dpar']))}, casi lo mismo que Blues con visión normal
+        ({n(_blues['dpar_normal'])}): lo que conserva es su rampa de claro a oscuro. Y no toda
+        divergente se hunde: RdBu va del rojo al azul, un eje que la deuteranopía no toca, y
+        aguanta ({n(_rdbu['simulaciones'][0]['dpar'])} frente a {n(_rdbu['dpar_normal'])} con
+        visión normal). En gris, en cambio, cae a {firma(n(_rdbu['gris']['dpar']))} como las
+        otras dos divergentes, porque la luminosidad de una divergente dice cuán lejos del centro
+        está una clase, no de qué lado.</p>
 
       <p>El caso extremo se construye a propósito: un rojo y un verde <strong>a la misma
         luminosidad</strong> (L* = {n(_rv['luminosidad'][0], 2)} y
@@ -615,8 +684,12 @@ MOD5 = cabecera(
         {firma(n(_rv['dE_deuteranopia'], 5), ' ΔE')}. Un
         {firma(n(_rv['caida_pct'], 5), ' %')} menos: dejan de ser dos colores.</p>
 
-{sim('cap3-paletas', 'Las paletas bajo los tres tipos de daltonismo',
-     'Elige la paleta y el tipo de visión: las barras son la distancia perceptual entre clases contiguas.', 300)}
+{sim('cap3-paletas', 'Las paletas bajo los tres tipos de daltonismo, y en gris',
+     'Elige la vista. Cada par de barras es una paleta: en verde, la distancia entre sus dos clases más parecidas con visión normal; en naranja, la misma distancia en la vista elegida.', 300)}
+
+      <p>Recorre las cuatro vistas. La que más cae es siempre una cualitativa, y ninguna
+        secuencial baja de {firma(n(_suelo['dpar']), ' ΔE')}, que es lo que le queda a Blues bajo
+        protanopía.</p>
 
       <div class="tip-box">
         <h4>El conmutador vale para todo el material</h4>
@@ -635,32 +708,43 @@ MOD5 = cabecera(
         <button type="button" class="geomapa-boton" aria-pressed="false" data-cvd="tritanopia">Tritanopía</button>
       </div>
 
-      <p>Dos reglas prácticas para cerrar: usa paletas con recorrido de luminosidad siempre
-        que puedas —sobreviven al daltonismo y también a una fotocopia en gris—, y no confíes
-        en el matiz como único portador de información. Si el mapa deja de leerse al conmutar
-        el botón de arriba, el mapa está mal, no el lector.</p>
+      <p>Tres reglas prácticas para cerrar. Si el dato es ordenado, una secuencial: es la única
+        familia que sobrevive a todo. Si hace falta una divergente, que sus dos brazos no sean
+        rojo y verde —RdBu, no RdYlGn—, y si el mapa va a imprimirse en gris, recuerda que sus
+        dos lados se confunden. Y no confíes en el matiz como único portador de información: si
+        el mapa deja de leerse al conmutar el botón de arriba, el mapa está mal, no el
+        lector.</p>
 
 {tabs('Medir si una paleta sobrevive',
       '''library(colorspace); library(RColorBrewer)
 
-dmin &lt;- function(hex) {{
-  lab &lt;- as(hex2RGB(hex), "LAB")@coords
-  min(sqrt(rowSums((lab[-1, ] - lab[-nrow(lab), ])^2)))
-}}
+# Todas las clases contra todas: dist() da la distancia de cada par
+dpar  &lt;- function(hex) min(dist(as(hex2RGB(hex), "LAB")@coords))
+# En gris solo queda L*, la primera columna de CIELAB
+dgris &lt;- function(hex) min(dist(as(hex2RGB(hex), "LAB")@coords[, 1]))
 
-p &lt;- brewer.pal(5, "YlOrRd")
-round(dmin(p), 3)
-#&gt; [1] 24.447
-round(dmin(deutan(p, severity = 1)), 3)
-#&gt; [1] 13.125''',
+p &lt;- brewer.pal(5, "Set1")
+round(dpar(p), 3)
+#&gt; [1] 39.321
+round(dpar(deutan(p, severity = 1)), 3)
+#&gt; [1] 9.546
+round(dgris(p), 3)
+#&gt; [1] 2.248''',
       '''import sys; sys.path.insert(0, "precalculo")
-from audita_cap3 import dmin_lab, cvd    # el CIELAB y las matrices, a mano
+from audita_cap3 import dpar_lab, cvd    # el CIELAB y las matrices, a mano
 
-p = ["#FFFFB2", "#FECC5C", "#FD8D3C", "#F03B20", "#BD0026"]
-print(round(dmin_lab(p), 3))
-#&gt; 24.447
-print(round(dmin_lab(cvd(p, "deuteranopia")), 3))
-#&gt; 13.125''')}
+p = ["#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00"]    # Set1, k = 5
+print(round(dpar_lab(p), 3))
+#&gt; 39.321
+print(round(dpar_lab(cvd(p, "deuteranopia")), 3))
+#&gt; 9.546
+print(round(dpar_lab(p, gris=True), 3))
+#&gt; 2.248''')}
+
+      <p>La función es una línea porque <code>dist()</code> ya calcula la distancia de cada
+        clase con todas las demás, y basta con quedarse con la menor. Para el gris no hace falta
+        convertir ningún color: se le pasa a <code>dist()</code> solo la primera columna, la L*.
+        Las tres cifras son las de la fila de Set1 en la tabla.</p>
 """ + CIERRE
 
 
@@ -857,9 +941,23 @@ print(round(float(np.corrcoef(a, val)[0, 1]), 10))
 # =====================================================================
 # MÓDULO 8 · MAUP I — el efecto escala
 # =====================================================================
-_curva = "".join(fila(ent(c["zonas"]), n(c["media"], 5), n(c["sd"], 5))
+# Cuatro columnas de cinco decimales tampoco caben en el teléfono: la de las
+# zonas se queda fija al desplazar, con la misma receta que la del módulo 5.
+_curva = "".join(fila_fija(ent(c["zonas"]), n(c["media"], 5), n(c["sd"], 5), n(c["ee"], 5))
                  for c in m8["curva"])
 _ca = m8["cartografica"]
+_fo, _f30, _coh = m8["forma"], m8["forma_30"], m9["coherencia_curva"]
+_c5 = m8["curva"][0]
+# La prosa nombra escalas concretas: la cima con las 33 zonas del módulo 9, el
+# bache de la curva de 30 en esa misma escala, y los extremos de la dispersión
+# en la primera y la última fila de la tabla. Si una regeneración los mueve,
+# el texto diría una escala por otra.
+if not (_fo["cima_zonas"] == m9["n_zonas"] == _f30["bache_zonas"]
+        and _f30["cima_zonas"] != _fo["cima_zonas"]
+        and _fo["sd_max_zonas"] == _c5["zonas"] == m8["escalas"][0]
+        and _fo["sd_min_zonas"] == _fo["inicio_zonas"] == m8["escalas"][-1]
+        and _coh["n_rep_curva"] == m8["n_rep"]):
+    sys.exit("PARADO: la curva del módulo 8 cambió de forma y la prosa nombra sus escalas")
 MOD8 = cabecera(
     8, "MAUP I · el efecto escala", "MAUP: the scale effect",
     "Medir cómo cambia una correlación al cambiar el nivel de agregación, y entender por qué cambia."
@@ -884,23 +982,66 @@ MOD8 = cabecera(
         {firma(n(m8['subida_ind_dep_pct'], 5), ' %')}.</p>
       </div>
 
-      <p>Y ni siquiera es monótono. Si se construyen zonas intermedias —agrupando municipios
-        contiguos al azar hasta tener <em>k</em> zonas— la correlación sube, hace cima y baja:</p>
+      <p>Y ni siquiera es monótono. Para ver escalas que no existen en ningún mapa
+        administrativo se construyen zonas intermedias: se agrupan municipios contiguos al azar
+        hasta tener <em>k</em> zonas, se mide la correlación y se repite
+        {firma(ent(m8['n_rep']))} veces por escala. Leída de abajo arriba, de muchas zonas a
+        pocas, la correlación media sube de {n(_fo['inicio_media'])} con
+        {ent(_fo['inicio_zonas'])} zonas a una <strong>cima</strong> de
+        {firma(n(_fo['cima_media']))} con {ent(_fo['cima_zonas'])}, y por debajo de ahí vuelve a
+        bajar:</p>
 
       <div class="table-wrapper">
-        <table>
-          <caption>Correlación media según el número de zonas ({m8['n_rep']} particiones contiguas por escala).</caption>
-          <thead><tr><th scope="col">Zonas</th><th scope="col">r medio</th>
-            <th scope="col">Desv. típica</th></tr></thead>
+        <table style="position:relative; overflow:visible;">
+          <caption>Correlación media según el número de zonas ({ent(m8['n_rep'])} particiones contiguas por escala).</caption>
+          <thead><tr><th scope="col" style="position:sticky; left:0; z-index:2;">Zonas</th><th scope="col">r medio</th>
+            <th scope="col">Desv. típica</th><th scope="col">Error de la media</th></tr></thead>
           <tbody>
 {_curva}          </tbody>
         </table>
       </div>
 
-{sim('cap3-escala', 'La correlación en función del número de zonas',
-     'Cada punto es la media de 30 particiones contiguas aleatorias con ese número de zonas.', 300)}
+      <p>Las dos últimas columnas miden cosas distintas, y confundirlas es el error más fácil de
+        este módulo. La <strong>desviación típica</strong> es cuánto cambia la correlación de una
+        partición a otra: es real, y no baja por repetir más. El <strong>error de la
+        media</strong> es cuánto puede equivocarse la media por haber sorteado solo
+        {ent(m8['n_rep'])} particiones: es la desviación típica dividida por la raíz de ese
+        número, y ese sí baja al repetir. Una diferencia entre dos escalas que no llega a dos o
+        tres errores es ruido del sorteo, no forma de la curva. Aquí, cada paso de la subida mide
+        al menos {firma(n(_fo['z_subida_min']))} errores, y la bajada que sigue a la cima,
+        {firma(n(_fo['z_bajada']))}.</p>
 
-      <p>La causa no es magia estadística, es aritmética. Al agregar se destruye la variación
+      <div class="warning-box">
+        <h4>Con {ent(m8['n_rep_30'])} particiones, la misma curva tiene otra forma</h4>
+        <p style="margin-bottom:0;">Repite el experimento con solo {ent(m8['n_rep_30'])}
+        particiones por escala y la tabla dice otra cosa: la cima cae en
+        {ent(_f30['cima_zonas'])} zonas ({n(_f30['cima_media'])}), y en
+        {ent(_f30['bache_zonas'])} aparece un bache ({n(_f30['bache_media'])}). Es ruido. Con
+        tan pocas particiones, el error de la media en ese tramo va de {n(_f30['ee_min'])} a
+        {firma(n(_f30['ee_max']))}, y el bache mide {firma(n(_f30['z_bache_min']))} y
+        {firma(n(_f30['z_bache_max']))} errores hacia cada lado: ni siquiera dos. El módulo 9
+        mide las {ent(m9['n_zonas'])} zonas por su lado, con otras {ent(m9['n_particiones'])}
+        particiones, y da {firma(n(m9['contiguas']['media']))}, a
+        {n(_coh['z'])} errores de la curva buena. El simulador enseña las dos curvas: conmuta y
+        mira cómo la banda de la de {ent(m8['n_rep_30'])} se traga el bache entero.</p>
+      </div>
+
+{sim('cap3-escala', 'La correlación en función del número de zonas',
+     'Cada punto es la correlación media de las particiones contiguas con ese número de zonas, '
+     'y la banda sombreada, esa media más y menos dos errores. Conmuta entre '
+     + ent(m8['n_rep_30']) + ' y ' + ent(m8['n_rep']) + ' particiones por escala.', 300)}
+
+      <p>Por debajo de la cima, la media ya dice poco. Se mueve entre
+        {n(_fo['izq_media_min'])} y {n(_fo['izq_media_max'])}, pero la desviación típica entre
+        particiones pasa de {n(_fo['sd_min'])} con {ent(_fo['sd_min_zonas'])} zonas a
+        {firma(n(_fo['sd_max']))} con {ent(_fo['sd_max_zonas'])}, {firma(n(_fo['razon_sd']))}
+        veces más. Con {ent(_c5['zonas'])} zonas hay particiones que dan
+        {firma(n(_c5['max']))} y otras que dan {firma(n(_c5['min']))}, con los mismos
+        estudiantes: hasta el signo depende de por dónde pasen las fronteras. Con pocas zonas
+        importa más <em>cuáles</em> sean que <em>cuántas</em>, y esa es la segunda cara del
+        MAUP, la del módulo 9.</p>
+
+      <p>La causa de la subida no es magia estadística, es aritmética. Al agregar se destruye la variación
         <em>dentro</em> de cada unidad y solo sobrevive la que hay <em>entre</em> unidades. Con
         estos datos, la varianza entre municipios es apenas el
         {firma(n(D['m8']['pct_var_entre'], 5), ' %')} de la varianza total del puntaje: el
@@ -1640,65 +1781,97 @@ SIMULADORES_JS = f"""
       return [g];
     }};
 
-    // Módulo 5 · las paletas bajo daltonismo
+    // Módulo 5 · las paletas bajo daltonismo, y en gris
+    // Todo lo que la lectura dice viene de `m5.vistas`, resumido en R: quién
+    // cae más y cuál es la secuencial más baja no se decide aquí.
     SIMULADORES['cap3-paletas'] = function (raiz) {{
-      const P = D3.m5.paletas;
-      let iTipo = 0;
+      const P = D3.m5.paletas, V = D3.m5.vistas;
+      const NOMBRE = {{ deuteranopia: 'deuteranopía', protanopia: 'protanopía',
+                       tritanopia: 'tritanopía', gris: 'en gris' }};
+      const medida = (p, v) => v.vista === 'gris' ? p.gris
+        : p.simulaciones.find(s => s.tipo === v.vista);
+      let iv = 0;
       const ctx = raiz.querySelector('canvas').getContext('2d');
       const g = new Chart(ctx, {{
         type: 'bar',
         data: {{ labels: P.map(p => p.id), datasets: [] }},
         options: {{ responsive: true, maintainAspectRatio: false,
-          scales: {{ y: {{ beginAtZero: true, title: {{ display: true, text: 'ΔE mínimo entre clases' }} }} }} }}
+          scales: {{ y: {{ beginAtZero: true,
+                          title: {{ display: true, text: 'ΔE entre las dos clases más parecidas' }} }} }} }}
       }});
       const pinta = () => {{
+        const v = V[iv];
         g.data.datasets = [
-          {{ label: 'visión normal', data: P.map(p => p.dmin_normal), backgroundColor: C3.verde }},
-          {{ label: D3.m5.tipos[iTipo], data: P.map(p => p.simulaciones[iTipo].dmin),
+          {{ label: 'visión normal', data: P.map(p => p.dpar_normal), backgroundColor: C3.verde }},
+          {{ label: NOMBRE[v.vista], data: P.map(p => medida(p, v).dpar),
             backgroundColor: C3.naranja }}
         ];
         g.update();
-        const peor = P.slice().sort((a, b) =>
-          b.simulaciones[iTipo].caida_pct - a.simulaciones[iTipo].caida_pct)[0];
         lectura3(raiz, [
-          ['tipo simulado', D3.m5.tipos[iTipo]],
-          ['la que más cae', peor.id + ' (' + n5(peor.simulaciones[iTipo].caida_pct, 2) + ' %)'],
-          ['su recorrido de L*', n5(peor.rango_luminosidad, 2)],
-          ['rojo/verde a igual L*', n5(D3.m5.rojo_verde.caida_pct, 2) + ' % menos']
+          ['vista', NOMBRE[v.vista]],
+          ['la que más cae', v.peor + ' (' + n5(v.peor_caida_pct, 2) + ' %)'],
+          ['su familia', v.peor_tipo],
+          ['la secuencial más baja', v.secuencial_min + ' (' + n5(v.secuencial_min_dpar, 2) + ')'],
+          ['rojo/verde a igual L*, deuteranopía', n5(D3.m5.rojo_verde.caida_pct, 2) + ' % menos']
         ]);
       }};
-      botones3(raiz, D3.m5.tipos.map((t, i) => ({{ etiqueta: t, valor: i }})),
-               i => {{ iTipo = i; pinta(); }});
+      botones3(raiz, V.map((v, i) => ({{ etiqueta: NOMBRE[v.vista], valor: i }})),
+               i => {{ iv = i; pinta(); }});
       pinta();
       return [g];
     }};
 
     // Módulo 8 · la curva de escala
     SIMULADORES['cap3-escala'] = function (raiz) {{
-      const c = D3.m8.curva;
+      // Las dos curvas y su banda (media ± 2 errores) vienen de R: el
+      // navegador no suma ni resta, solo elige cuál pinta.
+      const M = D3.m8;
+      // Miles con espacio fino, como `ent()` en la prosa: `miles3` usa el
+      // formato es-ES, que no agrupa los números de cuatro cifras, y el
+      // simulador diría «5000» donde el texto dice «5 000».
+      const mil = x => String(x).replace(/\B(?=(\d{{3}})+(?!\d))/g, '\u202f');
+      let larga = true;
       const ctx = raiz.querySelector('canvas').getContext('2d');
       const g = new Chart(ctx, {{
         type: 'line',
-        data: {{ labels: c.map(x => x.zonas),
-                datasets: [
-                  {{ label: 'r medio de 30 particiones contiguas', data: c.map(x => x.media),
-                    borderColor: C3.verde, backgroundColor: 'rgba(26,115,88,.12)', tension: .3 }},
-                  {{ label: 'r con los 33 departamentos reales',
-                    data: c.map(() => D3.m8.cartografica.r_departamento),
-                    borderColor: C3.naranja, borderDash: [6, 4], pointRadius: 0 }},
-                  {{ label: 'r a nivel de estudiante', data: c.map(() => D3.m8.r_individuo),
-                    borderColor: C3.gris, borderDash: [2, 3], pointRadius: 0 }}
-                ] }},
+        data: {{ labels: M.curva.map(x => x.zonas), datasets: [] }},
         options: {{ responsive: true, maintainAspectRatio: false,
+          plugins: {{ legend: {{ labels: {{ filter: it => it.text !== '' }} }},
+                     tooltip: {{ filter: it => it.dataset.label !== '' }} }},
           scales: {{ y: {{ title: {{ display: true, text: 'correlación' }} }},
                     x: {{ title: {{ display: true, text: 'número de zonas' }} }} }} }}
       }});
-      lectura3(raiz, [
-        ['individuo', n5(D3.m8.r_individuo)],
-        ['municipio', n5(D3.m8.r_municipio)],
-        ['departamento', n5(D3.m8.r_departamento)],
-        ['varianza entre municipios', n5(D3.m8.pct_var_entre, 2) + ' %']
-      ]);
+      const pinta = () => {{
+        const c = larga ? M.curva : M.curva_30;
+        const nr = larga ? M.n_rep : M.n_rep_30;
+        const f = larga ? M.forma : M.forma_30;
+        g.data.datasets = [
+          {{ label: '', data: c.map(x => x.lo), borderColor: 'transparent',
+            pointRadius: 0, fill: false, tension: .3 }},
+          {{ label: 'media ± 2 errores', data: c.map(x => x.hi), borderColor: 'transparent',
+            backgroundColor: 'rgba(26,115,88,.18)', pointRadius: 0, fill: '-1', tension: .3 }},
+          {{ label: 'r medio, ' + mil(nr) + ' particiones', data: c.map(x => x.media),
+            borderColor: C3.verde, backgroundColor: C3.verde, tension: .3 }},
+          {{ label: 'r con los ' + M.n_departamentos + ' departamentos reales',
+            data: c.map(() => M.cartografica.r_departamento),
+            borderColor: C3.naranja, borderDash: [6, 4], pointRadius: 0 }},
+          {{ label: 'r a nivel de estudiante', data: c.map(() => M.r_individuo),
+            borderColor: C3.gris, borderDash: [2, 3], pointRadius: 0 }}
+        ];
+        g.update();
+        lectura3(raiz, [
+          ['particiones por escala', mil(nr)],
+          ['la cima', f.cima_zonas + ' zonas (' + n5(f.cima_media) + ')'],
+          larga ? ['el paso más justo de la subida', n5(f.z_subida_min, 2) + ' errores']
+                : ['el bache en ' + f.bache_zonas + ' zonas', n5(f.z_bache_max, 2) + ' errores, como mucho'],
+          ['individuo', n5(M.r_individuo)],
+          [M.n_departamentos + ' departamentos reales', n5(M.cartografica.r_departamento)]
+        ]);
+      }};
+      botones3(raiz, [{{ etiqueta: mil(M.n_rep) + ' particiones', valor: true }},
+                      {{ etiqueta: mil(M.n_rep_30) + ' particiones', valor: false }}],
+               v => {{ larga = v; pinta(); }});
+      pinta();
       return [g];
     }};
 
@@ -1855,8 +2028,8 @@ QUIZ_JS = f"""
         tipo: 'opcion',
         pregunta: 'Una paleta rojo-verde se ve perfectamente en tu pantalla. ¿Basta con eso?',
         opciones: [
-          {{ texto: 'No: hay que medir si sobrevive al daltonismo, y lo que la salva es el recorrido de luminosidad', correcta: true,
-            retro: 'Exacto. Un rojo y un verde a la MISMA luminosidad pierden el ' + n5(D3.m5.rojo_verde.caida_pct, 2) + ' % de su distancia perceptual bajo deuteranopía.' }},
+          {{ texto: 'No: hay que medir si sobrevive al daltonismo, y lo que la salva es que sus colores se distingan también por la luminosidad', correcta: true,
+            retro: 'Exacto. Un rojo y un verde a la MISMA luminosidad pierden el ' + n5(D3.m5.rojo_verde.caida_pct, 2) + ' % de su distancia perceptual bajo deuteranopía, y RdYlGn, cuyos dos brazos solo se distinguen por el rojo y el verde, baja a ' + n5(D3.m5.paletas.find(p => p.id === 'RdYlGn').simulaciones[0].dpar, 2) + '.' }},
           {{ texto: 'Sí, si los colores son suficientemente distintos',
             retro: '«Distintos» para quién. La distancia hay que medirla en un espacio perceptual y bajo la visión del lector, no de quien dibuja.' }},
           {{ texto: 'Basta con añadir una leyenda clara',

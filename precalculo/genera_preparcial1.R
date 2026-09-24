@@ -276,7 +276,9 @@ REUSA <- list(
   r("c3m8_r_mun",          "cap3",  8, "m8.r_municipio",                   "Correlación educación de la madre / puntaje, agregada a municipio"),
   r("c3m8_r_dep",          "cap3",  8, "m8.r_departamento",                "Correlación educación de la madre / puntaje, agregada a departamento"),
   r("c3m8_subida",         "cap3",  8, "m8.subida_ind_dep_pct",            "Porcentaje que sube la correlación al pasar del individuo al departamento"),
-  r("c3m8_pct_var",        "cap3",  8, "m8.pct_var_entre",                 "Porcentaje de la varianza total que vive entre municipios")
+  r("c3m8_pct_var",        "cap3",  8, "m8.pct_var_entre",                 "Porcentaje de la varianza total que vive entre municipios"),
+  r("c3m8_n_rep",          "cap3",  8, "m8.n_rep",                         "Particiones contiguas por escala en la curva del efecto escala"),
+  r("c3m8_ee_max",         "cap3",  8, "m8.forma.ee_max",                  "El mayor error de la media de esa curva, entre todas sus escalas")
 )
 
 # ---------------------------------------------------------------------

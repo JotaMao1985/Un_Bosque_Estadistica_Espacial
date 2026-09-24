@@ -964,6 +964,28 @@ MOD7 = cabecera(
       <p>Y no es un detalle de escala. Lo que cambia entre ellos es <em>qué significa una fila</em>,
         y con eso, qué significa el rezago que se calcule después.</p>
 
+      <p>Para escribirlos hace falta poca notación. \\(a_{{ij}}\\) vale 1 si \\(j\\) es vecino de
+        \\(i\\) y 0 si no —es el grafo de los módulos anteriores—; \\({{d_i = \\sum_j a_{{ij}}}}\\) es
+        el <strong>grado</strong> de \\(i\\), cuántos vecinos tiene; y
+        \\({{S_0 = \\sum_i \\sum_j a_{{ij}}}}\\) es el total de enlaces del grafo. Cada estilo es una
+        manera de convertir \\(a_{{ij}}\\) en el peso \\(w_{{ij}}\\):</p>
+
+      <div class="formula">
+        $$\\begin{{aligned}}
+          \\text{{B:}}\\quad w_{{ij}} &amp;= a_{{ij}} \\\\[4pt]
+          \\text{{W:}}\\quad w_{{ij}} &amp;= \\frac{{a_{{ij}}}}{{d_i}} \\\\[4pt]
+          \\text{{S:}}\\quad w_{{ij}} &amp;= \\frac{{n}}{{\\sum_k \\sqrt{{d_k}}}}\\,\\frac{{a_{{ij}}}}{{\\sqrt{{d_i}}}} \\\\[4pt]
+          \\text{{C:}}\\quad w_{{ij}} &amp;= \\frac{{n}}{{S_0}}\\,a_{{ij}} \\\\[4pt]
+          \\text{{U:}}\\quad w_{{ij}} &amp;= \\frac{{a_{{ij}}}}{{S_0}}
+        \\end{{aligned}}$$
+      </div>
+
+      <p>Con eso cada columna de la tabla de abajo se puede predecir antes de leerla: las filas de
+        W suman 1 porque cada una se divide por su propio grado, y C y U son la B multiplicada por
+        una constante. La S parece la más rara y es la misma idea a medias: con pesos de 0 y 1, la
+        suma de cuadrados de una fila es su grado, y por eso divide por \\(\\sqrt{{d_i}}\\) en vez de
+        por \\(d_i\\).</p>
+
 {tabla(("Estilo", "Suma de W", "Peso del vecino de la unidad de grado 10",
         "Peso del vecino de la de grado 2", "Correlación del rezago con CRIME"),
        "".join(fila({"B": "B · binaria", "W": "W · por filas", "S": "S · estabilizada",
@@ -1109,6 +1131,18 @@ MOD10 = cabecera(
       <p>Con la vecindad elegida y los pesos puestos, la operación que da sentido a todo es una
         multiplicación: <strong>Wy</strong>. Para cada unidad, la media de sus vecinos.</p>
 
+      <div class="formula">
+        $$\\begin{{aligned}}
+          (Wy)_i &amp;= \\sum_{{j=1}}^{{n}} w_{{ij}}\\, y_j \\\\[6pt]
+          \\text{{estilo W:}}\\quad &amp;= \\frac{{1}}{{d_i}} \\sum_{{j \\in N(i)}} y_j
+        \\end{{aligned}}$$
+      </div>
+
+      <p>\\(N(i)\\) son los vecinos de \\(i\\) y \\(d_i\\) cuántos son, el grado del módulo 7. La
+        primera línea vale para cualquier estilo; la segunda es la que justifica llamarlo media, y
+        solo vale con el estilo W. Con B el rezago sería la <em>suma</em> de los vecinos, que es
+        justo lo que el módulo 7 advertía.</p>
+
       <p>Es la pieza sobre la que se construye el resto del curso. El índice de Moran del capítulo 7
         es la correlación entre <em>y</em> y <em>Wy</em>; los modelos del capítulo 8 meten
         <em>Wy</em> como una variable más. Vale la pena entenderlo aquí, donde todavía es solo una
@@ -1169,13 +1203,24 @@ MOD11 = cabecera(
       <h3>Estandarizar por filas es normalizar por el grado</h3>
 
       <p>La segunda cosa que el lenguaje de grafos hace evidente es qué era el estilo W del módulo
-        7. Si <strong>A</strong> es la adyacencia binaria y <strong>D</strong> la diagonal de los
-        grados, la matriz estandarizada por filas es exactamente
-        <strong>D<sup>−1</sup>A</strong>. No se parece: <em>es</em>. El precálculo lo comprueba y la
-        diferencia máxima entre las dos matrices vale {firma(n(_C11["d_inv_a_igual_w"], 0))}.</p>
+        7. Si <strong>A</strong> es la adyacencia binaria —la matriz de los \\(a_{{ij}}\\)— y
+        <strong>D</strong> la diagonal de los grados, la matriz estandarizada por filas es
+        exactamente:</p>
 
-      <p>Y el rezago del módulo 10 es el producto <strong>W y</strong>, con la misma diferencia
-        máxima de {firma(n(_C11["lag_es_producto"], 0))} entre calcularlo con
+      <div class="formula">
+        $$\\begin{{aligned}}
+          W &amp;= D^{{-1}} A \\\\[4pt]
+          D &amp;= \\operatorname{{diag}}(d_1, \\dots, d_n)
+        \\end{{aligned}}$$
+      </div>
+
+      <p>No se parece: <em>es</em>. Multiplicar por \\(D^{{-1}}\\) a la izquierda divide cada fila
+        \\(i\\) de \\(A\\) por \\(d_i\\), que es la fórmula del estilo W. El precálculo lo comprueba
+        y la diferencia máxima entre las dos matrices vale
+        {firma(n(_C11["d_inv_a_igual_w"], 0))}.</p>
+
+      <p>Y el rezago del módulo 10 es el producto \\(Wy\\) de la matriz por el vector, con la misma
+        diferencia máxima de {firma(n(_C11["lag_es_producto"], 0))} entre calcularlo con
         <code>lag.listw</code> y multiplicar las matrices a mano.</p>
 
 {tabs("W como matriz", R11.format(**_SUB11), PY11.format(**_SUB11))}
@@ -1183,9 +1228,17 @@ MOD11 = cabecera(
 
       <p>Quien haya visto redes neuronales sobre grafos acaba de reconocer la fórmula. Una capa de
         <em>paso de mensajes</em> hace, en su versión más simple, esto: cada nodo recibe la media de
-        lo que tienen sus vecinos, y con eso actualiza su propio valor. En notación de GNN,
-        <strong>H′ = σ(D<sup>−1</sup>A H W)</strong>, donde lo de dentro es <em>exactamente</em> el
-        rezago espacial de este capítulo.</p>
+        lo que tienen sus vecinos, y con eso actualiza su propio valor. En notación de GNN:</p>
+
+      <div class="formula">
+        $$H' = \\sigma\\!\\left(D^{{-1}} A\\, H\\, \\Theta\\right)$$
+      </div>
+
+      <p>\\(H\\) tiene una fila por nodo y una columna por variable, \\(H'\\) es lo mismo después de
+        la capa, y σ es una función no lineal que se aplica casilla a casilla. \\(\\Theta\\) son los
+        parámetros que la red aprende. En esa literatura suele llamarse W, y no es la W de este
+        capítulo: aquí W es \\(D^{{-1}}A\\). Lo de dentro, \\(D^{{-1}}AH\\), es <em>exactamente</em>
+        el rezago espacial de este capítulo, calculado para cada columna de \\(H\\) a la vez.</p>
 
       <p>La correspondencia no es una analogía bonita, y tiene dos consecuencias concretas:</p>
 
@@ -1798,6 +1851,13 @@ def main() -> int:
     doc = sustituye(doc, "<title>Plantilla de capítulo — Estadística Espacial</title>",
                     "<title>Capítulo 6 · Pesos espaciales — Estadística Espacial</title>",
                     "el título")
+    doc = sustituye(doc, "PLANTILLA BASE •\n              5 MÓDULOS DE DEMOSTRACIÓN • UNBOSQUE 2026-II",
+                    "CAPÍTULO 6 • DATOS DE ÁREA Y LA MATRIZ DE PESOS ESPACIALES •\n"
+                    f"              SEMANAS {D['meta']['semanas']} • UNBOSQUE 2026-II",
+                    "el subtítulo de la cabecera")
+    doc = sustituye(doc, "Estadística Espacial (20929) • Plantilla de\n          capítulo • UnBosque 2026-II",
+                    "Estadística Espacial (20929) • Capítulo 6 de 10 •\n"
+                    f"          Semanas {D['meta']['semanas']} • UnBosque 2026-II", "el pie")
 
     doc = reemplaza_region(doc, "    const courseData = {", "\n    };\n", COURSE_DATA,
                            "courseData + DATOS_CAP6", max_lineas=20)

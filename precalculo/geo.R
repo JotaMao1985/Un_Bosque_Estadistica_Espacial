@@ -1129,13 +1129,39 @@ geo_cvd_autoprueba <- function(paleta, verbose = TRUE) {
   invisible(sum(unlist(res)))
 }
 
-#' Distancia perceptual mínima entre clases contiguas de una paleta, en CIELAB.
-#' Es la medida del módulo 5: una paleta se rompe cuando dos clases vecinas
-#' dejan de distinguirse, no cuando "se ve rara".
+#' Distancia perceptual mínima entre clases CONTIGUAS de una paleta, en CIELAB,
+#' en el orden en que vienen los colores.
+#'
+#' Fue la medida del módulo 5 del capítulo 3 hasta el 2026-09-24, y dejó de
+#' serlo porque depende de ese orden: en una cualitativa el orden de la leyenda
+#' no significa nada, y reordenar los cinco colores de Set1 movía la cifra
+#' entre 39 y 117 (en el orden de ColorBrewer, 93). Sigue aquí para medir
+#' justo eso. La medida buena es geo_paleta_par(), de abajo.
 geo_paleta_dmin <- function(hex) {
   lab <- methods::as(colorspace::hex2RGB(hex), "LAB")@coords
   if (nrow(lab) < 2) return(NA_real_)
   min(sqrt(rowSums((lab[-1, , drop = FALSE] - lab[-nrow(lab), , drop = FALSE])^2)))
+}
+
+#' El par de clases MÁS PARECIDO de una paleta, sea cual sea, en CIELAB.
+#'
+#' Es la medida del módulo 5 del capítulo 3: leer un coroplético es buscar el
+#' color de cada polígono en la leyenda, así que la paleta se rompe en cuanto
+#' DOS clases cualesquiera dejan de distinguirse, vecinas o no. Devuelve la
+#' distancia y los índices del par (i < j), porque cuál es el par es la mitad
+#' de la explicación: en una divergente es uno de cada brazo.
+#'
+#' Con `gris = TRUE` mide la misma paleta fotocopiada en blanco y negro: un gris
+#' conserva la L* del color y pierde a* y b*, así que la distancia entre dos
+#' grises es exactamente |ΔL*|.
+geo_paleta_par <- function(hex, gris = FALSE) {
+  lab <- methods::as(colorspace::hex2RGB(hex), "LAB")@coords
+  if (gris) lab <- lab[, 1, drop = FALSE]
+  if (nrow(lab) < 2) return(list(d = NA_real_, i = NA_integer_, j = NA_integer_))
+  M <- as.matrix(stats::dist(lab))
+  M[lower.tri(M, diag = TRUE)] <- Inf
+  w <- which(M == min(M), arr.ind = TRUE)[1, ]
+  list(d = min(M), i = as.integer(w[["row"]]), j = as.integer(w[["col"]]))
 }
 
 # ---------------------------------------------------------------------

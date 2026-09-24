@@ -148,6 +148,14 @@ FUENTES = [
 AFIRMACIONES = [
     ("dice que W es la decisión más consecuente y la menos justificada",
      "la menos justificada"),
+    # Las dos que entraron con las fórmulas (2026-09-24). La primera es la
+    # razón de escribir el rezago en dos renglones; la segunda deshace un
+    # choque de notación: la capa de GNN se escribía «σ(D⁻¹A H W)», con la
+    # W de los parámetros de la red en un capítulo donde W es D⁻¹A.
+    ("dice que el rezago es una media solo con el estilo W",
+     "solo vale con el estilo w"),
+    ("avisa de que la W de las GNN no es la W del capítulo",
+     "no es la w de este capítulo"),
     ("declara que las unidades están fijas y lo que varía es su valor",
      "Las unidades están donde están"),
     ("dice que la torre está contenida en la reina",
@@ -180,15 +188,27 @@ AFIRMACIONES = [
      "la elección de la arquitectura"),
 ]
 
+# EL «−» (U+2212) YA NO VA AQUÍ, y el «⁻¹» sí (2026-09-24). El menos largo
+# solo aparecía en `D<sup>−1</sup>A`, y esas dos fórmulas del módulo 11
+# pasaron a KaTeX, que escribe `D^{-1}` con el guion corriente: exigirlo
+# daría MAL sobre un capítulo intacto, la trampa que el auditor del
+# capítulo 2 dejó anotada. El canario que lo sustituye es el superíndice
+# de la pregunta del cuestionario «D⁻¹A», que sigue en el documento.
 CADENAS = [
-    "σ", "−", "×", "—", "–", "«", "»", "·", "⊆",
+    "σ", "⁻¹", "×", "—", "–", "«", "»", "·", "⊆",
     "ó", "í", "é", "ñ", "á", "¿",
     "vecindad", "contigüidad", "rezago", "grafo", "subgrafos",
     "Columbus", "Anselin", "Delaunay", "Gabriel", "San Andrés",
 ]
 
-# Las órdenes de KaTeX que este capítulo escribe de verdad.
-ORDENES: list[str] = []
+# Las órdenes de KaTeX que este capítulo escribe de verdad. Estuvo vacía
+# hasta el 2026-09-24 porque el capítulo decía toda su matemática con
+# palabras; ese día entraron las fórmulas de los cinco estilos (módulo 7),
+# el rezago (módulo 10), W = D⁻¹A y la capa de GNN (módulo 11). Si una
+# reescritura las vuelve texto plano, esto lo dice.
+ORDENES: list[str] = [
+    r"\frac", r"\sum", r"\sqrt", r"D^{-1}", r"\Theta", r"\operatorname{diag}",
+]
 
 
 def main() -> int:

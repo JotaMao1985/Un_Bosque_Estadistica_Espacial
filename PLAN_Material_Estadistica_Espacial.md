@@ -844,8 +844,8 @@ y la lección técnica —el sesgo entra por la unidad geográfica— por delant
 | 5 | Test de cuadrantes | χ², sus supuestos y **su ceguera**: dos patrones distintos con el mismo χ² |
 | 6 | El tamaño del cuadrante | Índice de dispersión; **esto es el MAUP otra vez** |
 | 7 | Distancias al vecino más próximo | Función G y función F (espacio vacío); qué distingue a cada una; su curva común bajo CSR y la función J (entra el 2026-09-17, decisión de Javier) |
-| 8 | La función K de Ripley | Y su transformación L; qué mide realmente |
-| 9 | La correlación de pares g(r) | Por qué g es más legible que K: K es acumulativa y arrastra |
+| 8 | La función K de Ripley | Y su transformación L; qué mide realmente; las piezas de su estimador y sus ventajas y desventajas (entran el 2026-09-23, a petición de Javier) |
+| 9 | La correlación de pares g(r) | Por qué g es más legible que K: K es acumulativa y arrastra; y los ocho resúmenes del capítulo lado a lado —qué cuenta cada uno, su valor bajo CSR, hacia dónde se aparta y qué no ve—, con las seis curvas sobre el mismo patrón (entra el 2026-09-24, a petición de Javier) |
 | 10 | Efectos de borde | Correcciones isotrópica, de traslación y de Ripley; qué pasa si se ignoran |
 | 11 | Envolventes de simulación | **Qué NO es un p-valor de envolvente**; inspección múltiple y test de desviación global |
 | 12 | Autoevaluación y ejercicios guiados | |
@@ -3245,6 +3245,35 @@ simuladores miden cero tinta sobre un capítulo perfecto.
 | Gerrymandering: escaños de A con el 64.00 % de los votos | **2 a 4** de 5 |
 | El estrato invierte el signo con el umbral | **-0.05765 → 0.63128** |
 | Estudiantes sin polígono en el mapa | **290** |
+
+> **2026-09-24 · dos lecturas que los datos no sostenían.** Salieron de revisar qué enunciados
+> de «umbral» o «forma» resumen una serie que no tiene esa forma.
+>
+> **El color (módulo 5).** El recuadro decía que las paletas que sobreviven al daltonismo son las
+> de recorrido de luminosidad, y que «las que se hunden son las de luminosidad plana —las
+> cualitativas—». La tabla de encima lo desmentía: bajo deuteranopía la que más caía era YlOrRd,
+> secuencial, y las dos cualitativas eran las que **mejor** aguantaban. El fallo estaba en la
+> medida, «mínimo entre clases contiguas»: en una cualitativa el orden de la leyenda es arbitrario
+> —medida así, Set1 da entre **39.32131** y **116.59600** según el orden de sus cinco colores—, y
+> en una divergente las clases que se confunden son una de cada brazo, que nunca son vecinas.
+> Javier eligió cambiar la medida al **par más parecido**, todas las clases contra todas, y añadir
+> una columna **en gris**. Con ella la regla se sostiene y se afina: en gris solo sobreviven las
+> secuenciales (**11.27995** la peor, frente a 2.06–6.17 de las demás); bajo deuteranopía se
+> hunden Set1 (**9.54576**), Dark2 (**5.88066**) y también **RdYlGn** (**6.44**), cuyos dos brazos
+> tienen la misma L* y solo se distinguen por el rojo y el verde; RdBu, divergente pero azul-rojo,
+> aguanta. Lo que salva no es el recorrido de L*, sino recorrerla **en un único sentido**. El
+> generador calcula cada frase del recuadro y para si una regeneración la desmiente.
+>
+> **La curva de escala (módulo 8).** «Sube, hace cima y baja» leía en la tabla una cima en 50
+> zonas y un bache en 33. Era ruido: con **30** particiones por escala el error de la media era de
+> 0.014–0.019, del tamaño de esas diferencias, y el bache medía **1.00** error como mucho. El
+> módulo 9 ya medía las 33 zonas con 1 000 particiones y daba 0.54182, no 0.51605. Ahora son
+> **5 000** por escala (seis minutos, en caché) con su error de la media publicado: una sola cima,
+> **0.54723** en 33 zonas, cada paso de la subida por encima de **5.06** errores. La curva de 30
+> se reproduce con su semilla —ancla contra la publicada— y el simulador enseña las dos. Por
+> debajo de la cima la desviación entre particiones se multiplica por **12.77**, y con 5 zonas
+> hay trazados que dan **-0.90812**: el puente al módulo 9. El preparcial reutiliza la curva, así
+> que se regeneró: su cima pasa a 33 zonas y la retro sobre las repeticiones cita las 5 000.
 
 ---
 
