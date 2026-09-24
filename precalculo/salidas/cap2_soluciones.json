@@ -282,8 +282,28 @@
         "valor": "1 % de reasignación"
       },
       {
-        "paso": "Sigma máximo admisible (m)",
+        "paso": "Sigma donde se detiene la bisección (m)",
         "valor": 52.1484375
+      },
+      {
+        "paso": "Tasa en ese sigma, con 400 réplicas (%)",
+        "valor": 1.0040742417
+      },
+      {
+        "paso": "Error de Monte Carlo de cada tasa del barrido, con 40 réplicas (puntos)",
+        "valor": 0.0278327387
+      },
+      {
+        "paso": "Lo que sube la tasa por metro entre 50 y 75 m (puntos)",
+        "valor": 0.0210955183
+      },
+      {
+        "paso": "Error de Monte Carlo del sigma: el error de la tasa entre la pendiente (m)",
+        "valor": 1.3193673794
+      },
+      {
+        "paso": "Sigma máximo admisible (m)",
+        "valor": "unos 52; 49 si el 1 % es un límite duro"
       }
     ],
     "solucion": {
@@ -293,17 +313,26 @@
       "sigma_barrido_m": [10, 25, 50, 75, 100, 150, 250],
       "tasa_pct": [0.1810774106, 0.5160706202, 0.892937981, 1.4203259393, 1.9861928474, 3.0771842463, 5.4198732458],
       "sigma_max_m": 52.1484375,
-      "tasa_en_sigma_max_pct": 1.0036215482,
+      "tasa_en_sigma_max_pct": 1.0040742417,
+      "n_replicas_control": 400,
+      "ee_tasa_40_pp": 0.0278327387,
+      "ee_tasa_400_pp": 0.0088014848,
+      "pendiente_pp_por_m": 0.0210955183,
+      "ee_sigma_m": 1.3193673794,
+      "ancho_biseccion_m": 0.09765625,
+      "sigma_redondeado_m": 52,
+      "k_prudencia": 2,
+      "sigma_prudente_m": 49,
       "decimales_equivalentes": 3.3293318973,
       "n_replicas": 40
     },
-    "lectura": "El requisito «1 % mal asignado» se traduce en una tolerancia de unas pocas decenas de metros, que es MÁS EXIGENTE de lo que suena y más de lo que muchos geocodificadores por dirección garantizan. Ese es el valor del ejercicio: los requisitos se escriben en unidades de resultado («1 % mal asignado») y las fuentes se compran en unidades de posición («precisión de nivel de calle»), y traducir de unas a otras es trabajo, no intuición. La traducción además no es universal: depende de la GEOMETRÍA de las unidades, así que el mismo requisito sobre municipios grandes toleraría un error mucho mayor. Es la contracara del sesgo del módulo 9."
+    "lectura": "El requisito «1 % mal asignado» se traduce en una tolerancia de unas pocas decenas de metros, unos 52, que es MÁS EXIGENTE de lo que suena y más de lo que muchos geocodificadores por dirección garantizan. La bisección se detiene en 52.14844 m, pero de esas cifras solo las dos primeras son del dato. Con 40 réplicas cada tasa del barrido lleva un error de Monte Carlo de 0.028 puntos —el mismo del módulo 9—, y cerca del 1 % la tasa sube 0.0211 puntos por metro, así que el sigma despejado se mueve del orden de 1.3 m de una semilla a otra. La bisección afina hasta 0.098 m, por debajo de lo que el ruido deja ver. Por lo mismo, la tasa medida en ese sigma con 400 réplicas, 1.004 %, está pegada al 1 % y cae a un lado u otro según la semilla. Si el requisito es un límite duro, lo prudente es dejar 2 errores de margen: 49 m. Ese es el valor del ejercicio: los requisitos se escriben en unidades de resultado («1 % mal asignado») y las fuentes se compran en unidades de posición («precisión de nivel de calle»), y traducir de unas a otras es trabajo, no intuición. La traducción además no es universal: depende de la GEOMETRÍA de las unidades, así que el mismo requisito sobre municipios grandes toleraría un error mucho mayor. Es la contracara del sesgo del módulo 9."
   },
   "meta": {
     "capitulo": 2,
     "semilla": 2026,
     "n_ejercicios": 5,
-    "generado": "2026-08-25",
+    "generado": "2026-09-24",
     "r": "R version 4.4.1 (2024-06-14)"
   }
 }

@@ -234,8 +234,16 @@ def defectos():
         lambda o: o["e3"]["solucion"].__setitem__("vn", 41))
     add("las discrepancias de E4 dejan de crecer con el umbral", "soluciones",
         lambda o: o["e4"]["solucion"]["umbrales"][0].__setitem__("discrepan", 9417))
-    add("E5 deja de cumplir su propio requisito", "soluciones",
+    add("E5 deja de estar en el cruce del 1 %", "soluciones",
         lambda o: o["e5"]["solucion"].__setitem__("tasa_en_sigma_max_pct", 4.1732))
+    add("la pendiente de E5 deja de salir del barrido", "soluciones",
+        lambda o: o["e5"]["solucion"].__setitem__("pendiente_pp_por_m", 0.0417))
+    add("el error del sigma de E5 deja de ser error entre pendiente", "soluciones",
+        lambda o: o["e5"]["solucion"].__setitem__("ee_sigma_m", 4.1732))
+    add("la bisección de E5 afina menos que el ruido", "soluciones",
+        lambda o: o["e5"]["solucion"].__setitem__("ancho_biseccion_m", 3.1732))
+    add("el sigma prudente de E5 pierde su margen", "soluciones",
+        lambda o: o["e5"]["solucion"].__setitem__("sigma_prudente_m", 41))
     add("E5 pierde la monotonía de la tasa con sigma", "soluciones",
         lambda o: o["e5"]["solucion"]["tasa_pct"].__setitem__(1, 41.732))
     add("los ejercicios pasan a ser cuatro", "soluciones",
