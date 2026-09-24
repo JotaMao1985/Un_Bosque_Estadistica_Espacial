@@ -932,6 +932,17 @@ ancla(D$m7$bogota$j_en_cero, 1 - D$m7$bogota$coincidentes / npoints(p_urb),
       "J en r=0 = 1 - fracción de sedes coincidentes", tol = 1e-6)
 if (D$m7$bogota$coincidentes == 0)
   stop("el patrón colombiano ya no tiene duplicados: el módulo 7 afirma que sí")
+# EL ERROR QUE NOMBRA LA RETRO DEL CUESTIONARIO (2026-09-23): multiplicar
+# esa fracción por TODAS las sedes georreferenciadas y no por las de la
+# ventana. La retro lo escribía a mano, «83», igual que la fracción del
+# enunciado; ahora sale de aquí, con la fracción publicada, que es la que
+# el estudiante tiene delante. Si diera lo mismo que la respuesta buena,
+# la retro no tendría error que nombrar.
+D$m7$duplicados$con_todas_las_sedes <-
+  round(D$m7$duplicados$g_empirica_en_cero * D$m1$sedes_total)
+if (D$m7$duplicados$con_todas_las_sedes == D$m7$bogota$coincidentes)
+  stop("la fracción de coincidentes por todas las sedes da las mismas coincidentes: ",
+       "la retro del cuestionario del módulo 7 ya no nombra ningún error")
 message(sprintf("  bogota: %d sedes coincidentes (%.2f %%) · G empírica(0)=%.6f, G km(0)=%.6f · máximo %d en un sitio",
                 D$m7$bogota$coincidentes, D$m7$bogota$coincidentes_pct,
                 D$m7$duplicados$g_empirica_en_cero, D$m7$duplicados$g_km_en_cero,

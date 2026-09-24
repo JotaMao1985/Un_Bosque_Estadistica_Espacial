@@ -2564,7 +2564,7 @@ SIMULADORES_JS = r"""
       const caja = raiz.querySelector('.simulador-lectura');
       if (!caja) return;
       caja.innerHTML = filas.map(f =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${f[0]}</span>` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${f[0]}</span> ` +
         `<span class="lectura-valor">${f[1]}</span></span>`).join('');
     }
 
@@ -2681,13 +2681,11 @@ SIMULADORES_JS = r"""
       const g = D1.agregacion_soporte.nc, c = AGREG_CASO();
       const mapa = () => raiz.querySelector('[data-geomapa="cap1-agregacion"]');
       const pinta = () => { const m = mapa(); if (m && m.__geomapa) m.__geomapa.dibuja(); };
-      // OJO CON LA REDACCIÓN, y no es una manía: `lectura()` pega el rótulo
-      // y el valor sin separador —`.lectura-etiqueta` no lleva margen en
-      // ningún capítulo—, así que un valor que empieza por letra se lee
-      // pegado al rótulo («la reglaemparejar por…»). Los de aquí empiezan
-      // por una cifra o por una comilla angular, que sí separan. Arreglarlo
-      // en el CSS tocaría las lecturas de los tres capítulos publicados, y
-      // eso no es de esta tarea.
+      // `lectura()` pegaba el rótulo y el valor sin separador —ninguna regla
+      // pintaba `.lectura-etiqueta`—, y por eso los valores de aquí empiezan
+      // por una cifra o por una comilla angular. Desde el 2026-09-23
+      // `lectura()` escribe un espacio entre los dos y la plantilla les da
+      // color, así que la redacción ya no tiene que esquivar nada.
       const lee = () => {
         if (agregModo === 'area') {
           lectura(raiz, [['la regla', '«repartir por área» — st_interpolate_aw'],

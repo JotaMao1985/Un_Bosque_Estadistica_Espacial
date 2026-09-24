@@ -1538,7 +1538,7 @@ SIMULADORES_JS = r"""
       const caja = raiz.querySelector('.simulador-lectura');
       if (!caja) return;
       caja.innerHTML = filas.map(f =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${f[0]}</span>` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${f[0]}</span> ` +
         `<span class="lectura-valor">${f[1]}</span></span>`).join('');
     }
 

@@ -2243,7 +2243,7 @@ JS_PREAMBULO = r"""
       const caja = raiz.querySelector('.simulador-lectura');
       if (!caja) return;
       caja.innerHTML = pares.map(p =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${p[0]}</span>` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${p[0]}</span> ` +
         `<span class="lectura-valor">${p[1]}</span></span>`).join('');
     }
 
