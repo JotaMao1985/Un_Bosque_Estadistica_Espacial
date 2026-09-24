@@ -424,9 +424,11 @@ MOD2 = cabecera(
         pantalla es la tercera —la que parece un cero—; el <code>* 1e6</code> del bloque del
         módulo 1 es justamente el paso a kilómetros cuadrados.</p>
 
-      <div class="formula-box">
-        <p>$$\\hat{{\\lambda}} = \\frac{{n}}{{|W|}} = \\frac{{{ent_mate(m1['urbana']['n'])}}}{{{n(m1['urbana']['area_km2'], 2)}\\ \\text{{km}}^2}}
-          = {n(m2['lambda_urbana_km2'], 4)}\\ \\text{{sedes/km}}^2$$</p>
+      <div class="formula">
+        $$\\begin{{aligned}}
+          \\hat{{\\lambda}} &amp;= \\frac{{n}}{{|W|}} = \\frac{{{ent_mate(m1['urbana']['n'])}}}{{{n(m1['urbana']['area_km2'], 2)}\\ \\text{{km}}^2}} \\\\[4pt]
+          &amp;= {n(m2['lambda_urbana_km2'], 4)}\\ \\text{{sedes/km}}^2
+        \\end{{aligned}}$$
       </div>
 
       <p>Ese número describe el patrón <strong>solo si λ es constante</strong>; es decir,
@@ -656,10 +658,15 @@ MOD3 = cabecera(
         esperada vale 1/(2√λ), así que el cociente ronda 1; por debajo hay agregación y por
         encima, regularidad.</p>
 
-      <div class="formula-box">
-        <p>$$R = \\frac{{\\bar{{d}}_{{\\min}}}}{{1 / (2\\sqrt{{\\lambda}})}}
-          \\qquad R &lt; 1 \\text{{ agregado}} \\qquad R \\approx 1 \\text{{ aleatorio}}
-          \\qquad R &gt; 1 \\text{{ regular}}$$</p>
+      <div class="formula">
+        $$\\begin{{gathered}}
+          R = \\frac{{\\bar{{d}}_{{\\min}}}}{{1 / (2\\sqrt{{\\lambda}})}} \\\\[8pt]
+          \\begin{{aligned}}
+            R &amp;&lt; 1 &amp;&amp; \\text{{agregado}} \\\\
+            R &amp;\\approx 1 &amp;&amp; \\text{{aleatorio}} \\\\
+            R &amp;&gt; 1 &amp;&amp; \\text{{regular}}
+          \\end{{aligned}}
+        \\end{{gathered}}$$
       </div>
 
       <p>La tabla de abajo lleva un cuarto canónico que no está dibujado arriba, los
@@ -1037,9 +1044,11 @@ MOD5 = cabecera(
         perfectamente constante cuyos puntos se agrupen rechaza igual. Guarda esta frase:
         el módulo 6 va a apoyarse en ella y una de las preguntas del capítulo la cobra.</p>
 
-      <div class="formula-box">
-        <p>$$\\chi^2 = \\sum_{{j=1}}^{{m}} \\frac{{(O_j - E_j)^2}}{{E_j}},
-          \\qquad E_j = \\lambda\\,|A_j|$$</p>
+      <div class="formula">
+        $$\\begin{{aligned}}
+          \\chi^2 &amp;= \\sum_{{j=1}}^{{m}} \\frac{{(O_j - E_j)^2}}{{E_j}} \\\\[4pt]
+          E_j &amp;= \\lambda\\,|A_j|
+        \\end{{aligned}}$$
       </div>
 
       <p>En esa suma, <em>O<sub>j</sub></em> es lo <strong>observado</strong> —los puntos
@@ -1239,16 +1248,18 @@ MOD7 = cabecera(
         Dicho de otra manera, es la fracción de la ventana que cubren los discos de radio r
         centrados en los puntos. Lo que le falta hasta 1 es el hueco.</p>
 
-      <div class="formula-box">
-        <p>$$\\hat{{G}}(r) = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} \\mathbf{{1}}\\{{d_i \\leq r\\}}
-          \\qquad
-          \\hat{{F}}(r) = \\frac{{1}}{{m}} \\sum_{{j=1}}^{{m}} \\mathbf{{1}}\\{{e_j \\leq r\\}}$$</p>
-        <p style="margin-bottom:0;">d<sub>i</sub> es la distancia del punto i a su vecino más
-          próximo, y e<sub>j</sub> la del sitio j al punto más cercano. El <strong>1</strong>
-          en negrita vale 1 si se cumple lo que va entre llaves y 0 si no, así que cada suma
-          cuenta. Son las versiones sin corregir el borde: las corregidas cambian qué casos se
-          cuentan o cuánto pesa cada uno, no qué distancia se mide.</p>
+      <div class="formula">
+        $$\\begin{{aligned}}
+          \\hat{{G}}(r) &amp;= \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} \\mathbf{{1}}\\{{d_i \\leq r\\}} \\\\[6pt]
+          \\hat{{F}}(r) &amp;= \\frac{{1}}{{m}} \\sum_{{j=1}}^{{m}} \\mathbf{{1}}\\{{e_j \\leq r\\}}
+        \\end{{aligned}}$$
       </div>
+
+      <p>\\(d_i\\) es la distancia del punto \\(i\\) a su vecino más próximo, y \\(e_j\\) la del
+        sitio \\(j\\) al punto más cercano. El \\(\\mathbf{{1}}\\) en negrita vale 1 si se cumple
+        lo que va entre llaves y 0 si no, así que cada suma cuenta. Son las versiones sin
+        corregir el borde: las corregidas cambian qué casos se cuentan o cuánto pesa cada uno,
+        no qué distancia se mide.</p>
 
       <p>Las dos tienen una curva de referencia, y es <strong>la misma</strong>. Bajo CSR, que
         un sitio no tenga ningún punto a distancia r o menos es que el disco de radio r a su
@@ -1259,8 +1270,8 @@ MOD7 = cabecera(
         es mirar desde un sitio cualquiera. El resultado tiene nombre, teorema de Slivnyak, y
         la consecuencia es que bajo CSR las dos funciones no se distinguen:</p>
 
-      <div class="formula-box">
-        <p>$$G(r) = F(r) = 1 - e^{{-\\lambda \\pi r^2}} \\qquad \\text{{bajo CSR}}$$</p>
+      <div class="formula">
+        $$G_{{\\text{{CSR}}}}(r) = F_{{\\text{{CSR}}}}(r) = 1 - e^{{-\\lambda \\pi r^2}}$$
       </div>
 
       <p>Contra esa curva común separan los regímenes en direcciones opuestas, y por eso se
@@ -1381,8 +1392,8 @@ MOD7 = cabecera(
         sola curva: la <strong>función J</strong> de van Lieshout y Baddeley (1996). Es el
         cociente entre lo que le falta a cada una para llegar a 1.</p>
 
-      <div class="formula-box">
-        <p>$$J(r) = \\frac{{1 - G(r)}}{{1 - F(r)}}$$</p>
+      <div class="formula">
+        $$J(r) = \\frac{{1 - G(r)}}{{1 - F(r)}}$$
       </div>
 
       <p>Bajo CSR G y F son la misma curva, así que J vale 1 en todo r, y esa es su ventaja:
