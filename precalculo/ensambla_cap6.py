@@ -1798,6 +1798,13 @@ def main() -> int:
     doc = sustituye(doc, "<title>Plantilla de capítulo — Estadística Espacial</title>",
                     "<title>Capítulo 6 · Pesos espaciales — Estadística Espacial</title>",
                     "el título")
+    doc = sustituye(doc, "PLANTILLA BASE •\n              5 MÓDULOS DE DEMOSTRACIÓN • UNBOSQUE 2026-II",
+                    "CAPÍTULO 6 • DATOS DE ÁREA Y LA MATRIZ DE PESOS ESPACIALES •\n"
+                    f"              SEMANAS {D['meta']['semanas']} • UNBOSQUE 2026-II",
+                    "el subtítulo de la cabecera")
+    doc = sustituye(doc, "Estadística Espacial (20929) • Plantilla de\n          capítulo • UnBosque 2026-II",
+                    "Estadística Espacial (20929) • Capítulo 6 de 10 •\n"
+                    f"          Semanas {D['meta']['semanas']} • UnBosque 2026-II", "el pie")
 
     doc = reemplaza_region(doc, "    const courseData = {", "\n    };\n", COURSE_DATA,
                            "courseData + DATOS_CAP6", max_lineas=20)
