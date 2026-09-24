@@ -60,6 +60,7 @@ from __future__ import annotations
 import json
 import pathlib
 import sys
+from statistics import NormalDist
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from audita_base import (Auditoria, audita_geomapa, carga as _carga,  # noqa: E402
@@ -511,6 +512,46 @@ def main() -> int:
     a.cierto(m10["correccion"] == "translate",
              "envolvente: la corrección viaja en el dato", m10["correccion"])
 
+    # LA BANDA LEÍDA ENTERA (M4 de la segunda revisión). El módulo leía el
+    # nivel puntual como la seguridad de la curva entera. Las 999 curvas no
+    # viajan —pesarían 4 MB—, así que lo que se comprueba es que cada cifra
+    # sea la cuenta que dice ser y que diga lo que la prosa afirma: más
+    # salidas que el nivel puntual, y más cuantos más radios se miran.
+    ts = m10["tasa_salida"]
+    a.igual(ts["nsim"], m10["nsim"], "envolvente: la tasa usa sus simulaciones")
+    a.cerca(100 * ts["fuera"] / ts["nsim"], ts["pct"],
+            "envolvente: la tasa es el % de sus salidas", 1e-6)
+    a.cerca(100 * ts["fuera_simulador"] / ts["nsim"], ts["pct_simulador"],
+            "envolvente: y la del simulador, la de las suyas", 1e-6)
+    a.igual(ts["nodos_r_simulador"], int(dentro_r.sum()),
+            "envolvente: el simulador mira los r de la curva")
+    a.cierto(ts["nodos_r"] > ts["nodos_r_simulador"],
+             "envolvente: spatstat mira más radios que el lienzo",
+             f"{ts['nodos_r']} > {ts['nodos_r_simulador']}")
+    a.cerca(ts["pct"] / m10["nivel_puntual_pct"], ts["veces_el_nivel"],
+            "envolvente: cuántas veces el nivel puntual", 1e-6)
+    a.cierto(ts["pct"] > ts["pct_simulador"] > m10["nivel_puntual_pct"],
+             "envolvente: entera se cruza más que radio a radio",
+             f"{ts['pct']:.2f} > {ts['pct_simulador']:.2f} > {m10['nivel_puntual_pct']:.2f}")
+    tg = m10["test_global"]
+    a.cerca(1 / (m10["nsim"] + 1), tg["p_minimo"], "envolvente: el p mínimo es 1/(nsim+1)", 1e-12)
+    a.cerca(tg["dclf_p"], tg["p_minimo"], "envolvente: el DCLF da el p mínimo", 1e-12)
+    a.cerca((1 + tg["mad_superan"]) / (m10["nsim"] + 1), tg["mad_p"],
+            "envolvente: el p del MAD cuenta las que lo superan", 1e-12)
+    a.cierto(tg["p_minimo"] < tg["mad_p"] < 0.05,
+             "envolvente: el MAD rechaza sin llegar al mínimo", f"p = {tg['mad_p']:g}")
+    # Dónde se desvía más la observada, releído en la rejilla publicada:
+    # tiene que caer a menos de un paso de la r que declara, y las dos
+    # dentro del tramo; las que la superan, pasado él.
+    mm = np.array(c["mmean"])
+    r_peor = float(r[np.argmax(np.abs(obs - mm))])
+    a.cierto(abs(r_peor - tg["r_mad_observada_m"]) <= float(np.diff(r).max()),
+             "envolvente: la peor desviación, a un paso de la r",
+             f"{r_peor:.1f} contra {tg['r_mad_observada_m']:.1f}")
+    a.cierto(tg["r_mad_observada_m"] <= m10["ultimo_r_fuera_m"] < tg["r_min_mad_superan_m"] <= m10["r_max_m"],
+             "envolvente: peor dentro del tramo, las otras fuera",
+             f"{tg['r_mad_observada_m']:.0f} ≤ {m10['ultimo_r_fuera_m']:.0f} < {tg['r_min_mad_superan_m']:.0f}")
+
     # -----------------------------------------------------------------
     a.titulo("10 · Conglomerado, y el Hawkes recalculado")
     # -----------------------------------------------------------------
@@ -546,6 +587,56 @@ def main() -> int:
     a.cierto(dup["cambio_maximo_pct"] < 15,
              "kppm: los duplicados no descuadran el ajuste",
              f"como mucho {dup['cambio_maximo_pct']:.1f} %")
+
+    # LA z DEL MÓDULO 9 CON CONGLOMERADO (M2 de la segunda revisión). El
+    # auditor no puede reajustar un kppm, pero sí comprobar que el reajuste
+    # es el MISMO coeficiente del módulo 9 con otro error, que cada z y cada
+    # inflación sean la división que dicen ser, y que la frase del módulo 11
+    # —en ninguno de los seis la z llega— sea cierta fila a fila.
+    tc = m11["tendencia"]
+    ce = m9["centrado"]
+    for i, nom in enumerate(tc["coeficientes"]):
+        # Si el módulo 9 perdió un error estándar —su propia comprobación lo
+        # dice más arriba—, aquí no hay con qué comparar: se informa y se
+        # sigue, que un auditor que revienta no informa de nada.
+        j = ce["nombres"].index(nom) if nom in ce["nombres"] else None
+        if not a.cierto(j is not None and j < len(ce["coef"]) and j < len(ce["ee"] or []),
+                        f"tendencia/{nom}: el módulo 9 publica con qué comparar"):
+            continue
+        a.cerca(tc["coef"][i], ce["coef"][j], f"tendencia/{nom}: el coeficiente del módulo 9", 1e-9)
+        a.cerca(tc["poisson"]["ee"][i], ce["ee"][j], f"tendencia/{nom}: el error de Poisson del 9", 1e-9)
+        a.cerca(tc["coef"][i] / tc["poisson"]["ee"][i], tc["poisson"]["z"][i],
+                f"tendencia/{nom}: la z de Poisson, recalculada", 1e-6)
+    a.cerca(NormalDist().inv_cdf(0.975), tc["z_critico"], "tendencia: el 1,96 es el cuantil 0,975", 1e-9)
+    combos = {(t["modelo"], t["correccion"]) for t in tc["ajustes"]}
+    a.igual(len(combos), 6, "tendencia: los tres modelos por las dos correcciones")
+    for t in tc["ajustes"]:
+        et = f"tendencia/{t['modelo']}/{t['correccion']}"
+        for i, nom in enumerate(tc["coeficientes"]):
+            a.cerca(tc["coef"][i] / t["ee"][i], t["z"][i], f"{et}: z de {nom}", 1e-6)
+            a.cerca(t["ee"][i] / tc["poisson"]["ee"][i], t["inflacion"][i],
+                    f"{et}: inflación de {nom}", 1e-6)
+    z_xc = [t["z"][0] for t in tc["ajustes"]]
+    inf_xc = [t["inflacion"][0] for t in tc["ajustes"]]
+    a.cerca(min(inf_xc), tc["inflacion_xc_min"], "tendencia: la menor inflación de xc", 1e-9)
+    a.cerca(max(inf_xc), tc["inflacion_xc_max"], "tendencia: la mayor inflación de xc", 1e-9)
+    a.cerca(max(abs(z) for z in z_xc), tc["z_xc_abs_max"], "tendencia: la mayor |z| de xc", 1e-9)
+    a.cierto(abs(tc["poisson"]["z"][0]) > tc["z_critico"],
+             "tendencia: con Poisson, xc pasa de 1,96",
+             f"z = {tc['poisson']['z'][0]:.2f}")
+    a.cierto(max(abs(z) for z in z_xc) < tc["z_critico"],
+             "tendencia: con conglomerado, en ninguno llega",
+             f"|z| ≤ {max(abs(z) for z in z_xc):.2f}")
+    a.cierto(min(inf_xc) > 1, "tendencia: el conglomerado infla el error",
+             f"entre {min(inf_xc):.2f} y {max(inf_xc):.2f} veces")
+    ref = [t for t in tc["ajustes"]
+           if (t["modelo"], t["correccion"]) == (tc["referencia"]["modelo"], tc["referencia"]["correccion"])]
+    if a.cierto(len(ref) == 1, "tendencia: está el ajuste de referencia"):
+        a.cerca(ref[0]["inflacion"][0] ** 2, tc["efecto_diseno"],
+                "tendencia: el efecto de diseño es la inflación²", 1e-6)
+    a.cerca(tc["n"] / tc["efecto_diseno"], tc["n_efectivo"],
+            "tendencia: el n efectivo es n entre el efecto", 1e-6)
+    a.igual(tc["n"], len(urb), "tendencia: n son las sedes del patrón urbano")
 
     h = m11["hawkes"]
     a.cerca(h["alpha"] / h["beta"], h["razon_ramificacion"],

@@ -942,6 +942,17 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
          "es otra respuesta", "tarda menos", True),
         ("desaparece que la fuente del caso trabajado no llegó",
          "La fuente no llegó", "La fuente se consultó", True),
+        # La segunda revisión (M2 y M4): la z del 9 con conglomerado y la
+        # banda leída entera. Una afirmación que desaparece y dos cifras.
+        ("desaparece que con conglomerado no hay evidencia del gradiente",
+         "del gradiente este-oeste no hay evidencia",
+         "del gradiente este-oeste la evidencia se matiza", True),
+        ("la tasa de salida de la banda leída entera, cambiada",
+         f"<strong>{f(m10['tasa_salida']['pct'], 5).replace('.', ',')} %</strong>",
+         f"<strong>{perturba(m10['tasa_salida']['pct'], 5).replace('.', ',')} %</strong>"),
+        ("el n efectivo del gradiente, cambiado",
+         f"<strong>{f(m11['tendencia']['n_efectivo'])}</strong> independientes",
+         f"<strong>{perturba(m11['tendencia']['n_efectivo'])}</strong> independientes"),
         # --- LOS MECANISMOS QUE NINGÚN CAPÍTULO HABÍA VISTO FALLAR ---
         # El arnés imprime cuántas comprobaciones se ha visto caer, y al
         # mirar la lista de este capítulo quedaban dentro de `geomapas()`

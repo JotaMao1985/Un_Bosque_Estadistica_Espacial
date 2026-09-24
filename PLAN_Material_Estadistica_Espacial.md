@@ -901,6 +901,36 @@ razón que no se ve en su llamada. El riesgo real del capítulo no es de tiempo 
 KDE se publica como imagen, y una sola superficie a 183 m de celda cuesta 39,8 KB —más de la mitad
 de lo que pesaron TODOS los mapas del capítulo 4 juntos—.
 
+> **2026-09-24 · M2 y M4 de la segunda revisión, aplicados.** Eran las dos mejoras de
+> `AUDITORIA_CONTENIDO_CAP5_R2.md` (fuera de git) que cambiaban lo que el capítulo **concluye**, no
+> cómo lo dice. Javier eligió hacer esas dos primero y dejar el resto del §5 para después.
+>
+> **M2 · la z del módulo 9.** El 9 leía en la z de `xc` (**−4.82**) evidencia de un gradiente
+> este-oeste. Esa z divide por un error estándar de Poisson —cada sede independiente— y el módulo 10
+> demuestra que no lo son. Se midió: `kppm` con la misma tendencia `~ xc + yc` devuelve los mismos
+> coeficientes, y su error, que cuenta el conglomerado, es entre **3.96** y **5.32** veces mayor
+> según el modelo y la corrección. En los seis ajustes |z| ≤ **1.22**. El 9 pasa a condicional, el
+> 10 avisa de que su veredicto alcanza hacia atrás, y el 11 publica la tabla de los seis y cierra
+> con el **efecto de diseño** del capítulo 1: 26.03 con Thomas y traslación, es decir, las 2 107
+> sedes informan del gradiente como **80.93** independientes. Guarda en R si en alguno de los seis
+> la z vuelve a pasar de 1,96, o si el reajuste deja de dar los coeficientes del 9.
+>
+> **M4 · la banda leída entera.** El 10 decía que con el nivel puntual del 0,2 % la banda «no es un
+> margen que el azar recorra con soltura»: leer el nivel puntual como el de la curva entera, lo que
+> el módulo 11 del capítulo 4 prohíbe por escrito. La envolvente de 999 pasa a guardar sus
+> simulaciones (misma semilla: la banda es idéntica, anclada a lo publicado) y se mide como allí:
+> cada curva del modelo contra la banda de las otras 998. La cruzan **77** (7.71 %, 38.5 veces el
+> nivel puntual) sobre los 512 radios de `spatstat`, y el 4.30 % sobre los 100 del simulador. El
+> DCLF da **0.001**, el mínimo; el MAD, **0.004**, porque las tres simulaciones que superan la peor
+> desviación de la observada (1 960 m, dentro del tramo) lo hacen pasados 5 650 m, donde el abanico
+> de K es más ancho. El bloque de R con 39 simulaciones enseña el mismo test (p = 1/40).
+>
+> **Lo que dejó escrito.** 30 inyecciones nuevas en `prueba_auditor_cap5.py` (familia 17), más una
+> para una laguna que venía del 2026-09-17 («vuelve dentro antes del fin del barrido» no la había
+> tumbado nadie); cuatro afirmaciones nuevas en `audita_texto_cap5.py` y tres inyecciones de prosa.
+> `ppp_kppm()` acepta `covariables`. La tabla nueva usa la receta de tabla ancha de los capítulos 3
+> y 4 (primera columna fija). **Siguen abiertas** M3 y M5–M20, salvo M12 y M17, que ya cayeron.
+
 ---
 
 ### Capítulo 6 — Datos de área y la matriz de pesos espaciales · semanas 10–11

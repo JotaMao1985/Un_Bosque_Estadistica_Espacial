@@ -454,6 +454,113 @@ def defectos():
     obj("16 · una superficie de la familia declara un modo que no existe",
         "mapas", lambda m: m["kennedy_familia"][6].__setitem__("modo", "calor"))
 
+    # --- 17. La segunda revisión, M4 y M2 (2026-09-24) -----------------
+    # M4: el módulo 10 leía el 0,2 % puntual como la seguridad de la curva
+    # entera. Cada cifra de la lectura entera es una cuenta y una
+    # afirmación, y cada una se tumba por separado.
+    def ts(d): return d["m10"]["tasa_salida"]
+    def tg(d): return d["m10"]["test_global"]
+
+    def tasa_entera_baja(d):
+        # Coherente consigo misma —el % sigue siendo el de sus salidas—, pero
+        # por debajo de la del simulador: solo cae la afirmación.
+        ts(d)["fuera"] = ts(d)["fuera_simulador"] - 3
+        ts(d)["pct"] = 100 * ts(d)["fuera"] / ts(d)["nsim"]
+        ts(d)["veces_el_nivel"] = ts(d)["pct"] / d["m10"]["nivel_puntual_pct"]
+
+    def mad_al_minimo(d):
+        tg(d)["mad_superan"] = 0
+        tg(d)["mad_p"] = 1 / (d["m10"]["nsim"] + 1)
+
+    obj("17 · la tasa de salida deja de ser el % de sus salidas",
+        "datos", lambda d: ts(d).__setitem__("pct", 13.1313131313))
+    obj("17 · la del simulador deja de ser el % de las suyas",
+        "datos", lambda d: ts(d).__setitem__("pct_simulador", 3.1313131313))
+    obj("17 · la tasa pasa a contar otras simulaciones",
+        "datos", lambda d: ts(d).__setitem__("nsim", 499))
+    obj("17 · el simulador pasa a mirar otros radios",
+        "datos", lambda d: ts(d).__setitem__("nodos_r_simulador", 131))
+    obj("17 · spatstat pasa a mirar menos radios que el lienzo",
+        "datos", lambda d: ts(d).__setitem__("nodos_r", 31))
+    obj("17 · las veces el nivel puntual dejan de cuadrar",
+        "datos", lambda d: ts(d).__setitem__("veces_el_nivel", 13.1313131313))
+    obj("17 · leída entera, la banda se cruza menos que en el lienzo",
+        "datos", tasa_entera_baja)
+    obj("17 · el p mínimo deja de ser 1/(nsim+1)",
+        "datos", lambda d: tg(d).__setitem__("p_minimo", 0.0013131313))
+    obj("17 · el DCLF deja de dar el p mínimo",
+        "datos", lambda d: tg(d).__setitem__("dclf_p", 0.0131313))
+    obj("17 · el MAD deja de contar las que lo superan",
+        "datos", lambda d: tg(d).__setitem__("mad_superan", 7))
+    obj("17 · el MAD llega al p mínimo, con su cuenta al día",
+        "datos", mad_al_minimo)
+    obj("17 · la peor desviación de la observada se aleja de su r",
+        "datos", lambda d: tg(d).__setitem__("r_mad_observada_m", 413.1313131313))
+    obj("17 · las que superan al MAD caen dentro del tramo",
+        "datos", lambda d: tg(d).__setitem__("r_min_mad_superan_m", 3131.3131313131))
+    # Una laguna que venía de antes: «vuelve dentro antes del fin del
+    # barrido» nació con el tramo (2026-09-17) y ninguna inyección la había
+    # tumbado nunca. Un tramo que acabara en el último nodo sería otra vez la
+    # cola que la prosa dejó de contar.
+    obj("17 · el tramo de fuera llega hasta el final del barrido",
+        "datos", lambda d: d["m10"].__setitem__("ultimo_r_fuera_m", d["m10"]["r_max_m"]))
+
+    # M2: la z del módulo 9, reajustada con conglomerado en el 11.
+    def tc(d): return d["m11"]["tendencia"]
+
+    def un_ajuste_pasa(d):
+        # Un ajuste cuyo error solo se infla al doble: coherente en su z, su
+        # inflación y el máximo publicado, y con |z| por encima de 1,96.
+        t = tc(d)["ajustes"][0]
+        t["ee"][0] = 2 * tc(d)["poisson"]["ee"][0]
+        t["z"][0] = tc(d)["coef"][0] / t["ee"][0]
+        t["inflacion"][0] = 2.0
+        tc(d)["inflacion_xc_min"] = 2.0
+        tc(d)["z_xc_abs_max"] = abs(t["z"][0])
+
+    def no_infla(d):
+        t = tc(d)["ajustes"][1]
+        t["ee"][0] = 0.9 * tc(d)["poisson"]["ee"][0]
+        t["z"][0] = tc(d)["coef"][0] / t["ee"][0]
+        t["inflacion"][0] = 0.9
+        tc(d)["inflacion_xc_min"] = 0.9
+        tc(d)["z_xc_abs_max"] = abs(t["z"][0])
+
+    obj("17 · el coeficiente de xc del 11 deja de ser el del 9",
+        "datos", lambda d: tc(d)["coef"].__setitem__(0, -0.0313131313))
+    obj("17 · el error de Poisson de xc deja de ser el del 9",
+        "datos", lambda d: tc(d)["poisson"]["ee"].__setitem__(0, 0.0061313131))
+    obj("17 · la z de Poisson de yc deja de ser su división",
+        "datos", lambda d: tc(d)["poisson"]["z"].__setitem__(1, -1.3131313131))
+    obj("17 · el 1,96 deja de ser el cuantil 0,975",
+        "datos", lambda d: tc(d).__setitem__("z_critico", 1.6448536270))
+    obj("17 · un ajuste de conglomerado desaparece",
+        "datos", lambda d: tc(d).__setitem__("ajustes", tc(d)["ajustes"][:5]))
+    obj("17 · la z de xc de un ajuste deja de ser su división",
+        "datos", lambda d: tc(d)["ajustes"][2]["z"].__setitem__(0, -0.7131313131))
+    obj("17 · la inflación de yc de un ajuste deja de ser su división",
+        "datos", lambda d: tc(d)["ajustes"][4]["inflacion"].__setitem__(1, 7.1313131313))
+    obj("17 · la menor inflación de xc cambia",
+        "datos", lambda d: tc(d).__setitem__("inflacion_xc_min", 2.1313131313))
+    obj("17 · la mayor inflación de xc cambia",
+        "datos", lambda d: tc(d).__setitem__("inflacion_xc_max", 6.1313131313))
+    obj("17 · la mayor |z| de xc cambia",
+        "datos", lambda d: tc(d).__setitem__("z_xc_abs_max", 1.3131313131))
+    obj("17 · con Poisson, xc deja de pasar de 1,96",
+        "datos", lambda d: tc(d)["poisson"]["z"].__setitem__(0, -1.5131313131))
+    obj("17 · un ajuste de conglomerado vuelve a pasar de 1,96",
+        "datos", un_ajuste_pasa)
+    obj("17 · un ajuste de conglomerado deja de inflar el error",
+        "datos", no_infla)
+    obj("17 · la referencia del efecto de diseño no está entre los ajustes",
+        "datos", lambda d: tc(d)["referencia"].__setitem__("modelo", "Poisson"))
+    obj("17 · el efecto de diseño deja de ser la inflación al cuadrado",
+        "datos", lambda d: tc(d).__setitem__("efecto_diseno", 31.3131313131))
+    obj("17 · el n efectivo deja de ser n entre el efecto",
+        "datos", lambda d: tc(d).__setitem__("n_efectivo", 131.3131313131))
+    obj("17 · n deja de ser las sedes del patrón urbano",
+        "datos", lambda d: tc(d).__setitem__("n", 2113))
+
     return D
 
 
@@ -474,6 +581,10 @@ def tipo(n: str) -> str:
     n = re.sub(r"con sigma=[\d.]+ m", "con sigma=S m", n)
     n = re.sub(r"^ejercicios/e\d", "ejercicios/eN", n)
     n = re.sub(r"^kppm/\w+", "kppm/<modelo>", n)
+    # La z con conglomerado del módulo 11: seis ajustes y dos coeficientes
+    # repiten la misma división; atacar una prueba las doce.
+    n = re.sub(r"^tendencia/\w+/\w+: (z|inflación) de \w+", r"tendencia/<ajuste>: \1 de <coef>", n)
+    n = re.sub(r"^tendencia/(xc|yc):", "tendencia/<coef>:", n)
     n = re.sub(r"en (bei/elev|bei/grad|bogotá)$", "en <covariable>", n)
     n = re.sub(r"^(está e\d)", "está eN", n)
     n = re.sub(r"ejercicios: está e\d", "ejercicios: está eN", n)

@@ -250,6 +250,18 @@ AFIRMACIONES = [
      "reproduce por construcción la tendencia"),
     ("da el veredicto del diagnóstico",
      "no explica que los colegios estén cerca"),
+    # La segunda revisión (M2 y M4, 2026-09-24): el 9 leía su z como si las
+    # sedes fueran independientes, y el 10 leía el nivel puntual como el de
+    # la curva entera. Si una reescritura borra el condicional o la lectura
+    # entera, el capítulo vuelve a afirmar lo que su propio módulo 10 tumba.
+    ("declara que la z del módulo 9 depende del supuesto de independencia",
+     "el condicional va a propósito"),
+    ("dice que el nivel puntual no es la seguridad de la curva entera",
+     "la seguridad de la curva entera"),
+    ("declara que con conglomerado no hay evidencia del gradiente",
+     "del gradiente este-oeste no hay evidencia"),
+    ("dice que el error de Poisson contesta otra pregunta",
+     "es la respuesta a otra pregunta"),
     ("declara que cambiar la corrección de kppm no es un acelerón sino otra respuesta",
      "es otra respuesta"),
     ("dice que el contraste mínimo ajusta el modelo a una estimación de K",

@@ -958,10 +958,17 @@ CORR_ENV <- PPP_CORR   # traslación: la misma que el capítulo 4, y por lo mism
 # se sale igual, hace falta otra cosa —y esa otra cosa es el módulo 11—.
 #
 # Es una pregunta con respuesta, no retórica, y la respuesta se mide.
-env_inh <- cacheado(sprintf("env_kinhom_%d_%s", NSIM_ENV, CORR_ENV), {
+#
+# LAS SIMULACIONES SE GUARDAN DESDE EL 2026-09-24, y por la segunda
+# revisión del capítulo (M4): el módulo leía el nivel puntual de la banda
+# —0,2 %— como si fuera el de la curva entera, que es justo lo que el
+# módulo 11 del capítulo 4 prohibió por escrito y midió. Para medirlo aquí
+# hacen falta las 999 curvas, y con la misma semilla la banda es la misma:
+# las anclas de abajo lo comprueban contra lo publicado antes del cambio.
+env_inh <- cacheado(sprintf("env_kinhom_%d_%s_simfuns", NSIM_ENV, CORR_ENV), {
   set.seed(SEM_ENV)
   envelope(f_centr, Kinhom, nsim = NSIM_ENV, correction = CORR_ENV,
-           verbose = FALSE, savefuns = FALSE)
+           verbose = FALSE, savefuns = TRUE)
 })
 
 rg_env <- ppp_rejilla_r(env_inh, N_R <- 101L)
@@ -992,6 +999,93 @@ if (!all(diff(i_fuera) == 1L))
   stop(sprintf("el tramo fuera de la banda ya no es contiguo (%d nodos sueltos): el módulo 10 lo cuenta como un intervalo con principio y final",
                sum(diff(i_fuera) != 1L)))
 
+# La banda de antes y la de ahora son la misma: lo publicado hasta el
+# 2026-09-24 salió de la envolvente sin simulaciones guardadas.
+ancla(pct_fuera, 62, "el % de radios fuera de banda, contra lo publicado antes de guardar las simulaciones", tol = 1e-9)
+ancla(min(rg_env[dentro_r][fuera[dentro_r]]), 58.6811573302,
+      "el primer radio fuera, contra lo publicado", tol = 1e-8)
+ancla(max(rg_env[dentro_r][fuera[dentro_r]]), 3638.2317544705,
+      "el último radio fuera, contra lo publicado", tol = 1e-8)
+
+# --- LA BANDA LEÍDA ENTERA (M4 de la segunda revisión) ----------------
+# El 0,2 % es la probabilidad de que UNA curva del modelo se salga de la
+# banda EN UN RADIO DADO. Mirar la curva entera y decir «se sale» es
+# preguntar por CUALQUIER radio, y eso ocurre mucho más. Se mide igual que
+# el capítulo 4, sobre las simulaciones ya guardadas y sin simular nada
+# más: cada una se compara con la banda de las OTRAS 998 —la banda por
+# defecto es su mínimo y su máximo, así que contra la de las 999 ninguna
+# se saldría nunca—, y se sale en un radio si es la máxima o la mínima
+# estricta de esa fila.
+#
+# Se mide en las dos rejillas, porque la cifra depende de cuántos radios se
+# miren: los que spatstat calcula y los 101 que dibuja el simulador.
+sale_loo <- function(M) {
+  sale <- logical(ncol(M))
+  for (i in seq_len(nrow(M))) {
+    o <- order(M[i, ]); k <- length(o)
+    if (M[i, o[k]] > M[i, o[k - 1L]]) sale[o[k]] <- TRUE
+    if (M[i, o[1L]] < M[i, o[2L]])    sale[o[1L]] <- TRUE
+  }
+  sale
+}
+simf <- as.data.frame(attr(env_inh, "simfuns"))
+if (ncol(simf) - 1L != NSIM_ENV)
+  stop("la envolvente no trae sus simulaciones: la tasa de salida del módulo 10 no se puede medir")
+M_sim <- as.matrix(simf[, -1L])
+ok_sim <- simf$r > 0 & apply(M_sim, 1, function(z) all(is.finite(z)))
+sale_nativa <- sale_loo(M_sim[ok_sim, , drop = FALSE])
+M_101 <- vapply(seq_len(NSIM_ENV), function(j)
+  approx(simf$r, M_sim[, j], xout = rg_env, rule = 2)$y, numeric(length(rg_env)))
+sale_101 <- sale_loo(M_101[dentro_r, , drop = FALSE])
+nivel_pct <- 100 * 2 / (NSIM_ENV + 1)
+tasa <- list(
+  nsim = NSIM_ENV,
+  nodos_r = sum(ok_sim), fuera = sum(sale_nativa),
+  pct = r10(100 * mean(sale_nativa)),
+  nodos_r_simulador = sum(dentro_r), fuera_simulador = sum(sale_101),
+  pct_simulador = r10(100 * mean(sale_101)),
+  veces_el_nivel = r10(100 * mean(sale_nativa) / nivel_pct))
+# Lo que la prosa afirma: leída entera, la banda se cruza muchas más veces
+# que su nivel puntual, y más cuantos más radios se miran.
+if (!(tasa$pct > tasa$pct_simulador && tasa$pct_simulador > nivel_pct))
+  stop(sprintf("la tasa de salida ya no ordena nativa > simulador > nivel puntual (%.2f, %.2f, %.2f): el módulo 10 lo afirma",
+               tasa$pct, tasa$pct_simulador, nivel_pct))
+
+# Y los tests que SÍ contrastan la curva entera, con las MISMAS 999. El
+# DCLF integra el cuadrado de la desviación; el MAD toma la mayor. En K la
+# mayor desviación está donde el abanico de las simulaciones es más ancho
+# —los radios largos, módulo 8 del capítulo 4—, y ahí es donde la
+# observada ya ha vuelto a la banda. Por eso el MAD no llega al p mínimo:
+# unas pocas simulaciones se alejan en los radios largos más de lo que la
+# observada se aleja en su peor radio. Se publica el porqué, no solo el p.
+t_dclf <- dclf.test(env_inh); t_mad <- mad.test(env_inh)
+p_min  <- 1 / (NSIM_ENV + 1)
+mm_nat <- env_inh$mmean
+r_mad_obs <- simf$r[which.max(abs(env_inh$obs - mm_nat))]
+# La desviación de cada simulación contra la media de las OTRAS, que es
+# como la mide `mad.test` (leave-one-out).
+dev_loo <- vapply(seq_len(NSIM_ENV), function(j) {
+  ref <- (mm_nat * NSIM_ENV - M_sim[, j]) / (NSIM_ENV - 1)
+  d <- abs(M_sim[, j] - ref); d[!is.finite(d)] <- 0
+  c(max(d), simf$r[which.max(d)])
+}, numeric(2))
+mad_obs <- max(abs(env_inh$obs - mm_nat), na.rm = TRUE)
+superan <- dev_loo[1, ] >= mad_obs
+test_global <- list(
+  dclf_p = pval(t_dclf$p.value), mad_p = pval(t_mad$p.value), p_minimo = r10(p_min),
+  r_mad_observada_m = r10(r_mad_obs),
+  mad_superan = sum(superan),
+  r_min_mad_superan_m = r10(min(dev_loo[2, superan])))
+if (abs(test_global$dclf_p - p_min) > 1e-12)
+  stop("el DCLF ya no da el p mínimo: el módulo 10 dice que ninguna de las 999 se aleja tanto")
+if (!(test_global$mad_p > p_min && test_global$mad_p < 0.05))
+  stop("el MAD dejó de quedar entre el p mínimo y 0,05: el módulo 10 explica por qué no llega al mínimo")
+if (abs(test_global$mad_p - (1 + test_global$mad_superan) / (NSIM_ENV + 1)) > 1e-12)
+  stop("las simulaciones que superan al MAD observado no cuadran con su p: la cuenta de fuera no es la de mad.test")
+if (!(r_mad_obs < max(rg_env[dentro_r][fuera[dentro_r]]) &&
+      test_global$r_min_mad_superan_m > max(rg_env[dentro_r][fuera[dentro_r]])))
+  stop("la peor desviación de la observada ya no cae dentro del tramo, o las que la superan ya no caen pasado él: el porqué del MAD cambió")
+
 D$m10 <- list(
   modelo = "ppm(~ xc + yc), coordenadas centradas",
   nsim = NSIM_ENV, correccion = CORR_ENV,
@@ -1016,12 +1110,19 @@ D$m10 <- list(
   # propio dato— y la media comete el mismo sesgo.
   mmean_vs_teorica_pct = r10(100 * max(abs(
     mme[dentro_r] / (pi * rg_env[dentro_r]^2) - 1))),
+  # La banda leída entera: cuántas curvas del PROPIO modelo la cruzan en
+  # algún radio, y los dos tests que sí contrastan la curva entera.
+  tasa_salida = tasa,
+  test_global = test_global,
   # La lectura, que es lo que el módulo tiene que dejar dicho.
   veredicto = "la intensidad variable no explica la agregación: hace falta un proceso de conglomerado")
 
 message(sprintf("   K inhomogénea fuera de la banda en el %.1f%% de los r, de %.0f a %.0f m (y dentro en los %d nodos siguientes)",
                 pct_fuera, D$m10$primer_r_fuera_m, D$m10$ultimo_r_fuera_m,
                 D$m10$nodos_dentro_tras_el_tramo))
+message(sprintf("   leída entera, la cruzan %d de %d curvas del modelo (%.2f %%, %.1f veces el nivel puntual; %.2f %% en los %d radios del simulador) · DCLF p=%.4g · MAD p=%.4g",
+                tasa$fuera, tasa$nsim, tasa$pct, tasa$veces_el_nivel, tasa$pct_simulador,
+                tasa$nodos_r_simulador, test_global$dclf_p, test_global$mad_p))
 
 # =====================================================================
 # MÓDULO 11 · Procesos de conglomerado, Cox y autoexcitados
@@ -1097,6 +1198,62 @@ cambio_max <- max(unlist(lapply(dup_efecto, function(d) unlist(d$cambio_pct))))
 if (cambio_max > 15)
   stop(sprintf("los duplicados mueven un parámetro un %.1f %%: ya no es cierto que no descuadren el ajuste", cambio_max))
 
+# --- LA z DEL MÓDULO 9, CON LOS CONGLOMERADOS DENTRO (2026-09-24) -----
+# El módulo 9 leyó en la z de `xc` evidencia de un gradiente este-oeste.
+# Esa z divide por un error estándar de POISSON, que supone cada sede
+# independiente de las demás, y el módulo 10 acaba de medir que no lo son.
+# La segunda revisión del capítulo lo dejó anotado (M2) y nadie lo decía.
+# Se midió, y no es un matiz: el error se multiplica por cinco y la z cae
+# por debajo de 1,96. La frase del módulo 9 era falsa bajo el modelo con
+# el que el propio capítulo termina.
+#
+# `kppm` con la MISMA tendencia devuelve los MISMOS coeficientes —ajusta
+# primero el Poisson y encima el conglomerado—, y su `vcov()` ya cuenta
+# con la correlación entre parejas que el conglomerado implica. Se mide
+# con los tres modelos y las dos correcciones, porque este módulo enseña
+# que la corrección mueve los parámetros de conglomerado, y son esos los
+# que inflan el error: con la isotrópica, la inflación es menor. Si en
+# alguno de los seis la z volviera a pasar de 1,96, «en ninguno llega»
+# sería falso, y esto para. Las tres isotrópicas cuestan 127 s cada una:
+# se cachean los números, no el objeto.
+Z_CRIT <- qnorm(0.975)
+co_p <- unname(coef(f_centr)); ee_p <- unname(sqrt(diag(vcov(f_centr))))
+tend_cong <- list()
+for (m in MODELOS) for (cr in CORRS) {
+  aj <- cacheado(sprintf("kppm_tendencia_xcyc_%s_%s", tolower(m), cr), {
+    k <- ppp_kppm(p_urb, m, cr, tendencia = ~ xc + yc, covariables = COVS)
+    list(coef = unname(coef(k$ajuste)), ee = unname(sqrt(diag(vcov(k$ajuste)))),
+         segundos = k$segundos)
+  })
+  if (max(abs(aj$coef - co_p)) > 1e-8)
+    stop(sprintf("kppm %s/%s no reproduce los coeficientes del ppm del módulo 9 (difieren %.2g): ya no es la misma tendencia con otro error",
+                 m, cr, max(abs(aj$coef - co_p))))
+  # Los segundos se cachean y NO se publican: ninguna página los lee, y un
+  # campo que nadie lee es una afirmación que nadie vigila.
+  tend_cong[[paste(m, cr, sep = "/")]] <- list(
+    modelo = m, correccion = cr,
+    ee = r10(aj$ee[2:3]), z = r10(aj$coef[2:3] / aj$ee[2:3]),
+    inflacion = r10(aj$ee[2:3] / ee_p[2:3]))
+}
+z_xc   <- vapply(tend_cong, function(f) f$z[1], numeric(1))
+inf_xc <- vapply(tend_cong, function(f) f$inflacion[1], numeric(1))
+if (!(abs(co_p[2] / ee_p[2]) > Z_CRIT))
+  stop("con errores de Poisson la z de xc ya no pasa de 1,96: el módulo 9 ya no lee ahí evidencia, y el 11 no tiene qué desmentir")
+if (any(abs(z_xc) >= Z_CRIT))
+  stop(sprintf("con conglomerado la z de xc pasa de 1,96 en %s: el módulo 11 dice que en ninguno llega",
+               paste(names(z_xc)[abs(z_xc) >= Z_CRIT], collapse = ", ")))
+if (any(inf_xc <= 1))
+  stop("el conglomerado no infló el error de xc en algún ajuste: el módulo 11 dice que lo multiplica")
+# El efecto de diseño del capítulo 1, con el ajuste de referencia del
+# capítulo (Thomas, traslación): la varianza del coeficiente se multiplica
+# por el cuadrado de la inflación, y las sedes informan del gradiente como
+# n / ese factor sedes independientes.
+t_ref <- tend_cong[[paste("Thomas", PPP_CORR, sep = "/")]]
+deff  <- t_ref$inflacion[1]^2
+message(sprintf("   la z de xc: %.2f con Poisson, entre %.2f y %.2f con conglomerado (error x%.2f a x%.2f); %d sedes informan como %.1f",
+                co_p[2] / ee_p[2], min(z_xc), max(z_xc), min(inf_xc), max(inf_xc),
+                npoints(p_urb), npoints(p_urb) / deff))
+
 # --- HAWKES: el conglomerado en el TIEMPO ------------------------------
 # La conexión con ciencia de datos que pide el plan: fraude y sismología.
 # Un proceso autoexcitado no es un Poisson con intensidad variable —donde
@@ -1147,6 +1304,16 @@ D$m11 <- list(
     efecto = dup_efecto, cambio_maximo_pct = r10(cambio_max),
     que = "la decisión 3 del capítulo 4 conservó los duplicados; aquí se mide qué le hacen a un ajuste, y la respuesta es casi nada"),
   nota = "kppm pide K con el correction por defecto, que en ventana no rectangular es la isotrópica; cambiarlo no es un acelerón, es otra respuesta",
+  tendencia = list(
+    que = "la tendencia ~ xc + yc del módulo 9, reajustada con kppm: los mismos coeficientes, con errores que cuentan el conglomerado",
+    n = npoints(p_urb), z_critico = r10(Z_CRIT),
+    coeficientes = c("xc", "yc"), coef = r10(co_p[2:3]),
+    poisson = list(ee = r10(ee_p[2:3]), z = r10(co_p[2:3] / ee_p[2:3])),
+    ajustes = unname(tend_cong),
+    referencia = list(modelo = "Thomas", correccion = PPP_CORR),
+    efecto_diseno = r10(deff), n_efectivo = r10(npoints(p_urb) / deff),
+    inflacion_xc_min = r10(min(inf_xc)), inflacion_xc_max = r10(max(inf_xc)),
+    z_xc_abs_max = r10(max(abs(z_xc)))),
   hawkes = list(
     mu = HAW$mu, alpha = HAW$alpha, beta = HAW$beta, T = HAW$T,
     razon_ramificacion = r10(ramif),
