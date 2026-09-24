@@ -401,6 +401,8 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         # prueba.
         ("el capítulo deja de decir que agregar no siempre infla",
          "agregar no siempre infla", "agregar siempre infla"),
+        ("el capítulo vuelve a dar por bueno el signo del estrato",
+         "no que le dé la vuelta", "y además le da la vuelta"),
         ("el capítulo deja de declarar la frontera con el capítulo 10",
          "es del capítulo 10", "se ve más adelante"),
         ("el capítulo deja de advertir que la CV por bloques no es la buena siempre",

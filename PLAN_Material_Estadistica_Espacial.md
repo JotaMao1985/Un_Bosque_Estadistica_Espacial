@@ -2594,6 +2594,18 @@ cifra municipal **no la ponen los municipios diminutos**: entre todos y los de a
 estudiantes se mueve **0,01243**. El que invierte el signo es el **estrato**, que T0.4 ya había
 congelado como caso de aviso; se enseña como advertencia, no como fenómeno.
 
+> **2026-09-24 · la advertencia no llegó a la página.** El recuadro publicaba «8 suben, 5 bajan y 1
+> invierte el signo» —tres grupos que suman 14 sobre 13 pares, porque el que invierte está entre los
+> que bajan— y usaba esa inversión como prueba de que agregar cambia el signo, sin aviso ninguno.
+> Ahora cuenta 8 y 5, y un aviso aparte le pasa al estrato la receta del par principal: con 33
+> departamentos la r departamental (−0,19602) no se distingue de cero (p = 0,27427); sin los 13
+> municipios donde menos de la mitad declaró el estrato queda en **−0,02259**, y con n ≥ 30 en
+> **−0,02162**; quitando solo **Morichal** (Guainía: 12 estudiantes, los 2 que declararon estrato
+> dijeron 6) pasa a **−0,05703**. Es el mismo municipio de dos estudiantes que T0.4 ya había
+> señalado en `FUENTES.md`. La gráfica de los 13 pares, que salía de pie con la leyenda «ACF»
+> porque `crearGraficoBarras` ignoraba las opciones que se le pasaban, ahora nombra cada par y
+> pinta el del aviso en naranja.
+
 **2. La simulación de agregación no mostraba nada, y yo iba a explicarla igual.** El módulo
 necesitaba una versión controlada del mismo efecto, y la primera daba **0,38016 → 0,35949**: plano,
 incluso ligeramente a la baja. El montaje estaba mal: construí el componente independiente de cada
