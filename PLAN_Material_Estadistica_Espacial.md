@@ -844,8 +844,8 @@ y la lección técnica —el sesgo entra por la unidad geográfica— por delant
 | 5 | Test de cuadrantes | χ², sus supuestos y **su ceguera**: dos patrones distintos con el mismo χ² |
 | 6 | El tamaño del cuadrante | Índice de dispersión; **esto es el MAUP otra vez** |
 | 7 | Distancias al vecino más próximo | Función G y función F (espacio vacío); qué distingue a cada una; su curva común bajo CSR y la función J (entra el 2026-09-17, decisión de Javier) |
-| 8 | La función K de Ripley | Y su transformación L; qué mide realmente; las piezas de su estimador y sus ventajas y desventajas (entran el 2026-09-23, a petición de Javier) |
-| 9 | La correlación de pares g(r) | Por qué g es más legible que K: K es acumulativa y arrastra; y los ocho resúmenes del capítulo lado a lado —qué cuenta cada uno, su valor bajo CSR, hacia dónde se aparta y qué no ve—, con las seis curvas sobre el mismo patrón (entra el 2026-09-24, a petición de Javier) |
+| 8 | La función K de Ripley | Y su transformación L; qué mide realmente |
+| 9 | La correlación de pares g(r) | Por qué g es más legible que K: K es acumulativa y arrastra |
 | 10 | Efectos de borde | Correcciones isotrópica, de traslación y de Ripley; qué pasa si se ignoran |
 | 11 | Envolventes de simulación | **Qué NO es un p-valor de envolvente**; inspección múltiple y test de desviación global |
 | 12 | Autoevaluación y ejercicios guiados | |
