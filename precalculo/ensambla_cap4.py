@@ -252,7 +252,7 @@ TITULOS = (
     ("El test de cuadrantes", "Y su ceguera: dos patrones con el mismo χ²"),
     ("El tamaño del cuadrante", "Esto es el MAUP otra vez"),
     ("Las funciones G y F", "Distancias al vecino y al espacio vacío, y su cociente J"),
-    ("La función K de Ripley", "Y su transformación L"),
+    ("La función K de Ripley", "Sus piezas, la L de Besag, y qué ve y qué no"),
     ("La correlación de pares g(r)", "Por qué g es más legible que K"),
     ("Efectos de borde", "Tres correcciones, y lo que cuestan"),
     ("Envolventes de simulación", "Qué NO es un p-valor de envolvente"),
@@ -930,7 +930,27 @@ print([round(float(J(r)), 4) for r in (0.02, 0.05, 0.08)])
 
 TABS_M8 = tabs(
     'K, L y el desvío máximo',
-    '''k &lt;- Kest(p_urb, correction = "translate")
+    '''# LA TABLA DE LAS PIEZAS, HECHA CODIGO, a r = 1 km: las parejas
+# ORDENADAS de sedes a esa distancia o menos, el peso de traslacion de
+# cada una y el factor |W| / (n (n - 1)). Con una ventana poligonal,
+# edge.Trans() mide el solape sobre una imagen de la ventana y no sobre
+# el poligono exacto; es la misma aproximacion que usa Kest() por dentro.
+cp &lt;- closepairs(p_urb, 1000)
+w  &lt;- edge.Trans(p_urb[cp$i], p_urb[cp$j], paired = TRUE)
+n  &lt;- npoints(p_urb)
+K1 &lt;- area(Window(p_urb)) / (n * (n - 1)) * sum(w)
+k1 &lt;- Kest(p_urb, correction = "translate", r = seq(0, 1000, length.out = 513))
+
+c(parejas = length(w), suma_pesos = round(sum(w)))
+#&gt;    parejas suma_pesos
+#&gt;      50368      54511
+
+# En km2: la suma a mano, la de Kest() en 1 km y pi r^2
+round(c(a_mano = K1, Kest = tail(k1$trans, 1), pi_r2 = pi * 1000^2) / 1e6, 4)
+#&gt; a_mano   Kest  pi_r2
+#&gt; 4.5464 4.5464 3.1416
+
+k &lt;- Kest(p_urb, correction = "translate")
 L &lt;- sqrt(k$trans / pi)
 i &lt;- which.max(abs(L - k$r))
 
@@ -940,16 +960,20 @@ i &lt;- which.max(abs(L - k$r))
 round(c(r = k$r[i], L_menos_r = (L - k$r)[i]), 2)
 #&gt;         r L_menos_r
 #&gt;   5088.76    331.98''',
-    '''# El peso de la correccion de traslacion es el area de solape de la
-# ventana consigo misma desplazada por el vector que une los dos puntos.
-# Para un rectangulo a x b eso es exactamente (a-|dx|)(b-|dy|).
+    '''# La formula del modulo, pieza a pieza, sobre una ventana RECTANGULAR
+# a x b. El peso de traslacion es |W| entre el area de solape de la
+# ventana con su copia desplazada por el vector que une los dos puntos, y
+# en un rectangulo ese solape es exactamente (a-|dx|)(b-|dy|): aqui es
+# exacto, sin la imagen que spatstat usa con los poligonos. El codigo suma
+# 1/solape, que es w_ij / |W|, y por eso divide al final por n(n-1)/|W|^2:
+# es el |W| que le falta a cada peso por el |W| / (n(n-1)) de delante.
 def K_traslacion(x, y, a, b, r):
-    n = len(x); W = a * b
+    n = len(x); W = a * b                                       # n y |W|
     dx = np.abs(x[:, None] - x[None, :]); dy = np.abs(y[:, None] - y[None, :])
-    dist = np.hypot(dx, dy)
-    sol = np.clip(a - dx, 0, None) * np.clip(b - dy, 0, None)
-    m = ~np.eye(n, dtype=bool)
-    return np.array([float((1 / sol[m])[dist[m] &lt;= rr].sum())
+    dist = np.hypot(dx, dy)                                     # d_ij
+    sol = np.clip(a - dx, 0, None) * np.clip(b - dy, 0, None)   # el solape
+    m = ~np.eye(n, dtype=bool)                                  # j distinto de i
+    return np.array([float((1 / sol[m])[dist[m] &lt;= rr].sum())  # el indicador
                      for rr in r]) / (n * (n - 1) / W ** 2)
 
 dc_ = reg[reg.patron == "cells"]
@@ -1342,48 +1366,205 @@ MOD7 = cabecera(
 # =====================================================================
 # MÓDULO 8 · La función K de Ripley
 # =====================================================================
+# REESCRITO EL 2026-09-23 porque Javier señaló dos cosas: que no se
+# entendía cuáles eran las componentes de K y que las expresiones no se
+# renderizaban bien. Las dos tenían causa concreta:
+#   · la única fórmula juntaba en una línea el estimador y su valor bajo
+#     CSR («… \qquad bajo CSR K(r) = πr²»), y la definición —la K del
+#     proceso, la que el estimador estima— no se escribía en ninguna
+#     parte; y el factor de delante decía λ̂² sin decir que spatstat usa
+#     n(n − 1)/|W|², que es lo que hacen los dos bloques de Python;
+#   · la matemática en línea iba en HTML: «λ̂|W|» con un circunflejo
+#     COMBINADO que la mayoría de las fuentes descoloca, «√(K(r)/π)»,
+#     «w<sub>ij</sub>». Ahora va toda en KaTeX `\(…\)`, como el módulo 2.
+# Y entró, a petición suya, la sección de ventajas y desventajas. Cada
+# punto sale de una cifra del JSON o remite a un módulo que la enseña; lo
+# que NO entra es la frase «L − r > 0 en r es agregación a la distancia
+# r», porque refutarla es la tarea T3 del Taller 2 (ver el comentario de
+# AFIRMACIONES_FALSAS en `ensambla_taller2.py`): la desventaja
+# «acumulativa» se queda al nivel del módulo 9, sin el caso resuelto.
+_pz, _pb, _ab = m8["piezas"], m8["pesos_borde"], m8["abanico"]
+# Las filas de la tabla de piezas llevan KaTeX, y en Python 3.10 una
+# expresión de f-string no admite barras invertidas: van aquí, fuera.
+# UNA LISTA Y NO UNA TABLA, y es por el teléfono. A 768 px o menos la
+# plantilla pone TODA tabla en `display: block` con desplazamiento
+# horizontal, y sus celdas dejan de partir el texto: a 375 px esta tabla
+# medía 2 224 px con tres columnas y 2 369 con dos, y el MathML de KaTeX,
+# que va con posición absoluta, se escapaba del recorte y ensanchaba la
+# página entera. Una tabla de cifras cortas lo aguanta; una de frases, no.
+# El símbolo va primero, en negrita, y el valor en las sedes al final.
+def _pieza(simbolo, que, sedes):
+    return (f"          <li><strong>{simbolo}</strong> — {que} "
+            f"<em>En las sedes:</em> {sedes}.</li>\n")
+
+
+PIEZAS_K = (
+    _pieza(r"\(r\)",
+           "La distancia de la pregunta: el radio del disco alrededor de cada punto. Se "
+           "recorre desde 0 hasta una \\(r\\) máxima que el final del módulo explica.",
+           f"de 0 a {n(m8['bogota']['r'][-1], 0)} m")
+    + _pieza(r"\(d_{ij}\)",
+             "La distancia entre el punto \\(i\\) y el punto \\(j\\).",
+             "en metros, porque las coordenadas están en el CRS de trabajo del capítulo 2")
+    + _pieza(r"\({\mathbf{1}\{d_{ij} \leq r\}}\)",
+             "El indicador: vale 1 si la pareja está a \\(r\\) o menos, y 0 si no. Sumado, "
+             "cuenta las parejas cercanas.",
+             f"a 1 km vale 1 en {ent(_pz['parejas_r'])} parejas")
+    + _pieza(r"\(w_{ij}\)",
+             "El peso de la pareja, que corrige el borde. Vale 1 o más, y más cuanto más le "
+             "cuesta a la ventana dejar ver esa pareja entera. Con todos a 1 no se corrige "
+             "nada: es la K sin corregir del módulo 10.",
+             "corrección de traslación, <code>translate</code> en spatstat; a 1 km las "
+             f"parejas pesan {n(_pz['peso_medio'], 5)} en promedio y "
+             f"{n(_pz['peso_max'], 5)} como máximo")
+    + _pieza(r"\({\sum_{i \neq j}}\)",
+             "Recorre las parejas <strong>ordenadas</strong> de puntos distintos: para cada "
+             "punto \\(i\\), todos los demás \\(j\\). Cada pareja entra dos veces, una desde "
+             "cada punto, porque cada uno es vecino del otro. Son \\({n(n-1)}\\).",
+             f"{ent(_pz['parejas'])} parejas ordenadas; a 1 km, la suma con sus pesos da "
+             f"{ent(_pz['suma_pesos'])}")
+    + _pieza(r"\(n\)", "El número de puntos del patrón.", f"{ent(_pz['n'])}")
+    + _pieza(r"\(|W|\)", "El área de la ventana.", f"{n(m1['urbana']['area_km2'], 2)} km²")
+    + _pieza(r"\(\dfrac{|W|}{n(n-1)}\)",
+             "Divide la suma dos veces: entre \\(n\\), para tener vecinos por punto, y entre "
+             "\\({(n-1)/|W|}\\), la intensidad de los <em>otros</em> puntos, que es la "
+             "\\(\\lambda\\) de la definición.",
+             f"\\({{(n-1)/|W|}}\\) = {n(_pz['lambda_otros_km2'], 5)} sedes por km²")
+)
 MOD8 = cabecera(
     8, "La función K de Ripley", "Ripley's K function",
-    "Medir la estructura a TODAS las escalas a la vez, y leerla con la "
-    "transformación que la hace comparable contra una recta."
+    "Medir la estructura a TODAS las escalas a la vez, saber qué hace cada pieza de su "
+    "estimador, leerla con la transformación que la hace comparable contra una recta, y "
+    "saber qué puede decir y qué no."
 ) + f"""      <p>G y F miran solo al vecino más próximo, que es una escala sola. La función K de
-        Ripley mira todas: K(r) es el número esperado de puntos a distancia r o menos de un
-        punto cualquiera del patrón, dividido por la intensidad.</p>
+        Ripley mira todas: para cada distancia \\(r\\) cuenta, alrededor de cada punto del
+        patrón, cuántos otros hay a esa distancia o menos. Tiene tres partes que conviene separar
+        antes de calcular nada —qué cuenta, contra qué se compara y con qué se estima—, y
+        cada una lleva su fórmula.</p>
 
-      <div class="formula-box">
-        <p>$$\\hat{{K}}(r) = \\frac{{1}}{{\\hat{{\\lambda}}^2 |W|}}
-          \\sum_{{i}} \\sum_{{j \\neq i}} w_{{ij}}\\, \\mathbf{{1}}(d_{{ij}} \\leq r)
-          \\qquad \\text{{bajo CSR}} \\quad K(r) = \\pi r^2$$</p>
+      <h3>Qué cuenta K</h3>
+
+      <p>Elige un punto del patrón sin mirar dónde está, lo que la teoría llama un
+        <strong>punto típico</strong>, y cuenta cuántos <em>otros</em> puntos quedan a
+        distancia \\(r\\) o menos de él, es decir, dentro del disco de radio \\(r\\) centrado
+        en él. Llama \\(N(r)\\) a ese número: son sus <strong>vecinos</strong> a distancia
+        \\(r\\). K es el promedio de \\(N(r)\\) dividido por la intensidad:</p>
+
+      <div class="formula">
+        $$K(r) = \\frac{{\\mathbb{{E}}\\left[\\,N(r)\\,\\right]}}{{\\lambda}}$$
       </div>
 
-      <p>La fórmula es esa definición, contada a mano. La doble suma recorre todas las parejas
-        de puntos distintos, i y j; <strong>1</strong>(d<sub>ij</sub> ≤ r) vale 1 cuando la
-        distancia d<sub>ij</sub> entre los dos no pasa de r y 0 cuando pasa, así que la suma
-        cuenta las parejas cercanas. El peso w<sub>ij</sub> corrige lo que el borde de la
-        ventana esconde, y es el asunto entero del módulo 10. El factor de delante hace el
-        resto: como λ̂|W| es el número de puntos, dividir por él reparte la cuenta por punto,
-        y el otro λ̂ la divide por la intensidad, que es lo que pide la definición.</p>
+      <p>\\(\\mathbb{{E}}\\) es la esperanza, el promedio sobre todos los puntos típicos
+        posibles, y \\(\\lambda\\) la intensidad del módulo 2, en
+        puntos por unidad de área. En el numerador hay un número de vecinos; al dividirlo por
+        una intensidad, K queda en unidades de <strong>área</strong>: metros cuadrados en las
+        sedes de Bogotá.</p>
 
-      <p>Bajo aleatoriedad completa K vale exactamente πr², que es una parábola. Comparar
-        una curva contra una parábola a ojo es incómodo —la vista juzga mal las curvaturas—
-        y de ahí la transformación de Besag: L(r) = √(K(r)/π), que bajo CSR es la recta
-        L = r. Se dibuja L(r) − r contra r, y entonces CSR es el eje horizontal: por encima
-        hay agregación y por debajo, regularidad.</p>
+      <p>La división por \\(\\lambda\\) es lo que hace útil a K, y se ve al calcular su valor
+        bajo CSR. Alrededor de un punto de un patrón CSR los demás siguen repartidos al azar
+        con la misma intensidad —es el teorema de Slivnyak del módulo 7—, así que el número
+        esperado de vecinos en un disco de radio \\(r\\) es la intensidad por el área del
+        disco, \\(\\lambda \\pi r^2\\). Al dividir, \\(\\lambda\\) se cancela:</p>
+
+      <div class="formula">
+        $$K_{{\\text{{CSR}}}}(r) = \\frac{{\\lambda \\pi r^2}}{{\\lambda}} = \\pi r^2$$
+      </div>
+
+      <p>La referencia es la misma con muchos puntos que con pocos, así que las curvas de
+        patrones de densidades distintas se leen contra la misma parábola. Y le da a K una
+        lectura directa: \\(K(r)\\) es el área del disco que, bajo CSR, contendría en
+        promedio los vecinos que el patrón tiene de verdad a distancia \\(r\\). Si
+        \\({{K(r) &gt; \\pi r^2}}\\), cada punto tiene a esa distancia más vecinos de los que le
+        daría el azar; si \\({{K(r) &lt; \\pi r^2}}\\), menos.</p>
+
+      <h3>Las piezas del estimador</h3>
+
+      <p>La definición promedia sobre todos los puntos típicos posibles; con un patrón
+        observado se promedia sobre los que hay. El estimador es la definición contada a
+        mano:</p>
+
+      <div class="formula">
+        $$\\hat{{K}}(r) = \\frac{{|W|}}{{n(n-1)}} \\sum_{{i \\neq j}}
+          w_{{ij}}\\, \\mathbf{{1}}\\{{d_{{ij}} \\leq r\\}}$$
+      </div>
+
+      <p>El gorro de \\(\\hat{{K}}\\) separa la estimación, que se
+        calcula con los datos, de la \\(K\\) del proceso, que no se observa. La
+        <em>K observada</em> del simulador de más abajo es esta \\(\\hat{{K}}\\).</p>
+
+      <p>La lista la desmonta pieza a pieza, de dentro hacia fuera, con lo que vale cada una
+        en las {ent(m1['urbana']['n'])} sedes de la ventana urbana:</p>
+
+      <div class="definition">
+        <h4>Las piezas de \\(\\hat{{K}}(r)\\)</h4>
+        <ul style="margin-bottom:0;">
+{PIEZAS_K}        </ul>
+      </div>
+
+      <p>A veces el factor de delante se escribe como \\({{1/(\\hat{{\\lambda}}^2 |W|)}}\\).
+        Es el mismo con \\({{\\hat{{\\lambda}}^2 = n(n-1)/|W|^2}}\\), que es como lo calcula
+        <code>Kest()</code>: los vecinos de un punto son los otros \\({{n-1}}\\), y su intensidad
+        es \\({{(n-1)/|W|}}\\), no \\({{n/|W|}}\\). En las sedes la diferencia no se ve
+        —{n(_pz['lambda_otros_km2'], 5)} frente a la \\(\\hat{{\\lambda}}\\) =
+        {n(m1['urbana']['lambda_km2'], 5)} del módulo 2—; en un patrón de pocos puntos, sí.</p>
+
+      <p>Con las piezas a la vista, la cuenta a 1 km se lee de un tirón. Hay
+        {firma(ent(_pz['parejas_r']))} parejas ordenadas de sedes a 1 km o menos, que son
+        {n(_pz['vecinas_crudas'], 2)} vecinas por sede. Con sus pesos suman
+        {ent(_pz['suma_pesos'])}, que son {firma(n(_pz['vecinas'], 2))} por sede: la
+        corrección le devuelve a cada una las vecinas que el borde le escondía. Y el factor de
+        delante lo convierte en área:</p>
+
+      <div class="formula">
+        $$\\begin{{aligned}}
+          \\hat{{K}}(1\\ \\text{{km}}) &amp;= \\frac{{{n(m1['urbana']['area_km2'], 2)}}}{{{ent_mate(_pz['parejas'])}}}
+            \\times {ent_mate(_pz['suma_pesos'])}\\ \\text{{km}}^2 \\\\
+          &amp;= {n(_pz['k_km2'], 4)}\\ \\text{{km}}^2 \\\\
+          \\pi\\,(1\\ \\text{{km}})^2 &amp;= {n(_pz['pir2_km2'], 4)}\\ \\text{{km}}^2
+          \\end{{aligned}}$$
+      </div>
+
+      <p>Bajo CSR, con la misma intensidad, cada sede tendría a 1 km
+        {n(_pz['vecinas_csr'], 2)} vecinas y no {n(_pz['vecinas'], 2)}: la sede típica tiene
+        a esa distancia {firma(n(_pz['cociente'], 2))} veces las vecinas que le daría el
+        azar, que es exactamente el cociente entre \\(\\hat{{K}}\\) y \\(\\pi r^2\\). Eso es
+        un punto de la curva; K lo da para cada \\(r\\).</p>
+
+      <h3>De la parábola a la recta: L</h3>
+
+      <p>Bajo CSR, \\({{K(r) = \\pi r^2}}\\) es una parábola, y comparar una curva contra una
+        parábola a ojo es incómodo: la vista juzga mal las curvaturas. De ahí la
+        transformación de Besag, que deshace el cuadrado:</p>
+
+      <div class="formula">
+        $$L(r) = \\sqrt{{\\frac{{K(r)}}{{\\pi}}}}$$
+      </div>
+
+      <p>Bajo CSR, \\({{L(r) = \\sqrt{{\\pi r^2 / \\pi}} = r}}\\), la
+        recta de pendiente uno. \\(L\\) es una distancia, en las mismas unidades que
+        \\(r\\).</p>
+
+      <p>Se dibuja \\({{L(r) - r}}\\) contra \\(r\\), y entonces CSR es el eje horizontal: por
+        encima, cada punto tiene más vecinos de los que daría el azar, que es la dirección de
+        la agregación; por debajo, menos, que es la de la regularidad. El simulador enseña las
+        dos vistas del mismo cálculo. Su lectura da el mayor apartamiento de \\({{L(r) - r}}\\)
+        con su signo, la distancia a la que ocurre y la corrección con que se calculó, que es
+        la de traslación de la lista de piezas.</p>
 
 {sim('cap4-kl', 'K y L sobre el mismo patrón',
      'Conmuta entre K y L − r: es la misma información, y solo una de las dos se lee de un vistazo.', 300)}
 
-      <p>Sobre las sedes de Bogotá, L − r alcanza su máximo de
+      <p>Sobre las sedes de Bogotá, \\({{L(r) - r}}\\) alcanza su máximo de
         {firma(n(m8['bogota']['max_desvio'], 2), ' m')} a una distancia de
         {firma(n(m8['bogota']['r_max_desvio'], 0), ' m')}, y no baja de cero en ninguna de las
         distancias medidas. Eso es lo que la curva dice, y conviene no hacerle decir más. Que
-        esté por encima de la recta en todo r no prueba que haya estructura a todas las
+        esté por encima de la recta en todo \\(r\\) no prueba que haya estructura a todas las
         escalas —el módulo siguiente enseña por qué K no puede decir <em>dónde</em>—, y
         tampoco prueba que los colegios se atraigan: contra CSR, puntos que se atraen y una
         intensidad que cambia de un barrio a otro dejan la <strong>misma huella</strong>, y el
-        módulo 2 ya mostró que λ no es constante sobre Bogotá. Es la advertencia del módulo 5
-        sobre el χ² —un rechazo no dice cuál de las dos propiedades falla—, y aquí vale
-        igual.</p>
+        módulo 2 ya mostró que \\(\\lambda\\) no es constante sobre Bogotá. Es la advertencia
+        del módulo 5 sobre el χ² —un rechazo no dice cuál de las dos propiedades falla—, y aquí
+        vale igual.</p>
 
       <p>En los tres canónicos va escrito el <strong>signo</strong>, porque dice hacia dónde
         se aparta la curva: {n_signo(m8['cells']['desvio_con_signo'])} en las células,
@@ -1397,15 +1578,113 @@ MOD8 = cabecera(
         módulo 11: allí el test global sobre los pinos da p =
         {n(m11['test_global']['dclf_japanesepines_p'], 5)}, nada que rechazar.</p>
 
-      <p>El bloque de abajo calcula K sobre las sedes con la corrección de traslación y busca
-        la distancia a la que L − r se aparta más de cero.</p>
+      <p>El bloque de abajo hace primero la lista de las piezas en código, a 1 km, y después
+        calcula K sobre las sedes con la corrección de traslación y busca la distancia a la
+        que \\({{L(r) - r}}\\) se aparta más de cero.</p>
 
 {TABS_M8}
-      <p>El comentario del bloque de R señala algo que conviene no pasar por alto: la curva se
-        calcula en la rejilla que elige spatstat y se <em>publica</em> en una de 101 nodos, así
-        que el máximo cae en una r vecina y el valor difiere en la cuarta cifra. No es un
-        error de nadie: es que una curva y su resumen se miden en rejillas distintas, y decirlo
-        cuesta menos que dejar al lector comparando dos números que no cuadran.</p>
+      <p>La primera parte del bloque de R es la lista de arriba, línea a línea:
+        <code>closepairs()</code> da las parejas ordenadas a 1 km o menos,
+        <code>edge.Trans()</code> el peso de traslación de cada una, y el factor de delante
+        hace el resto. Sale exactamente lo que da <code>Kest()</code> evaluada en 1 km. La segunda parte tiene un comentario que conviene no pasar por alto: la curva
+        se calcula en la rejilla que elige spatstat y se <em>publica</em> en una de 101 nodos,
+        así que el máximo cae en una \\(r\\) vecina y el valor difiere en la cuarta cifra. No
+        es un error de nadie: es que una curva y su resumen se miden en rejillas distintas, y
+        decirlo cuesta menos que dejar al lector comparando dos números que no cuadran. La
+        pestaña de Python escribe la misma fórmula sobre un rectángulo, donde el solape de la
+        ventana con su copia desplazada tiene fórmula exacta.</p>
+
+      <h3>Ventajas y desventajas de K</h3>
+
+      <p>Con la curva ya vista sobre cuatro patrones, se puede hacer el balance. Cada punto
+        remite a la cifra o al módulo que lo enseña.</p>
+
+      <h4>Lo que hace bien</h4>
+      <ul>
+        <li><strong>Mira más allá del vecino más próximo.</strong> G solo usa la distancia de
+          cada punto al más cercano, y ninguna sede tiene el suyo a más de
+          {n(m8['bogota']['vecino_max'], 0)} m: pasada esa distancia, G vale 1 y no tiene
+          nada más que contar. K usa todas las parejas, y sobre las mismas sedes sigue
+          midiendo hasta {n(m8['bogota']['r'][-1], 0)} m.</li>
+        <li><strong>Una curva para todas las escalas, sin nada que suavizar.</strong> El
+          resultado del test de cuadrantes depende del tamaño de la celda (módulo 6), y la g
+          del módulo 9 depende de un ancho de banda. K sale directamente de las distancias
+          entre parejas. Lo que sí hay que elegir —la corrección del borde y hasta qué
+          \\(r\\) se mira— se declara.</li>
+        <li><strong>Su referencia es exacta y no depende de la densidad.</strong> Bajo CSR vale
+          \\(\\pi r^2\\) sea cual sea \\(\\lambda\\). Las células, los pinos y las secuoyas
+          tienen {ent(m3['cells']['n'])}, {ent(m3['japanesepines']['n'])} y
+          {ent(m3['redwood']['n'])} puntos, y en el simulador comparten la misma curva
+          teórica.</li>
+        <li><strong>Se lee en vecinos.</strong> Multiplicada por la intensidad dice cuántos
+          vecinos tiene un punto típico: {n(_pz['vecinas'], 2)} sedes a 1 km de cada sede,
+          frente a las {n(_pz['vecinas_csr'], 2)} que daría el azar.</li>
+        <li><strong>Los modelos la tienen escrita.</strong> Para los procesos de conglomerados
+          más usados, como el de Thomas, K tiene fórmula cerrada, y eso permite ajustarlos
+          buscando los parámetros cuya K teórica más se parece a la estimada. El módulo 11 del
+          capítulo 5 lo hace con <code>kppm</code>.</li>
+      </ul>
+
+      <h4>Lo que no</h4>
+      <ul>
+        <li><strong>Es acumulativa.</strong> Lo que pasa a distancias cortas sigue contado a
+          distancias largas, así que K no dice <em>a qué distancia</em> está la estructura. El
+          módulo 9 lo enseña con las secuoyas y trae la función que sí lo dice.</li>
+        <li><strong>Supone que \\(\\lambda\\) es constante y que la dirección no
+          importa.</strong> Lo primero es la <em>estacionariedad</em>: contra CSR, una
+          intensidad que cambia de una zona a otra deja la misma huella que la atracción, y el
+          módulo 2 ya mostró que la de las sedes cambia. La K inhomogénea del módulo 10 del
+          capítulo 5 compara contra una \\(\\lambda\\) que cambia. Lo segundo es la
+          <em>isotropía</em>: K solo mira distancias, así que un patrón alineado en una
+          dirección —uno que siguiera una avenida, por ejemplo— se promedia con todas las
+          demás direcciones y la alineación no se ve.</li>
+        <li><strong>El borde la sesga, y corregirlo cuesta.</strong> Sin los pesos
+          \\(w_{{ij}}\\), la K de las sedes se queda hasta un
+          {n(m10['sesgo_max_pct'], 1)} % por debajo, y la corrección isotrópica cuesta
+          {n(m10['coste']['veces_isotropica_sobre_traslacion'], 0)} veces lo que la de
+          traslación. Es el módulo 10.</li>
+        <li><strong>Lo que se mueve crece con \\(r\\).</strong> K crece como un área, y lo
+          que cambia de una realización a otra también crece. En las
+          {ent(m11['nsim'])} simulaciones de CSR con que el módulo 11 construye su banda, la
+          distancia entre la K más baja y la más alta es
+          {n(_ab['japanesepines']['veces_k'], 2)} veces mayor en \\(r\\) =
+          {n(_ab['japanesepines']['r_b'], 2)} que en {n(_ab['japanesepines']['r_a'], 3)} en
+          los pinos, y {n(_ab['bogota']['veces_k'], 2)} veces mayor a
+          {n(_ab['bogota']['r_b'], 0)} m que a {n(_ab['bogota']['r_a'], 0)} m en las sedes.
+          Así, una misma separación entre curvas no pesa igual a todas las distancias, y esa
+          es la segunda razón de L: con la raíz, ese ancho crece
+          {n(_ab['japanesepines']['veces_l'], 2)} veces en los pinos y
+          {n(_ab['redwood']['veces_l'], 2)} en las secuoyas, casi nada. En las sedes crece
+          {n(_ab['bogota']['veces_l'], 2)} veces: <strong>la raíz lo contiene, no lo
+          detiene</strong>.</li>
+        <li><strong>No se puede mirar lejos.</strong> <code>Kest()</code> no pasa por
+          defecto de un cuarto del lado corto del rectángulo que encierra la ventana
+          —{n(m8['cells']['r'][-1], 2)} en el cuadrado unidad, {n(m8['bogota']['r'][-1], 0)} m
+          en Bogotá—, porque más allá la corrección del borde tendría que contar cada pareja
+          por varias. El peso medio, que a 1 km es {n(_pz['peso_medio'], 2)}, llega a
+          {n(_pb['hasta_rmax']['peso_medio'], 2)} en la última décima antes de ese límite, y
+          al doble de distancia sería {n(_pb['al_doble']['peso_medio'], 2)}, con alguna pareja
+          contada por {n(_pb['al_doble']['peso_max'], 1)}.</li>
+        <li><strong>No identifica el proceso.</strong> Baddeley y Silverman (1984)
+          construyeron un proceso que no es de Poisson y cuya K es exactamente
+          \\(\\pi r^2\\): parte el plano en celdas y pone en cada una 0, 1 o 10 puntos al
+          azar, con probabilidades elegidas para que las parejas a cada distancia sean, en
+          promedio, las de CSR. Una K pegada a \\(\\pi r^2\\) es compatible con CSR, no la
+          prueba —la misma advertencia que la J del módulo 7—, y K solo mira parejas: lo que
+          pase en grupos de tres o más puntos no lo ve.</li>
+      </ul>
+
+      <p>Casi todas tienen remedio, y el capítulo los recorre en orden: la acumulación, con g
+        en el módulo 9; lo que se mueve con \\(r\\), con la L de este mismo módulo; el borde,
+        con las correcciones del 10; la pregunta que el signo no respondía —si una desviación
+        significa algo—, con la envolvente del 11; y la \\(\\lambda\\) que cambia, con la K
+        inhomogénea del capítulo 5. La dirección se puede mirar contando solo las parejas de un
+        sector de ángulos —en spatstat, <code>Ksector()</code>—, que este curso no usa. Dos no
+        tienen remedio. El alcance lo pone la ventana: para mirar más lejos hace falta una
+        ventana más grande, no otra fórmula. Y ninguna de las funciones de este capítulo
+        identifica por sí sola el proceso que generó un patrón, así que un resultado se lee
+        como compatible con un modelo, nunca como su prueba. La primera desventaja de la lista
+        es la que más confunde al leer la curva, y por ella sigue el capítulo.</p>
 """ + CIERRE
 
 
@@ -1496,7 +1775,8 @@ MOD9 = cabecera(
     9, "La correlación de pares g(r)", "Pair correlation function",
     "Leer dónde está la estructura, y entender por qué una función acumulativa "
     "no puede decirlo."
-) + f"""      <p>K tiene un defecto que se ve en cuanto se busca: es <strong>acumulativa</strong>.
+) + f"""      <p>El primer defecto de la lista del módulo 8 es el que se ve en cuanto se busca: K es
+        <strong>acumulativa</strong>.
         K(r) cuenta todos los vecinos hasta r, así que si un patrón se agrupa a 20 metros,
         K sigue por encima de la teórica a 500 metros —aunque a 500 metros no pase
         absolutamente nada—, porque los vecinos de 20 metros siguen contados dentro.</p>

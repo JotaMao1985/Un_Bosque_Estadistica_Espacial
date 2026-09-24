@@ -791,6 +791,132 @@ def main() -> int:
         a.cerca(r[i], pub["r_max_desvio"], f"m8/{nm}: y la r en que ocurre", 1e-6)
 
     # -----------------------------------------------------------------
+    a.titulo("8b · Las piezas de K, y sus ventajas y desventajas")
+    # -----------------------------------------------------------------
+    # Lo que entró el 2026-09-23: la fórmula pieza a pieza sobre las sedes
+    # a 1 km, el peso de traslación según la distancia, el alcance de r y
+    # el abanico de las simulaciones. Todo se rehace aquí desde el dato o
+    # desde lo publicado, salvo los pesos de spatstat, que se MUESTREAN
+    # contra el solape exacto de shapely (ver abajo por qué).
+    m8 = D["m8"]
+    for nm in CON_CURVA + ("bogota",):
+        pub = m8[nm]
+        if nm == "bogota":
+            x0, y0, x1, y1 = w_urb.bounds
+            P = XU
+        else:
+            x0, y0, x1, y1 = D["m3"][nm]["ventana"]
+            d = reg[reg.patron == nm]
+            P = np.c_[d.x.values, d.y.values]
+        corto = min(x1 - x0, y1 - y0)
+        # `cerca` es RELATIVA: las dos van a seis cifras significativas.
+        a.cerca(corto, pub["lado_corto"], f"m8/{nm}: el lado corto del marco", 1e-5)
+        a.cerca(corto / 4, pub["r"][-1], f"m8/{nm}: la r máxima es su cuarta parte", 1e-5)
+        nn_max = float(np.max(cKDTree(P).query(P, k=2)[0][:, 1]))
+        a.cerca(nn_max, pub["vecino_max"], f"m8/{nm}: la mayor distancia al vecino", 1e-5)
+        a.cierto(pub["vecino_max"] < pub["r"][-1],
+                 f"m8/{nm}: K sigue midiendo donde G ya vale 1",
+                 f"{pub['vecino_max']:g} < {pub['r'][-1]:g}")
+    for nm in ("japanesepines", "redwood"):
+        a.igual(float(np.max(np.abs(np.array(m8[nm]["k_teo"]) - np.array(m8["cells"]["k_teo"])))),
+                0.0, f"m8/{nm}: comparte la K teórica de las células", tol=1e-12)
+
+    pz = m8["piezas"]
+    n_u = len(XU)
+    a.igual(pz["n"], n_u, "m8/piezas: n son las sedes de la ventana")
+    a.igual(pz["parejas"], n_u * (n_u - 1), "m8/piezas: parejas ordenadas n(n − 1)")
+    a.cerca(A_URB / 1e6, pz["area_km2"], "m8/piezas: el área de la ventana", 1e-5)
+    a.cerca((n_u - 1) / A_URB * 1e6, pz["lambda_otros_km2"],
+            "m8/piezas: la intensidad de los otros n − 1", 1e-5)
+    # count_neighbors cuenta las parejas ordenadas CON la de cada punto
+    # consigo mismo, y a distancia <= r, que es el convenio de closepairs.
+    arbol_u = cKDTree(XU)
+    parejas_1k = int(arbol_u.count_neighbors(arbol_u, pz["r"])) - n_u
+    a.igual(parejas_1k, pz["parejas_r"], "m8/piezas: parejas ordenadas a 1 km o menos")
+    # Las identidades de la fórmula. Todas con tolerancia RELATIVA de
+    # 1e-5, que es lo que dejan seis cifras significativas por factor.
+    a.cerca(parejas_1k / n_u, pz["vecinas_crudas"], "m8/piezas: vecinas sin corregir", 1e-5)
+    a.cerca(pz["suma_pesos"] / n_u, pz["vecinas"], "m8/piezas: vecinas = suma de pesos / n", 1e-5)
+    a.cerca(pz["suma_pesos"] / parejas_1k, pz["peso_medio"],
+            "m8/piezas: peso medio = suma / parejas", 1e-5)
+    a.cerca(pz["area_km2"] * pz["suma_pesos"] / pz["parejas"], pz["k_km2"],
+            "m8/piezas: K = |W| · suma / (n(n − 1))", 1e-5)
+    a.cerca(math.pi * (pz["r"] / 1000) ** 2, pz["pir2_km2"], "m8/piezas: π r² en km²", 1e-5)
+    a.cerca(pz["k_km2"] / pz["pir2_km2"], pz["cociente"], "m8/piezas: K / π r²", 1e-5)
+    a.cerca(pz["lambda_otros_km2"] * pz["pir2_km2"], pz["vecinas_csr"],
+            "m8/piezas: las vecinas bajo CSR", 1e-5)
+    a.cerca(pz["vecinas"] / pz["vecinas_csr"], pz["cociente"],
+            "m8/piezas: el cociente de vecinas es el de K", 1e-5)
+    a.cierto(1 <= pz["peso_medio"] <= pz["peso_max"], "m8/piezas: los pesos no bajan de 1",
+             f"medio {pz['peso_medio']:g} · máximo {pz['peso_max']:g}")
+    # K a 1 km contra la curva publicada: sus dos nodos vecinos la encierran.
+    rb, kb = np.array(m8["bogota"]["r"]), np.array(m8["bogota"]["k_obs"])
+    j = int(np.searchsorted(rb, pz["r"]))
+    a.cierto(kb[j - 1] <= pz["k_km2"] * 1e6 <= kb[j],
+             "m8/piezas: K a 1 km cae entre sus dos nodos publicados",
+             f"{kb[j - 1]:.0f} ≤ {pz['k_km2'] * 1e6:.0f} ≤ {kb[j]:.0f}")
+
+    # LOS PESOS, MUESTREADOS. Con una ventana poligonal spatstat no mide el
+    # solape del polígono con su copia desplazada: lo lee en una imagen de
+    # la covarianza de la ventana (`setcov`). Medido el 2026-09-23 sobre 300
+    # parejas por banda, cada peso se aparta del exacto hasta un 2,3 % a
+    # 1 km y un 5,9 % a doce kilómetros, y la media un 0,04 % y un 0,7 %.
+    # Rehacer las 50 368 parejas con shapely son cuatro minutos; una
+    # muestra con semilla, unos segundos. La tolerancia es cinco errores
+    # típicos de la muestra más ese sesgo, y está escrita por banda.
+    from shapely import affinity
+    pares_u = arbol_u.query_pairs(2 * m8["bogota"]["r"][-1] * 1.0001, output_type="ndarray")
+    dist_u = np.hypot(*(XU[pares_u[:, 1]] - XU[pares_u[:, 0]]).T)
+    rng_w = np.random.default_rng(20260923)
+    pb = m8["pesos_borde"]
+    # Los bordes de cada banda se rehacen desde la r máxima, como en R: los
+    # publicados van a seis cifras, y con ellos la banda del doble pierde
+    # diez parejas por el camino.
+    r_mx = m8["bogota"]["r"][-1]
+    for clave, f0, f1 in (("hasta_rmax", 0.9, 1.0), ("al_doble", 1.8, 2.0)):
+        a.cerca(f0 * r_mx, pb[clave]["desde"], f"m8/pesos: la banda {clave} empieza en {f0} r", 1e-5)
+        a.cerca(f1 * r_mx, pb[clave]["hasta"], f"m8/pesos: y acaba en {f1} r", 1e-5)
+    for etq, desde, hasta, pub_medio, pub_par, k_mue, tol in (
+            ("a 1 km o menos", 0.0, pz["r"], pz["peso_medio"], None, 300, 0.012),
+            ("cerca de la r máxima", 0.9 * r_mx, r_mx,
+             pb["hasta_rmax"]["peso_medio"], pb["hasta_rmax"]["parejas"], 300, 0.06),
+            ("al doble de la r máxima", 1.8 * r_mx, 2 * r_mx,
+             pb["al_doble"]["peso_medio"], pb["al_doble"]["parejas"], 800, 0.33)):
+        # La banda de 1 km incluye las parejas a distancia CERO —las sedes
+        # coincidentes, que pesan exactamente 1—, como las incluye closepairs.
+        en = np.flatnonzero(((dist_u > desde) | (desde == 0)) & (dist_u <= hasta))
+        if pub_par is not None:
+            a.igual(2 * len(en), pub_par, f"m8/pesos: parejas {etq}", tol=0)
+        mue = rng_w.choice(en, size=k_mue, replace=False)
+        v = XU[pares_u[mue, 1]] - XU[pares_u[mue, 0]]
+        w_ex = np.array([A_URB / shapely.intersection(w_urb, affinity.translate(w_urb, dx, dy)).area
+                         for dx, dy in v])
+        a.igual(float(w_ex.mean()), pub_medio, f"m8/pesos: peso medio {etq}", tol=tol)
+    a.cierto(pz["peso_medio"] < pb["hasta_rmax"]["peso_medio"] < pb["al_doble"]["peso_medio"],
+             "m8/pesos: el peso medio crece con la distancia")
+    a.cierto(pb["hasta_rmax"]["hasta"] == m8["bogota"]["r"][-1],
+             "m8/pesos: la banda alta acaba en la r máxima")
+
+    # EL ABANICO, sobre lo publicado del módulo 11: la más baja y la más
+    # alta de las simulaciones, y L como la raíz de cada extremo entre π.
+    for nm, ab in m8["abanico"].items():
+        e = D["m11"][nm]
+        lo, hi = np.array(e["lo"]), np.array(e["hi"])
+        a.cerca(e["r"][10], ab["r_a"], f"m8/abanico {nm}: se mide a una décima de r", 1e-6)
+        a.cerca(e["r"][-1], ab["r_b"], f"m8/abanico {nm}: y en la r máxima", 1e-6)
+        ak = hi - lo
+        al = np.sqrt(hi / math.pi) - np.sqrt(lo / math.pi)
+        a.cerca(ak[10], ab["ancho_k_a"], f"m8/abanico {nm}: ancho de K a r/10", 1e-5)
+        a.cerca(ak[-1], ab["ancho_k_b"], f"m8/abanico {nm}: ancho de K al final", 1e-5)
+        a.cerca(ak[-1] / ak[10], ab["veces_k"], f"m8/abanico {nm}: cuánto crece el de K", 1e-5)
+        a.cerca(al[10], ab["ancho_l_a"], f"m8/abanico {nm}: ancho de L a r/10", 1e-5)
+        a.cerca(al[-1], ab["ancho_l_b"], f"m8/abanico {nm}: ancho de L al final", 1e-5)
+        a.cerca(al[-1] / al[10], ab["veces_l"], f"m8/abanico {nm}: cuánto crece el de L", 1e-5)
+    a.cierto(all(m8["abanico"][nm]["veces_l"] < 2 for nm in ("redwood", "japanesepines"))
+             and m8["abanico"]["bogota"]["veces_l"] > 2,
+             "m8/abanico: L casi quieta en los de libro, no en Bogotá")
+
+    # -----------------------------------------------------------------
     a.titulo("9 · La correlación de pares g(r)")
     # -----------------------------------------------------------------
     a.salta("la estimación de g(r)",

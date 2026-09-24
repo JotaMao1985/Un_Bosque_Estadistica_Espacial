@@ -53,6 +53,10 @@ ESTRUCTURALES = {
     "2013", "2011", "1993",
     # Los dos artículos de la J que cita el módulo 7 (2026-09-17)
     "1996", "1997",
+    # El contraejemplo de Baddeley y Silverman que cita el módulo 8
+    # (2026-09-23): sin declararlo, el año pasaba solo porque algún valor
+    # del JSON redondea a 1984, que es la clase de acierto que no se quiere.
+    "1984",
     "4.0",                                     # CC BY-NC-ND 4.0
     "2.ª",                                     # la edición de Bivand et al.
     # La máquina del precálculo, que el módulo 10 declara al publicar tiempos
@@ -117,6 +121,14 @@ DEBE_CUBRIR = [
     ("la función K de Ripley", "ripley"),
     ("la transformación L de Besag", "besag"),
     ("que bajo CSR K vale πr²", "parábola"),
+    # Lo que entró el 2026-09-23, a petición de Javier
+    ("la definición de K como vecinos esperados entre λ", "punto típico"),
+    ("las piezas del estimador de K", "las piezas del estimador"),
+    ("por qué el estimador lleva n(n − 1)", "los otros"),
+    ("la cuenta de K a mano a 1 km", "la cuenta a 1 km"),
+    ("las ventajas y desventajas de K", "ventajas y desventajas de k"),
+    ("que K supone estacionariedad e isotropía", "isotropía"),
+    ("el alcance de r que elige spatstat", "un cuarto del lado corto"),
     # Módulo 9 — la correlación de pares
     ("la correlación de pares g(r)", "correlación de pares"),
     ("que K es acumulativa y arrastra", "acumulativa"),
@@ -146,7 +158,7 @@ DEBE_CUBRIR = [
 # ninguna; «mad» sí es peligroso —cabe en «madre»— y por eso no está.
 FUENTES = [
     "ripley", "besag", "clark-evans", "diggle", "loosmore", "ford",
-    "kaplan-meier", "donnelly", "lieshout", "bedford", "slivnyak",
+    "kaplan-meier", "donnelly", "lieshout", "bedford", "slivnyak", "silverman",
     "baddeley", "cressie", "pebesma", "bivand", "moraga", "giraldo",
     "spatstat",
 ]
@@ -191,6 +203,12 @@ AFIRMACIONES = [
      "no certifica que el patrón sea csr"),
     ("avisa de que la J estimada tiembla, y más como cociente",
      "porque es un cociente"),
+    ("dice que K se mide en unidades de área",
+     "unidades de área"),
+    ("avisa de que la raíz de Besag no detiene el ensanche en Bogotá",
+     "la raíz lo contiene, no lo detiene"),
+    ("dice que una K pegada a πr² no prueba CSR",
+     "es compatible con csr, no la prueba"),
     ("explica que g mira el anillo y no el disco",
      "no el disco"),
     ("dice que ignorar el borde no añade ruido sino dirección",

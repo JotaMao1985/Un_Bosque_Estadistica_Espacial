@@ -978,7 +978,17 @@ kl <- function(p, nombre) {
        # exactamente invertida, provocada por la frase que prometía el
        # signo sobre unas cifras que no lo llevaban.
        desvio_con_signo = r6((sqrt(kobs / pi) - rg)[which.max(abs(sqrt(kobs / pi) - rg))]),
-       r_max_desvio = r6(rg[which.max(abs(sqrt(kobs / pi) - rg))]))
+       r_max_desvio = r6(rg[which.max(abs(sqrt(kobs / pi) - rg))]),
+       # LAS DOS DISTANCIAS DE LAS VENTAJAS Y DESVENTAJAS (2026-09-23).
+       # `lado_corto` es el del rectángulo que encierra la ventana: la r
+       # máxima que spatstat elige por defecto es su cuarta parte —la regla
+       # de `rmax.rule("K")`, que en estos cuatro patrones manda sobre la
+       # otra cota, la de los mil vecinos—, y el ancla de abajo lo comprueba
+       # contra la última r publicada. `vecino_max` es la mayor distancia al
+       # vecino más próximo: pasada ella, G vale 1 y no tiene nada más que
+       # contar, que es la primera ventaja de K.
+       lado_corto = r6(shortside(Frame(Window(p)))),
+       vecino_max = r6(max(nndist(p))))
 }
 D$m8 <- list(
   cells = kl(cells, "Células biológicas"),
@@ -1007,6 +1017,89 @@ for (nm in c("cells", "japanesepines", "redwood")) {
         sprintf("el desvio con signo de %s coincide en magnitud con el absoluto", nm),
         tol = 1e-9)
 }
+for (nm in names(D$m8)) {
+  ancla(max(D$m8[[nm]]$r), D$m8[[nm]]$lado_corto / 4,
+        sprintf("la r máxima de %s es un cuarto del lado corto del marco", nm),
+        tol = 1e-5 * D$m8[[nm]]$lado_corto)      # las dos van a seis cifras
+  if (D$m8[[nm]]$vecino_max >= max(D$m8[[nm]]$r))
+    stop(sprintf("en %s la mayor distancia al vecino ya no queda por debajo de la r máxima: ",
+                 nm), "la primera ventaja del módulo 8 dice que K sigue midiendo donde G ya no")
+}
+# Las CÉLULAS, LOS PINOS Y LAS SECUOYAS COMPARTEN LA CURVA TEÓRICA, y el
+# módulo lo usa como prueba de que πr² no depende de λ: tres patrones con
+# 42, 65 y 62 puntos y una sola referencia.
+for (nm in c("japanesepines", "redwood"))
+  ancla(max(abs(D$m8[[nm]]$k_teo - D$m8$cells$k_teo)), 0,
+        sprintf("la K teórica de %s es la de las células", nm), tol = 1e-12)
+
+# ---------------------------------------------------------------------
+# LAS PIEZAS DEL ESTIMADOR, A MANO Y A r = 1 km (2026-09-23)
+# ---------------------------------------------------------------------
+# Javier señaló que no se entendía cuáles eran los componentes de K. La
+# fórmula se publicaba con λ̂² delante y sin decir que spatstat usa
+# n(n − 1)/|W|² —la documentación de `Kest` lo escribe así, y los dos
+# bloques de Python del capítulo también—. Aquí se rehace sobre las sedes
+# la suma de la fórmula pieza a pieza, a una distancia redonda, para que
+# cada componente tenga una cifra: cuántas parejas ORDENADAS entran —cada
+# pareja cuenta dos veces, una desde cada punto—, cuánto pesan con la
+# corrección de traslación y qué sale al multiplicar por |W|/(n(n − 1)).
+#
+# OJO CON LOS PESOS: con una ventana poligonal, `edge.Trans` NO mide el
+# solape exacto del polígono con su copia desplazada; convierte la ventana
+# en máscara y lee la covarianza de la ventana (`setcov`) en una imagen. Es
+# lo que hace `Kest` por dentro —el ancla de abajo lo exige hasta el último
+# decimal—, y contra el solape exacto de shapely se aparta, pareja a
+# pareja, hasta un 2 % a 1 km y un 6 % a doce kilómetros, aunque la media
+# apenas se mueve. El auditor compara con esa tolerancia.
+R_PIEZAS <- 1000
+n_u <- npoints(p_urb); A_u <- area(Window(p_urb))
+cp_u <- closepairs(p_urb, 2 * max(D$m8$bogota$r), what = "ijd")
+pesos_de <- function(k) edge.Trans(p_urb[cp_u$i[k]], p_urb[cp_u$j[k]], paired = TRUE)
+k1 <- which(cp_u$d <= R_PIEZAS)
+w1 <- pesos_de(k1)
+K1 <- A_u / (n_u * (n_u - 1)) * sum(w1)
+K1_kest <- tail(Kest(p_urb, correction = CORR,
+                     r = seq(0, R_PIEZAS, length.out = 513))[[CORR_COL]], 1)
+ancla(K1, K1_kest, "la suma de la fórmula a mano es la K de Kest a 1 km", tol = 1e-6 * K1)
+D$m8$piezas <- list(
+  r = R_PIEZAS, n = n_u, area_km2 = r6(A_u / 1e6),
+  parejas = n_u * (n_u - 1),
+  # La intensidad de los OTROS n − 1 puntos, que es la que divide: por eso
+  # el estimador lleva n(n − 1) y no n².
+  lambda_otros_km2 = r6((n_u - 1) / A_u * 1e6),
+  parejas_r = length(w1), suma_pesos = r6(sum(w1)),
+  peso_medio = r6(mean(w1)), peso_max = r6(max(w1)),
+  vecinas_crudas = r6(length(w1) / n_u), vecinas = r6(sum(w1) / n_u),
+  vecinas_csr = r6((n_u - 1) / A_u * pi * R_PIEZAS^2),
+  k_km2 = r6(K1 / 1e6), pir2_km2 = r6(pi * R_PIEZAS^2 / 1e6),
+  cociente = r6(K1 / (pi * R_PIEZAS^2)))
+if (!(D$m8$piezas$vecinas > D$m8$piezas$vecinas_crudas &&
+      D$m8$piezas$vecinas > D$m8$piezas$vecinas_csr))
+  stop("a 1 km las sedes ya no tienen más vecinas corregidas que crudas y que bajo CSR: ",
+       "el módulo 8 lo lee así")
+
+# Y EL PESO SEGÚN LA DISTANCIA, que es la razón de no mirar lejos: en la
+# última décima antes de la r máxima, y en la misma décima al doble. Más
+# allá de la r que spatstat elige, la corrección pasaría a contar cada
+# pareja por varias.
+banda_pesos <- function(desde, hasta) {
+  k <- which(cp_u$d > desde & cp_u$d <= hasta); w <- pesos_de(k)
+  list(desde = r6(desde), hasta = r6(hasta), parejas = length(w),
+       peso_medio = r6(mean(w)), peso_max = r6(max(w)))
+}
+r_mx <- max(D$m8$bogota$r)
+D$m8$pesos_borde <- list(
+  hasta_rmax = banda_pesos(0.9 * r_mx, r_mx),
+  al_doble = banda_pesos(1.8 * r_mx, 2 * r_mx))
+if (!(D$m8$piezas$peso_medio < D$m8$pesos_borde$hasta_rmax$peso_medio &&
+      D$m8$pesos_borde$hasta_rmax$peso_medio < D$m8$pesos_borde$al_doble$peso_medio))
+  stop("el peso medio de traslación ya no crece con la distancia: el módulo 8 afirma que sí")
+message(sprintf("  a 1 km: %d parejas, pesan %.4f en promedio · K = %.4f km² frente a %.4f · %.3f vecinas (CSR %.3f)",
+                D$m8$piezas$parejas_r, D$m8$piezas$peso_medio, D$m8$piezas$k_km2,
+                D$m8$piezas$pir2_km2, D$m8$piezas$vecinas, D$m8$piezas$vecinas_csr))
+message(sprintf("  peso medio: %.3f cerca de la r máxima, %.3f al doble",
+                D$m8$pesos_borde$hasta_rmax$peso_medio, D$m8$pesos_borde$al_doble$peso_medio))
+
 message(sprintf("  max|L-r|: cells=%.4f  japanesepines=%.4f  redwood=%.4f  bogota=%.1f m",
                 D$m8$cells$max_desvio, D$m8$japanesepines$max_desvio,
                 D$m8$redwood$max_desvio, D$m8$bogota$max_desvio))
@@ -1248,6 +1341,39 @@ D$m11$test_global <- list(
   mad_bogota_p  = pval(mad.test(env_bog)$p.value),
   dclf_japanesepines_p = pval(dclf.test(env_jap)$p.value),
   mad_japanesepines_p  = pval(mad.test(env_jap)$p.value))
+
+# EL ABANICO DE LAS SIMULACIONES, A DOS DISTANCIAS (2026-09-23). Es una
+# desventaja de K que el módulo 8 enseña con estas mismas 999
+# simulaciones: bajo CSR, lo que K̂ se mueve de una realización a otra
+# crece con r, así que una misma separación entre curvas no pesa igual a
+# 10 m que a 5 km. La raíz de Besag lo contiene, pero no igual en todos
+# los patrones. Se mide sobre lo PUBLICADO —la más baja y la más alta de
+# las 999 en la rejilla de 101 nodos— a una décima de la r máxima y en la
+# r máxima, y L es la raíz de cada extremo entre π, que es monótona: el
+# abanico de L es el de K transformado, no otro.
+abanico <- function(e, i_a = 11L, i_b = length(e$r)) {
+  ak <- function(i) e$hi[i] - e$lo[i]
+  al <- function(i) sqrt(e$hi[i] / pi) - sqrt(e$lo[i] / pi)
+  list(r_a = e$r[i_a], r_b = e$r[i_b],
+       ancho_k_a = r6(ak(i_a)), ancho_k_b = r6(ak(i_b)), veces_k = r6(ak(i_b) / ak(i_a)),
+       ancho_l_a = r6(al(i_a)), ancho_l_b = r6(al(i_b)), veces_l = r6(al(i_b) / al(i_a)))
+}
+D$m8$abanico <- lapply(D$m11[c("bogota", "redwood", "japanesepines")], abanico)
+for (nm in names(D$m8$abanico)) {
+  a8 <- D$m8$abanico[[nm]]
+  ancla(a8$r_a, a8$r_b / 10, sprintf("el abanico de %s se mide a una décima de la r máxima", nm),
+        tol = 1e-5 * a8$r_b)
+  if (!(a8$veces_k > 5 * a8$veces_l))
+    stop(sprintf("en %s el abanico de K ya no crece mucho más que el de L: ", nm),
+         "el módulo 8 lo afirma")
+}
+# LO QUE LA PROSA DICE DE CADA UNO: en los dos patrones pequeños L apenas
+# se ensancha; en Bogotá sí, aunque mucho menos que K. Si cambiara, la
+# frase dejaría de ser cierta y esto para.
+if (!(D$m8$abanico$redwood$veces_l < 2 && D$m8$abanico$japanesepines$veces_l < 2 &&
+      D$m8$abanico$bogota$veces_l > 2))
+  stop("el abanico de L ya no se queda casi quieto en los de libro y crece en Bogotá: ",
+       "el módulo 8 lo afirma")
 
 if (ts_bog$pct < 5)
   stop("la tasa de salida bajo CSR salió por debajo del 5 %: el módulo 11 afirma lo contrario")

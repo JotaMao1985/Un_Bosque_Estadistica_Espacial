@@ -296,6 +296,33 @@ def defectos():
     obj("2 · el mínimo de J deja de ser el de la curva",
         "datos", lambda d: d["m7"]["japanesepines"].__setitem__("j_min", 0.4171717171))
 
+    # --- Las piezas de K y sus límites (2026-09-23) -------------------
+    # El módulo 8 publica ahora la fórmula de K sumada a mano sobre las
+    # sedes a 1 km, el peso de traslación según la distancia, el alcance de
+    # r y el abanico de las simulaciones. Una por cada manera de mentir.
+    obj("1 · las parejas ordenadas a 1 km dejan de ser las del dato",
+        "datos", lambda d: d["m8"]["piezas"].__setitem__("parejas_r", 51717))
+    obj("2 · la K a 1 km deja de ser |W| · suma / (n(n − 1))",
+        "datos", lambda d: d["m8"]["piezas"].__setitem__("k_km2", 4.1717171717))
+    obj("2 · las vecinas bajo CSR se calculan con otra intensidad",
+        "datos", lambda d: d["m8"]["piezas"].__setitem__("vecinas_csr", 17.1717171717))
+    obj("1 · el peso medio a 1 km deja de ser el de spatstat",
+        "datos", lambda d: (d["m8"]["piezas"].__setitem__("peso_medio", 1.1717171717),
+                            d["m8"]["piezas"].__setitem__(
+                                "suma_pesos", round(1.1717171717 * d["m8"]["piezas"]["parejas_r"], 4))))
+    obj("1 · el peso medio al doble de la r máxima se infla",
+        "datos", lambda d: d["m8"]["pesos_borde"]["al_doble"].__setitem__("peso_medio", 4.1717171717))
+    obj("1 · la r máxima deja de ser un cuarto del lado corto",
+        "datos", lambda d: d["m8"]["bogota"].__setitem__("lado_corto", 21717.1717))
+    obj("1 · la mayor distancia al vecino de las sedes cambia",
+        "datos", lambda d: d["m8"]["bogota"].__setitem__("vecino_max", 2171.71717))
+    obj("5 · los de libro dejan de compartir la K teórica",
+        "datos", lambda d: d["m8"]["redwood"]["k_teo"].__setitem__(60, 0.1171717171))
+    obj("2 · el abanico de L de Bogotá deja de salir de la banda",
+        "datos", lambda d: d["m8"]["abanico"]["bogota"].__setitem__("veces_l", 1.7171717171))
+    obj("3 · el abanico de K crece como el de L",
+        "datos", lambda d: d["m8"]["abanico"]["japanesepines"].__setitem__("veces_k", 1.3171717171))
+
     # --- 12. Coherencia entre módulos ---------------------------------
     obj("12 · el módulo 10 describe otra ventana que el módulo 1",
         "datos", lambda d: d["m10"]["ventana"].__setitem__("piezas", 19))
