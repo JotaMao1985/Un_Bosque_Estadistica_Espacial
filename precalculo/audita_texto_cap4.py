@@ -133,6 +133,11 @@ DEBE_CUBRIR = [
     ("la correlación de pares g(r)", "correlación de pares"),
     ("que K es acumulativa y arrastra", "acumulativa"),
     ("que g mira el anillo y no el disco", "anillo"),
+    # Lo que entró el 2026-09-24, a petición de Javier
+    ("los ocho resúmenes del capítulo lado a lado", "los ocho resúmenes"),
+    # «qué cuenta» a secas ya lo da el título «Qué cuenta K» del módulo 8.
+    ("qué cuenta cada resumen, antes de su dirección", "dice qué cuenta cada uno"),
+    ("el punto ciego de cada resumen", "lo que no ve"),
     # Módulo 10 — efectos de borde
     ("los efectos de borde", "efectos de borde"),
     ("la corrección de borde", "corrección de borde"),
@@ -211,6 +216,19 @@ AFIRMACIONES = [
      "es compatible con csr, no la prueba"),
     ("explica que g mira el anillo y no el disco",
      "no el disco"),
+    # La sección de los ocho resúmenes (2026-09-24). Las tres primeras son
+    # las correcciones al cuadro que Javier trajo de otra fuente; si una
+    # reescritura las pierde, la tabla vuelve a leer K como si fuera g.
+    ("dice que la agregación no mueve a todos los resúmenes hacia arriba",
+     "no mueve a todos hacia arriba"),
+    ("dice que las direcciones de la tabla valen a la escala de la estructura",
+     "a la escala de la estructura"),
+    ("dice que solo la referencia de G y F lleva λ",
+     "lleva λ dentro"),
+    ("dice que J no necesita λ en ningún sitio",
+     "no la necesita en ningún sitio"),
+    ("dice que ninguno de los ocho dice por qué se aparta el patrón",
+     "ninguna de las ocho dice"),
     ("dice que ignorar el borde no añade ruido sino dirección",
      "no añade ruido"),
     ("da la razón del signo del sesgo",

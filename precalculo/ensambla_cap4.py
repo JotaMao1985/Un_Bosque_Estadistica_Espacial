@@ -185,6 +185,40 @@ def sim(ident, titulo, pie="", alto=260, mandos=True):
 """
 
 
+def sim_paneles(ident, titulo, pie, paneles, alto=200):
+    """Un simulador con VARIOS lienzos bajo los mismos mandos, en rejilla.
+
+    Nace para `cap4-seis` (2026-09-24): las seis funciones del capítulo
+    sobre el mismo patrón, para que la tabla de las direcciones se pueda
+    comprobar de una vez. Cada panel lleva su `.grafico-etiqueta` encima,
+    que es como la plantilla rotula un panel dentro de un simulador.
+
+    LA REJILLA VA EN LÍNEA porque la plantilla no tiene una: dos columnas
+    donde quepan y una en el teléfono. `min(100%, 300px)` es lo que impide
+    que a 375 px una columna de 300 más el relleno del simulador desborde.
+    Y `margin-top:0` en cada lienzo anula la regla `.grafico-wrapper +
+    .grafico-wrapper`, pensada para paneles apilados: en rejilla desalinea
+    la segunda columna.
+    """
+    celdas = "".join(
+        f"""          <div>
+            <p class="grafico-etiqueta">{p}</p>
+            <div class="grafico-wrapper" style="height:{alto}px; margin-top:0;">
+              <canvas role="img" aria-label="{titulo}: {p}"></canvas>
+            </div>
+          </div>
+""" for p in paneles)
+    return f"""      <div class="simulador" data-simulador="{ident}">
+        <h4><i class="fas fa-sliders" aria-hidden="true"></i> {titulo}</h4>
+        <p class="simulador-intro">{pie}</p>
+        <div class="simulador-controles"></div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 300px), 1fr)); column-gap:1rem;">
+{celdas}        </div>
+        <div class="simulador-lectura"></div>
+      </div>
+"""
+
+
 def fila(*celdas):
     cab, resto = celdas[0], celdas[1:]
     return ('            <tr><th scope="row">' + str(cab) + '</th>'
@@ -253,7 +287,7 @@ TITULOS = (
     ("El tamaño del cuadrante", "Esto es el MAUP otra vez"),
     ("Las funciones G y F", "Distancias al vecino y al espacio vacío, y su cociente J"),
     ("La función K de Ripley", "Sus piezas, la L de Besag, y qué ve y qué no"),
-    ("La correlación de pares g(r)", "Por qué g es más legible que K"),
+    ("La correlación de pares g(r)", "Por qué g es más legible que K, y los ocho resúmenes lado a lado"),
     ("Efectos de borde", "Tres correcciones, y lo que cuestan"),
     ("Envolventes de simulación", "Qué NO es un p-valor de envolvente"),
     ("Autoevaluación y ejercicios", "Doce preguntas y cinco ejercicios guiados"),
@@ -1819,10 +1853,128 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
 # =====================================================================
 # MÓDULO 9 · La correlación de pares g(r)
 # =====================================================================
+# ---------------------------------------------------------------------
+# LOS OCHO RESÚMENES, LADO A LADO (2026-09-24, a petición de Javier, que
+# trajo un cuadro de otra fuente con K, L − r, J y g). Tres cosas cambian
+# respecto de ese cuadro, y las tres son de fondo:
+#   · Van los OCHO, en el orden del capítulo —R, χ², G, F, J, K, L, g—, y
+#     no cuatro sueltos: sin G y F la J es un cociente de nada.
+#   · J NO es «la razón G/F», que decía el cuadro: es (1 − G)/(1 − F).
+#   · «L − r > 0: agregado» y «K evalúa múltiples escalas a la vez» leían
+#     una función ACUMULATIVA como si fuera puntual, justo el error que
+#     este módulo corrige. La tabla dice qué cuenta cada una (el disco, el
+#     anillo) y deja las direcciones «a la escala de la estructura», con
+#     su pie. Y la prosa no señala ningún caso en que G y F discrepen:
+#     construirlo es trabajo del Taller 2.
+# Las filas se construyen AQUÍ y no dentro del f-string del módulo porque
+# llevan KaTeX, y Python 3.10 no admite barras invertidas dentro de las
+# expresiones de un f-string (la misma razón que `PIEZAS_K`).
+# ---------------------------------------------------------------------
+# LA CABECERA DE FILA SE QUEDA FIJA AL DESPLAZAR. A 375 px la plantilla
+# pone las tablas a `max-content` dentro de `.tabla-scroll`, y en una de
+# cinco columnas la de «Resumen» se iba por la izquierda: al llegar a la
+# última ya no se sabía de qué fila se leía, el defecto que la propia
+# plantilla describe. `sticky` necesita que la tabla NO sea el contenedor
+# de desplazamiento, y por eso la tabla lleva `overflow:visible`; y
+# `position:relative` para que el MathML de KaTeX, que va en posición
+# absoluta, quede dentro del envoltorio y no ensanche la página.
+# Y EL ANCHO VA EN LÍNEA, `width:100%` más un `min-width`. El `max-content`
+# de la plantilla deja cada frase en un solo renglón, y con frases de
+# sesenta caracteres la tabla pasaba de mil quinientos píxeles; partirlas
+# con `<br>` arreglaba el teléfono y rompía el escritorio, donde las
+# columnas ya parten solas. `width:100%` anula el `max-content`, y el mínimo
+# impide que en el teléfono cinco columnas se aplasten en 343 px: el texto
+# parte dentro de su celda en los dos anchos y el envoltorio desplaza.
+FIJA = "position:sticky; left:0; z-index:1;"
+
+
+def fila_fija(*celdas):
+    cab, resto = celdas[0], celdas[1:]
+    return (f'            <tr><th scope="row" style="{FIJA}">' + str(cab) + '</th>'
+            + ''.join('<td>' + str(c) + '</td>' for c in resto) + '</tr>\n')
+
+
+FILAS_OCHO = "".join([
+    fila_fija('Clark-Evans <em>R</em><br><small>módulo 3</small>',
+              'La distancia media de cada punto a su vecino más próximo, dividida por la que daría el azar',
+              'Ronda 1', 'Por debajo de 1', 'Por encima de 1'),
+    fila_fija('χ² de cuadrantes<br><small>módulos 5 y 6</small>',
+              'Cuánto se apartan los conteos por celda de los que daría el azar',
+              'Alrededor de sus grados de libertad, \\({m - 1}\\)',
+              'Por encima: conteos más desiguales que los del azar',
+              'Por debajo: conteos más parejos que los del azar'),
+    fila_fija('G(r)<br><small>módulo 7</small>',
+              'La fracción de puntos que tiene a su vecino más próximo a r o menos',
+              '\\({1 - e^{-\\lambda \\pi r^2}}\\)', 'Sube antes que la de CSR', 'Arranca después'),
+    fila_fija('F(r)<br><small>módulo 7</small>',
+              'La fracción de sitios de la ventana con algún punto a r o menos: los huecos',
+              'La misma que la de G', 'Sube después que la de CSR', 'Sube antes'),
+    fila_fija('J(r)<br><small>módulo 7</small>',
+              'El cociente \\({(1 - G)/(1 - F)}\\)', '1', 'Por debajo de 1', 'Por encima de 1'),
+    fila_fija('K(r)<br><small>módulo 8</small>',
+              'Los vecinos a r o menos de un punto típico, divididos por λ: el disco entero',
+              '\\(\\pi r^2\\)', 'Por encima de \\(\\pi r^2\\)', 'Por debajo de \\(\\pi r^2\\)'),
+    fila_fija('L(r) − r<br><small>módulo 8</small>',
+              'K en la escala de r, con \\({L = \\sqrt{K/\\pi}}\\)', '0',
+              'Por encima de 0', 'Por debajo de 0'),
+    fila_fija('g(r)<br><small>módulo 9</small>',
+              'Las parejas a distancia r, divididas por las que daría CSR: solo el anillo',
+              '1', 'Por encima de 1',
+              'Por debajo de 1 en las distancias cortas; 0 donde no cabe ninguna pareja'),
+])
+
+FILAS_VE = "".join([
+    fila_fija('Clark-Evans <em>R</em>',
+              'Ordena los regímenes con una cifra sin unidades',
+              'La escala: todo el patrón en una cifra, y solo con el vecino más próximo',
+              '<code>clarkevans()</code>'),
+    fila_fija('χ² de cuadrantes',
+              'Un contraste con p-valor, el más fácil de explicar',
+              'Lo que pasa dentro de cada celda; y su veredicto cambia con el tamaño de la celda',
+              '<code>quadrat.test()</code>'),
+    fila_fija('G(r)', 'Lo cerca que tiene cada punto a su vecino',
+              'Lo que pasa más allá del primer vecino', '<code>Gest()</code>'),
+    fila_fija('F(r)', 'El tamaño de los huecos',
+              'Lo que pasa más allá del punto más próximo a cada sitio', '<code>Fest()</code>'),
+    fila_fija('J(r)', 'G y F en una sola curva, con referencia plana y sin λ',
+              'Tiembla cuando F se acerca a 1, y J = 1 no certifica CSR', '<code>Jest()</code>'),
+    fila_fija('K(r)', 'Todas las parejas hasta r, más allá del primer vecino',
+              'Arrastra: el exceso de las distancias cortas sigue contado en las largas',
+              '<code>Kest()</code>'),
+    fila_fija('L(r) − r', 'Lo mismo que K, contra una recta en vez de una parábola',
+              'Lo mismo que K: también arrastra', '<code>Lest()</code>'),
+    fila_fija('g(r)', 'La distancia a la que está la estructura',
+              'Necesita un ancho de banda, y un valor suelto no se lee sin la banda del azar',
+              '<code>pcf()</code>'),
+])
+
+# LO QUE LA PROSA DE LA SECCIÓN AFIRMA DEL DATO. Si un precálculo nuevo
+# deja de sostener alguna, el ensamblado para en vez de publicarla.
+_b7, _b8, _b9 = m7['bogota'], m8['bogota'], m9['bogota']
+_sec = m7['redwood']
+_sec_corto = [j for r, j in zip(_sec['r_j'], _sec['j_obs']) if 0 < r < m3['redwood']['nn_min']]
+_cuadro = {
+    "Bogotá: R por debajo de 1": m3['bogota']['clark_evans'] < 1,
+    "Bogotá: el χ² rechaza con todas las rejillas": all(m6['bogota']['rechaza']),
+    "Bogotá: mediana de G < la de CSR < la de F":
+        _b7['g_mediana'] < _b7['csr_mediana'] < _b7['f_mediana'],
+    "Bogotá: J por debajo de 1 en todas las distancias": _b7['j_bajo_1'] == _b7['j_nodos'],
+    "Bogotá: el mayor desvío de L − r es positivo": _b8['desvio_con_signo'] > 0,
+    "Bogotá: g por encima de 1 en todo el barrido":
+        _b9['r_vuelve_a_1'] is None and all(v is not None and v > 1 for v in _b9['g_obs']),
+    "secuoyas: J por encima de 1 antes de su pareja más próxima":
+        len(_sec_corto) > 0 and all(j > 1 for j in _sec_corto),
+    "células: g pasa por encima de 1": m9['cells']['g_max'] > 1,
+}
+_rotas = [k for k, v in _cuadro.items() if not v]
+if _rotas:
+    sys.exit(f"PARADO: la sección de los ocho resúmenes del módulo 9 afirma lo que el "
+             f"precálculo ya no sostiene: {_rotas}")
+
 MOD9 = cabecera(
     9, "La correlación de pares g(r)", "Pair correlation function",
-    "Leer dónde está la estructura, y entender por qué una función acumulativa "
-    "no puede decirlo."
+    "Leer dónde está la estructura, entender por qué una función acumulativa "
+    "no puede decirlo, y poner los ocho resúmenes del capítulo lado a lado."
 ) + f"""      <p>El primer defecto de la lista del módulo 8 es el que se ve en cuanto se busca: K es
         <strong>acumulativa</strong>.
         K(r) cuenta todos los vecinos hasta r, así que si un patrón se agrupa a 20 metros,
@@ -1833,10 +1985,18 @@ MOD9 = cabecera(
         radio r, no el disco. Bajo CSR vale 1 en todo r, y por encima o por debajo indica
         más o menos parejas de las esperadas <em>a esa distancia concreta</em>.</p>
 
-      <div class="formula-box">
-        <p>$$g(r) = \\frac{{1}}{{2\\pi r}} \\frac{{dK(r)}}{{dr}}
-          \\qquad \\text{{bajo CSR}} \\quad g(r) = 1$$</p>
+      <div class="formula">
+        $$\\begin{{aligned}}
+          g(r) &amp;= \\frac{{1}}{{2\\pi r}}\\,\\frac{{dK(r)}}{{dr}} \\\\[4pt]
+          \\text{{bajo CSR:}}\\quad g(r) &amp;= \\frac{{2\\pi r}}{{2\\pi r}} = 1
+        \\end{{aligned}}$$
       </div>
+
+      <p>La derivada de K mide cuánto crece K al pasar de r a un r un poco mayor, es decir,
+        cuántos vecinos —divididos por λ— aparecen en el anillo que se añade. Dividirla por
+        \\(2\\pi r\\), la longitud de la circunferencia de radio r, la pone en la escala de
+        CSR: bajo CSR, K es la parábola \\(\\pi r^2\\), su derivada es justo \\(2\\pi r\\) y el
+        cociente vale 1 en todo r.</p>
 
 {sim('cap4-kg', 'K contra g sobre el mismo patrón',
      'Las dos curvas del mismo dato: mira hasta dónde sigue K separada de su teórica y dónde vuelve g a 1.', 300)}
@@ -1892,9 +2052,107 @@ MOD9 = cabecera(
       <p>La pestaña de Python es aquí la interesante, porque no reproduce a spatstat: calcula la
         g <em>cruda</em>, contando parejas por anillo sin suavizar. Sale más alta y más
         dentada, y esa diferencia es lo que compra el suavizado —a cambio de un ancho de banda
-        que hay que elegir, y que el capítulo 5 discute en serio—. Con G, F, K y g el patrón ya
-        está descrito; lo que sigue es si podemos creernos las curvas, y la respuesta empieza
-        por el borde de la ventana.</p>
+        que hay que elegir, y que el capítulo 5 discute en serio—.</p>
+
+      <h3>Los ocho resúmenes del capítulo, lado a lado</h3>
+
+      <p>Con g se completa la lista de resúmenes del capítulo. Son ocho, repartidos entre los
+        módulos 3 y 9, y cada uno mira una cosa distinta. El índice de Clark-Evans (módulo 3) resume
+        el patrón entero en una sola cifra. El χ² de cuadrantes (módulos 5 y 6) cuenta puntos
+        por celdas y no ve lo que pasa dentro de ellas. G, F y J (módulo 7) ya son curvas de la
+        distancia r, pero solo miran al punto más próximo. K y L (módulo 8) cuentan todas las
+        parejas hasta r, y por eso arrastran lo que encuentran. Y g mira solo el anillo, y deja
+        de arrastrar.</p>
+
+      <p>Todos contestan la misma pregunta —¿se aparta el patrón de CSR, y hacia qué lado?—, y
+        no la contestan igual, porque cada uno cuenta otra cosa. La tabla de abajo los pone en
+        fila, en ese orden. La segunda columna dice qué cuenta cada uno; la tercera, cuánto
+        vale bajo CSR; las dos últimas, hacia dónde se aparta de ese valor un patrón agregado y
+        uno regular.</p>
+
+      <table class="tabla-datos" style="position:relative; overflow:visible; width:100%; min-width:44rem;">
+        <caption>Los ocho resúmenes, en el orden en que aparecen, leídos contra CSR. Las dos
+          últimas columnas dicen hacia dónde se aparta cada uno a la escala de la estructura del
+          patrón; a otras distancias puede no apartarse, o apartarse hacia el otro lado.</caption>
+        <thead><tr><th scope="col" style="{FIJA}">Resumen</th><th scope="col">Qué cuenta</th>
+          <th scope="col">Bajo CSR</th><th scope="col">Si el patrón es agregado</th>
+          <th scope="col">Si es regular</th></tr></thead>
+        <tbody>
+{FILAS_OCHO}        </tbody>
+      </table>
+
+      <p>Lo primero que enseña la tabla está en las dos últimas columnas: la agregación no
+        mueve a todos hacia arriba. Suben el χ², G, K, L − r y g, que cuentan vecinos o
+        desigualdad entre celdas. Bajan R y F, que miden distancias y huecos, y baja J, que
+        divide los puntos que todavía no tienen vecino a r o menos por los sitios que todavía
+        no tienen ningún punto. Antes de leer hacia dónde se va una curva hay que saber qué
+        cuenta, y por eso esa columna va antes que las otras.</p>
+
+      <p>Lo segundo lo dice el pie de la tabla: esas dos columnas describen el desvío a la
+        escala de la estructura, no el de cada distancia. En las secuoyas, que son el agregado
+        del capítulo, J pasa por encima de 1 en las distancias más cortas que la de su pareja
+        de plántulas más próxima, {n(m3['redwood']['nn_min'], 5)}: ahí ningún punto tiene
+        todavía vecino, G vale 0 y el cociente solo ve los huecos. En las células, que son las
+        regulares, g no se queda por debajo de 1: sube hasta {n(m9['cells']['g_max'], 5)} en
+        r = {n(m9['cells']['r_g_max'], 5)}, que es el pico que este módulo ya comentó. Una curva se
+        lee entera, no en un nodo.</p>
+
+      <p>Lo tercero está en la columna de CSR: solo la referencia de G y F lleva λ dentro. Para
+        dibujarla hay que estimar antes la intensidad, y con ella, como enseñó el módulo 1, la
+        ventana. Las demás la llevan por dentro —R divide por la distancia que daría la λ del
+        patrón, el χ² reparte con ella los esperados, K divide por ella— y por eso su referencia
+        es la misma para un patrón denso que para uno ralo. Y J no la necesita en ningún sitio:
+        G y F se estiman sin λ —solo su referencia la usa—, y su cociente se compara con 1.</p>
+
+      <p>El panel de abajo pone las seis curvas —G, F, J, K, L − r y g— sobre el mismo patrón,
+        cada una en su recuadro: en color la observada y en gris punteado su referencia bajo
+        CSR. Son las curvas de los simuladores de los módulos 7, 8 y 9, juntas. La lectura da
+        para cada una la cifra que usaba su módulo: la mediana de G y la de F frente a la de
+        CSR, en cuántas distancias queda J por debajo de 1, el mayor desvío de L − r, que
+        resume también a K, y el máximo de g con el r en que vuelve a 1.</p>
+
+{sim_paneles('cap4-seis', 'Las seis funciones sobre el mismo patrón',
+             'Elige el patrón: cada recuadro dibuja una función en color contra su referencia bajo CSR, en gris punteado.',
+             ['G(r) · vecino más próximo', 'F(r) · espacio vacío', 'J(r) = (1 − G) / (1 − F)',
+              'K(r) · el disco', 'L(r) − r · K en la escala de r', 'g(r) · el anillo'])}
+      <p>Empieza por las secuoyas y pasa después a las células, con la tabla al lado: en cada
+        recuadro busca el tramo en que la curva se separa de la gris, y hacia qué lado. Las dos
+        salvedades que se comentaron bajo la tabla se ven ahí: la J de las secuoyas arranca por encima de
+        1, y la g de las células pasa por encima de 1 en su pico. Después pasa a las sedes de
+        Bogotá. La mediana de G es {n(_b7['g_mediana'], 2)} m, frente a
+        los {n(_b7['csr_mediana'], 2)} de CSR, y la de F, {n(_b7['f_mediana'], 2)}; J queda por
+        debajo de 1 en las {ent(_b7['j_nodos'])} distancias dibujadas; L − r llega a
+        {n_signo(_b8['desvio_con_signo'], 2)} m, y g no baja de 1 en todo el barrido. Las dos
+        filas de arriba de la tabla dicen lo mismo: R vale
+        {n(m3['bogota']['clark_evans'], 5)}, y el χ² rechaza con las {ent(_n_tam)} rejillas del
+        módulo 6. Los ocho resúmenes caen del mismo lado, el de la agregación.</p>
+
+      <p>La segunda tabla dice qué ve cada uno, qué no ve y con qué función de R se calcula.</p>
+
+      <table class="tabla-datos" style="position:relative; overflow:visible; width:100%; min-width:40rem;">
+        <caption>Lo que aporta cada resumen, su punto ciego y la función de spatstat que lo
+          calcula.</caption>
+        <thead><tr><th scope="col" style="{FIJA}">Resumen</th><th scope="col">Lo que aporta</th>
+          <th scope="col">Lo que no ve</th><th scope="col">En R</th></tr></thead>
+        <tbody>
+{FILAS_VE}        </tbody>
+      </table>
+
+      <p>La última columna lleva un aviso que viene del módulo 7: en la máquina del precálculo
+        <code>Fest()</code> devuelve distancias falsas, y <code>Jest()</code> la llama por
+        dentro, así que el capítulo rehace las dos a mano. Antes de fiarte de ellas en la tuya,
+        compáralas con la cuenta directa, como hace el código de ese módulo.</p>
+
+      <p>Y hay tres cosas que ninguna de las ocho dice. La primera es <strong>por qué</strong>
+        se aparta el patrón: sobre Bogotá lo explicó este mismo módulo más arriba, porque una
+        intensidad que cambia de una zona a otra deja la misma huella que unos colegios que se
+        atraen, y separar las dos es trabajo del capítulo 5. La segunda es si el desvío es
+        mayor que el que produce el azar: los pinos japoneses son aleatorios y su L − r se
+        aparta hacia el lado regular, como enseñó el módulo 8, y la manera de medir cuánto se
+        mueve el azar es la envolvente del módulo 11. La tercera es cuánto les cambia el borde:
+        las seis curvas se estiman dentro de una ventana que corta el patrón. Con los ocho
+        resúmenes el patrón ya está descrito; lo que sigue es si podemos creernos las curvas, y
+        la respuesta empieza por el borde de la ventana.</p>
 """ + CIERRE
 
 
@@ -2890,6 +3148,79 @@ SIMULADORES_JS = r"""
                k => { i = k; pinta(); }, 2);
       pinta();
       return [g];
+    };
+
+    // --- Módulo 9 · las seis funciones, lado a lado ------------------
+    // LAS MISMAS CURVAS de `cap4-gf`, `cap4-j`, `cap4-kl` y `cap4-kg`, y
+    // nada más: el panel no calcula ninguna, las pone juntas para que la
+    // tabla de las direcciones se compruebe sobre un mismo patrón de una
+    // vez. Cada recuadro lleva su curva en el color que tenía en su módulo
+    // y su referencia de CSR siempre igual, gris punteada.
+    // SIN LEYENDA: seis leyendas en seis recuadros pequeños se comen el
+    // gráfico, y la prosa que precede al panel dice qué es cada trazo. El
+    // nombre de cada función va en la etiqueta del recuadro.
+    // Y LA LECTURA NO DA RÉGIMEN, por la misma razón que `cap4-kl` y
+    // `cap4-j`: sin la banda del azar, una desviación sola no lo establece.
+    SIMULADORES['cap4-seis'] = function (raiz) {
+      const CLAVES = ['cells', 'japanesepines', 'redwood', 'bogota'];
+      const ETQ = ['Células', 'Pinos japoneses', 'Secuoyas', 'Sedes de Bogotá'];
+      let i = 2;
+      const plana = (rs, v) => rs.map(() => v);
+      const PANELES = [
+        { eje: 'G(r)', color: C4.verde,
+          obs: k => curva4(D4.m7[k].r_g, D4.m7[k].g_obs), csr: k => curva4(D4.m7[k].r_g, D4.m7[k].g_teo) },
+        { eje: 'F(r)', color: C4.naranja,
+          obs: k => curva4(D4.m7[k].r_f, D4.m7[k].f_obs), csr: k => curva4(D4.m7[k].r_f, D4.m7[k].f_teo) },
+        { eje: 'J(r)', color: C4.morado,
+          obs: k => curva4(D4.m7[k].r_j, D4.m7[k].j_obs), csr: k => curva4(D4.m7[k].r_j, plana(D4.m7[k].r_j, 1)) },
+        { eje: 'K(r)', color: C4.verde,
+          obs: k => curva4(D4.m8[k].r, D4.m8[k].k_obs), csr: k => curva4(D4.m8[k].r, D4.m8[k].k_teo) },
+        { eje: 'L(r) − r', color: C4.naranja,
+          obs: k => curva4(D4.m8[k].r, D4.m8[k].l_menos_r), csr: k => curva4(D4.m8[k].r, plana(D4.m8[k].r, 0)) },
+        { eje: 'g(r)', color: C4.morado,
+          obs: k => curva4(D4.m9[k].r, D4.m9[k].g_obs), csr: k => curva4(D4.m9[k].r, D4.m9[k].g_teo) }
+      ];
+      const lienzos = raiz.querySelectorAll('canvas');
+      const graficos = PANELES.map((p, j) => new Chart(lienzos[j].getContext('2d'), {
+        type: 'line', data: { datasets: [] },
+        options: { responsive: true, maintainAspectRatio: false, parsing: false,
+          plugins: { legend: { display: false } },
+          scales: ejesXY('r', p.eje) }
+      }));
+      const pinta = () => {
+        const k = CLAVES[i];
+        PANELES.forEach((p, j) => {
+          graficos[j].data.datasets = [
+            { label: p.eje + ' observada', data: p.obs(k), borderColor: p.color,
+              pointRadius: 0, tension: 0.2 },
+            { label: p.eje + ' bajo CSR', data: p.csr(k), borderColor: C4.gris,
+              borderDash: [5, 4], pointRadius: 0, tension: 0.2 }
+          ];
+          graficos[j].update();
+        });
+        const a = D4.m7[k], b = D4.m8[k], c = D4.m9[k];
+        const dec = x => n5(x, x > 10 ? 2 : 5);
+        const dr = x => n5(x, x > 10 ? 0 : 4);
+        // LAS FILAS VAN EN EL ORDEN DE LOS RECUADROS y con los nombres de
+        // la prosa. K no tiene fila propia: su desvío es el de L − r, que
+        // es K en la escala de r, y así lo dice el párrafo de antes.
+        lectura4(raiz, [
+          ['patrón', a.nombre],
+          ['mediana de G', dec(a.g_mediana)],
+          ['mediana de F', dec(a.f_mediana)],
+          ['mediana de las dos bajo CSR', dec(a.csr_mediana)],
+          ['distancias con J &lt; 1', a.j_bajo_1 + ' de ' + a.j_nodos],
+          ['mayor desvío de L − r', (b.desvio_con_signo > 0 ? '+' : '−')
+            + dec(Math.abs(b.desvio_con_signo)) + ' en r = ' + dr(b.r_max_desvio)],
+          ['g máxima', n5(c.g_max, 3) + ' en r = ' + dr(c.r_g_max)],
+          ['g vuelve a 1 en r', c.r_vuelve_a_1 == null ? 'no vuelve en el barrido'
+             : dr(c.r_vuelve_a_1)]
+        ]);
+      };
+      botones4(raiz, CLAVES.map((c, k) => ({ etiqueta: ETQ[k], valor: k })),
+               k => { i = k; pinta(); }, 2);
+      pinta();
+      return graficos;
     };
 
     // --- Módulo 10 · las correcciones de borde -----------------------
