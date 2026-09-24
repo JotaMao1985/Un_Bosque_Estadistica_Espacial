@@ -446,7 +446,7 @@ MOD1 = cabecera(
         lejos que esté del sitio donde miramos. El peso lo pone una función que decae con la
         distancia —el núcleo— y su anchura, σ, ocupa el lugar del tamaño de celda.</p>
 
-      <div class="formula-destacada">
+      <div class="formula">
         $$\\hat\\lambda(u) \;=\; \\frac{{1}}{{e(u)}} \\sum_{{i=1}}^{{n}} k_\\sigma\\!\\left(u - x_i\\right)$$
       </div>
 
@@ -756,7 +756,7 @@ MOD4 = cabecera(
       <p>La comprobación que lo decide no es visual. Si $\\hat\\lambda$ estima la intensidad,
         su integral sobre la ventana tiene que devolver el número de puntos:</p>
 
-      <div class="formula-destacada">
+      <div class="formula">
         $$\\int_W \\hat\\lambda(u)\\,du \;=\; n$$
       </div>
 
@@ -1085,7 +1085,7 @@ MOD6 = cabecera(
         <strong>dos intensidades</strong> estimadas sobre la misma ventana y con el mismo ancho, y
         la comparación se puede escribir de dos maneras.</p>
 
-      <div class="formula-destacada">
+      <div class="formula">
         $$\\hat p(u) \;=\; \\frac{{\\hat\\lambda_1(u)}}{{\\hat\\lambda_1(u) + \\hat\\lambda_0(u)}}$$
       </div>
 
@@ -1393,9 +1393,11 @@ MOD8 = cabecera(
         contrastarlos. El modelo mínimo que admite intensidad variable es el
         <strong>proceso de Poisson inhomogéneo</strong>, y son dos supuestos, no uno:</p>
 
-      <div class="formula-destacada">
-        $$N(B) \\sim \\text{{Poisson}}\\!\\left(\\int_B \\lambda(u)\\,du\\right), \\qquad
-          \\lambda(u) \;=\; \\exp\\!\\big(\\beta_0 + \\beta_1 z_1(u) + \\dots\\big)$$
+      <div class="formula">
+        $$\\begin{{aligned}}
+          N(B) &amp;\\sim \\text{{Poisson}}\\!\\left(\\int_B \\lambda(u)\\,du\\right) \\\\[6pt]
+          \\lambda(u) &amp;= \\exp\\!\\big(\\beta_0 + \\beta_1 z_1(u) + \\dots\\big)
+        \\end{{aligned}}$$
       </div>
 
       <p>El primero es el mismo del capítulo 4: dadas las regiones, los conteos son Poisson e
@@ -2065,7 +2067,7 @@ MOD11 = cabecera(
         variante donde los centros son <em>los propios eventos</em>: cada uno sube la intensidad
         de los siguientes, que es lo que se llama un <strong>proceso de Hawkes</strong>.</p>
 
-      <div class="formula-destacada">
+      <div class="formula">
         $$\\lambda(t) \;=\; \\mu \;+\; \\sum_{{t_i &lt; t}} \\alpha\\, e^{{-\\beta (t - t_i)}}$$
       </div>
 
