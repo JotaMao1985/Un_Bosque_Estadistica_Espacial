@@ -6164,8 +6164,18 @@ print("focos =", int(n_focos))
     // Gráfico de barras para correlogramas. `opciones.lineas` dibuja rectas de
     // referencia horizontales (la banda ±1.96/√T, el nivel nominal de una
     // prueba, etc.) como conjuntos de datos de línea sobre las barras.
+    //
+    // `tituloX` rotula el eje de las categorías y `tituloValor` el de los
+    // valores. `horizontal: true` tumba las barras —para categorías con
+    // nombre largo— y entonces se ven TODAS las categorías, sin saltarse
+    // rótulos. `color` admite una lista, un color por barra.
+    //
+    // Hasta el 2026-09-24 la función no leía `scales` ni `indexAxis`, y el
+    // capítulo 1 se los pasaba: su gráfica de los 13 pares salía de pie,
+    // sin título de eje y con la leyenda «ACF» por defecto.
     function crearGraficoBarras(canvas, etiquetas, valores, opciones = {}) {
       const n = etiquetas.length;
+      const horizontal = !!opciones.horizontal;
       const datasets = [{
         type: 'bar',
         label: opciones.etiqueta || 'ACF',
@@ -6205,10 +6215,37 @@ print("focos =", int(n_focos))
         });
       });
 
+      const ejeCategorias = {
+        title: {
+          display: !!opciones.tituloX,
+          text: opciones.tituloX,
+          font: { family: 'Montserrat', size: 11 }
+        },
+        // Tumbadas, los rótulos compiten por la mitad del ancho: en el teléfono
+        // bajan un punto para que quepan unos veinte caracteres por línea.
+        ticks: {
+          font: ctx => ({ family: 'Fira Code', size: horizontal && ctx.chart.width < 400 ? 9 : 10 }),
+          maxRotation: 0, autoSkip: !horizontal
+        },
+        grid: { display: false }
+      };
+      const ejeValores = {
+        title: {
+          display: !!opciones.tituloValor,
+          text: opciones.tituloValor,
+          font: { family: 'Montserrat', size: 11 }
+        },
+        suggestedMin: opciones.min !== undefined ? opciones.min : -1,
+        suggestedMax: opciones.max !== undefined ? opciones.max : 1,
+        ticks: { font: { family: 'Fira Code', size: 11 } },
+        grid: { color: 'rgba(148, 163, 184, 0.2)' }
+      };
+
       return new Chart(canvas, {
         type: 'bar',
         data: { labels: etiquetas, datasets: datasets },
         options: {
+          indexAxis: horizontal ? 'y' : 'x',
           responsive: true,
           maintainAspectRatio: false,
           animation: false,
@@ -6229,23 +6266,8 @@ print("focos =", int(n_focos))
               filter: item => item.dataset.label !== ''
             }
           },
-          scales: {
-            x: {
-              title: {
-                display: !!opciones.tituloX,
-                text: opciones.tituloX,
-                font: { family: 'Montserrat', size: 11 }
-              },
-              ticks: { font: { family: 'Fira Code', size: 10 }, maxRotation: 0 },
-              grid: { display: false }
-            },
-            y: {
-              suggestedMin: opciones.min !== undefined ? opciones.min : -1,
-              suggestedMax: opciones.max !== undefined ? opciones.max : 1,
-              ticks: { font: { family: 'Fira Code', size: 11 } },
-              grid: { color: 'rgba(148, 163, 184, 0.2)' }
-            }
-          }
+          scales: horizontal ? { y: ejeCategorias, x: ejeValores }
+                             : { x: ejeCategorias, y: ejeValores }
         }
       });
     }

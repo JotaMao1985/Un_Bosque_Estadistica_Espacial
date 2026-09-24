@@ -1252,6 +1252,19 @@ ETIQ_ESCALA <- c(desercion = "Deserción escolar (%)",
                  s11_edu_madre_media = "Educación de la madre (escala ordinal)",
                  s11_pct_oficial = "Colegios oficiales (%)",
                  s11_estrato_medio = "Estrato medio")
+# Los rótulos cortos son los que caben en la gráfica de barras del
+# simulador, en el teléfono, y los que nombra la prosa: un solo nombre
+# por variable en las dos superficies. En el teléfono Chart.js le da al
+# eje de los rótulos como mucho la mitad del ancho, unos 20 caracteres
+# por línea: «educación de la madre» se cortaba y es «educación materna».
+ETIQ_CORTA <- c(desercion = "deserción",
+                cobertura = "cobertura neta",
+                s11_punt_medio = "puntaje",
+                s11_pct_internet = "internet",
+                s11_cob_internet = "dato de internet",
+                s11_edu_madre_media = "educación materna",
+                s11_pct_oficial = "colegios oficiales",
+                s11_estrato_medio = "estrato")
 
 d_mun <- st_drop_geometry(muni)
 d_mun$dpto <- substr(d_mun$divipola, 1, 2)
@@ -1269,6 +1282,7 @@ for (i in seq_along(VARS_ESCALA)) for (j in seq_along(VARS_ESCALA)) if (i < j) {
   pares[[length(pares) + 1L]] <- list(
     a = a_, b = b_, a_etiqueta = unname(ETIQ_ESCALA[a_]),
     b_etiqueta = unname(ETIQ_ESCALA[b_]),
+    a_corta = unname(ETIQ_CORTA[a_]), b_corta = unname(ETIQ_CORTA[b_]),
     r_municipal = r10(rm_), r_departamental = r10(rd_),
     razon = r10(rd_ / rm_),
     cambio_pct = r10(100 * (rd_ / rm_ - 1)),
@@ -1287,6 +1301,76 @@ barrido <- lapply(UMBRALES, function(u) {
                    use = "complete.obs")))
 })
 
+# --- El caso de aviso, con el mismo barrido que el par principal ---
+#
+# La primera versión del módulo publicaba «8 suben, 5 bajan y 1 invierte
+# el signo» —tres grupos que sumaban 14 sobre 13 pares, porque el que
+# invierte está entre los que bajan— y usaba esa inversión como prueba
+# de que agregar puede cambiar el signo. Esa inversión es el par
+# internet × estrato: justo el que T0.4 había congelado como caso de
+# aviso, y el que esta misma sección prometía declarar. La página no lo
+# declaraba en ningún sitio.
+#
+# Y no aguanta la receta que el módulo predica. El estrato lo declara
+# cada estudiante, y no todos lo declaran; la fracción que lo declara va
+# con el puntaje, así que donde lo declaran pocos el «estrato medio» es
+# el de un subgrupo sesgado. Con 33 departamentos, la r departamental no
+# se distingue de cero; quitando los municipios donde lo declaró menos de
+# la mitad —o con el umbral de 30 estudiantes del par principal— queda
+# en casi cero; y quitando UN solo municipio —Morichal, en Guainía, donde
+# 2 de 12 estudiantes declararon estrato 6— pasa de -0,196 a -0,057. Ese
+# municipio sube a Guainía al primer puesto del país en estrato medio,
+# por encima de Bogotá. Lo que sobrevive es que agregar se lleva esa
+# correlación a cero; el signo lo ponían dos estudiantes.
+AV_A <- "s11_pct_internet"; AV_B <- "s11_estrato_medio"
+r_dep_aviso <- function(s) {
+  dd <- aggregate(s[, c(AV_A, AV_B)], by = list(dpto = s$dpto),
+                  FUN = function(v) mean(v, na.rm = TRUE))
+  list(r = cor(dd[[AV_A]], dd[[AV_B]], use = "complete.obs"), n_dep = nrow(dd))
+}
+inv_ <- vapply(pares, function(p) p$invierte_signo, logical(1))
+if (sum(inv_) != 1L || !identical(c(pares[[which(inv_)]]$a, pares[[which(inv_)]]$b), c(AV_A, AV_B)))
+  stop("El par que invierte el signo ya no es solo internet × estrato: el caso de aviso y su prosa describen otra cosa")
+
+d_mun$cob_estrato <- d_mun$s11_n_estrato / d_mun$s11_n
+COB_UMBRAL <- 0.5
+bajo_umbral <- !is.na(d_mun$cob_estrato) & d_mun$cob_estrato < COB_UMBRAL
+f_cob <- r_dep_aviso(d_mun[!is.na(d_mun$cob_estrato) & !bajo_umbral, ])
+f_n30 <- r_dep_aviso(d_mun[!is.na(d_mun$s11_n) & d_mun$s11_n >= UMBRALES[3], ])
+# Si un filtro se llevara un departamento entero, la comparación mezclaría
+# dos cosas: quitar municipios y quitar un punto de 33.
+if (f_cob$n_dep != nrow(d_dep) || f_n30$n_dep != nrow(d_dep))
+  stop("Un filtro del caso de aviso deja un departamento sin municipios")
+ct_aviso <- cor.test(d_dep[[AV_A]], d_dep[[AV_B]])
+
+# Quitar un municipio cada vez. El que más acerca la r a cero es el que
+# la prosa nombra, y el recorrido entero dice cuánto aguanta la cifra.
+con_estrato <- which(!is.na(d_mun[[AV_B]]))
+loo <- vapply(con_estrato, function(i) r_dep_aviso(d_mun[-i, ])$r, numeric(1))
+k_ <- con_estrato[which.max(loo)]
+dk_ <- d_mun$dpto[k_]
+estr_con <- tapply(d_mun[[AV_B]], d_mun$dpto, mean, na.rm = TRUE)
+estr_sin <- tapply(d_mun[[AV_B]][-k_], d_mun$dpto[-k_], mean, na.rm = TRUE)
+orden_con <- names(sort(estr_con, decreasing = TRUE))
+nombre_dpto <- function(cod) d_mun$departamento[match(cod, d_mun$dpto)]
+
+# La tesis del recuadro —agregar no siempre infla— no puede depender del
+# par con aviso: los pares SIN estrato que bajan tienen que seguir
+# bajando con el umbral de 30 estudiantes del par principal.
+sub_n30 <- d_mun[!is.na(d_mun$s11_n) & d_mun$s11_n >= UMBRALES[3], ]
+bajan_sin_estrato <- lapply(Filter(function(p) !(AV_B %in% c(p$a, p$b)) &&
+                                     abs(p$r_departamental) <= abs(p$r_municipal), pares),
+  function(p) {
+    dd <- aggregate(sub_n30[, c(p$a, p$b)], by = list(dpto = sub_n30$dpto),
+                    FUN = function(v) mean(v, na.rm = TRUE))
+    list(a = p$a, b = p$b, a_corta = p$a_corta, b_corta = p$b_corta,
+         r_municipal_n30 = r10(cor(sub_n30[[p$a]], sub_n30[[p$b]], use = "complete.obs")),
+         r_departamental_n30 = r10(cor(dd[[p$a]], dd[[p$b]], use = "complete.obs")))
+  })
+if (!length(bajan_sin_estrato) ||
+    any(vapply(bajan_sin_estrato, function(q) abs(q$r_departamental_n30) > abs(q$r_municipal_n30), logical(1))))
+  stop("Sin el estrato, ningún par que baja sigue bajando con n >= 30: «agregar no siempre infla» descansaría en el caso de aviso")
+
 D$escala_correlacion <- list(
   n_variables = length(VARS_ESCALA),
   n_pares = length(pares),
@@ -1295,6 +1379,10 @@ D$escala_correlacion <- list(
   n_bajan = sum(vapply(pares, function(p) abs(p$r_departamental) <=
                          abs(p$r_municipal), logical(1))),
   n_invierten = sum(vapply(pares, function(p) p$invierte_signo, logical(1))),
+  # El que invierte está DENTRO de los que bajan, no al lado: la prosa
+  # dice «de los que bajan, uno cambia de signo», y esto lo sostiene.
+  n_invierten_entre_bajan = sum(vapply(pares, function(p) p$invierte_signo &&
+                                         abs(p$r_departamental) <= abs(p$r_municipal), logical(1))),
   pares = pares,
   principal = list(
     a = "s11_punt_medio", b = "s11_pct_internet",
@@ -1321,15 +1409,45 @@ D$escala_correlacion <- list(
   ),
   # El caso de aviso, declarado y no escondido: el ESTRATO invierte el
   # signo al agregar. T0.4 ya lo había congelado como caso de aviso
-  # porque su ausencia no es inocente —corr(cobertura del estrato,
-  # puntaje) = +0,5952—, así que aquí se enseña como advertencia
-  # metodológica y no como fenómeno.
+  # porque su ausencia no es inocente —allí, corr(cobertura del estrato,
+  # puntaje) = +0,5952 con una cuenta que ningún script de hoy rehace
+  # (FUENTES.md); aquí es s11_n_estrato / s11_n sobre los municipios de la
+  # capa, sale 0,6171 y es la que se publica—, así que se enseña como
+  # advertencia metodológica y no como fenómeno.
+  # El porqué del barrido está en el bloque de arriba.
   caso_aviso = list(
-    a = "s11_pct_internet", b = "s11_estrato_medio",
-    r_municipal = r10(cor(d_mun$s11_pct_internet, d_mun$s11_estrato_medio,
-                          use = "complete.obs")),
-    r_departamental = r10(cor(d_dep$s11_pct_internet, d_dep$s11_estrato_medio,
-                              use = "complete.obs")),
+    a = AV_A, b = AV_B,
+    a_corta = unname(ETIQ_CORTA[AV_A]), b_corta = unname(ETIQ_CORTA[AV_B]),
+    r_municipal = r10(cor(d_mun[[AV_A]], d_mun[[AV_B]], use = "complete.obs")),
+    r_departamental = r10(cor(d_dep[[AV_A]], d_dep[[AV_B]], use = "complete.obs")),
+    n_departamentos = nrow(d_dep),
+    p_departamental = r10(ct_aviso$p.value),
+    cor_cobertura_puntaje = r10(cor(d_mun$cob_estrato, d_mun$s11_punt_medio,
+                                    use = "complete.obs")),
+    cobertura_umbral = COB_UMBRAL,
+    n_bajo_umbral = sum(bajo_umbral),
+    r_departamental_sin_bajo_umbral = r10(f_cob$r),
+    umbral_n = UMBRALES[3],
+    r_departamental_n30 = r10(f_n30$r),
+    n_municipios_con_estrato = length(con_estrato),
+    loo_min = r10(min(loo)),
+    loo_max = r10(max(loo)),
+    influyente = list(
+      municipio = d_mun$municipio[k_],
+      departamento = nombre_dpto(dk_),
+      n_estudiantes = d_mun$s11_n[k_],
+      n_con_estrato = d_mun$s11_n_estrato[k_],
+      estrato_medio = r10(d_mun[[AV_B]][k_]),
+      pct_internet = r10(d_mun[[AV_A]][k_]),
+      r_departamental_sin_el = r10(max(loo)),
+      estrato_departamento_con = r10(estr_con[[dk_]]),
+      estrato_departamento_sin = r10(estr_sin[[dk_]]),
+      puesto_con = match(dk_, orden_con),
+      puesto_sin = match(dk_, names(sort(estr_sin, decreasing = TRUE))),
+      segundo = nombre_dpto(orden_con[2]),
+      estrato_segundo = r10(estr_con[[orden_con[2]]])
+    ),
+    bajan_sin_estrato = bajan_sin_estrato,
     nota = paste("El estrato quedó congelado en T0.4 como caso de aviso:",
                  "su ausencia no es aleatoria. Se muestra como advertencia,",
                  "no como resultado.")

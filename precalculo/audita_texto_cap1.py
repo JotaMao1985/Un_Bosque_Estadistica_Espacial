@@ -116,6 +116,8 @@ AFIRMACIONES = [
      "techo"),
     ("dice que agregar NO siempre infla la correlación",
      "no siempre"),
+    ("dice que el cambio de signo del estrato no aguanta el barrido",
+     "no que le dé la vuelta"),
     ("declara la condición del efecto Gehlke-Biehl",
      "no tenga estructura espacial"),
     ("dice que la unidad de análisis es una decisión de modelado",

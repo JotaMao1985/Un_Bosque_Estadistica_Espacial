@@ -261,6 +261,43 @@ def defectos() -> list[tuple[str, str, str, object]]:
     add("E4: la r municipal deja de ser la del módulo 7", "soluciones",
         m(lambda o: o["e4"]["solucion"]["municipal"].__setitem__("r", 0.4173941)))
 
+    # --- El recuadro de los 13 pares y su caso de aviso (2026-09-24) -------
+    # El módulo 7 publicaba «8 suben, 5 bajan y 1 invierte» —suma 14— y
+    # usaba como prueba la inversión que el generador guardaba como aviso.
+    # Cada pieza de la corrección tiene que poder fallar.
+    EC = lambda o: o["escala_correlacion"]
+    AV = lambda o: o["escala_correlacion"]["caso_aviso"]
+    add("una r departamental de los 13 pares cambia", "datos",
+        m(lambda o: EC(o)["pares"][5].__setitem__("r_departamental", 0.4137294)))
+    add("suben y bajan se reparten distinto, sumando 13", "datos",
+        m(lambda o: (EC(o).__setitem__("n_suben", 7), EC(o).__setitem__("n_bajan", 6))))
+    add("el que cambia de signo sale de los que bajan", "datos",
+        m(lambda o: EC(o).__setitem__("n_invierten_entre_bajan", 0)))
+    add("la p del aviso cae por debajo de 0.05", "datos",
+        m(lambda o: AV(o).__setitem__("p_departamental", 0.0417394)))
+    add("la cobertura del estrato vuelve a la cifra de T0.4", "datos",
+        m(lambda o: AV(o).__setitem__("cor_cobertura_puntaje", 0.5952)))
+    add("un municipio más con el estrato poco declarado", "datos",
+        m(lambda o: AV(o).__setitem__("n_bajo_umbral", 14)))
+    add("el aviso sin esos municipios deja de estar en cero", "datos",
+        m(lambda o: AV(o).__setitem__("r_departamental_sin_bajo_umbral", -0.1714937)))
+    add("el aviso con n >= 30 deja de estar en cero", "datos",
+        m(lambda o: AV(o).__setitem__("r_departamental_n30", -0.1714937)))
+    add("el recorrido de quitar un municipio se estrecha", "datos",
+        m(lambda o: AV(o).__setitem__("loo_min", -0.3714937)))
+    add("el municipio que más mueve la r es otro", "datos",
+        m(lambda o: AV(o)["influyente"].__setitem__("municipio", "Inírida")))
+    add("la r sin ese municipio cambia", "datos",
+        m(lambda o: AV(o)["influyente"].__setitem__("r_departamental_sin_el", -0.0417394)))
+    add("sin ese municipio su departamento sigue primero", "datos",
+        m(lambda o: AV(o)["influyente"].__setitem__("puesto_sin", 1)))
+    add("el departamento segundo en estrato es otro", "datos",
+        m(lambda o: AV(o)["influyente"].__setitem__("segundo", "Antioquia")))
+    add("un par sin estrato deja de bajar con n >= 30", "datos",
+        m(lambda o: AV(o)["bajan_sin_estrato"][1].__setitem__("r_departamental_n30", 0.6137294)))
+    add("la tesis se apoya en un par sin estrato menos", "datos",
+        m(lambda o: AV(o)["bajan_sin_estrato"].pop()))
+
     # --- 12. Coherencia entre módulos ------------------------------------
     add("los módulos 4 y 6 dejan de medir lo mismo", "datos",
         m(lambda o: o["una_realizacion"].__setitem__("pct_rechaza_ingenuo", 41.7394)))

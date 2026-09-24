@@ -786,6 +786,94 @@ def main() -> int:
                   math.copysign(1, p["r_departamental"])),
                  f"  la marca de inversión de signo es correcta")
 
+    # Los 13 pares, recalculados desde el CSV y no solo sus cocientes. Hasta
+    # el 2026-09-24 este auditor rehacía el par principal y se fiaba del
+    # resto, y el recuadro del módulo 7 cuenta los trece.
+    dep_todos = tab.groupby("dpto")[list(dict.fromkeys(c for p in ec["pares"] for c in (p["a"], p["b"])))].mean()
+    for p in ec["pares"]:
+        a.igual(tab[p["a"]].corr(tab[p["b"]]), p["r_municipal"],
+                f"r municipal de {p['a_corta']} × {p['b_corta']}", 1e-7)
+        a.igual(dep_todos[p["a"]].corr(dep_todos[p["b"]]), p["r_departamental"],
+                f"  y la departamental", 1e-7)
+    baja = [abs(p["r_departamental"]) <= abs(p["r_municipal"]) for p in ec["pares"]]
+    a.igual(len(baja) - sum(baja), ec["n_suben"], "pares que suben, contados aquí")
+    a.igual(sum(baja), ec["n_bajan"], "pares que bajan, contados aquí")
+    a.igual(sum(p["invierte_signo"] for p in ec["pares"]), ec["n_invierten"],
+            "pares que cambian de signo, contados aquí")
+    a.igual(sum(p["invierte_signo"] and b for p, b in zip(ec["pares"], baja)),
+            ec["n_invierten_entre_bajan"], "los que cambian de signo, dentro de los que bajan")
+
+    # --- El caso de aviso y su barrido ------------------------------------
+    # La prosa dice que el único cambio de signo es el del estrato y que no
+    # aguanta la receta del par principal. Cada pieza se rehace aquí.
+    from scipy import stats
+    av = ec["caso_aviso"]
+    A, B = av["a"], av["b"]
+
+    def r_dep(t):
+        g = t.groupby("dpto")[[A, B]].mean()
+        return g[A].corr(g[B]), len(g)
+
+    a.cierto([(p["a"], p["b"]) for p in ec["pares"] if p["invierte_signo"]] == [(A, B)],
+             "el único par que cambia de signo es el del aviso")
+    dep_av = tab.groupby("dpto")[[A, B]].mean()
+    a.igual(len(dep_av), av["n_departamentos"], "departamentos del aviso")
+    a.igual(stats.pearsonr(dep_av[A], dep_av[B]).pvalue, av["p_departamental"],
+            "p de la r departamental del aviso", 1e-7)
+    cob = tab["s11_n_estrato"] / tab["s11_n"]
+    a.igual(cob.corr(tab["s11_punt_medio"]), av["cor_cobertura_puntaje"],
+            "cobertura del estrato contra puntaje", 1e-7)
+    bajo = cob.notna() & (cob < av["cobertura_umbral"])
+    a.igual(int(bajo.sum()), av["n_bajo_umbral"], "municipios con el estrato poco declarado")
+    r_cob, n_cob = r_dep(tab[cob.notna() & ~bajo])
+    a.igual(r_cob, av["r_departamental_sin_bajo_umbral"], "r departamental sin esos municipios", 1e-7)
+    a.igual(n_cob, av["n_departamentos"], "  y el filtro no se lleva ningún departamento")
+    a.igual(av["umbral_n"], ec["principal"]["barrido"][2]["umbral"],
+            "el umbral de n es el del barrido del par principal")
+    r_30, n_30 = r_dep(tab[tab["s11_n"] >= av["umbral_n"]])
+    a.igual(r_30, av["r_departamental_n30"], "r departamental con n >= 30", 1e-7)
+    a.igual(n_30, av["n_departamentos"], "  y el filtro no se lleva ningún departamento")
+
+    con_b = tab.index[tab[B].notna()]
+    a.igual(len(con_b), av["n_municipios_con_estrato"], "municipios con estrato")
+    loo = pd.Series({i: r_dep(tab.drop(index=i))[0] for i in con_b})
+    a.igual(loo.min(), av["loo_min"], "quitar un municipio: la r más baja", 1e-7)
+    a.igual(loo.max(), av["loo_max"], "quitar un municipio: la r más alta", 1e-7)
+    inf_ = av["influyente"]
+    k = loo.idxmax()
+    a.cierto(tab.at[k, "municipio"] == inf_["municipio"]
+             and tab.at[k, "departamento"] == inf_["departamento"],
+             "el municipio que más la mueve", f"{tab.at[k, 'municipio']}, {tab.at[k, 'departamento']}")
+    a.igual(r_dep(tab.drop(index=k))[0], inf_["r_departamental_sin_el"], "  la r sin él", 1e-7)
+    a.igual(tab.at[k, "s11_n"], inf_["n_estudiantes"], "  sus estudiantes")
+    a.igual(tab.at[k, "s11_n_estrato"], inf_["n_con_estrato"], "  los que declararon estrato")
+    a.igual(tab.at[k, B], inf_["estrato_medio"], "  su estrato medio", 1e-7)
+    a.igual(tab.at[k, A], inf_["pct_internet"], "  sus hogares con internet", 1e-7)
+    e_con = tab.groupby("dpto")[B].mean().sort_values(ascending=False)
+    e_sin = tab.drop(index=k).groupby("dpto")[B].mean().sort_values(ascending=False)
+    dk = tab.at[k, "dpto"]
+    a.igual(e_con[dk], inf_["estrato_departamento_con"], "  el estrato de su departamento", 1e-7)
+    a.igual(e_sin[dk], inf_["estrato_departamento_sin"], "  y sin él", 1e-7)
+    a.igual(list(e_con.index).index(dk) + 1, inf_["puesto_con"], "  el puesto de su departamento")
+    a.igual(list(e_sin.index).index(dk) + 1, inf_["puesto_sin"], "  y sin él")
+    seg = e_con.index[1]
+    a.cierto(tab.loc[tab["dpto"] == seg, "departamento"].iloc[0] == inf_["segundo"],
+             "  el departamento que queda segundo", inf_["segundo"])
+    a.igual(e_con[seg], inf_["estrato_segundo"], "  y su estrato medio", 1e-7)
+
+    # La tesis del recuadro sin el par dudoso.
+    sub30 = tab[tab["s11_n"] >= av["umbral_n"]]
+    esperado = [(p["a"], p["b"]) for p, b in zip(ec["pares"], baja) if b and B not in (p["a"], p["b"])]
+    a.cierto([(q["a"], q["b"]) for q in av["bajan_sin_estrato"]] == esperado,
+             "los pares sin estrato que bajan", str(len(esperado)))
+    for q in av["bajan_sin_estrato"]:
+        g = sub30.groupby("dpto")[[q["a"], q["b"]]].mean()
+        rm30 = sub30[q["a"]].corr(sub30[q["b"]])
+        rd30 = g[q["a"]].corr(g[q["b"]])
+        a.igual(rm30, q["r_municipal_n30"], f"{q['a_corta']} × {q['b_corta']}, n >= 30", 1e-7)
+        a.igual(rd30, q["r_departamental_n30"], "  y su departamental", 1e-7)
+        a.cierto(abs(rd30) <= abs(rm30), "  y sigue bajando", f"{rm30:.5f} -> {rd30:.5f}")
+
     # =================================================================
     a.titulo("3a · El Monte Carlo del error estándar")
     # =================================================================

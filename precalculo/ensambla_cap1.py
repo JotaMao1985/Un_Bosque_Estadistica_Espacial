@@ -1497,6 +1497,40 @@ print(f"media del proceso = 0 | sd de las medias = {medias.std(ddof=1):.1f}")
 # MÓDULO 7 · Escala, soporte y agregación
 # =====================================================================
 pr = ec["principal"]
+av = ec["caso_aviso"]
+inf = av["influyente"]
+# La prosa del recuadro y la del aviso están escritas para UN cambio de
+# signo, que cae entre los que bajan y es el par con aviso; para un
+# municipio que declaró el estrato más alto de la escala sin internet en
+# casa y que sube a su departamento al primer puesto; y para un barrido
+# que deja la r departamental en casi cero. Si el dato deja de decir eso,
+# la prosa miente, y se para aquí.
+_bajan_sin = av["bajan_sin_estrato"]
+if not (ec["n_invierten"] == 1 and ec["n_invierten_entre_bajan"] == ec["n_invierten"]
+        and ec["n_suben"] + ec["n_bajan"] == ec["n_pares"]
+        and [p for p in ec["pares"] if p["invierte_signo"]][0]["a"] == av["a"]
+        and [p for p in ec["pares"] if p["invierte_signo"]][0]["b"] == av["b"]
+        and av["p_departamental"] > 0.05
+        and inf["estrato_medio"] == 6 and inf["pct_internet"] == 0
+        and inf["puesto_con"] == 1 and inf["puesto_sin"] > 1
+        and inf["r_departamental_sin_el"] == av["loo_max"]
+        and av["loo_min"] < av["r_departamental"] < av["loo_max"] < 0
+        and abs(av["r_departamental_sin_bajo_umbral"]) < 0.05 and abs(av["r_departamental_n30"]) < 0.05
+        and _bajan_sin):
+    sys.exit("PARADO: el módulo 7 cuenta un solo cambio de signo, el del estrato, y dice que no "
+             "aguanta el barrido; el dato de escala_correlacion ya no lo sostiene")
+
+
+def _une(frases):
+    """«a, b y c», con «e» delante de una palabra que suena a i."""
+    if len(frases) == 1:
+        return frases[0]
+    ult = frases[-1]
+    conj = "e" if ult[:1].lower() in ("i", "í") or (ult[:2].lower() == "hi" and ult[:3].lower() != "hie") else "y"
+    return ", ".join(frases[:-1]) + f" {conj} " + ult
+
+
+_nombres_bajan = _une([f"{q['a_corta']} × {q['b_corta']}" for q in _bajan_sin])
 MOD7 = cabecera(
     7, "Escala, soporte y agregación", "Scale and the MAUP",
     "Primera pincelada del MAUP: la misma variable cambia de valor —y a "
@@ -1519,7 +1553,7 @@ MOD7 = cabecera(
           {ec['n_pares']} pares reales de variables colombianas a las dos escalas.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:250px;">
-          <canvas aria-label="Correlación entre dos variables según el tamaño del bloque de agregación, y los trece pares reales a escala municipal y departamental" role="img"></canvas>
+          <canvas aria-label="Correlación entre dos variables según el tamaño del bloque de agregación, y cuánto cambia al agregar cada uno de los {ec['n_pares']} pares reales, con el par de aviso en naranja" role="img"></canvas>
         </div>
         <div class="simulador-lectura"></div>
       </div>
@@ -1544,9 +1578,10 @@ MOD7 = cabecera(
       <div class="warning">
         <p><strong>Ahora la parte incómoda: agregar no siempre infla.</strong> La versión corta de esta lección —«al
           agregar sube la correlación»— es falsa, y basta el dato colombiano para verlo. Sobre
-          {ec['n_variables']} variables municipales, los {ec['n_pares']} pares con correlación apreciable se comportan
-          así al pasar de municipio a departamento: <strong>{ec['n_suben']} suben</strong>,
-          <strong>{ec['n_bajan']} bajan</strong> y <strong>{ec['n_invierten']} invierte el signo</strong>.</p>
+          {ec['n_variables']} variables municipales, los {ec['n_pares']} pares con correlación apreciable se reparten
+          así al pasar de municipio a departamento: <strong>{ec['n_suben']} suben</strong> y
+          <strong>{ec['n_bajan']} bajan</strong>. Uno de los que bajan llega a cruzar el cero y cambia de signo, y
+          es el único de los {ec['n_pares']} que no aguanta la comprobación que el módulo hace justo después.</p>
         <p style="margin-bottom:0;">Agregar <em>cambia</em> la correlación. En qué dirección, depende de cómo estén
           repartidos el componente compartido y el ruido, y eso no se sabe de antemano.</p>
       </div>
@@ -1564,6 +1599,35 @@ MOD7 = cabecera(
           opuestos —0,02 y −0,09— y el «345&nbsp;%» era el cociente entre dos ceros. Lo salvó barrer el umbral en
           vez de publicar una cifra sola, que es la misma receta que ya había salvado la falacia ecológica del
           capítulo 3 en la fase anterior.</p>
+      </div>
+
+      <div class="warning">
+        <p><strong>Y esa receta tumba el único cambio de signo del recuadro.</strong> Es el par
+          {av['a_corta']} × {av['b_corta']}, en naranja en la gráfica de los {ec['n_pares']} pares:
+          <strong>{n(av['r_municipal'])}</strong> por municipio, <strong>{n(av['r_departamental'])}</strong> por
+          departamento. Con {av['n_departamentos']} departamentos, esa cifra departamental no se distingue de cero
+          (p&nbsp;=&nbsp;{n(av['p_departamental'])}). Y el estrato arrastra un problema propio: lo declara cada
+          estudiante, no todos lo declaran, y la fracción que lo declara va con el puntaje
+          (r&nbsp;=&nbsp;{n(av['cor_cobertura_puntaje'])} entre municipios). Donde lo declaran pocos, el «estrato
+          medio» es el de un subgrupo, y no uno cualquiera.</p>
+        <p>El caso extremo es <strong>{inf['municipio']}</strong>, en {inf['departamento']}: de
+          {ent(inf['n_estudiantes'])} estudiantes, los {ent(inf['n_con_estrato'])} que declararon su estrato dijeron
+          {ent(inf['estrato_medio'])}, el más alto de la escala, en un municipio con un
+          {ent(inf['pct_internet'])}&nbsp;% de hogares con internet. Con ese municipio, {inf['departamento']} sale
+          como el departamento de estrato medio más alto del país —{n(inf['estrato_departamento_con'])}, por
+          encima de {inf['segundo']}, con {n(inf['estrato_segundo'])}—; sin él, se queda en
+          {n(inf['estrato_departamento_sin'])}. Y quitando solo ese municipio, la r departamental pasa de
+          {n(av['r_departamental'])} a <strong>{n(inf['r_departamental_sin_el'])}</strong>. Es el extremo de un
+          recorrido que da que pensar: quitando un municipio cualquiera —uno solo de los
+          {ent(av['n_municipios_con_estrato'])} que tienen estrato—, la r departamental va de
+          {n(av['loo_min'])} a {n(av['loo_max'])}. Una cifra que un solo municipio mueve tanto no sostiene un
+          signo.</p>
+        <p style="margin-bottom:0;">Pásale el barrido del par principal. Sin los {ent(av['n_bajo_umbral'])}
+          municipios donde menos de la mitad de los estudiantes declaró el estrato, la r departamental queda en
+          <strong>{n(av['r_departamental_sin_bajo_umbral'])}</strong>; con el umbral de {av['umbral_n']}
+          estudiantes, en <strong>{n(av['r_departamental_n30'])}</strong>. Lo que sobrevive es que agregar se
+          lleva esa correlación a cero, no que le dé la vuelta. Y la tesis del recuadro no depende de este par:
+          {_nombres_bajan} también bajan, y siguen bajando con el umbral de {av['umbral_n']} estudiantes.</p>
       </div>
 
       <p>Hasta aquí la <strong>escala</strong>: cambiar el tamaño de la unidad cambia el resultado. Queda la otra
@@ -3287,8 +3351,11 @@ SIMULADORES_JS = r"""
       const canvas = raiz.querySelector('canvas');
       let vista = 'sim';
       let g = null;
+      const caja = raiz.querySelector('.grafico-wrapper');
       const dibuja = () => {
         if (g) { g.destroy(); const i = graficosActivos.indexOf(g); if (i >= 0) graficosActivos.splice(i, 1); }
+        // Trece barras con rótulo de dos líneas no caben en 250 px.
+        caja.style.height = vista === 'sim' ? '250px' : '440px';
         if (vista === 'sim') {
           g = crearGraficoLinea(canvas, a.niveles.map(x => x.bloque + '×' + x.bloque), [
             { label: 'correlación', data: a.niveles.map(x => x.corr),
@@ -3302,17 +3369,27 @@ SIMULADORES_JS = r"""
             ['bloques de 16×16', n5(a.corr_max)], ['subida', n5(a.subida_pct) + ' %'],
             ['mecanismo', a.mecanismo]]);
         } else {
-          g = crearGraficoBarras(canvas, e.pares.map((p, i) => 'par ' + (i + 1)),
+          // Cada barra lleva el nombre de su par, en dos líneas para que quepa en
+          // el teléfono —el «×» abre la segunda, que es la más corta—, y la del
+          // par con aviso va en naranja: la prosa la nombra y el lector tiene
+          // que poder encontrarla.
+          const av = e.caso_aviso;
+          const conAviso = p => p.a === av.a && p.b === av.b;
+          g = crearGraficoBarras(canvas, e.pares.map(p => [p.a_corta, '× ' + p.b_corta]),
             e.pares.map(p => p.cambio_pct),
-            { indexAxis: 'y',
-              scales: { x: { title: { display: true, text: 'cambio de la correlación al agregar (%)' } } } });
+            { horizontal: true, etiqueta: 'cambio al agregar (%)',
+              tituloValor: 'cambio de la correlación al agregar (%)',
+              color: e.pares.map(p => conAviso(p) ? COLORES_GRAFICO.secundario : COLORES_GRAFICO.primario) });
           lectura(raiz, [['pares examinados', e.n_pares], ['suben', e.n_suben],
-            ['bajan', e.n_bajan], ['invierten el signo', e.n_invierten],
+            ['bajan', e.n_bajan], ['de los que bajan, cambian de signo', e.n_invierten_entre_bajan],
+            ['en naranja, el par con aviso', av.a_corta + ' × ' + av.b_corta + ': '
+              + n5(av.r_municipal) + ' → ' + n5(av.r_departamental)],
+            ['ese par, sin ' + av.influyente.municipio, n5(av.influyente.r_departamental_sin_el)],
             ['par principal, municipal', n5(e.principal.r_municipal)],
             ['par principal, departamental', n5(e.principal.r_departamental)]]);
         }
       };
-      botonera(raiz, [['sim', 'Simulación controlada'], ['real', 'Los 13 pares reales']],
+      botonera(raiz, [['sim', 'Simulación controlada'], ['real', 'Los ' + e.n_pares + ' pares reales']],
         v => { vista = v; dibuja(); });
       dibuja();
       return g ? [g] : [];
@@ -3382,8 +3459,8 @@ SIMULADORES_JS = r"""
         const datos = vista === 'rmse' ? [c.rmse_aleatoria, c.rmse_bloques]
                                        : [c.r2_aleatoria, c.r2_bloques];
         g = crearGraficoBarras(canvas, ['CV aleatoria', 'CV por bloques'], datos,
-          { scales: { y: { title: { display: true,
-              text: vista === 'rmse' ? 'RMSE (°C)' : 'R²' } } } });
+          vista === 'rmse' ? { etiqueta: 'RMSE (°C)', tituloValor: 'RMSE (°C)', min: 0 }
+                           : { etiqueta: 'R²', tituloValor: 'R²' });
         lectura(raiz, vista === 'rmse'
           ? [['RMSE aleatoria', n5(c.rmse_aleatoria)], ['RMSE por bloques', n5(c.rmse_bloques)],
              ['el error real es mayor en', n5(c.inflacion_pct) + ' %'],
@@ -3479,8 +3556,10 @@ QUIZ_JS = r"""
               + ' a ' + n5(D1.escala_correlacion.principal.r_departamental) + '.' },
           { texto: 'Agregar no siempre sube la correlación: a veces la baja o le cambia el signo.', correcta: true,
             retro: 'De los ' + D1.escala_correlacion.n_pares + ' pares reales del capítulo, '
-              + D1.escala_correlacion.n_suben + ' suben, ' + D1.escala_correlacion.n_bajan + ' bajan y '
-              + D1.escala_correlacion.n_invierten + ' invierte el signo.' },
+              + D1.escala_correlacion.n_suben + ' suben y ' + D1.escala_correlacion.n_bajan + ' bajan. '
+              + 'Cambiar de signo también puede pasar —el capítulo 3 lo cuenta con Robinson—, pero el único '
+              + 'par del módulo que lo hace, ' + D1.escala_correlacion.caso_aviso.a_corta + ' × '
+              + D1.escala_correlacion.caso_aviso.b_corta + ', no aguanta el barrido.' },
           { texto: 'La cifra departamental es la buena, porque tiene menos ruido.', correcta: false,
             retro: 'Ninguna de las dos es "la buena": responden a preguntas distintas. Módulo 7 y ejercicio 4.' },
           { texto: 'Si difieren, es que una de las dos está mal calculada.', correcta: false,
