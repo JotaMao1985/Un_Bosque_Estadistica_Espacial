@@ -795,18 +795,34 @@ message("8. el proceso de Poisson inhomogeneo")
 # LA IDENTIDAD QUE CIERRA EL CÍRCULO CON EL CAPÍTULO 1. Ajustar un
 # Poisson HOMOGÉNEO por máxima verosimilitud tiene que devolver la
 # intensidad ingenua, n/|W|, porque esa ES la estimación de máxima
-# verosimilitud. Que `ppm` la recupere no es un detalle de implementación:
-# es la comprobación de que el aparato de Berman-Turner —cuadratura,
-# pesos, regresión de Poisson— está resolviendo el problema que dice
-# resolver. Y la cifra a la que llega es la lambda que el capítulo 1
-# publicó y el 4 ancló.
+# verosimilitud: la log-verosimilitud es n·β0 − e^β0·|W|, y su derivada se
+# anula en e^β0 = n/|W|. La cifra a la que llega es la lambda que el
+# capítulo 1 publicó y el 4 ancló.
+#
+# Y `ppm` NO LLEGA AQUÍ POR BERMAN-TURNER. Al ver un Poisson sin
+# covariables aplica la fórmula cerrada —el ajuste lo declara con
+# `fitter = "exact"`—, así que esta identidad valida la fórmula, no la
+# maquinaria. Hasta el 2026-09-24 este comentario y el módulo decían lo
+# contrario («es la comprobación de que el aparato de Berman-Turner está
+# resolviendo el problema que dice resolver»), y lo desmintió forzar el
+# ajuste por la cuadratura, más abajo. La guarda está porque, si una
+# versión de spatstat dejara de tomar el atajo, la cifra seguiría saliendo
+# igual de bien y la prosa del módulo pasaría a mentir sin que nada avisara.
 f_hom <- ppm(p_urb ~ 1)
+if (!identical(f_hom$fitter, "exact"))
+  stop(sprintf("el ppm homogéneo ya no usa la fórmula cerrada (fitter = %s): el módulo 8 dice que sí",
+               f_hom$fitter))
 lam_mle <- exp(unname(coef(f_hom)))
 lam_ing <- npoints(p_urb) / area.owin(W_URB)
 if (abs(lam_mle - lam_ing) / lam_ing > 1e-10)
   stop(sprintf("el ppm homogéneo no devuelve n/|W|: %.10e contra %.10e", lam_mle, lam_ing))
 ancla(lam_mle * 1e6, CAP4$m1$urbana$lambda_km2,
       "el intercepto del ppm homogéneo es la lambda del capítulo 1", tol = 1e-6)
+N_URB <- npoints(p_urb)
+A_URB <- area.owin(W_URB)
+ll_hom <- as.numeric(logLik(f_hom))
+if (abs(ll_hom - (N_URB * log(N_URB / A_URB) - N_URB)) > 1e-6)
+  stop("el logLik del homogéneo no es n·log(n/|W|) − n")
 
 # LA CUADRATURA NO ES INOCENTE, Y SU DEFECTO ES UNA ELECCIÓN QUE NO SE
 # ESCRIBE. Berman-Turner convierte la verosimilitud en una regresión de
@@ -817,23 +833,106 @@ ancla(lam_mle * 1e6, CAP4$m1$urbana$lambda_km2,
 # Lo que se midió al afinarla, y las dos cosas importan:
 #   · el coeficiente se mueve poco EN UNIDADES DE SU PROPIO ERROR: de
 #     nd = 100 a nd = 300 cambia un octavo de su error estándar
-#   · el AIC se mueve NUEVE PUNTOS, y hacia arriba
+#   · el AIC se mueve NUEVE PUNTOS, y no con nd: sube, baja y vuelve a
+#     subir, porque lo que sigue es el área que cada cuadratura deja sin
+#     contar (abajo)
 # La segunda es la que muerde: el AIC de `ppm` sale de la verosimilitud
 # APROXIMADA por la cuadratura, así que dos modelos ajustados con
 # cuadraturas distintas tienen AIC que NO SON COMPARABLES. Comparar
 # modelos es exactamente para lo que se usa el AIC.
+#
+# LA VEROSIMILITUD, POR DENTRO (M3 de la segunda revisión, 2026-09-24). El
+# objetivo del módulo prometía «ver de qué está hecha por dentro» y la
+# fórmula no se escribía en ningún sitio. Es
+#     ℓ(β) = Σ log λ(x_i) − ∫_W λ(u) du
+# y derivando en el intercepto, en el máximo ∫_W λ̂ = n: el modelo ajustado
+# reparte tantos puntos esperados como hay. Berman-Turner cambia la
+# integral por Σ w_j λ(u_j), así que lo que se cumple EXACTO es
+# Σ w_j λ̂(u_j) = n, y el logLik que publica `ppm` es Σ log λ̂(x_i) − n. Si
+# los pesos no suman |W| —y los de por defecto no la suman—, la integral de
+# verdad del modelo ajustado ya no es n, y la diferencia entra entera en el
+# logLik. Eso, y no el modelo, es lo que mueve el AIC de la tabla.
+#
+# De dónde sale el área que falta, leído en el código de spatstat 3.x: los
+# pesos se calculan partiendo la caja de la ventana en una rejilla de
+# teselas y repartiendo el área (exacta) de cada una entre los puntos de
+# la cuadratura que caen dentro. El ficticio de cada celda se coloca con
+# una máscara de píxeles más gruesa (`cellmiddles`), y una tesela del
+# borde cuyo trozo de ciudad no contiene el centro de ningún píxel se
+# queda sin ficticio; si tampoco tiene sede, su área no la cuenta nadie.
+# Con nd = 100 son 201 teselas de 4 345. El auditor rehace la cuenta en
+# Python con shapely, sin spatstat, y le sale la misma.
 xr <- as.rectangle(W_URB)
 X0 <- mean(p_urb$x); Y0 <- mean(p_urb$y)
 COVS <- list(dcen = dcen,
              xc = function(x, y) (x - X0) / 1000,   # km desde el centro
              yc = function(x, y) (y - Y0) / 1000)
 
+# Las teselas que tocan la ciudad y se quedan sin ningún punto de la
+# cuadratura. Su área tiene que ser EXACTAMENTE lo que les falta a los
+# pesos para sumar |W|: si no, la explicación del módulo es otra.
+teselas_vacias <- function(Q) {
+  pw <- Q$param$weight
+  nt <- pw$ntile; ar <- pw$areas
+  U <- union.quad(Q)
+  id <- gridindex(U$x, U$y, W_URB$xrange, W_URB$yrange, nt[1], nt[2])$index
+  vac <- setdiff(which(ar > 0), unique(id))
+  # y ninguna de ellas tiene el centro de un píxel de la máscara dentro
+  M <- as.mask(W_URB, dimyx = rev(pw$npix))
+  pid <- gridindex(as.vector(rasterx.mask(M, drop = TRUE)),
+                   as.vector(rastery.mask(M, drop = TRUE)),
+                   W_URB$xrange, W_URB$yrange, nt[1], nt[2])$index
+  if (any(vac %in% pid))
+    stop("una tesela vacía tiene un píxel de ciudad: el ficticio no falta por lo que el módulo 8 cuenta")
+  falta <- A_URB - sum(w.quad(Q))
+  if (abs(sum(ar[vac]) - falta) > 1e-3)
+    stop(sprintf("el área de las teselas vacías (%.3f) no es lo que les falta a los pesos (%.3f)",
+                 sum(ar[vac]), falta))
+  list(rejilla = nt[1], pixeles = pw$npix[1], tocan = sum(ar > 0),
+       vacias = length(vac), area = sum(ar[vac]))
+}
+
+# La integral de verdad del modelo ajustado, sin cuadratura: |W| por la
+# media de λ̂ sobre una máscara fina. Escrita como media y no como
+# `integral()` porque la máscara pierde o gana algo de borde (2,7e-5 del
+# área con 2048 píxeles de lado), y la media no depende de eso. Medido
+# con 1024, 2048, 4096 y 6144 píxeles de lado, la media de x e y (la λ que
+# más varía) oscila ±0,015 sedes y la de la distancia ±0,002: la cifra
+# vale a la centésima larga, y el módulo la publica con dos decimales. La
+# guarda compara dos resoluciones y para si se separan más de 0,05.
+integral_fina <- function(f) {
+  media <- function(d) mean(suppressMessages(suppressWarnings(predict(f, dimyx = d))))
+  i4 <- A_URB * media(4096)
+  i2 <- A_URB * media(2048)
+  if (abs(i4 - i2) > 0.05)
+    stop(sprintf("la integral fina no converge: %.4f con 4096 px, %.4f con 2048", i4, i2))
+  i4
+}
+
 cuadratura <- lapply(c(50L, 100L, 200L, 300L), function(nd) {
   f <- ppm(p_urb ~ dcen, covariates = COVS, nd = nd)
   ee <- sqrt(diag(vcov(f)))[2]
-  list(nd = nd, ficticios = npoints(quad.ppm(f)$dummy),
+  Q <- quad.ppm(f)
+  lam <- fitted(f)                        # λ̂ en todos los puntos de la cuadratura
+  suma_log <- sum(log(lam[is.data(Q)]))
+  int_cuad <- sum(w.quad(Q) * lam)
+  ll <- as.numeric(logLik(f))
+  if (abs(int_cuad - N_URB) > 1e-6)
+    stop(sprintf("nd = %d: la integral por cuadratura del modelo ajustado no es n (%.8f)", nd, int_cuad))
+  if (abs(ll - (suma_log - int_cuad)) > 1e-6)
+    stop(sprintf("nd = %d: el logLik de ppm no es la suma de logaritmos menos la integral", nd))
+  if (abs(AIC(f) - (-2 * ll + 2 * length(coef(f)))) > 1e-6)
+    stop(sprintf("nd = %d: el AIC no es −2ℓ + 2k", nd))
+  tv <- teselas_vacias(Q)
+  int_x <- integral_fina(f)
+  list(nd = nd, ficticios = npoints(Q$dummy),
        intercepto = r10(unname(coef(f)[1])), pendiente = r10(unname(coef(f)[2])),
-       ee_pendiente = r10(unname(ee)), aic = r10(AIC(f)))
+       ee_pendiente = r10(unname(ee)), aic = r10(AIC(f)),
+       rejilla_pesos = as.integer(tv$rejilla), pixeles = as.integer(tv$pixeles),
+       teselas_tocan = tv$tocan, teselas_vacias = tv$vacias,
+       sin_contar_km2 = r10(tv$area / 1e6),
+       suma_log = r10(suma_log), logver_ppm = r10(ll),
+       integral_exacta = r10(int_x), logver_exacta = r10(suma_log - int_x))
 })
 f_def <- ppm(p_urb ~ dcen, covariates = COVS)
 nd_def <- npoints(quad.ppm(f_def)$dummy)
@@ -843,6 +942,62 @@ if (nd_def != cuadratura[[2]]$ficticios)
 pend <- sapply(cuadratura, function(z) z$pendiente)
 ee1  <- cuadratura[[2]]$ee_pendiente
 aics <- sapply(cuadratura, function(z) z$aic)
+llp  <- sapply(cuadratura, function(z) z$logver_ppm)
+llx  <- sapply(cuadratura, function(z) z$logver_exacta)
+sinc <- sapply(cuadratura, function(z) z$sin_contar_km2)
+
+# LAS TRES FORMAS QUE EL MÓDULO AFIRMA, CADA UNA CON SU GUARDA.
+# 1. Con la integral bien hecha, los cuatro ajustes son el mismo modelo.
+if (!(diff(range(llx)) < 0.1 && diff(range(llp)) > 20 * diff(range(llx))))
+  stop(sprintf("la verosimilitud de verdad se mueve %.4f y la de ppm %.4f: ya no es «el mismo modelo»",
+               diff(range(llx)), diff(range(llp))))
+# 2. El AIC sigue al área sin contar: más ciudad perdida, AIC más bajo.
+for (i in seq_along(cuadratura)) for (j in seq_along(cuadratura))
+  if (sinc[i] > sinc[j] + 1e-6 && !(aics[i] < aics[j]))
+    stop(sprintf("nd = %d pierde más ciudad que nd = %d y no tiene el AIC más bajo",
+                 cuadratura[[i]]$nd, cuadratura[[j]]$nd))
+# 3. Todas pierden algo, y el modelo ajustado pone sedes esperadas de más.
+if (!all(sinc > 0) ||
+    !all(sapply(cuadratura, function(z) z$integral_exacta) > N_URB))
+  stop("alguna cuadratura ya no pierde área: la explicación del AIC del módulo 8 hay que rehacerla")
+# nd = 100 y nd = 200 pierden la MISMA ciudad (comparten teselas y píxeles)
+if (abs(sinc[2] - sinc[3]) > 1e-9)
+  stop("nd = 100 y nd = 200 ya no dejan sin contar la misma ciudad: el módulo 8 dice que sí")
+
+# EL HOMOGÉNEO, OBLIGADO A PASAR POR LA CUADRATURA. `forcefit = TRUE` le
+# quita el atajo. Con la cuadratura su EMV es n / Σ w_j, y como los pesos
+# por defecto no suman |W|, la cifra sale más alta que la del capítulo 1.
+f_hom_bt <- ppm(p_urb ~ 1, forcefit = TRUE)
+if (!identical(f_hom_bt$fitter, "glm"))
+  stop("forcefit = TRUE ya no pasa el homogéneo por glm")
+sw <- sum(w.quad(quad.ppm(f_hom_bt)))
+lam_bt <- exp(unname(coef(f_hom_bt)))
+if (abs(lam_bt * sw / N_URB - 1) > 1e-8)
+  stop("forzado por la cuadratura, el homogéneo no devuelve n / Σw")
+if (abs((A_URB - sw) / 1e6 - cuadratura[[2]]$sin_contar_km2) > 1e-8)
+  stop("el homogéneo forzado no usa la misma cuadratura que la fila nd = 100")
+ll_hom_bt <- as.numeric(logLik(f_hom_bt))
+if (abs(ll_hom_bt - (N_URB * log(N_URB / sw) - N_URB)) > 1e-6)
+  stop("el logLik del homogéneo forzado no es n·log(n/Σw) − n")
+
+# LA COMPARACIÓN QUE MÁS SE HACE, Y LA QUE PEOR SALE. ¿Mejora la distancia
+# al modelo constante? El constante sale sin cuadratura y la distancia con
+# la de por defecto, que regala casi siete unidades de log-verosimilitud:
+# por AIC de `ppm`, la distancia gana por trece puntos. Con la integral
+# bien hecha en los dos, empatan —y lo mismo dice la z de −1,2 que el
+# módulo 9 le da a su coeficiente—. Forzando al constante por la MISMA
+# cuadratura, los dos arrastran el mismo error y el empate vuelve.
+aic_hom    <- AIC(f_hom)
+aic_hom_bt <- AIC(f_hom_bt)
+aic_dcen_x <- -2 * cuadratura[[2]]$logver_exacta + 2 * 2
+gana_dist_ppm   <- aic_hom - AIC(f_def)
+gana_cte_exacta <- aic_dcen_x - aic_hom
+gana_cte_misma  <- AIC(f_def) - aic_hom_bt
+if (!(gana_dist_ppm > 10))
+  stop(sprintf("por AIC de ppm la distancia ya no gana con holgura al constante (%.2f)", gana_dist_ppm))
+if (!(gana_cte_exacta > 0 && gana_cte_exacta < 2 && gana_cte_misma > 0 && gana_cte_misma < 2))
+  stop(sprintf("con la integral bien hecha (%.3f) o con la misma cuadratura (%.3f) ya no empatan a favor del constante",
+               gana_cte_exacta, gana_cte_misma))
 
 D$m8 <- list(
   homogeneo = list(
@@ -855,17 +1010,40 @@ D$m8 <- list(
     lambda_mle_m2 = r6(lam_mle), lambda_ingenua_m2 = r6(lam_ing),
     lambda_km2 = r10(lam_mle * 1e6),
     dif_relativa = signif(abs(lam_mle - lam_ing) / lam_ing, 3),
-    que = "la EMV de un Poisson homogéneo ES n/|W|, y ppm la recupera"),
+    fitter = f_hom$fitter, n = N_URB, logver = r10(ll_hom), aic = r10(aic_hom),
+    que = "la EMV de un Poisson homogéneo ES n/|W|, y ppm la da con la fórmula cerrada, sin cuadratura"),
+  forzado = list(
+    fitter = f_hom_bt$fitter,
+    lambda_km2 = r10(lam_bt * 1e6),
+    exceso_pct = r10(100 * (lam_bt / lam_mle - 1)),
+    suma_pesos_km2 = r10(sw / 1e6), area_km2 = r10(A_URB / 1e6),
+    logver = r10(ll_hom_bt), aic = r10(aic_hom_bt),
+    que = "el homogéneo con forcefit = TRUE: la EMV pasa a ser n / suma de pesos"),
   cuadratura = list(
     defecto_nd = 100L, defecto_ficticios = nd_def, tabla = cuadratura,
     # las dos cifras que el módulo lee en voz alta
     rango_pendiente_en_ee = r10((max(pend) - min(pend)) / ee1),
     rango_aic = r10(max(aics) - min(aics)),
-    aviso = "el AIC de ppm sale de la verosimilitud aproximada por la cuadratura: dos modelos con cuadraturas distintas no se pueden comparar por AIC"))
+    # y las dos que dicen de dónde sale la segunda
+    rango_logver_ppm = r10(diff(range(llp))),
+    rango_logver_exacta = r10(diff(range(llx))),
+    aviso = "el AIC de ppm sale de la verosimilitud aproximada por la cuadratura: dos modelos con cuadraturas distintas no se pueden comparar por AIC"),
+  comparacion = list(
+    gana_distancia_ppm = r10(gana_dist_ppm),
+    gana_constante_exacta = r10(gana_cte_exacta),
+    gana_constante_misma = r10(gana_cte_misma),
+    aic_distancia_exacto = r10(aic_dcen_x),
+    que = "¿mejora la distancia al constante? por AIC de ppm, sí; con la integral bien hecha o con la misma cuadratura, empatan"))
 
-message(sprintf("   lambda EMV = ingenua (dif %.1e) · cuadratura por defecto %d ficticios · la pendiente se mueve %.2f errores estándar y el AIC %.1f puntos",
-                D$m8$homogeneo$dif_relativa, nd_def,
+message(sprintf("   lambda EMV = ingenua (dif %.1e, fitter %s) · cuadratura por defecto %d ficticios · la pendiente se mueve %.2f errores estándar y el AIC %.1f puntos",
+                D$m8$homogeneo$dif_relativa, f_hom$fitter, nd_def,
                 D$m8$cuadratura$rango_pendiente_en_ee, D$m8$cuadratura$rango_aic))
+message(sprintf("   por dentro: la cuadratura deja %.5f km² sin contar (%d teselas de %d); forzado, el homogéneo da %.5f/km² (+%.3f %%); ℓ de ppm se mueve %.4f y la de verdad %.4f",
+                cuadratura[[2]]$sin_contar_km2, cuadratura[[2]]$teselas_vacias,
+                cuadratura[[2]]$teselas_tocan, lam_bt * 1e6, D$m8$forzado$exceso_pct,
+                diff(range(llp)), diff(range(llx))))
+message(sprintf("   constante contra distancia: por AIC de ppm gana la distancia por %.2f; con la integral bien hecha, el constante por %.3f; con la misma cuadratura, por %.3f",
+                gana_dist_ppm, gana_cte_exacta, gana_cte_misma))
 
 # =====================================================================
 # MÓDULO 9 · `ppm`: leer los coeficientes, y cuándo no se pueden leer
@@ -915,6 +1093,19 @@ if (!c_crudo$singular)
   stop("el ppm con coordenadas crudas dejó de ser singular: la lección del módulo 9 hay que volver a medirla")
 if (c_centr$singular)
   stop("el ppm con coordenadas centradas salió singular: el arreglo del módulo 9 no arregla")
+# «mejora el AIC frente al modelo constante», y el módulo 8 acaba de
+# enseñar que esa comparación, hecha con los AIC de `ppm`, le regala al
+# modelo con covariables lo que su cuadratura deja sin contar. La frase
+# tiene que sobrevivir a hacer bien la integral. Con los datos de hoy la
+# mejora pasa de 50 a 37 puntos; la guarda para si deja de ser holgada.
+q_centr <- quad.ppm(f_centr)
+ll_centr_x <- sum(log(fitted(f_centr)[is.data(q_centr)])) - integral_fina(f_centr)
+mejora_centr_x <- aic_hom - (-2 * ll_centr_x + 2 * length(coef(f_centr)))
+if (!(mejora_centr_x > 10))
+  stop(sprintf("con la integral bien hecha, x e y ya no mejoran al constante (%.2f): la frase del módulo 9 cae",
+               mejora_centr_x))
+message(sprintf("   x e y contra el constante: el AIC mejora %.2f por ppm y %.2f con la integral bien hecha",
+                aic_hom - AIC(f_centr), mejora_centr_x))
 
 # El número de condición, que es la cifra que explica el NA. Se calcula
 # sobre la matriz de diseño de la cuadratura, no se cita de memoria.

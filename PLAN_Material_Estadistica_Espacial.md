@@ -946,6 +946,40 @@ de lo que pesaron TODOS los mapas del capítulo 4 juntos—.
 > `ppp_kppm()` acepta `covariables`. La tabla nueva usa la receta de tabla ancha de los capítulos 3
 > y 4 (primera columna fija). **Siguen abiertas** M3 y M5–M20, salvo M12 y M17, que ya cayeron.
 
+> **2026-09-24 · M3 de la segunda revisión, aplicado, y resultó tapar una afirmación falsa.** El
+> objetivo del módulo 8 prometía «ver de qué está hecha por dentro la verosimilitud» y la fórmula no
+> se escribía en ningún sitio. Ahora se escribe —ℓ(β) = Σ log λ(x_i) − ∫_W λ— y se deriva de ella la
+> igualdad que sostiene todo el módulo: en el máximo, **∫ λ̂ = n**.
+>
+> **Lo que había debajo.** El módulo decía que recuperar n/|W| con `ppm(pu ~ 1)` «es la prueba de
+> que el aparato de Berman-Turner resuelve el problema que dice resolver». No lo es: ante un modelo
+> sin covariables `ppm` aplica la fórmula cerrada (`fitter = "exact"`) y no toca la cuadratura.
+> Forzado con `forcefit = TRUE` da **5.71211** sedes por km² en vez de 5.69321 (+0,33 %), porque con
+> la cuadratura la EMV es n / Σw y los pesos por defecto suman 368.87 km² de los 370.09 de la
+> ciudad. Los **1.22418 km²** que faltan son 201 de las 4 345 teselas que tocan la ciudad: teselas
+> del borde sin sede y sin ficticio, porque `cellmiddles` coloca el ficticio con una máscara de
+> 200 × 200 píxeles y su trozo de ciudad no contiene ningún centro de píxel.
+>
+> **Y eso es lo que mueve el AIC**, no el modelo. En el máximo Σ w λ̂ = n exacto, así que el logLik
+> de `ppm` es Σ log λ̂(x_i) − n; con la integral bien hecha (máscara de 4 096 de lado) los cuatro
+> ajustes de la tabla tienen log-verosimilitudes que difieren **0.03**, y los de `ppm` difieren
+> **4.60**. El AIC sigue a la ciudad sin contar: nd = 100 y 200 pierden la misma y dan casi el mismo
+> AIC; nd = 300 pierde la que menos y da el más alto. La consecuencia que más muerde: por AIC de
+> `ppm`, la distancia al centro «gana» al constante por **13.45** puntos; con la integral bien hecha
+> empatan (0.07, a favor del constante), y forzando al constante por la misma cuadratura, también
+> (0.52). El módulo 9 conserva su «mejora el AIC frente al constante» porque sobrevive: 50.2 puntos
+> por `ppm`, 36.3 con la integral bien hecha (guarda en R).
+>
+> **Lo que dejó escrito.** Guardas en R para cada forma que la prosa afirma (el atajo exacto, n/Σw,
+> que el área de las teselas vacías sea justo lo que les falta a los pesos, que la integral fina
+> converja, el orden del AIC, el empate). `audita_cap5.py` rehace las teselas con **shapely, sin
+> spatstat**, y le salen las mismas en las cuatro cuadraturas; también la suma de logaritmos y la
+> integral: 64 comprobaciones nuevas, 422 en total. Familia 18 de `prueba_auditor_cap5.py` (37
+> inyecciones, varias coherentes para que solo las cace el recálculo), seis afirmaciones nuevas en
+> `audita_texto_cap5.py`, cinco inyecciones de prosa y una tercera vista del simulador de la
+> cuadratura: las dos log-verosimilitudes en la misma escala, una plana y otra no. **Siguen
+> abiertas** M5–M20, salvo M12 y M17.
+
 ---
 
 ### Capítulo 6 — Datos de área y la matriz de pesos espaciales · semanas 10–11

@@ -461,6 +461,170 @@ def main() -> int:
              "ppm: el AIC se mueve más que un parámetro de más",
              f"{m8['cuadratura']['rango_aic']:.1f} puntos")
 
+    # -----------------------------------------------------------------
+    a.titulo("8b · la verosimilitud por dentro (M3, 2026-09-24)")
+    # -----------------------------------------------------------------
+    # El módulo escribe ℓ = Σ log λ(x_i) − ∫λ, dice que ppm no pasa el
+    # homogéneo por la cuadratura, que forzado sale n/Σw, que los pesos
+    # pierden ciudad en teselas del borde sin ningún punto, y que esa
+    # ciudad perdida —no el modelo— es lo que mueve el AIC. Aquí se rehace
+    # todo lo que se puede rehacer sin spatstat: las teselas con shapely,
+    # la suma de logaritmos con los coeficientes publicados y la integral
+    # con una malla propia. Lo que es identidad se exige exacto.
+    h8 = m8["homogeneo"]
+    fz = m8.get("forzado")
+    cp = m8.get("comparacion")
+    CLAVES_FILA = ("rejilla_pesos", "pixeles", "teselas_tocan", "teselas_vacias",
+                   "sin_contar_km2", "suma_log", "logver_ppm", "integral_exacta",
+                   "logver_exacta")
+    faltan = [k for k in ("fitter", "n", "logver", "aic") if k not in h8]
+    faltan += [k for k in ("forzado", "comparacion") if not isinstance(m8.get(k), dict)]
+    faltan += [k for k in ("rango_logver_ppm", "rango_logver_exacta")
+               if k not in m8["cuadratura"]]
+    faltan += sorted({k for z in tab for k in CLAVES_FILA if k not in z})
+    if len(tab) != 4:
+        faltan.append("cuatro cuadraturas")
+    a.cierto(not faltan, "ppm: el módulo 8 publica su verosimilitud por dentro",
+             ", ".join(faltan))
+    if not faltan:
+        n_u = len(urb)
+        area_w = v_urb.area
+        a.igual(n_u, h8["n"], "ppm: n son las sedes del patrón urbano", 0)
+        a.cierto(h8["fitter"] == "exact",
+                 "ppm: el homogéneo sale de la fórmula cerrada", str(h8["fitter"]))
+        a.igual(n_u * np.log(n_u / area_w) - n_u, h8["logver"],
+                "ppm: el ℓ homogéneo es n·log(n/|W|) − n", 1e-4)
+        a.igual(-2 * h8["logver"] + 2, h8["aic"], "ppm: el AIC homogéneo es −2ℓ + 2", 1e-6)
+
+        # Las teselas, sin spatstat. La rejilla de pesos parte la caja de la
+        # ventana en `rejilla` × `rejilla`; spatstat pone el ficticio de cada
+        # celda en los píxeles de ciudad de una máscara de `pixeles` de lado
+        # (`cellmiddles`), más las esquinas de la caja que caigan dentro. Una
+        # tesela que toca la ciudad y no tiene píxel ni sede no la cuenta
+        # nadie: su área es exactamente lo que les falta a los pesos.
+        import shapely
+        from shapely.geometry import box as _caja
+        x0, y0, x1, y1 = v_urb.bounds
+        ux, uy = urb["x"].to_numpy(), urb["y"].to_numpy()
+
+        def teselas(nt, npx):
+            dx, dy = (x1 - x0) / nt, (y1 - y0) / nt
+            cajas = np.array([_caja(x0 + i * dx, y0 + j * dy, x0 + (i + 1) * dx, y0 + (j + 1) * dy)
+                              for j in range(nt) for i in range(nt)])
+            ar = shapely.area(shapely.intersection(cajas, v_urb))
+
+            def celda(x, y):
+                i = np.clip(np.floor((x - x0) / dx).astype(int), 0, nt - 1)
+                j = np.clip(np.floor((y - y0) / dy).astype(int), 0, nt - 1)
+                return j * nt + i
+            px = x0 + (np.arange(npx) + 0.5) * (x1 - x0) / npx
+            py = y0 + (np.arange(npx) + 0.5) * (y1 - y0) / npx
+            PX, PY = np.meshgrid(px, py)
+            PX, PY = PX.ravel(), PY.ravel()
+            dentro = shapely.contains_xy(v_urb, PX, PY)
+            llena = np.zeros(nt * nt, bool)
+            llena[celda(PX[dentro], PY[dentro])] = True
+            llena[celda(ux, uy)] = True
+            ex = np.array([x0, x1, x0, x1]); ey = np.array([y0, y0, y1, y1])
+            en = shapely.contains_xy(v_urb, ex, ey)
+            llena[celda(ex[en], ey[en])] = True
+            vac = (ar > 0) & ~llena
+            return int((ar > 0).sum()), int(vac.sum()), float(ar[vac].sum())
+
+        # La integral bien hecha, con una malla propia: |W| por la media de
+        # λ̂ en los centros de píxel que caen en la ciudad. Con 2048 de lado
+        # oscila unas centésimas, como la de R: tolerancia de 0,05 sedes.
+        NM = 2048
+        mx = x0 + (np.arange(NM) + 0.5) * (x1 - x0) / NM
+        my = y0 + (np.arange(NM) + 0.5) * (y1 - y0) / NM
+        MX, MY = np.meshgrid(mx, my)
+        MX, MY = MX.ravel(), MY.ravel()
+        md = shapely.contains_xy(v_urb, MX, MY)
+        d_malla = np.hypot(MX[md] - cx, MY[md] - cy)
+
+        for z in tab:
+            nd = z["nd"]
+            etq = f"cuadratura nd={nd}"
+            sano = (isinstance(z["rejilla_pesos"], int) and isinstance(z["pixeles"], int)
+                    and 0 < z["rejilla_pesos"] <= z["pixeles"] <= 1000)
+            if a.cierto(sano, f"{etq}: rejilla y píxeles con sentido",
+                        f"{z['rejilla_pesos']} / {z['pixeles']}"):
+                toc, vac, ar_v = teselas(z["rejilla_pesos"], z["pixeles"])
+                a.igual(toc, z["teselas_tocan"], f"{etq}: teselas que tocan la ciudad", 0)
+                a.igual(vac, z["teselas_vacias"], f"{etq}: teselas que nadie cuenta", 0)
+                a.igual(ar_v / 1e6, z["sin_contar_km2"], f"{etq}: la ciudad sin contar", 1e-6)
+            sl = float(np.sum(z["intercepto"] + z["pendiente"] * dist))
+            a.igual(sl, z["suma_log"], f"{etq}: la suma de log λ en las sedes", 0.01)
+            a.igual(z["suma_log"] - n_u, z["logver_ppm"],
+                    f"{etq}: el ℓ de ppm es esa suma menos n", 1e-6)
+            a.igual(-2 * z["logver_ppm"] + 4, z["aic"], f"{etq}: el AIC es −2ℓ + 2k", 1e-6)
+            lam = np.exp(z["intercepto"] + z["pendiente"] * d_malla)
+            a.igual(area_w * float(lam.mean()), z["integral_exacta"],
+                    f"{etq}: la integral bien hecha", 0.05)
+            a.igual(z["suma_log"] - z["integral_exacta"], z["logver_exacta"],
+                    f"{etq}: el ℓ bien hecho es la suma menos ella", 1e-6)
+
+        llp = [z["logver_ppm"] for z in tab]
+        llx = [z["logver_exacta"] for z in tab]
+        sinc = [z["sin_contar_km2"] for z in tab]
+        a.igual(max(llp) - min(llp), m8["cuadratura"]["rango_logver_ppm"],
+                "cuadratura: lo que se mueve el ℓ de ppm", 1e-6)
+        a.igual(max(llx) - min(llx), m8["cuadratura"]["rango_logver_exacta"],
+                "cuadratura: lo que se mueve el ℓ bien hecho", 1e-6)
+        a.cierto(max(llx) - min(llx) < 0.1 and max(llp) - min(llp) > 20 * (max(llx) - min(llx)),
+                 "cuadratura: bien hecha, los cuatro son el mismo modelo",
+                 f"{max(llx) - min(llx):.4f} contra {max(llp) - min(llp):.4f}")
+        a.cierto(all(not (sinc[i] > sinc[j] + 1e-6) or aics[i] < aics[j]
+                     for i in range(4) for j in range(4)),
+                 "cuadratura: el AIC sigue a la ciudad sin contar")
+        a.cierto(abs(sinc[1] - sinc[2]) < 1e-9
+                 and tab[1]["rejilla_pesos"] == tab[2]["rejilla_pesos"]
+                 and tab[1]["pixeles"] == tab[2]["pixeles"],
+                 "cuadratura: la 2.ª y la 3.ª pierden la misma ciudad")
+        a.cierto(int(np.argmin(sinc)) == 3 and int(np.argmax(aics)) == 3,
+                 "cuadratura: la última pierde menos y da el AIC más alto")
+        a.cierto(aics[1] < aics[0] and abs(aics[2] - aics[1]) < 0.1 and aics[3] > aics[2],
+                 "cuadratura: el AIC baja, se queda quieto y vuelve a subir")
+        a.cierto(all(z["integral_exacta"] > n_u for z in tab),
+                 "cuadratura: todas ponen sedes esperadas de más")
+
+        # El homogéneo forzado por la cuadratura por defecto
+        t100 = tab[1]
+        a.igual(t100["nd"], m8["cuadratura"]["defecto_nd"],
+                "ppm: la segunda fila es la cuadratura por defecto", 0)
+        a.cierto(fz.get("fitter") == "glm", "ppm: forzado, el homogéneo pasa por glm",
+                 str(fz.get("fitter")))
+        a.cerca(area_w / 1e6, fz["area_km2"], "ppm: el área de la ventana en km²", 1e-9)
+        a.cerca(fz["area_km2"] - t100["sin_contar_km2"], fz["suma_pesos_km2"],
+                "ppm: los pesos suman el área menos lo sin contar", 1e-9)
+        a.cerca(n_u / fz["suma_pesos_km2"], fz["lambda_km2"],
+                "ppm: forzado, la EMV es n entre los pesos", 1e-8)
+        a.igual(100 * (fz["lambda_km2"] / h8["lambda_km2"] - 1), fz["exceso_pct"],
+                "ppm: lo que sube la intensidad forzada", 1e-6)
+        a.igual(n_u * np.log(n_u / (fz["suma_pesos_km2"] * 1e6)) - n_u, fz["logver"],
+                "ppm: el ℓ forzado es n·log(n/Σw) − n", 1e-4)
+        a.igual(-2 * fz["logver"] + 2, fz["aic"], "ppm: el AIC forzado es −2ℓ + 2", 1e-6)
+
+        # La comparación de la nota: constante contra distancia
+        a.igual(h8["aic"] - t100["aic"], cp["gana_distancia_ppm"],
+                "comparación: lo que gana la distancia por ppm", 1e-6)
+        a.igual(-2 * t100["logver_exacta"] + 4, cp["aic_distancia_exacto"],
+                "comparación: el AIC bien hecho de la distancia", 1e-6)
+        a.igual(cp["aic_distancia_exacto"] - h8["aic"], cp["gana_constante_exacta"],
+                "comparación: lo que gana el constante, bien hecho", 1e-6)
+        a.igual(t100["aic"] - fz["aic"], cp["gana_constante_misma"],
+                "comparación: y con la misma cuadratura", 1e-6)
+        a.cierto(cp["gana_distancia_ppm"] > 10,
+                 "comparación: por ppm, la distancia gana con holgura",
+                 f"{cp['gana_distancia_ppm']:.2f} puntos")
+        a.cierto(0 < cp["gana_constante_exacta"] < 2 and 0 < cp["gana_constante_misma"] < 2,
+                 "comparación: bien hechas, empatan a favor del constante",
+                 f"{cp['gana_constante_exacta']:.3f} y {cp['gana_constante_misma']:.3f}")
+        z9 = D["m9"].get("distancia", {}).get("z") or []
+        a.cierto(len(z9) == 2 and abs(z9[1]) < NormalDist().inv_cdf(0.975),
+                 "comparación: la z del módulo 9 tampoco ve la distancia",
+                 f"{z9[1]:.2f}" if len(z9) == 2 else "sin z")
+
     m9 = D["m9"]
     a.cierto(m9["crudo"]["singular"] is True, "ppm: con coordenadas crudas, singular")
     a.cierto(m9["centrado"]["singular"] is False, "ppm: y centradas, no")

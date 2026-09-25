@@ -960,6 +960,24 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
         ("el n efectivo del gradiente, cambiado",
          f"<strong>{f(m11['tendencia']['n_efectivo'])}</strong> independientes",
          f"<strong>{perturba(m11['tendencia']['n_efectivo'])}</strong> independientes"),
+        # M3: la verosimilitud por dentro del módulo 8. Dos afirmaciones que
+        # desaparecen y tres cifras: la EMV forzada, la ciudad sin contar y
+        # lo que la distancia «gana» por AIC de ppm.
+        ("desaparece que el área de las teselas vacías no la cuenta nadie",
+         "<strong>Su área no la cuenta nadie.</strong>",
+         "<strong>Su área se reparte entre las vecinas.</strong>", True),
+        ("desaparece que el constante también necesita su cuadratura",
+         "ajusta sin ninguna si no se le obliga",
+         "ajusta con la suya propia", True),
+        ("la EMV del homogéneo forzado por la cuadratura, cambiada",
+         f"<strong>{f(m8['forzado']['lambda_km2'])}</strong> sedes por km²",
+         f"<strong>{perturba(m8['forzado']['lambda_km2'])}</strong> sedes por km²"),
+        ("la ciudad que la cuadratura deja sin contar, cambiada",
+         f"<strong>{f(m8['cuadratura']['tabla'][1]['sin_contar_km2'])}</strong> km² de ciudad",
+         f"<strong>{perturba(m8['cuadratura']['tabla'][1]['sin_contar_km2'])}</strong> km² de ciudad"),
+        ("lo que la distancia gana por AIC de ppm, cambiado",
+         f"<strong>{f(m8['comparacion']['gana_distancia_ppm'])}</strong> puntos",
+         f"<strong>{perturba(m8['comparacion']['gana_distancia_ppm'])}</strong> puntos"),
         # --- LOS MECANISMOS QUE NINGÚN CAPÍTULO HABÍA VISTO FALLAR ---
         # El arnés imprime cuántas comprobaciones se ha visto caer, y al
         # mirar la lista de este capítulo quedaban dentro de `geomapas()`

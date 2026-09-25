@@ -272,6 +272,22 @@ AFIRMACIONES = [
      "la hipótesis es falsa"),
     ("declara que la fuente del caso trabajado no llegó y por eso no se escribe",
      "la fuente no llegó"),
+    # M3 (2026-09-24): el módulo 8 prometía ver la verosimilitud por dentro
+    # y no la escribía, y afirmaba que el homogéneo ponía a prueba a
+    # Berman-Turner cuando `ppm` lo resuelve con la fórmula cerrada. Si una
+    # reescritura borra cualquiera de estas, vuelve el módulo de antes.
+    ("dice que el modelo ajustado reparte tantos puntos esperados como hay",
+     "exactamente tantos puntos como hay"),
+    ("declara que la comprobación del homogéneo no prueba la cuadratura",
+     "valida la fórmula, no la maquinaria"),
+    ("dice que los pesos por defecto no suman el área de la ventana",
+     "no suman el área de la ventana"),
+    ("dice que el área de las teselas vacías no la cuenta nadie",
+     "su área no la cuenta nadie"),
+    ("declara que con la integral bien hecha los cuatro son el mismo modelo",
+     "los cuatro ajustes son el mismo modelo"),
+    ("dice que el modelo constante también necesita su cuadratura",
+     "ajusta sin ninguna si no se le obliga"),
 ]
 
 # Si la codificación se rompe, las tildes no desaparecen: se convierten en

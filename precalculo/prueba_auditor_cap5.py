@@ -561,6 +561,108 @@ def defectos():
     obj("17 · n deja de ser las sedes del patrón urbano",
         "datos", lambda d: tc(d).__setitem__("n", 2113))
 
+    # --- 18. La segunda revisión, M3 (2026-09-24) ----------------------
+    # El módulo 8 escribe la log-verosimilitud y enseña de qué está hecho
+    # el AIC de `ppm`: la ciudad que la cuadratura deja sin contar. Cada
+    # cifra es una cuenta rehecha sin spatstat o una identidad, y cada
+    # afirmación de forma tiene su guarda. Donde se puede, el veneno es
+    # COHERENTE —mueve una cifra y todas las que dependen de ella—, para
+    # que solo lo cace el recálculo independiente y no una identidad.
+    def m8(d): return d["m8"]
+    def fila8(d, i): return d["m8"]["cuadratura"]["tabla"][i]
+
+    def suma_log_coherente(d):
+        z = fila8(d, 0)
+        for k in ("suma_log", "logver_ppm", "logver_exacta"):
+            z[k] -= 0.5
+        z["aic"] += 1.0
+
+    def integral_coherente(d):
+        z = fila8(d, 0)
+        z["integral_exacta"] += 0.3
+        z["logver_exacta"] -= 0.3
+
+    def ultimo_modelo_distinto(d):
+        z = fila8(d, 3)
+        z["logver_exacta"] -= 0.5
+        llx = [t["logver_exacta"] for t in d["m8"]["cuadratura"]["tabla"]]
+        d["m8"]["cuadratura"]["rango_logver_exacta"] = max(llx) - min(llx)
+
+    obj("18 · falta el homogéneo forzado",
+        "datos", lambda d: m8(d).pop("forzado", None))
+    obj("18 · el n del homogéneo deja de ser las sedes",
+        "datos", lambda d: m8(d)["homogeneo"].__setitem__("n", 2113))
+    obj("18 · el homogéneo pasa a declararse ajustado por glm",
+        "datos", lambda d: m8(d)["homogeneo"].__setitem__("fitter", "glm"))
+    obj("18 · el ℓ homogéneo deja de ser n·log(n/|W|) − n",
+        "datos", lambda d: m8(d)["homogeneo"].__setitem__("logver", -27550.3131313131))
+    obj("18 · el AIC homogéneo deja de ser −2ℓ + 2",
+        "datos", lambda d: m8(d)["homogeneo"].__setitem__("aic", 55103.1313131313))
+    obj("18 · una rejilla de pesos pasa a cero teselas",
+        "datos", lambda d: fila8(d, 0).__setitem__("rejilla_pesos", 0))
+    obj("18 · las teselas que tocan la ciudad cambian",
+        "datos", lambda d: fila8(d, 1).__setitem__("teselas_tocan", 4313))
+    obj("18 · las teselas que nadie cuenta cambian",
+        "datos", lambda d: fila8(d, 1).__setitem__("teselas_vacias", 213))
+    obj("18 · la ciudad sin contar de nd = 50 cambia",
+        "datos", lambda d: fila8(d, 0).__setitem__("sin_contar_km2", 0.8131313131))
+    obj("18 · la suma de log λ se mueve con todo lo que cuelga de ella",
+        "datos", suma_log_coherente)
+    obj("18 · el ℓ de ppm deja de ser la suma menos n",
+        "datos", lambda d: fila8(d, 2).__setitem__("logver_ppm", -27543.1313131313))
+    obj("18 · el AIC de una fila deja de ser −2ℓ + 2k",
+        "datos", lambda d: fila8(d, 0).__setitem__("aic", 55097.3131313131))
+    obj("18 · la integral bien hecha se mueve con su ℓ",
+        "datos", integral_coherente)
+    obj("18 · el ℓ bien hecho deja de ser la suma menos la integral",
+        "datos", lambda d: fila8(d, 1).__setitem__("logver_exacta", -27550.3131313131))
+    obj("18 · lo que se mueve el ℓ de ppm cambia",
+        "datos", lambda d: m8(d)["cuadratura"].__setitem__("rango_logver_ppm", 3.1313131313))
+    obj("18 · lo que se mueve el ℓ bien hecho cambia",
+        "datos", lambda d: m8(d)["cuadratura"].__setitem__("rango_logver_exacta", 0.1313131313))
+    obj("18 · bien hecha, la última cuadratura es otro modelo",
+        "datos", ultimo_modelo_distinto)
+    obj("18 · nd = 50 pasa a perder más ciudad que todas",
+        "datos", lambda d: fila8(d, 0).__setitem__("sin_contar_km2", 1.5131313131))
+    obj("18 · nd = 200 deja de compartir píxeles con nd = 100",
+        "datos", lambda d: fila8(d, 2).__setitem__("pixeles", 300))
+    obj("18 · la última cuadratura pasa a dar el AIC más bajo",
+        "datos", lambda d: fila8(d, 3).__setitem__("aic", 55090.1313131313))
+    obj("18 · el AIC deja de quedarse quieto entre nd = 100 y 200",
+        "datos", lambda d: fila8(d, 2).__setitem__("aic", 55092.3131313131))
+    obj("18 · una cuadratura pone menos sedes esperadas que n",
+        "datos", lambda d: fila8(d, 3).__setitem__("integral_exacta", 2105.1313131313))
+    obj("18 · la segunda fila deja de ser la cuadratura por defecto",
+        "datos", lambda d: fila8(d, 1).__setitem__("nd", 150))
+    obj("18 · el forzado pasa a declararse exacto",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("fitter", "exact"))
+    obj("18 · el área de la ventana del forzado cambia",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("area_km2", 371.3131313131))
+    obj("18 · los pesos dejan de sumar el área menos lo sin contar",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("suma_pesos_km2", 369.1313131313))
+    obj("18 · la EMV forzada deja de ser n entre los pesos",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("lambda_km2", 5.7313131313))
+    obj("18 · lo que sube la intensidad forzada cambia",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("exceso_pct", 0.4313131313))
+    obj("18 · el ℓ forzado deja de ser n·log(n/Σw) − n",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("logver", -27543.3131313131))
+    obj("18 · el AIC forzado deja de ser −2ℓ + 2",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("aic", 55090.3131313131))
+    obj("18 · lo que gana la distancia por ppm cambia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_distancia_ppm", 11.3131313131))
+    obj("18 · el AIC bien hecho de la distancia cambia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("aic_distancia_exacto", 55106.3131313131))
+    obj("18 · lo que gana el constante bien hecho cambia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_constante_exacta", 0.1313131313))
+    obj("18 · lo que gana con la misma cuadratura cambia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_constante_misma", 0.3131313131))
+    obj("18 · por ppm, la distancia deja de ganar con holgura",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_distancia_ppm", 9.1313131313))
+    obj("18 · con la misma cuadratura, gana la distancia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_constante_misma", -0.3131313131))
+    obj("18 · la z de la distancia del módulo 9 pasa a significar",
+        "datos", lambda d: d["m9"]["distancia"]["z"].__setitem__(1, -2.5131313131))
+
     return D
 
 
@@ -585,6 +687,8 @@ def tipo(n: str) -> str:
     # repiten la misma división; atacar una prueba las doce.
     n = re.sub(r"^tendencia/\w+/\w+: (z|inflación) de \w+", r"tendencia/<ajuste>: \1 de <coef>", n)
     n = re.sub(r"^tendencia/(xc|yc):", "tendencia/<coef>:", n)
+    # Las cuatro cuadraturas del módulo 8 repiten las mismas nueve cuentas.
+    n = re.sub(r"^cuadratura nd=\d+:", "cuadratura nd=<nd>:", n)
     n = re.sub(r"en (bei/elev|bei/grad|bogotá)$", "en <covariable>", n)
     n = re.sub(r"^(está e\d)", "está eN", n)
     n = re.sub(r"ejercicios: está e\d", "ejercicios: está eN", n)

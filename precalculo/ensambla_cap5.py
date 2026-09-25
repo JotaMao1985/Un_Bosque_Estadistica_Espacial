@@ -1334,9 +1334,9 @@ MOD7 = cabecera(
 # MÓDULO 8 · El proceso de Poisson inhomogéneo
 # =====================================================================
 R8 = '''# LA IDENTIDAD QUE CIERRA EL CIRCULO CON EL CAPITULO 1: la estimacion de
-# maxima verosimilitud de un Poisson HOMOGENEO es n/|W|. Que `ppm` la
-# recupere dice que la maquinaria de Berman-Turner resuelve el problema
-# que dice resolver.
+# maxima verosimilitud de un Poisson HOMOGENEO es n/|W|. `ppm` la
+# devuelve, pero sin ajustar nada: ante un modelo sin covariables aplica
+# la formula cerrada, y lo declara en el propio ajuste.
 f0 &lt;- ppm(pu ~ 1)
 print(c(mle = exp(coef(f0)[[1]]), ingenua = npoints(pu) / area.owin(WU)),
       digits = 6)
@@ -1345,6 +1345,19 @@ print(c(mle = exp(coef(f0)[[1]]), ingenua = npoints(pu) / area.owin(WU)),
 
 round(exp(coef(f0)[[1]]) * 1e6, 4)      # por km2: la lambda del capitulo 1
 #&gt; [1] {LAMKM}
+f0$fitter
+#&gt; [1] &quot;{FITTER}&quot;
+
+# OBLIGADO A PASAR POR LA CUADRATURA, la EMV es n / sum(w), y los pesos
+# por defecto no suman el area de la ventana.
+f0q &lt;- ppm(pu ~ 1, forcefit = TRUE)
+w0 &lt;- w.quad(quad.ppm(f0q))
+round(c(forzado = exp(coef(f0q)[[1]]), n_entre_pesos = npoints(pu) / sum(w0)) * 1e6, 5)
+#&gt;       forzado n_entre_pesos
+#&gt;       {LAMQ}       {LAMQ}
+print(c(pesos = sum(w0), ventana = area.owin(WU)) / 1e6, digits = 8)
+#&gt;     pesos   ventana
+#&gt; {PESOS} {AREA}
 
 # LA CUADRATURA NO ES INOCENTE. Berman-Turner convierte la verosimilitud
 # en una regresion de Poisson sobre los puntos MAS una malla de puntos
@@ -1366,23 +1379,57 @@ c(nd100 = npoints(quad.ppm(f1)$dummy), nd300 = npoints(quad.ppm(f3)$dummy))
 # siete digitos de siempre no se ve: hay que pedirle a `print` que los de.
 print(c(nd100 = AIC(f1), nd300 = AIC(f3)), digits = 10)
 #&gt;       nd100       nd300
-#&gt; {AIC1} {AIC3}'''
+#&gt; {AIC1} {AIC3}
+
+# LO QUE HAY DENTRO DEL logLik: la suma de log(lambda) en las sedes menos
+# la suma que sustituye a la integral, que en el maximo vale n EXACTO.
+# `fitted()` da lambda en todos los puntos de la cuadratura.
+q1 &lt;- quad.ppm(f1); lam1 &lt;- fitted(f1)
+print(c(suma_log = sum(log(lam1[is.data(q1)])), integral = sum(w.quad(q1) * lam1),
+        logLik = as.numeric(logLik(f1))), digits = 10)
+#&gt;     suma_log     integral       logLik
+#&gt; {SLOG}   {NDEC} {LLP}
+
+# Y la integral hecha bien, sin cuadratura: el area por la media de
+# lambda en una malla fina. El modelo ajustado pone sedes de mas.
+round(area.owin(WU) * mean(predict(f1, dimyx = 2048)), 2)
+#&gt; [1] {INTX}'''
 
 PY8 = '''# La EMV de un Poisson homogeneo no necesita optimizador ninguno: es
 # n dividido por el area de la ventana, y sale igual a la decima cifra.
 print(float(f&quot;{{len(urb) / WU.area:.6g}}&quot;))
 #&gt; {LAM}
 print(round(len(urb) / WU.area * 1e6, 4))
-#&gt; {LAMKM}'''
+#&gt; {LAMKM}
 
+# Y su log-verosimilitud tampoco necesita cuadratura: con lambda
+# constante, la suma de logaritmos es n log(lambda) y la integral es n.
+n_u = len(urb)
+print(round(n_u * np.log(n_u / WU.area) - n_u, 5))
+#&gt; {LLH}'''
+
+_h8, _fz, _cp = m8["homogeneo"], m8["forzado"], m8["comparacion"]
 _cu = m8["cuadratura"]
+_t100 = _cu["tabla"][1]
+if _t100["nd"] != _cu["defecto_nd"]:
+    sys.exit("PARADO: la fila 1 de la tabla de cuadraturas ya no es la de por defecto, "
+             "y el módulo 8 lee de ella el área que la cuadratura deja sin contar")
 _SUB8 = dict(
-    LAM=f'{m8["homogeneo"]["lambda_mle_m2"]:g}',
-    LAMKM=n(m8["homogeneo"]["lambda_km2"], 4),
+    LAM=f'{_h8["lambda_mle_m2"]:g}',
+    LAMKM=n(_h8["lambda_km2"], 4),
+    FITTER=_h8["fitter"],
+    LAMQ=n(_fz["lambda_km2"], 5),
+    PESOS=n(_fz["suma_pesos_km2"], 5),
+    AREA=n(_fz["area_km2"], 5),
     FIC=ent_codigo(_cu["defecto_ficticios"]),
-    AIC1=n(_cu["tabla"][1]["aic"], 5),
+    AIC1=n(_t100["aic"], 5),
     FIC3=ent_codigo(_cu["tabla"][-1]["ficticios"]),
-    AIC3=n(_cu["tabla"][-1]["aic"], 5))
+    AIC3=n(_cu["tabla"][-1]["aic"], 5),
+    SLOG=n(_t100["suma_log"], 5),
+    NDEC=n(_h8["n"], 5),
+    LLP=n(_t100["logver_ppm"], 5),
+    INTX=n(_t100["integral_exacta"], 2),
+    LLH=n(_h8["logver"], 5))
 
 MOD8 = cabecera(
     8, "El Poisson inhomogéneo", "The inhomogeneous Poisson process",
@@ -1405,26 +1452,96 @@ MOD8 = cabecera(
         <strong>una función log-lineal de covariables</strong>. La exponencial no es un adorno —
         garantiza que λ sea positiva pase lo que pase con los coeficientes.</p>
 
+      <h3>La verosimilitud, escrita</h3>
+
+      <p>Ajustar es elegir los coeficientes β que hacen más probable el patrón que se observó.
+        Para un proceso de Poisson esa probabilidad tiene una forma corta, y su logaritmo —la
+        <strong>log-verosimilitud</strong>, ℓ— es:</p>
+
+      <div class="formula">
+        $$\\ell(\\beta) \;=\; \\sum_{{i=1}}^{{n}} \\log \\lambda(x_i;\\beta) \;-\; \\int_W \\lambda(u;\\beta)\\,du$$
+      </div>
+
+      <p>Los x<sub>i</sub> son las n sedes, W es la ventana y u recorre todos sus puntos, haya
+        sede o no. Los dos términos tiran en sentidos contrarios. El primero suma el logaritmo de
+        la intensidad <strong>en cada sede</strong>: premia poner intensidad donde hay puntos. El
+        segundo es el número esperado de puntos en toda la ventana, y resta: cobra cada unidad de
+        intensidad puesta <strong>en cualquier sitio</strong>. Sin el segundo, el máximo estaría
+        en una intensidad infinita; sin el primero, en cero. El ajuste es el punto en que los dos
+        se equilibran.</p>
+
+      <p>Ese equilibrio tiene una consecuencia que conviene ver antes de ajustar nada. El
+        intercepto β<sub>0</sub> multiplica toda la intensidad por e<sup>β<sub>0</sub></sup>, así
+        que al subirlo un poco el primer término crece en n veces lo que se subió y el segundo, en
+        su propio valor por lo mismo. En el máximo los dos crecimientos se cancelan:</p>
+
+      <div class="formula">
+        $$\\begin{{aligned}}
+          \\frac{{\\partial \\ell}}{{\\partial \\beta_0}} &amp;= n - \\int_W \\lambda(u)\\,du \\\\[6pt]
+          \\text{{en el máximo:}}\\quad \\int_W \\hat\\lambda(u)\\,du &amp;= n
+        \\end{{aligned}}$$
+      </div>
+
+      <p><strong>El modelo ajustado reparte por la ventana, en esperanza, exactamente tantos
+        puntos como hay</strong>, tenga las covariables que tenga, siempre que lleve intercepto.
+        La igualdad vuelve en cada una de las secciones que siguen.</p>
+
       <h3>La comprobación que cierra el círculo</h3>
 
-      <p>Si el modelo se ajusta sin covariables, tiene que devolver la intensidad ingenua del
-        capítulo 1: la EMV de un Poisson homogéneo <strong>es</strong> n/|W|. Medido sobre la
-        ciudad, las dos coinciden con una diferencia relativa de
-        {firma(f'{m8["homogeneo"]["dif_relativa"]:g}')} —el ruido de coma flotante— y la cifra a
-        la que llegan es {firma(n(m8["homogeneo"]["lambda_km2"], 4), " sedes por km²")}, la misma
-        que el capítulo 1 publicó y el 4 ancló.</p>
+      <p>Sin covariables, λ es una constante y su integral es λ·|W|, así que la igualdad se
+        vuelve λ̂·|W| = n: la EMV de un Poisson homogéneo <strong>es</strong> n/|W|, la
+        intensidad ingenua del capítulo 1. Medido sobre la ciudad, <code>ppm</code> la devuelve
+        con una diferencia relativa de {firma(f'{_h8["dif_relativa"]:g}')} —el ruido de coma
+        flotante— y la cifra a la que llega es
+        {firma(n(_h8["lambda_km2"], 4), " sedes por km²")}, la misma que el capítulo 1 publicó y
+        el 4 ancló.</p>
 
-      <p>No es un detalle de implementación: es la prueba de que el aparato que viene ahora
-        resuelve el problema que dice resolver.</p>
+      <p>Hay que decir cómo llega, porque no es por donde parece. Ante un modelo sin covariables,
+        <code>ppm</code> no ajusta nada: aplica la fórmula cerrada, y lo declara en el propio
+        ajuste, <code>fitter = "{_h8["fitter"]}"</code>. <strong>La comprobación valida la
+        fórmula, no la maquinaria</strong> con la que se ajusta todo lo demás. Esa maquinaria se
+        pone a prueba en la sección siguiente, y no sale igual de limpia.</p>
 
       <h3>Berman-Turner, y la malla que nadie escribe</h3>
 
-      <p>La verosimilitud de un proceso puntual lleva una integral sobre la ventana, y esa
-        integral no tiene forma cerrada. El truco de Berman y Turner es aproximarla por
-        cuadratura y convertir todo el problema en una <strong>regresión de Poisson ponderada</strong>
-        sobre los puntos del dato <em>más</em> una malla de puntos ficticios. Cuántos ficticios lo
-        decide el argumento <code>nd</code>, y su valor por defecto —{_cu["defecto_nd"]}— pone
-        {firma(ent(_cu["defecto_ficticios"]), " puntos ficticios")} sobre esta ventana.</p>
+      <p>En cuanto λ depende de una covariable, la integral del segundo término deja de tener
+        forma cerrada. El truco de Berman y Turner es aproximarla por <strong>cuadratura</strong>:
+        se toman unos puntos u<sub>j</sub> —las sedes <em>más</em> una malla de puntos
+        ficticios—, se le da a cada uno un peso w<sub>j</sub>, que es el trozo de ventana que
+        representa, y la integral se cambia por una suma. La primera línea es esa aproximación; la
+        segunda, lo que queda de ℓ al hacerla:</p>
+
+      <div class="formula">
+        $$\\begin{{aligned}}
+          \\int_W \\lambda(u)\\,du &amp;\\approx \\sum_j w_j\\,\\lambda(u_j) \\\\[6pt]
+          \\ell(\\beta) &amp;\\approx \\sum_j w_j\\,\\big(y_j \\log \\lambda(u_j) - \\lambda(u_j)\\big)
+        \\end{{aligned}}$$
+      </div>
+
+      <p>Con y<sub>j</sub> igual a 1/w<sub>j</sub> en las sedes y a cero en los ficticios, la
+        segunda línea es la log-verosimilitud de una <strong>regresión de Poisson
+        ponderada</strong>: por eso <code>ppm</code> ajusta con <code>glm</code>. Cuántos
+        ficticios hay lo decide el argumento <code>nd</code>, y su valor por defecto
+        —{_cu["defecto_nd"]}— pone {firma(ent(_cu["defecto_ficticios"]), " puntos ficticios")}
+        sobre esta ventana.</p>
+
+      <p>La prueba que la comprobación de antes no hizo es obligar a <code>ppm</code> a pasar el
+        modelo homogéneo por esta maquinaria, con <code>forcefit = TRUE</code>. Devuelve
+        {firma(n(_fz["lambda_km2"]), " sedes por km²")} en vez de {n(_h8["lambda_km2"])}, y la
+        razón está en la igualdad ∫ λ̂ = n, ahora con la suma en lugar de la
+        integral: la EMV pasa a ser n / Σ w<sub>j</sub>, y los pesos por defecto <strong>no suman
+        el área de la ventana</strong>. Suman {n(_fz["suma_pesos_km2"])} km², y la ciudad mide
+        {n(_fz["area_km2"])}. La intensidad sale un {pct(_fz["exceso_pct"], 2)} más alta.</p>
+
+      <p>Faltan {firma(n(_t100["sin_contar_km2"]), " km²")} de ciudad, y se sabe dónde están.
+        Los pesos salen de partir la caja de la ciudad en una rejilla de
+        {_t100["rejilla_pesos"]} × {_t100["rejilla_pesos"]} teselas y repartir el área de cada una
+        entre los puntos de la cuadratura que caen dentro. De las {ent(_t100["teselas_tocan"])}
+        teselas que tocan la ciudad, {firma(ent(_t100["teselas_vacias"]))} se quedan sin ninguno:
+        son teselas del borde que la tocan con una esquina o una franja estrecha, sin ninguna sede
+        dentro, y en las que <code>spatstat</code> no pone ficticio, porque los coloca mirando una
+        rejilla de píxeles de {_t100["pixeles"]} × {_t100["pixeles"]} y esa franja no contiene el
+        centro de ninguno. <strong>Su área no la cuenta nadie.</strong></p>
 
       <table class="tabla-datos">
         <caption>El mismo modelo con cuatro cuadraturas</caption>
@@ -1441,26 +1558,74 @@ MOD8 = cabecera(
       <p>Dos lecturas, y la segunda es la que muerde. La primera: el coeficiente <strong>se mueve
         poco en unidades de su propio error</strong> —de un extremo a otro de la tabla cambia
         {firma(n(_cu["rango_pendiente_en_ee"]), " errores estándar")}—, así que la inferencia
-        aguanta. La segunda: <strong>el AIC se mueve {n(_cu["rango_aic"], 1)} puntos</strong>.</p>
+        aguanta. La segunda: <strong>el AIC se mueve {n(_cu["rango_aic"], 1)} puntos</strong>, y
+        no en la dirección de <code>nd</code>: baja, se queda quieto y vuelve a subir.</p>
+
+      <h3>De dónde salen los {n(_cu["rango_aic"], 1)} puntos</h3>
+
+      <p>La igualdad ∫ λ̂ = n dice dónde mirar. En el máximo, la suma que sustituye a
+        la integral vale <strong>exactamente n</strong>, así que lo que <code>ppm</code> publica
+        como log-verosimilitud es la suma de los logaritmos en las sedes menos {ent(_h8["n"])}.
+        Pero la integral de verdad del modelo ajustado ya no es n: la cuadratura se deja fuera un
+        trozo de ciudad, el intercepto sube para que la suma cuadre, y sobre la ciudad entera el
+        modelo pone más sedes esperadas de las que hay. Se puede medir haciendo la integral bien,
+        sin cuadratura, con una malla fina de píxeles:</p>
+
+      <table class="tabla-datos" style="position:relative; overflow:visible; width:100%; min-width:32rem;">
+        <caption>La misma log-verosimilitud, con la integral de <code>ppm</code> y con la
+          integral bien hecha</caption>
+        <thead><tr><th scope="col" style="position:sticky; left:0; z-index:2;"><code>nd</code></th>
+          <th scope="col">Ciudad sin contar (km²)</th>
+          <th scope="col">Sedes esperadas, integral bien hecha</th>
+          <th scope="col">ℓ de <code>ppm</code></th>
+          <th scope="col">ℓ con la integral bien hecha</th></tr></thead>
+        <tbody>
+""" + "".join(
+    fila_fija(ent(z["nd"]), n(z["sin_contar_km2"]), n(z["integral_exacta"], 2),
+              n(z["logver_ppm"], 2), n(z["logver_exacta"], 2))
+    for z in _cu["tabla"]) + f"""        </tbody>
+      </table>
+
+      <p>Los cuatro ajustes son el mismo modelo: con la integral bien hecha, su log-verosimilitud
+        cambia {firma(n(_cu["rango_logver_exacta"], 2))} de un extremo a otro. La que publica
+        <code>ppm</code> cambia {firma(n(_cu["rango_logver_ppm"]))}, y todo lo que sobra es el
+        segundo término: la intensidad que el modelo pone sobre la ciudad que su cuadratura no ve.
+        Por eso el AIC sigue a la columna de la ciudad sin contar y no a <code>nd</code>. Con
+        <code>nd = {_cu["tabla"][1]["nd"]}</code> y <code>nd = {_cu["tabla"][2]["nd"]}</code> se
+        pierde exactamente la misma —comparten la rejilla de teselas y la de píxeles— y el AIC es
+        casi el mismo; con <code>nd = {_cu["tabla"][3]["nd"]}</code> se pierde la que menos, y su
+        AIC es el más alto. Dos <code>ppm</code> ajustados con cuadraturas distintas tienen AIC que
+        <strong>no son comparables</strong>, y no por un matiz: {n(_cu["rango_aic"], 1)} puntos de
+        AIC deciden entre dos modelos con soltura, y estos no vienen de ningún modelo.</p>
 
       <div class="nota-lateral">
-        <h4>Por qué esos {n(_cu["rango_aic"], 1)} puntos importan tanto</h4>
-        <p style="margin-bottom:0;">El AIC de <code>ppm</code> sale de la verosimilitud
-          <em>aproximada por la cuadratura</em>. Dos modelos ajustados con cuadraturas distintas
-          tienen AIC que <strong>no son comparables</strong> — y comparar modelos es exactamente
-          para lo que se usa el AIC. Nueve puntos de AIC deciden entre dos modelos con soltura;
-          aquí no vienen de ningún modelo, vienen de un argumento que no se escribió.</p>
+        <h4>La comparación que más se hace es la que peor sale</h4>
+        <p style="margin-bottom:0;">¿Mejora la distancia al centro al modelo constante? Con los
+          AIC que devuelve <code>ppm</code>, sí, y por
+          {firma(n(_cp["gana_distancia_ppm"]), " puntos")}: una diferencia que nadie discutiría.
+          Pero el constante se ajustó con la fórmula cerrada, que ve la ciudad entera, y el de la
+          distancia con la cuadratura por defecto, que se deja {n(_t100["sin_contar_km2"])} km² sin
+          contar. Con la integral bien hecha en los dos, <strong>empatan</strong>:
+          {n(_cp["gana_constante_exacta"], 2)} puntos, y a favor del constante. Forzando al
+          constante por la misma cuadratura, los dos arrastran el mismo error y el empate vuelve:
+          {n(_cp["gana_constante_misma"])} puntos, también a favor del constante. Es lo mismo que
+          dirá la z de ese coeficiente en el módulo 9, y con el mismo matiz: lo que no aporta nada
+          es una relación <em>log-lineal</em> con la distancia, que no es lo mismo que ninguna
+          relación.</p>
       </div>
 
 {sim("cap5-cuadratura", "La cuadratura, y lo que le hace a lo que se lee",
-      "Los dos botones recorren la misma cuadratura —de nd = 50 a nd = 300— y la miran de "
-      "dos maneras: la banda del coeficiente, que apenas se mueve, y el AIC, que se mueve "
-      "lo que decide un modelo.")}
+      f"Los tres botones recorren la misma cuadratura —de nd = {_cu['tabla'][0]['nd']} a "
+      f"nd = {_cu['tabla'][-1]['nd']}— y la miran de tres maneras: la banda del coeficiente, "
+      "que apenas se mueve; el AIC, que se mueve lo que decide un modelo; y la "
+      "log-verosimilitud por dentro, la que publica <code>ppm</code> contra la de la integral "
+      "bien hecha.")}
       <p>La regla que sale de aquí es corta: <strong>la cuadratura viaja con el modelo</strong>.
-        Comparar dos <code>ppm</code> por AIC solo vale si los dos se ajustaron con la misma, y
-        eso hay que escribirlo, porque el defecto no aparece en ninguna de las dos llamadas.</p>
+        Comparar dos <code>ppm</code> por AIC solo vale si los dos se ajustaron con la misma, y eso
+        incluye al modelo constante, que <code>ppm</code> ajusta sin ninguna si no se le obliga.
+        Hay que escribirlo, porque el defecto no aparece en ninguna de las llamadas.</p>
 
-{tabs("La EMV homogénea y la cuadratura por defecto", R8.format(**_SUB8), PY8.format(**_SUB8))}
+{tabs("La EMV homogénea, la cuadratura y el logLik por dentro", R8.format(**_SUB8), PY8.format(**_SUB8))}
       <p>Con el modelo montado, el módulo siguiente hace lo único que queda por hacer con él:
         leer los coeficientes. Y ahí espera un defecto que no avisa.</p>
 """ + CIERRE
@@ -1523,7 +1688,8 @@ MOD9 = cabecera(
 
       <h3>Trampa 1: el sistema de referencia dentro de la verosimilitud</h3>
 
-      <p><code>ppm(pu ~ x + y)</code> ajusta, mejora el AIC frente al modelo constante y devuelve
+      <p><code>ppm(pu ~ x + y)</code> ajusta, mejora el AIC frente al modelo constante —también
+        con la integral bien hecha del módulo 8, que es lo primero que hay que mirar— y devuelve
         tres coeficientes con toda la pinta de serlo —uno de ellos un intercepto de
         {firma(n(_cr["coef"][0], 3))}—. Y sus errores estándar son <code>NA</code>: la información
         de Fisher es singular. En EPSG:9377 las coordenadas de Bogotá son números de siete cifras,
@@ -2681,25 +2847,45 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
               borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0 }
           ];
           g.options.scales.y.title.text = 'coeficiente ± 1 e.e.';
-        } else {
+        } else if (vista === 1) {
           g.data.datasets = [
             { label: 'AIC', data: t.map(z => z.aic), borderColor: C5.naranja,
               backgroundColor: 'rgba(255,102,0,0.15)', fill: true,
               borderWidth: 3, pointRadius: 4 }
           ];
           g.options.scales.y.title.text = 'AIC';
+        } else {
+          // Las dos log-verosimilitudes en la misma escala: la de ppm se
+          // mueve con la ciudad que su cuadratura deja sin contar, y la de
+          // la integral bien hecha se queda plana, porque el modelo es el
+          // mismo en las cuatro columnas.
+          g.data.datasets = [
+            { label: 'ℓ que publica ppm', data: t.map(z => z.logver_ppm),
+              borderColor: C5.naranja, borderWidth: 3, pointRadius: 4 },
+            { label: 'ℓ con la integral bien hecha', data: t.map(z => z.logver_exacta),
+              borderColor: C5.verde, borderWidth: 3, pointRadius: 4 }
+          ];
+          g.options.scales.y.title.text = 'log-verosimilitud';
         }
         g.update();
-        lectura5(raiz, [
+        const lec = [
           ['nd por defecto', D5.m8.cuadratura.defecto_nd],
           ['puntos ficticios que pone', mil5(D5.m8.cuadratura.defecto_ficticios)],
           ['con nd = ' + t[t.length - 1].nd, mil5(t[t.length - 1].ficticios) + ' ficticios'],
           ['el coeficiente se mueve', n5(D5.m8.cuadratura.rango_pendiente_en_ee, 2) +
                                       ' errores estándar'],
-          ['el AIC se mueve', n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos'],
-          ['consecuencia', 'dos ppm con cuadraturas distintas no se comparan por AIC']]);
+          ['el AIC se mueve', n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos']];
+        if (vista === 2) {
+          lec.push(['ciudad sin contar, de', n5(Math.min(...t.map(z => z.sin_contar_km2)), 2) +
+                    ' a ' + n5(Math.max(...t.map(z => z.sin_contar_km2)), 2) + ' km²']);
+          lec.push(['ℓ de ppm se mueve', n5(D5.m8.cuadratura.rango_logver_ppm, 2)]);
+          lec.push(['con la integral bien hecha, ℓ se mueve',
+                    n5(D5.m8.cuadratura.rango_logver_exacta, 2)]);
+        }
+        lec.push(['consecuencia', 'dos ppm con cuadraturas distintas no se comparan por AIC']);
+        lectura5(raiz, lec);
       };
-      botonera5(raiz, ['El coeficiente y su error', 'El AIC'],
+      botonera5(raiz, ['El coeficiente y su error', 'El AIC', 'La verosimilitud por dentro'],
                 k => { vista = k; pinta(); }, 0);
       pinta();
       return [g];
@@ -3050,7 +3236,7 @@ QUIZ_JS = r"""
         retroFallo: 'Las dos ciertas son que el AIC depende de la cuadratura y que el ajuste con coordenadas crudas devuelve coeficientes sin errores estándar.',
         opciones: [
           { texto: 'Dos ppm ajustados con cuadraturas distintas no se pueden comparar por AIC', correcta: true,
-            retro: 'El AIC sale de la verosimilitud APROXIMADA por la cuadratura. Entre nd = ' + D5.m8.cuadratura.tabla[0].nd + ' y nd = ' + D5.m8.cuadratura.tabla[3].nd + ' el AIC se mueve ' + n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos sin que cambie el modelo.' },
+            retro: 'El AIC sale de la verosimilitud APROXIMADA por la cuadratura, y cada cuadratura deja sin contar un trozo distinto de ciudad. Entre nd = ' + D5.m8.cuadratura.tabla[0].nd + ' y nd = ' + D5.m8.cuadratura.tabla[3].nd + ' el AIC se mueve ' + n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos sin que cambie el modelo.' },
           { texto: 'Si la información de Fisher es singular, ppm falla y hay que atraparlo con try()',
             retro: 'No falla: <code>vcov()</code> avisa y devuelve NULL, y <code>sqrt(diag(NULL))</code> devuelve una matriz 0 × 0 sin quejarse. Un try() no ve nada.' },
           { texto: 'Con coordenadas en EPSG:9377 el ajuste devuelve coeficientes pero ningún error estándar', correcta: true,
