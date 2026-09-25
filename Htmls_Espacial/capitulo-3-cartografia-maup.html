@@ -1028,6 +1028,12 @@
       overflow-x: auto;
       margin-bottom: 2rem;
       -webkit-overflow-scrolling: touch;
+      /* Hace del envoltorio el contenedor al que se refiere el `100cqw` del
+         pie de tabla (más abajo). No le cambia el ancho: la contención de
+         ancho solo afecta a una caja que se mide por su contenido, y ésta se
+         mide por su padre (`width: 100%`). Medido en las diez páginas a seis
+         anchos, de 375 a 1 280 px: ningún envoltorio cambió de ancho. */
+      container-type: inline-size;
     }
 
     /* `width` cambia de valor con el ancho de pantalla porque en móvil y en
@@ -1051,17 +1057,78 @@
 
        El cambio no toca a las tablas que ya cabían: con `min-width: 100%`
        una tabla corta medía el 100 % por los dos caminos. Medido sobre los
-       tres capítulos —50 tablas— solo cambian las 7 que hoy se desbordan. */
+       tres capítulos —50 tablas— solo cambian las 7 que hoy se desbordan.
+
+       `overflow: clip` en vez del `hidden` general de `table` (y del
+       `overflow-x: auto` que le pone el móvil): recorta igual, esquinas
+       redondeadas incluidas, pero NO convierte la tabla en contenedor de
+       desplazamiento. Lo necesita el pie de tabla de abajo: un `sticky` se
+       agarra al contenedor de desplazamiento más cercano, y si ése es la
+       propia tabla —que nunca se desplaza, lo hace el envoltorio— el pie se
+       queda quieto y se va con la tabla. Las tablas con la receta de tabla
+       ancha traen `overflow: visible` en línea y no les afecta. */
     .tabla-scroll table {
       margin-bottom: 0;
       min-width: 100%;
       width: 100%;
+      overflow: clip;
     }
 
+    /* En el teléfono la tabla es `display: block` (la regla general del
+       final de la hoja) y su rejilla va en una tabla anónima dentro de ese
+       bloque. `min-width: min-content` impide que el bloque sea más estrecho
+       que su rejilla, cosa que pasaba cuando un componente le fija
+       `width: 100%`: la tabla de respaldo del mapa del módulo 7 del capítulo 1
+       tenía la rejilla de 257 px en un bloque de 229, y se desplazaba ella
+       sola por dentro del envoltorio. Con `clip` esos 28 px quedarían
+       cortados, y el pie no podría acompañar al desplazamiento, porque un
+       `sticky` no sale de su bloque contenedor.
+
+       Sustituye al `min-width: 100%` de arriba, que en el teléfono solo
+       estiraba el bloque y no la rejilla —la tabla anónima se queda en su
+       `max-content`—: lo único que cambia en una tabla corta es que la
+       sombra y las esquinas redondeadas pasan a ceñirse a la rejilla. */
     @media (max-width: 768px) {
       .tabla-scroll table {
         width: max-content;
+        min-width: min-content;
       }
+    }
+
+    /* El pie (`<caption>`) de una tabla ancha, legible en el teléfono.
+       Un pie se maqueta al ancho de SU tabla, no al del envoltorio que la
+       desplaza: a 375 px el de «La geometría de un archivo no dice de qué
+       fenómeno se trata» (módulo 2 del capítulo 1) medía 1 397 px dentro de
+       un envoltorio de 303. Centrado en ese ancho, su texto empezaba en el
+       píxel 358: sin desplazar no se veía ni una palabra, y desplazando se
+       leía a trozos. Pasaba en 75 de los 88 pies de los seis capítulos, los dos
+       talleres y el preparcial, y también entre 769 y ~1 100 px de
+       pantalla, donde la barra lateral estrecha la caja.
+
+       - `max-width: 100cqw` lo deja del ancho del envoltorio (el contenedor
+         declarado arriba). Un porcentaje no sirve: el del pie se refiere a
+         la tabla.
+       - `position: sticky; left: 0` lo mantiene en el borde izquierdo
+         visible mientras la rejilla se desplaza por debajo. Funciona sobre
+         `display: table-caption` en Chrome y en WebKit (Safari 26): medido
+         con el envoltorio al principio, a la mitad y al final.
+       - `overflow-wrap: break-word`, porque ya no puede ensanchar la tabla
+         para que le quepa una ristra sin espacios:
+         `precalculo/genera_soluciones.R` mide 237 px, y en los paneles de
+         solución del capítulo 1 a 800 px la caja mide 224.
+       - `:not(.sr-only)`: esta regla gana en especificidad a `.sr-only`, y
+         sin la excepción les quitaría la posición absoluta a los pies que
+         son solo para lectores de pantalla.
+
+       En escritorio, con la tabla dentro de su caja, nada de esto se nota:
+       el pie ya medía lo que el envoltorio y no hay desplazamiento. Un
+       navegador sin `cqw` ni `clip` (anterior a Safari 16 o a Chrome 105)
+       descarta las dos declaraciones y deja el pie como estaba. */
+    .tabla-scroll caption:not(.sr-only) {
+      position: sticky;
+      left: 0;
+      max-width: 100cqw;
+      overflow-wrap: break-word;
     }
 
     table {
@@ -4524,7 +4591,7 @@ print([int((d[c] == 5).sum()) for c in cols])
         oscura.</p>
 
       <div class="table-wrapper">
-        <table style="position:relative; overflow:visible; width:100%; min-width:44rem;">
+        <table style="position:relative; overflow:visible; width:100%; min-width:min-content;">
           <caption>Distancia perceptual entre las dos clases más parecidas de cada paleta (ΔE en CIELAB), k = 5.</caption>
           <thead><tr><th scope="col" style="position:sticky; left:0; z-index:2;">Paleta</th><th scope="col">Familia</th>
             <th scope="col">Normal</th><th scope="col">Deuteranopía</th>
