@@ -4963,7 +4963,11 @@ tocar.
 
 **Fuera de esta entrada, y anotado:** el `milC` del Taller 1, que es el mismo `es-CO` (el taller ya
 está calificado); el «p < 0,05» que el Taller 2 escribe desde su JavaScript; la tabla ordenable de
-la plantilla, que formatea con `es-CO` y decimales, aunque hoy solo la usa el fixture; y el §H5 de
-`PLAN_Parcial_Corte_2.md`, que dice que el curso publica con coma decimal. Esa premisa es falsa,
-pero su conclusión, aceptar las dos escrituras al calificar, sigue en pie. La corrección está
-propuesta a Javier.
+la plantilla, que formatea con `es-CO` y decimales, aunque hoy solo la usa el fixture.
+
+**Y un plan que lo decía al revés.** El §H5 de `PLAN_Parcial_Corte_2.md` afirmaba que «este curso
+publica sus cifras con coma decimal y separador de miles en punto». La premisa era falsa y su
+conclusión, aceptar las dos escrituras al calificar, era correcta; lo que cambia es el sentido del
+riesgo. El material escribe con punto y el estudiante contesta como aprendió en Colombia, con coma.
+Corregido con el visto bueno de Javier, y con una frase más: el `1.500` ambiguo del §H5 deja de ser
+hipotético, porque el material escribe así el uno coma cinco.

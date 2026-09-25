@@ -214,10 +214,13 @@ es **genuinamente ambigua** —`1.500` puede ser mil quinientos o uno coma cinco
 evalúan las dos lecturas y se acepta si alguna cae en la tolerancia, dejando constancia
 de cuál se usó.
 
-Este curso publica sus cifras con coma decimal y separador de miles en punto. Un ítem
-numérico que marque mal un `0,58` escrito `0.58` genera un reclamo justificado, y lo
-genera **el día que ya repartiste notas**. La regla se copia con su motivo, no se
-vuelve a descubrir.
+Este curso publica sus cifras con punto decimal y los millares con espacio fino
+(«0.58», «2 209 sedes»), pero el estudiante escribe como aprendió en Colombia, con coma
+decimal y punto de miles. Un ítem numérico que marque mal un `0,58` porque la clave dice
+`0.58` genera un reclamo justificado, y lo genera **el día que ya repartiste notas**. La
+regla se copia con su motivo, no se vuelve a descubrir. Y el `1.500` ambiguo no es un
+caso de laboratorio: el material escribe así el uno coma cinco, y un estudiante que
+copie una cifra de la página la escribe igual.
 
 ### H6 · El reparto de puntos solo se ve al calificar · lección prestada de LPF §H16
 
