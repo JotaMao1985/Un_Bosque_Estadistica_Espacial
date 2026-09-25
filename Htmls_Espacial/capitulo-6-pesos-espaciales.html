@@ -1051,16 +1051,77 @@
 
        El cambio no toca a las tablas que ya cabían: con `min-width: 100%`
        una tabla corta medía el 100 % por los dos caminos. Medido sobre los
-       tres capítulos —50 tablas— solo cambian las 7 que hoy se desbordan. */
+       tres capítulos —50 tablas— solo cambian las 7 que hoy se desbordan.
+
+       `overflow: clip` en vez del `hidden` general de `table` (y del
+       `overflow-x: auto` que le pone el móvil): recorta igual, esquinas
+       redondeadas incluidas, pero NO convierte la tabla en contenedor de
+       desplazamiento. Lo necesita el pie de tabla de abajo: un `sticky` se
+       agarra al contenedor de desplazamiento más cercano, y si ése es la
+       propia tabla —que nunca se desplaza, lo hace el envoltorio— el pie se
+       queda quieto y se va con la tabla. Las tablas con la receta de tabla
+       ancha traen `overflow: visible` en línea y no les afecta. */
     .tabla-scroll table {
       margin-bottom: 0;
       min-width: 100%;
       width: 100%;
+      overflow: clip;
+      /* La tabla va posicionada para que el envoltorio recorte todo lo que
+         lleva dentro, también lo que va en posición absoluta.
+
+         KaTeX escribe cada fórmula dos veces: la que se ve y una copia en
+         MathML para el lector de pantalla, `span.katex-mathml`, en posición
+         absoluta y recortada a un píxel. Una caja absoluta no depende de su
+         padre sino del primer antepasado posicionado, y entre la fórmula y
+         la página no había ninguno: el `overflow-x` de `.tabla-scroll` no
+         la recortaba. La copia se quedaba donde está su fórmula, en la
+         columna que el envoltorio esconde a la derecha, y la página se
+         estiraba hasta alcanzarla. Medido a 375 px en Chromium y en WebKit:
+         la λ del banco de la defensa del Taller 2 (módulo 7) llevaba la
+         página a 921 px de ancho, y la tabla de discrepancias de
+         prueba-auditoria (módulo 6) a 915. Con la tabla posicionada las dos
+         se quedan en el ancho del visor.
+
+         El `clip` de arriba no basta. Un recorte solo alcanza a lo que
+         tiene a la tabla, o a algo dentro de ella, por caja contenedora, y
+         sin `position` la de la copia queda fuera. Medido con el `clip` y
+         sin esta línea: siguen 921 y 915.
+
+         Va aquí y no tabla por tabla. La receta de tabla ancha —capítulo 1,
+         módulo 2; capítulo 4, módulo 9— ya lo ponía en línea, y es una
+         regla de las que hay que recordar a mano: el banco y la tabla de
+         discrepancias no la llevaban. Y no son las únicas expuestas. Dos
+         tablas del simulacro del capítulo 4 (módulo 13) desbordan su caja
+         con fórmulas dentro, y no ensanchan la página solo porque las
+         fórmulas caen en la parte que se ve sin desplazar.
+
+         No mueve nada más. Medido en los diez documentos, con los plegables
+         abiertos, a 375, 800, 1 024 y 1 280 px, en Chromium y en WebKit:
+         las 102 cajas y sus tablas miden lo mismo de ancho y de alto, en el
+         mismo sitio. Sin `z-index` la tabla no abre contexto de
+         apilamiento, y lo que puede pasarle por encima —la cabecera, el
+         botón del menú, el de volver arriba— lleva `z-index` 50 o más. */
+      position: relative;
     }
 
+    /* En el teléfono la tabla es `display: block` (la regla general del
+       final de la hoja) y su rejilla va en una tabla anónima dentro de ese
+       bloque. `min-width: min-content` impide que el bloque sea más estrecho
+       que su rejilla, cosa que pasaba cuando un componente le fija
+       `width: 100%`: la tabla de respaldo del mapa del módulo 7 del capítulo 1
+       tenía la rejilla de 257 px en un bloque de 229, y se desplazaba ella
+       sola por dentro del envoltorio. Con `clip` esos 28 px quedarían
+       cortados, y el pie no podría acompañar al desplazamiento, porque un
+       `sticky` no sale de su bloque contenedor.
+
+       Sustituye al `min-width: 100%` de arriba, que en el teléfono solo
+       estiraba el bloque y no la rejilla —la tabla anónima se queda en su
+       `max-content`—: lo único que cambia en una tabla corta es que la
+       sombra y las esquinas redondeadas pasan a ceñirse a la rejilla. */
     @media (max-width: 768px) {
       .tabla-scroll table {
         width: max-content;
+        min-width: min-content;
       }
     }
 
@@ -1088,25 +1149,34 @@
        Como `table-caption` con ancho propio se queda dentro de la caja, en
        Chromium y en WebKit, a 375 y a 800 px.
 
-       El ancho es `100cqw` porque un porcentaje en el pie se calcula sobre
+       El tope es `100cqw` porque un porcentaje en el pie se calcula sobre
        la tabla, no sobre la caja. La unidad de contenedor es la única que
        ve la caja, y para eso la caja se declara contenedor. Eso no le cambia
        el tamaño: su ancho sale del padre (`width: 100%`), nunca de la tabla.
        Medido: las 102 cajas de los diez documentos miden lo mismo de ancho
-       antes y después, a 375, 800, 1 024 y 1 280 px. De las tablas solo
+       antes y después, a 375, 800, 1 024 y 1 280 px. De las rejillas solo
        cambia una, la de los pasos de las soluciones del capítulo 1 a 800 px,
        que su propio pie ensanchaba de 224 a 237 y ahora cabe en su caja. Lo
-       demás que cambia es el alto de los pies, que parten en más renglones.
+       demás que cambia es el alto de los pies, que parten en más renglones,
+       y en el teléfono el bloque de cada tabla, que se ciñe a su rejilla
+       (el `min-width: min-content` de arriba).
 
-       `sticky` lo deja a la vista mientras la tabla se desplaza, pero solo
+       Es `max-width` y no `width` por ese mismo `min-content`: en el
+       teléfono una tabla corta mide ahora lo que su rejilla, menos que la
+       caja, y un pie de `width: 100cqw` la estiraría hasta la caja.
+
+       `sticky` lo deja a la vista, pegado al borde izquierdo de la caja,
+       mientras la rejilla se desplaza por debajo. Al principio solo lo hacía
        en las tablas de la receta de tabla ancha (`overflow: visible` en
-       línea, como en el módulo 9 del capítulo 4). En las demás, en Chromium
-       y en WebKit, la propia tabla es la que recorta —`overflow-x: auto` en
-       el teléfono, `hidden` en escritorio— y el pie se queda en su borde
-       izquierdo: se lee entero al llegar y se va con la tabla al
-       desplazarla, igual que su primera columna.
+       línea, como en el módulo 9 del capítulo 4): en las demás la propia
+       tabla era contenedor de desplazamiento —`overflow-x: auto` en el
+       teléfono, `hidden` en escritorio—, el `sticky` se agarraba a ella y el
+       pie se iba con la tabla. El `overflow: clip` y el `min-width:
+       min-content` de arriba lo extienden a todas. Medido en Chromium y en
+       WebKit (Safari 26) en los diez documentos, con la caja al principio,
+       a la mitad y al final del desplazamiento: ningún pie fuera de ella.
 
-       `overflow-wrap` porque, con el ancho fijo, una tira sin espacios más
+       `overflow-wrap` porque, con el ancho topado, una tira sin espacios más
        larga que la caja ya no ensancha la tabla: se sale del pie y la caja
        la corta sin dejar desplazarse hasta ella. Le pasaba a
        `precalculo/genera_soluciones.R` en los pasos de las soluciones del
@@ -1124,7 +1194,7 @@
     .tabla-scroll caption:not(.sr-only) {
       position: sticky;
       left: 0;
-      width: 100cqw;
+      max-width: 100cqw;
       overflow-wrap: break-word;
     }
 
