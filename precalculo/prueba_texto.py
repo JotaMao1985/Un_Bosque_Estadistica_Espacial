@@ -955,8 +955,8 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
          "del gradiente este-oeste no hay evidencia",
          "del gradiente este-oeste la evidencia se matiza", True),
         ("la tasa de salida de la banda leída entera, cambiada",
-         f"<strong>{f(m10['tasa_salida']['pct'], 5).replace('.', ',')} %</strong>",
-         f"<strong>{perturba(m10['tasa_salida']['pct'], 5).replace('.', ',')} %</strong>"),
+         f"<strong>{f(m10['tasa_salida']['pct'], 5)} %</strong>",
+         f"<strong>{perturba(m10['tasa_salida']['pct'], 5)} %</strong>"),
         ("el n efectivo del gradiente, cambiado",
          f"<strong>{f(m11['tendencia']['n_efectivo'])}</strong> independientes",
          f"<strong>{perturba(m11['tendencia']['n_efectivo'])}</strong> independientes"),
@@ -994,6 +994,14 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
         ("la z de kppm con traslación del ejercicio 3, cambiada",
          f"<td>{S['e3']['solucion']['kppm']['traslacion']['z']:g}</td>",
          f"<td>{perturba(S['e3']['solucion']['kppm']['traslacion']['z'], 10)}</td>"),
+        # M6 (2026-09-25): la coma decimal, por sus dos puertas. La cifra
+        # sigue siendo la misma —`cifras()` lee «66,3» como 66.3 y la da
+        # por buena—, así que solo la caza la comprobación del separador.
+        ("vuelve una coma decimal a la prosa",
+         "un <strong>66.3 %</strong>", "un <strong>66,3 %</strong>"),
+        ("un formateador de las lecturas vuelve a escribir coma",
+         "toExponential(d == null ? 2 : d);",
+         "toExponential(d == null ? 2 : d).replace('.', ',');"),
         # --- LOS MECANISMOS QUE NINGÚN CAPÍTULO HABÍA VISTO FALLAR ---
         # El arnés imprime cuántas comprobaciones se ha visto caer, y al
         # mirar la lista de este capítulo quedaban dentro de `geomapas()`

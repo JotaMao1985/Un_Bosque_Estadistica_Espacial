@@ -113,8 +113,14 @@ def firma(valor, unidad=""):
     return f"<strong>{valor}</strong>{unidad}"
 
 
+# El porcentaje lleva PUNTO decimal, como `n()` y como el resto del curso.
+# Hasta M6 (2026-09-25) este formateador cambiaba el punto por coma, y el
+# capítulo escribía «de 29.5 por km² a 9.9 por km²: un 66,3 %» en una sola
+# frase. Medido sobre todo lo publicado: más de mil decimales con punto y
+# una treintena con coma, casi todos de aquí. `audita_texto_cap5.py` para
+# el documento si vuelve una coma decimal a la prosa o a un formateador.
 def pct(x, d=1):
-    return f"{float(x):.{d}f} %".replace(".", ",")
+    return f"{float(x):.{d}f} %"
 
 
 def cabecera(num, titulo, ingles, objetivo):
@@ -1756,7 +1762,7 @@ MOD9 = cabecera(
 {sim("cap5-ppm", "Tres ajustes del mismo patrón, y cuál se puede leer",
       "Las barras son |z| por coeficiente, sin el intercepto —su |z| no se interpreta en "
       "un <code>ppm</code>, y es tan grande que con él dentro los demás no se ven—. La "
-      "línea naranja es el 1,96 con el que se leen: el ajuste crudo no tiene ninguna "
+      f"línea naranja es el {n(m11['tendencia']['z_critico'], 2)} con el que se leen: el ajuste crudo no tiene ninguna "
       "barra, y esa ausencia es todo el módulo. La lectura trae el número de condición.")}
       <p>Pásese por los tres y mírese la barra que falta. El primero no tiene ninguna, y sin
         embargo su AIC es el mismo que el del segundo: <strong>el modelo está bien ajustado y solo
@@ -2543,9 +2549,10 @@ GEOMAPAS_JS = (
 JS_PREAMBULO = r"""
     const n5 = (x, d) => Number(x).toFixed(d == null ? 5 : d);
     const mil5 = x => Math.round(Number(x)).toLocaleString('es-ES').replace(/\./g, ' ');
-    // Notación científica en español para las intensidades de orden 1e-07,
-    // que en este capítulo son casi todas las de la ciudad.
-    const exp5 = (x, d) => Number(x).toExponential(d == null ? 2 : d).replace('.', ',');
+    // Notación científica para las intensidades de orden 1e-07, que en este
+    // capítulo son casi todas las de la ciudad. Con punto, como la prosa que
+    // tiene al lado: hasta M6 escribía «3,448e-25» junto a un «3.448e-25».
+    const exp5 = (x, d) => Number(x).toExponential(d == null ? 2 : d);
 
     // Fuera de COLORES_GRAFICO a propósito: cuatro colores no llegan para
     // seis series y la paleta de la casa no separa bien en daltonismo.

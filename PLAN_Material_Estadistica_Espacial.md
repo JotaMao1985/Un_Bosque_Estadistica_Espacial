@@ -1014,6 +1014,30 @@ de lo que pesaron TODOS los mapas del capítulo 4 juntos—.
 > del módulo 7 (mismo `bei`, misma pendiente), y el capítulo pesa 817 de sus 820 KB. **Siguen
 > abiertas** M6–M20, salvo M12 y M17.
 
+> **2026-09-25 · M6 de la segunda revisión, aplicado: el capítulo escribe los decimales con punto,
+> también los porcentajes.** `n()` escribía punto y `pct()` coma, y los dos alimentaban los mismos
+> párrafos: «la intensidad máxima cae de 29.5 por km² a 9.9 por km²: un 66,3 %». El informe lo
+> dejaba como decisión de casa en una dirección o en la otra; la decidió lo publicado. Contado sobre
+> la prosa de los once documentos, sin código ni fórmulas: **más de mil decimales con punto y una
+> treintena con coma**, doce de ellos de este `pct()`. Los capítulos 1, 3 y 4, los talleres y el
+> preparcial no tienen ningún porcentaje con coma, y el plan del preparcial ya lo escribía como
+> convenio: «punto decimal y no coma».
+>
+> **Por dónde entraba la coma.** Por tres puertas, y solo una era la del informe: `pct()`, un «1,96»
+> escrito a mano en el pie del simulador de los tres ajustes (ahora sale de `z_critico`, que calcula
+> R), y el `exp5` de JavaScript, que escribía «1,794e-10» en la lectura del módulo 9 al lado de una
+> prosa con punto. Esa tercera no está en el HTML —la lectura se escribe al mover un control—, así
+> que `audita_texto_cap5.py` mira la prosa publicada **y** los formateadores: una coma decimal en
+> cualquiera de los dos para el documento. Dos inyecciones de prosa, una por puerta; la de la
+> prosa solo la caza esta comprobación, porque `cifras()` lee «66,3» como 66.3 y la da por buena.
+> Una inyección de M4 llevaba la coma escrita (`.replace('.', ',')`) y se ajustó.
+>
+> **Lo que queda fuera, a propósito.** El capítulo 6 tiene el mismo `pct()` (cuatro porcentajes con
+> coma), el 2 una decena de comas escritas a mano y el 1 y el 4 unas pocas; son de otras
+> revisiones. Y `PLAN_Parcial_Corte_2.md` afirma que «este curso publica sus cifras con coma
+> decimal»: es falso para el material, aunque su conclusión —que el calificador acepte las dos
+> escrituras— sigue siendo la buena. **Siguen abiertas** M7–M11, M13–M16 y M18–M20.
+
 ---
 
 ### Capítulo 6 — Datos de área y la matriz de pesos espaciales · semanas 10–11

@@ -436,6 +436,36 @@ def respuestas_publicadas(a: Auditor) -> None:
         a.exige(not faltan, f"la solución {k} publica cada respuesta entera", "; ".join(faltan))
 
 
+COMA_DECIMAL = re.compile(r"(?<![\d.,])\d+,\d+(?![\d,])")
+# Un formateador de JavaScript que cambia el punto por coma: `.replace('.', ',')`
+# o `.replace(/\./g, ',')`. Las lecturas de los simuladores no están en el
+# HTML —se escriben al mover un control—, así que en ellas se mira la causa.
+PUNTO_A_COMA = re.compile(
+    r"""\.replace\(\s*(?:(['"])\.\1|/\\\./g?)\s*,\s*(['"]),\2\s*\)""")
+
+
+def decimales_con_punto(a: Auditor) -> None:
+    """M6 · UN SOLO SEPARADOR DECIMAL, EL PUNTO.
+
+    `n()` escribía punto y `pct()` coma, y los dos alimentaban los mismos
+    párrafos: «de 29.5 por km² a 9.9 por km²: un 66,3 %». El curso publica
+    con punto —más de mil decimales contra una treintena—, y la coma
+    volvía por tres puertas: `pct()`, un «1,96» escrito a mano y el `exp5`
+    de las lecturas. Se cierran las dos que se pueden mirar sin ejecutar la
+    página: la prosa publicada y los formateadores que escriben las lecturas.
+    """
+    print("\n=== Los decimales, con punto =================================")
+    comas = [a.prosa_txt[max(0, m.start() - 30):m.end() + 5].strip()
+             for m in COMA_DECIMAL.finditer(a.prosa_txt)]
+    a.exige(not comas, "la prosa no escribe ningún decimal con coma",
+            " · ".join(f"«{c}»" for c in comas[:3]))
+    guiones = "\n".join(re.findall(r"<script[^>]*>(.*?)</script>", a.doc, re.S))
+    cambios = [guiones[max(0, m.start() - 50):m.end()].strip().splitlines()[-1]
+               for m in PUNTO_A_COMA.finditer(guiones)]
+    a.exige(not cambios, "ningún formateador cambia el punto por coma",
+            " · ".join(cambios[:2]))
+
+
 def main() -> int:
     a = Auditor(
         capitulo="capitulo-5-intensidad-nucleos.html",
@@ -458,6 +488,7 @@ def main() -> int:
     a.geomapas()
     familia(a)
     respuestas_publicadas(a)
+    decimales_con_punto(a)
     a.formulas_escapadas()
     a.codificacion()
     a.enlaces()

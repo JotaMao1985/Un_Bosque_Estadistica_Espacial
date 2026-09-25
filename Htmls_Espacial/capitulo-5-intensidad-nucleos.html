@@ -4130,7 +4130,7 @@ print(cnt.min(), cnt.max())
       <h3>Primero el núcleo, que es la decisión que no importa</h3>
 
       <p>Con σ = 400 m fijo, cambiar entre los cuatro núcleos habituales mueve
-        la intensidad máxima del mapa un <strong>5,1 %</strong>. Las superficies
+        la intensidad máxima del mapa un <strong>5.1 %</strong>. Las superficies
         correlacionan por encima de 0.965 con la gaussiana: son, a efectos de lo que
         un lector ve, el mismo mapa.</p>
 
@@ -4155,7 +4155,7 @@ print(cnt.min(), cnt.max())
 
       <p>El mismo patrón, el mismo núcleo, 7 anchuras. La intensidad máxima cae de
         <strong>29.5</strong> por km² a
-        <strong>9.9</strong> por km²: un <strong>66,3 %</strong>, que es
+        <strong>9.9</strong> por km²: un <strong>66.3 %</strong>, que es
         trece veces lo que movía cambiar de núcleo.</p>
 
       <div class="code-tabs">
@@ -4248,7 +4248,7 @@ print(round(kde_pico(px, py, anchos[-1], 96, 99, W), 1))
         el núcleo y no la rejilla.</p>
 
       <p>Recapitulando lo que este módulo ha medido: cambiar de núcleo mueve el mapa un
-        5,1 % y cambiar de ancho lo mueve un 66,3 %. La
+        5.1 % y cambiar de ancho lo mueve un 66.3 %. La
         primera decisión se puede tomar por costumbre sin consecuencias; la segunda decide qué
         dice el mapa, y no hay ninguna forma de tomarla sin tomarla.</p>
 
@@ -4856,7 +4856,7 @@ print([round(float(np.corrcoef(a[MASK], b[MASK])[0, 1]), 4)
           dato</strong> —donde el mapa dice que la proporción es máxima, los vecinos tienen que
           ser mayoritariamente de ese tipo—. Medido: en el máximo de <code>chorley</code> el
           8 % de los cincuenta vecinos son casos, sobre
-          una proporción global de 5,6 %; en el de Bogotá, el
+          una proporción global de 5.6 %; en el de Bogotá, el
           64 % son oficiales. Esa segunda guarda es la
           que habría cazado el defecto, y sobrevive a que alguien reordene los niveles.</p>
       </div>
@@ -5264,7 +5264,7 @@ print(round(float(R[ok].max() / R[ok].min()), 4),
         razón está en la igualdad ∫ λ̂ = n, ahora con la suma en lugar de la
         integral: la EMV pasa a ser n / Σ w<sub>j</sub>, y los pesos por defecto <strong>no suman
         el área de la ventana</strong>. Suman 368.86563 km², y la ciudad mide
-        370.08982. La intensidad sale un 0,33 % más alta.</p>
+        370.08982. La intensidad sale un 0.33 % más alta.</p>
 
       <p>Faltan <strong>1.22418</strong> km² de ciudad, y se sabe dónde están.
         Los pesos salen de partir la caja de la ciudad en una rejilla de
@@ -5545,7 +5545,7 @@ print(round(n_u * np.log(n_u / WU.area) - n_u, 5))
 
       <div class="simulador" data-simulador="cap5-ppm">
         <h4><i class="fas fa-sliders" aria-hidden="true"></i> Tres ajustes del mismo patrón, y cuál se puede leer</h4>
-        <p class="simulador-intro">Las barras son |z| por coeficiente, sin el intercepto —su |z| no se interpreta en un <code>ppm</code>, y es tan grande que con él dentro los demás no se ven—. La línea naranja es el 1,96 con el que se leen: el ajuste crudo no tiene ninguna barra, y esa ausencia es todo el módulo. La lectura trae el número de condición.</p>
+        <p class="simulador-intro">Las barras son |z| por coeficiente, sin el intercepto —su |z| no se interpreta en un <code>ppm</code>, y es tan grande que con él dentro los demás no se ven—. La línea naranja es el 1.96 con el que se leen: el ajuste crudo no tiene ninguna barra, y esa ausencia es todo el módulo. La lectura trae el número de condición.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
           <canvas role="img" aria-label="Tres ajustes del mismo patrón, y cuál se puede leer"></canvas>
@@ -5678,7 +5678,7 @@ print(f&quot;{cond_rec((UX - UX.mean()) / 1000, (UY - UY.mean()) / 1000):.4g}&qu
         <strong>estimador</strong>, por la corrección de borde y por una λ̂ sacada del propio
         dato, y la media de las simulaciones comete el mismo sesgo, así que es la referencia
         justa. En estos datos las dos casi coinciden y se puede comprobar: la media de las
-        999 queda a menos de 0,64 % de $\pi r^2$ en
+        999 queda a menos de 0.64 % de $\pi r^2$ en
         los 101 nodos.</p>
 
       <div class="simulador" data-simulador="cap5-envolvente">
@@ -5698,14 +5698,14 @@ print(f&quot;{cond_rec((UX - UX.mean()) / 1000, (UY - UY.mean()) / 1000):.4g}&qu
 
       <p>Queda decir con qué seguridad, y aquí vuelve la trampa que el capítulo 4 enseñó en su
         módulo 11. Con 999 simulaciones y la banda por defecto —su mínimo y su
-        máximo—, el nivel <em>puntual</em> es 0,2 %: la probabilidad
+        máximo—, el nivel <em>puntual</em> es 0.2 %: la probabilidad
         de que una curva del modelo se salga <strong>en un radio dado</strong>. Pero «se sale de
         la banda» se lee mirando la curva entera, y eso es preguntar por <em>cualquier</em> radio.
         Se mide como allí, sin simular nada más: cada una de las 999 curvas del
         propio modelo se compara con la banda de las otras. La cruzan en algún radio
-        <strong>77</strong> —el <strong>7,70771 %</strong>— sobre los
+        <strong>77</strong> —el <strong>7.70771 %</strong>— sobre los
         512 radios con que <code>spatstat</code> calcula la curva, y el
-        4,30430 % sobre los 100 que dibuja el
+        4.30430 % sobre los 100 que dibuja el
         simulador: cuantos más radios se miran, más veces se encuentra una salida. Leída entera,
         la banda se cruza 38.53854 veces lo que su nivel puntual promete.</p>
 
@@ -5719,7 +5719,7 @@ print(f&quot;{cond_rec((UX - UX.mean()) / 1000, (UY - UY.mean()) / 1000):.4g}&qu
         5650.35363 m, donde el abanico de K es más ancho —el módulo 8 del
         capítulo 4— y donde la observada ya ha vuelto a la banda. Ninguno de los dos salva al
         modelo: la agregación es real. Lo que no se sostiene es leer el
-        0,2 % como la seguridad de la curva entera.</p>
+        0.2 % como la seguridad de la curva entera.</p>
 
       <p>Ese porcentaje tiene <strong>principio y final</strong>, y los dos importan. La
         observada se separa desde <strong>58.68116</strong> m —el primer nodo
@@ -5833,7 +5833,7 @@ print(round(env.r[ok][fuera[ok]].max(), 4), round(env.r.max(), 4))
       <p>El bloque de R corre una envolvente pequeña —39 simulaciones, unos segundos— para
         que se pueda ejecutar leyendo; el de Python lee la de 999 que el precálculo
         dejó escrita. Y la comparación entre las dos es material: con 39 la banda es más estrecha
-        en nivel (5 % puntual contra 0,2 %) y la observada se
+        en nivel (5 % puntual contra 0.2 %) y la observada se
         sale <em>más</em>. Subir <code>nsim</code> no afina la banda por defecto: le cambia el
         contraste. Es exactamente lo que el módulo 11 del capítulo 4 midió. Y la última línea
         enseña el otro lado: con 39 simulaciones el test global da justo el p más pequeño
@@ -9515,9 +9515,10 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
 
     const n5 = (x, d) => Number(x).toFixed(d == null ? 5 : d);
     const mil5 = x => Math.round(Number(x)).toLocaleString('es-ES').replace(/\./g, ' ');
-    // Notación científica en español para las intensidades de orden 1e-07,
-    // que en este capítulo son casi todas las de la ciudad.
-    const exp5 = (x, d) => Number(x).toExponential(d == null ? 2 : d).replace('.', ',');
+    // Notación científica para las intensidades de orden 1e-07, que en este
+    // capítulo son casi todas las de la ciudad. Con punto, como la prosa que
+    // tiene al lado: hasta M6 escribía «3,448e-25» junto a un «3.448e-25».
+    const exp5 = (x, d) => Number(x).toExponential(d == null ? 2 : d);
 
     // Fuera de COLORES_GRAFICO a propósito: cuatro colores no llegan para
     // seis series y la paleta de la casa no separa bien en daltonismo.
