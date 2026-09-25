@@ -288,6 +288,23 @@ AFIRMACIONES = [
      "los cuatro ajustes son el mismo modelo"),
     ("dice que el modelo constante también necesita su cuadratura",
      "ajusta sin ninguna si no se le obliga"),
+    # M5 (2026-09-24): los enunciados de los ejercicios preguntaban cosas
+    # que la solución no contestaba. Estas son las respuestas que más
+    # enseñan; si se caen, vuelve la tabla muda.
+    ("el ejercicio 1 dice que no hay ancho óptimo que publicar",
+     "no hay ancho que publicar"),
+    ("el ejercicio 2 dice cuánto más cerca queda diggle",
+     "más de mil veces más pequeño"),
+    ("el ejercicio 2 contesta si se nota mirando el mapa",
+     "el ojo no integra"),
+    ("el ejercicio 3 dice que la z no se compara con un cociente",
+     "con ninguno, porque no mide lo mismo"),
+    ("el ejercicio 3 dice qué le hace el conglomerado a la z",
+     "se multiplica por unas diez"),
+    ("el ejercicio 4 dice por qué try() no caza nada",
+     "no hay ningún error que atrapar"),
+    ("el ejercicio 4 dice adónde va el desplazamiento",
+     "todo el desplazamiento lo absorbe el intercepto"),
 ]
 
 # Si la codificación se rompe, las tildes no desaparecen: se convierten en
@@ -395,6 +412,30 @@ def familia(a: Auditor) -> None:
             f"{kb:.1f} KB de {TOPE_FAMILIA_KB:.0f} KB, tal como viajan")
 
 
+def respuestas_publicadas(a: Auditor) -> None:
+    """M5 · CADA RESPUESTA DEL JSON, EN SU PANEL, Y NINGUNA DE MÁS.
+
+    `audita_cap5.py` comprueba que cada pregunta del enunciado tenga su
+    respuesta en `cap5_soluciones.json`. Eso no dice nada de la página: el
+    ensamblador podría dejarse una, o pintarla en el panel de otro
+    ejercicio, y el JSON seguiría impecable. Aquí se lee el documento.
+    """
+    print("\n=== Las respuestas de los ejercicios, en su panel ==========")
+    S = json.loads((SALIDAS / "cap5_soluciones.json").read_text(encoding="utf-8"))
+    for k in range(1, S["meta"]["n_ejercicios"] + 1):
+        resp = S[f"e{k}"]["solucion"].get("respuestas") or []
+        m = re.search(rf'id="cap5-e{k}-sol".*?</div>', a.doc, re.S)
+        if not a.exige(m is not None, f"el panel de la solución {k} está en el documento"):
+            continue
+        panel = m.group(0)
+        n_pub = panel.count('class="ejercicio-respuesta"')
+        a.exige(n_pub == len(resp) and len(resp) > 0,
+                f"la solución {k} publica todas sus respuestas", f"{n_pub} de {len(resp)}")
+        faltan = [r["pide"] for r in resp
+                  if re.sub(r"`([^`]+)`", r"<code>\1</code>", r["respuesta"]) not in panel]
+        a.exige(not faltan, f"la solución {k} publica cada respuesta entera", "; ".join(faltan))
+
+
 def main() -> int:
     a = Auditor(
         capitulo="capitulo-5-intensidad-nucleos.html",
@@ -416,6 +457,7 @@ def main() -> int:
     a.accesibilidad()
     a.geomapas()
     familia(a)
+    respuestas_publicadas(a)
     a.formulas_escapadas()
     a.codificacion()
     a.enlaces()

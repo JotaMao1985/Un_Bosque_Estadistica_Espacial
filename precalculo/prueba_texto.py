@@ -978,6 +978,22 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
         ("lo que la distancia gana por AIC de ppm, cambiado",
          f"<strong>{f(m8['comparacion']['gana_distancia_ppm'])}</strong> puntos",
          f"<strong>{perturba(m8['comparacion']['gana_distancia_ppm'])}</strong> puntos"),
+        # M5: cada pregunta de los enunciados tiene su respuesta en el panel.
+        # Una respuesta que deja de pintarse como tal, otra que dice algo
+        # distinto de su JSON, dos afirmaciones que se caen y una cifra
+        # nueva de la tabla del ejercicio 3.
+        ("una respuesta de ejercicio deja de publicarse como tal",
+         '<p class="ejercicio-respuesta"><strong>¿Cuál de los dos ajustes',
+         '<p class="ejercicio-nota"><strong>¿Cuál de los dos ajustes'),
+        ("una respuesta publicada deja de decir lo que su JSON",
+         "El desplazado: el original da", "El original: el desplazado da"),
+        ("desaparece que no hay ancho óptimo que publicar",
+         "No hay ancho que publicar.", "Ese es el ancho.", True),
+        ("desaparece qué le hace el conglomerado a la z",
+         "se multiplica por unas diez", "se queda como estaba", True),
+        ("la z de kppm con traslación del ejercicio 3, cambiada",
+         f"<td>{S['e3']['solucion']['kppm']['traslacion']['z']:g}</td>",
+         f"<td>{perturba(S['e3']['solucion']['kppm']['traslacion']['z'], 10)}</td>"),
         # --- LOS MECANISMOS QUE NINGÚN CAPÍTULO HABÍA VISTO FALLAR ---
         # El arnés imprime cuántas comprobaciones se ha visto caer, y al
         # mirar la lista de este capítulo quedaban dentro de `geomapas()`

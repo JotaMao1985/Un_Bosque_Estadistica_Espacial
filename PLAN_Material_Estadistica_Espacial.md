@@ -980,6 +980,40 @@ de lo que pesaron TODOS los mapas del capítulo 4 juntos—.
 > cuadratura: las dos log-verosimilitudes en la misma escala, una plana y otra no. **Siguen
 > abiertas** M5–M20, salvo M12 y M17.
 
+> **2026-09-24 · M5 de la segunda revisión, aplicado: cada pregunta de un enunciado tiene ahora su
+> respuesta.** La solución de cada ejercicio publicaba la tabla de pasos y una lectura final, y los
+> enunciados preguntaban más de lo que eso contestaba. El informe lo vio en dos (E2 y E3); leídos
+> pregunta a pregunta eran **cuatro de cinco**. El 1 pedía «encuéntralo» y la tabla solo contaba
+> cuántos selectores chocaron; el 2 pedía «di cuál, por qué» y la respuesta vivía en `cual_conserva`
+> y `por_que`, dos campos que ninguna página leía; el 3 pedía «di si su z es coherente» y no lo
+> decía nadie; el 5 pedía kappa, la escala y mu en los dos ajustes y la tabla daba solo kappa.
+>
+> **Cómo quedó.** Cada respuesta llega anclada a su pregunta con un trozo **literal** del
+> enunciado, que la página pinta como encabezado de la respuesta. `genera_soluciones.R` se para si
+> un ancla no está en su enunciado o si una demanda —cada «di», «explica», «encuentra», «contesta»,
+> «compara» y cada «¿»— no cae dentro de ninguna respuesta, y `audita_cap5.py` lo rehace por su
+> cuenta. Lo que ninguno de los dos vigila son las demandas sin verbo propio («di cuál, **por
+> qué**…»): se contestan, pero solo las vigila quien escribe.
+>
+> **Lo que salió al contestar.** E1: el que chocó es `bw.ppl` sobre `japanesepines`, y es él quien
+> hace de ese patrón el que más discrepa (12.04); sin él pasa a ser el que menos (2.41). Con el
+> intervalo ensanchado hasta 20 vuelve a chocar: no hay ancho que publicar. E2: el residuo de
+> Diggle es de la rejilla —con 512 × 512 encoge— y es casi tres mil veces menor que el error de la
+> corrección por defecto. **E3: la z = 20.49 de `ppm(bei ~ grad)` supone árboles independientes;
+> con `kppm` y la misma tendencia el error estándar se multiplica por unas diez y la z queda en el
+> umbral, 1.91 con la corrección por defecto y 2.03 con la de traslación.** Es el M2 llevado al
+> caso canónico, y el enunciado lo pide ahora. El cociente que `ppm` implica entre los percentiles
+> (2.45) cae del lado del bulto. Y como `rhohat` es aleatorio, el enunciado da la semilla (las
+> cifras no cambian: el generador ya la ponía, sin decirlo). E4: el intercepto absorbe el
+> desplazamiento entero.
+>
+> **Lo que dejó escrito.** 79 comprobaciones nuevas en `audita_cap5.py` (501 en total), la familia
+> 19 de `prueba_auditor_cap5.py` (59 inyecciones), una comprobación en `audita_texto_cap5.py` que
+> lee cada respuesta en SU panel del documento, siete afirmaciones y cinco inyecciones de prosa.
+> Quedan anotados dos hallazgos que no son de M5: la primera mitad del E3 repite la nota lateral
+> del módulo 7 (mismo `bei`, misma pendiente), y el capítulo pesa 817 de sus 820 KB. **Siguen
+> abiertas** M6–M20, salvo M12 y M17.
+
 ---
 
 ### Capítulo 6 — Datos de área y la matriz de pesos espaciales · semanas 10–11

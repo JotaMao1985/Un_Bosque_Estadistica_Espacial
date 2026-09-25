@@ -1826,6 +1826,52 @@ solucion_cap5 <- function() {
   # pide encontrarlo en otro sitio, que es lo que lo convierte en método.
   data(japanesepines); data(redwood); data(swedishpines); data(chorley); data(cells)
 
+  # UNA RESPUESTA POR CADA PREGUNTA DEL ENUNCIADO (M5 de la segunda
+  # revisión, 2026-09-24). Hasta entonces la solución publicaba los pasos
+  # y una lectura final, y los enunciados hacían preguntas que ni los pasos
+  # ni la lectura contestaban: el ejercicio 2 pedía «di cuál, por qué» y la
+  # respuesta vivía en `cual_conserva` y `por_que`, dos campos que ninguna
+  # página leía; el 3 pedía «di si su z es coherente» y no lo decía nadie;
+  # el 1 pedía «encuéntralo» y la tabla solo contaba cuántos chocaron.
+  #
+  # Cada respuesta se ancla a su pregunta con `pide`, un trozo LITERAL del
+  # enunciado, y la página lo publica como encabezado de la respuesta. Si
+  # alguien reescribe el enunciado, la respuesta se queda sin ancla y esto
+  # se para. `sin_contestar()` mira el otro lado: que cada demanda del
+  # enunciado —«di», «explica», «encuentra», «contesta», «compara» y cada
+  # «¿»— caiga dentro de alguna respuesta. Lo que no puede mirar son las
+  # demandas que no llevan verbo propio («di cuál, POR QUÉ…»): esas se
+  # contestan igual, pero nadie más que quien escribe las vigila.
+  responde <- function(enunciado, pide, respuesta) {
+    if (!grepl(pide, enunciado, fixed = TRUE))
+      stop("una respuesta no encuentra su pregunta en el enunciado: «", pide, "»")
+    list(pide = pide, respuesta = respuesta)
+  }
+  DEMANDA <- "(*UCP)(?<!\\p{L})(?:[Dd]i|[Ee]xplica|[Ee]ncuéntralo|[Ee]ncuentra|[Cc]ontesta|[Cc]ompara)(?!\\p{L})|¿"
+  sin_contestar <- function(e) {
+    en <- e$enunciado
+    ini <- vapply(e$solucion$respuestas, function(r)
+      as.integer(regexpr(r$pide, en, fixed = TRUE)), integer(1))
+    fin <- ini + vapply(e$solucion$respuestas, function(r) nchar(r$pide), integer(1)) - 1L
+    m <- gregexpr(DEMANDA, en, perl = TRUE)[[1]]
+    largo <- attr(m, "match.length")
+    fuera <- character(0)
+    for (i in seq_along(m)) {
+      if (m[i] < 0) break
+      dentro <- any(ini <= m[i] & m[i] <= fin)
+      # «Contesta: ¿…?» — la demanda que presenta a otra queda contestada
+      # si una respuesta empieza detrás de ella en la misma frase.
+      tras <- substr(en, m[i] + largo[i], m[i] + largo[i])
+      if (!dentro && tras == ":") {
+        resto <- ini[ini > m[i]]
+        dentro <- length(resto) > 0 &&
+          !grepl(".", substr(en, m[i], min(resto)), fixed = TRUE)
+      }
+      if (!dentro) fuera <- c(fuera, substr(en, m[i], m[i] + largo[i] + 30L))
+    }
+    fuera
+  }
+
   # -------------------------------------------------------------------
   # E1 · El selector que no seleccionó
   # -------------------------------------------------------------------
@@ -1844,35 +1890,102 @@ solucion_cap5 <- function() {
   }
   s_jp <- cuatro(japanesepines); s_rw <- cuatro(redwood); s_sp <- cuatro(swedishpines)
   raz <- function(s) { v <- sapply(s, function(z) z$sigma); r10(max(v) / min(v)) }
+  todos <- list(japanesepines = s_jp, redwood = s_rw, swedishpines = s_sp)
   chocaron <- sum(sapply(c(s_jp, s_rw, s_sp), function(z) z$choco))
-  if (chocaron < 1L)
-    stop("E1: ningún selector chocó con su intervalo y el ejercicio se apoya en que uno lo haga")
+  # «Uno de los doce valores», dice el enunciado: ni cero ni dos.
+  if (length(unlist(lapply(todos, function(s) lapply(s, `[[`, "sigma")))) != 12L || chocaron != 1L)
+    stop("E1: el enunciado habla de UNO de doce valores y chocaron ", chocaron)
 
+  # EL QUE CHOCÓ, con nombre. La tabla solo decía cuántos, y el enunciado
+  # pide encontrarlo.
+  cual <- unlist(lapply(names(todos), function(pn) {
+    z <- Filter(function(s) s$choco, todos[[pn]])
+    if (length(z)) list(patron = pn, selector = z[[1]]$selector, sigma = z[[1]]$sigma)
+  }), recursive = FALSE)
+  p_ch <- get(cual$patron)
+  tope_ch <- diameter(Window(p_ch)) / 2
+  if (abs(cual$sigma - tope_ch) > 1e-6)
+    stop("E1: el que chocó ya no devuelve la mitad del diámetro de su ventana")
+  # La respuesta dice «en el cuadrado unidad, la mitad de la diagonal».
+  if (!is.rectangle(Window(p_ch)) ||
+      any(abs(c(diff(Window(p_ch)$xrange), diff(Window(p_ch)$yrange)) - 1) > 1e-12))
+    stop("E1: la ventana del que chocó ya no es el cuadrado unidad y la respuesta lo dice")
+  # Y es él quien pone el mayor cociente: sin él, su patrón pasa al menor.
+  v_ch <- setNames(sapply(todos[[cual$patron]], `[[`, "sigma"), names(todos[[cual$patron]]))
+  otros_v <- v_ch[names(v_ch) != cual$selector]
+  raz_sin <- r10(max(otros_v) / min(otros_v))
+  raz_otros <- sapply(setdiff(names(todos), cual$patron), function(pn) raz(todos[[pn]]))
+  if (raz(todos[[cual$patron]]) <= max(raz_otros) || raz_sin >= min(raz_otros))
+    stop("E1: el selector que chocó ya no decide qué patrón discrepa más y cuál menos")
+  # ¿Hay un óptimo más allá del tope? Se le ensancha el intervalo y se mira
+  # si vuelve a chocar. El 0.01 de abajo es el de spatstat en el cuadrado
+  # unidad, que la guarda de arriba ya exige.
+  TOPE_ANCHO <- 20
+  aviso_ancho <- NA_character_
+  s_ancho <- withCallingHandlers(
+    as.numeric(get(paste0("bw.", cual$selector))(p_ch, srange = c(0.01, TOPE_ANCHO))),
+    warning = function(w) { aviso_ancho <<- conditionMessage(w); invokeRestart("muffleWarning") })
+  if (abs(s_ancho - TOPE_ANCHO) > 1e-6 || is.na(aviso_ancho) ||
+      !grepl("end of interval", aviso_ancho, fixed = TRUE))
+    stop("E1: con el intervalo ensanchado el selector ya encuentra un óptimo, y la respuesta dice que no")
+  sel_ch <- paste0("bw.", cual$selector)
+
+  en1 <- paste(
+    "Calcula los cuatro selectores de ancho de banda —`bw.diggle`,",
+    "`bw.ppl`, `bw.CvL` y `bw.scott`— sobre `japanesepines`, `redwood` y",
+    "`swedishpines`. Da el cociente entre el mayor y el menor en cada",
+    "patrón. Uno de los doce valores NO es una selección: es el extremo",
+    "del intervalo en el que el selector buscaba, y R lo dice en un",
+    "aviso que su valor de retorno no delata. Encuéntralo, di cómo lo",
+    "reconociste y explica por qué publicar ese número como «el ancho",
+    "óptimo» sería falso.")
   E$e1 <- list(
     titulo = "El selector que no seleccionó",
-    enunciado = paste(
-      "Calcula los cuatro selectores de ancho de banda —`bw.diggle`,",
-      "`bw.ppl`, `bw.CvL` y `bw.scott`— sobre `japanesepines`, `redwood` y",
-      "`swedishpines`. Da el cociente entre el mayor y el menor en cada",
-      "patrón. Uno de los doce valores NO es una selección: es el extremo",
-      "del intervalo en el que el selector buscaba, y R lo dice en un",
-      "aviso que su valor de retorno no delata. Encuéntralo, di cómo lo",
-      "reconociste y explica por qué publicar ese número como «el ancho",
-      "óptimo» sería falso."),
+    enunciado = en1,
     pasos = list(
       list(paso = "Cociente mayor/menor en japanesepines", valor = raz(s_jp)),
       list(paso = "Cociente mayor/menor en redwood", valor = raz(s_rw)),
       list(paso = "Cociente mayor/menor en swedishpines", valor = raz(s_sp)),
-      list(paso = "Selectores que chocaron con su intervalo", valor = chocaron)),
+      list(paso = "Selectores que chocaron con su intervalo", valor = chocaron),
+      list(paso = sprintf("sigma de %s en %s, el que chocó", sel_ch, cual$patron),
+           valor = cual$sigma),
+      list(paso = "Tope de su intervalo: medio diámetro de la ventana", valor = r10(tope_ch)),
+      list(paso = sprintf("sigma de %s con el tope subido a %s", sel_ch, TOPE_ANCHO),
+           valor = r10(s_ancho)),
+      list(paso = sprintf("Cociente mayor/menor en %s sin %s", cual$patron, sel_ch),
+           valor = raz_sin)),
     solucion = list(
       japanesepines = unname(s_jp), redwood = unname(s_rw), swedishpines = unname(s_sp),
       razones = list(japanesepines = raz(s_jp), redwood = raz(s_rw), swedishpines = raz(s_sp)),
       n_chocaron = chocaron,
+      chocado = list(patron = cual$patron, selector = cual$selector, sigma = cual$sigma,
+                     tope = r10(tope_ch), tope_ancho = TOPE_ANCHO, sigma_ancho = r10(s_ancho),
+                     razon_sin = raz_sin),
+      respuestas = list(
+        responde(en1, "Encuéntralo", sprintf(paste(
+          "Es `%s` sobre `%s`. Devuelve exactamente el tope del intervalo en que",
+          "buscaba, que spatstat fija en la mitad del diámetro de la ventana —en el",
+          "cuadrado unidad, la mitad de la diagonal—. Y es él quien pone el mayor de",
+          "los tres cocientes: sin él, el de `%s` pasa a ser el menor."),
+          sel_ch, cual$patron, cual$patron)),
+        responde(en1, "di cómo lo reconociste", paste(
+          "Por dos señales que el número no lleva encima: el aviso de R, que dice que",
+          "el criterio se maximizó en el extremo derecho del intervalo, y la",
+          "coincidencia exacta con ese extremo. El valor en sí es finito y tiene el",
+          "aspecto de cualquiera de los otros once.")),
+        responde(en1, "explica por qué publicar ese número como «el ancho óptimo» sería falso",
+          paste(
+          "Porque no es un óptimo: es el sitio donde se dejó de buscar. Si se le",
+          "ensancha el intervalo, vuelve a devolver el tope nuevo, como enseña la",
+          "tabla: el criterio sigue mejorando al abrir el núcleo, que es su forma de",
+          "decir que para este patrón la mejor intensidad es una constante. No hay",
+          "ancho que publicar."))),
       lectura = paste(
-        "Un selector que devuelve el extremo de su intervalo no ha encontrado",
-        "un óptimo dentro de él: ha chocado con la pared. El número existe, es",
-        "finito y tiene el aspecto de cualquier otro; lo único que lo delata es",
-        "el aviso y que coincida con el borde del rango de búsqueda.")))
+        "Un selector de ancho se lee con sus avisos: el número que devuelve no",
+        "distingue entre haber encontrado un óptimo y haberse quedado sin",
+        "intervalo.")))
+  if (length(f <- sin_contestar(E$e1)))
+    stop("E1: el enunciado pregunta y nadie contesta: ", paste(f, collapse = " | "))
 
   # -------------------------------------------------------------------
   # E2 · La masa que se escapa
@@ -1881,91 +1994,224 @@ solucion_cap5 <- function() {
   integra <- function(im) { v <- as.numeric(im$v); v <- v[is.finite(v)]
                             sum(v) * im$xstep * im$ystep }
   SG <- c(0.5, 1, 2)
+  # La rejilla FINA es la prueba de que el residuo de Diggle es de la
+  # rejilla y no del método: si lo fuera del método, afinarla no lo movería.
+  REJ_FINA <- 512L
   masas <- lapply(SG, function(s) {
     con <- density(chorley, sigma = s); sin <- density(chorley, sigma = s, edge = FALSE)
     dig <- density(chorley, sigma = s, diggle = TRUE)
+    dig_f <- density(chorley, sigma = s, diggle = TRUE, dimyx = REJ_FINA)
     n <- npoints(chorley)
     list(sigma = s,
          defecto_pct = r10(100 * (integra(con) / n - 1)),
          diggle_pct = r10(100 * (integra(dig) / n - 1)),
-         sin_corregir_pct = r10(100 * (integra(sin) / n - 1)))
+         sin_corregir_pct = r10(100 * (integra(sin) / n - 1)),
+         rejilla = dim(dig)[2], diggle_fina_pct = r10(100 * (integra(dig_f) / n - 1)))
   })
   # Relativa, no absoluta: en chorley el residuo de Diggle llega a 2e-4 %
   # —discretización de la rejilla— y en Kennedy no llega a 1e-6 %. Lo que
   # se afirma, y lo que vale en los dos, es que está órdenes de magnitud
-  # más cerca que el defecto.
-  if (any(sapply(masas, function(m) abs(m$diggle_pct) * 100 > abs(m$defecto_pct))))
-    stop("E2: la corrección de Diggle ya no está 100x más cerca que el defecto en chorley")
+  # más cerca que el defecto: MÁS DE MIL VECES, dice la respuesta.
+  col <- function(k) sapply(masas, `[[`, k)
+  if (min(abs(col("defecto_pct"))) / max(abs(col("diggle_pct"))) <= 1000)
+    stop("E2: la corrección de Diggle ya no está mil veces más cerca que el defecto en chorley")
+  if (any(abs(col("diggle_fina_pct")) >= abs(col("diggle_pct"))))
+    stop("E2: afinar la rejilla ya no encoge el residuo de Diggle, y la respuesta dice que es de la rejilla")
+  # «Se alejan de n en sentidos opuestos, y más cuanto más se abre»; «la
+  # fuga crece más deprisa que el exceso».
+  if (any(col("defecto_pct") <= 0) || any(diff(col("defecto_pct")) <= 0) ||
+      any(col("sin_corregir_pct") >= 0) || any(diff(col("sin_corregir_pct")) >= 0) ||
+      any(abs(col("sin_corregir_pct")) <= abs(col("defecto_pct"))))
+    stop("E2: el defecto ya no se pasa y la fuga ya no pierde, cada vez más, y la respuesta lo dice")
 
+  en2 <- paste(
+    "Sobre `chorley` —1 036 puntos en una ventana poligonal— estima la",
+    "intensidad por núcleos con sigma = 0,5, 1 y 2, de tres formas: sin",
+    "corregir el borde, con la corrección por defecto de `density.ppp` y",
+    "con `diggle = TRUE`. Integra cada superficie sobre la ventana y",
+    "compárala con n. Una de las tres devuelve n exactamente a los tres",
+    "anchos. Di cuál, por qué, y qué le pasa a las otras dos cuando el",
+    "núcleo se abre. Después contesta: si publicaras el mapa de calor",
+    "de cualquiera de las tres, ¿se notaría la diferencia mirándolo?")
   E$e2 <- list(
     titulo = "La masa que se escapa",
-    enunciado = paste(
-      "Sobre `chorley` —1 036 puntos en una ventana poligonal— estima la",
-      "intensidad por núcleos con sigma = 0,5, 1 y 2, de tres formas: sin",
-      "corregir el borde, con la corrección por defecto de `density.ppp` y",
-      "con `diggle = TRUE`. Integra cada superficie sobre la ventana y",
-      "compárala con n. Una de las tres devuelve n exactamente a los tres",
-      "anchos. Di cuál, por qué, y qué le pasa a las otras dos cuando el",
-      "núcleo se abre. Después contesta: si publicaras el mapa de calor",
-      "de cualquiera de las tres, ¿se notaría la diferencia mirándolo?"),
+    enunciado = en2,
     pasos = c(
       lapply(masas, function(m) list(
         paso = sprintf("sigma = %.1f · error de la corrección por defecto (%%)", m$sigma),
         valor = m$defecto_pct)),
       lapply(masas, function(m) list(
         paso = sprintf("sigma = %.1f · fuga sin corregir (%%)", m$sigma),
-        valor = m$sin_corregir_pct))),
+        valor = m$sin_corregir_pct)),
+      list(
+        # Etiquetas CORTAS a propósito: la tabla no parte la cabecera de
+        # fila en el teléfono, y una de 91 caracteres la llevaba de 411 a
+        # 626 px, con el valor fuera de la pantalla.
+        list(paso = sprintf("|Error| máximo de diggle = TRUE, rejilla %d × %d (%%)",
+                            masas[[1]]$rejilla, masas[[1]]$rejilla),
+             valor = r10(max(abs(col("diggle_pct"))))),
+        list(paso = sprintf("El mismo, con rejilla %d × %d (%%)", REJ_FINA, REJ_FINA),
+             valor = r10(max(abs(col("diggle_fina_pct"))))))),
     solucion = list(
       tabla = masas,
+      rejilla_fina = REJ_FINA,
       cual_conserva = "diggle",
-      por_que = paste(
-        "La corrección por defecto divide en el punto donde se ESTIMA; la de",
-        "Diggle divide en el punto DONDE ESTÁ EL DATO, así que cada punto",
-        "aporta exactamente 1 a la integral y el total es n por construcción."),
-      lectura = "Ninguna de las tres se distingue mirando el mapa: los tres salen plausibles."))
+      respuestas = list(
+        responde(en2, "Di cuál", paste(
+          "La de `diggle = TRUE`, a los tres anchos. Lo que la separa de n es de la",
+          "rejilla sobre la que se suma la integral, no del método: al afinarla,",
+          "encoge —los dos últimos pasos de la tabla—, y aun con la rejilla por",
+          "defecto es más de mil veces más pequeño que el error de la corrección",
+          "por defecto.")),
+        responde(en2, "por qué", paste(
+          "La corrección por defecto divide en el punto donde se ESTIMA; la de",
+          "Diggle divide en el punto DONDE ESTÁ EL DATO, así que cada punto",
+          "aporta exactamente 1 a la integral y el total es n por construcción.")),
+        responde(en2, "qué le pasa a las otras dos cuando el núcleo se abre", paste(
+          "Se alejan de n en sentidos opuestos, y más cuanto más se abre: la",
+          "corrección por defecto se pasa —pone más masa de la que hay— y la",
+          "superficie sin corregir se queda corta, porque la parte de cada núcleo",
+          "que cae fuera de la ventana se pierde. La fuga crece más deprisa que el",
+          "exceso: a los tres anchos, sin corregir se está más lejos de n.")),
+        responde(en2, "¿se notaría la diferencia mirándolo?", paste(
+          "No. Las tres superficies salen plausibles: la diferencia está en la masa",
+          "total, que es una integral, y el ojo no integra."))),
+      lectura = paste(
+        "Una superficie de intensidad se publica diciendo con qué corrección de",
+        "borde se hizo, porque el mapa no lo delata.")))
+  if (length(f <- sin_contestar(E$e2)))
+    stop("E2: el enunciado pregunta y nadie contesta: ", paste(f, collapse = " | "))
 
   # -------------------------------------------------------------------
   # E3 · La covariable que parecía mandar
   # -------------------------------------------------------------------
   message("  E3 · la covariable que parecía mandar")
+  # `rhohat` ES ALEATORIO (el módulo 7 lo enseña: usa una cuadratura
+  # muestreada). La semilla va JUSTO antes y el enunciado lo dice, para que
+  # el estudiante que la ponga saque la tabla cifra a cifra. Antes dependía
+  # de que E1 y E2 no gastaran números aleatorios, que es cierto y frágil.
+  set.seed(SEMILLA)
   rh <- rhohat(bei, bei.extra$grad)
   ok <- is.finite(rh$rho); x <- rh[[1]][ok]; y <- rh$rho[ok]
   vp <- bei.extra$grad[bei]
   q <- quantile(vp, c(0.05, 0.95)); b <- x >= q[1] & x <= q[2]
   razon_total <- max(y) / min(y); razon_bulto <- max(y[b]) / min(y[b])
-  f_grad <- ppm(bei ~ grad, covariates = bei.extra)
-  z_grad <- unname(coef(f_grad)[2] / sqrt(diag(vcov(f_grad)))[2])
   if (razon_total <= razon_bulto)
     stop("E3: la cola dejó de inflar la razón de rhohat en bei")
+  # DÓNDE VIVEN el máximo y el mínimo de la curva entera: fuera del bulto,
+  # y con casi ningún árbol más allá. «Ningún árbol más empinado que el
+  # máximo» y «unos pocos por debajo del mínimo», dice la respuesta.
+  x_max <- x[which.max(y)]; x_min <- x[which.min(y)]
+  mas_empinados <- sum(vp > x_max); menos_empinados <- sum(vp < x_min)
+  if (x_max <= q[[2]] || x_min >= q[[1]] || mas_empinados != 0L ||
+      menos_empinados >= 0.01 * npoints(bei))
+    stop("E3: el máximo y el mínimo de rho ya no viven en colas sin árboles")
 
+  # LA z DEL ppm, y por qué no se compara con un cociente. Lo que sí se
+  # compara es el cociente que el modelo IMPLICA entre los dos percentiles:
+  # exp(coeficiente × ancho del bulto). Se queda del lado del bulto.
+  f_grad <- ppm(bei ~ grad, data = bei.extra)
+  b_grad <- unname(coef(f_grad)[2]); ee_grad <- unname(sqrt(diag(vcov(f_grad)))[2])
+  z_grad <- b_grad / ee_grad
+  raz_ppm <- exp(b_grad * (q[[2]] - q[[1]]))
+  if (abs(log(raz_ppm / razon_bulto)) >= abs(log(raz_ppm / razon_total)))
+    stop("E3: el cociente que implica ppm ya no está del lado del bulto")
+
+  # LA MISMA z CON EL AGRUPAMIENTO EN CUENTA, que es el M2 de la revisión
+  # llevado a `bei`: la z de `ppm` supone árboles independientes. Con `kppm`
+  # el coeficiente no se mueve y el error estándar se multiplica por unas
+  # diez; la z queda EN el umbral —por debajo con la corrección por
+  # defecto, por encima con la de traslación—. Las dos, porque el E5 enseña
+  # que la corrección de K mueve el ajuste, y aquí mueve el veredicto.
+  z_crit <- qnorm(0.975)
+  de_kppm <- function(...) {
+    k <- kppm(bei ~ grad, "Thomas", data = bei.extra, ...)
+    ee <- unname(sqrt(diag(vcov(k)))[2])
+    list(coef = unname(coef(k)[2]), ee = ee, z = unname(coef(k)[2]) / ee)
+  }
+  kz_def <- de_kppm()
+  kz_iso <- de_kppm(statargs = list(correction = "isotropic"))
+  kz_tra <- de_kppm(statargs = list(correction = PPP_CORR))
+  if (abs(kz_def$z - kz_iso$z) > 1e-9)
+    stop("E3: la corrección por defecto de kppm ya no es la isotrópica, y la respuesta lo dice")
+  infl <- c(kz_iso$ee, kz_tra$ee) / ee_grad
+  if (any(abs(c(kz_iso$coef, kz_tra$coef) - b_grad) > 1e-8) || any(infl < 8 | infl > 13) ||
+      !(kz_iso$z < z_crit && z_crit < kz_tra$z))
+    stop("E3: la z de kppm ya no cae unas diez veces hasta quedar a cada lado del umbral")
+
+  en3 <- paste(
+    "Con `bei` y la pendiente del terreno (`bei.extra$grad`), calcula",
+    sprintf("`rhohat` —que es aleatorio: pon `set.seed(%d)` justo antes— y", SEMILLA),
+    "da el cociente entre su rho máximo y su rho mínimo.",
+    "Después vuelve a calcularlo restringido al tramo entre los",
+    "percentiles 5 y 95 de la pendiente OBSERVADA EN LOS ÁRBOLES. Los",
+    "dos cocientes no se parecen. Explica cuál de los dos describe la",
+    "relación y cuál describe la incertidumbre de estimarla donde no hay",
+    "datos. Ajusta además `ppm(bei ~ grad, data = bei.extra)` y di si su z",
+    "es coherente con alguno de los dos. Por último, reajusta la misma",
+    "tendencia con `kppm(bei ~ grad, \"Thomas\", data = bei.extra)`, una vez",
+    "con la corrección por defecto y otra con",
+    "`statargs = list(correction = \"translate\")`, y di qué le pasa a la z.")
   E$e3 <- list(
     titulo = "La covariable que parecía mandar",
-    enunciado = paste(
-      "Con `bei` y la pendiente del terreno (`bei.extra$grad`), calcula",
-      "`rhohat` y da el cociente entre su rho máximo y su rho mínimo.",
-      "Después vuelve a calcularlo restringido al tramo entre los",
-      "percentiles 5 y 95 de la pendiente OBSERVADA EN LOS ÁRBOLES. Los",
-      "dos cocientes no se parecen. Explica cuál de los dos describe la",
-      "relación y cuál describe la incertidumbre de estimarla donde no hay",
-      "datos. Ajusta además `ppm(bei ~ grad)` y di si su z es coherente",
-      "con alguno de los dos."),
+    enunciado = en3,
     pasos = list(
       list(paso = "Cociente rho máx/mín en todo el rango", valor = r10(razon_total)),
       list(paso = "Percentil 5 de la pendiente en los árboles", valor = r10(q[[1]])),
       list(paso = "Percentil 95 de la pendiente en los árboles", valor = r10(q[[2]])),
       list(paso = "Cociente rho máx/mín en el bulto", valor = r10(razon_bulto)),
       list(paso = "Cuántas veces infla la cola", valor = r10(razon_total / razon_bulto)),
-      list(paso = "z de la pendiente en ppm(bei ~ grad)", valor = r10(z_grad))),
+      list(paso = "Árboles más empinados que el máximo de rho", valor = mas_empinados),
+      list(paso = "Árboles menos empinados que el mínimo de rho", valor = menos_empinados),
+      list(paso = "Coeficiente de la pendiente en ppm(bei ~ grad)", valor = r10(b_grad)),
+      list(paso = "z de la pendiente en ppm(bei ~ grad)", valor = r10(z_grad)),
+      list(paso = "Cociente que implica ppm entre los dos percentiles", valor = r10(raz_ppm)),
+      list(paso = "z de la pendiente en kppm, corrección por defecto", valor = r10(kz_def$z)),
+      list(paso = "z de la pendiente en kppm, corrección de traslación", valor = r10(kz_tra$z))),
     solucion = list(
+      semilla = SEMILLA,
       razon_total = r10(razon_total), razon_bulto = r10(razon_bulto),
       cola_infla = r10(razon_total / razon_bulto),
       bulto = list(desde = r10(q[[1]]), hasta = r10(q[[2]])),
+      n_arboles = npoints(bei),
+      colas = list(x_max = r10(x_max), x_min = r10(x_min),
+                   mas_empinados = mas_empinados, menos_empinados = menos_empinados),
       z_ppm = r10(z_grad),
+      ppm = list(coef = r10(b_grad), ee = r10(ee_grad), razon_bulto = r10(raz_ppm)),
+      kppm = list(defecto = lapply(kz_def, r10), isotropica = lapply(kz_iso, r10),
+                  traslacion = lapply(kz_tra, r10)),
+      z_critico = r10(z_crit),
+      respuestas = list(
+        responde(en3, paste(
+          "Explica cuál de los dos describe la relación y cuál describe la",
+          "incertidumbre de estimarla donde no hay datos"), paste(
+          "El del bulto describe la relación: entre los dos percentiles están,",
+          "por construcción, nueve de cada diez árboles, y ahí rho se estima con",
+          "datos. El de todo el rango lo fijan las colas: su máximo cae donde no",
+          "queda ningún árbol más empinado y su mínimo donde quedan unos pocos",
+          "—los dos pasos de la tabla que los cuentan—, así que lo que mide es",
+          "sobre todo lo mal que se estima rho donde casi no hay árboles.")),
+        responde(en3, "di si su z es coherente con alguno de los dos", paste(
+          "Con ninguno, porque no mide lo mismo: la z dice a cuántos errores",
+          "estándar está el coeficiente de cero, no de qué tamaño es la relación.",
+          "Lo que se puede poner al lado de un cociente es el cociente que el",
+          "propio modelo implica entre los dos percentiles, y ese se queda del lado",
+          "del bulto, lejos del de todo el rango.")),
+        responde(en3, "di qué le pasa a la z", paste(
+          "Se desploma. El coeficiente es el mismo, pero su error estándar, que",
+          "ahora cuenta que los árboles vienen agrupados, se multiplica por unas",
+          "diez, y la z pasa de abrumadora a quedarse en el umbral de 1.96: por",
+          "debajo con la corrección por defecto y por encima con la de traslación.",
+          "La z de `ppm` suponía árboles independientes. Es el mismo desplome que",
+          "el módulo 10 mide en las sedes de Bogotá, y la misma dependencia de la",
+          "corrección que enseña el ejercicio 5."))),
       lectura = paste(
-        "El cociente sobre todo el rango lo domina la cola, donde rho se estima",
-        "con un puñado de árboles. La relación real es la del bulto. Que el",
-        "titular de una curva rhohat sea su cola pasa también en el caso",
-        "canónico: no es una rareza del dato de nadie.")))
+        "Que el titular de una curva rhohat sea su cola pasa también en el caso",
+        "canónico: no es una rareza del dato de nadie. La cola exagera cuánto",
+        "manda la covariable, y la z de un `ppm` sobre un patrón agrupado",
+        "exagera lo seguro que se puede estar de que manda.")))
+  if (length(f <- sin_contestar(E$e3)))
+    stop("E3: el enunciado pregunta y nadie contesta: ", paste(f, collapse = " | "))
 
   # -------------------------------------------------------------------
   # E4 · El modelo que ajusta y no se puede leer
@@ -1990,38 +2236,77 @@ solucion_cap5 <- function() {
   if (!singular) stop("E4: desplazar el patrón dejó de romper la información de Fisher")
   if (length(ee_de(f_cerca)) != length(coef(f_cerca)))
     stop("E4: el patrón sin desplazar también salió singular y el contraste se pierde")
+  # «`vcov()` no falla: avisa y devuelve NULL», dice la respuesta. Se
+  # comprueba tal cual, sin el `try` que lo taparía: si un día fallara,
+  # la frase sería falsa.
+  aviso_vc <- NA_character_
+  vc_lejos <- withCallingHandlers(vcov(f_lejos), warning = function(w) {
+    aviso_vc <<- conditionMessage(w); invokeRestart("muffleWarning") })
+  if (!is.null(vc_lejos) || is.na(aviso_vc) || !grepl("singular", aviso_vc, fixed = TRUE) ||
+      length(sqrt(diag(vc_lejos))) != 0L)
+    stop("E4: vcov() ya no avisa y devuelve NULL, y la respuesta dice que sí")
   # Los coeficientes de pendiente SÍ coinciden: desplazar no cambia el
   # gradiente, solo el intercepto. Es lo que hace tan engañoso el caso.
   dif_pend <- max(abs(coef(f_lejos)[2:3] - coef(f_cerca)[2:3])) / max(abs(coef(f_cerca)[2:3]))
+  if (dif_pend > 1e-6) stop("E4: desplazar el patrón ya mueve las pendientes")
+  # «Todo el desplazamiento lo absorbe el intercepto»: b0' = b0 - D (bx + by).
+  b0_esperado <- coef(f_cerca)[[1]] - DESPL * sum(coef(f_cerca)[2:3])
+  if (abs(coef(f_lejos)[[1]] / b0_esperado - 1) > 1e-6)
+    stop("E4: el intercepto desplazado ya no es el original menos el desplazamiento por las pendientes")
 
+  en4 <- paste(
+    "Toma `swedishpines` y desplázalo 4 900 000 unidades en x y en y,",
+    "que es el orden de magnitud de unas coordenadas proyectadas con",
+    "origen nacional. Ajusta `ppm(~ x + y)` al patrón original y al",
+    "desplazado. Los dos ajustan y los dos devuelven coeficientes. Uno",
+    "de los dos no devuelve errores estándar: encuentra cuál, di qué",
+    "objeto de R vale `NULL` cuando eso pasa y por qué `try()` no lo",
+    "caza. Compara además los coeficientes de x e y entre los dos",
+    "ajustes y explica por qué se parecen tanto pese a todo.")
   E$e4 <- list(
     titulo = "El modelo que ajusta y no se puede leer",
-    enunciado = paste(
-      "Toma `swedishpines` y desplázalo 4 900 000 unidades en x y en y,",
-      "que es el orden de magnitud de unas coordenadas proyectadas con",
-      "origen nacional. Ajusta `ppm(~ x + y)` al patrón original y al",
-      "desplazado. Los dos ajustan y los dos devuelven coeficientes. Uno",
-      "de los dos no devuelve errores estándar: encuentra cuál, di qué",
-      "objeto de R vale `NULL` cuando eso pasa y por qué `try()` no lo",
-      "caza. Compara además los coeficientes de x e y entre los dos",
-      "ajustes y explica por qué se parecen tanto pese a todo."),
+    enunciado = en4,
     pasos = list(
       list(paso = "Desplazamiento aplicado", valor = DESPL),
       list(paso = "¿El ajuste desplazado da errores estándar?", valor = 0L),
       list(paso = "¿El ajuste original da errores estándar?", valor = 1L),
       list(paso = "Diferencia relativa entre las pendientes de los dos ajustes",
-           valor = signif(dif_pend, 4))),
+           valor = signif(dif_pend, 4)),
+      list(paso = "Coeficiente de x del ajuste original", valor = r10(coef(f_cerca)[[2]])),
+      list(paso = "Coeficiente de y del ajuste original", valor = r10(coef(f_cerca)[[3]])),
+      list(paso = "Intercepto del ajuste original", valor = r10(coef(f_cerca)[[1]])),
+      list(paso = "Intercepto del ajuste desplazado", valor = r10(coef(f_lejos)[[1]]))),
     solucion = list(
       desplazamiento = DESPL,
       coef_lejos = r10(unname(coef(f_lejos))), coef_cerca = r10(unname(coef(f_cerca))),
       ee_cerca = r10(ee_de(f_cerca)), ee_lejos_disponibles = 0L,
       dif_relativa_pendientes = signif(dif_pend, 4),
+      respuestas = list(
+        responde(en4, "encuentra cuál", paste(
+          "El desplazado: el original da un error estándar por coeficiente y el",
+          "desplazado, ninguno.")),
+        responde(en4, "di qué objeto de R vale `NULL` cuando eso pasa y por qué `try()` no lo caza",
+          paste(
+          "`vcov()`. No falla: avisa de que la información de Fisher es singular y",
+          "devuelve NULL, y `sqrt(diag(NULL))` devuelve una matriz 0 x 0 sin",
+          "quejarse. No hay ningún error que atrapar; lo que delata el problema es",
+          "que no haya un error estándar por coeficiente.")),
+        responde(en4, paste(
+          "Compara además los coeficientes de x e y entre los dos ajustes y",
+          "explica por qué se parecen tanto pese a todo"), paste(
+          "Son prácticamente los mismos —la diferencia relativa está en la tabla—",
+          "porque desplazar el origen no cambia el gradiente: todo el",
+          "desplazamiento lo absorbe el intercepto, que es lo único que cambia de",
+          "un ajuste al otro. Lo que se rompe es la INVERSA de la información de",
+          "Fisher, no el ajuste: con x e y del orden de millones, sus columnas",
+          "son casi proporcionales a la del intercepto."))),
       lectura = paste(
-        "`vcov()` no falla: avisa y devuelve NULL, y `sqrt(diag(NULL))` devuelve",
-        "una matriz 0 x 0 sin quejarse, así que un try() no ve nada. Lo que",
-        "delata el problema es que no haya un error estándar por coeficiente.",
-        "Las pendientes casi coinciden porque desplazar el origen no cambia el",
-        "gradiente: lo que se rompe es la INVERSA, no el ajuste.")))
+        "Un ajuste que devuelve coeficientes no está leído todavía: antes de",
+        "interpretar una z hay que comprobar que haya un error estándar por",
+        "coeficiente. Y las coordenadas se centran antes de ajustar, como hace",
+        "el módulo 9.")))
+  if (length(f <- sin_contestar(E$e4)))
+    stop("E4: el enunciado pregunta y nadie contesta: ", paste(f, collapse = " | "))
 
   # -------------------------------------------------------------------
   # E5 · Dos correcciones, dos respuestas
@@ -2036,22 +2321,30 @@ solucion_cap5 <- function() {
   if (max(d_kappa, d_scale, d_mu) < 5)
     stop("E5: las dos correcciones dejaron de divergir en redwood")
 
+  en5 <- paste(
+    "Ajusta un proceso de Thomas a `redwood` con `kppm`, dos veces: una",
+    "pidiendo que K se estime con la corrección isotrópica y otra con la",
+    "de traslación (`statargs = list(correction = ...)`). Da kappa, la",
+    "escala y mu en los dos, y la diferencia relativa de cada uno.",
+    "`redwood` vive en un cuadrado, así que aquí la isotrópica no cuesta",
+    "nada: no hay ninguna razón de velocidad para preferir una. Contesta:",
+    "¿cuál de los dos ajustes es el correcto, y qué dice tu respuesta",
+    "sobre lo que el contraste mínimo está ajustando en realidad?")
+  # La tabla daba kappa en los dos ajustes y de la escala y de mu solo la
+  # diferencia, cuando el enunciado pide los seis valores: ahora van de
+  # tres en tres, cada parámetro con su diferencia debajo.
   E$e5 <- list(
     titulo = "Dos correcciones, dos respuestas",
-    enunciado = paste(
-      "Ajusta un proceso de Thomas a `redwood` con `kppm`, dos veces: una",
-      "pidiendo que K se estime con la corrección isotrópica y otra con la",
-      "de traslación (`statargs = list(correction = ...)`). Da kappa, la",
-      "escala y mu en los dos, y la diferencia relativa de cada uno.",
-      "`redwood` vive en un cuadrado, así que aquí la isotrópica no cuesta",
-      "nada: no hay ninguna razón de velocidad para preferir una. Contesta:",
-      "¿cuál de los dos ajustes es el correcto, y qué dice tu respuesta",
-      "sobre lo que el contraste mínimo está ajustando en realidad?"),
+    enunciado = en5,
     pasos = list(
       list(paso = "kappa con isotrópica", valor = r10(k_iso$parametros$kappa)),
       list(paso = "kappa con traslación", valor = r10(k_tra$parametros$kappa)),
       list(paso = "Diferencia relativa en kappa (%)", valor = d_kappa),
+      list(paso = "Escala con isotrópica", valor = r10(k_iso$parametros$scale)),
+      list(paso = "Escala con traslación", valor = r10(k_tra$parametros$scale)),
       list(paso = "Diferencia relativa en la escala (%)", valor = d_scale),
+      list(paso = "mu con isotrópica", valor = r10(k_iso$mu)),
+      list(paso = "mu con traslación", valor = r10(k_tra$mu)),
       list(paso = "Diferencia relativa en mu (%)", valor = d_mu)),
     solucion = list(
       isotropica = list(kappa = r10(k_iso$parametros$kappa),
@@ -2059,12 +2352,19 @@ solucion_cap5 <- function() {
       traslacion = list(kappa = r10(k_tra$parametros$kappa),
                         escala = r10(k_tra$parametros$scale), mu = r10(k_tra$mu)),
       diferencias_pct = list(kappa = d_kappa, escala = d_scale, mu = d_mu),
+      respuestas = list(
+        responde(en5, paste(
+          "¿cuál de los dos ajustes es el correcto, y qué dice tu respuesta",
+          "sobre lo que el contraste mínimo está ajustando en realidad?"), paste(
+          "Ninguno de los dos es «el» correcto: el contraste mínimo no ajusta el",
+          "modelo al patrón, lo ajusta a una ESTIMACIÓN de K. Cambiar de",
+          "estimador mueve los parámetros, y aquí los mueve sin que haya nada",
+          "que ganar a cambio."))),
       lectura = paste(
-        "Ninguno de los dos es «el» correcto: el contraste mínimo no ajusta el",
-        "modelo al patrón, lo ajusta a una ESTIMACIÓN de K. Cambiar de",
-        "estimador mueve los parámetros, y aquí los mueve sin que haya nada",
-        "que ganar a cambio. Un ajuste de conglomerado sin decir con qué",
-        "estimación de K se hizo está incompleto.")))
+        "Un ajuste de conglomerado sin decir con qué estimación de K se hizo",
+        "está incompleto.")))
+  if (length(f <- sin_contestar(E$e5)))
+    stop("E5: el enunciado pregunta y nadie contesta: ", paste(f, collapse = " | "))
 
   E$meta <- list(capitulo = 5L, semilla = SEMILLA, n_ejercicios = 5L,
                  generado = format(Sys.Date()))
@@ -2078,10 +2378,14 @@ solucion_cap5 <- function() {
 
   message(sprintf("  E1 · razones %.2f / %.2f / %.2f · %d selector(es) chocaron",
                   raz(s_jp), raz(s_rw), raz(s_sp), chocaron))
+  message(sprintf("       chocó %s en %s: %.4f = tope; con tope %s devuelve %s; sin él, %.2f",
+                  sel_ch, cual$patron, cual$sigma, TOPE_ANCHO, s_ancho, raz_sin))
   message(sprintf("  E2 · a sigma=2: defecto %+.2f %%, sin corregir %+.2f %%, Diggle %+.4f %%",
                   masas[[3]]$defecto_pct, masas[[3]]$sin_corregir_pct, masas[[3]]$diggle_pct))
   message(sprintf("  E3 · razon %.1f -> %.1f al quitar colas (infla %.1f) · z del ppm %.2f",
                   razon_total, razon_bulto, razon_total / razon_bulto, z_grad))
+  message(sprintf("       ppm implica %.2f en el bulto · z de kppm %.3f (defecto) / %.3f (traslación)",
+                  raz_ppm, kz_def$z, kz_tra$z))
   message(sprintf("  E4 · desplazado singular, original no; pendientes difieren %.2e",
                   dif_pend))
   message(sprintf("  E5 · kappa %+.1f %%, escala %+.1f %%, mu %+.1f %%",

@@ -2280,6 +2280,20 @@ def _codigo(texto):
     return _re.sub(r"`([^`]+)`", r"<code>\1</code>", texto)
 
 
+def _pregunta(pide):
+    """El trozo del enunciado, tal cual, convertido en encabezado.
+
+    Solo se toca la primera letra y el cierre: «di cómo lo reconociste»
+    pasa a «Di cómo lo reconociste.» y «¿se notaría…?» a «¿Se notaría…?».
+    Reescribirlo aquí rompería el ancla que el auditor contrasta.
+    """
+    i = 1 if pide.startswith("¿") else 0
+    t = pide[:i] + pide[i].upper() + pide[i + 1:]
+    if i and not t.endswith("?"):
+        return t + "?"
+    return t if t[-1] in ".?!" else t + "."
+
+
 def ejercicio(k, e):
     """El marcado de la CASA, no uno inventado.
 
@@ -2292,6 +2306,24 @@ def ejercicio(k, e):
         f'                <tr><th scope="row">{p["paso"]}</th>'
         f'<td>{p["valor"]:g}</td></tr>\n'
         for p in e["pasos"])
+    # UNA RESPUESTA POR PREGUNTA (M5, 2026-09-24). La solución publicaba
+    # los pasos y la lectura, y dos enunciados preguntaban cosas que ni lo
+    # uno ni lo otro contestaba. Cada respuesta llega anclada a su pregunta
+    # con un trozo literal del enunciado, que aquí se pinta como su
+    # encabezado; si el ancla no está en el enunciado, la respuesta
+    # contestaría a una pregunta que el estudiante no ve.
+    resp = e["solucion"].get("respuestas") or []
+    if not resp:
+        sys.exit(f"PARADO: el ejercicio {k} llega sin respuestas; "
+                 "regenera con genera_soluciones.R 5")
+    for r in resp:
+        if r["pide"] not in e["enunciado"]:
+            sys.exit(f"PARADO: una respuesta del ejercicio {k} contesta a «{r['pide']}», "
+                     "que su enunciado no pregunta")
+    respuestas = "".join(
+        f'            <p class="ejercicio-respuesta"><strong>{_codigo(_pregunta(r["pide"]))}</strong>\n'
+        f'              {_codigo(r["respuesta"])}</p>\n'
+        for r in resp)
     return f"""
         <div class="ejercicio-guiado">
           <p class="ejercicio-enunciado"><span class="ejercicio-numero">{k}.</span><strong>{e['titulo']}.</strong>
@@ -2309,7 +2341,7 @@ def ejercicio(k, e):
 {pasos}
               </tbody>
             </table>
-            <p class="ejercicio-lectura">{_codigo(e['solucion']['lectura'])}</p>
+{respuestas}            <p class="ejercicio-lectura">{_codigo(e['solucion']['lectura'])}</p>
           </div>
         </div>
 """

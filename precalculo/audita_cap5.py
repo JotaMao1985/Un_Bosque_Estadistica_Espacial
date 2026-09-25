@@ -59,6 +59,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 import sys
 from statistics import NormalDist
 
@@ -185,6 +186,222 @@ def masas(px, py, sigma, caja, nx, ny, mask):
 
 
 # =====================================================================
+# Cada «di», «explica», «encuentra», «contesta», «compara» y cada «¿» de un
+# enunciado es una pregunta que la solución tiene que contestar (M5). `\w`
+# en Python ya es Unicode: «Encuéntralo» no se parte por la tilde, y
+# «compárala» —que pide un número, no una frase— no casa con «compara».
+DEMANDA = re.compile(
+    r"(?<!\w)(?:[Dd]i|[Ee]xplica|[Ee]ncuéntralo|[Ee]ncuentra|[Cc]ontesta|[Cc]ompara)(?!\w)|¿")
+
+
+def sin_contestar(e) -> list[str]:
+    """Las demandas del enunciado que no caen dentro de ninguna respuesta.
+
+    Reimplementa la guarda de `genera_soluciones.R` sin mirarla: una
+    demanda queda contestada si cae dentro del trozo literal que ancla
+    alguna respuesta, o si presenta a otra —«Contesta: ¿…?»— y una
+    respuesta empieza detrás de ella sin que medie un punto.
+    """
+    en = e.get("enunciado", "")
+    tramos = []
+    for r in e.get("solucion", {}).get("respuestas") or []:
+        pide = r.get("pide") or ""
+        i = en.find(pide) if pide else -1
+        if i >= 0:
+            tramos.append((i, i + len(pide)))
+    fuera = []
+    for m in DEMANDA.finditer(en):
+        p = m.start()
+        dentro = any(ini <= p < fin for ini, fin in tramos)
+        if not dentro and en[m.end():m.end() + 1] == ":":
+            despues = [ini for ini, _ in tramos if ini > p]
+            dentro = bool(despues) and "." not in en[p:min(despues)]
+        if not dentro:
+            fuera.append(en[p:p + 30])
+    return fuera
+
+
+def respuestas_de_los_ejercicios(a, S) -> None:
+    """M5 de la segunda revisión (2026-09-24): lo que cada solución contesta.
+
+    Hasta M5 la solución publicaba los pasos y una lectura, y los
+    enunciados preguntaban cosas que ni lo uno ni lo otro contestaba. Aquí
+    se comprueba lo general —cada ejercicio trae respuestas, ancladas a su
+    enunciado, sin demanda huérfana— y lo particular: cada afirmación de
+    las respuestas se rehace desde los campos del propio JSON, y cada paso
+    nuevo de la tabla dice lo que su campo dice.
+    """
+    a.titulo("11b · Las respuestas de los ejercicios (M5)")
+
+    def paso(k, empieza):
+        """El valor del paso cuya etiqueta empieza así, o None."""
+        for p in S[k].get("pasos", []):
+            if p.get("paso", "").startswith(empieza):
+                return p.get("valor")
+        return None
+
+    def mismo(k, empieza, valor, que, rel=1e-9):
+        v = paso(k, empieza)
+        if v is None or valor is None:
+            a.cierto(False, que, f"falta el paso «{empieza}» o su campo")
+        else:
+            a.cerca(v, valor, que, rel=rel)
+
+    for k in ("e1", "e2", "e3", "e4", "e5"):
+        sol = S[k].get("solucion", {})
+        resp = sol.get("respuestas") or []
+        a.cierto(len(resp) > 0 and all(str(r.get("pide", "")).strip() and
+                                       str(r.get("respuesta", "")).strip() for r in resp),
+                 f"ejercicios/{k}: trae respuestas, y ninguna vacía", f"{len(resp)}")
+        sueltas = [r.get("pide") for r in resp if r.get("pide", "") not in S[k].get("enunciado", "")]
+        a.cierto(not sueltas, f"ejercicios/{k}: cada respuesta ancla en su enunciado",
+                 "; ".join(map(str, sueltas)))
+        fuera = sin_contestar(S[k])
+        a.cierto(not fuera, f"ejercicios/{k}: ninguna demanda se queda sin respuesta",
+                 " | ".join(fuera))
+        a.cierto(bool(str(sol.get("lectura", "")).strip()), f"ejercicios/{k}: trae su lectura")
+
+    # --- E1 · el que chocó, con nombre ------------------------------------
+    s1 = S["e1"]["solucion"]
+    ch = s1.get("chocado")
+    patrones = ("japanesepines", "redwood", "swedishpines")
+    if not ch or not all(isinstance(s1.get(p), list) for p in patrones):
+        a.cierto(False, "ejercicios/e1: publica el selector que chocó", "falta")
+    else:
+        valores = [(p, z["selector"], z["sigma"], z["choco"]) for p in patrones for z in s1[p]]
+        chocan = [v for v in valores if v[3]]
+        a.cierto(len(valores) == 12 and len(chocan) == 1,
+                 "ejercicios/e1: chocó uno de doce, como dice el enunciado",
+                 f"{len(chocan)} de {len(valores)}")
+        a.cierto(bool(chocan) and chocan[0][:3] == (ch["patron"], ch["selector"], ch["sigma"]),
+                 "ejercicios/e1: el que publica es el que chocó")
+        # En el cuadrado unidad, la mitad del diámetro es la de la diagonal.
+        a.igual(ch["tope"], np.hypot(1, 1) / 2, "ejercicios/e1: el tope es la mitad de la diagonal")
+        a.igual(ch["sigma"], ch["tope"], "ejercicios/e1: y el que chocó vale el tope")
+        a.igual(ch["sigma_ancho"], ch["tope_ancho"], "ejercicios/e1: ensanchado, vuelve a chocar")
+        sig = {z["selector"]: z["sigma"] for z in s1[ch["patron"]]}
+        resto = [v for s, v in sig.items() if s != ch["selector"]]
+        a.cerca(max(resto) / min(resto), ch["razon_sin"], "ejercicios/e1: el cociente sin el que chocó")
+        raz = {p: max(z["sigma"] for z in s1[p]) / min(z["sigma"] for z in s1[p]) for p in patrones}
+        otros = [raz[p] for p in patrones if p != ch["patron"]]
+        a.cierto(raz[ch["patron"]] > max(otros) and ch["razon_sin"] < min(otros),
+                 "ejercicios/e1: con él discrepa más; sin él, menos",
+                 f"{raz[ch['patron']]:.2f} → {ch['razon_sin']:.2f}")
+        a.cierto(f"`bw.{ch['selector']}` sobre `{ch['patron']}`" in
+                 (s1.get("respuestas") or [{}])[0].get("respuesta", ""),
+                 "ejercicios/e1: la respuesta lo nombra")
+        for p in patrones:
+            mismo("e1", f"Cociente mayor/menor en {p}", raz[p],
+                  f"ejercicios/e1: paso · cociente en {p}"[:57], rel=1e-8)
+        mismo("e1", f"sigma de bw.{ch['selector']} en", ch["sigma"], "ejercicios/e1: paso · el que chocó")
+        mismo("e1", "Tope de su intervalo", ch["tope"], "ejercicios/e1: paso · el tope")
+        mismo("e1", f"sigma de bw.{ch['selector']} con el tope", ch["sigma_ancho"],
+              "ejercicios/e1: paso · el tope ensanchado")
+        mismo("e1", "Cociente mayor/menor en " + ch["patron"] + " sin", ch["razon_sin"],
+              "ejercicios/e1: paso · el cociente sin él")
+
+    # --- E2 · cuál conserva, y qué les pasa a las otras dos ---------------
+    s2 = S["e2"]["solucion"]
+    t2 = s2.get("tabla") or []
+    if not t2 or not all("diggle_fina_pct" in f and "rejilla" in f for f in t2):
+        a.cierto(False, "ejercicios/e2: publica la rejilla fina", "falta")
+    else:
+        dg = [abs(f["diggle_pct"]) for f in t2]
+        df = [f["defecto_pct"] for f in t2]
+        sc = [f["sin_corregir_pct"] for f in t2]
+        a.cierto(min(abs(x) for x in df) / max(dg) > 1000,
+                 "ejercicios/e2: Diggle, más de mil veces más cerca",
+                 f"{min(abs(x) for x in df) / max(dg):.0f}x")
+        a.cierto(all(abs(f["diggle_fina_pct"]) < abs(f["diggle_pct"]) for f in t2),
+                 "ejercicios/e2: afinar la rejilla encoge el residuo")
+        a.cierto(all(x > 0 for x in df) and all(b > c for c, b in zip(df, df[1:])),
+                 "ejercicios/e2: el defecto se pasa, y más al abrir")
+        a.cierto(all(x < 0 for x in sc) and all(b < c for c, b in zip(sc, sc[1:])),
+                 "ejercicios/e2: sin corregir se queda corto, y más")
+        a.cierto(all(abs(s) > abs(d) for s, d in zip(sc, df)),
+                 "ejercicios/e2: la fuga crece más que el exceso")
+        peor = {"defecto": max(abs(x) for x in df), "diggle": max(dg),
+                "sin_corregir": max(abs(x) for x in sc)}
+        a.cierto(s2.get("cual_conserva") == min(peor, key=peor.get),
+                 "ejercicios/e2: la que conserva es la de menor error", str(s2.get("cual_conserva")))
+        mismo("e2", "|Error| máximo de diggle", max(dg), "ejercicios/e2: paso · el mayor error de Diggle")
+        mismo("e2", "El mismo, con rejilla", max(abs(f["diggle_fina_pct"]) for f in t2),
+              "ejercicios/e2: paso · el mismo con la rejilla fina")
+        etq = [p["paso"] for p in S["e2"]["pasos"]]
+        a.cierto(any(f"{t2[0]['rejilla']} × {t2[0]['rejilla']}" in e for e in etq) and
+                 any(f"{s2.get('rejilla_fina')} × {s2.get('rejilla_fina')}" in e for e in etq),
+                 "ejercicios/e2: las etiquetas dicen sus dos rejillas")
+
+    # --- E3 · la z, el cociente que implica y la z con conglomerado -------
+    s3 = S["e3"]["solucion"]
+    pp, kp, co = s3.get("ppm"), s3.get("kppm"), s3.get("colas")
+    if not (pp and kp and co and all(c in kp for c in ("defecto", "isotropica", "traslacion"))):
+        a.cierto(False, "ejercicios/e3: publica ppm, kppm y las colas", "falta")
+    else:
+        a.cerca(pp["coef"] / pp["ee"], s3["z_ppm"], "ejercicios/e3: la z de ppm es coef / ee")
+        b3 = s3["bulto"]
+        a.cerca(np.exp(pp["coef"] * (b3["hasta"] - b3["desde"])), pp["razon_bulto"],
+                "ejercicios/e3: el cociente que implica ppm")
+        a.cierto(abs(np.log(pp["razon_bulto"] / s3["razon_bulto"])) <
+                 abs(np.log(pp["razon_bulto"] / s3["razon_total"])),
+                 "ejercicios/e3: y queda del lado del bulto")
+        for c in ("defecto", "isotropica", "traslacion"):
+            a.cerca(kp[c]["coef"] / kp[c]["ee"], kp[c]["z"], f"ejercicios/e3: z de kppm, {c}")
+        a.cierto(all(abs(kp[c]["coef"] - pp["coef"]) < 1e-8 for c in kp),
+                 "ejercicios/e3: kppm no mueve el coeficiente")
+        a.igual(kp["defecto"]["z"], kp["isotropica"]["z"], "ejercicios/e3: la de por defecto es la isotrópica")
+        infl = [kp[c]["ee"] / pp["ee"] for c in ("isotropica", "traslacion")]
+        a.cierto(all(8 <= x <= 13 for x in infl), "ejercicios/e3: el error estándar, por unas diez",
+                 " / ".join(f"{x:.1f}" for x in infl))
+        zc = NormalDist().inv_cdf(0.975)
+        a.igual(s3.get("z_critico"), zc, "ejercicios/e3: el umbral es el de 1.96")
+        a.cierto(kp["isotropica"]["z"] < zc < kp["traslacion"]["z"],
+                 "ejercicios/e3: una z a cada lado del umbral",
+                 f"{kp['isotropica']['z']:.3f} / {kp['traslacion']['z']:.3f}")
+        a.cierto(co["mas_empinados"] == 0 and co["x_max"] > b3["hasta"],
+                 "ejercicios/e3: el máximo, sin árbol más empinado")
+        a.cierto(0 < co["menos_empinados"] < 0.01 * s3.get("n_arboles", 0) and co["x_min"] < b3["desde"],
+                 "ejercicios/e3: el mínimo, con unos pocos por debajo",
+                 f"{co['menos_empinados']} de {s3.get('n_arboles')}")
+        a.cierto(f"set.seed({s3.get('semilla')})" in S["e3"]["enunciado"] and
+                 s3.get("semilla") == S["meta"]["semilla"],
+                 "ejercicios/e3: el enunciado da la semilla de rhohat")
+        mismo("e3", "Árboles más empinados", co["mas_empinados"], "ejercicios/e3: paso · más empinados")
+        mismo("e3", "Árboles menos empinados", co["menos_empinados"], "ejercicios/e3: paso · menos empinados")
+        mismo("e3", "Coeficiente de la pendiente", pp["coef"], "ejercicios/e3: paso · el coeficiente")
+        mismo("e3", "z de la pendiente en ppm", s3["z_ppm"], "ejercicios/e3: paso · la z de ppm")
+        mismo("e3", "Cociente que implica ppm", pp["razon_bulto"], "ejercicios/e3: paso · el cociente de ppm")
+        mismo("e3", "z de la pendiente en kppm, corrección por defecto", kp["defecto"]["z"],
+              "ejercicios/e3: paso · z de kppm por defecto")
+        mismo("e3", "z de la pendiente en kppm, corrección de traslación", kp["traslacion"]["z"],
+              "ejercicios/e3: paso · z de kppm con traslación")
+
+    # --- E4 · el intercepto se lo lleva todo ------------------------------
+    s4 = S["e4"]["solucion"]
+    cc, cl = s4.get("coef_cerca") or [], s4.get("coef_lejos") or []
+    if len(cc) != 3 or len(cl) != 3:
+        a.cierto(False, "ejercicios/e4: publica los dos juegos de coeficientes", "falta")
+    else:
+        a.cerca(cc[0] - s4["desplazamiento"] * (cc[1] + cc[2]), cl[0],
+                "ejercicios/e4: el intercepto absorbe el desplazamiento")
+        mismo("e4", "Coeficiente de x", cc[1], "ejercicios/e4: paso · el coeficiente de x")
+        mismo("e4", "Coeficiente de y", cc[2], "ejercicios/e4: paso · el coeficiente de y")
+        mismo("e4", "Intercepto del ajuste original", cc[0], "ejercicios/e4: paso · intercepto original")
+        mismo("e4", "Intercepto del ajuste desplazado", cl[0], "ejercicios/e4: paso · intercepto desplazado")
+
+    # --- E5 · los seis valores que el enunciado pide ----------------------
+    s5 = S["e5"]["solucion"]
+    iso, tra, dif = s5.get("isotropica"), s5.get("traslacion"), s5.get("diferencias_pct")
+    if not (iso and tra and dif):
+        a.cierto(False, "ejercicios/e5: publica los dos ajustes", "falta")
+    else:
+        for par, et in (("kappa", "kappa"), ("escala", "Escala"), ("mu", "mu")):
+            mismo("e5", f"{et} con isotrópica", iso[par], f"ejercicios/e5: paso · {par} con isotrópica")
+            mismo("e5", f"{et} con traslación", tra[par], f"ejercicios/e5: paso · {par} con traslación")
+            a.cerca(100 * abs(tra[par] - iso[par]) / abs(iso[par]), dif[par],
+                    f"ejercicios/e5: la diferencia en {par}", rel=1e-6)
+
+
 def main() -> int:
     a = Auditoria("Precálculo del capítulo 5 verificado")
 
@@ -856,6 +1073,7 @@ def main() -> int:
              f"{S['e4']['solucion']['dif_relativa_pendientes']:.1e}")
     a.cierto(max(S["e5"]["solucion"]["diferencias_pct"].values()) > 5,
              "ejercicios/e5: las dos correcciones divergen en redwood")
+    respuestas_de_los_ejercicios(a, S)
 
     # -----------------------------------------------------------------
     a.titulo("12 · Los mapas")
