@@ -372,6 +372,29 @@ print(f"{(mas_cerca == i_broad).sum()} de {len(mu)} = "
 # su canónico de la literatura y su gemelo colombiano. El canónico permite
 # contrastar las cifras contra Baddeley, Cressie y Pebesma; el colombiano
 # arranca el hilo del país en la semana 1 en vez de en el capítulo 3.
+#
+# LA TABLA DE LOS TRES TIPOS SE DESPLAZA DENTRO DE SU CAJA EN EL TELÉFONO.
+# A ≤768 px la plantilla pone toda tabla en `display:block` y a
+# `max-content`: ninguna celda partía, la tabla medía 1 304 px, y el MathML
+# de KaTeX de la λ —en posición absoluta— escapaba del recorte del
+# envoltorio y llevaba la página a 416 px en un visor de 375. Es la receta
+# de la tabla ancha del módulo 9 del capítulo 4: `width:100%` anula el
+# `max-content`, `position:relative` mete el MathML dentro del envoltorio,
+# y `overflow:visible` deja que el `sticky` de la columna de preguntas se
+# agarre al envoltorio que desplaza, así que al leer una fila de lado se
+# sigue viendo qué pregunta contesta. La esquina va fija también, con un
+# `z-index` más, para que las cabeceras de columna pasen por debajo.
+# El mínimo es `min-content` y no un número de rem, como en el capítulo 4.
+# Con tres columnas no hace falta impedir que se aplasten: ninguna celda
+# baja de su palabra más larga, y eso deja la tabla en 507 px en el
+# teléfono, donde cada tipo —de 114 a 142 px— cabe entero junto a la
+# pregunta fija en los 303 px del envoltorio. Sin mínimo, la caja se
+# quedaría en esos 303 y el contenido le sobresaldría. Y un mínimo en rem
+# se pasaba de largo en las tabletas: con 40rem la tabla medía 640 px y
+# se desplazaba donde antes cabía (hacia 1 100 px de pantalla, con la
+# barra lateral). `min-content` no crea desplazamiento que el contenido no
+# imponga ya. En escritorio la tabla ocupa sus 812 px, como antes.
+FIJA = "position:sticky; left:0; z-index:1;"
 MOD2 = cabecera(
     2, "Los tres tipos de dato espacial", "Point, areal, geostatistical",
     "Aprender a preguntar «¿qué es aleatorio aquí?» —y después «¿de qué trozo "
@@ -541,32 +564,32 @@ MOD2 = cabecera(
            fila. Con los tipos por columnas cada fila pasa a ser una pregunta
            —«¿qué es aleatorio?»— contestada tres veces una al lado de la otra,
            que es exactamente el gesto que pide el párrafo de arriba. -->
-      <table class="tabla-matriz">
+      <table class="tabla-matriz" style="position:relative; overflow:visible; width:100%; min-width:min-content;">
         <caption>Los tres tipos de dato espacial: qué es aleatorio, qué se estima y en qué capítulo se desarrolla.</caption>
         <thead>
-          <tr><td></td>
+          <tr><td style="position:sticky; left:0; z-index:2;"></td>
             <th scope="col">Patrón puntual</th>
             <th scope="col">Dato de área</th>
             <th scope="col">Geoestadístico</th></tr>
         </thead>
         <tbody>
-          <tr><th scope="row">Qué es aleatorio</th>
+          <tr><th scope="row" style="{FIJA}">Qué es aleatorio</th>
             <td>La <strong>localización</strong> de los eventos, y cuántos hay</td>
             <td>El <strong>valor</strong>, sobre unidades territoriales fijas</td>
             <td>El <strong>valor</strong> de algo que existe en todo punto y se observa en unos pocos</td></tr>
-          <tr><th scope="row">Qué se estima</th>
+          <tr><th scope="row" style="{FIJA}">Qué se estima</th>
             <td>Intensidad \\(\\lambda\\), agregación o regularidad</td>
             <td>Autocorrelación, modelos SAR/SEM</td>
             <td>Variograma, predicción por kriging</td></tr>
-          <tr><th scope="row">Canónico</th>
+          <tr><th scope="row" style="{FIJA}">Canónico</th>
             <td>{pc['japanesepines']['nombre']} ({pc['japanesepines']['n']})</td>
             <td>{ac['nombre']} ({ac['n']})</td>
             <td>{gc['nombre']} ({gc['n']})</td></tr>
-          <tr><th scope="row">Colombiano</th>
+          <tr><th scope="row" style="{FIJA}">Colombiano</th>
             <td>{co['puntual']['nombre']} ({ent(co['puntual']['n'])})</td>
             <td>{co['area']['nombre']} ({ent(co['area']['n'])})</td>
             <td>{co['geo']['nombre']} ({co['geo']['n']})</td></tr>
-          <tr><th scope="row">Capítulos</th>
+          <tr><th scope="row" style="{FIJA}">Capítulos</th>
             <td>4 y 5</td>
             <td>6, 7 y 8</td>
             <td>9</td></tr>
