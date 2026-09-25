@@ -1056,6 +1056,37 @@
       margin-bottom: 0;
       min-width: 100%;
       width: 100%;
+      /* La tabla va posicionada para que el envoltorio recorte todo lo que
+         lleva dentro, también lo que va en posición absoluta.
+
+         KaTeX escribe cada fórmula dos veces: la que se ve y una copia en
+         MathML para el lector de pantalla, `span.katex-mathml`, en posición
+         absoluta y recortada a un píxel. Una caja absoluta no depende de su
+         padre sino del primer antepasado posicionado, y entre la fórmula y
+         la página no había ninguno: el `overflow-x` de `.tabla-scroll` no
+         la recortaba. La copia se quedaba donde está su fórmula, en la
+         columna que el envoltorio esconde a la derecha, y la página se
+         estiraba hasta alcanzarla. Medido a 375 px en Chromium y en WebKit:
+         la λ del banco de la defensa del Taller 2 (módulo 7) llevaba la
+         página a 921 px de ancho, y la tabla de discrepancias de
+         prueba-auditoria (módulo 6) a 915. Con la tabla posicionada las dos
+         se quedan en el ancho del visor.
+
+         Va aquí y no tabla por tabla. La receta de tabla ancha —capítulo 1,
+         módulo 2; capítulo 4, módulo 9— ya lo ponía en línea, y es una
+         regla de las que hay que recordar a mano: el banco y la tabla de
+         discrepancias no la llevaban. Y no son las únicas expuestas. Dos
+         tablas del simulacro del capítulo 4 (módulo 13) desbordan su caja
+         con fórmulas dentro, y no ensanchan la página solo porque las
+         fórmulas caen en la parte que se ve sin desplazar.
+
+         No mueve nada más. Medido en los diez documentos, con los plegables
+         abiertos, a 375, 800, 1 024 y 1 280 px, en Chromium y en WebKit:
+         las 102 cajas y sus tablas miden lo mismo de ancho y de alto, en el
+         mismo sitio. Sin `z-index` la tabla no abre contexto de
+         apilamiento, y lo que puede pasarle por encima —la cabecera, el
+         botón del menú, el de volver arriba— lleva `z-index` 50 o más. */
+      position: relative;
     }
 
     @media (max-width: 768px) {
