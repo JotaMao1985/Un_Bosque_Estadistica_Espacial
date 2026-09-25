@@ -4904,3 +4904,66 @@ cuenta se puede rehacer desde el enunciado publicado (P01, P05, P06, P08 y P09).
 módulos del capítulo 3 que entran, calculado del propio JSON, y decía «módulos 3.10 a 3.9». Ordenar
 `{"3.3", "3.4", "3.5", "3.9", "3.10"}` como texto pone «3.10» primero. Es la misma familia de defecto
 que el §9.1 describe: la cifra era correcta y la frase, falsa.
+
+### A.32 · La coma decimal: cuatro capítulos, cuatro puertas y una guarda en el núcleo (2026-09-25)
+
+El convenio lo fijó lo publicado, igual que en M6 del capítulo 5: sobre la prosa de los once
+documentos hay más de mil decimales con punto y una treintena con coma, y el plan del preparcial ya
+decía «punto decimal y no coma». M6 lo aplicó al capítulo 5 en su rama (`claude/cap5-m6`, sin
+fusionar); esta entrada hace lo mismo con los capítulos 1, 2, 4 y 6, siempre en el generador o en el
+ensamblador y nunca en el HTML.
+
+**Por dónde entraba la coma.** Por cuatro sitios, y cada uno solo se ve mirándolo a él:
+
+1. **La prosa.** Tres en el capítulo 1 («—0,02 y −0,09—», «1,1 km»), doce en el 2, las dos del
+   titular inventado del 4 y las cuatro del `pct()` del 6, que era el mismo formateador que M6
+   arregló en el 5. Del 2, casi todas estaban escritas a mano en `genera_soluciones.R`.
+2. **Una fórmula**: `\(\rho = 0{,}01\)` en el módulo 5 del capítulo 1, la única de las 425
+   fórmulas del sitio.
+3. **El JavaScript del capítulo**, que el auditor de prosa corta antes de leer: el quiz del 1
+   («0,10», «0,01»), el del 2 («k = 0,9992», «0,998401», «1,000») y el del 4 (el titular); la
+   leyenda «0,95 prometido» del 1; el rótulo del mapa municipal del 6 («grado medio 5,86»), y el
+   `tipo` de EPSG:9377 en el JSON del 2, que escribe `genera_cap2.R` y viaja en la página aunque
+   nadie lo pinte.
+4. **Un formateador**: el `milC` del capítulo 1 era `toLocaleString('es-CO')`, y la lectura del
+   módulo 7 escribía «2.621» por 2 621. Es la otra cara del mismo convenio: un punto que NO es
+   decimal, en un capítulo donde todos los puntos lo son. Ahora agrupa con el espacio fino, como
+   `ent()`.
+
+**El titular del capítulo 4 se pasó a punto, y es una decisión.** «En Bogotá hay 5,7 colegios por
+kilómetro cuadrado» no es una cita: el titular es inventado, y el estudiante lo tiene que comparar
+con tres lambdas que la página escribe con punto (la retroalimentación del quiz pone «5.7xxxx
+sedes/km²» justo debajo). Con coma, el ejercicio mezclaba un cambio de separador con la pregunta de
+la ventana, que es lo único que enseña. Una cita real sí conservaría su tipografía.
+
+**La coma que se queda.** El «-69,94000» del módulo 8 del capítulo 2 es coma a propósito: es el CSV
+exportado con configuración regional española que `read.csv` lee como texto. Se declara por su
+literal en `audita_texto_cap2.py`, así que otra cifra con coma en el mismo sitio sigue cayendo, y hay
+una inyección que lo comprueba.
+
+**La guarda vive en el núcleo**, `Auditor.decimales_con_punto()`, y los capítulos 1, 2, 3, 4 y 6 la
+llaman. Mira las cuatro puertas; en el JavaScript descuenta los comentarios y las líneas que trae la
+plantilla, para mirar solo lo que el capítulo añade. El capítulo 5 lleva su propia copia en su rama.
+Al fusionarla conviene cambiarla por la del núcleo, porque la suya no ve dos cosas: el decimal
+seguido de una coma de puntuación, y así queda en esa rama un «sigma = 0,5, 1 y 2» sin que ella lo
+vea; ni el JavaScript de datos ni las fórmulas.
+
+**El patrón tuvo dos agujeros antes de quedar bien, y los dos los destapó una medida.** El del
+capítulo 5, `(?![\d,])`, deja escapar «entre 0,38 y 0,72, así» y «k = 0,9992, a cambio»: dos del
+capítulo 2 que el primer censo no contó. Mi primera corrección, `(?![\d.]|,\d)`, dejaba escapar el
+decimal que cierra una frase, «k = 0,9992. ¿Cuál», y lo destapó su propia inyección. El bueno es
+`(?!\d|[.,]\d)`.
+
+**Lo que la coma escondía.** El triaje de `cifras()` que separa las cifras respaldadas por un valor
+de R de las que solo respalda algo derivado mira únicamente decimales con punto, así que las comas
+estaban fuera de él. Con el punto aparecen dos en el capítulo 2, las dos escritas a mano: el
+«0.72» de las correlaciones de dos semillas del módulo 9 (su pareja, «0.38», pasa porque redondea
+por azar otro valor del JSON) y el «99.67 %» de la solución del ejercicio 4. Quedan anotadas, sin
+tocar.
+
+**Fuera de esta entrada, y anotado:** el `milC` del Taller 1, que es el mismo `es-CO` (el taller ya
+está calificado); el «p < 0,05» que el Taller 2 escribe desde su JavaScript; la tabla ordenable de
+la plantilla, que formatea con `es-CO` y decimales, aunque hoy solo la usa el fixture; y el §H5 de
+`PLAN_Parcial_Corte_2.md`, que dice que el curso publica con coma decimal. Esa premisa es falsa,
+pero su conclusión, aceptar las dos escrituras al calificar, sigue en pie. La corrección está
+propuesta a Javier.

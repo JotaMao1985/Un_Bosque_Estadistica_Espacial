@@ -351,7 +351,7 @@ EPSG_LISTA <- list(
   list(codigo = 3116L, nombre = "MAGNA-SIRGAS / Colombia Bogotá zone",
        tipo = "transversa de Mercator, k = 1"),
   list(codigo = 9377L, nombre = "MAGNA-SIRGAS 2018 / Origen-Nacional",
-       tipo = "transversa de Mercator, k = 0,9992"))
+       tipo = "transversa de Mercator, k = 0.9992"))
 
 epsg_fila <- function(e) {
   ap <- as.numeric(st_area(st_transform(mun_ll, e$codigo)))

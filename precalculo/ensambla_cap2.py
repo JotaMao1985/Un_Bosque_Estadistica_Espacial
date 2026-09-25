@@ -1069,8 +1069,8 @@ MOD9 = cabecera(
      'Cada punto es un promedio sobre réplicas; el requisito del ejercicio 5 es el 1 %.')}
       <p>Hasta aquí el tamaño del daño. Falta el reparto, que es lo que de verdad convierte
       esto en un problema y no en una molestia. Promediando {firma(ent(_sg['n_replicas']), ' realizaciones')}
-      del ruido de {_sg['sigma_m']}&nbsp;m —una sola daba correlaciones que bailaban entre 0,38
-      y 0,72, así que no era una medida sino una anécdota— la tasa global de reasignación es
+      del ruido de {_sg['sigma_m']}&nbsp;m —una sola daba correlaciones que bailaban entre 0.38
+      y 0.72, así que no era una medida sino una anécdota— la tasa global de reasignación es
       {firma(n(_sg['tasa_global_pct']) + ' %')} con un error de Monte Carlo de
       {n(_sg['emc_global_pct'])} puntos.</p>
 
@@ -1911,12 +1911,12 @@ QUIZ_JS = r"""
       },
       {
         tipo: 'numerica', modulo: 4,
-        pregunta: 'EPSG:9377 es una transversa de Mercator con factor de escala k = 0,9992. '
+        pregunta: 'EPSG:9377 es una transversa de Mercator con factor de escala k = 0.9992. '
           + '¿Cuál es, exactamente, la razón de área MÍNIMA que puede dar sobre Colombia?',
         pista: 'Es conforme: la escala de área es el cuadrado de la lineal.',
         respuesta: 0.998401, tolerancia: 0.00005,
         unidad: '',
-        retroAcierto: 'k² = 0,998401. Y el capítulo lo mide sobre los 1 122 municipios: sale '
+        retroAcierto: 'k² = 0.998401. Y el capítulo lo mide sobre los 1 122 municipios: sale '
           + 'exactamente eso, lo que confirma de paso que la referencia de área es la correcta.',
         retroFallo: 'En una proyección conforme a = b, así que s = a². En el meridiano central a = k. Módulo 4.'
       },
@@ -2025,7 +2025,7 @@ QUIZ_JS = r"""
             retro: 'Eso sí se lee: su ω máxima es '
               + n5(DATOS_CAP2.proyecciones.tabla.omega_max_grados[0], 5) + '°.' },
           { texto: 'Que Equal Earth conserva las áreas.', correcta: false,
-            retro: 'También se lee: su escala de área es 1,000 en toda la rejilla.' },
+            retro: 'También se lee: su escala de área es 1.000 en toda la rejilla.' },
           { texto: 'Que Robinson no conserva ninguna de las dos.', correcta: false,
             retro: 'Se lee igualmente: es la fila de compromiso.' }
         ],

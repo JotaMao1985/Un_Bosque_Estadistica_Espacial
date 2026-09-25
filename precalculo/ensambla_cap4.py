@@ -3379,7 +3379,7 @@ QUIZ_JS = r"""
     AUTOEVALUACIONES['cap4-trampas'] = [
       {
         tipo: 'opcion',
-        pregunta: 'Un informe dice «en Bogotá hay 5,7 colegios por km²». ¿Qué le falta para ser una afirmación completa?',
+        pregunta: 'Un informe dice «en Bogotá hay 5.7 colegios por km²». ¿Qué le falta para ser una afirmación completa?',
         opciones: [
           { texto: 'Decir cuál es la ventana de observación usada', correcta: true,
             retro: 'Eso es. Con el perímetro urbano salen ' + n5(D4.m1.urbana.lambda_km2, 4) + ' sedes/km²; con el Distrito Capital entero, ' + n5(D4.m1.dc.lambda_km2, 4) + '. La misma ciudad y el mismo dato, con un factor de ' + n5(D4.m1.factor_lambda, 2) + ' entre las dos.' },

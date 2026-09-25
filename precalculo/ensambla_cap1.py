@@ -1284,7 +1284,7 @@ MOD5 = cabecera(
         <p style="text-align:center;">$$n_{{\\text{{eff}}}} = \\frac{{n}}{{1 + (n-1)\\rho}}$$</p>
         <p style="margin-bottom:0;">Y con eso a la vista aparece lo que de verdad enseña este módulo: cuando
           \\(n \\to \\infty\\), \\(n_{{\\text{{eff}}}} \\to 1/\\rho\\). <strong>Hay un techo.</strong> Con
-          \\(\\rho = 0{{,}}01\\) —una correlación que nadie llamaría preocupante— ese techo son 100 observaciones,
+          \\(\\rho = 0.01\\) —una correlación que nadie llamaría preocupante— ese techo son 100 observaciones,
           da igual cuántas se recojan.</p>
       </div>
 
@@ -1619,7 +1619,7 @@ MOD7 = cabecera(
         <p style="margin-bottom:0;"><strong>Ese barrido no es celo, es una cicatriz.</strong> La primera versión de
           este módulo iba a publicar que la correlación subía un 345&nbsp;% al agregar, con otro par de variables.
           Era cierto en el sentido aritmético y falso en el que importa: las dos cifras eran ruido con signos
-          opuestos —0,02 y −0,09— y el «345&nbsp;%» era el cociente entre dos ceros. Lo salvó barrer el umbral en
+          opuestos —0.02 y −0.09— y el «345&nbsp;%» era el cociente entre dos ceros. Lo salvó barrer el umbral en
           vez de publicar una cifra sola, que es la misma receta que ya había salvado la falacia ecológica del
           capítulo 3 en la fase anterior.</p>
       </div>
@@ -2344,7 +2344,7 @@ MOD12 = cabecera(
           </tbody>
         </table>
         <p style="margin-bottom:0;">Una fuente <strong>descartada</strong>, y se dice por qué: las sedes educativas
-          nacionales del Ministerio de Educación Nacional traen coordenadas con dos decimales —1,1 km de
+          nacionales del Ministerio de Educación Nacional traen coordenadas con dos decimales —1.1 km de
           resolución—, y en Bogotá las sedes con coordenada colapsaban en unos pocos cientos de posiciones
           distintas. Eso no es un patrón puntual, es una retícula de redondeo, y las funciones del capítulo 4
           estarían midiendo el redondeo. No se construye material sobre coordenadas que no se sostienen, por
@@ -2436,7 +2436,12 @@ COURSE_DATA = f"""    const courseData = {{
 
     const D1 = DATOS_CAP1;
     const n5 = (x, d = 5) => Number(x).toFixed(d);
-    const milC = x => Number(x).toLocaleString('es-CO');
+    // Millares con el espacio fino, como `ent()` en la prosa. Hasta el
+    // 2026-09-25 esto era `toLocaleString('es-CO')`, que agrupa con PUNTO:
+    // la lectura del módulo 7 escribía «2.621 donde había 667», y en un
+    // capítulo que escribe los decimales con punto eso se lee «dos y
+    // pico». `audita_texto_cap1.py` para el documento si vuelve.
+    const miles1 = x => String(Math.round(Number(x))).replace(/\\B(?=(\\d{{3}})+$)/g, '\\u202f');
 """
 
 
@@ -2779,13 +2784,13 @@ SIMULADORES_JS = r"""
             ['a cada celda', '«su parte», proporcional al área que le cae'],
             [`${c.nombre} aporta`, `${c.sids} en total, que son las que tiene`],
             ['la celda que solo roza', `${n5(c.roce_pct, 4)} % del condado → ${n5(c.roce_aporte_area, 4)} muertes`],
-            ['total sobre la rejilla', `${milC(g.total_por_area)}, el exacto`]]);
+            ['total sobre la rejilla', `${miles1(g.total_por_area)}, el exacto`]]);
         } else {
           lectura(raiz, [['la regla', '«se tocan» — st_intersects'],
             ['a cada celda', `${c.sids}: el conteo entero del condado`],
             [`${c.nombre} aporta`, `${c.sids} × ${c.n_celdas_toca} = ${c.aporte_predicado}`],
             ['de más, solo él', `${c.exceso} muertes, el ${n5(c.pct_del_exceso)} % del exceso`],
-            ['total sobre la rejilla', `${milC(g.total_rectangulos)} donde había ${g.total_condados}`]]);
+            ['total sobre la rejilla', `${miles1(g.total_rectangulos)} donde había ${g.total_condados}`]]);
         }
       };
       botonera(raiz, [['predicado', 'Emparejar por «se tocan»'],
@@ -3040,7 +3045,7 @@ SIMULADORES_JS = r"""
           borderColor: COLORES_GRAFICO.secundario, tension: 0.2, pointRadius: 3 },
         { label: 'cobertura del IC al 95 %', data: r.map(f => f.cobertura),
           borderColor: COLORES_GRAFICO.terciario, tension: 0.2, pointRadius: 3, yAxisID: 'y2' },
-        { label: '0,95 prometido', data: r.map(() => 0.95), borderColor: COLORES_GRAFICO.primario,
+        { label: '0.95 prometido', data: r.map(() => 0.95), borderColor: COLORES_GRAFICO.primario,
           borderDash: [2, 3], pointRadius: 0, yAxisID: 'y2' }
       ], { scales: { x: { title: { display: true, text: 'alcance de la correlación, phi' } },
                      y: { title: { display: true, text: 'error estándar' } },
@@ -3551,7 +3556,7 @@ QUIZ_JS = r"""
       },
       {
         tipo: 'opcion', modulo: 5,
-        pregunta: 'Tienes 1 000 observaciones con una correlación de 0,10 entre todas las parejas. '
+        pregunta: 'Tienes 1 000 observaciones con una correlación de 0.10 entre todas las parejas. '
           + '¿A cuántas observaciones independientes equivalen?',
         pista: 'La fórmula es n / (1 + (n-1) rho). Haz la cuenta con la cabeza antes de mirar.',
         opciones: [
@@ -3561,7 +3566,7 @@ QUIZ_JS = r"""
           { texto: 'Alrededor de 900', correcta: false,
             retro: 'Esa sería la intuición de "pierdo un 10 %", y falla por dos órdenes de magnitud. Módulo 5.' },
           { texto: 'Alrededor de 100', correcta: false,
-            retro: 'Cerca del techo con rho = 0,01, no con 0,10. Con rho = 0,10 el techo es 10. Módulo 5.' },
+            retro: 'Cerca del techo con rho = 0.01, no con 0.10. Con rho = 0.10 el techo es 10. Módulo 5.' },
           { texto: 'Las 1 000: la correlación no afecta al tamaño de muestra.', correcta: false,
             retro: 'Afecta, y mucho. Ése es justo el módulo 5.' }
         ],

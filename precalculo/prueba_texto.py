@@ -435,6 +435,19 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         ("el bloque de la diagnóstica de entrada se queda sin marcador",
          '<div class="quiz" data-quiz="cap1-diagnostica">',
          '<div class="cuestionario" data-quiz="cap1-diagnostica">'),
+        # --- LA COMA DECIMAL (2026-09-25), por sus cuatro puertas: el
+        # capítulo tenía una en cada una. Ninguna de estas la caza
+        # `cifras()`, que lee «0,02» como 0.02 y la da por buena; solo
+        # `decimales_con_punto()`.
+        ("vuelve una coma decimal a la prosa",
+         "opuestos —0.02 y −0.09—", "opuestos —0,02 y −0.09—"),
+        ("una fórmula vuelve a escribir la coma de LaTeX",
+         r"\(\rho = 0.01\)", r"\(\rho = 0{,}01\)"),
+        ("la leyenda de un gráfico vuelve a escribir coma",
+         "label: '0.95 prometido'", "label: '0,95 prometido'"),
+        ("la lectura del módulo 7 vuelve a agrupar los millares con punto",
+         r"const miles1 = x => String(Math.round(Number(x))).replace(/\B(?=(\d{3})+$)/g, '\u202f');",
+         "const miles1 = x => Number(x).toLocaleString('es-CO');"),
     ]
 
 
@@ -539,6 +552,19 @@ def defectos_cap2() -> list[tuple[str, str, str]]:
         ("el enlace al capítulo 1 apunta a un archivo que no existe",
          'href="capitulo-1-datos-espaciales.html"',
          'href="capitulo-1-datos-espacialess.html"'),
+        # --- LA COMA DECIMAL (2026-09-25). La primera es la que la guarda
+        # del capítulo 5 no ve: un decimal seguido de una coma de
+        # puntuación. La última prueba que la coma DELIBERADA del módulo 8
+        # se exime por su literal y no por su sitio.
+        ("vuelve una coma decimal seguida de una coma de puntuación",
+         "y 0.72, así que no era una medida", "y 0,72, así que no era una medida"),
+        ("el quiz vuelve a escribir el factor de escala con coma",
+         "factor de escala k = 0.9992. '", "factor de escala k = 0,9992. '"),
+        ("el JSON del precálculo vuelve a traer una coma decimal",
+         '"tipo": "transversa de Mercator, k = 0.9992"',
+         '"tipo": "transversa de Mercator, k = 0,9992"'),
+        ("la coma deliberada del módulo 8 no exime a otra cifra",
+         '"ejemplo_lon": "-69,94000"', '"ejemplo_lon": "-69,94001"'),
     ]
 
 
@@ -627,6 +653,12 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
         ("el enlace al capítulo 2 apunta a un archivo que no existe",
          'href="capitulo-2-crs-georreferenciacion.html"',
          'href="capitulo-2-crs-georreferenciacionn.html"'),
+        # --- LA COMA DECIMAL (2026-09-25). Este capítulo no tenía ninguna:
+        # la inyección prueba que la guarda está conectada, no que haya
+        # arreglado nada.
+        ("vuelve una coma decimal a la prosa",
+         f(D["m8"]["forma"]["cima_media"]),
+         f(D["m8"]["forma"]["cima_media"]).replace(".", ",")),
     ]
 
 
@@ -775,6 +807,13 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         ("el enlace al capítulo 3 apunta a un archivo que no existe",
          'href="capitulo-3-cartografia-maup.html"',
          'href="capitulo-3-cartografia-maupp.html"'),
+        # --- LA COMA DECIMAL (2026-09-25). El titular inventado del
+        # ejercicio 1 y del quiz iba con coma; se decidió punto, porque el
+        # estudiante lo compara con lambdas que la página escribe con punto.
+        ("el titular del ejercicio 1 vuelve a la coma",
+         "hay 5.7 colegios por kilómetro", "hay 5,7 colegios por kilómetro"),
+        ("el titular del quiz vuelve a la coma",
+         "«en Bogotá hay 5.7 colegios por km²»", "«en Bogotá hay 5,7 colegios por km²»"),
     ]
 
 
@@ -1144,6 +1183,17 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
          'href="capitulo-4-patrones-puntualez.html"'),
         ("el documento desbocado",
          "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
+
+        # --- 9. LA COMA DECIMAL (2026-09-25): `pct()`, el rótulo del mapa
+        # municipal y un formateador de las lecturas.
+        ("vuelve el pct() con coma decimal",
+         f"el rezago es un <strong>{f(m10['contraccion_pct'], 2)} %</strong>",
+         f"el rezago es un <strong>{f(m10['contraccion_pct'], 2).replace('.', ',')} %</strong>"),
+        ("el rótulo del mapa municipal vuelve a escribir coma",
+         "grado medio 5.86 y dos municipios", "grado medio 5,86 y dos municipios"),
+        ("un formateador de las lecturas vuelve a escribir coma",
+         "Number(x).toFixed(d == null ? 4 : d);",
+         "Number(x).toFixed(d == null ? 4 : d).replace('.', ',');"),
     ]
 
 

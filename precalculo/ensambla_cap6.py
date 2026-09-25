@@ -99,8 +99,13 @@ def firma(valor, unidad=""):
     return f"<strong>{valor}</strong>{unidad}"
 
 
+# El porcentaje lleva PUNTO decimal, como `n()` y como el resto del curso.
+# Hasta el 2026-09-25 este formateador cambiaba el punto por coma, y el
+# módulo 1 escribía «media 3,4236 %, desviación 1.7667» en una sola
+# frase. `audita_texto_cap6.py` para el documento si vuelve una coma
+# decimal a la prosa, a una cadena del JavaScript o a un formateador.
 def pct(x, d=1):
-    return f"{float(x):.{d}f} %".replace(".", ",")
+    return f"{float(x):.{d}f} %"
 
 
 def cabecera(num, titulo, ingles, objetivo):
@@ -1356,7 +1361,7 @@ GEOMAPAS_JS = (
         "es una unidad que se ha quedado sin ninguna.") + TABLA_W)
     + geomapa("cap6-municipios", "cap6-municipios", _etq(
         "Los 1 122 municipios de Colombia unidos por contigüidad reina: 3 285 parejas, "
-        "grado medio 5,86 y dos municipios sin vecinos, San Andrés y Providencia, "
+        "grado medio 5.86 y dos municipios sin vecinos, San Andrés y Providencia, "
         "dibujados en rojo."))
 )
 

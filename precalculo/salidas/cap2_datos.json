@@ -132,7 +132,7 @@
       {
         "codigo": 9377,
         "nombre": "MAGNA-SIRGAS 2018 / Origen-Nacional",
-        "tipo": "transversa de Mercator, k = 0,9992",
+        "tipo": "transversa de Mercator, k = 0.9992",
         "razon_med": 0.9994344381,
         "razon_min": 0.9984008547,
         "razon_max": 1.0208895377,
@@ -500,7 +500,7 @@
     "capitulo": 2,
     "titulo": "SIG, sistemas de referencia y georreferenciación con sf",
     "semana": "2-3",
-    "generado": "2026-09-17",
+    "generado": "2026-09-25",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "gdal": "3.8.5",

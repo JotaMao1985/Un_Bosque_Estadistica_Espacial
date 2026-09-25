@@ -99,6 +99,29 @@ CARPETAS = [RAIZ / "sitio" / "estadistica-espacial", RAIZ / "Htmls_Espacial"]
 # publicarse así y dar 130/0, que es exactamente lo que pasó.
 MOJIBAKE_RE = re.compile(r"<[0-9a-f]{2}>|<U\+[0-9A-Fa-f]{4,6}>")
 
+# UN DECIMAL ESCRITO CON COMA: «0,38», «13,5». No lo son la coma de una
+# enumeración («2, 110», lleva espacio), la de un intervalo a la inglesa
+# («[0,0.2]», la sigue un punto con cifra) ni un millar a la inglesa
+# («1,234,567», la sigue otra coma con cifra). La mirada final es
+# `(?!\d|[.,]\d)`, y las dos formas más sencillas tienen un agujero cada una:
+# `(?![\d,])`, la del capítulo 5, deja escapar el decimal seguido de una
+# coma de PUNTUACIÓN —«entre 0,38 y 0,72, así», «con k = 0,9992, a
+# cambio»—, y así se escaparon dos del capítulo 2 en el primer censo;
+# `(?![\d.]|,\d)` deja escapar el que cierra una frase —«k = 0,9992. ¿Cuál»,
+# del quiz del mismo capítulo—, y lo destapó su inyección.
+COMA_DECIMAL = re.compile(r"(?<![\d.,])\d+,\d+(?!\d|[.,]\d)")
+# Los formateadores de JavaScript, que escriben las lecturas al mover un
+# control y por eso no están en el HTML: el `.replace('.', ',')` del `exp5`
+# del capítulo 5, y un `toLocaleString` con regional española cuyo
+# resultado no pasa después por `.replace(/\./g, …)`. Esa regional escribe
+# coma decimal y PUNTO de millar: el `milC` del capítulo 1 publicaba
+# «2.621» por 2 621 en un capítulo que escribe los decimales con punto.
+PUNTO_A_COMA = re.compile(
+    r"""\.replace\(\s*(?:(['"])\.\1|/\\\./g?)\s*,\s*(['"]),\2\s*\)""")
+REGIONAL_ES = re.compile(
+    r"""toLocaleString\(\s*(['"])es[-_][A-Za-z]+\1[^)]*\)(?!\.replace\(/\\\./g)""")
+PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
+
 # El tope de peso de un capítulo, y qué es de verdad.
 #
 # NO es un presupuesto de contenido. Empezó en 550 KB y se fue subiendo a
@@ -983,6 +1006,87 @@ class Auditor:
                     if not crudas else
                     f"{len(crudas)} fórmula(s), la primera: "
                     f"{' '.join(crudas[0].split())[:70]}"))
+
+    # -----------------------------------------------------------------
+    def decimales_con_punto(self, deliberadas: dict[str, str] | None = None) -> None:
+        """UN SOLO SEPARADOR DECIMAL, EL PUNTO, en las cuatro puertas.
+
+        El curso publica con punto: el 2026-09-25, sobre la prosa de los
+        once documentos, más de mil decimales con punto contra una
+        treintena con coma, y el plan del preparcial ya decía «punto
+        decimal y no coma». Las comas que quedaban entraban por cuatro
+        sitios, y cada comprobación de aquí mira uno, porque ninguno ve los
+        otros:
+
+          1. la prosa —el `pct()` del capítulo 6, «entre 0,38 y 0,72» del
+             2, «—0,02 y −0,09—» del 1—, que `cifras()` no puede cazar
+             porque lee «66,3» como 66.3 y la da por buena;
+          2. las fórmulas, que `prosa_txt` no trae: `\\(\\rho = 0{,}01\\)`;
+          3. el JavaScript DEL CAPÍTULO —el quiz, sus retroalimentaciones,
+             la leyenda de un gráfico, el JSON de las soluciones—, que se
+             pinta en el navegador y el auditor de prosa corta antes;
+          4. los formateadores, que escriben las lecturas de los
+             simuladores al mover un control: ahí no hay cifra que leer,
+             así que se mira la causa.
+
+        En 3 y 4 se descuentan los comentarios y la PLANTILLA, línea a
+        línea: lo que se mira es lo que el capítulo añade. La plantilla es
+        otra superficie con su propio pendiente —su tabla ordenable formatea
+        con `es-CO`, y hoy solo la usa el fixture—, y denunciarlo aquí lo
+        repetiría en cada capítulo sin que ninguno pudiera arreglarlo.
+
+        `deliberadas` son las comas que el capítulo publica PORQUE son
+        comas —el CSV con coma decimal del capítulo 2 es lo que se enseña a
+        leer—, con su razón. Se declaran por el literal que casa, sin signo
+        («69,94000»), como `estructurales`: una cifra vecina con coma sigue
+        cayendo.
+        """
+        print("\n=== Los decimales, con punto ==============================")
+        deliberadas = deliberadas or {}
+
+        def comas(texto: str) -> list[str]:
+            return [" ".join(texto[max(0, m.start() - 30):m.end() + 8].split())
+                    for m in COMA_DECIMAL.finditer(texto)
+                    if m.group(0) not in deliberadas]
+
+        prosa = comas(self.prosa_txt)
+        self.exige(not prosa, "la prosa no escribe ningún decimal con coma",
+                   " · ".join(f"«{c}»" for c in prosa[:3]))
+        # `0{,}01` es como se escribe en LaTeX una coma decimal sin el
+        # espacio de puntuación detrás, y es la forma que tenía la única
+        # del capítulo 1. Medido antes de escribir esto: de las 425
+        # fórmulas del sitio, ninguna otra da positivo —ni un `[0,1]`—.
+        formulas = re.findall(r"\$\$.*?\$\$|\\\(.*?\\\)", self.cuerpo, re.S)
+        en_formulas = comas("  ".join(formulas).replace("{,}", ","))
+        self.exige(not en_formulas, "ninguna fórmula escribe un decimal con coma",
+                   " · ".join(f"«{c}»" for c in en_formulas[:3])
+                   or f"{len(formulas)} fórmulas")
+
+        # El JavaScript propio: fuera las líneas que trae la plantilla tal
+        # cual, las de comentario y la cola `// …` de una línea de código.
+        comun = set()
+        if PLANTILLA.exists():
+            base = PLANTILLA.read_text(encoding="utf-8")
+            for g in re.findall(r"<script[^>]*>(.*?)</script>", base, re.S):
+                comun.update(l.strip() for l in g.splitlines())
+        propias = []
+        for g in re.findall(r"<script[^>]*>(.*?)</script>", self.doc, re.S):
+            for l in g.splitlines():
+                s = l.strip()
+                if (not s or s in comun or s == "*"
+                        or s.startswith(("//", "/*", "* ", "*/"))):
+                    continue
+                propias.append(re.sub(r"\s//\s.*$", "", l))
+        guion = "\n".join(propias)
+        js = comas(guion)
+        self.exige(not js, "el JavaScript del capítulo no publica decimales con coma",
+                   " · ".join(f"«{c}»" for c in js[:3])
+                   or (f"deliberadas: {', '.join(deliberadas)}" if deliberadas else ""))
+        formateadores = [" ".join(guion[max(0, m.start() - 40):m.end()].split())
+                         for p in (PUNTO_A_COMA, REGIONAL_ES) for m in p.finditer(guion)]
+        self.exige(not formateadores,
+                   "ningún formateador escribe coma decimal ni punto de millar",
+                   " · ".join(f"«{c}»" for c in formateadores[:2]))
 
     def codificacion(self) -> None:
         """Bytes crudos donde debería haber una tilde.

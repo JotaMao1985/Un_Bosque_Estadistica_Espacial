@@ -66,11 +66,11 @@
       "elegido_con_isla": "EPSG:3116",
       "la_isla_cambia_la_respuesta": true
     },
-    "lectura": "EPSG:3116 es exacto donde se definió —sobre su meridiano central el error de área es cero por construcción, porque k = 1— y se degrada al alejarse. EPSG:9377 renuncia a ese cero, con k = 0,9992, a cambio de que el peor caso del país sea más pequeño: por eso el IGAC lo adoptó como origen único nacional, y por eso gana cuando el criterio es el peor error continental. Pero pierde cuando el criterio es el error MEDIANO, porque paga el factor de escala en todas partes; y pierde también, del revés, en cuanto entra San Andrés: el archipiélago está 700 km mar adentro y le queda más cerca el meridiano de 3116 que el de 9377. Un solo municipio de 1 122 puede dar la vuelta a la recomendación. Ese es el resultado que hay que llevarse: «¿qué CRS uso?» no tiene respuesta sin decir PARA QUÉ, SOBRE QUÉ EXTENSIÓN y CON QUÉ CRITERIO. Y fíjate en que 3857 pierde con cualquiera de los tres criterios: es un sistema para teselas de mapa web, no para medir."
+    "lectura": "EPSG:3116 es exacto donde se definió —sobre su meridiano central el error de área es cero por construcción, porque k = 1— y se degrada al alejarse. EPSG:9377 renuncia a ese cero, con k = 0.9992, a cambio de que el peor caso del país sea más pequeño: por eso el IGAC lo adoptó como origen único nacional, y por eso gana cuando el criterio es el peor error continental. Pero pierde cuando el criterio es el error MEDIANO, porque paga el factor de escala en todas partes; y pierde también, del revés, en cuanto entra San Andrés: el archipiélago está 700 km mar adentro y le queda más cerca el meridiano de 3116 que el de 9377. Un solo municipio de 1 122 puede dar la vuelta a la recomendación. Ese es el resultado que hay que llevarse: «¿qué CRS uso?» no tiene respuesta sin decir PARA QUÉ, SOBRE QUÉ EXTENSIÓN y CON QUÉ CRITERIO. Y fíjate en que 3857 pierde con cualquiera de los tres criterios: es un sistema para teselas de mapa web, no para medir."
   },
   "e2": {
     "titulo": "Un buffer de 500 metros que no mide 500 metros",
-    "enunciado": "Con las 2 209 sedes educativas de Bogotá, cuenta para cada una cuántas otras caen dentro de un radio de 200, 500 y 1 000 m. Hazlo dos veces: (a) proyectando a EPSG:9377 y usando `st_buffer(x, r)` en metros, y (b) dejando el objeto en EPSG:4326 y usando `st_buffer(x, (r/1000)/111.32)`, que es la conversión de kilómetros a grados en el ecuador. ¿A cuántas sedes les cambia la cuenta con cada radio? ¿La cuenta equivocada sale de más o de menos, y por qué? Y para terminar: calcula cuánto mediría ese mismo buffer en grados, en la dirección este-oeste, a la latitud de Bogotá y a la de Oslo (59,9139°).",
+    "enunciado": "Con las 2 209 sedes educativas de Bogotá, cuenta para cada una cuántas otras caen dentro de un radio de 200, 500 y 1 000 m. Hazlo dos veces: (a) proyectando a EPSG:9377 y usando `st_buffer(x, r)` en metros, y (b) dejando el objeto en EPSG:4326 y usando `st_buffer(x, (r/1000)/111.32)`, que es la conversión de kilómetros a grados en el ecuador. ¿A cuántas sedes les cambia la cuenta con cada radio? ¿La cuenta equivocada sale de más o de menos, y por qué? Y para terminar: calcula cuánto mediría ese mismo buffer en grados, en la dirección este-oeste, a la latitud de Bogotá y a la de Oslo (59.9139°).",
     "pasos": [
       {
         "paso": "Sedes",
@@ -137,7 +137,7 @@
   },
   "e3": {
     "titulo": "Un archivo con el 12 % de las filas invertidas",
-    "enunciado": "Toma las 361 estaciones del IDEAM e invierte la longitud y la latitud del 12 % de las filas, elegidas al azar con `set.seed(2026)`. Ahora olvida cuáles invertiste. Escribe una regla que las señale usando solo la caja envolvente de Colombia (lon de -82,0 a -66,5; lat de -4,5 a 13,5) y calcula sus verdaderos positivos, falsos positivos, falsos negativos, precisión y exhaustividad. Después invierte las señaladas y comprueba cuántas filas quedan bien. ¿Por qué funciona tan bien AQUÍ, y en qué país fallaría?",
+    "enunciado": "Toma las 361 estaciones del IDEAM e invierte la longitud y la latitud del 12 % de las filas, elegidas al azar con `set.seed(2026)`. Ahora olvida cuáles invertiste. Escribe una regla que las señale usando solo la caja envolvente de Colombia (lon de -82.0 a -66.5; lat de -4.5 a 13.5) y calcula sus verdaderos positivos, falsos positivos, falsos negativos, precisión y exhaustividad. Después invierte las señaladas y comprueba cuántas filas quedan bien. ¿Por qué funciona tan bien AQUÍ, y en qué país fallaría?",
     "pasos": [
       {
         "paso": "Filas totales",
@@ -183,7 +183,7 @@
       "pct_arregladas_bien": 100,
       "solapan_las_cajas": false
     },
-    "lectura": "La regla acierta de pleno, y conviene entender por qué: el intervalo de longitudes de Colombia y el de latitudes NO SE SOLAPAN —uno vive en los negativos de dos cifras y el otro entre -4,5 y 13,5—, así que invertir saca al punto de la caja sin excepción. Donde esa condición no se cumple, la regla se calla: en un país que ocupe longitudes y latitudes del mismo rango (Chad, por ejemplo, o cualquier punto cerca del meridiano de Greenwich y del ecuador a la vez) hay filas invertidas que caen dentro del país y no hay forma geométrica de distinguirlas. Ahí la única defensa es la de la fuente: que el CSV declare el orden y que alguien lo lea."
+    "lectura": "La regla acierta de pleno, y conviene entender por qué: el intervalo de longitudes de Colombia y el de latitudes NO SE SOLAPAN —uno vive en los negativos de dos cifras y el otro entre -4.5 y 13.5—, así que invertir saca al punto de la caja sin excepción. Donde esa condición no se cumple, la regla se calla: en un país que ocupe longitudes y latitudes del mismo rango (Chad, por ejemplo, o cualquier punto cerca del meridiano de Greenwich y del ecuador a la vez) hay filas invertidas que caen dentro del país y no hay forma geométrica de distinguirlas. Ahí la única defensa es la de la fuente: que el CSV declare el orden y que alguien lo lea."
   },
   "e4": {
     "titulo": "El vecino más próximo aguanta; el umbral de vecindad, no",
@@ -259,7 +259,7 @@
       "vecino_intacto": true,
       "umbral_falla": true
     },
-    "lectura": "El vecino más próximo no cambia para ninguna estación, y el umbral discrepa en cientos de pares. Las dos cosas salen del mismo dato y no se contradicen. El vecino más próximo es una pregunta de ORDEN: sobrevive a cualquier deformación que no altere el ranking, y en Colombia un grado de longitud mide el 99,67 % de uno de latitud, así que la deformación es demasiado leve para invertir un orden. El umbral es una pregunta de MAGNITUD: hay un corte, y todo par que caiga cerca de él cambia de lado con que la distancia se mueva un 0,3 %. Por eso el número de discrepancias crece con el umbral —hay más pares cerca del corte— y por eso una definición de vecindad por distancia es más frágil que una por k vecinos. Es la decisión que abre el capítulo 6: `dnearneigh` contra `knearneigh` no es cuestión de gusto."
+    "lectura": "El vecino más próximo no cambia para ninguna estación, y el umbral discrepa en cientos de pares. Las dos cosas salen del mismo dato y no se contradicen. El vecino más próximo es una pregunta de ORDEN: sobrevive a cualquier deformación que no altere el ranking, y en Colombia un grado de longitud mide el 99.67 % de uno de latitud, así que la deformación es demasiado leve para invertir un orden. El umbral es una pregunta de MAGNITUD: hay un corte, y todo par que caiga cerca de él cambia de lado con que la distancia se mueva un 0.3 %. Por eso el número de discrepancias crece con el umbral —hay más pares cerca del corte— y por eso una definición de vecindad por distancia es más frágil que una por k vecinos. Es la decisión que abre el capítulo 6: `dnearneigh` contra `knearneigh` no es cuestión de gusto."
   },
   "e5": {
     "titulo": "Un requisito, y la tolerancia que implica",
@@ -332,7 +332,7 @@
     "capitulo": 2,
     "semilla": 2026,
     "n_ejercicios": 5,
-    "generado": "2026-09-24",
+    "generado": "2026-09-25",
     "r": "R version 4.4.1 (2024-06-14)"
   }
 }
