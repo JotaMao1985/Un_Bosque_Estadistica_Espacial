@@ -272,6 +272,18 @@ AFIRMACIONES = [
      "reproduce por construcción la tendencia"),
     ("da el veredicto del diagnóstico",
      "no explica que los colegios estén cerca"),
+    # La segunda revisión (M2 y M4, 2026-09-24): el 9 leía su z como si las
+    # sedes fueran independientes, y el 10 leía el nivel puntual como el de
+    # la curva entera. Si una reescritura borra el condicional o la lectura
+    # entera, el capítulo vuelve a afirmar lo que su propio módulo 10 tumba.
+    ("declara que la z del módulo 9 depende del supuesto de independencia",
+     "el condicional va a propósito"),
+    ("dice que el nivel puntual no es la seguridad de la curva entera",
+     "la seguridad de la curva entera"),
+    ("declara que con conglomerado no hay evidencia del gradiente",
+     "del gradiente este-oeste no hay evidencia"),
+    ("dice que el error de Poisson contesta otra pregunta",
+     "es la respuesta a otra pregunta"),
     ("declara que cambiar la corrección de kppm no es un acelerón sino otra respuesta",
      "es otra respuesta"),
     ("dice que el contraste mínimo ajusta el modelo a una estimación de K",
@@ -282,6 +294,39 @@ AFIRMACIONES = [
      "la hipótesis es falsa"),
     ("declara que la fuente del caso trabajado no llegó y por eso no se escribe",
      "la fuente no llegó"),
+    # M3 (2026-09-24): el módulo 8 prometía ver la verosimilitud por dentro
+    # y no la escribía, y afirmaba que el homogéneo ponía a prueba a
+    # Berman-Turner cuando `ppm` lo resuelve con la fórmula cerrada. Si una
+    # reescritura borra cualquiera de estas, vuelve el módulo de antes.
+    ("dice que el modelo ajustado reparte tantos puntos esperados como hay",
+     "exactamente tantos puntos como hay"),
+    ("declara que la comprobación del homogéneo no prueba la cuadratura",
+     "valida la fórmula, no la maquinaria"),
+    ("dice que los pesos por defecto no suman el área de la ventana",
+     "no suman el área de la ventana"),
+    ("dice que el área de las teselas vacías no la cuenta nadie",
+     "su área no la cuenta nadie"),
+    ("declara que con la integral bien hecha los cuatro son el mismo modelo",
+     "los cuatro ajustes son el mismo modelo"),
+    ("dice que el modelo constante también necesita su cuadratura",
+     "ajusta sin ninguna si no se le obliga"),
+    # M5 (2026-09-24): los enunciados de los ejercicios preguntaban cosas
+    # que la solución no contestaba. Estas son las respuestas que más
+    # enseñan; si se caen, vuelve la tabla muda.
+    ("el ejercicio 1 dice que no hay ancho óptimo que publicar",
+     "no hay ancho que publicar"),
+    ("el ejercicio 2 dice cuánto más cerca queda diggle",
+     "más de mil veces más pequeño"),
+    ("el ejercicio 2 contesta si se nota mirando el mapa",
+     "el ojo no integra"),
+    ("el ejercicio 3 dice que la z no se compara con un cociente",
+     "con ninguno, porque no mide lo mismo"),
+    ("el ejercicio 3 dice qué le hace el conglomerado a la z",
+     "se multiplica por unas diez"),
+    ("el ejercicio 4 dice por qué try() no caza nada",
+     "no hay ningún error que atrapar"),
+    ("el ejercicio 4 dice adónde va el desplazamiento",
+     "todo el desplazamiento lo absorbe el intercepto"),
 ]
 
 # Si la codificación se rompe, las tildes no desaparecen: se convierten en
@@ -389,6 +434,63 @@ def familia(a: Auditor) -> None:
             f"{kb:.1f} KB de {TOPE_FAMILIA_KB:.0f} KB, tal como viajan")
 
 
+def respuestas_publicadas(a: Auditor) -> None:
+    """M5 · CADA RESPUESTA DEL JSON, EN SU PANEL, Y NINGUNA DE MÁS.
+
+    `audita_cap5.py` comprueba que cada pregunta del enunciado tenga su
+    respuesta en `cap5_soluciones.json`. Eso no dice nada de la página: el
+    ensamblador podría dejarse una, o pintarla en el panel de otro
+    ejercicio, y el JSON seguiría impecable. Aquí se lee el documento.
+    """
+    print("\n=== Las respuestas de los ejercicios, en su panel ==========")
+    S = json.loads((SALIDAS / "cap5_soluciones.json").read_text(encoding="utf-8"))
+    for k in range(1, S["meta"]["n_ejercicios"] + 1):
+        resp = S[f"e{k}"]["solucion"].get("respuestas") or []
+        m = re.search(rf'id="cap5-e{k}-sol".*?</div>', a.doc, re.S)
+        if not a.exige(m is not None, f"el panel de la solución {k} está en el documento"):
+            continue
+        panel = m.group(0)
+        n_pub = panel.count('class="ejercicio-respuesta"')
+        a.exige(n_pub == len(resp) and len(resp) > 0,
+                f"la solución {k} publica todas sus respuestas", f"{n_pub} de {len(resp)}")
+        faltan = [r["pide"] for r in resp
+                  if re.sub(r"`([^`]+)`", r"<code>\1</code>", r["respuesta"]) not in panel]
+        a.exige(not faltan, f"la solución {k} publica cada respuesta entera", "; ".join(faltan))
+
+
+# El final es `(?!\d|[.,]\d)` y no `(?![\d,])`: con este, un decimal seguido de una coma de
+# puntuación se escapaba: la rama de M6 dejaba «sigma = 0,5, 1 y 2» en el enunciado del E2 (visto al
+# llevarla sobre main, 2026-09-26). `(?![\d.]|,\d)` tampoco sirve: pierde el decimal que cierra una frase.
+COMA_DECIMAL = re.compile(r"(?<![\d.,])\d+,\d+(?!\d|[.,]\d)")
+# Un formateador de JavaScript que cambia el punto por coma: `.replace('.', ',')`
+# o `.replace(/\./g, ',')`. Las lecturas de los simuladores no están en el
+# HTML —se escriben al mover un control—, así que en ellas se mira la causa.
+PUNTO_A_COMA = re.compile(
+    r"""\.replace\(\s*(?:(['"])\.\1|/\\\./g?)\s*,\s*(['"]),\2\s*\)""")
+
+
+def decimales_con_punto(a: Auditor) -> None:
+    """M6 · UN SOLO SEPARADOR DECIMAL, EL PUNTO.
+
+    `n()` escribía punto y `pct()` coma, y los dos alimentaban los mismos
+    párrafos: «de 29.5 por km² a 9.9 por km²: un 66,3 %». El curso publica
+    con punto —más de mil decimales contra una treintena—, y la coma
+    volvía por tres puertas: `pct()`, un «1,96» escrito a mano y el `exp5`
+    de las lecturas. Se cierran las dos que se pueden mirar sin ejecutar la
+    página: la prosa publicada y los formateadores que escriben las lecturas.
+    """
+    print("\n=== Los decimales, con punto =================================")
+    comas = [a.prosa_txt[max(0, m.start() - 30):m.end() + 5].strip()
+             for m in COMA_DECIMAL.finditer(a.prosa_txt)]
+    a.exige(not comas, "la prosa no escribe ningún decimal con coma",
+            " · ".join(f"«{c}»" for c in comas[:3]))
+    guiones = "\n".join(re.findall(r"<script[^>]*>(.*?)</script>", a.doc, re.S))
+    cambios = [guiones[max(0, m.start() - 50):m.end()].strip().splitlines()[-1]
+               for m in PUNTO_A_COMA.finditer(guiones)]
+    a.exige(not cambios, "ningún formateador cambia el punto por coma",
+            " · ".join(cambios[:2]))
+
+
 def figuras_simulacro(a: Auditor) -> None:
     """LAS FIGURAS DEL SIMULACRO, EN SUS DOS VERSIONES (2026-09-25).
 
@@ -441,6 +543,8 @@ def main() -> int:
     a.accesibilidad()
     a.geomapas()
     familia(a)
+    respuestas_publicadas(a)
+    decimales_con_punto(a)
     figuras_simulacro(a)
     a.formulas_escapadas()
     a.codificacion()

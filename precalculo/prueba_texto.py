@@ -953,6 +953,64 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
          "es otra respuesta", "tarda menos", True),
         ("desaparece que la fuente del caso trabajado no llegó",
          "La fuente no llegó", "La fuente se consultó", True),
+        # La segunda revisión (M2 y M4): la z del 9 con conglomerado y la
+        # banda leída entera. Una afirmación que desaparece y dos cifras.
+        ("desaparece que con conglomerado no hay evidencia del gradiente",
+         "del gradiente este-oeste no hay evidencia",
+         "del gradiente este-oeste la evidencia se matiza", True),
+        ("la tasa de salida de la banda leída entera, cambiada",
+         f"<strong>{f(m10['tasa_salida']['pct'], 5)} %</strong>",
+         f"<strong>{perturba(m10['tasa_salida']['pct'], 5)} %</strong>"),
+        ("el n efectivo del gradiente, cambiado",
+         f"<strong>{f(m11['tendencia']['n_efectivo'])}</strong> independientes",
+         f"<strong>{perturba(m11['tendencia']['n_efectivo'])}</strong> independientes"),
+        # M3: la verosimilitud por dentro del módulo 8. Dos afirmaciones que
+        # desaparecen y tres cifras: la EMV forzada, la ciudad sin contar y
+        # lo que la distancia «gana» por AIC de ppm.
+        ("desaparece que el área de las teselas vacías no la cuenta nadie",
+         "<strong>Su área no la cuenta nadie.</strong>",
+         "<strong>Su área se reparte entre las vecinas.</strong>", True),
+        ("desaparece que el constante también necesita su cuadratura",
+         "ajusta sin ninguna si no se le obliga",
+         "ajusta con la suya propia", True),
+        ("la EMV del homogéneo forzado por la cuadratura, cambiada",
+         f"<strong>{f(m8['forzado']['lambda_km2'])}</strong> sedes por km²",
+         f"<strong>{perturba(m8['forzado']['lambda_km2'])}</strong> sedes por km²"),
+        ("la ciudad que la cuadratura deja sin contar, cambiada",
+         f"<strong>{f(m8['cuadratura']['tabla'][1]['sin_contar_km2'])}</strong> km² de ciudad",
+         f"<strong>{perturba(m8['cuadratura']['tabla'][1]['sin_contar_km2'])}</strong> km² de ciudad"),
+        ("lo que la distancia gana por AIC de ppm, cambiado",
+         f"<strong>{f(m8['comparacion']['gana_distancia_ppm'])}</strong> puntos",
+         f"<strong>{perturba(m8['comparacion']['gana_distancia_ppm'])}</strong> puntos"),
+        # M5: cada pregunta de los enunciados tiene su respuesta en el panel.
+        # Una respuesta que deja de pintarse como tal, otra que dice algo
+        # distinto de su JSON, dos afirmaciones que se caen y una cifra
+        # nueva de la tabla del ejercicio 3.
+        ("una respuesta de ejercicio deja de publicarse como tal",
+         '<p class="ejercicio-respuesta"><strong>¿Cuál de los dos ajustes',
+         '<p class="ejercicio-nota"><strong>¿Cuál de los dos ajustes'),
+        ("una respuesta publicada deja de decir lo que su JSON",
+         "El desplazado: el original da", "El original: el desplazado da"),
+        ("desaparece que no hay ancho óptimo que publicar",
+         "No hay ancho que publicar.", "Ese es el ancho.", True),
+        ("desaparece qué le hace el conglomerado a la z",
+         "se multiplica por unas diez", "se queda como estaba", True),
+        ("la z de kppm con traslación del ejercicio 3, cambiada",
+         f"<td>{S['e3']['solucion']['kppm']['traslacion']['z']:g}</td>",
+         f"<td>{perturba(S['e3']['solucion']['kppm']['traslacion']['z'], 10)}</td>"),
+        # M6 (2026-09-25): la coma decimal, por sus dos puertas. La cifra
+        # sigue siendo la misma —`cifras()` lee «66,3» como 66.3 y la da
+        # por buena—, así que solo la caza la comprobación del separador.
+        ("vuelve una coma decimal a la prosa",
+         "un <strong>66.3 %</strong>", "un <strong>66,3 %</strong>"),
+        ("un formateador de las lecturas vuelve a escribir coma",
+         "toExponential(d == null ? 2 : d);",
+         "toExponential(d == null ? 2 : d).replace('.', ',');"),
+        # (2026-09-26) el decimal con coma seguido de una coma de
+        # puntuación: el patrón de M6 lo dejaba pasar, y así sobrevivió
+        # «sigma = 0,5, 1 y 2» en el enunciado del E2.
+        ("vuelve una coma decimal seguida de una coma de puntuación",
+         "sigma = 0.5, 1 y 2", "sigma = 0,5, 1 y 2"),
         # --- LOS MECANISMOS QUE NINGÚN CAPÍTULO HABÍA VISTO FALLAR ---
         # El arnés imprime cuántas comprobaciones se ha visto caer, y al
         # mirar la lista de este capítulo quedaban dentro de `geomapas()`

@@ -123,8 +123,14 @@ def firma(valor, unidad=""):
     return f"<strong>{valor}</strong>{unidad}"
 
 
+# El porcentaje lleva PUNTO decimal, como `n()` y como el resto del curso.
+# Hasta M6 (2026-09-25) este formateador cambiaba el punto por coma, y el
+# capítulo escribía «de 29.5 por km² a 9.9 por km²: un 66,3 %» en una sola
+# frase. Medido sobre todo lo publicado: más de mil decimales con punto y
+# una treintena con coma, casi todos de aquí. `audita_texto_cap5.py` para
+# el documento si vuelve una coma decimal a la prosa o a un formateador.
 def pct(x, d=1):
-    return f"{float(x):.{d}f} %".replace(".", ",")
+    return f"{float(x):.{d}f} %"
 
 
 def cabecera(num, titulo, ingles, objetivo):
@@ -219,6 +225,17 @@ def fila(*celdas):
     cab, resto = celdas[0], celdas[1:]
     return ('            <tr><th scope="row">' + str(cab) + '</th>'
             + ''.join('<td>' + str(c) + '</td>' for c in resto) + '</tr>\n')
+
+
+def fila_fija(*celdas):
+    """La fila de una tabla ancha, con su rótulo fijo al desplazarla.
+
+    Es la receta de los capítulos 3 y 4 para el teléfono: la tabla se
+    desplaza dentro de su caja y la primera columna se queda, para que al
+    llegar a la cifra se siga sabiendo de qué fila es.
+    """
+    return fila(*celdas).replace('<th scope="row">',
+                                 '<th scope="row" style="position:sticky; left:0; z-index:1;">', 1)
 
 
 def quiz_html(ident, titulo, bajada):
@@ -1351,9 +1368,9 @@ MOD7 = cabecera(
 # MÓDULO 8 · El proceso de Poisson inhomogéneo
 # =====================================================================
 R8 = '''# LA IDENTIDAD QUE CIERRA EL CIRCULO CON EL CAPITULO 1: la estimacion de
-# maxima verosimilitud de un Poisson HOMOGENEO es n/|W|. Que `ppm` la
-# recupere dice que la maquinaria de Berman-Turner resuelve el problema
-# que dice resolver.
+# maxima verosimilitud de un Poisson HOMOGENEO es n/|W|. `ppm` la
+# devuelve, pero sin ajustar nada: ante un modelo sin covariables aplica
+# la formula cerrada, y lo declara en el propio ajuste.
 f0 &lt;- ppm(pu ~ 1)
 print(c(mle = exp(coef(f0)[[1]]), ingenua = npoints(pu) / area.owin(WU)),
       digits = 6)
@@ -1362,6 +1379,19 @@ print(c(mle = exp(coef(f0)[[1]]), ingenua = npoints(pu) / area.owin(WU)),
 
 round(exp(coef(f0)[[1]]) * 1e6, 4)      # por km2: la lambda del capitulo 1
 #&gt; [1] {LAMKM}
+f0$fitter
+#&gt; [1] &quot;{FITTER}&quot;
+
+# OBLIGADO A PASAR POR LA CUADRATURA, la EMV es n / sum(w), y los pesos
+# por defecto no suman el area de la ventana.
+f0q &lt;- ppm(pu ~ 1, forcefit = TRUE)
+w0 &lt;- w.quad(quad.ppm(f0q))
+round(c(forzado = exp(coef(f0q)[[1]]), n_entre_pesos = npoints(pu) / sum(w0)) * 1e6, 5)
+#&gt;       forzado n_entre_pesos
+#&gt;       {LAMQ}       {LAMQ}
+print(c(pesos = sum(w0), ventana = area.owin(WU)) / 1e6, digits = 8)
+#&gt;     pesos   ventana
+#&gt; {PESOS} {AREA}
 
 # LA CUADRATURA NO ES INOCENTE. Berman-Turner convierte la verosimilitud
 # en una regresion de Poisson sobre los puntos MAS una malla de puntos
@@ -1383,23 +1413,57 @@ c(nd100 = npoints(quad.ppm(f1)$dummy), nd300 = npoints(quad.ppm(f3)$dummy))
 # siete digitos de siempre no se ve: hay que pedirle a `print` que los de.
 print(c(nd100 = AIC(f1), nd300 = AIC(f3)), digits = 10)
 #&gt;       nd100       nd300
-#&gt; {AIC1} {AIC3}'''
+#&gt; {AIC1} {AIC3}
+
+# LO QUE HAY DENTRO DEL logLik: la suma de log(lambda) en las sedes menos
+# la suma que sustituye a la integral, que en el maximo vale n EXACTO.
+# `fitted()` da lambda en todos los puntos de la cuadratura.
+q1 &lt;- quad.ppm(f1); lam1 &lt;- fitted(f1)
+print(c(suma_log = sum(log(lam1[is.data(q1)])), integral = sum(w.quad(q1) * lam1),
+        logLik = as.numeric(logLik(f1))), digits = 10)
+#&gt;     suma_log     integral       logLik
+#&gt; {SLOG}   {NDEC} {LLP}
+
+# Y la integral hecha bien, sin cuadratura: el area por la media de
+# lambda en una malla fina. El modelo ajustado pone sedes de mas.
+round(area.owin(WU) * mean(predict(f1, dimyx = 2048)), 2)
+#&gt; [1] {INTX}'''
 
 PY8 = '''# La EMV de un Poisson homogeneo no necesita optimizador ninguno: es
 # n dividido por el area de la ventana, y sale igual a la decima cifra.
 print(float(f&quot;{{len(urb) / WU.area:.6g}}&quot;))
 #&gt; {LAM}
 print(round(len(urb) / WU.area * 1e6, 4))
-#&gt; {LAMKM}'''
+#&gt; {LAMKM}
 
+# Y su log-verosimilitud tampoco necesita cuadratura: con lambda
+# constante, la suma de logaritmos es n log(lambda) y la integral es n.
+n_u = len(urb)
+print(round(n_u * np.log(n_u / WU.area) - n_u, 5))
+#&gt; {LLH}'''
+
+_h8, _fz, _cp = m8["homogeneo"], m8["forzado"], m8["comparacion"]
 _cu = m8["cuadratura"]
+_t100 = _cu["tabla"][1]
+if _t100["nd"] != _cu["defecto_nd"]:
+    sys.exit("PARADO: la fila 1 de la tabla de cuadraturas ya no es la de por defecto, "
+             "y el módulo 8 lee de ella el área que la cuadratura deja sin contar")
 _SUB8 = dict(
-    LAM=f'{m8["homogeneo"]["lambda_mle_m2"]:g}',
-    LAMKM=n(m8["homogeneo"]["lambda_km2"], 4),
+    LAM=f'{_h8["lambda_mle_m2"]:g}',
+    LAMKM=n(_h8["lambda_km2"], 4),
+    FITTER=_h8["fitter"],
+    LAMQ=n(_fz["lambda_km2"], 5),
+    PESOS=n(_fz["suma_pesos_km2"], 5),
+    AREA=n(_fz["area_km2"], 5),
     FIC=ent_codigo(_cu["defecto_ficticios"]),
-    AIC1=n(_cu["tabla"][1]["aic"], 5),
+    AIC1=n(_t100["aic"], 5),
     FIC3=ent_codigo(_cu["tabla"][-1]["ficticios"]),
-    AIC3=n(_cu["tabla"][-1]["aic"], 5))
+    AIC3=n(_cu["tabla"][-1]["aic"], 5),
+    SLOG=n(_t100["suma_log"], 5),
+    NDEC=n(_h8["n"], 5),
+    LLP=n(_t100["logver_ppm"], 5),
+    INTX=n(_t100["integral_exacta"], 2),
+    LLH=n(_h8["logver"], 5))
 
 MOD8 = cabecera(
     8, "El Poisson inhomogéneo", "The inhomogeneous Poisson process",
@@ -1422,26 +1486,96 @@ MOD8 = cabecera(
         <strong>una función log-lineal de covariables</strong>. La exponencial no es un adorno —
         garantiza que λ sea positiva pase lo que pase con los coeficientes.</p>
 
+      <h3>La verosimilitud, escrita</h3>
+
+      <p>Ajustar es elegir los coeficientes β que hacen más probable el patrón que se observó.
+        Para un proceso de Poisson esa probabilidad tiene una forma corta, y su logaritmo —la
+        <strong>log-verosimilitud</strong>, ℓ— es:</p>
+
+      <div class="formula">
+        $$\\ell(\\beta) \;=\; \\sum_{{i=1}}^{{n}} \\log \\lambda(x_i;\\beta) \;-\; \\int_W \\lambda(u;\\beta)\\,du$$
+      </div>
+
+      <p>Los x<sub>i</sub> son las n sedes, W es la ventana y u recorre todos sus puntos, haya
+        sede o no. Los dos términos tiran en sentidos contrarios. El primero suma el logaritmo de
+        la intensidad <strong>en cada sede</strong>: premia poner intensidad donde hay puntos. El
+        segundo es el número esperado de puntos en toda la ventana, y resta: cobra cada unidad de
+        intensidad puesta <strong>en cualquier sitio</strong>. Sin el segundo, el máximo estaría
+        en una intensidad infinita; sin el primero, en cero. El ajuste es el punto en que los dos
+        se equilibran.</p>
+
+      <p>Ese equilibrio tiene una consecuencia que conviene ver antes de ajustar nada. El
+        intercepto β<sub>0</sub> multiplica toda la intensidad por e<sup>β<sub>0</sub></sup>, así
+        que al subirlo un poco el primer término crece en n veces lo que se subió y el segundo, en
+        su propio valor por lo mismo. En el máximo los dos crecimientos se cancelan:</p>
+
+      <div class="formula">
+        $$\\begin{{aligned}}
+          \\frac{{\\partial \\ell}}{{\\partial \\beta_0}} &amp;= n - \\int_W \\lambda(u)\\,du \\\\[6pt]
+          \\text{{en el máximo:}}\\quad \\int_W \\hat\\lambda(u)\\,du &amp;= n
+        \\end{{aligned}}$$
+      </div>
+
+      <p><strong>El modelo ajustado reparte por la ventana, en esperanza, exactamente tantos
+        puntos como hay</strong>, tenga las covariables que tenga, siempre que lleve intercepto.
+        La igualdad vuelve en cada una de las secciones que siguen.</p>
+
       <h3>La comprobación que cierra el círculo</h3>
 
-      <p>Si el modelo se ajusta sin covariables, tiene que devolver la intensidad ingenua del
-        capítulo 1: la EMV de un Poisson homogéneo <strong>es</strong> n/|W|. Medido sobre la
-        ciudad, las dos coinciden con una diferencia relativa de
-        {firma(f'{m8["homogeneo"]["dif_relativa"]:g}')} —el ruido de coma flotante— y la cifra a
-        la que llegan es {firma(n(m8["homogeneo"]["lambda_km2"], 4), " sedes por km²")}, la misma
-        que el capítulo 1 publicó y el 4 ancló.</p>
+      <p>Sin covariables, λ es una constante y su integral es λ·|W|, así que la igualdad se
+        vuelve λ̂·|W| = n: la EMV de un Poisson homogéneo <strong>es</strong> n/|W|, la
+        intensidad ingenua del capítulo 1. Medido sobre la ciudad, <code>ppm</code> la devuelve
+        con una diferencia relativa de {firma(f'{_h8["dif_relativa"]:g}')} —el ruido de coma
+        flotante— y la cifra a la que llega es
+        {firma(n(_h8["lambda_km2"], 4), " sedes por km²")}, la misma que el capítulo 1 publicó y
+        el 4 ancló.</p>
 
-      <p>No es un detalle de implementación: es la prueba de que el aparato que viene ahora
-        resuelve el problema que dice resolver.</p>
+      <p>Hay que decir cómo llega, porque no es por donde parece. Ante un modelo sin covariables,
+        <code>ppm</code> no ajusta nada: aplica la fórmula cerrada, y lo declara en el propio
+        ajuste, <code>fitter = "{_h8["fitter"]}"</code>. <strong>La comprobación valida la
+        fórmula, no la maquinaria</strong> con la que se ajusta todo lo demás. Esa maquinaria se
+        pone a prueba en la sección siguiente, y no sale igual de limpia.</p>
 
       <h3>Berman-Turner, y la malla que nadie escribe</h3>
 
-      <p>La verosimilitud de un proceso puntual lleva una integral sobre la ventana, y esa
-        integral no tiene forma cerrada. El truco de Berman y Turner es aproximarla por
-        cuadratura y convertir todo el problema en una <strong>regresión de Poisson ponderada</strong>
-        sobre los puntos del dato <em>más</em> una malla de puntos ficticios. Cuántos ficticios lo
-        decide el argumento <code>nd</code>, y su valor por defecto —{_cu["defecto_nd"]}— pone
-        {firma(ent(_cu["defecto_ficticios"]), " puntos ficticios")} sobre esta ventana.</p>
+      <p>En cuanto λ depende de una covariable, la integral del segundo término deja de tener
+        forma cerrada. El truco de Berman y Turner es aproximarla por <strong>cuadratura</strong>:
+        se toman unos puntos u<sub>j</sub> —las sedes <em>más</em> una malla de puntos
+        ficticios—, se le da a cada uno un peso w<sub>j</sub>, que es el trozo de ventana que
+        representa, y la integral se cambia por una suma. La primera línea es esa aproximación; la
+        segunda, lo que queda de ℓ al hacerla:</p>
+
+      <div class="formula">
+        $$\\begin{{aligned}}
+          \\int_W \\lambda(u)\\,du &amp;\\approx \\sum_j w_j\\,\\lambda(u_j) \\\\[6pt]
+          \\ell(\\beta) &amp;\\approx \\sum_j w_j\\,\\big(y_j \\log \\lambda(u_j) - \\lambda(u_j)\\big)
+        \\end{{aligned}}$$
+      </div>
+
+      <p>Con y<sub>j</sub> igual a 1/w<sub>j</sub> en las sedes y a cero en los ficticios, la
+        segunda línea es la log-verosimilitud de una <strong>regresión de Poisson
+        ponderada</strong>: por eso <code>ppm</code> ajusta con <code>glm</code>. Cuántos
+        ficticios hay lo decide el argumento <code>nd</code>, y su valor por defecto
+        —{_cu["defecto_nd"]}— pone {firma(ent(_cu["defecto_ficticios"]), " puntos ficticios")}
+        sobre esta ventana.</p>
+
+      <p>La prueba que la comprobación de antes no hizo es obligar a <code>ppm</code> a pasar el
+        modelo homogéneo por esta maquinaria, con <code>forcefit = TRUE</code>. Devuelve
+        {firma(n(_fz["lambda_km2"]), " sedes por km²")} en vez de {n(_h8["lambda_km2"])}, y la
+        razón está en la igualdad ∫ λ̂ = n, ahora con la suma en lugar de la
+        integral: la EMV pasa a ser n / Σ w<sub>j</sub>, y los pesos por defecto <strong>no suman
+        el área de la ventana</strong>. Suman {n(_fz["suma_pesos_km2"])} km², y la ciudad mide
+        {n(_fz["area_km2"])}. La intensidad sale un {pct(_fz["exceso_pct"], 2)} más alta.</p>
+
+      <p>Faltan {firma(n(_t100["sin_contar_km2"]), " km²")} de ciudad, y se sabe dónde están.
+        Los pesos salen de partir la caja de la ciudad en una rejilla de
+        {_t100["rejilla_pesos"]} × {_t100["rejilla_pesos"]} teselas y repartir el área de cada una
+        entre los puntos de la cuadratura que caen dentro. De las {ent(_t100["teselas_tocan"])}
+        teselas que tocan la ciudad, {firma(ent(_t100["teselas_vacias"]))} se quedan sin ninguno:
+        son teselas del borde que la tocan con una esquina o una franja estrecha, sin ninguna sede
+        dentro, y en las que <code>spatstat</code> no pone ficticio, porque los coloca mirando una
+        rejilla de píxeles de {_t100["pixeles"]} × {_t100["pixeles"]} y esa franja no contiene el
+        centro de ninguno. <strong>Su área no la cuenta nadie.</strong></p>
 
       <table class="tabla-datos">
         <caption>El mismo modelo con cuatro cuadraturas</caption>
@@ -1458,26 +1592,74 @@ MOD8 = cabecera(
       <p>Dos lecturas, y la segunda es la que muerde. La primera: el coeficiente <strong>se mueve
         poco en unidades de su propio error</strong> —de un extremo a otro de la tabla cambia
         {firma(n(_cu["rango_pendiente_en_ee"]), " errores estándar")}—, así que la inferencia
-        aguanta. La segunda: <strong>el AIC se mueve {n(_cu["rango_aic"], 1)} puntos</strong>.</p>
+        aguanta. La segunda: <strong>el AIC se mueve {n(_cu["rango_aic"], 1)} puntos</strong>, y
+        no en la dirección de <code>nd</code>: baja, se queda quieto y vuelve a subir.</p>
+
+      <h3>De dónde salen los {n(_cu["rango_aic"], 1)} puntos</h3>
+
+      <p>La igualdad ∫ λ̂ = n dice dónde mirar. En el máximo, la suma que sustituye a
+        la integral vale <strong>exactamente n</strong>, así que lo que <code>ppm</code> publica
+        como log-verosimilitud es la suma de los logaritmos en las sedes menos {ent(_h8["n"])}.
+        Pero la integral de verdad del modelo ajustado ya no es n: la cuadratura se deja fuera un
+        trozo de ciudad, el intercepto sube para que la suma cuadre, y sobre la ciudad entera el
+        modelo pone más sedes esperadas de las que hay. Se puede medir haciendo la integral bien,
+        sin cuadratura, con una malla fina de píxeles:</p>
+
+      <table class="tabla-datos" style="position:relative; overflow:visible; width:100%; min-width:32rem;">
+        <caption>La misma log-verosimilitud, con la integral de <code>ppm</code> y con la
+          integral bien hecha</caption>
+        <thead><tr><th scope="col" style="position:sticky; left:0; z-index:2;"><code>nd</code></th>
+          <th scope="col">Ciudad sin contar (km²)</th>
+          <th scope="col">Sedes esperadas, integral bien hecha</th>
+          <th scope="col">ℓ de <code>ppm</code></th>
+          <th scope="col">ℓ con la integral bien hecha</th></tr></thead>
+        <tbody>
+""" + "".join(
+    fila_fija(ent(z["nd"]), n(z["sin_contar_km2"]), n(z["integral_exacta"], 2),
+              n(z["logver_ppm"], 2), n(z["logver_exacta"], 2))
+    for z in _cu["tabla"]) + f"""        </tbody>
+      </table>
+
+      <p>Los cuatro ajustes son el mismo modelo: con la integral bien hecha, su log-verosimilitud
+        cambia {firma(n(_cu["rango_logver_exacta"], 2))} de un extremo a otro. La que publica
+        <code>ppm</code> cambia {firma(n(_cu["rango_logver_ppm"]))}, y todo lo que sobra es el
+        segundo término: la intensidad que el modelo pone sobre la ciudad que su cuadratura no ve.
+        Por eso el AIC sigue a la columna de la ciudad sin contar y no a <code>nd</code>. Con
+        <code>nd = {_cu["tabla"][1]["nd"]}</code> y <code>nd = {_cu["tabla"][2]["nd"]}</code> se
+        pierde exactamente la misma —comparten la rejilla de teselas y la de píxeles— y el AIC es
+        casi el mismo; con <code>nd = {_cu["tabla"][3]["nd"]}</code> se pierde la que menos, y su
+        AIC es el más alto. Dos <code>ppm</code> ajustados con cuadraturas distintas tienen AIC que
+        <strong>no son comparables</strong>, y no por un matiz: {n(_cu["rango_aic"], 1)} puntos de
+        AIC deciden entre dos modelos con soltura, y estos no vienen de ningún modelo.</p>
 
       <div class="nota-lateral">
-        <h4>Por qué esos {n(_cu["rango_aic"], 1)} puntos importan tanto</h4>
-        <p style="margin-bottom:0;">El AIC de <code>ppm</code> sale de la verosimilitud
-          <em>aproximada por la cuadratura</em>. Dos modelos ajustados con cuadraturas distintas
-          tienen AIC que <strong>no son comparables</strong> — y comparar modelos es exactamente
-          para lo que se usa el AIC. Nueve puntos de AIC deciden entre dos modelos con soltura;
-          aquí no vienen de ningún modelo, vienen de un argumento que no se escribió.</p>
+        <h4>La comparación que más se hace es la que peor sale</h4>
+        <p style="margin-bottom:0;">¿Mejora la distancia al centro al modelo constante? Con los
+          AIC que devuelve <code>ppm</code>, sí, y por
+          {firma(n(_cp["gana_distancia_ppm"]), " puntos")}: una diferencia que nadie discutiría.
+          Pero el constante se ajustó con la fórmula cerrada, que ve la ciudad entera, y el de la
+          distancia con la cuadratura por defecto, que se deja {n(_t100["sin_contar_km2"])} km² sin
+          contar. Con la integral bien hecha en los dos, <strong>empatan</strong>:
+          {n(_cp["gana_constante_exacta"], 2)} puntos, y a favor del constante. Forzando al
+          constante por la misma cuadratura, los dos arrastran el mismo error y el empate vuelve:
+          {n(_cp["gana_constante_misma"])} puntos, también a favor del constante. Es lo mismo que
+          dirá la z de ese coeficiente en el módulo 9, y con el mismo matiz: lo que no aporta nada
+          es una relación <em>log-lineal</em> con la distancia, que no es lo mismo que ninguna
+          relación.</p>
       </div>
 
 {sim("cap5-cuadratura", "La cuadratura, y lo que le hace a lo que se lee",
-      "Los dos botones recorren la misma cuadratura —de nd = 50 a nd = 300— y la miran de "
-      "dos maneras: la banda del coeficiente, que apenas se mueve, y el AIC, que se mueve "
-      "lo que decide un modelo.")}
+      f"Los tres botones recorren la misma cuadratura —de nd = {_cu['tabla'][0]['nd']} a "
+      f"nd = {_cu['tabla'][-1]['nd']}— y la miran de tres maneras: la banda del coeficiente, "
+      "que apenas se mueve; el AIC, que se mueve lo que decide un modelo; y la "
+      "log-verosimilitud por dentro, la que publica <code>ppm</code> contra la de la integral "
+      "bien hecha.")}
       <p>La regla que sale de aquí es corta: <strong>la cuadratura viaja con el modelo</strong>.
-        Comparar dos <code>ppm</code> por AIC solo vale si los dos se ajustaron con la misma, y
-        eso hay que escribirlo, porque el defecto no aparece en ninguna de las dos llamadas.</p>
+        Comparar dos <code>ppm</code> por AIC solo vale si los dos se ajustaron con la misma, y eso
+        incluye al modelo constante, que <code>ppm</code> ajusta sin ninguna si no se le obliga.
+        Hay que escribirlo, porque el defecto no aparece en ninguna de las llamadas.</p>
 
-{tabs("La EMV homogénea y la cuadratura por defecto", R8.format(**_SUB8), PY8.format(**_SUB8))}
+{tabs("La EMV homogénea, la cuadratura y el logLik por dentro", R8.format(**_SUB8), PY8.format(**_SUB8))}
       <p>Con el modelo montado, el módulo siguiente hace lo único que queda por hacer con él:
         leer los coeficientes. Y ahí espera un defecto que no avisa.</p>
 """ + CIERRE
@@ -1540,7 +1722,8 @@ MOD9 = cabecera(
 
       <h3>Trampa 1: el sistema de referencia dentro de la verosimilitud</h3>
 
-      <p><code>ppm(pu ~ x + y)</code> ajusta, mejora el AIC frente al modelo constante y devuelve
+      <p><code>ppm(pu ~ x + y)</code> ajusta, mejora el AIC frente al modelo constante —también
+        con la integral bien hecha del módulo 8, que es lo primero que hay que mirar— y devuelve
         tres coeficientes con toda la pinta de serlo —uno de ellos un intercepto de
         {firma(n(_cr["coef"][0], 3))}—. Y sus errores estándar son <code>NA</code>: la información
         de Fisher es singular. En EPSG:9377 las coordenadas de Bogotá son números de siete cifras,
@@ -1576,17 +1759,21 @@ MOD9 = cabecera(
     for i in range(len(_cd["coef"]))) + f"""        </tbody>
       </table>
 
-      <p>Con el modelo legible, la lectura es directa: el coeficiente de <code>xc</code> vale
+      <p>Con el modelo legible, la lectura parece directa: el coeficiente de <code>xc</code> vale
         {n(_ce["coef"][1], 4)} por kilómetro hacia el este —negativo, así que la intensidad baja
         yendo al este— y su z es {n(_ce["z"][1], 2)}; el de <code>yc</code> vale
         {n(_ce["coef"][2], 4)} y su z, {n(_ce["z"][2], 2)}, no llega a separarse de cero.
-        <strong>Del gradiente este-oeste hay evidencia; del norte-sur, no la hay</strong> — y esas
-        dos frases no son la misma. Lo que la tabla autoriza a escribir es que la intensidad baja
-        hacia el este a un ritmo medido, y nada sobre el norte: no haber encontrado un gradiente
-        norte-sur no es haber encontrado que no lo hay, como el propio módulo va a enseñar tres
-        párrafos más abajo con la tercera parametrización. Y conviene notar además qué contrasta
-        cada z: <code>~ xc + yc</code> compara cada coeficiente con cero por separado, no el uno
-        con el otro.</p>
+        <strong>Del gradiente este-oeste habría evidencia; del norte-sur, no</strong>. El
+        condicional va a propósito: esos errores estándar son los de un Poisson, y un Poisson
+        supone que <strong>cada sede es independiente de las demás</strong>. El módulo siguiente
+        pone a prueba justo ese supuesto, y el 11 vuelve sobre esta z con la respuesta.</p>
+
+      <p>Lo que sí vale ya es que esas dos frases no son la misma. Lo que la tabla autoriza, si el
+        supuesto aguanta, es escribir que la intensidad baja hacia el este a un ritmo medido, y
+        nada sobre el norte: no haber encontrado un gradiente norte-sur no es haber encontrado que
+        no lo hay, como el propio módulo va a enseñar tres párrafos más abajo con la tercera
+        parametrización. Y conviene notar además qué contrasta cada z: <code>~ xc + yc</code>
+        compara cada coeficiente con cero por separado, no el uno con el otro.</p>
 
       <div class="nota-lateral">
         <h4>Trampa 2: el <code>try()</code> que no atrapa nada</h4>
@@ -1603,7 +1790,7 @@ MOD9 = cabecera(
 {sim("cap5-ppm", "Tres ajustes del mismo patrón, y cuál se puede leer",
       "Las barras son |z| por coeficiente, sin el intercepto —su |z| no se interpreta en "
       "un <code>ppm</code>, y es tan grande que con él dentro los demás no se ven—. La "
-      "línea naranja es el 1,96 con el que se leen: el ajuste crudo no tiene ninguna "
+      f"línea naranja es el {n(m11['tendencia']['z_critico'], 2)} con el que se leen: el ajuste crudo no tiene ninguna "
       "barra, y esa ausencia es todo el módulo. La lectura trae el número de condición.")}
       <p>Pásese por los tres y mírese la barra que falta. El primero no tiene ninguna, y sin
         embargo su AIC es el mismo que el del segundo: <strong>el modelo está bien ajustado y solo
@@ -1646,7 +1833,7 @@ R10 = '''# LA ENVOLVENTE NO SE SIMULA CONTRA CSR: SE SIMULA CONTRA EL MODELO
 # precalculada, cuyo nivel puntual es {NIVEL} % en vez del 5 %.
 set.seed({SEM})
 e39 &lt;- envelope(f_centr, Kinhom, nsim = 39, correction = &quot;translate&quot;,
-                verbose = FALSE)
+                verbose = FALSE, savefuns = TRUE)
 
 dentro_r &lt;- e39$r &gt; 0
 fuera &lt;- e39$obs &gt; e39$hi | e39$obs &lt; e39$lo
@@ -1654,7 +1841,14 @@ round(c(nivel_puntual = 2 / (39 + 1),
         pct_fuera = 100 * mean(fuera[dentro_r]),
         r_max = max(e39$r)), 4)
 #&gt; nivel_puntual     pct_fuera         r_max
-#&gt;        0.0500       78.5156     5868.1157'''
+#&gt;        0.0500       78.5156     5868.1157
+
+# LEIDA ENTERA, la banda no es un contraste: el test global si lo es, y
+# reutiliza las MISMAS 39 simulaciones (por eso `savefuns = TRUE`). Con
+# 39, el p mas pequeno posible es 1/(39 + 1), y es justo el que sale.
+round(c(dclf = dclf.test(e39)$p.value, mad = mad.test(e39)$p.value), 4)
+#&gt;  dclf   mad
+#&gt; 0.025 0.025'''
 
 PY10 = '''# La envolvente de 999 que el capitulo publica viaja en un CSV, con sus
 # cinco columnas: r, la K observada, el suelo y el techo de la banda, y
@@ -1682,6 +1876,8 @@ _SUB10 = dict(
     PRIMER=n(m10["primer_r_fuera_m"], 4),
     ULTIMO=n(m10["ultimo_r_fuera_m"], 4),
     RMAX=n(m10["r_max_m"], 4))
+_ts, _tg = m10["tasa_salida"], m10["test_global"]
+_tc = m11["tendencia"]
 
 MOD10 = cabecera(
     10, "Diagnóstico del ajuste", "Model diagnostics",
@@ -1730,9 +1926,32 @@ MOD10 = cabecera(
       <p>La respuesta es que <strong>no basta</strong>. La K observada se sale de la banda en el
         {firma(pct(m10["pct_r_fuera_de_banda"], 0))} de los radios, y por
         arriba: hay muchas más parejas cercanas de las que un Poisson inhomogéneo con este
-        gradiente produciría. Con {ent(m10["nsim"])} simulaciones y la banda por defecto, el nivel
-        puntual es {pct(m10["nivel_puntual_pct"], 1)}, así que no es un margen que el azar
-        recorra con soltura.</p>
+        gradiente produciría.</p>
+
+      <p>Queda decir con qué seguridad, y aquí vuelve la trampa que el capítulo 4 enseñó en su
+        módulo 11. Con {ent(m10["nsim"])} simulaciones y la banda por defecto —su mínimo y su
+        máximo—, el nivel <em>puntual</em> es {pct(m10["nivel_puntual_pct"], 1)}: la probabilidad
+        de que una curva del modelo se salga <strong>en un radio dado</strong>. Pero «se sale de
+        la banda» se lee mirando la curva entera, y eso es preguntar por <em>cualquier</em> radio.
+        Se mide como allí, sin simular nada más: cada una de las {ent(_ts["nsim"])} curvas del
+        propio modelo se compara con la banda de las otras. La cruzan en algún radio
+        {firma(ent(_ts["fuera"]))} —el {firma(pct(_ts["pct"], 5))}— sobre los
+        {ent(_ts["nodos_r"])} radios con que <code>spatstat</code> calcula la curva, y el
+        {pct(_ts["pct_simulador"], 5)} sobre los {ent(_ts["nodos_r_simulador"])} que dibuja el
+        simulador: cuantos más radios se miran, más veces se encuentra una salida. Leída entera,
+        la banda se cruza {n(_ts["veces_el_nivel"])} veces lo que su nivel puntual promete.</p>
+
+      <p>El remedio también es el del capítulo 4: un <strong>test global</strong>, que reutiliza
+        las mismas {ent(m10["nsim"])}. El DCLF, que suma el cuadrado de la desviación a lo largo de
+        todos los radios, da p = {firma(n(_tg["dclf_p"]))} —el mínimo que {ent(m10["nsim"])} simulaciones
+        permiten: ninguna se aleja tanto como la observada—. El MAD, que se queda con la mayor
+        desviación, da {n(_tg["mad_p"])}, y el porqué enseña algo. La peor desviación de la
+        observada está en {n(_tg["r_mad_observada_m"])} m, dentro del tramo;
+        las {ent(_tg["mad_superan"])} simulaciones que la superan lo hacen pasados los
+        {n(_tg["r_min_mad_superan_m"])} m, donde el abanico de K es más ancho —el módulo 8 del
+        capítulo 4— y donde la observada ya ha vuelto a la banda. Ninguno de los dos salva al
+        modelo: la agregación es real. Lo que no se sostiene es leer el
+        {pct(m10["nivel_puntual_pct"], 1)} como la seguridad de la curva entera.</p>
 
       <p>Ese porcentaje tiene <strong>principio y final</strong>, y los dos importan. La
         observada se separa desde {firma(n(m10["primer_r_fuera_m"]), " m")} —el primer nodo
@@ -1742,13 +1961,22 @@ MOD10 = cabecera(
         {n(m10["r_max_m"])} m. Es decir: el exceso de parejas está en las escalas cortas y
         medias, y a escala de kilómetros el modelo de intensidad ya da cuenta de lo que hay.
         Decir «se sale de la banda» sin decir <em>dónde</em> deja fuera la mitad de la
-        información, que además es la útil: hasta dónde llega lo que el modelo no explica.</p>
+        información, que además es la útil: hasta dónde llega lo que el modelo no explica. Y los
+        dos extremos se leen sobre la banda puntual: dicen por dónde pasa la separación, no son un
+        contraste hecho en cada radio.</p>
 
       <p>El veredicto que el precálculo deja escrito es <strong>«{m10["veredicto"]}»</strong>.
         Modelar la intensidad
-        explica <em>dónde</em> hay más colegios, pero no explica que los colegios estén cerca unos
+        describe <em>dónde</em> hay más colegios, pero no explica que los colegios estén cerca unos
         de otros más de lo que ese «dónde» implica. Los colegios se agrupan por razones que no
         son la geografía de la ciudad: comparten manzana, comparten predio, comparten edificio.</p>
+
+      <p>Y el veredicto alcanza hacia atrás. Los errores estándar que el módulo 9 leyó son los de
+        este mismo Poisson, y suponen cada sede independiente de las demás: justo lo que la banda
+        acaba de tumbar. Si las sedes vienen en grupos, {ent(_tc["n"])} sedes no son
+        {ent(_tc["n"])} observaciones independientes del gradiente, y aquellos errores se quedan
+        cortos. Cuánto, lo mide el módulo siguiente, que es el que trae un modelo de conglomerado
+        con el que medirlo.</p>
 
       <h3>Y los residuos, que aquí no son lo que uno espera</h3>
 
@@ -1785,7 +2013,10 @@ MOD10 = cabecera(
         dejó escrita. Y la comparación entre las dos es material: con 39 la banda es más estrecha
         en nivel ({pct(5, 0)} puntual contra {pct(m10["nivel_puntual_pct"], 1)}) y la observada se
         sale <em>más</em>. Subir <code>nsim</code> no afina la banda por defecto: le cambia el
-        contraste. Es exactamente lo que el módulo 11 del capítulo 4 midió.</p>
+        contraste. Es exactamente lo que el módulo 11 del capítulo 4 midió. Y la última línea
+        enseña el otro lado: con {ent(39)} simulaciones el test global da justo el p más pequeño
+        posible, 1/({ent(39)} + 1). Por mucho que la curva se salga, con pocas simulaciones un
+        test global no puede decir más.</p>
 """ + CIERRE
 
 
@@ -1886,6 +2117,22 @@ _SUB11B = dict(
 
 _dv = {d["modelo"]: d for d in m11["divergencia"]}
 
+# LA z DEL MÓDULO 9, REHECHA AQUÍ. La tabla la pinta el 11 y la cita el 9:
+# si el reajuste dejara de ser el MISMO coeficiente con otro error, o si la
+# z de Poisson dejara de ser la que el módulo 9 publica, las dos páginas
+# hablarían de cosas distintas con los mismos nombres.
+_NOMBRE_MODELO = {"Thomas": "Thomas", "MatClust": "Matérn", "LGCP": "Cox log-gaussiano"}
+_NOMBRE_CORR = {"iso": "isotrópica", "translate": "de traslación"}
+if {(t["modelo"], t["correccion"]) for t in _tc["ajustes"]} != {
+        (m, c) for m in _NOMBRE_MODELO for c in _NOMBRE_CORR} or len(_tc["ajustes"]) != 6:
+    sys.exit("PARADO: la tabla de la z con conglomerado no trae los tres modelos por las dos correcciones")
+if (abs(_tc["coef"][0] - _ce["coef"][1]) > 1e-9 or abs(_tc["poisson"]["z"][0] - _ce["z"][1]) > 1e-9):
+    sys.exit("PARADO: el coeficiente o la z de Poisson del módulo 11 no son los que publica el módulo 9")
+if _tc["referencia"] != {"modelo": "Thomas", "correccion": "translate"}:
+    sys.exit("PARADO: el efecto de diseño ya no se calcula con Thomas y traslación, y la nota lo dice")
+if not (max(abs(t["z"][0]) for t in _tc["ajustes"]) < _tc["z_critico"] < abs(_tc["poisson"]["z"][0])):
+    sys.exit("PARADO: la z de xc ya no cruza el 1,96 al pasar de Poisson a conglomerado, y el módulo 11 lo afirma")
+
 MOD11 = cabecera(
     11, "Conglomerado y autoexcitación", "Cluster and self-exciting processes",
     "Ajustar modelos que explican la agregación, descubrir que el ajuste depende "
@@ -1976,6 +2223,44 @@ MOD11 = cabecera(
         {firma(n(m11["duplicados"]["cambio_maximo_pct"], 1), " %")}. El capítulo cierra el cabo
         con una cifra en vez de dejar al lector suponiendo en cualquiera de los dos sentidos.</p>
 
+      <h3>La z del módulo 9, con los conglomerados dentro</h3>
+
+      <p>Con un modelo de conglomerado ajustado se puede cerrar la cuenta que el módulo 10 dejó
+        abierta. <code>kppm</code> con la misma tendencia <code>~ xc + yc</code> devuelve
+        <strong>los mismos coeficientes</strong> que el <code>ppm</code> del módulo 9 —ajusta
+        primero el Poisson y encima el conglomerado—, pero sus errores estándar ya cuentan con que
+        las sedes cercanas vienen juntas. Los tres modelos, cada uno con las dos correcciones:</p>
+
+      <table class="tabla-datos" style="position:relative; overflow:visible; width:100%; min-width:30rem;">
+        <caption>El coeficiente de <code>xc</code>, {n(_tc["coef"][0], 4)} por kilómetro, con el
+          error estándar de cada ajuste</caption>
+        <thead><tr><th scope="col" style="position:sticky; left:0; z-index:2;">Ajuste</th>
+          <th scope="col">Error estándar</th><th scope="col">z</th>
+          <th scope="col">Veces el de Poisson</th></tr></thead>
+        <tbody>
+{fila_fija("Poisson (<code>ppm</code>, módulo 9)", f'{_tc["poisson"]["ee"][0]:g}', n(_tc["poisson"]["z"][0], 2), "—")}{"".join(fila_fija(_NOMBRE_MODELO[t["modelo"]] + ", K " + _NOMBRE_CORR[t["correccion"]], f'{t["ee"][0]:g}', n(t["z"][0], 2), n(t["inflacion"][0], 2)) for t in _tc["ajustes"])}        </tbody>
+      </table>
+
+      <p>El error se multiplica entre {n(_tc["inflacion_xc_min"])} y
+        {n(_tc["inflacion_xc_max"])} veces, y en ninguno de los seis la z pasa de
+        {firma(n(_tc["z_xc_abs_max"]))} en valor absoluto, lejos del {n(_tc["z_critico"], 2)}
+        con que se lee. <strong>Con los conglomerados dentro,
+        del gradiente este-oeste no hay evidencia.</strong> La frase del módulo 9 solo era cierta
+        bajo el supuesto que el módulo 10 tumbó, y por eso se escribió en condicional. La corrección vuelve a mover la respuesta,
+        como en la tabla del principio —con la isotrópica el error crece menos—, pero esta vez no
+        mueve el veredicto.</p>
+
+      <div class="nota-lateral">
+        <h4>Es el efecto de diseño del capítulo 1</h4>
+        <p style="margin-bottom:0;">Allí la media de celdas correlacionadas variaba más de lo que
+          su n prometía, y el cociente entre las dos varianzas se llamaba efecto de diseño. Aquí es
+          lo mismo con un coeficiente: con Thomas y la K de traslación, la varianza de
+          <code>xc</code> se multiplica por {firma(n(_tc["efecto_diseno"]))}, y las
+          {ent(_tc["n"])} sedes informan del gradiente como
+          {firma(n(_tc["n_efectivo"]))} independientes. Un error estándar calculado como si
+          fueran {ent(_tc["n"])} no es un error pequeño: es la respuesta a otra pregunta.</p>
+      </div>
+
       <h3>Y la misma idea en el tiempo: procesos autoexcitados</h3>
 
       <p>Un proceso de conglomerado espacial supone centros invisibles. En el tiempo hay una
@@ -2010,7 +2295,8 @@ MOD11 = cabecera(
       <p>Y con esto el capítulo tiene todas las piezas: estimar la intensidad, elegirle el ancho,
         corregirle el borde, dividir dos, modelarla con covariables, leer los coeficientes,
         diagnosticar el ajuste y, cuando el diagnóstico dice que no basta, cambiar de familia de
-        modelo. El módulo siguiente lo comprueba y abre el proyecto integrador.</p>
+        modelo y volver a leer con ella los coeficientes. El módulo siguiente lo comprueba y abre
+        el proyecto integrador.</p>
 """ + CIERRE
 
 # =====================================================================
@@ -2028,6 +2314,20 @@ def _codigo(texto):
     return _re.sub(r"`([^`]+)`", r"<code>\1</code>", texto)
 
 
+def _pregunta(pide):
+    """El trozo del enunciado, tal cual, convertido en encabezado.
+
+    Solo se toca la primera letra y el cierre: «di cómo lo reconociste»
+    pasa a «Di cómo lo reconociste.» y «¿se notaría…?» a «¿Se notaría…?».
+    Reescribirlo aquí rompería el ancla que el auditor contrasta.
+    """
+    i = 1 if pide.startswith("¿") else 0
+    t = pide[:i] + pide[i].upper() + pide[i + 1:]
+    if i and not t.endswith("?"):
+        return t + "?"
+    return t if t[-1] in ".?!" else t + "."
+
+
 def ejercicio(k, e):
     """El marcado de la CASA, no uno inventado.
 
@@ -2040,6 +2340,24 @@ def ejercicio(k, e):
         f'                <tr><th scope="row">{p["paso"]}</th>'
         f'<td>{p["valor"]:g}</td></tr>\n'
         for p in e["pasos"])
+    # UNA RESPUESTA POR PREGUNTA (M5, 2026-09-24). La solución publicaba
+    # los pasos y la lectura, y dos enunciados preguntaban cosas que ni lo
+    # uno ni lo otro contestaba. Cada respuesta llega anclada a su pregunta
+    # con un trozo literal del enunciado, que aquí se pinta como su
+    # encabezado; si el ancla no está en el enunciado, la respuesta
+    # contestaría a una pregunta que el estudiante no ve.
+    resp = e["solucion"].get("respuestas") or []
+    if not resp:
+        sys.exit(f"PARADO: el ejercicio {k} llega sin respuestas; "
+                 "regenera con genera_soluciones.R 5")
+    for r in resp:
+        if r["pide"] not in e["enunciado"]:
+            sys.exit(f"PARADO: una respuesta del ejercicio {k} contesta a «{r['pide']}», "
+                     "que su enunciado no pregunta")
+    respuestas = "".join(
+        f'            <p class="ejercicio-respuesta"><strong>{_codigo(_pregunta(r["pide"]))}</strong>\n'
+        f'              {_codigo(r["respuesta"])}</p>\n'
+        for r in resp)
     return f"""
         <div class="ejercicio-guiado">
           <p class="ejercicio-enunciado"><span class="ejercicio-numero">{k}.</span><strong>{e['titulo']}.</strong>
@@ -2057,7 +2375,7 @@ def ejercicio(k, e):
 {pasos}
               </tbody>
             </table>
-            <p class="ejercicio-lectura">{_codigo(e['solucion']['lectura'])}</p>
+{respuestas}            <p class="ejercicio-lectura">{_codigo(e['solucion']['lectura'])}</p>
           </div>
         </div>
 """
@@ -2352,9 +2670,10 @@ GEOMAPAS_JS = (
 JS_PREAMBULO = r"""
     const n5 = (x, d) => Number(x).toFixed(d == null ? 5 : d);
     const mil5 = x => Math.round(Number(x)).toLocaleString('es-ES').replace(/\./g, ' ');
-    // Notación científica en español para las intensidades de orden 1e-07,
-    // que en este capítulo son casi todas las de la ciudad.
-    const exp5 = (x, d) => Number(x).toExponential(d == null ? 2 : d).replace('.', ',');
+    // Notación científica para las intensidades de orden 1e-07, que en este
+    // capítulo son casi todas las de la ciudad. Con punto, como la prosa que
+    // tiene al lado: hasta M6 escribía «3,448e-25» junto a un «3.448e-25».
+    const exp5 = (x, d) => Number(x).toExponential(d == null ? 2 : d);
 
     // Fuera de COLORES_GRAFICO a propósito: cuatro colores no llegan para
     // seis series y la paleta de la casa no separa bien en daltonismo.
@@ -2688,25 +3007,45 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
               borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0 }
           ];
           g.options.scales.y.title.text = 'coeficiente ± 1 e.e.';
-        } else {
+        } else if (vista === 1) {
           g.data.datasets = [
             { label: 'AIC', data: t.map(z => z.aic), borderColor: C5.naranja,
               backgroundColor: 'rgba(255,102,0,0.15)', fill: true,
               borderWidth: 3, pointRadius: 4 }
           ];
           g.options.scales.y.title.text = 'AIC';
+        } else {
+          // Las dos log-verosimilitudes en la misma escala: la de ppm se
+          // mueve con la ciudad que su cuadratura deja sin contar, y la de
+          // la integral bien hecha se queda plana, porque el modelo es el
+          // mismo en las cuatro columnas.
+          g.data.datasets = [
+            { label: 'ℓ que publica ppm', data: t.map(z => z.logver_ppm),
+              borderColor: C5.naranja, borderWidth: 3, pointRadius: 4 },
+            { label: 'ℓ con la integral bien hecha', data: t.map(z => z.logver_exacta),
+              borderColor: C5.verde, borderWidth: 3, pointRadius: 4 }
+          ];
+          g.options.scales.y.title.text = 'log-verosimilitud';
         }
         g.update();
-        lectura5(raiz, [
+        const lec = [
           ['nd por defecto', D5.m8.cuadratura.defecto_nd],
           ['puntos ficticios que pone', mil5(D5.m8.cuadratura.defecto_ficticios)],
           ['con nd = ' + t[t.length - 1].nd, mil5(t[t.length - 1].ficticios) + ' ficticios'],
           ['el coeficiente se mueve', n5(D5.m8.cuadratura.rango_pendiente_en_ee, 2) +
                                       ' errores estándar'],
-          ['el AIC se mueve', n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos'],
-          ['consecuencia', 'dos ppm con cuadraturas distintas no se comparan por AIC']]);
+          ['el AIC se mueve', n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos']];
+        if (vista === 2) {
+          lec.push(['ciudad sin contar, de', n5(Math.min(...t.map(z => z.sin_contar_km2)), 2) +
+                    ' a ' + n5(Math.max(...t.map(z => z.sin_contar_km2)), 2) + ' km²']);
+          lec.push(['ℓ de ppm se mueve', n5(D5.m8.cuadratura.rango_logver_ppm, 2)]);
+          lec.push(['con la integral bien hecha, ℓ se mueve',
+                    n5(D5.m8.cuadratura.rango_logver_exacta, 2)]);
+        }
+        lec.push(['consecuencia', 'dos ppm con cuadraturas distintas no se comparan por AIC']);
+        lectura5(raiz, lec);
       };
-      botonera5(raiz, ['El coeficiente y su error', 'El AIC'],
+      botonera5(raiz, ['El coeficiente y su error', 'El AIC', 'La verosimilitud por dentro'],
                 k => { vista = k; pinta(); }, 0);
       pinta();
       return [g];
@@ -2808,6 +3147,11 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
           ['simulaciones', mil5(D5.m10.nsim)],
           ['corrección de K', D5.m10.correccion],
           ['nivel puntual de la banda', n5(D5.m10.nivel_puntual_pct, 1) + ' %'],
+          // LEÍDA ENTERA, la banda no promete ese 0,2 %: la cruza en algún
+          // radio una fracción mucho mayor de curvas del propio modelo. Es la
+          // de los radios que este lienzo dibuja, no la de los de spatstat.
+          ['curvas del modelo que la cruzan', n5(D5.m10.tasa_salida.pct_simulador, 1) + ' %'],
+          ['test de la curva entera (DCLF)', 'p = ' + n5(D5.m10.test_global.dclf_p, 3)],
           ['radios fuera de la banda', n5(D5.m10.pct_r_fuera_de_banda, 0) + ' %'],
           // UN TRAMO, NO UN UMBRAL. Esta fila decía «desde r = 59 m» y se
           // leía como una cola que llega al final del barrido; la curva
@@ -3052,7 +3396,7 @@ QUIZ_JS = r"""
         retroFallo: 'Las dos ciertas son que el AIC depende de la cuadratura y que el ajuste con coordenadas crudas devuelve coeficientes sin errores estándar.',
         opciones: [
           { texto: 'Dos ppm ajustados con cuadraturas distintas no se pueden comparar por AIC', correcta: true,
-            retro: 'El AIC sale de la verosimilitud APROXIMADA por la cuadratura. Entre nd = ' + D5.m8.cuadratura.tabla[0].nd + ' y nd = ' + D5.m8.cuadratura.tabla[3].nd + ' el AIC se mueve ' + n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos sin que cambie el modelo.' },
+            retro: 'El AIC sale de la verosimilitud APROXIMADA por la cuadratura, y cada cuadratura deja sin contar un trozo distinto de ciudad. Entre nd = ' + D5.m8.cuadratura.tabla[0].nd + ' y nd = ' + D5.m8.cuadratura.tabla[3].nd + ' el AIC se mueve ' + n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos sin que cambie el modelo.' },
           { texto: 'Si la información de Fisher es singular, ppm falla y hay que atraparlo con try()',
             retro: 'No falla: <code>vcov()</code> avisa y devuelve NULL, y <code>sqrt(diag(NULL))</code> devuelve una matriz 0 × 0 sin quejarse. Un try() no ve nada.' },
           { texto: 'Con coordenadas en EPSG:9377 el ajuste devuelve coeficientes pero ningún error estándar', correcta: true,
@@ -3066,11 +3410,11 @@ QUIZ_JS = r"""
         pregunta: 'La K inhomogénea del patrón urbano se sale de la banda de su modelo ajustado en el ' + n5(D5.m10.pct_r_fuera_de_banda, 0) + ' % de los radios. ¿Qué se concluye?',
         opciones: [
           { texto: 'Que la intensidad variable no explica por sí sola la agregación del patrón', correcta: true,
-            retro: 'Esa es la bisagra del capítulo. Modelar la intensidad explica DÓNDE hay más colegios, no que estén cerca unos de otros más de lo que ese «dónde» implica. Y el módulo 11 enseña que el ajuste de conglomerado depende de con qué corrección se estimó K: sobre este patrón, μ pasa de ' + n5(D5.m11.ajustes[0].mu, 1) + ' a ' + n5(D5.m11.ajustes[1].mu, 1) + '.' },
+            retro: 'Esa es la bisagra del capítulo. Modelar la intensidad describe DÓNDE hay más colegios, no que estén cerca unos de otros más de lo que ese «dónde» implica. Y el módulo 11 enseña que el ajuste de conglomerado depende de con qué corrección se estimó K: sobre este patrón, μ pasa de ' + n5(D5.m11.ajustes[0].mu, 1) + ' a ' + n5(D5.m11.ajustes[1].mu, 1) + '.' },
           { texto: 'Que el modelo está mal ajustado y bastaría con añadirle covariables',
             retro: 'Podría ayudar, pero la K inhomogénea ya descuenta la intensidad estimada: lo que sobra son parejas cercanas, y eso no lo arregla una covariable de gran escala.' },
           { texto: 'Que la banda es demasiado estrecha por usar ' + D5.m10.nsim + ' simulaciones',
-            retro: 'Al revés: con ' + D5.m10.nsim + ' simulaciones y la banda por defecto el nivel puntual es ' + n5(D5.m10.nivel_puntual_pct, 1) + ' %, más exigente que el 5 % de una envolvente de 39.' },
+            retro: 'Al revés: con ' + D5.m10.nsim + ' simulaciones y la banda por defecto el nivel puntual es ' + n5(D5.m10.nivel_puntual_pct, 1) + ' %, más exigente que el 5 % de una envolvente de 39. Y la conclusión no depende de leerla radio a radio: el test DCLF sobre la curva entera da p = ' + n5(D5.m10.test_global.dclf_p, 3) + '.' },
           { texto: 'Que el patrón no es un proceso puntual simple, y son los duplicados los que lo agregan',
             retro: 'Tiene duplicados —' + D5.m11.duplicados.repetidos + ' sitios repetidos— pero quitarlos mueve los parámetros del ajuste como mucho un ' + n5(D5.m11.duplicados.cambio_maximo_pct, 1) + ' %. No son la explicación.' }
         ] }

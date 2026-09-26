@@ -916,6 +916,128 @@ razón que no se ve en su llamada. El riesgo real del capítulo no es de tiempo 
 KDE se publica como imagen, y una sola superficie a 183 m de celda cuesta 39,8 KB —más de la mitad
 de lo que pesaron TODOS los mapas del capítulo 4 juntos—.
 
+> **2026-09-24 · M2 y M4 de la segunda revisión, aplicados.** Eran las dos mejoras de
+> `AUDITORIA_CONTENIDO_CAP5_R2.md` (fuera de git) que cambiaban lo que el capítulo **concluye**, no
+> cómo lo dice. Javier eligió hacer esas dos primero y dejar el resto del §5 para después.
+>
+> **M2 · la z del módulo 9.** El 9 leía en la z de `xc` (**−4.82**) evidencia de un gradiente
+> este-oeste. Esa z divide por un error estándar de Poisson —cada sede independiente— y el módulo 10
+> demuestra que no lo son. Se midió: `kppm` con la misma tendencia `~ xc + yc` devuelve los mismos
+> coeficientes, y su error, que cuenta el conglomerado, es entre **3.96** y **5.32** veces mayor
+> según el modelo y la corrección. En los seis ajustes |z| ≤ **1.22**. El 9 pasa a condicional, el
+> 10 avisa de que su veredicto alcanza hacia atrás, y el 11 publica la tabla de los seis y cierra
+> con el **efecto de diseño** del capítulo 1: 26.03 con Thomas y traslación, es decir, las 2 107
+> sedes informan del gradiente como **80.93** independientes. Guarda en R si en alguno de los seis
+> la z vuelve a pasar de 1,96, o si el reajuste deja de dar los coeficientes del 9.
+>
+> **M4 · la banda leída entera.** El 10 decía que con el nivel puntual del 0,2 % la banda «no es un
+> margen que el azar recorra con soltura»: leer el nivel puntual como el de la curva entera, lo que
+> el módulo 11 del capítulo 4 prohíbe por escrito. La envolvente de 999 pasa a guardar sus
+> simulaciones (misma semilla: la banda es idéntica, anclada a lo publicado) y se mide como allí:
+> cada curva del modelo contra la banda de las otras 998. La cruzan **77** (7.71 %, 38.5 veces el
+> nivel puntual) sobre los 512 radios de `spatstat`, y el 4.30 % sobre los 100 del simulador. El
+> DCLF da **0.001**, el mínimo; el MAD, **0.004**, porque las tres simulaciones que superan la peor
+> desviación de la observada (1 960 m, dentro del tramo) lo hacen pasados 5 650 m, donde el abanico
+> de K es más ancho. El bloque de R con 39 simulaciones enseña el mismo test (p = 1/40).
+>
+> **Lo que dejó escrito.** 30 inyecciones nuevas en `prueba_auditor_cap5.py` (familia 17), más una
+> para una laguna que venía del 2026-09-17 («vuelve dentro antes del fin del barrido» no la había
+> tumbado nadie); cuatro afirmaciones nuevas en `audita_texto_cap5.py` y tres inyecciones de prosa.
+> `ppp_kppm()` acepta `covariables`. La tabla nueva usa la receta de tabla ancha de los capítulos 3
+> y 4 (primera columna fija). **Siguen abiertas** M3 y M5–M20, salvo M12 y M17, que ya cayeron.
+
+> **2026-09-24 · M3 de la segunda revisión, aplicado, y resultó tapar una afirmación falsa.** El
+> objetivo del módulo 8 prometía «ver de qué está hecha por dentro la verosimilitud» y la fórmula no
+> se escribía en ningún sitio. Ahora se escribe —ℓ(β) = Σ log λ(x_i) − ∫_W λ— y se deriva de ella la
+> igualdad que sostiene todo el módulo: en el máximo, **∫ λ̂ = n**.
+>
+> **Lo que había debajo.** El módulo decía que recuperar n/|W| con `ppm(pu ~ 1)` «es la prueba de
+> que el aparato de Berman-Turner resuelve el problema que dice resolver». No lo es: ante un modelo
+> sin covariables `ppm` aplica la fórmula cerrada (`fitter = "exact"`) y no toca la cuadratura.
+> Forzado con `forcefit = TRUE` da **5.71211** sedes por km² en vez de 5.69321 (+0,33 %), porque con
+> la cuadratura la EMV es n / Σw y los pesos por defecto suman 368.87 km² de los 370.09 de la
+> ciudad. Los **1.22418 km²** que faltan son 201 de las 4 345 teselas que tocan la ciudad: teselas
+> del borde sin sede y sin ficticio, porque `cellmiddles` coloca el ficticio con una máscara de
+> 200 × 200 píxeles y su trozo de ciudad no contiene ningún centro de píxel.
+>
+> **Y eso es lo que mueve el AIC**, no el modelo. En el máximo Σ w λ̂ = n exacto, así que el logLik
+> de `ppm` es Σ log λ̂(x_i) − n; con la integral bien hecha (máscara de 4 096 de lado) los cuatro
+> ajustes de la tabla tienen log-verosimilitudes que difieren **0.03**, y los de `ppm` difieren
+> **4.60**. El AIC sigue a la ciudad sin contar: nd = 100 y 200 pierden la misma y dan casi el mismo
+> AIC; nd = 300 pierde la que menos y da el más alto. La consecuencia que más muerde: por AIC de
+> `ppm`, la distancia al centro «gana» al constante por **13.45** puntos; con la integral bien hecha
+> empatan (0.07, a favor del constante), y forzando al constante por la misma cuadratura, también
+> (0.52). El módulo 9 conserva su «mejora el AIC frente al constante» porque sobrevive: 50.2 puntos
+> por `ppm`, 36.3 con la integral bien hecha (guarda en R).
+>
+> **Lo que dejó escrito.** Guardas en R para cada forma que la prosa afirma (el atajo exacto, n/Σw,
+> que el área de las teselas vacías sea justo lo que les falta a los pesos, que la integral fina
+> converja, el orden del AIC, el empate). `audita_cap5.py` rehace las teselas con **shapely, sin
+> spatstat**, y le salen las mismas en las cuatro cuadraturas; también la suma de logaritmos y la
+> integral: 64 comprobaciones nuevas, 422 en total. Familia 18 de `prueba_auditor_cap5.py` (37
+> inyecciones, varias coherentes para que solo las cace el recálculo), seis afirmaciones nuevas en
+> `audita_texto_cap5.py`, cinco inyecciones de prosa y una tercera vista del simulador de la
+> cuadratura: las dos log-verosimilitudes en la misma escala, una plana y otra no. **Siguen
+> abiertas** M5–M20, salvo M12 y M17.
+
+> **2026-09-24 · M5 de la segunda revisión, aplicado: cada pregunta de un enunciado tiene ahora su
+> respuesta.** La solución de cada ejercicio publicaba la tabla de pasos y una lectura final, y los
+> enunciados preguntaban más de lo que eso contestaba. El informe lo vio en dos (E2 y E3); leídos
+> pregunta a pregunta eran **cuatro de cinco**. El 1 pedía «encuéntralo» y la tabla solo contaba
+> cuántos selectores chocaron; el 2 pedía «di cuál, por qué» y la respuesta vivía en `cual_conserva`
+> y `por_que`, dos campos que ninguna página leía; el 3 pedía «di si su z es coherente» y no lo
+> decía nadie; el 5 pedía kappa, la escala y mu en los dos ajustes y la tabla daba solo kappa.
+>
+> **Cómo quedó.** Cada respuesta llega anclada a su pregunta con un trozo **literal** del
+> enunciado, que la página pinta como encabezado de la respuesta. `genera_soluciones.R` se para si
+> un ancla no está en su enunciado o si una demanda —cada «di», «explica», «encuentra», «contesta»,
+> «compara» y cada «¿»— no cae dentro de ninguna respuesta, y `audita_cap5.py` lo rehace por su
+> cuenta. Lo que ninguno de los dos vigila son las demandas sin verbo propio («di cuál, **por
+> qué**…»): se contestan, pero solo las vigila quien escribe.
+>
+> **Lo que salió al contestar.** E1: el que chocó es `bw.ppl` sobre `japanesepines`, y es él quien
+> hace de ese patrón el que más discrepa (12.04); sin él pasa a ser el que menos (2.41). Con el
+> intervalo ensanchado hasta 20 vuelve a chocar: no hay ancho que publicar. E2: el residuo de
+> Diggle es de la rejilla —con 512 × 512 encoge— y es casi tres mil veces menor que el error de la
+> corrección por defecto. **E3: la z = 20.49 de `ppm(bei ~ grad)` supone árboles independientes;
+> con `kppm` y la misma tendencia el error estándar se multiplica por unas diez y la z queda en el
+> umbral, 1.91 con la corrección por defecto y 2.03 con la de traslación.** Es el M2 llevado al
+> caso canónico, y el enunciado lo pide ahora. El cociente que `ppm` implica entre los percentiles
+> (2.45) cae del lado del bulto. Y como `rhohat` es aleatorio, el enunciado da la semilla (las
+> cifras no cambian: el generador ya la ponía, sin decirlo). E4: el intercepto absorbe el
+> desplazamiento entero.
+>
+> **Lo que dejó escrito.** 79 comprobaciones nuevas en `audita_cap5.py` (501 en total), la familia
+> 19 de `prueba_auditor_cap5.py` (59 inyecciones), una comprobación en `audita_texto_cap5.py` que
+> lee cada respuesta en SU panel del documento, siete afirmaciones y cinco inyecciones de prosa.
+> Quedan anotados dos hallazgos que no son de M5: la primera mitad del E3 repite la nota lateral
+> del módulo 7 (mismo `bei`, misma pendiente), y el capítulo pesa 817 de sus 820 KB. **Siguen
+> abiertas** M6–M20, salvo M12 y M17.
+
+> **2026-09-25 · M6 de la segunda revisión, aplicado: el capítulo escribe los decimales con punto,
+> también los porcentajes.** `n()` escribía punto y `pct()` coma, y los dos alimentaban los mismos
+> párrafos: «la intensidad máxima cae de 29.5 por km² a 9.9 por km²: un 66,3 %». El informe lo
+> dejaba como decisión de casa en una dirección o en la otra; la decidió lo publicado. Contado sobre
+> la prosa de los once documentos, sin código ni fórmulas: **más de mil decimales con punto y una
+> treintena con coma**, doce de ellos de este `pct()`. Los capítulos 1, 3 y 4, los talleres y el
+> preparcial no tienen ningún porcentaje con coma, y el plan del preparcial ya lo escribía como
+> convenio: «punto decimal y no coma».
+>
+> **Por dónde entraba la coma.** Por tres puertas, y solo una era la del informe: `pct()`, un «1,96»
+> escrito a mano en el pie del simulador de los tres ajustes (ahora sale de `z_critico`, que calcula
+> R), y el `exp5` de JavaScript, que escribía «1,794e-10» en la lectura del módulo 9 al lado de una
+> prosa con punto. Esa tercera no está en el HTML —la lectura se escribe al mover un control—, así
+> que `audita_texto_cap5.py` mira la prosa publicada **y** los formateadores: una coma decimal en
+> cualquiera de los dos para el documento. Dos inyecciones de prosa, una por puerta; la de la
+> prosa solo la caza esta comprobación, porque `cifras()` lee «66,3» como 66.3 y la da por buena.
+> Una inyección de M4 llevaba la coma escrita (`.replace('.', ',')`) y se ajustó.
+>
+> **Lo que queda fuera, a propósito.** El capítulo 6 tiene el mismo `pct()` (cuatro porcentajes con
+> coma), el 2 una decena de comas escritas a mano y el 1 y el 4 unas pocas; son de otras
+> revisiones. Y `PLAN_Parcial_Corte_2.md` afirma que «este curso publica sus cifras con coma
+> decimal»: es falso para el material, aunque su conclusión —que el calificador acepte las dos
+> escrituras— sigue siendo la buena. **Siguen abiertas** M7–M11, M13–M16 y M18–M20.
+
 ---
 
 ### Capítulo 6 — Datos de área y la matriz de pesos espaciales · semanas 10–11

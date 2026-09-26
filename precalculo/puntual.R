@@ -204,7 +204,7 @@ ppp_kde_familia <- function(p, sigmas, nx, celdas_por_sigma = 3) {
 #' Por eso 263 veces de velocidad no se compran calladas. Quien llame
 #' nombra la corrección, la corrección sale con el ajuste, y el módulo 11
 #' publica los dos.
-ppp_kppm <- function(p, modelo, correccion, tendencia = ~1) {
+ppp_kppm <- function(p, modelo, correccion, tendencia = ~1, covariables = NULL) {
   if (missing(correccion))
     stop(paste0("ppp_kppm: hay que NOMBRAR la corrección. No hay defecto a propósito:\n",
                 "  cambiarla mueve kappa un 48 %, la escala un 42 % y mu un 93 %.\n",
@@ -213,7 +213,10 @@ ppp_kppm <- function(p, modelo, correccion, tendencia = ~1) {
     stop(sprintf("ppp_kppm: corrección desconocida: %s", correccion))
 
   t0  <- proc.time()[["elapsed"]]
-  fit <- kppm(p, trend = tendencia, clusters = modelo,
+  # `covariables` solo hace falta cuando la tendencia nombra alguna (el
+  # módulo 11 del capítulo 5 reajusta ahí la `~ xc + yc` del 9); con NULL,
+  # que es el defecto de `kppm`, la llamada es la de siempre.
+  fit <- kppm(p, trend = tendencia, clusters = modelo, covariates = covariables,
               statargs = list(correction = correccion))
   segundos <- proc.time()[["elapsed"]] - t0
 

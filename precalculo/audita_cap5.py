@@ -59,7 +59,9 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 import sys
+from statistics import NormalDist
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from audita_base import (Auditoria, audita_geomapa, carga as _carga,  # noqa: E402
@@ -184,6 +186,222 @@ def masas(px, py, sigma, caja, nx, ny, mask):
 
 
 # =====================================================================
+# Cada «di», «explica», «encuentra», «contesta», «compara» y cada «¿» de un
+# enunciado es una pregunta que la solución tiene que contestar (M5). `\w`
+# en Python ya es Unicode: «Encuéntralo» no se parte por la tilde, y
+# «compárala» —que pide un número, no una frase— no casa con «compara».
+DEMANDA = re.compile(
+    r"(?<!\w)(?:[Dd]i|[Ee]xplica|[Ee]ncuéntralo|[Ee]ncuentra|[Cc]ontesta|[Cc]ompara)(?!\w)|¿")
+
+
+def sin_contestar(e) -> list[str]:
+    """Las demandas del enunciado que no caen dentro de ninguna respuesta.
+
+    Reimplementa la guarda de `genera_soluciones.R` sin mirarla: una
+    demanda queda contestada si cae dentro del trozo literal que ancla
+    alguna respuesta, o si presenta a otra —«Contesta: ¿…?»— y una
+    respuesta empieza detrás de ella sin que medie un punto.
+    """
+    en = e.get("enunciado", "")
+    tramos = []
+    for r in e.get("solucion", {}).get("respuestas") or []:
+        pide = r.get("pide") or ""
+        i = en.find(pide) if pide else -1
+        if i >= 0:
+            tramos.append((i, i + len(pide)))
+    fuera = []
+    for m in DEMANDA.finditer(en):
+        p = m.start()
+        dentro = any(ini <= p < fin for ini, fin in tramos)
+        if not dentro and en[m.end():m.end() + 1] == ":":
+            despues = [ini for ini, _ in tramos if ini > p]
+            dentro = bool(despues) and "." not in en[p:min(despues)]
+        if not dentro:
+            fuera.append(en[p:p + 30])
+    return fuera
+
+
+def respuestas_de_los_ejercicios(a, S) -> None:
+    """M5 de la segunda revisión (2026-09-24): lo que cada solución contesta.
+
+    Hasta M5 la solución publicaba los pasos y una lectura, y los
+    enunciados preguntaban cosas que ni lo uno ni lo otro contestaba. Aquí
+    se comprueba lo general —cada ejercicio trae respuestas, ancladas a su
+    enunciado, sin demanda huérfana— y lo particular: cada afirmación de
+    las respuestas se rehace desde los campos del propio JSON, y cada paso
+    nuevo de la tabla dice lo que su campo dice.
+    """
+    a.titulo("11b · Las respuestas de los ejercicios (M5)")
+
+    def paso(k, empieza):
+        """El valor del paso cuya etiqueta empieza así, o None."""
+        for p in S[k].get("pasos", []):
+            if p.get("paso", "").startswith(empieza):
+                return p.get("valor")
+        return None
+
+    def mismo(k, empieza, valor, que, rel=1e-9):
+        v = paso(k, empieza)
+        if v is None or valor is None:
+            a.cierto(False, que, f"falta el paso «{empieza}» o su campo")
+        else:
+            a.cerca(v, valor, que, rel=rel)
+
+    for k in ("e1", "e2", "e3", "e4", "e5"):
+        sol = S[k].get("solucion", {})
+        resp = sol.get("respuestas") or []
+        a.cierto(len(resp) > 0 and all(str(r.get("pide", "")).strip() and
+                                       str(r.get("respuesta", "")).strip() for r in resp),
+                 f"ejercicios/{k}: trae respuestas, y ninguna vacía", f"{len(resp)}")
+        sueltas = [r.get("pide") for r in resp if r.get("pide", "") not in S[k].get("enunciado", "")]
+        a.cierto(not sueltas, f"ejercicios/{k}: cada respuesta ancla en su enunciado",
+                 "; ".join(map(str, sueltas)))
+        fuera = sin_contestar(S[k])
+        a.cierto(not fuera, f"ejercicios/{k}: ninguna demanda se queda sin respuesta",
+                 " | ".join(fuera))
+        a.cierto(bool(str(sol.get("lectura", "")).strip()), f"ejercicios/{k}: trae su lectura")
+
+    # --- E1 · el que chocó, con nombre ------------------------------------
+    s1 = S["e1"]["solucion"]
+    ch = s1.get("chocado")
+    patrones = ("japanesepines", "redwood", "swedishpines")
+    if not ch or not all(isinstance(s1.get(p), list) for p in patrones):
+        a.cierto(False, "ejercicios/e1: publica el selector que chocó", "falta")
+    else:
+        valores = [(p, z["selector"], z["sigma"], z["choco"]) for p in patrones for z in s1[p]]
+        chocan = [v for v in valores if v[3]]
+        a.cierto(len(valores) == 12 and len(chocan) == 1,
+                 "ejercicios/e1: chocó uno de doce, como dice el enunciado",
+                 f"{len(chocan)} de {len(valores)}")
+        a.cierto(bool(chocan) and chocan[0][:3] == (ch["patron"], ch["selector"], ch["sigma"]),
+                 "ejercicios/e1: el que publica es el que chocó")
+        # En el cuadrado unidad, la mitad del diámetro es la de la diagonal.
+        a.igual(ch["tope"], np.hypot(1, 1) / 2, "ejercicios/e1: el tope es la mitad de la diagonal")
+        a.igual(ch["sigma"], ch["tope"], "ejercicios/e1: y el que chocó vale el tope")
+        a.igual(ch["sigma_ancho"], ch["tope_ancho"], "ejercicios/e1: ensanchado, vuelve a chocar")
+        sig = {z["selector"]: z["sigma"] for z in s1[ch["patron"]]}
+        resto = [v for s, v in sig.items() if s != ch["selector"]]
+        a.cerca(max(resto) / min(resto), ch["razon_sin"], "ejercicios/e1: el cociente sin el que chocó")
+        raz = {p: max(z["sigma"] for z in s1[p]) / min(z["sigma"] for z in s1[p]) for p in patrones}
+        otros = [raz[p] for p in patrones if p != ch["patron"]]
+        a.cierto(raz[ch["patron"]] > max(otros) and ch["razon_sin"] < min(otros),
+                 "ejercicios/e1: con él discrepa más; sin él, menos",
+                 f"{raz[ch['patron']]:.2f} → {ch['razon_sin']:.2f}")
+        a.cierto(f"`bw.{ch['selector']}` sobre `{ch['patron']}`" in
+                 (s1.get("respuestas") or [{}])[0].get("respuesta", ""),
+                 "ejercicios/e1: la respuesta lo nombra")
+        for p in patrones:
+            mismo("e1", f"Cociente mayor/menor en {p}", raz[p],
+                  f"ejercicios/e1: paso · cociente en {p}"[:57], rel=1e-8)
+        mismo("e1", f"sigma de bw.{ch['selector']} en", ch["sigma"], "ejercicios/e1: paso · el que chocó")
+        mismo("e1", "Tope de su intervalo", ch["tope"], "ejercicios/e1: paso · el tope")
+        mismo("e1", f"sigma de bw.{ch['selector']} con el tope", ch["sigma_ancho"],
+              "ejercicios/e1: paso · el tope ensanchado")
+        mismo("e1", "Cociente mayor/menor en " + ch["patron"] + " sin", ch["razon_sin"],
+              "ejercicios/e1: paso · el cociente sin él")
+
+    # --- E2 · cuál conserva, y qué les pasa a las otras dos ---------------
+    s2 = S["e2"]["solucion"]
+    t2 = s2.get("tabla") or []
+    if not t2 or not all("diggle_fina_pct" in f and "rejilla" in f for f in t2):
+        a.cierto(False, "ejercicios/e2: publica la rejilla fina", "falta")
+    else:
+        dg = [abs(f["diggle_pct"]) for f in t2]
+        df = [f["defecto_pct"] for f in t2]
+        sc = [f["sin_corregir_pct"] for f in t2]
+        a.cierto(min(abs(x) for x in df) / max(dg) > 1000,
+                 "ejercicios/e2: Diggle, más de mil veces más cerca",
+                 f"{min(abs(x) for x in df) / max(dg):.0f}x")
+        a.cierto(all(abs(f["diggle_fina_pct"]) < abs(f["diggle_pct"]) for f in t2),
+                 "ejercicios/e2: afinar la rejilla encoge el residuo")
+        a.cierto(all(x > 0 for x in df) and all(b > c for c, b in zip(df, df[1:])),
+                 "ejercicios/e2: el defecto se pasa, y más al abrir")
+        a.cierto(all(x < 0 for x in sc) and all(b < c for c, b in zip(sc, sc[1:])),
+                 "ejercicios/e2: sin corregir se queda corto, y más")
+        a.cierto(all(abs(s) > abs(d) for s, d in zip(sc, df)),
+                 "ejercicios/e2: la fuga crece más que el exceso")
+        peor = {"defecto": max(abs(x) for x in df), "diggle": max(dg),
+                "sin_corregir": max(abs(x) for x in sc)}
+        a.cierto(s2.get("cual_conserva") == min(peor, key=peor.get),
+                 "ejercicios/e2: la que conserva es la de menor error", str(s2.get("cual_conserva")))
+        mismo("e2", "|Error| máximo de diggle", max(dg), "ejercicios/e2: paso · el mayor error de Diggle")
+        mismo("e2", "El mismo, con rejilla", max(abs(f["diggle_fina_pct"]) for f in t2),
+              "ejercicios/e2: paso · el mismo con la rejilla fina")
+        etq = [p["paso"] for p in S["e2"]["pasos"]]
+        a.cierto(any(f"{t2[0]['rejilla']} × {t2[0]['rejilla']}" in e for e in etq) and
+                 any(f"{s2.get('rejilla_fina')} × {s2.get('rejilla_fina')}" in e for e in etq),
+                 "ejercicios/e2: las etiquetas dicen sus dos rejillas")
+
+    # --- E3 · la z, el cociente que implica y la z con conglomerado -------
+    s3 = S["e3"]["solucion"]
+    pp, kp, co = s3.get("ppm"), s3.get("kppm"), s3.get("colas")
+    if not (pp and kp and co and all(c in kp for c in ("defecto", "isotropica", "traslacion"))):
+        a.cierto(False, "ejercicios/e3: publica ppm, kppm y las colas", "falta")
+    else:
+        a.cerca(pp["coef"] / pp["ee"], s3["z_ppm"], "ejercicios/e3: la z de ppm es coef / ee")
+        b3 = s3["bulto"]
+        a.cerca(np.exp(pp["coef"] * (b3["hasta"] - b3["desde"])), pp["razon_bulto"],
+                "ejercicios/e3: el cociente que implica ppm")
+        a.cierto(abs(np.log(pp["razon_bulto"] / s3["razon_bulto"])) <
+                 abs(np.log(pp["razon_bulto"] / s3["razon_total"])),
+                 "ejercicios/e3: y queda del lado del bulto")
+        for c in ("defecto", "isotropica", "traslacion"):
+            a.cerca(kp[c]["coef"] / kp[c]["ee"], kp[c]["z"], f"ejercicios/e3: z de kppm, {c}")
+        a.cierto(all(abs(kp[c]["coef"] - pp["coef"]) < 1e-8 for c in kp),
+                 "ejercicios/e3: kppm no mueve el coeficiente")
+        a.igual(kp["defecto"]["z"], kp["isotropica"]["z"], "ejercicios/e3: la de por defecto es la isotrópica")
+        infl = [kp[c]["ee"] / pp["ee"] for c in ("isotropica", "traslacion")]
+        a.cierto(all(8 <= x <= 13 for x in infl), "ejercicios/e3: el error estándar, por unas diez",
+                 " / ".join(f"{x:.1f}" for x in infl))
+        zc = NormalDist().inv_cdf(0.975)
+        a.igual(s3.get("z_critico"), zc, "ejercicios/e3: el umbral es el de 1.96")
+        a.cierto(kp["isotropica"]["z"] < zc < kp["traslacion"]["z"],
+                 "ejercicios/e3: una z a cada lado del umbral",
+                 f"{kp['isotropica']['z']:.3f} / {kp['traslacion']['z']:.3f}")
+        a.cierto(co["mas_empinados"] == 0 and co["x_max"] > b3["hasta"],
+                 "ejercicios/e3: el máximo, sin árbol más empinado")
+        a.cierto(0 < co["menos_empinados"] < 0.01 * s3.get("n_arboles", 0) and co["x_min"] < b3["desde"],
+                 "ejercicios/e3: el mínimo, con unos pocos por debajo",
+                 f"{co['menos_empinados']} de {s3.get('n_arboles')}")
+        a.cierto(f"set.seed({s3.get('semilla')})" in S["e3"]["enunciado"] and
+                 s3.get("semilla") == S["meta"]["semilla"],
+                 "ejercicios/e3: el enunciado da la semilla de rhohat")
+        mismo("e3", "Árboles más empinados", co["mas_empinados"], "ejercicios/e3: paso · más empinados")
+        mismo("e3", "Árboles menos empinados", co["menos_empinados"], "ejercicios/e3: paso · menos empinados")
+        mismo("e3", "Coeficiente de la pendiente", pp["coef"], "ejercicios/e3: paso · el coeficiente")
+        mismo("e3", "z de la pendiente en ppm", s3["z_ppm"], "ejercicios/e3: paso · la z de ppm")
+        mismo("e3", "Cociente que implica ppm", pp["razon_bulto"], "ejercicios/e3: paso · el cociente de ppm")
+        mismo("e3", "z de la pendiente en kppm, corrección por defecto", kp["defecto"]["z"],
+              "ejercicios/e3: paso · z de kppm por defecto")
+        mismo("e3", "z de la pendiente en kppm, corrección de traslación", kp["traslacion"]["z"],
+              "ejercicios/e3: paso · z de kppm con traslación")
+
+    # --- E4 · el intercepto se lo lleva todo ------------------------------
+    s4 = S["e4"]["solucion"]
+    cc, cl = s4.get("coef_cerca") or [], s4.get("coef_lejos") or []
+    if len(cc) != 3 or len(cl) != 3:
+        a.cierto(False, "ejercicios/e4: publica los dos juegos de coeficientes", "falta")
+    else:
+        a.cerca(cc[0] - s4["desplazamiento"] * (cc[1] + cc[2]), cl[0],
+                "ejercicios/e4: el intercepto absorbe el desplazamiento")
+        mismo("e4", "Coeficiente de x", cc[1], "ejercicios/e4: paso · el coeficiente de x")
+        mismo("e4", "Coeficiente de y", cc[2], "ejercicios/e4: paso · el coeficiente de y")
+        mismo("e4", "Intercepto del ajuste original", cc[0], "ejercicios/e4: paso · intercepto original")
+        mismo("e4", "Intercepto del ajuste desplazado", cl[0], "ejercicios/e4: paso · intercepto desplazado")
+
+    # --- E5 · los seis valores que el enunciado pide ----------------------
+    s5 = S["e5"]["solucion"]
+    iso, tra, dif = s5.get("isotropica"), s5.get("traslacion"), s5.get("diferencias_pct")
+    if not (iso and tra and dif):
+        a.cierto(False, "ejercicios/e5: publica los dos ajustes", "falta")
+    else:
+        for par, et in (("kappa", "kappa"), ("escala", "Escala"), ("mu", "mu")):
+            mismo("e5", f"{et} con isotrópica", iso[par], f"ejercicios/e5: paso · {par} con isotrópica")
+            mismo("e5", f"{et} con traslación", tra[par], f"ejercicios/e5: paso · {par} con traslación")
+            a.cerca(100 * abs(tra[par] - iso[par]) / abs(iso[par]), dif[par],
+                    f"ejercicios/e5: la diferencia en {par}", rel=1e-6)
+
+
 def main() -> int:
     a = Auditoria("Precálculo del capítulo 5 verificado")
 
@@ -460,6 +678,170 @@ def main() -> int:
              "ppm: el AIC se mueve más que un parámetro de más",
              f"{m8['cuadratura']['rango_aic']:.1f} puntos")
 
+    # -----------------------------------------------------------------
+    a.titulo("8b · la verosimilitud por dentro (M3, 2026-09-24)")
+    # -----------------------------------------------------------------
+    # El módulo escribe ℓ = Σ log λ(x_i) − ∫λ, dice que ppm no pasa el
+    # homogéneo por la cuadratura, que forzado sale n/Σw, que los pesos
+    # pierden ciudad en teselas del borde sin ningún punto, y que esa
+    # ciudad perdida —no el modelo— es lo que mueve el AIC. Aquí se rehace
+    # todo lo que se puede rehacer sin spatstat: las teselas con shapely,
+    # la suma de logaritmos con los coeficientes publicados y la integral
+    # con una malla propia. Lo que es identidad se exige exacto.
+    h8 = m8["homogeneo"]
+    fz = m8.get("forzado")
+    cp = m8.get("comparacion")
+    CLAVES_FILA = ("rejilla_pesos", "pixeles", "teselas_tocan", "teselas_vacias",
+                   "sin_contar_km2", "suma_log", "logver_ppm", "integral_exacta",
+                   "logver_exacta")
+    faltan = [k for k in ("fitter", "n", "logver", "aic") if k not in h8]
+    faltan += [k for k in ("forzado", "comparacion") if not isinstance(m8.get(k), dict)]
+    faltan += [k for k in ("rango_logver_ppm", "rango_logver_exacta")
+               if k not in m8["cuadratura"]]
+    faltan += sorted({k for z in tab for k in CLAVES_FILA if k not in z})
+    if len(tab) != 4:
+        faltan.append("cuatro cuadraturas")
+    a.cierto(not faltan, "ppm: el módulo 8 publica su verosimilitud por dentro",
+             ", ".join(faltan))
+    if not faltan:
+        n_u = len(urb)
+        area_w = v_urb.area
+        a.igual(n_u, h8["n"], "ppm: n son las sedes del patrón urbano", 0)
+        a.cierto(h8["fitter"] == "exact",
+                 "ppm: el homogéneo sale de la fórmula cerrada", str(h8["fitter"]))
+        a.igual(n_u * np.log(n_u / area_w) - n_u, h8["logver"],
+                "ppm: el ℓ homogéneo es n·log(n/|W|) − n", 1e-4)
+        a.igual(-2 * h8["logver"] + 2, h8["aic"], "ppm: el AIC homogéneo es −2ℓ + 2", 1e-6)
+
+        # Las teselas, sin spatstat. La rejilla de pesos parte la caja de la
+        # ventana en `rejilla` × `rejilla`; spatstat pone el ficticio de cada
+        # celda en los píxeles de ciudad de una máscara de `pixeles` de lado
+        # (`cellmiddles`), más las esquinas de la caja que caigan dentro. Una
+        # tesela que toca la ciudad y no tiene píxel ni sede no la cuenta
+        # nadie: su área es exactamente lo que les falta a los pesos.
+        import shapely
+        from shapely.geometry import box as _caja
+        x0, y0, x1, y1 = v_urb.bounds
+        ux, uy = urb["x"].to_numpy(), urb["y"].to_numpy()
+
+        def teselas(nt, npx):
+            dx, dy = (x1 - x0) / nt, (y1 - y0) / nt
+            cajas = np.array([_caja(x0 + i * dx, y0 + j * dy, x0 + (i + 1) * dx, y0 + (j + 1) * dy)
+                              for j in range(nt) for i in range(nt)])
+            ar = shapely.area(shapely.intersection(cajas, v_urb))
+
+            def celda(x, y):
+                i = np.clip(np.floor((x - x0) / dx).astype(int), 0, nt - 1)
+                j = np.clip(np.floor((y - y0) / dy).astype(int), 0, nt - 1)
+                return j * nt + i
+            px = x0 + (np.arange(npx) + 0.5) * (x1 - x0) / npx
+            py = y0 + (np.arange(npx) + 0.5) * (y1 - y0) / npx
+            PX, PY = np.meshgrid(px, py)
+            PX, PY = PX.ravel(), PY.ravel()
+            dentro = shapely.contains_xy(v_urb, PX, PY)
+            llena = np.zeros(nt * nt, bool)
+            llena[celda(PX[dentro], PY[dentro])] = True
+            llena[celda(ux, uy)] = True
+            ex = np.array([x0, x1, x0, x1]); ey = np.array([y0, y0, y1, y1])
+            en = shapely.contains_xy(v_urb, ex, ey)
+            llena[celda(ex[en], ey[en])] = True
+            vac = (ar > 0) & ~llena
+            return int((ar > 0).sum()), int(vac.sum()), float(ar[vac].sum())
+
+        # La integral bien hecha, con una malla propia: |W| por la media de
+        # λ̂ en los centros de píxel que caen en la ciudad. Con 2048 de lado
+        # oscila unas centésimas, como la de R: tolerancia de 0,05 sedes.
+        NM = 2048
+        mx = x0 + (np.arange(NM) + 0.5) * (x1 - x0) / NM
+        my = y0 + (np.arange(NM) + 0.5) * (y1 - y0) / NM
+        MX, MY = np.meshgrid(mx, my)
+        MX, MY = MX.ravel(), MY.ravel()
+        md = shapely.contains_xy(v_urb, MX, MY)
+        d_malla = np.hypot(MX[md] - cx, MY[md] - cy)
+
+        for z in tab:
+            nd = z["nd"]
+            etq = f"cuadratura nd={nd}"
+            sano = (isinstance(z["rejilla_pesos"], int) and isinstance(z["pixeles"], int)
+                    and 0 < z["rejilla_pesos"] <= z["pixeles"] <= 1000)
+            if a.cierto(sano, f"{etq}: rejilla y píxeles con sentido",
+                        f"{z['rejilla_pesos']} / {z['pixeles']}"):
+                toc, vac, ar_v = teselas(z["rejilla_pesos"], z["pixeles"])
+                a.igual(toc, z["teselas_tocan"], f"{etq}: teselas que tocan la ciudad", 0)
+                a.igual(vac, z["teselas_vacias"], f"{etq}: teselas que nadie cuenta", 0)
+                a.igual(ar_v / 1e6, z["sin_contar_km2"], f"{etq}: la ciudad sin contar", 1e-6)
+            sl = float(np.sum(z["intercepto"] + z["pendiente"] * dist))
+            a.igual(sl, z["suma_log"], f"{etq}: la suma de log λ en las sedes", 0.01)
+            a.igual(z["suma_log"] - n_u, z["logver_ppm"],
+                    f"{etq}: el ℓ de ppm es esa suma menos n", 1e-6)
+            a.igual(-2 * z["logver_ppm"] + 4, z["aic"], f"{etq}: el AIC es −2ℓ + 2k", 1e-6)
+            lam = np.exp(z["intercepto"] + z["pendiente"] * d_malla)
+            a.igual(area_w * float(lam.mean()), z["integral_exacta"],
+                    f"{etq}: la integral bien hecha", 0.05)
+            a.igual(z["suma_log"] - z["integral_exacta"], z["logver_exacta"],
+                    f"{etq}: el ℓ bien hecho es la suma menos ella", 1e-6)
+
+        llp = [z["logver_ppm"] for z in tab]
+        llx = [z["logver_exacta"] for z in tab]
+        sinc = [z["sin_contar_km2"] for z in tab]
+        a.igual(max(llp) - min(llp), m8["cuadratura"]["rango_logver_ppm"],
+                "cuadratura: lo que se mueve el ℓ de ppm", 1e-6)
+        a.igual(max(llx) - min(llx), m8["cuadratura"]["rango_logver_exacta"],
+                "cuadratura: lo que se mueve el ℓ bien hecho", 1e-6)
+        a.cierto(max(llx) - min(llx) < 0.1 and max(llp) - min(llp) > 20 * (max(llx) - min(llx)),
+                 "cuadratura: bien hecha, los cuatro son el mismo modelo",
+                 f"{max(llx) - min(llx):.4f} contra {max(llp) - min(llp):.4f}")
+        a.cierto(all(not (sinc[i] > sinc[j] + 1e-6) or aics[i] < aics[j]
+                     for i in range(4) for j in range(4)),
+                 "cuadratura: el AIC sigue a la ciudad sin contar")
+        a.cierto(abs(sinc[1] - sinc[2]) < 1e-9
+                 and tab[1]["rejilla_pesos"] == tab[2]["rejilla_pesos"]
+                 and tab[1]["pixeles"] == tab[2]["pixeles"],
+                 "cuadratura: la 2.ª y la 3.ª pierden la misma ciudad")
+        a.cierto(int(np.argmin(sinc)) == 3 and int(np.argmax(aics)) == 3,
+                 "cuadratura: la última pierde menos y da el AIC más alto")
+        a.cierto(aics[1] < aics[0] and abs(aics[2] - aics[1]) < 0.1 and aics[3] > aics[2],
+                 "cuadratura: el AIC baja, se queda quieto y vuelve a subir")
+        a.cierto(all(z["integral_exacta"] > n_u for z in tab),
+                 "cuadratura: todas ponen sedes esperadas de más")
+
+        # El homogéneo forzado por la cuadratura por defecto
+        t100 = tab[1]
+        a.igual(t100["nd"], m8["cuadratura"]["defecto_nd"],
+                "ppm: la segunda fila es la cuadratura por defecto", 0)
+        a.cierto(fz.get("fitter") == "glm", "ppm: forzado, el homogéneo pasa por glm",
+                 str(fz.get("fitter")))
+        a.cerca(area_w / 1e6, fz["area_km2"], "ppm: el área de la ventana en km²", 1e-9)
+        a.cerca(fz["area_km2"] - t100["sin_contar_km2"], fz["suma_pesos_km2"],
+                "ppm: los pesos suman el área menos lo sin contar", 1e-9)
+        a.cerca(n_u / fz["suma_pesos_km2"], fz["lambda_km2"],
+                "ppm: forzado, la EMV es n entre los pesos", 1e-8)
+        a.igual(100 * (fz["lambda_km2"] / h8["lambda_km2"] - 1), fz["exceso_pct"],
+                "ppm: lo que sube la intensidad forzada", 1e-6)
+        a.igual(n_u * np.log(n_u / (fz["suma_pesos_km2"] * 1e6)) - n_u, fz["logver"],
+                "ppm: el ℓ forzado es n·log(n/Σw) − n", 1e-4)
+        a.igual(-2 * fz["logver"] + 2, fz["aic"], "ppm: el AIC forzado es −2ℓ + 2", 1e-6)
+
+        # La comparación de la nota: constante contra distancia
+        a.igual(h8["aic"] - t100["aic"], cp["gana_distancia_ppm"],
+                "comparación: lo que gana la distancia por ppm", 1e-6)
+        a.igual(-2 * t100["logver_exacta"] + 4, cp["aic_distancia_exacto"],
+                "comparación: el AIC bien hecho de la distancia", 1e-6)
+        a.igual(cp["aic_distancia_exacto"] - h8["aic"], cp["gana_constante_exacta"],
+                "comparación: lo que gana el constante, bien hecho", 1e-6)
+        a.igual(t100["aic"] - fz["aic"], cp["gana_constante_misma"],
+                "comparación: y con la misma cuadratura", 1e-6)
+        a.cierto(cp["gana_distancia_ppm"] > 10,
+                 "comparación: por ppm, la distancia gana con holgura",
+                 f"{cp['gana_distancia_ppm']:.2f} puntos")
+        a.cierto(0 < cp["gana_constante_exacta"] < 2 and 0 < cp["gana_constante_misma"] < 2,
+                 "comparación: bien hechas, empatan a favor del constante",
+                 f"{cp['gana_constante_exacta']:.3f} y {cp['gana_constante_misma']:.3f}")
+        z9 = D["m9"].get("distancia", {}).get("z") or []
+        a.cierto(len(z9) == 2 and abs(z9[1]) < NormalDist().inv_cdf(0.975),
+                 "comparación: la z del módulo 9 tampoco ve la distancia",
+                 f"{z9[1]:.2f}" if len(z9) == 2 else "sin z")
+
     m9 = D["m9"]
     a.cierto(m9["crudo"]["singular"] is True, "ppm: con coordenadas crudas, singular")
     a.cierto(m9["centrado"]["singular"] is False, "ppm: y centradas, no")
@@ -511,6 +893,46 @@ def main() -> int:
     a.cierto(m10["correccion"] == "translate",
              "envolvente: la corrección viaja en el dato", m10["correccion"])
 
+    # LA BANDA LEÍDA ENTERA (M4 de la segunda revisión). El módulo leía el
+    # nivel puntual como la seguridad de la curva entera. Las 999 curvas no
+    # viajan —pesarían 4 MB—, así que lo que se comprueba es que cada cifra
+    # sea la cuenta que dice ser y que diga lo que la prosa afirma: más
+    # salidas que el nivel puntual, y más cuantos más radios se miran.
+    ts = m10["tasa_salida"]
+    a.igual(ts["nsim"], m10["nsim"], "envolvente: la tasa usa sus simulaciones")
+    a.cerca(100 * ts["fuera"] / ts["nsim"], ts["pct"],
+            "envolvente: la tasa es el % de sus salidas", 1e-6)
+    a.cerca(100 * ts["fuera_simulador"] / ts["nsim"], ts["pct_simulador"],
+            "envolvente: y la del simulador, la de las suyas", 1e-6)
+    a.igual(ts["nodos_r_simulador"], int(dentro_r.sum()),
+            "envolvente: el simulador mira los r de la curva")
+    a.cierto(ts["nodos_r"] > ts["nodos_r_simulador"],
+             "envolvente: spatstat mira más radios que el lienzo",
+             f"{ts['nodos_r']} > {ts['nodos_r_simulador']}")
+    a.cerca(ts["pct"] / m10["nivel_puntual_pct"], ts["veces_el_nivel"],
+            "envolvente: cuántas veces el nivel puntual", 1e-6)
+    a.cierto(ts["pct"] > ts["pct_simulador"] > m10["nivel_puntual_pct"],
+             "envolvente: entera se cruza más que radio a radio",
+             f"{ts['pct']:.2f} > {ts['pct_simulador']:.2f} > {m10['nivel_puntual_pct']:.2f}")
+    tg = m10["test_global"]
+    a.cerca(1 / (m10["nsim"] + 1), tg["p_minimo"], "envolvente: el p mínimo es 1/(nsim+1)", 1e-12)
+    a.cerca(tg["dclf_p"], tg["p_minimo"], "envolvente: el DCLF da el p mínimo", 1e-12)
+    a.cerca((1 + tg["mad_superan"]) / (m10["nsim"] + 1), tg["mad_p"],
+            "envolvente: el p del MAD cuenta las que lo superan", 1e-12)
+    a.cierto(tg["p_minimo"] < tg["mad_p"] < 0.05,
+             "envolvente: el MAD rechaza sin llegar al mínimo", f"p = {tg['mad_p']:g}")
+    # Dónde se desvía más la observada, releído en la rejilla publicada:
+    # tiene que caer a menos de un paso de la r que declara, y las dos
+    # dentro del tramo; las que la superan, pasado él.
+    mm = np.array(c["mmean"])
+    r_peor = float(r[np.argmax(np.abs(obs - mm))])
+    a.cierto(abs(r_peor - tg["r_mad_observada_m"]) <= float(np.diff(r).max()),
+             "envolvente: la peor desviación, a un paso de la r",
+             f"{r_peor:.1f} contra {tg['r_mad_observada_m']:.1f}")
+    a.cierto(tg["r_mad_observada_m"] <= m10["ultimo_r_fuera_m"] < tg["r_min_mad_superan_m"] <= m10["r_max_m"],
+             "envolvente: peor dentro del tramo, las otras fuera",
+             f"{tg['r_mad_observada_m']:.0f} ≤ {m10['ultimo_r_fuera_m']:.0f} < {tg['r_min_mad_superan_m']:.0f}")
+
     # -----------------------------------------------------------------
     a.titulo("10 · Conglomerado, y el Hawkes recalculado")
     # -----------------------------------------------------------------
@@ -546,6 +968,56 @@ def main() -> int:
     a.cierto(dup["cambio_maximo_pct"] < 15,
              "kppm: los duplicados no descuadran el ajuste",
              f"como mucho {dup['cambio_maximo_pct']:.1f} %")
+
+    # LA z DEL MÓDULO 9 CON CONGLOMERADO (M2 de la segunda revisión). El
+    # auditor no puede reajustar un kppm, pero sí comprobar que el reajuste
+    # es el MISMO coeficiente del módulo 9 con otro error, que cada z y cada
+    # inflación sean la división que dicen ser, y que la frase del módulo 11
+    # —en ninguno de los seis la z llega— sea cierta fila a fila.
+    tc = m11["tendencia"]
+    ce = m9["centrado"]
+    for i, nom in enumerate(tc["coeficientes"]):
+        # Si el módulo 9 perdió un error estándar —su propia comprobación lo
+        # dice más arriba—, aquí no hay con qué comparar: se informa y se
+        # sigue, que un auditor que revienta no informa de nada.
+        j = ce["nombres"].index(nom) if nom in ce["nombres"] else None
+        if not a.cierto(j is not None and j < len(ce["coef"]) and j < len(ce["ee"] or []),
+                        f"tendencia/{nom}: el módulo 9 publica con qué comparar"):
+            continue
+        a.cerca(tc["coef"][i], ce["coef"][j], f"tendencia/{nom}: el coeficiente del módulo 9", 1e-9)
+        a.cerca(tc["poisson"]["ee"][i], ce["ee"][j], f"tendencia/{nom}: el error de Poisson del 9", 1e-9)
+        a.cerca(tc["coef"][i] / tc["poisson"]["ee"][i], tc["poisson"]["z"][i],
+                f"tendencia/{nom}: la z de Poisson, recalculada", 1e-6)
+    a.cerca(NormalDist().inv_cdf(0.975), tc["z_critico"], "tendencia: el 1,96 es el cuantil 0,975", 1e-9)
+    combos = {(t["modelo"], t["correccion"]) for t in tc["ajustes"]}
+    a.igual(len(combos), 6, "tendencia: los tres modelos por las dos correcciones")
+    for t in tc["ajustes"]:
+        et = f"tendencia/{t['modelo']}/{t['correccion']}"
+        for i, nom in enumerate(tc["coeficientes"]):
+            a.cerca(tc["coef"][i] / t["ee"][i], t["z"][i], f"{et}: z de {nom}", 1e-6)
+            a.cerca(t["ee"][i] / tc["poisson"]["ee"][i], t["inflacion"][i],
+                    f"{et}: inflación de {nom}", 1e-6)
+    z_xc = [t["z"][0] for t in tc["ajustes"]]
+    inf_xc = [t["inflacion"][0] for t in tc["ajustes"]]
+    a.cerca(min(inf_xc), tc["inflacion_xc_min"], "tendencia: la menor inflación de xc", 1e-9)
+    a.cerca(max(inf_xc), tc["inflacion_xc_max"], "tendencia: la mayor inflación de xc", 1e-9)
+    a.cerca(max(abs(z) for z in z_xc), tc["z_xc_abs_max"], "tendencia: la mayor |z| de xc", 1e-9)
+    a.cierto(abs(tc["poisson"]["z"][0]) > tc["z_critico"],
+             "tendencia: con Poisson, xc pasa de 1,96",
+             f"z = {tc['poisson']['z'][0]:.2f}")
+    a.cierto(max(abs(z) for z in z_xc) < tc["z_critico"],
+             "tendencia: con conglomerado, en ninguno llega",
+             f"|z| ≤ {max(abs(z) for z in z_xc):.2f}")
+    a.cierto(min(inf_xc) > 1, "tendencia: el conglomerado infla el error",
+             f"entre {min(inf_xc):.2f} y {max(inf_xc):.2f} veces")
+    ref = [t for t in tc["ajustes"]
+           if (t["modelo"], t["correccion"]) == (tc["referencia"]["modelo"], tc["referencia"]["correccion"])]
+    if a.cierto(len(ref) == 1, "tendencia: está el ajuste de referencia"):
+        a.cerca(ref[0]["inflacion"][0] ** 2, tc["efecto_diseno"],
+                "tendencia: el efecto de diseño es la inflación²", 1e-6)
+    a.cerca(tc["n"] / tc["efecto_diseno"], tc["n_efectivo"],
+            "tendencia: el n efectivo es n entre el efecto", 1e-6)
+    a.igual(tc["n"], len(urb), "tendencia: n son las sedes del patrón urbano")
 
     h = m11["hawkes"]
     a.cerca(h["alpha"] / h["beta"], h["razon_ramificacion"],
@@ -601,6 +1073,7 @@ def main() -> int:
              f"{S['e4']['solucion']['dif_relativa_pendientes']:.1e}")
     a.cierto(max(S["e5"]["solucion"]["diferencias_pct"].values()) > 5,
              "ejercicios/e5: las dos correcciones divergen en redwood")
+    respuestas_de_los_ejercicios(a, S)
 
     # -----------------------------------------------------------------
     a.titulo("12 · Los mapas")

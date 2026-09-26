@@ -51,10 +51,10 @@ from __future__ import annotations
 import argparse
 import html as html_mod
 import json
-import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
@@ -62,7 +62,11 @@ RAIZ = AQUI.parent
 # `Htmls_Espacial/` mientras se escribe; `sitio/estadistica-espacial/`
 # cuando la Fase 7 publique. Se busca en las dos y se avisa de cuál se usó.
 FUENTES = [RAIZ / "sitio" / "estadistica-espacial", RAIZ / "Htmls_Espacial"]
-TMP = Path(os.environ.get("TMPDIR", "/tmp")) / "verifica_espacial"
+# Cada corrida escribe sus guiones en una carpeta PROPIA. Con una ruta fija
+# (`$TMPDIR/verifica_espacial`) dos checkouts que verifican a la vez se
+# pisaban el guion: el 2026-09-25 un worktree ejecutó el `bloques.R` que
+# otro acababa de escribir con el capítulo 5 anterior a M3, y el paso salió
+# en rojo por cifras que su propio HTML sí anunciaba y su código sí daba.
 
 SEP = "###BLOQUE-%d###"
 # La clase admite algo DESPUÉS del lenguaje, y eso no es laxitud: es lo
@@ -131,12 +135,12 @@ def corre(bloques, lang, cabecera, comando, sufijo, sep_fmt):
     idx = [i for i, b in enumerate(bloques) if b["lang"] == lang]
     if not idx:
         return {}
-    TMP.mkdir(parents=True, exist_ok=True)
+    tmp = Path(tempfile.mkdtemp(prefix="verifica_bloques_"))
     partes = [cabecera]
     for k, i in enumerate(idx):
         partes.append(sep_fmt % k)
         partes.append(limpia(bloques[i]["codigo"]))
-    ruta = TMP / f"bloques{sufijo}"
+    ruta = tmp / f"bloques{sufijo}"
     ruta.write_text("\n\n".join(partes), encoding="utf-8")
 
     # cwd = la carpeta del curso: es desde donde los bloques resuelven

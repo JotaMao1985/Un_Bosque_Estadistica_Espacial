@@ -454,6 +454,392 @@ def defectos():
     obj("16 · una superficie de la familia declara un modo que no existe",
         "mapas", lambda m: m["kennedy_familia"][6].__setitem__("modo", "calor"))
 
+    # --- 17. La segunda revisión, M4 y M2 (2026-09-24) -----------------
+    # M4: el módulo 10 leía el 0,2 % puntual como la seguridad de la curva
+    # entera. Cada cifra de la lectura entera es una cuenta y una
+    # afirmación, y cada una se tumba por separado.
+    def ts(d): return d["m10"]["tasa_salida"]
+    def tg(d): return d["m10"]["test_global"]
+
+    def tasa_entera_baja(d):
+        # Coherente consigo misma —el % sigue siendo el de sus salidas—, pero
+        # por debajo de la del simulador: solo cae la afirmación.
+        ts(d)["fuera"] = ts(d)["fuera_simulador"] - 3
+        ts(d)["pct"] = 100 * ts(d)["fuera"] / ts(d)["nsim"]
+        ts(d)["veces_el_nivel"] = ts(d)["pct"] / d["m10"]["nivel_puntual_pct"]
+
+    def mad_al_minimo(d):
+        tg(d)["mad_superan"] = 0
+        tg(d)["mad_p"] = 1 / (d["m10"]["nsim"] + 1)
+
+    obj("17 · la tasa de salida deja de ser el % de sus salidas",
+        "datos", lambda d: ts(d).__setitem__("pct", 13.1313131313))
+    obj("17 · la del simulador deja de ser el % de las suyas",
+        "datos", lambda d: ts(d).__setitem__("pct_simulador", 3.1313131313))
+    obj("17 · la tasa pasa a contar otras simulaciones",
+        "datos", lambda d: ts(d).__setitem__("nsim", 499))
+    obj("17 · el simulador pasa a mirar otros radios",
+        "datos", lambda d: ts(d).__setitem__("nodos_r_simulador", 131))
+    obj("17 · spatstat pasa a mirar menos radios que el lienzo",
+        "datos", lambda d: ts(d).__setitem__("nodos_r", 31))
+    obj("17 · las veces el nivel puntual dejan de cuadrar",
+        "datos", lambda d: ts(d).__setitem__("veces_el_nivel", 13.1313131313))
+    obj("17 · leída entera, la banda se cruza menos que en el lienzo",
+        "datos", tasa_entera_baja)
+    obj("17 · el p mínimo deja de ser 1/(nsim+1)",
+        "datos", lambda d: tg(d).__setitem__("p_minimo", 0.0013131313))
+    obj("17 · el DCLF deja de dar el p mínimo",
+        "datos", lambda d: tg(d).__setitem__("dclf_p", 0.0131313))
+    obj("17 · el MAD deja de contar las que lo superan",
+        "datos", lambda d: tg(d).__setitem__("mad_superan", 7))
+    obj("17 · el MAD llega al p mínimo, con su cuenta al día",
+        "datos", mad_al_minimo)
+    obj("17 · la peor desviación de la observada se aleja de su r",
+        "datos", lambda d: tg(d).__setitem__("r_mad_observada_m", 413.1313131313))
+    obj("17 · las que superan al MAD caen dentro del tramo",
+        "datos", lambda d: tg(d).__setitem__("r_min_mad_superan_m", 3131.3131313131))
+    # Una laguna que venía de antes: «vuelve dentro antes del fin del
+    # barrido» nació con el tramo (2026-09-17) y ninguna inyección la había
+    # tumbado nunca. Un tramo que acabara en el último nodo sería otra vez la
+    # cola que la prosa dejó de contar.
+    obj("17 · el tramo de fuera llega hasta el final del barrido",
+        "datos", lambda d: d["m10"].__setitem__("ultimo_r_fuera_m", d["m10"]["r_max_m"]))
+
+    # M2: la z del módulo 9, reajustada con conglomerado en el 11.
+    def tc(d): return d["m11"]["tendencia"]
+
+    def un_ajuste_pasa(d):
+        # Un ajuste cuyo error solo se infla al doble: coherente en su z, su
+        # inflación y el máximo publicado, y con |z| por encima de 1,96.
+        t = tc(d)["ajustes"][0]
+        t["ee"][0] = 2 * tc(d)["poisson"]["ee"][0]
+        t["z"][0] = tc(d)["coef"][0] / t["ee"][0]
+        t["inflacion"][0] = 2.0
+        tc(d)["inflacion_xc_min"] = 2.0
+        tc(d)["z_xc_abs_max"] = abs(t["z"][0])
+
+    def no_infla(d):
+        t = tc(d)["ajustes"][1]
+        t["ee"][0] = 0.9 * tc(d)["poisson"]["ee"][0]
+        t["z"][0] = tc(d)["coef"][0] / t["ee"][0]
+        t["inflacion"][0] = 0.9
+        tc(d)["inflacion_xc_min"] = 0.9
+        tc(d)["z_xc_abs_max"] = abs(t["z"][0])
+
+    obj("17 · el coeficiente de xc del 11 deja de ser el del 9",
+        "datos", lambda d: tc(d)["coef"].__setitem__(0, -0.0313131313))
+    obj("17 · el error de Poisson de xc deja de ser el del 9",
+        "datos", lambda d: tc(d)["poisson"]["ee"].__setitem__(0, 0.0061313131))
+    obj("17 · la z de Poisson de yc deja de ser su división",
+        "datos", lambda d: tc(d)["poisson"]["z"].__setitem__(1, -1.3131313131))
+    obj("17 · el 1,96 deja de ser el cuantil 0,975",
+        "datos", lambda d: tc(d).__setitem__("z_critico", 1.6448536270))
+    obj("17 · un ajuste de conglomerado desaparece",
+        "datos", lambda d: tc(d).__setitem__("ajustes", tc(d)["ajustes"][:5]))
+    obj("17 · la z de xc de un ajuste deja de ser su división",
+        "datos", lambda d: tc(d)["ajustes"][2]["z"].__setitem__(0, -0.7131313131))
+    obj("17 · la inflación de yc de un ajuste deja de ser su división",
+        "datos", lambda d: tc(d)["ajustes"][4]["inflacion"].__setitem__(1, 7.1313131313))
+    obj("17 · la menor inflación de xc cambia",
+        "datos", lambda d: tc(d).__setitem__("inflacion_xc_min", 2.1313131313))
+    obj("17 · la mayor inflación de xc cambia",
+        "datos", lambda d: tc(d).__setitem__("inflacion_xc_max", 6.1313131313))
+    obj("17 · la mayor |z| de xc cambia",
+        "datos", lambda d: tc(d).__setitem__("z_xc_abs_max", 1.3131313131))
+    obj("17 · con Poisson, xc deja de pasar de 1,96",
+        "datos", lambda d: tc(d)["poisson"]["z"].__setitem__(0, -1.5131313131))
+    obj("17 · un ajuste de conglomerado vuelve a pasar de 1,96",
+        "datos", un_ajuste_pasa)
+    obj("17 · un ajuste de conglomerado deja de inflar el error",
+        "datos", no_infla)
+    obj("17 · la referencia del efecto de diseño no está entre los ajustes",
+        "datos", lambda d: tc(d)["referencia"].__setitem__("modelo", "Poisson"))
+    obj("17 · el efecto de diseño deja de ser la inflación al cuadrado",
+        "datos", lambda d: tc(d).__setitem__("efecto_diseno", 31.3131313131))
+    obj("17 · el n efectivo deja de ser n entre el efecto",
+        "datos", lambda d: tc(d).__setitem__("n_efectivo", 131.3131313131))
+    obj("17 · n deja de ser las sedes del patrón urbano",
+        "datos", lambda d: tc(d).__setitem__("n", 2113))
+
+    # --- 18. La segunda revisión, M3 (2026-09-24) ----------------------
+    # El módulo 8 escribe la log-verosimilitud y enseña de qué está hecho
+    # el AIC de `ppm`: la ciudad que la cuadratura deja sin contar. Cada
+    # cifra es una cuenta rehecha sin spatstat o una identidad, y cada
+    # afirmación de forma tiene su guarda. Donde se puede, el veneno es
+    # COHERENTE —mueve una cifra y todas las que dependen de ella—, para
+    # que solo lo cace el recálculo independiente y no una identidad.
+    def m8(d): return d["m8"]
+    def fila8(d, i): return d["m8"]["cuadratura"]["tabla"][i]
+
+    def suma_log_coherente(d):
+        z = fila8(d, 0)
+        for k in ("suma_log", "logver_ppm", "logver_exacta"):
+            z[k] -= 0.5
+        z["aic"] += 1.0
+
+    def integral_coherente(d):
+        z = fila8(d, 0)
+        z["integral_exacta"] += 0.3
+        z["logver_exacta"] -= 0.3
+
+    def ultimo_modelo_distinto(d):
+        z = fila8(d, 3)
+        z["logver_exacta"] -= 0.5
+        llx = [t["logver_exacta"] for t in d["m8"]["cuadratura"]["tabla"]]
+        d["m8"]["cuadratura"]["rango_logver_exacta"] = max(llx) - min(llx)
+
+    obj("18 · falta el homogéneo forzado",
+        "datos", lambda d: m8(d).pop("forzado", None))
+    obj("18 · el n del homogéneo deja de ser las sedes",
+        "datos", lambda d: m8(d)["homogeneo"].__setitem__("n", 2113))
+    obj("18 · el homogéneo pasa a declararse ajustado por glm",
+        "datos", lambda d: m8(d)["homogeneo"].__setitem__("fitter", "glm"))
+    obj("18 · el ℓ homogéneo deja de ser n·log(n/|W|) − n",
+        "datos", lambda d: m8(d)["homogeneo"].__setitem__("logver", -27550.3131313131))
+    obj("18 · el AIC homogéneo deja de ser −2ℓ + 2",
+        "datos", lambda d: m8(d)["homogeneo"].__setitem__("aic", 55103.1313131313))
+    obj("18 · una rejilla de pesos pasa a cero teselas",
+        "datos", lambda d: fila8(d, 0).__setitem__("rejilla_pesos", 0))
+    obj("18 · las teselas que tocan la ciudad cambian",
+        "datos", lambda d: fila8(d, 1).__setitem__("teselas_tocan", 4313))
+    obj("18 · las teselas que nadie cuenta cambian",
+        "datos", lambda d: fila8(d, 1).__setitem__("teselas_vacias", 213))
+    obj("18 · la ciudad sin contar de nd = 50 cambia",
+        "datos", lambda d: fila8(d, 0).__setitem__("sin_contar_km2", 0.8131313131))
+    obj("18 · la suma de log λ se mueve con todo lo que cuelga de ella",
+        "datos", suma_log_coherente)
+    obj("18 · el ℓ de ppm deja de ser la suma menos n",
+        "datos", lambda d: fila8(d, 2).__setitem__("logver_ppm", -27543.1313131313))
+    obj("18 · el AIC de una fila deja de ser −2ℓ + 2k",
+        "datos", lambda d: fila8(d, 0).__setitem__("aic", 55097.3131313131))
+    obj("18 · la integral bien hecha se mueve con su ℓ",
+        "datos", integral_coherente)
+    obj("18 · el ℓ bien hecho deja de ser la suma menos la integral",
+        "datos", lambda d: fila8(d, 1).__setitem__("logver_exacta", -27550.3131313131))
+    obj("18 · lo que se mueve el ℓ de ppm cambia",
+        "datos", lambda d: m8(d)["cuadratura"].__setitem__("rango_logver_ppm", 3.1313131313))
+    obj("18 · lo que se mueve el ℓ bien hecho cambia",
+        "datos", lambda d: m8(d)["cuadratura"].__setitem__("rango_logver_exacta", 0.1313131313))
+    obj("18 · bien hecha, la última cuadratura es otro modelo",
+        "datos", ultimo_modelo_distinto)
+    obj("18 · nd = 50 pasa a perder más ciudad que todas",
+        "datos", lambda d: fila8(d, 0).__setitem__("sin_contar_km2", 1.5131313131))
+    obj("18 · nd = 200 deja de compartir píxeles con nd = 100",
+        "datos", lambda d: fila8(d, 2).__setitem__("pixeles", 300))
+    obj("18 · la última cuadratura pasa a dar el AIC más bajo",
+        "datos", lambda d: fila8(d, 3).__setitem__("aic", 55090.1313131313))
+    obj("18 · el AIC deja de quedarse quieto entre nd = 100 y 200",
+        "datos", lambda d: fila8(d, 2).__setitem__("aic", 55092.3131313131))
+    obj("18 · una cuadratura pone menos sedes esperadas que n",
+        "datos", lambda d: fila8(d, 3).__setitem__("integral_exacta", 2105.1313131313))
+    obj("18 · la segunda fila deja de ser la cuadratura por defecto",
+        "datos", lambda d: fila8(d, 1).__setitem__("nd", 150))
+    obj("18 · el forzado pasa a declararse exacto",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("fitter", "exact"))
+    obj("18 · el área de la ventana del forzado cambia",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("area_km2", 371.3131313131))
+    obj("18 · los pesos dejan de sumar el área menos lo sin contar",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("suma_pesos_km2", 369.1313131313))
+    obj("18 · la EMV forzada deja de ser n entre los pesos",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("lambda_km2", 5.7313131313))
+    obj("18 · lo que sube la intensidad forzada cambia",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("exceso_pct", 0.4313131313))
+    obj("18 · el ℓ forzado deja de ser n·log(n/Σw) − n",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("logver", -27543.3131313131))
+    obj("18 · el AIC forzado deja de ser −2ℓ + 2",
+        "datos", lambda d: m8(d)["forzado"].__setitem__("aic", 55090.3131313131))
+    obj("18 · lo que gana la distancia por ppm cambia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_distancia_ppm", 11.3131313131))
+    obj("18 · el AIC bien hecho de la distancia cambia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("aic_distancia_exacto", 55106.3131313131))
+    obj("18 · lo que gana el constante bien hecho cambia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_constante_exacta", 0.1313131313))
+    obj("18 · lo que gana con la misma cuadratura cambia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_constante_misma", 0.3131313131))
+    obj("18 · por ppm, la distancia deja de ganar con holgura",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_distancia_ppm", 9.1313131313))
+    obj("18 · con la misma cuadratura, gana la distancia",
+        "datos", lambda d: m8(d)["comparacion"].__setitem__("gana_constante_misma", -0.3131313131))
+    obj("18 · la z de la distancia del módulo 9 pasa a significar",
+        "datos", lambda d: d["m9"]["distancia"]["z"].__setitem__(1, -2.5131313131))
+
+    # --- 19. M5: una respuesta por pregunta (2026-09-24) ---------------
+    # Cada ejercicio trae ahora sus respuestas ancladas al enunciado, y cada
+    # afirmación de esas respuestas es una cuenta sobre el propio JSON. Las
+    # que se pueden romper sin arrastrar a otras van COHERENTES —el campo y
+    # su paso a la vez—, para que caiga solo la afirmación.
+    def sol(s, k): return s[k]["solucion"]
+
+    def pon_paso(s, k, empieza, v):
+        for p in s[k]["pasos"]:
+            if p["paso"].startswith(empieza):
+                p["valor"] = v
+                return
+        raise KeyError(empieza)
+
+    def sin_el_discrepa_mas(s):
+        # Otro CvL en japanesepines: sin bw.ppl, el cociente pasa de 6.
+        z = next(z for z in sol(s, "e1")["japanesepines"] if z["selector"] == "CvL")
+        z["sigma"] = 0.4131313131
+        dg = next(z for z in sol(s, "e1")["japanesepines"] if z["selector"] == "diggle")["sigma"]
+        sol(s, "e1")["chocado"]["razon_sin"] = 0.4131313131 / dg
+        pon_paso(s, "e1", "Cociente mayor/menor en japanesepines sin", 0.4131313131 / dg)
+
+    def diggle_menos_de_mil(s):
+        sol(s, "e2")["tabla"][0]["diggle_pct"] = -0.0009131313
+        pon_paso(s, "e2", "|Error| máximo de diggle", 0.0009131313)
+
+    def la_fina_no_encoge(s):
+        sol(s, "e2")["tabla"][1]["diggle_fina_pct"] = -0.0001313131
+        pon_paso(s, "e2", "El mismo, con rejilla", 0.0001313131)
+
+    def kppm_mueve_el_coef(s):
+        k = sol(s, "e3")["kppm"]["isotropica"]
+        k["coef"] = 5.1313131313
+        k["z"] = k["coef"] / k["ee"]
+
+    def ee_por_cinco(s):
+        # Coherente: la z de ppm sigue siendo coef / ee, y su paso también.
+        p = sol(s, "e3")["ppm"]
+        p["ee"] = 0.5131313131
+        sol(s, "e3")["z_ppm"] = p["coef"] / p["ee"]
+        pon_paso(s, "e3", "z de la pendiente en ppm", p["coef"] / p["ee"])
+
+    def las_dos_z_por_debajo(s):
+        k = sol(s, "e3")["kppm"]["traslacion"]
+        k["z"] = 1.9313131313
+        k["ee"] = k["coef"] / k["z"]
+        pon_paso(s, "e3", "z de la pendiente en kppm, corrección de traslación", k["z"])
+
+    obj("19 · un ejercicio se queda sin respuestas",
+        "soluciones", lambda s: sol(s, "e2").pop("respuestas"))
+    obj("19 · una respuesta se queda vacía",
+        "soluciones", lambda s: sol(s, "e1")["respuestas"][1].__setitem__("respuesta", "  "))
+    obj("19 · una respuesta ancla en algo que el enunciado no pregunta",
+        "soluciones", lambda s: sol(s, "e4")["respuestas"][0].__setitem__(
+            "pide", "encuentra cuál de los dos"))
+    obj("19 · una pregunta del enunciado se queda sin respuesta",
+        "soluciones", lambda s: sol(s, "e3").__setitem__(
+            "respuestas", sol(s, "e3")["respuestas"][:2]))
+    obj("19 · el «Contesta:» del ejercicio 5 se queda solo",
+        "soluciones", lambda s: sol(s, "e5").__setitem__("respuestas", [
+            {"pide": "Ajusta un proceso de Thomas", "respuesta": "Así."}]))
+    obj("19 · un ejercicio se queda sin lectura",
+        "soluciones", lambda s: sol(s, "e4").__setitem__("lectura", " "))
+    obj("19 · falta el selector que chocó",
+        "soluciones", lambda s: sol(s, "e1").pop("chocado"))
+    obj("19 · chocan dos de los doce",
+        "soluciones", lambda s: sol(s, "e1")["redwood"][0].__setitem__("choco", True))
+    obj("19 · el que se publica no es el que chocó",
+        "soluciones", lambda s: sol(s, "e1")["chocado"].__setitem__("selector", "CvL"))
+    obj("19 · el tope pasa a ser medio lado, como decía B7",
+        "soluciones", lambda s: sol(s, "e1")["chocado"].__setitem__("tope", 0.5))
+    obj("19 · el que chocó deja de valer el tope",
+        "soluciones", lambda s: sol(s, "e1")["chocado"].__setitem__("sigma", 0.7131313131))
+    obj("19 · ensanchado, encuentra un óptimo",
+        "soluciones", lambda s: sol(s, "e1")["chocado"].__setitem__("sigma_ancho", 13.1313131313))
+    obj("19 · el cociente sin el que chocó cambia",
+        "soluciones", lambda s: sol(s, "e1")["chocado"].__setitem__("razon_sin", 2.4313131313))
+    obj("19 · sin el que chocó, su patrón sigue discrepando más",
+        "soluciones", sin_el_discrepa_mas)
+    obj("19 · la respuesta nombra otro selector",
+        "soluciones", lambda s: sol(s, "e1")["respuestas"][0].__setitem__(
+            "respuesta", sol(s, "e1")["respuestas"][0]["respuesta"].replace("`bw.ppl`", "`bw.CvL`")))
+    obj("19 · el paso del cociente de redwood cambia",
+        "soluciones", lambda s: pon_paso(s, "e1", "Cociente mayor/menor en redwood", 6.1313131313))
+    obj("19 · el paso del que chocó cambia",
+        "soluciones", lambda s: pon_paso(s, "e1", "sigma de bw.ppl en", 0.7131313131))
+    obj("19 · el paso del tope cambia",
+        "soluciones", lambda s: pon_paso(s, "e1", "Tope de su intervalo", 0.7131313131))
+    obj("19 · el paso del tope ensanchado cambia",
+        "soluciones", lambda s: pon_paso(s, "e1", "sigma de bw.ppl con el tope", 13.1313131313))
+    obj("19 · el paso del cociente sin él cambia",
+        "soluciones", lambda s: pon_paso(s, "e1", "Cociente mayor/menor en japanesepines sin",
+                                         2.4313131313))
+    obj("19 · falta la rejilla fina de Diggle",
+        "soluciones", lambda s: sol(s, "e2")["tabla"][0].pop("diggle_fina_pct"))
+    obj("19 · Diggle pasa a estar menos de mil veces más cerca",
+        "soluciones", diggle_menos_de_mil)
+    obj("19 · afinar la rejilla deja de encoger el residuo",
+        "soluciones", la_fina_no_encoge)
+    obj("19 · el defecto deja de crecer al abrir el núcleo",
+        "soluciones", lambda s: sol(s, "e2")["tabla"][2].__setitem__("defecto_pct", 1.0131313131))
+    obj("19 · sin corregir deja de perder más al abrir",
+        "soluciones", lambda s: sol(s, "e2")["tabla"][2].__setitem__("sin_corregir_pct", -3.1313131313))
+    obj("19 · la fuga pasa a ser menor que el exceso",
+        "soluciones", lambda s: sol(s, "e2")["tabla"][0].__setitem__("sin_corregir_pct", -0.5131313131))
+    obj("19 · la que conserva pasa a ser la de por defecto",
+        "soluciones", lambda s: sol(s, "e2").__setitem__("cual_conserva", "defecto"))
+    obj("19 · el paso del mayor error de Diggle cambia",
+        "soluciones", lambda s: pon_paso(s, "e2", "|Error| máximo de diggle", 0.0003131313))
+    obj("19 · el paso de la rejilla fina cambia",
+        "soluciones", lambda s: pon_paso(s, "e2", "El mismo, con rejilla", 0.0000313131))
+    obj("19 · la rejilla fina deja de ser la de la etiqueta",
+        "soluciones", lambda s: sol(s, "e2").__setitem__("rejilla_fina", 1024))
+    obj("19 · falta el kppm del ejercicio 3",
+        "soluciones", lambda s: sol(s, "e3").pop("kppm"))
+    obj("19 · la z de ppm deja de ser coef / ee",
+        "soluciones", lambda s: sol(s, "e3")["ppm"].__setitem__("ee", 0.2613131313))
+    obj("19 · el cociente que implica ppm cambia",
+        "soluciones", lambda s: sol(s, "e3")["ppm"].__setitem__("razon_bulto", 2.6131313131))
+    obj("19 · el cociente de ppm pasa al lado del rango entero",
+        "soluciones", lambda s: sol(s, "e3").__setitem__("razon_total", 3.0131313131))
+    obj("19 · una z de kppm deja de ser su coef / ee",
+        "soluciones", lambda s: sol(s, "e3")["kppm"]["traslacion"].__setitem__("z", 2.1313131313))
+    obj("19 · kppm mueve el coeficiente",
+        "soluciones", kppm_mueve_el_coef)
+    obj("19 · la de por defecto deja de ser la isotrópica",
+        "soluciones", lambda s: sol(s, "e3")["kppm"]["defecto"].__setitem__(
+            "ee", sol(s, "e3")["kppm"]["defecto"]["coef"] / 2.0313131313) or
+        sol(s, "e3")["kppm"]["defecto"].__setitem__("z", 2.0313131313))
+    obj("19 · el error estándar crece cinco veces, no diez",
+        "soluciones", ee_por_cinco)
+    obj("19 · el umbral deja de ser el de 1.96",
+        "soluciones", lambda s: sol(s, "e3").__setitem__("z_critico", 1.6448536270))
+    obj("19 · las dos z de kppm caen por debajo del umbral",
+        "soluciones", las_dos_z_por_debajo)
+    obj("19 · aparecen árboles más empinados que el máximo",
+        "soluciones", lambda s: sol(s, "e3")["colas"].__setitem__("mas_empinados", 3))
+    obj("19 · por debajo del mínimo dejan de ser unos pocos",
+        "soluciones", lambda s: sol(s, "e3")["colas"].__setitem__("menos_empinados", 131))
+    obj("19 · el enunciado da otra semilla",
+        "soluciones", lambda s: s["e3"].__setitem__(
+            "enunciado", s["e3"]["enunciado"].replace("set.seed(2026)", "set.seed(1313)")))
+    obj("19 · el paso de los más empinados cambia",
+        "soluciones", lambda s: pon_paso(s, "e3", "Árboles más empinados", 1))
+    obj("19 · el paso de los menos empinados cambia",
+        "soluciones", lambda s: pon_paso(s, "e3", "Árboles menos empinados", 13))
+    obj("19 · el paso del coeficiente de ppm cambia",
+        "soluciones", lambda s: pon_paso(s, "e3", "Coeficiente de la pendiente", 5.1313131313))
+    obj("19 · el paso de la z de ppm cambia",
+        "soluciones", lambda s: pon_paso(s, "e3", "z de la pendiente en ppm", 20.1313131313))
+    obj("19 · el paso del cociente de ppm cambia",
+        "soluciones", lambda s: pon_paso(s, "e3", "Cociente que implica ppm", 2.4131313131))
+    obj("19 · el paso de la z de kppm por defecto cambia",
+        "soluciones", lambda s: pon_paso(s, "e3", "z de la pendiente en kppm, corrección por defecto",
+                                         1.9131313131))
+    obj("19 · el paso de la z de kppm con traslación cambia",
+        "soluciones", lambda s: pon_paso(s, "e3", "z de la pendiente en kppm, corrección de traslación",
+                                         2.0131313131))
+    obj("19 · falta un coeficiente del ajuste desplazado",
+        "soluciones", lambda s: sol(s, "e4").__setitem__("coef_lejos", sol(s, "e4")["coef_lejos"][:2]))
+    obj("19 · el intercepto deja de absorber el desplazamiento",
+        "soluciones", lambda s: sol(s, "e4")["coef_lejos"].__setitem__(0, -21456.3131313131))
+    obj("19 · el paso del coeficiente de x cambia",
+        "soluciones", lambda s: pon_paso(s, "e4", "Coeficiente de x", 0.0045131313))
+    obj("19 · el paso del coeficiente de y cambia",
+        "soluciones", lambda s: pon_paso(s, "e4", "Coeficiente de y", -0.0002131313))
+    obj("19 · el paso del intercepto original cambia",
+        "soluciones", lambda s: pon_paso(s, "e4", "Intercepto del ajuste original", -5.1313131313))
+    obj("19 · el paso del intercepto desplazado cambia",
+        "soluciones", lambda s: pon_paso(s, "e4", "Intercepto del ajuste desplazado", -21456.1313131313))
+    obj("19 · falta el ajuste con traslación del ejercicio 5",
+        "soluciones", lambda s: sol(s, "e5").pop("traslacion"))
+    obj("19 · el paso de la escala con isotrópica cambia",
+        "soluciones", lambda s: pon_paso(s, "e5", "Escala con isotrópica", 0.0471313131))
+    obj("19 · la diferencia en la escala deja de ser la suya",
+        "soluciones", lambda s: sol(s, "e5")["diferencias_pct"].__setitem__("escala", 6.3131313131))
+
     return D
 
 
@@ -473,7 +859,20 @@ def tipo(n: str) -> str:
     n = re.sub(r"sigma=\d+", "sigma=S", n)
     n = re.sub(r"con sigma=[\d.]+ m", "con sigma=S m", n)
     n = re.sub(r"^ejercicios/e\d", "ejercicios/eN", n)
+    # M5: la misma cuenta repetida por patrón, por corrección o por
+    # parámetro. Atacar el cociente de redwood prueba el de los otros dos.
+    n = re.sub(r"cociente en (japanesepines|redwood|swedishpines)$", "cociente en <patrón>", n)
+    n = re.sub(r"z de kppm, (defecto|isotropica|traslacion)$", "z de kppm, <corrección>", n)
+    n = re.sub(r"paso · (kappa|escala|mu) con (isotrópica|traslación)$",
+               "paso · <parámetro> con <corrección>", n)
+    n = re.sub(r"la diferencia en (kappa|escala|mu)$", "la diferencia en <parámetro>", n)
     n = re.sub(r"^kppm/\w+", "kppm/<modelo>", n)
+    # La z con conglomerado del módulo 11: seis ajustes y dos coeficientes
+    # repiten la misma división; atacar una prueba las doce.
+    n = re.sub(r"^tendencia/\w+/\w+: (z|inflación) de \w+", r"tendencia/<ajuste>: \1 de <coef>", n)
+    n = re.sub(r"^tendencia/(xc|yc):", "tendencia/<coef>:", n)
+    # Las cuatro cuadraturas del módulo 8 repiten las mismas nueve cuentas.
+    n = re.sub(r"^cuadratura nd=\d+:", "cuadratura nd=<nd>:", n)
     n = re.sub(r"en (bei/elev|bei/grad|bogotá)$", "en <covariable>", n)
     n = re.sub(r"^(está e\d)", "está eN", n)
     n = re.sub(r"ejercicios: está e\d", "ejercicios: está eN", n)
