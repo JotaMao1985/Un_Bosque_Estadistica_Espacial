@@ -48,6 +48,16 @@ forma —la lectura de Ĝ y F̂ en una figura—, y el simulacro la trae como la
 con su figura incrustada (~50 KB). El documento pasa de 875 a 927 KB, a 3 del
 tope. 990 devuelve 63 KB de margen y sigue 249 KB por debajo de 927 + 312.
 
+2026-09-25, y la tercera: SUBE A 1150 KB. Las dos figuras del simulacro
+traen una versión estrecha para el teléfono: en 375 px la caja de la
+pregunta deja ~220 px, y con la figura de Brightspace los números de los
+ejes quedaban a 5 px —y leerlos ES la pregunta—. Son ~150 KB más: el
+documento pasa de 927 a 1075 KB. 1150 sigue 237 KB por debajo de
+1075 + 312. Javier lo dijo otra vez ese día: el tamaño no le importa, le
+importa que el material se entienda estudiando solo. El tope es la alarma
+de un ensamblado desbocado; se sube sin pedir permiso cuando lo que crece
+es explicación.
+
 Y EL PRESUPUESTO DE GEOMETRÍA ES 200 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y
 los cinco de este capítulo pesan **157 KB**. Los otros siete —las
@@ -71,7 +81,7 @@ import sys
 from audita_texto_base import SALIDAS, Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP5_KB = 990.0
+TOPE_CAP5_KB = 1150.0
 # El techo de las siete superficies del deslizador, que el núcleo no ve.
 TOPE_FAMILIA_KB = 200.0
 
@@ -379,6 +389,37 @@ def familia(a: Auditor) -> None:
             f"{kb:.1f} KB de {TOPE_FAMILIA_KB:.0f} KB, tal como viajan")
 
 
+def figuras_simulacro(a: Auditor) -> None:
+    """LAS FIGURAS DEL SIMULACRO, EN SUS DOS VERSIONES (2026-09-25).
+
+    La figura de Brightspace mide 7.2 pulgadas con letra de 13 pt, y en el
+    teléfono la caja de la pregunta deja ~220 px: los números de los ejes
+    quedaban a 5 px, y leerlos ES la pregunta (la 4 y la 11). Cada figura
+    viaja también en una versión estrecha, y la plantilla pinta una u otra
+    según el ancho de la caja. Sin la regla, la página enseña las dos, una
+    debajo de la otra; sin la estrecha, vuelve la ilegible. Se lee del
+    documento, como `familia()`.
+    """
+    print("\n=== Las figuras del simulacro ===============================")
+    m = re.search(r"SIMULACROS\['cap5-simulacro'\] = (\{.*?\n    \});\n", a.doc, re.S)
+    if not a.exige(m is not None, "el documento lleva dentro el simulacro"):
+        return
+    preguntas = json.loads(m.group(1))["preguntas"]
+    con_figura = [q for q in preguntas if "<img" in q["enunciado"]]
+    a.exige(len(con_figura) == 2, "el simulacro trae sus dos figuras (la 4 y la 11)",
+            f"{[q['n'] for q in con_figura]}")
+    for q in con_figura:
+        clases = re.findall(r'<img src="data:image/png;base64,[A-Za-z0-9+/=]+" class="(figura-[a-z]+)"', q["enunciado"])
+        a.exige(clases == ["figura-ancha", "figura-estrecha"] and q["enunciado"].count("<img") == 2,
+                f"la figura de la {q['n']} viaja en sus dos versiones, dentro de la página", f"{clases}")
+    css = re.sub(r"/\*.*?\*/", "", a.doc, flags=re.S)
+    a.exige(re.search(r"\.simulacro-enunciado \{\s*container-type: inline-size;\s*\}", css) is not None
+            and re.search(r"\.simulacro-enunciado \.figura-estrecha \{\s*display: none;\s*\}", css) is not None
+            and re.search(r"@container \(max-width: 399px\) \{\s*\.simulacro-enunciado \.figura-ancha \{\s*display: none;\s*\}"
+                          r"\s*\.simulacro-enunciado \.figura-estrecha \{\s*display: inline;\s*\}\s*\}", css) is not None,
+            "la plantilla elige la figura por el ancho de la caja: la estrecha por debajo de 400 px")
+
+
 def main() -> int:
     a = Auditor(
         capitulo="capitulo-5-intensidad-nucleos.html",
@@ -400,6 +441,7 @@ def main() -> int:
     a.accesibilidad()
     a.geomapas()
     familia(a)
+    figuras_simulacro(a)
     a.formulas_escapadas()
     a.codificacion()
     a.enlaces()

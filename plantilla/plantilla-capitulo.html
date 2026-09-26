@@ -2052,6 +2052,34 @@
       border-collapse: collapse;
     }
 
+    /* Una figura del simulacro viene en dos versiones (2026-09-25): la de
+       Brightspace, de 7.2 pulgadas, y una estrecha de 4 con la misma letra.
+       Se elige por el ancho de la CAJA, no por el de la ventana: en el
+       teléfono la caja deja ~220 px, y en la tableta el índice lateral la
+       deja igual de estrecha. Por debajo de 400 px, la de Brightspace pone
+       los números de los ejes a menos de 10 px. Con `<picture>` y una
+       consulta de ventana había que copiar aquí el punto de corte del índice
+       lateral, y al cambiar el ancho después de cargar (girar la tableta) la
+       versión no siempre se volvía a elegir. Sin consultas de contenedor
+       (Safari < 16) se ve la de Brightspace, como antes. */
+    .simulacro-enunciado {
+      container-type: inline-size;
+    }
+
+    .simulacro-enunciado .figura-estrecha {
+      display: none;
+    }
+
+    @container (max-width: 399px) {
+      .simulacro-enunciado .figura-ancha {
+        display: none;
+      }
+
+      .simulacro-enunciado .figura-estrecha {
+        display: inline;
+      }
+    }
+
     .simulacro-opciones {
       display: flex;
       flex-direction: column;
