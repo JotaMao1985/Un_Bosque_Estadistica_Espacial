@@ -65,7 +65,11 @@ S = json.loads((SALIDAS / "cap5_soluciones.json").read_text(encoding="utf-8"))
 # lleva las respuestas. Aquí solo llegan enunciados, opciones, filas, respuestas e ítems (las respuestas y
 # los ítems, barajados: ninguno en la posición de su fila o en su puesto).
 SIM = json.loads((SALIDAS / "cap5_simulacro.json").read_text(encoding="utf-8"))
-MINUTOS_SIM = SIM["minutos"]   # los del quiz; los fija el exportador del quiz
+# El reloj del simulacro y el del quiz ya no son el mismo: desde el 2026-09-25 la pregunta 2 del quiz tiene dos
+# formas (coincidencia o lectura de Ĝ y F̂), el simulacro trae las dos —la lectura, al final— y el exportador le
+# suma al reloj los minutos de una pregunta. Los tres números los fija el exportador del quiz.
+MINUTOS_SIM = SIM["minutos"]
+MINUTOS_QUIZ, N_QUIZ = SIM["minutos_quiz"], SIM["preguntas_quiz"]
 
 m1, m2, m3, m4 = D["m1"], D["m2"], D["m3"], D["m4"]
 m5, m6, m7, m8 = D["m5"], D["m6"], D["m7"], D["m8"]
@@ -258,7 +262,7 @@ TITULOS = (
     ("Diagnóstico del ajuste", "Residuos, K inhomogénea y envolventes"),
     ("Conglomerado y autoexcitación", "Thomas, Matérn, Cox y Hawkes"),
     ("Autoevaluación y ejercicios", "Doce preguntas y cinco ejercicios"),
-    ("Simulacro del quiz", "Diez preguntas cronometradas, sin corrección"),
+    ("Simulacro del quiz", "Once preguntas cronometradas, sin corrección"),
 )
 
 
@@ -2131,33 +2135,42 @@ MOD12 = cabecera(
 # los tres tipos que ese quiz no tenía: coincidencia, ordenamiento y respuesta numérica.
 # =====================================================================
 N_SIM = len(SIM["preguntas"])
-SIM_C4 = [q for q in SIM["preguntas"] if q["capitulo"] == "4"]
-SIM_C5 = [q for q in SIM["preguntas"] if q["capitulo"] == "5"]
+QUIZ_C4 = {q["pregunta"] for q in SIM["preguntas"] if q["capitulo"] == "4"}   # las del quiz, sin contar dos veces la 2
+QUIZ_C5 = {q["pregunta"] for q in SIM["preguntas"] if q["capitulo"] == "5"}
+OTRA_FORMA = next(q for q in SIM["preguntas"] if q.get("forma"))   # la lectura de P02, la última
 TIPOS_SIM = {q["tipo"] for q in SIM["preguntas"]}
 MOD13 = cabecera(
     13, "Simulacro del quiz", "Mock quiz",
     "Medir, con el reloj puesto, si las decisiones de los módulos 6 a 11 del capítulo anterior y "
     "de los cuatro primeros de éste salen solas; y dejar por escrito las respuestas para "
     "contrastarlas en clase."
-) + f"""      <p>El Quiz 2 del corte se presenta en Brightspace y dura <strong>{MINUTOS_SIM} minutos</strong>,
-        con calculadora y uso de fórmulas escritas o impresas. Son {N_SIM} preguntas: {len(SIM_C4)} del
+) + f"""      <p>El Quiz 2 del corte se presenta en Brightspace y dura <strong>{MINUTOS_QUIZ} minutos</strong>,
+        con calculadora y uso de fórmulas escritas o impresas. Son {N_QUIZ} preguntas: {len(QUIZ_C4)} del
         capítulo 4 —el tamaño del cuadrante, las funciones de resumen, el borde y las envolventes,
-        módulos 6 a 11— y {len(SIM_C5)} de éste, de los módulos 1 a 4: el estimador por núcleos, el
+        módulos 6 a 11— y {len(QUIZ_C5)} de éste, de los módulos 1 a 4: el estimador por núcleos, el
         ancho de banda, los selectores y la corrección de borde.</p>
 
-      <p>No todas se contestan igual. Unas son de <strong>una respuesta</strong>; una es de
-        <strong>varias</strong>, y se califica con crédito parcial: los aciertos suman y los errores
-        restan. Dos son de <strong>coincidencia</strong> (a cada fila, su
-        respuesta; sobran dos), una de <strong>ordenamiento</strong> y dos piden una
-        <strong>cifra</strong>: en Brightspace esas dos sortean sus datos para cada estudiante, y aquí
-        van con unos valores fijos.</p>
+      <p>No todas se contestan igual. Unas son de <strong>una respuesta</strong>; otras, de
+        <strong>varias</strong>, y se califican con crédito parcial: los aciertos suman y los errores
+        restan. Las hay de <strong>coincidencia</strong> (a cada fila, su respuesta; sobran dos),
+        una de <strong>ordenamiento</strong> y dos piden una <strong>cifra</strong>: en Brightspace
+        esas dos sortean sus datos para cada estudiante, y aquí van con unos valores fijos.</p>
+
+      <p><strong>La pregunta 2 tiene dos formas</strong>, y Brightspace sortea cuál te toca. Una es
+        una coincidencia: cada resumen de los módulos 7 a 9 del capítulo anterior con cómo se aparta
+        de la CSR. La otra es la lectura de una figura con $\\hat G$, $\\hat F$ y la curva de la CSR,
+        del módulo 7, y es de varias respuestas. El simulacro trae las dos: la coincidencia es la 2, y
+        la lectura va al final, como la {OTRA_FORMA["n"]}, para que las demás conserven su número del
+        quiz. Por eso aquí son {N_SIM} y el reloj da {MINUTOS_SIM} minutos: los {MINUTOS_QUIZ} del quiz
+        y {MINUTOS_SIM - MINUTOS_QUIZ} más por la pregunta de más.</p>
 
       <p>Abajo está un simulacro con esa misma forma. <strong>No son las preguntas del quiz</strong>:
         es una variante aparte, con otros datos, que no se usa en Brightspace. Memorizar sus
         respuestas sirve de poco: salvo donde la respuesta es la propia tabla de un módulo —hacia
         dónde se aparta cada resumen, qué hace cada selector—, lo que se repite de una variante a
-        otra es la <em>decisión</em> —qué celdas cuentan para el supuesto, qué pieza de K falta, qué curva dice
-        dónde está la estructura, qué afirma de verdad una banda— y esa es la que conviene tener
+        otra es la <em>decisión</em> —qué celdas cuentan para el supuesto, desde dónde mide cada función de
+        distancia, qué pieza de K falta, qué curva dice dónde está la estructura, qué afirma de verdad una
+        banda— y esa es la que conviene tener
         automatizada antes de entrar.</p>
 
       <div class="warning">
@@ -2191,7 +2204,9 @@ MODULOS = (MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6
 # El registro del simulacro: lo que ve el estudiante, sin clave
 # =====================================================================
 def _pregunta_sim(q):
-    base = {"n": q["n"], "etiqueta": f"cap. {q['capitulo']} · mód. {q['modulos'].replace('-', '–')}",
+    # la otra forma de la pregunta 2 lo dice en su etiqueta: «11. cap. 4 · mód. 4.7 · la otra forma de la pregunta 2»
+    forma = f" · {q['forma']}" if q.get("forma") else ""
+    base = {"n": q["n"], "etiqueta": f"cap. {q['capitulo']} · mód. {q['modulos'].replace('-', '–')}{forma}",
             "tipo": q["tipo"], "enunciado": q["enunciado"]}
     for campo in ("opciones", "filas", "respuestas", "items", "unidades"):
         if campo in q:

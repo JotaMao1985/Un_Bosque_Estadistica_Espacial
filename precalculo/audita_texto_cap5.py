@@ -43,6 +43,11 @@ y g(r) como imagen incrustada (~55 KB). El documento pasa de 796 a 872 KB.
 que `prueba_texto.py` necesita perforar para cazar un ensamblado desbocado.
 El peso nunca decide el contenido: es una alarma.
 
+2026-09-25, otra vez: SUBE A 990 KB. La pregunta 2 del quiz ganó una segunda
+forma —la lectura de Ĝ y F̂ en una figura—, y el simulacro la trae como la 11,
+con su figura incrustada (~50 KB). El documento pasa de 875 a 927 KB, a 3 del
+tope. 990 devuelve 63 KB de margen y sigue 249 KB por debajo de 927 + 312.
+
 Y EL PRESUPUESTO DE GEOMETRÍA ES 200 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y
 los cinco de este capítulo pesan **157 KB**. Los otros siete —las
@@ -66,7 +71,7 @@ import sys
 from audita_texto_base import SALIDAS, Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP5_KB = 930.0
+TOPE_CAP5_KB = 990.0
 # El techo de las siete superficies del deslizador, que el núcleo no ve.
 TOPE_FAMILIA_KB = 200.0
 
