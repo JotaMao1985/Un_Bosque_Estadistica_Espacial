@@ -824,6 +824,10 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
     D = json.loads((SALIDAS / "cap5_datos.json").read_text(encoding="utf-8"))
     S = json.loads((SALIDAS / "cap5_soluciones.json").read_text(encoding="utf-8"))
     M = json.loads((SALIDAS / "cap5_mapas.json").read_text(encoding="utf-8"))
+    SIM = json.loads((SALIDAS / "cap5_simulacro.json").read_text(encoding="utf-8"))
+    # la versión estrecha de la figura de la 11, tal como viaja en el documento: dentro de un JSON, con las comillas escapadas
+    estrecha_11 = json.dumps(re.search(r'<img [^>]*class="figura-estrecha"[^>]*>', SIM["preguntas"][10]["enunciado"]).group(0),
+                             ensure_ascii=False)[1:-1]
     m1, m3, m4, m6 = D["m1"], D["m3"], D["m4"], D["m6"]
     m7, m8, m9, m10, m11 = D["m7"], D["m8"], D["m9"], D["m10"], D["m11"]
     dv = {d["modelo"]: d for d in m11["divergencia"]}
@@ -1002,6 +1006,11 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
         ("un formateador de las lecturas vuelve a escribir coma",
          "toExponential(d == null ? 2 : d);",
          "toExponential(d == null ? 2 : d).replace('.', ',');"),
+        # (2026-09-26) el decimal con coma seguido de una coma de
+        # puntuación: el patrón de M6 lo dejaba pasar, y así sobrevivió
+        # «sigma = 0,5, 1 y 2» en el enunciado del E2.
+        ("vuelve una coma decimal seguida de una coma de puntuación",
+         "sigma = 0.5, 1 y 2", "sigma = 0,5, 1 y 2"),
         # --- LOS MECANISMOS QUE NINGÚN CAPÍTULO HABÍA VISTO FALLAR ---
         # El arnés imprime cuántas comprobaciones se ha visto caer, y al
         # mirar la lista de este capítulo quedaban dentro de `geomapas()`
@@ -1047,6 +1056,11 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
         ("el enlace al capítulo 4 apunta a un archivo que no existe",
          'href="capitulo-4-patrones-puntuales.html"',
          'href="capitulo-4-patrones-puntualess.html"'),
+        # --- Las figuras del simulacro, en sus dos versiones ---------
+        ("la figura de la 11 del simulacro viaja sin su versión estrecha",
+         estrecha_11, ""),
+        ("la plantilla deja de elegir la figura estrecha en una caja de 220 px",
+         "@container (max-width: 399px) {", "@container (max-width: 99px) {"),
         # --- Peso -----------------------------------------------------
         ("el capítulo se pasa de su propio tope de peso",
          "</body>", "<!--" + "y" * 320_000 + "-->\n</body>"),

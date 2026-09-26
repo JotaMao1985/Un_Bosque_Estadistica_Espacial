@@ -1051,17 +1051,151 @@
 
        El cambio no toca a las tablas que ya cabían: con `min-width: 100%`
        una tabla corta medía el 100 % por los dos caminos. Medido sobre los
-       tres capítulos —50 tablas— solo cambian las 7 que hoy se desbordan. */
+       tres capítulos —50 tablas— solo cambian las 7 que hoy se desbordan.
+
+       `overflow: clip` en vez del `hidden` general de `table` (y del
+       `overflow-x: auto` que le pone el móvil): recorta igual, esquinas
+       redondeadas incluidas, pero NO convierte la tabla en contenedor de
+       desplazamiento. Lo necesita el pie de tabla de abajo: un `sticky` se
+       agarra al contenedor de desplazamiento más cercano, y si ése es la
+       propia tabla —que nunca se desplaza, lo hace el envoltorio— el pie se
+       queda quieto y se va con la tabla. Las tablas con la receta de tabla
+       ancha traen `overflow: visible` en línea y no les afecta. */
     .tabla-scroll table {
       margin-bottom: 0;
       min-width: 100%;
       width: 100%;
+      overflow: clip;
+      /* La tabla va posicionada para que el envoltorio recorte todo lo que
+         lleva dentro, también lo que va en posición absoluta.
+
+         KaTeX escribe cada fórmula dos veces: la que se ve y una copia en
+         MathML para el lector de pantalla, `span.katex-mathml`, en posición
+         absoluta y recortada a un píxel. Una caja absoluta no depende de su
+         padre sino del primer antepasado posicionado, y entre la fórmula y
+         la página no había ninguno: el `overflow-x` de `.tabla-scroll` no
+         la recortaba. La copia se quedaba donde está su fórmula, en la
+         columna que el envoltorio esconde a la derecha, y la página se
+         estiraba hasta alcanzarla. Medido a 375 px en Chromium y en WebKit:
+         la λ del banco de la defensa del Taller 2 (módulo 7) llevaba la
+         página a 921 px de ancho, y la tabla de discrepancias de
+         prueba-auditoria (módulo 6) a 915. Con la tabla posicionada las dos
+         se quedan en el ancho del visor.
+
+         El `clip` de arriba no basta. Un recorte solo alcanza a lo que
+         tiene a la tabla, o a algo dentro de ella, por caja contenedora, y
+         sin `position` la de la copia queda fuera. Medido con el `clip` y
+         sin esta línea: siguen 921 y 915.
+
+         Va aquí y no tabla por tabla. La receta de tabla ancha —capítulo 1,
+         módulo 2; capítulo 4, módulo 9— ya lo ponía en línea, y es una
+         regla de las que hay que recordar a mano: el banco y la tabla de
+         discrepancias no la llevaban. Y no son las únicas expuestas. Dos
+         tablas del simulacro del capítulo 4 (módulo 13) desbordan su caja
+         con fórmulas dentro, y no ensanchan la página solo porque las
+         fórmulas caen en la parte que se ve sin desplazar.
+
+         No mueve nada más. Medido en los diez documentos, con los plegables
+         abiertos, a 375, 800, 1 024 y 1 280 px, en Chromium y en WebKit:
+         las 102 cajas y sus tablas miden lo mismo de ancho y de alto, en el
+         mismo sitio. Sin `z-index` la tabla no abre contexto de
+         apilamiento, y lo que puede pasarle por encima —la cabecera, el
+         botón del menú, el de volver arriba— lleva `z-index` 50 o más. */
+      position: relative;
     }
 
+    /* En el teléfono la tabla es `display: block` (la regla general del
+       final de la hoja) y su rejilla va en una tabla anónima dentro de ese
+       bloque. `min-width: min-content` impide que el bloque sea más estrecho
+       que su rejilla, cosa que pasaba cuando un componente le fija
+       `width: 100%`: la tabla de respaldo del mapa del módulo 7 del capítulo 1
+       tenía la rejilla de 257 px en un bloque de 229, y se desplazaba ella
+       sola por dentro del envoltorio. Con `clip` esos 28 px quedarían
+       cortados, y el pie no podría acompañar al desplazamiento, porque un
+       `sticky` no sale de su bloque contenedor.
+
+       Sustituye al `min-width: 100%` de arriba, que en el teléfono solo
+       estiraba el bloque y no la rejilla —la tabla anónima se queda en su
+       `max-content`—: lo único que cambia en una tabla corta es que la
+       sombra y las esquinas redondeadas pasan a ceñirse a la rejilla. */
     @media (max-width: 768px) {
       .tabla-scroll table {
         width: max-content;
+        min-width: min-content;
       }
+    }
+
+    /* El pie de una tabla ancha mide lo que la caja que se ve, no lo que la
+       tabla.
+
+       Un `<caption>` es `display: table-caption`: mide lo que mide la tabla
+       y se centra sobre ella, no sobre el envoltorio. Cuando la tabla
+       desborda, el envoltorio recorta el pie por la derecha y lo que falta
+       solo se lee desplazando la tabla. A 375 px el cuadro de los ocho
+       resúmenes del módulo 9 del capítulo 4 mide 616 px en una caja de 303,
+       y su pie se cortaba en «Los ocho resúmenes, en el orden…». Medido en
+       los diez documentos, con los plegables abiertos: 79 pies cortados de
+       92 a 375 px, 44 a 800 y 12 a 1 024. A 1 280, ninguno.
+
+       Por eso la regla no va dentro de `max-width: 768px`. Entre 769 y
+       ~1 100 px la barra lateral deja la caja en 316–632 px, y la tabla, que
+       ahí sigue siendo `display: table`, también la desborda.
+
+       Y por eso el pie sigue siendo `table-caption`. El arreglo del pie de
+       `.tabla-ranking` —`display: block`— sirve en el teléfono, donde la
+       tabla ya es bloque; por encima de 768 px lo mete en una celda anónima
+       de la tabla. Medido en WebKit a 800 px, el cuadro del capítulo 4
+       pasaba de 704 a 861 px y el pie se iba con la tabla al desplazarla.
+       Como `table-caption` con ancho propio se queda dentro de la caja, en
+       Chromium y en WebKit, a 375 y a 800 px.
+
+       El tope es `100cqw` porque un porcentaje en el pie se calcula sobre
+       la tabla, no sobre la caja. La unidad de contenedor es la única que
+       ve la caja, y para eso la caja se declara contenedor. Eso no le cambia
+       el tamaño: su ancho sale del padre (`width: 100%`), nunca de la tabla.
+       Medido: las 102 cajas de los diez documentos miden lo mismo de ancho
+       antes y después, a 375, 800, 1 024 y 1 280 px. De las rejillas solo
+       cambia una, la de los pasos de las soluciones del capítulo 1 a 800 px,
+       que su propio pie ensanchaba de 224 a 237 y ahora cabe en su caja. Lo
+       demás que cambia es el alto de los pies, que parten en más renglones,
+       y en el teléfono el bloque de cada tabla, que se ciñe a su rejilla
+       (el `min-width: min-content` de arriba).
+
+       Es `max-width` y no `width` por ese mismo `min-content`: en el
+       teléfono una tabla corta mide ahora lo que su rejilla, menos que la
+       caja, y un pie de `width: 100cqw` la estiraría hasta la caja.
+
+       `sticky` lo deja a la vista, pegado al borde izquierdo de la caja,
+       mientras la rejilla se desplaza por debajo. Al principio solo lo hacía
+       en las tablas de la receta de tabla ancha (`overflow: visible` en
+       línea, como en el módulo 9 del capítulo 4): en las demás la propia
+       tabla era contenedor de desplazamiento —`overflow-x: auto` en el
+       teléfono, `hidden` en escritorio—, el `sticky` se agarraba a ella y el
+       pie se iba con la tabla. El `overflow: clip` y el `min-width:
+       min-content` de arriba lo extienden a todas. Medido en Chromium y en
+       WebKit (Safari 26) en los diez documentos, con la caja al principio,
+       a la mitad y al final del desplazamiento: ningún pie fuera de ella.
+
+       `overflow-wrap` porque, con el ancho topado, una tira sin espacios más
+       larga que la caja ya no ensancha la tabla: se sale del pie y la caja
+       la corta sin dejar desplazarse hasta ella. Le pasaba a
+       `precalculo/genera_soluciones.R` en los pasos de las soluciones del
+       capítulo 1 a 800 px: 234 px de código en un pie de 224, y los últimos
+       10 no se veían de ningún modo. Solo parte la tira que no cabe.
+
+       `:not(.sr-only)` porque esta regla pesa más que `.sr-only` y sacaría a
+       la pantalla los pies que están ahí solo para el lector de pantalla. Y
+       no toca `text-align`: en una tabla que cabe, el pie ya medía lo que la
+       caja, y se sigue viendo igual. */
+    .tabla-scroll {
+      container-type: inline-size;
+    }
+
+    .tabla-scroll caption:not(.sr-only) {
+      position: sticky;
+      left: 0;
+      max-width: 100cqw;
+      overflow-wrap: break-word;
     }
 
     table {
@@ -1918,6 +2052,34 @@
       border-collapse: collapse;
     }
 
+    /* Una figura del simulacro viene en dos versiones (2026-09-25): la de
+       Brightspace, de 7.2 pulgadas, y una estrecha de 4 con la misma letra.
+       Se elige por el ancho de la CAJA, no por el de la ventana: en el
+       teléfono la caja deja ~220 px, y en la tableta el índice lateral la
+       deja igual de estrecha. Por debajo de 400 px, la de Brightspace pone
+       los números de los ejes a menos de 10 px. Con `<picture>` y una
+       consulta de ventana había que copiar aquí el punto de corte del índice
+       lateral, y al cambiar el ancho después de cargar (girar la tableta) la
+       versión no siempre se volvía a elegir. Sin consultas de contenedor
+       (Safari < 16) se ve la de Brightspace, como antes. */
+    .simulacro-enunciado {
+      container-type: inline-size;
+    }
+
+    .simulacro-enunciado .figura-estrecha {
+      display: none;
+    }
+
+    @container (max-width: 399px) {
+      .simulacro-enunciado .figura-ancha {
+        display: none;
+      }
+
+      .simulacro-enunciado .figura-estrecha {
+        display: inline;
+      }
+    }
+
     .simulacro-opciones {
       display: flex;
       flex-direction: column;
@@ -1967,6 +2129,49 @@
 
     .simulacro-opcion.marcada .simulacro-letra {
       color: #012820;
+    }
+
+    .simulacro-fila {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem 1rem;
+      font-size: 0.9375rem;
+      color: #1f2937;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.8rem;
+    }
+
+    .simulacro-select,
+    .simulacro-cifra {
+      font-family: inherit;
+      font-size: 0.9375rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.375rem;
+      padding: 0.3rem 0.5rem;
+      background: white;
+      color: #1f2937;
+    }
+
+    .simulacro-cifra {
+      width: 9rem;
+    }
+
+    .simulacro-select:focus-visible,
+    .simulacro-cifra:focus-visible {
+      outline: 2px solid #FF6600;
+      outline-offset: 1px;
+    }
+
+    .simulacro-respuestas {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      margin: 0 0 0.4rem 0;
+      font-size: 0.9375rem;
+      color: #1f2937;
     }
 
     .simulacro-resumen {
@@ -5653,6 +5858,18 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     //
     // `tipo` es 'opcion' (una marca) o 'multiple' (varias). El estudiante
     // anota sus respuestas y las contrasta después, fuera de la página.
+    //
+    // Desde el Quiz 2 (2026-09-25), tres tipos más, los que Brightspace
+    // llama coincidencia, ordenamiento y aritmética:
+    //   'coincidencia'  { filas, respuestas }: un desplegable por fila con
+    //                   las respuestas, que llevan letra (a, b, c…);
+    //   'ordenamiento'  { items }: un desplegable de puesto por ítem, y el
+    //                   resumen da las letras en el orden elegido;
+    //   'aritmetica'    { unidades }: un campo para la cifra.
+    // Ninguno lleva nada de donde deducir la respuesta, y la página no
+    // baraja al pintar: las filas van en su orden, y las RESPUESTAS y los
+    // ítems llegan ya barajados desde el exportador del quiz, ninguna
+    // respuesta en la posición de su fila y ningún ítem en su puesto.
     // ================================================================
     const SIMULACROS = {};
     const RELOJES_SIMULACRO = [];
@@ -5679,49 +5896,131 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       const empezar = raiz.querySelector('.simulacro-empezar');
       const borrar = raiz.querySelector('.simulacro-borrar');
       const marcadas = sim.preguntas.map(() => new Set());
+      // coincidencia y ordenamiento: una elección por fila o ítem; aritmética: el texto escrito
+      const elegidas = sim.preguntas.map(pr =>
+        (pr.filas || pr.items || []).map(() => -1));
+      const escritas = sim.preguntas.map(() => '');
       contenedor.innerHTML = '';
+      // las respuestas de una coincidencia pasan de cinco: LETRAS solo llega a la «e»
+      const LETRAS_SIM = 'abcdefghij'.split('');
+
+      function desplegable(etiqueta, valores, alCambiar) {
+        const sel = document.createElement('select');
+        sel.className = 'simulacro-select';
+        sel.setAttribute('aria-label', etiqueta);
+        sel.innerHTML = '<option value="-1">—</option>' +
+          valores.map((v, k) => `<option value="${k}">${v}</option>`).join('');
+        sel.onchange = () => alCambiar(Number(sel.value));
+        return sel;
+      }
 
       sim.preguntas.forEach((pr, i) => {
         const caja = document.createElement('div');
         caja.className = 'simulacro-pregunta';
         const varias = pr.tipo === 'multiple';
-        caja.innerHTML = `<span class="simulacro-etiqueta">${pr.n}. ${pr.etiqueta}` +
-          `${varias ? ' · varias respuestas' : ''}</span>` +
+        const nota = {
+          multiple: ' · varias respuestas', coincidencia: ' · coincidencia',
+          ordenamiento: ' · ordenamiento', aritmetica: ' · respuesta numérica'
+        }[pr.tipo] || '';
+        caja.innerHTML = `<span class="simulacro-etiqueta">${pr.n}. ${pr.etiqueta}${nota}</span>` +
           `<div class="simulacro-enunciado">${pr.enunciado}</div>` +
-          `<div class="simulacro-opciones" role="group" aria-label="Opciones de la pregunta ${pr.n}"></div>`;
+          `<div class="simulacro-opciones" role="group" aria-label="Respuesta de la pregunta ${pr.n}"></div>`;
         const lista = caja.querySelector('.simulacro-opciones');
-        pr.opciones.forEach((texto, j) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'simulacro-opcion';
-          b.setAttribute('aria-pressed', 'false');
-          b.innerHTML = `<span class="simulacro-letra">${LETRAS[j]})</span><span>${texto}</span>`;
-          b.onclick = () => {
-            const puesta = marcadas[i].has(j);
-            if (!varias) {
-              marcadas[i].clear();
-              lista.querySelectorAll('.simulacro-opcion').forEach(o => {
-                o.classList.remove('marcada');
-                o.setAttribute('aria-pressed', 'false');
-              });
-            }
-            if (puesta) marcadas[i].delete(j); else marcadas[i].add(j);
-            b.classList.toggle('marcada', marcadas[i].has(j));
-            b.setAttribute('aria-pressed', marcadas[i].has(j) ? 'true' : 'false');
-            pinta();
-          };
-          lista.appendChild(b);
-        });
+
+        if (pr.tipo === 'coincidencia') {
+          // la letra va escrita: el reinicio de estilos de Tailwind numera un <ol type="a"> con cifras,
+          // y los desplegables hablan en letras
+          const leyenda = document.createElement('div');
+          leyenda.className = 'simulacro-respuestas';
+          leyenda.innerHTML = pr.respuestas.map((r, k) =>
+            `<div><span class="simulacro-letra">${LETRAS_SIM[k]})</span> ${r}</div>`).join('');
+          lista.appendChild(leyenda);
+          pr.filas.forEach((fila, f) => {
+            const renglon = document.createElement('label');
+            renglon.className = 'simulacro-fila';
+            renglon.innerHTML = `<span>${fila}</span>`;
+            renglon.appendChild(desplegable(`Respuesta para ${fila}`,
+              pr.respuestas.map((_, k) => `${LETRAS_SIM[k]})`),
+              k => { elegidas[i][f] = k; pinta(); }));
+            lista.appendChild(renglon);
+          });
+        } else if (pr.tipo === 'ordenamiento') {
+          pr.items.forEach((it, f) => {
+            const renglon = document.createElement('label');
+            renglon.className = 'simulacro-fila';
+            renglon.innerHTML = `<span><span class="simulacro-letra">${LETRAS_SIM[f]})</span> ${it}</span>`;
+            renglon.appendChild(desplegable(`Puesto de ${LETRAS_SIM[f]}`,
+              pr.items.map((_, k) => `${k + 1}.º`),
+              k => { elegidas[i][f] = k; pinta(); }));
+            lista.appendChild(renglon);
+          });
+        } else if (pr.tipo === 'aritmetica') {
+          const renglon = document.createElement('label');
+          renglon.className = 'simulacro-fila';
+          renglon.innerHTML = `<span>Tu respuesta${pr.unidades ? ` (${pr.unidades})` : ''}:</span>`;
+          const caja_ = document.createElement('input');
+          caja_.type = 'text';
+          caja_.inputMode = 'decimal';
+          caja_.className = 'simulacro-cifra';
+          caja_.setAttribute('aria-label', `Respuesta de la pregunta ${pr.n}`);
+          caja_.oninput = () => { escritas[i] = caja_.value.trim(); pinta(); };
+          renglon.appendChild(caja_);
+          lista.appendChild(renglon);
+        } else {
+          pr.opciones.forEach((texto, j) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'simulacro-opcion';
+            b.setAttribute('aria-pressed', 'false');
+            b.innerHTML = `<span class="simulacro-letra">${LETRAS[j]})</span><span>${texto}</span>`;
+            b.onclick = () => {
+              const puesta = marcadas[i].has(j);
+              if (!varias) {
+                marcadas[i].clear();
+                lista.querySelectorAll('.simulacro-opcion').forEach(o => {
+                  o.classList.remove('marcada');
+                  o.setAttribute('aria-pressed', 'false');
+                });
+              }
+              if (puesta) marcadas[i].delete(j); else marcadas[i].add(j);
+              b.classList.toggle('marcada', marcadas[i].has(j));
+              b.setAttribute('aria-pressed', marcadas[i].has(j) ? 'true' : 'false');
+              pinta();
+            };
+            lista.appendChild(b);
+          });
+        }
         contenedor.appendChild(caja);
       });
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
+      katexEn(contenedor);
+
+      function respuesta(pr, i) {
+        if (pr.tipo === 'coincidencia') {
+          return elegidas[i].every(k => k < 0) ? '' :
+            elegidas[i].map(k => (k < 0 ? '·' : LETRAS_SIM[k])).join('');
+        }
+        if (pr.tipo === 'ordenamiento') {
+          if (elegidas[i].every(k => k < 0)) return '';
+          const orden = pr.items.map(() => '·');
+          elegidas[i].forEach((k, f) => { if (k >= 0) orden[k] = orden[k] === '·' ? LETRAS_SIM[f] : '?'; });
+          return orden.join('');
+        }
+        if (pr.tipo === 'aritmetica') return escritas[i] ? ` = ${escritas[i]}` : '';
+        return [...marcadas[i]].sort().map(j => LETRAS[j]).join('');
+      }
+
+      function completa(pr, i) {
+        if (pr.tipo === 'coincidencia' || pr.tipo === 'ordenamiento') return elegidas[i].every(k => k >= 0);
+        if (pr.tipo === 'aritmetica') return escritas[i] !== '';
+        return marcadas[i].size > 0;
+      }
 
       function pinta() {
-        const hechas = marcadas.filter(m => m.size > 0).length;
-        conteo.textContent = `${hechas} de ${sim.preguntas.length} marcadas`;
-        resumen.innerHTML = 'Tus respuestas: ' + sim.preguntas.map((pr, i) => {
-          const letras = [...marcadas[i]].sort().map(j => LETRAS[j]).join('');
-          return `<b>${pr.n}${letras || '—'}</b>`;
-        }).join(' · ') + '. No se corrigen aquí.';
+        const hechas = sim.preguntas.filter((pr, i) => completa(pr, i)).length;
+        conteo.textContent = `${hechas} de ${sim.preguntas.length} contestadas`;
+        resumen.innerHTML = 'Tus respuestas: ' + sim.preguntas.map((pr, i) =>
+          `<b>${pr.n}${respuesta(pr, i) || '—'}</b>`).join(' · ') + '. No se corrigen aquí.';
       }
 
       let restante = sim.minutos * 60;
