@@ -2052,6 +2052,34 @@
       border-collapse: collapse;
     }
 
+    /* Una figura del simulacro viene en dos versiones (2026-09-25): la de
+       Brightspace, de 7.2 pulgadas, y una estrecha de 4 con la misma letra.
+       Se elige por el ancho de la CAJA, no por el de la ventana: en el
+       teléfono la caja deja ~220 px, y en la tableta el índice lateral la
+       deja igual de estrecha. Por debajo de 400 px, la de Brightspace pone
+       los números de los ejes a menos de 10 px. Con `<picture>` y una
+       consulta de ventana había que copiar aquí el punto de corte del índice
+       lateral, y al cambiar el ancho después de cargar (girar la tableta) la
+       versión no siempre se volvía a elegir. Sin consultas de contenedor
+       (Safari < 16) se ve la de Brightspace, como antes. */
+    .simulacro-enunciado {
+      container-type: inline-size;
+    }
+
+    .simulacro-enunciado .figura-estrecha {
+      display: none;
+    }
+
+    @container (max-width: 399px) {
+      .simulacro-enunciado .figura-ancha {
+        display: none;
+      }
+
+      .simulacro-enunciado .figura-estrecha {
+        display: inline;
+      }
+    }
+
     .simulacro-opciones {
       display: flex;
       flex-direction: column;
@@ -2101,6 +2129,49 @@
 
     .simulacro-opcion.marcada .simulacro-letra {
       color: #012820;
+    }
+
+    .simulacro-fila {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem 1rem;
+      font-size: 0.9375rem;
+      color: #1f2937;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.8rem;
+    }
+
+    .simulacro-select,
+    .simulacro-cifra {
+      font-family: inherit;
+      font-size: 0.9375rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.375rem;
+      padding: 0.3rem 0.5rem;
+      background: white;
+      color: #1f2937;
+    }
+
+    .simulacro-cifra {
+      width: 9rem;
+    }
+
+    .simulacro-select:focus-visible,
+    .simulacro-cifra:focus-visible {
+      outline: 2px solid #FF6600;
+      outline-offset: 1px;
+    }
+
+    .simulacro-respuestas {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      margin: 0 0 0.4rem 0;
+      font-size: 0.9375rem;
+      color: #1f2937;
     }
 
     .simulacro-resumen {
@@ -5787,6 +5858,18 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     //
     // `tipo` es 'opcion' (una marca) o 'multiple' (varias). El estudiante
     // anota sus respuestas y las contrasta después, fuera de la página.
+    //
+    // Desde el Quiz 2 (2026-09-25), tres tipos más, los que Brightspace
+    // llama coincidencia, ordenamiento y aritmética:
+    //   'coincidencia'  { filas, respuestas }: un desplegable por fila con
+    //                   las respuestas, que llevan letra (a, b, c…);
+    //   'ordenamiento'  { items }: un desplegable de puesto por ítem, y el
+    //                   resumen da las letras en el orden elegido;
+    //   'aritmetica'    { unidades }: un campo para la cifra.
+    // Ninguno lleva nada de donde deducir la respuesta, y la página no
+    // baraja al pintar: las filas van en su orden, y las RESPUESTAS y los
+    // ítems llegan ya barajados desde el exportador del quiz, ninguna
+    // respuesta en la posición de su fila y ningún ítem en su puesto.
     // ================================================================
     const SIMULACROS = {};
     const RELOJES_SIMULACRO = [];
@@ -5813,49 +5896,131 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       const empezar = raiz.querySelector('.simulacro-empezar');
       const borrar = raiz.querySelector('.simulacro-borrar');
       const marcadas = sim.preguntas.map(() => new Set());
+      // coincidencia y ordenamiento: una elección por fila o ítem; aritmética: el texto escrito
+      const elegidas = sim.preguntas.map(pr =>
+        (pr.filas || pr.items || []).map(() => -1));
+      const escritas = sim.preguntas.map(() => '');
       contenedor.innerHTML = '';
+      // las respuestas de una coincidencia pasan de cinco: LETRAS solo llega a la «e»
+      const LETRAS_SIM = 'abcdefghij'.split('');
+
+      function desplegable(etiqueta, valores, alCambiar) {
+        const sel = document.createElement('select');
+        sel.className = 'simulacro-select';
+        sel.setAttribute('aria-label', etiqueta);
+        sel.innerHTML = '<option value="-1">—</option>' +
+          valores.map((v, k) => `<option value="${k}">${v}</option>`).join('');
+        sel.onchange = () => alCambiar(Number(sel.value));
+        return sel;
+      }
 
       sim.preguntas.forEach((pr, i) => {
         const caja = document.createElement('div');
         caja.className = 'simulacro-pregunta';
         const varias = pr.tipo === 'multiple';
-        caja.innerHTML = `<span class="simulacro-etiqueta">${pr.n}. ${pr.etiqueta}` +
-          `${varias ? ' · varias respuestas' : ''}</span>` +
+        const nota = {
+          multiple: ' · varias respuestas', coincidencia: ' · coincidencia',
+          ordenamiento: ' · ordenamiento', aritmetica: ' · respuesta numérica'
+        }[pr.tipo] || '';
+        caja.innerHTML = `<span class="simulacro-etiqueta">${pr.n}. ${pr.etiqueta}${nota}</span>` +
           `<div class="simulacro-enunciado">${pr.enunciado}</div>` +
-          `<div class="simulacro-opciones" role="group" aria-label="Opciones de la pregunta ${pr.n}"></div>`;
+          `<div class="simulacro-opciones" role="group" aria-label="Respuesta de la pregunta ${pr.n}"></div>`;
         const lista = caja.querySelector('.simulacro-opciones');
-        pr.opciones.forEach((texto, j) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'simulacro-opcion';
-          b.setAttribute('aria-pressed', 'false');
-          b.innerHTML = `<span class="simulacro-letra">${LETRAS[j]})</span><span>${texto}</span>`;
-          b.onclick = () => {
-            const puesta = marcadas[i].has(j);
-            if (!varias) {
-              marcadas[i].clear();
-              lista.querySelectorAll('.simulacro-opcion').forEach(o => {
-                o.classList.remove('marcada');
-                o.setAttribute('aria-pressed', 'false');
-              });
-            }
-            if (puesta) marcadas[i].delete(j); else marcadas[i].add(j);
-            b.classList.toggle('marcada', marcadas[i].has(j));
-            b.setAttribute('aria-pressed', marcadas[i].has(j) ? 'true' : 'false');
-            pinta();
-          };
-          lista.appendChild(b);
-        });
+
+        if (pr.tipo === 'coincidencia') {
+          // la letra va escrita: el reinicio de estilos de Tailwind numera un <ol type="a"> con cifras,
+          // y los desplegables hablan en letras
+          const leyenda = document.createElement('div');
+          leyenda.className = 'simulacro-respuestas';
+          leyenda.innerHTML = pr.respuestas.map((r, k) =>
+            `<div><span class="simulacro-letra">${LETRAS_SIM[k]})</span> ${r}</div>`).join('');
+          lista.appendChild(leyenda);
+          pr.filas.forEach((fila, f) => {
+            const renglon = document.createElement('label');
+            renglon.className = 'simulacro-fila';
+            renglon.innerHTML = `<span>${fila}</span>`;
+            renglon.appendChild(desplegable(`Respuesta para ${fila}`,
+              pr.respuestas.map((_, k) => `${LETRAS_SIM[k]})`),
+              k => { elegidas[i][f] = k; pinta(); }));
+            lista.appendChild(renglon);
+          });
+        } else if (pr.tipo === 'ordenamiento') {
+          pr.items.forEach((it, f) => {
+            const renglon = document.createElement('label');
+            renglon.className = 'simulacro-fila';
+            renglon.innerHTML = `<span><span class="simulacro-letra">${LETRAS_SIM[f]})</span> ${it}</span>`;
+            renglon.appendChild(desplegable(`Puesto de ${LETRAS_SIM[f]}`,
+              pr.items.map((_, k) => `${k + 1}.º`),
+              k => { elegidas[i][f] = k; pinta(); }));
+            lista.appendChild(renglon);
+          });
+        } else if (pr.tipo === 'aritmetica') {
+          const renglon = document.createElement('label');
+          renglon.className = 'simulacro-fila';
+          renglon.innerHTML = `<span>Tu respuesta${pr.unidades ? ` (${pr.unidades})` : ''}:</span>`;
+          const caja_ = document.createElement('input');
+          caja_.type = 'text';
+          caja_.inputMode = 'decimal';
+          caja_.className = 'simulacro-cifra';
+          caja_.setAttribute('aria-label', `Respuesta de la pregunta ${pr.n}`);
+          caja_.oninput = () => { escritas[i] = caja_.value.trim(); pinta(); };
+          renglon.appendChild(caja_);
+          lista.appendChild(renglon);
+        } else {
+          pr.opciones.forEach((texto, j) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'simulacro-opcion';
+            b.setAttribute('aria-pressed', 'false');
+            b.innerHTML = `<span class="simulacro-letra">${LETRAS[j]})</span><span>${texto}</span>`;
+            b.onclick = () => {
+              const puesta = marcadas[i].has(j);
+              if (!varias) {
+                marcadas[i].clear();
+                lista.querySelectorAll('.simulacro-opcion').forEach(o => {
+                  o.classList.remove('marcada');
+                  o.setAttribute('aria-pressed', 'false');
+                });
+              }
+              if (puesta) marcadas[i].delete(j); else marcadas[i].add(j);
+              b.classList.toggle('marcada', marcadas[i].has(j));
+              b.setAttribute('aria-pressed', marcadas[i].has(j) ? 'true' : 'false');
+              pinta();
+            };
+            lista.appendChild(b);
+          });
+        }
         contenedor.appendChild(caja);
       });
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
+      katexEn(contenedor);
+
+      function respuesta(pr, i) {
+        if (pr.tipo === 'coincidencia') {
+          return elegidas[i].every(k => k < 0) ? '' :
+            elegidas[i].map(k => (k < 0 ? '·' : LETRAS_SIM[k])).join('');
+        }
+        if (pr.tipo === 'ordenamiento') {
+          if (elegidas[i].every(k => k < 0)) return '';
+          const orden = pr.items.map(() => '·');
+          elegidas[i].forEach((k, f) => { if (k >= 0) orden[k] = orden[k] === '·' ? LETRAS_SIM[f] : '?'; });
+          return orden.join('');
+        }
+        if (pr.tipo === 'aritmetica') return escritas[i] ? ` = ${escritas[i]}` : '';
+        return [...marcadas[i]].sort().map(j => LETRAS[j]).join('');
+      }
+
+      function completa(pr, i) {
+        if (pr.tipo === 'coincidencia' || pr.tipo === 'ordenamiento') return elegidas[i].every(k => k >= 0);
+        if (pr.tipo === 'aritmetica') return escritas[i] !== '';
+        return marcadas[i].size > 0;
+      }
 
       function pinta() {
-        const hechas = marcadas.filter(m => m.size > 0).length;
-        conteo.textContent = `${hechas} de ${sim.preguntas.length} marcadas`;
-        resumen.innerHTML = 'Tus respuestas: ' + sim.preguntas.map((pr, i) => {
-          const letras = [...marcadas[i]].sort().map(j => LETRAS[j]).join('');
-          return `<b>${pr.n}${letras || '—'}</b>`;
-        }).join(' · ') + '. No se corrigen aquí.';
+        const hechas = sim.preguntas.filter((pr, i) => completa(pr, i)).length;
+        conteo.textContent = `${hechas} de ${sim.preguntas.length} contestadas`;
+        resumen.innerHTML = 'Tus respuestas: ' + sim.preguntas.map((pr, i) =>
+          `<b>${pr.n}${respuesta(pr, i) || '—'}</b>`).join(' · ') + '. No se corrigen aquí.';
       }
 
       let restante = sim.minutos * 60;
