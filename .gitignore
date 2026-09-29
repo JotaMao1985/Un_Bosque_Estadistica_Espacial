@@ -36,6 +36,10 @@
 # comprueba con `git check-ignore -v`.
 !/entrega/plantilla_taller1.pdf
 
+# Y el del Taller 2, por lo mismo: es la plantilla de entrega compilada, material
+# propio, y la enlaza el módulo 1 de su taller.
+!/entrega/plantilla_taller2.pdf
+
 # Y los subproductos de LaTeX, que se regeneran al compilar. La carpeta
 # `entrega/` está en la lista blanca, así que TODO lo que caiga dentro entra
 # salvo que se diga: sin estas líneas, un `latexmk` metía 1300 líneas de .log
