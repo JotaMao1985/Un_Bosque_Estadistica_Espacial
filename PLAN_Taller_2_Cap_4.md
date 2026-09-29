@@ -117,10 +117,25 @@ que cierra la fuga de verdad, y que hay que hacer de todas formas por M-14—.
 
 **Tres decisiones del enunciado que traje por precedente del Taller 1 y hay que confirmar antes de
 publicar**, porque este plan no las fija en ninguna parte: el canal y el nombre del archivo
-(**Brightspace**, `T2_Apellido_TuDocumento.pdf`), que **no hay plantilla LaTeX** —el Taller 1 sí la
-tenía, `entrega/plantilla_taller1.tex`, y aquí no existe ni hay tarea que la construya— y que **no
-se publica límite de páginas**, que preferí omitir antes que inventarlo. La hora límite quedó fijada el
+(**Brightspace**, `T2_Apellido_TuDocumento.pdf`), que **no hay plantilla LaTeX** y que **no
+se publica límite de páginas**. La hora límite quedó fijada el
 2026-09-11: **13:00 del domingo 11 de octubre**, y ya está publicada.
+
+**Las dos últimas se cerraron el 2026-09-29**: el Taller 2 tiene ahora
+`entrega/plantilla_taller2.tex` y su PDF compilado, y **la entrega no tiene límite de páginas**
+—lo dice la plantilla y lo dice el módulo 1—. La plantilla no copia la del Taller 1 campo por campo:
+la portada lleva la **línea de identificación** del buscador (que ya trae todos los campos de la
+variante) y la **bitácora** de media página, que son los dos obligatorios; sigue una hoja de cifras,
+un hueco por literal de T1 a T5 (8 % cada una), una lista de comprobación con las cinco dimensiones
+de la rúbrica, y un anexo opcional. Sin límites de palabras por tarea, porque el enunciado no publica
+ninguno. **Sigue sin confirmar** si usar la plantilla es obligatorio o solo una ayuda: el módulo 1
+la ofrece y no lo dice.
+
+**Ojo al regenerar** (medido el 2026-09-29): `ensambla_taller2.py` ya no reproduce el HTML publicado
+byte a byte, porque `plantilla/plantilla-capitulo.html` ganó estilos y lógica de simulacro
+(~196 líneas) después del último ensamblado del taller. El párrafo de la plantilla se puso en el
+script **y** en el HTML a mano, sin arrastrar esa deriva; la próxima regeneración la trae de golpe,
+así que conviene mirar el `git diff` antes de publicarla.
 
 **C5b HECHA (2026-09-10)**: el mismo `ensambla_taller2.py` añade **T3, T4, T5 y las dos
 rúbricas**. El HTML pasa a **1 124 KB** y a **siete módulos**, con **5 tareas al 8 %** —los pesos
@@ -845,9 +860,9 @@ octubre, presencial, en el espacio de la clase**. El control de la semana 9 no s
 **Siguiente: el reparto del lunes 21.** La fase de construcción queda cerrada — C1…C11 tienen
 hecho todo lo que se puede hacer antes de repartir, no hay ningún defecto abierto sobre el
 material, y **M-20 se cerró** individualizando el contraste. Lo único vivo es una decisión y no un
-fallo: las **tres logísticas de entrega** del §0 que siguen sin confirmar —canal y nombre del
-archivo, que no hay plantilla LaTeX, y que no se publica límite de páginas; la hora quedó fijada el
-2026-09-11—. Y cualquier
+fallo: de las **tres logísticas de entrega** del §0 queda sin confirmar el canal y el
+nombre del archivo (la plantilla y el límite de páginas se cerraron el 2026-09-29; la hora quedó
+fijada el 2026-09-11). Y cualquier
 regeneración tiene que caer **antes** del lunes 21: después, `genera_taller2.R` no se vuelve a
 correr (§9).
 **Y OTRA VEZ EL 2026-09-11** —entrega el domingo 11 a las 13:00, sustentación el martes 13 en

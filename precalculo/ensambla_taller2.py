@@ -364,6 +364,14 @@ MOD1 = cabecera(
           la entrega está incompleta: la <strong>línea de identificación</strong> que te da el
           buscador de aquí abajo, copiada <em>literal</em>, y la <strong>bitácora</strong> de
           media página.</p>
+        <p><strong>La plantilla:</strong>
+          <a href="../entrega/plantilla_taller2.tex" download target="_blank" rel="noopener">descargar
+          la plantilla (<code>.tex</code>)</a> ·
+          <a href="../entrega/plantilla_taller2.pdf" target="_blank" rel="noopener">ver el PDF
+          compilado</a>. Trae la portada con esas dos cosas, una hoja de cifras y un hueco por cada
+          literal. Si no tienes LaTeX instalado, sube el <code>.tex</code> a Overleaf y compila allí:
+          no usa ningún paquete fuera de lo estándar ni ningún archivo externo. <strong>El escrito no
+          tiene límite de páginas.</strong></p>
         <p style="margin-bottom:0;"><strong>La sustentación: {SUSTENTACION}, presencial, en el
           espacio de la clase, una sola sesión.</strong> Son <strong>siete minutos</strong> por persona, repartidos en tres
           bloques: <strong>2 min</strong> defendiendo <em>una</em> decisión de tu escrito, que

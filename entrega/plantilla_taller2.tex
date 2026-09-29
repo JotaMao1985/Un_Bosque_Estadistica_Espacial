@@ -1,0 +1,462 @@
+% ============================================================================
+% Taller 2 — Patrones puntuales: ventana, regimen y escala (capitulo 4)
+% Estadistica Espacial (20929) · Corte II · Universidad El Bosque · 2026-II
+%
+% PLANTILLA DE ENTREGA. Se entrega el PDF compilado, por Brightspace.
+%
+% Como usarla:
+%   1. Resuelve tu variante en el buscador del taller y pega la LINEA DE
+%      IDENTIFICACION en la portada, sin cambiar un caracter. Sin ella, y sin
+%      la bitacora de IA que va debajo, la entrega esta incompleta.
+%   2. Comprueba el digito de verificacion antes de escribir nada: el numero
+%      de sedes de tu seleccion tiene que dar exactamente el n de la linea.
+%      Un analisis perfectamente hecho sobre las sedes equivocadas se ve
+%      identico a uno correcto.
+%   3. Rellena la hoja de cifras de la pagina 2 ANTES de escribir prosa.
+%   4. Responde cada literal donde dice \marcador{...}. Los marcadores en gris
+%      que queden sin sustituir se ven en el PDF: esa es su unica funcion.
+%   5. Compila con pdflatex (o subela a Overleaf tal cual: no usa ningun
+%      paquete raro ni ningun archivo externo) y entrega el PDF.
+%
+% Nombre del archivo:  T2_Apellido_TuDocumento.pdf
+%
+% Esta entrega NO tiene limite de paginas. Lo que se califica no es cuanto
+% analisis hay sino que cada cifra se use para decidir.
+%
+% Diferencias con la plantilla del Taller 1, y por que:
+%   · La portada no lleva una ficha con la variante campo por campo: lleva la
+%     linea del buscador, que ya trae todos los campos. Repetirlos a mano
+%     seria una segunda copia que puede diferir de la primera.
+%   · La declaracion de IA no es una tabla por tarea al final: es la bitacora
+%     de media pagina, y va en la PORTADA.
+%   · Las tareas no llevan limite de palabras.
+% ============================================================================
+\documentclass[11pt,a4paper,oneside]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,top=2.3cm,bottom=2.3cm,left=2.4cm,right=2.4cm]{geometry}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\setlength{\headheight}{14pt}
+\usepackage{titlesec}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{hyperref}
+
+% --- Colores institucionales (los del informe del laboratorio) ---
+\definecolor{ubosque}{RGB}{0,102,51}
+\definecolor{grisclaro}{RGB}{240,240,240}
+\definecolor{grismarcador}{RGB}{130,130,130}
+
+\hypersetup{colorlinks=true, linkcolor=ubosque, urlcolor=blue!70!black,
+            pdftitle={Taller 2 - Estadistica Espacial 20929}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Taller 2 --- Estadística Espacial (20929)}}
+\fancyhead[R]{\small\textit{\rightmark}}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{\small Universidad El Bosque}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+\setlength{\parskip}{0.5\baselineskip}
+\setlength{\parindent}{0pt}
+\emergencystretch=3em
+% Las secciones NO se numeran: las tareas ya se llaman T1 a T5, y un «2. T1»
+% (la segunda seccion, que es la primera tarea) solo confunde.
+\setcounter{secnumdepth}{0}
+\titleformat{\section}{\normalfont\large\bfseries\color{ubosque}}{}{0em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{}{0em}{}
+\captionsetup{font=small,labelfont=bf,labelsep=period}
+
+\lstset{basicstyle=\ttfamily\footnotesize, breaklines=true, frame=single,
+        rulecolor=\color{grisclaro!60!black}, columns=flexible,
+        showstringspaces=false, xleftmargin=0pt, framexleftmargin=3pt}
+
+% --- Los comandos de la plantilla ---
+% Un hueco por rellenar. Se ve en gris y entre corchetes: si queda uno sin
+% sustituir, salta a la vista en el PDF entregado.
+% Ojo con la forma del color: `\textcolor{}{}` (comando) y NO
+% `{\color{} ...}` (declaracion). Dentro de una celda de parrafo —las
+% columnas X de tabularx— la declaracion arranca el parrafo con un whatsit y
+% hunde su primera linea: la etiqueta de la fila queda arriba y su casilla
+% media linea mas abajo.
+\newcommand{\marcador}[1]{\textcolor{grismarcador}{\textit{[#1]}}}
+
+% Columna que se estira y NO parte palabras: sin ella, «contraste» sale «contras-te».
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% El encabezado de una tarea. El peso es el de la rubrica: las cinco valen
+% lo mismo. Dice cuanto ocupa la tarea en el informe, no como se puntua.
+\newcommand{\tarea}[3]{%
+  \section*{#1 · #2 \normalfont\small\color{grismarcador}(#3 \% de la nota del taller)}%
+  \markboth{#1 · #2}{#1 · #2}}
+
+% Una seccion sin peso: rotulo, y la misma marca para el encabezado.
+\newcommand{\seccion}[1]{\section*{#1}\markboth{#1}{#1}}
+
+% Un literal: la letra en negrita y el rotulo corto. El enunciado COMPLETO
+% esta en el taller; aqui solo va el rotulo, para no gastar paginas en
+% copiar lo que el estudiante ya tiene delante.
+\newcommand{\literal}[2]{\vspace{0.35\baselineskip}\noindent\textbf{(#1)}~\textit{#2}\par\nopagebreak[4]}
+
+% La linea de identificacion, en maquina de escribir para que se pueda
+% comparar caracter a caracter con la del buscador. Va SIN cambios: no lleva
+% ningun caracter que LaTeX trate como especial (no hay %, _, &, # ni llaves).
+\newcommand{\lineaid}[1]{{\ttfamily\footnotesize\raggedright #1\par}}
+
+\begin{document}
+
+% ============================================================================
+% PORTADA — la linea de identificacion y la bitacora
+% ============================================================================
+\thispagestyle{empty}
+\begin{center}
+
+{\large\textbf{UNIVERSIDAD EL BOSQUE}}\\[0.1cm]
+{\normalsize Facultad de Ciencias --- Estadística}\\[0.1cm]
+{\normalsize Estadística Espacial (20929) --- 2026-II --- Corte II}\\[0.45cm]
+
+\rule{\textwidth}{1.2pt}\\[0.2cm]
+{\LARGE\textbf{Taller 2}}\\[0.1cm]
+{\large\textit{Patrones puntuales: ventana, régimen y escala}}\\[0.2cm]
+\rule{\textwidth}{1.2pt}\\[0.4cm]
+
+{\normalsize\textbf{Trabajo individual} \quad · \quad Escrito 40\,\% \quad · \quad Sustentación oral 60\,\%}\\[0.5cm]
+
+\end{center}
+
+\noindent\textbf{Nombre completo:} \marcador{tu nombre}
+
+\vspace{0.3cm}
+
+% --- Obligatorio 1 de 2 ---
+\noindent\fcolorbox{ubosque}{grisclaro}{%
+\begin{minipage}{0.95\textwidth}
+\small
+\textbf{1. Línea de identificación} \hfill \textcolor{grismarcador}{obligatoria}\\[0.1cm]
+La que te da el buscador del taller, \textbf{copiada literal}: tu número de documento tal como lo
+tecleaste, tu variante, tu localidad con su $n$ y su $\lambda$, tu patrón, tu trío, tu envolvente y
+tu localidad de contraste. Compárala carácter a carácter con la pantalla.
+
+\vspace{0.15cm}
+\lineaid{\marcador{pega aquí la línea, sin cambiar un carácter}}
+\end{minipage}}
+
+\vspace{0.3cm}
+
+\noindent\fcolorbox{grisclaro!60!black}{white}{%
+\begin{minipage}{0.95\textwidth}
+\small
+\textbf{Antes de escribir nada, comprueba el dígito de verificación.} El $n$ y la $\lambda$ de la
+línea son tu dígito: al construir tu patrón en T1, el número de sedes tiene que dar exactamente ese
+$n$. Si no coincide, seleccionaste otras sedes ---o otra localidad--- y todo lo que construyas encima
+estará mal sin que nada avise.
+\end{minipage}}
+
+\vspace{0.3cm}
+
+% --- Obligatorio 2 de 2 ---
+\noindent\textbf{\color{ubosque}2. Bitácora de uso de IA} \hfill \textcolor{grismarcador}{\small obligatoria}\par
+\vspace{-0.2\baselineskip}
+{\small Media página: qué consultaste, qué te respondió y \textbf{cómo verificaste si era cierto}.
+Una frase por consulta basta. Se califica la precisión de la declaración, no la cantidad de
+consultas. Si no consultaste nada, escríbelo en la primera fila: una fila en blanco no es una
+declaración.\par}
+
+\vspace{0.1cm}
+\renewcommand{\arraystretch}{1.5}
+\begingroup\setlength{\parskip}{0pt}\small
+\begin{tabularx}{\textwidth}{@{}p{0.3cm} Y Y Y@{}}
+\toprule
+ & \textbf{Qué consulté (y a qué modelo)} & \textbf{Qué me respondió} & \textbf{Cómo verifiqué si era cierto} \\
+\midrule
+1 & \marcador{~} & \marcador{~} & \marcador{~} \\[0.5cm]
+2 & \marcador{~} & \marcador{~} & \marcador{~} \\[0.5cm]
+3 & \marcador{~} & \marcador{~} & \marcador{~} \\[0.5cm]
+4 & \marcador{~} & \marcador{~} & \marcador{~} \\[0.5cm]
+\bottomrule
+\end{tabularx}
+\endgroup
+
+\vspace{0.3cm}
+
+\noindent\fcolorbox{grisclaro!60!black}{white}{%
+\begin{minipage}{0.95\textwidth}
+\small
+\textbf{Cómo se entrega.} Un solo PDF por \textbf{Brightspace}, compilado con \LaTeX{} a partir de
+esta plantilla. Nombre del archivo: \texttt{T2\_Apellido\_TuDocumento.pdf}. \textbf{Sin límite de
+páginas.}
+
+\vspace{0.1cm}
+\textbf{Domingo 11 de octubre de 2026, a más tardar a las 13:00.} No se aceptan entregas tarde.
+\textbf{Sustentación:} martes 13 de octubre, presencial, siete minutos por persona.
+\end{minipage}}
+
+\newpage
+
+% ============================================================================
+% HOJA DE CIFRAS
+% ============================================================================
+\seccion{Hoja de cifras}
+
+Todas las cifras que el taller pide, juntas. \textbf{Rellénala antes de escribir prosa}: es lo que
+permite que la discusión de cada tarea hable de números que ya están decididos. Usa punto decimal
+y no redondees antes de tiempo. Donde el enunciado dice que tu cifra tiene que coincidir
+\emph{exactamente} con la del informe (T5), copia los decimales del informe.
+
+\vspace{0.3cm}
+\renewcommand{\arraystretch}{1.25}
+\begingroup\setlength{\parskip}{0pt}
+\begin{tabularx}{\textwidth}{@{}l X r@{}}
+\toprule
+\textbf{Tarea} & \textbf{Cifra} & \textbf{Valor} \\
+\midrule
+T1 & Número de sedes de tu selección (tiene que dar el $n$ de la línea) & \marcador{~} \\
+T1 & $\lambda$ con la caja, en sedes/km$^2$                               & \marcador{~} \\
+T1 & $\lambda$ con el polígono de tu localidad, en sedes/km$^2$           & \marcador{~} \\
+T1 & Fracción de tu caja que cae fuera del polígono                       & \marcador{~} \\
+T1 & $\chi^2$ y p-valor con la caja                                       & \marcador{~} \\
+T1 & $\chi^2$ y p-valor con el polígono                                   & \marcador{~} \\
+T1 & Celdas con esperanza menor que 5, en \%                              & \marcador{~} \\
+\midrule
+T3 & $g$ en su punto más alto                                             & \marcador{~} \\
+T3 & $r$ del punto más alto de $g$                                        & \marcador{~} \\
+T3 & Primer $r$ en que $g$ vuelve a 1                                     & \marcador{~} \\
+T3 & $K$ en ese $r$                                                       & \marcador{~} \\
+T3 & $K$ bajo CSR en ese $r$ ($\pi r^2$)                                  & \marcador{~} \\
+T3 & $r$ hasta donde llega la agregación de tu patrón                     & \marcador{~} \\
+\midrule
+T4 & $r$ que declaras para medir el déficit                               & \marcador{~} \\
+T4 & Nodos fuera de la banda, en todo el rango, en \%                     & \marcador{~} \\
+T4 & Nodos que esperarías fuera de una banda puntual al 5\,\% si fuera CSR & \marcador{~} \\
+\midrule
+T5 & Focos con el $\sigma$ del informe                                    & \marcador{~} \\
+T5 & Cociente pico/media con el $\sigma$ del informe                      & \marcador{~} \\
+T5 & Factor entre el mayor y el menor cociente pico/media de los cuatro selectores & \marcador{~} \\
+T5 & $\sigma$ que defenderías ante la Secretaría de Educación             & \marcador{~} \\
+\bottomrule
+\end{tabularx}
+\endgroup
+
+\vspace{0.45cm}
+\noindent\textbf{T1 · la rejilla $k \times k$.} Es la tabla que pide el literal (c): prueba los cuatro
+valores, sin parar en el primero que falle. $k = 1$ no vale.
+
+\vspace{0.25cm}
+\begingroup\setlength{\parskip}{0pt}
+\begin{tabularx}{\textwidth}{@{}l X X@{}}
+\toprule
+\textbf{$k$} & \textbf{Esperanza mínima de las celdas} & \textbf{¿No baja de 5?} \\
+\midrule
+2 & \marcador{~} & \marcador{~} \\
+3 & \marcador{~} & \marcador{~} \\
+4 & \marcador{~} & \marcador{~} \\
+5 & \marcador{~} & \marcador{~} \\
+\bottomrule
+\end{tabularx}
+\endgroup
+
+\vspace{0.15cm}
+\noindent Tu $k$ (el más grande que no baja de 5): \marcador{$k$, o «ninguno»}\\
+Veredicto con ese $k$: \marcador{rechaza / no rechaza}
+
+% Salto deliberado: sin el, el rotulo de T2 se quedaba al pie de la pagina 2 y
+% su tabla en la 3.
+\newpage
+\noindent\textbf{T2 · las tres parejas.} Es lo que piden los literales (a) a (c), fila por fila.
+
+\vspace{0.25cm}
+\begingroup\setlength{\parskip}{0pt}
+\begin{tabularx}{\textwidth}{@{}l l X l l l@{}}
+\toprule
+\textbf{Pareja} & \textbf{Mapa} & \textbf{Régimen y escala} & \textbf{$r$ en que decide} & \textbf{$G$ apunta a} & \textbf{$F$ apunta a} \\
+\midrule
+1 & \marcador{A, B o C} & \marcador{~} & \marcador{~} & \marcador{~} & \marcador{~} \\
+2 & \marcador{A, B o C} & \marcador{~} & \marcador{~} & \marcador{~} & \marcador{~} \\
+3 & \marcador{A, B o C} & \marcador{~} & \marcador{~} & \marcador{~} & \marcador{~} \\
+\bottomrule
+\end{tabularx}
+\endgroup
+
+\vspace{0.45cm}
+\noindent\textbf{T4 · las dos ventanas.} Las cifras de los literales (a) y (b), lado a lado.
+
+\vspace{0.25cm}
+\begingroup\setlength{\parskip}{0pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.44\textwidth} Y Y@{}}
+\toprule
+\textbf{Cifra} & \textbf{Tu localidad} & \textbf{Localidad de contraste} \\
+\midrule
+Déficit de $K$ sin corregir, en el $r$ que declaraste & \marcador{~} & \marcador{~} \\
+Cociente perímetro/área                               & \marcador{~} & \marcador{~} \\
+\bottomrule
+\end{tabularx}
+\endgroup
+
+\vspace{0.45cm}
+\noindent\textbf{T5 · los cuatro selectores.} Los del módulo 3 del capítulo 5.
+
+\vspace{0.25cm}
+\begingroup\setlength{\parskip}{0pt}
+\begin{tabularx}{\textwidth}{@{}l X X@{}}
+\toprule
+\textbf{Selector} & \textbf{$\sigma$} & \textbf{Cociente pico/media} \\
+\midrule
+\texttt{bw.diggle} & \marcador{~} & \marcador{~} \\
+\texttt{bw.ppl}    & \marcador{~} & \marcador{~} \\
+\texttt{bw.CvL}    & \marcador{~} & \marcador{~} \\
+\texttt{bw.scott}  & \marcador{~} & \marcador{~} \\
+\bottomrule
+\end{tabularx}
+\endgroup
+
+\newpage
+
+% ============================================================================
+% LAS CINCO TAREAS
+% ============================================================================
+\tarea{T1}{La ventana que no declaraste}{8}
+\literal{a}{La $\lambda$ bajo las dos ventanas y la fracción de tu caja que cae fuera del polígono. Con esa fracción delante: ¿de qué es intensidad la cifra de la caja, si no es de tu localidad?}
+\marcador{tu respuesta}
+
+\literal{b}{Los dos $\chi^2$ y los dos p-valores. Nombra el síntoma antes de arreglarlo: di qué está mal en el procedimiento, no qué habría que hacer en su lugar.}
+\marcador{tu respuesta}
+
+\literal{c}{Antes de leer ningún p-valor, comprueba el supuesto del $\chi^2$: el porcentaje de celdas con esperanza menor que 5 y qué decide eso sobre tu p-valor. Si no se puede leer, prueba $k = 2, 3, 4, 5$, da la esperanza mínima de cada uno, quédate con el $k$ más grande que no baje de 5 y di qué veredicto da. $k = 1$ no vale.}
+\marcador{tu respuesta}
+
+\literal{d}{Refuta «a mí me rechazó con la caja y con el polígono, así que el error no importa»: lo que se refuta es que el error no importa, no que el veredicto cambie. Con su cifra y con la tuya.}
+\marcador{tu respuesta}
+
+\literal{e}{Por qué este defecto no se vería mirando el mapa del patrón.}
+\marcador{tu respuesta}
+
+\tarea{T2}{El régimen que las dos funciones no ven igual}{8}
+\literal{a}{Empareja cada pareja de curvas con su mapa (1, 2 y 3 con A, B o C), diciendo qué mira cada función y apoyándote en un valor de $r$ concreto de tus curvas.}
+\marcador{tu respuesta}
+
+\literal{b}{El régimen de cada uno y la escala a la que lo afirmas: el $r$ en que tu curva decide, y qué pasaría con tu veredicto si solo miraras $r$ por encima de ese valor.}
+\marcador{tu respuesta}
+
+\literal{c}{$G$ y $F$ frente a lo que daría la CSR con tu $\lambda$: a qué régimen apunta cada una en cada patrón, y si hay alguno donde no apunten al mismo. Si en los tres coinciden, construye el caso en que no lo harían.}
+\marcador{tu respuesta}
+
+\tarea{T3}{Dónde está la estructura}{8}
+\literal{a}{¿Es cierta la conclusión del informe? Refútala o confírmala con $g$, y di hasta qué $r$ llega la agregación de tu patrón. Comprueba antes la premisa.}
+\marcador{tu respuesta}
+
+\literal{b}{Tres cifras tuyas ---$g$ en su punto más alto y su $r$; el $r$ en que $g$ vuelve a 1 por primera vez; $K$ en ese $r$ frente a la CSR--- y la frase que el informe tendría que haber escrito.}
+\marcador{tu respuesta}
+
+\literal{c}{$K$ y $g$ de tu localidad real, la de T1: ¿dicen lo mismo a todas las escalas? ¿Contradice eso (a)? Nombra el módulo del capítulo 4 que explica la diferencia.}
+\marcador{tu respuesta}
+
+\tarea{T4}{El borde y la banda}{8}
+\literal{a}{$K$ con corrección de traslación y sin corregir, en tu localidad y en la de contraste, y el déficit de la versión sin corregir en un $r$ que declares. ¿Cuál de las dos ventanas sufre más, y por cuánto?}
+\marcador{tu respuesta}
+
+\literal{b}{El cociente perímetro/área de las dos ventanas, al lado de los dos déficits. ¿Por qué ese cociente predice cuál sufre más? Con lo que le pasa a un punto cualquiera de cada ventana, no con la correlación entre las dos columnas.}
+\marcador{tu respuesta}
+
+\literal{c}{La banda: por qué el p-valor del informe no es un p-valor. La respuesta tiene que nombrar \emph{cuándo} se eligió el tramo.}
+\marcador{tu respuesta}
+
+\literal{d}{Cuántos nodos se salen de la banda en todo el rango (porcentaje) frente a cuántos esperarías con una banda puntual al 5\,\% si fuera CSR, y por qué tu recuento tampoco decide.}
+\marcador{tu respuesta}
+
+\literal{e}{De las dos propiedades que definen CSR, cuál usa \texttt{envelope()} al generar cada réplica con el mismo $n$ y cuál da por buena sin comprobarla.}
+\marcador{tu respuesta}
+
+\tarea{T5}{El mismo problema con otro mando}{8}
+\literal{a}{Reproduce el mapa con el $\sigma$ del informe y la rejilla del bloque: cuántos focos cuentas y cuánto vale tu cociente pico/media, exactamente los del informe. Si no coinciden, di qué cambiaste.}
+\marcador{tu respuesta}
+
+\literal{b}{Los cuatro selectores del módulo 3 del capítulo 5: los cuatro $\sigma$ y el factor entre el mayor y el menor cociente pico/media. ¿La afirmación del informe sobrevive a alguno?}
+\marcador{tu respuesta}
+
+\literal{c}{¿Cuál de las dos decisiones movió más tu conclusión, la rejilla de T1 o el ancho de aquí? Por qué son la misma decisión con dos nombres, citando tus dos cifras.}
+\marcador{tu respuesta}
+
+\literal{d}{El $\sigma$ que defenderías ante la Secretaría de Educación, diciendo qué optimiza ese selector y por qué eso es lo que le conviene a esta pregunta.}
+\marcador{tu respuesta}
+
+% ============================================================================
+% ANTES DE ENTREGAR
+% ============================================================================
+\seccion{Antes de entregar}
+
+\textbf{Las dos primeras son obligatorias: sin cualquiera de ellas, la entrega está incompleta.}
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item[$\square$] La \textbf{línea de identificación} está en la portada, copiada literal, y el número de documento es el que tecleaste.
+  \item[$\square$] La \textbf{bitácora} está en la portada.
+  \item[$\square$] El número de sedes de mi selección da el $n$ de la línea.
+  \item[$\square$] No queda ningún marcador gris en el PDF.
+  \item[$\square$] El archivo se llama \texttt{T2\_Apellido\_TuDocumento.pdf} y está en Brightspace antes de las 13:00 del domingo 11 de octubre.
+\end{itemize}
+
+\noindent\textbf{Lo que mira la rúbrica del escrito}, aplicada al informe entero y no tarea por tarea:
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item[A.] ¿Nombro el módulo del capítulo que sostiene cada concepto, y lo uso para decidir y no para definir?
+  \item[B.] ¿Digo qué significa cada cifra \emph{y qué no significa}?
+  \item[C.] ¿Explico por qué el procedimiento hace lo que hace, no solo los pasos?
+  \item[D.] ¿Demuestro cada defecto con una cifra mía? (En T1(b) se nombra, no se arregla.)
+  \item[E.] ¿La bitácora dice qué consulté, qué respondió y cómo lo verifiqué, y lo verificado se puede rastrear en el informe?
+\end{itemize}
+
+\noindent La regla que le da dientes a todo lo anterior: \textbf{una decisión entregada por escrito que
+no puedas sostener en la sustentación se recalifica}. La sustentación (60\,\%) son dos minutos
+defendiendo una decisión de tu escrito que elige el profesor después de leerlo, tres con tres
+preguntas del banco publicado, y dos de refutación en vivo.
+
+% ============================================================================
+% DECISIONES PARA LA DEFENSA
+% ============================================================================
+\seccion{Decisiones que sostendré en la sustentación}
+
+Opcional, y no se califica: sirve para preparar los dos minutos en que el profesor elige una
+decisión de tu escrito. Escribe una decisión tuya por tarea ---no resultados: decisiones--- y de
+dónde sale.
+
+\begin{enumerate}[leftmargin=*,itemsep=4pt]
+  \item \marcador{decisión} \hfill \textcolor{grismarcador}{\small (tarea \marcador{Tn})}
+  \item \marcador{decisión} \hfill \textcolor{grismarcador}{\small (tarea \marcador{Tn})}
+  \item \marcador{decisión} \hfill \textcolor{grismarcador}{\small (tarea \marcador{Tn})}
+  \item \marcador{decisión} \hfill \textcolor{grismarcador}{\small (tarea \marcador{Tn})}
+  \item \marcador{decisión} \hfill \textcolor{grismarcador}{\small (tarea \marcador{Tn})}
+\end{enumerate}
+
+\newpage
+% ============================================================================
+% ANEXO — opcional
+% ============================================================================
+\seccion{Anexo. Código ejecutado y entorno}
+
+Opcional: el enunciado no lo pide. Sirve para que, si una cifra no cuadra, se vea sobre qué sedes
+y con qué versiones trabajaste. Pega el código que ejecutaste de verdad y la salida de
+\texttt{sessionInfo()}. No se califica su elegancia.
+
+\begin{lstlisting}[language=R]
+# Pega aqui tu codigo
+\end{lstlisting}
+
+\begin{lstlisting}
+# Pega aqui la salida de sessionInfo()
+\end{lstlisting}
+
+\end{document}
