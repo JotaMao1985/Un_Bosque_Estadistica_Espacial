@@ -133,10 +133,14 @@ def pct(x, d=1):
     return f"{float(x):.{d}f} %"
 
 
+# El título llega en HTML —«Ajustar con <code>ppm</code>»— porque el h2 lo
+# pinta tal cual. El comentario del marcado es texto plano, y ahí la etiqueta
+# sobra: se quita solo para él.
 def cabecera(num, titulo, ingles, objetivo):
+    plano = titulo.replace("<code>", "").replace("</code>", "")
     return f"""
   <!-- ============================================================ -->
-  <!-- MÓDULO {num} · {titulo[:52]:<52} -->
+  <!-- MÓDULO {num} · {plano[:52]:<52} -->
   <!-- ============================================================ -->
   <template id="module-{num}">
     <div class="animate-fade-in">
@@ -266,6 +270,12 @@ def mapa_html(ident, titulo, controles=False):
 """
 
 
+# LOS TÍTULOS SE ESCRIBEN EN HTML, NO EN MARKDOWN. El índice lateral los pinta
+# con `innerHTML`, igual que el h2 de `cabecera()`, y aquí nada los convierte:
+# `_codigo()` solo pasa por los enunciados de los ejercicios. Hasta el
+# 2026-09-26 el módulo 9 se llamaba «Ajustar con `ppm`» y el estudiante veía
+# los acentos graves en los dos sitios. `audita_texto_cap5.py` para el
+# documento si un título publicado vuelve a llevar uno.
 TITULOS = (
     ("De contar a suavizar", "El estimador núcleo de la intensidad"),
     ("El ancho de banda lo es todo", "El núcleo importa poco"),
@@ -275,7 +285,7 @@ TITULOS = (
     ("Intensidad relativa", "Casos, controles y proporción de tipo"),
     ("Covariables", "La intensidad como función de otra cosa"),
     ("El Poisson inhomogéneo", "El modelo y su verosimilitud"),
-    ("Ajustar con `ppm`", "Berman-Turner y la lectura de los coeficientes"),
+    ("Ajustar con <code>ppm</code>", "Berman-Turner y la lectura de los coeficientes"),
     ("Diagnóstico del ajuste", "Residuos, K inhomogénea y envolventes"),
     ("Conglomerado y autoexcitación", "Thomas, Matérn, Cox y Hawkes"),
     ("Autoevaluación y ejercicios", "Doce preguntas y cinco ejercicios"),
@@ -1713,7 +1723,7 @@ _SUB9 = dict(
     ZS=" ".join(n(v, 4) for v in _ce["z"]))
 
 MOD9 = cabecera(
-    9, "Ajustar con `ppm`", "Fitting with ppm",
+    9, "Ajustar con <code>ppm</code>", "Fitting with <code>ppm</code>",
     "Leer los coeficientes de un proceso puntual ajustado, y reconocer los dos casos "
     "en que no se pueden leer aunque el ajuste haya salido.") + f"""
       <p>Ajustar es una línea. Leer lo ajustado tiene dos trampas, y las dos devuelven algo

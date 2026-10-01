@@ -522,6 +522,31 @@ def figuras_simulacro(a: Auditor) -> None:
             "la plantilla elige la figura por el ancho de la caja: la estrecha por debajo de 400 px")
 
 
+def titulos_sin_acento_grave(a: Auditor) -> None:
+    """UN TÍTULO DE MÓDULO NO PUBLICA MARKDOWN.
+
+    El módulo 9 salía «Ajustar con `ppm`», con los acentos graves a la vista
+    en su h2 y en el índice lateral: el título se escribía como si algo lo
+    fuera a pasar a `<code>`, y nada lo pasaba. Se lee lo publicado, no el
+    ensamblador: el h2 de cada módulo —con su mitad inglesa— y cada cadena
+    de `courseData`, título y subtítulo, que son las dos líneas de cada
+    entrada del índice.
+    """
+    print("\n=== Los títulos de los módulos, sin acentos graves ==========")
+    h2 = re.findall(r'<template id="module-(\d+)">.*?<h2\b[^>]*>(.*?)</h2>', a.doc, re.S)
+    cd = re.search(r"const courseData = \{\s*modules: \[(.*?)\n\s*\]\s*\};", a.doc, re.S)
+    entradas = re.findall(r"\{ id: (\d+), (.*?) \},?$", cd.group(1), re.M) if cd else []
+    # Si un cambio de formato dejara vacías las dos búsquedas, las dos
+    # comprobaciones de abajo darían OK sobre nada.
+    a.exige(0 < len(h2) == len(entradas), "un h2 y una entrada del índice por módulo, leídos",
+            f"{len(h2)} h2 y {len(entradas)} entradas")
+    malos = [f"{k}: «{' '.join(re.sub(r'<[^>]+>', '', t).split())}»" for k, t in h2 if "`" in t]
+    a.exige(not malos, "ningún h2 de módulo lleva un acento grave", " · ".join(malos))
+    malos = [f"{k}: «{v}»" for k, campos in entradas
+             for v in map(json.loads, re.findall(r'"(?:[^"\\]|\\.)*"', campos)) if "`" in v]
+    a.exige(not malos, "ninguna entrada del índice lleva un acento grave", " · ".join(malos))
+
+
 def main() -> int:
     a = Auditor(
         capitulo="capitulo-5-intensidad-nucleos.html",
@@ -546,6 +571,7 @@ def main() -> int:
     respuestas_publicadas(a)
     decimales_con_punto(a)
     figuras_simulacro(a)
+    titulos_sin_acento_grave(a)
     a.formulas_escapadas()
     a.codificacion()
     a.enlaces()

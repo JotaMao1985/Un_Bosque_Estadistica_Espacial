@@ -1011,6 +1011,16 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
         # «sigma = 0,5, 1 y 2» en el enunciado del E2.
         ("vuelve una coma decimal seguida de una coma de puntuación",
          "sigma = 0.5, 1 y 2", "sigma = 0,5, 1 y 2"),
+        # 2026-09-26: el módulo 9 publicaba «Ajustar con `ppm`», acentos
+        # graves incluidos, en su h2 y en el índice lateral. Una inyección
+        # por comprobación, y una tercera en el SUBTÍTULO, que es la otra
+        # línea del índice y la que el capítulo 6 tiene rota.
+        ("un h2 de módulo vuelve a publicar acentos graves",
+         ">Ajustar con <code>ppm</code>\n", ">Ajustar con `ppm`\n"),
+        ("un título del índice lateral vuelve a publicar acentos graves",
+         'title: "Ajustar con <code>ppm</code>"', 'title: "Ajustar con `ppm`"'),
+        ("un subtítulo del índice lateral publica acentos graves",
+         'subtitle: "Residuos, K inhomogénea y', 'subtitle: "Residuos, `Kinhom` y'),
         # --- LOS MECANISMOS QUE NINGÚN CAPÍTULO HABÍA VISTO FALLAR ---
         # El arnés imprime cuántas comprobaciones se ha visto caer, y al
         # mirar la lista de este capítulo quedaban dentro de `geomapas()`
