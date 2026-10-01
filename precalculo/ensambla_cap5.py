@@ -51,6 +51,7 @@ from baraja_opciones import baraja_documento
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from rejilla_comprime import ida_y_vuelta
+from construye_nucleo3d import THREE_URL, THREE_SRI, leer_motor
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
@@ -253,6 +254,25 @@ def quiz_html(ident, titulo, bajada):
           <span class="quiz-conteo"></span>
           <button type="button" class="quiz-reiniciar">Reiniciar</button>
         </div>
+      </div>
+"""
+
+
+def nucleo3d_html(ident, titulo, pie):
+    """La animación 3D del módulo 1: un contenedor vacío que el motor monta cuando se ve.
+
+    Es un `.simulador` más —lo registra `SIMULADORES[ident]` y lo destruye
+    `destruirSimuladores()`—, pero sin lienzo ni mandos en el marcado: los
+    construye `nucleo3d.js`, que es el mismo motor de las diapositivas. El
+    `.n3d-cargando` reserva el sitio mientras llega three.js, y es el texto
+    que ve quien lo tenga bloqueado.
+    """
+    return f"""      <div class="simulador" data-simulador="{ident}">
+        <h4><i class="fas fa-cube" aria-hidden="true"></i> {titulo}</h4>
+        <p class="simulador-intro">{pie}</p>
+        <div class="n3d-montaje"><p class="n3d-cargando">La animación se carga al llegar aquí. Si no aparece, el texto
+          de los cinco pasos y la fórmula de arriba dicen lo mismo: cada punto levanta una loma de ancho σ, y la
+          superficie de intensidad es la suma de todas las lomas.</p></div>
       </div>
 """
 
@@ -497,6 +517,22 @@ MOD1 = cabecera(
       <p>El término $e(u)$ es la corrección de borde, y tiene el módulo 4 para él solo. Por ahora
         basta con saber por qué existe: la ventana corta el núcleo de los puntos cercanos al
         perímetro, y sin corregir esa masa se pierde por el borde.</p>
+
+      <p>Antes de medir nada sobre Kennedy conviene <em>ver</em> qué hace esa suma. La animación de
+        abajo parte de unos pocos puntos inventados y sigue la idea del módulo en cinco pasos: del
+        conteo en cajas a una loma por punto, y de ahí a la superficie que resulta de sumarlas.
+        Como los puntos no son sedes reales, las cifras que verás en pantalla no son resultados:
+        sirven para ver cómo funciona el estimador, no para medir nada.</p>
+
+{nucleo3d_html("cap5-nucleo3d", "Del conteo a la superficie, en tres dimensiones",
+      "Cinco pasos, de los puntos a la altura en un sitio. Arrastra un punto o el fondo, mueve σ "
+      "y cambia de núcleo; con «Reproducir» la animación recorre los cinco pasos sola.")}
+      <p>Quédate con tres cosas. La superficie no tiene nada que no estuviera en las lomas: es su
+        suma, sitio a sitio. Cada loma encierra lo mismo —un punto—, así que abrir σ no crea
+        intensidad, la reparte, y por eso el máximo baja. Y cambiar de núcleo cambia la forma de
+        las lomas, pero la de su suma mucho menos que mover σ (el disco, con su borde brusco, es el
+        que más se nota). Las dos últimas son justo lo que mide el módulo siguiente, esta vez
+        sobre las sedes de Kennedy.</p>
 """ + CIERRE
 
 
@@ -512,7 +548,9 @@ MOD2 = cabecera(
     "ancho, y comprobar que no juegan en la misma liga.") + f"""
       <p>Elegir un estimador por núcleos son dos decisiones: qué función de peso usar y con qué
         anchura. Suenan igual de importantes y no lo son, ni de lejos. Este módulo mide las dos
-        sobre el mismo patrón, para que la diferencia se vea en una cifra en vez de creerse.</p>
+        sobre el mismo patrón, para que la diferencia se vea en una cifra en vez de creerse. Si
+        prefieres verlas antes en pequeño, la animación del módulo 1 tiene los dos mandos: el
+        núcleo y σ.</p>
 
       <h3>Primero el núcleo, que es la decisión que no importa</h3>
 
@@ -3242,6 +3280,61 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       return [g];
     };
 """
+
+# =====================================================================
+# LA ANIMACIÓN 3D DEL MÓDULO 1 (`precalculo/nucleo3d/nucleo3d.js`).
+#
+# El motor se inyecta TAL CUAL —el mismo archivo que estampa
+# `construye_nucleo3d.py` para las diapositivas— y aquí solo se escribe su
+# registro. Dos decisiones que no se ven en el resultado:
+#
+#   · three.js (600 KB) NO viaja con el capítulo ni se pide al abrirlo: se pide
+#     cuando la animación está a 400 px de verse (`IntersectionObserver`), con
+#     la versión fijada y su huella SRI. Quien no baja hasta ella no lo
+#     descarga, y quien lo tiene bloqueado ve el aviso del motor en vez de un
+#     hueco: el texto de los cinco pasos y la prosa dicen lo mismo.
+#   · el registro devuelve `{ destroy() }` y no un Chart: es el contrato de
+#     `destruirSimuladores()`, y destruir aquí libera el contexto WebGL.
+# =====================================================================
+NUCLEO3D_JS = (
+    "\n    // --- Módulo 1 · la animación 3D: el motor y su registro ------------\n"
+    "    // El motor es `precalculo/nucleo3d/nucleo3d.js`, el MISMO que cargan las diapositivas.\n"
+    + leer_motor()
+    + r"""
+    function cargaThree() {
+      if (window.THREE) return Promise.resolve();
+      if (!cargaThree.promesa) {
+        cargaThree.promesa = new Promise((ok, mal) => {
+          const s = document.createElement('script');
+          s.src = '@@URL@@'; s.integrity = '@@SRI@@'; s.crossOrigin = 'anonymous';
+          s.onload = ok;
+          s.onerror = () => { cargaThree.promesa = null; mal(new Error('three.js no llegó')); };
+          document.head.appendChild(s);
+        });
+      }
+      return cargaThree.promesa;
+    }
+
+    SIMULADORES['cap5-nucleo3d'] = function (raiz) {
+      const sitio = raiz.querySelector('.n3d-montaje');
+      let vivo = true, instancia = null, io = null;
+      Nucleo3D.estilos(document);
+      const monta = () => cargaThree().then(
+        () => { if (vivo) { sitio.innerHTML = ''; instancia = sitio.animacion = Nucleo3D.montar(sitio, { THREE: window.THREE }); } },
+        () => { if (vivo) { sitio.innerHTML = ''; Nucleo3D.montar(sitio, { THREE: null }); } });
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(es => {
+          if (es.some(e => e.isIntersecting)) { io.disconnect(); io = null; monta(); }
+        }, { rootMargin: '400px 0px' });
+        io.observe(sitio);
+      } else {
+        monta();
+      }
+      return [{ destroy() { vivo = false; if (io) io.disconnect(); if (instancia) instancia.destruir(); instancia = sitio.animacion = null; } }];
+    };
+""").replace("@@URL@@", THREE_URL).replace("@@SRI@@", THREE_SRI)
+
+SIMULADORES_JS += NUCLEO3D_JS
 
 
 # =====================================================================

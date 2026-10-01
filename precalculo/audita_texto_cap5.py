@@ -58,6 +58,17 @@ importa que el material se entienda estudiando solo. El tope es la alarma
 de un ensamblado desbocado; se sube sin pedir permiso cuando lo que crece
 es explicación.
 
+2026-09-30, y la cuarta: SUBE A 1250 KB. El módulo 1 gana una animación en tres
+dimensiones (`precalculo/nucleo3d/nucleo3d.js`) y el motor viaja EN LÍNEA: 81 KB
+de matemática, escena, interfaz y estilos, sin minificar y con sus comentarios,
+que son la única documentación que el motor tiene. El documento pasa de 1 112 a
+1 197 KB. Lo que NO suma: three.js (600 KB), que llega de un CDN con la versión
+fijada y su huella SRI y solo cuando la animación está a punto de verse. 1250
+deja 53 KB de margen y sigue 259 KB por debajo de 1197 + 312, el techo que
+`prueba_texto.py` necesita perforar. Es explicación, y es la cuarta vez que el
+peso cede ante ella: el tope es la alarma de un ensamblado desbocado, no un
+presupuesto de contenido.
+
 Y EL PRESUPUESTO DE GEOMETRÍA ES 200 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y
 los cinco de este capítulo pesan **157 KB**. Los otros siete —las
@@ -81,7 +92,7 @@ import sys
 from audita_texto_base import SALIDAS, Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP5_KB = 1150.0
+TOPE_CAP5_KB = 1250.0
 # El techo de las siete superficies del deslizador, que el núcleo no ve.
 TOPE_FAMILIA_KB = 200.0
 
