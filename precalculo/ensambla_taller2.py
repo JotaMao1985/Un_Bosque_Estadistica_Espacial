@@ -364,6 +364,14 @@ MOD1 = cabecera(
           la entrega está incompleta: la <strong>línea de identificación</strong> que te da el
           buscador de aquí abajo, copiada <em>literal</em>, y la <strong>bitácora</strong> de
           media página.</p>
+        <p><strong>La plantilla:</strong>
+          <a class="enlace-plantilla" href="../entrega/plantilla_taller2.tex" download target="_blank" rel="noopener">descargar
+          la plantilla (<code>.tex</code>)</a> ·
+          <a class="enlace-plantilla" href="../entrega/plantilla_taller2.pdf" target="_blank" rel="noopener">ver el PDF
+          compilado</a>. Trae la portada con esas dos cosas, una hoja de cifras y un hueco por cada
+          literal. Si no tienes LaTeX instalado, sube el <code>.tex</code> a Overleaf y compila allí:
+          no usa ningún paquete fuera de lo estándar ni ningún archivo externo. <strong>El escrito no
+          tiene límite de páginas.</strong></p>
         <p style="margin-bottom:0;"><strong>La sustentación: {SUSTENTACION}, presencial, en el
           espacio de la clase, una sola sesión.</strong> Son <strong>siete minutos</strong> por persona, repartidos en tres
           bloques: <strong>2 min</strong> defendiendo <em>una</em> decisión de tu escrito, que
@@ -2840,6 +2848,38 @@ CSS_EXTRA = """
       white-space: pre;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+    }
+
+    /* Los dos enlaces de la plantilla de entrega (el .tex y el PDF). Son lo
+       único de la nota que el estudiante tiene que ENCONTRAR: dentro de
+       cuatro párrafos y con el azul de un enlace corriente se pasaban por
+       alto. Rotulador amarillo con el verde del curso encima (12,7:1, y 11,0:1
+       con el cursor encima; el mínimo de AA es 4,5:1), en negrita y subrayado,
+       para que no dependa solo del color.
+
+       `box-decoration-break: clone` porque el enlace del .tex es largo y a
+       318 px parte en dos renglones: sin él, el relleno y las esquinas
+       redondeadas solo aparecerían al principio del primero y al final del
+       segundo. */
+    .enlace-plantilla {
+      background: #ffe58a;
+      color: #012820;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+      padding: 0.05rem 0.3rem;
+      border-radius: 0.25rem;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
+
+    .enlace-plantilla:hover {
+      background: #ffd23f;
+    }
+
+    .enlace-plantilla:focus-visible {
+      outline: 2px solid #FF6600;
+      outline-offset: 2px;
     }
 
     /* Los tres mapas de T2 y sus tres gráficos, en la misma rejilla para

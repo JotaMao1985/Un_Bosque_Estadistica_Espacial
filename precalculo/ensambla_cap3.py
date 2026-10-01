@@ -567,6 +567,14 @@ _P5 = {p["id"]: p for p in m5["paletas"]}
 # la receta de la tabla ancha del módulo 9 del capítulo 4: `width:100%` anula
 # el `max-content` de la plantilla en el teléfono, y `overflow:visible` deja
 # que el `sticky` se agarre al envoltorio que desplaza.
+#
+# El suelo es `min-content` y no los 44rem del capítulo 4: la rejilla de
+# siete columnas pide ella sola unos 46rem (646 px en el teléfono), así que
+# 44rem nunca mandaba, y dejaba el bloque de la tabla 30 px más estrecho que
+# su rejilla. Eso no se veía hasta que el pie de tabla pasó a quedarse fijo
+# al desplazar: un `sticky` no sale de su bloque, y el pie se quedaba 30 px
+# corto al llegar a «Recorrido de L*». Con `min-content` la rejilla mide lo
+# mismo que antes a cualquier ancho y el bloque la contiene.
 def fila_fija(*celdas):
     return fila(*celdas).replace('<th scope="row">',
                                  '<th scope="row" style="position:sticky; left:0; z-index:1;">', 1)
@@ -635,7 +643,7 @@ MOD5 = cabecera(
         oscura.</p>
 
       <div class="table-wrapper">
-        <table style="position:relative; overflow:visible; width:100%; min-width:44rem;">
+        <table style="position:relative; overflow:visible; width:100%; min-width:min-content;">
           <caption>Distancia perceptual entre las dos clases más parecidas de cada paleta (ΔE en CIELAB), k = 5.</caption>
           <thead><tr><th scope="col" style="position:sticky; left:0; z-index:2;">Paleta</th><th scope="col">Familia</th>
             <th scope="col">Normal</th><th scope="col">Deuteranopía</th>

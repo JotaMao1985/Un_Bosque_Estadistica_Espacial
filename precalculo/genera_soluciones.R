@@ -2026,7 +2026,7 @@ solucion_cap5 <- function() {
 
   en2 <- paste(
     "Sobre `chorley` —1 036 puntos en una ventana poligonal— estima la",
-    "intensidad por núcleos con sigma = 0,5, 1 y 2, de tres formas: sin",
+    "intensidad por núcleos con sigma = 0.5, 1 y 2, de tres formas: sin",
     "corregir el borde, con la corrección por defecto de `density.ppp` y",
     "con `diggle = TRUE`. Integra cada superficie sobre la ventana y",
     "compárala con n. Una de las tres devuelve n exactamente a los tres",
