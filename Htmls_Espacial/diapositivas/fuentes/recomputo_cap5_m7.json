@@ -1,0 +1,45 @@
+{
+  "m7": {
+    "bei": {
+      "n": 3604,
+      "ventana_x_m": 1000,
+      "ventana_y_m": 500,
+      "elevacion_min_m": 119.81,
+      "elevacion_max_m": 159.48,
+      "pendiente_min": 0.0008663357,
+      "pendiente_max": 0.3284767,
+      "ayuda": "Tropical rain forest trees\n\nDescription:\n\n     A point pattern giving the locations of 3605 trees in a tropical\n     rain forest.  Accompanied by covariate data giving the elevation\n     (altitude) and slope of elevation in the study region.\n\nUsage:\n\n     data(bei)\n     \nFormat:\n\n     ‘bei’ is an object of class ‘\"ppp\"’ representing the point pattern\n     of tree locations.  See ‘ppp.object’ for details of the format.\n\n     ‘bei.extra’ is a list containing two pixel images, ‘elev’\n     (elevation in metres) and ‘grad’ (norm of elevation gradient).\n     These pixel images are objects of class ‘\"im\"’, see ‘im.object’.\n\nNotes:\n\n     The dataset ‘bei’ gives the positions of 3605 trees of the species\n     _Beilschmiedia pendula_ (Lauraceae) in a 1000 by 500 metre\n     rectangular sampling region in the tropical rainforest of Barro\n     Colorado Island.\n\n     The accompanying dataset ‘bei.extra’ gives information about the\n     altitude (elevation) in the study region. It is a list containing\n     two pixel images, ‘elev’ (elevation in metres) and ‘grad’ (norm of\n     elevation gradient).\n\n     All spatial coordinates are given in metres.\n\n     These data are part of a much larger dataset containing the\n     positions of hundreds of thousands of trees belong to thousands of\n     species; see Hubbell and Foster (1983), Condit, Hubbell and Foster\n     (1996) and Condit (1998).\n\n     The present data were analysed by Moller and Waagepetersen (2007).\n\nSource:\n\n     Hubbell and Foster (1983), Condit, Hubbell and Foster (1996) and\n     Condit (1998).  Data files kindly supplied by Rasmus\n     Waagepetersen.  The data were collected in the forest dynamics\n     plot of Barro Colorado Island. The study was made possible through\n     the generous support of the U.S. National Science Foundation, the\n     John D. and Catherine T. MacArthur Foundation, and the Smithsonian\n     Tropical Research Institute.\n\nReferences:\n\n     Condit, R. (1998) _Tropical Forest Census Plots_.\n     Springer-Verlag, Berlin and R.G. Landes Company, Georgetown,\n     Texas.\n\n     Condit, R., Hubbell, S.P and Foster, R.B. (1996) Changes in tree\n     species abundance in a neotropical forest: impact of climate\n     change. _Journal of Tropical Ecology_ *12*, 231-256.\n\n     Hubbell, S.P and Foster, R.B. (1983) Diversity of canopy trees in\n     a neotropical forest and implications for conservation. In:\n     _Tropical Rain Forest: Ecology and Management_ (eds. S.L. Sutton,\n     T.C. Whitmore and A.C. Chadwick), Blackwell Scientific\n     Publications, Oxford, 25-41.\n\n     Moller, J. and Waagepetersen, R.P. (2007) Modern spatial point\n     process modelling and inference (with discussion).  _Scandinavian\n     Journal of Statistics_ *34*, 643-711.\n"
+    },
+    "elevacion": {
+      "total": 21.134644062942,
+      "bulto": 2.35639132810627,
+      "infla": 8.96907224655549
+    },
+    "pendiente": {
+      "total": 8.37795096269812,
+      "bulto": 3.34267327570125,
+      "infla": 2.50636250440616
+    },
+    "bogota": {
+      "total": 36.0758968114032,
+      "bulto": 1.58183446649061,
+      "infla": 22.8063666430531,
+      "n": 2107
+    }
+  },
+  "m7_semillas": {
+    "n_semillas": 20,
+    "min": 21.1012140887077,
+    "max": 21.1484579674362,
+    "valores": [21.120077170742, 21.1228132132418, 21.1236179979078, 21.1451066341839, 21.1214048307916, 21.140931001779, 21.1142428662141, 21.1484579674362, 21.1189815958487, 21.1390020857184, 21.1157749507764, 21.1012140887077, 21.1112654922643, 21.1380625480869, 21.126072061874, 21.1266572642562, 21.1317099243425, 21.1364152274722, 21.123200790658, 21.1261020509723]
+  },
+  "meta": {
+    "modulo": "m7",
+    "fecha": "2026-09-30",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 0.327656984329224,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

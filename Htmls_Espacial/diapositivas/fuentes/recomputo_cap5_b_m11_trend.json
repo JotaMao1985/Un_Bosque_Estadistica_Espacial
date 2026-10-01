@@ -1,0 +1,21 @@
+{
+  "m11b_trend": {
+    "translate": {
+      "kappa": 1.59108522265515e-07,
+      "scale": 1066.8331275626
+    },
+    "iso": {
+      "kappa": 3.04303942803114e-07,
+      "scale": 729.075652486803
+    }
+  },
+  "meta": {
+    "modulo": "b_m11_trend",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 126.123839139938,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}
