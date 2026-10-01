@@ -50,6 +50,9 @@ QUÉ MIRA CADA COMPROBACIÓN, Y POR QUÉ NINGUNA SOBRA
                     UTF-8. Ver `utf8.R`.
   · `enlaces`     — que ningún enlace local apunte al vacío.
   · `coherencia`  — que las tildes y los símbolos lleguen enteros.
+  · `sin_acentos_graves` — que ningún `x` de Markdown llegue a la página
+                    sin pasar a `<code>`: en el marcado, en el índice
+                    lateral y en las cadenas del JavaScript.
 
 EL PUNTO CIEGO QUE SE HEREDA, MEDIDO Y NO DISIMULADO
 
@@ -130,6 +133,90 @@ def busca_capitulo(nombre: str) -> pathlib.Path:
         if p.exists():
             return p
     sys.exit(f"PARADO: no encuentro {nombre} en {[str(d) for d in CARPETAS]}")
+
+
+# Tras estas palabras, una `/` abre una expresión regular y no divide.
+_ANTES_DE_REGEX = re.compile(r"\b(?:return|typeof|case|in|of|new|delete|void|throw)\s*$")
+
+
+def literales_js(js: str) -> list[tuple[str, str]]:
+    """Los literales de cadena de un guion: (comilla, contenido).
+
+    Un lector mínimo, no un analizador. Salta los comentarios `//` y
+    `/* … */` y los literales de expresión regular —una `/` abre uno si lo
+    último significativo fue un operador, un signo de apertura o una palabra
+    como `return`—, y de una plantilla `…` salta lo que va dentro de `${…}`.
+    Los escapes se conservan tal cual, así que un «\\`» dentro de una
+    plantilla se puede buscar.
+
+    Hace falta leer así, y no por líneas, porque en el JavaScript de un
+    capítulo el acento grave es SINTAXIS: abre y cierra las plantillas con
+    que se escriben las lecturas y las tablas. Solo es un defecto dentro de
+    una cadena entre comillas, y por líneas un apóstrofo de un comentario
+    («Moran's I») se confundiría con el principio de una.
+    """
+    out: list[tuple[str, str]] = []
+    i, n = 0, len(js)
+    prev = ""                     # lo último significativo fuera de cadenas
+    while i < n:
+        c = js[i]
+        if c in "'\"`":
+            j, trozos = i + 1, []
+            while j < n and js[j] != c:
+                if js[j] == "\\":
+                    trozos.append(js[j:j + 2])
+                    j += 2
+                    continue
+                if c != "`" and js[j] == "\n":
+                    break         # cadena sin cerrar: no se arrastra el error
+                if c == "`" and js.startswith("${", j):
+                    prof, j = 0, j + 1
+                    while j < n:
+                        if js[j] in "'\"":
+                            k = j + 1
+                            while k < n and js[k] != js[j]:
+                                k += 2 if js[k] == "\\" else 1
+                            j = k + 1
+                            continue
+                        prof += {"{": 1, "}": -1}.get(js[j], 0)
+                        j += 1
+                        if prof == 0:
+                            break
+                    trozos.append("${…}")
+                    continue
+                trozos.append(js[j])
+                j += 1
+            out.append((c, "".join(trozos)))
+            i, prev = j + 1, "a"
+            continue
+        if js.startswith("//", i):
+            j = js.find("\n", i)
+            i = n if j < 0 else j
+            continue
+        if js.startswith("/*", i):
+            j = js.find("*/", i + 2)
+            i = n if j < 0 else j + 2
+            continue
+        if c == "/" and (prev == "" or prev in "(,=:[!&|?{};+-*%<>~^"
+                         or _ANTES_DE_REGEX.search(js[max(0, i - 12):i])):
+            j, clase = i + 1, False
+            while j < n and js[j] != "\n":
+                if js[j] == "\\":
+                    j += 2
+                    continue
+                if js[j] == "[":
+                    clase = True
+                elif js[j] == "]":
+                    clase = False
+                elif js[j] == "/" and not clase:
+                    break
+                j += 1
+            i, prev = j + 1, "a"
+            continue
+        if not c.isspace():
+            prev = c
+        i += 1
+    return out
 
 
 class Auditor:
@@ -1104,6 +1191,95 @@ class Auditor:
             self.exige(cadena in self.doc, f"el texto conserva «{cadena}» intacto")
         for orden in ordenes:
             self.exige(orden in self.doc, f"el material usa «{orden}»")
+
+    # -----------------------------------------------------------------
+    def sin_acentos_graves(self) -> None:
+        """NINGÚN ACENTO GRAVE DE MARKDOWN A LA VISTA DEL ESTUDIANTE.
+
+        El material se escribe con la costumbre de Markdown —`spdep`— y se
+        publica en HTML, donde nada convierte eso en `<code>` salvo que un
+        ensamblador lo haga a propósito. El 2026-09-26 se medían cuatro
+        capítulos que lo publicaban tal cual: el título «El flujo de
+        `spdep`» del 6, en su h2 y en el índice lateral; «Ajustar con
+        `ppm`» del 5; la lectura de un ejercicio del 2 y dos del 4, porque
+        su ensamblador borraba los acentos del enunciado y volcaba la
+        lectura sin tocar; y cinco cadenas del quiz del 6, cuatro
+        retroalimentaciones y una opción.
+
+        Tres superficies, porque ninguna ve las otras:
+
+          1. el marcado de los módulos —h2, objetivo, prosa, enunciados,
+             lecturas—, sin los `<pre>` ni el `<code>` en línea: ahí el
+             acento grave es código de R, que escribe así los nombres no
+             sintácticos;
+          2. el índice lateral, que la plantilla pinta con `innerHTML` desde
+             `courseData`: el título y el subtítulo de cada módulo;
+          3. las cadenas entre comillas del JavaScript —el quiz y sus
+             retroalimentaciones, que también se pintan con `innerHTML`—.
+             En una plantilla `…` el acento es sintaxis y solo cuenta el
+             escapado, que sí llega a la página.
+
+        De la tercera se descuenta el JSON de las soluciones (`SOL_CAPn`)
+        MIENTRAS NADA LO LEA: se incrusta tal cual sale de R, con los
+        acentos del enunciado, y lo que el estudiante ve de él es lo que el
+        ensamblador pintó en el marcado, que ya mira la primera. Si una
+        línea del guion empieza a leerlo, vuelve a contar solo.
+        """
+        print("\n=== Los acentos graves de Markdown ========================")
+
+        def recorte(texto: str, i: int, j: int) -> str:
+            t = texto[max(0, i - 50):j + 30]
+            t = re.sub(r"^[^<]*>|<[^>]*$", "", t)
+            return " ".join(html_mod.unescape(re.sub(r"<[^>]+>", " ", t)).split())
+
+        # 1. El marcado.
+        marcado = re.sub(r"<pre[^>]*>.*?</pre>", " ", self.cuerpo, flags=re.S)
+        marcado = re.sub(r"<code[^>]*>.*?</code>", " ", marcado, flags=re.S)
+        modulos = [(m.start(), m.group(1)) for m in
+                   re.finditer(r'<template id="module-(\d+)">', marcado)]
+
+        def modulo(i: int) -> str:
+            k = next((num for ini, num in reversed(modulos) if ini < i), None)
+            return f"módulo {k}" if k else "fuera de los módulos"
+
+        malos = [f"{modulo(m.start())}: «{recorte(marcado, m.start(), m.end())}»"
+                 for m in re.finditer(r"`[^`\n]{0,80}`|`", marcado)]
+        self.exige(not malos, "el marcado no publica ningún acento grave",
+                   " · ".join(malos[:3]) + (f" (y {len(malos) - 3} más)"
+                                            if len(malos) > 3 else ""))
+
+        # 2. El índice lateral. Se exige haber leído una entrada por módulo:
+        # si un cambio de formato dejara vacía la búsqueda, la comprobación
+        # de debajo daría OK sobre nada.
+        cd = re.search(r"const courseData = \{\s*modules: \[(.*?)\n\s*\]\s*\};",
+                       self.doc, re.S)
+        entradas = re.findall(r"\{ id: (\d+), (.*?) \},?$", cd.group(1), re.M) if cd else []
+        self.exige(0 < len(modulos) == len(entradas),
+                   "un módulo y una entrada del índice lateral, leídos",
+                   f"{len(modulos)} módulos y {len(entradas)} entradas")
+        malos = [f"{k}: «{v}»" for k, campos in entradas
+                 for v in map(json.loads, re.findall(r'"(?:[^"\\]|\\.)*"', campos))
+                 if "`" in v]
+        self.exige(not malos, "ninguna entrada del índice lateral lleva acento grave",
+                   " · ".join(malos))
+
+        # 3. Las cadenas del JavaScript, sin `courseData`, que ya se ha
+        # mirado, ni el JSON de soluciones que nadie lee.
+        js = "\n".join(re.findall(r"<script[^>]*>(.*?)</script>", self.doc, re.S))
+        js = re.sub(r"const courseData = \{.*?\n\s*\};", " ", js, count=1, flags=re.S)
+        for nombre in re.findall(r"const (SOL_\w+) = ", js):
+            if len(re.findall(r"\b" + nombre + r"\b", self.doc)) == 1:
+                js = re.sub(r"const " + nombre + r" = .*?;\n", "\n", js, count=1)
+        cadenas = literales_js(js)
+        malos = [f"«{' '.join(t.split())[:70]}»" for q, t in cadenas
+                 if ("`" in t if q != "`" else "\\`" in t)]
+        if malos:
+            detalle = " · ".join(malos[:3]) + (f" (y {len(malos) - 3} más)"
+                                               if len(malos) > 3 else "")
+        else:
+            detalle = f"{len(cadenas)} cadenas leídas"
+        self.exige(bool(cadenas) and not malos,
+                   "ninguna cadena del JavaScript lleva acento grave", detalle)
 
     def peso(self, kb: float = TOPE_KB) -> None:
         """Alarma contra un ensamblado desbocado, no presupuesto de contenido.

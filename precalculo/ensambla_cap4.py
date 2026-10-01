@@ -2425,6 +2425,19 @@ def esc_celda(t):
     return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def _codigo(texto):
+    """Los acentos graves del JSON de soluciones pasan a <code>, no se borran.
+
+    `genera_soluciones.R` escribe los nombres de R entre acentos graves, a la
+    manera de Markdown. Este ensamblador se los BORRABA al enunciado —y con
+    ellos la única marca de que `swedishpines` es un conjunto de datos y no
+    una palabra— y volcaba la lectura tal cual, así que hasta el 2026-09-26
+    las de los ejercicios 4 y 5 publicaban «`cells`», acentos incluidos. Los
+    dos pasan por aquí, como en los capítulos 5 y 6.
+    """
+    return re.sub(r"`([^`]+)`", r"<code>\1</code>", texto)
+
+
 def ejercicio(k, e):
     """El marcado de la CASA, no uno inventado.
 
@@ -2440,7 +2453,7 @@ def ejercicio(k, e):
     return f"""
         <div class="ejercicio-guiado">
           <p class="ejercicio-enunciado"><span class="ejercicio-numero">{k}.</span><strong>{e['titulo']}.</strong>
-            {e['enunciado'].replace('`', '')}</p>
+            {_codigo(e['enunciado'])}</p>
           <div class="ejercicio-acciones">
             <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="cap4-e{k}-sol">
               <i class="fas fa-key" aria-hidden="true"></i> Solución <i class="fas fa-chevron-down" aria-hidden="true"></i>
@@ -2454,7 +2467,7 @@ def ejercicio(k, e):
 {pasos}
               </tbody>
             </table>
-            <p class="ejercicio-lectura">{e['lectura']}</p>
+            <p class="ejercicio-lectura">{_codigo(e['lectura'])}</p>
           </div>
         </div>
 """

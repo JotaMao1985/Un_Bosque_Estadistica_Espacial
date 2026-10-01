@@ -407,6 +407,15 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
          "es del capítulo 10", "se ve más adelante"),
         ("el capítulo deja de advertir que la CV por bloques no es la buena siempre",
          "no es «la buena» siempre", "es la recomendada"),
+        # --- LOS ACENTOS GRAVES DE MARKDOWN (2026-09-26). Este capítulo no
+        # tenía ninguno: las tres prueban que la guarda está conectada, una
+        # por superficie.
+        ("la prosa vuelve a escribir un nombre de R entre acentos graves",
+         "mismo <code>st_read()</code> y", "mismo `st_read()` y"),
+        ("un título del índice lateral publica acentos graves",
+         'title: "Anatomía de un objeto sf"', 'title: "Anatomía de un objeto `sf`"'),
+        ("una opción del quiz publica acentos graves",
+         "spdep y esda cuentan distinto", "`spdep` y `esda` cuentan distinto"),
         # --- 14 a 17. LAS NUEVAS: la marca de un mapa de puntos -------
         ("el mapa de Snow deja de declarar de qué tipo es su marca",
          '"marcas_tipo": "categoria"', '"marcas_tipo_": "categoria"'),
@@ -458,6 +467,8 @@ def defectos_cap2() -> list[tuple[str, str, str]]:
     el, gr, ep = D["elipsoide"], D["grados"], D["epsg"]
     md, po, ig = D["medir"], D["posicional"], D["ingenieria"]
     PT = D["proyecciones"]["tabla"]
+    lec4 = S["e4"]["lectura"]
+    cola_e4 = lec4[lec4.index("`dnearneigh`"):]
 
     def f(x, d=5):
         return f"{float(x):.{d}f}"
@@ -533,6 +544,24 @@ def defectos_cap2() -> list[tuple[str, str, str]]:
         ("un lienzo se queda sin aria-label",
          'canvas role="img" aria-label="Los dos radios',
          'canvas role="img" data-label="Los dos radios'),
+        # --- LOS ACENTOS GRAVES DE MARKDOWN (2026-09-26). La primera es el
+        # defecto que había: la lectura del ejercicio 4 salía del JSON de
+        # soluciones sin pasar a <code>. Se inyecta con el `</p>` que la
+        # cierra porque sin él el texto ya existe: `SOL_CAP2` lo incrusta
+        # con los mismos acentos, y el arnés no inyecta lo que ya está. La
+        # última prueba que ese JSON, que hoy nada lee, vuelve a contar en
+        # cuanto una línea del guion lo lee.
+        ("la lectura del ejercicio 4 vuelve a publicar acentos graves",
+         re.sub(r"`([^`]+)`", r"<code>\1</code>", cola_e4) + "</p>", cola_e4 + "</p>"),
+        ("un subtítulo del índice lateral publica acentos graves",
+         'subtitle: "st_transform vs st_set_crs"',
+         'subtitle: "`st_transform` vs `st_set_crs`"'),
+        ("una retroalimentación del quiz publica acentos graves",
+         "La regla: st_set_crs arregla metadatos, st_transform mueve coordenadas.",
+         "La regla: `st_set_crs` arregla metadatos, `st_transform` mueve coordenadas."),
+        ("una línea del guion empieza a leer el JSON de las soluciones",
+         "    const SOL_CAP2 = ",
+         "    const lecturaE4 = () => SOL_CAP2.e4.lectura;\n    const SOL_CAP2 = "),
         # --- 8. La codificación --------------------------------------
         ("una tilde se rompe en bytes crudos", "Bogotá", "Bogot<c3><a1>"),
         # --- 9. EL ENLACE LOCAL ROTO, que en el cap. 1 no tenía sujeto -
@@ -615,6 +644,17 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
         ("desaparece la explicación del resultado contraintuitivo",
          "Es lo contrario de lo que casi todo el mundo espera",
          "Es lo que cabía esperar", True),
+        # --- LOS ACENTOS GRAVES DE MARKDOWN (2026-09-26). Este capítulo no
+        # tenía ninguno: las tres prueban que la guarda está conectada, una
+        # por superficie.
+        ("la prosa vuelve a escribir un nombre de R entre acentos graves",
+         "porque <code>dist()</code> ya", "porque `dist()` ya"),
+        ("un subtítulo del índice lateral publica acentos graves",
+         'subtitle: "tmap 4, ggplot2 y GeoPandas"',
+         'subtitle: "`tmap` 4, `ggplot2` y GeoPandas"'),
+        ("una pregunta del quiz publica acentos graves",
+         "¿Por qué classInt (R) y mapclassify (Python)",
+         "¿Por qué `classInt` (R) y `mapclassify` (Python)"),
         # --- 8. Accesibilidad y marcado -------------------------------
         ("un lienzo se queda sin aria-label",
          'canvas role="img" aria-label="Las 35 formas',
@@ -659,6 +699,8 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
     S = json.loads((SALIDAS / "cap4_soluciones.json").read_text(encoding="utf-8"))
     m1, m2, m3, m5 = D["m1"], D["m2"], D["m3"], D["m5"]
     m7, m8, m9, m10, m11 = D["m7"], D["m8"], D["m9"], D["m10"], D["m11"]
+    lec5 = S["e5"]["lectura"]
+    cola_e5 = lec5[lec5.index("sobre `cells`"):]
 
     def f(x, d=5):
         return f"{float(x):.{d}f}"
@@ -746,6 +788,24 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         ("el n declarado del patrón urbano deja de cuadrar con su geometría",
          f'"n": {m1["urbana"]["n"]}, "pts"',
          f'"n": {m1["urbana"]["n"] - 4}, "pts"'),
+        # --- LOS ACENTOS GRAVES DE MARKDOWN (2026-09-26). La primera es el
+        # defecto que había: las lecturas de los ejercicios 4 y 5 salían
+        # del JSON de soluciones sin pasar a <code>. Con el `</p>` que la
+        # cierra, por lo mismo que en el capítulo 2: sin él, el texto ya
+        # existe dentro de `SOL_CAP4`.
+        ("la lectura del ejercicio 5 vuelve a publicar acentos graves",
+         cola_e5.replace("`cells`", "<code>cells</code>") + "</p>", cola_e5 + "</p>"),
+        ("un título del índice lateral publica acentos graves",
+         'title: "Envolventes de simulación"', 'title: "Envolventes con `envelope`"'),
+        ("una pregunta del quiz publica acentos graves",
+         "de envelope()?", "de `envelope()`?"),
+        # --- EL PESO, con su tope propio desde el 2026-09-26 ----------
+        # Hasta entonces este capítulo no inyectaba el ensamblado
+        # desbocado, así que su comprobación de peso nunca se había visto
+        # fallar. Con el tope subido a 760 KB hay que demostrar que sigue
+        # mordiendo: 700 + 312 queda por encima.
+        ("el documento desbocado",
+         "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
         # --- 11. La codificación --------------------------------------
         ("una tilde se convierte en bytes crudos",
          "Perímetro urbano", "Per<c3><ad>metro urbano"),
@@ -1144,6 +1204,29 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
         ("el contenedor de la autoevaluación, renombrado",
          '<div class="quiz" data-quiz="cap6-quiz">',
          '<div class="cuestionario" data-quiz="cap6-quiz">'),
+
+        # --- 7. LOS ACENTOS GRAVES DE MARKDOWN (2026-09-26) -----------
+        # Las cuatro primeras son los defectos que había: el h2 y el título
+        # del módulo 8 y del 9, el subtítulo del 8 y cuatro
+        # retroalimentaciones del quiz. La quinta es la forma que el lector
+        # de cadenas distingue de la sintaxis: un acento ESCAPADO dentro de
+        # una plantilla, que sí llega a la página. La sexta prueba el
+        # recuento: sin él, un índice que no se leyera daría OK sobre nada.
+        ("el h2 del módulo 8 vuelve a publicar acentos graves",
+         ">El flujo de <code>spdep</code>\n", ">El flujo de `spdep`\n"),
+        ("un título del índice lateral vuelve a los acentos graves",
+         'title: "Islas y <code>zero.policy</code>"', 'title: "Islas y `zero.policy`"'),
+        ("un subtítulo del índice lateral vuelve a los acentos graves",
+         'subtitle: "Y <code>sfdep</code> como interfaz tidy"',
+         'subtitle: "Y `sfdep` como interfaz tidy"'),
+        ("una retroalimentación del quiz vuelve a los acentos graves",
+         "<code>nblag</code> no acumula", "`nblag` no acumula"),
+        ("una plantilla del JavaScript escapa un acento grave",
+         "<table><caption>Los diez criterios sobre los mismos `",
+         "<table><caption>Los diez \\`criterios\\` sobre los mismos `"),
+        ("el índice lateral pierde una entrada",
+         '        { id: 12, title: "Autoevaluación y ejercicios", '
+         'subtitle: "Trece preguntas y cinco ejercicios" },\n', ""),
 
         # --- 8. Codificación, enlaces y peso --------------------------
         ("una tilde convertida en bytes crudos",

@@ -173,6 +173,7 @@ def main() -> int:
     a.geomapas()
     a.formulas_escapadas()
     a.codificacion()
+    a.sin_acentos_graves()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)
     a.peso()

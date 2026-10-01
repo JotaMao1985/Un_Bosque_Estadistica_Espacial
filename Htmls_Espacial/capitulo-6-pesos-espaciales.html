@@ -2052,6 +2052,34 @@
       border-collapse: collapse;
     }
 
+    /* Una figura del simulacro viene en dos versiones (2026-09-25): la de
+       Brightspace, de 7.2 pulgadas, y una estrecha de 4 con la misma letra.
+       Se elige por el ancho de la CAJA, no por el de la ventana: en el
+       teléfono la caja deja ~220 px, y en la tableta el índice lateral la
+       deja igual de estrecha. Por debajo de 400 px, la de Brightspace pone
+       los números de los ejes a menos de 10 px. Con `<picture>` y una
+       consulta de ventana había que copiar aquí el punto de corte del índice
+       lateral, y al cambiar el ancho después de cargar (girar la tableta) la
+       versión no siempre se volvía a elegir. Sin consultas de contenedor
+       (Safari < 16) se ve la de Brightspace, como antes. */
+    .simulacro-enunciado {
+      container-type: inline-size;
+    }
+
+    .simulacro-enunciado .figura-estrecha {
+      display: none;
+    }
+
+    @container (max-width: 399px) {
+      .simulacro-enunciado .figura-ancha {
+        display: none;
+      }
+
+      .simulacro-enunciado .figura-estrecha {
+        display: inline;
+      }
+    }
+
     .simulacro-opciones {
       display: flex;
       flex-direction: column;
@@ -2101,6 +2129,49 @@
 
     .simulacro-opcion.marcada .simulacro-letra {
       color: #012820;
+    }
+
+    .simulacro-fila {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem 1rem;
+      font-size: 0.9375rem;
+      color: #1f2937;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.8rem;
+    }
+
+    .simulacro-select,
+    .simulacro-cifra {
+      font-family: inherit;
+      font-size: 0.9375rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.375rem;
+      padding: 0.3rem 0.5rem;
+      background: white;
+      color: #1f2937;
+    }
+
+    .simulacro-cifra {
+      width: 9rem;
+    }
+
+    .simulacro-select:focus-visible,
+    .simulacro-cifra:focus-visible {
+      outline: 2px solid #FF6600;
+      outline-offset: 1px;
+    }
+
+    .simulacro-respuestas {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      margin: 0 0 0.4rem 0;
+      font-size: 0.9375rem;
+      color: #1f2937;
     }
 
     .simulacro-resumen {
@@ -4902,7 +4973,7 @@ print([round(float(estilo(A, e).sum()), 4) for e in &quot;BWSCU&quot;])
   </template>
 
   <!-- ============================================================ -->
-  <!-- MÓDULO 8 · El flujo de `spdep`                                  -->
+  <!-- MÓDULO 8 · El flujo de spdep                                    -->
   <!-- ============================================================ -->
   <template id="module-8">
     <div class="animate-fade-in">
@@ -4910,13 +4981,13 @@ print([round(float(estilo(A, e).sum()), 4) for e in &quot;BWSCU&quot;])
         <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
           <span>Módulo 8</span>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El flujo de `spdep`
-          <span class="text-gray-400 font-normal text-2xl">/ The spdep workflow</span></h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El flujo de <code>spdep</code>
+          <span class="text-gray-400 font-normal text-2xl">/ The <code>spdep</code> workflow</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
             <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Objetivo</h3>
-            <p class="text-gray-600 text-sm" style="margin:0;">Recorrer el flujo completo de `spdep` y ver que `sfdep` es la misma maquinaria con otra sintaxis.</p>
+            <p class="text-gray-600 text-sm" style="margin:0;">Recorrer el flujo completo de <code>spdep</code> y ver que <code>sfdep</code> es la misma maquinaria con otra sintaxis.</p>
           </div>
         </div>
       </div>
@@ -4991,7 +5062,7 @@ print(pares(w))
   </template>
 
   <!-- ============================================================ -->
-  <!-- MÓDULO 9 · Islas y `zero.policy`                                -->
+  <!-- MÓDULO 9 · Islas y zero.policy                                  -->
   <!-- ============================================================ -->
   <template id="module-9">
     <div class="animate-fade-in">
@@ -4999,8 +5070,8 @@ print(pares(w))
         <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
           <span>Módulo 9</span>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Islas y `zero.policy`
-          <span class="text-gray-400 font-normal text-2xl">/ Islands and zero.policy</span></h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Islas y <code>zero.policy</code>
+          <span class="text-gray-400 font-normal text-2xl">/ Islands and <code>zero.policy</code></span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -5585,8 +5656,8 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         { id: 5, title: "Umbral de distancia", subtitle: "Islas y densidad desigual" },
         { id: 6, title: "Vecindades geométricas", subtitle: "Delaunay, Gabriel y esfera de influencia" },
         { id: 7, title: "De vecinos a pesos", subtitle: "Los estilos B, W, S, C y U" },
-        { id: 8, title: "El flujo de `spdep`", subtitle: "Y `sfdep` como interfaz tidy" },
-        { id: 9, title: "Islas y `zero.policy`", subtitle: "Qué hace R con quien no tiene vecinos" },
+        { id: 8, title: "El flujo de <code>spdep</code>", subtitle: "Y <code>sfdep</code> como interfaz tidy" },
+        { id: 9, title: "Islas y <code>zero.policy</code>", subtitle: "Qué hace R con quien no tiene vecinos" },
         { id: 10, title: "El rezago espacial Wy", subtitle: "La media de los vecinos" },
         { id: 11, title: "W es un grafo", subtitle: "Adyacencia, paso de mensajes y GNN" },
         { id: 12, title: "Autoevaluación y ejercicios", subtitle: "Trece preguntas y cinco ejercicios" },
@@ -6782,6 +6853,18 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     //
     // `tipo` es 'opcion' (una marca) o 'multiple' (varias). El estudiante
     // anota sus respuestas y las contrasta después, fuera de la página.
+    //
+    // Desde el Quiz 2 (2026-09-25), tres tipos más, los que Brightspace
+    // llama coincidencia, ordenamiento y aritmética:
+    //   'coincidencia'  { filas, respuestas }: un desplegable por fila con
+    //                   las respuestas, que llevan letra (a, b, c…);
+    //   'ordenamiento'  { items }: un desplegable de puesto por ítem, y el
+    //                   resumen da las letras en el orden elegido;
+    //   'aritmetica'    { unidades }: un campo para la cifra.
+    // Ninguno lleva nada de donde deducir la respuesta, y la página no
+    // baraja al pintar: las filas van en su orden, y las RESPUESTAS y los
+    // ítems llegan ya barajados desde el exportador del quiz, ninguna
+    // respuesta en la posición de su fila y ningún ítem en su puesto.
     // ================================================================
     const SIMULACROS = {};
     const RELOJES_SIMULACRO = [];
@@ -6808,49 +6891,131 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       const empezar = raiz.querySelector('.simulacro-empezar');
       const borrar = raiz.querySelector('.simulacro-borrar');
       const marcadas = sim.preguntas.map(() => new Set());
+      // coincidencia y ordenamiento: una elección por fila o ítem; aritmética: el texto escrito
+      const elegidas = sim.preguntas.map(pr =>
+        (pr.filas || pr.items || []).map(() => -1));
+      const escritas = sim.preguntas.map(() => '');
       contenedor.innerHTML = '';
+      // las respuestas de una coincidencia pasan de cinco: LETRAS solo llega a la «e»
+      const LETRAS_SIM = 'abcdefghij'.split('');
+
+      function desplegable(etiqueta, valores, alCambiar) {
+        const sel = document.createElement('select');
+        sel.className = 'simulacro-select';
+        sel.setAttribute('aria-label', etiqueta);
+        sel.innerHTML = '<option value="-1">—</option>' +
+          valores.map((v, k) => `<option value="${k}">${v}</option>`).join('');
+        sel.onchange = () => alCambiar(Number(sel.value));
+        return sel;
+      }
 
       sim.preguntas.forEach((pr, i) => {
         const caja = document.createElement('div');
         caja.className = 'simulacro-pregunta';
         const varias = pr.tipo === 'multiple';
-        caja.innerHTML = `<span class="simulacro-etiqueta">${pr.n}. ${pr.etiqueta}` +
-          `${varias ? ' · varias respuestas' : ''}</span>` +
+        const nota = {
+          multiple: ' · varias respuestas', coincidencia: ' · coincidencia',
+          ordenamiento: ' · ordenamiento', aritmetica: ' · respuesta numérica'
+        }[pr.tipo] || '';
+        caja.innerHTML = `<span class="simulacro-etiqueta">${pr.n}. ${pr.etiqueta}${nota}</span>` +
           `<div class="simulacro-enunciado">${pr.enunciado}</div>` +
-          `<div class="simulacro-opciones" role="group" aria-label="Opciones de la pregunta ${pr.n}"></div>`;
+          `<div class="simulacro-opciones" role="group" aria-label="Respuesta de la pregunta ${pr.n}"></div>`;
         const lista = caja.querySelector('.simulacro-opciones');
-        pr.opciones.forEach((texto, j) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'simulacro-opcion';
-          b.setAttribute('aria-pressed', 'false');
-          b.innerHTML = `<span class="simulacro-letra">${LETRAS[j]})</span><span>${texto}</span>`;
-          b.onclick = () => {
-            const puesta = marcadas[i].has(j);
-            if (!varias) {
-              marcadas[i].clear();
-              lista.querySelectorAll('.simulacro-opcion').forEach(o => {
-                o.classList.remove('marcada');
-                o.setAttribute('aria-pressed', 'false');
-              });
-            }
-            if (puesta) marcadas[i].delete(j); else marcadas[i].add(j);
-            b.classList.toggle('marcada', marcadas[i].has(j));
-            b.setAttribute('aria-pressed', marcadas[i].has(j) ? 'true' : 'false');
-            pinta();
-          };
-          lista.appendChild(b);
-        });
+
+        if (pr.tipo === 'coincidencia') {
+          // la letra va escrita: el reinicio de estilos de Tailwind numera un <ol type="a"> con cifras,
+          // y los desplegables hablan en letras
+          const leyenda = document.createElement('div');
+          leyenda.className = 'simulacro-respuestas';
+          leyenda.innerHTML = pr.respuestas.map((r, k) =>
+            `<div><span class="simulacro-letra">${LETRAS_SIM[k]})</span> ${r}</div>`).join('');
+          lista.appendChild(leyenda);
+          pr.filas.forEach((fila, f) => {
+            const renglon = document.createElement('label');
+            renglon.className = 'simulacro-fila';
+            renglon.innerHTML = `<span>${fila}</span>`;
+            renglon.appendChild(desplegable(`Respuesta para ${fila}`,
+              pr.respuestas.map((_, k) => `${LETRAS_SIM[k]})`),
+              k => { elegidas[i][f] = k; pinta(); }));
+            lista.appendChild(renglon);
+          });
+        } else if (pr.tipo === 'ordenamiento') {
+          pr.items.forEach((it, f) => {
+            const renglon = document.createElement('label');
+            renglon.className = 'simulacro-fila';
+            renglon.innerHTML = `<span><span class="simulacro-letra">${LETRAS_SIM[f]})</span> ${it}</span>`;
+            renglon.appendChild(desplegable(`Puesto de ${LETRAS_SIM[f]}`,
+              pr.items.map((_, k) => `${k + 1}.º`),
+              k => { elegidas[i][f] = k; pinta(); }));
+            lista.appendChild(renglon);
+          });
+        } else if (pr.tipo === 'aritmetica') {
+          const renglon = document.createElement('label');
+          renglon.className = 'simulacro-fila';
+          renglon.innerHTML = `<span>Tu respuesta${pr.unidades ? ` (${pr.unidades})` : ''}:</span>`;
+          const caja_ = document.createElement('input');
+          caja_.type = 'text';
+          caja_.inputMode = 'decimal';
+          caja_.className = 'simulacro-cifra';
+          caja_.setAttribute('aria-label', `Respuesta de la pregunta ${pr.n}`);
+          caja_.oninput = () => { escritas[i] = caja_.value.trim(); pinta(); };
+          renglon.appendChild(caja_);
+          lista.appendChild(renglon);
+        } else {
+          pr.opciones.forEach((texto, j) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'simulacro-opcion';
+            b.setAttribute('aria-pressed', 'false');
+            b.innerHTML = `<span class="simulacro-letra">${LETRAS[j]})</span><span>${texto}</span>`;
+            b.onclick = () => {
+              const puesta = marcadas[i].has(j);
+              if (!varias) {
+                marcadas[i].clear();
+                lista.querySelectorAll('.simulacro-opcion').forEach(o => {
+                  o.classList.remove('marcada');
+                  o.setAttribute('aria-pressed', 'false');
+                });
+              }
+              if (puesta) marcadas[i].delete(j); else marcadas[i].add(j);
+              b.classList.toggle('marcada', marcadas[i].has(j));
+              b.setAttribute('aria-pressed', marcadas[i].has(j) ? 'true' : 'false');
+              pinta();
+            };
+            lista.appendChild(b);
+          });
+        }
         contenedor.appendChild(caja);
       });
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
+      katexEn(contenedor);
+
+      function respuesta(pr, i) {
+        if (pr.tipo === 'coincidencia') {
+          return elegidas[i].every(k => k < 0) ? '' :
+            elegidas[i].map(k => (k < 0 ? '·' : LETRAS_SIM[k])).join('');
+        }
+        if (pr.tipo === 'ordenamiento') {
+          if (elegidas[i].every(k => k < 0)) return '';
+          const orden = pr.items.map(() => '·');
+          elegidas[i].forEach((k, f) => { if (k >= 0) orden[k] = orden[k] === '·' ? LETRAS_SIM[f] : '?'; });
+          return orden.join('');
+        }
+        if (pr.tipo === 'aritmetica') return escritas[i] ? ` = ${escritas[i]}` : '';
+        return [...marcadas[i]].sort().map(j => LETRAS[j]).join('');
+      }
+
+      function completa(pr, i) {
+        if (pr.tipo === 'coincidencia' || pr.tipo === 'ordenamiento') return elegidas[i].every(k => k >= 0);
+        if (pr.tipo === 'aritmetica') return escritas[i] !== '';
+        return marcadas[i].size > 0;
+      }
 
       function pinta() {
-        const hechas = marcadas.filter(m => m.size > 0).length;
-        conteo.textContent = `${hechas} de ${sim.preguntas.length} marcadas`;
-        resumen.innerHTML = 'Tus respuestas: ' + sim.preguntas.map((pr, i) => {
-          const letras = [...marcadas[i]].sort().map(j => LETRAS[j]).join('');
-          return `<b>${pr.n}${letras || '—'}</b>`;
-        }).join(' · ') + '. No se corrigen aquí.';
+        const hechas = sim.preguntas.filter((pr, i) => completa(pr, i)).length;
+        conteo.textContent = `${hechas} de ${sim.preguntas.length} contestadas`;
+        resumen.innerHTML = 'Tus respuestas: ' + sim.preguntas.map((pr, i) =>
+          `<b>${pr.n}${respuesta(pr, i) || '—'}</b>`).join(' · ') + '. No se corrigen aquí.';
       }
 
       let restante = sim.minutos * 60;
@@ -8990,7 +9155,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
           { texto: 'La serie de parejas por orden acaba frenándose porque el mapa es finito', correcta: true,
             retro: 'Sí: al tercer orden ya casi no hay unidades nuevas a las que llegar, y por eso el salto de ' + mil6(D6.m3.ordenes[1].pares) + ' a ' + mil6(D6.m3.ordenes[2].pares) + ' es mucho menor que el anterior.' },
           { texto: 'El orden 2 son los vecinos de los vecinos que NO eran ya vecinos', correcta: true,
-            retro: 'Eso es, y es la trampa de lectura del módulo: `nblag` no acumula. Sobre Columbus da ' + mil6(D6.m3.ordenes[0].pares) + ', ' + mil6(D6.m3.ordenes[1].pares) + ' y ' + mil6(D6.m3.ordenes[2].pares) + ' parejas.' },
+            retro: 'Eso es, y es la trampa de lectura del módulo: <code>nblag</code> no acumula. Sobre Columbus da ' + mil6(D6.m3.ordenes[0].pares) + ', ' + mil6(D6.m3.ordenes[1].pares) + ' y ' + mil6(D6.m3.ordenes[2].pares) + ' parejas.' },
           { texto: 'El orden 2 incluye a los vecinos de orden 1',
             retro: 'No los incluye, y suponerlo hace que se cuenten dos veces las mismas parejas. Si se quiere la vecindad acumulada hay que unirlas a mano.' }
         ] },
@@ -9003,8 +9168,8 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
             retro: 'La distancia sí lo es; «estar entre los k más cercanos» no. B puede ser de los tres más cercanos a A sin que A lo sea de B, y basta con que B esté en una zona más densa.' },
           { texto: 'No, y por eso sus enlaces dirigidos no son el doble de sus parejas', correcta: true,
             retro: 'Eso es. Con k = 3 sobre Columbus hay ' + mil6(D6.m4.columbus[2].enlaces) + ' enlaces dirigidos pero solo ' + mil6(D6.m4.columbus[2].pares) + ' parejas distintas, porque ' + mil6(D6.m4.columbus[2].asimetricos) + ' pares no son recíprocos.' },
-          { texto: 'Sí, porque `knearneigh` la simetriza sola',
-            retro: 'No la simetriza: hay que pedirlo con `make.sym.nb`, y al hacerlo el grado deja de valer k —sube a ' + n6(D6.m4.simetrizada_k3.grado) + ' de media—.' },
+          { texto: 'Sí, porque <code>knearneigh</code> la simetriza sola',
+            retro: 'No la simetriza: hay que pedirlo con <code>make.sym.nb</code>, y al hacerlo el grado deja de valer k —sube a ' + n6(D6.m4.simetrizada_k3.grado) + ' de media—.' },
           { texto: 'Solo si k es par',
             retro: 'La paridad de k no tiene nada que ver. Lo que decide la reciprocidad es cómo esté repartida la densidad de puntos.' }
         ] },
@@ -9082,13 +9247,13 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         pregunta: 'Una capa tiene dos unidades sin vecinos y usas <code>zero.policy = TRUE</code>. ¿Qué acabas de hacer?',
         opciones: [
           { texto: 'Nada: es una opción de presentación',
-            retro: 'Cambia el resultado numérico de todo lo que venga después. Sin ella `nb2listw` falla con «' + D6.m9.error_sin_zero_policy + '», que es lo correcto.' },
+            retro: 'Cambia el resultado numérico de todo lo que venga después. Sin ella <code>nb2listw</code> falla con «' + D6.m9.error_sin_zero_policy + '», que es lo correcto.' },
           { texto: 'Excluir esas unidades del análisis',
             retro: 'No las excluye: las deja dentro con una fila vacía. Excluirlas es una decisión distinta —y más honesta— que hay que tomar explícitamente.' },
           { texto: 'Convertir su rezago en un CERO, que entra en todas las medias', correcta: true,
             retro: 'Eso es, y es lo que hay que declarar. Sobre los municipios el rezago de San Andrés vale ' + n6(D6.m9.lag_isla) + ', y ese cero tira hacia abajo de cualquier resumen sin que nada avise.' },
           { texto: 'Hacer que R estime sus vecinos por interpolación',
-            retro: 'R no inventa vecinos en ningún caso. `zero.policy` solo decide si acepta filas vacías o se niega a construir los pesos.' }
+            retro: 'R no inventa vecinos en ningún caso. <code>zero.policy</code> solo decide si acepta filas vacías o se niega a construir los pesos.' }
         ] },
       {
         tipo: 'opcion',

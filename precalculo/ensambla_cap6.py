@@ -103,10 +103,14 @@ def pct(x, d=1):
     return f"{float(x):.{d}f} %".replace(".", ",")
 
 
+# El título llega en HTML —«El flujo de <code>spdep</code>»— porque el h2 lo
+# pinta tal cual. El comentario del marcado es texto plano, y ahí la etiqueta
+# sobra: se quita solo para él.
 def cabecera(num, titulo, ingles, objetivo):
+    plano = titulo.replace("<code>", "").replace("</code>", "")
     return f"""
   <!-- ============================================================ -->
-  <!-- MÓDULO {num} · {titulo[:52]:<52} -->
+  <!-- MÓDULO {num} · {plano[:52]:<52} -->
   <!-- ============================================================ -->
   <template id="module-{num}">
     <div class="animate-fade-in">
@@ -207,6 +211,13 @@ def mapa_html(ident, titulo):
 # glosa del `<h2>`. Son dos cosas distintas y la primera versión las
 # confundió: `courseData` acabó con «Areal data» de subtítulo, que es lo
 # único que un estudiante ve en el índice del capítulo.
+#
+# Y LOS DOS SE ESCRIBEN EN HTML, NO EN MARKDOWN. El índice lateral los pinta
+# con `innerHTML`, igual que el h2 de `cabecera()`, y aquí nada los convierte:
+# `_codigo()` solo pasa por los ejercicios. Hasta el 2026-09-26 el estudiante
+# leía «El flujo de `spdep`» y «Islas y `zero.policy`», acentos graves
+# incluidos, en los dos sitios. `audita_texto_cap6.py` para el documento si
+# vuelve uno.
 TITULOS = (
     ("El dato de área", "Qué se observa y qué es aleatorio"),
     ("Vecindad", "La decisión que condiciona todo lo demás"),
@@ -215,8 +226,8 @@ TITULOS = (
     ("Umbral de distancia", "Islas y densidad desigual"),
     ("Vecindades geométricas", "Delaunay, Gabriel y esfera de influencia"),
     ("De vecinos a pesos", "Los estilos B, W, S, C y U"),
-    ("El flujo de `spdep`", "Y `sfdep` como interfaz tidy"),
-    ("Islas y `zero.policy`", "Qué hace R con quien no tiene vecinos"),
+    ("El flujo de <code>spdep</code>", "Y <code>sfdep</code> como interfaz tidy"),
+    ("Islas y <code>zero.policy</code>", "Qué hace R con quien no tiene vecinos"),
     ("El rezago espacial Wy", "La media de los vecinos"),
     ("W es un grafo", "Adyacencia, paso de mensajes y GNN"),
     ("Autoevaluación y ejercicios", "Trece preguntas y cinco ejercicios"),
@@ -226,8 +237,8 @@ INGLES = (
     "Areal data", "The decision that conditions everything",
     "Rook, queen and higher orders", "Always k, and symmetry broken",
     "Distance thresholds and islands", "Geometric neighbourhoods",
-    "From neighbours to weights", "The spdep workflow",
-    "Islands and zero.policy", "The spatial lag", "W is a graph",
+    "From neighbours to weights", "The <code>spdep</code> workflow",
+    "Islands and <code>zero.policy</code>", "The spatial lag", "W is a graph",
     "Self-assessment and guided exercises",
 )
 
@@ -1035,8 +1046,8 @@ MOD7 = cabecera(
 
 MOD8 = cabecera(
     8, TITULOS[7][0], INGLES[7],
-    "Recorrer el flujo completo de `spdep` y ver que `sfdep` es la misma "
-    "maquinaria con otra sintaxis.") + f"""
+    "Recorrer el flujo completo de <code>spdep</code> y ver que <code>sfdep</code> "
+    "es la misma maquinaria con otra sintaxis.") + f"""
       <p>Todo lo que este capítulo ha explicado se escribe en R con tres llamadas, y siempre en el
         mismo orden. Vale la pena verlas juntas, porque cada una responde a una de las tres
         decisiones del capítulo:</p>
@@ -1638,6 +1649,10 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     };
 """
 
+# Las cadenas del quiz son HTML: la plantilla pinta la pregunta, las opciones
+# y cada retroalimentación con `innerHTML`. Un nombre de R va en `<code>`;
+# hasta el 2026-09-26 cuatro retroalimentaciones y una opción lo escribían
+# entre acentos graves, y el estudiante los veía al contestar.
 QUIZ_JS = r"""
     AUTOEVALUACIONES['cap6-quiz'] = [
       {
@@ -1684,7 +1699,7 @@ QUIZ_JS = r"""
         retroFallo: 'Las dos ciertas son que el orden 2 excluye a los vecinos de orden 1 y que la serie acaba frenándose cuando al mapa le quedan pocas unidades nuevas a las que llegar. Frenarse no es pararse: las parejas siguen subiendo, de ' + mil6(D6.m3.ordenes[0].pares) + ' a ' + mil6(D6.m3.ordenes[1].pares) + ' y de ahí a ' + mil6(D6.m3.ordenes[2].pares) + ', cada vez con un salto menor.',
         opciones: [
           { texto: 'El orden 2 son los vecinos de los vecinos que NO eran ya vecinos', correcta: true,
-            retro: 'Eso es, y es la trampa de lectura del módulo: `nblag` no acumula. Sobre Columbus da ' + mil6(D6.m3.ordenes[0].pares) + ', ' + mil6(D6.m3.ordenes[1].pares) + ' y ' + mil6(D6.m3.ordenes[2].pares) + ' parejas.' },
+            retro: 'Eso es, y es la trampa de lectura del módulo: <code>nblag</code> no acumula. Sobre Columbus da ' + mil6(D6.m3.ordenes[0].pares) + ', ' + mil6(D6.m3.ordenes[1].pares) + ' y ' + mil6(D6.m3.ordenes[2].pares) + ' parejas.' },
           { texto: 'La serie de parejas por orden acaba frenándose porque el mapa es finito', correcta: true,
             retro: 'Sí: al tercer orden ya casi no hay unidades nuevas a las que llegar, y por eso el salto de ' + mil6(D6.m3.ordenes[1].pares) + ' a ' + mil6(D6.m3.ordenes[2].pares) + ' es mucho menor que el anterior.' },
           { texto: 'El orden 2 incluye a los vecinos de orden 1',
@@ -1703,8 +1718,8 @@ QUIZ_JS = r"""
             retro: 'La distancia sí lo es; «estar entre los k más cercanos» no. B puede ser de los tres más cercanos a A sin que A lo sea de B, y basta con que B esté en una zona más densa.' },
           { texto: 'Solo si k es par',
             retro: 'La paridad de k no tiene nada que ver. Lo que decide la reciprocidad es cómo esté repartida la densidad de puntos.' },
-          { texto: 'Sí, porque `knearneigh` la simetriza sola',
-            retro: 'No la simetriza: hay que pedirlo con `make.sym.nb`, y al hacerlo el grado deja de valer k —sube a ' + n6(D6.m4.simetrizada_k3.grado) + ' de media—.' }
+          { texto: 'Sí, porque <code>knearneigh</code> la simetriza sola',
+            retro: 'No la simetriza: hay que pedirlo con <code>make.sym.nb</code>, y al hacerlo el grado deja de valer k —sube a ' + n6(D6.m4.simetrizada_k3.grado) + ' de media—.' }
         ] },
       {
         tipo: 'numerica',
@@ -1784,9 +1799,9 @@ QUIZ_JS = r"""
           { texto: 'Excluir esas unidades del análisis',
             retro: 'No las excluye: las deja dentro con una fila vacía. Excluirlas es una decisión distinta —y más honesta— que hay que tomar explícitamente.' },
           { texto: 'Hacer que R estime sus vecinos por interpolación',
-            retro: 'R no inventa vecinos en ningún caso. `zero.policy` solo decide si acepta filas vacías o se niega a construir los pesos.' },
+            retro: 'R no inventa vecinos en ningún caso. <code>zero.policy</code> solo decide si acepta filas vacías o se niega a construir los pesos.' },
           { texto: 'Nada: es una opción de presentación',
-            retro: 'Cambia el resultado numérico de todo lo que venga después. Sin ella `nb2listw` falla con «' + D6.m9.error_sin_zero_policy + '», que es lo correcto.' }
+            retro: 'Cambia el resultado numérico de todo lo que venga después. Sin ella <code>nb2listw</code> falla con «' + D6.m9.error_sin_zero_policy + '», que es lo correcto.' }
         ] },
       {
         tipo: 'opcion',
