@@ -265,7 +265,11 @@
       texto: 'Cada punto levanta una loma centrada en él: su peso <em>k</em><sub>σ</sub>(<em>u</em> − <em>x</em><sub><em>i</em></sub>) decae con la distancia. Todas encierran lo mismo —un punto—, así que al abrir σ bajan y se ensanchan. Mueve σ y cambia de núcleo.' },
     { corto: 'Sumar las lomas',
       titulo: 'El mapa es la suma de todas las lomas',
-      texto: 'En cada sitio se suman las alturas de las lomas: λ̂(<em>u</em>) = Σ <em>k</em><sub>σ</sub>(<em>u</em> − <em>x</em><sub><em>i</em></sub>). Donde se solapan, la superficie sube. La escala vertical no cambia con σ: al ensanchar, cada loma reparte su peso en más terreno y el mapa baja.' },
+      // «Y el mapa baja» era media verdad (auditoría del 2026-10-02): al abrir σ bajan los picos pero los valles se llenan
+      // (sube el 65 % de la superficie), y con el disco el máximo SUBE en 11 de los 34 pasos del deslizador (R:
+      // 0.7080 → 0.7467 de σ = 0.75 a 0.80), cuando el círculo alcanza un punto más. Y en clase el pie, que dice que aquí
+      // no se corrige el borde, está oculto: lo dice el paso, una lámina después de la fórmula con 1/e(u).
+      texto: 'En cada sitio se suman las alturas de las lomas: λ̂(<em>u</em>) = Σ <em>k</em><sub>σ</sub>(<em>u</em> − <em>x</em><sub><em>i</em></sub>), sin el 1/<em>e</em>(<em>u</em>) del borde (eso es el módulo 4). Donde se solapan, la superficie sube. La escala vertical no cambia con σ: al ensanchar, cada loma reparte su peso en más terreno, los picos bajan y los valles se llenan. Con el disco, el pico puede subir a saltos cuando el círculo alcanza un punto más.' },
     { corto: 'Leer un sitio',
       titulo: 'La altura en u es una suma de pesos',
       texto: 'Arrastra la esfera naranja. Cada hilo une <em>u</em> con un punto y su grosor es el peso <em>k</em><sub>σ</sub>(<em>u</em> − <em>x</em><sub><em>i</em></sub>); la columna apila esos pesos y su altura es λ̂(<em>u</em>). Fuera del círculo, un punto pesa poco o nada.' }
@@ -323,6 +327,7 @@
 .n3d-panel{margin-top:.75rem;padding:.55rem .7rem;border:1px solid #d6e2dc;border-radius:.5rem;background:rgba(255,255,255,.94);font-size:.75rem}
 .n3d-panel[hidden]{display:none}
 .n3d-panel h6{margin:0 0 .3rem;font-size:.6875rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--n3d-gris)}
+.n3d-panel h6 .n3d-mat{text-transform:none;letter-spacing:0}
 .n3d-ap{display:grid;grid-template-columns:2.6rem 1fr 2.6rem;align-items:center;gap:.4rem;margin:.18rem 0;font-family:'Fira Code',monospace}
 .n3d-ap sub{font-size:.7em;line-height:0}
 .n3d-ap-barra{height:.5rem;border-radius:.25rem;background:#eef2f0;overflow:hidden}
@@ -421,7 +426,7 @@
       <p class="n3d-ayuda" aria-hidden="true">${AYUDA}</p>
     </div>
     <p class="n3d-sr" id="@@ID@@-ayuda">${AYUDA_TECLADO}</p>
-    <div class="n3d-panel" aria-hidden="true" hidden><h6>Aportes a λ̂(u)</h6><div class="n3d-ap-lista"></div><div class="n3d-ap-total"><span>λ̂(u)</span><span class="n3d-ap-suma"></span></div></div>
+    <div class="n3d-panel" aria-hidden="true" hidden><h6>Aportes a <span class="n3d-mat">λ̂(u)</span></h6><div class="n3d-ap-lista"></div><div class="n3d-ap-total"><span>λ̂(u)</span><span class="n3d-ap-suma"></span></div></div>
     <div class="n3d-perfilcaja" data-ctl="perfil" hidden><span>Los cuatro núcleos, al mismo σ</span><canvas class="n3d-perfil" role="img" aria-label="Perfil radial de los cuatro núcleos con la misma desviación típica: el gaussiano decae sin cortarse; el de Epanechnikov, el cuártico y el disco tienen soporte finito."></canvas></div>
   </div>
   <div class="n3d-mandos">
@@ -1417,8 +1422,17 @@
     }
     let alTeclear = null;
     if (clase && enMarco) {
+      // Lo que ya es de un mando NO se reenvía (auditoría del 2026-10-02): Intro o Espacio sobre un botón de la animación
+      // pasaban de lámina y el botón no se pulsaba, así que con el teclado no se podía manejar la animación dentro de la
+      // diapositiva; y las flechas sobre un deslizador son del deslizador.
+      const deUnMando = e => {
+        const t = e.target && e.target.closest ? e.target : null;
+        if (!t) return false;
+        if ((e.key === 'Enter' || e.key === ' ') && t.closest('button, input, select, textarea, a[href]')) return true;
+        return /^(Arrow|Page|Home|End)/.test(e.key) && !!t.closest('input[type=range]');
+      };
       alTeclear = e => {
-        if (e.metaKey || e.ctrlKey || e.altKey || !(TECLAS_VISOR.has(e.key) || TECLAS_VISOR.has(e.key.toLowerCase()) || /^[0-9]$/.test(e.key))) return;
+        if (e.metaKey || e.ctrlKey || e.altKey || deUnMando(e) || !(TECLAS_VISOR.has(e.key) || TECLAS_VISOR.has(e.key.toLowerCase()) || /^[0-9]$/.test(e.key))) return;
         e.preventDefault();
         try { global.parent.postMessage({ nucleos: 'tecla', key: e.key, shiftKey: e.shiftKey }, '*'); } catch (_) { /* sin padre */ }
       };

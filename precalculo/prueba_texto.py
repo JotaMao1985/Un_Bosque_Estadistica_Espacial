@@ -993,6 +993,11 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
          "El desplazado: el original da", "El original: el desplazado da"),
         ("desaparece que no hay ancho óptimo que publicar",
          "No hay ancho que publicar.", "Ese es el ancho.", True),
+        # La auditoría de las cinco animaciones (2026-10-02): vuelve la frase de antes, «y por eso el máximo baja».
+        ("al abrir σ vuelve a «bajar el máximo» sin más",
+         "la reparte: los picos bajan y los valles se llenan", "la reparte, y por eso el máximo baja", True),
+        ("desaparece que con el disco el pico puede subir",
+         "el pico puede subir a", "el pico baja igual a", True),
         ("desaparece qué le hace el conglomerado a la z",
          "se multiplica por unas diez", "se queda como estaba", True),
         ("la z de kppm con traslación del ejercicio 3, cambiada",

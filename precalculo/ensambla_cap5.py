@@ -529,7 +529,8 @@ MOD1 = cabecera(
       "y cambia de núcleo; con «Reproducir» la animación recorre los cinco pasos sola.")}
       <p>Quédate con tres cosas. La superficie no tiene nada que no estuviera en las lomas: es su
         suma, sitio a sitio. Cada loma encierra lo mismo —un punto—, así que abrir σ no crea
-        intensidad, la reparte, y por eso el máximo baja. Y cambiar de núcleo cambia la forma de
+        intensidad, la reparte: los picos bajan y los valles se llenan (con el disco, el pico puede subir a
+        saltos cuando su círculo alcanza un punto más). Y cambiar de núcleo cambia la forma de
         las lomas, pero la de su suma mucho menos que mover σ (el disco, con su borde brusco, es el
         que más se nota). Las dos últimas son justo lo que mide el módulo siguiente, esta vez
         sobre las sedes de Kennedy.</p>
