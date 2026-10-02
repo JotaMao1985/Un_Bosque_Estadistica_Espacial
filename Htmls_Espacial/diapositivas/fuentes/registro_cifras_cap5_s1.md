@@ -22,10 +22,10 @@ Los enteros 0, 1 y 2 usados como constantes de definición no se registran: no s
 
 ## Resumen
 
-- 355 apariciones de cifras en 36 diapositivas; 180 cifras distintas.
-- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 205
-- VERIFICADA · re-ejecutada en R: 54
-- PARÁMETRO de diseño: 41
+- 370 apariciones de cifras en 37 diapositivas; 190 cifras distintas.
+- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 206
+- VERIFICADA · re-ejecutada en R: 66
+- PARÁMETRO de diseño: 43
 - VERIFICADA · aritmética sobre cifras verificadas: 20
 - CONTRASTADA · salida de R (JSON del capítulo): 14
 - CONTRASTADA · texto del capítulo: 12
@@ -83,6 +83,10 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 - ✓ La mediana de la superficie P(oficial) queda por debajo de la proporción de los puntos
 - ✓ Las tres correlaciones de las capas son menores que 1 y la menor es la de oferta con estudiantes
 - ✓ La integral de la KDE ponderada por evaluados da el total de evaluados
+- ✓ Con los 19 puntos inventados y σ = 1.2 (la animación del módulo 4): sin corregir queda por debajo de n, por defecto por encima y con Diggle es n
+- ✓ Una sede sola pegada al borde aporta menos de 1 con la corrección por defecto, y una a uno y medio o dos σ de él, más de 1 (los cuatro núcleos, σ = 1.2)
+- ✓ Con Diggle el volumen de la escena de borde es n (a 0.05) con los cuatro núcleos y con los tres σ probados: el mínimo, el de partida y el máximo del deslizador
+- ✓ Sin corregir, el volumen de la escena de borde es Σ e(xᵢ): la forma cerrada y `density(edge = FALSE)` de spatstat coinciden a 0.01
 
 ## Cifra por cifra
 
@@ -101,9 +105,10 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `90` | notas | …del Quiz 2. Presupuesto de la sesión (90 min): este módulo, 13 min; nú… | duración de la clase pedida por el docente (90 min), decisión D1; no es un dato del capítulo | PARÁMETRO de diseño |
 | `13` | notas | …o de la sesión (90 min): este módulo, 13 min; núcleo y ancho, 11; sele… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 | `11` | notas | …este módulo, 13 min; núcleo y ancho, 11; selectores, 11; corrección d… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
-| `11` | notas | …min; núcleo y ancho, 11; selectores, 11; corrección de borde, 14; map… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
-| `14` | notas | …selectores, 11; corrección de borde, 14; mapa de calor, 10; intensida… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
-| `10` | notas | …rrección de borde, 14; mapa de calor, 10; intensidad relativa, 13; cie… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
+| `11` | notas | …min; núcleo y ancho, 11; selectores, 11; corrección de borde, 17 (14… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
+| `17` | notas | …selectores, 11; corrección de borde, 17 (14 sin la animación en 3D);… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
+| `14` | notas | …ectores, 11; corrección de borde, 17 (14 sin la animación en 3D); mapa… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
+| `10` | notas | …n la animación en 3D); mapa de calor, 10; intensidad relativa, 13; cie… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 | `13` | notas | …pa de calor, 10; intensidad relativa, 13; cierre y práctica, 4. El res… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 | `4` | notas | …idad relativa, 13; cierre y práctica, 4. El resto es margen para preg… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 
@@ -352,7 +357,8 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
-| `14` | notas | …Unos 14 minutos. Materia del Quiz 2.… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
+| `17` | notas | …Unos 17 minutos, tres de ellos en la… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
+| `14` | notas | …tres de ellos en la animación en 3D (14 minutos sin ella). Materia de… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 
 ### Diapositiva 23 · El núcleo de una sede pegada al borde se sale de la ventana
 
@@ -408,7 +414,25 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `17.54` | notas | …o corregir y corregir por defecto hay 17.54 puntos porcentuales a σ = … | datos › m4.horquilla_pct = 17.54024174; recomputo › bordes.horquilla_pp_800 = 17.54024174 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `800` | notas | …o hay 17.54 puntos porcentuales a σ = 800 m. Lo que se ve aquí es el c… | datos › m4.sigmas_m = [200, 400, 800] | CONTRASTADA · salida de R (JSON del capítulo) |
 
-### Diapositiva 26 · ¿Se distingue cuál es cuál mirando el mapa?
+### Diapositiva 26 · En 3D: lo que se escapa por el borde, y cada corrección
+
+| Cifra | Dónde | Contexto | Comprobación | Estado |
+|---|---|---|---|---|
+| `19` | notas | …ón del del capítulo, con los mismos 19 puntos inventados de la lámin… | recomputo › borde3d.motor.n = 19 | VERIFICADA · re-ejecutada en R |
+| `36` | notas | …oducir», que los recorre sola en unos 36 segundos (más si el equipo di… | recomputo › borde3d.motor.guion_s = 36 | VERIFICADA · re-ejecutada en R |
+| `0.7` | notas | …nadie. Al abrir, la sede n.º 1 está a 0.7 del borde y deja dentro el 7… | recomputo › borde3d.motor.foco0.dist_borde = 0.7 | VERIFICADA · re-ejecutada en R |
+| `72` | notas | …está a 0.7 del borde y deja dentro el 72 % de su loma (e = 0.72, con σ… | recomputo › borde3d.apertura.dentro_pct = 72 | VERIFICADA · re-ejecutada en R |
+| `0.72` | notas | …y deja dentro el 72 % de su loma (e = 0.72, con σ = 1.2); arrastrarla … | recomputo › borde3d.apertura.e_foco = 0.7156935475 | VERIFICADA · re-ejecutada en R |
+| `1.2` | notas | …el 72 % de su loma (e = 0.72, con σ = 1.2); arrastrarla hacia el borde… | recomputo › borde3d.motor.sigma.ini = 1.2 | VERIFICADA · re-ejecutada en R |
+| `17.1` | notas | …el perímetro y su volumen es Σ e(xᵢ): 17.1 de 19. Tercer paso: por def… | recomputo › borde3d.volumen.sin = 17.09732593 | VERIFICADA · re-ejecutada en R |
+| `19` | notas | …etro y su volumen es Σ e(xᵢ): 17.1 de 19. Tercer paso: por defecto se… | recomputo › borde3d.motor.n = 19 | VERIFICADA · re-ejecutada en R |
+| `20.2` | notas | …e por qué ser n. Con estas sedes sale 20.2, por encima de 19, como en … | recomputo › borde3d.volumen.defecto = 20.17183589 | VERIFICADA · re-ejecutada en R |
+| `19` | notas | …estas sedes sale 20.2, por encima de 19, como en Kennedy; no es una l… | recomputo › borde3d.motor.n = 19 | VERIFICADA · re-ejecutada en R |
+| `0.97` | notas | …a sede n.º 1, pegada al borde, aporta 0.97 (menos de 1), y una a uno y… | recomputo › borde3d.foco_aporta.defecto = 0.967705792 | VERIFICADA · re-ejecutada en R |
+| `19.0` | notas | …actamente 1 y el volumen vuelve a ser 19.0, con cualquier σ y cualquie… | recomputo › borde3d.volumen.diggle = 19.00428575 | VERIFICADA · re-ejecutada en R |
+| `3.19` | notas | …lta que los puntos son inventados: el +3.19 % de Kennedy es de aquel p… | datos › m4.tabla[2].exceso_defecto_pct = 3.191567581; recomputo › bordes.800.pct_defecto = 3.191567581 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+
+### Diapositiva 27 · ¿Se distingue cuál es cuál mirando el mapa?
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -421,14 +445,14 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `12.66` | cuerpo | …cias —al no corregir el pico baja, de 12.66 a 11.54 sedes por km²—, pe… | datos › m4.tabla[2].max_km2_defecto = 12.65984977; recomputo › bordes.800.max_defecto = 12.65984977 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `11.54` | cuerpo | …no corregir el pico baja, de 12.66 a 11.54 sedes por km²—, pero ningun… | datos › m4.tabla[2].max_km2_sin_corregir = 11.5397454; recomputo › bordes.800.max_sin = 11.5397454 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
-### Diapositiva 27 · Diggle divide donde está el dato; la de por defecto, donde se estima
+### Diapositiva 28 · Diggle divide donde está el dato; la de por defecto, donde se estima
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `3` | notas | …gle coincide con spatstat (a menos de 3 % por la discretización de la… | el error de ambas fórmulas contra spatstat (2.87 % y 2.54 %) es menor que 3 % = 3 | VERIFICADA · aritmética sobre cifras verificadas |
 | `88` | notas | …o, usada en su lugar, se aparta hasta 88 % en el peor de los puntos de… | recomputo › diggle_identidad.cruce_pct = 88.40951558 | VERIFICADA · re-ejecutada en R |
 
-### Diapositiva 28 · La integral de la KDE: 270.36 por defecto, 262.00 con Diggle
+### Diapositiva 29 · La integral de la KDE: 270.36 por defecto, 262.00 con Diggle
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -450,13 +474,13 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `0.147` | notas | …se volvieron a medir en esta (0.155, 0.147 y 0.161 s) y salen del mism… | recomputo › tiempos.ciudad_128.sin_corregir = 0.145 (tolerancia ±0.02) | MEDIDA · depende de la máquina (con tolerancia) |
 | `0.161` | notas | …ieron a medir en esta (0.155, 0.147 y 0.161 s) y salen del mismo orden… | recomputo › tiempos.ciudad_128.diggle = 0.158 (tolerancia ±0.02) | MEDIDA · depende de la máquina (con tolerancia) |
 
-### Diapositiva 29 · La KDE como mapa de calor
+### Diapositiva 30 · La KDE como mapa de calor
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `10` | notas | …Unos 10 minutos. Este módulo no entra… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 
-### Diapositiva 30 · Tres mapas de Bogotá se parecen mucho y responden tres preguntas distintas
+### Diapositiva 31 · Tres mapas de Bogotá se parecen mucho y responden tres preguntas distintas
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -481,7 +505,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `11` | notas | …recciones distintas. «Sedes con grado 11» son las sedes con al menos u… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
 | `20224` | notas | …on al menos un evaluado en el periodo 20224. Cotejo: , , , , , , .… | texto del capítulo: «periodo 20224» | CONTRASTADA · texto del capítulo |
 
-### Diapositiva 31 · Donde las manchas no coinciden, el edificio y el estudiante dejan de ser lo mismo
+### Diapositiva 32 · Donde las manchas no coinciden, el edificio y el estudiante dejan de ser lo mismo
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -495,7 +519,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `11` | cuerpo | …las 2 107, o solo las 1 062 con grado 11) y cuánto pesa cada una (1, o… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
 | `0.919` | cuerpo | …ara bachillerato con estudiantes (r = 0.919). :::… | datos › m5.cor_grado11_estudiantes = 0.9185657089; recomputo › capas.cor_11_es = 0.9185657089 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
-### Diapositiva 32 · Con celdas de 183 m, la ciudad no puede dibujar un σ menor que 550 m
+### Diapositiva 33 · Con celdas de 183 m, la ciudad no puede dibujar un σ menor que 550 m
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -521,19 +545,19 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `78` | cuerpo | …iudad usa , y Kennedy, con celdas de 78 m, puede bajar a 233 m. :::… | datos › m2.familia.celda_m = 77.7982889; recomputo › anchos.celda_x_m = 77.7982889 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `233` | cuerpo | …dy, con celdas de 78 m, puede bajar a 233 m. ::: ::: warn Criterio Pri… | datos › m2.familia.sigmas_m[0] = 233.3949; recomputo › anchos.sigmas_m[0] = 233.3949 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
-### Diapositiva 33 · ¿Cuál de los tres mapas es «el mapa de la demanda educativa»?
+### Diapositiva 34 · ¿Cuál de los tres mapas es «el mapa de la demanda educativa»?
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `11` | cuerpo | …a completa. El de las sedes con grado 11, porque restringe a quien pue… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
 
-### Diapositiva 34 · Intensidad relativa
+### Diapositiva 35 · Intensidad relativa
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `13` | notas | …Unos 13 minutos. Cierra la mitad desc… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 
-### Diapositiva 36 · Chorley: 58 casos de laringe contra 978 controles de pulmón
+### Diapositiva 37 · Chorley: 58 casos de laringe contra 978 controles de pulmón
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -558,7 +582,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `50` | notas | …ay puntos: en el máximo solo 4 de los 50 vecinos más próximos son caso… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
 | `4.6` | notas | …ás cercano al píxel del máximo está a 4.6 km (con σ = 1 km). Es la col… | recomputo › chorley.max_dist_punto_mas_cercano_km = 4.596178586 | VERIFICADA · re-ejecutada en R |
 
-### Diapositiva 37 · Los casos se llaman `larynx` y los controles `lung`. ¿Qué probabilidad pinta `relrisk`?
+### Diapositiva 38 · Los casos se llaman `larynx` y los controles `lung`. ¿Qué probabilidad pinta `relrisk`?
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -566,7 +590,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `0.0482` | cuerpo | …ón): la mediana sale 0.9518 en vez de 0.0482. σ cambia lo suave que sa… | datos › m6.chorley.p_mediana = 0.0481849481; recomputo › chorley.mediana = 0.04818494813 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `0.9518` | notas | …sitiva siguiente sea su respuesta. El 0.9518 se comprobó en R. Cotejo:… | recomputo › chorley.mediana_sin_fijar_niveles = 0.9518150519 | VERIFICADA · re-ejecutada en R |
 
-### Diapositiva 38 · La trampa: todo corre, nada avisa y el mapa sale al revés
+### Diapositiva 39 · La trampa: todo corre, nada avisa y el mapa sale al revés
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -580,7 +604,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `50` | notas | …a primera; la segunda se hace con los 50 vecinos más próximos al máxim… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
 | `8` | notas | …itariamente» de ese tipo; en son el 8 %, así que la comprobación qu… | 100 × orientación del máximo de chorley = 8 \| 100 × vecinos casos / 50 = 8 | VERIFICADA · aritmética sobre cifras verificadas |
 
-### Diapositiva 39 · En Bogotá no es riesgo, es proporción de tipo: nadie «contrae» ser oficial
+### Diapositiva 40 · En Bogotá no es riesgo, es proporción de tipo: nadie «contrae» ser oficial
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -595,7 +619,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `50` | cuerpo | …s son oficiales en un **64 %** (32 de 50) contra **33.65 %** en el con… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
 | `33.65` | cuerpo | …es en un **64 %** (32 de 50) contra **33.65 %** en el conjunto. :::… | 100 × proporción global de oficiales = 33.64973897 | VERIFICADA · aritmética sobre cifras verificadas |
 
-### Diapositiva 40 · Contar puntos da 0.3365; mirar el mapa da 0.3086: son dos preguntas distintas
+### Diapositiva 41 · Contar puntos da 0.3365; mirar el mapa da 0.3086: son dos preguntas distintas
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -615,7 +639,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `0.0482` | notas | …. La misma desigualdad aparece con (0.0482 contra 0.0560): es en parte… | datos › m6.chorley.p_mediana = 0.0481849481; recomputo › chorley.mediana = 0.04818494813 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `0.0560` | notas | …igualdad aparece con (0.0482 contra 0.0560): es en parte un rasgo de c… | datos › m6.chorley.prop_global = 0.055984556; recomputo › chorley.global = 0.05598455598 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
-### Diapositiva 44 · Práctica: dos ejercicios guiados, el simulacro del Quiz 2 y la próxima sesión
+### Diapositiva 45 · Práctica: dos ejercicios guiados, el simulacro del Quiz 2 y la próxima sesión
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|

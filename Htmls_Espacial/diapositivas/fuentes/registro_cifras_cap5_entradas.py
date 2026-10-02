@@ -22,7 +22,7 @@ def _xj():
 def cargar_entradas(m, sesiones):
     RJ, Rr, J, J4, A, T, E, M, P, X, Spec, d, r = (m.RJ, m.Rr, m.J, m.J4, m.A, m.T, m.E, m.M, m.P, m.X, m.Spec, m.d, m.r)
     d4 = lambda ruta: m.get(m.D4, ruta)
-    REG, AF, TAB = m.REG, m.AF, m.TAB
+    REG, AF, TAB, CERRADA = m.REG, m.AF, m.TAB, m.CERRADA
 
     # ------------------------------------------------------------------------------------
     # Hallazgos en el material del capítulo (se escriben en el registro; no se corrigen en silencio)
@@ -232,6 +232,22 @@ def cargar_entradas(m, sesiones):
         REG("0.138", M("tiempos.ciudad_128.sin_corregir", 0.02))
         REG("0.150", M("tiempos.ciudad_128.diggle", 0.02))
 
+        # ---- módulo 4 · «En 3D: lo que se escapa por el borde» (la animación del capítulo: 19 puntos inventados, no Kennedy) ----
+        # Todo sale de `recomputa_cap5_borde3d.R`, que LEE del motor (`nucleo3d.js`) el patrón, σ y el guion, y recalcula con `density()`.
+        EN3D_B = ("En 3D: lo que se escapa por el borde",)
+        CERRADA(*EN3D_B)          # sus cifras valen solo con una entrada que nombre esta lámina, y cada una con el contexto que la rodea
+        REG("19", Rr("borde3d.motor.n"), en=EN3D_B, cx=r"mismos 19 puntos|de 19\.|encima de 19,")
+        REG("36", Rr("borde3d.motor.guion_s"), en=EN3D_B, cx=r"36 segundos")
+        REG("0.7", Rr("borde3d.motor.foco0.dist_borde"), en=EN3D_B, cx=r"a 0\.7 del borde")
+        REG("72", Rr("borde3d.apertura.dentro_pct"), en=EN3D_B, cx=r"72 %")
+        REG("0.72", Rr("borde3d.apertura.e_foco"), en=EN3D_B, cx=r"e = 0\.72")
+        REG("1.2", Rr("borde3d.motor.sigma.ini"), en=EN3D_B, cx=r"σ = 1\.2")
+        REG("17.1", Rr("borde3d.volumen.sin"), en=EN3D_B, cx=r"Σ e\(xᵢ\): 17\.1")
+        REG("20.2", Rr("borde3d.volumen.defecto"), en=EN3D_B, cx=r"Con estas sedes sale 20\.2")
+        REG("19.0", Rr("borde3d.volumen.diggle"), en=EN3D_B, cx=r"vuelve a ser 19\.0")
+        REG("0.97", Rr("borde3d.foco_aporta.defecto"), en=EN3D_B, cx=r"aporta 0\.97")
+        REG("3.19", RJ("m4.tabla[2].exceso_defecto_pct", "bordes.800.pct_defecto"), en=EN3D_B, cx=r"\+3\.19 % de Kennedy")
+
         # ---- módulo 5 ----
         REG("20224", T("periodo 20224", corpus="fuentes"))
         REG("11", P("grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11"), cx=r"grado 11|Saber 11")
@@ -284,7 +300,7 @@ def cargar_entradas(m, sesiones):
 
         # ---- revisión del 1 oct 2026 (revisión pedagógica y auditoría de cifras independientes) ----
         Phi = lambda z: 0.5 * (1 + math.erf(z / math.sqrt(2)))
-        REG(["13", "11", "14", "10", "4"], P("minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo"),
+        REG(["13", "11", "14", "17", "10", "4"], P("minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo"),
             en=("De contar a suavizar", "Núcleo y ancho de banda", "Selectores de ancho de banda", "Corrección de borde en la KDE",
                 "La KDE como mapa de calor", "Intensidad relativa", "Cierre y práctica"),
             cx=r"min|este módulo|núcleo y ancho|selectores|corrección de borde|mapa de calor|intensidad relativa|cierre y práctica")
@@ -348,6 +364,14 @@ def cargar_entradas(m, sesiones):
         AF(1, "La mediana de la superficie P(oficial) queda por debajo de la proporción de los puntos", lambda: r("oficial.mediana") < r("oficial.global"))
         AF(1, "Las tres correlaciones de las capas son menores que 1 y la menor es la de oferta con estudiantes", lambda: max(r("capas.cor_of_11"), r("capas.cor_of_es"), r("capas.cor_11_es")) < 1 and r("capas.cor_of_es") == min(r("capas.cor_of_11"), r("capas.cor_of_es"), r("capas.cor_11_es")))
         AF(1, "La integral de la KDE ponderada por evaluados da el total de evaluados", lambda: abs(r("capas.integral_estudiantes") - r("capas.evaluados")) < 1)
+        AF(1, "Con los 19 puntos inventados y σ = 1.2 (la animación del módulo 4): sin corregir queda por debajo de n, por defecto por encima y con Diggle es n",
+           lambda: r("borde3d.volumen.sin") < r("borde3d.motor.n") < r("borde3d.volumen.defecto") and abs(r("borde3d.volumen.diggle") - r("borde3d.motor.n")) < 0.01)
+        AF(1, "Una sede sola pegada al borde aporta menos de 1 con la corrección por defecto, y una a uno y medio o dos σ de él, más de 1 (los cuatro núcleos, σ = 1.2)",
+           lambda: bool(r("borde3d.sola.menor_a_uno_pegada") and r("borde3d.sola.mayor_a_uno_lejos")))
+        AF(1, "Con Diggle el volumen de la escena de borde es n (a 0.05) con los cuatro núcleos y con los tres σ probados: el mínimo, el de partida y el máximo del deslizador",
+           lambda: abs(r("borde3d.diggle_todos.min") - r("borde3d.motor.n")) < 0.05 and abs(r("borde3d.diggle_todos.max") - r("borde3d.motor.n")) < 0.05)
+        AF(1, "Sin corregir, el volumen de la escena de borde es Σ e(xᵢ): la forma cerrada y `density(edge = FALSE)` de spatstat coinciden a 0.01",
+           lambda: abs(r("borde3d.volumen.sin") - r("borde3d.volumen.sin_analitico")) < 0.01)
 
         # ---- tablas: cada celda numérica en su casilla ----
         nk = lambda k: (lambda: r(f"nucleos.max_km2.{k}"))

@@ -329,6 +329,13 @@ def X(desc):
 
 
 REG_ENTRADAS = []
+CERRADAS: list[str] = []          # prefijos de título de las diapositivas «cerradas»: sus cifras solo valen con una entrada que diga `en=`
+
+
+def CERRADA(*titulos):
+    """Una lámina cerrada no acepta una cifra porque OTRA lámina la tenga registrada sin `en=`: cada cifra suya necesita su propia
+    entrada. Cierra el hueco de «una cifra válida en otro sitio»: 17.3 por 17.1 se nota, pero 1.07 por 0.97 pasaba porque 1.07 existe."""
+    CERRADAS.extend(titulos)
 
 
 def REG(tokens, spec, en=None, cx=None):
@@ -413,8 +420,11 @@ def evalua(spec: Spec, token: str):
 
 def busca(entradas, token, titulo, ctx=""):
     out = []
+    cerrada = any(titulo.replace("\u00a0", " ").startswith(p.replace("\u00a0", " ")) for p in CERRADAS)
     for e in entradas:
         en_tabla = "|" in ctx                           # las celdas de tabla las clava `comprueba_tablas` en su casilla
+        if cerrada and e["en"] is None:                 # en una lámina cerrada no valen las entradas sin `en=`
+            continue
         if (token in e["tokens"] and (e["en"] is None or any(titulo.replace("\u00a0", " ").startswith(p.replace("\u00a0", " ")) for p in e["en"]))
                 and (e.get("cx") is None or en_tabla or re.search(e["cx"], ctx))):
             out.append(e)
