@@ -83,6 +83,10 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 - ✓ La mediana de la superficie P(oficial) queda por debajo de la proporción de los puntos
 - ✓ Las tres correlaciones de las capas son menores que 1 y la menor es la de oferta con estudiantes
 - ✓ La integral de la KDE ponderada por evaluados da el total de evaluados
+- ✓ Ilustración de la lámina 8 (seis puntos, núcleo gaussiano, σ de 0.35 a 1.2): el máximo de la suma baja, en el valle entre los dos grupos sube, y el 10 % más alto baja y la mitad más baja sube
+- ✓ Animación del módulo 1 (19 puntos, σ de 0.5 a 2.2, sin corregir el borde), con los cuatro núcleos: del σ más estrecho al más ancho el 10 % más alto de la superficie baja y la mitad más baja sube
+- ✓ Animación del módulo 1: con el gaussiano, el epanechnikov y el cuártico el máximo no sube en ningún paso del deslizador de σ; con el disco sube en algunos
+- ✓ Con el disco, el máximo sube justo en los pasos en que el mejor círculo alcanza un punto más (el conteo máximo de puntos dentro del círculo aumenta)
 
 ## Cifra por cifra
 
