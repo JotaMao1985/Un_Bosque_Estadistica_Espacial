@@ -49,6 +49,7 @@ import re
 import pathlib
 import sys
 from baraja_opciones import baraja_documento
+from motores import lee_motor
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
@@ -63,6 +64,13 @@ S = json.loads((SALIDAS / "cap4_soluciones.json").read_text(encoding="utf-8"))
 # lleva las respuestas. Aquí solo llegan enunciados y opciones.
 SIM = json.loads((SALIDAS / "cap4_simulacro.json").read_text(encoding="utf-8"))
 MINUTOS_SIM = 40   # los del quiz (decisión del profesor, 2026-09-16)
+# La animación de K y g de los módulos 8 y 9 (`genera_cap4_kanillo2d.R`): la página lleva de aquí solo las
+# coordenadas CRUDAS de los tres canónicos (las de los mapas van cuantizadas, y en los nodos con empates eso
+# decide de qué lado cae una pareja); K y las cuentas las calcula el navegador, y `prueba_kanillo2d.py` las mide
+# contra estas cifras. Y el RESUMEN que cita la prosa, aparte: el auditor de cifras lee ese y no las coordenadas
+# (la lección del capítulo 6: cientos de decimales nuevos dejan colar por azar enteros cortos inyectados).
+KN = json.loads((SALIDAS / "cap4_kanillo2d.json").read_text(encoding="utf-8"))
+KS = json.loads((SALIDAS / "cap4_kanillo2d_resumen.json").read_text(encoding="utf-8"))
 
 m1, m2, m3, m4 = D["m1"], D["m2"], D["m3"], D["m4"]
 m5, m6, m7 = D["m5"], D["m6"], D["m7"]
@@ -181,6 +189,33 @@ def sim(ident, titulo, pie="", alto=260, mandos=True):
           <canvas role="img" aria-label="{titulo}"></canvas>
         </div>
         <div class="simulador-lectura"></div>
+      </div>
+"""
+
+
+# Lo que ve quien tiene JavaScript bloqueado o el motor no monta: lo mismo que dice la animación, sin el lienzo.
+ANIM_RESERVA = {
+    "disco": ("La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: K cuenta, "
+              "alrededor de cada punto, los otros que caen dentro de un disco de radio r, los promedia, los divide por "
+              "la intensidad y lo compara con π r², lo que daría el azar."),
+    "anillo": ("La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: K cuenta los "
+               "vecinos de cada punto dentro de un disco de radio r, así que lo que encontró cerca lo sigue contando lejos; "
+               "g mira solo el anillo de radio r, y por eso dice a qué distancia está la estructura."),
+}
+
+
+def anim2d_html(ident, titulo, pie, escena):
+    """Una animación 2D (`anim2d.js` + `kanillo2d.js`): un contenedor vacío que el motor monta cuando se ve.
+
+    Es un `.simulador` más —lo registra `SIMULADORES[ident]` y lo destruye `destruirSimuladores()`—, pero sin
+    lienzo ni mandos en el marcado: los construye el motor. El `.a2d-cargando` reserva el sitio y es el texto
+    que ve quien lo tenga bloqueado. Los lienzos que el motor crea no están en el marcado, así que no cuentan
+    para el auditor de `aria-label`; cada uno lleva el suyo al crearse. (El mismo molde que el capítulo 6.)
+    """
+    return f"""      <div class="simulador" data-simulador="{ident}">
+        <h4><i class="fas fa-diagram-project" aria-hidden="true"></i> {titulo}</h4>
+        <p class="simulador-intro">{pie}</p>
+        <div class="a2d-montaje" data-escena="{escena}"><p class="a2d-cargando">{ANIM_RESERVA[escena]}</p></div>
       </div>
 """
 
@@ -1623,6 +1658,25 @@ MOD8 = cabecera(
         azar, que es exactamente el cociente entre \\(\\hat{{K}}\\) y \\(\\pi r^2\\). Eso es
         un punto de la curva; K lo da para cada \\(r\\).</p>
 
+      <h3>El disco, punto a punto</h3>
+
+      <p>Las sedes son demasiadas para ver los discos de uno en uno. La animación de abajo hace la
+        misma cuenta sobre los tres patrones canónicos del capítulo, que viven en un cuadrado de lado
+        1, así que ahí \\(r\\) se mide en lados de la ventana. Empieza por un punto y su disco: los
+        puntos que caen dentro son sus vecinos, y al lado está lo que el azar pondría en un disco
+        entero, \\({{(n-1)\\pi r^2/|W|}}\\). Después el disco crece hasta un cuarto del lado, que es la
+        \\(r\\) máxima del final de este módulo, y la curva de al lado es \\(\\hat{{K}}\\) para todo el
+        patrón. El paso 3 dibuja las parejas que suma la fórmula, y el 4 lleva el disco al borde,
+        donde la ventana tapa una parte, para que se vea qué hace el peso \\(w_{{ij}}\\).</p>
+
+{anim2d_html('cap4-kdisco', 'K, un disco alrededor de cada punto',
+             'Elige un punto con un clic, con ‹ › o con las flechas; mueve r con el deslizador o arrastrando '
+             'el borde del círculo; y cambia de patrón y de peso.', 'disco')}
+      <p>En las secuoyas, sin el peso, \\(\\hat{{K}}\\) en \\(r\\) = {n(m8['cells']['r'][-1], 2)} se queda
+        en {firma(n(KS['secuoyas_sin_sobre_con_final']))} veces la corregida: el borde solo puede
+        esconder vecinos. Cuánto pesa eso en una ventana de verdad, y hacia dónde empuja la curva, es
+        el módulo 10.</p>
+
       <h3>De la parábola a la recta: L</h3>
 
       <p>Bajo CSR, \\({{K(r) = \\pi r^2}}\\) es una parábola, y comparar una curva contra una
@@ -2019,7 +2073,25 @@ MOD9 = cabecera(
         <strong>el tamaño de los grumos</strong>, y K no la sabe decir: se despegó al
         principio y arrastra ese despegue hasta el final.</p>
 
-      <p>Antes de mirar Bogotá, pasa el simulador por las células y por los pinos, porque cada
+      <p>Por qué K arrastra se ve en el mapa. La animación de abajo toma un punto de un grupo de
+        secuoyas y su disco, y lo lleva hasta \\(r\\) = {n(m9['redwood']['r_vuelve_a_1'], 4)}, donde g ya
+        ha vuelto a 1: el disco sigue conteniendo a los vecinos de cerca, porque un disco grande
+        contiene a todos los pequeños, y para todo el patrón \\(\\hat{{K}}\\) vale allí todavía
+        {firma(n(KS['secuoyas_k_razon_g_vuelve']))} veces \\(\\pi r^2\\), y
+        {n(KS['secuoyas_k_razon_final'])} al final del barrido. Después cambia el disco por el
+        anillo de esa distancia, que solo ve las parejas que están a ella, y dibuja las de todos los
+        puntos, en uno y en otro.</p>
+
+{anim2d_html('cap4-kanillo', 'K contra g: el disco y el anillo',
+             'Elige un punto con un clic, con ‹ › o con las flechas; mueve r con el deslizador o arrastrando '
+             'el borde del círculo; y cambia entre el disco y el anillo, y de patrón.', 'anillo')}
+      <p>La gráfica de la animación pone las dos razones frente a la misma referencia, 1: la del disco,
+        \\(\\hat{{K}}/\\pi r^2\\), y la del anillo, g. El anillo que se dibuja va de \\(r\\) −
+        {n(KS['h_anillo'], 2)} a \\(r\\) + {n(KS['h_anillo'], 2)} (desde 0 si \\(r\\) es más pequeño), solo para
+        ver qué parejas están a esa distancia; la g de la gráfica es la de <code>pcf()</code>, que las cuenta con un núcleo que
+        suaviza, así que lo que hay en un anillo y el valor de g no tienen por qué coincidir.</p>
+
+      <p>Antes de mirar Bogotá, pasa el simulador de las dos curvas por las células y por los pinos, porque cada
         uno enseña algo que las secuoyas no. En las <strong>células</strong> g se queda pegada
         a 0 en las distancias cortas y no despega de verdad hasta rondar
         {n(m3['cells']['nn_min'], 5)}, que es la distancia de la pareja de células más
@@ -3366,6 +3438,54 @@ SIMULADORES_JS = r"""
       return [g];
     };
 """
+
+# La animación 2D de los módulos 8 y 9: `anim2d.js` (la cáscara, la misma del capítulo 6) y `kanillo2d.js`, EN LÍNEA
+# (un capítulo es un solo HTML): se editan en `precalculo/anim2d/` y nada más, y `comprueba_animaciones.py` comprueba
+# que el capítulo lleve la versión vigente. Se CONCATENAN, no se interpolan: el JS lleva llaves y `${}`.
+# Una sola función monta las dos escenas; cuál es lo dice el `data-escena` del contenedor.
+KANILLO_PATRONES = {nm: {k: KN["patrones"][nm][k] for k in ("nombre", "n", "ventana", "x", "y")}
+                    for nm in ("cells", "japanesepines", "redwood")}
+KANILLO_JS = (
+    "\n    // --- Módulos 8 y 9 · K como disco, g como anillo: `anim2d.js` y `kanillo2d.js`, en línea ------\n"
+    "    // Las coordenadas CRUDAS de los tres canónicos: lo único que la animación trae de fuera, además de la g\n"
+    "    // publicada (`D4.m9`). K y las cuentas de cada punto las calcula ella.\n"
+    "    const KANILLO_PATRONES = " + json.dumps(KANILLO_PATRONES, ensure_ascii=False) + ";\n"
+    + lee_motor(RAIZ / "precalculo" / "anim2d" / "anim2d.js") + "\n"
+    + lee_motor(RAIZ / "precalculo" / "anim2d" / "kanillo2d.js") + "\n"
+    + r"""
+    const montaKAnillo = function (raiz) {
+      const sitio = raiz.querySelector('.a2d-montaje');
+      const escena = sitio.dataset.escena;
+      let vivo = true, instancia = null, io = null;
+      Anim2D.estilos(document);
+      const monta = () => {
+        if (!vivo) return;
+        // Si el motor falla, vuelve el texto de reserva: el párrafo promete que el módulo dice lo mismo.
+        const reserva = sitio.innerHTML;
+        try {
+          sitio.innerHTML = '';
+          instancia = sitio.animacion = KAnillo2D.monta(sitio, { patrones: KANILLO_PATRONES, g: D4.m9 }, { escena });
+        } catch (e) {
+          sitio.innerHTML = reserva;
+          instancia = sitio.animacion = null;
+          console.error('kanillo2d (' + escena + '): la animación no se pudo montar', e);
+        }
+      };
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(es => {
+          if (es.some(e => e.isIntersecting)) { io.disconnect(); io = null; monta(); }
+        }, { rootMargin: '400px 0px' });
+        io.observe(sitio);
+      } else {
+        monta();
+      }
+      return [{ destroy() { vivo = false; if (io) io.disconnect(); if (instancia) instancia.destruir(); instancia = sitio.animacion = null; } }];
+    };
+    SIMULADORES['cap4-kdisco'] = montaKAnillo;
+    SIMULADORES['cap4-kanillo'] = montaKAnillo;
+""")
+
+SIMULADORES_JS += KANILLO_JS
 
 
 # =====================================================================
