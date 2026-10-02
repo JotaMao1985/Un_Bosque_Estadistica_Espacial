@@ -1242,6 +1242,17 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
          "tiene diagonal positiva", "tiene diagonal nula", True),
         ("W² vuelve a llegar a todos los vecinos, sin condición",
          "que sea a la vez vecino de otro de sus vecinos", "sin excepción alguna", True),
+        # La media del rezago (2026-10-02). Las dos primeras restituyen lo que estuvo publicado; la tercera quita qué
+        # media conserva W; la cuarta devuelve al bloque de R el comentario que llamaba al I de Moran cor(y, Wy).
+        ("la media de Wy vuelve a «tener que» ser la de y",
+         "no tienen por qué coincidir", "tienen que coincidir", True),
+        ("el ejercicio 5 vuelve a decir que promediar no mueve el centro",
+         "Lo que no se mueve nunca, con una", "Las medias coinciden porque promediar no mueve el centro, con una", True),
+        ("desaparece qué media conserva W",
+         "tantas veces como vecinos tiene. Lo que cambia", "una sola vez. Lo que cambia", True),
+        ("el comentario del bloque de R vuelve a llamar al I de Moran «toda la autocorrelación»",
+         "# Se parecen. Ojo: el I de Moran es otra cifra, la pendiente de wy sobre y",
+         "# Se parecen, y esa es toda la autocorrelación espacial del capítulo 7", True),
         ("se cae un tema del temario (zero.policy)",
          "zero.policy", "cero-politica", True),
 

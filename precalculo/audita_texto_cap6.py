@@ -53,6 +53,7 @@ Devuelve 1 si algo falla.
 """
 from __future__ import annotations
 
+import html
 import sys
 
 from audita_texto_base import Auditor
@@ -222,8 +223,10 @@ AFIRMACIONES = [
     # Las que entraron con la animación del rezago (2026-10-02). La primera es el hallazgo: Wᵏy no va a la media.
     ("dice que Wᵏy no va a la media de y sino a la ponderada por el grado",
      "ese valor no es la media de y"),
+    # «de cada barrio»: sin eso, la frase de la solución del ejercicio 5 («es la media ponderada por el grado, la que
+    # cuenta…») la sostenía sola y la inyección que la quita del módulo 10 dejó de cazarse (2026-10-02).
     ("dice que esa media está ponderada por el grado",
-     "es la media ponderada por el grado"),
+     "es la media ponderada por el grado de cada barrio"),
     ("dice que con la torre el valor al que va es otro",
      "la vecindad que se eligió manda también aquí"),
     ("dice que la rapidez la manda el segundo valor propio de W",
@@ -232,6 +235,26 @@ AFIRMACIONES = [
      "que es el índice de moran del capítulo 7"),
     ("dice que esa pendiente no es la correlación",
      "no son lo mismo"),
+    # La media del rezago (2026-10-02). El módulo 10 decía que la media de Wy era «prácticamente la misma, y tiene que
+    # serlo», y la solución del ejercicio 5, que «promediar no mueve el centro». No es así: cada unidad entra en el
+    # promedio de cada uno de sus vecinos y en Wy pesa lo que suma su columna de W, que no vale 1. Lo que W por filas
+    # conserva, con una vecindad simétrica, es la media PONDERADA POR EL GRADO (municipios: 3.4484 en y y en Wy; la
+    # simple pasa de 3.4266 a 3.4593 sobre los mismos 1 119). La animación del mismo módulo lo enseña con Wᵏy.
+    ("dice que la media de Wy no tiene por qué ser la de y",
+     "no tienen por qué coincidir"),
+    ("dice qué media conserva W: la que cuenta a cada unidad tantas veces como vecinos tiene",
+     "a cada municipio tantas veces como vecinos tiene"),
+    ("dice que en la solución del ejercicio 5 lo que no se mueve es la media ponderada por el grado",
+     "lo que no se mueve nunca, con una vecindad simétrica como la reina, es la media ponderada por el grado"),
+]
+
+# Lo que el CÓDIGO del capítulo no puede dejar de decir. `afirmaciones()` lee la prosa sin los bloques `<pre>` (los
+# cubre `verifica_bloques.py`, que ejecuta el código pero no lee sus comentarios), y un comentario es texto que el
+# estudiante lee: el del bloque de R del módulo 10 decía, junto a cor(y, Wy), «esa es toda la autocorrelación
+# espacial del capítulo 7», y el I de Moran de esos mismos municipios es otra cifra (la pendiente).
+AFIRMACIONES_CODIGO = [
+    ("el bloque de R del módulo 10 dice que el I de Moran no es cor(y, Wy)",
+     "el i de moran es otra cifra, la pendiente de wy sobre y"),
 ]
 
 # EL «−» (U+2212) YA NO VA AQUÍ, y el «⁻¹» sí (2026-09-24). El menos largo
@@ -272,6 +295,9 @@ def main() -> int:
     a.temario(DEBE_CUBRIR)
     a.fuentes(FUENTES)
     a.afirmaciones(AFIRMACIONES)
+    codigo = html.unescape(a.cuerpo).lower()
+    for que, clave in AFIRMACIONES_CODIGO:
+        a.exige(clave in codigo, que)
     a.accesibilidad()
     a.geomapas()
     a.formulas_escapadas()

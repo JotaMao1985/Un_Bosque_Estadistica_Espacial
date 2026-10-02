@@ -532,7 +532,7 @@ y   &lt;- des[ok]
 wy  &lt;- lag.listw(lw, y, zero.policy = TRUE)
 con &lt;- card(sub) &gt; 0
 
-# Se parecen, y esa es toda la autocorrelación espacial del capítulo 7
+# Se parecen. Ojo: el I de Moran es otra cifra, la pendiente de wy sobre y
 round(cor(y[con], wy[con]), 4)
 #&gt; [1] {COR}
 
@@ -1195,16 +1195,20 @@ MOD10 = cabecera(
       <h3>El rezago contrae, y hay que saberlo antes de dibujarlo</h3>
 
       <p>La media de la deserción es {n(m10["y"]["media"], 4)} y la de su rezago
-        {n(m10["wy"]["media"], 4)}: prácticamente la misma, y tiene que serlo. Pero las
-        desviaciones típicas son {firma(n(m10["y"]["sd"], 4))} y {firma(n(m10["wy"]["sd"], 4))}:
-        el rezago es un {firma(pct(m10["contraccion_pct"], 2), " más estrecho")}.</p>
+        {n(m10["wy"]["media"], 4)}: parecidas, pero <strong>no tienen por qué coincidir</strong>. Cada
+        municipio entra en el promedio de cada uno de sus vecinos, así que en <em>Wy</em> no pesan todos
+        igual. Lo que W estandarizada por filas conserva exactamente, con una vecindad simétrica como la
+        reina, es otra media: la <strong>ponderada por el grado</strong>, la que cuenta a cada municipio
+        tantas veces como vecinos tiene. Lo que cambia, y mucho, es la dispersión: las desviaciones
+        típicas son {firma(n(m10["y"]["sd"], 4))} y {firma(n(m10["wy"]["sd"], 4))}, y el rezago es un
+        {firma(pct(m10["contraccion_pct"], 2), " más estrecho")}.</p>
 
-      <p>No es un artefacto: <strong>promediar contrae</strong>. La media de varios números está
-        más cerca del centro que los números que la forman, y el rezago es exactamente eso hecho
-        {ent(m10["n"])} veces. La consecuencia práctica es de mapa: si se dibujan
-        <em>y</em> y <em>Wy</em> con la misma escala de color, el segundo <strong>siempre</strong>
-        se ve más plano, y eso no dice nada sobre el territorio — dice que uno es un promedio del
-        otro.</p>
+      <p>No es un artefacto: <strong>promediar contrae</strong>. La media de varios números queda entre
+        el menor y el mayor de ellos, así que ningún valor de <em>Wy</em> se sale del rango de <em>y</em>,
+        y en la práctica su desviación típica queda bastante por debajo. El rezago es exactamente eso
+        hecho {ent(m10["n"])} veces. La consecuencia práctica es de mapa: si se dibujan <em>y</em> y
+        <em>Wy</em> con la misma escala de color, el segundo se ve más plano, y eso no dice nada sobre el
+        territorio — dice que uno es un promedio del otro.</p>
 
       <h3>Si se promedia otra vez, el mapa sigue aplanándose</h3>
 
@@ -1907,7 +1911,7 @@ QUIZ_JS = r"""
           { texto: 'Nada sobre el territorio: promediar contrae, y el rezago es una media', correcta: true,
             retro: 'Eso es. La desviación pasa de ' + n6(D6.m10.y.sd) + ' a ' + n6(D6.m10.wy.sd) + ', un ' + n6(D6.m10.contraccion_pct, 2) + ' % menos, y eso pasaría con cualquier variable. Las medias, en cambio, casi coinciden.' },
           { texto: 'Que la deserción está espacialmente autocorrelacionada',
-            retro: 'La autocorrelación se ve en la CORRELACIÓN entre y y Wy —aquí ' + n6(D6.m10.correlacion) + '—, no en que el mapa del rezago se vea plano. Eso último pasaría igual sin autocorrelación ninguna.' },
+            retro: 'La autocorrelación se ve en la CORRELACIÓN entre y y Wy —aquí ' + n6(D6.m10.correlacion) + '—, no en que el mapa del rezago se vea plano. Eso último pasaría también sin autocorrelación ninguna.' },
           { texto: 'Que la W elegida tiene demasiados vecinos',
             retro: 'Más vecinos contraen más, es cierto, pero la contracción existe con cualquier W: es una propiedad de promediar, no de esta vecindad.' },
           { texto: 'Que hay un error en el cálculo del rezago',
