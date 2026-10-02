@@ -155,10 +155,11 @@ def tablero_gerry(ident, titulo, pie):
     un lector de pantalla) y la segunda tabla trae la cuenta de cada distrito: lo que un gráfico de
     barras decía, y lo que la rejilla sola obligaría a contar con el dedo.
 
-    La rejilla va YA envuelta en un `.tabla-scroll` a propósito: el script de la plantilla envuelve
-    toda tabla que no lo esté, y lo hace con `tabindex="0"` y `role="region"` para poder desplazarla
-    con el teclado. Una rejilla de tamaño fijo en `rem` no desborda nunca, y esa parada de Tab no
-    llevaría a nada. La tabla de distritos sí se deja al script: es una tabla de datos como las demás.
+    Las dos tablas van YA envueltas en un `.tabla-scroll` a propósito: el script de la plantilla
+    envuelve toda tabla que no lo esté, y lo hace con `tabindex="0"` y `role="region"` para poder
+    desplazarla con el teclado. Una tabla de ancho fijo en `rem` no desborda nunca, y esa parada de
+    Tab no llevaría a nada. La de distritos se dejaba al script, y la auditoría del 2026-10-02 midió
+    que tampoco desborda a ningún ancho (210 de 210 px a 340, 414 y 600; 240 de 240 de 768 en adelante).
     """
     return f"""      <div class="simulador" data-simulador="{ident}">
         <h4><i class="fas fa-table-cells" aria-hidden="true"></i> {titulo}</h4>
@@ -171,11 +172,13 @@ def tablero_gerry(ident, titulo, pie):
               <tbody></tbody>
             </table>
           </div>
-          <table class="gerry-distritos">
-            <caption>Casillas de cada partido en cada distrito</caption>
-            <thead><tr><th scope="col">Distrito</th><th scope="col">A</th><th scope="col">B</th><th scope="col">Gana</th></tr></thead>
-            <tbody></tbody>
-          </table>
+          <div class="tabla-scroll">
+            <table class="gerry-distritos">
+              <caption>Casillas de cada partido en cada distrito</caption>
+              <thead><tr><th scope="col">Distrito</th><th scope="col">A</th><th scope="col">B</th><th scope="col">Gana</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
         <div class="simulador-lectura" aria-live="polite"></div>
       </div>
@@ -236,8 +239,9 @@ CSS_GERRY = """
     }
 
     /* Los cuatro bordes gruesos van como `box-shadow` interior y no como `border`: con cuatro sombras siempre
-       (las que no tocan, de 0 px) el navegador las interpola al cambiar de trazado, y el borde se desliza en
-       vez de saltar. Con `prefers-reduced-motion` la plantilla ya recorta toda transición. */
+       (las que no tocan, de 0 px) el navegador las interpola al cambiar de trazado, y cada borde crece o se
+       apaga en su sitio en vez de saltar. Con `prefers-reduced-motion` la plantilla ya recorta toda
+       transición. Los colores forzados y la impresión quitan las sombras: ahí van bordes de verdad (abajo). */
     .gerry .gerry-tablero td {
       --t: 0px;
       --r: 0px;
@@ -267,10 +271,13 @@ CSS_GERRY = """
       color: #8a3300;
     }
 
+    /* B más oscuro que A, y no solo de otro tono: con #d4e9f7 los dos fondos quedaban a 0.8 de L* y en gris
+       (acromatopsia, o la fotocopia en blanco y negro) eran el mismo. #a8d1ee los separa 10.2 y la letra,
+       #003a5e, sigue a 7.4 : 1. */
     .gerry .gerry-tablero td.gerry-b,
     .gerry .gerry-distritos td.gerry-gana-b {
-      background: #d4e9f7;
-      color: #004a77;
+      background: #a8d1ee;
+      color: #003a5e;
     }
 
     .gerry .gerry-num {
@@ -305,6 +312,60 @@ CSS_GERRY = """
     .gerry .gerry-distritos td.gerry-gana-a,
     .gerry .gerry-distritos td.gerry-gana-b {
       font-weight: 700;
+    }
+
+    /* Con colores forzados (el alto contraste de Windows) el navegador quita sombras y fondos: se iban los
+       bordes de distrito, y el botón del trazado puesto solo se distinguía de los otros por un borde de 1 px
+       casi del mismo negro. Un `border` sí sobrevive, así que los distritos pasan a bordes de verdad (3 px a
+       cada lado de una frontera, 1 px dentro), y el botón puesto toma los colores de selección del sistema.
+       Va acotado a este simulador: el `.sim-btn.active` de la plantilla tiene el mismo defecto en todos. */
+    @media (forced-colors: active) {
+      .gerry .gerry-tablero td {
+        border-style: solid;
+        border-color: CanvasText;
+        border-width: calc(1px + var(--t)) calc(1px + var(--r)) calc(1px + var(--b)) calc(1px + var(--l));
+      }
+
+      [data-simulador="cap3-gerry"] .sim-btn.active {
+        forced-color-adjust: none;
+        background: Highlight;
+        border-color: Highlight;
+        color: HighlightText;
+      }
+    }
+
+    /* Al imprimir, el tablero no se parte entre dos páginas; los fondos de A y de B salen (son el dato, no
+       adorno), los distritos van con bordes de verdad como arriba, y el botón puesto, que era blanco sobre un
+       degradado que no se imprime, se marca con su borde. */
+    @media print {
+      [data-simulador="cap3-gerry"] {
+        break-inside: avoid;
+      }
+
+      .gerry .gerry-tablero td,
+      .gerry .gerry-distritos td.gerry-gana-a,
+      .gerry .gerry-distritos td.gerry-gana-b {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .gerry .gerry-tablero td {
+        box-shadow: none;
+        border-style: solid;
+        border-color: #000000;
+        border-width: calc(1px + var(--t)) calc(1px + var(--r)) calc(1px + var(--b)) calc(1px + var(--l));
+      }
+
+      [data-simulador="cap3-gerry"] .sim-btn {
+        background: none;
+        border: 1px solid #9ca3af;
+        color: #000000;
+      }
+
+      [data-simulador="cap3-gerry"] .sim-btn.active {
+        border: 2px solid #000000;
+        font-weight: 800;
+      }
     }
 """
 
