@@ -1294,8 +1294,9 @@ MOD9 = cabecera(
         que van de {ent(m9['tam_zonas_reales']['min'])} a
         {ent(m9['tam_zonas_reales']['max'])} municipios. Generamos
         {firma(ent(m9['n_particiones']))} particiones alternativas de los mismos municipios en
-        {m9['n_zonas']} zonas <strong>contiguas</strong>, y para cada una recalculamos la
-        correlación entre educación de la madre y puntaje.</p>
+        {m9['n_zonas']} zonas <strong>contiguas</strong> —de reina: dos municipios son vecinos si comparten aunque
+        sea un punto de frontera—, y para cada una recalculamos la correlación entre educación de la madre y
+        puntaje.</p>
 
       <div class="key-insight">
         <p style="margin:0;">Con la partición departamental real, r =
@@ -1306,6 +1307,12 @@ MOD9 = cabecera(
         partición real cae en el <strong>percentil {n(_co['percentil_real'], 5)}</strong>: no
         tiene nada de especial.</p>
       </div>
+
+      <p>Ese percentil es respecto de un muestreador, no de «todos los trazados». Las particiones salen de
+        hacer crecer {m9['n_zonas']} regiones contiguas desde semillas al azar: no son todas las posibles —son
+        incontables— ni salen todas con la misma frecuencia, y otro muestreador podría poner la partición real
+        en otro sitio. Al final del módulo, en una rejilla donde sí se pueden contar todos los trazados, se
+        cuentan en vez de sortearlos.</p>
 
 {sim('cap3-zonificacion', 'Mil trazados distintos del mismo país',
      'La distribución de la correlación sobre 1 000 particiones, con el trazado departamental real marcado.', 300)}
@@ -1337,12 +1344,14 @@ MOD9 = cabecera(
         ninguna política concreta.</p>
 
       <p>Una rejilla de {GY['lado']}×{GY['lado']} casillas, cada una un voto: {firma(ent(GY['n_A']))} del
-        partido A y {firma(ent(GY['n_B']))} del B —el {firma(n(GY['pct_A'], 5), ' %')} para A—, repartida
+        partido A y {firma(ent(GY['n_B']))} del B —el {firma(ent(GY['pct_A']), ' %')} para A—, repartida
         en {GY['n_distritos']} distritos <strong>contiguos</strong> de {GY['casillas_por_distrito']}
         casillas: cada distrito es de una sola pieza, y dos casillas son vecinas si comparten un lado,
-        no solo una esquina. Proporcionalmente le tocarían {firma(n(GY['escanos_proporcionales'], 2))}
-        escaños. Cortar la rejilla así se puede hacer de {firma(ent(GY['n_trazados']))} maneras,
-        y están contadas todas: se enumeran, no se sortean. Con ellas A saca:</p>
+        no solo una esquina —la contigüidad de torre del capítulo 6; los municipios de arriba usaban la de
+        reina—. Proporcionalmente le tocarían {firma(n(GY['escanos_proporcionales'], 2))}
+        escaños. Cortar la rejilla así se puede hacer de {firma(ent(GY['n_trazados']))} maneras (el mismo
+        corte con los distritos numerados de otra forma es el mismo trazado), y están contadas todas:
+        se enumeran, no se sortean. Con ellas A saca:</p>
 
       <div class="table-wrapper">
         <table>

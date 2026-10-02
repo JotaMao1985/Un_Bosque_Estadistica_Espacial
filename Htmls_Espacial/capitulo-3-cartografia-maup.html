@@ -5494,8 +5494,9 @@ print(round(gm["x"].corr(gm["p"]), 7))
         que van de 1 a
         125 municipios. Generamos
         <strong>1 000</strong> particiones alternativas de los mismos municipios en
-        33 zonas <strong>contiguas</strong>, y para cada una recalculamos la
-        correlación entre educación de la madre y puntaje.</p>
+        33 zonas <strong>contiguas</strong> —de reina: dos municipios son vecinos si comparten aunque
+        sea un punto de frontera—, y para cada una recalculamos la correlación entre educación de la madre y
+        puntaje.</p>
 
       <div class="key-insight">
         <p style="margin:0;">Con la partición departamental real, r =
@@ -5506,6 +5507,12 @@ print(round(gm["x"].corr(gm["p"]), 7))
         partición real cae en el <strong>percentil 25.80000</strong>: no
         tiene nada de especial.</p>
       </div>
+
+      <p>Ese percentil es respecto de un muestreador, no de «todos los trazados». Las particiones salen de
+        hacer crecer 33 regiones contiguas desde semillas al azar: no son todas las posibles —son
+        incontables— ni salen todas con la misma frecuencia, y otro muestreador podría poner la partición real
+        en otro sitio. Al final del módulo, en una rejilla donde sí se pueden contar todos los trazados, se
+        cuentan en vez de sortearlos.</p>
 
       <div class="simulador" data-simulador="cap3-zonificacion">
         <h4><i class="fas fa-sliders" aria-hidden="true"></i> Mil trazados distintos del mismo país</h4>
@@ -5545,12 +5552,14 @@ print(round(gm["x"].corr(gm["p"]), 7))
         ninguna política concreta.</p>
 
       <p>Una rejilla de 5×5 casillas, cada una un voto: <strong>16</strong> del
-        partido A y <strong>9</strong> del B —el <strong>64.00000</strong> % para A—, repartida
+        partido A y <strong>9</strong> del B —el <strong>64</strong> % para A—, repartida
         en 5 distritos <strong>contiguos</strong> de 5
         casillas: cada distrito es de una sola pieza, y dos casillas son vecinas si comparten un lado,
-        no solo una esquina. Proporcionalmente le tocarían <strong>3.20</strong>
-        escaños. Cortar la rejilla así se puede hacer de <strong>4 006</strong> maneras,
-        y están contadas todas: se enumeran, no se sortean. Con ellas A saca:</p>
+        no solo una esquina —la contigüidad de torre del capítulo 6; los municipios de arriba usaban la de
+        reina—. Proporcionalmente le tocarían <strong>3.20</strong>
+        escaños. Cortar la rejilla así se puede hacer de <strong>4 006</strong> maneras (el mismo
+        corte con los distritos numerados de otra forma es el mismo trazado), y están contadas todas:
+        se enumeran, no se sortean. Con ellas A saca:</p>
 
       <div class="table-wrapper">
         <table>

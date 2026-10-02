@@ -605,6 +605,15 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
          "no probabilidades", "se leen como azar", True),
         ("desaparece la definición de «contiguo» del gerrymandering (casillas que comparten un lado)",
          "comparten un lado", "están cerca", True),
+        # (2026-10-02) el percentil de Colombia es de un muestreador; sus zonas son de reina y la rejilla de torre
+        ("desaparece que el percentil de Colombia es respecto de un muestreador",
+         "Ese percentil es respecto de un muestreador", "Ese percentil es el de todos los trazados", True),
+        ("desaparece que las zonas de Colombia son contiguas de reina",
+         "si comparten aunque", "si comparten casi", True),
+        ("desaparece que la rejilla usa la contigüidad de torre, no la de reina",
+         "la contigüidad de torre del capítulo 6", "la contigüidad de siempre", True),
+        ("desaparece que renumerar los distritos no da otro trazado",
+         "numerados de otra forma es el mismo trazado", "numerados de otra forma es otro trazado", True),
         # --- 6. LA DISCREPANCIA DECLARADA DE A.2 ----------------------
         ("desaparece la causa de que R y Python clasifiquen distinto",
          "lado cerrado del intervalo", "una diferencia de implementación", True),
