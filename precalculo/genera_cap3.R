@@ -1207,8 +1207,8 @@ message(sprintf("  arbitrarias: media %+.5f  sd %.5f  [%+.5f, %+.5f]  · la real
                 mean(r_arb), sd(r_arb), min(r_arb), max(r_arb), D$m9$arbitrarias$percentil_real))
 
 # --- Gerrymandering: la rejilla sintética -----------------------------
-# 5x5 electores, 60 % del partido A, en 5 distritos de 5 casillas. El
-# clásico: la misma población da 5-0, 3-2 o 2-3 según cómo se corte.
+# 5x5 electores, 16 de 25 (64 %) del partido A, en 5 distritos de 5 casillas. El
+# clásico: la misma población da a A 2, 3 o 4 escaños de 5 según cómo se corte.
 # No lleva dato real a propósito: es una demostración de aritmética, y
 # mezclarla con geografía colombiana la volvería una acusación.
 LADO <- 5L; N_DIST <- 5L; POR_DIST <- 5L
@@ -1301,8 +1301,11 @@ D$m9$gerrymandering <- list(
   distribucion = lapply(0:N_DIST, function(e)
     list(escanos = e, n = as.integer(tabla_e[as.character(e)]),
          pct = r10(100 * as.integer(tabla_e[as.character(e)]) / length(trazados)))),
+  # `votos_A` por distrito: el tablero del módulo los LEE, no los cuenta en el navegador (una cifra que
+  # calcula el navegador no la ve ningún auditor de prosa).
   ejemplos = lapply(elegidos, function(i)
-    list(escanos_A = escanos[i], escanos_B = N_DIST - escanos[i], particion = as.integer(trazados[[i]]))))
+    list(escanos_A = escanos[i], escanos_B = N_DIST - escanos[i], particion = as.integer(trazados[[i]]),
+         votos_A = vapply(seq_len(N_DIST), function(d) sum(voto[trazados[[i]] == d]), integer(1)))))
 message(sprintf("  gerrymandering: A tiene el %.5f %% de los votos; hay %d trazados contiguos (enumerados todos)",
                 100 * pct_A, length(trazados)))
 message(sprintf("    saca entre %d y %d escanos de %d (proporcional serian %.5f)",

@@ -838,6 +838,10 @@ def main() -> int:
         a.igual(gana, ej["escanos_A"], f"ejemplo de {ej['escanos_A']} escaños: recuento")
         a.igual(ej["escanos_A"] + ej["escanos_B"], g["n_distritos"],
                 f"ejemplo de {ej['escanos_A']} escaños: A + B = distritos")
+        # Lo que lee el tablero del módulo: las casillas de A de cada distrito, recontadas desde la rejilla.
+        a.cierto(list(ej["votos_A"]) == [int(voto[z == d].sum()) for d in range(1, g["n_distritos"] + 1)],
+                 f"ejemplo de {ej['escanos_A']} escaños: casillas de A por distrito, recontadas",
+                 str(ej["votos_A"]))
         # Contigüidad por torre, comprobada con una búsqueda en anchura
         ok_cont = True
         for d in range(1, g["n_distritos"] + 1):

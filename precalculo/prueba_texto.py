@@ -603,6 +603,8 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
          "se enumeran, no se sortean", "se prueban unos cuantos", True),
         ("desaparece que los porcentajes del gerrymandering no son probabilidades",
          "no probabilidades", "se leen como azar", True),
+        ("desaparece la definición de «contiguo» del gerrymandering (casillas que comparten un lado)",
+         "comparten un lado", "están cerca", True),
         # --- 6. LA DISCREPANCIA DECLARADA DE A.2 ----------------------
         ("desaparece la causa de que R y Python clasifiquen distinto",
          "lado cerrado del intervalo", "una diferencia de implementación", True),

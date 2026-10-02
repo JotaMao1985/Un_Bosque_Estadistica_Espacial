@@ -234,6 +234,9 @@ def defectos():
     obj("13 · el total de trazados deja de ser el de la enumeración",
         "datos", lambda d: (d["m9"]["gerrymandering"].__setitem__("n_trazados", 15409),
                             d["m9"]["gerrymandering"]["distribucion"][3].__setitem__("n", 2944 + 11403)))
+    obj("13 · el tablero muestra una casilla de A de más en un distrito",
+        "datos", lambda d: d["m9"]["gerrymandering"]["ejemplos"][0]["votos_A"].__setitem__(
+            0, d["m9"]["gerrymandering"]["ejemplos"][0]["votos_A"][0] + 1))
     obj("13 · un ejemplo reparte las casillas en distritos de 5 pero dispersos (no contiguos)",
         "datos", lambda d: d["m9"]["gerrymandering"]["ejemplos"][1].__setitem__(
             "particion", [(i * 7) % 25 // 5 + 1 for i in range(25)]))

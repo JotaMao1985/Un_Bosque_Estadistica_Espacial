@@ -148,6 +148,167 @@ def sim(ident, titulo, pie="", alto=260):
 """
 
 
+def tablero_gerry(ident, titulo, pie):
+    """El tablero del gerrymandering: dos `<table>` que rellena el simulador, sin lienzo.
+
+    La rejilla es una tabla de verdad (letra del partido y distrito en cada casilla, también para
+    un lector de pantalla) y la segunda tabla trae la cuenta de cada distrito: lo que un gráfico de
+    barras decía, y lo que la rejilla sola obligaría a contar con el dedo.
+
+    La rejilla va YA envuelta en un `.tabla-scroll` a propósito: el script de la plantilla envuelve
+    toda tabla que no lo esté, y lo hace con `tabindex="0"` y `role="region"` para poder desplazarla
+    con el teclado. Una rejilla de tamaño fijo en `rem` no desborda nunca, y esa parada de Tab no
+    llevaría a nada. La tabla de distritos sí se deja al script: es una tabla de datos como las demás.
+    """
+    return f"""      <div class="simulador" data-simulador="{ident}">
+        <h4><i class="fas fa-table-cells" aria-hidden="true"></i> {titulo}</h4>
+        <p class="simulador-intro">{pie}</p>
+        <div class="simulador-controles"></div>
+        <div class="gerry">
+          <div class="tabla-scroll">
+            <table class="gerry-tablero">
+              <caption class="sr-only">Rejilla de casillas: partido (A o B) y distrito de cada una</caption>
+              <tbody></tbody>
+            </table>
+          </div>
+          <table class="gerry-distritos">
+            <caption>Casillas de cada partido en cada distrito</caption>
+            <thead><tr><th scope="col">Distrito</th><th scope="col">A</th><th scope="col">B</th><th scope="col">Gana</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="simulador-lectura" aria-live="polite"></div>
+      </div>
+"""
+
+
+CSS_GERRY = """
+    /* --- El tablero del gerrymandering (módulo 9 del capítulo 3) ---
+       La plantilla pinta TODA `table`: ancho 100 %, rayas, resaltado al pasar el ratón, relleno de 1 rem,
+       cabeceras verdes y, en el teléfono, `display: block` con desplazamiento. El tablero lo neutraliza regla
+       a regla, y por eso cada selector cuelga de `.gerry` (pesa más que los de la plantilla sin recurrir a
+       `!important`). Va aquí y no en la plantilla porque es de este capítulo: ningún otro lo usa. */
+    .gerry {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 1rem 1.75rem;
+      margin: 0.75rem 0 0.5rem;
+    }
+
+    /* La plantilla envuelve cada tabla en un `.tabla-scroll` (a propósito: también las de dentro de un
+       simulador) y ese envoltorio es `container-type: inline-size`, así que su ancho no depende del
+       contenido: sin un ancho explícito el tablero se ensancha hasta el 100 % y las casillas dejan de ser
+       cuadradas. 13.75rem son las cinco casillas; 15rem, la tabla de distritos; juntas caben en una fila
+       en el cuerpo del módulo (498 px) y en el teléfono se apilan. */
+    .gerry .tabla-scroll {
+      flex: 0 0 auto;
+      width: 15rem;
+      max-width: 100%;
+      margin: 0;
+    }
+
+    .gerry .tabla-scroll:has(.gerry-tablero) {
+      width: 13.75rem;
+    }
+
+    .gerry .tabla-scroll .gerry-tablero,
+    .gerry .tabla-scroll .gerry-distritos {
+      display: table;
+      width: 100%;
+      min-width: 0;
+      margin: 0;
+    }
+
+    .gerry .gerry-tablero {
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 0;
+      overflow: visible;
+      box-shadow: none;
+    }
+
+    .gerry .gerry-tablero tr,
+    .gerry .gerry-tablero tr:nth-child(n),
+    .gerry .gerry-tablero tr:hover {
+      background: none;
+    }
+
+    /* Los cuatro bordes gruesos van como `box-shadow` interior y no como `border`: con cuatro sombras siempre
+       (las que no tocan, de 0 px) el navegador las interpola al cambiar de trazado, y el borde se desliza en
+       vez de saltar. Con `prefers-reduced-motion` la plantilla ya recorta toda transición. */
+    .gerry .gerry-tablero td {
+      --t: 0px;
+      --r: 0px;
+      --b: 0px;
+      --l: 0px;
+      position: relative;
+      width: 2.75rem;
+      height: 2.75rem;
+      padding: 0;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1;
+      border: 1px solid #ffffff;
+      box-shadow:
+        inset 0 var(--t) 0 0 #1f2937,
+        inset calc(var(--r) * -1) 0 0 0 #1f2937,
+        inset 0 calc(var(--b) * -1) 0 0 #1f2937,
+        inset var(--l) 0 0 0 #1f2937;
+      transition: box-shadow 0.35s ease;
+    }
+
+    .gerry .gerry-tablero td.gerry-a,
+    .gerry .gerry-distritos td.gerry-gana-a {
+      background: #ffe3d1;
+      color: #8a3300;
+    }
+
+    .gerry .gerry-tablero td.gerry-b,
+    .gerry .gerry-distritos td.gerry-gana-b {
+      background: #d4e9f7;
+      color: #004a77;
+    }
+
+    .gerry .gerry-num {
+      position: absolute;
+      top: 0.25rem;
+      left: 0.3rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .gerry .gerry-distritos caption {
+      caption-side: top;
+      padding-bottom: 0.35rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      text-align: left;
+    }
+
+    .gerry .gerry-distritos th,
+    .gerry .gerry-distritos td {
+      padding: 0.4rem 0.8rem;
+      text-align: center;
+    }
+
+    .gerry .gerry-distritos tbody th {
+      background: none;
+      color: #374151;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .gerry .gerry-distritos td.gerry-gana-a,
+    .gerry .gerry-distritos td.gerry-gana-b {
+      font-weight: 700;
+    }
+"""
+
+
 def fila(*celdas):
     cab, resto = celdas[0], celdas[1:]
     return ('            <tr><th scope="row">' + str(cab) + '</th>'
@@ -1175,10 +1336,11 @@ MOD9 = cabecera(
         mapa real, porque en la rejilla la aritmética queda a la vista y no hay que discutir
         ninguna política concreta.</p>
 
-      <p>Una rejilla de {GY['lado']}×{GY['lado']} casillas, {firma(ent(GY['n_A']))} del partido A
-        y {firma(ent(GY['n_B']))} del B —el {firma(n(GY['pct_A'], 5), ' %')} para A—, repartida
+      <p>Una rejilla de {GY['lado']}×{GY['lado']} casillas, cada una un voto: {firma(ent(GY['n_A']))} del
+        partido A y {firma(ent(GY['n_B']))} del B —el {firma(n(GY['pct_A'], 5), ' %')} para A—, repartida
         en {GY['n_distritos']} distritos <strong>contiguos</strong> de {GY['casillas_por_distrito']}
-        casillas. Proporcionalmente le tocarían {firma(n(GY['escanos_proporcionales'], 2))}
+        casillas: cada distrito es de una sola pieza, y dos casillas son vecinas si comparten un lado,
+        no solo una esquina. Proporcionalmente le tocarían {firma(n(GY['escanos_proporcionales'], 2))}
         escaños. Cortar la rejilla así se puede hacer de {firma(ent(GY['n_trazados']))} maneras,
         y están contadas todas: se enumeran, no se sortean. Con ellas A saca:</p>
 
@@ -1197,13 +1359,13 @@ MOD9 = cabecera(
         Los porcentajes cuentan trazados posibles, no probabilidades: el mapa no se sortea, lo
         dibuja alguien.</p>
 
-{sim('cap3-gerry', 'La misma votación, tres trazados',
-     'Cada trazado reparte las mismas 25 casillas en 5 distritos contiguos de 5.', 280)}
+{tablero_gerry('cap3-gerry', 'La misma votación, tres trazados',
+     f"Tres de los {ent(GY['n_trazados'])} trazados, uno por cada resultado posible, sobre las mismas casillas: {ent(GY['n_A'])} de A y {ent(GY['n_B'])} de B. Pulsa uno y mira qué distritos gana cada partido.")}
 
       <p>La conclusión del módulo no es que los mapas mientan, sino que <strong>la unidad
         geográfica es un parámetro del análisis</strong>, y como todo parámetro hay que
         declararlo, justificarlo y —cuando se puede— comprobar que el resultado no depende de
-        él. Publicar un solo trazado sin decir que hay mil más es publicar media conclusión.</p>
+        él. Publicar un solo trazado sin decir que hay muchos más es publicar media conclusión.</p>
 """ + CIERRE
 
 
@@ -1918,45 +2080,63 @@ SIMULADORES_JS = f"""
       return [g];
     }};
 
-    // Módulo 9 · el gerrymandering
+    // Módulo 9 · el gerrymandering: un tablero, no un gráfico
+    //
+    // Era un gráfico de barras apiladas (casillas de A y de B por distrito): decía CUÁNTAS, pero no DÓNDE, y
+    // el efecto del trazado es justamente dónde caen las casillas. Ahora es la rejilla misma, con la letra
+    // del partido además del color (el capítulo enseña daltonismo en el módulo 5), un borde grueso entre
+    // distritos y la cuenta de cada distrito al lado. Todo lo que muestra sale del JSON: el navegador no
+    // cuenta votos (una cifra que calcula el navegador no la ve ningún auditor de prosa).
     SIMULADORES['cap3-gerry'] = function (raiz) {{
-      const G = D3.m9.gerrymandering;
-      let iEj = 0;
-      const ctx = raiz.querySelector('canvas').getContext('2d');
-      const g = new Chart(ctx, {{
-        type: 'bar',
-        data: {{ labels: [], datasets: [
-          {{ label: 'casillas de A', data: [], backgroundColor: C3.naranja }},
-          {{ label: 'casillas de B', data: [], backgroundColor: C3.azul }}] }},
-        options: {{ responsive: true, maintainAspectRatio: false,
-          scales: {{ x: {{ stacked: true }},
-                    y: {{ stacked: true, beginAtZero: true, max: G.casillas_por_distrito,
-                         title: {{ display: true, text: 'casillas' }} }} }} }}
-      }});
-      const pinta = () => {{
-        const ej = G.ejemplos[iEj];
-        const A = [], B = [];
-        for (let d = 1; d <= G.n_distritos; d++) {{
-          let a = 0, b = 0;
-          ej.particion.forEach((z, i) => {{ if (z === d) (G.rejilla[i] ? a++ : b++); }});
-          A.push(a); B.push(b);
+      const G = D3.m9.gerrymandering, L = G.lado, POR = G.casillas_por_distrito;
+      // es-ES no agrupa los números de cuatro cifras (4006) y la prosa escribe «4 006»: mismo separador que la prosa.
+      const mil = x => String(x).replace(/\B(?=(\d{{3}})+(?!\d))/g, '\u202f');
+      const cuerpo = raiz.querySelector('.gerry-tablero tbody');
+      const resumen = raiz.querySelector('.gerry-distritos tbody');
+      const celdas = [];
+      for (let f = 0; f < L; f++) {{
+        const tr = document.createElement('tr');
+        for (let c = 0; c < L; c++) {{
+          const voto = G.rejilla[f * L + c] ? 'A' : 'B';
+          const td = document.createElement('td');
+          td.className = 'gerry-' + voto.toLowerCase();
+          td.innerHTML = '<span class="gerry-letra">' + voto + '</span>' +
+            '<span class="gerry-num" aria-hidden="true"></span><span class="sr-only"></span>';
+          tr.appendChild(td);
+          celdas.push(td);
         }}
-        g.data.labels = A.map((_, i) => 'distrito ' + (i + 1));
-        g.data.datasets[0].data = A;
-        g.data.datasets[1].data = B;
-        g.update();
+        cuerpo.appendChild(tr);
+      }}
+      const pinta = i => {{
+        const ej = G.ejemplos[i], z = ej.particion;
+        celdas.forEach((td, k) => {{
+          const f = Math.floor(k / L), c = k % L, d = z[k];
+          const otro = (ff, cc) => ff < 0 || cc < 0 || ff >= L || cc >= L || z[ff * L + cc] !== d;
+          td.style.setProperty('--t', otro(f - 1, c) ? '2px' : '0px');
+          td.style.setProperty('--r', otro(f, c + 1) ? '2px' : '0px');
+          td.style.setProperty('--b', otro(f + 1, c) ? '2px' : '0px');
+          td.style.setProperty('--l', otro(f, c - 1) ? '2px' : '0px');
+          td.querySelector('.gerry-num').textContent = d;
+          td.querySelector('.sr-only').textContent = ', distrito ' + d;
+        }});
+        resumen.innerHTML = ej.votos_A.map((a, j) => {{
+          const gana = a > POR - a ? 'A' : 'B';
+          return '<tr><th scope="row">' + (j + 1) + '</th><td>' + a + '</td><td>' + (POR - a) + '</td>' +
+            '<td class="gerry-gana-' + gana.toLowerCase() + '">' + gana + '</td></tr>';
+        }}).join('');
+        const dist = G.distribucion.find(d => d.escanos === ej.escanos_A);
         lectura3(raiz, [
           ['votos de A', n5(G.pct_A, 2) + ' %'],
           ['escaños proporcionales', n5(G.escanos_proporcionales, 2)],
           ['escaños de A con este trazado', ej.escanos_A + ' de ' + G.n_distritos],
-          ['recorrido posible', G.escanos_min + ' a ' + G.escanos_max]
+          ['trazados con este resultado', mil(dist.n) + ' de ' + mil(G.n_trazados) + ' (' + n5(dist.pct, 2) + ' %)']
         ]);
       }};
       botones3(raiz, G.ejemplos.map((e, i) => ({{
         etiqueta: e.escanos_A + ' escaños para A', valor: i }})),
-               i => {{ iEj = i; pinta(); }});
-      pinta();
-      return [g];
+               i => {{ pinta(i); }});
+      pinta(0);
+      return [];
     }};
 
     // Módulo 10 · la falacia ecológica
@@ -2184,6 +2364,8 @@ def main() -> int:
     doc = PLANTILLA.read_text(encoding="utf-8")
     print(f"\n=== ensambla_cap3.py ===\nplantilla: {len(doc)/1024:.0f} KB\n")
 
+    # El CSS del tablero del módulo 9: la plantilla tiene un único </style>, y es el ancla.
+    doc = sustituye(doc, "  </style>\n", CSS_GERRY + "  </style>\n", "estilos del tablero del gerrymandering")
     doc = sustituye(doc, "<title>Plantilla de capítulo — Estadística Espacial</title>",
                     "<title>Capítulo 3 · Cartografía estadística y el MAUP — "
                     "Estadística Espacial</title>", "título")

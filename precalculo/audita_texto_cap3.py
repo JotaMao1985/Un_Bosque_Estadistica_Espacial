@@ -150,6 +150,10 @@ AFIRMACIONES = [
      "se enumeran, no se sortean"),
     ("dice que los porcentajes del gerrymandering cuentan trazados y no son probabilidades",
      "no probabilidades"),
+    # Los 4 006 valen solo si dos casillas son vecinas cuando COMPARTEN UN LADO: con la esquina como vecindad son
+    # muchas más y A llega a sacar 5 escaños. La definición tiene que estar escrita.
+    ("define «contiguo» en la rejilla del gerrymandering: casillas que comparten un lado",
+     "comparten un lado"),
     ("dice que una correlación ecológica no habla de personas",
      "no como afirmación sobre personas"),
     ("declara que el signo del estrato depende del filtro",
