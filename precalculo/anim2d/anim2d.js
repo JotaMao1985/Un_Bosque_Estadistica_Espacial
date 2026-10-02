@@ -1,8 +1,8 @@
 /* =====================================================================
    anim2d.js — la cáscara común de las animaciones 2D
 
-   Material de Estadística Espacial 2026-II (20929). La estrena el capítulo 6
-   (módulo 10, `rezago2d.js`); la usará la de K y g del capítulo 4.
+   Material de Estadística Espacial 2026-II (20929). La usan el capítulo 6 (módulo 10,
+   `rezago2d.js`) y el capítulo 4 (módulos 8 y 9, `kanillo2d.js`).
 
    QUÉ ES. Todo lo que dos animaciones 2D tienen en común y ninguna debería
    escribir dos veces: el andamio (pasos, «Reproducir», leyenda, lienzo, mandos,
@@ -11,7 +11,7 @@
    de pantalla, `prefers-reduced-motion` y la impresión. Cada pieza declara QUÉ
    dibuja y QUÉ cuenta, en un objeto `def`; la cáscara decide cuándo.
 
-   SE EDITA AQUÍ Y NADA MÁS. El capítulo lo inyecta en línea y `construye_animaciones.py`
+   SE EDITA AQUÍ Y NADA MÁS. El capítulo lo inyecta en línea y `comprueba_animaciones.py`
    comprueba que lo que lleva es lo que hay en este archivo.
 
    DOS CAPAS, Y POR QUÉ.
@@ -30,12 +30,15 @@
      animables {clave: segundos}     claves numéricas que se interpolan; `V[clave]` es la visible
      pasos [{corto, titulo, texto, estado, tween, pausa}]   `titulo` y `texto` son HTML o `E => HTML`;
                                      `estado` es un parche o `E => parche` (lo que el paso pone depende de dónde se está)
-     mandos [{tipo, id, etiqueta, …}]   deslizador | botones | ciclo
+     mandos [{tipo, id, etiqueta, …}]   deslizador | botones | ciclo (el `n` de un ciclo puede ser `E => n`:
+                                     cuántos puntos hay depende del patrón que se mira)
      paneles [{id, etiqueta, aria}]     lienzos pequeños de al lado (perfiles, gráficos)
      dibuja(c, E, V)  panel(c, id, E, V)   `c = {ctx, w, h, dpr}`; se dibuja en píxeles CSS
      puntero(ev, E, V, c) → {poner, cursor, captura} | null      (`gestos` decide cuándo se aplica)
      tecla(ev, E, V) → parche | null
      lectura(E) → [[etiqueta, valor], …]       alt(E) → descripción para lectores de pantalla
+     sondas [parche, …]              (opcional) estados con que se escribe, oculta, cada leyenda para medir su alto: los
+                                     de las variantes más largas del texto, para que la celda no crezca la primera vez
 
    EL TEXTO DE CADA PASO TIENE QUE SER CIERTO EN CUALQUIER ESTADO, no solo en el que el paso pone: el deslizador y
    el teclado cambian el estado sin cambiar de paso. Las pruebas de cada pieza recorren todos los estados.
@@ -204,11 +207,14 @@
   //     como un gesto y paraba «Reproducir».
   //   · CON EL DEDO NO HAY «PASAR POR ENCIMA»: sus movimientos solo cuentan si la pieza pidió capturar al bajar
   //     (un arrastre). Así un desplazamiento tampoco pausa el guion.
+  // Y una cuarta, de la revisión de K y g (2026-10-02): LO QUE SE ARRASTRA SE APLICA SIN TRANSICIÓN (`corte`). Cada
+  // movimiento reiniciaba la transición desde cero con una curva que arranca casi parada, y el círculo se quedaba
+  // atrás del dedo (24 → 24.3 con el estado ya en 100). Un clic sí puede animarse: es un salto, no un seguimiento.
   function gestos(puntero) {
     let toque = null;        // un toque que todavía no ha elegido: { res, x, y }
     let arrastre = false;    // la pieza capturó al bajar: los movimientos siguientes son suyos
     const lejos = (ev, p) => Math.hypot(ev.x - p.x, ev.y - p.y) > UMBRAL_TOQUE;
-    const con = (res, interrumpe) => res ? Object.assign({}, res, { interrumpe }) : null;
+    const con = (res, interrumpe, corte) => res ? Object.assign({}, res, { interrumpe, corte: !!corte }) : null;
     return function (ev, E, V, c) {
       switch (ev.tipo) {
         case 'cancela':
@@ -216,14 +222,14 @@
           return null;
         case 'abajo': {
           const res = puntero(ev, E, V, c);
-          if (res && res.captura) { toque = null; arrastre = true; return con(res, true); }
+          if (res && res.captura) { toque = null; arrastre = true; return con(res, true, true); }
           if (ev.tactil) { toque = res && res.poner ? { res, x: ev.x, y: ev.y } : null; return null; }
           return con(res, true);
         }
         case 'mueve':
           if (toque && lejos(ev, toque)) toque = null;
           if (ev.tactil && !arrastre) return null;
-          return con(puntero(ev, E, V, c), arrastre);
+          return con(puntero(ev, E, V, c), arrastre, arrastre);
         case 'arriba': {
           const elegido = toque && !lejos(ev, toque) ? toque.res : null;
           toque = null;
@@ -231,7 +237,7 @@
           const eraArrastre = arrastre;
           arrastre = false;
           if (elegido) return con(elegido, true);
-          return con(res, eraArrastre);
+          return con(res, eraArrastre, eraArrastre);
         }
         case 'sale':
           toque = null;
@@ -240,6 +246,12 @@
           return null;
       }
     };
+  }
+
+  // El siguiente o el anterior de un ciclo, dando la vuelta. `m.n` puede depender del estado.
+  function cicla(m, E, sentido) {
+    const n = typeof m.n === 'function' ? m.n(E) : m.n;
+    return (((E[m.id] + sentido) % n) + n) % n;
   }
 
   /* ===================================================================
@@ -402,7 +414,8 @@
   <div class="a2d-pasos" role="group" aria-label="Pasos de la animación">${pasos}
     <button type="button" class="a2d-play" data-activo="false"><span aria-hidden="true">▶</span><span class="a2d-play-txt">Reproducir</span></button>
   </div>
-  <div class="a2d-leyenda">${(def.pasos || []).map((p, i) => `<div class="a2d-ley" data-ley="${i + 1}"><h5></h5><p></p></div>`).join('')}</div>
+  <div class="a2d-leyenda">${(def.pasos || []).map((p, i) => `<div class="a2d-ley" data-ley="${i + 1}"><h5></h5><p></p></div>` +
+    (def.sondas || []).map(() => '<div class="a2d-ley a2d-sonda" aria-hidden="true"><h5></h5><p></p></div>').join('')).join('')}</div>
   <p class="a2d-sr" aria-live="polite" data-anuncio></p>
   <div class="a2d-escena">
     <div class="a2d-lienzo">
@@ -504,14 +517,15 @@
 
     /* ---- lo que depende del estado y no de cada fotograma: textos, mandos, lectura ---- */
     const pasoBotones = Array.prototype.slice.call(cont.querySelectorAll('.a2d-paso'));
-    const leyendas = Array.prototype.slice.call(cont.querySelectorAll('.a2d-ley'));
+    const leyendas = Array.prototype.slice.call(cont.querySelectorAll('.a2d-ley:not(.a2d-sonda)'));
+    const sondas = Array.prototype.slice.call(cont.querySelectorAll('.a2d-sonda'));
     const anuncio = $('[data-anuncio]');
     const ctls = Array.prototype.slice.call(cont.querySelectorAll('[data-mando]'));
 
     // Un texto solo se reescribe si cambió: reescribir el mismo HTML recrea los nodos, y pasar el puntero por encima
     // del mapa llama a esto en cada barrio. Las leyendas de todos los pasos se escriben (están apiladas: la celda mide
     // lo que la más larga), y se anuncia solo el título del paso al que se llega, no cada cambio de su texto.
-    const ult = { leyendas: [], paso: null, lectura: null, estado: null };
+    const ult = { leyendas: [], sondas: [], paso: null, lectura: null, estado: null };
 
     // El estado con que se escribe la leyenda de un paso que NO es el actual: el que ese paso pondría. Así la celda
     // mide lo mismo vaya uno al paso que vaya (con el estado actual, la del paso 2 escrita con k = 70 era más larga
@@ -521,7 +535,21 @@
       return Object.assign({}, E, def.normaliza ? def.normaliza(Object.assign({}, est), E) : est);
     }
 
+    // LA LEYENDA NO ENCOGE MIENTRAS NO CAMBIE EL ANCHO. Las de todos los pasos van apiladas, pero el texto del paso
+    // actual cambia con el estado (una frase condicional, una cifra con más dígitos) y empujaba el mapa dentro de un
+    // mismo paso hasta 73 px; arrastrando el borde del círculo, el lienzo se movía bajo el puntero. Ahora la celda
+    // guarda el mayor alto que ha tenido, y lo olvida solo cuando cambia el ancho (el ResizeObserver).
+    const leyendaCaja = $('.a2d-leyenda');
+    let altoLeyenda = 0, anchoLeyenda = 0;
+    function fijaLeyenda() {
+      const w = leyendaCaja.clientWidth;
+      if (w !== anchoLeyenda) { anchoLeyenda = w; altoLeyenda = 0; leyendaCaja.style.minHeight = ''; }
+      const h = leyendaCaja.offsetHeight;
+      if (h > altoLeyenda) { altoLeyenda = h; leyendaCaja.style.minHeight = h + 'px'; }
+    }
+
     function sincroniza() {
+      if (!vivo) return;
       const E = M.E;
       (def.pasos || []).forEach((p, i) => {
         const Ei = i + 1 === E.paso ? E : estadoDelPaso(p, E);
@@ -534,6 +562,13 @@
           el.querySelector('p').innerHTML = html;
         }
         if (i + 1 === E.paso) el.removeAttribute('aria-hidden'); else el.setAttribute('aria-hidden', 'true');
+        // las sondas: la misma leyenda escrita con los estados que la alargan, oculta, solo para que la celda mida eso
+        (def.sondas || []).forEach((s, k) => {
+          const Es = Object.assign({}, Ei, def.normaliza ? def.normaliza(Object.assign({}, s), Ei) : s);
+          const ts = typeof p.titulo === 'function' ? p.titulo(Es) : p.titulo, hs = typeof p.texto === 'function' ? p.texto(Es) : p.texto;
+          const q = i * def.sondas.length + k, sd = sondas[q];
+          if (ult.sondas[q] !== ts + '|' + hs) { ult.sondas[q] = ts + '|' + hs; sd.querySelector('h5').textContent = ts; sd.querySelector('p').innerHTML = hs; }
+        });
       });
       if (ult.paso !== E.paso) {
         const p = (def.pasos || [])[E.paso - 1];
@@ -564,13 +599,14 @@
         const t = def.alt(E);
         if (ult.estado !== t) { ult.estado = t; $('#' + ID + '-estado').textContent = t; }
       }
+      fijaLeyenda();
     }
 
     /* ---- los mandos: cualquier gesto del usuario interrumpe el guion (lo hace `poner`) ---- */
     ctls.forEach(el => {
       const m = def.mandos[+el.dataset.mando];
       if (m.tipo === 'deslizador') {
-        el.querySelector('input').addEventListener('input', e => M.poner({ [m.id]: +e.target.value }));
+        el.querySelector('input').addEventListener('input', e => M.poner({ [m.id]: +e.target.value }, { corte: true }));   // se arrastra: sin transición
       } else if (m.tipo === 'botones') {
         el.addEventListener('click', e => {
           const b = e.target.closest('.a2d-btn');
@@ -579,7 +615,7 @@
       } else {
         el.addEventListener('click', e => {
           const b = e.target.closest('.a2d-btn');
-          if (b) M.poner({ [m.id]: (((M.E[m.id] + (+b.dataset.sentido)) % m.n) + m.n) % m.n });
+          if (b) M.poner({ [m.id]: cicla(m, M.E, +b.dataset.sentido) });
         });
       }
     });
@@ -595,7 +631,7 @@
       const res = gesto({ tipo, x: e.clientX - r.left, y: e.clientY - r.top, tactil: e.pointerType === 'touch' }, M.E, M.V, geo);
       if (!res) return;
       if (res.cursor !== undefined) lienzo.style.cursor = res.cursor;
-      if (res.poner) M.poner(res.poner, { desdeGuion: !res.interrumpe });
+      if (res.poner) M.poner(res.poner, { desdeGuion: !res.interrumpe, corte: res.corte });
       if (tipo === 'abajo' && res.captura) {
         try { lienzo.setPointerCapture(e.pointerId); } catch (_) { /* el puntero ya no está activo */ }
       }
@@ -608,11 +644,11 @@
     lienzo.addEventListener('keydown', e => {
       if (!def.tecla || e.altKey || e.ctrlKey || e.metaKey) return;
       const r = def.tecla({ key: e.key, shiftKey: e.shiftKey }, M.E, M.V);
-      if (r) { e.preventDefault(); M.poner(r); }
+      if (r) { e.preventDefault(); M.poner(r, { corte: true }); }   // una tecla mantenida es un arrastre: sin transición
     });
 
     /* ---- tamaño, visibilidad, impresión ---- */
-    const ro = win.ResizeObserver ? new win.ResizeObserver(() => pintaYa()) : null;
+    const ro = win.ResizeObserver ? new win.ResizeObserver(() => { pintaYa(); fijaLeyenda(); }) : null;
     if (ro) { ro.observe($('.a2d-lienzo')); paneles.forEach(p => ro.observe(p.cv)); }
     const io = win.IntersectionObserver ? new win.IntersectionObserver(es => {
       visible = es[es.length - 1].isIntersecting;         // un lote puede traer varias: vale la última
@@ -647,25 +683,35 @@
       cont.classList.remove('a2d');
     }
 
-    sincroniza();
-    pide();
+    // Si el primer dibujo o la primera lectura fallan, los observadores y los oyentes de impresión ya están puestos:
+    // se quitan todos antes de dejar subir el error (quien monta devuelve su texto de reserva). Antes quedaban vivos,
+    // también tras cambiar de módulo, y cada impresión lanzaba dos excepciones.
+    try {
+      sincroniza();
+      pide();
+    } catch (e) {
+      destruir();
+      throw e;
+    }
     // El lienzo no se redibuja solo cuando llega una fuente: si Montserrat o Fira Code tardan, el primer dibujo
     // sale con la de reserva y se quedaría así.
     if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(() => { if (vivo) pintaYa(); });
+    // Una API destruida no hace nada (antes `ir()` lanzaba un TypeError sobre el DOM ya vacío).
+    const vive = f => (...a) => vivo ? f(...a) : undefined;
     return armaApi({
       destruir,
-      ir: n => M.ir(n),
-      poner: (p, o) => M.poner(p, o),
-      reproducir: M.reproducir,
-      pausar: M.pausar,
-      avanza: s => M.avanza(s),
-      reinicia: M.reinicia,
+      ir: vive(n => M.ir(n)),
+      poner: vive((p, o) => M.poner(p, o)),
+      reproducir: vive(M.reproducir),
+      pausar: vive(M.pausar),
+      avanza: vive(s => M.avanza(s)),
+      reinicia: vive(M.reinicia),
       get estado() { return Object.assign({}, M.E); },
       get visual() { return Object.assign({}, M.V); }
     });
   }
 
-  const Anim2D = { monta, estilos, maquina, gestos, UMBRAL_TOQUE, CLAVES, armaApi, sinAnimacion };
+  const Anim2D = { monta, estilos, maquina, gestos, cicla, UMBRAL_TOQUE, CLAVES, armaApi, sinAnimacion };
   global.Anim2D = Anim2D;
   if (typeof module === 'object' && module.exports) module.exports = Anim2D;
 })(typeof window !== 'undefined' ? window : globalThis);
