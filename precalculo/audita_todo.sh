@@ -172,6 +172,15 @@ paso "comentarios_cerrados.py — ningún \`*/\` suelto se lleva una regla por d
 paso "verifica_bloques.py — los bloques de código y sus #>" \
      python3 precalculo/verifica_bloques.py --todos
 
+# Del 2026-10-02: la animación 2D del rezago (capítulo 6, módulo 10). `prueba_rezago2d.py` compara
+# la aritmética de `anim2d/rezago2d.js` con `spdep` y prueba sin DOM la máquina de `anim2d.js` (el
+# repo no tiene jsdom); `prueba_mutaciones_anim2d.py` le inyecta 38 defectos y exige que falle.
+# Cuestan 2 y 35 segundos: corren también con `--rapido`.
+paso "prueba_rezago2d.py — la animación 2D del rezago, contra R y por dentro" \
+     python3 precalculo/prueba_rezago2d.py
+paso "prueba_mutaciones_anim2d.py — la prueba de la animación 2D SABE fallar" \
+     python3 precalculo/prueba_mutaciones_anim2d.py
+
 paso "audita_texto_demo.py — las cifras de la prosa del fixture" \
      sh -c 'cd precalculo && python3 audita_texto_demo.py'
 

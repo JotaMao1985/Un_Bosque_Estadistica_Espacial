@@ -495,6 +495,92 @@ def main() -> int:  # noqa: C901
                     "Columbus: I a mano contra esda", tol=1e-9)
 
     # -----------------------------------------------------------------
+    # LA ANIMACIÓN DEL REZAGO. `cap6_rezago2d.json` sale de `spdep` (R) y es
+    # lo contra lo que `prueba_rezago2d.py` mide la aritmética del navegador.
+    # Aquí se recalcula todo con numpy y libpysal, que no pasan por R.
+    # -----------------------------------------------------------------
+    a.titulo("10b · La animación del rezago, recalculada")
+    R2, _ = carga("CAP6_REZAGO2D", "cap6_rezago2d.json")
+    yc = crime_de(col)
+    a.igual(np.abs(np.array(R2["y"]["crime"]) - yc).max(), 0.0,
+            "CRIME del JSON es el de Columbus, dato a dato", tol=1e-9)
+    a.igual(R2["y"]["media"], yc.mean(), "media de CRIME", tol=1e-9)
+    a.igual(R2["y"]["sd"], yc.std(ddof=1), "desviación de CRIME", tol=1e-9)
+    ks = R2["meta"]["k_max"]
+    a.igual(ks, 70, "el deslizador llega hasta k = 70")
+    w_lp = {"reina": weights.Queen.from_dataframe(col, use_index=True),
+            "torre": weights.Rook.from_dataframe(col, use_index=True)}
+    recalc = {}                     # lo recalculado aquí, para contrastar el resumen de la prosa más abajo
+    for nombre in ("reina", "torre"):
+        rf = R2["vecindades"][nombre]
+        nb = de_w(w_lp[nombre])
+        Wm = pesos_estilo(nb, "W")
+        malos = sum(1 for i in range(len(yc))
+                    if sorted(j + 1 for j in nb[i]) != sorted(rf["vecinos"][i]))
+        a.igual(malos, 0, f"{nombre}: los vecinos de libpysal son los de R")
+        a.igual(rf["n_aristas"], sum(len(v) for v in nb.values()) // 2, f"{nombre}: las parejas")
+        # La serie de Wᵏy y lo que el módulo lee de ella.
+        v = yc.copy()
+        dif = {"media": 0.0, "sd": 0.0, "cor": 0.0, "pendiente": 0.0}
+        vectores = {}
+        for k in range(ks + 1):
+            if k:
+                v = Wm @ v
+            s = rf["serie"][k]
+            cov = np.cov(yc, v)[0, 1]
+            calc = {"media": v.mean(), "sd": v.std(ddof=1),
+                    "cor": np.corrcoef(yc, v)[0, 1], "pendiente": cov / yc.var(ddof=1)}
+            for c in dif:
+                dif[c] = max(dif[c], abs(calc[c] - s[c]))
+            if str(k) in rf["vectores"]:
+                vectores[k] = np.abs(v - np.array(rf["vectores"][str(k)])).max()
+        for c, d in dif.items():
+            a.igual(d, 0.0, f"{nombre}: {c} de Wᵏy, k = 0…{ks}", tol=1e-9)
+        a.igual(max(vectores.values()), 0.0, f"{nombre}: Wᵏy barrio a barrio", tol=1e-9)
+        a.igual(len(vectores), len(R2["meta"]["k_vectores"]), f"{nombre}: los k con vector")
+        # A dónde va: la media ponderada por el grado, no la media.
+        grado = np.array([len(nb[i]) for i in range(len(yc))], dtype=float)
+        a.igual(rf["limite"], (grado * yc).sum() / grado.sum(), f"{nombre}: el límite Σ dᵢ yᵢ / Σ dᵢ", tol=1e-9)
+        recalc[f"limite_{nombre}"] = (grado * yc).sum() / grado.sum()
+        if nombre == "reina":
+            recalc["W_reina"] = Wm
+        a.cierto(abs(rf["limite"] - yc.mean()) > 1.5,
+                 f"{nombre}: el límite no es la media de y", f"{rf['limite']:.4f} contra {yc.mean():.4f}")
+        a.igual(rf["media_simple"], yc.mean(), f"{nombre}: la media simple publicada", tol=1e-9)
+        # El segundo valor propio manda la velocidad, y de él salen los k para bajar al 5 %.
+        mod = np.sort(np.abs(np.linalg.eigvals(Wm)))[::-1]
+        a.igual(mod[0], 1.0, f"{nombre}: el mayor valor propio vale 1", tol=1e-9)
+        a.igual(rf["lambda2"], mod[1], f"{nombre}: el segundo valor propio, en módulo", tol=1e-9)
+        v, k5 = yc.copy(), None
+        for k in range(1, 2001):
+            v = Wm @ v
+            if v.std(ddof=1) <= 0.05 * yc.std(ddof=1):
+                k5 = k
+                break
+        a.igual(rf["k_5pct"], k5, f"{nombre}: aplicaciones para bajar al 5 %")
+        # La prosa del módulo 10 cita esas aplicaciones: el lector tiene que poder llevar el deslizador hasta ellas.
+        a.cierto(k5 is not None and k5 <= ks, f"{nombre}: el deslizador llega al k del 5 %", f"{k5} ≤ {ks}")
+        recalc[f"lambda2_{nombre}"], recalc[f"k5_{nombre}"] = mod[1], k5
+    # El I de Moran del capítulo 7: con la reina, es la pendiente de Wy sobre y.
+    mo = Moran(yc, wq, permutations=0).I
+    a.igual(R2["moran"]["I"], mo, "I de Moran de la reina, contra esda", tol=1e-9)
+    a.igual(R2["moran"]["cor"] * R2["moran"]["razon_sd"], mo, "I = cor · sd(Wy)/sd(y)", tol=1e-9)
+
+    # EL RESUMEN QUE CITA LA PROSA (`cap6_rezago2d_resumen.json`, 8 números) es lo único de todo esto que lee el
+    # auditor de cifras del capítulo. Se contrasta con lo recalculado aquí, no con el JSON grande.
+    a.titulo("10c · El resumen que cita la prosa del módulo 10")
+    RS, _ = carga("CAP6_REZAGO2D_RESUMEN", "cap6_rezago2d_resumen.json")
+    wy1 = recalc["W_reina"] @ yc
+    a.igual(RS["y_media"], yc.mean(), "resumen: la media de CRIME", tol=1e-9)
+    a.igual(RS["limite_reina"], recalc["limite_reina"], "resumen: el límite con la reina", tol=1e-9)
+    a.igual(RS["limite_torre"], recalc["limite_torre"], "resumen: el límite con la torre", tol=1e-9)
+    a.igual(RS["lambda2_reina"], recalc["lambda2_reina"], "resumen: el segundo valor propio", tol=1e-9)
+    a.igual(RS["k_5pct_reina"], recalc["k5_reina"], "resumen: las aplicaciones al 5 %")
+    a.igual(RS["moran_I"], mo, "resumen: el I de Moran", tol=1e-9)
+    a.igual(RS["moran_cor"], np.corrcoef(yc, wy1)[0, 1], "resumen: la correlación de y con Wy", tol=1e-9)
+    a.igual(RS["moran_razon_sd"], wy1.std(ddof=1) / yc.std(ddof=1), "resumen: sd(Wy) / sd(y)", tol=1e-9)
+
+    # -----------------------------------------------------------------
     a.titulo("11 · W como matriz de adyacencia")
     c11 = D["m11"]["columbus"]
     A = pesos_estilo(nb_col["reina"], "B")
