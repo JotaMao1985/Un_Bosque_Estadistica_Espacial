@@ -746,6 +746,13 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         ("el n declarado del patrón urbano deja de cuadrar con su geometría",
          f'"n": {m1["urbana"]["n"]}, "pts"',
          f'"n": {m1["urbana"]["n"] - 4}, "pts"'),
+        # --- EL PESO, con su tope propio desde el 2026-10-02 ----------
+        # Hasta entonces este capítulo no inyectaba el ensamblado
+        # desbocado, así que su comprobación de peso nunca se había visto
+        # fallar. Con el tope subido a 760 KB hay que demostrar que sigue
+        # mordiendo: 703 + 312 queda por encima.
+        ("el documento desbocado",
+         "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
         # --- 11. La codificación --------------------------------------
         ("una tilde se convierte en bytes crudos",
          "Perímetro urbano", "Per<c3><ad>metro urbano"),
