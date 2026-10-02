@@ -171,7 +171,13 @@
   // El test de cuadrantes con la rejilla desplazada `d` en x y en y. Las celdas
   // de la orilla quedan recortadas por la ventana y se dividen por su área
   // RECORTADA, que es lo que hace `quadratcount` con una ventana que no es una
-  // caja. Medio paso de celda es el tope: más allá aparecerían astillas.
+  // caja. LA COLUMNA (Y LA FILA) RECORTADA DE LA IZQUIERDA SE FUNDE con su vecina
+  // (auditoría del 2026-10-02): con la rejilla desplazada 0.05 quedaba una astilla de
+  // 0.05 de ancho, la lectura saltaba de «7 de 16» celdas vacías a «16 de 25» sin que
+  // cambiara ningún conteo, y una astilla de 0.16 de área con un punto daba una barra
+  // de 20.8 sobre un techo de 5.3. Fundida, la primera mide entre 2.5 y 3.75 y la
+  // última entre 1.25 y 2.5: siempre 4 × 4 celdas. El tope de medio paso de celda es
+  // lo que hace que la última no baje de 1.25.
   //
   // UN PUNTO SOBRE UNA LÍNEA tiene que ir siempre a la misma celda. El patrón
   // tiene coordenadas de un decimal y el deslizador avanza de 0.05 en 0.05, así
@@ -186,6 +192,7 @@
     const arista = k => +(base + k * CELDA).toFixed(9) + 0;       // «+ 0» borra el −0
     for (let k = 0; base + k * CELDA < V - 1e-9; k++) aristas.push(arista(k));
     aristas.push(arista(aristas.length));
+    if (aristas[1] > -V + 1e-9) aristas.splice(1, 1);             // la astilla de la izquierda, fundida con su vecina
     const dentro = (v, a, b, primera) => (primera ? v >= a : v > a) && v <= b;
     const celdas = [];
     for (let j = 0; j + 1 < aristas.length; j++) {
@@ -392,16 +399,16 @@
   const PASOS_BORDE = [
     { corto: 'Una loma', modo: 'sin',
       titulo: 'Lo que cae fuera de la ventana no lo recoge nadie',
-      texto: 'La loma de la sede en foco reparte un punto de peso a su alrededor, pero la ventana termina. La parte roja está fuera y se pierde; la fracción que queda dentro es <em>e</em>(<em>x</em><sub><em>i</em></sub>). Arrastra la sede hacia el borde, o hacia una esquina, y ensancha σ: se escapa más.' },
+      texto: 'La loma de la sede en foco reparte un punto de peso a su alrededor, pero la ventana termina. Si la loma alcanza el borde, la parte que cae fuera (en rojo) se pierde; la fracción que queda dentro es <em>e</em>(<em>x</em><sub><em>i</em></sub>). Arrastra la sede hacia el borde, o hacia una esquina, y ensancha σ: se escapa más.' },
     { corto: 'Sin corregir', modo: 'sin',
       titulo: 'Sumadas sin corregir, las lomas se quedan cortas en el borde',
-      texto: 'Con todas las sedes, la superficie se queda corta justo en el perímetro, donde la ventana corta las lomas, y su volumen es Σ <em>e</em>(<em>x</em><sub><em>i</em></sub>), menos que <em>n</em>: lo que falta es lo que se ve rojo. Un estimador de la intensidad que no devuelve el número de puntos se queda corto donde más suele mirarse.' },
+      texto: 'Con todas las sedes, la superficie se queda corta justo en el perímetro, donde la ventana corta las lomas, y su volumen es Σ <em>e</em>(<em>x</em><sub><em>i</em></sub>), menos que <em>n</em>: lo que falta es lo que se ve rojo. Sin corregir, el volumen queda siempre por debajo de <em>n</em>, y lo que falta se pierde justo por el perímetro.' },
     { corto: 'Por defecto', modo: 'defecto',
       titulo: 'Por defecto se divide en cada sitio u por e(u)',
       texto: '<code>density.ppp</code> lo hace sin pedírselo: en cada sitio <em>u</em> divide la suma por <em>e</em>(<em>u</em>), la fracción de un núcleo centrado en <em>u</em> que cabe en la ventana. El perímetro sube sobre la red gris, que es la superficie sin corregir. Pero el volumen ya no tiene por qué ser <em>n</em>: una sede pegada al borde aporta menos de 1, y una a uno y medio o dos σ de él, más. Mueve la sede en foco y mira su barra.' },
     { corto: 'Diggle', modo: 'diggle',
       titulo: 'Con Diggle, cada loma se infla por lo que perdió',
-      texto: 'Con <code>diggle = TRUE</code> se divide en cada <em>dato</em>: la loma de <em>x</em><sub><em>i</em></sub> se infla por 1/<em>e</em>(<em>x</em><sub><em>i</em></sub>), justo lo que se le escapó, y cada sede aporta exactamente 1. El volumen vuelve a ser <em>n</em>, con cualquier σ y cualquier núcleo.' }
+      texto: 'Con <code>diggle = TRUE</code> se divide en cada <em>dato</em>: la loma de <em>x</em><sub><em>i</em></sub> se infla por 1/<em>e</em>(<em>x</em><sub><em>i</em></sub>), justo lo que se le escapó, y cada sede aporta exactamente 1. El volumen vuelve a ser <em>n</em>, con cualquier σ y cualquier núcleo. (La ayuda de spatstat la llama de Jones-Diggle; la de por defecto es también de Diggle, de 1985.)' }
   ];
 
   // Lo que cada paso ANIMA: cada valor viaja hacia su objetivo con una curva suave (`tween`). `todas` y `diggle`
@@ -456,7 +463,7 @@
          host (el capítulo) ni depender de él (la página de las diapositivas).
      =================================================================== */
   const CSS = `
-.n3d{--n3d-tinta:#012820;--n3d-verde:#1a7358;--n3d-naranja:#FF6600;--n3d-gris:#475569;--n3d-linea:#cbd5e1;
+.n3d{--n3d-tinta:#012820;--n3d-verde:#1a7358;--n3d-naranja:#FF6600;--n3d-foco:#b34700;--n3d-gris:#475569;--n3d-linea:#cbd5e1;
   container-type:inline-size;font-family:'Montserrat','Helvetica Neue',Helvetica,Arial,sans-serif;color:#1e293b;
   font-size:.9375rem;line-height:1.5;text-align:left}
 .n3d *,.n3d *::before,.n3d *::after{box-sizing:border-box}
@@ -467,15 +474,15 @@
   padding:.3rem .8rem .3rem .35rem;border:1px solid var(--n3d-linea);border-radius:999px;background:#fff;color:var(--n3d-gris);
   transition:background .2s,border-color .2s,color .2s}
 .n3d-paso:hover{border-color:var(--n3d-naranja);color:var(--n3d-tinta)}
-.n3d-paso:focus-visible,.n3d-btn:focus-visible,.n3d-nuc:focus-visible,.n3d-play:focus-visible{outline:2px solid var(--n3d-naranja);outline-offset:2px}
+.n3d-paso:focus-visible,.n3d-btn:focus-visible,.n3d-nuc:focus-visible,.n3d-play:focus-visible{outline:2px solid var(--n3d-foco);outline-offset:2px}
 .n3d-num{display:inline-grid;place-items:center;width:1.45rem;height:1.45rem;border-radius:50%;background:#e8eeeb;
   color:var(--n3d-tinta);font-size:.75rem;font-weight:700;font-family:'Fira Code',monospace}
 .n3d-paso[aria-current="step"]{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-color:transparent;color:#fff}
-.n3d-paso[aria-current="step"] .n3d-num{background:var(--n3d-naranja);color:#fff}
+.n3d-paso[aria-current="step"] .n3d-num{background:var(--n3d-naranja);color:var(--n3d-tinta)}
 .n3d-play{margin-left:auto;display:inline-flex;align-items:center;gap:.4rem;font:inherit;font-size:.8125rem;font-weight:600;
   cursor:pointer;padding:.3rem .9rem;border:1px solid var(--n3d-naranja);border-radius:999px;background:#fff;color:#b34700}
 .n3d-play:hover{background:rgba(255,102,0,.08)}
-.n3d-play[data-activo="true"]{background:var(--n3d-naranja);color:#fff}
+.n3d-play[data-activo="true"]{background:var(--n3d-naranja);color:var(--n3d-tinta)}
 .n3d-leyenda{grid-area:leyenda;min-height:6.6em}
 .n3d-leyenda h5{margin:0 0 .25rem;font-size:1.0625rem;font-weight:700;color:var(--n3d-tinta);line-height:1.3}
 .n3d-leyenda p{margin:0;color:#334155}
@@ -485,14 +492,14 @@
   background:radial-gradient(120% 95% at 50% 18%,#ffffff 0%,#f4f8f6 55%,#e4ece8 100%);touch-action:pan-y pinch-zoom;
   user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 .n3d-lienzo canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;outline:none}
-.n3d-lienzo canvas:focus-visible{outline:2px solid var(--n3d-naranja);outline-offset:-3px}
+.n3d-lienzo canvas:focus-visible{outline:2px solid var(--n3d-foco);outline-offset:-3px}
 .n3d-lienzo canvas.n3d-agarra{cursor:grabbing}
 .n3d-lienzo canvas.n3d-sobre{cursor:pointer}
 .n3d-etiquetas{position:absolute;inset:0;pointer-events:none;overflow:hidden;font-family:'Fira Code',monospace}
 .n3d-et{position:absolute;transform:translate(-50%,-50%);font-size:.75rem;font-weight:600;color:#012820;white-space:nowrap;
   text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 6px #fff}
 .n3d-et.n3d-nota{font-family:'Montserrat',sans-serif;font-size:.6875rem;font-weight:600;color:#475569;transform:translate(-50%,-100%)}
-.n3d-ayuda{position:absolute;left:.7rem;bottom:.55rem;margin:0;font-size:.6875rem;color:#64748b;pointer-events:none;
+.n3d-ayuda{position:absolute;left:.7rem;bottom:.55rem;margin:0;font-size:.6875rem;color:#475569;pointer-events:none;
   transition:opacity .6s;max-width:75%}
 .n3d-ayuda.n3d-oculta{opacity:0}
 .n3d-panel{margin-top:.75rem;padding:.55rem .7rem;border:1px solid #d6e2dc;border-radius:.5rem;background:rgba(255,255,255,.94);font-size:.75rem}
@@ -531,10 +538,10 @@
 .n3d-perfil{display:block;width:13rem;height:4.75rem;border:1px solid #e5e7eb;border-radius:.4rem;background:#fff}
 .n3d-lectura{grid-area:lectura;align-self:start;display:flex;flex-wrap:wrap;gap:.35rem 1.5rem;font-family:'Fira Code',monospace;font-size:.8125rem;color:#1e293b}
 .n3d-lectura b{color:var(--n3d-tinta);font-weight:600}
-.n3d-lectura .n3d-r{color:#64748b;font-family:'Montserrat',sans-serif;font-size:.75rem}
-.n3d-pie{grid-area:pie;margin:0;font-size:.75rem;color:#64748b}
+.n3d-lectura .n3d-r{color:#475569;font-family:'Montserrat',sans-serif;font-size:.75rem}
+.n3d-pie{grid-area:pie;margin:0;font-size:.75rem;color:#475569}
 .n3d-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-.n3d-cargando{margin:0;min-height:14rem;display:grid;place-items:center;text-align:center;padding:1rem;color:#64748b;font-size:.875rem;
+.n3d-cargando{margin:0;min-height:14rem;display:grid;place-items:center;text-align:center;padding:1rem;color:#475569;font-size:.875rem;
   border:1px dashed #cbd5e1;border-radius:.6rem;background:#fff}
 .n3d-sin-webgl{padding:1rem;border:1px dashed #cbd5e1;border-radius:.5rem;background:#fff;color:#475569;font-size:.875rem}
 @container (min-width:920px){
@@ -573,8 +580,44 @@
 .n3d-clase .n3d-panel{font-size:.85rem;width:min(16rem,46%)}
 .n3d-clase .n3d-perfil{width:13rem;height:4.6rem}
 .n3d-clase .n3d-mandos{gap:.55rem 1rem}
+/* Proyectada, la letra pequeña no se lee (auditoría del 2026-10-02: en la lámina, 42 de 59 textos medían menos de 15 px):
+   suben los rótulos de la lectura, el título y las filas del panel, la ayuda, el pie del perfil y las notas de la escena. */
+.n3d-clase .n3d-lectura .n3d-r{font-size:.85rem}
+.n3d-clase .n3d-panel h6{font-size:.8rem}
+.n3d-clase .n3d-ayuda{font-size:.8rem}
+.n3d-clase .n3d-perfilcaja>span{font-size:.8rem}
+.n3d-clase .n3d-et.n3d-nota{font-size:.85rem}
+/* EL MODO CLASE EN EL MARCO DE UNA LÁMINA (parche de la sesión de diapositivas, medido allí el 2026-10-02). El marco de una
+   lámina con el pie a dos líneas mide 451 px de alto (383, 418, 451 o 485 según el pie tenga 4, 3, 2 o 1 líneas), y la
+   columna derecha de la escena «borde» pedía 566–663: con «body.clase» en «overflow:hidden», lo cortado no se alcanzaba.
+   Solo por debajo de 680 px de alto y con dos columnas: la leyenda pasa a lo ancho, arriba; el lienzo ocupa el alto que
+   queda; los rótulos de grupo se ocultan a la vista (los grupos llevan su nombre en «aria-labelledby»); los deslizadores
+   van en una fila con su etiqueta. A 1280×720 y 1920×1080, y en modo página, nada cambia. */
+@media (max-height:680px){
+  @container (min-width:920px){
+    .n3d-clase .n3d-rejilla{
+      grid-template-areas:"pasos pasos" "leyenda leyenda" "escena mandos" "escena lectura";
+      grid-template-rows:auto auto auto minmax(0,1fr);
+      align-content:stretch;height:calc(100vh - .7rem)}
+    .n3d-clase .n3d-escena{align-self:stretch;min-height:0}
+    .n3d-clase .n3d-lienzo{position:absolute;inset:0;height:auto;min-height:0}
+    .n3d-clase .n3d-grupo>span{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+    .n3d-clase .n3d-ctl{flex-direction:row;align-items:center;gap:.6rem}
+    .n3d-clase .n3d-ctl label{flex:0 0 auto;white-space:nowrap}
+    .n3d-clase .n3d-ctl input[type=range]{flex:1 1 auto;min-width:0}
+  }
+}
+/* LOS ARREGLOS DE LA CÁSCARA 2D, TRAÍDOS AL 3D (auditoría de las cinco animaciones, 2026-10-02). El 3D se había quedado
+   sin ellos: el anillo de foco en el naranja (2,94:1, no llega al 3 de un contorno) va en #b34700 (5,5:1); sobre el naranja
+   va la tinta (5,4:1) y no el blanco (2,94:1); el gris de los textos pequeños, #475569; y con colores forzados el paso
+   actual y los botones pulsados llevan un contorno (el modo anula los fondos que los distinguían) y el lienzo conserva su
+   fondo (lo de dentro lo dibujamos nosotros). Al imprimir, la escena no se parte entre dos páginas. */
 @media (prefers-reduced-motion:reduce){.n3d *{transition:none!important}}
-@media print{.n3d-play,.n3d-mandos,.n3d-pasos,.n3d-ayuda{display:none}}
+@media (forced-colors:active){
+  .n3d-lienzo,.n3d-perfil{forced-color-adjust:none;background:#fff}
+  .n3d-paso[aria-current="step"],.n3d-btn[aria-pressed="true"],.n3d-nuc[aria-pressed="true"],.n3d-play[data-activo="true"]{outline:3px solid CanvasText;outline-offset:1px}
+}
+@media print{.n3d-play,.n3d-mandos,.n3d-pasos,.n3d-ayuda{display:none}.n3d{break-inside:avoid}}
 `;
 
   function inyectaCSS(doc) {
@@ -594,29 +637,31 @@
     ${E.pasos.map((p, i) => `<button type="button" class="n3d-paso" data-paso="${i + 1}" aria-label="Paso ${i + 1}: ${p.corto}"><span class="n3d-num">${i + 1}</span><span class="n3d-rot">${p.corto}</span></button>`).join('')}
     <button type="button" class="n3d-play" data-activo="false"><span class="n3d-play-ico" aria-hidden="true">▶</span><span class="n3d-play-txt">Reproducir</span></button>
   </div>
-  <div class="n3d-leyenda" aria-live="polite"><h5></h5><p></p></div>
+  <div class="n3d-leyenda"><h5></h5><p></p></div>
+  <p class="n3d-sr" aria-live="polite" data-anuncio></p>
   <div class="n3d-escena">
     <div class="n3d-lienzo">
-      <canvas role="img" aria-describedby="@@ID@@-ayuda" aria-label="${E.aria}"></canvas>
+      <canvas role="img" aria-describedby="@@ID@@-ayuda @@ID@@-estado" aria-label="${E.aria}"></canvas>
       <div class="n3d-etiquetas" aria-hidden="true"></div>
       <p class="n3d-ayuda" aria-hidden="true">${E.ayuda}</p>
     </div>
     <p class="n3d-sr" id="@@ID@@-ayuda">${E.ayudaTeclado}</p>
+    <p class="n3d-sr" id="@@ID@@-estado"></p>
     <div class="n3d-panel" aria-hidden="true" hidden><h6>${E.id === 'conteo' ? 'Aportes a <span class="n3d-mat">λ̂(u)</span>' : ''}</h6><div class="n3d-ap-lista"></div>${E.id === 'conteo' ? '<div class="n3d-ap-total"><span>λ̂(u)</span><span class="n3d-ap-suma"></span></div>' : ''}</div>
     <div class="n3d-perfilcaja" data-ctl="perfil" hidden><span>Los cuatro núcleos, al mismo σ</span><canvas class="n3d-perfil" role="img" aria-label="Perfil radial de los cuatro núcleos con la misma desviación típica: el gaussiano decae sin cortarse; el de Epanechnikov, el cuártico y el disco tienen soporte finito."></canvas></div>
   </div>
   <div class="n3d-mandos">
     <div class="n3d-ctl" data-ctl="rejilla" hidden><label>Desplazar la rejilla <output></output></label><input type="range" min="0" max="${DESPLAZA_MAX}" step="0.05" value="0" aria-label="Desplazar la rejilla"></div>
     <div class="n3d-ctl" data-ctl="sigma" hidden><label>Ancho de banda σ <output></output></label><input type="range" min="${E.sigma.min}" max="${E.sigma.max}" step="0.05" value="${E.sigma.ini}" aria-label="Ancho de banda sigma"></div>
-    <div class="n3d-grupo" data-ctl="nucleo" hidden><span>Núcleo</span><div class="n3d-botones">
+    <div class="n3d-grupo" data-ctl="nucleo" role="group" aria-labelledby="@@ID@@-g-nucleo" hidden><span id="@@ID@@-g-nucleo">Núcleo</span><div class="n3d-botones">
       ${ORDEN_NUCLEOS.map(k => `<button type="button" class="n3d-nuc" data-nucleo="${k}" aria-pressed="false" title="${k}">${NUCLEOS[k].nombre}</button>`).join('')}
     </div></div>
-    ${E.id === 'borde' ? `<div class="n3d-grupo" data-ctl="foco" hidden><span>Sede en foco</span><div class="n3d-botones">
+    ${E.id === 'borde' ? `<div class="n3d-grupo" data-ctl="foco" role="group" aria-labelledby="@@ID@@-g-foco" hidden><span id="@@ID@@-g-foco">Sede en foco</span><div class="n3d-botones">
       <button type="button" class="n3d-btn" data-foco="-1" aria-label="Sede anterior">‹</button>
-      <span class="n3d-foco-txt" data-foco-txt aria-live="polite"></span>
+      <span class="n3d-foco-txt" data-foco-txt></span>
       <button type="button" class="n3d-btn" data-foco="1" aria-label="Sede siguiente">›</button>
     </div></div>` : ''}
-    <div class="n3d-grupo"><span>Vista</span><div class="n3d-botones">
+    <div class="n3d-grupo" role="group" aria-labelledby="@@ID@@-g-vista"><span id="@@ID@@-g-vista">Vista</span><div class="n3d-botones">
       <button type="button" class="n3d-btn" data-vista="inclinada" aria-pressed="true">Inclinada</button>
       <button type="button" class="n3d-btn" data-vista="cenital" aria-pressed="false">Desde arriba</button>
       <button type="button" class="n3d-btn" data-reinicia>Reiniciar</button>
@@ -642,8 +687,24 @@
              pausar: nada, avanza: nada, fijaVista: nada, estado: {}, _: {} };
   }
 
+  // UN FALLO A MITAD DEL MONTAJE (auditoría del 2026-10-02): con el renderizador ya creado y una excepción después,
+  // quedaba un cascarón inerte —botones que no respondían, el lienzo vacío, sin texto de reserva— con el contexto WebGL
+  // vivo incluso tras salir del módulo (cada visita perdía uno), y una promesa rechazada sin manejar. `montarDentro`
+  // apunta en `deshacer` cada cosa que pone en marcha (el renderizador, los oyentes, los observadores, el bucle); si algo
+  // lanza, se deshace en orden inverso y queda el texto de reserva, con la misma interfaz inerte que sin WebGL.
   function montar(cont, opc) {
     opc = opc || {};
+    const deshacer = [];
+    try {
+      return montarDentro(cont, opc, deshacer);
+    } catch (e) {
+      deshacer.splice(0).reverse().forEach(f => { try { f(); } catch (_) { /* lo que se pueda */ } });
+      if (global.console) global.console.error('nucleo3d: la animación no se pudo montar', e);
+      return sinAnimacion(cont, 'La animación no se pudo montar.', ESCENAS[opc.escena] || ESCENAS.conteo);
+    }
+  }
+
+  function montarDentro(cont, opc, deshacer) {
     const THREE = opc.THREE || global.THREE;
     const doc = cont.ownerDocument;
     const clase = opc.modo === 'clase';
@@ -661,10 +722,14 @@
       return sinAnimacion(cont, !THREE ? 'No se pudo cargar la biblioteca gráfica (three.js).' : 'Esta animación necesita WebGL y no está disponible.', E);
     }
 
-    cont.innerHTML = htmlDe(E).replace(/@@ID@@/g, 'n3d' + (++contador));
+    const ID = 'n3d' + (++contador);
+    cont.innerHTML = htmlDe(E).replace(/@@ID@@/g, ID);
     const $ = s => cont.querySelector(s);
     const $$ = s => Array.from(cont.querySelectorAll(s));
-    const reducido = !!(global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    // La preferencia se lee CADA VEZ (como en la cáscara 2D): leída una sola vez al montar, activarla con la página abierta
+    // no valía, y «Reproducir» la ignoraba del todo (la rejilla, σ y la sonda seguían moviéndose sin parar).
+    const mqReducido = global.matchMedia ? global.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    const reducido = () => !!(mqReducido && mqReducido.matches);
 
     /* ---------------- estado ---------------- */
     const SG = E.sigma;
@@ -684,7 +749,7 @@
 
     function tween(clave, hasta, dur, retraso) {
       for (let i = tweens.length - 1; i >= 0; i--) if (tweens[i].k === clave) tweens.splice(i, 1);
-      if (reducido || dur <= 0) { A[clave] = hasta; return; }
+      if (reducido() || dur <= 0) { A[clave] = hasta; return; }
       tweens.push({ k: clave, a: A[clave], b: hasta, t: -(retraso || 0), dur });
     }
     // Orbitar con el ratón o las flechas toma el mando de la CÁMARA; los demás tweens (las barras que
@@ -715,6 +780,7 @@
     } catch (_) {
       return sinAnimacion(cont, 'No se pudo iniciar WebGL.', E);
     }
+    deshacer.push(() => { renderer.dispose(); renderer.forceContextLoss(); });
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(global.devicePixelRatio || 1, 2));
     renderer.localClippingEnabled = BORDE;       // la escena «borde» parte cada loma por el marco de la ventana
@@ -1290,9 +1356,16 @@
     /* ---------------- interfaz: textos, lecturas, perfil ---------------- */
     const leyH = $('.n3d-leyenda h5'), leyP = $('.n3d-leyenda p');
     const lect = $('.n3d-lectura');
-    let ultimaLectura = '', ultimoPanel = '', pasoLey = 0;
+    let ultimaLectura = '', ultimoPanel = '', pasoLey = 0, ultimoEstado = '';
+    const anuncio = $('[data-anuncio]'), estadoSr = $('#' + ID + '-estado');
+    const anuncia = txt => { if (txt && anuncio.textContent !== txt) anuncio.textContent = txt; };
+    const sinMarcas = s => String(s).replace(/<[^>]+>/g, '');
     const panel = $('.n3d-panel'), panelLista = $('.n3d-ap-lista'), panelSuma = $('.n3d-ap-suma');
 
+    // Lo que aporta una sede, para escribirlo. La de «por defecto» sale de un trapecio sobre la malla y, con el disco y σ de
+    // 0.8 a 1.0, quedaba hasta una centésima por debajo de la de «sin corregir»: «sin corregir 1.00, por defecto 0.99» en 74
+    // estados (auditoría del 2026-10-02), y es imposible, porque e(u) ≤ 1. Se acota por abajo con la exacta.
+    const porDe = i => { const o = masas.por[i]; return { sin: o.sin, defecto: Math.max(o.defecto, o.sin), diggle: o.diggle }; };
     // La lectura de la escena «borde»: la fracción de la loma en foco que queda dentro (paso 1) y las tres masas (pasos 2 a 4).
     const pct = x => Math.round(100 * x) + ' %', f1 = x => x.toFixed(1);
     function lecturaBorde() {
@@ -1301,7 +1374,7 @@
         return [['sede en foco', 'n.º ' + (estado.foco + 1) + ' de ' + N], ['dentro de la ventana', pct(nf)], ['fuera', pct(1 - nf)], ['σ', f2(estado.sigma)]];
       }
       const m = (clave, nombre) => ['volumen ' + nombre, f1(masas[clave]), modo === clave];
-      const por = masas.por[estado.foco];       // lo mismo que dice el panel, que es decorativo: aquí lo lee quien no lo ve
+      const por = porDe(estado.foco);           // lo mismo que dice el panel, que es decorativo: aquí lo lee quien no lo ve
       return [['sedes n', N], m('sin', 'sin corregir'), m('defecto', 'por defecto'), m('diggle', 'con Diggle'),
               ['la sede n.º ' + (estado.foco + 1) + ' aporta (sin corregir, por defecto, Diggle)', f2(por.sin) + ', ' + f2(por.defecto) + ', ' + f2(por.diggle)]];
     }
@@ -1312,7 +1385,7 @@
       if (estado.paso === 1) {
         return ['Masa de la loma en foco', fila('dentro', nf, 1, '', false) + fila('fuera', 1 - nf, 1, '#c0392b', false)];
       }
-      const por = masas.por[estado.foco];
+      const por = porDe(estado.foco);
       return ['Lo que aporta la sede en foco al volumen',
               fila('sin corregir', por.sin, 1.4, '', modo === 'sin') + fila('por defecto', por.defecto, 1.4, '', modo === 'defecto') + fila('Diggle', por.diggle, 1.4, '', modo === 'diggle')];
     }
@@ -1343,6 +1416,10 @@
       }
       const html = h.map(p => `<span${p[2] ? ' class="n3d-act"' : ''}><span class="n3d-r">${p[0]}</span> <b>${p[1]}</b></span>`).join('');
       if (html !== ultimaLectura) { ultimaLectura = html; lect.innerHTML = html; }
+      // La descripción del lienzo lleva el ESTADO (como la de la cáscara 2D): antes un lector solo oía la ayuda de teclado.
+      const est = 'Paso ' + estado.paso + ' de ' + E.pasos.length + ': ' + E.pasos[estado.paso - 1].titulo + '. ' +
+                  h.map(p => sinMarcas(p[0]) + ': ' + sinMarcas(p[1])).join('; ') + '.';
+      if (est !== ultimoEstado) { ultimoEstado = est; estadoSr.textContent = est; }
       // el panel de aportes del paso 5
       if (!BORDE && estado.paso === 5) {
         const orden = ap.map((w, i) => i).sort((a, b) => ap[b] - ap[a]);
@@ -1415,15 +1492,17 @@
       rs.querySelector('output').textContent = f2(estado.desp); rs.querySelector('input').value = estado.desp;
       ss.querySelector('output').textContent = f2(estado.sigma); ss.querySelector('input').value = estado.sigma;
       const sv = ss.querySelector('input'); sv.setAttribute('aria-valuetext', 'sigma ' + f2(estado.sigma));
-      if (pasoLey !== estado.paso) {          // la leyenda es `aria-live`: solo se toca al cambiar de paso, no con cada deslizador
-        pasoLey = estado.paso;
+      if (pasoLey !== estado.paso) {          // solo se toca al cambiar de paso, no con cada deslizador
         const p = E.pasos[estado.paso - 1];
         leyH.textContent = p.titulo; leyP.innerHTML = p.texto;
+        // la región viva dice el título del paso al que se llega (no el párrafo entero, como antes; tampoco al montar)
+        if (pasoLey) anuncia('Paso ' + estado.paso + ': ' + p.titulo);
+        pasoLey = estado.paso;
       }
       const verPanel = BORDE || estado.paso === 5;
       panel.hidden = !verPanel;
       panel.setAttribute('aria-hidden', String(BORDE || !verPanel));     // el de «borde» repite la lectura: no se lee dos veces
-      if (BORDE) $('[data-foco-txt]').textContent = 'n.º ' + (estado.foco + 1) + ' de ' + N;
+      if (BORDE) { const ft = $('[data-foco-txt]'), v = 'n.º ' + (estado.foco + 1) + ' de ' + N; if (ft.textContent !== v) ft.textContent = v; }
     }
 
     /* ---------------- pasos ---------------- */
@@ -1547,7 +1626,9 @@
     function guionTick(dt) {
       const g = GUION[guion.i];
       guion.t += dt;
-      if (g.f) {
+      // con `prefers-reduced-motion`, el guion pasa los pasos sin mover nada dentro de ellos (ni la rejilla, ni σ, ni la sonda)
+      const mueve = g.f && !reducido();
+      if (mueve) {
         g.f(guion.t, g.dur);
         estado.sigma = clamp(estado.sigma, SG.min, SG.max); estado.desp = clamp(estado.desp, 0, DESPLAZA_MAX);   // por si un guion futuro se pasa
         sucio = true;
@@ -1557,7 +1638,7 @@
         else { pausar(); fijaVista('inclinada'); if (BORDE) { estado.sigma = SG.ini; sucio = true; } }
       }
       // la lectura y los mandos siguen lo que el guion mueve
-      if (g.f) {
+      if (mueve) {
         const rs = $('[data-ctl="rejilla"]'), ss = $('[data-ctl="sigma"]');
         rs.querySelector('output').textContent = f2(estado.desp); rs.querySelector('input').value = estado.desp;
         ss.querySelector('output').textContent = f2(estado.sigma); ss.querySelector('input').value = estado.sigma;
@@ -1584,7 +1665,14 @@
       if (!vivo) return;
       const dt = Math.min(0.05, ts && ultimo ? (ts - ultimo) / 1000 : 0.016);
       ultimo = ts;
-      if (tick(dt) || arrastre || orbita) pide(); else ultimo = 0;
+      // un fallo DESPUÉS de montar (el primer cuadro llega aquí, fuera de cualquier try) desmonta y deja la reserva
+      try {
+        if (tick(dt) || arrastre || orbita) pide(); else ultimo = 0;
+      } catch (e) {
+        destruir();
+        sinAnimacion(cont, 'La animación dejó de funcionar.', E);
+        if (global.console) global.console.error('nucleo3d: la animación falló y se ha desmontado', e);
+      }
     }
     function pide() {
       if (pendiente || !vivo || !visible) return;
@@ -1786,6 +1874,7 @@
     $$('[data-vista]').forEach(b => b.addEventListener('click', () => { alguna(); fijaVista(b.dataset.vista); if (clase) devuelveElFoco(); }));
     $$('[data-foco]').forEach(b => b.addEventListener('click', () => {
       alguna(); estado.foco = (estado.foco + (+b.dataset.foco) + N) % N; sucio = true; pintaControles(); pide();
+      anuncia('Sede en foco: n.º ' + (estado.foco + 1) + ' de ' + N);
       if (clase) devuelveElFoco();
     }));
     $('[data-reinicia]').addEventListener('click', () => {
@@ -1827,18 +1916,21 @@
         try { global.parent.postMessage({ nucleos: 'tecla', key: e.key, shiftKey: e.shiftKey }, '*'); } catch (_) { /* sin padre */ }
       };
       doc.addEventListener('keydown', alTeclear, true);
+      deshacer.push(() => doc.removeEventListener('keydown', alTeclear, true));
     }
 
     /* ---------------- vida del componente ---------------- */
     const ro = global.ResizeObserver ? new global.ResizeObserver(() => { ajustaTamano(); pintaPerfil(); fijaAlturaLeyenda(); }) : null;
-    if (ro) { ro.observe(caja); ro.observe(cont); }
+    if (ro) { ro.observe(caja); ro.observe(cont); deshacer.push(() => ro.disconnect()); }
+    // Fuera de la pantalla, el guion se PAUSA, como en la cáscara 2D (antes se quedaba en «Pausar» y seguía al volver).
     const io = global.IntersectionObserver ? new global.IntersectionObserver(es => {
       visible = es.some(x => x.isIntersecting);
-      if (visible) pide();
+      if (visible) pide(); else pausar();
     }, { rootMargin: '120px' }) : null;
-    if (io) io.observe(caja);
+    if (io) { io.observe(caja); deshacer.push(() => io.disconnect()); }
     const alImprimir = () => { avanza(3); };
     global.addEventListener('beforeprint', alImprimir);
+    deshacer.push(() => { vivo = false; global.cancelAnimationFrame(raf); global.removeEventListener('beforeprint', alImprimir); });
 
     function destruir() {
       vivo = false;
@@ -1865,7 +1957,7 @@
     ir(1, true);
     fijaAlturaLeyenda();
     fijaVista('inclinada', false);
-    if (reducido) { A.az = VISTAS.inclinada.az; A.pol = VISTAS.inclinada.pol; A.r = VISTAS.inclinada.r; }
+    if (reducido()) { A.az = VISTAS.inclinada.az; A.pol = VISTAS.inclinada.pol; A.r = VISTAS.inclinada.r; }
     pide();
 
     return { destruir, ir, poner, reproducir, pausar, avanza, fijaVista, estado,
