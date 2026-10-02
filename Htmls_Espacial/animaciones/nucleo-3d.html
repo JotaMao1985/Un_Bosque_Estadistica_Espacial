@@ -1389,23 +1389,37 @@
     });
 
     /* ---------------- mandos ---------------- */
-    $$('.n3d-paso').forEach(b => b.addEventListener('click', () => { alguna(); ir(+b.dataset.paso); if (clase) devuelveElFoco(); }));
-    $('.n3d-play').addEventListener('click', () => { if (guion.activo) pausar(); else reproducir(); if (clase) devuelveElFoco(); });
+    // En una lámina, el foco vuelve al visor después de un clic CON EL RATÓN o el dedo, para que las flechas sigan pasando de
+    // lámina. Con el teclado no: quien llegó con Tab y pulsa Intro o Espacio sigue dentro, y la tecla siguiente también es
+    // suya (la sesión de diapositivas lo midió el 2026-10-02: el segundo Intro sobre «Paso 4» pasaba de lámina). Un clic
+    // hecho con el teclado trae `detail === 0`.
+    const trasClic = ev => { if (clase && ev.detail > 0) devuelveElFoco(); };
+    $$('.n3d-paso').forEach(b => b.addEventListener('click', ev => { alguna(); ir(+b.dataset.paso); trasClic(ev); }));
+    $('.n3d-play').addEventListener('click', ev => { if (guion.activo) pausar(); else reproducir(); trasClic(ev); });
     const rej = $('[data-ctl="rejilla"] input'), sig = $('[data-ctl="sigma"] input');
     rej.addEventListener('input', () => { alguna(); estado.desp = +rej.value; sucio = true; pintaControles(); pide(); });
     sig.addEventListener('input', () => { alguna(); estado.sigma = +sig.value; sucio = true; pintaControles(); pide(); });
-    $$('.n3d-nuc').forEach(b => b.addEventListener('click', () => {
-      alguna(); estado.nucleo = b.dataset.nucleo; sucio = true; pintaControles(); pide(); if (clase) devuelveElFoco();
+    $$('.n3d-nuc').forEach(b => b.addEventListener('click', ev => {
+      alguna(); estado.nucleo = b.dataset.nucleo; sucio = true; pintaControles(); pide(); trasClic(ev);
     }));
-    $$('[data-vista]').forEach(b => b.addEventListener('click', () => { alguna(); fijaVista(b.dataset.vista); if (clase) devuelveElFoco(); }));
-    $('[data-reinicia]').addEventListener('click', () => {
+    $$('[data-vista]').forEach(b => b.addEventListener('click', ev => { alguna(); fijaVista(b.dataset.vista); trasClic(ev); }));
+    $('[data-reinicia]').addEventListener('click', ev => {
       alguna();
       PATRON.forEach((p, i) => { puntos[i][0] = p[0]; puntos[i][1] = p[1]; });
       estado.sigma = SIGMA.ini; estado.nucleo = 'gaussian'; estado.desp = 0; estado.sonda = [-2.5, 1.0];
       fijaVista('inclinada'); ir(estado.paso, true); sucio = true; pintaControles(); pide();
-      if (clase) devuelveElFoco();
+      trasClic(ev);
     });
-    [rej, sig].forEach(el => { ['change', 'pointerup'].forEach(ev => el.addEventListener(ev, () => { if (clase) devuelveElFoco(); })); });
+    // Los deslizadores, igual: `change` salta también con cada flecha, así que solo devuelve el foco si lo último fue el
+    // puntero. Se sigue escuchando `change` (y no solo `pointerup`) porque un arrastre que se suelta fuera del deslizador
+    // no le manda `pointerup` a él.
+    [rej, sig].forEach(el => {
+      let conPuntero = false;
+      el.addEventListener('pointerdown', () => { conPuntero = true; });
+      el.addEventListener('keydown', () => { conPuntero = false; });
+      el.addEventListener('pointerup', () => { if (clase) devuelveElFoco(); });
+      el.addEventListener('change', () => { if (clase && conPuntero) devuelveElFoco(); });
+    });
 
     /* ---------------- en una diapositiva ---------------- */
     // Dentro de un iframe, las flechas son del presentador y no de un deslizador: se reenvían al
