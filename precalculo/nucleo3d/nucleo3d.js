@@ -1,13 +1,20 @@
 /* =====================================================================
    nucleo3d.js — «Del conteo a la superficie»: la estimación por núcleos en 3D
 
-   Material de Estadística Espacial 2026-II (20929). Capítulo 5, módulo 1.
+   Material de Estadística Espacial 2026-II (20929). Capítulo 5, módulos 1 y 4.
 
    UN SOLO MOTOR PARA DOS SITIOS. El capítulo lo inyecta en línea
    (`ensambla_cap5.py`) y lo registra como `SIMULADORES['cap5-nucleo3d']`;
    las diapositivas lo cargan desde `Htmls_Espacial/animaciones/nucleo-3d.html`,
    que `construye_nucleo3d.py` estampa desde este mismo archivo. Se edita AQUÍ
    y nada más: los otros dos son artefactos.
+
+   DOS ESCENAS, UN MOTOR. `montar(cont, { escena })` elige entre
+     · «conteo» (por defecto, módulo 1): del conteo en cajas a la superficie, en cinco pasos;
+     · «borde» (módulo 4, `SIMULADORES['cap5-nucleo3d-borde']`, `?escena=borde` en la página):
+       los MISMOS diecinueve puntos con la ventana ya contando, en cuatro pasos. Una loma que
+       se sale de la ventana, la suma sin corregir y las dos correcciones de borde.
+   `modo` ya significaba «página o clase»; por eso la escena tiene su propia opción.
 
    QUÉ CUENTA. El estimador del módulo 1,
 
@@ -19,10 +26,11 @@
    del módulo 2 sale sola al moverlos: el núcleo casi no cambia el mapa y σ
    lo cambia todo.
 
-   LO QUE NO CUENTA, A PROPÓSITO. La corrección de borde, e(u), es el
-   módulo 4: aquí los puntos viven lejos del borde y la ventana es todo el
-   suelo, así que e(u) = 1 y el factor desaparece. Decirlo es parte del
-   contrato: la pantalla no lo pinta, la leyenda del paso 4 lo avisa.
+   LO QUE NO CUENTA LA ESCENA «CONTEO», A PROPÓSITO. La corrección de borde,
+   e(u), es el módulo 4: allí los puntos viven lejos del borde y la ventana es
+   todo el suelo, así que e(u) = 1 y el factor desaparece. Decirlo es parte
+   del contrato: la pantalla no lo pinta, la leyenda del paso 4 lo avisa. La
+   escena «borde» es la que lo cuenta.
 
    LOS PUNTOS SON INVENTADOS. Es una ilustración, no un dato, como el
    «juguete» unidimensional de las diapositivas. Por eso las cifras que
@@ -62,16 +70,21 @@
   // círculo que se dibuja alrededor de un sitio (el soporte, en los tres que
   // lo tienen; 2σ en el gaussiano, que no); `corte` es hasta dónde se dibuja
   // una loma (el gaussiano se trunca a 4σ, donde vale el 0.03 % de su pico).
+  // `masa(R, σ)` es la fracción del núcleo que cae a menos de R de su centro: la integral radial de
+  // `k`, en forma cerrada. La necesita la corrección de borde (escena «borde»); `prueba_nucleo3d.py`
+  // la compara con la integración numérica de `k` (bloque 1).
   const NUCLEOS = {
     gaussian: {
       nombre: 'Gaussiano',
       alcance: s => 2 * s, corte: s => 4 * s,
-      k: (r2, s) => Math.exp(-r2 / (2 * s * s)) / (2 * Math.PI * s * s)
+      k: (r2, s) => Math.exp(-r2 / (2 * s * s)) / (2 * Math.PI * s * s),
+      masa: (R, s) => 1 - Math.exp(-R * R / (2 * s * s))
     },
     epanechnikov: {
       nombre: 'Epanechnikov',
       alcance: s => Math.sqrt(H2.epanechnikov) * s, corte: s => Math.sqrt(H2.epanechnikov) * s,
-      k: (r2, s) => { const h2 = H2.epanechnikov * s * s; return r2 < h2 ? 2 / (Math.PI * h2) * (1 - r2 / h2) : 0; }
+      k: (r2, s) => { const h2 = H2.epanechnikov * s * s; return r2 < h2 ? 2 / (Math.PI * h2) * (1 - r2 / h2) : 0; },
+      masa: (R, s) => { const q = Math.min(1, R * R / (H2.epanechnikov * s * s)); return 2 * q - q * q; }
     },
     quartic: {
       nombre: 'Cuártico',
@@ -81,12 +94,14 @@
         if (r2 >= h2) return 0;
         const u = 1 - r2 / h2;
         return 3 / (Math.PI * h2) * u * u;
-      }
+      },
+      masa: (R, s) => { const q = Math.min(1, R * R / (H2.quartic * s * s)); return 1 - Math.pow(1 - q, 3); }
     },
     disc: {
       nombre: 'Disco',
       alcance: s => Math.sqrt(H2.disc) * s, corte: s => Math.sqrt(H2.disc) * s,
-      k: (r2, s) => { const h2 = H2.disc * s * s; return r2 < h2 ? 1 / (Math.PI * h2) : 0; }
+      k: (r2, s) => { const h2 = H2.disc * s * s; return r2 < h2 ? 1 / (Math.PI * h2) : 0; },
+      masa: (R, s) => Math.min(1, R * R / (H2.disc * s * s))
     }
   };
   const ORDEN_NUCLEOS = ['gaussian', 'epanechnikov', 'quartic', 'disc'];
@@ -193,12 +208,135 @@
   // donde el σ de partida deja sus picos; y `techo` es el pico más alto que
   // puede dibujarse con cualquier núcleo y cualquier σ, para que la cámara
   // encuadre SIEMPRE lo mismo y no «respire» al mover los mandos.
-  function escalas(pts) {
+  function escalas(pts, sg) {
+    sg = sg || SIGMA;
     const n = 61, tmp = new Float32Array(n * n);
     const pico = (k, s) => superficie(k, pts, s, n, tmp);
-    const alto = ALTO_MAX / pico('gaussian', SIGMA.min);
-    const techo = alto * Math.max.apply(null, ORDEN_NUCLEOS.map(k => pico(k, SIGMA.min)));
-    return { alto, color: 1.25 * pico('gaussian', SIGMA.ini), techo };
+    const alto = ALTO_MAX / pico('gaussian', sg.min);
+    const techo = alto * Math.max.apply(null, ORDEN_NUCLEOS.map(k => pico(k, sg.min)));
+    return { alto, color: 1.25 * pico('gaussian', sg.ini), techo };
+  }
+
+  /* ------------------------------------------------------------------
+     LA CORRECCIÓN DE BORDE (escena «borde», módulo 4).
+
+     e(x, y) es la fracción de un núcleo centrado en (x, y) que cae DENTRO de la ventana: la
+     definición del capítulo (spatstat guarda su inverso, y el método lo llama `edge`). En una
+     ventana convexa se calcula por direcciones: el trozo de núcleo que hay en cada una llega hasta
+     el borde, a la distancia R(θ), y su masa es `masa(R, σ)`, la integral radial cerrada de
+     cada núcleo; e es el promedio de esas masas sobre los ángulos. En un cuadrado, R(θ) es el menor
+     de los dos cocientes a los lados. 360 direcciones dejan un error de 5e-5 contra el único
+     núcleo con forma cerrada en el cuadrado (el gaussiano: un producto de dos funciones de error).
+
+     Tres superficies, que comparten la suma Σ k_σ(u − xᵢ) y difieren en QUIÉN DIVIDE y DÓNDE:
+       · «sin»     λ̂(u) = Σ k(u − xᵢ)                  no corrige (`edge = FALSE`)
+       · «defecto» λ̂(u) = Σ k(u − xᵢ) / e(u)           divide en el sitio u (`edge = TRUE`)
+       · «diggle»  λ̂(u) = Σ k(u − xᵢ) / e(xᵢ)          divide en cada dato (`diggle = TRUE`)
+     La ayuda de `density.ppp` atribuye la segunda a Diggle (1985) y llama «Jones-Diggle» a la tercera
+     (`diggle = TRUE`): con dos «Diggle» a la vista, el nombre confunde. Aquí se les llama por lo que
+     hacen —dividir en u o dividir en xᵢ— y, en el paso 4, por el argumento. Solo la tercera conserva
+     el conteo: cada punto aporta exactamente 1 a la integral.
+     ------------------------------------------------------------------ */
+  const DIRECCIONES = 360;
+  const COS = new Float64Array(DIRECCIONES), SEN = new Float64Array(DIRECCIONES);
+  for (let a = 0; a < DIRECCIONES; a++) {
+    const t = 2 * Math.PI * (a + 0.5) / DIRECCIONES;       // puntos medios: ninguna dirección es exactamente un eje
+    COS[a] = Math.cos(t); SEN[a] = Math.sin(t);
+  }
+
+  function bordeE(nucleo, s, x, y) {
+    const masa = NUCLEOS[nucleo].masa;
+    let t = 0;
+    for (let a = 0; a < DIRECCIONES; a++) {
+      const c = COS[a], sn = SEN[a];
+      const tx = c > 0 ? (V - x) / c : (-V - x) / c;
+      const ty = sn > 0 ? (V - y) / sn : (-V - y) / sn;
+      t += masa(Math.min(tx, ty), s);
+    }
+    return t / DIRECCIONES;
+  }
+
+  // e en los vértices de una rejilla de n × n que cubre la ventana, fila a fila desde y = −V. La ventana es
+  // simétrica respecto de los dos ejes, así que se calcula un cuadrante y se copia a los otros tres.
+  function mallaE(nucleo, s, n, salida) {
+    const paso = 2 * V / (n - 1), m = (n - 1) >> 1;
+    for (let j = 0; j <= m; j++) {
+      for (let i = 0; i <= m; i++) {
+        const v = bordeE(nucleo, s, -V + i * paso, -V + j * paso);
+        salida[j * n + i] = v; salida[j * n + n - 1 - i] = v;
+        salida[(n - 1 - j) * n + i] = v; salida[(n - 1 - j) * n + n - 1 - i] = v;
+      }
+    }
+    return salida;
+  }
+
+  // La superficie de un modo sobre la rejilla de n × n vértices. `eMalla` es e en cada vértice (modo
+  // «defecto») y `ePts` es e en cada punto (modo «diggle»). Devuelve el máximo.
+  function superficieBorde(nucleo, pts, s, n, modo, eMalla, ePts, salida) {
+    const k = NUCLEOS[nucleo].k, paso = 2 * V / (n - 1);
+    let max = 0;
+    for (let j = 0; j < n; j++) {
+      const y = -V + j * paso;
+      for (let i = 0; i < n; i++) {
+        const x = -V + i * paso;
+        let t = 0;
+        for (let q = 0; q < pts.length; q++) {
+          const dx = x - pts[q][0], dy = y - pts[q][1];
+          t += modo === 'diggle' ? k(dx * dx + dy * dy, s) / ePts[q] : k(dx * dx + dy * dy, s);
+        }
+        if (modo === 'defecto') t /= eMalla[j * n + i];
+        salida[j * n + i] = t;
+        if (t > max) max = t;
+      }
+    }
+    return max;
+  }
+
+  // Lo que cada punto aporta a la integral de cada superficie sobre la ventana (volumen bajo su loma):
+  //   sin     = e(xᵢ)                          exacto, de la fórmula de arriba
+  //   diggle  = e(xᵢ) / e(xᵢ) = 1              por construcción
+  //   defecto = ∫_W k(u − xᵢ) / e(u) du        regla del trapecio sobre los vértices de la malla
+  // Sobre el patrón del módulo el trapecio queda a ≤ 0.0042 de la suma de píxeles de R en los núcleos suaves y a
+  // 0.07 en el disco con σ = 0.5: su borde brusco cae entre vértices, y ni este trapecio ni los píxeles de R dan
+  // el valor exacto. Por eso la pantalla escribe las SUMAS con un decimal. `eMalla` ha de estar calculada para el
+  // mismo núcleo y σ.
+  function integralesBorde(nucleo, pts, s, n, eMalla, ePts) {
+    const k = NUCLEOS[nucleo].k, paso = 2 * V / (n - 1), h2 = paso * paso;
+    const defecto = pts.map(() => 0);
+    for (let j = 0; j < n; j++) {
+      const y = -V + j * paso, wj = j === 0 || j === n - 1 ? 0.5 : 1;
+      for (let i = 0; i < n; i++) {
+        const x = -V + i * paso, w = wj * (i === 0 || i === n - 1 ? 0.5 : 1) * h2 / eMalla[j * n + i];
+        for (let q = 0; q < pts.length; q++) {
+          const dx = x - pts[q][0], dy = y - pts[q][1];
+          defecto[q] += w * k(dx * dx + dy * dy, s);
+        }
+      }
+    }
+    const por = pts.map((p, q) => ({ sin: ePts[q], defecto: defecto[q], diggle: 1 }));
+    const suma = c => por.reduce((a, o) => a + o[c], 0);
+    return { por, sin: suma('sin'), defecto: suma('defecto'), diggle: suma('diggle') };
+  }
+
+  // Las constantes de escala de la escena «borde»: el alto y el color salen del rango de σ de ESA escena (de 0.8
+  // a 2.2: con el σ del módulo 1, 0.5, el borde casi no importa y el relieve quedaba aplastado) y el techo cubre
+  // las tres superficies con los cuatro núcleos en el σ más estrecho. Con las sedes en su sitio y σ = 0.8, corregir
+  // sube el pico un 3 % (por defecto) o un 7 % (Diggle) con el gaussiano y un 32 % (por defecto) con el disco; todo
+  // cabe en el techo. Si el estudiante lleva UNA sede a una esquina, el gaussiano por defecto llega a un 21 % por
+  // encima del techo, pero todavía cabe en el encuadre (el margen de la cámara lo absorbe: medido). Más sedes
+  // apiladas en la misma esquina sí se saldrían: es el precio de no dejar que la cámara «respire».
+  function escalasBorde(pts, sg) {
+    sg = sg || SIGMA;
+    const base = escalas(pts, sg), n = 61, tmp = new Float32Array(n * n), eM = new Float32Array(n * n);
+    let techo = base.techo;
+    ORDEN_NUCLEOS.forEach(nuc => {
+      const ePts = pts.map(p => bordeE(nuc, sg.min, p[0], p[1]));
+      mallaE(nuc, sg.min, n, eM);
+      ['defecto', 'diggle'].forEach(modo => {
+        techo = Math.max(techo, base.alto * superficieBorde(nuc, pts, sg.min, n, modo, eM, ePts, tmp));
+      });
+    });
+    return { alto: base.alto, color: base.color, techo };
   }
 
   // Paleta secuencial «naranja» de la casa (GEOMAPA_PALETAS.naranja).
@@ -214,7 +352,8 @@
 
   const MATEMATICA = {
     NUCLEOS, ORDEN_NUCLEOS, PATRON, V, CELDA, DESPLAZA_MAX, SIGMA,
-    intensidadEn, aportes, superficie, cuadrantes, escalas, colorDe, PALETA
+    intensidadEn, aportes, superficie, cuadrantes, escalas, colorDe, PALETA,
+    bordeE, mallaE, superficieBorde, integralesBorde, escalasBorde
   };
 
   /* ===================================================================
@@ -241,6 +380,71 @@
   const AYUDA = 'Arrastra el fondo para girar · arrastra un punto para moverlo';
   const AYUDA_TECLADO = 'Con el lienzo enfocado, las flechas giran la vista; en el paso 5, Mayús con las flechas mueve el sitio u. ' +
                         'Los mandos de debajo cambian σ, el núcleo y la rejilla.';
+
+  // La escena «borde» (módulo 4). Cada paso lleva el MODO de superficie que muestra (ver `superficieBorde`).
+  // Lo que dicen se comprueba con la matemática de este mismo archivo (`prueba_nucleo3d.py`, bloque 4e): con la
+  // corrección por defecto una sede sola aporta MENOS de 1 si está a ≤ 0.25 del borde (0.69 en el borde con σ = 0.8) y
+  // MÁS de 1 entre 1.5σ y 2σ de él, con los cuatro núcleos y cualquier σ del deslizador; con Diggle aporta 1 siempre.
+  const PASOS_BORDE = [
+    { corto: 'Una loma', modo: 'sin',
+      titulo: 'Lo que cae fuera de la ventana no lo recoge nadie',
+      texto: 'La loma de la sede en foco reparte un punto de peso a su alrededor, pero la ventana termina. La parte roja está fuera y se pierde; la fracción que queda dentro es <em>e</em>(<em>x</em><sub><em>i</em></sub>). Arrastra la sede hacia el borde, o hacia una esquina, y ensancha σ: se escapa más.' },
+    { corto: 'Sin corregir', modo: 'sin',
+      titulo: 'Sumadas sin corregir, las lomas se quedan cortas en el borde',
+      texto: 'Con todas las sedes, la superficie se queda corta justo en el perímetro, donde la ventana corta las lomas, y su volumen es Σ <em>e</em>(<em>x</em><sub><em>i</em></sub>), menos que <em>n</em>: lo que falta es lo que se ve rojo. Un estimador de la intensidad que no devuelve el número de puntos se queda corto donde más suele mirarse.' },
+    { corto: 'Por defecto', modo: 'defecto',
+      titulo: 'Por defecto se divide en cada sitio u por e(u)',
+      texto: '<code>density.ppp</code> lo hace sin pedírselo: en cada sitio <em>u</em> divide la suma por <em>e</em>(<em>u</em>), la fracción de un núcleo centrado en <em>u</em> que cabe en la ventana. El perímetro sube sobre la red gris, que es la superficie sin corregir. Pero el volumen ya no tiene por qué ser <em>n</em>: una sede pegada al borde aporta menos de 1, y una a uno y medio o dos σ de él, más. Mueve la sede en foco y mira su barra.' },
+    { corto: 'Diggle', modo: 'diggle',
+      titulo: 'Con Diggle, cada loma se infla por lo que perdió',
+      texto: 'Con <code>diggle = TRUE</code> se divide en cada <em>dato</em>: la loma de <em>x</em><sub><em>i</em></sub> se infla por 1/<em>e</em>(<em>x</em><sub><em>i</em></sub>), justo lo que se le escapó, y cada sede aporta exactamente 1. El volumen vuelve a ser <em>n</em>, con cualquier σ y cualquier núcleo.' }
+  ];
+
+  // Lo que cada paso ANIMA: cada valor viaja hacia su objetivo con una curva suave (`tween`). `todas` y `diggle`
+  // son de la escena «borde»: las lomas de las demás sedes, y cuánto se infla cada loma por 1/e(xᵢ).
+  const OBJETIVO_CONTEO = [
+    null,
+    { cajas: 0, lomasH: 0, lomasO: 0.85, suma: 0, sonda: 0, media: 1 },
+    { cajas: 1, lomasH: 0, lomasO: 0.85, suma: 0, sonda: 0, media: 0 },
+    { cajas: 0, lomasH: 1, lomasO: 0.85, suma: 0, sonda: 0, media: 0 },
+    { cajas: 0, lomasH: 1, lomasO: 0.22, suma: 1, sonda: 0, media: 0 },
+    { cajas: 0, lomasH: 1, lomasO: 0.22, suma: 1, sonda: 1, media: 0 }
+  ];
+  const OBJETIVO_BORDE = [
+    null,
+    { cajas: 0, lomasH: 1, lomasO: 0.85, suma: 0, sonda: 0, media: 0, todas: 0, diggle: 0 },
+    { cajas: 0, lomasH: 1, lomasO: 0.22, suma: 1, sonda: 0, media: 0, todas: 1, diggle: 0 },
+    { cajas: 0, lomasH: 1, lomasO: 0.22, suma: 1, sonda: 0, media: 0, todas: 1, diggle: 0 },
+    { cajas: 0, lomasH: 1, lomasO: 0.22, suma: 1, sonda: 0, media: 0, todas: 1, diggle: 1 }
+  ];
+
+  // Lo que cambia de una escena a otra. El resto del motor es el mismo para las dos.
+  const ESCENAS = {
+    conteo: {
+      id: 'conteo', pasos: PASOS, objetivo: OBJETIVO_CONTEO, ayuda: AYUDA, ayudaTeclado: AYUDA_TECLADO,
+      sigma: { min: SIGMA.min, max: SIGMA.max, ini: SIGMA.ini, tope: 1.5 },   // rango del deslizador, σ de partida y hasta dónde sube el guion
+      margen: 0.4,                    // lo más cerca del borde a lo que se puede llevar un punto
+      marco: V,                       // la mitad del lado de lo que la cámara encuadra
+      aria: `Escena tridimensional con ${PATRON.length} puntos inventados sobre un plano, y la superficie de intensidad que resulta de sumar una loma por punto. El texto y la lectura numérica dicen lo mismo con palabras.`,
+      pie: `Ilustración con ${PATRON.length} puntos inventados, no un dato. Aquí no se corrige el borde: con σ grande parte de cada loma queda fuera de la ventana, y de eso trata el módulo 4.`,
+      sinWebgl: 'Dice lo mismo que la fórmula del módulo 1: cada punto levanta una loma de ancho σ, y la superficie de intensidad es la suma de todas las lomas. ' +
+                'El módulo 2 mide qué pasa al cambiar la forma de la loma (casi nada) y su ancho (todo).'
+    },
+    borde: {
+      id: 'borde', pasos: PASOS_BORDE, objetivo: OBJETIVO_BORDE,
+      ayuda: 'Arrastra el fondo para girar · arrastra una sede para moverla y ponerla en foco',
+      ayudaTeclado: 'Con el lienzo enfocado, las flechas giran la vista y Mayús con las flechas mueve la sede en foco. ' +
+                    'Los mandos de debajo cambian σ, el núcleo y cuál es la sede en foco.',
+      sigma: { min: 0.8, max: 2.2, ini: 1.2, tope: 1.8 },    // más ancho que en el módulo 1: con σ de 0.5 u 0.8 las tres superficies casi no se distinguen
+      margen: 0.25,                   // más cerca del borde: de eso trata la escena
+      marco: V + 1.1,                 // la ventana y un margen para ver lo que se sale de ella
+      aria: `Escena tridimensional: un cuadrado, la ventana, con ${PATRON.length} puntos inventados y la superficie de intensidad que resulta de sumar una loma por punto. La parte de cada loma que cae fuera de la ventana se pinta en rojo. El texto y la lectura numérica dicen lo mismo con palabras.`,
+      pie: `Ilustración con los mismos ${PATRON.length} puntos inventados del módulo 1, no un dato; aquí la ventana sí cuenta. La parte roja de cada loma es masa que cae fuera y que nadie recoge.`,
+      sinWebgl: 'Dice lo mismo que el texto del módulo 4: un punto cerca del borde reparte parte de su peso fuera de la ventana, y esa masa se pierde. ' +
+                'Sin corregir, la integral de la intensidad queda por debajo de n; la corrección por defecto la sube dividiendo en cada sitio, y la de Diggle divide en cada dato y devuelve n.'
+    }
+  };
+  MATEMATICA.ESCENAS = ESCENAS;      // `prueba_nucleo3d.py` lee de aquí el rango de σ de cada escena
   let contador = 0;                  // para que cada instancia tenga sus propios id
 
   /* ===================================================================
@@ -273,7 +477,7 @@
 .n3d-leyenda p{margin:0;color:#334155}
 .n3d-leyenda sub{font-size:.75em;line-height:0}
 .n3d-escena{grid-area:escena;position:relative;min-width:0}
-.n3d-lienzo{position:relative;aspect-ratio:16/10;min-height:260px;border:1px solid #e5e7eb;border-radius:.6rem;overflow:hidden;
+.n3d-lienzo{position:relative;width:100%;aspect-ratio:16/10;min-height:260px;border:1px solid #e5e7eb;border-radius:.6rem;overflow:hidden;
   background:radial-gradient(120% 95% at 50% 18%,#ffffff 0%,#f4f8f6 55%,#e4ece8 100%);touch-action:pan-y pinch-zoom;
   user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 .n3d-lienzo canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;outline:none}
@@ -297,6 +501,10 @@
 .n3d-ap b{color:var(--n3d-tinta);font-weight:600;text-align:right}
 .n3d-ap-total{margin-top:.35rem;padding-top:.3rem;border-top:1px solid #d6e2dc;display:flex;justify-content:space-between;
   font-family:'Fira Code',monospace;font-weight:700;color:#b34700}
+.n3d-ap.n3d-ap-ancha{grid-template-columns:5.6rem 1fr 2.6rem}
+.n3d-ap.n3d-act span:first-child{font-weight:700;color:#b34700}
+.n3d-lectura .n3d-act{border-bottom:2px solid var(--n3d-naranja);padding-bottom:1px}
+.n3d-foco-txt{display:inline-flex;align-items:center;padding:0 .4rem;font-family:'Fira Code',monospace;font-size:.8125rem;color:var(--n3d-tinta)}
 .n3d-mandos{grid-area:mandos;align-self:start;display:flex;flex-wrap:wrap;gap:.75rem 1.5rem;align-items:flex-end}
 .n3d-ctl{display:flex;flex-direction:column;gap:.25rem;min-width:11rem;flex:1 1 13rem}
 .n3d-ctl[hidden]{display:none}
@@ -352,6 +560,7 @@
 .n3d-clase .n3d-nuc,.n3d-clase .n3d-btn{font-size:.9rem;padding:.28rem .6rem}
 .n3d-clase .n3d-ctl output{font-size:.9rem}
 .n3d-clase .n3d-lectura{font-size:.9rem}
+.n3d-clase .n3d-foco-txt{font-size:.9rem}
 .n3d-clase .n3d-num{width:1.65rem;height:1.65rem;font-size:.85rem}
 .n3d-clase .n3d-et{font-size:.95rem}
 .n3d-clase .n3d-pie{display:none}
@@ -374,29 +583,34 @@
   /* ===================================================================
      4 · EL MONTAJE: interfaz + escena. `montar` devuelve { destruir, ir }.
      =================================================================== */
-  const HTML = `
+  const htmlDe = E => `
 <div class="n3d-rejilla">
   <div class="n3d-pasos" role="group" aria-label="Pasos de la animación">
-    ${PASOS.map((p, i) => `<button type="button" class="n3d-paso" data-paso="${i + 1}" aria-label="Paso ${i + 1}: ${p.corto}"><span class="n3d-num">${i + 1}</span><span class="n3d-rot">${p.corto}</span></button>`).join('')}
+    ${E.pasos.map((p, i) => `<button type="button" class="n3d-paso" data-paso="${i + 1}" aria-label="Paso ${i + 1}: ${p.corto}"><span class="n3d-num">${i + 1}</span><span class="n3d-rot">${p.corto}</span></button>`).join('')}
     <button type="button" class="n3d-play" data-activo="false"><span class="n3d-play-ico" aria-hidden="true">▶</span><span class="n3d-play-txt">Reproducir</span></button>
   </div>
   <div class="n3d-leyenda" aria-live="polite"><h5></h5><p></p></div>
   <div class="n3d-escena">
     <div class="n3d-lienzo">
-      <canvas role="img" aria-describedby="@@ID@@-ayuda" aria-label="Escena tridimensional con ${PATRON.length} puntos inventados sobre un plano, y la superficie de intensidad que resulta de sumar una loma por punto. El texto y la lectura numérica dicen lo mismo con palabras."></canvas>
+      <canvas role="img" aria-describedby="@@ID@@-ayuda" aria-label="${E.aria}"></canvas>
       <div class="n3d-etiquetas" aria-hidden="true"></div>
-      <p class="n3d-ayuda" aria-hidden="true">${AYUDA}</p>
+      <p class="n3d-ayuda" aria-hidden="true">${E.ayuda}</p>
     </div>
-    <p class="n3d-sr" id="@@ID@@-ayuda">${AYUDA_TECLADO}</p>
-    <div class="n3d-panel" aria-hidden="true" hidden><h6>Aportes a λ̂(u)</h6><div class="n3d-ap-lista"></div><div class="n3d-ap-total"><span>λ̂(u)</span><span class="n3d-ap-suma"></span></div></div>
+    <p class="n3d-sr" id="@@ID@@-ayuda">${E.ayudaTeclado}</p>
+    <div class="n3d-panel" aria-hidden="true" hidden><h6>${E.id === 'conteo' ? 'Aportes a λ̂(u)' : ''}</h6><div class="n3d-ap-lista"></div>${E.id === 'conteo' ? '<div class="n3d-ap-total"><span>λ̂(u)</span><span class="n3d-ap-suma"></span></div>' : ''}</div>
     <div class="n3d-perfilcaja" data-ctl="perfil" hidden><span>Los cuatro núcleos, al mismo σ</span><canvas class="n3d-perfil" role="img" aria-label="Perfil radial de los cuatro núcleos con la misma desviación típica: el gaussiano decae sin cortarse; el de Epanechnikov, el cuártico y el disco tienen soporte finito."></canvas></div>
   </div>
   <div class="n3d-mandos">
     <div class="n3d-ctl" data-ctl="rejilla" hidden><label>Desplazar la rejilla <output></output></label><input type="range" min="0" max="${DESPLAZA_MAX}" step="0.05" value="0" aria-label="Desplazar la rejilla"></div>
-    <div class="n3d-ctl" data-ctl="sigma" hidden><label>Ancho de banda σ <output></output></label><input type="range" min="${SIGMA.min}" max="${SIGMA.max}" step="0.05" value="${SIGMA.ini}" aria-label="Ancho de banda sigma"></div>
+    <div class="n3d-ctl" data-ctl="sigma" hidden><label>Ancho de banda σ <output></output></label><input type="range" min="${E.sigma.min}" max="${E.sigma.max}" step="0.05" value="${E.sigma.ini}" aria-label="Ancho de banda sigma"></div>
     <div class="n3d-grupo" data-ctl="nucleo" hidden><span>Núcleo</span><div class="n3d-botones">
       ${ORDEN_NUCLEOS.map(k => `<button type="button" class="n3d-nuc" data-nucleo="${k}" aria-pressed="false" title="${k}">${NUCLEOS[k].nombre}</button>`).join('')}
     </div></div>
+    ${E.id === 'borde' ? `<div class="n3d-grupo" data-ctl="foco" hidden><span>Sede en foco</span><div class="n3d-botones">
+      <button type="button" class="n3d-btn" data-foco="-1" aria-label="Sede anterior">‹</button>
+      <span class="n3d-foco-txt" data-foco-txt aria-live="polite"></span>
+      <button type="button" class="n3d-btn" data-foco="1" aria-label="Sede siguiente">›</button>
+    </div></div>` : ''}
     <div class="n3d-grupo"><span>Vista</span><div class="n3d-botones">
       <button type="button" class="n3d-btn" data-vista="inclinada" aria-pressed="true">Inclinada</button>
       <button type="button" class="n3d-btn" data-vista="cenital" aria-pressed="false">Desde arriba</button>
@@ -404,7 +618,7 @@
     </div></div>
   </div>
   <div class="n3d-lectura" role="group" aria-label="Lectura numérica de la escena"></div>
-  <p class="n3d-pie">Ilustración con ${PATRON.length} puntos inventados, no un dato. Aquí no se corrige el borde: con σ grande parte de cada loma queda fuera de la ventana, y de eso trata el módulo 4.</p>
+  <p class="n3d-pie">${E.pie}</p>
 </div>`;
 
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -416,10 +630,8 @@
   // contenido sin el lienzo, y la prosa del módulo lo repite. El objeto que
   // devuelve tiene la MISMA interfaz que el real, inerte, para que quien lo use
   // (el capítulo, las pruebas, las diapositivas) no tenga que preguntar cuál es.
-  function sinAnimacion(cont, causa) {
-    cont.innerHTML = '<div class="n3d-sin-webgl"><strong>' + causa + '</strong> ' +
-      'Dice lo mismo que la fórmula del módulo 1: cada punto levanta una loma de ancho σ, y la superficie de intensidad es la suma de todas las lomas. ' +
-      'El módulo 2 mide qué pasa al cambiar la forma de la loma (casi nada) y su ancho (todo).</div>';
+  function sinAnimacion(cont, causa, E) {
+    cont.innerHTML = '<div class="n3d-sin-webgl"><strong>' + causa + '</strong> ' + E.sinWebgl + '</div>';
     const nada = () => {};
     return { destruir() { cont.innerHTML = ''; cont.classList.remove('n3d', 'n3d-clase'); }, ir: nada, poner: nada, reproducir: nada,
              pausar: nada, avanza: nada, fijaVista: nada, estado: {}, _: {} };
@@ -430,6 +642,8 @@
     const THREE = opc.THREE || global.THREE;
     const doc = cont.ownerDocument;
     const clase = opc.modo === 'clase';
+    const E = ESCENAS[opc.escena] || ESCENAS.conteo;
+    const BORDE = E.id === 'borde';
     inyectaCSS(doc);
     cont.classList.add('n3d');
     if (clase) cont.classList.add('n3d-clase');
@@ -439,29 +653,24 @@
     const pruebaGl = doc.createElement('canvas').getContext('webgl2') || doc.createElement('canvas').getContext('webgl');
     if (pruebaGl) { const ext = pruebaGl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); }
     if (!THREE || !pruebaGl) {
-      return sinAnimacion(cont, !THREE ? 'No se pudo cargar la biblioteca gráfica (three.js).' : 'Esta animación necesita WebGL y no está disponible.');
+      return sinAnimacion(cont, !THREE ? 'No se pudo cargar la biblioteca gráfica (three.js).' : 'Esta animación necesita WebGL y no está disponible.', E);
     }
 
-    cont.innerHTML = HTML.replace(/@@ID@@/g, 'n3d' + (++contador));
+    cont.innerHTML = htmlDe(E).replace(/@@ID@@/g, 'n3d' + (++contador));
     const $ = s => cont.querySelector(s);
     const $$ = s => Array.from(cont.querySelectorAll(s));
     const reducido = !!(global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
     /* ---------------- estado ---------------- */
-    const ESC = escalas(PATRON);
+    const SG = E.sigma;
+    const ESC = BORDE ? escalasBorde(PATRON, SG) : escalas(PATRON, SG);
     const N = PATRON.length;
     const puntos = PATRON.map(p => p.slice());
-    const estado = { paso: 1, sigma: SIGMA.ini, nucleo: 'gaussian', desp: 0, sonda: [-2.5, 1.0] };
+    // `foco` es la sede cuya loma se dibuja sola en el paso 1 (escena «borde»); empieza en la más cercana al borde.
+    const estado = { paso: 1, sigma: SG.ini, nucleo: 'gaussian', desp: 0, sonda: [-2.5, 1.0], foco: 0, modo: 'sin' };
     // Lo que se anima (cada valor viaja hacia su objetivo con una curva suave).
-    const A = { cajas: 0, lomasH: 0, lomasO: 0.85, suma: 0, sonda: 0, media: 0, az: 0, pol: 0.12, r: 1 };
-    const OBJETIVO = [
-      null,
-      { cajas: 0, lomasH: 0, lomasO: 0.85, suma: 0, sonda: 0, media: 1 },
-      { cajas: 1, lomasH: 0, lomasO: 0.85, suma: 0, sonda: 0, media: 0 },
-      { cajas: 0, lomasH: 1, lomasO: 0.85, suma: 0, sonda: 0, media: 0 },
-      { cajas: 0, lomasH: 1, lomasO: 0.22, suma: 1, sonda: 0, media: 0 },
-      { cajas: 0, lomasH: 1, lomasO: 0.22, suma: 1, sonda: 1, media: 0 }
-    ];
+    const A = { cajas: 0, lomasH: 0, lomasO: 0.85, suma: 0, sonda: 0, media: 0, az: 0, pol: 0.12, r: 1, todas: 0, diggle: 0, mezcla: 1 };
+    const OBJETIVO = E.objetivo;
     const VISTAS = { inclinada: { az: 0.62, pol: 1.1, r: 1 }, cenital: { az: 0, pol: 0.03, r: 1 } };
     let vista = 'inclinada';
     let sucio = true, vivo = true, pendiente = false, visible = true, ultimo = 0, raf = 0;
@@ -499,10 +708,11 @@
     try {
       renderer = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true, alpha: true, preserveDrawingBuffer: true });
     } catch (_) {
-      return sinAnimacion(cont, 'No se pudo iniciar WebGL.');
+      return sinAnimacion(cont, 'No se pudo iniciar WebGL.', E);
     }
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(global.devicePixelRatio || 1, 2));
+    renderer.localClippingEnabled = BORDE;       // la escena «borde» parte cada loma por el marco de la ventana
     const escena = new THREE.Scene();
     const camara = new THREE.PerspectiveCamera(32, 1.6, 0.1, 120);
     escena.add(new THREE.HemisphereLight(0xffffff, 0xdfe7e3, 0.95));
@@ -541,6 +751,13 @@
       reg(new THREE.BufferGeometry().setFromPoints([[-V, -V], [V, -V], [V, V], [-V, V]].map(p => new THREE.Vector3(p[0], 0.004, Z(p[1]))))),
       reg(new THREE.LineBasicMaterial({ color: 0x012820, transparent: true, opacity: 0.55 })));
     escena.add(marco);
+    if (BORDE) {
+      // Lo de fuera de la ventana: una mesa gris bajo el papel, para que la masa roja se lea como «fuera» y no como «flotando».
+      const afuera = new THREE.Mesh(reg(new THREE.PlaneGeometry(2 * (E.marco + 4), 2 * (E.marco + 4))),
+        reg(new THREE.MeshBasicMaterial({ color: 0xe6ece9 })));
+      afuera.rotation.x = -Math.PI / 2; afuera.position.y = -0.1;
+      escena.add(afuera);
+    }
 
     // La alfombra: el mapa de calor visto desde arriba, pintado sobre el suelo.
     // Es la misma superficie, y es lo que el estudiante ve en el módulo 2.
@@ -593,6 +810,20 @@
     const red = new THREE.LineSegments(geoRed, reg(new THREE.LineBasicMaterial({ color: 0x7a3a0a, transparent: true, opacity: 0.16 })));
     grupoSup.add(red);
 
+    // Escena «borde»: la superficie sin corregir, como una red gris, para ver cuánto sube cada corrección sobre ella.
+    const posRef = BORDE ? new Float32Array(pos) : null;
+    const atrPosRef = BORDE ? new THREE.BufferAttribute(posRef, 3) : null;
+    let refRed = null;
+    if (BORDE) {
+      const geoRef = reg(new THREE.BufferGeometry());
+      geoRef.setAttribute('position', atrPosRef);
+      geoRef.setIndex(new THREE.BufferAttribute(new Uint16Array(lin), 1));
+      refRed = new THREE.LineSegments(geoRef, reg(new THREE.LineBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.55 })));
+      refRed.frustumCulled = false;
+      refRed.visible = false;
+      grupoSup.add(refRed);
+    }
+
     // El plano de la media: «un solo número para toda la ventana».
     const media = new THREE.Mesh(reg(new THREE.PlaneGeometry(2 * V, 2 * V)),
       reg(new THREE.MeshBasicMaterial({ color: 0x5e8c7c, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false })));
@@ -604,8 +835,14 @@
     escena.add(bordeMedia);
 
     // Las lomas: una malla polar por núcleo, a σ = 1; cada punto la escala a su σ.
-    const geoLoma = {}, matLoma = {};
-    function crearLoma(nombre) {
+    const geoLoma = {}, matLoma = {}, geoLomaF = {}, matLomaF = {};
+    // Los planos de la ventana, en el mundo (la y de los datos es la −z): positivos por dentro. «Dentro» recorta lo que cae
+    // en el lado negativo de CUALQUIERA; «fuera» usa los mismos planos al revés y recorta solo lo que cae del lado negativo
+    // de TODOS (`clipIntersection`), que es el interior del cuadrado.
+    const plano = (nx, nz, c) => new THREE.Plane(new THREE.Vector3(nx, 0, nz), c);
+    const PLANOS_DENTRO = [plano(1, 0, V), plano(-1, 0, V), plano(0, 1, V), plano(0, -1, V)];
+    const PLANOS_FUERA = [plano(-1, 0, -V), plano(1, 0, -V), plano(0, -1, -V), plano(0, 1, -V)];
+    function crearLoma(nombre, fuera) {
       const R = NUCLEOS[nombre].corte(1), NR = 40, NA = 56, k = NUCLEOS[nombre].k;
       const pico = k(0, 1), p = [0, pico, 0], q = [];
       // Cada vértice lleva su color y su opacidad según la altura RELATIVA a su
@@ -613,8 +850,10 @@
       // 19 lomas solapadas se leen como relieve y no como 19 discos, y la forma
       // del núcleo se ve aunque, a σ grande, la loma sea casi plana.
       const vc = h => {
-        const t = Math.min(1, Math.max(0, h / pico)), u = Math.min(1, t / 0.22);
-        return [0.45 - 0.40 * Math.pow(t, 0.7), 0.75 - 0.37 * Math.pow(t, 0.7), 0.66 - 0.37 * Math.pow(t, 0.7), u * u * (3 - 2 * u)];
+        const t = Math.min(1, Math.max(0, h / pico)), u = Math.min(1, t / 0.22), q = Math.pow(t, 0.7);
+        const a = fuera ? 0.4 + 0.6 * u * u * (3 - 2 * u) : u * u * (3 - 2 * u);     // el rojo no se desvanece en el pie: es lo que hay que ver
+        // verde de la casa por dentro; rojo por fuera (la masa que se escapa de la ventana)
+        return fuera ? [0.98 - 0.18 * q, 0.62 - 0.50 * q, 0.60 - 0.48 * q, a] : [0.45 - 0.40 * q, 0.75 - 0.37 * q, 0.66 - 0.37 * q, a];
       };
       const c = vc(pico);
       for (let a = 1; a <= NR + 1; a++) {
@@ -638,9 +877,16 @@
       return g;
     }
     ORDEN_NUCLEOS.forEach(nombre => {
-      geoLoma[nombre] = crearLoma(nombre);
+      geoLoma[nombre] = crearLoma(nombre, false);
       matLoma[nombre] = reg(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, transparent: true,
-        opacity: 0.8, depthWrite: false, side: THREE.DoubleSide, flatShading: nombre === 'disc' }));
+        opacity: 0.8, depthWrite: false, side: THREE.DoubleSide, flatShading: nombre === 'disc',
+        clippingPlanes: BORDE ? PLANOS_DENTRO : null }));
+      if (BORDE) {
+        geoLomaF[nombre] = crearLoma(nombre, true);
+        matLomaF[nombre] = reg(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, transparent: true,
+          opacity: 0.8, depthWrite: false, side: THREE.DoubleSide, flatShading: nombre === 'disc',
+          clippingPlanes: PLANOS_FUERA, clipIntersection: true }));
+      }
     });
     const lomas = puntos.map(() => {
       const m = new THREE.Mesh(geoLoma.gaussian, matLoma.gaussian);
@@ -648,6 +894,13 @@
       escena.add(m);
       return m;
     });
+    // La otra mitad de cada loma (la de fuera de la ventana): el mismo sitio y la misma escala, otro material.
+    const lomasF = BORDE ? puntos.map(() => {
+      const m = new THREE.Mesh(geoLomaF.gaussian, matLomaF.gaussian);
+      m.renderOrder = 2;
+      escena.add(m);
+      return m;
+    }) : [];
 
     // Las barras del paso 2 (a lo más 25 celdas).
     const matBarra = [];
@@ -679,6 +932,8 @@
     // captura más grande, invisible, que es la que recibe el puntero.
     const geoEsf = reg(new THREE.SphereGeometry(0.17, 20, 14));
     const matPunto = reg(new THREE.MeshStandardMaterial({ color: 0x012820, roughness: 0.35, metalness: 0.1 }));
+    // La sede en foco (escena «borde») es naranja y más grande: un aro en el suelo quedaba bajo la superficie.
+    const matFoco = reg(new THREE.MeshStandardMaterial({ color: 0xFF6600, roughness: 0.4, metalness: 0.05 }));
     const geoPie = reg(new THREE.CircleGeometry(0.2, 20)); geoPie.rotateX(-Math.PI / 2);
     const matPie = reg(new THREE.MeshBasicMaterial({ color: 0x012820, transparent: true, opacity: 0.22, depthWrite: false }));
     const geoCaptura = reg(new THREE.SphereGeometry(0.42, 8, 6));
@@ -734,18 +989,32 @@
     etMedia.innerHTML = 'n / |W| — un solo número'; capaEt.appendChild(etMedia);
     const etU = doc.createElement('div'); etU.className = 'n3d-et'; muestra(etU, false); etU.textContent = 'u'; etU.style.fontStyle = 'italic';
     etU.style.fontFamily = "'Montserrat',sans-serif"; etU.style.fontSize = '.9rem'; capaEt.appendChild(etU);
+    // Escena «borde»: la fracción que queda dentro (junto a la sede en foco) y dos notas que dicen dónde está cada lado del marco.
+    const nuevaEt = (clase, texto) => {
+      const e = doc.createElement('div'); e.className = clase; muestra(e, false); if (texto) e.textContent = texto; capaEt.appendChild(e); return e;
+    };
+    const etFoco = BORDE ? nuevaEt('n3d-et') : null;
+    const etFuera = BORDE ? nuevaEt('n3d-et n3d-nota', 'fuera') : null;
+    const etVentana = BORDE ? nuevaEt('n3d-et n3d-nota', 'ventana') : null;
 
     /* ---------------- recálculo (cuando cambia algo de los datos) ---------------- */
     let pico = 0, cuad = null, ap = null, mediaAlto = 0;
     const tmpC = [0, 0, 0];
-    function recalcula() {
-      const nuc = estado.nucleo, s = estado.sigma;
-      pico = superficie(nuc, puntos, s, NG, valores);
+    // Escena «borde»: e en cada vértice (`eMalla`, solo se rehace al cambiar σ o el núcleo) y en cada sede (`ePts`), las tres
+    // masas, y las alturas: `valores` son las del modo de ahora, `valDesde` las del modo anterior y `valMuestra` la mezcla que
+    // se ve mientras la superficie cambia de un modo a otro. En la escena «conteo» las tres son la misma tabla.
+    let eMalla = null, eClave = '', masas = null, mezclaPrev = 1;
+    const valSin = BORDE ? new Float32Array(NG * NG) : null;      // la superficie sin corregir, siempre
+    const ePts = puntos.map(() => 1);
+    const valDesde = BORDE ? new Float32Array(NG * NG) : null;
+    const valMuestra = BORDE ? new Float32Array(NG * NG) : valores;
+    // Escribe en la malla, el color y la alfombra las alturas `v` (una por vértice, en unidades de intensidad).
+    function pintaSuperficie(v) {
       for (let q = 0; q < NG * NG; q++) {
-        pos[q * 3 + 1] = valores[q] * ESC.alto;
-        colorDe(valores[q] / ESC.color, tmpC);
+        pos[q * 3 + 1] = v[q] * ESC.alto;
+        colorDe(v[q] / ESC.color, tmpC);
         col[q * 3] = tmpC[0]; col[q * 3 + 1] = tmpC[1]; col[q * 3 + 2] = tmpC[2];
-        const p = q * 4, c = colorDe(Math.pow(valores[q] / ESC.color, 0.9), tmpC);
+        const p = q * 4, c = colorDe(Math.pow(v[q] / ESC.color, 0.9), tmpC);
         imgAlfombra.data[p] = c[0] * 255; imgAlfombra.data[p + 1] = c[1] * 255; imgAlfombra.data[p + 2] = c[2] * 255; imgAlfombra.data[p + 3] = 255;
       }
       atrPos.needsUpdate = true; atrCol.needsUpdate = true;
@@ -759,6 +1028,33 @@
         }
       }
       gAlfombra.putImageData(imgAlfombra, 0, 0); texAlfombra.needsUpdate = true;
+    }
+
+    // La superficie de ahora y la de antes, mezcladas según avanza la transición entre modos (`A.mezcla`, de 0 a 1).
+    function mezclaValores() {
+      const m = clamp(A.mezcla, 0, 1);
+      if (m >= 1) valMuestra.set(valores);      // llegada: sin restos de la mezcla, y sin que un NaN de la superficie anterior se cuele
+      else for (let q = 0; q < NG * NG; q++) valMuestra[q] = valDesde[q] + (valores[q] - valDesde[q]) * m;
+      mezclaPrev = A.mezcla;
+    }
+
+    // Escena «borde»: e donde hace falta, la superficie del modo actual y las tres masas.
+    function recalculaBorde(nuc, s) {
+      const clave = nuc + '|' + s;
+      if (clave !== eClave) { eMalla = eMalla || new Float64Array(NG * NG); mallaE(nuc, s, NG, eMalla); eClave = clave; }
+      puntos.forEach((p, i) => { ePts[i] = bordeE(nuc, s, p[0], p[1]); });
+      pico = superficieBorde(nuc, puntos, s, NG, estado.modo, eMalla, ePts, valores);
+      if (estado.modo === 'sin') valSin.set(valores); else superficieBorde(nuc, puntos, s, NG, 'sin', eMalla, ePts, valSin);
+      for (let q = 0; q < NG * NG; q++) posRef[q * 3 + 1] = valSin[q] * ESC.alto;
+      atrPosRef.needsUpdate = true;
+      masas = integralesBorde(nuc, puntos, s, NG, eMalla, ePts);
+      mezclaValores();
+    }
+
+    function recalcula() {
+      const nuc = estado.nucleo, s = estado.sigma;
+      if (BORDE) recalculaBorde(nuc, s); else pico = superficie(nuc, puntos, s, NG, valores);
+      pintaSuperficie(valMuestra);
 
       mediaAlto = (N / ((2 * V) * (2 * V))) * ESC.alto;
       media.position.y = mediaAlto; bordeMedia.position.y = mediaAlto;
@@ -769,6 +1065,7 @@
       lomas.forEach((l, i) => {
         l.geometry = geoLoma[nuc]; l.material = matLoma[nuc];
         l.position.set(puntos[i][0], 0, Z(puntos[i][1]));
+        if (BORDE) { const f = lomasF[i]; f.geometry = geoLomaF[nuc]; f.material = matLomaF[nuc]; f.position.copy(l.position); }
       });
       recalculaSonda();
       pintaPerfil();
@@ -807,14 +1104,24 @@
     function alturaEn(x, y) {   // altura de la superficie bajo (x, y), por interpolación bilineal de la malla
       const fx = clamp((x + V) / (2 * V) * (NG - 1), 0, NG - 1.001), fy = clamp((y + V) / (2 * V) * (NG - 1), 0, NG - 1.001);
       const i = Math.floor(fx), j = Math.floor(fy), tx = fx - i, ty = fy - j;
-      const a = valores[j * NG + i], b = valores[j * NG + i + 1], c = valores[(j + 1) * NG + i], d = valores[(j + 1) * NG + i + 1];
+      const a = valMuestra[j * NG + i], b = valMuestra[j * NG + i + 1], c = valMuestra[(j + 1) * NG + i], d = valMuestra[(j + 1) * NG + i + 1];
       return ((a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty) * ESC.alto;
     }
 
+    // Cuánto de su loma se ve (0 a 1) y cuánto se infla por 1/e(xᵢ) (Diggle, escena «borde»). En la escena «conteo» la loma sale
+    // sola, de una en una; en la «borde» las de las demás sedes esperan a `A.todas` y la de la sede en foco va siempre.
+    const presencia = i => {
+      const p = sale(clamp(A.lomasH * 1.9 - 0.9 * i / N, 0, 1));
+      return BORDE && i !== estado.foco ? p * sale(clamp(A.todas, 0, 1)) : p;
+    };
+    const inflada = i => BORDE ? 1 + A.diggle * (1 / ePts[i] - 1) : 1;
+
     function aplica() {
+      if (BORDE && A.mezcla !== mezclaPrev) { mezclaValores(); pintaSuperficie(valMuestra); }
       const suma = suave(clamp(A.suma, 0, 1));
       grupoSup.visible = suma > 0.002;
       grupoSup.scale.y = Math.max(suma, 0.001);
+      if (BORDE) refRed.visible = estado.modo !== 'sin';
       alfombra.material.opacity = suma * (0.9 - 0.45 * A.sonda);
       // con la sonda activa la superficie se vuelve de cristal: la columna y los hilos viven DENTRO de ella
       matSup.opacity = 1 - 0.45 * A.sonda;
@@ -824,12 +1131,16 @@
       // lomas: cada una crece con su retraso, de una en una
       const s = estado.sigma;
       lomas.forEach((l, i) => {
-        const p = sale(clamp(A.lomasH * 1.9 - 0.9 * i / N, 0, 1));
+        const p = presencia(i);
         l.visible = p > 0.002;
-        l.scale.set(s, Math.max(p * ESC.alto / (s * s), 1e-4), s);
+        l.scale.set(s, Math.max(p * ESC.alto * inflada(i) / (s * s), 1e-4), s);
+        if (BORDE) { const f = lomasF[i]; f.visible = l.visible; f.scale.copy(l.scale); }
       });
       // la loma se diluye al abrir σ: su opacidad sigue su altura real, no solo su forma
-      matLoma[estado.nucleo].opacity = A.lomasO * clamp(NUCLEOS[estado.nucleo].k(0, s) / NUCLEOS[estado.nucleo].k(0, SIGMA.ini), 0.3, 1);
+      const dilucion = clamp(NUCLEOS[estado.nucleo].k(0, s) / NUCLEOS[estado.nucleo].k(0, SG.ini), 0.3, 1);
+      matLoma[estado.nucleo].opacity = A.lomasO * dilucion;
+      // la parte de fuera se queda más visible que la de dentro: es lo que se pierde y lo que hay que mirar
+      if (BORDE) matLomaF[estado.nucleo].opacity = Math.min(1, 0.35 + 0.55 * A.lomasO) * Math.max(dilucion, 0.65);
 
       // barras: crecen en oleada desde la esquina
       const mostrarEt = A.cajas > 0.6;
@@ -849,9 +1160,14 @@
       const [px, py] = estado.sonda;
       puntos.forEach((p, i) => {
         const m = marcas[i];
-        const propia = NUCLEOS[estado.nucleo].k(0, s) * ESC.alto * sale(clamp(A.lomasH * 1.9 - 0.9 * i / N, 0, 1));
+        const propia = NUCLEOS[estado.nucleo].k(0, s) * ESC.alto * presencia(i) * inflada(i);
         const alto = 0.17 + Math.max(propia, suma * alturaEn(p[0], p[1]));
         m.g.position.set(p[0], alto, Z(p[1]));
+        if (BORDE) {            // la sede en foco: naranja y más grande
+          const enFoco = i === estado.foco;
+          m.esfera.material = enFoco ? matFoco : matPunto;
+          m.esfera.scale.setScalar(enFoco ? 1.45 : 1);
+        }
         m.esfera.position.y = 0;
         m.tallo.scale.y = 1; m.tallo.position.y = -alto; m.tallo.scale.set(1, alto, 1);
         m.pieOwn.position.set(p[0], 0.006, Z(p[1]));
@@ -905,7 +1221,7 @@
     // distancia hasta que la más exterior cae al 93 % del semilado (el margen de siempre).
     const objetivo = new THREE.Vector3(), tmpP = new THREE.Vector3();
     const esquinas = [];
-    [-V, V].forEach(x => [-V, V].forEach(z => [0, ESC.techo].forEach(y => esquinas.push(new THREE.Vector3(x, y, z)))));
+    [-E.marco, E.marco].forEach(x => [-E.marco, E.marco].forEach(z => [0, ESC.techo].forEach(y => esquinas.push(new THREE.Vector3(x, y, z)))));
     function ponCamara(r) {
       camara.position.set(objetivo.x + r * Math.sin(A.pol) * Math.sin(A.az),
                           objetivo.y + r * Math.cos(A.pol),
@@ -915,7 +1231,7 @@
     }
     function colocaCamara() {
       const th = Math.tan(camara.fov * Math.PI / 360), tw = th * Math.max(0.4, cw / ch);
-      const ext = 2 * V * (Math.abs(Math.cos(A.az)) + Math.abs(Math.sin(A.az)));   // ancho del cuadrado visto de lado
+      const ext = 2 * E.marco * (Math.abs(Math.cos(A.az)) + Math.abs(Math.sin(A.az)));   // ancho del cuadrado visto de lado
       const extV = ext * Math.cos(A.pol) + (ESC.techo + 0.4) * Math.sin(A.pol);      // y su alto en pantalla, con el relieve
       objetivo.set(0, 0.5 + 1.1 * Math.sin(A.pol), 0);
       let r = 1.07 * Math.max((ext / 2) / tw, (extV / 2) / th);
@@ -957,6 +1273,13 @@
       const vu = A.sonda > 0.6;
       muestra(etU, vu);
       if (vu) proyecta(estado.sonda[0], 0, Z(estado.sonda[1]), etU, 0, 16);
+      if (BORDE) {
+        const f = puntos[estado.foco];
+        muestra(etFoco, true); escribe(etFoco, 'e = ' + f2(ePts[estado.foco]));
+        proyecta(f[0], marcas[estado.foco].g.position.y + 0.6, Z(f[1]), etFoco);
+        muestra(etFuera, true); proyecta(-V - 0.72, 0.05, Z(0), etFuera);
+        muestra(etVentana, true); proyecta(-V + 1.0, 0.02, Z(-V + 0.32), etVentana);
+      }
     }
 
     /* ---------------- interfaz: textos, lecturas, perfil ---------------- */
@@ -965,10 +1288,40 @@
     let ultimaLectura = '', ultimoPanel = '', pasoLey = 0;
     const panel = $('.n3d-panel'), panelLista = $('.n3d-ap-lista'), panelSuma = $('.n3d-ap-suma');
 
+    // La lectura de la escena «borde»: la fracción de la loma en foco que queda dentro (paso 1) y las tres masas (pasos 2 a 4).
+    const pct = x => Math.round(100 * x) + ' %', f1 = x => x.toFixed(1);
+    function lecturaBorde() {
+      const nf = ePts[estado.foco], modo = estado.modo;
+      if (estado.paso === 1) {
+        return [['sede en foco', 'n.º ' + (estado.foco + 1) + ' de ' + N], ['dentro de la ventana', pct(nf)], ['fuera', pct(1 - nf)], ['σ', f2(estado.sigma)]];
+      }
+      const m = (clave, nombre) => ['volumen ' + nombre, f1(masas[clave]), modo === clave];
+      const por = masas.por[estado.foco];       // lo mismo que dice el panel, que es decorativo: aquí lo lee quien no lo ve
+      return [['sedes n', N], m('sin', 'sin corregir'), m('defecto', 'por defecto'), m('diggle', 'con Diggle'),
+              ['la sede n.º ' + (estado.foco + 1) + ' aporta (sin corregir, por defecto, Diggle)', f2(por.sin) + ', ' + f2(por.defecto) + ', ' + f2(por.diggle)]];
+    }
+    // El panel de la escena «borde»: lo que aporta al volumen la sede en foco, con una barra por cifra.
+    function panelBorde() {
+      const nf = ePts[estado.foco], modo = estado.modo, fila = (nombre, v, tope, color, activa) =>
+        `<div class="n3d-ap n3d-ap-ancha${activa ? ' n3d-act' : ''}"><span>${nombre}</span><span class="n3d-ap-barra"><i style="width:${(100 * Math.min(1, v / tope)).toFixed(0)}%${color ? ';background:' + color : ''}"></i></span><b>${f2(v)}</b></div>`;
+      if (estado.paso === 1) {
+        return ['Masa de la loma en foco', fila('dentro', nf, 1, '', false) + fila('fuera', 1 - nf, 1, '#c0392b', false)];
+      }
+      const por = masas.por[estado.foco];
+      return ['Lo que aporta la sede en foco al volumen',
+              fila('sin corregir', por.sin, 1.4, '', modo === 'sin') + fila('por defecto', por.defecto, 1.4, '', modo === 'defecto') + fila('Diggle', por.diggle, 1.4, '', modo === 'diggle')];
+    }
+
     function pintaLectura() {
       const s = estado.sigma, nuc = NUCLEOS[estado.nucleo];
       let h;
-      if (estado.paso === 1) {
+      if (BORDE) {
+        h = lecturaBorde();
+        const [titulo, filas] = panelBorde();
+        const h6 = $('.n3d-panel h6');
+        if (h6.textContent !== titulo) h6.textContent = titulo;
+        if (filas !== ultimoPanel) { ultimoPanel = filas; panelLista.innerHTML = filas; }
+      } else if (estado.paso === 1) {
         h = [['puntos', N], ['ventana', (2 * V) + ' × ' + (2 * V)], ['intensidad media n/|W|', f2(N / (4 * V * V)) + ' por unidad de área']];
       } else if (estado.paso === 2) {
         const max = Math.max.apply(null, cuad.celdas.map(c => c.n));
@@ -983,10 +1336,10 @@
         const dentro = puntos.filter(p => Math.hypot(p[0] - estado.sonda[0], p[1] - estado.sonda[1]) < al).length;
         h = [['σ', f2(s)], ['λ̂(u)', f2(suma)], ['puntos dentro del círculo', dentro + ' de ' + N]];
       }
-      const html = h.map(p => `<span><span class="n3d-r">${p[0]}</span> <b>${p[1]}</b></span>`).join('');
+      const html = h.map(p => `<span${p[2] ? ' class="n3d-act"' : ''}><span class="n3d-r">${p[0]}</span> <b>${p[1]}</b></span>`).join('');
       if (html !== ultimaLectura) { ultimaLectura = html; lect.innerHTML = html; }
       // el panel de aportes del paso 5
-      if (estado.paso === 5) {
+      if (!BORDE && estado.paso === 5) {
         const orden = ap.map((w, i) => i).sort((a, b) => ap[b] - ap[a]);
         const total = ap.reduce((a, b) => a + b, 0) || 1;
         const top = orden.slice(0, 5).filter(i => ap[i] >= 0.005);
@@ -1039,7 +1392,7 @@
       ley.parentNode.appendChild(medidor);
       const h5 = medidor.firstChild, par = medidor.lastChild;
       let max = 0;
-      PASOS.forEach(q => { h5.textContent = q.titulo; par.innerHTML = q.texto; max = Math.max(max, medidor.offsetHeight); });
+      E.pasos.forEach(q => { h5.textContent = q.titulo; par.innerHTML = q.texto; max = Math.max(max, medidor.offsetHeight); });
       ley.parentNode.removeChild(medidor);
       const v = max + 'px';
       if (ley.style.minHeight !== v) ley.style.minHeight = v;
@@ -1048,7 +1401,8 @@
     function pintaControles() {
       $$('.n3d-paso').forEach((b, i) => { b.setAttribute('aria-current', i + 1 === estado.paso ? 'step' : 'false'); });
       $$('.n3d-paso').forEach(b => { if (b.getAttribute('aria-current') === 'false') b.removeAttribute('aria-current'); });
-      const mostrar = { rejilla: estado.paso === 2, sigma: estado.paso >= 3, nucleo: estado.paso >= 3, perfil: estado.paso >= 3 };
+      const mostrar = BORDE ? { rejilla: false, sigma: true, nucleo: true, perfil: false, foco: true }
+                            : { rejilla: estado.paso === 2, sigma: estado.paso >= 3, nucleo: estado.paso >= 3, perfil: estado.paso >= 3 };
       Object.keys(mostrar).forEach(k => { const e = $(`[data-ctl="${k}"]`); if (e) e.hidden = !mostrar[k]; });
       $$('.n3d-nuc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.nucleo === estado.nucleo)));
       $$('[data-vista]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.vista === vista)));
@@ -1058,19 +1412,28 @@
       const sv = ss.querySelector('input'); sv.setAttribute('aria-valuetext', 'sigma ' + f2(estado.sigma));
       if (pasoLey !== estado.paso) {          // la leyenda es `aria-live`: solo se toca al cambiar de paso, no con cada deslizador
         pasoLey = estado.paso;
-        const p = PASOS[estado.paso - 1];
+        const p = E.pasos[estado.paso - 1];
         leyH.textContent = p.titulo; leyP.innerHTML = p.texto;
       }
-      panel.hidden = estado.paso !== 5;
-      panel.setAttribute('aria-hidden', String(estado.paso !== 5));
+      const verPanel = BORDE || estado.paso === 5;
+      panel.hidden = !verPanel;
+      panel.setAttribute('aria-hidden', String(BORDE || !verPanel));     // el de «borde» repite la lectura: no se lee dos veces
+      if (BORDE) $('[data-foco-txt]').textContent = 'n.º ' + (estado.foco + 1) + ' de ' + N;
     }
 
     /* ---------------- pasos ---------------- */
     function ir(n, instantaneo) {
       if (!vivo) return;
-      n = clamp(n, 1, PASOS.length);
+      n = clamp(n, 1, E.pasos.length);
       estado.paso = n;
       const o = OBJETIVO[n], d = instantaneo ? 0 : 1.2;
+      if (BORDE) {
+        // la superficie cambia de modo (sin / por defecto / Diggle): se mezcla la de antes con la de ahora; las lomas
+        // de las demás sedes aparecen en el paso 2 y se inflan en el 4
+        const modo = E.pasos[n - 1].modo;
+        if (modo !== estado.modo) { valDesde.set(valMuestra); estado.modo = modo; A.mezcla = 0; tween('mezcla', 1, d); sucio = true; }
+        tween('todas', o.todas, d, 0); tween('diggle', o.diggle, d, 0);
+      }
       tween('cajas', o.cajas, d);
       tween('lomasH', o.lomasH, o.lomasH > A.lomasH ? 1.6 : 0.8);
       tween('lomasO', o.lomasO, d);
@@ -1094,9 +1457,17 @@
     // Fija valores desde fuera (las pruebas y los guiones de clase): lo mismo que mover los mandos.
     function poner(v) {
       if (!vivo) return;
-      Object.keys(v).forEach(k => { if (k in estado) estado[k] = v[k]; });
-      estado.sigma = clamp(estado.sigma, SIGMA.min, SIGMA.max);
+      // Un valor que no sirve se ignora en vez de romper el bucle de cuadros: un NaN en σ o en una sede no se cura ni con «Reiniciar».
+      const fin = x => typeof x === 'number' && isFinite(x);
+      const sirve = {
+        nucleo: x => x in NUCLEOS, modo: x => x === 'sin' || x === 'defecto' || x === 'diggle',
+        sonda: x => Array.isArray(x) && x.length === 2 && fin(x[0]) && fin(x[1]),
+        paso: x => fin(x) && x >= 1 && x <= E.pasos.length
+      };
+      Object.keys(v).forEach(k => { if (k in estado && (sirve[k] || fin)(v[k])) estado[k] = v[k]; });
+      estado.sigma = clamp(estado.sigma, SG.min, SG.max);
       estado.desp = clamp(estado.desp, 0, DESPLAZA_MAX);
+      estado.foco = clamp(Math.round(estado.foco), 0, N - 1);
       sucio = true; pintaControles(); pintaLectura(); pide();
     }
 
@@ -1105,28 +1476,51 @@
     // partida y vuelve a él: sin salto al empezar ni al acabar. (La anterior, 0.8 + 0.7·sen, bajaba
     // a 0.1 —por debajo del mínimo, donde la escala vertical no está calibrada— y sacaba la
     // superficie de la pantalla.)
-    const ONDA = { medio: (SIGMA.min + 1.5) / 2, ampl: (1.5 - SIGMA.min) / 2 };
-    ONDA.fase = Math.asin((SIGMA.ini - ONDA.medio) / ONDA.ampl);
+    const ONDA = { medio: (SG.min + SG.tope) / 2, ampl: (SG.tope - SG.min) / 2 };
+    ONDA.fase = Math.asin((SG.ini - ONDA.medio) / ONDA.ampl);
     const sigmaOnda = q => ONDA.medio + ONDA.ampl * Math.sin(q + ONDA.fase);
-    const GUION = [
+    const GUION_CONTEO = [
       { paso: 1, dur: 5 },
       { paso: 2, dur: 9, f: (t, d) => { estado.desp = DESPLAZA_MAX * (0.5 - 0.5 * Math.cos(2 * Math.PI * t / d)); } },
       { paso: 3, dur: 9, f: (t, d) => { estado.sigma = sigmaOnda(2 * Math.PI * t / d); } },
       { paso: 4, dur: 10, f: (t, d) => {
           if (t < d * 0.5) estado.sigma = sigmaOnda(2 * Math.PI * t / (d * 0.5));
-          else { estado.sigma = SIGMA.ini; estado.nucleo = ORDEN_NUCLEOS[Math.min(3, Math.floor((t - d * 0.5) / (d * 0.125)) % 4)]; }
+          else { estado.sigma = SG.ini; estado.nucleo = ORDEN_NUCLEOS[Math.min(3, Math.floor((t - d * 0.5) / (d * 0.125)) % 4)]; }
         } },
       { paso: 5, dur: 14, f: (t, d) => {
           const q = 2 * Math.PI * t / d;
           estado.sonda = [clamp(3.2 * Math.cos(q) - 0.2, -4.4, 4.4), clamp(2.8 * Math.sin(q), -4.4, 4.4)];
         } }
     ];
-    const guion = { activo: false, i: 0, t: 0 };
+    // La escena «borde»: la sede en foco va al borde y vuelve (paso 1: se ve lo que se escapa y lo que cuesta) y σ sube y baja en
+    // los tres pasos de la suma (se ve cómo las tres masas se separan al abrirlo). Todo vuelve a donde estaba.
+    const sigmaBorde = (t, d) => { estado.sigma = sigmaOnda(2 * Math.PI * t / d); };
+    const GUION_BORDE = [
+      { paso: 1, dur: 10, f: (t, d) => {
+          // La sede en foco va al borde más cercano, se aleja de él y vuelve a donde estaba, en tramos continuos: salga de
+          // donde salga (junto al borde o en el centro) ni salta ni se queda donde no estaba.
+          const b = guion.base;
+          const lados = [[1, 0, V - b[0]], [-1, 0, b[0] + V], [0, 1, V - b[1]], [0, -1, b[1] + V]];     // [normal x, normal y, distancia al borde]
+          const [nx, ny, dist] = lados.reduce((a, l) => (l[2] < a[2] ? l : a));
+          const B = [b[0] + nx * (dist - MARGEN), b[1] + ny * (dist - MARGEN)];                          // pegada al borde más cercano
+          const hondo = Math.max(dist - MARGEN, 3);                                                      // y al menos tres unidades hacia dentro
+          const ruta = hondo > dist - MARGEN ? [b, B, [B[0] - nx * hondo, B[1] - ny * hondo], b] : [b, B, b];
+          const q = clamp(t / d, 0, 1) * (ruta.length - 1), k = Math.min(ruta.length - 2, Math.floor(q)), u = suave(q - k);
+          const f = puntos[estado.foco];
+          f[0] = ruta[k][0] + (ruta[k + 1][0] - ruta[k][0]) * u; f[1] = ruta[k][1] + (ruta[k + 1][1] - ruta[k][1]) * u;
+        } },
+      { paso: 2, dur: 8, f: sigmaBorde },
+      { paso: 3, dur: 9, f: sigmaBorde },
+      { paso: 4, dur: 9, f: sigmaBorde }
+    ];
+    const GUION = BORDE ? GUION_BORDE : GUION_CONTEO;
+    const guion = { activo: false, i: 0, t: 0, base: [0, 0] };
     function sincronizaMandos() {
       pintaControles();
     }
     function guionIr(i) {
       guion.i = i; guion.t = 0;
+      if (BORDE) { guion.base = puntos[estado.foco].slice(); estado.sigma = SG.ini; }     // cada paso arranca (y la onda vuelve) exactamente en σ de partida
       ir(GUION[i].paso);
       sincronizaMandos();
     }
@@ -1140,6 +1534,8 @@
     function pausar() {
       if (!guion.activo) return;
       guion.activo = false;
+      // Si se interrumpe el paso 1 de la escena «borde», la sede en foco vuelve a su sitio: el guion la movía y no se la lleva consigo.
+      if (BORDE && guion.i === 0) { const f = puntos[estado.foco]; f[0] = guion.base[0]; f[1] = guion.base[1]; sucio = true; }
       $('.n3d-play').dataset.activo = 'false';
       $('.n3d-play-ico').textContent = '▶'; $('.n3d-play-txt').textContent = 'Reproducir';
     }
@@ -1148,12 +1544,12 @@
       guion.t += dt;
       if (g.f) {
         g.f(guion.t, g.dur);
-        estado.sigma = clamp(estado.sigma, SIGMA.min, SIGMA.max); estado.desp = clamp(estado.desp, 0, DESPLAZA_MAX);   // por si un guion futuro se pasa
+        estado.sigma = clamp(estado.sigma, SG.min, SG.max); estado.desp = clamp(estado.desp, 0, DESPLAZA_MAX);   // por si un guion futuro se pasa
         sucio = true;
       }
       if (guion.t >= g.dur) {
         if (guion.i + 1 < GUION.length) guionIr(guion.i + 1);
-        else { pausar(); fijaVista('inclinada'); }
+        else { pausar(); fijaVista('inclinada'); if (BORDE) { estado.sigma = SG.ini; sucio = true; } }
       }
       // la lectura y los mandos siguen lo que el guion mueve
       if (g.f) {
@@ -1199,7 +1595,7 @@
     /* ---------------- el puntero ---------------- */
     const rayo = new THREE.Raycaster(), ndc = new THREE.Vector2();
     const v4 = new THREE.Vector3();
-    const MARGEN = 0.4;                  // lo más cerca del borde a lo que se puede llevar un punto
+    const MARGEN = E.margen;             // lo más cerca del borde a lo que se puede llevar un punto
     // Cuánto se perdona al apuntar, en píxeles: la esfera de captura mide ~10 px de radio, que con un
     // ratón basta y con un dedo no. Con un dedo (o un lápiz) vale el objeto más cercano en la pantalla.
     // No más: dentro de ese radio el toque NO desplaza la página, y con 19 puntos en un lienzo de
@@ -1237,6 +1633,16 @@
       if (!o) return null;
       return o === capAsa ? { tipo: 'sonda' } : { tipo: 'punto', i: marcas.findIndex(m => m.cap === o) };
     }
+    // La superficie del MODO de ahora en (x, y), con las sedes donde estén y su e ya calculada (escena «borde»).
+    function intensidadBorde(x, y) {
+      const k = NUCLEOS[estado.nucleo].k, s = estado.sigma;
+      let t = 0;
+      for (let q = 0; q < N; q++) {
+        const dx = x - puntos[q][0], dy = y - puntos[q][1], v = k(dx * dx + dy * dy, s);
+        t += estado.modo === 'diggle' ? v / ePts[q] : v;
+      }
+      return estado.modo === 'defecto' ? t / bordeE(estado.nucleo, s, x, y) : t;
+    }
     // La altura a la que se dibuja lo que se arrastra, en (x, y): la MISMA cuenta que `aplica`.
     // El punto arrastrado se evalúa EN su sitio nuevo (la superficie de la malla aún no lo sabe).
     function alturaDe(a, x, y) {
@@ -1244,9 +1650,15 @@
       if (a.tipo === 'punto') {
         const p = puntos[a.i], px = p[0], py = p[1];
         p[0] = x; p[1] = y;
-        const sup = intensidadEn(estado.nucleo, puntos, estado.sigma, x, y) * ESC.alto;
+        let sup, fac = 1;
+        if (BORDE) {            // su e cambia con su sitio, y con ella la superficie y lo que se infla su loma
+          const eAntes = ePts[a.i];
+          ePts[a.i] = bordeE(estado.nucleo, estado.sigma, x, y);
+          sup = intensidadBorde(x, y) * ESC.alto; fac = inflada(a.i);
+          ePts[a.i] = eAntes;
+        } else sup = intensidadEn(estado.nucleo, puntos, estado.sigma, x, y) * ESC.alto;
         p[0] = px; p[1] = py;
-        const propia = NUCLEOS[estado.nucleo].k(0, estado.sigma) * ESC.alto * sale(clamp(A.lomasH * 1.9 - 0.9 * a.i / N, 0, 1));
+        const propia = NUCLEOS[estado.nucleo].k(0, estado.sigma) * ESC.alto * presencia(a.i) * fac;
         return 0.17 + Math.max(propia, suma * sup);
       }
       return intensidadEn(estado.nucleo, puntos, estado.sigma, x, y) * ESC.alto * suma + 0.1;
@@ -1296,6 +1708,7 @@
       alguna();
       const q = quienEs(e);
       try { lienzo.setPointerCapture(e.pointerId); } catch (_) { /* el puntero ya no está activo */ }
+      if (q && BORDE && q.tipo === 'punto' && q.i !== estado.foco) { estado.foco = q.i; sucio = true; pintaControles(); }   // la sede que se agarra pasa a ser la del foco
       if (q) { arrastre = q; agarra(e); lienzo.classList.add('n3d-agarra'); lleva(e); }
       else orbita = { x: e.clientX, y: e.clientY, az: A.az, pol: A.pol };
       pide();
@@ -1338,9 +1751,15 @@
       const q = { ArrowLeft: [0.12, 0], ArrowRight: [-0.12, 0], ArrowUp: [0, 0.1], ArrowDown: [0, -0.1] }[e.key];
       if (!q) return;
       e.preventDefault(); alguna();
-      if (e.shiftKey && estado.paso === 5) {
+      if (e.shiftKey && estado.paso === 5 && !BORDE) {
         const m = V - MARGEN;
         estado.sonda = [clamp(estado.sonda[0] - Math.sign(q[0]) * 0.25, -m, m), clamp(estado.sonda[1] + Math.sign(q[1]) * 0.25, -m, m)];
+        sucio = true; pide();
+        return;
+      }
+      if (e.shiftKey && BORDE) {          // en la escena «borde», Mayús + flechas mueve la sede en foco
+        const m = V - MARGEN, f = puntos[estado.foco];
+        f[0] = clamp(f[0] - Math.sign(q[0]) * 0.25, -m, m); f[1] = clamp(f[1] + Math.sign(q[1]) * 0.25, -m, m);
         sucio = true; pide();
         return;
       }
@@ -1360,10 +1779,14 @@
       alguna(); estado.nucleo = b.dataset.nucleo; sucio = true; pintaControles(); pide(); if (clase) devuelveElFoco();
     }));
     $$('[data-vista]').forEach(b => b.addEventListener('click', () => { alguna(); fijaVista(b.dataset.vista); if (clase) devuelveElFoco(); }));
+    $$('[data-foco]').forEach(b => b.addEventListener('click', () => {
+      alguna(); estado.foco = (estado.foco + (+b.dataset.foco) + N) % N; sucio = true; pintaControles(); pide();
+      if (clase) devuelveElFoco();
+    }));
     $('[data-reinicia]').addEventListener('click', () => {
       alguna();
       PATRON.forEach((p, i) => { puntos[i][0] = p[0]; puntos[i][1] = p[1]; });
-      estado.sigma = SIGMA.ini; estado.nucleo = 'gaussian'; estado.desp = 0; estado.sonda = [-2.5, 1.0];
+      estado.sigma = SG.ini; estado.nucleo = 'gaussian'; estado.desp = 0; estado.sonda = [-2.5, 1.0]; estado.foco = 0;
       fijaVista('inclinada'); ir(estado.paso, true); sucio = true; pintaControles(); pide();
       if (clase) devuelveElFoco();
     });
@@ -1413,6 +1836,7 @@
       desechables.forEach(o => { try { o.dispose(); } catch (_) { /* ya liberado */ } });
       matBarra.forEach(m => m.dispose());
       Object.keys(matLoma).forEach(k => matLoma[k].dispose());
+      Object.keys(matLomaF).forEach(k => matLomaF[k].dispose());
       renderer.dispose();
       try { renderer.forceContextLoss(); } catch (_) { /* sin extensión */ }
       cont.innerHTML = '';
@@ -1431,10 +1855,10 @@
     pide();
 
     return { destruir, ir, poner, reproducir, pausar, avanza, fijaVista, estado,
-             _: { A, puntos, ESC, escena, camara, renderer, grupoSup, grupoSonda, segmentos, hilos, asa, matSup } };
+             _: { A, puntos, ESC, escena, camara, renderer, grupoSup, grupoSonda, segmentos, hilos, asa, matSup, ePts, masas: () => masas } };
   }
 
-  const API = { montar, estilos: inyectaCSS, matematica: MATEMATICA, PASOS };
+  const API = { montar, estilos: inyectaCSS, matematica: MATEMATICA, PASOS, PASOS_BORDE };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   else global.Nucleo3D = API;
 })(typeof window !== 'undefined' ? window : globalThis);
