@@ -30,6 +30,7 @@ LAS FAMILIAS, y cada una imita algo que este código podría sufrir:
      bajar el dedo, la salida del lienzo que para el guion, el toque desplazado o cancelado que
      elige igual; el deslizador que no cambia el paso, «casi un solo color» con cualquier k,
      la cuenta con «=», W² que da por seguros a todos los vecinos, k que no llega a 66
+   · de la auditoría de las cinco animaciones (2026-10-02): el guion que no da tiempo a leer
 
 UNA INYECCIÓN NO PUEDE SER UN EQUIVALENTE, y la primera versión de esta lista tenía uno: mirar el
 rayo hacia el otro lado (`qx > …` en vez de `qx < …`) da el MISMO resultado, porque una recta que
@@ -140,6 +141,9 @@ MUTACIONES = [
      "if (ev.tactil && !arrastre) return null;", ""),
     ("un paso cuyo estado es una función no se evalúa", NUCLEO,
      "const est = typeof p.estado === 'function' ? p.estado(E) : p.estado;", "const est = p.estado;"),
+    # --- la auditoría de las cinco animaciones (2026-10-02) ---
+    ("el guion vuelve a no dar tiempo a leer el paso", NUCLEO,
+     "Math.max(p.pausa != null ? p.pausa : PAUSA_PASO, lectura(p))", "(p.pausa != null ? p.pausa : PAUSA_PASO)"),
 ]
 
 

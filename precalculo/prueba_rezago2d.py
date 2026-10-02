@@ -318,8 +318,18 @@ def main() -> int:
       t('y deja el mapa en k = ' + M.K_MAX + ' (visible, no solo destino)', m.E.k === M.K_MAX && m.V.k === M.K_MAX);
       m.reproducir();
       t('reproducir al final del guion lo empieza otra vez, desde el paso 1', m.E.paso === 1 && m.guion.activo === true);
+      // La espera da tiempo a LEER (auditoría del 2026-10-02: «Reproducir» pasaba los pasos a 450–1 000 palabras por minuto).
       const m4 = nueva(); m4.ir(4, { desdeGuion: true });
-      t('la espera del paso 4 es lo que tarda su transición (9 s) más la pausa (3,5 s)', Math.abs(m4.espera(4) - 12.5) < 1e-12);
+      const lee4 = m4.lectura(def.pasos[3]);
+      t('la espera del paso 4 es lo que tarda su transición (9 s) más lo que se tarda en leerlo (' + lee4.toFixed(1) + ' s, más que su pausa de 3,5 s)',
+        lee4 > 3.5 && Math.abs(m4.espera(4) - (9 + lee4)) < 1e-12);
+      for (let i = 1; i <= def.pasos.length; i++) {
+        const mi = nueva(); mi.ir(i, { desdeGuion: true });
+        const p = def.pasos[i - 1];
+        const pal = [p.titulo, p.texto].map(x => typeof x === 'function' ? x(mi.E) : x).join(' ').replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+        t('el guion se queda en el paso ' + i + ' lo bastante para leer sus ' + pal + ' palabras a 210 por minuto (' + mi.espera(i).toFixed(1) + ' s)',
+          mi.espera(i) >= pal / 3.5 - 1e-9);
+      }
 
       m = nueva();
       m.reproducir(); m.avanza(1);

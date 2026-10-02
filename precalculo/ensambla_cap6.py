@@ -1730,9 +1730,10 @@ REZAGO2D_JS = (
         const reserva = sitio.innerHTML;
         try {
           sitio.innerHTML = '';
-          // el color es el de los mapas del capítulo (`geomapaColor`, con su filtro de daltonismo)
+          // el color es el de los mapas del capítulo (`geomapaColor`, con su filtro de daltonismo); `reserva` es lo que
+          // la cáscara devuelve al sitio si la animación falla DESPUÉS de montarse (el primer dibujo llega en un rAF)
           instancia = sitio.animacion = Rezago2D.monta(sitio, { y: REZAGO2D_Y, mapa: MAPAS_CAP6['cap6-w'] },
-                                                       { color: geomapaColor, geom: geomapaGeom });
+                                                       { color: geomapaColor, geom: geomapaGeom, reserva });
         } catch (e) {
           sitio.innerHTML = reserva;
           instancia = sitio.animacion = null;
