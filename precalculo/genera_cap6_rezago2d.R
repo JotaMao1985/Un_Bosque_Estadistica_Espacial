@@ -5,7 +5,7 @@
 #
 # QUÉ PRODUCE
 #   precalculo/salidas/cap6_rezago2d.json           la serie entera, para las pruebas
-#   precalculo/salidas/cap6_rezago2d_resumen.json   los 8 números que cita la prosa del módulo 10
+#   precalculo/salidas/cap6_rezago2d_resumen.json   los 15 números que cita la prosa del módulo 10
 #
 # POR QUÉ ES UN SCRIPT APARTE Y NO UN BLOQUE DE `genera_cap6.R`
 #   La animación (`anim2d/rezago2d.js`) calcula W^k y en el navegador, y esa
@@ -29,11 +29,23 @@
 #                    ponderada por el grado, Σ dᵢ yᵢ / Σ dᵢ (la W por filas es
 #                    una cadena de Markov cuya distribución estacionaria es
 #                    proporcional al grado).
+#   · `diag_w2`, `orden2`, `cor_orden2`   lo que el paso 3 dice de W²y: cuánto pesa el propio barrio en
+#                    su W²y (la diagonal de W²), los vecinos de orden 2 DE VERDAD (`nblag`) y cuánto
+#                    se parece y a la media de ellos. W²y correlaciona MÁS con y que Wy, y es por la
+#                    diagonal, no porque a dos pasos los barrios se parezcan más.
 #   · `lambda2`      el segundo valor propio en módulo, que manda la velocidad
 #                    del aplanado, y `k_5pct`, las aplicaciones que hacen falta
 #                    para dejar la desviación en el 5 % de la de y.
-#   · `moran`        el I de Moran del capítulo 7, que con W por filas es la
-#                    PENDIENTE de Wy sobre y = cor · sd(Wy)/sd(y), no la cor.
+#   · `moran`        el I de Moran con la reina de poly2nb, que con W por filas es la
+#                    PENDIENTE de Wy sobre y = cor · sd(Wy)/sd(y), no la cor. El capítulo 7 NO
+#                    usa esta W sino la GAL de Anselin (`spdep::oldcol`, 116 parejas frente a
+#                    118): allí I = 0.5110. Se calcula aquí también, para que la prosa lo diga
+#                    con cifra y sin prometer un 0.5002 que el capítulo 7 no va a dar.
+#   · `barajado`     lo mismo con los 49 valores de CRIME repartidos al azar entre los barrios
+#                    (2 000 repartos, semilla fija): cuánto se estrecha Wy y cuántas aplicaciones
+#                    hacen falta para el 5 %. Las 66 de CRIME NO las fija W sola —con los valores
+#                    barajados la mediana es 31—, y que CRIME se estreche menos que al azar es su
+#                    autocorrelación: lo que el índice de Moran convierte en un número.
 #
 # Ejecutar con el envoltorio, desde la carpeta `Estadistica espacial/`:
 #     sh precalculo/rscript.sh precalculo/genera_cap6_rezago2d.R
@@ -109,8 +121,16 @@ un_criterio <- function(nb) {
   if (is.na(k5) || k5 > K_MAX)
     stop(sprintf("el deslizador llega a k = %d y la desviación no baja al 5 %% hasta k = %s", K_MAX, k5))
 
+  # Lo que el paso 3 dice de W²y (auditoría del 2026-10-02).
+  o2 <- nblag(nb, 2L)[[2L]]
+  sin_o2 <- function(v) length(v) == 1L && v[1L] == 0L
+  med_o2 <- vapply(o2, function(v) if (sin_o2(v)) NA_real_ else mean(y[v]), numeric(1))
+
   list(
     n_aristas = as.integer(sum(d) / 2L),
+    diag_w2 = I(as.numeric(diag(W %*% W))),
+    orden2 = lapply(o2, function(v) I(if (sin_o2(v)) integer(0) else as.integer(v))),
+    cor_orden2 = cor(y, med_o2, use = "complete.obs"),
     grados = I(d),
     vecinos = lapply(seq_along(nb), function(i) I(as.integer(nb[[i]]))),
     limite = limite,
@@ -139,6 +159,40 @@ wy1 <- as.numeric(lag.listw(lw1, y))
 ancla(s1$cor * sd(wy1) / sd(y), I_moran, "I = cor · sd(Wy)/sd(y)", tol = 1e-12)
 out$moran <- list(I = I_moran, cor = s1$cor, razon_sd = sd(wy1) / sd(y))
 
+# La W del capítulo 7: la GAL de Anselin (1988), `spdep::oldcol`. Su orden es el de POLYID, no el del gpkg, y el
+# capítulo 7 lo comprueba; aquí basta CRIME en el orden de oldcol con su propia W.
+data(oldcol, package = "spdep")
+lw_gal <- nb2listw(COL.nb, style = "W")
+out$moran$gal <- list(I = moran(COL.OLD$CRIME, lw_gal, n = 49L, S0 = Szero(lw_gal))$I,
+                      parejas = as.integer(sum(card(COL.nb)) / 2L),
+                      parejas_reina = as.integer(sum(card(reina)) / 2L))
+ancla(round(out$moran$gal$I, 6), 0.510951, "el I de Moran con la GAL es el del capítulo 7", tol = 1e-12)
+
+# Lo mismo con CRIME barajado sobre la misma W de la reina: cuánto se estrecha el rezago y cuántas aplicaciones
+# hacen falta para el 5 %. Determinista: semilla fija y R_BARAJA repartos.
+R_BARAJA <- 2000L
+set.seed(2026L)
+W_r <- nb2mat(reina, style = "W")
+bar <- vapply(seq_len(R_BARAJA), function(r) {
+  yy <- sample(y); v <- yy; s <- sd(yy); k5 <- NA_real_; r1 <- NA_real_
+  for (k in 1:400) {
+    v <- as.numeric(W_r %*% v)
+    if (k == 1L) r1 <- sd(v) / s
+    if (sd(v) <= 0.05 * s) { k5 <- k; break }
+  }
+  c(k5 = k5, r1 = r1)
+}, numeric(2))
+if (anyNA(bar)) stop("algún reparto barajado no baja del 5 % en 400 aplicaciones")
+out$barajado <- list(repartos = R_BARAJA,
+                     # un valor observado (cuantil de tipo 1), no la media de dos: la prosa lo escribe como entero
+                     k_5pct_mediana = as.numeric(quantile(bar["k5", ], 0.5, type = 1, names = FALSE)),
+                     razon_sd_mediana = median(bar["r1", ]),
+                     razon_sd_max = max(bar["r1", ]),
+                     frac_k5_como_crime = mean(bar["k5", ] >= out$vecindades$reina$k_5pct))
+# Lo que la prosa afirma con estas cifras: CRIME se estrecha MENOS que cualquier reparto barajado y tarda más que casi todos.
+if (!(out$moran$razon_sd > out$barajado$razon_sd_max)) stop("CRIME ya no se estrecha menos que todos los repartos barajados")
+if (!(out$barajado$k_5pct_mediana < out$vecindades$reina$k_5pct)) stop("con los valores barajados ya no hacen falta menos aplicaciones")
+
 escribe <- function(obj, nombre) {
   txt <- toJSON(obj, auto_unbox = TRUE, digits = 15, null = "null", na = "null")
   if (grepl('"NA"', txt, fixed = TRUE)) stop("hay NA escritos como la cadena \"NA\"")
@@ -159,4 +213,11 @@ escribe(list(
   k_5pct_reina = out$vecindades$reina$k_5pct,
   moran_I = out$moran$I,
   moran_cor = out$moran$cor,
-  moran_razon_sd = out$moran$razon_sd), "cap6_rezago2d_resumen.json")
+  moran_razon_sd = out$moran$razon_sd,
+  moran_I_gal = out$moran$gal$I,
+  parejas_gal = out$moran$gal$parejas,
+  parejas_reina = out$moran$gal$parejas_reina,
+  barajado_repartos = out$barajado$repartos,
+  barajado_k_5pct_mediana = out$barajado$k_5pct_mediana,
+  barajado_razon_sd_mediana = out$barajado$razon_sd_mediana,
+  barajado_razon_sd_max = out$barajado$razon_sd_max), "cap6_rezago2d_resumen.json")

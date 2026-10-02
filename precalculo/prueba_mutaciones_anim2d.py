@@ -30,7 +30,9 @@ LAS FAMILIAS, y cada una imita algo que este código podría sufrir:
      bajar el dedo, la salida del lienzo que para el guion, el toque desplazado o cancelado que
      elige igual; el deslizador que no cambia el paso, «casi un solo color» con cualquier k,
      la cuenta con «=», W² que da por seguros a todos los vecinos, k que no llega a 66
-   · de la auditoría de las cinco animaciones (2026-10-02): el guion que no da tiempo a leer
+   · de la auditoría de las cinco animaciones (2026-10-02): el guion que no da tiempo a leer, «5 %»
+     redondeado, el orden 2 y la diagonal de W² mal contados, el paso 3 que calla por qué sube la
+     correlación, y un anuncio que habla aunque nada haya cambiado
 
 UNA INYECCIÓN NO PUEDE SER UN EQUIVALENTE, y la primera versión de esta lista tenía uno: mirar el
 rayo hacia el otro lado (`qx > …` en vez de `qx < …`) da el MISMO resultado, porque una recta que
@@ -142,6 +144,17 @@ MUTACIONES = [
     ("un paso cuyo estado es una función no se evalúa", NUCLEO,
      "const est = typeof p.estado === 'function' ? p.estado(E) : p.estado;", "const est = p.estado;"),
     # --- la auditoría de las cinco animaciones (2026-10-02) ---
+    ("el porcentaje vuelve a redondearse a entero («5 %» desde t = 63)", REZAGO,
+     "const pct = (r) => (100 * r.sd / sd0).toFixed(1);", "const pct = (r) => Math.round(100 * r.sd / sd0);"),
+    ("el orden 2 «de verdad» cuenta también a los vecinos de orden 1", REZAGO,
+     "const ya = new Set([i].concat(nb)), s = new Set();", "const ya = new Set([i]), s = new Set();"),
+    ("lo que pesa el propio barrio en W² se divide solo por su grado", REZAGO,
+     "a + 1 / (vec[i].length * vec[j].length)", "a + 1 / (vec[i].length * vec[i].length)"),
+    ("el paso 3 vuelve a callar por qué sube la correlación", REZAGO,
+     "(c2 > c1 ? ': lleva dentro un trozo del propio y' : '')", "''"),
+    ("el anuncio repite el barrio aunque solo se pase el ratón", REZAGO,
+     "        if (E.k !== antes.k) return 't = ' + E.k + ': desviación típica ' + pct(r) + ' % de la de y.';\n        return null;",
+     "        if (E.k !== antes.k) return 't = ' + E.k + ': desviación típica ' + pct(r) + ' % de la de y.';\n        return 'Barrio ' + (E.foco + 1) + '.';"),
     ("el guion vuelve a no dar tiempo a leer el paso", NUCLEO,
      "Math.max(p.pausa != null ? p.pausa : PAUSA_PASO, lectura(p))", "(p.pausa != null ? p.pausa : PAUSA_PASO)"),
 ]

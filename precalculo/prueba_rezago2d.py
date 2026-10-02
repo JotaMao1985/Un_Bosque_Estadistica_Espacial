@@ -491,6 +491,44 @@ def main() -> int:
       t('el paso 4 anuncia, con cifras del cálculo, el límite ponderado y no la media de y',
         def.pasos[3].texto(est({ paso: 4, k: 60 })).indexOf(ENTRADA.ref.vecindades.reina.limite.toFixed(2)) >= 0 &&
         def.pasos[3].texto(est({ paso: 4, k: 60 })).indexOf(ENTRADA.ref.y.media.toFixed(2)) >= 0);
+      // LO QUE ENCONTRÓ LA AUDITORÍA DE LAS CINCO ANIMACIONES (2026-10-02)
+      {
+        for (const vecindad of ['reina', 'torre']) {
+          const S = def.interno.de(vecindad), rf = ENTRADA.ref.vecindades[vecindad];
+          // W²y correlaciona MÁS con y que Wy, y es por la diagonal: el paso 3 lo dice con cifras que salen de R
+          const o2R = rf.orden2.map(v => v.map(x => x - 1).sort((p, q) => p - q).join(','));
+          t(vecindad + ': los vecinos de orden 2 son los de nblag, en los 49 barrios', S.orden2.every((s, i) => s.join(',') === o2R[i]));
+          let dDiag = 0;
+          S.vec.forEach((_, i) => {
+            const e = y.map((_, j) => j === i ? 1 : 0);                       // W² aplicado a la indicatriz del barrio: su diagonal
+            dDiag = Math.max(dDiag, Math.abs(M.propioW2(S.vec, i) - rf.diag_w2[i]), Math.abs(M.rezago(S.vec, M.rezago(S.vec, e))[i] - rf.diag_w2[i]));
+          });
+          t(vecindad + ': lo que pesa el propio barrio en su W²y es la diagonal de W² de R: ' + dDiag.toExponential(1), dDiag < 1e-12);
+          t(vecindad + ': y la correlación de y con la media de su orden 2 es la de R (' + rf.cor_orden2.toFixed(4) + ')', Math.abs(S.corOrden2 - rf.cor_orden2) < 1e-12);
+          const tx = def.pasos[2].texto(est({ paso: 3, k: 2, vecindad, foco: 6 }));
+          t(vecindad + ': el paso 3 dice que la correlación sube, de cuánto a cuánto y por qué',
+            S.res[2].cor > S.res[1].cor && tx.indexOf('sube, de ' + S.res[1].cor.toFixed(2) + ' a ' + S.res[2].cor.toFixed(2)) >= 0 && /lleva dentro un trozo del propio y/.test(tx));
+          t(vecindad + ': y cita el peso del propio barrio en foco y la correlación del orden 2 de verdad',
+            tx.indexOf('pesa un ' + Math.round(100 * rf.diag_w2[6]) + '\u00a0%') >= 0 && tx.indexOf('(correlación ' + rf.cor_orden2.toFixed(2) + ')') >= 0);
+        }
+        // «5 %» se leía desde t = 63 (5.36 %): la lectura y el deslizador llevan un decimal
+        const l63 = def.lectura(est({ paso: 4, k: 63 })).map(x => x[1]).join(' ');
+        const vt = def.mandos.find(m => m.id === 'k').valorTexto;
+        t('con t = 63 la lectura dice «5.4 %», no «5 %» (la prosa dice que el 5 % se cruza en ' + ENTRADA.ref.vecindades.reina.k_5pct + ')',
+          /\(5\.4\s% de la de y\)/.test(l63) && !/\(5\s% de la de y\)/.test(l63));
+        t('y el deslizador se lo dice a un lector: «5.4 %» en 63 y «4.9 %» en 66', /5\.4 % de la de y/.test(vt(63, est({ k: 63 }))) && /4\.9 % de la de y/.test(vt(66, est({ k: 66 }))));
+        // la letra: t (k son los vecinos más próximos del módulo 4, en el mismo capítulo)
+        t('la lectura y los textos dicen t, no k', def.lectura(est({ k: 3 }))[0][0] === 't' &&
+          !/\bk = /.test(def.pasos[3].texto(est({ paso: 4, k: 3 })) + def.pasos[1].texto(est({ paso: 2, k: 0 })) + def.ayudaTeclado + def.ayuda));
+        // la región viva: solo lo que cambió
+        const E1 = est({ paso: 2, k: 1, foco: 6 });
+        t('el anuncio calla si solo se pasa el ratón', def.anuncio(Object.assign({}, E1, { hover: 3 }), E1) === null);
+        t('dice el barrio nuevo con su cuenta', /^Barrio 8: \d+\.\d\d, la media de sus \d+ vecinos en y\.$/.test(def.anuncio(est({ paso: 2, k: 1, foco: 7 }), E1)));
+        t('dice la t nueva con su desviación', /^t = 2: desviación típica \d+\.\d % de la de y\.$/.test(def.anuncio(est({ paso: 2, k: 2, foco: 6 }), E1)));
+        t('y la vecindad nueva con el valor al que va', def.anuncio(est({ paso: 2, k: 1, foco: 6, vecindad: 'torre' }), E1).indexOf(ENTRADA.ref.vecindades.torre.limite.toFixed(2)) >= 0);
+        t('el alt no escribe «W^70 y»', !/\^/.test(def.alt(est({ k: M.K_MAX }))));
+        t('nada dice «de al lado»: los perfiles van debajo', !/al lado/.test(def.aria + def.paneles.map(p => p.aria + p.etiqueta).join(' ')));
+      }
       // la lupa: la caja que se ve contiene al barrio en foco y a sus vecinos, y sin lupa es el mapa entero
       {
         const vec = M.vecinosDe(ENTRADA.mapa.variantes.reina.aristas, y.length);

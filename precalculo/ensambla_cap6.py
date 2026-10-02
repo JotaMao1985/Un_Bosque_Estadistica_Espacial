@@ -1176,7 +1176,10 @@ MOD10 = cabecera(
         se calcula con <em>y</em> y <em>Wy</em>: con W estandarizada por filas es la
         <strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>. Se parece a la correlación entre
         las dos sin ser igual, porque la pendiente es esa correlación multiplicada por el cociente
-        entre la desviación típica de <em>Wy</em> y la de <em>y</em>. Los modelos del capítulo 8
+        entre la desviación típica de <em>Wy</em> y la de <em>y</em>. Si en el capítulo 1 leíste la I de
+        Moran como «la correlación de los vecinos», es la misma idea vista pareja a pareja: se parece a la
+        correlación entre el valor de un sitio y el de cada vecino suyo, no a la que hay entre <em>y</em> y
+        la media de todos ellos, que suele salir más alta porque promediar quita ruido. Los modelos del capítulo 8
         meten <em>Wy</em> como una variable más. Vale la pena entenderlo aquí, donde todavía es
         solo una media.</p>
 
@@ -1215,27 +1218,42 @@ MOD10 = cabecera(
       <p>Si <em>Wy</em> es la media de los vecinos, <em>W(Wy)</em> es la media de esas medias, y se puede
         seguir: <strong>aplicar W una y otra vez</strong>. Cada vuelta aplana más el mapa, y antes de usar
         W repetida —el módulo 11 la llamará «apilar capas»— hay que saber adónde va. La animación lo deja
-        ver sobre los 49 barrios de Columbus, con una sola escala de color para todas las capas.</p>
+        ver sobre los 49 barrios de Columbus, con una sola escala de color para todas las capas. Escribimos
+        <em>W<sup>t</sup>y</em> para <em>y</em> promediado t veces: t y no k, que en este capítulo son los
+        vecinos más próximos del módulo 4.</p>
 
 {anim2d_html("cap6-rezago2d", "Aplicar W una y otra vez, sobre Columbus",
              "Columbus, no los municipios: son 49 barrios y se ven uno a uno, que es lo que hace falta para seguir la "
-             "cuenta de un solo barrio. Las barras de arriba son los municipios. Elige un barrio, sube k y cambia la "
+             "cuenta de un solo barrio. Las barras de arriba son los municipios. Elige un barrio, sube t y cambia la "
              "vecindad.")}
       <p>Lo que se ve, con la reina: el mapa tiende a un solo valor, y <strong>ese valor no es la media de
         y</strong>. Es la <strong>media ponderada por el grado</strong> de cada barrio,
         {firma(n(RS["limite_reina"], 4))}, y no la media simple,
         {n(RS["y_media"], 4)}: un barrio con más vecinos entra en más promedios y pesa más. Con la torre
         sale otro valor, {firma(n(RS["limite_torre"], 4))}, así que la vecindad que se
-        eligió manda también aquí. La rapidez la manda el segundo valor propio de W,
-        {n(RS["lambda2_reina"], 4)}: con la reina hacen falta
-        {ent(RS["k_5pct_reina"])} aplicaciones para dejar la desviación típica en el 5 % de la
-        que tenía <em>y</em>.</p>
+        eligió manda también aquí.</p>
 
-      <p>Con k = 1 la lectura de la animación da otra cifra que conviene no confundir: la
+      <p>Cuánto tarda en llegar no lo decide W sola. A la larga, cada aplicación multiplica la desviación
+        que queda por el segundo valor propio de W, {n(RS["lambda2_reina"], 4)} (el primero vale 1, y es el que deja
+        quieto el valor final); pero con la reina CRIME
+        necesita {ent(RS["k_5pct_reina"])} aplicaciones para dejar su desviación típica en el 5 % de la que
+        tenía, y con los mismos 49 valores repartidos al azar entre los barrios bastan
+        {ent(RS["barajado_k_5pct_mediana"])} (la mediana de {ent(RS["barajado_repartos"])} repartos).</p>
+
+      <p>Con t = 1 la lectura de la animación da otra cifra que conviene no confundir: la
         <strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>, {firma(n(RS["moran_I"], 4))}, que es el
-        índice de Moran del capítulo 7; la correlación entre las dos es {n(RS["moran_cor"], 4)}. No son lo
-        mismo, y la diferencia es justo la contracción de arriba: la desviación de <em>Wy</em> es
-        {n(RS["moran_razon_sd"], 4)} veces la de <em>y</em>.</p>
+        índice de Moran con esta W; la correlación entre las dos es {n(RS["moran_cor"], 4)}. No son lo
+        mismo, y la diferencia es la contracción de la sección anterior, ahora en Columbus: la desviación de
+        <em>Wy</em> es {n(RS["moran_razon_sd"], 4)} veces la de <em>y</em>. Que el rezago se estreche no
+        decía nada del territorio; <strong>cuánto se estrecha, sí</strong>. Con los valores repartidos al
+        azar sería {n(RS["barajado_razon_sd_mediana"], 4)} de mediana, y en ningún reparto pasó de
+        {n(RS["barajado_razon_sd_max"], 4)}: el de CRIME se estrecha menos porque lo cercano se parece, y
+        promediar valores parecidos los iguala poco. Es la misma razón por la que tarda más en aplanarse.</p>
+
+      <p>El capítulo 7 calcula este índice con otra W, la que publicó Anselin con los datos
+        ({ent(RS["parejas_gal"])} parejas, frente a las {ent(RS["parejas_reina"])} de la reina de
+        <code>poly2nb</code>), y allí da {n(RS["moran_I_gal"], 4)}. No es un error de ninguno de los dos: es,
+        otra vez, la W que se eligió.</p>
 
 {tabs("El rezago espacial", R10.format(**_SUB10), PY10.format(**_SUB10))}
       <p>Y una advertencia que el capítulo 7 va a cobrar: esa correlación de
