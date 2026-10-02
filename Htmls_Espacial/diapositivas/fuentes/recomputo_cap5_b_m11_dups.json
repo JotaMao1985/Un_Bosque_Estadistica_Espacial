@@ -1,0 +1,26 @@
+{
+  "m11b_dups": {
+    "n": 2107,
+    "sitios_distintos": 2067,
+    "sedes_sobrantes": 40,
+    "simulaciones_modelo": 99,
+    "semilla_modelo": 8128,
+    "pct_vecino_menos_100m_modelo": 16.3420865554079,
+    "pct_vecino_menos_100m_modelo_sd": 1.16363330060492,
+    "sitios_con_repetidas": 39,
+    "sedes_en_esos_sitios": 79,
+    "sitios_de_2": 38,
+    "sitios_de_3": 1,
+    "pct_vecino_menos_100m": 29.8054105363075,
+    "pct_vecino_menos_100m_csr": 16.3774987365796
+  },
+  "meta": {
+    "modulo": "b_m11_dups",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 2.55069184303284,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "m11b_kemp": {
+    "t_iso_s": 125.206,
+    "t_trans_s": 0.356,
+    "cociente_tiempos": 351.702247191011,
+    "dif_max_pct": 5.54373963019295,
+    "r_dif_max_m": 2269.31038112766,
+    "dif_min_pct": 1.6617694467937,
+    "en_250": {
+      "dif_pct": 1.64321962522225,
+      "exceso_iso": 161957.081875912,
+      "exceso_trans": 167844.846619005,
+      "cociente_exceso": 1.03635385791653
+    },
+    "en_1000": {
+      "dif_pct": 4.58762628914651,
+      "exceso_iso": 1204569.42709313,
+      "exceso_trans": 1403955.10127546,
+      "cociente_exceso": 1.16552443528596
+    },
+    "en_2000": {
+      "dif_pct": 5.40771051029112,
+      "exceso_iso": 2591190.63757142,
+      "exceso_trans": 3410867.67049588,
+      "cociente_exceso": 1.31633219919809
+    },
+    "en_5800": {
+      "dif_pct": 4.00700920088843,
+      "exceso_iso": 7474632.30344944,
+      "exceso_trans": 12008876.1284235,
+      "cociente_exceso": 1.60661764229949
+    }
+  },
+  "meta": {
+    "modulo": "b_m11_kemp",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 125.682402133942,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

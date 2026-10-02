@@ -1,0 +1,22 @@
+{
+  "m9b_info": {
+    "rcond_info_crudo": 2.72881988091494e-20,
+    "rcond_info_centrado": 0.0130558603690783,
+    "tolerancia_solve": 2.22044604925031e-16,
+    "sv_info_crudo": 3.28686087180742e-20,
+    "sv_info_centrado": 0.015020902228926,
+    "sv_diseno_crudo": 1.79420177775433e-10,
+    "sv_diseno_centrado": 0.117823927930428,
+    "solve_falla": true,
+    "mensaje_solve": "sistema es computacionalmente singular: número de condición recíproco = 2.72882e-20"
+  },
+  "meta": {
+    "modulo": "b_m9",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 0.541976928710938,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

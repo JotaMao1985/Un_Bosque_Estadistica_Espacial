@@ -1,0 +1,91 @@
+{
+  "picos_valles": {
+    "juguete": {
+      "x_j": [1.2, 1.9, 2.3, 6.5, 7.9, 8.4],
+      "sigmas": [0.35, 1.2],
+      "u_valle": 4.4,
+      "max_estrecho": 1.983529341897,
+      "max_ancho": 0.9296981391038,
+      "valle_estrecho": 3.472883445587e-08,
+      "valle_ancho": 0.1972564473046,
+      "alta_baja": 1,
+      "baja_sube": 1
+    },
+    "conteo": {
+      "n": 19,
+      "V": 5,
+      "sigma": {
+        "min": 0.5,
+        "max": 2.2,
+        "ini": 0.8
+      },
+      "paso": 0.05,
+      "n_valores": 35,
+      "n_pasos": 34,
+      "por_nucleo": {
+        "gaussian": {
+          "max_sigma_min": 1.272547059666,
+          "max_sigma_max": 0.2449840119041,
+          "pasos_sube": 0,
+          "frac_sube_total": 0.646529,
+          "alta_baja": 1,
+          "baja_sube": 1,
+          "frac_sube_paso_min": 0.278743,
+          "frac_sube_paso_mediana": 0.520905
+        },
+        "epanechnikov": {
+          "max_sigma_min": 1.301533173257,
+          "max_sigma_max": 0.2332240238913,
+          "pasos_sube": 0,
+          "frac_sube_total": 0.589861,
+          "alta_baja": 1,
+          "baja_sube": 1,
+          "frac_sube_paso_min": 0.238156,
+          "frac_sube_paso_mediana": 0.425289
+        },
+        "quartic": {
+          "max_sigma_min": 1.23470009232,
+          "max_sigma_max": 0.2282813947835,
+          "pasos_sube": 0,
+          "frac_sube_total": 0.605959,
+          "alta_baja": 1,
+          "baja_sube": 1,
+          "frac_sube_paso_min": 0.237428,
+          "frac_sube_paso_mediana": 0.480424
+        },
+        "disc": {
+          "max_sigma_min": 1.59149505045,
+          "max_sigma_max": 0.2795183734016,
+          "pasos_sube": 12,
+          "frac_sube_total": 0.591515,
+          "alta_baja": 1,
+          "baja_sube": 1,
+          "frac_sube_paso_min": 0.113658,
+          "frac_sube_paso_mediana": 0.2120515,
+          "primer_salto": {
+            "de": 0.75,
+            "a": 0.8,
+            "antes": 0.7074036869886,
+            "despues": 0.7464450554233
+          },
+          "cuenta_max": [5, 5, 5, 5, 5, 5, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9, 9, 9, 10, 11, 11, 12, 12, 12, 12, 13, 13, 14, 15, 16, 17, 17],
+          "salto_con_mas_puntos": true
+        }
+      }
+    },
+    "meta": {
+      "spatstat": "3.5.1",
+      "R": "R version 4.4.1 (2024-06-14)",
+      "npix": 1000,
+      "fecha": "2026-10-02",
+      "nota": "x_j y σ de la ilustración leídos de genera_figuras_s1.R; PATRON, σ y su paso leídos de precalculo/nucleo3d/nucleo3d.js; density() de spatstat sobre npix × npix, sin corrección de borde"
+    }
+  },
+  "meta": {
+    "spatstat": "3.5.1",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "npix": 1000,
+    "fecha": "2026-10-02",
+    "nota": "x_j y σ de la ilustración leídos de genera_figuras_s1.R; PATRON, σ y su paso leídos de precalculo/nucleo3d/nucleo3d.js; density() de spatstat sobre npix × npix, sin corrección de borde"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "m7b_adjust": {
+    "adjust": [0.5, 1, 2, 4],
+    "total": [3062.96714997388, 36.0389875802811, 11.9541845882264, 2.38563284665147],
+    "bulto": [2.10341324048124, 1.58191655035497, 1.31848285426776, 1.10574128154966],
+    "infla": [1456.1889651665, 22.7818512754002, 9.06662119232894, 2.15749641119312]
+  },
+  "m7b_jitter": {
+    "identico_con_FALSE": true,
+    "distinto_con_TRUE": true,
+    "consume_rng_con_FALSE": false,
+    "consume_rng_con_TRUE": true,
+    "total_FALSE": 36.0389875802811,
+    "bulto_FALSE": 1.58191655035497
+  },
+  "meta": {
+    "modulo": "b_m7",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 0.205065965652466,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}
