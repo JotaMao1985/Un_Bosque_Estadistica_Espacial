@@ -40,6 +40,9 @@ LAS FAMILIAS, y cada una imita algo que este código podría sufrir:
      lectura del disco con los vecinos del anillo, la K sin peso cuando se pide con peso, el
      arrastre del borde que no captura; y en la cáscara, el ciclo con un n que no cambia con
      el patrón
+   · de la auditoría de las cinco animaciones (2026-10-02): en el rezago, el guion que no da tiempo
+     a leer, «5 %» redondeado, el orden 2 y la diagonal de W² mal contados, el paso 3 que calla por
+     qué sube la correlación, y un anuncio que habla aunque nada haya cambiado
 
 DOS EQUIVALENTES QUE NO SE PONEN: cambiar a por b en el peso de traslación (las tres ventanas son
 cuadrados de lado 1) y quitar el `max(0, …)` del radio interior en la PERTENENCIA al anillo (una
@@ -205,6 +208,20 @@ MUTACIONES = [
      "if (!E.todos && dBorde <= 9 && dBorde < dPunto)", "if (!E.todos && dBorde <= 9 && i < 0)"),
     ("el arrastre del borde del círculo no captura el puntero", KANILLO,
      "return { poner: { ir: radioDe() }, captura: true, cursor: 'grabbing' };", "return { poner: { ir: radioDe() }, captura: false, cursor: 'grabbing' };"),
+    # --- la auditoría de las cinco animaciones (2026-10-02) ---
+    ("el porcentaje vuelve a redondearse a entero («5 %» desde t = 63)", REZAGO,
+     "const pct = (r) => (100 * r.sd / sd0).toFixed(1);", "const pct = (r) => Math.round(100 * r.sd / sd0);"),
+    ("el orden 2 «de verdad» cuenta también a los vecinos de orden 1", REZAGO,
+     "const ya = new Set([i].concat(nb)), s = new Set();", "const ya = new Set([i]), s = new Set();"),
+    ("lo que pesa el propio barrio en W² se divide solo por su grado", REZAGO,
+     "a + 1 / (vec[i].length * vec[j].length)", "a + 1 / (vec[i].length * vec[i].length)"),
+    ("el paso 3 vuelve a callar por qué sube la correlación", REZAGO,
+     "(c2 > c1 ? ': lleva dentro un trozo del propio y' : '')", "''"),
+    ("el anuncio repite el barrio aunque solo se pase el ratón", REZAGO,
+     "        if (E.k !== antes.k) return 't = ' + E.k + ': desviación típica ' + pct(r) + ' % de la de y.';\n        return null;",
+     "        if (E.k !== antes.k) return 't = ' + E.k + ': desviación típica ' + pct(r) + ' % de la de y.';\n        return 'Barrio ' + (E.foco + 1) + '.';"),
+    ("el guion vuelve a no dar tiempo a leer el paso", NUCLEO,
+     "Math.max(p.pausa != null ? p.pausa : PAUSA_PASO, lectura(p))", "(p.pausa != null ? p.pausa : PAUSA_PASO)"),
 ]
 
 

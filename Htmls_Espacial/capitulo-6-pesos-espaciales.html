@@ -5205,7 +5205,10 @@ print(wm.n_components)
         se calcula con <em>y</em> y <em>Wy</em>: con W estandarizada por filas es la
         <strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>. Se parece a la correlación entre
         las dos sin ser igual, porque la pendiente es esa correlación multiplicada por el cociente
-        entre la desviación típica de <em>Wy</em> y la de <em>y</em>. Los modelos del capítulo 8
+        entre la desviación típica de <em>Wy</em> y la de <em>y</em>. Si en el capítulo 1 leíste la I de
+        Moran como «la correlación de los vecinos», es la misma idea vista pareja a pareja: se parece a la
+        correlación entre el valor de un sitio y el de cada vecino suyo, no a la que hay entre <em>y</em> y
+        la media de todos ellos, que suele salir más alta porque promediar quita ruido. Los modelos del capítulo 8
         meten <em>Wy</em> como una variable más. Vale la pena entenderlo aquí, donde todavía es
         solo una media.</p>
 
@@ -5229,27 +5232,33 @@ print(wm.n_components)
       <h3>El rezago contrae, y hay que saberlo antes de dibujarlo</h3>
 
       <p>La media de la deserción es 3.4236 y la de su rezago
-        3.4593: prácticamente la misma, y tiene que serlo. Pero las
-        desviaciones típicas son <strong>1.7667</strong> y <strong>1.1874</strong>:
-        el rezago es un <strong>32,79 %</strong> más estrecho.</p>
+        3.4593: parecidas, pero <strong>no tienen por qué coincidir</strong>. Cada
+        municipio entra en el promedio de cada uno de sus vecinos, así que en <em>Wy</em> no pesan todos
+        igual. Lo que W estandarizada por filas conserva exactamente, con una vecindad simétrica como la
+        reina, es otra media: la <strong>ponderada por el grado</strong>, la que cuenta a cada municipio
+        tantas veces como vecinos tiene. Lo que cambia, y mucho, es la dispersión: las desviaciones
+        típicas son <strong>1.7667</strong> y <strong>1.1874</strong>, y el rezago es un
+        <strong>32,79 %</strong> más estrecho.</p>
 
-      <p>No es un artefacto: <strong>promediar contrae</strong>. La media de varios números está
-        más cerca del centro que los números que la forman, y el rezago es exactamente eso hecho
-        1 121 veces. La consecuencia práctica es de mapa: si se dibujan
-        <em>y</em> y <em>Wy</em> con la misma escala de color, el segundo <strong>siempre</strong>
-        se ve más plano, y eso no dice nada sobre el territorio — dice que uno es un promedio del
-        otro.</p>
+      <p>No es un artefacto: <strong>promediar contrae</strong>. La media de varios números queda entre
+        el menor y el mayor de ellos, así que ningún valor de <em>Wy</em> se sale del rango de <em>y</em>,
+        y en la práctica su desviación típica queda bastante por debajo. El rezago es exactamente eso
+        hecho 1 121 veces. La consecuencia práctica es de mapa: si se dibujan <em>y</em> y
+        <em>Wy</em> con la misma escala de color, el segundo se ve más plano, y eso no dice nada sobre el
+        territorio — dice que uno es un promedio del otro.</p>
 
       <h3>Si se promedia otra vez, el mapa sigue aplanándose</h3>
 
       <p>Si <em>Wy</em> es la media de los vecinos, <em>W(Wy)</em> es la media de esas medias, y se puede
         seguir: <strong>aplicar W una y otra vez</strong>. Cada vuelta aplana más el mapa, y antes de usar
         W repetida —el módulo 11 la llamará «apilar capas»— hay que saber adónde va. La animación lo deja
-        ver sobre los 49 barrios de Columbus, con una sola escala de color para todas las capas.</p>
+        ver sobre los 49 barrios de Columbus, con una sola escala de color para todas las capas. Escribimos
+        <em>W<sup>t</sup>y</em> para <em>y</em> promediado t veces: t y no k, que en este capítulo son los
+        vecinos más próximos del módulo 4.</p>
 
       <div class="simulador" data-simulador="cap6-rezago2d">
         <h4><i class="fas fa-diagram-project" aria-hidden="true"></i> Aplicar W una y otra vez, sobre Columbus</h4>
-        <p class="simulador-intro">Columbus, no los municipios: son 49 barrios y se ven uno a uno, que es lo que hace falta para seguir la cuenta de un solo barrio. Las barras de arriba son los municipios. Elige un barrio, sube k y cambia la vecindad.</p>
+        <p class="simulador-intro">Columbus, no los municipios: son 49 barrios y se ven uno a uno, que es lo que hace falta para seguir la cuenta de un solo barrio. Las barras de arriba son los municipios. Elige un barrio, sube t y cambia la vecindad.</p>
         <div class="a2d-montaje"><p class="a2d-cargando">La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: Wy es, en cada barrio, la media de sus vecinos, y aplicada una y otra vez aplana el mapa hacia un valor casi constante que no es la media de y sino la media ponderada por el grado.</p></div>
       </div>
 
@@ -5258,16 +5267,29 @@ print(wm.n_components)
         <strong>37.8213</strong>, y no la media simple,
         35.1288: un barrio con más vecinos entra en más promedios y pesa más. Con la torre
         sale otro valor, <strong>36.8842</strong>, así que la vecindad que se
-        eligió manda también aquí. La rapidez la manda el segundo valor propio de W,
-        0.9711: con la reina hacen falta
-        66 aplicaciones para dejar la desviación típica en el 5 % de la
-        que tenía <em>y</em>.</p>
+        eligió manda también aquí.</p>
 
-      <p>Con k = 1 la lectura de la animación da otra cifra que conviene no confundir: la
+      <p>Cuánto tarda en llegar no lo decide W sola. A la larga, cada aplicación multiplica la desviación
+        que queda por el segundo valor propio de W, 0.9711 (el primero vale 1, y es el que deja
+        quieto el valor final); pero con la reina CRIME
+        necesita 66 aplicaciones para dejar su desviación típica en el 5 % de la que
+        tenía, y con los mismos 49 valores repartidos al azar entre los barrios bastan
+        31 (la mediana de 2 000 repartos).</p>
+
+      <p>Con t = 1 la lectura de la animación da otra cifra que conviene no confundir: la
         <strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>, <strong>0.5002</strong>, que es el
-        índice de Moran del capítulo 7; la correlación entre las dos es 0.6838. No son lo
-        mismo, y la diferencia es justo la contracción de arriba: la desviación de <em>Wy</em> es
-        0.7315 veces la de <em>y</em>.</p>
+        índice de Moran con esta W; la correlación entre las dos es 0.6838. No son lo
+        mismo, y la diferencia es la contracción de la sección anterior, ahora en Columbus: la desviación de
+        <em>Wy</em> es 0.7315 veces la de <em>y</em>. Que el rezago se estreche no
+        decía nada del territorio; <strong>cuánto se estrecha, sí</strong>. Con los valores repartidos al
+        azar sería 0.4726 de mediana, y en ningún reparto pasó de
+        0.7060: el de CRIME se estrecha menos porque lo cercano se parece, y
+        promediar valores parecidos los iguala poco. Es la misma razón por la que tarda más en aplanarse.</p>
+
+      <p>El capítulo 7 calcula este índice con otra W, la que publicó Anselin con los datos
+        (116 parejas, frente a las 118 de la reina de
+        <code>poly2nb</code>), y allí da 0.5110. No es un error de ninguno de los dos: es,
+        otra vez, la W que se eligió.</p>
 
       <div class="code-tabs">
         <div class="code-tabs-nav" role="tablist" aria-label="El rezago espacial">
@@ -5284,7 +5306,7 @@ y   &lt;- des[ok]
 wy  &lt;- lag.listw(lw, y, zero.policy = TRUE)
 con &lt;- card(sub) &gt; 0
 
-# Se parecen, y esa es toda la autocorrelación espacial del capítulo 7
+# Se parecen. Ojo: el I de Moran es otra cifra, la pendiente de wy sobre y
 round(cor(y[con], wy[con]), 4)
 #&gt; [1] 0.5677
 
@@ -5624,6 +5646,8 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
               <tbody>
                 <tr><th scope="row">Media de la tasa</th><td>2.0456</td></tr>
                 <tr><th scope="row">Media del rezago</th><td>2.03493</td></tr>
+                <tr><th scope="row">Media de la tasa ponderada por el grado</th><td>2.0701</td></tr>
+                <tr><th scope="row">Media del rezago ponderada por el grado</th><td>2.0701</td></tr>
                 <tr><th scope="row">Desviación de la tasa</th><td>1.57334</td></tr>
                 <tr><th scope="row">Desviación del rezago</th><td>0.927801</td></tr>
                 <tr><th scope="row">Contracción de la desviación (%)</th><td>41.0298</td></tr>
@@ -5631,7 +5655,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
 
               </tbody>
             </table>
-            <p class="ejercicio-lectura">El del rezago, y no dice nada sobre Carolina del Norte: promediar contrae. La media de varios números está más cerca del centro que los números que la forman, y el rezago es esa media hecha una vez por condado. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la operación. Las medias coinciden porque promediar no mueve el centro; las desviaciones no.</p>
+            <p class="ejercicio-lectura">El del rezago, y no dice nada sobre Carolina del Norte: promediar contrae. La media de varios números queda entre el menor y el mayor de ellos, y el rezago es esa media hecha una vez por condado: ningún valor del rezago se sale del rango de la tasa, y la desviación cae mucho. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la operación. Las medias simples se parecen, pero no por obligación: cada condado entra en el promedio de cada uno de sus vecinos, así que en el rezago no pesan todos igual. Lo que no se mueve nunca, con una vecindad simétrica como la reina, es la media ponderada por el grado, la que cuenta a cada condado tantas veces como vecinos tiene: es la misma en la tasa y en su rezago.</p>
           </div>
         </div>
 
@@ -5706,7 +5730,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     // Todas las cifras del capítulo, tal como salieron del precálculo.
     // El JavaScript no lleva ninguna escrita: las saca de aquí.
     const DATOS_CAP6 = {"m1": {"columbus": {"n": 49, "variables": {"crime": {"media": 35.1288, "sd": 16.7321, "min": 0.1783, "max": 68.892}, "hoval": {"media": 38.4362, "sd": 18.4661}, "inc": {"media": 14.3749, "sd": 5.7034}}}, "municipios": {"n": 1122, "con_dato": 1121, "sin_dato": 1, "desercion": {"media": 3.4236, "sd": 1.7667, "min": 0, "max": 14.81, "ceros": 6}, "departamentos": 33}}, "m2": {"tablero": "columbus", "n": 49, "umbral_sin_islas": 0.6189, "criterios": [{"id": "reina", "etiqueta": "Contigüidad reina", "enlaces": 236, "pares": 118, "simetrica": true, "grado": 4.8163, "grado_min": 2, "grado_max": 10, "islas": 0, "subgrafos": 1, "densidad_pct": 10.034}, {"id": "torre", "etiqueta": "Contigüidad torre", "enlaces": 200, "pares": 100, "simetrica": true, "grado": 4.0816, "grado_min": 2, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 8.5034}, {"id": "k1", "etiqueta": "1 vecino más próximo", "enlaces": 49, "pares": 36, "simetrica": false, "grado": 1, "grado_min": 1, "grado_max": 1, "islas": 0, "subgrafos": 13, "densidad_pct": 2.0833}, {"id": "k3", "etiqueta": "3 vecinos más próximos", "enlaces": 147, "pares": 94, "simetrica": false, "grado": 3, "grado_min": 3, "grado_max": 3, "islas": 0, "subgrafos": 1, "densidad_pct": 6.25}, {"id": "k6", "etiqueta": "6 vecinos más próximos", "enlaces": 294, "pares": 178, "simetrica": false, "grado": 6, "grado_min": 6, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 12.5}, {"id": "d_mitad", "etiqueta": "Umbral: la mitad del mínimo conexo", "enlaces": 34, "pares": 17, "simetrica": true, "grado": 0.6939, "grado_min": 0, "grado_max": 3, "islas": 28, "subgrafos": 33, "densidad_pct": 1.4456}, {"id": "d_conexo", "etiqueta": "Umbral mínimo sin islas", "enlaces": 252, "pares": 126, "simetrica": true, "grado": 5.1429, "grado_min": 1, "grado_max": 11, "islas": 0, "subgrafos": 2, "densidad_pct": 10.7143}, {"id": "delaunay", "etiqueta": "Delaunay", "enlaces": 268, "pares": 134, "simetrica": true, "grado": 5.4694, "grado_min": 3, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 11.3946}, {"id": "gabriel", "etiqueta": "Gabriel", "enlaces": 184, "pares": 92, "simetrica": true, "grado": 3.7551, "grado_min": 1, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 7.8231}, {"id": "esfera", "etiqueta": "Esfera de influencia", "enlaces": 208, "pares": 104, "simetrica": true, "grado": 4.2449, "grado_min": 2, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 8.8435}], "histograma": [{"id": "reina", "conteo": [0, 0, 5, 9, 12, 5, 9, 3, 4, 1, 1, 0]}, {"id": "torre", "conteo": [0, 0, 7, 10, 17, 8, 3, 3, 0, 1, 0, 0]}, {"id": "k1", "conteo": [0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "k3", "conteo": [0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "k6", "conteo": [0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0]}, {"id": "d_mitad", "conteo": [28, 11, 7, 3, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "d_conexo", "conteo": [0, 4, 8, 6, 2, 5, 8, 6, 2, 6, 1, 1]}, {"id": "delaunay", "conteo": [0, 0, 0, 2, 10, 13, 16, 4, 3, 1, 0, 0]}, {"id": "gabriel", "conteo": [0, 1, 9, 12, 11, 11, 5, 0, 0, 0, 0, 0]}, {"id": "esfera", "conteo": [0, 0, 6, 7, 18, 8, 8, 1, 1, 0, 0, 0]}]}, "m3": {"reina": {"enlaces": 236, "pares": 118, "simetrica": true, "grado": 4.8163, "grado_min": 2, "grado_max": 10, "islas": 0, "subgrafos": 1, "densidad_pct": 10.034}, "torre": {"enlaces": 200, "pares": 100, "simetrica": true, "grado": 4.0816, "grado_min": 2, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 8.5034}, "solo_reina": 18, "ordenes": [{"orden": 1, "enlaces": 236, "pares": 118, "simetrica": true, "grado": 4.8163, "grado_min": 2, "grado_max": 10, "islas": 0, "subgrafos": 1, "densidad_pct": 10.034}, {"orden": 2, "enlaces": 416, "pares": 208, "simetrica": true, "grado": 8.4898, "grado_min": 1, "grado_max": 16, "islas": 0, "subgrafos": 1, "densidad_pct": 17.6871}, {"orden": 3, "enlaces": 486, "pares": 243, "simetrica": true, "grado": 9.9184, "grado_min": 1, "grado_max": 18, "islas": 0, "subgrafos": 1, "densidad_pct": 20.6633}], "municipios": {"reina": {"enlaces": 6570, "pares": 3285, "simetrica": true, "grado": 5.8556, "grado_min": 0, "grado_max": 20, "islas": 2, "subgrafos": 3, "densidad_pct": 0.5224}, "torre": {"enlaces": 6396, "pares": 3198, "simetrica": true, "grado": 5.7005, "grado_min": 0, "grado_max": 19, "islas": 2, "subgrafos": 3, "densidad_pct": 0.5085}}}, "m4": {"columbus": [{"k": 1, "asimetricos": 23, "enlaces": 49, "pares": 36, "simetrica": false, "grado": 1, "grado_min": 1, "grado_max": 1, "islas": 0, "subgrafos": 13, "densidad_pct": 2.0833}, {"k": 2, "asimetricos": 26, "enlaces": 98, "pares": 62, "simetrica": false, "grado": 2, "grado_min": 2, "grado_max": 2, "islas": 0, "subgrafos": 1, "densidad_pct": 4.1667}, {"k": 3, "asimetricos": 41, "enlaces": 147, "pares": 94, "simetrica": false, "grado": 3, "grado_min": 3, "grado_max": 3, "islas": 0, "subgrafos": 1, "densidad_pct": 6.25}, {"k": 4, "asimetricos": 46, "enlaces": 196, "pares": 121, "simetrica": false, "grado": 4, "grado_min": 4, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 8.3333}, {"k": 5, "asimetricos": 55, "enlaces": 245, "pares": 150, "simetrica": false, "grado": 5, "grado_min": 5, "grado_max": 5, "islas": 0, "subgrafos": 1, "densidad_pct": 10.4167}, {"k": 6, "asimetricos": 62, "enlaces": 294, "pares": 178, "simetrica": false, "grado": 6, "grado_min": 6, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 12.5}, {"k": 7, "asimetricos": 77, "enlaces": 343, "pares": 210, "simetrica": false, "grado": 7, "grado_min": 7, "grado_max": 7, "islas": 0, "subgrafos": 1, "densidad_pct": 14.5833}, {"k": 8, "asimetricos": 98, "enlaces": 392, "pares": 245, "simetrica": false, "grado": 8, "grado_min": 8, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 16.6667}], "municipios_k4": {"k": 4, "asimetricos": 1084, "enlaces": 4488, "pares": 2786, "simetrica": false, "grado": 4, "grado_min": 4, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 0.3568}, "simetrizada_k3": {"k": 3, "enlaces": 188, "pares": 94, "simetrica": true, "grado": 3.8367, "grado_min": 3, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 7.9932}}, "m5": {"columbus": {"umbral_sin_islas": 0.6189, "la_mitad": {"enlaces": 34, "pares": 17, "simetrica": true, "grado": 0.6939, "grado_min": 0, "grado_max": 3, "islas": 28, "subgrafos": 33, "densidad_pct": 1.4456}, "islas_en_la_mitad": 28, "multiplos": [0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6], "curva": [{"umbral": 0.2475, "umbral_km": 0.0002, "enlaces": 18, "pares": 9, "simetrica": true, "grado": 0.3673, "grado_min": 0, "grado_max": 3, "islas": 37, "subgrafos": 40, "densidad_pct": 0.7653}, {"umbral": 0.3713, "umbral_km": 0.0004, "enlaces": 72, "pares": 36, "simetrica": true, "grado": 1.4694, "grado_min": 0, "grado_max": 6, "islas": 17, "subgrafos": 23, "densidad_pct": 3.0612}, {"umbral": 0.4951, "umbral_km": 0.0005, "enlaces": 170, "pares": 85, "simetrica": true, "grado": 3.4694, "grado_min": 0, "grado_max": 9, "islas": 4, "subgrafos": 8, "densidad_pct": 7.2279}, {"umbral": 0.6189, "umbral_km": 0.0006, "enlaces": 252, "pares": 126, "simetrica": true, "grado": 5.1429, "grado_min": 1, "grado_max": 11, "islas": 0, "subgrafos": 2, "densidad_pct": 10.7143}, {"umbral": 0.7426, "umbral_km": 0.0007, "enlaces": 340, "pares": 170, "simetrica": true, "grado": 6.9388, "grado_min": 1, "grado_max": 13, "islas": 0, "subgrafos": 1, "densidad_pct": 14.4558}, {"umbral": 0.8664, "umbral_km": 0.0009, "enlaces": 466, "pares": 233, "simetrica": true, "grado": 9.5102, "grado_min": 3, "grado_max": 17, "islas": 0, "subgrafos": 1, "densidad_pct": 19.8129}, {"umbral": 0.9902, "umbral_km": 0.001, "enlaces": 556, "pares": 278, "simetrica": true, "grado": 11.3469, "grado_min": 3, "grado_max": 21, "islas": 0, "subgrafos": 1, "densidad_pct": 23.6395}]}, "municipios": {"umbral_sin_islas_m": 166760.8752, "umbral_sin_islas_km": 166.7609, "en_el_umbral": {"enlaces": 200900, "pares": 100450, "simetrica": true, "grado": 179.0553, "grado_min": 1, "grado_max": 368, "islas": 0, "subgrafos": 2, "densidad_pct": 15.9728}, "curva": [{"umbral": 30000, "umbral_km": 30, "enlaces": 10018, "pares": 5009, "simetrica": true, "grado": 8.9287, "grado_min": 0, "grado_max": 27, "islas": 109, "subgrafos": 128, "densidad_pct": 0.7965}, {"umbral": 50000, "umbral_km": 50, "enlaces": 26444, "pares": 13222, "simetrica": true, "grado": 23.5686, "grado_min": 0, "grado_max": 64, "islas": 46, "subgrafos": 51, "densidad_pct": 2.1025}, {"umbral": 100000, "umbral_km": 100, "enlaces": 89182, "pares": 44591, "simetrica": true, "grado": 79.4848, "grado_min": 0, "grado_max": 178, "islas": 11, "subgrafos": 19, "densidad_pct": 7.0905}, {"umbral": 166760.8752, "umbral_km": 166.7609, "enlaces": 200900, "pares": 100450, "simetrica": true, "grado": 179.0553, "grado_min": 1, "grado_max": 368, "islas": 0, "subgrafos": 2, "densidad_pct": 15.9728}]}}, "m6": {"columbus": [{"id": "delaunay", "enlaces": 268, "pares": 134, "simetrica": true, "grado": 5.4694, "grado_min": 3, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 11.3946}, {"id": "gabriel", "enlaces": 184, "pares": 92, "simetrica": true, "grado": 3.7551, "grado_min": 1, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 7.8231}, {"id": "relativa", "enlaces": 118, "pares": 59, "simetrica": true, "grado": 2.4082, "grado_min": 1, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 5.017}, {"id": "esfera", "enlaces": 208, "pares": 104, "simetrica": true, "grado": 4.2449, "grado_min": 2, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 8.8435}], "anidamiento": {"relativa_en_gabriel": true, "gabriel_en_delaunay": true}, "municipios": [{"id": "delaunay", "enlaces": 6706, "pares": 3353, "simetrica": true, "grado": 5.9768, "grado_min": 3, "grado_max": 12, "islas": 0, "subgrafos": 1, "densidad_pct": 0.5332, "tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122, "subgrafo_menor_municipios": []}, {"id": "gabriel", "enlaces": 5054, "pares": 2527, "simetrica": true, "grado": 4.5045, "grado_min": 1, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 0.4018, "tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122, "subgrafo_menor_municipios": []}, {"id": "relativa", "enlaces": 3056, "pares": 1528, "simetrica": true, "grado": 2.7237, "grado_min": 1, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 0.243, "tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122, "subgrafo_menor_municipios": []}, {"id": "esfera", "enlaces": 5370, "pares": 2685, "simetrica": true, "grado": 4.7861, "grado_min": 1, "grado_max": 9, "islas": 0, "subgrafos": 2, "densidad_pct": 0.4269, "tamanos_subgrafo": [1120, 2], "subgrafo_menor_n": 2, "subgrafo_menor_municipios": ["San Andrés", "Providencia"]}]}, "m7": {"unidad_max": {"i": 20, "grado": 10}, "unidad_min": {"i": 1, "grado": 2}, "estilos": [{"id": "B", "suma_total": 236, "peso_max": 1, "peso_min": 1, "lag_medio": 182.1596, "lag_sd": 114.3577, "cor_con_crime": 0.6063}, {"id": "W", "suma_total": 49, "peso_max": 0.1, "peso_min": 0.5, "lag_medio": 35.0508, "lag_sd": 12.2396, "cor_con_crime": 0.6838}, {"id": "S", "suma_total": 49, "peso_max": 0.1472, "peso_min": 0.329, "lag_medio": 36.5058, "lag_sd": 17.3801, "cor_con_crime": 0.6679}, {"id": "C", "suma_total": 49, "peso_max": 0.2076, "peso_min": 0.2076, "lag_medio": 37.8213, "lag_sd": 23.7438, "cor_con_crime": 0.6063}, {"id": "U", "suma_total": 1, "peso_max": 0.0042, "peso_min": 0.0042, "lag_medio": 0.7719, "lag_sd": 0.4846, "cor_con_crime": 0.6063}]}, "m8": {"pasos": ["poly2nb", "nb2listw", "lag.listw"], "wy_primeros": [24.71427, 26.24684, 29.41175], "sfdep_disponible": true, "dif_max": 0, "n_pares_spdep": 118, "n_pares_sfdep": 118}, "m9": {"islas": 2, "islas_i": [1006, 1105], "islas_i0": [1005, 1104], "islas_nombre": ["San Andrés", "Providencia"], "islas_departamento": ["Archipiélago de San Andrés, Providencia y Santa Catalina", "Archipiélago de San Andrés, Providencia y Santa Catalina"], "subgrafos": 3, "tamanos_subgrafo": [1120, 1, 1], "error_sin_zero_policy": "Empty neighbour sets found (zero.policy: FALSE)", "lag_isla": 0}, "m10": {"n": 1121, "islas_en_el_subconjunto": 2, "correlacion": 0.5677, "y": {"media": 3.4236, "sd": 1.7667}, "wy": {"media": 3.4593, "sd": 1.1874}, "contraccion_pct": 32.7912}, "m11": {"columbus": {"n": 49, "casillas": 2401, "no_ceros": 236, "densidad_pct": 9.8292, "d_inv_a_igual_w": 0, "lag_es_producto": 0}, "municipios": {"n": 1122, "casillas": 1258884, "no_ceros": 6570, "densidad_pct": 0.5219}}, "meta": {"capitulo": 6, "semanas": "10-11", "semilla": 2026, "generado": "2026-09-17", "tableros": {"laboratorio": "columbus", "caso": "municipios de Colombia"}, "anclas": 6}};
-    const SOL_CAP6 = {"e1": {"titulo": "La esquina que cambia el grado", "enunciado": "Sobre los 100 condados de <code>nc</code>, construye la contigüidad reina y la torre. Di cuántas parejas une cada una, cuántas hay SOLO en la reina y cuánto se mueve el grado medio. Después contesta: ¿puede la torre tener más vecinos que la reina en algún condado? Justifícalo con la definición, no con el dato.", "pasos": [{"paso": "Parejas por contigüidad reina", "valor": 245}, {"paso": "Parejas por contigüidad torre", "valor": 231}, {"paso": "Parejas que solo tiene la reina", "valor": 14}, {"paso": "Grado medio con la reina", "valor": 4.9}, {"paso": "Grado medio con la torre", "valor": 4.62}, {"paso": "Condados cuyo grado cambia", "valor": 26}], "solucion": {"lectura": "No puede. La torre exige compartir un TRAMO de frontera y la reina se conforma con un punto, así que toda pareja de la torre lo es también de la reina: la torre está contenida en la reina. La diferencia son los contactos de esquina, que sobre fronteras administrativas irregulares son pocos y sobre una retícula regular serían la mitad del grafo. El criterio importa lo que la geometría le deje importar."}}, "e2": {"titulo": "La reciprocidad rota", "enunciado": "Construye la vecindad de los 4 vecinos más próximos sobre <code>nc</code>. Comprueba si es simétrica y cuenta los pares (i, j) en los que j es vecino de i pero i no lo es de j. Simetrízala con <code>make.sym.nb</code> y di qué le pasa al grado. Después contesta: ¿por qué la suma de la matriz W estandarizada por filas NO cambia al simetrizar?", "pasos": [{"paso": "¿Es simétrica k = 4? (1 = sí)", "valor": 0}, {"paso": "Pares no recíprocos", "valor": 66}, {"paso": "Enlaces dirigidos con k = 4", "valor": 400}, {"paso": "Parejas distintas con k = 4", "valor": 233}, {"paso": "Grado medio tras simetrizar", "valor": 4.66}, {"paso": "Grado máximo tras simetrizar", "valor": 7}], "solucion": {"lectura": "Porque el estilo W divide cada fila por su propio grado, así que TODA fila suma 1 tenga los vecinos que tenga: la suma de la matriz vale n antes y después. Lo que cambia no es el total sino el reparto, y con él la influencia de cada vecino. Simetrizar compra la simetría al precio de perder lo que hacía atractivo al criterio: que el grado valiera k."}}, "e3": {"titulo": "El umbral que no conecta", "enunciado": "Calcula el umbral de distancia MÍNIMO que no deja ningún condado sin vecinos sobre <code>nc</code>. Comprueba cuántos subgrafos tiene el grafo en ese umbral. Después busca el umbral mínimo que además lo deja CONEXO, y di cuánto crece el grado medio entre los dos. Contesta: ¿por qué no basta con quitar las islas?", "pasos": [{"paso": "Umbral mínimo sin islas (m)", "valor": 41086.4599501477}, {"paso": "Subgrafos en ese umbral", "valor": 4}, {"paso": "Grado medio en ese umbral", "valor": 2.8}, {"paso": "Umbral mínimo que conecta (m)", "valor": 45057.839728433}, {"paso": "Grado medio ahí", "valor": 3.6}, {"paso": "Cuánto crece el grado (veces)", "valor": 1.2857142857}], "solucion": {"lectura": "Porque no tener islas y ser conexo son propiedades distintas. Que nadie esté solo garantiza que toda unidad tiene con quién promediar; que el grafo sea conexo garantiza que la información puede viajar de cualquier unidad a cualquier otra, y es lo que casi siempre importa. Comprarla sube el umbral, y con él el grado medio: la vecindad se vuelve menos informativa justo cuando se vuelve utilizable."}}, "e4": {"titulo": "El estilo que mueve la conclusión", "enunciado": "Sobre <code>nc</code>, calcula la tasa de muerte súbita infantil por mil nacimientos (<code>SID74 / BIR74</code>) y su rezago espacial bajo los cinco estilos de <code>nb2listw</code>. Da la correlación entre la tasa y su rezago en cada uno. Contesta: tres de los cinco dan EXACTAMENTE la misma correlación. ¿Cuáles y por qué?", "pasos": [{"paso": "Correlación con el estilo B", "valor": 0.3191004697}, {"paso": "Correlación con el estilo W", "valor": 0.3915715349}, {"paso": "Correlación con el estilo S", "valor": 0.3766278583}, {"paso": "Correlación con el estilo C", "valor": 0.3191004697}, {"paso": "Correlación con el estilo U", "valor": 0.3191004697}, {"paso": "Estilos que coinciden con B", "valor": 3}], "solucion": {"lectura": "B, C y U. Los tres son la MISMA matriz multiplicada por una constante —C por n dividido entre el total, U por uno entre el total— y una constante no mueve una correlación. Los que sí la cambian son W y S, que es exactamente lo que hacen: tratar a las filas de forma distinta según su grado. Elegir entre B, C y U es una decisión de escala; elegir entre esos y W o S es una decisión sobre qué significa el rezago."}}, "e5": {"titulo": "La contracción del rezago", "enunciado": "Con la misma tasa del ejercicio anterior y la contigüidad reina estandarizada por filas, compara la distribución de la tasa con la de su rezago: media, desviación típica y correlación. Después contesta: si dibujas los dos mapas con la MISMA escala de color, ¿cuál se verá más plano y por qué? ¿Es eso una propiedad del territorio?", "pasos": [{"paso": "Media de la tasa", "valor": 2.0455960298}, {"paso": "Media del rezago", "valor": 2.0349276202}, {"paso": "Desviación de la tasa", "valor": 1.5733399933}, {"paso": "Desviación del rezago", "valor": 0.9278014659}, {"paso": "Contracción de la desviación (%)", "valor": 41.0298174676}, {"paso": "Correlación entre la tasa y su rezago", "valor": 0.3915715349}], "solucion": {"lectura": "El del rezago, y no dice nada sobre Carolina del Norte: promediar contrae. La media de varios números está más cerca del centro que los números que la forman, y el rezago es esa media hecha una vez por condado. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la operación. Las medias coinciden porque promediar no mueve el centro; las desviaciones no."}}, "meta": {"capitulo": 6, "semilla": 2026, "n_ejercicios": 5, "generado": "2026-09-03"}};
+    const SOL_CAP6 = {"e1": {"titulo": "La esquina que cambia el grado", "enunciado": "Sobre los 100 condados de <code>nc</code>, construye la contigüidad reina y la torre. Di cuántas parejas une cada una, cuántas hay SOLO en la reina y cuánto se mueve el grado medio. Después contesta: ¿puede la torre tener más vecinos que la reina en algún condado? Justifícalo con la definición, no con el dato.", "pasos": [{"paso": "Parejas por contigüidad reina", "valor": 245}, {"paso": "Parejas por contigüidad torre", "valor": 231}, {"paso": "Parejas que solo tiene la reina", "valor": 14}, {"paso": "Grado medio con la reina", "valor": 4.9}, {"paso": "Grado medio con la torre", "valor": 4.62}, {"paso": "Condados cuyo grado cambia", "valor": 26}], "solucion": {"lectura": "No puede. La torre exige compartir un TRAMO de frontera y la reina se conforma con un punto, así que toda pareja de la torre lo es también de la reina: la torre está contenida en la reina. La diferencia son los contactos de esquina, que sobre fronteras administrativas irregulares son pocos y sobre una retícula regular serían la mitad del grafo. El criterio importa lo que la geometría le deje importar."}}, "e2": {"titulo": "La reciprocidad rota", "enunciado": "Construye la vecindad de los 4 vecinos más próximos sobre <code>nc</code>. Comprueba si es simétrica y cuenta los pares (i, j) en los que j es vecino de i pero i no lo es de j. Simetrízala con <code>make.sym.nb</code> y di qué le pasa al grado. Después contesta: ¿por qué la suma de la matriz W estandarizada por filas NO cambia al simetrizar?", "pasos": [{"paso": "¿Es simétrica k = 4? (1 = sí)", "valor": 0}, {"paso": "Pares no recíprocos", "valor": 66}, {"paso": "Enlaces dirigidos con k = 4", "valor": 400}, {"paso": "Parejas distintas con k = 4", "valor": 233}, {"paso": "Grado medio tras simetrizar", "valor": 4.66}, {"paso": "Grado máximo tras simetrizar", "valor": 7}], "solucion": {"lectura": "Porque el estilo W divide cada fila por su propio grado, así que TODA fila suma 1 tenga los vecinos que tenga: la suma de la matriz vale n antes y después. Lo que cambia no es el total sino el reparto, y con él la influencia de cada vecino. Simetrizar compra la simetría al precio de perder lo que hacía atractivo al criterio: que el grado valiera k."}}, "e3": {"titulo": "El umbral que no conecta", "enunciado": "Calcula el umbral de distancia MÍNIMO que no deja ningún condado sin vecinos sobre <code>nc</code>. Comprueba cuántos subgrafos tiene el grafo en ese umbral. Después busca el umbral mínimo que además lo deja CONEXO, y di cuánto crece el grado medio entre los dos. Contesta: ¿por qué no basta con quitar las islas?", "pasos": [{"paso": "Umbral mínimo sin islas (m)", "valor": 41086.4599501477}, {"paso": "Subgrafos en ese umbral", "valor": 4}, {"paso": "Grado medio en ese umbral", "valor": 2.8}, {"paso": "Umbral mínimo que conecta (m)", "valor": 45057.839728433}, {"paso": "Grado medio ahí", "valor": 3.6}, {"paso": "Cuánto crece el grado (veces)", "valor": 1.2857142857}], "solucion": {"lectura": "Porque no tener islas y ser conexo son propiedades distintas. Que nadie esté solo garantiza que toda unidad tiene con quién promediar; que el grafo sea conexo garantiza que la información puede viajar de cualquier unidad a cualquier otra, y es lo que casi siempre importa. Comprarla sube el umbral, y con él el grado medio: la vecindad se vuelve menos informativa justo cuando se vuelve utilizable."}}, "e4": {"titulo": "El estilo que mueve la conclusión", "enunciado": "Sobre <code>nc</code>, calcula la tasa de muerte súbita infantil por mil nacimientos (<code>SID74 / BIR74</code>) y su rezago espacial bajo los cinco estilos de <code>nb2listw</code>. Da la correlación entre la tasa y su rezago en cada uno. Contesta: tres de los cinco dan EXACTAMENTE la misma correlación. ¿Cuáles y por qué?", "pasos": [{"paso": "Correlación con el estilo B", "valor": 0.3191004697}, {"paso": "Correlación con el estilo W", "valor": 0.3915715349}, {"paso": "Correlación con el estilo S", "valor": 0.3766278583}, {"paso": "Correlación con el estilo C", "valor": 0.3191004697}, {"paso": "Correlación con el estilo U", "valor": 0.3191004697}, {"paso": "Estilos que coinciden con B", "valor": 3}], "solucion": {"lectura": "B, C y U. Los tres son la MISMA matriz multiplicada por una constante —C por n dividido entre el total, U por uno entre el total— y una constante no mueve una correlación. Los que sí la cambian son W y S, que es exactamente lo que hacen: tratar a las filas de forma distinta según su grado. Elegir entre B, C y U es una decisión de escala; elegir entre esos y W o S es una decisión sobre qué significa el rezago."}}, "e5": {"titulo": "La contracción del rezago", "enunciado": "Con la misma tasa del ejercicio anterior y la contigüidad reina estandarizada por filas, compara la distribución de la tasa con la de su rezago: media, desviación típica y correlación. Después contesta: si dibujas los dos mapas con la MISMA escala de color, ¿cuál se verá más plano y por qué? ¿Es eso una propiedad del territorio?", "pasos": [{"paso": "Media de la tasa", "valor": 2.0455960298}, {"paso": "Media del rezago", "valor": 2.0349276202}, {"paso": "Media de la tasa ponderada por el grado", "valor": 2.0700982265}, {"paso": "Media del rezago ponderada por el grado", "valor": 2.0700982265}, {"paso": "Desviación de la tasa", "valor": 1.5733399933}, {"paso": "Desviación del rezago", "valor": 0.9278014659}, {"paso": "Contracción de la desviación (%)", "valor": 41.0298174676}, {"paso": "Correlación entre la tasa y su rezago", "valor": 0.3915715349}], "solucion": {"lectura": "El del rezago, y no dice nada sobre Carolina del Norte: promediar contrae. La media de varios números queda entre el menor y el mayor de ellos, y el rezago es esa media hecha una vez por condado: ningún valor del rezago se sale del rango de la tasa, y la desviación cae mucho. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la operación. Las medias simples se parecen, pero no por obligación: cada condado entra en el promedio de cada uno de sus vecinos, así que en el rezago no pesan todos igual. Lo que no se mueve nunca, con una vecindad simétrica como la reina, es la media ponderada por el grado, la que cuenta a cada condado tantas veces como vecinos tiene: es la misma en la tasa y en su rezago."}}, "meta": {"capitulo": 6, "semilla": 2026, "n_ejercicios": 5, "generado": "2026-10-02"}};
     const D6 = DATOS_CAP6;
 
     // Los datos del capítulo se incrustan aquí, generados por
@@ -9172,7 +9196,8 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
      pasos [{corto, titulo, texto, estado, tween, pausa}]   `titulo` y `texto` son HTML o `E => HTML`;
                                      `estado` es un parche o `E => parche` (lo que el paso pone depende de dónde se está)
      mandos [{tipo, id, etiqueta, …}]   deslizador | botones | ciclo (el `n` de un ciclo puede ser `E => n`:
-                                     cuántos puntos hay depende del patrón que se mira)
+                                     cuántos puntos hay depende del patrón que se mira); un deslizador puede llevar
+                                     `valorTexto(v, E)`, lo que dice un lector de pantalla al moverlo (por defecto, `salida`)
      paneles [{id, etiqueta, aria}]     lienzos pequeños de al lado (perfiles, gráficos)
      dibuja(c, E, V)  panel(c, id, E, V)   `c = {ctx, w, h, dpr}`; se dibuja en píxeles CSS
      puntero(ev, E, V, c) → {poner, cursor, captura} | null      (`gestos` decide cuándo se aplica)
@@ -9180,6 +9205,9 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
      lectura(E) → [[etiqueta, valor], …]       alt(E) → descripción para lectores de pantalla
      sondas [parche, …]              (opcional) estados con que se escribe, oculta, cada leyenda para medir su alto: los
                                      de las variantes más largas del texto, para que la celda no crezca la primera vez
+     anuncio(E, antes) → texto | null   (opcional) lo que se anuncia al cambiar el estado sin cambiar de paso: el barrio
+                                     nuevo con su cuenta, la k nueva con su desviación. Una sola región viva lo dice todo
+   Y en `opc`, de quien monta: `reserva`, el HTML que vuelve si la animación falla DESPUÉS de montarse.
 
    EL TEXTO DE CADA PASO TIENE QUE SER CIERTO EN CUALQUIER ESTADO, no solo en el que el paso pone: el deslizador y
    el teclado cambian el estado sin cambiar de paso. Las pruebas de cada pieza recorren todos los estados.
@@ -9198,6 +9226,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
 
   const CLAVES = ['destruir', 'ir', 'poner', 'reproducir', 'pausar', 'avanza', 'reinicia', 'estado', 'visual'];
   const PAUSA_PASO = 2.4;       // segundos que el guion se queda en un paso, además de lo que tarde en llegar
+  const PALABRAS_POR_SEGUNDO = 3.5;   // unas 210 por minuto: el guion da tiempo a LEER el texto del paso
   const PASO_TIEMPO = 1 / 30;   // el reloj de `avanza`, que no corre con rAF
   const TOPE_AVANZA = 600;      // `avanza(Infinity)` simula como mucho diez minutos: un guion que no acabe no cuelga la página
 
@@ -9264,11 +9293,17 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       return true;
     }
 
-    // Cuánto se queda el guion en el paso `i`: lo que tarden en llegar sus transiciones, y la pausa.
+    // Cuánto se queda el guion en el paso `i`: lo que tarden en llegar sus transiciones y, después, la pausa del paso o
+    // lo que se tarda en leer su título y su texto, lo que sea más. Revisión del 2026-10-02: con solo la pausa,
+    // «Reproducir» pasaba los pasos del rezago a 450–1 000 palabras por minuto, y eso no lo lee nadie.
+    function lectura(p) {
+      const txt = [p.titulo, p.texto].map(x => typeof x === 'function' ? x(E) : (x || '')).join(' ');
+      return String(txt).replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length / PALABRAS_POR_SEGUNDO;
+    }
     function espera(i) {
       const p = pasos[i - 1] || {};
       const durs = Object.keys(tw).map(k => tw[k].dur);
-      return (durs.length ? Math.max.apply(null, durs) : 0) + (p.pausa != null ? p.pausa : PAUSA_PASO);
+      return (durs.length ? Math.max.apply(null, durs) : 0) + Math.max(p.pausa != null ? p.pausa : PAUSA_PASO, lectura(p));
     }
 
     function reproducir() {
@@ -9330,7 +9365,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       ir(1, { corte: true, desdeGuion: true });
     }
 
-    return { E, V, poner, ir, reproducir, pausar, paso, avanza, reinicia, activo, guion, espera };
+    return { E, V, poner, ir, reproducir, pausar, paso, avanza, reinicia, activo, guion, espera, lectura };
   }
 
   /* ===================================================================
@@ -9534,17 +9569,21 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       `<span class="a2d-num">${i + 1}</span><span class="a2d-rot">${p.corto}</span></button>`).join('');
     const mandos = (def.mandos || []).map((m, i) => {
       if (m.tipo === 'deslizador') {
-        return `<div class="a2d-ctl" data-mando="${i}"><label for="${ID}-m${i}">${m.etiqueta} <output for="${ID}-m${i}"></output></label>` +
+        // el <output> es un `status` implícito y se anunciaba en cada valor, encima de lo que dice el propio deslizador
+        return `<div class="a2d-ctl" data-mando="${i}"><label for="${ID}-m${i}">${m.etiqueta} <output for="${ID}-m${i}" aria-live="off"></output></label>` +
                `<input type="range" id="${ID}-m${i}" min="${m.min}" max="${m.max}" step="${m.paso || 1}" value="${m.min}"></div>`;
       }
       if (m.tipo === 'botones') {
-        return `<div class="a2d-grupo" data-mando="${i}"><span>${m.etiqueta}</span><div class="a2d-botones">` +
+        return `<div class="a2d-grupo" data-mando="${i}" role="group" aria-labelledby="${ID}-g${i}"><span id="${ID}-g${i}">${m.etiqueta}</span><div class="a2d-botones">` +
                m.opciones.map((o, j) => `<button type="button" class="a2d-btn" data-j="${j}" aria-pressed="false">${o[1]}</button>`).join('') +
                '</div></div>';
       }
-      return `<div class="a2d-grupo" data-mando="${i}"><span>${m.etiqueta}</span><div class="a2d-botones">` +
+      // Un grupo con nombre: sin él, un lector decía «Torre, botón, presionado» sin decir de qué. Y el texto del ciclo ya
+      // no es una región viva: se reescribía en cada cambio de estado y repetía «barrio 7» al mover k o el ratón. Lo
+      // que cambia lo dice ahora la única región viva, `[data-anuncio]`, con lo que la pieza cuente en `anuncio`.
+      return `<div class="a2d-grupo" data-mando="${i}" role="group" aria-labelledby="${ID}-g${i}"><span id="${ID}-g${i}">${m.etiqueta}</span><div class="a2d-botones">` +
              `<button type="button" class="a2d-btn" data-sentido="-1" aria-label="${esc(m.anterior || 'Anterior')}">‹</button>` +
-             '<span class="a2d-ciclo-txt" aria-live="polite"></span>' +
+             '<span class="a2d-ciclo-txt"></span>' +
              `<button type="button" class="a2d-btn" data-sentido="1" aria-label="${esc(m.siguiente || 'Siguiente')}">›</button></div></div>`;
     }).join('');
     const paneles = (def.paneles || []).map((p, i) =>
@@ -9553,7 +9592,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     return `
 <div class="a2d-rejilla">
   <div class="a2d-pasos" role="group" aria-label="Pasos de la animación">${pasos}
-    <button type="button" class="a2d-play" data-activo="false"><span aria-hidden="true">▶</span><span class="a2d-play-txt">Reproducir</span></button>
+    <button type="button" class="a2d-play" data-activo="false"><span class="a2d-play-ico" aria-hidden="true">▶</span><span class="a2d-play-txt">Reproducir</span></button>
   </div>
   <div class="a2d-leyenda">${(def.pasos || []).map((p, i) => `<div class="a2d-ley" data-ley="${i + 1}"><h5></h5><p></p></div>` +
     (def.sondas || []).map(() => '<div class="a2d-ley a2d-sonda" aria-hidden="true"><h5></h5><p></p></div>').join('')).join('')}</div>
@@ -9601,12 +9640,14 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     /* ---- la máquina, con los ganchos que la conectan al DOM ---- */
     const M = maquina(def, {
       get reducido() { return !!(mqReducido && mqReducido.matches); },
-      cambia: () => sincroniza(),
+      cambia: () => { try { sincroniza(); } catch (e) { falla(e); } },
       pinta: () => pide(),
       pintaYa: () => pintaYa(),
       guion: on => {
         botonPlay.dataset.activo = on ? 'true' : 'false';
-        botonPlay.querySelector('.a2d-play-txt').textContent = on ? 'Pausa' : 'Reproducir';
+        // «❚❚ Pausar» mientras corre, como el 3D del capítulo 5 (antes decía «▶ Pausa»: el icono no cambiaba)
+        botonPlay.querySelector('.a2d-play-ico').textContent = on ? '❚❚' : '▶';
+        botonPlay.querySelector('.a2d-play-txt').textContent = on ? 'Pausar' : 'Reproducir';
       }
     });
 
@@ -9626,20 +9667,36 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
 
     function pintaYa() {
       if (!vivo) return;
-      const c = ajustaLienzo(lienzo, ctx);
-      if (c) {
-        geo.w = c.w; geo.h = c.h; geo.dpr = c.dpr;
-        c.ctx.clearRect(0, 0, c.w, c.h);
-        def.dibuja(c, M.E, M.V);
+      try {
+        const c = ajustaLienzo(lienzo, ctx);
+        if (c) {
+          geo.w = c.w; geo.h = c.h; geo.dpr = c.dpr;
+          c.ctx.clearRect(0, 0, c.w, c.h);
+          def.dibuja(c, M.E, M.V);
+        }
+        if (def.panel) {
+          paneles.forEach(p => {
+            const cp = ajustaLienzo(p.cv, p.ctx);
+            if (!cp) return;
+            cp.ctx.clearRect(0, 0, cp.w, cp.h);
+            def.panel(cp, p.def.id, M.E, M.V);
+          });
+        }
+      } catch (e) {
+        falla(e);
       }
-      if (def.panel) {
-        paneles.forEach(p => {
-          const cp = ajustaLienzo(p.cv, p.ctx);
-          if (!cp) return;
-          cp.ctx.clearRect(0, 0, cp.w, cp.h);
-          def.panel(cp, p.def.id, M.E, M.V);
-        });
-      }
+    }
+
+    // UN FALLO DESPUÉS DE MONTAR (auditoría del 2026-10-02). El primer dibujo no ocurre dentro de `monta`: llega en un
+    // rAF o en el ResizeObserver, y si fallaba el lienzo quedaba en blanco, la consola se llenaba de «Uncaught» en cada
+    // fotograma y el texto de reserva no volvía. Ahora un fallo al dibujar o al escribir los textos desmonta la animación
+    // y deja el texto de reserva de quien la montó (`opc.reserva`) o, sin él, el aviso de `sinAnimacion`.
+    function falla(e) {
+      if (!vivo) return;
+      destruir();
+      if (opc.reserva != null) cont.innerHTML = opc.reserva;
+      else sinAnimacion(cont, 'La animación dejó de funcionar.', def);
+      if (win.console) win.console.error('anim2d: la animación falló y se ha desmontado', e);
     }
 
     /* ---- el bucle, a demanda: solo corre mientras algo se mueve ---- */
@@ -9666,7 +9723,14 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     // Un texto solo se reescribe si cambió: reescribir el mismo HTML recrea los nodos, y pasar el puntero por encima
     // del mapa llama a esto en cada barrio. Las leyendas de todos los pasos se escriben (están apiladas: la celda mide
     // lo que la más larga), y se anuncia solo el título del paso al que se llega, no cada cambio de su texto.
-    const ult = { leyendas: [], sondas: [], paso: null, lectura: null, estado: null };
+    const ult = { leyendas: [], sondas: [], paso: null, lectura: null, estado: null, E: null };
+    // UNA SOLA REGIÓN VIVA, y solo dice lo que cambió (auditoría del 2026-10-02). Antes el texto del ciclo era otra región
+    // viva y se reescribía en cada `sincroniza`: mover k o pasar el ratón repetía «barrio 7», y la cuenta, K o g no se
+    // anunciaban nunca. `callado`: el cambio viene de un deslizador, que ya dice su valor (`aria-valuetext`).
+    let callado = false;
+    const anuncia = t => { if (t && anuncio.textContent !== t) anuncio.textContent = t; };
+    const ponTexto = (el, t) => { if (el.textContent !== t) el.textContent = t; };
+    const ponAtributo = (el, a, v) => { if (el.getAttribute(a) !== v) el.setAttribute(a, v); };
 
     // El estado con que se escribe la leyenda de un paso que NO es el actual: el que ese paso pondría. Así la celda
     // mide lo mismo vaya uno al paso que vaya (con el estado actual, la del paso 2 escrita con k = 70 era más larga
@@ -9713,10 +9777,13 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       });
       if (ult.paso !== E.paso) {
         const p = (def.pasos || [])[E.paso - 1];
-        if (ult.paso !== null && p) anuncio.textContent = 'Paso ' + E.paso + ': ' + (typeof p.titulo === 'function' ? p.titulo(E) : p.titulo);
+        if (ult.paso !== null && p) anuncia('Paso ' + E.paso + ': ' + (typeof p.titulo === 'function' ? p.titulo(E) : p.titulo));
         ult.paso = E.paso;
+      } else if (def.anuncio && ult.E && !callado) {
+        anuncia(def.anuncio(E, ult.E));
       }
-      pasoBotones.forEach((b, i) => { if (i + 1 === E.paso) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+      ult.E = Object.assign({}, E);
+      pasoBotones.forEach((b, i) => { if (i + 1 === E.paso) ponAtributo(b, 'aria-current', 'step'); else if (b.hasAttribute('aria-current')) b.removeAttribute('aria-current'); });
       ctls.forEach(el => {
         const m = def.mandos[+el.dataset.mando];
         el.hidden = !!(m.visible && !m.visible(E));
@@ -9724,12 +9791,13 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
           const inp = el.querySelector('input');
           if (+inp.value !== E[m.id]) inp.value = E[m.id];
           const txt = m.salida ? m.salida(E[m.id], E) : String(E[m.id]);
-          el.querySelector('output').textContent = txt;
-          inp.setAttribute('aria-valuetext', txt);            // la etiqueta ya la lee el <label>: repetirla la decía dos veces
+          ponTexto(el.querySelector('output'), txt);
+          // la etiqueta ya la lee el <label>: repetirla la decía dos veces
+          ponAtributo(inp, 'aria-valuetext', m.valorTexto ? m.valorTexto(E[m.id], E) : txt);
         } else if (m.tipo === 'botones') {
-          el.querySelectorAll('.a2d-btn').forEach(b => b.setAttribute('aria-pressed', String(m.opciones[+b.dataset.j][0] === E[m.id])));
+          el.querySelectorAll('.a2d-btn').forEach(b => ponAtributo(b, 'aria-pressed', String(m.opciones[+b.dataset.j][0] === E[m.id])));
         } else {
-          el.querySelector('.a2d-ciclo-txt').textContent = m.texto(E[m.id], E);
+          ponTexto(el.querySelector('.a2d-ciclo-txt'), m.texto(E[m.id], E));
         }
       });
       if (def.lectura) {
@@ -9747,7 +9815,10 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     ctls.forEach(el => {
       const m = def.mandos[+el.dataset.mando];
       if (m.tipo === 'deslizador') {
-        el.querySelector('input').addEventListener('input', e => M.poner({ [m.id]: +e.target.value }, { corte: true }));   // se arrastra: sin transición
+        el.querySelector('input').addEventListener('input', e => {
+          callado = true;                                            // ya lo dice su `aria-valuetext`
+          try { M.poner({ [m.id]: +e.target.value }, { corte: true }); } finally { callado = false; }   // se arrastra: sin transición
+        });
       } else if (m.tipo === 'botones') {
         el.addEventListener('click', e => {
           const b = e.target.closest('.a2d-btn');
@@ -9870,12 +9941,18 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
      2 · Wy: cada barrio pasa a valer la MEDIA de sus vecinos, y se ve la cuenta de uno.
      3 · W otra vez, W²y: la media de las medias. NO es la contigüidad de orden 2 —cuenta
          también al propio barrio (ir y volver) y a un vecino de siempre cuando lo es también
-         de otro vecino, que es lo habitual pero no lo seguro (en Columbus fallan 2 de las 236
-         parejas de la reina y 14 de las 200 de la torre)—; es lo que el módulo 11 llama
-         apilar capas.
+         de otro vecino, que es lo habitual pero no lo seguro (en Columbus falla 1 de las 118
+         parejas de la reina, 21–34, y 7 de las 100 de la torre)—; es lo que el módulo 11 llama
+         apilar capas. Y por la diagonal su correlación con y SUBE (0.68 → 0.78 con la reina):
+         el propio barrio pesa de media un 22 % en su W²y. La media de los vecinos de orden 2 de
+         verdad correlaciona 0.30. El paso lo dice con las cifras del barrio en foco, y el mapa
+         marca con línea discontinua a los de orden 2 (auditoría del 2026-10-02).
      4 · muchas veces: el mapa tiende a un solo valor, y ese valor NO es la media de y sino
          la media PONDERADA POR EL GRADO, Σ dᵢ yᵢ / Σ dᵢ. La W por filas es una cadena de
          Markov y su distribución estacionaria es proporcional al grado.
+
+   LA LETRA ES t, NO k (auditoría del 2026-10-02): en el mismo módulo, k son los vecinos más próximos del módulo 4
+   («con k = 4»). Lo que el estudiante lee dice t = veces que se aplica W; el código sigue llamándolo `k`.
 
    SOLO SE ITERA W (estandarizada por filas). B, C, U y S no son contracciones (los radios
    espectrales medidos son 6.12, 1.27, 1.13 y 0.026): iterarlas no aplana, explota o se
@@ -9962,6 +10039,18 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     for (let i = 0; i < vec.length; i++) { num += vec[i].length * y[i]; den += vec[i].length; }
     return num / den;
   }
+
+  // Los vecinos de orden 2 de verdad (los de `nblag`): vecinos de un vecino que no son el barrio ni vecinos suyos.
+  function orden2(vec) {
+    return vec.map((nb, i) => {
+      const ya = new Set([i].concat(nb)), s = new Set();
+      nb.forEach(j => vec[j].forEach(l => { if (!ya.has(l)) s.add(l); }));
+      return Array.from(s).sort((p, q) => p - q);
+    });
+  }
+
+  // Lo que pesa el propio barrio en su W²y: la diagonal de W², Σ_{j vecino de i} 1/(dᵢ dⱼ) (ir a j y volver).
+  const propioW2 = (vec, i) => vec[i].reduce((a, j) => a + 1 / (vec[i].length * vec[j].length), 0);
 
   // El barrio de partida: el que más cambia al promediar, entre los que tienen al menos cuatro vecinos
   // (con menos, la media de «los demás» casi no se ve como una media).
@@ -10050,7 +10139,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
   // leyenda del paso 1 («y: el dato») se quedaba encima de W³⁰y.
   const pasoDeK = k => k <= 0 ? 1 : k === 1 ? 2 : k === 2 ? 3 : 4;
 
-  const Mat = { K_MAX, CASI_UNO, pasoDeK, VECINDADES, vecinosDe, rezago, capas, resumen, limite, focoDidactico, media, sd, cov,
+  const Mat = { K_MAX, CASI_UNO, pasoDeK, VECINDADES, vecinosDe, rezago, capas, resumen, limite, orden2, propioW2, focoDidactico, media, sd, cov,
                 cajaQ, ajuste, dentro, barrioEn, separaEtiquetas };
 
   /* ===================================================================
@@ -10059,6 +10148,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
   const PALETA_VERDE = ['#e8f3ef', '#b8ddd0', '#7cc0aa', '#3f9c7f', '#1a7358', '#012820'];   // la `verde` de la plantilla
   const NARANJA = '#FF6600', TINTA = '#012820';
   const f2 = x => x.toFixed(2);
+  // «19 %» y no «19» al final de un renglón y «%» al principio del otro: en lo que se VE, el espacio antes de % no se parte
   const f4 = x => x.toFixed(4);
 
   // El color de una capa: `opc.color(paleta, t)` es `geomapaColor` (con su filtro de daltonismo); sin él, la paleta de arriba.
@@ -10072,7 +10162,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
 
   // Wᵏy con superíndice, para el texto.
   const capa = k => k === 0 ? 'y' : k === 1 ? 'Wy' : 'W<sup>' + k + '</sup>y';
-  const capaTxt = k => k === 0 ? 'y' : k === 1 ? 'Wy' : 'W^' + k + ' y';
+  const capaTxt = k => k === 0 ? 'y' : k === 1 ? 'Wy' : 'W aplicada ' + k + ' veces a y';     // un lector leía «W circunflejo 70 y»
 
   function creaDef(datos, opc) {
     opc = opc || {};
@@ -10093,7 +10183,11 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       const vec = vecinosDe(v.aristas, n);
       if (v.grados && v.grados.some((g, i) => g !== vec[i].length)) throw new Error('rezago2d: los grados del mapa no son los de sus aristas (' + nombre + ')');
       const cs = capas(vec, y, K_MAX);
-      return (cache[nombre] = { vec, capas: cs, res: cs.map(c => resumen(y, c)), limite: limite(vec, y) });
+      const o2 = orden2(vec);
+      const medO2 = o2.map(s => s.length ? s.reduce((a, j) => a + y[j], 0) / s.length : NaN);
+      const conO2 = medO2.map((v, i) => i).filter(i => isFinite(medO2[i]));
+      const corO2 = conO2.length > 2 ? resumen(conO2.map(i => y[i]), conO2.map(i => medO2[i])).cor : NaN;
+      return (cache[nombre] = { vec, capas: cs, res: cs.map(c => resumen(y, c)), limite: limite(vec, y), orden2: o2, corOrden2: corO2 });
     };
 
     // Rangos fijos de los dos perfiles, para que no salten al cambiar de vecindad.
@@ -10224,6 +10318,13 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         ctx.lineWidth = 0.8; ctx.strokeStyle = 'rgba(1,40,32,.28)'; ctx.stroke();
       }
       ctx.globalAlpha = 1;
+      // 1b. con W² (k = 2), los vecinos de orden 2 a los que llega, en discontinua: así se ve que W² alcanza más que los
+      //     vecinos, y el texto del paso puede decir «línea discontinua» en cualquier vista
+      if (E.k === 2) {
+        ctx.save(); ctx.setLineDash([4, 3]); ctx.lineWidth = 1.4; ctx.strokeStyle = 'rgba(1,40,32,.8)';
+        S.orden2[E.foco].forEach(j => { trazaBarrio(ctx, a, j); ctx.stroke(); });
+        ctx.restore();
+      }
       // 2. los contornos: los de los vecinos (con la lupa), el del barrio bajo el puntero y el del foco. Van ANTES que
       //    las flechas y los números: dibujado después, el contorno naranja del foco tachaba las etiquetas de los
       //    vecinos que caían encima (barrios con ocho o más vecinos en una columna estrecha).
@@ -10274,7 +10375,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       barraDeColor(ctx, c);
     }
 
-    /* ---- los dos perfiles de al lado: la desviación y la media, para todos los k ---- */
+    /* ---- los dos perfiles de debajo: la desviación y la media, para todos los k ---- */
     function perfil(c, E, V, o) {
       const { ctx } = c;
       const m = { l: 36, r: 8, t: 10, b: 20 };
@@ -10320,7 +10421,9 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     }
 
     /* ---- los textos ---- */
-    const pct = (r) => Math.round(100 * r.sd / sd0);
+    // Con un decimal (auditoría del 2026-10-02): redondeado a entero, la lectura decía «5 %» desde t = 63 (5.36 %) hasta
+    // t = 68, y la prosa dice que hacen falta 66 aplicaciones para BAJAR del 5 %.
+    const pct = (r) => (100 * r.sd / sd0).toFixed(1);
     const casiUno = E => de(E.vecindad).res[E.k].sd <= CASI_UNO * sd0;
     const lista = nb => nb.map(j => j + 1).join(', ');
 
@@ -10332,18 +10435,23 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       { corto: 'Wy', titulo: 'Wy: cada barrio pasa a valer la media de sus vecinos',
         texto: E => {
           const cu = cuenta(E);
-          if (!cu) return 'En k = 0 no se ha aplicado W: el barrio vale lo que valía. Sube k a 1 para ver su cuenta.';
+          if (!cu) return 'En t = 0 no se ha aplicado W: el barrio vale lo que valía. Sube t a 1 para ver su cuenta.';
           return 'El barrio <strong>' + (E.foco + 1) + '</strong> tiene ' + cu.nb.length + ' vecinos (' + lista(cu.nb) + '). Su valor en ' + capa(E.k) +
-                 ' es la media de los que ellos tenían en ' + capa(E.k - 1) + ': (' + cu.terminos + ') / ' + cu.nb.length + ' ≈ <strong>' + f2(cu.valor) + '</strong>. ' +
+                 ' es la media de los que ellos tenían en ' + capa(E.k - 1) + ': (' + cu.terminos + ') / ' + cu.nb.length + ' ≈ <strong>' + f2(cu.valor) + '</strong>; el suyo propio, ' + f2(cu.previa[E.foco]) + ', no entra. ' +
                  'Haz clic en otro barrio, o usa ‹ ›, para ver su cuenta' + (E.lupa ? '.' : ' (con «Barrio y vecinos» el mapa se acerca y se ven los números).');
         },
         estado: { k: 1, lupa: 1 }, pausa: 4.8 },
+      // La correlación de W²y con y SUBE respecto de la de Wy (0.68 → 0.78 con la reina), y sin decir por qué invitaba a
+      // concluir que «a dos pasos se parecen más», o que W² es la vecindad de orden 2: justo el error que el módulo corrige.
+      // Sube por la diagonal de W² (el propio barrio entra en su W²y); el orden 2 de verdad correlaciona 0.30.
       { corto: 'W otra vez', titulo: 'W otra vez: la media de las medias',
         texto: E => {
-          const S = de(E.vecindad);
-          return 'W<sup>2</sup>y promedia lo que ya estaba promediado. Cuenta a los vecinos de los vecinos, pero también al propio barrio (ir y volver) y, casi siempre, a sus vecinos de siempre: ' +
-                 '<strong>no es la contigüidad de orden 2</strong>, es apilar capas (módulo 11). La desviación típica baja de ' + f2(sd0) + ' a ' +
-                 f2(S.res[1].sd) + ' con W y a ' + f2(S.res[2].sd) + ' con W dos veces.';
+          const S = de(E.vecindad), c1 = S.res[1].cor, c2 = S.res[2].cor;
+          return 'W<sup>2</sup>y promedia lo que ya estaba promediado. Llega a los vecinos de los vecinos (línea discontinua), pero también vuelve al propio barrio ' +
+                 '—el ' + (E.foco + 1) + ' pesa un ' + Math.round(100 * propioW2(S.vec, E.foco)) + '\u00a0% en su W<sup>2</sup>y— y, casi siempre, a sus vecinos de siempre: ' +
+                 '<strong>no es la contigüidad de orden 2</strong>, es apilar capas (módulo 11). Por eso su correlación con y ' + (c2 > c1 ? 'sube' : 'baja') +
+                 ', de ' + f2(c1) + ' a ' + f2(c2) + (c2 > c1 ? ': lleva dentro un trozo del propio y' : '') + '. La media de los vecinos de orden 2 de verdad se parece ' +
+                 (S.corOrden2 < c2 - 0.2 ? 'mucho menos' : 'menos') + ' a y (correlación ' + f2(S.corOrden2) + ').';
         },
         estado: { k: 2, lupa: 0 }, pausa: 4.2 },
       // El título y la primera frase dependen de k: el deslizador trae a este paso cualquier k ≥ 3, y con k = 3 decir
@@ -10352,7 +10460,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         titulo: E => casiUno(E) ? 'Muchas veces: casi un solo color, y no es el de la media' : 'Más veces: el mapa se sigue aplanando',
         texto: E => {
           const S = de(E.vecindad), r = S.res[E.k];
-          return 'Con k = ' + E.k + ' la desviación típica es el <strong>' + pct(r) + ' %</strong> de la de y' + (casiUno(E) ? ', y el mapa ya es casi de un solo color' : '') + '. ' +
+          return 'Con t = ' + E.k + ' la desviación típica es el <strong>' + pct(r) + '\u00a0%</strong> de la de y' + (casiUno(E) ? ', y el mapa ya es casi de un solo color' : '') + '. ' +
                  'Si se sigue aplicando W, el mapa va hacia un solo valor, y ese valor <strong>no es la media de y</strong> (' + f2(m0) + ') sino la media ponderada por el grado: ' +
                  f2(S.limite) + ' con la vecindad de la ' + E.vecindad + '. Los barrios con más vecinos entran en más promedios. ' +
                  'La media de ' + capa(E.k) + ' va de ' + f2(m0) + ' hacia allí (ahora ' + f2(r.media) + ').';
@@ -10364,20 +10472,21 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       id: 'rezago',
       // La descripción fija no afirma lo que depende del estado (flechas, la cuenta): eso lo dice la de debajo, que cambia.
       aria: 'Mapa de los ' + n + ' barrios de Columbus, cada uno pintado con el valor de CRIME tras aplicar la matriz de pesos W el número de veces ' +
-            'que se elige. Hay un barrio en foco; la descripción de debajo dice qué se ve en cada momento. Dos gráficas de al lado ' +
+            'que se elige. Hay un barrio en foco; la descripción de debajo dice qué se ve en cada momento. Dos gráficas debajo ' +
             'muestran la desviación típica y la media de cada capa.',
-      ayuda: 'Clic en un barrio para ponerlo en foco · con el mapa enfocado, ← → cambian de barrio y ↑ ↓ cambian k',
+      ayuda: 'Clic en un barrio para ponerlo en foco · con el mapa enfocado, ← → cambian de barrio y ↑ ↓ cambian t',
       ayudaTeclado: 'Con el lienzo enfocado, las flechas izquierda y derecha cambian el barrio en foco y las flechas arriba y abajo cambian cuántas veces se aplica W. ' +
-                    'Inicio lleva a k = 0 y Fin a k = ' + K_MAX + '. Los mandos de debajo hacen lo mismo.',
+                    'Inicio lleva a t = 0 y Fin a t = ' + K_MAX + '. Los mandos de debajo hacen lo mismo.',
       pie: 'Columbus (Anselin, 1988): ' + n + ' barrios y la tasa de delitos CRIME, que son los del módulo 1. La vecindad es la del módulo 3, con W estandarizada por filas.',
       sinLienzo: 'Dice lo mismo que el texto del módulo 10: Wy es, en cada barrio, la media de sus vecinos. Aplicada una y otra vez, W aplana el mapa hacia un valor casi constante, ' +
                  'y ese valor no es la media de y sino la media ponderada por el grado de cada barrio.',
       paneles: [
-        { id: 'sd', etiqueta: 'Desviación típica de W<sup>k</sup>y', aria: 'Desviación típica de cada capa, de k = 0 a ' + K_MAX + ': baja deprisa al principio y cada vez más despacio' },
-        { id: 'media', etiqueta: 'Media de W<sup>k</sup>y', aria: 'Media de cada capa, de k = 0 a ' + K_MAX + ': sale de la media de y y se acerca a la media ponderada por el grado' }
+        { id: 'sd', etiqueta: 'Desviación típica de W<sup>t</sup>y', aria: 'Desviación típica de cada capa, de t = 0 a ' + K_MAX + ': baja deprisa al principio y cada vez más despacio' },
+        { id: 'media', etiqueta: 'Media de W<sup>t</sup>y', aria: 'Media de cada capa, de t = 0 a ' + K_MAX + ': sale de la media de y y se acerca a la media ponderada por el grado' }
       ],
       mandos: [
-        { tipo: 'deslizador', id: 'k', etiqueta: 'Veces que se aplica W (k)', min: 0, max: K_MAX, paso: 1, salida: v => String(v) },
+        { tipo: 'deslizador', id: 'k', etiqueta: 'Veces que se aplica W (t)', min: 0, max: K_MAX, paso: 1, salida: v => String(v),
+          valorTexto: (v, E) => v + (v === 1 ? ' vez' : ' veces') + ': desviación típica ' + pct(de(E.vecindad).res[v]) + ' % de la de y' },
         { tipo: 'botones', id: 'vecindad', etiqueta: 'Vecindad', opciones: [['reina', 'Reina'], ['torre', 'Torre']] },
         { tipo: 'botones', id: 'lupa', etiqueta: 'Vista', opciones: [[0, 'Todo el mapa'], [1, 'Barrio y vecinos']] },
         { tipo: 'ciclo', id: 'foco', etiqueta: 'Barrio en foco', n, anterior: 'Barrio anterior', siguiente: 'Barrio siguiente', texto: i => 'barrio ' + (i + 1) }
@@ -10426,9 +10535,9 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       lectura: E => {
         const S = de(E.vecindad), r = S.res[E.k];
         return [
-          ['k', String(E.k)],
+          ['t', String(E.k)],
           ['media', f4(r.media)],
-          ['desviación típica', f4(r.sd) + ' <span class="a2d-r">(' + pct(r) + ' % de la de y)</span>'],
+          ['desviación típica', f4(r.sd) + ' <span class="a2d-r">(' + pct(r) + '\u00a0% de la de y)</span>'],
           ['correlación con y', f4(r.cor)],
           ['pendiente sobre y', f4(r.pendiente) + (E.k === 1 ? ' <span class="a2d-r">= I de Moran</span>' : '')]
         ];
@@ -10438,6 +10547,20 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         return 'Capa ' + capaTxt(E.k) + ' con la vecindad ' + E.vecindad + ': media ' + f4(r.media) + ', desviación típica ' + f4(r.sd) + ' (' + pct(r) + ' por ciento de la de y). ' +
                'Barrio en foco: ' + (E.foco + 1) + ', con ' + S.vec[E.foco].length + ' vecinos (' + lista(S.vec[E.foco]) + '). ' +
                (cu ? 'Su valor es ' + f2(cu.valor) + ', la media de ' + cu.terminos.replace(/ \+ /g, ', ') + '.' : 'Su valor es ' + f2(y[E.foco]) + '.');
+      },
+      // Lo que dice la región viva cuando el estado cambia sin cambiar de paso: el barrio nuevo con su cuenta, la t nueva
+      // con su desviación (el deslizador ya la dice con su `valorTexto`), la otra vecindad con a dónde va. Pasar el ratón
+      // y la vista no se anuncian: el primero no es un cambio, y la vista ya la dice su botón pulsado.
+      anuncio: (E, antes) => {
+        const S = de(E.vecindad), cu = cuenta(E), r = S.res[E.k];
+        if (E.foco !== antes.foco) {
+          return 'Barrio ' + (E.foco + 1) + ': ' + (cu ? f2(cu.valor) + ', la media de sus ' + cu.nb.length + ' vecinos en ' + capaTxt(E.k - 1) : f2(y[E.foco])) + '.';
+        }
+        if (E.vecindad !== antes.vecindad) {
+          return 'Vecindad ' + E.vecindad + ': desviación típica ' + pct(r) + ' % de la de y; el mapa va hacia ' + f2(S.limite) + '.';
+        }
+        if (E.k !== antes.k) return 't = ' + E.k + ': desviación típica ' + pct(r) + ' % de la de y.';
+        return null;
       }
     };
     def.interno = { de, cuenta, casiUno, K_MAX, ajusteDe, barrioBajo, cajaFoco, cajaDe, cq, posicionesEtiquetas, ETQ, PASTILLA, MARGEN };     // para las pruebas
@@ -10467,9 +10590,10 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         const reserva = sitio.innerHTML;
         try {
           sitio.innerHTML = '';
-          // el color es el de los mapas del capítulo (`geomapaColor`, con su filtro de daltonismo)
+          // el color es el de los mapas del capítulo (`geomapaColor`, con su filtro de daltonismo); `reserva` es lo que
+          // la cáscara devuelve al sitio si la animación falla DESPUÉS de montarse (el primer dibujo llega en un rAF)
           instancia = sitio.animacion = Rezago2D.monta(sitio, { y: REZAGO2D_Y, mapa: MAPAS_CAP6['cap6-w'] },
-                                                       { color: geomapaColor, geom: geomapaGeom });
+                                                       { color: geomapaColor, geom: geomapaGeom, reserva });
         } catch (e) {
           sitio.innerHTML = reserva;
           instancia = sitio.animacion = null;
@@ -10652,7 +10776,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         pregunta: 'Dibujas la deserción municipal y su rezago Wy con la misma escala de color. El segundo mapa se ve más plano. ¿Qué significa?',
         opciones: [
           { texto: 'Que la deserción está espacialmente autocorrelacionada',
-            retro: 'La autocorrelación se ve en la CORRELACIÓN entre y y Wy —aquí ' + n6(D6.m10.correlacion) + '—, no en que el mapa del rezago se vea plano. Eso último pasaría igual sin autocorrelación ninguna.' },
+            retro: 'La autocorrelación se ve en la CORRELACIÓN entre y y Wy —aquí ' + n6(D6.m10.correlacion) + '—, no en que el mapa del rezago se vea plano. Eso último pasaría también sin autocorrelación ninguna.' },
           { texto: 'Nada sobre el territorio: promediar contrae, y el rezago es una media', correcta: true,
             retro: 'Eso es. La desviación pasa de ' + n6(D6.m10.y.sd) + ' a ' + n6(D6.m10.wy.sd) + ', un ' + n6(D6.m10.contraccion_pct, 2) + ' % menos, y eso pasaría con cualquier variable. Las medias, en cambio, casi coinciden.' },
           { texto: 'Que la W elegida tiene demasiados vecinos',

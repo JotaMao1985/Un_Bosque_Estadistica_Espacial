@@ -464,6 +464,15 @@ def main() -> int:  # noqa: C901
             D["m10"]["contraccion_pct"], "la contracción, en tanto por ciento", tol=1e-2)
     a.cierto(D["m10"]["contraccion_pct"] > 0,
              "el rezago contrae: es una media de vecinos")
+    # La prosa dice que la media de Wy NO tiene por qué ser la de y, y que lo que W por filas conserva (vecindad
+    # simétrica) es la media ponderada por el grado (2026-10-02; antes decía «tiene que serlo»). Las dos mitades,
+    # sobre el dato: la ponderada coincide a la precisión de la máquina, y la simple se mueve.
+    g = np.array([len(nb_sub[i]) for i in nb_sub], dtype=float)
+    a.igual((g * wy).sum() / g.sum(), (g * y).sum() / g.sum(),
+            "W por filas conserva la media ponderada por el grado", tol=1e-10)
+    a.cierto(abs(wy[con].mean() - y[con].mean()) > 1e-3,
+             "la media simple sí se mueve: no «tiene que» coincidir",
+             f"{y[con].mean():.4f} → {wy[con].mean():.4f}")
 
     # El módulo dice que el I de Moran del capítulo 7 es la PENDIENTE de Wy
     # sobre y —no su correlación— cuando W va por filas. Es una identidad,

@@ -31,7 +31,8 @@
      pasos [{corto, titulo, texto, estado, tween, pausa}]   `titulo` y `texto` son HTML o `E => HTML`;
                                      `estado` es un parche o `E => parche` (lo que el paso pone depende de dónde se está)
      mandos [{tipo, id, etiqueta, …}]   deslizador | botones | ciclo (el `n` de un ciclo puede ser `E => n`:
-                                     cuántos puntos hay depende del patrón que se mira)
+                                     cuántos puntos hay depende del patrón que se mira); un deslizador puede llevar
+                                     `valorTexto(v, E)`, lo que dice un lector de pantalla al moverlo (por defecto, `salida`)
      paneles [{id, etiqueta, aria}]     lienzos pequeños de al lado (perfiles, gráficos)
      dibuja(c, E, V)  panel(c, id, E, V)   `c = {ctx, w, h, dpr}`; se dibuja en píxeles CSS
      puntero(ev, E, V, c) → {poner, cursor, captura} | null      (`gestos` decide cuándo se aplica)
@@ -39,6 +40,9 @@
      lectura(E) → [[etiqueta, valor], …]       alt(E) → descripción para lectores de pantalla
      sondas [parche, …]              (opcional) estados con que se escribe, oculta, cada leyenda para medir su alto: los
                                      de las variantes más largas del texto, para que la celda no crezca la primera vez
+     anuncio(E, antes) → texto | null   (opcional) lo que se anuncia al cambiar el estado sin cambiar de paso: el barrio
+                                     nuevo con su cuenta, la k nueva con su desviación. Una sola región viva lo dice todo
+   Y en `opc`, de quien monta: `reserva`, el HTML que vuelve si la animación falla DESPUÉS de montarse.
 
    EL TEXTO DE CADA PASO TIENE QUE SER CIERTO EN CUALQUIER ESTADO, no solo en el que el paso pone: el deslizador y
    el teclado cambian el estado sin cambiar de paso. Las pruebas de cada pieza recorren todos los estados.
@@ -57,6 +61,7 @@
 
   const CLAVES = ['destruir', 'ir', 'poner', 'reproducir', 'pausar', 'avanza', 'reinicia', 'estado', 'visual'];
   const PAUSA_PASO = 2.4;       // segundos que el guion se queda en un paso, además de lo que tarde en llegar
+  const PALABRAS_POR_SEGUNDO = 3.5;   // unas 210 por minuto: el guion da tiempo a LEER el texto del paso
   const PASO_TIEMPO = 1 / 30;   // el reloj de `avanza`, que no corre con rAF
   const TOPE_AVANZA = 600;      // `avanza(Infinity)` simula como mucho diez minutos: un guion que no acabe no cuelga la página
 
@@ -123,11 +128,17 @@
       return true;
     }
 
-    // Cuánto se queda el guion en el paso `i`: lo que tarden en llegar sus transiciones, y la pausa.
+    // Cuánto se queda el guion en el paso `i`: lo que tarden en llegar sus transiciones y, después, la pausa del paso o
+    // lo que se tarda en leer su título y su texto, lo que sea más. Revisión del 2026-10-02: con solo la pausa,
+    // «Reproducir» pasaba los pasos del rezago a 450–1 000 palabras por minuto, y eso no lo lee nadie.
+    function lectura(p) {
+      const txt = [p.titulo, p.texto].map(x => typeof x === 'function' ? x(E) : (x || '')).join(' ');
+      return String(txt).replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length / PALABRAS_POR_SEGUNDO;
+    }
     function espera(i) {
       const p = pasos[i - 1] || {};
       const durs = Object.keys(tw).map(k => tw[k].dur);
-      return (durs.length ? Math.max.apply(null, durs) : 0) + (p.pausa != null ? p.pausa : PAUSA_PASO);
+      return (durs.length ? Math.max.apply(null, durs) : 0) + Math.max(p.pausa != null ? p.pausa : PAUSA_PASO, lectura(p));
     }
 
     function reproducir() {
@@ -189,7 +200,7 @@
       ir(1, { corte: true, desdeGuion: true });
     }
 
-    return { E, V, poner, ir, reproducir, pausar, paso, avanza, reinicia, activo, guion, espera };
+    return { E, V, poner, ir, reproducir, pausar, paso, avanza, reinicia, activo, guion, espera, lectura };
   }
 
   /* ===================================================================
@@ -393,17 +404,21 @@
       `<span class="a2d-num">${i + 1}</span><span class="a2d-rot">${p.corto}</span></button>`).join('');
     const mandos = (def.mandos || []).map((m, i) => {
       if (m.tipo === 'deslizador') {
-        return `<div class="a2d-ctl" data-mando="${i}"><label for="${ID}-m${i}">${m.etiqueta} <output for="${ID}-m${i}"></output></label>` +
+        // el <output> es un `status` implícito y se anunciaba en cada valor, encima de lo que dice el propio deslizador
+        return `<div class="a2d-ctl" data-mando="${i}"><label for="${ID}-m${i}">${m.etiqueta} <output for="${ID}-m${i}" aria-live="off"></output></label>` +
                `<input type="range" id="${ID}-m${i}" min="${m.min}" max="${m.max}" step="${m.paso || 1}" value="${m.min}"></div>`;
       }
       if (m.tipo === 'botones') {
-        return `<div class="a2d-grupo" data-mando="${i}"><span>${m.etiqueta}</span><div class="a2d-botones">` +
+        return `<div class="a2d-grupo" data-mando="${i}" role="group" aria-labelledby="${ID}-g${i}"><span id="${ID}-g${i}">${m.etiqueta}</span><div class="a2d-botones">` +
                m.opciones.map((o, j) => `<button type="button" class="a2d-btn" data-j="${j}" aria-pressed="false">${o[1]}</button>`).join('') +
                '</div></div>';
       }
-      return `<div class="a2d-grupo" data-mando="${i}"><span>${m.etiqueta}</span><div class="a2d-botones">` +
+      // Un grupo con nombre: sin él, un lector decía «Torre, botón, presionado» sin decir de qué. Y el texto del ciclo ya
+      // no es una región viva: se reescribía en cada cambio de estado y repetía «barrio 7» al mover k o el ratón. Lo
+      // que cambia lo dice ahora la única región viva, `[data-anuncio]`, con lo que la pieza cuente en `anuncio`.
+      return `<div class="a2d-grupo" data-mando="${i}" role="group" aria-labelledby="${ID}-g${i}"><span id="${ID}-g${i}">${m.etiqueta}</span><div class="a2d-botones">` +
              `<button type="button" class="a2d-btn" data-sentido="-1" aria-label="${esc(m.anterior || 'Anterior')}">‹</button>` +
-             '<span class="a2d-ciclo-txt" aria-live="polite"></span>' +
+             '<span class="a2d-ciclo-txt"></span>' +
              `<button type="button" class="a2d-btn" data-sentido="1" aria-label="${esc(m.siguiente || 'Siguiente')}">›</button></div></div>`;
     }).join('');
     const paneles = (def.paneles || []).map((p, i) =>
@@ -412,7 +427,7 @@
     return `
 <div class="a2d-rejilla">
   <div class="a2d-pasos" role="group" aria-label="Pasos de la animación">${pasos}
-    <button type="button" class="a2d-play" data-activo="false"><span aria-hidden="true">▶</span><span class="a2d-play-txt">Reproducir</span></button>
+    <button type="button" class="a2d-play" data-activo="false"><span class="a2d-play-ico" aria-hidden="true">▶</span><span class="a2d-play-txt">Reproducir</span></button>
   </div>
   <div class="a2d-leyenda">${(def.pasos || []).map((p, i) => `<div class="a2d-ley" data-ley="${i + 1}"><h5></h5><p></p></div>` +
     (def.sondas || []).map(() => '<div class="a2d-ley a2d-sonda" aria-hidden="true"><h5></h5><p></p></div>').join('')).join('')}</div>
@@ -460,12 +475,14 @@
     /* ---- la máquina, con los ganchos que la conectan al DOM ---- */
     const M = maquina(def, {
       get reducido() { return !!(mqReducido && mqReducido.matches); },
-      cambia: () => sincroniza(),
+      cambia: () => { try { sincroniza(); } catch (e) { falla(e); } },
       pinta: () => pide(),
       pintaYa: () => pintaYa(),
       guion: on => {
         botonPlay.dataset.activo = on ? 'true' : 'false';
-        botonPlay.querySelector('.a2d-play-txt').textContent = on ? 'Pausa' : 'Reproducir';
+        // «❚❚ Pausar» mientras corre, como el 3D del capítulo 5 (antes decía «▶ Pausa»: el icono no cambiaba)
+        botonPlay.querySelector('.a2d-play-ico').textContent = on ? '❚❚' : '▶';
+        botonPlay.querySelector('.a2d-play-txt').textContent = on ? 'Pausar' : 'Reproducir';
       }
     });
 
@@ -485,20 +502,36 @@
 
     function pintaYa() {
       if (!vivo) return;
-      const c = ajustaLienzo(lienzo, ctx);
-      if (c) {
-        geo.w = c.w; geo.h = c.h; geo.dpr = c.dpr;
-        c.ctx.clearRect(0, 0, c.w, c.h);
-        def.dibuja(c, M.E, M.V);
+      try {
+        const c = ajustaLienzo(lienzo, ctx);
+        if (c) {
+          geo.w = c.w; geo.h = c.h; geo.dpr = c.dpr;
+          c.ctx.clearRect(0, 0, c.w, c.h);
+          def.dibuja(c, M.E, M.V);
+        }
+        if (def.panel) {
+          paneles.forEach(p => {
+            const cp = ajustaLienzo(p.cv, p.ctx);
+            if (!cp) return;
+            cp.ctx.clearRect(0, 0, cp.w, cp.h);
+            def.panel(cp, p.def.id, M.E, M.V);
+          });
+        }
+      } catch (e) {
+        falla(e);
       }
-      if (def.panel) {
-        paneles.forEach(p => {
-          const cp = ajustaLienzo(p.cv, p.ctx);
-          if (!cp) return;
-          cp.ctx.clearRect(0, 0, cp.w, cp.h);
-          def.panel(cp, p.def.id, M.E, M.V);
-        });
-      }
+    }
+
+    // UN FALLO DESPUÉS DE MONTAR (auditoría del 2026-10-02). El primer dibujo no ocurre dentro de `monta`: llega en un
+    // rAF o en el ResizeObserver, y si fallaba el lienzo quedaba en blanco, la consola se llenaba de «Uncaught» en cada
+    // fotograma y el texto de reserva no volvía. Ahora un fallo al dibujar o al escribir los textos desmonta la animación
+    // y deja el texto de reserva de quien la montó (`opc.reserva`) o, sin él, el aviso de `sinAnimacion`.
+    function falla(e) {
+      if (!vivo) return;
+      destruir();
+      if (opc.reserva != null) cont.innerHTML = opc.reserva;
+      else sinAnimacion(cont, 'La animación dejó de funcionar.', def);
+      if (win.console) win.console.error('anim2d: la animación falló y se ha desmontado', e);
     }
 
     /* ---- el bucle, a demanda: solo corre mientras algo se mueve ---- */
@@ -525,7 +558,14 @@
     // Un texto solo se reescribe si cambió: reescribir el mismo HTML recrea los nodos, y pasar el puntero por encima
     // del mapa llama a esto en cada barrio. Las leyendas de todos los pasos se escriben (están apiladas: la celda mide
     // lo que la más larga), y se anuncia solo el título del paso al que se llega, no cada cambio de su texto.
-    const ult = { leyendas: [], sondas: [], paso: null, lectura: null, estado: null };
+    const ult = { leyendas: [], sondas: [], paso: null, lectura: null, estado: null, E: null };
+    // UNA SOLA REGIÓN VIVA, y solo dice lo que cambió (auditoría del 2026-10-02). Antes el texto del ciclo era otra región
+    // viva y se reescribía en cada `sincroniza`: mover k o pasar el ratón repetía «barrio 7», y la cuenta, K o g no se
+    // anunciaban nunca. `callado`: el cambio viene de un deslizador, que ya dice su valor (`aria-valuetext`).
+    let callado = false;
+    const anuncia = t => { if (t && anuncio.textContent !== t) anuncio.textContent = t; };
+    const ponTexto = (el, t) => { if (el.textContent !== t) el.textContent = t; };
+    const ponAtributo = (el, a, v) => { if (el.getAttribute(a) !== v) el.setAttribute(a, v); };
 
     // El estado con que se escribe la leyenda de un paso que NO es el actual: el que ese paso pondría. Así la celda
     // mide lo mismo vaya uno al paso que vaya (con el estado actual, la del paso 2 escrita con k = 70 era más larga
@@ -572,10 +612,13 @@
       });
       if (ult.paso !== E.paso) {
         const p = (def.pasos || [])[E.paso - 1];
-        if (ult.paso !== null && p) anuncio.textContent = 'Paso ' + E.paso + ': ' + (typeof p.titulo === 'function' ? p.titulo(E) : p.titulo);
+        if (ult.paso !== null && p) anuncia('Paso ' + E.paso + ': ' + (typeof p.titulo === 'function' ? p.titulo(E) : p.titulo));
         ult.paso = E.paso;
+      } else if (def.anuncio && ult.E && !callado) {
+        anuncia(def.anuncio(E, ult.E));
       }
-      pasoBotones.forEach((b, i) => { if (i + 1 === E.paso) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+      ult.E = Object.assign({}, E);
+      pasoBotones.forEach((b, i) => { if (i + 1 === E.paso) ponAtributo(b, 'aria-current', 'step'); else if (b.hasAttribute('aria-current')) b.removeAttribute('aria-current'); });
       ctls.forEach(el => {
         const m = def.mandos[+el.dataset.mando];
         el.hidden = !!(m.visible && !m.visible(E));
@@ -583,12 +626,13 @@
           const inp = el.querySelector('input');
           if (+inp.value !== E[m.id]) inp.value = E[m.id];
           const txt = m.salida ? m.salida(E[m.id], E) : String(E[m.id]);
-          el.querySelector('output').textContent = txt;
-          inp.setAttribute('aria-valuetext', txt);            // la etiqueta ya la lee el <label>: repetirla la decía dos veces
+          ponTexto(el.querySelector('output'), txt);
+          // la etiqueta ya la lee el <label>: repetirla la decía dos veces
+          ponAtributo(inp, 'aria-valuetext', m.valorTexto ? m.valorTexto(E[m.id], E) : txt);
         } else if (m.tipo === 'botones') {
-          el.querySelectorAll('.a2d-btn').forEach(b => b.setAttribute('aria-pressed', String(m.opciones[+b.dataset.j][0] === E[m.id])));
+          el.querySelectorAll('.a2d-btn').forEach(b => ponAtributo(b, 'aria-pressed', String(m.opciones[+b.dataset.j][0] === E[m.id])));
         } else {
-          el.querySelector('.a2d-ciclo-txt').textContent = m.texto(E[m.id], E);
+          ponTexto(el.querySelector('.a2d-ciclo-txt'), m.texto(E[m.id], E));
         }
       });
       if (def.lectura) {
@@ -606,7 +650,10 @@
     ctls.forEach(el => {
       const m = def.mandos[+el.dataset.mando];
       if (m.tipo === 'deslizador') {
-        el.querySelector('input').addEventListener('input', e => M.poner({ [m.id]: +e.target.value }, { corte: true }));   // se arrastra: sin transición
+        el.querySelector('input').addEventListener('input', e => {
+          callado = true;                                            // ya lo dice su `aria-valuetext`
+          try { M.poner({ [m.id]: +e.target.value }, { corte: true }); } finally { callado = false; }   // se arrastra: sin transición
+        });
       } else if (m.tipo === 'botones') {
         el.addEventListener('click', e => {
           const b = e.target.closest('.a2d-btn');
