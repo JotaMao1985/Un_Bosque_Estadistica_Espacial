@@ -382,6 +382,12 @@ write(toJSON(list(celdas = sal, solos = solos), auto_unbox = TRUE, digits = 12),
        f"la corrección por defecto se queda corta con una sede ({sr['defecto']:.3f} < 1) y se pasa con las diecinueve "
        f"(R: {masas_pasa} > {n_pts})")
 
+    # El módulo 4 del capítulo dice «diecinueve puntos» con palabras (una cifra con dígitos tendría que venir de un JSON): si el
+    # patrón del motor cambia de tamaño, ese texto miente sin que ningún auditor de cifras lo vea.
+    palabras = {19: "diecinueve"}.get(n_pts)
+    ok(palabras is not None and f"los {palabras} puntos inventados" in (RAIZ / "precalculo" / "ensambla_cap5.py").read_text(encoding="utf-8"),
+       f"el patrón tiene {n_pts} puntos y el módulo 4 dice «los diecinueve puntos inventados» (si el patrón cambia, hay que reescribir esa frase)")
+
     # d · propiedades exactas, sin R
     prop4 = node("""
       const sal = { medio: [], esquina: [], gauss: [] };
