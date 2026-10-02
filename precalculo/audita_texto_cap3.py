@@ -140,10 +140,33 @@ AFIRMACIONES = [
      "hasta el signo depende de por dónde pasen las fronteras"),
     ("dice que la partición real no tiene nada de especial",
      "nada de especial"),
+    # 2026-10-02 (auditoría de las cinco animaciones): el percentil de Colombia sale de un muestreador de crecimiento,
+    # el mismo que el final del módulo enseña a no tomar por «todos los trazados». La advertencia tiene que estar.
+    ("dice que el percentil de Colombia es respecto de un muestreador, no de todos los trazados",
+     "ese percentil es respecto de un muestreador"),
+    # Las zonas de Colombia se construyen con contigüidad de reina (`poly2nb(queen = TRUE)`: 87 pares de municipios
+    # solo se tocan en una esquina) y la única definición del módulo era la de la rejilla, que es de torre.
+    ("define la contigüidad de las zonas de Colombia: de reina, basta un punto de frontera",
+     "comparten aunque sea un punto de frontera"),
+    ("dice que la rejilla usa la contigüidad de torre y los municipios la de reina",
+     "la contigüidad de torre del capítulo 6"),
     ("explica por qué las zonas arbitrarias dan correlaciones más altas",
      "es lo contrario de lo que casi todo el mundo espera"),
     ("declara que el ponderador es parte del trazado",
      "parte del trazado"),
+    # 2026-10-01: el módulo publicaba las frecuencias de un muestreador (15 409 trazados válidos de 200 000
+    # intentos, 1.82 / 65.97 / 32.21 %) como si fueran las del problema. Ahora se enumeran los 4 006 y se dice.
+    ("declara que los trazados del gerrymandering se enumeran todos y no se sortean",
+     "se enumeran, no se sortean"),
+    ("dice que los porcentajes del gerrymandering cuentan trazados y no son probabilidades",
+     "no probabilidades"),
+    # Los 4 006 valen solo si dos casillas son vecinas cuando COMPARTEN UN LADO: con la esquina como vecindad son
+    # muchas más y A llega a sacar 5 escaños. La definición tiene que estar escrita.
+    ("define «contiguo» en la rejilla del gerrymandering: casillas que comparten un lado",
+     "comparten un lado"),
+    # Y los 4 006 son trazados SIN etiquetas: numerando los distritos serían 4 006 × 120 = 480 720.
+    ("dice que renumerar los distritos no da otro trazado",
+     "numerados de otra forma es el mismo trazado"),
     ("dice que una correlación ecológica no habla de personas",
      "no como afirmación sobre personas"),
     ("declara que el signo del estrato depende del filtro",
