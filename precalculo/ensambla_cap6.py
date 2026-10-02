@@ -38,6 +38,7 @@ import pathlib
 import sys
 
 from baraja_opciones import baraja_documento
+from motores import lee_motor
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
@@ -47,6 +48,12 @@ DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-6-pesos-espaciales.html"
 D = json.loads((SALIDAS / "cap6_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap6_mapas.json").read_text(encoding="utf-8"))
 SOL = json.loads((SALIDAS / "cap6_soluciones.json").read_text(encoding="utf-8"))
+# Las cifras de referencia de la animación del módulo 10 (`genera_cap6_rezago2d.R`, de spdep). La página solo
+# lleva CRIME de aquí; lo demás lo calcula el navegador y `prueba_rezago2d.py` lo mide contra estas cifras.
+RZ = json.loads((SALIDAS / "cap6_rezago2d.json").read_text(encoding="utf-8"))
+# Y el RESUMEN que cita la prosa (8 números): el auditor de cifras lee este y no la serie, que trae miles y deja
+# colar enteros por azar (ver `genera_cap6_rezago2d.R`).
+RS = json.loads((SALIDAS / "cap6_rezago2d_resumen.json").read_text(encoding="utf-8"))
 
 m1, m2, m3, m4 = D["m1"], D["m2"], D["m3"], D["m4"]
 m5, m6, m7, m8 = D["m5"], D["m6"], D["m7"], D["m8"]
@@ -157,6 +164,28 @@ def sim(ident, titulo, pie="", alto=260, mandos=True):
           <canvas role="img" aria-label="{titulo}"></canvas>
         </div>
         <div class="simulador-lectura"></div>
+      </div>
+"""
+
+
+# Lo que ve quien tiene JavaScript bloqueado: lo mismo que dice la animación, sin el lienzo.
+ANIM2D_RESERVA = ("La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: Wy es, en cada "
+                  "barrio, la media de sus vecinos, y aplicada una y otra vez aplana el mapa hacia un valor casi constante "
+                  "que no es la media de y sino la media ponderada por el grado.")
+
+
+def anim2d_html(ident, titulo, pie):
+    """Una animación 2D (`anim2d.js` + su pieza): un contenedor vacío que el motor monta cuando se ve.
+
+    Es un `.simulador` más —lo registra `SIMULADORES[ident]` y lo destruye `destruirSimuladores()`—, pero sin
+    lienzo ni mandos en el marcado: los construye el motor. El `.a2d-cargando` reserva el sitio y es el texto
+    que ve quien lo tenga bloqueado. Los lienzos que el motor crea no están en el marcado, así que no cuentan
+    para el auditor de `aria-label`; cada uno lleva el suyo al crearse.
+    """
+    return f"""      <div class="simulador" data-simulador="{ident}">
+        <h4><i class="fas fa-diagram-project" aria-hidden="true"></i> {titulo}</h4>
+        <p class="simulador-intro">{pie}</p>
+        <div class="a2d-montaje"><p class="a2d-cargando">{ANIM2D_RESERVA}</p></div>
       </div>
 """
 
@@ -1177,6 +1206,33 @@ MOD10 = cabecera(
         se ve más plano, y eso no dice nada sobre el territorio — dice que uno es un promedio del
         otro.</p>
 
+      <h3>Si se promedia otra vez, el mapa sigue aplanándose</h3>
+
+      <p>Si <em>Wy</em> es la media de los vecinos, <em>W(Wy)</em> es la media de esas medias, y se puede
+        seguir: <strong>aplicar W una y otra vez</strong>. Cada vuelta aplana más el mapa, y antes de usar
+        W repetida —el módulo 11 la llamará «apilar capas»— hay que saber adónde va. La animación lo deja
+        ver sobre los 49 barrios de Columbus, con una sola escala de color para todas las capas.</p>
+
+{anim2d_html("cap6-rezago2d", "Aplicar W una y otra vez, sobre Columbus",
+             "Columbus, no los municipios: son 49 barrios y se ven uno a uno, que es lo que hace falta para seguir la "
+             "cuenta de un solo barrio. Las barras de arriba son los municipios. Elige un barrio, sube k y cambia la "
+             "vecindad.")}
+      <p>Lo que se ve, con la reina: el mapa tiende a un solo valor, y <strong>ese valor no es la media de
+        y</strong>. Es la <strong>media ponderada por el grado</strong> de cada barrio,
+        {firma(n(RS["limite_reina"], 4))}, y no la media simple,
+        {n(RS["y_media"], 4)}: un barrio con más vecinos entra en más promedios y pesa más. Con la torre
+        sale otro valor, {firma(n(RS["limite_torre"], 4))}, así que la vecindad que se
+        eligió manda también aquí. La rapidez la manda el segundo valor propio de W,
+        {n(RS["lambda2_reina"], 4)}: con la reina hacen falta
+        {ent(RS["k_5pct_reina"])} aplicaciones para dejar la desviación típica en el 5 % de la
+        que tenía <em>y</em>.</p>
+
+      <p>Con k = 1 la lectura de la animación da otra cifra que conviene no confundir: la
+        <strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>, {firma(n(RS["moran_I"], 4))}, que es el
+        índice de Moran del capítulo 7; la correlación entre las dos es {n(RS["moran_cor"], 4)}. No son lo
+        mismo, y la diferencia es justo la contracción de arriba: la desviación de <em>Wy</em> es
+        {n(RS["moran_razon_sd"], 4)} veces la de <em>y</em>.</p>
+
 {tabs("El rezago espacial", R10.format(**_SUB10), PY10.format(**_SUB10))}
       <p>Y una advertencia que el capítulo 7 va a cobrar: esa correlación de
         {n(m10["correlacion"], 4)} <strong>depende de la W que se eligió</strong>. Con la torre, con
@@ -1253,7 +1309,9 @@ MOD11 = cabecera(
           mapa de polígonos es lo habitual pero no lo seguro. La contigüidad de orden 2 del
           módulo 3 es otra cosa, solo los que no eran ya
           vecinos — y con la misma trampa de entonces: nada acumula solo, hay que decidir qué se
-          cuenta.</li>
+          cuenta. Y apilar muchas, sin los pesos ni la no linealidad de cada capa, es aplicar W
+          muchas veces: la animación del módulo 10 enseña a dónde lleva eso, a un mapa casi de un
+          solo color.</li>
         <li><strong>La elección de W es la elección de la arquitectura.</strong> Lo que en este
           capítulo es «reina o k = 4» allí es qué aristas tiene el grafo, y allí también se elige y
           casi nunca se justifica.</li>
@@ -1645,6 +1703,51 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       return g ? [g] : [];
     };
 """
+
+# La animación 2D del módulo 10. Los dos motores se leen de `precalculo/anim2d/` y viajan EN LÍNEA (un capítulo es un
+# solo HTML): se editan allí y nada más, y `comprueba_animaciones.py` comprueba que el capítulo lleve la versión
+# vigente. Se CONCATENAN, no se interpolan: el JS lleva llaves y `${}`.
+REZAGO2D_JS = (
+    "\n    // --- Módulo 10 · aplicar W una y otra vez: `anim2d.js` y `rezago2d.js`, en línea ---------\n"
+    "    // CRIME de los 49 barrios de Columbus, con todos sus decimales: lo único que la animación trae de fuera\n"
+    "    // (el mapa es el `cap6-w` de arriba y lo demás lo calcula ella).\n"
+    "    const REZAGO2D_Y = " + json.dumps(RZ["y"]["crime"]) + ";\n"
+    + lee_motor(RAIZ / "precalculo" / "anim2d" / "anim2d.js") + "\n"
+    + lee_motor(RAIZ / "precalculo" / "anim2d" / "rezago2d.js") + "\n"
+    + r"""
+    SIMULADORES['cap6-rezago2d'] = function (raiz) {
+      const sitio = raiz.querySelector('.a2d-montaje');
+      let vivo = true, instancia = null, io = null;
+      Anim2D.estilos(document);
+      const monta = () => {
+        if (!vivo) return;
+        // Si el motor falla, vuelve el texto de reserva («el texto de este módulo dice lo mismo»): antes se vaciaba
+        // el sitio ANTES de montar, y un fallo dejaba un hueco de alto cero y la promesa del párrafo, borrada.
+        const reserva = sitio.innerHTML;
+        try {
+          sitio.innerHTML = '';
+          // el color es el de los mapas del capítulo (`geomapaColor`, con su filtro de daltonismo)
+          instancia = sitio.animacion = Rezago2D.monta(sitio, { y: REZAGO2D_Y, mapa: MAPAS_CAP6['cap6-w'] },
+                                                       { color: geomapaColor, geom: geomapaGeom });
+        } catch (e) {
+          sitio.innerHTML = reserva;
+          instancia = sitio.animacion = null;
+          console.error('cap6-rezago2d: la animación no se pudo montar', e);
+        }
+      };
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(es => {
+          if (es.some(e => e.isIntersecting)) { io.disconnect(); io = null; monta(); }
+        }, { rootMargin: '400px 0px' });
+        io.observe(sitio);
+      } else {
+        monta();
+      }
+      return [{ destroy() { vivo = false; if (io) io.disconnect(); if (instancia) instancia.destruir(); instancia = sitio.animacion = null; } }];
+    };
+""")
+
+SIMULADORES_JS += REZAGO2D_JS
 
 QUIZ_JS = r"""
     AUTOEVALUACIONES['cap6-quiz'] = [

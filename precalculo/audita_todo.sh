@@ -180,6 +180,10 @@ paso "prueba_rezago2d.py — la animación 2D del rezago, contra R y por dentro"
      python3 precalculo/prueba_rezago2d.py
 paso "prueba_mutaciones_anim2d.py — la prueba de la animación 2D SABE fallar" \
      python3 precalculo/prueba_mutaciones_anim2d.py
+# Y que el capítulo lleve el motor de HOY: el motor se edita en `precalculo/anim2d/` y viaja en línea; sin esto
+# un motor editado y no reensamblado deja el capítulo en verde con la versión vieja.
+paso "comprueba_animaciones.py — cada capítulo lleva el motor que hay en su archivo" \
+     python3 precalculo/comprueba_animaciones.py
 
 paso "audita_texto_demo.py — las cifras de la prosa del fixture" \
      sh -c 'cd precalculo && python3 audita_texto_demo.py'

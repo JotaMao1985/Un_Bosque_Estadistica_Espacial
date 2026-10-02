@@ -5240,6 +5240,35 @@ print(wm.n_components)
         se ve más plano, y eso no dice nada sobre el territorio — dice que uno es un promedio del
         otro.</p>
 
+      <h3>Si se promedia otra vez, el mapa sigue aplanándose</h3>
+
+      <p>Si <em>Wy</em> es la media de los vecinos, <em>W(Wy)</em> es la media de esas medias, y se puede
+        seguir: <strong>aplicar W una y otra vez</strong>. Cada vuelta aplana más el mapa, y antes de usar
+        W repetida —el módulo 11 la llamará «apilar capas»— hay que saber adónde va. La animación lo deja
+        ver sobre los 49 barrios de Columbus, con una sola escala de color para todas las capas.</p>
+
+      <div class="simulador" data-simulador="cap6-rezago2d">
+        <h4><i class="fas fa-diagram-project" aria-hidden="true"></i> Aplicar W una y otra vez, sobre Columbus</h4>
+        <p class="simulador-intro">Columbus, no los municipios: son 49 barrios y se ven uno a uno, que es lo que hace falta para seguir la cuenta de un solo barrio. Las barras de arriba son los municipios. Elige un barrio, sube k y cambia la vecindad.</p>
+        <div class="a2d-montaje"><p class="a2d-cargando">La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: Wy es, en cada barrio, la media de sus vecinos, y aplicada una y otra vez aplana el mapa hacia un valor casi constante que no es la media de y sino la media ponderada por el grado.</p></div>
+      </div>
+
+      <p>Lo que se ve, con la reina: el mapa tiende a un solo valor, y <strong>ese valor no es la media de
+        y</strong>. Es la <strong>media ponderada por el grado</strong> de cada barrio,
+        <strong>37.8213</strong>, y no la media simple,
+        35.1288: un barrio con más vecinos entra en más promedios y pesa más. Con la torre
+        sale otro valor, <strong>36.8842</strong>, así que la vecindad que se
+        eligió manda también aquí. La rapidez la manda el segundo valor propio de W,
+        0.9711: con la reina hacen falta
+        66 aplicaciones para dejar la desviación típica en el 5 % de la
+        que tenía <em>y</em>.</p>
+
+      <p>Con k = 1 la lectura de la animación da otra cifra que conviene no confundir: la
+        <strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>, <strong>0.5002</strong>, que es el
+        índice de Moran del capítulo 7; la correlación entre las dos es 0.6838. No son lo
+        mismo, y la diferencia es justo la contracción de arriba: la desviación de <em>Wy</em> es
+        0.7315 veces la de <em>y</em>.</p>
+
       <div class="code-tabs">
         <div class="code-tabs-nav" role="tablist" aria-label="El rezago espacial">
           <button class="code-tab-btn active" data-lang="r" role="tab" aria-selected="true">R</button>
@@ -5415,7 +5444,9 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
           mapa de polígonos es lo habitual pero no lo seguro. La contigüidad de orden 2 del
           módulo 3 es otra cosa, solo los que no eran ya
           vecinos — y con la misma trampa de entonces: nada acumula solo, hay que decidir qué se
-          cuenta.</li>
+          cuenta. Y apilar muchas, sin los pesos ni la no linealidad de cada capa, es aplicar W
+          muchas veces: la animación del módulo 10 enseña a dónde lleva eso, a un mapa casi de un
+          solo color.</li>
         <li><strong>La elección de W es la elección de la arquitectura.</strong> Lo que en este
           capítulo es «reina o k = 4» allí es qué aristas tiene el grafo, y allí también se elige y
           casi nunca se justifica.</li>
@@ -9102,6 +9133,1312 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         ['contracción', n6(m.contraccion_pct, 2) + ' %'],
         ['correlación y con Wy', n6(m.correlacion)]]);
       return g ? [g] : [];
+    };
+
+    // --- Módulo 10 · aplicar W una y otra vez: `anim2d.js` y `rezago2d.js`, en línea ---------
+    // CRIME de los 49 barrios de Columbus, con todos sus decimales: lo único que la animación trae de fuera
+    // (el mapa es el `cap6-w` de arriba y lo demás lo calcula ella).
+    const REZAGO2D_Y = [15.72598, 18.801754, 30.626781, 32.38776, 50.73151, 26.066658, 0.178269, 38.425858, 30.515917, 34.000835, 62.275448, 56.705669, 46.716129, 57.066132, 48.585487, 54.838711, 36.868774, 43.962486, 54.521965, 0.223797, 40.074074, 33.705048, 20.048504, 38.297871, 61.299175, 40.969742, 52.79443, 56.919785, 60.750446, 68.892044, 17.677214, 19.145592, 41.968163, 23.974028, 39.175053, 14.305556, 42.445076, 53.710938, 19.100863, 16.241299, 18.905146, 16.49189, 36.663612, 25.962263, 29.028488, 16.530533, 27.822861, 26.645266, 22.541491];
+/* =====================================================================
+   anim2d.js — la cáscara común de las animaciones 2D
+
+   Material de Estadística Espacial 2026-II (20929). La estrena el capítulo 6
+   (módulo 10, `rezago2d.js`); la usará la de K y g del capítulo 4.
+
+   QUÉ ES. Todo lo que dos animaciones 2D tienen en común y ninguna debería
+   escribir dos veces: el andamio (pasos, «Reproducir», leyenda, lienzo, mandos,
+   lectura), el lienzo con su DPR, el bucle que solo corre cuando algo se mueve,
+   las transiciones, el guion, el puntero con captura, el teclado, la pausa fuera
+   de pantalla, `prefers-reduced-motion` y la impresión. Cada pieza declara QUÉ
+   dibuja y QUÉ cuenta, en un objeto `def`; la cáscara decide cuándo.
+
+   SE EDITA AQUÍ Y NADA MÁS. El capítulo lo inyecta en línea y `construye_animaciones.py`
+   comprueba que lo que lleva es lo que hay en este archivo.
+
+   DOS CAPAS, Y POR QUÉ.
+     1 · `maquina(def, ganchos)`: el estado, las transiciones y el guion. No toca el DOM,
+         así que `prueba_anim2d.py` la prueba en Node: que `poner` rechace lo que no es
+         un número, que una transición llegue exactamente a su destino, que el guion
+         recorra los pasos y que cualquier gesto del usuario lo interrumpa. El repo no
+         tiene jsdom; esto es lo más que se puede probar de la capa de interacción sin él.
+     2 · `monta(cont, def, opc)`: el DOM, el lienzo y los eventos. Esa capa la cubre solo
+         la revisión en el navegador.
+
+   LA INTERFAZ DE LA PIEZA (`def`)
+     id, aria, ayuda, ayudaTeclado, pie, sinLienzo   textos (HTML de confianza: es nuestro)
+     inicial()                       estado de partida; DEBE llevar `paso: 1`
+     normaliza(patch, E)             deja el parche en lo que el estado admite (opcional)
+     animables {clave: segundos}     claves numéricas que se interpolan; `V[clave]` es la visible
+     pasos [{corto, titulo, texto, estado, tween, pausa}]   `titulo` y `texto` son HTML o `E => HTML`;
+                                     `estado` es un parche o `E => parche` (lo que el paso pone depende de dónde se está)
+     mandos [{tipo, id, etiqueta, …}]   deslizador | botones | ciclo
+     paneles [{id, etiqueta, aria}]     lienzos pequeños de al lado (perfiles, gráficos)
+     dibuja(c, E, V)  panel(c, id, E, V)   `c = {ctx, w, h, dpr}`; se dibuja en píxeles CSS
+     puntero(ev, E, V, c) → {poner, cursor, captura} | null      (`gestos` decide cuándo se aplica)
+     tecla(ev, E, V) → parche | null
+     lectura(E) → [[etiqueta, valor], …]       alt(E) → descripción para lectores de pantalla
+
+   EL TEXTO DE CADA PASO TIENE QUE SER CIERTO EN CUALQUIER ESTADO, no solo en el que el paso pone: el deslizador y
+   el teclado cambian el estado sin cambiar de paso. Las pruebas de cada pieza recorren todos los estados.
+
+   LO QUE ESTA CÁSCARA TODAVÍA NO TIENE, a propósito: el diseño de dos columnas para un lienzo ancho y el
+   «modo clase» para diapositivas (letra grande, lienzo a pantalla completa, flechas reenviadas al visor). Las
+   columnas de los capítulos no pasan de ~770 px, y CSS que nadie ejercita no se publica sin verificar: lo añadirá
+   la animación que lo necesite, con su revisión en el navegador.
+
+   LA API QUE DEVUELVE `monta` está en `CLAVES`, y la versión inerte (`sinAnimacion`,
+   cuando no hay lienzo 2D) se fabrica de esa misma lista: así a una no le falta un
+   método que la otra tenga.
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  const CLAVES = ['destruir', 'ir', 'poner', 'reproducir', 'pausar', 'avanza', 'reinicia', 'estado', 'visual'];
+  const PAUSA_PASO = 2.4;       // segundos que el guion se queda en un paso, además de lo que tarde en llegar
+  const PASO_TIEMPO = 1 / 30;   // el reloj de `avanza`, que no corre con rAF
+  const TOPE_AVANZA = 600;      // `avanza(Infinity)` simula como mucho diez minutos: un guion que no acabe no cuelga la página
+
+  const suave = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;   // easeInOutCubic
+
+  /* ===================================================================
+     1 · LA MÁQUINA. Sin DOM.
+     =================================================================== */
+  function maquina(def, ganchos) {
+    ganchos = ganchos || {};
+    const E = def.inicial();                 // el estado al que se va
+    const V = Object.assign({}, E);          // el que se ve: igual que E salvo las claves en transición
+    const animables = def.animables || {};
+    const pasos = def.pasos || [];
+    const tw = {};                           // clave → { desde, hasta, t, dur }
+    const guion = { activo: false, espera: 0 };
+    const avisa = () => { if (ganchos.cambia) ganchos.cambia(); };
+    const pinta = () => { if (ganchos.pinta) ganchos.pinta(); };
+
+    // Lo que el estado admite de un parche. Una clave que el estado no tiene no entra, y una
+    // clave numérica solo admite números finitos: sin esto un NaN llegaba al lienzo y el mapa
+    // se quedaba sin color con la consola limpia.
+    function limpia(patch) {
+      const out = {};
+      if (!patch || typeof patch !== 'object') return out;
+      for (const k of Object.keys(patch)) {
+        if (!(k in E)) continue;
+        const v = patch[k];
+        if (typeof E[k] === 'number' && !(typeof v === 'number' && isFinite(v))) continue;
+        out[k] = v;
+      }
+      return def.normaliza ? def.normaliza(out, E) : out;
+    }
+
+    // `opc.desdeGuion`: la llama el propio guion y no lo interrumpe; cualquier otro `poner` sí.
+    // `opc.corte`: sin transición. `opc.dur`: segundos por clave, para este parche.
+    function poner(patch, opc) {
+      opc = opc || {};
+      if (!opc.desdeGuion) pausar();
+      const p = limpia(patch);
+      let cambio = false;
+      for (const k of Object.keys(p)) {
+        if (E[k] === p[k] && !(k in tw)) continue;
+        cambio = true;
+        const dur = opc.dur && opc.dur[k] != null ? opc.dur[k] : animables[k];
+        if (k in animables && !ganchos.reducido && !opc.corte && dur > 0 && V[k] !== p[k]) {
+          tw[k] = { desde: V[k], hasta: p[k], t: 0, dur };
+        } else {
+          V[k] = p[k];
+          delete tw[k];
+        }
+        E[k] = p[k];
+      }
+      if (cambio) { avisa(); pinta(); }
+      return cambio;
+    }
+
+    function ir(n, opc) {
+      const i = Math.round(n);
+      if (!(i >= 1 && i <= pasos.length)) return false;
+      const p = pasos[i - 1];
+      const est = typeof p.estado === 'function' ? p.estado(E) : p.estado;
+      poner(Object.assign({ paso: i }, est), Object.assign({ dur: p.tween }, opc));
+      return true;
+    }
+
+    // Cuánto se queda el guion en el paso `i`: lo que tarden en llegar sus transiciones, y la pausa.
+    function espera(i) {
+      const p = pasos[i - 1] || {};
+      const durs = Object.keys(tw).map(k => tw[k].dur);
+      return (durs.length ? Math.max.apply(null, durs) : 0) + (p.pausa != null ? p.pausa : PAUSA_PASO);
+    }
+
+    function reproducir() {
+      if (guion.activo || !pasos.length) return;
+      const desde = E.paso >= 1 && E.paso < pasos.length ? E.paso : 1;
+      ir(desde, { desdeGuion: true });
+      guion.activo = true;
+      guion.espera = espera(desde);
+      if (ganchos.guion) ganchos.guion(true);
+      pinta();
+    }
+
+    function pausar() {
+      if (!guion.activo) return;
+      guion.activo = false;
+      if (ganchos.guion) ganchos.guion(false);
+    }
+
+    // Un instante de tiempo. Devuelve si algo sigue en marcha (y hay que pedir otro fotograma).
+    function paso(dt) {
+      let sigue = false;
+      for (const k of Object.keys(tw)) {
+        const a = tw[k];
+        a.t += dt / a.dur;
+        if (a.t >= 1) { V[k] = a.hasta; delete tw[k]; } else { V[k] = a.desde + (a.hasta - a.desde) * suave(a.t); sigue = true; }
+      }
+      if (guion.activo) {
+        guion.espera -= dt;
+        if (guion.espera <= 0) {
+          if (E.paso < pasos.length) {
+            ir(E.paso + 1, { desdeGuion: true });
+            guion.espera = espera(E.paso);
+          } else {
+            pausar();
+          }
+        }
+        sigue = sigue || guion.activo;
+      }
+      return sigue;
+    }
+
+    const activo = () => guion.activo || Object.keys(tw).length > 0;
+
+    // `avanza(seg)`: adelanta el reloj `seg` segundos de golpe. Las capturas y la impresión
+    // lo necesitan porque no hay rAF: `avanza(Infinity)` deja el guion en su estado final.
+    function avanza(seg) {
+      let resto = seg === Infinity ? TOPE_AVANZA : Math.max(0, +seg || 0);
+      while (resto > 0 && activo()) {
+        const d = Math.min(PASO_TIEMPO, resto);
+        paso(d);
+        resto -= d;
+      }
+      if (ganchos.pintaYa) ganchos.pintaYa(); else pinta();
+    }
+
+    function reinicia() {
+      pausar();
+      poner(def.inicial(), { corte: true, desdeGuion: true });
+      ir(1, { corte: true, desdeGuion: true });
+    }
+
+    return { E, V, poner, ir, reproducir, pausar, paso, avanza, reinicia, activo, guion, espera };
+  }
+
+  /* ===================================================================
+     2 · EL GESTO. Cuándo se aplica lo que la pieza devuelve del puntero, y si
+         interrumpe el guion. Sin DOM, así que se prueba en Node.
+     =================================================================== */
+  const UMBRAL_TOQUE = 8;    // px: un dedo que se mueve más que esto está desplazando la página, no eligiendo
+
+  // Tres reglas, cada una de un fallo medido en la revisión del rezago (2026-10-02):
+  //   · UN TOQUE NO ELIGE AL BAJAR EL DEDO. El navegador todavía no sabe si es un toque o el principio de un
+  //     desplazamiento de la página, y elegir al bajar cambiaba el barrio en foco al desplazar con el dedo
+  //     encima del mapa (que en el teléfono ocupa casi toda la pantalla). Elige al levantarlo, si no se movió;
+  //     `cancela` (pointercancel: el navegador se quedó el gesto) lo anula. Con el ratón, al bajar.
+  //   · SALIR DEL LIENZO NO INTERRUMPE EL GUION, como no lo interrumpe pasar por encima. Antes la salida contaba
+  //     como un gesto y paraba «Reproducir».
+  //   · CON EL DEDO NO HAY «PASAR POR ENCIMA»: sus movimientos solo cuentan si la pieza pidió capturar al bajar
+  //     (un arrastre). Así un desplazamiento tampoco pausa el guion.
+  function gestos(puntero) {
+    let toque = null;        // un toque que todavía no ha elegido: { res, x, y }
+    let arrastre = false;    // la pieza capturó al bajar: los movimientos siguientes son suyos
+    const lejos = (ev, p) => Math.hypot(ev.x - p.x, ev.y - p.y) > UMBRAL_TOQUE;
+    const con = (res, interrumpe) => res ? Object.assign({}, res, { interrumpe }) : null;
+    return function (ev, E, V, c) {
+      switch (ev.tipo) {
+        case 'cancela':
+          toque = null; arrastre = false;
+          return null;
+        case 'abajo': {
+          const res = puntero(ev, E, V, c);
+          if (res && res.captura) { toque = null; arrastre = true; return con(res, true); }
+          if (ev.tactil) { toque = res && res.poner ? { res, x: ev.x, y: ev.y } : null; return null; }
+          return con(res, true);
+        }
+        case 'mueve':
+          if (toque && lejos(ev, toque)) toque = null;
+          if (ev.tactil && !arrastre) return null;
+          return con(puntero(ev, E, V, c), arrastre);
+        case 'arriba': {
+          const elegido = toque && !lejos(ev, toque) ? toque.res : null;
+          toque = null;
+          const res = puntero(ev, E, V, c);
+          const eraArrastre = arrastre;
+          arrastre = false;
+          if (elegido) return con(elegido, true);
+          return con(res, eraArrastre);
+        }
+        case 'sale':
+          toque = null;
+          return con(puntero(ev, E, V, c), false);
+        default:
+          return null;
+      }
+    };
+  }
+
+  /* ===================================================================
+     3 · LA API. Una sola lista de claves para la real y la inerte.
+     =================================================================== */
+  function armaApi(impl) {
+    const api = {};
+    CLAVES.forEach(k => {
+      const d = Object.getOwnPropertyDescriptor(impl, k);
+      if (!d) throw new Error('Anim2D: a la API le falta «' + k + '»');
+      // Un descriptor no admite `get` y `value` a la vez, ni siquiera con `value: undefined`.
+      Object.defineProperty(api, k, d.get ? { get: d.get, enumerable: true, configurable: true }
+                                          : { value: d.value, enumerable: true, configurable: true });
+    });
+    return api;
+  }
+
+  function sinAnimacion(cont, causa, def) {
+    cont.innerHTML = '<div class="a2d-sin"><strong>' + causa + '</strong> ' + (def.sinLienzo || '') + '</div>';
+    const nada = () => {};
+    return armaApi({
+      destruir() { cont.innerHTML = ''; cont.classList.remove('a2d'); },
+      ir: nada, poner: nada, reproducir: nada, pausar: nada, avanza: nada, reinicia: nada,
+      get estado() { return {}; }, get visual() { return {}; }
+    });
+  }
+
+  /* ===================================================================
+     4 · ESTILOS. Un <style> propio, con prefijo a2d-, para no pelear con el
+         capítulo ni depender de él. Los de cada pieza van en `def.css`.
+     CONTRASTE (revisión del 2026-10-02, medido): blanco sobre el naranja #FF6600 da 2,94:1 y no llega al 4,5
+     de AA, así que sobre el naranja va la tinta (5,4:1); el anillo de foco va en #b34700 (5,5:1 sobre blanco,
+     el naranja daba 2,9 y no llegaba al 3 de un contorno); y el gris de los textos pequeños pasa de #64748b
+     (4,45–4,52 sobre la tarjeta: sin margen) a #475569.
+     COLORES FORZADOS (Windows, alto contraste): el modo anula los fondos, así que el botón activo no se distinguía
+     de los demás (ahora lleva un contorno), y el fondo del lienzo pasaba a negro bajo una letra de dibujo oscura
+     que no se leía (el lienzo y los paneles se quedan con su fondo: lo que hay dentro lo dibujamos nosotros).
+     LA LEYENDA NO SALTA: las de todos los pasos van apiladas en la misma celda y solo se ve la del paso actual,
+     así que la celda mide lo que la más larga. Antes medía lo que la del paso, y en una columna estrecha el mapa
+     y los mandos se movían hasta 110 px al cambiar de paso.
+     =================================================================== */
+  const CSS = `
+.a2d{--a2d-tinta:#012820;--a2d-verde:#1a7358;--a2d-naranja:#FF6600;--a2d-foco:#b34700;--a2d-gris:#475569;--a2d-linea:#cbd5e1;
+  container-type:inline-size;font-family:'Montserrat','Helvetica Neue',Helvetica,Arial,sans-serif;color:#1e293b;
+  font-size:.9375rem;line-height:1.5;text-align:left}
+.a2d *,.a2d *::before,.a2d *::after{box-sizing:border-box}
+.a2d-rejilla{display:grid;gap:.75rem 1.25rem;grid-template-columns:minmax(0,1fr);
+  grid-template-areas:"pasos" "leyenda" "escena" "paneles" "mandos" "lectura" "pie"}
+.a2d-pasos{grid-area:pasos;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.a2d-paso{display:inline-flex;align-items:center;gap:.45rem;font:inherit;font-size:.8125rem;font-weight:600;cursor:pointer;
+  padding:.3rem .8rem .3rem .35rem;border:1px solid var(--a2d-linea);border-radius:999px;background:#fff;color:var(--a2d-gris);
+  transition:background .2s,border-color .2s,color .2s}
+.a2d-paso:hover{border-color:var(--a2d-naranja);color:var(--a2d-tinta)}
+.a2d-paso:focus-visible,.a2d-btn:focus-visible,.a2d-play:focus-visible{outline:2px solid var(--a2d-foco);outline-offset:2px}
+.a2d-num{display:inline-grid;place-items:center;width:1.45rem;height:1.45rem;border-radius:50%;background:#e8eeeb;
+  color:var(--a2d-tinta);font-size:.75rem;font-weight:700;font-family:'Fira Code',monospace}
+.a2d-paso[aria-current="step"]{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-color:transparent;color:#fff}
+.a2d-paso[aria-current="step"] .a2d-num{background:var(--a2d-naranja);color:var(--a2d-tinta)}
+.a2d-play{margin-left:auto;display:inline-flex;align-items:center;gap:.4rem;font:inherit;font-size:.8125rem;font-weight:600;
+  cursor:pointer;padding:.3rem .9rem;border:1px solid var(--a2d-naranja);border-radius:999px;background:#fff;color:var(--a2d-foco)}
+.a2d-play:hover{background:rgba(255,102,0,.08)}
+.a2d-play[data-activo="true"]{background:var(--a2d-naranja);color:var(--a2d-tinta)}
+.a2d-leyenda{grid-area:leyenda;display:grid;min-height:6.6em}
+.a2d-ley{grid-area:1/1;min-width:0}
+.a2d-ley[aria-hidden="true"]{visibility:hidden}
+.a2d-leyenda h5{margin:0 0 .25rem;font-size:1.0625rem;font-weight:700;color:var(--a2d-tinta);line-height:1.3}
+.a2d-leyenda p{margin:0;color:#334155}
+.a2d-leyenda sub,.a2d-leyenda sup{font-size:.75em;line-height:0}
+.a2d-escena{grid-area:escena;position:relative;min-width:0}
+.a2d-lienzo{position:relative;width:100%;aspect-ratio:4/3;min-height:240px;border:1px solid #e5e7eb;border-radius:.6rem;overflow:hidden;
+  background:#fbfdfc;touch-action:pan-y pinch-zoom;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.a2d-lienzo canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:default;outline:none}
+.a2d-lienzo canvas:focus-visible{outline:2px solid var(--a2d-foco);outline-offset:-3px}
+.a2d-ayuda{position:absolute;left:.7rem;top:.55rem;margin:0;font-size:.6875rem;color:var(--a2d-gris);pointer-events:none;max-width:75%}
+.a2d-paneles{grid-area:paneles;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(11rem,100%),1fr));gap:.6rem}
+.a2d-fig{margin:0;min-width:0}
+.a2d-fig figcaption{font-size:.75rem;font-weight:600;color:var(--a2d-gris);margin-bottom:.15rem}
+.a2d-panel{display:block;width:100%;height:7rem;border:1px solid #e5e7eb;border-radius:.4rem;background:#fff}
+.a2d-mandos{grid-area:mandos;align-self:start;display:flex;flex-wrap:wrap;gap:.75rem 1.5rem;align-items:flex-end}
+.a2d-ctl{display:flex;flex-direction:column;gap:.25rem;min-width:min(11rem,100%);flex:1 1 13rem}
+.a2d-ctl[hidden],.a2d-grupo[hidden]{display:none}
+.a2d-ctl label{display:flex;justify-content:space-between;align-items:center;gap:.5rem;font-size:.8125rem;font-weight:600;color:#374151}
+.a2d-ctl output{font-family:'Fira Code',monospace;font-size:.8125rem;font-weight:600;color:#fff;background:var(--a2d-tinta);
+  border-radius:.375rem;padding:.1rem .5rem;min-width:3.25rem;text-align:center}
+.a2d-ctl input[type=range]{width:100%;accent-color:var(--a2d-naranja);cursor:pointer}
+.a2d-grupo{display:flex;flex-direction:column;gap:.3rem}
+.a2d-grupo>span{font-size:.8125rem;font-weight:600;color:#374151}
+.a2d-botones{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.a2d-btn{font:inherit;font-size:.8rem;font-weight:500;cursor:pointer;padding:.3rem .7rem;border:1px solid #d8e6e0;border-radius:6px;
+  background:#fff;color:var(--a2d-tinta);transition:background .15s,border-color .15s}
+.a2d-btn:hover{background:rgba(255,102,0,.07)}
+.a2d-btn[aria-pressed="true"]{background:var(--a2d-tinta);border-color:var(--a2d-tinta);color:#fff}
+.a2d-ciclo-txt{display:inline-flex;align-items:center;padding:0 .4rem;font-family:'Fira Code',monospace;font-size:.8125rem;color:var(--a2d-tinta)}
+.a2d-lectura{grid-area:lectura;display:flex;flex-wrap:wrap;gap:.35rem 1.5rem;font-family:'Fira Code',monospace;font-size:.8125rem;color:#1e293b}
+.a2d-lectura b{color:var(--a2d-tinta);font-weight:600}
+.a2d-lectura .a2d-r{color:var(--a2d-gris);font-family:'Montserrat',sans-serif;font-size:.75rem}
+.a2d-pie{grid-area:pie;margin:0;font-size:.75rem;color:var(--a2d-gris)}
+.a2d-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.a2d-cargando{margin:0;min-height:14rem;display:grid;place-items:center;text-align:center;padding:1rem;color:#475569;font-size:.875rem;
+  border:1px dashed #cbd5e1;border-radius:.6rem;background:#fff}
+.a2d-sin{padding:1rem;border:1px dashed #cbd5e1;border-radius:.5rem;background:#fff;color:#475569;font-size:.875rem}
+@container (max-width:560px){
+  .a2d-paso:not([aria-current="step"]) .a2d-rot{display:none}
+  .a2d-paso:not([aria-current="step"]){padding-right:.35rem}
+  .a2d-lienzo{aspect-ratio:1/.9}
+  .a2d-ayuda{display:none}
+}
+@media (prefers-reduced-motion:reduce){.a2d *{transition:none!important}}
+@media (forced-colors:active){
+  .a2d-lienzo,.a2d-panel{forced-color-adjust:none;background:#fff}
+  .a2d-paso[aria-current="step"],.a2d-btn[aria-pressed="true"],.a2d-play[data-activo="true"]{outline:3px solid CanvasText;outline-offset:1px}
+}
+@media print{.a2d-play,.a2d-mandos,.a2d-pasos,.a2d-ayuda{display:none}.a2d{break-inside:avoid}}
+`;
+
+  function estilos(doc, extra) {
+    if (!doc.getElementById('a2d-css')) {
+      const st = doc.createElement('style');
+      st.id = 'a2d-css';
+      st.textContent = CSS;
+      doc.head.appendChild(st);
+    }
+    if (extra && extra.id && !doc.getElementById(extra.id)) {
+      const st = doc.createElement('style');
+      st.id = extra.id;
+      st.textContent = extra.css;
+      doc.head.appendChild(st);
+    }
+  }
+
+  /* ===================================================================
+     5 · EL MONTAJE. Aquí empieza el DOM.
+     =================================================================== */
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+  function andamio(def, ID) {
+    const pasos = (def.pasos || []).map((p, i) =>
+      `<button type="button" class="a2d-paso" data-paso="${i + 1}" aria-label="Paso ${i + 1}: ${esc(p.corto)}">` +
+      `<span class="a2d-num">${i + 1}</span><span class="a2d-rot">${p.corto}</span></button>`).join('');
+    const mandos = (def.mandos || []).map((m, i) => {
+      if (m.tipo === 'deslizador') {
+        return `<div class="a2d-ctl" data-mando="${i}"><label for="${ID}-m${i}">${m.etiqueta} <output for="${ID}-m${i}"></output></label>` +
+               `<input type="range" id="${ID}-m${i}" min="${m.min}" max="${m.max}" step="${m.paso || 1}" value="${m.min}"></div>`;
+      }
+      if (m.tipo === 'botones') {
+        return `<div class="a2d-grupo" data-mando="${i}"><span>${m.etiqueta}</span><div class="a2d-botones">` +
+               m.opciones.map((o, j) => `<button type="button" class="a2d-btn" data-j="${j}" aria-pressed="false">${o[1]}</button>`).join('') +
+               '</div></div>';
+      }
+      return `<div class="a2d-grupo" data-mando="${i}"><span>${m.etiqueta}</span><div class="a2d-botones">` +
+             `<button type="button" class="a2d-btn" data-sentido="-1" aria-label="${esc(m.anterior || 'Anterior')}">‹</button>` +
+             '<span class="a2d-ciclo-txt" aria-live="polite"></span>' +
+             `<button type="button" class="a2d-btn" data-sentido="1" aria-label="${esc(m.siguiente || 'Siguiente')}">›</button></div></div>`;
+    }).join('');
+    const paneles = (def.paneles || []).map((p, i) =>
+      `<figure class="a2d-fig"><figcaption>${p.etiqueta}</figcaption>` +
+      `<canvas class="a2d-panel" data-panel="${i}" role="img" aria-label="${esc(p.aria)}"></canvas></figure>`).join('');
+    return `
+<div class="a2d-rejilla">
+  <div class="a2d-pasos" role="group" aria-label="Pasos de la animación">${pasos}
+    <button type="button" class="a2d-play" data-activo="false"><span aria-hidden="true">▶</span><span class="a2d-play-txt">Reproducir</span></button>
+  </div>
+  <div class="a2d-leyenda">${(def.pasos || []).map((p, i) => `<div class="a2d-ley" data-ley="${i + 1}"><h5></h5><p></p></div>`).join('')}</div>
+  <p class="a2d-sr" aria-live="polite" data-anuncio></p>
+  <div class="a2d-escena">
+    <div class="a2d-lienzo">
+      <canvas class="a2d-principal" tabindex="0" role="img" aria-label="${esc(def.aria)}" aria-describedby="${ID}-ayuda ${ID}-estado"></canvas>
+      <p class="a2d-ayuda" aria-hidden="true">${def.ayuda || ''}</p>
+    </div>
+    <p class="a2d-sr" id="${ID}-ayuda">${def.ayudaTeclado || ''}</p>
+    <p class="a2d-sr" id="${ID}-estado"></p>
+  </div>
+  <div class="a2d-paneles">${paneles}</div>
+  <div class="a2d-mandos">${mandos}
+    <div class="a2d-grupo"><div class="a2d-botones"><button type="button" class="a2d-btn" data-reinicia>Reiniciar</button></div></div>
+  </div>
+  <div class="a2d-lectura" role="group" aria-label="Lectura numérica"></div>
+  <p class="a2d-pie">${def.pie || ''}</p>
+</div>`;
+  }
+
+  let contador = 0;
+
+  function monta(cont, def, opc) {
+    opc = opc || {};
+    const doc = cont.ownerDocument;
+    const win = doc.defaultView || global;
+    const prueba = doc.createElement('canvas');
+    if (!prueba.getContext || !prueba.getContext('2d')) return sinAnimacion(cont, 'Este navegador no puede dibujar el lienzo.', def);
+    estilos(doc, def.css ? { id: 'a2d-css-' + def.id, css: def.css } : null);
+
+    // La preferencia se lee cada vez que hace falta, no una al montar: activarla con la página abierta debe valer ya.
+    const mqReducido = win.matchMedia ? win.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    const ID = 'a2d' + (++contador);
+    cont.classList.add('a2d');
+    cont.innerHTML = andamio(def, ID);
+    const $ = s => cont.querySelector(s);
+
+    const lienzo = $('.a2d-principal');
+    const ctx = lienzo.getContext('2d');
+    const botonPlay = $('.a2d-play');
+    const paneles = Array.prototype.slice.call(cont.querySelectorAll('.a2d-panel')).map((cv, i) => ({ cv, ctx: cv.getContext('2d'), def: def.paneles[i] }));
+    let vivo = true, visible = true, raf = 0, previo = 0;
+
+    /* ---- la máquina, con los ganchos que la conectan al DOM ---- */
+    const M = maquina(def, {
+      get reducido() { return !!(mqReducido && mqReducido.matches); },
+      cambia: () => sincroniza(),
+      pinta: () => pide(),
+      pintaYa: () => pintaYa(),
+      guion: on => {
+        botonPlay.dataset.activo = on ? 'true' : 'false';
+        botonPlay.querySelector('.a2d-play-txt').textContent = on ? 'Pausa' : 'Reproducir';
+      }
+    });
+
+    /* ---- el tamaño: un lienzo con DPR ≤ 2 ---- */
+    const geo = { w: 0, h: 0, dpr: 1 };
+    function ajustaLienzo(cv, c2) {
+      const dpr = Math.min(win.devicePixelRatio || 1, 2);
+      const w = cv.clientWidth, h = cv.clientHeight;
+      if (!w || !h) return null;
+      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+        cv.width = Math.round(w * dpr);
+        cv.height = Math.round(h * dpr);
+      }
+      c2.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx: c2, w, h, dpr };
+    }
+
+    function pintaYa() {
+      if (!vivo) return;
+      const c = ajustaLienzo(lienzo, ctx);
+      if (c) {
+        geo.w = c.w; geo.h = c.h; geo.dpr = c.dpr;
+        c.ctx.clearRect(0, 0, c.w, c.h);
+        def.dibuja(c, M.E, M.V);
+      }
+      if (def.panel) {
+        paneles.forEach(p => {
+          const cp = ajustaLienzo(p.cv, p.ctx);
+          if (!cp) return;
+          cp.ctx.clearRect(0, 0, cp.w, cp.h);
+          def.panel(cp, p.def.id, M.E, M.V);
+        });
+      }
+    }
+
+    /* ---- el bucle, a demanda: solo corre mientras algo se mueve ---- */
+    function pide() {
+      if (!raf && vivo && visible) raf = win.requestAnimationFrame(fotograma);
+    }
+    function fotograma(ts) {
+      raf = 0;
+      if (!vivo || !visible) { previo = 0; return; }
+      const dt = previo ? Math.min(0.1, (ts - previo) / 1000) : 1 / 60;
+      previo = ts;
+      const sigue = M.paso(dt);
+      pintaYa();
+      if (sigue) pide(); else previo = 0;
+    }
+
+    /* ---- lo que depende del estado y no de cada fotograma: textos, mandos, lectura ---- */
+    const pasoBotones = Array.prototype.slice.call(cont.querySelectorAll('.a2d-paso'));
+    const leyendas = Array.prototype.slice.call(cont.querySelectorAll('.a2d-ley'));
+    const anuncio = $('[data-anuncio]');
+    const ctls = Array.prototype.slice.call(cont.querySelectorAll('[data-mando]'));
+
+    // Un texto solo se reescribe si cambió: reescribir el mismo HTML recrea los nodos, y pasar el puntero por encima
+    // del mapa llama a esto en cada barrio. Las leyendas de todos los pasos se escriben (están apiladas: la celda mide
+    // lo que la más larga), y se anuncia solo el título del paso al que se llega, no cada cambio de su texto.
+    const ult = { leyendas: [], paso: null, lectura: null, estado: null };
+
+    // El estado con que se escribe la leyenda de un paso que NO es el actual: el que ese paso pondría. Así la celda
+    // mide lo mismo vaya uno al paso que vaya (con el estado actual, la del paso 2 escrita con k = 70 era más larga
+    // que escrita con k = 1, y el mapa se movía 24 px al llegar al paso 4).
+    function estadoDelPaso(p, E) {
+      const est = typeof p.estado === 'function' ? p.estado(E) : (p.estado || {});
+      return Object.assign({}, E, def.normaliza ? def.normaliza(Object.assign({}, est), E) : est);
+    }
+
+    function sincroniza() {
+      const E = M.E;
+      (def.pasos || []).forEach((p, i) => {
+        const Ei = i + 1 === E.paso ? E : estadoDelPaso(p, E);
+        const tit = typeof p.titulo === 'function' ? p.titulo(Ei) : p.titulo;
+        const html = typeof p.texto === 'function' ? p.texto(Ei) : p.texto;
+        const el = leyendas[i];
+        if (ult.leyendas[i] !== tit + '|' + html) {
+          ult.leyendas[i] = tit + '|' + html;
+          el.querySelector('h5').textContent = tit;
+          el.querySelector('p').innerHTML = html;
+        }
+        if (i + 1 === E.paso) el.removeAttribute('aria-hidden'); else el.setAttribute('aria-hidden', 'true');
+      });
+      if (ult.paso !== E.paso) {
+        const p = (def.pasos || [])[E.paso - 1];
+        if (ult.paso !== null && p) anuncio.textContent = 'Paso ' + E.paso + ': ' + (typeof p.titulo === 'function' ? p.titulo(E) : p.titulo);
+        ult.paso = E.paso;
+      }
+      pasoBotones.forEach((b, i) => { if (i + 1 === E.paso) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+      ctls.forEach(el => {
+        const m = def.mandos[+el.dataset.mando];
+        el.hidden = !!(m.visible && !m.visible(E));
+        if (m.tipo === 'deslizador') {
+          const inp = el.querySelector('input');
+          if (+inp.value !== E[m.id]) inp.value = E[m.id];
+          const txt = m.salida ? m.salida(E[m.id], E) : String(E[m.id]);
+          el.querySelector('output').textContent = txt;
+          inp.setAttribute('aria-valuetext', txt);            // la etiqueta ya la lee el <label>: repetirla la decía dos veces
+        } else if (m.tipo === 'botones') {
+          el.querySelectorAll('.a2d-btn').forEach(b => b.setAttribute('aria-pressed', String(m.opciones[+b.dataset.j][0] === E[m.id])));
+        } else {
+          el.querySelector('.a2d-ciclo-txt').textContent = m.texto(E[m.id], E);
+        }
+      });
+      if (def.lectura) {
+        const html = def.lectura(E).map(l => `<span><span class="a2d-r">${l[0]}</span> <b>${l[1]}</b></span>`).join('');
+        if (ult.lectura !== html) { ult.lectura = html; $('.a2d-lectura').innerHTML = html; }
+      }
+      if (def.alt) {
+        const t = def.alt(E);
+        if (ult.estado !== t) { ult.estado = t; $('#' + ID + '-estado').textContent = t; }
+      }
+    }
+
+    /* ---- los mandos: cualquier gesto del usuario interrumpe el guion (lo hace `poner`) ---- */
+    ctls.forEach(el => {
+      const m = def.mandos[+el.dataset.mando];
+      if (m.tipo === 'deslizador') {
+        el.querySelector('input').addEventListener('input', e => M.poner({ [m.id]: +e.target.value }));
+      } else if (m.tipo === 'botones') {
+        el.addEventListener('click', e => {
+          const b = e.target.closest('.a2d-btn');
+          if (b) M.poner({ [m.id]: m.opciones[+b.dataset.j][0] });
+        });
+      } else {
+        el.addEventListener('click', e => {
+          const b = e.target.closest('.a2d-btn');
+          if (b) M.poner({ [m.id]: (((M.E[m.id] + (+b.dataset.sentido)) % m.n) + m.n) % m.n });
+        });
+      }
+    });
+    pasoBotones.forEach(b => b.addEventListener('click', () => { M.pausar(); M.ir(+b.dataset.paso); }));
+    botonPlay.addEventListener('click', () => { if (M.guion.activo) M.pausar(); else M.reproducir(); });
+    $('[data-reinicia]').addEventListener('click', () => M.reinicia());
+
+    /* ---- el puntero y el teclado sobre el lienzo ---- */
+    const gesto = gestos((ev, E, V, c) => def.puntero(ev, E, V, c));
+    function despacha(tipo, e) {
+      if (!def.puntero) return;
+      const r = lienzo.getBoundingClientRect();
+      const res = gesto({ tipo, x: e.clientX - r.left, y: e.clientY - r.top, tactil: e.pointerType === 'touch' }, M.E, M.V, geo);
+      if (!res) return;
+      if (res.cursor !== undefined) lienzo.style.cursor = res.cursor;
+      if (res.poner) M.poner(res.poner, { desdeGuion: !res.interrumpe });
+      if (tipo === 'abajo' && res.captura) {
+        try { lienzo.setPointerCapture(e.pointerId); } catch (_) { /* el puntero ya no está activo */ }
+      }
+    }
+    lienzo.addEventListener('pointerdown', e => { if (e.button === 0 || e.pointerType === 'touch') despacha('abajo', e); });
+    lienzo.addEventListener('pointermove', e => despacha('mueve', e));
+    lienzo.addEventListener('pointerup', e => despacha('arriba', e));
+    lienzo.addEventListener('pointercancel', e => despacha('cancela', e));
+    lienzo.addEventListener('pointerleave', e => despacha('sale', e));
+    lienzo.addEventListener('keydown', e => {
+      if (!def.tecla || e.altKey || e.ctrlKey || e.metaKey) return;
+      const r = def.tecla({ key: e.key, shiftKey: e.shiftKey }, M.E, M.V);
+      if (r) { e.preventDefault(); M.poner(r); }
+    });
+
+    /* ---- tamaño, visibilidad, impresión ---- */
+    const ro = win.ResizeObserver ? new win.ResizeObserver(() => pintaYa()) : null;
+    if (ro) { ro.observe($('.a2d-lienzo')); paneles.forEach(p => ro.observe(p.cv)); }
+    const io = win.IntersectionObserver ? new win.IntersectionObserver(es => {
+      visible = es[es.length - 1].isIntersecting;         // un lote puede traer varias: vale la última
+      if (visible) pide(); else M.pausar();
+    }) : null;
+    if (io) io.observe(cont);
+    // Imprimir pone el paso de impresión y, al acabar, devuelve lo que había: quien imprime a mitad de explorar
+    // no pierde su estado.
+    let antesDeImprimir = null;
+    const alImprimir = () => {
+      antesDeImprimir = Object.assign({}, M.E);
+      M.pausar(); M.ir(def.pasoImpresion || (def.pasos || []).length, { corte: true }); pintaYa();
+    };
+    const trasImprimir = () => {
+      if (!antesDeImprimir) return;
+      M.poner(antesDeImprimir, { corte: true, desdeGuion: true });
+      antesDeImprimir = null;
+      pintaYa();
+    };
+    win.addEventListener('beforeprint', alImprimir);
+    win.addEventListener('afterprint', trasImprimir);
+
+    function destruir() {
+      vivo = false;
+      if (raf) win.cancelAnimationFrame(raf);
+      raf = 0;
+      if (ro) ro.disconnect();
+      if (io) io.disconnect();
+      win.removeEventListener('beforeprint', alImprimir);
+      win.removeEventListener('afterprint', trasImprimir);
+      cont.innerHTML = '';
+      cont.classList.remove('a2d');
+    }
+
+    sincroniza();
+    pide();
+    // El lienzo no se redibuja solo cuando llega una fuente: si Montserrat o Fira Code tardan, el primer dibujo
+    // sale con la de reserva y se quedaría así.
+    if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(() => { if (vivo) pintaYa(); });
+    return armaApi({
+      destruir,
+      ir: n => M.ir(n),
+      poner: (p, o) => M.poner(p, o),
+      reproducir: M.reproducir,
+      pausar: M.pausar,
+      avanza: s => M.avanza(s),
+      reinicia: M.reinicia,
+      get estado() { return Object.assign({}, M.E); },
+      get visual() { return Object.assign({}, M.V); }
+    });
+  }
+
+  const Anim2D = { monta, estilos, maquina, gestos, UMBRAL_TOQUE, CLAVES, armaApi, sinAnimacion };
+  global.Anim2D = Anim2D;
+  if (typeof module === 'object' && module.exports) module.exports = Anim2D;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* =====================================================================
+   rezago2d.js — «Wy es una media de vecinos, y aplicada una y otra vez aplana el mapa»
+
+   Material de Estadística Espacial 2026-II (20929). Capítulo 6, módulo 10.
+   Corre sobre la cáscara `anim2d.js` (`Anim2D.monta`).
+
+   QUÉ ENSEÑA, EN CUATRO PASOS
+     1 · el dato: CRIME en los 49 barrios de Columbus, con una escala de color FIJA
+         (la de y). Es la advertencia del módulo: si cada capa se pintara contra su
+         propio máximo, el aplanado no se vería.
+     2 · Wy: cada barrio pasa a valer la MEDIA de sus vecinos, y se ve la cuenta de uno.
+     3 · W otra vez, W²y: la media de las medias. NO es la contigüidad de orden 2 —cuenta
+         también al propio barrio (ir y volver) y a un vecino de siempre cuando lo es también
+         de otro vecino, que es lo habitual pero no lo seguro (en Columbus fallan 2 de las 236
+         parejas de la reina y 14 de las 200 de la torre)—; es lo que el módulo 11 llama
+         apilar capas.
+     4 · muchas veces: el mapa tiende a un solo valor, y ese valor NO es la media de y sino
+         la media PONDERADA POR EL GRADO, Σ dᵢ yᵢ / Σ dᵢ. La W por filas es una cadena de
+         Markov y su distribución estacionaria es proporcional al grado.
+
+   SOLO SE ITERA W (estandarizada por filas). B, C, U y S no son contracciones (los radios
+   espectrales medidos son 6.12, 1.27, 1.13 y 0.026): iterarlas no aplana, explota o se
+   apaga, y no es lo que el módulo enseña.
+
+   LA MATEMÁTICA ES PURA Y SE PRUEBA CONTRA R. `Mat` no toca el DOM: `prueba_rezago2d.py` la
+   compara con `spdep` (poly2nb, nb2listw, lag.listw) a 1e-11 en la media, la desviación,
+   la correlación y la pendiente de Wᵏy para k = 0…70, y barrio a barrio en seis k. Lo
+   que la página trae de fuera es CRIME (49 números) y el mapa del capítulo (`cap6-w`); las
+   cifras que muestra las calcula esta misma aritmética, no se leen de ninguna tabla.
+
+   LA GEOMETRÍA TAMBIÉN ES LOCAL Y SE PRUEBA. Se copian `cajaQ` y `ajuste` de la plantilla
+   en vez de llamarlas, para poder probar en Node el clic (qué barrio hay bajo un punto)
+   sin un lienzo; `prueba_rezago2d.py` extrae las originales de la plantilla y comprueba que
+   dan lo mismo, así que si la plantilla cambia, esto avisa. El color sí se inyecta
+   (`opc.color`, que es `geomapaColor` y trae el filtro de daltonismo del capítulo).
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  /* ===================================================================
+     1 · MATEMÁTICA. Sin DOM.
+     =================================================================== */
+  // Hasta dónde llega el deslizador. 70 y no 60 (revisión del 2026-10-02): la prosa del módulo dice que con la reina
+  // hacen falta 66 aplicaciones para dejar la desviación en el 5 % de la de y (56 con la torre), y con 60 el lector no
+  // podía comprobarlo: la línea del 5 % del perfil no se cruzaba nunca con la reina.
+  const K_MAX = 70;
+  const CASI_UNO = 0.10;      // el paso 4 dice «casi un solo color» solo con la desviación en el 10 % de la de y o menos
+  const VECINDADES = ['reina', 'torre'];
+
+  // De las aristas del mapa (pares i, j en base 1, aplanados) a la lista de vecinos de cada barrio (base 0).
+  function vecinosDe(aristas, n) {
+    if (aristas.length % 2) throw new Error('aristas: la lista aplanada tiene longitud impar');
+    const conj = Array.from({ length: n }, () => new Set());
+    for (let i = 0; i < aristas.length; i += 2) {
+      const a = aristas[i] - 1, b = aristas[i + 1] - 1;
+      if (!(a >= 0 && a < n && b >= 0 && b < n) || a === b) throw new Error('arista fuera de rango: ' + aristas[i] + '–' + aristas[i + 1]);
+      conj[a].add(b);
+      conj[b].add(a);
+    }
+    return conj.map(s => Array.from(s).sort((p, q) => p - q));
+  }
+
+  const media = v => { let s = 0; for (let i = 0; i < v.length; i++) s += v[i]; return s / v.length; };
+  const sd = v => {                                     // ddof = 1, como R y como el capítulo
+    const m = media(v);
+    let s = 0;
+    for (let i = 0; i < v.length; i++) s += (v[i] - m) * (v[i] - m);
+    return Math.sqrt(s / (v.length - 1));
+  };
+  const cov = (a, b) => {
+    const ma = media(a), mb = media(b);
+    let s = 0;
+    for (let i = 0; i < a.length; i++) s += (a[i] - ma) * (b[i] - mb);
+    return s / (a.length - 1);
+  };
+
+  // Wy con W estandarizada por filas: la MEDIA de los vecinos. Un barrio sin vecinos no tiene media.
+  function rezago(vec, y) {
+    return vec.map(nb => {
+      if (!nb.length) throw new Error('un barrio sin vecinos no tiene media');
+      let s = 0;
+      for (let j = 0; j < nb.length; j++) s += y[nb[j]];
+      return s / nb.length;
+    });
+  }
+
+  // [y, Wy, W²y, …, Wᵏy]
+  function capas(vec, y, kMax) {
+    const out = [y.slice()];
+    for (let k = 1; k <= kMax; k++) out.push(rezago(vec, out[k - 1]));
+    return out;
+  }
+
+  // Lo que se lee de una capa v frente al dato y. La PENDIENTE de v sobre y es cov(y, v)/var(y)
+  // = cor · sd(v)/sd(y); con k = 1 es el I de Moran del capítulo 7. NO es la correlación.
+  function resumen(y, v) {
+    return { media: media(v), sd: sd(v), cor: cov(y, v) / (sd(y) * sd(v)), pendiente: cov(y, v) / cov(y, y) };
+  }
+
+  // A dónde va Wᵏy: Σ dᵢ yᵢ / Σ dᵢ (no la media de y).
+  function limite(vec, y) {
+    let num = 0, den = 0;
+    for (let i = 0; i < vec.length; i++) { num += vec[i].length * y[i]; den += vec[i].length; }
+    return num / den;
+  }
+
+  // El barrio de partida: el que más cambia al promediar, entre los que tienen al menos cuatro vecinos
+  // (con menos, la media de «los demás» casi no se ve como una media).
+  function focoDidactico(vec, y) {
+    const w = rezago(vec, y);
+    let mejor = -1, dif = -1;
+    for (let i = 0; i < y.length; i++) {
+      if (vec[i].length >= 4 && Math.abs(y[i] - w[i]) > dif) { dif = Math.abs(y[i] - w[i]); mejor = i; }
+    }
+    return mejor < 0 ? 0 : mejor;
+  }
+
+  // ---- La geometría, en unidades cuantizadas del mapa (`cap6-w`: geom, caja, q, nodos). ----
+
+  // Réplica de `geomapaCajaQ` (plantilla): la caja del dato dentro del encuadre CUADRADO de R.
+  function cajaQ(caja, q) {
+    const rx = caja[2] - caja[0], ry = caja[3] - caja[1];
+    const r = Math.max(rx, ry);
+    const cx = caja[0] + rx / 2, cy = caja[1] + ry / 2;
+    const qx = v => ((v - (cx - r / 2)) / r) * q;
+    const qy = v => ((v - (cy - r / 2)) / r) * q;
+    return { x0: qx(caja[0]), y0: qy(caja[1]), x1: qx(caja[2]), y1: qy(caja[3]) };
+  }
+
+  // Réplica de `geomapaAjuste`, con márgenes por lado y con la inversa (píxel → cuantizado), que la
+  // plantilla no tiene porque no hace clic sobre sus mapas. Un solo factor de escala para los dos ejes.
+  function ajuste(w, h, cq, margen) {
+    const m = Object.assign({ l: 6, r: 6, t: 6, b: 6 }, margen);
+    const dw = cq.x1 - cq.x0, dh = cq.y1 - cq.y0;
+    const aw = w - m.l - m.r, ah = h - m.t - m.b;
+    const s = Math.min(aw / dw, ah / dh);
+    const ox = m.l + (aw - dw * s) / 2;
+    const oy = m.t + (ah - dh * s) / 2;
+    return {
+      s, ox, oy,
+      x: v => ox + (v - cq.x0) * s,
+      y: v => oy + (cq.y1 - v) * s,
+      qx: px => cq.x0 + (px - ox) / s,
+      qy: py => cq.y1 - (py - oy) / s
+    };
+  }
+
+  // ¿Está el punto (qx, qy) dentro del anillo plano [x0, y0, x1, y1, …]? Trazado de rayos.
+  function dentro(anillo, qx, qy) {
+    let ad = false;
+    const n = anillo.length / 2;
+    for (let i = 0, j = n - 1; i < n; j = i++) {
+      const xi = anillo[2 * i], yi = anillo[2 * i + 1], xj = anillo[2 * j], yj = anillo[2 * j + 1];
+      if ((yi > qy) !== (yj > qy) && qx < (xj - xi) * (qy - yi) / (yj - yi) + xi) ad = !ad;
+    }
+    return ad;
+  }
+
+  // El barrio bajo un punto en cuantizado, o -1.
+  function barrioEn(geom, qx, qy) {
+    for (let i = 0; i < geom.length; i++) {
+      for (let p = 0; p < geom[i].length; p++) if (dentro(geom[i][p], qx, qy)) return i;
+    }
+    return -1;
+  }
+
+  // Etiquetas rectangulares (w × h) que parten de sus centros `pos`, sin pisarse entre sí ni pisar a los `fijos`
+  // ({x, y, w, h}) y dentro de `lim`. Se colocan de una en una, en el orden dado: cada una se queda donde está si cabe, y si
+  // no, en el sitio libre MÁS CERCANO (anillos de radio creciente, 18 direcciones). Determinista y sin azar. Una primera
+  // versión las empujaba por parejas, y con un obstáculo fijo cerca de la esquina las amontonaba contra el borde; esta no.
+  function separaEtiquetas(pos, w, h, fijos, lim) {
+    const ocupado = fijos.map(f => ({ x: f.x, y: f.y, w: f.w, h: f.h }));
+    const choca = (x, y) => ocupado.some(r => Math.abs(x - r.x) < (w + r.w) / 2 && Math.abs(y - r.y) < (h + r.h) / 2);
+    const dentro = (x, y) => lim ? [Math.min(lim.x1 - w / 2, Math.max(lim.x0 + w / 2, x)), Math.min(lim.y1 - h / 2, Math.max(lim.y0 + h / 2, y))] : [x, y];
+    return pos.map(q => {
+      let sitio = null;
+      for (let r = 0; r <= 40 && !sitio; r++) {
+        for (let k = 0; k < (r === 0 ? 1 : 18) && !sitio; k++) {
+          const ang = k * 2 * Math.PI / 18;
+          const c = dentro(q[0] + r * 5 * Math.cos(ang), q[1] + r * 5 * Math.sin(ang));
+          if (!choca(c[0], c[1])) sitio = c;
+        }
+      }
+      sitio = sitio || dentro(q[0], q[1]);          // ni en 200 px hay hueco: se queda donde está, y se pisa
+      ocupado.push({ x: sitio[0], y: sitio[1], w, h });
+      return sitio;
+    });
+  }
+
+  // El paso cuyo texto describe la capa k: el deslizador y el teclado cambian k sin pasar por `ir`, y sin esto la
+  // leyenda del paso 1 («y: el dato») se quedaba encima de W³⁰y.
+  const pasoDeK = k => k <= 0 ? 1 : k === 1 ? 2 : k === 2 ? 3 : 4;
+
+  const Mat = { K_MAX, CASI_UNO, pasoDeK, VECINDADES, vecinosDe, rezago, capas, resumen, limite, focoDidactico, media, sd, cov,
+                cajaQ, ajuste, dentro, barrioEn, separaEtiquetas };
+
+  /* ===================================================================
+     2 · LA PIEZA. Lo que se dibuja y lo que se cuenta; el resto es de `Anim2D`.
+     =================================================================== */
+  const PALETA_VERDE = ['#e8f3ef', '#b8ddd0', '#7cc0aa', '#3f9c7f', '#1a7358', '#012820'];   // la `verde` de la plantilla
+  const NARANJA = '#FF6600', TINTA = '#012820';
+  const f2 = x => x.toFixed(2);
+  const f4 = x => x.toFixed(4);
+
+  // El color de una capa: `opc.color(paleta, t)` es `geomapaColor` (con su filtro de daltonismo); sin él, la paleta de arriba.
+  function colorLocal(t) {
+    const x = Math.max(0, Math.min(1, t)) * (PALETA_VERDE.length - 1);
+    const i = Math.min(PALETA_VERDE.length - 2, Math.floor(x)), f = x - i;
+    const hex = h => [1, 3, 5].map(o => parseInt(h.slice(o, o + 2), 16));
+    const a = hex(PALETA_VERDE[i]), b = hex(PALETA_VERDE[i + 1]);
+    return 'rgb(' + [0, 1, 2].map(c => Math.round(a[c] + (b[c] - a[c]) * f)).join(',') + ')';
+  }
+
+  // Wᵏy con superíndice, para el texto.
+  const capa = k => k === 0 ? 'y' : k === 1 ? 'Wy' : 'W<sup>' + k + '</sup>y';
+  const capaTxt = k => k === 0 ? 'y' : k === 1 ? 'Wy' : 'W^' + k + ' y';
+
+  function creaDef(datos, opc) {
+    opc = opc || {};
+    const y = datos.y, n = y.length, mapa = datos.mapa;
+    if (!y || !mapa || !mapa.variantes) throw new Error('rezago2d: faltan y o el mapa del capítulo');
+    if (mapa.codificacion !== 'absoluta' && !opc.geom) throw new Error('rezago2d: el mapa viene codificado en «' + mapa.codificacion + '»; falta opc.geom');
+    const geom = opc.geom ? opc.geom(mapa) : mapa.geom;
+    const colorDe = opc.color ? t => opc.color('verde', t) : colorLocal;
+    const ymin = Math.min.apply(null, y), ymax = Math.max.apply(null, y);
+    const sd0 = sd(y), m0 = media(y);
+    const cq = cajaQ(mapa.caja, mapa.q);
+
+    // Por vecindad: lo que sale de las aristas, una vez. Comprueba de paso que las aristas y los grados del mapa dicen lo mismo.
+    const cache = {};
+    const de = nombre => {
+      if (cache[nombre]) return cache[nombre];
+      const v = mapa.variantes[nombre];
+      const vec = vecinosDe(v.aristas, n);
+      if (v.grados && v.grados.some((g, i) => g !== vec[i].length)) throw new Error('rezago2d: los grados del mapa no son los de sus aristas (' + nombre + ')');
+      const cs = capas(vec, y, K_MAX);
+      return (cache[nombre] = { vec, capas: cs, res: cs.map(c => resumen(y, c)), limite: limite(vec, y) });
+    };
+
+    // Rangos fijos de los dos perfiles, para que no salten al cambiar de vecindad.
+    const lims = VECINDADES.map(de).map(s => s.limite);
+    const mediasTodas = [m0].concat(lims).concat(VECINDADES.map(de).reduce((a, s) => a.concat(s.res.map(r => r.media)), []));
+    const rangoMedia = [Math.floor((Math.min.apply(null, mediasTodas) - 0.4) * 2) / 2, Math.ceil((Math.max.apply(null, mediasTodas) + 0.4) * 2) / 2];
+
+    // ---- el ajuste del mapa al lienzo, con espacio abajo para la barra de color ----
+    // La caja que se ve es la del estado (`vx0…vy1`), que se interpola: es la lupa. Con `lupa = 0` es el mapa entero.
+    const MARGEN = { l: 8, r: 8, t: 8, b: 52 };
+    let aj = null;
+    const cajaDe = V => ({ x0: V.vx0, y0: V.vy0, x1: V.vx1, y1: V.vy1 });
+    const ajusteDe = (w, h, caja) => {
+      const k = caja || cq;
+      if (aj && aj.w === w && aj.h === h && aj.x0 === k.x0 && aj.y0 === k.y0 && aj.x1 === k.x1 && aj.y1 === k.y1) return aj;
+      return (aj = Object.assign({ w, h, x0: k.x0, y0: k.y0, x1: k.x1, y1: k.y1 }, ajuste(w, h, k, MARGEN)));
+    };
+    const barrioBajo = (x, yy, c, V) => {
+      if (!c || !c.w) return -1;
+      const a = ajusteDe(c.w, c.h, V && cajaDe(V));
+      return barrioEn(geom, a.qx(x), a.qy(yy));
+    };
+
+    // La caja de la lupa: el barrio en foco y sus vecinos, con un margen (y nunca más pequeña que una vecindad típica).
+    const cajasBarrio = geom.map(g => {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      g.forEach(anillo => { for (let p = 0; p < anillo.length; p += 2) { x0 = Math.min(x0, anillo[p]); x1 = Math.max(x1, anillo[p]); y0 = Math.min(y0, anillo[p + 1]); y1 = Math.max(y1, anillo[p + 1]); } });
+      return { x0, y0, x1, y1 };
+    });
+    const cajaFoco = (foco, vecindad) => {
+      const idx = [foco].concat(de(vecindad).vec[foco]);
+      const b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+      idx.forEach(i => { const c = cajasBarrio[i]; b.x0 = Math.min(b.x0, c.x0); b.y0 = Math.min(b.y0, c.y0); b.x1 = Math.max(b.x1, c.x1); b.y1 = Math.max(b.y1, c.y1); });
+      const mx = Math.max(180, 0.16 * (b.x1 - b.x0)), my = Math.max(180, 0.16 * (b.y1 - b.y0));
+      return { x0: b.x0 - mx, y0: b.y0 - my, x1: b.x1 + mx, y1: b.y1 + my };
+    };
+
+    const valorVisible = (S, i, k) => {                // la capa en un k fraccionario (la transición entre dos capas)
+      const k0 = Math.min(K_MAX, Math.max(0, Math.floor(k))), k1 = Math.min(K_MAX, k0 + 1), f = k - k0;
+      return S.capas[k0][i] * (1 - f) + S.capas[k1][i] * f;
+    };
+    const t01 = v => (v - ymin) / (ymax - ymin);
+
+    function cuenta(E) {                                // el cálculo de un barrio en la capa E.k, o null en k = 0
+      if (E.k < 1) return null;
+      const S = de(E.vecindad), nb = S.vec[E.foco], previa = S.capas[E.k - 1];
+      return { nb, previa, valor: S.capas[E.k][E.foco], terminos: nb.map(j => f2(previa[j])).join(' + ') };
+    }
+
+    /* ---- el dibujo ---- */
+    function trazaBarrio(ctx, a, i) {
+      ctx.beginPath();
+      geom[i].forEach(anillo => {
+        for (let p = 0; p < anillo.length; p += 2) {
+          if (p === 0) ctx.moveTo(a.x(anillo[p]), a.y(anillo[p + 1])); else ctx.lineTo(a.x(anillo[p]), a.y(anillo[p + 1]));
+        }
+        ctx.closePath();
+      });
+    }
+    const centro = (a, i) => [a.x(mapa.nodos[2 * i]), a.y(mapa.nodos[2 * i + 1])];
+
+    // Dónde van los números de los vecinos: junto a su barrio, sin pisarse entre sí ni pisar el valor del foco.
+    const ETQ = { w: 40, h: 15 };          // lo que mide «56.71» a 11 px en Fira Code, con su halo
+    const PASTILLA = { w: 58, h: 24 };     // la caja del valor del barrio en foco
+    function posicionesEtiquetas(a, E, c) {
+      const cu = cuenta(E);
+      if (!cu) return [];
+      const [fx, fy] = centro(a, E.foco);
+      return separaEtiquetas(cu.nb.map(j => centro(a, j)), ETQ.w, ETQ.h, [{ x: fx, y: fy, w: PASTILLA.w, h: PASTILLA.h }],
+                             { x0: 2, y0: 2, x1: c.w - 2, y1: c.h - MARGEN.b + 4 });
+    }
+
+    function halo(ctx, texto, x, yy) {
+      ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.lineJoin = 'round';
+      ctx.strokeText(texto, x, yy);
+      ctx.fillStyle = TINTA;
+      ctx.fillText(texto, x, yy);
+    }
+
+    function flecha(ctx, x0, y0, x1, y1, alfa, antes) {
+      const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+      if (L < antes + 14) return;
+      const ux = dx / L, uy = dy / L;
+      const ex = x1 - ux * antes, ey = y1 - uy * antes;    // la punta se queda antes del valor del barrio en foco
+      ctx.save();
+      ctx.globalAlpha = alfa;
+      ctx.strokeStyle = NARANJA; ctx.fillStyle = NARANJA; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(x0 + ux * 11, y0 + uy * 11); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(ex + ux * 1, ey + uy * 1);
+      ctx.lineTo(ex - ux * 7 - uy * 4, ey - uy * 7 + ux * 4);
+      ctx.lineTo(ex - ux * 7 + uy * 4, ey - uy * 7 - ux * 4);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+
+    function barraDeColor(ctx, c) {
+      const x0 = 10, w = Math.min(240, c.w - 20), yy = c.h - 30, h = 9;
+      ctx.font = "600 10.5px 'Montserrat', sans-serif"; ctx.fillStyle = '#334155'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      ctx.fillText('CRIME · una sola escala, la de y', x0, yy - 16);
+      for (let i = 0; i < w; i++) { ctx.fillStyle = colorDe(i / (w - 1)); ctx.fillRect(x0 + i, yy, 1.2, h); }
+      ctx.strokeStyle = 'rgba(1,40,32,.35)'; ctx.lineWidth = 1; ctx.strokeRect(x0 - 0.5, yy - 0.5, w + 1, h + 1);
+      ctx.font = "10.5px 'Fira Code', monospace"; ctx.fillStyle = '#334155'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      ctx.fillText(f2(ymin), x0, yy + h + 3);
+      ctx.textAlign = 'right';
+      ctx.fillText(f2(ymax), x0 + w, yy + h + 3);
+    }
+
+    function dibuja(c, E, V) {
+      const { ctx } = c;
+      const a = ajusteDe(c.w, c.h, cajaDe(V));
+      const S = de(E.vecindad);
+      const cu = cuenta(E);
+      // Cuánto de la lupa ha llegado: de 0 (mapa entero) a 1 (barrio y vecinos). Se mide con el ancho de la caja que se ve.
+      const wFoco = E.lupa ? (() => { const b = cajaFoco(E.foco, E.vecindad); return b.x1 - b.x0; })() : 0;
+      const lupa = E.lupa ? Math.max(0, Math.min(1, (cq.x1 - cq.x0 - (V.vx1 - V.vx0)) / Math.max(1, cq.x1 - cq.x0 - wFoco))) : 0;
+      const alfa = Math.max(0, 1 - Math.abs(V.k - E.k) * 2) * lupa;      // la cuenta aparece cuando llegan las dos transiciones
+      const implicados = new Set([E.foco].concat(S.vec[E.foco]));
+      // todo lo del mapa se recorta a su zona: con la lupa los barrios se salen, y no deben pasar por detrás de la barra de color
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 0, c.w, c.h - MARGEN.b + 4); ctx.clip();
+      // 1. los barrios, coloreados por la capa visible (entre dos capas mientras dura la transición); con la lupa, el resto se atenúa
+      for (let i = 0; i < n; i++) {
+        trazaBarrio(ctx, a, i);
+        ctx.globalAlpha = implicados.has(i) ? 1 : 1 - 0.6 * lupa;
+        ctx.fillStyle = colorDe(t01(valorVisible(S, i, V.k)));
+        ctx.fill();
+        ctx.lineWidth = 0.8; ctx.strokeStyle = 'rgba(1,40,32,.28)'; ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      // 2. los contornos: los de los vecinos (con la lupa), el del barrio bajo el puntero y el del foco. Van ANTES que
+      //    las flechas y los números: dibujado después, el contorno naranja del foco tachaba las etiquetas de los
+      //    vecinos que caían encima (barrios con ocho o más vecinos en una columna estrecha).
+      if (cu && alfa > 0) {
+        ctx.save(); ctx.globalAlpha = alfa; ctx.lineWidth = 2; ctx.strokeStyle = TINTA;
+        cu.nb.forEach(j => { trazaBarrio(ctx, a, j); ctx.stroke(); });
+        ctx.restore();
+      } else if (E.k > 0 && !E.lupa) {
+        // sin la lupa, solo se marcan los vecinos: una línea fina, sin números que se pisen
+        ctx.save(); ctx.lineWidth = 1.4; ctx.strokeStyle = 'rgba(1,40,32,.75)';
+        S.vec[E.foco].forEach(j => { trazaBarrio(ctx, a, j); ctx.stroke(); });
+        ctx.restore();
+      }
+      if (E.hover >= 0 && E.hover !== E.foco) { trazaBarrio(ctx, a, E.hover); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,102,0,.7)'; ctx.stroke(); }
+      trazaBarrio(ctx, a, E.foco); ctx.lineWidth = 3; ctx.strokeStyle = NARANJA; ctx.stroke();
+      // 3. las flechas y los números de los vecinos, solo con la lupa (sin ella no hay sitio para las etiquetas)
+      if (cu && alfa > 0) {
+        const [fx, fy] = centro(a, E.foco);
+        cu.nb.forEach(j => { const [x0, y0] = centro(a, j); flecha(ctx, x0, y0, fx, fy, alfa, 30); });
+        ctx.save(); ctx.globalAlpha = alfa;
+        ctx.font = "500 11px 'Fira Code', monospace"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const pos = posicionesEtiquetas(a, E, c);
+        cu.nb.forEach((j, q) => {
+          const [x0, y0] = centro(a, j);
+          if (Math.hypot(pos[q][0] - x0, pos[q][1] - y0) > 7) {        // la etiqueta se apartó de su barrio: una línea guía lo une
+            ctx.strokeStyle = 'rgba(1,40,32,.55)'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(pos[q][0], pos[q][1]); ctx.stroke();
+          }
+          halo(ctx, f2(cu.previa[j]), pos[q][0], pos[q][1]);
+        });
+        ctx.restore();
+      }
+      // 4. el valor del barrio en foco, encima de todo
+      const [fx, fy] = centro(a, E.foco);
+      if (cu && alfa > 0) {
+        const txt = f2(cu.valor);
+        ctx.save(); ctx.globalAlpha = alfa;
+        ctx.font = "500 12px 'Fira Code', monospace"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#fff'; ctx.strokeStyle = NARANJA; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.rect(fx - PASTILLA.w / 2 + 4, fy - 10, PASTILLA.w - 8, 20); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = TINTA; ctx.fillText(txt, fx, fy + 0.5);
+        ctx.restore();
+      } else {
+        ctx.font = "500 11px 'Fira Code', monospace"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        halo(ctx, f2(valorVisible(S, E.foco, V.k)), fx, fy);
+      }
+      ctx.restore();
+      barraDeColor(ctx, c);
+    }
+
+    /* ---- los dos perfiles de al lado: la desviación y la media, para todos los k ---- */
+    function perfil(c, E, V, o) {
+      const { ctx } = c;
+      const m = { l: 36, r: 8, t: 10, b: 20 };
+      const W = c.w - m.l - m.r, H = c.h - m.t - m.b;
+      const px = k => m.l + (k / K_MAX) * W;
+      const py = v => m.t + (1 - (v - o.min) / (o.max - o.min)) * H;
+      ctx.font = "10px 'Fira Code', monospace"; ctx.lineWidth = 1;
+      // ejes y marcas
+      ctx.strokeStyle = '#cbd5e1'; ctx.fillStyle = '#475569'; ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
+      [o.min, o.max].forEach(v => { ctx.beginPath(); ctx.moveTo(m.l, py(v) + 0.5); ctx.lineTo(m.l + W, py(v) + 0.5); ctx.stroke(); ctx.fillText(o.formato(v), m.l - 4, py(v)); });
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      [0, 20, 40, 60].filter(k => k <= K_MAX).forEach(k => ctx.fillText(String(k), px(k), m.t + H + 4));
+      // líneas de referencia
+      (o.refs || []).forEach(r => {
+        ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = r.color; ctx.fillStyle = r.color; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.moveTo(m.l, py(r.v)); ctx.lineTo(m.l + W, py(r.v)); ctx.stroke(); ctx.restore();
+        ctx.save(); ctx.fillStyle = r.color; ctx.font = "600 10px 'Montserrat', sans-serif"; ctx.textAlign = 'right'; ctx.textBaseline = r.abajo ? 'top' : 'bottom';
+        ctx.fillText(r.texto, m.l + W - 2, py(r.v) + (r.abajo ? 3 : -2)); ctx.restore();
+      });
+      // la serie
+      ctx.strokeStyle = '#1a7358'; ctx.lineWidth = 1.8; ctx.beginPath();
+      o.serie.forEach((v, k) => { if (k === 0) ctx.moveTo(px(k), py(v)); else ctx.lineTo(px(k), py(v)); });
+      ctx.stroke();
+      // el k actual, sobre la serie interpolada
+      const k0 = Math.min(K_MAX, Math.floor(V.k)), k1 = Math.min(K_MAX, k0 + 1), f = V.k - k0;
+      const vy = o.serie[k0] * (1 - f) + o.serie[k1] * f;
+      ctx.strokeStyle = 'rgba(255,102,0,.55)'; ctx.setLineDash([2, 2]);
+      ctx.beginPath(); ctx.moveTo(px(V.k), m.t); ctx.lineTo(px(V.k), m.t + H); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = NARANJA; ctx.beginPath(); ctx.arc(px(V.k), py(vy), 4, 0, 2 * Math.PI); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+
+    function panel(c, id, E, V) {
+      const S = de(E.vecindad);
+      if (id === 'sd') {
+        perfil(c, E, V, { min: 0, max: sd0 * 1.05, formato: f2, serie: S.res.map(r => r.sd),
+          refs: [{ v: 0.05 * sd0, texto: '5 % de la de y', color: '#b34700', abajo: false }] });
+      } else {
+        perfil(c, E, V, { min: rangoMedia[0], max: rangoMedia[1], formato: v => v.toFixed(1), serie: S.res.map(r => r.media),
+          refs: [{ v: m0, texto: 'media de y', color: '#475569', abajo: true },
+                 { v: S.limite, texto: 'media por grado', color: '#b34700', abajo: false }] });
+      }
+    }
+
+    /* ---- los textos ---- */
+    const pct = (r) => Math.round(100 * r.sd / sd0);
+    const casiUno = E => de(E.vecindad).res[E.k].sd <= CASI_UNO * sd0;
+    const lista = nb => nb.map(j => j + 1).join(', ');
+
+    const pasos = [
+      { corto: 'El dato', titulo: 'y: CRIME en los 49 barrios de Columbus',
+        texto: () => 'Cada barrio, pintado con una escala de color <strong>fija</strong>, entre ' + f2(ymin) + ' y ' + f2(ymax) + '. ' +
+                     'Todas las capas que siguen usan esta misma escala: si cada una se pintara contra su propio máximo, el aplanado no se vería.',
+        estado: { k: 0, lupa: 0 }, pausa: 2.6 },
+      { corto: 'Wy', titulo: 'Wy: cada barrio pasa a valer la media de sus vecinos',
+        texto: E => {
+          const cu = cuenta(E);
+          if (!cu) return 'En k = 0 no se ha aplicado W: el barrio vale lo que valía. Sube k a 1 para ver su cuenta.';
+          return 'El barrio <strong>' + (E.foco + 1) + '</strong> tiene ' + cu.nb.length + ' vecinos (' + lista(cu.nb) + '). Su valor en ' + capa(E.k) +
+                 ' es la media de los que ellos tenían en ' + capa(E.k - 1) + ': (' + cu.terminos + ') / ' + cu.nb.length + ' ≈ <strong>' + f2(cu.valor) + '</strong>. ' +
+                 'Haz clic en otro barrio, o usa ‹ ›, para ver su cuenta' + (E.lupa ? '.' : ' (con «Barrio y vecinos» el mapa se acerca y se ven los números).');
+        },
+        estado: { k: 1, lupa: 1 }, pausa: 4.8 },
+      { corto: 'W otra vez', titulo: 'W otra vez: la media de las medias',
+        texto: E => {
+          const S = de(E.vecindad);
+          return 'W<sup>2</sup>y promedia lo que ya estaba promediado. Cuenta a los vecinos de los vecinos, pero también al propio barrio (ir y volver) y, casi siempre, a sus vecinos de siempre: ' +
+                 '<strong>no es la contigüidad de orden 2</strong>, es apilar capas (módulo 11). La desviación típica baja de ' + f2(sd0) + ' a ' +
+                 f2(S.res[1].sd) + ' con W y a ' + f2(S.res[2].sd) + ' con W dos veces.';
+        },
+        estado: { k: 2, lupa: 0 }, pausa: 4.2 },
+      // El título y la primera frase dependen de k: el deslizador trae a este paso cualquier k ≥ 3, y con k = 3 decir
+      // «casi un solo color» con la desviación en el 60 % de la de y era falso.
+      { corto: 'Muchas veces',
+        titulo: E => casiUno(E) ? 'Muchas veces: casi un solo color, y no es el de la media' : 'Más veces: el mapa se sigue aplanando',
+        texto: E => {
+          const S = de(E.vecindad), r = S.res[E.k];
+          return 'Con k = ' + E.k + ' la desviación típica es el <strong>' + pct(r) + ' %</strong> de la de y' + (casiUno(E) ? ', y el mapa ya es casi de un solo color' : '') + '. ' +
+                 'Si se sigue aplicando W, el mapa va hacia un solo valor, y ese valor <strong>no es la media de y</strong> (' + f2(m0) + ') sino la media ponderada por el grado: ' +
+                 f2(S.limite) + ' con la vecindad de la ' + E.vecindad + '. Los barrios con más vecinos entran en más promedios. ' +
+                 'La media de ' + capa(E.k) + ' va de ' + f2(m0) + ' hacia allí (ahora ' + f2(r.media) + ').';
+        },
+        estado: { k: K_MAX, lupa: 0 }, tween: { k: 9 }, pausa: 3.5 }
+    ];
+
+    const def = {
+      id: 'rezago',
+      // La descripción fija no afirma lo que depende del estado (flechas, la cuenta): eso lo dice la de debajo, que cambia.
+      aria: 'Mapa de los ' + n + ' barrios de Columbus, cada uno pintado con el valor de CRIME tras aplicar la matriz de pesos W el número de veces ' +
+            'que se elige. Hay un barrio en foco; la descripción de debajo dice qué se ve en cada momento. Dos gráficas de al lado ' +
+            'muestran la desviación típica y la media de cada capa.',
+      ayuda: 'Clic en un barrio para ponerlo en foco · con el mapa enfocado, ← → cambian de barrio y ↑ ↓ cambian k',
+      ayudaTeclado: 'Con el lienzo enfocado, las flechas izquierda y derecha cambian el barrio en foco y las flechas arriba y abajo cambian cuántas veces se aplica W. ' +
+                    'Inicio lleva a k = 0 y Fin a k = ' + K_MAX + '. Los mandos de debajo hacen lo mismo.',
+      pie: 'Columbus (Anselin, 1988): ' + n + ' barrios y la tasa de delitos CRIME, que son los del módulo 1. La vecindad es la del módulo 3, con W estandarizada por filas.',
+      sinLienzo: 'Dice lo mismo que el texto del módulo 10: Wy es, en cada barrio, la media de sus vecinos. Aplicada una y otra vez, W aplana el mapa hacia un valor casi constante, ' +
+                 'y ese valor no es la media de y sino la media ponderada por el grado de cada barrio.',
+      paneles: [
+        { id: 'sd', etiqueta: 'Desviación típica de W<sup>k</sup>y', aria: 'Desviación típica de cada capa, de k = 0 a ' + K_MAX + ': baja deprisa al principio y cada vez más despacio' },
+        { id: 'media', etiqueta: 'Media de W<sup>k</sup>y', aria: 'Media de cada capa, de k = 0 a ' + K_MAX + ': sale de la media de y y se acerca a la media ponderada por el grado' }
+      ],
+      mandos: [
+        { tipo: 'deslizador', id: 'k', etiqueta: 'Veces que se aplica W (k)', min: 0, max: K_MAX, paso: 1, salida: v => String(v) },
+        { tipo: 'botones', id: 'vecindad', etiqueta: 'Vecindad', opciones: [['reina', 'Reina'], ['torre', 'Torre']] },
+        { tipo: 'botones', id: 'lupa', etiqueta: 'Vista', opciones: [[0, 'Todo el mapa'], [1, 'Barrio y vecinos']] },
+        { tipo: 'ciclo', id: 'foco', etiqueta: 'Barrio en foco', n, anterior: 'Barrio anterior', siguiente: 'Barrio siguiente', texto: i => 'barrio ' + (i + 1) }
+      ],
+      animables: { k: 1.1, vx0: 0.9, vy0: 0.9, vx1: 0.9, vy1: 0.9 },
+      pasoImpresion: 4,
+      pasos,
+      inicial: () => ({ paso: 1, k: 0, vecindad: 'reina', foco: focoDidactico(de('reina').vec, y), hover: -1, lupa: 0,
+                        vx0: cq.x0, vy0: cq.y0, vx1: cq.x1, vy1: cq.y1 }),
+      normaliza: (p, E) => {
+        const out = Object.assign({}, p);
+        if ('k' in out) out.k = Math.min(K_MAX, Math.max(0, Math.round(out.k)));
+        if ('k' in out && !('paso' in out)) out.paso = pasoDeK(out.k);          // el texto que se ve es el de la capa que se ve
+        if ('foco' in out) out.foco = Math.min(n - 1, Math.max(0, Math.round(out.foco)));
+        if ('hover' in out) out.hover = Math.min(n - 1, Math.max(-1, Math.round(out.hover)));
+        if ('paso' in out) out.paso = Math.min(pasos.length, Math.max(1, Math.round(out.paso)));
+        if ('vecindad' in out && VECINDADES.indexOf(out.vecindad) < 0) delete out.vecindad;
+        if ('lupa' in out) out.lupa = out.lupa ? 1 : 0;
+        // La caja que se ve sigue al foco y a la lupa: la calcula la pieza, no quien llama.
+        if ('lupa' in out || 'foco' in out || 'vecindad' in out) {
+          const sig = Object.assign({}, E, out);
+          const caja = sig.lupa ? cajaFoco(sig.foco, sig.vecindad) : cq;
+          out.vx0 = caja.x0; out.vy0 = caja.y0; out.vx1 = caja.x1; out.vy1 = caja.y1;
+        }
+        return out;
+      },
+      dibuja, panel,
+      puntero: (ev, E, V, c) => {
+        if (ev.tipo === 'sale') return { poner: { hover: -1 }, cursor: '' };
+        const i = barrioBajo(ev.x, ev.y, c, V);
+        if (ev.tipo === 'mueve') return { poner: { hover: i }, cursor: i >= 0 ? 'pointer' : '' };
+        if (ev.tipo === 'abajo' && i >= 0) return { poner: { foco: i } };
+        return null;
+      },
+      tecla: (ev, E) => {
+        switch (ev.key) {
+          case 'ArrowRight': return { foco: (E.foco + 1) % n };
+          case 'ArrowLeft': return { foco: (E.foco + n - 1) % n };
+          case 'ArrowUp': return { k: E.k + 1 };
+          case 'ArrowDown': return { k: E.k - 1 };
+          case 'Home': return { k: 0 };
+          case 'End': return { k: K_MAX };
+          default: return null;
+        }
+      },
+      lectura: E => {
+        const S = de(E.vecindad), r = S.res[E.k];
+        return [
+          ['k', String(E.k)],
+          ['media', f4(r.media)],
+          ['desviación típica', f4(r.sd) + ' <span class="a2d-r">(' + pct(r) + ' % de la de y)</span>'],
+          ['correlación con y', f4(r.cor)],
+          ['pendiente sobre y', f4(r.pendiente) + (E.k === 1 ? ' <span class="a2d-r">= I de Moran</span>' : '')]
+        ];
+      },
+      alt: E => {
+        const S = de(E.vecindad), r = S.res[E.k], cu = cuenta(E);
+        return 'Capa ' + capaTxt(E.k) + ' con la vecindad ' + E.vecindad + ': media ' + f4(r.media) + ', desviación típica ' + f4(r.sd) + ' (' + pct(r) + ' por ciento de la de y). ' +
+               'Barrio en foco: ' + (E.foco + 1) + ', con ' + S.vec[E.foco].length + ' vecinos (' + lista(S.vec[E.foco]) + '). ' +
+               (cu ? 'Su valor es ' + f2(cu.valor) + ', la media de ' + cu.terminos.replace(/ \+ /g, ', ') + '.' : 'Su valor es ' + f2(y[E.foco]) + '.');
+      }
+    };
+    def.interno = { de, cuenta, casiUno, K_MAX, ajusteDe, barrioBajo, cajaFoco, cajaDe, cq, posicionesEtiquetas, ETQ, PASTILLA, MARGEN };     // para las pruebas
+    return def;
+  }
+
+  function monta(cont, datos, opc) {
+    opc = opc || {};
+    if (!global.Anim2D) throw new Error('rezago2d: falta anim2d.js');
+    return global.Anim2D.monta(cont, creaDef(datos, opc), opc);
+  }
+
+  const Rezago2D = { monta, creaDef, matematica: Mat };
+  global.Rezago2D = Rezago2D;
+  if (typeof module === 'object' && module.exports) module.exports = Rezago2D;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+
+    SIMULADORES['cap6-rezago2d'] = function (raiz) {
+      const sitio = raiz.querySelector('.a2d-montaje');
+      let vivo = true, instancia = null, io = null;
+      Anim2D.estilos(document);
+      const monta = () => {
+        if (!vivo) return;
+        // Si el motor falla, vuelve el texto de reserva («el texto de este módulo dice lo mismo»): antes se vaciaba
+        // el sitio ANTES de montar, y un fallo dejaba un hueco de alto cero y la promesa del párrafo, borrada.
+        const reserva = sitio.innerHTML;
+        try {
+          sitio.innerHTML = '';
+          // el color es el de los mapas del capítulo (`geomapaColor`, con su filtro de daltonismo)
+          instancia = sitio.animacion = Rezago2D.monta(sitio, { y: REZAGO2D_Y, mapa: MAPAS_CAP6['cap6-w'] },
+                                                       { color: geomapaColor, geom: geomapaGeom });
+        } catch (e) {
+          sitio.innerHTML = reserva;
+          instancia = sitio.animacion = null;
+          console.error('cap6-rezago2d: la animación no se pudo montar', e);
+        }
+      };
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(es => {
+          if (es.some(e => e.isIntersecting)) { io.disconnect(); io = null; monta(); }
+        }, { rootMargin: '400px 0px' });
+        io.observe(sitio);
+      } else {
+        monta();
+      }
+      return [{ destroy() { vivo = false; if (io) io.disconnect(); if (instancia) instancia.destruir(); instancia = sitio.animacion = null; } }];
     };
 
     // ================================================================

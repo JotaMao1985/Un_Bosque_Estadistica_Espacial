@@ -9,25 +9,36 @@ Copiado del molde de `audita_texto_cap5.py`. Toda la maquinaria vive en
 
 Qué comprueba, por encima:
 
-  · que **toda cifra de la prosa** esté en `cap6_datos.json` o en
-    `cap6_soluciones.json`, incluidas las de dentro de KaTeX;
+  · que **toda cifra de la prosa** esté en `cap6_datos.json`, en
+    `cap6_soluciones.json` o en `cap6_rezago2d_resumen.json` (el límite del
+    rezago, el segundo valor propio, el I de Moran de Columbus: 8 números;
+    la serie entera NO entra, porque con sus miles de decimales un entero
+    corto inyectado cae dentro del índice por azar), incluidas las de
+    dentro de KaTeX;
   · que cada celda de las cinco tablas de solución diga lo que su JSON dice;
   · que el capítulo cubra los doce módulos que el §6 del plan le asigna;
   · que cite sus fuentes y sostenga las afirmaciones que tiene que hacer;
   · accesibilidad del marcado, los `.geomapa` y su presupuesto;
   · que la codificación no se haya roto y que los enlaces resuelvan.
 
-EL TOPE DE PESO ES 640 KB, y la aritmética va escrita porque no es una
-marca de agua levantada bajo presión:
+EL TOPE DE PESO ES 720 KB, y la aritmética va escrita porque no es una
+marca de agua levantada bajo presión. Fue 640 hasta que entró la animación
+2D del módulo 10 (2026-10-02), y se sube con la cuenta delante:
 
-  · el documento pesa **578 KB**, así que con el tope de la casa —700—
-    este auditor pasaría, pero con 62 KB de margen ciego por debajo;
+  · el documento pesa **690 KB**: 615 de antes, **69 de los dos motores en
+    línea** (`anim2d.js`, 35 KB, y `rezago2d.js`, 34 KB, con la densidad de
+    comentarios del repo; no se minifican) y 5 de código nuevo y de
+    prosa. Con el tope viejo —640— el capítulo no cabía;
   · la cota que ata esa comprobación a su arnés es **por encima del
     tamaño del documento y por debajo de ese tamaño + 312 KB**, porque
-    `prueba_texto.py` la tumba inyectando 320 000 bytes de comentario;
-  · 640 deja **62 KB de margen** sobre lo publicado —sitio para una
-    corrección y muy poco para un ensamblado desbocado— y queda 250 KB
-    por debajo del techo que el arnés necesita perforar.
+    `prueba_texto.py` la tumba inyectando 320 000 bytes de comentario:
+    690 < 720 < 1002;
+  · 720 deja **30 KB de margen** sobre lo publicado —sitio para una
+    corrección y muy poco para un ensamblado desbocado—. Con 700, el tope
+    de la casa, quedaban 10 después de que la revisión en Chrome engordara
+    los motores (gestos, leyendas apiladas, colores forzados): el motor es
+    lo que pesa, y un motor más grande es una decisión que se verá aquí, no
+    un descuido.
 
 EL PRESUPUESTO DE GEOMETRÍA ES 400 KB, y también hay que decir por qué.
 Los dos mapas de este capítulo entran como JSON literal, así que el
@@ -47,7 +58,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP6_KB = 640.0
+TOPE_CAP6_KB = 720.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
@@ -124,6 +135,7 @@ DEBE_CUBRIR = [
     ("el rezago espacial Wy", "rezago"),
     ("que el rezago es la media de los vecinos", "la media de sus vecinos"),
     ("la contracción de la desviación", "contrae"),
+    ("que aplicar W una y otra vez sigue aplanando el mapa", "una y otra vez"),
     ("que el índice de Moran hereda la dependencia de W", "moran"),
     # Módulo 11 — W como grafo
     ("la matriz de adyacencia", "matriz de adyacencia"),
@@ -207,6 +219,19 @@ AFIRMACIONES = [
      "tiene diagonal positiva"),
     ("dice que W² solo llega a un vecino si es vecino de otro vecino",
      "que sea a la vez vecino de otro de sus vecinos"),
+    # Las que entraron con la animación del rezago (2026-10-02). La primera es el hallazgo: Wᵏy no va a la media.
+    ("dice que Wᵏy no va a la media de y sino a la ponderada por el grado",
+     "ese valor no es la media de y"),
+    ("dice que esa media está ponderada por el grado",
+     "es la media ponderada por el grado"),
+    ("dice que con la torre el valor al que va es otro",
+     "la vecindad que se eligió manda también aquí"),
+    ("dice que la rapidez la manda el segundo valor propio de W",
+     "segundo valor propio de w"),
+    ("dice que con k = 1 la pendiente es el índice de Moran del capítulo 7",
+     "que es el índice de moran del capítulo 7"),
+    ("dice que esa pendiente no es la correlación",
+     "no son lo mismo"),
 ]
 
 # EL «−» (U+2212) YA NO VA AQUÍ, y el «⁻¹» sí (2026-09-24). El menos largo
@@ -236,7 +261,7 @@ def main() -> int:
     a = Auditor(
         capitulo="capitulo-6-pesos-espaciales.html",
         var_entorno="CAP6_HTML",
-        jsons=["cap6_datos.json", "cap6_soluciones.json"],
+        jsons=["cap6_datos.json", "cap6_soluciones.json", "cap6_rezago2d_resumen.json"],
         estructurales=ESTRUCTURALES,
         presupuesto_geomapa_kb=400.0,
         json_mapas="cap6_mapas.json",
