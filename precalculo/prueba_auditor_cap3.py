@@ -225,6 +225,18 @@ def defectos():
         "datos", lambda d: d["m9"]["gerrymandering"].__setitem__("pct_A", 57.1717171717))
     obj("13 · la distribución deja de sumar las particiones válidas",
         "datos", lambda d: d["m9"]["gerrymandering"]["distribucion"][3].__setitem__("n", 7))
+    # La enumeración independiente (2026-10-01): el defecto que sustituyó al sorteo no se vería con la suma sola.
+    obj("13 · un trazado pasa de un resultado a otro y la suma sigue cuadrando",
+        "datos", lambda d: (d["m9"]["gerrymandering"]["distribucion"][2].__setitem__("n", 135),
+                            d["m9"]["gerrymandering"]["distribucion"][3].__setitem__("n", 2943)))
+    obj("13 · el porcentaje de un resultado vuelve a ser el del muestreador (1.82 %)",
+        "datos", lambda d: d["m9"]["gerrymandering"]["distribucion"][2].__setitem__("pct", 1.817119865))
+    obj("13 · el total de trazados deja de ser el de la enumeración",
+        "datos", lambda d: (d["m9"]["gerrymandering"].__setitem__("n_trazados", 15409),
+                            d["m9"]["gerrymandering"]["distribucion"][3].__setitem__("n", 2944 + 11403)))
+    obj("13 · un ejemplo reparte las casillas en distritos de 5 pero dispersos (no contiguos)",
+        "datos", lambda d: d["m9"]["gerrymandering"]["ejemplos"][1].__setitem__(
+            "particion", [(i * 7) % 25 // 5 + 1 for i in range(25)]))
 
     # --- 15. El par más parecido del módulo 5 (2026-09-24) ------------
     # La medida pasó de «clases contiguas» a «el par más parecido», y el

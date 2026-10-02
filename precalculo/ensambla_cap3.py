@@ -1179,12 +1179,12 @@ MOD9 = cabecera(
         y {firma(ent(GY['n_B']))} del B —el {firma(n(GY['pct_A'], 5), ' %')} para A—, repartida
         en {GY['n_distritos']} distritos <strong>contiguos</strong> de {GY['casillas_por_distrito']}
         casillas. Proporcionalmente le tocarían {firma(n(GY['escanos_proporcionales'], 2))}
-        escaños. Buscando entre {firma(ent(GY['n_particiones_probadas']))} trazados aleatorios
-        aparecieron {firma(ent(GY['n_particiones_validas']))} válidos, y con ellos A saca:</p>
+        escaños. Cortar la rejilla así se puede hacer de {firma(ent(GY['n_trazados']))} maneras,
+        y están contadas todas: se enumeran, no se sortean. Con ellas A saca:</p>
 
       <div class="table-wrapper">
         <table>
-          <caption>Escaños de A sobre {ent(GY['n_particiones_validas'])} trazados contiguos válidos.</caption>
+          <caption>Escaños de A en los {ent(GY['n_trazados'])} trazados contiguos posibles.</caption>
           <thead><tr><th scope="col">Escaños de A</th><th scope="col">Trazados</th>
             <th scope="col">%</th></tr></thead>
           <tbody>
@@ -1193,7 +1193,9 @@ MOD9 = cabecera(
       </div>
 
       <p>Con los mismos votos, el trazado decide entre {firma(ent(GY['escanos_min']))} y
-        {firma(ent(GY['escanos_max']))} escaños de {GY['n_distritos']}. Nadie cambió un voto.</p>
+        {firma(ent(GY['escanos_max']))} escaños de {GY['n_distritos']}. Nadie cambió un voto.
+        Los porcentajes cuentan trazados posibles, no probabilidades: el mapa no se sortea, lo
+        dibuja alguien.</p>
 
 {sim('cap3-gerry', 'La misma votación, tres trazados',
      'Cada trazado reparte las mismas 25 casillas en 5 distritos contiguos de 5.', 280)}

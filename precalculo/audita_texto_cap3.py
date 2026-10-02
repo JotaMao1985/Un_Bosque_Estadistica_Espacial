@@ -144,6 +144,12 @@ AFIRMACIONES = [
      "es lo contrario de lo que casi todo el mundo espera"),
     ("declara que el ponderador es parte del trazado",
      "parte del trazado"),
+    # 2026-10-01: el módulo publicaba las frecuencias de un muestreador (15 409 trazados válidos de 200 000
+    # intentos, 1.82 / 65.97 / 32.21 %) como si fueran las del problema. Ahora se enumeran los 4 006 y se dice.
+    ("declara que los trazados del gerrymandering se enumeran todos y no se sortean",
+     "se enumeran, no se sortean"),
+    ("dice que los porcentajes del gerrymandering cuentan trazados y no son probabilidades",
+     "no probabilidades"),
     ("dice que una correlación ecológica no habla de personas",
      "no como afirmación sobre personas"),
     ("declara que el signo del estrato depende del filtro",

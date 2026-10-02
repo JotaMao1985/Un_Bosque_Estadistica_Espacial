@@ -599,6 +599,10 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
          "conservar la topología", "hacer otras cosas", True),
         ("desaparece que el ponderador es parte del trazado",
          "parte del trazado", "un detalle más", True),
+        ("desaparece que los trazados del gerrymandering se enumeran todos",
+         "se enumeran, no se sortean", "se prueban unos cuantos", True),
+        ("desaparece que los porcentajes del gerrymandering no son probabilidades",
+         "no probabilidades", "se leen como azar", True),
         # --- 6. LA DISCREPANCIA DECLARADA DE A.2 ----------------------
         ("desaparece la causa de que R y Python clasifiquen distinto",
          "lado cerrado del intervalo", "una diferencia de implementación", True),
