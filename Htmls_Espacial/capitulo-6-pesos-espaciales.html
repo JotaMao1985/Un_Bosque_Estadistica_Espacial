@@ -9843,7 +9843,11 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       const res = gesto({ tipo, x: e.clientX - r.left, y: e.clientY - r.top, tactil: e.pointerType === 'touch' }, M.E, M.V, geo);
       if (!res) return;
       if (res.cursor !== undefined) lienzo.style.cursor = res.cursor;
-      if (res.poner) M.poner(res.poner, { desdeGuion: !res.interrumpe, corte: res.corte });
+      // un arrastre (corte) no se anuncia en cada movimiento: la región viva diría veinte radios seguidos
+      if (res.poner) {
+        callado = !!res.corte;
+        try { M.poner(res.poner, { desdeGuion: !res.interrumpe, corte: res.corte }); } finally { callado = false; }
+      }
       if (tipo === 'abajo' && res.captura) {
         try { lienzo.setPointerCapture(e.pointerId); } catch (_) { /* el puntero ya no está activo */ }
       }

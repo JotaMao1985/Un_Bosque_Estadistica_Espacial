@@ -1663,9 +1663,9 @@ MOD8 = cabecera(
       <p>Las sedes son demasiadas para ver los discos de uno en uno. La animación de abajo hace la
         misma cuenta sobre los tres patrones canónicos del capítulo, que viven en un cuadrado de lado
         1, así que ahí \\(r\\) se mide en lados de la ventana. Empieza por un punto y su disco: los
-        puntos que caen dentro son sus vecinos, y al lado está lo que el azar pondría en un disco
-        entero, \\({{(n-1)\\pi r^2/|W|}}\\). Después el disco crece hasta un cuarto del lado, que es la
-        \\(r\\) máxima del final de este módulo, y la curva de al lado es \\(\\hat{{K}}\\) para todo el
+        puntos que caen dentro son sus vecinos, y la lectura de debajo da lo que el azar pondría en un
+        disco entero, \\({{(n-1)\\pi r^2/|W|}}\\). Después el disco crece hasta un cuarto del lado, que es la
+        \\(r\\) máxima del final de este módulo, y la curva de debajo es \\(\\hat{{K}}\\) para todo el
         patrón. El paso 3 dibuja las parejas que suma la fórmula, y el 4 lleva el disco al borde,
         donde la ventana tapa una parte, para que se vea qué hace el peso \\(w_{{ij}}\\).</p>
 
@@ -2088,8 +2088,11 @@ MOD9 = cabecera(
       <p>La gráfica de la animación pone las dos razones frente a la misma referencia, 1: la del disco,
         \\(\\hat{{K}}/\\pi r^2\\), y la del anillo, g. El anillo que se dibuja va de \\(r\\) −
         {n(KS['h_anillo'], 2)} a \\(r\\) + {n(KS['h_anillo'], 2)} (desde 0 si \\(r\\) es más pequeño), solo para
-        ver qué parejas están a esa distancia; la g de la gráfica es la de <code>pcf()</code>, que las cuenta con un núcleo que
-        suaviza, así que lo que hay en un anillo y el valor de g no tienen por qué coincidir.</p>
+        ver qué parejas están a esa distancia; la g de la gráfica es la de <code>pcf()</code>, que corrige el borde con el
+        mismo peso de traslación —sin él, el anillo de un punto cerca del borde se queda corto— y además cuenta las
+        parejas con un núcleo que suaviza, así que lo que hay en un anillo y el valor de g no tienen por qué coincidir.
+        Y ninguna de las dos curvas lleva su banda del azar: si una desviación es más que ruido lo dice la envolvente del
+        módulo 11, no la animación.</p>
 
       <p>Antes de mirar Bogotá, pasa el simulador de las dos curvas por las células y por los pinos, porque cada
         uno enseña algo que las secuoyas no. En las <strong>células</strong> g se queda pegada
@@ -3464,7 +3467,8 @@ KANILLO_JS = (
         const reserva = sitio.innerHTML;
         try {
           sitio.innerHTML = '';
-          instancia = sitio.animacion = KAnillo2D.monta(sitio, { patrones: KANILLO_PATRONES, g: D4.m9 }, { escena });
+          // `reserva`: lo que la cáscara devuelve al sitio si la animación falla DESPUÉS de montarse
+          instancia = sitio.animacion = KAnillo2D.monta(sitio, { patrones: KANILLO_PATRONES, g: D4.m9 }, { escena, reserva });
         } catch (e) {
           sitio.innerHTML = reserva;
           instancia = sitio.animacion = null;

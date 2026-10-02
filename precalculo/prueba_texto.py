@@ -798,6 +798,11 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
          "no tienen por qué coincidir", "coinciden siempre"),
         ("desaparece que sin el peso el borde solo esconde vecinos",
          "esconder vecinos", "inventar vecinos"),
+        # La auditoría de las cinco animaciones (2026-10-02)
+        ("pcf vuelve a ser «solo un núcleo» (sin la corrección de borde)",
+         "corrige el borde con el\n        mismo peso de traslación", "suaviza el borde con el\n        mismo núcleo de siempre", True),
+        ("desaparece que la animación no juzga si una desviación es ruido",
+         "no la animación", "ni hace falta", True),
         ("se cae del temario la sección del disco, punto a punto",
          "El disco, punto a punto", "Un disco cualquiera", True),
         # --- Peso -----------------------------------------------------

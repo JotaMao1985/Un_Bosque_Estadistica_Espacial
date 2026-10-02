@@ -5593,9 +5593,9 @@ print([round(float(J(r)), 4) for r in (0.02, 0.05, 0.08)])
       <p>Las sedes son demasiadas para ver los discos de uno en uno. La animación de abajo hace la
         misma cuenta sobre los tres patrones canónicos del capítulo, que viven en un cuadrado de lado
         1, así que ahí \(r\) se mide en lados de la ventana. Empieza por un punto y su disco: los
-        puntos que caen dentro son sus vecinos, y al lado está lo que el azar pondría en un disco
-        entero, \({(n-1)\pi r^2/|W|}\). Después el disco crece hasta un cuarto del lado, que es la
-        \(r\) máxima del final de este módulo, y la curva de al lado es \(\hat{K}\) para todo el
+        puntos que caen dentro son sus vecinos, y la lectura de debajo da lo que el azar pondría en un
+        disco entero, \({(n-1)\pi r^2/|W|}\). Después el disco crece hasta un cuarto del lado, que es la
+        \(r\) máxima del final de este módulo, y la curva de debajo es \(\hat{K}\) para todo el
         patrón. El paso 3 dibuja las parejas que suma la fórmula, y el 4 lleva el disco al borde,
         donde la ventana tapa una parte, para que se vea qué hace el peso \(w_{ij}\).</p>
 
@@ -5916,8 +5916,11 @@ print(round(float(np.max(np.abs(L - r))), 4))
       <p>La gráfica de la animación pone las dos razones frente a la misma referencia, 1: la del disco,
         \(\hat{K}/\pi r^2\), y la del anillo, g. El anillo que se dibuja va de \(r\) −
         0.01 a \(r\) + 0.01 (desde 0 si \(r\) es más pequeño), solo para
-        ver qué parejas están a esa distancia; la g de la gráfica es la de <code>pcf()</code>, que las cuenta con un núcleo que
-        suaviza, así que lo que hay en un anillo y el valor de g no tienen por qué coincidir.</p>
+        ver qué parejas están a esa distancia; la g de la gráfica es la de <code>pcf()</code>, que corrige el borde con el
+        mismo peso de traslación —sin él, el anillo de un punto cerca del borde se queda corto— y además cuenta las
+        parejas con un núcleo que suaviza, así que lo que hay en un anillo y el valor de g no tienen por qué coincidir.
+        Y ninguna de las dos curvas lleva su banda del azar: si una desviación es más que ruido lo dice la envolvente del
+        módulo 11, no la animación.</p>
 
       <p>Antes de mirar Bogotá, pasa el simulador de las dos curvas por las células y por los pinos, porque cada
         uno enseña algo que las secuoyas no. En las <strong>células</strong> g se queda pegada
@@ -11350,7 +11353,11 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
       const res = gesto({ tipo, x: e.clientX - r.left, y: e.clientY - r.top, tactil: e.pointerType === 'touch' }, M.E, M.V, geo);
       if (!res) return;
       if (res.cursor !== undefined) lienzo.style.cursor = res.cursor;
-      if (res.poner) M.poner(res.poner, { desdeGuion: !res.interrumpe, corte: res.corte });
+      // un arrastre (corte) no se anuncia en cada movimiento: la región viva diría veinte radios seguidos
+      if (res.poner) {
+        callado = !!res.corte;
+        try { M.poner(res.poner, { desdeGuion: !res.interrumpe, corte: res.corte }); } finally { callado = false; }
+      }
       if (tipo === 'abajo' && res.captura) {
         try { lienzo.setPointerCapture(e.pointerId); } catch (_) { /* el puntero ya no está activo */ }
       }
@@ -11457,15 +11464,19 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
    (en las secuoyas, con ancho 0.02, la cuenta cruda pasa de 5 donde `pcf` da 3.28). El anillo se dibuja
    para VER qué parejas están a esa distancia; su ancho (2 · H_ANILLO) va declarado en el pie.
 
-   UNA PAREJA A DISTANCIA r ESTÁ EN EL DISCO DE RADIO r. Las coordenadas de los pinos y las secuoyas
-   vienen en una rejilla de 0.01, y muchas parejas caen exactamente en un nodo de r: se cuentan dentro
+   UNA PAREJA A DISTANCIA r ESTÁ EN EL DISCO DE RADIO r. Las coordenadas de los pinos vienen en una
+   rejilla de 0.01 y las de las secuoyas en una de 0.02, y muchas parejas caen exactamente en un nodo de r: se cuentan dentro
    (d ≤ r, con una tolerancia EPS para que no decida la raíz en coma flotante). `Kest` no siempre lo hace
    así en esos nodos, y la curva publicada del capítulo los cuenta a medias (interpola la rejilla de
    `Kest`): por eso esta K puede diferir de la del simulador de abajo en distancias cortas, y el pie lo
    dice.
 
    LO QUE LA LECTURA NO DICE: «significativo». Sin la banda del azar (módulo 11) una desviación sola no
-   establece nada, y la lectura habla de exceso o de déficit frente al azar, nunca de un veredicto. Y el
+   establece nada. La lectura dice si g o K/πr² quedan por encima o por debajo de 1, con la cifra, y lleva
+   la fila «¿es significativo?» del simulador de K y L; nunca «hay más (o menos) parejas que el azar», que
+   sobre los pinos —el patrón al azar del capítulo— se leía como un hallazgo (auditoría del 2026-10-02: lo
+   decía en 35 de los 101 r). Y sin la zona de «casi» del ±10 %: la definición del capítulo, de la clave de
+   T3 y del Quiz 2 es la estricta (g ≤ 1). Y el
    texto no afirma que g se quede en 1 después de volver (en las secuoyas vuelve a pasarlo, 1.04 en
    r = 0.15), ni que su máximo marque la escala: son dos lecturas equivocadas frecuentes.
 
@@ -11608,8 +11619,9 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
   const f2 = x => x.toFixed(2), f4 = x => x.toFixed(4);
   const rTxt = i => f4(rDe(i));
   const ent = x => String(Math.round(x));
-  // Frente al azar, en palabras que no son un veredicto: un 10 % arriba o abajo y ya se dice hacia dónde.
-  const frente = q => !(q >= 0) ? 'sin referencia' : q > 1.1 ? 'por encima' : q < 0.9 ? 'por debajo' : 'casi encima';
+  // Frente al azar, en palabras que no son un veredicto y con el criterio estricto del capítulo (g ≤ 1, no ±10 %).
+  const frente = q => !(q >= 0) ? 'sin referencia' : q > 1 ? 'por encima' : q < 1 ? 'por debajo' : 'justo encima';
+  const BANDA = 'si eso es más que el azar lo dice la envolvente del módulo 11';
 
   function creaDef(datos, opc) {
     opc = opc || {};
@@ -11742,7 +11754,7 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
       circulo(ctx, fx, fy, pr + 3.4); ctx.lineWidth = 1; ctx.strokeStyle = TINTA; ctx.stroke();     // el naranja solo da 2.9:1 sobre blanco
     }
 
-    /* ---- el panel de al lado ---- */
+    /* ---- el panel de debajo ---- */
     function ejes(ctx, c, m, ymax, fmt) {
       const W = c.w - m.l - m.r, H = c.h - m.t - m.b;
       const px = r => m.l + (r / 0.25) * W, py = v => m.t + (1 - v / ymax) * H;
@@ -11799,7 +11811,7 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         ctx.save(); ctx.strokeStyle = 'rgba(255,102,0,.55)'; ctx.setLineDash([2, 2]);
         ctx.beginPath(); ctx.moveTo(ax.px(rv), m.t); ctx.lineTo(ax.px(rv), m.t + ax.H); ctx.stroke(); ctx.restore();
         marca(ctx, ax, rv, vals, NARANJA);
-        leyenda(ctx, m, [[peso ? 'K observada' : 'K sin corregir', VERDE, null, peso ? 'K' : 'K sin peso']]
+        leyenda(ctx, m, [[peso ? 'K con peso' : 'K sin peso', VERDE, null, peso ? 'K' : 'K sin peso']]
           .concat(peso ? [] : [['K con peso', 'rgba(26,115,88,.55)', [2, 2], 'con peso']]).concat([['π r²', '#64748b', [4, 3]]]), c.w - m.l);
       } else {
         const ax = Object.assign(ejes(ctx, c, m, k.maxRazon, v => v.toFixed(1)), { ymax: k.maxRazon });
@@ -11824,8 +11836,10 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
                                                     : ' Su disco cabe entero en la ventana: todo lo que hay dentro se ve.';
     const anilloTxt = cu => cu.r < H_ANILLO ? '0 y ' + f4(cu.r + H_ANILLO) + ' (con r tan pequeño, el anillo empieza en 0)'
                                             : f4(cu.r - H_ANILLO) + ' y ' + f4(cu.r + H_ANILLO);
-    // «Arrastra» solo donde la g publicada ya volvió a 1 y K sigue claramente por encima: no en un patrón cuya g no vuelve.
-    const arrastra = (E, cu) => { const iv = C[E.patron].iVueltaG; return iv != null && E.ir >= iv - 1 && cu.q > 1.1 && Math.abs(cu.g - 1) <= 0.1; };
+    // «Arrastra» en todo el tramo desde que la g publicada vuelve a 1 mientras K/πr² siga claramente por encima y g no
+    // haya vuelto a subir (auditoría del 2026-10-02: con |g − 1| ≤ 0.1 parpadeaba —0.1425–0.155 y 0.185–0.19— y faltaba
+    // justo en r = 0.20, g = 0.59, K = 1.34 π r², el caso más claro). No en un patrón cuya g no vuelve.
+    const arrastra = (E, cu) => { const iv = C[E.patron].iVueltaG; return iv != null && E.ir >= iv && cu.q > 1.1 && cu.g < 1.1; };
 
     const pasosDisco = [
       { corto: 'Un punto', titulo: 'Un punto y su disco',
@@ -11840,9 +11854,9 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         texto: E => {
           const cu = cuenta(E);
           return 'Al crecer r el disco solo gana vecinos: los que ya estaban siguen dentro. Este punto tiene ' + vecinos(cu.nDisco) + ' a r = ' + rTxt(E.ir) +
-                 ' (el azar, en un disco entero: ' + f2(cu.azarDisco) + '). La curva de al lado es K para todo el patrón: los vecinos de cada punto' +
+                 ' (el azar, en un disco entero: ' + f2(cu.azarDisco) + '). La curva de debajo es K para todo el patrón: los vecinos de cada punto' +
                  (cu.peso ? ', con su peso,' : '') + ' promediados y divididos por (n − 1)/|W|. ' +
-                 (E.ir ? 'Ahora va ' + frente(cu.q) + ' de π r², la de CSR: K vale ' + f2(cu.q) + ' veces π r².' : 'En r = 0 no hay ningún vecino que contar.');
+                 (E.ir ? 'Ahora va ' + frente(cu.q) + ' de π r², la de CSR: K vale ' + f2(cu.q) + ' veces π r²; ' + BANDA + '.' : 'En r = 0 no hay ningún vecino que contar.');
         },
         estado: { ir: NODOS }, tween: { ir: 7 }, pausa: 2.5 },
       { corto: 'Todas las parejas', titulo: 'Todas las parejas a r o menos',
@@ -11852,7 +11866,7 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
                  (cu.peso ? ' y con su peso' : ', sin peso') + '. La suma, por |W| / (n (n − 1)), da K = ' + f4(cu.K) + (E.ir ? ', que es ' + f2(cu.q) + ' veces π r².' : '.');
         },
         estado: { todos: 1, ir: 40 }, pausa: 4 },
-      { corto: 'El borde', titulo: 'El borde esconde vecinos',
+      { corto: 'El borde', titulo: 'El borde de la ventana esconde vecinos',
         texto: E => {
           const cu = cuenta(E);
           const sitio = cu.borde < cu.r
@@ -11862,7 +11876,7 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
             ? 'A este r no hay todavía ninguna pareja en todo el patrón: K vale 0 con peso y sin él, y no hay nada que corregir. '
             : f2(cu.qsin) === f2(cu.qtr)
               ? 'A este r las dos K casi coinciden (' + f2(cu.qtr) + ' veces π r²): las parejas son cortas y el borde apenas las esconde. '
-              : 'Sin corregir (todos los pesos a 1), K se queda corta en todo el patrón: ' + f2(cu.qsin) + ' veces π r², frente a ' + f2(cu.qtr) + ' con el peso de traslación. ';
+              : 'Sin peso (todos a 1), K se queda corta en todo el patrón: ' + f2(cu.qsin) + ' veces π r², frente a ' + f2(cu.qtr) + ' con el peso de traslación. ';
           return sitio + compara +
             'Ese peso no adivina a los de fuera: cuenta cada pareja algo más de una vez, más cuanto más le cuesta a la ventana dejarla ver entera, y en el conjunto compensa lo que el borde esconde. Cambia el peso para comparar.';
         },
@@ -11874,14 +11888,14 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         texto: E => {
           const cu = cuenta(E);
           return 'Este punto tiene <strong>' + vecinos(cu.nDisco) + '</strong> a r = ' + rTxt(E.ir) + ' o menos; en un disco entero, el azar le daría ' + f2(cu.azarDisco) +
-                 '. Eso es lo que cuenta K, y para todo el patrón vale ' + (E.ir ? f2(cu.q) + ' veces π r² (la curva verde de al lado).' : '0 en r = 0.') + fueraVentana(E, cu);
+                 '. Eso es lo que cuenta K, y para todo el patrón vale ' + (E.ir ? f2(cu.q) + ' veces π r² (la curva verde de debajo).' : '0 en r = 0.') + fueraVentana(E, cu);
         },
         estado: E => ({ ir: 16, hueco: 0, todos: 0, foco: C[E.patron].grupo }), pausa: 4 },
       { corto: 'Más lejos', titulo: 'Más lejos, el disco sigue contando lo de antes',
         texto: E => {
           const cu = cuenta(E);
           return 'A r = ' + rTxt(E.ir) + ' el disco contiene a todos los discos más pequeños: los vecinos de cerca siguen contados. Este punto tiene ahora ' + vecinos(cu.nDisco) +
-                 ' (el azar, en un disco entero: ' + f2(cu.azarDisco) + '), y para todo el patrón K vale ' + (E.ir ? f2(cu.q) + ' veces π r², ' + frente(cu.q) + ' de lo que daría el azar.' : '0.');
+                 ' (el azar, en un disco entero: ' + f2(cu.azarDisco) + '), y para todo el patrón K vale ' + (E.ir ? f2(cu.q) + ' veces π r², ' + frente(cu.q) + ' de lo que daría el azar en promedio.' : '0.');
         },
         estado: E => ({ ir: C[E.patron].iVuelta, hueco: 0, todos: 0 }), tween: { ir: 3.5 }, pausa: 3.5 },
       { corto: 'El anillo', titulo: 'El anillo: g mira solo esa distancia',
@@ -11889,8 +11903,7 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
           const cu = cuenta(E);
           const g = cu.g, vacio = nParejas(E, true) === 0;
           const enG = vacio ? 'en todo el patrón no hay ninguna pareja a esa distancia, y ese valor es el suavizado de pcf, que recoge parejas algo más lejanas'
-            : g > 1.1 ? 'a esa distancia hay más parejas de las que daría el azar' : g < 0.9 ? 'a esa distancia hay menos parejas de las que daría el azar'
-            : 'a esa distancia hay casi las parejas que daría el azar';
+            : (g > 1 ? 'por encima' : g < 1 ? 'por debajo' : 'justo encima') + ' de 1, lo que daría el azar en promedio; ' + BANDA;
           return 'g se queda con las parejas que están a esa distancia: el anillo entre ' + anilloTxt(cu) + '. Este punto tiene ' + vecinos(cu.nAnillo) +
                  ' en él; en un anillo entero, el azar le daría ' + f2(cu.azarAnillo) + '. Para todo el patrón, g vale <strong>' + f2(g) + '</strong>: ' + enG + '.' +
                  (!E.ir ? '' : arrastra(E, cu) ? ' En el mismo r, K vale todavía ' + f2(cu.q) + ' veces π r²: arrastra lo que contó más cerca.'
@@ -11916,13 +11929,16 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
 
     const nombres = { cells: 'Células', japanesepines: 'Pinos', redwood: 'Secuoyas' };
     // la clave de colores del pie; con colores forzados, sin esto los ● perdían su color y la clave no se leía
-    const punto = col => '<span style="color:' + col + ';forced-color-adjust:none">●</span>';
+    // y un lector leía tres «●» iguales: cada uno lleva ahora su color en texto oculto
+    const punto = (col, nombre) => '<span style="color:' + col + ';forced-color-adjust:none" aria-hidden="true">●</span><span class="a2d-sr">' + nombre + '</span>';
     const mandos = [
-      { tipo: 'deslizador', id: 'ir', etiqueta: 'Radio r', min: 0, max: NODOS, paso: 1, salida: i => rTxt(i) },
+      { tipo: 'deslizador', id: 'ir', etiqueta: 'Radio r', min: 0, max: NODOS, paso: 1, salida: i => rTxt(i),
+        valorTexto: (i, E) => { const cu = cuenta(Object.assign({}, E, { ir: i }));
+          return 'r = ' + rTxt(i) + (i ? ': K vale ' + f2(cu.q) + ' veces π r²' + (ANILLO ? ', g vale ' + f2(cu.g) : '') : ''); } },
       { tipo: 'botones', id: 'patron', etiqueta: 'Patrón', opciones: PATRONES.map(nm => [nm, nombres[nm]]) }
     ].concat(ANILLO
       ? [{ tipo: 'botones', id: 'hueco', etiqueta: 'Qué se cuenta', opciones: [[0, 'Disco (K)'], [1, 'Anillo (g)']] }]
-      : [{ tipo: 'botones', id: 'peso', etiqueta: 'Peso de cada pareja', opciones: [['traslacion', 'Traslación'], ['ninguno', 'Sin corregir']] }]
+      : [{ tipo: 'botones', id: 'peso', etiqueta: 'Peso de cada pareja', opciones: [['traslacion', 'Traslación'], ['ninguno', 'Sin peso (todos a 1)']] }]
     ).concat([
       { tipo: 'botones', id: 'todos', etiqueta: 'Mirar', opciones: [[0, 'Un punto'], [1, 'Todas las parejas']] },
       { tipo: 'ciclo', id: 'foco', etiqueta: 'Punto en foco', n: E => P[E.patron].n, anterior: 'Punto anterior', siguiente: 'Punto siguiente',
@@ -11936,21 +11952,24 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
       css: '.a2d.kanillo .a2d-panel{height:9.5rem}',
       aria: 'Un patrón de puntos en un cuadrado de lado 1. Hay un punto en foco, con un ' + (ANILLO ? 'disco o un anillo' : 'disco') +
             ' de radio r alrededor; la descripción de debajo dice cuántos vecinos caen dentro y cuántos daría el azar. ' +
-            'La gráfica de al lado muestra ' + (ANILLO ? 'K dividida por π r² y g contra r, frente a 1.' : 'K contra r, frente a π r².'),
+            'La gráfica de debajo muestra ' + (ANILLO ? 'K dividida por π r² y g contra r, frente a 1.' : 'K contra r, frente a π r².'),
       ayuda: 'Clic en un punto para ponerlo en foco · arrastra el borde del círculo para cambiar r',
       ayudaTeclado: 'Con el lienzo enfocado, las flechas izquierda y derecha cambian el punto en foco, arriba y abajo cambian r de ' + PASO_R + ' en ' + PASO_R +
                     ', Re Pág y Av Pág de diez en diez, e Inicio y Fin lo llevan a 0 y a 0.25. Los mandos de debajo hacen lo mismo.',
       pie: 'Células (Crick y Ripley), pinos japoneses (Numata) y plántulas de secuoya (Strauss): los tres canónicos del capítulo, en un cuadrado de lado 1, así que r se mide en lados de la ventana. ' +
-           punto(VERDE) + (ANILLO ? '/' + punto(MORADO) : '') + ' cuenta para el punto en foco · ' + punto(GRIS) + ' no cuenta · ' +
-           punto(NARANJA) + ' punto en foco. K se calcula aquí exacta, pareja a pareja' + (ANILLO ? ', con el peso de traslación' : '') +
-           '; la curva publicada de los simuladores interpola la rejilla de <code>Kest</code> y puede diferir de esta, sobre todo en K / π r² a r pequeño, donde π r² es diminuto.' +
-           (ANILLO ? ' El anillo dibujado mide ' + 2 * H_ANILLO + ' de ancho, solo para ver qué parejas están a esa distancia; la g de la gráfica es la de <code>pcf</code>, que suaviza con su propio núcleo.' : ''),
+           punto(VERDE, 'verde') + (ANILLO ? '/' + punto(MORADO, 'morado') : '') + ' cuenta para el punto en foco · ' + punto(GRIS, 'gris') + ' no cuenta · ' +
+           punto(NARANJA, 'naranja') + ' punto en foco. K se calcula aquí exacta, pareja a pareja' + (ANILLO ? ', con el peso de traslación' : '') +
+           '. La curva publicada de los simuladores interpola la rejilla de <code>Kest</code>, y las dos difieren donde hay <strong>empates</strong>: las coordenadas de los pinos ' +
+           'van redondeadas a 0.01 y las de las secuoyas a 0.02, así que muchas parejas quedan exactamente a una distancia r de la rejilla, y aquí cuentan dentro del disco.' +
+           (ANILLO ? ' El anillo dibujado mide ' + 2 * H_ANILLO + ' de ancho, solo para ver qué parejas están a esa distancia. La g de la gráfica es la de <code>pcf</code>, ' +
+                     'que corrige el borde con el mismo peso de traslación y además suaviza con su propio núcleo: por eso no tiene por qué coincidir con la cuenta del anillo, ' +
+                     'y por eso K / π r², que es el promedio de g dentro del disco pero sin suavizar, puede pasar del máximo de la g dibujada.' : ''),
       sinLienzo: ANILLO
         ? 'Dice lo mismo que el texto del módulo 9: K cuenta los vecinos de cada punto dentro de un disco de radio r, así que lo que encontró cerca lo sigue contando lejos; g mira solo el anillo de radio r, y por eso dice a qué distancia está la estructura.'
         : 'Dice lo mismo que el texto del módulo 8: K cuenta, alrededor de cada punto, los otros que caen dentro de un disco de radio r, los promedia y los divide por la intensidad, y lo compara con π r², lo que daría el azar.',
       paneles: [ANILLO
         ? { id: 'razones', etiqueta: 'El disco y el anillo, frente al azar (todo el patrón)', aria: 'K dividida por π r² y la g publicada, contra r de 0 a 0.25, con la referencia del azar en 1' }
-        : { id: 'k', etiqueta: 'K observada y π r² (todo el patrón)', aria: 'K contra r de 0 a 0.25, con π r², la referencia del azar' }],
+        : { id: 'k', etiqueta: 'K y π r² (todo el patrón)', aria: 'K contra r de 0 a 0.25, con π r², la referencia del azar' }],
       mandos,
       animables: { ir: 1.1, hueco: 0.8 },
       // los estados que alargan los textos (r casi 0: el anillo empieza en 0 y está vacío; r máximo; otros patrones):
@@ -11981,7 +12000,8 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         if (!('paso' in out) && ('hueco' in out || 'todos' in out || 'peso' in out)) {
           const sig = Object.assign({}, E, out);
           if (ANILLO) out.paso = sig.todos ? (sig.hueco ? 5 : 4) : (sig.hueco ? 3 : (E.paso <= 2 ? E.paso : 2));
-          else out.paso = sig.todos ? 3 : sig.peso === 'ninguno' ? 4 : (E.paso <= 2 ? E.paso : 2);
+          // en el paso 4, cambiar el peso es lo que el paso pide («cambia el peso para comparar»): se queda en el 4
+          else out.paso = sig.todos ? 3 : sig.peso === 'ninguno' || E.paso === 4 ? 4 : (E.paso <= 2 ? E.paso : 2);
         }
         return out;
       },
@@ -12028,23 +12048,37 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         const cu = cuenta(E), enAnillo = ANILLO && E.hueco;
         const l = [['r', rTxt(E.ir)],
           ['vecinos de este punto', enAnillo ? ent(cu.nAnillo) + ' <span class="a2d-r">en el anillo</span>'
-            : ent(cu.nDisco) + (!ANILLO && cu.peso ? ' <span class="a2d-r">(con sus pesos, ' + f2(cu.nDiscoPeso) + ')</span>' : '')],
+            // la cuenta con pesos solo donde el peso está explicado (paso 4): en el paso 1 invitaba a pensar en vecinos ocultos
+            : ent(cu.nDisco) + (!ANILLO && cu.peso && E.paso === 4 ? ' <span class="a2d-r">(con sus pesos, ' + f2(cu.nDiscoPeso) + ')</span>' : '')],
           ['el azar, ' + (enAnillo ? 'en un anillo entero' : 'en un disco entero'), f2(enAnillo ? cu.azarAnillo : cu.azarDisco)]];
         if (ANILLO) {
           l.push(['K / π r², todo el patrón', E.ir ? f2(cu.q) : '—'], ['g, todo el patrón', f2(cu.g)]);
         } else {
-          l.push([cu.peso ? 'K observada' : 'K sin corregir', f4(cu.K)], ['π r²', f4(cu.pir2)], ['K / π r²', E.ir ? f2(cu.q) : '—']);
+          l.push([cu.peso ? 'K con peso' : 'K sin peso', f4(cu.K)], ['π r²', f4(cu.pir2)], ['K / π r²', E.ir ? f2(cu.q) : '—']);
         }
+        l.push(['¿es significativo?', 'hace falta la envolvente del módulo 11']);     // como el simulador de K y L
         if (E.todos) l.push(['parejas dibujadas', ent(nParejas(E, !!enAnillo))]);
         return l;
       },
       alt: E => {
         const cu = cuenta(E), Q = P[E.patron], enAnillo = ANILLO && E.hueco;
-        return 'Patrón ' + nombres[E.patron].toLowerCase() + ', ' + Q.n + ' puntos en un cuadrado de lado 1. Punto en foco: el ' + (E.foco + 1) + ', en (' + f2(Q.x[E.foco]) + ', ' + f2(Q.y[E.foco]) + '). ' +
+        return 'Patrón ' + nombres[E.patron].toLowerCase() + ', ' + Q.n + ' puntos en un cuadrado de lado 1. Punto en foco: el ' + (E.foco + 1) + ', en (' + f2(Q.x[E.foco] - Q.v[0]) + ', ' + f2(Q.y[E.foco] - Q.v[1]) + ') contando desde la esquina de abajo a la izquierda. ' +
                'Con r = ' + rTxt(E.ir) + ' tiene ' + vecinos(enAnillo ? cu.nAnillo : cu.nDisco) + ' en su ' + (enAnillo ? 'anillo, entre ' + anilloTxt(cu) : 'disco') +
                '; el azar daría ' + f2(enAnillo ? cu.azarAnillo : cu.azarDisco) + ' en un ' + (enAnillo ? 'anillo' : 'disco') + ' entero. ' +
-               (E.ir ? 'Para todo el patrón, K vale ' + f2(cu.q) + ' veces π r²' + (cu.peso ? '' : ' sin corregir') : 'En r = 0 no hay vecinos') +
+               (E.ir ? 'Para todo el patrón, K vale ' + f2(cu.q) + ' veces π r²' + (cu.peso ? '' : ' sin peso') : 'En r = 0 no hay vecinos') +
                (ANILLO ? ', y g vale ' + f2(cu.g) + '.' : '.') + (E.todos ? ' Se dibujan las ' + ent(nParejas(E, !!enAnillo)) + ' parejas de todos los puntos.' : '');
+      },
+      // Lo que dice la región viva si el estado cambia sin cambiar de paso (auditoría del 2026-10-02: antes solo se
+      // anunciaba «punto 32 de 62», también cuando no cambiaba, y nunca la cuenta, K ni g).
+      anuncio: (E, antes) => {
+        const cu = cuenta(E), enAnillo = ANILLO && E.hueco, Q = P[E.patron];
+        const suyo = vecinos(enAnillo ? cu.nAnillo : cu.nDisco) + ' en su ' + (enAnillo ? 'anillo' : 'disco') + '; el azar daría ' + f2(enAnillo ? cu.azarAnillo : cu.azarDisco);
+        const todo = E.ir ? 'K vale ' + f2(cu.q) + ' veces π r²' + (ANILLO ? ', g vale ' + f2(cu.g) : '') : 'en r = 0 no hay vecinos';
+        if (E.patron !== antes.patron) return 'Patrón ' + nombres[E.patron].toLowerCase() + ', ' + Q.n + ' puntos. ' + todo + '.';
+        if (E.foco !== antes.foco) return 'Punto ' + (E.foco + 1) + ' de ' + Q.n + ': ' + suyo + '.';
+        if (E.ir !== antes.ir) return 'r = ' + rTxt(E.ir) + ': ' + todo + '. Este punto: ' + suyo + '.';
+        if (E.peso !== antes.peso) return (cu.peso ? 'Con peso: ' : 'Sin peso: ') + todo + '.';
+        return null;
       }
     };
     def.interno = { P, C, cuenta, nParejas, geometria, ajusteDe, margen, escena };     // para las pruebas
@@ -12076,7 +12110,8 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         const reserva = sitio.innerHTML;
         try {
           sitio.innerHTML = '';
-          instancia = sitio.animacion = KAnillo2D.monta(sitio, { patrones: KANILLO_PATRONES, g: D4.m9 }, { escena });
+          // `reserva`: lo que la cáscara devuelve al sitio si la animación falla DESPUÉS de montarse
+          instancia = sitio.animacion = KAnillo2D.monta(sitio, { patrones: KANILLO_PATRONES, g: D4.m9 }, { escena, reserva });
         } catch (e) {
           sitio.innerHTML = reserva;
           instancia = sitio.animacion = null;

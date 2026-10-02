@@ -42,7 +42,9 @@ LAS FAMILIAS, y cada una imita algo que este código podría sufrir:
      el patrón
    · de la auditoría de las cinco animaciones (2026-10-02): en el rezago, el guion que no da tiempo
      a leer, «5 %» redondeado, el orden 2 y la diagonal de W² mal contados, el paso 3 que calla por
-     qué sube la correlación, y un anuncio que habla aunque nada haya cambiado
+     qué sube la correlación, y un anuncio que habla aunque nada haya cambiado; en K y g, «arrastra»
+     con el criterio que parpadeaba, la lectura con veredicto, sin la fila «¿es significativo?», el
+     peso que saca del paso 4 y un anuncio que habla aunque nada haya cambiado
 
 DOS EQUIVALENTES QUE NO SE PONEN: cambiar a por b en el peso de traslación (las tres ventanas son
 cuadrados de lado 1) y quitar el `max(0, …)` del radio interior en la PERTENENCIA al anillo (una
@@ -195,7 +197,7 @@ MUTACIONES = [
      "estado: E => ({ ir: C[E.patron].iVuelta, hueco: 1, todos: 0 })", "estado: { hueco: 1, todos: 0 }"),
     # --- lo que encontró la revisión en Chrome de K y g (2026-10-02) ---
     ("«arrastra» vuelve a decirse sin mirar si g vuelve a 1 (salía sobre los pinos)", KANILLO,
-     "return iv != null && E.ir >= iv - 1 && cu.q > 1.1 && Math.abs(cu.g - 1) <= 0.1;", "return cu.q > 1.1 && Math.abs(cu.g - 1) <= 0.1;"),
+     "return iv != null && E.ir >= iv && cu.q > 1.1 && cu.g < 1.1;", "return cu.q > 1.1 && cu.g < 1.1;"),
     ("el paso 5 compara con el disco aunque el anillo tenga más parejas", KANILLO,
      "(na < nd ? ', frente a las '", "(true ? ', frente a las '"),
     ("un anillo vacío vuelve a tener «más parejas que el azar»", KANILLO,
@@ -220,6 +222,18 @@ MUTACIONES = [
     ("el anuncio repite el barrio aunque solo se pase el ratón", REZAGO,
      "        if (E.k !== antes.k) return 't = ' + E.k + ': desviación típica ' + pct(r) + ' % de la de y.';\n        return null;",
      "        if (E.k !== antes.k) return 't = ' + E.k + ': desviación típica ' + pct(r) + ' % de la de y.';\n        return 'Barrio ' + (E.foco + 1) + '.';"),
+    ("«arrastra» vuelve a pedir |g − 1| ≤ 0.1 (parpadeaba y faltaba en r = 0.20)", KANILLO,
+     "return iv != null && E.ir >= iv && cu.q > 1.1 && cu.g < 1.1;", "return iv != null && E.ir >= iv && cu.q > 1.1 && Math.abs(cu.g - 1) <= 0.1;"),
+    ("la lectura vuelve a decir «más parejas de las que daría el azar»", KANILLO,
+     ": (g > 1 ? 'por encima' : g < 1 ? 'por debajo' : 'justo encima') + ' de 1, lo que daría el azar en promedio; ' + BANDA;",
+     ": g > 1.1 ? 'a esa distancia hay más parejas de las que daría el azar' : g < 0.9 ? 'a esa distancia hay menos parejas de las que daría el azar' : 'a esa distancia hay casi las parejas que daría el azar';"),
+    ("la lectura pierde la fila «¿es significativo?»", KANILLO,
+     "l.push(['¿es significativo?', 'hace falta la envolvente del módulo 11']);", ""),
+    ("en el paso 4, cambiar el peso vuelve a llevar al paso 2", KANILLO,
+     "sig.peso === 'ninguno' || E.paso === 4 ? 4 :", "sig.peso === 'ninguno' ? 4 :"),
+    ("el anuncio de K y g repite aunque solo se pase el ratón", KANILLO,
+     "        if (E.peso !== antes.peso) return (cu.peso ? 'Con peso: ' : 'Sin peso: ') + todo + '.';\n        return null;",
+     "        if (E.peso !== antes.peso) return (cu.peso ? 'Con peso: ' : 'Sin peso: ') + todo + '.';\n        return 'Punto ' + (E.foco + 1) + '.';"),
     ("el guion vuelve a no dar tiempo a leer el paso", NUCLEO,
      "Math.max(p.pausa != null ? p.pausa : PAUSA_PASO, lectura(p))", "(p.pausa != null ? p.pausa : PAUSA_PASO)"),
 ]

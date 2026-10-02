@@ -39,15 +39,17 @@ eso no cabe en T3.3.
 EL TOPE DE PESO ES 810 KB, y no el de la casa (700), con la cuenta delante. Entró la
 animación de K y g de los módulos 8 y 9 (2026-10-02):
 
-  · el documento pesa **787 KB**: 694 de antes; 7 de la plantilla que el capítulo no
+  · el documento pesa **795 KB**: 694 de antes; 7 de la plantilla que el capítulo no
     había recogido (el CSS y el JS del simulacro del Quiz 2, que llegan al reensamblar,
-    como en los capítulos 3 y 6); **79 de los dos motores en línea** (`anim2d.js`, 38 KB,
-    y `kanillo2d.js`, 41, con la densidad de comentarios del repo; no se minifican); 3 de
-    las coordenadas crudas de los tres canónicos, y 4 de prosa y montaje;
+    como en los capítulos 3 y 6); **86 de los dos motores en línea** (`anim2d.js`, 42 KB,
+    y `kanillo2d.js`, 44, con la densidad de comentarios del repo; no se minifican); 3 de
+    las coordenadas crudas de los tres canónicos, y 5 de prosa y montaje. La auditoría de
+    las cinco animaciones (2026-10-02) sumó 8 de esos KB: la región viva, los anuncios y
+    el texto sin veredictos;
   · la cota que ata esta comprobación a su arnés es **por encima del tamaño y por debajo
     de ese tamaño + 312 KB**, porque `prueba_texto.py` la tumba inyectando 320 000 bytes:
-    787 < 810 < 1099;
-  · 810 deja **23 KB de margen**, el mismo orden que el capítulo 6: sitio para una
+    795 < 810 < 1107;
+  · 810 deja **15 KB de margen**, el mismo orden que el capítulo 6: sitio para una
     corrección y poco para un ensamblado desbocado. El motor es lo que pesa, y un motor
     más grande es una decisión que se verá aquí, no un descuido.
 
@@ -288,6 +290,13 @@ AFIRMACIONES = [
      "no tienen por qué coincidir"),
     ("dice que sin el peso el borde solo puede esconder vecinos",
      "solo puede esconder vecinos"),
+    # La auditoría de las cinco animaciones (2026-10-02): el desacuerdo entre el anillo y g es sobre todo el BORDE (las
+    # 28 parejas del anillo en r = 0.145 dan 0.81 sin peso y 0.99 con el de traslación; pcf, 0.997), no solo el núcleo; y
+    # la animación pone etiquetas a desviaciones que solo la envolvente del módulo 11 puede juzgar.
+    ("dice que pcf corrige el borde con el mismo peso de traslación",
+     "corrige el borde con el mismo peso de traslación"),
+    ("dice que la animación no juzga si una desviación es ruido: eso es la envolvente",
+     "lo dice la envolvente del módulo 11, no la animación"),
 ]
 
 # Si la codificación se rompe, las tildes no desaparecen: se convierten en

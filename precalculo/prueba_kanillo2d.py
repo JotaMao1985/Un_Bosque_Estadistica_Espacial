@@ -345,13 +345,54 @@ def main() -> int:
               if (ir % 4 && foco !== I.C[patron].grupo) continue;          // todos los r con el foco de partida; uno de cada cuatro con los demás
               const E = est({ paso: 1, patron, ir, foco, hueco, todos, peso });
               const textos = def.pasos.map(p => (typeof p.titulo === 'function' ? p.titulo(E) : p.titulo) + ' ' + p.texto(E))
-                .concat(def.lectura(E).map(l => l[0] + ' ' + l[1])).concat([def.alt(E)]);
+                .concat(def.lectura(E).filter(l => l[0] !== '¿es significativo?').map(l => l[0] + ' ' + l[1])).concat([def.alt(E)]);
               textos.forEach(s => { n++; if (malo(s)) mal++; if (/significativ/i.test(s)) signif++; });
             }
           }
         }
         t(escena + ': ningún texto, lectura ni descripción lleva NaN, undefined, Infinity ni null (' + n + ' cadenas, ' + mal + ' malas)', mal === 0);
         t(escena + ': ninguno dice «significativo» (sin la banda del módulo 11 no hay veredicto)', signif === 0);
+        // LA AUDITORÍA DE LAS CINCO ANIMACIONES (2026-10-02)
+        {
+          // ningún texto, en ningún estado, dice «más (o menos) parejas de las que daría el azar», ni «casi», ni «al lado»
+          let veredictos = 0, casi = 0, alLado = 0, sinBanda = 0;
+          for (const patron of M.PATRONES) for (let ir = 0; ir <= M.NODOS; ir += 1) for (const hueco of (escena === 'anillo' ? [0, 1] : [0])) {
+            const Ei = est({ patron, ir, hueco, foco: I.C[patron].grupo });
+            const tx = def.pasos.map(pp => (typeof pp.titulo === 'function' ? pp.titulo(Ei) : pp.titulo) + ' ' + pp.texto(Ei)).join(' ');
+            if (/parejas de las que daría el azar/.test(tx)) veredictos++;
+            if (/casi encima|casi las parejas/.test(tx)) casi++;
+            if (/al lado/.test(tx)) alLado++;
+            if (!def.lectura(Ei).some(l => l[0] === '¿es significativo?' && /envolvente del módulo 11/.test(l[1]))) sinBanda++;
+          }
+          t(escena + ': ningún paso dice «más/menos parejas de las que daría el azar» (' + veredictos + ' estados), ni «casi» (' + casi + '), ni «al lado» (' + alLado + ')',
+            veredictos === 0 && casi === 0 && alLado === 0 && !/al lado/.test(def.aria));
+          t(escena + ': la lectura lleva siempre la fila «¿es significativo?», como el simulador de K y L (' + sinBanda + ' estados sin ella)', sinBanda === 0);
+          // el pie nombra los empates (la causa medida de la diferencia con la curva publicada), no «r pequeño»
+          t(escena + ': el pie atribuye la diferencia con Kest a los empates', /<strong>empates<\/strong>/.test(def.pie) && !/r pequeño/.test(def.pie));
+          // la descripción no da coordenadas negativas en «un cuadrado de lado 1» (la ventana de las secuoyas es [0, 1] × [−1, 0])
+          let negativas = 0;
+          for (let foco = 0; foco < I.P.redwood.n; foco++) if (/\(-|, -/.test(def.alt(est({ patron: 'redwood', foco })))) negativas++;
+          t(escena + ': la descripción no escribe coordenadas negativas (' + negativas + ' puntos)', negativas === 0);
+          // la región viva: lo que cambió, con su cuenta; nada si solo se pasa el ratón
+          const E0 = est({ patron: 'redwood', ir: 40, foco: I.C.redwood.grupo, hueco: escena === 'anillo' ? 1 : 0 });
+          t(escena + ': el anuncio calla si solo se pasa el ratón', def.anuncio(Object.assign({}, E0, { hover: 3 }), E0) === null);
+          t(escena + ': dice el punto nuevo con su cuenta y la del azar', /^Punto \d+ de 62: \d+ vecinos? en su (disco|anillo); el azar daría \d+\.\d\d\.$/.test(def.anuncio(est({ patron: 'redwood', ir: 40, foco: 3, hueco: E0.hueco }), E0)));
+          const an = def.anuncio(est({ patron: 'redwood', ir: 58, foco: E0.foco, hueco: E0.hueco }), E0);
+          t(escena + ': y el r nuevo con K' + (escena === 'anillo' ? ' y g' : '') + ', las del cálculo', an.indexOf('r = 0.1450') === 0 && an.indexOf(I.cuenta(est({ patron: 'redwood', ir: 58, foco: E0.foco })).q.toFixed(2)) > 0 &&
+            (escena !== 'anillo' || an.indexOf('g vale ' + ENTRADA.g.redwood.g_obs[58].toFixed(2)) > 0));
+          const vt = def.mandos.find(mm => mm.id === 'ir').valorTexto;
+          t(escena + ': el deslizador dice a un lector r y K, no solo r', /^r = 0\.1450: K vale \d+\.\d\d veces π r²/.test(vt(58, E0)));
+        }
+        if (escena === 'disco') {
+          // en el paso 4, cambiar el peso es lo que el paso pide: no se va al paso 2
+          const m4 = A.maquina(KA.creaDef(DATOS, { escena: 'disco' }), {});
+          m4.ir(4, { corte: true }); m4.poner({ peso: 'traslacion' }); const p1 = m4.E.paso; m4.poner({ peso: 'ninguno' });
+          t('disco: en el paso 4, pulsar «Traslación» y luego «Sin peso» lo deja en el paso 4', p1 === 4 && m4.E.paso === 4);
+          // la cuenta con pesos solo donde el peso está explicado
+          const l1 = def.lectura(est({ paso: 1, patron: 'redwood', ir: 24, foco: I.C.redwood.grupo })).map(l => l[1]).join(' ');
+          const l4 = def.lectura(est({ paso: 4, patron: 'redwood', ir: 60, foco: I.C.redwood.borde, peso: 'traslacion' })).map(l => l[1]).join(' ');
+          t('disco: el paso 1 no da la cuenta «con sus pesos» antes de explicarlos, y el 4 sí', !/con sus pesos/.test(l1) && /con sus pesos/.test(l4));
+        }
         // las cifras que se escriben son las del cálculo
         const E = est({ patron: 'redwood', ir: 58, foco: I.C.redwood.grupo, hueco: escena === 'anillo' ? 1 : 0 });
         const cu = I.cuenta(E), lec = def.lectura(E).map(l => l[0] + ' = ' + l[1].replace(/<[^>]+>/g, '')).join(' | ');
@@ -371,24 +412,33 @@ def main() -> int:
           for (const patron of M.PATRONES) for (let ir = 1; ir <= M.NODOS; ir++) {
             const Ei = est({ patron, ir, hueco: 1 }), c = I.cuenta(Ei), dice = /arrastra/.test(def.pasos[2].texto(Ei));
             const rv = ENTRADA.g[patron].r_vuelve_a_1, iv = rv == null ? null : Math.round(rv / M.PASO_R);
-            const cierto = iv != null && ir >= iv - 1 && c.q > 1.1 && Math.abs(c.g - 1) <= 0.1;
+            const cierto = iv != null && ir >= iv && c.q > 1.1 && c.g < 1.1;
             if (dice !== cierto) mentiras++; if (dice) ciertas++; if (dice && patron === 'japanesepines') enPinos++;
           }
-          t('anillo: el paso 3 dice que K «arrastra» solo pasado el r en que g vuelve a 1 y con K más de un 10 % por encima (' + ciertas + ' estados; ' + mentiras + ' mal)', mentiras === 0 && ciertas > 0);
+          t('anillo: el paso 3 dice que K «arrastra» solo desde el r en que g vuelve a 1, con K más de un 10 % por encima y g sin volver a pasar de 1.1 (' + ciertas + ' estados; ' + mentiras + ' mal)', mentiras === 0 && ciertas > 0);
+          // y sin parpadeo en las secuoyas (auditoría del 2026-10-02: aparecía en 0.1425–0.155, se iba, volvía en 0.185–0.19 y
+          // faltaba en r = 0.20, g = 0.59, K = 1.34 π r², el caso más claro)
+          {
+            const iv = Math.round(ENTRADA.g.redwood.r_vuelve_a_1 / M.PASO_R);
+            const dice = ir => /arrastra/.test(def.pasos[2].texto(est({ patron: 'redwood', ir, hueco: 1 })));
+            let huecos = 0; for (let ir = iv; ir <= M.NODOS; ir++) if (!dice(ir)) huecos++;
+            t('anillo: en las secuoyas «arrastra» se dice en todo el tramo desde que g vuelve a 1 hasta 0.25 (' + huecos + ' huecos), también en r = 0.20',
+              huecos === 0 && dice(80) && !dice(iv - 1));
+          }
           t('anillo: y nunca en los pinos, cuya g no vuelve a 1 porque no tiene de dónde', enPinos === 0);
           // el paso 5 compara con el disco solo cuando el anillo tiene menos parejas (el anillo se sale del disco)
           let malas5 = 0, vacios = 0, masParejas = 0;
           for (const patron of M.PATRONES) for (let ir = 0; ir <= M.NODOS; ir++) {
             const Ei = est({ patron, ir, hueco: 1, todos: 1 }), na = I.nParejas(Ei, true), nd = I.nParejas(Ei, false);
             if (/frente a las/.test(def.pasos[4].texto(Ei)) !== (na < nd)) malas5++;
-            if (na === 0) { vacios++; if (/más parejas de las que daría el azar/.test(def.pasos[2].texto(Ei))) masParejas++; }
+            if (na === 0) { vacios++; if (/por encima de 1/.test(def.pasos[2].texto(Ei))) masParejas++; }
           }
           t('anillo: el paso 5 dice «frente a las M del disco» solo cuando el anillo tiene menos (' + malas5 + ' mal)', malas5 === 0);
-          t('anillo: con el anillo vacío en todo el patrón (' + vacios + ' estados), el paso 3 no habla de «más parejas que el azar»', vacios > 0 && masParejas === 0);
+          t('anillo: con el anillo vacío en todo el patrón (' + vacios + ' estados), el paso 3 no dice que g quede por encima de 1', vacios > 0 && masParejas === 0);
         } else {
           t('disco: la lectura escribe la K del peso elegido, la de R (' + kR.toFixed(4) + ' con peso, ' + ENTRADA.ref.patrones.redwood.k_sin[58].toFixed(4) + ' sin él)',
-            lec.indexOf('K observada = ' + kR.toFixed(4)) >= 0 &&
-            def.lectura(est({ patron: 'redwood', ir: 58, peso: 'ninguno' })).some(l => l[0] === 'K sin corregir' && l[1] === ENTRADA.ref.patrones.redwood.k_sin[58].toFixed(4)));
+            lec.indexOf('K con peso = ' + kR.toFixed(4)) >= 0 &&
+            def.lectura(est({ patron: 'redwood', ir: 58, peso: 'ninguno' })).some(l => l[0] === 'K sin peso' && l[1] === ENTRADA.ref.patrones.redwood.k_sin[58].toFixed(4)));
           const E4 = est({ patron: 'redwood', ir: 60, foco: I.C.redwood.borde, peso: 'ninguno' }), tx = def.pasos[3].texto(E4), c4 = I.cuenta(E4);
           t('disco: el paso 4 da K sin corregir y corregida con las cifras del cálculo (' + c4.qsin.toFixed(2) + ' y ' + c4.qtr.toFixed(2) + ')', tx.indexOf(c4.qsin.toFixed(2)) >= 0 && tx.indexOf(c4.qtr.toFixed(2)) >= 0);
           t('disco: y dice que el disco se sale de la ventana solo cuando se sale', /cae fuera de la ventana/.test(tx) &&
