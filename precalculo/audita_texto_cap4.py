@@ -36,6 +36,23 @@ tiene sujeto y debería estar corriendo sobre ellas. Queda anotado en el
 plan; arreglarlo es tocar el capítulo 3, que está cerrado y verificado, y
 eso no cabe en T3.3.
 
+EL TOPE DE PESO ES 810 KB, y no el de la casa (700), con la cuenta delante. Entró la
+animación de K y g de los módulos 8 y 9 (2026-10-02):
+
+  · el documento pesa **795 KB**: 694 de antes; 7 de la plantilla que el capítulo no
+    había recogido (el CSS y el JS del simulacro del Quiz 2, que llegan al reensamblar,
+    como en los capítulos 3 y 6); **86 de los dos motores en línea** (`anim2d.js`, 42 KB,
+    y `kanillo2d.js`, 44, con la densidad de comentarios del repo; no se minifican); 3 de
+    las coordenadas crudas de los tres canónicos, y 5 de prosa y montaje. La auditoría de
+    las cinco animaciones (2026-10-02) sumó 8 de esos KB: la región viva, los anuncios y
+    el texto sin veredictos;
+  · la cota que ata esta comprobación a su arnés es **por encima del tamaño y por debajo
+    de ese tamaño + 312 KB**, porque `prueba_texto.py` la tumba inyectando 320 000 bytes:
+    795 < 810 < 1107;
+  · 810 deja **15 KB de margen**, el mismo orden que el capítulo 6: sitio para una
+    corrección y poco para un ensamblado desbocado. El motor es lo que pesa, y un motor
+    más grande es una decisión que se verá aquí, no un descuido.
+
 Uso:  python3 precalculo/audita_texto_cap4.py
 Devuelve 1 si algo falla.
 """
@@ -44,6 +61,9 @@ from __future__ import annotations
 import sys
 
 from audita_texto_base import Auditor
+
+# El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
+TOPE_CAP4_KB = 810.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
@@ -133,6 +153,9 @@ DEBE_CUBRIR = [
     ("la correlación de pares g(r)", "correlación de pares"),
     ("que K es acumulativa y arrastra", "acumulativa"),
     ("que g mira el anillo y no el disco", "anillo"),
+    # Lo que entró con la animación de K y g (2026-10-02)
+    ("el disco de un punto, en el mapa", "el disco, punto a punto"),
+    ("por qué K arrastra, en el mapa", "por qué k arrastra se ve en el mapa"),
     # Lo que entró el 2026-09-24, a petición de Javier
     ("los ocho resúmenes del capítulo lado a lado", "los ocho resúmenes"),
     # «qué cuenta» a secas ya lo da el título «Qué cuenta K» del módulo 8.
@@ -255,6 +278,25 @@ AFIRMACIONES = [
      "el borde lo ponen los puntos más extremos"),
     ("dice que la corrección canónica de Donnelly no existe para esta ventana",
      "no está disponible aquí"),
+    # Las de la animación de K y g (2026-10-02). La primera es el mecanismo de la
+    # acumulación; la segunda, lo que la animación deja ver con cifras: donde g ya
+    # volvió a 1, K sigue por encima. La tercera y la cuarta impiden leer la cuenta del
+    # anillo dibujado como si fuera g, y el peso como si adivinara vecinos.
+    ("dice por qué K arrastra: un disco grande contiene a los pequeños",
+     "un disco grande contiene a todos los pequeños"),
+    ("dice que donde g ya volvió a 1, K vale todavía más que πr²",
+     "vale allí todavía"),
+    ("avisa de que la cuenta del anillo dibujado y g no tienen por qué coincidir",
+     "no tienen por qué coincidir"),
+    ("dice que sin el peso el borde solo puede esconder vecinos",
+     "solo puede esconder vecinos"),
+    # La auditoría de las cinco animaciones (2026-10-02): el desacuerdo entre el anillo y g es sobre todo el BORDE (las
+    # 28 parejas del anillo en r = 0.145 dan 0.81 sin peso y 0.99 con el de traslación; pcf, 0.997), no solo el núcleo; y
+    # la animación pone etiquetas a desviaciones que solo la envolvente del módulo 11 puede juzgar.
+    ("dice que pcf corrige el borde con el mismo peso de traslación",
+     "corrige el borde con el mismo peso de traslación"),
+    ("dice que la animación no juzga si una desviación es ruido: eso es la envolvente",
+     "lo dice la envolvente del módulo 11, no la animación"),
 ]
 
 # Si la codificación se rompe, las tildes no desaparecen: se convierten en
@@ -286,7 +328,10 @@ def main() -> int:
     a = Auditor(
         capitulo="capitulo-4-patrones-puntuales.html",
         var_entorno="CAP4_HTML",
-        jsons=["cap4_datos.json", "cap4_soluciones.json"],
+        # El RESUMEN de la animación (5 cifras), y no su JSON grande: las coordenadas y las
+        # cuentas traen cientos de decimales que dejarían colar por azar enteros cortos
+        # inyectados (la lección del capítulo 6).
+        jsons=["cap4_datos.json", "cap4_soluciones.json", "cap4_kanillo2d_resumen.json"],
         estructurales=ESTRUCTURALES,
         # LA DESVIACIÓN DECLARADA (T3.1): 150 KB, no 120. Los puntos del
         # patrón son el dato, no geometría de fondo simplificable.
@@ -308,7 +353,7 @@ def main() -> int:
     a.codificacion()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)
-    a.peso()
+    a.peso(TOPE_CAP4_KB)
     return a.cierre()
 
 
