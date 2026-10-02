@@ -864,9 +864,15 @@ MOD4 = cabecera(
       <p>Sin corregir, <strong>la masa se escapa</strong>, y cada vez más al abrir el núcleo:
         de {n(m4["tabla"][0]["fuga_sin_corregir_pct"], 2)} % a
         {firma(n(m4["tabla"][-1]["fuga_sin_corregir_pct"], 2), " %")}. Con la corrección que
-        <code>density.ppp</code> aplica sin pedírsela, <strong>la masa se pasa</strong>, y
-        también crece con σ. Y con <code>diggle = TRUE</code> la integral devuelve n clavado a
-        cualquier ancho.</p>
+        <code>density.ppp</code> aplica sin pedírsela, <strong>en estas sedes la masa se
+        pasa</strong>, y también crece con σ. Y con <code>diggle = TRUE</code> la integral
+        devuelve n clavado a cualquier ancho.</p>
+
+      <p>Conviene no leer de ahí una ley. Que la masa se pase no es una propiedad del método
+        sino de estas sedes: esa corrección divide cada sitio $u$ por $e(u)$, y el total sale por
+        encima o por debajo de n según a qué distancia del borde caigan los puntos. Una sede
+        pegada al borde aporta a la integral menos de 1; una a uno y medio o dos anchos de él, más de 1.
+        Con estas sedes sobra; con otras posiciones podría quedarse corta.</p>
 
       <div class="nota-lateral">
         <h4>Por qué solo una de las tres conserva el conteo</h4>

@@ -243,6 +243,11 @@ AFIRMACIONES = [
      "donde está el dato"),
     ("declara que las tres correcciones dan mapas igual de plausibles",
      "los tres salen plausibles"),
+    # 2026-10-01: «la masa se pasa» se leía como una ley del método. Una sede sola pegada al borde se queda por
+    # DEBAJO de 1 con la corrección por defecto (0.90, medido con R) y las diecinueve del módulo 1 suman por
+    # ENCIMA de n: depende de dónde caen los puntos. Si esta frase desaparece, vuelve la ley.
+    ("declara que la masa que se pasa es de las sedes y no del método",
+     "que la masa se pase no es una propiedad del método"),
     ("dice que la misma palabra nombra una operación gratis y una carísima",
      "una operación gratis y una carísima"),
     ("declara que llamar «demanda» a uno de los tres mapas es una decisión",
