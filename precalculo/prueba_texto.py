@@ -1112,6 +1112,7 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
     """
     D = json.loads((SALIDAS / "cap6_datos.json").read_text(encoding="utf-8"))
     S = json.loads((SALIDAS / "cap6_soluciones.json").read_text(encoding="utf-8"))
+    RS = json.loads((SALIDAS / "cap6_rezago2d_resumen.json").read_text(encoding="utf-8"))
     m1, m2, m3 = D["m1"], D["m2"], D["m3"]
     m4, m5, m7 = D["m4"], D["m5"], D["m7"]
     m9, m10, m11 = D["m9"], D["m10"], D["m11"]
@@ -1173,6 +1174,35 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
         ("las casillas ocupadas de Columbus, cambiadas",
          f"<strong>{ent(m11['columbus']['no_ceros'])}</strong>",
          "<strong>8 931</strong>"),
+        # La animación del rezago (módulo 10): lo que dice la prosa de ella sale de `cap6_rezago2d.json`.
+        ("el límite del rezago con la reina, cambiado",
+         f"<strong>{f(RS['limite_reina'], 4)}</strong>",
+         f"<strong>{perturba(RS['limite_reina'], 4)}</strong>"),
+        ("el límite del rezago con la torre, cambiado",
+         f"<strong>{f(RS['limite_torre'], 4)}</strong>",
+         f"<strong>{perturba(RS['limite_torre'], 4)}</strong>"),
+        ("el I de Moran de Columbus, cambiado",
+         f"<strong>{f(RS['moran_I'], 4)}</strong>",
+         f"<strong>{perturba(RS['moran_I'], 4)}</strong>"),
+        ("la correlación entre CRIME y su rezago, cambiada",
+         f"{f(RS['moran_cor'], 4)}. No son lo",
+         f"{perturba(RS['moran_cor'], 4)}. No son lo"),
+        ("el segundo valor propio de W, cambiado",
+         f"{f(RS['lambda2_reina'], 4)} (el primero vale 1",
+         f"{perturba(RS['lambda2_reina'], 4)} (el primero vale 1"),
+        # La auditoría del 2026-10-02: el I de Moran del capítulo 7 (GAL) y lo que da CRIME barajado.
+        ("el I de Moran del capítulo 7 (GAL), cambiado",
+         f"allí da {f(RS['moran_I_gal'], 4)}",
+         f"allí da {perturba(RS['moran_I_gal'], 4)}"),
+        ("la contracción mediana con CRIME barajado, cambiada",
+         f"sería {f(RS['barajado_razon_sd_mediana'], 4)} de",
+         f"sería {perturba(RS['barajado_razon_sd_mediana'], 4)} de"),
+        ("la contracción máxima con CRIME barajado, cambiada",
+         f"{f(RS['barajado_razon_sd_max'], 4)}: el de CRIME",
+         f"{perturba(RS['barajado_razon_sd_max'], 4)}: el de CRIME"),
+        ("el cociente de desviaciones de Wy y y, cambiado",
+         f"{f(RS['moran_razon_sd'], 4)} veces la de",
+         f"{perturba(RS['moran_razon_sd'], 4)} veces la de"),
 
         # --- 3. En una tabla ------------------------------------------
         ("el grado de la esfera de influencia, cambiado en la tabla",
@@ -1195,6 +1225,50 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
          "la elige quien analiza", "la trae el dato", True),
         ("se cae la afirmación de que promediar contrae",
          "promediar contrae", "promediar no cambia nada", True),
+        # La animación del rezago (2026-10-02): lo que la prosa afirma de ella.
+        ("desaparece que Wᵏy no va a la media de y",
+         "ese valor no es la media de", "ese valor es la media simple de", True),
+        ("desaparece que ese valor es la media ponderada por el grado",
+         "Es la <strong>media ponderada por el grado</strong>", "Es la <strong>media de los barrios</strong>", True),
+        ("desaparece que con la torre el valor es otro",
+         "eligió manda también aquí", "eligió no importa aquí", True),
+        ("desaparece que la rapidez la manda el segundo valor propio",
+         "segundo valor propio de W,", "tamaño del mapa,", True),
+        ("la pendiente vuelve a ser «el I de Moran del capítulo 7» (el capítulo 7 da 0.5110)",
+         "índice de Moran con esta W; la correlación", "índice de Moran del capítulo 7; la correlación", True),
+        ("desaparece que el capítulo 7 usa otra W",
+         "El capítulo 7 calcula este índice con otra W", "El capítulo 7 calcula este índice igual", True),
+        ("la rapidez vuelve a mandarla W sola",
+         "Cuánto tarda en llegar no lo decide W sola.", "La rapidez la manda W.", True),
+        ("desaparece que cuánto se estrecha sí dice algo",
+         "<strong>cuánto se estrecha, sí</strong>", "<strong>cuánto, tampoco</strong>", True),
+        ("desaparece que esa pendiente no es la correlación",
+         "No son lo", "Son lo", True),
+        # Moran no es la correlación entre y y Wy (2026-10-02). La primera
+        # restituye la frase que estuvo publicada; las demás quitan cada
+        # una de las otras tres frases que la corrección escribió.
+        ("Moran vuelve a ser «la correlación entre y y Wy»",
+         "<strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>",
+         "<strong>correlación</strong> entre <em>y</em> y <em>Wy</em>", True),
+        ("desaparece que la pendiente lleva el cociente de desviaciones",
+         "multiplicada por el cociente", "dividida entre la varianza de la media", True),
+        ("desaparece que apilar capas no es la contigüidad de orden 2",
+         "no es la contigüidad de orden 2", "sube de orden la contigüidad", True),
+        ("desaparece que W² tiene diagonal positiva",
+         "tiene diagonal positiva", "tiene diagonal nula", True),
+        ("W² vuelve a llegar a todos los vecinos, sin condición",
+         "que sea a la vez vecino de otro de sus vecinos", "sin excepción alguna", True),
+        # La media del rezago (2026-10-02). Las dos primeras restituyen lo que estuvo publicado; la tercera quita qué
+        # media conserva W; la cuarta devuelve al bloque de R el comentario que llamaba al I de Moran cor(y, Wy).
+        ("la media de Wy vuelve a «tener que» ser la de y",
+         "no tienen por qué coincidir", "tienen que coincidir", True),
+        ("el ejercicio 5 vuelve a decir que promediar no mueve el centro",
+         "Lo que no se mueve nunca, con una", "Las medias coinciden porque promediar no mueve el centro, con una", True),
+        ("desaparece qué media conserva W",
+         "tantas veces como vecinos tiene. Lo que cambia", "una sola vez. Lo que cambia", True),
+        ("el comentario del bloque de R vuelve a llamar al I de Moran «toda la autocorrelación»",
+         "# Se parecen. Ojo: el I de Moran es otra cifra, la pendiente de wy sobre y",
+         "# Se parecen, y esa es toda la autocorrelación espacial del capítulo 7", True),
         ("se cae un tema del temario (zero.policy)",
          "zero.policy", "cero-politica", True),
 

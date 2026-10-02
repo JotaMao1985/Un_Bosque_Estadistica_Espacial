@@ -9,25 +9,37 @@ Copiado del molde de `audita_texto_cap5.py`. Toda la maquinaria vive en
 
 Qué comprueba, por encima:
 
-  · que **toda cifra de la prosa** esté en `cap6_datos.json` o en
-    `cap6_soluciones.json`, incluidas las de dentro de KaTeX;
+  · que **toda cifra de la prosa** esté en `cap6_datos.json`, en
+    `cap6_soluciones.json` o en `cap6_rezago2d_resumen.json` (el límite del
+    rezago, el segundo valor propio, el I de Moran de Columbus con la reina y
+    con la GAL del capítulo 7, lo que da CRIME barajado: 15 números;
+    la serie entera NO entra, porque con sus miles de decimales un entero
+    corto inyectado cae dentro del índice por azar), incluidas las de
+    dentro de KaTeX;
   · que cada celda de las cinco tablas de solución diga lo que su JSON dice;
   · que el capítulo cubra los doce módulos que el §6 del plan le asigna;
   · que cite sus fuentes y sostenga las afirmaciones que tiene que hacer;
   · accesibilidad del marcado, los `.geomapa` y su presupuesto;
   · que la codificación no se haya roto y que los enlaces resuelvan.
 
-EL TOPE DE PESO ES 640 KB, y la aritmética va escrita porque no es una
-marca de agua levantada bajo presión:
+EL TOPE DE PESO ES 720 KB, y la aritmética va escrita porque no es una
+marca de agua levantada bajo presión. Fue 640 hasta que entró la animación
+2D del módulo 10 (2026-10-02), y se sube con la cuenta delante:
 
-  · el documento pesa **578 KB**, así que con el tope de la casa —700—
-    este auditor pasaría, pero con 62 KB de margen ciego por debajo;
+  · el documento pesa **690 KB**: 615 de antes, **69 de los dos motores en
+    línea** (`anim2d.js`, 35 KB, y `rezago2d.js`, 34 KB, con la densidad de
+    comentarios del repo; no se minifican) y 5 de código nuevo y de
+    prosa. Con el tope viejo —640— el capítulo no cabía;
   · la cota que ata esa comprobación a su arnés es **por encima del
     tamaño del documento y por debajo de ese tamaño + 312 KB**, porque
-    `prueba_texto.py` la tumba inyectando 320 000 bytes de comentario;
-  · 640 deja **62 KB de margen** sobre lo publicado —sitio para una
-    corrección y muy poco para un ensamblado desbocado— y queda 250 KB
-    por debajo del techo que el arnés necesita perforar.
+    `prueba_texto.py` la tumba inyectando 320 000 bytes de comentario:
+    690 < 720 < 1002;
+  · 720 deja **30 KB de margen** sobre lo publicado —sitio para una
+    corrección y muy poco para un ensamblado desbocado—. Con 700, el tope
+    de la casa, quedaban 10 después de que la revisión en Chrome engordara
+    los motores (gestos, leyendas apiladas, colores forzados): el motor es
+    lo que pesa, y un motor más grande es una decisión que se verá aquí, no
+    un descuido.
 
 EL PRESUPUESTO DE GEOMETRÍA ES 400 KB, y también hay que decir por qué.
 Los dos mapas de este capítulo entran como JSON literal, así que el
@@ -42,12 +54,13 @@ Devuelve 1 si algo falla.
 """
 from __future__ import annotations
 
+import html
 import sys
 
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP6_KB = 640.0
+TOPE_CAP6_KB = 720.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
@@ -124,13 +137,14 @@ DEBE_CUBRIR = [
     ("el rezago espacial Wy", "rezago"),
     ("que el rezago es la media de los vecinos", "la media de sus vecinos"),
     ("la contracción de la desviación", "contrae"),
+    ("que aplicar W una y otra vez sigue aplanando el mapa", "una y otra vez"),
     ("que el índice de Moran hereda la dependencia de W", "moran"),
     # Módulo 11 — W como grafo
     ("la matriz de adyacencia", "matriz de adyacencia"),
     ("que W es dispersa", "dispersa"),
     ("que estandarizar por filas es normalizar por el grado", "normalizar por el grado"),
     ("el paso de mensajes y las GNN", "paso de mensajes"),
-    ("que apilar capas es subir de orden", "apilar capas"),
+    ("que apilar capas amplía el alcance sin ser la contigüidad de orden 2", "apilar capas"),
     # Módulo 12 — cierre
     ("los cinco ejercicios sobre otro mapa", "carolina del norte"),
     ("el enlace hacia la autocorrelación del capítulo 7", "capítulo 7"),
@@ -186,6 +200,76 @@ AFIRMACIONES = [
      "No se parece"),
     ("declara que la elección de W es la elección de la arquitectura",
      "la elección de la arquitectura"),
+    # Las cuatro que entraron con la corrección de Moran (2026-10-02). El
+    # capítulo decía que I «es la correlación» entre y y Wy, y no lo es:
+    # con W por filas I = cor · sd(Wy)/sd(y), la pendiente de Wy sobre y
+    # (Columbus: 0.5002 = 0.6838 × 0.7315). Se parece y no es igual, y el
+    # capítulo 7 —cuyo plan ya dice «la pendiente de MCO»— lo cobra.
+    ("dice que el índice de Moran es la pendiente de Wy sobre y",
+     "es la pendiente de wy sobre y"),
+    ("dice que esa pendiente es la correlación por el cociente de desviaciones",
+     "multiplicada por el cociente entre la desviación típica de wy"),
+    # Y la de las GNN: dos capas no son la contigüidad de orden 2. W² tiene
+    # diagonal positiva (ir al vecino y volver) y llega a un vecino j de i solo
+    # si j lo es también de otro vecino de i; `nblag` quita ambos. Lo segundo
+    # NO vale siempre: en Columbus, 1 de las 118 parejas de la reina (21–34) y
+    # 7 de las 100 de la torre no tienen vecino común (antes se contaban
+    # enlaces: 2 de 236 y 14 de 200), y la primera redacción
+    # («incluye a sus propios vecinos») lo daba por seguro.
+    ("dice que apilar capas no es la contigüidad de orden 2",
+     "no es la contigüidad de orden 2"),
+    ("dice que W² tiene diagonal positiva",
+     "tiene diagonal positiva"),
+    ("dice que W² solo llega a un vecino si es vecino de otro vecino",
+     "que sea a la vez vecino de otro de sus vecinos"),
+    # Las que entraron con la animación del rezago (2026-10-02). La primera es el hallazgo: Wᵏy no va a la media.
+    ("dice que Wᵏy no va a la media de y sino a la ponderada por el grado",
+     "ese valor no es la media de y"),
+    # «de cada barrio»: sin eso, la frase de la solución del ejercicio 5 («es la media ponderada por el grado, la que
+    # cuenta…») la sostenía sola y la inyección que la quita del módulo 10 dejó de cazarse (2026-10-02).
+    ("dice que esa media está ponderada por el grado",
+     "es la media ponderada por el grado de cada barrio"),
+    ("dice que con la torre el valor al que va es otro",
+     "la vecindad que se eligió manda también aquí"),
+    ("dice que la rapidez la manda el segundo valor propio de W",
+     "segundo valor propio de w"),
+    # «Del capítulo 7» era falso (auditoría del 2026-10-02): el capítulo 7 usa la GAL de Anselin y da 0.5110, no 0.5002.
+    ("dice que con t = 1 la pendiente es el índice de Moran con esta W",
+     "que es el índice de moran con esta w"),
+    ("dice que el capítulo 7 lo calcula con otra W (la GAL de Anselin)",
+     "el capítulo 7 calcula este índice con otra w"),
+    # Y lo que la prosa de la animación enseña desde la auditoría: cuánto se estrecha el rezago SÍ dice algo, y la rapidez
+    # del aplanado no la fija W sola (con CRIME barajado bastan 31 aplicaciones; con CRIME hacen falta 66).
+    ("dice que cuánto se estrecha el rezago sí dice algo del territorio",
+     "cuánto se estrecha, sí"),
+    ("dice que cuánto tarda en aplanarse no lo decide W sola",
+     "cuánto tarda en llegar no lo decide w sola"),
+    ("enlaza la I «correlación de los vecinos» del capítulo 1 con la pendiente",
+     "es la misma idea vista pareja a pareja"),
+    ("dice que la letra de las aplicaciones es t y no k",
+     "t y no k, que en este capítulo son los vecinos más próximos"),
+    ("dice que esa pendiente no es la correlación",
+     "no son lo mismo"),
+    # La media del rezago (2026-10-02). El módulo 10 decía que la media de Wy era «prácticamente la misma, y tiene que
+    # serlo», y la solución del ejercicio 5, que «promediar no mueve el centro». No es así: cada unidad entra en el
+    # promedio de cada uno de sus vecinos y en Wy pesa lo que suma su columna de W, que no vale 1. Lo que W por filas
+    # conserva, con una vecindad simétrica, es la media PONDERADA POR EL GRADO (municipios: 3.4484 en y y en Wy; la
+    # simple pasa de 3.4266 a 3.4593 sobre los mismos 1 119). La animación del mismo módulo lo enseña con Wᵏy.
+    ("dice que la media de Wy no tiene por qué ser la de y",
+     "no tienen por qué coincidir"),
+    ("dice qué media conserva W: la que cuenta a cada unidad tantas veces como vecinos tiene",
+     "a cada municipio tantas veces como vecinos tiene"),
+    ("dice que en la solución del ejercicio 5 lo que no se mueve es la media ponderada por el grado",
+     "lo que no se mueve nunca, con una vecindad simétrica como la reina, es la media ponderada por el grado"),
+]
+
+# Lo que el CÓDIGO del capítulo no puede dejar de decir. `afirmaciones()` lee la prosa sin los bloques `<pre>` (los
+# cubre `verifica_bloques.py`, que ejecuta el código pero no lee sus comentarios), y un comentario es texto que el
+# estudiante lee: el del bloque de R del módulo 10 decía, junto a cor(y, Wy), «esa es toda la autocorrelación
+# espacial del capítulo 7», y el I de Moran de esos mismos municipios es otra cifra (la pendiente).
+AFIRMACIONES_CODIGO = [
+    ("el bloque de R del módulo 10 dice que el I de Moran no es cor(y, Wy)",
+     "el i de moran es otra cifra, la pendiente de wy sobre y"),
 ]
 
 # EL «−» (U+2212) YA NO VA AQUÍ, y el «⁻¹» sí (2026-09-24). El menos largo
@@ -215,7 +299,7 @@ def main() -> int:
     a = Auditor(
         capitulo="capitulo-6-pesos-espaciales.html",
         var_entorno="CAP6_HTML",
-        jsons=["cap6_datos.json", "cap6_soluciones.json"],
+        jsons=["cap6_datos.json", "cap6_soluciones.json", "cap6_rezago2d_resumen.json"],
         estructurales=ESTRUCTURALES,
         presupuesto_geomapa_kb=400.0,
         json_mapas="cap6_mapas.json",
@@ -226,6 +310,9 @@ def main() -> int:
     a.temario(DEBE_CUBRIR)
     a.fuentes(FUENTES)
     a.afirmaciones(AFIRMACIONES)
+    codigo = html.unescape(a.cuerpo).lower()
+    for que, clave in AFIRMACIONES_CODIGO:
+        a.exige(clave in codigo, que)
     a.accesibilidad()
     a.geomapas()
     a.formulas_escapadas()
