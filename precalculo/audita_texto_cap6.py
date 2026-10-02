@@ -130,7 +130,7 @@ DEBE_CUBRIR = [
     ("que W es dispersa", "dispersa"),
     ("que estandarizar por filas es normalizar por el grado", "normalizar por el grado"),
     ("el paso de mensajes y las GNN", "paso de mensajes"),
-    ("que apilar capas es subir de orden", "apilar capas"),
+    ("que apilar capas amplía el alcance sin ser la contigüidad de orden 2", "apilar capas"),
     # Módulo 12 — cierre
     ("los cinco ejercicios sobre otro mapa", "carolina del norte"),
     ("el enlace hacia la autocorrelación del capítulo 7", "capítulo 7"),
@@ -186,6 +186,27 @@ AFIRMACIONES = [
      "No se parece"),
     ("declara que la elección de W es la elección de la arquitectura",
      "la elección de la arquitectura"),
+    # Las cuatro que entraron con la corrección de Moran (2026-10-02). El
+    # capítulo decía que I «es la correlación» entre y y Wy, y no lo es:
+    # con W por filas I = cor · sd(Wy)/sd(y), la pendiente de Wy sobre y
+    # (Columbus: 0.5002 = 0.6838 × 0.7315). Se parece y no es igual, y el
+    # capítulo 7 —cuyo plan ya dice «la pendiente de MCO»— lo cobra.
+    ("dice que el índice de Moran es la pendiente de Wy sobre y",
+     "es la pendiente de wy sobre y"),
+    ("dice que esa pendiente es la correlación por el cociente de desviaciones",
+     "multiplicada por el cociente entre la desviación típica de wy"),
+    # Y la de las GNN: dos capas no son la contigüidad de orden 2. W² tiene
+    # diagonal positiva (ir al vecino y volver) y llega a un vecino j de i solo
+    # si j lo es también de otro vecino de i; `nblag` quita ambos. Lo segundo
+    # NO vale siempre: en Columbus, 2 de las 236 parejas de la reina (21–34) y
+    # 14 de las 200 de la torre no tienen vecino común, y la primera redacción
+    # («incluye a sus propios vecinos») lo daba por seguro.
+    ("dice que apilar capas no es la contigüidad de orden 2",
+     "no es la contigüidad de orden 2"),
+    ("dice que W² tiene diagonal positiva",
+     "tiene diagonal positiva"),
+    ("dice que W² solo llega a un vecino si es vecino de otro vecino",
+     "que sea a la vez vecino de otro de sus vecinos"),
 ]
 
 # EL «−» (U+2212) YA NO VA AQUÍ, y el «⁻¹» sí (2026-09-24). El menos largo

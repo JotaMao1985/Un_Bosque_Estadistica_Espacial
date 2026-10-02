@@ -1195,6 +1195,20 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
          "la elige quien analiza", "la trae el dato", True),
         ("se cae la afirmación de que promediar contrae",
          "promediar contrae", "promediar no cambia nada", True),
+        # Moran no es la correlación entre y y Wy (2026-10-02). La primera
+        # restituye la frase que estuvo publicada; las demás quitan cada
+        # una de las otras tres frases que la corrección escribió.
+        ("Moran vuelve a ser «la correlación entre y y Wy»",
+         "<strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>",
+         "<strong>correlación</strong> entre <em>y</em> y <em>Wy</em>", True),
+        ("desaparece que la pendiente lleva el cociente de desviaciones",
+         "multiplicada por el cociente", "dividida entre la varianza de la media", True),
+        ("desaparece que apilar capas no es la contigüidad de orden 2",
+         "no es la contigüidad de orden 2", "sube de orden la contigüidad", True),
+        ("desaparece que W² tiene diagonal positiva",
+         "tiene diagonal positiva", "tiene diagonal nula", True),
+        ("W² vuelve a llegar a todos los vecinos, sin condición",
+         "que sea a la vez vecino de otro de sus vecinos", "sin excepción alguna", True),
         ("se cae un tema del temario (zero.policy)",
          "zero.policy", "cero-politica", True),
 

@@ -1103,8 +1103,8 @@ MOD9 = cabecera(
       <p>Un cero es un número, y los números entran en las medias. Si el rezago de las islas vale
         cero y la variable no está centrada, esas unidades <strong>tiran de cualquier resumen hacia
         abajo</strong> sin que nada lo avise: la media del rezago baja, la correlación entre el
-        dato y su rezago baja, y el índice de Moran del capítulo 7 —que es esa correlación con otro
-        nombre— baja también.</p>
+        dato y su rezago baja, y el índice de Moran del capítulo 7 —que se calcula con ese mismo
+        rezago— baja también.</p>
 
       <p>Las tres salidas honestas, y las tres hay que escribirlas:</p>
 
@@ -1144,9 +1144,12 @@ MOD10 = cabecera(
         justo lo que el módulo 7 advertía.</p>
 
       <p>Es la pieza sobre la que se construye el resto del curso. El índice de Moran del capítulo 7
-        es la correlación entre <em>y</em> y <em>Wy</em>; los modelos del capítulo 8 meten
-        <em>Wy</em> como una variable más. Vale la pena entenderlo aquí, donde todavía es solo una
-        media.</p>
+        se calcula con <em>y</em> y <em>Wy</em>: con W estandarizada por filas es la
+        <strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>. Se parece a la correlación entre
+        las dos sin ser igual, porque la pendiente es esa correlación multiplicada por el cociente
+        entre la desviación típica de <em>Wy</em> y la de <em>y</em>. Los modelos del capítulo 8
+        meten <em>Wy</em> como una variable más. Vale la pena entenderlo aquí, donde todavía es
+        solo una media.</p>
 
       <p>Sobre la deserción municipal, calculado sobre los
         {firma(ent(m10["n"]), " municipios con dato")} —quitando las
@@ -1243,9 +1246,14 @@ MOD11 = cabecera(
       <p>La correspondencia no es una analogía bonita, y tiene dos consecuencias concretas:</p>
 
       <ul>
-        <li><strong>Apilar capas es subir de orden.</strong> Dos capas de paso de mensajes miran a
-          los vecinos de los vecinos, que es la contigüidad de orden 2 del módulo 3 — con la misma
-          trampa: no acumula sola, hay que decidir si se acumula.</li>
+        <li><strong>Apilar capas amplía el alcance, pero no es la contigüidad de orden 2.</strong>
+          Con dos capas cada nodo recibe de los vecinos de sus vecinos, y eso lo incluye a él
+          mismo: \\(W^2\\) tiene diagonal positiva, porque ir al vecino y volver cuenta. Recibe
+          también de cada vecino suyo que sea a la vez vecino de otro de sus vecinos, que en un
+          mapa de polígonos es lo habitual pero no lo seguro. La contigüidad de orden 2 del
+          módulo 3 es otra cosa, solo los que no eran ya
+          vecinos — y con la misma trampa de entonces: nada acumula solo, hay que decidir qué se
+          cuenta.</li>
         <li><strong>La elección de W es la elección de la arquitectura.</strong> Lo que en este
           capítulo es «reina o k = 4» allí es qué aristas tiene el grafo, y allí también se elige y
           casi nunca se justifica.</li>
@@ -1285,8 +1293,8 @@ MOD12 = cabecera(
         <h4>Dónde sigue esto</h4>
         <p style="margin-bottom:0;">El <strong>capítulo 7</strong> hace la única pregunta que falta
           —<em>¿lo cercano se parece más de lo que cabría esperar por azar?</em>— y su respuesta va a
-          depender, entera, de la W que se haya elegido aquí: el índice de Moran es la correlación
-          entre <em>y</em> y <em>Wy</em>, así que hereda esta decisión completa. Los anteriores son
+          depender, entera, de la W que se haya elegido aquí: el índice de Moran se calcula con
+          <em>y</em> y <em>Wy</em>, así que hereda esta decisión completa. Los anteriores son
           <a href="capitulo-1-datos-espaciales.html">Datos espaciales y la primera ley de la
           geografía</a>, <a href="capitulo-2-crs-georreferenciacion.html">SIG, sistemas de
           referencia y georreferenciación</a>,

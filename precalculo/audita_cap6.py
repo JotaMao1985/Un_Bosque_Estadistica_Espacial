@@ -465,6 +465,35 @@ def main() -> int:  # noqa: C901
     a.cierto(D["m10"]["contraccion_pct"] > 0,
              "el rezago contrae: es una media de vecinos")
 
+    # El módulo dice que el I de Moran del capítulo 7 es la PENDIENTE de Wy
+    # sobre y —no su correlación— cuando W va por filas. Es una identidad,
+    # y aquí se comprueba sobre los dos datos del capítulo en vez de darla
+    # por sabida: I = z'Wz / z'z a mano, contra `esda`, contra la pendiente
+    # de mínimos cuadrados y contra cor · sd(Wy)/sd(y). Y se comprueba que
+    # la correlación está lejos de I, que es lo que la frase vieja negaba.
+    from esda.moran import Moran
+    wq = weights.Queen.from_dataframe(col, use_index=True)
+    wq.transform = "r"
+    cuadros = [
+        ("Columbus", crime_de(col), pesos_estilo(nb_col["reina"], "W")),
+        ("municipios", y[con], Wsub[np.ix_(con, con)]),
+    ]
+    for nombre, yy, Wm in cuadros:
+        wyy = Wm @ yy
+        zz = yy - yy.mean()
+        i_mano = float(zz @ Wm @ zz / (zz @ zz))
+        r_yy = float(np.corrcoef(yy, wyy)[0, 1])
+        a.igual(np.polyfit(yy, wyy, 1)[0], i_mano,
+                f"{nombre}: I es la pendiente de Wy sobre y", tol=1e-9)
+        a.igual(r_yy * wyy.std(ddof=1) / yy.std(ddof=1), i_mano,
+                f"{nombre}: I = cor · sd(Wy) / sd(y)", tol=1e-9)
+        a.cierto(abs(r_yy - i_mano) > 0.1,
+                 f"{nombre}: y I no es la correlación",
+                 f"I {i_mano:.4f} frente a cor {r_yy:.4f}")
+        if nombre == "Columbus":
+            a.igual(Moran(yy, wq, permutations=0).I, i_mano,
+                    "Columbus: I a mano contra esda", tol=1e-9)
+
     # -----------------------------------------------------------------
     a.titulo("11 · W como matriz de adyacencia")
     c11 = D["m11"]["columbus"]
