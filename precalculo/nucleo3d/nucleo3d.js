@@ -592,7 +592,12 @@
    columna derecha de la escena «borde» pedía 566–663: con «body.clase» en «overflow:hidden», lo cortado no se alcanzaba.
    Solo por debajo de 680 px de alto y con dos columnas: la leyenda pasa a lo ancho, arriba; el lienzo ocupa el alto que
    queda; los rótulos de grupo se ocultan a la vista (los grupos llevan su nombre en «aria-labelledby»); los deslizadores
-   van en una fila con su etiqueta. A 1280×720 y 1920×1080, y en modo página, nada cambia. */
+   van en una fila con su etiqueta. A 1280×720 y 1920×1080, y en modo página, nada cambia.
+   Con ese lienzo (de 241 a 343 px de alto), las dos tarjetas de la derecha no caben una sobre otra: en el paso 5 el
+   panel de aportes mide 212 px, y el perfil de los núcleos, abajo, le tapaba las últimas filas y la suma λ̂(u), que es lo
+   que el paso enseña (103, 68, 35 y 1 px de solape en los cuatro marcos; medido el 2026-10-02). El perfil sube a la
+   esquina de arriba a la izquierda, que en la vista inclinada es fondo: allí no tapa sedes ni etiquetas en ningún marco
+   (desde arriba, solo con el marco de 485 tapa una, la del extremo; el panel tapa hasta tres de la derecha). */
 @media (max-height:680px){
   @container (min-width:920px){
     .n3d-clase .n3d-rejilla{
@@ -601,6 +606,7 @@
       align-content:stretch;height:calc(100vh - .7rem)}
     .n3d-clase .n3d-escena{align-self:stretch;min-height:0}
     .n3d-clase .n3d-lienzo{position:absolute;inset:0;height:auto;min-height:0}
+    .n3d-clase .n3d-perfilcaja{top:.6rem;right:auto;bottom:auto;left:.6rem}
     .n3d-clase .n3d-grupo>span{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
     .n3d-clase .n3d-ctl{flex-direction:row;align-items:center;gap:.6rem}
     .n3d-clase .n3d-ctl label{flex:0 0 auto;white-space:nowrap}
