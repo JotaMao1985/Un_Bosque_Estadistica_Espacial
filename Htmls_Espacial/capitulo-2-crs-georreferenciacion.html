@@ -4105,6 +4105,107 @@
       }
     }
 
+    /* Los otros cuatro estados «puesto» de la plantilla, medidos igual que
+       las botoneras de arriba (2026-10-02):
+
+       · El módulo abierto en la barra lateral (`.nav-item.active`), la
+         opción marcada del simulacro de quiz (`.simulacro-opcion.marcada`,
+         caps. 4 y 5) y el criterio abierto de la rúbrica de los talleres
+         (`.rubrica-criterio.activo`) también se marcaban solo con el fondo.
+         Con colores forzados salían idénticos a sus vecinos. Toman la misma
+         salida que las botoneras: `Highlight` / `HighlightText` con
+         `forced-color-adjust: none`, y el anillo de foco fijado en
+         `Highlight`. Ese `none` se hereda, así que los hijos que traen color
+         propio pasan aquí a `HighlightText`: el subtítulo y el visto de la
+         barra, la letra del simulacro, y la clave, el nombre y los puntos
+         del criterio. Si no, se quedarían con su blanco al 82 %, su verde o
+         su naranja sobre el color de selección. El punto de la barra es un
+         fondo y va en `HighlightText`. La sombra del módulo abierto se quita,
+         porque el `none` la devolvía.
+       · En papel la barra lateral no sale (la hoja de impresión le pone
+         `display: none`). El simulacro conserva la señal: el borde #012820
+         de la marcada contra el #cbd5e1 de las demás. La rúbrica no: sin
+         fondo, Chrome oscurecía la letra blanca del criterio abierto a gris
+         claro, y salía como un botón desactivado. Y es el criterio cuyos
+         niveles se imprimen debajo. Lleva el trato de las botoneras: sin
+         fondo, borde de 1 px #9ca3af, y el abierto con borde negro de 2 px.
+         Sus tres líneas recuperan los colores de los criterios cerrados.
+       · La casilla de la selección múltiple (`.quiz-opcion.marcada`) no se
+         toca con colores forzados. El visto se dibuja con el color de texto
+         del sistema y la casilla sin marcar queda vacía, como una casilla
+         nativa. En papel, en cambio, el visto se perdía: es un borde blanco
+         sobre el relleno naranja, y sin fondo quedaba blanco sobre blanco,
+         una casilla naranja vacía. En papel la casilla marcada va sin
+         relleno, con borde y visto negros. */
+    @media (forced-colors: active) {
+      .nav-item.active,
+      .simulacro-opcion.marcada,
+      .rubrica-criterio.activo {
+        forced-color-adjust: none;
+        background: Highlight;
+        border-color: Highlight;
+        color: HighlightText;
+      }
+
+      .nav-item.active {
+        box-shadow: none;
+      }
+
+      .nav-item.active::before {
+        background: HighlightText;
+      }
+
+      .nav-item.active .nav-item-sub,
+      .nav-item.active .nav-item-visto,
+      .simulacro-opcion.marcada .simulacro-letra,
+      .rubrica-criterio.activo .rubrica-criterio-clave,
+      .rubrica-criterio.activo .rubrica-criterio-nombre,
+      .rubrica-criterio.activo .rubrica-criterio-puntos {
+        color: HighlightText;
+      }
+
+      .nav-item.active:focus-visible,
+      .simulacro-opcion.marcada:focus-visible,
+      .rubrica-criterio.activo:focus-visible {
+        outline-color: Highlight;
+      }
+    }
+
+    @media print {
+      .rubrica-criterio,
+      .rubrica-criterio.activo {
+        background: none;
+        border: 1px solid #9ca3af;
+        color: #000;
+      }
+
+      .rubrica-criterio.activo {
+        border: 2px solid #000;
+      }
+
+      .rubrica-criterio.activo .rubrica-criterio-clave {
+        color: #FF6600;
+      }
+
+      .rubrica-criterio.activo .rubrica-criterio-nombre {
+        color: #1e293b;
+        font-weight: 800;
+      }
+
+      .rubrica-criterio.activo .rubrica-criterio-puntos {
+        color: #64748b;
+      }
+
+      .quiz-opcion.marcada .quiz-casilla {
+        background: none;
+        border-color: #000;
+      }
+
+      .quiz-opcion.marcada .quiz-casilla::after {
+        border-color: #000;
+      }
+    }
+
   </style>
 </head>
 
