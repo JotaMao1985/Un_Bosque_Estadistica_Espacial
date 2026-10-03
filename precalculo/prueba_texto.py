@@ -945,6 +945,8 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
          "no es una propiedad del patrón", "es difícil de elegir", True),
         ("desaparece que las tres correcciones dan mapas igual de plausibles",
          "los tres salen plausibles", "cuesta distinguirlos", True),
+        ("desaparece que la masa que se pasa es de las sedes y no del método",
+         "Que la masa se pase no es una propiedad del método", "Que la masa se pase es una propiedad del método", True),
         ("desaparece que llamar «demanda» a un mapa es una decisión",
          "es una decisión, no una descripción", "conviene pensarlo", True),
         ("desaparece qué es un residuo en un proceso puntual",
