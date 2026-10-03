@@ -373,6 +373,20 @@ def cargar_entradas(m, sesiones):
         AF(1, "Sin corregir, el volumen de la escena de borde es Σ e(xᵢ): la forma cerrada y `density(edge = FALSE)` de spatstat coinciden a 0.01",
            lambda: abs(r("borde3d.volumen.sin") - r("borde3d.volumen.sin_analitico")) < 0.01)
 
+        # ---- «al subir σ, los picos bajan y los valles se llenan» (lámina 8, la ilustración; notas de la 9, la animación) ----
+        # No es «baja el mapa entero»: baja donde estaba alto y sube donde estaba bajo. Lo que dice cada frase, medido en R con los
+        # mismos datos (`recomputa_cap5_picos_valles.R` lee los puntos y los σ de `genera_figuras_s1.R` y del motor).
+        NUC4 = ("gaussian", "epanechnikov", "quartic", "disc")
+        AF(1, "Ilustración de la lámina 8 (seis puntos, núcleo gaussiano, σ de 0.35 a 1.2): el máximo de la suma baja, en el valle entre los dos grupos sube, y el 10 % más alto baja y la mitad más baja sube",
+           lambda: r("picos_valles.juguete.max_ancho") < r("picos_valles.juguete.max_estrecho") and r("picos_valles.juguete.valle_ancho") > r("picos_valles.juguete.valle_estrecho")
+           and r("picos_valles.juguete.alta_baja") > 0.99 and r("picos_valles.juguete.baja_sube") > 0.99)
+        AF(1, "Animación del módulo 1 (19 puntos, σ de 0.5 a 2.2, sin corregir el borde), con los cuatro núcleos: del σ más estrecho al más ancho el 10 % más alto de la superficie baja y la mitad más baja sube",
+           lambda: all(r(f"picos_valles.conteo.por_nucleo.{k}.alta_baja") > 0.99 and r(f"picos_valles.conteo.por_nucleo.{k}.baja_sube") > 0.99 for k in NUC4))
+        AF(1, "Animación del módulo 1: con el gaussiano, el epanechnikov y el cuártico el máximo no sube en ningún paso del deslizador de σ; con el disco sube en algunos",
+           lambda: all(r(f"picos_valles.conteo.por_nucleo.{k}.pasos_sube") == 0 for k in NUC4[:3]) and r("picos_valles.conteo.por_nucleo.disc.pasos_sube") >= 1)
+        AF(1, "Con el disco, el máximo sube justo en los pasos en que el mejor círculo alcanza un punto más (el conteo máximo de puntos dentro del círculo aumenta)",
+           lambda: bool(r("picos_valles.conteo.por_nucleo.disc.salto_con_mas_puntos")))
+
         # ---- tablas: cada celda numérica en su casilla ----
         nk = lambda k: (lambda: r(f"nucleos.max_km2.{k}"))
         ck = lambda k: (lambda: r(f"nucleos.cor_gauss.{k}"))

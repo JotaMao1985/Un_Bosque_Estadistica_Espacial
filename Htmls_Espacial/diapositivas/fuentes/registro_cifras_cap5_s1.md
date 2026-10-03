@@ -87,6 +87,10 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 - ✓ Una sede sola pegada al borde aporta menos de 1 con la corrección por defecto, y una a uno y medio o dos σ de él, más de 1 (los cuatro núcleos, σ = 1.2)
 - ✓ Con Diggle el volumen de la escena de borde es n (a 0.05) con los cuatro núcleos y con los tres σ probados: el mínimo, el de partida y el máximo del deslizador
 - ✓ Sin corregir, el volumen de la escena de borde es Σ e(xᵢ): la forma cerrada y `density(edge = FALSE)` de spatstat coinciden a 0.01
+- ✓ Ilustración de la lámina 8 (seis puntos, núcleo gaussiano, σ de 0.35 a 1.2): el máximo de la suma baja, en el valle entre los dos grupos sube, y el 10 % más alto baja y la mitad más baja sube
+- ✓ Animación del módulo 1 (19 puntos, σ de 0.5 a 2.2, sin corregir el borde), con los cuatro núcleos: del σ más estrecho al más ancho el 10 % más alto de la superficie baja y la mitad más baja sube
+- ✓ Animación del módulo 1: con el gaussiano, el epanechnikov y el cuártico el máximo no sube en ningún paso del deslizador de σ; con el disco sube en algunos
+- ✓ Con el disco, el máximo sube justo en los pasos en que el mejor círculo alcanza un punto más (el conteo máximo de puntos dentro del círculo aumenta)
 
 ## Cifra por cifra
 

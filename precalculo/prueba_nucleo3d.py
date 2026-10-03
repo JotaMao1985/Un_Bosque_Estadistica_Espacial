@@ -210,6 +210,14 @@ write(toJSON(sal, auto_unbox = TRUE, digits = 12), "{tmp / 'r.json'}")
     # ---- 3 · el test de cuadrantes, contra quadratcount ---------------------
     print("\n3 · conteo por celdas con la rejilla desplazada (26 posiciones del deslizador)")
     ds = [round(0.05 * k, 2) for k in range(26)]
+    rej2 = node("""
+      const sal = [];
+      for (const d of ENTRADA) {
+        const c = M.cuadrantes(M.PATRON, d);
+        sal.push({ d, celdas: c.celdas.map(z => ({ ancho: Math.min(z.x1 - z.x0, z.y1 - z.y0) })) });
+      }
+      console.log(JSON.stringify({ rej: sal }));
+    """, ds)
     rej = node("""
       const sal = [];
       for (const d of ENTRADA) {
@@ -253,6 +261,13 @@ write(toJSON(sal, auto_unbox = TRUE, digits = 12), "{tmp / 'q.json'}")
     ok(not malos, f"las celdas coinciden con quadratcount en las 26 posiciones ({ties} de ellas con un punto sobre una línea)"
        + ("" if not malos else ": " + "; ".join(malos[:3])))
     ok(ties >= 5, "la prueba SÍ ejercita los empates (si el patrón cambiara y dejara de haberlos, no probaría lo que dice)")
+    # Las astillas (auditoría del 2026-10-02): con la rejilla desplazada 0.05 la primera columna medía 0.05 y la lectura
+    # pasaba de 16 a 25 celdas. Fundida con su vecina, siempre son 4 × 4 y ninguna mide menos de media celda.
+    estrechas = [(m["d"], round(min(c["ancho"] for c in m["celdas"]), 3)) for m in rej2["rej"]
+                 if min(c["ancho"] for c in m["celdas"]) < 1.25 - 1e-9]
+    cuentas = sorted({len(m["celdas"]) for m in rej2["rej"]})
+    ok(not estrechas and cuentas == [16],
+       f"en las 26 posiciones hay 16 celdas y ninguna más estrecha que media celda (cuentas {cuentas}; estrechas {estrechas[:3]})")
 
 
     # ---- 4 · la corrección de borde, contra density(edge = TRUE) y density(diggle = TRUE) ---------

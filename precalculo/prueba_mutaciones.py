@@ -40,6 +40,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 # ---------------------------------------------------------------------------------------------
 DEFECTOS_NUCLEO3D = [
     # --- el módulo 1: los núcleos y el test de cuadrantes ---
+    ("la astilla de la izquierda ya no se funde con su vecina (vuelven las celdas de 0.05)",
+     "if (aristas[1] > -V + 1e-9) aristas.splice(1, 1);", ""),
     ("el soporte del Epanechnikov es √5σ y no √6σ",
      "const H2 = { epanechnikov: 6, quartic: 8, disc: 4 };",
      "const H2 = { epanechnikov: 5, quartic: 8, disc: 4 };"),

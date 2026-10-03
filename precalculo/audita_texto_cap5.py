@@ -342,6 +342,13 @@ AFIRMACIONES = [
      "no hay ancho que publicar"),
     ("el ejercicio 2 dice cuánto más cerca queda diggle",
      "más de mil veces más pequeño"),
+    # La auditoría de las cinco animaciones (2026-10-02): el módulo 1 decía que al abrir σ «el máximo baja», y con el
+    # disco SUBE en 11 de los 34 pasos del deslizador (el círculo alcanza un punto más), y con cualquier núcleo los
+    # valles se llenan. Si una reescritura vuelve a «el máximo baja», esto lo dice.
+    ("dice que al abrir σ los picos bajan y los valles se llenan",
+     "los picos bajan y los valles se llenan"),
+    ("dice que con el disco el pico puede subir a saltos",
+     "el pico puede subir a"),
     ("el ejercicio 2 contesta si se nota mirando el mapa",
      "el ojo no integra"),
     ("el ejercicio 3 dice que la z no se compara con un cociente",
