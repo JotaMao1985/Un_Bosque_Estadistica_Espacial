@@ -194,11 +194,17 @@ paso "verifica_bloques.py — los bloques de código y sus #>" \
 
 # Del 2026-10-02: la animación 2D del rezago (capítulo 6, módulo 10). `prueba_rezago2d.py` compara
 # la aritmética de `anim2d/rezago2d.js` con `spdep` y prueba sin DOM la máquina de `anim2d.js` (el
-# repo no tiene jsdom); `prueba_mutaciones_anim2d.py` le inyecta 38 defectos y exige que falle.
+# repo no tiene jsdom); `prueba_mutaciones_anim2d.py` les inyecta 61 defectos a las dos animaciones 2D
+# y exige que sus pruebas fallen.
 # Cuestan 2 y 35 segundos: corren también con `--rapido`.
 paso "prueba_rezago2d.py — la animación 2D del rezago, contra R y por dentro" \
      python3 precalculo/prueba_rezago2d.py
-paso "prueba_mutaciones_anim2d.py — la prueba de la animación 2D SABE fallar" \
+# Y la de K y g (capítulo 4, módulos 8 y 9), sobre la misma cáscara: `prueba_kanillo2d.py` compara las
+# cuentas y la K de `anim2d/kanillo2d.js` con R (a mano y con Kest) en menos de un segundo. Las mutaciones
+# de arriba ya le inyectan sus 21 defectos y los de la cáscara.
+paso "prueba_kanillo2d.py — la animación de K y g, contra R y por dentro" \
+     python3 precalculo/prueba_kanillo2d.py
+paso "prueba_mutaciones_anim2d.py — las pruebas de las animaciones 2D SABEN fallar" \
      python3 precalculo/prueba_mutaciones_anim2d.py
 # Y que el capítulo lleve el motor de HOY: el motor se edita en `precalculo/anim2d/` y viaja en línea; sin esto
 # un motor editado y no reensamblado deja el capítulo en verde con la versión vieja.

@@ -26,15 +26,18 @@ EL TOPE DE PESO ES 720 KB, y la aritmética va escrita porque no es una
 marca de agua levantada bajo presión. Fue 640 hasta que entró la animación
 2D del módulo 10 (2026-10-02), y se sube con la cuenta delante:
 
-  · el documento pesa **690 KB**: 615 de antes, **69 de los dos motores en
-    línea** (`anim2d.js`, 35 KB, y `rezago2d.js`, 34 KB, con la densidad de
-    comentarios del repo; no se minifican) y 5 de código nuevo y de
-    prosa. Con el tope viejo —640— el capítulo no cabía;
+  · el documento pesa **704 KB**: 615 de antes, **80 de los dos motores en
+    línea** (`anim2d.js`, 42 KB, y `rezago2d.js`, 38 KB, con la densidad de
+    comentarios del repo; no se minifican) y 9 de código nuevo y de
+    prosa. Con el tope viejo —640— el capítulo no cabía. (La cáscara creció
+    3 KB con la animación del capítulo 4, que también la lleva, y la
+    auditoría de las cinco animaciones —2026-10-02— sumó 11 entre la región
+    viva, los anuncios, W² y el texto que corrigió);
   · la cota que ata esa comprobación a su arnés es **por encima del
     tamaño del documento y por debajo de ese tamaño + 312 KB**, porque
     `prueba_texto.py` la tumba inyectando 320 000 bytes de comentario:
-    690 < 720 < 1002;
-  · 720 deja **30 KB de margen** sobre lo publicado —sitio para una
+    704 < 720 < 1016;
+  · 720 deja **16 KB de margen** sobre lo publicado —sitio para una
     corrección y muy poco para un ensamblado desbocado—. Con 700, el tope
     de la casa, quedaban 10 después de que la revisión en Chrome engordara
     los motores (gestos, leyendas apiladas, colores forzados): el motor es

@@ -5757,6 +5757,28 @@ print([round(float(J(r)), 4) for r in (0.02, 0.05, 0.08)])
         azar, que es exactamente el cociente entre \(\hat{K}\) y \(\pi r^2\). Eso es
         un punto de la curva; K lo da para cada \(r\).</p>
 
+      <h3>El disco, punto a punto</h3>
+
+      <p>Las sedes son demasiadas para ver los discos de uno en uno. La animación de abajo hace la
+        misma cuenta sobre los tres patrones canónicos del capítulo, que viven en un cuadrado de lado
+        1, así que ahí \(r\) se mide en lados de la ventana. Empieza por un punto y su disco: los
+        puntos que caen dentro son sus vecinos, y la lectura de debajo da lo que el azar pondría en un
+        disco entero, \({(n-1)\pi r^2/|W|}\). Después el disco crece hasta un cuarto del lado, que es la
+        \(r\) máxima del final de este módulo, y la curva de debajo es \(\hat{K}\) para todo el
+        patrón. El paso 3 dibuja las parejas que suma la fórmula, y el 4 lleva el disco al borde,
+        donde la ventana tapa una parte, para que se vea qué hace el peso \(w_{ij}\).</p>
+
+      <div class="simulador" data-simulador="cap4-kdisco">
+        <h4><i class="fas fa-diagram-project" aria-hidden="true"></i> K, un disco alrededor de cada punto</h4>
+        <p class="simulador-intro">Elige un punto con un clic, con ‹ › o con las flechas; mueve r con el deslizador o arrastrando el borde del círculo; y cambia de patrón y de peso.</p>
+        <div class="a2d-montaje" data-escena="disco"><p class="a2d-cargando">La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: K cuenta, alrededor de cada punto, los otros que caen dentro de un disco de radio r, los promedia, los divide por la intensidad y lo compara con π r², lo que daría el azar.</p></div>
+      </div>
+
+      <p>En las secuoyas, sin el peso, \(\hat{K}\) en \(r\) = 0.25 se queda
+        en <strong>0.83060</strong> veces la corregida: el borde solo puede
+        esconder vecinos. Cuánto pesa eso en una ventana de verdad, y hacia dónde empuja la curva, es
+        el módulo 10.</p>
+
       <h3>De la parábola a la recta: L</h3>
 
       <p>Bajo CSR, \({K(r) = \pi r^2}\) es una parábola, y comparar una curva contra una
@@ -6045,7 +6067,31 @@ print(round(float(np.max(np.abs(L - r))), 4))
         <strong>el tamaño de los grumos</strong>, y K no la sabe decir: se despegó al
         principio y arrastra ese despegue hasta el final.</p>
 
-      <p>Antes de mirar Bogotá, pasa el simulador por las células y por los pinos, porque cada
+      <p>Por qué K arrastra se ve en el mapa. La animación de abajo toma un punto de un grupo de
+        secuoyas y su disco, y lo lleva hasta \(r\) = 0.1450, donde g ya
+        ha vuelto a 1: el disco sigue conteniendo a los vecinos de cerca, porque un disco grande
+        contiene a todos los pequeños, y para todo el patrón \(\hat{K}\) vale allí todavía
+        <strong>1.83821</strong> veces \(\pi r^2\), y
+        1.11868 al final del barrido. Después cambia el disco por el
+        anillo de esa distancia, que solo ve las parejas que están a ella, y dibuja las de todos los
+        puntos, en uno y en otro.</p>
+
+      <div class="simulador" data-simulador="cap4-kanillo">
+        <h4><i class="fas fa-diagram-project" aria-hidden="true"></i> K contra g: el disco y el anillo</h4>
+        <p class="simulador-intro">Elige un punto con un clic, con ‹ › o con las flechas; mueve r con el deslizador o arrastrando el borde del círculo; y cambia entre el disco y el anillo, y de patrón.</p>
+        <div class="a2d-montaje" data-escena="anillo"><p class="a2d-cargando">La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: K cuenta los vecinos de cada punto dentro de un disco de radio r, así que lo que encontró cerca lo sigue contando lejos; g mira solo el anillo de radio r, y por eso dice a qué distancia está la estructura.</p></div>
+      </div>
+
+      <p>La gráfica de la animación pone las dos razones frente a la misma referencia, 1: la del disco,
+        \(\hat{K}/\pi r^2\), y la del anillo, g. El anillo que se dibuja va de \(r\) −
+        0.01 a \(r\) + 0.01 (desde 0 si \(r\) es más pequeño), solo para
+        ver qué parejas están a esa distancia; la g de la gráfica es la de <code>pcf()</code>, que corrige el borde con el
+        mismo peso de traslación —sin él, el anillo de un punto cerca del borde se queda corto— y además cuenta las
+        parejas con un núcleo que suaviza, así que lo que hay en un anillo y el valor de g no tienen por qué coincidir.
+        Y ninguna de las dos curvas lleva su banda del azar: si una desviación es más que ruido lo dice la envolvente del
+        módulo 11, no la animación.</p>
+
+      <p>Antes de mirar Bogotá, pasa el simulador de las dos curvas por las células y por los pinos, porque cada
         uno enseña algo que las secuoyas no. En las <strong>células</strong> g se queda pegada
         a 0 en las distancias cortas y no despega de verdad hasta rondar
         0.08363, que es la distancia de la pareja de células más
@@ -10791,6 +10837,1468 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
       pinta();
       return [g];
     };
+
+    // --- Módulos 8 y 9 · K como disco, g como anillo: `anim2d.js` y `kanillo2d.js`, en línea ------
+    // Las coordenadas CRUDAS de los tres canónicos: lo único que la animación trae de fuera, además de la g
+    // publicada (`D4.m9`). K y las cuentas de cada punto las calcula ella.
+    const KANILLO_PATRONES = {"cells": {"nombre": "Células", "n": 42, "ventana": [0, 0, 1, 1], "x": [0.35, 0.487, 0.637, 0.775, 0.825, 0.087, 0.237, 0.4, 0.575, 0.737, 0.062, 0.212, 0.325, 0.45, 0.65, 0.9, 0.337, 0.462, 0.6, 0.8, 0.938, 0.15, 0.35, 0.562, 0.725, 0.862, 0.987, 0.062, 0.175, 0.337, 0.462, 0.525, 0.737, 0.862, 0.237, 0.637, 0.775, 0.9, 0.175, 0.35, 0.462, 0.625], "y": [0.025, 0.087, 0.05, 0.025, 0.125, 0.187, 0.15, 0.162, 0.212, 0.237, 0.362, 0.337, 0.287, 0.287, 0.362, 0.262, 0.462, 0.425, 0.475, 0.387, 0.4, 0.5, 0.6, 0.575, 0.512, 0.525, 0.512, 0.75, 0.65, 0.75, 0.75, 0.65, 0.687, 0.637, 0.787, 0.812, 0.85, 0.775, 0.912, 0.962, 0.9, 0.95]}, "japanesepines": {"nombre": "Pinos japoneses", "n": 65, "ventana": [0, 0, 1, 1], "x": [0.09, 0.29, 0.38, 0.39, 0.48, 0.59, 0.65, 0.67, 0.73, 0.79, 0.86, 0.89, 0.98, 0.02, 0.11, 0.42, 0.48, 0.62, 0.73, 0.89, 0.02, 0.03, 0.07, 0.52, 0.64, 0.08, 0.08, 0.12, 0.12, 0.17, 0.31, 0.32, 0.42, 0.52, 0.91, 0.94, 0.34, 0.37, 0.47, 0.52, 0.59, 0.66, 0.76, 0.73, 0.89, 0.94, 0.98, 0.97, 0.12, 0.11, 0.17, 0.21, 0.29, 0.32, 0.35, 0.39, 0.52, 0.58, 0.69, 0.77, 0.36, 0.36, 0.39, 0.43, 0.62], "y": [0.09, 0.02, 0.03, 0.18, 0.03, 0.02, 0.16, 0.13, 0.13, 0.03, 0.13, 0.08, 0.02, 0.18, 0.31, 0.22, 0.13, 0.21, 0.23, 0.23, 0.41, 0.44, 0.42, 0.42, 0.43, 0.59, 0.63, 0.63, 0.66, 0.58, 0.53, 0.52, 0.49, 0.52, 0.52, 0.58, 0.68, 0.68, 0.67, 0.67, 0.67, 0.68, 0.66, 0.73, 0.74, 0.78, 0.79, 0.86, 0.84, 0.94, 0.95, 0.79, 0.84, 0.83, 0.86, 0.79, 0.93, 0.83, 0.93, 0.93, 0.97, 0.96, 0.96, 0.96, 0.97]}, "redwood": {"nombre": "Secuoyas", "n": 62, "ventana": [0, -1, 1, 0], "x": [0.36, 0.44, 0.48, 0.48, 0.5, 0.76, 0.78, 0.78, 0.84, 0.86, 0.9, 0.9, 0.9, 0.9, 0.18, 0.18, 0.2, 0.6, 0.62, 0.64, 0.64, 0.68, 0.68, 0.7, 0.72, 0.1, 0.12, 0.12, 0.14, 0.18, 0.18, 0.2, 0.2, 0.22, 0.24, 0.52, 0.5, 0.58, 0.94, 0.96, 0.22, 0.22, 0.26, 0.44, 0.48, 0.5, 0.9, 0.9, 0.48, 0.52, 0.56, 0.999, 0.44, 0.48, 0.34, 0.38, 0.26, 0.4, 0.28, 0.74, 0.86, 0.96], "y": [-0.08, -0.1, -0.08, -0.14, -0.1, -0.14, -0.12, -0.16, -0.08, -0.18, -0.08, -0.1, -0.16, -0.2, -0.4, -0.38, -0.42, -0.34, -0.34, -0.36, -0.28, -0.32, -0.24, -0.28, -0.26, -0.58, -0.58, -0.62, -0.58, -0.56, -0.54, -0.52, -0.5, -0.46, -0.48, -0.58, -0.6, -0.58, -0.52, -0.54, -0.8, -0.84, -0.7, -0.76, -0.78, -0.76, -0.76, -0.78, -0.68, -0.66, -0.64, -0.84, -0.82, -0.82, -0.84, -0.84, -0.86, -0.86, -0.86, -0.9, -0.9, -0.96]}};
+/* =====================================================================
+   anim2d.js — la cáscara común de las animaciones 2D
+
+   Material de Estadística Espacial 2026-II (20929). La usan el capítulo 6 (módulo 10,
+   `rezago2d.js`) y el capítulo 4 (módulos 8 y 9, `kanillo2d.js`).
+
+   QUÉ ES. Todo lo que dos animaciones 2D tienen en común y ninguna debería
+   escribir dos veces: el andamio (pasos, «Reproducir», leyenda, lienzo, mandos,
+   lectura), el lienzo con su DPR, el bucle que solo corre cuando algo se mueve,
+   las transiciones, el guion, el puntero con captura, el teclado, la pausa fuera
+   de pantalla, `prefers-reduced-motion` y la impresión. Cada pieza declara QUÉ
+   dibuja y QUÉ cuenta, en un objeto `def`; la cáscara decide cuándo.
+
+   SE EDITA AQUÍ Y NADA MÁS. El capítulo lo inyecta en línea y `comprueba_animaciones.py`
+   comprueba que lo que lleva es lo que hay en este archivo.
+
+   DOS CAPAS, Y POR QUÉ.
+     1 · `maquina(def, ganchos)`: el estado, las transiciones y el guion. No toca el DOM,
+         así que `prueba_anim2d.py` la prueba en Node: que `poner` rechace lo que no es
+         un número, que una transición llegue exactamente a su destino, que el guion
+         recorra los pasos y que cualquier gesto del usuario lo interrumpa. El repo no
+         tiene jsdom; esto es lo más que se puede probar de la capa de interacción sin él.
+     2 · `monta(cont, def, opc)`: el DOM, el lienzo y los eventos. Esa capa la cubre solo
+         la revisión en el navegador.
+
+   LA INTERFAZ DE LA PIEZA (`def`)
+     id, aria, ayuda, ayudaTeclado, pie, sinLienzo   textos (HTML de confianza: es nuestro)
+     inicial()                       estado de partida; DEBE llevar `paso: 1`
+     normaliza(patch, E)             deja el parche en lo que el estado admite (opcional)
+     animables {clave: segundos}     claves numéricas que se interpolan; `V[clave]` es la visible
+     pasos [{corto, titulo, texto, estado, tween, pausa}]   `titulo` y `texto` son HTML o `E => HTML`;
+                                     `estado` es un parche o `E => parche` (lo que el paso pone depende de dónde se está)
+     mandos [{tipo, id, etiqueta, …}]   deslizador | botones | ciclo (el `n` de un ciclo puede ser `E => n`:
+                                     cuántos puntos hay depende del patrón que se mira); un deslizador puede llevar
+                                     `valorTexto(v, E)`, lo que dice un lector de pantalla al moverlo (por defecto, `salida`)
+     paneles [{id, etiqueta, aria}]     lienzos pequeños de al lado (perfiles, gráficos)
+     dibuja(c, E, V)  panel(c, id, E, V)   `c = {ctx, w, h, dpr}`; se dibuja en píxeles CSS
+     puntero(ev, E, V, c) → {poner, cursor, captura} | null      (`gestos` decide cuándo se aplica)
+     tecla(ev, E, V) → parche | null
+     lectura(E) → [[etiqueta, valor], …]       alt(E) → descripción para lectores de pantalla
+     sondas [parche, …]              (opcional) estados con que se escribe, oculta, cada leyenda para medir su alto: los
+                                     de las variantes más largas del texto, para que la celda no crezca la primera vez
+     anuncio(E, antes) → texto | null   (opcional) lo que se anuncia al cambiar el estado sin cambiar de paso: el barrio
+                                     nuevo con su cuenta, la k nueva con su desviación. Una sola región viva lo dice todo
+   Y en `opc`, de quien monta: `reserva`, el HTML que vuelve si la animación falla DESPUÉS de montarse.
+
+   EL TEXTO DE CADA PASO TIENE QUE SER CIERTO EN CUALQUIER ESTADO, no solo en el que el paso pone: el deslizador y
+   el teclado cambian el estado sin cambiar de paso. Las pruebas de cada pieza recorren todos los estados.
+
+   LO QUE ESTA CÁSCARA TODAVÍA NO TIENE, a propósito: el diseño de dos columnas para un lienzo ancho y el
+   «modo clase» para diapositivas (letra grande, lienzo a pantalla completa, flechas reenviadas al visor). Las
+   columnas de los capítulos no pasan de ~770 px, y CSS que nadie ejercita no se publica sin verificar: lo añadirá
+   la animación que lo necesite, con su revisión en el navegador.
+
+   LA API QUE DEVUELVE `monta` está en `CLAVES`, y la versión inerte (`sinAnimacion`,
+   cuando no hay lienzo 2D) se fabrica de esa misma lista: así a una no le falta un
+   método que la otra tenga.
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  const CLAVES = ['destruir', 'ir', 'poner', 'reproducir', 'pausar', 'avanza', 'reinicia', 'estado', 'visual'];
+  const PAUSA_PASO = 2.4;       // segundos que el guion se queda en un paso, además de lo que tarde en llegar
+  const PALABRAS_POR_SEGUNDO = 3.5;   // unas 210 por minuto: el guion da tiempo a LEER el texto del paso
+  const PASO_TIEMPO = 1 / 30;   // el reloj de `avanza`, que no corre con rAF
+  const TOPE_AVANZA = 600;      // `avanza(Infinity)` simula como mucho diez minutos: un guion que no acabe no cuelga la página
+
+  const suave = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;   // easeInOutCubic
+
+  /* ===================================================================
+     1 · LA MÁQUINA. Sin DOM.
+     =================================================================== */
+  function maquina(def, ganchos) {
+    ganchos = ganchos || {};
+    const E = def.inicial();                 // el estado al que se va
+    const V = Object.assign({}, E);          // el que se ve: igual que E salvo las claves en transición
+    const animables = def.animables || {};
+    const pasos = def.pasos || [];
+    const tw = {};                           // clave → { desde, hasta, t, dur }
+    const guion = { activo: false, espera: 0 };
+    const avisa = () => { if (ganchos.cambia) ganchos.cambia(); };
+    const pinta = () => { if (ganchos.pinta) ganchos.pinta(); };
+
+    // Lo que el estado admite de un parche. Una clave que el estado no tiene no entra, y una
+    // clave numérica solo admite números finitos: sin esto un NaN llegaba al lienzo y el mapa
+    // se quedaba sin color con la consola limpia.
+    function limpia(patch) {
+      const out = {};
+      if (!patch || typeof patch !== 'object') return out;
+      for (const k of Object.keys(patch)) {
+        if (!(k in E)) continue;
+        const v = patch[k];
+        if (typeof E[k] === 'number' && !(typeof v === 'number' && isFinite(v))) continue;
+        out[k] = v;
+      }
+      return def.normaliza ? def.normaliza(out, E) : out;
+    }
+
+    // `opc.desdeGuion`: la llama el propio guion y no lo interrumpe; cualquier otro `poner` sí.
+    // `opc.corte`: sin transición. `opc.dur`: segundos por clave, para este parche.
+    function poner(patch, opc) {
+      opc = opc || {};
+      if (!opc.desdeGuion) pausar();
+      const p = limpia(patch);
+      let cambio = false;
+      for (const k of Object.keys(p)) {
+        if (E[k] === p[k] && !(k in tw)) continue;
+        cambio = true;
+        const dur = opc.dur && opc.dur[k] != null ? opc.dur[k] : animables[k];
+        if (k in animables && !ganchos.reducido && !opc.corte && dur > 0 && V[k] !== p[k]) {
+          tw[k] = { desde: V[k], hasta: p[k], t: 0, dur };
+        } else {
+          V[k] = p[k];
+          delete tw[k];
+        }
+        E[k] = p[k];
+      }
+      if (cambio) { avisa(); pinta(); }
+      return cambio;
+    }
+
+    function ir(n, opc) {
+      const i = Math.round(n);
+      if (!(i >= 1 && i <= pasos.length)) return false;
+      const p = pasos[i - 1];
+      const est = typeof p.estado === 'function' ? p.estado(E) : p.estado;
+      poner(Object.assign({ paso: i }, est), Object.assign({ dur: p.tween }, opc));
+      return true;
+    }
+
+    // Cuánto se queda el guion en el paso `i`: lo que tarden en llegar sus transiciones y, después, la pausa del paso o
+    // lo que se tarda en leer su título y su texto, lo que sea más. Revisión del 2026-10-02: con solo la pausa,
+    // «Reproducir» pasaba los pasos del rezago a 450–1 000 palabras por minuto, y eso no lo lee nadie.
+    function lectura(p) {
+      const txt = [p.titulo, p.texto].map(x => typeof x === 'function' ? x(E) : (x || '')).join(' ');
+      return String(txt).replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length / PALABRAS_POR_SEGUNDO;
+    }
+    function espera(i) {
+      const p = pasos[i - 1] || {};
+      const durs = Object.keys(tw).map(k => tw[k].dur);
+      return (durs.length ? Math.max.apply(null, durs) : 0) + Math.max(p.pausa != null ? p.pausa : PAUSA_PASO, lectura(p));
+    }
+
+    function reproducir() {
+      if (guion.activo || !pasos.length) return;
+      const desde = E.paso >= 1 && E.paso < pasos.length ? E.paso : 1;
+      ir(desde, { desdeGuion: true });
+      guion.activo = true;
+      guion.espera = espera(desde);
+      if (ganchos.guion) ganchos.guion(true);
+      pinta();
+    }
+
+    function pausar() {
+      if (!guion.activo) return;
+      guion.activo = false;
+      if (ganchos.guion) ganchos.guion(false);
+    }
+
+    // Un instante de tiempo. Devuelve si algo sigue en marcha (y hay que pedir otro fotograma).
+    function paso(dt) {
+      let sigue = false;
+      for (const k of Object.keys(tw)) {
+        const a = tw[k];
+        a.t += dt / a.dur;
+        if (a.t >= 1) { V[k] = a.hasta; delete tw[k]; } else { V[k] = a.desde + (a.hasta - a.desde) * suave(a.t); sigue = true; }
+      }
+      if (guion.activo) {
+        guion.espera -= dt;
+        if (guion.espera <= 0) {
+          if (E.paso < pasos.length) {
+            ir(E.paso + 1, { desdeGuion: true });
+            guion.espera = espera(E.paso);
+          } else {
+            pausar();
+          }
+        }
+        sigue = sigue || guion.activo;
+      }
+      return sigue;
+    }
+
+    const activo = () => guion.activo || Object.keys(tw).length > 0;
+
+    // `avanza(seg)`: adelanta el reloj `seg` segundos de golpe. Las capturas y la impresión
+    // lo necesitan porque no hay rAF: `avanza(Infinity)` deja el guion en su estado final.
+    function avanza(seg) {
+      let resto = seg === Infinity ? TOPE_AVANZA : Math.max(0, +seg || 0);
+      while (resto > 0 && activo()) {
+        const d = Math.min(PASO_TIEMPO, resto);
+        paso(d);
+        resto -= d;
+      }
+      if (ganchos.pintaYa) ganchos.pintaYa(); else pinta();
+    }
+
+    function reinicia() {
+      pausar();
+      poner(def.inicial(), { corte: true, desdeGuion: true });
+      ir(1, { corte: true, desdeGuion: true });
+    }
+
+    return { E, V, poner, ir, reproducir, pausar, paso, avanza, reinicia, activo, guion, espera, lectura };
+  }
+
+  /* ===================================================================
+     2 · EL GESTO. Cuándo se aplica lo que la pieza devuelve del puntero, y si
+         interrumpe el guion. Sin DOM, así que se prueba en Node.
+     =================================================================== */
+  const UMBRAL_TOQUE = 8;    // px: un dedo que se mueve más que esto está desplazando la página, no eligiendo
+
+  // Tres reglas, cada una de un fallo medido en la revisión del rezago (2026-10-02):
+  //   · UN TOQUE NO ELIGE AL BAJAR EL DEDO. El navegador todavía no sabe si es un toque o el principio de un
+  //     desplazamiento de la página, y elegir al bajar cambiaba el barrio en foco al desplazar con el dedo
+  //     encima del mapa (que en el teléfono ocupa casi toda la pantalla). Elige al levantarlo, si no se movió;
+  //     `cancela` (pointercancel: el navegador se quedó el gesto) lo anula. Con el ratón, al bajar.
+  //   · SALIR DEL LIENZO NO INTERRUMPE EL GUION, como no lo interrumpe pasar por encima. Antes la salida contaba
+  //     como un gesto y paraba «Reproducir».
+  //   · CON EL DEDO NO HAY «PASAR POR ENCIMA»: sus movimientos solo cuentan si la pieza pidió capturar al bajar
+  //     (un arrastre). Así un desplazamiento tampoco pausa el guion.
+  // Y una cuarta, de la revisión de K y g (2026-10-02): LO QUE SE ARRASTRA SE APLICA SIN TRANSICIÓN (`corte`). Cada
+  // movimiento reiniciaba la transición desde cero con una curva que arranca casi parada, y el círculo se quedaba
+  // atrás del dedo (24 → 24.3 con el estado ya en 100). Un clic sí puede animarse: es un salto, no un seguimiento.
+  function gestos(puntero) {
+    let toque = null;        // un toque que todavía no ha elegido: { res, x, y }
+    let arrastre = false;    // la pieza capturó al bajar: los movimientos siguientes son suyos
+    const lejos = (ev, p) => Math.hypot(ev.x - p.x, ev.y - p.y) > UMBRAL_TOQUE;
+    const con = (res, interrumpe, corte) => res ? Object.assign({}, res, { interrumpe, corte: !!corte }) : null;
+    return function (ev, E, V, c) {
+      switch (ev.tipo) {
+        case 'cancela':
+          toque = null; arrastre = false;
+          return null;
+        case 'abajo': {
+          const res = puntero(ev, E, V, c);
+          if (res && res.captura) { toque = null; arrastre = true; return con(res, true, true); }
+          if (ev.tactil) { toque = res && res.poner ? { res, x: ev.x, y: ev.y } : null; return null; }
+          return con(res, true);
+        }
+        case 'mueve':
+          if (toque && lejos(ev, toque)) toque = null;
+          if (ev.tactil && !arrastre) return null;
+          return con(puntero(ev, E, V, c), arrastre, arrastre);
+        case 'arriba': {
+          const elegido = toque && !lejos(ev, toque) ? toque.res : null;
+          toque = null;
+          const res = puntero(ev, E, V, c);
+          const eraArrastre = arrastre;
+          arrastre = false;
+          if (elegido) return con(elegido, true);
+          return con(res, eraArrastre, eraArrastre);
+        }
+        case 'sale':
+          toque = null;
+          return con(puntero(ev, E, V, c), false);
+        default:
+          return null;
+      }
+    };
+  }
+
+  // El siguiente o el anterior de un ciclo, dando la vuelta. `m.n` puede depender del estado.
+  function cicla(m, E, sentido) {
+    const n = typeof m.n === 'function' ? m.n(E) : m.n;
+    return (((E[m.id] + sentido) % n) + n) % n;
+  }
+
+  /* ===================================================================
+     3 · LA API. Una sola lista de claves para la real y la inerte.
+     =================================================================== */
+  function armaApi(impl) {
+    const api = {};
+    CLAVES.forEach(k => {
+      const d = Object.getOwnPropertyDescriptor(impl, k);
+      if (!d) throw new Error('Anim2D: a la API le falta «' + k + '»');
+      // Un descriptor no admite `get` y `value` a la vez, ni siquiera con `value: undefined`.
+      Object.defineProperty(api, k, d.get ? { get: d.get, enumerable: true, configurable: true }
+                                          : { value: d.value, enumerable: true, configurable: true });
+    });
+    return api;
+  }
+
+  function sinAnimacion(cont, causa, def) {
+    cont.innerHTML = '<div class="a2d-sin"><strong>' + causa + '</strong> ' + (def.sinLienzo || '') + '</div>';
+    const nada = () => {};
+    return armaApi({
+      destruir() { cont.innerHTML = ''; cont.classList.remove('a2d'); },
+      ir: nada, poner: nada, reproducir: nada, pausar: nada, avanza: nada, reinicia: nada,
+      get estado() { return {}; }, get visual() { return {}; }
+    });
+  }
+
+  /* ===================================================================
+     4 · ESTILOS. Un <style> propio, con prefijo a2d-, para no pelear con el
+         capítulo ni depender de él. Los de cada pieza van en `def.css`.
+     CONTRASTE (revisión del 2026-10-02, medido): blanco sobre el naranja #FF6600 da 2,94:1 y no llega al 4,5
+     de AA, así que sobre el naranja va la tinta (5,4:1); el anillo de foco va en #b34700 (5,5:1 sobre blanco,
+     el naranja daba 2,9 y no llegaba al 3 de un contorno); y el gris de los textos pequeños pasa de #64748b
+     (4,45–4,52 sobre la tarjeta: sin margen) a #475569.
+     COLORES FORZADOS (Windows, alto contraste): el modo anula los fondos, así que el botón activo no se distinguía
+     de los demás (ahora lleva un contorno), y el fondo del lienzo pasaba a negro bajo una letra de dibujo oscura
+     que no se leía (el lienzo y los paneles se quedan con su fondo: lo que hay dentro lo dibujamos nosotros).
+     LA LEYENDA NO SALTA: las de todos los pasos van apiladas en la misma celda y solo se ve la del paso actual,
+     así que la celda mide lo que la más larga. Antes medía lo que la del paso, y en una columna estrecha el mapa
+     y los mandos se movían hasta 110 px al cambiar de paso.
+     =================================================================== */
+  const CSS = `
+.a2d{--a2d-tinta:#012820;--a2d-verde:#1a7358;--a2d-naranja:#FF6600;--a2d-foco:#b34700;--a2d-gris:#475569;--a2d-linea:#cbd5e1;
+  container-type:inline-size;font-family:'Montserrat','Helvetica Neue',Helvetica,Arial,sans-serif;color:#1e293b;
+  font-size:.9375rem;line-height:1.5;text-align:left}
+.a2d *,.a2d *::before,.a2d *::after{box-sizing:border-box}
+.a2d-rejilla{display:grid;gap:.75rem 1.25rem;grid-template-columns:minmax(0,1fr);
+  grid-template-areas:"pasos" "leyenda" "escena" "paneles" "mandos" "lectura" "pie"}
+.a2d-pasos{grid-area:pasos;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.a2d-paso{display:inline-flex;align-items:center;gap:.45rem;font:inherit;font-size:.8125rem;font-weight:600;cursor:pointer;
+  padding:.3rem .8rem .3rem .35rem;border:1px solid var(--a2d-linea);border-radius:999px;background:#fff;color:var(--a2d-gris);
+  transition:background .2s,border-color .2s,color .2s}
+.a2d-paso:hover{border-color:var(--a2d-naranja);color:var(--a2d-tinta)}
+.a2d-paso:focus-visible,.a2d-btn:focus-visible,.a2d-play:focus-visible{outline:2px solid var(--a2d-foco);outline-offset:2px}
+.a2d-num{display:inline-grid;place-items:center;width:1.45rem;height:1.45rem;border-radius:50%;background:#e8eeeb;
+  color:var(--a2d-tinta);font-size:.75rem;font-weight:700;font-family:'Fira Code',monospace}
+.a2d-paso[aria-current="step"]{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-color:transparent;color:#fff}
+.a2d-paso[aria-current="step"] .a2d-num{background:var(--a2d-naranja);color:var(--a2d-tinta)}
+.a2d-play{margin-left:auto;display:inline-flex;align-items:center;gap:.4rem;font:inherit;font-size:.8125rem;font-weight:600;
+  cursor:pointer;padding:.3rem .9rem;border:1px solid var(--a2d-naranja);border-radius:999px;background:#fff;color:var(--a2d-foco)}
+.a2d-play:hover{background:rgba(255,102,0,.08)}
+.a2d-play[data-activo="true"]{background:var(--a2d-naranja);color:var(--a2d-tinta)}
+.a2d-leyenda{grid-area:leyenda;display:grid;min-height:6.6em}
+.a2d-ley{grid-area:1/1;min-width:0}
+.a2d-ley[aria-hidden="true"]{visibility:hidden}
+.a2d-leyenda h5{margin:0 0 .25rem;font-size:1.0625rem;font-weight:700;color:var(--a2d-tinta);line-height:1.3}
+.a2d-leyenda p{margin:0;color:#334155}
+.a2d-leyenda sub,.a2d-leyenda sup{font-size:.75em;line-height:0}
+.a2d-escena{grid-area:escena;position:relative;min-width:0}
+.a2d-lienzo{position:relative;width:100%;aspect-ratio:4/3;min-height:240px;border:1px solid #e5e7eb;border-radius:.6rem;overflow:hidden;
+  background:#fbfdfc;touch-action:pan-y pinch-zoom;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.a2d-lienzo canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:default;outline:none}
+.a2d-lienzo canvas:focus-visible{outline:2px solid var(--a2d-foco);outline-offset:-3px}
+.a2d-ayuda{position:absolute;left:.7rem;top:.55rem;margin:0;font-size:.6875rem;color:var(--a2d-gris);pointer-events:none;max-width:75%}
+.a2d-paneles{grid-area:paneles;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(11rem,100%),1fr));gap:.6rem}
+.a2d-fig{margin:0;min-width:0}
+.a2d-fig figcaption{font-size:.75rem;font-weight:600;color:var(--a2d-gris);margin-bottom:.15rem}
+.a2d-panel{display:block;width:100%;height:7rem;border:1px solid #e5e7eb;border-radius:.4rem;background:#fff}
+.a2d-mandos{grid-area:mandos;align-self:start;display:flex;flex-wrap:wrap;gap:.75rem 1.5rem;align-items:flex-end}
+.a2d-ctl{display:flex;flex-direction:column;gap:.25rem;min-width:min(11rem,100%);flex:1 1 13rem}
+.a2d-ctl[hidden],.a2d-grupo[hidden]{display:none}
+.a2d-ctl label{display:flex;justify-content:space-between;align-items:center;gap:.5rem;font-size:.8125rem;font-weight:600;color:#374151}
+.a2d-ctl output{font-family:'Fira Code',monospace;font-size:.8125rem;font-weight:600;color:#fff;background:var(--a2d-tinta);
+  border-radius:.375rem;padding:.1rem .5rem;min-width:3.25rem;text-align:center}
+.a2d-ctl input[type=range]{width:100%;accent-color:var(--a2d-naranja);cursor:pointer}
+.a2d-grupo{display:flex;flex-direction:column;gap:.3rem}
+.a2d-grupo>span{font-size:.8125rem;font-weight:600;color:#374151}
+.a2d-botones{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.a2d-btn{font:inherit;font-size:.8rem;font-weight:500;cursor:pointer;padding:.3rem .7rem;border:1px solid #d8e6e0;border-radius:6px;
+  background:#fff;color:var(--a2d-tinta);transition:background .15s,border-color .15s}
+.a2d-btn:hover{background:rgba(255,102,0,.07)}
+.a2d-btn[aria-pressed="true"]{background:var(--a2d-tinta);border-color:var(--a2d-tinta);color:#fff}
+.a2d-ciclo-txt{display:inline-flex;align-items:center;padding:0 .4rem;font-family:'Fira Code',monospace;font-size:.8125rem;color:var(--a2d-tinta)}
+.a2d-lectura{grid-area:lectura;display:flex;flex-wrap:wrap;gap:.35rem 1.5rem;font-family:'Fira Code',monospace;font-size:.8125rem;color:#1e293b}
+.a2d-lectura b{color:var(--a2d-tinta);font-weight:600}
+.a2d-lectura .a2d-r{color:var(--a2d-gris);font-family:'Montserrat',sans-serif;font-size:.75rem}
+.a2d-pie{grid-area:pie;margin:0;font-size:.75rem;color:var(--a2d-gris)}
+.a2d-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.a2d-cargando{margin:0;min-height:14rem;display:grid;place-items:center;text-align:center;padding:1rem;color:#475569;font-size:.875rem;
+  border:1px dashed #cbd5e1;border-radius:.6rem;background:#fff}
+.a2d-sin{padding:1rem;border:1px dashed #cbd5e1;border-radius:.5rem;background:#fff;color:#475569;font-size:.875rem}
+@container (max-width:560px){
+  .a2d-paso:not([aria-current="step"]) .a2d-rot{display:none}
+  .a2d-paso:not([aria-current="step"]){padding-right:.35rem}
+  .a2d-lienzo{aspect-ratio:1/.9}
+  .a2d-ayuda{display:none}
+}
+@media (prefers-reduced-motion:reduce){.a2d *{transition:none!important}}
+@media (forced-colors:active){
+  .a2d-lienzo,.a2d-panel{forced-color-adjust:none;background:#fff}
+  .a2d-paso[aria-current="step"],.a2d-btn[aria-pressed="true"],.a2d-play[data-activo="true"]{outline:3px solid CanvasText;outline-offset:1px}
+}
+@media print{.a2d-play,.a2d-mandos,.a2d-pasos,.a2d-ayuda{display:none}.a2d{break-inside:avoid}}
+`;
+
+  function estilos(doc, extra) {
+    if (!doc.getElementById('a2d-css')) {
+      const st = doc.createElement('style');
+      st.id = 'a2d-css';
+      st.textContent = CSS;
+      doc.head.appendChild(st);
+    }
+    if (extra && extra.id && !doc.getElementById(extra.id)) {
+      const st = doc.createElement('style');
+      st.id = extra.id;
+      st.textContent = extra.css;
+      doc.head.appendChild(st);
+    }
+  }
+
+  /* ===================================================================
+     5 · EL MONTAJE. Aquí empieza el DOM.
+     =================================================================== */
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+  function andamio(def, ID) {
+    const pasos = (def.pasos || []).map((p, i) =>
+      `<button type="button" class="a2d-paso" data-paso="${i + 1}" aria-label="Paso ${i + 1}: ${esc(p.corto)}">` +
+      `<span class="a2d-num">${i + 1}</span><span class="a2d-rot">${p.corto}</span></button>`).join('');
+    const mandos = (def.mandos || []).map((m, i) => {
+      if (m.tipo === 'deslizador') {
+        // el <output> es un `status` implícito y se anunciaba en cada valor, encima de lo que dice el propio deslizador
+        return `<div class="a2d-ctl" data-mando="${i}"><label for="${ID}-m${i}">${m.etiqueta} <output for="${ID}-m${i}" aria-live="off"></output></label>` +
+               `<input type="range" id="${ID}-m${i}" min="${m.min}" max="${m.max}" step="${m.paso || 1}" value="${m.min}"></div>`;
+      }
+      if (m.tipo === 'botones') {
+        return `<div class="a2d-grupo" data-mando="${i}" role="group" aria-labelledby="${ID}-g${i}"><span id="${ID}-g${i}">${m.etiqueta}</span><div class="a2d-botones">` +
+               m.opciones.map((o, j) => `<button type="button" class="a2d-btn" data-j="${j}" aria-pressed="false">${o[1]}</button>`).join('') +
+               '</div></div>';
+      }
+      // Un grupo con nombre: sin él, un lector decía «Torre, botón, presionado» sin decir de qué. Y el texto del ciclo ya
+      // no es una región viva: se reescribía en cada cambio de estado y repetía «barrio 7» al mover k o el ratón. Lo
+      // que cambia lo dice ahora la única región viva, `[data-anuncio]`, con lo que la pieza cuente en `anuncio`.
+      return `<div class="a2d-grupo" data-mando="${i}" role="group" aria-labelledby="${ID}-g${i}"><span id="${ID}-g${i}">${m.etiqueta}</span><div class="a2d-botones">` +
+             `<button type="button" class="a2d-btn" data-sentido="-1" aria-label="${esc(m.anterior || 'Anterior')}">‹</button>` +
+             '<span class="a2d-ciclo-txt"></span>' +
+             `<button type="button" class="a2d-btn" data-sentido="1" aria-label="${esc(m.siguiente || 'Siguiente')}">›</button></div></div>`;
+    }).join('');
+    const paneles = (def.paneles || []).map((p, i) =>
+      `<figure class="a2d-fig"><figcaption>${p.etiqueta}</figcaption>` +
+      `<canvas class="a2d-panel" data-panel="${i}" role="img" aria-label="${esc(p.aria)}"></canvas></figure>`).join('');
+    return `
+<div class="a2d-rejilla">
+  <div class="a2d-pasos" role="group" aria-label="Pasos de la animación">${pasos}
+    <button type="button" class="a2d-play" data-activo="false"><span class="a2d-play-ico" aria-hidden="true">▶</span><span class="a2d-play-txt">Reproducir</span></button>
+  </div>
+  <div class="a2d-leyenda">${(def.pasos || []).map((p, i) => `<div class="a2d-ley" data-ley="${i + 1}"><h5></h5><p></p></div>` +
+    (def.sondas || []).map(() => '<div class="a2d-ley a2d-sonda" aria-hidden="true"><h5></h5><p></p></div>').join('')).join('')}</div>
+  <p class="a2d-sr" aria-live="polite" data-anuncio></p>
+  <div class="a2d-escena">
+    <div class="a2d-lienzo">
+      <canvas class="a2d-principal" tabindex="0" role="img" aria-label="${esc(def.aria)}" aria-describedby="${ID}-ayuda ${ID}-estado"></canvas>
+      <p class="a2d-ayuda" aria-hidden="true">${def.ayuda || ''}</p>
+    </div>
+    <p class="a2d-sr" id="${ID}-ayuda">${def.ayudaTeclado || ''}</p>
+    <p class="a2d-sr" id="${ID}-estado"></p>
+  </div>
+  <div class="a2d-paneles">${paneles}</div>
+  <div class="a2d-mandos">${mandos}
+    <div class="a2d-grupo"><div class="a2d-botones"><button type="button" class="a2d-btn" data-reinicia>Reiniciar</button></div></div>
+  </div>
+  <div class="a2d-lectura" role="group" aria-label="Lectura numérica"></div>
+  <p class="a2d-pie">${def.pie || ''}</p>
+</div>`;
+  }
+
+  let contador = 0;
+
+  function monta(cont, def, opc) {
+    opc = opc || {};
+    const doc = cont.ownerDocument;
+    const win = doc.defaultView || global;
+    const prueba = doc.createElement('canvas');
+    if (!prueba.getContext || !prueba.getContext('2d')) return sinAnimacion(cont, 'Este navegador no puede dibujar el lienzo.', def);
+    estilos(doc, def.css ? { id: 'a2d-css-' + def.id, css: def.css } : null);
+
+    // La preferencia se lee cada vez que hace falta, no una al montar: activarla con la página abierta debe valer ya.
+    const mqReducido = win.matchMedia ? win.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    const ID = 'a2d' + (++contador);
+    cont.classList.add('a2d');
+    cont.innerHTML = andamio(def, ID);
+    const $ = s => cont.querySelector(s);
+
+    const lienzo = $('.a2d-principal');
+    const ctx = lienzo.getContext('2d');
+    const botonPlay = $('.a2d-play');
+    const paneles = Array.prototype.slice.call(cont.querySelectorAll('.a2d-panel')).map((cv, i) => ({ cv, ctx: cv.getContext('2d'), def: def.paneles[i] }));
+    let vivo = true, visible = true, raf = 0, previo = 0;
+
+    /* ---- la máquina, con los ganchos que la conectan al DOM ---- */
+    const M = maquina(def, {
+      get reducido() { return !!(mqReducido && mqReducido.matches); },
+      cambia: () => { try { sincroniza(); } catch (e) { falla(e); } },
+      pinta: () => pide(),
+      pintaYa: () => pintaYa(),
+      guion: on => {
+        botonPlay.dataset.activo = on ? 'true' : 'false';
+        // «❚❚ Pausar» mientras corre, como el 3D del capítulo 5 (antes decía «▶ Pausa»: el icono no cambiaba)
+        botonPlay.querySelector('.a2d-play-ico').textContent = on ? '❚❚' : '▶';
+        botonPlay.querySelector('.a2d-play-txt').textContent = on ? 'Pausar' : 'Reproducir';
+      }
+    });
+
+    /* ---- el tamaño: un lienzo con DPR ≤ 2 ---- */
+    const geo = { w: 0, h: 0, dpr: 1 };
+    function ajustaLienzo(cv, c2) {
+      const dpr = Math.min(win.devicePixelRatio || 1, 2);
+      const w = cv.clientWidth, h = cv.clientHeight;
+      if (!w || !h) return null;
+      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+        cv.width = Math.round(w * dpr);
+        cv.height = Math.round(h * dpr);
+      }
+      c2.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx: c2, w, h, dpr };
+    }
+
+    function pintaYa() {
+      if (!vivo) return;
+      try {
+        const c = ajustaLienzo(lienzo, ctx);
+        if (c) {
+          geo.w = c.w; geo.h = c.h; geo.dpr = c.dpr;
+          c.ctx.clearRect(0, 0, c.w, c.h);
+          def.dibuja(c, M.E, M.V);
+        }
+        if (def.panel) {
+          paneles.forEach(p => {
+            const cp = ajustaLienzo(p.cv, p.ctx);
+            if (!cp) return;
+            cp.ctx.clearRect(0, 0, cp.w, cp.h);
+            def.panel(cp, p.def.id, M.E, M.V);
+          });
+        }
+      } catch (e) {
+        falla(e);
+      }
+    }
+
+    // UN FALLO DESPUÉS DE MONTAR (auditoría del 2026-10-02). El primer dibujo no ocurre dentro de `monta`: llega en un
+    // rAF o en el ResizeObserver, y si fallaba el lienzo quedaba en blanco, la consola se llenaba de «Uncaught» en cada
+    // fotograma y el texto de reserva no volvía. Ahora un fallo al dibujar o al escribir los textos desmonta la animación
+    // y deja el texto de reserva de quien la montó (`opc.reserva`) o, sin él, el aviso de `sinAnimacion`.
+    function falla(e) {
+      if (!vivo) return;
+      destruir();
+      if (opc.reserva != null) cont.innerHTML = opc.reserva;
+      else sinAnimacion(cont, 'La animación dejó de funcionar.', def);
+      if (win.console) win.console.error('anim2d: la animación falló y se ha desmontado', e);
+    }
+
+    /* ---- el bucle, a demanda: solo corre mientras algo se mueve ---- */
+    function pide() {
+      if (!raf && vivo && visible) raf = win.requestAnimationFrame(fotograma);
+    }
+    function fotograma(ts) {
+      raf = 0;
+      if (!vivo || !visible) { previo = 0; return; }
+      const dt = previo ? Math.min(0.1, (ts - previo) / 1000) : 1 / 60;
+      previo = ts;
+      const sigue = M.paso(dt);
+      pintaYa();
+      if (sigue) pide(); else previo = 0;
+    }
+
+    /* ---- lo que depende del estado y no de cada fotograma: textos, mandos, lectura ---- */
+    const pasoBotones = Array.prototype.slice.call(cont.querySelectorAll('.a2d-paso'));
+    const leyendas = Array.prototype.slice.call(cont.querySelectorAll('.a2d-ley:not(.a2d-sonda)'));
+    const sondas = Array.prototype.slice.call(cont.querySelectorAll('.a2d-sonda'));
+    const anuncio = $('[data-anuncio]');
+    const ctls = Array.prototype.slice.call(cont.querySelectorAll('[data-mando]'));
+
+    // Un texto solo se reescribe si cambió: reescribir el mismo HTML recrea los nodos, y pasar el puntero por encima
+    // del mapa llama a esto en cada barrio. Las leyendas de todos los pasos se escriben (están apiladas: la celda mide
+    // lo que la más larga), y se anuncia solo el título del paso al que se llega, no cada cambio de su texto.
+    const ult = { leyendas: [], sondas: [], paso: null, lectura: null, estado: null, E: null };
+    // UNA SOLA REGIÓN VIVA, y solo dice lo que cambió (auditoría del 2026-10-02). Antes el texto del ciclo era otra región
+    // viva y se reescribía en cada `sincroniza`: mover k o pasar el ratón repetía «barrio 7», y la cuenta, K o g no se
+    // anunciaban nunca. `callado`: el cambio viene de un deslizador, que ya dice su valor (`aria-valuetext`).
+    let callado = false;
+    const anuncia = t => { if (t && anuncio.textContent !== t) anuncio.textContent = t; };
+    const ponTexto = (el, t) => { if (el.textContent !== t) el.textContent = t; };
+    const ponAtributo = (el, a, v) => { if (el.getAttribute(a) !== v) el.setAttribute(a, v); };
+
+    // El estado con que se escribe la leyenda de un paso que NO es el actual: el que ese paso pondría. Así la celda
+    // mide lo mismo vaya uno al paso que vaya (con el estado actual, la del paso 2 escrita con k = 70 era más larga
+    // que escrita con k = 1, y el mapa se movía 24 px al llegar al paso 4).
+    function estadoDelPaso(p, E) {
+      const est = typeof p.estado === 'function' ? p.estado(E) : (p.estado || {});
+      return Object.assign({}, E, def.normaliza ? def.normaliza(Object.assign({}, est), E) : est);
+    }
+
+    // LA LEYENDA NO ENCOGE MIENTRAS NO CAMBIE EL ANCHO. Las de todos los pasos van apiladas, pero el texto del paso
+    // actual cambia con el estado (una frase condicional, una cifra con más dígitos) y empujaba el mapa dentro de un
+    // mismo paso hasta 73 px; arrastrando el borde del círculo, el lienzo se movía bajo el puntero. Ahora la celda
+    // guarda el mayor alto que ha tenido, y lo olvida solo cuando cambia el ancho (el ResizeObserver).
+    const leyendaCaja = $('.a2d-leyenda');
+    let altoLeyenda = 0, anchoLeyenda = 0;
+    function fijaLeyenda() {
+      const w = leyendaCaja.clientWidth;
+      if (w !== anchoLeyenda) { anchoLeyenda = w; altoLeyenda = 0; leyendaCaja.style.minHeight = ''; }
+      const h = leyendaCaja.offsetHeight;
+      if (h > altoLeyenda) { altoLeyenda = h; leyendaCaja.style.minHeight = h + 'px'; }
+    }
+
+    function sincroniza() {
+      if (!vivo) return;
+      const E = M.E;
+      (def.pasos || []).forEach((p, i) => {
+        const Ei = i + 1 === E.paso ? E : estadoDelPaso(p, E);
+        const tit = typeof p.titulo === 'function' ? p.titulo(Ei) : p.titulo;
+        const html = typeof p.texto === 'function' ? p.texto(Ei) : p.texto;
+        const el = leyendas[i];
+        if (ult.leyendas[i] !== tit + '|' + html) {
+          ult.leyendas[i] = tit + '|' + html;
+          el.querySelector('h5').textContent = tit;
+          el.querySelector('p').innerHTML = html;
+        }
+        if (i + 1 === E.paso) el.removeAttribute('aria-hidden'); else el.setAttribute('aria-hidden', 'true');
+        // las sondas: la misma leyenda escrita con los estados que la alargan, oculta, solo para que la celda mida eso
+        (def.sondas || []).forEach((s, k) => {
+          const Es = Object.assign({}, Ei, def.normaliza ? def.normaliza(Object.assign({}, s), Ei) : s);
+          const ts = typeof p.titulo === 'function' ? p.titulo(Es) : p.titulo, hs = typeof p.texto === 'function' ? p.texto(Es) : p.texto;
+          const q = i * def.sondas.length + k, sd = sondas[q];
+          if (ult.sondas[q] !== ts + '|' + hs) { ult.sondas[q] = ts + '|' + hs; sd.querySelector('h5').textContent = ts; sd.querySelector('p').innerHTML = hs; }
+        });
+      });
+      if (ult.paso !== E.paso) {
+        const p = (def.pasos || [])[E.paso - 1];
+        if (ult.paso !== null && p) anuncia('Paso ' + E.paso + ': ' + (typeof p.titulo === 'function' ? p.titulo(E) : p.titulo));
+        ult.paso = E.paso;
+      } else if (def.anuncio && ult.E && !callado) {
+        anuncia(def.anuncio(E, ult.E));
+      }
+      ult.E = Object.assign({}, E);
+      pasoBotones.forEach((b, i) => { if (i + 1 === E.paso) ponAtributo(b, 'aria-current', 'step'); else if (b.hasAttribute('aria-current')) b.removeAttribute('aria-current'); });
+      ctls.forEach(el => {
+        const m = def.mandos[+el.dataset.mando];
+        el.hidden = !!(m.visible && !m.visible(E));
+        if (m.tipo === 'deslizador') {
+          const inp = el.querySelector('input');
+          if (+inp.value !== E[m.id]) inp.value = E[m.id];
+          const txt = m.salida ? m.salida(E[m.id], E) : String(E[m.id]);
+          ponTexto(el.querySelector('output'), txt);
+          // la etiqueta ya la lee el <label>: repetirla la decía dos veces
+          ponAtributo(inp, 'aria-valuetext', m.valorTexto ? m.valorTexto(E[m.id], E) : txt);
+        } else if (m.tipo === 'botones') {
+          el.querySelectorAll('.a2d-btn').forEach(b => ponAtributo(b, 'aria-pressed', String(m.opciones[+b.dataset.j][0] === E[m.id])));
+        } else {
+          ponTexto(el.querySelector('.a2d-ciclo-txt'), m.texto(E[m.id], E));
+        }
+      });
+      if (def.lectura) {
+        const html = def.lectura(E).map(l => `<span><span class="a2d-r">${l[0]}</span> <b>${l[1]}</b></span>`).join('');
+        if (ult.lectura !== html) { ult.lectura = html; $('.a2d-lectura').innerHTML = html; }
+      }
+      if (def.alt) {
+        const t = def.alt(E);
+        if (ult.estado !== t) { ult.estado = t; $('#' + ID + '-estado').textContent = t; }
+      }
+      fijaLeyenda();
+    }
+
+    /* ---- los mandos: cualquier gesto del usuario interrumpe el guion (lo hace `poner`) ---- */
+    ctls.forEach(el => {
+      const m = def.mandos[+el.dataset.mando];
+      if (m.tipo === 'deslizador') {
+        el.querySelector('input').addEventListener('input', e => {
+          callado = true;                                            // ya lo dice su `aria-valuetext`
+          try { M.poner({ [m.id]: +e.target.value }, { corte: true }); } finally { callado = false; }   // se arrastra: sin transición
+        });
+      } else if (m.tipo === 'botones') {
+        el.addEventListener('click', e => {
+          const b = e.target.closest('.a2d-btn');
+          if (b) M.poner({ [m.id]: m.opciones[+b.dataset.j][0] });
+        });
+      } else {
+        el.addEventListener('click', e => {
+          const b = e.target.closest('.a2d-btn');
+          if (b) M.poner({ [m.id]: cicla(m, M.E, +b.dataset.sentido) });
+        });
+      }
+    });
+    pasoBotones.forEach(b => b.addEventListener('click', () => { M.pausar(); M.ir(+b.dataset.paso); }));
+    botonPlay.addEventListener('click', () => { if (M.guion.activo) M.pausar(); else M.reproducir(); });
+    $('[data-reinicia]').addEventListener('click', () => M.reinicia());
+
+    /* ---- el puntero y el teclado sobre el lienzo ---- */
+    const gesto = gestos((ev, E, V, c) => def.puntero(ev, E, V, c));
+    function despacha(tipo, e) {
+      if (!def.puntero) return;
+      const r = lienzo.getBoundingClientRect();
+      const res = gesto({ tipo, x: e.clientX - r.left, y: e.clientY - r.top, tactil: e.pointerType === 'touch' }, M.E, M.V, geo);
+      if (!res) return;
+      if (res.cursor !== undefined) lienzo.style.cursor = res.cursor;
+      // un arrastre (corte) no se anuncia en cada movimiento: la región viva diría veinte radios seguidos
+      if (res.poner) {
+        callado = !!res.corte;
+        try { M.poner(res.poner, { desdeGuion: !res.interrumpe, corte: res.corte }); } finally { callado = false; }
+      }
+      if (tipo === 'abajo' && res.captura) {
+        try { lienzo.setPointerCapture(e.pointerId); } catch (_) { /* el puntero ya no está activo */ }
+      }
+    }
+    lienzo.addEventListener('pointerdown', e => { if (e.button === 0 || e.pointerType === 'touch') despacha('abajo', e); });
+    lienzo.addEventListener('pointermove', e => despacha('mueve', e));
+    lienzo.addEventListener('pointerup', e => despacha('arriba', e));
+    lienzo.addEventListener('pointercancel', e => despacha('cancela', e));
+    lienzo.addEventListener('pointerleave', e => despacha('sale', e));
+    lienzo.addEventListener('keydown', e => {
+      if (!def.tecla || e.altKey || e.ctrlKey || e.metaKey) return;
+      const r = def.tecla({ key: e.key, shiftKey: e.shiftKey }, M.E, M.V);
+      if (r) { e.preventDefault(); M.poner(r, { corte: true }); }   // una tecla mantenida es un arrastre: sin transición
+    });
+
+    /* ---- tamaño, visibilidad, impresión ---- */
+    const ro = win.ResizeObserver ? new win.ResizeObserver(() => { pintaYa(); fijaLeyenda(); }) : null;
+    if (ro) { ro.observe($('.a2d-lienzo')); paneles.forEach(p => ro.observe(p.cv)); }
+    const io = win.IntersectionObserver ? new win.IntersectionObserver(es => {
+      visible = es[es.length - 1].isIntersecting;         // un lote puede traer varias: vale la última
+      if (visible) pide(); else M.pausar();
+    }) : null;
+    if (io) io.observe(cont);
+    // Imprimir pone el paso de impresión y, al acabar, devuelve lo que había: quien imprime a mitad de explorar
+    // no pierde su estado.
+    let antesDeImprimir = null;
+    const alImprimir = () => {
+      antesDeImprimir = Object.assign({}, M.E);
+      M.pausar(); M.ir(def.pasoImpresion || (def.pasos || []).length, { corte: true }); pintaYa();
+    };
+    const trasImprimir = () => {
+      if (!antesDeImprimir) return;
+      M.poner(antesDeImprimir, { corte: true, desdeGuion: true });
+      antesDeImprimir = null;
+      pintaYa();
+    };
+    win.addEventListener('beforeprint', alImprimir);
+    win.addEventListener('afterprint', trasImprimir);
+
+    function destruir() {
+      vivo = false;
+      if (raf) win.cancelAnimationFrame(raf);
+      raf = 0;
+      if (ro) ro.disconnect();
+      if (io) io.disconnect();
+      win.removeEventListener('beforeprint', alImprimir);
+      win.removeEventListener('afterprint', trasImprimir);
+      cont.innerHTML = '';
+      cont.classList.remove('a2d');
+    }
+
+    // Si el primer dibujo o la primera lectura fallan, los observadores y los oyentes de impresión ya están puestos:
+    // se quitan todos antes de dejar subir el error (quien monta devuelve su texto de reserva). Antes quedaban vivos,
+    // también tras cambiar de módulo, y cada impresión lanzaba dos excepciones.
+    try {
+      sincroniza();
+      pide();
+    } catch (e) {
+      destruir();
+      throw e;
+    }
+    // El lienzo no se redibuja solo cuando llega una fuente: si Montserrat o Fira Code tardan, el primer dibujo
+    // sale con la de reserva y se quedaría así.
+    if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(() => { if (vivo) pintaYa(); });
+    // Una API destruida no hace nada (antes `ir()` lanzaba un TypeError sobre el DOM ya vacío).
+    const vive = f => (...a) => vivo ? f(...a) : undefined;
+    return armaApi({
+      destruir,
+      ir: vive(n => M.ir(n)),
+      poner: vive((p, o) => M.poner(p, o)),
+      reproducir: vive(M.reproducir),
+      pausar: vive(M.pausar),
+      avanza: vive(s => M.avanza(s)),
+      reinicia: vive(M.reinicia),
+      get estado() { return Object.assign({}, M.E); },
+      get visual() { return Object.assign({}, M.V); }
+    });
+  }
+
+  const Anim2D = { monta, estilos, maquina, gestos, cicla, UMBRAL_TOQUE, CLAVES, armaApi, sinAnimacion };
+  global.Anim2D = Anim2D;
+  if (typeof module === 'object' && module.exports) module.exports = Anim2D;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* =====================================================================
+   kanillo2d.js — «K cuenta un disco, g mira un anillo»
+
+   Material de Estadística Espacial 2026-II (20929). Capítulo 4, módulos 8 y 9.
+   Corre sobre la cáscara `anim2d.js` (`Anim2D.monta`). Es su segunda pieza, después del rezago del
+   capítulo 6.
+
+   DOS ESCENAS, UN MOTOR (`opc.escena`):
+     · 'disco', en el módulo 8: un punto y su disco (lo que cuenta K), el disco que crece y no suelta a
+       nadie, todas las parejas que la fórmula suma, y el borde que esconde vecinos (el peso w_ij).
+     · 'anillo', en el módulo 9: el disco de un punto de un grupo, el mismo disco más lejos (sigue
+       contando lo de cerca), el anillo de esa distancia (lo que mira g), y todas las parejas en uno y
+       en otro. Es la lección del módulo: K es acumulativa y no sabe decir DÓNDE está la estructura.
+
+   LO QUE SE CALCULA AQUÍ Y LO QUE SE LEE. K se calcula aquí, exacta, pareja a pareja, con el peso de
+   traslación del capítulo (|W| / |W ∩ (W + xᵢ − xⱼ)|) o sin él; y las cuentas de cada punto en su disco
+   o en su anillo. `prueba_kanillo2d.py` lo compara con `Kest` y con las cuentas de R
+   (`genera_cap4_kanillo2d.R`). La g NO se calcula: se traza la publicada (`D4.m9`, de `pcf`), porque
+   spatstat la suaviza en la escala del área con un núcleo, y un anillo de ancho fijo no la reproduce
+   (en las secuoyas, con ancho 0.02, la cuenta cruda pasa de 5 donde `pcf` da 3.28). El anillo se dibuja
+   para VER qué parejas están a esa distancia; su ancho (2 · H_ANILLO) va declarado en el pie.
+
+   UNA PAREJA A DISTANCIA r ESTÁ EN EL DISCO DE RADIO r. Las coordenadas de los pinos vienen en una
+   rejilla de 0.01 y las de las secuoyas en una de 0.02, y muchas parejas caen exactamente en un nodo de r: se cuentan dentro
+   (d ≤ r, con una tolerancia EPS para que no decida la raíz en coma flotante). `Kest` no siempre lo hace
+   así en esos nodos, y la curva publicada del capítulo los cuenta a medias (interpola la rejilla de
+   `Kest`): por eso esta K puede diferir de la del simulador de abajo en distancias cortas, y el pie lo
+   dice.
+
+   LO QUE LA LECTURA NO DICE: «significativo». Sin la banda del azar (módulo 11) una desviación sola no
+   establece nada. La lectura dice si g o K/πr² quedan por encima o por debajo de 1, con la cifra, y lleva
+   la fila «¿es significativo?» del simulador de K y L; nunca «hay más (o menos) parejas que el azar», que
+   sobre los pinos —el patrón al azar del capítulo— se leía como un hallazgo (auditoría del 2026-10-02: lo
+   decía en 35 de los 101 r). Y sin la zona de «casi» del ±10 %: la definición del capítulo, de la clave de
+   T3 y del Quiz 2 es la estricta (g ≤ 1). Y el
+   texto no afirma que g se quede en 1 después de volver (en las secuoyas vuelve a pasarlo, 1.04 en
+   r = 0.15), ni que su máximo marque la escala: son dos lecturas equivocadas frecuentes.
+
+   CADA FRASE DE UN PASO TIENE QUE SER CIERTA EN CUALQUIER ESTADO al que se llegue con los mandos (revisión
+   del 2026-10-02): «arrastra» solo pasado el r en que la g publicada vuelve a 1 (los pinos no vuelven, y su
+   K/πr² de 1.55 en r = 0.01 es UNA pareja empatada); «frente a las M del disco» solo si el anillo tiene
+   menos; sin K que comparar, no se compara; y un anillo vacío no tiene «más parejas que el azar».
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  /* ===================================================================
+     1 · MATEMÁTICA. Sin DOM.
+     =================================================================== */
+  const EPS = 1e-9;            // una pareja a distancia r (empate) está dentro del disco de radio r
+  const H_ANILLO = 0.01;       // medio ancho del anillo que se dibuja
+  const PASO_R = 0.0025;       // la rejilla de r de las curvas del capítulo: 101 nodos, de 0 a 0.25
+  const NODOS = 100;
+  const R_GRUPO = 0.145;       // el r con que se elige el punto de un grupo (y el del paso 2 del anillo si g no vuelve)
+  const R_BORDE = 0.15;        // el r con que se elige el punto del borde
+  const PATRONES = ['cells', 'japanesepines', 'redwood'];
+  const rDe = i => i * PASO_R;
+
+  // Todo lo de un patrón que no depende del estado: distancias y pesos de cada pareja, una vez.
+  function prepara(p) {
+    const n = p.x.length;
+    if (!(n >= 2) || p.y.length !== n) throw new Error('kanillo2d: un patrón necesita al menos dos puntos y tantas y como x');
+    const v = p.ventana, a = v[2] - v[0], b = v[3] - v[1], A = a * b;
+    if (!(a > 0 && b > 0)) throw new Error('kanillo2d: la ventana no tiene área');
+    const d = new Float64Array(n * n), w = new Float64Array(n * n);
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        const dx = p.x[i] - p.x[j], dy = p.y[i] - p.y[j];
+        d[i * n + j] = Math.sqrt(dx * dx + dy * dy);                         // como R: sqrt(dx^2 + dy^2)
+        w[i * n + j] = A / ((a - Math.abs(dx)) * (b - Math.abs(dy)));        // traslación: |W| / |W ∩ (W + xᵢ − xⱼ)|
+      }
+    }
+    return { nombre: p.nombre, n, A, a, b, v, x: p.x, y: p.y, d, w };
+  }
+
+  const dentroDisco = (dd, r) => dd <= r + EPS;
+  const dentroAnillo = (dd, r, h) => dd >= Math.max(0, r - h) - EPS && dd <= r + h + EPS;
+
+  // Los vecinos de un punto en su disco (con peso o sin él) y en su anillo (sin peso: es para verlos).
+  function cuentaDisco(P, i, r, peso) {
+    let s = 0;
+    for (let j = 0; j < P.n; j++) if (j !== i && dentroDisco(P.d[i * P.n + j], r)) s += peso ? P.w[i * P.n + j] : 1;
+    return s;
+  }
+  function cuentaAnillo(P, i, r, h) {
+    let s = 0;
+    for (let j = 0; j < P.n; j++) if (j !== i && dentroAnillo(P.d[i * P.n + j], r, h)) s++;
+    return s;
+  }
+
+  // K̂(r) = |W| / (n (n − 1)) · Σ_{i≠j} w_ij 1{d_ij ≤ r}, con w_ij = 1 si no se corrige.
+  function K(P, r, peso) {
+    let s = 0;
+    for (let i = 0; i < P.n; i++) s += cuentaDisco(P, i, r, peso);
+    return P.A / (P.n * (P.n - 1)) * s;
+  }
+  const curvaK = (P, peso) => Array.from({ length: NODOS + 1 }, (_, i) => K(P, rDe(i), peso));
+
+  // Lo que daría el azar a UN punto en un disco o un anillo ENTERO: la intensidad de los otros, (n − 1)/|W|, por el área.
+  const lambdaOtros = P => (P.n - 1) / P.A;
+  const azarDisco = (P, r) => lambdaOtros(P) * Math.PI * r * r;
+  const azarAnillo = (P, r, h) => lambdaOtros(P) * Math.PI * ((r + h) * (r + h) - Math.pow(Math.max(0, r - h), 2));
+
+  // Las parejas (i < j) que entran: en el disco de radio r, o en el anillo [r − h, r + h].
+  function parejas(P, r, h, anillo) {
+    const out = [];
+    for (let i = 0; i < P.n; i++) {
+      for (let j = i + 1; j < P.n; j++) {
+        const dd = P.d[i * P.n + j];
+        if (anillo ? dentroAnillo(dd, r, h) : dentroDisco(dd, r)) out.push(i, j);
+      }
+    }
+    return out;
+  }
+
+  const borde = (P, i) => Math.min(P.x[i] - P.v[0], P.v[2] - P.x[i], P.y[i] - P.v[1], P.v[3] - P.y[i]);
+
+  // El punto de partida: el de más vecinos a R_GRUPO entre los que tienen ese disco entero dentro de la ventana
+  // (en las secuoyas, uno de un grupo); a igualdad, el de más vecinos muy cerca, y después el de índice menor.
+  function focoGrupo(P) {
+    let mejor = -1, c1 = -1, c2 = -1;
+    for (let i = 0; i < P.n; i++) {
+      if (borde(P, i) < R_GRUPO) continue;
+      const a = cuentaDisco(P, i, R_GRUPO, false), b = cuentaDisco(P, i, 0.04, false);
+      if (a > c1 || (a === c1 && b > c2)) { mejor = i; c1 = a; c2 = b; }
+    }
+    return mejor < 0 ? 0 : mejor;
+  }
+
+  // El del paso del borde: el más pegado a él entre los que tienen al menos tres vecinos a R_BORDE.
+  function focoBorde(P) {
+    let mejor = -1, db = Infinity;
+    for (let pasada = 0; pasada < 2 && mejor < 0; pasada++) {
+      for (let i = 0; i < P.n; i++) {
+        if (pasada === 0 && cuentaDisco(P, i, R_BORDE, false) < 3) continue;
+        if (borde(P, i) < db) { db = borde(P, i); mejor = i; }
+      }
+    }
+    return mejor;
+  }
+
+  // ---- la geometría: el cuadrado de la ventana dentro del lienzo, sin deformar ----
+  function ajuste(w, h, v, m) {
+    const dw = v[2] - v[0], dh = v[3] - v[1];
+    const aw = w - m.l - m.r, ah = h - m.t - m.b;
+    const s = Math.max(1e-9, Math.min(aw / dw, ah / dh));
+    const ox = m.l + (aw - dw * s) / 2, oy = m.t + (ah - dh * s) / 2;
+    return {
+      s, ox, oy,
+      x: u => ox + (u - v[0]) * s,
+      y: u => oy + (v[3] - u) * s,                // y hacia arriba, como en el mapa
+      ux: px => v[0] + (px - ox) / s,
+      uy: py => v[3] - (py - oy) / s
+    };
+  }
+
+  // El punto más cercano a un píxel, si está a menos de `tol` píxeles; si no, −1.
+  function puntoEn(P, aj, px, py, tol) {
+    let mejor = -1, dm = tol;
+    for (let i = 0; i < P.n; i++) {
+      const dd = Math.hypot(aj.x(P.x[i]) - px, aj.y(P.y[i]) - py);
+      if (dd <= dm) { dm = dd; mejor = i; }
+    }
+    return mejor;
+  }
+
+  const Mat = { EPS, H_ANILLO, PASO_R, NODOS, R_GRUPO, R_BORDE, PATRONES, rDe, prepara, cuentaDisco, cuentaAnillo, K, curvaK,
+                lambdaOtros, azarDisco, azarAnillo, parejas, borde, focoGrupo, focoBorde, ajuste, puntoEn };
+
+  /* ===================================================================
+     2 · LA PIEZA. Lo que se dibuja y lo que se cuenta; el resto es de `Anim2D`.
+     =================================================================== */
+  const VERDE = '#1a7358', MORADO = '#7B3FA0', NARANJA = '#FF6600', TINTA = '#012820', GRIS = '#64748b';   // gris de 4.8:1 sobre blanco (el de antes daba 2.6)
+  const ESCENAS = ['disco', 'anillo'];
+  const f2 = x => x.toFixed(2), f4 = x => x.toFixed(4);
+  const rTxt = i => f4(rDe(i));
+  const ent = x => String(Math.round(x));
+  // Frente al azar, en palabras que no son un veredicto y con el criterio estricto del capítulo (g ≤ 1, no ±10 %).
+  const frente = q => !(q >= 0) ? 'sin referencia' : q > 1 ? 'por encima' : q < 1 ? 'por debajo' : 'justo encima';
+  const BANDA = 'si eso es más que el azar lo dice la envolvente del módulo 11';
+
+  function creaDef(datos, opc) {
+    opc = opc || {};
+    const escena = opc.escena || 'anillo';
+    if (ESCENAS.indexOf(escena) < 0) throw new Error('kanillo2d: escena desconocida «' + escena + '»');
+    const ANILLO = escena === 'anillo';
+    if (!datos || !datos.patrones || !datos.g) throw new Error('kanillo2d: faltan los patrones o la g publicada');
+    const P = {}, C = {};
+    for (const nm of PATRONES) {
+      if (!datos.patrones[nm] || !datos.g[nm]) throw new Error('kanillo2d: falta el patrón ' + nm);
+      P[nm] = prepara(datos.patrones[nm]);
+      const g = datos.g[nm];
+      if (!(g.r && g.r.length === NODOS + 1 && g.g_obs && g.g_obs.length === NODOS + 1) ||
+          g.r.some((r, i) => Math.abs(r - rDe(i)) > 1e-9))
+        throw new Error('kanillo2d: la g publicada de ' + nm + ' no está en la rejilla de 101 nodos de 0 a 0.25');
+      const tr = curvaK(P[nm], true), sin = curvaK(P[nm], false);
+      const razon = tr.map((k, i) => i ? k / (Math.PI * rDe(i) * rDe(i)) : null);
+      const tope = v => Math.ceil(v * 2) / 2;
+      C[nm] = {
+        trasl: tr, sin, razon, g: g.g_obs,
+        // la r a la que vuelve g a 1 (la del capítulo), en nodos; si no vuelve, la de los grupos
+        iVuelta: Math.round((g.r_vuelve_a_1 != null ? g.r_vuelve_a_1 : R_GRUPO) / PASO_R),
+        iVueltaG: g.r_vuelve_a_1 != null ? Math.round(g.r_vuelve_a_1 / PASO_R) : null,   // null: g no vuelve a 1 en el barrido
+        grupo: focoGrupo(P[nm]), borde: focoBorde(P[nm]),
+        maxK: Math.max(Math.max.apply(null, tr), Math.PI * 0.0625) * 1.06,
+        maxRazon: Math.min(6, tope(Math.max(Math.max.apply(null, razon.slice(1)), Math.max.apply(null, g.g_obs.filter(v => v != null))) + 0.25))
+      };
+    }
+
+    // Lo que se lee de un estado, con el r del estado (un nodo).
+    function cuenta(E) {
+      const Q = P[E.patron], c = C[E.patron], r = rDe(E.ir), peso = !ANILLO && E.peso === 'ninguno' ? false : true;
+      const K1 = (peso ? c.trasl : c.sin)[E.ir], pir2 = Math.PI * r * r;
+      return {
+        r, peso,
+        nDisco: cuentaDisco(Q, E.foco, r, false), nDiscoPeso: cuentaDisco(Q, E.foco, r, true), nAnillo: cuentaAnillo(Q, E.foco, r, H_ANILLO),
+        azarDisco: azarDisco(Q, r), azarAnillo: azarAnillo(Q, r, H_ANILLO),
+        K: K1, Ktr: c.trasl[E.ir], Ksin: c.sin[E.ir], pir2,
+        q: E.ir ? K1 / pir2 : NaN, qtr: E.ir ? c.trasl[E.ir] / pir2 : NaN, qsin: E.ir ? c.sin[E.ir] / pir2 : NaN,
+        g: c.g[E.ir], borde: borde(Q, E.foco)
+      };
+    }
+    const nParejas = (E, anillo) => parejas(P[E.patron], rDe(E.ir), H_ANILLO, anillo).length / 2;
+
+    /* ---- el dibujo ---- */
+    const margen = c => ({ l: 10, r: 10, t: c.w > 560 ? 30 : 10, b: 10 });
+    let aj = null;
+    const ajusteDe = (c, nm) => {
+      const m = margen(c), v = P[nm].v;
+      if (aj && aj.w === c.w && aj.h === c.h && aj.nm === nm) return aj;
+      return (aj = Object.assign({ w: c.w, h: c.h, nm }, ajuste(c.w, c.h, v, m)));
+    };
+    const radioPunto = a => Math.max(2.6, Math.min(4.6, a.s / 110));
+
+    // La geometría visible: el radio exterior e interior del disco o del anillo, con los animables a medio camino.
+    function geometria(V) {
+      const r = rDe(V.ir), hueco = ANILLO ? Math.max(0, Math.min(1, V.hueco)) : 0;
+      return { r, rin: hueco * Math.max(0, r - H_ANILLO), rout: r + hueco * H_ANILLO, hueco };
+    }
+    const enGeo = (dd, G) => dd >= G.rin - (G.hueco ? EPS : Infinity) && dd <= G.rout + EPS;
+
+    function circulo(ctx, x, y, rr) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, rr), 0, 2 * Math.PI); }
+
+    function dibuja(c, E, V) {
+      const { ctx } = c, Q = P[E.patron], a = ajusteDe(c, E.patron), G = geometria(V);
+      const color = G.hueco > 0.5 ? MORADO : VERDE, relleno = G.hueco > 0.5 ? 'rgba(123,63,160,.15)' : 'rgba(26,115,88,.11)';
+      const x0 = a.x(Q.v[0]), y0 = a.y(Q.v[3]), lado = (Q.v[2] - Q.v[0]) * a.s, alto = (Q.v[3] - Q.v[1]) * a.s;
+      const fx = a.x(Q.x[E.foco]), fy = a.y(Q.y[E.foco]), pr = radioPunto(a);
+      // 1. la ventana
+      ctx.fillStyle = '#fff'; ctx.fillRect(x0, y0, lado, alto);
+      // 2. el disco o el anillo del punto en foco: la parte de fuera de la ventana, solo en contorno discontinuo
+      if (!E.todos) {
+        ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(71,85,105,.55)'; ctx.lineWidth = 1.2;
+        circulo(ctx, fx, fy, G.rout * a.s); ctx.stroke();
+        if (G.rin > 0) { circulo(ctx, fx, fy, G.rin * a.s); ctx.stroke(); }
+        ctx.restore();
+        ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, lado, alto); ctx.clip();
+        ctx.beginPath(); ctx.arc(fx, fy, G.rout * a.s, 0, 2 * Math.PI);
+        if (G.rin > 0) { ctx.moveTo(fx + G.rin * a.s, fy); ctx.arc(fx, fy, G.rin * a.s, 0, 2 * Math.PI, true); }
+        ctx.fillStyle = relleno; ctx.fill('evenodd');
+        ctx.strokeStyle = color; ctx.lineWidth = 1.6; circulo(ctx, fx, fy, G.rout * a.s); ctx.stroke();
+        if (G.rin > 0) { circulo(ctx, fx, fy, G.rin * a.s); ctx.stroke(); }
+        ctx.restore();
+      }
+      // 3. con «todas las parejas», un segmento por pareja (la de dentro del disco o del anillo visibles)
+      if (E.todos) {
+        ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, lado, alto); ctx.clip();
+        // el anillo deja pocas parejas y se pintan más fuertes; las del disco son cientos, y más tenues para que se lean los puntos
+        ctx.strokeStyle = G.hueco > 0.5 ? 'rgba(123,63,160,.62)' : 'rgba(26,115,88,.30)'; ctx.lineWidth = G.hueco > 0.5 ? 1.4 : 1;
+        ctx.beginPath();
+        for (let i = 0; i < Q.n; i++) {
+          for (let j = i + 1; j < Q.n; j++) {
+            if (!enGeo(Q.d[i * Q.n + j], G)) continue;
+            ctx.moveTo(a.x(Q.x[i]), a.y(Q.y[i])); ctx.lineTo(a.x(Q.x[j]), a.y(Q.y[j]));
+          }
+        }
+        ctx.stroke(); ctx.restore();
+      }
+      // 4. el borde de la ventana, encima del relleno
+      ctx.strokeStyle = TINTA; ctx.lineWidth = 1.2; ctx.strokeRect(x0 + 0.5, y0 + 0.5, lado - 1, alto - 1);
+      // 5. los puntos: los que cuentan para el punto en foco, en el color del disco o del anillo
+      for (let i = 0; i < Q.n; i++) {
+        if (i === E.foco) continue;
+        const cuenta = !E.todos && enGeo(Q.d[E.foco * Q.n + i], G);
+        circulo(ctx, a.x(Q.x[i]), a.y(Q.y[i]), cuenta ? pr + 0.9 : pr);
+        ctx.fillStyle = cuenta ? color : GRIS; ctx.fill();
+        if (cuenta) { ctx.lineWidth = 1; ctx.strokeStyle = '#fff'; ctx.stroke(); }
+      }
+      // 6. el radio, con su r, en una dirección que quede dentro del lienzo
+      if (!E.todos && G.r > 0) {
+        const L = G.r * a.s;
+        const angs = [-Math.PI / 4, -3 * Math.PI / 4, Math.PI / 4, 3 * Math.PI / 4, -Math.PI / 2, 0, Math.PI];
+        const ang = angs.find(t => { const ex = fx + L * Math.cos(t), ey = fy + L * Math.sin(t); return ex > 14 && ex < c.w - 14 && ey > 14 && ey < c.h - 14; });
+        const t = ang === undefined ? -Math.PI / 4 : ang;
+        ctx.save(); ctx.strokeStyle = TINTA; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + L * Math.cos(t), fy + L * Math.sin(t)); ctx.stroke();
+        if (L > 22) {
+          ctx.font = "italic 600 12px 'Montserrat', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          const mx = fx + (L / 2) * Math.cos(t) - 9 * Math.sin(t), my = fy + (L / 2) * Math.sin(t) + 9 * Math.cos(t);
+          ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.strokeText('r', mx, my);
+          ctx.fillStyle = TINTA; ctx.fillText('r', mx, my);
+        }
+        ctx.restore();
+      }
+      // 7. el punto bajo el puntero y el punto en foco, encima de todo
+      if (E.hover >= 0 && E.hover !== E.foco) {
+        circulo(ctx, a.x(Q.x[E.hover]), a.y(Q.y[E.hover]), pr + 3.5); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,102,0,.75)'; ctx.stroke();
+      }
+      circulo(ctx, fx, fy, pr + 2.2); ctx.fillStyle = NARANJA; ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = '#fff'; ctx.stroke();
+      circulo(ctx, fx, fy, pr + 3.4); ctx.lineWidth = 1; ctx.strokeStyle = TINTA; ctx.stroke();     // el naranja solo da 2.9:1 sobre blanco
+    }
+
+    /* ---- el panel de debajo ---- */
+    function ejes(ctx, c, m, ymax, fmt) {
+      const W = c.w - m.l - m.r, H = c.h - m.t - m.b;
+      const px = r => m.l + (r / 0.25) * W, py = v => m.t + (1 - v / ymax) * H;
+      ctx.font = "10px 'Fira Code', monospace"; ctx.lineWidth = 1; ctx.strokeStyle = '#cbd5e1'; ctx.fillStyle = '#475569';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      [0, ymax].forEach(v => { ctx.beginPath(); ctx.moveTo(m.l, py(v) + 0.5); ctx.lineTo(m.l + W, py(v) + 0.5); ctx.stroke(); ctx.fillText(fmt(v), m.l - 4, py(v)); });
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      [0, 0.1, 0.2].forEach(r => ctx.fillText(String(r), px(r), m.t + H + 4));
+      return { px, py, W, H };
+    }
+    function serie(ctx, ax, vals, color, ancho, raya) {
+      ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = ancho; if (raya) ctx.setLineDash(raya);
+      ctx.beginPath();
+      let dentro = false;
+      vals.forEach((v, i) => {
+        if (v == null || !isFinite(v)) { dentro = false; return; }
+        const X = ax.px(rDe(i)), Y = ax.py(v);
+        if (dentro) ctx.lineTo(X, Y); else { ctx.moveTo(X, Y); dentro = true; }
+      });
+      ctx.stroke(); ctx.restore();
+    }
+    function marca(ctx, ax, rv, vals, color, m) {
+      const i0 = Math.min(NODOS, Math.floor(rv / PASO_R)), i1 = Math.min(NODOS, i0 + 1), f = rv / PASO_R - i0;
+      if (vals[i0] == null || vals[i1] == null) return;
+      const v = vals[i0] * (1 - f) + vals[i1] * f;
+      if (!isFinite(v)) return;
+      ctx.fillStyle = color; circulo(ctx, ax.px(rv), ax.py(Math.min(v, ax.ymax)), 3.8); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.stroke();
+    }
+    function leyenda(ctx, m, items, ancho) {
+      ctx.font = "600 10px 'Montserrat', sans-serif"; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      // si no cabe (un panel de 200 px), cada entrada se queda con su forma corta, la tercera de su lista
+      const total = items.reduce((s, it) => s + 25 + ctx.measureText(it[0]).width, 0);
+      if (ancho && total > ancho) items = items.map(it => [it[3] || it[0], it[1], it[2]]);
+      let x = m.l + 2;
+      items.forEach(([txt, color, raya]) => {
+        ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 2; if (raya) ctx.setLineDash(raya);
+        ctx.beginPath(); ctx.moveTo(x, 8); ctx.lineTo(x + 12, 8); ctx.stroke(); ctx.restore();
+        ctx.fillStyle = '#334155'; ctx.fillText(txt, x + 15, 8);
+        x += 15 + ctx.measureText(txt).width + 10;
+      });
+    }
+
+    function panel(c, id, E, V) {
+      const { ctx } = c, k = C[E.patron], rv = rDe(V.ir);
+      const m = { l: 36, r: 8, t: 18, b: 18 };
+      if (id === 'k') {
+        const peso = E.peso !== 'ninguno';
+        const ax = Object.assign(ejes(ctx, c, m, k.maxK, v => v.toFixed(2)), { ymax: k.maxK });
+        serie(ctx, ax, k.trasl.map((_, i) => Math.PI * rDe(i) * rDe(i)), '#64748b', 1.3, [4, 3]);
+        if (!peso) serie(ctx, ax, k.trasl, 'rgba(26,115,88,.45)', 1.3, [2, 2]);
+        const vals = peso ? k.trasl : k.sin;
+        serie(ctx, ax, vals, VERDE, 1.9);
+        ctx.save(); ctx.strokeStyle = 'rgba(255,102,0,.55)'; ctx.setLineDash([2, 2]);
+        ctx.beginPath(); ctx.moveTo(ax.px(rv), m.t); ctx.lineTo(ax.px(rv), m.t + ax.H); ctx.stroke(); ctx.restore();
+        marca(ctx, ax, rv, vals, NARANJA);
+        leyenda(ctx, m, [[peso ? 'K con peso' : 'K sin peso', VERDE, null, peso ? 'K' : 'K sin peso']]
+          .concat(peso ? [] : [['K con peso', 'rgba(26,115,88,.55)', [2, 2], 'con peso']]).concat([['π r²', '#64748b', [4, 3]]]), c.w - m.l);
+      } else {
+        const ax = Object.assign(ejes(ctx, c, m, k.maxRazon, v => v.toFixed(1)), { ymax: k.maxRazon });
+        ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.moveTo(m.l, ax.py(1)); ctx.lineTo(m.l + ax.W, ax.py(1)); ctx.stroke(); ctx.restore();
+        const rec = vals => vals.map(v => v == null ? v : Math.min(v, k.maxRazon));
+        serie(ctx, ax, rec(k.razon), VERDE, 1.9);
+        serie(ctx, ax, rec(k.g), MORADO, 1.9);
+        ctx.save(); ctx.strokeStyle = 'rgba(255,102,0,.55)'; ctx.setLineDash([2, 2]);
+        ctx.beginPath(); ctx.moveTo(ax.px(rv), m.t); ctx.lineTo(ax.px(rv), m.t + ax.H); ctx.stroke(); ctx.restore();
+        marca(ctx, ax, rv, k.razon, VERDE);
+        marca(ctx, ax, rv, k.g, MORADO);
+        leyenda(ctx, m, [['disco: K / π r²', VERDE, null, 'K / π r²'], ['anillo: g', MORADO, null, 'g'], ['azar: 1', '#64748b', [4, 3], '1']], c.w - m.l);
+      }
+    }
+
+    /* ---- los textos ---- */
+    const vecinos = n => n === 1 ? '1 vecino' : ent(n) + ' vecinos';
+    const disco = 'disco', anillo = 'anillo';
+    // Las dos variantes de cada frase condicional miden parecido, para que el texto no empuje el mapa al cambiar de estado.
+    const fueraVentana = (E, cu) => cu.borde < cu.r ? ' Parte de su disco cae fuera de la ventana: ahí no se ve a nadie.'
+                                                    : ' Su disco cabe entero en la ventana: todo lo que hay dentro se ve.';
+    const anilloTxt = cu => cu.r < H_ANILLO ? '0 y ' + f4(cu.r + H_ANILLO) + ' (con r tan pequeño, el anillo empieza en 0)'
+                                            : f4(cu.r - H_ANILLO) + ' y ' + f4(cu.r + H_ANILLO);
+    // «Arrastra» en todo el tramo desde que la g publicada vuelve a 1 mientras K/πr² siga claramente por encima y g no
+    // haya vuelto a subir (auditoría del 2026-10-02: con |g − 1| ≤ 0.1 parpadeaba —0.1425–0.155 y 0.185–0.19— y faltaba
+    // justo en r = 0.20, g = 0.59, K = 1.34 π r², el caso más claro). No en un patrón cuya g no vuelve.
+    const arrastra = (E, cu) => { const iv = C[E.patron].iVueltaG; return iv != null && E.ir >= iv && cu.q > 1.1 && cu.g < 1.1; };
+
+    const pasosDisco = [
+      { corto: 'Un punto', titulo: 'Un punto y su disco',
+        texto: E => {
+          const cu = cuenta(E);
+          return 'K pregunta cuántos otros puntos tiene un punto a distancia r o menos: los que caen en su disco. Este tiene <strong>' + vecinos(cu.nDisco) +
+                 '</strong> a r = ' + rTxt(E.ir) + '. Si los demás estuvieran repartidos al azar con la misma intensidad, en un disco entero como este habría de media <strong>' +
+                 f2(cu.azarDisco) + '</strong>, que es (n − 1) π r² / |W|.' + fueraVentana(E, cu) + ' Haz clic en otro punto para ver el suyo.';
+        },
+        estado: E => ({ ir: 24, todos: 0, peso: 'traslacion', foco: C[E.patron].grupo }), pausa: 4.5 },
+      { corto: 'El disco crece', titulo: 'El disco crece, y no suelta a nadie',
+        texto: E => {
+          const cu = cuenta(E);
+          return 'Al crecer r el disco solo gana vecinos: los que ya estaban siguen dentro. Este punto tiene ' + vecinos(cu.nDisco) + ' a r = ' + rTxt(E.ir) +
+                 ' (el azar, en un disco entero: ' + f2(cu.azarDisco) + '). La curva de debajo es K para todo el patrón: los vecinos de cada punto' +
+                 (cu.peso ? ', con su peso,' : '') + ' promediados y divididos por (n − 1)/|W|. ' +
+                 (E.ir ? 'Ahora va ' + frente(cu.q) + ' de π r², la de CSR: K vale ' + f2(cu.q) + ' veces π r²; ' + BANDA + '.' : 'En r = 0 no hay ningún vecino que contar.');
+        },
+        estado: { ir: NODOS }, tween: { ir: 7 }, pausa: 2.5 },
+      { corto: 'Todas las parejas', titulo: 'Todas las parejas a r o menos',
+        texto: E => {
+          const cu = cuenta(E), m = nParejas(E, false);
+          return 'Cada segmento une dos puntos a r = ' + rTxt(E.ir) + ' o menos: son las <strong>' + ent(m) + '</strong> parejas que suma K, cada una dos veces (una desde cada punto)' +
+                 (cu.peso ? ' y con su peso' : ', sin peso') + '. La suma, por |W| / (n (n − 1)), da K = ' + f4(cu.K) + (E.ir ? ', que es ' + f2(cu.q) + ' veces π r².' : '.');
+        },
+        estado: { todos: 1, ir: 40 }, pausa: 4 },
+      { corto: 'El borde', titulo: 'El borde de la ventana esconde vecinos',
+        texto: E => {
+          const cu = cuenta(E);
+          const sitio = cu.borde < cu.r
+            ? 'Este punto está a ' + f4(cu.borde) + ' del borde: con r = ' + rTxt(E.ir) + ' parte de su disco cae fuera de la ventana, y los vecinos que tendría allí no se ven. '
+            : 'El disco de este punto, con r = ' + rTxt(E.ir) + ', cabe entero en la ventana; acércate al borde (o sube r) para ver lo que pasa allí. ';
+          const compara = !(cu.Ktr > 0)
+            ? 'A este r no hay todavía ninguna pareja en todo el patrón: K vale 0 con peso y sin él, y no hay nada que corregir. '
+            : f2(cu.qsin) === f2(cu.qtr)
+              ? 'A este r las dos K casi coinciden (' + f2(cu.qtr) + ' veces π r²): las parejas son cortas y el borde apenas las esconde. '
+              : 'Sin peso (todos a 1), K se queda corta en todo el patrón: ' + f2(cu.qsin) + ' veces π r², frente a ' + f2(cu.qtr) + ' con el peso de traslación. ';
+          return sitio + compara +
+            'Ese peso no adivina a los de fuera: cuenta cada pareja algo más de una vez, más cuanto más le cuesta a la ventana dejarla ver entera, y en el conjunto compensa lo que el borde esconde. Cambia el peso para comparar.';
+        },
+        estado: E => ({ foco: C[E.patron].borde, ir: 60, todos: 0, peso: 'ninguno' }), pausa: 5 }
+    ];
+
+    const pasosAnillo = [
+      { corto: 'El disco', titulo: 'El disco: K cuenta todo lo que hay hasta r',
+        texto: E => {
+          const cu = cuenta(E);
+          return 'Este punto tiene <strong>' + vecinos(cu.nDisco) + '</strong> a r = ' + rTxt(E.ir) + ' o menos; en un disco entero, el azar le daría ' + f2(cu.azarDisco) +
+                 '. Eso es lo que cuenta K, y para todo el patrón vale ' + (E.ir ? f2(cu.q) + ' veces π r² (la curva verde de debajo).' : '0 en r = 0.') + fueraVentana(E, cu);
+        },
+        estado: E => ({ ir: 16, hueco: 0, todos: 0, foco: C[E.patron].grupo }), pausa: 4 },
+      { corto: 'Más lejos', titulo: 'Más lejos, el disco sigue contando lo de antes',
+        texto: E => {
+          const cu = cuenta(E);
+          return 'A r = ' + rTxt(E.ir) + ' el disco contiene a todos los discos más pequeños: los vecinos de cerca siguen contados. Este punto tiene ahora ' + vecinos(cu.nDisco) +
+                 ' (el azar, en un disco entero: ' + f2(cu.azarDisco) + '), y para todo el patrón K vale ' + (E.ir ? f2(cu.q) + ' veces π r², ' + frente(cu.q) + ' de lo que daría el azar en promedio.' : '0.');
+        },
+        estado: E => ({ ir: C[E.patron].iVuelta, hueco: 0, todos: 0 }), tween: { ir: 3.5 }, pausa: 3.5 },
+      { corto: 'El anillo', titulo: 'El anillo: g mira solo esa distancia',
+        texto: E => {
+          const cu = cuenta(E);
+          const g = cu.g, vacio = nParejas(E, true) === 0;
+          const enG = vacio ? 'en todo el patrón no hay ninguna pareja a esa distancia, y ese valor es el suavizado de pcf, que recoge parejas algo más lejanas'
+            : (g > 1 ? 'por encima' : g < 1 ? 'por debajo' : 'justo encima') + ' de 1, lo que daría el azar en promedio; ' + BANDA;
+          return 'g se queda con las parejas que están a esa distancia: el anillo entre ' + anilloTxt(cu) + '. Este punto tiene ' + vecinos(cu.nAnillo) +
+                 ' en él; en un anillo entero, el azar le daría ' + f2(cu.azarAnillo) + '. Para todo el patrón, g vale <strong>' + f2(g) + '</strong>: ' + enG + '.' +
+                 (!E.ir ? '' : arrastra(E, cu) ? ' En el mismo r, K vale todavía ' + f2(cu.q) + ' veces π r²: arrastra lo que contó más cerca.'
+                                               : ' En el mismo r, K vale ' + f2(cu.q) + ' veces π r²: el disco y el anillo, comparados con el azar.');
+        },
+        // los pasos 3 a 5 hablan del r en que g vuelve a 1: lo ponen, por si se llega a ellos sin pasar por el 2
+        estado: E => ({ ir: C[E.patron].iVuelta, hueco: 1, todos: 0 }), tween: { hueco: 1 }, pausa: 5 },
+      { corto: 'Todas, disco', titulo: 'Todas las parejas del disco',
+        texto: E => { const m = nParejas(E, false);
+          return m === 0 ? 'A r = ' + rTxt(E.ir) + ' no hay todavía ninguna pareja: ningún punto tiene a otro tan cerca. Sube r para verlas aparecer.'
+            : 'Las <strong>' + ent(m) + '</strong> parejas a r = ' + rTxt(E.ir) + ' o menos, de todos los puntos: las que suma K. ' +
+              'Las más cortas siguen ahí, porque un disco grande contiene a todos los pequeños.'; },
+        estado: E => ({ ir: C[E.patron].iVuelta, todos: 1, hueco: 0 }), tween: { hueco: 1 }, pausa: 3.5 },
+      { corto: 'Todas, anillo', titulo: 'Todas las parejas del anillo',
+        // El anillo [r − h, r + h] se sale del disco de radio r: con r pequeño puede tener MÁS parejas que él.
+        texto: E => { const na = nParejas(E, true), nd = nParejas(E, false);
+          return 'Solo las parejas que están entre ' + anilloTxt(cuenta(E)) + ': <strong>' + ent(na) + '</strong>' +
+                 (na < nd ? ', frente a las ' + ent(nd) + ' del disco.' : '; el disco de radio r tiene ' + ent(nd) + '.') +
+                 ' Son las que mira g, y por eso g dice a qué distancia está la estructura y K no.'; },
+        estado: E => ({ ir: C[E.patron].iVuelta, todos: 1, hueco: 1 }), tween: { hueco: 1 }, pausa: 4 }
+    ];
+    const pasos = ANILLO ? pasosAnillo : pasosDisco;
+
+    const nombres = { cells: 'Células', japanesepines: 'Pinos', redwood: 'Secuoyas' };
+    // la clave de colores del pie; con colores forzados, sin esto los ● perdían su color y la clave no se leía
+    // y un lector leía tres «●» iguales: cada uno lleva ahora su color en texto oculto
+    const punto = (col, nombre) => '<span style="color:' + col + ';forced-color-adjust:none" aria-hidden="true">●</span><span class="a2d-sr">' + nombre + '</span>';
+    const mandos = [
+      { tipo: 'deslizador', id: 'ir', etiqueta: 'Radio r', min: 0, max: NODOS, paso: 1, salida: i => rTxt(i),
+        valorTexto: (i, E) => { const cu = cuenta(Object.assign({}, E, { ir: i }));
+          return 'r = ' + rTxt(i) + (i ? ': K vale ' + f2(cu.q) + ' veces π r²' + (ANILLO ? ', g vale ' + f2(cu.g) : '') : ''); } },
+      { tipo: 'botones', id: 'patron', etiqueta: 'Patrón', opciones: PATRONES.map(nm => [nm, nombres[nm]]) }
+    ].concat(ANILLO
+      ? [{ tipo: 'botones', id: 'hueco', etiqueta: 'Qué se cuenta', opciones: [[0, 'Disco (K)'], [1, 'Anillo (g)']] }]
+      : [{ tipo: 'botones', id: 'peso', etiqueta: 'Peso de cada pareja', opciones: [['traslacion', 'Traslación'], ['ninguno', 'Sin peso (todos a 1)']] }]
+    ).concat([
+      { tipo: 'botones', id: 'todos', etiqueta: 'Mirar', opciones: [[0, 'Un punto'], [1, 'Todas las parejas']] },
+      { tipo: 'ciclo', id: 'foco', etiqueta: 'Punto en foco', n: E => P[E.patron].n, anterior: 'Punto anterior', siguiente: 'Punto siguiente',
+        texto: (i, E) => 'punto ' + (i + 1) + ' de ' + P[E.patron].n }
+    ]);
+
+    // El arrastre del borde del círculo: el radio sigue al puntero. Vive aquí porque `puntero` no guarda estado.
+    let arrastrando = false;
+    const def = {
+      id: 'kanillo-' + escena,
+      css: '.a2d.kanillo .a2d-panel{height:9.5rem}',
+      aria: 'Un patrón de puntos en un cuadrado de lado 1. Hay un punto en foco, con un ' + (ANILLO ? 'disco o un anillo' : 'disco') +
+            ' de radio r alrededor; la descripción de debajo dice cuántos vecinos caen dentro y cuántos daría el azar. ' +
+            'La gráfica de debajo muestra ' + (ANILLO ? 'K dividida por π r² y g contra r, frente a 1.' : 'K contra r, frente a π r².'),
+      ayuda: 'Clic en un punto para ponerlo en foco · arrastra el borde del círculo para cambiar r',
+      ayudaTeclado: 'Con el lienzo enfocado, las flechas izquierda y derecha cambian el punto en foco, arriba y abajo cambian r de ' + PASO_R + ' en ' + PASO_R +
+                    ', Re Pág y Av Pág de diez en diez, e Inicio y Fin lo llevan a 0 y a 0.25. Los mandos de debajo hacen lo mismo.',
+      pie: 'Células (Crick y Ripley), pinos japoneses (Numata) y plántulas de secuoya (Strauss): los tres canónicos del capítulo, en un cuadrado de lado 1, así que r se mide en lados de la ventana. ' +
+           punto(VERDE, 'verde') + (ANILLO ? '/' + punto(MORADO, 'morado') : '') + ' cuenta para el punto en foco · ' + punto(GRIS, 'gris') + ' no cuenta · ' +
+           punto(NARANJA, 'naranja') + ' punto en foco. K se calcula aquí exacta, pareja a pareja' + (ANILLO ? ', con el peso de traslación' : '') +
+           '. La curva publicada de los simuladores interpola la rejilla de <code>Kest</code>, y las dos difieren donde hay <strong>empates</strong>: las coordenadas de los pinos ' +
+           'van redondeadas a 0.01 y las de las secuoyas a 0.02, así que muchas parejas quedan exactamente a una distancia r de la rejilla, y aquí cuentan dentro del disco.' +
+           (ANILLO ? ' El anillo dibujado mide ' + 2 * H_ANILLO + ' de ancho, solo para ver qué parejas están a esa distancia. La g de la gráfica es la de <code>pcf</code>, ' +
+                     'que corrige el borde con el mismo peso de traslación y además suaviza con su propio núcleo: por eso no tiene por qué coincidir con la cuenta del anillo, ' +
+                     'y por eso K / π r², que es el promedio de g dentro del disco pero sin suavizar, puede pasar del máximo de la g dibujada.' : ''),
+      sinLienzo: ANILLO
+        ? 'Dice lo mismo que el texto del módulo 9: K cuenta los vecinos de cada punto dentro de un disco de radio r, así que lo que encontró cerca lo sigue contando lejos; g mira solo el anillo de radio r, y por eso dice a qué distancia está la estructura.'
+        : 'Dice lo mismo que el texto del módulo 8: K cuenta, alrededor de cada punto, los otros que caen dentro de un disco de radio r, los promedia y los divide por la intensidad, y lo compara con π r², lo que daría el azar.',
+      paneles: [ANILLO
+        ? { id: 'razones', etiqueta: 'El disco y el anillo, frente al azar (todo el patrón)', aria: 'K dividida por π r² y la g publicada, contra r de 0 a 0.25, con la referencia del azar en 1' }
+        : { id: 'k', etiqueta: 'K y π r² (todo el patrón)', aria: 'K contra r de 0 a 0.25, con π r², la referencia del azar' }],
+      mandos,
+      animables: { ir: 1.1, hueco: 0.8 },
+      // los estados que alargan los textos (r casi 0: el anillo empieza en 0 y está vacío; r máximo; otros patrones):
+      // la leyenda reserva su alto desde el principio y no empuja el mapa la primera vez que aparecen
+      sondas: [{ ir: 2 }, { ir: 1 }, { ir: NODOS }, { patron: 'cells', ir: 30 }, { patron: 'japanesepines', ir: 4 }],
+      pasoImpresion: pasos.length,
+      pasos,
+      inicial: () => ({ paso: 1, patron: 'redwood', ir: ANILLO ? 16 : 24, hueco: 0, peso: 'traslacion', todos: 0, foco: C.redwood.grupo, hover: -1 }),
+      normaliza: (p, E) => {
+        const out = Object.assign({}, p);
+        if ('patron' in out && PATRONES.indexOf(out.patron) < 0) delete out.patron;
+        const nm = out.patron || E.patron, n = P[nm].n;
+        // otro patrón: el punto en foco (si no viene) pasa a ser el de partida de ese patrón, y la marca se va
+        if ('patron' in out && out.patron !== E.patron) {
+          if (!('foco' in out)) out.foco = C[nm].grupo;
+          out.hover = -1;
+          aj = null;
+        }
+        if ('ir' in out) out.ir = Math.min(NODOS, Math.max(0, Math.round(out.ir)));
+        if ('foco' in out) out.foco = Math.min(n - 1, Math.max(0, Math.round(out.foco)));
+        if ('hover' in out) out.hover = Math.min(n - 1, Math.max(-1, Math.round(out.hover)));
+        if ('paso' in out) out.paso = Math.min(pasos.length, Math.max(1, Math.round(out.paso)));
+        if ('hueco' in out) out.hueco = ANILLO && out.hueco ? 1 : 0;
+        if ('todos' in out) out.todos = out.todos ? 1 : 0;
+        if ('peso' in out) out.peso = !ANILLO && out.peso === 'ninguno' ? 'ninguno' : 'traslacion';
+        // EL PASO SIGUE A LOS CONMUTADORES: el texto que se ve tiene que hablar de lo que se dibuja. Con el anillo pulsado
+        // en el paso 1, la leyenda hablaba del disco; con «todas las parejas» en el paso 1, de un punto.
+        if (!('paso' in out) && ('hueco' in out || 'todos' in out || 'peso' in out)) {
+          const sig = Object.assign({}, E, out);
+          if (ANILLO) out.paso = sig.todos ? (sig.hueco ? 5 : 4) : (sig.hueco ? 3 : (E.paso <= 2 ? E.paso : 2));
+          // en el paso 4, cambiar el peso es lo que el paso pide («cambia el peso para comparar»): se queda en el 4
+          else out.paso = sig.todos ? 3 : sig.peso === 'ninguno' || E.paso === 4 ? 4 : (E.paso <= 2 ? E.paso : 2);
+        }
+        return out;
+      },
+      dibuja, panel,
+      puntero: (ev, E, V, c) => {
+        if (!c || !c.w) return null;
+        const Q = P[E.patron], a = ajusteDe(c, E.patron);
+        if (ev.tipo === 'sale') { arrastrando = false; return { poner: { hover: -1 }, cursor: '' }; }
+        const radioDe = () => Math.hypot(a.ux(ev.x) - Q.x[E.foco], a.uy(ev.y) - Q.y[E.foco]) / PASO_R;
+        const distBorde = () => Math.abs(Math.hypot(ev.x - a.x(Q.x[E.foco]), ev.y - a.y(Q.y[E.foco])) - geometria(V).rout * a.s);
+        const enBorde = () => !E.todos && distBorde() <= 9;
+        if (ev.tipo === 'abajo') {
+          // El borde gana si el toque cae a 9 px o menos de él y más cerca de él que del punto más próximo: con el dedo y la
+          // tolerancia de 18 px, antes casi cualquier punto del borde tenía un punto al lado y el arrastre no empezaba nunca.
+          const i = puntoEn(Q, a, ev.x, ev.y, ev.tactil ? 18 : 12);
+          const dBorde = distBorde(), dPunto = i >= 0 ? Math.hypot(a.x(Q.x[i]) - ev.x, a.y(Q.y[i]) - ev.y) : Infinity;
+          if (!E.todos && dBorde <= 9 && dBorde < dPunto) { arrastrando = true; return { poner: { ir: radioDe() }, captura: true, cursor: 'grabbing' }; }
+          if (i >= 0) return { poner: { foco: i } };
+          return null;
+        }
+        if (ev.tipo === 'mueve') {
+          if (arrastrando) return { poner: { ir: radioDe() }, cursor: 'grabbing' };
+          const i = puntoEn(Q, a, ev.x, ev.y, 12);
+          return { poner: { hover: i }, cursor: i >= 0 ? 'pointer' : enBorde() ? 'grab' : '' };
+        }
+        if (ev.tipo === 'arriba') { arrastrando = false; return null; }
+        return null;
+      },
+      tecla: (ev, E) => {
+        const n = P[E.patron].n;
+        switch (ev.key) {
+          case 'ArrowRight': return { foco: (E.foco + 1) % n };
+          case 'ArrowLeft': return { foco: (E.foco + n - 1) % n };
+          case 'ArrowUp': return { ir: E.ir + 1 };
+          case 'ArrowDown': return { ir: E.ir - 1 };
+          case 'PageUp': return { ir: E.ir + 10 };
+          case 'PageDown': return { ir: E.ir - 10 };
+          case 'Home': return { ir: 0 };
+          case 'End': return { ir: NODOS };
+          default: return null;
+        }
+      },
+      lectura: E => {
+        const cu = cuenta(E), enAnillo = ANILLO && E.hueco;
+        const l = [['r', rTxt(E.ir)],
+          ['vecinos de este punto', enAnillo ? ent(cu.nAnillo) + ' <span class="a2d-r">en el anillo</span>'
+            // la cuenta con pesos solo donde el peso está explicado (paso 4): en el paso 1 invitaba a pensar en vecinos ocultos
+            : ent(cu.nDisco) + (!ANILLO && cu.peso && E.paso === 4 ? ' <span class="a2d-r">(con sus pesos, ' + f2(cu.nDiscoPeso) + ')</span>' : '')],
+          ['el azar, ' + (enAnillo ? 'en un anillo entero' : 'en un disco entero'), f2(enAnillo ? cu.azarAnillo : cu.azarDisco)]];
+        if (ANILLO) {
+          l.push(['K / π r², todo el patrón', E.ir ? f2(cu.q) : '—'], ['g, todo el patrón', f2(cu.g)]);
+        } else {
+          l.push([cu.peso ? 'K con peso' : 'K sin peso', f4(cu.K)], ['π r²', f4(cu.pir2)], ['K / π r²', E.ir ? f2(cu.q) : '—']);
+        }
+        l.push(['¿es significativo?', 'hace falta la envolvente del módulo 11']);     // como el simulador de K y L
+        if (E.todos) l.push(['parejas dibujadas', ent(nParejas(E, !!enAnillo))]);
+        return l;
+      },
+      alt: E => {
+        const cu = cuenta(E), Q = P[E.patron], enAnillo = ANILLO && E.hueco;
+        return 'Patrón ' + nombres[E.patron].toLowerCase() + ', ' + Q.n + ' puntos en un cuadrado de lado 1. Punto en foco: el ' + (E.foco + 1) + ', en (' + f2(Q.x[E.foco] - Q.v[0]) + ', ' + f2(Q.y[E.foco] - Q.v[1]) + ') contando desde la esquina de abajo a la izquierda. ' +
+               'Con r = ' + rTxt(E.ir) + ' tiene ' + vecinos(enAnillo ? cu.nAnillo : cu.nDisco) + ' en su ' + (enAnillo ? 'anillo, entre ' + anilloTxt(cu) : 'disco') +
+               '; el azar daría ' + f2(enAnillo ? cu.azarAnillo : cu.azarDisco) + ' en un ' + (enAnillo ? 'anillo' : 'disco') + ' entero. ' +
+               (E.ir ? 'Para todo el patrón, K vale ' + f2(cu.q) + ' veces π r²' + (cu.peso ? '' : ' sin peso') : 'En r = 0 no hay vecinos') +
+               (ANILLO ? ', y g vale ' + f2(cu.g) + '.' : '.') + (E.todos ? ' Se dibujan las ' + ent(nParejas(E, !!enAnillo)) + ' parejas de todos los puntos.' : '');
+      },
+      // Lo que dice la región viva si el estado cambia sin cambiar de paso (auditoría del 2026-10-02: antes solo se
+      // anunciaba «punto 32 de 62», también cuando no cambiaba, y nunca la cuenta, K ni g).
+      anuncio: (E, antes) => {
+        const cu = cuenta(E), enAnillo = ANILLO && E.hueco, Q = P[E.patron];
+        const suyo = vecinos(enAnillo ? cu.nAnillo : cu.nDisco) + ' en su ' + (enAnillo ? 'anillo' : 'disco') + '; el azar daría ' + f2(enAnillo ? cu.azarAnillo : cu.azarDisco);
+        const todo = E.ir ? 'K vale ' + f2(cu.q) + ' veces π r²' + (ANILLO ? ', g vale ' + f2(cu.g) : '') : 'en r = 0 no hay vecinos';
+        if (E.patron !== antes.patron) return 'Patrón ' + nombres[E.patron].toLowerCase() + ', ' + Q.n + ' puntos. ' + todo + '.';
+        if (E.foco !== antes.foco) return 'Punto ' + (E.foco + 1) + ' de ' + Q.n + ': ' + suyo + '.';
+        if (E.ir !== antes.ir) return 'r = ' + rTxt(E.ir) + ': ' + todo + '. Este punto: ' + suyo + '.';
+        if (E.peso !== antes.peso) return (cu.peso ? 'Con peso: ' : 'Sin peso: ') + todo + '.';
+        return null;
+      }
+    };
+    def.interno = { P, C, cuenta, nParejas, geometria, ajusteDe, margen, escena };     // para las pruebas
+    return def;
+  }
+
+  function monta(cont, datos, opc) {
+    opc = opc || {};
+    if (!global.Anim2D) throw new Error('kanillo2d: falta anim2d.js');
+    const api = global.Anim2D.monta(cont, creaDef(datos, opc), opc);
+    cont.classList.add('kanillo');
+    return api;
+  }
+
+  const KAnillo2D = { monta, creaDef, matematica: Mat };
+  global.KAnillo2D = KAnillo2D;
+  if (typeof module === 'object' && module.exports) module.exports = KAnillo2D;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+
+    const montaKAnillo = function (raiz) {
+      const sitio = raiz.querySelector('.a2d-montaje');
+      const escena = sitio.dataset.escena;
+      let vivo = true, instancia = null, io = null;
+      Anim2D.estilos(document);
+      const monta = () => {
+        if (!vivo) return;
+        // Si el motor falla, vuelve el texto de reserva: el párrafo promete que el módulo dice lo mismo.
+        const reserva = sitio.innerHTML;
+        try {
+          sitio.innerHTML = '';
+          // `reserva`: lo que la cáscara devuelve al sitio si la animación falla DESPUÉS de montarse
+          instancia = sitio.animacion = KAnillo2D.monta(sitio, { patrones: KANILLO_PATRONES, g: D4.m9 }, { escena, reserva });
+        } catch (e) {
+          sitio.innerHTML = reserva;
+          instancia = sitio.animacion = null;
+          console.error('kanillo2d (' + escena + '): la animación no se pudo montar', e);
+        }
+      };
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(es => {
+          if (es.some(e => e.isIntersecting)) { io.disconnect(); io = null; monta(); }
+        }, { rootMargin: '400px 0px' });
+        io.observe(sitio);
+      } else {
+        monta();
+      }
+      return [{ destroy() { vivo = false; if (io) io.disconnect(); if (instancia) instancia.destruir(); instancia = sitio.animacion = null; } }];
+    };
+    SIMULADORES['cap4-kdisco'] = montaKAnillo;
+    SIMULADORES['cap4-kanillo'] = montaKAnillo;
 
     // ================================================================
     // Autoevaluación de demostración: una pregunta de cada tipo

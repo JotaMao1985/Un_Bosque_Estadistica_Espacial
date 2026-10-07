@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-prueba_mutaciones_anim2d.py — le rompe el motor 2D a su prueba y exige que lo cace
+prueba_mutaciones_anim2d.py — le rompe los motores 2D a sus pruebas y exige que lo cacen
 
-Material de Estadística Espacial 2026-II (20929). Capítulo 6, módulo 10.
+Material de Estadística Espacial 2026-II (20929). Capítulo 6, módulo 10, y capítulo 4, módulos 8 y 9.
 
 POR QUÉ EXISTE. Una prueba que da «todo en verde» la primera vez no ha demostrado nada:
 puede comprobar bien o puede comprobar cosas incapaces de fallar. `prueba_rezago2d.py`
-compara la aritmética de `rezago2d.js` con R y prueba la máquina de `anim2d.js` sin DOM;
-aquí se le inyecta, uno a uno, un defecto de los que este motor puede tener de verdad, en
-una COPIA del archivo (la prueba lee la copia por `REZAGO2D_MOTOR` y `ANIM2D_NUCLEO`), y se
-exige que la prueba falle. Un defecto que pase es un hueco de la prueba, no del motor.
+compara la aritmética de `rezago2d.js` con R, `prueba_kanillo2d.py` la de `kanillo2d.js`, y
+las dos prueban la máquina de `anim2d.js` sin DOM; aquí se les inyecta, uno a uno, un defecto
+de los que estos motores pueden tener de verdad, en una COPIA del archivo (las pruebas leen la
+copia por `REZAGO2D_MOTOR`, `KANILLO2D_MOTOR` y `ANIM2D_NUCLEO`), y se exige que la prueba
+falle. Un defecto que pase es un hueco de la prueba, no del motor. Un defecto de una pieza lo
+tiene que cazar su prueba; uno de la cáscara, cualquiera de las dos.
 
 LAS FAMILIAS, y cada una imita algo que este código podría sufrir:
 
@@ -30,9 +32,23 @@ LAS FAMILIAS, y cada una imita algo que este código podría sufrir:
      bajar el dedo, la salida del lienzo que para el guion, el toque desplazado o cancelado que
      elige igual; el deslizador que no cambia el paso, «casi un solo color» con cualquier k,
      la cuenta con «=», W² que da por seguros a todos los vecinos, k que no llega a 66
-   · de la auditoría de las cinco animaciones (2026-10-02): el guion que no da tiempo a leer, «5 %»
-     redondeado, el orden 2 y la diagonal de W² mal contados, el paso 3 que calla por qué sube la
-     correlación, y un anuncio que habla aunque nada haya cambiado
+   · de la de K y g (capítulo 4): n² donde va n(n − 1), los empates fuera del disco, el peso
+     sin valor absoluto, la distancia sin raíz, el azar con n en vez de n − 1 y el anillo sin su
+     radio interior acotado, el eje y sin invertir, el punto de partida que no cabe en la
+     ventana, el del borde que no se encuentra, el cambio de patrón que deja el foco fuera de
+     rango, el paso 2 del anillo que no va adonde g vuelve a 1, «arrastra» dicho siempre, la
+     lectura del disco con los vecinos del anillo, la K sin peso cuando se pide con peso, el
+     arrastre del borde que no captura; y en la cáscara, el ciclo con un n que no cambia con
+     el patrón
+   · de la auditoría de las cinco animaciones (2026-10-02): en el rezago, el guion que no da tiempo
+     a leer, «5 %» redondeado, el orden 2 y la diagonal de W² mal contados, el paso 3 que calla por
+     qué sube la correlación, y un anuncio que habla aunque nada haya cambiado; en K y g, «arrastra»
+     con el criterio que parpadeaba, la lectura con veredicto, sin la fila «¿es significativo?», el
+     peso que saca del paso 4 y un anuncio que habla aunque nada haya cambiado
+
+DOS EQUIVALENTES QUE NO SE PONEN: cambiar a por b en el peso de traslación (las tres ventanas son
+cuadrados de lado 1) y quitar el `max(0, …)` del radio interior en la PERTENENCIA al anillo (una
+distancia nunca es negativa). Sí se pone en su ÁREA, donde no es equivalente.
 
 UNA INYECCIÓN NO PUEDE SER UN EQUIVALENTE, y la primera versión de esta lista tenía uno: mirar el
 rayo hacia el otro lado (`qx > …` en vez de `qx < …`) da el MISMO resultado, porque una recta que
@@ -53,8 +69,11 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 PRE = RAIZ / "precalculo"
 REZAGO = PRE / "anim2d" / "rezago2d.js"
+KANILLO = PRE / "anim2d" / "kanillo2d.js"
 NUCLEO = PRE / "anim2d" / "anim2d.js"
-PRUEBA = PRE / "prueba_rezago2d.py"
+PRUEBAS = {REZAGO: [(PRE / "prueba_rezago2d.py", "REZAGO2D_MOTOR")],
+           KANILLO: [(PRE / "prueba_kanillo2d.py", "KANILLO2D_MOTOR")],
+           NUCLEO: [(PRE / "prueba_rezago2d.py", "ANIM2D_NUCLEO"), (PRE / "prueba_kanillo2d.py", "ANIM2D_NUCLEO")]}
 
 # (nombre, archivo, busca, pone). `busca` tiene que aparecer UNA vez: si el motor cambia y deja de
 # aparecer, el arnés para (y avisa) en vez de callar.
@@ -141,8 +160,56 @@ MUTACIONES = [
      "toque = null; arrastre = false;\n          return null;", "arrastre = false;\n          return null;"),
     ("con el dedo, pasar por encima vuelve a marcar", NUCLEO,
      "if (ev.tactil && !arrastre) return null;", ""),
+    ("un arrastre vuelve a ir con transición (el círculo se queda atrás del puntero)", NUCLEO,
+     "return con(puntero(ev, E, V, c), arrastre, arrastre);", "return con(puntero(ev, E, V, c), arrastre);"),
     ("un paso cuyo estado es una función no se evalúa", NUCLEO,
      "const est = typeof p.estado === 'function' ? p.estado(E) : p.estado;", "const est = p.estado;"),
+    ("el ciclo da la vuelta con un n fijo aunque cambie el patrón", NUCLEO,
+     "const n = typeof m.n === 'function' ? m.n(E) : m.n;", "const n = typeof m.n === 'function' ? 42 : m.n;"),
+    # --- K y g (capítulo 4) ---
+    ("K divide por n² y no por n (n − 1)", KANILLO,
+     "return P.A / (P.n * (P.n - 1)) * s;", "return P.A / (P.n * P.n) * s;"),
+    ("una pareja justo a distancia r se queda fuera del disco", KANILLO,
+     "const dentroDisco = (dd, r) => dd <= r + EPS;", "const dentroDisco = (dd, r) => dd < r - EPS;"),
+    ("el peso de traslación sin el valor absoluto", KANILLO,
+     "w[i * n + j] = A / ((a - Math.abs(dx)) * (b - Math.abs(dy)));", "w[i * n + j] = A / ((a - dx) * (b - dy));"),
+    ("la distancia sin la raíz", KANILLO,
+     "d[i * n + j] = Math.sqrt(dx * dx + dy * dy);", "d[i * n + j] = dx * dx + dy * dy;"),
+    ("el azar con la intensidad de los n y no de los otros n − 1", KANILLO,
+     "const lambdaOtros = P => (P.n - 1) / P.A;", "const lambdaOtros = P => P.n / P.A;"),
+    ("el área del anillo sin acotar su radio interior en 0", KANILLO,
+     "((r + h) * (r + h) - Math.pow(Math.max(0, r - h), 2))", "((r + h) * (r + h) - Math.pow(r - h, 2))"),
+    ("el eje y no se invierte", KANILLO,
+     "y: u => oy + (v[3] - u) * s,", "y: u => oy + (u - v[1]) * s,"),
+    ("el punto de partida no mira si su disco cabe en la ventana", KANILLO,
+     "if (borde(P, i) < R_GRUPO) continue;", ""),
+    ("el punto del borde no se encuentra", KANILLO,
+     "if (borde(P, i) < db) { db = borde(P, i); mejor = i; }", "if (borde(P, i) > db) { db = borde(P, i); mejor = i; }"),
+    ("cambiar de patrón no pone el foco en el punto de partida", KANILLO,
+     "if (!('foco' in out)) out.foco = C[nm].grupo;", ""),
+    ("el paso 2 del anillo no va adonde g vuelve a 1", KANILLO,
+     "iVuelta: Math.round((g.r_vuelve_a_1 != null ? g.r_vuelve_a_1 : R_GRUPO) / PASO_R),", "iVuelta: Math.round(R_GRUPO / PASO_R),"),
+    ("la lectura del disco da los vecinos del anillo", KANILLO,
+     "const cu = cuenta(E), enAnillo = ANILLO && E.hueco;", "const cu = cuenta(E), enAnillo = ANILLO;"),
+    ("con el peso pedido, K se lee sin él", KANILLO,
+     "const K1 = (peso ? c.trasl : c.sin)[E.ir], pir2 = Math.PI * r * r;", "const K1 = c.sin[E.ir], pir2 = Math.PI * r * r;"),
+    ("el paso 3 del anillo no pone el r en que g vuelve a 1", KANILLO,
+     "estado: E => ({ ir: C[E.patron].iVuelta, hueco: 1, todos: 0 })", "estado: { hueco: 1, todos: 0 }"),
+    # --- lo que encontró la revisión en Chrome de K y g (2026-10-02) ---
+    ("«arrastra» vuelve a decirse sin mirar si g vuelve a 1 (salía sobre los pinos)", KANILLO,
+     "return iv != null && E.ir >= iv && cu.q > 1.1 && cu.g < 1.1;", "return cu.q > 1.1 && cu.g < 1.1;"),
+    ("el paso 5 compara con el disco aunque el anillo tenga más parejas", KANILLO,
+     "(na < nd ? ', frente a las '", "(true ? ', frente a las '"),
+    ("un anillo vacío vuelve a tener «más parejas que el azar»", KANILLO,
+     "const g = cu.g, vacio = nParejas(E, true) === 0;", "const g = cu.g, vacio = false;"),
+    ("el paso 4 compara K con y sin peso aunque no haya parejas", KANILLO,
+     "const compara = !(cu.Ktr > 0)", "const compara = false"),
+    ("el paso no sigue a los conmutadores", KANILLO,
+     "if (!('paso' in out) && ('hueco' in out || 'todos' in out || 'peso' in out)) {", "if (false) {"),
+    ("con el dedo, un punto vecino vuelve a ganarle al borde del círculo", KANILLO,
+     "if (!E.todos && dBorde <= 9 && dBorde < dPunto)", "if (!E.todos && dBorde <= 9 && i < 0)"),
+    ("el arrastre del borde del círculo no captura el puntero", KANILLO,
+     "return { poner: { ir: radioDe() }, captura: true, cursor: 'grabbing' };", "return { poner: { ir: radioDe() }, captura: false, cursor: 'grabbing' };"),
     # --- la auditoría de las cinco animaciones (2026-10-02) ---
     ("el porcentaje vuelve a redondearse a entero («5 %» desde t = 63)", REZAGO,
      "const pct = (r) => (100 * r.sd / sd0).toFixed(1);", "const pct = (r) => Math.round(100 * r.sd / sd0);"),
@@ -155,25 +222,38 @@ MUTACIONES = [
     ("el anuncio repite el barrio aunque solo se pase el ratón", REZAGO,
      "        if (E.k !== antes.k) return 't = ' + E.k + ': desviación típica ' + pct(r) + ' % de la de y.';\n        return null;",
      "        if (E.k !== antes.k) return 't = ' + E.k + ': desviación típica ' + pct(r) + ' % de la de y.';\n        return 'Barrio ' + (E.foco + 1) + '.';"),
+    ("«arrastra» vuelve a pedir |g − 1| ≤ 0.1 (parpadeaba y faltaba en r = 0.20)", KANILLO,
+     "return iv != null && E.ir >= iv && cu.q > 1.1 && cu.g < 1.1;", "return iv != null && E.ir >= iv && cu.q > 1.1 && Math.abs(cu.g - 1) <= 0.1;"),
+    ("la lectura vuelve a decir «más parejas de las que daría el azar»", KANILLO,
+     ": (g > 1 ? 'por encima' : g < 1 ? 'por debajo' : 'justo encima') + ' de 1, lo que daría el azar en promedio; ' + BANDA;",
+     ": g > 1.1 ? 'a esa distancia hay más parejas de las que daría el azar' : g < 0.9 ? 'a esa distancia hay menos parejas de las que daría el azar' : 'a esa distancia hay casi las parejas que daría el azar';"),
+    ("la lectura pierde la fila «¿es significativo?»", KANILLO,
+     "l.push(['¿es significativo?', 'hace falta la envolvente del módulo 11']);", ""),
+    ("en el paso 4, cambiar el peso vuelve a llevar al paso 2", KANILLO,
+     "sig.peso === 'ninguno' || E.paso === 4 ? 4 :", "sig.peso === 'ninguno' ? 4 :"),
+    ("el anuncio de K y g repite aunque solo se pase el ratón", KANILLO,
+     "        if (E.peso !== antes.peso) return (cu.peso ? 'Con peso: ' : 'Sin peso: ') + todo + '.';\n        return null;",
+     "        if (E.peso !== antes.peso) return (cu.peso ? 'Con peso: ' : 'Sin peso: ') + todo + '.';\n        return 'Punto ' + (E.foco + 1) + '.';"),
     ("el guion vuelve a no dar tiempo a leer el paso", NUCLEO,
      "Math.max(p.pausa != null ? p.pausa : PAUSA_PASO, lectura(p))", "(p.pausa != null ? p.pausa : PAUSA_PASO)"),
 ]
 
 
-def corre(extra_env: dict[str, str]) -> subprocess.CompletedProcess:
+def corre(prueba: Path, extra_env: dict[str, str]) -> subprocess.CompletedProcess:
     env = dict(os.environ)
     env.update(extra_env)
-    return subprocess.run([sys.executable, str(PRUEBA)], capture_output=True, text=True, env=env)
+    return subprocess.run([sys.executable, str(prueba)], capture_output=True, text=True, env=env)
 
 
 def main() -> int:
     print("\n=== prueba_mutaciones_anim2d.py ===")
-    base = corre({})
-    if base.returncode != 0:
-        print("PARADO: la prueba no pasa con el motor intacto; no tiene sentido romperlo.")
-        print(base.stdout[-1500:])
-        return 2
-    print(f"  intacto: la prueba pasa ({base.stdout.count('  OK  ')} comprobaciones)")
+    for prueba in sorted({pr for lista in PRUEBAS.values() for pr, _ in lista}):
+        base = corre(prueba, {})
+        if base.returncode != 0:
+            print(f"PARADO: {prueba.name} no pasa con los motores intactos; no tiene sentido romperlos.")
+            print(base.stdout[-1500:])
+            return 2
+        print(f"  intacto: {prueba.name} pasa ({base.stdout.count('  OK  ')} comprobaciones)")
     cazadas = 0
     with tempfile.TemporaryDirectory() as tmp:
         for nombre, archivo, busca, pone in MUTACIONES:
@@ -183,25 +263,27 @@ def main() -> int:
                 return 2
             copia = Path(tmp) / archivo.name
             copia.write_text(texto.replace(busca, pone), encoding="utf-8")
-            var = "REZAGO2D_MOTOR" if archivo == REZAGO else "ANIM2D_NUCLEO"
-            r = corre({var: str(copia)})
-            malas = [l.strip() for l in r.stdout.splitlines() if l.startswith("  MAL")]
-            caza = r.returncode != 0
+            caza, detalle = False, ""
+            for prueba, var in PRUEBAS[archivo]:          # la caza cualquiera de las pruebas de ese archivo
+                r = corre(prueba, {var: str(copia)})
+                if r.returncode == 0:
+                    continue
+                caza = True
+                malas = [l.strip() for l in r.stdout.splitlines() if l.startswith("  MAL")]
+                if malas:
+                    detalle = prueba.name + ": " + malas[0][5:].strip()
+                else:                                    # la prueba paró con una excepción: que se vea cuál
+                    err = [l for l in r.stderr.splitlines() if "Error" in l or l.startswith("PARADO")]
+                    detalle = prueba.name + ": " + (err or ["la prueba paró"])[0]
+                break
             cazadas += caza
-            if malas:
-                detalle = malas[0][5:].strip()
-            else:                                    # la prueba paró con una excepción: que se vea cuál
-                err = [l for l in r.stderr.splitlines() if "Error" in l or l.startswith("PARADO")]
-                detalle = (err or ["la prueba paró"])[0]
-            detalle = detalle if caza else ""
             print(("  CAZADA  " if caza else "  SE COLÓ ") + nombre + (f"\n            ↳ {detalle[:150]}" if detalle else ""))
     print(f"\n  {cazadas} de {len(MUTACIONES)} defectos cazados")
     if cazadas != len(MUTACIONES):
         print("  HAY DEFECTOS QUE PASAN INADVERTIDOS.\n")
         return 1
-    print("  La prueba los caza todos.\n")
+    print("  Las pruebas los cazan todos.\n")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())
