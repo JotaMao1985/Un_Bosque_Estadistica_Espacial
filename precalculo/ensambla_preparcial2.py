@@ -156,8 +156,8 @@ PRESENTA = {
     "c4m2_esp_min": (2, ""), "c4m2_esp_max": (1, ""),
     "c4m3_ce_bog": (5, ""), "c4m3_nn_bog": (2, "m"), "c4m3_nn_esp_bog": (2, "m"),
     "c4m4_n_real": (0, ""), "c4m4_lambda": (0, ""), "c4m4_media": (3, ""),
-    "c4m4_var": (3, ""),     "c4m4_R_media": (5, ""), "c4m4_R_bajo1": (0, ""),         "c4m5_chi2": (6, ""), "c4m5_gl": (0, ""), "c4m5_ce_orig": (5, ""), "c4m5_ce_reb": (5, ""),
-    "c4m6_red_rechazos": (0, ""), "c4m6_red_emin10": (2, ""),
+    "c4m4_var": (3, ""),     "c4m4_R_media": (5, ""), "c4m4_R_bajo1": (0, ""),         "c4m5_chi2": (4, ""), "c4m5_gl": (0, ""), "c4m5_ce_orig": (5, ""), "c4m5_ce_reb": (5, ""),
+    "c4m6_red_rechazos": (0, ""), "c4m6_red_emin10": (2, ""), "c4m6_red_p2": (5, ""),
     "c4m7_umbral_f": (1, ""), "c4m7_f_sitios": (0, ""), "c4m7_f_rejilla": (0, ""),
     "c4m8_vecino_max": (0, "m"), "c4m8_rmax": (0, "m"), "c4m8_max_desvio": (2, "m"),
     "c4m8_vecinas": (2, ""), "c4m8_vecinas_csr": (2, ""),
@@ -183,11 +183,12 @@ PRESENTA = {
     "c5m8_esperadas": (2, ""), "c5m8_gana_ppm": (5, ""), "c5m8_gana_const": (5, ""),
     "c5m9_xc": (5, ""), "c5m9_yc": (5, ""), "c5m9_z_xc": (2, ""), "c5m9_z_yc": (2, ""),
     "c5m9_cond": ("e", ""), "c5m9_mejora": (0, "veces"),
-    "c5m10_pct_fuera": (0, "%"), "c5m10_primer": (0, "m"), "c5m10_ultimo": (0, "m"),
+    "c5m10_primer": (0, "m"), "c5m10_ultimo": (0, "m"),
     "c5m10_rmax": (0, "m"), "c5m10_nodos_dentro": (0, ""), "c5m10_tasa": (1, "%"),
-    "c5m10_nivel": (1, "%"), "c5m10_dclf": (3, ""), "c5m10_fuera": (0, ""),
-    "c5m11_th_iso_esc": (0, "m"), "c5m11_th_tr_esc": (0, "m"), "c5m11_th_iso_mu": (1, ""),
-    "c5m11_th_tr_mu": (1, ""), "c5m11_mat_iso_mu": (1, ""), "c5m11_th_iso_seg": (1, "s"), "c5m11_th_tr_seg": (2, "s"),
+    "c5m10_nivel": (1, "%"), "c5m10_dclf": (3, ""), "c5m10_fuera_sim": (0, ""),
+    "c5m10_r_mad": (0, "m"),
+    "c5m11_th_iso_esc": (0, "m"), "c5m11_th_tr_esc": (0, "m"), "c5m11_th_iso_mu": (2, ""),
+    "c5m11_th_tr_mu": (2, ""), "c5m11_mat_iso_mu": (2, ""), "c5m11_th_iso_seg": (1, "s"), "c5m11_th_tr_seg": (2, "s"),
     "c5m11_mu_pct": (1, "%"), "c5m11_deff": (5, ""), "c5m11_n": (0, ""),
     "c5m11_neff": (5, ""), "c5m11_mat_iso_inf": (5, ""), "c5m11_z_pois": (2, ""),
     "c5m11_z_th_tr": (2, ""), "c5m11_zc": (2, ""), "c5m11_dup_cambio": (1, "%"),
@@ -199,7 +200,8 @@ PRESENTA = {
     "tope_ppl.lado_x_m": (0, ""), "tope_ppl.lado_y_m": (0, ""), "tope_ppl.correcto": (0, "m"),
     "tope_ppl.csr_realizaciones": (0, ""), "tope_ppl.csr_chocan_en_el_tope": (0, ""),
         "niveles.cap4_pct": (0, "%"),
-    "riesgo_relativo.correcto": (5, ""),
+    "riesgo_relativo.correcto": (5, ""), "riesgo_relativo.referencia": (4, ""),
+    "riesgo_relativo.veces_referencia": (2, ""),
     "forzado.n": (0, ""), "forzado.area_km2": (5, "km²"), "forzado.suma_pesos_km2": (5, "km²"),
     "forzado.sin_contar_km2": (5, "km²"), "forzado.correcto": (3, ""),
     "n_efectivo.efecto_diseno": (5, ""),
@@ -220,7 +222,7 @@ PRESENTA = {
     "c4m4_R_sd": (5, ""), "c4m8_parejas": (0, ""), "c4m10_r_sesgo": (0, "m"),
     # --- ronda 4 de la auditoría (2026-10-05) ---
     "c5m10_mmean_pct": (3, "%"), "c5m11_repetidas": (0, ""),
-    "limite.corregida_min_km2": (4, "sedes/km²"), "limite.corregida_max_km2": (4, "sedes/km²"),
+    "limite.corregida_min_km2": (3, "sedes/km²"),
     "tope_ppl.csr_puntos_esperados": (0, ""), "tope_ppl.csr_no_chocan": (0, ""),
     "tope_ppl.csr_sigma_min_m": (0, "m"), "tope_ppl.csr_sigma_max_m": (0, "m"),
     "gf_suecos.n": (0, ""), "gf_suecos.lado_x_m": (1, ""), "gf_suecos.lado_y_m": (0, "m"),
@@ -423,7 +425,11 @@ BLOQUE_A = [
          retroFallo=(
              f"Si respondiste {dist('resto_dc', 'el_del_dc')}, comparaste con el Distrito entero, que "
              f"incluye la propia ciudad. Si respondiste {dist('resto_dc', 'area_entera')}, dividiste "
-             f"las sedes del resto por el área de todo el Distrito. El resto es otra ventana: sus sedes "
+             f"las sedes del resto por el área de todo el Distrito. Si respondiste "
+             f"{dist('resto_dc', 'ciento_dos')}, contaste como resto las {c('c4m1_fuera_urb')} sedes "
+             f"que el perímetro urbano descarta; pero {c('c4m1_fuera_dc')} de ellas cae también fuera "
+             f"del D.C., y el resto tiene {cn('resto_dc.n_resto')}. Si respondiste "
+             f"{dist('resto_dc', 'al_reves', 3)}, el cociente está al revés. El resto es otra ventana: sus sedes "
              f"son las del D.C. menos las urbanas, y su área, la del D.C. menos la urbana. Es lo que "
              f"hace <code>ppp()</code> con cada ventana: cuenta solo las sedes que caen dentro y "
              f"descarta las demás con un aviso que nadie lee.")),
@@ -492,10 +498,12 @@ BLOQUE_A = [
              op(f"Muy poca: con {c('c4m2_celdas')} celdas vivas, y {c('c4m2_esp_baja')} que esperan "
                 f"menos de 5, casi todo ese índice cabe en el azar del conteo de un Poisson "
                 f"homogéneo.", False,
-                f"No cabe: el χ² que compara cada conteo con la esperanza de su propia celda da "
-                f"{c('c4m2_chi2')} con {c('c4m2_gl')} grados de libertad. Con {c('c4m2_esp_baja')} "
-                f"celdas que esperan menos de 5 la aproximación cojea, pero el margen es tal que la "
-                f"conclusión no cambia.")]),
+                f"No cabe: el índice de un Poisson homogéneo con estas celdas rondaría "
+                f"{c('c4m2_disp_nula')}, y el observado es {c('c4m2_dispersion')}. El χ² que compara "
+                f"cada conteo con la esperanza de su propia celda da {c('c4m2_chi2')} con "
+                f"{c('c4m2_gl')} grados de libertad, pero con {c('c4m2_esp_baja')} celdas que esperan "
+                f"menos de 5 ese p-valor no se defiende tal cual: es la advertencia del módulo 6. El "
+                f"rechazo se apoya en una rejilla que respete el supuesto, como la de la rutina 2.")]),
 
     preg("opcion", "cap4", 3,
          f"Con las sedes del perímetro urbano, el índice de Clark-Evans sin corregir, R, vale "
@@ -515,11 +523,12 @@ BLOQUE_A = [
                 f"desde el 3: la ventana es parte del estimador."),
              # Sin las cifras del resto del Distrito: con ellas, el A01 se
              # resolvía leyendo esta pregunta (forma, ronda 5).
-             op("Al pasar a la ventana del D.C. entran las sedes rurales, más agrupadas que las "
-                "urbanas, y arrastran hacia abajo la distancia media a la vecina.",
+             op("Al pasar a la ventana del D.C. entran las sedes rurales, más pegadas unas a otras "
+                "que las urbanas, y arrastran hacia abajo la distancia media a la vecina.",
                 False,
-                f"Pasa lo contrario: las {cn('resto_dc.n_resto')} sedes rurales están aisladas, y la "
-                f"distancia media observada sube de {c('c4m3_nn_bog')} a {cn('ce_ventana.nn_dc')}. Lo "
+                f"No la arrastran hacia abajo: las {cn('resto_dc.n_resto')} sedes rurales tienen su "
+                f"vecina lejos, repartidas por {cn('resto_dc.area_resto_km2')}, y la distancia media "
+                f"observada sube de {c('c4m3_nn_bog')} a {cn('ce_ventana.nn_dc')}. Lo "
                 f"que se dispara es la distancia que daría el azar con la λ de la ventana, de "
                 f"{c('c4m3_nn_esp_bog')} a {cn('ce_ventana.nn_esp_dc')}."),
              op("Al pasar a la ventana del D.C. el índice compara sedes separadas por kilómetros, y "
@@ -543,23 +552,25 @@ BLOQUE_A = [
          f"λ = {cn('denso.lambda')}, diez veces más puntos en el mismo cuadrado. Marca todo lo que "
          f"es cierto.",
          "Separa lo que podría cambiar con λ: el conteo de puntos y su varianza, el sesgo del índice "
-         "y su temblor. ¿Qué cambia, y hacia dónde?",
+         "y su temblor. ¿Qué cambia, y hacia dónde? Para la proporción bajo 1, compara a qué ritmo "
+         "encogen el sesgo y el temblor.",
          opciones=[
              op("La media del índice sin corregir baja hacia 1: con más densidad, a una fracción menor "
                 "de los puntos se le escapa el vecino fuera de la ventana.", True,
-                f"Baja a {cn('denso.R_media')}: el sesgo pasa de {cn('denso.sesgo_capitulo')} a "
+                f"La media del índice baja a {cn('denso.R_media')}: el sesgo pasa de {cn('denso.sesgo_capitulo')} a "
                 f"{cn('denso.sesgo')}. El vecino de verdad de un punto solo puede caer fuera si el "
                 f"punto está más cerca del borde que de su vecino, y con más densidad esa franja se "
                 f"estrecha. En número, los puntos de la franja son más —es más estrecha, pero con diez "
                 f"veces más densidad—, y aun así pesan menos en la media, porque son una fracción "
                 f"menor de todos. No desaparece: el estimador sin corregir sigue por encima de 1."),
-             op(f"La proporción de realizaciones con un índice por debajo de 1, que en el capítulo era "
-                f"el {cn('denso.pct_bajo1_capitulo')}, se queda cerca de esa cifra con "
+             op(f"La proporción de realizaciones con un índice por debajo de 1, {c('c4m4_R_bajo1')} de "
+                f"{c('c4m4_n_real')} en el capítulo, se mantiene parecida con "
                 f"λ = {cn('denso.lambda')}.", True,
                 f"Quedan {cn('denso.R_bajo1')} de {cn('denso.n_real')} por debajo de 1, el "
                 f"{cn('denso.pct_bajo1')}, frente al {cn('denso.pct_bajo1_capitulo')} del capítulo. "
                 f"El sesgo se encoge, pero el azar de R también —su desviación típica baja de "
-                f"{c('c4m4_R_sd')} a {cn('denso.R_sd')}— y casi al mismo ritmo, el de 1/√λ: el sesgo, "
+                f"{c('c4m4_R_sd')} a {cn('denso.R_sd')}— y casi al mismo ritmo entre sí, los dos del "
+                f"orden de 1/√λ: el sesgo, "
                 f"porque la franja del borde se estrecha con la distancia al vecino; el temblor, "
                 f"porque R promedia diez veces más distancias. Por eso un índice por "
                 f"debajo de 1 sigue sin bastar para declarar agregación, con pocos puntos o con muchos."),
@@ -594,7 +605,7 @@ BLOQUE_A = [
          f"dos χ² dejen de coincidir?",
          "Repasa cómo se construyó el rebarajado.",
          opciones=[
-             op(f"Que la rejilla es la escala a la que el test mira: el rebarajado conserva los "
+             op(f"Que la rejilla es la escala a la que el test mira, porque el rebarajado conserva los "
                 f"conteos de cada celda {ej(5)}, no los de sus cuartos.", True,
                 f"Dentro de cada celda {ej(5)} los puntos se repartieron al azar, así que cada "
                 f"cuarto de celda recibe otro número. El χ² no ve lo que pasa por debajo de su "
@@ -616,9 +627,13 @@ BLOQUE_A = [
              op("Que, si cada celda espera al menos 5 plántulas, el χ² fino es el que hay que creer, "
                 "porque tiene más grados de libertad.", False,
                 f"La condición no se cumple: con la rejilla {ej(10)} cada celda espera "
-                f"{c('c4m6_red_emin10')} plántulas, muy por debajo de 5, y el p-valor sale de una "
-                f"aproximación que ya no vale. Y aun cumpliéndose, más grados de libertad no hacen más "
-                f"creíble una escala que otra: cada rejilla contesta por su escala.")]),
+                f"{c('c4m6_red_emin10')} plántulas, muy por debajo de 5, y ni siquiera la {ej(5)} "
+                f"llega a 5; por eso esta pregunta compara estadísticos y no p-valores. Y aun "
+                f"cumpliéndose, más grados de libertad no hacen más "
+                f"creíble una escala que otra: cada rejilla contesta por su escala.")],
+         # En las de una respuesta la «b» no era clave nunca, y en las de
+         # gráfico lo era en cuatro de seis (forma, ronda 6).
+         giro=1),
 
     preg("grafico", "cap4", 6,
          f"El gráfico da, para cada rejilla del barrido, cuántas sedes espera la celda de menor "
@@ -759,24 +774,27 @@ BLOQUE_A = [
              op(f"Distingue un patrón alineado a lo largo de una avenida de uno en grumos redondos: a "
                 f"1&nbsp;km, cada una de las {c('c4m8_parejas')} parejas de sedes entra con su "
                 f"dirección.", False,
-                "K solo mira distancias: una alineación sube K como cualquier grumo, pero su "
-                "dirección se promedia con todas las demás y no se distingue de un grupo redondo. "
-                "Es el supuesto de isotropía."),
+                "K solo mira distancias: una alineación sube K como cualquier grumo, y la dirección "
+                "de cada pareja se pierde al promediar todas las direcciones, así que K no puede decir "
+                "que el exceso venga de una avenida y no de grumos. Es el supuesto de isotropía."),
              # Antes falsa, y las tres falsas eran las tres absolutas; además la
              # clave era la más corta (forma, ronda 5). Ahora es una tercera
              # clave, y sin precipicio: pasado el alcance los pesos no se
              # disparan (1.68 de media justo antes, 1.79 justo después) ni la
              # varianza de K salta; la regla de Ripley es práctica, no un
              # umbral de validez (verdad, ronda 5).
+             # Más corta: le sacaba 56 caracteres a la falsa más larga, y la guarda
+             # de longitud no miraba las de varias respuestas (forma, ronda 6).
              op(f"Por defecto, <code>Kest</code> se detiene en {c('c4m8_rmax')}, un cuarto del lado "
-                f"corto del rectángulo que encierra la ventana urbana, porque cuanto más larga es una "
-                f"pareja, más la tienen que pesar la isotrópica y la de traslación.", True,
-                f"Es la regla práctica de Ripley, la que <code>Kest</code> aplica por defecto, y el "
-                f"capítulo no la pasa. Cuanto más larga es una pareja, menos probable es que quepa "
+                f"corto del rectángulo que encierra la ciudad, porque cuanto más larga es una pareja, "
+                f"más la pesa la corrección.", True,
+                f"Ese alcance es la regla práctica de Ripley, la que <code>Kest</code> aplica por "
+                f"defecto, y el capítulo no mira más allá. Cuanto más larga es una pareja, menos probable es que quepa "
                 f"entera en la ciudad, y más pesa la que sí se observó. Con la corrección de "
                 f"traslación, el peso medio de las parejas a 1&nbsp;km o menos es "
-                f"{c('c4m8_peso_1km')}; en la última décima antes de {c('c4m8_rmax')}, "
-                f"{c('c4m8_peso_rmax')}; y en la última décima antes del doble de esa distancia, "
+                f"{c('c4m8_peso_1km')}; en el último décimo del alcance, justo antes de "
+                f"{c('c4m8_rmax')}, {c('c4m8_peso_rmax')}; y en el último décimo antes del doble de "
+                f"esa distancia, "
                 f"{c('c4m8_peso_doble')}, con alguna pareja contada por {c('c4m8_peso_doble_max')}. "
                 f"No es un precipicio: pasado ese radio la curva no se rompe de golpe, pero la "
                 f"sostienen pesos cada vez más grandes. Para mirar más lejos se le pasa "
@@ -839,14 +857,15 @@ BLOQUE_A = [
          "Lee la fórmula término a término y pregúntate de qué depende cada uno.",
          opciones=[
              op("Dos parejas con el mismo vector pesan lo mismo, aunque una esté en pleno centro y "
-                "la otra pegada al borde.", True,
+                "la otra pegada al borde, porque el peso depende solo de v.", True,
                 "La fórmula no mira dónde está la pareja: solo cuánto se solapa la ventana con su "
                 "copia desplazada. Es una corrección de la forma de la ventana, no de la posición de "
                 "los puntos; la isotrópica, en cambio, sí mira dónde está cada punto."),
              op(f"Con la traslación ninguna pareja de sedes separadas pesa exactamente 1: dos sedes a "
                 f"{cn('traslacion.d_corta_m')} una de otra en dirección este pesan "
                 f"{cn('traslacion.peso_este_100')}.", True,
-                f"Es el inverso de lo que se conserva, el {cn('traslacion.frac_este_100')}. Para "
+                f"El {cn('traslacion.peso_este_100')} es el inverso de lo que se conserva, el "
+                f"{cn('traslacion.frac_este_100')}. Para "
                 f"cualquier vector que no sea nulo la ventana desplazada pierde algo: lo que el peso "
                 f"compensa es la probabilidad de que una pareja con ese vector cayera entera dentro. "
                 f"Solo las parejas de sedes que comparten coordenadas —{c('c5m11_repetidas')} sedes "
@@ -858,11 +877,14 @@ BLOQUE_A = [
                 f"{cn('traslacion.peso_este_100')} si la pareja va de este a oeste, "
                 f"{cn('traslacion.peso_norte_100')} si va de norte a sur—, porque depende de la ventana "
                 f"entera y no del sitio de la pareja."),
-             op("Las parejas este-oeste y las norte-sur separadas lo mismo pesan igual, porque la "
-                "corrección solo mira la distancia entre los dos puntos.", False,
+             op(f"Las parejas este-oeste y las norte-sur separadas lo mismo pesan igual, "
+                f"{cn('traslacion.peso_este_100')} a {cn('traslacion.d_corta_m')}: la corrección solo "
+                f"mira la distancia entre los dos puntos.", False,
                 f"Mira el vector entero, dirección incluida: hacia el este la ventana conserva el "
                 f"{cn('traslacion.frac_este_100')} y hacia el norte el "
-                f"{cn('traslacion.frac_norte_100')}. La que no mira la dirección es la isotrópica."),
+                f"{cn('traslacion.frac_norte_100')}, así que la pareja norte-sur pesa "
+                f"{cn('traslacion.peso_norte_100')}, no {cn('traslacion.peso_este_100')}. La que no "
+                f"mira la dirección es la isotrópica."),
              # Contraria a la de «pesan igual», y falsa como ella: un par que se
              # contradice sin clave (H17, ronda 5). La lección de la distancia,
              # que era la de esta opción, sigue en su retro.
@@ -925,8 +947,8 @@ BLOQUE_B = [
                 f"de la localidad, sin importar dónde estén las sedes.", True,
                 f"Con σ muy grande cada núcleo es casi plano sobre la ventana, y la corrección divide "
                 f"por la fracción que cae dentro, así que en cada sitio queda n/|W|: con un σ enorme, "
-                f"la superficie va de {cn('limite.corregida_min_km2')} a "
-                f"{cn('limite.corregida_max_km2')} en toda la localidad. La KDE es contar con una "
+                f"la superficie vale {cn('limite.corregida_min_km2')} en cualquier sitio de la "
+                f"localidad —el mínimo y el máximo coinciden hasta la tercera decimal—. La KDE es contar con una "
                 f"vecindad que se solapa; con una vecindad del tamaño de la ventana, se cuenta todo y "
                 f"se divide por toda el área. Por eso <code>bw.ppl</code>, ante un patrón sin "
                 f"estructura, puede irse al σ más grande que le dejan probar (módulo 3)."),
@@ -955,7 +977,7 @@ BLOQUE_B = [
          "El gráfico da la intensidad máxima de la superficie de Kennedy para cada uno de los "
          "siete anchos de banda del módulo 2, con el mismo núcleo. Un informe publica los siete "
          "mapas, cada uno con su escala de color de cero a su propio máximo, y concluye: «el ancho "
-         "de banda no cambia cuánta intensidad hay, solo el tamaño de las manchas». Con el gráfico "
+         "de banda no cambia lo intensas que son las manchas, solo su tamaño». Con el gráfico "
          "delante, ¿qué le contestas?",
          "Compara lo que dice la curva con lo que vería quien solo mira los siete mapas.",
          alto=240,
@@ -990,13 +1012,14 @@ BLOQUE_B = [
                 f"La curva dice lo contrario: el pico cae un {c('c5m2_caida')} entre los anchos "
                 f"extremos, mucho más que el {c('c5m2_nucleo_dif')} que mueve cambiar de núcleo con el "
                 f"mismo σ."),
-             op("Que tiene razón, porque con la corrección de borde las siete superficies integran casi "
-                "lo mismo, y con la misma masa la intensidad es la misma.", False,
+             op("Que tiene razón: con la corrección de borde las siete superficies integran casi lo "
+                "mismo, y con la misma masa la intensidad es la misma.", False,
                 "La misma masa repartida sobre más área da un pico más bajo, y es justo por eso que el "
                 "pico cae al abrir σ. Que las siete integren casi lo mismo es lo que hace honesta una "
                 "escala común, no lo que la hace innecesaria."),
-             op("Que se equivoca de causa: lo que cambia la intensidad es el núcleo, y con el mismo "
-                "núcleo los siete mapas sí son igual de intensos.", False,
+             op(f"Que se equivoca de causa: lo que cambia la intensidad es el núcleo, que mueve el pico "
+                f"un {c('c5m2_nucleo_dif')} con el mismo σ; con el mismo núcleo, los siete mapas son "
+                f"igual de intensos.", False,
                 f"El núcleo mueve el pico un {c('c5m2_nucleo_dif')} con el mismo σ; el ancho, un "
                 f"{c('c5m2_caida')}. Con el mismo núcleo y siete anchos, los mapas no son igual de "
                 f"intensos: lo parecen solo con una escala por mapa.")]),
@@ -1011,7 +1034,9 @@ BLOQUE_B = [
          respuesta=val_nuevo("tope_ppl.correcto"), tolerancia=1, unidad="m",
          retroAcierto=(
              f"El tope es la mitad del diámetro de la ventana —la mayor distancia entre dos de sus "
-             f"puntos—, y en un rectángulo el diámetro es la diagonal: {cn('tope_ppl.correcto')}. Y "
+             f"puntos—. En un rectángulo el diámetro es la diagonal, aquí de "
+             f"{dist('tope_ppl', 'diagonal_entera')}&nbsp;m, y el tope es su mitad: "
+             f"{cn('tope_ppl.correcto')}. Y "
              f"no es un caso raro: sobre {cn('tope_ppl.csr_realizaciones')} patrones de CSR de unos "
              f"{cn('tope_ppl.csr_puntos_esperados')} puntos en ese rectángulo, <code>bw.ppl</code> "
              f"devolvió exactamente ese tope en {cn('tope_ppl.csr_chocan_en_el_tope')}. Para un patrón "
@@ -1042,20 +1067,21 @@ BLOQUE_B = [
                 f"centrado en ese sitio que cae dentro, y el total sale por encima o por debajo de n según a qué "
                 f"distancia del borde caigan los puntos. La única que integra n siempre es la de "
                 f"Diggle."),
-             op("La superficie sin corregir, que con estas sedes cuenta dos veces la masa de los "
-                "núcleos del borde y por eso se pasa.", False,
-                f"Sin corregir pasa lo contrario: la masa de cada núcleo que se sale de la ventana "
-                f"se pierde, y la integral se queda corta, en {c('c5m4_masa_sin')}."),
+             op("La superficie sin corregir, que sigue sumando la parte de cada núcleo que cae fuera "
+                "de la ventana, y con estas sedes se pasa de n.", False,
+                f"Al revés: la integral se hace sobre la ventana, y la parte de cada núcleo que cae "
+                f"fuera no la recoge nadie. Sin corregir, la masa se queda corta, en "
+                f"{c('c5m4_masa_sin')}."),
              op("La de diggle = TRUE, que con estas sedes corrige más fuerte que las otras dos y deja "
                 "la integral por encima de n.", False,
                 f"Esa es la que conserva el conteo: divide el núcleo de cada sede por la fracción de "
                 f"ese núcleo que cae dentro, así que cada sede aporta exactamente 1 y la superficie "
                 f"integra {c('c5m4_masa_dig')} a cualquier ancho."),
-             op("Las tres dan casi lo mismo con estas sedes: la integral se aparta de n por la "
-                "discretización de la rejilla del mapa, no por la corrección.", False,
+             op("Sin corregir, por defecto y con Diggle dan casi lo mismo con estas sedes: la integral "
+                "se aparta de n por la rejilla del mapa, no por la corrección.", False,
                 f"La rejilla mueve la integral muy poco; con diggle = TRUE da "
-                f"{c('c5m4_masa_dig')}. Un exceso del {c('c5m4_exceso')} no es de la rejilla: es "
-                f"de la corrección.")]),
+                f"{c('c5m4_masa_dig')}, y sin corregir, {c('c5m4_masa_sin')}. Un exceso del "
+                f"{c('c5m4_exceso')} no es de la rejilla: es de la corrección.")]),
 
     preg("multiple", "cap5", 5,
          f"El módulo 5 pinta tres capas sobre la ciudad con el mismo σ: la de oferta, con todas las "
@@ -1075,9 +1101,10 @@ BLOQUE_B = [
                 f"Una capa cuenta sedes y la otra, estudiantes: donde las manchas no coinciden, "
                 f"contar sedes deja de aproximar bien cuántos estudiantes hay. Las otras dos parejas "
                 f"correlacionan {c('c5m5_cor_of_11')} (oferta y bachillerato) y {c('c5m5_cor_11_es')} "
-                f"(bachillerato y evaluados). Ni una correlación de 1 las haría intercambiables —una "
-                f"cuenta sedes y la otra, personas—; con {c('c5m5_cor_of_es')}, ni siquiera las "
-                f"manchas caen del todo en los mismos sitios."),
+                f"(bachillerato y evaluados). Una correlación de 1 diría que las manchas caen en los "
+                f"mismos sitios, que es lo que el capítulo llama dar igual cuál se publica; aun así una "
+                f"cuenta sedes y la otra, personas, y el mapa cambiaría de unidad. Con "
+                f"{c('c5m5_cor_of_es')}, ni siquiera las manchas caen del todo en los mismos sitios."),
              # Antes contradecía a la de la unidad en la superficie («integra
              # las mismas sedes» frente a «evaluados por km²»), y de cada par
              # contradictorio una era la clave (forma, ronda 5).
@@ -1105,9 +1132,9 @@ BLOQUE_B = [
 
     preg("numerica", "cap5", 6,
          f"En <code>chorley</code> —{c('c5m6_ch_casos')} cánceres de laringe, los casos, y "
-         f"{c('c5m6_ch_controles')} de pulmón, los controles—, en el máximo del mapa de la "
-         f"probabilidad de laringe la probabilidad de que un cáncer registrado sea de laringe es "
-         f"{c('c5m6_ch_pmax')}. ¿Cuánto vale ahí el riesgo relativo, el cociente entre la intensidad "
+         f"{c('c5m6_ch_controles')} de pulmón, los controles—, el mapa de la probabilidad de "
+         f"laringe llega a su máximo en {c('c5m6_ch_pmax')}: ahí, un cáncer registrado tiene esa "
+         f"probabilidad de ser de laringe. ¿Cuánto vale ahí el riesgo relativo, el cociente entre la intensidad "
          f"de los casos y la de los controles? Con dos decimales; se acepta una diferencia de "
          f"{n(0.01, 2)}.",
          "La probabilidad de caso y el riesgo relativo llevan la misma información en escalas "
@@ -1118,12 +1145,19 @@ BLOQUE_B = [
              f"{cn('riesgo_relativo.correcto')}. La probabilidad vive entre 0 y 1 y el riesgo "
              f"relativo entre 0 e infinito; <code>relrisk</code> devuelve la primera salvo que se le "
              f"pida <code>relative = TRUE</code>. Los dos cánceres tienen al tabaco detrás, y así lo "
-             f"que el tabaco tiene de geográfico se cancela en el cociente."),
+             f"que el tabaco tiene de geográfico se cancela en el cociente. Y léelo con su "
+             f"referencia, que no es 1: si la laringe no tuviera geografía propia, el cociente "
+             f"valdría en todas partes {c('c5m6_ch_casos')}/{c('c5m6_ch_controles')} = "
+             f"{cn('riesgo_relativo.referencia')}, la razón entre los dos grupos. En el máximo, "
+             f"{cn('riesgo_relativo.correcto')} es {cn('riesgo_relativo.veces_referencia')} veces "
+             f"eso: por debajo de 1 y, aun así, muy por encima de lo que se esperaría."),
          retroFallo=(
              f"Si respondiste {dist('riesgo_relativo', 'contra_global')}, dividiste por la "
              f"proporción global, {c('c5m6_ch_global')}: eso dice cuántas veces la proporción local "
              f"supera a la de la comarca, que es otra pregunta. Si respondiste "
-             f"{dist('riesgo_relativo', 'al_reves')}, el cociente está al revés. La relación es "
+             f"{dist('riesgo_relativo', 'al_reves')}, el cociente está al revés. Si respondiste "
+             f"{dist('riesgo_relativo', 'la_misma')}, diste la probabilidad de caso: es lo que pinta "
+             f"<code>relrisk</code> por defecto, y vive en otra escala. La relación es "
              f"r = p/(1 − p).")),
 
     preg("opcion", "cap5", 7,
@@ -1134,14 +1168,14 @@ BLOQUE_B = [
          "Recuerda qué condición pide el capítulo a una covariable para que <code>rhohat</code> "
          "diga algo del proceso.",
          opciones=[
-             op("Que esa covariable la fabrican los mismos árboles cuya intensidad se quiere explicar: "
-                "la relación está garantizada antes de mirar.", True,
+             op("Que no sirve, porque esa covariable sale de los mismos árboles cuya intensidad se "
+                "quiere explicar: la relación está garantizada antes de mirar.", True,
                 "La elevación sirve porque se midió aparte de los árboles: la pregunta «¿hay más "
                 "árboles donde el terreno es así?» se puede contestar con datos. Con una covariable "
                 "hecha de los mismos árboles, la curva sube donde hay árboles por construcción, y no "
                 "dice nada del terreno."),
-             op("Que es mejor que la elevación, porque explica mucha más variación de la intensidad "
-                "que los rasgos del terreno.", False,
+             op("Que es mejor que la elevación: explica mucha más variación de la intensidad que los "
+                "rasgos del terreno.", False,
                 "Explica más, sí, y justo por eso no sirve: está hecha con los mismos puntos que "
                 "intenta explicar. Una covariable que «explica» por construcción no explica nada."),
              op("Que no se puede, porque un número de vecinos es un conteo y no una medición, y rhohat "
@@ -1157,21 +1191,21 @@ BLOQUE_B = [
     preg("numerica", "cap5", 8,
          f"Sin covariables, <code>ppm(X ~ 1)</code> no pasa por la cuadratura; con "
          f"<code>forcefit = TRUE</code> sí pasa por ella. Kennedy mide "
-         f"{cn('forzado.area_km2')}, y sobre sus {cn('forzado.n')} sedes los pesos de esa "
-         f"cuadratura suman {cn('forzado.suma_pesos_km2')}. ¿Qué intensidad devuelve "
+         f"{cn('forzado.area_km2')}, y la cuadratura que <code>ppm</code> arma con sus "
+         f"{cn('forzado.n')} sedes y los puntos ficticios tiene pesos que suman "
+         f"{cn('forzado.suma_pesos_km2')}. ¿Qué intensidad devuelve "
          f"<code>ppm(X ~ 1, forcefit = TRUE)</code>, en sedes por km²? Con tres decimales; se acepta "
          f"una diferencia de {n(0.005, 3)}.",
          "Escribe la log-verosimilitud aproximada con una intensidad constante y maximízala.",
          respuesta=float(cn('forzado.correcto')), tolerancia=0.005, unidad="sedes/km²",
          retroAcierto=(
              f"En el máximo, la derivada respecto del intercepto es n menos la suma de la cuadratura "
-             f"—λ̂ por el peso de cada punto—, y se anula: λ̂·Σw = n. Sin covariables λ̂ es una "
+             f"—λ̂ por el peso de cada punto de la cuadratura—, y se anula: λ̂·Σw = n. Sin covariables λ̂ es una "
              f"constante, así que λ̂ = n/Σw = {cn('forzado.correcto')}. La fórmula cerrada da "
              f"{dist('forzado', 'formula_cerrada')}: la cuadratura deja {cn('forzado.sin_contar_km2')} "
              f"de Kennedy sin contar, y el modelo reparte las {cn('forzado.n')} sedes sobre el área "
-             f"que la cuadratura ve. Es la misma identidad que el módulo 8 mide en la ciudad, con "
-             f"{c('c5m8_sin_contar')} sin contar, y la razón por la que dos AIC solo se comparan con "
-             f"la misma cuadratura."),
+             f"que la cuadratura ve. Es la misma identidad que el módulo 8 mide en la ciudad "
+             f"entera."),
          retroFallo=(
              f"Si respondiste {dist('forzado', 'formula_cerrada')}, usaste el área de la ventana: es la "
              f"fórmula cerrada, la que <code>ppm</code> usa sin forcefit. Con la cuadratura, lo que "
@@ -1186,7 +1220,8 @@ BLOQUE_B = [
          "Repasa de dónde sale el error estándar de cada coeficiente.",
          opciones=[
              op(f"Si las sedes fueran independientes, que la intensidad baja hacia el este, un "
-                f"{cn('ebeta.pct_por_km')} por kilómetro; del norte-sur, nada.", True,
+                f"{cn('ebeta.pct_por_km')} por kilómetro, porque la z de xc pasa de {c('c5m11_zc')} en "
+                f"valor absoluto; del norte-sur, nada.", True,
                 f"En un <code>ppm</code> log-lineal el coeficiente se lee en escala multiplicativa: "
                 f"cada kilómetro hacia el este multiplica λ por exp({c('c5m9_xc')}) = "
                 f"{cn('ebeta.factor_por_km')}. El condicional es parte de la respuesta: esos errores "
@@ -1221,9 +1256,13 @@ BLOQUE_B = [
          f"{c('c5m10_nsim')} patrones. El gráfico divide tres curvas por la media de las K "
          f"inhomogéneas de esos {c('c5m10_nsim')} patrones: la K inhomogénea observada de las sedes y "
          f"los dos bordes de la banda del mínimo y el máximo. Así, el modelo queda en la línea del 1. "
-         f"La línea vertical marca r&nbsp;=&nbsp;{c('c5m10_ultimo')}. ¿En qué distancias está lo que el modelo "
-         f"no explica?",
-         "Compara, radio a radio, la curva observada con los dos bordes de su banda.",
+         f"La línea vertical marca r&nbsp;=&nbsp;{c('c5m10_ultimo')}, el último radio en que la curva "
+         f"observada sigue fuera de la banda. ¿Qué dice esta curva de las distancias a las que está "
+         f"lo que el modelo no explica?",
+         # La pregunta pedía a K el alcance del exceso, que es justo lo que el
+         # capítulo 4 enseña que K no da: K acumula, y su mayor separación de
+         # la media del modelo está a 1 960 m (verdad-b, ronda 6).
+         "Antes de leer dónde vuelve la curva a la banda, recuerda qué parejas cuenta K en cada radio.",
          alto=260,
          descripcionGrafico=(
              f"Tres curvas contra el radio, de {ent(KIN['r'][0])}&nbsp;m a {c('c5m10_rmax')}, "
@@ -1232,17 +1271,20 @@ BLOQUE_B = [
              f"frente al borde alto, en algunos radios: "
              + "; ".join(f"{ent(KIN['r'][i])}&nbsp;m, {n(KIN['observada'][i], 3)} frente a "
                          f"{n(KIN['alta'][i], 3)}" for i in NODOS_KIN)
-             + "."),
+             # El borde bajo, donde decide: al final la curva queda a 0.004 de
+             # él, y la descripción solo daba el alto (gráficos, ronda 6).
+             + f". En el último radio la banda va de {n(KIN['baja'][-1], 3)} a "
+               f"{n(KIN['alta'][-1], 3)}."),
          dibujar="""canvas => {
             const g = DATOS_PRE2.graficos.g_kinhom;
             const corte = DATOS_PRE2.reutilizado.c5m10_ultimo.valor;
             return crearGraficoLinea(canvas, [], [
               { label: 'Observada', data: puntosXY(g.r, g.observada), borderColor: COLORES_GRAFICO.primario,
                 backgroundColor: 'transparent', pointRadius: 0, borderWidth: 2.5 },
-              { label: 'Banda del modelo', soloTooltip: 'Borde alto', data: puntosXY(g.r, g.alta),
+              { label: 'Banda del modelo', soloTooltip: 'Borde alto', grupo: 'banda', data: puntosXY(g.r, g.alta),
                 borderColor: GRIS_REFERENCIA, backgroundColor: 'rgba(100, 116, 139, 0.18)', fill: '+1',
                 pointRadius: 0, borderWidth: 1 },
-              { label: '', soloTooltip: 'Borde bajo', data: puntosXY(g.r, g.baja), borderColor: GRIS_REFERENCIA,
+              { label: '', soloTooltip: 'Borde bajo', grupo: 'banda', data: puntosXY(g.r, g.baja), borderColor: GRIS_REFERENCIA,
                 backgroundColor: 'transparent', pointRadius: 0, borderWidth: 1 },
               { label: 'El modelo', corto: 'Modelo', data: puntosXY(g.r, g.r.map(() => 1)),
                 borderColor: COLORES_GRAFICO.secundario, backgroundColor: 'transparent', borderDash: [6, 4],
@@ -1251,42 +1293,57 @@ BLOQUE_B = [
               { label: 'r = ' + milesPreparcial(corte) + ' m', data: [],
                 borderColor: '#475569', backgroundColor: 'transparent', borderDash: [2, 3], borderWidth: 1.5 }
             ], { scales: { x: ejeKmPreparcial(g.r),
-                           y: ejesPreparcial('', 'K observada / media del modelo', { min: 0.6, max: 2.5 }).y },
+                           y: ejesPreparcial('', 'K observada / media del modelo', { min: 0.5, max: 2.5 }).y },
                  plugins: Object.assign(pluginsPreparcial(it => it.text !== '', { tituloRadio: true }),
-                                        { marcaVertical: { x: corte } }) });
+                                        { marcaVertical: { x: corte, conjunto: 4 } }) });
           }""",
          opciones=[
-             op(f"En las escalas cortas y medias: fuera por arriba desde {c('c5m10_primer')}, y "
-                f"de vuelta en la banda pasados {c('c5m10_ultimo')}.", True,
-                f"Quien dice «se sale de la banda» sin decir dónde se deja la mitad útil de la "
-                f"información: hasta dónde llega lo que el modelo no explica. Pasados "
-                f"{c('c5m10_ultimo')}, la curva observada ya no se distingue de la del modelo, pero eso "
-                f"no prueba que el gradiente explique esas distancias: la K inhomogénea del capítulo, "
-                f"como la calcula <code>Kinhom</code> por defecto, divide por una λ̂ suavizada con un "
-                f"núcleo de σ ≈ {cn('kinhom_nucleo.sigma_nucleo_m')} —en el dato y en cada "
-                f"simulación—, y un núcleo así absorbe lo que varía a escalas de varios kilómetros. "
-                f"Los dos extremos del tramo, {c('c5m10_primer')} y {c('c5m10_ultimo')}, se leen sobre "
-                f"una banda puntual; la curva entera se contrasta con el DCLF."),
-             op(f"Pasados {c('c5m10_ultimo')}, donde la banda se estrecha y la curva observada se "
-                f"separa del 1 de forma más clara.", False,
-                f"Al revés: pasados {c('c5m10_ultimo')} la observada vuelve dentro de la banda y se "
-                f"sigue dentro en los {c('c5m10_nodos_dentro')} radios del barrido que quedan; lo que se sale está antes, "
-                f"desde {c('c5m10_primer')}, y el mayor cociente, "
-                f"{n(KIN['forma']['max_cociente'], 2)}, está a "
-                f"{ent(KIN['forma']['r_max_cociente'])}&nbsp;m."),
-             op("En el barrido entero: la curva observada queda por encima de la línea del 1 hasta "
-                "casi el final, y eso es lo que el modelo no explica.", False,
+             op(f"Que empieza en las más cortas —la curva sale por arriba desde {c('c5m10_primer')}—, "
+                f"pero el radio en que vuelve a la banda no marca dónde acaba: K arrastra las parejas "
+                f"cercanas, y seguir fuera hasta {c('c5m10_ultimo')} no dice que el exceso llegue hasta "
+                f"ahí.", True,
+                f"K cuenta todas las parejas hasta r (capítulo 4, módulos 8 y 9): un exceso a 500&nbsp;m "
+                f"sigue contado a 3&nbsp;km. La diferencia entre la K observada y la media del modelo "
+                f"—en m², no el cociente que dibuja el gráfico— es máxima a {c('c5m10_r_mad')}, la peor "
+                f"desviación del módulo 10; pasada esa distancia, la observada suma en conjunto menos "
+                f"parejas que el modelo, y sigue fuera de la banda solo por lo que acumuló antes. Hasta "
+                f"dónde llega lo que el modelo no explica lo dice la g inhomogénea —<code>pcfinhom</code>, "
+                f"la <code>pcf</code> del capítulo 4 con la λ que varía—, que mira el anillo y no el "
+                f"disco. Y el principio, {c('c5m10_primer')}, se lee sobre una banda puntual; la curva "
+                f"entera se contrasta con el DCLF."),
+             op(f"Que llega de {c('c5m10_primer')} a {c('c5m10_ultimo')}: la curva sale de la banda en "
+                f"el primer radio y vuelve a ella pasados {c('c5m10_ultimo')}, y ese es el alcance del "
+                f"exceso.", False,
+                f"Eso dice dónde está fuera la curva —y dentro, en los {c('c5m10_nodos_dentro')} radios "
+                f"del barrido que quedan—, no dónde está el exceso. K es acumulativa: su mayor "
+                f"diferencia con la media del modelo, en m², está a {c('c5m10_r_mad')}, y pasada esa "
+                f"distancia la curva sigue fuera solo por lo que arrastra de las distancias cortas. El "
+                f"tramo hasta {c('c5m10_ultimo')} es la memoria de K, no el alcance del exceso. El "
+                f"módulo 10 del capítulo 5 lo resume así, y la frase se queda corta: ese radio dice hasta "
+                f"dónde arrastra K el exceso, no hasta dónde llega. Y ni siquiera lo de "
+                f"más allá queda probado: la K inhomogénea, como la calcula <code>Kinhom</code> por "
+                f"defecto, divide por una λ̂ suavizada con un núcleo de σ ≈ "
+                f"{cn('kinhom_nucleo.sigma_nucleo_m')}, que absorbe lo que varía a escalas de varios "
+                f"kilómetros."),
+             op("Que está en el barrido entero: la curva observada queda por encima de la línea del 1 "
+                "hasta casi el final, y eso es lo que el modelo no explica.", False,
                 f"Por encima del 1 no es fuera de la banda: pasados {c('c5m10_ultimo')} la observada "
                 f"sigue por encima del 1 un tramo, pero ya dentro de la banda, y termina en "
-                f"{n(KIN['observada'][-1], 2)}. Lo que el modelo no explica es lo que se sale de la "
-                f"banda, no lo que pasa de 1."),
-             op(f"En las que cruza la banda, pero sin seguridad: {c('c5m10_fuera')} de las "
-                f"{c('c5m10_nsim')} curvas del propio modelo también la cruzan, así que salirse no "
-                f"distingue el dato del modelo.", False,
+                f"{n(KIN['observada'][-1], 2)}. El mayor cociente, {n(KIN['forma']['max_cociente'], 2)}, "
+                f"está a {ent(KIN['forma']['r_max_cociente'])}&nbsp;m."),
+             # «77 de las 999 la cruzan» era imposible contra una banda hecha con
+             # ellas mismas, y 77 se contaba sobre los 512 radios de spatstat, no
+             # sobre los del gráfico (verdad-b, ronda 6).
+             op(f"Que no dice nada de ninguna distancia: comparada cada una con la banda de las otras, "
+                f"{c('c5m10_fuera_sim')} de las {c('c5m10_nsim')} curvas del propio modelo también se "
+                f"salen en algún radio del gráfico, así que salirse no distingue el dato del modelo.",
+                False,
                 f"La cifra es cierta; la conclusión, no. Esas salidas dicen que la banda, mirada en "
                 f"todos los radios a la vez, no contrasta al nivel que tiene en cada radio. Para juzgar "
                 f"la curva entera está el test DCLF, que da {c('c5m10_dclf')}, el mínimo posible con "
-                f"{c('c5m10_nsim')} simulaciones: el exceso sobre este modelo no es azar.")]),
+                f"{c('c5m10_nsim')} simulaciones: el exceso sobre este modelo no es azar. Con todos los "
+                f"radios con que spatstat calcula la curva, más que los del gráfico, se salen el "
+                f"{c('c5m10_tasa')}: cuantos más radios se miran, más curvas se salen.")]),
 
     preg("multiple", "cap5", 11,
          f"Se ajusta un proceso de Thomas a las sedes con <code>kppm</code> dos veces, cambiando "
@@ -1325,7 +1382,8 @@ BLOQUE_B = [
                 "isotrópica, que es la corrección más exacta.", False,
                 "Ninguno es «el» correcto: los dos ajustan el mismo modelo a dos estimaciones "
                 "legítimas de K. Lo que es obligatorio es decir cuál se usó."),
-             op(f"La diferencia la ponen las {c('c5m11_repetidas')} sedes que repiten coordenadas, que "
+             op(f"La diferencia la ponen las {c('c5m11_repetidas')} sedes que repiten las coordenadas "
+                f"de otra, que "
                 f"la isotrópica cuenta y la de traslación deja fuera.", False,
                 f"Las dos correcciones cuentan las mismas parejas, duplicadas incluidas; lo que cambia "
                 f"es cómo las pesan. Y quitando las duplicadas, el mayor cambio de un parámetro es de "
@@ -1349,9 +1407,10 @@ BLOQUE_C = [
     preg("grafico", "cap5", 10,
          f"El gráfico pone las sedes contra dos referencias. En naranja, la K del capítulo 4 "
          f"dividida por πr², con la banda del mínimo y el máximo de {c('c4m11_nsim')} simulaciones "
-         f"de CSR. En verde, la K inhomogénea del capítulo 5 dividida por la media de su modelo "
-         f"ajustado, con la banda del mínimo y el máximo de {c('c5m10_nsim')} simulaciones de ese "
-         f"modelo. ¿Qué parte del exceso que se veía contra CSR desaparece en la curva verde?",
+         f"de CSR. En verde, la K inhomogénea del capítulo 5 dividida por la media de las K "
+         f"inhomogéneas de {c('c5m10_nsim')} simulaciones de su modelo ajustado, con la banda del "
+         f"mínimo y el máximo de esas simulaciones. ¿Qué parte del exceso que se veía contra CSR "
+         f"desaparece en la curva verde?",
          "Compara, en el primer radio y en el último, cuánto pasa de 1 cada curva y si queda dentro "
          "de su banda.",
          alto=270,
@@ -1361,14 +1420,16 @@ BLOQUE_C = [
              f"después la verde y el borde alto de la suya: "
              + "; ".join(f"{ent(DOS['r'][i])}&nbsp;m, naranja {n(DOS['csr_observada'][i], 3)} "
                          f"(banda hasta {n(DOS['csr_alta'][i], 3)}), verde "
-                         f"{n(DOS['mod_observada'][i], 3)} (banda hasta {n(DOS['mod_alta'][i], 3)})"
+                         f"{n(DOS['mod_observada'][i], 3)} "
+                         + (f"(banda de {n(DOS['mod_baja'][i], 3)} a {n(DOS['mod_alta'][i], 3)})"
+                            if i == len(DOS['r']) - 1 else f"(banda hasta {n(DOS['mod_alta'][i], 3)})")
                          for i in NODOS_DOS)
              + "."),
          dibujar="""canvas => {
             const g = DATOS_PRE2.graficos.g_dos;
             const VERDE = '#1a7358', NARANJA_BORDE = '#ea580c';
             return crearGraficoLinea(canvas, [], [
-              { label: 'Contra CSR', corto: 'CSR', data: puntosXY(g.r, g.csr_observada),
+              { label: 'Contra CSR', corto: 'Contra CSR', data: puntosXY(g.r, g.csr_observada),
                 borderColor: COLORES_GRAFICO.secundario, backgroundColor: 'transparent', pointRadius: 0,
                 borderWidth: 2.5 },
               // La banda de CSR va sin relleno, solo con sus bordes a rayas: las
@@ -1376,18 +1437,18 @@ BLOQUE_C = [
               // que la verde no se veía verde. Los bordes, en un naranja que
               // pasa el 3:1 (el anterior, al 60 %, daba 1.96:1), porque son los
               // que la pista manda comparar (gráficos, ronda 5).
-              { label: 'su banda', soloTooltip: 'Contra CSR, borde alto', corto: 'CSR, alto',
+              { label: 'su banda', soloTooltip: 'Contra CSR, borde alto', corto: 'CSR, alto', grupo: 'csr',
                 data: puntosXY(g.r, g.csr_alta), borderColor: NARANJA_BORDE, borderDash: [5, 3],
                 backgroundColor: 'transparent', pointRadius: 0, borderWidth: 1.25 },
-              { label: '', soloTooltip: 'Contra CSR, borde bajo', corto: 'CSR, bajo',
+              { label: '', soloTooltip: 'Contra CSR, borde bajo', corto: 'CSR, bajo', grupo: 'csr',
                 data: puntosXY(g.r, g.csr_baja), borderColor: NARANJA_BORDE, borderDash: [5, 3],
                 backgroundColor: 'transparent', pointRadius: 0, borderWidth: 1.25 },
-              { label: 'Contra el modelo', corto: 'Modelo', data: puntosXY(g.r, g.mod_observada),
+              { label: 'Contra el modelo', corto: 'Contra modelo', data: puntosXY(g.r, g.mod_observada),
                 borderColor: VERDE, backgroundColor: 'transparent', pointRadius: 0, borderWidth: 2.5 },
-              { label: 'su banda', soloTooltip: 'Contra el modelo, borde alto', corto: 'Modelo, alto',
+              { label: 'su banda', soloTooltip: 'Contra el modelo, borde alto', corto: 'Modelo, alto', grupo: 'modelo',
                 data: puntosXY(g.r, g.mod_alta), borderColor: 'rgba(26, 115, 88, 0.7)',
                 backgroundColor: 'rgba(26, 115, 88, 0.14)', fill: '+1', pointRadius: 0, borderWidth: 1 },
-              { label: '', soloTooltip: 'Contra el modelo, borde bajo', corto: 'Modelo, bajo',
+              { label: '', soloTooltip: 'Contra el modelo, borde bajo', corto: 'Modelo, bajo', grupo: 'modelo',
                 data: puntosXY(g.r, g.mod_baja), borderColor: 'rgba(26, 115, 88, 0.7)',
                 backgroundColor: 'transparent', pointRadius: 0, borderWidth: 1 }
             ], { scales: { x: ejeKmPreparcial(g.r), y: ejesPreparcial('', 'K observada / referencia').y },
@@ -1400,31 +1461,40 @@ BLOQUE_C = [
                 f"{n(FD['exceso_mod_primera'], 3)}: casi no cambia. En el último, de "
                 f"{n(FD['exceso_csr_ultima'], 2)} a nada: la verde termina en {n(FD['mod_ultima'], 2)}, "
                 f"dentro de su banda. Es la bisagra del capítulo 5: contra CSR, atracción e intensidad "
-                f"variable dejan la misma huella; contra una referencia que ya lleva la intensidad "
-                f"dentro, no. Ojo con quién se lleva el exceso de las distancias largas: la K "
+                f"variable dejan la misma huella. Contra una referencia que ya lleva dentro la "
+                f"intensidad del modelo, lo que queda fuera es lo que esa intensidad no explica: "
+                f"atracción entre sedes, o una intensidad que cambia a escalas más finas que la del "
+                f"modelo; el Cox log-gaussiano del módulo 11 es justo eso, y ajusta el mismo exceso. "
+                f"Ojo también con quién se lleva el exceso de las distancias largas: la K "
                 f"inhomogénea del capítulo divide cada pareja por una λ̂ suavizada de las propias sedes "
                 f"—la que <code>Kinhom</code> estima por defecto, con un núcleo de σ ≈ "
                 f"{cn('kinhom_nucleo.sigma_nucleo_m')}—, no por el gradiente del modelo, y un núcleo de "
                 f"ese ancho se traga, en el dato y en cada simulación, lo que varía a escalas de varios "
-                f"kilómetros. Lo que el exceso hasta {c('c5m10_ultimo')} sí dice es que el modelo "
-                f"ajustado no reproduce la agregación a escalas cortas y medias, y por eso el capítulo "
-                f"prueba después un proceso de conglomerado."),
-             op("Todo: contra su propio modelo, la curva verde vuelve a su banda en todas las "
-                "distancias del barrido, de punta a punta.", False,
-                f"Vuelve solo pasados {c('c5m10_ultimo')}; antes está fuera, por arriba, empezando "
-                f"en {n(FD['mod_primera'], 2)}."),
-             op("Una fracción parecida en todas las distancias, porque el modelo divide la curva "
-                "entera por un mismo factor de escala.", False,
-                f"El divisor apenas cambia: la media de las K inhomogéneas del modelo se separa de πr² "
-                f"como mucho un {c('c5m10_mmean_pct')}, así que las dos curvas se dividen casi por lo "
-                f"mismo. Lo que cambia es la curva: la K inhomogénea divide cada pareja por la "
-                f"intensidad estimada en sus dos puntos, y eso no quita lo mismo en cada radio: casi "
-                f"nada en el primer radio del barrido, y todo en el último."),
+                f"kilómetros. Lo que el exceso de las distancias cortas sí dice es que el modelo "
+                f"ajustado no reproduce la agregación a esas escalas; que la verde siga fuera hasta "
+                f"{c('c5m10_ultimo')} no dice que llegue hasta ahí, porque K acumula. Por eso el "
+                f"capítulo prueba después un proceso de conglomerado."),
+             op(f"Casi nada: la naranja también vuelve a su banda pasados {c('c5m10_ultimo')}, así que "
+                f"contra CSR el exceso ya era solo de las distancias cortas y medias.", False,
+                f"La naranja no vuelve a su banda en ningún radio del barrido: en el último vale "
+                f"{n(FD['csr_ultima'], 3)}, con la banda hasta {n(FD['csr_alta_ultima'], 3)}. La que "
+                f"vuelve es la verde: contra CSR, el exceso llegaba hasta el final del barrido."),
+             op(f"Lo mismo en todo el barrido: la verde queda entre {n(FD['resta_min'], 2)} y "
+                f"{n(FD['resta_max'], 2)} por debajo de la naranja en cada radio, así que el modelo se "
+                f"lleva una fracción parecida del exceso a cualquier distancia.", False,
+                f"La resta es parecida —{n(FD['resta_primera'], 3)} en el primer radio, "
+                f"{n(FD['resta_ultima'], 3)} en el último—, pero la pregunta es qué parte del exceso se "
+                f"va. En el primer radio el exceso era {n(FD['exceso_csr_primera'], 3)} y se queda en "
+                f"{n(FD['exceso_mod_primera'], 3)}; en el último era {n(FD['exceso_csr_ultima'], 3)} y "
+                f"desaparece. La misma resta es casi nada de un exceso grande y todo uno pequeño. Y no "
+                f"es que el modelo divida por un factor: la media de sus K se separa de πr² como mucho "
+                f"un {c('c5m10_mmean_pct')}."),
              op("Mucho en las distancias cortas y poco en las largas, donde la curva verde sigue fuera "
                 "de su banda hasta el final del barrido.", False,
                 f"Al revés: en el primer radio del barrido las dos casi coinciden, "
                 f"{n(FD['csr_primera'], 2)} y {n(FD['mod_primera'], 2)}, y al final la verde, en "
-                f"{n(FD['mod_ultima'], 2)}, está dentro de su banda.")]),
+                f"{n(FD['mod_ultima'], 2)}, está dentro de su banda.")],
+         giro=2),
 
     preg("multiple", "cap5", 4,
          "«Corrección de borde» aparece en los dos capítulos y no nombra lo mismo. Marca todo lo "
@@ -1481,10 +1551,13 @@ BLOQUE_C = [
              op(f"Que las bandas no tienen el mismo nivel puntual: la del capítulo 4 contrasta al "
                 f"{cn('niveles.cap4_pct')} en cada r, y la del 5, con el mínimo y el máximo, al "
                 f"{c('c5m10_nivel')}.", True,
-                f"Con las mismas {c('c4m11_nsim')} simulaciones, una banda de cuantiles de cobertura "
-                f"{cn('niveles.cap4_cobertura_pct')} deja fuera, en cada r, al "
-                f"{cn('niveles.cap4_pct')} de las curvas; la del mínimo y el máximo, al "
-                f"{c('c5m10_nivel')}. Ojo: la banda que el capítulo 4 dibuja en su módulo 11 es también "
+                f"El nivel puntual es la probabilidad de que una curva del modelo que no entró en la "
+                f"banda —el dato, si el modelo es cierto— caiga fuera en un r dado: con "
+                f"{c('c4m11_nsim')} simulaciones, un {cn('niveles.cap4_pct')} para la banda de "
+                f"cuantiles de cobertura {cn('niveles.cap4_cobertura_pct')} y un {c('c5m10_nivel')} "
+                f"para la del mínimo y el máximo. Contra la banda hecha con todas, ninguna se saldría "
+                f"del mínimo y el máximo; por eso el capítulo 5 compara cada curva con la banda de las "
+                f"demás. Ojo: la banda que el capítulo 4 dibuja en su módulo 11 es también "
                 f"la del mínimo y el máximo; la tasa del {c('c4m11_tasa_bog')} se midió contra la de "
                 f"cuantiles. En las dos, mirar cientos de radios a la vez hace que la tasa supere de "
                 f"lejos el nivel puntual: es la lección común del módulo 11 del capítulo 4 y del 10 "
@@ -1494,11 +1567,13 @@ BLOQUE_C = [
                 "Dividir todas las curvas y los dos bordes por la misma función positiva no cambia "
                 "quién cruza la banda: solo cambia la escala del dibujo. Lo que cambia la tasa es el "
                 "nivel puntual de la banda."),
-             op("Que las curvas del modelo ajustado se parecen más entre sí que las de CSR, porque "
-                "todas llevan la misma intensidad, y pocas se apartan de las demás.", False,
-                "Las de CSR también llevan todas la misma intensidad, y cuánto se parezcan entre sí no "
-                "cambia cuántas se salen de una banda hecha con ellas mismas: eso lo fijan el nivel "
-                "puntual de la banda y cuántos radios se miran."),
+             op(f"Que las curvas del modelo ajustado se parecen más entre sí que las de CSR —a "
+                f"{ent(DOS['r'][0])}&nbsp;m, la más alta de las del modelo llega a "
+                f"{n(DOS['mod_alta'][0], 3)}, y la de CSR, a {n(DOS['csr_alta'][0], 3)}—, y pocas se "
+                f"apartan de las demás.", False,
+                "Algo más juntas sí están, pero cuánto se parezcan entre sí no cambia cuántas se salen "
+                "de la banda de las demás: eso lo fijan el nivel puntual de la banda, cuántos radios se "
+                "miran y cuánto se parece cada curva a sí misma de un radio al siguiente."),
              # Antes se contradecía sola («una banda que incluye a la curva la
              # deja salirse más») y se descartaba sin saber nada (forma, ronda
              # 5). Ahora los hechos y el mecanismo son ciertos, y lo que falla
@@ -1511,7 +1586,7 @@ BLOQUE_C = [
                 f"{c('c5m10_tasa')} frente al {c('c4m11_tasa_bog')}. Lo que separa las tasas es el "
                 f"nivel puntual.")]),
 
-    preg("opcion", "cap5", 2,
+    preg("opcion", "cap5", 1,
          "El tamaño del cuadrante del capítulo 4 y el ancho de banda del capítulo 5 hacen papeles "
          "parecidos. ¿En qué se parecen y en qué no?",
          "Piensa en qué decide cada uno, y en quién lo decide.",
@@ -1531,16 +1606,21 @@ BLOQUE_C = [
                 f"El ancho decide lo que el mapa dice, no solo cómo se ve: el pico cae un "
                 f"{c('c5m2_caida')} del más estrecho al más ancho, y con él cambia dónde parece haber "
                 f"más sedes. No es presentación."),
-             op("Los dos fijan la escala, y un selector automático encuentra el mejor valor de cada "
-                "uno; difieren en que el del cuadrante es más difícil de calcular.", False,
-                f"En el cuadrante no hay selector, y sobre la ciudad el mayor de los cuatro selectores "
-                f"de ancho llega a {c('c5m3_razon_urb')} veces el menor: cada uno contesta otra "
-                f"pregunta. El ancho se elige y se declara."),
+             op("Los dos fijan la escala y la teoría no dicta ninguno; difieren en que para el ancho "
+                "hay selectores automáticos que dan un valor defendible sin elegir, y para el cuadrante no.",
+                False,
+                f"Hay selectores de ancho, pero elegir el selector es elegir el ancho: sobre la ciudad, "
+                f"el mayor de los cuatro llega a {c('c5m3_razon_urb')} veces el menor, porque cada uno "
+                f"contesta otra pregunta. El ancho se elige y se declara, igual que el cuadrante."),
              op("Los dos fijan la escala y la teoría no dicta ninguno; difieren en que el ancho se "
                 "fija con el número de celdas del mapa, y el cuadrante lo elige quien analiza.", False,
-                "La segunda mitad es cierta, y por eso la diferencia no está ahí: el ancho también lo "
-                "elige quien analiza. La rejilla del mapa solo limita el ancho más estrecho que se "
-                "puede dibujar sin mentir; no lo elige.")]),
+                "Que el cuadrante lo elige quien analiza es cierto, y por eso la diferencia no está "
+                "ahí: el ancho también lo elige quien analiza. Lo del mapa tiene algo de verdad: en el "
+                "módulo 5 la rejilla de la ciudad descartó dos selectores, porque no puede dibujar "
+                "honestamente un σ de menos de tres celdas, y el capítulo dice que ahí la resolución "
+                "eligió selector. Pero la rejilla también la eligió quien analiza, y solo pone un suelo, "
+                "igual que el supuesto del χ² se lo pone al cuadrante: por encima de ese suelo, los dos "
+                "los elige quien analiza.")]),
 
     preg("numerica", "cap5", 11,
          f"Con un proceso de Matérn y la K isotrópica, el error estándar del coeficiente de xc es "
@@ -1555,9 +1635,9 @@ BLOQUE_C = [
              f"{cn('n_efectivo.correcto')}. Es la cuenta del capítulo 1, ahora con un coeficiente; "
              f"para Thomas con la K de traslación, el capítulo 5 dice que las {c('c5m11_n')} sedes "
              f"informan del gradiente como {c('c5m11_neff')} independientes, con un efecto de diseño "
-             f"de {c('c5m11_deff')}. Y la corrección de K también pesa aquí: con Thomas, el error "
-             f"estándar de xc se multiplica por {c('c5m11_th_iso_inf')} con la isotrópica y por "
-             f"{c('c5m11_th_tr_inf')} con la de traslación."),
+             f"de {c('c5m11_deff')}. Y la corrección de K también pesa aquí: con Thomas y la "
+             f"isotrópica, el error estándar de xc se multiplica por {c('c5m11_th_iso_inf')}, casi lo "
+             f"mismo que con Matérn; con la de traslación, por {c('c5m11_th_tr_inf')}."),
          retroFallo=(
              f"El tamaño efectivo es n dividido por el efecto de diseño, que es el cuadrado del "
              f"cociente de errores estándar. Si respondiste {dist('n_efectivo', 'sin_cuadrado')}, "
@@ -1576,7 +1656,7 @@ BLOQUE_C = [
          "cada uno, si usa la ventana y para qué.",
          opciones=[
              op(f"En F, solo cuentan como sitios desde los que medir los que caen dentro de la "
-                f"ventana: de los {c('c4m7_f_rejilla')} de la rejilla de Bogotá, "
+                f"ventana: de los {c('c4m7_f_rejilla')} de la rejilla de la F de las sedes, "
                 f"{c('c4m7_f_sitios')}.", True,
                 "Un sitio fuera de la ventana no está vacío: está sin observar, y contarlo como "
                 "hueco haría salir la F más baja. Es la lección del módulo 1 aplicada a los sitios."),
@@ -1598,13 +1678,14 @@ BLOQUE_C = [
              # «absoluta = falsa» (redacción, ronda 5).
              # Contraria a la de «en todas del mismo modo», y falsa como ella: un
              # par que se contradice sin clave (H17, ronda 5).
-             op("En K la ventana no hace falta: K compara distancias entre puntos, y la distancia entre "
-                "dos sedes es la misma dentro de cualquier ventana.",
-                False,
-                "Hace falta dos veces: en λ̂, que divide la cuenta de parejas, y en la corrección de "
-                "borde, que pesa cada pareja según cuánto de su círculo, o de la ventana desplazada, "
-                "queda dentro. Sin la ventana, K no sabría qué parejas se quedaron sin observar, y "
-                "saldría más baja cuanto más lejos mira."),
+             op(f"En K, corregida o no, la ventana solo entra por λ̂: las {c('c4m8_parejas')} parejas "
+                f"ordenadas a 1&nbsp;km o menos se cuentan igual en cualquier ventana que contenga las "
+                f"sedes.", False,
+                "Sin corregir, sí; corregida, entra también por la corrección de borde, que pesa cada "
+                "pareja según cuánto de su círculo, o de la ventana desplazada, queda dentro: las "
+                "parejas son las mismas, pero en otra ventana no pesan lo mismo. Sin la ventana, K no "
+                "sabría qué parejas se quedaron sin observar, y saldría más baja cuanto más lejos "
+                "mira."),
              op("La ventana entra en λ̂ = n/|W| y en las funciones de distancia, y en todas del mismo "
                 "modo: dividiendo por su área, |W|.", False,
                 "Entra en todas, pero no del mismo modo: en F, por los sitios desde los que se mide; "
@@ -1757,11 +1838,17 @@ def revisa_preguntas():
                 limpio = _sin_marcado(o["texto"]).strip(" .")
                 if len(limpio) > 25 and limpio.lower() in q["pregunta"].lower():
                     problemas.append(f"{ref}: el enunciado contiene el texto de la correcta")
-            if q["tipo"] in ("opcion", "grafico"):
-                lc = len(_sin_marcado(correctas[0]["texto"]))
-                ld = max(len(_sin_marcado(o["texto"])) for o in ops if not o["correcta"])
+            # En todos los tipos: en las de varias respuestas una clave 56
+            # caracteres más larga que cualquier falsa también se marcaba sin
+            # leer, y la guarda solo miraba las de una (forma, ronda 6).
+            # Medida en lo que se lee: con el marcado quitado pero las entidades
+            # sin resolver, «&nbsp;» contaba seis y una falsa con «1&nbsp;km»
+            # tapaba una clave 21 caracteres más larga (ronda 6).
+            ld = max(len(_texto_plano(o["texto"])) for o in ops if not o["correcta"])
+            for o in correctas:
+                lc = len(_texto_plano(o["texto"]))
                 if lc - ld > MARGEN_LONGITUD:
-                    problemas.append(f"{ref}: la correcta mide {lc} caracteres y el distractor más "
+                    problemas.append(f"{ref}: una correcta mide {lc} caracteres y el distractor más "
                                      f"largo {ld}: se adivina por la longitud")
             textos = [q["pregunta"], q.get("pista", "")] + retros
             for texto in textos:
@@ -1781,7 +1868,7 @@ def revisa_preguntas():
             n_una += 1
             i = next(j for j, o in enumerate(ops, 1) if o["correcta"])
             posiciones[i] = posiciones.get(i, 0) + 1
-            largos = [len(_sin_marcado(o["texto"])) for o in ops]
+            largos = [len(_texto_plano(o["texto"])) for o in ops]
             if largos[i - 1] == max(largos):
                 n_larga += 1
     # Las de varias respuestas, aparte: ninguna letra puede ser clave en más
@@ -1807,6 +1894,20 @@ def revisa_preguntas():
         if repetidos:
             problemas.append(f"en las de varias respuestas, el patrón {repetidos[0]} se repite "
                              f"{patrones[repetidos[0]]} veces")
+    # «porque» delataba la falsa: 14 de 64 falsas lo llevaban y 1 de 32 claves
+    # (forma, ronda 6). Las falsas se escribían «afirmación, porque razón de
+    # manual» y las claves «afirmación: mecanismo».
+    PORQUE = re.compile(r"\bporque\b", re.I)
+    con = {True: [0, 0], False: [0, 0]}
+    for preguntas in PREGUNTAS.values():
+        for q in preguntas:
+            for o in q.get("opciones") or []:
+                con[o["correcta"]][0] += bool(PORQUE.search(_sin_marcado(o["texto"])))
+                con[o["correcta"]][1] += 1
+    tasa = {k: v[0] / v[1] for k, v in con.items() if v[1]}
+    if len(tasa) == 2 and abs(tasa[True] - tasa[False]) > 0.10:
+        problemas.append(f"«porque» en {con[True][0]} de {con[True][1]} correctas y {con[False][0]} "
+                         f"de {con[False][1]} distractores: la razón delata cuál es cuál")
     if n_una:
         peor, veces = max(posiciones.items(), key=lambda kv: kv[1])
         reparto = " · ".join(f"{k}: {v}" for k, v in sorted(posiciones.items()))
@@ -1866,7 +1967,8 @@ def mod_bloque_b(num):
         particularidad que conviene tener presente al responder: casi todo lo que sale mal en él
         <strong>devuelve algo plausible</strong>. Un selector que chocó con el tope de su
         intervalo devuelve un número normal; una corrección que no conserva la masa dibuja un
-        mapa normal; un ajuste singular devuelve coeficientes normales.</p>
+        mapa normal; un ajuste con coordenadas de siete cifras devuelve coeficientes normales, y
+        ningún error estándar.</p>
 
       <p>Por eso varias preguntas no te piden calcular sino reconocer, por un síntoma, qué
         decisión se tomó sin declararla. Es la competencia que el capítulo entrena de verdad.</p>
@@ -1889,21 +1991,24 @@ def mod_bloque_c(num):
       <p>Seis preguntas, y ninguna sale de un solo módulo. Cuatro empiezan en el capítulo 4 y se
         contestan con lo que dice el 5: la pregunta que el 4 dejó abierta sobre las sedes de
         Bogotá —si su exceso de parejas es atracción o intensidad variable—, una misma expresión
-        que nombra dos operaciones distintas, dos bandas de simulación que se parecen y no
-        contrastan lo mismo, y dos maneras de fijar la escala: el cuadrante y el ancho de banda.
+        que nombra dos operaciones distintas, dos tasas de salida de banda que no se parecen
+        nada, y dos maneras de fijar la escala: el cuadrante y el ancho de banda.
         La quinta cruza el 5 con el capítulo 1: a cuántas sedes independientes equivalen las de
         Bogotá cuando vienen en grupos. La sexta recorre los dos capítulos a la vez: cómo entra la
         ventana en cada estimador.</p>
 
       <p>Si un bloque de este preparcial se parece al parcial, es este. No porque sea más
         difícil, sino porque un examen de corte pregunta por el corte y no por el capítulo, y
-        estudiar capítulo a capítulo prepara mal para eso.</p>
+        estudiar capítulo a capítulo prepara mal para eso. Y si lo haces justo después de A y B,
+        varias de sus opciones ya las leíste en las retros, y lo que medirás es lo que acabas de
+        leer: para que diga lo que sabes, hazlo otro día, de un tirón y sin volver atrás.</p>
 
 {bloque_quiz("bloque-c", "Bloque C · los capítulos 4 y 5 a la vez",
              "Seis preguntas de los cuatro tipos. Las numéricas aceptan coma o punto decimal, "
              "y la tolerancia va dicha en el enunciado. El enlace de repaso del recuento final "
-             "apunta al módulo del capítulo 5 por el que conviene empezar; desde ahí, el "
-             "capítulo remite al 4.")}
+             "apunta al módulo del capítulo 5 por el que conviene empezar; el otro capítulo que "
+             "cruza cada pregunta lo dice su enunciado o, si nombrarlo regalaría la respuesta, su "
+             "pista.")}
       <p>Con esto queda recorrido el temario. Lo que sigue lo aplica entero, de la ventana al
         modelo, sobre un patrón nuevo.</p>
 {CIERRE}"""
@@ -1956,16 +2061,21 @@ st_crs(cole) == st_crs(urb)
 W  <- as.owin(st_geometry(st_union(urb)))
 xy <- st_coordinates(cole)
 p  <- ppp(xy[, 1], xy[, 2], window = W)   # avisa dos veces: puntos fuera y repetidos
-c(dentro = npoints(p), fuera = npoints(attr(p, "rejects")))
+# Sin descartes, ppp() no crea el atributo, y npoints(NULL) daría error
+fuera <- attr(p, "rejects")
+n_fuera <- if (is.null(fuera)) 0L else npoints(fuera)
+c(dentro = npoints(p), fuera = n_fuera)
 #> dentro  fuera
 #>   2107    102
 
-# La comprobación: los de dentro y los descartados, contados cada uno por su
-# lado, suman las filas del archivo
-npoints(p) + npoints(attr(p, "rejects")) == nrow(cole)
+# La comprobación: los de dentro y los descartados suman las filas del archivo.
+# Si no suman, ppp() tiró filas sin coordenadas, con un tercer aviso y sin
+# contarlas como fuera
+npoints(p) + n_fuera == nrow(cole)
 #> [1] TRUE
 
-# Y el segundo aviso de ppp(), que tampoco se lee: sedes en el mismo sitio
+# Y el segundo aviso de ppp(), que tampoco se lee: sedes que repiten las
+# coordenadas de otra
 sum(duplicated(p))
 #> [1] 40
 
@@ -1977,8 +2087,9 @@ PY_1 = '''import geopandas as gpd
 cole = gpd.read_file("datos/procesado/bogota_colegios.gpkg")
 urb = gpd.read_file("datos/procesado/bogota_ventana_urbana.gpkg")
 
-# Antes de nada: los dos en el mismo sistema de referencia
-print(cole.crs.to_epsg() == urb.crs.to_epsg())
+# Antes de nada: los dos en el mismo sistema de referencia. Se compara el CRS
+# entero: dos sin código EPSG darían None == None, cierto aunque difieran
+print(cole.crs == urb.crs)
 #> True
 
 # La ventana se declara; aquí no hay ppp(), así que el descarte se hace a mano.
@@ -1987,9 +2098,12 @@ print(cole.crs.to_epsg() == urb.crs.to_epsg())
 W = urb.geometry.union_all()
 dentro = cole.geometry.covered_by(W).to_numpy()
 
-# La comprobación: los de dentro y los de fuera, contados por separado
-print(int(dentro.sum()), int((~dentro).sum()))
-#> 2107 102
+# Los de dentro y los de fuera, contados por separado, y la comprobación que
+# R hace con su suma: las filas sin geometría —nulas o vacías—, que aquí
+# contarían como fuera
+print(int(dentro.sum()), int((~dentro).sum()),
+      int((cole.geometry.isna() | cole.geometry.is_empty).sum()))
+#> 2107 102 0
 
 # Y las sedes que repiten las coordenadas de otra, que ppp() avisa
 print(int(cole.geometry[dentro].duplicated().sum()))
@@ -2066,16 +2180,19 @@ c(nsim = attr(e, "einfo")$nsim, nrank = attr(e, "einfo")$nrank)
 #> [1] 0.05
 
 # El test global de la curva entera, con las MISMAS simulaciones...
-dclf.test(e)$p.value
+d <- dclf.test(e)
+d$p.value
 #> [1] 0.025
 
-# ... sobre un tramo de r que también se declara: aquí, el de por defecto
-range(e$r)
+# ... sobre un tramo de r que también se declara, leído del test y no de la
+# envolvente: aquí, el de por defecto
+attr(d, "rinterval")
 #> [1] 0.00 0.25
 
-# ... y la comprobación: no puede bajar de 1 / (nsim + 1), y aquí cae justo ahí
-dclf.test(e)$p.value == 1 / (attr(e, "einfo")$nsim + 1)
-#> [1] TRUE
+# ... y la comprobación, en enteros como pide la ayuda de dclf.test: el p es
+# k / (nsim + 1), y k = 1 es el mínimo posible. Aquí cae justo ahí
+round(d$p.value * (attr(d, "nsim") + 1))
+#> [1] 1
 
 # Un valor de la curva observada, para cotejarlo con la otra pestaña
 round(Lest(redwood, correction = "translate", r = c(0, 0.05, 0.11))$trans[3], 5)
@@ -2102,7 +2219,8 @@ print(round(float(np.sqrt(K / np.pi)), 5))
 # Se coteja en 0.11 y no en 0.1 a propósito: hay parejas EXACTAMENTE a 0.1
 # (casi todas las coordenadas van en pasos de 0.02), y si Kest las cuenta o
 # no depende del redondeo de cada distancia y de la rejilla de r que se le
-# pida. En un radio sin empates no hay nada que discrepar
+# pida. En un radio sin empates no hay nada que discrepar. 32 = 16 parejas,
+# contadas en los dos sentidos
 print(int((np.abs(d - 0.1) < 1e-9).sum()))
 #> 32
 print(2 * 1 / (39 + 1), 1 / (39 + 1))   # nivel puntual y p mínimo
@@ -2112,13 +2230,13 @@ R_4 = '''library(spatstat)
 
 # El selector devuelve un número, y el aviso se queda en la consola
 s <- bw.ppl(japanesepines)
-h <- attr(s, "h")                        # el intervalo en que buscó
+h <- attr(s, "h")                        # los anchos que probó, de un extremo a otro
 c(sigma = round(as.numeric(s), 4), tope = round(max(h), 4))
 #>  sigma   tope
 #> 0.7071 0.7071
 
-# La comprobación que el número no hace por sí solo
-as.numeric(s) == max(h)
+# La comprobación que el número no hace por sí solo: ¿es uno de los dos extremos?
+as.numeric(s) %in% range(h)
 #> [1] TRUE
 
 # La masa: integrar la superficie y compararla con n
@@ -2183,8 +2301,9 @@ round(coef(f) / ee, 2)
 #> (Intercept)          xc          yc
 #>     -553.73       -4.82       -1.70
 
-# El mismo modelo con las coordenadas crudas: ajusta, vcov() avisa y devuelve
-# NULL, y la misma comprobación lo caza sin que nada se detenga
+# El mismo modelo con las coordenadas crudas: ajusta, y vcov() imprime dos veces
+# «Error in solve.default(M)» y dos avisos —lo escribe un try() de dentro de
+# spatstat, y no detiene nada— y devuelve NULL. La misma comprobación lo caza
 f_crudo <- ppm(p ~ x + y)
 length(sqrt(diag(vcov(f_crudo)))) == length(coef(f_crudo))
 #> [1] FALSE'''
@@ -2220,11 +2339,11 @@ fvnames(k_def$Fit$Stat, ".y")
 k_iso <- kppm(redwood ~ 1, "Thomas", statargs = list(correction = "isotropic"))
 k_tr  <- kppm(redwood ~ 1, "Thomas", statargs = list(correction = "translate"))
 
-# La comprobación: escrita en la llamada, la corrección viaja dentro del
-# ajuste y se lee de vuelta en el objeto que se publica
-c(iso = k_iso$Fit$statargs$correction, trans = k_tr$Fit$statargs$correction)
-#>         iso       trans
-#> "isotropic" "translate"
+# La comprobación: la K a la que se ajustó cada uno, leída de la columna que
+# guarda el ajuste y no del argumento que se le pasó
+c(iso = fvnames(k_iso$Fit$Stat, ".y"), trans = fvnames(k_tr$Fit$Stat, ".y"))
+#>   iso trans
+#> "iso" "trans"
 
 # Y no da lo mismo: el contraste mínimo ajusta a una ESTIMACIÓN de K
 round(rbind(iso = unlist(parameters(k_iso)),
@@ -2278,8 +2397,8 @@ def mod_rutinas(num):
       <h3>1 · Del archivo al patrón, con la ventana declarada</h3>
       <p>El primer paso de todo, y el que decide la intensidad antes de calcularla: qué región se
         declara como el sitio donde se buscó, y qué puntos quedan fuera. <code>ppp()</code> los
-        descarta con un aviso que nadie lee, y con otro avisa de las sedes repetidas; la
-        comprobación es contar las dos cosas.</p>
+        descarta con un aviso que nadie lee, y con otro avisa de las sedes que repiten las
+        coordenadas de otra; la comprobación es contar las dos cosas.</p>
 
 """ + tabs("Del archivo al patrón", R_1, PY_1) + """
       <p>La λ sale en sedes por metro cuadrado, porque el sistema de referencia mide en metros, y
@@ -2290,7 +2409,9 @@ def mod_rutinas(num):
       <p>Las {c('c4m1_fuera_urb')} que quedan fuera del perímetro urbano no son todas del resto del
         Distrito: {cn('resto_dc.n_resto')} caen en él y {c('c4m1_fuera_dc')}, fuera también del
         Distrito. Por eso el archivo tiene {c('c4m1_total')} filas, y el D.C. de la primera
-        pregunta del bloque A, {c('c4m1_n_dc')} sedes.</p>
+        pregunta del bloque A, {c('c4m1_n_dc')} sedes. Y la suma de la comprobación no dice si la
+        ventana es la buena —con la del Distrito también cuadra—: eso lo dicen esas
+        {c('c4m1_fuera_urb')}, y hay que leerlas.</p>
 
       <h3>2 · El test de cuadrantes, con su supuesto antes que su p-valor</h3>
       <p>El χ² y su p-valor salen siempre; lo que no dicen por sí solos es si vale la aproximación
@@ -2298,10 +2419,12 @@ def mod_rutinas(num):
         —ninguna debería esperar menos de 5 puntos—, y se mira antes.</p>
 
 """ + tabs("El test de cuadrantes con su supuesto", R_2, PY_2) + """
-      <p>La pestaña de Python rehace el χ² entero, y para que cuadre hay que reproducir dos
-        convenios: el binado —qué celda se queda un punto que cae justo en una línea— y la
+      <p>La pestaña de Python rehace el χ² entero, y para que cuadre hay que reproducir la
         esperanza de cada celda, que es la intensidad por su área recortada contra la ventana, no
-        por el área entera de la celda.</p>
+        por el área entera de la celda. El binado —qué celda se queda un punto que cae justo en una
+        línea— se escribe como el de <code>quadratcount</code> aunque aquí no cambie nada: ninguna
+        sede cae sobre una línea interior de la rejilla, y con coordenadas en una malla que pase
+        por las líneas, como las de las secuoyas, sí cambiaría.</p>
 
       <h3>3 · Envolvente y test global, con el número de simulaciones declarado</h3>
       <p>Sobre las plántulas de secuoya (<code>redwood</code>). La banda es puntual: su nivel,
@@ -2309,7 +2432,9 @@ def mod_rutinas(num):
         global —aquí el DCLF, <code>dclf.test</code>, que contrasta la curva entera sobre un tramo
         de r que también se declara— reutiliza las mismas simulaciones, y su p-valor no puede bajar
         de 1/(nsim + 1). Cuando cae justo ahí, como en esta rutina, lo que dice es que ninguna
-        simulación se alejó tanto como el dato: es una cota superior, no una medida.</p>
+        simulación se alejó tanto como el dato, y nada más: no dice cuánto más lejos quedó. Es el
+        suelo de la aritmética, no un tope del p de verdad: ese p puede ser bastante menor y, con
+        más simulaciones, salir un poco mayor. Si importa cuánto, se sube nsim.</p>
 
 """ + tabs("Envolvente y test global", R_3, PY_3) + """
       <p>Python no puede reproducir las simulaciones —no comparte generador con R—, así que
@@ -2320,8 +2445,8 @@ def mod_rutinas(num):
         hasta según la rejilla de r que se le pida. Por eso se coteja en un radio sin empates.</p>
 
       <h3>4 · El ancho, la pared y la masa</h3>
-      <p>Sobre los pinos japoneses (<code>japanesepines</code>). Dos cosas que el número no dice
-        por sí solo: si el selector devolvió el extremo de su intervalo —la «pared» del capítulo
+      <p>Sobre los pinos japoneses (<code>japanesepines</code>). Dos cosas que ni el σ ni el mapa
+        dicen por sí solos: si el selector devolvió el extremo de su intervalo —la «pared» del capítulo
         5— y si la superficie integra el número de puntos.</p>
 
 """ + tabs("El ancho, la pared y la masa", R_4, PY_4) + """
@@ -2339,7 +2464,8 @@ def mod_rutinas(num):
       <h3>5 · Un <code>ppm</code> que se puede leer</h3>
       <p>Ajustar es una línea; leer lo ajustado exige comprobar antes que haya un error estándar
         por coeficiente. Con coordenadas de siete cifras no lo hay, y nada se detiene:
-        <code>vcov()</code> avisa y devuelve <code>NULL</code>.</p>
+        <code>vcov()</code> imprime dos «Error in solve.default» que no detienen el guion, avisa y
+        devuelve <code>NULL</code>.</p>
 
 """ + tabs("Un ppm que se puede leer", R_5, PY_5) + """
       <p>Las dos pestañas miran el mismo problema desde sitios distintos. R ajusta el modelo
@@ -2356,11 +2482,18 @@ def mod_rutinas(num):
         K se hizo, porque <code>kppm</code> ajusta por contraste mínimo: busca los parámetros cuya K
         teórica más se parece a una K estimada del patrón. La llamada por defecto elige esa
         estimación sin decirlo: no la anota entre sus argumentos, y solo se adivina por el nombre
-        de la columna de la K que guarda. La comprobación es escribirla en la llamada y leerla de
-        vuelta en el objeto que se publica.</p>
+        de la columna de la K que guarda. La comprobación es escribirla en la llamada y leer de
+        vuelta, en esa columna, con qué K se ajustó.</p>
 
 """ + tabs("kppm con la corrección escrita", R_6, PY_6) + """
-      <p>Las curvas teóricas de los dos ajustes se separan bastante menos de lo que cambian κ y
+      <p>Y la trampa que no avisa: <code>kppm(redwood ~ 1, "Thomas", correction =
+        "translate")</code> ajusta con la isotrópica sin decir nada, porque la corrección solo
+        llega a la K por <code>statargs</code>. La columna lo delata: sigue diciendo
+        <code>"iso"</code>.</p>
+
+      <p>Python no ajusta <code>kppm</code>: lee los dos juegos de parámetros que R dejó escritos y
+        evalúa con ellos la K teórica de Thomas, que tiene fórmula cerrada. Las curvas teóricas de
+        los dos ajustes se separan bastante menos de lo que cambian κ y
         las plántulas por conglomerado: el contraste mínimo busca en un valle casi plano, y por eso
         cambiar el estimador de K mueve tanto el sitio del mínimo. Son dos descripciones distintas
         del mismo dato, y ninguna es «la» correcta: lo obligatorio es escribir cuál se usó.</p>
@@ -2488,8 +2621,8 @@ def mod_ejercicios(num):
         <code>data(murchison)</code>.</p>
 
       <p>Los cinco van en orden: el 1 deja el cociente que el 4 coteja con un coeficiente, el 4
-        deja las covariables y la cuadratura que usa el 5, y el 2 y el 3 son el mismo problema —el
-        borde— visto en K y en la intensidad. Es el recorrido entero de un proyecto de patrones
+        deja las covariables y la cuadratura que usa el 5, y el 2 y el 3 llevan el borde a K y a la
+        intensidad, y el 3 le añade la elección del ancho. Es el recorrido entero de un proyecto de patrones
         puntuales, en miniatura. Y sobre este patrón casi todas las trampas de los dos capítulos
         vuelven a aparecer, algunas con el resultado al revés que en Bogotá: no sirve recordar el
         veredicto de los capítulos, hay que volver a medirlo.</p>
@@ -2564,12 +2697,14 @@ def mod_alcance(num):
         <p>Las preguntas son de cuatro tipos: opción múltiple, varias respuestas, respuesta
           numérica y lectura de gráfico. Al fallar por primera vez sale una
           <strong>pista</strong> y se puede reintentar; al segundo fallo se revela la respuesta. En
-          las de varias respuestas, además, te dice cuántas de las que marcaste están bien y cuántas
+          las de varias respuestas, además, la página te dice cuántas de las que marcaste están bien y cuántas
           te faltan.</p>
         <p style="margin-bottom:0;">Y <strong>todas</strong> las opciones llevan explicación,
           también las incorrectas: dicen a qué error lleva el razonamiento que conduce a ellas y,
-          cuando ese error produce una cifra, cuál es. Leerlas cuando aciertas también sirve, porque
-          acertar por el motivo equivocado es lo que un parcial se encarga de descubrir.</p>
+          cuando ese error produce una cifra, cuál es. La página enseña la de la opción con que
+          termina cada intento —si aciertas, la de tu opción—, y conviene leerla igual, porque
+          acertar por el motivo equivocado es lo que un parcial se encarga de descubrir. Para leer
+          la de otra opción, pulsa «Reiniciar», que vuelve a abrir el bloque entero, y elígela.</p>
       </div>
 
       <h3>El temario que entra</h3>
@@ -2578,6 +2713,10 @@ def mod_alcance(num):
         del preparcial sale de fuera de ellos.</p>
 
 {"".join(b + chr(10) for b in bloques)}
+      <p>Una pregunta por módulo no es una pregunta por idea. Del módulo 11 del capítulo 5 entra
+        también su última sección, el proceso de Hawkes, que aquí no tiene pregunta: lo practican el
+        simulador de ese módulo y la autoevaluación del capítulo.</p>
+
       <div class="warning">
         <h3>Lo que NO entra</h3>
         <p>De cada capítulo quedan fuera los dos últimos módulos —la autoevaluación con sus
@@ -2589,7 +2728,8 @@ def mod_alcance(num):
         <p style="margin-bottom:0;">Los capítulos 1 a 3 no entran por sí mismos. Aparecen solo
           donde el 4 y el 5 se apoyan en ellos —la ventana como decisión, el MAUP (el problema de
           la unidad de área modificable) en el tamaño de la celda, el efecto de diseño en los
-          errores de un ajuste—, y se preguntan desde ese módulo.</p>
+          errores de un ajuste—, y se preguntan desde el módulo del 4 o del 5 que se apoya en
+          ellos.</p>
       </div>
 
       <p>El último módulo reúne los quince errores que más se repiten en estos dos capítulos, cada
@@ -2758,8 +2898,20 @@ QUIZ_JS = ("""    // Los ejes de las preguntas de gráfico del preparcial, con t
         tooltip.callbacks.title = its => its.length ? 'r = ' + milesPreparcial(its[0].parsed.x) + ' m' : '';
       else if (opciones.titulo)
         tooltip.callbacks.title = its => its.length ? opciones.titulo(its[0]) : '';
+      // Una banda son dos conjuntos y la leyenda solo nombra el de arriba:
+      // con el clic de Chart.js se escondía un borde y el otro quedaba suelto,
+      // como una curva más (gráficos, ronda 6). Los conjuntos de un mismo
+      // `grupo` se esconden y se enseñan juntos.
+      const alPulsar = (e, item, legend) => {
+        const ch = legend.chart, ds = ch.data.datasets, g = ds[item.datasetIndex].grupo;
+        const ver = !ch.isDatasetVisible(item.datasetIndex);
+        ds.forEach((d, i) => {
+          if (i === item.datasetIndex || (g && d.grupo === g)) ch.setDatasetVisibility(i, ver);
+        });
+        ch.update();
+      };
       return {
-        legend: { display: !opciones.sinLeyenda, labels: etiquetas },
+        legend: { display: !opciones.sinLeyenda, labels: etiquetas, onClick: alPulsar },
         tooltip: tooltip
       };
     }
@@ -2769,13 +2921,15 @@ QUIZ_JS = ("""    // Los ejes de las preguntas de gráfico del preparcial, con t
     // etiqueta emergente del modo 'index' («r = 3 638 m: 0.600» con el
     // ratón a 59 m) y dejaban un círculo suelto al pie de la marca, justo en
     // las distancias cortas que la pista manda mirar (gráficos, ronda 5). La
-    // leyenda la nombra con un conjunto vacío del mismo trazo. Sin Chart.js
+    // leyenda la nombra con un conjunto vacío del mismo trazo, `conjunto`, y
+    // si la leyenda lo esconde, la marca se va con él (ronda 6). Sin Chart.js
     // (la CDN caída) no se registra, y el resto del guion sigue en pie.
     if (typeof Chart !== 'undefined') Chart.register({
       id: 'marcaVertical',
-      defaults: { x: null, color: '#475569', ancho: 1.5 },
+      defaults: { x: null, conjunto: null, color: '#475569', ancho: 1.5 },
       afterDatasetsDraw(chart, args, o) {
         if (o.x == null || !chart.scales.x) return;
+        if (o.conjunto != null && !chart.isDatasetVisible(o.conjunto)) return;
         const a = chart.chartArea, px = chart.scales.x.getPixelForValue(o.x);
         if (!(px >= a.left && px <= a.right)) return;
         const ctx = chart.ctx;

@@ -143,6 +143,7 @@ REUSA <- list(
   r("c4m5_ce_orig",      "cap4", 5, "m5.ce_original",         "Índice de Clark-Evans sin corregir de las plántulas de secuoya originales"),
   r("c4m5_ce_reb",       "cap4", 5, "m5.ce_rebarajado",       "Índice de Clark-Evans sin corregir de las plántulas rebarajadas dentro de cada celda 5 × 5"),
 
+  r("c4m6_red_p2",      "cap4", 6, "m6.redwood.p_valor[1]", "p-valor del test de cuadrantes 2 × 2 sobre las secuoyas, que están agrupadas: la rejilla respeta el supuesto, y el test no rechaza"),
   r("c4m6_red_rechazos", "cap4", 6, "m6.redwood_rechazos",    "Rejillas, de las diez del barrido, en que el test de cuadrantes rechaza sobre las secuoyas"),
   r("c4m6_red_emin10",   "cap4", 6, "m6.redwood.esperanza_min[7]", "Plántulas que espera cada celda de la rejilla 10 × 10 sobre las secuoyas"),
 
@@ -209,9 +210,9 @@ REUSA <- list(
   r("c5m6_ch_global",    "cap5", 6, "m6.chorley.prop_global",  "Proporción de casos de laringe sobre todos los cánceres de chorley"),
   r("c5m6_ch_casos",     "cap5", 6, "m6.chorley.casos",        "Casos de cáncer de laringe en chorley"),
   r("c5m6_ch_controles", "cap5", 6, "m6.chorley.controles",    "Controles de cáncer de pulmón en chorley"),
-  r("c5m6_orient_ch",    "cap5", 6, "m6.chorley.orientacion_verificada", "Fracción de casos de laringe entre los cincuenta vecinos del máximo del mapa de chorley hecho al derecho (los niveles reordenados para que pinte laringe): por encima de la proporción global, como debe"),
+  r("c5m6_orient_ch",    "cap5", 6, "m6.chorley.orientacion_verificada", "Fracción de casos de laringe entre los cincuenta vecinos del máximo del mapa de chorley hecho al derecho (los niveles reordenados para que pinte laringe): por encima de la proporción global, del lado en que debe caer"),
   r("c5m6_bog_global",   "cap5", 6, "m6.bogota.prop_global",   "Proporción de sedes oficiales sobre todas las sedes de la ventana urbana"),
-  r("c5m6_orient_bog",   "cap5", 6, "m6.bogota.orientacion_verificada", "Fracción de sedes oficiales entre los cincuenta vecinos del máximo del mapa de Bogotá: por encima de la proporción global de oficiales"),
+  r("c5m6_orient_bog",   "cap5", 6, "m6.bogota.orientacion_verificada", "Fracción de sedes oficiales entre las cincuenta vecinas del máximo del mapa de la proporción de oficiales en Bogotá (oficiales frente a privadas): por encima de la proporción global de oficiales"),
 
   r("c5m7_bei_n",        "cap5", 7, "m7.bei.n",                "Árboles de Beilschmiedia en la parcela de Barro Colorado"),
   r("c5m7_razon_bog",    "cap5", 7, "m7.bogota.curva.razon",   "Razón entre el ρ máximo y el mínimo de la curva rhohat de las sedes contra la distancia al centro, en todo su rango"),
@@ -220,8 +221,8 @@ REUSA <- list(
   r("c5m8_suma_pesos",   "cap5", 8, "m8.forzado.suma_pesos_km2", "Suma de los pesos de la cuadratura por defecto sobre la ciudad, en km²"),
   r("c5m8_area",         "cap5", 8, "m8.forzado.area_km2",     "Área de la ventana urbana, en km²"),
   r("c5m8_sin_contar",   "cap5", 8, "m8.cuadratura.tabla[2].sin_contar_km2", "Área de ciudad que la cuadratura por defecto deja sin contar"),
-  r("c5m8_esperadas",    "cap5", 8, "m8.cuadratura.tabla[2].integral_exacta", "Sedes que el modelo de la distancia pone sobre la ciudad con la integral bien hecha"),
-  r("c5m8_gana_ppm",     "cap5", 8, "m8.comparacion.gana_distancia_ppm", "Puntos de AIC con que gana el modelo de la distancia según los AIC que devuelve ppm"),
+  r("c5m8_esperadas",    "cap5", 8, "m8.cuadratura.tabla[2].integral_exacta", "Sedes que el modelo con la distancia al centro pone sobre la ciudad con la integral bien hecha"),
+  r("c5m8_gana_ppm",     "cap5", 8, "m8.comparacion.gana_distancia_ppm", "Puntos de AIC con que gana el modelo con la distancia al centro según los AIC que devuelve ppm"),
   r("c5m8_gana_const",   "cap5", 8, "m8.comparacion.gana_constante_exacta", "Puntos de AIC con que gana el modelo constante con la integral bien hecha en los dos"),
 
   r("c5m9_xc",           "cap5", 9, "m9.centrado.coef[2]",     "Coeficiente de xc en ppm(~ xc + yc), por kilómetro hacia el este"),
@@ -231,7 +232,6 @@ REUSA <- list(
   r("c5m9_cond",         "cap5", 9, "m9.crudo.cond_reciproco", "Número de condición recíproco de la matriz de diseño de la cuadratura de ppm (sedes y puntos ficticios) con las coordenadas crudas en EPSG:9377"),
   r("c5m9_mejora",       "cap5", 9, "m9.mejora_condicion",     "Factor en que mejora ese número de condición al centrar y pasar a kilómetros"),
 
-  r("c5m10_pct_fuera",   "cap5", 10, "m10.pct_r_fuera_de_banda", "Porcentaje de radios en que la K inhomogénea de las sedes —con la λ̂ por núcleo que Kinhom estima por defecto— se sale de la banda de 999 simulaciones del modelo ajustado"),
   r("c5m10_primer",      "cap5", 10, "m10.primer_r_fuera_m",   "Primer radio en que la K inhomogénea se sale de la banda del modelo, en metros"),
   r("c5m10_ultimo",      "cap5", 10, "m10.ultimo_r_fuera_m",   "Último radio en que la K inhomogénea se sale de la banda del modelo, en metros"),
   r("c5m10_rmax",        "cap5", 10, "m10.r_max_m",            "Radio máximo del barrido de la K inhomogénea, en metros"),
@@ -239,9 +239,12 @@ REUSA <- list(
   r("c5m10_tasa",        "cap5", 10, "m10.tasa_salida.pct",    "Porcentaje de las 999 curvas del modelo ajustado del capítulo 5 que cruzan en algún radio la banda del mínimo y el máximo de las demás, cuyo nivel puntual es del 0.2 %"),
   r("c5m10_nivel",       "cap5", 10, "m10.nivel_puntual_pct",  "Nivel puntual, en porcentaje, de la banda del mínimo y el máximo de 999 simulaciones"),
   r("c5m10_veces_nivel", "cap5", 10, "m10.tasa_salida.veces_el_nivel", "Veces que esa tasa de salida supera el nivel puntual de su banda"),
-  r("c5m10_dclf",        "cap5", 10, "m10.test_global.dclf_p", "p del test DCLF de la K inhomogénea contra el modelo ajustado"),
+  r("c5m10_dclf",        "cap5", 10, "m10.test_global.dclf_p", "p del test DCLF de la K inhomogénea de las sedes contra el modelo ajustado: el más pequeño que permiten sus 999 simulaciones"),
+  # B10: K acumula, y su mayor desviación dice dónde deja de crecer el exceso
+  # (verdad-b, ronda 6).
+  r("c5m10_r_mad",       "cap5", 10, "m10.test_global.r_mad_observada_m", "Radio en que la diferencia entre la K inhomogénea de las sedes y la media del modelo ajustado es mayor —la peor desviación del módulo 10—, en metros"),
   r("c5m10_nsim",        "cap5", 10, "m10.tasa_salida.nsim",   "Simulaciones del modelo ajustado con que se construye la banda de la K inhomogénea"),
-  r("c5m10_fuera",       "cap5", 10, "m10.tasa_salida.fuera",  "Curvas del modelo, de 999, que cruzan en algún radio la banda de las demás"),
+  r("c5m10_fuera_sim",   "cap5", 10, "m10.tasa_salida.fuera_simulador", "Curvas del modelo, de 999, que se salen en algún radio del barrido del gráfico de la banda hecha con las otras 998"),
   r("c5m10_mmean_pct",   "cap5", 10, "m10.mmean_vs_teorica_pct", "Porcentaje máximo en que la media de las K inhomogéneas del modelo se separa de πr² en el barrido"),
 
   r("c5m11_th_iso_esc",  "cap5", 11, "m11.ajustes[1].parametros.scale", "Escala del Thomas ajustado a las sedes con la K isotrópica, en metros"),
@@ -391,9 +394,13 @@ N_RESTO <- list(
     list(id = "area_entera", valor = val("c4m1_lambda_urb") / (n_resto / val("c4m1_area_dc")),
          error = "dividir las sedes del resto por el área del Distrito entero en vez de por la del resto"),
     list(id = "al_reves", valor = lam_resto / val("c4m1_lambda_urb"),
-         error = "invertir el cociente")
+         error = "invertir el cociente"),
+    list(id = "ciento_dos", valor = val("c4m1_lambda_urb") / (val("c4m1_fuera_urb") / a_resto),
+         error = "contar como resto las sedes que descarta el perímetro urbano, una de las cuales cae también fuera del D.C.")
   )
 )
+if (val("c4m1_fuera_urb") - val("c4m1_fuera_dc") != n_resto)
+  para("A1: las que descarta el perímetro menos las que caen fuera del D.C. ya no son el resto")
 
 # ---------------------------------------------------------------------
 # A4 · Diez veces más puntos en el mismo cuadrado (cap. 4, módulo 4)
@@ -559,8 +566,12 @@ N_RR <- list(
          error = "invertir el cociente: es el riesgo relativo de los controles contra los casos"),
     list(id = "la_misma", valor = pmax_ch,
          error = "creer que la probabilidad de caso y el riesgo relativo son la misma escala")
-  )
+  ),
+  referencia = val("c5m6_ch_casos") / val("c5m6_ch_controles"),
+  veces_referencia = (pmax_ch / (1 - pmax_ch)) / (val("c5m6_ch_casos") / val("c5m6_ch_controles"))
 )
+if (!(N_RR$correcto < 1 && N_RR$veces_referencia > 1))
+  para("B6: el riesgo relativo del máximo ya no queda bajo 1 y sobre su referencia")
 
 # ---------------------------------------------------------------------
 # B1 y B8 · Kennedy, la ventana del capítulo 5
@@ -674,6 +685,9 @@ if (!(N_ESCALAS$razon_escalas > 1.5 && N_ESCALAS$dif_media_pct < 5 && N_ESCALAS$
 rw <- CAPS$cap4$m6$redwood
 rw_rech <- unlist(rw$rechaza); rw_emin <- unlist(rw$esperanza_min); rw_nx <- unlist(rw$nx)
 if (sum(rw_rech) != val("c4m6_red_rechazos")) para("los rechazos de las secuoyas no cuadran con el capítulo")
+if (!(val("c4m6_red_p2") > 0.05 && en_ruta(CAPS$cap4, "m6.redwood.esperanza_min[1]") >= 5 &&
+      en_ruta(CAPS$cap4, "m6.redwood.nx[1]") == 2))
+  para("error 3: el 2 × 2 de las secuoyas ya no respeta el supuesto sin rechazar")
 N_SUPUESTO_RW <- list(
   modulo = "cap4.m6",
   rechazos_sin_supuesto = as.integer(sum(rw_rech & rw_emin < 5)),
@@ -947,7 +961,8 @@ en1 <- paste(
   "área del rectángulo menos la del greenstone. Aplica después el test de cuadrantes sobre el rectángulo con",
   "rejillas de 2 × 2 a 10 × 10 y anota el χ², el p-valor y la esperanza mínima",
   "de sus celdas. ¿Qué rejillas sostienen un rechazo que se pueda defender? Y",
-  "contesta: ¿dice ese rechazo que el oro se agrupa?")
+  "contesta: ¿dice ese rechazo que el oro se agrupa? Por último, decide con qué ventana",
+  "preguntarías si los yacimientos se agrupan, y qué dirías de ella en el pie.")
 if (!grepl(as.character(N_ORO), en1, fixed = TRUE)) para("E1: el enunciado ya no dice cuántos yacimientos hay")
 EJ$e1 <- list(
   titulo = "Dónde se buscó el oro",
@@ -972,7 +987,7 @@ EJ$e1 <- list(
     cociente = r10(cociente_gs), cuadrantes = qt, respetan = respetan,
     n_fuera_resta = n_resta, yacimiento_perdido = perdidos, x_perdido_km = r10(ORO$x[perdidos]),
     x_max_km = r10(W_ORO$xrange[2]), cociente_resta = r10(cociente_resta),
-    k_rompe = k_rompe, esperanza_min_rompe = emin_rompe,
+    k_rompe = k_rompe, esperanza_min_rompe = emin_rompe, n_fuera_gs = N_ORO - n_gs,
     nsim_greenstone = NSIM_E1, rechazos_greenstone = as.list(rech_e1),
     chi2_mediana_greenstone = as.list(r10(chi_med_e1)), rejilla_ejemplo = K_EJ_E1,
     respuestas = list(
@@ -985,16 +1000,16 @@ EJ$e1 <- list(
           "`setminus.owin(Window(oro), greenstone)` te salen %d y no %d, y el cociente sube a",
           "%s. El yacimiento %d está justo sobre el borde derecho del rectángulo, en x = %s km, y",
           "el polígono de la resta lo deja fuera. Un punto sobre el borde de una ventana es una",
-          "decisión, como las sedes de Kennedy del capítulo 5: por eso el enunciado fija el",
-          "convenio."),
+          "decisión, como las sedes de Kennedy que el atributo y la geometría asignan distinto en",
+          "el módulo 1 del capítulo 5: por eso el enunciado fija el convenio."),
           N_ORO, n_gs, f(100 * n_gs / N_ORO, 1), f(100 * A_GS / A_RECT, 1),
           f(lam_rect, 5), f(lam_gs, 5), n_resta, N_ORO - n_gs, f(cociente_resta, 2),
           perdidos, f(ORO$x[perdidos], 4))),
       responde(en1, "¿Qué rejillas sostienen un rechazo que se pueda defender?",
         sprintf(paste(
           "Las nueve rechazan, pero solo se defienden las de %d × %d a %d × %d: son las únicas",
-          "en que ninguna celda espera menos de 5 yacimientos. Con la de %d × %d la celda más",
-          "pobre ya espera %s, y desde ahí el p-valor sale de una aproximación que no vale,",
+          "en que ninguna celda espera menos de 5 yacimientos. Con la de %d × %d cada celda",
+          "espera ya %s, y desde ahí el p-valor sale de una aproximación que no vale,",
           "por pequeño que sea. Sobre un rectángulo todas las celdas miden lo mismo, así que",
           "afinar baja a la vez la esperanza de todas y el supuesto se rompe de una vez: aquí",
           "sí se puede decir «desde la rejilla %d × %d, el supuesto no se cumple». Sobre la",
@@ -1008,14 +1023,28 @@ EJ$e1 <- list(
           "%s %% del área, tiene el %s %% de los yacimientos, y su intensidad es %s veces la",
           "de fuera. Eso basta para rechazar aunque los yacimientos no se atrajeran nada, y",
           "no hace falta creerlo: en %d simulaciones de un Poisson que solo sabe del",
-          "greenstone —su λ dentro, la de fuera fuera, ninguna atracción—, el test rechaza",
-          "las %d veces con cada una de las rejillas defendibles. Fíjate además en otra",
-          "cosa: el χ² del oro de verdad supera al de las %d simulaciones en todas ellas (con",
-          "la de %d × %d, %s frente a una mediana de %s). Algo queda que el greenstone no",
+          "greenstone —su λ dentro del greenstone y la de fuera, fuera de él; ninguna",
+          "atracción—, el test rechaza las %d veces con cada una de las rejillas defendibles.",
+          "Fíjate además en otra cosa: con cada una de esas rejillas, el χ² del oro de verdad",
+          "supera a los %d simulados (con la de %d × %d, %s frente a una mediana de %s). Algo queda que el greenstone no",
           "explica; medirlo es el trabajo del ejercicio 5, y este test no lo puede hacer."),
           f(100 * A_GS / A_RECT, 1), f(100 * n_gs / N_ORO, 1), f(cociente_gs, 2),
           NSIM_E1, NSIM_E1, NSIM_E1, K_EJ_E1, K_EJ_E1,
-          f(chi_obs_e1[respetan == K_EJ_E1], 1), f(chi_med_e1[respetan == K_EJ_E1], 1)))
+          f(chi_obs_e1[respetan == K_EJ_E1], 1), f(chi_med_e1[respetan == K_EJ_E1], 1))),
+      # La decisión de la ventana: el módulo 6 promete que los ejercicios la
+      # piden, y ninguno la pedía (pertinencia, ronda 6).
+      responde(en1, "decide con qué ventana preguntarías si los yacimientos se agrupan, y qué dirías de ella en el pie",
+        sprintf(paste(
+          "Depende de qué se pregunte, y por eso va en el pie. Si la pregunta es si los",
+          "yacimientos se agrupan dentro de la roca que los admite, la ventana es el greenstone:",
+          "deja fuera %d de los %d, que el pie tiene que nombrar, y trae un borde hecho de",
+          "franjas, que el ejercicio 2 mide. Si la pregunta es dónde hay oro en la zona que se",
+          "prospectó, la ventana es el rectángulo, porque ahí se buscó, y el greenstone entra",
+          "como covariable, que es lo que hace el ejercicio 5. Lo que no se sostiene es el",
+          "rectángulo a secas: su λ promedia la roca que admite oro con la que casi no lo",
+          "tiene, y cualquier resumen leería la geología como agrupamiento. En los dos casos,",
+          "el pie dice qué ventana es, cuántos yacimientos deja dentro y por qué es esa."),
+          N_ORO - n_gs, N_ORO))
     ),
     lectura = paste(
       "Una λ sin su ventana no es una cifra completa, y un rechazo del test de cuadrantes no dice cuál",
@@ -1025,7 +1054,8 @@ EJ$e1 <- list(
 )
 
 # ---------------------------------------------------------------------
-# E2 · El borde que da la vuelta al veredicto (4.3, 4.4, 4.8, 4.10)
+# E2 · El borde que da la vuelta al régimen (4.3, 4.4, 4.8, 4.10). Era «al
+# veredicto», y la solución dice que sin envolvente no lo hay (redacción, ronda 6)
 # ---------------------------------------------------------------------
 ORO_GS <- ORO[GS]
 ce_gs <- clarkevans(ORO_GS)
@@ -1093,6 +1123,11 @@ coc_kn <- kn_todo / (pi * RR^2)
 i_cruce <- which(RR >= 2 & coc_kn < 1)[1]
 r_cruce <- RR[i_cruce]
 i2 <- which(abs(RR - 2) < 1e-12)
+# Desde dónde la supera sin cortes hasta el cruce: la respuesta decía «entre
+# 2 y …» y «más cerca, no», y la supera ya desde 1.55 km (verdad, ronda 6).
+i_bajo <- max(which(seq_along(RR) < i_cruce & coc_kn <= 1))
+r_desde <- RR[i_bajo + 1L]
+if (!(r_desde < 2)) para("E2: la K sin corregir ya no supera πr² antes de 2 km")
 if (!(length(i2) == 1L && all(coc_kn[RR >= 2 & RR < r_cruce] > 1) && r_cruce > 5 && r_cruce < 10))
   para("E2: la K sin corregir ya no supera πr² entre 2 km y un cruce antes de 10")
 # Qué parte del greenstone está a más de 10 km de su borde: dónde cabe un
@@ -1109,11 +1144,11 @@ en2 <- paste(
   "el grado de agregación sin cambiar el régimen: cuenta qué fracción de los yacimientos",
   "está más cerca del borde del greenstone que de su vecino más próximo (`bdist.points`",
   sprintf("contra `nndist`), compárala con la de las sedes en la ventana urbana, el %s %%,", f(pct_borde_bog, 1)),
-  "y explica por qué aquí el borde cambia el veredicto. Compara por último la R sin",
+  "y explica por qué aquí el borde cambia el régimen que se lee. Compara por último la R sin",
   "corregir de dentro del greenstone con la del rectángulo entero, y explica por qué el",
   "mismo oro parece tan distinto.")
 EJ$e2 <- list(
-  titulo = "El borde que da la vuelta al veredicto",
+  titulo = "El borde que da la vuelta al régimen",
   modulos = list("cap4.m3", "cap4.m4", "cap4.m8", "cap4.m10"),
   enunciado = en2,
   pasos = list(
@@ -1149,7 +1184,8 @@ EJ$e2 <- list(
     ref_K_cuantiles = as.list(r10(q_K)), ref_R_cuantiles = as.list(r10(q_R)),
     vecino_fuera = vecino_fuera, nn_media_gs_km = r10(nn_med_gs), nn_media_rect_km = r10(nn_med_rect),
     nn_esperada_gs_km = r10(nn_esp_gs), nn_esperada_rect_km = r10(nn_esp_rect),
-    r_cruce_km = r10(r_cruce), K_none_sobre_pir2_2km = r10(coc_kn[i2]),
+    r_cruce_km = r10(r_cruce), r_ultimo_sobre_km = r10(RR[i_cruce - 1L]), r_desde_km = r10(r_desde),
+    K_none_sobre_pir2_2km = r10(coc_kn[i2]),
     pct_area_a_mas_de_10km = r10(pct_nucleo_10),
     respuestas = list(
       responde(en2, "Di qué régimen leería cada versión, la sin corregir y la corregida",
@@ -1158,14 +1194,17 @@ EJ$e2 <- list(
           "debajo de πr² = %s. Corregidas, agregado y con holgura: R = %s, y K̂ = %s km², %s",
           "veces πr². Sin envolvente es una lectura, no un veredicto; lo que no depende del azar",
           "es que, con la misma nube de puntos y la misma ventana, las dos versiones leen",
-          "regímenes distintos. Y eso es a 10 km: entre 2 y %s km la K̂ sin corregir también",
-          "supera πr² —a 2 km es %s veces—. El sesgo del borde crece con r, porque a r grande",
-          "casi ningún disco cabe en las franjas del greenstone, y desde %s km es lo bastante",
-          "grande para cruzar πr². El vuelco de K es a la escala que pide el enunciado; el de",
-          "Clark-Evans no depende de ninguna."),
+          "regímenes distintos. Y la lectura de K depende de la escala. A 10 km, la que pide",
+          "el enunciado, la K̂ sin corregir queda por debajo de πr²; más cerca, no siempre: entre",
+          "%s y %s km la supera, y a 2 km es %s veces πr² (más cerca de %s km quedan pocas",
+          "parejas para pasarla). El sesgo del borde crece con r, porque a",
+          "r grande casi ningún disco cabe en las franjas del greenstone, y desde %s km pesa lo",
+          "bastante para hundir la K̂ sin corregir por debajo de πr². Clark-Evans no tiene",
+          "escala: su vuelco vale sin elegir ninguna."),
           f(ce_gs[["naive"]], 3), f(K_none, 1), f(PIR2, 1), f(ce_gs[["cdf"]], 3),
-          f(K_tr, 1), f(K_tr / PIR2, 2), f(r_cruce, 2), f(coc_kn[i2], 2), f(r_cruce, 2))),
-      responde(en2, "explica por qué aquí el borde cambia el veredicto",
+          f(K_tr, 1), f(K_tr / PIR2, 2), f(r_desde, 2), f(RR[i_cruce - 1L], 2), f(coc_kn[i2], 2),
+          f(r_desde, 2), f(r_cruce, 2))),
+      responde(en2, "explica por qué aquí el borde cambia el régimen que se lee",
         sprintf(paste(
           "El %s %% de los yacimientos está más cerca del borde que de su vecino más",
           "próximo, frente al %s %% de las sedes de Bogotá: la mediana de la distancia al borde",
@@ -1194,7 +1233,8 @@ EJ$e2 <- list(
           "están hechas. Si además quieres leer la K corregida como la escala de los grupos,",
           "ten presente lo que supone: que el oro sigue igual más allá del borde, y aquí la",
           "frontera es geológica —fuera hay %s veces menos oro por km²—. La comprobación que",
-          "no supone nada es la de los %d repartos al azar dentro del mismo greenstone: contra",
+          "no supone nada sobre lo que hay al otro lado del borde es la de los %d repartos al",
+          "azar dentro del mismo greenstone: contra",
           "ella, el oro sin corregir queda agregado igual."),
           f(cociente_gs, 2), NSIM_E2)),
       responde(en2, "Compara por último la R sin corregir de dentro del greenstone con la del rectángulo entero, y explica por qué el mismo oro parece tan distinto",
@@ -1219,8 +1259,8 @@ EJ$e2 <- list(
     ),
     lectura = paste(
       "Antes de leer el régimen, el borde; y antes de corregir, la pregunta de qué hay al otro",
-      "lado. Aquí se miró, y lo que cambia la corrección no es lo medido: es la referencia con",
-      "que se compara.")
+      "lado. Aquí se miró —fuera del greenstone también se buscó oro—, y lo que la corrección",
+      "cambia no es lo medido: es la referencia con que se compara.")
   )
 )
 message("  E1 y E2 · ventana, cuadrantes y borde")
@@ -1287,7 +1327,7 @@ en3 <- paste(
   "cada σ y explica la diferencia; di también si la corrección por defecto se pasa",
   "de los 255 o se queda corta, y compárala con la de Diggle (`diggle = TRUE`). Por",
   "último, estima la superficie con el σ de cada uno de los tres selectores que buscan,",
-  "con `diggle = TRUE`, mira su máximo junto a la intensidad media del greenstone del",
+  "con `diggle = TRUE` y la misma `dimyx = 1024`, mira su máximo junto a la intensidad media del greenstone del",
   "ejercicio 1, decide qué σ publicarías en un mapa de «dónde hay oro» y di cómo lo",
   "declararías.")
 EJ$e3 <- list(
@@ -1430,6 +1470,13 @@ eb <- exp(coef(f_G)[["G"]]); eb400 <- exp(coef(f_G400)[["G"]])
 beta_def <- coef(f_G)[["G"]]; beta_400 <- coef(f_G400)[["G"]]
 if (!(eb < eb400 && eb400 < cociente_gs))
   para("E4: la cuadratura fina ya no acerca e^β al cociente exacto")
+# «Aquí se mueve más que en Bogotá» solo es cierto en la medida del capítulo,
+# la del error estándar: en porcentaje, Bogotá se movía más (verdad-e, ronda 6).
+se_beta_G <- sqrt(diag(vcov(f_G)))[["G"]]
+cambio_beta_ee <- (beta_400 - beta_def) / se_beta_G
+rango_ee_bog <- en_ruta(CAPS$cap5, "m8.cuadratura.rango_pendiente_en_ee")
+if (!(cambio_beta_ee > 2 * rango_ee_bog))
+  para("E4: el cambio de β en errores estándar ya no es mucho mayor que el de Bogotá")
 
 en4 <- paste(
   "Construye la distancia de cada sitio de la ventana a la falla más cercana con",
@@ -1478,6 +1525,8 @@ EJ$e4 <- list(
     intercepto_km = r10(coef(f_km)[["(Intercept)"]]), dist_origen_km = r10(dist_origen),
     beta_defecto = r10(beta_def), beta_400 = r10(beta_400),
     cambio_beta_pct = r10(100 * (beta_400 / beta_def - 1)), cambio_eb_pct = r10(100 * (eb400 / eb - 1)),
+    se_beta_G = r10(se_beta_G), cambio_beta_en_ee = r10(cambio_beta_ee),
+    bogota_rango_en_ee = r10(rango_ee_bog), veces_bogota_en_ee = r10(cambio_beta_ee / rango_ee_bog),
     dif_aic = r10(dif_aic), dos_n_log = r10(2 * N_ORO * log(1e6)),
     nd_defecto = nd_def, nd_fino = 400L, eb_defecto = r10(eb), eb_400 = r10(eb400), cociente_exacto = r10(cociente_gs),
     pesos_gs_defecto = r10(pesos_gs(f_G)), pesos_gs_400 = r10(pesos_gs(f_G400)), area_gs = r10(A_GS),
@@ -1524,13 +1573,16 @@ EJ$e4 <- list(
           "por defecto le atribuyen %s km² cuando mide %s. Con área de más, la intensidad",
           "dentro sale baja: exp(β) = %s. Con nd = 400 los pesos casi aciertan (%s km²) y exp(β) =",
           "%s. La cuadratura es parte del modelo ajustado: cambia el coeficiente, y se",
-          "declara. Medido en β el cambio es menor, de %s a %s, un %s %%; en exp(β) es un %s %%.",
-          "El capítulo 5 enseña que en Bogotá el coeficiente apenas se mueve con la",
-          "cuadratura; aquí se mueve más porque el greenstone en %d piezas es un caso extremo",
-          "para una malla de puntos ficticios."),
+          "declara. Medido en β el cambio va de %s a %s, un %s %%, y en exp(β), un %s %%. Pero",
+          "lo que dice si importa es medirlo contra su propio error estándar, %s: son %s errores",
+          "estándar. En Bogotá, de un extremo a otro de la tabla de cuadraturas del capítulo 5,",
+          "la pendiente se movía %s errores estándar; aquí se mueve %s veces eso, porque el",
+          "greenstone en %d piezas es un caso extremo para una malla de puntos ficticios."),
           f(cociente_gs, 2), n_piezas, fe(pesos_gs(f_G)), fe(A_GS), f(eb, 2),
           fe(pesos_gs(f_G400)), f(eb400, 2), f(beta_def, 3), f(beta_400, 3),
-          f(100 * (beta_400 / beta_def - 1), 1), f(100 * (eb400 / eb - 1), 1), n_piezas))
+          f(100 * (beta_400 / beta_def - 1), 1), f(100 * (eb400 / eb - 1), 1),
+          f(se_beta_G, 3), f(cambio_beta_ee, 2), f(rango_ee_bog, 2),
+          f(cambio_beta_ee / rango_ee_bog, 1), n_piezas))
     ),
     lectura = paste(
       "Antes de leer una curva o un coeficiente, tres cosas que no salen en la llamada: dónde hay datos",
@@ -1558,9 +1610,9 @@ message("  E3 y E4 · núcleos, covariable y cuadratura")
 ND_E5 <- 400L; R_CORTO <- 20
 f_D  <- ppm(ORO ~ D, covariates = list(D = D_FALLA), nd = ND_E5)
 f_GD <- ppm(ORO ~ G + D, covariates = list(G = G_IND, D = D_FALLA), nd = ND_E5)
-envuelve <- function(fit, semilla = 2026, ...) {
+envuelve <- function(fit, semilla = 2026, fun = Kinhom, ...) {
   set.seed(semilla)
-  e <- envelope(fit, Kinhom, nsim = 99, correction = "translate", savefuns = TRUE, verbose = FALSE, ...)
+  e <- envelope(fit, fun, nsim = 99, correction = "translate", savefuns = TRUE, verbose = FALSE, ...)
   list(r_max_km = r10(max(e$r)),
        dclf_p = r10(dclf.test(e)$p.value),
        dclf_p_corto = r10(dclf.test(e, rinterval = c(0, R_CORTO))$p.value))
@@ -1610,6 +1662,19 @@ SEMILLAS_E5 <- 1:10
 otras <- vapply(SEMILLAS_E5, function(s) unlist(envuelve(f_GD, s)[c("dclf_p", "dclf_p_corto")]), numeric(2))
 if (!(all(otras[1, ] > 0.05) && all(otras[2, ] <= 0.05)))
   para("E5: con otras semillas el DCLF de G + D ya no deja de rechazar en el rango largo o de rechazar en el corto")
+# LA OTRA SALIDA DEL CAPÍTULO 4 (m12, sobre `cells`): restringir r o usar L,
+# que estabiliza la varianza. El «deja de rechazar» del tramo largo es tanto
+# del estadístico como del tramo, y la solución lo atribuía solo al tramo
+# (verdad-e, ronda 6). Mismas semillas, luego mismas simulaciones.
+ENV_GD_L <- envuelve(f_GD, fun = Linhom)
+otras_L <- vapply(SEMILLAS_E5, function(s) envuelve(f_GD, s, fun = Linhom)$dclf_p, numeric(1))
+if (!(ENV_GD_L$dclf_p < ENV_GD$dclf_p && median(otras_L) < median(otras[1, ])))
+  para("E5: con L el tramo largo ya no pesa menos que con K")
+# Con ~ D los dos p caen en el mínimo que permiten 99 simulaciones, y la
+# respuesta lo dice así (rutina 3; verdad-e y pertinencia, ronda 6).
+P_MIN_E5 <- 1 / (99 + 1)
+if (!(abs(ENV_D$dclf_p - P_MIN_E5) < 1e-9 && abs(ENV_D$dclf_p_corto - P_MIN_E5) < 1e-9))
+  para("E5: los p de ~ D ya no están en el mínimo de 99 simulaciones")
 set.seed(SEMILLA)
 z_ppm <- coef(f_GD) / sqrt(diag(vcov(f_GD)))
 se_ppm <- sqrt(diag(vcov(f_GD)))
@@ -1621,6 +1686,12 @@ kp <- lapply(c(iso = "isotropic", trans = "translate"), function(cr) {
        se_G = r10(se[["G"]]), se_D = r10(se[["D"]]),
        z_G = r10(coef(k)[["G"]] / se[["G"]]), z_D = r10(coef(k)[["D"]] / se[["D"]]))
 })
+# La solución de E5 dice que el Thomas trae los mismos coeficientes que el
+# Poisson y solo cambia sus errores: kppm ajusta la tendencia primero, por
+# verosimilitud de Poisson, y la agrupación después.
+f_GD_kp <- kppm(ORO ~ G + D, "Thomas", covariates = list(G = G_IND, D = D_FALLA), nd = ND_E5)
+if (max(abs(coef(f_GD_kp)[c("G", "D")] - coef(f_GD)[c("G", "D")])) > 1e-6)
+  para("E5: el Thomas ya no trae los mismos coeficientes de tendencia que el ppm")
 zc <- qnorm(0.975)
 if (!(abs(z_ppm[["D"]]) > zc && all(vapply(kp, function(z) abs(z$z_D) < zc, logical(1))) &&
       all(vapply(kp, function(z) abs(z$z_G) > zc, logical(1)))))
@@ -1639,8 +1710,9 @@ en5 <- paste(
   "con `statargs = list(correction = \"isotropic\")` y con `\"translate\"`, y da el error",
   "estándar y la z de los coeficientes de G y de D frente a los del `ppm`. Contesta:",
   "¿explican las covariables la agregación del oro? ¿Qué autoriza a decir un test que",
-  "no rechaza? Compara por último lo que les pasa a las z con lo que le pasó a la de",
-  "`xc` en las sedes de Bogotá.")
+  "no rechaza? Compara después lo que les pasa a las z con lo que le pasó a la de",
+  "`xc` en las sedes de Bogotá. Por último, decide qué modelo publicarías para el oro y",
+  "qué diría su pie.")
 EJ$e5 <- list(
   titulo = "¿Explican las covariables la agregación?",
   modulos = list("cap4.m11", "cap5.m8", "cap5.m10", "cap5.m11"),
@@ -1676,6 +1748,9 @@ EJ$e5 <- list(
     semillas = as.list(SEMILLAS_E5),
     dclf_GD_otras_semillas = r10(otras[1, ]), dclf_GD_corto_otras_semillas = r10(otras[2, ]),
     dclf_GD_rango = r10(range(otras[1, ])), dclf_GD_corto_rango = r10(range(otras[2, ])),
+    envolvente_GD_L = ENV_GD_L, dclf_GD_L_otras_semillas = r10(otras_L),
+    dclf_GD_L_rango = r10(range(otras_L)), dclf_GD_L_rechazos = sum(otras_L <= 0.05),
+    p_minimo = P_MIN_E5,
     ppm_coef = r10(unname(coef(f_GD))), ppm_se = r10(unname(se_ppm)), ppm_z = r10(unname(z_ppm)),
     kppm = unname(kp), z_critico = r10(zc),
     inflacion_D_iso = r10(kp$iso$se_D / se_ppm[["D"]]),
@@ -1686,15 +1761,23 @@ EJ$e5 <- list(
       responde(en5, "¿explican las covariables la agregación del oro?",
         sprintf(paste(
           "Buena parte, no toda. La distancia a la falla sola, no: con ~ D el DCLF rechaza en",
-          "los dos tramos (%s con el tramo por defecto, %s hasta %d km). Con el greenstone",
+          "los dos tramos (%s con el tramo por defecto, %s hasta %d km: el p más pequeño que",
+          "dan 99 simulaciones, porque ninguna se alejó tanto como el oro; cuánto más lejos",
+          "quedó, eso no lo dice). Con el greenstone",
           "añadido, el DCLF sobre el tramo por defecto deja de rechazar (%s), pero el tramo",
           "corto sigue rechazando (%s). No es una semilla afortunada: con otras diez, el p",
           "del tramo largo va de %s a %s y el del corto, de %s a %s. El tramo por defecto",
           "llega a %s km, un cuarto del lado corto. El DCLF suma el cuadrado de la desviación",
           "en cada r, y la varianza de K̂ entre simulaciones crece con r: a %s km es %s veces",
           "la de %s km, y el tramo hasta %d km pone solo el %s %% de la varianza sumada. Las",
-          "desviaciones a decenas de kilómetros ahogan justo lo que se pregunta. Las dos",
-          "covariables explican la geografía del oro a gran escala; queda agrupamiento a pocos",
+          "desviaciones a decenas de kilómetros ahogan justo lo que se pregunta. Hay otra",
+          "manera de devolverles el peso, la otra que da el capítulo 4: cambiar K por L, que",
+          "estabiliza la varianza. Con `Linhom` y las mismas simulaciones, el DCLF sobre el",
+          "tramo por defecto da %s, frente al %s de K; con las otras diez semillas va de %s a",
+          "%s, y rechaza al 5 %% (p ≤ 0.05) con %d de ellas. El veredicto del tramo largo depende del tramo y del",
+          "estadístico, y los dos se declaran antes de mirar. Las dos covariables recogen la",
+          "geografía del oro a gran escala —la z de G sobrevive al Thomas, y con K el tramo largo",
+          "no encuentra nada contra ellas—; queda agrupamiento a pocos",
           "kilómetros, el que el Thomas ajusta con una escala de %s a %s km según la",
           "corrección. Una cosa que la llamada no dice: sin `lambda`, `Kinhom` no usa la",
           "intensidad del modelo. A cada patrón —el del oro y cada simulado— le estima la suya",
@@ -1707,6 +1790,8 @@ EJ$e5 <- list(
           f(min(otras[2, ]), 2), f(max(otras[2, ]), 2), f(ENV_GD$r_max_km, 1),
           f(VAR_E5$r_b_km, 0), f(VAR_E5$veces, 0), f(VAR_E5$r_a_km, 0), R_CORTO,
           f(VAR_E5$pct_tramo_corto, 1),
+          f(ENV_GD_L$dclf_p, 2), f(ENV_GD$dclf_p, 2), f(min(otras_L), 2), f(max(otras_L), 2),
+          sum(otras_L <= 0.05),
           f(kp$iso$escala_km, 1), f(kp$trans$escala_km, 1), f(SIG_KINH_ORO, 1),
           f(ENV_GD_LAMBDA$dclf_p, 2), f(ENV_GD_LAMBDA$dclf_p_corto, 2))),
       responde(en5, "¿Qué autoriza a decir un test que no rechaza?",
@@ -1719,7 +1804,7 @@ EJ$e5 <- list(
           "analista, se toma antes de mirar y se declara. Elegirlo después de ver dónde se",
           "sale la curva sería otra cosa: buscar el tramo que rechaza."),
           f(ENV_GD$dclf_p, 2), R_CORTO, f(ENV_GD$dclf_p_corto, 2))),
-      responde(en5, "Compara por último lo que les pasa a las z con lo que le pasó a la de `xc` en las sedes de Bogotá",
+      responde(en5, "Compara después lo que les pasa a las z con lo que le pasó a la de `xc` en las sedes de Bogotá",
         sprintf(paste(
           "En Bogotá la z de xc pasó de %s a %s con Thomas y la K de traslación: con los",
           "conglomerados dentro, el gradiente dejó de distinguirse de cero. Aquí el error",
@@ -1728,22 +1813,38 @@ EJ$e5 <- list(
           "conglomerados matan la z», sino que la z de un Poisson con datos agrupados no se lee",
           "sin rehacerla: unas sobreviven y otras no, y solo se sabe midiendo, coeficiente por",
           "coeficiente. Y una diferencia con Bogotá que no está en las z sino en la corrección:",
-          "allí la isotrópica y la de traslación movían mucho el error de xc (×%s frente a ×%s)",
-          "porque la ventana urbana es irregular; aquí, sobre un rectángulo, dan casi lo mismo",
-          "(%s y %s de error estándar para G)."),
+          "allí la isotrópica y la de traslación movían mucho el error de xc (×%s frente a ×%s);",
+          "aquí dan casi lo mismo (%s y %s de error estándar para G). No es una ley del",
+          "rectángulo: en la rutina 6, sobre el cuadrado de las secuoyas, cambiar de corrección",
+          "sí mueve el ajuste. Cuánto pesa la corrección se mide en cada ajuste, y se declara."),
           f(val("c5m11_z_pois"), 2), f(val("c5m11_z_th_tr"), 2),
           f(kp$trans$se_D / se_ppm[["D"]], 1), f(z_ppm[["D"]], 2), f(kp$trans$z_D, 2),
           f(kp$trans$se_G / se_ppm[["G"]], 1), f(z_ppm[["G"]], 2), f(kp$trans$z_G, 2),
           f(val("c5m11_th_iso_inf"), 2), f(val("c5m11_th_tr_inf"), 2),
-          f(kp$iso$se_G, 3), f(kp$trans$se_G, 3)))
+          f(kp$iso$se_G, 3), f(kp$trans$se_G, 3))),
+      # La decisión del modelo: el módulo 6 promete que los ejercicios la
+      # piden, y ninguno la pedía (pertinencia, ronda 6).
+      responde(en5, "decide qué modelo publicarías para el oro y qué diría su pie",
+        sprintf(paste(
+          "El Thomas con tendencia ~ G + D. El Poisson ~ G + D describe bien dónde hay oro, y",
+          "sus coeficientes son los mismos que los del Thomas; lo que no sirve son sus errores",
+          "estándar, porque el DCLF hasta %d km dice que queda agrupamiento que las covariables",
+          "no explican, y con él la z de D pasa de %s a %s. En el pie van las dos covariables",
+          "y cómo se construyeron, la cuadratura (nd = %d), el modelo de conglomerado con la",
+          "corrección de su K y el tramo de r del diagnóstico. Y una frase que el modelo no",
+          "dice solo: si sobra agrupamiento porque los yacimientos dependen unos de otros o",
+          "porque falta una covariable, el ajuste no lo distingue."),
+          R_CORTO, f(z_ppm[["D"]], 2), f(kp$trans$z_D, 2), ND_E5))
     ),
     lectura = paste(
       "El diagnóstico contra el modelo dice si la intensidad variable basta para explicar las",
-      "parejas, y su respuesta depende del tramo de r que se declaró. Lo que no dice es si los",
-      "puntos son independientes, y de eso depende la inferencia sobre los coeficientes: sus",
-      "errores estándar se escriben con un modelo que tenga en cuenta la dependencia, como el",
-      "de Thomas. El ejercicio 2 vio que dentro del greenstone el oro se agrupa; este dice que",
-      "la falla y la roca no bastan para explicarlo a pocos kilómetros.")
+      "parejas, y su respuesta depende del tramo de r y del estadístico que se declararon. Lo",
+      "que no puede decir es por qué sobra agrupamiento: si los yacimientos dependen unos de",
+      "otros o si al modelo le falta una covariable. Y de eso depende la inferencia sobre los",
+      "coeficientes: mientras no se descarte la dependencia, sus errores estándar se escriben",
+      "con un modelo que la tenga en cuenta, como el de Thomas. El ejercicio 2 vio que dentro",
+      "del greenstone el oro se agrupa; este dice que la falla y la roca no bastan para",
+      "explicarlo a pocos kilómetros.")
   )
 )
 message("  E5 · diagnóstico y conglomerados")
@@ -1890,12 +1991,23 @@ G_DOS <- list(
                exceso_mod_primera = r10(k_o[v3][1] / k_mm[v3][1] - 1),
                llevado_primera_pct = r10(100 * (1 - (k_o[v3][1] / k_mm[v3][1] - 1) / (c_o[v3][1] / c_te[v3][1] - 1))),
                exceso_csr_ultima = r10(tail(c_o[v3] / c_te[v3], 1) - 1),
-               exceso_mod_ultima = r10(tail(k_o[v3] / k_mm[v3], 1) - 1)),
+               exceso_mod_ultima = r10(tail(k_o[v3] / k_mm[v3], 1) - 1),
+               # Lo que la verde queda por debajo de la naranja, radio a radio: es
+               # casi lo mismo en todo el barrido, y esa resta parecida es la
+               # lectura equivocada que C1 caza (pertinencia, ronda 6).
+               resta_primera = r10(c_o[v3][1] / c_te[v3][1] - k_o[v3][1] / k_mm[v3][1]),
+               resta_ultima = r10(tail(c_o[v3] / c_te[v3] - k_o[v3] / k_mm[v3], 1)),
+               resta_min = r10(min(c_o[v3] / c_te[v3] - k_o[v3] / k_mm[v3])),
+               resta_max = r10(max(c_o[v3] / c_te[v3] - k_o[v3] / k_mm[v3])),
+               csr_siempre_fuera = all(c_o[v3] > c_hi[v3])),
   desde = c(desde("cap4", c(r = "m11.bogota.r", obs = "m11.bogota.obs", lo = "m11.bogota.lo",
                             hi = "m11.bogota.hi", teo = "m11.bogota.teo")),
             desde("cap5", c(obs5 = "m10.curva.obs", lo5 = "m10.curva.lo", hi5 = "m10.curva.hi",
                             mmean = "m10.curva.mmean")))
 )
+if (!(G_DOS$forma$csr_siempre_fuera && G_DOS$forma$resta_max < 2 * G_DOS$forma$resta_min &&
+      G_DOS$forma$resta_min > 0))
+  para("C1: la naranja ya vuelve a su banda, o la resta entre las dos curvas ya no es parecida en todo el barrido")
 GRAFICOS <- list(g_hist = G_HIST, g_supuesto = G_SUPUESTO, g_pcf = G_PCF,
                  g_pico = G_PICO, g_kinhom = G_KINHOM, g_dos = G_DOS)
 for (nm in names(GRAFICOS)) {
@@ -1923,10 +2035,12 @@ ERRORES <- list(
       c("c4m2_dispersion", "c4m2_disp_nula"),
       "con celdas de áreas distintas, un Poisson homogéneo ya da un índice muy por encima de 1"),
   err("cuadrantes", "Tomar «no rechaza el test de cuadrantes» por aleatoriedad", "cap4", 5,
-      c("c4m5_chi2", "c4m5_ce_orig", "c4m5_ce_reb"),
+      c("c4m5_chi2", "c4m5_ce_orig", "c4m5_ce_reb", "c4m6_red_p2"),
       paste("el χ² solo lee cuántos puntos hay en cada celda. Las plántulas de secuoya y su versión rebarajada dentro",
             "de cada celda —los mismos conteos, sin los grumos— dan el mismo χ²: el test no ve lo que pasa por debajo",
-            "de su rejilla. Aquí los dos rechazan; si no rechazaran, tampoco dirían nada de lo que pasa dentro de las celdas")),
+            "de su rejilla. Aquí los dos rechazan, con una rejilla que el error siguiente no deja defender; lo que importa",
+            "es que el χ² sale idéntico. Y con la rejilla 2 × 2, que sí respeta el supuesto, el test ni siquiera rechaza",
+            "sobre las secuoyas, que están agrupadas: no rechazar no las hace aleatorias")),
   err("supuesto", "Elegir la rejilla sin mirar el supuesto del χ²", "cap4", 6,
       c("c4m2_esp_baja", "c4m6_red_rechazos"),
       paste("afinar la rejilla da más detalle y puede dejar celdas que esperan menos de 5 puntos, que es lo que rompe",
@@ -1936,16 +2050,19 @@ ERRORES <- list(
   err("borde", "Ignorar el efecto de borde", "cap4", 10,
       c("c4m10_sesgo", "c4m10_veces_iso"),
       paste("sin corregir, a los puntos cerca del borde les faltan vecinos —nunca les sobran—, y el patrón parece más",
-            "regular de lo que es. Si tienta saltarse la corrección, es por lo que cuesta, no porque sirva poco")),
+            "regular de lo que es. Si tienta saltarse la corrección, es por lo que cuesta la isotrópica en una ventana",
+            "con muchos vértices, no porque sirva poco: la de traslación cuesta mucho menos")),
   err("banda", "Leer la banda puntual como un contraste de la curva entera", "cap4", 11,
       c("c4m11_tasa_bog", "c4m11_nivel", "c5m10_tasa", "c5m10_veces_nivel"),
       "mirar cientos de distancias a la vez y quedarse con la peor no es un contraste al nivel de la banda"),
   err("atraccion", "Leer un exceso de parejas como atracción", "cap5", 10,
-      c("c4m8_max_desvio", "c4m8_vecinas", "c4m8_vecinas_csr", "c5m10_pct_fuera"),
+      c("c4m8_max_desvio", "c4m8_vecinas", "c4m8_vecinas_csr", "c5m10_dclf"),
       paste("contra CSR, una intensidad que cambia de un sitio a otro deja la misma huella que unos puntos que se",
             "atraen. Las sedes tienen un exceso claro contra CSR, y contra un modelo que ya lleva la intensidad",
-            "variable su K inhomogénea todavía se sale de la banda en buena parte de los radios: parte del exceso era",
-            "intensidad y parte no, y solo el segundo contraste empieza a separarlos")),
+            "variable el test DCLF de su K inhomogénea todavía rechaza: parte del exceso lo explica la intensidad del",
+            "modelo y parte no. Lo que queda puede ser atracción entre sedes o una intensidad que cambia a una escala",
+            "más fina que la del modelo, y la K no distingue las dos: el capítulo 5 ajusta al mismo exceso un",
+            "conglomerado y un Cox log-gaussiano")),
   err("pared", "Publicar la pared del intervalo como el ancho óptimo", "cap5", 3,
       c("c5m3_tope_jp"),
       "el selector devuelve un número finito, con el aspecto de cualquier otro, y el aviso se queda en la consola",
@@ -1959,14 +2076,18 @@ ERRORES <- list(
       c("c5m6_orient_ch", "c5m6_ch_global", "c5m6_orient_bog", "c5m6_bog_global"),
       paste("la función relrisk pinta la probabilidad del segundo nivel del factor, y los niveles van por orden",
             "alfabético: en chorley, larynx va antes que lung, así que sin reordenar pinta la probabilidad de pulmón,",
-            "la de los controles")),
+            "la de los controles. La comprobación cuenta casos entre los vecinos más cercanos del máximo, sin leer el",
+            "mapa, y por eso da otra cifra que la probabilidad del propio mapa: lo que mira es de qué lado de la",
+            "proporción global cae el máximo, no cuánto vale")),
   err("rhohat", "Leer el titular de una curva rhohat, la razón entre su máximo y su mínimo", "cap5", 7,
       c("c5m7_razon_bog", "c5m7_bulto_bog"),
       paste("esa razón la fija una cola, donde casi no hay puntos con que estimar la curva: en las sedes, la cola",
             "que manda es la del mínimo, lejos del centro, donde apenas quedan sedes")),
   err("cuadratura", "Comparar por AIC dos ppm cuya integral se calculó distinto", "cap5", 8,
       c("c5m8_gana_ppm", "c5m8_gana_const", "c5m8_sin_contar"),
-      "la cuadratura deja trozos de ventana sin contar, y esa área que falta entra en el AIC como si fuera del modelo"),
+      paste("el ppm sin covariables calcula la integral con la fórmula cerrada, sobre la ventana entera; el que lleva la",
+            "distancia al centro la aproxima con la cuadratura, que deja trozos de ventana sin contar. Esa área, que",
+            "solo le falta a uno de los dos, entra en la comparación de AIC como si fuera del modelo")),
   err("coordenadas", "Ajustar un ppm con coordenadas de siete cifras", "cap5", 9,
       c("c5m9_cond", "c5m9_mejora"),
       "el ajuste devuelve coeficientes y ningún error estándar, y vcov() avisa y devuelve NULL en vez de fallar"),
