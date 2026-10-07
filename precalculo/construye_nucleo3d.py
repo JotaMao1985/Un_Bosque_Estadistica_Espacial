@@ -2,7 +2,7 @@
 """
 construye_nucleo3d.py — estampa la página independiente de la animación 3D
 
-Material de Estadística Espacial 2026-II (20929). Capítulo 5, módulo 1.
+Material de Estadística Espacial 2026-II (20929). Capítulo 5, módulos 1 y 4.
 
 EL MOTOR VIVE EN `precalculo/nucleo3d/nucleo3d.js` y ESTE ARCHIVO NO LO
 DUPLICA: lo lee y lo estampa en una página autocontenida,
@@ -21,6 +21,8 @@ solo HTML. Las dos salidas son artefactos y no se editan a mano.
     sin el aviso de obsolescencia (la r150 lo estrena y la r160 lo quita).
   · `?modo=clase` quita el encabezado, agranda la letra y hace que las flechas
     se reenvíen al visor de diapositivas. Sin parámetro es una página normal.
+  · `?escena=borde` monta la escena del módulo 4 (la corrección de borde) en vez de la
+    del módulo 1 (del conteo a la superficie): el mismo motor, otra animación.
 
     python3 precalculo/construye_nucleo3d.py            # escribe la página
     python3 precalculo/construye_nucleo3d.py --comprueba  # sale con 1 si está desactualizada
@@ -33,6 +35,9 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 MOTOR = RAIZ / "precalculo" / "nucleo3d" / "nucleo3d.js"
 DESTINO = RAIZ / "Htmls_Espacial" / "animaciones" / "nucleo-3d.html"
+# El capítulo 5 lleva el motor EN LÍNEA (`ensambla_cap5.py`): si se edita el motor y no se reensambla, el capítulo publica
+# una versión vieja y ningún auditor de cifras lo ve. `--comprueba` lo mira.
+CAPITULO = RAIZ / "Htmls_Espacial" / "capitulo-5-intensidad-nucleos.html"
 
 # La huella se calculó sobre el archivo descargado de esa misma URL:
 #   curl -s URL | openssl dgst -sha384 -binary | openssl base64 -A
@@ -40,6 +45,7 @@ THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"
 THREE_SRI = "sha384-RRHfJ6w1mTlKUBMYT/hvnRiOzEB/vyRV3DrQOseb6oYfvaZSfdd0byS4bHps0k2R"
 
 TITULO = "Del conteo a la superficie · estimación por núcleos"
+TITULO_BORDE = "Lo que se escapa por el borde · estimación por núcleos"
 
 
 def leer_motor() -> str:
@@ -76,11 +82,11 @@ PAGINA = """<!DOCTYPE html>
 <body>
   <div class="pagina">
     <header>
-      <h1>Del conteo a la superficie</h1>
-      <p class="sub">Cómo el estimador por núcleos convierte un conjunto de puntos en una superficie de intensidad. Capítulo 5 · Estadística Espacial.</p>
+      <h1 id="titulo">Del conteo a la superficie</h1>
+      <p class="sub" id="subtitulo">Cómo el estimador por núcleos convierte un conjunto de puntos en una superficie de intensidad. Capítulo 5 · Estadística Espacial.</p>
     </header>
     <div id="animacion"></div>
-    <noscript>Esta animación necesita JavaScript. Dice lo mismo que la fórmula del capítulo 5: cada punto levanta una loma de ancho σ, y la superficie de intensidad es la suma de todas las lomas.</noscript>
+    <noscript>Esta animación necesita JavaScript. El capítulo 5 dice lo mismo con palabras: en el módulo 1, cada punto levanta una loma de ancho σ y la superficie de intensidad es la suma de todas las lomas; en el módulo 4, la parte del núcleo que cae fuera de la ventana no la recoge nadie, y las dos correcciones de borde se distinguen por dónde dividen.</noscript>
   </div>
   <script src="@@THREE_URL@@" integrity="@@THREE_SRI@@" crossorigin="anonymous"></script>
   <script>
@@ -88,9 +94,16 @@ PAGINA = """<!DOCTYPE html>
   </script>
   <script>
     (function () {
-      var clase = new URLSearchParams(location.search).get('modo') === 'clase';
+      var q = new URLSearchParams(location.search);
+      var clase = q.get('modo') === 'clase';
+      var escena = q.get('escena') === 'borde' ? 'borde' : 'conteo';
       if (clase) document.body.classList.add('clase');
-      window.animacion = Nucleo3D.montar(document.getElementById('animacion'), { modo: clase ? 'clase' : 'pagina' });
+      if (escena === 'borde') {
+        document.title = '@@TITULO_BORDE@@';
+        document.getElementById('titulo').textContent = 'Lo que se escapa por el borde';
+        document.getElementById('subtitulo').textContent = 'Qué le hace el borde de la ventana a una estimación por núcleos y qué hacen las dos correcciones de spatstat. Capítulo 5 · Estadística Espacial.';
+      }
+      window.animacion = Nucleo3D.montar(document.getElementById('animacion'), { modo: clase ? 'clase' : 'pagina', escena: escena });
     })();
   </script>
 </body>
@@ -100,6 +113,7 @@ PAGINA = """<!DOCTYPE html>
 
 def construye() -> str:
     return (PAGINA.replace("@@TITULO@@", TITULO)
+            .replace("@@TITULO_BORDE@@", TITULO_BORDE)
             .replace("@@THREE_URL@@", THREE_URL)
             .replace("@@THREE_SRI@@", THREE_SRI)
             .replace("@@MOTOR@@", leer_motor()))
@@ -110,7 +124,9 @@ def main() -> int:
     if "--comprueba" in sys.argv:
         al_dia = DESTINO.exists() and DESTINO.read_text(encoding="utf-8") == html
         print(f"{DESTINO.relative_to(RAIZ)}: {'al día' if al_dia else 'DESACTUALIZADO'}")
-        return 0 if al_dia else 1
+        cap_al_dia = CAPITULO.exists() and leer_motor() in CAPITULO.read_text(encoding="utf-8")
+        print(f"{CAPITULO.relative_to(RAIZ)}: {'lleva el motor actual' if cap_al_dia else 'LLEVA UN MOTOR VIEJO (hay que correr ensambla_cap5.py)'}")
+        return 0 if al_dia and cap_al_dia else 1
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
     DESTINO.write_text(html, encoding="utf-8")
     print(f"{DESTINO.relative_to(RAIZ)}  {len(html) / 1024:.0f} KB")

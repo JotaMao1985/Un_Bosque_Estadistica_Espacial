@@ -258,8 +258,18 @@ def quiz_html(ident, titulo, bajada):
 """
 
 
-def nucleo3d_html(ident, titulo, pie):
-    """La animación 3D del módulo 1: un contenedor vacío que el motor monta cuando se ve.
+# Lo que ve quien tiene bloqueado three.js o JavaScript, escena por escena: lo mismo que dice la animación, sin el lienzo.
+NUCLEO3D_RESERVA = {
+    "conteo": "La animación se carga al llegar aquí. Si no aparece, el texto de los cinco pasos y la fórmula de arriba dicen "
+              "lo mismo: cada punto levanta una loma de ancho σ, y la superficie de intensidad es la suma de todas las lomas.",
+    "borde": "La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: la parte del núcleo "
+             "de una sede que cae fuera de la ventana no la recoge nadie, y las dos correcciones de borde se distinguen por dónde "
+             "dividen por la fracción que queda dentro.",
+}
+
+
+def nucleo3d_html(ident, titulo, pie, escena="conteo"):
+    """La animación 3D (módulos 1 y 4): un contenedor vacío que el motor monta cuando se ve.
 
     Es un `.simulador` más —lo registra `SIMULADORES[ident]` y lo destruye
     `destruirSimuladores()`—, pero sin lienzo ni mandos en el marcado: los
@@ -270,9 +280,7 @@ def nucleo3d_html(ident, titulo, pie):
     return f"""      <div class="simulador" data-simulador="{ident}">
         <h4><i class="fas fa-cube" aria-hidden="true"></i> {titulo}</h4>
         <p class="simulador-intro">{pie}</p>
-        <div class="n3d-montaje"><p class="n3d-cargando">La animación se carga al llegar aquí. Si no aparece, el texto
-          de los cinco pasos y la fórmula de arriba dicen lo mismo: cada punto levanta una loma de ancho σ, y la
-          superficie de intensidad es la suma de todas las lomas.</p></div>
+        <div class="n3d-montaje"><p class="n3d-cargando">{NUCLEO3D_RESERVA[escena]}</p></div>
       </div>
 """
 
@@ -865,9 +873,26 @@ MOD4 = cabecera(
       <p>Sin corregir, <strong>la masa se escapa</strong>, y cada vez más al abrir el núcleo:
         de {n(m4["tabla"][0]["fuga_sin_corregir_pct"], 2)} % a
         {firma(n(m4["tabla"][-1]["fuga_sin_corregir_pct"], 2), " %")}. Con la corrección que
-        <code>density.ppp</code> aplica sin pedírsela, <strong>la masa se pasa</strong>, y
-        también crece con σ. Y con <code>diggle = TRUE</code> la integral devuelve n clavado a
-        cualquier ancho.</p>
+        <code>density.ppp</code> aplica sin pedírsela, <strong>en estas sedes la masa se
+        pasa</strong>, y también crece con σ. Y con <code>diggle = TRUE</code> la integral
+        devuelve n clavado a cualquier ancho.</p>
+
+      <p>Conviene no leer de ahí una ley. Que la masa se pase no es una propiedad del método
+        sino de estas sedes: esa corrección divide cada sitio $u$ por $e(u)$, y el total sale por
+        encima o por debajo de n según a qué distancia del borde caigan los puntos. Una sede
+        pegada al borde aporta a la integral menos de 1; una a uno y medio o dos anchos de él, más de 1.
+        Con estas sedes sobra; con otras posiciones podría quedarse corta. La animación de abajo
+        lo deja ver con los diecinueve puntos inventados del módulo 1: mueve una sede hacia el
+        borde y mira cuánto aporta con cada corrección.</p>
+
+{nucleo3d_html("cap5-nucleo3d-borde", "Lo que se escapa por el borde, en tres dimensiones",
+      "Cuatro pasos: una loma que se sale de la ventana, la suma sin corregir y las dos correcciones. "
+      "Arrastra una sede hacia el borde o una esquina, ensancha σ y compara lo que aporta con cada "
+      "corrección; con «Reproducir» la animación recorre los cuatro pasos sola.", "borde")}
+      <p>Dos cosas para llevarse. La primera: cada una de las tres superficies, sola, parece
+        razonable; lo que las separa se ve al ponerlas sobre la red gris de la que no se corrige
+        y, mejor, se mide integrando contra n. La segunda: las dos correcciones no se distinguen
+        por el divisor sino por dónde se evalúa, y el recuadro de abajo lo dice entero.</p>
 
       <div class="nota-lateral">
         <h4>Por qué solo una de las tres conserva el conteo</h4>
@@ -3330,13 +3355,15 @@ NUCLEO3D_JS = (
       return cargaThree.promesa;
     }
 
-    SIMULADORES['cap5-nucleo3d'] = function (raiz) {
+    // Un solo registro para las dos escenas del motor: la del módulo 1 y la del módulo 4. Lo único que cambia es la opción `escena`.
+    function registraNucleo3d(escena) {
+      return function (raiz) {
       const sitio = raiz.querySelector('.n3d-montaje');
       let vivo = true, instancia = null, io = null;
       Nucleo3D.estilos(document);
       const monta = () => cargaThree().then(
-        () => { if (vivo) { sitio.innerHTML = ''; instancia = sitio.animacion = Nucleo3D.montar(sitio, { THREE: window.THREE }); } },
-        () => { if (vivo) { sitio.innerHTML = ''; Nucleo3D.montar(sitio, { THREE: null }); } });
+        () => { if (vivo) { sitio.innerHTML = ''; instancia = sitio.animacion = Nucleo3D.montar(sitio, { THREE: window.THREE, escena }); } },
+        () => { if (vivo) { sitio.innerHTML = ''; Nucleo3D.montar(sitio, { THREE: null, escena }); } });
       if ('IntersectionObserver' in window) {
         io = new IntersectionObserver(es => {
           if (es.some(e => e.isIntersecting)) { io.disconnect(); io = null; monta(); }
@@ -3346,7 +3373,10 @@ NUCLEO3D_JS = (
         monta();
       }
       return [{ destroy() { vivo = false; if (io) io.disconnect(); if (instancia) instancia.destruir(); instancia = sitio.animacion = null; } }];
-    };
+      };
+    }
+    SIMULADORES['cap5-nucleo3d'] = registraNucleo3d('conteo');
+    SIMULADORES['cap5-nucleo3d-borde'] = registraNucleo3d('borde');
 """).replace("@@URL@@", THREE_URL).replace("@@SRI@@", THREE_SRI)
 
 SIMULADORES_JS += NUCLEO3D_JS

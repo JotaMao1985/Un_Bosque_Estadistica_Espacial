@@ -16,6 +16,7 @@
 #   6. audita_texto_*.py    — las cifras de la prosa, incluidas las de KaTeX
 #   7. prueba_texto.py      — le inyecta defectos al auditor de prosa
 #   8. cuenta_sitio.py      — los totales, contados y no recordados
+#   (y, desde el 2026-10-01, la matemática de las animaciones contra R)
 #
 # Los TALLERES corren por un bucle propio (C8 del Taller 1): no son
 # capítulos —sin quiz, sin ejercicios guiados, y con una familia de
@@ -188,6 +189,20 @@ paso "campos_vivos.py — ningún campo de courseData se declara y no se lee" \
 # verlo —el componente aparece y funciona— y el navegador tampoco avisa.
 paso "comentarios_cerrados.py — ningún \`*/\` suelto se lleva una regla por delante" \
      python3 precalculo/comentarios_cerrados.py --prueba
+
+# Del 2026-10-01: las ANIMACIONES. `prueba_nucleo3d.py` (la matemática del motor 3D contra
+# `density()` de R) y `construye_nucleo3d.py --comprueba` (la página de las diapositivas al día
+# con el motor) existían desde el 2026-09-30 y NINGÚN paso del arnés los corría: un cambio al
+# motor podía dejar el capítulo en verde y la matemática mintiendo. Cuestan 12 s, así que corren
+# también con `--rapido`. Los defectos inyectados (`prueba_mutaciones.py`, ~4 min) no.
+paso "prueba_nucleo3d.py — la matemática de la animación 3D, contra R" \
+     python3 precalculo/prueba_nucleo3d.py
+paso "construye_nucleo3d.py --comprueba — la página de las diapositivas, al día con el motor" \
+     python3 precalculo/construye_nucleo3d.py --comprueba
+if [ "$RAPIDO" -eq 0 ]; then
+  paso "prueba_mutaciones.py — la prueba de la animación SABE fallar" \
+       python3 precalculo/prueba_mutaciones.py
+fi
 
 paso "verifica_bloques.py — los bloques de código y sus #>" \
      python3 precalculo/verifica_bloques.py --todos
