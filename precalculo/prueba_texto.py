@@ -111,6 +111,8 @@ SUJETOS = {
     # anotado en el §0 del PLAN_Taller_2_Cap_4.md.
     "taller2": ("audita_texto_taller2.py", "TALLER2_HTML",
                 PROYECTO / "Htmls_Espacial", "taller-2-cap-4.html"),
+    "apendicea": ("audita_texto_apendicea.py", "APENDICEA_HTML",
+                  PROYECTO / "Htmls_Espacial", "apendice-a-densidad.html"),
 }
 
 
@@ -746,6 +748,13 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         ("el n declarado del patrón urbano deja de cuadrar con su geometría",
          f'"n": {m1["urbana"]["n"]}, "pts"',
          f'"n": {m1["urbana"]["n"] - 4}, "pts"'),
+        # --- EL PESO, con su tope propio desde el 2026-10-02 ----------
+        # Hasta entonces este capítulo no inyectaba el ensamblado
+        # desbocado, así que su comprobación de peso nunca se había visto
+        # fallar. Con el tope subido a 760 KB hay que demostrar que sigue
+        # mordiendo: 703 + 312 queda por encima.
+        ("el documento desbocado",
+         "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
         # --- 11. La codificación --------------------------------------
         ("una tilde se convierte en bytes crudos",
          "Perímetro urbano", "Per<c3><ad>metro urbano"),
@@ -1389,10 +1398,77 @@ def defectos_taller2() -> list[tuple[str, str, str]]:
     ]
 
 
+def defectos_apendicea() -> list[tuple]:
+    """Los defectos del apéndice A, construidos DESDE su precálculo donde hay cifra.
+
+    Cubre las familias de los capítulos —cifra inventada en la prosa y dentro
+    de KaTeX, cifra alterada, celda de solución, respuesta perdida, temario,
+    fuente, afirmación, coma decimal, acento grave en un título, enlace,
+    accesibilidad, codificación, fórmula sin escapar, orden de KaTeX y peso—
+    y estrena TRES que solo el apéndice puede probar:
+
+     · **el motor de los simuladores, desactualizado**: el documento lleva
+       `densidad1d.js` en línea, y una copia que no es la de hoy dibujaría
+       con una matemática que la prueba contra R no cubre;
+     · **un simulador que pierde su registro**: el marcado pide uno que el
+       JavaScript no define, y la página lo deja en blanco sin un error;
+     · **un rótulo de la figura del plano que no es el de su sitio**: la
+       figura se dibuja en SVG y sus rótulos son cifras del módulo 4.
+    """
+    D = json.loads((SALIDAS / "apendicea_datos.json").read_text(encoding="utf-8"))
+    S = json.loads((SALIDAS / "apendicea_soluciones.json").read_text(encoding="utf-8"))
+    par0 = D["m12"]["selectores"]["una_por_pareja_sin_ceros"]
+    paso_e2 = next(p for p in S["e2"]["pasos"] if p["paso"].startswith("f̂(4)"))
+    sitio = D["m4"]["plano"]["sitios"][1]
+    return [
+        ("una cifra inventada se cuela en la prosa",
+         "<p>Un histograma exige dos decisiones",
+         "<p>El géiser tarda 93.24681 minutos. Un histograma exige dos decisiones"),
+        ("una cifra inventada se cuela dentro de una fórmula",
+         r"\frac{6}{n\,R(f')}", r"\frac{7.31597}{n\,R(f')}"),
+        ("una cifra de la prosa deja de ser la del precálculo",
+         f"<strong>{par0['ucv']:.2f}</strong> m", "<strong>21.97531</strong> m"),
+        ("una celda de solución deja de decir lo que su JSON dice",
+         f"<td>{paso_e2['valor']:.4f}</td>", "<td>0.0947</td>"),
+        ("una respuesta de un ejercicio desaparece de su panel",
+         '<p class="ejercicio-respuesta">', '<p class="ejercicio-resp-x">'),
+        ("se cae un tema del temario: nndensity", "nndensity", "nnd_ensidad", True),
+        ("se cae una fuente: Sheather", "Sheather", "Shether", True),
+        ("una afirmación que justifica el apéndice desaparece",
+         "son geometría, no agrupamiento", "son geometría y agrupamiento"),
+        ("un decimal se publica con coma",
+         f"= {D['m12']['borde']['aporte']['ln2']:.4f};", f"= {D['m12']['borde']['aporte']['ln2']:.4f}".replace(".", ",") + ";"),
+        ("un título de módulo publica acentos graves",
+         "El histograma\n          <span", "El `histograma`\n          <span"),
+        ("el motor de los simuladores no es el de hoy",
+         "var RAIZ_2PI = Math.sqrt(2 * Math.PI);", "var RAIZ_2PI = Math.sqrt(2.0 * Math.PI);"),
+        ("un simulador del marcado pierde su registro",
+         'data-simulador="apa-knn"', 'data-simulador="apa-knnx"'),
+        ("un rótulo de la figura del plano no es el de su sitio",
+         f": {sitio['parzen_conteo']} sedes dentro<", f": {sitio['parzen_conteo'] + 1} sedes dentro<"),
+        ("un enlace a un capítulo apunta al vacío",
+         'href="capitulo-5-intensidad-nucleos.html"', 'href="capitulo-5-intensidad.html"'),
+        ("un lienzo pierde su texto alternativo",
+         '<canvas role="img" aria-label="Histograma de densidad de los tiempos',
+         '<canvas role="img" data-x="Histograma de densidad de los tiempos'),
+        ("una tilde llega como bytes crudos",
+         "En el plano</h4>", "En el plano<c3><b3></h4>"),
+        ("una fórmula lleva un «<» sin escapar", r"\(|u| \lt 1\)", r"\(|u| < 1\)"),
+        # Se cambia por \varphi y no por «Var» a secas: «Var» ya está en el
+        # documento, y el arnés no admite inyectar un valor que ya existe.
+        ("se cae una orden de KaTeX: la densidad normal", r"\phi", r"\varphi", True),
+        # +312 KB sobre un documento de unos 755 y un tope de 840: la cuenta
+        # está en la cabecera de `audita_texto_apendicea.py`.
+        ("el apéndice se pasa de su propio tope de peso",
+         "</body>", "<!--" + "y" * 320_000 + "-->\n</body>"),
+    ]
+
+
 DEFECTOS = {"demo": defectos_demo, "cap1": defectos_cap1,
             "cap2": defectos_cap2, "cap3": defectos_cap3,
             "cap4": defectos_cap4, "cap5": defectos_cap5,
-            "cap6": defectos_cap6, "taller2": defectos_taller2}
+            "cap6": defectos_cap6, "taller2": defectos_taller2,
+            "apendicea": defectos_apendicea}
 
 
 def corre(clave: str, ruta_html: pathlib.Path) -> tuple[int, str]:
