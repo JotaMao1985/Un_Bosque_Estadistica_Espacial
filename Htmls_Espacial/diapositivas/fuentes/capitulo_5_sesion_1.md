@@ -32,6 +32,14 @@ temas: Estimador núcleo, Ancho de banda, Selectores, Corrección de borde, Mapa
   Revisada el 1 oct 2026 con una revisión pedagógica y una auditoría de cifras independientes.
   Los divisores numerados (01 a 06) coinciden con los módulos 1 a 6 del capítulo.
 
+  Las dos láminas con animación 3D («En 3D» del módulo 1 y «En 3D: lo que se escapa por el borde» del módulo 4) llevan el MISMO
+  script de `message`, en una sola línea (así el constructor no lo cuenta como prosa): es UN oyente para todos los marcos y el
+  segundo que se carga no hace nada. El visor es de la página y los iframes son de las animaciones: las flechas que se pulsen
+  dentro viajan al visor y el foco vuelve a él; si no, la siguiente diapositiva dejaría de responder después de mover un
+  deslizador. Cada mensaje se atiende en el marco que lo mandó y en ningún otro (un `querySelector` de «el» marco atendería solo al
+  primero). No se usa e.origin: con file:// vale 'null'. El pie de las dos va a DOS líneas: así el marco mide 451 px, el alto que
+  piden las dos escenas (con el parche de `.n3d-clase` del motor; ver `build/diapositivas/cap5/verif/TRASPASO.md`).
+
   Fuera a propósito: la autoevaluación y los ejercicios guiados (módulo 12: se remiten en la
   práctica) y el simulacro (módulo 13: no lleva clave).
 -->
@@ -41,7 +49,7 @@ temas: Estimador núcleo, Ancho de banda, Selectores, Corrección de borde, Mapa
 > El capítulo 4 terminó con una sola cifra para toda la ciudad. La pregunta que un mapa invita a hacer es otra: *dónde*.
 
 ???
-Unos 13 minutos. Abrir con la pregunta, no con la definición: ¿qué le falta a «5.69 sedes por km²»? Dejar que digan «dónde». El capítulo 4 cerró con un veredicto —las sedes no están repartidas al azar— pero con una sola intensidad para toda la ciudad. Los módulos 1 a 4 de este capítulo son la materia del Quiz 2. Presupuesto de la sesión (90 min): este módulo, 13 min; núcleo y ancho, 11; selectores, 11; corrección de borde, 14; mapa de calor, 10; intensidad relativa, 13; cierre y práctica, 4. El resto es margen para preguntas.
+Unos 13 minutos. Abrir con la pregunta, no con la definición: ¿qué le falta a «5.69 sedes por km²»? Dejar que digan «dónde». El capítulo 4 cerró con un veredicto —las sedes no están repartidas al azar— pero con una sola intensidad para toda la ciudad. Los módulos 1 a 4 de este capítulo son la materia del Quiz 2. Presupuesto de la sesión (90 min): este módulo, 13 min; núcleo y ancho, 11; selectores, 11; corrección de borde, 17 (14 sin la animación en 3D); mapa de calor, 10; intensidad relativa, 13; cierre y práctica, 4. El resto es margen para preguntas.
 
 ## Una sola cifra para toda la ciudad no dice dónde hay más sedes {columnas=1:1}
 
@@ -165,22 +173,10 @@ Pedir que describan qué cambia entre los dos paneles antes de decir nada. Los d
 
 ::: html
 <iframe class="n3d-marco w-full flex-1 min-h-0 border-0" src="../animaciones/nucleo-3d.html?modo=clase" title="Animación en tres dimensiones: de los puntos a la superficie de intensidad por núcleos" loading="lazy"></iframe>
-<script>
-/* El visor es de la página y el iframe es de la animación: las flechas que se pulsen dentro viajan al visor y el
-   foco vuelve a él; si no, la siguiente diapositiva dejaría de responder después de mover un deslizador.
-   Solo se atienden los mensajes que vienen de ese marco (no se usa e.origin: con file:// vale 'null'). */
-window.addEventListener('message', function (e) {
-  var f = document.querySelector('iframe.n3d-marco');
-  if (!f || e.source !== f.contentWindow) return;
-  var m = e.data;
-  if (!m || !m.nucleos) return;
-  if (m.nucleos === 'foco') { f.blur(); window.focus(); }
-  else if (m.nucleos === 'tecla') document.dispatchEvent(new KeyboardEvent('keydown', { key: m.key, shiftKey: !!m.shiftKey, bubbles: true, cancelable: true }));
-});
-</script>
+<script>if (!window.oyenteNucleos) { window.oyenteNucleos = true; window.addEventListener('message', function (e) { var marcos = document.querySelectorAll('iframe.n3d-marco'), f = null; for (var i = 0; i < marcos.length; i++) if (marcos[i].contentWindow === e.source) f = marcos[i]; var m = e.data; if (!f || !m || !m.nucleos) return; if (m.nucleos === 'foco') { f.blur(); window.focus(); } else if (m.nucleos === 'tecla') document.dispatchEvent(new KeyboardEvent('keydown', { key: m.key, shiftKey: !!m.shiftKey, bubbles: true, cancelable: true })); }); }</script>
 :::
 
-<small>**Qué ilustra:** cómo la suma de lomas forma la superficie, y cómo σ y el núcleo la cambian. **De dónde sale:** puntos inventados; es la misma animación del módulo 1 del capítulo. **Por qué importa:** fija la idea antes de medirla en Kennedy.</small>
+<small>**Qué ilustra:** cómo la suma de lomas forma la superficie y cómo la cambian σ y el núcleo. **De dónde sale:** puntos inventados; es la animación del módulo 1 del capítulo. **Por qué importa:** fija la idea antes de medirla en Kennedy.</small>
 
 ???
 Es la misma animación del módulo 1 del capítulo, que allí lleva el texto completo. Dos formas de usarla: pulsar los pasos y hablar encima, o «Reproducir», que recorre los cinco pasos sola en unos tres cuartos de minuto y se detiene. Guion sugerido. Paso de las cajas: desplazar la rejilla y preguntar cuál es ahora la celda más llena; cambia. Paso de las lomas: pedir que apuesten qué le pasa a la altura de cada loma al subir σ (baja: cada una encierra lo mismo, un punto). Paso de la suma: cambiar de núcleo con σ fijo y ver que la superficie se mueve poco (el disco, con el borde más brusco, es el que más se nota); es la tesis del módulo 2, y σ la cambia mucho más; después subir σ y ver que los picos bajan y los valles se llenan, porque cada loma reparte su peso en más terreno; la escala vertical no se renormaliza, así que se nota. Con el disco el pico puede subir a saltos, cuando el círculo alcanza un punto más. Último paso: arrastrar la esfera naranja hacia un grupo y luego hacia un hueco, y leer la columna: la altura es la suma de los pesos. Decir en voz alta que los puntos son inventados y que la animación no corrige el borde: con sus puntos y su ventana, parte de la masa de las lomas queda fuera, y es justo lo que mide el módulo 4. Para girar la vista se arrastra el fondo; las flechas siguen siendo del visor. Necesita red: three.js llega de un CDN, y sin él aparece un aviso con la idea en una frase. La presentación ya no es un solo archivo: depende de `../animaciones/nucleo-3d.html`, que hay que llevar junto con ella. Al imprimir en PDF sale una captura del estado en que se dejó, no la animación. Cotejo: `recomputo › picos_valles`.
@@ -405,7 +401,7 @@ Dejarla en pantalla unos segundos. Las dos decisiones que quedan de esta sesión
 > El núcleo de una sede pegada al borde se sale de la ventana, y la masa que se sale no la recoge nadie. La prueba de que algo va mal no es visual: es una integral.
 
 ???
-Unos 14 minutos. Materia del Quiz 2. Antes de empezar: en el capítulo 4 la «corrección de borde» era la de K, y costaba cientos de veces la alternativa. Aquí es otra operación con el mismo nombre.
+Unos 17 minutos, tres de ellos en la animación en 3D (14 minutos sin ella). Materia del Quiz 2. Antes de empezar: en el capítulo 4 la «corrección de borde» era la de K, y costaba cientos de veces la alternativa. Aquí es otra operación con el mismo nombre.
 
 ## El núcleo de una sede pegada al borde se sale de la ventana {columnas=3:2}
 
@@ -461,13 +457,25 @@ Masa integrada por cada corrección y, entre paréntesis, su desviación de n = 
 :::
 
 ::: tip Interpretación
-Sin corregir, **la masa se escapa** y cada vez más al abrir el núcleo; por defecto, **se pasa**; con `diggle = TRUE`, n **clavado** a cualquier ancho. Solo una de las tres conserva el conteo, y no es la que sale sin pedirla.
+Sin corregir, **la masa se escapa** y cada vez más al abrir el núcleo; por defecto, **en Kennedy se pasa**; con `diggle = TRUE`, n **clavado** a cualquier ancho. Solo una de las tres conserva el conteo, y no es la que sale sin pedirla.
 :::
 
 <small>Fuente: módulo 4 del capítulo (R, spatstat).</small>
 
 ???
-Cifras del módulo 4 (tabla `m4` del precálculo). Simulador «Las tres correcciones, y lo que le hacen a la masa»: los dos botones cambian entre la masa integrada y su desviación en tanto por ciento. Lo que interesa es que las dos desviaciones crecen con σ: el problema del borde no es un detalle fijo, escala con el núcleo. Entre no corregir y corregir por defecto hay 17.54 puntos porcentuales a σ = 800 m. Lo que se ve aquí es el comportamiento sobre este patrón; que la de por defecto se pase no quiere decir que sea sesgada en general, sino que sobre el patrón de Kennedy suma de más. Cotejo: `datos › m4.tabla`, `recomputo › bordes`.
+Cifras del módulo 4 (tabla `m4` del precálculo). Simulador «Las tres correcciones, y lo que le hacen a la masa»: los dos botones cambian entre la masa integrada y su desviación en tanto por ciento. Lo que interesa es que las dos desviaciones crecen con σ: el problema del borde no es un detalle fijo, escala con el núcleo. Entre no corregir y corregir por defecto hay 17.54 puntos porcentuales a σ = 800 m. Lo que se ve aquí es el comportamiento sobre este patrón; que la de por defecto se pase no quiere decir que sea sesgada en general, sino que sobre el patrón de Kennedy suma de más; la lámina siguiente lo enseña en 3D. Cotejo: `datos › m4.tabla`, `recomputo › bordes`.
+
+## En 3D: lo que se escapa por el borde, y cada corrección
+
+::: html
+<iframe class="n3d-marco w-full flex-1 min-h-0 border-0" src="../animaciones/nucleo-3d.html?modo=clase&amp;escena=borde" title="Animación en tres dimensiones: lo que se escapa por el borde de la ventana y las dos correcciones" loading="lazy"></iframe>
+<script>if (!window.oyenteNucleos) { window.oyenteNucleos = true; window.addEventListener('message', function (e) { var marcos = document.querySelectorAll('iframe.n3d-marco'), f = null; for (var i = 0; i < marcos.length; i++) if (marcos[i].contentWindow === e.source) f = marcos[i]; var m = e.data; if (!f || !m || !m.nucleos) return; if (m.nucleos === 'foco') { f.blur(); window.focus(); } else if (m.nucleos === 'tecla') document.dispatchEvent(new KeyboardEvent('keydown', { key: m.key, shiftKey: !!m.shiftKey, bubbles: true, cancelable: true })); }); }</script>
+:::
+
+<small>**Qué ilustra:** qué hace cada corrección con la masa que se sale de la ventana. **De dónde sale:** puntos inventados, los del módulo 1; no son las sedes de Kennedy. **Por qué importa:** «se pasa» depende de dónde caen los puntos.</small>
+
+???
+Es la animación del módulo 4 del capítulo, con los mismos 19 puntos inventados de la lámina «En 3D» del módulo 1, pero ahora la ventana cuenta. Cuatro pasos, o «Reproducir», que los recorre sola en unos 36 segundos (más si el equipo dibuja despacio) y se detiene; si falta tiempo, basta con eso y con detenerse en el tercer paso. Primer paso: la parte roja de la loma de la sede en foco cae fuera y no la recoge nadie. Al abrir, la sede n.º 1 está a 0.7 del borde y deja dentro el 72 % de su loma (e = 0.72, con σ = 1.2); arrastrarla hacia el borde y hacia una esquina, y ensanchar σ: se escapa más. Segundo paso: sin corregir, la superficie se queda corta justo en el perímetro y su volumen es Σ e(xᵢ): 17.1 de 19. Tercer paso: por defecto se divide en cada sitio u por e(u); el perímetro sube sobre la red gris, pero el volumen ya no tiene por qué ser n. Con estas sedes sale 20.2, por encima de 19, como en Kennedy; no es una ley: la sede n.º 1, pegada al borde, aporta 0.97 (menos de 1), y una a uno y medio o dos σ del borde aporta más de 1. Pedir una apuesta, luego mover la sede en foco y mirar su barra. Cuarto paso: con Diggle se divide en cada dato, por e(xᵢ): cada sede aporta exactamente 1 y el volumen vuelve a ser 19.0, con cualquier σ y cualquier núcleo. Decir en voz alta que los puntos son inventados: el +3.19 % de Kennedy es de aquel patrón. Para girar la vista se arrastra el fondo; las flechas siguen siendo del visor. Necesita red (three.js llega de un CDN) y la misma página que la lámina «En 3D» del módulo 1, `../animaciones/nucleo-3d.html`, con `?escena=borde`. Al imprimir en PDF sale una captura del estado en que se dejó, no la animación. Cotejo: `recomputo › borde3d`.
 
 ## ¿Se distingue cuál es cuál mirando el mapa? {.pregunta columnas=3:2}
 
