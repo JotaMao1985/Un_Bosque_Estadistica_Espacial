@@ -1,0 +1,261 @@
+{
+  "meta": {
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "paquetes": {
+      "spatstat": "3.5.1",
+      "spatstat.explore": "3.8.0",
+      "spatstat.model": "3.6.1",
+      "spatstat.geom": "3.7.2",
+      "spatstat.data": "3.1.9",
+      "sf": "1.0.22"
+    },
+    "nota": "Cada bloque se calcula con el mismo código que el bloque de R del capítulo; las semillas viajan con el cálculo."
+  },
+  "urbana": {
+    "n_capa": 2209,
+    "n_urbana": 2107,
+    "area_km2": 370.089816510121,
+    "lambda_km2": 5.69321258247153
+  },
+  "kennedy": {
+    "n": 262,
+    "area_km2": 38.5128148287812,
+    "lambda_km2": 6.80293043146261,
+    "caja_x_km": 7.46863573477417,
+    "caja_y_km": 7.67067839835561,
+    "n_atributo": 261,
+    "sedes_fuera_de_la_urbana": 3,
+    "area_fuera_de_la_urbana_pct": 9.84172049971225
+  },
+  "cuadrantes": {
+    "nx": 8,
+    "celdas_rejilla": 64,
+    "celdas_con_ventana": 57,
+    "conteo_min": 0,
+    "conteo_max": 15,
+    "celdas_con_el_maximo": 2,
+    "desplazamientos": 16,
+    "maximos_desplazados": [15, 19, 21, 18, 16, 17, 20, 19, 16, 18, 19, 16, 15, 19, 21, 19],
+    "rango_desplazados": [15, 21]
+  },
+  "nucleos": {
+    "sigma_m": 400,
+    "max_km2": {
+      "gaussian": 18.4482768749116,
+      "epanechnikov": 17.514492816607,
+      "quartic": 17.6900088324945,
+      "disc": 17.8808190599992
+    },
+    "cor_gauss": {
+      "epanechnikov": 0.991098920634587,
+      "quartic": 0.995754609609191,
+      "disc": 0.964743572970437
+    },
+    "dif_pct": 5.06163293534732
+  },
+  "anchos": {
+    "sigmas_m": [233.3949, 330.0702, 466.7897, 660.1404, 933.5795, 1320.2807, 1867.1589],
+    "picos_km2": [29.5066011660573, 21.5826418590583, 16.841574289783, 13.8339689576572, 11.9497537434475, 10.8573377430202, 9.94631878530256],
+    "caida_pct": 66.2912080950067,
+    "razon_pasos": [1.41421342111589, 1.41421340066446, 1.41421372408174, 1.41421355214739, 1.41421346548419, 1.41421358352053],
+    "razon_total": 7.99999871462487,
+    "veces_el_nucleo": 13.0968027396989,
+    "caida_con_redondeo_1dec": 66.4406779661017,
+    "celda_x_m": 77.7982889038976,
+    "celda_y_m": 77.48159998339,
+    "celdas_en_233": 3.00000042787968,
+    "nx": 96,
+    "ny": 99
+  },
+  "selectores": {
+    "kennedy": {
+      "sigmas_m": {
+        "diggle": 347.123480823653,
+        "ppl": 374.898834878143,
+        "CvL": 556.737010824894,
+        "scott": 633.558106697
+      },
+      "razon": 1.82516637939242,
+      "scott_x_m": 633.558106697,
+      "scott_y_m": 579.508221239743
+    },
+    "ciudad": {
+      "sigmas_m": {
+        "diggle": 373.216754056853,
+        "ppl": 235.899710986442,
+        "CvL": 720.369145539828,
+        "scott": 1251.28437289974
+      },
+      "razon": 5.30430651087852,
+      "scott_x_m": 1251.28437289974,
+      "scott_y_m": 2197.04734264547
+    },
+    "ns_ppl": 16,
+    "ns_cvl": 16,
+    "shortcut_ppl": true
+  },
+  "japanesepines": {
+    "n": 65,
+    "lado_m": 5.7,
+    "bw_ppl": 0.707106781186548,
+    "tope_intervalo": 0.707106781186548,
+    "aviso": "Likelihood Cross-Validation criterion was maximised at right-hand end of interval [0.01, 0.707]; use argument ‘srange’ to specify a wider interval for bandwidth ‘sigma’",
+    "optimo_con_srange_2": 2,
+    "criterio_h": [0.01, 0.0142364595898574, 0.0202676781653642, 0.0288539981181443, 0.0410778778214782, 0.0584803547642573, 0.0832553207401873, 0.118526100935829, 0.168739204631629, 0.240224886796286, 0.341995189335339, 0.486880069289818, 0.693144843155146, 0.986792854949628, 1.40484366030504, 2],
+    "criterio_cv": [-1244.62177998893, -412.540574229831, -21.429717531662, 154.394097962063, 226.701475323654, 252.1579059787, 260.476815198044, 264.838841495763, 267.282044797349, 268.036754959476, 268.400987641287, 268.962752322769, 269.522078076871, 269.896430840117, 270.106690417338, 270.216574127905],
+    "ayuda": "Japanese Pines Point Pattern\n\nDescription:\n\n     The data give the locations of saplings of Japanese black pine\n     (_Pinus thunbergii_) in a square sampling region in a natural\n     forest.  The observations were originally collected by Numata\n     (1961).\n\n     These data are used as a standard example in the textbook of\n     Diggle (2003); see pages 1, 14, 19, 22, 24, 56-57 and 61.\n\nUsage:\n\n     data(japanesepines)\n     \nFormat:\n\n     An object of class ‘\"ppp\"’ representing the point pattern of 65\n     tree sapling locations in a 5.7 x 5.7 metre square, rescaled to\n     the unit square and rounded to two decimal places.\n\n     See ‘ppp.object’ for details of the format of a point pattern\n     object.\n\nSource:\n\n     Diggle (2003), obtained from Numata (1961)\n\nReferences:\n\n     Diggle, P.J. (2003) _Statistical Analysis of Spatial Point\n     Patterns_.  Arnold Publishers.\n\n     Numata, M. (1961) Forest vegetation in the vicinity of Choshi.\n     Coastal flora and vegetation at Choshi, Chiba Prefecture. IV.\n     _Bulletin of Choshi Marine Laboratory, Chiba University_ *3*,\n     28-48 (in Japanese).\n\nExamples:\n\n       if(require(spatstat.geom)) {\n        japanesepines\n        summary(japanesepines)\n        ## rescale to metres\n        (Jpines <- rescale(japanesepines))\n       }\n     "
+  },
+  "bordes": {
+    "200": {
+      "masa_sin": 255.082932253224,
+      "masa_defecto": 263.297736759206,
+      "masa_diggle": 261.999999999998,
+      "pct_sin": -2.64010219342584,
+      "pct_defecto": 0.495319373742942,
+      "pct_diggle": -6.77236045021345e-13,
+      "max_sin": 33.990900603944,
+      "max_defecto": 33.9909006039441,
+      "max_diggle": 33.9909006450746
+    },
+    "400": {
+      "masa_sin": 245.856353984386,
+      "masa_defecto": 265.798565851819,
+      "masa_diggle": 261.999999999999,
+      "pct_sin": -6.16169695252431,
+      "pct_defecto": 1.44983429458745,
+      "pct_diggle": -2.99760216648792e-13,
+      "max_sin": 18.3968829483257,
+      "max_defecto": 18.4482768749116,
+      "max_diggle": 19.5458476679507
+    },
+    "800": {
+      "masa_sin": 224.406473710371,
+      "masa_defecto": 270.36190706288,
+      "masa_diggle": 261.999999999999,
+      "pct_sin": -14.3486741563471,
+      "pct_defecto": 3.19156758125179,
+      "pct_diggle": -2.22044604925031e-13,
+      "max_sin": 11.5397453964573,
+      "max_defecto": 12.659849766061,
+      "max_diggle": 13.485148916783
+    },
+    "horquilla_pp_800": 17.5402417375988
+  },
+  "tiempos": {
+    "ciudad_128": {
+      "defecto": 0.151999999999997,
+      "sin_corregir": 0.145,
+      "diggle": 0.158000000000001
+    },
+    "nota": "Medianas de 15 ejecuciones; dependen de la máquina. Se aceptan con tolerancia."
+  },
+  "diggle_identidad": {
+    "puntos": 8,
+    "sigma_m": 800,
+    "error_pct_diggle": 2.87179371678658,
+    "error_pct_defecto": 2.53612434797838,
+    "cruce_pct": 88.4095155822422,
+    "nota": "D_mano = suma de k(u - x_i) / e(x_i); def_mano = suma de k(u - x_i) / e(u); e por malla de 700 x 700 píxeles."
+  },
+  "capas": {
+    "sigma_m": 720.369145539828,
+    "n_oferta": 2107,
+    "n_grado11": 1062,
+    "pct_grado11": 50.4034171808258,
+    "evaluados": 145362,
+    "max_oferta": 14.5361524991344,
+    "max_grado11": 9.54441897852096,
+    "max_estudiantes": 1578.80651597722,
+    "cor_of_11": 0.942851458438785,
+    "cor_of_es": 0.861625789342121,
+    "cor_11_es": 0.918565708878664,
+    "celda_x_m": 183.378616656781,
+    "celda_y_m": 183.472136385314,
+    "sigma_minimo_m": 550.135849970342,
+    "integral_estudiantes": 145362
+  },
+  "capas_maximos": {
+    "localidad_max_oferta": "Suba",
+    "localidad_max_estudiantes": "Bosa"
+  },
+  "chorley": {
+    "n_laringe": 58,
+    "n_pulmon": 978,
+    "n": 1036,
+    "area_km2": 315.1553,
+    "global": 0.055984555984556,
+    "mediana": 0.0481849481294746,
+    "maximo": 0.338850963103276,
+    "maximo_sobre_global": 6.05257927198266,
+    "mediana_sin_fijar_niveles": 0.951815051870525,
+    "vecinos_k": 50,
+    "vecinos_casos": 4,
+    "vecinos_prop": 0.08,
+    "max_dist_punto_mas_cercano_km": 4.59617858648685,
+    "max_dist_vecino_50_km": 8.18678993708017,
+    "ayuda": "Chorley-Ribble Cancer Data\n\nDescription:\n\n     Spatial locations of cases of cancer of the larynx and cancer of\n     the lung, and the location of a disused industrial incinerator. A\n     marked point pattern.\n\nUsage:\n\n     data(chorley)\n     \nFormat:\n\n     The dataset ‘chorley’ is an object of class ‘\"ppp\"’ representing a\n     marked point pattern.  Entries include\n\n       ‘x’      Cartesian x-coordinate of home address                    \n       ‘y’      Cartesian y-coordinate of home address                    \n       ‘marks’  factor with levels ‘larynx’ and ‘lung’                    \n                indicating whether this is a case of cancer of the larynx \n                or cancer of the lung.                                    \n      \n     See ‘ppp.object’ for details of the format.\n\n     The dataset ‘chorley.extra’ is a list with two components.  The\n     first component ‘plotit’ is a function which will plot the data in\n     a sensible fashion. The second component ‘incin’ is a list with\n     entries ‘x’ and ‘y’ giving the location of the industrial\n     incinerator.\n\n     Coordinates are given in kilometres, and the resolution is 100\n     metres (0.1 km)\n\nNotes:\n\n     The data give the precise domicile addresses of new cases of\n     cancer of the larynx (58 cases) and cancer of the lung (978\n     cases), recorded in the Chorley and South Ribble Health Authority\n     of Lancashire (England) between 1974 and 1983.  The supplementary\n     data give the location of a disused industrial incinerator.\n\n     The data were first presented and analysed by Diggle (1990).  They\n     have subsequently been analysed by Diggle and Rowlingson (1994)\n     and Baddeley et al. (2005).\n\n     The aim is to assess evidence for an increase in the incidence of\n     cancer of the larynx in the vicinity of the now-disused industrial\n     incinerator. The lung cancer cases serve as a surrogate for the\n     spatially-varying density of the susceptible population.\n\n     The data are represented as a marked point pattern, with the\n     points giving the spatial location of each individual's home\n     address and the marks identifying whether each point is a case of\n     laryngeal cancer or lung cancer.\n\n     Coordinates are in kilometres, and the resolution is 100 metres\n     (0.1 km).\n\n     The dataset ‘chorley’ has a polygonal window with 132 edges which\n     closely approximates the boundary of the Chorley and South Ribble\n     Health Authority.\n\n     Note that, due to the rounding of spatial coordinates, the data\n     contain duplicated points (two points at the same location). To\n     determine which points are duplicates, use ‘duplicated.ppp’.  To\n     remove the duplication, use ‘unique.ppp’.\n\nSource:\n\n     Coordinates of cases were provided by the Chorley and South Ribble\n     Health Authority, and were kindly supplied by Professor Peter\n     Diggle.  Region boundary was digitised by Adrian Baddeley\n     <mailto:Adrian.Baddeley@curtin.edu.au>, 2005, from a photograph of\n     an Ordnance Survey map.\n\nReferences:\n\n     Baddeley, A., Turner, R., Moller, J. and Hazelton, M. (2005)\n     Residual analysis for spatial point processes.  _Journal of the\n     Royal Statistical Society, Series B_ *67*, 617-666.\n\n     Diggle, P. (1990) A point process modelling approach to raised\n     incidence of a rare phenomenon in the vicinity of a prespecified\n     point.  _Journal of the Royal Statistical Soc. Series A_ *153*,\n     349-362.\n\n     Diggle, P. and Rowlingson, B. (1994) A conditional approach to\n     point process modelling of elevated risk.  _Journal of the Royal\n     Statistical Soc. Series A_ *157*, 433-440.\n\nExamples:\n\n         chorley\n       if(require(spatstat.geom)) {\n         summary(chorley)\n         chorley.extra$plotit()\n       }\n     "
+  },
+  "oficial": {
+    "n_oficiales": 709,
+    "n_privadas": 1398,
+    "n": 2107,
+    "global": 0.336497389653536,
+    "mediana": 0.308625133815946,
+    "maximo": 0.999882333479837,
+    "brecha": 0.0278722558375897,
+    "mediana_sin_fijar_niveles": 0.691374866184054,
+    "complemento_de_la_mediana": 0.691374866184054,
+    "area_mayoria_oficial_pct": 17.4593338497289,
+    "vecinos_k": 50,
+    "vecinos_oficiales": 32,
+    "vecinos_prop": 0.64
+  },
+  "capas_defecto": {
+    "cor_of_11": 0.939136208020757,
+    "cor_of_es": 0.855523781935781,
+    "cor_11_es": 0.915518199893692,
+    "max_oferta": 14.5962554848873,
+    "max_grado11": 9.39028416791324,
+    "max_estudiantes": 1541.88176829182
+  },
+  "selectores_fino": {
+    "ns": 256,
+    "kennedy": {
+      "ppl": 326.062897791056,
+      "CvL": 640.122068796501
+    },
+    "ciudad": {
+      "ppl": 349.818735511845,
+      "CvL": 877.228901131175
+    }
+  },
+  "bordes_csr": {
+    "patrones": 300,
+    "n": 262,
+    "media_pct": {
+      "sin_400": -10.3403955740397,
+      "defecto_400": 0.016680091207777,
+      "diggle_400": 1.30636242564227e-14,
+      "sin_800": -19.5968846936741,
+      "defecto_800": 0.0390644224108689,
+      "diggle_800": 1.0769163338864e-14
+    },
+    "sd_pct": {
+      "sin_400": 0.938499598532903,
+      "defecto_400": 0.48318784000118,
+      "diggle_400": 2.19153345300464e-13,
+      "sin_800": 1.12525740945145,
+      "defecto_800": 0.731443563006612,
+      "diggle_800": 2.22061990931037e-13
+    },
+    "ee_media_pct": {
+      "sin_400": 0.0541842995847327,
+      "defecto_400": 0.0278968629493835,
+      "diggle_400": 1.2652824290303e-14,
+      "sin_800": 0.0649667668254413,
+      "defecto_800": 0.0422299137998886,
+      "diggle_800": 1.28207550240819e-14
+    }
+  }
+}

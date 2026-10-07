@@ -1,0 +1,34 @@
+{
+  "m10b_sem_7": {
+    "semilla": 7,
+    "segundos": 390.492,
+    "fuera_101": 66,
+    "pct_101": 66,
+    "arriba_101": 66,
+    "abajo_101": 0,
+    "primer_r_101": 58.6811573301698,
+    "ultimo_r_101": 3872.95638379121,
+    "contiguos_101": true,
+    "nodos_dentro_tras_tramo_101": 34,
+    "fuera_nativa": 341,
+    "pct_nativa": 66.6015625,
+    "tasa_fuera_nativa": 64,
+    "tasa_pct_nativa": 6.40640640640641,
+    "veces_el_nivel_nativa": 32.032032032032,
+    "tasa_fuera_101": 37,
+    "tasa_pct_101": 3.7037037037037,
+    "max_rel_mmean_101_pct": 0.682715747172646,
+    "max_rel_mmean_nativa_pct": 0.803550734819125,
+    "dclf_p": 0.001,
+    "mad_p": 0.003
+  },
+  "meta": {
+    "modulo": "b_m10_s7",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 391.180102109909,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

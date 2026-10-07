@@ -1,0 +1,44 @@
+{
+  "m11_kppm_determinista": {
+    "mismo": true
+  },
+  "m11_ventana": {
+    "piezas": 22
+  },
+  "m11_redwood": {
+    "n": 62,
+    "iso": {
+      "kappa": 23.5485684834797,
+      "scale": 0.047051475501703,
+      "mu": 2.63285643216454
+    },
+    "translate": {
+      "kappa": 18.9884543546008,
+      "scale": 0.0500121999917494,
+      "mu": 3.26514200904269
+    },
+    "ayuda": "California Redwoods Point Pattern (Ripley's Subset)\n\nDescription:\n\n     The data represent the locations of 62 seedlings and saplings of\n     California Giant Redwood (_Sequoiadendron giganteum_) recorded in\n     a square sampling region.  They originate from Strauss (1975); the\n     present data are a subset extracted by Ripley (1977) in a\n     subregion that has been rescaled to a unit square.  (The original\n     physical size of the unit is approximately 63.1 feet).\n\n     Two versions of this dataset are provided: ‘redwood’ and\n     ‘redwood3’.\n\n     The dataset ‘redwood’ was obtained from the ‘spatial’ package.  In\n     this version the coordinates are given to 2 decimal places\n     (multiples of 0.01 units) except for one point which has an x\n     coordinate of 0.999, presumably to ensure that it is properly\n     inside the window.\n\n     The dataset ‘redwood3’ was obtained from Peter Diggle's webpage.\n     In this version the coordinates are given to 3 decimal places\n     (multiples of 0.001 units). The ordering of the points is not the\n     same in the two datasets.\n\n     There are many further analyses of this dataset. It is often used\n     as a canonical example of a clustered point pattern (see e.g.\n     Diggle, 1983).\n\n     The original, full redwood dataset is supplied in the\n     ‘spatstat.data’ package as ‘redwoodfull’.\n\nUsage:\n\n     data(redwood)\n     \nFormat:\n\n     An object of class ‘\"ppp\"’ representing the point pattern of tree\n     locations.  The window has been rescaled to the unit square.\n\n     See ‘ppp.object’ for details of the format of a point pattern\n     object.\n\nSource:\n\n     Original data of Strauss (1975), subset extracted by Ripley\n     (1977).  Data obtained from Ripley's package ‘spatial’ and from\n     Peter Diggle's website.\n\nReferences:\n\n     Diggle, P.J. (1983) _Statistical analysis of spatial point\n     patterns_.  Academic Press.\n\n     Ripley, B.D. (1977) Modelling spatial patterns (with discussion).\n     _Journal of the Royal Statistical Society, Series B_ *39*,\n     172-212.\n\n     Strauss, D.J. (1975) A model for clustering.  _Biometrika_ *62*,\n     467-475.\n\nSee Also:\n\n     ‘redwoodfull’\n"
+  },
+  "m11_hawkes": {
+    "mu": 0.5,
+    "alpha": 0.8,
+    "beta": 1.4,
+    "T": 4000,
+    "razon_ramificacion": 0.571428571428572,
+    "tasa_teorica": 1.16666666666667,
+    "n_eventos": 4577,
+    "tasa_simulada": 1.14425,
+    "dispersion_hawkes": 5.15453716034839,
+    "dispersion_poisson": 0.957893026416769,
+    "veces_mas_agregado": 5.38111983091701
+  },
+  "meta": {
+    "modulo": "m11_redwood_hawkes",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 0.273270130157471,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

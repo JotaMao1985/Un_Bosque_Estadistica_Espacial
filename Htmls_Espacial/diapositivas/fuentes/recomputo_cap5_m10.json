@@ -1,0 +1,46 @@
+{
+  "m10_e39": {
+    "nivel_puntual": 0.05,
+    "pct_fuera": 78.515625,
+    "r_max": 5868.11573301698,
+    "dclf": 0.025,
+    "mad": 0.025
+  },
+  "m10": {
+    "nsim": 999,
+    "segundos": 195.56,
+    "nivel_puntual_pct": 0.2,
+    "r_max_m": 5868.11573301698,
+    "n_nodos": 101,
+    "pct_fuera": 62,
+    "primer_r_fuera_m": 58.6811573301698,
+    "ultimo_r_fuera_m": 3638.23175447053,
+    "nodos_dentro_tras_el_tramo": 38,
+    "mmean_vs_teorica_pct": 0.64498767483836,
+    "nativa": {
+      "nodos": 512,
+      "fuera": 77,
+      "pct": 7.70770770770771
+    },
+    "simulador": {
+      "nodos": 100,
+      "fuera": 43,
+      "pct": 4.3043043043043
+    },
+    "veces_el_nivel": 38.5385385385385,
+    "dclf_p": 0.001,
+    "mad_p": 0.004,
+    "r_mad_observada_m": 1959.85896551934,
+    "mad_superan": 3,
+    "r_min_mad_superan_m": 5650.35362573705
+  },
+  "meta": {
+    "modulo": "m10",
+    "fecha": "2026-09-30",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 204.829566001892,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}
