@@ -2435,6 +2435,16 @@ MOD12 = cabecera(
           resultado sin cambiar la llamada.</p>
       </div>
 
+      <div class="definition">
+        <h4>Antes del parcial: el preparcial del Corte II</h4>
+        <p style="margin-bottom:0;">El parcial del corte evalúa este capítulo y el anterior, del
+          módulo 1 al 11 de cada uno. El <a href="preparcial-corte-2.html">preparcial del Corte
+          II</a> los recorre con una pregunta por módulo y otras que cruzan los dos capítulos —cada
+          opción con su explicación—, seis rutinas con su salida real, cinco ejercicios sobre un
+          patrón que el curso no había usado, el oro de Murchison, y el catálogo de los errores que
+          se repiten. No tiene nota y se puede repetir tantas veces como haga falta.</p>
+      </div>
+
       <div class="tip-box">
         <h4>Dónde sigue esto</h4>
         <p style="margin-bottom:0;">El capítulo 6 cambia de tipo de dato: de puntos sueltos a
@@ -2521,6 +2531,10 @@ MOD13 = cabecera(
         de K con sus pesos, la intensidad en un punto—, y esas se abrevian sabiendo de antemano qué
         entra en cada término.</p>
       </div>
+
+      <p>Con el quiz hecho, lo que queda del corte es el parcial. Para prepararlo está el
+        <a href="preparcial-corte-2.html">preparcial del Corte II</a>, que recorre este capítulo y
+        el anterior enteros y termina con cinco ejercicios para hacer de punta a punta.</p>
 """ + CIERRE
 
 
