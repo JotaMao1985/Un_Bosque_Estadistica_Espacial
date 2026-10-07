@@ -940,7 +940,9 @@
 
     /* El mismo relleno que `.code-tab-btn.active`, que es el otro control
        segmentado de la casa: dos controles que hacen lo mismo —decir cuál de
-       las opciones está puesta— deben decirlo igual. */
+       las opciones está puesta— deben decirlo igual. El fondo solo no basta
+       con colores forzados ni en papel: lo que lo sustituye allí va al final
+       de la hoja, después de `.geomapa-boton.activo`. */
     .sim-btn.active {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       border-color: transparent;
@@ -2052,6 +2054,34 @@
       border-collapse: collapse;
     }
 
+    /* Una figura del simulacro viene en dos versiones (2026-09-25): la de
+       Brightspace, de 7.2 pulgadas, y una estrecha de 4 con la misma letra.
+       Se elige por el ancho de la CAJA, no por el de la ventana: en el
+       teléfono la caja deja ~220 px, y en la tableta el índice lateral la
+       deja igual de estrecha. Por debajo de 400 px, la de Brightspace pone
+       los números de los ejes a menos de 10 px. Con `<picture>` y una
+       consulta de ventana había que copiar aquí el punto de corte del índice
+       lateral, y al cambiar el ancho después de cargar (girar la tableta) la
+       versión no siempre se volvía a elegir. Sin consultas de contenedor
+       (Safari < 16) se ve la de Brightspace, como antes. */
+    .simulacro-enunciado {
+      container-type: inline-size;
+    }
+
+    .simulacro-enunciado .figura-estrecha {
+      display: none;
+    }
+
+    @container (max-width: 399px) {
+      .simulacro-enunciado .figura-ancha {
+        display: none;
+      }
+
+      .simulacro-enunciado .figura-estrecha {
+        display: inline;
+      }
+    }
+
     .simulacro-opciones {
       display: flex;
       flex-direction: column;
@@ -2101,6 +2131,49 @@
 
     .simulacro-opcion.marcada .simulacro-letra {
       color: #012820;
+    }
+
+    .simulacro-fila {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem 1rem;
+      font-size: 0.9375rem;
+      color: #1f2937;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.8rem;
+    }
+
+    .simulacro-select,
+    .simulacro-cifra {
+      font-family: inherit;
+      font-size: 0.9375rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.375rem;
+      padding: 0.3rem 0.5rem;
+      background: white;
+      color: #1f2937;
+    }
+
+    .simulacro-cifra {
+      width: 9rem;
+    }
+
+    .simulacro-select:focus-visible,
+    .simulacro-cifra:focus-visible {
+      outline: 2px solid #FF6600;
+      outline-offset: 1px;
+    }
+
+    .simulacro-respuestas {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      margin: 0 0 0.4rem 0;
+      font-size: 0.9375rem;
+      color: #1f2937;
     }
 
     .simulacro-resumen {
@@ -4015,6 +4088,173 @@
       background: #012820;
       border-color: #012820;
       color: #fff;
+    }
+
+    /* La opción PUESTA de las tres botoneras de la casa —`.sim-btn`, las
+       pestañas R / Python y `.geomapa-boton`— con colores forzados y en papel
+       (2026-10-02). Las tres la marcan solo con el fondo, y ninguno de los dos
+       medios lo conserva:
+
+       · Con colores forzados (el alto contraste de Windows) el navegador
+         cambia fondo, borde y letra por los del sistema, iguales para todos
+         los botones. Los cinco patrones del simulador de los tres regímenes
+         del capítulo 4, los diez pesos del constructor del 6 y las dos
+         pestañas de código salían idénticos: no había forma de saber cuál
+         estaba puesto. Aquí el puesto toma los colores de SELECCIÓN del
+         sistema (`Highlight`), que es como el resto de la pantalla marca lo
+         elegido, y `forced-color-adjust: none` impide que el navegador los
+         vuelva a cambiar. Ese `none` suelta también el anillo de foco, que
+         volvía a su color de autor: naranja en `.sim-btn`, y en las otras dos
+         el verde #012820 de `button:focus-visible`, que sobre el negro del
+         modo oscuro no se ve. Por eso el anillo se fija aparte, en
+         `Highlight`, el color que el navegador da a los demás botones con
+         foco.
+       · Al imprimir, el fondo no sale (es lo que hace el navegador si no se
+         marcan los gráficos de fondo), y Chrome oscurece la letra blanca para
+         que se lea sobre el papel: el botón puesto salía en gris claro y sin
+         borde, y la pestaña puesta más clara que la otra. Parecía el botón
+         desactivado. En papel todas pierden el fondo, y el puesto se marca
+         con un borde negro de 2 px y letra más gruesa, que salen con
+         gráficos de fondo y sin ellos.
+
+       Va al final de la hoja a propósito: estas reglas tienen la misma
+       especificidad que las de las tres botoneras y les ganan por orden. */
+    @media (forced-colors: active) {
+      .sim-btn.active,
+      .code-tab-btn.active,
+      .geomapa-boton.activo {
+        forced-color-adjust: none;
+        background: Highlight;
+        border-color: Highlight;
+        color: HighlightText;
+      }
+
+      .sim-btn.active:focus-visible,
+      .code-tab-btn.active:focus-visible,
+      .geomapa-boton.activo:focus-visible {
+        outline-color: Highlight;
+      }
+    }
+
+    @media print {
+      .sim-btn,
+      .sim-btn.active,
+      .code-tab-btn,
+      .code-tab-btn.active,
+      .geomapa-boton,
+      .geomapa-boton.activo {
+        background: none;
+        border: 1px solid #9ca3af;
+        color: #000;
+      }
+
+      .sim-btn.active,
+      .code-tab-btn.active,
+      .geomapa-boton.activo {
+        border: 2px solid #000;
+        font-weight: 800;
+      }
+    }
+
+    /* Los otros cuatro estados «puesto» de la plantilla, medidos igual que
+       las botoneras de arriba (2026-10-02):
+
+       · El módulo abierto en la barra lateral (`.nav-item.active`), la
+         opción marcada del simulacro de quiz (`.simulacro-opcion.marcada`,
+         caps. 4 y 5) y el criterio abierto de la rúbrica de los talleres
+         (`.rubrica-criterio.activo`) también se marcaban solo con el fondo.
+         Con colores forzados salían idénticos a sus vecinos. Toman la misma
+         salida que las botoneras: `Highlight` / `HighlightText` con
+         `forced-color-adjust: none`, y el anillo de foco fijado en
+         `Highlight`. Ese `none` se hereda, así que los hijos que traen color
+         propio pasan aquí a `HighlightText`: el subtítulo y el visto de la
+         barra, la letra del simulacro, y la clave, el nombre y los puntos
+         del criterio. Si no, se quedarían con su blanco al 82 %, su verde o
+         su naranja sobre el color de selección. El punto de la barra es un
+         fondo y va en `HighlightText`. La sombra del módulo abierto se quita,
+         porque el `none` la devolvía.
+       · En papel la barra lateral no sale (la hoja de impresión le pone
+         `display: none`). El simulacro conserva la señal: el borde #012820
+         de la marcada contra el #cbd5e1 de las demás. La rúbrica no: sin
+         fondo, Chrome oscurecía la letra blanca del criterio abierto a gris
+         claro, y salía como un botón desactivado. Y es el criterio cuyos
+         niveles se imprimen debajo. Lleva el trato de las botoneras: sin
+         fondo, borde de 1 px #9ca3af, y el abierto con borde negro de 2 px.
+         Sus tres líneas recuperan los colores de los criterios cerrados.
+       · La casilla de la selección múltiple (`.quiz-opcion.marcada`) no se
+         toca con colores forzados. El visto se dibuja con el color de texto
+         del sistema y la casilla sin marcar queda vacía, como una casilla
+         nativa. En papel, en cambio, el visto se perdía: es un borde blanco
+         sobre el relleno naranja, y sin fondo quedaba blanco sobre blanco,
+         una casilla naranja vacía. En papel la casilla marcada va sin
+         relleno, con borde y visto negros. */
+    @media (forced-colors: active) {
+      .nav-item.active,
+      .simulacro-opcion.marcada,
+      .rubrica-criterio.activo {
+        forced-color-adjust: none;
+        background: Highlight;
+        border-color: Highlight;
+        color: HighlightText;
+      }
+
+      .nav-item.active {
+        box-shadow: none;
+      }
+
+      .nav-item.active::before {
+        background: HighlightText;
+      }
+
+      .nav-item.active .nav-item-sub,
+      .nav-item.active .nav-item-visto,
+      .simulacro-opcion.marcada .simulacro-letra,
+      .rubrica-criterio.activo .rubrica-criterio-clave,
+      .rubrica-criterio.activo .rubrica-criterio-nombre,
+      .rubrica-criterio.activo .rubrica-criterio-puntos {
+        color: HighlightText;
+      }
+
+      .nav-item.active:focus-visible,
+      .simulacro-opcion.marcada:focus-visible,
+      .rubrica-criterio.activo:focus-visible {
+        outline-color: Highlight;
+      }
+    }
+
+    @media print {
+      .rubrica-criterio,
+      .rubrica-criterio.activo {
+        background: none;
+        border: 1px solid #9ca3af;
+        color: #000;
+      }
+
+      .rubrica-criterio.activo {
+        border: 2px solid #000;
+      }
+
+      .rubrica-criterio.activo .rubrica-criterio-clave {
+        color: #FF6600;
+      }
+
+      .rubrica-criterio.activo .rubrica-criterio-nombre {
+        color: #1e293b;
+        font-weight: 800;
+      }
+
+      .rubrica-criterio.activo .rubrica-criterio-puntos {
+        color: #64748b;
+      }
+
+      .quiz-opcion.marcada .quiz-casilla {
+        background: none;
+        border-color: #000;
+      }
+
+      .quiz-opcion.marcada .quiz-casilla::after {
+        border-color: #000;
+      }
     }
 
   </style>
@@ -6287,6 +6527,18 @@ print(mal.buffer(500).iloc[0].intersects(mal.geometry).sum())</code></pre>
     //
     // `tipo` es 'opcion' (una marca) o 'multiple' (varias). El estudiante
     // anota sus respuestas y las contrasta después, fuera de la página.
+    //
+    // Desde el Quiz 2 (2026-09-25), tres tipos más, los que Brightspace
+    // llama coincidencia, ordenamiento y aritmética:
+    //   'coincidencia'  { filas, respuestas }: un desplegable por fila con
+    //                   las respuestas, que llevan letra (a, b, c…);
+    //   'ordenamiento'  { items }: un desplegable de puesto por ítem, y el
+    //                   resumen da las letras en el orden elegido;
+    //   'aritmetica'    { unidades }: un campo para la cifra.
+    // Ninguno lleva nada de donde deducir la respuesta, y la página no
+    // baraja al pintar: las filas van en su orden, y las RESPUESTAS y los
+    // ítems llegan ya barajados desde el exportador del quiz, ninguna
+    // respuesta en la posición de su fila y ningún ítem en su puesto.
     // ================================================================
     const SIMULACROS = {};
     const RELOJES_SIMULACRO = [];
@@ -6313,49 +6565,131 @@ print(mal.buffer(500).iloc[0].intersects(mal.geometry).sum())</code></pre>
       const empezar = raiz.querySelector('.simulacro-empezar');
       const borrar = raiz.querySelector('.simulacro-borrar');
       const marcadas = sim.preguntas.map(() => new Set());
+      // coincidencia y ordenamiento: una elección por fila o ítem; aritmética: el texto escrito
+      const elegidas = sim.preguntas.map(pr =>
+        (pr.filas || pr.items || []).map(() => -1));
+      const escritas = sim.preguntas.map(() => '');
       contenedor.innerHTML = '';
+      // las respuestas de una coincidencia pasan de cinco: LETRAS solo llega a la «e»
+      const LETRAS_SIM = 'abcdefghij'.split('');
+
+      function desplegable(etiqueta, valores, alCambiar) {
+        const sel = document.createElement('select');
+        sel.className = 'simulacro-select';
+        sel.setAttribute('aria-label', etiqueta);
+        sel.innerHTML = '<option value="-1">—</option>' +
+          valores.map((v, k) => `<option value="${k}">${v}</option>`).join('');
+        sel.onchange = () => alCambiar(Number(sel.value));
+        return sel;
+      }
 
       sim.preguntas.forEach((pr, i) => {
         const caja = document.createElement('div');
         caja.className = 'simulacro-pregunta';
         const varias = pr.tipo === 'multiple';
-        caja.innerHTML = `<span class="simulacro-etiqueta">${pr.n}. ${pr.etiqueta}` +
-          `${varias ? ' · varias respuestas' : ''}</span>` +
+        const nota = {
+          multiple: ' · varias respuestas', coincidencia: ' · coincidencia',
+          ordenamiento: ' · ordenamiento', aritmetica: ' · respuesta numérica'
+        }[pr.tipo] || '';
+        caja.innerHTML = `<span class="simulacro-etiqueta">${pr.n}. ${pr.etiqueta}${nota}</span>` +
           `<div class="simulacro-enunciado">${pr.enunciado}</div>` +
-          `<div class="simulacro-opciones" role="group" aria-label="Opciones de la pregunta ${pr.n}"></div>`;
+          `<div class="simulacro-opciones" role="group" aria-label="Respuesta de la pregunta ${pr.n}"></div>`;
         const lista = caja.querySelector('.simulacro-opciones');
-        pr.opciones.forEach((texto, j) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'simulacro-opcion';
-          b.setAttribute('aria-pressed', 'false');
-          b.innerHTML = `<span class="simulacro-letra">${LETRAS[j]})</span><span>${texto}</span>`;
-          b.onclick = () => {
-            const puesta = marcadas[i].has(j);
-            if (!varias) {
-              marcadas[i].clear();
-              lista.querySelectorAll('.simulacro-opcion').forEach(o => {
-                o.classList.remove('marcada');
-                o.setAttribute('aria-pressed', 'false');
-              });
-            }
-            if (puesta) marcadas[i].delete(j); else marcadas[i].add(j);
-            b.classList.toggle('marcada', marcadas[i].has(j));
-            b.setAttribute('aria-pressed', marcadas[i].has(j) ? 'true' : 'false');
-            pinta();
-          };
-          lista.appendChild(b);
-        });
+
+        if (pr.tipo === 'coincidencia') {
+          // la letra va escrita: el reinicio de estilos de Tailwind numera un <ol type="a"> con cifras,
+          // y los desplegables hablan en letras
+          const leyenda = document.createElement('div');
+          leyenda.className = 'simulacro-respuestas';
+          leyenda.innerHTML = pr.respuestas.map((r, k) =>
+            `<div><span class="simulacro-letra">${LETRAS_SIM[k]})</span> ${r}</div>`).join('');
+          lista.appendChild(leyenda);
+          pr.filas.forEach((fila, f) => {
+            const renglon = document.createElement('label');
+            renglon.className = 'simulacro-fila';
+            renglon.innerHTML = `<span>${fila}</span>`;
+            renglon.appendChild(desplegable(`Respuesta para ${fila}`,
+              pr.respuestas.map((_, k) => `${LETRAS_SIM[k]})`),
+              k => { elegidas[i][f] = k; pinta(); }));
+            lista.appendChild(renglon);
+          });
+        } else if (pr.tipo === 'ordenamiento') {
+          pr.items.forEach((it, f) => {
+            const renglon = document.createElement('label');
+            renglon.className = 'simulacro-fila';
+            renglon.innerHTML = `<span><span class="simulacro-letra">${LETRAS_SIM[f]})</span> ${it}</span>`;
+            renglon.appendChild(desplegable(`Puesto de ${LETRAS_SIM[f]}`,
+              pr.items.map((_, k) => `${k + 1}.º`),
+              k => { elegidas[i][f] = k; pinta(); }));
+            lista.appendChild(renglon);
+          });
+        } else if (pr.tipo === 'aritmetica') {
+          const renglon = document.createElement('label');
+          renglon.className = 'simulacro-fila';
+          renglon.innerHTML = `<span>Tu respuesta${pr.unidades ? ` (${pr.unidades})` : ''}:</span>`;
+          const caja_ = document.createElement('input');
+          caja_.type = 'text';
+          caja_.inputMode = 'decimal';
+          caja_.className = 'simulacro-cifra';
+          caja_.setAttribute('aria-label', `Respuesta de la pregunta ${pr.n}`);
+          caja_.oninput = () => { escritas[i] = caja_.value.trim(); pinta(); };
+          renglon.appendChild(caja_);
+          lista.appendChild(renglon);
+        } else {
+          pr.opciones.forEach((texto, j) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'simulacro-opcion';
+            b.setAttribute('aria-pressed', 'false');
+            b.innerHTML = `<span class="simulacro-letra">${LETRAS[j]})</span><span>${texto}</span>`;
+            b.onclick = () => {
+              const puesta = marcadas[i].has(j);
+              if (!varias) {
+                marcadas[i].clear();
+                lista.querySelectorAll('.simulacro-opcion').forEach(o => {
+                  o.classList.remove('marcada');
+                  o.setAttribute('aria-pressed', 'false');
+                });
+              }
+              if (puesta) marcadas[i].delete(j); else marcadas[i].add(j);
+              b.classList.toggle('marcada', marcadas[i].has(j));
+              b.setAttribute('aria-pressed', marcadas[i].has(j) ? 'true' : 'false');
+              pinta();
+            };
+            lista.appendChild(b);
+          });
+        }
         contenedor.appendChild(caja);
       });
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
+      katexEn(contenedor);
+
+      function respuesta(pr, i) {
+        if (pr.tipo === 'coincidencia') {
+          return elegidas[i].every(k => k < 0) ? '' :
+            elegidas[i].map(k => (k < 0 ? '·' : LETRAS_SIM[k])).join('');
+        }
+        if (pr.tipo === 'ordenamiento') {
+          if (elegidas[i].every(k => k < 0)) return '';
+          const orden = pr.items.map(() => '·');
+          elegidas[i].forEach((k, f) => { if (k >= 0) orden[k] = orden[k] === '·' ? LETRAS_SIM[f] : '?'; });
+          return orden.join('');
+        }
+        if (pr.tipo === 'aritmetica') return escritas[i] ? ` = ${escritas[i]}` : '';
+        return [...marcadas[i]].sort().map(j => LETRAS[j]).join('');
+      }
+
+      function completa(pr, i) {
+        if (pr.tipo === 'coincidencia' || pr.tipo === 'ordenamiento') return elegidas[i].every(k => k >= 0);
+        if (pr.tipo === 'aritmetica') return escritas[i] !== '';
+        return marcadas[i].size > 0;
+      }
 
       function pinta() {
-        const hechas = marcadas.filter(m => m.size > 0).length;
-        conteo.textContent = `${hechas} de ${sim.preguntas.length} marcadas`;
-        resumen.innerHTML = 'Tus respuestas: ' + sim.preguntas.map((pr, i) => {
-          const letras = [...marcadas[i]].sort().map(j => LETRAS[j]).join('');
-          return `<b>${pr.n}${letras || '—'}</b>`;
-        }).join(' · ') + '. No se corrigen aquí.';
+        const hechas = sim.preguntas.filter((pr, i) => completa(pr, i)).length;
+        conteo.textContent = `${hechas} de ${sim.preguntas.length} contestadas`;
+        resumen.innerHTML = 'Tus respuestas: ' + sim.preguntas.map((pr, i) =>
+          `<b>${pr.n}${respuesta(pr, i) || '—'}</b>`).join(' · ') + '. No se corrigen aquí.';
       }
 
       let restante = sim.minutos * 60;

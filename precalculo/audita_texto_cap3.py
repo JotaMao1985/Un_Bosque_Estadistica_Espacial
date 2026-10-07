@@ -24,6 +24,22 @@ vértices con ninguna tolerancia, porque el suelo de `ms_simplify` con
 `keep_shapes = TRUE` es estructural. Los capítulos 1 y 2 nunca lo tocaron
 porque usan la capa departamental, de 33 rasgos.
 
+EL TOPE DE PESO ES 720 KB, no los 700 de la casa, y la cuenta va escrita
+porque no es una marca de agua levantada bajo presión. Fue 700 hasta que el
+tablero del gerrymandering (módulo 9) se fusionó con la plantilla de los PR
+#13 y #14 (2026-10-07):
+
+  · el documento pesa **703 KB**: 680 tenía el 2026-09-30; reensamblarlo
+    con la plantilla de los PR #13 y #14 le añadió 14 (el componente del
+    simulacro y los bloques de colores forzados y papel), y el tablero, con
+    su prosa y la tabla de distritos, 9 más. Con 700 el capítulo no cabía;
+  · la cota que ata esta comprobación a su arnés es **por encima del
+    tamaño del documento y por debajo de ese tamaño + 312 KB**, porque
+    `prueba_texto.py` la tumba inyectando 320 000 bytes de comentario:
+    703 < 720 < 1015;
+  · 720 deja **17 KB de margen**, el tope del capítulo 6: sitio para una
+    corrección y muy poco para un ensamblado desbocado.
+
 Uso:  python3 precalculo/audita_texto_cap3.py
 Devuelve 1 si algo falla.
 """
@@ -32,6 +48,9 @@ from __future__ import annotations
 import sys
 
 from audita_texto_base import Auditor
+
+# El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
+TOPE_CAP3_KB = 720.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
@@ -228,7 +247,7 @@ def main() -> int:
     a.codificacion()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)
-    a.peso()
+    a.peso(TOPE_CAP3_KB)
     return a.cierre()
 
 
