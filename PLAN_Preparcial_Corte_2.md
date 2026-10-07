@@ -264,7 +264,7 @@ razonar en vez de recordar. Cifras de la exploración (**todavía no ancladas**;
 | Ejercicio | Módulos | Lo que pide decidir |
 |---|---|---|
 | **E1 · Dónde se buscó el oro** | 4.1, 4.2, 4.5, 4.6 | Dos ventanas defendibles; λ en cada una; el χ² con su supuesto rejilla por rejilla; qué dice un rechazo y qué no |
-| **E2 · El borde que da la vuelta al veredicto** | 4.3, 4.4, 4.8, 4.10 | Clark-Evans y K dentro del greenstone, con y sin corrección; por qué el sesgo tiene siempre el mismo signo, y cuál creer |
+| **E2 · El borde que da la vuelta al régimen** | 4.3, 4.4, 4.8, 4.10 | Clark-Evans y K dentro del greenstone, con y sin corrección; por qué el sesgo tiene siempre el mismo signo, y cuál creer |
 | **E3 · Cuatro anchos para el mismo oro** | 5.1–5.4 | Los selectores, la comprobación de la pared, la masa con las tres correcciones; qué σ se publica y cómo se declara |
 | **E4 · La falla, el greenstone y la cuadratura** | 5.7–5.9 | `rhohat` total y en el bulto; `ppm` en metros y en km; el coeficiente del greenstone contra su valor exacto y la cuadratura que los separa |
 | **E5 · ¿Explican las covariables la agregación?** | 5.10–5.11 | Envolventes contra dos modelos; `kppm` con la corrección declarada; qué autoriza un «no rechaza» |
@@ -600,3 +600,68 @@ redacción (esta última se cayó por el límite de uso y se relanzó en `p42/`)
   falsedad va ahora en la escala de color) y la retro de A10 c decía que el largo de la ciudad «no
   basta», cuando bien razonado da la dirección (lo que no da es el tamaño). La opción c de A10 tiene
   ahora su guarda en el generador y en el auditor, con su inyección en el arnés.
+
+### Sexta ronda (2026-10-06/07, `p46/`) · nueve revisores sobre lo publicado
+
+Tras publicarse (PR #16) se volvió a revisar entero, con un brief común y nueve informes: verdad de
+cada bloque (A, B, C con las rutinas, ejercicios con el catálogo), redacción, gráficos en Chrome sin
+ventana, forma a ciegas, resolución experta a ciegas y pertinencia. El experto a ciegas, con los
+capítulos y R pero sin las claves, acertó las 28, conjuntos de las múltiples incluidos: ninguna
+pregunta tenía dos respuestas defendibles. Lo que sí apareció:
+
+- **B10 enseñaba la lectura que el capítulo 4 prohíbe (BLOQUEA).** Preguntaba «¿en qué distancias
+  está lo que el modelo no explica?» y la clave contestaba con el tramo en que la K se sale de la
+  banda, 59 a 3 638 m. K acumula: su mayor separación de la media del modelo está a 1 960 m
+  (`m10.test_global.r_mad_observada_m`), y de ahí en adelante la observada suma menos parejas que el
+  modelo; anillo a anillo, el exceso acaba hacia 1.6 km. La clave nueva dice que la curva enseña
+  dónde empieza y no hasta dónde llega; la vieja queda como distractor, con la memoria de K en la
+  retro. La retro de C01 b decía lo mismo y se corrigió. B10 d contaba «77 de las 999 la cruzan»
+  contra una banda hecha con ellas mismas (imposible) y sobre los 512 radios de spatstat: ahora son
+  43, contra la banda de las otras 998, en los radios del gráfico. **El capítulo 5, m10, conserva
+  la lectura vieja: queda para Javier.**
+- **Verdad, en las rutinas.** La 1 fallaba justo cuando todo va bien (`attr(p, "rejects")` es
+  `NULL` sin descartes); la 3 leía el tramo de la envolvente y no el del test, y comparaba el p en
+  coma flotante contra la ayuda de `dclf.test`, y su prosa llamaba «cota superior» al suelo de
+  1/(nsim + 1); la 6 comprobaba el argumento que se le pasó, no la K con que se ajustó, y además
+  `kppm(..., correction = "translate")` sin `statargs` se ignora sin avisar (comprobado: κ 23.55 en
+  vez de 18.99), que ahora la rutina enseña. Y `verifica_bloques.py` solo cotejaba números:
+  `#> [1] TRUE` y `#> [1] FALSE` daban la misma lista. Ahora coteja también los lógicos y las cadenas.
+- **Verdad, en los ejercicios y el catálogo.** E3 no fijaba la rejilla en su último paso; E4 decía
+  que el coeficiente «se mueve más» que en Bogotá, cierto solo en errores estándar (0.59 frente a
+  0.13, cifras nuevas); E5 atribuía el «no rechaza» solo al tramo de r, y con `Linhom` el tramo por
+  defecto rechaza (0.03; 7 de 10 semillas): la solución lo dice, como el ejercicio del 4.12; el p de
+  ~ D es el mínimo de 99 simulaciones y ya se dice; y la causa «la ventana es irregular» no estaba
+  medida. El error 7 se medía con el 62 % de radios fuera de banda, la lectura que el error 6
+  desautoriza: pasa al DCLF. El error 3 no traía ningún «no rechaza»: trae el 2 × 2 de las
+  secuoyas (p = 0.178). E1 y E5 piden ahora decidir la ventana y el modelo, que el módulo 6
+  prometía. E2 se titula «El borde que da la vuelta al régimen».
+- **Forma.** C06 salía sin saber nada (las dos falsas eran las dos generales): la b pasa a ser
+  concreta y con cifra. «porque» delataba la falsa (14 de 64 frente a 1 de 32): ahora 9 de 64 y
+  5 de 32, con guarda. La cifra calculada delataba la clave en B02, C03, A10 y A04. La clave A08 b
+  le sacaba 56 caracteres a su falsa y la guarda de longitud no miraba las múltiples, ni contaba
+  `&nbsp;` como un carácter: las dos cosas, arregladas. `giro` en A05 y C01: la «b» era clave en 4
+  de 6 gráficos y en 0 de 8 opciones únicas. B08 dejó de copiar en su retro la clave de C06 d.
+- **Gráficos.** La leyenda escondía un solo borde de cada banda y la marca de B10 no obedecía a su
+  entrada (`grupo` y `conjunto`); las descripciones dan el borde bajo del último radio, donde la
+  clave dice «dentro»; en el teléfono C01 dice «Contra modelo» y no «Modelo», que en B10 es la
+  línea del 1.
+- **Redacción y pertinencia.** A03 b era cierta en su primera mitad (las rurales, contra su
+  propia λ, sí están más agrupadas: R = 0.749); A02 b salvaba con «el margen» un p que el módulo 6
+  no deja defender; B03 pegaba 2 500 m a la diagonal; B05 a contradecía la frase del capítulo; B06
+  no usaba su distractor 0.34 ni decía la referencia del cociente (58/978; el máximo es 8.64 veces
+  eso); A01 no explicaba el 70.5 de quien toma las 102; C04 apuntaba al m2 del capítulo 5 y su clave
+  está en el m1; el módulo 1 prometía retros que el motor no enseña, y no decía que Hawkes no tiene
+  pregunta.
+- **Para Javier, en los capítulos:** el cap. 4 m7 y el cap. 5 m11 dicen «40 sitios» de sedes
+  repetidas, y son 39 (40 sedes sobran); el cap. 5 m10 lee el tramo de K fuera de banda como el
+  alcance del exceso; el cap. 5 m5 dice que con correlación 1 «daría igual cuál se publica».
+  **Y de diseño:** si el parcial tendrá mapas, coincidencias o un ítem abierto (el preparcial no los
+  ensaya), y si el módulo 4 debería llevar dos o tres preguntas de «qué línea lo comprueba».
+- **Tras la forma, verdad (`p46/verdad-cambios/`).** Un revisor solo de lo cambiado no encontró
+  ninguna etiqueta falsa, y sí que B10 c, la falsa, es la frase del cap. 5 m10 al que manda el
+  repaso: su retro dice ahora que el capítulo lo resume así y se queda corto. La clave de B10 ya no
+  niega lo que su retro saca de K, y la «mayor separación» de 1 960 m se dice en m² (en el cociente
+  que dibuja el gráfico, la mayor está a 59 m). C04 a deja de contradecir el «aquí ha elegido
+  selector» del cap. 5 m5; la rutina 1 en Python cuenta las geometrías nulas además de las vacías;
+  en E2 la K sin corregir supera πr² desde 1.55 km, no desde 2; en E5 «explican la geografía» se
+  apoyaba en un test que no rechaza.

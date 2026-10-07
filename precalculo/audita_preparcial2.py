@@ -534,6 +534,54 @@ def familia_1(a: Auditoria, D: dict, caps: dict):
              "E5 · la z de D cae bajo el valor crítico")
     a.cierto(all(abs(k["z_G"]) > zc for k in e5["kppm"]), "E5 · la z de G sobrevive")
 
+    # --- ronda 6: lo que las soluciones y las preguntas añadieron -------------
+    REU = D["reutilizado"]
+    a.igual(n - n_gs, e1["n_fuera_gs"], "E1 · los que deja fuera el greenstone", tol=0)
+    a.cerca(e2["r_cruce_km"] - e2["r_ultimo_sobre_km"], 0.05, "E2 · el último radio sobre πr², un paso antes",
+            rel=1e-6)
+    # Con una covariable 0/1 el error de β tiene forma cerrada: no depende de
+    # la cuadratura, solo de cuántos caen a cada lado.
+    a.cerca(math.sqrt(1 / n_gs + 1 / (n - n_gs)), e4["se_beta_G"], "E4 · error de β con una indicadora",
+            rel=1e-3)
+    a.cerca((e4["beta_400"] - e4["beta_defecto"]) / e4["se_beta_G"], e4["cambio_beta_en_ee"],
+            "E4 · cambio de β en errores estándar", rel=1e-8)
+    a.cerca(en_ruta(caps["cap5"], "m8.cuadratura.rango_pendiente_en_ee"), e4["bogota_rango_en_ee"],
+            "E4 · el de Bogotá es el del capítulo 5", rel=1e-9)
+    a.cerca(e4["cambio_beta_en_ee"] / e4["bogota_rango_en_ee"], e4["veces_bogota_en_ee"],
+            "E4 · veces el cambio de Bogotá", rel=1e-8)
+    a.igual(sum(1 for x in e5["dclf_GD_L_otras_semillas"] if x <= 0.05), e5["dclf_GD_L_rechazos"],
+            "E5 · rechazos de L con las diez semillas", tol=0)
+    a.cierto(iguales(e5["dclf_GD_L_rango"], [min(e5["dclf_GD_L_otras_semillas"]),
+                                             max(e5["dclf_GD_L_otras_semillas"])])
+             and e5["envolvente_GD_L"]["dclf_p"] < e5["envolvente_GD"]["dclf_p"],
+             "E5 · con L el tramo largo pesa menos")
+    a.igual(1 / (e5["nsim"] + 1), e5["p_minimo"], "E5 · p mínimo de 99 simulaciones")
+    rr = NV["riesgo_relativo"]
+    ref = REU["c5m6_ch_casos"]["valor"] / REU["c5m6_ch_controles"]["valor"]
+    a.cerca(ref, rr["referencia"], "B6 · referencia del cociente, n₁/n₀", rel=1e-9)
+    a.cerca(rr["correcto"] / ref, rr["veces_referencia"], "B6 · veces la referencia", rel=1e-9)
+    a.cierto(rr["correcto"] < 1 < rr["veces_referencia"], "B6 · bajo 1 y sobre su referencia")
+    rd = NV["resto_dc"]
+    d102 = next(x["valor"] for x in rd["distractores"] if x["id"] == "ciento_dos")
+    a.cerca(REU["c4m1_lambda_urb"]["valor"] / (REU["c4m1_fuera_urb"]["valor"] / rd["area_resto_km2"]), d102,
+            "A1 · el error de las que descarta el perímetro", rel=1e-6)
+    a.igual(REU["c4m1_fuera_urb"]["valor"] - REU["c4m1_fuera_dc"]["valor"], rd["n_resto"],
+            "A1 · descartadas menos las de fuera del D.C.", tol=0)
+    gd = D["graficos"]["g_dos"]
+    fd = gd["forma"]
+    restas = [c_ - m_ for c_, m_ in zip(gd["csr_observada"], gd["mod_observada"])]
+    a.cerca(min(restas), fd["resta_min"], "C1 · menor resta naranja − verde", rel=1e-7)
+    a.cerca(max(restas), fd["resta_max"], "C1 · mayor resta naranja − verde", rel=1e-7)
+    a.cerca(restas[0], fd["resta_primera"], "C1 · resta en el primer radio", rel=1e-7)
+    a.cerca(restas[-1], fd["resta_ultima"], "C1 · resta en el último radio", rel=1e-7)
+    a.cierto(fd["csr_siempre_fuera"] and all(c_ > h_ for c_, h_ in zip(gd["csr_observada"], gd["csr_alta"])),
+             "C1 · la naranja no vuelve a su banda")
+    gk = D["graficos"]["g_kinhom"]
+    rmad = REU["c5m10_r_mad"]["valor"]
+    i_mad = min(range(len(gk["r"])), key=lambda j: abs(gk["r"][j] - rmad))
+    a.cierto(gk["observada"][i_mad] > 1 and rmad < REU["c5m10_ultimo"]["valor"],
+             "B10 · la mayor separación, por arriba y antes de volver")
+
 
 # =====================================================================
 # FAMILIA 2 · sincronía
