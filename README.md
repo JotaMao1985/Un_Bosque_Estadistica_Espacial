@@ -12,8 +12,8 @@ con mapas, simuladores, autoevaluación y el mismo análisis resuelto en R y en 
 
 ## Estado
 
-Seis de los diez capítulos del plan están publicados, y con ellos **dos talleres**, el
-**preparcial del Corte I** y el **apéndice A**, que no son capítulos y se cuentan aparte.
+Seis de los diez capítulos del plan están publicados, y con ellos **dos talleres**, los
+**preparciales de los cortes I y II** y el **apéndice A**, que no son capítulos y se cuentan aparte.
 
 | # | Capítulo | Semana | Estado |
 |---|---|---|---|
@@ -31,8 +31,11 @@ Seis de los diez capítulos del plan están publicados, y con ellos **dos taller
 Los seis capítulos suman 72 módulos, 58 simuladores, 44 mapas, 73 preguntas de
 autoevaluación, 28 ejercicios guiados y 64 bloques de código en cada lenguaje. Fuera de esa
 cuenta van los dos talleres —el 1 con 9 módulos y 7 ejercicios, el 2 con 7 módulos, 5 tareas y
-las 36 preguntas de su banco de defensa— y el preparcial del Corte I —7 módulos y
-36 preguntas que cubren los 30 módulos de los capítulos 1 a 3 que entran en el parcial—.
+las 36 preguntas de su banco de defensa— y los dos preparciales: el del Corte I —7 módulos y
+36 preguntas que cubren los 30 módulos de los capítulos 1 a 3 que entran en el parcial— y el del
+Corte II —7 módulos, 28 preguntas sobre los 22 módulos de los capítulos 4 y 5, seis rutinas en R y
+Python, y cinco ejercicios guiados sobre el oro de Murchison, un patrón que ningún documento del
+curso usa—.
 
 **El apéndice A, «La densidad en una dimensión»**, es el repaso del capítulo 5: todo lo que el
 estimador de intensidad por núcleos decide —el ancho, la forma del núcleo, el selector, la
@@ -329,8 +332,11 @@ Ese bucle vigila dos cosas que no existen en ningún otro sitio del repositorio:
   nada más lo diga, porque el JSON del preparcial sigue siendo internamente coherente. Esa
   familia es la razón principal de que tenga auditor propio.
 
-Los tres bucles descubren por convención: un preparcial del Corte II entra al arnés sin
-tocar una línea de `audita_todo.sh`.
+Los tres bucles descubren por convención, y así entró el del Corte II (`genera_preparcial2.R` →
+`ensambla_preparcial2.py` → `audita_preparcial2.py`, con su arnés de inyección) sin tocar una línea
+de `audita_todo.sh`. Ese trae una pieza más: sus cinco ejercicios sobre Murchison tienen solución
+calculada en R, y su auditor rehace en Python, desde los CSV que exporta el generador, todo lo que
+se puede rehacer sin `spatstat`.
 
 **Y un quinto, el de los `apendice-*.html`** (2026-10-02). Un apéndice sí enseña contenido
 —tiene módulos, simuladores, autoevaluación y ejercicios, como un capítulo—, pero no es temario
