@@ -141,6 +141,26 @@ for N in 1 2 3 4; do
   fi
 done
 
+# Los APÉNDICES (el A nace el 2026-10-02). Un apéndice tiene precálculo
+# propio y auditor independiente como un capítulo, y además un motor de
+# JavaScript que dibuja en vivo (`densidad1d.js`), con su prueba contra R.
+# La prueba del motor corre siempre: cuesta segundos y sus mutaciones son
+# las que dicen que sabe fallar.
+for L in a b c; do
+  [ -f "precalculo/salidas/apendice${L}_datos.json" ] || continue
+  [ -f "precalculo/audita_apendice${L}.py" ] || continue
+  paso "precálculo del apéndice ${L} · audita_apendice${L}.py (Python, independiente)" \
+       "$PY_GEO" "precalculo/audita_apendice${L}.py"
+  if [ "$RAPIDO" -eq 0 ] && [ -f "precalculo/prueba_auditor_apendice${L}.py" ]; then
+    paso "precálculo del apéndice ${L} · prueba_auditor_apendice${L}.py (inyección)" \
+         python3 "precalculo/prueba_auditor_apendice${L}.py"
+  fi
+done
+if [ -f "precalculo/prueba_densidad1d.py" ]; then
+  paso "motor de los simuladores del apéndice A · prueba_densidad1d.py (contra R, con mutaciones)" \
+       python3 precalculo/prueba_densidad1d.py
+fi
+
 # Va ANTES de los auditores de prosa y con su autoprueba dentro: cuesta
 # 0,1 s y mira la causa del defecto que aquéllos vigilan por el resultado.
 # El 61.7 del capítulo 1 pasó meses con los dos auditores en verde porque
@@ -215,6 +235,13 @@ for N in 1 2 3 4; do
   [ -f "precalculo/audita_texto_preparcial${N}.py" ] || continue
   paso "audita_texto_preparcial${N}.py — las cifras de la prosa del preparcial ${N}" \
        sh -c "cd precalculo && python3 audita_texto_preparcial${N}.py"
+done
+
+# Y los de los apéndices.
+for L in a b c; do
+  [ -f "precalculo/audita_texto_apendice${L}.py" ] || continue
+  paso "audita_texto_apendice${L}.py — las cifras de la prosa del apéndice ${L}" \
+       sh -c "cd precalculo && python3 audita_texto_apendice${L}.py"
 done
 
 if [ "$RAPIDO" -eq 0 ]; then

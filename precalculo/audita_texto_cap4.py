@@ -36,6 +36,20 @@ tiene sujeto y debería estar corriendo sobre ellas. Queda anotado en el
 plan; arreglarlo es tocar el capítulo 3, que está cerrado y verificado, y
 eso no cabe en T3.3.
 
+EL TOPE DE PESO ES 760 KB Y NO LOS 700 DE LA CASA, desde el 2026-10-02, y
+no por el contenido del capítulo. Se volvió a ensamblar para recoger de la
+plantilla la regla que marca el botón puesto con colores forzados y en
+papel (2.9 KB), y con ella entraron los 6.8 KB que la plantilla había
+crecido con el simulacro del Quiz 2 (9a52a9a y 9cd300a) y que este
+capítulo aún no había recogido: pasó de 693.5 a 703.2 KB, y el tope de la
+casa daba rojo sobre un capítulo correcto. La aritmética, la misma que la
+de los capítulos 5 y 6:
+
+  · 760 deja **57 KB de margen** sobre lo publicado, sitio para una
+    corrección y poco para un ensamblado desbocado;
+  · y queda 255 KB por debajo de 703 + 312, el techo que `prueba_texto.py`
+    necesita perforar —inyecta 320 000 bytes de comentario— para cazarlo.
+
 Uso:  python3 precalculo/audita_texto_cap4.py
 Devuelve 1 si algo falla.
 """
@@ -44,6 +58,9 @@ from __future__ import annotations
 import sys
 
 from audita_texto_base import Auditor
+
+# El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
+TOPE_CAP4_KB = 760.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
@@ -308,7 +325,7 @@ def main() -> int:
     a.codificacion()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)
-    a.peso()
+    a.peso(TOPE_CAP4_KB)
     return a.cierre()
 
 

@@ -12,8 +12,8 @@ con mapas, simuladores, autoevaluación y el mismo análisis resuelto en R y en 
 
 ## Estado
 
-Seis de los diez capítulos del plan están publicados, y con ellos **dos talleres** y el
-**preparcial del Corte I**, que no son capítulos y se cuentan aparte.
+Seis de los diez capítulos del plan están publicados, y con ellos **dos talleres**, los
+**preparciales de los cortes I y II** y el **apéndice A**, que no son capítulos y se cuentan aparte.
 
 | # | Capítulo | Semana | Estado |
 |---|---|---|---|
@@ -31,8 +31,22 @@ Seis de los diez capítulos del plan están publicados, y con ellos **dos taller
 Los seis capítulos suman 74 módulos, 61 simuladores, 44 mapas, 73 preguntas de
 autoevaluación, 28 ejercicios guiados y 64 bloques de código en cada lenguaje. Fuera de esa
 cuenta van los dos talleres —el 1 con 9 módulos y 7 ejercicios, el 2 con 7 módulos, 5 tareas y
-las 36 preguntas de su banco de defensa— y el preparcial del Corte I —7 módulos y
-36 preguntas que cubren los 30 módulos de los capítulos 1 a 3 que entran en el parcial—.
+las 36 preguntas de su banco de defensa— y los dos preparciales: el del Corte I —7 módulos y
+36 preguntas que cubren los 30 módulos de los capítulos 1 a 3 que entran en el parcial— y el del
+Corte II —7 módulos, 28 preguntas sobre los 22 módulos de los capítulos 4 y 5, seis rutinas en R y
+Python, y cinco ejercicios guiados sobre el oro de Murchison, un patrón que ningún documento del
+curso usa—.
+
+**El apéndice A, «La densidad en una dimensión»**, es el repaso del capítulo 5: todo lo que el
+estimador de intensidad por núcleos decide —el ancho, la forma del núcleo, el selector, la
+corrección de borde— hecho primero sobre un renglón, donde se puede dibujar y calcular a mano.
+Tiene 13 módulos, 14 simuladores, 17 preguntas, 10 ejercicios y 12 bloques en cada lenguaje, y
+adapta un documento del profesor (`JMS_Densidades.Rmd`) con cuatro cosas que ese documento no
+decía y que se midieron al construirlo: que el histograma promediado es un núcleo triangular
+disfrazado, que `bw.scott` de spatstat es la regla de referencia normal del plano, que las
+distancias al vecino más cercano traen empates por construcción —parejas recíprocas y sedes
+que comparten dirección— con los que la validación cruzada UCV no tiene mínimo, y que con la
+corrección de borde por defecto una sede pegada al borde aporta exactamente ln 2.
 
 **El Taller 2 está publicado y se reparte el lunes 21 de septiembre.** Antes de fusionarlo se
 cerraron cuatro defectos, medidos y escritos en el §0 del `PLAN_Taller_2_Cap_4.md`. El que
@@ -280,7 +294,7 @@ solo se corren si se cambia el taller.
 
 | Carpeta | Qué contiene |
 |---|---|
-| `Htmls_Espacial/` | Los capítulos publicados, los talleres y los preparciales, más dos bancos de prueba del motor |
+| `Htmls_Espacial/` | Los capítulos publicados, los talleres, los preparciales y los apéndices, más dos bancos de prueba del motor |
 | `precalculo/` | Los guiones de R que calculan, los de Python que ensamblan y todos los auditores |
 | `precalculo/salidas/` | El precálculo: los JSON y CSV que consume el navegador |
 | `entrega/` | Lo que el estudiante se descarga de un taller: la plantilla LaTeX y sus datos |
@@ -318,8 +332,20 @@ Ese bucle vigila dos cosas que no existen en ningún otro sitio del repositorio:
   nada más lo diga, porque el JSON del preparcial sigue siendo internamente coherente. Esa
   familia es la razón principal de que tenga auditor propio.
 
-Los tres bucles descubren por convención: un preparcial del Corte II entra al arnés sin
-tocar una línea de `audita_todo.sh`.
+Los tres bucles descubren por convención, y así entró el del Corte II (`genera_preparcial2.R` →
+`ensambla_preparcial2.py` → `audita_preparcial2.py`, con su arnés de inyección) sin tocar una línea
+de `audita_todo.sh`. Ese trae una pieza más: sus cinco ejercicios sobre Murchison tienen solución
+calculada en R, y su auditor rehace en Python, desde los CSV que exporta el generador, todo lo que
+se puede rehacer sin `spatstat`.
+
+**Y un quinto, el de los `apendice-*.html`** (2026-10-02). Un apéndice sí enseña contenido
+—tiene módulos, simuladores, autoevaluación y ejercicios, como un capítulo—, pero no es temario
+de ninguna semana: repasa lo que un capítulo da por sabido. Por eso tampoco suma contra los 120
+módulos del plan. Se construye con la cadena de siempre (`genera_apendicea.R` →
+`ensambla_apendicea.py` → `audita_apendicea.py` y `audita_texto_apendicea.py`), corre por su
+propio bucle en `audita_todo.sh` y trae una pieza que los capítulos no tienen: un motor de
+JavaScript que dibuja en vivo (`precalculo/densidad1d.js`), con su prueba contra R y sus
+mutaciones (`prueba_densidad1d.py`). Las cifras de la prosa nunca salen del motor: salen del JSON.
 
 `entrega/datos/` es la única excepción a la regla de que `datos/` no se versiona, y existe
 por un motivo que ningún auditor de cifras podía ver: **una tarea que manda ejecutar código
