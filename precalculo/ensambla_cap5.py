@@ -34,6 +34,11 @@ LO QUE ESTE CAPÍTULO ESTRENA, y va declarado:
     `cap5_datos.json`, así que la clave no coincidía consigo misma. Se
     arregló redondeando sigma EN EL ORIGEN; aquí se comprueba que las dos
     listas siguen casando antes de escribir el documento.
+  · **Abre el módulo que pide la URL.** `…html#modulo-N` abre el módulo N,
+    que es lo que prometen los enlaces «Leer en el material» de las
+    diapositivas de clase; la plantilla arranca siempre en el 1. Se cablea
+    aquí y no en la plantilla, que es de los seis capítulos (ver «El arranque
+    de la página», más abajo).
 
 Y LA REGLA DEL RITMO (§9.1 del plan): ningún módulo abre pidiendo trabajo
 · todo componente interactivo va con dos párrafos, el que lo motiva y el
@@ -2645,6 +2650,69 @@ COURSE_DATA = (
 
 
 # =====================================================================
+# El arranque de la página: qué módulo se abre primero
+#
+# EL ENLACE PROFUNDO `#modulo-N` SE CABLEA AQUÍ, Y SOLO EN ESTE CAPÍTULO.
+# Los enlaces «Leer en el material» de las diapositivas de clase terminan en
+# `capitulo-5-intensidad-nucleos.html#modulo-N`, porque la skill que las
+# construye da por hecho que el capítulo abre el módulo que nombra el
+# fragmento. La plantilla no lo hace: arranca siempre con `loadModule(1)` y no
+# lee `location.hash`. Resultado, sin un solo error en consola: cada enlace
+# aterrizaba en el módulo 1 (solo `#modulo-1` acertaba, de casualidad), y se
+# descubrió al abrir el sitio ya publicado, no al construir nada.
+#
+# Se arregla aquí y no en la plantilla porque la plantilla es de los seis
+# capítulos: tocarla obliga a reensamblarlos todos y a volver a vigilar sus
+# topes de tamaño. El capítulo 5 sustituye el bloque de arranque por uno que
+# decide el módulo inicial; los demás capítulos no cambian.
+#
+# Tres decisiones que no son evidentes:
+#  1. Se CAMBIA la llamada de arranque; no se añade una segunda detrás.
+#     `loadModule` marca el módulo como visto y lo inicializa entero
+#     (simuladores, mapas, matemática): abrir el 1 y saltar al N marcaría como
+#     visto un módulo que nadie abrió y tiraría ese trabajo.
+#  2. Solo vale el fragmento exacto `#modulo-N` con N un módulo que existe.
+#     Cualquier otro (`#fn1`, `#modulo-99`, vacío) deja las cosas como
+#     estaban: abre el 1 al cargar y NO cambia de módulo al navegar, porque un
+#     ancla cualquiera de la página no puede mandar al lector al módulo 1.
+#  3. `hashchange` cubre la página ya abierta: pegar otro `#modulo-N` en la
+#     barra de direcciones no la recarga, y sin el oyente ese enlace no haría
+#     nada.
+# `prueba_ensambla_cap5.py` ejecuta esta lógica contra los enlaces de las
+# diapositivas.
+# =====================================================================
+ARRANQUE_PLANTILLA = """    document.addEventListener('DOMContentLoaded', () => {
+      renderNavigation();
+      loadModule(1);
+      setupEventListeners();
+    });
+"""
+
+ARRANQUE_CAP5 = r"""    // Enlace profundo: «capitulo-5-intensidad-nucleos.html#modulo-N» abre el
+    // módulo N. Devuelve 0 si el fragmento no es exactamente ese o si N no es
+    // un módulo del capítulo.
+    function moduloDeLaUrl() {
+      const m = /^#modulo-(\d+)$/.exec(location.hash);
+      const id = m ? Number(m[1]) : 0;
+      return courseData.modules.some(mod => mod.id === id) ? id : 0;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderNavigation();
+      loadModule(moduloDeLaUrl() || 1);
+      setupEventListeners();
+    });
+
+    // Con la página ya abierta, pegar otro #modulo-N en la barra de direcciones
+    // no la recarga: solo avisa de que cambió el fragmento.
+    window.addEventListener('hashchange', () => {
+      const id = moduloDeLaUrl();
+      if (id && id !== currentModuleId) loadModule(id);
+    });
+"""
+
+
+# =====================================================================
 # Los mapas
 #
 # LOS RÁSTERES VIAJAN EMPAQUETADOS, y la ida y vuelta se comprueba AQUÍ.
@@ -3634,6 +3702,10 @@ def main() -> int:
     doc = reemplaza_region(doc, "    const courseData = {", "\n    };\n", COURSE_DATA,
                            "courseData + DATOS_CAP5", max_lineas=20)
 
+    # El módulo que se abre primero lo decide la URL (`#modulo-N`), no la plantilla.
+    doc = sustituye(doc, ARRANQUE_PLANTILLA, ARRANQUE_CAP5,
+                    "el arranque de la página (módulo inicial según #modulo-N)")
+
     doc = reemplaza_region(
         doc,
         "  <!-- ============================================================ -->\n"
@@ -3751,6 +3823,14 @@ def main() -> int:
                          f"{N_PREGUNTAS})")
     if quices != 2:
         problemas.append(f"autoevaluaciones: {quices} y son dos, la del módulo 6 y la del 12")
+    # EL ARRANQUE, COMPROBADO Y NO SUPUESTO. Si alguien reescribe ARRANQUE_CAP5 y
+    # pierde la lectura del fragmento, los enlaces «Leer en el material» de las
+    # diapositivas vuelven a caer en el módulo 1 y no falla nada que se vea.
+    if (doc.count("function moduloDeLaUrl()") != 1
+            or "loadModule(moduloDeLaUrl() || 1);" not in doc
+            or "      loadModule(1);\n      setupEventListeners();" in doc):
+        problemas.append("el arranque no abre el módulo que pide #modulo-N: los enlaces "
+                         "«Leer en el material» de las diapositivas caerían en el módulo 1")
     # LA CLAVE DE LA RETROALIMENTACIÓN, COMPROBADA Y NO SUPUESTA.
     # El motor lee `op.retro`; los capítulos 3 y 4 escribieron `respuesta`
     # y sus 68 explicaciones por opción no se dibujan nunca, sin un solo

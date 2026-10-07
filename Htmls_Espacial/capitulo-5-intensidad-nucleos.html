@@ -6966,10 +6966,26 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
     const moduleNav = document.getElementById('module-nav');
     const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
+    // Enlace profundo: «capitulo-5-intensidad-nucleos.html#modulo-N» abre el
+    // módulo N. Devuelve 0 si el fragmento no es exactamente ese o si N no es
+    // un módulo del capítulo.
+    function moduloDeLaUrl() {
+      const m = /^#modulo-(\d+)$/.exec(location.hash);
+      const id = m ? Number(m[1]) : 0;
+      return courseData.modules.some(mod => mod.id === id) ? id : 0;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       renderNavigation();
-      loadModule(1);
+      loadModule(moduloDeLaUrl() || 1);
       setupEventListeners();
+    });
+
+    // Con la página ya abierta, pegar otro #modulo-N en la barra de direcciones
+    // no la recarga: solo avisa de que cambió el fragmento.
+    window.addEventListener('hashchange', () => {
+      const id = moduloDeLaUrl();
+      if (id && id !== currentModuleId) loadModule(id);
     });
 
     // ================================================================
