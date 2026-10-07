@@ -36,20 +36,23 @@ tiene sujeto y debería estar corriendo sobre ellas. Queda anotado en el
 plan; arreglarlo es tocar el capítulo 3, que está cerrado y verificado, y
 eso no cabe en T3.3.
 
-EL TOPE DE PESO ES 810 KB, y no el de la casa (700), con la cuenta delante. Entró la
-animación de K y g de los módulos 8 y 9 (2026-10-02):
+EL TOPE DE PESO ES 820 KB, y no el de la casa (700), con la cuenta delante. En main fue
+760 desde el 2026-10-02 sin que cambiara el contenido: al reensamblar para recoger la regla
+del botón puesto con colores forzados y en papel (2.9 KB, PR #13) entraron también los
+6.8 KB del simulacro del Quiz 2 que el capítulo no había recogido (de 693.5 a 703.2 KB).
+Subió a 820 cuando la animación de K y g de los módulos 8 y 9 se fusionó con esa plantilla
+(2026-10-07):
 
-  · el documento pesa **795 KB**: 694 de antes; 7 de la plantilla que el capítulo no
-    había recogido (el CSS y el JS del simulacro del Quiz 2, que llegan al reensamblar,
-    como en los capítulos 3 y 6); **86 de los dos motores en línea** (`anim2d.js`, 42 KB,
-    y `kanillo2d.js`, 44, con la densidad de comentarios del repo; no se minifican); 3 de
-    las coordenadas crudas de los tres canónicos, y 5 de prosa y montaje. La auditoría de
-    las cinco animaciones (2026-10-02) sumó 8 de esos KB: la región viva, los anuncios y
-    el texto sin veredictos;
+  · el documento pesa **801 KB**: 693 de antes; 7 del simulacro y 7 de los bloques de
+    colores forzados y papel de los PR #13 y #14, que llegan al reensamblar; **86 de los
+    dos motores en línea** (`anim2d.js`, 42 KB, y `kanillo2d.js`, 44, con la densidad de
+    comentarios del repo; no se minifican); 3 de las coordenadas crudas de los tres
+    canónicos, y 5 de prosa y montaje. La auditoría de las cinco animaciones (2026-10-02)
+    sumó 8 de esos KB: la región viva, los anuncios y el texto sin veredictos;
   · la cota que ata esta comprobación a su arnés es **por encima del tamaño y por debajo
     de ese tamaño + 312 KB**, porque `prueba_texto.py` la tumba inyectando 320 000 bytes:
-    795 < 810 < 1107;
-  · 810 deja **15 KB de margen**, el mismo orden que el capítulo 6: sitio para una
+    801 < 820 < 1113;
+  · 820 deja **19 KB de margen**, el mismo orden que los capítulos 3 y 6: sitio para una
     corrección y poco para un ensamblado desbocado. El motor es lo que pesa, y un motor
     más grande es una decisión que se verá aquí, no un descuido.
 
@@ -63,7 +66,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP4_KB = 810.0
+TOPE_CAP4_KB = 820.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {

@@ -940,7 +940,9 @@
 
     /* El mismo relleno que `.code-tab-btn.active`, que es el otro control
        segmentado de la casa: dos controles que hacen lo mismo —decir cuál de
-       las opciones está puesta— deben decirlo igual. */
+       las opciones está puesta— deben decirlo igual. El fondo solo no basta
+       con colores forzados ni en papel: lo que lo sustituye allí va al final
+       de la hoja, después de `.geomapa-boton.activo`. */
     .sim-btn.active {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       border-color: transparent;
@@ -4037,6 +4039,173 @@
       color: #fff;
     }
 
+    /* La opción PUESTA de las tres botoneras de la casa —`.sim-btn`, las
+       pestañas R / Python y `.geomapa-boton`— con colores forzados y en papel
+       (2026-10-02). Las tres la marcan solo con el fondo, y ninguno de los dos
+       medios lo conserva:
+
+       · Con colores forzados (el alto contraste de Windows) el navegador
+         cambia fondo, borde y letra por los del sistema, iguales para todos
+         los botones. Los cinco patrones del simulador de los tres regímenes
+         del capítulo 4, los diez pesos del constructor del 6 y las dos
+         pestañas de código salían idénticos: no había forma de saber cuál
+         estaba puesto. Aquí el puesto toma los colores de SELECCIÓN del
+         sistema (`Highlight`), que es como el resto de la pantalla marca lo
+         elegido, y `forced-color-adjust: none` impide que el navegador los
+         vuelva a cambiar. Ese `none` suelta también el anillo de foco, que
+         volvía a su color de autor: naranja en `.sim-btn`, y en las otras dos
+         el verde #012820 de `button:focus-visible`, que sobre el negro del
+         modo oscuro no se ve. Por eso el anillo se fija aparte, en
+         `Highlight`, el color que el navegador da a los demás botones con
+         foco.
+       · Al imprimir, el fondo no sale (es lo que hace el navegador si no se
+         marcan los gráficos de fondo), y Chrome oscurece la letra blanca para
+         que se lea sobre el papel: el botón puesto salía en gris claro y sin
+         borde, y la pestaña puesta más clara que la otra. Parecía el botón
+         desactivado. En papel todas pierden el fondo, y el puesto se marca
+         con un borde negro de 2 px y letra más gruesa, que salen con
+         gráficos de fondo y sin ellos.
+
+       Va al final de la hoja a propósito: estas reglas tienen la misma
+       especificidad que las de las tres botoneras y les ganan por orden. */
+    @media (forced-colors: active) {
+      .sim-btn.active,
+      .code-tab-btn.active,
+      .geomapa-boton.activo {
+        forced-color-adjust: none;
+        background: Highlight;
+        border-color: Highlight;
+        color: HighlightText;
+      }
+
+      .sim-btn.active:focus-visible,
+      .code-tab-btn.active:focus-visible,
+      .geomapa-boton.activo:focus-visible {
+        outline-color: Highlight;
+      }
+    }
+
+    @media print {
+      .sim-btn,
+      .sim-btn.active,
+      .code-tab-btn,
+      .code-tab-btn.active,
+      .geomapa-boton,
+      .geomapa-boton.activo {
+        background: none;
+        border: 1px solid #9ca3af;
+        color: #000;
+      }
+
+      .sim-btn.active,
+      .code-tab-btn.active,
+      .geomapa-boton.activo {
+        border: 2px solid #000;
+        font-weight: 800;
+      }
+    }
+
+    /* Los otros cuatro estados «puesto» de la plantilla, medidos igual que
+       las botoneras de arriba (2026-10-02):
+
+       · El módulo abierto en la barra lateral (`.nav-item.active`), la
+         opción marcada del simulacro de quiz (`.simulacro-opcion.marcada`,
+         caps. 4 y 5) y el criterio abierto de la rúbrica de los talleres
+         (`.rubrica-criterio.activo`) también se marcaban solo con el fondo.
+         Con colores forzados salían idénticos a sus vecinos. Toman la misma
+         salida que las botoneras: `Highlight` / `HighlightText` con
+         `forced-color-adjust: none`, y el anillo de foco fijado en
+         `Highlight`. Ese `none` se hereda, así que los hijos que traen color
+         propio pasan aquí a `HighlightText`: el subtítulo y el visto de la
+         barra, la letra del simulacro, y la clave, el nombre y los puntos
+         del criterio. Si no, se quedarían con su blanco al 82 %, su verde o
+         su naranja sobre el color de selección. El punto de la barra es un
+         fondo y va en `HighlightText`. La sombra del módulo abierto se quita,
+         porque el `none` la devolvía.
+       · En papel la barra lateral no sale (la hoja de impresión le pone
+         `display: none`). El simulacro conserva la señal: el borde #012820
+         de la marcada contra el #cbd5e1 de las demás. La rúbrica no: sin
+         fondo, Chrome oscurecía la letra blanca del criterio abierto a gris
+         claro, y salía como un botón desactivado. Y es el criterio cuyos
+         niveles se imprimen debajo. Lleva el trato de las botoneras: sin
+         fondo, borde de 1 px #9ca3af, y el abierto con borde negro de 2 px.
+         Sus tres líneas recuperan los colores de los criterios cerrados.
+       · La casilla de la selección múltiple (`.quiz-opcion.marcada`) no se
+         toca con colores forzados. El visto se dibuja con el color de texto
+         del sistema y la casilla sin marcar queda vacía, como una casilla
+         nativa. En papel, en cambio, el visto se perdía: es un borde blanco
+         sobre el relleno naranja, y sin fondo quedaba blanco sobre blanco,
+         una casilla naranja vacía. En papel la casilla marcada va sin
+         relleno, con borde y visto negros. */
+    @media (forced-colors: active) {
+      .nav-item.active,
+      .simulacro-opcion.marcada,
+      .rubrica-criterio.activo {
+        forced-color-adjust: none;
+        background: Highlight;
+        border-color: Highlight;
+        color: HighlightText;
+      }
+
+      .nav-item.active {
+        box-shadow: none;
+      }
+
+      .nav-item.active::before {
+        background: HighlightText;
+      }
+
+      .nav-item.active .nav-item-sub,
+      .nav-item.active .nav-item-visto,
+      .simulacro-opcion.marcada .simulacro-letra,
+      .rubrica-criterio.activo .rubrica-criterio-clave,
+      .rubrica-criterio.activo .rubrica-criterio-nombre,
+      .rubrica-criterio.activo .rubrica-criterio-puntos {
+        color: HighlightText;
+      }
+
+      .nav-item.active:focus-visible,
+      .simulacro-opcion.marcada:focus-visible,
+      .rubrica-criterio.activo:focus-visible {
+        outline-color: Highlight;
+      }
+    }
+
+    @media print {
+      .rubrica-criterio,
+      .rubrica-criterio.activo {
+        background: none;
+        border: 1px solid #9ca3af;
+        color: #000;
+      }
+
+      .rubrica-criterio.activo {
+        border: 2px solid #000;
+      }
+
+      .rubrica-criterio.activo .rubrica-criterio-clave {
+        color: #FF6600;
+      }
+
+      .rubrica-criterio.activo .rubrica-criterio-nombre {
+        color: #1e293b;
+        font-weight: 800;
+      }
+
+      .rubrica-criterio.activo .rubrica-criterio-puntos {
+        color: #64748b;
+      }
+
+      .quiz-opcion.marcada .quiz-casilla {
+        background: none;
+        border-color: #000;
+      }
+
+      .quiz-opcion.marcada .quiz-casilla::after {
+        border-color: #000;
+      }
+    }
+
   </style>
 </head>
 
@@ -6572,6 +6741,16 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
           resultado sin cambiar la llamada.</p>
       </div>
 
+      <div class="definition">
+        <h4>Antes del parcial: el preparcial del Corte II</h4>
+        <p style="margin-bottom:0;">El parcial del corte evalúa este capítulo y el anterior, del
+          módulo 1 al 11 de cada uno. El <a href="preparcial-corte-2.html">preparcial del Corte
+          II</a> los recorre con una pregunta por módulo y otras que cruzan los dos capítulos —cada
+          opción con su explicación—, seis rutinas con su salida real, cinco ejercicios sobre un
+          patrón que el curso no había usado, el oro de Murchison, y el catálogo de los errores que
+          se repiten. No tiene nota y se puede repetir tantas veces como haga falta.</p>
+      </div>
+
       <div class="tip-box">
         <h4>Dónde sigue esto</h4>
         <p style="margin-bottom:0;">El capítulo 6 cambia de tipo de dato: de puntos sueltos a
@@ -6669,6 +6848,10 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
         de K con sus pesos, la intensidad en un punto—, y esas se abrevian sabiendo de antemano qué
         entra en cada término.</p>
       </div>
+
+      <p>Con el quiz hecho, lo que queda del corte es el parcial. Para prepararlo está el
+        <a href="preparcial-corte-2.html">preparcial del Corte II</a>, que recorre este capítulo y
+        el anterior enteros y termina con cinco ejercicios para hacer de punta a punta.</p>
     </div>
   </template>
 
