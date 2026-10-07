@@ -122,12 +122,13 @@ def main() -> None:
     bancos = sorted(carpeta.glob("prueba-*.html"))
     talleres = sorted(carpeta.glob("taller-*.html"))
     preparciales = sorted(carpeta.glob("preparcial-*.html"))
+    apendices = sorted(carpeta.glob("apendice-*.html"))
 
-    # Nada publicado puede quedarse fuera de los tres cubos sin que se
+    # Nada publicado puede quedarse fuera de los cubos sin que se
     # diga. Un archivo con un nombre nuevo —`parcial-1.html`, digamos—
     # no debe desaparecer del recuento en silencio: eso es exactamente lo
     # que le pasó al Taller 1 antes de C9.
-    clasificados = {p.name for p in caps + bancos + talleres + preparciales}
+    clasificados = {p.name for p in caps + bancos + talleres + preparciales + apendices}
     sueltos = [p for p in sorted(carpeta.glob("*.html")) if p.name not in clasificados]
 
     if caps:
@@ -173,6 +174,14 @@ def main() -> None:
         tabla("PREPARCIALES (material del curso, fuera de los objetivos del §8)",
               preparciales)
 
+    if apendices:
+        # El quinto cubo, que nace con el apéndice A (2026-10-02). Un apéndice
+        # SÍ enseña contenido —tiene módulos, simuladores, autoevaluación y
+        # ejercicios, como un capítulo—, pero no es temario de ninguna semana:
+        # repasa lo que un capítulo da por sabido. Sumarlo a los 120 módulos
+        # del §8 inflaría el avance del temario con material que no lo cubre.
+        tabla("APÉNDICES (material del curso, fuera de los objetivos del §8)", apendices)
+
     if bancos:
         tabla("BANCOS DE PRUEBA (no son material del curso)", bancos)
 
@@ -184,7 +193,7 @@ def main() -> None:
 
     if sueltos:
         print("\n  ⚠ HTML publicado que no cae en ningún cubo "
-              "(ni capítulo, ni taller, ni banco de prueba):")
+              "(ni capítulo, ni taller, ni preparcial, ni apéndice, ni banco de prueba):")
         for p in sueltos:
             print(f"    · {p.name} — no se está contando en ninguna tabla")
         problemas.append(f"{len(sueltos)} archivo(s) sin clasificar")
@@ -198,7 +207,7 @@ def main() -> None:
     portada = RAIZ / "index.html"
     if portada.exists():
         texto = portada.read_text(encoding="utf-8")
-        huerfanos = [p.name for p in caps + talleres + preparciales
+        huerfanos = [p.name for p in caps + talleres + preparciales + apendices
                      if p.name not in texto]
         print("\n  Enlaces desde la portada (index.html):")
         if huerfanos:
@@ -206,7 +215,7 @@ def main() -> None:
                 print(f"    ⚠ {n} — publicado y SIN enlace desde la portada")
             problemas.append(f"{len(huerfanos)} página(s) sin enlace desde la portada")
         else:
-            print(f"    los {len(caps) + len(talleres) + len(preparciales)} archivos "
+            print(f"    los {len(caps) + len(talleres) + len(preparciales) + len(apendices)} archivos "
                   f"del curso están enlazados")
 
         # Y LA OTRA MITAD, que faltaba: un capítulo publicado NO puede seguir
@@ -244,7 +253,7 @@ def main() -> None:
     # tabla que parece correcta y no mide lo que dice medir.
     print("\n  Modos del .geomapa en uso (leídos del JSON incrustado):")
     textos = [p.read_text(encoding="utf-8")
-              for p in caps + talleres + preparciales + bancos]
+              for p in caps + talleres + preparciales + apendices + bancos]
     for modo in MODOS:
         n = sum(len(re.findall(r'"modo":\s*"' + modo + '"', t)) for t in textos)
         print(f"    {modo:<12} {n}")
