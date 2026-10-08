@@ -1207,8 +1207,8 @@ message(sprintf("  arbitrarias: media %+.5f  sd %.5f  [%+.5f, %+.5f]  · la real
                 mean(r_arb), sd(r_arb), min(r_arb), max(r_arb), D$m9$arbitrarias$percentil_real))
 
 # --- Gerrymandering: la rejilla sintética -----------------------------
-# 5x5 electores, 60 % del partido A, en 5 distritos de 5 casillas. El
-# clásico: la misma población da 5-0, 3-2 o 2-3 según cómo se corte.
+# 5x5 electores, 16 de 25 (64 %) del partido A, en 5 distritos de 5 casillas. El
+# clásico: la misma población da a A 2, 3 o 4 escaños de 5 según cómo se corte.
 # No lleva dato real a propósito: es una demostración de aritmética, y
 # mezclarla con geografía colombiana la volvería una acusación.
 LADO <- 5L; N_DIST <- 5L; POR_DIST <- 5L
@@ -1229,65 +1229,85 @@ vec_rej <- lapply(seq_len(LADO * LADO), function(i) {
   as.integer(v)
 })
 
-# Una partición contigua en distritos de EXACTAMENTE 5 casillas. Se
-# construye creciendo un distrito cada vez y se rechaza si se atasca.
-# No se dibuja a mano: la primera versión de este bloque llevaba tres
-# particiones escritas a ojo y una tenía distritos de 6, 5, 4, 5 y 5
-# casillas. La guarda de tamaño la cazó, pero la lección es que un
-# ejemplo dibujado a mano no es una medida.
-particion_rejilla <- function() {
-  z <- rep(NA_integer_, LADO * LADO)
-  for (d in seq_len(N_DIST)) {
-    libres <- which(is.na(z))
-    if (!length(libres)) return(NULL)
-    sem <- libres[sample.int(length(libres), 1)]
-    z[sem] <- d
-    for (paso in seq_len(POR_DIST - 1L)) {
-      cand <- unique(unlist(vec_rej[which(z == d)]))
-      cand <- cand[is.na(z[cand])]
-      if (!length(cand)) return(NULL)         # atascado: se descarta
-      z[cand[sample.int(length(cand), 1)]] <- d
+# Todos los conjuntos de `k` casillas conexas (vecindad de torre) que contienen a `s` y solo
+# usan casillas libres: se crecen de una en una y se descartan los repetidos.
+conexos <- function(s, libres, k) {
+  nivel <- list(s)
+  for (paso in seq_len(k - 1L)) {
+    sig <- list()
+    for (S in nivel) {
+      vecinos <- setdiff(intersect(unique(unlist(vec_rej[S])), libres), S)
+      for (v in vecinos) sig[[length(sig) + 1L]] <- sort(c(S, v))
     }
+    nivel <- unique(sig)
   }
-  if (any(is.na(z))) return(NULL)
-  z
+  nivel
 }
 
-set.seed(SEM_PART_ARB)
-escanos <- integer(0); ejemplos <- list()
-INTENTOS <- 200000L
-for (i in seq_len(INTENTOS)) {
-  z <- particion_rejilla()
-  if (is.null(z)) next
+# LA ENUMERACIÓN EXHAUSTIVA de los trazados contiguos en 5 distritos de 5 casillas. El
+# distrito que contiene a la primera casilla sin asignar queda determinado por su forma, así
+# que cada trazado sale UNA sola vez, con los distritos numerados por su primera casilla, y
+# no hay nada que sortear: son 4 006, y se cuentan todos.
+#
+# Por qué ya no se sortea (2026-10-01): la primera versión de este bloque crecía distritos al
+# azar durante 200 000 intentos y publicaba las FRECUENCIAS de los 15 409 que salían válidos
+# (1.82 / 65.97 / 32.21 %). Esas frecuencias eran del muestreador, no del problema: crecer un
+# distrito casilla a casilla reparte la probabilidad de otra forma que «todos los trazados
+# valen lo mismo», y contra la enumeración (3.34 / 73.49 / 23.17 %) el resultado de 2
+# escaños aparecía con 0.54 veces su peso real y el de 4 con 1.39 veces. El capítulo no
+# sortea el mapa; cuenta cuántos hay.
+enumera_trazados <- function(z, d) {
+  libres <- which(is.na(z))
+  if (!length(libres)) return(list(z))
+  salida <- list()
+  for (S in conexos(libres[1], libres, POR_DIST)) {
+    z2 <- z; z2[S] <- d
+    salida <- c(salida, enumera_trazados(z2, d + 1L))
+  }
+  salida
+}
+
+trazados <- enumera_trazados(rep(NA_integer_, LADO * LADO), 1L)
+if (!length(trazados)) stop("la enumeracion de trazados de la rejilla no encontro ninguno")
+for (z in trazados) {
   tam <- as.integer(table(z))
   if (length(tam) != N_DIST || !all(tam == POR_DIST))
-    stop("particion de gerrymandering con distritos de tamano desigual: ",
-         paste(tam, collapse = "/"))
-  e <- sum(vapply(seq_len(N_DIST), function(d) mean(voto[z == d]) > 0.5, logical(1)))
-  escanos <- c(escanos, e)
-  k <- as.character(e)
-  if (is.null(ejemplos[[k]])) ejemplos[[k]] <- as.integer(z)
+    stop("trazado de gerrymandering con distritos de tamano desigual: ", paste(tam, collapse = "/"))
 }
-if (!length(escanos)) stop("la busqueda de particiones de la rejilla no encontro ninguna valida")
+escanos <- vapply(trazados, function(z)
+  sum(vapply(seq_len(N_DIST), function(d) mean(voto[z == d]) > 0.5, logical(1))), integer(1))
+
+# Un trazado por cada resultado alcanzable, para que el simulador pueda pintarlos. No salen de
+# mi mano ni de un sorteo: de cada resultado se toma el de MENOR PERÍMETRO (pares de casillas
+# vecinas en distritos distintos: el más compacto) y, a igual perímetro, el menor por orden
+# lexicográfico de su vector de distritos (no depende del orden en que se enumere).
+pares_vec <- do.call(rbind, lapply(seq_len(LADO * LADO), function(i) {
+  v <- vec_rej[[i]][vec_rej[[i]] > i]; cbind(rep(i, length(v)), v) }))
+perimetro <- vapply(trazados, function(z) sum(z[pares_vec[, 1]] != z[pares_vec[, 2]]), numeric(1))
+elegidos <- vapply(sort(unique(escanos)), function(e) {
+  w <- which(escanos == e); w <- w[perimetro[w] == min(perimetro[w])]
+  mat <- as.data.frame(t(vapply(trazados[w], identity, integer(LADO * LADO))))
+  w[do.call(order, mat)[1]] }, integer(1))
 
 tabla_e <- table(factor(escanos, levels = 0:N_DIST))
 D$m9$gerrymandering <- list(
   lado = LADO, n_distritos = N_DIST, casillas_por_distrito = POR_DIST,
   pct_A = r10(100 * pct_A), n_A = sum(voto), n_B = sum(voto == 0),
   rejilla = voto,
-  n_particiones_probadas = INTENTOS,
-  n_particiones_validas = length(escanos),
+  # TODOS los trazados contiguos posibles, enumerados (no una muestra).
+  n_trazados = length(trazados),
   escanos_min = min(escanos), escanos_max = max(escanos),
   escanos_proporcionales = r10(N_DIST * pct_A),
   distribucion = lapply(0:N_DIST, function(e)
     list(escanos = e, n = as.integer(tabla_e[as.character(e)]),
-         pct = r10(100 * as.integer(tabla_e[as.character(e)]) / length(escanos)))),
-  # Un trazado real por cada resultado alcanzable, para que el simulador
-  # pueda pintarlos. Salen de la búsqueda, no de mi mano.
-  ejemplos = lapply(sort(as.integer(names(ejemplos))), function(e)
-    list(escanos_A = e, escanos_B = N_DIST - e, particion = ejemplos[[as.character(e)]])))
-message(sprintf("  gerrymandering: A tiene el %.5f %% de los votos; de %d particiones contiguas validas",
-                100 * pct_A, length(escanos)))
+         pct = r10(100 * as.integer(tabla_e[as.character(e)]) / length(trazados)))),
+  # `votos_A` por distrito: el tablero del módulo los LEE, no los cuenta en el navegador (una cifra que
+  # calcula el navegador no la ve ningún auditor de prosa).
+  ejemplos = lapply(elegidos, function(i)
+    list(escanos_A = escanos[i], escanos_B = N_DIST - escanos[i], particion = as.integer(trazados[[i]]),
+         votos_A = vapply(seq_len(N_DIST), function(d) sum(voto[trazados[[i]] == d]), integer(1)))))
+message(sprintf("  gerrymandering: A tiene el %.5f %% de los votos; hay %d trazados contiguos (enumerados todos)",
+                100 * pct_A, length(trazados)))
 message(sprintf("    saca entre %d y %d escanos de %d (proporcional serian %.5f)",
                 min(escanos), max(escanos), N_DIST, N_DIST * pct_A))
 

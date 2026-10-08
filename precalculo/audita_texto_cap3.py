@@ -24,6 +24,22 @@ vértices con ninguna tolerancia, porque el suelo de `ms_simplify` con
 `keep_shapes = TRUE` es estructural. Los capítulos 1 y 2 nunca lo tocaron
 porque usan la capa departamental, de 33 rasgos.
 
+EL TOPE DE PESO ES 720 KB, no los 700 de la casa, y la cuenta va escrita
+porque no es una marca de agua levantada bajo presión. Fue 700 hasta que el
+tablero del gerrymandering (módulo 9) se fusionó con la plantilla de los PR
+#13 y #14 (2026-10-07):
+
+  · el documento pesa **703 KB**: 680 tenía el 2026-09-30; reensamblarlo
+    con la plantilla de los PR #13 y #14 le añadió 14 (el componente del
+    simulacro y los bloques de colores forzados y papel), y el tablero, con
+    su prosa y la tabla de distritos, 9 más. Con 700 el capítulo no cabía;
+  · la cota que ata esta comprobación a su arnés es **por encima del
+    tamaño del documento y por debajo de ese tamaño + 312 KB**, porque
+    `prueba_texto.py` la tumba inyectando 320 000 bytes de comentario:
+    703 < 720 < 1015;
+  · 720 deja **17 KB de margen**, el tope del capítulo 6: sitio para una
+    corrección y muy poco para un ensamblado desbocado.
+
 Uso:  python3 precalculo/audita_texto_cap3.py
 Devuelve 1 si algo falla.
 """
@@ -32,6 +48,9 @@ from __future__ import annotations
 import sys
 
 from audita_texto_base import Auditor
+
+# El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
+TOPE_CAP3_KB = 720.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
@@ -140,10 +159,33 @@ AFIRMACIONES = [
      "hasta el signo depende de por dónde pasen las fronteras"),
     ("dice que la partición real no tiene nada de especial",
      "nada de especial"),
+    # 2026-10-02 (auditoría de las cinco animaciones): el percentil de Colombia sale de un muestreador de crecimiento,
+    # el mismo que el final del módulo enseña a no tomar por «todos los trazados». La advertencia tiene que estar.
+    ("dice que el percentil de Colombia es respecto de un muestreador, no de todos los trazados",
+     "ese percentil es respecto de un muestreador"),
+    # Las zonas de Colombia se construyen con contigüidad de reina (`poly2nb(queen = TRUE)`: 87 pares de municipios
+    # solo se tocan en una esquina) y la única definición del módulo era la de la rejilla, que es de torre.
+    ("define la contigüidad de las zonas de Colombia: de reina, basta un punto de frontera",
+     "comparten aunque sea un punto de frontera"),
+    ("dice que la rejilla usa la contigüidad de torre y los municipios la de reina",
+     "la contigüidad de torre del capítulo 6"),
     ("explica por qué las zonas arbitrarias dan correlaciones más altas",
      "es lo contrario de lo que casi todo el mundo espera"),
     ("declara que el ponderador es parte del trazado",
      "parte del trazado"),
+    # 2026-10-01: el módulo publicaba las frecuencias de un muestreador (15 409 trazados válidos de 200 000
+    # intentos, 1.82 / 65.97 / 32.21 %) como si fueran las del problema. Ahora se enumeran los 4 006 y se dice.
+    ("declara que los trazados del gerrymandering se enumeran todos y no se sortean",
+     "se enumeran, no se sortean"),
+    ("dice que los porcentajes del gerrymandering cuentan trazados y no son probabilidades",
+     "no probabilidades"),
+    # Los 4 006 valen solo si dos casillas son vecinas cuando COMPARTEN UN LADO: con la esquina como vecindad son
+    # muchas más y A llega a sacar 5 escaños. La definición tiene que estar escrita.
+    ("define «contiguo» en la rejilla del gerrymandering: casillas que comparten un lado",
+     "comparten un lado"),
+    # Y los 4 006 son trazados SIN etiquetas: numerando los distritos serían 4 006 × 120 = 480 720.
+    ("dice que renumerar los distritos no da otro trazado",
+     "numerados de otra forma es el mismo trazado"),
     ("dice que una correlación ecológica no habla de personas",
      "no como afirmación sobre personas"),
     ("declara que el signo del estrato depende del filtro",
@@ -205,7 +247,7 @@ def main() -> int:
     a.codificacion()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)
-    a.peso()
+    a.peso(TOPE_CAP3_KB)
     return a.cierre()
 
 
