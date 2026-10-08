@@ -59,6 +59,7 @@ from rejilla_comprime import ida_y_vuelta
 from construye_nucleo3d import THREE_URL, THREE_SRI, leer_motor
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
+from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
 DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-5-intensidad-nucleos.html"
@@ -3754,6 +3755,7 @@ def main() -> int:
     # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
     doc = baraja_documento(doc, "cap5")
 
+    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     marcado = doc[:doc.rindex("\n  <script>")]

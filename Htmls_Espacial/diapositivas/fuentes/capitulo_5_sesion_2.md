@@ -1,5 +1,6 @@
 ---
 modulo: ../../capitulo-5-intensidad-nucleos.html
+indice: ../../../index.html
 salida: ../capitulo-5-intensidad-nucleos-sesion-2.html
 agenda: si
 etiqueta: Sesión 2 de 2 · 90 min

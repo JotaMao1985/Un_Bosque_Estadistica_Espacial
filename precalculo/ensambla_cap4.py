@@ -51,6 +51,7 @@ import sys
 from baraja_opciones import baraja_documento
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
+from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
 DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-4-patrones-puntuales.html"
@@ -3622,6 +3623,7 @@ def main() -> int:
     # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
     doc = baraja_documento(doc, "cap4")
 
+    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- El recuento, contado y no recordado --------------------------

@@ -249,6 +249,11 @@ if [ "$RAPIDO" -eq 0 ]; then
        python3 precalculo/prueba_texto.py
 fi
 
+# El botón «← Índice» de cada página publicada: que estén todas, que lleven uno solo y que el enlace llegue
+# a index.html desde su carpeta. Y el propio inyector, con fixtures.
+paso "pon_boton_indice.py — el botón al índice, en todas las páginas" \
+     python3 precalculo/prueba_boton_indice.py
+
 paso "cuenta_sitio.py — los totales" \
      python3 precalculo/cuenta_sitio.py
 

@@ -579,7 +579,7 @@ def main() -> int:
     # parte de la herramienta. Sin esta copia el arnés muere en el control de
     # entrada con un ModuleNotFoundError, que es un rojo que no dice nada del
     # ensamblador. Lo estrenó `baraja_opciones.py` el 2026-09-02.
-    for auxiliar in ("baraja_opciones.py",):
+    for auxiliar in ("baraja_opciones.py", "pon_boton_indice.py"):
         origen = ENSAMBLADOR.parent / auxiliar
         if not origen.exists():
             print(f"PARADO: falta {origen}")
