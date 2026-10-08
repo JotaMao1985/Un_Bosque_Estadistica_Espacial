@@ -1362,9 +1362,9 @@ def defectos_taller2() -> list[tuple[str, str, str]]:
         # las dos apariciones—, que se pierda la hora, y que el control
         # vuelva a pedir las tres cifras que el §5.3 midió que no bastan.
         ("vuelve una fecha de entrega vieja",
-         "domingo 11 de octubre de 2026", "martes 6 de octubre de 2026"),
+         "lunes 12 de octubre de 2026", "domingo 11 de octubre de 2026"),
         ("el enunciado pierde la hora límite",
-         "a más tardar a las 13:00", "a más tardar ese día", True),
+         "a más tardar a las 12:30", "a más tardar ese día", True),
         # «tres datos» y no «tres cifras»: «tres cifras» ya está en el HTML
         # —es lo que T3(b) pide dar: g en su máximo, el r donde vuelve a 1
         # y K en ese r— y el arnés rechaza, con razón, un valor inyectado

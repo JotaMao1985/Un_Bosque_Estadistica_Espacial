@@ -68,6 +68,7 @@ Devuelve 1 si algo falla. TALLER2_HTML apunta a una copia con defectos.
 from __future__ import annotations
 
 import html
+import os
 import pathlib
 import re
 import sys
@@ -231,7 +232,7 @@ def main() -> int:
         a.exige(llamada not in codigo,
                 f"ningún bloque llama a `{llamada}`  (M-14)")
 
-    # EL CALENDARIO, UNO SOLO. Se movió dos veces, y la segunda las fechas
+    # EL CALENDARIO, UNO SOLO. Se movió tres veces, y la segunda las fechas
     # estaban escritas a mano en cuatro sitios de la prosa: una copia que
     # se quedara atrás publicaba dos fechas de entrega en el mismo
     # enunciado. Las de aquí se escriben a mano A PROPÓSITO —son la segunda
@@ -240,17 +241,47 @@ def main() -> int:
     # octubre» no case dentro de «16 de octubre».
     print("\n=== El calendario, uno solo =============================")
     plano = re.sub(r"\s+", " ", a.texto_plano)
-    for que, frase in [("la fecha de entrega", "domingo 11 de octubre de 2026"),
-                       ("la hora límite", "a más tardar a las 13:00"),
+    for que, frase in [("la fecha de entrega", "lunes 12 de octubre de 2026"),
+                       ("la hora límite", "a más tardar a las 12:30"),
                        ("la fecha de la sustentación", "martes 13 de octubre")]:
         a.exige(frase in plano, f"el enunciado da {que}")
+    # La hora vieja se prohíbe con el patrón de un reloj y no con «13:00» a
+    # secas, porque «13» suelto es el día de la sustentación.
     for vieja, patron in [("viernes 18", r"viernes 18\b"),
                           ("18 de septiembre", r"(?<!\d)18 de septiembre"),
                           ("martes 6", r"martes 6\b"),
                           ("6 de octubre", r"(?<!\d)6 de octubre"),
                           ("jueves 8", r"jueves 8\b"),
-                          ("8 de octubre", r"(?<![\d])8 de octubre")]:
+                          ("8 de octubre", r"(?<![\d])8 de octubre"),
+                          ("domingo 11", r"domingo 11\b"),
+                          ("11 de octubre", r"(?<!\d)11 de octubre"),
+                          ("las 13:00", r"\b13:00\b")]:
         a.exige(not re.search(patron, plano), f"no queda la fecha vieja «{vieja}»")
+
+    # Y LA OTRA SUPERFICIE QUE PUBLICA LA FECHA: el PDF de la plantilla de
+    # entrega. La tenía escrita a mano dos veces y NADIE la cotejaba contra
+    # el enunciado —lo destapó el cambio del 2026-10-08, buscando a mano
+    # dónde más vivía la fecha—. Es el mismo defecto que el §7.1 describe
+    # para la prosa, una copia atrás, pero entre dos archivos distintos y
+    # con el agravante de que el PDF se descarga y se compila aparte.
+    # COSTE DECLARADO: `prueba_texto.py` sustituye dentro de una COPIA del
+    # HTML, así que no puede atacar esta familia; por eso se salta cuando
+    # TALLER2_HTML apunta a una copia y el recuento de tipos del arnés no
+    # la cuenta como sin atacar. Lo que la cubre es que el .tex tiene las
+    # tres fechas en macros: una sola línea que cambiar en cada superficie.
+    if not os.environ.get("TALLER2_HTML"):
+        tex = pathlib.Path(__file__).resolve().parent.parent / "entrega" / "plantilla_taller2.tex"
+        a.exige(tex.exists(), "la plantilla de entrega existe", str(tex))
+        if tex.exists():
+            fuente = tex.read_text(encoding="utf-8")
+            for que, frase in [("la fecha de entrega", "lunes 12 de octubre de 2026"),
+                               ("la hora límite", "12:30"),
+                               ("la fecha de la sustentación", "martes 13 de octubre")]:
+                a.exige(f"{{{frase}}}" in fuente,
+                        f"la plantilla de entrega define {que} igual que el enunciado")
+            for vieja in ("domingo 11", "11 de octubre", "13:00"):
+                a.exige(vieja not in fuente,
+                        f"y no le queda la fecha vieja «{vieja}»")
 
     # Y EL CONTROL, POR LA MISMA RAZÓN. «cinco cosas» en el temario solo
     # exige que aparezca UNA vez, y el enunciado lo dice en dos sitios. El
