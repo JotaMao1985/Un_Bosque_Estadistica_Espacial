@@ -2539,6 +2539,15 @@ solucion_cap6 <- function() {
   message("  E5 · el rezago contrae")
   lw <- nb2listw(reina, style = "W")
   wy <- lag.listw(lw, y)
+  # LA MEDIA SIMPLE NO TIENE POR QUÉ CONSERVARSE (2026-10-02). La lectura decía «las medias coinciden porque
+  # promediar no mueve el centro», y no es así: cada condado entra en el promedio de cada uno de sus vecinos, así que
+  # en el rezago pesa lo que suma su columna de W, que no vale 1. Lo que W por filas conserva exactamente, con una
+  # vecindad simétrica, es la media PONDERADA POR EL GRADO: Σ dᵢ (Wy)ᵢ = Σᵢ Σⱼ aᵢⱼ yⱼ = Σⱼ dⱼ yⱼ. Se publica en
+  # los pasos para que se vea, y se comprueba aquí: si la vecindad dejara de ser simétrica, esto pararía.
+  g5 <- card(reina)
+  pond <- function(v) sum(g5 * v) / sum(g5)
+  if (!is.symmetric.nb(reina) || abs(pond(wy) - pond(y)) > 1e-10)
+    stop("E5: W por filas tendría que conservar la media ponderada por el grado, y no la conserva")
   E$e5 <- list(
     titulo = "La contracción del rezago",
     enunciado = paste(
@@ -2549,6 +2558,8 @@ solucion_cap6 <- function() {
     pasos = list(
       list(paso = "Media de la tasa", valor = r10(mean(y))),
       list(paso = "Media del rezago", valor = r10(mean(wy))),
+      list(paso = "Media de la tasa ponderada por el grado", valor = r10(pond(y))),
+      list(paso = "Media del rezago ponderada por el grado", valor = r10(pond(wy))),
       list(paso = "Desviación de la tasa", valor = r10(sd(y))),
       list(paso = "Desviación del rezago", valor = r10(sd(wy))),
       list(paso = "Contracción de la desviación (%)",
@@ -2557,10 +2568,14 @@ solucion_cap6 <- function() {
     solucion = list(
       lectura = paste(
         "El del rezago, y no dice nada sobre Carolina del Norte: promediar contrae. La media de",
-        "varios números está más cerca del centro que los números que la forman, y el rezago es",
-        "esa media hecha una vez por condado. Publicar los dos mapas con la misma escala sugiere",
-        "que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la",
-        "operación. Las medias coinciden porque promediar no mueve el centro; las desviaciones no.")))
+        "varios números queda entre el menor y el mayor de ellos, y el rezago es esa media hecha",
+        "una vez por condado: ningún valor del rezago se sale del rango de la tasa, y la desviación",
+        "cae mucho. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza»",
+        "en el territorio cuando lo que se ha suavizado es la operación. Las medias simples se",
+        "parecen, pero no por obligación: cada condado entra en el promedio de cada uno de sus",
+        "vecinos, así que en el rezago no pesan todos igual. Lo que no se mueve nunca, con una",
+        "vecindad simétrica como la reina, es la media ponderada por el grado, la que cuenta a cada",
+        "condado tantas veces como vecinos tiene: es la misma en la tasa y en su rezago.")))
 
   E$meta <- list(capitulo = 6L, semilla = SEMILLA, n_ejercicios = 5L,
                  generado = format(Sys.Date()))

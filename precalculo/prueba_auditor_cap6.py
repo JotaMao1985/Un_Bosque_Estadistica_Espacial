@@ -34,6 +34,11 @@ sufrir de verdad:
   12. tilde convertida en bytes crudos
   13. flotante con más decimales de los declarados
   14. metainformación que deja de decir la verdad
+  15. LA ANIMACIÓN DEL REZAGO (`cap6_rezago2d.json`, de `spdep`): el dato, los vecinos,
+      la serie de Wᵏy, los vectores, el límite ponderado por el grado, el segundo valor
+      propio, los k para bajar al 5 % y el I de Moran. Entre ellas, las dos que el
+      capítulo corrigió: el límite publicado como la media simple, y el I de Moran
+      publicado como la correlación.
 
 UNA INYECCIÓN NO PUEDE USAR UN VALOR QUE YA ESTÉ EN EL ARCHIVO. Si la
 cifra falsa coincidiera con otra real, el auditor podría «cazarla» por el
@@ -61,6 +66,8 @@ AUDITOR = PRECALCULO / "audita_cap6.py"
 ARCHIVOS = {
     "datos": ("CAP6_DATOS", "cap6_datos.json"),
     "mapas": ("CAP6_MAPAS", "cap6_mapas.json"),
+    "rezago2d": ("CAP6_REZAGO2D", "cap6_rezago2d.json"),
+    "resumen2d": ("CAP6_REZAGO2D_RESUMEN", "cap6_rezago2d_resumen.json"),
 }
 
 PY = json.loads((PRECALCULO / "versiones_py.json").read_text(
@@ -308,6 +315,65 @@ def defectos():
     obj("14 · el generador dice que no comprobó anclas",
         "datos", lambda d: d["meta"].__setitem__("anclas", 0))
 
+    # --- 15. La animación del rezago ----------------------------------
+    # Dos de estas usan un valor que YA está en el archivo (el límite como la media simple, el I
+    # como la correlación), contra la regla de arriba, y a propósito: son los dos defectos
+    # conceptuales que el capítulo corrigió, y se cazan por el motivo bueno —el auditor los
+    # recalcula con libpysal y esda—, no porque el número se parezca a otro.
+    def serie(d, k, n="reina"):
+        return d["vecindades"][n]["serie"][k]
+
+    obj("15 · un CRIME del JSON cambia", "rezago2d",
+        lambda d: d["y"]["crime"].__setitem__(3, 17.1313131313))
+    obj("15 · la media de CRIME cambia", "rezago2d",
+        lambda d: d["y"].__setitem__("media", 35.1717171717))
+    obj("15 · la desviación de CRIME cambia", "rezago2d",
+        lambda d: d["y"].__setitem__("sd", 16.1717171717))
+    obj("15 · el máximo de k deja de ser 70", "rezago2d",
+        lambda d: d["meta"].__setitem__("k_max", 30))
+    obj("15 · la reina pierde un vecino de un barrio", "rezago2d",
+        lambda d: d["vecindades"]["reina"]["vecinos"][0].pop())
+    obj("15 · la torre gana una pareja", "rezago2d",
+        lambda d: d["vecindades"]["torre"].__setitem__("n_aristas", 101))
+    obj("15 · la media de Wy cambia", "rezago2d",
+        lambda d: serie(d, 1).__setitem__("media", 35.1313131313))
+    obj("15 · la desviación de W¹⁰y cambia", "rezago2d",
+        lambda d: serie(d, 10, "torre").__setitem__("sd", 5.1313131313))
+    obj("15 · la correlación de W²y cambia", "rezago2d",
+        lambda d: serie(d, 2).__setitem__("cor", 0.7131313131))
+    obj("15 · la pendiente de Wy se publica como la correlación", "rezago2d",
+        lambda d: serie(d, 1).__setitem__("pendiente", serie(d, 1)["cor"]))
+    obj("15 · un barrio de W¹⁰y cambia", "rezago2d",
+        lambda d: d["vecindades"]["reina"]["vectores"]["10"].__setitem__(5, 40.1313131313))
+    obj("15 · un vector de Wᵏy desaparece", "rezago2d",
+        lambda d: d["vecindades"]["torre"]["vectores"].pop("30"))
+    obj("15 · el límite se publica como la media simple", "rezago2d",
+        lambda d: d["vecindades"]["reina"].__setitem__("limite", d["y"]["media"]))
+    obj("15 · la media simple publicada cambia", "rezago2d",
+        lambda d: d["vecindades"]["torre"].__setitem__("media_simple", 35.2171717171))
+    obj("15 · el segundo valor propio cambia", "rezago2d",
+        lambda d: d["vecindades"]["reina"].__setitem__("lambda2", 0.9131313131))
+    obj("15 · los k para bajar al 5 % cambian", "rezago2d",
+        lambda d: d["vecindades"]["reina"].__setitem__("k_5pct", 60))
+    obj("15 · el I de Moran se publica como la correlación", "rezago2d",
+        lambda d: d["moran"].__setitem__("I", d["moran"]["cor"]))
+    obj("15 · la razón de desviaciones del I de Moran cambia", "rezago2d",
+        lambda d: d["moran"].__setitem__("razon_sd", 0.8131313131))
+
+    # El resumen que cita la prosa: lo único que lee el auditor de cifras.
+    obj("15 · el límite con la reina se publica como la media simple", "resumen2d",
+        lambda d: d.__setitem__("limite_reina", d["y_media"]))
+    obj("15 · el límite con la torre cambia", "resumen2d",
+        lambda d: d.__setitem__("limite_torre", 36.1313131313))
+    obj("15 · el segundo valor propio del resumen cambia", "resumen2d",
+        lambda d: d.__setitem__("lambda2_reina", 0.9313131313))
+    obj("15 · las aplicaciones al 5 % del resumen cambian", "resumen2d",
+        lambda d: d.__setitem__("k_5pct_reina", 61))
+    obj("15 · el I de Moran del resumen se publica como la correlación", "resumen2d",
+        lambda d: d.__setitem__("moran_I", d["moran_cor"]))
+    obj("15 · el cociente de desviaciones del resumen cambia", "resumen2d",
+        lambda d: d.__setitem__("moran_razon_sd", 0.8313131313))
+
     return D
 
 
@@ -326,6 +392,15 @@ def tipo_de(nombre: str) -> str:
     CRIT = ("reina|torre|k1|k3|k6|k=\\d+|d_mitad|d_conexo|delaunay|gabriel|"
             "relativa|esfera|municipios reina")
     reglas = [
+        (r"^(reina|torre): (media|sd|cor|pendiente) de Wᵏy, k = 0…\d+$", r"15 · \2 de la serie, de una vecindad"),
+        (r"^(reina|torre): (Wᵏy barrio a barrio|los k con vector|las parejas|"
+         r"los vecinos de libpysal son los de R|la media simple publicada|el segundo valor propio, en módulo|"
+         r"aplicaciones para bajar al 5 %|el deslizador llega al k del 5 %|"
+         r"el límite Σ dᵢ yᵢ / Σ dᵢ|el límite no es la media de y|"
+         r"el mayor valor propio vale 1)$", r"15 · \2, de una vecindad"),
+        (r"^resumen: (.+)$", "15 · un valor del resumen de la prosa"),
+        (r"^(Columbus|municipios): (I es la pendiente de Wy sobre y|I = cor · sd\(Wy\) / sd\(y\)|"
+         r"y I no es la correlación|I a mano contra esda)$", "10 · la identidad del I de Moran"),
         (rf"^({CRIT}): parejas distintas$",            "2 · las parejas de un criterio"),
         (rf"^({CRIT}): parejas \\(libpysal\\)$",         "6 · las parejas de una geométrica"),
         (rf"^({CRIT}): parejas$",                      "2 · las parejas de un criterio"),
@@ -367,6 +442,10 @@ INATACABLES = frozenset({
     "D⁻¹A es la estandarizada por filas",
     "todas las k dan grado k, que es el punto",
     "y hay tildes de verdad que comprobar",
+    # La identidad del I de Moran se comprueba sobre los datos y no lee JSON alguno; y el mayor valor
+    # propio de W vale 1 por construcción (es una cadena de Markov): tampoco depende del JSON.
+    "10 · la identidad del I de Moran",
+    "15 · el mayor valor propio vale 1, de una vecindad",
 })
 
 
