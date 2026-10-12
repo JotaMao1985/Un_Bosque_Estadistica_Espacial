@@ -252,14 +252,20 @@ def tarea(num, peso, titulo, enunciado, literales, pista):
 # obligatoria de qué se consultó y qué se verificó, y aviso explícito de
 # la recalificación en la defensa. Lo que cambia es el peso: allí la
 # defensa era el 40 % y confirmaba; aquí es el 60 % y ES el instrumento.
-# EL CALENDARIO, EN UN SOLO SITIO. Se movió dos veces —del viernes 18 de
-# septiembre al martes 6 / jueves 8 de octubre el 2026-09-09, y al
-# domingo 11 / martes 13 el 2026-09-11— y la segunda vez las fechas
-# estaban escritas a mano en cuatro sitios de la prosa, y la hora en
-# ninguno. `audita_texto_taller2.py` exige las de aquí y para si reaparece
-# cualquiera de las viejas.
-ENTREGA      = "domingo 11 de octubre de 2026"
-HORA_LIMITE  = "13:00"
+# EL CALENDARIO, EN UN SOLO SITIO. Se movió tres veces —del viernes 18 de
+# septiembre al martes 6 / jueves 8 de octubre el 2026-09-09, al
+# domingo 11 / martes 13 el 2026-09-11, y la entrega otra vez al lunes 12
+# a las 12:30 el 2026-10-08, con la sustentación quieta— y la segunda vez
+# las fechas estaban escritas a mano en cuatro sitios de la prosa, y la
+# hora en ninguno. `audita_texto_taller2.py` exige las de aquí y para si
+# reaparece cualquiera de las viejas.
+# LA TERCERA COSTÓ DOS LÍNEAS AQUÍ Y DESTAPÓ LA OTRA SUPERFICIE: el PDF de
+# `entrega/plantilla_taller2.tex` publica la misma fecha y la tenía escrita
+# a mano dos veces, sin que nada la cotejara contra estas constantes. Ahora
+# la plantilla las tiene en tres macros y el auditor de prosa compara las
+# dos superficies (§7.1 del plan).
+ENTREGA      = "lunes 12 de octubre de 2026"
+HORA_LIMITE  = "12:30"
 SUSTENTACION = "martes 13 de octubre"
 CONTROL      = "la semana del 28 de septiembre"   # el control de C10b (§5.3)
 

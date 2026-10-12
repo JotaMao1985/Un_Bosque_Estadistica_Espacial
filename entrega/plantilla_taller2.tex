@@ -118,6 +118,17 @@
 % ningun caracter que LaTeX trate como especial (no hay %, _, &, # ni llaves).
 \newcommand{\lineaid}[1]{{\ttfamily\footnotesize\raggedright #1\par}}
 
+% --- El calendario, en un solo sitio ---
+% La entrega se movio tres veces. La segunda, las fechas estaban escritas a
+% mano en cuatro sitios de la prosa del enunciado y una copia atras habria
+% publicado dos fechas distintas; aqui estaban a mano en DOS, y nada las
+% cotejaba contra el enunciado. Ahora el enunciado las tiene en tres
+% constantes de `precalculo/ensambla_taller2.py` y esta plantilla en estas
+% tres macros, y `audita_texto_taller2.py` compara las dos superficies.
+\newcommand{\fechaEntrega}{lunes 12 de octubre de 2026}
+\newcommand{\horaLimite}{12:30}
+\newcommand{\fechaSustentacion}{martes 13 de octubre}
+
 \begin{document}
 
 % ============================================================================
@@ -202,8 +213,8 @@ esta plantilla. Nombre del archivo: \texttt{T2\_Apellido\_TuDocumento.pdf}. \tex
 páginas.}
 
 \vspace{0.1cm}
-\textbf{Domingo 11 de octubre de 2026, a más tardar a las 13:00.} No se aceptan entregas tarde.
-\textbf{Sustentación:} martes 13 de octubre, presencial, siete minutos por persona.
+\textbf{El \fechaEntrega, a más tardar a las \horaLimite.} No se aceptan entregas tarde.
+\textbf{Sustentación:} \fechaSustentacion, presencial, siete minutos por persona.
 \end{minipage}}
 
 \newpage
@@ -406,7 +417,7 @@ Cociente perímetro/área                               & \marcador{~} & \marcad
   \item[$\square$] La \textbf{bitácora} está en la portada.
   \item[$\square$] El número de sedes de mi selección da el $n$ de la línea.
   \item[$\square$] No queda ningún marcador gris en el PDF.
-  \item[$\square$] El archivo se llama \texttt{T2\_Apellido\_TuDocumento.pdf} y está en Brightspace antes de las 13:00 del domingo 11 de octubre.
+  \item[$\square$] El archivo se llama \texttt{T2\_Apellido\_TuDocumento.pdf} y está en Brightspace antes de las \horaLimite{} del \fechaEntrega.
 \end{itemize}
 
 \noindent\textbf{Lo que mira la rúbrica del escrito}, aplicada al informe entero y no tarea por tarea:
