@@ -33,6 +33,7 @@ import pathlib
 import sys
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
+from pon_boton_indice import aplica as aplica_boton
 MOTOR = RAIZ / "precalculo" / "nucleo3d" / "nucleo3d.js"
 DESTINO = RAIZ / "Htmls_Espacial" / "animaciones" / "nucleo-3d.html"
 # El capítulo 5 lleva el motor EN LÍNEA (`ensambla_cap5.py`): si se edita el motor y no se reensambla, el capítulo publica
@@ -121,6 +122,7 @@ def construye() -> str:
 
 def main() -> int:
     html = construye()
+    html = aplica_boton(html, DESTINO, RAIZ, "franja")
     if "--comprueba" in sys.argv:
         al_dia = DESTINO.exists() and DESTINO.read_text(encoding="utf-8") == html
         print(f"{DESTINO.relative_to(RAIZ)}: {'al día' if al_dia else 'DESACTUALIZADO'}")

@@ -42,6 +42,7 @@ import sys
 from baraja_opciones import baraja_documento
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
+from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
 MOTOR = RAIZ / "precalculo" / "densidad1d.js"
@@ -3928,6 +3929,7 @@ def main() -> int:
     # 28 sales y esta es la que reparte más parejo (3, 4, 4 y 4). Añadir una
     # pregunta solo rebaraja esa pregunta (revisión 2, 2026-10-02).
     doc = baraja_documento(doc, "apendicea-r4")
+    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     marcado = doc[:doc.rindex("\n  <script>")]

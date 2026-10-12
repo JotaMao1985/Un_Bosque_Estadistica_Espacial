@@ -52,6 +52,7 @@ import re
 import sys
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
+from pon_boton_indice import aplica as aplica_boton
 SALIDAS = RAIZ / "precalculo" / "salidas"
 sys.path.insert(0, str(RAIZ / "precalculo"))
 import alcance_preparcial2 as ALC  # noqa: E402
@@ -3075,6 +3076,7 @@ def main() -> int:
                            "", "el simulacro de demostración", max_lineas=40)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
+    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- Guardas de salida: que el guion escriba no significa que escriba bien.
