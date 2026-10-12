@@ -659,6 +659,7 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
     """
     D = json.loads((SALIDAS / "cap4_datos.json").read_text(encoding="utf-8"))
     S = json.loads((SALIDAS / "cap4_soluciones.json").read_text(encoding="utf-8"))
+    KS = json.loads((SALIDAS / "cap4_kanillo2d_resumen.json").read_text(encoding="utf-8"))
     m1, m2, m3, m5 = D["m1"], D["m2"], D["m3"], D["m5"]
     m7, m8, m9, m10, m11 = D["m7"], D["m8"], D["m9"], D["m10"], D["m11"]
 
@@ -751,8 +752,10 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         # --- EL PESO, con su tope propio desde el 2026-10-02 ----------
         # Hasta entonces este capítulo no inyectaba el ensamblado
         # desbocado, así que su comprobación de peso nunca se había visto
-        # fallar. Con el tope subido a 760 KB hay que demostrar que sigue
-        # mordiendo: 703 + 312 queda por encima.
+        # fallar. Con el tope subido a 760 KB, y a 820 con la animación
+        # de K y g (2026-10-07), hay que demostrar que sigue mordiendo:
+        # 801 + 312 queda por encima. La rama de la animación traía su
+        # propia inyección de peso; las dos se fundieron en esta.
         ("el documento desbocado",
          "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
         # --- 11. La codificación --------------------------------------
@@ -784,6 +787,35 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         ("el enlace al capítulo 3 apunta a un archivo que no existe",
          'href="capitulo-3-cartografia-maup.html"',
          'href="capitulo-3-cartografia-maupp.html"'),
+        # --- La animación de K y g (2026-10-02) ------------------------
+        # Las cifras salen del RESUMEN de la animación, que es lo único de ella que lee el
+        # auditor de cifras; las frases, de las cuatro afirmaciones que entraron con ella.
+        # El último dígito va a 9 y no a 2: «1.83822» ya está en el índice del auditor como una
+        # comparación derivada de cap4_datos (el punto ciego de `mide_punto_ciego.py`), y la
+        # perturbación de siempre se colaba sin que el defecto fuera de la cifra.
+        ("K/πr² de las secuoyas donde g vuelve a 1, cambiado",
+         f"<strong>{f(KS['secuoyas_k_razon_g_vuelve'])}</strong>",
+         f"<strong>{f(KS['secuoyas_k_razon_g_vuelve'])[:-1]}9</strong>"),
+        ("K/πr² de las secuoyas al final del barrido, cambiado",
+         f"{f(KS['secuoyas_k_razon_final'])} al final", f"{perturba(KS['secuoyas_k_razon_final'])} al final"),
+        ("la K sin corregir entre la corregida, cambiada",
+         f"<strong>{f(KS['secuoyas_sin_sobre_con_final'])}</strong>",
+         f"<strong>{perturba(KS['secuoyas_sin_sobre_con_final'])}</strong>"),
+        ("desaparece por qué K arrastra (un disco grande contiene a los pequeños)",
+         "contiene a todos los pequeños", "es otro disco distinto"),
+        ("desaparece que donde g vuelve a 1 K sigue por encima",
+         "vale allí todavía", "vale allí ya solo"),
+        ("desaparece que la cuenta del anillo y g no tienen por qué coincidir",
+         "no tienen por qué coincidir", "coinciden siempre"),
+        ("desaparece que sin el peso el borde solo esconde vecinos",
+         "esconder vecinos", "inventar vecinos"),
+        # La auditoría de las cinco animaciones (2026-10-02)
+        ("pcf vuelve a ser «solo un núcleo» (sin la corrección de borde)",
+         "corrige el borde con el\n        mismo peso de traslación", "suaviza el borde con el\n        mismo núcleo de siempre", True),
+        ("desaparece que la animación no juzga si una desviación es ruido",
+         "no la animación", "ni hace falta", True),
+        ("se cae del temario la sección del disco, punto a punto",
+         "El disco, punto a punto", "Un disco cualquiera", True),
     ]
 
 
