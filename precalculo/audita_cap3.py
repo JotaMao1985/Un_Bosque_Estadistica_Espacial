@@ -211,6 +211,56 @@ def dpar_lab(hexes, gris=False):
     return par_lab(hexes, gris)[0]
 
 
+def enumera_trazados(lado, n_dist, por_dist):
+    """Todos los trazados contiguos (vecindad de torre) de una rejilla lado×lado en n_dist distritos
+    de por_dist casillas, con los distritos numerados 1..n_dist por su primera casilla.
+
+    No repite el método de `genera_cap3.R`, que crece cada distrito casilla a casilla: aquí se
+    filtran por conexión todas las combinaciones de por_dist casillas y se cubre la rejilla con las
+    que no se pisan, tomando siempre la que contiene a la primera casilla libre."""
+    from itertools import combinations
+    n = lado * lado
+
+    def vecinos(i):
+        f, c = divmod(i, lado)
+        return [j for j, ok in ((i - lado, f > 0), (i + lado, f < lado - 1),
+                                (i - 1, c > 0), (i + 1, c < lado - 1)) if ok]
+
+    def conexa(cs):
+        dentro = set(cs)
+        visto, pila = {cs[0]}, [cs[0]]
+        while pila:
+            for j in vecinos(pila.pop()):
+                if j in dentro and j not in visto:
+                    visto.add(j)
+                    pila.append(j)
+        return len(visto) == len(cs)
+
+    por_primera: dict[int, list[tuple[int, tuple[int, ...]]]] = {}
+    for cs in combinations(range(n), por_dist):
+        if conexa(cs):
+            por_primera.setdefault(cs[0], []).append((sum(1 << i for i in cs), cs))
+    lleno = (1 << n) - 1
+    salida: list[tuple[int, ...]] = []
+
+    def cubre(usadas, elegidas):
+        if usadas == lleno:
+            z = [0] * n
+            for d, cs in enumerate(elegidas, 1):
+                for i in cs:
+                    z[i] = d
+            salida.append(tuple(z))
+            return
+        libre = next(i for i in range(n) if not usadas >> i & 1)
+        for mascara, cs in por_primera.get(libre, []):
+            if not usadas & mascara:
+                cubre(usadas | mascara, elegidas + [cs])
+
+    cubre(0, [])
+    assert all(max(z) == n_dist for z in salida)
+    return salida
+
+
 # =====================================================================
 def main() -> int:
     a = Auditoria("Precálculo del capítulo 3 verificado")
@@ -788,6 +838,10 @@ def main() -> int:
         a.igual(gana, ej["escanos_A"], f"ejemplo de {ej['escanos_A']} escaños: recuento")
         a.igual(ej["escanos_A"] + ej["escanos_B"], g["n_distritos"],
                 f"ejemplo de {ej['escanos_A']} escaños: A + B = distritos")
+        # Lo que lee el tablero del módulo: las casillas de A de cada distrito, recontadas desde la rejilla.
+        a.cierto(list(ej["votos_A"]) == [int(voto[z == d].sum()) for d in range(1, g["n_distritos"] + 1)],
+                 f"ejemplo de {ej['escanos_A']} escaños: casillas de A por distrito, recontadas",
+                 str(ej["votos_A"]))
         # Contigüidad por torre, comprobada con una búsqueda en anchura
         ok_cont = True
         for d in range(1, g["n_distritos"] + 1):
@@ -809,8 +863,28 @@ def main() -> int:
     a.cierto(g["escanos_max"] > g["escanos_min"],
              "el trazado CAMBIA el resultado con los mismos votos",
              f"{g['escanos_min']} a {g['escanos_max']} de {g['n_distritos']}")
-    a.igual(sum(d["n"] for d in g["distribucion"]), g["n_particiones_validas"],
-            "la distribución suma las particiones válidas")
+    a.igual(sum(d["n"] for d in g["distribucion"]), g["n_trazados"],
+            "la distribución suma los trazados")
+
+    # LA ENUMERACIÓN, por otro camino que el de R. R crece los distritos casilla a casilla; aquí se
+    # filtran por conexión TODAS las combinaciones de 5 casillas de las 25 (53 130) y se cubre la
+    # rejilla con ellas. Que las dos den 4 006 y el mismo reparto de escaños es lo que sostiene el
+    # párrafo «están contadas todas».
+    todos = enumera_trazados(lado, g["n_distritos"], g["casillas_por_distrito"])
+    a.igual(len(todos), g["n_trazados"], "trazados contiguos: la enumeración independiente")
+    gana_por_trazado = [sum(1 for d in range(1, g["n_distritos"] + 1)
+                            if voto[np.array(z) == d].mean() > 0.5) for z in todos]
+    for dd in g["distribucion"]:
+        a.igual(sum(1 for e in gana_por_trazado if e == dd["escanos"]), dd["n"],
+                f"trazados que dan {dd['escanos']} escaños a A: el recuento independiente")
+        a.igual(100.0 * dd["n"] / len(todos), dd["pct"],
+                f"porcentaje de los trazados que dan {dd['escanos']} escaños", tol=1e-8)
+    a.cierto(all(tuple(ej["particion"]) in set(todos) for ej in g["ejemplos"]),
+             "cada ejemplo publicado es uno de los trazados enumerados",
+             "(etiquetados por su primera casilla, como los enumera R)")
+    alcanzables = sorted(set(gana_por_trazado))
+    a.cierto(alcanzables == sorted(e["escanos_A"] for e in g["ejemplos"]),
+             "hay un ejemplo de cada resultado alcanzable", f"resultados posibles {alcanzables}")
 
     # -----------------------------------------------------------------
     a.titulo("Módulo 11 · el caso de aviso y quién falta del mapa")
