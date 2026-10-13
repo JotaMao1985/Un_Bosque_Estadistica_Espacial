@@ -9895,9 +9895,12 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
           const dNow = typeof spec.fuente === 'function' ? spec.fuente() : spec.fuente;
           const opts = Object.assign({}, spec, alto ? { alto } : {}, op);
           if (cajaLeyenda) cajaLeyenda.innerHTML = geomapaLeyenda(dNow, opts);
-          // `opts`, no `spec`: así un simulador que cambia de vista puede
-          // cambiar también la etiqueta accesible, en vez de dejarla
-          // describiendo el mapa que ya no está.
+          // `opts`, no `spec`: la etiqueta accesible describe lo mismo que
+          // se pinta en este trazo, opciones incluidas. Pero un simulador
+          // que cambia de vista no debe hacerlo con opciones, que el
+          // siguiente cambio de tamaño olvida, sino con un getter en el
+          // registro (ver raiz.__geomapa, más abajo): solo así lienzo y
+          // etiqueta siguen en la vista elegida tras girar el teléfono.
           canvas.setAttribute('aria-label', geomapaAlt(dNow, opts));
           const tit = raiz.querySelector('.geomapa-titulo');
           if (tit && dNow.titulo) tit.textContent = dNow.titulo;
