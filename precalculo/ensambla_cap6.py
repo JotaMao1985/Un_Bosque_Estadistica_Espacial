@@ -1438,8 +1438,15 @@ TABLA_W = """, tabla: function () {
 
 
 GEOMAPAS_JS = (
-    "    const MAPAS_CAP6 = " + json.dumps(M, ensure_ascii=False) + ";\n"
-    + geomapa("cap6-w", "cap6-w", _etq(
+    "    const MAPAS_CAP6 = " + json.dumps(M, ensure_ascii=False) + ";\n\n"
+    + "    // El criterio que el constructor del módulo 2 tiene elegido. El mapa\n"
+      "    // lo LEE con un getter, como los del capítulo 3: pasarle\n"
+      "    // `{ variante }` a dibuja() solo vale para ese trazo, y el\n"
+      "    // ResizeObserver y el conmutador de visión del color repintan sin\n"
+      "    // opciones. Con eso, girar el teléfono devolvía el grafo a la reina\n"
+      "    // mientras la botonera, el histograma y la lectura seguían en k = 3.\n"
+      "    const estadoCap6 = { w: D6.m2.criterios[0].id };\n\n"
+    + geomapa("cap6-w", "cap6-w", ",\n      get variante() { return estadoCap6.w; }" + _etq(
         "Los 49 barrios de Columbus con el grafo del criterio de vecindad elegido: "
         "cada línea une dos unidades que ese criterio considera vecinas, y un punto rojo "
         "es una unidad que se ha quedado sin ninguna.") + TABLA_W)
@@ -1543,10 +1550,11 @@ JS_PREAMBULO = r"""
     }
 
     // El mapa de un módulo, para que un simulador pueda repintarlo sin
-    // recrearlo: la plantilla expone `raiz.__geomapa.dibuja(opciones)`.
-    function repintaGeomapa(ident, opciones) {
+    // recrearlo. Se repinta SIN opciones: lo que cambia lo leen los getters
+    // de su registro en GEOMAPAS, y así un cambio de tamaño lo conserva.
+    function repintaGeomapa(ident) {
       const g = document.querySelector(`[data-geomapa="${ident}"]`);
-      if (g && g.__geomapa) g.__geomapa.dibuja(opciones);
+      if (g && g.__geomapa) g.__geomapa.dibuja();
     }
 """
 
@@ -1564,7 +1572,8 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       const pinta = () => {
         const c = cs[i], h = hs[i];
         if (g) { g.data.datasets[0].data = h.conteo; g.update(); }
-        repintaGeomapa('cap6-w', { variante: c.id });
+        estadoCap6.w = c.id;
+        repintaGeomapa('cap6-w');
         lectura6(raiz, [
           ['criterio', c.etiqueta],
           ['parejas', mil6(c.pares)],
