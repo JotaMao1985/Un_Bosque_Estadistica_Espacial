@@ -9895,9 +9895,12 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
           const dNow = typeof spec.fuente === 'function' ? spec.fuente() : spec.fuente;
           const opts = Object.assign({}, spec, alto ? { alto } : {}, op);
           if (cajaLeyenda) cajaLeyenda.innerHTML = geomapaLeyenda(dNow, opts);
-          // `opts`, no `spec`: así un simulador que cambia de vista puede
-          // cambiar también la etiqueta accesible, en vez de dejarla
-          // describiendo el mapa que ya no está.
+          // `opts`, no `spec`: la etiqueta accesible describe lo mismo que
+          // se pinta en este trazo, opciones incluidas. Pero un simulador
+          // que cambia de vista no debe hacerlo con opciones, que el
+          // siguiente cambio de tamaño olvida, sino con un getter en el
+          // registro (ver raiz.__geomapa, más abajo): solo así lienzo y
+          // etiqueta siguen en la vista elegida tras girar el teléfono.
           canvas.setAttribute('aria-label', geomapaAlt(dNow, opts));
           const tit = raiz.querySelector('.geomapa-titulo');
           if (tit && dNow.titulo) tit.textContent = dNow.titulo;
@@ -9912,7 +9915,14 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         geomapasVivos.push({ raiz, canvas, dibuja, ro });
 
         // Se expone para que un simulador pueda repintar sin recrear el
-        // canvas: raiz.__geomapa.dibuja({variante:'torre'})
+        // canvas: raiz.__geomapa.dibuja(), SIN opciones. Lo que el
+        // simulador cambia —la variante, la vista, la capa— vive en una
+        // variable de estado, y el registro lo lee con un getter, igual
+        // que lee `fuente` cuando es una función:
+        //   GEOMAPAS['id'] = { fuente, get variante() { return estado.w; } }
+        // Las opciones de dibuja(op) duran un solo trazo: el ResizeObserver
+        // y geomapaConmutaCVD repintan sin ellas, y el mapa vuelve sin
+        // avisar a su primera variante (le pasó al cap. 6, módulo 2).
         raiz.__geomapa = { dibuja, canvas };
       });
     }
