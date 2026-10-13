@@ -7959,7 +7959,14 @@ round(diff(range(dep$desercion)) / sd(dep$desercion), 5)
         geomapasVivos.push({ raiz, canvas, dibuja, ro });
 
         // Se expone para que un simulador pueda repintar sin recrear el
-        // canvas: raiz.__geomapa.dibuja({variante:'torre'})
+        // canvas: raiz.__geomapa.dibuja(), SIN opciones. Lo que el
+        // simulador cambia —la variante, la vista, la capa— vive en una
+        // variable de estado, y el registro lo lee con un getter, igual
+        // que lee `fuente` cuando es una función:
+        //   GEOMAPAS['id'] = { fuente, get variante() { return estado.w; } }
+        // Las opciones de dibuja(op) duran un solo trazo: el ResizeObserver
+        // y geomapaConmutaCVD repintan sin ellas, y el mapa vuelve sin
+        // avisar a su primera variante (le pasó al cap. 6, módulo 2).
         raiz.__geomapa = { dibuja, canvas };
       });
     }
