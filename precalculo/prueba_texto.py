@@ -1409,6 +1409,11 @@ def defectos_apendicea() -> list[tuple]:
        JavaScript no define, y la página lo deja en blanco sin un error;
      · **un rótulo de la figura del plano que no es el de su sitio**: la
        figura se dibuja en SVG y sus rótulos son cifras del módulo 4.
+
+    Las tres animaciones (2026-10-03) añaden lo suyo: el motor de sus
+    fotogramas (`anim1d.js`) desactualizado, una animación que pierde su
+    registro y una cifra de la leyenda de un paso que deja de ser la del
+    precálculo. Las leyendas son prosa: el auditor las lee como tal.
     """
     D = json.loads((SALIDAS / "apendicea_datos.json").read_text(encoding="utf-8"))
     S = json.loads((SALIDAS / "apendicea_soluciones.json").read_text(encoding="utf-8"))
@@ -1439,6 +1444,12 @@ def defectos_apendicea() -> list[tuple]:
          "var RAIZ_2PI = Math.sqrt(2 * Math.PI);", "var RAIZ_2PI = Math.sqrt(2.0 * Math.PI);"),
         ("un simulador del marcado pierde su registro",
          'data-simulador="apa-knn"', 'data-simulador="apa-knnx"'),
+        ("el motor de las animaciones no es el de hoy",
+         "var LLEGA = 0.8;", "var LLEGA = 0.81;"),
+        ("una animación del marcado pierde su registro",
+         'data-simulador="apa-vecinos"', 'data-simulador="apa-vecinosx"'),
+        ("una cifra de la leyenda de un paso deja de ser la del precálculo",
+         f"la columna baja a {D['m5']['gaussiano']['f']:.4f}.", "la columna baja a 0.18647."),
         ("un rótulo de la figura del plano no es el de su sitio",
          f": {sitio['parzen_conteo']} sedes dentro<", f": {sitio['parzen_conteo'] + 1} sedes dentro<"),
         ("un enlace a un capítulo apunta al vacío",
@@ -1452,7 +1463,7 @@ def defectos_apendicea() -> list[tuple]:
         # Se cambia por \varphi y no por «Var» a secas: «Var» ya está en el
         # documento, y el arnés no admite inyectar un valor que ya existe.
         ("se cae una orden de KaTeX: la densidad normal", r"\phi", r"\varphi", True),
-        # +312 KB sobre un documento de unos 755 y un tope de 840: la cuenta
+        # +312 KB sobre un documento de unos 820 y un tope de 880: la cuenta
         # está en la cabecera de `audita_texto_apendicea.py`.
         ("el apéndice se pasa de su propio tope de peso",
          "</body>", "<!--" + "y" * 320_000 + "-->\n</body>"),

@@ -45,6 +45,7 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
 MOTOR = RAIZ / "precalculo" / "densidad1d.js"
+MOTOR_ANIM = RAIZ / "precalculo" / "anim1d.js"
 DESTINO = RAIZ / "Htmls_Espacial" / "apendice-a-densidad.html"
 
 D = json.loads((SALIDAS / "apendicea_datos.json").read_text(encoding="utf-8"))
@@ -174,6 +175,18 @@ DESCRIPCIONES = {
                  "y con tres correcciones de borde, junto a la densidad bajo CSR, que arranca en cero.",
     "apa-empates": "Estimación gaussiana de las distancias al vecino con el ancho elegido: con el más pequeño, "
                    "un peine de picos; con el otro, una curva lisa.",
+    "apa-origenes": "Animación por pasos sobre los ocho datos del ejemplo a mano: caen en las casillas de "
+                    "un histograma gris, el origen se corre y deja sellados tres histogramas de colores, un "
+                    "cursor promedia sus alturas y traza el ASH en naranja, y con más histogramas el ASH se "
+                    "acerca a un núcleo triangular discontinuo verde.",
+    "apa-desliza": "Animación por pasos sobre cinco datos de colores: una ventana gris, caja y después "
+                   "campana, recorre el eje; sobre cada dato un tallo de su color mide lo que aporta, una "
+                   "columna apilada los suma en el punto de estimación y su punta traza la curva verde; al "
+                   "final aparece la loma de cada dato, que en ese punto mide lo mismo que su tallo.",
+    "apa-vecinos": "Animación por pasos sobre siete edades: la ventana del k-NN, un rectángulo de área "
+                   "fija, crece hasta encerrar al k-ésimo vecino, recorre el eje dejando una curva verde "
+                   "con un pico por cada grupo de k edades seguidas y sigue por la cola, cada vez más "
+                   "ancha y más baja.",
 }
 
 
@@ -191,6 +204,65 @@ def sim(ident, titulo, pie="", alto=280, mandos=True):
         <div class="simulador-lectura" aria-live="polite"></div>
       </div>
 """
+
+
+# LAS ANIMACIONES POR PASOS (módulos 3, 5 y 7; 2026-10-03, las tres que la
+# revisión 2 propuso y Javier pidió). Son simuladores —se registran en
+# SIMULADORES y cuentan con ellos— con dos diferencias de marcado:
+#   · las leyendas de los pasos van AQUÍ, en el HTML, porque son prosa: sus
+#     cifras salen del JSON y el auditor de prosa las lee como cualquier otra;
+#   · la lectura NO es `aria-live`: mientras la animación corre cambia en cada
+#     fotograma y un lector de pantalla la cantaría sin parar. Lo que se
+#     anuncia es el cambio de paso, en una región aparte (`.anim-aviso`).
+# Las leyendas se apilan en la misma celda de una rejilla: el bloque mide lo
+# que la más larga y la página no salta al cambiar de paso (la lección de la
+# animación del rezago, cap. 6). En papel salen todas, una tras otra.
+ESTILO_ANIM = """      <style>
+        .apa-anim .anim-leyendas { display: grid; margin-top: 0.75rem; }
+        .apa-anim .anim-leyendas > p { grid-area: 1 / 1; visibility: hidden; margin: 0; }
+        .apa-anim .anim-leyendas > p.actual { visibility: visible; }
+        @media print {
+          .apa-anim .anim-leyendas { display: block; }
+          .apa-anim .anim-leyendas > p { visibility: visible; margin-bottom: 0.5rem; }
+        }
+      </style>
+"""
+
+
+# Cómo se manejan: va en la intro de las tres, porque cada módulo se carga
+# solo y quien llega al 5 o al 7 no ha leído la del 3. La primera versión lo
+# decía solo en el 3, y mal: los botones de paso también reproducen.
+MANDOS_ANIM = ("Cada botón numerado lleva a su paso y lo reproduce, igual que «Paso anterior» y «Paso "
+               "siguiente»; «Pausa» lo detiene y el deslizador lo recorre a mano. Debajo del gráfico, una "
+               "leyenda cuenta qué se ve en cada paso.")
+
+
+def animacion(ident, titulo, intro, pasos, alto=340):
+    """Una animación por pasos. `pasos` es [(título, texto)]: el título rotula
+    también el botón del paso. La primera leyenda sale visible en el marcado,
+    para que el bloque se lea aunque el JavaScript no llegue a montarlo."""
+    if ident not in DESCRIPCIONES:
+        sys.exit(f"PARADO: la animación {ident} no tiene descripción para su lienzo")
+    filas = []
+    for i, (t, texto) in enumerate(pasos):
+        if '"' in t:
+            sys.exit(f"PARADO: el título del paso «{t}» lleva comillas y rompería data-titulo")
+        clase = ' class="actual"' if i == 0 else ""
+        filas.append(f'          <p data-paso="{i}" data-titulo="{t}"{clase}><strong>Paso {i + 1} · '
+                     f'{t}.</strong> {texto}</p>\n')
+    return (ESTILO_ANIM + f"""      <div class="simulador apa-anim" data-simulador="{ident}">
+        <h4><i class="fas fa-film" aria-hidden="true"></i> {titulo}</h4>
+        <p class="simulador-intro">{intro}</p>
+        <div class="simulador-controles"></div>
+        <div class="grafico-wrapper" style="height:{alto}px;">
+          <canvas role="img" aria-label="{DESCRIPCIONES[ident]}"></canvas>
+        </div>
+        <div class="anim-leyendas">
+{"".join(filas)}        </div>
+        <p class="sr-only anim-aviso" aria-live="polite"></p>
+        <div class="simulador-lectura"></div>
+      </div>
+""")
 
 
 def fila(*celdas):
@@ -1217,6 +1289,42 @@ _M3_SOLAP = trampa("ventanas solapadas no es un ASH", rf"""Algunos textos presen
         barras suman {ent(_S3["contribuciones"])}/{ent(_S3["n"])} = {n(_S3["area"], 4)}, no 1. El ASH
         no tiene ese problema porque cada uno de sus histogramas reparte exactamente los \(n\) datos, y
         el promedio de cosas que integran 1 integra 1.""")
+_A3 = m3["animacion"]
+_E3D = _E3["desplazados"]
+_M3_ANIM = animacion(
+    "apa-origenes", "Un origen tras otro: el ASH del ejemplo a mano",
+    rf"""Los ocho datos de la tabla —los puntos negros del eje—, con \(h\) = {ent(_E3["h"])} y la
+        malla extendida de {ent(_E3["extendida"]["desde"])} a {ent(_E3["extendida"]["hasta"])}.
+        {MANDOS_ANIM} Antes del último paso: ¿a qué curva crees que se parece el promedio cuando se
+        promedian muchos orígenes?""",
+    [("Cada dato cae en su casilla",
+      rf"""Los datos caen uno a uno en el primer histograma de la malla extendida, el de cortes
+        {ent(_E3D[0]["cortes"][0])}, {ent(_E3D[0]["cortes"][1])}, …, {ent(_E3D[0]["cortes"][-1])}, y cada
+        uno sube su barra en \(1/(nh)\). Al final las barras cuentan
+        {", ".join(ent(c) for c in _E3D[0]["conteos"])}: la primera fila de la tabla."""),
+     ("Correr el origen",
+      rf"""El origen se corre desde {ent(_E3D[0]["desplazamiento"])} hasta \(h\) = {ent(_E3["h"])}. Las
+        barras se desplazan con él y cambian de altura cada vez que un corte pasa por encima de un dato. Al
+        arrancar queda sellado el primer histograma, en azul y con trazo continuo; al pasar por \(\delta\) =
+        {n(_E3D[1]["desplazamiento"], 2)} y por \(2\delta\) = {n(_E3D[2]["desplazamiento"], 2)}, los otros
+        dos de la tabla, en morado rayado y en rosa punteado. Y al llegar a \(h\) el histograma vuelve a
+        ser el primero: todos los orígenes distintos caben en un solo ancho."""),
+     ("Promediar en el mismo x",
+      rf"""Un cursor recorre el eje. En cada \(x\) lee la altura de los tres histogramas —los tres
+        puntos de color, de mayor a menor para que no se tapen— y su promedio, el punto naranja, que va
+        dejando la curva del ASH. En \(x\) = {ent(_E3["puntos"][0])} lee
+        {", ".join(n(v, 4) for v in _E3["f_j"][0][:-1])} y {n(_E3["f_j"][0][-1], 4)} —el azul y el rosa
+        coinciden, y el rosa queda dentro del anillo azul—, y su promedio es {n(_E3["f_ash"][0], 4)}: la
+        primera fila de la segunda tabla."""),
+     ("Más orígenes",
+      rf"""Ahora \(m\) crece: {", ".join(ent(v) for v in _A3["m"][:-1])} y {ent(_A3["m"][-1])}
+        histogramas, cada uno corrido \(h/m\) respecto del anterior, en gris tenue. Su promedio se acerca a
+        la curva verde discontinua, un núcleo triangular de semiancho \(h\): la mayor distancia entre las
+        dos baja de {n(_A3["distancia"][0], 4)} con \(m\) = {ent(_A3["m"][0])} a
+        {n(_A3["distancia"][-1], 5)} con \(m\) = {ent(_A3["m"][-1])}, el {pct(_A3["pct_pico"][-1], 1)} de
+        la altura de su pico. Por qué es esa curva y no otra lo explica, más abajo, «El ASH es un núcleo
+        disfrazado»."""),
+     ])
 _M3_SIM = sim(
     "apa-ash", "El ASH de las erupciones se acerca al núcleo triangular",
     f"La escalera naranja es el ASH, con un ancho fijo de {n(_T3['h'], 1)} minutos; la línea discontinua verde es "
@@ -1291,6 +1399,7 @@ MOD3 = cabecera(
         promediar intervalos distintos del eje.</p>
 
 {_M3_TAB2}
+{_M3_ANIM}
 {_M3_SOLAP}
       <h3>Lo que se gana, y su límite</h3>
 
@@ -1595,6 +1704,48 @@ _M5_TAB = tabla([r"\(h\)", "Uniforme", "Gaussiano"],
                         for t in m5["tabla"]),
                 f"La densidad estimada en x = {ent(_G5['x'])} con los datos "
                 f"{{{', '.join(ent(v) for v in _G5['datos'])}}}, dos núcleos y tres anchos.")
+_A5 = m5["animacion"]
+_CX4 = _A5["caja_x4"]
+_M5_ANIM = animacion(
+    "apa-desliza", "Una ventana que recorre el eje",
+    rf"""Los cinco datos {{{", ".join(ent(v) for v in _G5["datos"])}}}, cada uno con su color y su
+        forma: círculo, triángulo, cuadrado, rombo y estrella. La curva gris es la ventana, centrada en el
+        punto \(x\) donde se estima. Sobre cada dato, un tallo de su color mide lo que aporta: la altura de
+        la ventana encima de él. La columna apilada en \(x\) suma los cinco tallos, y su punta, que es
+        \(\hat f(x)\), va dejando la curva verde. {MANDOS_ANIM} Los botones de ancho cambian \(h\); las
+        leyendas hablan de \(h\) = {ent(_G5["h"])}, el de partida. Antes del último paso: ¿qué tendrá que
+        ver el tallo de un dato con una loma puesta sobre ese mismo dato?""",
+    [("Una caja recorre el eje",
+      rf"""La ventana es una caja de semiancho \(h\): un dato dentro aporta \(1/(2nh)\) y uno fuera,
+        nada. Por eso la curva sube y baja a saltos, uno cada vez que un dato entra o sale. En \(x\) =
+        {ent(_G5["x"])} la caja encierra {", ".join(ent(v) for v in _CX4[:-1])} y {ent(_CX4[-1])}, y la
+        columna llega a {n(m5["tabla"][1]["uniforme"], 1)}, el valor de la tabla. Pero el
+        {ent(_CX4[0])} y el {ent(_CX4[-1])} están justo en su borde, y basta correrse un poco para que
+        uno de los dos salga: ese {n(m5["tabla"][1]["uniforme"], 1)} es un pico de una sola línea. Es la
+        trampa de \(|u| \le 1\) de arriba, y la curva tiene otros picos así allí donde dos datos tocan
+        a la vez el borde de la caja."""),
+     ("La caja se vuelve campana",
+      rf"""En \(x\) = {ent(_G5["x"])} la caja se transforma en una campana gaussiana de desviación
+        típica \(h\). Ningún dato queda fuera, y cada uno pesa menos cuanto más lejos está: los cinco
+        pesos \(\phi(4 - x_i)\) son {", ".join(n(v, 4) for v in _G5["terminos"][:-1])} y
+        {n(_G5["terminos"][-1], 4)}, los del cálculo a mano, y la columna baja a {n(_G5["f"], 4)}."""),
+     ("La campana recorre el eje",
+      rf"""Con la campana los tallos crecen y menguan poco a poco en vez de aparecer y desaparecer, y la
+        curva sale lisa. Cuántas modas tenga lo decide el ancho: con \(h\) = {n(m5["modas"]["h"][0], 1)},
+        el más estrecho de los botones, la ventana apenas alcanza al dato que tiene debajo y la curva hace
+        {ent(m5["modas"]["modas"][0])} modas, una por dato; con {n(m5["modas"]["h"][1], 1)}, ya solo
+        {ent(m5["modas"]["modas"][1])}; y con \(h\) = {ent(m5["modas"]["h"][2])} y con \(h\) =
+        {ent(m5["modas"]["h"][3])}, la curva se queda con {ent(m5["modas"]["modas"][2])} moda: la ventana
+        alcanza a varios datos a la vez y los funde."""),
+     ("Una loma por dato, la misma curva",
+      r"""Aparece la loma de cada dato, de su color, con un punto de su forma donde la loma cruza la
+        vertical de \(x\), y una raya punteada que lo une a la punta del tallo del mismo dato: es
+        horizontal, porque los dos miden lo mismo. Lo que la ventana centrada en \(x\) le pide a \(x_i\),
+        \(K((x_i - x)/h)\), es lo que la loma de \(x_i\) deja en \(x\), \(K((x - x_i)/h)\), porque el
+        núcleo es simétrico. Por eso sumar tallos en cada \(x\) y sumar lomas dan la misma curva verde: son
+        las dos lecturas de la fórmula. La ventana gris sigue ahí, y también es una loma: la que tendría
+        un dato puesto en \(x\)."""),
+     ])
 _M5_SIM = sim(
     "apa-lomas", "Una loma por dato: el estimador gaussiano de cinco datos",
     "Las cinco líneas finas son las lomas, una por dato, cada una con área 1/5; la línea gruesa es su "
@@ -1687,6 +1838,7 @@ MOD5 = cabecera(
         gaussiano, cuyo soporte es toda la recta, es la <em>desviación típica</em> de la loma. El módulo 6 pone
         orden: para comparar núcleos, lo que hay que igualar es la desviación típica.</p>
 
+{_M5_ANIM}
 {_M5_SIM}
 {_M5_LEE}
 {_M5_COD}
@@ -1840,6 +1992,40 @@ MOD6 = cabecera(
 
 _E7, _I7, _MZ = m7["edades"], m7["ingresos"], m7["mezcla"]
 _K7 = {p["k"]: p for p in _MZ["por_k"]}
+_A7 = m7["animacion"]
+_A7K = {p["k"]: p for p in _A7["por_k"]}[_E7["k"]]
+_D7 = _E7["distancias"]
+_JUNTOS1 = [v for v in _E7["datos"] if abs(v - _E7["x"]) == _D7[0]]
+_JUNTOS2 = [v for v in _E7["datos"] if abs(v - _E7["x"]) == _D7[_E7["k"] - 1]]
+_M7_ANIM = animacion(
+    "apa-vecinos", "La ventana del k-NN, de punto en punto",
+    rf"""Las {ent(len(_E7["datos"]))} edades del ejemplo a mano son los puntos del eje; los naranjas son
+        los que la ventana encierra. La ventana se dibuja como un rectángulo de base \(2\,d_k\) y altura
+        \(k/(2n\,d_k)\), así que su área es siempre \(k/n\): al ensancharse, se aplasta. Su altura es la
+        estimación, y va dejando la curva verde. {MANDOS_ANIM} Los botones de vecinos cambian \(k\); las
+        leyendas hablan de \(k\) = {_E7["k"]}, el de partida. Antes del paso 2: ¿dónde crees que la curva
+        hará sus picos?""",
+    [("Crecer hasta el k-ésimo",
+      rf"""En \(x\) = {ent(_E7["x"])} la ventana crece desde cero. A distancia {ent(_D7[0])} entran a
+        la vez el {ent(_JUNTOS1[0])} y el {ent(_JUNTOS1[1])}; a distancia {ent(_E7["d_k"])}, también a la
+        vez, el {ent(_JUNTOS2[0])} y el {ent(_JUNTOS2[1])}. El tercer vecino está a \(d_{_E7["k"]}\) =
+        {ent(_E7["d_k"])} y ahí se para, pero ya encierra {ent(_E7["dentro"])} datos. El estimador cobra
+        \(k\) = {_E7["k"]} y da {n(_E7["f"], 4)}; la raya discontinua es lo que daría contando los
+        {ent(_E7["dentro"])}, {n(_E7["balloon"], 4)}."""),
+     ("Recorrer el eje",
+      rf"""La ventana recorre el eje de {ent(_A7["desde"])} a {ent(_A7["hasta"])}. Donde las edades se
+        apiñan, la base es estrecha y la altura sube; donde escasean, la base se ensancha y la altura baja.
+        La curva hace {ent(_A7K["picos"])} picos, en {", ".join(f"{v:g}" for v in _A7K["donde"][:-1])} y
+        {_A7K["donde"][-1]:g}: el punto medio de cada grupo de \(k\) edades seguidas, donde la ventana es
+        la más estrecha que puede encerrarlas. Entre pico y pico la curva no es lisa: se quiebra cada vez
+        que el \(k\)-ésimo vecino cambia."""),
+     ("Por la cola",
+      rf"""Pasado el último dato la ventana ya solo crece, y la altura baja como \(1/x\) a medida que
+        \(x\) se aleja: tan despacio que el área bajo la curva, la zona sombreada, no tiene tope. Entre
+        {ent(_A7["desde"])} y {ent(_A7["hasta"])} ya vale {n(_A7K["area_datos"], 2)}, más que 1; hasta
+        {ent(_A7["lejos"])} llega a {n(_A7K["area_cola"], 2)}, y seguiría creciendo. Es lo que la sección de
+        arriba medía con los ingresos, ahora a la vista: el <em>k</em>-NN no es una densidad."""),
+     ])
 _M7_SIM = sim(
     "apa-knn", "k vecinos sobre una mezcla de dos normales",
     "La curva verde es la estimación con k vecinos; la discontinua, la densidad verdadera de la "
@@ -1930,6 +2116,7 @@ MOD7 = cabecera(
         tope. El <em>k</em>-NN sirve para leer la concentración local de los datos, no para calcular
         probabilidades con su área.</p>
 
+{_M7_ANIM}
       <h3>Con muchos datos: una mezcla</h3>
 
       <p>Una muestra de {ent(_MZ["n"])} datos, mitad de una normal de media {ent(_MZ["medias"][0])} y
@@ -3586,6 +3773,454 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
 
 
 # =====================================================================
+# LAS ANIMACIONES POR PASOS (módulos 3, 5 y 7; 2026-10-03)
+#
+# Qué se ve en cada momento lo calcula `anim1d.js` —puro, probado en Node
+# contra lo que R publicó, con mutaciones (`prueba_anim1d.py`)—; aquí solo
+# el reloj, los mandos y Chart.js. Las leyendas de los pasos están en el
+# marcado (`animacion()`), no aquí: son prosa y las audita el auditor de
+# prosa.
+# =====================================================================
+ANIMACIONES_JS = r"""
+    // ================================================================
+    // EL RELOJ Y LOS MANDOS DE UNA ANIMACIÓN POR PASOS
+    //   · dur: segundos de cada paso a velocidad normal;
+    //   · pinta(paso, u): dibuja el paso en el momento u ∈ [0, 1].
+    // Nunca arranca sola: el primer movimiento lo pide el lector. Con
+    // «reducir movimiento» —leído al pulsar, no al cargar— avanza a saltos
+    // de un cuarto de paso. Se pausa al salir de la pantalla y se para al
+    // cambiar de módulo: devuelve un objeto con destroy(), que
+    // destruirSimuladores() llama igual que a los gráficos.
+    // Cada texto y cada atributo se escriben SOLO SI CAMBIAN: el botón que
+    // tiene el foco no se reescribe sesenta veces por segundo (la lección
+    // de la cáscara 2D del capítulo 6).
+    // Lo que cambió con la revisión independiente (2026-10-03):
+    //   · «Paso anterior» y «Paso siguiente» en los extremos se marcan con
+    //     aria-disabled y no con disabled: deshabilitar el botón que tiene el
+    //     foco lo tiraba al <body>. Y se ven apagados;
+    //   · el deslizador va de 1 % en 1 %: de 0.1 % en 0.1 %, las flechas no
+    //     movían nada visible y el lector de pantalla repetía «0 %»;
+    //   · el deslizador y el lienzo apuntan a la leyenda del paso
+    //     (aria-describedby), y el fin de un paso también se anuncia;
+    //   · en una columna estrecha los botones de paso llevan solo el número
+    //     (el título va en aria-label): con el título ocupaban cuatro renglones.
+    // ================================================================
+    function animacionA(raiz, dur, pinta) {
+      const leyendas = [...raiz.querySelectorAll('.anim-leyendas > [data-paso]')];
+      const titulos = leyendas.map(p => p.dataset.titulo);
+      const aviso = raiz.querySelector('.anim-aviso');
+      const lienzo = raiz.querySelector('canvas');
+      let paso = 0, u = 0, corre = false, ultimo = null, idRaf = 0, idSalto = 0;
+      const reducir = () => !!(window.matchMedia &&
+                               window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const pon = (el, clave, valor, fn) => { if (el['_' + clave] !== valor) { el['_' + clave] = valor; fn(valor); } };
+      const base = 'anim-' + Math.random().toString(36).slice(2, 10);
+      leyendas.forEach((p, i) => { p.id = base + '-' + i; });
+
+      const estrecho = raiz.clientWidth < 520;
+      const filaP = filaA(raiz, 'paso');
+      filaP.insertAdjacentHTML('beforeend', titulos.map((t, i) => estrecho
+        ? `<button type="button" class="geomapa-boton" aria-pressed="false" data-i="${i}" aria-label="Paso ${i + 1}: ${t}" title="${t}">${i + 1}</button>`
+        : `<button type="button" class="geomapa-boton" aria-pressed="false" data-i="${i}">${i + 1} · ${t}</button>`).join(''));
+      const pildoras = [...filaP.querySelectorAll('button')];
+      const filaM = filaA(raiz);
+      filaM.insertAdjacentHTML('beforeend',
+        '<button type="button" class="geomapa-boton" data-a="atras"><span aria-hidden="true">←</span> Paso anterior</button>' +
+        '<button type="button" class="geomapa-boton" data-a="play"></button>' +
+        '<button type="button" class="geomapa-boton" data-a="sigue">Paso siguiente <span aria-hidden="true">→</span></button>');
+      const bAtras = filaM.querySelector('[data-a="atras"]');
+      const bPlay = filaM.querySelector('[data-a="play"]');
+      const bSigue = filaM.querySelector('[data-a="sigue"]');
+      const id = base + '-ctl';
+      const caja = document.createElement('div');
+      caja.className = 'control-slider';
+      caja.style.flex = '1 1 16rem';
+      caja.innerHTML = `<label for="${id}">Momento del paso <output></output></label>` +
+                       `<input type="range" id="${id}" min="0" max="100" step="1" value="0">`;
+      raiz.querySelector('.simulador-controles').appendChild(caja);
+      const rango = caja.querySelector('input'), salida = caja.querySelector('output');
+      const apagado = (b, v) => {
+        b.setAttribute('aria-disabled', String(v));
+        b.style.opacity = v ? '0.45' : ''; b.style.cursor = v ? 'not-allowed' : '';
+      };
+
+      function sincroniza() {
+        pildoras.forEach((b, i) => pon(b, 'a', i === paso, v => {
+          b.classList.toggle('activo', v); b.setAttribute('aria-pressed', String(v)); }));
+        leyendas.forEach((p, i) => pon(p, 'a', i === paso, v => p.classList.toggle('actual', v)));
+        pon(rango, 'd', leyendas[paso].id, v => { rango.setAttribute('aria-describedby', v);
+                                                   if (lienzo) lienzo.setAttribute('aria-describedby', v); });
+        pon(bAtras, 'd', paso === 0, v => apagado(bAtras, v));
+        pon(bSigue, 'd', paso === titulos.length - 1, v => apagado(bSigue, v));
+        const etq = corre ? '<span aria-hidden="true">⏸</span> Pausa'
+                  : u >= 1 ? '<span aria-hidden="true">↺</span> Repetir el paso'
+                  : '<span aria-hidden="true">▶</span> Reproducir';
+        pon(bPlay, 't', etq, v => { bPlay.innerHTML = v; });
+        pon(rango, 'v', String(Math.round(u * 100)), v => { rango.value = v; });
+        const pc = Math.round(u * 100) + ' %';
+        pon(salida, 't', pc, v => { salida.textContent = v; });
+        pon(rango, 'vt', `paso ${paso + 1} de ${titulos.length}, ${pc}`, v => rango.setAttribute('aria-valuetext', v));
+      }
+      const anuncia = t => { if (aviso) aviso.textContent = t; };
+      function dibuja() { pinta(paso, u); sincroniza(); }
+      function para() {
+        corre = false; raiz._corre = false;
+        cancelAnimationFrame(idRaf); clearTimeout(idSalto);
+        lecturaPendienteA(raiz);
+        sincroniza();
+      }
+      function avanza(dt) {
+        u = Math.min(1, u + dt / dur[paso]); dibuja();
+        if (u >= 1 && corre) { para(); anuncia(`Fin del paso ${paso + 1}.`); }
+      }
+      function bucle(t) {
+        if (!corre) return;
+        const dt = ultimo === null ? 0 : Math.min(0.1, (t - ultimo) / 1000);
+        ultimo = t;
+        avanza(dt);
+        if (corre) idRaf = requestAnimationFrame(bucle);
+      }
+      function salto() {
+        u = Math.min(1, Math.floor(u * 4 + 1e-9) / 4 + 0.25);
+        dibuja();
+        if (u >= 1) { para(); anuncia(`Fin del paso ${paso + 1}.`); } else idSalto = setTimeout(salto, 1100);
+      }
+      function arranca() {
+        if (u >= 1) u = 0;
+        corre = true; raiz._corre = true; ultimo = null;
+        dibuja();
+        if (reducir()) idSalto = setTimeout(salto, 600);
+        else idRaf = requestAnimationFrame(bucle);
+      }
+      function irA(p, reproducir) {
+        const q = Math.max(0, Math.min(titulos.length - 1, p));
+        if (q === paso && p !== paso) return;            // un extremo: aria-disabled
+        para();
+        paso = q; u = 0;
+        dibuja();
+        anuncia(`Paso ${paso + 1} de ${titulos.length}: ${titulos[paso]}.`);
+        if (reproducir) arranca();
+      }
+      filaP.addEventListener('click', e => { const b = e.target.closest('button'); if (b) irA(+b.dataset.i, true); });
+      bAtras.addEventListener('click', () => irA(paso - 1, true));
+      bSigue.addEventListener('click', () => irA(paso + 1, true));
+      bPlay.addEventListener('click', () => { if (corre) para(); else arranca(); });
+      rango.addEventListener('input', () => { para(); u = +rango.value / 100; dibuja(); });
+
+      // Fuera de la pantalla no gasta nada: se pausa y sigue cuando se pulse.
+      let io = null;
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(es => { if (!es[0].isIntersecting && corre) para(); });
+        io.observe(raiz);
+      }
+      dibuja();
+      // Para las pruebas: el navegador integrado limita requestAnimationFrame.
+      raiz.animacion = { ir: (p, uu) => { para(); paso = p; u = uu; dibuja(); },
+                         avanza: s => avanza(s), estado: () => ({ paso: paso, u: u, corre: corre }) };
+      return { destroy() { para(); if (io) io.disconnect(); }, redibuja: dibuja };
+    }
+
+    // LA LECTURA DE UNA ANIMACIÓN se escribe solo si cambia y, mientras
+    // corre, como mucho cinco veces por segundo: reescribirla en cada
+    // fotograma estorbaba al cursor de un lector de pantalla y a quien
+    // quisiera seleccionar una cifra. Al pararse se escribe la última.
+    function lecturaSuaveA(raiz, pares) {
+      const html = pares.map(p =>
+        `<span class="lectura-item"><span class="lectura-etiqueta">${p[0]}</span> ` +
+        `<span class="lectura-valor">${p[1]}</span></span>`).join('');
+      const ahora = performance.now();
+      if (raiz._corre && raiz._tLectura && ahora - raiz._tLectura < 200) { raiz._pendiente = html; return; }
+      raiz._pendiente = null; raiz._tLectura = ahora;
+      const caja = raiz.querySelector('.simulador-lectura');
+      if (caja && caja._html !== html) { caja._html = html; caja.innerHTML = html; }
+    }
+    function lecturaPendienteA(raiz) {
+      const caja = raiz.querySelector('.simulador-lectura');
+      if (caja && raiz._pendiente && caja._html !== raiz._pendiente) { caja._html = raiz._pendiente; caja.innerHTML = raiz._pendiente; }
+      raiz._pendiente = null;
+    }
+
+    // Un trazo vertical de dos puntos: tallos, cursores, columnas.
+    const vertA = (x, y0, y1) => [{ x: x, y: y0 }, { x: x, y: y1 }];
+    // El naranja de las animaciones: #D55E00, 3.9:1 sobre el blanco. El
+    // naranja de la casa (#FF6600) se queda en 2.9:1, por debajo del 3:1 que
+    // piden los gráficos.
+    const NARANJA_A = CA.rojo;
+    // La leyenda de Chart.js solo enseña lo que se ve y tiene nombre. Qué se
+    // ve lo decide el PASO, no el momento: si un conjunto con nombre
+    // apareciera a mitad de paso, la leyenda ganaría un renglón y el gráfico
+    // saltaría (medido: 22 px a 1280, 34 a 375). Lo que todavía no está se
+    // dibuja vacío. En una columna estrecha la leyenda se compacta.
+    const leyendaA = raiz => ({ labels: Object.assign(
+      { filter: (it, d) => it.text !== '' && !d.datasets[it.datasetIndex].hidden },
+      raiz.clientWidth < 520 ? { boxWidth: 14, boxHeight: 8, padding: 6, font: { size: 11 } } : {}) });
+    const visiblesA = (ds, lista) => ds.forEach((d, i) => { d.hidden = lista.indexOf(i) < 0; });
+    // Las uniones redondeadas quitan los «pelos» que la vía rápida de dibujo
+    // de Chart.js dejaba en las bajadas de una escalera fina (revisión).
+    const lineasA = { line: { borderJoinStyle: 'round' } };
+    // Un techo «redondo» para el eje y, y sus marcas de `pasoA(techo)` en
+    // `pasoA(techo)`: con el máximo exacto Chart.js dejaba una marca suelta
+    // (0.27 encima de 0.25). Sin pasos de 0.025: Chart.js los rotula con dos
+    // decimales y salían 0.03, 0.05, 0.08…
+    function pasoA(v) {
+      const e = Math.pow(10, Math.floor(Math.log10(v)));
+      return [0.1, 0.2, 0.5, 1, 2].map(f => f * e).find(s => v / s <= 7);
+    }
+    function techoA(v) { const p = pasoA(v); return Math.ceil(v / p - 1e-9) * p; }
+
+    // --- Módulo 3 · animación: un origen tras otro ------------------------
+    SIMULADORES['apa-origenes'] = function (raiz) {
+      const e = DA.m3.ejemplo, an = DA.m3.animacion, n = e.datos.length;
+      const A = A1D.origenes({ x: e.datos, h: e.h, m: e.m, desde: e.extendida.desde,
+                               hasta: e.extendida.hasta, paso: an.paso, escalera: an.m });
+      // El techo: de ahí arranca el dato que cae, con holgura sobre la barra más alta.
+      const TECHO = techoA(1.45 * Math.max(...A.base.alturas));
+      // Los tres sellos se distinguen por color Y por trazo: el azul y el
+      // morado se confunden con deuteranopía.
+      const COL = [CA.azul, CA.morado, '#C2185B'];
+      const TRAZO = [[], [7, 4], [2, 3]];
+      const NOM = ['corrido 0', 'corrido δ', 'corrido 2δ'];
+      // En el cursor, puntos de mayor a menor: cuando dos alturas coinciden
+      // (en x = 3 el azul y el rosa valen lo mismo) se ve un anillo y no uno solo.
+      const RADIO = [8, 6, 4];
+      const MMAX = Math.max(...an.m);
+      // Los datos repetidos (el 3 está dos veces) se apilan para que se vean los dos.
+      const vistos = {};
+      const puntosDatos = e.datos.map(v => { vistos[v] = (vistos[v] || 0) + 1;
+                                             return { x: v, y: (vistos[v] - 1) * 0.045 * TECHO }; });
+      const sets = [{ label: 'histograma', data: [], borderColor: '#4b5563', backgroundColor: CA.grisClaro,
+                      fill: 'origin', borderWidth: 1.5, pointRadius: 0, order: 6 }];
+      for (let j = 0; j < e.m; j++) sets.push({ label: NOM[j], data: [], borderColor: COL[j], borderDash: TRAZO[j],
+                                                borderWidth: 2.25, pointRadius: 0, order: 4 });
+      const I = { hist: 0, ash: 1 + e.m, tri: 2 + e.m, cur: 3 + e.m, pcur: 4 + e.m, cae: 5 + e.m,
+                  datos: 6 + e.m, mm: 7 + e.m };
+      sets.push({ label: 'el ASH: su promedio', data: [], borderColor: NARANJA_A, borderWidth: 3, pointRadius: 0, order: 1 });
+      // El triangular va ENCIMA del ASH: con m grande las dos coinciden, y es
+      // el verde discontinuo sobre el naranja lo que enseña que coinciden.
+      sets.push({ label: 'núcleo triangular', data: curvaA(A.g, A.tri), borderColor: CA.verde, borderDash: [6, 4],
+                  borderWidth: 2, pointRadius: 0, order: 0.5 });
+      sets.push({ label: '', data: [], borderColor: '#374151', borderDash: [2, 3], borderWidth: 1, pointRadius: 0, order: 3 });
+      sets.push({ label: '', type: 'scatter', data: [], backgroundColor: COL.slice(0, e.m).concat([NARANJA_A]),
+                  pointRadius: RADIO.slice(0, e.m).concat([6]), order: 0 });
+      sets.push({ label: 'dato que cae', type: 'scatter', data: [], backgroundColor: NARANJA_A, pointRadius: 6, order: 0 });
+      sets.push({ label: 'datos', type: 'scatter', data: puntosDatos, backgroundColor: '#111827', pointRadius: 4, order: 0 });
+      for (let j = 0; j < MMAX; j++) sets.push({ label: j === 0 ? 'los m histogramas' : '', data: [],
+                                                 borderColor: 'rgba(75,85,99,0.35)', borderWidth: 1, pointRadius: 0, order: 5 });
+      // Lo que se ve en cada paso (la leyenda no cambia dentro de un paso).
+      const sellos = [...Array(e.m).keys()].map(j => 1 + j);
+      const mms = [...Array(MMAX).keys()].map(j => I.mm + j);
+      const VISIBLES = [[I.hist, I.cae, I.datos], [I.hist, I.datos].concat(sellos),
+                        sellos.concat([I.ash, I.cur, I.pcur, I.datos]), mms.concat([I.ash, I.tri, I.datos])];
+      const g = graficoA(raiz, 'line', { datasets: sets }, {
+        plugins: { legend: leyendaA(raiz) }, elements: lineasA,
+        scales: { x: { type: 'linear', min: e.extendida.desde, max: e.extendida.hasta + e.h,
+                       title: { display: true, text: 'x' } },
+                  y: { min: 0, max: TECHO, ticks: { stepSize: pasoA(TECHO) },
+                       title: { display: true, text: 'densidad' } } } });
+      const tramo = hs => escaleraA(hs.cortes, hs.alturas);
+      const pinta = (paso, u) => {
+        const f = A.fotograma(paso, u), ds = g.data.datasets;
+        visiblesA(ds, VISIBLES[paso]);
+        ds.forEach((d, i) => { if (i !== I.datos && i !== I.tri) d.data = []; });
+        let lec;
+        if (paso === 0) {
+          ds[I.hist].data = tramo(f.barras);
+          if (f.cae) ds[I.cae].data = [{ x: f.cae.x, y: TECHO - f.cae.avance * (TECHO - f.cae.destino) }];
+          lec = [['datos que han caído', f.caidos + ' de ' + n], ['conteos', f.barras.conteos.join(', ')]];
+        } else if (paso === 1) {
+          ds[I.hist].data = tramo(f.barras);
+          f.sellados.forEach(j => { ds[1 + j].data = tramo(A.sellos[j]); });
+          lec = [['origen corrido', nA(f.origen, 2)], ['conteos', f.barras.conteos.join(', ')],
+                 ['histogramas sellados', f.sellados.length + ' de ' + e.m]];
+        } else if (paso === 2) {
+          for (let j = 0; j < e.m; j++) ds[1 + j].data = tramo(A.sellos[j]);
+          ds[I.ash].data = curvaA(A.g.slice(0, f.cuantos), f.ash);
+          ds[I.cur].data = vertA(f.cursor.x, 0, TECHO);
+          ds[I.pcur].data = f.cursor.alturas.map(y => ({ x: f.cursor.x, y: y }))
+                             .concat([{ x: f.cursor.x, y: f.cursor.media }]);
+          lec = [['x', nA(f.cursor.x, 2)]].concat(f.cursor.alturas.map((y, j) => [NOM[j], nA(y, 4)]))
+                                          .concat([['su promedio, el ASH', nA(f.cursor.media, 4)]]);
+        } else {
+          // Más tenues cuantos más son: con 48 a la opacidad de 3 eran un
+          // rayado oscuro que tapaba la lección.
+          const tinta = `rgba(75,85,99,${Math.min(0.5, 1.5 / f.m).toFixed(3)})`;
+          f.histos.forEach((hs, j) => { ds[I.mm + j].data = tramo(hs); ds[I.mm + j].borderColor = tinta; });
+          ds[I.ash].data = curvaA(A.g, f.ash);
+          lec = [['histogramas promediados m', f.m], ['mayor distancia al triangular', nA(f.distancia, 5)],
+                 ['m × distancia', nA(f.m * f.distancia, 4)]];
+        }
+        g.update('none');
+        lecturaSuaveA(raiz, lec);
+      };
+      const anim = animacionA(raiz, [6, 8, 9, 7.5], pinta);
+      return [g, anim];
+    };
+
+    // --- Módulo 5 · animación: una ventana que recorre el eje -------------
+    SIMULADORES['apa-desliza'] = function (raiz) {
+      const gs = DA.m5.gaussiano, an = DA.m5.animacion, x = gs.datos, n = x.length;
+      // Los anchos: el de partida del simulador de las lomas, en el que cada
+      // dato levanta su bulto, y los tres de la tabla. Sin el primero, «con h
+      // pequeño cada dato levanta su propio bulto» no se podía ver (revisión).
+      const H = [DA.m5.h_inicial].concat(DA.m5.tabla.map(t => t.h));
+      // Cada dato tiene color Y forma: los colores solos no se distinguen con
+      // deuteranopía, y en el último paso lo que une el tallo, la loma y su
+      // punto es el dato. La forma va en el punto del eje y en el de su loma.
+      const COLS = ['#B35900', '#0072B2', '#A3367F', '#333333', '#C23B22'];
+      const FORMAS = ['circle', 'triangle', 'rect', 'rectRot', 'star'];
+      let iH = H.indexOf(gs.h), A = null, TECHO = 0;
+      const construye = () => {
+        const h = H[iH];
+        A = A1D.desliza({ x: x, h: h, x0: gs.x, desde: an.desde, hasta: an.hasta, paso: an.paso });
+        const pico = nom => D1.nucleo(nom)(0) / (n * h);
+        TECHO = techoA(1.1 * Math.max(Math.max(...A.curvaCaja), Math.max(...A.curvaCampana),
+                                      pico('rectangular'), pico('gaussian')));
+      };
+      construye();
+      // En la leyenda solo la ventana y la curva: los tallos, la columna y las
+      // lomas llevan el color de cada dato, y una muestra de un solo color
+      // engañaba. La intro los explica.
+      const sets = [{ label: 'la ventana', data: [], borderColor: '#4b5563', backgroundColor: 'rgba(75,85,99,0.08)',
+                      fill: 'origin', borderWidth: 2, pointRadius: 0, order: 7 }];
+      const I = { ven: 0, tal: 1, mon: 1 + n, tra: 1 + 2 * n, lom: 2 + 2 * n, raya: 2 + 3 * n,
+                  plo: 2 + 4 * n, dat: 3 + 4 * n, pun: 4 + 4 * n };
+      x.forEach((v, i) => sets.push({ label: '', data: [], borderColor: COLS[i], borderWidth: 4, pointRadius: 0, order: 3 }));
+      x.forEach((v, i) => sets.push({ label: '', data: [], borderColor: COLS[i], borderWidth: 10, pointRadius: 0, order: 2 }));
+      sets.push({ label: 'la densidad estimada', data: [], borderColor: CA.verde, borderWidth: 2.5, pointRadius: 0, order: 4 });
+      x.forEach((v, i) => sets.push({ label: '', data: [], borderColor: COLS[i], borderWidth: 1.25,
+                                      borderDash: [4, 3], pointRadius: 0, order: 6 }));
+      x.forEach((v, i) => sets.push({ label: '', data: [], borderColor: COLS[i], borderWidth: 1.5,
+                                      borderDash: [1, 3], pointRadius: 0, order: 5 }));
+      sets.push({ label: '', type: 'scatter', data: [], backgroundColor: COLS, borderColor: COLS, borderWidth: 2,
+                  pointStyle: FORMAS, pointRadius: 6, order: 0 });
+      sets.push({ label: '', type: 'scatter', data: x.map(v => ({ x: v, y: 0 })), backgroundColor: COLS,
+                  borderColor: COLS, borderWidth: 2, pointStyle: FORMAS, pointRadius: 6, order: 0 });
+      sets.push({ label: '', type: 'scatter', data: [], backgroundColor: CA.verde, pointRadius: 5, order: 0 });
+      const rango = (a, b) => [...Array(b - a).keys()].map(j => a + j);
+      const VISIBLES = [
+        [I.ven, I.tra, I.dat, I.pun].concat(rango(I.tal, I.tal + n), rango(I.mon, I.mon + n)),
+        [I.ven, I.dat, I.pun].concat(rango(I.tal, I.tal + n), rango(I.mon, I.mon + n)),
+        [I.ven, I.tra, I.dat, I.pun].concat(rango(I.tal, I.tal + n), rango(I.mon, I.mon + n)),
+        [I.ven, I.tra, I.dat, I.pun, I.plo].concat(rango(I.tal, I.tal + n), rango(I.lom, I.lom + n),
+                                                   rango(I.raya, I.raya + n))];
+      const g = graficoA(raiz, 'line', { datasets: sets }, {
+        plugins: { legend: leyendaA(raiz) }, elements: lineasA,
+        scales: { x: { type: 'linear', min: an.desde, max: an.hasta, ticks: { stepSize: 1 },
+                       title: { display: true, text: 'x' } },
+                  y: { min: 0, max: TECHO, ticks: { stepSize: pasoA(TECHO) },
+                       title: { display: true, text: 'densidad' } } } });
+      const pinta = (paso, u) => {
+        const f = A.fotograma(paso, u), ds = g.data.datasets;
+        visiblesA(ds, VISIBLES[paso]);
+        ds[I.ven].data = curvaA(A.g, f.ventana);
+        x.forEach((v, i) => { ds[I.tal + i].data = vertA(v, 0, f.tallos[i]); });
+        if (paso < 3) {
+          // La columna apilada en x: cada tramo, el aporte de un dato.
+          let acum = 0;
+          x.forEach((v, i) => { ds[I.mon + i].data = vertA(f.x, acum, acum + f.tallos[i]); acum += f.tallos[i]; });
+        } else {
+          // Las lomas, el punto de cada una en la vertical de x y la raya que
+          // lo une a la punta del tallo de su dato.
+          x.forEach((v, i) => {
+            ds[I.lom + i].data = curvaA(A.g, A.lomas[i]);
+            ds[I.raya + i].data = [{ x: Math.min(v, f.x), y: f.tallos[i] }, { x: Math.max(v, f.x), y: f.tallos[i] }];
+          });
+          ds[I.plo].data = f.enLomas.map(y => ({ x: f.x, y: y }));
+        }
+        ds[I.pun].data = [{ x: f.x, y: f.f }];
+        ds[I.tra].data = f.traza ? curvaA(A.g.slice(0, f.cuantos), f.traza) : [];
+        g.update('none');
+        const lec = [['x', nA(f.x, 2)], ['ancho h', nA(H[iH], 1)]];
+        if (paso === 1) lec.push(['de caja a campana', Math.round(100 * f.s) + ' %'],
+                                 ['pesos K', f.pesos.map(v => nA(v, 4)).join(', ')]);
+        lec.push(['aportes', f.tallos.map(v => nA(v, 4)).join(', ')], ['su suma, f̂(x)', nA(f.f, 4)]);
+        lecturaSuaveA(raiz, lec);
+      };
+      const anim = animacionA(raiz, [9, 3.5, 9, 9], pinta);
+      botoneraA(raiz, H.map(v => 'h = ' + nA(v, 1)), i => {
+        iH = i; construye();
+        g.options.scales.y.max = TECHO; g.options.scales.y.ticks.stepSize = pasoA(TECHO);
+        anim.redibuja(); }, iH, 'ancho');
+      return [g, anim];
+    };
+
+    // --- Módulo 7 · animación: la ventana del k-NN ------------------------
+    SIMULADORES['apa-vecinos'] = function (raiz) {
+      const ed = DA.m7.edades, an = DA.m7.animacion, KS = an.por_k.map(p => p.k), x = ed.datos;
+      const motores = KS.map(k => A1D.vecinos({ x: x, k: k, x0: ed.x, desde: an.desde, hasta: an.hasta,
+                                                lejos: an.lejos, paso: an.paso }));
+      // El techo de cada k: el pico más alto entre los datos, con holgura. Con
+      // k = 1 la curva es infinita en cada dato, y se usa el techo de k = 2.
+      const techoDe = A => { let m = 0;
+        A.curva.forEach((v, i) => { if (A.g[i] <= an.hasta && Number.isFinite(v) && v > m) m = v; });
+        return techoA(1.2 * m); };
+      const i2 = KS.indexOf(2);
+      const TECHOS = motores.map((A, i) => (KS[i] === 1 && i2 >= 0) ? techoDe(motores[i2]) : techoDe(A));
+      let iK = KS.indexOf(ed.k);
+      const sets = [
+        { label: 'la ventana: área k/n', data: [], borderColor: '#4b5563', backgroundColor: CA.verdeSuave,
+          fill: 'origin', borderWidth: 1.5, pointRadius: 0, order: 5 },
+        { label: 'contando todos los de dentro', data: [], borderColor: '#4b5563', borderDash: [5, 4],
+          borderWidth: 1.5, pointRadius: 0, order: 4 },
+        { label: 'la estimación', data: [], borderColor: CA.verde, backgroundColor: 'rgba(26,115,88,0.12)',
+          borderWidth: 2.5, pointRadius: 0, order: 3 },
+        { label: 'la ventana creciendo', data: [], borderColor: NARANJA_A, borderWidth: 6, pointRadius: 0, order: 2 },
+        { label: 'dentro de la ventana', type: 'scatter', data: [], backgroundColor: NARANJA_A, pointRadius: 6, order: 0 },
+        { label: 'fuera', type: 'scatter', data: [], backgroundColor: '#6b7280', pointRadius: 5, order: 0 },
+        { label: '', data: [], borderColor: '#374151', borderDash: [2, 3], borderWidth: 1, pointRadius: 0, order: 1 }
+      ];
+      const VISIBLES = [[0, 1, 3, 4, 5, 6], [0, 1, 2, 4, 5, 6], [0, 1, 2, 4, 5, 6]];
+      // Sin `decimation`, la curva del k-NN —miles de nodos y quiebros— salía
+      // con muescas; min-max conserva los picos (revisión).
+      const g = graficoA(raiz, 'line', { datasets: sets }, {
+        plugins: { legend: leyendaA(raiz), decimation: { enabled: true, algorithm: 'min-max', threshold: 1 } },
+        elements: lineasA,
+        scales: { x: { type: 'linear', min: an.desde, max: an.hasta, title: { display: true, text: 'edad' } },
+                  y: { min: 0, max: TECHOS[iK], ticks: { stepSize: pasoA(TECHOS[iK]) },
+                       title: { display: true, text: 'densidad' } } } });
+      const pinta = (paso, u) => {
+        const A = motores[iK], k = KS[iK], T = TECHOS[iK], f = A.fotograma(paso, u), ds = g.data.datasets;
+        visiblesA(ds, VISIBLES[paso]);
+        ds.forEach(d => { d.data = []; });
+        const dentro = paso === 0 ? f.dentro : f.ventana.dentro;
+        ds[4].data = dentro.map(i => ({ x: x[i], y: 0 }));
+        ds[5].data = x.map(v => ({ x: v, y: 0 })).filter((_, i) => dentro.indexOf(i) < 0);
+        ds[6].data = vertA(f.x, 0, T);
+        const v = f.ventana;
+        if (v && Number.isFinite(v.alto)) {
+          const a = v.x - v.dk, b = v.x + v.dk, alto = Math.min(v.alto, T);
+          ds[0].data = [{ x: a, y: 0 }, { x: a, y: alto }, { x: b, y: alto }, { x: b, y: 0 }];
+          if (v.dentro.length > k) { const gl = Math.min(v.globo, T); ds[1].data = [{ x: a, y: gl }, { x: b, y: gl }]; }
+        }
+        // En la cola se sombrea el área bajo la curva: el rectángulo ya mide
+        // dos o tres píxeles de alto, y el área es lo que el paso enseña.
+        ds[2].fill = paso === 2 ? 'origin' : false;
+        let lec;
+        if (paso === 0) {
+          ds[3].data = [{ x: f.x - f.radio, y: 0 }, { x: f.x + f.radio, y: 0 }];
+          lec = [['x', nA(f.x, 2)], ['radio de la ventana', nA(f.radio, 2)], ['datos dentro', dentro.length]];
+          if (f.listo) lec.push(['d_k', nA(v.dk, 2)], ['estimación, cobrando k', nA(v.alto, 4)],
+                                ['contando los de dentro', nA(v.globo, 4)]);
+        } else {
+          ds[2].data = curvaA(A.g.slice(0, f.cuantos), f.traza);
+          lec = [['x', nA(f.x, 2)], ['d_k', nA(v.dk, 2)], ['datos dentro', v.dentro.length],
+                 ['estimación', Number.isFinite(v.alto) ? nA(v.alto, 4) : '∞ (x cae sobre un dato)'],
+                 ['picos ya trazados', f.picos],
+                 ['área bajo la curva desde ' + an.desde, Number.isFinite(f.area) ? nA(f.area, 3) : '∞']];
+        }
+        g.options.scales.x.max = paso === 2 ? Math.max(an.hasta, f.x) : an.hasta;
+        g.options.scales.y.max = T; g.options.scales.y.ticks.stepSize = pasoA(T);
+        g.update('none');
+        lecturaSuaveA(raiz, lec);
+      };
+      const anim = animacionA(raiz, [5, 10, 8], pinta);
+      botoneraA(raiz, KS.map(k => 'k = ' + k), i => { iK = i; anim.redibuja(); }, iK, 'vecinos');
+      return [g, anim];
+    };
+"""
+
+
+# =====================================================================
 # LA AUTOEVALUACIÓN: diecisiete preguntas, al menos una por módulo. Cinco del documento original
 # (adaptadas) y siete de interpretación. Cada opción trae su `retro`, la
 # clave que el motor lee; las cifras salen de `DA`.
@@ -3860,7 +4495,8 @@ def sustituye(texto, ancla, nuevo, que):
 
 
 MODULOS_OBJETIVO = 13
-N_SIMULADORES = 14
+# Catorce simuladores y tres animaciones por pasos (2026-10-03).
+N_SIMULADORES = 17
 
 
 def main() -> int:
@@ -3870,6 +4506,9 @@ def main() -> int:
     motor = MOTOR.read_text(encoding="utf-8")
     if "</script" in motor.lower():
         sys.exit("PARADO: el motor densidad1d.js contiene «</script» y rompería el documento")
+    motor_anim = MOTOR_ANIM.read_text(encoding="utf-8")
+    if "</script" in motor_anim.lower():
+        sys.exit("PARADO: el motor anim1d.js contiene «</script» y rompería el documento")
 
     doc = sustituye(doc, "<title>Plantilla de capítulo — Estadística Espacial</title>",
                     "<title>Apéndice A · La densidad en una dimensión — Estadística Espacial</title>",
@@ -3909,7 +4548,9 @@ def main() -> int:
         "    // ================================================================\n"
         "    // Autoevaluación de demostración: una pregunta de cada tipo\n",
         "    // --- El motor de los simuladores (precalculo/densidad1d.js) ---\n"
-        + motor + "\n" + SIMULADORES_JS
+        + motor + "\n"
+        + "    // --- Los fotogramas de las animaciones (precalculo/anim1d.js) ---\n"
+        + motor_anim + "\n" + SIMULADORES_JS + ANIMACIONES_JS
         + "\n    // ================================================================\n"
           "    // Autoevaluación de demostración: una pregunta de cada tipo\n",
         "los simuladores de demostración", max_lineas=140, min_lineas=100)

@@ -97,6 +97,45 @@ desviaciones, cada una con su causa medida.
     que promedia orígenes, la loma que se desliza, la ventana del k-NN) y reordenar los
     ejercicios por dificultad: renumerarlos arrastra las claves `e1…e10` por R, JSON, auditor
     y arnés, y la etiqueta de módulos cubre la mitad del problema.
+15. **Las tres animaciones (2026-10-03, pedidas por Javier).** Son animaciones por pasos sobre
+    los ejemplos a mano, no sobre `faithful`: con pocos datos se ve moverse cada uno, y sus
+    cifras ya están en las tablas del texto. Van en una rama propia desde `main`, porque la
+    cáscara 2D de las animaciones de los capítulos (`anim2d`) sigue en los PR #11 y #12.
+    - **Módulo 3, «Un origen tras otro»**: los datos caen en su casilla, el origen se corre
+      un ancho entero y deja sellados los tres histogramas de la tabla, un cursor los promedia
+      en el mismo x, y m crece por duplicaciones (3 → 48) hasta que el ASH no se distingue del
+      triangular. Por duplicaciones porque, con datos enteros y h = 2, m = 4 queda más lejos
+      del triangular que m = 3 (guarda).
+    - **Módulo 5, «Una ventana que recorre el eje»**: caja, campana y la misma curva como suma
+      de lomas, con el tallo de cada dato a la altura de su loma en x (la simetría del núcleo).
+      Los picos finos de la curva de la caja son la trampa de |u| ≤ 1 del módulo, y su leyenda
+      lo dice.
+    - **Módulo 7, «La ventana del k-NN»**: crece en x = 30 hasta el tercer vecino (empate:
+      encierra 4), recorre el eje como un rectángulo de área k/n y sigue por la cola. Medido al
+      construirla: con las siete edades hay exactamente n − k + 1 picos, uno en el punto medio
+      de cada grupo de k edades seguidas, y el área ya pasa de 1 entre los datos (1.42 con
+      k = 3; 1.94 hasta 250).
+    La coreografía es pura y vive en `precalculo/anim1d.js`, probada en Node contra el JSON con
+    trece mutaciones (`prueba_anim1d.py`, en `audita_todo.sh`). Las leyendas de los pasos son
+    prosa del marcado: sus cifras salen del JSON y las audita `audita_texto_apendicea.py`. La
+    lectura de una animación no es `aria-live` —cambiaría en cada fotograma—; se anuncia el
+    cambio de paso. Nunca arranca sola, se pausa fuera de la pantalla y, con movimiento
+    reducido, avanza a saltos de un cuarto. Generador: 101 guardas; auditor: 1 109
+    comprobaciones; prosa: 173; tope de peso de 840 a 880 KB (820).
+    Una revisión independiente en Chrome (21 hallazgos) cambió dos leyendas que el dibujo
+    desmentía. El 0.3 de x = 4 no se veía nunca: la caja saltaba de 3.994 a 4.005, y ahora se
+    detiene allí y la ventana va siempre a un nodo de la rejilla. «Con h pequeño cada dato hace
+    su bulto» era falso con los anchos que había (0.5, 1 y 2), y se añadió el 0.3. Además:
+    - mandos explicados en las tres intros;
+    - leyenda de Chart.js fija dentro de cada paso (el gráfico saltaba 22–34 px);
+    - forma por dato y trazo por histograma sellado (deuteranopía);
+    - naranja de 3.9:1;
+    - aria-disabled en los extremos (el foco caía al body);
+    - deslizador de 1 %;
+    - lectura a cinco escrituras por segundo;
+    - botones de paso solo con el número en el teléfono.
+    Queda sin hacer descargar el paso 4 del módulo 5, que en el teléfono va cargado. Motor:
+    15 mutaciones.
 
 
 ## Context

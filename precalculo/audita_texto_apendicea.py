@@ -31,11 +31,12 @@ lecturas y se declaran estructurales. Solo se exime lo que está ahí dentro:
 un número de la prosa que coincida con uno de la bibliografía sale exento,
 y por eso la lista se imprime.
 
-EL TOPE DE PESO ES 760 KB. El documento pesa 661 —el motor y los catorce
-simuladores van en línea, y la muestra de los simuladores también—; la cota
-que ata la comprobación a su arnés es por encima del tamaño y por debajo de
-ese tamaño + 312 KB (`prueba_texto.py` la tumba inyectando 320 000 bytes).
-760 deja unos 100 KB de margen y queda más de 200 por debajo del techo.
+EL TOPE DE PESO ES 880 KB. El documento pesa 820 —los dos motores, los
+catorce simuladores y las tres animaciones van en línea, y la muestra de los
+simuladores también—; la cota que ata la comprobación a su arnés es por
+encima del tamaño y por debajo de ese tamaño + 312 KB (`prueba_texto.py` la
+tumba inyectando 320 000 bytes). 880 deja unos 60 KB de margen y queda más de
+200 por debajo del techo.
 
 Uso:  python3 precalculo/audita_texto_apendicea.py
 Devuelve 1 si algo falla.
@@ -53,10 +54,12 @@ from audita_texto_base import Auditor, SALIDAS, busca_capitulo
 # de 683 a 755 KB —el cuestionario pasó de 12 a 17 preguntas, cada ejercicio
 # ganó su pista y cuatro simuladores ganaron curvas y mandos— y el tope sube
 # con él, por debajo de tamaño + 312 KB para que `prueba_texto.py` no quede
-# ciego.
-TOPE_KB = 840.0
+# ciego. Las tres animaciones (2026-10-03) lo subieron a 820 KB —con la
+# plantilla de colores forzados ya dentro— y el tope pasó de 840 a 880.
+TOPE_KB = 880.0
 DOCUMENTO = "apendice-a-densidad.html"
 MOTOR = SALIDAS.parent / "densidad1d.js"
+MOTOR_ANIM = SALIDAS.parent / "anim1d.js"
 
 ESTRUCTURALES = {
     "20929",                                  # el código de la asignatura
@@ -238,10 +241,16 @@ def motor_al_dia(a: Auditor) -> None:
     motor = MOTOR.read_text(encoding="utf-8")
     a.exige(motor in a.doc, "el documento lleva densidad1d.js tal como está hoy",
             f"{len(motor) / 1024:.1f} KB")
+    # Y el de las animaciones: `prueba_anim1d.py` prueba sus fotogramas, y
+    # una copia vieja en el documento dejaría esa prueba cubriendo otra cosa.
+    anim = MOTOR_ANIM.read_text(encoding="utf-8")
+    a.exige(anim in a.doc, "el documento lleva anim1d.js tal como está hoy",
+            f"{len(anim) / 1024:.1f} KB")
     regs = set(re.findall(r"SIMULADORES\['(apa-[a-z]+)'\] = function", a.doc))
     marc = a.doc[:a.doc.rindex("\n  <script>")]
     ids = set(re.findall(r'data-simulador="([^"]+)"', marc))
-    a.exige(ids == regs and len(ids) == 14,
+    # Catorce simuladores y tres animaciones por pasos (2026-10-03).
+    a.exige(ids == regs and len(ids) == 17,
             "cada simulador del marcado tiene su registro y viceversa", f"{len(ids)} y {len(regs)}")
 
 

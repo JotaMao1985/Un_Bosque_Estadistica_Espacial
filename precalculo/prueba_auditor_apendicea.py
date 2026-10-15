@@ -360,6 +360,16 @@ def defectos():
     obj("13 · el mínimo local más bajo de Kennedy cambia", "soluciones",
         ["e10", "pasos", 14, "valor"], 7.3131313)
 
+    # --- Las tres animaciones (2026-10-03): una inyección por lo que afirman
+    obj("3 · la escalera de la animación deja de bajar", "datos", ["m3", "animacion", "distancia", 2], 0.0313131)
+    obj("3 · la animación ya no duplica m", "datos", ["m3", "animacion", "m", 2], 10)
+    obj("5 · la caja de x = 4 encierra otro dato", "datos", ["m5", "animacion", "caja_x4", 0], 2)
+    obj("7 · un pico del k-NN se sale del punto medio", "datos",
+        ["m7", "animacion", "por_k", 2, "donde", 1], 26.3131313)
+    obj("7 · los picos con k = 4 dejan de ser n − k + 1", "datos", ["m7", "animacion", "por_k", 3, "picos"], 5)
+    obj("7 · la cola deja de sumar área", "datos", ["m7", "animacion", "por_k", 2, "area_cola"], 1.3131313)
+    obj("7 · con k = 1 aparece un área finita", "datos", ["m7", "animacion", "por_k", 0, "area_datos"], 1.7131313)
+
     def sin_pista(s):
         del s["e5"]["pista"]
     fn("13 · un ejercicio pierde su pista", "soluciones", sin_pista)
