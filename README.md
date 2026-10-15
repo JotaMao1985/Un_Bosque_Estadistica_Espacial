@@ -40,7 +40,9 @@ curso usa—.
 **El apéndice A, «La densidad en una dimensión»**, es el repaso del capítulo 5: todo lo que el
 estimador de intensidad por núcleos decide —el ancho, la forma del núcleo, el selector, la
 corrección de borde— hecho primero sobre un renglón, donde se puede dibujar y calcular a mano.
-Tiene 13 módulos, 14 simuladores, 17 preguntas, 10 ejercicios y 12 bloques en cada lenguaje, y
+Tiene 13 módulos, 14 simuladores, 3 animaciones por pasos —el histograma promediado origen
+a origen, una ventana que recorre el eje y la ventana de los k vecinos—, 17 preguntas, 10
+ejercicios y 12 bloques en cada lenguaje, y
 adapta un documento del profesor (`JMS_Densidades.Rmd`) con cuatro cosas que ese documento no
 decía y que se midieron al construirlo: que el histograma promediado es un núcleo triangular
 disfrazado, que `bw.scott` de spatstat es la regla de referencia normal del plano, que las
@@ -345,7 +347,9 @@ módulos del plan. Se construye con la cadena de siempre (`genera_apendicea.R` �
 `ensambla_apendicea.py` → `audita_apendicea.py` y `audita_texto_apendicea.py`), corre por su
 propio bucle en `audita_todo.sh` y trae una pieza que los capítulos no tienen: un motor de
 JavaScript que dibuja en vivo (`precalculo/densidad1d.js`), con su prueba contra R y sus
-mutaciones (`prueba_densidad1d.py`). Las cifras de la prosa nunca salen del motor: salen del JSON.
+mutaciones (`prueba_densidad1d.py`). Las animaciones añaden otro, `precalculo/anim1d.js`, que
+decide qué se ve en cada momento de cada paso y se prueba igual (`prueba_anim1d.py`). Las cifras
+de la prosa —también las de las leyendas de cada paso— nunca salen de los motores: salen del JSON.
 
 `entrega/datos/` es la única excepción a la regla de que `datos/` no se versiona, y existe
 por un motivo que ningún auditor de cifras podía ver: **una tarea que manda ejecutar código

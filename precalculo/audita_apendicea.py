@@ -978,6 +978,22 @@ def modulo3(a, D, ctx):
     vec(a, fj.mean(axis=1), ej["f_ash"], "m3: el ASH a mano en 3, 5, 7 y 9", T8)
     vec(a, ash(xa, ha, ma, pts), fj.mean(axis=1), "m3: y la función ash() da lo mismo", 1e-12)
 
+    # La animación (2026-10-03): la escalera de m va por duplicaciones desde
+    # el m de la tabla, y en cada escalón la distancia al triangular baja.
+    an = m["animacion"]
+    a.igual(an["paso"], 0.01, "m3: animación, el paso de la rejilla")
+    g3a = r_seq_by(ext[0], ext[-1], an["paso"])
+    tri3a = np.array([np.mean(np.maximum(0, 1 - np.abs((t - xa) / ha))) / ha for t in g3a])
+    enteros(a, [3, 6, 12, 24, 48], an["m"], "m3: animación, la escalera de m por duplicaciones")
+    d3a = np.array([np.max(np.abs(ash(xa, ha, int(mm), g3a) - tri3a)) for mm in an["m"]])
+    vec(a, d3a, an["distancia"], "m3: animación, la distancia al triangular en cada escalón", T8)
+    vec(a, 100 * d3a / tri3a.max(), an["pct_pico"], "m3: animación, esa distancia en % del pico", T8)
+    a.cierto(bool(np.all(np.diff(d3a) < 0)), "m3: animación, la distancia baja en cada duplicación",
+             " ".join(f"{v:.5f}" for v in d3a))
+    d4 = float(np.max(np.abs(ash(xa, ha, 4, g3a) - tri3a)))
+    a.cierto(d4 > d3a[0], "m3: animación, m = 4 queda más lejos que m = 3",
+             f"{d4:.5f} > {d3a[0]:.5f}")
+
     ms = np.asarray(m["varianza"]["m"], float)
     vec(a, (2 * ms ** 2 + 1) / (3 * ms ** 2), m["varianza"]["factor"],
         "m3: factor de varianza (2m²+1)/(3m²)", T8)
@@ -1212,6 +1228,24 @@ def modulo5(a, D, ctx):
     a.igual(fpar(4, x5, math.sqrt(3), ule)[0], cj["f_sd1"], "m5: la caja a la misma sd en x = 4", tol=T8)
     a.igual(0.3, m["h_inicial"], "m5: el simulador arranca en h = 0.3")
 
+    # La animación (2026-10-03): la caja de h = 1 en x = 4 encierra 3, 4 y 5 y
+    # da el 0.3 de la tabla, pero es un pico de una sola línea: un poco a
+    # cualquier lado pierde un dato. Y hay otros picos así en la curva.
+    an = m["animacion"]
+    a.cierto(an["desde"] < x5.min() and an["hasta"] > x5.max() and an["paso"] == 0.01,
+             "m5: animación, el recorrido abarca los datos")
+    dentro4 = x5[np.abs(x5 - 4) <= 1]
+    vec(a, dentro4, an["caja_x4"], "m5: animación, la caja de x = 4 encierra 3, 4 y 5", 0)
+    a.igual(len(dentro4) / (2 * len(x5)), m["tabla"][1]["uniforme"], "m5: animación, y da el 0.3 de la tabla",
+            tol=T8)
+    a.cierto(all(int(np.sum(np.abs(x5 - (4 + e)) <= 1)) == len(dentro4) - 1 for e in (1e-6, -1e-6)),
+             "m5: animación, el 0.3 de x = 4 es un pico de una línea")
+    g5a = r_seq_by(an["desde"], an["hasta"], an["paso"])
+    cnt = lambda t: int(np.sum(np.abs(x5 - t) <= 1))          # noqa: E731
+    picos5 = [round(t, 6) for t in g5a if cnt(t) > cnt(t - 1e-6) and cnt(t) > cnt(t + 1e-6)]
+    a.cierto(len(picos5) >= 3 and 4.0 in picos5, "m5: animación, hay otros picos así en la curva de la caja",
+             str([float(v) for v in picos5]))
+
 
 def modulo6(a, D, ctx):
     a.titulo("6 · Los núcleos, y la escala de density()")
@@ -1410,6 +1444,36 @@ def modulo7(a, D, ctx):
     a.igual(len(br) - 1, mz["hist_clases"], "m7: hist(breaks = 30): sus clases")
     a.igual(modas_secuencia(cnt / (len(mez) * np.diff(br))), mz["hist_modas"],
             "m7: hist(breaks = 30): sus modas")
+
+    # La animación (2026-10-03), sobre las edades: picos, dónde caen y las dos
+    # áreas, por k. Con k = 1 la curva es infinita en cada dato.
+    an = m["animacion"]
+    a.cierto(an["desde"] == 10 and an["hasta"] == 50 and an["lejos"] == 250 and an["paso"] == 0.05,
+             "m7: animación, recorre de 10 a 50 y la cola a 250")
+    g7a = r_seq_by(an["desde"], an["lejos"], an["paso"])
+    en = g7a <= an["hasta"]
+    xs = np.sort(xe)
+    enteros(a, [1, 2, 3, 4], [b["k"] for b in an["por_k"]], "m7: animación, k de 1 a 4")
+    for blq in an["por_k"]:
+        k = int(blq["k"])
+        with np.errstate(divide="ignore"):
+            y = knn_curva(xe, g7a, k)
+        a.igual(modas_secuencia(y[en]), blq["picos"], f"m7: animación, los picos con k={k}")
+        a.igual(len(xs) - k + 1, blq["picos"], f"m7: animación, n − k + 1 picos con k={k}")
+        medios = (xs[:len(xs) - k + 1] + xs[k - 1:]) / 2
+        vec(a, donde_modas(g7a[en], y[en]), blq["donde"], f"m7: animación, dónde caen con k={k}", 1e-9)
+        vec(a, medios, blq["donde"], f"m7: animación, en el punto medio de cada grupo de {k}", 1e-9)
+        if np.all(np.isfinite(y)):
+            a.igual(trapecio(g7a[en], y[en]), blq["area_datos"], f"m7: animación, área de 10 a 50 con k={k}",
+                    tol=T8)
+            a.igual(trapecio(g7a, y), blq["area_cola"], f"m7: animación, área hasta 250 con k={k}", tol=T8)
+        else:
+            a.cierto(blq["area_datos"] is None and blq["area_cola"] is None,
+                     f"m7: animación, con k={k} el área no existe")
+    a3 = por(an["por_k"], "k", ed["k"])
+    a.cierto(a3["area_datos"] > 1 and a3["area_cola"] > a3["area_datos"],
+             "m7: animación, el área pasa de 1 y la cola la sube",
+             f"{a3['area_datos']:.4f} → {a3['area_cola']:.4f}")
 
 
 def modulo8(a, D, ctx):
