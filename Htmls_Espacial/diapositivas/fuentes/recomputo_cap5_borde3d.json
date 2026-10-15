@@ -1,0 +1,121 @@
+{
+  "borde3d": {
+    "motor": {
+      "n": 19,
+      "V": 5,
+      "sigma": {
+        "min": 0.8,
+        "max": 2.2,
+        "ini": 1.2,
+        "tope": 1.8
+      },
+      "margen": 0.25,
+      "guion_por_paso_s": [10, 8, 9, 9],
+      "guion_s": 36,
+      "foco0": {
+        "i": 1,
+        "x": -4.3,
+        "y": 2,
+        "dist_borde": 0.7
+      }
+    },
+    "apertura": {
+      "sigma": 1.2,
+      "e_foco": 0.7156935474837,
+      "dentro_pct": 72,
+      "fuera_pct": 28
+    },
+    "volumen": {
+      "sin_analitico": 17.094363931963,
+      "sin": 17.097325932999,
+      "defecto": 20.171835887461,
+      "diggle": 19.004285750965,
+      "exceso_defecto_pct": 6.167557302428,
+      "fuga_sin_pct": -10.014074036846
+    },
+    "foco_aporta": {
+      "sin": 0.7170330241755,
+      "defecto": 0.9677057919506,
+      "diggle": 0.9999999999988
+    },
+    "diggle_todos": {
+      "sigmas": [0.8, 1.2, 2.2],
+      "volumen": [
+        {
+          "sigma_0.8": 19.018756120135,
+          "sigma_1.2": 19.025412911874,
+          "sigma_2.2": 19.028163978076,
+          "_row": "gaussian"
+        },
+        {
+          "sigma_0.8": 19.022029457137,
+          "sigma_1.2": 19.0279314234,
+          "sigma_2.2": 19.029145778518,
+          "_row": "epanechnikov"
+        },
+        {
+          "sigma_0.8": 19.021072111345,
+          "sigma_1.2": 19.027378942463,
+          "sigma_2.2": 19.028855947815,
+          "_row": "quartic"
+        },
+        {
+          "sigma_0.8": 19.025500555143,
+          "sigma_1.2": 19.029282540745,
+          "sigma_2.2": 19.029135540946,
+          "_row": "disc"
+        }
+      ],
+      "min": 19.018756120135,
+      "max": 19.029282540745
+    },
+    "sola": {
+      "sigma": 1.2,
+      "distancias": [0.25, 0.7, 1.8, 2.4],
+      "por_nucleo": {
+        "gaussian": {
+          "margen": 0.7914985796434,
+          "d_sede1": 0.9374474922943,
+          "uno_y_medio_sigma": 1.075511123127,
+          "dos_sigma": 1.064696903773
+        },
+        "epanechnikov": {
+          "margen": 0.774045136734,
+          "d_sede1": 0.9057436608861,
+          "uno_y_medio_sigma": 1.087790646691,
+          "dos_sigma": 1.092558913789
+        },
+        "quartic": {
+          "margen": 0.7786749997376,
+          "d_sede1": 0.9145548873627,
+          "uno_y_medio_sigma": 1.083555465121,
+          "dos_sigma": 1.082536572652
+        },
+        "disc": {
+          "margen": 0.7642118073247,
+          "d_sede1": 0.8863272938719,
+          "uno_y_medio_sigma": 1.101741552423,
+          "dos_sigma": 1.120081361105
+        }
+      },
+      "menor_a_uno_pegada": true,
+      "mayor_a_uno_lejos": true,
+      "min_lejos": 1.064696903773,
+      "max_pegada": 0.9374474922943
+    },
+    "meta": {
+      "spatstat": "3.5.1",
+      "R": "R version 4.4.1 (2024-06-14)",
+      "npix": 1000,
+      "fecha": "2026-10-02",
+      "nota": "n, ventana, σ, guion y margen leídos de precalculo/nucleo3d/nucleo3d.js; density() de spatstat sobre una rejilla de npix × npix"
+    }
+  },
+  "meta": {
+    "spatstat": "3.5.1",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "npix": 1000,
+    "fecha": "2026-10-02",
+    "nota": "n, ventana, σ, guion y margen leídos de precalculo/nucleo3d/nucleo3d.js; density() de spatstat sobre una rejilla de npix × npix"
+  }
+}

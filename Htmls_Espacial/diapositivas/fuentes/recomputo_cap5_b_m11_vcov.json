@@ -1,0 +1,22 @@
+{
+  "m11b_vcov": {
+    "nU": 6247,
+    "maxmatrix": 16777216,
+    "fast_por_defecto": true,
+    "defecto_igual_fast_TRUE": true,
+    "efecto_defecto": 26.0340894365355,
+    "n_efectivo_defecto": 80.9323485323477,
+    "efecto_exacto": 26.1360283671973,
+    "n_efectivo_exacto": 80.6166862997611,
+    "cociente_ee_exacto_defecto": 1.00195588437854
+  },
+  "meta": {
+    "modulo": "b_m11_vcov",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 1.82684087753296,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

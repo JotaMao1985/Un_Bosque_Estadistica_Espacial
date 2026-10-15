@@ -1217,6 +1217,78 @@ def main() -> int:
              f"{kb:.1f} KB de 150")
 
     # -----------------------------------------------------------------
+    a.titulo("13b · La animación de K y g (módulos 8 y 9), recalculada")
+    # -----------------------------------------------------------------
+    # `genera_cap4_kanillo2d.R` cuenta las parejas a mano en R; aquí se cuentan otra vez con numpy
+    # (`hypot`, otro camino que el `sqrt(dx^2 + dy^2)` de R y del motor), con la misma regla de los
+    # empates: una pareja a distancia r está DENTRO del disco de radio r, con tolerancia EPS.
+    KA, _ = carga("CAP4_KANILLO2D", "cap4_kanillo2d.json")
+    KR, _ = carga("CAP4_KANILLO2D_RESUMEN", "cap4_kanillo2d_resumen.json")
+    reg = pd.read_csv(SALIDAS / "cap4_regimenes.csv")
+    eps, h = KA["meta"]["eps"], KA["meta"]["h_anillo"]
+    rk = np.asarray(KA["meta"]["r"])
+    a.igual(len(rk), 101, "anim: la rejilla de r tiene 101 nodos")
+    a.igual(np.abs(rk - np.arange(101) * 0.0025).max(), 0.0, "anim: y son 0, 0.0025, …, 0.25", tol=1e-15)
+    a.igual(h, 0.01, "anim: el medio ancho del anillo", tol=0)
+    recalc = {}
+    for nm in ("cells", "japanesepines", "redwood"):
+        pz = KA["patrones"][nm]
+        x, y = np.asarray(pz["x"]), np.asarray(pz["y"])
+        rr = reg[reg.patron == nm]
+        a.igual(np.abs(np.r_[x - rr.x.values, y - rr.y.values]).max(), 0.0,
+                f"anim/{nm}: coordenadas del CSV", tol=0)
+        a.igual(pz["n"], D["m3"][nm]["n"], f"anim/{nm}: n")
+        a.igual(np.abs(np.asarray(pz["ventana"]) - np.asarray(D["m3"][nm]["ventana"])).max(), 0.0,
+                f"anim/{nm}: ventana del módulo 3", tol=1e-12)
+        v = pz["ventana"]
+        aa, bb = v[2] - v[0], v[3] - v[1]
+        dx, dy = x[:, None] - x[None, :], y[:, None] - y[None, :]
+        dist = np.hypot(dx, dy)
+        w = (aa * bb) / ((aa - np.abs(dx)) * (bb - np.abs(dy)))
+        fuera = ~np.eye(len(x), dtype=bool)
+        n = len(x)
+        kt = np.array([(aa * bb) / (n * (n - 1)) * w[fuera & (dist <= r + eps)].sum() for r in rk])
+        ks = np.array([(aa * bb) / (n * (n - 1)) * (fuera & (dist <= r + eps)).sum() for r in rk])
+        a.igual(np.abs(kt - np.asarray(pz["k_traslacion"])).max(), 0.0, f"anim/{nm}: K con peso, recontada", tol=1e-12)
+        a.igual(np.abs(ks - np.asarray(pz["k_sin"])).max(), 0.0, f"anim/{nm}: K sin peso, recontada", tol=1e-12)
+        emp = np.array([int(np.sum(np.abs(dist[fuera] - r) < eps) // 2) for r in rk])
+        a.igual(np.abs(emp - np.asarray(pz["empates"])).max(), 0, f"anim/{nm}: nodos con empates")
+        limpio = emp == 0
+        a.igual(np.abs((kt - np.asarray(pz["kest_traslacion"]))[limpio]).max(), 0.0,
+                f"anim/{nm}: Kest fuera de los empates", tol=1e-12)
+        a.cierto(np.all(ks <= kt + 1e-15), f"anim/{nm}: K sin corregir ≤ corregida")
+        dpub = np.abs(kt - np.asarray(D["m8"][nm]["k_obs"]))[limpio].max()
+        a.igual(pz["dif_publicada_sin_empates"], dpub, f"anim/{nm}: lo que se aparta del capítulo", tol=1e-12)
+        a.cierto(dpub < 0.005, f"anim/{nm}: y se aparta poco",
+                 f"{dpub:.1e} < 5e-3")
+        a.igual(pz["peso_max"], w[fuera & (dist <= rk[-1] + eps)].max(), f"anim/{nm}: el mayor peso", tol=1e-12)
+        dd = dc = 0.0
+        for c in pz["cuentas"]:
+            r = c["r"]
+            disco = fuera & (dist <= r + eps)
+            anillo = fuera & (dist >= max(0.0, r - h) - eps) & (dist <= r + h + eps)
+            dd = max(dd, np.abs(disco.sum(1) - np.asarray(c["disco"])).max(), np.abs(anillo.sum(1) - np.asarray(c["anillo"])).max())
+            dc = max(dc, np.abs(np.where(disco, w, 0).sum(1) - np.asarray(c["disco_peso"])).max())
+        a.igual(dd, 0, f"anim/{nm}: vecinos en disco y anillo")
+        a.igual(dc, 0.0, f"anim/{nm}: vecinos con su peso", tol=1e-12)
+        recalc[nm] = (kt, ks)
+    # El resumen que cita la prosa, contra lo recalculado aquí y contra el capítulo.
+    G = D["m9"]["redwood"]
+    a.igual(KR["secuoyas_r_g_vuelve"], G["r_vuelve_a_1"], "resumen: r en que g vuelve a 1", tol=0)
+    j1 = int(round(G["r_vuelve_a_1"] / 0.0025))
+    kt, ks = recalc["redwood"]
+    a.igual(KR["secuoyas_k_razon_g_vuelve"], kt[j1] / (np.pi * rk[j1] ** 2), "resumen: K/πr² de las secuoyas allí", tol=1e-12)
+    a.igual(KR["secuoyas_k_razon_final"], kt[-1] / (np.pi * rk[-1] ** 2), "resumen: y en r = 0.25", tol=1e-12)
+    a.igual(KR["secuoyas_sin_sobre_con_final"], ks[-1] / kt[-1], "resumen: sin corregir / corregida en 0.25", tol=1e-12)
+    a.igual(KR["h_anillo"], h, "resumen: el medio ancho del anillo", tol=0)
+    # Lo que la prosa afirma con esas cifras: donde g vuelve a 1, K está claramente por encima (arrastra).
+    a.cierto(abs(G["g_obs"][j1] - 1) < 0.05 and KR["secuoyas_k_razon_g_vuelve"] > 1.5,
+             "resumen: allí K sigue por encima (arrastra)",
+             f"g = {G['g_obs'][j1]:.3f}, K/πr² = {KR['secuoyas_k_razon_g_vuelve']:.3f}")
+    desde = rk >= D["m3"]["redwood"]["nn_min"] - 1e-12
+    a.cierto(np.all(kt[desde] > np.pi * rk[desde] ** 2), "resumen: K ≥ πr² desde la pareja más próxima")
+
+    # -----------------------------------------------------------------
     a.titulo("14 · Formato")
     # -----------------------------------------------------------------
     for nombre, obj in (("datos", D), ("mapas", M), ("soluciones", S)):

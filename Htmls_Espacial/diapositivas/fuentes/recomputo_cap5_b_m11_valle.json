@@ -1,0 +1,34 @@
+{
+  "m11b_valle": {
+    "q": 0.25,
+    "p": 2,
+    "rmax": 5868.11573301698,
+    "objetivo_propio_sobre_spatstat": 513.000000000001,
+    "traslacion": {
+      "kappa": 1.09111894283005e-07,
+      "sigma": 1319.55494506746,
+      "Q": 249.879843893452
+    },
+    "isotropica": {
+      "kappa": 2.10787222597378e-07,
+      "sigma": 932.224307145334,
+      "Q": 220.767685634095
+    },
+    "kappa_sigma2_traslacion": 0.189988385733905,
+    "kappa_sigma2_isotropica": 0.183182982980353,
+    "cociente_kappa": 1.93184458928609,
+    "cruzada_traslacion_en_par_iso_pct": 177.60691236866,
+    "cruzada_isotropica_en_par_trasl_pct": 195.336979749104,
+    "perfil_traslacion_sigma_isotropico_pct": 57.4283780283013,
+    "perfil_isotropica_sigma_traslacion_pct": 34.9685322493925
+  },
+  "meta": {
+    "modulo": "b_m11_valle",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 122.524812936783,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

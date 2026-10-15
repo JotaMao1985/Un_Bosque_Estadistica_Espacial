@@ -1,0 +1,110 @@
+{
+  "m8_homogeneo": {
+    "fitter": "exact",
+    "lambda_km2": 5.69321258247152,
+    "ingenua_km2": 5.69321258247153,
+    "dif_relativa": 7.43897171398602e-16,
+    "n": 2107,
+    "area_km2": 370.089816510121,
+    "forzado": {
+      "fitter": "glm",
+      "lambda_km2": 5.71210706751389,
+      "exceso_pct": 0.331877385020563,
+      "suma_pesos_km2": 368.865634887431,
+      "faltan_km2": 1.22418162269032,
+      "teselas_tocan": 4345,
+      "teselas_vacias": 201
+    },
+    "aic": 55105.2579463388,
+    "aic_forzado": 55091.2957891673,
+    "ntile": [100, 100],
+    "npix": [200, 200],
+    "tesela_m": [234.724629320679, 399.969257319984]
+  },
+  "m8_constante_nd300": {
+    "fitter": "exact",
+    "aic": 55105.2579463388,
+    "aic_defecto": 55105.2579463388,
+    "mismo": true
+  },
+  "m8_nd": {
+    "filas": [
+      {
+        "nd": 50,
+        "ficticios": 1099,
+        "pendiente": -6.7246597385171e-06,
+        "ee": 5.43855080857331e-06,
+        "aic": 55097.0816044743,
+        "sin_contar_km2": 0.757998559466249,
+        "sedes_esperadas": 2111.11127077807,
+        "logver_ppm": -27546.5408022371,
+        "logver_exacta": -27550.6520730104,
+        "suma_log": -25439.5408022323,
+        "integral_por_cuadratura": 2107.00000000502
+      },
+      {
+        "nd": 100,
+        "ficticios": 4140,
+        "pendiente": -6.60911152366923e-06,
+        "ee": 5.43944715609744e-06,
+        "aic": 55091.812229288,
+        "sin_contar_km2": 1.22418162270123,
+        "sedes_esperadas": 2113.75657565318,
+        "logver_ppm": -27543.906114644,
+        "logver_exacta": -27550.6626902925,
+        "suma_log": -25436.9061146393,
+        "integral_por_cuadratura": 2107.0000000049
+      },
+      {
+        "nd": 200,
+        "ficticios": 15764,
+        "pendiente": -6.64407731091644e-06,
+        "ee": 5.43847636184674e-06,
+        "aic": 55091.7959160646,
+        "sin_contar_km2": 1.22418162270123,
+        "sedes_esperadas": 2113.76355286251,
+        "logver_ppm": -27543.8979580323,
+        "logver_exacta": -27550.6615108904,
+        "suma_log": -25436.8979580278,
+        "integral_por_cuadratura": 2107.00000000491
+      },
+      {
+        "nd": 300,
+        "ficticios": 35495,
+        "pendiente": -7.31054452869361e-06,
+        "ee": 5.43362868483323e-06,
+        "aic": 55100.9953825215,
+        "sin_contar_km2": 0.389955222128935,
+        "sedes_esperadas": 2109.13910757614,
+        "logver_ppm": -27548.4976912608,
+        "logver_exacta": -27550.6367988317,
+        "suma_log": -25441.4976912556,
+        "integral_por_cuadratura": 2107.00000000495
+      }
+    ],
+    "rango_pendiente_en_ee": 0.128952995570164,
+    "rango_aic": 9.19946645692107,
+    "rango_logver_ppm": 4.59973322846054,
+    "rango_logver_exacta": 0.0258914607111365,
+    "gana_distancia_ppm": 13.4457170507667,
+    "gana_constante_exacta": 0.0674342460988555,
+    "gana_constante_misma": 0.516440120773041,
+    "ficticios_por_defecto": 4140
+  },
+  "m8_bloque": {
+    "suma_log": -25436.9061146393,
+    "integral": 2107.0000000049,
+    "logLik": -27543.906114644,
+    "integral_fina_4096": 2113.75657565318,
+    "pesos_km2": 368.865634887431
+  },
+  "meta": {
+    "modulo": "m8",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 28.1633660793304,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

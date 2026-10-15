@@ -1,0 +1,76 @@
+{
+  "m10b_flex": {
+    "1": {
+      "grado": 1,
+      "k": 3,
+      "aic_ppm": 55055.0538343014,
+      "aic_integral_fina": 55069.0208060214,
+      "int_min_km2": 4.18045095103105,
+      "int_max_km2": 7.85787373202419,
+      "int_media_km2": 5.71208228808804,
+      "semillas": {
+        "101": {
+          "pct_fuera": 67.96875,
+          "dclf_p": 0.005,
+          "mad_p": 0.005
+        },
+        "202": {
+          "pct_fuera": 68.1640625,
+          "dclf_p": 0.005,
+          "mad_p": 0.005
+        }
+      }
+    },
+    "10": {
+      "grado": 10,
+      "k": 66,
+      "aic_ppm": 54643.9792277608,
+      "aic_integral_fina": 54653.2427289356,
+      "int_min_km2": 2.22044604925031e-10,
+      "int_max_km2": 42.3751797367664,
+      "int_media_km2": 5.70572779487275,
+      "semillas": {
+        "101": {
+          "pct_fuera": 39.0625,
+          "dclf_p": 0.055,
+          "mad_p": 0.215
+        },
+        "202": {
+          "pct_fuera": 42.578125,
+          "dclf_p": 0.055,
+          "mad_p": 0.215
+        }
+      }
+    },
+    "12": {
+      "grado": 12,
+      "k": 91,
+      "aic_ppm": 54562.497989772,
+      "aic_integral_fina": 54576.3020058527,
+      "int_min_km2": 2.22044604925031e-10,
+      "int_max_km2": 208.277104413293,
+      "int_media_km2": 5.71186213114683,
+      "semillas": {
+        "101": {
+          "pct_fuera": 39.453125,
+          "dclf_p": 0.22,
+          "mad_p": 0.415
+        },
+        "202": {
+          "pct_fuera": 31.8359375,
+          "dclf_p": 0.135,
+          "mad_p": 0.345
+        }
+      }
+    }
+  },
+  "meta": {
+    "modulo": "b_m10_flex",
+    "fecha": "2026-10-01",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 371.519273042679,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

@@ -1,5 +1,6 @@
 ---
 modulo: ../../capitulo-4-patrones-puntuales.html
+indice: ../../../index.html
 agenda: si
 etiqueta: Clase magistral · 90 min
 objetivo: En un patrón puntual, «¿está agrupado?» no tiene respuesta hasta que se fijan y se declaran cuatro cosas: la ventana, la escala, la corrección de borde y la referencia contra la que se compara.

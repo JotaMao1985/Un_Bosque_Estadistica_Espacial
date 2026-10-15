@@ -31,6 +31,9 @@ proyecto o que este capítulo puede sufrir:
   12. coherencia entre módulos rota
   13. el conteo de piezas y agujeros de la ventana             ← el defecto
       REAL que este auditor cazó: `partes` no eran partes
+  15. la animación de K y g (módulos 8 y 9): coordenadas, K con y sin peso,
+      los nodos con empates, las cuentas de cada punto y el resumen que cita
+      la prosa, todo contra lo que el auditor recuenta con numpy
 
 UNA INYECCIÓN NO PUEDE USAR UN VALOR QUE YA ESTÉ EN EL ARCHIVO. Si la
 cifra falsa coincidiera con otra real, el auditor podría «cazarla» por el
@@ -59,6 +62,8 @@ ARCHIVOS = {
     "datos": ("CAP4_DATOS", "cap4_datos.json"),
     "mapas": ("CAP4_MAPAS", "cap4_mapas.json"),
     "soluciones": ("CAP4_SOLUCIONES", "cap4_soluciones.json"),
+    "kanillo": ("CAP4_KANILLO2D", "cap4_kanillo2d.json"),
+    "kresumen": ("CAP4_KANILLO2D_RESUMEN", "cap4_kanillo2d_resumen.json"),
 }
 
 PY = json.loads((PRECALCULO / "versiones_py.json").read_text(
@@ -407,13 +412,53 @@ def defectos():
         "datos", lambda d: d["m8"]["cells"]["k_obs"].__setitem__(
             50, float("nan")))
 
+    # --- 15. La animación de K y g ---------------------------------------
+    def pz(d, nm="redwood"):
+        return d["patrones"][nm]
+    obj("15 · una coordenada de la animación se mueve", "kanillo",
+        lambda d: pz(d)["x"].__setitem__(4, 0.4171717171))
+    obj("15 · la animación cambia de ventana", "kanillo",
+        lambda d: pz(d, "cells").__setitem__("ventana", [0, 0, 1, 1.1717171717]))
+    obj("15 · un nodo de la K con peso cambia", "kanillo",
+        lambda d: pz(d)["k_traslacion"].__setitem__(40, 0.0717171717))
+    obj("15 · la K sin peso se publica como la corregida", "kanillo",
+        lambda d: pz(d, "japanesepines").__setitem__("k_sin", list(pz(d, "japanesepines")["k_traslacion"])))
+    obj("15 · los empates de un nodo se pierden", "kanillo",
+        lambda d: pz(d, "japanesepines")["empates"].__setitem__(4, 0))
+    obj("15 · la K de Kest de un nodo cambia", "kanillo",
+        lambda d: pz(d)["kest_traslacion"].__setitem__(30, 0.0317171717))
+    obj("15 · lo que se aparta del capítulo se publica a cero", "kanillo",
+        lambda d: pz(d, "cells").__setitem__("dif_publicada_sin_empates", 0.0))
+    obj("15 · el mayor peso cambia", "kanillo",
+        lambda d: pz(d).__setitem__("peso_max", 1.4171717171))
+    obj("15 · un punto gana un vecino en su disco", "kanillo",
+        lambda d: pz(d)["cuentas"][4]["disco"].__setitem__(31, 13))
+    obj("15 · un punto gana un vecino en su anillo", "kanillo",
+        lambda d: pz(d, "cells")["cuentas"][2]["anillo"].__setitem__(5, 7))
+    obj("15 · los vecinos con peso de un punto cambian", "kanillo",
+        lambda d: pz(d, "japanesepines")["cuentas"][3]["disco_peso"].__setitem__(9, 3.1717171717))
+    obj("15 · el anillo se publica más ancho", "kanillo",
+        lambda d: d["meta"].__setitem__("h_anillo", 0.0171717171))
+    obj("15 · la rejilla de r se corre", "kanillo",
+        lambda d: d["meta"]["r"].__setitem__(10, 0.0261717171))
+    obj("15 · el r en que g vuelve a 1 del resumen no es el del capítulo", "kresumen",
+        lambda d: d.__setitem__("secuoyas_r_g_vuelve", 0.1475))
+    obj("15 · K/πr² del resumen cambia", "kresumen",
+        lambda d: d.__setitem__("secuoyas_k_razon_g_vuelve", 1.7171717171))
+    obj("15 · K/πr² del final del barrido cambia", "kresumen",
+        lambda d: d.__setitem__("secuoyas_k_razon_final", 1.0171717171))
+    obj("15 · el cociente sin corregir / corregida cambia", "kresumen",
+        lambda d: d.__setitem__("secuoyas_sin_sobre_con_final", 0.8717171717))
+    obj("15 · el anillo del resumen se publica más estrecho", "kresumen",
+        lambda d: d.__setitem__("h_anillo", 0.005))
+
     return D
 
 
 def main() -> int:
     return arnes("prueba_auditor_cap4.py — el arnés de inyección del capítulo 4",
                  PY, AUDITOR, SALIDAS, ARCHIVOS, defectos(),
-                 "genera_cap4.R y genera_soluciones.R 4")
+                 "genera_cap4.R, genera_soluciones.R 4 y genera_cap4_kanillo2d.R")
 
 
 if __name__ == "__main__":

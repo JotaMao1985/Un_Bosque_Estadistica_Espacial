@@ -601,6 +601,21 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
          "conservar la topología", "hacer otras cosas", True),
         ("desaparece que el ponderador es parte del trazado",
          "parte del trazado", "un detalle más", True),
+        ("desaparece que los trazados del gerrymandering se enumeran todos",
+         "se enumeran, no se sortean", "se prueban unos cuantos", True),
+        ("desaparece que los porcentajes del gerrymandering no son probabilidades",
+         "no probabilidades", "se leen como azar", True),
+        ("desaparece la definición de «contiguo» del gerrymandering (casillas que comparten un lado)",
+         "comparten un lado", "están cerca", True),
+        # (2026-10-02) el percentil de Colombia es de un muestreador; sus zonas son de reina y la rejilla de torre
+        ("desaparece que el percentil de Colombia es respecto de un muestreador",
+         "Ese percentil es respecto de un muestreador", "Ese percentil es el de todos los trazados", True),
+        ("desaparece que las zonas de Colombia son contiguas de reina",
+         "si comparten aunque", "si comparten casi", True),
+        ("desaparece que la rejilla usa la contigüidad de torre, no la de reina",
+         "la contigüidad de torre del capítulo 6", "la contigüidad de siempre", True),
+        ("desaparece que renumerar los distritos no da otro trazado",
+         "numerados de otra forma es el mismo trazado", "numerados de otra forma es otro trazado", True),
         # --- 6. LA DISCREPANCIA DECLARADA DE A.2 ----------------------
         ("desaparece la causa de que R y Python clasifiquen distinto",
          "lado cerrado del intervalo", "una diferencia de implementación", True),
@@ -629,6 +644,13 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
         ("el enlace al capítulo 2 apunta a un archivo que no existe",
          'href="capitulo-2-crs-georreferenciacion.html"',
          'href="capitulo-2-crs-georreferenciacionn.html"'),
+        # --- 11. EL PESO, con su tope propio desde el 2026-10-07 ------
+        # Hasta entonces este capítulo no inyectaba el ensamblado
+        # desbocado, así que su comprobación de peso nunca se había visto
+        # fallar. Con el tope subido a 720 KB hay que demostrar que sigue
+        # mordiendo: 703 + 312 queda por encima.
+        ("el documento desbocado",
+         "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
     ]
 
 
@@ -659,6 +681,7 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
     """
     D = json.loads((SALIDAS / "cap4_datos.json").read_text(encoding="utf-8"))
     S = json.loads((SALIDAS / "cap4_soluciones.json").read_text(encoding="utf-8"))
+    KS = json.loads((SALIDAS / "cap4_kanillo2d_resumen.json").read_text(encoding="utf-8"))
     m1, m2, m3, m5 = D["m1"], D["m2"], D["m3"], D["m5"]
     m7, m8, m9, m10, m11 = D["m7"], D["m8"], D["m9"], D["m10"], D["m11"]
 
@@ -751,8 +774,10 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         # --- EL PESO, con su tope propio desde el 2026-10-02 ----------
         # Hasta entonces este capítulo no inyectaba el ensamblado
         # desbocado, así que su comprobación de peso nunca se había visto
-        # fallar. Con el tope subido a 760 KB hay que demostrar que sigue
-        # mordiendo: 703 + 312 queda por encima.
+        # fallar. Con el tope subido a 760 KB, y a 820 con la animación
+        # de K y g (2026-10-07), hay que demostrar que sigue mordiendo:
+        # 801 + 312 queda por encima. La rama de la animación traía su
+        # propia inyección de peso; las dos se fundieron en esta.
         ("el documento desbocado",
          "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
         # --- 11. La codificación --------------------------------------
@@ -784,6 +809,35 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         ("el enlace al capítulo 3 apunta a un archivo que no existe",
          'href="capitulo-3-cartografia-maup.html"',
          'href="capitulo-3-cartografia-maupp.html"'),
+        # --- La animación de K y g (2026-10-02) ------------------------
+        # Las cifras salen del RESUMEN de la animación, que es lo único de ella que lee el
+        # auditor de cifras; las frases, de las cuatro afirmaciones que entraron con ella.
+        # El último dígito va a 9 y no a 2: «1.83822» ya está en el índice del auditor como una
+        # comparación derivada de cap4_datos (el punto ciego de `mide_punto_ciego.py`), y la
+        # perturbación de siempre se colaba sin que el defecto fuera de la cifra.
+        ("K/πr² de las secuoyas donde g vuelve a 1, cambiado",
+         f"<strong>{f(KS['secuoyas_k_razon_g_vuelve'])}</strong>",
+         f"<strong>{f(KS['secuoyas_k_razon_g_vuelve'])[:-1]}9</strong>"),
+        ("K/πr² de las secuoyas al final del barrido, cambiado",
+         f"{f(KS['secuoyas_k_razon_final'])} al final", f"{perturba(KS['secuoyas_k_razon_final'])} al final"),
+        ("la K sin corregir entre la corregida, cambiada",
+         f"<strong>{f(KS['secuoyas_sin_sobre_con_final'])}</strong>",
+         f"<strong>{perturba(KS['secuoyas_sin_sobre_con_final'])}</strong>"),
+        ("desaparece por qué K arrastra (un disco grande contiene a los pequeños)",
+         "contiene a todos los pequeños", "es otro disco distinto"),
+        ("desaparece que donde g vuelve a 1 K sigue por encima",
+         "vale allí todavía", "vale allí ya solo"),
+        ("desaparece que la cuenta del anillo y g no tienen por qué coincidir",
+         "no tienen por qué coincidir", "coinciden siempre"),
+        ("desaparece que sin el peso el borde solo esconde vecinos",
+         "esconder vecinos", "inventar vecinos"),
+        # La auditoría de las cinco animaciones (2026-10-02)
+        ("pcf vuelve a ser «solo un núcleo» (sin la corrección de borde)",
+         "corrige el borde con el\n        mismo peso de traslación", "suaviza el borde con el\n        mismo núcleo de siempre", True),
+        ("desaparece que la animación no juzga si una desviación es ruido",
+         "no la animación", "ni hace falta", True),
+        ("se cae del temario la sección del disco, punto a punto",
+         "El disco, punto a punto", "Un disco cualquiera", True),
     ]
 
 
@@ -954,6 +1008,8 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
          "no es una propiedad del patrón", "es difícil de elegir", True),
         ("desaparece que las tres correcciones dan mapas igual de plausibles",
          "los tres salen plausibles", "cuesta distinguirlos", True),
+        ("desaparece que la masa que se pasa es de las sedes y no del método",
+         "Que la masa se pase no es una propiedad del método", "Que la masa se pase es una propiedad del método", True),
         ("desaparece que llamar «demanda» a un mapa es una decisión",
          "es una decisión, no una descripción", "conviene pensarlo", True),
         ("desaparece qué es un residuo en un proceso puntual",
@@ -1002,6 +1058,11 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
          "El desplazado: el original da", "El original: el desplazado da"),
         ("desaparece que no hay ancho óptimo que publicar",
          "No hay ancho que publicar.", "Ese es el ancho.", True),
+        # La auditoría de las cinco animaciones (2026-10-02): vuelve la frase de antes, «y por eso el máximo baja».
+        ("al abrir σ vuelve a «bajar el máximo» sin más",
+         "la reparte: los picos bajan y los valles se llenan", "la reparte, y por eso el máximo baja", True),
+        ("desaparece que con el disco el pico puede subir",
+         "el pico puede subir a", "el pico baja igual a", True),
         ("desaparece qué le hace el conglomerado a la z",
          "se multiplica por unas diez", "se queda como estaba", True),
         ("la z de kppm con traslación del ejercicio 3, cambiada",
@@ -1121,6 +1182,7 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
     """
     D = json.loads((SALIDAS / "cap6_datos.json").read_text(encoding="utf-8"))
     S = json.loads((SALIDAS / "cap6_soluciones.json").read_text(encoding="utf-8"))
+    RS = json.loads((SALIDAS / "cap6_rezago2d_resumen.json").read_text(encoding="utf-8"))
     m1, m2, m3 = D["m1"], D["m2"], D["m3"]
     m4, m5, m7 = D["m4"], D["m5"], D["m7"]
     m9, m10, m11 = D["m9"], D["m10"], D["m11"]
@@ -1182,6 +1244,35 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
         ("las casillas ocupadas de Columbus, cambiadas",
          f"<strong>{ent(m11['columbus']['no_ceros'])}</strong>",
          "<strong>8 931</strong>"),
+        # La animación del rezago (módulo 10): lo que dice la prosa de ella sale de `cap6_rezago2d.json`.
+        ("el límite del rezago con la reina, cambiado",
+         f"<strong>{f(RS['limite_reina'], 4)}</strong>",
+         f"<strong>{perturba(RS['limite_reina'], 4)}</strong>"),
+        ("el límite del rezago con la torre, cambiado",
+         f"<strong>{f(RS['limite_torre'], 4)}</strong>",
+         f"<strong>{perturba(RS['limite_torre'], 4)}</strong>"),
+        ("el I de Moran de Columbus, cambiado",
+         f"<strong>{f(RS['moran_I'], 4)}</strong>",
+         f"<strong>{perturba(RS['moran_I'], 4)}</strong>"),
+        ("la correlación entre CRIME y su rezago, cambiada",
+         f"{f(RS['moran_cor'], 4)}. No son lo",
+         f"{perturba(RS['moran_cor'], 4)}. No son lo"),
+        ("el segundo valor propio de W, cambiado",
+         f"{f(RS['lambda2_reina'], 4)} (el primero vale 1",
+         f"{perturba(RS['lambda2_reina'], 4)} (el primero vale 1"),
+        # La auditoría del 2026-10-02: el I de Moran del capítulo 7 (GAL) y lo que da CRIME barajado.
+        ("el I de Moran del capítulo 7 (GAL), cambiado",
+         f"allí da {f(RS['moran_I_gal'], 4)}",
+         f"allí da {perturba(RS['moran_I_gal'], 4)}"),
+        ("la contracción mediana con CRIME barajado, cambiada",
+         f"sería {f(RS['barajado_razon_sd_mediana'], 4)} de",
+         f"sería {perturba(RS['barajado_razon_sd_mediana'], 4)} de"),
+        ("la contracción máxima con CRIME barajado, cambiada",
+         f"{f(RS['barajado_razon_sd_max'], 4)}: el de CRIME",
+         f"{perturba(RS['barajado_razon_sd_max'], 4)}: el de CRIME"),
+        ("el cociente de desviaciones de Wy y y, cambiado",
+         f"{f(RS['moran_razon_sd'], 4)} veces la de",
+         f"{perturba(RS['moran_razon_sd'], 4)} veces la de"),
 
         # --- 3. En una tabla ------------------------------------------
         ("el grado de la esfera de influencia, cambiado en la tabla",
@@ -1204,6 +1295,50 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
          "la elige quien analiza", "la trae el dato", True),
         ("se cae la afirmación de que promediar contrae",
          "promediar contrae", "promediar no cambia nada", True),
+        # La animación del rezago (2026-10-02): lo que la prosa afirma de ella.
+        ("desaparece que Wᵏy no va a la media de y",
+         "ese valor no es la media de", "ese valor es la media simple de", True),
+        ("desaparece que ese valor es la media ponderada por el grado",
+         "Es la <strong>media ponderada por el grado</strong>", "Es la <strong>media de los barrios</strong>", True),
+        ("desaparece que con la torre el valor es otro",
+         "eligió manda también aquí", "eligió no importa aquí", True),
+        ("desaparece que la rapidez la manda el segundo valor propio",
+         "segundo valor propio de W,", "tamaño del mapa,", True),
+        ("la pendiente vuelve a ser «el I de Moran del capítulo 7» (el capítulo 7 da 0.5110)",
+         "índice de Moran con esta W; la correlación", "índice de Moran del capítulo 7; la correlación", True),
+        ("desaparece que el capítulo 7 usa otra W",
+         "El capítulo 7 calcula este índice con otra W", "El capítulo 7 calcula este índice igual", True),
+        ("la rapidez vuelve a mandarla W sola",
+         "Cuánto tarda en llegar no lo decide W sola.", "La rapidez la manda W.", True),
+        ("desaparece que cuánto se estrecha sí dice algo",
+         "<strong>cuánto se estrecha, sí</strong>", "<strong>cuánto, tampoco</strong>", True),
+        ("desaparece que esa pendiente no es la correlación",
+         "No son lo", "Son lo", True),
+        # Moran no es la correlación entre y y Wy (2026-10-02). La primera
+        # restituye la frase que estuvo publicada; las demás quitan cada
+        # una de las otras tres frases que la corrección escribió.
+        ("Moran vuelve a ser «la correlación entre y y Wy»",
+         "<strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>",
+         "<strong>correlación</strong> entre <em>y</em> y <em>Wy</em>", True),
+        ("desaparece que la pendiente lleva el cociente de desviaciones",
+         "multiplicada por el cociente", "dividida entre la varianza de la media", True),
+        ("desaparece que apilar capas no es la contigüidad de orden 2",
+         "no es la contigüidad de orden 2", "sube de orden la contigüidad", True),
+        ("desaparece que W² tiene diagonal positiva",
+         "tiene diagonal positiva", "tiene diagonal nula", True),
+        ("W² vuelve a llegar a todos los vecinos, sin condición",
+         "que sea a la vez vecino de otro de sus vecinos", "sin excepción alguna", True),
+        # La media del rezago (2026-10-02). Las dos primeras restituyen lo que estuvo publicado; la tercera quita qué
+        # media conserva W; la cuarta devuelve al bloque de R el comentario que llamaba al I de Moran cor(y, Wy).
+        ("la media de Wy vuelve a «tener que» ser la de y",
+         "no tienen por qué coincidir", "tienen que coincidir", True),
+        ("el ejercicio 5 vuelve a decir que promediar no mueve el centro",
+         "Lo que no se mueve nunca, con una", "Las medias coinciden porque promediar no mueve el centro, con una", True),
+        ("desaparece qué media conserva W",
+         "tantas veces como vecinos tiene. Lo que cambia", "una sola vez. Lo que cambia", True),
+        ("el comentario del bloque de R vuelve a llamar al I de Moran «toda la autocorrelación»",
+         "# Se parecen. Ojo: el I de Moran es otra cifra, la pendiente de wy sobre y",
+         "# Se parecen, y esa es toda la autocorrelación espacial del capítulo 7", True),
         ("se cae un tema del temario (zero.policy)",
          "zero.policy", "cero-politica", True),
 
@@ -1355,9 +1490,9 @@ def defectos_taller2() -> list[tuple[str, str, str]]:
         # las dos apariciones—, que se pierda la hora, y que el control
         # vuelva a pedir las tres cifras que el §5.3 midió que no bastan.
         ("vuelve una fecha de entrega vieja",
-         "domingo 11 de octubre de 2026", "martes 6 de octubre de 2026"),
+         "lunes 12 de octubre de 2026", "domingo 11 de octubre de 2026"),
         ("el enunciado pierde la hora límite",
-         "a más tardar a las 13:00", "a más tardar ese día", True),
+         "a más tardar a las 12:30", "a más tardar ese día", True),
         # «tres datos» y no «tres cifras»: «tres cifras» ya está en el HTML
         # —es lo que T3(b) pide dar: g en su máximo, el r donde vuelve a 1
         # y K en ese r— y el arnés rechaza, con razón, un valor inyectado

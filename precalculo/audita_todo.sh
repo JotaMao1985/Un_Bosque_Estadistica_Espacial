@@ -16,6 +16,7 @@
 #   6. audita_texto_*.py    — las cifras de la prosa, incluidas las de KaTeX
 #   7. prueba_texto.py      — le inyecta defectos al auditor de prosa
 #   8. cuenta_sitio.py      — los totales, contados y no recordados
+#   (y, desde el 2026-10-01, la matemática de las animaciones contra R)
 #
 # Los TALLERES corren por un bucle propio (C8 del Taller 1): no son
 # capítulos —sin quiz, sin ejercicios guiados, y con una familia de
@@ -195,8 +196,41 @@ paso "campos_vivos.py — ningún campo de courseData se declara y no se lee" \
 paso "comentarios_cerrados.py — ningún \`*/\` suelto se lleva una regla por delante" \
      python3 precalculo/comentarios_cerrados.py --prueba
 
+# Del 2026-10-01: las ANIMACIONES. `prueba_nucleo3d.py` (la matemática del motor 3D contra
+# `density()` de R) y `construye_nucleo3d.py --comprueba` (la página de las diapositivas al día
+# con el motor) existían desde el 2026-09-30 y NINGÚN paso del arnés los corría: un cambio al
+# motor podía dejar el capítulo en verde y la matemática mintiendo. Cuestan 12 s, así que corren
+# también con `--rapido`. Los defectos inyectados (`prueba_mutaciones.py`, ~4 min) no.
+paso "prueba_nucleo3d.py — la matemática de la animación 3D, contra R" \
+     python3 precalculo/prueba_nucleo3d.py
+paso "construye_nucleo3d.py --comprueba — la página de las diapositivas, al día con el motor" \
+     python3 precalculo/construye_nucleo3d.py --comprueba
+if [ "$RAPIDO" -eq 0 ]; then
+  paso "prueba_mutaciones.py — la prueba de la animación SABE fallar" \
+       python3 precalculo/prueba_mutaciones.py
+fi
+
 paso "verifica_bloques.py — los bloques de código y sus #>" \
      python3 precalculo/verifica_bloques.py --todos
+
+# Del 2026-10-02: la animación 2D del rezago (capítulo 6, módulo 10). `prueba_rezago2d.py` compara
+# la aritmética de `anim2d/rezago2d.js` con `spdep` y prueba sin DOM la máquina de `anim2d.js` (el
+# repo no tiene jsdom); `prueba_mutaciones_anim2d.py` les inyecta 61 defectos a las dos animaciones 2D
+# y exige que sus pruebas fallen.
+# Cuestan 2 y 35 segundos: corren también con `--rapido`.
+paso "prueba_rezago2d.py — la animación 2D del rezago, contra R y por dentro" \
+     python3 precalculo/prueba_rezago2d.py
+# Y la de K y g (capítulo 4, módulos 8 y 9), sobre la misma cáscara: `prueba_kanillo2d.py` compara las
+# cuentas y la K de `anim2d/kanillo2d.js` con R (a mano y con Kest) en menos de un segundo. Las mutaciones
+# de arriba ya le inyectan sus 21 defectos y los de la cáscara.
+paso "prueba_kanillo2d.py — la animación de K y g, contra R y por dentro" \
+     python3 precalculo/prueba_kanillo2d.py
+paso "prueba_mutaciones_anim2d.py — las pruebas de las animaciones 2D SABEN fallar" \
+     python3 precalculo/prueba_mutaciones_anim2d.py
+# Y que el capítulo lleve el motor de HOY: el motor se edita en `precalculo/anim2d/` y viaja en línea; sin esto
+# un motor editado y no reensamblado deja el capítulo en verde con la versión vieja.
+paso "comprueba_animaciones.py — cada capítulo lleva el motor que hay en su archivo" \
+     python3 precalculo/comprueba_animaciones.py
 
 paso "audita_texto_demo.py — las cifras de la prosa del fixture" \
      sh -c 'cd precalculo && python3 audita_texto_demo.py'
@@ -239,6 +273,11 @@ if [ "$RAPIDO" -eq 0 ]; then
   paso "prueba_texto.py — el arnés de inyección de la prosa" \
        python3 precalculo/prueba_texto.py
 fi
+
+# El botón «← Índice» de cada página publicada: que estén todas, que lleven uno solo y que el enlace llegue
+# a index.html desde su carpeta. Y el propio inyector, con fixtures.
+paso "pon_boton_indice.py — el botón al índice, en todas las páginas" \
+     python3 precalculo/prueba_boton_indice.py
 
 paso "cuenta_sitio.py — los totales" \
      python3 precalculo/cuenta_sitio.py

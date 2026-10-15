@@ -12,8 +12,9 @@ QUÉ HACE
      Python en otra—, porque así los ejecutaría un estudiante que sigue
      el capítulo de arriba abajo: si un bloque usa un objeto que nunca se
      definió, se ve aquí.
-  3. Para cada bloque, extrae los números de sus líneas `#>` y comprueba
-     que aparezcan en la salida real de ESE bloque.
+  3. Para cada bloque, extrae los números de sus líneas `#>` —y los
+     lógicos y las cadenas entre comillas— y comprueba que aparezcan en la
+     salida real de ESE bloque.
 
 Los comentarios `#>` son la mayor fuente de errores de este material: son
 plausibles, nadie los ejecuta y acaban publicados. En Series de Tiempo
@@ -78,6 +79,12 @@ BLOQUE_RE = re.compile(
     r'<pre><code class="language-(r|python)([^"]*)">(.*?)</code></pre>', re.S)
 # Números con signo, decimales y notación científica; `1e-13` incluido.
 NUM_RE = re.compile(r'-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?')
+# Los lógicos y las cadenas entre comillas de las líneas `#>`. Solo con
+# números, `#> [1] TRUE` y `#> [1] FALSE` daban la misma lista —el «1» del
+# índice—, y la línea que comprueba un resultado, que es la que más importa,
+# pasaba en verde aunque diera lo contrario (revisión del preparcial del
+# Corte II, ronda 6). Se buscan como palabra entera en la salida del bloque.
+PALABRA_RE = re.compile(r'\b(TRUE|FALSE|True|False|NULL)\b|("[^"\n]*")')
 
 RSCRIPT = AQUI / "rscript.sh"
 
@@ -114,15 +121,30 @@ def extrae(textos):
 
 
 def esperados(codigo):
-    """Números anunciados en las líneas `#>` del bloque."""
+    """Números anunciados en las líneas `#>` del bloque, y después sus lógicos
+    y sus cadenas entre comillas (sin los números que lleven dentro, que ya
+    se cuentan como cadena)."""
     fuera = []
     for linea in codigo.splitlines():
         s = linea.strip()
         marca = "#>" if s.startswith("#>") else ("#&gt;" if s.startswith("#&gt;") else None)
         if marca is None:
             continue
-        fuera.extend(NUM_RE.findall(s[len(marca):]))
+        resto = s[len(marca):]
+        palabras = [m.group(0) for m in PALABRA_RE.finditer(resto)]
+        fuera.extend(NUM_RE.findall(PALABRA_RE.sub(" ", resto)))
+        fuera.extend(palabras)
     return fuera
+
+
+def aparece(e, salida, vistos):
+    """Un número, entre los de la salida o dentro de ella; un lógico, como
+    palabra entera; una cadena, con sus comillas."""
+    if e.startswith('"'):
+        return e in salida
+    if e in ("TRUE", "FALSE", "True", "False", "NULL"):
+        return re.search(r"\b" + e + r"\b", salida) is not None
+    return e in vistos or e in salida
 
 
 def limpia(codigo):
@@ -246,7 +268,7 @@ def main():
         faltan = []
         for e in esp:
             total += 1
-            if e in vistos or e in salida:
+            if aparece(e, salida, vistos):
                 total_ok += 1
             else:
                 faltan.append(e)
@@ -272,7 +294,7 @@ def main():
                   f"  ({r['guion']})")
             print("\n".join(r["todo"].strip().splitlines()[-25:]))
 
-    print(f"\n=== {total_ok} de {total} cifras anunciadas aparecen en la salida real "
+    print(f"\n=== {total_ok} de {total} cifras, lógicos y cadenas anunciados aparecen en la salida real "
           f"({len(fallos)} bloques con discrepancias) ===")
     return 0 if (total_ok == total and not roto) else 1
 

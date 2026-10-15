@@ -38,8 +38,10 @@ import pathlib
 import sys
 
 from baraja_opciones import baraja_documento
+from motores import lee_motor
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
+from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
 DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-6-pesos-espaciales.html"
@@ -47,6 +49,12 @@ DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-6-pesos-espaciales.html"
 D = json.loads((SALIDAS / "cap6_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap6_mapas.json").read_text(encoding="utf-8"))
 SOL = json.loads((SALIDAS / "cap6_soluciones.json").read_text(encoding="utf-8"))
+# Las cifras de referencia de la animación del módulo 10 (`genera_cap6_rezago2d.R`, de spdep). La página solo
+# lleva CRIME de aquí; lo demás lo calcula el navegador y `prueba_rezago2d.py` lo mide contra estas cifras.
+RZ = json.loads((SALIDAS / "cap6_rezago2d.json").read_text(encoding="utf-8"))
+# Y el RESUMEN que cita la prosa (8 números): el auditor de cifras lee este y no la serie, que trae miles y deja
+# colar enteros por azar (ver `genera_cap6_rezago2d.R`).
+RS = json.loads((SALIDAS / "cap6_rezago2d_resumen.json").read_text(encoding="utf-8"))
 
 m1, m2, m3, m4 = D["m1"], D["m2"], D["m3"], D["m4"]
 m5, m6, m7, m8 = D["m5"], D["m6"], D["m7"], D["m8"]
@@ -157,6 +165,28 @@ def sim(ident, titulo, pie="", alto=260, mandos=True):
           <canvas role="img" aria-label="{titulo}"></canvas>
         </div>
         <div class="simulador-lectura"></div>
+      </div>
+"""
+
+
+# Lo que ve quien tiene JavaScript bloqueado: lo mismo que dice la animación, sin el lienzo.
+ANIM2D_RESERVA = ("La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: Wy es, en cada "
+                  "barrio, la media de sus vecinos, y aplicada una y otra vez aplana el mapa hacia un valor casi constante "
+                  "que no es la media de y sino la media ponderada por el grado.")
+
+
+def anim2d_html(ident, titulo, pie):
+    """Una animación 2D (`anim2d.js` + su pieza): un contenedor vacío que el motor monta cuando se ve.
+
+    Es un `.simulador` más —lo registra `SIMULADORES[ident]` y lo destruye `destruirSimuladores()`—, pero sin
+    lienzo ni mandos en el marcado: los construye el motor. El `.a2d-cargando` reserva el sitio y es el texto
+    que ve quien lo tenga bloqueado. Los lienzos que el motor crea no están en el marcado, así que no cuentan
+    para el auditor de `aria-label`; cada uno lleva el suyo al crearse.
+    """
+    return f"""      <div class="simulador" data-simulador="{ident}">
+        <h4><i class="fas fa-diagram-project" aria-hidden="true"></i> {titulo}</h4>
+        <p class="simulador-intro">{pie}</p>
+        <div class="a2d-montaje"><p class="a2d-cargando">{ANIM2D_RESERVA}</p></div>
       </div>
 """
 
@@ -503,7 +533,7 @@ y   &lt;- des[ok]
 wy  &lt;- lag.listw(lw, y, zero.policy = TRUE)
 con &lt;- card(sub) &gt; 0
 
-# Se parecen, y esa es toda la autocorrelación espacial del capítulo 7
+# Se parecen. Ojo: el I de Moran es otra cifra, la pendiente de wy sobre y
 round(cor(y[con], wy[con]), 4)
 #&gt; [1] {COR}
 
@@ -1103,8 +1133,8 @@ MOD9 = cabecera(
       <p>Un cero es un número, y los números entran en las medias. Si el rezago de las islas vale
         cero y la variable no está centrada, esas unidades <strong>tiran de cualquier resumen hacia
         abajo</strong> sin que nada lo avise: la media del rezago baja, la correlación entre el
-        dato y su rezago baja, y el índice de Moran del capítulo 7 —que es esa correlación con otro
-        nombre— baja también.</p>
+        dato y su rezago baja, y el índice de Moran del capítulo 7 —que se calcula con ese mismo
+        rezago— baja también.</p>
 
       <p>Las tres salidas honestas, y las tres hay que escribirlas:</p>
 
@@ -1144,9 +1174,15 @@ MOD10 = cabecera(
         justo lo que el módulo 7 advertía.</p>
 
       <p>Es la pieza sobre la que se construye el resto del curso. El índice de Moran del capítulo 7
-        es la correlación entre <em>y</em> y <em>Wy</em>; los modelos del capítulo 8 meten
-        <em>Wy</em> como una variable más. Vale la pena entenderlo aquí, donde todavía es solo una
-        media.</p>
+        se calcula con <em>y</em> y <em>Wy</em>: con W estandarizada por filas es la
+        <strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>. Se parece a la correlación entre
+        las dos sin ser igual, porque la pendiente es esa correlación multiplicada por el cociente
+        entre la desviación típica de <em>Wy</em> y la de <em>y</em>. Si en el capítulo 1 leíste la I de
+        Moran como «la correlación de los vecinos», es la misma idea vista pareja a pareja: se parece a la
+        correlación entre el valor de un sitio y el de cada vecino suyo, no a la que hay entre <em>y</em> y
+        la media de todos ellos, que suele salir más alta porque promediar quita ruido. Los modelos del capítulo 8
+        meten <em>Wy</em> como una variable más. Vale la pena entenderlo aquí, donde todavía es
+        solo una media.</p>
 
       <p>Sobre la deserción municipal, calculado sobre los
         {firma(ent(m10["n"]), " municipios con dato")} —quitando las
@@ -1163,16 +1199,62 @@ MOD10 = cabecera(
       <h3>El rezago contrae, y hay que saberlo antes de dibujarlo</h3>
 
       <p>La media de la deserción es {n(m10["y"]["media"], 4)} y la de su rezago
-        {n(m10["wy"]["media"], 4)}: prácticamente la misma, y tiene que serlo. Pero las
-        desviaciones típicas son {firma(n(m10["y"]["sd"], 4))} y {firma(n(m10["wy"]["sd"], 4))}:
-        el rezago es un {firma(pct(m10["contraccion_pct"], 2), " más estrecho")}.</p>
+        {n(m10["wy"]["media"], 4)}: parecidas, pero <strong>no tienen por qué coincidir</strong>. Cada
+        municipio entra en el promedio de cada uno de sus vecinos, así que en <em>Wy</em> no pesan todos
+        igual. Lo que W estandarizada por filas conserva exactamente, con una vecindad simétrica como la
+        reina, es otra media: la <strong>ponderada por el grado</strong>, la que cuenta a cada municipio
+        tantas veces como vecinos tiene. Lo que cambia, y mucho, es la dispersión: las desviaciones
+        típicas son {firma(n(m10["y"]["sd"], 4))} y {firma(n(m10["wy"]["sd"], 4))}, y el rezago es un
+        {firma(pct(m10["contraccion_pct"], 2), " más estrecho")}.</p>
 
-      <p>No es un artefacto: <strong>promediar contrae</strong>. La media de varios números está
-        más cerca del centro que los números que la forman, y el rezago es exactamente eso hecho
-        {ent(m10["n"])} veces. La consecuencia práctica es de mapa: si se dibujan
-        <em>y</em> y <em>Wy</em> con la misma escala de color, el segundo <strong>siempre</strong>
-        se ve más plano, y eso no dice nada sobre el territorio — dice que uno es un promedio del
-        otro.</p>
+      <p>No es un artefacto: <strong>promediar contrae</strong>. La media de varios números queda entre
+        el menor y el mayor de ellos, así que ningún valor de <em>Wy</em> se sale del rango de <em>y</em>,
+        y en la práctica su desviación típica queda bastante por debajo. El rezago es exactamente eso
+        hecho {ent(m10["n"])} veces. La consecuencia práctica es de mapa: si se dibujan <em>y</em> y
+        <em>Wy</em> con la misma escala de color, el segundo se ve más plano, y eso no dice nada sobre el
+        territorio — dice que uno es un promedio del otro.</p>
+
+      <h3>Si se promedia otra vez, el mapa sigue aplanándose</h3>
+
+      <p>Si <em>Wy</em> es la media de los vecinos, <em>W(Wy)</em> es la media de esas medias, y se puede
+        seguir: <strong>aplicar W una y otra vez</strong>. Cada vuelta aplana más el mapa, y antes de usar
+        W repetida —el módulo 11 la llamará «apilar capas»— hay que saber adónde va. La animación lo deja
+        ver sobre los 49 barrios de Columbus, con una sola escala de color para todas las capas. Escribimos
+        <em>W<sup>t</sup>y</em> para <em>y</em> promediado t veces: t y no k, que en este capítulo son los
+        vecinos más próximos del módulo 4.</p>
+
+{anim2d_html("cap6-rezago2d", "Aplicar W una y otra vez, sobre Columbus",
+             "Columbus, no los municipios: son 49 barrios y se ven uno a uno, que es lo que hace falta para seguir la "
+             "cuenta de un solo barrio. Las barras de arriba son los municipios. Elige un barrio, sube t y cambia la "
+             "vecindad.")}
+      <p>Lo que se ve, con la reina: el mapa tiende a un solo valor, y <strong>ese valor no es la media de
+        y</strong>. Es la <strong>media ponderada por el grado</strong> de cada barrio,
+        {firma(n(RS["limite_reina"], 4))}, y no la media simple,
+        {n(RS["y_media"], 4)}: un barrio con más vecinos entra en más promedios y pesa más. Con la torre
+        sale otro valor, {firma(n(RS["limite_torre"], 4))}, así que la vecindad que se
+        eligió manda también aquí.</p>
+
+      <p>Cuánto tarda en llegar no lo decide W sola. A la larga, cada aplicación multiplica la desviación
+        que queda por el segundo valor propio de W, {n(RS["lambda2_reina"], 4)} (el primero vale 1, y es el que deja
+        quieto el valor final); pero con la reina CRIME
+        necesita {ent(RS["k_5pct_reina"])} aplicaciones para dejar su desviación típica en el 5 % de la que
+        tenía, y con los mismos 49 valores repartidos al azar entre los barrios bastan
+        {ent(RS["barajado_k_5pct_mediana"])} (la mediana de {ent(RS["barajado_repartos"])} repartos).</p>
+
+      <p>Con t = 1 la lectura de la animación da otra cifra que conviene no confundir: la
+        <strong>pendiente</strong> de <em>Wy</em> sobre <em>y</em>, {firma(n(RS["moran_I"], 4))}, que es el
+        índice de Moran con esta W; la correlación entre las dos es {n(RS["moran_cor"], 4)}. No son lo
+        mismo, y la diferencia es la contracción de la sección anterior, ahora en Columbus: la desviación de
+        <em>Wy</em> es {n(RS["moran_razon_sd"], 4)} veces la de <em>y</em>. Que el rezago se estreche no
+        decía nada del territorio; <strong>cuánto se estrecha, sí</strong>. Con los valores repartidos al
+        azar sería {n(RS["barajado_razon_sd_mediana"], 4)} de mediana, y en ningún reparto pasó de
+        {n(RS["barajado_razon_sd_max"], 4)}: el de CRIME se estrecha menos porque lo cercano se parece, y
+        promediar valores parecidos los iguala poco. Es la misma razón por la que tarda más en aplanarse.</p>
+
+      <p>El capítulo 7 calcula este índice con otra W, la que publicó Anselin con los datos
+        ({ent(RS["parejas_gal"])} parejas, frente a las {ent(RS["parejas_reina"])} de la reina de
+        <code>poly2nb</code>), y allí da {n(RS["moran_I_gal"], 4)}. No es un error de ninguno de los dos: es,
+        otra vez, la W que se eligió.</p>
 
 {tabs("El rezago espacial", R10.format(**_SUB10), PY10.format(**_SUB10))}
       <p>Y una advertencia que el capítulo 7 va a cobrar: esa correlación de
@@ -1243,9 +1325,16 @@ MOD11 = cabecera(
       <p>La correspondencia no es una analogía bonita, y tiene dos consecuencias concretas:</p>
 
       <ul>
-        <li><strong>Apilar capas es subir de orden.</strong> Dos capas de paso de mensajes miran a
-          los vecinos de los vecinos, que es la contigüidad de orden 2 del módulo 3 — con la misma
-          trampa: no acumula sola, hay que decidir si se acumula.</li>
+        <li><strong>Apilar capas amplía el alcance, pero no es la contigüidad de orden 2.</strong>
+          Con dos capas cada nodo recibe de los vecinos de sus vecinos, y eso lo incluye a él
+          mismo: \\(W^2\\) tiene diagonal positiva, porque ir al vecino y volver cuenta. Recibe
+          también de cada vecino suyo que sea a la vez vecino de otro de sus vecinos, que en un
+          mapa de polígonos es lo habitual pero no lo seguro. La contigüidad de orden 2 del
+          módulo 3 es otra cosa, solo los que no eran ya
+          vecinos — y con la misma trampa de entonces: nada acumula solo, hay que decidir qué se
+          cuenta. Y apilar muchas, sin los pesos ni la no linealidad de cada capa, es aplicar W
+          muchas veces: la animación del módulo 10 enseña a dónde lleva eso, a un mapa casi de un
+          solo color.</li>
         <li><strong>La elección de W es la elección de la arquitectura.</strong> Lo que en este
           capítulo es «reina o k = 4» allí es qué aristas tiene el grafo, y allí también se elige y
           casi nunca se justifica.</li>
@@ -1285,8 +1374,8 @@ MOD12 = cabecera(
         <h4>Dónde sigue esto</h4>
         <p style="margin-bottom:0;">El <strong>capítulo 7</strong> hace la única pregunta que falta
           —<em>¿lo cercano se parece más de lo que cabría esperar por azar?</em>— y su respuesta va a
-          depender, entera, de la W que se haya elegido aquí: el índice de Moran es la correlación
-          entre <em>y</em> y <em>Wy</em>, así que hereda esta decisión completa. Los anteriores son
+          depender, entera, de la W que se haya elegido aquí: el índice de Moran se calcula con
+          <em>y</em> y <em>Wy</em>, así que hereda esta decisión completa. Los anteriores son
           <a href="capitulo-1-datos-espaciales.html">Datos espaciales y la primera ley de la
           geografía</a>, <a href="capitulo-2-crs-georreferenciacion.html">SIG, sistemas de
           referencia y georreferenciación</a>,
@@ -1349,8 +1438,15 @@ TABLA_W = """, tabla: function () {
 
 
 GEOMAPAS_JS = (
-    "    const MAPAS_CAP6 = " + json.dumps(M, ensure_ascii=False) + ";\n"
-    + geomapa("cap6-w", "cap6-w", _etq(
+    "    const MAPAS_CAP6 = " + json.dumps(M, ensure_ascii=False) + ";\n\n"
+    + "    // El criterio que el constructor del módulo 2 tiene elegido. El mapa\n"
+      "    // lo LEE con un getter, como los del capítulo 3: pasarle\n"
+      "    // `{ variante }` a dibuja() solo vale para ese trazo, y el\n"
+      "    // ResizeObserver y el conmutador de visión del color repintan sin\n"
+      "    // opciones. Con eso, girar el teléfono devolvía el grafo a la reina\n"
+      "    // mientras la botonera, el histograma y la lectura seguían en k = 3.\n"
+      "    const estadoCap6 = { w: D6.m2.criterios[0].id };\n\n"
+    + geomapa("cap6-w", "cap6-w", ",\n      get variante() { return estadoCap6.w; }" + _etq(
         "Los 49 barrios de Columbus con el grafo del criterio de vecindad elegido: "
         "cada línea une dos unidades que ese criterio considera vecinas, y un punto rojo "
         "es una unidad que se ha quedado sin ninguna.") + TABLA_W)
@@ -1454,10 +1550,11 @@ JS_PREAMBULO = r"""
     }
 
     // El mapa de un módulo, para que un simulador pueda repintarlo sin
-    // recrearlo: la plantilla expone `raiz.__geomapa.dibuja(opciones)`.
-    function repintaGeomapa(ident, opciones) {
+    // recrearlo. Se repinta SIN opciones: lo que cambia lo leen los getters
+    // de su registro en GEOMAPAS, y así un cambio de tamaño lo conserva.
+    function repintaGeomapa(ident) {
       const g = document.querySelector(`[data-geomapa="${ident}"]`);
-      if (g && g.__geomapa) g.__geomapa.dibuja(opciones);
+      if (g && g.__geomapa) g.__geomapa.dibuja();
     }
 """
 
@@ -1475,7 +1572,8 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       const pinta = () => {
         const c = cs[i], h = hs[i];
         if (g) { g.data.datasets[0].data = h.conteo; g.update(); }
-        repintaGeomapa('cap6-w', { variante: c.id });
+        estadoCap6.w = c.id;
+        repintaGeomapa('cap6-w');
         lectura6(raiz, [
           ['criterio', c.etiqueta],
           ['parejas', mil6(c.pares)],
@@ -1638,6 +1736,52 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     };
 """
 
+# La animación 2D del módulo 10. Los dos motores se leen de `precalculo/anim2d/` y viajan EN LÍNEA (un capítulo es un
+# solo HTML): se editan allí y nada más, y `comprueba_animaciones.py` comprueba que el capítulo lleve la versión
+# vigente. Se CONCATENAN, no se interpolan: el JS lleva llaves y `${}`.
+REZAGO2D_JS = (
+    "\n    // --- Módulo 10 · aplicar W una y otra vez: `anim2d.js` y `rezago2d.js`, en línea ---------\n"
+    "    // CRIME de los 49 barrios de Columbus, con todos sus decimales: lo único que la animación trae de fuera\n"
+    "    // (el mapa es el `cap6-w` de arriba y lo demás lo calcula ella).\n"
+    "    const REZAGO2D_Y = " + json.dumps(RZ["y"]["crime"]) + ";\n"
+    + lee_motor(RAIZ / "precalculo" / "anim2d" / "anim2d.js") + "\n"
+    + lee_motor(RAIZ / "precalculo" / "anim2d" / "rezago2d.js") + "\n"
+    + r"""
+    SIMULADORES['cap6-rezago2d'] = function (raiz) {
+      const sitio = raiz.querySelector('.a2d-montaje');
+      let vivo = true, instancia = null, io = null;
+      Anim2D.estilos(document);
+      const monta = () => {
+        if (!vivo) return;
+        // Si el motor falla, vuelve el texto de reserva («el texto de este módulo dice lo mismo»): antes se vaciaba
+        // el sitio ANTES de montar, y un fallo dejaba un hueco de alto cero y la promesa del párrafo, borrada.
+        const reserva = sitio.innerHTML;
+        try {
+          sitio.innerHTML = '';
+          // el color es el de los mapas del capítulo (`geomapaColor`, con su filtro de daltonismo); `reserva` es lo que
+          // la cáscara devuelve al sitio si la animación falla DESPUÉS de montarse (el primer dibujo llega en un rAF)
+          instancia = sitio.animacion = Rezago2D.monta(sitio, { y: REZAGO2D_Y, mapa: MAPAS_CAP6['cap6-w'] },
+                                                       { color: geomapaColor, geom: geomapaGeom, reserva });
+        } catch (e) {
+          sitio.innerHTML = reserva;
+          instancia = sitio.animacion = null;
+          console.error('cap6-rezago2d: la animación no se pudo montar', e);
+        }
+      };
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(es => {
+          if (es.some(e => e.isIntersecting)) { io.disconnect(); io = null; monta(); }
+        }, { rootMargin: '400px 0px' });
+        io.observe(sitio);
+      } else {
+        monta();
+      }
+      return [{ destroy() { vivo = false; if (io) io.disconnect(); if (instancia) instancia.destruir(); instancia = sitio.animacion = null; } }];
+    };
+""")
+
+SIMULADORES_JS += REZAGO2D_JS
+
 QUIZ_JS = r"""
     AUTOEVALUACIONES['cap6-quiz'] = [
       {
@@ -1796,7 +1940,7 @@ QUIZ_JS = r"""
           { texto: 'Nada sobre el territorio: promediar contrae, y el rezago es una media', correcta: true,
             retro: 'Eso es. La desviación pasa de ' + n6(D6.m10.y.sd) + ' a ' + n6(D6.m10.wy.sd) + ', un ' + n6(D6.m10.contraccion_pct, 2) + ' % menos, y eso pasaría con cualquier variable. Las medias, en cambio, casi coinciden.' },
           { texto: 'Que la deserción está espacialmente autocorrelacionada',
-            retro: 'La autocorrelación se ve en la CORRELACIÓN entre y y Wy —aquí ' + n6(D6.m10.correlacion) + '—, no en que el mapa del rezago se vea plano. Eso último pasaría igual sin autocorrelación ninguna.' },
+            retro: 'La autocorrelación se ve en la CORRELACIÓN entre y y Wy —aquí ' + n6(D6.m10.correlacion) + '—, no en que el mapa del rezago se vea plano. Eso último pasaría también sin autocorrelación ninguna.' },
           { texto: 'Que la W elegida tiene demasiados vecinos',
             retro: 'Más vecinos contraen más, es cierto, pero la contracción existe con cualquier W: es una propiedad de promediar, no de esta vecindad.' },
           { texto: 'Que hay un error en el cálculo del rezago',
@@ -1910,6 +2054,7 @@ def main() -> int:
     # de una en una, las preguntas nacen con la correcta delante.
     doc = baraja_documento(doc, "cap6")
 
+    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- El recuento, contado y no recordado --------------------------

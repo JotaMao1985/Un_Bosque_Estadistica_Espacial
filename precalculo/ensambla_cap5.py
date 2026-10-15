@@ -34,6 +34,11 @@ LO QUE ESTE CAPÍTULO ESTRENA, y va declarado:
     `cap5_datos.json`, así que la clave no coincidía consigo misma. Se
     arregló redondeando sigma EN EL ORIGEN; aquí se comprueba que las dos
     listas siguen casando antes de escribir el documento.
+  · **Abre el módulo que pide la URL.** `…html#modulo-N` abre el módulo N,
+    que es lo que prometen los enlaces «Leer en el material» de las
+    diapositivas de clase; la plantilla arranca siempre en el 1. Se cablea
+    aquí y no en la plantilla, que es de los seis capítulos (ver «El arranque
+    de la página», más abajo).
 
 Y LA REGLA DEL RITMO (§9.1 del plan): ningún módulo abre pidiendo trabajo
 · todo componente interactivo va con dos párrafos, el que lo motiva y el
@@ -51,8 +56,10 @@ from baraja_opciones import baraja_documento
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from rejilla_comprime import ida_y_vuelta
+from construye_nucleo3d import THREE_URL, THREE_SRI, leer_motor
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
+from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
 DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-5-intensidad-nucleos.html"
@@ -253,6 +260,33 @@ def quiz_html(ident, titulo, bajada):
           <span class="quiz-conteo"></span>
           <button type="button" class="quiz-reiniciar">Reiniciar</button>
         </div>
+      </div>
+"""
+
+
+# Lo que ve quien tiene bloqueado three.js o JavaScript, escena por escena: lo mismo que dice la animación, sin el lienzo.
+NUCLEO3D_RESERVA = {
+    "conteo": "La animación se carga al llegar aquí. Si no aparece, el texto de los cinco pasos y la fórmula de arriba dicen "
+              "lo mismo: cada punto levanta una loma de ancho σ, y la superficie de intensidad es la suma de todas las lomas.",
+    "borde": "La animación se carga al llegar aquí. Si no aparece, el texto de este módulo dice lo mismo: la parte del núcleo "
+             "de una sede que cae fuera de la ventana no la recoge nadie, y las dos correcciones de borde se distinguen por dónde "
+             "dividen por la fracción que queda dentro.",
+}
+
+
+def nucleo3d_html(ident, titulo, pie, escena="conteo"):
+    """La animación 3D (módulos 1 y 4): un contenedor vacío que el motor monta cuando se ve.
+
+    Es un `.simulador` más —lo registra `SIMULADORES[ident]` y lo destruye
+    `destruirSimuladores()`—, pero sin lienzo ni mandos en el marcado: los
+    construye `nucleo3d.js`, que es el mismo motor de las diapositivas. El
+    `.n3d-cargando` reserva el sitio mientras llega three.js, y es el texto
+    que ve quien lo tenga bloqueado.
+    """
+    return f"""      <div class="simulador" data-simulador="{ident}">
+        <h4><i class="fas fa-cube" aria-hidden="true"></i> {titulo}</h4>
+        <p class="simulador-intro">{pie}</p>
+        <div class="n3d-montaje"><p class="n3d-cargando">{NUCLEO3D_RESERVA[escena]}</p></div>
       </div>
 """
 
@@ -497,6 +531,23 @@ MOD1 = cabecera(
       <p>El término $e(u)$ es la corrección de borde, y tiene el módulo 4 para él solo. Por ahora
         basta con saber por qué existe: la ventana corta el núcleo de los puntos cercanos al
         perímetro, y sin corregir esa masa se pierde por el borde.</p>
+
+      <p>Antes de medir nada sobre Kennedy conviene <em>ver</em> qué hace esa suma. La animación de
+        abajo parte de unos pocos puntos inventados y sigue la idea del módulo en cinco pasos: del
+        conteo en cajas a una loma por punto, y de ahí a la superficie que resulta de sumarlas.
+        Como los puntos no son sedes reales, las cifras que verás en pantalla no son resultados:
+        sirven para ver cómo funciona el estimador, no para medir nada.</p>
+
+{nucleo3d_html("cap5-nucleo3d", "Del conteo a la superficie, en tres dimensiones",
+      "Cinco pasos, de los puntos a la altura en un sitio. Arrastra un punto o el fondo, mueve σ "
+      "y cambia de núcleo; con «Reproducir» la animación recorre los cinco pasos sola.")}
+      <p>Quédate con tres cosas. La superficie no tiene nada que no estuviera en las lomas: es su
+        suma, sitio a sitio. Cada loma encierra lo mismo —un punto—, así que abrir σ no crea
+        intensidad, la reparte: los picos bajan y los valles se llenan (con el disco, el pico puede subir a
+        saltos cuando su círculo alcanza un punto más). Y cambiar de núcleo cambia la forma de
+        las lomas, pero la de su suma mucho menos que mover σ (el disco, con su borde brusco, es el
+        que más se nota). Las dos últimas son justo lo que mide el módulo siguiente, esta vez
+        sobre las sedes de Kennedy.</p>
 """ + CIERRE
 
 
@@ -512,7 +563,9 @@ MOD2 = cabecera(
     "ancho, y comprobar que no juegan en la misma liga.") + f"""
       <p>Elegir un estimador por núcleos son dos decisiones: qué función de peso usar y con qué
         anchura. Suenan igual de importantes y no lo son, ni de lejos. Este módulo mide las dos
-        sobre el mismo patrón, para que la diferencia se vea en una cifra en vez de creerse.</p>
+        sobre el mismo patrón, para que la diferencia se vea en una cifra en vez de creerse. Si
+        prefieres verlas antes en pequeño, la animación del módulo 1 tiene los dos mandos: el
+        núcleo y σ.</p>
 
       <h3>Primero el núcleo, que es la decisión que no importa</h3>
 
@@ -826,9 +879,26 @@ MOD4 = cabecera(
       <p>Sin corregir, <strong>la masa se escapa</strong>, y cada vez más al abrir el núcleo:
         de {n(m4["tabla"][0]["fuga_sin_corregir_pct"], 2)} % a
         {firma(n(m4["tabla"][-1]["fuga_sin_corregir_pct"], 2), " %")}. Con la corrección que
-        <code>density.ppp</code> aplica sin pedírsela, <strong>la masa se pasa</strong>, y
-        también crece con σ. Y con <code>diggle = TRUE</code> la integral devuelve n clavado a
-        cualquier ancho.</p>
+        <code>density.ppp</code> aplica sin pedírsela, <strong>en estas sedes la masa se
+        pasa</strong>, y también crece con σ. Y con <code>diggle = TRUE</code> la integral
+        devuelve n clavado a cualquier ancho.</p>
+
+      <p>Conviene no leer de ahí una ley. Que la masa se pase no es una propiedad del método
+        sino de estas sedes: esa corrección divide cada sitio $u$ por $e(u)$, y el total sale por
+        encima o por debajo de n según a qué distancia del borde caigan los puntos. Una sede
+        pegada al borde aporta a la integral menos de 1; una a uno y medio o dos anchos de él, más de 1.
+        Con estas sedes sobra; con otras posiciones podría quedarse corta. La animación de abajo
+        lo deja ver con los diecinueve puntos inventados del módulo 1: mueve una sede hacia el
+        borde y mira cuánto aporta con cada corrección.</p>
+
+{nucleo3d_html("cap5-nucleo3d-borde", "Lo que se escapa por el borde, en tres dimensiones",
+      "Cuatro pasos: una loma que se sale de la ventana, la suma sin corregir y las dos correcciones. "
+      "Arrastra una sede hacia el borde o una esquina, ensancha σ y compara lo que aporta con cada "
+      "corrección; con «Reproducir» la animación recorre los cuatro pasos sola.", "borde")}
+      <p>Dos cosas para llevarse. La primera: cada una de las tres superficies, sola, parece
+        razonable; lo que las separa se ve al ponerlas sobre la red gris de la que no se corrige
+        y, mejor, se mide integrando contra n. La segunda: las dos correcciones no se distinguen
+        por el divisor sino por dónde se evalúa, y el recuadro de abajo lo dice entero.</p>
 
       <div class="nota-lateral">
         <h4>Por qué solo una de las tres conserva el conteo</h4>
@@ -2435,6 +2505,16 @@ MOD12 = cabecera(
           resultado sin cambiar la llamada.</p>
       </div>
 
+      <div class="definition">
+        <h4>Antes del parcial: el preparcial del Corte II</h4>
+        <p style="margin-bottom:0;">El parcial del corte evalúa este capítulo y el anterior, del
+          módulo 1 al 11 de cada uno. El <a href="preparcial-corte-2.html">preparcial del Corte
+          II</a> los recorre con una pregunta por módulo y otras que cruzan los dos capítulos —cada
+          opción con su explicación—, seis rutinas con su salida real, cinco ejercicios sobre un
+          patrón que el curso no había usado, el oro de Murchison, y el catálogo de los errores que
+          se repiten. No tiene nota y se puede repetir tantas veces como haga falta.</p>
+      </div>
+
       <div class="tip-box">
         <h4>Dónde sigue esto</h4>
         <p style="margin-bottom:0;">El capítulo 6 cambia de tipo de dato: de puntos sueltos a
@@ -2521,6 +2601,10 @@ MOD13 = cabecera(
         de K con sus pesos, la intensidad en un punto—, y esas se abrevian sabiendo de antemano qué
         entra en cada término.</p>
       </div>
+
+      <p>Con el quiz hecho, lo que queda del corte es el parcial. Para prepararlo está el
+        <a href="preparcial-corte-2.html">preparcial del Corte II</a>, que recorre este capítulo y
+        el anterior enteros y termina con cinco ejercicios para hacer de punta a punta.</p>
 """ + CIERRE
 
 
@@ -2564,6 +2648,69 @@ COURSE_DATA = (
     + "    const SOL_CAP5 = " + json.dumps(S, ensure_ascii=False) + ";\n"
     + "    const D5 = DATOS_CAP5;\n"
 )
+
+
+# =====================================================================
+# El arranque de la página: qué módulo se abre primero
+#
+# EL ENLACE PROFUNDO `#modulo-N` SE CABLEA AQUÍ, Y SOLO EN ESTE CAPÍTULO.
+# Los enlaces «Leer en el material» de las diapositivas de clase terminan en
+# `capitulo-5-intensidad-nucleos.html#modulo-N`, porque la skill que las
+# construye da por hecho que el capítulo abre el módulo que nombra el
+# fragmento. La plantilla no lo hace: arranca siempre con `loadModule(1)` y no
+# lee `location.hash`. Resultado, sin un solo error en consola: cada enlace
+# aterrizaba en el módulo 1 (solo `#modulo-1` acertaba, de casualidad), y se
+# descubrió al abrir el sitio ya publicado, no al construir nada.
+#
+# Se arregla aquí y no en la plantilla porque la plantilla es de los seis
+# capítulos: tocarla obliga a reensamblarlos todos y a volver a vigilar sus
+# topes de tamaño. El capítulo 5 sustituye el bloque de arranque por uno que
+# decide el módulo inicial; los demás capítulos no cambian.
+#
+# Tres decisiones que no son evidentes:
+#  1. Se CAMBIA la llamada de arranque; no se añade una segunda detrás.
+#     `loadModule` marca el módulo como visto y lo inicializa entero
+#     (simuladores, mapas, matemática): abrir el 1 y saltar al N marcaría como
+#     visto un módulo que nadie abrió y tiraría ese trabajo.
+#  2. Solo vale el fragmento exacto `#modulo-N` con N un módulo que existe.
+#     Cualquier otro (`#fn1`, `#modulo-99`, vacío) deja las cosas como
+#     estaban: abre el 1 al cargar y NO cambia de módulo al navegar, porque un
+#     ancla cualquiera de la página no puede mandar al lector al módulo 1.
+#  3. `hashchange` cubre la página ya abierta: pegar otro `#modulo-N` en la
+#     barra de direcciones no la recarga, y sin el oyente ese enlace no haría
+#     nada.
+# `prueba_ensambla_cap5.py` ejecuta esta lógica contra los enlaces de las
+# diapositivas.
+# =====================================================================
+ARRANQUE_PLANTILLA = """    document.addEventListener('DOMContentLoaded', () => {
+      renderNavigation();
+      loadModule(1);
+      setupEventListeners();
+    });
+"""
+
+ARRANQUE_CAP5 = r"""    // Enlace profundo: «capitulo-5-intensidad-nucleos.html#modulo-N» abre el
+    // módulo N. Devuelve 0 si el fragmento no es exactamente ese o si N no es
+    // un módulo del capítulo.
+    function moduloDeLaUrl() {
+      const m = /^#modulo-(\d+)$/.exec(location.hash);
+      const id = m ? Number(m[1]) : 0;
+      return courseData.modules.some(mod => mod.id === id) ? id : 0;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderNavigation();
+      loadModule(moduloDeLaUrl() || 1);
+      setupEventListeners();
+    });
+
+    // Con la página ya abierta, pegar otro #modulo-N en la barra de direcciones
+    // no la recarga: solo avisa de que cambió el fragmento.
+    window.addEventListener('hashchange', () => {
+      const id = moduloDeLaUrl();
+      if (id && id !== currentModuleId) loadModule(id);
+    });
+"""
 
 
 # =====================================================================
@@ -3243,6 +3390,66 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     };
 """
 
+# =====================================================================
+# LA ANIMACIÓN 3D DEL MÓDULO 1 (`precalculo/nucleo3d/nucleo3d.js`).
+#
+# El motor se inyecta TAL CUAL —el mismo archivo que estampa
+# `construye_nucleo3d.py` para las diapositivas— y aquí solo se escribe su
+# registro. Dos decisiones que no se ven en el resultado:
+#
+#   · three.js (600 KB) NO viaja con el capítulo ni se pide al abrirlo: se pide
+#     cuando la animación está a 400 px de verse (`IntersectionObserver`), con
+#     la versión fijada y su huella SRI. Quien no baja hasta ella no lo
+#     descarga, y quien lo tiene bloqueado ve el aviso del motor en vez de un
+#     hueco: el texto de los cinco pasos y la prosa dicen lo mismo.
+#   · el registro devuelve `{ destroy() }` y no un Chart: es el contrato de
+#     `destruirSimuladores()`, y destruir aquí libera el contexto WebGL.
+# =====================================================================
+NUCLEO3D_JS = (
+    "\n    // --- Módulo 1 · la animación 3D: el motor y su registro ------------\n"
+    "    // El motor es `precalculo/nucleo3d/nucleo3d.js`, el MISMO que cargan las diapositivas.\n"
+    + leer_motor()
+    + r"""
+    function cargaThree() {
+      if (window.THREE) return Promise.resolve();
+      if (!cargaThree.promesa) {
+        cargaThree.promesa = new Promise((ok, mal) => {
+          const s = document.createElement('script');
+          s.src = '@@URL@@'; s.integrity = '@@SRI@@'; s.crossOrigin = 'anonymous';
+          s.onload = ok;
+          s.onerror = () => { cargaThree.promesa = null; mal(new Error('three.js no llegó')); };
+          document.head.appendChild(s);
+        });
+      }
+      return cargaThree.promesa;
+    }
+
+    // Un solo registro para las dos escenas del motor: la del módulo 1 y la del módulo 4. Lo único que cambia es la opción `escena`.
+    function registraNucleo3d(escena) {
+      return function (raiz) {
+      const sitio = raiz.querySelector('.n3d-montaje');
+      let vivo = true, instancia = null, io = null;
+      Nucleo3D.estilos(document);
+      const monta = () => cargaThree().then(
+        () => { if (vivo) { sitio.innerHTML = ''; instancia = sitio.animacion = Nucleo3D.montar(sitio, { THREE: window.THREE, escena }); } },
+        () => { if (vivo) { sitio.innerHTML = ''; Nucleo3D.montar(sitio, { THREE: null, escena }); } });
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(es => {
+          if (es.some(e => e.isIntersecting)) { io.disconnect(); io = null; monta(); }
+        }, { rootMargin: '400px 0px' });
+        io.observe(sitio);
+      } else {
+        monta();
+      }
+      return [{ destroy() { vivo = false; if (io) io.disconnect(); if (instancia) instancia.destruir(); instancia = sitio.animacion = null; } }];
+      };
+    }
+    SIMULADORES['cap5-nucleo3d'] = registraNucleo3d('conteo');
+    SIMULADORES['cap5-nucleo3d-borde'] = registraNucleo3d('borde');
+""").replace("@@URL@@", THREE_URL).replace("@@SRI@@", THREE_SRI)
+
+SIMULADORES_JS += NUCLEO3D_JS
+
 
 # =====================================================================
 # LAS DOCE PREGUNTAS: cuatro en el módulo 6 y ocho en el 12.
@@ -3496,6 +3703,10 @@ def main() -> int:
     doc = reemplaza_region(doc, "    const courseData = {", "\n    };\n", COURSE_DATA,
                            "courseData + DATOS_CAP5", max_lineas=20)
 
+    # El módulo que se abre primero lo decide la URL (`#modulo-N`), no la plantilla.
+    doc = sustituye(doc, ARRANQUE_PLANTILLA, ARRANQUE_CAP5,
+                    "el arranque de la página (módulo inicial según #modulo-N)")
+
     doc = reemplaza_region(
         doc,
         "  <!-- ============================================================ -->\n"
@@ -3544,6 +3755,7 @@ def main() -> int:
     # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
     doc = baraja_documento(doc, "cap5")
 
+    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     marcado = doc[:doc.rindex("\n  <script>")]
@@ -3613,6 +3825,14 @@ def main() -> int:
                          f"{N_PREGUNTAS})")
     if quices != 2:
         problemas.append(f"autoevaluaciones: {quices} y son dos, la del módulo 6 y la del 12")
+    # EL ARRANQUE, COMPROBADO Y NO SUPUESTO. Si alguien reescribe ARRANQUE_CAP5 y
+    # pierde la lectura del fragmento, los enlaces «Leer en el material» de las
+    # diapositivas vuelven a caer en el módulo 1 y no falla nada que se vea.
+    if (doc.count("function moduloDeLaUrl()") != 1
+            or "loadModule(moduloDeLaUrl() || 1);" not in doc
+            or "      loadModule(1);\n      setupEventListeners();" in doc):
+        problemas.append("el arranque no abre el módulo que pide #modulo-N: los enlaces "
+                         "«Leer en el material» de las diapositivas caerían en el módulo 1")
     # LA CLAVE DE LA RETROALIMENTACIÓN, COMPROBADA Y NO SUPUESTA.
     # El motor lee `op.retro`; los capítulos 3 y 4 escribieron `respuesta`
     # y sus 68 explicaciones por opción no se dibujan nunca, sin un solo
