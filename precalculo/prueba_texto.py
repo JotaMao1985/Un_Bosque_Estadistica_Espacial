@@ -105,6 +105,8 @@ SUJETOS = {
              PROYECTO / "Htmls_Espacial", "capitulo-5-intensidad-nucleos.html"),
     "cap6": ("audita_texto_cap6.py", "CAP6_HTML",
              PROYECTO / "Htmls_Espacial", "capitulo-6-pesos-espaciales.html"),
+    "cap7": ("audita_texto_cap7.py", "CAP7_HTML",
+             PROYECTO / "Htmls_Espacial", "capitulo-7-autocorrelacion.html"),
     # El PRIMER taller que entra aquí, y conviene decir que el Taller 1 NO
     # está: `audita_texto_taller1.py` existe y corre en `audita_todo.sh`,
     # pero ninguna de sus comprobaciones se ha visto fallar nunca. Está
@@ -1593,11 +1595,182 @@ def defectos_apendicea() -> list[tuple]:
          "</body>", "<!--" + "y" * 320_000 + "-->\n</body>"),
     ]
 
+def defectos_cap7() -> list[tuple]:
+    """Los defectos del capítulo 7, construidos DESDE su precálculo.
+
+    Cubre las familias de los anteriores —cifras en el texto, dentro de KaTeX
+    y en las tablas; soluciones; afirmaciones y temario; accesibilidad;
+    codificación, enlaces y peso— y estrena la que solo este capítulo puede
+    probar: LA CAPA CATEGÓRICA del motor de mapas.
+
+     · **un recuento de categoría alterado en el mapa incrustado.** La leyenda
+       de un mapa LISA dice cuántas unidades hay en cada color, y el número
+       viaja dentro de `MAPAS_CAP7`, donde ningún auditor de cifras entra.
+     · **una capa pedida con un nombre que no existe.** El motor no falla:
+       cae en la primera capa y pinta CRIME donde el texto dice Gi*.
+     · **el motor sin la rama categórica.** Un capítulo reensamblado con una
+       plantilla vieja pintaría los LISA con la paleta de una capa numérica,
+       sin un error en la consola.
+
+    Los ENTEROS cortos se inyectan como cifras imposibles de cuatro o cinco
+    dígitos, por lo que el capítulo 6 dejó medido: el índice del auditor
+    absorbe por azar un entero de tres cifras (los protege `audita_cap7.py`).
+
+    Y LAS CIFRAS QUE EL PRECÁLCULO GUARDA CON CUATRO DECIMALES (`r4`) TAMPOCO
+    LAS PROTEGE `cifras()`, y se dice en vez de disimularlo. Medido el
+    2026-10-13: del I del barrio disparado (0.0524) el índice absorbe 15 de 18
+    perturbaciones en el tercer o el cuarto decimal, y del I de HOVAL (0.1809),
+    14 de 18. Son las curvas del módulo 5 y la tabla de las tres variables, y
+    las recalcula una a una `audita_cap7.py`; por eso no hay aquí una inyección
+    sobre ellas que solo pasaría por elegir la perturbación con suerte.
+    """
+    D = json.loads((SALIDAS / "cap7_datos.json").read_text(encoding="utf-8"))
+    S = json.loads((SALIDAS / "cap7_soluciones.json").read_text(encoding="utf-8"))
+    M = json.loads((SALIDAS / "cap7_mapas.json").read_text(encoding="utf-8"))
+    m1, m2, m3, m4, m5 = D["m1"], D["m2"], D["m3"], D["m4"], D["m5"]
+    m7, m8, m10, m11 = D["m7"], D["m8"], D["m10"], D["m11"]
+    WM = {w["id"]: w for w in m7["municipios"]}
+    tam_bonf = M["cap7-columbus"]["capas"][2]["tam"]
+
+    def f(x, d=5):
+        return f"{float(x):.{d}f}"
+
+    def perturba(x, d=5):
+        t = f(x, d)
+        return t[:-1] + ("1" if t[-1] != "1" else "2")
+
+    def ent(x):
+        return f"{int(round(float(x))):,}".replace(",", " ")
+
+    return [
+        # --- 2. En el texto corrido -----------------------------------
+        ("la media de CRIME, cambiada en la prosa",
+         f"<strong>{f(m1['columbus']['media'], 4)}</strong>",
+         f"<strong>{perturba(m1['columbus']['media'], 4)}</strong>"),
+        ("el numerador de I, cambiado",
+         f"<strong>{f(m2['columbus']['z_Wz'], 6)}</strong>",
+         f"<strong>{perturba(m2['columbus']['z_Wz'], 6)}</strong>"),
+        ("E[I] de Columbus, cambiada",
+         f"<strong>{f(m1['columbus']['EI'], 6)}</strong>",
+         f"<strong>{perturba(m1['columbus']['EI'], 6)}</strong>"),
+        ("la curtosis de CRIME, cambiada",
+         f"<strong>{f(m3['columbus']['aleatorizacion']['curtosis'], 4)}</strong>",
+         f"<strong>{perturba(m3['columbus']['aleatorizacion']['curtosis'], 4)}</strong>"),
+        ("la mayor réplica por permutación, cambiada",
+         f"<strong>{f(m3['columbus']['permutacion']['max_sim'], 6)}</strong>",
+         f"<strong>{perturba(m3['columbus']['permutacion']['max_sim'], 6)}</strong>"),
+        ("la c de Geary, cambiada",
+         f"<strong>c = {f(m5['columbus']['c'], 5)}</strong>",
+         f"<strong>c = {perturba(m5['columbus']['c'], 5)}</strong>"),
+        ("el I mínimo de las once W, cambiado",
+         f"<strong>{f(m7['resumen']['columbus_I'][0], 4)}</strong>",
+         f"<strong>{perturba(m7['resumen']['columbus_I'][0], 4)}</strong>"),
+        ("la pendiente municipal sobre todas las unidades, cambiada",
+         f"<strong>{f(m4['municipios']['pendiente_todas'], 6)}</strong>",
+         f"<strong>{perturba(m4['municipios']['pendiente_todas'], 6)}</strong>"),
+        ("la suma de los I locales entre S0, cambiada",
+         f"<strong>{f(m8['municipios']['suma_Ii_sobre_S0'], 6)}</strong>",
+         f"<strong>{perturba(m8['municipios']['suma_Ii_sobre_S0'], 6)}</strong>"),
+        ("las réplicas mínimas municipales, cambiadas a una cifra imposible",
+         f"<strong>{ent(m10['suelo']['municipios']['nsim_minimo'])}</strong>",
+         "<strong>88 713</strong>"),
+        ("la Gi* de la celda 120, cambiada",
+         f"<strong>{f(m11['getisord']['G_estrella'], 4)}</strong>",
+         "<strong>7.3917</strong>"),          # un dígito lo absorbe el índice desde el JSON del 2026-10-20
+        ("la z máxima de Gi* en los municipios, cambiada",
+         f"{f(m11['municipios']['z_max'], 4)}, en",
+         f"{perturba(m11['municipios']['z_max'], 4)}, en"),
+        # --- 2b. Dentro de una fórmula de KaTeX ------------------------
+        ("una cifra inventada dentro de una fórmula",
+         r"E[I] &amp;= -\frac{1}{n-1}", r"E[I] &amp;= -\frac{1.0213}{n-1}"),
+
+        # --- 3. En una tabla ------------------------------------------
+        ("el máximo del rango municipal, cambiado en la tabla",
+         f"<td>{f(m2['rango']['municipios'][1], 4)}</td>",
+         "<td>6.8329</td>"),                  # ídem
+        ("la z de la reina municipal, cambiada en la tabla",
+         f"<td>{f(WM['reina']['z'], 4)}</td>",
+         f"<td>{perturba(WM['reina']['z'], 4)}</td>"),
+        ("el I local de Leguízamo, cambiado en la tabla",
+         f"<td>{f(m8['municipios']['top5'][0]['Ii'], 5)}</td>",
+         f"<td>{perturba(m8['municipios']['top5'][0]['Ii'], 5)}</td>"),
+        ("la Gi* con umbral 90, cambiada en la tabla",
+         f"<td>{f(m11['getisord']['barrido'][2]['G_estrella'], 4)}</td>",
+         f"<td>{perturba(m11['getisord']['barrido'][2]['G_estrella'], 4)}</td>"),
+        ("los significativos sin corregir con el p analítico, a una cifra imposible",
+         f"<td>{ent(m10['municipios']['tabla']['analitico']['sin_corregir'])}</td><td>",
+         "<td>97 613</td><td>"),
+
+        # --- 4. En una solución de ejercicio --------------------------
+        ("un paso de la solución del ejercicio 1, alterado",
+         f'<td>{S["e1"]["pasos"][0]["valor"]:g}</td>',
+         f'<td>{perturba(S["e1"]["pasos"][0]["valor"], 6)}</td>'),
+        ("un paso de la solución del ejercicio 3, alterado",
+         f'<td>{S["e3"]["pasos"][0]["valor"]:g}</td>',
+         f'<td>{perturba(S["e3"]["pasos"][0]["valor"], 6)}</td>'),
+
+        # --- 5. Afirmaciones y temario --------------------------------
+        ("desaparece por qué E[I] no es cero",
+         "W no tiene diagonal", "W tiene diagonal", True),
+        ("I vuelve a tener techo en 1",
+         "El máximo <em>puede</em> pasar de 1", "El máximo no pasa de 1", True),
+        ("desaparece el suelo del p de permutación",
+         "no puede bajar de", "puede bajar hasta", True),
+        ("desaparece que significación no es magnitud",
+         "Significación no es magnitud", "Significación es magnitud", True),
+        ("el rojo vuelve a dibujar zonas",
+         "señala centros; no dibuja fronteras", "dibuja las zonas de los conglomerados", True),
+        ("desaparece que hay que saber qué p se corrige",
+         "qué p se está corrigiendo", "cómo se corrige", True),
+        ("los atípicos vuelven a desaparecer en Gi*",
+         "el resto no llega. Salen pintados del", "el resto no llega. Desaparecen, sin pintarse del", True),
+        ("desaparece la declaración de los números pequeños",
+         "no puede separar aquí", "separa sin problema", True),
+        ("el capítulo deja de fijar no_repeat_in_row",
+         "no_repeat_in_row = TRUE", "no_repeat = TRUE", True),
+        ("se cae un tema del temario (join count)",
+         "join count", "conteo binario", True),
+
+        # --- 6. Accesibilidad y marcado -------------------------------
+        ("un lienzo sin aria-label",
+         '<canvas class="cap7-lienzo-a" role="img" aria-label=',
+         '<canvas class="cap7-lienzo-a" role="img" data-label='),
+        ("un .geomapa renombrado, que lo deja sin registro",
+         'data-geomapa="cap7-columbus-lisa"', 'data-geomapa="cap7-columbus-lisa-2"'),
+        ("las tablas de respaldo, quitadas",
+         "tabla: ", "tablaFuera: ", True),
+        ("el desplegable de un ejercicio, descableado",
+         'aria-expanded="false" aria-controls="cap7-e1-sol"',
+         'aria-expanded="false" data-controls="cap7-e1-sol"'),
+        ("el contenedor de la autoevaluación, renombrado",
+         '<div class="quiz" data-quiz="cap7-quiz">',
+         '<div class="cuestionario" data-quiz="cap7-quiz">'),
+
+        # --- 7. La capa categórica (familia de este capítulo) ----------
+        ("un recuento de categoría alterado en el mapa incrustado",
+         f'"tam": {json.dumps(tam_bonf)}, "n_sin_dato": 0}}, {{"id": "lisa_fdr"',
+         f'"tam": {json.dumps([tam_bonf[0] - 1, tam_bonf[1] + 1] + tam_bonf[2:])}, "n_sin_dato": 0}}, {{"id": "lisa_fdr"'),
+        ("una capa pedida con un nombre que no existe",
+         "capa: 'gistar',", "capa: 'gi_star',"),
+        ("el motor sin la rama categórica",
+         "cp.tipo === 'categoria'", "cp.tipo === 'categorica'", True),
+
+        # --- 8. Codificación, enlaces y peso --------------------------
+        ("una tilde convertida en bytes crudos",
+         "Assunção", "Assun<c3><a7><c3><a3>o"),
+        ("un enlace a un hermano, roto",
+         'href="capitulo-6-pesos-espaciales.html"',
+         'href="capitulo-6-pesos-espaciale.html"'),
+        ("el documento desbocado",
+         "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
+    ]
+
 
 DEFECTOS = {"demo": defectos_demo, "cap1": defectos_cap1,
             "cap2": defectos_cap2, "cap3": defectos_cap3,
             "cap4": defectos_cap4, "cap5": defectos_cap5,
-            "cap6": defectos_cap6, "taller2": defectos_taller2,
+            "cap6": defectos_cap6, "cap7": defectos_cap7,
+            "taller2": defectos_taller2,
             "apendicea": defectos_apendicea}
 
 

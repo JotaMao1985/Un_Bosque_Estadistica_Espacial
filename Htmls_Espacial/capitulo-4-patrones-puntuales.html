@@ -3944,6 +3944,27 @@
       border-radius: 3px;
       border: 1px solid rgba(1, 40, 32, 0.18);
       flex: 0 0 auto;
+      /* La muestra ES el dato, no un adorno: con colores forzados el
+         navegador le quitaba el fondo y en papel no lo imprimía, mientras
+         el lienzo conserva los suyos en los dos casos. Una leyenda de
+         categorías —la de un mapa LISA, capítulo 7— sin sus colores ya no
+         dice qué rojo es cuál. */
+      forced-color-adjust: none;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* «Sin dato o sin vecinos» en una capa CATEGÓRICA (T4.5, capítulo 7).
+       No puede ser un gris liso: el gris es el color de «no significativo»
+       en un mapa LISA, y una isla sin vecinos pintada así se lee como un
+       municipio examinado que no salió significativo. El rayado es el
+       mismo que pinta el lienzo. */
+    .geomapa-rayado {
+      background: repeating-linear-gradient(135deg, #ffffff 0 3px, #4b5563 3px 4px);
+    }
+
+    .geomapa-cuenta {
+      color: #6b7280;
     }
 
     /* La segunda capa de un mapa de puntos (las bombas de Snow frente a
@@ -3976,6 +3997,10 @@
       border-radius: 3px;
       border: 1px solid rgba(1, 40, 32, 0.18);
       flex: 0 0 auto;
+      /* lo mismo que .geomapa-muestra: la rampa es la escala del mapa */
+      forced-color-adjust: none;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
     .geomapa-pie {
@@ -7999,8 +8024,10 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
 
           function comprobarNumerica() {
             if (estado[i].resuelta) return;
-            // Se acepta coma o punto como separador decimal
-            const dada = parseFloat(String(input.value).trim().replace(',', '.'));
+            // Se acepta coma o punto como separador decimal, y los espacios
+            // (normal, duro, fino) se quitan: el material escribe «22 420»
+            // con espacio de miles, y parseFloat leía 22 (cap. 7, P12).
+            const dada = parseFloat(String(input.value).replace(/[\s   ]/g, '').replace(',', '.'));
             if (!isFinite(dada)) {
               pista.innerHTML = '<strong>Escribe un número</strong> antes de comprobar.';
               pista.hidden = false;
@@ -8907,6 +8934,9 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
       verde:    ['#e8f3ef', '#b8ddd0', '#7cc0aa', '#3f9c7f', '#1a7358', '#012820'],
       naranja:  ['#fff0e0', '#ffd2a3', '#ffab5c', '#ff8420', '#d95f00', '#8a3d00'],
       divergente: ['#8a3d00', '#d95f00', '#ffab5c', '#f2f2f2', '#7cc0aa', '#1a7358', '#012820'],
+      // Para una z con signo que se lee como frío/caliente (Gi* del cap. 7):
+      // los mismos siete colores que la capa categórica de Gi*, de azul a rojo.
+      frio_caliente: ['#2166ac', '#67a9cf', '#d1e5f0', '#e5e5e5', '#fddbc7', '#ef8a62', '#b2182b'],
       grises:   ['#f5f5f5', '#d4d4d4', '#a8a8a8', '#7a7a7a', '#4d4d4d', '#242424']
     };
 
@@ -9141,10 +9171,45 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
 
     // ---------------- los cinco modos ----------------
 
+    // El relleno de «sin dato o sin vecinos» de una capa CATEGÓRICA: un
+    // rayado, no un gris (ver `.geomapa-rayado`). Pasa por `geomapaTinta`
+    // como todo color del motor, así que el conmutador de daltonismo lo
+    // alcanza igual que a las categorías.
+    function geomapaRayado(ctx) {
+      const dpr = window.devicePixelRatio || 1;
+      const t = Math.max(6, Math.round(6 * dpr));
+      const c = document.createElement('canvas');
+      c.width = t; c.height = t;
+      const g = c.getContext('2d');
+      g.fillStyle = geomapaTinta('#ffffff');
+      g.fillRect(0, 0, t, t);
+      g.strokeStyle = geomapaTinta('#4b5563');
+      g.lineWidth = Math.max(1, dpr);
+      g.beginPath();
+      // tres trazos y no uno: la diagonal sola deja huecos en las esquinas
+      // de cada tesela y el rayado sale a trozos
+      g.moveTo(0, t); g.lineTo(t, 0);
+      g.moveTo(-t / 2, t / 2); g.lineTo(t / 2, -t / 2);
+      g.moveTo(t / 2, t * 1.5); g.lineTo(t * 1.5, t / 2);
+      g.stroke();
+      return ctx.createPattern(c, 'repeat');
+    }
+
     function geomapaPintaPoligonos(ctx, d, aj, o) {
       const cp = geomapaCapa(d, o);
       const clase = cp.clase, nCl = cp.cortes ? cp.cortes.length - 1 : 0;
       const geom = geomapaGeom(d);
+      // CAPA CATEGÓRICA (T4.5, capítulo 7). Un mapa LISA son cinco
+      // categorías fijas y uno de Gi*, siete: no hay intervalos que
+      // clasificar ni rampa que recorrer. `geo.R` publica el código 1..K de
+      // cada rasgo y un color por nivel, y los colores son parte del dato —
+      // rojo es alto-alto en toda la literatura—, así que aquí se leen tal
+      // cual, sin pasar por ninguna paleta. Lo que no tiene código (sin dato
+      // o sin vecinos) va rayado.
+      const cat = cp.tipo === 'categoria' && Array.isArray(cp.niveles);
+      const nNiv = cat ? cp.niveles.length : 0;
+      let rayado = null;
+      const conBorde = [];
       // Qué rasgo va resaltado lo puede decir EL DATO (`d.resaltado`, que
       // escribe geo.R) además de la opción de siempre. Los dos conviven y no
       // usan el mismo convenio, a propósito y dicho en voz alta: lo que viene
@@ -9161,14 +9226,29 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         // 1 122 municipios del capítulo 3 traen NA a propósito, así que
         // aquí hace falta un null explícito.
         let relleno = GEOMAPA_SIN_DATO;
-        const k = clase ? clase[i] : null;
-        if (k != null && isFinite(k)) {
-          relleno = geomapaColor(o.paleta, nCl > 1 ? (k - 1) / (nCl - 1) : 0.5);
+        if (cat) {
+          // `Number.isInteger`, no `isFinite`: `isFinite(null)` es TRUE
+          // (el aviso de abajo), y un null pintado como código 0 caería
+          // fuera de los niveles sin que nada lo dijera.
+          const v = cp.valor ? cp.valor[i] : null;
+          relleno = (Number.isInteger(v) && v >= 1 && v <= nNiv)
+            ? geomapaTinta(cp.colores[v - 1])
+            : (rayado || (rayado = geomapaRayado(ctx)));
         } else {
-          relleno = geomapaTinta(GEOMAPA_SIN_DATO);
+          const k = clase ? clase[i] : null;
+          if (k != null && isFinite(k)) {
+            relleno = geomapaColor(o.paleta, nCl > 1 ? (k - 1) / (nCl - 1) : 0.5);
+          } else {
+            relleno = geomapaTinta(GEOMAPA_SIN_DATO);
+          }
         }
         if ((o.resaltado != null && o.resaltado === i) || iRes === i) {
-          relleno = geomapaTinta(GEOMAPA_ACENTO);
+          // En una capa categórica el resalte NO tapa el relleno: el color
+          // es la respuesta (¿es alto-alto?), y pintarlo de naranja la
+          // escondería justo en la unidad por la que se pregunta. Se le da
+          // un borde grueso al final, encima de sus vecinos.
+          if (cat) conBorde.push(rasgo);
+          else relleno = geomapaTinta(GEOMAPA_ACENTO);
         }
         ctx.fillStyle = relleno;
         ctx.strokeStyle = geomapaTinta('rgba(255,255,255,.85)');
@@ -9178,6 +9258,16 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
           ctx.fill(p); ctx.stroke(p);
         });
       });
+      if (conBorde.length) {
+        const dpr = window.devicePixelRatio || 1;
+        conBorde.forEach(rasgo => rasgo.forEach(parte => {
+          const p = geomapaTrazo(ctx, aj, parte);
+          // halo blanco debajo y tinta encima: el borde se lee sobre el
+          // rojo, sobre el azul y sobre el gris
+          ctx.strokeStyle = geomapaTinta('#ffffff'); ctx.lineWidth = 4.5 * dpr; ctx.stroke(p);
+          ctx.strokeStyle = geomapaTinta('#012820'); ctx.lineWidth = 2.2 * dpr; ctx.stroke(p);
+        }));
+      }
       geomapaPintaLineas(ctx, d, aj, o);
       geomapaPintaSuperpuestos(ctx, d, aj, o);
     }
@@ -9745,9 +9835,18 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
       // `capas` el mapa municipal del capítulo 3 tiene cuatro
       // clasificaciones distintas sobre la misma geometría, y una leyenda
       // que leyera siempre la primera rotularía el mapa equivocado.
+      //
+      // Y la UNIDAD también sale de la capa activa. Cada capa trae su
+      // `leyenda` desde R («% de deserción», «estudiantes»…) y hasta T4.5
+      // nadie la leía: el pie se tomaba del objeto raíz, que en un mapa con
+      // capas va vacío, así que los mapas del capítulo 3 se publicaban sin
+      // decir en qué se medían. Si la capa no trae la suya, la del raíz.
+      let cat = null;
       if (d.modo === 'poligonos') {
         const cp = geomapaCapa(d, o);
-        if (cp.cortes) cortes = cp.cortes;
+        if (cp.tipo === 'categoria' && Array.isArray(cp.niveles)) cat = cp;
+        else if (cp.cortes) cortes = cp.cortes;
+        if (d.capas && d.capas.length && cp.leyenda) etiqueta = cp.leyenda;
       }
       if (d.modo === 'rejilla' && d.cortes) cortes = d.cortes;
 
@@ -9776,6 +9875,20 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
       }
 
       const pie = etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '';
+      if (cat) {
+        // Una caja por NIVEL, también los que se han quedado a cero: en un
+        // mapa LISA con Bonferroni «Bajo-bajo 0» es el resultado, y una
+        // leyenda que se lo callara diría que esa categoría no existe. El
+        // recuento lo trae R (`tam`); aquí no se cuenta nada.
+        const cajas = cat.niveles.map((nv, k) => muestra(geomapaTinta(cat.colores[k]),
+          esc(nv) + (cat.tam ? ` <span class="geomapa-cuenta">${cat.tam[k]}</span>` : '')));
+        if (cat.n_sin_dato) cajas.push(`<span class="geomapa-clase">
+          <span class="geomapa-muestra geomapa-rayado"></span>
+          <span>${esc(o.nombreSinDato || 'sin dato')} <span class="geomapa-cuenta">${cat.n_sin_dato}</span></span>
+        </span>`);
+        cajas.push(...extras);
+        return `<div class="geomapa-leyenda">${cajas.join('')}</div>` + pie;
+      }
       if (!cortes) {
         // Sin cortes puede seguir habiendo algo que rotular: un coropleto que
         // solo enseña geometría y una retícula es un mapa legítimo, y antes de
@@ -9804,8 +9917,21 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
     function geomapaAlt(d, o) {
       o = o || {};
       if (o.etiqueta) return o.etiqueta;
-      let s = d.titulo || 'Mapa';
+      let s = o.titulo || d.titulo || 'Mapa';
       if (d.n) s += `, ${d.n} unidades`;
+      // Con capas, la que se está viendo; y si es categórica, cuántas
+      // unidades caen en cada nivel, que es lo que el lienzo dice con el
+      // color (T4.5). Quien no ve el mapa no tiene otra forma de saber que
+      // con Bonferroni quedan tres alto-alto y ningún bajo-bajo.
+      if (d.modo === 'poligonos' && d.capas && d.capas.length) {
+        const cp = geomapaCapa(d, o);
+        if (cp.etiqueta) s += `, capa «${cp.etiqueta}»`;
+        if (cp.tipo === 'categoria' && Array.isArray(cp.niveles)) {
+          s += ': ' + cp.niveles.map((nv, k) =>
+            cp.tam ? `${nv} ${cp.tam[k]}` : nv).join(', ');
+          if (cp.n_sin_dato) s += `, y ${cp.n_sin_dato} ${o.nombreSinDato || 'sin dato'}`;
+        }
+      }
       if (d.marcas && d.marcas_tipo === 'categoria' && d.niveles) {
         // Describe la vista que HAY, no la que el dato permitiría. Con
         // `marcaResaltada` el lienzo tiene dos colores, y anunciar trece
@@ -9873,8 +9999,14 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         // unidades, y por eso existe la tabla de respaldo.
         const alt = geomapaAlt(d, spec);
 
+        // El título lo puede fijar el REGISTRO (`titulo`, también como getter)
+        // y manda sobre el del dato. Hace falta cuando varios mapas comparten
+        // una misma geometría: en el capítulo 7, los conglomerados LISA y los
+        // puntos calientes de Gi* son capas del MISMO objeto, y con el título
+        // del dato los dos mapas lado a lado decían lo mismo.
+        const tit0 = spec.titulo || d.titulo;
         raiz.innerHTML = `
-          ${d.titulo ? `<p class="geomapa-titulo">${d.titulo}</p>` : ''}
+          ${tit0 ? `<p class="geomapa-titulo">${tit0}</p>` : ''}
           <div class="geomapa-marco">
             <canvas class="geomapa-lienzo" role="img" aria-label="${alt.replace(/"/g, '&quot;')}"></canvas>
           </div>
@@ -9903,7 +10035,8 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
           // etiqueta siguen en la vista elegida tras girar el teléfono.
           canvas.setAttribute('aria-label', geomapaAlt(dNow, opts));
           const tit = raiz.querySelector('.geomapa-titulo');
-          if (tit && dNow.titulo) tit.textContent = dNow.titulo;
+          const titNow = opts.titulo || dNow.titulo;
+          if (tit && titNow) tit.textContent = titNow;
           return pintarGeomapa(canvas, dNow, opts);
         };
         dibuja();

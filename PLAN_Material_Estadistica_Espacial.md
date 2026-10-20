@@ -1,6 +1,19 @@
 # Plan de implementación: Material de estudio — Estadística Espacial 2026-II
 
-**Estado:** 🟡 **EL CAPÍTULO 7 ARRANCÓ EL 2026-09-08 POR DONDE ARRANCARON EL 4, EL 5 Y EL 6: MIDIENDO.**
+**Estado:** 🟢 **EL CAPÍTULO 7 ESTÁ ENSAMBLADO Y VERIFICADO (T4.5 y T4.6, 2026-10-12/13), SIN PUBLICAR.**
+Vive en la rama `claude/cap7-ensamblado` (worktree `.claude/worktrees/cap7-ensamblado`):
+`Htmls_Espacial/capitulo-7-autocorrelacion.html`, 778 KB, 12 módulos, 13 simuladores, 11 mapas, 13
+preguntas y 5 ejercicios; 174 de 174 cifras de sus bloques verificadas ejecutando, prosa en 179 · 0 y
+arnés de prosa en 41 de 41. Estrena la **capa categórica** del `.geomapa` en la plantilla, y los trece
+documentos se reensamblaron con ella sin otro cambio. Queda una decisión de Javier: la promesa del
+capítulo 3 sobre las tasas de pocos datos, que el 7 no puede cumplir con cifras porque el dato del MEN
+no trae el denominador. Ver **A.33**. **Revisado el 2026-10-20** con una lectura de contenido antes de
+publicar (`AUDITORIA_CONTENIDO_CAP7.md`, fuera de git): siete hallazgos rojos con los auditores en
+verde, todos aplicados. Los mapas pasan al **p bilateral con 49 999 réplicas**, Gi\* lleva a la unidad
+dentro de la permutación, y el capítulo queda en 809 KB, 196 de 196 cifras de bloques, prosa en 185 · 0,
+precálculo en 629 · 0 · 4 y arnés de prosa en 41 de 41. Ver **A.34**.
+
+🟡 **EL CAPÍTULO 7 ARRANCÓ EL 2026-09-08 POR DONDE ARRANCARON EL 4, EL 5 Y EL 6: MIDIENDO.**
 Se cronometraron las operaciones de los doce módulos y se pesaron los cinco tableros candidatos, y
 por cuarta vez el cronómetro corrige al plan: **todo `spdep` es instantáneo, incluso lo local sobre
 1 121 municipios**, y lo caro está donde nadie miraba —**simplificar la geometría municipal cuesta
@@ -363,7 +376,7 @@ están fusionadas en `main` y se pueden borrar cuando estorben.
 | **Los ejercicios del capítulo 4** (2026-09-09) | ✅ hecha y publicada. `genera_soluciones.R` escribía `chi²`, `10x10`, `L(r) - r`, millares sin separador y hasta diez decimales; y su E3 contradecía al módulo sobre la nula del test. Los decimales se formatean al renderizar, que es lo que la comprobación de celdas sabe verificar. Ver **A.30.11** |
 | **Los párrafos de salida del capítulo 4** (2026-09-09) | ✅ hecha y publicada. La regla 2 del §9.1 se olvidaba en **9 de los 12 módulos**, siempre en el bloque de código; ahora son **0 de 12**. Ver §0.5, punto 4 |
 | **El Taller 2 del capítulo 4** | 🔄 **en curso en otra sesión**, con plan propio en `PLAN_Taller_2_Cap_4.md`. C1 a C4 publicadas —precálculo, dato de entrega, auditor y su arnés—; su trabajo sobre el capítulo 5 sigue **sin confirmar** en el árbol |
-| **T4.5–T4.6** · ensamblado, verificación y cierre | ⬜ **lo siguiente**. Ver §0.5 |
+| **T4.5–T4.6** · ensamblado, verificación y cierre | ✅ hechas el 2026-10-12/13 en la rama `claude/cap7-ensamblado`, **sin publicar**. `ensambla_cap7.py`, la capa categórica en la plantilla, `audita_texto_cap7.py` (179 · 0) y su arnés (41 de 41). Ver **A.33**. **Revisado el 2026-10-20** tras la lectura de contenido: ver **A.34** |
 
 **Lo publicado —seis capítulos—**, contado por `cuenta_sitio.py` y no recordado: **72 módulos, 57
 simuladores, 44 geomapas, 73 preguntas, 28 ejercicios guiados y 306 cifras `#>`**, con los 8
@@ -444,7 +457,8 @@ Lo que T4.5 hereda ya decidido:
    potencia (4 n × 10 ρ), los 49 puntos con POLYID del diagrama clicable, las curvas de los dos
    picos del módulo 5, las once W del 7, las tres capas LISA conmutables del 10 y el cruce LISA × Gi\*
    del 11. **El navegador no calcula ninguna cifra que el texto cite** (D10).
-4. **El p del capítulo es el plegado por rangos con 24 999 réplicas y `no_repeat_in_row = TRUE`**,
+4. **El p del capítulo es el plegado por rangos con 24 999 réplicas y `no_repeat_in_row = TRUE`**
+   *(sustituida el 2026-10-20: el bilateral con 49 999, ver **A.34**)*,
    y la prosa tiene que decir las dos cosas: que es el convenio de GeoDa y de `esda`, y que el valor
    por defecto de `spdep` muestrea con reemplazo y da p mayores (A.29.1).
 5. **Lo que el §6 decía y no es así**, para que la prosa no lo repita: `localmoran_perm` no tiene
@@ -4423,6 +4437,11 @@ unidad pueda sobrevivir: **979 en Columbus y 22 419 en los municipios**. Con las
 sobre 1 121 municipios Bonferroni no deja nada, y no porque no haya conglomerados: porque el
 procedimiento no puede verlos.
 
+> **Corrección (2026-10-20, A.34).** ⌈n/α⌉ − 1 se queda **una réplica corta**: con α = 0,05, n/α es
+> entero, y en él el suelo IGUALA al umbral, que con «p < α/n» no basta. Eran 980 y 22 380 para el
+> plegado. Y con el p bilateral, que es el que el capítulo usa desde esa fecha, el suelo es 2/(nsim + 1)
+> y las mínimas son 2n/α: 1 960 en Columbus y 44 760 sobre los 1 119 municipios con test.
+
 Y `localmoran_perm` devuelve **tres p distintos por unidad**, y ninguno es el analítico —eso lo
 leí mal la primera vez y lo corrigió la ayuda de `spdep` al escribir el generador—: su columna
 `Pr(z != E(Ii))` es una **aproximación normal con la media y la desviación de las permutaciones**,
@@ -4496,7 +4515,8 @@ Un detalle más que el §6 daba por hecho: **`localmoran_perm` no tiene `p.adjus
    Las diez W del capítulo 6 se reconstruyen sobre ese mismo orden y entran en el simulador del
    módulo 7 con la GAL como undécima. **El checkpoint 4 se reescribe**: las anclas son Anselin
    (1995), Getis y Ord (1996) vía `spdep`, y `esda` como recálculo con el convenio de GeoDa.
-3. ✅ **El p del capítulo es el de rangos, con 24 999 réplicas.** El convenio de GeoDa y de `esda`,
+3. ✅ **El p del capítulo es el de rangos, con 24 999 réplicas.** *(Sustituida el 2026-10-20 por el
+   bilateral con 49 999; ver **A.34**.)* El convenio de GeoDa y de `esda`,
    con réplicas suficientes para que Bonferroni sea alcanzable: 8 municipios sobreviven, 94 con
    FDR, 326 sin corregir. Cuesta 9 s de precálculo. **Los otros dos p se publican en el módulo 10
    como material**, con la tabla de recuentos de A.28.3: la corrección de multiplicidad empieza
@@ -5026,3 +5046,142 @@ cuenta se puede rehacer desde el enunciado publicado (P01, P05, P06, P08 y P09).
 módulos del capítulo 3 que entran, calculado del propio JSON, y decía «módulos 3.10 a 3.9». Ordenar
 `{"3.3", "3.4", "3.5", "3.9", "3.10"}` como texto pone «3.10» primero. Es la misma familia de defecto
 que el §9.1 describe: la cifra era correcta y la frase, falsa.
+
+---
+
+### A.33 · El ensamblado del capítulo 7: la capa categórica, y lo que el dato le corrigió a la prosa (T4.5 y T4.6, 2026-10-12/13)
+
+*(A.32 queda reservado: lo usa la rama `claude/goofy-spence-03c9b5`, la de la coma decimal, que no
+está en `main`.)*
+
+`precalculo/ensambla_cap7.py` escribe `Htmls_Espacial/capitulo-7-autocorrelacion.html`, **778 KB**:
+12 módulos, 13 simuladores, 11 mapas, 13 preguntas, 5 ejercicios sobre `nc` y 11 pares de bloques
+R/Python con **174 de 174** cifras, lógicos y cadenas anunciados apareciendo en la salida real.
+`audita_texto_cap7.py` da **179 · 0** y su arnés, **41 de 41**; `audita_todo.sh --rapido`, **39 pasos
+en verde y 1 en rojo** —el bloque de `carga_municipios()` del capítulo 2 («dprtmnt»), que ya fallaba
+antes—, con `verifica_bloques --todos` en **1 249 de 1 250**. Se trabajó en el worktree
+`cap7-ensamblado` (rama `claude/cap7-ensamblado`, desde `main` a970afc).
+
+#### A.33.1 · La capa categórica, del lado del navegador
+
+`geo.R` publicaba la capa desde T4.4 y la plantilla no la sabía pintar. Ahora:
+
+- **El color sale del dato**, sin paleta: rojo es alto-alto en toda la literatura, y el código 1..K
+  se lee con `Number.isInteger` y no con `isFinite`, porque `isFinite(null)` es `true`.
+- **«Sin dato o sin vecinos» va RAYADO, no en gris.** El gris de «no significativo» (`#e5e5e5`) y el
+  de sin dato del motor (`#e5e7eb`) son casi el mismo color: una isla sin vecinos se habría leído como
+  un municipio examinado que no salió significativo, que es justo lo que el A.28.4 prohíbe.
+- **La leyenda da el recuento de cada nivel**, también los que quedan a cero: con Bonferroni,
+  «Bajo-bajo 0» es el resultado. El recuento lo trae R (`tam`).
+- **El resalte de una unidad es un borde**, no un relleno naranja: en una capa categórica el color es
+  la respuesta, y taparlo la escondería justo donde se pregunta.
+- **El texto alternativo** dice la capa activa y cuántas unidades caen en cada nivel.
+- **El título lo puede fijar el registro** (`titulo`, también como getter) y manda sobre el del dato.
+  Cuatro mapas comparten la geometría de Columbus y cinco la municipal, y con el título del dato los
+  dos mapas lado a lado del módulo 11 —LISA y Gi*— decían lo mismo. Ningún capítulo anterior usaba
+  esa clave, así que no cambia nada fuera del 7.
+
+Y dos arreglos que salieron al lado, en el mismo motor: **la leyenda lee la unidad de la capa
+activa** —cada capa de R trae su `leyenda` y nadie la leía, así que los mapas del capítulo 3 se
+publicaban sin decir en qué se medían—, y **las muestras de la leyenda llevan `forced-color-adjust:
+none` y `print-color-adjust: exact`**: con colores forzados o en papel perdían el fondo mientras el
+lienzo conservaba los suyos. **Los 13 documentos reensamblados cambian exactamente en las líneas de la
+plantilla** (+137/−9 con el título; el banco del motor, solo en el motor), y en el navegador ningún mapa de los
+capítulos 1 a 6, del Taller 2 ni del banco de pruebas se quedó sin tinta ni dio un error.
+
+#### A.33.2 · El estado de un mapa va en un getter
+
+El motor repinta un mapa sin opciones cuando cambia el tamaño o se conmuta el daltonismo. Un
+simulador que pase la vista como opción de un solo repintado —`dibuja({variante})`— la pierde en
+cuanto pasa cualquiera de las dos cosas. El capítulo 7 guarda su estado en `E7` y los registros lo
+leen con *getters* (`get capa()`), como el capítulo 3. **El capítulo 6 tiene el defecto** en el mapa
+del módulo 2: al girar el teléfono vuelve a la reina mientras los botones marcan otra vecindad. Quedó
+como tarea aparte.
+
+#### A.33.3 · Lo que el dato le corrigió a la prosa
+
+Cada afirmación se contrastó contra el JSON antes de escribirla, y cuatro no se sostenían tal como se
+habían pensado:
+
+1. **El LISA de menor p de Columbus no es un barrio extremo.** El POLYID 24 tiene un Iᵢ de 0.22853 y un
+   valor tipificado de 0.1894, casi la media, y es el de p más pequeño del mapa: lo raro es su
+   vecindad. Y el único alto-bajo, el 17, tiene 0.104. El módulo 9 lo convierte en su lección:
+   alto y bajo se refieren al signo, no a la magnitud.
+2. **No es que «todas las W menos una» rechacen:** las once rechazan al 5 %, y la del umbral a medias
+   por poco (p = 0.04016). Ninguna de las diecisiete vecindades cambia el veredicto al 5 %.
+3. **La GAL y la reina no difieren en «cuatro esquinas»** sino en cuatro parejas, 1 y 3; que sean
+   esquinas no está medido.
+4. **Los barrios que la prosa nombra se buscan, no se apuntan por posición**, y el ensamblador para si
+   dejan de cumplir lo que el texto dice de ellos (el más negativo es el de menos delitos; los dos
+   mayores son alto-alto; el de menor p está casi en la media).
+
+#### A.33.4 · Dos convenios más entre `spdep` y `esda`, y un cronómetro que no era
+
+- **`esda.Moran_Local` divide por la varianza muestral**: su suma no es S0·I sino el z'Wz del módulo 2,
+  24.525661, frente a 25.03661 de `spdep`. El factor es n/(n − 1), exacto.
+- **`higher_order` coincide con `nblag` hasta que aparecen barrios sin vecinos**: en el orden 6 de
+  Columbus, −0.1934 en Python y −0.1736 en R, la discrepancia de las islas otra vez.
+- **El LISA municipal con `no_repeat_in_row = TRUE` tarda 30 s**, no los 9 del A.28: el cronómetro se
+  hizo con el valor por defecto. `verifica_bloques` sobre el capítulo tarda unos tres minutos.
+
+#### A.33.5 · La coma decimal, en el origen
+
+La etiqueta de la capa LISA («p por rangos < 0,05») y tres frases de los ejercicios («0,001»,
+«0,05/100 = 0,0005») llevaban coma. Se cambiaron en `genera_cap7.R` y `genera_soluciones.R`, se
+regeneró, y **solo cambiaron esas cadenas y `meta.generado`**; los cinco CSV, byte a byte iguales, y
+`audita_cap7.py` sigue en 576 · 0 · 4.
+
+#### A.33.6 · El punto ciego de las cifras de cuatro decimales
+
+Las cifras que el precálculo guarda con `r4` —las curvas del barrio disparado, la tabla de las tres
+variables— no las protege `cifras()`: del 0.0524 el índice absorbe 15 de 18 perturbaciones en el
+tercer o el cuarto decimal, y del 0.1809, 14 de 18. Se declaró en `defectos_cap7` en vez de buscar la
+perturbación que sí se caza; esas cifras las recalcula `audita_cap7.py`.
+
+#### A.33.7 · Lo que queda abierto, y es decisión de Javier
+
+**La promesa del capítulo 3.** Dice dos veces que su decisión sobre las tasas «reaparece en el
+capítulo 7, donde separa un punto caliente real de un municipio con pocos datos». El 7 no puede
+cumplirla con cifras: el dato del MEN que se descargó trae la tasa sin el denominador. Lo declara en
+los módulos 3 y 11, con los remedios (`EBlocal`, `EBImoran.mc`) y por qué no se aplican. La opción
+instructiva es descargar la matrícula municipal y medirlo.
+
+### A.34 · La lectura de contenido del capítulo 7: siete rojos con los auditores en verde (2026-10-20)
+
+Javier pidió «la lectura concentrada antes de publicar». Seis lecturas en paralelo —prosa por tercios,
+cuestionario, simuladores y mapas, y un agente ciego que contestó sin el capítulo— y cada hallazgo
+recalculado en R o contra el JSON antes de darlo por bueno. El informe completo está en
+`AUDITORIA_CONTENIDO_CAP7.md`, fuera de git como los del 4 y el 5. Lo que cambió, con su razón:
+
+1. **El p de los mapas es el bilateral por rangos** (`Pr(z != E(Ii)) Sim`), no el plegado. El plegado
+   de GeoDa y `esda` toma la cola del lado en que cayó el dato: medido sobre 200 mapas de Columbus
+   permutados, marca el **9.8 %** al 5 %, y el bilateral el 4.5 %. Decisión de Javier: los mapas al
+   bilateral **y** la medición del plegado dentro del capítulo (módulo 10, con su bloque). Columbus
+   se queda sin atípicos significativos (los POLYID 17 y 7 tenían el plegado entre 0.025 y 0.05);
+   los municipios conservan 15 alto-bajo y 12 bajo-alto.
+2. **49 999 réplicas.** El bilateral no baja de 2/(nsim + 1): Bonferroni sobre los **1 119**
+   municipios con test (las islas no tienen p) pide 2n/α = 44 760. Las mínimas se comprueban como
+   PROPIEDAD en aritmética entera (pasa con N y no con N − 1): la fórmula anterior, ⌈n/α⌉ − 1, se
+   quedaba una corta, y el auditor la reimplementaba, así que no era una segunda opinión. En el borde
+   la coma flotante decide al azar (0.0499999… para n = 1 119, 0.0500000…03 para n = 49).
+3. **Gi\* con la unidad dentro de la permutación** (`fix_i_in_Gstar_permutations = FALSE`). Con el
+   valor por defecto el p de Gi\* es el de Gi (correlación 0.9999 en Columbus). spdep llena la ventana
+   entera, también el hueco de la unidad, con una muestra de los n − 1 valores restantes; el auditor
+   lo reimplementa así y acepta el intervalo de los empates (la deserción viene redondeada).
+4. **El rango de I es el de M(W + Wᵀ)/2M**, centrada: el retículo del módulo 1 llegaba a 1.0028 y su
+   máximo real es 0.9756. Un ancla comprueba que el máximo de Columbus se alcanza.
+5. Prosa: los «influyentes» de `moran.plot` (dos mueven la recta, dos solo su precisión), el
+   mecanismo del barrio disparado (en Geary crece más el numerador), el «por poco» del umbral a
+   medias (artefacto del test analítico con islas; por permutación, el suelo), la lectura del
+   ejercicio 4 (con 49 999 réplicas el mapa corregido sale vacío igual), el límite de c, que no es 1.
+6. Simuladores: las islas sin cuadrante en el diagrama, el resalte (mapa en verde), el estado al
+   volver a un módulo, el correlograma con teclado, el umbral inferior del retículo, y la rejilla de
+   Getis-Ord cortada en ±1.645, ±1.96 y ±2.576 con la paleta `frio_caliente` nueva de la plantilla.
+7. Cuestionario: P12 a 44 760 y el motor que lee «44 760» con espacio (`plantilla-capitulo.html`,
+   los catorce documentos reensamblados); P2 con tolerancia 0.0002; P3, P5, P7, P8 y P13 reescritas;
+   «porque» repartido entre claves y distractores.
+
+**La lección para el arnés:** un auditor que reimplementa la fórmula del generador hereda su error.
+Los umbrales y mínimos se comprueban por su propiedad en el borde, y un «test al 5 %» se comprueba
+midiendo su tasa nula.
+

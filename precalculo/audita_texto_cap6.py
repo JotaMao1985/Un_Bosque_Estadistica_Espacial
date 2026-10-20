@@ -22,9 +22,23 @@ Qué comprueba, por encima:
   · accesibilidad del marcado, los `.geomapa` y su presupuesto;
   · que la codificación no se haya roto y que los enlaces resuelvan.
 
-EL TOPE DE PESO ES 720 KB, y la aritmética va escrita porque no es una
-marca de agua levantada bajo presión. Fue 640 hasta que entró la animación
-2D del módulo 10 (2026-10-02), y se sube con la cuenta delante:
+EL TOPE DE PESO ES 740 KB. Fue 720 hasta que la capa categórica del
+`.geomapa` (la del capítulo 7) entró en la plantilla (2026-10-13), y se sube
+con la cuenta delante, como la vez anterior:
+
+  · el documento pesa **720.2 KB** (737 447 bytes): 712.2 en a970afc, 0.6
+    del arreglo del mapa del módulo 2 (PR #22), 0.7 de los dos comentarios
+    del motor de mapas (PR #23) y **6.7 de la capa categórica**, que llega
+    a todos los documentos al reensamblar —color del dato, recuento por
+    nivel, el rayado de «sin dato», el texto alternativo—. Con 720 el
+    capítulo no cabía por 167 bytes;
+  · la cota del arnés sigue en pie: 720.2 < 740 < 1032 (el tamaño + 312);
+  · 740 deja **20 KB de margen**, lo mismo que dejaba 720 cuando se fijó.
+
+Lo que sigue es la cuenta de la vez anterior.
+
+Fue 640 hasta que entró la animación 2D del módulo 10 (2026-10-02), y se
+subió con la cuenta delante:
 
   · el documento pesa **704 KB**: 615 de antes, **80 de los dos motores en
     línea** (`anim2d.js`, 42 KB, y `rezago2d.js`, 38 KB, con la densidad de
@@ -63,7 +77,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP6_KB = 720.0
+TOPE_CAP6_KB = 740.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {

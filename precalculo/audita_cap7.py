@@ -61,7 +61,7 @@ HASTA DÓNDE LLEGA LA INDEPENDENCIA, DECLARADO Y NO INSINUADO
     lee del CSV publicado y se valida por sus diferencias con la reina,
     que sí se recalcula: una pareja solo en la GAL y tres solo en la reina.
   · NULA para la esfera de influencia, para las medidas de influencia de
-    `moran.plot`, para la comparación entre 999 y 24 999 réplicas (dos
+    `moran.plot`, para la comparación entre 999 y 49 999 réplicas (dos
     generadores), y para el p LOCAL analítico (esda no lo trae): de esos
     se auditan propiedades, no valores. Todos en la lista de saltadas.
 
@@ -142,8 +142,74 @@ def bh(p: np.ndarray, alfa: float = ALFA) -> int:
 
 
 def rango_I(W: np.ndarray) -> tuple[float, float]:
-    ev = np.linalg.eigvalsh((W + W.T) / 2)
+    """El rango ALCANZABLE: valores propios de M (W + W')/2 M, M = I - 11'/n.
+    z suma cero, así que la dirección de las constantes no cuenta (de Jong,
+    Sprenger y van Veen, 1984). Sin centrar salían cotas (auditoría de
+    contenido del 2026-10-20: el retículo «llegaba» a 1.0028 y no pasa de
+    0.9756)."""
+    n = len(W)
+    M = np.eye(n) - 1.0 / n
+    ev = np.linalg.eigvalsh(M @ ((W + W.T) / 2) @ M)
     return float(ev.min()), float(ev.max())
+
+
+def tol_pb(p: float, n1: int, n2: int) -> float:
+    """Tolerancia entre dos p BILATERALES por rangos con n1 y n2 réplicas.
+
+    El bilateral es el doble de una cola q = p/2, así que su error es el
+    doble del de q: cuatro sigmas de la diferencia más dos pasos de rejilla
+    de cada lado, todo por dos."""
+    q = min(max(float(p) / 2, 1.0 / (min(n1, n2) + 1)), 0.5)
+    return 2.0 * (4.0 * np.sqrt(q * (1 - q) * (1.0 / n1 + 1.0 / n2)) + 2.0 / n1 + 2.0 / n2)
+
+
+def gistar_perm_libre(x: np.ndarray, ventanas: list, nsim: int, semilla: int):
+    """Gi* con la unidad DENTRO de la permutación (fix_i = FALSE en spdep).
+
+    Así lo hace spdep (leído en `localG_perm`): con la unidad dentro de su
+    vecindad, la ventana tiene card + 1 huecos, y con fix_i = FALSE se llenan
+    TODOS —también el de la unidad— con una muestra sin reemplazo de los
+    n - 1 valores restantes; el valor propio de i no entra en el reparto.
+    (Con fix_i = TRUE el hueco de i conserva su valor.) Muestrear de los n
+    valores, con el de i dentro, desvía el p justo en los extremos: lo cazó
+    este mismo auditor en 10 barrios de Columbus. Con pesos iguales en la ventana
+    (W por filas con la unidad incluida, o binaria) el estadístico es una
+    función creciente de la media de la ventana, así que basta comparar
+    medias. Devuelve el p BILATERAL por rangos, el de spdep: dos veces la
+    cola menor, con el observado contado. esda no sirve aquí: su Gi* deja
+    siempre la unidad fija. Muestreo con reemplazo y rechazo de las filas
+    con índices repetidos: con ventanas pequeñas casi nunca hace falta."""
+    rng = np.random.default_rng(semilla)
+    n = len(x)
+    out = np.empty(len(ventanas))
+    lo, hi = np.empty(len(ventanas)), np.empty(len(ventanas))
+    for i, v in enumerate(ventanas):
+        k = len(v)
+        obs = x[v].mean()
+        resto = np.delete(x, i)
+        idx = rng.integers(0, n - 1, size=(nsim, k))
+        while True:
+            s = np.sort(idx, axis=1)
+            mal = (np.diff(s, axis=1) == 0).any(axis=1)
+            if not mal.any():
+                break
+            idx[mal] = rng.integers(0, n - 1, size=(int(mal.sum()), k))
+        m = resto[idx].mean(axis=1)
+        # LOS EMPATES. La deserción viene redondeada y muchas ventanas empatan
+        # con la observada; en R el observado y las réplicas se suman en otro
+        # orden, y una diferencia de 1e-15 decide de qué lado cae cada empate.
+        # Cualquier p entre «todos los empates abajo» y «todos arriba» es tan
+        # bueno como otro: se devuelve el rango medio y los dos extremos.
+        menor = int(np.sum(m < obs - 1e-12))
+        iguales = int(np.sum(np.abs(m - obs) <= 1e-12))
+        pb = lambda r: min(1.0, 2.0 * min(r, nsim + 2 - r) / (nsim + 1))
+        cand = [pb(menor + 1), pb(menor + iguales + 1)]
+        out[i] = pb(int(menor + 1 + iguales / 2))
+        lo[i], hi[i] = min(cand + [out[i]]), max(cand + [out[i]])
+    return out, lo, hi
+
+
+NSIM_AUD = 49999      # las réplicas de la segunda implementación de Gi*
 
 
 def moran_con_islas(y: np.ndarray, w: weights.W) -> float:
@@ -364,6 +430,11 @@ def main() -> int:  # noqa: C901
     a.igual(np.sqrt(mr.VI_norm), r1["sd_norm"], "retículo: sd bajo normalidad", tol=1e-5)
     lo_r, hi_r = rango_I(ret.full()[0])
     a.igual(hi_r, D["m2"]["rango"]["reticulo_10"][1], "retículo: máximo de I", tol=1e-3)
+    a.cierto(hi_r < 1.0, "y en el retículo el máximo no llega a 1", f"{hi_r:.4f}")
+    a.igual(D["m1"]["reticulo"]["rango"][1], D["m2"]["rango"]["reticulo_10"][1], "el módulo 1 enseña el mismo rango")
+    for r_ in D["m1"]["reticulo"]["I_por_rho"]:
+        a.cierto(r_["I_medio"] < r_["rho"] and r_["llega_pct"] < 50,
+                 f"rho = {r_['rho']}: la pendiente queda por debajo de rho", f"{r_['I_medio']}")
 
     # -----------------------------------------------------------------
     a.titulo("3 · Las tres inferencias, y la potencia")
@@ -446,7 +517,18 @@ def main() -> int:  # noqa: C901
     a.igual(sum(m4["cuadrantes"].values()), n, "los cuadrantes suman 49")
     a.cierto(list(m4["puntos"]["polyid"]) == pol.tolist(), "los 49 puntos llevan su POLYID")
     a.igual(np.abs(np.asarray(m4["puntos"]["z"]) - np.round(z, 5)).max(), 0.0, "sus z", tol=1e-5)
-    a.salta("influyentes de moran.plot: recalculados", "son medidas de influencia de R")
+    a.salta("influyentes de moran.plot: los cinco diagnósticos", "son medidas de influencia de R; se audita la pendiente sin cada uno")
+    # Lo que la prosa del módulo 4 cuenta de ellos sí se recalcula: la
+    # pendiente sin cada barrio, por mínimos cuadrados, sobre el CRIME crudo.
+    pend_sin = np.array([np.polyfit(np.delete(crime, k), np.delete(W_gal @ crime, k), 1)[0] for k in range(n)])
+    for d in m4["influyentes_detalle"]:
+        k = int(np.where(pol == d["polyid"])[0][0])
+        a.igual(pend_sin[k], d["pendiente_sin"], f"sin el POLYID {d['polyid']}: la pendiente", tol=1e-4)
+    orden_mov = np.argsort(-np.abs(pend_sin - pend))[:6]
+    a.cierto([int(pol[k]) for k in orden_mov] == [d["polyid"] for d in m4["mueven_mas"]],
+             "los seis que más mueven la recta, en orden")
+    a.cierto(all(d["marcado"] == (d["polyid"] in m4["influyentes_polyid"]) for d in m4["mueven_mas"]),
+             "y si moran.plot los marca o no")
     a.cierto(0 <= m4["influyentes"] <= n and len(m4["influyentes_polyid"]) == m4["influyentes"]
              and set(m4["influyentes_polyid"]) <= set(pol.tolist()),
              "influyentes: un recuento y sus POLYID coherentes")
@@ -460,6 +542,9 @@ def main() -> int:  # noqa: C901
             "municipios: pendiente sobre las que tienen vecinos", tol=1e-6)
     a.cierto(abs(m4m["pendiente_con_vecinos"] - m4m["I"]) > 1e-4,
              "y sobre ésas ya no lo es", f"{m4m['pendiente_con_vecinos']} ≠ {m4m['I']}")
+    a.igual(np.polyfit(y, w_sub.full()[0] @ y, 1)[0], m4m["pendiente_cruda_todas"],
+            "municipios: con el dato crudo la recta ya no da I", tol=1e-6)
+    a.cierto(abs(m4m["pendiente_cruda_todas"] - m4m["I"]) > 1e-3, "y se separa de I: con islas centrar importa")
     cum = cuadrante(zm, wzm)[con]
     a.igual(int(np.sum(cum == "High-High")), m4m["cuadrantes"]["AA"], "municipios: alto-alto")
     a.igual(int(np.sum(cum == "Low-Low")), m4m["cuadrantes"]["BB"], "municipios: bajo-bajo")
@@ -490,6 +575,33 @@ def main() -> int:  # noqa: C901
             a.igual(Geary(x, w_gal, "r", 0).C, punto["c"], f"{cual} ×{punto['factor']}: c", tol=1e-4)
         a.cierto(pk["curva"][-1]["I"] < pk["curva"][0]["I"] / 2, f"{cual}: I se hunde hacia cero")
         a.cierto(pk["curva"][-1]["c"] > pk["curva"][0]["c"], f"{cual}: c sube hacia uno")
+    # EL MECANISMO (auditoría del 2026-10-20): los factores de cada pieza con
+    # el ×8, y los límites, con la fórmula (1 + suma de la columna)/2 de c.
+    def piezas(x):
+        zz = x - x.mean()
+        return np.array([zz @ zz, zz @ (W_gal @ zz), (W_gal * (x[:, None] - x[None, :]) ** 2).sum()])
+    cs = W_gal.sum(axis=0)
+    for cual in ("pico_en_alto", "pico_en_bajo"):
+        pk = D["m5"][cual]
+        i = pk["unidad"] - 1
+        x8 = crime.copy(); x8[i] *= 8
+        r = piezas(x8) / piezas(crime)
+        for j, clave in enumerate(("denominador", "numerador_I", "numerador_c")):
+            a.igual(r[j], pk["cocientes_8"][clave], f"{cual}: ×8 multiplica el {clave.replace('_', ' de ')}", tol=1e-3)
+        xl = crime.copy(); xl[i] *= 1e6
+        a.igual(Geary(xl, w_gal, "r", 0).C, pk["limite"]["c"], f"{cual}: el límite de c", tol=1e-3)
+        a.igual((1 + cs[i]) / 2, pk["limite"]["c"], f"{cual}: y es (1 + suma de su columna)/2", tol=1e-3)
+        a.igual(Moran(xl, w_gal, "r", 0).I, pk["limite"]["I"], f"{cual}: el límite de I", tol=1e-3)
+    a.igual((1 + cs.min()) / 2, D["m5"]["limite_c_rango"][0], "el límite de c más bajo de Columbus", tol=1e-4)
+    a.igual((1 + cs.max()) / 2, D["m5"]["limite_c_rango"][1], "y el más alto", tol=1e-4)
+    pm_ = D["m5"]["pico_en_minimo"]
+    xm = crime.copy(); xm[int(np.argmin(crime))] *= 8
+    a.igual(pm_["polyid"], pol[int(np.argmin(crime))], "el barrio de menor CRIME")
+    a.igual(Moran(xm, w_gal, "r", 0).I, pm_["I_8"], "con él ×8, I", tol=1e-4)
+    a.cierto(pm_["I_8"] > D["m5"]["columbus"]["I"], "y sube: un valor bajo multiplicado no es un pico")
+    for t_ in D["m5"]["tres_variables"]:
+        v = col[t_["variable"]].to_numpy(dtype=float)
+        a.igual(np.abs((v - v.mean()) / v.std(ddof=1)).max(), t_["z_max_abs"], f"{t_['variable']}: su valor más extremo", tol=1e-4)
     i_alto = D["m5"]["pico_en_alto"]["unidad"] - 1
     a.igual(i_alto, int(np.argmax(crime)), "el pico en alto es el barrio de mayor CRIME")
     a.igual(D["m5"]["pico_en_bajo"]["unidad"] - 1, int(np.argmin(wz)), "y el pico en bajo, el de vecindad más baja")
@@ -569,7 +681,10 @@ def main() -> int:  # noqa: C901
         a.igual(len(pares_de(v)), p["pares"], f"W {k}: parejas")
         a.igual(sum(1 for i in v if not v[i]), p["islas"], f"W {k}: islas")
         a.igual(moran_con_islas(crime, w_de(v)), p["I"], f"W {k}: I", tol=1e-5)
+        a.igual(Moran(crime, w_de(v), "r", 0).I, p["I_esda"], f"W {k}: I con el convenio de esda", tol=1e-5)
     a.salta("esfera: recalculada", "libpysal no trae la esfera de influencia")
+    a.cierto(all(e["p_permutacion"] == 1.0 / (e["nsim_permutacion"] + 1) for e in D["m7"]["columbus"] + D["m7"]["municipios"]),
+             "por permutación, las diecisiete W en el suelo")
     a.cierto(pub7["gabriel"]["pares"] <= pub7["esfera"]["pares"] <= pub7["delaunay"]["pares"],
              "esfera: entre Gabriel y Delaunay")
     Is = [e["I"] for e in D["m7"]["columbus"]]
@@ -605,7 +720,7 @@ def main() -> int:  # noqa: C901
     a.titulo("8 · Los I locales, con esda y el factor n/(n-1)")
     m8 = D["m8"]["columbus"]
     a.igual(D["m8"]["nsim"], NSIM, "las réplicas del capítulo")
-    a.cierto(D["m8"]["p"] == "Pr(folded) Sim", "y el p es el plegado por rangos")
+    a.cierto(D["m8"]["p"] == "Pr(z != E(Ii)) Sim", "y el p es el bilateral por rangos")
     ml = Moran_Local(crime, w_gal, transformation="r", permutations=NSIM, seed=SEMILLA, n_jobs=1)
     Ii_pub = ccsv["Ii"].to_numpy()
     a.igual(np.abs(ml.Is * n / (n - 1) - Ii_pub).max(), 0.0, "Ii = esda × n/(n-1), los 49", tol=1e-6)
@@ -618,24 +733,30 @@ def main() -> int:  # noqa: C901
     a.cierto((q_esda == ccsv["cuadrante"].to_numpy()).all(), "los cuadrantes de esda son los de spdep")
     a.cierto((cuadrante(z, wz) == ccsv["cuadrante"].to_numpy()).all(), "y son los signos de z y Wz")
     p_pub = ccsv["p_rangos"].to_numpy()
-    fuera = int(np.sum(np.abs(ml.p_sim - p_pub) > np.array([tol_p(p, NSIM) for p in p_pub])))
-    a.cierto(fuera == 0, "los p por rangos coinciden hasta el error de Monte Carlo", f"{fuera} fuera de tolerancia")
+    # esda da el plegado (p_sim); el bilateral es su doble.
+    bil_esda = np.minimum(1.0, 2.0 * ml.p_sim)
+    fuera = int(np.sum(np.abs(bil_esda - p_pub) > np.array([tol_pb(p, NSIM, NSIM) for p in p_pub])))
+    a.cierto(fuera == 0, "los p bilaterales coinciden con 2 × p_sim de esda", f"{fuera} fuera de tolerancia")
     a.igual(p_pub.min(), m8["p_min"], "el p mínimo publicado", tol=1e-9)
-    a.cierto(p_pub.min() >= 1.0 / (NSIM + 1), "y no baja del suelo", f"{p_pub.min()} ≥ {m8['suelo']}")
-    a.igual(m8["suelo"], 1.0 / (NSIM + 1), "el suelo publicado es 1/(nsim+1)", tol=1e-9)
+    a.cierto(p_pub.min() >= 2.0 / (NSIM + 1), "y no baja del suelo", f"{p_pub.min()} ≥ {m8['suelo']}")
+    a.igual(m8["suelo"], 2.0 / (NSIM + 1), "el suelo publicado es 2/(nsim+1)", tol=1e-9)
     a.igual(int(np.sum(p_pub < ALFA)), m8["significativos"], "significativos al 5 %, desde el CSV")
-    a.cierto(abs(int(np.sum(ml.p_sim < ALFA)) - m8["significativos"]) <= 3,
-             "y esda cuenta casi los mismos", f"esda {int(np.sum(ml.p_sim < ALFA))}")
+    a.cierto(abs(int(np.sum(bil_esda < ALFA)) - m8["significativos"]) <= 3,
+             "y esda cuenta casi los mismos", f"esda {int(np.sum(bil_esda < ALFA))}")
+    a.igual(np.abs(np.asarray(m8["p_plegado"]) - np.round(ml.p_sim, 5)).max(), 0.0,
+            "el p plegado publicado, contra esda", tol=max(tol_p(0.5, NSIM), 1e-3))
     # municipios
     m8m = D["m8"]["municipios"]
     st = (PROCESADO / "colombia_adm2.gpkg").stat()
-    llave_l = f"{st.st_size}·{int(st.st_mtime)}·{len(sub)}·{NSIM}·{SEMILLA}·v2"
+    llave_l = f"{st.st_size}·{int(st.st_mtime)}·{len(sub)}·{NSIM}·{SEMILLA}·v3"
 
     def _locales():
+        # El p de Gi* lo da gistar_perm_libre, no esda (que deja la unidad
+        # fija): aquí solo hace falta la z analítica.
         mlm = Moran_Local(y, w_sub, transformation="r", permutations=NSIM, seed=SEMILLA, n_jobs=1)
-        gl = G_Local(y, w_sub, transform="B", star=True, permutations=NSIM, seed=SEMILLA, n_jobs=1)
+        gl = G_Local(y, w_sub, transform="B", star=True, permutations=0)
         return {"Is": mlm.Is, "p_sim": mlm.p_sim, "q": mlm.q.astype(float),
-                "p_z_sim": mlm.p_z_sim, "Zs": gl.Zs, "g_p_sim": gl.p_sim}
+                "p_z_sim": mlm.p_z_sim, "Zs": gl.Zs}
     L = cache_local(llave_l, _locales)
     nm = len(sub)
     Ii_m = mcsv["Ii"].to_numpy()
@@ -648,11 +769,12 @@ def main() -> int:  # noqa: C901
     a.igual(m8m["I"] * m8m["factor_islas"], m8m["I_esda_equivalente"], "I de spdep × factor = I de esda", tol=1e-5)
     p_m = mcsv["p_rangos"].to_numpy()
     a.cierto(np.isnan(p_m[~con]).all() and not np.isnan(p_m[con]).any(), "el p municipal es NA solo en las islas")
-    fuera = int(np.sum(np.abs(L["p_sim"][con] - p_m[con]) > np.array([tol_p(p, NSIM) for p in p_m[con]])))
-    a.cierto(fuera == 0, "municipios: p por rangos hasta el error de Monte Carlo", f"{fuera} fuera")
+    bil_m = np.minimum(1.0, 2.0 * L["p_sim"])
+    fuera = int(np.sum(np.abs(bil_m[con] - p_m[con]) > np.array([tol_pb(p, NSIM, NSIM) for p in p_m[con]])))
+    a.cierto(fuera == 0, "municipios: p bilateral = 2 × p_sim de esda", f"{fuera} fuera")
     a.igual(int(np.sum(p_m[con] < ALFA)), m8m["significativos"], "municipios: significativos, desde el CSV")
-    a.cierto(abs(int(np.sum(L["p_sim"][con] < ALFA)) - m8m["significativos"]) <= 6,
-             "y esda cuenta casi los mismos", f"esda {int(np.sum(L['p_sim'][con] < ALFA))}")
+    a.cierto(abs(int(np.sum(bil_m[con] < ALFA)) - m8m["significativos"]) <= 6,
+             "y esda cuenta casi los mismos", f"esda {int(np.sum(bil_m[con] < ALFA))}")
     a.igual(np.nanmin(p_m), m8m["p_min"], "municipios: p mínimo", tol=1e-9)
     a.igual(Ii_m.max(), m8m["Ii_max"], "el Ii máximo", tol=1e-5)
     top = np.argsort(-np.abs(Ii_m))[:5]
@@ -696,11 +818,19 @@ def main() -> int:  # noqa: C901
     # -----------------------------------------------------------------
     a.titulo("10 · La multiplicidad: suelo, tabla y Benjamini-Hochberg")
     m10 = D["m10"]
-    for cual, nn in (("columbus", n), ("municipios", nm)):
+    from fractions import Fraction
+    alfa_q = Fraction(ALFA).limit_denominator(1000)
+    for cual, nn in (("columbus", n), ("municipios", int(con.sum()))):
         s = m10["suelo"][cual]
-        a.igual(s["n"], nn, f"suelo {cual}: n")
+        a.igual(s["n"], nn, f"suelo {cual}: n = tests")
         a.igual(s["umbral_bonferroni"], ALFA / nn, f"suelo {cual}: alfa/n", tol=1e-6)
-        a.igual(s["nsim_minimo"], int(np.ceil(nn / ALFA) - 1), f"suelo {cual}: réplicas mínimas")
+        # LA PROPIEDAD, no la fórmula del generador (auditoría del 2026-10-20:
+        # el auditor reimplementaba `ceiling(n/alfa) - 1` y heredaba su error):
+        # con nsim_minimo el suelo bilateral queda ESTRICTAMENTE bajo alfa/n, y
+        # con una réplica menos no. En fracciones, sin coma flotante.
+        k = int(s["nsim_minimo"])
+        pasa = lambda ns: Fraction(2, ns + 1) < alfa_q / nn
+        a.cierto(pasa(k) and not pasa(k - 1), f"suelo {cual}: con {k} pasa y con {k - 1} no")
     a.cierto(m10["suelo"]["municipios"]["nsim_minimo"] > 999, "con 999 réplicas Bonferroni no es alcanzable")
     a.cierto(NSIM > m10["suelo"]["municipios"]["nsim_minimo"], "y con las del capítulo sí")
     for cual, p_col, csv_ in (("columbus", p_pub, ccsv), ("municipios", p_m, mcsv)):
@@ -710,7 +840,7 @@ def main() -> int:  # noqa: C901
         a.cierto(set(t.keys()) == {"plegado_999", "plegado_nsim", "bilateral_999", "bilateral_nsim",
                                    "normal_permutado_999", "normal_permutado_nsim", "analitico"},
                  f"{cual}: las siete filas de la tabla")
-        fila = t.get("plegado_nsim", {})
+        fila = t.get("bilateral_nsim", {})
         a.igual(fila.get("nsim", -1), NSIM, f"{cual}: la fila del capítulo usa sus réplicas")
         pv = p_col[~np.isnan(p_col)]
         a.igual(fila.get("sin_corregir", -1), int(np.sum(pv < ALFA)), f"{cual}: sin corregir, desde el CSV")
@@ -718,8 +848,8 @@ def main() -> int:  # noqa: C901
         a.igual(fila.get("fdr", -1), bh(pv), f"{cual}: FDR por Benjamini-Hochberg, a mano")
         a.cierto(fila.get("holm", -1) >= fila.get("bonferroni", 0), f"{cual}: Holm no rechaza menos que Bonferroni")
         a.cierto(fila.get("fdr", -1) >= fila.get("holm", 0), f"{cual}: FDR no rechaza menos que Holm")
-        a.cierto(t.get("bilateral_nsim", {}).get("sin_corregir", 10 ** 9) <= fila.get("sin_corregir", -1),
-                 f"{cual}: el p bilateral rechaza menos que el plegado")
+        a.cierto(t.get("plegado_nsim", {}).get("sin_corregir", -1) >= fila.get("sin_corregir", 10 ** 9),
+                 f"{cual}: el plegado rechaza más que el bilateral")
         a.cierto(t.get("plegado_999", {}).get("nsim") == 999 and t.get("analitico", {}).get("nsim") == 0,
                  f"{cual}: la tabla lleva 999 y el analítico")
         cod_b = lisa_codigo(csv_["cuadrante"].to_numpy(), np.where(np.isnan(p_col), np.nan,
@@ -732,9 +862,27 @@ def main() -> int:  # noqa: C901
                  f"{cual}: el recuento con FDR")
         a.igual(sum(m10[cual]["conteo_fdr"][1:]), fila.get("fdr", -1), f"{cual}: FDR cuadra con su mapa")
         a.igual(sum(m10[cual]["conteo_bonferroni"][1:]), fila.get("bonferroni", -1), f"{cual}: Bonferroni cuadra con su mapa")
-    a.cierto(m10["municipios"]["tabla"].get("plegado_999", {}).get("bonferroni", -1) == 0,
+    a.cierto(m10["municipios"]["tabla"].get("bilateral_999", {}).get("bonferroni", -1) == 0,
              "municipios: con 999 réplicas Bonferroni deja cero")
-    a.cierto(m10["municipios"]["tabla"].get("plegado_nsim", {}).get("bonferroni", 0) > 0, "y con las del capítulo deja algo")
+    a.cierto(m10["municipios"]["tabla"].get("bilateral_nsim", {}).get("bonferroni", 0) > 0, "y con las del capítulo deja algo")
+    pv_m = p_m[con]
+    bon_m = pv_m * len(pv_m) < ALFA
+    a.igual(int(bon_m.sum()), m10["suelo"]["bonferroni_mun"], "los que pasan Bonferroni, desde el CSV")
+    a.igual(int(np.sum(bon_m & (np.abs(pv_m - 2.0 / (NSIM + 1)) < 1e-12))), m10["suelo"]["bonferroni_mun_en_suelo"],
+            "y cuántos de ellos están en el suelo")
+    # LA TASA NULA, con una segunda implementación: esda sobre CRIME repartido
+    # al azar. Sus réplicas no son las de R; se compara la proporción.
+    tn = m10["tasa_nula"]
+    rng0 = np.random.default_rng(SEMILLA)
+    plg, bil = [], []
+    for _ in range(80):
+        ml0 = Moran_Local(rng0.permutation(crime), w_gal, transformation="r", permutations=999,
+                          seed=int(rng0.integers(1, 10 ** 6)), n_jobs=1)
+        plg.append(np.mean(ml0.p_sim < ALFA)); bil.append(np.mean(np.minimum(1, 2 * ml0.p_sim) < ALFA))
+    a.cierto(abs(np.mean(plg) - tn["plegado"]) < 0.03, "tasa nula del plegado, contra esda", f"esda {np.mean(plg):.4f}")
+    a.cierto(abs(np.mean(bil) - tn["bilateral"]) < 0.02, "tasa nula del bilateral, contra esda", f"esda {np.mean(bil):.4f}")
+    a.cierto(tn["plegado"] > 1.6 * ALFA and abs(tn["bilateral"] - ALFA) < 3 * tn["error_tipico"],
+             "el plegado marca cerca del doble y el bilateral el 5 %")
     pzs = int(np.sum(2 * L["p_z_sim"][con] < ALFA))      # esda lo da unilateral; spdep, bilateral
     a.cierto(abs(pzs - m10["municipios"]["tabla"].get("normal_permutado_nsim", {}).get("sin_corregir", -99)) <= 8,
              "el p normal con momentos permutados, contra el de esda", f"esda {pzs}")
@@ -743,7 +891,7 @@ def main() -> int:  # noqa: C901
     a.cierto(np.allclose(np.arange(1, n + 1) * ALFA / n, bhp["umbrales"], atol=1e-5), "BH: los umbrales i·alfa/n")
     a.igual(bhp["k"], bh(p_pub), "BH: el k, a mano")
     a.cerca(bhp["umbral_bonferroni"], ALFA / n, "y el umbral de Bonferroni", rel=1e-3)
-    a.salta("999 frente a 24 999 réplicas: recalculado", "dos generadores; se auditan propiedades")
+    a.salta("999 frente a 49 999 réplicas: recalculado", "dos generadores; se auditan propiedades")
     a.igual(m10["municipios"]["cuadrantes_cambian"], 0, "los cuadrantes no dependen de las réplicas")
     a.cierto(0 < m10["municipios"]["significativos_cambian"] < 50, "el conjunto significativo sí cambia, poco")
 
@@ -771,10 +919,12 @@ def main() -> int:  # noqa: C901
         wd = weights.DistanceBand.from_array(gxy, threshold=b["d"], binary=True, silence_warnings=True)
         a.igual(G_Local(val, wd, transform="B", star=True, permutations=0).Zs[c], b["G_estrella"],
                 f"barrido d={b['d']}: Gi* de la celda", tol=1e-4)
-    gp = G_Local(val, w30, transform="B", star=True, permutations=NSIM, seed=SEMILLA, n_jobs=1)
-    a.cierto(abs(gp.p_sim[c] - g["G_estrella_p"]) < tol_p(g["G_estrella_p"], NSIM), "celda 120: p por rangos (esda)")
-    cal = int(np.sum((gp.p_sim < ALFA) & (gp.Zs > 0)))
-    a.cierto(abs(cal - g["calientes_95"]) <= 6, "celdas calientes al 5 %, casi las mismas", f"esda {cal}")
+    vent30 = [np.array([k] + list(w30.neighbors[k])) for k in range(len(val))]
+    gp30, _, _ = gistar_perm_libre(val, vent30, NSIM_AUD, SEMILLA)
+    a.cierto(abs(gp30[c] - g["G_estrella_p"]) < tol_pb(g["G_estrella_p"], NSIM, NSIM_AUD),
+             "celda 120: p bilateral con la unidad dentro (a mano)", f"{gp30[c]:.4f}")
+    cal = int(np.sum((gp30 < ALFA) & (G30s.Zs > 0)))
+    a.cierto(abs(cal - g["calientes_95"]) <= 6, "celdas calientes al 5 %, casi las mismas", f"a mano {cal}")
     # Columbus
     # Con `transform="R"` esda 2.9.0 infla la varianza de Gi* por 8: se
     # audita en binario, que es lo mismo porque la z de Gi* no cambia al
@@ -789,8 +939,20 @@ def main() -> int:  # noqa: C901
              "esda con pesos por filas NO da esa z: defecto declarado",
              f"máx dif {np.abs(gR.Zs - gz_pub).max():.3f}")
     gpp = ccsv["gistar_p"].to_numpy()
-    fuera = int(np.sum(np.abs(gc.p_sim - gpp) > np.array([tol_p(p, NSIM) for p in gpp])))
-    a.cierto(fuera == 0, "Columbus: p de Gi* hasta el error de Monte Carlo", f"{fuera} fuera")
+    vent_c = [np.array([k] + nb_gal[k]) for k in range(n)]
+    gp_c, _, _ = gistar_perm_libre(crime, vent_c, NSIM, SEMILLA)
+    fuera = int(np.sum(np.abs(gp_c - gpp) > np.array([tol_pb(p, NSIM, NSIM) for p in gpp])))
+    a.cierto(fuera == 0, "Columbus: p de Gi* con la unidad dentro, a mano", f"{fuera} fuera")
+    # La autoinclusión: con la unidad FIJA (esda) el p de Gi* copia al de Gi.
+    au = D["m11"]["columbus"]["autoinclusion"]
+    g_fijo = np.minimum(1, 2 * gc.p_sim)
+    g_sin = np.minimum(1, 2 * G_Local(crime, w_gal, transform="B", star=False, permutations=NSIM,
+                                      seed=SEMILLA, n_jobs=1).p_sim)
+    a.cierto(np.corrcoef(g_fijo, g_sin)[0, 1] > 0.99, "con la unidad fija, el p de Gi* es el de Gi",
+             f"cor {np.corrcoef(g_fijo, g_sin)[0, 1]:.4f}")
+    k7 = int(np.where(pol == au["polyid"])[0][0])
+    a.cierto(abs(gp_c[k7] - au["p_libre"]) < tol_pb(au["p_libre"], NSIM, NSIM), f"POLYID {au['polyid']}: p con él dentro")
+    a.cierto(abs(g_fijo[k7] - au["p_fijo"]) < tol_pb(au["p_fijo"], NSIM, NSIM), f"POLYID {au['polyid']}: p con él fijo")
     gcod = gistar_codigo(gz_pub, gpp)
     a.cierto((gcod == ccsv["gistar"].to_numpy()).all(), "Columbus: los siete códigos salen de z y p")
     m11c = D["m11"]["columbus"]
@@ -807,8 +969,17 @@ def main() -> int:  # noqa: C901
     gzm = mcsv["gistar_z"].to_numpy()
     a.igual(np.abs(L["Zs"] - gzm)[con].max(), 0.0, "municipios: Gi* (z), con esda", tol=1e-6)
     gpm = mcsv["gistar_p"].to_numpy()
-    fuera = int(np.sum(np.abs(L["g_p_sim"][con] - gpm[con]) > np.array([tol_p(p, NSIM) for p in gpm[con]])))
-    a.cierto(fuera == 0, "municipios: p de Gi* hasta el error de Monte Carlo", f"{fuera} fuera")
+    vent_m = [np.array([k] + list(w_sub.neighbors[k])) for k in range(len(sub))]
+    gp_m, gp_lo, gp_hi = gistar_perm_libre(y, vent_m, NSIM_AUD, SEMILLA)
+    tolm = np.array([tol_pb(p, NSIM, NSIM_AUD) for p in gpm])
+    # Fuera es quedar lejos de TODO el intervalo de los empates, no del medio.
+    dist = np.maximum(0.0, np.maximum(gp_lo - gpm, gpm - gp_hi))
+    exceso = np.where(con, dist / tolm, 0.0)
+    peor = int(np.argmax(exceso))
+    fuera = int(np.sum(exceso > 1))
+    a.cierto(fuera == 0, "municipios: p de Gi* con la unidad dentro, a mano",
+             f"{fuera} fuera; el peor, {mcsv['municipio'].iloc[peor]}: {gpm[peor]:.5f} frente a {gp_m[peor]:.5f}, "
+             f"{exceso[peor]:.2f} tolerancias, {len(vent_m[peor])} en la ventana")
     gcm = gistar_codigo(gzm, gpm)
     gcm[~con] = np.nan
     gist_m = mcsv["gistar"].to_numpy(dtype=float)
@@ -914,8 +1085,8 @@ def main() -> int:  # noqa: C901
     a.igual(D["meta"]["capitulo"], 7, "la metainformación dice capítulo 7")
     a.cierto(D["meta"]["semanas"] == "12-13", "y que cubre las semanas 12 y 13", D["meta"]["semanas"])
     a.cierto(D["meta"]["anclas"] >= 13, "el generador comprobó sus anclas", f"{D['meta']['anclas']} anclas")
-    a.igual(D["meta"]["nsim"], 24999, "las réplicas del capítulo son 24 999")
-    a.cierto(D["meta"]["p"] == "Pr(folded) Sim", "y el p es el plegado por rangos")
+    a.igual(D["meta"]["nsim"], 49999, "las réplicas del capítulo son 49 999")
+    a.cierto(D["meta"]["p"] == "Pr(z != E(Ii)) Sim", "y el p es el bilateral por rangos")
 
     return a.cierre()
 

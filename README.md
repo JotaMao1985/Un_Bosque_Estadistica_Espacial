@@ -23,13 +23,13 @@ Seis de los diez capítulos del plan están publicados, y con ellos **dos taller
 | 4 | Patrones puntuales: CSR y funciones de resumen | 6–7 | Publicado |
 | 5 | Intensidad por núcleos y procesos puntuales | 8–10 | Publicado |
 | 6 | Datos de área y la matriz de pesos espaciales | 10–11 | Publicado |
-| 7 | Autocorrelación espacial global y local | 12–13 | En preparación |
+| 7 | Autocorrelación espacial global y local | 12–13 | Publicado |
 | 8 | Econometría espacial: SAR, SEM, SDM y GWR | 14 | En preparación |
 | 9 | Geoestadística: variograma y kriging | 15 | En preparación |
 | 10 | ML espacial, datos espacio-temporales y proyecto | 16 | En preparación |
 
-Los seis capítulos suman 74 módulos, 64 simuladores, 44 mapas, 73 preguntas de
-autoevaluación, 28 ejercicios guiados y 64 bloques de código en cada lenguaje. Fuera de esa
+Los siete capítulos suman 86 módulos, 77 simuladores, 55 mapas, 86 preguntas de
+autoevaluación, 33 ejercicios guiados y 75 bloques de código en cada lenguaje. Fuera de esa
 cuenta van los dos talleres —el 1 con 9 módulos y 7 ejercicios, el 2 con 7 módulos, 5 tareas y
 las 36 preguntas de su banco de defensa— y los dos preparciales: el del Corte I —7 módulos y
 36 preguntas que cubren los 30 módulos de los capítulos 1 a 3 que entran en el parcial— y el del
@@ -54,6 +54,18 @@ conviene saber aunque no se toque el taller: **`Fest()` devuelve distancias al c
 instalación de spatstat de este equipo**, así que la F del taller se calcula a mano sobre una
 rejilla de sondas (`ppp_F_borde()` en `precalculo/puntual.R`) y el auditor la comprueba contra
 una cota que no depende de ninguna implementación.
+
+El capítulo 7 es **el primero que publica mapas de categorías**. Un mapa LISA son cinco
+categorías con colores fijos —alto-alto en rojo, bajo-bajo en azul— y uno de Gi* siete, así que el
+motor de mapas aprendió a pintar una capa que no se clasifica por intervalos, con su recuento en la
+leyenda y lo que no tiene vecinos rayado, no en gris: una isla pintada de «no significativo» parecería
+un municipio examinado. Y es el capítulo que más depende de una convención que nadie escribe: el p
+de cada LISA es el **bilateral** por rangos con **49 999 réplicas**. El plegado de GeoDa y `esda`
+es de una cola y marca el 10 % al 5 %, y el capítulo lo mide en vez de callarlo. El bilateral no
+baja de 2/(nsim + 1), así que Bonferroni sobre los 1 119 municipios con test pide al menos 44 760
+réplicas — con las 999 de siempre ningún municipio puede pasar la corrección, haya o no
+conglomerados. Gi\* lleva a la unidad dentro de la permutación (`fix_i_in_Gstar_permutations =
+FALSE`): con el valor por defecto su test es, en la práctica, el de Gi.
 
 El capítulo 6 es **el primero que publica grafos**, y su presupuesto lo decidió una medición: las
 diez definiciones de vecindad que el temario pide pesan **465 KB sobre los 1 122 municipios** y
