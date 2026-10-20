@@ -2597,16 +2597,24 @@ solucion_cap6 <- function() {
 # 1979 por mil nacimientos, con la contigüidad reina: un dato real, con
 # 100 condados, que el capítulo no ha mirado antes.
 #
-# El p y las réplicas son los del capítulo (decisión 3 del A.28): el de
-# rangos con 24 999 permutaciones. Si el generador cambia ese convenio,
-# esto tiene que cambiar con él, y por eso está escrito una sola vez.
+# El p y las réplicas son los del capítulo: el BILATERAL por rangos con
+# 49 999 permutaciones, y Gi* con la unidad dentro de la permutación
+# (auditoría de contenido del 2026-10-20; antes, el plegado con 24 999).
+# Si el generador cambia ese convenio, esto tiene que cambiar con él, y por
+# eso está escrito una sola vez. Las lecturas citan las cifras con
+# sprintf y llevan guardas: si el dato deja de decir lo que la lectura
+# dice, el generador se para.
 # =====================================================================
 solucion_cap7 <- function() {
   message("Capítulo 7 · los cinco ejercicios guiados")
   suppressPackageStartupMessages(library(spdep))
   set.seed(SEMILLA)
   E <- list()
-  NSIM <- 24999L; P_COL <- "Pr(folded) Sim"; ALFA <- 0.05
+  NSIM <- 49999L; P_COL <- "Pr(z != E(Ii)) Sim"; P_COLG <- "Pr(z != E(Gi)) Sim"
+  P_PLEG <- "Pr(folded) Sim"; ALFA <- 0.05
+  f4 <- function(x) formatC(as.numeric(x), format = "f", digits = 4)
+  f3 <- function(x) formatC(as.numeric(x), format = "f", digits = 3)
+  miles <- function(x) formatC(as.integer(x), format = "d", big.mark = " ")
 
   nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
   nc <- sf::st_transform(nc, 32617)
@@ -2626,14 +2634,17 @@ solucion_cap7 <- function() {
       "nacimientos (<code>1000 * SID79 / BIR79</code>) y su I de Moran con la contigüidad reina",
       "estandarizada por filas. Da E[I], la varianza por aleatorización y la z; luego el p por",
       "permutación con 999 réplicas. Después contesta: ¿por qué E[I] es negativa y no cero, y",
-      "por qué el p por permutación no puede ser menor que 0,001?"),
+      "por qué el p por permutación no puede ser menor que 0.001?"),
     pasos = list(
       list(paso = "I de Moran", valor = r10(mt$estimate[1])),
       list(paso = "E[I] = -1/(n-1)", valor = r10(mt$estimate[2])),
       list(paso = "Varianza por aleatorización", valor = r10(mt$estimate[3])),
       list(paso = "z por aleatorización", valor = r10(mt$statistic)),
       list(paso = "z por normalidad", valor = r10(mn$statistic)),
-      list(paso = "p por permutación (999 réplicas)", valor = r10(mc$p.value))),
+      list(paso = "p por permutación (999 réplicas)", valor = r10(mc$p.value)),
+      # Una cifra que sale de simular lleva su error: con 999 réplicas el p
+      # tiembla en la tercera cifra (de 0.005 a 0.020 con otras semillas).
+      list(paso = "Error de Monte Carlo de ese p", valor = r10(sqrt(mc$p.value * (1 - mc$p.value) / 999)))),
     solucion = list(
       lectura = paste(
         "E[I] es -1/(n-1) porque z'Wz suma productos de pares DISTINTOS: bajo la hipótesis nula",
@@ -2641,8 +2652,11 @@ solucion_cap7 <- function() {
         "y suman cero, así que un valor alto obliga a los demás a compensar—, y ese sesgo se",
         "desvanece con n pero nunca es cero. El p por permutación cuenta cuántas de las 999",
         "réplicas igualan o superan la I observada y suma uno por la propia observación: el",
-        "menor valor posible es 1/(999 + 1). No es que el efecto sea débil; es que el método no",
-        "puede decir más con esas réplicas.")))
+        "menor valor posible es 1/(999 + 1). Este p no está en ese suelo, así que lo que limita",
+        sprintf("aquí no es el suelo sino el azar de las réplicas: su error de Monte Carlo, %s,", f3(sqrt(mc$p.value * (1 - mc$p.value) / 999))),
+        "dice que otra semilla daría otra tercera cifra. Para afinarlo hacen falta más réplicas,",
+        "no más decimales.")))
+  if (mc$p.value <= 2 / 1000) stop("E1: el p está en el suelo y la lectura dice que no")
 
   message("  E2 · la pendiente es I, salvo cuando no")
   pend_W <- unname(coef(lm(wz ~ z))[2])
@@ -2664,6 +2678,8 @@ solucion_cap7 <- function() {
       list(paso = "I de Moran (estilo W)", valor = r10(mt$estimate[1])),
       list(paso = "Condados alto-alto", valor = sum(cuad == "AA")),
       list(paso = "Condados bajo-bajo", valor = sum(cuad == "BB")),
+      list(paso = "Condados alto-bajo", valor = sum(cuad == "AB")),
+      list(paso = "Condados bajo-alto", valor = sum(cuad == "BA")),
       list(paso = "Pendiente con la W binaria (estilo B)", valor = r10(pend_B)),
       list(paso = "I de Moran con la W binaria", valor = r10(I_B))),
     solucion = list(
@@ -2678,6 +2694,14 @@ solucion_cap7 <- function() {
   gt <- geary.test(y, lw)
   i_max <- which.max(y)
   y2 <- y; y2[i_max] <- y2[i_max] * 3
+  I3 <- moran.test(y2, lw)$estimate[1]; c3 <- geary.test(y2, lw)$estimate[1]
+  # EL LÍMITE DE c NO ES 1: con el valor de k sin tope, c tiende a
+  # (1 + suma de la columna k de W)/2, que depende de la vecindad de k
+  # (auditoría de contenido del 2026-10-20; la lectura anterior decía que
+  # tendía a 1 y que «se quedaba donde estaba», y con el factor 3 se ALEJA).
+  c_lim <- (1 + colSums(listw2mat(lw))[i_max]) / 2
+  if (abs(c3 - 1) <= abs(gt$estimate[1] - 1)) stop("E3: c ya no se aleja de 1 con el factor 3")
+  if (abs(I3 - mt$estimate[1]) <= abs(c3 - gt$estimate[1])) stop("E3: I ya no se mueve más que c")
   E$e3 <- list(
     titulo = "El condado disparado",
     enunciado = paste(
@@ -2689,75 +2713,107 @@ solucion_cap7 <- function() {
       list(paso = "z de Geary", valor = r10(gt$statistic)),
       list(paso = "1 - c", valor = r10(1 - gt$estimate[1])),
       list(paso = "I de Moran", valor = r10(mt$estimate[1])),
-      list(paso = "I con el condado disparado", valor = r10(moran.test(y2, lw)$estimate[1])),
-      list(paso = "c con el condado disparado", valor = r10(geary.test(y2, lw)$estimate[1]))),
+      list(paso = "I con el condado disparado", valor = r10(I3)),
+      list(paso = "c con el condado disparado", valor = r10(c3)),
+      list(paso = "Límite de c si el valor creciera sin tope", valor = r10(c_lim))),
     solucion = list(
       lectura = paste(
-        "El que se movió fue I, y hacia CERO: cayó casi a la mitad, mientras c apenas se",
-        "desplazó. Un solo valor extremo domina la varianza que normaliza a los dos índices.",
-        "En Moran, el producto del condado disparado con sus vecinos crece como el valor, pero",
-        "el denominador crece como su cuadrado, así que I se hunde hacia su valor nulo. En",
-        "Geary, las diferencias al cuadrado con los vecinos y la varianza crecen las dos como el",
-        "cuadrado, y c se queda donde estaba —y en el límite tiende a 1, su propio valor nulo—.",
-        "Ninguno es robusto: el extremo esconde la autocorrelación en los dos, solo que a",
-        "velocidades distintas. Por eso 1 - c y I se parecen cuando el dato es manso, y cuando",
-        "discrepan la discrepancia señala un atípico que hay que ir a mirar.")))
+        sprintf("El que se movió fue I: cayó de %s a %s, casi a la mitad, mientras c apenas pasó de",
+                f4(mt$estimate[1]), f4(I3)),
+        sprintf("%s a %s, y además se ALEJÓ de 1. En Moran, el producto del condado disparado con",
+                f4(gt$estimate[1]), f4(c3)),
+        "sus vecinos crece como el valor, pero el denominador crece como su cuadrado, así que I",
+        "se hunde hacia su valor nulo. En Geary, las diferencias al cuadrado con los vecinos y",
+        "la varianza crecen las dos como el cuadrado, así que el cociente no se hunde: tiende a",
+        sprintf("un límite que solo depende de la vecindad del condado, (1 + la suma de su columna de W)/2 = %s", f4(c_lim)),
+        sprintf("para %s, y no a 1. Con el factor 3 todavía está bajando antes de subir hacia", nc$NAME[i_max]),
+        "ese límite. Ninguno de los dos es robusto, pero se mueven distinto, y por eso una",
+        "discrepancia entre 1 - c e I puede venir de un atípico. No es la única causa posible:",
+        "los dos índices miden cosas distintas, y el diagrama de Moran es donde se mira cuál de",
+        "las dos es.")))
 
   message("  E4 · el mapa LISA que miente")
   lmp <- localmoran_perm(y, lw, nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE)
   lmp999 <- localmoran_perm(y, lw, nsim = 999L, iseed = SEMILLA, no_repeat_in_row = TRUE)
-  p <- lmp[, P_COL]; p999 <- lmp999[, P_COL]
+  p <- lmp[, P_COL]; p999 <- lmp999[, P_COL]; pleg <- lmp[, P_PLEG]
   q <- as.character(attr(lmp, "quadr")$mean)
   sig <- p < ALFA
+  # Réplicas mínimas: el p bilateral no baja de 2/(nsim+1) y Bonferroni
+  # pide p < alfa/n ESTRICTO, así que nsim + 1 > 2n/alfa; con n = 100,
+  # 4 000 (la versión anterior, con el plegado y ceiling(n/alfa) - 1,
+  # daba 1 999 y se quedaba una corta). En aritmética entera: 2n/alfa = 40n.
+  nsim_min4 <- as.integer(round(2 * 100 / ALFA))
+  n_bonf <- sum(p.adjust(p, "bonferroni") < ALFA); n_fdr <- sum(p.adjust(p, "fdr") < ALFA)
+  # La lectura cuenta esto: con réplicas de sobra el mapa corregido sale
+  # vacío IGUAL, porque el p mínimo queda lejos del umbral. Si cambia, para.
+  if (n_bonf != 0L || n_fdr != 0L || min(p) < ALFA / 100)
+    stop("E4: algún condado sobrevive a la corrección y la lectura dice que ninguno")
+  if (sum(pleg < ALFA) <= sum(sig)) stop("E4: el plegado ya no marca más que el bilateral")
   E$e4 <- list(
     titulo = "El mapa que sale por defecto",
     enunciado = paste(
       "Calcula los I locales de la tasa con <code>localmoran_perm</code>, primero con 999",
-      "réplicas y luego con 24 999, y usa el p por rangos (<code>Pr(folded) Sim</code>).",
-      "Cuenta los condados significativos al 5 % sin corregir, con Bonferroni y con FDR, y da",
-      "el número mínimo de réplicas para que Bonferroni sea alcanzable con n = 100. Después",
-      "contesta: ¿cuántos alto-alto y bajo-bajo quedan sin corregir, y qué diría el mapa de",
-      "999 réplicas con Bonferroni?"),
+      "réplicas y luego con 49 999, y usa el p bilateral por rangos",
+      "(<code>Pr(z != E(Ii)) Sim</code>). Cuenta los condados significativos al 5 % sin",
+      "corregir —y cuántos de ellos son alto-alto y bajo-bajo—, con Bonferroni y con FDR;",
+      "cuenta también cuántos marcaría sin corregir el p plegado de GeoDa",
+      "(<code>Pr(folded) Sim</code>), y da el número mínimo de réplicas para que Bonferroni",
+      "sea alcanzable con n = 100. Después contesta: ¿por qué el mapa corregido sale vacío con",
+      "999 réplicas, y por qué sale vacío también con 49 999?"),
     pasos = list(
-      list(paso = "Significativos al 5 % sin corregir (24 999)", valor = sum(sig)),
-      list(paso = "Significativos con Bonferroni (24 999)", valor = sum(p.adjust(p, "bonferroni") < ALFA)),
-      list(paso = "Significativos con FDR (24 999)", valor = sum(p.adjust(p, "fdr") < ALFA)),
-      list(paso = "Réplicas mínimas para Bonferroni con n = 100", valor = as.integer(ceiling(100 / ALFA) - 1)),
+      list(paso = "Significativos al 5 % sin corregir (49 999)", valor = sum(sig)),
+      list(paso = "Los mismos con el p plegado", valor = sum(pleg < ALFA)),
+      list(paso = "Significativos con Bonferroni (49 999)", valor = n_bonf),
+      list(paso = "Significativos con FDR (49 999)", valor = n_fdr),
+      list(paso = "p mínimo (49 999)", valor = r10(min(p))),
+      list(paso = "Réplicas mínimas para Bonferroni con n = 100", valor = nsim_min4),
       list(paso = "Alto-alto sin corregir", valor = sum(sig & q == "High-High")),
       list(paso = "Bajo-bajo sin corregir", valor = sum(sig & q == "Low-Low")),
       list(paso = "Significativos con Bonferroni (999)", valor = sum(p.adjust(p999, "bonferroni") < ALFA))),
     solucion = list(
       lectura = paste(
-        "Con 999 réplicas el p por rangos no baja de 0,001 y Bonferroni pide p < 0,05/100 =",
-        "0,0005: ningún condado puede sobrevivir, y el mapa «corregido» sale vacío no porque no",
-        "haya conglomerados sino porque el procedimiento no puede verlos. Hacen falta al menos",
-        "1 999 réplicas para que UNO pueda. Y sin corregir, cien tests al 5 % esperan cinco",
-        "falsos positivos aunque no haya nada: el mapa por defecto de GeoDa o de spdep enseña",
-        "esos cinco con el mismo rojo que los verdaderos. FDR está en medio: controla la",
-        "proporción de falsos entre los que declara, no la probabilidad de declarar alguno.")))
+        "Con 999 réplicas el p bilateral no baja de 2/1 000 = 0.002 y Bonferroni pide p <",
+        "0.05/100 = 0.0005: ningún condado puede sobrevivir, sea cual sea el dato. Hacen falta",
+        sprintf("al menos %s réplicas para que UNO pueda. Con 49 999 el suelo baja a 0.00004 y ya", miles(nsim_min4)),
+        sprintf("podría, y aun así el mapa corregido sale vacío: el p más pequeño es %s, lejos del", f4(min(p))),
+        "umbral. Este mapa no está vacío por el procedimiento, sino porque ningún conglomerado",
+        "local resiste la corrección, aunque el I global sí sea significativo. Sin corregir, cien",
+        sprintf("tests al 5 %% esperan unos cinco falsos positivos aunque no haya nada, y aquí salen %d;", sum(sig)),
+        sprintf("con el p plegado de GeoDa salen %d, porque ese p es de una cola y al 5 %% marca", sum(pleg < ALFA)),
+        "cerca del doble. FDR está en medio: controla la proporción de falsos entre los que",
+        "declara, no la probabilidad de declarar alguno.")))
 
   message("  E5 · Gi* no es LISA")
-  gs <- localG_perm(y, nb2listw(include.self(nb), style = "W"), nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE)
-  gz <- as.numeric(gs); gp <- attr(gs, "internals")[, P_COL]
+  gs <- localG_perm(y, nb2listw(include.self(nb), style = "W"), nsim = NSIM, iseed = SEMILLA,
+                    no_repeat_in_row = TRUE, fix_i_in_Gstar_permutations = FALSE)
+  gz <- as.numeric(gs); gp <- attr(gs, "internals")[, P_COLG]
   caliente <- gp < ALFA & gz > 0; frio <- gp < ALFA & gz < 0
   atipico <- sig & q %in% c("High-Low", "Low-High")
+  # Lo que la lectura cuenta de los atípicos, comprobado: ninguno llega al
+  # 5 % en Gi*, pero los dos tienen la z del signo de su vecindad, el
+  # contrario al suyo; y el alto-bajo es «alto» por muy poco.
+  ia <- which(atipico)
+  signo_vecindad <- (q[ia] == "High-Low" & gz[ia] < 0) | (q[ia] == "Low-High" & gz[ia] > 0)
+  if (length(ia) != 2L || any(caliente[ia] | frio[ia]) || !all(signo_vecindad))
+    stop("E5: los atípicos ya no son dos, o Gi* los marca al 5 %, o su z no lleva el signo de su vecindad")
+  i_ab <- ia[q[ia] == "High-Low"]; i_ba <- ia[q[ia] == "Low-High"]
   E$e5 <- list(
     titulo = "Intensidad, no similitud",
     enunciado = paste(
       "Calcula la Gi* de Getis-Ord de la tasa (con el condado incluido entre sus propios",
-      "vecinos y W estandarizada por filas, 24 999 réplicas) y cuenta los puntos calientes y",
-      "fríos al 5 %. Cruza con el LISA del ejercicio anterior: ¿cuántos condados son atípicos",
-      "espaciales (alto-bajo o bajo-alto) significativos para LISA, y cuántos de ellos ve Gi*?",
-      "Después contesta: ¿qué mide Gi* que hace que un alto-bajo no le importe?"),
+      "vecinos y dentro de la permutación —<code>fix_i_in_Gstar_permutations = FALSE</code>—,",
+      "W estandarizada por filas, 49 999 réplicas y el p bilateral) y cuenta los puntos",
+      "calientes y fríos al 5 %. Cruza con el LISA del ejercicio anterior: ¿cuántos condados",
+      "son atípicos espaciales (alto-bajo o bajo-alto) significativos para LISA, y cuántos de",
+      "ellos marca Gi*? Mira también el signo de su z. Después contesta: ¿por qué Gi* no tiene",
+      "una categoría para un atípico, y de qué color tiende a pintarlo?"),
     pasos = list(
       list(paso = "Puntos calientes al 5 %", valor = sum(caliente)),
       list(paso = "Puntos fríos al 5 %", valor = sum(frio)),
       list(paso = "Atípicos espaciales significativos (LISA)", valor = sum(atipico)),
-      list(paso = "Atípicos que Gi* declara calientes o fríos", valor = sum(atipico & (caliente | frio))),
-      # El atípico alto-bajo sale FRÍO y el bajo-alto sale CALIENTE: Gi* lo
-      # pinta del color de su vecindad, el contrario a su propio valor.
-      list(paso = "Atípicos pintados del color contrario a su valor",
-           valor = sum(atipico & ((q == "High-Low" & frio) | (q == "Low-High" & caliente)))),
+      list(paso = "Atípicos que Gi* declara calientes o fríos al 5 %", valor = sum(atipico & (caliente | frio))),
+      list(paso = sprintf("z de Gi* del alto-bajo (%s)", nc$NAME[i_ab]), valor = r10(gz[i_ab])),
+      list(paso = sprintf("z de Gi* del bajo-alto (%s)", nc$NAME[i_ba]), valor = r10(gz[i_ba])),
       list(paso = "Gi* máxima (z)", valor = r10(max(gz))),
       list(paso = "Condados alto-alto que Gi* llama calientes", valor = sum(sig & q == "High-High" & caliente))),
     solucion = list(
@@ -2765,12 +2821,16 @@ solucion_cap7 <- function() {
         "Gi* suma los valores de la vecindad —el condado incluido— y la compara con lo que",
         "sumaría una vecindad cualquiera: mide INTENSIDAD, si la zona es alta o baja en",
         "conjunto. LISA multiplica la desviación del condado por la de sus vecinos: mide",
-        "SIMILITUD, si se parece a lo que le rodea. Los dos atípicos no desaparecen en el mapa",
-        "de Gi*: salen pintados del color de sus vecinos, que es el contrario al suyo. El",
-        "condado alto entre bajos queda FRÍO, porque la suma de su vecindad es baja; el bajo",
-        "entre altos, CALIENTE. No es que uno acierte y el otro no: contestan preguntas",
-        "distintas, y el mapa de puntos calientes no tiene una categoría para «distinto de lo",
-        "que le rodea». Quien lea solo Gi* verá una zona fría donde hay un condado alto.")))
+        "SIMILITUD, si se parece a lo que le rodea. Por eso Gi* no tiene una categoría para",
+        "«distinto de lo que le rodea». Aquí ninguno de los dos atípicos llega al 5 % en Gi*,",
+        "pero su z lleva el signo de su vecindad, el contrario al suyo:",
+        sprintf("%s, alto entre bajos, tiene z = %s; %s, bajo entre altos, z = %s. Con un nivel",
+                nc$NAME[i_ab], f3(gz[i_ab]), nc$NAME[i_ba], f3(gz[i_ba])),
+        "más laxo, el primero saldría FRÍO y el segundo CALIENTE: del color de sus vecinos. Y",
+        sprintf("%s es «alto» por muy poco —su valor tipificado es %s—: es la lección del módulo 9,",
+                nc$NAME[i_ab], f3(z[i_ab])),
+        "alto y bajo son el signo, y un valor casi medio decide su cuadrante por unas centésimas. No",
+        "es que uno acierte y el otro no: contestan preguntas distintas.")))
 
   E$meta <- list(capitulo = 7L, semilla = SEMILLA, n_ejercicios = 5L,
                  nsim = NSIM, p = P_COL, generado = format(Sys.Date()))

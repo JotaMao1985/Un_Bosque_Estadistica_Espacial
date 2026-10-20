@@ -78,9 +78,19 @@ options(stringsAsFactors = FALSE)
 # Monte Carlo con 99 999 réplicas—, y el auditor lo llamaba defecto. Es
 # el convenio de GeoDa el que el capítulo adopta (decisión 3), y los Ii
 # no cambian: solo el p (A.29).
-NSIM  <- 24999L
-P_COL <- "Pr(folded) Sim"
-ALFA  <- 0.05
+#
+# EL p DE LOS MAPAS ES EL BILATERAL POR RANGOS, no el plegado (auditoría de
+# contenido del 2026-10-20, decisión de Javier). El plegado de GeoDa y esda
+# toma la cola del lado en que cayó el observado: es un test de una cola en
+# la dirección que eligió el dato, y bajo la nula marca el 10 % al 5 %
+# (medido aquí abajo, `tasa_nula`). El bilateral es exactamente el doble del
+# plegado y su suelo es 2/(nsim+1), así que Bonferroni sobre los 1 119 tests
+# municipales pide al menos 44 760 réplicas: de ahí las 49 999.
+NSIM   <- 49999L
+P_COL  <- "Pr(z != E(Ii)) Sim"                     # LISA: bilateral por rangos
+P_COLG <- "Pr(z != E(Gi)) Sim"                     # Gi*: el mismo p, con su nombre
+P_PLEG <- "Pr(folded) Sim"                         # el convenio de GeoDa/esda, para medirlo
+ALFA   <- 0.05
 
 r4  <- function(x) round(as.numeric(x), 4)
 r5  <- function(x) round(as.numeric(x), 5)
@@ -236,7 +246,20 @@ ret10 <- cell2nb(10, 10, type = "rook")
 lw_ret <- nb2listw(ret10, style = "W")
 m_ret <- moran.test(rnorm(100), lw_ret, randomisation = FALSE)
 W_ret <- nb2mat(ret10, style = "W")
-ev_ret <- eigen((W_ret + t(W_ret)) / 2, symmetric = TRUE, only.values = TRUE)$values
+
+# EL RANGO ALCANZABLE DE I (de Jong, Sprenger y van Veen, 1984): z suma
+# cero, así que los extremos son los valores propios de M·(W + W')/2·M,
+# con M = I - 11'/n, y no los de (W + W')/2 a secas. Sin centrar salían
+# cotas que no se alcanzan: el retículo 10 × 10 «llegaba» a 1.0028 y su
+# máximo real es 0.9756 (auditoría de contenido del 2026-10-20). El valor
+# propio 0 de la dirección 1 queda entre los dos extremos y no los toca.
+rango_alcanzable <- function(W) {
+  n <- nrow(W); M <- diag(n) - 1 / n
+  ev <- eigen(M %*% ((W + t(W)) / 2) %*% M, symmetric = TRUE)
+  list(rango = range(ev$values), v_max = ev$vectors[, 1], v_min = ev$vectors[, n])
+}
+rg_ret <- rango_alcanzable(W_ret)
+ev_ret <- rg_ret$rango
 
 D$m1 <- list(
   columbus = list(n = nrow(col), variable = "CRIME",
@@ -273,9 +296,15 @@ ancla(mt_col_raw$statistic, 5.63, "Columbus CRIME: z por aleatorización (Anseli
 ancla(mt_col_raw$estimate[2], -1 / 48, "E[I] = -1/(n-1)", tol = 1e-9)
 
 W_gal <- nb2mat(GAL, style = "W")
-ev_gal <- eigen((W_gal + t(W_gal)) / 2, symmetric = TRUE, only.values = TRUE)$values
+rg_gal <- rango_alcanzable(W_gal)
+ev_gal <- rg_gal$rango
+# Que el extremo SE ALCANZA, y no es solo una cota: el I de Moran del
+# vector propio del máximo (que suma cero) es el máximo mismo.
+ancla(moran(rg_gal$v_max, lw_gal, nrow(col), Szero(lw_gal))$I, ev_gal[2],
+      "Columbus: el I del vector propio del máximo es el máximo", tol = 1e-9)
+ancla(sum(rg_gal$v_max), 0, "Columbus: el vector propio del máximo suma cero", tol = 1e-9)
 W_msub <- nb2mat(nb_sub, style = "W", zero.policy = TRUE)
-ev_mun <- eigen((W_msub + t(W_msub)) / 2, symmetric = TRUE, only.values = TRUE)$values
+ev_mun <- rango_alcanzable(W_msub)$rango
 
 D$m2 <- list(
   columbus = c(list(tablero = "Columbus, GAL de Anselin (1988)", n = nrow(col),
@@ -290,12 +319,18 @@ D$m2 <- list(
     lw <- nb2listw(GAL, style = e)
     list(id = e, I = r6(moran.test(col$CRIME, lw)$estimate[1]), S0 = r6(Szero(lw)))
   }),
-  # EL RANGO REAL: los valores propios extremos de (W + W')/2 escalados por
-  # n/S0 (de Jong, Sprenger & van Veen, 1984). Con W estandarizada por
-  # filas n/S0 = 1 y el rango es el de los valores propios.
-  rango = list(columbus_gal = r4(range(ev_gal)),
-               municipios = r4(range(ev_mun)),
-               reticulo_10 = r4(range(ev_ret))))
+  # EL RANGO REAL: los valores propios extremos de M(W + W')/2M escalados
+  # por n/S0 (de Jong, Sprenger & van Veen, 1984; ver rango_alcanzable). Con W por
+  # filas y sin islas n/S0 = 1; con islas spdep usa n = las que tienen
+  # vecinos y S0 vale lo mismo, así que el factor sigue siendo 1.
+  # `sin_centrar` se publica para que el bloque de código enseñe la
+  # diferencia: esas son cotas, no extremos.
+  rango = list(columbus_gal = r4(ev_gal),
+               municipios = r4(ev_mun),
+               reticulo_10 = r4(ev_ret),
+               sin_centrar = list(
+                 columbus_gal = r4(range(eigen((W_gal + t(W_gal)) / 2, symmetric = TRUE, only.values = TRUE)$values)),
+                 reticulo_10 = r4(range(eigen((W_ret + t(W_ret)) / 2, symmetric = TRUE, only.values = TRUE)$values)))))
 
 # =====================================================================
 # C. MÓDULO 3 — Inferencia: normalidad, aleatorización y permutación
@@ -330,6 +365,16 @@ potencia_celda <- function(k, rho, reps = 1000L) {
   m0 <- moran.test(Y[, 1], nb2listw(nb, style = "W"), randomisation = FALSE)
   r4(mean((I - m0$estimate[2]) / sqrt(m0$estimate[3]) > qnorm(1 - ALFA)))
 }
+# Lo que el simulador del módulo 1 enseña sin decirlo: la pendiente del
+# diagrama (I) no estima rho, queda por debajo. La I media del retículo
+# 10 × 10 por rho, y qué fracción de realizaciones llega a rho.
+I_ret_rho <- function(rho, reps = 4000L) {
+  set.seed(SEMILLA + as.integer(round(rho * 100)))
+  A <- solve(diag(100) - rho * W_ret); Y <- A %*% matrix(rnorm(100 * reps), 100)
+  Z <- scale(Y); I <- colSums(Z * (W_ret %*% Z)) / colSums(Z^2)
+  c(rho = rho, I_medio = mean(I), llega_pct = 100 * mean(I >= rho), reps = reps)
+}
+D$m1$reticulo$I_por_rho <- lapply(c(0.2, 0.5, 0.8), function(r) { v <- I_ret_rho(r); as.list(setNames(r4(v), names(v))) })
 LADOS <- c(5L, 7L, 10L, 20L); RHOS <- seq(0, 0.9, by = 0.1)
 potencia <- lapply(LADOS, function(k) list(lado = k, n = k * k,
   potencia = vapply(RHOS, function(r) potencia_celda(k, r), numeric(1))))
@@ -374,6 +419,20 @@ z_mun  <- as.numeric(scale(y_mun))
 wz_mun <- lag.listw(lw_sub, z_mun, zero.policy = TRUE)
 pend_mun_con <- unname(coef(lm(wz_mun[tiene_vecino] ~ z_mun[tiene_vecino]))[2])
 
+# LOS «INFLUYENTES» DE moran.plot: `is_inf` marca a quien falle CUALQUIERA
+# de los diagnósticos de `influence.measures` (DFBETAS de cada coeficiente,
+# DFFIT, razón de covarianzas, distancia de Cook y palanca). No todos mueven
+# la recta: el de mayor CRIME solo falla la razón de covarianzas —está lejos
+# en horizontal y cae cerca de la recta—. Se publica qué falla cada uno y
+# cuánto cambia la pendiente sin él, y los que MÁS la mueven aunque nadie
+# los marque (auditoría de contenido del 2026-10-20).
+im_col <- influence.measures(lm(wx ~ x, data = mp))
+pend_sin <- vapply(seq_len(nrow(mp)), function(k) unname(coef(lm(wx ~ x, data = mp[-k, ]))[2]), numeric(1))
+NOMBRE_DIAG <- c(dfb.1_ = "DFBETAS del intercepto", dfb.x = "DFBETAS de la pendiente", dffit = "DFFIT",
+                 cov.r = "razón de covarianzas", cook.d = "distancia de Cook", hat = "palanca")
+inf_col <- which(apply(im_col$is.inf, 1, any))
+mueven <- order(-abs(pend_sin - pend))[1:6]
+
 D$m4 <- list(
   columbus = list(
     pendiente = r6(pend), I = rm_col$I,
@@ -381,6 +440,13 @@ D$m4 <- list(
     cuadrantes = as.list(table(factor(cuad_col, levels = c("AA", "BB", "AB", "BA")))),
     influyentes = as.integer(sum(mp$is_inf)),
     influyentes_polyid = as.integer(col$POLYID[mp$is_inf]),
+    influyentes_detalle = lapply(unname(inf_col), function(k) list(
+      polyid = as.integer(col$POLYID[k]),
+      criterios = as.list(unname(NOMBRE_DIAG[colnames(im_col$is.inf)[im_col$is.inf[k, ]]])),
+      pendiente_sin = r4(pend_sin[k]), cambio = r4(pend_sin[k] - pend))),
+    mueven_mas = lapply(mueven, function(k) list(
+      polyid = as.integer(col$POLYID[k]), marcado = k %in% inf_col,
+      pendiente_sin = r4(pend_sin[k]), cambio = r4(pend_sin[k] - pend))),
     # Los 49 puntos, con su POLYID: es lo que el diagrama clicable
     # necesita para resaltar el barrio en el mapa.
     puntos = list(polyid = as.integer(col$POLYID), z = r5(z_col), wz = r5(wz_col))),
@@ -393,6 +459,10 @@ D$m4 <- list(
     # la recta se desvía, porque ese subconjunto ya no está centrado.
     pendiente_con_vecinos = r6(pend_mun_con),
     pendiente_todas = r6(unname(coef(lm(wz_mun ~ z_mun))[2])),
+    # Con islas, la recta con intercepto sobre el dato CRUDO ya no da I: el
+    # rezago de las islas vale 0 y no la media. Centrar importa aquí, y solo
+    # aquí (en Columbus, sin islas, la cruda da I al bit).
+    pendiente_cruda_todas = r6(unname(coef(lm(lag.listw(lw_sub, y_mun, zero.policy = TRUE) ~ y_mun))[2])),
     cuadrantes = as.list(table(factor(
       ifelse(z_mun >= 0, ifelse(wz_mun >= 0, "AA", "AB"), ifelse(wz_mun >= 0, "BA", "BB"))[tiene_vecino],
       levels = c("AA", "BB", "AB", "BA")))),
@@ -410,13 +480,33 @@ gt_mun <- geary.test(y_mun, lw_sub, zero.policy = TRUE)
 
 # El caso en que discrepan: UN barrio disparado. Se dispara el de MAYOR
 # CRIME —un valor alto entre altos— y el de vecindad más baja —uno que se
-# vuelve extremo entre bajos—, y se publican las DOS curvas. Lo que dicen,
-# medido y no supuesto: caiga donde caiga, el extremo arrastra a I hacia
-# CERO y a c hacia UNO, sus dos valores nulos. I pierde el 90 % con el
-# factor 8; c recorre el 80 % del camino hasta 1. Ninguno es robusto, y
-# 1 - c y I se separan justo cuando hay un atípico: la discrepancia es la
-# señal. (La primera versión disparaba «el más conectado», que resultó ser
-# el de MENOR CRIME: multiplicar 0,22 por ocho no es un pico.)
+# vuelve extremo entre bajos—, y se publican las DOS curvas. (La primera
+# versión disparaba «el más conectado», que resultó ser el de MENOR CRIME:
+# multiplicar 0.22 por ocho no es un pico.)
+#
+# EL MECANISMO, medido (auditoría de contenido del 2026-10-20; la versión
+# anterior decía que el extremo «infla el denominador mucho más que el
+# numerador», y en Geary es al revés). Cuando el valor de la unidad k crece
+# sin límite, numerador y denominador acaban dominados por ese único valor y
+# el cociente tiende a un límite que SOLO depende de la vecindad de k:
+#   c -> (1 + suma de la columna k de W) / 2,     I -> cerca de E[I].
+# El de c no es 1 en general: en Columbus va de 0.634 a 1.660 según el
+# barrio. Se publican los factores de cada pieza con el ×8 y los límites.
+piezas <- function(x) {
+  z <- x - mean(x)
+  c(den = sum(z^2), num_I = sum(z * (W_gal %*% z)), num_c = sum(W_gal * outer(x, x, "-")^2))
+}
+cs_gal <- colSums(W_gal)
+limite_pico <- function(i) {
+  x <- col$CRIME; x[i] <- x[i] * 1e6
+  list(I = r4(moran.test(x, lw_gal)$estimate[1]), c = r4(geary.test(x, lw_gal)$estimate[1]),
+       c_formula = r4((1 + cs_gal[i]) / 2), suma_columna = r4(cs_gal[i]))
+}
+cocientes_pico <- function(i) {
+  x8 <- col$CRIME; x8[i] <- x8[i] * 8
+  r <- piezas(x8) / piezas(col$CRIME)
+  list(denominador = r4(r[["den"]]), numerador_I = r4(r[["num_I"]]), numerador_c = r4(r[["num_c"]]))
+}
 FACTORES <- c(1, 1.5, 2, 3, 5, 8)
 curva_pico <- function(i) lapply(FACTORES, function(f) {
   x <- col$CRIME; x[i] <- x[i] * f
@@ -427,20 +517,33 @@ i_pico_alto <- which.max(col$CRIME)          # el de mayor CRIME: alto entre alt
 i_pico_bajo <- which.min(wz_col)             # el de vecindad más baja
 ficha_pico <- function(i) list(unidad = as.integer(i), polyid = as.integer(col$POLYID[i]),
                                grado = as.integer(card(GAL)[i]), crime = r4(col$CRIME[i]),
-                               z = r4(z_col[i]), wz = r4(wz_col[i]), curva = curva_pico(i))
+                               z = r4(z_col[i]), wz = r4(wz_col[i]), curva = curva_pico(i),
+                               cocientes_8 = cocientes_pico(i), limite = limite_pico(i))
+for (i in c(i_pico_alto, i_pico_bajo)) {
+  l <- limite_pico(i)
+  ancla(l$c, l$c_formula, sprintf("límite de c del POLYID %d = (1 + suma de columna)/2", col$POLYID[i]), tol = 2e-4)
+}
 tres <- lapply(c("CRIME", "HOVAL", "INC"), function(v)
   list(variable = v, I = r4(moran.test(col[[v]], lw_gal)$estimate[1]),
        c = r4(geary.test(col[[v]], lw_gal)$estimate[1]),
-       uno_menos_c = r4(1 - geary.test(col[[v]], lw_gal)$estimate[1])))
+       uno_menos_c = r4(1 - geary.test(col[[v]], lw_gal)$estimate[1]),
+       # El valor más extremo de cada variable, para no afirmar que la
+       # discrepancia entre I y 1 - c la pone un atípico donde no lo hay.
+       z_max_abs = r4(max(abs(scale(col[[v]]))))))
 
 D$m5 <- list(
   columbus = list(c = r6(gt_col$estimate[1]), Ec = 1, var = r6(gt_col$estimate[3]),
                   z = r4(gt_col$statistic), p = signif(gt_col$p.value, 4),
                   uno_menos_c = r6(1 - gt_col$estimate[1]), I = rm_col$I,
-                  p_permutacion_9999 = r6(gmc_col$p.value)),
+                  p_permutacion_9999 = r6(gmc_col$p.value), nsim_permutacion = 9999L),
   tres_variables = tres,
   pico_en_alto = ficha_pico(i_pico_alto),
   pico_en_bajo = ficha_pico(i_pico_bajo),
+  limite_c_rango = r4(range((1 + cs_gal) / 2)),
+  # Disparar un barrio BAJO no es un pico: I sube y c baja (el de menor CRIME).
+  pico_en_minimo = list(polyid = as.integer(col$POLYID[which.min(col$CRIME)]),
+                        I_8 = r4(curva_pico(which.min(col$CRIME))[[length(FACTORES)]]$I),
+                        c_8 = r4(curva_pico(which.min(col$CRIME))[[length(FACTORES)]]$c)),
   municipios = list(c = r6(gt_mun$estimate[1]), z = r4(gt_mun$statistic),
                     p = signif(gt_mun$p.value, 4), I = rm_mun$I))
 
@@ -481,7 +584,10 @@ f_tipo <- factor(mun$tipo[sub] == "Municipio", levels = c(FALSE, TRUE), labels =
 
 D$m6 <- list(
   correlograma = list(columbus = cg_col, municipios = cg_mun),
+  # Con la W binaria las uniones se CUENTAN; con la W por filas se pesan. No
+  # cambia solo la escala: la z de periferia-periferia pasa de ~5.6 a ~1.7.
   join_count = list(columbus_cp = jc(f_cp, lw_gal),
+                    columbus_cp_binaria = jc(f_cp, nb2listw(GAL, style = "B")),
                     municipios_desercion = jc(f_des, lw_sub, zp = TRUE),
                     municipios_tipo = jc(f_tipo, lw_sub, zp = TRUE)))
 
@@ -512,12 +618,22 @@ ETQ_W <- c(gal = "GAL de Anselin (1988)", reina = "Contigüidad reina", torre = 
            d_conexo = "Umbral mínimo sin islas",
            delaunay = "Delaunay", gabriel = "Gabriel", esfera = "Esfera de influencia")
 
+# Con islas, el p ANALÍTICO de moran.test no es de fiar: los momentos se
+# calculan con las unidades que tienen vecinos y se reparten todos los
+# valores. En el umbral a medias de Columbus (28 islas) daba p = 0.04 y la
+# permutación, el método del módulo 3, lo deja en el suelo (auditoría de
+# contenido del 2026-10-20). Se publican los dos p y el I con el convenio
+# de esda (n = todas), porque esa W es la sensibilidad a W en estado puro.
 moran_bajo <- function(x, nb, zp) {
   lw <- nb2listw(nb, style = "W", zero.policy = zp)
   m <- moran.test(x, lw, zero.policy = zp)
+  set.seed(SEMILLA)
+  mc <- moran.mc(x, lw, nsim = 9999L, zero.policy = zp)
   list(pares = pares_nb(nb), grado = r4(mean(card(nb))), islas = as.integer(sum(card(nb) == 0)),
        simetrica = is.symmetric.nb(nb, verbose = FALSE),
-       I = r6(m$estimate[1]), EI = r6(m$estimate[2]), z = r4(m$statistic), p = signif(m$p.value, 4))
+       I = r6(m$estimate[1]), EI = r6(m$estimate[2]), z = r4(m$statistic), p = signif(m$p.value, 4),
+       p_permutacion = signif(mc$p.value, 4), nsim_permutacion = 9999L,
+       I_esda = r6(moran.test(x, lw, zero.policy = zp, adjust.n = FALSE)$estimate[1]))
 }
 # La GAL frente a la reina: las tres esquinas que mueven la segunda cifra.
 solo_en <- function(a, b) sum(vapply(seq_along(a), function(i) length(setdiff(a[[i]], b[[i]])), integer(1))) / 2
@@ -542,7 +658,9 @@ D$m7 <- list(
 rango_I <- function(l) { v <- vapply(l, function(e) e$I, numeric(1)); r4(range(v)) }
 D$m7$resumen <- list(columbus_I = rango_I(D$m7$columbus), municipios_I = rango_I(D$m7$municipios),
                      columbus_p_max = max(vapply(D$m7$columbus, function(e) e$p, numeric(1))),
-                     municipios_p_max = max(vapply(D$m7$municipios, function(e) e$p, numeric(1))))
+                     municipios_p_max = max(vapply(D$m7$municipios, function(e) e$p, numeric(1))),
+                     columbus_p_perm_max = max(vapply(D$m7$columbus, function(e) e$p_permutacion, numeric(1))),
+                     municipios_p_perm_max = max(vapply(D$m7$municipios, function(e) e$p_permutacion, numeric(1))))
 
 # =====================================================================
 # H. MÓDULO 8 — Del global al local: la descomposición de Anselin
@@ -565,6 +683,13 @@ p_mun <- lmp_mun[, P_COL]
 # discrepancia vista desde lo local, y se publica con ese nombre.
 ident_mun <- sum(lm_mun[, "Ii"], na.rm = TRUE) / Szero(lw_sub)
 I_esda_equiv <- unname(mt_mun_raw$estimate[1]) * length(sub) / sum(tiene_vecino)
+# En la cola el bilateral es el doble del plegado, salvo empates: un barrio
+# con 2 o 3 vecinos solo tiene unos cientos de rezagos distintos, las
+# 49 999 réplicas se repiten, y los dos p los cuentan distinto (rango medio
+# frente a «mayor o igual»). La diferencia no pasa de 0.0011 en Columbus.
+cola <- lmp_col[, P_PLEG] < 0.25
+ancla(max(abs(lmp_col[cola, P_COL] - 2 * lmp_col[cola, P_PLEG])), 0,
+      "en la cola, el p bilateral es el doble del plegado (salvo empates)", tol = 2e-3)
 
 top <- order(-abs(lmp_mun[, "Ii"]))[1:5]
 D$m8 <- list(
@@ -574,12 +699,14 @@ D$m8 <- list(
     suma_Ii = r6(sum(lm_col[, "Ii"])),
     Ii = r5(lmp_col[, "Ii"]), E_Ii = r5(lmp_col[, "E.Ii"]), z = r4(lmp_col[, "Z.Ii"]),
     p_analitico = signif(lm_col[, "Pr(z != E(Ii))"], 4),
-    p_bilateral = signif(lmp_col[, "Pr(z != E(Ii)) Sim"], 4),
+    # p_rangos es el BILATERAL por rangos (el de los mapas); p_plegado, el
+    # de GeoDa y esda, exactamente la mitad.
+    p_plegado = r5(lmp_col[, P_PLEG]),
     p_normal_permutado = signif(lmp_col[, "Pr(z != E(Ii))"], 4),
     p_rangos = r5(p_col),
     cuadrante = as.character(attr(lmp_col, "quadr")$mean),
     polyid = as.integer(col$POLYID),
-    p_min = r5(min(p_col)), suelo = r5(1 / (NSIM + 1)),
+    p_min = r5(min(p_col)), suelo = r6(2 / (NSIM + 1)),
     significativos = as.integer(sum(p_col < ALFA))),
   municipios = list(
     I = rm_mun$I, suma_Ii_sobre_S0 = r6(ident_mun), I_esda_equivalente = r6(I_esda_equiv),
@@ -676,15 +803,60 @@ lisa_mun_bonf <- lisa_codigo(lmp_mun, p_mun_bonf)
 lisa_mun_fdr  <- lisa_codigo(lmp_mun, p_mun_fdr)
 
 sig999 <- lmp_mun_999[, P_COL] < ALFA; sigN <- p_mun < ALFA
+
+# LA TASA NULA, MEDIDA: mapas de Columbus con CRIME repartido al azar (la
+# nula hecha realidad), y la proporción de unidades con p < 0.05 bajo cada
+# p. El plegado marca el doble de lo que promete.
+set.seed(SEMILLA)
+N_NULOS <- 200L
+nulos <- lapply(seq_len(N_NULOS), function(r) {
+  m <- localmoran_perm(sample(col$CRIME), lw_gal, nsim = 999L, no_repeat_in_row = TRUE)
+  c(pleg = mean(m[, P_PLEG] < ALFA), bil = mean(m[, P_COL] < ALFA))
+})
+nulos <- do.call(rbind, nulos)
+
+# EL SUELO Y LAS RÉPLICAS MÍNIMAS. Con nsim réplicas el p bilateral no baja
+# de 2/(nsim+1), y Bonferroni exige p < alfa/n, ESTRICTO, como la fórmula
+# del capítulo y como `p.adjust(...) < ALFA`. El menor nsim que lo permite
+# es floor(2n/alfa): con alfa = 0.05, 2n/alfa = 40n es entero y en él el
+# suelo IGUALA al umbral, que no basta. La versión anterior publicaba
+# ceiling(n/alfa) - 1 y se quedaba una réplica corta (auditoría del
+# 2026-10-20). n es el número de TESTS: en los municipios, las 1 119
+# unidades con vecinos, porque las islas no tienen p.
+# En el borde exacto la coma flotante decide al azar (para n = 1 119,
+# p.adjust da 0.0499999…; para n = 49, 0.0500000…03), así que la
+# comprobación va en aritmética entera: 2/(nsim+1) < alfa/n si y solo si
+# nsim + 1 > 2n/alfa, y con alfa = 0.05 ese 2n/alfa = 40n es entero.
+n_tests_mun <- sum(!is.na(p_mun))
+nsim_min <- function(n) {
+  K <- 2 * n / ALFA
+  if (abs(K - round(K)) > 1e-9) stop("2n/alfa no es entero: revisa nsim_min")
+  as.integer(round(K))
+}
+for (n in c(nrow(col), n_tests_mun)) {
+  k <- nsim_min(n); pasa <- function(ns) ns + 1L > k
+  if (!pasa(k) || pasa(k - 1L)) stop("nsim mínimo mal calculado para n = ", n)
+  N_ANCLAS <- N_ANCLAS + 1L
+}
+if (2 / (NSIM + 1) >= ALFA / n_tests_mun)
+  stop("Con NSIM = ", NSIM, " Bonferroni no es alcanzable en los municipios: sube NSIM")
+p_mun_ok <- p_mun[!is.na(p_mun)]
 D$m10 <- list(
   alfa = ALFA, nsim = NSIM,
-  # El suelo: con nsim réplicas el p por rangos no baja de 1/(nsim+1), y
-  # Bonferroni exige alfa/n. nsim_min = ceiling(n/alfa) - 1.
+  tasa_nula = list(mapas = N_NULOS, tests = N_NULOS * nrow(col), nsim = 999L,
+                   plegado = r4(mean(nulos[, "pleg"])), bilateral = r4(mean(nulos[, "bil"])),
+                   error_tipico = r4(sd(nulos[, "pleg"]) / sqrt(N_NULOS))),
   suelo = list(columbus = list(n = nrow(col), umbral_bonferroni = signif(ALFA / nrow(col), 4),
-                               nsim_minimo = as.integer(ceiling(nrow(col) / ALFA) - 1)),
-               municipios = list(n = length(sub), umbral_bonferroni = signif(ALFA / length(sub), 4),
-                                 nsim_minimo = as.integer(ceiling(length(sub) / ALFA) - 1)),
-               p_min_999 = r6(1 / 1000), p_min_nsim = r6(1 / (NSIM + 1))),
+                               nsim_minimo = nsim_min(nrow(col))),
+               municipios = list(n = n_tests_mun, umbral_bonferroni = signif(ALFA / n_tests_mun, 4),
+                                 nsim_minimo = nsim_min(n_tests_mun)),
+               p_min_999 = r6(2 / 1000), p_min_nsim = r6(2 / (NSIM + 1)),
+               p_min_999_plegado = r6(1 / 1000),
+               # Los que pasan Bonferroni en los municipios: cuántos están en
+               # el suelo mismo, sin una sola réplica tan extrema.
+               bonferroni_mun = as.integer(sum(p.adjust(p_mun_ok, "bonferroni") < ALFA)),
+               bonferroni_mun_en_suelo = as.integer(sum(p.adjust(p_mun_ok, "bonferroni") < ALFA &
+                                                        abs(p_mun_ok - 2 / (NSIM + 1)) < 1e-12))),
   columbus = list(tabla = tabla_p(lmp_col, lmp_col_999, lm_col),
                   conteo_sin = lisa_conteo(lisa_col), conteo_bonferroni = lisa_conteo(lisa_col_bonf),
                   conteo_fdr = lisa_conteo(lisa_col_fdr),
@@ -717,29 +889,54 @@ barrido <- lapply(c(30, 60, 90, 120, 150), function(d) {
        G = r4(as.numeric(localG(go_xyz$val, nb2listw(nb, style = "B")))[i120]),
        G_estrella = r4(as.numeric(localG(go_xyz$val, nb2listw(include.self(nb), style = "B")))[i120]))
 })
+# GI* CON LA PROPIA UNIDAD DENTRO DE LA PERMUTACIÓN (fix_i = FALSE). Por
+# defecto localG_perm deja fijo el valor de i en las réplicas, y entonces
+# el p de Gi* es, en la práctica, el de Gi: la unidad no cuenta en la
+# prueba (correlación 0.9995 en Columbus). Con i dentro, la z de la
+# permutación coincide con la analítica de Getis y Ord, que supone el
+# reparto de TODOS los valores (0.9996 frente a 0.989). Decisión del
+# 2026-10-20, tras la auditoría de contenido: Gi* es la que incluye a la
+# unidad, y su test también. La versión por defecto se publica para
+# Columbus, porque la diferencia cae justo en los atípicos.
 set.seed(SEMILLA)
-G30s_p <- localG_perm(go_xyz$val, lw30S, nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE)
+G30s_p <- localG_perm(go_xyz$val, lw30S, nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE,
+                      fix_i_in_Gstar_permutations = FALSE)
 
 # Gi* sobre Columbus y los municipios, con el mismo NSIM y el mismo p.
-gs_col <- localG_perm(col$CRIME, nb2listw(include.self(GAL), style = "W"), nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE)
-gs_col_p <- attr(gs_col, "internals")[, P_COL]
-message("   localG_perm sobre los municipios (~10 s)")
+lw_gs_col <- nb2listw(include.self(GAL), style = "W")
+gs_col <- localG_perm(col$CRIME, lw_gs_col, nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE,
+                      fix_i_in_Gstar_permutations = FALSE)
+gs_col_p <- attr(gs_col, "internals")[, P_COLG]
+gs_col_fijo <- localG_perm(col$CRIME, lw_gs_col, nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE)
+g_col_sin <- localG_perm(col$CRIME, lw_gal, nsim = NSIM, iseed = SEMILLA, no_repeat_in_row = TRUE)
+p_gfijo <- attr(gs_col_fijo, "internals")[, P_COLG]
+p_gsin  <- attr(g_col_sin, "internals")[, P_COLG]
+message("   localG_perm sobre los municipios (~20 s)")
 gs_mun <- localG_perm(y_mun, nb2listw(include.self(nb_sub), style = "W", zero.policy = TRUE),
-                      nsim = NSIM, zero.policy = TRUE, iseed = SEMILLA, no_repeat_in_row = TRUE)
-gs_mun_p <- attr(gs_mun, "internals")[, P_COL]
+                      nsim = NSIM, zero.policy = TRUE, iseed = SEMILLA, no_repeat_in_row = TRUE,
+                      fix_i_in_Gstar_permutations = FALSE)
+gs_mun_p <- attr(gs_mun, "internals")[, P_COLG]
 gcod_col <- gistar_codigo(as.numeric(gs_col), gs_col_p)
 gcod_mun <- gistar_codigo(as.numeric(gs_mun), gs_mun_p)
 gcod_mun[is.na(lisa_mun)] <- NA_integer_         # las islas tampoco tienen Gi*
+# El bajo-alto más extremo de Columbus (el valor más bajo rodeado de
+# vecinos por encima de la media): donde Gi y Gi* tienen que discrepar.
+i_bajo_alto <- which.min(ifelse(cuad_col == "BA", z_col, Inf))
 
 # LISA frente a Gi*, lado a lado: la tabla cruzada es el módulo entero.
 # Un alto-bajo es «significativo» para LISA y nada para Gi*, porque Gi*
 # mide intensidad y no similitud.
 cruce <- function(lisa, g) {
   caliente <- !is.na(g) & g >= 5L; frio <- !is.na(g) & g <= 3L; nada <- !is.na(g) & g == 4L
+  # Al 90 % y al 95 %: LISA se lee al 5 %, y comparar con Gi* al 10 % hace
+  # «ver» a Gi* lo que solo es un nivel más laxo (auditoría del 2026-10-20).
+  cal95 <- !is.na(g) & g >= 6L; fri95 <- !is.na(g) & g <= 2L
   lapply(1:5, function(k) list(lisa = LISA_NIVELES[k],
     caliente = as.integer(sum(lisa == k & caliente, na.rm = TRUE)),
     frio = as.integer(sum(lisa == k & frio, na.rm = TRUE)),
-    ninguno = as.integer(sum(lisa == k & nada, na.rm = TRUE))))
+    ninguno = as.integer(sum(lisa == k & nada, na.rm = TRUE)),
+    caliente_95 = as.integer(sum(lisa == k & cal95, na.rm = TRUE)),
+    frio_95 = as.integer(sum(lisa == k & fri95, na.rm = TRUE))))
 }
 
 D$m11 <- list(
@@ -749,14 +946,24 @@ D$m11 <- list(
                   celda = i120, x = go_xyz$x[i120], y = go_xyz$y[i120], valor = go_xyz$val[i120],
                   G = r4(as.numeric(G30)[i120]), G_estrella = r4(as.numeric(G30s)[i120]),
                   G_estrella_n1 = r4(G30s_n1),
-                  G_estrella_p = r5(attr(G30s_p, "internals")[i120, P_COL]),
+                  G_estrella_p = r5(attr(G30s_p, "internals")[i120, P_COLG]),
                   dif_max_G_Gestrella = r4(max(abs(as.numeric(G30) - as.numeric(G30s)))),
                   barrido = barrido,
-                  calientes_95 = as.integer(sum(attr(G30s_p, "internals")[, P_COL] < ALFA & as.numeric(G30s_p) > 0)),
-                  frios_95 = as.integer(sum(attr(G30s_p, "internals")[, P_COL] < ALFA & as.numeric(G30s_p) < 0))),
+                  calientes_95 = as.integer(sum(attr(G30s_p, "internals")[, P_COLG] < ALFA & as.numeric(G30s_p) > 0)),
+                  frios_95 = as.integer(sum(attr(G30s_p, "internals")[, P_COLG] < ALFA & as.numeric(G30s_p) < 0))),
   columbus = list(conteo = gistar_conteo(gcod_col), cruce = cruce(lisa_col, gcod_col),
                   z_max = r4(max(as.numeric(gs_col))), z_min = r4(min(as.numeric(gs_col))),
-                  polyid_z_max = as.integer(col$POLYID[which.max(as.numeric(gs_col))])),
+                  polyid_z_max = as.integer(col$POLYID[which.max(as.numeric(gs_col))]),
+                  # La unidad dentro o fuera de la permutación. Con fix_i
+                  # (el valor por defecto) el p de Gi* copia al de Gi.
+                  autoinclusion = list(
+                    cor_fijo_Gi = r4(cor(p_gfijo, p_gsin)),
+                    cor_libre_Gi = r4(cor(gs_col_p, p_gsin)),
+                    cambian_al_5 = as.integer(sum((p_gfijo < ALFA) != (gs_col_p < ALFA))),
+                    polyid = as.integer(col$POLYID[i_bajo_alto]),
+                    crime = r4(col$CRIME[i_bajo_alto]), z_analitica = r4(as.numeric(gs_col)[i_bajo_alto]),
+                    p_libre = r5(gs_col_p[i_bajo_alto]), p_fijo = r5(p_gfijo[i_bajo_alto]),
+                    p_Gi = r5(p_gsin[i_bajo_alto]))),
   municipios = list(conteo = gistar_conteo(gcod_mun), cruce = cruce(lisa_mun, gcod_mun),
                     z_max = r4(max(as.numeric(gs_mun))), z_min = r4(min(as.numeric(gs_mun))),
                     municipio_z_max = mun$municipio[sub][which.max(as.numeric(gs_mun))],
@@ -797,7 +1004,7 @@ MAPAS[["cap7-columbus"]] <- geo_poligonos(
   capas = list(
     list(id = "crime", etiqueta = "Tasa de delitos (CRIME)", valor = col$CRIME, estilo = "quantile",
          n_clases = 5, leyenda = "delitos por mil hogares"),
-    capa_cat("lisa", "LISA sin corregir (p por rangos < 0,05)", lisa_col, LISA_NIVELES, LISA_COLORES),
+    capa_cat("lisa", "LISA sin corregir (p bilateral por rangos < 0.05)", lisa_col, LISA_NIVELES, LISA_COLORES),
     capa_cat("lisa_bonferroni", "LISA con Bonferroni", lisa_col_bonf, LISA_NIVELES, LISA_COLORES),
     capa_cat("lisa_fdr", "LISA con FDR", lisa_col_fdr, LISA_NIVELES, LISA_COLORES),
     capa_cat("gistar", "Gi* de Getis-Ord", gcod_col, G_NIVELES, G_COLORES)))
@@ -820,7 +1027,7 @@ MAPAS[["cap7-municipios"]] <- geo_poligonos(
   capas = list(
     list(id = "desercion", etiqueta = "Deserción escolar (%)", valor = a1122(y_mun),
          estilo = "quantile", n_clases = 5, leyenda = "% de deserción"),
-    capa_cat("lisa", "LISA sin corregir (p por rangos < 0,05)", as.integer(a1122(lisa_mun)), LISA_NIVELES, LISA_COLORES),
+    capa_cat("lisa", "LISA sin corregir (p bilateral por rangos < 0.05)", as.integer(a1122(lisa_mun)), LISA_NIVELES, LISA_COLORES),
     capa_cat("lisa_bonferroni", "LISA con Bonferroni", as.integer(a1122(lisa_mun_bonf)), LISA_NIVELES, LISA_COLORES),
     capa_cat("lisa_fdr", "LISA con FDR", as.integer(a1122(lisa_mun_fdr)), LISA_NIVELES, LISA_COLORES),
     capa_cat("gistar", "Gi* de Getis-Ord", as.integer(a1122(gcod_mun)), G_NIVELES, G_COLORES)))
@@ -836,6 +1043,17 @@ MAPAS[["cap7-getisord-valor"]] <- geo_rejilla(M_val, caja_go, titulo = "La rejil
                                               leyenda = "valor", n_clases = 7, estilo = "quantile")
 MAPAS[["cap7-getisord-g"]] <- geo_rejilla(M_g, caja_go, titulo = "La misma rejilla: Gi* con umbral 30",
                                           leyenda = "Gi* (z)", n_clases = 7, estilo = "equal")
+# Las siete clases de la z de Gi* NO van de igual anchura: van cortadas en
+# los umbrales bilaterales de la normal, así que son los siete niveles que
+# el texto nombra —frío o caliente al 99, al 95 y al 90 %, y no
+# significativo— y se pintan con la paleta fría-caliente de la plantilla.
+# Con anchura igual (la versión anterior) el lector tomaba siete clases
+# cualesquiera por siete niveles de significación (auditoría 2026-10-20).
+Z_CORTES <- qnorm(c(0.995, 0.975, 0.95))
+rg_g <- MAPAS[["cap7-getisord-g"]]$rango
+if (rg_g[1] >= -Z_CORTES[1] || rg_g[2] <= Z_CORTES[1])
+  stop("La z de Gi* de la rejilla no llega a ±2.576 por los dos lados: los siete niveles no caben")
+MAPAS[["cap7-getisord-g"]]$cortes <- c(rg_g[1], -Z_CORTES, rev(Z_CORTES), rg_g[2])
 
 # =====================================================================
 # LO QUE SE ESCRIBE
