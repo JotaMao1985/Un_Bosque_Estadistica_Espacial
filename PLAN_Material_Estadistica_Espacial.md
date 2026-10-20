@@ -1,7 +1,8 @@
 # Plan de implementación: Material de estudio — Estadística Espacial 2026-II
 
-**Estado:** 🟢 **EL CAPÍTULO 7 ESTÁ ENSAMBLADO Y VERIFICADO (T4.5 y T4.6, 2026-10-12/13), SIN PUBLICAR.**
-Vive en la rama `claude/cap7-ensamblado` (worktree `.claude/worktrees/cap7-ensamblado`):
+**Estado:** 🟢 **EL CAPÍTULO 7 ESTÁ PUBLICADO (PR #25, `bbeb78b`, 2026-10-20)**, ensamblado y verificado en
+T4.5 y T4.6 (2026-10-12/13) y corregido tras su lectura de contenido (A.34). Lo que sigue es el
+relato de cuando aún vivía en la rama `claude/cap7-ensamblado`:
 `Htmls_Espacial/capitulo-7-autocorrelacion.html`, 778 KB, 12 módulos, 13 simuladores, 11 mapas, 13
 preguntas y 5 ejercicios; 174 de 174 cifras de sus bloques verificadas ejecutando, prosa en 179 · 0 y
 arnés de prosa en 41 de 41. Estrena la **capa categórica** del `.geomapa` en la plantilla, y los trece
@@ -376,7 +377,7 @@ están fusionadas en `main` y se pueden borrar cuando estorben.
 | **Los ejercicios del capítulo 4** (2026-09-09) | ✅ hecha y publicada. `genera_soluciones.R` escribía `chi²`, `10x10`, `L(r) - r`, millares sin separador y hasta diez decimales; y su E3 contradecía al módulo sobre la nula del test. Los decimales se formatean al renderizar, que es lo que la comprobación de celdas sabe verificar. Ver **A.30.11** |
 | **Los párrafos de salida del capítulo 4** (2026-09-09) | ✅ hecha y publicada. La regla 2 del §9.1 se olvidaba en **9 de los 12 módulos**, siempre en el bloque de código; ahora son **0 de 12**. Ver §0.5, punto 4 |
 | **El Taller 2 del capítulo 4** | 🔄 **en curso en otra sesión**, con plan propio en `PLAN_Taller_2_Cap_4.md`. C1 a C4 publicadas —precálculo, dato de entrega, auditor y su arnés—; su trabajo sobre el capítulo 5 sigue **sin confirmar** en el árbol |
-| **T4.5–T4.6** · ensamblado, verificación y cierre | ✅ hechas el 2026-10-12/13 en la rama `claude/cap7-ensamblado`, **sin publicar**. `ensambla_cap7.py`, la capa categórica en la plantilla, `audita_texto_cap7.py` (179 · 0) y su arnés (41 de 41). Ver **A.33**. **Revisado el 2026-10-20** tras la lectura de contenido: ver **A.34** |
+| **T4.5–T4.6** · ensamblado, verificación y cierre | ✅ hechas el 2026-10-12/13 en la rama `claude/cap7-ensamblado`; **publicado el 2026-10-20** (PR #25, `bbeb78b`). `ensambla_cap7.py`, la capa categórica en la plantilla, `audita_texto_cap7.py` (179 · 0) y su arnés (41 de 41). Ver **A.33**. **Revisado el 2026-10-20** tras la lectura de contenido: ver **A.34** |
 
 **Lo publicado —seis capítulos—**, contado por `cuenta_sitio.py` y no recordado: **72 módulos, 57
 simuladores, 44 geomapas, 73 preguntas, 28 ejercicios guiados y 306 cifras `#>`**, con los 8
