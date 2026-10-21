@@ -362,6 +362,24 @@ D$m3 <- list(
                    densidades = r10(cnt_s / (length(xs) * ws)),
                    sin_ventana = fuera_s))
 
+# LA ANIMACIÓN DEL MÓDULO 3 (2026-10-03), sobre el ejemplo a mano: caen los
+# datos, se corre el origen un ancho entero, se promedia en el mismo x y m
+# crece. La escalera de m va por DUPLICACIONES desde el m = 3 de la tabla:
+# con datos enteros y h = 2 la distancia al triangular no baja con todo m
+# —m = 4 queda más lejos que m = 3, porque con δ = 1/2 los cortes caen sobre
+# los datos—, y por duplicaciones sí, y desde m = 6 como 1/m.
+g3a <- seq(min(ext), max(ext), by = 0.01)
+tri3a <- kde_tri(xa, ha, g3a)
+ms3a <- c(3L, 6L, 12L, 24L, 48L)
+dist3a <- sapply(ms3a, function(m) max(abs(ash(xa, ha, m, g3a) - tri3a)))
+guarda(all(diff(dist3a) < 0), "m3: en la animación la distancia al triangular baja en cada duplicación de m")
+guarda(max(abs(ash(xa, ha, 4L, g3a) - tri3a)) > dist3a[1],
+       "m3: con los datos enteros, m = 4 queda más lejos del triangular que m = 3 (por eso se duplica)")
+guarda(dist3a[length(dist3a)] < max(tri3a) / 20,
+       "m3: con el último m de la animación la escalera ya no se distingue del triangular")
+D$m3$animacion <- list(paso = 0.01, m = ms3a, distancia = r10(dist3a),
+                       pct_pico = r10(100 * dist3a / max(tri3a)))
+
 # =====================================================================
 # D. MÓDULO 4 — Contar en una ventana: k / (nV)
 #
@@ -538,6 +556,16 @@ D$m5 <- list(
   # misma que el gaussiano con h = 1: la comparación justa en x = 4.
   caja = list(sd_h1 = r10(1 / sqrt(3)), semiancho_sd1 = r10(sqrt(3)), f_sd1 = r10(caja_sd1)),
   rejilla = list(desde = -1, hasta = 11, puntos = 500L))
+
+# LA ANIMACIÓN DEL MÓDULO 5 (2026-10-03): una ventana que recorre el eje,
+# primero caja y luego campana, y la misma curva leída como suma de lomas. En
+# x = 4 y con h = 1 la caja encierra 3, 4 y 5 (el 3 y el 5, justo en su borde:
+# cuentan porque la desigualdad es ≤) y da el 0.3 de la tabla; la campana da
+# los cinco pesos del cálculo a mano.
+caja_x4 <- x5[abs(x5 - 4) <= 1]
+guarda(identical(caja_x4, c(3, 4, 5)) && abs(length(caja_x4) / (2 * length(x5)) - tabla5[[2]]$uniforme) < 1e-12,
+       "m5: en x = 4 la caja de h = 1 encierra 3, 4 y 5 y da el valor de la tabla")
+D$m5$animacion <- list(desde = -1, hasta = 10, paso = 0.01, caja_x4 = caja_x4)
 
 # =====================================================================
 # F. MÓDULO 6 — La forma del núcleo importa poco; la escala, mucho
@@ -760,6 +788,39 @@ D$m7$mezcla <- list(n = length(mez), medias = c(5, 10), sd = c(1, 1.5),
                     hist_clases = length(h7$breaks) - 1L,
                     hist_modas = modas_secuencia(h7$density),
                     muestra = r10(mez))
+
+# LA ANIMACIÓN DEL MÓDULO 7 (2026-10-03), sobre las edades: la ventana crece
+# en x = 30 hasta el k-ésimo vecino, recorre el eje de 10 a 50 y sigue por la
+# cola hasta 250. El área bajo la curva, por trapecios en la rejilla de la
+# animación: con siete datos YA PASA DE 1 entre 10 y 50 —la ventana de cada
+# punto se estira hasta encerrar k datos, y al ser pocos los datos la caja
+# es ancha y alta a la vez—, y la cola la sigue subiendo. Con k = 1 la curva
+# es infinita en cada dato y el área no existe: va como NULL.
+g7a <- seq(10, 250, by = 0.05)
+en_datos <- g7a <= 50
+knn_e <- function(t, k) k / (2 * length(xe) * sort(abs(xe - t))[k])
+an7 <- lapply(1:4, function(k) {
+  y <- sapply(g7a, knn_e, k = k)
+  fin <- all(is.finite(y))
+  list(k = k, picos = modas_secuencia(y[en_datos]), donde = donde_modas(g7a[en_datos], y[en_datos]),
+       area_datos = if (fin) r10(trapecio(g7a[en_datos], y[en_datos])) else NULL,
+       area_cola = if (fin) r10(trapecio(g7a, y)) else NULL)
+})
+a3 <- an7[[ke]]
+guarda(a3$area_datos > 1 && a3$area_cola > a3$area_datos,
+       "m7: con las edades y k = 3 el área ya pasa de 1 entre 10 y 50, y la cola la sube")
+guarda(is.null(an7[[1]]$area_datos) && all(sapply(an7[-1], function(z) z$area_cola > z$area_datos)),
+       "m7: con k = 1 el área no existe; con k = 2, 3 y 4 la cola siempre suma")
+# Un pico por cada grupo de k edades consecutivas: n − k + 1. La leyenda de la
+# animación lo dice así; si otra muestra rompiera la cuenta, aquí se para.
+guarda(all(sapply(an7, `[[`, "picos") == length(xe) - (1:4) + 1),
+       "m7: con las edades el k-NN hace n − k + 1 picos, uno por grupo de k consecutivas")
+xs_e <- sort(xe)
+guarda(all(sapply(1:4, function(k) {
+  medios <- (head(xs_e, length(xs_e) - k + 1) + tail(xs_e, length(xs_e) - k + 1)) / 2
+  isTRUE(all.equal(an7[[k]]$donde, medios))
+})), "m7: cada pico cae en el punto medio de su grupo de k edades consecutivas")
+D$m7$animacion <- list(desde = 10, hasta = 50, lejos = 250, paso = 0.05, por_k = an7)
 
 # =====================================================================
 # H. MÓDULO 8 — Sesgo, varianza y error integrado

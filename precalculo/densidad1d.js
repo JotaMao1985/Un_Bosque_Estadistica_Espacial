@@ -192,10 +192,13 @@
     return m;
   }
 
+  // `nucleo`, `cuenta` e `intervalo` salen también: las animaciones
+  // (`anim1d.js`) dibujan con ellas los histogramas corridos y las ventanas,
+  // y así no hay una segunda copia de la convención que la prueba no vea.
   var D1 = { ESCALA: ESCALA, secuencia: secuencia, rejilla: rejilla, histograma: histograma,
              ash: ash, kdeTriangular: kdeTriangular, kde: kde, kdeSoporte: kdeSoporte,
              knn: knn, modas: modas, trapecio: trapecio, distanciaMaxima: distanciaMaxima,
-             minimo: minimo, maximo: maximo };
+             minimo: minimo, maximo: maximo, nucleo: nucleo, cuenta: cuenta, intervalo: intervalo };
   if (typeof module !== 'undefined' && module.exports) module.exports = D1;
   else raiz.D1 = D1;
 })(typeof globalThis !== "undefined" ? globalThis : this);

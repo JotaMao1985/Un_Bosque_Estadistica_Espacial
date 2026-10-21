@@ -160,6 +160,12 @@ if [ -f "precalculo/prueba_densidad1d.py" ]; then
   paso "motor de los simuladores del apéndice A · prueba_densidad1d.py (contra R, con mutaciones)" \
        python3 precalculo/prueba_densidad1d.py
 fi
+# Las tres animaciones (2026-10-03): sus fotogramas contra lo que R publicó,
+# con trece mutaciones. Unos segundos: corre siempre, como la del motor.
+if [ -f "precalculo/prueba_anim1d.py" ]; then
+  paso "fotogramas de las animaciones del apéndice A · prueba_anim1d.py (contra R, con mutaciones)" \
+       python3 precalculo/prueba_anim1d.py
+fi
 
 # Va ANTES de los auditores de prosa y con su autoprueba dentro: cuesta
 # 0,1 s y mira la causa del defecto que aquéllos vigilan por el resultado.
