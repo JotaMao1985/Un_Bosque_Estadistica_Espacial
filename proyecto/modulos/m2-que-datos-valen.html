@@ -1,0 +1,87 @@
+      <p>Antes de escribir la ficha conviene saber si el territorio que tienes en mente da para un proyecto.
+        Son cuatro condiciones: que el dato sea <strong>real y abierto</strong>, que sea <strong>de
+        área</strong>, que haya <strong>unidades suficientes</strong> y que la variable sea <strong>una tasa y
+        no un conteo</strong>.</p>
+
+      <h3>Un territorio real, con datos abiertos</h3>
+
+      <p>El proyecto necesita dos cosas que casi nunca vienen juntas: la <strong>geometría</strong> de las
+        unidades y la <strong>variable</strong> que vas a estudiar en ellas. Cada una sale de una fuente pública
+        que se pueda citar y volver a descargar —el Marco Geoestadístico Nacional del DANE, geoBoundaries,
+        IDECA, Datos Abiertos Colombia u otra—, con la <strong>fecha en que la descargaste</strong> y la
+        <strong>llave</strong> con que se unen, casi siempre el código DIVIPOLA. Unir sin perder unidades es
+        parte del proyecto, y el avance pide contarlas antes y después (módulo 6).</p>
+
+      <div class="warning">
+        <p style="margin:0;"><strong>No valen</strong> los datos del material ni de los talleres: Columbus y
+          <code>oldcol</code>, <code>nc</code>, <code>auckland</code>, <code>getisord</code>,
+          <code>meuse</code>, ni las variables del hilo colombiano del curso —la deserción y la cobertura del
+          MEN de 2024, el Saber 11 del periodo 20224, los colegios de Bogotá, las normales climatológicas del
+          IDEAM—, ni los conjuntos de los Talleres 1 y 2. Tampoco los datos simulados. <strong>La geometría
+          municipal sí vale</strong>, con otra variable: los límites son de todos, la pregunta tiene que ser
+          tuya.</p>
+      </div>
+
+      <h3>Datos de área</h3>
+
+      <p>El Corte III es el de los datos de área, y el proyecto también: <strong>polígonos</strong> con una
+        variable cada uno —municipios, departamentos, UPZ, comunas— y una matriz de pesos W que dice quién es
+        vecino de quién. <strong>Las estaciones</strong> —de calidad del aire, de clima, de aforo— valen si se
+        tratan igual: cada estación es una unidad con su valor, y la W se construye por los
+        <em>k</em> vecinos más próximos o por un umbral de distancia (módulos 4 y 5 del
+        <a href="capitulo-6-pesos-espaciales.html">capítulo 6</a>).</p>
+
+      <p><strong>Un patrón de puntos entra agregado.</strong> Si lo que tienes son eventos —delitos,
+        accidentes, sedes—, se cuentan por unidad y se convierten en una tasa: eso es un dato de área. El
+        análisis de patrones puntuales ya se evaluó en el Corte II y aquí no es el núcleo del proyecto.</p>
+
+      <h3>Al menos @@N_MINIMO@@ unidades</h3>
+
+      <p>El proyecto necesita <strong>al menos @@N_MINIMO@@ unidades</strong>. Con
+        @@UNIDAD_SI_NOMBRE@@ (@@UNIDAD_SI_N@@) se cumple; con @@UNIDAD_NO_NOMBRE@@ (@@UNIDAD_NO_N@@), no. Pero
+        cumplir el mínimo no quiere decir que el Moran vaya a encontrar lo que haya. Con pocas unidades la
+        prueba tiene <strong>poca potencia</strong>, y esto es lo que se pierde, medido por simulación:</p>
+
+@@TABLA_POTENCIA@@
+
+      <p>Con @@N_MINIMO@@ unidades y una dependencia de ρ = 0,5, que no es poca, la prueba la detecta
+        <strong>@@POT_MIN_05@@ veces de cada 100</strong>. Por eso, con menos de @@N_LECTURA_POTENCIA@@
+        unidades, <strong>un Moran no significativo no se lee como «no hay estructura espacial»</strong>: se
+        lee con esta tabla, diciendo qué dependencia habría pasado sin detectar. La columna de ρ = 0 es el tamaño
+        de la prueba: cuántas veces rechaza cuando no hay nada. Tiene que rondar el 5 %, y aquí va del
+        @@TAM_MIN@@ al @@TAM_MAX@@ %: la diferencia es ruido de la propia simulación.</p>
+
+      <div class="note">
+        <p style="margin:0;"><strong>Cómo se hizo la tabla.</strong> Una rejilla cuadrada con vecindad reina y
+          W estandarizada por filas; en cada réplica, un proceso autorregresivo
+          $y = (I - \rho W)^{-1}\varepsilon$ con $\varepsilon$ normal y un <code>moran.mc()</code> con
+          @@POT_NSIM@@ permutaciones, unilateral al 5 %. Son @@POT_REPLICAS@@ réplicas por casilla. Tu
+          territorio no es una rejilla, así que la tabla da el orden de magnitud, no tu potencia exacta.</p>
+      </div>
+
+      <h3>Una tasa, no un conteo</h3>
+
+      <p>La variable es una <strong>tasa, una proporción o una medida por unidad</strong>: homicidios por
+        100 000 habitantes, no homicidios; hectáreas deforestadas sobre el área del municipio, no hectáreas. Un
+        mapa de conteos es casi siempre el mapa de la población, y su Moran mide lo mismo: es el módulo 2 del
+        <a href="capitulo-3-cartografia-maup.html">capítulo 3</a>, «Normalizar o mentir». Si la tasa es de un
+        evento raro en unidades con poca gente, salta mucho de una unidad a otra por puro azar; dilo en el
+        preregistro, y no confundas esos saltos con estructura.</p>
+
+      <h3>Lo que no se exige</h3>
+
+      <p>La econometría espacial (capítulo 8), la geoestadística y el kriging (capítulo 9) y la validación
+        cruzada espacial (capítulo 10) se ven en las semanas 14, 15 y 16, y el informe se entrega el
+        @@INFORME_CIERRA@@. No se exigen, y <strong>una propuesta que dependa de ellos no se aprueba como núcleo
+        del proyecto</strong> en la ficha. Puedes añadirlos como complemento, declarado como tal: no tienen
+        puntos propios, y no restan si no están. Lo que sí se exige ya está publicado: los capítulos 2, 3, 6 y
+        7.</p>
+
+      <div class="tip-box">
+        <p style="margin:0;"><strong>Algunos temas que dan para un proyecto.</strong> La tasa de homicidios por
+          municipio de un departamento; la cobertura de vacunación por municipio; la tasa de accidentes de
+          tránsito por UPZ de Bogotá; el porcentaje de hogares con internet por municipio en el censo; la
+          deforestación por municipio de la Amazonia; la concentración media de PM<sub>2.5</sub> de un año en
+          las estaciones de una red con al menos @@N_MINIMO@@ puntos. En todos hay una geometría, una variable
+          que se puede normalizar y una pregunta: ¿se agrupa?, ¿dónde?</p>
+      </div>

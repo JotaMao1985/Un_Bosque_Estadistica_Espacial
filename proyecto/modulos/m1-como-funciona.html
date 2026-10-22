@@ -1,0 +1,99 @@
+      <p>Hasta aquí, en el curso, el territorio te llegaba elegido: alguien decidió qué unidades mirar, qué
+        variable pintar y con qué vecindad. El <strong>proyecto integrador</strong> es lo único del curso en el
+        que todas esas decisiones son tuyas. Vas a elegir un <strong>territorio real con datos abiertos</strong>,
+        <strong>unir</strong> la geometría con la variable, <strong>preguntarle</strong> si lo cercano se parece
+        más de lo que cabría esperar por azar, <strong>mapear</strong> la respuesta y
+        <strong>defenderla</strong> delante del grupo.</p>
+
+      <p>Lo que se evalúa no es que el Moran salga significativo. Un territorio sin estructura espacial, bien
+        analizado y bien leído, es un buen proyecto; uno con conglomerados que aparecen porque la W se eligió
+        después de mirar el p-valor, no. Se evalúan dos cosas: que las decisiones que mueven el resultado
+        —la escala, la variable, la W, las réplicas, la corrección— se tomen <strong>antes</strong> de
+        calcularlo, y que el mapa diga solo lo que la inferencia permite.</p>
+
+      <div class="definition">
+        <h4><i class="fas fa-users mr-2" aria-hidden="true"></i>Quién lo hace</h4>
+        <p style="margin-bottom:0;">El proyecto se hace <strong>individual o en parejas</strong>; no hay tríos.
+          En pareja, <strong>los dos responden por todo el proyecto</strong>: en la exposición el dado decide
+          quién contesta cada pregunta, y cada integrante contesta al menos una. Si cursas también Series de
+          Tiempo, puedes presentar un solo proyecto para las dos materias: es la opción conjunta del
+          módulo 8.</p>
+      </div>
+
+      <h3>Cuatro entregas y una exposición</h3>
+
+      <p>El proyecto no se entrega de una vez al final. Va por <strong>hitos</strong>, y el orden importa: el
+        preregistro fija el protocolo antes de calcular un solo Moran, el avance llega cuando todavía se puede
+        arreglar una unión que perdió municipios, y el informe cuenta lo que pasó, incluido lo que no salió
+        como estaba previsto.</p>
+
+@@TABLA_HITOS@@
+
+      <div class="warning">
+        <p style="margin:0;"><strong>Cuándo y dónde.</strong> Todas las entregas cierran a las
+          <strong>@@HORA_ENTREGA@@</strong> del día que dice la tabla y se entregan
+          <strong>@@CANAL_ENTREGA@@</strong>, que es privado y donde vive todo el proyecto: el módulo 3 explica
+          cómo se monta. Las dudas se preguntan <strong>@@DUDAS_EN@@</strong> —@@TUTORIAS@@—. La exposición es
+          <strong>en clase, en la semana @@SEMANA_EXPOSICION@@</strong> (@@SEMANA_EXPOSICION_FRASE@@);
+          @@DIA_EXPOSICION@@.</p>
+      </div>
+
+      <p>Las fechas son <strong>las mismas que las del proyecto de Series de Tiempo</strong>, a la misma hora.
+        No es casualidad: así se puede presentar un solo proyecto para las dos materias sin que ninguna de las
+        dos mueva su calendario.</p>
+
+      <h3>Si una entrega llega tarde</h3>
+
+      <p>Por cada sesión de retraso se descuenta el <strong>@@DESCUENTO@@ %</strong> de la nota que habría
+        tenido la entrega a tiempo. La primera sesión cuenta desde el cierre —una release publicada cinco
+        minutos tarde ya lleva el primer descuento— y cada clase que empiece sin que la hayas publicado suma
+        otro. El descuento es siempre <strong>sobre la nota original</strong>, no sobre lo que va quedando:</p>
+
+@@TABLA_RETRASO@@
+
+      <p>Se aplica al preregistro, al avance y al informe, a la nota de cada uno y antes del tope de las
+        preguntas que explica este mismo módulo. La ficha no tiene nota, así que no tiene descuento, pero si
+        llega tarde la respuesta también llega tarde. La exposición no se puede atrasar: es en clase.</p>
+
+      <h3>Cuánto pesa cada cosa</h3>
+
+      <p><strong>El Corte III no tiene examen final</strong>, ni Talleres 4 y 5: su nota sale de dos partes. El
+        proyecto vale el <strong>@@PROYECTO_DEL_CORTE@@ %</strong> de la nota del Corte III, y los quices que
+        se hacen en clase, el otro <strong>@@QUICES_DEL_CORTE@@ %</strong>. Los quices son los que evalúan la
+        econometría espacial y la geoestadística, que el proyecto no exige (módulo 2). El Corte III es el
+        @@CORTE_III_DEL_CURSO@@ % del curso: en total, el proyecto es el
+        <strong>@@PROYECTO_DEL_CURSO@@ %</strong> de tu nota final. Dentro del proyecto, cada hito pesa
+        esto:</p>
+
+@@TABLA_PESOS@@
+
+      <p>Cada criterio de la rúbrica se califica en tres niveles —@@NIVELES@@— y la rúbrica entera, con lo
+        que separa un nivel de otro, está en el último módulo. Está ahí desde el primer día a propósito:
+        esconderla no protegería nada y sí haría que repartieras mal tu esfuerzo.</p>
+
+      <h3>Las preguntas acotan lo escrito</h3>
+
+      <p>El preregistro, el avance y el informe son de la pareja; las preguntas de la exposición son de cada
+        persona. Y las dos cosas <strong>no se suman sin más</strong>: las preguntas están para comprobar que lo
+        que entregaste es tuyo. Si tu nota en las preguntas no llega a <strong>@@UMBRAL@@</strong>, tu nota de
+        lo escrito se multiplica por esa fracción:</p>
+
+      <div class="formula">
+        $$\text{escrito con tope} = \text{escrito} \times \min\!\left(1,\ \frac{\text{preguntas}}{@@UMBRAL_DIV@@}\right)$$
+      </div>
+
+@@TABLA_TOPE@@
+
+      <p><strong>Fíjate en la primera fila.</strong> Un proyecto impecable que no sabes defender pasa de
+        <strong>@@EJ0_SIN@@</strong> a <strong>@@EJ0_CON@@</strong>. En pareja, el tope es de cada uno: si tu
+        compañero contesta bien y tú no, a él no se le toca nada.</p>
+
+      <div class="tip-box">
+        <p style="margin:0;"><strong>Puedes usar IA</strong>, como en los talleres, y la declaración de uso es
+          obligatoria: el informe trae una sección que dice qué herramienta usaste, para qué, qué te devolvió y
+          qué verificaste. Los asistentes fallan de una forma muy característica en este curso, y el taller de
+          análisis espacial asistido por IA de la semana 13 los pone delante: <strong>calculan vecinos en
+          grados</strong> porque no reproyectan, <strong>construyen la W sin mirar las islas</strong> y
+          <strong>pintan el LISA sin corregir</strong>. Esa es justo la parte que tienes que poder defender sin
+          ayuda.</p>
+      </div>

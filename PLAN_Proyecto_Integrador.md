@@ -3,7 +3,7 @@ tipo: plan
 curso: "[[20929 Estadística Espacial]]"
 capitulo: 10
 fecha: 2026-10-21
-estado: PROPUESTO (2026-10-21) — PE1–PE4 esperan a Javier; nada construido
+estado: CONSTRUIDA (2026-10-21) — auditor en verde; falta fusionar el PR, que publica en Pages
 ---
 
 # Plan · Guía del proyecto integrador — Corte III
@@ -23,6 +23,29 @@ estudiantes cursan las dos materias y pueden presentar un solo proyecto conjunto
 - 2026-10-21: plan propuesto. **Nada construido.** Las decisiones DE1–DE12 (§3) son propuestas por defecto;
   casi todas heredan del proyecto de Series, que hereda del de Diseño. **PE1–PE4 (§4) son de Javier** y
   bloquean la rúbrica y el módulo 1.
+- 2026-10-21: **Javier aprueba el plan con PE1–PE4 tal como se proponen** («Apruebo el plan con PE1–PE4 como
+  los propones. Construye la guía»): el otro 50 % son quices en clase, sin examen final ni Talleres 4 y 5; solo
+  datos de área como núcleo; N ≥ 25; la rúbrica de §6. DE1–DE12 quedan aprobadas con el plan. Lo siguiente es T1.
+- 2026-10-21, al construir: **la regla de `nsim` de DE7 estaba mal en una unidad.** El cap. 7 (M10) dice que
+  Bonferroni bilateral pide nsim + 1 > 40·N, es decir **nsim ≥ 40·N** (N = 33 pide 1 320, no 1 319). Corregido
+  aquí y en §2; la guía y el auditor usan la del capítulo.
+- 2026-10-21: **construida, auditada y verificada; pendiente de fusionar** (rama `claude/proyecto-integrador`).
+  - La tabla de potencia se rehízo con 2 000 réplicas (`proyecto/potencia.R` → `proyecto/potencia.json`) y con
+    N = 49 y 100 además: con N = 25 y ρ = 0,5 detecta el 46 %; con 64, el 79 %; con 100, el 91 %. §2 tiene ahora
+    esas cifras.
+  - `precalculo/ensambla_proyecto.py`: 10 módulos, 357 KB, el CSS de la plantilla (197 selectores), la rúbrica en
+    una tabla y en el componente `.rubrica`, sin restos de demostración.
+  - `precalculo/audita_proyecto.py`: 203 comprobaciones, 0 fallos, con el frente E corriendo los tres bloques de R
+    y la plantilla con datos de ejemplo y con datos propios. `precalculo/prueba_auditor_proyecto.py`: 51 defectos,
+    51 cazados por su frente, controles limpios antes y después.
+  - Navegador por HTTP: los diez módulos sin errores de consola (solo el aviso de Tailwind), KaTeX sin errores,
+    la rúbrica con sus 15 criterios, 375 px sin scroll horizontal; la tarjeta de la portada abre la guía y la
+    plantilla responde 200.
+  - Portada con su tarjeta (sección «Proyecto integrador»), `cuenta_sitio.py` con un sexto cubo (`proyecto-*`) y
+    `audita_todo.sh` con su bloque.
+  - **El enlace al módulo 8 de Series da 404 hasta que se publique la guía de Series** (§11). El frente H
+    comprueba la forma del enlace y, cuando la guía de Series esté en su árbol, que su módulo 8 sea el de la
+    conjunta.
 
 ## 1. Lo que ya no se discute (cerrado en el plan de Series, 2026-10-21)
 
@@ -59,17 +82,19 @@ Viene de `../Series de tiempo/PLAN_Proyecto_Pronostico.md` (§4, §5 y §7) y no
   - cap. 7: inferencia por permutación con `nsim` declarado (M3); **el mismo dato con otra W da otra conclusión**
     (M7); el p de cada LISA es el bilateral por rangos (convención del capítulo); **el mapa LISA sin corrección
     de multiplicidad miente** (M10), y el bilateral no baja de 2/(nsim + 1), así que Bonferroni sobre N unidades
-    pide **nsim ≥ 40·N − 1**; Gi\* mide intensidad y no similitud (M11).
-- **La potencia del Moran con N pequeño, medida hoy** (rejilla reina, W por filas, SAR con ρ dado, 400 réplicas
+    pide **nsim + 1 > 40·N, es decir nsim ≥ 40·N**; Gi\* mide intensidad y no similitud (M11).
+- **La potencia del Moran con N pequeño, medida hoy** (rejilla reina, W por filas, SAR con ρ dado, 2 000 réplicas
   de `moran.mc` con 499 permutaciones, unilateral al 5 %; guion en el anexo A):
 
   | N | ρ = 0 (tamaño) | ρ = 0,3 | ρ = 0,5 |
   |---|---|---|---|
-  | 16 | 0,060 | 0,188 | 0,300 |
-  | 25 | 0,040 | 0,160 | 0,448 |
-  | 36 | 0,068 | 0,295 | 0,590 |
-  | 64 | 0,072 | 0,385 | 0,818 |
+  | 25 | 0,057 | 0,240 | 0,460 |
+  | 36 | 0,053 | 0,304 | 0,579 |
+  | 49 | 0,050 | 0,353 | 0,682 |
+  | 64 | 0,064 | 0,421 | 0,792 |
+  | 100 | 0,053 | 0,548 | 0,913 |
 
+  (2 000 réplicas por casilla, rehecha al construir; la primera medición, con 400, daba 0,448 en N = 25 y ρ = 0,5.)
   Con N = 25, un proceso con ρ = 0,5 pasa sin detectar más de la mitad de las veces. **Un Moran no significativo
   con N chico no prueba que no haya estructura**, y la guía lo tiene que decir (DE3).
 - **Las unidades que más va a usar quien elija la conjunta son los departamentos**: 32 más Bogotá, **N = 33**, con
@@ -95,7 +120,7 @@ Todo lo que lleva cifra vivirá en `proyecto/datos.py`, como en Diseño y en Ser
 | **DE4** | **Variable**: una tasa, una proporción o una medida por unidad, nunca un conteo bruto en el coroplético. Si es una tasa de eventos raros, se declara el problema de los números pequeños (cap. 3) | cap. 3 | Un criterio del avance (A1) lo mide |
 | **DE5** | **Hitos, exposición, tope, canal y retraso: los de Series**, sin cambiar nada: ficha sin nota; reparto interno **15 · 10 · 45 · 30**; tres niveles 1,0 · 3,5 · 5,0; −15 % por sesión de retraso desde el cierre; exposición de 10 + 5 min (15 + 10 en la conjunta). El repositorio se llama `proyecto-ee-apellido1-apellido2` (`proyecto-st-ee-…` en la conjunta) | Series D3–D9 | La misma estructura en las dos materias es lo que deja calificar la conjunta con dos rúbricas sobre una release |
 | **DE6** | **El preregistro congela el protocolo de inferencia espacial** antes de calcular un solo Moran: la unidad y su escala (y por qué esa, MAUP), la variable y su normalización, el CRS, **la W principal** (criterio y estilo) y **las W alternativas** para la sensibilidad, `nsim`, el nivel, la corrección de multiplicidad y la hipótesis. Cambiarlo después se permite **si se declara** en la sección de desviaciones del informe; cambiarlo en silencio se sanciona (I7) | Nueva: es el cap. 7, M7, llevado al proyecto | **Elegir W después de ver el p-valor es la fuga de este curso**, como la métrica elegida después lo es en Series. La guía lo dice en un recuadro |
-| **DE7** | **`nsim` suficiente para la corrección elegida**: con Bonferroni bilateral, nsim ≥ 40·N − 1 (N = 33 pide 1 319). La guía da la cuenta y el auditor la recalcula | cap. 7, M10 | Con las 999 de siempre y N ≥ 25, Bonferroni no deja pasar ninguna unidad, haya o no conglomerados |
+| **DE7** | **`nsim` suficiente para la corrección elegida**: con Bonferroni bilateral, nsim + 1 > 40·N, es decir nsim ≥ 40·N (N = 33 pide 1 320). La guía da la cuenta y el auditor la recalcula | cap. 7, M10 | Con las 999 de siempre y N ≥ 25, Bonferroni no deja pasar ninguna unidad, haya o no conglomerados |
 | **DE8** | **Lo que no está publicado no se exige, y no se aprueba como núcleo en la ficha**: la econometría (cap. 8), el kriging (cap. 9) y la CV espacial (cap. 10). Pueden entrar como complemento declarado, sin puntos propios | Series §11 (la (c) retirada) | El informe se entrega antes de que el cap. 9 esté en clase entero |
 | **DE9** | **Documento propio, con prefijo `proyecto-*`**, construido como el de Diseño: `proyecto/datos.py`, módulos con `@@CLAVE@@`, `precalculo/ensambla_proyecto.py` con `--revisar` sobre `plantilla/plantilla-capitulo.html`, `precalculo/audita_proyecto.py` y su arnés `precalculo/prueba_auditor_proyecto.py` (nombres de Espacial) | Diseño D5, Series D5 | Tarjeta en el Corte III de `index.html`, la guía en `cuenta_sitio.py` y en `audita_todo.sh` |
 | **DE10** | **La conjunta se enlaza, no se copia** (F6). El módulo 8 de esta guía dice quién puede elegirla y remite al módulo 8 de Series para todo lo demás. Lo único propio de Espacial que vive aquí son **los descriptores de la parte espacial en la conjunta** (en (a), la variable espacial es el MASE de cada unidad; en (b), la ganancia de MASE por unidad al añadir Wy), porque la rúbrica es de Espacial | Series D12 | El auditor prohíbe que la guía repita las reglas (frente H): si una regla aparece aquí, es una copia que puede quedarse vieja |
@@ -192,7 +217,7 @@ Series y una copia aquí se quedaría vieja al primer cambio.
 | T2 | Los diez módulos en `proyecto/modulos/` | L | T1 |
 | T3 | `proyecto/plantilla-informe.Rmd`: secciones que siguen la rúbrica; esqueleto con `sf`, `spdep` y `tmap` (los del material), la unión contada, la W principal y las alternativas, `moran.mc`, `localmoran_perm` con `p.adjust` | M | T1 |
 | T4 | `precalculo/ensambla_proyecto.py` sobre la plantilla, con `--revisar` | M | T2 |
-| T5 | `precalculo/audita_proyecto.py` y `precalculo/prueba_auditor_proyecto.py`: frentes A (calendario igual al de Series; ningún hito en festivo), B (pesos y sumas; proyecto + PE1 = 100 % del corte), C (decisiones), D (estructura), E (el R de la guía corre en un R limpio y la plantilla renderiza), F (contenido), **G** (cada exigencia de los caps. 2, 3, 6 y 7 tiene su criterio y nada la contradice: `nsim` ≥ 40·N − 1, bilateral, la potencia) y **H** (la conjunta: el enlace al m8 de Series existe y es exacto, y ninguna regla de Series aparece copiada) | L | T4 |
+| T5 | `precalculo/audita_proyecto.py` y `precalculo/prueba_auditor_proyecto.py`: frentes A (calendario igual al de Series; ningún hito en festivo), B (pesos y sumas; proyecto + PE1 = 100 % del corte), C (decisiones), D (estructura), E (el R de la guía corre en un R limpio y la plantilla renderiza), F (contenido), **G** (cada exigencia de los caps. 2, 3, 6 y 7 tiene su criterio y nada la contradice: `nsim` ≥ 40·N, bilateral, la potencia) y **H** (la conjunta: el enlace al m8 de Series existe y es exacto, y ninguna regla de Series aparece copiada) | L | T4 |
 | T6 | Tarjeta en el Corte III de `index.html`, la guía en `cuenta_sitio.py` y en `audita_todo.sh` | S | T4 |
 | T7 | Navegador por HTTP: los diez módulos sin errores de consola, KaTeX compuesto, 375 px sin scroll horizontal | S | T5 |
 | T8 | Prueba de resistencia a la IA: una entrega fabricada, calificada en frío. El producto **no** se versiona | M | T5 |
@@ -242,4 +267,4 @@ pot <- function(lado, rho, R = 400, nsim = 499) {
 ```
 
 R 4.4.1 arm64, spdep del proyecto. El tamaño en ρ = 0 oscila entre 0,04 y 0,07 por el error de Monte Carlo de
-400 réplicas (±0,02); T1 lo rehace con 2 000 réplicas antes de publicar la tabla.
+400 réplicas (±0,02). La tabla publicada sale de `proyecto/potencia.R`, con 2 000 réplicas y N = 25, 36, 49, 64 y 100.

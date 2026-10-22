@@ -1,0 +1,99 @@
+      <p>El informe cierra el <strong>@@INFORME_CIERRA@@</strong>, en la semana @@INFORME_SEMANA@@, y vale el
+        <strong>@@PESO_INFORME@@ %</strong> del proyecto: es lo que más pesa. Se entrega con la release
+        <code>@@ETIQUETA_INFORME@@</code>, y en ella tienen que estar tres cosas: <code>informe.Rmd</code>, los
+        datos en <code>datos/</code> y el informe ya renderizado, en HTML o en PDF. Son hasta
+        <strong>@@PAGINAS_INFORME@@ páginas</strong> sin contar los anexos.</p>
+
+      <h3>La estructura</h3>
+
+      <div class="diagram">
+        <ol>
+          <li><strong>Resumen.</strong> Cinco líneas: qué se preguntó, sobre qué territorio, qué salió.</li>
+          <li><strong>El territorio y los datos.</strong> Las unidades, las fuentes, la unión y la tasa.</li>
+          <li><strong>El protocolo, preregistrado y seguido.</strong> Lo que decía el preregistro y lo que pasó
+            de verdad, con cada desviación.</li>
+          <li><strong>El análisis confirmatorio.</strong> Lo preregistrado, en el orden preregistrado: la W, el
+            Moran global y su diagrama, la sensibilidad a las W alternativas, el LISA con su corrección.</li>
+          <li><strong>El análisis exploratorio</strong>, si lo hay, en su propia sección y marcado como
+            tal.</li>
+          <li><strong>La conclusión.</strong> En el lenguaje del territorio, con los conglomerados por su
+            nombre y lo que el análisis <em>no</em> permite concluir.</li>
+          <li><strong>La declaración de uso de IA.</strong></li>
+          <li><strong>Anexos.</strong> El resumen de cada W y la tabla de los p locales.</li>
+        </ol>
+      </div>
+
+      <h3>Lo que el material ya te enseñó</h3>
+
+      <p>Nada de lo que la rúbrica pide es nuevo: cada exigencia está en un módulo publicado. Si dudas de
+        alguna, el módulo la explica con un caso.</p>
+
+@@TABLA_EXIGENCIAS@@
+
+      <h3>El análisis local, con su corrección</h3>
+
+<pre><code class="language-r">library(sf)
+library(spdep)
+
+unidades &lt;- st_transform(st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE), 32119)
+unidades$tasa &lt;- 1000 * unidades$SID79 / unidades$BIR79
+lw &lt;- nb2listw(poly2nb(unidades, queen = TRUE), style = "W")
+
+# 49 999 réplicas: alcanzan para Bonferroni mientras 40 N no pase de 49 999
+lp &lt;- localmoran_perm(unidades$tasa, lw, nsim = 49999, iseed = 2026,
+                      no_repeat_in_row = TRUE)
+p &lt;- lp[, "Pr(z != E(Ii)) Sim"]           # el bilateral, el del capítulo 7
+q &lt;- attr(lp, "quadr")$mean               # el cuadrante de cada unidad
+
+# Las tres lecturas del mismo vector de p
+c(sin = sum(p &lt; 0.05),
+  bonferroni = sum(p.adjust(p, "bonferroni") &lt; 0.05),
+  fdr = sum(p.adjust(p, "fdr") &lt; 0.05))
+
+unidades$lisa &lt;- ifelse(p.adjust(p, "fdr") &lt; 0.05, as.character(q), "No significativo")
+table(unidades$lisa)</code></pre>
+
+      <h3>Que corra de principio a fin</h3>
+
+      <p>El informe tiene que salir entero de clonar el repositorio, abrir <code>informe.Rmd</code> en un R
+        recién abierto y pulsar <em>Knit</em>: rutas relativas, las semillas puestas, ningún objeto que exista
+        solo en tu sesión. Y las cifras del texto no se copian a mano de la salida: se escriben con R en línea,
+        como <code>`r round(mc$statistic, 3)`</code>, para que si cambia un dato cambie también el texto. Es
+        la misma regla con la que se escribe este material.</p>
+
+      <div class="tip-box">
+        <p style="margin:0;"><strong>Hay una plantilla.</strong>
+          <a href="@@PLANTILLA_RMD@@" download>Descarga <code>@@PLANTILLA_RMD@@</code></a> y guárdala como
+          <code>informe.Rmd</code> en la raíz del repositorio: trae la estructura de arriba y los bloques de R
+          para la unión contada, el mapa, la W y sus alternativas, el Moran, el LISA con su corrección y la
+          declaración de IA. Viene con los datos de <code>nc</code> para que la puedas renderizar desde el
+          primer día; cámbialos por los tuyos.</p>
+      </div>
+
+      <h3>La declaración de uso de IA</h3>
+
+      <p>Es obligatoria, también si no usaste ninguna (en ese caso dice eso). Si la usaste, dice cuatro
+        cosas: <strong>qué herramienta</strong>, <strong>para qué</strong>, <strong>qué te devolvió</strong> y
+        <strong>qué verificaste o corregiste</strong>, con al menos un ejemplo concreto que se pueda comprobar
+        en el repositorio. «Le pedí el código de los vecinos y lo corregí: calculaba los cinco más próximos
+        sobre la capa en grados» es una declaración; «se usó IA como apoyo» no lo es.</p>
+
+      <h3>Los errores que más cuestan</h3>
+
+      <ul>
+        <li><strong>Vecinos o distancias en grados.</strong> Con la capa sin reproyectar, los <em>k</em>
+          vecinos y los umbrales de distancia salen mal sin avisar: módulo 6 del
+          <a href="capitulo-2-crs-georreferenciacion.html">capítulo 2</a>.</li>
+        <li><strong>Un conteo en el coroplético.</strong> Pinta la población, y su Moran también: módulo 2 del
+          <a href="capitulo-3-cartografia-maup.html">capítulo 3</a>.</li>
+        <li><strong>La W elegida después de ver el p.</strong> Cambiar de vecindad hasta que algo salga
+          significativo: módulo 7 del <a href="capitulo-7-autocorrelacion.html">capítulo 7</a>.</li>
+        <li><strong>El mapa LISA sin corregir</strong>, o corregido con tan pocas réplicas que nada puede
+          pasar: módulo 10 del capítulo 7. Y el p plegado de GeoDa leído como si fuera el bilateral: marca el
+          10 % como si fuera el 5 %.</li>
+        <li><strong>Las islas sin declarar.</strong> <code>zero.policy = TRUE</code> hace que el código corra,
+          no que el análisis esté bien: módulo 9 del <a href="capitulo-6-pesos-espaciales.html">capítulo
+          6</a>.</li>
+        <li><strong>Un Moran no significativo leído como «no hay estructura».</strong> Con pocas unidades, la
+          prueba no tenía con qué verla: la tabla de potencia del módulo 2.</li>
+      </ul>

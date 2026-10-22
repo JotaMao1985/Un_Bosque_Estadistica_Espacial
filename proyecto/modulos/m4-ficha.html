@@ -1,0 +1,50 @@
+      <p>La ficha cierra el <strong>@@FICHA_CIERRA@@</strong>, en la semana @@FICHA_SEMANA@@. <strong>No tiene
+        nota.</strong> Sirve para una sola cosa: que el docente vea tu territorio y tu pregunta a tiempo y los
+        frene si no dan para un proyecto, antes de que gastes una semana en un preregistro que no va a
+        funcionar.</p>
+
+      <p>Va en <code>ficha.md</code>, en la raíz del repositorio, y se entrega con la release
+        <code>@@ETIQUETA_FICHA@@</code>. Es la primera, así que para entonces el repositorio ya existe y el
+        docente ya está invitado, como explica el módulo 3.</p>
+
+      <p>Son unas <strong>@@PALABRAS_FICHA@@ palabras</strong> en total, con estos campos y en este orden:</p>
+
+      <div class="diagram">
+        <ol>
+          <li><strong>Integrantes.</strong> Uno o dos nombres.</li>
+          <li><strong>Pregunta.</strong> En una frase, y que se pueda responder con autocorrelación espacial:
+            ¿se agrupa?, ¿dónde?</li>
+          <li><strong>Territorio y unidades.</strong> Qué unidades, cuántas y de qué año.</li>
+          <li><strong>La geometría.</strong> De qué fuente.</li>
+          <li><strong>La variable.</strong> De qué fuente, de qué año y cómo se convierte en tasa.</li>
+          <li><strong>Conjunta.</strong> Si es un proyecto conjunto con Series de Tiempo, y cuál de sus
+            preguntas (módulo 8).</li>
+          <li><strong>Lo que te preocupa.</strong> Una unión que no sabes si va a casar, una tasa con pocos
+            habitantes, unidades que no se tocan.</li>
+        </ol>
+      </div>
+
+      <div class="note">
+        <p><strong>Un ejemplo, para calibrar el tamaño.</strong></p>
+        <p style="margin-bottom:0;"><em>Integrantes:</em> Ana Pérez y Luis Gómez. <em>Pregunta:</em> ¿la tasa
+          de homicidios de 2024 se agrupa entre los municipios de Antioquia, y dónde están los conglomerados?
+          <em>Territorio y unidades:</em> los 125 municipios de Antioquia. <em>Geometría:</em> Marco
+          Geoestadístico Nacional del DANE. <em>Variable:</em> homicidios de 2024 de la Policía Nacional, en
+          Datos Abiertos Colombia, sobre la proyección de población del DANE para 2024, por 100&#8239;000
+          habitantes. <em>Conjunta:</em> no. <em>Lo que nos preocupa:</em> los municipios pequeños, donde un
+          homicidio más dispara la tasa.</p>
+      </div>
+
+      <h3>Qué pasa después</h3>
+
+      <p>La ficha vuelve en la clase del <strong>@@RESPUESTA_FICHA@@</strong> con una de tres respuestas:
+        <strong>adelante</strong>, <strong>adelante con un cambio</strong> —otra escala, otra normalización,
+        una fuente mejor— u <strong>otro tema</strong>. Llega antes de que tengas que escribir el preregistro,
+        así que el cambio entra en él sin costo.</p>
+
+      <div class="warning">
+        <p style="margin:0;"><strong>Lo que más se frena en una ficha</strong> son tres cosas: menos de
+          @@N_MINIMO@@ unidades, una variable que es un conteo sin nada con qué normalizarlo, y una pregunta
+          que solo se responde con lo que todavía no se ha visto, como un kriging o un modelo SAR. El módulo 2
+          explica las tres.</p>
+      </div>

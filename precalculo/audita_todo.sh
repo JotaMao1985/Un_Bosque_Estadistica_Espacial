@@ -167,6 +167,22 @@ if [ -f "precalculo/prueba_anim1d.py" ]; then
        python3 precalculo/prueba_anim1d.py
 fi
 
+# La GUÍA DEL PROYECTO INTEGRADOR (2026-10-21), por un bloque propio: no tiene
+# precálculo en R ni JSON incrustado —sus cifras salen de `proyecto/datos.py`—, así
+# que no cabe en ningún bucle de arriba. El ensamblador se revisa sin escribir, el
+# auditor corre su frente E (los bloques de R y la plantilla .Rmd) y el arnés
+# inyecta sus defectos, este último fuera de --rapido.
+if [ -f "precalculo/ensambla_proyecto.py" ]; then
+  paso "guía del proyecto integrador · ensambla_proyecto.py --revisar (al día con su fuente)" \
+       python3 precalculo/ensambla_proyecto.py --revisar
+  paso "guía del proyecto integrador · audita_proyecto.py (ocho frentes, sobre el artefacto)" \
+       python3 precalculo/audita_proyecto.py
+  if [ "$RAPIDO" -eq 0 ] && [ -f "precalculo/prueba_auditor_proyecto.py" ]; then
+    paso "guía del proyecto integrador · prueba_auditor_proyecto.py (inyección)" \
+         python3 precalculo/prueba_auditor_proyecto.py
+  fi
+fi
+
 # Va ANTES de los auditores de prosa y con su autoprueba dentro: cuesta
 # 0,1 s y mira la causa del defecto que aquéllos vigilan por el resultado.
 # El 61.7 del capítulo 1 pasó meses con los dos auditores en verde porque
