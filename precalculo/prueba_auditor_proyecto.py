@@ -147,7 +147,12 @@ DEFECTOS = [
     ("las preguntas de la conjunta por su letra", "H",
      en_modulo(8, "<p>Se elige la pregunta (a) o la (b).</p>"), False),
     ("ya no dice que las reglas viven solo en Series", "H", cambia("solo ese módulo", "ese módulo"), False),
-    ("se pierde la excepción del autoplagio", "H", cambia("Es la única excepción", "Es una excepción"), False),
+    ("se pierde el aviso del autoplagio", "H", cambia("autoplagio", "un descuido", todas=True), False),
+    ("se pierde el acuerdo individual por escrito", "H",
+     cambia("o con un <strong>acuerdo individual por\n          escrito</strong> con el docente, que fija las suyas",
+            "y en ningún otro caso"), False),
+    ("vuelve la «única excepción»", "H",
+     cambia("<strong>Fuera de esto, es autoplagio.</strong>", "<strong>Es la única excepción.</strong>"), False),
     ("I4 pierde su descriptor de la conjunta", "H", cambia("<strong>En la conjunta:</strong> el LISA", "El LISA"), False),
     # --- E · La plantilla (PROYECTO_RMD)
     ("la plantilla vuelve a escribir los datos de ejemplo en datos/", "E", "rmd",

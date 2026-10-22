@@ -533,7 +533,13 @@ def main() -> int:
     A.check("H", M.count(URL_SERIES_M8) == 1 and len(re.findall(r"Series-de-Tiempo_Un_Bosque", M)) == 1,
             "y es el único enlace a la guía de Series")
     A.check("H", "solo ese módulo" in vc and "manda el de Series" in vc, "dice que las reglas viven solo allí")
-    A.check("H", "Es la única excepción" in vc and "autoplagio" in vc, "dice que es la única excepción al autoplagio")
+    # La conjunta con Series y un acuerdo individual por escrito son las dos únicas vías
+    # para que un trabajo cuente en dos cursos (J4 de Javier, 21 oct: la conjunta de
+    # Diseño y Espacial es un acuerdo individual, fuera de la guía). Ninguna de las dos
+    # puede desaparecer ni volver la «única excepción», que contradiría el acuerdo.
+    A.check("H", "autoplagio" in vc and "acuerdo individual por escrito" in vc
+            and "única excepción" not in vc,
+            "dice que fuera de la conjunta y de un acuerdo individual por escrito es autoplagio")
     COPIAS = [(r"proyecto-st-ee", "el nombre del repositorio conjunto"),
               (r"1,5 veces", "el tamaño de la conjunta"),
               (r"\b15 páginas", "las páginas de la conjunta"),

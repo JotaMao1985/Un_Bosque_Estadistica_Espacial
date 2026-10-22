@@ -71,6 +71,14 @@ estudiantes cursan las dos materias y pueden presentar un solo proyecto conjunto
   - **El enlace al módulo 8 de Series da 404 hasta que se publique la guía de Series** (§11). El frente H
     comprueba la forma del enlace y, cuando la guía de Series esté en su árbol, que su módulo 8 sea el de la
     conjunta.
+- 2026-10-21, desde otra sesión: **J4 de Javier, la conjunta con Diseño de Experimentos (20920).** Va por
+  un **acuerdo individual escrito**, fuera de la guía y fuera de git, porque nombra a quien lo firma. El acuerdo
+  está en `../Proyecto conjunto Diseno-Espacial (20920-20929)/`. El recuadro
+  del m8 decía «Es la única excepción», y eso contradecía el acuerdo. Ahora dice que un mismo trabajo cuenta en
+  dos cursos solo dentro de la conjunta con Series o con un acuerdo individual por escrito, y que sin una de las
+  dos cosas es autoplagio. No nombra a nadie ni copia las reglas del acuerdo. El frente H exige las dos vías y
+  que no vuelva «única excepción»: auditor con 220 comprobaciones y 0 fallos; arnés con 58 de 58 (tres
+  defectos nuevos).
 
 ## 1. Lo que ya no se discute (cerrado en el plan de Series, 2026-10-21)
 
@@ -212,7 +220,8 @@ Dice, en un párrafo y un recuadro:
 1. Que existe, que es para quien curse las dos materias y que **la única fuente de sus reglas es el módulo 8 de la
    guía de Series**, con el enlace.
 2. Que la parte espacial se califica con la rúbrica del módulo 10 de esta guía, con los descriptores de la conjunta.
-3. Que es la **única** situación en que un mismo trabajo cuenta en dos cursos; fuera de ella, es autoplagio.
+3. Que un mismo trabajo cuenta en dos cursos solo en esta opción o con un acuerdo individual por escrito con el
+   docente (J4, 2026-10-21: así va la conjunta con Diseño); sin una de las dos, es autoplagio.
 
 No dice (el auditor lo prohíbe, frente H): las preguntas (a) y (b) en detalle, los tamaños (páginas, minutos),
 quién puede formar pareja, hasta cuándo se puede cambiar de opción, ni cómo se reparte la defensa. Todo eso está en
