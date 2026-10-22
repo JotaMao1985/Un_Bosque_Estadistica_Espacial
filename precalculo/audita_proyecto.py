@@ -87,7 +87,11 @@ MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto
 # guía de Series ya tiene su `datos.py`, se cotejan también contra él.
 FECHAS_SERIES = {"ficha": date(2026, 10, 27), "preregistro": date(2026, 11, 3),
                  "avance": date(2026, 11, 10), "informe": date(2026, 11, 15)}
-SERIES_DATOS = RAIZ.parent / "Series de tiempo" / "proyecto" / "datos.py"
+# La carpeta del curso de Series, hermana de la de Espacial. Desde un worktree,
+# RAIZ.parent es `.claude/worktrees`: se sube hasta encontrarla.
+SERIES = next((p / "Series de tiempo" for p in RAIZ.parents if (p / "Series de tiempo").is_dir()),
+              RAIZ.parent / "Series de tiempo")
+SERIES_DATOS = SERIES / "proyecto" / "datos.py"
 FESTIVOS = {date(2026, 11, 2), date(2026, 11, 16)}
 CLASE = {"martes", "jueves"}
 URL_SERIES_M8 = ("https://jotamao1985.github.io/Series-de-Tiempo_Un_Bosque/"
@@ -548,7 +552,7 @@ def main() -> int:
         e2 = next((c for c in R["criterios"] if c["clave"] == "E2"), {})
         A.check("H", "solo las preguntas de Estadística Espacial" in e2.get("foco", ""),
                 "E2 cuenta en la conjunta solo las preguntas de Espacial")
-    serie_html = RAIZ.parent / "Series de tiempo" / "Htmls_Series" / "proyecto-pronostico-corte-iii.html"
+    serie_html = SERIES / "Htmls_Series" / "proyecto-pronostico-corte-iii.html"
     if serie_html.exists():
         t = serie_html.read_text(encoding="utf-8")
         m8 = re.search(r'<template id="module-8">.*?<h2[^>]*>([^<]+)</h2>', t, re.S)
