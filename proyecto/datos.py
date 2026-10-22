@@ -127,8 +127,6 @@ SERIES_ENLACE_CONJUNTA = f"{SERIES_GUIA}#modulo-{SERIES_MODULO_CONJUNTA}"
 # DE3 · PE3 · Cuántas unidades, y la potencia que dan
 # ---------------------------------------------------------------------------
 N_MINIMO = 25
-# Por debajo de este N, un Moran no significativo se lee con la tabla de potencia.
-N_LECTURA_POTENCIA = 64
 # Las unidades de referencia que la guía nombra (para que el auditor compruebe
 # que el umbral las deja dentro o fuera como dice la prosa).
 UNIDADES_EJEMPLO = (("los 32 departamentos y Bogotá", 33), ("las 20 localidades de Bogotá", 20))
@@ -203,9 +201,10 @@ RUBRICA = [
              solido="La escala y su porqué, la variable con su normalización, la W principal "
                     "justificada y su estilo, al menos dos W alternativas, un número de réplicas "
                     "que alcanza para la corrección elegida y el nivel.",
-             conjunta="En la conjunta, la variable espacial es el MASE de cada unidad (pregunta a) "
-                      "o la ganancia de MASE al añadir el rezago espacial (pregunta b), y la W "
-                      "principal es la misma con la que se construye ese rezago."),
+             conjunta="En la conjunta, la variable espacial es el MASE de cada unidad (pregunta a), "
+                      "la ganancia de MASE al añadir el rezago espacial (pregunta b) u otra variable "
+                      "por unidad que apruebe la ficha; en la pregunta b, la W principal es la misma "
+                      "con la que se construye ese rezago."),
         dict(id="P3", nombre="Las hipótesis y el plan de análisis", puntos=4,
              foco="Mide si se sabe qué se espera encontrar y qué se hará con cada resultado, "
                   "también con el que no salga significativo.",
@@ -249,7 +248,8 @@ RUBRICA = [
                     "permite concluir el análisis elegido."),
         dict(id="I2", nombre="Corrección técnica en R", puntos=7,
              foco="Mide si el código hace lo que el informe dice que hace.",
-             insuficiente="Vecinos o distancias calculados en grados, una unión que pierde "
+             insuficiente="Coordenadas en grados tratadas como metros (un umbral leído en "
+                          "kilómetros, coordenadas sueltas como un plano), una unión que pierde "
                           "unidades sin decirlo, o pesos construidos sin manejar las islas.",
              aceptable="CRS, unión y W correctos, con errores menores: una semilla que falta, un "
                        "estilo de W que no es el declarado.",
@@ -267,8 +267,9 @@ RUBRICA = [
              solido="Moran por permutación con réplicas y semilla, el diagrama de Moran leído por "
                     "cuadrantes, el I bajo cada W preregistrada con su conclusión y, si no es "
                     "significativo, la potencia que daba el número de unidades.",
-             conjunta="En la conjunta, el Moran se calcula sobre los MASE por unidad (pregunta a) o "
-                      "sobre la ganancia de MASE (pregunta b). Un MASE agrupado en el mapa quiere "
+             conjunta="En la conjunta, el Moran se calcula sobre los MASE por unidad (pregunta a), "
+                      "sobre la ganancia de MASE (pregunta b) o sobre la variable que apruebe la "
+                      "ficha. Un MASE agrupado en el mapa quiere "
                       "decir que el modelo falla donde fallan sus vecinos."),
         dict(id="I4", nombre="El análisis local", puntos=7,
              foco="Mide si el mapa local dice solo lo que la inferencia permite.",
@@ -341,8 +342,8 @@ CRITERIOS = {c["id"]: c for b in RUBRICA for c in b["criterios"]}
 # ---------------------------------------------------------------------------
 # (capítulo, archivo, módulo, título del módulo, lo que exige, criterios)
 EXIGENCIAS = [
-    (2, "capitulo-2-crs-georreferenciacion.html", 6, "Medir sobre la Tierra",
-     "Un CRS proyectado, y declarado, antes de medir una distancia o buscar vecinos", ("P1", "I2")),
+    (2, "capitulo-2-crs-georreferenciacion.html", 2, "Latitud y longitud no son cartesianas",
+     "Un CRS proyectado, y declarado, antes de medir una distancia o fijar un umbral", ("P1", "I2")),
     (3, "capitulo-3-cartografia-maup.html", 2, "Normalizar o mentir",
      "La tasa y no el conteo en el coroplético", ("A1", "I5")),
     (3, "capitulo-3-cartografia-maup.html", 3, "Esquemas de clasificación",

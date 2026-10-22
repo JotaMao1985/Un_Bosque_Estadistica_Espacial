@@ -43,6 +43,7 @@
           <tr><td><code>R/datos.R</code></td><td>El guion que lee las descargas, las une por la llave y escribe el dato procesado</td></tr>
           <tr><td><code>datos/crudos/</code></td><td>Las descargas tal como llegaron, con su fecha en el README</td></tr>
           <tr><td><code>datos/unidades.gpkg</code></td><td>La geometría unida con la variable, que escribió ese guion</td></tr>
+          <tr><td><code>datos/conteo-union.csv</code></td><td>Cuántas unidades traía cada fuente y cuántas quedaron al unir, que también escribió ese guion</td></tr>
           <tr><td><code>figuras/</code></td><td>Los mapas que enlazan los <code>.md</code></td></tr>
           <tr><td><code>@@NOMBRE_REPO@@.Rproj</code></td><td>El proyecto de RStudio</td></tr>
           <tr><td><code>.gitignore</code></td><td>Lo que no se sube</td></tr>
@@ -67,9 +68,9 @@
         <li><strong>Rutas relativas.</strong> Nada de <code>C:/Users/...</code>: con el proyecto de RStudio
           abierto, los datos son <code>"datos/unidades.gpkg"</code> en cualquier computador.</li>
         <li><strong>Commits pequeños, con un mensaje que diga qué cambió.</strong> «Une la tasa con los
-          municipios por DIVIPOLA» sirve; «cambios» o «final final», no. Lo que prueba que el preregistro
-          existió antes que el Moran no son las fechas de los commits, que las pone tu computador, sino la hora
-          en que GitHub publicó su release.</li>
+          municipios por DIVIPOLA» sirve; «cambios» o «final final», no. Lo que fecha el preregistro no son
+          las fechas de los commits, que las pone tu computador, sino la hora en que GitHub publicó su
+          release.</li>
         <li><strong>Una geometría pesada se recorta.</strong> GitHub no acepta archivos de más de 100 MB. Si la
           capa nacional pesa demasiado, guarda en <code>datos/crudos/</code> solo tu territorio y deja en el
           README el enlace a la capa completa y el código que la recorta.</li>

@@ -4431,7 +4431,8 @@
           el día exacto se acuerda en clase.</p>
       </div>
 
-      <p>Las fechas son <strong>las mismas que las del proyecto de Series de Tiempo</strong>, a la misma hora.
+      <p>Las cuatro entregas cierran <strong>el mismo día y a la misma hora que las del proyecto de Series de
+        Tiempo</strong>.
         No es casualidad: así se puede presentar un solo proyecto para las dos materias sin que ninguna de las
         dos mueva su calendario.</p>
 
@@ -4517,8 +4518,8 @@
         <p style="margin:0;"><strong>Puedes usar IA</strong>, como en los talleres, y la declaración de uso es
           obligatoria: el informe trae una sección que dice qué herramienta usaste, para qué, qué te devolvió y
           qué verificaste. Los asistentes fallan de una forma muy característica en este curso, y el taller de
-          análisis espacial asistido por IA de la semana 13 los pone delante: <strong>calculan vecinos en
-          grados</strong> porque no reproyectan, <strong>construyen la W sin mirar las islas</strong> y
+          análisis espacial asistido por IA de la semana 13 los pone delante: <strong>miden en grados como si
+          fueran metros</strong> porque no reproyectan, <strong>construyen la W sin mirar las islas</strong> y
           <strong>pintan el LISA sin corregir</strong>. Esa es justo la parte que tienes que poder defender sin
           ayuda.</p>
       </div>
@@ -4602,9 +4603,9 @@
       </table>
 
       <p>Con 25 unidades y una dependencia de ρ = 0,5, que no es poca, la prueba la detecta
-        <strong>46 veces de cada 100</strong>. Por eso, con menos de 64
-        unidades, <strong>un Moran no significativo no se lee como «no hay estructura espacial»</strong>: se
-        lee con esta tabla, diciendo qué dependencia habría pasado sin detectar. La columna de ρ = 0 es el tamaño
+        <strong>46 veces de cada 100</strong>. Por eso <strong>un Moran no significativo nunca se lee
+        como «no hay estructura espacial»</strong>: se lee con esta tabla, diciendo qué dependencia habría pasado
+        sin detectar. Con más de 100 unidades, la última fila sirve de piso: la potencia crece con N. La columna de ρ = 0 es el tamaño
         de la prueba: cuántas veces rechaza cuando no hay nada. Tiene que rondar el 5 %, y aquí va del
         5,0 al 6,4 %: la diferencia es ruido de la propia simulación.</p>
 
@@ -4708,6 +4709,7 @@
           <tr><td><code>R/datos.R</code></td><td>El guion que lee las descargas, las une por la llave y escribe el dato procesado</td></tr>
           <tr><td><code>datos/crudos/</code></td><td>Las descargas tal como llegaron, con su fecha en el README</td></tr>
           <tr><td><code>datos/unidades.gpkg</code></td><td>La geometría unida con la variable, que escribió ese guion</td></tr>
+          <tr><td><code>datos/conteo-union.csv</code></td><td>Cuántas unidades traía cada fuente y cuántas quedaron al unir, que también escribió ese guion</td></tr>
           <tr><td><code>figuras/</code></td><td>Los mapas que enlazan los <code>.md</code></td></tr>
           <tr><td><code>proyecto-ee-apellido1-apellido2.Rproj</code></td><td>El proyecto de RStudio</td></tr>
           <tr><td><code>.gitignore</code></td><td>Lo que no se sube</td></tr>
@@ -4732,9 +4734,9 @@
         <li><strong>Rutas relativas.</strong> Nada de <code>C:/Users/...</code>: con el proyecto de RStudio
           abierto, los datos son <code>"datos/unidades.gpkg"</code> en cualquier computador.</li>
         <li><strong>Commits pequeños, con un mensaje que diga qué cambió.</strong> «Une la tasa con los
-          municipios por DIVIPOLA» sirve; «cambios» o «final final», no. Lo que prueba que el preregistro
-          existió antes que el Moran no son las fechas de los commits, que las pone tu computador, sino la hora
-          en que GitHub publicó su release.</li>
+          municipios por DIVIPOLA» sirve; «cambios» o «final final», no. Lo que fecha el preregistro no son
+          las fechas de los commits, que las pone tu computador, sino la hora en que GitHub publicó su
+          release.</li>
         <li><strong>Una geometría pesada se recorta.</strong> GitHub no acepta archivos de más de 100 MB. Si la
           capa nacional pesa demasiado, guarda en <code>datos/crudos/</code> solo tu territorio y deja en el
           README el enlace a la capa completa y el código que la recorta.</li>
@@ -4923,10 +4925,12 @@
         $$\frac{2}{\text{nsim}+1} &lt; \frac{0{,}05}{N} \quad\Longleftrightarrow\quad \text{nsim} + 1 &gt; 40\,N .$$
       </div>
 
-      <p>Con los 33 departamentos, <strong>nsim ≥ 1 320</strong>. Las
+      <p>Con las 33 unidades de los departamentos y Bogotá, <strong>nsim ≥
+        1 320</strong>. Las
         999 de GeoDa y de <code>esda</code> no alcanzan desde 25 unidades. Las
-        49 999 del capítulo 7 alcanzan hasta 1 249 unidades, y con tu N tardan
-        segundos: úsalas y te ahorras la cuenta. Es el módulo 10 del capítulo 7, «La trampa de la
+        49 999 del capítulo 7 alcanzan hasta 1 249 unidades; con unas decenas o
+        cientos de unidades tardan segundos, y con los 1&#8239;122 municipios, alrededor de un minuto. Úsalas y te
+        ahorras la cuenta. Es el módulo 10 del capítulo 7, «La trampa de la
         multiplicidad».</p>
 
       <h3>La W, construida antes de mirar</h3>
@@ -4950,18 +4954,21 @@ torre &lt;- poly2nb(unidades, queen = FALSE)
 k5    &lt;- knn2nb(knearneigh(cent, k = 5))
 
 table(card(reina))       # cuántos vecinos tiene cada unidad
-sum(card(reina) == 0)    # islas: si hay, zero.policy = TRUE, y se declara
+sum(card(reina) == 0)    # islas: si hay, se decide qué hacer con ellas y se declara
 n.comp.nb(reina)$nc      # componentes conexos: 1 es lo esperable
 
 # Las réplicas que pide Bonferroni con el p bilateral: nsim + 1 &gt; 40 N
 40 * N</code></pre>
 
       <div class="warning">
-        <p style="margin:0;"><strong>Los vecinos en grados son otros vecinos.</strong> Con la capa en
-          longitud y latitud, <code>knearneigh()</code> mide distancias que no son distancias: un grado de
-          longitud no mide lo mismo en Leticia que en Riohacha. Reproyecta antes de construir cualquier W que
-          dependa de la distancia (módulo 6 del <a href="capitulo-2-crs-georreferenciacion.html">capítulo
-          2</a>, «Medir sobre la Tierra»).</p>
+        <p style="margin:0;"><strong>Los grados no son metros.</strong> Con la capa en longitud y latitud,
+          <code>spdep</code> se da cuenta y mide sobre la esfera, pero solo si le pasas el objeto
+          <code>sf</code>: con <code>st_coordinates()</code> le das números sueltos y los trata como un plano, y
+          un umbral de <code>dnearneigh()</code> sobre una capa en grados se lee en kilómetros, no en metros. En
+          Colombia, tan cerca del ecuador, el vecino más próximo casi no cambia; el umbral, sí: es el ejercicio 4
+          del módulo 12 del <a href="capitulo-2-crs-georreferenciacion.html">capítulo 2</a> («El vecino más
+          próximo aguanta; el umbral de vecindad, no»). Reproyecta antes de construir la W y te ahorras las dos
+          trampas (módulo 2 del capítulo 2, «Latitud y longitud no son cartesianas»).</p>
       </div>
     </div>
   </template>
@@ -5029,8 +5036,16 @@ tabla &lt;- st_drop_geometry(nc)[, c("FIPS", "SID79", "BIR79")]
 c(geometria = nrow(geo), variable = nrow(tabla))
 unidas &lt;- merge(geo, tabla, by = "FIPS")    # por la llave, nunca por la posición de la fila
 nrow(unidas)                                # si baja, hay códigos que no casaron
-setdiff(geo$FIPS, unidas$FIPS)              # cuáles
-unidas$tasa &lt;- 1000 * unidas$SID79 / unidas$BIR79
+setdiff(geo$FIPS, unidas$FIPS)              # cuáles de la geometría se quedaron sin dato
+setdiff(tabla$FIPS, unidas$FIPS)            # y cuáles de la tabla, sin geometría
+unidas$tasa   &lt;- 1000 * unidas$SID79 / unidas$BIR79
+unidas$nombre &lt;- unidas$NAME
+
+# Lo que lee la plantilla del informe: el dato unido y el conteo de la unión
+dir.create("datos", showWarnings = FALSE)
+st_write(unidas, "datos/unidades.gpkg", delete_dsn = TRUE, quiet = TRUE)
+write.csv(data.frame(geometria = nrow(geo), variable = nrow(tabla), unidas = nrow(unidas)),
+          "datos/conteo-union.csv", row.names = FALSE)
 
 dir.create("figuras", showWarnings = FALSE)
 mapa &lt;- tm_shape(unidas) +
@@ -5047,9 +5062,9 @@ moran.mc(unidas$tasa, lw, nsim = 999)</code></pre>
 
       <div class="warning">
         <p style="margin:0;"><strong>Un código DIVIPOLA leído como número es el error más barato de cometer y
-          el más caro de no ver.</strong> Los municipios de Antioquia empiezan por 0: leído como número,
-          <code>05001</code> se vuelve <code>5001</code> y no casa con la geometría, que lo trae como texto.
-          La unión sale, sin avisar, con un departamento entero de menos. Por eso se lee con
+          el más caro de no ver.</strong> Los códigos de Antioquia y de Atlántico empiezan por 0: leído como
+          número, <code>05001</code> se vuelve <code>5001</code> y no casa con la geometría, que lo trae como
+          texto. La unión sale, sin avisar, con dos departamentos enteros de menos. Por eso se lee con
           <code>colClasses</code> y se cuenta antes y después.</p>
       </div>
 
@@ -5083,8 +5098,9 @@ moran.mc(unidas$tasa, lw, nsim = 999)</code></pre>
       </div>
       <p>El informe cierra el <strong>domingo 15 de noviembre a las 11:00</strong>, en la semana 15, y vale el
         <strong>45 %</strong> del proyecto: es lo que más pesa. Se entrega con la release
-        <code>informe</code>, y en ella tienen que estar tres cosas: <code>informe.Rmd</code>, los
-        datos en <code>datos/</code> y el informe ya renderizado, en HTML o en PDF. Son hasta
+        <code>informe</code>, y en ella tiene que estar todo lo del módulo 3: el README,
+        <code>R/datos.R</code>, los datos en <code>datos/</code>, <code>informe.Rmd</code> y el informe ya
+        renderizado, <code>informe.html</code>. Son hasta
         <strong>10 páginas</strong> sin contar los anexos.</p>
 
       <h3>La estructura</h3>
@@ -5117,7 +5133,7 @@ moran.mc(unidas$tasa, lw, nsim = 999)</code></pre>
           <tr><th scope="col">Dónde</th><th scope="col">Módulo</th><th scope="col">Lo que se exige</th><th scope="col">Criterios</th></tr>
         </thead>
         <tbody>
-          <tr><td><a href="capitulo-2-crs-georreferenciacion.html">Capítulo 2</a>, módulo 6</td><td>Medir sobre la Tierra</td><td>Un CRS proyectado, y declarado, antes de medir una distancia o buscar vecinos</td><td>P1, I2</td></tr>
+          <tr><td><a href="capitulo-2-crs-georreferenciacion.html">Capítulo 2</a>, módulo 2</td><td>Latitud y longitud no son cartesianas</td><td>Un CRS proyectado, y declarado, antes de medir una distancia o fijar un umbral</td><td>P1, I2</td></tr>
           <tr><td><a href="capitulo-3-cartografia-maup.html">Capítulo 3</a>, módulo 2</td><td>Normalizar o mentir</td><td>La tasa y no el conteo en el coroplético</td><td>A1, I5</td></tr>
           <tr><td><a href="capitulo-3-cartografia-maup.html">Capítulo 3</a>, módulo 3</td><td>Esquemas de clasificación</td><td>La clasificación del mapa, declarada</td><td>A1, I5</td></tr>
           <tr><td><a href="capitulo-3-cartografia-maup.html">Capítulo 3</a>, módulo 8</td><td>MAUP I · el efecto escala</td><td>La escala de las unidades como decisión, con su porqué</td><td>P2, I1</td></tr>
@@ -5146,12 +5162,15 @@ p &lt;- lp[, "Pr(z != E(Ii)) Sim"]           # el bilateral, el del capítulo 7
 q &lt;- attr(lp, "quadr")$mean               # el cuadrante de cada unidad
 
 # Las tres lecturas del mismo vector de p
-c(sin = sum(p &lt; 0.05),
-  bonferroni = sum(p.adjust(p, "bonferroni") &lt; 0.05),
-  fdr = sum(p.adjust(p, "fdr") &lt; 0.05))
+c(sin = sum(p &lt; 0.05, na.rm = TRUE),
+  bonferroni = sum(p.adjust(p, "bonferroni") &lt; 0.05, na.rm = TRUE),
+  fdr = sum(p.adjust(p, "fdr") &lt; 0.05, na.rm = TRUE))
 
-unidades$lisa &lt;- ifelse(p.adjust(p, "fdr") &lt; 0.05, as.character(q), "No significativo")
-table(unidades$lisa)</code></pre>
+# Las islas no tienen p (NA): van aparte, no como «No significativo»
+fdr &lt;- p.adjust(p, "fdr")
+unidades$lisa &lt;- ifelse(is.na(p), "Isla (sin vecinos)",
+                        ifelse(fdr &lt; 0.05, as.character(q), "No significativo"))
+table(unidades$lisa)   # con nc, ninguna unidad pasa la corrección: también es un resultado</code></pre>
 
       <h3>Que corra de principio a fin</h3>
 
@@ -5175,14 +5194,15 @@ table(unidades$lisa)</code></pre>
       <p>Es obligatoria, también si no usaste ninguna (en ese caso dice eso). Si la usaste, dice cuatro
         cosas: <strong>qué herramienta</strong>, <strong>para qué</strong>, <strong>qué te devolvió</strong> y
         <strong>qué verificaste o corregiste</strong>, con al menos un ejemplo concreto que se pueda comprobar
-        en el repositorio. «Le pedí el código de los vecinos y lo corregí: calculaba los cinco más próximos
-        sobre la capa en grados» es una declaración; «se usó IA como apoyo» no lo es.</p>
+        en el repositorio. «Le pedí el código de los vecinos y lo corregí: le pasaba
+        a <code>dnearneigh()</code> un umbral de 50&#8239;000 sobre la capa en grados, que spdep lee en
+        kilómetros» es una declaración; «se usó IA como apoyo» no lo es.</p>
 
       <h3>Los errores que más cuestan</h3>
 
       <ul>
-        <li><strong>Vecinos o distancias en grados.</strong> Con la capa sin reproyectar, los <em>k</em>
-          vecinos y los umbrales de distancia salen mal sin avisar: módulo 6 del
+        <li><strong>Grados tomados por metros.</strong> Coordenadas sueltas en longitud y latitud tratadas como
+          un plano, o un umbral en metros sobre una capa en grados, que spdep lee en kilómetros: módulo 2 del
           <a href="capitulo-2-crs-georreferenciacion.html">capítulo 2</a>.</li>
         <li><strong>Un conteo en el coroplético.</strong> Pinta la población, y su Moran también: módulo 2 del
           <a href="capitulo-3-cartografia-maup.html">capítulo 3</a>.</li>
@@ -5235,7 +5255,8 @@ table(unidades$lisa)</code></pre>
 
       <p>Con <strong>la misma rúbrica del módulo 10</strong>, los mismos criterios y los mismos
         puntos. Lo que cambia es de qué variable se habla: la variable espacial ya no es una tasa sino un
-        resultado del pronóstico de cada unidad —su error, o lo que gana al mirar a sus vecinos—, y los
+        resultado del pronóstico de cada unidad —su error, lo que gana al mirar a sus vecinos u otra variable
+        por unidad que apruebe la ficha—, y los
         criterios donde eso importa (P2, A2, I3 e I4) llevan su descriptor para la conjunta, a la vista
         en la rúbrica. Lo temporal —el protocolo de pronóstico, el origen móvil, la comparación de modelos— lo
         califica Series y aquí no puntúa: si falta la parte temporal, cae la nota de Series y no la de
@@ -5276,7 +5297,8 @@ table(unidades$lisa)</code></pre>
         <strong>30 %</strong> del proyecto. Cada equipo tiene <strong>10
         minutos</strong> para contar su proyecto y <strong>5 de preguntas</strong>. El orden
         de los equipos se sortea al empezar la sesión: prepárate para ir el primero. Un proyecto conjunto se
-        defiende una sola vez, con el formato del módulo 8 de la guía de Series.</p>
+        defiende una sola vez, con el formato del módulo 8 de la guía de Series, y su día también se acuerda en
+        clase.</p>
 
       <h3>Un guion que cabe en el tiempo</h3>
 
@@ -5358,7 +5380,8 @@ table(unidades$lisa)</code></pre>
 
       <p>La nota de cada hito es la media de sus criterios, ponderada por sus puntos. Dicho en puntos: un
         criterio de 7 puntos calificado «aceptable» aporta $7 \times 3{,}5/5 = 4{,}9$ de los
-        100, y la suma de los 100 es la nota del proyecto multiplicada por 20. Lo escrito —preregistro, avance
+        100, y la suma de los 100, antes del tope y de los descuentos por retraso, es la nota del proyecto
+        multiplicada por 20. Lo escrito —preregistro, avance
         e informe— es de la pareja; las preguntas de la exposición son de cada persona, y acotan lo escrito
         como dice el primer módulo.</p>
 
@@ -7321,7 +7344,7 @@ table(unidades$lisa)</code></pre>
           "clave": "P2",
           "nombre": "El protocolo de inferencia",
           "puntos": 7,
-          "foco": "Preregistro. Mide si las decisiones que mueven el p-valor quedan escritas antes de calcularlo: la escala, la variable, la W, las réplicas y la corrección. <strong>En la conjunta:</strong> la variable espacial es el MASE de cada unidad (pregunta a) o la ganancia de MASE al añadir el rezago espacial (pregunta b), y la W principal es la misma con la que se construye ese rezago.",
+          "foco": "Preregistro. Mide si las decisiones que mueven el p-valor quedan escritas antes de calcularlo: la escala, la variable, la W, las réplicas y la corrección. <strong>En la conjunta:</strong> la variable espacial es el MASE de cada unidad (pregunta a), la ganancia de MASE al añadir el rezago espacial (pregunta b) u otra variable por unidad que apruebe la ficha; en la pregunta b, la W principal es la misma con la que se construye ese rezago.",
           "niveles": [
             {
               "nombre": "Sólido",
@@ -7451,7 +7474,7 @@ table(unidades$lisa)</code></pre>
             {
               "nombre": "Insuficiente",
               "rango": "1,4",
-              "observa": "Vecinos o distancias calculados en grados, una unión que pierde unidades sin decirlo, o pesos construidos sin manejar las islas."
+              "observa": "Coordenadas en grados tratadas como metros (un umbral leído en kilómetros, coordenadas sueltas como un plano), una unión que pierde unidades sin decirlo, o pesos construidos sin manejar las islas."
             }
           ]
         },
@@ -7459,7 +7482,7 @@ table(unidades$lisa)</code></pre>
           "clave": "I3",
           "nombre": "La autocorrelación global",
           "puntos": 8,
-          "foco": "Informe y código. Mide si la inferencia del Moran está bien hecha y se lee entera, también cuando no sale significativa. <strong>En la conjunta:</strong> el Moran se calcula sobre los MASE por unidad (pregunta a) o sobre la ganancia de MASE (pregunta b). Un MASE agrupado en el mapa quiere decir que el modelo falla donde fallan sus vecinos.",
+          "foco": "Informe y código. Mide si la inferencia del Moran está bien hecha y se lee entera, también cuando no sale significativa. <strong>En la conjunta:</strong> el Moran se calcula sobre los MASE por unidad (pregunta a), sobre la ganancia de MASE (pregunta b) o sobre la variable que apruebe la ficha. Un MASE agrupado en el mapa quiere decir que el modelo falla donde fallan sus vecinos.",
           "niveles": [
             {
               "nombre": "Sólido",

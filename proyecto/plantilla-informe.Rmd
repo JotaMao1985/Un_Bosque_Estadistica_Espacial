@@ -15,8 +15,10 @@ output:
   CÓMO USARLA
   1. Guárdala como `informe.Rmd` en la raíz del repositorio del proyecto.
   2. `R/datos.R` lee tus descargas de `datos/crudos/`, las une por la llave y
-     escribe `datos/unidades.gpkg`: una fila por unidad, con su geometría, una
-     columna `nombre` y la columna `tasa` (cambia los nombres a los tuyos).
+     escribe `datos/unidades.gpkg` —una fila por unidad, con su geometría, una
+     columna `nombre` y la columna `tasa` (cambia los nombres a los tuyos)— y
+     `datos/conteo-union.csv`, con cuántas unidades traía cada fuente y cuántas
+     quedaron (el módulo 6 de la guía trae ese guion).
   3. Mientras no exista `datos/unidades.gpkg`, la plantilla usa los condados de
      Carolina del Norte (`nc`, que viene con sf), solo en la memoria de R: no
      escribe nada en `datos/`, y el informe lo avisa en grande. Cuando tengas
@@ -39,6 +41,7 @@ NSIM_GLOBAL <- 999      # réplicas del Moran global
 NSIM_LOCAL  <- 49999    # réplicas del LISA: con Bonferroni, nsim + 1 > 40 N
 SEMILLA <- 2026
 ALFA    <- 0.05
+ALTERNATIVA <- "greater"   # la hipótesis del preregistro: "greater", "less" o "two.sided"
 ```
 
 ```{r datos-de-ejemplo, include = FALSE}
@@ -71,10 +74,13 @@ unidades <- st_transform(unidades, CRS)   # proyectado ANTES de medir nada
 N <- nrow(unidades)
 N
 st_crs(unidades)$epsg
+conteo <- if (ejemplo) data.frame(geometria = N, variable = N, unidas = N) else
+  read.csv("datos/conteo-union.csv")
+conteo
 ```
 
-La unión, contada (copia aquí lo que imprime `R/datos.R`): cuántas unidades tenía la
-geometría, cuántas la variable y cuántas quedaron, y por qué se perdió cada una.
+La geometría traía `r conteo$geometria` unidades y la variable `r conteo$variable`; al unirlas
+quedaron `r conteo$unidas`. Di por qué se perdió cada una.
 
 ## La tasa en el mapa
 
@@ -117,7 +123,8 @@ Cada desviación del preregistro, con lo que cambia en el análisis. Si no hubo 
 
 ```{r moran}
 set.seed(SEMILLA)
-mc <- moran.mc(unidades$tasa, lw, nsim = NSIM_GLOBAL, zero.policy = TRUE)
+mc <- moran.mc(unidades$tasa, lw, nsim = NSIM_GLOBAL, zero.policy = TRUE,
+               alternative = ALTERNATIVA)
 mc
 moran.plot(as.vector(scale(unidades$tasa)), lw, zero.policy = TRUE,
            xlab = "tasa tipificada", ylab = "rezago espacial")
@@ -134,7 +141,7 @@ lo sostienen? Si no es significativo, ¿qué dependencia habría pasado sin dete
 set.seed(SEMILLA)
 t(sapply(W, function(nb) {
   m <- moran.mc(unidades$tasa, nb2listw(nb, style = "W", zero.policy = TRUE),
-                nsim = NSIM_GLOBAL, zero.policy = TRUE)
+                nsim = NSIM_GLOBAL, zero.policy = TRUE, alternative = ALTERNATIVA)
   c(I = round(m$statistic[[1]], 3), p = m$p.value)
 }))
 ```
@@ -152,21 +159,31 @@ c(sin = sum(p < ALFA, na.rm = TRUE),
   bonferroni = sum(p.adjust(p, "bonferroni") < ALFA, na.rm = TRUE),
   fdr = sum(p.adjust(p, "fdr") < ALFA, na.rm = TRUE))
 
-categorias <- c("No significativo", "High-High", "Low-Low", "High-Low", "Low-High")
-colores    <- c("#eeeeee", "#d7191c", "#2c7bb6", "#fdae61", "#abd9e9")
-unidades$lisa <- factor(ifelse(!is.na(p) & p.adjust(p, "fdr") < ALFA, q, "No significativo"),
-                        levels = categorias)
-tm_shape(unidades) +
-  tm_polygons(fill = "lisa",
-              fill.scale = tm_scale_categorical(values = colores, levels.drop = FALSE),
-              fill.legend = tm_legend(title = "LISA, FDR al 5 %")) +
-  tm_title("Conglomerados LISA corregidos por FDR")
+# Los colores del capítulo 7; las islas no tienen p (NA) y van aparte
+categorias <- c("No significativo", "High-High", "Low-Low", "High-Low", "Low-High", "Isla (sin vecinos)")
+colores    <- c("#e5e5e5", "#c1272d", "#2166ac", "#f4a582", "#92c5de", "#ffffff")
+clasifica <- function(p_usado) factor(ifelse(is.na(p), "Isla (sin vecinos)",
+                                             ifelse(p_usado < ALFA, q, "No significativo")),
+                                      levels = categorias)
+unidades$lisa_sin <- clasifica(p)
+unidades$lisa     <- clasifica(p.adjust(p, "fdr"))
+mapa_lisa <- function(columna, titulo) {
+  tm_shape(unidades) +
+    tm_polygons(fill = columna,
+                fill.scale = tm_scale_categorical(values = colores, levels.drop = FALSE),
+                fill.legend = tm_legend(title = "LISA")) +
+    tm_title(titulo)
+}
+mapa_lisa("lisa_sin", "LISA sin corregir: lo que NO se publica como conglomerado")
+mapa_lisa("lisa", "LISA corregido por FDR al 5 %")
 ```
 
-Los conglomerados, por su nombre:
+Lee los dos mapas: ¿qué unidades se caen con la corrección? Los conglomerados que quedan,
+por su nombre:
 
 ```{r conglomerados}
-st_drop_geometry(unidades)[unidades$lisa != "No significativo", c("nombre", "tasa", "lisa")]
+st_drop_geometry(unidades)[!unidades$lisa %in% c("No significativo", "Isla (sin vecinos)"),
+                           c("nombre", "tasa", "lisa")]
 ```
 
 # El análisis exploratorio
@@ -184,6 +201,15 @@ Qué herramienta, para qué, qué te devolvió y qué verificaste o corregiste, 
 ejemplo concreto. Si no usaste ninguna, dilo.
 
 # Anexos
+
+## Los p locales
+
+```{r anexo-p}
+cbind(st_drop_geometry(unidades)[, c("nombre", "tasa")],
+      cuadrante = q, p_bilateral = signif(p, 3), p_fdr = signif(p.adjust(p, "fdr"), 3))
+```
+
+## La sesión de R
 
 ```{r sesion}
 sessionInfo()

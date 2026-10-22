@@ -299,7 +299,6 @@ def marcadores() -> dict[str, str]:
         "PLANTILLA_RMD": RMD_DESTINO.name,
         "RESPUESTA_FICHA": D.frase_fecha(D.RESPUESTA_FICHA),
         "N_MINIMO": str(D.N_MINIMO),
-        "N_LECTURA_POTENCIA": str(D.N_LECTURA_POTENCIA),
         "UNIDAD_SI_NOMBRE": si_nombre, "UNIDAD_SI_N": str(si_n),
         "UNIDAD_NO_NOMBRE": no_nombre, "UNIDAD_NO_N": str(no_n),
         "POT_MIN_05": str(round(100 * D.potencia(D.N_MINIMO, 0.5))),

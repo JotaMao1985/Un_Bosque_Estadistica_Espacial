@@ -378,7 +378,9 @@ def main() -> int:
                 if caso == "propio":
                     prep = ('library(sf); dir.create("datos"); x <- st_read(system.file("shape/nc.shp", '
                             'package = "sf"), quiet = TRUE); x$nombre <- x$NAME; '
-                            'x$tasa <- 1000 * x$NWBIR79 / x$BIR79; st_write(x, "datos/unidades.gpkg", quiet = TRUE)')
+                            'x$tasa <- 1000 * x$NWBIR79 / x$BIR79; st_write(x, "datos/unidades.gpkg", quiet = TRUE); '
+                            'write.csv(data.frame(geometria = 101, variable = 100, unidas = 100), '
+                            '"datos/conteo-union.csv", row.names = FALSE)')
                     subprocess.run([RSCRIPT, "--vanilla", "-e", prep], cwd=tmp, capture_output=True, timeout=120)
                 r = subprocess.run([RSCRIPT, "--vanilla", "-e", 'rmarkdown::render("informe.Rmd", quiet = TRUE)'],
                                    cwd=tmp, capture_output=True, text=True, timeout=600)
@@ -394,6 +396,24 @@ def main() -> int:
                 if caso == "ejemplo":
                     A.check("E", not (pathlib.Path(tmp) / "datos").exists(),
                             "con los datos de ejemplo no escribe nada en datos/")
+                else:
+                    A.check("E", "traía 101 unidades" in texto_visible(html_out),
+                            "con datos propios, el conteo de la unión sale del csv por R en línea")
+
+    # La plantilla, leída: los colores del LISA son los del capítulo 7 y las
+    # islas van aparte (revisión de contenido del 21 oct 2026).
+    rmd = RMD_PRUEBA.read_text(encoding="utf-8")
+    cap7 = (SITIO / "capitulo-7-autocorrelacion.html").read_text(encoding="utf-8")
+    pal = re.search(r'"m9": \{"niveles": \[[^\]]+\], "colores": \[([^\]]+)\]', cap7)
+    colores7 = re.findall(r'"(#[0-9a-fA-F]{6})"', pal.group(1)) if pal else []
+    A.check("E", len(colores7) == 5 and all(c in rmd for c in colores7),
+            "la plantilla pinta el LISA con los cinco colores del capítulo 7", f"({colores7})")
+    # El p de una isla es NA: lo que la manda aparte es la prueba de is.na(p), no el rótulo.
+    A.check("E", re.search(r'ifelse\(is\.na\(p\),\s*"Isla \(sin vecinos\)"', rmd) is not None
+            and re.search(r'ifelse\(is\.na\(p\),\s*"Isla \(sin vecinos\)"', _html.unescape(M)) is not None,
+            "las islas van aparte en la plantilla y en el código de la guía")
+    A.check("E", "lisa_sin" in rmd and "anexo-p" in rmd, "la plantilla trae el mapa sin corregir y la tabla de p")
+    A.check("E", "copia aquí" not in rmd.lower(), "la plantilla no pide copiar cifras a mano")
 
     # ------------------------------------------------------------------ F
     print("\n=== F · Contenido ===")
@@ -417,7 +437,7 @@ def main() -> int:
     for cap, arch, mm, clave in ((6, "capitulo-6-pesos-espaciales.html", 4, "vecinos"),
                                  (6, "capitulo-6-pesos-espaciales.html", 5, "Umbral"),
                                  (3, "capitulo-3-cartografia-maup.html", 8, "MAUP"),
-                                 (2, "capitulo-2-crs-georreferenciacion.html", 6, "Medir"),
+                                 (2, "capitulo-2-crs-georreferenciacion.html", 2, "Latitud"),
                                  (7, "capitulo-7-autocorrelacion.html", 10, "multiplicidad")):
         A.check("F", clave in titulos_capitulo(arch).get(mm, ""), f"el módulo {mm} del capítulo {cap} trata «{clave}»")
     P = json.loads(POTENCIA.read_text(encoding="utf-8"))
@@ -450,7 +470,7 @@ def main() -> int:
     A.check("G", len(filas_ex) >= 10, "la tabla de exigencias tiene sus filas", f"({len(filas_ex)})")
     descriptores = {c["clave"]: " ".join([c["foco"]] + [n["observa"] for n in c["niveles"]]) for c in (R or {}).get("criterios", [])}
     # Lo que cada módulo enseña, en la palabra que su criterio tiene que decir.
-    CLAVES = {"Medir sobre la Tierra": "CRS", "Normalizar o mentir": "tasa",
+    CLAVES = {"Latitud y longitud no son cartesianas": "CRS", "Normalizar o mentir": "tasa",
               "Esquemas de clasificación": "clasificación", "MAUP I · el efecto escala": "escala",
               "La falacia ecológica": "falacia ecológica", "Islas y zero.policy": "islas",
               "Inferencia": "permutación", "Moran es sensible a W": "alternativas",
@@ -464,7 +484,7 @@ def main() -> int:
             A.check("G", c in descriptores and clave is not None and clave.lower() in descriptores[c].lower(),
                     f"«{re.sub(r'<[^>]+>', '', que)[:45]}…» → {c} lo nombra ({clave})")
     vp = texto_visible(mod(T_PREREGISTRO))
-    n_ej = re.search(r"Con los (\d+) departamentos, nsim ≥ ([\d  ]+)", vp)
+    n_ej = re.search(r"Con las (\d+) unidades de los departamentos y Bogotá, nsim ≥\s+([\d  ]+)", vp)
     if n_ej:
         N = int(n_ej.group(1))
         minimo = next(k for k in range(1, 10 ** 6) if 2 * N < 0.05 * (k + 1))
@@ -475,6 +495,15 @@ def main() -> int:
     A.check("G", r"\text{nsim} + 1 &gt; 40\,N" in mod(T_PREREGISTRO) or r"\text{nsim} + 1 > 40\,N" in mod(T_PREREGISTRO),
             "la fórmula es la del cap. 7: nsim + 1 > 40 N")
     A.check("G", not re.search(r"40\s*[·*]?\s*N\s*[−-]\s*1", V), "nada dice «40·N − 1»")
+    # El capítulo 2 (módulo 12, ejercicio 4): el vecino más próximo aguanta en
+    # grados porque spdep mide sobre la esfera; lo que se rompe son las
+    # coordenadas sueltas y el umbral. La guía no puede decir lo contrario.
+    A.check("G", not re.search(r"vecinos en grados|knearneigh\(\) mide distancias", V),
+            "nada dice que los k vecinos salgan mal en grados")
+    A.check("G", "st_coordinates()" in vp and "kilómetros" in vp,
+            "el preregistro dice dónde está la trampa: coordenadas sueltas y el umbral en kilómetros")
+    A.check("G", "no significativo nunca se lee" in vq and "menos de 64" not in vq,
+            "un Moran no significativo nunca prueba ausencia, con ningún N")
     hab = re.search(r"Las (\d+) de GeoDa y de esda no alcanzan desde (\d+) unidades", vp)
     A.check("G", bool(hab) and not (2 * int(hab.group(2)) < 0.05 * (int(hab.group(1)) + 1))
             and 2 * (int(hab.group(2)) - 1) < 0.05 * (int(hab.group(1)) + 1),

@@ -1,7 +1,8 @@
       <p>El informe cierra el <strong>@@INFORME_CIERRA@@</strong>, en la semana @@INFORME_SEMANA@@, y vale el
         <strong>@@PESO_INFORME@@ %</strong> del proyecto: es lo que más pesa. Se entrega con la release
-        <code>@@ETIQUETA_INFORME@@</code>, y en ella tienen que estar tres cosas: <code>informe.Rmd</code>, los
-        datos en <code>datos/</code> y el informe ya renderizado, en HTML o en PDF. Son hasta
+        <code>@@ETIQUETA_INFORME@@</code>, y en ella tiene que estar todo lo del módulo 3: el README,
+        <code>R/datos.R</code>, los datos en <code>datos/</code>, <code>informe.Rmd</code> y el informe ya
+        renderizado, <code>informe.html</code>. Son hasta
         <strong>@@PAGINAS_INFORME@@ páginas</strong> sin contar los anexos.</p>
 
       <h3>La estructura</h3>
@@ -46,12 +47,15 @@ p &lt;- lp[, "Pr(z != E(Ii)) Sim"]           # el bilateral, el del capítulo 7
 q &lt;- attr(lp, "quadr")$mean               # el cuadrante de cada unidad
 
 # Las tres lecturas del mismo vector de p
-c(sin = sum(p &lt; 0.05),
-  bonferroni = sum(p.adjust(p, "bonferroni") &lt; 0.05),
-  fdr = sum(p.adjust(p, "fdr") &lt; 0.05))
+c(sin = sum(p &lt; 0.05, na.rm = TRUE),
+  bonferroni = sum(p.adjust(p, "bonferroni") &lt; 0.05, na.rm = TRUE),
+  fdr = sum(p.adjust(p, "fdr") &lt; 0.05, na.rm = TRUE))
 
-unidades$lisa &lt;- ifelse(p.adjust(p, "fdr") &lt; 0.05, as.character(q), "No significativo")
-table(unidades$lisa)</code></pre>
+# Las islas no tienen p (NA): van aparte, no como «No significativo»
+fdr &lt;- p.adjust(p, "fdr")
+unidades$lisa &lt;- ifelse(is.na(p), "Isla (sin vecinos)",
+                        ifelse(fdr &lt; 0.05, as.character(q), "No significativo"))
+table(unidades$lisa)   # con nc, ninguna unidad pasa la corrección: también es un resultado</code></pre>
 
       <h3>Que corra de principio a fin</h3>
 
@@ -75,14 +79,15 @@ table(unidades$lisa)</code></pre>
       <p>Es obligatoria, también si no usaste ninguna (en ese caso dice eso). Si la usaste, dice cuatro
         cosas: <strong>qué herramienta</strong>, <strong>para qué</strong>, <strong>qué te devolvió</strong> y
         <strong>qué verificaste o corregiste</strong>, con al menos un ejemplo concreto que se pueda comprobar
-        en el repositorio. «Le pedí el código de los vecinos y lo corregí: calculaba los cinco más próximos
-        sobre la capa en grados» es una declaración; «se usó IA como apoyo» no lo es.</p>
+        en el repositorio. «Le pedí el código de los vecinos y lo corregí: le pasaba
+        a <code>dnearneigh()</code> un umbral de 50&#8239;000 sobre la capa en grados, que spdep lee en
+        kilómetros» es una declaración; «se usó IA como apoyo» no lo es.</p>
 
       <h3>Los errores que más cuestan</h3>
 
       <ul>
-        <li><strong>Vecinos o distancias en grados.</strong> Con la capa sin reproyectar, los <em>k</em>
-          vecinos y los umbrales de distancia salen mal sin avisar: módulo 6 del
+        <li><strong>Grados tomados por metros.</strong> Coordenadas sueltas en longitud y latitud tratadas como
+          un plano, o un umbral en metros sobre una capa en grados, que spdep lee en kilómetros: módulo 2 del
           <a href="capitulo-2-crs-georreferenciacion.html">capítulo 2</a>.</li>
         <li><strong>Un conteo en el coroplético.</strong> Pinta la población, y su Moran también: módulo 2 del
           <a href="capitulo-3-cartografia-maup.html">capítulo 3</a>.</li>

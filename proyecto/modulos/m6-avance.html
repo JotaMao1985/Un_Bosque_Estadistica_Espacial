@@ -43,8 +43,16 @@ tabla &lt;- st_drop_geometry(nc)[, c("FIPS", "SID79", "BIR79")]
 c(geometria = nrow(geo), variable = nrow(tabla))
 unidas &lt;- merge(geo, tabla, by = "FIPS")    # por la llave, nunca por la posición de la fila
 nrow(unidas)                                # si baja, hay códigos que no casaron
-setdiff(geo$FIPS, unidas$FIPS)              # cuáles
-unidas$tasa &lt;- 1000 * unidas$SID79 / unidas$BIR79
+setdiff(geo$FIPS, unidas$FIPS)              # cuáles de la geometría se quedaron sin dato
+setdiff(tabla$FIPS, unidas$FIPS)            # y cuáles de la tabla, sin geometría
+unidas$tasa   &lt;- 1000 * unidas$SID79 / unidas$BIR79
+unidas$nombre &lt;- unidas$NAME
+
+# Lo que lee la plantilla del informe: el dato unido y el conteo de la unión
+dir.create("datos", showWarnings = FALSE)
+st_write(unidas, "datos/unidades.gpkg", delete_dsn = TRUE, quiet = TRUE)
+write.csv(data.frame(geometria = nrow(geo), variable = nrow(tabla), unidas = nrow(unidas)),
+          "datos/conteo-union.csv", row.names = FALSE)
 
 dir.create("figuras", showWarnings = FALSE)
 mapa &lt;- tm_shape(unidas) +
@@ -61,9 +69,9 @@ moran.mc(unidas$tasa, lw, nsim = 999)</code></pre>
 
       <div class="warning">
         <p style="margin:0;"><strong>Un código DIVIPOLA leído como número es el error más barato de cometer y
-          el más caro de no ver.</strong> Los municipios de Antioquia empiezan por 0: leído como número,
-          <code>05001</code> se vuelve <code>5001</code> y no casa con la geometría, que lo trae como texto.
-          La unión sale, sin avisar, con un departamento entero de menos. Por eso se lee con
+          el más caro de no ver.</strong> Los códigos de Antioquia y de Atlántico empiezan por 0: leído como
+          número, <code>05001</code> se vuelve <code>5001</code> y no casa con la geometría, que lo trae como
+          texto. La unión sale, sin avisar, con dos departamentos enteros de menos. Por eso se lee con
           <code>colClasses</code> y se cuenta antes y después.</p>
       </div>
 

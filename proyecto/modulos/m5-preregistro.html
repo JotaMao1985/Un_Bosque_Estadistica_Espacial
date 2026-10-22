@@ -63,10 +63,12 @@
         $$\frac{2}{\text{nsim}+1} &lt; \frac{0{,}05}{N} \quad\Longleftrightarrow\quad \text{nsim} + 1 &gt; 40\,N .$$
       </div>
 
-      <p>Con los @@N_EJEMPLO_NSIM@@ departamentos, <strong>nsim ≥ @@NSIM_EJEMPLO@@</strong>. Las
+      <p>Con las @@N_EJEMPLO_NSIM@@ unidades de los departamentos y Bogotá, <strong>nsim ≥
+        @@NSIM_EJEMPLO@@</strong>. Las
         @@NSIM_HABITUAL@@ de GeoDa y de <code>esda</code> no alcanzan desde @@N_MINIMO@@ unidades. Las
-        @@NSIM_CAPITULO@@ del capítulo 7 alcanzan hasta @@N_MAX_NSIM_CAPITULO@@ unidades, y con tu N tardan
-        segundos: úsalas y te ahorras la cuenta. Es el módulo 10 del capítulo 7, «La trampa de la
+        @@NSIM_CAPITULO@@ del capítulo 7 alcanzan hasta @@N_MAX_NSIM_CAPITULO@@ unidades; con unas decenas o
+        cientos de unidades tardan segundos, y con los 1&#8239;122 municipios, alrededor de un minuto. Úsalas y te
+        ahorras la cuenta. Es el módulo 10 del capítulo 7, «La trampa de la
         multiplicidad».</p>
 
       <h3>La W, construida antes de mirar</h3>
@@ -90,16 +92,19 @@ torre &lt;- poly2nb(unidades, queen = FALSE)
 k5    &lt;- knn2nb(knearneigh(cent, k = 5))
 
 table(card(reina))       # cuántos vecinos tiene cada unidad
-sum(card(reina) == 0)    # islas: si hay, zero.policy = TRUE, y se declara
+sum(card(reina) == 0)    # islas: si hay, se decide qué hacer con ellas y se declara
 n.comp.nb(reina)$nc      # componentes conexos: 1 es lo esperable
 
 # Las réplicas que pide Bonferroni con el p bilateral: nsim + 1 &gt; 40 N
 40 * N</code></pre>
 
       <div class="warning">
-        <p style="margin:0;"><strong>Los vecinos en grados son otros vecinos.</strong> Con la capa en
-          longitud y latitud, <code>knearneigh()</code> mide distancias que no son distancias: un grado de
-          longitud no mide lo mismo en Leticia que en Riohacha. Reproyecta antes de construir cualquier W que
-          dependa de la distancia (módulo 6 del <a href="capitulo-2-crs-georreferenciacion.html">capítulo
-          2</a>, «Medir sobre la Tierra»).</p>
+        <p style="margin:0;"><strong>Los grados no son metros.</strong> Con la capa en longitud y latitud,
+          <code>spdep</code> se da cuenta y mide sobre la esfera, pero solo si le pasas el objeto
+          <code>sf</code>: con <code>st_coordinates()</code> le das números sueltos y los trata como un plano, y
+          un umbral de <code>dnearneigh()</code> sobre una capa en grados se lee en kilómetros, no en metros. En
+          Colombia, tan cerca del ecuador, el vecino más próximo casi no cambia; el umbral, sí: es el ejercicio 4
+          del módulo 12 del <a href="capitulo-2-crs-georreferenciacion.html">capítulo 2</a> («El vecino más
+          próximo aguanta; el umbral de vecindad, no»). Reproyecta antes de construir la W y te ahorras las dos
+          trampas (módulo 2 del capítulo 2, «Latitud y longitud no son cartesianas»).</p>
       </div>

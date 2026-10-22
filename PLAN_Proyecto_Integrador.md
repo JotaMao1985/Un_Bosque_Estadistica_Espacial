@@ -3,7 +3,7 @@ tipo: plan
 curso: "[[20929 Estadística Espacial]]"
 capitulo: 10
 fecha: 2026-10-21
-estado: CONSTRUIDA (2026-10-21) — auditor en verde; falta fusionar el PR, que publica en Pages
+estado: CONSTRUIDA (2026-10-21) — auditor en verde (218) y arnés 56/56; falta fusionar el PR, que publica en Pages
 ---
 
 # Plan · Guía del proyecto integrador — Corte III
@@ -35,7 +35,7 @@ estudiantes cursan las dos materias y pueden presentar un solo proyecto conjunto
     esas cifras.
   - `precalculo/ensambla_proyecto.py`: 10 módulos, 357 KB, el CSS de la plantilla (197 selectores), la rúbrica en
     una tabla y en el componente `.rubrica`, sin restos de demostración.
-  - `precalculo/audita_proyecto.py`: 203 comprobaciones, 0 fallos, con el frente E corriendo los tres bloques de R
+  - `precalculo/audita_proyecto.py` (antes de la revisión de contenido): 203 comprobaciones, 0 fallos, con el frente E corriendo los tres bloques de R
     y la plantilla con datos de ejemplo y con datos propios. `precalculo/prueba_auditor_proyecto.py`: 51 defectos,
     51 cazados por su frente, controles limpios antes y después.
   - Navegador por HTTP: los diez módulos sin errores de consola (solo el aviso de Tailwind), KaTeX sin errores,
@@ -43,6 +43,31 @@ estudiantes cursan las dos materias y pueden presentar un solo proyecto conjunto
     plantilla responde 200.
   - Portada con su tarjeta (sección «Proyecto integrador»), `cuenta_sitio.py` con un sexto cubo (`proyecto-*`) y
     `audita_todo.sh` con su bloque.
+  - **Revisión de contenido independiente (2026-10-21), 13 errores objetivos, todos corregidos**, cada uno con su
+    comprobación nueva (auditor: 218 comprobaciones, 0 fallos; arnés: 56 de 56):
+    1. La guía decía que los *k* vecinos salen mal en grados. **Es falso y contradice el cap. 2** (M12, ej. 4: «el
+       vecino más próximo aguanta; el umbral de vecindad, no»): spdep mide sobre la esfera si recibe el `sf` en
+       lon/lat. Lo que se rompe son las coordenadas sueltas (`st_coordinates`) y el umbral de `dnearneigh`, que
+       sobre una capa en grados se lee en kilómetros. Reescritos m1, m5, m7, el ejemplo de IA y el insuficiente de
+       I2; la exigencia del cap. 2 pasa del M6 al M2.
+    2. La plantilla pedía copiar a mano el conteo de la unión: ahora lo lee de `datos/conteo-union.csv`, que
+       escribe el guion del m6.
+    3. Las islas salían como «No significativo»: categoría propia en la plantilla y en el m7.
+    4. «Con menos de 64 unidades…» implicaba que con más sí se lee ausencia: retirado; un no significativo nunca
+       prueba ausencia.
+    5. Ni esta guía ni la de Series fijan **el día de la defensa conjunta** (DE12 decía que lo fijaba Series): el
+       m9 dice ahora que se acuerda en clase, y queda como pendiente de Series (nota en la carpeta compartida).
+    6. Los descriptores de la conjunta cerraban la pregunta propia que Series admite: añaden «u otra variable por
+       unidad que apruebe la ficha».
+    7. Alto-bajo naranja en la plantilla: ahora los cinco colores del cap. 7 (`#c1272d`, `#2166ac`, `#f4a582`,
+       `#92c5de`, `#e5e5e5`), comprobados contra el JSON del capítulo.
+    8. La plantilla no traía el mapa sin corregir ni la tabla de p que pide I4: añadidos.
+    9. El m7 dejaba fuera de la release el README y `R/datos.R`, y admitía PDF: corregido.
+    10. El DIVIPOLA leído como número pierde **dos** departamentos (Antioquia y Atlántico), no uno.
+    11. «Los 33 departamentos» → las 33 unidades de los departamentos y Bogotá.
+    12. Las 49 999 réplicas no tardan segundos con cualquier N: con los 1 122 municipios, un minuto.
+    13. El código del m6 no listaba lo que no casó de la tabla ni escribía `unidades.gpkg`: ahora sí.
+    Además: la hipótesis del Moran es una constante (`ALTERNATIVA`), y la suma de puntos se dice antes del tope.
   - **El enlace al módulo 8 de Series da 404 hasta que se publique la guía de Series** (§11). El frente H
     comprueba la forma del enlace y, cuando la guía de Series esté en su árbol, que su módulo 8 sea el de la
     conjunta.
@@ -125,7 +150,7 @@ Todo lo que lleva cifra vivirá en `proyecto/datos.py`, como en Diseño y en Ser
 | **DE9** | **Documento propio, con prefijo `proyecto-*`**, construido como el de Diseño: `proyecto/datos.py`, módulos con `@@CLAVE@@`, `precalculo/ensambla_proyecto.py` con `--revisar` sobre `plantilla/plantilla-capitulo.html`, `precalculo/audita_proyecto.py` y su arnés `precalculo/prueba_auditor_proyecto.py` (nombres de Espacial) | Diseño D5, Series D5 | Tarjeta en el Corte III de `index.html`, la guía en `cuenta_sitio.py` y en `audita_todo.sh` |
 | **DE10** | **La conjunta se enlaza, no se copia** (F6). El módulo 8 de esta guía dice quién puede elegirla y remite al módulo 8 de Series para todo lo demás. Lo único propio de Espacial que vive aquí son **los descriptores de la parte espacial en la conjunta** (en (a), la variable espacial es el MASE de cada unidad; en (b), la ganancia de MASE por unidad al añadir Wy), porque la rúbrica es de Espacial | Series D12 | El auditor prohíbe que la guía repita las reglas (frente H): si una regla aparece aquí, es una copia que puede quedarse vieja |
 | **DE11** | **IA permitida y declaración obligatoria** (I8), con un ejemplo verificable. La semana 13 del sílabo es el *AI-assisted spatial analysis workshop*: la guía remite a él y a sus errores típicos (CRS y matrices de vecindad) | Series D14 y el sílabo | Como en Diseño y Series, se mide la resistencia a la IA (T8) |
-| **DE12** | **Día de la exposición en la semana 16**: martes 17 o jueves 19 de noviembre; el día exacto se acuerda en clase. La defensa de la conjunta es una sola, y dónde y cuándo lo dice el módulo 8 de Series | Series D4 y F6 | Si la conjunta se defiende en la clase de Series, Espacial no la repite |
+| **DE12** | **Día de la exposición en la semana 16**: martes 17 o jueves 19 de noviembre; el día exacto se acuerda en clase. La defensa de la conjunta es una sola, con el formato del módulo 8 de Series; **su día no lo fija ninguna guía** (revisión del 21 oct) y también se acuerda en clase | Series D4 y F6 | Si la conjunta se defiende en la clase de Series, Espacial no la repite |
 
 ## 4. Pendientes de Javier — bloquean
 

@@ -130,12 +130,17 @@ DEFECTOS = [
     ("la prosa lee mal la tabla de potencia", "F",
      cambia("<strong>46 veces de cada 100</strong>", "<strong>56 veces de cada 100</strong>"), False),
     # --- G · Exigencias
-    ("el ejemplo de réplicas vuelve a 40·N − 1", "G", cambia(f"nsim ≥ 1{FINO}320", f"nsim ≥ 1{FINO}319"), False),
+    ("el ejemplo de réplicas vuelve a 40·N − 1", "G", sub(rf"nsim ≥\s+1{FINO}320", f"nsim ≥ 1{FINO}319"), False),
     ("las 999 dejan de alcanzar en otro N", "G", cambia("desde 25 unidades", "desde 30 unidades"), False),
     ("se pierde el aviso del p plegado", "G",
      sub(r"Y el p plegado de GeoDa leído como si fuera el bilateral: marca el\s+10 % como si fuera el 5 %\.", ""), False),
     ("I6 deja de nombrar la falacia ecológica", "G",
      cambia("la escala, la falacia ecológica y la potencia", "la escala y la potencia"), False),
+    # La revisión de contenido del 21 oct 2026: cada defecto devuelve el texto de antes.
+    ("vuelven los vecinos en grados como error", "G",
+     en_modulo(5, "<p>Los vecinos en grados son otros vecinos: knearneigh() mide distancias que no son distancias.</p>"), False),
+    ("vuelve el umbral de 64 para leer la potencia", "G",
+     cambia("un Moran no significativo nunca se lee", "con menos de 64 unidades, un Moran no significativo no se lee"), False),
     # --- H · Conjunta
     ("el enlace a Series apunta a otro módulo", "H", cambia("#modulo-8", "#modulo-7"), False),
     ("una regla de la conjunta copiada aquí", "H", en_modulo(8, "<p>El informe conjunto tiene hasta 15 páginas.</p>"), False),
@@ -151,6 +156,11 @@ DEFECTOS = [
             '  dir.create("datos", showWarnings = FALSE); st_write(unidades, "datos/ejemplo.gpkg", quiet = TRUE)\n')),
     ("la plantilla pierde el aviso de los datos de ejemplo", "E", "rmd",
      cambia('if (ejemplo) cat(', 'if (FALSE) cat(')),
+    ("la plantilla vuelve al alto-bajo naranja", "E", "rmd", cambia('"#f4a582"', '"#fdae61"')),
+    ("la plantilla vuelve a pintar las islas como no significativas", "E", "rmd",
+     cambia('ifelse(is.na(p), "Isla (sin vecinos)",', 'ifelse(FALSE, "Isla (sin vecinos)",')),
+    ("la plantilla vuelve a pedir copiar el conteo a mano", "E", "rmd",
+     cambia("Di por qué se perdió cada una.", "Copia aquí lo que imprime R/datos.R. Di por qué se perdió cada una.")),
 ]
 
 
