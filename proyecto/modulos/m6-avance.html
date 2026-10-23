@@ -1,0 +1,84 @@
+      <p>El avance cierra el <strong>@@AVANCE_CIERRA@@</strong>, en la semana @@AVANCE_SEMANA@@, y vale el
+        <strong>@@PESO_AVANCE@@ %</strong> del proyecto. Llega cuando todavía se puede arreglar una unión que
+        perdió unidades o una W que dejó islas, y no la víspera del informe. Se entrega con la release
+        <code>@@ETIQUETA_AVANCE@@</code>.</p>
+
+      <div class="note">
+        <p style="margin:0;"><strong>El avance no es un borrador del informe.</strong> Entre el avance y el
+          informe hay cinco días, y se puede porque el protocolo está fijado desde el preregistro: el código
+          del Moran y del LISA se puede escribir desde ese día. El avance pide lo que va antes de la inferencia,
+          y el primer Moran con la W principal.</p>
+      </div>
+
+      <h3>Qué se entrega</h3>
+
+      <div class="diagram">
+        <ol>
+          <li><strong>La unión, contada.</strong> En <code>R/datos.R</code>: cuántas unidades tiene la
+            geometría, cuántas la variable y cuántas quedan después de unir. Cada unidad que se pierde, con su
+            nombre y su razón.</li>
+          <li><strong>El mapa exploratorio de la tasa</strong>, en <code>figuras/</code> y enlazado desde
+            <code>avance.md</code>, con su método de clasificación y su número de clases dichos en la leyenda o
+            en el título.</li>
+          <li><strong>La W principal, descrita.</strong> Cuántos vecinos tiene cada unidad, las islas y qué se
+            hizo con ellas, los componentes conexos.</li>
+          <li><strong>El Moran global con la W principal</strong>, por permutación, con sus réplicas y su
+            semilla. Todavía sin la sensibilidad ni el análisis local.</li>
+          <li><strong>Las desviaciones del preregistro</strong>, en <code>avance.md</code>, cada una con lo que
+            cambia en el análisis.</li>
+        </ol>
+      </div>
+
+<pre><code class="language-r">library(sf)
+library(spdep)
+library(tmap)
+
+# El ejemplo parte nc en geometría y tabla para enseñar la unión. En tu proyecto:
+#   geo   &lt;- st_read("datos/crudos/municipios.gpkg")
+#   tabla &lt;- read.csv("datos/crudos/variable.csv", colClasses = c(codigo = "character"))
+nc    &lt;- st_transform(st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE), 32119)
+geo   &lt;- nc[, c("FIPS", "NAME")]
+tabla &lt;- st_drop_geometry(nc)[, c("FIPS", "SID79", "BIR79")]
+
+c(geometria = nrow(geo), variable = nrow(tabla))
+unidas &lt;- merge(geo, tabla, by = "FIPS")    # por la llave, nunca por la posición de la fila
+nrow(unidas)                                # si baja, hay códigos que no casaron
+setdiff(geo$FIPS, unidas$FIPS)              # cuáles de la geometría se quedaron sin dato
+setdiff(tabla$FIPS, unidas$FIPS)            # y cuáles de la tabla, sin geometría
+unidas$tasa   &lt;- 1000 * unidas$SID79 / unidas$BIR79
+unidas$nombre &lt;- unidas$NAME
+
+# Lo que lee la plantilla del informe: el dato unido y el conteo de la unión
+dir.create("datos", showWarnings = FALSE)
+st_write(unidas, "datos/unidades.gpkg", delete_dsn = TRUE, quiet = TRUE)
+write.csv(data.frame(geometria = nrow(geo), variable = nrow(tabla), unidas = nrow(unidas)),
+          "datos/conteo-union.csv", row.names = FALSE)
+
+dir.create("figuras", showWarnings = FALSE)
+mapa &lt;- tm_shape(unidas) +
+  tm_polygons(fill = "tasa",
+              fill.scale = tm_scale_intervals(n = 5, style = "quantile"),
+              fill.legend = tm_legend(title = "SIDS por 1 000 nacidos")) +
+  tm_title("Tasa de SIDS, 1979-1984 · cinco clases por cuantiles")
+tmap_save(mapa, "figuras/mapa-tasa.png")
+
+# El Moran con la W principal del preregistro
+lw &lt;- nb2listw(poly2nb(unidas, queen = TRUE), style = "W")   # zero.policy = TRUE si hay islas
+set.seed(2026)
+moran.mc(unidas$tasa, lw, nsim = 999)</code></pre>
+
+      <div class="warning">
+        <p style="margin:0;"><strong>Un código DIVIPOLA leído como número es el error más barato de cometer y
+          el más caro de no ver.</strong> Los códigos de Antioquia y de Atlántico empiezan por 0: leído como
+          número, <code>05001</code> se vuelve <code>5001</code> y no casa con la geometría, que lo trae como
+          texto. La unión sale, sin avisar, con dos departamentos enteros de menos. Por eso se lee con
+          <code>colClasses</code> y se cuenta antes y después.</p>
+      </div>
+
+      <h3>Si falta una unidad</h3>
+
+      <p>Un municipio sin dato no se rellena con cero ni con la media en silencio. Se declara, y se decide qué
+        hacer con él en la W: si se quita, sus vecinos pierden un vecino, y puede aparecer una isla. Las dos
+        cosas van al avance como desviación. El módulo 9 del <a href="capitulo-6-pesos-espaciales.html">capítulo
+        6</a>, «Islas y <code>zero.policy</code>», explica por qué el rezago de una isla vale cero y no «no
+        tiene rezago».</p>

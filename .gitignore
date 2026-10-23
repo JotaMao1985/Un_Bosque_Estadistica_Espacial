@@ -18,6 +18,7 @@
 !/plantilla/
 !/precalculo/
 !/ensamblado/
+!/proyecto/
 
 # Dentro de lo reactivado, esto nunca se versiona.
 
@@ -132,6 +133,7 @@ precalculo/salidas/privado/
 !/PLAN_Parcial_Corte_2.md
 !/PLAN_Taller_2_Cap_4.md
 !/PLAN_Apendice_A_Densidad.md
+!/PLAN_Proyecto_Integrador.md
 
 # ---------------------------------------------------------------------
 # TALLER 2 (capítulo 4), mientras esté vivo. Mismo trato que el Taller 1,

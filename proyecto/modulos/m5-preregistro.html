@@ -1,0 +1,110 @@
+      <p>El preregistro cierra el <strong>@@PREREGISTRO_CIERRA@@</strong>, en la semana @@PREREGISTRO_SEMANA@@,
+        y vale el <strong>@@PESO_PREREGISTRO@@ %</strong> del proyecto. Son hasta <strong>@@PAGINAS_PREREGISTRO@@
+        páginas</strong>. Se escribe con los datos ya descargados pero <strong>antes de calcular un solo
+        Moran</strong>, y esa es toda su gracia.</p>
+
+      <p>Va en <code>preregistro.md</code>, con las descargas en <code>datos/crudos/</code>, y se entrega con
+        la release <code>@@ETIQUETA_PREREGISTRO@@</code>. Desde ese momento <strong>no se edita</strong>: lo que
+        cambie va al avance como desviación.</p>
+
+      <h3>Por qué se preregistra</h3>
+
+      <p>El módulo 7 del <a href="capitulo-7-autocorrelacion.html">capítulo 7</a>, «Moran es sensible a W»,
+        enseña que el mismo dato con otra W da otro I y, a veces, otra conclusión. Eso tiene una consecuencia
+        incómoda: con el p-valor delante, siempre hay una W más que probar —reina, torre, cinco vecinos, ocho,
+        un umbral un poco más largo—, y alguna saldrá significativa. Cada elección parece razonable, y juntas
+        fabrican estructura donde no la hay. <strong>Elegir la W después de ver el p-valor es la fuga de este
+        curso</strong>, como elegir la métrica después de ver los errores lo es en Series de Tiempo.</p>
+
+      <p>El preregistro separa dos cosas que después se confunden: el <strong>análisis confirmatorio</strong>,
+        decidido antes de calcular y que puede confirmar una hipótesis, y el <strong>exploratorio</strong>, que
+        se te ocurrió después y que solo puede sugerir una.</p>
+
+      <div class="note">
+        <p style="margin:0;"><strong>No es un contrato.</strong> Si al construir la W aparece una isla que no
+          esperabas o una fuente cambia, cambias el plan y lo dices. Lo que el preregistro impide no es
+          cambiar: es cambiar sin que se note. Declarar una desviación no te quita puntos por sí mismo;
+          esconderla, sí.</p>
+      </div>
+
+      <h3>Los nueve campos</h3>
+
+      <div class="diagram">
+        <ol>
+          <li><strong>Pregunta e hipótesis.</strong> En palabras, y como hipótesis sobre la autocorrelación:
+            positiva, negativa o en cualquier dirección, con la razón que da el territorio.</li>
+          <li><strong>Las unidades y su escala.</strong> Cuántas son y por qué esa escala y no otra: es el MAUP,
+            módulo 8 del <a href="capitulo-3-cartografia-maup.html">capítulo 3</a>.</li>
+          <li><strong>Las fuentes.</strong> De la geometría y de la variable, con su fecha de descarga y la llave
+            con que se unen.</li>
+          <li><strong>La variable y su normalización.</strong> La tasa, con su numerador y su denominador.</li>
+          <li><strong>El CRS.</strong> Uno proyectado, con su código EPSG, en el que se van a medir las
+            distancias. Para Colombia, el 9377 (MAGNA-SIRGAS Origen-Nacional).</li>
+          <li><strong>La W principal, y por qué.</strong> El criterio de vecindad, el estilo de los pesos y la
+            razón: por qué esa vecindad describe cómo se relacionan tus unidades.</li>
+          <li><strong>Las W alternativas.</strong> Al menos dos, para la sensibilidad. Se fijan ahora, no
+            después.</li>
+          <li><strong>La inferencia.</strong> Moran por permutación con sus réplicas y su semilla; el análisis
+            local —LISA, y G<sub>i</sub>* si lo vas a usar—, la corrección de multiplicidad (Bonferroni o FDR)
+            y el nivel.</li>
+          <li><strong>Qué se concluirá si no sale.</strong> Con tu número de unidades, qué dependencia habría
+            pasado sin detectar: la tabla de potencia del módulo 2.</li>
+        </ol>
+      </div>
+
+      <h3>Las réplicas que pide la corrección</h3>
+
+      <p>El p de cada LISA es el <strong>bilateral por rangos</strong>, el del capítulo 7, y no baja de
+        $2/(\text{nsim}+1)$ por mucho que el dato se aleje del azar. Bonferroni, en cambio, exige
+        $p &lt; 0{,}05/N$. Si el suelo del p está por encima del umbral, ninguna unidad puede pasar la
+        corrección, haya o no conglomerados. Para que pueda, hace falta</p>
+
+      <div class="formula">
+        $$\frac{2}{\text{nsim}+1} &lt; \frac{0{,}05}{N} \quad\Longleftrightarrow\quad \text{nsim} + 1 &gt; 40\,N .$$
+      </div>
+
+      <p>Con las @@N_EJEMPLO_NSIM@@ unidades de los departamentos y Bogotá, <strong>nsim ≥
+        @@NSIM_EJEMPLO@@</strong>. Las
+        @@NSIM_HABITUAL@@ de GeoDa y de <code>esda</code> no alcanzan desde @@N_MINIMO@@ unidades. Las
+        @@NSIM_CAPITULO@@ del capítulo 7 alcanzan hasta @@N_MAX_NSIM_CAPITULO@@ unidades; con unas decenas o
+        cientos de unidades tardan segundos, y con los 1&#8239;122 municipios, alrededor de un minuto. Úsalas y te
+        ahorras la cuenta. Es el módulo 10 del capítulo 7, «La trampa de la
+        multiplicidad».</p>
+
+      <h3>La W, construida antes de mirar</h3>
+
+      <p>Construir la W principal y las alternativas no es calcular nada sobre la variable: se puede, y
+        conviene, hacer antes de preregistrar, para saber si la W que vas a fijar deja islas o componentes
+        sueltos. Este guion usa <code>nc</code>, que viene con <code>sf</code>; cambia la lectura por la de tus
+        datos:</p>
+
+<pre><code class="language-r">library(sf)
+library(spdep)
+
+unidades &lt;- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
+unidades &lt;- st_transform(unidades, 32119)   # en metros: para Colombia, st_transform(x, 9377)
+N &lt;- nrow(unidades)
+
+# La W principal y dos alternativas, fijadas ANTES de calcular ningún Moran
+cent  &lt;- st_centroid(st_geometry(unidades))
+reina &lt;- poly2nb(unidades, queen = TRUE)
+torre &lt;- poly2nb(unidades, queen = FALSE)
+k5    &lt;- knn2nb(knearneigh(cent, k = 5))
+
+table(card(reina))       # cuántos vecinos tiene cada unidad
+sum(card(reina) == 0)    # islas: si hay, se decide qué hacer con ellas y se declara
+n.comp.nb(reina)$nc      # componentes conexos: 1 es lo esperable
+
+# Las réplicas que pide Bonferroni con el p bilateral: nsim + 1 &gt; 40 N
+40 * N</code></pre>
+
+      <div class="warning">
+        <p style="margin:0;"><strong>Los grados no son metros.</strong> Con la capa en longitud y latitud,
+          <code>spdep</code> se da cuenta y mide sobre la esfera, pero solo si le pasas el objeto
+          <code>sf</code>: con <code>st_coordinates()</code> le das números sueltos y los trata como un plano, y
+          un umbral de <code>dnearneigh()</code> sobre una capa en grados se lee en kilómetros, no en metros. En
+          Colombia, tan cerca del ecuador, el vecino más próximo casi no cambia; el umbral, sí: es el ejercicio 4
+          del módulo 12 del <a href="capitulo-2-crs-georreferenciacion.html">capítulo 2</a> («El vecino más
+          próximo aguanta; el umbral de vecindad, no»). Reproyecta antes de construir la W y te ahorras las dos
+          trampas (módulo 2 del capítulo 2, «Latitud y longitud no son cartesianas»).</p>
+      </div>

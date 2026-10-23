@@ -1,0 +1,86 @@
+{
+  "que": "Potencia de moran.mc (unilateral, 5 %) frente a un SAR en rejilla reina con W por filas",
+  "replicas": 2000,
+  "nsim": 499,
+  "alfa": 0.05,
+  "semilla": 20929,
+  "r": "4.4.1",
+  "spdep": "1.4.2",
+  "filas": [
+    {
+      "N": 25,
+      "rho": 0,
+      "potencia": 0.057
+    },
+    {
+      "N": 25,
+      "rho": 0.3,
+      "potencia": 0.24
+    },
+    {
+      "N": 25,
+      "rho": 0.5,
+      "potencia": 0.46
+    },
+    {
+      "N": 36,
+      "rho": 0,
+      "potencia": 0.054
+    },
+    {
+      "N": 36,
+      "rho": 0.3,
+      "potencia": 0.304
+    },
+    {
+      "N": 36,
+      "rho": 0.5,
+      "potencia": 0.579
+    },
+    {
+      "N": 49,
+      "rho": 0,
+      "potencia": 0.05
+    },
+    {
+      "N": 49,
+      "rho": 0.3,
+      "potencia": 0.354
+    },
+    {
+      "N": 49,
+      "rho": 0.5,
+      "potencia": 0.682
+    },
+    {
+      "N": 64,
+      "rho": 0,
+      "potencia": 0.064
+    },
+    {
+      "N": 64,
+      "rho": 0.3,
+      "potencia": 0.421
+    },
+    {
+      "N": 64,
+      "rho": 0.5,
+      "potencia": 0.792
+    },
+    {
+      "N": 100,
+      "rho": 0,
+      "potencia": 0.053
+    },
+    {
+      "N": 100,
+      "rho": 0.3,
+      "potencia": 0.548
+    },
+    {
+      "N": 100,
+      "rho": 0.5,
+      "potencia": 0.913
+    }
+  ]
+}

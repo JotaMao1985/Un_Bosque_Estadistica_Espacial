@@ -1,0 +1,216 @@
+---
+title: "Título del proyecto"
+author: "Nombre Apellido y Nombre Apellido"
+date: "`r hoy <- Sys.Date(); meses <- c('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'); paste(as.integer(format(hoy, '%d')), 'de', meses[as.integer(format(hoy, '%m'))], 'de', format(hoy, '%Y'))`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+---
+
+<!--
+  Plantilla del informe del proyecto integrador — Estadística Espacial (20929),
+  Universidad El Bosque, 2026-II. La guía del proyecto explica cada sección.
+
+  CÓMO USARLA
+  1. Guárdala como `informe.Rmd` en la raíz del repositorio del proyecto.
+  2. `R/datos.R` lee tus descargas de `datos/crudos/`, las une por la llave y
+     escribe `datos/unidades.gpkg` —una fila por unidad, con su geometría, una
+     columna `nombre` y la columna `tasa` (cambia los nombres a los tuyos)— y
+     `datos/conteo-union.csv`, con cuántas unidades traía cada fuente y cuántas
+     quedaron (el módulo 6 de la guía trae ese guion).
+  3. Mientras no exista `datos/unidades.gpkg`, la plantilla usa los condados de
+     Carolina del Norte (`nc`, que viene con sf), solo en la memoria de R: no
+     escribe nada en `datos/`, y el informe lo avisa en grande. Cuando tengas
+     tus datos, borra el bloque «DATOS DE EJEMPLO».
+  4. Cambia el CRS, la W principal, las alternativas y las réplicas por las de
+     TU preregistro.
+  5. Pulsa Knit. Si no corre de principio a fin en un R recién abierto, no
+     está terminado. Sube también el `informe.html` que sale.
+-->
+
+```{r configuracion, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(sf)
+library(spdep)
+library(tmap)
+
+# Lo que fija el preregistro: cámbialo por lo tuyo
+CRS   <- 32119          # en metros. Para Colombia: 9377 (MAGNA-SIRGAS Origen-Nacional)
+NSIM_GLOBAL <- 999      # réplicas del Moran global
+NSIM_LOCAL  <- 49999    # réplicas del LISA: con Bonferroni, nsim + 1 > 40 N
+SEMILLA <- 2026
+ALFA    <- 0.05
+ALTERNATIVA <- "greater"   # la hipótesis del preregistro: "greater", "less" o "two.sided"
+```
+
+```{r datos-de-ejemplo, include = FALSE}
+# ---- DATOS DE EJEMPLO: bórralo cuando tengas `datos/unidades.gpkg` --------
+ejemplo <- !file.exists("datos/unidades.gpkg")
+if (ejemplo) {
+  unidades <- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
+  unidades$nombre <- unidades$NAME
+  unidades$tasa <- 1000 * unidades$SID79 / unidades$BIR79
+} else {
+  unidades <- st_read("datos/unidades.gpkg", quiet = TRUE)
+}
+```
+
+```{r aviso, echo = FALSE, results = "asis"}
+if (ejemplo) cat("<h2 style='color:#b91c1c'>Este informe usa los DATOS DE EJEMPLO de la plantilla (nc), no los tuyos.</h2>")
+```
+
+# Resumen
+
+Cinco líneas: qué se preguntó, sobre qué territorio y qué salió.
+
+# El territorio y los datos
+
+Las unidades, cuántas son y por qué esa escala. Las fuentes de la geometría y de la variable,
+con su fecha de descarga y la llave con que se unieron.
+
+```{r unidades}
+unidades <- st_transform(unidades, CRS)   # proyectado ANTES de medir nada
+N <- nrow(unidades)
+N
+st_crs(unidades)$epsg
+conteo <- if (ejemplo) data.frame(geometria = N, variable = N, unidas = N) else
+  read.csv("datos/conteo-union.csv")
+conteo
+```
+
+La geometría traía `r conteo$geometria` unidades y la variable `r conteo$variable`; al unirlas
+quedaron `r conteo$unidas`. Di por qué se perdió cada una.
+
+## La tasa en el mapa
+
+```{r mapa-tasa}
+tm_shape(unidades) +
+  tm_polygons(fill = "tasa",
+              fill.scale = tm_scale_intervals(n = 5, style = "quantile"),
+              fill.legend = tm_legend(title = "Tasa")) +
+  tm_title("La tasa · cinco clases por cuantiles")
+```
+
+# El protocolo, preregistrado y seguido
+
+## Lo que decía el preregistro
+
+La W principal y por qué, las alternativas, las réplicas, la corrección y el nivel.
+
+```{r pesos}
+cent <- st_centroid(st_geometry(unidades))
+W <- list(
+  reina = poly2nb(unidades, queen = TRUE),        # la principal
+  torre = poly2nb(unidades, queen = FALSE),       # alternativa 1
+  k5    = knn2nb(knearneigh(cent, k = 5))         # alternativa 2
+)
+sapply(W, function(nb) c(islas = sum(card(nb) == 0),
+                         componentes = n.comp.nb(nb)$nc,
+                         vecinos_medio = round(mean(card(nb)), 2)))
+lw <- nb2listw(W$reina, style = "W", zero.policy = TRUE)
+c(nsim_local = NSIM_LOCAL, minimo_bonferroni = 40 * N)
+stopifnot(NSIM_LOCAL + 1 > 40 * N)   # si falla, Bonferroni no puede dejar pasar ninguna unidad
+```
+
+## Lo que pasó de verdad
+
+Cada desviación del preregistro, con lo que cambia en el análisis. Si no hubo ninguna, dilo.
+
+# El análisis confirmatorio
+
+## La autocorrelación global
+
+```{r moran}
+set.seed(SEMILLA)
+mc <- moran.mc(unidades$tasa, lw, nsim = NSIM_GLOBAL, zero.policy = TRUE,
+               alternative = ALTERNATIVA)
+mc
+moran.plot(as.vector(scale(unidades$tasa)), lw, zero.policy = TRUE,
+           xlab = "tasa tipificada", ylab = "rezago espacial")
+```
+
+El I de Moran es `r round(mc$statistic, 3)`, con un p por permutación de
+`r signif(mc$p.value, 3)` sobre `r NSIM_GLOBAL` réplicas. Léelo: ¿qué cuadrantes del diagrama
+lo sostienen? Si no es significativo, ¿qué dependencia habría pasado sin detectar con
+`r N` unidades? (la tabla de potencia del módulo 2 de la guía).
+
+## La sensibilidad a la W
+
+```{r sensibilidad}
+set.seed(SEMILLA)
+t(sapply(W, function(nb) {
+  m <- moran.mc(unidades$tasa, nb2listw(nb, style = "W", zero.policy = TRUE),
+                nsim = NSIM_GLOBAL, zero.policy = TRUE, alternative = ALTERNATIVA)
+  c(I = round(m$statistic[[1]], 3), p = m$p.value)
+}))
+```
+
+¿Cambia la conclusión con la W? Dilo, sea cual sea la respuesta.
+
+## El análisis local
+
+```{r lisa}
+lp <- localmoran_perm(unidades$tasa, lw, nsim = NSIM_LOCAL, iseed = SEMILLA,
+                      no_repeat_in_row = TRUE, zero.policy = TRUE)
+p <- lp[, "Pr(z != E(Ii)) Sim"]            # el p bilateral, el del capítulo 7
+q <- as.character(attr(lp, "quadr")$mean)
+c(sin = sum(p < ALFA, na.rm = TRUE),
+  bonferroni = sum(p.adjust(p, "bonferroni") < ALFA, na.rm = TRUE),
+  fdr = sum(p.adjust(p, "fdr") < ALFA, na.rm = TRUE))
+
+# Los colores del capítulo 7; las islas no tienen p (NA) y van aparte
+categorias <- c("No significativo", "High-High", "Low-Low", "High-Low", "Low-High", "Isla (sin vecinos)")
+colores    <- c("#e5e5e5", "#c1272d", "#2166ac", "#f4a582", "#92c5de", "#ffffff")
+clasifica <- function(p_usado) factor(ifelse(is.na(p), "Isla (sin vecinos)",
+                                             ifelse(p_usado < ALFA, q, "No significativo")),
+                                      levels = categorias)
+unidades$lisa_sin <- clasifica(p)
+unidades$lisa     <- clasifica(p.adjust(p, "fdr"))
+mapa_lisa <- function(columna, titulo) {
+  tm_shape(unidades) +
+    tm_polygons(fill = columna,
+                fill.scale = tm_scale_categorical(values = colores, levels.drop = FALSE),
+                fill.legend = tm_legend(title = "LISA")) +
+    tm_title(titulo)
+}
+mapa_lisa("lisa_sin", "LISA sin corregir: lo que NO se publica como conglomerado")
+mapa_lisa("lisa", "LISA corregido por FDR al 5 %")
+```
+
+Lee los dos mapas: ¿qué unidades se caen con la corrección? Los conglomerados que quedan,
+por su nombre:
+
+```{r conglomerados}
+st_drop_geometry(unidades)[!unidades$lisa %in% c("No significativo", "Isla (sin vecinos)"),
+                           c("nombre", "tasa", "lisa")]
+```
+
+# El análisis exploratorio
+
+Si lo hay, va aquí y marcado como tal: lo que se te ocurrió después del preregistro.
+
+# Conclusión
+
+En el lenguaje del territorio, con los conglomerados por su nombre y lo que el análisis *no*
+permite concluir: la escala, la falacia ecológica y la potencia.
+
+# Declaración de uso de IA
+
+Qué herramienta, para qué, qué te devolvió y qué verificaste o corregiste, con al menos un
+ejemplo concreto. Si no usaste ninguna, dilo.
+
+# Anexos
+
+## Los p locales
+
+```{r anexo-p}
+cbind(st_drop_geometry(unidades)[, c("nombre", "tasa")],
+      cuadrante = q, p_bilateral = signif(p, 3), p_fdr = signif(p.adjust(p, "fdr"), 3))
+```
+
+## La sesión de R
+
+```{r sesion}
+sessionInfo()
+```

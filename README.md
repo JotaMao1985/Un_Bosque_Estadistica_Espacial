@@ -50,6 +50,14 @@ distancias al vecino más cercano traen empates por construcción —parejas rec
 que comparten dirección— con los que la validación cruzada UCV no tiene mínimo, y que con la
 corrección de borde por defecto una sede pegada al borde aporta exactamente ln 2.
 
+**La guía del proyecto integrador del Corte III está publicada** (`Htmls_Espacial/proyecto-integrador-corte-iii.html`,
+con su plantilla de informe `.Rmd`): diez módulos, el 50 % del Corte III —el otro 50 % son quices en clase, sin
+examen final—, las mismas fechas que el proyecto de Series de Tiempo y una opción conjunta con esa materia cuyas
+reglas viven **solo** en el módulo 8 de la guía de Series; esta la enlaza y no la copia. La fuente está en
+`proyecto/` (`datos.py`, los módulos y la tabla de potencia del Moran, que sale de `proyecto/potencia.R`), la
+construye `precalculo/ensambla_proyecto.py` y la vigilan `precalculo/audita_proyecto.py` —ocho frentes, con el R de
+la guía y de la plantilla corrido de verdad— y su arnés. Las decisiones, en `PLAN_Proyecto_Integrador.md`.
+
 **El Taller 2 está publicado y se reparte el lunes 21 de septiembre.** Antes de fusionarlo se
 cerraron cuatro defectos, medidos y escritos en el §0 del `PLAN_Taller_2_Cap_4.md`. El que
 conviene saber aunque no se toque el taller: **`Fest()` devuelve distancias al cuadrado en la
