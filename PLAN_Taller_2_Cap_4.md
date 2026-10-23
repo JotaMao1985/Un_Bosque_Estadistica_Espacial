@@ -1866,7 +1866,7 @@ T2.
 ### 5.2 El anclaje nuevo · la lección del 2026-09-03
 
 Al calificar el Taller 1, **tres estudiantes de doce resolvieron una variante que no era la suya**
-—Jerónimo tecleó 102 en vez de 480, López 181, Páez 103— cada uno de forma coherente de punta a
+—cada uno tecleó los tres dígitos de otra— y la resolvió de forma coherente de punta a
 punta. El dígito de verificación **no atrapa ese error**: le cuadra a quien resolvió otra variante
 entera. La causa raíz es que el estudiante **nunca veía su propio documento reflejado**: escribía
 tres dígitos y recibía un municipio.
