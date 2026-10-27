@@ -28,7 +28,7 @@ temas: Estimador núcleo, Ancho de banda, Selectores, Corrección de borde, Mapa
     lleva la marca [SIN VERIFICAR].
   · Los bloques de R se ejecutan de verdad (`verifica_bloques_cap5.py`) y su salida es la literal.
   · Los mapas son figuras propias, con el norte arriba (recursos/cap5/genera_figuras_s1.R).
-    Los mapas ráster del capítulo salen invertidos verticalmente (sur arriba).
+    Los mapas ráster del capítulo salían invertidos verticalmente (sur arriba) hasta el 27 oct 2026.
 
   Revisada el 1 oct 2026 con una revisión pedagógica y una auditoría de cifras independientes.
   Los divisores numerados (01 a 06) coinciden con los módulos 1 a 6 del capítulo.
@@ -292,7 +292,7 @@ Ninguno de los extremos es un error de cálculo: son la misma estimación con ot
 <small>Fuente: módulo 2 del capítulo. Kennedy, 262 sedes, **una sola escala de color**.</small>
 
 ???
-Las tres superficies comparten una sola escala de color, y no es presentación: si cada una se normalizara contra su propio máximo, las tres saldrían igual de intensas y el mapa afirmaría lo contrario que la curva. El módulo 2 trae las siete; aquí van tres. En el capítulo esos mapas salen con el sur arriba; en estas diapositivas están con el norte arriba. Cotejo: `datos › m2.familia`, `recomputo › anchos.celdas_en_233`.
+Las tres superficies comparten una sola escala de color, y no es presentación: si cada una se normalizara contra su propio máximo, las tres saldrían igual de intensas y el mapa afirmaría lo contrario que la curva. El módulo 2 trae las siete; aquí van tres. Cotejo: `datos › m2.familia`, `recomputo › anchos.celdas_en_233`.
 
 # Selectores de ancho de banda {seccion=modulo-3}
 
@@ -598,7 +598,7 @@ Mismo σ y misma rejilla, pero cambian dos cosas: qué sedes entran (las 2 107,
 :::
 
 ???
-Comprobado en R: el máximo de la oferta cae en Suba (norte) y el de estudiantes, en Bosa (suroccidente). Es un estadístico frágil: los dos picos mayores son los mismos en los dos mapas y lo que cambia es cuál gana, así que la diferencia de localidad es una lectura, no una prueba. Los mapas del capítulo están dibujados con el sur arriba (los ráster salen invertidos); estos, con el norte arriba, por eso «norte» y «suroccidente» se leen donde deben. Un estudiante cuenta donde estudia, no donde vive. Cotejo: `datos › m5.capas`, `recomputo › capas_maximos`.
+Comprobado en R: el máximo de la oferta cae en Suba (norte) y el de estudiantes, en Bosa (suroccidente). Es un estadístico frágil: los dos picos mayores son los mismos en los dos mapas y lo que cambia es cuál gana, así que la diferencia de localidad es una lectura, no una prueba. Un estudiante cuenta donde estudia, no donde vive. Cotejo: `datos › m5.capas`, `recomputo › capas_maximos`.
 
 ## Con celdas de 183 m, la ciudad no puede dibujar un σ menor que 550 m {columnas=1:1}
 
@@ -762,7 +762,7 @@ Es el defecto que casi publica el módulo: la primera versión tituló su mapa �
 :::
 
 ???
-Criterio: llamarlo «riesgo» importaría una palabra que aquí no significa nada, porque no hay casos y controles, hay dos poblaciones completas. La escala va fija de 0 a 1 y no se normaliza contra el máximo: una proporción tiene escala propia. El mapa de puntos es el control de la superficie: lo privado domina el norte y el centro-norte; lo oficial pesa más en el sur. En el capítulo, este mapa sale con el sur arriba. Cotejo: `datos › m6.bogota`, `recomputo › oficial`.
+Criterio: llamarlo «riesgo» importaría una palabra que aquí no significa nada, porque no hay casos y controles, hay dos poblaciones completas. La escala va fija de 0 a 1 y no se normaliza contra el máximo: una proporción tiene escala propia. El mapa de puntos es el control de la superficie: lo privado domina el norte y el centro-norte; lo oficial pesa más en el sur. Cotejo: `datos › m6.bogota`, `recomputo › oficial`.
 
 ## Contar puntos da 0.3365; mirar el mapa da 0.3086: son dos preguntas distintas {columnas=3:2}
 

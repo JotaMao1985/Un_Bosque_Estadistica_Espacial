@@ -28,7 +28,7 @@ def cargar_entradas(m, sesiones):
     # Hallazgos en el material del capítulo (se escriben en el registro; no se corrigen en silencio)
     # ------------------------------------------------------------------------------------
     m.HALLAZGOS[:] = [
-        ("Los mapas ráster salen invertidos verticalmente",
+        ("Los mapas ráster salían invertidos verticalmente (arreglado el 2026-10-27)",
          "El mapa de calor de Kennedy por σ (módulo 2), la oferta y los estudiantes (módulo 5) y P(oficial) (módulo 6) se dibujan "
          "con el sur arriba, mientras los mapas de puntos (módulos 1 y 6) van con el norte arriba. Causa: `geo_rejilla()` "
          "(`precalculo/geo.R`) guarda la fila 0 en el sur —la de `spatstat`— y `geomapaPintaRejilla()` (`plantilla-capitulo.html`) pinta "
@@ -37,7 +37,9 @@ def cargar_entradas(m, sesiones):
          "fila 0 es el sur: 545 contra 457 en la oferta) y midiendo píxeles en la página servida (el punto más alto del ráster está en "
          "x = 0.46 y el del mapa de puntos en x = 0.90). El texto del módulo 5 («en el norte y en el suroccidente») es geográficamente "
          "correcto, pero el lector del capítulo ve el norte abajo. Estas diapositivas dibujan los mapas de nuevo, con el norte arriba "
-         "(`recursos/cap5/genera_figuras_s1.R`). El capítulo no se modificó."),
+         "(`recursos/cap5/genera_figuras_s1.R`). El capítulo no se modificó entonces. Arreglado el 2026-10-27, en la tercera "
+         "revisión del capítulo: `geo_rejilla()` voltea los `im`, y `audita_cap5.py` comprueba que cada ráster, tal como se pinta, "
+         "casa con sus sedes mejor que su reflejo (sección 12b), con cinco inyecciones en `prueba_auditor_cap5.py`."),
         ("«0.0 y 24.9 sedes por km²» en la rejilla de 8 × 8",
          "El módulo 1 (y la retroalimentación de la primera pregunta de la autoevaluación) dice que los cuadrantes dan «entre 0.0 y 24.9 "
          "sedes por km²». `genera_cap5.R` calcula `conteo / (A_KEN / 64)`, o sea divide por el área media por celda de la ventana "

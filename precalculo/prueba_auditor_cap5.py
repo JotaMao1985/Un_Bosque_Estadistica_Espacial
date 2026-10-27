@@ -68,6 +68,13 @@ PY = json.loads((PRECALCULO / "versiones_py.json").read_text(
     encoding="utf-8"))["ejecutable"]
 
 
+def volteado(g):
+    """El ráster con las filas al revés: el defecto que el capítulo publicó hasta el 2026-10-27."""
+    nx = g["nx"]
+    filas = [g["zq"][r * nx:(r + 1) * nx] for r in range(g["ny"])]
+    return [z for f in reversed(filas) for z in f]
+
+
 def defectos():
     """(nombre, archivo, tipo, acción). tipo ∈ {'obj', 'txt'}."""
     D = []
@@ -213,6 +220,21 @@ def defectos():
         "mapas", lambda m: m["kennedy_familia"][4]["zq"].__setitem__(0, 1000))
     obj("6 · la caída del máximo cuantizado se vuelve invisible",
         "mapas", lambda m: [g["zq"].__setitem__(0, 1000) for g in m["kennedy_familia"]])
+
+    # --- 6b. La orientación: el defecto real del 2026-10-27 ----------
+    # Los diez rásteres salieron volteados norte-sur con todo lo de arriba en
+    # verde. Uno a uno, y el más suave de la familia (σ = 1867 m, el que
+    # menos se distingue de su reflejo) por separado.
+    obj("6b · la familia de Kennedy, volteada norte-sur",
+        "mapas", lambda m: [g.__setitem__("zq", volteado(g)) for g in m["kennedy_familia"]])
+    obj("6b · solo el mapa más suave de la familia, volteado",
+        "mapas", lambda m: m["kennedy_familia"][6].__setitem__("zq", volteado(m["kennedy_familia"][6])))
+    obj("6b · el mapa de la oferta, volteado",
+        "mapas", lambda m: m["ciudad_oferta"].__setitem__("zq", volteado(m["ciudad_oferta"])))
+    obj("6b · el de los estudiantes, volteado",
+        "mapas", lambda m: m["ciudad_estudiantes"].__setitem__("zq", volteado(m["ciudad_estudiantes"])))
+    obj("6b · el de P(oficial), volteado",
+        "mapas", lambda m: m["proporcion_oficial"].__setitem__("zq", volteado(m["proporcion_oficial"])))
 
     # --- 7. Propiedades teóricas exactas ------------------------------
     obj("7 · el nivel puntual deja de ser 2/(nsim+1)",

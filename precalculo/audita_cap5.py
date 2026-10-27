@@ -185,6 +185,36 @@ def masas(px, py, sigma, caja, nx, ny, mask):
     return sin_corr, defecto, diggle
 
 
+def puntos_de(g):
+    """Las coordenadas reales de un mapa de modo `puntos`, como las pinta el navegador.
+
+    `geomapaCajaQ` cuantiza en el CUADRADO de lado max(ancho, alto) centrado en la caja, no en la
+    caja: descuantizar contra la caja rectangular corre el eje corto.
+    """
+    x0, y0, x1, y1 = g["caja"]
+    q = g.get("q", 4096)
+    lado = max(x1 - x0, y1 - y0)
+    p = np.asarray(g["pts"], dtype=float).reshape(-1, 2)
+    return ((x0 + x1) / 2 - lado / 2 + p[:, 0] / q * lado,
+            (y0 + y1) / 2 - lado / 2 + p[:, 1] / q * lado)
+
+
+def muestrea(g, X, Y, reflejo=False):
+    """El valor cuantizado de un mapa `rejilla` en (X, Y), con la fila 0 ARRIBA (el norte),
+    que es como la pinta `geomapaPintaRejilla`. Con `reflejo`, leído al revés. -1 = sin dato."""
+    x0, y0, x1, y1 = g["caja"]
+    nx, ny = g["nx"], g["ny"]
+    c = np.floor((X - x0) / (x1 - x0) * nx).astype(int)
+    f = np.floor((y1 - Y) / (y1 - y0) * ny).astype(int)
+    if reflejo:
+        f = ny - 1 - f
+    ok = (c >= 0) & (c < nx) & (f >= 0) & (f < ny)
+    zq = np.asarray(g["zq"], dtype=float)
+    z = np.full(len(X), -1.0)
+    z[ok] = zq[f[ok] * nx + c[ok]]
+    return z
+
+
 # =====================================================================
 # Cada «di», «explica», «encuentra», «contesta», «compara» y cada «¿» de un
 # enunciado es una pregunta que la solución tiene que contestar (M5). `\w`
@@ -1131,6 +1161,44 @@ def main() -> int:
                      - D["m6"]["bogota"]["p_mediana"]) < 0.02,
                  "mapas: el ráster de proporción pinta P(oficial)",
                  f"mediana {np.median(p_ofi[dentro_z])/zqm:.4f}")
+
+    # -----------------------------------------------------------------
+    a.titulo("12b · Los rásteres, al derecho: cada mapa casa con sus propias sedes")
+    # -----------------------------------------------------------------
+    # Hasta el 2026-10-27 los diez rásteres se publicaron volteados norte-sur
+    # (`as.matrix()` de un `im` empieza por el sur y el navegador pinta la fila
+    # 0 arriba) y todo lo de arriba estaba en verde: la mediana, el máximo y
+    # la escala no dependen del orden de las filas. Aquí no se presupone
+    # ningún convenio: cada ráster, leído como lo pinta el navegador, tiene
+    # que casar con sus sedes MEJOR que su propio reflejo. Una KDE vale más
+    # donde están sus puntos, y la ventana del ráster es la de las sedes.
+    def al_derecho(g, X, Y, etq, marcas=None):
+        z, zr = muestrea(g, X, Y), muestrea(g, X, Y, reflejo=True)
+        fuera, fuera_r = int((z < 0).sum()), int((zr < 0).sum())
+        a.cierto(fuera <= 0.02 * len(X) and fuera <= fuera_r,
+                 f"orientación/{etq}: las sedes caen dentro del ráster pintado",
+                 f"{fuera} de {len(X)} fuera; {fuera_r} si se volteara")
+        if marcas is None:
+            v, vr = z[z >= 0].mean(), zr[zr >= 0].mean()
+            a.cierto(v > vr, f"orientación/{etq}: la KDE pintada es más alta en sus sedes que su reflejo",
+                     f"{v:.0f} contra {vr:.0f}")
+        else:
+            uno, otro = (z >= 0) & marcas, (z >= 0) & ~marcas
+            uno_r, otro_r = (zr >= 0) & marcas, (zr >= 0) & ~marcas
+            d, dr = z[uno].mean() - z[otro].mean(), zr[uno_r].mean() - zr[otro_r].mean()
+            a.cierto(d > 0 and d > dr,
+                     f"orientación/{etq}: P(oficial) pintada es mayor en las oficiales que en las privadas",
+                     f"{d:+.0f} sobre {g['zqmax']} ({dr:+.0f} si se volteara)")
+
+    Xk, Yk = puntos_de(M["kennedy_puntos"])
+    for g in M["kennedy_familia"]:
+        al_derecho(g, Xk, Yk, f"Kennedy σ={g['sigma_m']:.0f}")
+    Xs, Ys = puntos_de(M["sector_puntos"])
+    ofi_pts = np.asarray(M["sector_puntos"]["marcas"]) == \
+        1 + M["sector_puntos"]["niveles"].index("oficial")
+    al_derecho(M["ciudad_oferta"], Xs, Ys, "oferta")
+    al_derecho(M["ciudad_estudiantes"], Xs, Ys, "estudiantes")
+    al_derecho(M["proporcion_oficial"], Xs, Ys, "P(oficial)", marcas=ofi_pts)
 
     # -----------------------------------------------------------------
     a.titulo("13 · Formato")
