@@ -6292,7 +6292,8 @@ print(f&quot;{cond_rec((UX - UX.mean()) / 1000, (UY - UY.mean()) / 1000):.4g}&qu
         las 3 simulaciones que la superan lo hacen pasados los
         5650.35363 m, donde el abanico de K es más ancho —el módulo 8 del
         capítulo 4— y donde la observada ya ha vuelto a la banda. Ninguno de los dos salva al
-        modelo: la agregación es real. Lo que no se sostiene es leer el
+        plano: hay más parejas cercanas de las que produce un plano en x e y. Lo que no se
+        sostiene es leer el
         0.2 % como la seguridad de la curva entera.</p>
 
       <p>Ese porcentaje tiene <strong>principio y final</strong>, y el final depende de con qué se
@@ -6693,7 +6694,7 @@ print(round(2.108e-07 * 932.1338909648 ** 2, 3), round(1.091e-07 * 1319.70325454
 
       <h3>Y la misma idea en el tiempo: procesos autoexcitados</h3>
 
-      <p>Un proceso de conglomerado espacial supone centros invisibles. En el tiempo hay una
+      <p>Thomas y Matérn suponen centros invisibles. En el tiempo hay una
         variante donde los centros son <em>los propios eventos</em>: cada uno sube la intensidad
         de los siguientes, que es lo que se llama un <strong>proceso de Hawkes</strong>.</p>
 
@@ -7017,10 +7018,12 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
           proyecto.</p>
         <p style="margin-bottom:0;">Lo que sí pasa entero es un hábito: declarar por escrito,
           antes de la primera figura, las decisiones que cambian el resultado sin cambiar la
-          llamada. En este bloque fueron cinco: la <strong>ventana</strong> y por qué esa; el
+          llamada. En este bloque fueron seis: la <strong>ventana</strong> y por qué esa; el
           <strong>ancho de banda</strong> y qué selector lo eligió —o por qué ninguno—; la
           <strong>corrección de borde</strong> y qué conserva; y, si hay modelo, la
-          <strong>cuadratura</strong> y la <strong>estimación de K</strong> con que se ajustó. En
+          <strong>cuadratura</strong>, la <strong>estimación de K</strong> con que se ajustó y
+          la <strong>intensidad que divide la K inhomogénea</strong> del diagnóstico —la del
+          modelo o una por núcleo, y con qué ancho—. En
           el proyecto ese hábito tiene nombre de entrega, el <strong>preregistro</strong>: el
           protocolo de inferencia que se congela antes de calcular un solo Moran.</p>
       </div>
@@ -13277,7 +13280,7 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
           { texto: 'Sí: uno de los dos está mal calculado y hay que repetir el ajuste',
             retro: 'Los dos están bien calculados. Lo que pasa es que miden cosas distintas sobre tramos distintos de la covariable.' },
           { texto: 'Sí, y hay que quedarse con la razón porque no supone nada',
-            retro: 'rhohat supone menos, pero su máximo y su mínimo viven donde casi no hay puntos con los que estimarlos. Por eso este material publica las dos razones.' }
+            retro: 'rhohat supone menos, pero su mínimo cae en una cola, donde casi no hay puntos con los que estimarlo, y es el que infla la razón. Por eso este material publica las dos razones.' }
         ] },
       {
         tipo: 'multiple',

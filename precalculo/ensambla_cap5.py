@@ -2179,7 +2179,8 @@ MOD10 = cabecera(
         las {ent(_tg["mad_superan"])} simulaciones que la superan lo hacen pasados los
         {n(_tg["r_min_mad_superan_m"])} m, donde el abanico de K es más ancho —el módulo 8 del
         capítulo 4— y donde la observada ya ha vuelto a la banda. Ninguno de los dos salva al
-        modelo: la agregación es real. Lo que no se sostiene es leer el
+        plano: hay más parejas cercanas de las que produce un plano en x e y. Lo que no se
+        sostiene es leer el
         {pct(m10["nivel_puntual_pct"], 1)} como la seguridad de la curva entera.</p>
 
       <p>Ese porcentaje tiene <strong>principio y final</strong>, y el final depende de con qué se
@@ -2556,7 +2557,7 @@ MOD11 = cabecera(
 
       <h3>Y la misma idea en el tiempo: procesos autoexcitados</h3>
 
-      <p>Un proceso de conglomerado espacial supone centros invisibles. En el tiempo hay una
+      <p>Thomas y Matérn suponen centros invisibles. En el tiempo hay una
         variante donde los centros son <em>los propios eventos</em>: cada uno sube la intensidad
         de los siguientes, que es lo que se llama un <strong>proceso de Hawkes</strong>.</p>
 
@@ -2719,10 +2720,12 @@ MOD12 = cabecera(
           proyecto.</p>
         <p style="margin-bottom:0;">Lo que sí pasa entero es un hábito: declarar por escrito,
           antes de la primera figura, las decisiones que cambian el resultado sin cambiar la
-          llamada. En este bloque fueron cinco: la <strong>ventana</strong> y por qué esa; el
+          llamada. En este bloque fueron seis: la <strong>ventana</strong> y por qué esa; el
           <strong>ancho de banda</strong> y qué selector lo eligió —o por qué ninguno—; la
           <strong>corrección de borde</strong> y qué conserva; y, si hay modelo, la
-          <strong>cuadratura</strong> y la <strong>estimación de K</strong> con que se ajustó. En
+          <strong>cuadratura</strong>, la <strong>estimación de K</strong> con que se ajustó y
+          la <strong>intensidad que divide la K inhomogénea</strong> del diagnóstico —la del
+          modelo o una por núcleo, y con qué ancho—. En
           el proyecto ese hábito tiene nombre de entrega, el <strong>preregistro</strong>: el
           protocolo de inferencia que se congela antes de calcular un solo Moran.</p>
       </div>
@@ -3872,7 +3875,7 @@ QUIZ_JS = r"""
           { texto: 'No, porque el ppm es más fiable que rhohat y hay que quedarse con su z',
             retro: 'El ppm supone una forma —log-lineal— que la relación puede no tener. Ni más ni menos fiable: menos flexible.' },
           { texto: 'Sí, y hay que quedarse con la razón porque no supone nada',
-            retro: 'rhohat supone menos, pero su máximo y su mínimo viven donde casi no hay puntos con los que estimarlos. Por eso este material publica las dos razones.' }
+            retro: 'rhohat supone menos, pero su mínimo cae en una cola, donde casi no hay puntos con los que estimarlo, y es el que infla la razón. Por eso este material publica las dos razones.' }
         ] },
       {
         tipo: 'multiple',
