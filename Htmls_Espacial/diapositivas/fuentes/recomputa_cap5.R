@@ -235,21 +235,47 @@ if (que %in% c("s1", "todo")) {
     max_dist_punto_mas_cercano_km = min(d_ch), max_dist_vecino_50_km = sort(d_ch)[50],
     ayuda = ayuda_txt("chorley")))
 
-  # ---- Bogotá oficial / privado (módulo 6) ----
+}
+
+# ---------------------------------------------------------------------
+# Bogotá oficial / privado (módulo 6), con la rejilla de los mapas del módulo 5
+# (218 x 128): el capítulo dejó la de 128 x 128 que `relrisk` usa por defecto
+# (M6-7 de la tercera revisión, 2026-10-27). Va en su propio modo, `oficial`,
+# para rehacer solo esto y las permutaciones sin volver a medir tiempos:
+#   precalculo/rscript.sh Htmls_Espacial/diapositivas/fuentes/recomputa_cap5.R oficial
+# ---------------------------------------------------------------------
+if (que %in% c("s1", "todo", "oficial")) {
+  sg <- as.numeric(bw.CvL(pu)); dd <- c(218, 128)
+  orienta <- function(im, pp, nivel, k = 50L) {
+    ij <- which(as.matrix(im$v) == max(as.numeric(im$v), na.rm = TRUE), arr.ind = TRUE)[1, ]
+    x0 <- im$xcol[ij[2]]; y0 <- im$yrow[ij[1]]
+    d <- (pp$x - x0)^2 + (pp$y - y0)^2
+    vec <- marks(pp)[order(d)[seq_len(min(k, npoints(pp)))]]
+    c(prop = mean(vec == nivel), n = sum(vec == nivel))
+  }
   marca <- factor(ifelse(cole$sector[en] == "Oficial", "oficial", "privado"), levels = c("privado", "oficial"))
   p_sec <- suppressWarnings(ppp(xy[en, 1], xy[en, 2], window = WU, marks = marca))
-  rb <- relrisk(p_sec, sigma = sg); vb <- as.numeric(rb$v); vb <- vb[is.finite(vb)]
+  rb <- relrisk(p_sec, sigma = sg, dimyx = dd); vb <- as.numeric(rb$v); vb <- vb[is.finite(vb)]
   m0 <- factor(ifelse(cole$sector[en] == "Oficial", "oficial", "privado"))
   p0 <- suppressWarnings(ppp(xy[en, 1], xy[en, 2], window = WU, marks = m0))
-  r0 <- relrisk(p0, sigma = sg); v00 <- as.numeric(r0$v); v00 <- v00[is.finite(v00)]
+  r0 <- relrisk(p0, sigma = sg, dimyx = dd); v00 <- as.numeric(r0$v); v00 <- v00[is.finite(v00)]
+  # El máximo de P(oficial) es un solo píxel, así que `orienta` no depende de qué empate tome. El de
+  # P(privado) es una meseta (el capítulo recorre sus 156 empates), y las láminas no lo citan.
+  stopifnot(sum(as.matrix(rb$v) == max(vb), na.rm = TRUE) == 1)
   o_b <- orienta(rb, p_sec, "oficial")
+  r128 <- relrisk(p_sec, sigma = sg); v128 <- as.numeric(r128$v); v128 <- v128[is.finite(v128)]
   guarda("oficial", list(
     n_oficiales = sum(marks(p_sec) == "oficial"), n_privadas = sum(marks(p_sec) == "privado"), n = npoints(p_sec),
     global = mean(marks(p_sec) == "oficial"), mediana = median(vb), maximo = max(vb),
     brecha = mean(marks(p_sec) == "oficial") - median(vb),
     mediana_sin_fijar_niveles = median(v00), complemento_de_la_mediana = 1 - median(vb),
     area_mayoria_oficial_pct = 100 * mean(vb > 0.5),     # la respuesta directa a «¿en qué fracción de la ciudad son mayoría?»
-    vecinos_k = 50, vecinos_oficiales = o_b[["n"]], vecinos_prop = o_b[["prop"]]))
+    vecinos_k = 50, vecinos_oficiales = o_b[["n"]], vecinos_prop = o_b[["prop"]],
+    rejilla = list(nx = dd[2], ny = dd[1], celda_x_m = rb$xstep, celda_y_m = rb$ystep,
+                   celdas_por_sigma = sg / max(rb$xstep, rb$ystep)),
+    rejilla_por_defecto = list(nx = r128$dim[2], ny = r128$dim[1], celda_x_m = r128$xstep, celda_y_m = r128$ystep,
+                               celdas_por_sigma = sg / max(r128$xstep, r128$ystep),
+                               mediana = median(v128), area_mayoria_oficial_pct = 100 * mean(v128 > 0.5))))
 }
 
 # ---------------------------------------------------------------------
@@ -257,20 +283,21 @@ if (que %in% c("s1", "todo")) {
 #   precalculo/rscript.sh Htmls_Espacial/diapositivas/fuentes/recomputa_cap5.R s1b
 # Solo escribe sus dos claves; el resto del JSON se conserva tal cual.
 # ---------------------------------------------------------------------
-if (que == "s1b") {
+if (que %in% c("s1b", "oficial")) {
   D5 <- fromJSON("precalculo/salidas/cap5_datos.json", simplifyVector = TRUE)
   sg <- D5$m6$bogota$sigma_m
+  rej <- c(D5$m5$rejilla$ny, D5$m5$rejilla$nx)    # la de los mapas del módulo 5, la del capítulo
   # ---- ¿la diferencia entre contar puntos y mirar el mapa es del dato o del cociente? ----
   # Se barajan las etiquetas (mismas sedes, mismo sigma, misma rejilla) y se mira la mediana de la
   # superficie: si la observada cae dentro de lo que da el barajado, la diferencia la pone el cociente.
   marca <- factor(ifelse(cole$sector[en] == "Oficial", "oficial", "privado"), levels = c("privado", "oficial"))
   p_sec <- suppressWarnings(ppp(xy[en, 1], xy[en, 2], window = WU, marks = marca))
   mediana_rr <- function(pp, ...) { v <- as.numeric(relrisk(pp, ...)$v); median(v[is.finite(v)]) }
-  rb <- relrisk(p_sec, sigma = sg); vb <- as.numeric(rb$v)
+  rb <- relrisk(p_sec, sigma = sg, dimyx = rej); vb <- as.numeric(rb$v)
   lt <- as.numeric(density(unmark(p_sec), sigma = sg, xy = rb)$v)   # la intensidad total, en los mismos píxeles
   ok <- is.finite(vb) & is.finite(lt)
   set.seed(2026)
-  perm_b <- replicate(40, { q <- p_sec; marks(q) <- sample(marks(p_sec)); mediana_rr(q, sigma = sg) })
+  perm_b <- replicate(40, { q <- p_sec; marks(q) <- sample(marks(p_sec)); mediana_rr(q, sigma = sg, dimyx = rej) })
   data(chorley)
   ch <- chorley; marks(ch) <- factor(as.character(marks(chorley)), levels = c("lung", "larynx"))
   set.seed(2027)
@@ -284,6 +311,10 @@ if (que == "s1b") {
                     media_por_area = mean(vb[ok]),
                     media_pesada_por_intensidad = sum(vb[ok] * lt[ok]) / sum(lt[ok]))),
     chorley = c(resumen(perm_c, mediana_rr(ch, sigma = 1)), list(global = mean(marks(ch) == "larynx")))))
+}
+
+if (que == "s1b") {
+  D5 <- fromJSON("precalculo/salidas/cap5_datos.json", simplifyVector = TRUE)
 
   # ---- ¿cuánto se mueve el pico con una rejilla más fina? (la regla de las tres celdas) ----
   ny <- D5$m5$rejilla$ny; nx <- D5$m5$rejilla$nx

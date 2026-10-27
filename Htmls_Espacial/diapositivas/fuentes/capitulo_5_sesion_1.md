@@ -762,16 +762,16 @@ Es el defecto que casi publica el módulo: la primera versión tituló su mapa �
 :::
 
 ???
-Criterio: llamarlo «riesgo» importaría una palabra que aquí no significa nada, porque no hay casos y controles, hay dos poblaciones completas. La escala va fija de 0 a 1 y no se normaliza contra el máximo: una proporción tiene escala propia. El mapa de puntos es el control de la superficie: lo privado domina el norte y el centro-norte; lo oficial pesa más en el sur. La barra tiene un número par de clases para que el cambio de color caiga en 0.5; con uno impar, la clase central se reparte a los dos lados de 0.5 y su color se lee como mayoría sin serlo. Cotejo: `datos › m6.bogota`, `recomputo › oficial`.
+Criterio: llamarlo «riesgo» importaría una palabra que aquí no significa nada, porque no hay casos y controles, hay dos poblaciones completas. La escala va fija de 0 a 1 y no se normaliza contra el máximo: una proporción tiene escala propia. El mapa de puntos es el control de la superficie: lo privado domina el norte y el centro-norte; lo oficial pesa más en el sur. La barra tiene un número par de clases para que el cambio de color caiga en 0.5; con uno impar, la clase central se reparte a los dos lados de 0.5 y su color se lee como mayoría sin serlo. El mapa va en la rejilla de los mapas de calor (128 × 218 celdas de 183 m) y no en la de 128 × 128 que `relrisk` usa sin `dimyx`: en una caja tan alta esa da celdas de 183 × 312 m, y σ cabe solo 2.3 veces en la vertical, por debajo de la regla de 3 celdas. Aquí casi no cambia nada (la mediana sería 0.3086 en vez de 0.3090), pero la regla vale para todo mapa, y el capítulo la comprueba en los dos lados de la celda. Cotejo: `datos › m6.bogota`, `recomputo › oficial`, `recomputo › oficial.rejilla_por_defecto`.
 
-## Contar puntos da 0.3365; mirar el mapa da 0.3086: son dos preguntas distintas {columnas=3:2}
+## Contar puntos da 0.3365; mirar el mapa da 0.3090: son dos preguntas distintas {columnas=3:2}
 
 ![La superficie P(oficial), con su mediana y la proporción de los puntos](recursos/cap5/s1-oficial-hist.png){alto=300}
 
 |||
 
 ::: info Dato · las 2 107 sedes urbanas
-709 / 2 107 = **0.3365** (contando puntos). Mediana de la superficie P(oficial) = **0.3086** (contando área). Las oficiales son mayoría, con P(oficial) > 0.5, en el **17.5 %** del área.
+709 / 2 107 = **0.3365** (contando puntos). Mediana de la superficie P(oficial) = **0.3090** (contando área). Las oficiales son mayoría, con P(oficial) > 0.5, en el **17.5 %** del área.
 :::
 
 ::: tip Interpretación
@@ -781,7 +781,7 @@ La mediana del área queda por debajo de la proporción de los puntos: poco (0.0
 <small>Fuente: módulo 6 del capítulo (R, spatstat) y figura propia.</small>
 
 ???
-La diferencia es pequeña (0.028) pero tiene signo. Un informe que solo publique una de las dos no miente, pero tampoco dice lo que el lector va a entender. Simulador «Contar puntos y mirar el mapa dan respuestas distintas» (módulo 6). La mediana mide el valor de la proporción en el punto típico de la ciudad; la fracción de área con mayoría oficial es el 17.5 % (el capítulo contestaba con la mediana hasta su tercera revisión). ¿La diferencia es del dato o del cociente? Se barajan las etiquetas, con las mismas sedes, el mismo σ y la misma rejilla: en 40 barajados la mediana va de 0.324 a 0.342, y la observada, 0.3086, queda a 6.4 desviaciones: es del dato. En `chorley`, en cambio, barajar da de 0.028 a 0.056 y la observada (0.0482) cae dentro: allí sí la pone el cociente. Contar puntos es promediar el mapa pesando cada sitio por cuántas sedes hay (0.3357, casi la proporción de los puntos); mirarlo es pesar por área (media 0.3248, mediana 0.3086). Cotejo: `datos › m6.bogota`, `recomputo › oficial`, `recomputo › oficial.area_mayoria_oficial_pct`, `recomputo › permutaciones`.
+La diferencia es pequeña (0.028) pero tiene signo. Un informe que solo publique una de las dos no miente, pero tampoco dice lo que el lector va a entender. Simulador «Contar puntos y mirar el mapa dan respuestas distintas» (módulo 6). La mediana mide el valor de la proporción en el punto típico de la ciudad; la fracción de área con mayoría oficial es el 17.5 % (el capítulo contestaba con la mediana hasta su tercera revisión). ¿La diferencia es del dato o del cociente? Se barajan las etiquetas, con las mismas sedes, el mismo σ y la misma rejilla: en 40 barajados la mediana va de 0.326 a 0.343, y la observada, 0.3090, queda a 6.3 desviaciones: es del dato. En `chorley`, en cambio, barajar da de 0.028 a 0.056 y la observada (0.0482) cae dentro: allí sí la pone el cociente. Contar puntos es promediar el mapa pesando cada sitio por cuántas sedes hay (0.3359, casi la proporción de los puntos); mirarlo es pesar por área (media 0.3252, mediana 0.3090). Cotejo: `datos › m6.bogota`, `recomputo › oficial`, `recomputo › oficial.area_mayoria_oficial_pct`, `recomputo › permutaciones`.
 
 # Cierre y práctica {seccion=modulo-12}
 

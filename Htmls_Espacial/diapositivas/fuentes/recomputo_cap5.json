@@ -278,15 +278,31 @@
     "n_privadas": 1398,
     "n": 2107,
     "global": 0.336497389653536,
-    "mediana": 0.308625133815946,
-    "maximo": 0.999882333479837,
-    "brecha": 0.0278722558375897,
-    "mediana_sin_fijar_niveles": 0.691374866184054,
-    "complemento_de_la_mediana": 0.691374866184054,
-    "area_mayoria_oficial_pct": 17.4593338497289,
+    "mediana": 0.30899029523104,
+    "maximo": 0.999917638299117,
+    "brecha": 0.0275070944224962,
+    "mediana_sin_fijar_niveles": 0.69100970476896,
+    "complemento_de_la_mediana": 0.69100970476896,
+    "area_mayoria_oficial_pct": 17.4533879035925,
     "vecinos_k": 50,
     "vecinos_oficiales": 32,
-    "vecinos_prop": 0.64
+    "vecinos_prop": 0.64,
+    "rejilla": {
+      "nx": 128,
+      "ny": 218,
+      "celda_x_m": 183.378616657108,
+      "celda_y_m": 183.472136385273,
+      "celdas_por_sigma": 3.92631360670006
+    },
+    "rejilla_por_defecto": {
+      "nx": 128,
+      "ny": 128,
+      "celda_x_m": 183.378616657108,
+      "celda_y_m": 312.475982281147,
+      "celdas_por_sigma": 2.30535844797084,
+      "mediana": 0.308625133815946,
+      "area_mayoria_oficial_pct": 17.4593338497289
+    }
   },
   "capas_defecto": {
     "cor_of_11": 0.939136208020757,
@@ -338,15 +354,15 @@
   "permutaciones": {
     "n": 40,
     "bogota": {
-      "min": 0.324284397270938,
-      "max": 0.341745063317721,
-      "media": 0.33443616295773,
-      "sd": 0.00401403527764497,
-      "observada": 0.308625133815944,
-      "desviaciones": -6.43019489278869,
+      "min": 0.325634945941371,
+      "max": 0.342568402610882,
+      "media": 0.334301616450703,
+      "sd": 0.00399023191985529,
+      "observada": 0.308990295231038,
+      "desviaciones": -6.34332082145812,
       "global": 0.336497389653536,
-      "media_por_area": 0.32478591009835,
-      "media_pesada_por_intensidad": 0.335735455744806
+      "media_por_area": 0.325236091139482,
+      "media_pesada_por_intensidad": 0.335942917404019
     },
     "chorley": {
       "min": 0.0278979529406416,
@@ -394,7 +410,13 @@
     "max_km2": 9.54441897852096
   },
   "fuga_cerrada": {
-    "sigmas_m": [400, 800],
-    "pct": [-10.4346770165342, -19.754272096834]
+    "sigmas_m": [
+      400,
+      800
+    ],
+    "pct": [
+      -10.4346770165342,
+      -19.754272096834
+    ]
   }
 }
