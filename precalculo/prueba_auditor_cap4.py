@@ -452,6 +452,33 @@ def defectos():
     obj("15 · el anillo del resumen se publica más estrecho", "kresumen",
         lambda d: d.__setitem__("h_anillo", 0.005))
 
+    # --- Los rojos de la auditoría R2 (2026-10-27), y cómo volverían ----
+    # Cada uno imita la vuelta atrás del arreglo: si el precálculo volviera
+    # a publicar lo de antes, el auditor tiene que ponerse en rojo. Los dos
+    # que copian un campo en otro (la línea y la banda) rompen a propósito
+    # la regla de los valores con matrícula: lo que se prueba es justo que
+    # el valor viejo, que sigue en el archivo, ya no pase.
+    def media_comun(d):
+        h = d["m2"]["urbana_hist"]
+        h["teorico"] = list(h["teorico_media_comun"])
+    obj("12 · la línea de cuadrantes vuelve a ser una Poisson de media común (V02)",
+        "datos", media_comun)
+    obj("2 · la cola de cuadrantes cuenta una celda de más (V02)",
+        "datos", lambda d: d["m2"]["urbana_hist"]["cola"].__setitem__("celdas", 71))
+
+    def banda_minmax(d):
+        e = d["m11"]["japanesepines"]
+        e["lo95"], e["hi95"] = list(e["lo"]), list(e["hi"])
+    obj("4 · la banda dibujada vuelve al mínimo y el máximo (V01)", "datos", banda_minmax)
+    obj("4 · los pinos vuelven a «no se sale» (V01)",
+        "datos", lambda d: d["m11"]["japanesepines"].__setitem__("sale", 0))
+    obj("2 · las parejas de la rejilla fina de las secuoyas cambian (V05)",
+        "datos", lambda d: d["m6"]["redwood_fina"].__setitem__("parejas", 1717))
+    obj("3 · el p de Monte Carlo de 20×20 queda por debajo del asintótico (V05)",
+        "datos", lambda d: d["m6"]["redwood_fina"].__setitem__("p_mc", 0.0001717171))
+    obj("2 · «una vez de cada» de la 2×2 de las secuoyas cambia",
+        "datos", lambda d: d["m6"]["redwood_gruesa"].__setitem__("una_de_cada", 71))
+
     return D
 
 
