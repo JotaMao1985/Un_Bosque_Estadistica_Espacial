@@ -98,7 +98,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from scipy.spatial import cKDTree
-from scipy.stats import poisson
+from scipy.stats import chi2 as chi2_dist, poisson
 from shapely.geometry import box
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
@@ -315,7 +315,7 @@ def main() -> int:
             "m2: celdas con esperanza < 5")   # el supuesto que discute el módulo 5
 
     # LAS LÍNEAS DEL SIMULADOR (auditoría R2, V02), rehechas con las
-    # esperanzas de aquí. La naranja es la de λ constante celda a celda: la
+    # esperanzas de aquí. La naranja es la del Poisson homogéneo celda a celda: la
     # suma, celda a celda, de la probabilidad Poisson de caer en cada clase
     # con la media de SU celda recortada. La gris, una Poisson de media
     # común, la que el recuadro descarta. Las clases son las de `hist()`:
@@ -334,7 +334,7 @@ def main() -> int:
     mezcla = np.sum([en_clase(e) for e in esp[vivas]], axis=0)
     comun = en_clase(float(np.mean(ov))) * len(ov)
     a.cierto(np.allclose(mezcla, hu["teorico"], rtol=1e-5, atol=1e-9),
-             "m2/simulador: la línea de λ constante es la mezcla de las celdas",
+             "m2/simulador: la del Poisson homogéneo es la mezcla de las celdas",
              f"máx. dif. {float(np.max(np.abs(mezcla - np.array(hu['teorico'])))):.2e}")
     a.cierto(np.allclose(comun, hu["teorico_media_comun"], rtol=1e-5, atol=1e-9),
              "m2/simulador: la gris es una Poisson de media común")
@@ -571,6 +571,17 @@ def main() -> int:
     a.cierto(rf["p_mc"] > b["p_valor"][-1] and rf["p_mc"] > rf["p_mc_10"],
              "m6/fina: simulando la nula, el p es mayor que el asintótico y que el de 10×10")
     a.cerca(rf["p_mc"] / b["p_valor"][-1], rf["veces_mc"], "m6/fina: cuántas veces el de la tabla", 1e-6)
+    # Y POR QUÉ NO RECHAZA LA MÁS GRUESA: le falta potencia, no vista. El χ²
+    # de cola superior con sus grados de libertad, y su inverso redondeado.
+    rg = m6["redwood_gruesa"]
+    a.igual(rg["nx"], m6["nxs"][0], "m6/gruesa: es la primera rejilla del barrido", 0)
+    a.igual(rg["dispersion"], b["dispersion"][0], "m6/gruesa: su índice de dispersión es el del barrido")
+    a.igual(rg["gl"], b["gl"][0], "m6/gruesa: sus grados de libertad", 0)
+    p_arr = float(chi2_dist.sf(b["chi2"][0], b["gl"][0]))
+    a.cerca(p_arr, rg["p_arriba"], "m6/gruesa: el p por arriba, con scipy", 1e-6)
+    a.igual(round(1 / p_arr), rg["una_de_cada"], "m6/gruesa: «una vez de cada»", 0)
+    a.cierto(rg["dispersion"] > 2 and not b["rechaza"][0],
+             "m6/gruesa: más del doble de dispersa, y aun así no rechaza")
 
     # -----------------------------------------------------------------
     a.titulo("7 · G y F: el átomo de los duplicados")

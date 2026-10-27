@@ -446,10 +446,10 @@ print([round(float(dentro_urb.sum() / (v_urb.area / 1e6)), 4),
 # La cola derecha del reparto, que es lo que la prosa manda mirar desde
 # que la línea del simulador es la de λ constante celda a celda (auditoría
 # R2, V02). El precálculo ya comprueba que esas celdas superan todas la
-# esperanza de la celda más grande; aquí se comprueba que la frase que lo
-# cuenta siga siendo la del redondeo hacia abajo de esa esperanza.
+# esperanza de la celda más grande; aquí se comprueba lo mismo con las
+# cifras que la frase pone una junto a otra.
 _cola = m2['urbana_hist']['cola']
-if not (_cola['minimo'] > math.floor(m2['urbana']['esperanza_max']) and _cola['maximo'] == m2['urbana']['maximo']):
+if not (_cola['minimo'] > m2['urbana']['esperanza_max'] and _cola['maximo'] == m2['urbana']['maximo']):
     sys.exit(f"PARADO: el módulo 2 dice que las {_cola['celdas']} celdas de la cola superan lo que "
              f"esperaría la celda más grande y llegan hasta la más poblada; el precálculo dice {_cola}")
 MOD2 = cabecera(
@@ -613,17 +613,17 @@ MOD2 = cabecera(
 
       <p>El simulador de abajo usa esa misma rejilla y pone una junto a otra las dos cosas
         que acabamos de comparar: en barras, cuántas celdas tienen cada conteo; en línea,
-        cuántas lo tendrían si λ fuera constante, contando con que cada celda espera según su
-        área recortada. Fíjate en dónde se separan: sobre todo a la derecha, con
+        cuántas lo tendrían bajo un Poisson homogéneo, contando con que cada celda espera
+        según su área recortada. Fíjate en dónde se separan: sobre todo a la derecha, con
         {firma(ent(_cola['celdas']))} celdas de {ent(_cola['minimo'])} a
-        {ent(_cola['maximo'])} sedes cuando ni la celda entera más grande esperaría más de
-        {ent(math.floor(m2['urbana']['esperanza_max']))}. La línea gris, más fina, es la
+        {ent(_cola['maximo'])} sedes, cuando la esperanza más alta de todas las celdas es de
+        {n(m2['urbana']['esperanza_max'], 1)}. La línea gris, más fina, es la
         referencia que el recuadro descartó: una sola Poisson de media común, como si todas
         las celdas midieran igual. La diferencia entre las dos líneas la pone entera el
         recorte de las celdas, no el patrón.</p>
 
 {sim('cap4-cuadrantes', 'Contar en cuadrantes',
-     'La rejilla es fija —la que declara la lectura—: la barra es el reparto observado de sedes por celda; la línea naranja, el que daría una intensidad constante sobre estas mismas celdas recortadas, y la gris, el de una sola Poisson de media común, como si midieran igual.', 300, mandos=False)}
+     'La rejilla es fija —la que declara la lectura—: la barra es el reparto observado de sedes por celda; la línea naranja, el que daría un Poisson homogéneo —λ constante y puntos independientes— sobre estas mismas celdas recortadas, y la gris, el de una sola Poisson de media común, como si midieran igual.', 300, mandos=False)}
 
       <p>Lo que acabas de ver no es que Bogotá tenga «mucha» o «poca» intensidad, sino que
         <strong>sus conteos no son los de un Poisson homogéneo</strong>. Puede ser que λ
@@ -1167,6 +1167,9 @@ _n_tam = len(m6['nxs'])
 # parejas que comparten celda y el p de Monte Carlo, del precálculo, que
 # ya comprueba que ese p supera al asintótico y al de la rejilla de 10×10.
 _rf = m6['redwood_fina']
+# Por qué no rechaza la 2×2 de las secuoyas: le falta potencia, no vista.
+# El precálculo comprueba que su índice pasa del doble y que no rechaza.
+_rg = m6['redwood_gruesa']
 if _rf['nx'] != m6['nxs'][-1] or m6['redwood']['nx'][-1] != _rf['nx']:
     sys.exit(f"PARADO: el módulo 6 lee la rejilla más fina como la de {_rf['nx']}×{_rf['nx']}, "
              f"y el barrido acaba en {m6['nxs'][-1]}")
@@ -1192,8 +1195,12 @@ MOD6 = cabecera(
       <p>Se barre el mismo patrón con rejillas de 2×2 a 20×20 y se anota el χ² y su
         p-valor. Sobre <code>redwood</code>, {firma(ent(m6['redwood_rechazos']))} de los
         {ent(_n_tam)} tamaños rechazan la hipótesis de Poisson homogéneo. El que no
-        rechaza es el más grueso, y no porque el patrón sea distinto: porque con cuatro
-        celdas no hay resolución para ver los grumos.</p>
+        rechaza es el más grueso, y no porque el patrón sea distinto ni porque los grumos no
+        se vean: con cuatro celdas el índice de dispersión ya vale
+        {n(_rg['dispersion'], 2)}, más del doble del 1 que tocaría en un cuadrado, pero con
+        {ent(_rg['gl'])} grados de libertad el azar da un χ² así de grande una vez de cada
+        {ent(_rg['una_de_cada'])}. Con tan pocas celdas al test le falta potencia, no
+        vista.</p>
 
       <p>Pero el simulador de abajo barre <strong>tres</strong> patrones, y conviene
         recorrerlos los tres antes de sacar la moraleja, porque solo uno se comporta así.
@@ -1201,8 +1208,10 @@ MOD6 = cabecera(
         {firma(ent(m6['japanesepines_rechazos']))} de los {ent(_n_tam)} tamaños: el test no
         grita en ninguna escala cuando no hay nada por lo que gritar. Sobre las sedes de
         Bogotá rechazan los {ent(_n_tam)}, de la rejilla más gruesa a la más fina. El
-        veredicto depende de la celda <strong>cuando el patrón está en el filo</strong>;
-        cuando está claramente cerca de CSR o claramente lejos, la elección no lo mueve.</p>
+        veredicto depende de la celda <strong>cuando al test le falta potencia en alguna
+        rejilla</strong>, como a la de 2×2 de las secuoyas: con
+        {ent(m1['urbana']['n'])} sedes, Bogotá rechaza en todas, y donde no hay nada que ver,
+        como en los pinos, no rechaza ninguna.</p>
 
       <p>Y en el otro extremo el problema se invierte. El p-valor del test no es exacto: sale
         de aproximar el estadístico por una distribución χ², y esa aproximación solo vale si
@@ -1427,7 +1436,8 @@ MOD7 = cabecera(
         menos de {firma(n(m7['bogota']['f_mediana'], 2), ' m')}, cuando bajo CSR las dos
         medianas serían {n(m7['bogota']['csr_mediana'], 2)} m. Pero nada de lo visto hasta
         aquí descarta que λ cambie de una zona a otra de Bogotá —el mapa del módulo 1 lo hace
-        verosímil, y el capítulo 5 lo mide—, y una intensidad así deja exactamente esa huella:
+        verosímil, y el capítulo 5 enseña a estimarla y a ponerla a prueba—, y una intensidad
+        así deja exactamente esa huella:
         vecinos cerca donde hay muchas sedes y huecos donde hay pocas.
         Lo honesto es leerlo como <strong>exceso de vecinos cercanos y de huecos</strong>
         respecto de CSR, no como la prueba de que las sedes se atraigan.</p>
@@ -2423,8 +2433,9 @@ MOD11 = cabecera(
         distancias con una banda al 95 % en cada una. En los pinos, que el test global de abajo
         no rechaza (p = {n(m11['test_global']['dclf_japanesepines_p'], 5)}), la curva observada
         se sale de esa misma banda del 95 % en un tramo corto, cerca de
-        r = {n(_jp_sale, 2)}, igual que la mitad de sus propias simulaciones nulas se sale en
-        algún r.</p>
+        r = {n(_jp_sale, 2)} —por tan poco que a la escala de K no se ve: lo dice la fila
+        «¿se sale la observada?» del simulador—, igual que la mitad de sus propias
+        simulaciones nulas se sale en algún r.</p>
 
       <p>La salida correcta es un <strong>test de desviación global</strong>, que resume la
         curva entera en un número antes de compararla. El de Diggle-Cressie-Loosmore-Ford
@@ -2888,13 +2899,14 @@ SIMULADORES_JS = r"""
             // delante el arranque de la línea quedaba tapado.
             { type: 'bar', label: 'celdas observadas', data: h.conteo,
               backgroundColor: C4.verde, order: 1 },
-            // LA REFERENCIA DE λ CONSTANTE DE VERDAD: cada celda, una Poisson
-            // de media su propia esperanza, la del área recortada (auditoría
-            // R2, V02). La de media común se queda, fina y en gris, rotulada
+            // LA REFERENCIA DEL POISSON HOMOGÉNEO DE VERDAD: cada celda, una
+            // Poisson de media su propia esperanza, la del área recortada
+            // (auditoría R2, V02). Rotulada «Poisson homogéneo» y no «λ
+            // constante»: una λ constante con puntos agrupados da otra cola. La de media común se queda, fina y en gris, rotulada
             // como lo que es: la referencia que el recuadro del módulo descarta.
             // Rótulos cortos: a 375 px los largos se cortaban, y el pie y la
             // prosa ya dicen qué es cada línea.
-            { type: 'line', label: 'λ constante, celda a celda',
+            { type: 'line', label: 'Poisson homogéneo, celda a celda',
               data: h.teorico, borderColor: C4.naranja, borderDash: [6, 4],
               pointRadius: 0, tension: 0.3, order: 0 },
             { type: 'line', label: 'media común, que aquí no vale',
@@ -3272,7 +3284,9 @@ SIMULADORES_JS = r"""
         options: { responsive: true, maintainAspectRatio: false, parsing: false,
           scales: {
             x: { type: 'linear', title: { display: true, text: 'r' } },
-            y: { title: { display: true, text: 'razón contra CSR' } }
+            // `suggestedMin`: en Bogotá las dos razones no bajan de 1, y sin
+            // esto la gris caía justo en el borde inferior del gráfico.
+            y: { suggestedMin: 0.9, title: { display: true, text: 'razón contra CSR' } }
           } }
       });
       const pinta = () => {
@@ -3601,16 +3615,16 @@ QUIZ_JS = r"""
         opciones: [
           { texto: 'Poco: ni siquiera que sus conteos por celda coincidan', correcta: true,
             retro: 'Correcto. El χ² resume los conteos en un número, y números iguales salen de conteos distintos: intercambiar el contenido de dos celdas de igual área no lo mueve. Y con los mismos conteos tampoco dice nada de lo que hay dentro: el módulo 5 construye dos patrones con χ² = ' + n5(D4.m5.original.chi2, 4) + ' cuya distancia media al vecino se multiplica por ' + n5(D4.m5.nn_cociente, 2) + '. Lo único que comparten, si la rejilla es la misma, es el veredicto.' },
-          { texto: 'Que los dos tienen la misma intensidad media, y nada más',
+          { texto: 'Poco: solo que los dos tienen la misma intensidad media',
             retro: 'No. El χ² no compara los dos patrones entre sí: cada uno se mide contra su propia esperanza, y dos patrones con n muy distintos pueden dar el mismo número.' },
           { texto: 'Que los dos colocan sus puntos de una manera muy parecida',
-            retro: 'Tampoco: el χ² del módulo 5 rechaza en los dos casos. Lo que no distingue es la estructura DENTRO de cada celda.' },
+            retro: 'No: los dos patrones del módulo 5 dan el mismo χ², y su distancia media al vecino se multiplica por ' + n5(D4.m5.nn_cociente, 2) + '. El χ² no ve cómo se colocan los puntos dentro de cada celda, ni en qué celda está cada conteo.' },
           { texto: 'Que ninguno de los dos se aparta de una intensidad constante',
             retro: 'No se puede concluir, ni en un sentido ni en el otro. Que los dos χ² coincidan no dice si son grandes o pequeños; y aunque lo dijera, el test no separa una intensidad variable de un agrupamiento: rechazar no demuestra la primera, y no rechazar no demuestra una intensidad constante.' }
         ] },
       {
         tipo: 'multiple',
-        pregunta: 'El test de cuadrantes sobre las sedes de Bogotá con una rejilla 10×10 rechaza con un p-valor minúsculo. Con ese resultado y nada más, ¿qué afirmaciones están justificadas?',
+        pregunta: 'El test de cuadrantes sobre las sedes de Bogotá con una rejilla 10×10 rechaza con un p-valor minúsculo, y R avisa de que algunas esperanzas son pequeñas. Con esa salida y nada más, ¿qué afirmaciones están justificadas?',
         opciones: [
           { texto: 'El patrón no es compatible con un Poisson homogéneo', correcta: true,
             retro: 'Eso es exactamente lo que dice el test, ni más ni menos: la nula es el Poisson homogéneo, y se rechaza.' },
@@ -3626,11 +3640,11 @@ QUIZ_JS = r"""
         pregunta: 'Sobre las secuoyas, el test de cuadrantes rechaza con rejilla 5×5 y NO rechaza con 2×2. ¿Qué se hace con eso?',
         opciones: [
           { texto: 'Declarar el tamaño de celda, que es parte del resultado y no del método', correcta: true,
-            retro: 'Eso es. De los ' + D4.m6.nxs.length + ' tamaños barridos rechazan ' + D4.m6.redwood_rechazos + '; el que no lo hace es el más grueso, y no porque el patrón cambie sino porque con cuatro celdas no hay resolución. Es el efecto de escala del MAUP, con otro nombre.' },
+            retro: 'Eso es. De los ' + D4.m6.nxs.length + ' tamaños barridos rechazan ' + D4.m6.redwood_rechazos + '; el que no lo hace es el más grueso, y no porque el patrón cambie sino porque con cuatro celdas al test le falta potencia. Es el efecto de escala del MAUP, con otro nombre.' },
           { texto: 'Quedarse con la rejilla fina, porque es la que mejor resuelve los grumos',
             retro: 'Es la que más resuelve y también la que rompe el supuesto del χ², que pide al menos 5 puntos esperados en cada celda: desde nx = ' + D4.m6.redwood_nx_esperanza_baja + ' aparecen celdas con esperanza menor que 5. Elegir por resolución es elegir un χ² en el que ya no se puede confiar.' },
           { texto: 'Fiarse de la rejilla gruesa, que es la que respeta la aproximación del χ²',
-            retro: 'Respeta el supuesto del χ² —ninguna celda espera menos de 5 puntos— y no ve nada: con 2×2 no rechaza un patrón que está claramente agregado. El supuesto descarta las rejillas demasiado finas, pero no elige entre las que quedan: la de 3×3 también lo respeta, y rechaza.' },
+            retro: 'Respeta el supuesto del χ² —ninguna celda espera menos de 5 puntos— y no le basta lo que ve: con 2×2 el índice de dispersión ya vale ' + n5(D4.m6.redwood.dispersion[0], 2) + ' y aun así no rechaza un patrón que está claramente agregado. El supuesto descarta las rejillas demasiado finas, pero no elige entre las que quedan: la de 3×3 también lo respeta, y rechaza.' },
           { texto: 'Promediar los p-valores de los diez tamaños y quedarse con esa media',
             retro: 'No existe tal cosa: los diez contrastes se hacen sobre el mismo dato, no son independientes, y su promedio no tiene distribución nula conocida. La salida no es aritmética: es declarar la escala.' }
         ] }
@@ -3718,7 +3732,7 @@ QUIZ_JS = r"""
           { texto: 'Que el patrón no es CSR, con un p menor que 0.05 para la curva entera',
             retro: 'Ese es exactamente el error que el módulo 11 desmonta: el 5 % es el nivel de CADA r por separado, no el de la curva.' },
           { texto: 'Que conviene subir nsim para estrechar la banda y así confirmarlo',
-            retro: 'Ajustar nsim mirando el resultado es fabricar el resultado. Y además no funciona por un motivo que la última pregunta de este cuestionario te va a pedir: la banda por defecto no es la misma banda cuando cambia nsim.' },
+            retro: 'Ajustar nsim mirando el resultado es fabricar el resultado. Y aunque más simulaciones afinan un poco la banda del 95 %, no arreglan nada: seguiría siendo puntual, y mirarla entera, un centenar de contrastes.' },
           { texto: 'Que la corrección de borde que se usó es insuficiente en ese tramo',
             retro: 'No hay nada en el enunciado que apunte al borde; y la banda se construye con la misma corrección que la curva.' }
         ] },

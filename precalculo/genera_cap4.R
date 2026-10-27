@@ -357,8 +357,10 @@ D$m2 <- list(
   # evaluaba la Poisson en JavaScript, que es una cifra naciendo fuera de
   # R aunque sea una curva de modelo.
   #
-  # LA REFERENCIA ES LA DE λ CONSTANTE DE VERDAD, celda a celda (auditoría
-  # R2 del 2026-10-26, V02). Hasta entonces era UNA Poisson de media común
+  # LA REFERENCIA ES LA DE UN POISSON HOMOGÉNEO DE VERDAD, celda a celda
+  # (auditoría R2 del 2026-10-26, V02). Y se dice «Poisson homogéneo», no
+  # «λ constante»: una λ constante con puntos que se agrupan da una cola
+  # como la de Bogotá, así que esta línea son las dos propiedades juntas. Hasta entonces era UNA Poisson de media común
   # para las 65 celdas, y se presentaba como «lo que daría una intensidad
   # constante»: es justo la referencia que el recuadro del mismo módulo
   # descarta, porque el perímetro recorta las celdas y no miden igual. Con
@@ -366,7 +368,7 @@ D$m2 <- list(
   # casi entera la rejilla: dibujaba 21,8 celdas en 30-35 donde λ
   # constante espera 2,7, y 0 celdas en 0-5 donde espera 13,1.
   #
-  # La de ahora es la mezcla: bajo λ constante la celda j cuenta una
+  # La de ahora es la mezcla: bajo el Poisson homogéneo la celda j cuenta una
   # Poisson de media E_j = λ|A_j|, su área ya recortada, y el número
   # esperado de celdas en una clase es la suma, celda a celda, de la
   # probabilidad de que su conteo caiga en ella. Las clases son las de
@@ -775,6 +777,25 @@ local({
     stop("el p de Monte Carlo de 20×20 ya no supera al asintótico: el módulo 6 lo afirma")
   if (!(rf$parejas > rf$parejas_azar))
     stop("en 20×20 ya no comparten celda más parejas que con el azar: el módulo 6 lo afirma")
+})
+# POR QUÉ NO RECHAZA LA REJILLA MÁS GRUESA (verificación de los rojos R2,
+# 2026-10-27). El módulo decía «con cuatro celdas no hay resolución para
+# ver los grumos», que choca con el módulo 5 arreglado (V06): los grumos
+# pequeños SÍ le llegan al χ² por los conteos. Y le llegan aquí: con 2×2 el
+# índice de dispersión ya pasa del doble del 1 que tocaría en un cuadrado.
+# Lo que falta es potencia: con tres grados de libertad el azar da un χ²
+# así de grande una vez de cada pocas. Es lo que se publica.
+D$m6$redwood_gruesa <- local({
+  k <- 1L
+  p_arriba <- pchisq(b_red$chi2[k], b_red$gl[k], lower.tail = FALSE)
+  list(nx = NXS[k], dispersion = b_red$dispersion[k], gl = b_red$gl[k],
+       p_arriba = r10(p_arriba), una_de_cada = as.integer(round(1 / p_arriba)))
+})
+local({
+  rg <- D$m6$redwood_gruesa
+  if (!(rg$dispersion > 2 && rg$p_arriba > 0.05 && b_red$rechaza[1] == 0L))
+    stop("la 2×2 de las secuoyas ya no es «más del doble de dispersa y aun así no rechaza»: ",
+         "el módulo 6 lo afirma")
 })
 message(sprintf("  redwood 20x20: %d parejas en la misma celda (azar %.2f) · p MC %.5f, x%.1f el asintótico",
                 D$m6$redwood_fina$parejas, D$m6$redwood_fina$parejas_azar,

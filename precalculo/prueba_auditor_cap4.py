@@ -476,6 +476,8 @@ def defectos():
         "datos", lambda d: d["m6"]["redwood_fina"].__setitem__("parejas", 1717))
     obj("3 · el p de Monte Carlo de 20×20 queda por debajo del asintótico (V05)",
         "datos", lambda d: d["m6"]["redwood_fina"].__setitem__("p_mc", 0.0001717171))
+    obj("2 · «una vez de cada» de la 2×2 de las secuoyas cambia",
+        "datos", lambda d: d["m6"]["redwood_gruesa"].__setitem__("una_de_cada", 71))
 
     return D
 

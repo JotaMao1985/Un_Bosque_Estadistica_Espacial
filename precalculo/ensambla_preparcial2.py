@@ -609,8 +609,9 @@ BLOQUE_A = [
              op(f"Que la rejilla es la escala a la que el test mira, porque el rebarajado conserva los "
                 f"conteos de cada celda {ej(5)}, no los de sus cuartos.", True,
                 f"Dentro de cada celda {ej(5)} los puntos se repartieron al azar, así que cada "
-                f"cuarto de celda recibe otro número. El χ² no ve lo que pasa por debajo de su "
-                f"rejilla, y cambiar la rejilla cambia lo que ve. La distancia al vecino, que no "
+                f"cuarto de celda recibe otro número. Fijados los conteos de su rejilla, el χ² no "
+                f"ve cómo se colocan los puntos dentro de cada celda, y cambiar la rejilla cambia lo "
+                f"que cuenta. La distancia al vecino, que no "
                 f"depende de ninguna rejilla, los distinguía desde el principio: el índice de "
                 f"Clark-Evans sin corregir pasa de {c('c4m5_ce_orig')} a {c('c4m5_ce_reb')}."),
              op(f"Que, para el test, los dos son el mismo patrón: si solo se movieron plántulas dentro "
@@ -1558,8 +1559,9 @@ BLOQUE_C = [
                 f"cuantiles de cobertura {cn('niveles.cap4_cobertura_pct')} y un {c('c5m10_nivel')} "
                 f"para la del mínimo y el máximo. Contra la banda hecha con todas, ninguna se saldría "
                 f"del mínimo y el máximo; por eso el capítulo 5 compara cada curva con la banda de las "
-                f"demás. La banda que el capítulo 4 dibuja en su módulo 11 es justo esa, la de "
-                f"cuantiles, contra la que se midió la tasa del {c('c4m11_tasa_bog')}. En las dos, "
+                f"demás. La banda que el capítulo 4 dibuja en su módulo 11 es la de cuantiles, la "
+                f"misma contra la que se midió la tasa del {c('c4m11_tasa_bog')}, y está hecha con "
+                f"todas. En las dos, "
                 f"mirar cientos de radios a la vez hace que la tasa supere de "
                 f"lejos el nivel puntual: es la lección común del módulo 11 del capítulo 4 y del 10 "
                 f"del capítulo 5."),
