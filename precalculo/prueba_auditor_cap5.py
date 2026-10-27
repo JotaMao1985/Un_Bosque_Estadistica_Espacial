@@ -75,6 +75,15 @@ def volteado(g):
     return [z for f in reversed(filas) for z in f]
 
 
+def _a_128_filas(g):
+    """El ráster con 128 filas, las más próximas de las que tiene: la rejilla de
+    128 x 128 que `relrisk` usa por defecto, y con la que P(oficial) se publicó
+    hasta el 2026-10-27 (M6-7: σ cabía 2.3 veces en la vertical)."""
+    nx, ny = g["nx"], g["ny"]
+    filas = [round(i * (ny - 1) / 127) for i in range(128)]
+    return {"ny": 128, "zq": [z for r in filas for z in g["zq"][r * nx:(r + 1) * nx]]}
+
+
 def defectos():
     """(nombre, archivo, tipo, acción). tipo ∈ {'obj', 'txt'}."""
     D = []
@@ -325,7 +334,7 @@ def defectos():
 
     # --- 6e. Los 🟢 y la guarda de orientación (2026-10-27) ------------
     obj("6e · la guarda deja de cazar el mapa al revés",
-        "datos", lambda d: d["m6"]["bogota"].__setitem__("orientacion_niveles_por_defecto", 0.4131313))
+        "datos", lambda d: d["m6"]["bogota"]["guarda"]["defecto"].__setitem__("max", 0.4131313))
     obj("6e · la EMV exacta cambia de pendiente",
         "datos", lambda d: d["m8"]["cuadratura"]["emv_exacta"].__setitem__("pendiente", -6.91313e-06))
     obj("6e · la EMV exacta pierde log-verosimilitud",
@@ -338,6 +347,30 @@ def defectos():
         "datos", lambda d: d["m10"]["vecinos_100m"].__setitem__("pct_patron", 27.1313131))
     obj("6e · el plano ya produce tantas vecinas como el patrón",
         "datos", lambda d: d["m10"]["vecinos_100m"].__setitem__("pct_plano_media", 26.1313131))
+
+    # --- 6f. La rejilla de P(oficial) y la meseta de la guarda (2026-10-27) --
+    obj("6f · P(oficial) vuelve a la rejilla por defecto de relrisk",
+        "mapas", lambda m: m["proporcion_oficial"].update(_a_128_filas(m["proporcion_oficial"])))
+    obj("6f · la rejilla declarada deja de ser la del ráster",
+        "datos", lambda d: d["m6"]["bogota"]["rejilla"].__setitem__("ny", 131))
+    obj("6f · sus celdas por σ se escriben a mano",
+        "datos", lambda d: d["m6"]["bogota"]["rejilla"].__setitem__("celdas_por_sigma", 4.1313131))
+    obj("6f · la rejilla por defecto se publica cumpliendo la regla",
+        "datos", lambda d: d["m6"]["bogota"]["rejilla_por_defecto"].__setitem__("celdas_por_sigma", 3.1313131))
+    obj("6f · la celda por defecto cambia de alto",
+        "datos", lambda d: d["m6"]["bogota"]["rejilla_por_defecto"].__setitem__("celda_y_m", 213.1313131))
+    obj("6f · la mediana por defecto se aleja de la publicada",
+        "datos", lambda d: d["m6"]["bogota"]["rejilla_por_defecto"].__setitem__("p_mediana", 0.2913131))
+    obj("6f · el área de mayoría por defecto deja de redondear igual",
+        "datos", lambda d: d["m6"]["bogota"]["rejilla_por_defecto"].__setitem__("pct_area_mayoria", 17.7131313))
+    obj("6f · la meseta del mapa al revés pasa a un solo píxel",
+        "datos", lambda d: d["m6"]["bogota"]["guarda"]["defecto"].__setitem__("pixeles", 1))
+    obj("6f · la meseta publica otro vecindario",
+        "datos", lambda d: d["m6"]["bogota"]["guarda"]["defecto"].__setitem__("min", 0.1013131))
+    obj("6f · el máximo de P(oficial) se vuelve meseta",
+        "datos", lambda d: d["m6"]["bogota"]["guarda"]["fijado"].__setitem__("pixeles", 13))
+    obj("6f · la guarda desaparece del precálculo",
+        "datos", lambda d: d["m6"]["bogota"].pop("guarda"))
 
     # --- 7. Propiedades teóricas exactas ------------------------------
     obj("7 · el nivel puntual deja de ser 2/(nsim+1)",
