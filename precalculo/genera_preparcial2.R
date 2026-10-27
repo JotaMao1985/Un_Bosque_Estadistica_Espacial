@@ -23,10 +23,13 @@
 # Y UNA PROPIA, QUE COSTÓ ANTES DE ESCRIBIR UNA LÍNEA
 #
 # 4. El nombre de una ruta no dice lo que mide; el generador del capítulo
-#    sí. `m2.urbana_hist.teorico` parece la referencia «con las celdas
-#    recortadas» y es UNA Poisson de media común (genera_cap4.R, junto a
-#    `urbana_hist`). La pregunta A2 se escribió sobre lo que es, no sobre lo
-#    que su nombre sugiere. Antes de añadir aquí una ruta, abrir el `.R`.
+#    sí. `m2.urbana_hist.teorico` parecía la referencia «con las celdas
+#    recortadas» y era UNA Poisson de media común (genera_cap4.R, junto a
+#    `urbana_hist`). La pregunta A2 se escribió sobre lo que era, no sobre lo
+#    que su nombre sugería. Desde la auditoría R2 del capítulo 4 (V02,
+#    2026-10-27) `teorico` SÍ es la de las celdas recortadas, y la de media
+#    común, la que A2 usa, se llama `teorico_media_comun`: la ruta cambió y
+#    la pregunta no. Antes de añadir aquí una ruta, abrir el `.R`.
 #
 # LOS EJERCICIOS VAN SOBRE `murchison` (D5 del plan)
 #
@@ -173,7 +176,7 @@ REUSA <- list(
   r("c4m10_horas_iso",   "cap4", 10, "m10.coste.horas_envolvente_isotropica", "Horas que costaría una envolvente de 999 con la corrección isotrópica"),
   r("c4m10_min_trans",   "cap4", 10, "m10.coste.minutos_envolvente_traslacion", "Minutos que cuesta esa misma envolvente con la corrección de traslación"),
 
-  r("c4m11_tasa_bog",    "cap4", 11, "m11.bogota.tasa_salida.pct", "Porcentaje de las 999 simulaciones de CSR de las sedes que se salen en algún r de la banda de sus cuantiles centrales al 95 % (no de la del mínimo y el máximo, que es la que dibuja el capítulo)"),
+  r("c4m11_tasa_bog",    "cap4", 11, "m11.bogota.tasa_salida.pct", "Porcentaje de las 999 simulaciones de CSR de las sedes que se salen en algún r de la banda de sus cuantiles centrales al 95 %, la misma que dibuja el módulo 11 del capítulo"),
   r("c4m11_nivel",       "cap4", 11, "m11.bogota.tasa_salida.nivel", "Cobertura en cada r de la banda de cuantiles con que se mide esa tasa: un contraste puntual al 5 %"),
   r("c4m11_nsim",        "cap4", 11, "m11.nsim",              "Simulaciones de las envolventes del capítulo 4"),
   r("c4m11_p_min",       "cap4", 11, "m11.p_minimo",          "p-valor más pequeño posible con 999 simulaciones"),
@@ -1874,7 +1877,7 @@ desde <- function(doc, rutas) lapply(rutas, function(x) list(origen = unname(ARC
 
 # A2 · el histograma de los conteos y su referencia de media común
 h_c <- serie("cap4", "m2.urbana_hist.centros"); h_o <- serie("cap4", "m2.urbana_hist.conteo")
-h_t <- serie("cap4", "m2.urbana_hist.teorico"); h_b <- serie("cap4", "m2.urbana_hist.bordes")
+h_t <- serie("cap4", "m2.urbana_hist.teorico_media_comun"); h_b <- serie("cap4", "m2.urbana_hist.bordes")
 if (sum(h_o) != val("c4m2_celdas")) para("el histograma no cuenta las celdas vivas")
 der <- h_b[-1]; izq <- h_b[-length(h_b)]
 G_HIST <- list(
@@ -1886,7 +1889,10 @@ G_HIST <- list(
     obs_desde_60 = sum(h_o[izq >= 60]), ref_desde_60 = r10(sum(h_t[izq >= 60])),
     media = val("c4m2_media")),
   desde = desde("cap4", c(centros = "m2.urbana_hist.centros", observado = "m2.urbana_hist.conteo",
-                          referencia = "m2.urbana_hist.teorico"))
+                          # La de media común, que es la que la pregunta usa como
+                          # referencia ingenua: desde la auditoría R2 del cap. 4
+                          # (V02), `teorico` es la de λ constante celda a celda.
+                          referencia = "m2.urbana_hist.teorico_media_comun"))
 )
 
 # A6 · la esperanza mínima por rejilla sobre la ventana urbana
@@ -2037,8 +2043,8 @@ ERRORES <- list(
   err("cuadrantes", "Tomar «no rechaza el test de cuadrantes» por aleatoriedad", "cap4", 5,
       c("c4m5_chi2", "c4m5_ce_orig", "c4m5_ce_reb", "c4m6_red_p2"),
       paste("el χ² solo lee cuántos puntos hay en cada celda. Las plántulas de secuoya y su versión rebarajada dentro",
-            "de cada celda —los mismos conteos, sin los grumos— dan el mismo χ²: el test no ve lo que pasa por debajo",
-            "de su rejilla. Aquí los dos rechazan, con una rejilla que el error siguiente no deja defender; lo que importa",
+            "de cada celda —los mismos conteos, sin los grumos— dan el mismo χ²: fijados los conteos, el test no ve cómo",
+            "se colocan los puntos dentro de cada celda. Aquí los dos rechazan, con una rejilla que el error siguiente no deja defender; lo que importa",
             "es que el χ² sale idéntico. Y con la rejilla 2 × 2, que sí respeta el supuesto, el test ni siquiera rechaza",
             "sobre las secuoyas, que están agrupadas: no rechazar no las hace aleatorias")),
   err("supuesto", "Elegir la rejilla sin mirar el supuesto del χ²", "cap4", 6,
