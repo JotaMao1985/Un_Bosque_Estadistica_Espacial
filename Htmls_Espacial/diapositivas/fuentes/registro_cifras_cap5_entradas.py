@@ -374,6 +374,9 @@ def cargar_entradas(m, sesiones):
         REG("300", Rr("bordes_csr.patrones"), cx=r"300 patrones")
         REG("0.04", Rr("bordes_csr.media_pct.defecto_800"))
         REG("-19.6", Rr("bordes_csr.media_pct.sin_800"))
+        # La misma fuga, sin simular: 1 − la media de e(u), con el covariograma (S1-11 de la tercera revisión)
+        REG("-19.75", Rr("fuga_cerrada.pct[1]"))
+        REG("-10.43", Rr("fuga_cerrada.pct[0]"))
 
         # ---- afirmaciones que no son una cifra ----
         AF(1, "El máximo de la oferta cae en Suba y el de estudiantes, en Bosa", lambda: r("capas_maximos.localidad_max_oferta") == "Suba" and r("capas_maximos.localidad_max_estudiantes") == "Bosa")
@@ -502,7 +505,7 @@ def cargar_entradas(m, sesiones):
              "(`recomputo › m10b_sem_1` a `m10b_sem_8`): 64 a 67 radios, de 53 a 78 curvas (5.3 a 7.8 %), 26.5 a 39 veces el nivel, un tramo "
              "que acaba entre 3.76 y 3.93 km, y p del MAD de 0.001 a 0.004. El 0.2 % del nivel puntual no cambia. Las diapositivas dicen "
              "«entre el 5 y el 8 %», «unas 30 veces» y dan el rango de las semillas."),
-            (2, "«A menos de 0.64 %» (módulo 10)",
+            (2, "«A menos de 0.64 %» (módulo 10) (arreglado en el capítulo el 2026-10-27)",
              "El módulo 10 dice que la media de las 999 simulaciones queda «a menos de 0.64 %» de π r² en los 101 nodos. El máximo, sin "
              "redondear, es 0.64499 % con la semilla del capítulo (`datos › m10.mmean_vs_teorica_pct`) y llega a 0.82 % con otras "
              "(`recomputo › m10b_sem_4`). Las diapositivas dicen «a menos de 1 %». Además, son 100 radios informativos (r = 0 vale 0 en las dos curvas)."),
@@ -651,6 +654,7 @@ def cargar_entradas(m, sesiones):
         REG("13.44572", RJ("m8.comparacion.gana_distancia_ppm", "m8_nd.gana_distancia_ppm"))
         REG("13.4", RJ("m8.comparacion.gana_distancia_ppm", "m8_nd.gana_distancia_ppm"))
         REG("0.07", RJ("m8.comparacion.gana_constante_exacta", "m8_nd.gana_constante_exacta"))
+        REG("0.01", J("m8.comparacion.gana_constante_exacta_max"), cx=r"se estrecha a 0\.01")
         REG("0.51644", RJ("m8.comparacion.gana_constante_misma", "m8_nd.gana_constante_misma"))
 
         # ---- módulo 9 · ppm ----
@@ -681,7 +685,8 @@ def cargar_entradas(m, sesiones):
         REG("39", A(lambda: round(2 / r("m10_e39.nivel_puntual") - 1), "nsim = 2 / nivel puntual − 1, con nivel puntual 2 / (nsim + 1)"))
         REG("101", RJ("m10.n_nodos", "m10.n_nodos"))
         REG("0.65", A(lambda: 0.65 if r("m10.mmean_vs_teorica_pct") < 0.65 else -1, "el máximo de |media − π r²| / π r² (0.64499 %) es menor que 0.65 %"), cx=r"menos de 0\.65")
-        REG("0.64", T("a menos de 0.64 %"))
+        REG("0.64", A(lambda: round(d("m10.mmean_vs_teorica_pct"), 2), "lo que el capítulo escribía: el máximo, a dos decimales"),
+            cx=r"a menos de 0\.64")
         REG("0.64499", RJ("m10.mmean_vs_teorica_pct", "m10.mmean_vs_teorica_pct"))
         REG("0.025", [Rr("m10_e39.dclf"), Rr("m10_e39.mad")])
         REG("0.0500", Rr("m10_e39.nivel_puntual"))
@@ -704,6 +709,10 @@ def cargar_entradas(m, sesiones):
         REG("5650.35", RJ("m10.test_global.r_min_mad_superan_m", "m10.r_min_mad_superan_m"))
         REG("40", J("m11.duplicados.repetidos"))
         REG("6.2", J("m11.duplicados.cambio_maximo_pct"))
+        # La prueba directa sobre la banda, sin las sedes sobrantes (S2-15 de la tercera revisión)
+        REG("0.005", [Rr("m10b_sindup.dclf"), Rr("m10b_sindup.mad")], cx=r"p = 0\.005")
+        REG("68.75", Rr("m10b_sindup.pct_fuera"))
+        REG("4034", A(lambda: round(r("m10b_sindup.ultimo_r_fuera")), "último radio fuera sin las sedes sobrantes, al metro"))
 
         # ---- módulo 11 · conglomerados ----
         REG("127", A(lambda: sum(d(f"m11.ajustes[{i}].segundos") for i in (0, 2, 4)) / 3, "promedio de los tres tiempos con K isotrópica del capítulo (126.5, 126.7 y 127.1 s)"))

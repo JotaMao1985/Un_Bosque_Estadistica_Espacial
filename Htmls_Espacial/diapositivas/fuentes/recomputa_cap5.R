@@ -296,6 +296,25 @@ if (que == "s1b") {
          pico_rejilla = a, pico_fina = b, cambio_pct = 100 * (a / b - 1))
   })
   guarda("rejilla_fina", list(factor = 4, nx = nx, ny = ny, filas = filas))
+
+  # ---- S1-07: dónde cae el máximo de cada capa, también el de bachillerato ----
+  sgc <- as.numeric(bw.CvL(pu)); dd <- c(218, 128)
+  loc_de <- function(x, y) { pt <- st_sfc(st_point(c(x, y)), crs = st_crs(loc)); i <- st_intersects(pt, loc)[[1]]; if (length(i)) as.character(loc$localidad[i[1]]) else NA }
+  im_max <- function(im) { ij <- which(as.matrix(im$v) == max(im$v, na.rm = TRUE), arr.ind = TRUE)[1, ]; c(x = im$xcol[ij[2]], y = im$yrow[ij[1]]) }
+  k_11 <- density(p11, sigma = sgc, dimyx = dd, diggle = TRUE)
+  m11 <- im_max(k_11)
+  guarda("capas_maximo_bachillerato", list(localidad = loc_de(m11[["x"]], m11[["y"]]), max_km2 = max(k_11) * 1e6))
+
+  # ---- S1-11: la fuga esperada sin corregir, sin simular nada ----
+  # Bajo un patrón al azar, lo que se pierde sin corregir es 1 menos la media de e(u)
+  # sobre la ventana, y esa media es la integral del núcleo contra el covariograma de
+  # la ventana, g(h) = |W ∩ (W + h)|, dividida por |W|.
+  g <- setcov(W)
+  fuga <- sapply(c(400, 800), function(s) {
+    k <- exp(-(g$xcol[col(g$v)]^2 + g$yrow[row(g$v)]^2) / (2 * s^2)) / (2 * pi * s^2)
+    100 * (sum(k * g$v, na.rm = TRUE) * g$xstep * g$ystep / area.owin(W) - 1)
+  })
+  guarda("fuga_cerrada", list(sigmas_m = c(400, 800), pct = fuga))
 }
 
 write(toJSON(R_, auto_unbox = TRUE, digits = NA, pretty = TRUE, null = "null"), SALIDA)

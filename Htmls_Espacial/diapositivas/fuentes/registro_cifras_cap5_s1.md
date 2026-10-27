@@ -22,10 +22,10 @@ Los enteros 0, 1 y 2 usados como constantes de definición no se registran: no s
 
 ## Resumen
 
-- 409 apariciones de cifras en 38 diapositivas; 209 cifras distintas.
-- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 216
-- VERIFICADA · re-ejecutada en R: 80
-- PARÁMETRO de diseño: 48
+- 413 apariciones de cifras en 38 diapositivas; 211 cifras distintas.
+- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 219
+- VERIFICADA · re-ejecutada en R: 82
+- PARÁMETRO de diseño: 47
 - VERIFICADA · aritmética sobre cifras verificadas: 26
 - CONTRASTADA · salida de R (JSON del capítulo): 22
 - CONTRASTADA · texto del capítulo: 8
@@ -395,7 +395,10 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `800` | notas | …a de n en promedio un +0.04 % con σ = 800 m, dentro de su error de Mon… | datos › m4.sigmas_m = [200, 400, 800] | CONTRASTADA · salida de R (JSON del capítulo) |
 | `0.04` | notas | …m, dentro de su error de Monte Carlo (0.04): en promedio conserva el c… | error estándar de la media de la desviación, 300 patrones, σ = 800 m = 0.0422299138 | VERIFICADA · aritmética sobre cifras verificadas |
 | `-19.6` | notas | …el conteo. Sin corregir se pierde un −19.6 %, la fracción media del nú… | recomputo › bordes_csr.media_pct.sin_800 = -19.59688469 | VERIFICADA · re-ejecutada en R |
-| `3.19` | notas | …ón media del núcleo que cae fuera; el +3.19 % del patrón real es de es… | datos › m4.tabla[2].exceso_defecto_pct = 3.191567581; recomputo › bordes.800.pct_defecto = 3.191567581 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `-19.75` | notas | …con el covariograma de Kennedy que da −19.75 % (y −10.43 % a 400 m); e… | recomputo › fuga_cerrada.pct[1] = -19.7542721 | VERIFICADA · re-ejecutada en R |
+| `-10.43` | notas | …iograma de Kennedy que da −19.75 % (y −10.43 % a 400 m); el +3.19 % de… | recomputo › fuga_cerrada.pct[0] = -10.43467702 | VERIFICADA · re-ejecutada en R |
+| `400` | notas | …Kennedy que da −19.75 % (y −10.43 % a 400 m); el +3.19 % del patrón re… | datos › m2.sigma_m = 400; recomputo › nucleos.sigma_m = 400 \| datos › m4.sigmas_m = [200, 400, 800] | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `3.19` | notas | …da −19.75 % (y −10.43 % a 400 m); el +3.19 % del patrón real es de est… | datos › m4.tabla[2].exceso_defecto_pct = 3.191567581; recomputo › bordes.800.pct_defecto = 3.191567581 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 25 · Medido sobre Kennedy: tres correcciones, tres comportamientos
 
@@ -526,14 +529,15 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `128x218` | cuerpo | …l valor por defecto de ), rejilla de 128 × 218 celdas de 183 m, **cada… | datos › m5.rejilla.nx × ny = 128x218 | PARÁMETRO de diseño |
+| `1062` | cuerpo | …achillerato y estudiantes: las mismas 1 062 sedes, con el norte arriba… | datos › m5.capas.grado_11.n = 1062; recomputo › capas.n_grado11 = 1062 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `720` | cuerpo | …gura propia. \|\|\| ::: info Dato σ = 720 m (el valor por defecto de )… | datos › m5.sigma_m = 720.3691455; recomputo › capas.sigma_m = 720.3691455 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `183` | cuerpo | …defecto de ), rejilla de celdas de 183 m, **cada mapa a su escala**.… | datos › m5.rejilla.celda_m = 183.3786167; recomputo › capas.celda_x_m = 183.3786167 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `14.5` | cuerpo | …escala**. El máximo de la **oferta** (14.5 por km²) está en **Suba**; … | datos › m5.capas.oferta.max_km2 = 14.5361525; recomputo › capas.max_oferta = 14.5361525 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `9.5` | cuerpo | …ala**. El máximo de **bachillerato** (9.5 por km²) está en **Suba**; e… | datos › m5.capas.grado_11.max_km2 = 9.544418978; recomputo › capas.max_grado11 = 9.544418979 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1579` | cuerpo | …á en **Suba**; el de **estudiantes** (1579 por km²), en **Bosa**. ::: … | datos › m5.capas.estudiantes.max_km2 = 1578.806516; recomputo › capas.max_estudiantes = 1578.806516 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `2107` | cuerpo | …bian dos cosas: qué sedes entran (las 2 107, o solo las 1 062 con grad… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `1062` | cuerpo | …é sedes entran (las 2 107, o solo las 1 062 con grado 11) y cuánto pes… | datos › m5.capas.grado_11.n = 1062; recomputo › capas.n_grado11 = 1062 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `11` | cuerpo | …las 2 107, o solo las 1 062 con grado 11) y cuánto pesa cada una (1, o… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
-| `0.919` | cuerpo | …ara bachillerato con estudiantes (r = 0.919; sus mapas, en la lámina a… | datos › m5.cor_grado11_estudiantes = 0.9185657089; recomputo › capas.cor_11_es = 0.9185657089 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `1062` | cuerpo | …:: ::: tip Interpretación Las mismas 1 062 sedes, el mismo σ y la mism… | datos › m5.capas.grado_11.n = 1062; recomputo › capas.n_grado11 = 1062 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.919` | cuerpo | …so el máximo pasa de Suba a Bosa (r = 0.919). :::… | datos › m5.cor_grado11_estudiantes = 0.9185657089; recomputo › capas.cor_11_es = 0.9185657089 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `2107` | notas | …uroccidente); el de la oferta, de las 2 107 sedes, también en Suba (14… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `14.5` | notas | …de las 2 107 sedes, también en Suba (14.5 por km²). La lámina compara … | datos › m5.capas.oferta.max_km2 = 14.5361525; recomputo › capas.max_oferta = 14.5361525 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 33 · Con celdas de 183 m, la ciudad no puede dibujar un σ menor que 550 m
 

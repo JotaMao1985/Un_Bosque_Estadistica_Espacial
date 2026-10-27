@@ -749,6 +749,16 @@ prop_global <- mean(marca == "oficial")
 or_bog <- orienta(rr_bog, p_sec, "oficial")
 if (or_bog <= prop_global)
   stop(sprintf("Bogotá: el mapa no es P(oficial) — donde es máximo solo el %.0f%% de los vecinos son oficiales", 100 * or_bog))
+# LA MISMA GUARDA SOBRE EL MAPA QUE SALE SIN FIJAR LOS NIVELES (M6-4 de la
+# tercera revisión, 2026-10-27). Con el orden alfabético `relrisk` pinta
+# P(privado), y es ESE mapa el que la guarda tiene que cazar: el bloque de R
+# del módulo 6 la enseña aplicada a los dos, y no solo dicha.
+p_sec_alf <- p_sec
+marks(p_sec_alf) <- factor(as.character(marca))
+or_bog_inv <- orienta(relrisk(p_sec_alf, sigma = SIG_CIUDAD), p_sec_alf, "oficial")
+if (!(or_bog_inv < prop_global && prop_global < or_bog))
+  stop(sprintf("la guarda ya no separa los dos mapas de Bogotá (%.2f con los niveles por defecto, %.2f fijados, %.2f global)",
+               or_bog_inv, or_bog, prop_global))
 
 # LA PREGUNTA «¿EN QUÉ FRACCIÓN DE LA CIUDAD SON MAYORÍA?» TIENE SU CIFRA, y
 # no es la mediana: es el área donde P > 0.5. Los píxeles miden lo mismo, así
@@ -800,7 +810,8 @@ D$m6 <- list(
     pct_area_mayoria = r10(pct_mayoria_bog),
     pct_oficiales_tercio_sur = r10(pct_ofi_sur),
     pct_oficiales_tercio_norte = r10(pct_ofi_norte),
-    orientacion_verificada = r10(or_bog)))
+    orientacion_verificada = r10(or_bog),
+    orientacion_niveles_por_defecto = r10(or_bog_inv)))
 
 message(sprintf("   chorley: %d casos / %d controles, mediana %.4f contra %.4f global, máximo a %.0f m del borde con %d puntos a %g km · Bogotá: mediana %.4f contra %.4f global, mayoría oficial en el %.1f%% del área, %.1f%% de oficiales en el tercio sur y %.1f%% en el norte",
                 D$m6$chorley$casos, D$m6$chorley$controles,
@@ -1134,6 +1145,36 @@ if (!(gana_cte_exacta > 0 && gana_cte_exacta < 2 && gana_cte_misma > 0 && gana_c
   stop(sprintf("con la integral bien hecha (%.3f) o con la misma cuadratura (%.3f) ya no empatan a favor del constante",
                gana_cte_exacta, gana_cte_misma))
 
+# LA EMV CON LA INTEGRAL BIEN HECHA (M8-3 de la tercera revisión). La columna
+# «con la integral bien hecha» evalúa la ℓ exacta en los coeficientes que dio
+# cada cuadratura, no en su máximo. Aquí se maximiza: dado el coeficiente b1,
+# el intercepto tiene forma cerrada (la derivada respecto de él es n menos la
+# integral), así que basta optimizar en una dimensión. La integral, como en
+# `integral_fina`: |W| por la media sobre una máscara fina.
+emv_exacta <- function(lado) {
+  M <- as.mask(W_URB, dimyx = lado)
+  g <- rasterxy.mask(M, drop = TRUE)
+  z <- dcen(g$x, g$y); zi <- dcen(p_urb$x, p_urb$y)
+  perfil <- function(b1) {
+    b0 <- log(N_URB) - log(A_URB * mean(exp(b1 * z)))
+    N_URB * b0 + b1 * sum(zi) - N_URB
+  }
+  o <- optimize(perfil, c(-1e-4, 1e-4), maximum = TRUE, tol = 1e-13)
+  list(pendiente = o$maximum, logver = o$objective)
+}
+emv_x  <- emv_exacta(2048)
+emv_x4 <- emv_exacta(4096)
+if (abs(emv_x$pendiente / emv_x4$pendiente - 1) > 0.005 || abs(emv_x$logver - emv_x4$logver) > 0.05)
+  stop("la EMV exacta no converge al afinar la máscara")
+aic_dcen_xmax <- -2 * emv_x$logver + 2 * 2
+gana_cte_exacta_max <- aic_dcen_xmax - aic_hom
+# Lo que el módulo afirma: el máximo exacto supera a las cuatro ℓ exactas, el
+# empate se estrecha, y ninguna cuadratura acierta la pendiente.
+if (!(emv_x$logver >= max(llx) - 1e-6 && gana_cte_exacta_max > 0 && gana_cte_exacta_max < gana_cte_exacta &&
+      emv_x$pendiente < min(pend)))
+  stop(sprintf("la EMV exacta ya no hace lo que el módulo 8 dice (ℓ %.4f, empate %.4f, pendiente %.4g)",
+               emv_x$logver, gana_cte_exacta_max, emv_x$pendiente))
+
 D$m8 <- list(
   homogeneo = list(
     # `r10()` REDONDEA DECIMALES, NO CIFRAS SIGNIFICATIVAS, y lambda en m2
@@ -1162,10 +1203,16 @@ D$m8 <- list(
     # y las dos que dicen de dónde sale la segunda
     rango_logver_ppm = r10(diff(range(llp))),
     rango_logver_exacta = r10(diff(range(llx))),
+    emv_exacta = list(pendiente = signif(emv_x$pendiente, 6), logver = r10(emv_x$logver),
+                      aic = r10(aic_dcen_xmax),
+                      # cuántos errores estándar la separan de la de por defecto (en valor absoluto)
+                      pendiente_en_ee = r10(abs(emv_x$pendiente - cuadratura[[2]]$pendiente) / ee1),
+                      que = "la verosimilitud con la integral sobre una máscara fina, maximizada: lo que ninguna cuadratura acierta"),
     aviso = "el AIC de ppm sale de la verosimilitud aproximada por la cuadratura: dos modelos con cuadraturas distintas no se pueden comparar por AIC"),
   comparacion = list(
     gana_distancia_ppm = r10(gana_dist_ppm),
     gana_constante_exacta = r10(gana_cte_exacta),
+    gana_constante_exacta_max = r10(gana_cte_exacta_max),
     gana_constante_misma = r10(gana_cte_misma),
     aic_distancia_exacto = r10(aic_dcen_x),
     que = "¿mejora la distancia al constante? por AIC de ppm, sí; con la integral bien hecha o con la misma cuadratura, empatan"))
@@ -1470,6 +1517,20 @@ if (!(flex[[1]]$dclf_p < 0.05 && flex[[2]]$dclf_p >= 0.05))
   stop(sprintf("la tendencia flexible ya no hace lo que el módulo 10 dice (grado 4: p = %.4g; grado 12: p = %.4g)",
                flex[[1]]$dclf_p, flex[[2]]$dclf_p))
 
+vecinos_100m <- local({
+  pct_mod <- cacheado("vecinos_100m_plano_99_8128", {
+    set.seed(8128)
+    sims <- suppressMessages(suppressWarnings(simulate(f_centr, nsim = 99, progress = FALSE)))
+    sapply(sims, function(q) 100 * mean(nndist(q) < 100))
+  })
+  obs <- 100 * mean(nndist(p_urb) < 100)
+  if (!(obs > mean(pct_mod) + 5 * sd(pct_mod)))
+    stop(sprintf("el %.1f %% de sedes con vecina a menos de 100 m ya no se separa del plano (%.1f, sd %.1f)",
+                 obs, mean(pct_mod), sd(pct_mod)))
+  list(radio_m = 100, pct_patron = r10(obs), simulaciones = length(pct_mod), semilla = 8128L,
+       pct_plano_media = r10(mean(pct_mod)), pct_plano_sd = r10(sd(pct_mod)))
+})
+
 D$m10 <- list(
   modelo = "ppm(~ xc + yc), coordenadas centradas",
   nsim = NSIM_ENV, correccion = CORR_ENV,
@@ -1502,6 +1563,10 @@ D$m10 <- list(
   lambda_nucleo_sigma_m = r10(sig_lambda),
   lambda_modelo = lambda_modelo,
   tendencia_flexible = flex,
+  # La hipótesis de la manzana, el predio y el edificio, con lo que el dato sí
+  # mide (R16 de la tercera revisión): qué fracción de las sedes tiene otra a
+  # menos de 100 m, en el patrón y en 99 patrones simulados del plano ajustado.
+  vecinos_100m = vecinos_100m,
   # La lectura, que es lo que el módulo tiene que dejar dicho, y acotada a lo
   # que se contrastó.
   veredicto = "un plano en x e y no explica la agregación; una tendencia muy flexible sí la absorbe")

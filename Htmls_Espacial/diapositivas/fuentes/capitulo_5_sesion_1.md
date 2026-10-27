@@ -443,7 +443,7 @@ Es una exigencia exacta: conservar el conteo observado. Por eso sirve de prueba 
 <small>Fuente: módulo 4 del capítulo (texto del capítulo). Ejemplo: Kennedy, 262 sedes.</small>
 
 ???
-El módulo 4 mide tres comportamientos donde el manual sugiere dos. Pedir una apuesta: ¿cuál de las tres devuelve n? La respuesta viene en la diapositiva siguiente, con cifras. En rigor, la integral de la intensidad es el número esperado de sedes, no el n de esta muestra: pedir que sea n es pedir que se conserve el conteo observado, que Diggle cumple por construcción. Pasar la prueba no hace mejor al estimador, y suspenderla no lo hace malo: dice qué conserva. Lo comprueba una simulación hecha para esta presentación: con 300 patrones al azar de 262 sedes en la ventana de Kennedy, la corrección por defecto se desvía de n en promedio un +0.04 % con σ = 800 m, dentro de su error de Monte Carlo (0.04): en promedio conserva el conteo. Sin corregir se pierde un −19.6 %, la fracción media del núcleo que cae fuera; el +3.19 % del patrón real es de este patrón, que no es al azar, y no de la corrección. Cotejo: `datos › m4.tabla`, `recomputo › bordes_csr.patrones`, `recomputo › bordes_csr.media_pct`, `recomputo › bordes_csr.ee_media_pct`.
+El módulo 4 mide tres comportamientos donde el manual sugiere dos. Pedir una apuesta: ¿cuál de las tres devuelve n? La respuesta viene en la diapositiva siguiente, con cifras. En rigor, la integral de la intensidad es el número esperado de sedes, no el n de esta muestra: pedir que sea n es pedir que se conserve el conteo observado, que Diggle cumple por construcción. Pasar la prueba no hace mejor al estimador, y suspenderla no lo hace malo: dice qué conserva. Lo comprueba una simulación hecha para esta presentación: con 300 patrones al azar de 262 sedes en la ventana de Kennedy, la corrección por defecto se desvía de n en promedio un +0.04 % con σ = 800 m, dentro de su error de Monte Carlo (0.04): en promedio conserva el conteo. Sin corregir se pierde un −19.6 %, la fracción media del núcleo que cae fuera, y esa no necesita simulación: es 1 menos la media de e(u) sobre la ventana, una cuenta con el covariograma de Kennedy que da −19.75 % (y −10.43 % a 400 m); el +3.19 % del patrón real es de este patrón, que no es al azar, y no de la corrección. Cotejo: `datos › m4.tabla`, `recomputo › bordes_csr.patrones`, `recomputo › bordes_csr.media_pct`, `recomputo › bordes_csr.ee_media_pct`, `recomputo › fuga_cerrada`.
 
 ## Medido sobre Kennedy: tres correcciones, tres comportamientos
 
@@ -521,7 +521,7 @@ Se declara cuál corrección se usó y qué conserva.
 ???
 Se comprobó numéricamente contra `density(p, sigma = 800, diggle = TRUE)` en puntos del borde: la fórmula de Diggle coincide con spatstat (a menos de 3 % por la discretización de la malla) y la fórmula de la corrección por defecto, usada en su lugar, se aparta hasta 88 % en el peor de los puntos de borde probados. Las dos fórmulas dividen en sitios distintos; esa es toda la diferencia. Cotejo: `recomputo › diggle_identidad`.
 
-## La integral de la KDE: 270.36 por defecto, 262.00 con Diggle {columnas=3:2}
+## La integral de la KDE: 270.36 por defecto, 262.00 con Diggle {columnas=2:1}
 
 ```r La integral que tiene que dar n {resaltar=8-9,13-14}
 integra <- function(im) {
@@ -531,11 +531,11 @@ integra <- function(im) {
 
 s <- 800
 con <- density(p, sigma = s, dimyx = c(99, 96))
-sin <- density(p, sigma = s, dimyx = c(99, 96), edge = FALSE)
+sin_corr <- density(p, sigma = s, dimyx = c(99, 96), edge = FALSE)
 dig <- density(p, sigma = s, dimyx = c(99, 96), diggle = TRUE)
 
 round(c(defecto = integra(con), diggle = integra(dig),
-        sin_corregir = integra(sin), n = npoints(p)), 4)
+        sin_corregir = integra(sin_corr), n = npoints(p)), 4)
 #>      defecto       diggle sin_corregir            n
 #>     270.3619     262.0000     224.4065     262.0000
 ```
@@ -583,22 +583,22 @@ Entre el primero y el segundo se cae media capa: una sede de primaria no tiene u
 
 ## Donde las manchas no coinciden, el edificio y el estudiante dejan de ser lo mismo {columnas=3:2}
 
-![Oferta y estudiantes, con el norte arriba](recursos/cap5/s1-oferta-estudiantes.png){alto=440}
+![Bachillerato y estudiantes: las mismas 1 062 sedes, con el norte arriba](recursos/cap5/s1-bachillerato-estudiantes.png){alto=440}
 
 <small>Fuente: módulo 5 del capítulo (R, spatstat) y figura propia.</small>
 
 |||
 
 ::: info Dato
-σ = 720 m (el valor por defecto de `bw.CvL`), rejilla de 128 × 218 celdas de 183 m, **cada mapa a su escala**. El máximo de la **oferta** (14.5 por km²) está en **Suba**; el de **estudiantes** (1579 por km²), en **Bosa**.
+σ = 720 m (el valor por defecto de `bw.CvL`), rejilla de 128 × 218 celdas de 183 m, **cada mapa a su escala**. El máximo de **bachillerato** (9.5 por km²) está en **Suba**; el de **estudiantes** (1579 por km²), en **Bosa**.
 :::
 
 ::: tip Interpretación
-Mismo σ y misma rejilla, pero cambian dos cosas: qué sedes entran (las 2 107, o solo las 1 062 con grado 11) y cuánto pesa cada una (1, o sus evaluados). Para aislar el peso, compara bachillerato con estudiantes (r = 0.919; sus mapas, en la lámina anterior).
+Las mismas 1 062 sedes, el mismo σ y la misma rejilla: solo cambia cuánto pesa cada sede (1, o sus evaluados), y por eso el máximo pasa de Suba a Bosa (r = 0.919).
 :::
 
 ???
-Comprobado en R: el máximo de la oferta cae en Suba (norte) y el de estudiantes, en Bosa (suroccidente). Es un estadístico frágil: los dos picos mayores son los mismos en los dos mapas y lo que cambia es cuál gana, así que la diferencia de localidad es una lectura, no una prueba. Un estudiante cuenta donde estudia, no donde vive. El capítulo dibuja los tres mapas, oferta, bachillerato y estudiantes, desde su tercera revisión: cada pareja vecina difiere en una sola operación. Cotejo: `datos › m5.capas`, `recomputo › capas_maximos`.
+Comprobado en R: el máximo de bachillerato cae en Suba (norte) y el de estudiantes, en Bosa (suroccidente); el de la oferta, de las 2 107 sedes, también en Suba (14.5 por km²). La lámina compara bachillerato con estudiantes y no la oferta, porque así difieren en una sola cosa, el peso (con la oferta cambiaban también qué sedes entran). Es un estadístico frágil: lo que cambia es cuál de los picos gana, así que la diferencia de localidad es una lectura, no una prueba. Un estudiante cuenta donde estudia, no donde vive. El capítulo dibuja los tres mapas, oferta, bachillerato y estudiantes, desde su tercera revisión: cada pareja vecina difiere en una sola operación. Cotejo: `datos › m5.capas`, `recomputo › capas_maximos`, `recomputo › capas_maximo_bachillerato`.
 
 ## Con celdas de 183 m, la ciudad no puede dibujar un σ menor que 550 m {columnas=1:1}
 
