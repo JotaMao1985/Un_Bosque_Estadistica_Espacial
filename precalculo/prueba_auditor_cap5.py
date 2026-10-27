@@ -372,6 +372,25 @@ def defectos():
     obj("6f · la guarda desaparece del precálculo",
         "datos", lambda d: d["m6"]["bogota"].pop("guarda"))
 
+    # --- 6g. El suelo de cada ventana en el simulador de selectores (M11) --
+    # La primera es el defecto tal como estaba publicado: Kennedy contra el
+    # suelo y la celda de la ciudad, con dos barras rojas que no lo son.
+    obj("6g · Kennedy vuelve al suelo de la ciudad",
+        "datos", lambda d: d["m3"]["kennedy"].update(
+            {k: d["m3"]["urbana"][k] for k in ("celda_m", "sigma_minimo_dibujable_m", "bajo_el_suelo")}))
+    obj("6g · el suelo de Kennedy se escribe a mano",
+        "datos", lambda d: d["m3"]["kennedy"].__setitem__("sigma_minimo_dibujable_m", 241.3131313))
+    obj("6g · la celda de la ciudad deja de ser la de su mapa",
+        "datos", lambda d: d["m3"]["urbana"].__setitem__("celda_m", 171.3131313))
+    obj("6g · la ciudad pierde un selector de debajo",
+        "datos", lambda d: d["m3"]["urbana"].__setitem__("bajo_el_suelo", ["diggle"]))
+    obj("6g · Kennedy gana uno que cabe",
+        "datos", lambda d: d["m3"]["kennedy"].__setitem__("bajo_el_suelo", ["diggle"]))
+    obj("6g · el suelo de la ciudad se separa del módulo 5",
+        "datos", lambda d: d["m3"]["urbana"].__setitem__("sigma_minimo_dibujable_m", 550.4164092))
+    obj("6g · el suelo desaparece del precálculo",
+        "datos", lambda d: d["m3"]["kennedy"].pop("sigma_minimo_dibujable_m"))
+
     # --- 7. Propiedades teóricas exactas ------------------------------
     obj("7 · el nivel puntual deja de ser 2/(nsim+1)",
         "datos", lambda d: d["m10"].__setitem__("nivel_puntual_pct", 0.4131313131))
