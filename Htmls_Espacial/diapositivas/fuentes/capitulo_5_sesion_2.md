@@ -113,11 +113,11 @@ Entre los percentiles 5 y 95 de la distancia observada, la misma curva varía 1.
 <small>Fuente: módulo 7 del capítulo (R, spatstat).</small>
 
 ???
-Dejar que voten antes de abrir la respuesta. Es una pregunta de cola: el máximo y el mínimo de una curva suavizada cambian con muy pocos puntos. La figura siguiente lo muestra en tres curvas. El ancho del núcleo se cambia con `adjust` (el defecto es el ancho que calcula `rhohat`); las cifras de la opción 3 se calcularon con `jitter = FALSE`, para que no dependan de la semilla. Cotejo: `datos › m7.bogota.curva.razon`, `datos › m7.bogota.curva.razon_bulto`, `datos › m7.bogota.curva.cola_infla`, `recomputo › m7b_adjust.total`, `recomputo › m7b_adjust.bulto`.
+Dejar que voten antes de abrir la respuesta. Es una pregunta de cola: el máximo y el mínimo de una curva suavizada cambian con muy pocos puntos. La figura siguiente lo muestra en tres curvas. El ancho del núcleo se cambia con `adjust` (el defecto es el ancho que calcula `rhohat`); las cifras de la opción 3 se calcularon con `jitter = FALSE`, para que no dependan de la semilla. Y una confesión que el capítulo también hace: la covariable sale de las propias sedes —su centro de masa—, justo lo que la diapositiva anterior pide evitar. Con el centroide de la ventana, que no sale de ellas y está a 964 m del otro, la razón total baja de 36.1 a 17.1 y la del bulto, de 1.58 a 1.48: la lección sobrevive. Aquí se conserva el centro de masa porque es el del capítulo y el de toda la sesión. Cotejo: `datos › m7.bogota.curva.razon`, `datos › m7.bogota.curva.razon_bulto`, `datos › m7.bogota.curva.cola_infla`, `recomputo › m7b_adjust.total`, `recomputo › m7b_adjust.bulto`, `datos › m7.bogota.centroide_ventana.distancia_al_centro_de_masa_m`, `datos › m7.bogota.centroide_ventana.razon`, `datos › m7.bogota.centroide_ventana.razon_bulto`.
 
 ## Donde hay datos, la curva de Bogotá varía 1.58 veces y no 36.1
 
-![Gris: el bulto (percentiles 5 y 95). Banda clara: confianza del 95 %. Marcas del eje: dónde hay puntos. Naranja: máximo y mínimo; oscuro: los del bulto](recursos/cap5/s2-rhohat-tres.png){alto=335}
+![Gris: el bulto (percentiles 5 y 95). Banda clara: confianza del 95 % si las sedes fueran independientes (Poisson). Marcas del eje: dónde hay puntos. Naranja: máximo y mínimo; oscuro: los del bulto](recursos/cap5/s2-rhohat-tres.png){alto=335}
 
 ::: info Dato
 La cola infla la razón 9.0 (elevación), 2.5 (pendiente) y 22.8 veces (Bogotá): con ella, Bogotá es la curva más variable; sin ella, la menos.
@@ -126,7 +126,7 @@ La cola infla la razón 9.0 (elevación), 2.5 (pendiente) y 22.8 veces (Bogotá)
 <small>Fuente: módulo 7 del capítulo (R, spatstat) y figura propia.</small>
 
 ???
-Leer la figura de izquierda a derecha; «razón» es el máximo entre el mínimo de la curva. La banda gris es el bulto; los puntos naranjas son el máximo y el mínimo de toda la curva; los oscuros, los del bulto. En la elevación de `bei` y en la distancia de Bogotá el máximo ya está dentro del bulto: lo que infla la razón es un mínimo diminuto estimado en la cola. El capítulo escribe que el máximo y el mínimo «viven casi siempre en los extremos»; medido, es cierto del mínimo en las tres curvas y del máximo solo en la pendiente (ver el registro). Por el titular, Bogotá iba primera; por el bulto, es la última, y la pendiente de `bei` manda más (3.34) que su elevación (2.36) y que la distancia al centro (1.58): el orden se invierte. Criterio: se publican las dos razones y se compara por la del bulto. Publicar covariables que no funcionan es la mitad de la lección: un material que solo enseña las que sí entrena a encontrarlas siempre. Cotejo: `datos › m7.bei.elevacion.cola_infla`, `datos › m7.bei.pendiente.cola_infla`, `datos › m7.bogota.curva.cola_infla`, `datos › m7.bei.elevacion.razon_bulto`, `datos › m7.bei.pendiente.razon_bulto`.
+Leer la figura de izquierda a derecha; «razón» es el máximo entre el mínimo de la curva. La banda gris es el bulto; los puntos naranjas son el máximo y el mínimo de toda la curva; los oscuros, los del bulto. En la elevación de `bei` y en la distancia de Bogotá el máximo ya está dentro del bulto: lo que infla la razón es un mínimo diminuto estimado en la cola. Medido: el mínimo cae en una cola en las tres curvas, y el máximo, solo en la pendiente; el capítulo lo dice así desde su tercera revisión, y su simulador del módulo 7 dibuja ya las tres curvas. La banda clara es la que da `rhohat` y supone un Poisson: con las sedes en grupos, que es lo que la sección de diagnóstico va a mostrar, sería más ancha. Por el titular, Bogotá iba primera; por el bulto, es la última, y la pendiente de `bei` manda más (3.34) que su elevación (2.36) y que la distancia al centro (1.58): el orden se invierte. Criterio: se publican las dos razones y se compara por la del bulto. Publicar covariables que no funcionan es la mitad de la lección: un material que solo enseña las que sí entrena a encontrarlas siempre. Cotejo: `datos › m7.bei.elevacion.cola_infla`, `datos › m7.bei.pendiente.cola_infla`, `datos › m7.bogota.curva.cola_infla`, `datos › m7.bei.elevacion.razon_bulto`, `datos › m7.bei.pendiente.razon_bulto`.
 
 ## `rhohat` es aleatorio: se fija la semilla y se mide el bulto antes de publicar una razón {columnas=3:2}
 
@@ -160,11 +160,11 @@ Con 20 semillas distintas, la razón de la elevación de `bei` va de 21.10 a 21.
 :::
 
 ::: warn Criterio
-Sin `set.seed` (o con `jitter = FALSE`), la cifra no la reproduce nadie. Se compara el bulto, no el titular, y se publica el ancho (`adjust`).
+Se fija la semilla (o se pide `jitter = FALSE`) antes de publicar una razón; se compara el bulto, no el titular, y se publica el ancho (`adjust`).
 :::
 
 ???
-El bloque es el del módulo 7, recortado: faltan los comentarios del capítulo, las tres llamadas se juntaron en un solo `rbind` (en el mismo orden) y falta la versión de Python (que usa otro suavizador y por eso da otras razones; la conclusión no cambia). `pu` y `WU` son las sedes urbanas y su ventana de la preparación; `bei` y `bei.extra` vienen de spatstat.data. `rhohat` es aleatorio porque, por defecto, añade un poco de ruido (`jitter = TRUE`) a los valores de la covariable en los puntos, y eso consume números aleatorios: el orden de las tres llamadas importa, porque cada una parte de donde dejó la anterior. Con `jitter = FALSE` el resultado es idéntico en cada corrida y no consume el generador (el capítulo atribuye lo aleatorio a una «cuadratura muestreada»; la ayuda dice que es el jitter). La razón de la elevación depende de la semilla: con 20 semillas va de 21.10 a 21.15, y el capítulo escribe «entre 21.12 y 21.14» (ver el registro). La de Bogotá depende además del suavizador: 36.1 es lo que da este. Cotejo: `datos › m7.bei.elevacion.razon`, `recomputo › m7_semillas.n_semillas`, `recomputo › m7_semillas.min`, `recomputo › m7_semillas.max`, `recomputo › m7b_jitter.identico_con_FALSE`, `recomputo › m7b_jitter.distinto_con_TRUE`.
+El bloque es el del módulo 7, recortado: faltan los comentarios del capítulo, las tres llamadas se juntaron en un solo `rbind` (en el mismo orden) y falta la versión de Python (que usa otro suavizador y por eso da otras razones; la conclusión no cambia). `pu` y `WU` son las sedes urbanas y su ventana de la preparación; `bei` y `bei.extra` vienen de spatstat.data. `rhohat` es aleatorio porque, por defecto, añade un poco de ruido (`jitter = TRUE`) a los valores de la covariable en los puntos, y eso consume números aleatorios: el orden de las tres llamadas importa, porque cada una parte de donde dejó la anterior. Con `jitter = FALSE` el resultado es idéntico en cada corrida y no consume el generador (el capítulo lo atribuía a una «cuadratura muestreada» hasta su tercera revisión; la ayuda dice que es el jitter). La razón de la elevación depende de la semilla: con 20 semillas va de 21.10 a 21.15, y el capítulo dice ahora que se mueve en la segunda decimal (ver el registro). La de Bogotá depende además del suavizador: 36.1 es lo que da este. Cotejo: `datos › m7.bei.elevacion.razon`, `recomputo › m7_semillas.n_semillas`, `recomputo › m7_semillas.min`, `recomputo › m7_semillas.max`, `recomputo › m7b_jitter.identico_con_FALSE`, `recomputo › m7b_jitter.distinto_con_TRUE`.
 
 # El Poisson inhomogéneo {seccion=modulo-8}
 
@@ -246,7 +246,7 @@ Esta suma con pesos es la **cuadratura**. La segunda línea es una **regresión 
 :::
 
 ::: info Dato
-Con `nd` = 100 (el defecto) hay 4 140 ficticios, además de las 2 107 sedes.
+Con `nd` = 100, el defecto para estas 2 107 sedes (depende de n), hay 4 140 ficticios además de las sedes.
 :::
 
 ::: warn Criterio
@@ -324,17 +324,17 @@ En el tramo ampliado cada tesela mide unos 235 por 400 m (la caja de la ciudad 
 | 300 | 35 495 | 0.38996 | 55101.00 | −27548.50 | −27550.64 |
 
 ::: info Dato
-Con `dcen` (distancia al centro), entre `nd` = 50 y 300: el coeficiente se mueve 0.12895 errores estándar; el AIC, 9.2 puntos; la ℓ de `ppm`, 4.59973; la ℓ con la integral bien hecha, 0.03.
+Con `dcen` (distancia al centro), de una cuadratura a otra, como mucho: el coeficiente se mueve 0.12895 errores estándar; el AIC, 9.2 puntos; la ℓ de `ppm`, 4.59973; la ℓ con la integral bien hecha, 0.03.
 :::
 
 ::: warn Criterio
-El AIC (k: parámetros) sigue a la ciudad sin contar, no a `nd`: dos `ppm` solo se comparan con la misma cuadratura.
+A más ciudad sin contar, mejor parece el AIC (k: parámetros): dos `ppm` solo se comparan con la misma cuadratura.
 :::
 
 <small>Fuente: módulo 8 del capítulo (R, spatstat).</small>
 
 ???
-«Ciudad sin contar» es el área de las teselas sin ningún punto. El AIC sigue a esa columna y no a `nd`. La última columna hace la integral bien, sin cuadratura: el área por la media de λ̂ sobre una máscara muy fina de píxeles, y resta eso a la suma de logaritmos en las sedes; con `nd` = 100 el modelo espera 2113.76 sedes sobre la ciudad, y hay 2 107. Los cuatro ajustes son el mismo modelo: con la integral bien hecha su log-verosimilitud cambia 0.03 de un extremo a otro; la de `ppm` cambia 4.59973, y todo lo que sobra es la intensidad que el modelo pone sobre la ciudad que su cuadratura no ve. La inferencia aguanta y el AIC no: baja, se queda quieto y vuelve a subir. Con `nd` = 100 y 200 se pierde la misma área, porque comparten la rejilla de teselas y la de píxeles, y el AIC es casi el mismo; con 300 se pierde la que menos y su AIC es el más alto. Cotejo: `datos › m8.cuadratura.tabla`, `datos › m8.cuadratura.rango_aic`, `datos › m8.cuadratura.rango_pendiente_en_ee`, `datos › m8.cuadratura.rango_logver_ppm`, `datos › m8.cuadratura.rango_logver_exacta`, `recomputo › m8_nd.filas`.
+«Ciudad sin contar» es el área de las teselas sin ningún punto. El AIC sigue a esa columna, al revés, y no a `nd`: a más ciudad sin contar, menos AIC, y el modelo parece mejor. La última columna hace la integral bien, sin cuadratura: el área por la media de λ̂ sobre una máscara muy fina de píxeles, y resta eso a la suma de logaritmos en las sedes; con `nd` = 100 el modelo espera 2113.76 sedes sobre la ciudad, y hay 2 107. Los cuatro ajustes son el mismo modelo: con la integral bien hecha su log-verosimilitud cambia 0.03 entre la más alta y la más baja; la de `ppm` cambia 4.59973, y todo lo que sobra es la intensidad que el modelo pone sobre la ciudad que su cuadratura no ve. Frente a la cuadratura, la inferencia aguanta y el AIC no: baja, se queda quieto y vuelve a subir. Frente al supuesto de Poisson que hay debajo, ni una ni otro: los dos cuentan las sedes como independientes, y la sección de conglomerados mide cuánto se equivocan. Con `nd` = 100 y 200 se pierde la misma área, porque comparten la rejilla de teselas y la de píxeles, y el AIC es casi el mismo; con 300 se pierde la que menos y su AIC es el más alto. Cotejo: `datos › m8.cuadratura.tabla`, `datos › m8.cuadratura.rango_aic`, `datos › m8.cuadratura.rango_pendiente_en_ee`, `datos › m8.cuadratura.rango_logver_ppm`, `datos › m8.cuadratura.rango_logver_exacta`, `recomputo › m8_nd.filas`.
 
 ## La distancia gana al constante por 13.44572 puntos de AIC. ¿Y con la integral bien hecha? {.pregunta}
 
@@ -450,7 +450,7 @@ Los errores estándar suponen sedes independientes: sin probarlo, la z va en con
 :::
 
 ???
-`~ xc + yc` compara cada coeficiente con cero por separado, no el uno con el otro. Un 1.96 es el valor con que se lee una z, y la z de `yc` no llega a él. No haber encontrado un gradiente norte-sur no es haber encontrado que no lo hay. La fila de `dcen` usa la covariable del módulo 7, la distancia al centro de masa: su z de −1.22 no dice que la distancia no tenga que ver; dice que no hay evidencia de una relación log-lineal, y la curva `rhohat` ya mostró 1.58 veces en el bulto, con una forma que no es una recta en la escala del logaritmo: con la integral bien hecha, un `dcen` cuadrático (3 parámetros) mejora el AIC del constante en 56.4 puntos. El módulo 10 pone a prueba el supuesto de independencia y el módulo 11 vuelve sobre esta z con la respuesta. Cotejo: `recomputo › m9.centrado.coef`, `recomputo › m9.centrado.ee`, `recomputo › m9.centrado.z`, `recomputo › m9.distancia.coef`, `recomputo › m9.distancia.ee`, `recomputo › m9.distancia.z`, `recomputo › m9b_dcen.dif_aic`.
+`~ xc + yc` compara cada coeficiente con cero por separado, no el uno con el otro. Un 1.96 es el valor con que se lee una z, y la z de `yc` no llega a él. No haber encontrado un gradiente norte-sur no es haber encontrado que no lo hay. La fila de `dcen` usa la covariable del módulo 7, la distancia al centro de masa: su z de −1.22 no dice que la distancia no tenga que ver; dice que no hay evidencia de una relación log-lineal, y la curva `rhohat` ya mostró 1.58 veces en el bulto, con una forma que no es una recta en la escala del logaritmo: con la integral bien hecha, un `dcen` cuadrático (3 parámetros) mejora el AIC del constante en 56.4 puntos, y su test de Wald da p = 2.6e-11. Pero ese AIC y ese Wald son de Poisson: con los conglomerados dentro, el Wald del cuadrático da p = 0.129 a 0.139 (módulo 11). Ni la recta ni la curva tienen evidencia, y es un buen remate para la pregunta siguiente. El módulo 10 pone a prueba el supuesto de independencia y el módulo 11 vuelve sobre esta z con la respuesta. Cotejo: `recomputo › m9.centrado.coef`, `recomputo › m9.centrado.ee`, `recomputo › m9.centrado.z`, `recomputo › m9.distancia.coef`, `recomputo › m9.distancia.ee`, `recomputo › m9.distancia.z`, `recomputo › m9b_dcen.dif_aic`, `datos › m11.cuadratico_dcen`.
 
 ## Para la misma distancia, `rhohat` da 36.1 veces y el `ppm`, z = −1.22. ¿Se contradicen? {.pregunta}
 
@@ -460,7 +460,7 @@ Los errores estándar suponen sedes independientes: sin probarlo, la z va en con
 4. Sí, y hay que quedarse con la razón, porque no supone nada.
 
 ::: respuesta La 2: la razón es casi toda cola, y el `ppm` solo contrasta una relación log-lineal
-Entre los percentiles 5 y 95 la curva varía 1.58 veces; la cola infla el titular 22.8 veces. El `ppm` supone una forma, log-lineal, que la relación puede no tener: es menos flexible, no menos fiable (la 1). Los dos están bien calculados y miden cosas distintas sobre tramos distintos (la 3). Y `rhohat` supone menos, pero su máximo y su mínimo viven donde casi no hay puntos (la 4).
+Entre los percentiles 5 y 95 la curva varía 1.58 veces; la cola infla el titular 22.8 veces. El `ppm` supone una forma, log-lineal, que la relación puede no tener: ni más ni menos fiable, menos flexible, y su z supone sedes independientes, que la sección siguiente va a tumbar (la 1). Los dos están bien calculados y miden cosas distintas sobre tramos distintos (la 3). Y `rhohat` supone menos, pero su mínimo cae en una cola, donde casi no hay puntos (la 4).
 :::
 
 <small>Fuente: módulos 7 y 9 del capítulo (R, spatstat), autoevaluación `cap5-quiz`.</small>
@@ -470,10 +470,10 @@ Las dos curvas son la del módulo 7 y la fila de `dcen` de la tabla anterior. La
 
 # Diagnóstico del ajuste {seccion=modulo-10}
 
-> **Módulo 10 del capítulo.** ¿Basta con que la intensidad varíe para explicar la agregación? Si la K inhomogénea del patrón cae dentro de la banda de su propio modelo, sí; si se sale, hace falta otra cosa.
+> **Módulo 10 del capítulo.** ¿Basta un plano en x e y para explicar la agregación? Si la K inhomogénea se sale de la banda de ese modelo, no basta; si cae dentro, el plano no queda refutado, que no es lo mismo que confirmado.
 
 ???
-Unos 14 minutos. Seis piezas: los tres cambios respecto a la envolvente del capítulo 4, el código con 39 simulaciones, la envolvente de 999, lo que promete y lo que cumple la banda, una pregunta y la conclusión. La K inhomogénea es la K de Ripley del capítulo 4 con cada pareja de puntos dividida por la intensidad estimada en sus dos puntos.
+Unos 14 minutos. Seis piezas: los tres cambios respecto a la envolvente del capítulo 4, el código con 39 simulaciones, la envolvente de 999, lo que promete y lo que cumple la banda, una pregunta y la conclusión. La K inhomogénea es la K de Ripley del capítulo 4 con cada pareja de puntos dividida por una intensidad estimada en sus dos puntos; cuál, es la decisión escondida de esta sección (diapositiva 27).
 
 ## Tres cambios respecto a la envolvente del capítulo 4
 
@@ -481,7 +481,7 @@ Unos 14 minutos. Seis piezas: los tres cambios respecto a la envolvente del cap�
 ### Se simula desde el modelo
 Cada una de las 999 simulaciones es una realización de `ppm(~ xc + yc)`, no de CSR.
 ### Se resume con la K inhomogénea
-Divide cada pareja por la intensidad estimada en sus dos puntos; sin eso, el gradiente del modelo parecería agregación.
+Divide cada pareja por una intensidad en sus dos puntos: la del modelo si se le pasa `lambda`; si no, una por núcleo, aquí de 2.93 km. Sin dividir, el gradiente parecería agregación.
 ### La referencia es la media de las simulaciones
 `envelope` sobre un modelo ajustado no trae la K teórica, y hace bien: el estimador tiene sesgo y la media comete el mismo.
 :::
@@ -493,24 +493,24 @@ Aun así, las dos casi coinciden: la media de las 999 simulaciones queda a menos
 <small>Fuente: módulo 10 del capítulo (R, spatstat).</small>
 
 ???
-Para cualquier Poisson inhomogéneo la K inhomogénea vale π r²: es justo el motivo de dividir cada pareja por su intensidad. Lo que pasa es que un objeto `envelope` sobre un modelo ajustado no trae esa columna, y hace bien: el estimador tiene sesgo, por la corrección de borde y por una λ̂ sacada del propio dato, y la media de las simulaciones comete el mismo sesgo, así que es la referencia justa. El capítulo dice «a menos de 0.64 %»; con las cifras sin redondear el máximo es 0.64499 % con la semilla del capítulo y llega a 0.82 % con otras, de modo que «a menos de 1 %» es lo que se sostiene (ver el registro). La envolvente usa la corrección de traslación porque con la isotrópica serían 999 veces unos dos minutos (diapositiva 32). Cotejo: `datos › m10.nsim`, `datos › m10.n_nodos`, `datos › m10.mmean_vs_teorica_pct`.
+Para cualquier Poisson inhomogéneo la K inhomogénea vale π r²: es justo el motivo de dividir cada pareja por su intensidad. Lo que pasa es que un objeto `envelope` sobre un modelo ajustado no trae esa columna, y hace bien: el estimador tiene sesgo, por la corrección de borde y por una λ̂ sacada del propio dato, y la media de las simulaciones comete el mismo sesgo, así que es la referencia justa. El capítulo dice «a menos de 0.64 %»; con las cifras sin redondear el máximo es 0.64499 % con la semilla del capítulo y llega a 0.82 % con otras, de modo que «a menos de 1 %» es lo que se sostiene (ver el registro). La envolvente usa la corrección de traslación porque con la isotrópica serían 999 veces unos dos minutos (diapositiva 32). Ojo con la segunda tarjeta: `envelope(f_centr, Kinhom, …)` no le pasa `lambda` a `Kinhom`, y entonces `Kinhom` no divide por el modelo, sino por una intensidad que estima en cada patrón con un núcleo y el ancho por defecto de `density.ppp`: 2934.06 m, un octavo del lado corto de la caja de la ciudad. Es la decisión de la sesión 1, «con qué ancho», escondida dentro del diagnóstico; la diapositiva 27 mide lo que mueve. Cotejo: `datos › m10.nsim`, `datos › m10.n_nodos`, `datos › m10.mmean_vs_teorica_pct`, `datos › m10.lambda_nucleo_sigma_m`.
 
 ## La envolvente se simula desde el modelo; con 39 simulaciones el p mínimo es 0.025 {columnas=3:2}
 
-```r Una envolvente contra el modelo, no contra el azar {resaltar=1-3 tam=0.85}
+```r Una envolvente contra el modelo, no contra el azar {resaltar=2-3,8-10 tam=0.8}
 set.seed(5028)
 e39 <- envelope(f_centr, Kinhom, nsim = 39, correction = "translate",
                 verbose = FALSE, savefuns = TRUE)
-dentro_r <- e39$r > 0
-fuera <- e39$obs > e39$hi | e39$obs < e39$lo
-round(c(nivel_puntual = 2 / (39 + 1),
-        pct_fuera = 100 * mean(fuera[dentro_r]),
-        r_max = max(e39$r)), 4)
-#> nivel_puntual     pct_fuera         r_max
-#>        0.0500       78.5156     5868.1157
 round(c(dclf = dclf.test(e39)$p.value, mad = mad.test(e39)$p.value), 4)
 #>  dclf   mad
 #> 0.025 0.025
+
+set.seed(5028)              # lo mismo, dividiendo por el modelo
+e39m <- envelope(f_centr, Kinhom, nsim = 39, correction = "translate",
+                 lambda = f_centr, verbose = FALSE)
+fuera_m <- e39m$obs > e39m$hi | e39m$obs < e39m$lo
+round(100 * mean(fuera_m[e39m$r > 0]), 4)
+#> [1] 100
 ```
 
 <small>Fuente: módulo 10 del capítulo (R, spatstat).</small>
@@ -518,7 +518,7 @@ round(c(dclf = dclf.test(e39)$p.value, mad = mad.test(e39)$p.value), 4)
 |||
 
 ::: info Dato
-Con 39 simulaciones el nivel puntual (la probabilidad de que una curva del modelo se salga en un radio dado) es 0.0500 y el patrón queda fuera en el 78.5156 % de los radios. DCLF y MAD dan p = 0.025, el mínimo posible: 1/(39 + 1).
+Con 39 simulaciones el nivel puntual (la probabilidad de que una curva del modelo se salga en un radio dado) es 0.0500 y el patrón queda fuera en el 78.5156 % de los radios. DCLF y MAD dan p = 0.025, el mínimo posible: 1/(39 + 1). Con `lambda = f_centr`, fuera en el 100 %.
 :::
 
 ::: tip Interpretación
@@ -526,26 +526,20 @@ DCLF y MAD son tests globales: miran la curva entera (DCLF suma el cuadrado de l
 :::
 
 ???
-El bloque es el del módulo 10, recortado: faltan los comentarios y el de Python, que lee la envolvente de 999 que el precálculo dejó en un CSV. `f_centr` es el ajuste centrado de la diapositiva 21. DCLF son las iniciales de Diggle, Cressie, Loosmore y Ford; MAD, las de «maximum absolute deviation». Con 39 simulaciones esto tarda unos segundos; el capítulo publica una de 999, precalculada. `savefuns = TRUE` guarda las curvas para que los tests globales reutilicen las mismas 39. Con 39, el p más pequeño posible es 1/(39 + 1), y es justo el que sale: por mucho que la curva se salga, con pocas simulaciones un test global no puede decir más. Cotejo: `recomputo › m10_e39.nivel_puntual`, `recomputo › m10_e39.pct_fuera`, `recomputo › m10_e39.r_max`, `recomputo › m10_e39.dclf`, `recomputo › m10_e39.mad`.
+El bloque es el del módulo 10, recortado: faltan los comentarios, las líneas que calculan el nivel puntual y el porcentaje de radios fuera (las cifras del Dato) y el de Python, que lee la envolvente de 999 que el precálculo dejó en un CSV. La segunda mitad es la decisión escondida: la misma envolvente, con `lambda = f_centr`. `f_centr` es el ajuste centrado de la diapositiva 21. DCLF son las iniciales de Diggle, Cressie, Loosmore y Ford; MAD, las de «maximum absolute deviation». Con 39 simulaciones esto tarda unos segundos; el capítulo publica una de 999, precalculada. `savefuns = TRUE` guarda las curvas para que los tests globales reutilicen las mismas 39. Con 39, el p más pequeño posible es 1/(39 + 1), y es justo el que sale: por mucho que la curva se salga, con pocas simulaciones un test global no puede decir más. Cotejo: `recomputo › m10_e39.nivel_puntual`, `recomputo › m10_e39.pct_fuera`, `recomputo › m10_e39.r_max`, `recomputo › m10_e39.dclf`, `recomputo › m10_e39.mad`.
 
-## El patrón se sale de la banda de su modelo en el 62 % de los radios, siempre por arriba {columnas=3:2}
+## Dividida por un núcleo, la K sale en el 62 % de los radios; por el modelo, en todos
 
-![K inhomogénea del patrón dividida por la media de su modelo, con la banda de las 999 simulaciones](recursos/cap5/s2-envolvente.png){alto=330}
+![La K inhomogénea del patrón contra la banda de su modelo, dividida por un núcleo de 2.93 km y por la intensidad del modelo](recursos/cap5/s2-envolvente.png){alto=290}
+
+::: info Dato
+Con el núcleo (`Kinhom` sin `lambda`): 62 de 100 radios sobre la banda, de 58.68 a 3638.23 m; ninguno bajo ella. Con `lambda = f_centr`: los 100.
+:::
 
 <small>Fuente: módulo 10 del capítulo (R, spatstat) y figura propia.</small>
 
-|||
-
-::: info Dato
-62 de los 100 radios quedan sobre la banda y ninguno bajo ella: desde 58.68 hasta 3638.23 m; los 38 nodos restantes, hasta 5868.12 m, quedan dentro. Son cifras de una semilla: con otras salen de 62 a 67 radios y un tramo que llega a 3.6–3.9 km.
-:::
-
-::: tip Interpretación
-El exceso de parejas por escala llega hasta unos 2.2 km: la g inhomogénea, que mira cada escala por separado, vale 1.20 a 1 km y 1.06 a 2 km. La K acumula, y por eso la banda se cruza hasta 3.6–3.9 km.
-:::
-
 ???
-Criterio: decir «se sale de la banda» sin decir dónde deja fuera lo útil, que es hasta dónde llega lo que el modelo no explica. Pero la K es acumulada: cuenta todas las parejas a menos de r, de modo que un exceso a escalas cortas la mantiene fuera de la banda a escalas mayores, y 3638.23 m es donde la K vuelve a entrar, no donde acaba el exceso por escala (la g inhomogénea, medida aparte con 199 simulaciones, sale de su banda sin interrupción hasta 2.2 km). El capítulo lee los dos extremos como «hasta dónde llega lo que el modelo no explica». Con otras ocho semillas el tramo termina entre 3.8 y 3.9 km y la fracción de radios fuera va de 64 a 67 de los 100 radios. La figura divide la K por la media del modelo: K crece como el cuadrado del radio y en sus propias unidades las curvas se superponen; así el modelo es la línea del 1 y se lee cuántas veces hay más parejas de las que produciría. Los dos extremos del tramo se leen sobre la banda puntual: dicen por dónde pasa la separación, no son un contraste hecho en cada radio. Los 58.68 m son el primer nodo no nulo de la rejilla de 101 radios del simulador; en la rejilla nativa de `spatstat` (512 radios no nulos) la separación empieza en 11.46 m, el primer radio. Son 100 radios informativos porque en r = 0 las dos curvas valen 0. Cotejo: `datos › m10.pct_r_fuera_de_banda`, `datos › m10.primer_r_fuera_m`, `datos › m10.ultimo_r_fuera_m`, `datos › m10.nodos_dentro_tras_el_tramo`, `datos › m10.r_max_m`, `datos › m10.curva`, `recomputo › m10b_pcf.primera_racha_hasta_r`, `recomputo › m10b_pcf.g_1000`, `recomputo › m10b_pcf.g_2000`.
+Interpretación, para decirla: el tramo lo pone el ancho, porque un núcleo de 2.9 km se lleva los grupos de esa escala; y la K acumula, así que 3638 m es donde vuelve a la banda, no donde acaba el exceso. Criterio: decir «se sale de la banda» sin decir dónde, y con qué intensidad se dividió, deja fuera lo útil. `Kinhom` necesita una intensidad para dividir cada pareja; sin `lambda`, la estima en cada patrón —el observado y cada simulado— con un núcleo del ancho por defecto de `density.ppp`, 2934.06 m, y ese núcleo se lleva dentro de la intensidad toda variación de unos kilómetros, los grupos de esa escala incluidos: en la K solo queda lo más corto. Con la intensidad del modelo, que es un plano, los grupos siguen en la K y la curva no vuelve a la banda. Es el «el ancho lo es todo» de la sesión 1, escondido en un argumento que la llamada no escribe; el capítulo publica las dos envolventes desde su tercera revisión. Con el núcleo, además, la K es acumulada: cuenta todas las parejas a menos de r, de modo que un exceso a escalas cortas la mantiene fuera de la banda a escalas mayores. El exceso deja de crecer hacia los 2 km (la peor desviación, la del MAD, está en 1959.86 m), y 3638.23 m es donde la K vuelve a entrar, no donde acaba el exceso por escala. La g inhomogénea, medida aparte con 199 simulaciones y también con el núcleo por defecto, sale de su banda sin interrupción hasta 2.2 km y vale 1.20 a 1 km y 1.06 a 2 km. Con otras ocho semillas el tramo termina entre 3.8 y 3.9 km y la fracción de radios fuera va de 64 a 67 de los 100 radios. La figura divide la K por la media del modelo: K crece como el cuadrado del radio y en sus propias unidades las curvas se superponen; así el modelo es la línea del 1 y se lee cuántas veces hay más parejas de las que produciría. Los extremos del tramo se leen sobre la banda puntual: dicen por dónde pasa la separación, no son un contraste hecho en cada radio. Los 58.68 m son el primer nodo no nulo de la rejilla de 101 radios del simulador; en la rejilla nativa de `spatstat` (512 radios no nulos) la separación empieza en 11.46 m, el primer radio. Son 100 radios informativos porque en r = 0 las dos curvas valen 0. Cotejo: `datos › m10.pct_r_fuera_de_banda`, `datos › m10.primer_r_fuera_m`, `datos › m10.ultimo_r_fuera_m`, `datos › m10.nodos_dentro_tras_el_tramo`, `datos › m10.r_max_m`, `datos › m10.curva`, `datos › m10.lambda_nucleo_sigma_m`, `datos › m10.lambda_modelo.pct_r_fuera_de_banda`, `datos › m10.lambda_modelo.ultimo_r_fuera_m`, `datos › m10.test_global.r_mad_observada_m`, `recomputo › m10b_pcf.primera_racha_hasta_r`, `recomputo › m10b_pcf.g_1000`, `recomputo › m10b_pcf.g_2000`.
 
 ## La banda promete un 0.2 % por radio, pero leída entera se cruza entre el 5 y el 8 %
 
@@ -555,7 +549,7 @@ Con 999 simulaciones y la banda por defecto (su mínimo y su máximo), es la pro
 ### La banda entera: 5–8 %
 Leída como curva, es **en cualquier radio**: de las 999 curvas del modelo, entre 53 y 78 (según la semilla) cruzan la banda de las otras, unas 30 veces el nivel puntual.
 ### Test global: p = 0.001
-El DCLF da p = 0.001, el mínimo que 999 simulaciones permiten; el MAD, de 0.001 a 0.004 según la semilla. Ninguno salva al modelo: la agregación es real.
+El DCLF da p = 0.001, el mínimo que 999 simulaciones permiten; el MAD, de 0.001 a 0.004 según la semilla. Ninguno salva al plano: hay más parejas cercanas de las que produce un plano en x e y.
 :::
 
 ::: warn Criterio
@@ -569,13 +563,13 @@ Se mide sin simular nada más: cada una de las 999 curvas del propio modelo se c
 
 ## La K inhomogénea sale de la banda del modelo en el 62 % de los radios. ¿Qué se concluye? {.pregunta}
 
-1. Que la intensidad variable (aquí, un plano en x e y) no explica por sí sola la agregación del patrón.
+1. Que un plano en x e y (un gradiente log-lineal) no explica por sí solo la agregación del patrón.
 2. Que el patrón no es un proceso puntual simple, y son los duplicados los que lo agregan.
 3. Que el modelo está mal ajustado y bastaría con añadirle covariables.
 4. Que la banda es demasiado estrecha por usar 999 simulaciones.
 
-::: respuesta La 1: la intensidad variable no explica por sí sola la agregación
-Es la bisagra del capítulo: un plano log-lineal en x e y describe *dónde* hay más colegios, no que estén cerca unos de otros. La 2: hay 40 sedes repetidas, pero quitarlas mueve los parámetros como mucho un 6.2 %. La 3: la K inhomogénea ya descuenta la intensidad estimada; solo una curva muy flexible (grado 12, 91 parámetros) deja de rechazar, y porque imita los grupos como tendencia: con un solo patrón no se separan. La 4: al revés; con 999 el nivel puntual es 0.2 %, más exigente que el 5 % de una envolvente de 39.
+::: respuesta La 1: un plano en x e y no explica por sí solo la agregación
+Es la bisagra del capítulo, con su alcance: un plano log-lineal en x e y describe *dónde* hay más colegios, no que estén cerca unos de otros. La 2: hay 40 sedes repetidas, pero quitarlas mueve los parámetros como mucho un 6.2 %. La 3: la K inhomogénea ya descuenta la intensidad estimada; solo una curva muy flexible (grado 12, 91 parámetros) deja de rechazar, y porque imita los grupos como tendencia: con un solo patrón no se separan. La 4: al revés; con 999 el nivel puntual es 0.2 %, más exigente que el 5 % de una envolvente de 39.
 :::
 
 <small>Fuente: módulos 10 y 11 del capítulo (R, spatstat), autoevaluación `cap5-quiz`.</small>
@@ -594,14 +588,14 @@ Y es un veredicto sobre una tendencia suave: con una curva muy flexible la banda
 <small>Fuente: módulo 10 del capítulo (veredicto del precálculo).</small>
 
 ???
-El veredicto que deja escrito el precálculo es «la intensidad variable no explica la agregación: hace falta un proceso de conglomerado». Cuánto se quedan cortos los errores estándar lo mide el módulo siguiente, que trae un modelo de conglomerado con el que medirlo. Un apunte sobre los residuos: no hay un residuo por observación, porque lo observado son posiciones; `diagnose.ppm` dibuja la diferencia suavizada entre el patrón y la intensidad ajustada. Sirve para ver si falta tendencia, pero no puede decir si lo que sobra es tendencia o interacción entre puntos. Alcance del veredicto: el capítulo lo escribe para «la intensidad variable», pero lo que se probó es un plano log-lineal en x e y (3 parámetros); con una tendencia polinómica de grado 12 (91 parámetros) ningún test global rechaza, aunque esa curva imita los grupos. Lo que sí sostienen los datos es que el exceso por debajo de unos 2 km sobrevive a la tendencia. «Comparten manzana, predio y edificio» es la explicación del capítulo y no se comprobó con datos de predios. Lo medido: hay 79 sedes que comparten sitio exacto (en 39 sitios), y el 29.8 % de las sedes tiene otra a menos de 100 m, contra 16.3 % (sd 1.2) en 99 patrones simulados del modelo con tendencia. Cotejo: `datos › m10.veredicto`, `recomputo › m10b_flex`, `recomputo › m11b_dups`.
+El veredicto que deja escrito el precálculo es «un plano en x e y no explica la agregación; una tendencia muy flexible sí la absorbe» (hasta la tercera revisión decía «la intensidad variable no explica la agregación: hace falta un proceso de conglomerado»). Cuánto se quedan cortos los errores estándar lo mide el módulo siguiente, que trae un modelo de conglomerado con el que medirlo. Un apunte sobre los residuos: no hay un residuo por observación, porque lo observado son posiciones; `diagnose.ppm` dibuja la diferencia suavizada entre el patrón y la intensidad ajustada. Sirve para ver si falta tendencia, pero no puede decir si lo que sobra es tendencia o interacción entre puntos. Alcance del veredicto: lo que se probó es un plano log-lineal en x e y (3 parámetros); con una tendencia polinómica de grado 4 (15 parámetros) se sigue rechazando, y con una de grado 12 (91) ningún test global rechaza (DCLF p = 0.173 en el capítulo), aunque esa curva imita los grupos. Lo que sí sostienen los datos, con la K dividida por el núcleo por defecto, es que el exceso por debajo de unos 2 km sobrevive a la tendencia. «Comparten manzana, predio y edificio» es la explicación del capítulo y no se comprobó con datos de predios. Lo medido: hay 79 sedes que comparten sitio exacto (en 39 sitios), y el 29.8 % de las sedes tiene otra a menos de 100 m, contra 16.3 % (sd 1.2) en 99 patrones simulados del modelo con tendencia. Cotejo: `datos › m10.veredicto`, `datos › m10.tendencia_flexible`, `recomputo › m10b_flex`, `recomputo › m11b_dups`.
 
 # Conglomerado y autoexcitación {seccion=modulo-11}
 
-> **Módulo 11 del capítulo.** Hace falta un modelo donde los puntos vengan en grupos: unos centros invisibles y, alrededor de cada uno, una nube de puntos.
+> **Módulo 11 del capítulo.** Hace falta un modelo donde los puntos vengan en grupos: unos centros invisibles con una nube de puntos alrededor (Thomas, Matérn), o una intensidad que es ella misma aleatoria (el Cox log-gaussiano).
 
 ???
-Unos 17 minutos. Ocho piezas: tres familias, la prueba de que cambiar K cambia la respuesta, la misma prueba con `redwood`, una pregunta, el valle plano y los duplicados, la z con los conglomerados dentro, el Hawkes y su simulación.
+Unos 17 minutos. Ocho piezas: tres familias, la prueba de que cambiar K cambia la respuesta, la misma prueba con `redwood`, una pregunta, por qué dos ajustes dan casi la misma K (κσ² casi igual, 1/κ ×1.93) y los duplicados, la z con los conglomerados dentro, el Hawkes y su simulación.
 
 ## Tres familias de conglomerado tardan unos 127 s: lo que se paga es la estimación de K
 
@@ -670,8 +664,8 @@ Aquí la isotrópica es instantánea y no hay razón de velocidad para cambiarla
 
 |||
 
-::: ejemplo Las sequoias de Ripley
-**Qué ilustra:** que el cambio de K no es una rareza de la ventana de Bogotá. **De dónde sale:** `redwood` (spatstat.data): 62 plántulas y árboles jóvenes de sequoia gigante, de Strauss (1975), subregión de Ripley (1977) reescalada al cuadrado unidad. **Por qué importa:** es el patrón agrupado clásico: si pasa en un cuadrado, no es culpa de las 22 piezas de la ventana urbana.
+::: ejemplo Las secuoyas de Ripley
+**Qué ilustra:** que el cambio de K no es una rareza de la ventana de Bogotá. **De dónde sale:** `redwood` (spatstat.data): 62 plántulas y árboles jóvenes de secuoya gigante, de Strauss (1975), subregión de Ripley (1977) reescalada al cuadrado unidad. **Por qué importa:** es el patrón agrupado clásico: si pasa en un cuadrado, no es culpa de las 22 piezas de la ventana urbana.
 :::
 
 ::: info Dato
@@ -697,7 +691,7 @@ El contraste mínimo no ajusta el modelo al patrón: lo ajusta a una *estimació
 ???
 Es el ejercicio 5 del módulo 12. La comprobación de que `kppm` es determinista se hizo para esta presentación: se ajustó dos veces, con `set.seed(1)` y con `set.seed(999)`, y los parámetros coinciden. Cotejo: `recomputo › m11_kppm_determinista.mismo`, `recomputo › m11_redwood.iso.mu`, `recomputo › m11_redwood.translate.mu`.
 
-## Dos conglomerados distintos dan casi la misma K, y los duplicados no son la causa {columnas=3:2}
+## Dos conglomerados distintos dan casi la misma K, y quitar los duplicados no lo cambia {columnas=3:2}
 
 ![K de Thomas con los parámetros de cada corrección, y su diferencia relativa](recursos/cap5/s2-thomas-valle.png){alto=285}
 
@@ -710,7 +704,7 @@ La K de Thomas con los parámetros de cada corrección difiere 0.6 % a 500 m, 
 |||
 
 ::: tip Interpretación
-κ y σ se compensan: κσ² es casi igual (0.183 y 0.190), y por eso las dos K coinciden hasta 1 km. Pero κ lo fija el exceso K − πr² a distancias grandes, una resta de números grandes: una diferencia de hasta 5.5 % entre las dos K empíricas es casi el doble en 1/κ (×1.93).
+κ y σ se compensan: κσ² es casi igual (0.183 y 0.190), y por eso las dos K coinciden hasta 1 km. Pero κ lo fija el exceso K − πr² a distancias grandes, una resta de números grandes: una diferencia de hasta 5.5 % entre las dos K empíricas casi duplica 1/κ (×1.93).
 :::
 
 ::: info Dato
@@ -718,7 +712,7 @@ La hipótesis de los duplicados se midió y es falsa: sin las 40 sedes repetidas
 :::
 
 ???
-Un cambio pequeño en la K empírica mueve mucho los parámetros, pero no porque el valle del contraste mínimo sea casi plano: el capítulo lo escribe así y no se sostiene. Evaluado cada contraste en los parámetros del otro ajuste, sube casi el triple, y con κ reoptimizado el de traslación ya sube más de la mitad en σ = 932 m: cada K empírica tiene su propio mínimo, bien marcado. Lo que ocurre es otra cosa. La curva de K de un proceso de Thomas tiene forma cerrada: π r² más (1 − exp(−r²/(4 σ²)))/κ. A r corto el exceso vale r²/(4 κ σ²) y solo fija el producto κσ², casi igual en los dos ajustes (0.183 y 0.190): por eso las dos K coinciden hasta 1 km. A r grande el exceso tiende a 1/κ y es una resta de números grandes (K menos π r²): la K isotrópica queda por debajo de la de traslación hasta un 5.5 % (a unos 2 km), una diferencia que apenas se nota en la K y que en el exceso es casi el doble: 1/κ cambia ×1.93. La hipótesis de que los duplicados descuadran el ajuste se midió, y es falsa. La decisión 3 del capítulo 4 conservó las 40 sedes repetidas (en 39 sitios); este capítulo ajusta en vez de describir, y un modelo de conglomerado que ve puntos coincidentes tiene que explicarlos con una escala diminuta: esa era la hipótesis. Python: el módulo trae el cálculo de la K teórica en una función de tres líneas. Cotejo: `datos › m11.duplicados.repetidos`, `datos › m11.duplicados.cambio_maximo_pct`, `datos › m11.duplicados.efecto`, `recomputo › m11_Thomas.sin_duplicados.parametros.scale`, `recomputo › m11b_valle`, `recomputo › m11b_kemp`.
+Un cambio pequeño en la K empírica mueve mucho los parámetros, pero no porque el valle del contraste mínimo sea casi plano, como decía el capítulo hasta su tercera revisión: no se sostiene. Evaluado cada contraste en los parámetros del otro ajuste, sube casi el triple, y con κ reoptimizado el de traslación ya sube más de la mitad en σ = 932 m: cada K empírica tiene su propio mínimo, bien marcado. Lo que ocurre es otra cosa. La curva de K de un proceso de Thomas tiene forma cerrada: π r² más (1 − exp(−r²/(4 σ²)))/κ. A r corto el exceso vale r²/(4 κ σ²) y solo fija el producto κσ², casi igual en los dos ajustes (0.183 y 0.190): por eso las dos K coinciden hasta 1 km. A r grande el exceso tiende a 1/κ y es una resta de números grandes (K menos π r²): la K isotrópica queda por debajo de la de traslación hasta un 5.5 % (a unos 2 km), una diferencia que apenas se nota en la K y que en el exceso es casi el doble: 1/κ cambia ×1.93. La hipótesis de que los duplicados descuadran el ajuste se midió, y es falsa. La decisión 3 del capítulo 4 conservó las 40 sedes repetidas (en 39 sitios); este capítulo ajusta en vez de describir, y un modelo de conglomerado que ve puntos coincidentes tiene que explicarlos con una escala diminuta: esa era la hipótesis. Python: el módulo trae el cálculo de la K teórica en una función de tres líneas. Cotejo: `datos › m11.duplicados.repetidos`, `datos › m11.duplicados.cambio_maximo_pct`, `datos › m11.duplicados.efecto`, `recomputo › m11_Thomas.sin_duplicados.parametros.scale`, `recomputo › m11b_valle`, `recomputo › m11b_kemp`.
 
 ## Con conglomerados, el error estándar se multiplica por 3.96 a 5.32 y la z no pasa de 1.22 {columnas=3:2}
 
@@ -737,7 +731,7 @@ Un cambio pequeño en la K empírica mueve mucho los parámetros, pero no porque
 |||
 
 ::: info Dato
-Error de `xc`: de 3.96 a 5.32 veces el de Poisson. Con Thomas y K de traslación la varianza se multiplica por unas 26: 2 107 sedes valen unas 80.
+Error de `xc`: de 3.96 a 5.32 veces el de Poisson. Con Thomas y K de traslación la varianza se multiplica por unas 26: para estimar el gradiente este-oeste, 2 107 sedes valen unas 80.
 :::
 
 ::: tip Interpretación
@@ -770,12 +764,12 @@ $$\lambda(t) \;=\; \mu \;+\; \sum_{t_i < t} \alpha\, e^{-\beta (t - t_i)}$$
 **Qué ilustra:** un conglomerado en el tiempo (réplicas sísmicas, ráfagas de fraude). **De dónde sale:** una simulación propia, no son datos: \(\mu = 0.5\), \(\alpha = 0.8\), \(\beta = 1.4\) y \(T = 4000\), con la semilla 5030. **Por qué importa:** con \(\alpha/\beta\) = 0.5714 el proceso no explota, y junto a un Poisson de la misma tasa se ve que la intensidad media no describe el patrón.
 :::
 
-<small>Fuente: módulo 11 del capítulo (R, spatstat) y figura propia.</small>
+<small>Fuente: módulo 11 del capítulo (R) y figura propia.</small>
 
 
 
 ???
-El índice de dispersión es la varianza entre la media de los conteos por intervalo. Es el modelo de la réplica sísmica —cada terremoto dispara sus propias réplicas; Ogata lo llevó a la sismología y dio el algoritmo con que se simula— y el de la ráfaga de fraude: una tarjeta comprometida se usa varias veces seguidas. Con 0.5714 el proceso no explota. Es la lección del capítulo 4 en una dimensión: la intensidad no describe el patrón. Un detector de fraude que modele las transacciones como Poisson subestimará sistemáticamente las ráfagas. La fórmula de la tasa no se cita: se comprueba (1.1667 contra 1.14425), y esa simulación es una sola realización: con 200 réplicas la tasa media es 1.1653. El índice de dispersión depende del tamaño del intervalo con que se cuente (de 9.9 con 20 intervalos a 2.9 con 2000) y de la realización (5.0 de media y 0.6 de desviación en 200 réplicas), así que el 5.4 del capítulo no tiene esos decimales: es de esta simulación y de estos 200 intervalos. Cotejo: `datos › m11.hawkes.razon_ramificacion`, `datos › m11.hawkes.tasa_teorica`, `datos › m11.hawkes.tasa_simulada`, `datos › m11.hawkes.n_eventos`, `datos › m11.hawkes.dispersion_hawkes`, `datos › m11.hawkes.dispersion_poisson`, `datos › m11.hawkes.veces_mas_agregado`.
+El índice de dispersión es la varianza entre la media de los conteos por intervalo. Es el modelo de la réplica sísmica —cada terremoto dispara sus propias réplicas; Ogata lo llevó a la sismología y dio el algoritmo con que se simula— y el de la ráfaga de fraude: una tarjeta comprometida se usa varias veces seguidas. Con 0.5714 el proceso no explota. Es la lección del capítulo 4 en una dimensión: la intensidad no describe el patrón. Un detector de fraude que modele las transacciones como Poisson subestimará sistemáticamente las ráfagas. La fórmula de la tasa no se cita: se comprueba (1.1667 contra 1.14425), y esa simulación es una sola realización: con 200 réplicas la tasa media es 1.1653. El índice depende del ancho del intervalo con que se cuente, y la teoría lo da: con intervalos de 2 unidades vale 2.86; con los de 20 de la figura, 5.07; con los de 200, 5.41, camino de 1/(1 − α/β)² = 5.44. Y depende de la realización: con 200 intervalos, 5.0 de media y 0.6 de desviación en 200 réplicas. Con solo 20 intervalos esta simulación da 9.9, pero es ruido: en las mismas 200 réplicas la media es 5.46 y la desviación 1.73 (el 90 % entre 2.93 y 8.27), y solo el 1 % llega a 9.9. El «5.4 veces más agregado» del capítulo es de esta simulación y de estos 200 intervalos, y el capítulo dice ya el ancho y el límite. Cotejo: `datos › m11.hawkes.razon_ramificacion`, `datos › m11.hawkes.tasa_teorica`, `datos › m11.hawkes.tasa_simulada`, `datos › m11.hawkes.n_eventos`, `datos › m11.hawkes.dispersion_hawkes`, `datos › m11.hawkes.dispersion_poisson`, `datos › m11.hawkes.veces_mas_agregado`, `datos › m11.hawkes.dispersion_limite`, `recomputo › m11b_hawkes.por_intervalos`, `recomputo › m11b_hawkes.disp20_media`, `recomputo › m11b_hawkes.disp20_sd`.
 
 ## Adelgazamiento de Ogata: entre eventos la intensidad solo baja, y su valor en t es la cota {columnas=3:2}
 
@@ -820,37 +814,38 @@ No es un Poisson con intensidad variable, donde la variación la pone una covari
 ???
 Unos 5 minutos. El proyecto integrador no es de este bloque: es del Corte III y es de datos de área, polígonos con una variable cada uno y una matriz de pesos que dice quién es vecino de quién. Su enunciado, sus hitos y su rúbrica están en la guía del proyecto integrador, enlazada desde la portada del sitio. Un patrón de puntos solo entra allí agregado: los eventos se cuentan por unidad y se convierten en una tasa; el análisis de este bloque es materia del Corte II. Lo que pasa entero es el hábito de declarar por escrito, antes de la primera figura, las decisiones que cambian el resultado. En el proyecto tiene nombre de entrega: el preregistro, el protocolo de inferencia que se congela antes de calcular un solo Moran.
 
-## Cinco decisiones que se declaran por escrito antes de la primera figura
+## Seis decisiones que se declaran antes de la primera figura
 
 | Decisión | Qué se declara | Dónde cambió el resultado sin cambiar la llamada |
 |---|---|---|
 | La ventana | por qué esa | la capa trae 2 209 sedes y 2 107 caen dentro del perímetro urbano |
-| El ancho de banda | qué selector lo eligió, o por qué ninguno | el pico del mapa baja 66.3 % al abrir σ de 233 a 1867 m |
-| La corrección de borde | qué conserva | en Kennedy, con σ = 800 m, 270.36 sedes por defecto y 262.00 con `diggle = TRUE` |
+| El ancho de banda | quién lo eligió, o por qué nadie | el pico del mapa baja 66.3 % al abrir σ de 233 a 1867 m |
+| La corrección de borde | qué conserva | en Kennedy, a σ = 800 m: 270.36 sedes por defecto, 262.00 con Diggle |
 | La cuadratura | con qué `nd` y qué teselas | el AIC se mueve 9.2 puntos |
+| La λ de la K inhomogénea | modelo o núcleo, y su ancho | 62 % de radios fuera con un núcleo de 2.93 km; 100 % con el modelo |
 | La estimación de K | con qué corrección | μ de 27.1 o 52.3 sedes por conglomerado |
 
 ::: warn Criterio
-Se declaran por escrito aunque la llamada no las muestre: son las cinco líneas que este capítulo demostró que cambian el resultado.
+Se declaran por escrito aunque la llamada no las muestre: este capítulo demostró que cambian el resultado.
 :::
 
 <small>Fuente: módulo 12 del capítulo y las diapositivas de las dos sesiones.</small>
 
 ???
-Las cinco filas son la tesis del capítulo: una superficie de intensidad no es una descripción del dato, es una respuesta a una pregunta que alguien formuló. Las tres primeras son de la sesión 1 y las dos últimas, de hoy. Un trabajo con un modelo de intensidad trae, por escrito y antes de la primera figura, la ventana y por qué esa; el ancho de banda y qué selector lo eligió, o por qué ninguno; la corrección de borde y qué conserva; y, si hay modelo, la cuadratura y la estimación de K con que se ajustó. El proyecto integrador es de datos de área y sus decisiones son otras, empezando por la matriz de pesos; el hábito es el mismo, y allí se entrega como preregistro. Cotejo: `datos › m5.capas.oferta.n`, `recomputo › urbana.n_capa`, `datos › m2.familia.caida_pct`, `datos › m4.tabla[2].masa_defecto`, `datos › m4.tabla[2].masa_diggle`, `datos › m8.cuadratura.rango_aic`, `recomputo › m11_Thomas.iso.mu`, `recomputo › m11_Thomas.translate.mu`.
+Las seis filas son la tesis del capítulo: una superficie de intensidad no es una descripción del dato, es una respuesta a una pregunta que alguien formuló. Las tres primeras son de la sesión 1 y las tres últimas, de hoy. Un trabajo con un modelo de intensidad trae, por escrito y antes de la primera figura, la ventana y por qué esa; el ancho de banda y qué selector lo eligió, o por qué ninguno; la corrección de borde y qué conserva; y, si hay modelo, la cuadratura, la intensidad que divide la K inhomogénea del diagnóstico y la estimación de K con que se ajustó. La sexta la añadió la tercera revisión del capítulo, que midió lo que mueve. El proyecto integrador es de datos de área y sus decisiones son otras, empezando por la matriz de pesos; el hábito es el mismo, y allí se entrega como preregistro. Cotejo: `datos › m5.capas.oferta.n`, `recomputo › urbana.n_capa`, `datos › m2.familia.caida_pct`, `datos › m4.tabla[2].masa_defecto`, `datos › m4.tabla[2].masa_diggle`, `datos › m8.cuadratura.rango_aic`, `datos › m10.pct_r_fuera_de_banda`, `datos › m10.lambda_modelo.pct_r_fuera_de_banda`, `datos › m10.lambda_nucleo_sigma_m`, `recomputo › m11_Thomas.iso.mu`, `recomputo › m11_Thomas.translate.mu`.
 
 ## Lo que se llevan hoy {.cierre}
 
 - Una curva **rhohat** se lee por su bulto, no por su titular: la cola infla la razón (36.1 contra 1.58)
 - La **cuadratura** viaja con el modelo: dos AIC de `ppm` solo se comparan si se ajustaron con la misma
 - Las **coordenadas** se centran antes de ajustar, y antes de leer una z se comprueba que haya un error estándar por coeficiente
-- El **diagnóstico** es contra el modelo, no contra el azar: el 62 % de los radios fuera, y la banda se lee con un test global
+- El **diagnóstico** es contra el modelo, no contra el azar, y dice con qué intensidad divide la K: 62 % de radios fuera con un núcleo, 100 % con el modelo
 - Un conglomerado se declara **con qué estimación de K** se ajustó, y sus errores estándar ya cuentan con los grupos
 
 <small>Fuente: las diapositivas anteriores.</small>
 
 ???
-Remitir a la autoevaluación del módulo 12 (ocho preguntas sin nota, cada opción con su explicación) para hacerla antes del próximo corte. Lo que se declara por escrito en cualquier trabajo con un modelo de intensidad: la ventana, el ancho y qué selector lo eligió, la corrección de borde y lo que conserva, la cuadratura y la estimación de K. Cotejo: `datos › m7.bogota.curva.razon`, `datos › m7.bogota.curva.razon_bulto`, `datos › m10.pct_r_fuera_de_banda`.
+Remitir a la autoevaluación del módulo 12 (ocho preguntas sin nota, cada opción con su explicación) para hacerla antes del próximo corte. Lo que se declara por escrito en cualquier trabajo con un modelo de intensidad: la ventana, el ancho y qué selector lo eligió, la corrección de borde y lo que conserva, la cuadratura, la intensidad que divide la K inhomogénea y la estimación de K. La banda se lee con un test global. Cotejo: `datos › m7.bogota.curva.razon`, `datos › m7.bogota.curva.razon_bulto`, `datos › m10.pct_r_fuera_de_banda`, `datos › m10.lambda_modelo.pct_r_fuera_de_banda`.
 
 ## Práctica: tres ejercicios guiados, la autoevaluación y el proyecto
 

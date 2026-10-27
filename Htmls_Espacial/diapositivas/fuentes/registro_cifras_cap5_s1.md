@@ -2,7 +2,7 @@
 
 Generado por `verifica_cifras_cap5.py` a partir de `capitulo_5_sesion_1.md`. **No se edita a mano**: se regenera.
 
-Recómputo en R del 2026-10-01 (R version 4.4.1 (2024-06-14); spatstat 3.5.1, spatstat.explore 3.8.0, spatstat.model 3.6.1), con `recomputa_cap5.R`.
+Recómputo en R del 2026-10-27 (R version 4.4.1 (2024-06-14); spatstat 3.5.1, spatstat.explore 3.8.0, spatstat.model 3.6.1), con `recomputa_cap5.R`.
 
 ## Cómo se comprobó cada cifra
 
@@ -22,13 +22,13 @@ Los enteros 0, 1 y 2 usados como constantes de definición no se registran: no s
 
 ## Resumen
 
-- 370 apariciones de cifras en 37 diapositivas; 190 cifras distintas.
-- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 206
-- VERIFICADA · re-ejecutada en R: 66
-- PARÁMETRO de diseño: 43
-- VERIFICADA · aritmética sobre cifras verificadas: 20
-- CONTRASTADA · salida de R (JSON del capítulo): 14
-- CONTRASTADA · texto del capítulo: 12
+- 409 apariciones de cifras en 38 diapositivas; 209 cifras distintas.
+- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 216
+- VERIFICADA · re-ejecutada en R: 80
+- PARÁMETRO de diseño: 48
+- VERIFICADA · aritmética sobre cifras verificadas: 26
+- CONTRASTADA · salida de R (JSON del capítulo): 22
+- CONTRASTADA · texto del capítulo: 8
 - REFERENCIA · ficha de ayuda del paquete: 6
 - MEDIDA · depende de la máquina (con tolerancia): 3
 
@@ -38,16 +38,16 @@ Discrepancias que aparecieron al cotejar. No son errores de la presentación: se
 
 - **Los mapas ráster salían invertidos verticalmente (arreglado el 2026-10-27).** El mapa de calor de Kennedy por σ (módulo 2), la oferta y los estudiantes (módulo 5) y P(oficial) (módulo 6) se dibujan con el sur arriba, mientras los mapas de puntos (módulos 1 y 6) van con el norte arriba. Causa: `geo_rejilla()` (`precalculo/geo.R`) guarda la fila 0 en el sur —la de `spatstat`— y `geomapaPintaRejilla()` (`plantilla-capitulo.html`) pinta la fila 0 arriba; el comentario de `geo_rejilla()` dice «de arriba a abajo, como lo espera el navegador», pero no voltea las filas. Comprobado de dos formas: con las coordenadas de las 2 107 sedes (la superficie vale más donde hay sedes solo si la fila 0 es el sur: 545 contra 457 en la oferta) y midiendo píxeles en la página servida (el punto más alto del ráster está en x = 0.46 y el del mapa de puntos en x = 0.90). El texto del módulo 5 («en el norte y en el suroccidente») es geográficamente correcto, pero el lector del capítulo ve el norte abajo. Estas diapositivas dibujan los mapas de nuevo, con el norte arriba (`recursos/cap5/genera_figuras_s1.R`). El capítulo no se modificó entonces. Arreglado el 2026-10-27, en la tercera revisión del capítulo: `geo_rejilla()` voltea los `im`, y `audita_cap5.py` comprueba que cada ráster, tal como se pinta, casa con sus sedes mejor que su reflejo (sección 12b), con cinco inyecciones en `prueba_auditor_cap5.py`.
 - **«0.0 y 24.9 sedes por km²» en la rejilla de 8 × 8 (arreglado en el capítulo el 2026-10-27).** El módulo 1 (y la retroalimentación de la primera pregunta de la autoevaluación) dice que los cuadrantes dan «entre 0.0 y 24.9 sedes por km²». `genera_cap5.R` calcula `conteo / (A_KEN / 64)`, o sea divide por el área media por celda de la ventana (38.51 / 64 = 0.602 km²). Pero la celda con 15 sedes es una celda interior y mide 0.895 km² (la caja entre 64): son 16.8 sedes por km² (`intensity(cuad)` da 16.757). El 24.9 no es la intensidad de ninguna celda. Además, de las 64 celdas de la rejilla, 7 caen fuera de la ventana y `quadratcount` devuelve 57. Las diapositivas solo dicen «de 0 a 15 sedes por celda».
-- **«Por encima de 0.965».** El módulo 2 dice que las superficies de los cuatro núcleos «correlacionan por encima de 0.965 con la gaussiana». El mínimo es el del disco, 0.9647 (0.964743…), que redondea a 0.965 pero está por debajo. Las diapositivas dicen «por encima de 0.96».
+- **«Por encima de 0.965» (arreglado en el capítulo el 2026-10-27).** El módulo 2 dice que las superficies de los cuatro núcleos «correlacionan por encima de 0.965 con la gaussiana». El mínimo es el del disco, 0.9647 (0.964743…), que redondea a 0.965 pero está por debajo. Las diapositivas dicen «por encima de 0.96». El capítulo dice ahora «0.9647 o más».
 - **«Mayoritariamente de ese tipo» (arreglado en el capítulo el 2026-10-27).** El módulo 6 dice que, donde el mapa es máximo, «los vecinos tienen que ser mayoritariamente de ese tipo». En `chorley` son el 8 % (4 de 50), y la guarda de `genera_cap5.R` compara contra la proporción global (5.6 %), no contra la mitad. Las diapositivas dicen «más que en todo el conjunto».
 - **La mediana no mide «en qué fracción de la ciudad son mayoría» (arreglado en el capítulo el 2026-10-27).** El módulo 6 resume la mediana de la superficie P(oficial) como la respuesta a «¿en qué fracción de la ciudad son mayoría?». La mediana es el valor de la proporción en el punto típico de la ciudad (0.3086), no una fracción del área en la que las oficiales son mayoría. Las diapositivas dicen lo primero.
-- **Los tiempos de la KDE están escritos a mano en el generador.** `genera_cap5.R` publica `coste_segundos = list(defecto = 0.15, sin_corregir = 0.14, diggle = 0.15)` como constantes (vienen de la medición A.21 del plan, sobre la ventana urbana a 128 × 128). Se volvieron a medir y dan lo mismo (0.146, 0.138 y 0.150 s), así que la cifra es cierta; solo que el generador no la mide. Aclaración que falta en el módulo 4: son tiempos de la ciudad, no de Kennedy (en Kennedy, a 99 × 96 celdas, son del orden de 0.01 s).
-- **Los valores de `bw.ppl` y `bw.CvL` son nodos de una rejilla de 16 anchos, no óptimos (módulo 3).** El módulo 3 presenta `bw.ppl` y `bw.CvL` como selectores que optimizan; en realidad evalúan su criterio en `ns = 16` anchos de una rejilla geométrica y devuelven el mejor de ellos (`recomputo › selectores.ns_ppl`), y `bw.ppl` usa además `shortcut = TRUE`. Con 256 anchos, `bw.ppl` da 326 m en Kennedy y 350 m en la ciudad (no 374.9 y 235.9) y `bw.CvL`, 640 y 877 m (no 556.7 y 720.4) (`recomputo › selectores_fino`). Consecuencias: el cruce entre `bw.ppl` y `bw.diggle` que el capítulo comenta (375 contra 347 m en Kennedy, 236 contra 373 m en la ciudad) es un efecto de la rejilla, porque con rejilla fina `bw.ppl` queda por debajo de `bw.diggle` en las dos ventanas; y las razones 1.83 y 5.30, que usan esos nodos, son del orden de 2.0 y 3.6. Las diapositivas conservan las cifras del capítulo y dicen que son valores por defecto, no repiten «ni el orden se conserva» y llaman a σ = 720 m «el valor por defecto de `bw.CvL`», no «el óptimo». El capítulo no se modificó.
-- **«El ancho mueve 13 veces lo que el núcleo» (módulo 2).** La razón 66.3 / 5.1 ≈ 13 compara cuatro formas de núcleo a un solo σ (400 m) con siete σ que abarcan un factor 8, y el 5.1 % no es una constante: a otros σ el núcleo mueve el máximo más o menos. Las diapositivas dan las dos cifras por separado y no la razón.
-- **«Si no da n, el estimador pierde o inventa sedes» (módulo 4).** La integral de la intensidad es el número esperado de sedes, no el n de la muestra. Con 300 patrones al azar de 262 sedes en la ventana de Kennedy, la corrección por defecto se desvía de n en promedio +0.017 % (σ = 400 m) y +0.039 % (σ = 800 m), dentro de su error estándar (`recomputo › bordes_csr`): no es sesgada. Sin corregir se pierde un 10.3 % y un 19.6 %. El +3.19 % del patrón real (σ = 800 m) queda a más de cuatro desviaciones típicas de lo que da el azar: es del patrón, no de la corrección. Diggle conserva n por construcción. Las diapositivas dicen que la prueba mide qué conserva cada corrección, no cuál acierta.
-- **«Las correlaciones de la versión de Python salen 0.9391, 0.8555 y 0.9155: otra discretización» (módulo 5).** Con la corrección de borde por defecto de `density`, R da exactamente 0.9391, 0.8555 y 0.9155 (`recomputo › capas_defecto`); la versión de Python divide por e(u), que es la corrección por defecto. Las cifras y los mapas del capítulo usan `diggle = TRUE` (0.943, 0.862, 0.919). No es otra discretización: son dos correcciones de borde, ambas correctas. Las diapositivas lo dicen.
+- **Los tiempos de la KDE están escritos a mano en el generador (arreglado en el capítulo el 2026-10-27).** `genera_cap5.R` publica `coste_segundos = list(defecto = 0.15, sin_corregir = 0.14, diggle = 0.15)` como constantes (vienen de la medición A.21 del plan, sobre la ventana urbana a 128 × 128). Se volvieron a medir y dan lo mismo (0.146, 0.138 y 0.150 s), así que la cifra es cierta; solo que el generador no la mide. Aclaración que falta en el módulo 4: son tiempos de la ciudad, no de Kennedy (en Kennedy, a 99 × 96 celdas, son del orden de 0.01 s). Desde la tercera revisión el generador los mide sobre Kennedy, los cachea con la máquina en que se midieron y el capítulo los publica así (centésimas de segundo).
+- **Los valores de `bw.ppl` y `bw.CvL` son nodos de una rejilla de 16 anchos, no óptimos (módulo 3) (arreglado en el capítulo el 2026-10-27).** El módulo 3 presenta `bw.ppl` y `bw.CvL` como selectores que optimizan; en realidad evalúan su criterio en `ns = 16` anchos de una rejilla geométrica y devuelven el mejor de ellos (`recomputo › selectores.ns_ppl`), y `bw.ppl` usa además `shortcut = TRUE`. Con 256 anchos, `bw.ppl` da 326 m en Kennedy y 350 m en la ciudad (no 374.9 y 235.9) y `bw.CvL`, 640 y 877 m (no 556.7 y 720.4) (`recomputo › selectores_fino`). Consecuencias: el cruce entre `bw.ppl` y `bw.diggle` que el capítulo comenta (375 contra 347 m en Kennedy, 236 contra 373 m en la ciudad) es un efecto de la rejilla, porque con rejilla fina `bw.ppl` queda por debajo de `bw.diggle` en las dos ventanas; y las razones 1.83 y 5.30, que usan esos nodos, son del orden de 2.0 y 3.6. Las diapositivas conservan las cifras del capítulo y dicen que son valores por defecto, no repiten «ni el orden se conserva» y llaman a σ = 720 m «el valor por defecto de `bw.CvL`», no «el óptimo». El capítulo publica desde la tercera revisión los valores con 256 anchos y dice que el cruce es de la rejilla.
+- **«El ancho mueve 13 veces lo que el núcleo» (módulo 2) (arreglado en el capítulo el 2026-10-27).** La razón 66.3 / 5.1 ≈ 13 compara cuatro formas de núcleo a un solo σ (400 m) con siete σ que abarcan un factor 8, y el 5.1 % no es una constante: a otros σ el núcleo mueve el máximo más o menos. Las diapositivas dan las dos cifras por separado y no la razón, y el capítulo dice ya que las dos no se miden igual.
+- **«Si no da n, el estimador pierde o inventa sedes» (módulo 4) (arreglado en el capítulo el 2026-10-27).** La integral de la intensidad es el número esperado de sedes, no el n de la muestra. Con 300 patrones al azar de 262 sedes en la ventana de Kennedy, la corrección por defecto se desvía de n en promedio +0.017 % (σ = 400 m) y +0.039 % (σ = 800 m), dentro de su error estándar (`recomputo › bordes_csr`): no es sesgada. Sin corregir se pierde un 10.3 % y un 19.6 %. El +3.19 % del patrón real (σ = 800 m) queda a más de cuatro desviaciones típicas de lo que da el azar: es del patrón, no de la corrección. Diggle conserva n por construcción. Las diapositivas dicen que la prueba mide qué conserva cada corrección, no cuál acierta, y el capítulo también desde la tercera revisión.
+- **«Las correlaciones de la versión de Python salen 0.9391, 0.8555 y 0.9155: otra discretización» (módulo 5) (arreglado en el capítulo el 2026-10-27).** Con la corrección de borde por defecto de `density`, R da exactamente 0.9391, 0.8555 y 0.9155 (`recomputo › capas_defecto`); la versión de Python divide por e(u), que es la corrección por defecto. Las cifras y los mapas del capítulo usan `diggle = TRUE` (0.943, 0.862, 0.919). No es otra discretización: son dos correcciones de borde, ambas correctas. Las diapositivas lo dicen. El Python del capítulo divide ya por e(x_i), como `diggle = TRUE`, y da las mismas cifras que R.
 - **El máximo de `chorley` vive en la cola (módulo 6) (arreglado en el capítulo el 2026-10-27).** El capítulo lee el máximo de P(laringe), 0.3389, como titular («uno de cada tres cánceres registrados es de laringe»). El píxel del máximo está a 4.6 km del punto más cercano, con σ = 1 km (el vecino 50.º, a 8.2 km): es el cociente de dos masas casi nulas. La comprobación de los 50 vecinos (4 casos de 50) detecta un mapa invertido, pero no valida el máximo. Las diapositivas no lo leen como riesgo y la figura usa la escala fija de 0 a 1.
-- **La corrección de borde «se cancela» en el cociente (módulo 6).** Solo con la corrección por defecto, donde el mismo e(u) divide numerador y denominador; con `diggle = TRUE` cada sede se divide por su propio e(x_i) y no se cancela. Las diapositivas lo dicen así.
+- **La corrección de borde «se cancela» en el cociente (módulo 6) (arreglado en el capítulo el 2026-10-27).** Solo con la corrección por defecto, donde el mismo e(u) divide numerador y denominador; con `diggle = TRUE` cada sede se divide por su propio e(x_i) y no se cancela. Las diapositivas lo dicen así, y el capítulo también (prosa y Python).
 - **Los tiempos «555 veces» y «1.07» (módulo 4).** El cociente 122.655 / 0.221 = 555 es una medición de tiempo y depende de la máquina y del momento (al volver a medir salen cientos de veces, no exactamente 555), y el 1.07 sale de dos cifras redondeadas a centésimas (0.15 / 0.14). Las diapositivas dicen «cientos de veces» y «del mismo orden».
 - **Kennedy no está contenida en la ventana urbana (módulo 1).** 3 de las 262 sedes de Kennedy y el 9.8 % de su área caen fuera del perímetro urbano (`recomputo › kennedy`): son capas con ventanas distintas, de modo que «Kennedy dentro de la ciudad» es aproximado. Va en las notas.
 - **El Quiz 2 cubre los módulos 1 a 4 (módulo 13).** El módulo 13 dice que las preguntas de este capítulo en el Quiz 2 son de los módulos 1 a 4. Las notas de la primera versión de las diapositivas decían que el módulo 5 entraba «en lo que toca a la resolución de la rejilla» y que las ocho preguntas del módulo 12 eran para hacerlas antes del Quiz 2 (cuatro de ellas son de la sesión 2). Corregido en las notas.
@@ -235,10 +235,11 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `17.6900` | notas | …Cifras del (18.4483, 17.5145, 17.6900 y 17.8808 por km²; el 5.1 % e… | datos › m2.nucleos.max_km2.quartic = 17.69000883; recomputo › nucleos.max_km2.quartic = 17.69000883 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `17.8808` | notas | …as del (18.4483, 17.5145, 17.6900 y 17.8808 por km²; el 5.1 % es 5.061… | datos › m2.nucleos.max_km2.disc = 17.88081906; recomputo › nucleos.max_km2.disc = 17.88081906 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `5.1` | notas | …7.5145, 17.6900 y 17.8808 por km²; el 5.1 % es 5.0616 % sin redondear)… | datos › m2.nucleos.max_dif_pct = 5.061632935; recomputo › nucleos.dif_pct = 5.061632935 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `5.0616` | notas | …7.6900 y 17.8808 por km²; el 5.1 % es 5.0616 % sin redondear). El capí… | datos › m2.nucleos.max_dif_pct = 5.061632935; recomputo › nucleos.dif_pct = 5.061632935 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.965` | notas | …ear). El capítulo dice «por encima de 0.965», pero el disco da 0.9647:… | texto del capítulo: «por encima de 0.965» | CONTRASTADA · texto del capítulo |
-| `0.9647` | notas | …or encima de 0.965», pero el disco da 0.9647: aquí se dice 0.96. La ad… | datos › m2.nucleos.cor_con_gaussiano.disc = 0.964743573; recomputo › nucleos.cor_gauss.disc = 0.964743573 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.96` | notas | …pero el disco da 0.9647: aquí se dice 0.96. La advertencia del recuadr… | la menor de las tres correlaciones (0.9647) supera 0.96 = 0.96 | VERIFICADA · aritmética sobre cifras verificadas |
+| `5.0616` | notas | …7.6900 y 17.8808 por km²; el 5.1 % es 5.0616 % sin redondear). El disc… | datos › m2.nucleos.max_dif_pct = 5.061632935; recomputo › nucleos.dif_pct = 5.061632935 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.9647` | notas | …5.0616 % sin redondear). El disco da 0.9647, que redondea a 0.965 pero… | datos › m2.nucleos.cor_con_gaussiano.disc = 0.964743573; recomputo › nucleos.cor_gauss.disc = 0.964743573 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.965` | notas | …). El disco da 0.9647, que redondea a 0.965 pero queda por debajo: aqu… | la correlación del disco (0.9647) redondeada a tres decimales = 0.965 | VERIFICADA · aritmética sobre cifras verificadas |
+| `0.96` | notas | …5 pero queda por debajo: aquí se dice 0.96, y el capítulo, desde su te… | la menor de las tres correlaciones (0.9647) supera 0.96 = 0.96 | VERIFICADA · aritmética sobre cifras verificadas |
+| `0.9647` | notas | …capítulo, desde su tercera revisión, «0.9647 o más». La advertencia de… | datos › m2.nucleos.cor_con_gaussiano.disc = 0.964743573; recomputo › nucleos.cor_gauss.disc = 0.964743573 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `5.1` | notas | …na sola sede y cada uno integra 1. El 5.1 % es a un solo σ, 400 m: a o… | datos › m2.nucleos.max_dif_pct = 5.061632935; recomputo › nucleos.dif_pct = 5.061632935 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `400` | notas | …o integra 1. El 5.1 % es a un solo σ, 400 m: a otros σ el núcleo mueve… | datos › m2.sigma_m = 400; recomputo › nucleos.sigma_m = 400 \| datos › m4.sigmas_m = [200, 400, 800] | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
@@ -270,22 +271,25 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `66.3` | notas | …ada ancho es √2 veces el anterior. El 66.3 % es 66.291 % sin redondear… | datos › m2.familia.caida_pct = 66.2912081; recomputo › anchos.caida_pct = 66.2912081 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `66.291` | notas | …es √2 veces el anterior. El 66.3 % es 66.291 % sin redondear; con las … | datos › m2.familia.caida_pct = 66.2912081; recomputo › anchos.caida_pct = 66.2912081 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `66.4` | notas | …fras redondeadas a un decimal saldría 66.4 %, por eso la cuenta usa tr… | recomputo › anchos.caida_con_redondeo_1dec = 66.44067797 | VERIFICADA · re-ejecutada en R |
-| `8` | notas | …lo σ y el ancho abarca un abanico de ×8. El capítulo dice que el anch… | 100 × orientación del máximo de chorley = 8 \| 100 × vecinos casos / 50 = 8 | VERIFICADA · aritmética sobre cifras verificadas |
-| `13` | notas | …El capítulo dice que el ancho mueve «13 veces» lo que el núcleo; esa… | recomputo › anchos.veces_el_nucleo = 13.09680274 | VERIFICADA · re-ejecutada en R |
+| `8` | notas | …lo σ y el ancho abarca un abanico de ×8. Por eso aquí no se da la raz… | 100 × orientación del máximo de chorley = 8 \| 100 × vecinos casos / 50 = 8 | VERIFICADA · aritmética sobre cifras verificadas |
 
-### Diapositiva 15 · Con σ pequeño ves sedes concretas; con σ grande, una sola mancha
+### Diapositiva 15 · Con σ pequeño ves grupos de unas pocas sedes; con σ grande, una sola mancha
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `233` | cuerpo | …Kennedy con σ = 233, 660 y 1867 m \|\|\| ::: tip I… | datos › m2.familia.sigmas_m[0] = 233.3949; recomputo › anchos.sigmas_m[0] = 233.3949 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `660` | cuerpo | …Kennedy con σ = 233, 660 y 1867 m \|\|\| ::: tip Interp… | datos › m2.familia.sigmas_m[3] = 660.1404; recomputo › anchos.sigmas_m[3] = 660.1404 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1867` | cuerpo | …Kennedy con σ = 233, 660 y 1867 m \|\|\| ::: tip Interpretació… | datos › m2.familia.sigmas_m[6] = 1867.1589; recomputo › anchos.sigmas_m[6] = 1867.1589 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `233` | cuerpo | …\|\|\| ::: tip Interpretación Con σ = 233 m los focos son sedes concre… | datos › m2.familia.sigmas_m[0] = 233.3949; recomputo › anchos.sigmas_m[0] = 233.3949 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `660` | cuerpo | …m los focos son sedes concretas; con 660 m aparecen zonas; con 1867 m… | datos › m2.familia.sigmas_m[3] = 660.1404; recomputo › anchos.sigmas_m[3] = 660.1404 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `1867` | cuerpo | …cretas; con 660 m aparecen zonas; con 1867 m queda una mancha que no d… | datos › m2.familia.sigmas_m[6] = 1867.1589; recomputo › anchos.sigmas_m[6] = 1867.1589 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `233` | cuerpo | …\|\|\| ::: tip Interpretación Con σ = 233 m los focos son grupos de un… | datos › m2.familia.sigmas_m[0] = 233.3949; recomputo › anchos.sigmas_m[0] = 233.3949 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `2.92` | cuerpo | …de unas pocas sedes: una sola levanta 2.92 por km², una décima del máx… | datos › m2.familia.foco.pico_una_sede_km2 = 2.921712024 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `660` | cuerpo | …2 por km², una décima del máximo. Con 660 m aparecen zonas; con 1867 m… | datos › m2.familia.sigmas_m[3] = 660.1404; recomputo › anchos.sigmas_m[3] = 660.1404 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `1867` | cuerpo | …máximo. Con 660 m aparecen zonas; con 1867 m queda una mancha que no d… | datos › m2.familia.sigmas_m[6] = 1867.1589; recomputo › anchos.sigmas_m[6] = 1867.1589 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `233` | cuerpo | …una mancha que no distingue barrios. 233 m son **tres celdas** de 78 m… | datos › m2.familia.sigmas_m[0] = 233.3949; recomputo › anchos.sigmas_m[0] = 233.3949 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `78` | cuerpo | …barrios. 233 m son **tres celdas** de 78 m: el mínimo para ver el núcl… | datos › m2.familia.celda_m = 77.7982889; recomputo › anchos.celda_x_m = 77.7982889 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `262` | cuerpo | …:: Fuente: del capítulo. Kennedy, 262 sedes, **una sola escala de c… | datos › m1.ventana.n = 262; recomputo › kennedy.n = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `233` | notas | …rque se midió: el foco más alto a σ = 233 m reúne 7 sedes a menos de u… | datos › m2.familia.sigmas_m[0] = 233.3949; recomputo › anchos.sigmas_m[0] = 233.3949 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `7` | notas | …ó: el foco más alto a σ = 233 m reúne 7 sedes a menos de un σ, y una… | 64 celdas de la rejilla − 57 con ventana = 7 | VERIFICADA · aritmética sobre cifras verificadas |
+| `2.92` | notas | …σ, y una sede sola levanta 1/(2πσ²) = 2.92 sedes por km², por debajo d… | datos › m2.familia.foco.pico_una_sede_km2 = 2.921712024 | CONTRASTADA · salida de R (JSON del capítulo) |
 
 ### Diapositiva 16 · Selectores de ancho de banda
 
@@ -293,7 +297,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 |---|---|---|---|---|
 | `11` | notas | …Unos 11 minutos. Materia del Quiz 2.… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 
-### Diapositiva 17 · Cada selector le pregunta algo distinto al patrón (y uno, nada)
+### Diapositiva 17 · Cada selector le pregunta algo distinto al patrón (y uno lo contesta con una fórmula)
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -303,8 +307,8 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `373.2` | cuerpo | …da · **mira la superficie** \| 347.1 \| 373.2 \| \| \| la verosimilitu… | datos › m3.urbana.sigmas_m.diggle = 373.2167541; recomputo › selectores.ciudad.sigmas_m.diggle = 373.2167541 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `374.9` | cuerpo | …uera cada vez · **mira los puntos** \| 374.9 \| 235.9 \| \| \| que la … | datos › m3.kennedy.sigmas_m.ppl = 374.8988349; recomputo › selectores.kennedy.sigmas_m.ppl = 374.8988349 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `235.9` | cuerpo | …a vez · **mira los puntos** \| 374.9 \| 235.9 \| \| \| que la suma de … | datos › m3.urbana.sigmas_m.ppl = 235.899711; recomputo › selectores.ciudad.sigmas_m.ppl = 235.899711 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `556.7` | cuerpo | …ea de la ventana · **mira el área** \| 556.7 \| 720.4 \| \| \| nada: r… | datos › m3.kennedy.sigmas_m.CvL = 556.7370108; recomputo › selectores.kennedy.sigmas_m.CvL = 556.7370108 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `720.4` | cuerpo | …ventana · **mira el área** \| 556.7 \| 720.4 \| \| \| nada: regla de r… | datos › m3.urbana.sigmas_m.CvL = 720.3691455; recomputo › selectores.ciudad.sigmas_m.CvL = 720.3691455 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `556.7` | cuerpo | …ea de la ventana · **mira el área** \| 556.7 \| 720.4 \| \| \| el erro… | datos › m3.kennedy.sigmas_m.CvL = 556.7370108; recomputo › selectores.kennedy.sigmas_m.CvL = 556.7370108 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `720.4` | cuerpo | …ventana · **mira el área** \| 556.7 \| 720.4 \| \| \| el error cuadrát… | datos › m3.urbana.sigmas_m.CvL = 720.3691455; recomputo › selectores.ciudad.sigmas_m.CvL = 720.3691455 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `633.6` | cuerpo | …r · **mira solo la dispersión y n** \| 633.6 \| 1251.3 \| ::: ::: tip … | datos › m3.kennedy.sigmas_m.scott = 633.5581067; recomputo › selectores.kennedy.sigmas_m.scott = 633.5581067 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1251.3` | cuerpo | …ra solo la dispersión y n** \| 633.6 \| 1251.3 \| ::: ::: tip Interpre… | datos › m3.urbana.sigmas_m.scott = 1251.284373; recomputo › selectores.ciudad.sigmas_m.scott = 1251.284373 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `16` | notas | …e un continuo; evalúan su criterio en 16 anchos de una rejilla geométr… | recomputo › selectores.ns_ppl = 16 | VERIFICADA · re-ejecutada en R |
@@ -337,7 +341,10 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `347` | notas | …de en las dos ventanas (326 contra 347 m en Kennedy; 350 contra 373… | datos › m3.kennedy.sigmas_m.diggle = 347.1234808; recomputo › selectores.kennedy.sigmas_m.diggle = 347.1234808 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `350` | notas | …entanas (326 contra 347 m en Kennedy; 350 contra 373 m en la ciudad), … | recomputo › selectores_fino.ciudad.ppl = 349.8187355 | VERIFICADA · re-ejecutada en R |
 | `373` | notas | …6 contra 347 m en Kennedy; 350 contra 373 m en la ciudad), de modo que… | datos › m3.urbana.sigmas_m.diggle = 373.2167541; recomputo › selectores.ciudad.sigmas_m.diggle = 373.2167541 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `550` | notas | …olo puede dibujar núcleos de al menos 550 m. Cotejo: , , .… | datos › m5.rejilla.sigma_minimo_dibujable_m = 550.13585; recomputo › capas.sigma_minimo_m = 550.13585 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `606` | notas | …e, : la media geométrica de los dos, 606 m en Kennedy y 1658 m en la c… | datos › m3.scott_isotropico_m.kennedy = 605.9307976 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `1658` | notas | …étrica de los dos, 606 m en Kennedy y 1658 m en la ciudad; con él la r… | datos › m3.scott_isotropico_m.urbana = 1658.050363 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `7.03` | notas | …d; con él la razón de la ciudad sería 7.03. La consecuencia práctica l… | datos › m3.razon_urbana_scott_isotropico = 7.028623969 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `550` | notas | …olo puede dibujar núcleos de al menos 550 m. Cotejo: , , , , .… | datos › m5.rejilla.sigma_minimo_dibujable_m = 550.13585; recomputo › capas.sigma_minimo_m = 550.13585 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 19 · Un selector que devuelve el borde de su intervalo no seleccionó nada
 
@@ -373,6 +380,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `69` | cuerpo | …orde, con σ = 1. Se queda dentro el **69 %** de su núcleo ( = 0.69) y… | 100 × Φ(0.5): la fracción del núcleo de una sede a 0.5 σ del borde que queda dentro de la ventana = 69.14624613 | VERIFICADA · aritmética sobre cifras verificadas |
 | `0.69` | cuerpo | …dentro el **69 %** de su núcleo ( = 0.69) y se sale el **31 %**. :::… | Φ(0.5) = 0.6914624613 | VERIFICADA · aritmética sobre cifras verificadas |
 | `31` | cuerpo | …e su núcleo ( = 0.69) y se sale el **31 %**. ::: ::: tip Interpretac… | 100 × (1 − Φ(0.5)): lo que se sale = 30.85375387 | VERIFICADA · aritmética sobre cifras verificadas |
+| `26` | notas | …l capítulo la dibuja en 3D (la lámina 26 la proyecta); aquí va en una… | número de la lámina de la animación de borde en 3D | PARÁMETRO de diseño |
 | `0.69` | notas | …da a un lado del borde, a media σ, es 0.69 (la función de distribución… | Φ(0.5) = 0.6914624613 | VERIFICADA · aritmética sobre cifras verificadas |
 | `0.5` | notas | …(la función de distribución normal en 0.5), y se sale el resto. En Ken… | distancia de la sede al borde, en unidades de σ, en la ilustración en una dimensión | PARÁMETRO de diseño |
 
@@ -383,10 +391,11 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `262` | cuerpo | …exto del capítulo). Ejemplo: Kennedy, 262 sedes.… | datos › m1.ventana.n = 262; recomputo › kennedy.n = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `300` | notas | …ión hecha para esta presentación: con 300 patrones al azar de 262 sede… | recomputo › bordes_csr.patrones = 300 | VERIFICADA · re-ejecutada en R |
 | `262` | notas | …entación: con 300 patrones al azar de 262 sedes en la ventana de Kenne… | datos › m1.ventana.n = 262; recomputo › kennedy.n = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.04` | notas | …defecto se desvía de n en promedio un +0.04 % con σ = 800 m (conserva … | recomputo › bordes_csr.media_pct.defecto_800 = 0.03906442241 | VERIFICADA · re-ejecutada en R |
-| `800` | notas | …a de n en promedio un +0.04 % con σ = 800 m (conserva el conteo en pro… | datos › m4.sigmas_m = [200, 400, 800] | CONTRASTADA · salida de R (JSON del capítulo) |
-| `-19.6` | notas | …promedio) y sin corregir se pierde un −19.6 %; el +3.19 % del patrón r… | recomputo › bordes_csr.media_pct.sin_800 = -19.59688469 | VERIFICADA · re-ejecutada en R |
-| `3.19` | notas | …sin corregir se pierde un −19.6 %; el +3.19 % del patrón real es de es… | datos › m4.tabla[2].exceso_defecto_pct = 3.191567581; recomputo › bordes.800.pct_defecto = 3.191567581 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.04` | notas | …defecto se desvía de n en promedio un +0.04 % con σ = 800 m, dentro de… | recomputo › bordes_csr.media_pct.defecto_800 = 0.03906442241 | VERIFICADA · re-ejecutada en R |
+| `800` | notas | …a de n en promedio un +0.04 % con σ = 800 m, dentro de su error de Mon… | datos › m4.sigmas_m = [200, 400, 800] | CONTRASTADA · salida de R (JSON del capítulo) |
+| `0.04` | notas | …m, dentro de su error de Monte Carlo (0.04): en promedio conserva el c… | error estándar de la media de la desviación, 300 patrones, σ = 800 m = 0.0422299138 | VERIFICADA · aritmética sobre cifras verificadas |
+| `-19.6` | notas | …el conteo. Sin corregir se pierde un −19.6 %, la fracción media del nú… | recomputo › bordes_csr.media_pct.sin_800 = -19.59688469 | VERIFICADA · re-ejecutada en R |
+| `3.19` | notas | …ón media del núcleo que cae fuera; el +3.19 % del patrón real es de es… | datos › m4.tabla[2].exceso_defecto_pct = 3.191567581; recomputo › bordes.800.pct_defecto = 3.191567581 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 25 · Medido sobre Kennedy: tres correcciones, tres comportamientos
 
@@ -445,9 +454,10 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `800` | cuerpo | …, B y C \|\|\| Kennedy, 262 sedes, σ = 800 m, la misma escala de color… | datos › m4.sigmas_m = [200, 400, 800] | CONTRASTADA · salida de R (JSON del capítulo) |
 | `270.4` | cuerpo | …lo dice la integral (A, por defecto, 270.4; B, sin corregir, 224.4; C,… | datos › m4.tabla[2].masa_defecto = 270.3619071; recomputo › bordes.800.masa_defecto = 270.3619071 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `224.4` | cuerpo | …por defecto, 270.4; B, sin corregir, 224.4; C, Diggle, 262.0). Sí se v… | datos › m4.tabla[2].masa_sin_corregir = 224.4064737; recomputo › bordes.800.masa_sin = 224.4064737 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `262.0` | cuerpo | …4; B, sin corregir, 224.4; C, Diggle, 262.0). Sí se ven diferencias —a… | datos › m4.tabla[2].masa_diggle = 262; recomputo › bordes.800.masa_diggle = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `12.66` | cuerpo | …cias —al no corregir el pico baja, de 12.66 a 11.54 sedes por km²—, pe… | datos › m4.tabla[2].max_km2_defecto = 12.65984977; recomputo › bordes.800.max_defecto = 12.65984977 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `11.54` | cuerpo | …no corregir el pico baja, de 12.66 a 11.54 sedes por km²—, pero ningun… | datos › m4.tabla[2].max_km2_sin_corregir = 11.5397454; recomputo › bordes.800.max_sin = 11.5397454 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `262.0` | cuerpo | …4; B, sin corregir, 224.4; C, Diggle, 262.0). Sí se ven diferencias —e… | datos › m4.tabla[2].masa_diggle = 262; recomputo › bordes.800.masa_diggle = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `13.49` | cuerpo | …as —el pico más alto es el de Diggle, 13.49 sedes por km², contra 12.6… | recomputo › bordes.800.max_diggle = 13.48514892 | VERIFICADA · re-ejecutada en R |
+| `12.66` | cuerpo | …e Diggle, 13.49 sedes por km², contra 12.66 por defecto y 11.54 sin co… | datos › m4.tabla[2].max_km2_defecto = 12.65984977; recomputo › bordes.800.max_defecto = 12.65984977 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `11.54` | cuerpo | …s por km², contra 12.66 por defecto y 11.54 sin corregir—, pero ningun… | datos › m4.tabla[2].max_km2_sin_corregir = 11.5397454; recomputo › bordes.800.max_sin = 11.5397454 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 28 · Diggle divide donde está el dato; la de por defecto, donde se estima
 
@@ -469,14 +479,16 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `262.0000` | cuerpo | …ada es: por defecto **270.3619**, **262.0000**, sin corregir **224.406… | datos › m4.tabla[2].masa_diggle = 262; recomputo › bordes.800.masa_diggle = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `224.4065` | cuerpo | …619**, **262.0000**, sin corregir **224.4065**; n = 262. ::: ::: warn … | datos › m4.tabla[2].masa_sin_corregir = 224.4064737; recomputo › bordes.800.masa_sin = 224.4064737 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `262` | cuerpo | …000**, sin corregir **224.4065**; n = 262. ::: ::: warn Criterio Integ… | datos › m1.ventana.n = 262; recomputo › kennedy.n = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `128x128` | notas | …ntras que aquí corregir o no la KDE a 128 × 128 sobre la ciudad cuesta… | datos › meta.rejilla.nx_ciudad = 128 | PARÁMETRO de diseño |
+| `128x128` | notas | …blica el capítulo); sobre la ciudad a 128 × 128, 0.155, 0.147 y 0.161 … | datos › meta.rejilla.nx_ciudad = 128 | PARÁMETRO de diseño |
+| `5` | notas | …. es la ppp de Kennedy de la lámina 5. El del repite esta compr… | número de la lámina donde se construye la ppp de Kennedy | PARÁMETRO de diseño |
 | `122.655` | notas | …veces la alternativa (la isotrópica, 122.655 s; la de traslación, 0.22… | cap4_datos.json › m10.correcciones[3].segundos = 122.655 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `0.221` | notas | …trópica, 122.655 s; la de traslación, 0.221 s), mientras que aquí corr… | cap4_datos.json › m10.correcciones[2].segundos = 0.221 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `0.14` | notas | …a sobre la ciudad cuesta lo mismo: 0.14 contra 0.15 s, del mismo orde… | datos › m4.coste_segundos.sin_corregir = 0.14 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `0.15` | notas | …a ciudad cuesta lo mismo: 0.14 contra 0.15 s, del mismo orden. Son tie… | datos › m4.coste_segundos.defecto = 0.15 \| datos › m4.coste_segundos.diggle = 0.15 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `0.155` | notas | …áquina: se volvieron a medir en esta (0.155, 0.147 y 0.161 s) y salen … | recomputo › tiempos.ciudad_128.defecto = 0.152 (tolerancia ±0.02) | MEDIDA · depende de la máquina (con tolerancia) |
-| `0.147` | notas | …se volvieron a medir en esta (0.155, 0.147 y 0.161 s) y salen del mism… | recomputo › tiempos.ciudad_128.sin_corregir = 0.145 (tolerancia ±0.02) | MEDIDA · depende de la máquina (con tolerancia) |
-| `0.161` | notas | …ieron a medir en esta (0.155, 0.147 y 0.161 s) y salen del mismo orden… | recomputo › tiempos.ciudad_128.diggle = 0.158 (tolerancia ±0.02) | MEDIDA · depende de la máquina (con tolerancia) |
+| `0.010` | notas | …sobre Kennedy, centésimas de segundo (0.010, 0.010 y 0.009 s, medidos … | datos › m4.coste_segundos.defecto = 0.01 \| datos › m4.coste_segundos.sin_corregir = 0.01 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `0.010` | notas | …ennedy, centésimas de segundo (0.010, 0.010 y 0.009 s, medidos por el … | datos › m4.coste_segundos.defecto = 0.01 \| datos › m4.coste_segundos.sin_corregir = 0.01 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `0.009` | notas | …centésimas de segundo (0.010, 0.010 y 0.009 s, medidos por el precálcu… | datos › m4.coste_segundos.diggle = 0.009 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `0.155` | notas | …ca el capítulo); sobre la ciudad a , 0.155, 0.147 y 0.161 s. Son tiemp… | recomputo › tiempos.ciudad_128.defecto = 0.152 (tolerancia ±0.02) | MEDIDA · depende de la máquina (con tolerancia) |
+| `0.147` | notas | …apítulo); sobre la ciudad a , 0.155, 0.147 y 0.161 s. Son tiempos de m… | recomputo › tiempos.ciudad_128.sin_corregir = 0.145 (tolerancia ±0.02) | MEDIDA · depende de la máquina (con tolerancia) |
+| `0.161` | notas | …; sobre la ciudad a , 0.155, 0.147 y 0.161 s. Son tiempos de máquina: … | recomputo › tiempos.ciudad_128.diggle = 0.158 (tolerancia ±0.02) | MEDIDA · depende de la máquina (con tolerancia) |
 
 ### Diapositiva 30 · La KDE como mapa de calor
 
@@ -503,10 +515,10 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `14.5` | notas | …a a su propia escala. Los máximos son 14.5 sedes por km² (oferta), 9.5… | datos › m5.capas.oferta.max_km2 = 14.5361525; recomputo › capas.max_oferta = 14.5361525 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `9.5` | notas | …imos son 14.5 sedes por km² (oferta), 9.5 (bachillerato) y 1579 evalua… | datos › m5.capas.grado_11.max_km2 = 9.544418978; recomputo › capas.max_grado11 = 9.544418979 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1579` | notas | …or km² (oferta), 9.5 (bachillerato) y 1579 evaluados por km² (estudian… | datos › m5.capas.estudiantes.max_km2 = 1578.806516; recomputo › capas.max_estudiantes = 1578.806516 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.9391` | notas | …aciones de la versión de Python salen 0.9391, 0.8555 y 0.9155: no es o… | texto del capítulo: «0.9391, 0.8555, 0.9155» | CONTRASTADA · texto del capítulo |
-| `0.8555` | notas | …de la versión de Python salen 0.9391, 0.8555 y 0.9155: no es otra disc… | texto del capítulo: «0.9391, 0.8555, 0.9155» | CONTRASTADA · texto del capítulo |
-| `0.9155` | notas | …sión de Python salen 0.9391, 0.8555 y 0.9155: no es otra discretizació… | texto del capítulo: «0.9391, 0.8555, 0.9155» | CONTRASTADA · texto del capítulo |
-| `11` | notas | …recciones distintas. «Sedes con grado 11» son las sedes con al menos u… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
+| `0.9391` | notas | …defecto de las correlaciones salen 0.9391, 0.8555 y 0.9155; las cifras… | recomputo › capas_defecto.cor_of_11 = 0.939136208 | VERIFICADA · re-ejecutada en R |
+| `0.8555` | notas | …de las correlaciones salen 0.9391, 0.8555 y 0.9155; las cifras y los m… | recomputo › capas_defecto.cor_of_es = 0.8555237819 | VERIFICADA · re-ejecutada en R |
+| `0.9155` | notas | …correlaciones salen 0.9391, 0.8555 y 0.9155; las cifras y los mapas de… | recomputo › capas_defecto.cor_11_es = 0.9155181999 | VERIFICADA · re-ejecutada en R |
+| `11` | notas | …mismas cifras que R. «Sedes con grado 11» son las sedes con al menos u… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
 | `20224` | notas | …on al menos un evaluado en el periodo 20224. Cotejo: , , , , , , .… | texto del capítulo: «periodo 20224» | CONTRASTADA · texto del capítulo |
 
 ### Diapositiva 32 · Donde las manchas no coinciden, el edificio y el estudiante dejan de ser lo mismo
@@ -521,7 +533,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `2107` | cuerpo | …bian dos cosas: qué sedes entran (las 2 107, o solo las 1 062 con grad… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1062` | cuerpo | …é sedes entran (las 2 107, o solo las 1 062 con grado 11) y cuánto pes… | datos › m5.capas.grado_11.n = 1062; recomputo › capas.n_grado11 = 1062 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `11` | cuerpo | …las 2 107, o solo las 1 062 con grado 11) y cuánto pesa cada una (1, o… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
-| `0.919` | cuerpo | …ara bachillerato con estudiantes (r = 0.919). :::… | datos › m5.cor_grado11_estudiantes = 0.9185657089; recomputo › capas.cor_11_es = 0.9185657089 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.919` | cuerpo | …ara bachillerato con estudiantes (r = 0.919; sus mapas, en la lámina a… | datos › m5.cor_grado11_estudiantes = 0.9185657089; recomputo › capas.cor_11_es = 0.9185657089 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 33 · Con celdas de 183 m, la ciudad no puede dibujar un σ menor que 550 m
 
@@ -547,7 +559,18 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `1251` | cuerpo | …el más estrecho de los que sí \| \| \| 1251 m \| Sí \| ::: \|\|\| ::: … | datos › m3.urbana.sigmas_m.scott = 1251.284373; recomputo › selectores.ciudad.sigmas_m.scott = 1251.284373 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `183` | cuerpo | …Sí \| ::: \|\|\| ::: tip Interpretación 183 m es la celda más fina que… | datos › m5.rejilla.celda_m = 183.3786167; recomputo › capas.celda_x_m = 183.3786167 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `78` | cuerpo | …iudad usa , y Kennedy, con celdas de 78 m, puede bajar a 233 m. :::… | datos › m2.familia.celda_m = 77.7982889; recomputo › anchos.celda_x_m = 77.7982889 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `233` | cuerpo | …dy, con celdas de 78 m, puede bajar a 233 m. ::: ::: warn Criterio Pri… | datos › m2.familia.sigmas_m[0] = 233.3949; recomputo › anchos.sigmas_m[0] = 233.3949 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `233` | cuerpo | …dy, con celdas de 78 m, puede bajar a 233 m. ::: ::: warn Criterio En… | datos › m2.familia.sigmas_m[0] = 233.3949; recomputo › anchos.sigmas_m[0] = 233.3949 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `720` | cuerpo | …el archivo, y por eso se declara: σ = 720 m no lo eligió un criterio e… | datos › m5.sigma_m = 720.3691455; recomputo › capas.sigma_m = 720.3691455 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `373` | notas | …cuatro veces más fina, el pico de (373 m, 2.04 celdas por σ) baja un… | datos › m3.urbana.sigmas_m.diggle = 373.2167541; recomputo › selectores.ciudad.sigmas_m.diggle = 373.2167541 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `2.04` | notas | …veces más fina, el pico de (373 m, 2.04 celdas por σ) baja un 14.2 %… | recomputo › rejilla_fina.filas[0].celdas_por_sigma = 2.035225049 | VERIFICADA · re-ejecutada en R |
+| `14.2` | notas | …(373 m, 2.04 celdas por σ) baja un 14.2 % (24.45 contra 28.48 sedes p… | caída del pico de bw.diggle contra una rejilla cuatro veces más fina (%) = 14.17371729 | VERIFICADA · aritmética sobre cifras verificadas |
+| `24.45` | notas | …m, 2.04 celdas por σ) baja un 14.2 % (24.45 contra 28.48 sedes por km²… | recomputo › rejilla_fina.filas[0].pico_rejilla = 24.44658023 | VERIFICADA · re-ejecutada en R |
+| `28.48` | notas | …s por σ) baja un 14.2 % (24.45 contra 28.48 sedes por km²); a 3 celdas… | recomputo › rejilla_fina.filas[0].pico_fina = 28.48379245 | VERIFICADA · re-ejecutada en R |
+| `3` | notas | …(24.45 contra 28.48 sedes por km²); a 3 celdas (550 m) se mueve un 0.… | datos › meta.rejilla.celdas_por_sigma = 3 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `550` | notas | …tra 28.48 sedes por km²); a 3 celdas (550 m) se mueve un 0.5 %, y con… | datos › m5.rejilla.sigma_minimo_dibujable_m = 550.13585; recomputo › capas.sigma_minimo_m = 550.13585 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.5` | notas | …km²); a 3 celdas (550 m) se mueve un 0.5 %, y con (720 m), un 0.2 %.… | recomputo › rejilla_fina.filas[1].cambio_pct = 0.5325771936 | VERIFICADA · re-ejecutada en R |
+| `720` | notas | …s (550 m) se mueve un 0.5 %, y con (720 m), un 0.2 %. Lo que la regla… | datos › m5.sigma_m = 720.3691455; recomputo › capas.sigma_m = 720.3691455 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.2` | notas | …e mueve un 0.5 %, y con (720 m), un 0.2 %. Lo que la regla protege so… | cambio del pico de bw.CvL contra la rejilla fina (%), en valor absoluto = 0.1610834458 | VERIFICADA · aritmética sobre cifras verificadas |
 
 ### Diapositiva 34 · ¿Cuál de los tres mapas es «el mapa de la demanda educativa»?
 
@@ -585,6 +608,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `4` | notas | …casi no hay puntos: en el máximo solo 4 de los 50 vecinos más próximo… | recomputo › chorley.vecinos_casos = 4 | VERIFICADA · re-ejecutada en R |
 | `50` | notas | …ay puntos: en el máximo solo 4 de los 50 vecinos más próximos son caso… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
 | `4.6` | notas | …ás cercano al píxel del máximo está a 4.6 km (con σ = 1 km). Es la col… | recomputo › chorley.max_dist_punto_mas_cercano_km = 4.596178586 | VERIFICADA · re-ejecutada en R |
+| `85` | notas | …hoy dice dónde cae y con qué datos: a 85 m del borde y sin un solo pun… | datos › m6.chorley.maximo_dist_borde_m = 84.64328081 | CONTRASTADA · salida de R (JSON del capítulo) |
 
 ### Diapositiva 38 · Los casos se llaman `larynx` y los controles `lung`. ¿Qué probabilidad pinta `relrisk`?
 
@@ -606,7 +630,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `50` | cuerpo | …róximos son casos en un **8 %** (4 de 50) contra **5.6 %** en el conju… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
 | `5.6` | cuerpo | …asos en un **8 %** (4 de 50) contra **5.6 %** en el conjunto. ::: :::… | 100 × proporción global de chorley = 5.5984556 | VERIFICADA · aritmética sobre cifras verificadas |
 | `50` | notas | …a primera; la segunda se hace con los 50 vecinos más próximos al máxim… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
-| `8` | notas | …itariamente» de ese tipo; en son el 8 %, así que la comprobación qu… | 100 × orientación del máximo de chorley = 8 \| 100 × vecinos casos / 50 = 8 | VERIFICADA · aritmética sobre cifras verificadas |
+| `8` | notas | …os vecinos del máximo son casos en un 8 %: por eso la comprobación es… | 100 × orientación del máximo de chorley = 8 \| 100 × vecinos casos / 50 = 8 | VERIFICADA · aritmética sobre cifras verificadas |
 
 ### Diapositiva 40 · En Bogotá no es riesgo, es proporción de tipo: nadie «contrae» ser oficial
 
@@ -616,12 +640,15 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `720` | cuerpo | …7 sedes urbanas por sector (SED); σ = 720 m (el valor por defecto de )… | datos › m5.sigma_m = 720.3691455; recomputo › capas.sigma_m = 720.3691455 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `709` | cuerpo | …sos y controles. ::: ::: info Dato **709** oficiales + **1 398** priva… | datos › m6.bogota.oficiales = 709; recomputo › oficial.n_oficiales = 709 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1398` | cuerpo | …::: info Dato **709** oficiales + **1 398** privadas = 2 107. Escala f… | datos › m6.bogota.privadas = 1398; recomputo › oficial.n_privadas = 1398 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `2107` | cuerpo | …09** oficiales + **1 398** privadas = 2 107. Escala fija de 0 a 1: mar… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `50` | cuerpo | …ales. En el máximo de P(oficial), los 50 vecinos más próximos son ofic… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
+| `2107` | cuerpo | …09** oficiales + **1 398** privadas = 2 107. Escala fija de 0 a 1, y e… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.5` | cuerpo | …fija de 0 a 1, y el verde empieza en 0.5: lo verde es mayoría oficial.… | el corte de la barra de P(oficial): empate entre los dos sectores | PARÁMETRO de diseño |
+| `50` | cuerpo | …cial. En el máximo de P(oficial), los 50 vecinos más próximos son ofic… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
 | `64` | cuerpo | …os más próximos son oficiales en un **64 %** (32 de 50) contra **33.65… | 100 × orientación del máximo de Bogotá = 64 \| 100 × vecinos oficiales / 50 = 64 | VERIFICADA · aritmética sobre cifras verificadas |
 | `32` | cuerpo | …róximos son oficiales en un **64 %** (32 de 50) contra **33.65 %** en… | recomputo › oficial.vecinos_oficiales = 32 | VERIFICADA · re-ejecutada en R |
 | `50` | cuerpo | …s son oficiales en un **64 %** (32 de 50) contra **33.65 %** en el con… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
 | `33.65` | cuerpo | …es en un **64 %** (32 de 50) contra **33.65 %** en el conjunto. :::… | 100 × proporción global de oficiales = 33.64973897 | VERIFICADA · aritmética sobre cifras verificadas |
+| `0.5` | notas | …para que el cambio de color caiga en 0.5; con uno impar, la clase cent… | el corte de la barra de P(oficial): empate entre los dos sectores | PARÁMETRO de diseño |
+| `0.5` | notas | …central se reparte a los dos lados de 0.5 y su color se lee como mayor… | el corte de la barra de P(oficial): empate entre los dos sectores | PARÁMETRO de diseño |
 
 ### Diapositiva 41 · Contar puntos da 0.3365; mirar el mapa da 0.3086: son dos preguntas distintas
 
@@ -636,12 +663,29 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `0.3086` | cuerpo | …diana de la superficie P(oficial) = **0.3086** (contando área). Las of… | datos › m6.bogota.p_mediana = 0.3086251338; recomputo › oficial.mediana = 0.3086251338 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `0.5` | cuerpo | …iciales son mayoría, con P(oficial) > 0.5, en el **17.5 %** del área. … | umbral de mayoría de P(oficial): más de la mitad | PARÁMETRO de diseño |
 | `17.5` | cuerpo | …ayoría, con P(oficial) > 0.5, en el **17.5 %** del área. ::: ::: tip I… | recomputo › oficial.area_mayoria_oficial_pct = 17.45933385 | VERIFICADA · re-ejecutada en R |
-| `0.028` | cuerpo | …untos, pero la diferencia es pequeña (0.028) y las dos cifras contesta… | \|mediana − global\| en el JSON = 0.0278722558 \| recomputo › oficial.brecha = 0.02787225584 | VERIFICADA · re-ejecutada en R |
+| `0.028` | cuerpo | …de la proporción de los puntos: poco (0.028), pero no por azar, y las … | \|mediana − global\| en el JSON = 0.0278722558 \| recomputo › oficial.brecha = 0.02787225584 | VERIFICADA · re-ejecutada en R |
 | `17.5` | cuerpo | …ción de la ciudad son mayoría?» es el 17.5 %. ::: Fuente: del capítu… | recomputo › oficial.area_mayoria_oficial_pct = 17.45933385 | VERIFICADA · re-ejecutada en R |
 | `0.028` | notas | …La diferencia es pequeña (0.028) pero tiene signo. Un informe… | \|mediana − global\| en el JSON = 0.0278722558 \| recomputo › oficial.brecha = 0.02787225584 | VERIFICADA · re-ejecutada en R |
-| `17.5` | notas | …ión de área con mayoría oficial es el 17.5 %. La misma desigualdad apa… | recomputo › oficial.area_mayoria_oficial_pct = 17.45933385 | VERIFICADA · re-ejecutada en R |
-| `0.0482` | notas | …. La misma desigualdad aparece con (0.0482 contra 0.0560): es en parte… | datos › m6.chorley.p_mediana = 0.0481849481; recomputo › chorley.mediana = 0.04818494813 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.0560` | notas | …igualdad aparece con (0.0482 contra 0.0560): es en parte un rasgo de c… | datos › m6.chorley.prop_global = 0.055984556; recomputo › chorley.global = 0.05598455598 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `17.5` | notas | …ión de área con mayoría oficial es el 17.5 % (el capítulo contestaba c… | recomputo › oficial.area_mayoria_oficial_pct = 17.45933385 | VERIFICADA · re-ejecutada en R |
+| `40` | notas | …es, el mismo σ y la misma rejilla: en 40 barajados la mediana va de 0.… | recomputo › permutaciones.n = 40 | VERIFICADA · re-ejecutada en R |
+| `0.324` | notas | …lla: en 40 barajados la mediana va de 0.324 a 0.342, y la observada, 0… | recomputo › permutaciones.bogota.min = 0.3242843973 | VERIFICADA · re-ejecutada en R |
+| `0.342` | notas | …40 barajados la mediana va de 0.324 a 0.342, y la observada, 0.3086, q… | recomputo › permutaciones.bogota.max = 0.3417450633 | VERIFICADA · re-ejecutada en R |
+| `0.3086` | notas | …va de 0.324 a 0.342, y la observada, 0.3086, queda a 6.4 desviaciones:… | datos › m6.bogota.p_mediana = 0.3086251338; recomputo › oficial.mediana = 0.3086251338 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `6.4` | notas | ….342, y la observada, 0.3086, queda a 6.4 desviaciones: es del dato. E… | desviaciones típicas que separan la mediana observada de la media de los barajados = 6.430194893 | VERIFICADA · aritmética sobre cifras verificadas |
+| `0.028` | notas | …dato. En , en cambio, barajar da de 0.028 a 0.056 y la observada (0.04… | recomputo › permutaciones.chorley.min = 0.02789795294 | VERIFICADA · re-ejecutada en R |
+| `0.056` | notas | …n , en cambio, barajar da de 0.028 a 0.056 y la observada (0.0482) cae… | recomputo › permutaciones.chorley.max = 0.0559185501 | VERIFICADA · re-ejecutada en R |
+| `0.0482` | notas | …r da de 0.028 a 0.056 y la observada (0.0482) cae dentro: allí sí la p… | datos › m6.chorley.p_mediana = 0.0481849481; recomputo › chorley.mediana = 0.04818494813 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.3357` | notas | …ndo cada sitio por cuántas sedes hay (0.3357, casi la proporción de lo… | recomputo › permutaciones.bogota.media_pesada_por_intensidad = 0.3357354557 | VERIFICADA · re-ejecutada en R |
+| `0.3248` | notas | …os); mirarlo es pesar por área (media 0.3248, mediana 0.3086). Cotejo:… | recomputo › permutaciones.bogota.media_por_area = 0.3247859101 | VERIFICADA · re-ejecutada en R |
+| `0.3086` | notas | …pesar por área (media 0.3248, mediana 0.3086). Cotejo: , , , .… | datos › m6.bogota.p_mediana = 0.3086251338; recomputo › oficial.mediana = 0.3086251338 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+
+### Diapositiva 44 · Dónde vive cada decisión
+
+| Cifra | Dónde | Contexto | Comprobación | Estado |
+|---|---|---|---|---|
+| `5.1` | cuerpo | …úcleo**: ; casi no mueve el mapa (un 5.1 % a σ = 400 m en Kennedy) - E… | datos › m2.nucleos.max_dif_pct = 5.061632935; recomputo › nucleos.dif_pct = 5.061632935 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `400` | cuerpo | …casi no mueve el mapa (un 5.1 % a σ = 400 m en Kennedy) - El **borde**… | datos › m2.sigma_m = 400; recomputo › nucleos.sigma_m = 400 \| datos › m4.sigmas_m = [200, 400, 800] | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `5.1` | cuerpo | …unto. Fuente: del capítulo, para el 5.1 %.… | datos › m2.nucleos.max_dif_pct = 5.061632935; recomputo › nucleos.dif_pct = 5.061632935 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 45 · Práctica: dos ejercicios guiados, el simulacro del Quiz 2 y la próxima sesión
 

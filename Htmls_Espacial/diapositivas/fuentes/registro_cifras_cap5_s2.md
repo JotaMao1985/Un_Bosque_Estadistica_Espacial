@@ -22,13 +22,13 @@ Los enteros 0, 1 y 2 usados como constantes de definición no se registran: no s
 
 ## Resumen
 
-- 474 apariciones de cifras en 41 diapositivas; 245 cifras distintas.
-- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 229
-- VERIFICADA · re-ejecutada en R: 87
-- VERIFICADA · aritmética sobre cifras verificadas: 76
-- CONTRASTADA · salida de R (JSON del capítulo): 41
-- PARÁMETRO de diseño: 26
-- CONTRASTADA · texto del capítulo: 12
+- 497 apariciones de cifras en 41 diapositivas; 258 cifras distintas.
+- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 230
+- VERIFICADA · re-ejecutada en R: 94
+- VERIFICADA · aritmética sobre cifras verificadas: 75
+- CONTRASTADA · salida de R (JSON del capítulo): 61
+- PARÁMETRO de diseño: 27
+- CONTRASTADA · texto del capítulo: 7
 - REFERENCIA · ficha de ayuda del paquete: 3
 
 ## Hallazgos en el material del capítulo
@@ -36,22 +36,23 @@ Los enteros 0, 1 y 2 usados como constantes de definición no se registran: no s
 Discrepancias que aparecieron al cotejar. No son errores de la presentación: se dicen aquí y en las notas, y no se corrigen en silencio.
 
 - **La ayuda de `bei` habla de 3605 árboles; el conjunto trae 3 604.** La ficha de ayuda de `bei` (spatstat.data) dice «the locations of 3605 trees», pero `npoints(bei)` es 3604 (`recomputo › m7.bei.n`), que es la cifra del capítulo. Las diapositivas usan 3 604 y lo advierten en las notas.
-- **«entre 21.12 y 21.14» (módulo 7).** El comentario del bloque de `rhohat` dice que la razón de la elevación «se mueve entre 21.12 y 21.14» sin tocar el dato. Con 20 semillas distintas (`recomputo › m7_semillas`) va de 21.10 a 21.15 (y con las semillas 2001 a 2020, de 21.0996 a 21.1592, según la auditoría). La conclusión (hay que fijar la semilla) no cambia; el intervalo sí. Las diapositivas dicen de 21.10 a 21.15.
-- **El comentario del bloque de `rhohat`: «usa una cuadratura muestreada» (módulo 7).** Lo aleatorio de `rhohat` no es una cuadratura muestreada: es el `jitter = TRUE` por defecto, que añade ruido a los valores de la covariable en los puntos (ficha de ayuda, sección Randomisation). Con `jitter = FALSE` el resultado es idéntico en cada corrida y no consume el generador (`recomputo › m7b_jitter`). Las diapositivas dicen el mecanismo correcto y ofrecen `jitter = FALSE`.
-- **«El máximo y el mínimo viven casi siempre en los extremos» (módulo 7).** El módulo 7 dice que el máximo y el mínimo de una curva `rhohat` «viven casi siempre en los extremos, donde apenas hay puntos». Medido sobre sus tres curvas (`datos › m7.*.rho_max`, `rho_min`, `rho_max_bulto`, `rho_min_bulto`): el mínimo cae fuera del bulto en las tres; el máximo, solo en la pendiente de `bei` (en la elevación y en la distancia de Bogotá coincide con el máximo del bulto). Lo que infla la razón es, sobre todo, un mínimo diminuto estimado en la cola. Las diapositivas dicen lo que se midió.
+- **«entre 21.12 y 21.14» (módulo 7) (arreglado en el capítulo el 2026-10-27).** El comentario del bloque de `rhohat` dice que la razón de la elevación «se mueve entre 21.12 y 21.14» sin tocar el dato. Con 20 semillas distintas (`recomputo › m7_semillas`) va de 21.10 a 21.15 (y con las semillas 2001 a 2020, de 21.0996 a 21.1592, según la auditoría). La conclusión (hay que fijar la semilla) no cambia; el intervalo sí. Las diapositivas dicen de 21.10 a 21.15. El capítulo dice ahora que se mueve en la segunda decimal.
+- **El comentario del bloque de `rhohat`: «usa una cuadratura muestreada» (módulo 7) (arreglado en el capítulo el 2026-10-27).** Lo aleatorio de `rhohat` no es una cuadratura muestreada: es el `jitter = TRUE` por defecto, que añade ruido a los valores de la covariable en los puntos (ficha de ayuda, sección Randomisation). Con `jitter = FALSE` el resultado es idéntico en cada corrida y no consume el generador (`recomputo › m7b_jitter`). Las diapositivas dicen el mecanismo correcto y ofrecen `jitter = FALSE`.
+- **«El máximo y el mínimo viven casi siempre en los extremos» (módulo 7) (arreglado en el capítulo el 2026-10-27).** El módulo 7 dice que el máximo y el mínimo de una curva `rhohat` «viven casi siempre en los extremos, donde apenas hay puntos». Medido sobre sus tres curvas (`datos › m7.*.rho_max`, `rho_min`, `rho_max_bulto`, `rho_min_bulto`): el mínimo cae fuera del bulto en las tres; el máximo, solo en la pendiente de `bei` (en la elevación y en la distancia de Bogotá coincide con el máximo del bulto). Lo que infla la razón es, sobre todo, un mínimo diminuto estimado en la cola. Las diapositivas dicen lo que se midió.
 - **La pregunta de `rhohat`: el ancho del núcleo también mueve el titular (módulo 7).** La autoevaluación descarta que el 36.1 se deba a un núcleo demasiado estrecho. Con `adjust` (`jitter = FALSE`) la razón total de Bogotá es 3063 con la mitad del ancho, 36.04 con el defecto, 11.95 con el doble y 2.39 con cuatro veces, y la del bulto, de 2.10 a 1.11 (`recomputo › m7b_adjust`). La cola infla la razón a cualquier ancho, pero el ancho es parte de la historia. Las diapositivas lo dicen.
-- **Aclaración: el 1.794e-10 es el condicionamiento de la matriz de diseño, no el de la información de Fisher (módulo 9).** El capítulo lo escribe bien («la matriz de diseño queda con número de condición recíproco 1.794e-10»), pero el texto que sigue habla de la información de Fisher y se puede leer como si fuera el mismo número. La información tiene un condicionamiento del orden del cuadrado (2.7e-20, `recomputo › m9b_info`), por debajo de la tolerancia de `solve` (2.2e-16); con 1.794e-10 `solve` no se quejaría. Las diapositivas distinguen los dos y avisan de los mensajes «Error in solve.default(M)» de la consola.
+- **Aclaración: el 1.794e-10 es el condicionamiento de la matriz de diseño, no el de la información de Fisher (módulo 9) (arreglado en el capítulo el 2026-10-27).** El capítulo lo escribe bien («la matriz de diseño queda con número de condición recíproco 1.794e-10»), pero el texto que sigue habla de la información de Fisher y se puede leer como si fuera el mismo número. La información tiene un condicionamiento del orden del cuadrado (2.7e-20, `recomputo › m9b_info`), por debajo de la tolerancia de `solve` (2.2e-16); con 1.794e-10 `solve` no se quejaría. Las diapositivas distinguen los dos y avisan de los mensajes «Error in solve.default(M)» de la consola.
 - **Las cifras de la envolvente del módulo 10 son de una semilla (62 %, 7.7 %, 38.53854 veces, 3638.23 m).** El módulo 10 las publica con cinco decimales, pero con la semilla 5028 salen 62 radios fuera de 100, 77 de 999 curvas que cruzan la banda (7.70771 %), 38.53854 veces el nivel puntual y un tramo que acaba en 3638.23 m. Con ocho semillas más (`recomputo › m10b_sem_1` a `m10b_sem_8`): 64 a 67 radios, de 53 a 78 curvas (5.3 a 7.8 %), 26.5 a 39 veces el nivel, un tramo que acaba entre 3.76 y 3.93 km, y p del MAD de 0.001 a 0.004. El 0.2 % del nivel puntual no cambia. Las diapositivas dicen «entre el 5 y el 8 %», «unas 30 veces» y dan el rango de las semillas.
 - **«A menos de 0.64 %» (módulo 10).** El módulo 10 dice que la media de las 999 simulaciones queda «a menos de 0.64 %» de π r² en los 101 nodos. El máximo, sin redondear, es 0.64499 % con la semilla del capítulo (`datos › m10.mmean_vs_teorica_pct`) y llega a 0.82 % con otras (`recomputo › m10b_sem_4`). Las diapositivas dicen «a menos de 1 %». Además, son 100 radios informativos (r = 0 vale 0 en las dos curvas).
-- **«El exceso de parejas está en las escalas cortas y medias; a escala de kilómetros el modelo ya da cuenta» (módulo 10).** La K es acumulada: cuenta todas las parejas a menos de r, de modo que un exceso a escalas cortas la mantiene fuera de la banda a escalas mayores. Los 3638.23 m son donde la K vuelve a entrar en la banda, no donde acaba el exceso por escala. La g inhomogénea (`recomputo › m10b_pcf`, 199 simulaciones) sale de su banda sin interrupción hasta 2.2 km y vale 1.20 a 1 km y 1.06 a 2 km. «Hasta dónde llega lo que el modelo no explica» es, entonces, unos 2 km, y no 3.6 km. Las diapositivas lo dicen así.
-- **«La intensidad variable no explica la agregación» (módulo 10): se probó un plano, no «la intensidad variable».** La envolvente del módulo 10 es la de `ppm(~ xc + yc)`: un plano log-lineal en x e y (3 parámetros). Con una tendencia polinómica más flexible (`recomputo › m10b_flex`) los tests globales dejan de rechazar: grado 10 (66 parámetros), DCLF p = 0.055 y MAD 0.215; grado 12 (91 parámetros), DCLF 0.135 a 0.22 y MAD 0.345 a 0.415 (199 simulaciones). Esa curva llega a 208 sedes por km² y a casi cero en otros sitios: imita los grupos con la tendencia, y con un solo patrón tendencia y agrupación no se separan. El exceso por debajo de unos 2 km sobrevive (de 32 a 43 % de los radios siguen fuera). Las diapositivas acotan el veredicto a «un plano en x e y» y lo explican.
+- **«El exceso de parejas está en las escalas cortas y medias; a escala de kilómetros el modelo ya da cuenta» (módulo 10) (arreglado en el capítulo el 2026-10-27).** La K es acumulada: cuenta todas las parejas a menos de r, de modo que un exceso a escalas cortas la mantiene fuera de la banda a escalas mayores. Los 3638.23 m son donde la K vuelve a entrar en la banda, no donde acaba el exceso por escala. La g inhomogénea (`recomputo › m10b_pcf`, 199 simulaciones) sale de su banda sin interrupción hasta 2.2 km y vale 1.20 a 1 km y 1.06 a 2 km. «Hasta dónde llega lo que el modelo no explica» es, entonces, unos 2 km, y no 3.6 km. Las diapositivas lo dicen así. Y hay una segunda causa, que la tercera revisión destapó: esa K no divide por el modelo (ver el hallazgo siguiente).
+- **«La intensidad variable no explica la agregación» (módulo 10): se probó un plano, no «la intensidad variable» (arreglado en el capítulo el 2026-10-27).** La envolvente del módulo 10 es la de `ppm(~ xc + yc)`: un plano log-lineal en x e y (3 parámetros). Con una tendencia polinómica más flexible (`recomputo › m10b_flex`) los tests globales dejan de rechazar: grado 10 (66 parámetros), DCLF p = 0.055 y MAD 0.215; grado 12 (91 parámetros), DCLF 0.135 a 0.22 y MAD 0.345 a 0.415 (199 simulaciones). Esa curva llega a 208 sedes por km² y a casi cero en otros sitios: imita los grupos con la tendencia, y con un solo patrón tendencia y agrupación no se separan. El exceso por debajo de unos 2 km sobrevive (de 32 a 43 % de los radios siguen fuera). Las diapositivas acotan el veredicto a «un plano en x e y» y lo explican.
+- **La K inhomogénea del diagnóstico no divide por el modelo (módulo 10) (arreglado en el capítulo el 2026-10-27).** `envelope(f_centr, Kinhom, …)` no le pasa `lambda` a `Kinhom`, que entonces divide cada pareja por una intensidad estimada en cada patrón con un núcleo y el ancho por defecto de `density.ppp`, 2934.06 m (`datos › m10.lambda_nucleo_sigma_m`). Ese ancho decide hasta dónde llega el exceso: con el núcleo, 62 de 100 radios fuera, hasta 3638.23 m; con `lambda = f_centr`, los 100 (`datos › m10.lambda_modelo`). Lo encontró la tercera revisión del capítulo, que publica las dos envolventes. Las diapositivas lo dicen en las láminas 25 a 27, en la 41 (la sexta decisión) y en el cierre.
 - **«Comparten manzana, predio y edificio» (módulo 10).** Es la explicación del capítulo para la agregación y no se comprobó con datos de predios. Lo medido (`recomputo › m11b_dups`): hay 79 sedes que comparten sitio exacto (39 sitios) y el 29.8 % de las sedes tiene otra a menos de 100 m, contra 16.3 % (sd 1.2) en 99 patrones simulados del modelo con tendencia. Las diapositivas la dan como explicación plausible no comprobada.
-- **«Tres verosimilitudes distintas tardan lo mismo» (módulo 11).** `kppm` ajusta por contraste mínimo (`method = "mincon"`, el defecto, según la ayuda), y no evalúa ninguna verosimilitud; el propio capítulo lo dice un párrafo después. Tardan lo mismo porque el contraste solo evalúa su K teórica, que es barata: lo que se paga es estimar la K isotrópica (`Kest` isotrópica tarda casi todo el tiempo del ajuste, `recomputo › m11b_kemp`). Las diapositivas lo dicen así.
-- **«El valle que el contraste mínimo está minimizando es casi plano» (módulo 11).** No se sostiene (`recomputo › m11b_valle`): evaluado cada contraste en los parámetros del otro ajuste, sube 178 % y 195 % sobre su mínimo, y con κ reoptimizado el de traslación sube 57 % en σ = 932 m: cada K empírica tiene su propio mínimo bien marcado. Lo que ocurre es otra cosa: κσ² (lo que fija la K a r corto) es casi igual (0.183 y 0.190), por eso las dos K coinciden hasta 1 km, pero κ lo fija el exceso K − π r² a r grande, una resta de números grandes: la K isotrópica queda hasta 5.5 % por debajo de la de traslación y 1/κ cambia ×1.93. Las diapositivas dan esta explicación.
-- **«40 sitios con sedes repetidas» (módulo 11).** Son 40 sedes sobrantes en 39 sitios: 38 sitios con dos sedes y 1 con tres, 79 sedes implicadas (`recomputo › m11b_dups`). Las diapositivas dicen «40 sedes repetidas».
+- **«Tres verosimilitudes distintas tardan lo mismo» (módulo 11) (arreglado en el capítulo el 2026-10-27).** `kppm` ajusta por contraste mínimo (`method = "mincon"`, el defecto, según la ayuda), y no evalúa ninguna verosimilitud; el propio capítulo lo dice un párrafo después. Tardan lo mismo porque el contraste solo evalúa su K teórica, que es barata: lo que se paga es estimar la K isotrópica (`Kest` isotrópica tarda casi todo el tiempo del ajuste, `recomputo › m11b_kemp`). Las diapositivas lo dicen así.
+- **«El valle que el contraste mínimo está minimizando es casi plano» (módulo 11) (arreglado en el capítulo el 2026-10-27).** No se sostiene (`recomputo › m11b_valle`): evaluado cada contraste en los parámetros del otro ajuste, sube 178 % y 195 % sobre su mínimo, y con κ reoptimizado el de traslación sube 57 % en σ = 932 m: cada K empírica tiene su propio mínimo bien marcado. Lo que ocurre es otra cosa: κσ² (lo que fija la K a r corto) es casi igual (0.183 y 0.190), por eso las dos K coinciden hasta 1 km, pero κ lo fija el exceso K − π r² a r grande, una resta de números grandes: la K isotrópica queda hasta 5.5 % por debajo de la de traslación y 1/κ cambia ×1.93. Las diapositivas dan esta explicación.
+- **«40 sitios con sedes repetidas» (módulo 11) (arreglado en el capítulo el 2026-10-27).** Son 40 sedes sobrantes en 39 sitios: 38 sitios con dos sedes y 1 con tres, 79 sedes implicadas (`recomputo › m11b_dups`). Las diapositivas dicen «40 sedes repetidas».
 - **El μ de `kppm` hereda el +0.33 % del `ppm` forzado (módulo 11).** `kppm` ajusta por dentro un `ppm` con `forcefit = TRUE` y calcula μ = λ̂ / κ con ese λ̂: κ · μ = 5.7121 sedes por km², no 5.6932. Con n / |W| serían 27.0 y 52.2, y no 27.1 y 52.3. Las diapositivas conservan lo que devuelve `kppm` y lo advierten en las notas.
 - **Los errores estándar de `vcov(kppm)` usan una aproximación rápida (módulo 11).** Con una cuadratura de 6247 puntos `vcov` da lo mismo que `fast = TRUE`, que la ayuda dice que subestima las varianzas. Con `fast = FALSE` el efecto de diseño es 26.1 y no 26.03409, y las 2 107 sedes valen 80.6 y no 80.93235 (`recomputo › m11b_vcov`). Las diapositivas dicen «unas 26» y «unas 80».
-- **El índice de dispersión del Hawkes no tiene cinco decimales (módulo 11).** El 5.15454 es de una simulación y de 200 intervalos de 20 unidades: con 200 réplicas el índice tiene media 5.04 y desviación 0.57, y para la misma simulación va de 9.9 con 20 intervalos a 2.9 con 2000 (`recomputo › m11b_hawkes`). «5.4 veces más agregado» es de esa simulación. Las diapositivas dan 5.15 y 0.96, el tamaño del intervalo y el rango entre réplicas.
+- **El índice de dispersión del Hawkes no tiene cinco decimales (módulo 11).** El 5.15454 es de una simulación y de 200 intervalos de 20 unidades: con 200 réplicas el índice tiene media 5.04 y desviación 0.57, y depende del ancho del intervalo: la teoría de un núcleo exponencial da 2.86 con intervalos de 2 unidades, 5.07 con los de 20 y 5.41 con los de 200, camino de 1/(1 − α/β)² = 5.44 (`recomputo › m11b_hawkes`). El 9.9 que da esta simulación con 20 intervalos no es forma de la curva sino ruido: en 200 réplicas, media 5.46 y desviación 1.73 (tercera revisión). «5.4 veces más agregado» es de esa simulación. Las diapositivas dan 5.15 y 0.96, el tamaño del intervalo y el rango entre réplicas, y el capítulo dice desde la tercera revisión el ancho y el límite.
 - **Los kppm con tendencia no son los de `~ 1` (módulo 11).** La tabla de errores estándar usa `kppm(~ xc + yc)`, que ajusta la K inhomogénea: sus parámetros de grupo cambian (Thomas con K de traslación, κ = 1.59e-07 y σ = 1067 m, contra 1.09e-07 y 1320 m con `~ 1`; `recomputo › m11b_trend`). El capítulo no lo dice. Las notas de las diapositivas sí.
 - **Los tiempos del módulo 11 dependen de la máquina.** El capítulo publica 126.5 s contra 0.47 s para Thomas; al volver a ajustar aquí salen 128.8 s contra 0.48 s, y el cociente, 267.3 contra el 267.52220 del JSON. No es un error: son mediciones de tiempo. Se aceptan con tolerancia (MEDIDA) y las diapositivas dicen que los tiempos dependen de la máquina y «unas 270 veces».
 
@@ -185,6 +186,11 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `2.39` | cuerpo | …itular (3 063 con la mitad del ancho, 2.39 con cuatro veces el ancho) … | recomputo › m7b_adjust.total[3] = 2.385632847 | VERIFICADA · re-ejecutada en R |
 | `2.10` | cuerpo | …cuatro veces el ancho) y el bulto (de 2.10 a 1.11), pero con cualquier… | recomputo › m7b_adjust.bulto[0] = 2.10341324 | VERIFICADA · re-ejecutada en R |
 | `1.11` | cuerpo | …veces el ancho) y el bulto (de 2.10 a 1.11), pero con cualquier ancho … | recomputo › m7b_adjust.bulto[3] = 1.105741282 | VERIFICADA · re-ejecutada en R |
+| `964` | notas | …entana, que no sale de ellas y está a 964 m del otro, la razón total b… | datos › m7.bogota.centroide_ventana.distancia_al_centro_de_masa_m = 964.3294009 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `36.1` | notas | …64 m del otro, la razón total baja de 36.1 a 17.1 y la del bulto, de 1… | datos › m7.bogota.curva.razon = 36.0759; recomputo › m7.bogota.total = 36.07589681 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `17.1` | notas | …l otro, la razón total baja de 36.1 a 17.1 y la del bulto, de 1.58 a 1… | datos › m7.bogota.centroide_ventana.razon = 17.1363 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `1.58` | notas | …aja de 36.1 a 17.1 y la del bulto, de 1.58 a 1.48: la lección sobreviv… | datos › m7.bogota.curva.razon_bulto = 1.58183; recomputo › m7.bogota.bulto = 1.581834466 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `1.48` | notas | …36.1 a 17.1 y la del bulto, de 1.58 a 1.48: la lección sobrevive. Aquí… | datos › m7.bogota.centroide_ventana.razon_bulto = 1.48452 | CONTRASTADA · salida de R (JSON del capítulo) |
 
 ### Diapositiva 9 · Donde hay datos, la curva de Bogotá varía 1.58 veces y no 36.1
 
@@ -194,7 +200,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `36.1` | titulo | …curva de Bogotá varía 1.58 veces y no 36.1… | datos › m7.bogota.curva.razon = 36.0759; recomputo › m7.bogota.total = 36.07589681 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `5` | cuerpo | …Gris: el bulto (percentiles 5 y 95). Banda clara: confianza… | percentil inferior del bulto: parámetro de diseño del capítulo (entre los percentiles 5 y 95) | PARÁMETRO de diseño |
 | `95` | cuerpo | …Gris: el bulto (percentiles 5 y 95). Banda clara: confianza del… | percentil superior del bulto: parámetro de diseño del capítulo (entre los percentiles 5 y 95) | PARÁMETRO de diseño |
-| `95` | cuerpo | …s 5 y 95). Banda clara: confianza del 95 %. Marcas del eje: dónde hay… | percentil superior del bulto: parámetro de diseño del capítulo (entre los percentiles 5 y 95) | PARÁMETRO de diseño |
+| `95` | cuerpo | …s 5 y 95). Banda clara: confianza del 95 % si las sedes fueran indepen… | percentil superior del bulto: parámetro de diseño del capítulo (entre los percentiles 5 y 95) | PARÁMETRO de diseño |
 | `9.0` | cuerpo | …::: info Dato La cola infla la razón 9.0 (elevación), 2.5 (pendiente)… | datos › m7.bei.elevacion.cola_infla = 8.96907; recomputo › m7.elevacion.infla = 8.969072247 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `2.5` | cuerpo | …cola infla la razón 9.0 (elevación), 2.5 (pendiente) y 22.8 veces (Bog… | datos › m7.bei.pendiente.cola_infla = 2.50636; recomputo › m7.pendiente.infla = 2.506362504 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `22.8` | cuerpo | …ón 9.0 (elevación), 2.5 (pendiente) y 22.8 veces (Bogotá): con ella, B… | datos › m7.bogota.curva.cola_infla = 22.8064; recomputo › m7.bogota.infla = 22.80636664 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
@@ -209,12 +215,10 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `20` | cuerpo | …te: del capítulo (R, spatstat); las 20 semillas, en el recómputo.… | recomputo › m7_semillas.n_semillas = 20 | VERIFICADA · re-ejecutada en R |
 | `20` | cuerpo | …l recómputo. \|\|\| ::: info Dato Con 20 semillas distintas, la razón… | recomputo › m7_semillas.n_semillas = 20 | VERIFICADA · re-ejecutada en R |
 | `21.10` | cuerpo | …, la razón de la elevación de va de 21.10 a 21.15. ::: ::: warn Criter… | recomputo › m7_semillas.min = 21.10121409 | VERIFICADA · re-ejecutada en R |
-| `21.15` | cuerpo | …ón de la elevación de va de 21.10 a 21.15. ::: ::: warn Criterio Sin… | recomputo › m7_semillas.max = 21.14845797 | VERIFICADA · re-ejecutada en R |
+| `21.15` | cuerpo | …ón de la elevación de va de 21.10 a 21.15. ::: ::: warn Criterio Se fi… | recomputo › m7_semillas.max = 21.14845797 | VERIFICADA · re-ejecutada en R |
 | `20` | notas | …elevación depende de la semilla: con 20 semillas va de 21.10 a 21.15,… | recomputo › m7_semillas.n_semillas = 20 | VERIFICADA · re-ejecutada en R |
-| `21.10` | notas | …de la semilla: con 20 semillas va de 21.10 a 21.15, y el capítulo escr… | recomputo › m7_semillas.min = 21.10121409 | VERIFICADA · re-ejecutada en R |
-| `21.15` | notas | …emilla: con 20 semillas va de 21.10 a 21.15, y el capítulo escribe «en… | recomputo › m7_semillas.max = 21.14845797 | VERIFICADA · re-ejecutada en R |
-| `21.12` | notas | …a 21.15, y el capítulo escribe «entre 21.12 y 21.14» (ver el registro)… | texto del capítulo: «entre 21.12 y 21.14» | CONTRASTADA · texto del capítulo |
-| `21.14` | notas | …y el capítulo escribe «entre 21.12 y 21.14» (ver el registro). La de B… | texto del capítulo: «entre 21.12 y 21.14» | CONTRASTADA · texto del capítulo |
+| `21.10` | notas | …de la semilla: con 20 semillas va de 21.10 a 21.15, y el capítulo dice… | recomputo › m7_semillas.min = 21.10121409 | VERIFICADA · re-ejecutada en R |
+| `21.15` | notas | …emilla: con 20 semillas va de 21.10 a 21.15, y el capítulo dice ahora … | recomputo › m7_semillas.max = 21.14845797 | VERIFICADA · re-ejecutada en R |
 | `36.1` | notas | …Bogotá depende además del suavizador: 36.1 es lo que da este. Cotejo: … | datos › m7.bogota.curva.razon = 36.0759; recomputo › m7.bogota.total = 36.07589681 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 11 · El Poisson inhomogéneo
@@ -236,9 +240,9 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `4140` | titulo | …tegral por una suma sobre las sedes y 4 140 puntos ficticios… | datos › m8.cuadratura.defecto_ficticios = 4140; recomputo › m8_nd.ficticios_por_defecto = 4140 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `100` | cuerpo | …sta con . ::: ::: info Dato Con = 100 (el defecto) hay 4 140 fictic… | datos › m8.cuadratura.defecto_nd = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `4140` | cuerpo | …nfo Dato Con = 100 (el defecto) hay 4 140 ficticios, además de las 2 1… | datos › m8.cuadratura.defecto_ficticios = 4140; recomputo › m8_nd.ficticios_por_defecto = 4140 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `2107` | cuerpo | …o) hay 4 140 ficticios, además de las 2 107 sedes. ::: ::: warn Criter… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `100` | cuerpo | …sta con . ::: ::: info Dato Con = 100, el defecto para estas 2 107… | datos › m8.cuadratura.defecto_nd = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `2107` | cuerpo | …to Con = 100, el defecto para estas 2 107 sedes (depende de n), hay 4 … | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `4140` | cuerpo | …estas 2 107 sedes (depende de n), hay 4 140 ficticios además de las se… | datos › m8.cuadratura.defecto_ficticios = 4140; recomputo › m8_nd.ficticios_por_defecto = 4140 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 15 · Por la cuadratura, el modelo constante pasa de 5.69321 a 5.71211 sedes por km²
 
@@ -300,19 +304,17 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `55101.00` | cuerpo | …27550.66 \| \| 300 \| 35 495 \| 0.38996 \| 55101.00 \| −27548.50 \| −2… | datos › m8.cuadratura.tabla[3].aic = 55100.99538; recomputo › m8_nd.filas[3].aic = 55100.99538 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `-27548.50` | cuerpo | …\| 300 \| 35 495 \| 0.38996 \| 55101.00 \| −27548.50 \| −27550.64 \| :… | datos › m8.cuadratura.tabla[3].logver_ppm = -27548.49769; recomputo › m8_nd.filas[3].logver_ppm = -27548.49769 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `-27550.64` | cuerpo | …95 \| 0.38996 \| 55101.00 \| −27548.50 \| −27550.64 \| ::: info Dato C… | datos › m8.cuadratura.tabla[3].logver_exacta = -27550.6368; recomputo › m8_nd.filas[3].logver_exacta = -27550.6368 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `50` | cuerpo | …on (distancia al centro), entre = 50 y 300: el coeficiente se muev… | datos › m8.cuadratura.tabla[0].nd = 50 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `300` | cuerpo | …(distancia al centro), entre = 50 y 300: el coeficiente se mueve 0.12… | datos › m8.cuadratura.tabla[3].nd = 300 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `0.12895` | cuerpo | …= 50 y 300: el coeficiente se mueve 0.12895 errores estándar; el AIC, … | datos › m8.cuadratura.rango_pendiente_en_ee = 0.1289480457; recomputo › m8_nd.rango_pendiente_en_ee = 0.1289529956 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.12895` | cuerpo | …, como mucho: el coeficiente se mueve 0.12895 errores estándar; el AIC… | datos › m8.cuadratura.rango_pendiente_en_ee = 0.1289480457; recomputo › m8_nd.rango_pendiente_en_ee = 0.1289529956 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `9.2` | cuerpo | …eve 0.12895 errores estándar; el AIC, 9.2 puntos; la ℓ de , 4.59973; l… | datos › m8.cuadratura.rango_aic = 9.199466457; recomputo › m8_nd.rango_aic = 9.199466457 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `4.59973` | cuerpo | …ándar; el AIC, 9.2 puntos; la ℓ de , 4.59973; la ℓ con la integral bie… | datos › m8.cuadratura.rango_logver_ppm = 4.599733228; recomputo › m8_nd.rango_logver_ppm = 4.599733228 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.03` | cuerpo | …973; la ℓ con la integral bien hecha, 0.03. ::: ::: warn Criterio El A… | datos › m8.cuadratura.rango_logver_exacta = 0.0258914607; recomputo › m8_nd.rango_logver_exacta = 0.02589146071 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.03` | cuerpo | …973; la ℓ con la integral bien hecha, 0.03. ::: ::: warn Criterio A má… | datos › m8.cuadratura.rango_logver_exacta = 0.0258914607; recomputo › m8_nd.rango_logver_exacta = 0.02589146071 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `100` | notas | …a de logaritmos en las sedes; con = 100 el modelo espera 2113.76 sede… | datos › m8.cuadratura.defecto_nd = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `2113.76` | notas | …s sedes; con = 100 el modelo espera 2113.76 sedes sobre la ciudad, y h… | datos › m8.cuadratura.tabla[1].integral_exacta = 2113.756576; recomputo › m8_nd.filas[1].sedes_esperadas = 2113.756576 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `2107` | notas | …2113.76 sedes sobre la ciudad, y hay 2 107. Los cuatro ajustes son el … | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.03` | notas | …ien hecha su log-verosimilitud cambia 0.03 de un extremo a otro; la de… | datos › m8.cuadratura.rango_logver_exacta = 0.0258914607; recomputo › m8_nd.rango_logver_exacta = 0.02589146071 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `4.59973` | notas | …de un extremo a otro; la de cambia 4.59973, y todo lo que sobra es la … | datos › m8.cuadratura.rango_logver_ppm = 4.599733228; recomputo › m8_nd.rango_logver_ppm = 4.599733228 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `100` | notas | …ueda quieto y vuelve a subir. Con = 100 y 200 se pierde la misma área… | datos › m8.cuadratura.defecto_nd = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `200` | notas | …uieto y vuelve a subir. Con = 100 y 200 se pierde la misma área, porq… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `0.03` | notas | …ien hecha su log-verosimilitud cambia 0.03 entre la más alta y la más … | datos › m8.cuadratura.rango_logver_exacta = 0.0258914607; recomputo › m8_nd.rango_logver_exacta = 0.02589146071 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `4.59973` | notas | …ás alta y la más baja; la de cambia 4.59973, y todo lo que sobra es la… | datos › m8.cuadratura.rango_logver_ppm = 4.599733228; recomputo › m8_nd.rango_logver_ppm = 4.599733228 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `100` | notas | …dos mide cuánto se equivocan. Con = 100 y 200 se pierde la misma área… | datos › m8.cuadratura.defecto_nd = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `200` | notas | …de cuánto se equivocan. Con = 100 y 200 se pierde la misma área, porq… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `300` | notas | …xeles, y el AIC es casi el mismo; con 300 se pierde la que menos y su … | datos › m8.cuadratura.tabla[3].nd = 300 | CONTRASTADA · salida de R (JSON del capítulo) |
 
 ### Diapositiva 18 · La distancia gana al constante por 13.44572 puntos de AIC. ¿Y con la integral bien hecha?
@@ -376,11 +378,14 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `1.96` | cuerpo | …ntre su error estándar; se lee contra 1.96. ::: ::: tip Interpretación… | datos › m11.tendencia.z_critico = 1.959963985 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `-4.82` | cuerpo | …rpretación (km al este) llega a z = −4.82; , a −1.70. La z de no enc… | datos › m9.centrado.z[1] = -4.819105242; recomputo › m9.centrado.z[1] = -4.819105242 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `-1.70` | cuerpo | …(km al este) llega a z = −4.82; , a −1.70. La z de no encuentra una r… | datos › m9.centrado.z[2] = -1.703881938; recomputo › m9.centrado.z[2] = -1.703881938 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `2.6e-11` | notas | …56.4 puntos, y su test de Wald da p = 2.6e-11. Pero ese AIC y ese Wald… | datos › m11.cuadratico_dcen.poisson.p = 2.61544e-11 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `1.96` | notas | …r separado, no el uno con el otro. Un 1.96 es el valor con que se lee … | datos › m11.tendencia.z_critico = 1.959963985 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `-1.22` | notas | …distancia al centro de masa: su z de −1.22 no dice que la distancia no… | datos › m9.distancia.z[1] = -1.215033685; recomputo › m9.distancia.z[1] = -1.215033685 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1.58` | notas | …ón log-lineal, y la curva ya mostró 1.58 veces en el bulto, con una fo… | datos › m7.bogota.curva.razon_bulto = 1.58183; recomputo › m7.bogota.bulto = 1.581834466 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `3` | notas | …integral bien hecha, un cuadrático (3 parámetros) mejora el AIC del… | recomputo › m9b_dcen.k_cuadratico = 3 | VERIFICADA · re-ejecutada en R |
-| `56.4` | notas | …etros) mejora el AIC del constante en 56.4 puntos. El pone a prueba el… | recomputo › m9b_dcen.dif_aic = 56.35692468 | VERIFICADA · re-ejecutada en R |
+| `56.4` | notas | …etros) mejora el AIC del constante en 56.4 puntos, y su test de Wald d… | recomputo › m9b_dcen.dif_aic = 56.35692468 | VERIFICADA · re-ejecutada en R |
+| `0.129` | notas | …dentro, el Wald del cuadrático da p = 0.129 a 0.139 ( ). Ni la recta n… | datos › m11.cuadratico_dcen.conglomerado[0].p = 0.128962 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `0.139` | notas | …el Wald del cuadrático da p = 0.129 a 0.139 ( ). Ni la recta ni la cur… | datos › m11.cuadratico_dcen.conglomerado[2].p = 0.139036 | CONTRASTADA · salida de R (JSON del capítulo) |
 
 ### Diapositiva 23 · Para la misma distancia, `rhohat` da 36.1 veces y el `ppm`, z = −1.22. ¿Se contradicen?
 
@@ -408,12 +413,14 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `999` | cuerpo | …imula desde el modelo Cada una de las 999 simulaciones es una realizac… | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `2.93` | cuerpo | …asa ; si no, una por núcleo, aquí de 2.93 km. Sin dividir, el gradient… | ancho por defecto de density.ppp sobre la ciudad, en km = 2.934057867 | VERIFICADA · aritmética sobre cifras verificadas |
 | `999` | cuerpo | …s dos casi coinciden: la media de las 999 simulaciones queda a menos d… | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `100` | cuerpo | …ones queda a menos de 1 % de en los 100 radios que dibuja el simulado… | recomputo › m10.simulador.nodos = 100 | VERIFICADA · re-ejecutada en R |
 | `0.64` | notas | …a justa. El capítulo dice «a menos de 0.64 %»; con las cifras sin redo… | texto del capítulo: «a menos de 0.64 %» | CONTRASTADA · texto del capítulo |
 | `0.64499` | notas | …las cifras sin redondear el máximo es 0.64499 % con la semilla del cap… | datos › m10.mmean_vs_teorica_pct = 0.6449876748; recomputo › m10.mmean_vs_teorica_pct = 0.6449876748 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `0.82` | notas | …con la semilla del capítulo y llega a 0.82 % con otras, de modo que «a… | máximo de \|media − π r²\| / π r² (%) con las ocho semillas nuevas = 0.82 | VERIFICADA · aritmética sobre cifras verificadas |
 | `999` | notas | …ación porque con la isotrópica serían 999 veces unos dos minutos ( ). … | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `2934.06` | notas | …n núcleo y el ancho por defecto de : 2934.06 m, un octavo del lado cor… | datos › m10.lambda_nucleo_sigma_m = 2934.057867 | CONTRASTADA · salida de R (JSON del capítulo) |
 
 ### Diapositiva 26 · La envolvente se simula desde el modelo; con 39 simulaciones el p mínimo es 0.025
 
@@ -425,7 +432,8 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `0.0500` | cuerpo | …modelo se salga en un radio dado) es 0.0500 y el patrón queda fuera en… | recomputo › m10_e39.nivel_puntual = 0.05 | VERIFICADA · re-ejecutada en R |
 | `78.5156` | cuerpo | …0.0500 y el patrón queda fuera en el 78.5156 % de los radios. DCLF y M… | recomputo › m10_e39.pct_fuera = 78.515625 | VERIFICADA · re-ejecutada en R |
 | `0.025` | cuerpo | …6 % de los radios. DCLF y MAD dan p = 0.025, el mínimo posible: 1/(39 … | recomputo › m10_e39.dclf = 0.025 \| recomputo › m10_e39.mad = 0.025 | VERIFICADA · re-ejecutada en R |
-| `39` | cuerpo | …dan p = 0.025, el mínimo posible: 1/(39 + 1). ::: ::: tip Interpreta… | nsim = 2 / nivel puntual − 1, con nivel puntual 2 / (nsim + 1) = 39 | VERIFICADA · aritmética sobre cifras verificadas |
+| `39` | cuerpo | …dan p = 0.025, el mínimo posible: 1/(39 + 1). Con , fuera en el 100… | nsim = 2 / nivel puntual − 1, con nivel puntual 2 / (nsim + 1) = 39 | VERIFICADA · aritmética sobre cifras verificadas |
+| `100` | cuerpo | …sible: 1/(39 + 1). Con , fuera en el 100 %. ::: ::: tip Interpretació… | datos › m10.lambda_modelo.pct_r_fuera_de_banda = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `0.2` | cuerpo | …o afina la banda: le cambia el nivel, 0.2 % con 999. :::… | datos › m10.nivel_puntual_pct = 0.2; recomputo › m10.nivel_puntual_pct = 0.2 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `999` | cuerpo | …banda: le cambia el nivel, 0.2 % con 999. :::… | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `999` | notas | …l de Python, que lee la envolvente de 999 que el precálculo dejó en un… | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
@@ -435,30 +443,26 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `39` | notas | …lobales reutilicen las mismas 39. Con 39, el p más pequeño posible es… | nsim = 2 / nivel puntual − 1, con nivel puntual 2 / (nsim + 1) = 39 | VERIFICADA · aritmética sobre cifras verificadas |
 | `39` | notas | …on 39, el p más pequeño posible es 1/(39 + 1), y es justo el que sale:… | nsim = 2 / nivel puntual − 1, con nivel puntual 2 / (nsim + 1) = 39 | VERIFICADA · aritmética sobre cifras verificadas |
 
-### Diapositiva 27 · El patrón se sale de la banda de su modelo en el 62 % de los radios, siempre por arriba
+### Diapositiva 27 · Dividida por un núcleo, la K sale en el 62 % de los radios; por el modelo, en todos
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
-| `62` | titulo | …e sale de la banda de su modelo en el 62 % de los radios, siempre por… | datos › m10.pct_r_fuera_de_banda = 62; recomputo › m10.pct_fuera = 62 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `999` | cuerpo | …dia de su modelo, con la banda de las 999 simulaciones Fuente: del… | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `62` | cuerpo | …y figura propia. \|\|\| ::: info Dato 62 de los 100 radios quedan sobr… | datos › m10.pct_r_fuera_de_banda = 62; recomputo › m10.pct_fuera = 62 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `100` | cuerpo | …ropia. \|\|\| ::: info Dato 62 de los 100 radios quedan sobre la banda… | datos › m8.cuadratura.defecto_nd = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `58.68` | cuerpo | …e la banda y ninguno bajo ella: desde 58.68 hasta 3638.23 m; los 38 no… | datos › m10.primer_r_fuera_m = 58.68115733; recomputo › m10.primer_r_fuera_m = 58.68115733 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `3638.23` | cuerpo | …ninguno bajo ella: desde 58.68 hasta 3638.23 m; los 38 nodos restantes… | datos › m10.ultimo_r_fuera_m = 3638.231754; recomputo › m10.ultimo_r_fuera_m = 3638.231754 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `38` | cuerpo | …lla: desde 58.68 hasta 3638.23 m; los 38 nodos restantes, hasta 5868.1… | datos › m10.nodos_dentro_tras_el_tramo = 38; recomputo › m10.nodos_dentro_tras_el_tramo = 38 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `5868.12` | cuerpo | …8.23 m; los 38 nodos restantes, hasta 5868.12 m, quedan dentro. Son ci… | datos › m10.r_max_m = 5868.115733; recomputo › m10.r_max_m = 5868.115733 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `62` | cuerpo | …as de una semilla: con otras salen de 62 a 67 radios y un tramo que ll… | mínimo de radios fuera de 100 con nueve semillas = 62 | VERIFICADA · aritmética sobre cifras verificadas |
-| `67` | cuerpo | …una semilla: con otras salen de 62 a 67 radios y un tramo que llega a… | máximo de radios fuera de 100 con nueve semillas = 67 | VERIFICADA · aritmética sobre cifras verificadas |
-| `3.6` | cuerpo | …62 a 67 radios y un tramo que llega a 3.6–3.9 km. ::: ::: tip Interpre… | último radio fuera (km), mínimo con nueve semillas = 3.6 | VERIFICADA · aritmética sobre cifras verificadas |
-| `3.9` | cuerpo | …67 radios y un tramo que llega a 3.6–3.9 km. ::: ::: tip Interpretaci… | último radio fuera (km), máximo con nueve semillas = 3.9 | VERIFICADA · aritmética sobre cifras verificadas |
-| `2.2` | cuerpo | …e parejas por escala llega hasta unos 2.2 km: la g inhomogénea, que mi… | hasta dónde llega la primera racha de radios fuera de la banda de la g inhomogénea (km) = 2.2 | VERIFICADA · aritmética sobre cifras verificadas |
-| `1.20` | cuerpo | …e mira cada escala por separado, vale 1.20 a 1 km y 1.06 a 2 km. La K … | recomputo › m10b_pcf.g_1000.g_obs = 1.201131082 | VERIFICADA · re-ejecutada en R |
-| `1.06` | cuerpo | …cala por separado, vale 1.20 a 1 km y 1.06 a 2 km. La K acumula, y por… | recomputo › m10b_pcf.g_2000.g_obs = 1.059823252 | VERIFICADA · re-ejecutada en R |
-| `3.6` | cuerpo | …la, y por eso la banda se cruza hasta 3.6–3.9 km. :::… | último radio fuera (km), mínimo con nueve semillas = 3.6 | VERIFICADA · aritmética sobre cifras verificadas |
-| `3.9` | cuerpo | …y por eso la banda se cruza hasta 3.6–3.9 km. :::… | último radio fuera (km), máximo con nueve semillas = 3.9 | VERIFICADA · aritmética sobre cifras verificadas |
-| `3638.23` | notas | …uera de la banda a escalas mayores, y 3638.23 m es donde la K vuelve a… | datos › m10.ultimo_r_fuera_m = 3638.231754; recomputo › m10.ultimo_r_fuera_m = 3638.231754 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `199` | notas | …(la g inhomogénea, medida aparte con 199 simulaciones, sale de su band… | recomputo › m10b_pcf.nsim = 199 | VERIFICADA · re-ejecutada en R |
-| `2.2` | notas | …le de su banda sin interrupción hasta 2.2 km). El capítulo lee los dos… | hasta dónde llega la primera racha de radios fuera de la banda de la g inhomogénea (km) = 2.2 | VERIFICADA · aritmética sobre cifras verificadas |
+| `62` | titulo | …vidida por un núcleo, la K sale en el 62 % de los radios; por el model… | datos › m10.pct_r_fuera_de_banda = 62; recomputo › m10.pct_fuera = 62 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `2.93` | cuerpo | …su modelo, dividida por un núcleo de 2.93 km y por la intensidad del m… | ancho por defecto de density.ppp sobre la ciudad, en km = 2.934057867 | VERIFICADA · aritmética sobre cifras verificadas |
+| `62` | cuerpo | …:: info Dato Con el núcleo ( sin ): 62 de 100 radios sobre la banda,… | datos › m10.pct_r_fuera_de_banda = 62; recomputo › m10.pct_fuera = 62 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `100` | cuerpo | …o Dato Con el núcleo ( sin ): 62 de 100 radios sobre la banda, de 58.… | datos › m10.tasa_salida.nodos_r_simulador = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `58.68` | cuerpo | …: 62 de 100 radios sobre la banda, de 58.68 a 3638.23 m; ninguno bajo … | datos › m10.primer_r_fuera_m = 58.68115733; recomputo › m10.primer_r_fuera_m = 58.68115733 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `3638.23` | cuerpo | …100 radios sobre la banda, de 58.68 a 3638.23 m; ninguno bajo ella. Co… | datos › m10.ultimo_r_fuera_m = 3638.231754; recomputo › m10.ultimo_r_fuera_m = 3638.231754 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `100` | cuerpo | …8.23 m; ninguno bajo ella. Con : los 100. ::: Fuente: del capítulo… | datos › m10.tasa_salida.nodos_r_simulador = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `2.9` | notas | …lo pone el ancho, porque un núcleo de 2.9 km se lleva los grupos de es… | ancho por defecto de density.ppp sobre la ciudad, en km = 2.934057867 | VERIFICADA · aritmética sobre cifras verificadas |
+| `3638` | notas | …e esa escala; y la K acumula, así que 3638 m es donde vuelve a la band… | último radio fuera de la banda con el núcleo, al metro = 3638 | VERIFICADA · aritmética sobre cifras verificadas |
+| `2934.06` | notas | …un núcleo del ancho por defecto de , 2934.06 m, y ese núcleo se lleva … | datos › m10.lambda_nucleo_sigma_m = 2934.057867 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `1959.86` | notas | …peor desviación, la del MAD, está en 1959.86 m), y 3638.23 m es donde … | datos › m10.test_global.r_mad_observada_m = 1959.858966; recomputo › m10.r_mad_observada_m = 1959.858966 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `3638.23` | notas | …ón, la del MAD, está en 1959.86 m), y 3638.23 m es donde la K vuelve a… | datos › m10.ultimo_r_fuera_m = 3638.231754; recomputo › m10.ultimo_r_fuera_m = 3638.231754 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `199` | notas | …. La g inhomogénea, medida aparte con 199 simulaciones y también con e… | recomputo › m10b_pcf.nsim = 199 | VERIFICADA · re-ejecutada en R |
+| `2.2` | notas | …le de su banda sin interrupción hasta 2.2 km y vale 1.20 a 1 km y 1.06… | hasta dónde llega la primera racha de radios fuera de la banda de la g inhomogénea (km) = 2.2 | VERIFICADA · aritmética sobre cifras verificadas |
+| `1.20` | notas | …sin interrupción hasta 2.2 km y vale 1.20 a 1 km y 1.06 a 2 km. Con ot… | recomputo › m10b_pcf.g_1000.g_obs = 1.201131082 | VERIFICADA · re-ejecutada en R |
+| `1.06` | notas | …ión hasta 2.2 km y vale 1.20 a 1 km y 1.06 a 2 km. Con otras ocho semi… | recomputo › m10b_pcf.g_2000.g_obs = 1.059823252 | VERIFICADA · re-ejecutada en R |
 | `3.8` | notas | …ocho semillas el tramo termina entre 3.8 y 3.9 km y la fracción de rad… | último radio fuera (km), mínimo con las ocho semillas nuevas = 3.8 | VERIFICADA · aritmética sobre cifras verificadas |
 | `3.9` | notas | …semillas el tramo termina entre 3.8 y 3.9 km y la fracción de radios f… | último radio fuera (km), máximo con las ocho semillas nuevas = 3.9 | VERIFICADA · aritmética sobre cifras verificadas |
 | `64` | notas | …m y la fracción de radios fuera va de 64 a 67 de los 100 radios. La fi… | mínimo de radios fuera de 100 con las ocho semillas nuevas = 64 | VERIFICADA · aritmética sobre cifras verificadas |
@@ -534,8 +538,11 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `2107` | cuerpo | …a de tumbar. Con las sedes en grupos, 2 107 sedes no son 2 107 observa… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `2107` | cuerpo | …s sedes en grupos, 2 107 sedes no son 2 107 observaciones independient… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `3` | notas | …robó es un plano log-lineal en x e y (3 parámetros); con una tendenci… | recomputo › m10b_flex.1.k = 3 | VERIFICADA · re-ejecutada en R |
-| `12` | notas | …con una tendencia polinómica de grado 12 (91 parámetros) ningún test g… | recomputo › m10b_flex.12.grado = 12 | VERIFICADA · re-ejecutada en R |
-| `91` | notas | …una tendencia polinómica de grado 12 (91 parámetros) ningún test globa… | recomputo › m10b_flex.12.k = 91 | VERIFICADA · re-ejecutada en R |
+| `4` | notas | …con una tendencia polinómica de grado 4 (15 parámetros) se sigue rech… | datos › m10.tendencia_flexible[0].grado = 4 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `15` | notas | …una tendencia polinómica de grado 4 (15 parámetros) se sigue rechazan… | datos › m10.tendencia_flexible[0].coeficientes = 15 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `12` | notas | …sigue rechazando, y con una de grado 12 (91) ningún test global recha… | recomputo › m10b_flex.12.grado = 12 | VERIFICADA · re-ejecutada en R |
+| `91` | notas | …ue rechazando, y con una de grado 12 (91) ningún test global rechaza (… | datos › m10.tendencia_flexible[1].coeficientes = 91 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `0.173` | notas | …ningún test global rechaza (DCLF p = 0.173 en el capítulo), aunque esa… | datos › m10.tendencia_flexible[1].dclf_p = 0.173 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `79` | notas | …con datos de predios. Lo medido: hay 79 sedes que comparten sitio exa… | recomputo › m11b_dups.sedes_en_esos_sitios = 79 | VERIFICADA · re-ejecutada en R |
 | `39` | notas | …sedes que comparten sitio exacto (en 39 sitios), y el 29.8 % de las s… | nsim = 2 / nivel puntual − 1, con nivel puntual 2 / (nsim + 1) = 39 | VERIFICADA · aritmética sobre cifras verificadas |
 | `29.8` | notas | …ten sitio exacto (en 39 sitios), y el 29.8 % de las sedes tiene otra a… | recomputo › m11b_dups.pct_vecino_menos_100m = 29.80541054 | VERIFICADA · re-ejecutada en R |
@@ -549,6 +556,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `17` | notas | …Unos 17 minutos. Ocho piezas: tres fa… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
+| `1.93` | notas | …casi la misma K (κσ² casi igual, 1/κ ×1.93) y los duplicados, la z con… | κ isotrópica / κ de traslación (= 1/κ de traslación entre 1/κ isotrópica) = 1.93189671 | VERIFICADA · aritmética sobre cifras verificadas |
 
 ### Diapositiva 32 · Tres familias de conglomerado tardan unos 127 s: lo que se paga es la estimación de K
 
@@ -607,7 +615,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `2.63` | titulo | …e 22 piezas: con , μ también pasa de 2.63 a 3.27… | recomputo › m11_redwood.iso.mu = 2.632856432 \| texto del capítulo: «μ = 2.63 contra 3.27» | VERIFICADA · re-ejecutada en R |
 | `3.27` | titulo | …ezas: con , μ también pasa de 2.63 a 3.27… | recomputo › m11_redwood.translate.mu = 3.265142009 \| texto del capítulo: «μ = 2.63 contra 3.27» | VERIFICADA · re-ejecutada en R |
 | `62` | cuerpo | …**De dónde sale:** (spatstat.data): 62 plántulas y árboles jóvenes d… | recomputo › m11_redwood.n = 62 | VERIFICADA · re-ejecutada en R |
-| `1975` | cuerpo | …venes de sequoia gigante, de Strauss (1975), subregión de Ripley (1977… | ayuda de spatstat.data (recomputo › ayuda_b.redwood): «Strauss (1975)» | REFERENCIA · ficha de ayuda del paquete |
+| `1975` | cuerpo | …venes de secuoya gigante, de Strauss (1975), subregión de Ripley (1977… | ayuda de spatstat.data (recomputo › ayuda_b.redwood): «Strauss (1975)» | REFERENCIA · ficha de ayuda del paquete |
 | `1977` | cuerpo | …Strauss (1975), subregión de Ripley (1977) reescalada al cuadrado unid… | ayuda de spatstat.data (recomputo › ayuda_b.redwood): «Ripley (1977)» | REFERENCIA · ficha de ayuda del paquete |
 | `22` | cuerpo | …sa en un cuadrado, no es culpa de las 22 piezas de la ventana urbana.… | recomputo › m11_ventana.piezas = 22 | VERIFICADA · re-ejecutada en R |
 | `2.63` | cuerpo | …ana urbana. ::: ::: info Dato μ vale 2.63 con la K isotrópica y 3.27 c… | recomputo › m11_redwood.iso.mu = 2.632856432 \| texto del capítulo: «μ = 2.63 contra 3.27» | VERIFICADA · re-ejecutada en R |
@@ -622,20 +630,20 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `2.63` | titulo | …Con , da μ = 2.63 con una K y 3.27 con la otra.… | recomputo › m11_redwood.iso.mu = 2.632856432 \| texto del capítulo: «μ = 2.63 contra 3.27» | VERIFICADA · re-ejecutada en R |
 | `3.27` | titulo | …Con , da μ = 2.63 con una K y 3.27 con la otra. ¿Cuál es el corr… | recomputo › m11_redwood.translate.mu = 3.265142009 \| texto del capítulo: «μ = 2.63 contra 3.27» | VERIFICADA · re-ejecutada en R |
 
-### Diapositiva 36 · Dos conglomerados distintos dan casi la misma K, y los duplicados no son la causa
+### Diapositiva 36 · Dos conglomerados distintos dan casi la misma K, y quitar los duplicados no lo cambia
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `0.6` | cuerpo | …parámetros de cada corrección difiere 0.6 % a 500 m, 0.9 % a 1000 m y … | diferencia relativa de la K de Thomas con los dos juegos de parámetros a 500 m (forma cerrada) = 0.5561566474 | VERIFICADA · aritmética sobre cifras verificadas |
-| `500` | cuerpo | …os de cada corrección difiere 0.6 % a 500 m, 0.9 % a 1000 m y 4.8 % a … | texto del capítulo: «(500.0, 1000.0, 2000.0)» | CONTRASTADA · texto del capítulo |
+| `500` | cuerpo | …os de cada corrección difiere 0.6 % a 500 m, 0.9 % a 1000 m y 4.8 % a … | datos › m11.valle.r_m = [500, 1000, 2000, 3000] | CONTRASTADA · salida de R (JSON del capítulo) |
 | `0.9` | cuerpo | …ada corrección difiere 0.6 % a 500 m, 0.9 % a 1000 m y 4.8 % a 2000 m.… | diferencia relativa de la K de Thomas con los dos juegos de parámetros a 1000 m (forma cerrada) = 0.909160134 | VERIFICADA · aritmética sobre cifras verificadas |
-| `1000` | cuerpo | …ección difiere 0.6 % a 500 m, 0.9 % a 1000 m y 4.8 % a 2000 m. ::: Fue… | texto del capítulo: «(500.0, 1000.0, 2000.0)» | CONTRASTADA · texto del capítulo |
+| `1000` | cuerpo | …ección difiere 0.6 % a 500 m, 0.9 % a 1000 m y 4.8 % a 2000 m. ::: Fue… | datos › m11.valle.r_m = [500, 1000, 2000, 3000] | CONTRASTADA · salida de R (JSON del capítulo) |
 | `4.8` | cuerpo | …fiere 0.6 % a 500 m, 0.9 % a 1000 m y 4.8 % a 2000 m. ::: Fuente: d… | diferencia relativa de la K de Thomas con los dos juegos de parámetros a 2000 m (forma cerrada) = 4.808787188 | VERIFICADA · aritmética sobre cifras verificadas |
-| `2000` | cuerpo | …6 % a 500 m, 0.9 % a 1000 m y 4.8 % a 2000 m. ::: Fuente: del capítu… | texto del capítulo: «(500.0, 1000.0, 2000.0)» | CONTRASTADA · texto del capítulo |
+| `2000` | cuerpo | …6 % a 500 m, 0.9 % a 1000 m y 4.8 % a 2000 m. ::: Fuente: del capítu… | datos › m11.valle.r_m = [500, 1000, 2000, 3000] | CONTRASTADA · salida de R (JSON del capítulo) |
 | `0.183` | cuerpo | …y σ se compensan: κσ² es casi igual (0.183 y 0.190), y por eso las dos… | κ σ² de Thomas con K isotrópica = 0.1831637752 | VERIFICADA · aritmética sobre cifras verificadas |
 | `0.190` | cuerpo | …compensan: κσ² es casi igual (0.183 y 0.190), y por eso las dos K coin… | κ σ² de Thomas con K de traslación = 0.1900429056 | VERIFICADA · aritmética sobre cifras verificadas |
 | `5.5` | cuerpo | …eros grandes: una diferencia de hasta 5.5 % entre las dos K empíricas … | recomputo › m11b_kemp.dif_max_pct = 5.54373963 | VERIFICADA · re-ejecutada en R |
-| `1.93` | cuerpo | …K empíricas es casi el doble en 1/κ (×1.93). ::: ::: info Dato La hipó… | κ isotrópica / κ de traslación (= 1/κ de traslación entre 1/κ isotrópica) = 1.93189671 | VERIFICADA · aritmética sobre cifras verificadas |
+| `1.93` | cuerpo | …as dos K empíricas casi duplica 1/κ (×1.93). ::: ::: info Dato La hipó… | κ isotrópica / κ de traslación (= 1/κ de traslación entre 1/κ isotrópica) = 1.93189671 | VERIFICADA · aritmética sobre cifras verificadas |
 | `40` | cuerpo | …plicados se midió y es falsa: sin las 40 sedes repetidas, la escala pa… | datos › m11.duplicados.repetidos = 40 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `1320` | cuerpo | …40 sedes repetidas, la escala pasa de 1320 a 1373 m (4.0 %); el cambio… | datos › m11.ajustes[1].parametros.scale = 1319.703255; recomputo › m11_Thomas.translate.parametros.scale = 1319.703255 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1373` | cuerpo | …s repetidas, la escala pasa de 1320 a 1373 m (4.0 %); el cambio máximo… | datos › m11.duplicados.efecto[0].sin_duplicados.scale = 1372.827634; recomputo › m11_Thomas.sin_duplicados.parametros.scale = 1372.827634 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
@@ -681,9 +689,9 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `5.32` | cuerpo | …K de traslación \| 0.026767 \| −0.91 \| 5.32 \| Fuente: del capítulo (… | datos › m11.tendencia.ajustes[5].inflacion[0] = 5.317884318; recomputo › m11_LGCP.tendencia.translate.inflacion[1] = 5.317884318 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `3.96` | cuerpo | …. \|\|\| ::: info Dato Error de : de 3.96 a 5.32 veces el de Poisson. … | datos › m11.tendencia.ajustes[0].inflacion[0] = 3.961772345; recomputo › m11_Thomas.tendencia.iso.inflacion[1] = 3.961772345 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `5.32` | cuerpo | …::: info Dato Error de : de 3.96 a 5.32 veces el de Poisson. Con Thom… | datos › m11.tendencia.ajustes[5].inflacion[0] = 5.317884318; recomputo › m11_LGCP.tendencia.translate.inflacion[1] = 5.317884318 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `26` | cuerpo | …ón la varianza se multiplica por unas 26: 2 107 sedes valen unas 80. :… | efecto de diseño con la aproximación por defecto, redondeado = 26 \| efecto de diseño con fast = FALSE, redondeado = 26 | VERIFICADA · aritmética sobre cifras verificadas |
-| `2107` | cuerpo | …a varianza se multiplica por unas 26: 2 107 sedes valen unas 80. ::: :… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `80` | cuerpo | …a por unas 26: 2 107 sedes valen unas 80. ::: ::: tip Interpretación… | n efectivo con la aproximación por defecto, a la decena = 80 \| n efectivo con fast = FALSE, a la decena = 80 | VERIFICADA · aritmética sobre cifras verificadas |
+| `26` | cuerpo | …ón la varianza se multiplica por unas 26: para estimar el gradiente es… | efecto de diseño con la aproximación por defecto, redondeado = 26 \| efecto de diseño con fast = FALSE, redondeado = 26 | VERIFICADA · aritmética sobre cifras verificadas |
+| `2107` | cuerpo | …para estimar el gradiente este-oeste, 2 107 sedes valen unas 80. ::: :… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `80` | cuerpo | …te este-oeste, 2 107 sedes valen unas 80. ::: ::: tip Interpretación… | n efectivo con la aproximación por defecto, a la decena = 80 \| n efectivo con fast = FALSE, a la decena = 80 | VERIFICADA · aritmética sobre cifras verificadas |
 | `2107` | cuerpo | …onfía de un error estándar que cuenta 2 107 sedes independientes: resp… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1.59e-07` | notas | …; con Thomas y K de traslación, κ = 1.59e-07 y σ = 1067 m (con , 1.09e… | recomputo › m11b_trend.translate.kappa = 1.591085223e-07 | VERIFICADA · re-ejecutada en R |
 | `1.09e-07` | notas | …ón, κ = 1.59e-07 y σ = 1067 m (con , 1.09e-07 y 1320 m). La corrección… | recomputo › m11_Thomas.translate.parametros.kappa = 1.091186756e-07 | VERIFICADA · re-ejecutada en R |
@@ -723,16 +731,28 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `1.1667` | notas | …de la tasa no se cita: se comprueba (1.1667 contra 1.14425), y esa sim… | datos › m11.hawkes.tasa_teorica = 1.166666667; recomputo › m11_hawkes.tasa_teorica = 1.166666667 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1.14425` | notas | …se cita: se comprueba (1.1667 contra 1.14425), y esa simulación es una… | datos › m11.hawkes.tasa_simulada = 1.14425; recomputo › m11_hawkes.tasa_simulada = 1.14425 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `200` | notas | …mulación es una sola realización: con 200 réplicas la tasa media es 1.… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `1.1653` | notas | …ón: con 200 réplicas la tasa media es 1.1653. El índice de dispersión … | recomputo › m11b_hawkes.tasa_media = 1.16533 | VERIFICADA · re-ejecutada en R |
-| `9.9` | notas | …o del intervalo con que se cuente (de 9.9 con 20 intervalos a 2.9 con … | recomputo › m11b_hawkes.por_intervalos[0].hawkes = 9.887089912 | VERIFICADA · re-ejecutada en R |
-| `20` | notas | …tervalo con que se cuente (de 9.9 con 20 intervalos a 2.9 con 2000) y… | recomputo › m11b_hawkes.por_intervalos[0].k = 20 | VERIFICADA · re-ejecutada en R |
-| `2.9` | notas | …se cuente (de 9.9 con 20 intervalos a 2.9 con 2000) y de la realizació… | recomputo › m11b_hawkes.por_intervalos[6].hawkes = 2.948499703 | VERIFICADA · re-ejecutada en R |
-| `2000` | notas | …e (de 9.9 con 20 intervalos a 2.9 con 2000) y de la realización (5.0 d… | recomputo › m11b_hawkes.por_intervalos[6].k = 2000 | VERIFICADA · re-ejecutada en R |
-| `5.0` | notas | …a 2.9 con 2000) y de la realización (5.0 de media y 0.6 de desviación… | media del índice de dispersión del Hawkes en 200 réplicas = 5 | VERIFICADA · aritmética sobre cifras verificadas |
-| `0.6` | notas | …) y de la realización (5.0 de media y 0.6 de desviación en 200 réplica… | desviación típica del índice de dispersión del Hawkes en 200 réplicas = 0.6 | VERIFICADA · aritmética sobre cifras verificadas |
-| `200` | notas | …(5.0 de media y 0.6 de desviación en 200 réplicas), así que el 5.4 del… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `5.4` | notas | …sviación en 200 réplicas), así que el 5.4 del capítulo no tiene esos d… | datos › m11.hawkes.veces_mas_agregado = 5.381119831; recomputo › m11_hawkes.veces_mas_agregado = 5.381119831 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `200` | notas | …les: es de esta simulación y de estos 200 intervalos. Cotejo: , , ,… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `1.1653` | notas | …ón: con 200 réplicas la tasa media es 1.1653. El índice depende del an… | recomputo › m11b_hawkes.tasa_media = 1.16533 | VERIFICADA · re-ejecutada en R |
+| `2.86` | notas | …da: con intervalos de 2 unidades vale 2.86; con los de 20 de la figura… | recomputo › m11b_hawkes.por_intervalos[6].teorico = 2.856274859 | VERIFICADA · re-ejecutada en R |
+| `20` | notas | …s de 2 unidades vale 2.86; con los de 20 de la figura, 5.07; con los d… | recomputo › m11b_hawkes.por_intervalos[3].ancho = 20 | VERIFICADA · re-ejecutada en R |
+| `5.07` | notas | …ale 2.86; con los de 20 de la figura, 5.07; con los de 200, 5.41, cami… | recomputo › m11b_hawkes.por_intervalos[3].teorico = 5.07407635 | VERIFICADA · re-ejecutada en R |
+| `200` | notas | …de 20 de la figura, 5.07; con los de 200, 5.41, camino de 1/(1 − α/β)²… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `5.41` | notas | …0 de la figura, 5.07; con los de 200, 5.41, camino de 1/(1 − α/β)² = 5… | recomputo › m11b_hawkes.por_intervalos[0].teorico = 5.407407407 | VERIFICADA · re-ejecutada en R |
+| `5.44` | notas | …e 200, 5.41, camino de 1/(1 − α/β)² = 5.44. Y depende de la realizació… | datos › m11.hawkes.dispersion_limite = 5.444444444 \| recomputo › m11b_hawkes.limite = 5.444444444 | VERIFICADA · re-ejecutada en R |
+| `200` | notas | ….44. Y depende de la realización: con 200 intervalos, 5.0 de media y 0… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `5.0` | notas | …e la realización: con 200 intervalos, 5.0 de media y 0.6 de desviación… | media del índice de dispersión del Hawkes en 200 réplicas = 5 | VERIFICADA · aritmética sobre cifras verificadas |
+| `0.6` | notas | …n: con 200 intervalos, 5.0 de media y 0.6 de desviación en 200 réplica… | desviación típica del índice de dispersión del Hawkes en 200 réplicas = 0.6 | VERIFICADA · aritmética sobre cifras verificadas |
+| `200` | notas | …, 5.0 de media y 0.6 de desviación en 200 réplicas. Con solo 20 interv… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `20` | notas | …desviación en 200 réplicas. Con solo 20 intervalos esta simulación da… | recomputo › m11b_hawkes.por_intervalos[0].k = 20 | VERIFICADA · re-ejecutada en R |
+| `9.9` | notas | …solo 20 intervalos esta simulación da 9.9, pero es ruido: en las misma… | recomputo › m11b_hawkes.por_intervalos[0].hawkes = 9.887089912 | VERIFICADA · re-ejecutada en R |
+| `200` | notas | …da 9.9, pero es ruido: en las mismas 200 réplicas la media es 5.46 y l… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `5.46` | notas | …n las mismas 200 réplicas la media es 5.46 y la desviación 1.73 (el 90… | recomputo › m11b_hawkes.disp20_media = 5.456170145 | VERIFICADA · re-ejecutada en R |
+| `1.73` | notas | …icas la media es 5.46 y la desviación 1.73 (el 90 % entre 2.93 y 8.27)… | recomputo › m11b_hawkes.disp20_sd = 1.733875913 | VERIFICADA · re-ejecutada en R |
+| `90` | notas | …edia es 5.46 y la desviación 1.73 (el 90 % entre 2.93 y 8.27), y solo… | el 90 % central de las réplicas: entre sus percentiles 5 y 95 | PARÁMETRO de diseño |
+| `2.93` | notas | …6 y la desviación 1.73 (el 90 % entre 2.93 y 8.27), y solo el 1 % lleg… | recomputo › m11b_hawkes.disp20_q05 = 2.934218116 | VERIFICADA · re-ejecutada en R |
+| `8.27` | notas | …desviación 1.73 (el 90 % entre 2.93 y 8.27), y solo el 1 % llega a 9.9… | recomputo › m11b_hawkes.disp20_q95 = 8.273023331 | VERIFICADA · re-ejecutada en R |
+| `9.9` | notas | …e 2.93 y 8.27), y solo el 1 % llega a 9.9. El «5.4 veces más agregado»… | recomputo › m11b_hawkes.por_intervalos[0].hawkes = 9.887089912 | VERIFICADA · re-ejecutada en R |
+| `5.4` | notas | …8.27), y solo el 1 % llega a 9.9. El «5.4 veces más agregado» del capí… | datos › m11.hawkes.veces_mas_agregado = 5.381119831; recomputo › m11_hawkes.veces_mas_agregado = 5.381119831 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `200` | notas | …tulo es de esta simulación y de estos 200 intervalos, y el capítulo di… | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
 
 ### Diapositiva 39 · Adelgazamiento de Ogata: entre eventos la intensidad solo baja, y su valor en t es la cota
 
@@ -752,19 +772,22 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 |---|---|---|---|---|
 | `5` | notas | …Unos 5 minutos. El proyecto integrad… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 
-### Diapositiva 41 · Cinco decisiones que se declaran por escrito antes de la primera figura
+### Diapositiva 41 · Seis decisiones que se declaran antes de la primera figura
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
 | `2209` | cuerpo | …ventana \| por qué esa \| la capa trae 2 209 sedes y 2 107 caen dentro… | recomputo › urbana.n_capa = 2209 | VERIFICADA · re-ejecutada en R |
 | `2107` | cuerpo | …qué esa \| la capa trae 2 209 sedes y 2 107 caen dentro del perímetro … | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `66.3` | cuerpo | …r qué ninguno \| el pico del mapa baja 66.3 % al abrir σ de 233 a 1867… | datos › m2.familia.caida_pct = 66.2912081; recomputo › anchos.caida_pct = 66.2912081 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `66.3` | cuerpo | …por qué nadie \| el pico del mapa baja 66.3 % al abrir σ de 233 a 1867… | datos › m2.familia.caida_pct = 66.2912081; recomputo › anchos.caida_pct = 66.2912081 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `233` | cuerpo | …co del mapa baja 66.3 % al abrir σ de 233 a 1867 m \| \| La corrección… | datos › m2.familia.sigmas_m[0] = 233.3949; recomputo › anchos.sigmas_m[0] = 233.3949 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1867` | cuerpo | …mapa baja 66.3 % al abrir σ de 233 a 1867 m \| \| La corrección de bor… | datos › m2.familia.sigmas_m[6] = 1867.1589; recomputo › anchos.sigmas_m[6] = 1867.1589 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `800` | cuerpo | …\| qué conserva \| en Kennedy, con σ = 800 m, 270.36 sedes por defecto… | datos › m4.sigmas_m = [200, 400, 800] | CONTRASTADA · salida de R (JSON del capítulo) |
-| `270.36` | cuerpo | …conserva \| en Kennedy, con σ = 800 m, 270.36 sedes por defecto y 262.… | datos › m4.tabla[2].masa_defecto = 270.3619071; recomputo › bordes.800.masa_defecto = 270.3619071 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `262.00` | cuerpo | …σ = 800 m, 270.36 sedes por defecto y 262.00 con \| \| La cuadratura \… | datos › m4.tabla[2].masa_diggle = 262; recomputo › bordes.800.masa_diggle = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `9.2` | cuerpo | …qué y qué teselas \| el AIC se mueve 9.2 puntos \| \| La estimación de… | datos › m8.cuadratura.rango_aic = 9.199466457; recomputo › m8_nd.rango_aic = 9.199466457 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `800` | cuerpo | …de \| qué conserva \| en Kennedy, a σ = 800 m: 270.36 sedes por defect… | datos › m4.sigmas_m = [200, 400, 800] | CONTRASTADA · salida de R (JSON del capítulo) |
+| `270.36` | cuerpo | …é conserva \| en Kennedy, a σ = 800 m: 270.36 sedes por defecto, 262.0… | datos › m4.tabla[2].masa_defecto = 270.3619071; recomputo › bordes.800.masa_defecto = 270.3619071 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `262.00` | cuerpo | …σ = 800 m: 270.36 sedes por defecto, 262.00 con Diggle \| \| La cuadra… | datos › m4.tabla[2].masa_diggle = 262; recomputo › bordes.800.masa_diggle = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `9.2` | cuerpo | …qué y qué teselas \| el AIC se mueve 9.2 puntos \| \| La λ de la K inh… | datos › m8.cuadratura.rango_aic = 9.199466457; recomputo › m8_nd.rango_aic = 9.199466457 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `62` | cuerpo | …génea \| modelo o núcleo, y su ancho \| 62 % de radios fuera con un nú… | datos › m10.pct_r_fuera_de_banda = 62; recomputo › m10.pct_fuera = 62 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `2.93` | cuerpo | …62 % de radios fuera con un núcleo de 2.93 km; 100 % con el modelo \| … | ancho por defecto de density.ppp sobre la ciudad, en km = 2.934057867 | VERIFICADA · aritmética sobre cifras verificadas |
+| `100` | cuerpo | …adios fuera con un núcleo de 2.93 km; 100 % con el modelo \| \| La est… | datos › m8.cuadratura.defecto_nd = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `27.1` | cuerpo | …ción de K \| con qué corrección \| μ de 27.1 o 52.3 sedes por conglome… | datos › m11.ajustes[0].mu = 27.09650952; recomputo › m11_Thomas.iso.mu = 27.09650952 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `52.3` | cuerpo | …K \| con qué corrección \| μ de 27.1 o 52.3 sedes por conglomerado \| … | datos › m11.ajustes[1].mu = 52.34765759; recomputo › m11_Thomas.translate.mu = 52.34765759 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
@@ -774,7 +797,8 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 |---|---|---|---|---|
 | `36.1` | cuerpo | …r su titular: la cola infla la razón (36.1 contra 1.58) - La **cuadrat… | datos › m7.bogota.curva.razon = 36.0759; recomputo › m7.bogota.total = 36.07589681 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1.58` | cuerpo | …: la cola infla la razón (36.1 contra 1.58) - La **cuadratura** viaja … | datos › m7.bogota.curva.razon_bulto = 1.58183; recomputo › m7.bogota.bulto = 1.581834466 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `62` | cuerpo | …ntra el modelo, no contra el azar: el 62 % de los radios fuera, y la b… | datos › m10.pct_r_fuera_de_banda = 62; recomputo › m10.pct_fuera = 62 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `62` | cuerpo | …dice con qué intensidad divide la K: 62 % de radios fuera con un núcl… | datos › m10.pct_r_fuera_de_banda = 62; recomputo › m10.pct_fuera = 62 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `100` | cuerpo | …: 62 % de radios fuera con un núcleo, 100 % con el modelo - Un conglom… | datos › m10.lambda_modelo.pct_r_fuera_de_banda = 100 | CONTRASTADA · salida de R (JSON del capítulo) |
 
 ### Diapositiva 43 · Práctica: tres ejercicios guiados, la autoevaluación y el proyecto
 

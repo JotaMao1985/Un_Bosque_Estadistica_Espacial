@@ -121,7 +121,7 @@ Rejilla de 8 × 8: de **0** a **15** sedes por celda. Movida en pasos de ¼ de c
 :::
 
 ::: warn Criterio
-Contar en celdas es suavizar con un núcleo de caja y sin solapamiento.
+Si se cuenta en celdas, se publica la rejilla y se prueba a moverla.
 :::
 
 ???
@@ -143,7 +143,7 @@ Mismo objetivo que el conteo por cuadrantes, la intensidad local; cambian el pes
 :::
 
 ::: warn Criterio
-σ es la decisión que hoy se discute: ocupa el lugar del tamaño de celda.
+σ se elige y se declara como se declaraba el tamaño de celda: ocupa su lugar.
 :::
 
 <small>Fuente: módulo 1 del capítulo (fórmula del capítulo).</small>
@@ -248,13 +248,13 @@ Las otras tres superficies correlacionan por encima de 0.96 con la gaussiana: pa
 ![Cuatro núcleos con la misma desviación típica](recursos/cap5/s1-nucleos-cuatro.png){alto=250}
 
 ::: warn Criterio
-«Al mismo σ» es a la misma **desviación típica**, no al mismo soporte: cada núcleo se escala para que su σ sea la pedida, como en la figura.
+Para comparar núcleos se fijan a la misma **desviación típica**, no al mismo soporte: cada núcleo se escala para que su σ sea la pedida, como en la figura.
 :::
 
 <small>Fuente: módulo 2 del capítulo (R, spatstat) y figura propia.</small>
 
 ???
-Cifras del módulo 2 (18.4483, 17.5145, 17.6900 y 17.8808 por km²; el 5.1 % es 5.0616 % sin redondear). El capítulo dice «por encima de 0.965», pero el disco da 0.9647: aquí se dice 0.96. La advertencia del recuadro es la que hace justa la comparación. La figura es propia: el perfil de cada núcleo sale de `density` sobre una sola sede y cada uno integra 1. El 5.1 % es a un solo σ, 400 m: a otros σ el núcleo mueve más o menos, de modo que no es una ley. Python: el módulo no traduce la llamada, reimplementa la convolución. Cotejo: `datos › m2.nucleos`, `recomputo › nucleos.max_km2`, `recomputo › nucleos.cor_gauss`, `recomputo › nucleos.dif_pct`.
+Cifras del módulo 2 (18.4483, 17.5145, 17.6900 y 17.8808 por km²; el 5.1 % es 5.0616 % sin redondear). El disco da 0.9647, que redondea a 0.965 pero queda por debajo: aquí se dice 0.96, y el capítulo, desde su tercera revisión, «0.9647 o más». La advertencia del recuadro es la que hace justa la comparación. La figura es propia: el perfil de cada núcleo sale de `density` sobre una sola sede y cada uno integra 1. El 5.1 % es a un solo σ, 400 m: a otros σ el núcleo mueve más o menos, de modo que no es una ley. Python: el módulo no traduce la llamada, reimplementa la convolución. Cotejo: `datos › m2.nucleos`, `recomputo › nucleos.max_km2`, `recomputo › nucleos.cor_gauss`, `recomputo › nucleos.dif_pct`.
 
 ## El ancho sí manda: el máximo cae de 29.5 a 9.9 sedes por km² al abrir σ {columnas=3:2}
 
@@ -273,35 +273,35 @@ Elegir el núcleo se puede hacer por costumbre; elegir σ decide qué dice el ma
 <small>Fuente: módulo 2 del capítulo · rejilla de 96 × 99 celdas de 78 m.</small>
 
 ???
-Abrir en el material el simulador «El pico contra el ancho de banda» (módulo 2) y mover el deslizador: el punto recorre la curva y el mapa de abajo cambia. Las cifras de los siete anchos están en el bloque de R del módulo (29.5, 21.6, 16.8, 13.8, 11.9, 10.9, 9.9) y cada ancho es √2 veces el anterior. El 66.3 % es 66.291 % sin redondear; con las cifras redondeadas a un decimal saldría 66.4 %, por eso la cuenta usa tres decimales. La comparación con el núcleo no es entre iguales: el núcleo se compara a un solo σ y el ancho abarca un abanico de ×8. El capítulo dice que el ancho mueve «13 veces» lo que el núcleo; esa razón compara dos cosas distintas, y por eso aquí no se repite. Cotejo: `datos › m2.familia`, `recomputo › anchos.picos_km2`, `recomputo › anchos.caida_pct`, `recomputo › anchos.razon_total`.
+Abrir en el material el simulador «El pico contra el ancho de banda» (módulo 2) y mover el deslizador: el punto recorre la curva y el mapa de abajo cambia. Las cifras de los siete anchos están en el bloque de R del módulo (29.5, 21.6, 16.8, 13.8, 11.9, 10.9, 9.9) y cada ancho es √2 veces el anterior. El 66.3 % es 66.291 % sin redondear; con las cifras redondeadas a un decimal saldría 66.4 %, por eso la cuenta usa tres decimales. La comparación con el núcleo no es entre iguales: el núcleo se compara a un solo σ y el ancho abarca un abanico de ×8. Por eso aquí no se da la razón entre las dos cifras: compararía dos cosas distintas (el capítulo la daba, «trece veces», hasta su tercera revisión). Cotejo: `datos › m2.familia`, `recomputo › anchos.picos_km2`, `recomputo › anchos.caida_pct`, `recomputo › anchos.razon_total`.
 
-## Con σ pequeño ves sedes concretas; con σ grande, una sola mancha {columnas=3:2}
+## Con σ pequeño ves grupos de unas pocas sedes; con σ grande, una sola mancha {columnas=3:2}
 
 ![Kennedy con σ = 233, 660 y 1867 m](recursos/cap5/s1-sigma-tres.png){alto=330}
 
 |||
 
 ::: tip Interpretación
-Con σ = 233 m los focos son sedes concretas; con 660 m aparecen zonas; con 1867 m queda una mancha que no distingue barrios. 233 m son **tres celdas** de 78 m: el mínimo para ver el núcleo y no la rejilla.
+Con σ = 233 m los focos son grupos de unas pocas sedes: una sola levanta 2.92 por km², una décima del máximo. Con 660 m aparecen zonas; con 1867 m queda una mancha que no distingue barrios. 233 m son **tres celdas** de 78 m: el mínimo para ver el núcleo y no la rejilla.
 :::
 
 ::: warn Criterio
-Ninguno de los extremos es un error de cálculo: son la misma estimación con otra anchura.
+Se publica σ junto al mapa: ninguno de los extremos es un error de cálculo, son la misma estimación con otra anchura.
 :::
 
 <small>Fuente: módulo 2 del capítulo. Kennedy, 262 sedes, **una sola escala de color**.</small>
 
 ???
-Las tres superficies comparten una sola escala de color, y no es presentación: si cada una se normalizara contra su propio máximo, las tres saldrían igual de intensas y el mapa afirmaría lo contrario que la curva. El módulo 2 trae las siete; aquí van tres. Cotejo: `datos › m2.familia`, `recomputo › anchos.celdas_en_233`.
+Las tres superficies comparten una sola escala de color, y no es presentación: si cada una se normalizara contra su propio máximo, las tres saldrían igual de intensas y el mapa afirmaría lo contrario que la curva. El módulo 2 trae las siete; aquí van tres. «Grupos» y no «sedes concretas» porque se midió: el foco más alto a σ = 233 m reúne 7 sedes a menos de un σ, y una sede sola levanta 1/(2πσ²) = 2.92 sedes por km², por debajo del primer tramo de la leyenda del capítulo; el capítulo decía «colegios concretos» hasta su tercera revisión. Cotejo: `datos › m2.familia`, `recomputo › anchos.celdas_en_233`, `datos › m2.familia.foco`.
 
 # Selectores de ancho de banda {seccion=modulo-3}
 
-> Si el ancho lo decide todo, ¿quién lo decide? R trae cuatro selectores automáticos y cada uno devuelve un número. Ese número no es «el ancho óptimo».
+> Si el ancho lo decide todo, ¿quién lo decide? R trae varios selectores automáticos; estos cuatro son los más usados, y cada uno devuelve un número. Ese número no es «el ancho óptimo».
 
 ???
 Unos 11 minutos. Materia del Quiz 2. La tesis del módulo: los cuatro no dan respuestas distintas a la misma pregunta; es que no se les está preguntando lo mismo. Puente con la sección anterior: con σ decidido, queda la segunda decisión, qué pasa donde la ventana corta el núcleo; es el módulo 4.
 
-## Cada selector le pregunta algo distinto al patrón (y uno, nada)
+## Cada selector le pregunta algo distinto al patrón (y uno lo contesta con una fórmula)
 
 ::: info Dato · Kennedy (262 sedes) y ciudad (2 107 sedes)
 Ancho de banda elegido, en metros, con los valores por defecto de cada selector:
@@ -311,7 +311,7 @@ Ancho de banda elegido, en metros, con los valores por defecto de cada selector:
 | `bw.diggle` | el error cuadrático medio de la intensidad, por validación cruzada · **mira la superficie** | 347.1 | 373.2 |
 | `bw.ppl` | la verosimilitud del proceso puntual, dejando un punto fuera cada vez · **mira los puntos** | 374.9 | 235.9 |
 | `bw.CvL` | que la suma de \(1/\hat\lambda\) sobre los puntos devuelva el área de la ventana · **mira el área** | 556.7 | 720.4 |
-| `bw.scott` | nada: regla de referencia normal, sd · n<sup>−1/6</sup>, en forma cerrada y sin buscar · **mira solo la dispersión y n** | 633.6 | 1251.3 |
+| `bw.scott` | el error cuadrático integrado asintótico, si la intensidad fuera normal: sd · n<sup>−1/6</sup>, en forma cerrada y sin buscar · **mira solo la dispersión y n** | 633.6 | 1251.3 |
 :::
 
 ::: tip Interpretación
@@ -321,7 +321,7 @@ Discrepar no es un defecto: a cada selector se le pregunta otra cosa.
 <small>Fuente: módulo 3 del capítulo (R, spatstat).</small>
 
 ???
-Tabla del módulo 3. `bw.diggle` es de Berman y Diggle; `bw.ppl`, de Loader; `bw.CvL`, de Cronie y van Lieshout. `bw.scott` es el único de forma cerrada. Los valores salen de `bw.diggle(p)`, `bw.ppl(p)`, `bw.CvL(p)` y `bw.scott(p)` sobre los dos patrones. Una precisión que el capítulo no hace: `bw.ppl` y `bw.CvL` no optimizan sobre un continuo; evalúan su criterio en 16 anchos de una rejilla geométrica (`ns = 16`) y devuelven el mejor de ellos, y `bw.ppl` además usa `shortcut = TRUE`, que omite el término integral. Sus valores por defecto son, por tanto, nodos de esa rejilla y no óptimos finos: con 256 anchos, `bw.ppl` da 326 m en Kennedy y 350 m en la ciudad, y `bw.CvL`, 640 y 877 m (ver el registro). Python: solo `bw.scott` tiene traducción directa (sd por n a la menos un sexto). Cotejo: `datos › m3.kennedy`, `datos › m3.urbana`, `recomputo › selectores.kennedy`, `recomputo › selectores.ciudad`, `recomputo › selectores.ns_ppl`, `recomputo › selectores.ns_cvl`, `recomputo › selectores.shortcut_ppl`, `recomputo › selectores_fino.ns`, `recomputo › selectores_fino.kennedy`, `recomputo › selectores_fino.ciudad`.
+Tabla del módulo 3. `bw.diggle` es de Berman y Diggle; `bw.ppl`, de Loader; `bw.CvL`, de Cronie y van Lieshout. `bw.scott` es el único de forma cerrada. Los valores salen de `bw.diggle(p)`, `bw.ppl(p)`, `bw.CvL(p)` y `bw.scott(p)` sobre los dos patrones. Una precisión que el capítulo hace desde su tercera revisión: `bw.ppl` y `bw.CvL` no optimizan sobre un continuo; evalúan su criterio en 16 anchos de una rejilla geométrica (`ns = 16`) y devuelven el mejor de ellos, y `bw.ppl` además usa `shortcut = TRUE`, que omite el término integral. Sus valores por defecto son, por tanto, nodos de esa rejilla y no óptimos finos: con 256 anchos, `bw.ppl` da 326 m en Kennedy y 350 m en la ciudad, y `bw.CvL`, 640 y 877 m (ver el registro). Python: solo `bw.scott` tiene traducción directa (sd por n a la menos un sexto). Cotejo: `datos › m3.kennedy`, `datos › m3.urbana`, `recomputo › selectores.kennedy`, `recomputo › selectores.ciudad`, `recomputo › selectores.ns_ppl`, `recomputo › selectores.ns_cvl`, `recomputo › selectores.shortcut_ppl`, `recomputo › selectores_fino.ns`, `recomputo › selectores_fino.kennedy`, `recomputo › selectores_fino.ciudad`.
 
 ## Por defecto, los selectores discrepan 1.83 veces en Kennedy y 5.30 en la ciudad {columnas=3:2}
 
@@ -340,7 +340,7 @@ En estas dos ventanas, el abanico de los selectores se abre más en la ciudad qu
 <small>Fuente: módulo 3 del capítulo (R, spatstat).</small>
 
 ???
-Simulador «Los cuatro selectores sobre las dos ventanas» (módulo 3): cambiar de ventana y mirar cuánto se abre el abanico. Quien ejecute `bw.scott(p)` va a ver dos números; conviene que sepa por qué: con el ancho del eje y de `bw.scott` las razones serían 1.67 en Kennedy y 9.31 en la ciudad. El abanico depende de los valores por defecto de `bw.ppl` y `bw.CvL` (nodos de una rejilla de 16 anchos, ver la diapositiva anterior); con una rejilla fina `bw.ppl` queda por debajo de `bw.diggle` en las dos ventanas (326 contra 347 m en Kennedy; 350 contra 373 m en la ciudad), de modo que el cruce que el capítulo comenta entre `bw.ppl` y `bw.diggle` es un efecto de la rejilla. La consecuencia práctica llega en el módulo 5: sobre la ciudad, la rejilla solo puede dibujar núcleos de al menos 550 m. Cotejo: `datos › m3.kennedy.razon`, `datos › m3.urbana.razon`, `recomputo › selectores.ciudad.scott_y_m`.
+Simulador «Los cuatro selectores sobre las dos ventanas» (módulo 3): cambiar de ventana y mirar cuánto se abre el abanico. Quien ejecute `bw.scott(p)` va a ver dos números; conviene que sepa por qué: con el ancho del eje y de `bw.scott` las razones serían 1.67 en Kennedy y 9.31 en la ciudad. El abanico depende de los valores por defecto de `bw.ppl` y `bw.CvL` (nodos de una rejilla de 16 anchos, ver la diapositiva anterior); con una rejilla fina `bw.ppl` queda por debajo de `bw.diggle` en las dos ventanas (326 contra 347 m en Kennedy; 350 contra 373 m en la ciudad), de modo que el cruce entre `bw.ppl` y `bw.diggle` es un efecto de la rejilla, y el capítulo lo dice así desde su tercera revisión. Y `bw.scott` da un solo ancho si se le pide, `isotropic = TRUE`: la media geométrica de los dos, 606 m en Kennedy y 1658 m en la ciudad; con él la razón de la ciudad sería 7.03. La consecuencia práctica llega en el módulo 5: sobre la ciudad, la rejilla solo puede dibujar núcleos de al menos 550 m. Cotejo: `datos › m3.kennedy.razon`, `datos › m3.urbana.razon`, `recomputo › selectores.ciudad.scott_y_m`, `datos › m3.scott_isotropico_m`, `datos › m3.razon_urbana_scott_isotropico`.
 
 ## Un selector que devuelve el borde de su intervalo no seleccionó nada {columnas=1:1}
 
@@ -421,7 +421,7 @@ Ilustración en una dimensión: una sede a 0.5 σ del borde, con σ = 1. Se qued
 <small>Fuente: ilustración propia, calculada con la normal; el capítulo la aplica a las sedes de Kennedy.</small>
 
 ???
-Es la imagen central del módulo y el capítulo la dice sin dibujarla. En una dimensión se calcula con la normal: la fracción del núcleo que queda a un lado del borde, a media σ, es 0.69 (la función de distribución normal en 0.5), y se sale el resto. En Kennedy, e(x) se calcula con la misma idea en dos dimensiones. Cotejo: ilustración propia (`recursos/cap5/genera_figuras_s1.R`).
+Es la imagen central del módulo: el capítulo la dibuja en 3D (la lámina 26 la proyecta); aquí va en una dimensión, con su cifra. En una dimensión se calcula con la normal: la fracción del núcleo que queda a un lado del borde, a media σ, es 0.69 (la función de distribución normal en 0.5), y se sale el resto. En Kennedy, e(x) se calcula con la misma idea en dos dimensiones. Cotejo: ilustración propia (`recursos/cap5/genera_figuras_s1.R`).
 
 ## Lo que el mapa no deja ver: ¿la integral de λ̂ devuelve n?
 
@@ -443,7 +443,7 @@ Es una exigencia exacta: conservar el conteo observado. Por eso sirve de prueba 
 <small>Fuente: módulo 4 del capítulo (texto del capítulo). Ejemplo: Kennedy, 262 sedes.</small>
 
 ???
-El módulo 4 mide tres comportamientos donde el manual sugiere dos. Pedir una apuesta: ¿cuál de las tres devuelve n? La respuesta viene en la diapositiva siguiente, con cifras. En rigor, la integral de la intensidad es el número esperado de sedes, no el n de esta muestra: pedir que sea n es pedir que se conserve el conteo observado, que Diggle cumple por construcción. Pasar la prueba no hace mejor al estimador, y suspenderla no lo hace malo: dice qué conserva. Lo comprueba una simulación hecha para esta presentación: con 300 patrones al azar de 262 sedes en la ventana de Kennedy, la corrección por defecto se desvía de n en promedio un +0.04 % con σ = 800 m (conserva el conteo en promedio) y sin corregir se pierde un −19.6 %; el +3.19 % del patrón real es de este patrón, que no es al azar, y no de la corrección. Cotejo: `datos › m4.tabla`, `recomputo › bordes_csr.patrones`, `recomputo › bordes_csr.media_pct`.
+El módulo 4 mide tres comportamientos donde el manual sugiere dos. Pedir una apuesta: ¿cuál de las tres devuelve n? La respuesta viene en la diapositiva siguiente, con cifras. En rigor, la integral de la intensidad es el número esperado de sedes, no el n de esta muestra: pedir que sea n es pedir que se conserve el conteo observado, que Diggle cumple por construcción. Pasar la prueba no hace mejor al estimador, y suspenderla no lo hace malo: dice qué conserva. Lo comprueba una simulación hecha para esta presentación: con 300 patrones al azar de 262 sedes en la ventana de Kennedy, la corrección por defecto se desvía de n en promedio un +0.04 % con σ = 800 m, dentro de su error de Monte Carlo (0.04): en promedio conserva el conteo. Sin corregir se pierde un −19.6 %, la fracción media del núcleo que cae fuera; el +3.19 % del patrón real es de este patrón, que no es al azar, y no de la corrección. Cotejo: `datos › m4.tabla`, `recomputo › bordes_csr.patrones`, `recomputo › bordes_csr.media_pct`, `recomputo › bordes_csr.ee_media_pct`.
 
 ## Medido sobre Kennedy: tres correcciones, tres comportamientos
 
@@ -487,13 +487,13 @@ Es la animación del módulo 4 del capítulo, con los mismos 19 puntos inventado
 Kennedy, 262 sedes, σ = 800 m, la misma escala de color. Uno de los tres mapas es el de Diggle y conserva el conteo: ¿cuál es, y se nota mirándolo?
 
 ::: respuesta C es la de Diggle
-Mirando no se nota que uno conserve el conteo: eso lo dice la integral (A, por defecto, 270.4; B, sin corregir, 224.4; C, Diggle, 262.0). Sí se ven diferencias —al no corregir el pico baja, de 12.66 a 11.54 sedes por km²—, pero ninguna dice cuál es la buena.
+Mirando no se nota que uno conserve el conteo: eso lo dice la integral (A, por defecto, 270.4; B, sin corregir, 224.4; C, Diggle, 262.0). Sí se ven diferencias —el pico más alto es el de Diggle, 13.49 sedes por km², contra 12.66 por defecto y 11.54 sin corregir—, pero ninguna dice cuál es la buena.
 :::
 
 <small>Fuente: módulo 4 del capítulo (R, spatstat) y figura propia.</small>
 
 ???
-Es el modo de fallo de siempre: la operación que devuelve algo creíble en vez de fallar. Los tres mapas están dibujados con la misma llamada del bloque de R de dos diapositivas más adelante, y se rotularon A, B y C sin su nombre para poder pedir primero la opinión: ¿cuál creen que es la de Diggle? La de por defecto muestra la mancha más oscura en el borde suroeste, donde e(u) es pequeño y la división amplifica. Cotejo: `datos › m4.tabla`, `recomputo › bordes`.
+Es el modo de fallo de siempre: la operación que devuelve algo creíble en vez de fallar. Los tres mapas están dibujados con la misma llamada del bloque de R de dos diapositivas más adelante, y se rotularon A, B y C sin su nombre para poder pedir primero la opinión: ¿cuál creen que es la de Diggle? A, la de por defecto, tiene su máximo pegado al borde suroeste, donde e(u) es pequeño y la división amplifica. C, la de Diggle, tiene el pico más alto de los tres, un poco más adentro: divide cada sede del borde por su e(xᵢ) < 1 y engorda la loma entera de esas sedes, también su parte interior. Cotejo: `datos › m4.tabla`, `recomputo › bordes`, `recomputo › bordes.800.max_diggle`.
 
 ## Diggle divide donde está el dato; la de por defecto, donde se estima {columnas=1:1}
 
@@ -553,7 +553,7 @@ Integrar y comparar con n es la prueba: el mapa no dice cuál conserva el conteo
 <small>Fuente: módulo 4 del capítulo, bloque de R.</small>
 
 ???
-Bloque del módulo 4. `p` es la ppp de Kennedy de la segunda diapositiva. El ejercicio 2 del módulo 12 repite esta comprobación sobre `chorley`. En la fórmula, `sum(v) * im$xstep * im$ystep` es la suma de Riemann: valor de cada píxel por su área. Aparte, para quien pregunte por el coste: la corrección de borde de K del capítulo 4 costaba cientos de veces la alternativa (la isotrópica, 122.655 s; la de traslación, 0.221 s), mientras que aquí corregir o no la KDE a 128 × 128 sobre la ciudad cuesta lo mismo: 0.14 contra 0.15 s, del mismo orden. Son tiempos de máquina: se volvieron a medir en esta (0.155, 0.147 y 0.161 s) y salen del mismo orden. El módulo 11 traerá el caso opuesto: una llamada que elige la corrección por ti, la más cara, sin mencionarla. Cotejo: `datos › m4.tabla`, `recomputo › bordes`, `datos › m4.coste_segundos`, `recomputo › tiempos`.
+Bloque del módulo 4. `p` es la ppp de Kennedy de la lámina 5. El ejercicio 2 del módulo 12 repite esta comprobación sobre `chorley`. En la fórmula, `sum(v) * im$xstep * im$ystep` es la suma de Riemann: valor de cada píxel por su área. Aparte, para quien pregunte por el coste: la corrección de borde de K del capítulo 4 costaba cientos de veces la alternativa (la isotrópica, 122.655 s; la de traslación, 0.221 s), mientras que aquí corregir o no la KDE cuesta lo mismo: sobre Kennedy, centésimas de segundo (0.010, 0.010 y 0.009 s, medidos por el precálculo, que es lo que publica el capítulo); sobre la ciudad a 128 × 128, 0.155, 0.147 y 0.161 s. Son tiempos de máquina: cambian con ella, pero no de orden. El módulo 11 traerá el caso opuesto: una llamada que elige la corrección por ti, la más cara, sin mencionarla. Cotejo: `datos › m4.tabla`, `recomputo › bordes`, `datos › m4.coste_segundos`, `recomputo › tiempos`.
 
 # La KDE como mapa de calor {seccion=modulo-5}
 
@@ -579,7 +579,7 @@ Unos 10 minutos. Este módulo no entra en el Quiz 2 (el quiz cubre los módulos 
 :::
 
 ???
-Entre el primero y el segundo se cae media capa: una sede de primaria no tiene undécimo. Pesar por Saber 11 sin decirlo convertiría un mapa de oferta en uno de bachillerato sin que el título cambiara. El tercero cuenta personas, no edificios: su unidad ya no es «sedes por km²», y por eso cada mapa va a su propia escala. Los máximos son 14.5 sedes por km² (oferta), 9.5 (bachillerato) y 1579 evaluados por km² (estudiantes). Se parecen mucho, pero ninguna pareja correlaciona 1; la que menos se parece es oferta–estudiantes. Simulador «Las tres capas, y cuánto se parecen» (módulo 5). Las correlaciones de la versión de Python salen 0.9391, 0.8555 y 0.9155: no es otra discretización, es la corrección de borde por defecto de `density`; las cifras y los mapas de R usan `diggle = TRUE` y dan las de la diapositiva, de modo que las dos versiones son correctas y declaran correcciones distintas. «Sedes con grado 11» son las sedes con al menos un evaluado en el periodo 20224. Cotejo: `datos › m5.capas`, `datos › m5.cor_oferta_grado11`, `datos › m5.cor_oferta_estudiantes`, `datos › m5.cor_grado11_estudiantes`, `recomputo › capas_defecto.cor_of_11`, `recomputo › capas_defecto.cor_of_es`, `recomputo › capas_defecto.cor_11_es`.
+Entre el primero y el segundo se cae media capa: una sede de primaria no tiene undécimo. Pesar por Saber 11 sin decirlo convertiría un mapa de oferta en uno de bachillerato sin que el título cambiara. El tercero cuenta personas, no edificios: su unidad ya no es «sedes por km²», y por eso cada mapa va a su propia escala. Los máximos son 14.5 sedes por km² (oferta), 9.5 (bachillerato) y 1579 evaluados por km² (estudiantes). Se parecen mucho, pero ninguna pareja correlaciona 1; la que menos se parece es oferta–estudiantes. Simulador «Las tres capas, y cuánto se parecen» (módulo 5). Con la corrección de borde por defecto de `density` las correlaciones salen 0.9391, 0.8555 y 0.9155; las cifras y los mapas del capítulo usan `diggle = TRUE` y dan las de la diapositiva. Hasta la tercera revisión la versión de Python del capítulo usaba la de por defecto y lo llamaba «otra discretización»; hoy divide como Diggle y da las mismas cifras que R. «Sedes con grado 11» son las sedes con al menos un evaluado en el periodo 20224. Cotejo: `datos › m5.capas`, `datos › m5.cor_oferta_grado11`, `datos › m5.cor_oferta_estudiantes`, `datos › m5.cor_grado11_estudiantes`, `recomputo › capas_defecto.cor_of_11`, `recomputo › capas_defecto.cor_of_es`, `recomputo › capas_defecto.cor_11_es`.
 
 ## Donde las manchas no coinciden, el edificio y el estudiante dejan de ser lo mismo {columnas=3:2}
 
@@ -594,11 +594,11 @@ Entre el primero y el segundo se cae media capa: una sede de primaria no tiene u
 :::
 
 ::: tip Interpretación
-Mismo σ y misma rejilla, pero cambian dos cosas: qué sedes entran (las 2 107, o solo las 1 062 con grado 11) y cuánto pesa cada una (1, o sus evaluados). Para aislar el peso, compara bachillerato con estudiantes (r = 0.919).
+Mismo σ y misma rejilla, pero cambian dos cosas: qué sedes entran (las 2 107, o solo las 1 062 con grado 11) y cuánto pesa cada una (1, o sus evaluados). Para aislar el peso, compara bachillerato con estudiantes (r = 0.919; sus mapas, en la lámina anterior).
 :::
 
 ???
-Comprobado en R: el máximo de la oferta cae en Suba (norte) y el de estudiantes, en Bosa (suroccidente). Es un estadístico frágil: los dos picos mayores son los mismos en los dos mapas y lo que cambia es cuál gana, así que la diferencia de localidad es una lectura, no una prueba. Un estudiante cuenta donde estudia, no donde vive. Cotejo: `datos › m5.capas`, `recomputo › capas_maximos`.
+Comprobado en R: el máximo de la oferta cae en Suba (norte) y el de estudiantes, en Bosa (suroccidente). Es un estadístico frágil: los dos picos mayores son los mismos en los dos mapas y lo que cambia es cuál gana, así que la diferencia de localidad es una lectura, no una prueba. Un estudiante cuenta donde estudia, no donde vive. El capítulo dibuja los tres mapas, oferta, bachillerato y estudiantes, desde su tercera revisión: cada pareja vecina difiere en una sola operación. Cotejo: `datos › m5.capas`, `recomputo › capas_maximos`.
 
 ## Con celdas de 183 m, la ciudad no puede dibujar un σ menor que 550 m {columnas=1:1}
 
@@ -620,13 +620,13 @@ Comprobado en R: el máximo de la oferta cae en Suba (norte) y el de estudiantes
 :::
 
 ::: warn Criterio
-Primero se decide σ y se declara quién lo eligió; después se ajusta la resolución, no al revés.
+En un análisis propio, primero σ y después la resolución. Aquí se hizo al revés, por el peso del archivo, y por eso se declara: σ = 720 m no lo eligió un criterio estadístico, lo eligió la rejilla.
 :::
 
 <small>Fuente: módulo 5 del capítulo (R, spatstat).</small>
 
 ???
-Es la consecuencia práctica de la diapositiva de los selectores. La regla de las 3 celdas es un parámetro de diseño del capítulo, no una medida: el error de la KDE en la rejilla baja de forma gradual con el número de celdas por σ, de modo que a 2 celdas la rejilla ya distorsiona poco. Lo que la regla evita es que el mapa dibuje su propia rejilla. Cotejo: `datos › m5.rejilla`, `datos › m3.urbana`, `datos › meta.rejilla.celdas_por_sigma`.
+Es la consecuencia práctica de la diapositiva de los selectores. La regla de las 3 celdas es un parámetro de diseño del capítulo, y se puede medir: contra una rejilla cuatro veces más fina, el pico de `bw.diggle` (373 m, 2.04 celdas por σ) baja un 14.2 % (24.45 contra 28.48 sedes por km²); a 3 celdas (550 m) se mueve un 0.5 %, y con `bw.CvL` (720 m), un 0.2 %. Lo que la regla protege son los picos, que es lo que el capítulo lee. Cotejo: `datos › m5.rejilla`, `datos › m3.urbana`, `datos › meta.rejilla.celdas_por_sigma`, `recomputo › rejilla_fina`.
 
 ## ¿Cuál de los tres mapas es «el mapa de la demanda educativa»? {.pregunta}
 
@@ -692,11 +692,11 @@ Global 58 / 1 036 = **0.0560**; mediana de la superficie **0.0482**; máximo **
 :::
 
 ::: warn Criterio
-El máximo cae en la cola: no se lee como riesgo. Los controles son de **pulmón**, no población sana.
+No se titula con el máximo de un cociente: se mira cuántos puntos lo sostienen. Los controles son de **pulmón**, no población sana.
 :::
 
 ???
-Datos de spatstat.data (Diggle, 1990). El propósito original, según la ayuda: evaluar si hay más cáncer de laringe cerca de un incinerador industrial en desuso; los casos de pulmón sirven de sustituto de la densidad de la población susceptible. El capítulo no analiza el incinerador, solo el cociente. El máximo de 0.3389 cae donde casi no hay puntos: en el máximo solo 4 de los 50 vecinos más próximos son casos, y el punto más cercano al píxel del máximo está a 4.6 km (con σ = 1 km). Es la cola, la misma trampa que enseña la sesión 2: el titular de una curva suele ser su cola. El capítulo lo lee como titular («uno de cada tres cánceres registrados es de laringe») y el material lo corrige solo aquí. La figura usa la escala fija de 0 a 1 de toda probabilidad. Cotejo: `datos › m6.chorley`, `recomputo › chorley`, `recomputo › chorley.max_dist_punto_mas_cercano_km`.
+Datos de spatstat.data (Diggle, 1990). El propósito original, según la ayuda: evaluar si hay más cáncer de laringe cerca de un incinerador industrial en desuso; los casos de pulmón sirven de sustituto de la densidad de la población susceptible. El capítulo no analiza el incinerador, solo el cociente. El máximo de 0.3389 cae donde casi no hay puntos: en el máximo solo 4 de los 50 vecinos más próximos son casos, y el punto más cercano al píxel del máximo está a 4.6 km (con σ = 1 km). Es la cola, la misma trampa que enseña la sesión 2: el titular de una curva suele ser su cola. El capítulo lo leía como titular («uno de cada tres cánceres registrados es de laringe») hasta su tercera revisión; hoy dice dónde cae y con qué datos: a 85 m del borde y sin un solo punto a dos anchos de banda. La figura usa la escala fija de 0 a 1 de toda probabilidad. Cotejo: `datos › m6.chorley`, `recomputo › chorley`, `recomputo › chorley.max_dist_punto_mas_cercano_km`, `datos › m6.chorley.maximo_dist_borde_m`.
 
 ## Los casos se llaman `larynx` y los controles `lung`. ¿Qué probabilidad pinta `relrisk`? {.pregunta}
 
@@ -743,7 +743,7 @@ Dos comprobaciones a la vez: **fijar el orden** de los niveles y **comprobar la 
 <small>Fuente: módulo 6 del capítulo (R, spatstat.data).</small>
 
 ???
-Es el defecto que casi publica el módulo: la primera versión tituló su mapa «proporción de sedes oficiales» y era P(privado); todo corría y ninguna comprobación fallaba. Se arregla de dos formas a la vez, y la comprobación sobrevive a que alguien reordene los niveles. El código muestra la primera; la segunda se hace con los 50 vecinos más próximos al máximo. El capítulo dice que los vecinos deben ser «mayoritariamente» de ese tipo; en `chorley` son el 8 %, así que la comprobación que hace el código es contra la proporción global. Cotejo: `datos › m6.chorley`, `recomputo › chorley`.
+Es el defecto que casi publica el módulo: la primera versión tituló su mapa «proporción de sedes oficiales» y era P(privado); todo corría y ninguna comprobación fallaba. Se arregla de dos formas a la vez, y la comprobación sobrevive a que alguien reordene los niveles. El código muestra la primera; la segunda se hace con los 50 vecinos más próximos al máximo. En `chorley` los vecinos del máximo son casos en un 8 %: por eso la comprobación es contra la proporción global, no contra la mitad (el capítulo pedía «mayoritariamente» hasta su tercera revisión). Y el nivel se puede declarar en la propia llamada: `relrisk(chorley, sigma = 1, case = "larynx")` da la misma superficie que reordenar el factor; se comprobó en R. Cotejo: `datos › m6.chorley`, `recomputo › chorley`.
 
 ## En Bogotá no es riesgo, es proporción de tipo: nadie «contrae» ser oficial {columnas=3:2}
 
@@ -758,11 +758,11 @@ Es el defecto que casi publica el módulo: la primera versión tituló su mapa �
 :::
 
 ::: info Dato
-**709** oficiales + **1 398** privadas = 2 107. Escala fija de 0 a 1: marrón, solo privadas; verde, solo oficiales. En el máximo de P(oficial), los 50 vecinos más próximos son oficiales en un **64 %** (32 de 50) contra **33.65 %** en el conjunto.
+**709** oficiales + **1 398** privadas = 2 107. Escala fija de 0 a 1, y el verde empieza en 0.5: lo verde es mayoría oficial. En el máximo de P(oficial), los 50 vecinos más próximos son oficiales en un **64 %** (32 de 50) contra **33.65 %** en el conjunto.
 :::
 
 ???
-Criterio: llamarlo «riesgo» importaría una palabra que aquí no significa nada, porque no hay casos y controles, hay dos poblaciones completas. La escala va fija de 0 a 1 y no se normaliza contra el máximo: una proporción tiene escala propia. El mapa de puntos es el control de la superficie: lo privado domina el norte y el centro-norte; lo oficial pesa más en el sur. Cotejo: `datos › m6.bogota`, `recomputo › oficial`.
+Criterio: llamarlo «riesgo» importaría una palabra que aquí no significa nada, porque no hay casos y controles, hay dos poblaciones completas. La escala va fija de 0 a 1 y no se normaliza contra el máximo: una proporción tiene escala propia. El mapa de puntos es el control de la superficie: lo privado domina el norte y el centro-norte; lo oficial pesa más en el sur. La barra tiene un número par de clases para que el cambio de color caiga en 0.5; con uno impar, la clase central se reparte a los dos lados de 0.5 y su color se lee como mayoría sin serlo. Cotejo: `datos › m6.bogota`, `recomputo › oficial`.
 
 ## Contar puntos da 0.3365; mirar el mapa da 0.3086: son dos preguntas distintas {columnas=3:2}
 
@@ -775,13 +775,13 @@ Criterio: llamarlo «riesgo» importaría una palabra que aquí no significa nad
 :::
 
 ::: tip Interpretación
-La mediana del área queda por debajo de la proporción de los puntos, pero la diferencia es pequeña (0.028) y las dos cifras contestan preguntas distintas. La respuesta directa a «¿en qué fracción de la ciudad son mayoría?» es el 17.5 %.
+La mediana del área queda por debajo de la proporción de los puntos: poco (0.028), pero no por azar, y las dos cifras contestan preguntas distintas. La respuesta directa a «¿en qué fracción de la ciudad son mayoría?» es el 17.5 %.
 :::
 
 <small>Fuente: módulo 6 del capítulo (R, spatstat) y figura propia.</small>
 
 ???
-La diferencia es pequeña (0.028) pero tiene signo. Un informe que solo publique una de las dos no miente, pero tampoco dice lo que el lector va a entender. Simulador «Contar puntos y mirar el mapa dan respuestas distintas» (módulo 6). El capítulo lo dice así: «¿en qué fracción de la ciudad son mayoría?»; precisando, la mediana mide el valor de la proporción en el punto típico de la ciudad, y la fracción de área con mayoría oficial es el 17.5 %. La misma desigualdad aparece con `chorley` (0.0482 contra 0.0560): es en parte un rasgo de cualquier cociente de KDE con un tipo minoritario y zonas con pocos puntos, así que no se concluye «concentrado» de esta diferencia. Cotejo: `datos › m6.bogota`, `recomputo › oficial`, `recomputo › oficial.area_mayoria_oficial_pct`.
+La diferencia es pequeña (0.028) pero tiene signo. Un informe que solo publique una de las dos no miente, pero tampoco dice lo que el lector va a entender. Simulador «Contar puntos y mirar el mapa dan respuestas distintas» (módulo 6). La mediana mide el valor de la proporción en el punto típico de la ciudad; la fracción de área con mayoría oficial es el 17.5 % (el capítulo contestaba con la mediana hasta su tercera revisión). ¿La diferencia es del dato o del cociente? Se barajan las etiquetas, con las mismas sedes, el mismo σ y la misma rejilla: en 40 barajados la mediana va de 0.324 a 0.342, y la observada, 0.3086, queda a 6.4 desviaciones: es del dato. En `chorley`, en cambio, barajar da de 0.028 a 0.056 y la observada (0.0482) cae dentro: allí sí la pone el cociente. Contar puntos es promediar el mapa pesando cada sitio por cuántas sedes hay (0.3357, casi la proporción de los puntos); mirarlo es pesar por área (media 0.3248, mediana 0.3086). Cotejo: `datos › m6.bogota`, `recomputo › oficial`, `recomputo › oficial.area_mayoria_oficial_pct`, `recomputo › permutaciones`.
 
 # Cierre y práctica {seccion=modulo-12}
 
@@ -798,12 +798,12 @@ Es el hilo de toda la sesión y del capítulo. Cada bloque añadió una decisió
 
 - La **ventana**: `ppp(window = W)`; un borde es una decisión
 - El **ancho**: `sigma =`; se declara quién lo eligió (`bw.*`), y ninguno entrega «el óptimo»
-- El **núcleo**: `kernel =`; casi no mueve el mapa
+- El **núcleo**: `kernel =`; casi no mueve el mapa (un 5.1 % a σ = 400 m en Kennedy)
 - El **borde**: `edge =` y `diggle =`; se declara qué conserva la integral, que se compara con n
 - El **peso** de cada punto: `weights =`; qué cuenta el mapa
-- El **nivel** que pinta un cociente: los niveles del factor en `relrisk`; se comprueba contra el dato
+- El **nivel** que pinta un cociente: `case =` en `relrisk`, o el orden de los niveles; se comprueba contra el dato
 
-<small>Todo mapa de intensidad se entrega con su ventana, su σ y quién lo eligió, su corrección de borde y lo que pesa cada punto.</small>
+<small>Todo mapa de intensidad se entrega con su ventana, su σ y quién lo eligió, su corrección de borde y lo que pesa cada punto. Fuente: módulo 2 del capítulo, para el 5.1 %.</small>
 
 ???
 Remitir a las cuatro preguntas del módulo 6 y a las del módulo 12 que son de esta sesión (cuatro de las ocho; las otras cuatro son de la sesión 2). Lo que se declara por escrito en cualquier trabajo con una KDE: la ventana, el ancho y qué selector lo eligió, y la corrección de borde con lo que conserva.
@@ -811,7 +811,7 @@ Remitir a las cuatro preguntas del módulo 6 y a las del módulo 12 que son de e
 ## Práctica: dos ejercicios guiados, el simulacro del Quiz 2 y la próxima sesión
 
 ::: flujo
-1. **Ejercicio 1 · El selector que no seleccionó** — los cuatro selectores sobre `japanesepines`, `redwood` y `swedishpines`; encontrar cuál de los doce valores no es una selección
+1. **Ejercicio 1 · El selector que no seleccionó** — los cuatro selectores sobre `japanesepines`, `redwood` y `swedishpines`; encontrar cuál de los doce valores es la pared de su intervalo y no un óptimo
 2. **Ejercicio 2 · La masa que se escapa** — `chorley`, con σ = 0.5, 1 y 2: la integral de las tres correcciones contra n
 3. **Simulacro del Quiz 2 (módulo 13)** — con el reloj puesto y sin abrir nada; se contrasta en clase. El Quiz 2 cubre las cuatro primeras secciones de hoy, hasta la corrección de borde
 4. **Próxima sesión** — de dibujar la intensidad a modelarla: covariables, `ppm`, diagnóstico y conglomerados

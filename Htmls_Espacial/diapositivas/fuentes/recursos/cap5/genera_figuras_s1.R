@@ -259,7 +259,12 @@ p_sec <- suppressWarnings(ppp(xy[en, 1], xy[en, 2], window = WU, marks = marca))
 rr_b <- relrisk(p_sec, sigma = sg)
 vb <- as.numeric(rr_b$v); vb <- vb[is.finite(vb)]
 cat("F9 Bogotá: mediana", round(median(vb), 4), " global", round(mean(marks(p_sec) == "oficial"), 4), " oficiales:", sum(marks(p_sec) == "oficial"), " privadas:", sum(marks(p_sec) == "privado"), "\n")
-mcd <- mapa_color(PAL_DIVERG, c(0, 1), clases = TRUE)
+# Ocho clases y no siete (tercera revisión, 2026-10-27): con siete, la clase gris iba de 0.43 a 0.57 y la marca
+# «0.5» caía en 3/7 = 0.43, de modo que gris y verdes se leían como mayoría oficial (26.7 % del área). Con un
+# número par de clases el cambio de color está en 0.5 y lo verde es exactamente el 17.5 % que cuenta la lámina siguiente.
+PAL_DIVERG8 <- c("#8a3d00", "#d95f00", "#ffab5c", "#ffe2c4", "#cfe9df", "#7cc0aa", "#1a7358", "#012820")
+mcd <- mapa_color(PAL_DIVERG8, c(0, 1), clases = TRUE)
+stopifnot(length(mcd$br) == 9, abs(mcd$br[5] - 0.5) < 1e-12)
 abre_z("s1-oficial-mapa-puntos", 2200, 1350)
 layout(matrix(c(1, 2, 3, 4), 2, 2, byrow = TRUE), heights = c(1, 0.27)); par(mar = c(0.2, 0.2, 3.6, 0.2))
 pinta_im(rr_b, mcd, WU); titulo_panel("P(oficial) en cada punto", sprintf("σ = %.0f m · escala de 0 a 1", sg))
@@ -269,7 +274,7 @@ pr <- p_sec[marks(p_sec) == "privado"]; of <- p_sec[marks(p_sec) == "oficial"]
 points(pr$x, pr$y, pch = 16, cex = 0.8, col = adjustcolor("#d95f00", 0.85)); points(of$x, of$y, pch = 16, cex = 0.8, col = adjustcolor("#1a7358", 0.95))
 titulo_panel("Las sedes sin suavizar", "709 oficiales y 1 398 privadas")
 legend("bottomright", bty = "n", cex = 1.6, pch = 16, pt.cex = 2.2, col = c("#1a7358", "#d95f00"), legend = c("oficial", "privada"), text.col = COL_TEXTO)
-barra_color(mcd, "0: solo privadas · 1: solo oficiales", seq(0, 1, length.out = 8)[c(1, 4, 8)], c("0", "0.5", "1"), cex = 1.25)
+barra_color(mcd, "0: solo privadas · 1: solo oficiales", c(0, 0.5, 1), c("0", "0.5", "1"), cex = 1.25)
 plot.new()
 dev.off()
 
@@ -309,7 +314,13 @@ stopifnot(mx_des[1] == 15, max(mx_des) == 21, max(cuenta(rejilla(0, 0))) == 15, 
 panel_cuad <- function(sx, sy, l1, l2) {
   g <- rejilla(sx, sy); cn <- cuenta(g); m <- which(cn == max(cn), arr.ind = TRUE)[1, ]
   plot(sf_ken, col = "#FFF7ED", border = COL_TEXTO, lwd = 2.4)
-  abline(v = g$xb, h = g$yb, col = adjustcolor(COL_GRIS, 0.95), lwd = 1.6)
+  # Solo los cortes que cubren la caja, y las líneas recortadas a ellos: sin mover, la rejilla de 8 × 8 tiene 9
+  # cortes por eje y no 10 (con `abline` y los diez se dibujaba una novena columna vacía; tercera revisión).
+  hasta <- function(b, tope) b[seq_len(min(which(b >= tope - 1e-6)))]
+  xb <- hasta(g$xb, caja$xrange[2]); yb <- hasta(g$yb, caja$yrange[2])
+  segments(xb, min(yb), xb, max(yb), col = adjustcolor(COL_GRIS, 0.95), lwd = 1.6)
+  segments(min(xb), yb, max(xb), yb, col = adjustcolor(COL_GRIS, 0.95), lwd = 1.6)
+  if (sx == 0 && sy == 0) stopifnot(length(xb) == 9, length(yb) == 9)
   celda <- st_as_sfc(st_bbox(c(xmin = g$xb[m[1]], xmax = g$xb[m[1] + 1], ymin = g$yb[m[2]], ymax = g$yb[m[2] + 1]), crs = st_crs(sf_ken)))
   hl <- suppressWarnings(st_intersection(celda, sf_ken))
   plot(hl, col = adjustcolor(COL_NARANJA, 0.40), border = COL_NARANJA, lwd = 4, add = TRUE)

@@ -252,5 +252,51 @@ if (que %in% c("s1", "todo")) {
     vecinos_k = 50, vecinos_oficiales = o_b[["n"]], vecinos_prop = o_b[["prop"]]))
 }
 
+# ---------------------------------------------------------------------
+# s1b · tercera revisión (2026-10-27): dos notas de la sesión 1 que afirmaban sin medir.
+#   precalculo/rscript.sh Htmls_Espacial/diapositivas/fuentes/recomputa_cap5.R s1b
+# Solo escribe sus dos claves; el resto del JSON se conserva tal cual.
+# ---------------------------------------------------------------------
+if (que == "s1b") {
+  D5 <- fromJSON("precalculo/salidas/cap5_datos.json", simplifyVector = TRUE)
+  sg <- D5$m6$bogota$sigma_m
+  # ---- ¿la diferencia entre contar puntos y mirar el mapa es del dato o del cociente? ----
+  # Se barajan las etiquetas (mismas sedes, mismo sigma, misma rejilla) y se mira la mediana de la
+  # superficie: si la observada cae dentro de lo que da el barajado, la diferencia la pone el cociente.
+  marca <- factor(ifelse(cole$sector[en] == "Oficial", "oficial", "privado"), levels = c("privado", "oficial"))
+  p_sec <- suppressWarnings(ppp(xy[en, 1], xy[en, 2], window = WU, marks = marca))
+  mediana_rr <- function(pp, ...) { v <- as.numeric(relrisk(pp, ...)$v); median(v[is.finite(v)]) }
+  rb <- relrisk(p_sec, sigma = sg); vb <- as.numeric(rb$v)
+  lt <- as.numeric(density(unmark(p_sec), sigma = sg, xy = rb)$v)   # la intensidad total, en los mismos píxeles
+  ok <- is.finite(vb) & is.finite(lt)
+  set.seed(2026)
+  perm_b <- replicate(40, { q <- p_sec; marks(q) <- sample(marks(p_sec)); mediana_rr(q, sigma = sg) })
+  data(chorley)
+  ch <- chorley; marks(ch) <- factor(as.character(marks(chorley)), levels = c("lung", "larynx"))
+  set.seed(2027)
+  perm_c <- replicate(40, { q <- ch; marks(q) <- sample(marks(ch)); mediana_rr(q, sigma = 1) })
+  resumen <- function(x, obs) list(min = min(x), max = max(x), media = mean(x), sd = sd(x), observada = obs,
+                                   desviaciones = (obs - mean(x)) / sd(x))
+  guarda("permutaciones", list(
+    n = 40,
+    bogota = c(resumen(perm_b, median(vb[ok])),
+               list(global = mean(marca == "oficial"),
+                    media_por_area = mean(vb[ok]),
+                    media_pesada_por_intensidad = sum(vb[ok] * lt[ok]) / sum(lt[ok]))),
+    chorley = c(resumen(perm_c, mediana_rr(ch, sigma = 1)), list(global = mean(marks(ch) == "larynx")))))
+
+  # ---- ¿cuánto se mueve el pico con una rejilla más fina? (la regla de las tres celdas) ----
+  ny <- D5$m5$rejilla$ny; nx <- D5$m5$rejilla$nx
+  pico <- function(s, f) max(density(pu, sigma = s, dimyx = c(ny, nx) * f, diggle = TRUE)$v, na.rm = TRUE) * 1e6
+  sig <- c(diggle = D5$m3$urbana$sigmas_m$diggle, tres_celdas = D5$m5$rejilla$sigma_minimo_dibujable_m,
+           CvL = D5$m3$urbana$sigmas_m$CvL)
+  filas <- lapply(names(sig), function(k) {
+    a <- pico(sig[[k]], 1); b <- pico(sig[[k]], 4)
+    list(selector = k, sigma_m = sig[[k]], celdas_por_sigma = sig[[k]] / D5$m5$rejilla$celda_m,
+         pico_rejilla = a, pico_fina = b, cambio_pct = 100 * (a / b - 1))
+  })
+  guarda("rejilla_fina", list(factor = 4, nx = nx, ny = ny, filas = filas))
+}
+
 write(toJSON(R_, auto_unbox = TRUE, digits = NA, pretty = TRUE, null = "null"), SALIDA)
 cat("escrito", SALIDA, "\n")
