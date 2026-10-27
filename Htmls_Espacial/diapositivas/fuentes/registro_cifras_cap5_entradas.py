@@ -28,7 +28,7 @@ def cargar_entradas(m, sesiones):
     # Hallazgos en el material del capítulo (se escriben en el registro; no se corrigen en silencio)
     # ------------------------------------------------------------------------------------
     m.HALLAZGOS[:] = [
-        ("Los mapas ráster salen invertidos verticalmente",
+        ("Los mapas ráster salían invertidos verticalmente (arreglado el 2026-10-27)",
          "El mapa de calor de Kennedy por σ (módulo 2), la oferta y los estudiantes (módulo 5) y P(oficial) (módulo 6) se dibujan "
          "con el sur arriba, mientras los mapas de puntos (módulos 1 y 6) van con el norte arriba. Causa: `geo_rejilla()` "
          "(`precalculo/geo.R`) guarda la fila 0 en el sur —la de `spatstat`— y `geomapaPintaRejilla()` (`plantilla-capitulo.html`) pinta "
@@ -37,30 +37,34 @@ def cargar_entradas(m, sesiones):
          "fila 0 es el sur: 545 contra 457 en la oferta) y midiendo píxeles en la página servida (el punto más alto del ráster está en "
          "x = 0.46 y el del mapa de puntos en x = 0.90). El texto del módulo 5 («en el norte y en el suroccidente») es geográficamente "
          "correcto, pero el lector del capítulo ve el norte abajo. Estas diapositivas dibujan los mapas de nuevo, con el norte arriba "
-         "(`recursos/cap5/genera_figuras_s1.R`). El capítulo no se modificó."),
-        ("«0.0 y 24.9 sedes por km²» en la rejilla de 8 × 8",
+         "(`recursos/cap5/genera_figuras_s1.R`). El capítulo no se modificó entonces. Arreglado el 2026-10-27, en la tercera "
+         "revisión del capítulo: `geo_rejilla()` voltea los `im`, y `audita_cap5.py` comprueba que cada ráster, tal como se pinta, "
+         "casa con sus sedes mejor que su reflejo (sección 12b), con cinco inyecciones en `prueba_auditor_cap5.py`."),
+        ("«0.0 y 24.9 sedes por km²» en la rejilla de 8 × 8 (arreglado en el capítulo el 2026-10-27)",
          "El módulo 1 (y la retroalimentación de la primera pregunta de la autoevaluación) dice que los cuadrantes dan «entre 0.0 y 24.9 "
          "sedes por km²». `genera_cap5.R` calcula `conteo / (A_KEN / 64)`, o sea divide por el área media por celda de la ventana "
          "(38.51 / 64 = 0.602 km²). Pero la celda con 15 sedes es una celda interior y mide 0.895 km² (la caja entre 64): son 16.8 sedes "
          "por km² (`intensity(cuad)` da 16.757). El 24.9 no es la intensidad de ninguna celda. Además, de las 64 celdas de la rejilla, 7 "
          "caen fuera de la ventana y `quadratcount` devuelve 57. Las diapositivas solo dicen «de 0 a 15 sedes por celda»."),
-        ("«Por encima de 0.965»",
+        ("«Por encima de 0.965» (arreglado en el capítulo el 2026-10-27)",
          "El módulo 2 dice que las superficies de los cuatro núcleos «correlacionan por encima de 0.965 con la gaussiana». El mínimo es "
-         "el del disco, 0.9647 (0.964743…), que redondea a 0.965 pero está por debajo. Las diapositivas dicen «por encima de 0.96»."),
-        ("«Mayoritariamente de ese tipo»",
+         "el del disco, 0.9647 (0.964743…), que redondea a 0.965 pero está por debajo. Las diapositivas dicen «por encima de 0.96». El "
+         "capítulo dice ahora «0.9647 o más»."),
+        ("«Mayoritariamente de ese tipo» (arreglado en el capítulo el 2026-10-27)",
          "El módulo 6 dice que, donde el mapa es máximo, «los vecinos tienen que ser mayoritariamente de ese tipo». En `chorley` son el 8 % "
          "(4 de 50), y la guarda de `genera_cap5.R` compara contra la proporción global (5.6 %), no contra la mitad. Las diapositivas dicen "
          "«más que en todo el conjunto»."),
-        ("La mediana no mide «en qué fracción de la ciudad son mayoría»",
+        ("La mediana no mide «en qué fracción de la ciudad son mayoría» (arreglado en el capítulo el 2026-10-27)",
          "El módulo 6 resume la mediana de la superficie P(oficial) como la respuesta a «¿en qué fracción de la ciudad son mayoría?». La "
          "mediana es el valor de la proporción en el punto típico de la ciudad (0.3086), no una fracción del área en la que las oficiales "
          "son mayoría. Las diapositivas dicen lo primero."),
-        ("Los tiempos de la KDE están escritos a mano en el generador",
+        ("Los tiempos de la KDE están escritos a mano en el generador (arreglado en el capítulo el 2026-10-27)",
          "`genera_cap5.R` publica `coste_segundos = list(defecto = 0.15, sin_corregir = 0.14, diggle = 0.15)` como constantes (vienen de la "
          "medición A.21 del plan, sobre la ventana urbana a 128 × 128). Se volvieron a medir y dan lo mismo (0.146, 0.138 y 0.150 s), así que "
          "la cifra es cierta; solo que el generador no la mide. Aclaración que falta en el módulo 4: son tiempos de la ciudad, no de Kennedy "
-         "(en Kennedy, a 99 × 96 celdas, son del orden de 0.01 s)."),
-        ("Los valores de `bw.ppl` y `bw.CvL` son nodos de una rejilla de 16 anchos, no óptimos (módulo 3)",
+         "(en Kennedy, a 99 × 96 celdas, son del orden de 0.01 s). Desde la tercera revisión el generador los mide sobre Kennedy, los cachea "
+         "con la máquina en que se midieron y el capítulo los publica así (centésimas de segundo)."),
+        ("Los valores de `bw.ppl` y `bw.CvL` son nodos de una rejilla de 16 anchos, no óptimos (módulo 3) (arreglado en el capítulo el 2026-10-27)",
          "El módulo 3 presenta `bw.ppl` y `bw.CvL` como selectores que optimizan; en realidad evalúan su criterio en `ns = 16` anchos de una "
          "rejilla geométrica y devuelven el mejor de ellos (`recomputo › selectores.ns_ppl`), y `bw.ppl` usa además `shortcut = TRUE`. Con 256 "
          "anchos, `bw.ppl` da 326 m en Kennedy y 350 m en la ciudad (no 374.9 y 235.9) y `bw.CvL`, 640 y 877 m (no 556.7 y 720.4) "
@@ -68,28 +72,30 @@ def cargar_entradas(m, sesiones):
          "Kennedy, 236 contra 373 m en la ciudad) es un efecto de la rejilla, porque con rejilla fina `bw.ppl` queda por debajo de `bw.diggle` en las "
          "dos ventanas; y las razones 1.83 y 5.30, que usan esos nodos, son del orden de 2.0 y 3.6. Las diapositivas conservan las cifras del "
          "capítulo y dicen que son valores por defecto, no repiten «ni el orden se conserva» y llaman a σ = 720 m «el valor por defecto de "
-         "`bw.CvL`», no «el óptimo». El capítulo no se modificó."),
-        ("«El ancho mueve 13 veces lo que el núcleo» (módulo 2)",
+         "`bw.CvL`», no «el óptimo». El capítulo publica desde la tercera revisión los valores con 256 anchos y dice que el cruce es de la rejilla."),
+        ("«El ancho mueve 13 veces lo que el núcleo» (módulo 2) (arreglado en el capítulo el 2026-10-27)",
          "La razón 66.3 / 5.1 ≈ 13 compara cuatro formas de núcleo a un solo σ (400 m) con siete σ que abarcan un factor 8, y el 5.1 % no es una "
-         "constante: a otros σ el núcleo mueve el máximo más o menos. Las diapositivas dan las dos cifras por separado y no la razón."),
-        ("«Si no da n, el estimador pierde o inventa sedes» (módulo 4)",
+         "constante: a otros σ el núcleo mueve el máximo más o menos. Las diapositivas dan las dos cifras por separado y no la razón, y el "
+         "capítulo dice ya que las dos no se miden igual."),
+        ("«Si no da n, el estimador pierde o inventa sedes» (módulo 4) (arreglado en el capítulo el 2026-10-27)",
          "La integral de la intensidad es el número esperado de sedes, no el n de la muestra. Con 300 patrones al azar de 262 sedes en la ventana de "
          "Kennedy, la corrección por defecto se desvía de n en promedio +0.017 % (σ = 400 m) y +0.039 % (σ = 800 m), dentro de su error estándar "
          "(`recomputo › bordes_csr`): no es sesgada. Sin corregir se pierde un 10.3 % y un 19.6 %. El +3.19 % del patrón real (σ = 800 m) queda a "
          "más de cuatro desviaciones típicas de lo que da el azar: es del patrón, no de la corrección. Diggle conserva n por construcción. Las "
-         "diapositivas dicen que la prueba mide qué conserva cada corrección, no cuál acierta."),
-        ("«Las correlaciones de la versión de Python salen 0.9391, 0.8555 y 0.9155: otra discretización» (módulo 5)",
+         "diapositivas dicen que la prueba mide qué conserva cada corrección, no cuál acierta, y el capítulo también desde la tercera revisión."),
+        ("«Las correlaciones de la versión de Python salen 0.9391, 0.8555 y 0.9155: otra discretización» (módulo 5) (arreglado en el capítulo el 2026-10-27)",
          "Con la corrección de borde por defecto de `density`, R da exactamente 0.9391, 0.8555 y 0.9155 (`recomputo › capas_defecto`); la versión de "
          "Python divide por e(u), que es la corrección por defecto. Las cifras y los mapas del capítulo usan `diggle = TRUE` (0.943, 0.862, 0.919). "
-         "No es otra discretización: son dos correcciones de borde, ambas correctas. Las diapositivas lo dicen."),
-        ("El máximo de `chorley` vive en la cola (módulo 6)",
+         "No es otra discretización: son dos correcciones de borde, ambas correctas. Las diapositivas lo dicen. El Python del capítulo "
+         "divide ya por e(x_i), como `diggle = TRUE`, y da las mismas cifras que R."),
+        ("El máximo de `chorley` vive en la cola (módulo 6) (arreglado en el capítulo el 2026-10-27)",
          "El capítulo lee el máximo de P(laringe), 0.3389, como titular («uno de cada tres cánceres registrados es de laringe»). El píxel del "
          "máximo está a 4.6 km del punto más cercano, con σ = 1 km (el vecino 50.º, a 8.2 km): es el cociente de dos masas casi nulas. La "
          "comprobación de los 50 vecinos (4 casos de 50) detecta un mapa invertido, pero no valida el máximo. Las diapositivas no lo leen como "
          "riesgo y la figura usa la escala fija de 0 a 1."),
-        ("La corrección de borde «se cancela» en el cociente (módulo 6)",
+        ("La corrección de borde «se cancela» en el cociente (módulo 6) (arreglado en el capítulo el 2026-10-27)",
          "Solo con la corrección por defecto, donde el mismo e(u) divide numerador y denominador; con `diggle = TRUE` cada sede se divide por su "
-         "propio e(x_i) y no se cancela. Las diapositivas lo dicen así."),
+         "propio e(x_i) y no se cancela. Las diapositivas lo dicen así, y el capítulo también (prosa y Python)."),
         ("Los tiempos «555 veces» y «1.07» (módulo 4)",
          "El cociente 122.655 / 0.221 = 555 es una medición de tiempo y depende de la máquina y del momento (al volver a medir salen cientos de "
          "veces, no exactamente 555), y el 1.07 sale de dos cifras redondeadas a centésimas (0.15 / 0.14). Las diapositivas dicen «cientos de "
@@ -155,7 +161,8 @@ def cargar_entradas(m, sesiones):
         REG(["5.1", "5.0616"], RJ("m2.nucleos.max_dif_pct", "nucleos.dif_pct"))
         REG("0.96", A(lambda: 0.96 if min(r("nucleos.cor_gauss.epanechnikov"), r("nucleos.cor_gauss.quartic"), r("nucleos.cor_gauss.disc")) > 0.96 else -1,
                       "la menor de las tres correlaciones (0.9647) supera 0.96"))
-        REG("0.965", T("por encima de 0.965"))
+        REG("0.965", A(lambda: round(d("m2.nucleos.cor_con_gaussiano.disc"), 3), "la correlación del disco (0.9647) redondeada a tres decimales"),
+            cx=r"redondea a 0\.965")
         REG("9.9", RJ("m2.familia.max_km2[6]", "anchos.picos_km2[6]"))
         REG("21.6", RJ("m2.familia.max_km2[1]", "anchos.picos_km2[1]"))
         REG("16.8", RJ("m2.familia.max_km2[2]", "anchos.picos_km2[2]"))
@@ -225,8 +232,9 @@ def cargar_entradas(m, sesiones):
         REG("128x128", P("rejilla de 128 × 128 celdas sobre la ventana urbana", "meta.rejilla.nx_ciudad"))
         REG("0.221", J4("m10.correcciones[2].segundos"))
         REG("122.655", J4("m10.correcciones[3].segundos"))
-        REG("0.14", J("m4.coste_segundos.sin_corregir"))
-        REG("0.15", [J("m4.coste_segundos.defecto"), J("m4.coste_segundos.diggle")])
+        # Los tiempos de la KDE los mide el precálculo sobre Kennedy desde la tercera revisión (antes, 0.15 y 0.14 escritos a mano)
+        REG("0.010", [J("m4.coste_segundos.defecto"), J("m4.coste_segundos.sin_corregir")])
+        REG("0.009", J("m4.coste_segundos.diggle"))
         REG("1.07", A(lambda: d("m4.coste_segundos.defecto") / d("m4.coste_segundos.sin_corregir"), "0.15 / 0.14"))
         REG("0.146", M("tiempos.ciudad_128.defecto", 0.02))
         REG("0.138", M("tiempos.ciudad_128.sin_corregir", 0.02))
@@ -261,7 +269,9 @@ def cargar_entradas(m, sesiones):
         REG("0.943", RJ("m5.cor_oferta_grado11", "capas.cor_of_11"))
         REG("0.862", RJ("m5.cor_oferta_estudiantes", "capas.cor_of_es"))
         REG("0.919", RJ("m5.cor_grado11_estudiantes", "capas.cor_11_es"))
-        REG(["0.9391", "0.8555", "0.9155"], T("0.9391, 0.8555, 0.9155"))
+        REG("0.9391", Rr("capas_defecto.cor_of_11"))
+        REG("0.8555", Rr("capas_defecto.cor_of_es"))
+        REG("0.9155", Rr("capas_defecto.cor_11_es"))
         REG("128x218", Spec("param", "rejilla de la ciudad (nx × ny)", [("datos › m5.rejilla.nx × ny", lambda: f"{d('m5.rejilla.nx')}x{d('m5.rejilla.ny')}")]))
         REG("183", RJ("m5.rejilla.celda_m", "capas.celda_x_m"))
         REG("183.4", RJ("m5.rejilla.celda_m", "capas.celda_x_m"))
@@ -293,7 +303,8 @@ def cargar_entradas(m, sesiones):
         REG("709", RJ("m6.bogota.oficiales", "oficial.n_oficiales"), cx=r"709\*{0,2} oficiales|709 / 2")
         REG("1398", RJ("m6.bogota.privadas", "oficial.n_privadas"), cx=r"1.?398\*{0,2} privadas")
         REG("0.3365", RJ("m6.bogota.prop_global", "oficial.global"), cx=r"puntos|709 / 2")
-        REG("0.028", [A(lambda: abs(d("m6.bogota.brecha_mediana_menos_global")), "|mediana − global| en el JSON"), Rr("oficial.brecha")])
+        REG("0.028", [A(lambda: abs(d("m6.bogota.brecha_mediana_menos_global")), "|mediana − global| en el JSON"), Rr("oficial.brecha")],
+            cx=r"\(0\.028\)")
 
         # ---- cierre ----
         REG("0.5", T("sigma = 0.5, 1 y 2"), cx=r"σ = 0\.5|sigma = 0\.5")
@@ -326,6 +337,34 @@ def cargar_entradas(m, sesiones):
         REG("270.4", RJ("m4.tabla[2].masa_defecto", "bordes.800.masa_defecto"))
         REG("224.4", RJ("m4.tabla[2].masa_sin_corregir", "bordes.800.masa_sin"))
         REG("262.0", RJ("m4.tabla[2].masa_diggle", "bordes.800.masa_diggle"))
+
+        # ---- tercera revisión del capítulo (2026-10-27) ----
+        REG("2.92", J("m2.familia.foco.pico_una_sede_km2"))
+        REG("7", J("m2.familia.foco.sedes_a_un_sigma_del_maximo"), cx=r"reúne 7 sedes")
+        REG("606", J("m3.scott_isotropico_m.kennedy"))
+        REG("1658", J("m3.scott_isotropico_m.urbana"))
+        REG("7.03", J("m3.razon_urbana_scott_isotropico"))
+        REG("26", P("número de la lámina de la animación de borde en 3D"), cx=r"lámina 26")
+        REG("5", P("número de la lámina donde se construye la ppp de Kennedy"), cx=r"lámina 5")
+        REG("0.04", A(lambda: r("bordes_csr.ee_media_pct.defecto_800"), "error estándar de la media de la desviación, 300 patrones, σ = 800 m"),
+            cx=r"Monte Carlo \(0\.04\)")
+        REG("13.49", Rr("bordes.800.max_diggle"))
+        REG("2.04", Rr("rejilla_fina.filas[0].celdas_por_sigma"))
+        REG("14.2", A(lambda: -r("rejilla_fina.filas[0].cambio_pct"), "caída del pico de bw.diggle contra una rejilla cuatro veces más fina (%)"))
+        REG("24.45", Rr("rejilla_fina.filas[0].pico_rejilla"))
+        REG("28.48", Rr("rejilla_fina.filas[0].pico_fina"))
+        REG("0.5", Rr("rejilla_fina.filas[1].cambio_pct"), cx=r"se mueve un 0\.5")
+        REG("0.2", A(lambda: -r("rejilla_fina.filas[2].cambio_pct"), "cambio del pico de bw.CvL contra la rejilla fina (%), en valor absoluto"), cx=r"un 0\.2 %")
+        REG("85", J("m6.chorley.maximo_dist_borde_m"), cx=r"a 85 m")
+        REG("0.5", P("el corte de la barra de P(oficial): empate entre los dos sectores"), cx=r"empieza en 0\.5|caiga en 0\.5|lados de 0\.5")
+        REG("40", Rr("permutaciones.n"), cx=r"40 barajados")
+        REG("0.324", Rr("permutaciones.bogota.min"))
+        REG("0.342", Rr("permutaciones.bogota.max"))
+        REG("6.4", A(lambda: -r("permutaciones.bogota.desviaciones"), "desviaciones típicas que separan la mediana observada de la media de los barajados"))
+        REG("0.028", Rr("permutaciones.chorley.min"), cx=r"da de 0\.028")
+        REG("0.056", Rr("permutaciones.chorley.max"))
+        REG("0.3357", Rr("permutaciones.bogota.media_pesada_por_intensidad"))
+        REG("0.3248", Rr("permutaciones.bogota.media_por_area"))
         REG("0.155", M("tiempos.ciudad_128.defecto", 0.02))
         REG("0.147", M("tiempos.ciudad_128.sin_corregir", 0.02))
         REG("0.161", M("tiempos.ciudad_128.diggle", 0.02))
@@ -432,16 +471,16 @@ def cargar_entradas(m, sesiones):
             (2, "La ayuda de `bei` habla de 3605 árboles; el conjunto trae 3 604",
              "La ficha de ayuda de `bei` (spatstat.data) dice «the locations of 3605 trees», pero `npoints(bei)` es 3604 "
              "(`recomputo › m7.bei.n`), que es la cifra del capítulo. Las diapositivas usan 3 604 y lo advierten en las notas."),
-            (2, "«entre 21.12 y 21.14» (módulo 7)",
+            (2, "«entre 21.12 y 21.14» (módulo 7) (arreglado en el capítulo el 2026-10-27)",
              "El comentario del bloque de `rhohat` dice que la razón de la elevación «se mueve entre 21.12 y 21.14» sin tocar el dato. "
              "Con 20 semillas distintas (`recomputo › m7_semillas`) va de 21.10 a 21.15 (y con las semillas 2001 a 2020, de 21.0996 a "
              "21.1592, según la auditoría). La conclusión (hay que fijar la semilla) no cambia; el intervalo sí. Las diapositivas dicen "
-             "de 21.10 a 21.15."),
-            (2, "El comentario del bloque de `rhohat`: «usa una cuadratura muestreada» (módulo 7)",
+             "de 21.10 a 21.15. El capítulo dice ahora que se mueve en la segunda decimal."),
+            (2, "El comentario del bloque de `rhohat`: «usa una cuadratura muestreada» (módulo 7) (arreglado en el capítulo el 2026-10-27)",
              "Lo aleatorio de `rhohat` no es una cuadratura muestreada: es el `jitter = TRUE` por defecto, que añade ruido a los valores de la "
              "covariable en los puntos (ficha de ayuda, sección Randomisation). Con `jitter = FALSE` el resultado es idéntico en cada corrida y no "
              "consume el generador (`recomputo › m7b_jitter`). Las diapositivas dicen el mecanismo correcto y ofrecen `jitter = FALSE`."),
-            (2, "«El máximo y el mínimo viven casi siempre en los extremos» (módulo 7)",
+            (2, "«El máximo y el mínimo viven casi siempre en los extremos» (módulo 7) (arreglado en el capítulo el 2026-10-27)",
              "El módulo 7 dice que el máximo y el mínimo de una curva `rhohat` «viven casi siempre en los extremos, donde apenas hay "
              "puntos». Medido sobre sus tres curvas (`datos › m7.*.rho_max`, `rho_min`, `rho_max_bulto`, `rho_min_bulto`): el mínimo cae "
              "fuera del bulto en las tres; el máximo, solo en la pendiente de `bei` (en la elevación y en la distancia de Bogotá coincide "
@@ -452,7 +491,7 @@ def cargar_entradas(m, sesiones):
              "Bogotá es 3063 con la mitad del ancho, 36.04 con el defecto, 11.95 con el doble y 2.39 con cuatro veces, y la del bulto, de 2.10 "
              "a 1.11 (`recomputo › m7b_adjust`). La cola infla la razón a cualquier ancho, pero el ancho es parte de la historia. Las "
              "diapositivas lo dicen."),
-            (2, "Aclaración: el 1.794e-10 es el condicionamiento de la matriz de diseño, no el de la información de Fisher (módulo 9)",
+            (2, "Aclaración: el 1.794e-10 es el condicionamiento de la matriz de diseño, no el de la información de Fisher (módulo 9) (arreglado en el capítulo el 2026-10-27)",
              "El capítulo lo escribe bien («la matriz de diseño queda con número de condición recíproco 1.794e-10»), pero el texto que sigue "
              "habla de la información de Fisher y se puede leer como si fuera el mismo número. La información tiene un condicionamiento del "
              "orden del cuadrado (2.7e-20, `recomputo › m9b_info`), por debajo de la tolerancia de `solve` (2.2e-16); con 1.794e-10 `solve` "
@@ -467,34 +506,41 @@ def cargar_entradas(m, sesiones):
              "El módulo 10 dice que la media de las 999 simulaciones queda «a menos de 0.64 %» de π r² en los 101 nodos. El máximo, sin "
              "redondear, es 0.64499 % con la semilla del capítulo (`datos › m10.mmean_vs_teorica_pct`) y llega a 0.82 % con otras "
              "(`recomputo › m10b_sem_4`). Las diapositivas dicen «a menos de 1 %». Además, son 100 radios informativos (r = 0 vale 0 en las dos curvas)."),
-            (2, "«El exceso de parejas está en las escalas cortas y medias; a escala de kilómetros el modelo ya da cuenta» (módulo 10)",
+            (2, "«El exceso de parejas está en las escalas cortas y medias; a escala de kilómetros el modelo ya da cuenta» (módulo 10) (arreglado en el capítulo el 2026-10-27)",
              "La K es acumulada: cuenta todas las parejas a menos de r, de modo que un exceso a escalas cortas la mantiene fuera de la banda a "
              "escalas mayores. Los 3638.23 m son donde la K vuelve a entrar en la banda, no donde acaba el exceso por escala. La g inhomogénea "
              "(`recomputo › m10b_pcf`, 199 simulaciones) sale de su banda sin interrupción hasta 2.2 km y vale 1.20 a 1 km y 1.06 a 2 km. "
-             "«Hasta dónde llega lo que el modelo no explica» es, entonces, unos 2 km, y no 3.6 km. Las diapositivas lo dicen así."),
-            (2, "«La intensidad variable no explica la agregación» (módulo 10): se probó un plano, no «la intensidad variable»",
+             "«Hasta dónde llega lo que el modelo no explica» es, entonces, unos 2 km, y no 3.6 km. Las diapositivas lo dicen así. Y hay "
+         "una segunda causa, que la tercera revisión destapó: esa K no divide por el modelo (ver el hallazgo siguiente)."),
+            (2, "«La intensidad variable no explica la agregación» (módulo 10): se probó un plano, no «la intensidad variable» (arreglado en el capítulo el 2026-10-27)",
              "La envolvente del módulo 10 es la de `ppm(~ xc + yc)`: un plano log-lineal en x e y (3 parámetros). Con una tendencia polinómica "
              "más flexible (`recomputo › m10b_flex`) los tests globales dejan de rechazar: grado 10 (66 parámetros), DCLF p = 0.055 y MAD "
              "0.215; grado 12 (91 parámetros), DCLF 0.135 a 0.22 y MAD 0.345 a 0.415 (199 simulaciones). Esa curva llega a 208 sedes por km² "
              "y a casi cero en otros sitios: imita los grupos con la tendencia, y con un solo patrón tendencia y agrupación no se separan. "
              "El exceso por debajo de unos 2 km sobrevive (de 32 a 43 % de los radios siguen fuera). Las diapositivas acotan el veredicto a "
              "«un plano en x e y» y lo explican."),
+            (2, "La K inhomogénea del diagnóstico no divide por el modelo (módulo 10) (arreglado en el capítulo el 2026-10-27)",
+             "`envelope(f_centr, Kinhom, …)` no le pasa `lambda` a `Kinhom`, que entonces divide cada pareja por una intensidad estimada "
+             "en cada patrón con un núcleo y el ancho por defecto de `density.ppp`, 2934.06 m (`datos › m10.lambda_nucleo_sigma_m`). Ese "
+             "ancho decide hasta dónde llega el exceso: con el núcleo, 62 de 100 radios fuera, hasta 3638.23 m; con `lambda = f_centr`, "
+             "los 100 (`datos › m10.lambda_modelo`). Lo encontró la tercera revisión del capítulo, que publica las dos envolventes. Las "
+             "diapositivas lo dicen en las láminas 25 a 27, en la 41 (la sexta decisión) y en el cierre."),
             (2, "«Comparten manzana, predio y edificio» (módulo 10)",
              "Es la explicación del capítulo para la agregación y no se comprobó con datos de predios. Lo medido (`recomputo › m11b_dups`): hay "
              "79 sedes que comparten sitio exacto (39 sitios) y el 29.8 % de las sedes tiene otra a menos de 100 m, contra 16.3 % (sd 1.2) en 99 "
              "patrones simulados del modelo con tendencia. Las diapositivas la dan como explicación plausible no comprobada."),
-            (2, "«Tres verosimilitudes distintas tardan lo mismo» (módulo 11)",
+            (2, "«Tres verosimilitudes distintas tardan lo mismo» (módulo 11) (arreglado en el capítulo el 2026-10-27)",
              "`kppm` ajusta por contraste mínimo (`method = \"mincon\"`, el defecto, según la ayuda), y no evalúa ninguna verosimilitud; el "
              "propio capítulo lo dice un párrafo después. Tardan lo mismo porque el contraste solo evalúa su K teórica, que es barata: lo que se "
              "paga es estimar la K isotrópica (`Kest` isotrópica tarda casi todo el tiempo del ajuste, `recomputo › m11b_kemp`). Las "
              "diapositivas lo dicen así."),
-            (2, "«El valle que el contraste mínimo está minimizando es casi plano» (módulo 11)",
+            (2, "«El valle que el contraste mínimo está minimizando es casi plano» (módulo 11) (arreglado en el capítulo el 2026-10-27)",
              "No se sostiene (`recomputo › m11b_valle`): evaluado cada contraste en los parámetros del otro ajuste, sube 178 % y 195 % sobre su "
              "mínimo, y con κ reoptimizado el de traslación sube 57 % en σ = 932 m: cada K empírica tiene su propio mínimo bien marcado. Lo que "
              "ocurre es otra cosa: κσ² (lo que fija la K a r corto) es casi igual (0.183 y 0.190), por eso las dos K coinciden hasta 1 km, pero κ "
              "lo fija el exceso K − π r² a r grande, una resta de números grandes: la K isotrópica queda hasta 5.5 % por debajo de la de traslación "
              "y 1/κ cambia ×1.93. Las diapositivas dan esta explicación."),
-            (2, "«40 sitios con sedes repetidas» (módulo 11)",
+            (2, "«40 sitios con sedes repetidas» (módulo 11) (arreglado en el capítulo el 2026-10-27)",
              "Son 40 sedes sobrantes en 39 sitios: 38 sitios con dos sedes y 1 con tres, 79 sedes implicadas (`recomputo › m11b_dups`). Las "
              "diapositivas dicen «40 sedes repetidas»."),
             (2, "El μ de `kppm` hereda el +0.33 % del `ppm` forzado (módulo 11)",
@@ -506,8 +552,11 @@ def cargar_entradas(m, sesiones):
              "Las diapositivas dicen «unas 26» y «unas 80»."),
             (2, "El índice de dispersión del Hawkes no tiene cinco decimales (módulo 11)",
              "El 5.15454 es de una simulación y de 200 intervalos de 20 unidades: con 200 réplicas el índice tiene media 5.04 y desviación 0.57, "
-             "y para la misma simulación va de 9.9 con 20 intervalos a 2.9 con 2000 (`recomputo › m11b_hawkes`). «5.4 veces más agregado» es de esa "
-             "simulación. Las diapositivas dan 5.15 y 0.96, el tamaño del intervalo y el rango entre réplicas."),
+             "y depende del ancho del intervalo: la teoría de un núcleo exponencial da 2.86 con intervalos de 2 unidades, 5.07 con los de 20 y "
+             "5.41 con los de 200, camino de 1/(1 − α/β)² = 5.44 (`recomputo › m11b_hawkes`). El 9.9 que da esta simulación con 20 intervalos "
+             "no es forma de la curva sino ruido: en 200 réplicas, media 5.46 y desviación 1.73 (tercera revisión). «5.4 veces más agregado» es "
+             "de esa simulación. Las diapositivas dan 5.15 y 0.96, el tamaño del intervalo y el rango entre réplicas, y el capítulo dice "
+             "desde la tercera revisión el ancho y el límite."),
             (2, "Los kppm con tendencia no son los de `~ 1` (módulo 11)",
              "La tabla de errores estándar usa `kppm(~ xc + yc)`, que ajusta la K inhomogénea: sus parámetros de grupo cambian (Thomas con K de "
              "traslación, κ = 1.59e-07 y σ = 1067 m, contra 1.09e-07 y 1320 m con `~ 1`; `recomputo › m11b_trend`). El capítulo no lo dice. "
@@ -556,7 +605,6 @@ def cargar_entradas(m, sesiones):
         REG("20", Rr("m7_semillas.n_semillas"), cx=r"20 semillas")
         REG("21.10", Rr("m7_semillas.min"))
         REG("21.15", Rr("m7_semillas.max"))
-        REG(["21.12", "21.14"], T("entre 21.12 y 21.14"))
 
         # ---- módulo 8 · el Poisson inhomogéneo ----
         REG("7.44e-16", RJ("m8.homogeneo.dif_relativa", "m8_homogeneo.dif_relativa"))
@@ -692,7 +740,7 @@ def cargar_entradas(m, sesiones):
 
         for tok, rr in (("0.6", 500), ("0.9", 1000), ("4.8", 2000)):
             REG(tok, A(lambda rr=rr: kdif(rr), f"diferencia relativa de la K de Thomas con los dos juegos de parámetros a {rr} m (forma cerrada)"), en=("Dos conglomerados distintos",))
-        REG(["500", "1000", "2000"], T("(500.0, 1000.0, 2000.0)"), en=("Dos conglomerados distintos",))
+        REG(["500", "1000", "2000"], J("m11.valle.r_m"), en=("Dos conglomerados distintos",))
         REG("1373", RJ("m11.duplicados.efecto[0].sin_duplicados.scale", "m11_Thomas.sin_duplicados.parametros.scale"))
         REG("4.0", RA("m11.duplicados.efecto[0].cambio_pct.scale", lambda: 100 * (r("m11_Thomas.sin_duplicados.parametros.scale") / r("m11_Thomas.translate.parametros.scale") - 1), "100 × (escala sin duplicados / escala con duplicados − 1), Thomas con K de traslación"))
         REG("4", P("constante de la forma cerrada de la K de Thomas: π r² + (1 − exp(−r²/(4 σ²)))/κ"), cx=r"4 σ|4 κ σ")
@@ -842,6 +890,24 @@ def cargar_entradas(m, sesiones):
         REG("1.59e-07", Rr("m11b_trend.translate.kappa"))
         REG("1067", Rr("m11b_trend.translate.scale"))
         REG("1.09e-07", Rr("m11_Thomas.translate.parametros.kappa"))
+        # ---- tercera revisión del capítulo (2026-10-27) ----
+        REG("964", J("m7.bogota.centroide_ventana.distancia_al_centro_de_masa_m"))
+        REG("17.1", J("m7.bogota.centroide_ventana.razon"))
+        REG("1.48", J("m7.bogota.centroide_ventana.razon_bulto"))
+        REG("2.6e-11", J("m11.cuadratico_dcen.poisson.p"))
+        REG("0.129", J("m11.cuadratico_dcen.conglomerado[0].p"))
+        REG("0.139", J("m11.cuadratico_dcen.conglomerado[2].p"))
+        REG("2934.06", J("m10.lambda_nucleo_sigma_m"))
+        REG("2.93", A(lambda: d("m10.lambda_nucleo_sigma_m") / 1000, "ancho por defecto de density.ppp sobre la ciudad, en km"), cx=r"2\.93 km")
+        REG("2.9", A(lambda: d("m10.lambda_nucleo_sigma_m") / 1000, "ancho por defecto de density.ppp sobre la ciudad, en km"), cx=r"núcleo de 2\.9 km")
+        REG("100", J("m10.lambda_modelo.pct_r_fuera_de_banda"), cx=r"(el|en el) 100 %|100 % con el modelo")
+        REG("100", J("m10.tasa_salida.nodos_r_simulador"), cx=r"de 100 radios|los 100\.")
+        REG("62", RJ("m10.pct_r_fuera_de_banda", "m10.pct_fuera"), cx=r"62 de 100")
+        REG("3638", A(lambda: round(d("m10.ultimo_r_fuera_m")), "último radio fuera de la banda con el núcleo, al metro"))
+        REG("4", J("m10.tendencia_flexible[0].grado"), cx=r"grado 4")
+        REG("15", J("m10.tendencia_flexible[0].coeficientes"), cx=r"15 parámetros")
+        REG("91", J("m10.tendencia_flexible[1].coeficientes"), cx=r"\(91\)")
+        REG("0.173", J("m10.tendencia_flexible[1].dclf_p"))
         # Hawkes: el índice depende del intervalo y de la realización
         REG("4000", Rr("m11_hawkes.T"))
         REG("200", Rr("m11b_hawkes.por_intervalos[3].k"), cx=r"200 intervalos")
@@ -854,8 +920,24 @@ def cargar_entradas(m, sesiones):
         REG("5.0", A(lambda: round(r("m11b_hawkes.disp_media"), 1), "media del índice de dispersión del Hawkes en 200 réplicas"), cx=r"ronda 5\.0|5\.0 de media")
         REG("0.6", A(lambda: round(r("m11b_hawkes.disp_sd"), 1), "desviación típica del índice de dispersión del Hawkes en 200 réplicas"))
         REG("1.1653", Rr("m11b_hawkes.tasa_media"))
-        REG("9.9", Rr("m11b_hawkes.por_intervalos[0].hawkes"), cx=r"9\.9 con 20")
-        REG("2.9", Rr("m11b_hawkes.por_intervalos[6].hawkes"), cx=r"2\.9 con 2000")
+        REG("9.9", Rr("m11b_hawkes.por_intervalos[0].hawkes"), cx=r"da 9\.9|llega a 9\.9")
+        # La teoría del índice para un núcleo exponencial, por ancho de intervalo, y el ruido con solo 20 intervalos
+        # (tercera revisión: el 9.9 se leía como forma de la curva y es una realización rara).
+        REG("2", Rr("m11b_hawkes.por_intervalos[6].ancho"), cx=r"intervalos de 2 unidades")
+        REG("2.86", Rr("m11b_hawkes.por_intervalos[6].teorico"))
+        REG("5.07", Rr("m11b_hawkes.por_intervalos[3].teorico"))
+        REG("5.41", Rr("m11b_hawkes.por_intervalos[0].teorico"))
+        REG("5.44", [J("m11.hawkes.dispersion_limite"), Rr("m11b_hawkes.limite")])
+        REG("20", Rr("m11b_hawkes.por_intervalos[3].ancho"), cx=r"los de 20 de la figura")
+        REG("20", Rr("m11b_hawkes.por_intervalos[0].k"), cx=r"solo 20 intervalos")
+        REG("200", Rr("m11b_hawkes.por_intervalos[0].ancho"), cx=r"los de 200, 5")
+        REG("5.46", Rr("m11b_hawkes.disp20_media"))
+        REG("1.73", Rr("m11b_hawkes.disp20_sd"))
+        REG("2.93", Rr("m11b_hawkes.disp20_q05"), cx=r"entre 2\.93")
+        REG("8.27", Rr("m11b_hawkes.disp20_q95"))
+        REG("90", P("el 90 % central de las réplicas: entre sus percentiles 5 y 95"), cx=r"el 90 %")
+        REG("1", A(lambda: round(100 * r("m11b_hawkes.disp20_frac_ge_esta")), "porcentaje de réplicas con 20 intervalos cuyo índice llega al de esta simulación"),
+            cx=r"el 1 % llega")
 
         # ---- afirmaciones que no son una cifra ----
         AF(2, "En las tres curvas `rhohat` el mínimo cae fuera del bulto; el máximo, solo en la pendiente de `bei`",
@@ -1027,9 +1109,11 @@ def cargar_entradas(m, sesiones):
             fila_z("Thomas", "iso"), fila_z("Thomas", "translate"),
             fila_z("MatClust", "iso"), fila_z("MatClust", "translate"),
             fila_z("LGCP", "iso"), fila_z("LGCP", "translate")])
-        TAB(2, "Cinco decisiones que se declaran", [
+        TAB(2, "Seis decisiones que se declaran", [
             [None, None, [lambda: r("urbana.n_capa"), lambda: r("urbana.n_urbana")]],
             [None, None, [lambda: r("anchos.caida_pct"), lambda: r("anchos.sigmas_m[0]"), lambda: r("anchos.sigmas_m[6]")]],
             [None, None, [800, lambda: r("bordes.800.masa_defecto"), lambda: r("bordes.800.masa_diggle")]],
             [None, None, [lambda: r("m8_nd.rango_aic")]],
+            [None, None, [lambda: d("m10.pct_r_fuera_de_banda"), lambda: d("m10.lambda_nucleo_sigma_m") / 1000,
+                          lambda: d("m10.lambda_modelo.pct_r_fuera_de_banda")]],
             [None, None, [lambda: r("m11_Thomas.iso.mu"), lambda: r("m11_Thomas.translate.mu")]]])

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "fecha": "2026-10-01",
+    "fecha": "2026-10-27",
     "R": "R version 4.4.1 (2024-06-14)",
     "paquetes": {
       "spatstat": "3.5.1",
@@ -36,8 +36,28 @@
     "conteo_max": 15,
     "celdas_con_el_maximo": 2,
     "desplazamientos": 16,
-    "maximos_desplazados": [15, 19, 21, 18, 16, 17, 20, 19, 16, 18, 19, 16, 15, 19, 21, 19],
-    "rango_desplazados": [15, 21]
+    "maximos_desplazados": [
+      15,
+      19,
+      21,
+      18,
+      16,
+      17,
+      20,
+      19,
+      16,
+      18,
+      19,
+      16,
+      15,
+      19,
+      21,
+      19
+    ],
+    "rango_desplazados": [
+      15,
+      21
+    ]
   },
   "nucleos": {
     "sigma_m": 400,
@@ -55,10 +75,33 @@
     "dif_pct": 5.06163293534732
   },
   "anchos": {
-    "sigmas_m": [233.3949, 330.0702, 466.7897, 660.1404, 933.5795, 1320.2807, 1867.1589],
-    "picos_km2": [29.5066011660573, 21.5826418590583, 16.841574289783, 13.8339689576572, 11.9497537434475, 10.8573377430202, 9.94631878530256],
+    "sigmas_m": [
+      233.3949,
+      330.0702,
+      466.7897,
+      660.1404,
+      933.5795,
+      1320.2807,
+      1867.1589
+    ],
+    "picos_km2": [
+      29.5066011660573,
+      21.5826418590583,
+      16.841574289783,
+      13.8339689576572,
+      11.9497537434475,
+      10.8573377430202,
+      9.94631878530256
+    ],
     "caida_pct": 66.2912080950067,
-    "razon_pasos": [1.41421342111589, 1.41421340066446, 1.41421372408174, 1.41421355214739, 1.41421346548419, 1.41421358352053],
+    "razon_pasos": [
+      1.41421342111589,
+      1.41421340066446,
+      1.41421372408174,
+      1.41421355214739,
+      1.41421346548419,
+      1.41421358352053
+    ],
     "razon_total": 7.99999871462487,
     "veces_el_nucleo": 13.0968027396989,
     "caida_con_redondeo_1dec": 66.4406779661017,
@@ -102,8 +145,42 @@
     "tope_intervalo": 0.707106781186548,
     "aviso": "Likelihood Cross-Validation criterion was maximised at right-hand end of interval [0.01, 0.707]; use argument ‘srange’ to specify a wider interval for bandwidth ‘sigma’",
     "optimo_con_srange_2": 2,
-    "criterio_h": [0.01, 0.0142364595898574, 0.0202676781653642, 0.0288539981181443, 0.0410778778214782, 0.0584803547642573, 0.0832553207401873, 0.118526100935829, 0.168739204631629, 0.240224886796286, 0.341995189335339, 0.486880069289818, 0.693144843155146, 0.986792854949628, 1.40484366030504, 2],
-    "criterio_cv": [-1244.62177998893, -412.540574229831, -21.429717531662, 154.394097962063, 226.701475323654, 252.1579059787, 260.476815198044, 264.838841495763, 267.282044797349, 268.036754959476, 268.400987641287, 268.962752322769, 269.522078076871, 269.896430840117, 270.106690417338, 270.216574127905],
+    "criterio_h": [
+      0.01,
+      0.0142364595898574,
+      0.0202676781653642,
+      0.0288539981181443,
+      0.0410778778214782,
+      0.0584803547642573,
+      0.0832553207401873,
+      0.118526100935829,
+      0.168739204631629,
+      0.240224886796286,
+      0.341995189335339,
+      0.486880069289818,
+      0.693144843155146,
+      0.986792854949628,
+      1.40484366030504,
+      2
+    ],
+    "criterio_cv": [
+      -1244.62177998893,
+      -412.540574229831,
+      -21.429717531662,
+      154.394097962063,
+      226.701475323654,
+      252.1579059787,
+      260.476815198044,
+      264.838841495763,
+      267.282044797349,
+      268.036754959476,
+      268.400987641287,
+      268.962752322769,
+      269.522078076871,
+      269.896430840117,
+      270.106690417338,
+      270.216574127905
+    ],
     "ayuda": "Japanese Pines Point Pattern\n\nDescription:\n\n     The data give the locations of saplings of Japanese black pine\n     (_Pinus thunbergii_) in a square sampling region in a natural\n     forest.  The observations were originally collected by Numata\n     (1961).\n\n     These data are used as a standard example in the textbook of\n     Diggle (2003); see pages 1, 14, 19, 22, 24, 56-57 and 61.\n\nUsage:\n\n     data(japanesepines)\n     \nFormat:\n\n     An object of class ‘\"ppp\"’ representing the point pattern of 65\n     tree sapling locations in a 5.7 x 5.7 metre square, rescaled to\n     the unit square and rounded to two decimal places.\n\n     See ‘ppp.object’ for details of the format of a point pattern\n     object.\n\nSource:\n\n     Diggle (2003), obtained from Numata (1961)\n\nReferences:\n\n     Diggle, P.J. (2003) _Statistical Analysis of Spatial Point\n     Patterns_.  Arnold Publishers.\n\n     Numata, M. (1961) Forest vegetation in the vicinity of Choshi.\n     Coastal flora and vegetation at Choshi, Chiba Prefecture. IV.\n     _Bulletin of Choshi Marine Laboratory, Chiba University_ *3*,\n     28-48 (in Japanese).\n\nExamples:\n\n       if(require(spatstat.geom)) {\n        japanesepines\n        summary(japanesepines)\n        ## rescale to metres\n        (Jpines <- rescale(japanesepines))\n       }\n     "
   },
   "bordes": {
@@ -257,5 +334,59 @@
       "defecto_800": 0.0422299137998886,
       "diggle_800": 1.28207550240819e-14
     }
+  },
+  "permutaciones": {
+    "n": 40,
+    "bogota": {
+      "min": 0.324284397270938,
+      "max": 0.341745063317721,
+      "media": 0.33443616295773,
+      "sd": 0.00401403527764497,
+      "observada": 0.308625133815944,
+      "desviaciones": -6.43019489278869,
+      "global": 0.336497389653536,
+      "media_por_area": 0.32478591009835,
+      "media_pesada_por_intensidad": 0.335735455744806
+    },
+    "chorley": {
+      "min": 0.0278979529406416,
+      "max": 0.0559185501040972,
+      "media": 0.0462178467526248,
+      "sd": 0.00590998715621087,
+      "observada": 0.0481849481294746,
+      "desviaciones": 0.332843595909102,
+      "global": 0.055984555984556
+    }
+  },
+  "rejilla_fina": {
+    "factor": 4,
+    "nx": 128,
+    "ny": 218,
+    "filas": [
+      {
+        "selector": "diggle",
+        "sigma_m": 373.2167540569,
+        "celdas_por_sigma": 2.03522504892372,
+        "pico_rejilla": 24.4465802300392,
+        "pico_fina": 28.4837924453581,
+        "cambio_pct": -14.173717292259
+      },
+      {
+        "selector": "tres_celdas",
+        "sigma_m": 550.1358499703,
+        "celdas_por_sigma": 2.99999999999945,
+        "pico_rejilla": 16.6243060052469,
+        "pico_fina": 16.5362377741858,
+        "cambio_pct": 0.532577193577555
+      },
+      {
+        "selector": "CvL",
+        "sigma_m": 720.3691455398,
+        "celdas_por_sigma": 3.92831595456955,
+        "pico_rejilla": 14.5361524991347,
+        "pico_fina": 14.559605613553,
+        "cambio_pct": -0.16108344580763
+      }
+    ]
   }
 }

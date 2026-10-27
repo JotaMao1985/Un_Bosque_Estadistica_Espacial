@@ -4,11 +4,12 @@
 # genera_figuras_s1.R / genera_figuras_s2.R, desde la raíz del repo.
 #
 # POR QUÉ HAY FIGURAS PROPIAS Y NO LAS FOTOS DEL CAPÍTULO
-#   Las fotos de los mapas ráster del capítulo (Kennedy por σ, oferta,
-#   estudiantes, P(oficial)) salen invertidas verticalmente —el sur arriba—:
-#   el exportador guarda la fila 0 en el sur y el visor la pinta arriba. Se
-#   comprobó midiendo píxeles en la página servida y contra las coordenadas
-#   de las sedes. Estas figuras se dibujan con el norte arriba.
+#   Nacieron porque los mapas ráster del capítulo (Kennedy por σ, oferta,
+#   estudiantes, P(oficial)) salían invertidos verticalmente —el sur arriba—:
+#   el exportador guardaba la fila 0 en el sur y el visor la pinta arriba.
+#   Arreglado en el capítulo el 2026-10-27 (`geo_rejilla()` voltea los `im`).
+#   Se conservan porque llevan su leyenda, su contorno y el tamaño de la
+#   lámina. Se dibujan con el norte arriba, como ya el capítulo.
 # =====================================================================
 suppressPackageStartupMessages({ library(sf); library(spatstat) })
 

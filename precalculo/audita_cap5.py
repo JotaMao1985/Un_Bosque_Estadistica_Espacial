@@ -185,6 +185,36 @@ def masas(px, py, sigma, caja, nx, ny, mask):
     return sin_corr, defecto, diggle
 
 
+def puntos_de(g):
+    """Las coordenadas reales de un mapa de modo `puntos`, como las pinta el navegador.
+
+    `geomapaCajaQ` cuantiza en el CUADRADO de lado max(ancho, alto) centrado en la caja, no en la
+    caja: descuantizar contra la caja rectangular corre el eje corto.
+    """
+    x0, y0, x1, y1 = g["caja"]
+    q = g.get("q", 4096)
+    lado = max(x1 - x0, y1 - y0)
+    p = np.asarray(g["pts"], dtype=float).reshape(-1, 2)
+    return ((x0 + x1) / 2 - lado / 2 + p[:, 0] / q * lado,
+            (y0 + y1) / 2 - lado / 2 + p[:, 1] / q * lado)
+
+
+def muestrea(g, X, Y, reflejo=False):
+    """El valor cuantizado de un mapa `rejilla` en (X, Y), con la fila 0 ARRIBA (el norte),
+    que es como la pinta `geomapaPintaRejilla`. Con `reflejo`, leído al revés. -1 = sin dato."""
+    x0, y0, x1, y1 = g["caja"]
+    nx, ny = g["nx"], g["ny"]
+    c = np.floor((X - x0) / (x1 - x0) * nx).astype(int)
+    f = np.floor((y1 - Y) / (y1 - y0) * ny).astype(int)
+    if reflejo:
+        f = ny - 1 - f
+    ok = (c >= 0) & (c < nx) & (f >= 0) & (f < ny)
+    zq = np.asarray(g["zq"], dtype=float)
+    z = np.full(len(X), -1.0)
+    z[ok] = zq[f[ok] * nx + c[ok]]
+    return z
+
+
 # =====================================================================
 # Cada «di», «explica», «encuentra», «contesta», «compara» y cada «¿» de un
 # enunciado es una pregunta que la solución tiene que contestar (M5). `\w`
@@ -418,7 +448,10 @@ def main() -> int:
     # `proporcion_oficial` mucho antes: borrar ese mapa mataba al auditor
     # en la familia 5 y nunca llegaba a su propia comprobación. Un auditor
     # informa; para informar hay que llegar vivo al informe.
-    MAPAS_NECESARIOS = ("kennedy_familia", "kennedy_puntos", "ciudad_oferta",
+    # Rótulos de menos de 58 caracteres: el arnés de inyección cuenta la
+    # cobertura por rótulo, y uno más largo arrastra su detalle.
+    CORTO = {"ciudad_bachillerato": "ciudad_bach11"}
+    MAPAS_NECESARIOS = ("kennedy_familia", "kennedy_puntos", "ciudad_oferta", "ciudad_bachillerato",
                         "ciudad_estudiantes", "proporcion_oficial", "sector_puntos")
     faltan_mapas = [n for n in MAPAS_NECESARIOS if n not in M]
     for nombre in MAPAS_NECESARIOS:
@@ -453,6 +486,32 @@ def main() -> int:
     a.cierto(float(d_borde.max()) < 200, "Kennedy: las tres siguen siendo casos de frontera",
              f"{d_borde.max():.0f} m")
 
+    # El conteo por cuadrantes, cada celda entre SU área. Hasta el 2026-10-27
+    # el generador dividía por A_KEN/64 y nadie lo recalculaba: el máximo se
+    # publicó en 24.9 sedes por km² siendo 16.8. Aquí, sin spatstat: la
+    # rejilla parte la caja, y cada celda se recorta con la ventana.
+    cq = D["m1"]["cuadrantes"]
+    from shapely.geometry import box as _box
+    bx0, by0, bx1, by1 = W.bounds
+    xs_q, ys_q = np.linspace(bx0, bx1, cq["nx"] + 1), np.linspace(by0, by1, cq["nx"] + 1)
+    kx, ky = ken["x"].to_numpy(), ken["y"].to_numpy()
+    ixq = np.clip(np.searchsorted(xs_q, kx, "left") - 1, 0, cq["nx"] - 1)
+    iyq = np.clip(np.searchsorted(ys_q, ky, "left") - 1, 0, cq["nx"] - 1)
+    cnt_q = np.zeros((cq["nx"], cq["nx"]), int)
+    np.add.at(cnt_q, (ixq, iyq), 1)
+    area_q = np.array([[_box(xs_q[i], ys_q[j], xs_q[i + 1], ys_q[j + 1]).intersection(W).area
+                        for j in range(cq["nx"])] for i in range(cq["nx"])])
+    toca_q = area_q > 0
+    a.igual(int(toca_q.sum()), cq["n_teselas"], "cuadrantes: las celdas que tocan Kennedy")
+    a.cerca((bx1 - bx0) * (by1 - by0) / cq["nx"] ** 2 / 1e6, cq["area_celda_km2"],
+            "cuadrantes: el área de una celda entera", 1e-9)
+    dens_q = cnt_q[toca_q] / area_q[toca_q] * 1e6
+    a.cerca(float(dens_q.max()), cq["intensidad_max_km2"],
+            "cuadrantes: la intensidad máxima, conteo / área", 1e-6)
+    a.cierto(abs(cq["intensidad_max_km2"] - cq["conteo_max"] / (W.area / 1e6 / cq["nx"] ** 2)) > 1,
+             "cuadrantes: y no es conteo / (área de Kennedy / 64)",
+             f"{cq['intensidad_max_km2']:.4f} contra {cq['conteo_max'] / (W.area / 1e6 / cq['nx'] ** 2):.4f}")
+
     # -----------------------------------------------------------------
     a.titulo("2 · La KDE, recalculada por suma directa del núcleo")
     # -----------------------------------------------------------------
@@ -473,20 +532,49 @@ def main() -> int:
     # Los máximos de las siete superficies, recalculados. Es la afirmación
     # del módulo 2 —al abrir el núcleo la superficie se aplana— y aquí se
     # comprueba contra una KDE que no es la de spatstat.
-    maxs = []
+    maxs, sup0 = [], None
     for s in fam["sigmas_m"]:
         cr = kde_directa(px, py, s, xc, yc)
         e = borde_e(mask, dx, dy, s, nx, ny)
         sup = np.where((e > 0) & mask, cr / np.maximum(e, 1e-300), np.nan)
         maxs.append(float(np.nanmax(sup)) * 1e6)
+        sup0 = sup if sup0 is None else sup0
     for i, s in enumerate(fam["sigmas_m"]):
         a.cerca(maxs[i], fam["max_km2"][i],
                 f"familia: el máximo con sigma={s:.0f} m", TOL_SUP)
+    # El simulador del módulo 2 rotula su eje «pasos ×√2»: siete anchos que
+    # recorren un factor 8 en seis pasos iguales, 8^(1/6) = √2.
+    sgm = np.asarray(fam["sigmas_m"], float)
+    a.cierto(np.allclose(sgm[1:] / sgm[:-1], np.sqrt(2), rtol=1e-5)
+             and abs(sgm[-1] / sgm[0] - fam["razon"]) < 1e-4 * fam["razon"],
+             "familia: los anchos van en pasos de √2",
+             " ".join(f"{v:.4f}" for v in sgm[1:] / sgm[:-1]))
     a.cierto(all(np.diff(maxs) < 0), "familia: el máximo cae al abrir el núcleo",
              " ".join(f"{v:.1f}" for v in maxs))
     a.cerca(100 * (maxs[0] - maxs[-1]) / maxs[0], fam["caida_pct"],
             "familia: la caída total, recalculada", TOL_SUP)
     a.igual(len(fam_csv), len(fam["sigmas_m"]), "familia: el CSV trae las siete")
+
+    # LOS FOCOS DEL σ MÁS ESTRECHO SON GRUPOS (tercera revisión, 2026-10-27).
+    # El módulo decía «colegios concretos»: una sede sola levanta
+    # 1/(2 pi sigma^2), que no pasa del primer tramo de la leyenda, y el foco
+    # más alto reúne varias. Las tres cifras, sin spatstat.
+    fo = fam["foco"]
+    a.cerca(fo["sigma_m"], fam["sigmas_m"][0], "foco: es el de la sigma más estrecha", 1e-12)
+    a.cerca(1e6 / (2 * np.pi * fo["sigma_m"] ** 2), fo["pico_una_sede_km2"],
+            "foco: lo que levanta una sede sola", 1e-9)
+    esc = fam["escala"]
+    a.cerca(esc[0] + (esc[1] - esc[0]) / 7, fo["primer_corte_km2"],
+            "foco: el primer corte de la leyenda común", 1e-6)
+    a.cerca(M["kennedy_familia"][0]["cortes"][1], fo["primer_corte_km2"],
+            "foco: y es el que dibuja el mapa", 1e-6)
+    iy0, ix0 = np.unravel_index(np.nanargmax(sup0), sup0.shape)
+    a.igual(int(((px - xc[ix0]) ** 2 + (py - yc[iy0]) ** 2 <= fo["sigma_m"] ** 2).sum()),
+            fo["sedes_a_un_sigma_del_maximo"], "foco: las sedes a un sigma del máximo")
+    a.cierto(fo["pico_una_sede_km2"] < fo["primer_corte_km2"] and fo["sedes_a_un_sigma_del_maximo"] >= 3,
+             "foco: una sede sola no se ve; el foco es un grupo",
+             f"{fo['pico_una_sede_km2']:.2f} < {fo['primer_corte_km2']:.2f} por km², "
+             f"{fo['sedes_a_un_sigma_del_maximo']} sedes")
     a.cerca(float(fam_csv["max_km2"].iloc[0]), fam["max_km2"][0],
             "familia: el CSV y el JSON dicen lo mismo", 1e-9)
 
@@ -545,6 +633,35 @@ def main() -> int:
         a.cierto(t["sigma"] > 0, f"selectores: y su valor es finito y positivo")
     a.igual(len(m3["topes"]), 2, "selectores: los dos casos de tope están")
 
+    # LA REJILLA DE bw.ppl Y bw.CvL (tercera revisión, 2026-10-27). El cruce
+    # que el módulo leía —ppl por encima de diggle en Kennedy, por debajo en
+    # la ciudad— es de la rejilla de 16 anchos; con una fina, ppl queda por
+    # debajo en las dos. Son validación cruzada: se auditan las propiedades
+    # que la prosa afirma, no el valor.
+    a.cierto(m3["ns_defecto"]["ppl"] == m3["ns_defecto"]["CvL"] == 16,
+             "selectores: la rejilla por defecto es de 16 anchos",
+             f"ppl {m3['ns_defecto']['ppl']}, CvL {m3['ns_defecto']['CvL']}")
+    a.cierto(m3["ns_fino"] > 10 * m3["ns_defecto"]["ppl"], "selectores: la fina es mucho más fina",
+             f"{m3['ns_fino']} anchos")
+    sk, su = m3["kennedy"]["sigmas_m"], m3["urbana"]["sigmas_m"]
+    a.cierto(sk["ppl"] > sk["diggle"] and su["ppl"] < su["diggle"],
+             "selectores: con 16 anchos, ppl y diggle se cruzan",
+             f"Kennedy {sk['ppl']:.0f} / {sk['diggle']:.0f}; ciudad {su['ppl']:.0f} / {su['diggle']:.0f}")
+    fk, fu = m3["fino"]["kennedy"], m3["fino"]["urbana"]
+    a.cierto(fk["ppl"] < sk["diggle"] and fu["ppl"] < su["diggle"],
+             "selectores: con la fina, ppl queda debajo en las dos",
+             f"Kennedy {fk['ppl']:.0f} / {sk['diggle']:.0f}; ciudad {fu['ppl']:.0f} / {su['diggle']:.0f}")
+    a.cierto(all(v > 0 for d in (fk, fu) for v in d.values()), "selectores: los finos son positivos")
+    # bw.scott(isotropic = TRUE) es la media geométrica de las dos
+    # desviaciones típicas por n^(-1/6): fórmula cerrada, se recalcula.
+    ux, uy_ = urb["x"].to_numpy(), urb["y"].to_numpy()
+    for donde, (xx, yy) in (("kennedy", (px, py)), ("urbana", (ux, uy_))):
+        iso = float(np.sqrt(np.std(xx, ddof=1) * np.std(yy, ddof=1)) * len(xx) ** (-1 / 6))
+        a.cerca(iso, m3["scott_isotropico_m"][donde], f"selectores/{donde}: bw.scott isótropo", 1e-6)
+    sel_iso = dict(su, scott=m3["scott_isotropico_m"]["urbana"])
+    a.cerca(max(sel_iso.values()) / min(sel_iso.values()), m3["razon_urbana_scott_isotropico"],
+            "selectores: la razón de la ciudad con el isótropo", 1e-9)
+
     # -----------------------------------------------------------------
     a.titulo("5 · El riesgo relativo, recalculado por definición")
     # -----------------------------------------------------------------
@@ -584,9 +701,27 @@ def main() -> int:
     # decimales, así que su diferencia no puede exigirse mejor que eso.
     a.igual(m6["p_mediana"] - m6["prop_global"], m6["brecha_mediana_menos_global"],
             "riesgo: la brecha entre la mediana y la global", 1e-9)
-    a.cierto((m6["p_mediana"] < m6["prop_global"]) == m6["concentrado"],
-             "riesgo: el veredicto de concentración cuadra con su cifra",
-             "concentrado" if m6["concentrado"] else "repartido")
+    # «¿En qué fracción de la ciudad son mayoría?» es el área con P > 0.5, no
+    # la mediana: hasta el 2026-10-27 el módulo le asignaba esa pregunta a la
+    # mediana. Recalculada sobre la superficie de arriba (sin corrección de
+    # borde, que en un cociente con la de por defecto se cancela).
+    a.cerca(100 * float(np.nanmean(prop[mask_c & np.isfinite(prop)] > 0.5)), m6["pct_area_mayoria"],
+            "riesgo: la fracción del área donde lo oficial es mayoría", 2.0)
+    a.cierto(abs(m6["pct_area_mayoria"] - 100 * m6["p_mediana"]) > 5,
+             "riesgo: y no es la mediana leída como porcentaje",
+             f"{m6['pct_area_mayoria']:.1f} % contra {100 * m6['p_mediana']:.1f}")
+    # El contraste que el pie del mapa de sectores afirma: norte contra sur,
+    # por tercios de la caja de la ventana urbana.
+    uy = urb["y"].to_numpy()
+    ry0, ry1 = v_urb.bounds[1], v_urb.bounds[3]
+    t_sur, t_norte = ry0 + (ry1 - ry0) / 3, ry0 + 2 * (ry1 - ry0) / 3
+    a.cerca(100 * float(ofi[uy < t_sur].mean()), m6["pct_oficiales_tercio_sur"],
+            "riesgo: las oficiales del tercio sur, recontadas", 1e-6)
+    a.cerca(100 * float(ofi[uy >= t_norte].mean()), m6["pct_oficiales_tercio_norte"],
+            "riesgo: y las del tercio norte", 1e-6)
+    a.cierto(m6["pct_oficiales_tercio_sur"] > m6["pct_oficiales_tercio_norte"],
+             "riesgo: lo oficial pesa más en el sur, como dice el pie",
+             f"{m6['pct_oficiales_tercio_sur']:.1f} % contra {m6['pct_oficiales_tercio_norte']:.1f} %")
     a.cierto(m6["orientacion_verificada"] > m6["prop_global"],
              "riesgo: donde el mapa es máximo dominan los oficiales",
              f"{100*m6['orientacion_verificada']:.0f} % de los 50 vecinos")
@@ -597,6 +732,18 @@ def main() -> int:
     a.cierto(ch["orientacion_verificada"] > ch["prop_global"],
              "riesgo: y su mapa también pinta los casos",
              f"{100*ch['orientacion_verificada']:.0f} % de los vecinos")
+    # El máximo de chorley se publica con los datos que tiene alrededor: la
+    # prosa dice que no tiene un solo punto a dos anchos de banda y que cae
+    # junto al borde. No hay chorley en Python; se comprueba lo que se puede
+    # sin él: que las cifras digan lo que la frase dice y sean coherentes.
+    a.igual(ch["maximo_puntos_cerca"], 0, "riesgo: el máximo de chorley no tiene puntos a dos anchos")
+    a.cerca(ch["maximo_radio_km"], 2 * ch["sigma"], "riesgo: y esos dos anchos son dos sigmas", 1e-12)
+    a.cierto(0 <= ch["maximo_dist_borde_m"] < 1000 * ch["sigma"],
+             "riesgo: el máximo de chorley, junto al borde",
+             f"{ch['maximo_dist_borde_m']:.0f} m")
+    a.cierto((ch["pct_area_mayoria"] == 0) == (ch["p_max"] < 0.5),
+             "riesgo: la laringe no es mayoría en ningún sitio",
+             f"{ch['pct_area_mayoria']} % con máximo {ch['p_max']:.4f}")
 
     # -----------------------------------------------------------------
     a.titulo("6 · Los tres mapas del módulo 5")
@@ -649,6 +796,44 @@ def main() -> int:
     a.cierto(m7["bogota"]["curva"]["razon_bulto"] < m7["bei"]["elevacion"]["razon_bulto"]
              < m7["bei"]["pendiente"]["razon_bulto"],
              "rhohat: el orden en el bulto es el que el módulo cuenta")
+
+    # LA CURVA Y DÓNDE CAEN SUS EXTREMOS (tercera revisión, 2026-10-27). El
+    # módulo decía que el máximo y el mínimo viven «casi siempre» en los
+    # extremos; lo que se sostiene es que el mínimo cae en una cola en las
+    # tres, y el máximo solo en una. La curva publicada son cien nodos
+    # interpolados de la de spatstat: no puede salirse de sus extremos.
+    curvas = (("bei/elev", m7["bei"]["elevacion"]), ("bei/grad", m7["bei"]["pendiente"]),
+              ("bogotá", m7["bogota"]["curva"]))
+    for etq, c in curvas:
+        cz, cr_ = np.asarray(c["curva_z"], float), np.asarray(c["curva_rho"], float)
+        # Con la holgura de las seis cifras significativas de `r6`, que en
+        # la elevación de bei (≈150 m, paso de 0.4 m) son 1e-4 m por nodo.
+        a.cierto(len(cz) == len(cr_) == 100
+                 and np.allclose(np.diff(cz), (cz[-1] - cz[0]) / 99, rtol=0, atol=2e-5 * np.abs(cz).max()),
+                 f"rhohat/{etq}: cien nodos equiespaciados")
+        a.cierto(cr_.max() <= c["rho_max"] * (1 + 1e-5) and cr_.min() >= c["rho_min"] * (1 - 1e-5),
+                 f"rhohat/{etq}: la curva no rebasa sus extremos")
+        a.cierto(cz[0] - 1e-6 * abs(cz[0]) <= c["z_del_maximo"] <= cz[-1] * (1 + 1e-6)
+                 and cz[0] - 1e-6 * abs(cz[0]) <= c["z_del_minimo"] <= cz[-1] * (1 + 1e-6),
+                 f"rhohat/{etq}: sus extremos caen dentro del rango")
+        for cual in ("maximo", "minimo"):
+            z = c[f"z_del_{cual}"]
+            a.igual(int(c["bulto_desde"] <= z <= c["bulto_hasta"]), int(c[f"{cual}_en_el_bulto"]),
+                    f"rhohat/{etq}: ¿el {cual} en el bulto?")
+    a.cierto(all(int(c["minimo_en_el_bulto"]) == 0 for _, c in curvas),
+             "rhohat: el mínimo cae en una cola en las tres")
+    a.igual(sum(int(c["maximo_en_el_bulto"]) for _, c in curvas), 2,
+            "rhohat: el máximo, dentro del bulto en dos de tres")
+    # El centro de masa de las sedes sale de las sedes; el centroide de la
+    # ventana, no. El módulo publica la lección con los dos.
+    cv = m7["bogota"]["centroide_ventana"]
+    cw = v_urb.centroid
+    a.cerca(float(np.hypot(cw.x - cx, cw.y - cy)), cv["distancia_al_centro_de_masa_m"],
+            "rhohat: del centroide de la ventana al de las sedes", 1e-6)
+    a.cierto(cv["razon"] / cv["razon_bulto"] > 1
+             and cv["razon_bulto"] < m7["bei"]["elevacion"]["razon_bulto"],
+             "rhohat: con el centroide, la lección sobrevive",
+             f"{cv['razon']:.1f} en todo el rango, {cv['razon_bulto']:.2f} en el bulto")
 
     # -----------------------------------------------------------------
     a.titulo("8 · ppm: la identidad de la EMV y la cuadratura")
@@ -933,11 +1118,81 @@ def main() -> int:
              "envolvente: peor dentro del tramo, las otras fuera",
              f"{tg['r_mad_observada_m']:.0f} ≤ {m10['ultimo_r_fuera_m']:.0f} < {tg['r_min_mad_superan_m']:.0f}")
 
+    # LA OTRA λ (tercera revisión, 2026-10-27). La publicada divide por un
+    # núcleo, no por el modelo; la del modelo se publica al lado. Releída de su
+    # propia curva: el tramo, su porcentaje y que llegue más lejos.
+    lm = m10["lambda_modelo"]
+    cm = lm["curva"]
+    obs_m, lo_m, hi_m = (np.array(cm[k], dtype=float) for k in ("obs", "lo", "hi"))
+    if a.cierto(len(obs_m) == len(lo_m) == len(hi_m) == len(cm["mmean"]) == len(r),
+                "envolvente λ modelo: una curva por cada r de la otra"):
+        fm = ((obs_m > hi_m) | (obs_m < lo_m))[dentro_r]
+        a.cerca(100 * fm.mean(), lm["pct_r_fuera_de_banda"], "envolvente λ modelo: el % fuera, releído", 1e-9)
+        a.cerca(float(r[dentro_r][fm].max()), lm["ultimo_r_fuera_m"],
+                "envolvente λ modelo: el último r fuera, releído", 1e-6)
+    a.cierto(lm["ultimo_r_fuera_m"] > m10["ultimo_r_fuera_m"],
+             "envolvente: con λ del modelo el exceso llega más lejos",
+             f"{lm['ultimo_r_fuera_m']:.0f} contra {m10['ultimo_r_fuera_m']:.0f} m")
+    a.cierto(lm["dclf_p"] < 0.05, "envolvente λ modelo: el DCLF también rechaza", f"p = {lm['dclf_p']:g}")
+    a.cierto(500 < m10["lambda_nucleo_sigma_m"] < 20000,
+             "envolvente: el núcleo por defecto mide kilómetros",
+             f"{m10['lambda_nucleo_sigma_m']:.0f} m")
+    # EL VEREDICTO, ACOTADO A LO QUE SE CONTRASTÓ. Un polinomio de grado g en
+    # dos coordenadas tiene (g+1)(g+2)/2 coeficientes; el de grado bajo sigue
+    # rechazando y el de grado alto ya no.
+    tf = m10["tendencia_flexible"]
+    for t in tf:
+        a.igual(t["coeficientes"], (t["grado"] + 1) * (t["grado"] + 2) // 2,
+                f"veredicto: coeficientes del grado {t['grado']}")
+    a.cierto(tf[0]["dclf_p"] < 0.05 <= tf[-1]["dclf_p"],
+             "veredicto: el grado bajo rechaza y el alto no",
+             f"grado {tf[0]['grado']}: p = {tf[0]['dclf_p']:g}; grado {tf[-1]['grado']}: p = {tf[-1]['dclf_p']:g}")
+    a.cierto("plano" in m10["veredicto"] and "intensidad variable no explica" not in m10["veredicto"],
+             "veredicto: dice «un plano», no «la intensidad variable»", m10["veredicto"])
+
     # -----------------------------------------------------------------
     a.titulo("10 · Conglomerado, y el Hawkes recalculado")
     # -----------------------------------------------------------------
     m11 = D["m11"]
     a.igual(len(m11["ajustes"]), 6, "kppm: los tres modelos por las dos correcciones")
+
+    # EL «VALLE» (tercera revisión, 2026-10-27), recalculado desde los
+    # parámetros publicados: la K entera de los dos Thomas casi coincide porque
+    # las dos llevan pi r^2; el exceso no.
+    vl = m11["valle"]
+    pa = {(x["modelo"], x["correccion"]): x["parametros"] for x in m11["ajustes"]}
+    ki, si = pa[("Thomas", "iso")]["kappa"], pa[("Thomas", "iso")]["scale"]
+    kt, st = pa[("Thomas", "translate")]["kappa"], pa[("Thomas", "translate")]["scale"]
+
+    def k_thomas(rr, kap, esc):
+        return np.pi * rr ** 2 + (1 - np.exp(-rr ** 2 / (4 * esc ** 2))) / kap
+
+    rv = np.array(vl["r_m"], dtype=float)
+    ka, kb = k_thomas(rv, ki, si), k_thomas(rv, kt, st)
+    for i, rr in enumerate(rv):
+        a.cerca(100 * abs(kb[i] - ka[i]) / ka[i], vl["k_dif_pct"][i],
+                f"valle: la diferencia de las K enteras a {rr:.0f} m", 1e-6)
+        a.cerca(100 * abs((kb[i] - np.pi * rr ** 2) / (ka[i] - np.pi * rr ** 2) - 1), vl["exceso_dif_pct"][i],
+                f"valle: la de sus excesos sobre pi r² a {rr:.0f} m", 1e-6)
+    a.cerca(ki * si ** 2, vl["kappa_sigma2"]["iso"], "valle: kappa·sigma², isotrópica", 1e-6)
+    a.cerca(kt * st ** 2, vl["kappa_sigma2"]["traslacion"], "valle: kappa·sigma², traslación", 1e-6)
+    a.cerca(ki / kt, vl["razon_inv_kappa"], "valle: cuántas veces cambia kappa", 1e-6)
+    a.cierto(vl["exceso_dif_pct"][-1] > 5 * vl["k_dif_pct"][-1],
+             "valle: el exceso se separa mucho más que la K entera",
+             f"{vl['exceso_dif_pct'][-1]:.1f} % contra {vl['k_dif_pct'][-1]:.1f} %")
+
+    # LA z DE LA DISTANCIA, CERRADA: el cuadrático es evidente con Poisson y
+    # deja de serlo con los tres conglomerados. El p es el de la chi² de dos
+    # grados del Wald publicado.
+    from scipy.stats import chi2 as _chi2
+    cq = m11["cuadratico_dcen"]
+    for x in [cq["poisson"]] + cq["conglomerado"]:
+        a.cerca(float(_chi2.sf(x["wald"], 2)), x["p"],
+                f"z de la distancia: el p del Wald {x.get('modelo', 'de Poisson')}", 1e-4)
+    a.cierto(cq["poisson"]["p"] < 1e-6 and all(x["p"] > 0.05 for x in cq["conglomerado"]),
+             "z de la distancia: sí con Poisson, no con conglomerado",
+             f"Poisson p = {cq['poisson']['p']:.2g}; "
+             + ", ".join(f"{x['modelo']} p = {x['p']:.3f}" for x in cq["conglomerado"]))
     # UN AUDITOR NO SE MUERE ANTE UN ARCHIVO ROTO: INFORMA. Buscar con
     # `[...][0]` estallaba en cuanto una inyección truncaba la lista de
     # ajustes, y el arnés contaba ese reventón como captura porque solo
@@ -965,6 +1220,13 @@ def main() -> int:
              f"hasta {max(d['mu_pct'] for d in m11['divergencia']):.1f} % en mu")
     dup = m11["duplicados"]
     a.igual(dup["n_con"] - dup["n_sin"], dup["repetidos"], "kppm: los repetidos, recontados")
+    # «40 sitios» eran 40 sedes sobrantes en 39 sitios (tercera revisión):
+    # se recuentan los sitios y las sedes implicadas, por coordenada exacta.
+    a.igual(len(urb), dup["n_con"], "kppm: con duplicados son todas las sedes")
+    gr = urb.groupby(["x", "y"]).size()
+    a.igual(int((gr >= 2).sum()), dup["sitios"], "kppm: los sitios con más de una sede")
+    a.igual(int(gr[gr >= 2].sum()), dup["implicadas"], "kppm: y las sedes implicadas")
+    a.igual(dup["implicadas"] - dup["sitios"], dup["repetidos"], "kppm: implicadas menos sitios, sobrantes")
     a.cierto(dup["cambio_maximo_pct"] < 15,
              "kppm: los duplicados no descuadran el ajuste",
              f"como mucho {dup['cambio_maximo_pct']:.1f} %")
@@ -1033,7 +1295,12 @@ def main() -> int:
              "hawkes: la simulación cuadra con la teoría",
              f"{h['tasa_simulada']:.3f} contra {h['tasa_teorica']:.3f}")
 
-    def dispersion(ev, k=200):
+    # El índice depende del ancho del intervalo de conteo, y el módulo lo
+    # publica: se recalcula con ESE ancho, no con uno escrito aquí.
+    k_int = int(round(h["T"] / h["ancho_intervalo"]))
+    a.cerca(h["T"] / k_int, h["ancho_intervalo"], "hawkes: el ancho del intervalo cabe entero en T", 1e-12)
+
+    def dispersion(ev, k=k_int):
         cnt, _ = np.histogram(ev, bins=np.linspace(0, h["T"], k + 1))
         return float(cnt.var(ddof=1) / cnt.mean())
     a.cerca(dispersion(th), h["dispersion_hawkes"],
@@ -1042,6 +1309,22 @@ def main() -> int:
     a.cierto(dispersion(th) > dispersion(tp),
              "hawkes: el autoexcitado sale más agregado",
              f"{dispersion(th):.2f} contra {dispersion(tp):.2f}")
+    a.cerca(1 / (1 - h["razon_ramificacion"]) ** 2, h["dispersion_limite"],
+            "hawkes: el límite del índice, 1/(1 - a/b)²", 1e-9)
+    a.cierto(1 < h["dispersion_hawkes"] < h["dispersion_limite"],
+             "hawkes: el índice medido, por debajo de su límite",
+             f"{h['dispersion_hawkes']:.2f} contra {h['dispersion_limite']:.2f}")
+    # La pregunta del módulo 12 lleva sus propios parámetros, y su respuesta
+    # no puede ser la que el módulo 11 ya publica.
+    hq = h["pregunta"]
+    a.cerca(hq["alpha"] / hq["beta"], hq["razon_ramificacion"], "hawkes/pregunta: la razón de ramificación", 1e-9)
+    a.cerca(hq["mu"] / (1 - hq["alpha"] / hq["beta"]), hq["tasa_teorica"],
+            "hawkes/pregunta: la tasa teórica", 1e-9)
+    a.cierto(hq["razon_ramificacion"] < 1, "hawkes/pregunta: el proceso es estacionario")
+    a.cierto(abs(hq["tasa_teorica"] - h["tasa_teorica"]) > 0.05
+             and (hq["mu"], hq["alpha"], hq["beta"]) != (h["mu"], h["alpha"], h["beta"]),
+             "hawkes/pregunta: no se contesta copiando el módulo",
+             f"{hq['tasa_teorica']:.3f} contra {h['tasa_teorica']:.3f}")
 
     # -----------------------------------------------------------------
     a.titulo("11 · Los cinco ejercicios")
@@ -1100,8 +1383,9 @@ def main() -> int:
              f"{zmax[0]} contra {zmax[-1]}")
     for nombre in ("kennedy_puntos", "sector_puntos"):
         a.cierto(M[nombre]["modo"] == "puntos", f"mapas/{nombre}: es del modo puntos")
-    for nombre in ("ciudad_oferta", "ciudad_estudiantes", "proporcion_oficial"):
-        g = M[nombre]
+    for clave in ("ciudad_oferta", "ciudad_bachillerato", "ciudad_estudiantes", "proporcion_oficial"):
+        g = M[clave]
+        nombre = CORTO.get(clave, clave)
         a.cierto(g["modo"] == "rejilla", f"mapas/{nombre}: es del modo rejilla")
         a.igual(len(g["zq"]), g["nx"] * g["ny"], f"mapas/{nombre}: el ráster tiene sus celdas")
         a.cierto(min(g["zq"]) == -1, f"mapas/{nombre}: marca las celdas de fuera")
@@ -1115,9 +1399,9 @@ def main() -> int:
     # rejilla declare sus lados, que haya una celda por posición, que -1
     # sea el único negativo y que nada se salga de la cuantización— y los
     # rásteres cruzan la misma puerta que los demás mapas.
-    for nombre in ("kennedy_puntos", "sector_puntos", "ciudad_oferta",
+    for nombre in ("kennedy_puntos", "sector_puntos", "ciudad_oferta", "ciudad_bachillerato",
                    "ciudad_estudiantes", "proporcion_oficial"):
-        audita_geomapa(a, M[nombre], nombre, presupuesto_kb=560.0)
+        audita_geomapa(a, M[nombre], CORTO.get(nombre, nombre), presupuesto_kb=560.0)
     for i, g in enumerate(M["kennedy_familia"]):
         audita_geomapa(a, g, f"familia[{i}]", presupuesto_kb=560.0)
     p_ofi = np.array(M["proporcion_oficial"]["zq"], dtype=float)
@@ -1131,6 +1415,51 @@ def main() -> int:
                      - D["m6"]["bogota"]["p_mediana"]) < 0.02,
                  "mapas: el ráster de proporción pinta P(oficial)",
                  f"mediana {np.median(p_ofi[dentro_z])/zqm:.4f}")
+
+    # -----------------------------------------------------------------
+    a.titulo("12b · Los rásteres, al derecho: cada mapa casa con sus propias sedes")
+    # -----------------------------------------------------------------
+    # Hasta el 2026-10-27 los diez rásteres se publicaron volteados norte-sur
+    # (`as.matrix()` de un `im` empieza por el sur y el navegador pinta la fila
+    # 0 arriba) y todo lo de arriba estaba en verde: la mediana, el máximo y
+    # la escala no dependen del orden de las filas. Aquí no se presupone
+    # ningún convenio: cada ráster, leído como lo pinta el navegador, tiene
+    # que casar con sus sedes MEJOR que su propio reflejo. Una KDE vale más
+    # donde están sus puntos, y la ventana del ráster es la de las sedes.
+    def al_derecho(g, X, Y, etq, marcas=None):
+        # Un auditor informa: si al ráster le falta un lado, lo dice y sigue.
+        nx, ny = g.get("nx"), g.get("ny")
+        legible = (isinstance(nx, int) and isinstance(ny, int) and nx > 0 and ny > 0
+                   and len(g.get("zq") or []) == nx * ny and g.get("caja") and g.get("zqmax"))
+        if not a.cierto(legible, f"orient/{etq}: el ráster se puede leer", f"nx = {nx}, ny = {ny}"):
+            return
+        z, zr = muestrea(g, X, Y), muestrea(g, X, Y, reflejo=True)
+        fuera, fuera_r = int((z < 0).sum()), int((zr < 0).sum())
+        a.cierto(fuera <= 0.02 * len(X) and fuera <= fuera_r,
+                 f"orient/{etq}: sus sedes caen dentro",
+                 f"{fuera} de {len(X)} fuera; {fuera_r} si se volteara")
+        if marcas is None:
+            v, vr = z[z >= 0].mean(), zr[zr >= 0].mean()
+            a.cierto(v > vr, f"orient/{etq}: más alta en sus sedes que volteada",
+                     f"{v:.0f} contra {vr:.0f}")
+        else:
+            uno, otro = (z >= 0) & marcas, (z >= 0) & ~marcas
+            uno_r, otro_r = (zr >= 0) & marcas, (zr >= 0) & ~marcas
+            d, dr = z[uno].mean() - z[otro].mean(), zr[uno_r].mean() - zr[otro_r].mean()
+            a.cierto(d > 0 and d > dr,
+                     f"orient/{etq}: mayor en oficiales que en privadas",
+                     f"{d:+.0f} sobre {g['zqmax']} ({dr:+.0f} si se volteara)")
+
+    Xk, Yk = puntos_de(M["kennedy_puntos"])
+    for g in M["kennedy_familia"]:
+        al_derecho(g, Xk, Yk, f"Kennedy σ={g['sigma_m']:.0f}")
+    Xs, Ys = puntos_de(M["sector_puntos"])
+    ofi_pts = np.asarray(M["sector_puntos"]["marcas"]) == \
+        1 + M["sector_puntos"]["niveles"].index("oficial")
+    al_derecho(M["ciudad_oferta"], Xs, Ys, "oferta")
+    al_derecho(M["ciudad_bachillerato"], Xs, Ys, "bachillerato")
+    al_derecho(M["ciudad_estudiantes"], Xs, Ys, "estudiantes")
+    al_derecho(M["proporcion_oficial"], Xs, Ys, "P(oficial)", marcas=ofi_pts)
 
     # -----------------------------------------------------------------
     a.titulo("13 · Formato")

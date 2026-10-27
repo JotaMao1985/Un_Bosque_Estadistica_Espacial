@@ -245,7 +245,17 @@ LAM_KEN <- npoints(p_ken) / (A_KEN / 1e6)
 # y las vecindades se solapan—, y las dos se pueden mirar.
 NX_CUAD <- 8L
 cuad <- quadratcount(p_ken, nx = NX_CUAD, ny = NX_CUAD)
-cuad_int <- as.numeric(cuad) / (A_KEN / (NX_CUAD * NX_CUAD)) * 1e6   # por km2
+# Cada conteo entre el área de SU tesela. La rejilla parte la CAJA, no la
+# ventana, y `quadratcount()` recorta por el borde las celdas de la orilla.
+# Hasta el 2026-10-27 se dividía por A_KEN / 64, que no es el área de
+# ninguna celda, y el máximo se publicaba en 24.9 sedes por km² en vez de
+# 16.8: las dos celdas con 15 sedes son enteras. Lo había anotado el
+# registro de cifras de las láminas el 1 oct, sin que llegara aquí.
+cuad_int <- as.numeric(intensity(cuad)) * 1e6   # por km2
+area_celda_km2 <- diff(Frame(W_KEN)$xrange) / NX_CUAD *
+  diff(Frame(W_KEN)$yrange) / NX_CUAD / 1e6        # una celda entera de la caja
+if (abs(max(cuad_int) - max(as.numeric(cuad)) / area_celda_km2) > 1e-6 * max(cuad_int))
+  stop("la celda más llena no es una celda entera: la frase del módulo 1 deja de valer")
 
 D$m1 <- list(
   ventana = list(nombre = KEN, n = npoints(p_ken), area_km2 = r10(A_KEN / 1e6),
@@ -264,6 +274,8 @@ D$m1 <- list(
       dist_borde_m = r10(d_borde[i]))),
     dist_max_m = r10(max(d_borde))),
   cuadrantes = list(nx = NX_CUAD, n_celdas = NX_CUAD * NX_CUAD,
+                    n_teselas = length(as.numeric(cuad)),
+                    area_celda_km2 = r10(area_celda_km2),
                     conteo_min = min(as.numeric(cuad)), conteo_max = max(as.numeric(cuad)),
                     intensidad_min_km2 = r10(min(cuad_int)),
                     intensidad_max_km2 = r10(max(cuad_int))))
@@ -358,6 +370,21 @@ SEL_URB <- cacheado("sel_urbana",  selectores(p_urb))
 SCOTT_Y_KEN <- cacheado("scott_y_kennedy", as.numeric(bw.scott(p_ken))[2])
 SCOTT_Y_URB <- cacheado("scott_y_urbana",  as.numeric(bw.scott(p_urb))[2])
 
+# LOS FOCOS DEL σ MÁS ESTRECHO SON GRUPOS, NO COLEGIOS (tercera revisión,
+# 2026-10-27). El módulo decía que con σ pequeño «aparecen focos que son
+# colegios concretos». Una sede sola levanta 1/(2 pi sigma^2), que no pasa
+# del primer tramo de la leyenda común; el foco más alto reúne varias.
+foco_fam <- local({
+  im <- fam$imagenes[[1]]; s <- fam$sigmas[1]
+  ij <- which(as.matrix(im$v) == max(as.numeric(im$v), na.rm = TRUE), arr.ind = TRUE)[1, ]
+  x0 <- im$xcol[ij[2]]; y0 <- im$yrow[ij[1]]
+  list(sigma_m = r10(s), pico_una_sede_km2 = r10(1e6 / (2 * pi * s^2)),
+       sedes_a_un_sigma_del_maximo = sum((p_ken$x - x0)^2 + (p_ken$y - y0)^2 <= s^2),
+       primer_corte_km2 = r10(seq(FAM_ESC_KM2[1], FAM_ESC_KM2[2], length.out = 8L)[2]))
+})
+if (!(foco_fam$pico_una_sede_km2 < foco_fam$primer_corte_km2 && foco_fam$sedes_a_un_sigma_del_maximo >= 3))
+  stop("una sede sola ya se ve en el mapa de la familia, o el foco más alto ya no es un grupo: el módulo 2 lo afirma")
+
 D$m2 <- list(
   sigma_m = SIG_REF,
   nucleos = list(
@@ -371,7 +398,8 @@ D$m2 <- list(
     sigmas_m = r10(fam$sigmas),
     max_km2 = r10(fam$maximos * 1e6),
     caida_pct = r10(100 * (max(fam$maximos) - min(fam$maximos)) / max(fam$maximos)),
-    escala = r10(FAM_ESC_KM2)))
+    escala = r10(FAM_ESC_KM2),
+    foco = foco_fam))
 
 message(sprintf("   nucleos: el maximo varia %.1f%% · anchos: varia %.1f%%",
                 D$m2$nucleos$max_dif_pct, D$m2$familia$caida_pct))
@@ -409,7 +437,33 @@ con_nombres <- function(v) {
     stop("los selectores perderían su nombre al publicarse")
   z
 }
+# DOS DE LOS CUATRO NO BUSCAN UN ÓPTIMO CONTINUO (tercera revisión,
+# 2026-10-27; lo había anotado el registro de las láminas). `bw.ppl` y
+# `bw.CvL` evalúan su criterio en `ns` anchos de una rejilla geométrica
+# —16 por defecto— y devuelven el mejor. El cruce que el módulo leía
+# (bw.ppl por encima de bw.diggle en Kennedy y por debajo en la ciudad) es
+# de esa rejilla: con una fina, bw.ppl queda por debajo en las dos. Se
+# publica el defecto, leído de la propia función, y los valores finos.
+NS_DEFECTO <- c(ppl = eval(formals(bw.ppl)$ns), CvL = eval(formals(bw.CvL)$ns))
+NS_FINO <- 256L
+fino <- function(p) c(ppl = as.numeric(bw.ppl(p, ns = NS_FINO)),
+                      CvL = as.numeric(bw.CvL(p, ns = NS_FINO)))
+FINO_KEN <- cacheado(sprintf("sel_fino_%d_kennedy", NS_FINO), fino(p_ken))
+FINO_URB <- cacheado(sprintf("sel_fino_%d_urbana", NS_FINO), fino(p_urb))
+if (!(SEL_KEN[["ppl"]] > SEL_KEN[["diggle"]] && SEL_URB[["ppl"]] < SEL_URB[["diggle"]]))
+  stop("con la rejilla por defecto ya no hay cruce entre bw.ppl y bw.diggle: el módulo 3 lo comenta")
+if (!(FINO_KEN[["ppl"]] < SEL_KEN[["diggle"]] && FINO_URB[["ppl"]] < SEL_URB[["diggle"]]))
+  stop("con la rejilla fina el cruce sigue: el módulo 3 dice que es de la rejilla")
+# Y `bw.scott` da UN ancho si se le pide (`isotropic = TRUE`): la media
+# geométrica de los dos. Con él la razón de la ciudad cambia.
+SCOTT_ISO <- c(kennedy = as.numeric(bw.scott(p_ken, isotropic = TRUE)),
+               urbana  = as.numeric(bw.scott(p_urb, isotropic = TRUE)))
+sel_iso_urb <- SEL_URB; sel_iso_urb[["scott"]] <- SCOTT_ISO[["urbana"]]
 D$m3 <- list(
+  ns_defecto = list(ppl = NS_DEFECTO[["ppl"]], CvL = NS_DEFECTO[["CvL"]]), ns_fino = NS_FINO,
+  fino = list(kennedy = con_nombres(FINO_KEN), urbana = con_nombres(FINO_URB)),
+  scott_isotropico_m = list(kennedy = r10(SCOTT_ISO[["kennedy"]]), urbana = r10(SCOTT_ISO[["urbana"]])),
+  razon_urbana_scott_isotropico = r10(max(sel_iso_urb) / min(sel_iso_urb)),
   kennedy = list(n = npoints(p_ken),
                  sigmas_m = con_nombres(SEL_KEN),
                  scott_y_m = r10(SCOTT_Y_KEN),
@@ -502,6 +556,16 @@ if (is.unsorted(sapply(borde, function(f) f$exceso_defecto_pct), strictly = TRUE
 
 kde_con <- density(p_ken, sigma = SIG_REF, dimyx = c(99L, NX_KEN))
 
+coste_kde <- cacheado("coste_kde_kennedy_800", {
+  mide <- function(...) median(replicate(20L, system.time(
+    density(p_ken, sigma = 800, dimyx = c(99L, NX_KEN), ...))[["elapsed"]]))
+  list(defecto = mide(), sin_corregir = mide(edge = FALSE), diggle = mide(diggle = TRUE),
+       medido_en = sprintf("%s, R %s", R.version$platform, getRversion()))
+})
+coste_kde[c("defecto", "sin_corregir", "diggle")] <- lapply(coste_kde[c("defecto", "sin_corregir", "diggle")], r10)
+if (max(unlist(coste_kde[c("defecto", "sin_corregir", "diggle")])) > 1)
+  stop("la KDE de Kennedy dejó de costar menos de un segundo: el contraste con los 555 del capítulo 4 cambia")
+
 D$m4 <- list(
   n = npoints(p_ken), sigmas_m = SIG_BORDE, tabla = borde,
   # La cifra que resume el módulo: a 800 m, no corregir y corregir por
@@ -513,7 +577,10 @@ D$m4 <- list(
   # dejar dicho: allí la corrección de borde de K costaba 555 veces la
   # alternativa y había que ELEGIR; aquí las tres cuestan lo mismo y no
   # hay nada que elegir por precio, solo por lo que cada una conserva.
-  coste_segundos = list(defecto = 0.15, sin_corregir = 0.14, diggle = 0.15))
+  # MEDIDOS, no escritos (tercera revisión, 2026-10-27): eran 0.15 / 0.14 /
+  # 0.15, literales que venían de la ciudad a 128 x 128 (A.21) y que este
+  # módulo leía como de Kennedy. Mediana de 20, una vez, y se cachea.
+  coste_segundos = coste_kde)
 
 message(sprintf("   a sigma=800 m: sin corregir %+.2f%%, defecto %+.2f%%, Diggle %+.4f%% · horquilla %.1f puntos",
                 borde[[3]]$fuga_sin_corregir_pct, borde[[3]]$exceso_defecto_pct,
@@ -651,6 +718,23 @@ or_ch <- orienta(rr_ch, ch, "larynx")
 if (or_ch <= sum(marks(ch) == "larynx") / npoints(ch))
   stop(sprintf("chorley: el mapa no es P(laringe) — donde es máximo solo el %.0f%% de los vecinos son casos", 100 * or_ch))
 
+# EL MÁXIMO DE UNA PROPORCIÓN SE LEE CON SUS DATOS AL LADO. El 0.3389 de
+# `chorley` se publicó como «sitios donde uno de cada tres cánceres es de
+# laringe», y cae en un rincón sin un solo punto alrededor: es el cociente de
+# dos colas de núcleo casi nulas, la trampa que el módulo 7 enseña con
+# rhohat (tercera revisión, 2026-10-27). Se publica dónde cae y cuántos
+# puntos tiene a dos anchos de banda, y la frase depende de que sean cero.
+max_xy <- function(im) {
+  ij <- which(as.matrix(im$v) == max(as.numeric(im$v), na.rm = TRUE), arr.ind = TRUE)[1, ]
+  c(x = im$xcol[ij[2]], y = im$yrow[ij[1]])
+}
+SIG_CH <- 1                                      # km, el de relrisk(ch, sigma = 1)
+mx_ch <- max_xy(rr_ch)
+d_borde_ch <- bdist.points(ppp(mx_ch[["x"]], mx_ch[["y"]], window = Window(ch)))   # km
+n_cerca_ch <- sum((ch$x - mx_ch[["x"]])^2 + (ch$y - mx_ch[["y"]])^2 <= (2 * SIG_CH)^2)
+if (n_cerca_ch > 0)
+  stop(sprintf("chorley: el máximo de P(laringe) tiene %d puntos a dos anchos; la frase del módulo 6 deja de valer", n_cerca_ch))
+
 # Y EL COLOMBIANO, CON LA SALVEDAD DICHA EN VOZ ALTA (decisión 3).
 # Oficial contra privado NO es casos contra controles: nadie «contrae»
 # ser oficial. Es la misma matemática —cociente de dos intensidades sobre
@@ -666,13 +750,31 @@ or_bog <- orienta(rr_bog, p_sec, "oficial")
 if (or_bog <= prop_global)
   stop(sprintf("Bogotá: el mapa no es P(oficial) — donde es máximo solo el %.0f%% de los vecinos son oficiales", 100 * or_bog))
 
-# LA CIFRA QUE ES EL MÓDULO. La mediana de la superficie y la proporción
-# de los puntos NO tienen por qué coincidir, y su diferencia dice algo
-# geográfico: si la mediana del ÁREA queda por debajo de la proporción de
-# los PUNTOS, el tipo está concentrado —ocupa poca superficie donde es
-# mayoría—; si queda por encima, está repartido. Se publica la
-# diferencia, con su signo, y el módulo la lee; no se decide de antemano
-# cuál de los dos signos va a salir.
+# LA PREGUNTA «¿EN QUÉ FRACCIÓN DE LA CIUDAD SON MAYORÍA?» TIENE SU CIFRA, y
+# no es la mediana: es el área donde P > 0.5. Los píxeles miden lo mismo, así
+# que la fracción de píxeles es la del área. Hasta el 2026-10-27 el módulo le
+# asignaba esa pregunta a la mediana y leía «concentrado: mayoría en poca
+# superficie» también para la laringe, que no es mayoría en ningún sitio.
+pct_mayoria_ch  <- 100 * mean(v_ch > 0.5)
+pct_mayoria_bog <- 100 * mean(v_bog > 0.5)
+
+# Y EL CONTRASTE QUE EL MAPA DE PUNTOS ENSEÑA: norte contra sur, por tercios
+# de la caja. El pie decía «privado en el centro, oficial en la periferia»,
+# que el dato sostiene a medias; el contraste fuerte es este.
+rg_y <- Frame(W_URB)$yrange
+y_sur <- rg_y[1] + diff(rg_y) / 3; y_norte <- rg_y[1] + 2 * diff(rg_y) / 3
+pct_ofi_sur   <- 100 * mean(marca[p_sec$y <  y_sur]   == "oficial")
+pct_ofi_norte <- 100 * mean(marca[p_sec$y >= y_norte] == "oficial")
+if (!(pct_ofi_sur > pct_ofi_norte))
+  stop("Bogotá: lo oficial ya no pesa más en el sur que en el norte; el pie del mapa de sectores deja de valer")
+
+# LAS CIFRAS QUE SON EL MÓDULO. Contar puntos y mirar el área contestan
+# preguntas distintas: qué fracción de las sedes es de un tipo (la global)
+# y en qué fracción del área es mayoría (`pct_area_mayoria`). La mediana de
+# la superficie contesta una tercera —qué valor deja por debajo a media
+# ventana— y su diferencia con la global se publica con su signo, pero ya no
+# se lee como «concentrado»: esa lectura daba «mayoría en poca superficie»
+# para un tipo que no es mayoría en ningún sitio.
 D$m6 <- list(
   chorley = list(
     casos = sum(marks(ch) == "larynx"), controles = sum(marks(ch) == "lung"),
@@ -682,6 +784,10 @@ D$m6 <- list(
     p_min = r10(min(v_ch)), p_max = r10(max(v_ch)), p_mediana = r10(median(v_ch)),
     prop_global = r10(sum(marks(ch) == "larynx") / npoints(ch)),
     brecha_mediana_menos_global = r10(median(v_ch) - sum(marks(ch) == "larynx") / npoints(ch)),
+    pct_area_mayoria = r10(pct_mayoria_ch),
+    maximo_dist_borde_m = r10(1000 * d_borde_ch),
+    maximo_radio_km = 2 * SIG_CH,
+    maximo_puntos_cerca = n_cerca_ch,
     orientacion_verificada = r10(or_ch)),
   bogota = list(
     que = "proporción de tipo, no riesgo epidemiológico",
@@ -691,14 +797,16 @@ D$m6 <- list(
     p_min = r10(min(v_bog)), p_max = r10(max(v_bog)), p_mediana = r10(median(v_bog)),
     prop_global = r10(prop_global),
     brecha_mediana_menos_global = r10(median(v_bog) - prop_global),
-    concentrado = median(v_bog) < prop_global,
+    pct_area_mayoria = r10(pct_mayoria_bog),
+    pct_oficiales_tercio_sur = r10(pct_ofi_sur),
+    pct_oficiales_tercio_norte = r10(pct_ofi_norte),
     orientacion_verificada = r10(or_bog)))
 
-message(sprintf("   chorley: %d casos / %d controles, mediana %.4f contra %.4f global · Bogotá: mediana %.4f contra %.4f global (%s)",
+message(sprintf("   chorley: %d casos / %d controles, mediana %.4f contra %.4f global, máximo a %.0f m del borde con %d puntos a %g km · Bogotá: mediana %.4f contra %.4f global, mayoría oficial en el %.1f%% del área, %.1f%% de oficiales en el tercio sur y %.1f%% en el norte",
                 D$m6$chorley$casos, D$m6$chorley$controles,
                 D$m6$chorley$p_mediana, D$m6$chorley$prop_global,
-                D$m6$bogota$p_mediana, prop_global,
-                if (D$m6$bogota$concentrado) "lo oficial está concentrado" else "lo oficial está repartido"))
+                1000 * d_borde_ch, n_cerca_ch, 2 * SIG_CH,
+                D$m6$bogota$p_mediana, prop_global, pct_mayoria_bog, pct_ofi_sur, pct_ofi_norte))
 
 # =====================================================================
 # MÓDULO 7 · Covariables: la intensidad como función de otra cosa
@@ -737,11 +845,20 @@ rango_rho <- function(p, cov) {
   q <- quantile(vp, c(0.05, 0.95))
   b <- x >= q[1] & x <= q[2]
   if (sum(b) < 5L) stop("el bulto de la covariable se quedó sin nodos")
+  # LA CURVA, Y NO SOLO SUS RAZONES (tercera revisión, 2026-10-27): el módulo
+  # dice que rhohat «dibuja» la relación y no la dibujaba, y el módulo 9 se
+  # apoya en su forma. Se publica reducida a cien nodos, y dónde caen su
+  # máximo y su mínimo.
+  xs <- seq(min(x), max(x), length.out = 100L)
   list(rho_min = min(y), rho_max = max(y), razon = max(y) / min(y),
        bulto_desde = q[[1]], bulto_hasta = q[[2]],
        rho_min_bulto = min(y[b]), rho_max_bulto = max(y[b]),
        razon_bulto = max(y[b]) / min(y[b]),
-       cola_infla = (max(y) / min(y)) / (max(y[b]) / min(y[b])))
+       cola_infla = (max(y) / min(y)) / (max(y[b]) / min(y[b])),
+       z_del_maximo = x[which.max(y)], z_del_minimo = x[which.min(y)],
+       maximo_en_el_bulto = x[which.max(y)] >= q[[1]] && x[which.max(y)] <= q[[2]],
+       minimo_en_el_bulto = x[which.min(y)] >= q[[1]] && x[which.min(y)] <= q[[2]],
+       curva_z = xs, curva_rho = approx(x, y, xout = xs)$y)
 }
 
 # EL CASO CANÓNICO: `bei`, 3 604 árboles de Barro Colorado, con la
@@ -766,6 +883,20 @@ if (rd$razon_bulto > re$razon_bulto || re$razon_bulto > rg$razon_bulto)
   stop("el orden de las tres covariables en el bulto cambió: revisa el módulo 7")
 if (min(re$cola_infla, rg$cola_infla, rd$cola_infla) < 1)
   stop("alguna cola dejó de inflar la razón, que es lo que el módulo 7 afirma")
+# Lo que infla el titular es el MÍNIMO en una cola, en las tres curvas; el
+# máximo no siempre (tercera revisión: «el máximo y el mínimo viven en los
+# extremos» era falso para dos de las tres).
+if (any(c(re$minimo_en_el_bulto, rg$minimo_en_el_bulto, rd$minimo_en_el_bulto)))
+  stop("el mínimo de alguna rhohat cae en el bulto: el módulo 7 dice que lo que infla el titular es el mínimo en la cola")
+
+# LA COVARIABLE SALE DEL PATRÓN, Y SE DICE (tercera revisión; M20 de la
+# segunda). El centro de masa es de las propias sedes, justo lo que el módulo
+# prohíbe dos párrafos antes. Se mide la misma curva con el centroide de la
+# ventana, que no sale de las sedes: la lección sobrevive, y se publica.
+cent_w <- centroid.owin(W_URB)
+rd_cent <- rango_rho(p_urb, distfun(ppp(cent_w$x, cent_w$y, window = W_URB)))
+if (!(rd_cent$cola_infla > 1 && rd_cent$razon_bulto < re$razon_bulto))
+  stop("con el centroide de la ventana la lección del módulo 7 cambia")
 
 D$m7 <- list(
   bei = list(n = npoints(bei),
@@ -774,6 +905,10 @@ D$m7 <- list(
   bogota = list(covariable = "distancia al centro de masa de las sedes",
                 n = npoints(p_urb),
                 curva = lapply(rd, r6),
+                centroide_ventana = list(
+                  distancia_al_centro_de_masa_m = r10(sqrt((cent_w$x - mean(p_urb$x))^2 +
+                                                           (cent_w$y - mean(p_urb$y))^2)),
+                  razon = r6(rd_cent$razon), razon_bulto = r6(rd_cent$razon_bulto)),
                 # el enlace con el módulo 9, que ajusta esta misma
                 # covariable con una forma funcional que no es la suya
                 z_del_ppm_lineal = NULL),
@@ -1128,7 +1263,7 @@ D$m9 <- list(
   # El enlace con el módulo 7, que es lo que impide leer mal esta z: el
   # modelo lineal no ve nada porque supone una forma que la relación no
   # tiene, y rhohat ya enseñó que en el bulto la variación es de 1,6.
-  nota_dcen = "z pequeño no es ausencia de relación: es ausencia de relación LOG-LINEAL (ver módulo 7)")
+  nota_dcen = "z pequeña no es ausencia de relación: es no haber encontrado una relación LOG-LINEAL, y con conglomerado tampoco la no lineal (ver módulos 7 y 11)")
 
 message(sprintf("   crudo: singular (cond rec %.1e) · centrado: cond rec %.1e, %.0f veces mejor · z de la distancia: %.2f",
                 rc_crudo, rc_centr, D$m9$mejora_condicion, c_dcen$z[2]))
@@ -1277,6 +1412,64 @@ if (!(r_mad_obs < max(rg_env[dentro_r][fuera[dentro_r]]) &&
       test_global$r_min_mad_superan_m > max(rg_env[dentro_r][fuera[dentro_r]])))
   stop("la peor desviación de la observada ya no cae dentro del tramo, o las que la superan ya no caen pasado él: el porqué del MAD cambió")
 
+# --- ¿POR QUÉ INTENSIDAD DIVIDE LA K INHOMOGÉNEA? (tercera revisión, 2026-10-27)
+# La llamada de arriba no le pasa `lambda` a `Kinhom`, y sin ella `Kinhom` no
+# divide por la intensidad del MODELO —lo que el módulo decía—: la estima por
+# núcleo en cada patrón, con exclusión del propio punto y el ancho por defecto
+# de density.ppp. Se comprueba aquí que es eso lo que se publicó, se dice con
+# qué ancho, y se publica también la envolvente que divide por el modelo,
+# porque qué λ divide decide hasta dónde llega el exceso: es el «el ancho lo
+# es todo» del módulo 2 otra vez.
+sig_lambda <- attr(density(p_urb), "sigma")
+k_nucleo <- Kinhom(p_urb, lambda = density(p_urb, at = "points", leaveoneout = TRUE),
+                   correction = CORR_ENV, r = env_inh$r)
+if (!isTRUE(all.equal(k_nucleo$trans, env_inh$obs)))
+  stop("la K publicada ya no es la que divide por el núcleo por defecto: el módulo 10 lo afirma")
+
+env_mod <- cacheado(sprintf("env_kinhom_lambda_modelo_%d_%s_simfuns", NSIM_ENV, CORR_ENV), {
+  set.seed(SEM_ENV)
+  envelope(f_centr, Kinhom, nsim = NSIM_ENV, correction = CORR_ENV, lambda = f_centr,
+           verbose = FALSE, savefuns = TRUE)
+})
+obs_m <- ppp_curva(env_mod, "obs", rg_env); lo_m <- ppp_curva(env_mod, "lo", rg_env)
+hi_m  <- ppp_curva(env_mod, "hi", rg_env);  mme_m <- ppp_curva(env_mod, "mmean", rg_env)
+fuera_m <- obs_m > hi_m | obs_m < lo_m
+i_fuera_m <- which(fuera_m[dentro_r])
+if (!length(i_fuera_m) || !all(diff(i_fuera_m) == 1L))
+  stop("con la λ del modelo el tramo fuera de la banda ya no es un intervalo: el módulo 10 lo cuenta como uno")
+lambda_modelo <- list(
+  pct_r_fuera_de_banda = r10(100 * mean(fuera_m[dentro_r])),
+  primer_r_fuera_m = r10(min(rg_env[dentro_r][fuera_m[dentro_r]])),
+  ultimo_r_fuera_m = r10(max(rg_env[dentro_r][fuera_m[dentro_r]])),
+  nodos_dentro_tras_el_tramo = sum(dentro_r) - max(i_fuera_m),
+  dclf_p = pval(dclf.test(env_mod)$p.value),
+  curva = list(obs = r10(obs_m), lo = r10(lo_m), hi = r10(hi_m), mmean = r10(mme_m)))
+# Lo que la prosa afirma: con la λ del modelo el exceso llega MÁS LEJOS que
+# con el núcleo, y el test global rechaza con las dos.
+if (!(lambda_modelo$ultimo_r_fuera_m > max(rg_env[dentro_r][fuera[dentro_r]]) &&
+      lambda_modelo$dclf_p < 0.05))
+  stop("con la λ del modelo el exceso ya no llega más lejos que con el núcleo, o el DCLF dejó de rechazar")
+
+# --- EL VEREDICTO VALE PARA UN PLANO, NO PARA «LA INTENSIDAD VARIABLE» --------
+# Lo que se contrastó arriba es UN modelo de intensidad, un plano en x e y. Con
+# una tendencia flexible la misma envolvente deja de rechazar: con un solo
+# patrón, intensidad variable y agrupación no se separan (auditoría B de las
+# láminas, 2026-10-01; tercera revisión del capítulo, 2026-10-27). Se mide con
+# dos grados y la misma envolvente que la publicada.
+flex <- lapply(c(4L, 12L), function(gr) {
+  # bquote: la fórmula busca `gr` en su propio entorno, no en el de lapply
+  f <- eval(bquote(ppm(p_urb ~ polynom(xc, yc, .(gr)), covariates = COVS)))
+  e <- cacheado(sprintf("env_kinhom_grado%d_%d_%s_simfuns", gr, NSIM_ENV, CORR_ENV), {
+    set.seed(SEM_ENV)
+    envelope(f, Kinhom, nsim = NSIM_ENV, correction = CORR_ENV, verbose = FALSE, savefuns = TRUE)
+  })
+  list(grado = gr, coeficientes = length(coef(f)),
+       dclf_p = pval(dclf.test(e)$p.value), mad_p = pval(mad.test(e)$p.value))
+})
+if (!(flex[[1]]$dclf_p < 0.05 && flex[[2]]$dclf_p >= 0.05))
+  stop(sprintf("la tendencia flexible ya no hace lo que el módulo 10 dice (grado 4: p = %.4g; grado 12: p = %.4g)",
+               flex[[1]]$dclf_p, flex[[2]]$dclf_p))
+
 D$m10 <- list(
   modelo = "ppm(~ xc + yc), coordenadas centradas",
   nsim = NSIM_ENV, correccion = CORR_ENV,
@@ -1305,8 +1498,13 @@ D$m10 <- list(
   # algún radio, y los dos tests que sí contrastan la curva entera.
   tasa_salida = tasa,
   test_global = test_global,
-  # La lectura, que es lo que el módulo tiene que dejar dicho.
-  veredicto = "la intensidad variable no explica la agregación: hace falta un proceso de conglomerado")
+  # Con qué se divide: el núcleo por defecto (lo de arriba) y el modelo.
+  lambda_nucleo_sigma_m = r10(sig_lambda),
+  lambda_modelo = lambda_modelo,
+  tendencia_flexible = flex,
+  # La lectura, que es lo que el módulo tiene que dejar dicho, y acotada a lo
+  # que se contrastó.
+  veredicto = "un plano en x e y no explica la agregación; una tendencia muy flexible sí la absorbe")
 
 message(sprintf("   K inhomogénea fuera de la banda en el %.1f%% de los r, de %.0f a %.0f m (y dentro en los %d nodos siguientes)",
                 pct_fuera, D$m10$primer_r_fuera_m, D$m10$ultimo_r_fuera_m,
@@ -1445,6 +1643,50 @@ message(sprintf("   la z de xc: %.2f con Poisson, entre %.2f y %.2f con conglome
                 co_p[2] / ee_p[2], min(z_xc), max(z_xc), min(inf_xc), max(inf_xc),
                 npoints(p_urb), npoints(p_urb) / deff))
 
+# --- LA SEGUNDA z DEL MÓDULO 9, CERRADA AQUÍ (tercera revisión, 2026-10-27)
+# El módulo 9 leía la z pequeña de la distancia al centro como «no hay relación
+# log-lineal» y dejaba en pie una relación no lineal. Con conglomerado tampoco
+# esa sobrevive: un término cuadrático en la distancia, que con Poisson da un
+# Wald enorme, deja de serlo con los tres modelos (traslación, que es la
+# barata). Mismo arreglo que la z de xc: los errores, no los coeficientes.
+COVS$dk <- function(x, y) dcen(x, y) / 1000     # km, para que dk^2 no sea de 1e8
+wald2 <- function(co, V) { b <- co[2:3]; W <- as.numeric(t(b) %*% solve(V[2:3, 2:3]) %*% b)
+                           c(W = W, p = pchisq(W, 2, lower.tail = FALSE)) }
+f_cuad <- ppm(p_urb ~ dk + I(dk^2), covariates = COVS)
+w_pois <- wald2(coef(f_cuad), vcov(f_cuad))
+cuad_cong <- lapply(MODELOS, function(m) {
+  aj <- cacheado(sprintf("kppm_cuadratico_dcen_%s_%s", tolower(m), PPP_CORR), {
+    k <- ppp_kppm(p_urb, m, PPP_CORR, tendencia = ~ dk + I(dk^2), covariables = COVS)
+    list(coef = unname(coef(k$ajuste)), V = unname(vcov(k$ajuste)))
+  })
+  w <- wald2(aj$coef, aj$V)
+  list(modelo = m, correccion = PPP_CORR, wald = r10(w[["W"]]), p = pval(w[["p"]]))
+})
+if (!(w_pois[["p"]] < 1e-6 && all(sapply(cuad_cong, function(x) x$p) > 0.05)))
+  stop("el término cuadrático en la distancia ya no pasa de evidente con Poisson a nada con conglomerado: el módulo 11 lo afirma")
+
+# --- EL «VALLE» DEL CONTRASTE MÍNIMO NO ES PLANO -------------------------
+# El módulo decía que las K teóricas de los dos ajustes de Thomas casi
+# coinciden y que por eso el valle es plano. Casi coinciden porque las dos
+# llevan el mismo pi r^2, que no depende de los parámetros; lo que fijan los
+# parámetros es el EXCESO K - pi r^2, y ese no coincide. A r corto los dos
+# acuerdan kappa * sigma^2; kappa sale del exceso a r grande, que es donde las
+# dos estimaciones empíricas de K se separan (auditoría B de las láminas).
+valle <- local({
+  a <- ajustes[["Thomas/iso"]]$parametros; b <- ajustes[[paste("Thomas", PPP_CORR, sep = "/")]]$parametros
+  k_th <- function(r, k, s) pi * r^2 + (1 - exp(-r^2 / (4 * s^2))) / k
+  rr <- c(500, 1000, 2000, 3000)
+  ka <- k_th(rr, a$kappa, a$scale); kb <- k_th(rr, b$kappa, b$scale)
+  list(r_m = rr,
+       k_dif_pct = r10(100 * abs(kb - ka) / ka),
+       exceso_dif_pct = r10(100 * abs((kb - pi * rr^2) / (ka - pi * rr^2) - 1)),
+       kappa_sigma2 = list(iso = r10(a$kappa * a$scale^2), traslacion = r10(b$kappa * b$scale^2)),
+       razon_inv_kappa = r10(a$kappa / b$kappa))
+})
+if (!(valle$exceso_dif_pct[4] > 5 * valle$k_dif_pct[4] &&
+      abs(valle$kappa_sigma2$iso / valle$kappa_sigma2$traslacion - 1) < 0.05))
+  stop("el exceso de las dos K de Thomas ya no difiere mucho más que la K entera, o kappa*sigma^2 dejó de coincidir: el módulo 11 lo afirma")
+
 # --- HAWKES: el conglomerado en el TIEMPO ------------------------------
 # La conexión con ciencia de datos que pide el plan: fraude y sismología.
 # Un proceso autoexcitado no es un Poisson con intensidad variable —donde
@@ -1489,9 +1731,16 @@ if (d_h <= d_p) stop("el Hawkes no salió más agregado que el Poisson de su mis
 D$m11 <- list(
   ajustes = unname(ajustes),
   divergencia = divergencia,
+  cuadratico_dcen = list(poisson = list(wald = r10(w_pois[["W"]]), p = pval(w_pois[["p"]])),
+                         conglomerado = cuad_cong),
+  valle = valle,
   duplicados = list(
     n_con = npoints(p_urb), n_sin = npoints(p_unico),
     repetidos = npoints(p_urb) - npoints(p_unico),
+    # «40 sitios» eran 40 SEDES sobrantes en 39 sitios (tercera revisión):
+    # se publican las dos cuentas y las sedes implicadas.
+    sitios = sum(table(paste(p_urb$x, p_urb$y)) >= 2L),
+    implicadas = sum(table(paste(p_urb$x, p_urb$y))[table(paste(p_urb$x, p_urb$y)) >= 2L]),
     efecto = dup_efecto, cambio_maximo_pct = r10(cambio_max),
     que = "la decisión 3 del capítulo 4 conservó los duplicados; aquí se mide qué le hacen a un ajuste, y la respuesta es casi nada"),
   nota = "kppm pide K con el correction por defecto, que en ventana no rectangular es la isotrópica; cambiarlo no es un acelerón, es otra respuesta",
@@ -1511,7 +1760,17 @@ D$m11 <- list(
     tasa_teorica = r10(tasa_teo), tasa_simulada = r10(tasa_obs),
     n_eventos = length(ev_h),
     dispersion_hawkes = r10(d_h), dispersion_poisson = r10(d_p),
-    veces_mas_agregado = r10(d_h / d_p)))
+    veces_mas_agregado = r10(d_h / d_p),
+    # El índice depende del ancho del intervalo de conteo, y se dice: con
+    # intervalos anchos tiende a 1/(1 - alpha/beta)^2 (tercera revisión).
+    ancho_intervalo = HAW$T / 200L,
+    dispersion_limite = r10(1 / (1 - ramif)^2),
+    # La pregunta 2 del módulo 12 pedía la tasa con los MISMOS parámetros cuya
+    # respuesta el módulo publica en prosa y en su simulador: se contestaba de
+    # memoria (tercera revisión). Lleva los suyos, calculados aquí.
+    pregunta = local({ q <- list(mu = 0.4, alpha = 0.6, beta = 1.5)
+      c(q, list(razon_ramificacion = r10(q$alpha / q$beta),
+                tasa_teorica = r10(q$mu / (1 - q$alpha / q$beta)))) })))
 
 message(sprintf("   %d ajustes · duplicados mueven como mucho %.1f%% · divergencia máxima en mu: %.1f%% · Hawkes: %.2f eventos/u (teórica %.2f), %.1f veces más agregado que su Poisson",
                 length(ajustes), cambio_max, max(sapply(divergencia, function(d) d$mu_pct)),
@@ -1538,15 +1797,26 @@ MAPAS$kennedy_familia <- lapply(seq_along(fam$sigmas), function(i) {
   c(g, list(sigma_m = r10(fam$sigmas[i]), escala_comun = r10(FAM_ESC_KM2)))
 })
 
+# CON SU CONTORNO (tercera revisión, 2026-10-27): el módulo 1 presentaba la
+# ventana —«un contorno y no una caja»— sobre un mapa que no la dibujaba.
+contorno_ken <- lapply(W_KEN$bdry, function(b) cbind(c(b$x, b$x[1]), c(b$y, b$y[1])))
 MAPAS$kennedy_puntos <- geo_puntos(
   cbind(p_ken$x, p_ken$y),
   titulo = sprintf("Kennedy · %d sedes educativas", npoints(p_ken)),
-  leyenda = "sede")
+  leyenda = "sede", lineas = contorno_ken)
 
 # Los dos mapas del módulo 5 que NO son el mismo mapa.
 MAPAS$ciudad_oferta <- geo_rejilla(
   kde_oferta * M2_A_KM2, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),
   titulo = sprintf("Sedes educativas · sigma = %.0f m", SIG_CIUDAD),
+  leyenda = "sedes por km2")
+# El del medio: las sedes con grado 11, sin pesar. Entre la oferta y los
+# estudiantes cambian DOS cosas —se caen las sedes sin undécimo y se pesa—,
+# y sin este mapa el módulo 5 atribuía toda la diferencia a la segunda
+# (tercera revisión, 2026-10-27). Con él, cada pareja vecina difiere en una.
+MAPAS$ciudad_bachillerato <- geo_rejilla(
+  kde_b11 * M2_A_KM2, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),
+  titulo = sprintf("Sedes con grado 11 · sigma = %.0f m", SIG_CIUDAD),
   leyenda = "sedes por km2")
 MAPAS$ciudad_estudiantes <- geo_rejilla(
   kde_est * M2_A_KM2, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),
@@ -1562,8 +1832,13 @@ MAPAS$proporcion_oficial <- geo_rejilla(
   escala = c(0, 1),
   titulo = "Proporción de sedes oficiales · P(oficial)", leyenda = "proporción")
 
+# Los niveles en el orden de relrisk (privado, oficial) y no en el
+# alfabético: el primer nivel se pinta en naranja, y el naranja es el lado
+# «privado» de la rampa del mapa de P(oficial) que este mapa controla. Con
+# el alfabético, lo oficial salía naranja al lado de una superficie donde el
+# naranja es mayoría privada (tercera revisión, 2026-10-27).
 MAPAS$sector_puntos <- geo_puntos(
-  cbind(p_sec$x, p_sec$y), marcas = as.character(marks(p_sec)),
+  cbind(p_sec$x, p_sec$y), marcas = marks(p_sec),
   titulo = sprintf("Sedes por sector · %d oficiales, %d privadas",
                    sum(marca == "oficial"), sum(marca == "privado")),
   leyenda = "sector")

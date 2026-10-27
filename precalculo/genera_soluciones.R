@@ -2203,7 +2203,7 @@ solucion_cap5 <- function() {
           "diez, y la z pasa de abrumadora a quedarse en el umbral de 1.96: por",
           "debajo con la corrección por defecto y por encima con la de traslación.",
           "La z de `ppm` suponía árboles independientes. Es el mismo desplome que",
-          "el módulo 10 mide en las sedes de Bogotá, y la misma dependencia de la",
+          "el módulo 11 mide en las sedes de Bogotá, y la misma dependencia de la",
           "corrección que enseña el ejercicio 5."))),
       lectura = paste(
         "Que el titular de una curva rhohat sea su cola pasa también en el caso",
@@ -2287,10 +2287,12 @@ solucion_cap5 <- function() {
           "desplazado, ninguno.")),
         responde(en4, "di qué objeto de R vale `NULL` cuando eso pasa y por qué `try()` no lo caza",
           paste(
-          "`vcov()`. No falla: avisa de que la información de Fisher es singular y",
-          "devuelve NULL, y `sqrt(diag(NULL))` devuelve una matriz 0 x 0 sin",
-          "quejarse. No hay ningún error que atrapar; lo que delata el problema es",
-          "que no haya un error estándar por coeficiente.")),
+          "`vcov()`. Por dentro sí hay un error: `solve()` no puede invertir la",
+          "información de Fisher y la consola lo imprime, pero `vcov()` lo atrapa",
+          "él mismo, avisa de que la matriz es singular y devuelve NULL; y",
+          "`sqrt(diag(NULL))` devuelve una matriz 0 x 0 sin quejarse. Por eso un",
+          "`try()` de fuera no ve nada: el error no llega al guion. Lo que delata el",
+          "problema es que no haya un error estándar por coeficiente.")),
         responde(en4, paste(
           "Compara además los coeficientes de x e y entre los dos ajustes y",
           "explica por qué se parecen tanto pese a todo"), paste(

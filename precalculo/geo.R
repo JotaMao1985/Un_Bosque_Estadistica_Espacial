@@ -632,6 +632,20 @@ ZQ <- 1000L
 #'   caída se ve.
 geo_rejilla <- function(z, caja, titulo = "", leyenda = "", n_clases = 7,
                         estilo = "equal", escala = NULL) {
+  # UN `im` DE SPATSTAT LLEGA CON LA FILA 1 ABAJO.
+  #
+  # `as.matrix()` de un `im` devuelve `$v`, cuya fila 1 es la de `yrow[1]`:
+  # la y más baja, el sur. El navegador pinta la fila 0 ARRIBA. La demo ya
+  # lo sabía e invierte a mano (`d$v[nrow(d$v):1, ]` en
+  # genera_demo_geomapa.R); el capítulo 5 pasaba el `im` tal cual y sus diez
+  # rásteres se publicaron volteados norte-sur hasta el 2026-10-27, con 738
+  # de las 2 107 sedes fuera de la ciudad pintada y ningún arnés en rojo.
+  # Se invierte aquí, una vez, para todo `im`. Una matriz se toma como
+  # viene: quien la construye declara su orden (filas de arriba abajo).
+  if (inherits(z, "im")) {
+    z <- as.matrix(z)
+    z <- z[nrow(z):1, , drop = FALSE]
+  }
   z <- as.matrix(z)
   fin <- z[is.finite(z)]
   if (is.null(escala)) {

@@ -315,7 +315,7 @@ TITULOS = (
     ("El ancho de banda lo es todo", "El núcleo importa poco"),
     ("Selectores de ancho de banda", "Qué optimiza cada uno"),
     ("Corrección de borde en la KDE", "Y la ventana otra vez"),
-    ("La KDE como mapa de calor", "Oferta, cobertura y demanda"),
+    ("La KDE como mapa de calor", "Oferta, bachillerato y estudiantes"),
     ("Intensidad relativa", "Casos, controles y proporción de tipo"),
     ("Covariables", "La intensidad como función de otra cosa"),
     ("El Poisson inhomogéneo", "El modelo y su verosimilitud"),
@@ -356,10 +356,15 @@ round(area.owin(W) / 1e6, 4)              # km2
 # El punto de partida del capitulo 4: contar en celdas que no se solapan
 cuad &lt;- quadratcount(p, nx = {NX}, ny = {NX})
 range(as.numeric(cuad))
-#&gt; [1] {CMIN} {CMAX}'''
+#&gt; [1] {CMIN} {CMAX}
+length(as.numeric(cuad))                  # las celdas de la caja que tocan Kennedy
+#&gt; [1] {NT}
+round(range(intensity(cuad)) * 1e6, 2)    # por km2: cada conteo entre el area de SU celda
+#&gt; [1] {IR}'''
 
 PY1 = '''import geopandas as gpd
 import numpy as np
+from shapely.geometry import box
 
 cole = gpd.read_file(&quot;datos/procesado/bogota_colegios.gpkg&quot;)
 loc = gpd.read_file(&quot;datos/procesado/bogota_localidades.gpkg&quot;)
@@ -374,21 +379,45 @@ print(len(px))
 print(round(W.area / 1e6, 4))
 #&gt; {A}
 
-# El mismo conteo con el convenio de cut(): abierto por la izquierda
+# El mismo conteo con el convenio de cut(): abierto por la izquierda. La
+# rejilla parte la CAJA; R se queda con las celdas que tocan Kennedy
 x0, y0, x1, y1 = W.bounds
 nx = {NX}
-ix = np.clip(np.searchsorted(np.linspace(x0, x1, nx + 1), px, &quot;left&quot;) - 1, 0, nx - 1)
-iy = np.clip(np.searchsorted(np.linspace(y0, y1, nx + 1), py, &quot;left&quot;) - 1, 0, nx - 1)
+xs, ys = np.linspace(x0, x1, nx + 1), np.linspace(y0, y1, nx + 1)
+ix = np.clip(np.searchsorted(xs, px, &quot;left&quot;) - 1, 0, nx - 1)
+iy = np.clip(np.searchsorted(ys, py, &quot;left&quot;) - 1, 0, nx - 1)
 cnt = np.zeros((nx, nx), int)
 np.add.at(cnt, (ix, iy), 1)
 print(cnt.min(), cnt.max())
-#&gt; {CMIN} {CMAX}'''
+#&gt; {CMIN} {CMAX}
 
-_SUB1 = dict(N=ent(m1["ventana"]["n"]).replace(" ", ""),
+# Cada conteo entre el area de SU celda, recortada por el borde de Kennedy
+area = np.array([[box(xs[i], ys[j], xs[i + 1], ys[j + 1]).intersection(W).area
+                  for j in range(nx)] for i in range(nx)])
+toca = area &gt; 0
+print(toca.sum())
+#&gt; {NT}
+dens = cnt[toca] / area[toca] * 1e6       # por km2
+print(round(float(dens.min()), 2), round(float(dens.max()), 2))
+#&gt; {IRPY}'''
+
+
+def _rango_r(a, b, d=2):
+    """Como lo imprime R: los dos con d decimales y alineados a la derecha."""
+    s = [f"{float(a):.{d}f}", f"{float(b):.{d}f}"]
+    w = max(map(len, s))
+    return " ".join(x.rjust(w) for x in s)
+
+
+_SUB1 = dict(N=ent(m1["ventana"]["n"]).replace(" ", ""),
              A=n(m1["ventana"]["area_km2"], 4),
              NX=str(m1["cuadrantes"]["nx"]),
              CMIN=ent(m1["cuadrantes"]["conteo_min"]),
-             CMAX=ent(m1["cuadrantes"]["conteo_max"]))
+             CMAX=ent(m1["cuadrantes"]["conteo_max"]),
+             NT=str(m1["cuadrantes"]["n_teselas"]),
+             IR=_rango_r(m1["cuadrantes"]["intensidad_min_km2"], m1["cuadrantes"]["intensidad_max_km2"]),
+             IRPY=f'{round(float(m1["cuadrantes"]["intensidad_min_km2"]), 2)!r} '
+                  f'{round(float(m1["cuadrantes"]["intensidad_max_km2"]), 2)!r}')
 
 R2 = '''# El nucleo casi no importa: cuatro pesos distintos, el mismo mapa
 sigmas &lt;- c(&quot;gaussian&quot;, &quot;epanechnikov&quot;, &quot;quartic&quot;, &quot;disc&quot;)
@@ -467,7 +496,7 @@ MOD1 = cabecera(
         toda la ciudad, y la pregunta que un mapa invita a hacer no es cuántas sedes hay por
         kilómetro cuadrado en promedio, sino <strong>dónde</strong> hay más y dónde menos.</p>
 
-      <p>El test de cuadrantes ya daba una respuesta a eso: la rejilla parte la ventana y cuenta.
+      <p>El test de cuadrantes ya daba una respuesta a eso: la rejilla parte el plano en celdas y cuenta.
         Lo que hace este capítulo es quitarle a esa respuesta sus dos limitaciones —que las
         celdas no se solapan y que sus bordes son rectos y los puso alguien— sin cambiar la idea
         de fondo.</p>
@@ -475,12 +504,15 @@ MOD1 = cabecera(
       <h3>La ventana de trabajo: una localidad</h3>
 
       <p>Bajamos de la ciudad a <strong>{m1["ventana"]["nombre"]}</strong>. El motivo es técnico
-        y el módulo 3 lo explica entero: sobre la ciudad completa la celda más fina que el mapa
-        puede pagar mide {n(m5["rejilla"]["celda_m"], 0)} m, y para que lo que se vea sea el
-        núcleo y no la rejilla hacen falta {ent(FAM["celdas_por_sigma"])} celdas dentro de σ — o
-        sea un suelo de {n(m5["rejilla"]["sigma_minimo_dibujable_m"], 0)} m, más ancho que el
-        núcleo más estrecho que los selectores van a pedir. Un mapa por debajo de ese suelo no
-        dibuja el núcleo — dibuja su propia rejilla. Kennedy es una caja de
+        y lo explican los módulos 3 y 5: sobre la ciudad completa la celda más fina que el mapa
+        puede pagar —en bytes de esta página, no en cálculo: en R la rejilla es tan fina como se
+        quiera— mide {n(m5["rejilla"]["celda_m"], 0)} m, y para que lo que se vea sea el núcleo y
+        no la rejilla hacen falta {ent(FAM["celdas_por_sigma"])} celdas dentro de σ — o sea un
+        suelo de {n(m5["rejilla"]["sigma_minimo_dibujable_m"], 0)} m, más ancho que lo que dos de
+        los cuatro selectores piden para la ciudad. Un mapa por debajo de ese suelo no dibuja el
+        núcleo — dibuja su propia rejilla. Sobre Kennedy la celda mide
+        {n(FAM["celda_m"], 0)} m, el suelo baja a {n(min(FAM["sigmas_m"]), 0)} m y los cuatro
+        selectores quedan por encima. Kennedy es una caja de
         {n(m1["ventana"]["caja_x_km"], 1)} × {n(m1["ventana"]["caja_y_km"], 1)} km con
         {firma(ent(m1["ventana"]["n"]), " sedes")} sobre
         {firma(n(m1["ventana"]["area_km2"], 2), " km²")}, o sea
@@ -500,14 +532,18 @@ MOD1 = cabecera(
       </div>
 
 {mapa_html("cap5-kennedy", "Kennedy: las 262 sedes educativas dentro de la ventana")}
-      <p class="pie-figura">El mapa dibuja las sedes y nada más. La ventana con la que trabaja
-        el capítulo no se ve ahí, y no es el rectángulo que las enmarca: es el contorno de la
-        localidad, con sus entrantes y su borde irregular. Todo lo que aquí se estime —cada
+      <p class="pie-figura">La línea es la ventana con la que trabaja el capítulo, y no es el
+        rectángulo que enmarca las sedes: es el contorno de la localidad, con sus entrantes y su
+        borde irregular. Todo lo que aquí se estime —cada
         superficie, cada corrección de borde, cada integral— se hace contra esa forma y no contra
         la caja.</p>
 
-      <p>Con la ventana puesta, el punto de partida es el del capítulo anterior. Sobre una
-        rejilla de {m1["cuadrantes"]["nx"]} × {m1["cuadrantes"]["nx"]} celdas, la más vacía tiene
+      <p>Con la ventana puesta, el punto de partida es el del capítulo anterior: una rejilla de
+        {m1["cuadrantes"]["nx"]} × {m1["cuadrantes"]["nx"]} celdas. La rejilla parte la
+        <em>caja</em> que enmarca a Kennedy, no la localidad, así que solo
+        {m1["cuadrantes"]["n_teselas"]} de sus celdas la tocan, y las de la orilla salen recortadas
+        por el borde: cada conteo se divide por el área de <em>su</em> celda, y una entera mide
+        {n(m1["cuadrantes"]["area_celda_km2"], 2)} km². La más vacía tiene
         {ent(m1["cuadrantes"]["conteo_min"])} sedes y la más llena
         {ent(m1["cuadrantes"]["conteo_max"])}: entre
         {n(m1["cuadrantes"]["intensidad_min_km2"], 1)} y
@@ -558,7 +594,7 @@ _nuc = m2["nucleos"]
 _cor_min = min(_nuc["cor_con_gaussiano"].values())
 
 MOD2 = cabecera(
-    2, "El ancho de banda lo es todo", "The kernel matters little",
+    2, "El ancho de banda lo es todo", "The bandwidth is everything",
     "Medir cuánto cambia el mapa al cambiar de núcleo y cuánto al cambiar de "
     "ancho, y comprobar que no juegan en la misma liga.") + f"""
       <p>Elegir un estimador por núcleos son dos decisiones: qué función de peso usar y con qué
@@ -571,8 +607,8 @@ MOD2 = cabecera(
 
       <p>Con σ = {ent(m2["sigma_m"])} m fijo, cambiar entre los cuatro núcleos habituales mueve
         la intensidad máxima del mapa un {firma(pct(_nuc["max_dif_pct"]))}. Las superficies
-        correlacionan por encima de {n(_cor_min, 3)} con la gaussiana: son, a efectos de lo que
-        un lector ve, el mismo mapa.</p>
+        correlacionan {n(_cor_min, 4)} o más con la gaussiana: son, a efectos de lo que un
+        lector ve, el mismo mapa.</p>
 
       <table class="tabla-datos">
         <caption>Los cuatro núcleos al mismo σ = {ent(m2["sigma_m"])} m sobre Kennedy</caption>
@@ -594,18 +630,25 @@ MOD2 = cabecera(
 
       <p>El mismo patrón, el mismo núcleo, {ent(FAM["n"])} anchuras. La intensidad máxima cae de
         {firma(n(FAM["max_km2"][0], 1), " por km²")} a
-        {firma(n(FAM["max_km2"][-1], 1), " por km²")}: un {firma(pct(FAM["caida_pct"]))}, que es
-        trece veces lo que movía cambiar de núcleo.</p>
+        {firma(n(FAM["max_km2"][-1], 1), " por km²")}: un {firma(pct(FAM["caida_pct"]))} sobre
+        este abanico, de {n(FAM["sigmas_m"][0], 0)} a {n(FAM["sigmas_m"][-1], 0)} m. Las dos cifras
+        no se miden igual —el núcleo se cambió a un σ fijo; el ancho recorre un factor
+        {ent(FAM["razon"])}—, y la comparación justa es otra: sobre un abanico razonable de anchos,
+        cualquiera de ellos mueve el mapa más que cambiar de núcleo.</p>
 
 {tabs("El núcleo contra el ancho de banda", R2.format(**_SUB2), PY2.format(**_SUB2))}
-      <p>Mueve el deslizador y mira la ciudad, no la cifra: con σ pequeño aparecen focos que son
-        colegios concretos; con σ grande queda una sola mancha que no distingue barrios. Ninguno
+      <p>Mueve el deslizador y mira el mapa, no la cifra: con σ pequeño aparecen focos que son
+        grupos de unas pocas sedes —el más alto, a σ = {n(FAM["foco"]["sigma_m"], 0)} m, reúne
+        {ent(FAM["foco"]["sedes_a_un_sigma_del_maximo"])} a menos de un σ—, porque una sede sola
+        levanta {n(FAM["foco"]["pico_una_sede_km2"], 2)} sedes por km², que no pasa del primer
+        color de la leyenda; con σ grande queda una sola mancha que no distingue barrios. Ninguno
         de los dos extremos es un error de cálculo — los dos son la misma estimación con otra
         anchura, y por eso el módulo siguiente trata de cómo se elige.</p>
 
 {sim("cap5-anchos", "El pico contra el ancho de banda",
-      "El deslizador mueve σ. La curva no se mueve —el ancho ya es su eje—: "
-      "lo que se mueve es el punto que marca dónde estás, y el mapa de abajo.")}
+      "El deslizador mueve σ. La curva no se mueve —el ancho ya es su eje, en pasos que "
+      "multiplican σ por √2, y el eje vertical empieza en cero—: lo que se mueve es el "
+      "punto que marca dónde estás, y el mapa de abajo.")}
 {mapa_html("cap5-familia", "Intensidad por núcleos sobre Kennedy, con σ regulable")}
       <p class="pie-figura">Las {ent(FAM["n"])} superficies comparten <strong>una sola escala de
         color</strong>, y eso no es presentación: normalizada cada una contra su propio máximo,
@@ -651,8 +694,9 @@ PY3 = '''import pandas as pd
 
 # De los cuatro, bw.scott es el unico con forma cerrada: es la regla de
 # referencia normal, sd(x) * n^(-1/6) en dos dimensiones. Reimplementarla
-# explica de paso por que casi siempre sale la mas ancha —supone que la
-# intensidad es una normal, y una ciudad no lo es—.
+# explica de paso por que aqui sale la mas ancha en las dos ventanas: supone
+# que la intensidad es una normal, y con varios focos esa referencia
+# sobresuaviza.
 def scott(v, n):
     return v.std(ddof=1) * n ** (-1 / 6)
 
@@ -683,9 +727,11 @@ _QUE_OPTIMIZA = {
             "el criterio de Cronie y van Lieshout: que la suma de "
             "1/λ̂ sobre los puntos devuelva el área de la ventana."),
     "scott": ("<code>bw.scott</code>",
-              "nada: es la regla de referencia normal de Scott, "
-              "sd·n<sup>−1/6</sup>, en forma cerrada y sin buscar. Y no devuelve "
-              "<em>un</em> ancho: devuelve uno por eje."),
+              "el error cuadrático integrado en su aproximación asintótica, suponiendo "
+              "que la intensidad fuera una normal —es la regla de referencia normal de "
+              "Scott—: por eso tiene forma cerrada, "
+              "sd·n<sup>−1/6</sup>, y no busca. Y no devuelve <em>un</em> ancho: "
+              "devuelve uno por eje."),
 }
 
 _TOPES = "; ".join(
@@ -698,8 +744,8 @@ MOD3 = cabecera(
     "Saber qué optimiza cada uno de los cuatro selectores, por qué discrepan y "
     "cómo se reconoce el que no ha seleccionado nada.") + f"""
       <p>Si el ancho de banda lo decide todo, la pregunta siguiente se cae de madura: quién lo
-        decide. R trae cuatro selectores automáticos, se llaman parecido y devuelven un número
-        cada uno. Lo que este módulo defiende es que <strong>ese número no es «el ancho
+        decide. R trae varios selectores automáticos; estos son los cuatro más usados, se llaman
+        parecido y devuelven un número cada uno —casi: uno devuelve dos—. Lo que este módulo defiende es que <strong>ese número no es «el ancho
         óptimo»</strong>, porque los cuatro optimizan cosas distintas y ninguno optimiza «que el
         mapa se entienda».</p>
 
@@ -718,17 +764,31 @@ MOD3 = cabecera(
       </table>
 
       <p>Sobre {m1["ventana"]["nombre"]} el mayor es {firma(n(m3["kennedy"]["razon"]), " veces")}
-        el menor; sobre la ciudad entera, {firma(n(m3["urbana"]["razon"]), " veces")}. Y el
-        orden ni siquiera se conserva: en {m1["ventana"]["nombre"]} <code>bw.ppl</code> pide más
-        que <code>bw.diggle</code> y en la ciudad pide bastante menos —
-        {n(m3["urbana"]["sigmas_m"]["ppl"], 0)} m contra
-        {n(m3["urbana"]["sigmas_m"]["diggle"], 0)}—. El mismo dato, el mismo método y cuatro
-        respuestas que no convergen al crecer la ventana: <strong>divergen</strong>.</p>
+        el menor; sobre la ciudad entera, {firma(n(m3["urbana"]["razon"]), " veces")}: sobre la
+        ventana grande discrepan más.</p>
+
+      <p>Y dos de esas cifras llevan una decisión escondida. <code>bw.ppl</code> y
+        <code>bw.CvL</code> no buscan un óptimo continuo: evalúan su criterio en
+        {m3["ns_defecto"]["ppl"]} anchos de una rejilla y devuelven el mejor de ellos. Con
+        {m3["ns_fino"]}, <code>bw.ppl</code> da {n(m3["fino"]["kennedy"]["ppl"], 0)} m en
+        {m1["ventana"]["nombre"]} y {n(m3["fino"]["urbana"]["ppl"], 0)} m en la ciudad, y
+        <code>bw.CvL</code>, {n(m3["fino"]["kennedy"]["CvL"], 0)} y
+        {n(m3["fino"]["urbana"]["CvL"], 0)} m. El cruce que la tabla sugiere —<code>bw.ppl</code>
+        por encima de <code>bw.diggle</code> en {m1["ventana"]["nombre"]} y por debajo en la
+        ciudad, {n(m3["urbana"]["sigmas_m"]["ppl"], 0)} m contra
+        {n(m3["urbana"]["sigmas_m"]["diggle"], 0)}— es de la rejilla de búsqueda, no del dato:
+        con la fina, <code>bw.ppl</code> queda por debajo en las dos. Es otra decisión que la
+        llamada toma sin escribirla, y se declara con el argumento <code>ns</code>.</p>
 
       <p>Y hay una cuarta fila que ni siquiera contesta lo mismo que las otras tres.
         <strong><code>bw.scott</code> no devuelve un ancho: devuelve dos</strong> —
         <code>sigma.x</code> y <code>sigma.y</code>—, porque la regla de referencia normal se
-        aplica a cada coordenada por separado. La columna de arriba trae el primero. Sobre
+        aplica a cada coordenada por separado. La tabla trae el primero, que es lo que da
+        <code>[1]</code>; si se le pide uno solo, <code>bw.scott(p, isotropic = TRUE)</code>
+        devuelve la media geométrica de los dos —{n(m3["scott_isotropico_m"]["kennedy"], 0)} m en
+        {m1["ventana"]["nombre"]} y {n(m3["scott_isotropico_m"]["urbana"], 0)} m en la ciudad—, y
+        con él la razón de la ciudad sería {n(m3["razon_urbana_scott_isotropico"], 2)} en vez de
+        {n(m3["urbana"]["razon"], 2)}. Sobre
         {m1["ventana"]["nombre"]}, que es casi cuadrada, los dos casi coinciden:
         {n(m3["kennedy"]["sigmas_m"]["scott"], 0)} m a lo ancho y
         {n(m3["kennedy"]["scott_y_m"], 0)} m a lo alto. Sobre la ciudad, que es larga y estrecha,
@@ -758,7 +818,8 @@ MOD3 = cabecera(
 
       <div class="nota-lateral">
         <h4>Por qué el valor de retorno no delata nada</h4>
-        <p>R sí avisa —«criterion was maximised at right-hand end of interval»— pero el aviso va
+        <p>R sí avisa —«… at right-hand end of interval», maximised o minimised según el
+          selector— pero el aviso va
           a la consola y el número va a la variable. En un guion que calcula veinte cosas, el
           aviso se pierde entre los demás y el número sigue su camino hasta el mapa. Lo que sí
           lo delata es <strong>compararlo con el borde del intervalo de búsqueda</strong>:
@@ -787,8 +848,9 @@ MOD3 = cabecera(
 # MÓDULO 4 · Corrección de borde en la KDE
 # =====================================================================
 R4 = '''# La comprobacion que decide: integrar la intensidad estimada sobre la
-# ventana tiene que devolver n. Si no, el estimador esta perdiendo o
-# inventando puntos, y el mapa no lo dice.
+# ventana. Con Diggle devuelve n por construccion; sin corregir, pierde
+# masa por el borde; con la de por defecto, da n solo en promedio, y el
+# desvio dice donde caen las sedes respecto del borde.
 integra &lt;- function(im) {{
   v &lt;- as.numeric(im$v); v &lt;- v[is.finite(v)]
   sum(v) * im$xstep * im$ystep
@@ -857,7 +919,10 @@ MOD4 = cabecera(
         $$\\int_W \\hat\\lambda(u)\\,du \;=\; n$$
       </div>
 
-      <p>Es una identidad, no una aproximación, y por eso sirve de prueba. Medida sobre
+      <p>Con la corrección de Diggle es una identidad; con la de por defecto solo se cumple en
+        promedio, si las sedes estuvieran repartidas al azar; sin corregir, la masa que se escapa
+        por el borde no vuelve. Por eso sirve de prueba: el desvío dice qué conserva cada
+        corrección. Medida sobre
         {m1["ventana"]["nombre"]} a tres anchos, aparecieron <strong>tres</strong>
         comportamientos donde el manual sugiere dos.</p>
 
@@ -936,9 +1001,10 @@ MOD4 = cabecera(
 
       <p>El capítulo 4 dedicó un módulo entero a la corrección de borde de K, y allí la decisión
         fue cara: la isotrópica costaba <strong>555 veces</strong> la de traslación sobre esta
-        misma ciudad, y hubo que elegir declarándolo. Aquí las tres cuestan lo mismo —
-        {n(_c["defecto"], 2)} s por defecto, {n(_c["sin_corregir"], 2)} s sin corregir y
-        {n(_c["diggle"], 2)} s con Diggle— porque <strong>la KDE se paga por píxel y no por
+        misma ciudad, y hubo que elegir declarándolo. Aquí las tres son del mismo orden,
+        centésimas de segundo sobre {m1["ventana"]["nombre"]} —{n(_c["defecto"], 3)} s por
+        defecto, {n(_c["sin_corregir"], 3)} s sin corregir y {n(_c["diggle"], 3)} s con Diggle,
+        medidas una vez en la máquina del curso— porque <strong>la KDE se paga por píxel y no por
         perímetro</strong>.</p>
 
       <p>La misma expresión, «corrección de borde», nombra una operación gratis y una carísima
@@ -1019,17 +1085,27 @@ _kx, _ky = np.arange(-_rx, _rx + 1) * DX, np.arange(-_ry, _ry + 1) * DY
 NUC = np.exp(-(_kx[None, :] ** 2 + _ky[:, None] ** 2) / (2 * SIG ** 2)) / (2 * np.pi * SIG ** 2)
 BORDE = fftconvolve(MASK.astype(float), NUC, mode=&quot;same&quot;) * DX * DY
 
-def kde_ciudad(px, py, w=None):
-    c = np.zeros((NY, NX))
+# La correccion de Diggle, como `diggle = TRUE` en el bloque de R: cada
+# punto se divide por e(x_i), el borde EN EL DATO, antes de suavizar. Con
+# la de por defecto (dividir la superficie por e(u)) las correlaciones
+# saldrian 0.9391, 0.8555 y 0.9155: no es otra discretizacion, es otra
+# correccion de borde, la del modulo 4.
+def kde_ciudad(px, py, w=None, diggle=True):
     ix = np.clip(((px - X0) / DX).astype(int), 0, NX - 1)
     iy = np.clip(((py - Y0) / DY).astype(int), 0, NY - 1)
-    np.add.at(c, (iy, ix), 1.0 if w is None else w)
-    z = fftconvolve(c, NUC, mode=&quot;same&quot;) / np.maximum(BORDE, 1e-300)
+    peso = np.ones(len(px)) if w is None else np.asarray(w, float)
+    if diggle:
+        peso = peso / np.maximum(BORDE[iy, ix], 1e-300)
+    c = np.zeros((NY, NX))
+    np.add.at(c, (iy, ix), peso)
+    z = fftconvolve(c, NUC, mode=&quot;same&quot;)
+    if not diggle:                       # la de por defecto: e(u), donde se estima
+        z = z / np.maximum(BORDE, 1e-300)
     return np.where(MASK, z, np.nan)
 
-# Las tres superficies y cuanto se parecen. No sale identica a la de R
-# —otra discretizacion— pero contesta lo mismo: se parecen mucho y no
-# son iguales, y la pareja que menos se parece es edificios contra gente.
+# Las tres superficies y cuanto se parecen: las mismas cifras que R. Se
+# parecen mucho y no son iguales, y la pareja que menos se parece es
+# edificios contra gente.
 ok11 = urb.s11_n.notna().to_numpy()
 UX, UY = urb.x.to_numpy(), urb.y.to_numpy()
 z_of = kde_ciudad(UX, UY)
@@ -1037,7 +1113,12 @@ z_11 = kde_ciudad(UX[ok11], UY[ok11])
 z_es = kde_ciudad(UX[ok11], UY[ok11], urb.s11_n.to_numpy()[ok11])
 print([round(float(np.corrcoef(a[MASK], b[MASK])[0, 1]), 4)
        for a, b in ((z_of, z_11), (z_of, z_es), (z_11, z_es))])
-#&gt; [0.9391, 0.8555, 0.9155]'''
+#&gt; [{CORS_PY}]
+
+# Y la identidad que hace honesto al tercer mapa: con Diggle, la superficie
+# pesada integra exactamente los evaluados
+print(int(round(float(np.nansum(z_es) * DX * DY))), int(round(float(urb.s11_n.sum()))))
+#&gt; {TOT} {TOT}'''
 
 _SUB5 = dict(
     SIG=n(m5["sigma_m"], 4), SIG_LARGO=n(m5["sigma_m"], 10),
@@ -1049,7 +1130,9 @@ _SUB5 = dict(
     N=ent_codigo(m5["capas"]["oferta"]["n"]),
     N11=ent_codigo(m5["capas"]["grado_11"]["n"]),
     TOT=ent_codigo(m5["capas"]["estudiantes"]["total"]),
-    PCT=n(m5["capas"]["grado_11"]["pct_de_las_sedes"], 4))
+    PCT=n(m5["capas"]["grado_11"]["pct_de_las_sedes"], 4),
+    CORS_PY=", ".join(n(m5[k], 4) for k in ("cor_oferta_grado11", "cor_oferta_estudiantes",
+                                            "cor_grado11_estudiantes")))
 
 _desc = " y ".join(f'<code>bw.{s}</code>' for s in m5["rejilla"]["selectores_descartados"])
 
@@ -1107,12 +1190,17 @@ MOD5 = cabecera(
         <code>bw.{m5["sigma_selector"]}</code>: {n(m5["sigma_m"], 0)} m. La resolución no es un
         detalle de presentación; aquí ha elegido selector.</p>
 
-{mapa_html("cap5-estudiantes", "Demanda: evaluados en Saber 11, con las sedes pesadas por sus estudiantes")}
-      <p class="pie-figura">El mismo σ, la misma rejilla y las mismas
-        {ent(m5["capas"]["grado_11"]["n"])} sedes: lo único que cambia es que cada punto pesa por
-        sus evaluados en vez de por uno. Compárense los dos mapas en el norte y en el suroccidente
-        —donde las manchas no coinciden es donde el edificio y el estudiante dejan de ser la
-        misma cosa—.</p>
+{mapa_html("cap5-bachillerato", "Bachillerato: las sedes con grado 11, sin pesar")}
+      <p class="pie-figura">Del mapa de arriba a este cambia una sola cosa: se quedan las
+        {ent(m5["capas"]["grado_11"]["n"])} sedes con grado 11 y se caen las demás. El mismo σ, la
+        misma rejilla, y cada sede sigue siendo un punto.</p>
+
+{mapa_html("cap5-estudiantes", "Estudiantes: las sedes con grado 11, pesadas por sus evaluados")}
+      <p class="pie-figura">Y de ese a este, otra sola cosa: las mismas
+        {ent(m5["capas"]["grado_11"]["n"])} sedes, pero cada una pesa por sus evaluados en Saber 11
+        en vez de por uno. Así cada pareja de mapas vecinos difiere en una operación —quitar la
+        primaria, pesar por estudiantes— y se ve cuál mueve qué. Donde las manchas de los dos
+        últimos no coinciden es donde el edificio y el estudiante dejan de ser la misma cosa.</p>
 
 {sim("cap5-capas", "Las tres capas, y cuánto se parecen",
       "Las barras son el máximo de cada superficie —en su propia unidad, que por eso "
@@ -1159,20 +1247,22 @@ round(c(mediana = median(v), global = mean(marks(ch) == &quot;larynx&quot;),
 #&gt; mediana  global  maxima
 #&gt;  {CH}'''
 
-PY6 = '''# El riesgo relativo es un COCIENTE DE DOS INTENSIDADES sobre la misma
-# ventana, y por eso se puede reconstruir con la KDE que ya esta escrita:
-# nada nuevo salvo dividir. Aqui, sobre Bogota, P(oficial).
+PY6 = '''# La proporcion de tipo es un cociente entre la intensidad de un tipo y
+# la de los dos juntos, sobre la misma ventana, y se reconstruye con la KDE
+# que ya esta escrita: nada nuevo salvo dividir. Aqui, sobre Bogota,
+# P(oficial). Con la correccion de borde POR DEFECTO, como relrisk.
 of = (urb.sector == &quot;Oficial&quot;).to_numpy()
-z_ofi = kde_ciudad(UX[of], UY[of])
-z_pri = kde_ciudad(UX[~of], UY[~of])
+z_ofi = kde_ciudad(UX[of], UY[of], diggle=False)
+z_pri = kde_ciudad(UX[~of], UY[~of], diggle=False)
 p_of = z_ofi / (z_ofi + z_pri)
 
 print(round(float(np.nanmedian(p_of)), 4), round(float(of.mean()), 4))
 #&gt; 0.309 {PROP}
 
-# La correccion de borde SE VA en el cociente: numerador y denominador la
-# llevan igual, asi que se cancela. Es la razon de que un mapa de
-# proporcion sea mas robusto que los dos mapas de los que sale.
+# La correccion de borde por defecto SE VA en el cociente: numerador y
+# denominador se dividen por el mismo e(u). La de Diggle no se cancela:
+# cada sede se divide por su propio e(x_i). Por eso relrisk usa la de por
+# defecto, y un mapa de proporcion es mas robusto que los dos de los que sale.
 print(round(float(np.nanmax(p_of)), 4), int(of.sum()), int((~of).sum()))
 #&gt; 0.9999 {OFI} {PRI}'''
 
@@ -1213,9 +1303,12 @@ MOD6 = cabecera(
         que se le pida <code>relative = TRUE</code>, y este material publica la primera porque
         tiene tope y se puede pintar con una escala fija.</p>
 
-      <p>La forma tiene una ventaja que no es evidente: <strong>la corrección de borde del módulo
-        4 se cancela</strong>. Numerador y denominador la llevan igual, así que un mapa de
-        proporción es más robusto que cualquiera de los dos mapas de los que sale.</p>
+      <p>La forma tiene una ventaja que no es evidente: <strong>la corrección de borde por
+        defecto del módulo 4 se cancela</strong>. Numerador y denominador se dividen por el mismo
+        e(u), el del sitio donde se estima, así que un mapa de proporción es más robusto que
+        cualquiera de los dos mapas de los que sale. Con la de Diggle no pasa: cada dato se
+        divide por su propio e(x<sub>i</sub>), y las dos intensidades del cociente llevan
+        correcciones distintas. Por eso <code>relrisk</code> usa la de por defecto.</p>
 
       <h3>El caso canónico, con los controles bien nombrados</h3>
 
@@ -1226,10 +1319,15 @@ MOD6 = cabecera(
         cociente. Cambiar los controles cambia lo que el mapa significa, y esa decisión es la
         mitad del método.</p>
 
-      <p>La proporción global de casos es {n(_ch["prop_global"], 4)}. La mediana de la superficie
-        es {n(_ch["p_mediana"], 4)} y su máximo llega a {n(_ch["p_max"], 4)}: hay sitios donde
-        uno de cada tres cánceres registrados es de laringe, seis veces la proporción de la
-        comarca.</p>
+      <p>La proporción global de casos es {n(_ch["prop_global"], 4)} y la mediana de la
+        superficie, {n(_ch["p_mediana"], 4)}. Su máximo llega a {n(_ch["p_max"], 4)}, y es tentador
+        leerlo como un sitio donde uno de cada tres cánceres es de laringe. <strong>No se lee como
+        un sitio</strong>: ese máximo cae a {n(_ch["maximo_dist_borde_m"], 0)} m del borde de la
+        ventana y no tiene un solo punto —caso ni control— a menos de
+        {n(_ch["maximo_radio_km"], 0)} km, dos anchos de banda. Allí las dos intensidades son colas
+        casi nulas de sus núcleos, y su cociente no mide nada. El máximo de una proporción se
+        publica con los datos que tiene alrededor; el módulo 7 vuelve sobre esto con
+        <code>rhohat</code>, cuyo titular es casi siempre su cola.</p>
 
       <div class="nota-lateral">
         <h4>La trampa que casi publica este módulo al revés</h4>
@@ -1243,8 +1341,8 @@ MOD6 = cabecera(
           era la contraria de la cierta.</p>
         <p style="margin-bottom:0;">Se arregla de dos formas <em>a la vez</em>, porque una sola
           no basta: se fija el orden de niveles, y se <strong>comprueba la orientación contra el
-          dato</strong> —donde el mapa dice que la proporción es máxima, los vecinos tienen que
-          ser mayoritariamente de ese tipo—. Medido: en el máximo de <code>chorley</code> el
+          dato</strong> —donde el mapa dice que la proporción es máxima, la proporción de ese
+          tipo entre los vecinos tiene que superar la global—. Medido: en el máximo de <code>chorley</code> el
           {pct(100 * _ch["orientacion_verificada"], 0)} de los cincuenta vecinos son casos, sobre
           una proporción global de {pct(100 * _ch["prop_global"], 1)}; en el de Bogotá, el
           {pct(100 * _bg["orientacion_verificada"], 0)} son oficiales. Esa segunda guarda es la
@@ -1269,25 +1367,26 @@ MOD6 = cabecera(
 
 {mapa_html("cap5-sector", "Las mismas sedes, por sector, sin suavizar")}
       <p class="pie-figura">El mapa de puntos es el control de la superficie: enseña de dónde
-        sale cada mancha y recuerda que lo privado está apiñado en el centro y lo oficial ocupa
-        la periferia.</p>
+        sale cada mancha. Lo oficial pesa más en el sur —en el tercio sur de la ciudad son
+        oficiales el {pct(_bg["pct_oficiales_tercio_sur"], 1)} de las sedes; en el tercio norte,
+        el {pct(_bg["pct_oficiales_tercio_norte"], 1)}— y lo privado domina el norte.</p>
 
-      <p>Y aquí aparece la cifra que es el módulo. La proporción de oficiales <em>contando
-        puntos</em> es {firma(n(_bg["prop_global"], 4))}; la mediana de la
-        <em>superficie</em> es {firma(n(_bg["p_mediana"], 4))}. No tienen por qué coincidir, y su
-        diferencia dice algo geográfico: como la mediana del área queda
-        <strong>por debajo</strong> de la proporción de los puntos, lo oficial está
-        <strong>concentrado</strong> —es mayoría en poca superficie—, mientras lo privado se
-        reparte por más ciudad.</p>
+      <p>Y aquí aparecen las cifras que son el módulo. La proporción de oficiales <em>contando
+        puntos</em> es {firma(n(_bg["prop_global"], 4))}. Pero son mayoría —P(oficial) por encima
+        de un medio— solo en el {firma(pct(_bg["pct_area_mayoria"], 1))} del área de la ciudad, y
+        en la mitad del área la proporción no pasa de {firma(n(_bg["p_mediana"], 4))}, la mediana
+        de la superficie. Lo oficial es mayoría en poca superficie; lo privado, en casi toda la
+        demás.</p>
 
 {sim("cap5-riesgo", "Contar puntos y mirar el mapa dan respuestas distintas",
-      "Cada patrón trae dos referencias: la proporción global —contando puntos— y la "
-      "mediana de la superficie. Que la segunda quede por debajo de la primera es lo "
-      "que significa «concentrado».")}
+      "Cada patrón trae la proporción contando puntos y la superficie con su mínimo, su "
+      "mediana y su máximo. La lectura añade en qué fracción del área el tipo es mayoría, "
+      "que es lo que la mediana no dice.")}
       <p>Las dos cifras son ciertas y contestan preguntas distintas: «¿qué fracción de las sedes
-        es oficial?» y «¿en qué fracción de la ciudad son mayoría?». Un informe que solo publique
-        una de las dos no está mintiendo, pero tampoco está diciendo lo que el lector va a
-        entender.</p>
+        es oficial?» —{n(_bg["prop_global"], 4)}— y «¿en qué fracción de la ciudad son
+        mayoría?» —el {pct(_bg["pct_area_mayoria"], 1)}—. La mediana contesta una tercera: qué valor
+        de la proporción deja por debajo a media ciudad. Un informe que solo publique una de
+        ellas no está mintiendo, pero tampoco está diciendo lo que el lector va a entender.</p>
 
 {tabs("El cociente de dos intensidades, y quién es el segundo nivel", R6.format(**_SUB6), PY6.format(**_SUB6))}
       <p>Con esto se cierra la mitad descriptiva del capítulo: ya se sabe estimar una superficie,
@@ -1307,10 +1406,12 @@ MOD6 = cabecera(
 # =====================================================================
 # MÓDULO 7 · Covariables: la intensidad como función de otra cosa
 # =====================================================================
-R7 = '''# `rhohat` ES ALEATORIO. Usa una cuadratura muestreada, asi que dos
-# ejecuciones seguidas dan curvas parecidas y no iguales —la razon de
-# esta misma curva se mueve entre 21.12 y 21.14 sin tocar el dato—. Sin
-# semilla, la cifra que se publique no la puede reproducir nadie.
+R7 = '''# `rhohat` ES ALEATORIO: por defecto (`jitter = TRUE`) mueve un poco la
+# covariable de cada punto para deshacer empates, y aqui los hay —sedes en
+# el mismo edificio—. Dos ejecuciones dan curvas parecidas y no iguales: la
+# razon se mueve en la segunda decimal sin tocar el dato. Sin semilla, la
+# cifra que se publique no la puede reproducir nadie; con `jitter = FALSE`
+# no hace falta.
 set.seed({SEMILLA})
 
 rango &lt;- function(p, cov) {{
@@ -1406,6 +1507,17 @@ MOD7 = cabecera(
         misma curva varía {firma(n(m7["bogota"]["curva"]["razon_bulto"]), " veces")}.
         <strong>El titular era toda cola.</strong></p>
 
+      <p>Y una confesión sobre la covariable colombiana, porque el párrafo de arriba la exige:
+        es la distancia al <em>centro de masa de las propias sedes</em>, así que sale del patrón
+        —justo lo que hace que la curva se conteste sola—. Con el centroide de la ventana, que no
+        sale de las sedes y está a {n(m7["bogota"]["centroide_ventana"]["distancia_al_centro_de_masa_m"], 0)} m
+        del otro, el titular baja de {n(m7["bogota"]["curva"]["razon"], 1)} a
+        {n(m7["bogota"]["centroide_ventana"]["razon"], 1)} y el bulto de
+        {n(m7["bogota"]["curva"]["razon_bulto"], 2)} a
+        {n(m7["bogota"]["centroide_ventana"]["razon_bulto"], 2)}. La lección sobrevive, y la
+        covariable que se puede defender es la segunda. El capítulo conserva la primera en los
+        módulos 8 y 9 para que sus cifras se puedan seguir de un módulo a otro, y lo dice.</p>
+
       <div class="nota-lateral">
         <h4>Y no es una rareza del dato colombiano</h4>
         <p style="margin-bottom:0;">Se comprobó sobre el canónico antes de escribir la
@@ -1413,16 +1525,19 @@ MOD7 = cabecera(
           <code>bei</code> con la elevación pasa de {n(m7["bei"]["elevacion"]["razon"], 1)} a
           {n(m7["bei"]["elevacion"]["razon_bulto"], 2)}, y con la pendiente de
           {n(m7["bei"]["pendiente"]["razon"], 1)} a
-          {n(m7["bei"]["pendiente"]["razon_bulto"], 2)}. Las tres curvas se comportan igual:
-          <strong>el máximo y el mínimo de una <code>rhohat</code> viven casi siempre en los
-          extremos, donde apenas hay puntos con los que estimarla</strong>. Por eso este material
-          publica las dos razones y compara covariables por la del bulto.</p>
+          {n(m7["bei"]["pendiente"]["razon_bulto"], 2)}. Lo que infla el titular es lo mismo en
+          las tres: <strong>el mínimo de una <code>rhohat</code> cae en una cola</strong>, donde
+          ρ se acerca a cero estimada con dos o tres puntos, y un cociente con algo casi nulo
+          debajo se dispara. El máximo no siempre: en dos de las tres curvas está dentro del
+          bulto. Por eso este material publica las dos razones y compara covariables por la del
+          bulto.</p>
       </div>
 
 {sim("cap5-rhohat", "El titular de una curva rhohat, y lo que queda al quitarle la cola",
-      "Las dos barras de cada covariable son la misma curva medida en todo su rango "
-      "y en el tramo donde hay datos. Lo que hay que mirar es cuánto encoge la "
-      "primera al pasar a la segunda.")}
+      "La curva ρ(z) de cada covariable, en verde donde hay datos —entre los percentiles 5 "
+      "y 95 de la covariable en los puntos— y en gris discontinuo en las colas. El "
+      "triángulo azul es el mínimo y el círculo naranja, el máximo: mira dónde cae cada "
+      "uno y cuánto cambia la razón al quitar las colas.")}
       <p>Ordenadas por la razón del bulto, las tres covariables quedan al revés que por el
         titular: la pendiente de <code>bei</code> es la que más manda
         ({n(m7["bei"]["pendiente"]["razon_bulto"], 2)} ×) y la distancia al centro de Bogotá la
@@ -1635,9 +1750,10 @@ MOD8 = cabecera(
       <p>Con y<sub>j</sub> igual a 1/w<sub>j</sub> en las sedes y a cero en los ficticios, la
         segunda línea es la log-verosimilitud de una <strong>regresión de Poisson
         ponderada</strong>: por eso <code>ppm</code> ajusta con <code>glm</code>. Cuántos
-        ficticios hay lo decide el argumento <code>nd</code>, y su valor por defecto
-        —{_cu["defecto_nd"]}— pone {firma(ent(_cu["defecto_ficticios"]), " puntos ficticios")}
-        sobre esta ventana.</p>
+        ficticios hay lo decide el argumento <code>nd</code>, y su valor por defecto lo calcula
+        <code>spatstat</code> a partir de n: para estas {ent(m5["capas"]["oferta"]["n"])} sedes es
+        {_cu["defecto_nd"]}, y pone {firma(ent(_cu["defecto_ficticios"]), " puntos ficticios")}
+        sobre esta ventana. Otro patrón, otro defecto: no es una constante que se pueda citar.</p>
 
       <p>La prueba que la comprobación de antes no hizo es obligar a <code>ppm</code> a pasar el
         modelo homogéneo por esta maquinaria, con <code>forcefit = TRUE</code>. Devuelve
@@ -1671,8 +1787,9 @@ MOD8 = cabecera(
 
       <p>Dos lecturas, y la segunda es la que muerde. La primera: el coeficiente <strong>se mueve
         poco en unidades de su propio error</strong> —de un extremo a otro de la tabla cambia
-        {firma(n(_cu["rango_pendiente_en_ee"]), " errores estándar")}—, así que la inferencia
-        aguanta. La segunda: <strong>el AIC se mueve {n(_cu["rango_aic"], 1)} puntos</strong>, y
+        {firma(n(_cu["rango_pendiente_en_ee"]), " errores estándar")}—, así que, frente a la
+        cuadratura, la inferencia aguanta; frente al supuesto de Poisson que hay debajo, lo dice el
+        módulo 11. La segunda: <strong>el AIC se mueve {n(_cu["rango_aic"], 1)} puntos</strong>, y
         no en la dirección de <code>nd</code>: baja, se queda quieto y vuelve a subir.</p>
 
       <h3>De dónde salen los {n(_cu["rango_aic"], 1)} puntos</h3>
@@ -1710,7 +1827,11 @@ MOD8 = cabecera(
         casi el mismo; con <code>nd = {_cu["tabla"][3]["nd"]}</code> se pierde la que menos, y su
         AIC es el más alto. Dos <code>ppm</code> ajustados con cuadraturas distintas tienen AIC que
         <strong>no son comparables</strong>, y no por un matiz: {n(_cu["rango_aic"], 1)} puntos de
-        AIC deciden entre dos modelos con soltura, y estos no vienen de ningún modelo.</p>
+        AIC deciden entre dos modelos con soltura, y estos no vienen de ningún modelo. Y hay una
+        segunda salvedad: son puntos de una verosimilitud de Poisson. Si las sedes vienen en
+        grupos —el módulo 10 lo pone a prueba y el 11 mide cuánto—, las diferencias de AIC se
+        inflan por la misma razón por la que los errores estándar se encogen: la verosimilitud
+        cuenta como independientes sedes que no lo son.</p>
 
       <div class="nota-lateral">
         <h4>La comparación que más se hace es la que peor sale</h4>
@@ -1808,7 +1929,9 @@ MOD9 = cabecera(
         {firma(n(_cr["coef"][0], 3))}—. Y sus errores estándar son <code>NA</code>: la información
         de Fisher es singular. En EPSG:9377 las coordenadas de Bogotá son números de siete cifras,
         y la matriz de diseño queda con número de condición recíproco
-        {firma(f'{_cr["cond_reciproco"]:g}')}.</p>
+        {firma(f'{_cr["cond_reciproco"]:g}')}. La información de Fisher, que es la que hay que
+        invertir, lo tiene del orden de su cuadrado: por debajo de la precisión de la máquina, y
+        por eso <code>solve</code> no puede.</p>
 
       <p>Esto es el capítulo 2 llegando hasta aquí. Allí el sistema de referencia era una decisión
         sobre distancias y áreas; aquí <strong>la misma decisión se mete dentro de una
@@ -1882,11 +2005,12 @@ MOD9 = cabecera(
 
       <p>El tercer ajuste usa la covariable del módulo 7 —la distancia al centro de masa— y le
         sale z = {firma(n(_cd["z"][1], 2))}. La tentación es concluir que la distancia al centro
-        no tiene nada que ver con dónde hay colegios, y es falso: <strong>lo que ese número dice
-        es que no hay relación <em>log-lineal</em></strong>. La curva <code>rhohat</code> del
-        módulo 7 ya enseñó que en el bulto la intensidad varía
-        {n(m7["bogota"]["curva"]["razon_bulto"], 2)} veces, y que su forma no es una recta en la
-        escala del logaritmo.</p>
+        no tiene nada que ver con dónde hay colegios, y no se sigue: <strong>lo que ese número
+        dice es que el modelo no encuentra una relación <em>log-lineal</em></strong>, que no es lo
+        mismo que no haberla. La curva <code>rhohat</code> del módulo 7 ya enseñó que en el bulto
+        la intensidad varía {n(m7["bogota"]["curva"]["razon_bulto"], 2)} veces, y que su forma no
+        es una recta en la escala del logaritmo. Si esa variación es evidencia de algo, lo dice el
+        módulo 11, con los errores que cuentan con los grupos.</p>
 
       <p>Un modelo no ve lo que no puede escribir. Por eso los dos módulos van seguidos y en este
         orden: la curva sin modelo primero, el coeficiente después.</p>
@@ -1928,7 +2052,20 @@ round(c(nivel_puntual = 2 / (39 + 1),
 # 39, el p mas pequeno posible es 1/(39 + 1), y es justo el que sale.
 round(c(dclf = dclf.test(e39)$p.value, mad = mad.test(e39)$p.value), 4)
 #&gt;  dclf   mad
-#&gt; 0.025 0.025'''
+#&gt; 0.025 0.025
+
+# Y LA DECISION QUE LA LLAMADA ESCONDE. Sin `lambda`, Kinhom no divide por
+# el modelo: divide por un nucleo que estima en cada patron, con el ancho
+# por defecto de density.ppp. Con `lambda = f_centr` divide por el modelo,
+# y la observada ya no vuelve a la banda.
+set.seed({SEM})
+e39m &lt;- envelope(f_centr, Kinhom, nsim = 39, correction = &quot;translate&quot;,
+                 lambda = f_centr, verbose = FALSE)
+fuera_m &lt;- e39m$obs &gt; e39m$hi | e39m$obs &lt; e39m$lo
+round(c(pct_fuera = 100 * mean(fuera_m[dentro_r]),
+        ultimo_r_fuera = max(e39m$r[dentro_r][fuera_m[dentro_r]])), 4)
+#&gt;      pct_fuera ultimo_r_fuera
+#&gt;       100.000       5868.116'''
 
 PY10 = '''# La envolvente de 999 que el capitulo publica viaja en un CSV, con sus
 # cinco columnas: r, la K observada, el suelo y el techo de la banda, y
@@ -1957,24 +2094,28 @@ _SUB10 = dict(
     ULTIMO=n(m10["ultimo_r_fuera_m"], 4),
     RMAX=n(m10["r_max_m"], 4))
 _ts, _tg = m10["tasa_salida"], m10["test_global"]
+_tf = m10["tendencia_flexible"]
 _tc = m11["tendencia"]
 
 MOD10 = cabecera(
     10, "Diagnóstico del ajuste", "Model diagnostics",
-    "Contestar con una medición si la intensidad variable explica la agregación "
-    "del patrón, y montar la envolvente contra el modelo y no contra el azar.") + f"""
+    "Medir si un modelo de intensidad variable explica la agregación del patrón, montar "
+    "la envolvente contra el modelo y no contra el azar, y saber hasta dónde llega lo que "
+    "esa medición puede decir.") + f"""
       <p>El capítulo 4 cerró con un veredicto: las sedes de Bogotá no están repartidas al azar, y
         su K se sale de la banda de CSR por muchísimo. Pero aquella banda comparaba contra un
         proceso de <em>intensidad constante</em>, y ahora hay un modelo que admite intensidad
         variable. La pregunta de este módulo es la bisagra del capítulo:</p>
 
       <div class="tip-box">
-        <h4>La pregunta, y tiene respuesta</h4>
-        <p style="margin-bottom:0;">¿Basta con que la intensidad varíe para explicar la
-          agregación? Si la K inhomogénea del patrón cae <strong>dentro</strong> de la banda de
-          su propio modelo ajustado, entonces sí: lo que parecía atracción entre puntos era
-          intensidad variable disfrazada. Si se sale igual, hace falta otra cosa — y esa otra cosa
-          es el módulo 11.</p>
+        <h4>La pregunta, y la respuesta que admite</h4>
+        <p style="margin-bottom:0;">¿Basta la intensidad variable que escribe el modelo del
+          módulo 9 para explicar la agregación? Si la K inhomogénea del patrón cae
+          <strong>dentro</strong> de la banda de su propio modelo ajustado, ese modelo basta: lo
+          que parecía atracción entre puntos era intensidad variable disfrazada. Si se sale, ese
+          modelo no basta — y hará falta otro, o algo más que una tendencia, que es el módulo 11.
+          La respuesta vale para el modelo que se contrasta, no para «la intensidad variable» en
+          general, y al final del módulo se ve por qué importa la diferencia.</p>
       </div>
 
       <h3>Tres cambios respecto a la envolvente del capítulo 4</h3>
@@ -1983,8 +2124,14 @@ MOD10 = cabecera(
         de las {ent(m10["nsim"])} simulaciones es una realización del modelo que se ajustó en el
         módulo 9 —{m10["modelo"]}—.
         <strong>Dos:</strong> se resume con la K <em>inhomogénea</em>, que divide cada pareja por
-        la intensidad estimada en sus dos puntos — sin eso, el gradiente este-oeste del propio
-        modelo aparecería como agregación. <strong>Tres:</strong> la referencia ya no es la
+        la intensidad en sus dos puntos — sin eso, el gradiente del propio modelo aparecería como
+        agregación. Y aquí hay una decisión que la llamada esconde:
+        <code>envelope(f_centr, Kinhom, …)</code> no le pasa <code>lambda</code> a
+        <code>Kinhom</code>, y sin ella <code>Kinhom</code> no divide por la intensidad del
+        modelo, sino por una que estima en cada patrón con un núcleo y el ancho por defecto de
+        <code>density.ppp</code>: {firma(n(m10["lambda_nucleo_sigma_m"], 0), " m")}. Con
+        <code>lambda = f_centr</code> divide por el modelo. El simulador trae las dos, y
+        conviene mirarlas juntas. <strong>Tres:</strong> la referencia ya no es la
         teórica de CSR sino la <strong>media de las simulaciones</strong>. Y conviene decir por
         qué, porque la razón no es que no haya teórica: para cualquier Poisson
         <em>inhomogéneo</em> la K inhomogénea vale $\pi r^2$ —es justo el motivo de dividir cada
@@ -1998,14 +2145,15 @@ MOD10 = cabecera(
 
 {sim("cap5-envolvente", "K inhomogénea contra la banda del modelo ajustado",
       "La banda gris son las {NSIM} simulaciones del modelo; la línea verde, el patrón "
-      "real. La vista de entrada las divide por la media del modelo, porque K crece como "
+      "real. Las dos primeras vistas dividen por la media del modelo, porque K crece como "
       "el cuadrado del radio y en sus propias unidades las cuatro curvas se superponen: "
       "ahí el modelo es la línea del 1, y lo que se lee es cuántas veces hay más parejas "
-      "de las que produciría. Mira dónde se separa, desde qué radio y hasta cuál — los "
-      "otros dos botones dan la K sin dividir.".replace("{NSIM}", ent(m10["nsim"])))}
-      <p>La respuesta es que <strong>no basta</strong>. La K observada se sale de la banda en el
-        {firma(pct(m10["pct_r_fuera_de_banda"], 0))} de los radios, y por
-        arriba: hay muchas más parejas cercanas de las que un Poisson inhomogéneo con este
+      "de las que produciría. La primera es la K que divide por el núcleo de la llamada; "
+      "la segunda, la que divide por el modelo. Mira dónde se separa cada una, y hasta "
+      "dónde — la tercera da la K sin dividir.".replace("{NSIM}", ent(m10["nsim"])))}
+      <p>La respuesta es que <strong>no basta</strong>. Con el núcleo de la llamada, la K
+        observada se sale de la banda en el {firma(pct(m10["pct_r_fuera_de_banda"], 0))} de los
+        radios, y por arriba; hay muchas más parejas cercanas de las que un Poisson inhomogéneo con este
         gradiente produciría.</p>
 
       <p>Queda decir con qué seguridad, y aquí vuelve la trampa que el capítulo 4 enseñó en su
@@ -2025,31 +2173,55 @@ MOD10 = cabecera(
         las mismas {ent(m10["nsim"])}. El DCLF, que suma el cuadrado de la desviación a lo largo de
         todos los radios, da p = {firma(n(_tg["dclf_p"]))} —el mínimo que {ent(m10["nsim"])} simulaciones
         permiten: ninguna se aleja tanto como la observada—. El MAD, que se queda con la mayor
-        desviación, da {n(_tg["mad_p"])}, y el porqué enseña algo. La peor desviación de la
+        desviación, da {n(_tg["mad_p"])} con esta semilla —con otras se mueve en la tercera
+        decimal, sin dejar de rechazar—, y el porqué enseña algo. La peor desviación de la
         observada está en {n(_tg["r_mad_observada_m"])} m, dentro del tramo;
         las {ent(_tg["mad_superan"])} simulaciones que la superan lo hacen pasados los
         {n(_tg["r_min_mad_superan_m"])} m, donde el abanico de K es más ancho —el módulo 8 del
         capítulo 4— y donde la observada ya ha vuelto a la banda. Ninguno de los dos salva al
-        modelo: la agregación es real. Lo que no se sostiene es leer el
+        plano: hay más parejas cercanas de las que produce un plano en x e y. Lo que no se
+        sostiene es leer el
         {pct(m10["nivel_puntual_pct"], 1)} como la seguridad de la curva entera.</p>
 
-      <p>Ese porcentaje tiene <strong>principio y final</strong>, y los dos importan. La
-        observada se separa desde {firma(n(m10["primer_r_fuera_m"]), " m")} —el primer nodo
-        distinto de cero— y vuelve dentro de la banda pasados
-        {firma(n(m10["ultimo_r_fuera_m"]), " m")}, donde se queda los
-        {ent(m10["nodos_dentro_tras_el_tramo"])} nodos que restan hasta
-        {n(m10["r_max_m"])} m. Es decir: el exceso de parejas está en las escalas cortas y
-        medias, y a escala de kilómetros el modelo de intensidad ya da cuenta de lo que hay.
-        Decir «se sale de la banda» sin decir <em>dónde</em> deja fuera la mitad de la
-        información, que además es la útil: hasta dónde llega lo que el modelo no explica. Y los
-        dos extremos se leen sobre la banda puntual: dicen por dónde pasa la separación, no son un
-        contraste hecho en cada radio.</p>
+      <p>Ese porcentaje tiene <strong>principio y final</strong>, y el final depende de con qué se
+        divide. Con el núcleo, la observada se separa desde
+        {firma(n(m10["primer_r_fuera_m"]), " m")} —el primer nodo distinto de cero— y vuelve
+        dentro de la banda pasados {firma(n(m10["ultimo_r_fuera_m"]), " m")}, donde se queda los
+        {ent(m10["nodos_dentro_tras_el_tramo"])} nodos que restan hasta {n(m10["r_max_m"])} m. Con
+        la intensidad del modelo no vuelve: se sale en el
+        {firma(pct(m10["lambda_modelo"]["pct_r_fuera_de_banda"], 0))} de los radios, de
+        {n(m10["lambda_modelo"]["primer_r_fuera_m"])} a
+        {n(m10["lambda_modelo"]["ultimo_r_fuera_m"])} m, y el DCLF da p =
+        {n(m10["lambda_modelo"]["dclf_p"])}. La diferencia no la pone el dato: la pone el núcleo
+        de {n(m10["lambda_nucleo_sigma_m"], 0)} m, que se lleva dentro de la intensidad toda
+        variación de unos kilómetros —los grupos de esa escala incluidos— y la deja fuera de la K.
+        Es el «el ancho lo es todo» del módulo 2, escondido en un argumento que la llamada no
+        escribe.</p>
 
-      <p>El veredicto que el precálculo deja escrito es <strong>«{m10["veredicto"]}»</strong>.
-        Modelar la intensidad
-        describe <em>dónde</em> hay más colegios, pero no explica que los colegios estén cerca unos
-        de otros más de lo que ese «dónde» implica. Los colegios se agrupan por razones que no
-        son la geografía de la ciudad: comparten manzana, comparten predio, comparten edificio.</p>
+      <p>Y hay una segunda razón para no leer el final del tramo como el final del exceso:
+        <strong>K acumula</strong>. Cada radio suma todas las parejas hasta él, así que un exceso
+        de las escalas cortas sigue dentro de K en los radios largos. El exceso de parejas deja de
+        crecer hacia los {n(_tg["r_mad_observada_m"], 0)} m —la peor desviación, la del MAD— y
+        desde ahí cada anillo trae menos parejas que el modelo, aunque la curva siga un buen
+        trecho por encima de la banda; además, el final del tramo se mueve con la semilla. Decir
+        «se sale de la banda» sin decir <em>dónde</em>, y con qué λ, deja fuera la información
+        útil. Los dos extremos se leen sobre la banda puntual: dicen por dónde pasa la separación,
+        no son un contraste hecho en cada radio.</p>
+
+      <p>El veredicto que el precálculo deja escrito es <strong>«{m10["veredicto"]}»</strong>, y
+        sus dos mitades importan. La primera: un plano en x e y —y también un polinomio de grado
+        {_tf[0]["grado"]}, con {_tf[0]["coeficientes"]} coeficientes: DCLF p =
+        {n(_tf[0]["dclf_p"])}— describe <em>dónde</em> hay más colegios, pero no que estén cerca
+        unos de otros más de lo que ese «dónde» implica. La segunda: con una tendencia de grado
+        {_tf[1]["grado"]} —{_tf[1]["coeficientes"]} coeficientes— la misma envolvente deja de
+        rechazar (DCLF p = {firma(n(_tf[1]["dclf_p"]))}), porque una superficie tan flexible
+        dibuja los grupos como tendencia. <strong>Con un solo patrón, intensidad variable y
+        agrupación no se separan</strong>: se decide por lo que uno está dispuesto a llamar
+        tendencia, y esa decisión se declara. Aquí la tendencia se queda en el plano porque una
+        de {_tf[1]["coeficientes"]} coeficientes describe el dato sin explicarlo, y lo que sobra se
+        modela como conglomerado en el módulo 11. Es plausible que los colegios se agrupen por
+        razones que el plano no ve —compartir manzana, predio o edificio—, y la cuenta de sedes
+        repetidas del módulo 11 apunta en esa dirección.</p>
 
       <p>Y el veredicto alcanza hacia atrás. Los errores estándar que el módulo 9 leyó son los de
         este mismo Poisson, y suponen cada sede independiente de las demás: justo lo que la banda
@@ -2072,17 +2244,22 @@ MOD10 = cabecera(
         intensidad en el norte, el residuo suavizado se ve negativo ahí. Pero tiene un límite que
         conviene saber antes de fiarse de él, y es la razón de que este módulo diagnostique con la
         K inhomogénea: <strong>un Poisson ajustado por máxima verosimilitud reproduce por
-        construcción la tendencia que se le dio</strong>, así que su residuo suavizado tiende a
-        salir plano sobre las covariables del propio modelo — y queda ciego justo a lo que aquí
-        sobra, que no es tendencia sino <em>interacción entre puntos</em>. Un residuo plano y una K
-        que se sale de la banda son perfectamente compatibles, y las dos cosas serían ciertas.</p>
+        construcción la tendencia que se le dio</strong>: su residuo, acumulado contra cada
+        covariable del propio modelo, suma cero, así que el gráfico de residuos contra
+        <code>xc</code> o contra <code>yc</code> no puede enseñar que falte algo en
+        <code>xc</code> o en <code>yc</code>. El residuo suavizado sobre el mapa sí ve que sobra
+        algo —donde hay grupos salen manchas positivas—, pero no puede decir si lo que sobra es
+        tendencia que falta o <em>interacción entre puntos</em>: una mancha es compatible con las
+        dos. La K inhomogénea tampoco lo zanja del todo, como acaba de verse, pero sí dice a qué
+        escalas.</p>
 
       <div class="nota-lateral">
         <h4>Una corrección de borde que se hereda, y por qué</h4>
         <p style="margin-bottom:0;">La envolvente va con corrección de <strong>traslación</strong>,
           la misma del capítulo 4 y por el mismo motivo medido: sobre esta ventana la isotrópica
           cuesta 555 veces más y hay que estimarla {ent(m10["nsim"])} veces. Esa decisión viaja
-          <em>en el dato</em> —el JSON dice <code>{m10["correccion"]}</code>— y no en la prosa,
+          <em>en el dato</em> —el precálculo la deja escrita como <code>{m10["correccion"]}</code>
+          y la lectura del simulador la enseña— y no en la prosa,
           para que no se pueda desincronizar. El módulo siguiente enseña el caso en que esa misma
           elección la toma la llamada sin decirlo.</p>
       </div>
@@ -2121,19 +2298,27 @@ round(c(k_trans$clustpar, mu = k_trans$mu), 6)
 #&gt; {TRANS}'''
 
 PY11 = '''# La K de un proceso de Thomas tiene forma cerrada, y con ella se ve por
-# que dos ajustes tan distintos pueden salir del mismo dato: sus curvas
-# de K casi coinciden. El contraste minimo esta buscando el minimo de un
-# valle plano, y ahi cualquier cambio en la estimacion de K lo mueve.
+# que dos ajustes tan distintos pueden salir del mismo dato. Las dos K
+# enteras casi coinciden, pero las dos llevan el mismo pi r^2, que no
+# depende de los parametros: lo que los parametros fijan es el EXCESO
+# sobre pi r^2, y ese se separa. Columnas: r, diferencia de K (%),
+# diferencia del exceso (%).
 def k_thomas(r, kappa, escala):
     return np.pi * r ** 2 + (1 - np.exp(-r ** 2 / (4 * escala ** 2))) / kappa
 
-for r in (500.0, 1000.0, 2000.0):
+for r in (500.0, 1000.0, 2000.0, 3000.0):
     a = k_thomas(r, {KI}, {SI})
     b = k_thomas(r, {KT}, {ST})
-    print(int(round(r)), round(100 * abs(b - a) / a, 1))
-#&gt; 500 0.6
-#&gt; 1000 0.9
-#&gt; 2000 4.8'''
+    ea, eb = a - np.pi * r ** 2, b - np.pi * r ** 2
+    print(int(round(r)), round(100 * abs(b - a) / a, 1), round(100 * abs(eb - ea) / ea, 1))
+#&gt; 500 0.6 1.9
+#&gt; 1000 0.9 3.3
+#&gt; 2000 4.8 23.5
+#&gt; 3000 6.9 51.5
+
+# A r corto la K fija kappa * sigma^2, y ahi los dos ajustes coinciden
+print(round({KI} * {SI} ** 2, 3), round({KT} * {ST} ** 2, 3))
+#&gt; 0.183 0.19'''
 
 R11B = '''# HAWKES: el conglomerado en el TIEMPO, y la conexion con fraude y
 # sismologia. No es un Poisson con intensidad variable —donde la
@@ -2196,6 +2381,8 @@ _SUB11B = dict(
                                      _hw["veces_mas_agregado"])))
 
 _dv = {d["modelo"]: d for d in m11["divergencia"]}
+_cq = m11["cuadratico_dcen"]
+_vl = m11["valle"]
 
 # LA z DEL MÓDULO 9, REHECHA AQUÍ. La tabla la pinta el 11 y la cita el 9:
 # si el reajuste dejara de ser el MISMO coeficiente con otro error, o si la
@@ -2217,14 +2404,22 @@ MOD11 = cabecera(
     11, "Conglomerado y autoexcitación", "Cluster and self-exciting processes",
     "Ajustar modelos que explican la agregación, descubrir que el ajuste depende "
     "de un argumento que nadie escribe, y llevar la idea al tiempo.") + f"""
-      <p>El módulo anterior dejó una pregunta sin cerrar: la intensidad variable no explica que
-        los colegios estén cerca unos de otros. Hace falta un modelo donde <strong>los puntos
-        vengan en grupos</strong>, y hay tres familias clásicas, todas con la misma forma —unos
-        centros invisibles, y alrededor de cada uno una nube de puntos—:</p>
+      <p>El módulo anterior dejó una pregunta sin cerrar: un plano en x e y no explica que los
+        colegios estén cerca unos de otros, y una tendencia lo bastante flexible para tragárselo
+        describe el dato sin explicarlo. Hace falta un modelo donde <strong>los puntos
+        vengan en grupos</strong>, y hay tres familias clásicas. Dos tienen la misma forma: unos
+        centros invisibles, que caen con intensidad <strong>κ</strong> (cuántos por unidad de
+        área), y alrededor de cada uno una nube de hijos, de media <strong>μ</strong> por centro
+        y apartados del centro lo que dice la <strong>escala</strong> —en Thomas como una normal,
+        en Matérn uniformes en un disco—. La tercera, el Cox log-gaussiano, no tiene centros: la
+        intensidad misma es un campo aleatorio, y los puntos se agrupan donde el campo sale alto;
+        ahí μ es la media del campo, en escala logarítmica, y la escala es su alcance. Las tres
+        producen grupos; solo dos los explican con padres.</p>
 
       <table class="tabla-datos">
-        <caption>Los tres modelos ajustados al patrón urbano, cada uno por las dos
-          correcciones con que se le puede estimar la K</caption>
+        <caption>Los tres modelos ajustados al patrón urbano, sin tendencia
+          (<code>~ 1</code>), cada uno por las dos correcciones con que se le puede estimar la
+          K</caption>
         <thead><tr><th scope="col">Modelo</th><th scope="col">Qué supone</th>
           <th scope="col">Escala (isotrópica)</th><th scope="col">Escala (traslación)</th>
           <th scope="col">Segundos</th></tr></thead>
@@ -2234,8 +2429,9 @@ MOD11 = cabecera(
 
       <h3>El argumento que no aparece en la llamada</h3>
 
-      <p>Mírese la columna de los segundos antes que la de las escalas. Los tres modelos tienen
-        tres verosimilitudes distintas y tardan <strong>lo mismo</strong>: unos
+      <p>Mírese la columna de los segundos antes que la de las escalas. Los tres son procesos
+        distintos —con tres verosimilitudes distintas que <code>kppm</code> ni siquiera evalúa— y
+        tardan <strong>lo mismo</strong>: unos
         {n(_dv["Thomas"]["segundos_iso"], 0)} s cada uno. Cuando tres cosas distintas cuestan lo
         mismo, no se está pagando lo que uno cree estar pagando.</p>
 
@@ -2279,17 +2475,26 @@ MOD11 = cabecera(
         la prosa que la comenta.</p>
 
 {tabs("El mismo kppm con dos correcciones", R11.format(**_SUB11), PY11.format(**_SUB11))}
-      <p>La columna de Python explica <em>por qué</em> pasa esto, y es lo que lo hace tolerable:
-        evaluada la K teórica de Thomas con los dos juegos de parámetros, las dos curvas se
-        diferencian menos de un 1 % a 500 y 1 000 m. <strong>El valle que el contraste mínimo
-        está minimizando es casi plano</strong>, así que un cambio pequeño en la K empírica mueve
-        mucho el punto donde cae el mínimo. Dos descripciones muy distintas del mismo dato, y las
-        dos ajustan casi igual de bien.</p>
+      <p>La pestaña de Python explica <em>por qué</em> pasa esto, y no es que el valle del
+        contraste mínimo sea plano. Evaluada la K teórica de Thomas con los dos juegos de
+        parámetros, las dos curvas se diferencian poco —un {pct(_vl["k_dif_pct"][0], 1)} a
+        {ent(_vl["r_m"][0])} m, un {pct(_vl["k_dif_pct"][1], 1)} a {ent(_vl["r_m"][1])} m—, pero
+        eso es porque las dos llevan el mismo $\\pi r^2$, que no depende de los parámetros. Lo que
+        los parámetros fijan es el <strong>exceso</strong> sobre $\\pi r^2$, y ese se separa un
+        {pct(_vl["exceso_dif_pct"][2], 1)} a {ent(_vl["r_m"][2])} m y un
+        {pct(_vl["exceso_dif_pct"][3], 1)} a {ent(_vl["r_m"][3])} m. A r corto los dos ajustes
+        coinciden en κσ² ({n(_vl["kappa_sigma2"]["iso"], 3)} y
+        {n(_vl["kappa_sigma2"]["traslacion"], 3)}), que es lo que la K empírica fija ahí; κ —y con
+        él μ— sale del exceso a r grande, donde las dos estimaciones de K, la isotrópica y la de
+        traslación, se separan, y cambia {n(_vl["razon_inv_kappa"], 2)} veces. Dos descripciones
+        muy distintas del mismo dato, y cada una ajusta bien a <em>su</em> estimación de K.</p>
 
       <h3>El cabo que el capítulo 4 dejó abierto</h3>
 
-      <p>La decisión 3 de aquel capítulo conservó los {ent(m11["duplicados"]["repetidos"])} sitios
-        con sedes repetidas —varias sedes en un mismo edificio— y los midió en G y en K. Pero
+      <p>La decisión 3 de aquel capítulo conservó las {ent(m11["duplicados"]["repetidos"])} sedes
+        que repiten la posición de otra —{ent(m11["duplicados"]["sitios"])} sitios,
+        {ent(m11["duplicados"]["implicadas"])} sedes implicadas: varias sedes en un mismo
+        edificio— y las midió en G y en K. Pero
         aquel capítulo <em>describía</em> y este <em>ajusta</em>, y un modelo de conglomerado que
         ve puntos coincidentes tiene que explicarlos con lo único que tiene: una escala diminuta.
         La hipótesis era que los duplicados descuadrarían el ajuste.</p>
@@ -2330,6 +2535,15 @@ MOD11 = cabecera(
         como en la tabla del principio —con la isotrópica el error crece menos—, pero esta vez no
         mueve el veredicto.</p>
 
+      <p>Y la otra z del módulo 9, la de la distancia al centro, corre la misma suerte. Allí la z
+        lineal era pequeña y quedaba en pie una relación curva, la que dibuja
+        <code>rhohat</code>. Con un término cuadrático en la distancia, el Poisson da un Wald de
+        {n(_cq["poisson"]["wald"], 1)} sobre dos grados de libertad, p =
+        {f'{_cq["poisson"]["p"]:.2g}'}; con los conglomerados dentro, p =
+        {" · ".join(n(c["p"], 3) + " (" + _NOMBRE_MODELO[c["modelo"]] + ")" for c in _cq["conglomerado"])},
+        con la K de traslación. <strong>Tampoco de la relación curva hay evidencia</strong>:
+        <code>rhohat</code> la describe, y describir no es contrastar.</p>
+
       <div class="nota-lateral">
         <h4>Es el efecto de diseño del capítulo 1</h4>
         <p style="margin-bottom:0;">Allí la media de celdas correlacionadas variaba más de lo que
@@ -2343,7 +2557,7 @@ MOD11 = cabecera(
 
       <h3>Y la misma idea en el tiempo: procesos autoexcitados</h3>
 
-      <p>Un proceso de conglomerado espacial supone centros invisibles. En el tiempo hay una
+      <p>Thomas y Matérn suponen centros invisibles. En el tiempo hay una
         variante donde los centros son <em>los propios eventos</em>: cada uno sube la intensidad
         de los siguientes, que es lo que se llama un <strong>proceso de Hawkes</strong>.</p>
 
@@ -2367,7 +2581,11 @@ MOD11 = cabecera(
       <p>Con {ent(_hw["n_eventos"])} eventos cada uno, el índice de dispersión del Hawkes vale
         {firma(n(_hw["dispersion_hawkes"]))} y el del Poisson
         {firma(n(_hw["dispersion_poisson"]))}: {n(_hw["veces_mas_agregado"], 1)} veces más
-        agregado con <em>la misma tasa media</em>. Es la lección del capítulo 4 en una dimensión
+        agregado con <em>la misma tasa media</em>. Dos salvedades que hacen honesta la cifra: el
+        índice se cuenta en intervalos de {ent(_hw["ancho_intervalo"])} unidades y depende de ese
+        ancho —con intervalos más anchos tiende a 1/(1 − α/β)² =
+        {n(_hw["dispersion_limite"], 2)}—, y el del Poisson no vale 1 exacto porque es una
+        simulación. Es la lección del capítulo 4 en una dimensión
         —la intensidad no describe el patrón— y la razón por la que un detector de fraude que
         modele las transacciones como Poisson va a subestimar sistemáticamente las ráfagas.</p>
 
@@ -2502,10 +2720,12 @@ MOD12 = cabecera(
           proyecto.</p>
         <p style="margin-bottom:0;">Lo que sí pasa entero es un hábito: declarar por escrito,
           antes de la primera figura, las decisiones que cambian el resultado sin cambiar la
-          llamada. En este bloque fueron cinco: la <strong>ventana</strong> y por qué esa; el
+          llamada. En este bloque fueron seis: la <strong>ventana</strong> y por qué esa; el
           <strong>ancho de banda</strong> y qué selector lo eligió —o por qué ninguno—; la
           <strong>corrección de borde</strong> y qué conserva; y, si hay modelo, la
-          <strong>cuadratura</strong> y la <strong>estimación de K</strong> con que se ajustó. En
+          <strong>cuadratura</strong>, la <strong>estimación de K</strong> con que se ajustó y
+          la <strong>intensidad que divide la K inhomogénea</strong> del diagnóstico —la del
+          modelo o una por núcleo, y con qué ancho—. En
           el proyecto ese hábito tiene nombre de entrega, el <strong>preregistro</strong>: el
           protocolo de inferencia que se congela antes de calcular un solo Moran.</p>
       </div>
@@ -2788,7 +3008,7 @@ GEOMAPAS_JS = (
     FAMILIA_JS
     + geomapa('cap5-kennedy', 'kennedy_puntos',
               _etq('Las 262 sedes educativas que caen dentro de la ventana de Kennedy, '
-                   'dibujadas como una nube de puntos.'))
+                   'dibujadas como una nube de puntos con el contorno de la localidad.'))
     + "    GEOMAPAS['cap5-familia'] = {\n"
       "      fuente: () => superficieDeSigma(D5.m2.familia.sigmas_m[famIdx]),\n"
       "      paleta: 'naranja',\n"
@@ -2799,6 +3019,9 @@ GEOMAPAS_JS = (
     + geomapa('cap5-oferta', 'ciudad_oferta', ", paleta: 'naranja'" + _etq(
         'Intensidad de sedes educativas sobre la ventana urbana de Bogotá, estimada '
         'por núcleos gaussianos con sigma de 720 metros: la oferta de colegios.'))
+    + geomapa('cap5-bachillerato', 'ciudad_bachillerato', ", paleta: 'naranja'" + _etq(
+        'Intensidad de las sedes con grado 11 sobre la ventana urbana, con el mismo ancho de '
+        'banda y sin pesos: el paso intermedio entre la oferta y los estudiantes.'))
     + geomapa('cap5-estudiantes', 'ciudad_estudiantes', ", paleta: 'naranja'" + _etq(
         'La misma estimación sobre las sedes con grado 11, pesada cada una por sus '
         'evaluados en Saber 11: dónde están los estudiantes, no los edificios.'))
@@ -2933,8 +3156,8 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
         datasets: [{ label: 'intensidad máxima (por km²)', data: f.max_km2,
                      borderColor: C5.verde, backgroundColor: C5.verdeSuave,
                      fill: true, tension: 0.3, pointRadius: 3 }]
-      }, { scales: { y: { title: { display: true, text: 'sedes por km²' } },
-                     x: { title: { display: true, text: 'ancho de banda σ' } } } });
+      }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'sedes por km²' } },
+                     x: { title: { display: true, text: 'ancho de banda σ (pasos ×√2)' } } } });
 
       const lee = () => lectura5(raiz, [
         ['ancho de banda σ', n5(f.sigmas_m[famIdx], 0) + ' m'],
@@ -3018,7 +3241,8 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
               borderColor: C5.gris, borderDash: [5, 4], borderWidth: 2, pointRadius: 0 }
           ];
           g.options.scales.y.title.text = 'integral de la intensidad sobre la ventana';
-          g.options.scales.y.min = Math.min.apply(null, t.map(f => f.masa_sin_corregir)) * 0.97;
+          // Desde cero: el eje truncado agrandaba las diferencias sin decirlo (M19 de la segunda revisión).
+          g.options.scales.y.min = 0;
         } else {
           g.data.datasets = [
             { type: 'bar', label: 'sin corregir', data: t.map(f => f.fuga_sin_corregir_pct),
@@ -3038,8 +3262,8 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
           ['por defecto', '+' + n5(u.exceso_defecto_pct, 2) + ' %'],
           ['con diggle', n5(u.error_diggle_pct, 6) + ' %'],
           ['horquilla entre las dos primeras', n5(D5.m4.horquilla_pct, 1) + ' puntos'],
-          ['lo que cuesta corregir', n5(D5.m4.coste_segundos.diggle, 2) + ' s contra ' +
-                                     n5(D5.m4.coste_segundos.sin_corregir, 2) + ' s']]);
+          ['lo que cuesta corregir', n5(D5.m4.coste_segundos.diggle, 3) + ' s contra ' +
+                                     n5(D5.m4.coste_segundos.sin_corregir, 3) + ' s']]);
       };
       botonera5(raiz, ['La masa integrada', 'La desviación sobre n'],
                 k => { vista = k; pinta(); }, 0);
@@ -3052,7 +3276,7 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       const c = D5.m5.capas;
       const CLAVES = ['oferta', 'grado_11', 'estudiantes'];
       const ETQ = ['Oferta: todas las sedes', 'Bachillerato: con grado 11',
-                   'Demanda: evaluados en Saber 11'];
+                   'Estudiantes: evaluados en Saber 11'];
       let i = 0;
       const g = grafico5(raiz, 'bar', {
         labels: ETQ,
@@ -3069,9 +3293,14 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
           ['puntos que entran', mil5(d.n)],
           ['máximo', n5(d.max_km2, 2) + ' por km²'],
           ['unidad', CLAVES[i] === 'estudiantes' ? 'evaluados por km²' : 'sedes por km²'],
-          ['cor(oferta, bachillerato)', n5(D5.m5.cor_oferta_grado11, 4)],
-          ['cor(oferta, evaluados)', n5(D5.m5.cor_oferta_estudiantes, 4)],
-          ['cor(bachillerato, evaluados)', n5(D5.m5.cor_grado11_estudiantes, 4)]]);
+          // La correlación de ESTA capa con las otras dos: antes la lectura traía
+          // las tres siempre iguales y el botón no cambiaba nada (M10 de la
+          // segunda revisión).
+          ...[[0, 1, D5.m5.cor_oferta_grado11], [0, 2, D5.m5.cor_oferta_estudiantes],
+              [1, 2, D5.m5.cor_grado11_estudiantes]]
+            .filter(([a, b]) => a === i || b === i)
+            .map(([a, b, r]) => ['cor. con ' + ['la oferta', 'el bachillerato', 'los evaluados'][a === i ? b : a],
+                                 n5(r, 4)])]);
       };
       botonera5(raiz, ETQ, k => { i = k; pinta(); }, 0);
       pinta();
@@ -3105,8 +3334,7 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
           ['proporción contando puntos', n5(d.prop_global, 4)],
           ['mediana de la superficie', n5(d.p_mediana, 4)],
           ['la mediana menos la global', n5(d.brecha_mediana_menos_global, 4)],
-          ['lectura', d.brecha_mediana_menos_global < 0 ? 'concentrado: mayoría en poca superficie'
-                                                        : 'repartido por la ventana'],
+          ['es mayoría en', n5(d.pct_area_mayoria, 1) + ' % del área'],
           ['orientación comprobada contra el dato', n5(100 * d.orientacion_verificada, 0) + ' %']]));
       };
       botonera5(raiz, ETQ, k => { i = k; pinta(); }, 1);
@@ -3116,30 +3344,49 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
 
     // --- Módulo 7 · el titular de una rhohat y su cola ---------------
     SIMULADORES['cap5-rhohat'] = function (raiz) {
-      const CUR = [['bei · elevación', D5.m7.bei.elevacion],
-                   ['bei · pendiente', D5.m7.bei.pendiente],
-                   ['Bogotá · distancia al centro', D5.m7.bogota.curva]];
+      // LA CURVA, NO SOLO SUS RAZONES (tercera revisión, 2026-10-27). La
+      // prosa dice que rhohat «dibuja» la relación, y el módulo 9 se apoya en
+      // su forma: aquí se ve, con el bulto en verde y las colas en gris. Lo
+      // que infla el titular es el mínimo, que cae en una cola.
+      const CUR = [['bei · elevación', D5.m7.bei.elevacion, 'elevación (m)', 1e6],
+                   ['bei · pendiente', D5.m7.bei.pendiente, 'pendiente (gradiente)', 1e6],
+                   ['Bogotá · distancia al centro', D5.m7.bogota.curva, 'distancia al centro (m)', 1e6]];
       let i = 2;
-      const g = grafico5(raiz, 'bar', {
-        labels: CUR.map(c => c[0]),
-        datasets: [
-          { label: 'razón en todo el rango', data: CUR.map(c => c[1].razon),
-            backgroundColor: C5.rojo },
-          { label: 'razón en el bulto (percentiles 5 a 95)',
-            data: CUR.map(c => c[1].razon_bulto), backgroundColor: C5.verde }
-        ]
-      }, { scales: { y: { type: 'logarithmic',
-                          title: { display: true, text: 'ρ máximo / ρ mínimo (log)' } } } });
+      const g = grafico5(raiz, 'line', { datasets: [] }, {
+        parsing: false,
+        scales: ejesXY('', 'ρ(z), por km²'),
+        plugins: { legend: { labels: { filter: it => it.text !== '' } } }
+      });
       const pinta = () => {
-        const d = CUR[i][1];
+        const [nom, d, eje, k] = CUR[i];
+        const pts = d.curva_z.map((z, j) => ({ x: z, y: d.curva_rho[j] * k }));
+        const enBulto = pts.map(p => (p.x >= d.bulto_desde && p.x <= d.bulto_hasta) ? p : { x: p.x, y: null });
+        g.data.datasets = [
+          // `order`: Chart.js pinta encima el conjunto de menor orden, y sin él
+          // la discontinua de las colas tachaba el tramo verde del bulto.
+          { label: 'ρ(z) en las colas', data: pts, borderColor: C5.gris, borderWidth: 2, pointRadius: 0,
+            borderDash: [6, 4], order: 3 },
+          { label: 'ρ(z) en el bulto (percentiles 5 a 95)', data: enBulto, borderColor: C5.verde,
+            borderWidth: 3, pointRadius: 0, spanGaps: false, order: 2 },
+          // Azul y triángulo contra naranja y círculo: el «rojo» de C5 (#D55E00)
+          // y el naranja no se distinguían a este tamaño.
+          { label: 'mínimo', data: [{ x: d.z_del_minimo, y: d.rho_min * k }], showLine: false,
+            pointStyle: 'triangle', pointRadius: 8, pointBackgroundColor: C5.azul, borderColor: C5.azul,
+            order: 1 },
+          { label: 'máximo', data: [{ x: d.z_del_maximo, y: d.rho_max * k }], showLine: false,
+            pointRadius: 6, pointBackgroundColor: C5.naranja, borderColor: C5.naranja, order: 1 }
+        ];
+        g.options.scales.x.title.text = eje;
+        g.update();
         lectura5(raiz, [
-          ['curva', CUR[i][0]],
+          ['curva', nom],
           ['razón en todo el rango', '×' + n5(d.razon, 2)],
           ['razón en el bulto', '×' + n5(d.razon_bulto, 2)],
           ['cuánto infla la cola', '×' + n5(d.cola_infla, 1)],
           ['el bulto va de', n5(d.bulto_desde, 3) + ' a ' + n5(d.bulto_hasta, 3)],
-          ['ρ mínimo del bulto', exp5(d.rho_min_bulto, 3)],
-          ['ρ máximo del bulto', exp5(d.rho_max_bulto, 3)]]);
+          ['el máximo cae', d.maximo_en_el_bulto ? 'dentro del bulto' : 'en una cola'],
+          ['el mínimo cae', d.minimo_en_el_bulto ? 'dentro del bulto' : 'en una cola'],
+          ['ρ en el bulto, de', n5(d.rho_min_bulto * k, 2) + ' a ' + n5(d.rho_max_bulto * k, 2) + ' por km²']]);
       };
       botonera5(raiz, CUR.map(c => c[0]), k => { i = k; pinta(); }, 2);
       pinta();
@@ -3157,11 +3404,14 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       const pinta = () => {
         if (vista === 0) {
           g.data.datasets = [
-            { label: 'techo (± 1 error estándar)',
-              data: t.map(z => z.pendiente + z.ee_pendiente),
+            // ± 1.96 errores estándar y no ± 1: una banda de ± 1 quedaba entera
+            // por debajo del cero y sugería un efecto que los módulos 8 y 9 dicen
+            // que no hay (|z| = 1.22).
+            { label: 'intervalo del 95 % (± 1.96 errores estándar)',
+              data: t.map(z => z.pendiente + 1.96 * z.ee_pendiente),
               borderColor: C5.gris, pointRadius: 0, fill: '+1',
               backgroundColor: C5.grisSuave },
-            { label: '', data: t.map(z => z.pendiente - z.ee_pendiente),
+            { label: '', data: t.map(z => z.pendiente - 1.96 * z.ee_pendiente),
               borderColor: C5.gris, pointRadius: 0 },
             { label: 'coeficiente de la distancia', data: t.map(z => z.pendiente),
               borderColor: C5.verde, borderWidth: 3, pointRadius: 4 },
@@ -3279,52 +3529,63 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     // La división la hace el navegador sobre cifras que R publica, a la
     // vista y sobre el mismo dato, igual que la del deslizador del módulo 2.
     SIMULADORES['cap5-envolvente'] = function (raiz) {
-      const c = D5.m10.curva;
-      let escala = 0;
-      const razon = v => v.map((y, k) => y / c.mmean[k]);
+      // DOS ENVOLVENTES, PORQUE LA LLAMADA ESCONDE UNA DECISIÓN. Sin `lambda`,
+      // Kinhom divide por un núcleo estimado en cada patrón; con `lambda = f_centr`,
+      // por el modelo. El tramo fuera de la banda depende de cuál (tercera revisión,
+      // 2026-10-27). La vista logarítmica se fue: con el eje en millones de m²
+      // escondía justo los radios donde el patrón se separa.
+      const r = D5.m10.curva.r, NUC = D5.m10.curva, MOD = D5.m10.lambda_modelo.curva;
+      let vista = 0;   // 0 = núcleo ÷ media, 1 = modelo ÷ media, 2 = K del núcleo, lineal
       const g = grafico5(raiz, 'line', { datasets: [] }, {
         parsing: false, scales: ejesXY('r (metros)', 'K inhomogénea'),
         plugins: { legend: { labels: { filter: it => it.text !== '' } } }
       });
       const pinta = () => {
-        const rel = escala === 0;
-        const Y = rel ? razon : (v => v);
+        const c = vista === 1 ? MOD : NUC;
+        const rel = vista !== 2;
+        const Y = rel ? (v => v.map((y, k) => y / c.mmean[k])) : (v => v);
         g.data.datasets = [
-          { label: 'techo de la banda', data: curva5(c.r, Y(c.hi)), borderColor: C5.gris,
+          { label: 'techo de la banda', data: curva5(r, Y(c.hi)), borderColor: C5.gris,
             pointRadius: 0, fill: '+1', backgroundColor: C5.grisSuave },
-          { label: '', data: curva5(c.r, Y(c.lo)), borderColor: C5.gris, pointRadius: 0 },
+          { label: '', data: curva5(r, Y(c.lo)), borderColor: C5.gris, pointRadius: 0 },
           { label: rel ? 'el modelo, que aquí vale 1' : 'media de las simulaciones',
-            data: curva5(c.r, Y(c.mmean)),
+            data: curva5(r, Y(c.mmean)),
             borderColor: C5.naranja, borderDash: [6, 4], pointRadius: 0 },
-          { label: 'K inhomogénea observada', data: curva5(c.r, Y(c.obs)),
+          { label: 'K inhomogénea observada', data: curva5(r, Y(c.obs)),
             borderColor: C5.verde, borderWidth: 3, pointRadius: 0 }
         ];
-        g.options.scales.y.type = escala === 2 ? 'logarithmic' : 'linear';
         g.options.scales.y.title.text = rel
           ? 'K observada ÷ K media del modelo'
           : 'K inhomogénea';
         g.update();
-        lectura5(raiz, [
+        const L = vista === 1 ? D5.m10.lambda_modelo : D5.m10;
+        const filas = [
           ['modelo simulado', D5.m10.modelo],
           ['simulaciones', mil5(D5.m10.nsim)],
+          ['K dividida por', vista === 1
+            ? 'la intensidad del modelo (lambda = f_centr)'
+            : 'un núcleo de ' + n5(D5.m10.lambda_nucleo_sigma_m, 0) + ' m (Kinhom sin lambda)'],
           ['corrección de K', D5.m10.correccion],
-          ['nivel puntual de la banda', n5(D5.m10.nivel_puntual_pct, 1) + ' %'],
-          // LEÍDA ENTERA, la banda no promete ese 0,2 %: la cruza en algún
-          // radio una fracción mucho mayor de curvas del propio modelo. Es la
-          // de los radios que este lienzo dibuja, no la de los de spatstat.
-          ['curvas del modelo que la cruzan', n5(D5.m10.tasa_salida.pct_simulador, 1) + ' %'],
-          ['test de la curva entera (DCLF)', 'p = ' + n5(D5.m10.test_global.dclf_p, 3)],
-          ['radios fuera de la banda', n5(D5.m10.pct_r_fuera_de_banda, 0) + ' %'],
-          // UN TRAMO, NO UN UMBRAL. Esta fila decía «desde r = 59 m» y se
-          // leía como una cola que llega al final del barrido; la curva
-          // vuelve dentro de la banda mucho antes y ya no sale.
-          ['fuera entre r =', n5(D5.m10.primer_r_fuera_m, 0) + ' m y ' +
-                             n5(D5.m10.ultimo_r_fuera_m, 0) + ' m'],
-          ['y dentro hasta el final', n5(D5.m10.r_max_m, 0) + ' m'],
-          ['veredicto', D5.m10.veredicto]]);
+          ['nivel puntual de la banda', n5(D5.m10.nivel_puntual_pct, 1) + ' %']];
+        if (vista !== 1)
+          // LEÍDA ENTERA, la banda no promete ese 0,2 %: la cruza en algún radio
+          // una fracción mucho mayor de curvas del propio modelo, medida en los
+          // radios que este lienzo dibuja.
+          filas.push(['curvas del modelo que la cruzan', n5(D5.m10.tasa_salida.pct_simulador, 1) + ' %']);
+        filas.push(
+          ['test de la curva entera (DCLF)', 'p = ' + n5(vista === 1 ? L.dclf_p : D5.m10.test_global.dclf_p, 3)],
+          ['radios fuera de la banda', n5(L.pct_r_fuera_de_banda, 0) + ' %'],
+          // UN TRAMO, NO UN UMBRAL: con el núcleo la curva vuelve dentro de la
+          // banda mucho antes del final; con el modelo, no vuelve.
+          ['fuera entre r =', n5(L.primer_r_fuera_m, 0) + ' m y ' + n5(L.ultimo_r_fuera_m, 0) + ' m'],
+          L.nodos_dentro_tras_el_tramo > 0
+            ? ['y dentro hasta el final', n5(D5.m10.r_max_m, 0) + ' m']
+            : ['y dentro hasta el final', 'no vuelve a la banda'],
+          ['veredicto', D5.m10.veredicto]);
+        lectura5(raiz, filas);
       };
-      botonera5(raiz, ['Veces la media del modelo', 'K, escala lineal', 'K, escala logarítmica'],
-                k => { escala = k; pinta(); }, 0);
+      botonera5(raiz, ['λ por núcleo · veces la media', 'λ del modelo · veces la media', 'K sin dividir'],
+                k => { vista = k; pinta(); }, 0);
       pinta();
       return [g];
     };
@@ -3339,7 +3600,10 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
         { scales: { y: { beginAtZero: true, title: { display: true, text: '' } } } });
       const CAMPOS = [
         ['escala del conglomerado (m)', a => a.parametros.scale],
-        ['μ (puntos por conglomerado, o media del campo)', a => a.mu],
+        // El μ del LGCP es la media de un campo en escala log (−12.3): otra
+        // magnitud, que no comparte eje con los hijos por centro (M7 de la
+        // segunda revisión). Se deja fuera del dibujo y se dice en la lectura.
+        ['μ, hijos por centro (el Cox log-gaussiano no tiene centros)', a => a.modelo === 'LGCP' ? null : a.mu],
         ['segundos que tarda el ajuste', a => a.segundos]
       ];
       const pinta = () => {
@@ -3362,7 +3626,10 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
                                            n5(d.segundos_trans, 2) + ' s'],
           ['veces más rápido', '×' + n5(d.veces_mas_rapido, 0)],
           ['quitar los duplicados mueve, como mucho',
-           n5(D5.m11.duplicados.cambio_maximo_pct, 1) + ' %']]);
+           n5(D5.m11.duplicados.cambio_maximo_pct, 1) + ' %']].concat(vista === 1
+          ? [['μ del Cox log-gaussiano', n5(de('LGCP', 'iso').mu, 1) + ' y ' +
+              n5(de('LGCP', 'translate').mu, 1) + ': la media del campo, en escala log']]
+          : []));
       };
       botonera5(raiz, CAMPOS.map(c => c[0].split(' (')[0]),
                 k => { vista = k; pinta(); }, 0);
@@ -3498,7 +3765,7 @@ QUIZ_JS = r"""
           { texto: 'Solo <code>diggle = TRUE</code> hace que la integral devuelva n exactamente', correcta: true,
             retro: 'Divide en el punto donde ESTÁ el dato, así que cada punto aporta exactamente 1. Medido a σ = ' + n5(D5.m4.sigmas_m[2], 0) + ' m: ' + n5(D5.m4.tabla[2].masa_diggle, 2) + ' contra n = ' + D5.m4.n + '.' },
           { texto: 'Las tres correcciones cuestan prácticamente lo mismo', correcta: true,
-            retro: 'Cronometrado: ' + n5(D5.m4.coste_segundos.defecto, 2) + ' s por defecto, ' + n5(D5.m4.coste_segundos.sin_corregir, 2) + ' s sin corregir y ' + n5(D5.m4.coste_segundos.diggle, 2) + ' s con Diggle. La KDE se paga por píxel, no por perímetro.' },
+            retro: 'Cronometrado sobre Kennedy: ' + n5(D5.m4.coste_segundos.defecto, 3) + ' s por defecto, ' + n5(D5.m4.coste_segundos.sin_corregir, 3) + ' s sin corregir y ' + n5(D5.m4.coste_segundos.diggle, 3) + ' s con Diggle: centésimas de segundo las tres. La KDE se paga por píxel, no por perímetro.' },
           { texto: 'Sin corregir, la desviación no depende del ancho de banda',
             retro: 'Depende, y mucho: la fuga pasa de ' + n5(D5.m4.tabla[0].fuga_sin_corregir_pct, 2) + ' % a σ = ' + n5(D5.m4.sigmas_m[0], 0) + ' m a ' + n5(D5.m4.tabla[2].fuga_sin_corregir_pct, 2) + ' % a σ = ' + n5(D5.m4.sigmas_m[2], 0) + ' m.' },
           { texto: 'Un mapa sin corregir se distingue del corregido a simple vista',
@@ -3547,10 +3814,10 @@ QUIZ_JS = r"""
       {
         tipo: 'numerica',
         pista: 'Cada evento trae en media α/β descendientes, y cada descendiente los suyos, y así sucesivamente.',
-        pregunta: 'Un proceso de Hawkes tiene tasa de fondo μ = ' + D5.m11.hawkes.mu + ', salto α = ' + D5.m11.hawkes.alpha + ' y decaimiento β = ' + D5.m11.hawkes.beta + '. ¿Cuál es su tasa media de eventos por unidad de tiempo?',
-        respuesta: D5.m11.hawkes.tasa_teorica, tolerancia: 0.02,
-        retroAcierto: 'μ es solo la tasa de los que llegan de fuera. Cada uno dispara en media α/β = ' + n5(D5.m11.hawkes.razon_ramificacion, 4) + ' descendientes, y la cascada suma una serie geométrica: μ/(1 − α/β) = ' + n5(D5.m11.hawkes.tasa_teorica, 4) + '. La simulación del capítulo da ' + n5(D5.m11.hawkes.tasa_simulada, 4) + '.',
-        retroFallo: 'No es μ: μ es solo la tasa de los eventos que llegan de fuera. Cada evento dispara en media α/β = ' + n5(D5.m11.hawkes.razon_ramificacion, 4) + ' descendientes, cada uno de ellos los suyos, y la serie geométrica da μ/(1 − α/β) = ' + n5(D5.m11.hawkes.tasa_teorica, 4) + '. Que α/β sea menor que 1 es justo lo que impide que el proceso explote.'
+        pregunta: 'Un proceso de Hawkes tiene tasa de fondo μ = ' + D5.m11.hawkes.pregunta.mu + ', salto α = ' + D5.m11.hawkes.pregunta.alpha + ' y decaimiento β = ' + D5.m11.hawkes.pregunta.beta + '. ¿Cuál es su tasa media de eventos por unidad de tiempo?',
+        respuesta: D5.m11.hawkes.pregunta.tasa_teorica, tolerancia: 0.02,
+        retroAcierto: 'μ es solo la tasa de los que llegan de fuera. Cada uno dispara en media α/β = ' + n5(D5.m11.hawkes.pregunta.razon_ramificacion, 4) + ' descendientes, y la cascada suma una serie geométrica: μ/(1 − α/β) = ' + n5(D5.m11.hawkes.pregunta.tasa_teorica, 4) + '. Con los parámetros del módulo 11 la misma cuenta da ' + n5(D5.m11.hawkes.tasa_teorica, 4) + ', y su simulación, ' + n5(D5.m11.hawkes.tasa_simulada, 4) + '.',
+        retroFallo: 'No es μ: μ es solo la tasa de los eventos que llegan de fuera. Cada evento dispara en media α/β = ' + n5(D5.m11.hawkes.pregunta.razon_ramificacion, 4) + ' descendientes, cada uno de ellos los suyos, y la serie geométrica da μ/(1 − α/β) = ' + n5(D5.m11.hawkes.pregunta.tasa_teorica, 4) + '. Que α/β sea menor que 1 es justo lo que impide que el proceso explote.'
       },
       {
         tipo: 'opcion',
@@ -3569,7 +3836,7 @@ QUIZ_JS = r"""
       {
         tipo: 'multiple',
         pista: 'Son dos. Una va de lo que R hizo con el número; la otra, de dónde quedó dicho que había pasado algo.',
-        pregunta: 'Un selector devuelve exactamente ' + n5(D5.m3.topes[0].sigma, 4) + ', que es el extremo derecho de su intervalo de búsqueda. Marca <strong>todo</strong> lo que es cierto.',
+        pregunta: 'Un selector devuelve exactamente ' + n5(D5.m3.topes[0].sigma, 4) + ' sobre una ventana cuadrada de lado 1, y R ha escrito un aviso en la consola. Marca <strong>todo</strong> lo que es cierto.',
         retroAcierto: 'Las dos: no ha encontrado un óptimo dentro del intervalo, y el valor devuelto no lo delata por sí solo.',
         retroFallo: 'Las dos ciertas son que no ha encontrado un óptimo dentro del intervalo y que el valor devuelto no lo delata por sí solo.',
         opciones: [
@@ -3602,13 +3869,13 @@ QUIZ_JS = r"""
         pregunta: 'Una curva <code>rhohat</code> da una razón de ' + n5(D5.m7.bogota.curva.razon, 0) + ' entre su ρ máximo y su mínimo, pero el <code>ppm</code> lineal sobre la misma covariable da z = ' + n5(D5.m9.distancia.z[1], 2) + '. ¿Se contradicen?',
         opciones: [
           { texto: 'No: la razón de ' + n5(D5.m7.bogota.curva.razon, 0) + ' es casi toda cola, y en el bulto vale ' + n5(D5.m7.bogota.curva.razon_bulto, 2), correcta: true,
-            retro: 'Restringida al tramo entre los percentiles 5 y 95 de la covariable observada en los puntos, la curva varía ' + n5(D5.m7.bogota.curva.razon_bulto, 2) + ' veces: la cola infla el titular ' + n5(D5.m7.bogota.curva.cola_infla, 1) + ' veces. Y no es del dato colombiano: sobre bei la elevación pasa de ' + n5(D5.m7.bei.elevacion.razon, 1) + ' a ' + n5(D5.m7.bei.elevacion.razon_bulto, 2) + '.' },
+            retro: 'Restringida al tramo entre los percentiles 5 y 95 de la covariable observada en los puntos, la curva varía ' + n5(D5.m7.bogota.curva.razon_bulto, 2) + ' veces: la cola infla el titular ' + n5(D5.m7.bogota.curva.cola_infla, 1) + ' veces. Y no es del dato colombiano: sobre bei la elevación pasa de ' + n5(D5.m7.bei.elevacion.razon, 1) + ' a ' + n5(D5.m7.bei.elevacion.razon_bulto, 2) + '. Y la z tampoco mide el tamaño de la relación: impone una forma log-lineal que la curva no tiene (módulo 9), y con los conglomerados dentro ni la relación curva es evidencia (módulo 11).' },
           { texto: 'Sí: uno de los dos está mal calculado y hay que repetir el ajuste',
             retro: 'Los dos están bien calculados. Lo que pasa es que miden cosas distintas sobre tramos distintos de la covariable.' },
           { texto: 'No, porque el ppm es más fiable que rhohat y hay que quedarse con su z',
             retro: 'El ppm supone una forma —log-lineal— que la relación puede no tener. Ni más ni menos fiable: menos flexible.' },
           { texto: 'Sí, y hay que quedarse con la razón porque no supone nada',
-            retro: 'rhohat supone menos, pero su máximo y su mínimo viven donde casi no hay puntos con los que estimarlos. Por eso este material publica las dos razones.' }
+            retro: 'rhohat supone menos, pero su mínimo cae en una cola, donde casi no hay puntos con los que estimarlo, y es el que infla la razón. Por eso este material publica las dos razones.' }
         ] },
       {
         tipo: 'multiple',
@@ -3618,9 +3885,9 @@ QUIZ_JS = r"""
         retroFallo: 'Las dos ciertas son que el AIC depende de la cuadratura y que el ajuste con coordenadas crudas devuelve coeficientes sin errores estándar.',
         opciones: [
           { texto: 'Dos ppm ajustados con cuadraturas distintas no se pueden comparar por AIC', correcta: true,
-            retro: 'El AIC sale de la verosimilitud APROXIMADA por la cuadratura, y cada cuadratura deja sin contar un trozo distinto de ciudad. Entre nd = ' + D5.m8.cuadratura.tabla[0].nd + ' y nd = ' + D5.m8.cuadratura.tabla[3].nd + ' el AIC se mueve ' + n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos sin que cambie el modelo.' },
+            retro: 'El AIC sale de la verosimilitud APROXIMADA por la cuadratura, y cada cuadratura deja sin contar un trozo distinto de ciudad. De nd = ' + D5.m8.cuadratura.tabla[0].nd + ' a nd = ' + D5.m8.cuadratura.tabla[3].nd + ', el AIC se mueve ' + n5(D5.m8.cuadratura.rango_aic, 1) + ' puntos entre la cuadratura que más y la que menos, sin que cambie el modelo.' },
           { texto: 'Si la información de Fisher es singular, ppm falla y hay que atraparlo con try()',
-            retro: 'No falla: <code>vcov()</code> avisa y devuelve NULL, y <code>sqrt(diag(NULL))</code> devuelve una matriz 0 × 0 sin quejarse. Un try() no ve nada.' },
+            retro: 'No llega a fallar en tu guion: por dentro <code>solve()</code> no puede invertir la información de Fisher y la consola lo imprime, pero <code>vcov()</code> atrapa ese error, avisa y devuelve NULL, y <code>sqrt(diag(NULL))</code> da una matriz 0 × 0 sin quejarse. Un try() de fuera no ve nada.' },
           { texto: 'Con coordenadas en EPSG:9377 el ajuste devuelve coeficientes pero ningún error estándar', correcta: true,
             retro: 'El número de condición recíproco de la matriz de diseño es ' + D5.m9.crudo.cond_reciproco + '. Centrar y pasar a kilómetros lo sube a ' + D5.m9.centrado.cond_reciproco + ' sin cambiar el modelo: el AIC es el mismo.' },
           { texto: 'El coeficiente estimado también se mueve mucho con la cuadratura',
@@ -3631,14 +3898,14 @@ QUIZ_JS = r"""
         pista: 'La banda del módulo 10 no se simula contra CSR.',
         pregunta: 'La K inhomogénea del patrón urbano se sale de la banda de su modelo ajustado en el ' + n5(D5.m10.pct_r_fuera_de_banda, 0) + ' % de los radios. ¿Qué se concluye?',
         opciones: [
-          { texto: 'Que la intensidad variable no explica por sí sola la agregación del patrón', correcta: true,
-            retro: 'Esa es la bisagra del capítulo. Modelar la intensidad describe DÓNDE hay más colegios, no que estén cerca unos de otros más de lo que ese «dónde» implica. Y el módulo 11 enseña que el ajuste de conglomerado depende de con qué corrección se estimó K: sobre este patrón, μ pasa de ' + n5(D5.m11.ajustes[0].mu, 1) + ' a ' + n5(D5.m11.ajustes[1].mu, 1) + '.' },
+          { texto: 'Que un gradiente log-lineal en x e y no explica por sí solo la agregación del patrón', correcta: true,
+            retro: 'Esa es la bisagra del capítulo, con su alcance: se contrastó un plano, y un plano describe DÓNDE hay más colegios, no que estén cerca unos de otros más de lo que ese «dónde» implica. Con una tendencia de ' + D5.m10.tendencia_flexible[1].coeficientes + ' coeficientes la banda deja de rechazar: con un solo patrón, tendencia y agrupación no se separan. Y el módulo 11 enseña que el ajuste de conglomerado depende de con qué corrección se estimó K: sobre este patrón, μ pasa de ' + n5(D5.m11.ajustes[0].mu, 1) + ' a ' + n5(D5.m11.ajustes[1].mu, 1) + '.' },
           { texto: 'Que el modelo está mal ajustado y bastaría con añadirle covariables',
-            retro: 'Podría ayudar, pero la K inhomogénea ya descuenta la intensidad estimada: lo que sobra son parejas cercanas, y eso no lo arregla una covariable de gran escala.' },
+            retro: 'A medias. Un poco más de tendencia no basta: con un polinomio de grado ' + D5.m10.tendencia_flexible[0].grado + ' la banda sigue rechazando (DCLF p = ' + n5(D5.m10.tendencia_flexible[0].dclf_p, 3) + '). Una de grado ' + D5.m10.tendencia_flexible[1].grado + ' sí se traga la agregación (p = ' + n5(D5.m10.tendencia_flexible[1].dclf_p, 3) + '), pero porque dibuja los grupos como tendencia: describe el dato sin explicarlo. Una covariable de gran escala no arregla parejas cercanas.' },
           { texto: 'Que la banda es demasiado estrecha por usar ' + D5.m10.nsim + ' simulaciones',
             retro: 'Al revés: con ' + D5.m10.nsim + ' simulaciones y la banda por defecto el nivel puntual es ' + n5(D5.m10.nivel_puntual_pct, 1) + ' %, más exigente que el 5 % de una envolvente de 39. Y la conclusión no depende de leerla radio a radio: el test DCLF sobre la curva entera da p = ' + n5(D5.m10.test_global.dclf_p, 3) + '.' },
           { texto: 'Que el patrón no es un proceso puntual simple, y son los duplicados los que lo agregan',
-            retro: 'Tiene duplicados —' + D5.m11.duplicados.repetidos + ' sitios repetidos— pero quitarlos mueve los parámetros del ajuste como mucho un ' + n5(D5.m11.duplicados.cambio_maximo_pct, 1) + ' %. No son la explicación.' }
+            retro: 'Tiene duplicados —' + D5.m11.duplicados.repetidos + ' sedes que repiten la posición de otra, en ' + D5.m11.duplicados.sitios + ' sitios— pero quitarlos mueve los parámetros del ajuste como mucho un ' + n5(D5.m11.duplicados.cambio_maximo_pct, 1) + ' %. No son la explicación.' }
         ] }
     ];
 """

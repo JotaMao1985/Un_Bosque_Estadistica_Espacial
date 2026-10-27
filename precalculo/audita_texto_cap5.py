@@ -78,9 +78,17 @@ núcleos, la cámara, el puntero y el guion. Lo que NO suma, otra vez: three.js.
 72 KB de margen y sigue 240 KB por debajo de 1228 + 312, el techo que `prueba_texto.py`
 necesita perforar. Es explicación, y la quinta vez que el peso cede ante ella.
 
-Y EL PRESUPUESTO DE GEOMETRÍA ES 200 KB, con un punto ciego declarado.
+2026-10-27, y la sexta: SUBE A 1360 KB. La tercera revisión del capítulo encontró que el
+pie del módulo 5 atribuía al peso por estudiantes una diferencia que mezcla dos operaciones,
+y la salida que enseña es dibujar el mapa intermedio —las sedes con grado 11, sin pesar—
+entre la oferta y los estudiantes (~45 KB de ráster). El documento pasa de 1 262 a 1 307 KB.
+1360 deja 53 KB de margen y sigue 259 KB por debajo de 1307 + 312. Es explicación.
+
+Y EL PRESUPUESTO DE GEOMETRÍA ES 250 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y
-los cinco de este capítulo pesan **157 KB**. Los otros siete —las
+los seis de este capítulo pesan **204 KB** (eran cinco y 157 KB hasta que el
+módulo 5 ganó el mapa de bachillerato, el 2026-10-27; el presupuesto sube de
+200 a 250 con él). Los otros siete —las
 superficies del deslizador de σ— entran por una FUNCIÓN, así que
 `geomapas()` los salta con un «---» y sus 174 KB no entran en esa cuenta.
 No quedan sin auditar —`audita_cap5.py` los recalcula uno a uno desde
@@ -101,7 +109,7 @@ import sys
 from audita_texto_base import SALIDAS, Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP5_KB = 1300.0
+TOPE_CAP5_KB = 1360.0
 # El techo de las siete superficies del deslizador, que el núcleo no ve.
 TOPE_FAMILIA_KB = 200.0
 
@@ -269,12 +277,14 @@ AFIRMACIONES = [
      "segundo nivel"),
     ("declara que la guarda que caza eso es comprobar la orientación contra el dato",
      "orientación contra el dato"),
-    ("dice que lo oficial está concentrado y qué significa eso",
-     "es mayoría en poca superficie"),
+    ("dice en qué fracción de la ciudad es mayoría lo oficial, que no es la mediana",
+     "del área de la ciudad"),
+    ("lee el máximo de chorley con los puntos que tiene alrededor",
+     "no se lee como un sitio"),
     ("declara que contar puntos y mirar el mapa contestan preguntas distintas",
      "contestan preguntas distintas"),
-    ("dice que el titular de una rhohat es casi siempre su cola",
-     "donde apenas hay puntos"),
+    ("dice que el titular de una rhohat lo infla el mínimo en una cola",
+     "un cociente con algo casi nulo debajo se dispara"),
     ("declara que publicar covariables que no funcionan es la mitad de la lección",
      "es la mitad de la lección"),
     ("dice que dos ppm con cuadraturas distintas no se comparan por AIC",
@@ -287,8 +297,12 @@ AFIRMACIONES = [
      "avisa y devuelve"),
     ("dice que lo que decide es que haya un error estándar por coeficiente",
      "un error estándar por coeficiente"),
-    ("declara que una z pequeña es ausencia de relación LOG-LINEAL y no de relación",
-     "no hay relación log-lineal"),
+    ("declara que una z pequeña es no ENCONTRAR una relación log-lineal, no que no la haya",
+     "no encuentra una relación log-lineal"),
+    ("dice qué λ divide la K inhomogénea de la envolvente",
+     "sino por una que estima en cada patrón"),
+    ("acota el veredicto a lo que se contrastó: un plano",
+     "intensidad variable y agrupación no se separan"),
     ("dice que un modelo no ve lo que no puede escribir",
      "no ve lo que no puede escribir"),
     ("declara qué es un residuo en un proceso puntual",
@@ -356,7 +370,7 @@ AFIRMACIONES = [
     ("el ejercicio 3 dice qué le hace el conglomerado a la z",
      "se multiplica por unas diez"),
     ("el ejercicio 4 dice por qué try() no caza nada",
-     "no hay ningún error que atrapar"),
+     "el error no llega al guion"),
     ("el ejercicio 4 dice adónde va el desplazamiento",
      "todo el desplazamiento lo absorbe el intercepto"),
 ]
@@ -585,10 +599,10 @@ def main() -> int:
         var_entorno="CAP5_HTML",
         jsons=["cap5_datos.json", "cap5_soluciones.json"],
         estructurales=ESTRUCTURALES,
-        # 200 KB para los CINCO mapas que el núcleo sabe pesar. Las siete
+        # 250 KB para los SEIS mapas que el núcleo sabe pesar. Las siete
         # superficies del deslizador van por función y tienen su propio
         # techo en `familia()`; el encabezado lo explica.
-        presupuesto_geomapa_kb=200.0,
+        presupuesto_geomapa_kb=250.0,
         json_mapas="cap5_mapas.json",
     )
     print(f"\n=== audita_texto_cap5.py · {a.ruta.name} ===")

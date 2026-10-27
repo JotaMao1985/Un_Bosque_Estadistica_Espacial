@@ -190,39 +190,62 @@ if (quiero("teselas")) {
 }
 
 # ---------------------------------------------------------------------
-# S2-D · la K inhomogénea del patrón contra la banda de su propio modelo (999 simulaciones)
-#   Datos: precalculo/salidas/cap5_envolvente.csv, el mismo archivo que lee el bloque de Python del capítulo.
+# S2-D · la K inhomogénea del patrón contra la banda de su propio modelo (999 simulaciones), con las DOS
+#   intensidades con que se puede dividir (tercera revisión, 2026-10-27): `envelope(f_centr, Kinhom, …)` sin
+#   `lambda` divide por un núcleo de 2.93 km estimado en cada patrón; con `lambda = f_centr`, por el modelo.
+#   Datos: precalculo/salidas/cap5_envolvente.csv (la del núcleo, la que lee el bloque de Python del capítulo) y
+#   `m10.lambda_modelo.curva` de cap5_datos.json (la del modelo), sobre los mismos 101 radios.
 # ---------------------------------------------------------------------
 if (quiero("envolvente")) {
   env <- read.csv("precalculo/salidas/cap5_envolvente.csv")
+  D5 <- jsonlite::fromJSON("precalculo/salidas/cap5_datos.json", simplifyVector = TRUE)
+  lm_ <- D5$m10$lambda_modelo; cm <- lm_$curva; sig_nuc <- D5$m10$lambda_nucleo_sigma_m
   ok <- env$r > 0
   fuera <- env$obs > env$hi | env$obs < env$lo
-  stopifnot(nrow(env) == 101, sum(ok) == 100, round(100 * mean(fuera[ok])) == 62, all(env$obs[ok][fuera[ok]] > env$hi[ok][fuera[ok]]))
+  fuera_m <- cm$obs > cm$hi | cm$obs < cm$lo
+  stopifnot(nrow(env) == 101, sum(ok) == 100, length(cm$obs) == 101, round(100 * mean(fuera[ok])) == 62,
+            all(env$obs[ok][fuera[ok]] > env$hi[ok][fuera[ok]]), all(fuera_m[ok]), all(cm$obs[ok] > cm$hi[ok]),
+            round(100 * mean(fuera_m[ok])) == lm_$pct_r_fuera_de_banda, abs(sig_nuc - 2934.0578665) < 1e-4)
   r_ini <- min(env$r[ok][fuera[ok]]); r_fin <- max(env$r[ok][fuera[ok]])
   stopifnot(abs(r_ini - 58.68116) < 1e-4, abs(r_fin - 3638.23175) < 1e-4)
-  x <- env$r[ok]; o <- env$obs[ok] / env$mmean[ok]; lo <- env$lo[ok] / env$mmean[ok]; hi <- env$hi[ok] / env$mmean[ok]
-  fu <- fuera[ok]
-  abre(paste0(SAL, "s2-envolvente.png"), 2000, 1050)
-  par(mar = c(5.2, 5.6, 4.4, 1.0))
-  plot(NA, xlim = c(0, 5868.1157), ylim = c(0.4, 2.9), axes = FALSE, xlab = "", ylab = "", xaxs = "i")
-  rect(r_ini, 0.4, r_fin, 2.9, col = adjustcolor(COL_NARANJA, 0.09), border = NA)
-  polygon(c(x, rev(x)), c(hi, rev(lo)), col = adjustcolor(COL_GRIS, 0.55), border = NA)
-  abline(h = 1, lty = 2, lwd = 3, col = COL_TEXTO)
-  lines(x, o, lwd = 5, col = "#1a7358")
-  points(x[fu], o[fu], pch = 21, bg = COL_NARANJA, col = "white", cex = 1.4, lwd = 1.2)
-  ejes(x_at = seq(0, 6000, 1000), x_lab = c("0", "1", "2", "3", "4", "5", "6"), y_at = c(0.5, 1, 1.5, 2, 2.5), cex = 1.35)
-  mtext("distancia r (km)", side = 1, line = 3.4, cex = 1.4, col = COL_TEXTO)
-  mtext("K inhomogénea ÷ media del modelo", side = 2, line = 3.6, cex = 1.15, col = COL_TEXTO)
-  mtext("Patrón de Bogotá contra su modelo (999 simulaciones)", side = 3, line = 2.3, cex = 1.5, font = 2, col = COL_TEXTO)
-  mtext("62 de los 100 radios quedan sobre la banda; ninguno bajo ella", side = 3, line = 0.6, cex = 1.25, col = "#8A3D00", font = 2)
-  text(1000, 0.62, "el modelo: la media\nde sus simulaciones = 1", adj = 0, cex = 1.25, col = COL_TEXTO)
-  text(r_ini, 2.76, sprintf("empieza en %.1f m", r_ini), adj = c(0, 0.5), cex = 1.3, font = 2, col = "#8A3D00")
-  text(r_fin, 2.76, sprintf("termina en %.0f m", r_fin), adj = c(1, 0.5), cex = 1.3, font = 2, col = "#8A3D00")
-  legend("topright", bty = "n", cex = 1.2, text.col = COL_TEXTO, pch = c(NA, 15, 21), lty = c(1, NA, NA), lwd = c(5, NA, NA), pt.cex = c(NA, 2.6, 1.7),
-         col = c("#1a7358", adjustcolor(COL_GRIS, 0.8), "white"), pt.bg = c(NA, NA, COL_NARANJA),
-         legend = c("patrón observado", "banda de las 999 simulaciones", "radio fuera de la banda"), inset = c(0, 0.12))
+  x <- env$r[ok]
+  panel <- function(o, lo, hi, fu, l1, l2, marcas, leyenda = FALSE) {
+    plot(NA, xlim = c(0, 5868.1157), ylim = c(0.4, 2.9), axes = FALSE, xlab = "", ylab = "", xaxs = "i")
+    rect(min(x[fu]), 0.4, max(x[fu]), 2.9, col = adjustcolor(COL_NARANJA, 0.09), border = NA)
+    polygon(c(x, rev(x)), c(hi, rev(lo)), col = adjustcolor(COL_GRIS, 0.55), border = NA)
+    abline(h = 1, lty = 2, lwd = 3, col = COL_TEXTO)
+    lines(x, o, lwd = 5, col = "#1a7358")
+    points(x[fu], o[fu], pch = 21, bg = COL_NARANJA, col = "white", cex = 1.4, lwd = 1.2)
+    ejes(x_at = seq(0, 6000, 1000), x_lab = c("0", "1", "2", "3", "4", "5", "6"), y_at = c(0.5, 1, 1.5, 2, 2.5), cex = 1.35)
+    mtext("distancia r (km)", side = 1, line = 3.4, cex = 1.4, col = COL_TEXTO)
+    mtext("K inhomogénea ÷ media del modelo", side = 2, line = 3.6, cex = 1.15, col = COL_TEXTO)
+    mtext(l1, side = 3, line = 2.3, cex = 1.5, font = 2, col = COL_TEXTO)
+    mtext(l2, side = 3, line = 0.6, cex = 1.25, col = "#8A3D00", font = 2)
+    marcas()
+    if (leyenda) legend("topright", bty = "n", cex = 1.2, text.col = COL_TEXTO, pch = c(NA, 15, 21), lty = c(1, NA, NA), lwd = c(5, NA, NA),
+                        pt.cex = c(NA, 2.6, 1.7), col = c("#1a7358", adjustcolor(COL_GRIS, 0.8), "white"), pt.bg = c(NA, NA, COL_NARANJA),
+                        legend = c("patrón observado", "banda de las 999 simulaciones", "radio fuera de la banda"), inset = c(0, 0.16))
+  }
+  abre(paste0(SAL, "s2-envolvente.png"), 2800, 1000)
+  layout(matrix(1:2, 1)); par(cex = 1, mar = c(5.2, 5.6, 4.4, 1.2))
+  panel(env$obs[ok] / env$mmean[ok], env$lo[ok] / env$mmean[ok], env$hi[ok] / env$mmean[ok], fuera[ok],
+        sprintf("Dividida por un núcleo de %.2f km", sig_nuc / 1000),
+        "Kinhom sin lambda · 62 de 100 radios fuera",
+        function() {
+          text(1000, 0.62, "el modelo: la media\nde sus simulaciones = 1", adj = 0, cex = 1.25, col = COL_TEXTO)
+          # el primer radio fuera (58.7 m) lo dice la lámina; aquí, donde la K vuelve a entrar, dentro del tramo y sobre la curva
+          text(r_fin - 60, 1.8, sprintf("vuelve a la banda\nen %.0f m", r_fin), adj = c(1, 0.5), cex = 1.3, font = 2, col = "#8A3D00")
+        })
+  panel(cm$obs[ok] / cm$mmean[ok], cm$lo[ok] / cm$mmean[ok], cm$hi[ok] / cm$mmean[ok], fuera_m[ok],
+        "Dividida por la intensidad del modelo",
+        sprintf("lambda = f_centr · %d de 100 radios fuera", sum(fuera_m[ok])),
+        function() {
+          text(5868.1157 - 80, 2.76, "no vuelve a la banda", adj = c(1, 0.5), cex = 1.3, font = 2, col = "#8A3D00")
+        }, leyenda = TRUE)
   dev.off()
-  cat(sprintf("S2-D envolvente: fuera %d/%d · inicio %.5f · fin %.5f · razón máxima obs/modelo %.2f en r = %.1f m\n", sum(fu), sum(ok), r_ini, r_fin, max(o), x[which.max(o)]))
+  cat(sprintf("S2-D envolvente: núcleo fuera %d/%d (%.5f a %.5f) · modelo fuera %d/%d · razón máxima obs/modelo %.2f y %.2f\n",
+              sum(fuera[ok]), sum(ok), r_ini, r_fin, sum(fuera_m[ok]), sum(ok),
+              max(env$obs[ok] / env$mmean[ok]), max(cm$obs[ok] / cm$mmean[ok])))
 }
 
 # ---------------------------------------------------------------------

@@ -229,10 +229,22 @@ if (modulo == "b_m11_hawkes") {
   set.seed(5031); evp <- sort(runif(length(ev), 0, 4000))
   ks <- c(20, 50, 100, 200, 400, 800, 2000)
   por_k <- lapply(ks, function(k) list(k = k, ancho = 4000 / k, hawkes = disp(ev, k), poisson = disp(evp, k)))
-  res <- sapply(seq_len(nsim_o(200)), function(s) { e <- hawkes(0.5, 0.8, 1.4, 4000, 6000 + s); c(n = length(e), d = disp(e, 200)) })
+  # d20: el índice con solo 20 intervalos, en las MISMAS réplicas (tercera revisión, 2026-10-27): el 9.9 de esta
+  # simulación con 20 intervalos se leía como forma de la curva, y es ruido de Monte Carlo.
+  res <- sapply(seq_len(nsim_o(200)), function(s) { e <- hawkes(0.5, 0.8, 1.4, 4000, 6000 + s); c(n = length(e), d = disp(e, 200), d20 = disp(e, 20)) })
   tasa_teo <- 0.5 / (1 - 0.8 / 1.4)
+  # El índice teórico de un Hawkes con núcleo exponencial, contado en ventanas de ancho w:
+  # I(w) = [1 - (1 - (1 - n)^2) (1 - exp(-g w)) / (g w)] / (1 - n)^2, con n = alpha/beta y g = beta - alpha.
+  # Vale 1 con w -> 0 y 1/(1 - n)^2 con w -> infinito.
+  ramif <- 0.8 / 1.4; g <- 1.4 - 0.8
+  teorico <- function(w) (1 - (1 - (1 - ramif)^2) * (1 - exp(-g * w)) / (g * w)) / (1 - ramif)^2
+  por_k <- lapply(por_k, function(x) c(x, list(teorico = teorico(x$ancho))))
   guarda("m11b_hawkes", list(por_intervalos = por_k, replicas = ncol(res),
                              disp_media = mean(res["d", ]), disp_sd = sd(res["d", ]), disp_min = min(res["d", ]), disp_max = max(res["d", ]),
+                             disp20_media = mean(res["d20", ]), disp20_sd = sd(res["d20", ]),
+                             disp20_q05 = unname(quantile(res["d20", ], 0.05)), disp20_q95 = unname(quantile(res["d20", ], 0.95)),
+                             disp20_frac_ge_esta = mean(res["d20", ] >= por_k[[1]]$hawkes),
+                             limite = 1 / (1 - ramif)^2,
                              tasa_media = mean(res["n", ]) / 4000, tasa_sd_una = sd(res["n", ]) / 4000,
                              z_tasa_simulada = (length(ev) / 4000 - tasa_teo) / (sd(res["n", ]) / 4000)))
 }
