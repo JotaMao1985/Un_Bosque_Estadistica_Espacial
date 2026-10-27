@@ -275,6 +275,54 @@ def defectos():
     obj("6c · el p del Wald deja de ser el de su chi²",
         "datos", lambda d: d["m11"]["cuadratico_dcen"]["conglomerado"][1].__setitem__("p", 0.2131313))
 
+    # --- 6d. Los campos nuevos de la tercera revisión (2026-10-27) -------
+    obj("6d · un ancho de la familia se sale de los pasos de √2",
+        "datos", lambda d: d["m2"]["familia"]["sigmas_m"].__setitem__(3, 700.1313131))
+    obj("6d · una sede sola pasa del primer corte",
+        "datos", lambda d: d["m2"]["familia"]["foco"].__setitem__("pico_una_sede_km2", 4.9131313))
+    obj("6d · el foco más alto reúne menos sedes",
+        "datos", lambda d: d["m2"]["familia"]["foco"].__setitem__("sedes_a_un_sigma_del_maximo", 2))
+    obj("6d · el primer corte deja de ser el del mapa",
+        "datos", lambda d: d["m2"]["familia"]["foco"].__setitem__("primer_corte_km2", 3.1313131))
+    obj("6d · el foco toma la sigma de la segunda superficie",
+        "datos", lambda d: d["m2"]["familia"]["foco"].__setitem__("sigma_m", d["m2"]["familia"]["sigmas_m"][1]))
+    obj("6d · la rejilla por defecto pasa a 32 anchos",
+        "datos", lambda d: d["m3"]["ns_defecto"].__setitem__("ppl", 32))
+    obj("6d · con la rejilla fina el cruce sigue",
+        "datos", lambda d: d["m3"]["fino"]["kennedy"].__setitem__("ppl", 371.3131313))
+    obj("6d · con 16 anchos ya no hay cruce",
+        "datos", lambda d: d["m3"]["kennedy"]["sigmas_m"].__setitem__("ppl", 331.3131313))
+    obj("6d · el Scott isótropo de la ciudad cambia",
+        "datos", lambda d: d["m3"]["scott_isotropico_m"].__setitem__("urbana", 1700.1313131))
+    obj("6d · la razón de la ciudad con el isótropo cambia",
+        "datos", lambda d: d["m3"].__setitem__("razon_urbana_scott_isotropico", 6.1313131))
+    obj("6d · el máximo de la elevación se va a la cola",
+        "datos", lambda d: d["m7"]["bei"]["elevacion"].__setitem__("z_del_maximo", 159.0131))
+    obj("6d · el mínimo de la pendiente entra en el bulto",
+        "datos", lambda d: d["m7"]["bei"]["pendiente"].__setitem__("minimo_en_el_bulto", 1))
+    obj("6d · la curva de Bogotá rebasa su máximo",
+        "datos", lambda d: d["m7"]["bogota"]["curva"]["curva_rho"].__setitem__(50, 1.31313e-05))
+    obj("6d · la curva de Bogotá pierde un nodo",
+        "datos", lambda d: d["m7"]["bogota"]["curva"]["curva_z"].pop())
+    obj("6d · el centroide se aleja de las sedes",
+        "datos", lambda d: d["m7"]["bogota"]["centroide_ventana"].__setitem__(
+            "distancia_al_centro_de_masa_m", 1131.3131313))
+    obj("6d · con el centroide la lección ya no sobrevive",
+        "datos", lambda d: d["m7"]["bogota"]["centroide_ventana"].__setitem__("razon_bulto", 2.6131313))
+    obj("6d · los sitios con duplicados vuelven a ser 40",
+        "datos", lambda d: d["m11"]["duplicados"].__setitem__("sitios", 40))
+    obj("6d · las sedes implicadas cambian",
+        "datos", lambda d: d["m11"]["duplicados"].__setitem__("implicadas", 81))
+    obj("6d · el ancho del intervalo del Hawkes se duplica",
+        "datos", lambda d: d["m11"]["hawkes"].__setitem__("ancho_intervalo", 40))
+    obj("6d · el límite del índice del Hawkes cambia",
+        "datos", lambda d: d["m11"]["hawkes"].__setitem__("dispersion_limite", 4.1313131))
+    obj("6d · la tasa de la pregunta deja de cuadrar",
+        "datos", lambda d: d["m11"]["hawkes"]["pregunta"].__setitem__("tasa_teorica", 0.7131313))
+    obj("6d · la pregunta vuelve a copiar los parámetros del módulo",
+        "datos", lambda d: d["m11"]["hawkes"]["pregunta"].update(
+            {k: d["m11"]["hawkes"][k] for k in ("mu", "alpha", "beta", "razon_ramificacion", "tasa_teorica")}))
+
     # --- 7. Propiedades teóricas exactas ------------------------------
     obj("7 · el nivel puntual deja de ser 2/(nsim+1)",
         "datos", lambda d: d["m10"].__setitem__("nivel_puntual_pct", 0.4131313131))

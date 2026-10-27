@@ -989,11 +989,13 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
          f'"n": {M["sector_puntos"]["n"] - 3}, "pts"'),
         # --- 31. Los niveles de la marca ------------------------------
         ("el mapa por sector se queda sin los niveles de su marca",
-         '"niveles": ["oficial"', '"_niveles": ["oficial"'),
+         '"niveles": ["privado"', '"_niveles": ["privado"'),
         # --- 27, 28, 29, 30. Las siete superficies del deslizador -----
         ("un σ del deslizador deja de casar con el del dato",
-         f'"sigma_m": {json.dumps(D["m2"]["familia"]["sigmas_m"][0])}',
-         f'"sigma_m": {perturba(D["m2"]["familia"]["sigmas_m"][0], 4)}'),
+         # Con «, "escala_comun"» detrás: el foco del módulo 2 publica el
+         # mismo σ antes, y sin el ancla la sustitución caía en él.
+         f'"sigma_m": {json.dumps(D["m2"]["familia"]["sigmas_m"][0])}, "escala_comun"',
+         f'"sigma_m": {perturba(D["m2"]["familia"]["sigmas_m"][0], 4)}, "escala_comun"'),
         ("una superficie del deslizador se queda con escala propia",
          '"escala_comun"', '"escala_propia"'),
         ("una superficie del deslizador llega sin empaquetar",

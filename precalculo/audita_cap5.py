@@ -532,20 +532,49 @@ def main() -> int:
     # Los máximos de las siete superficies, recalculados. Es la afirmación
     # del módulo 2 —al abrir el núcleo la superficie se aplana— y aquí se
     # comprueba contra una KDE que no es la de spatstat.
-    maxs = []
+    maxs, sup0 = [], None
     for s in fam["sigmas_m"]:
         cr = kde_directa(px, py, s, xc, yc)
         e = borde_e(mask, dx, dy, s, nx, ny)
         sup = np.where((e > 0) & mask, cr / np.maximum(e, 1e-300), np.nan)
         maxs.append(float(np.nanmax(sup)) * 1e6)
+        sup0 = sup if sup0 is None else sup0
     for i, s in enumerate(fam["sigmas_m"]):
         a.cerca(maxs[i], fam["max_km2"][i],
                 f"familia: el máximo con sigma={s:.0f} m", TOL_SUP)
+    # El simulador del módulo 2 rotula su eje «pasos ×√2»: siete anchos que
+    # recorren un factor 8 en seis pasos iguales, 8^(1/6) = √2.
+    sgm = np.asarray(fam["sigmas_m"], float)
+    a.cierto(np.allclose(sgm[1:] / sgm[:-1], np.sqrt(2), rtol=1e-5)
+             and abs(sgm[-1] / sgm[0] - fam["razon"]) < 1e-4 * fam["razon"],
+             "familia: los anchos van en pasos de √2",
+             " ".join(f"{v:.4f}" for v in sgm[1:] / sgm[:-1]))
     a.cierto(all(np.diff(maxs) < 0), "familia: el máximo cae al abrir el núcleo",
              " ".join(f"{v:.1f}" for v in maxs))
     a.cerca(100 * (maxs[0] - maxs[-1]) / maxs[0], fam["caida_pct"],
             "familia: la caída total, recalculada", TOL_SUP)
     a.igual(len(fam_csv), len(fam["sigmas_m"]), "familia: el CSV trae las siete")
+
+    # LOS FOCOS DEL σ MÁS ESTRECHO SON GRUPOS (tercera revisión, 2026-10-27).
+    # El módulo decía «colegios concretos»: una sede sola levanta
+    # 1/(2 pi sigma^2), que no pasa del primer tramo de la leyenda, y el foco
+    # más alto reúne varias. Las tres cifras, sin spatstat.
+    fo = fam["foco"]
+    a.cerca(fo["sigma_m"], fam["sigmas_m"][0], "foco: es el de la sigma más estrecha", 1e-12)
+    a.cerca(1e6 / (2 * np.pi * fo["sigma_m"] ** 2), fo["pico_una_sede_km2"],
+            "foco: lo que levanta una sede sola", 1e-9)
+    esc = fam["escala"]
+    a.cerca(esc[0] + (esc[1] - esc[0]) / 7, fo["primer_corte_km2"],
+            "foco: el primer corte de la leyenda común", 1e-6)
+    a.cerca(M["kennedy_familia"][0]["cortes"][1], fo["primer_corte_km2"],
+            "foco: y es el que dibuja el mapa", 1e-6)
+    iy0, ix0 = np.unravel_index(np.nanargmax(sup0), sup0.shape)
+    a.igual(int(((px - xc[ix0]) ** 2 + (py - yc[iy0]) ** 2 <= fo["sigma_m"] ** 2).sum()),
+            fo["sedes_a_un_sigma_del_maximo"], "foco: las sedes a un sigma del máximo")
+    a.cierto(fo["pico_una_sede_km2"] < fo["primer_corte_km2"] and fo["sedes_a_un_sigma_del_maximo"] >= 3,
+             "foco: una sede sola no se ve; el foco es un grupo",
+             f"{fo['pico_una_sede_km2']:.2f} < {fo['primer_corte_km2']:.2f} por km², "
+             f"{fo['sedes_a_un_sigma_del_maximo']} sedes")
     a.cerca(float(fam_csv["max_km2"].iloc[0]), fam["max_km2"][0],
             "familia: el CSV y el JSON dicen lo mismo", 1e-9)
 
@@ -603,6 +632,35 @@ def main() -> int:
         a.cierto(t["choco"] is True, f"selectores: {t['nombre'][:28]} chocó con su tope")
         a.cierto(t["sigma"] > 0, f"selectores: y su valor es finito y positivo")
     a.igual(len(m3["topes"]), 2, "selectores: los dos casos de tope están")
+
+    # LA REJILLA DE bw.ppl Y bw.CvL (tercera revisión, 2026-10-27). El cruce
+    # que el módulo leía —ppl por encima de diggle en Kennedy, por debajo en
+    # la ciudad— es de la rejilla de 16 anchos; con una fina, ppl queda por
+    # debajo en las dos. Son validación cruzada: se auditan las propiedades
+    # que la prosa afirma, no el valor.
+    a.cierto(m3["ns_defecto"]["ppl"] == m3["ns_defecto"]["CvL"] == 16,
+             "selectores: la rejilla por defecto es de 16 anchos",
+             f"ppl {m3['ns_defecto']['ppl']}, CvL {m3['ns_defecto']['CvL']}")
+    a.cierto(m3["ns_fino"] > 10 * m3["ns_defecto"]["ppl"], "selectores: la fina es mucho más fina",
+             f"{m3['ns_fino']} anchos")
+    sk, su = m3["kennedy"]["sigmas_m"], m3["urbana"]["sigmas_m"]
+    a.cierto(sk["ppl"] > sk["diggle"] and su["ppl"] < su["diggle"],
+             "selectores: con 16 anchos, ppl y diggle se cruzan",
+             f"Kennedy {sk['ppl']:.0f} / {sk['diggle']:.0f}; ciudad {su['ppl']:.0f} / {su['diggle']:.0f}")
+    fk, fu = m3["fino"]["kennedy"], m3["fino"]["urbana"]
+    a.cierto(fk["ppl"] < sk["diggle"] and fu["ppl"] < su["diggle"],
+             "selectores: con la fina, ppl queda debajo en las dos",
+             f"Kennedy {fk['ppl']:.0f} / {sk['diggle']:.0f}; ciudad {fu['ppl']:.0f} / {su['diggle']:.0f}")
+    a.cierto(all(v > 0 for d in (fk, fu) for v in d.values()), "selectores: los finos son positivos")
+    # bw.scott(isotropic = TRUE) es la media geométrica de las dos
+    # desviaciones típicas por n^(-1/6): fórmula cerrada, se recalcula.
+    ux, uy_ = urb["x"].to_numpy(), urb["y"].to_numpy()
+    for donde, (xx, yy) in (("kennedy", (px, py)), ("urbana", (ux, uy_))):
+        iso = float(np.sqrt(np.std(xx, ddof=1) * np.std(yy, ddof=1)) * len(xx) ** (-1 / 6))
+        a.cerca(iso, m3["scott_isotropico_m"][donde], f"selectores/{donde}: bw.scott isótropo", 1e-6)
+    sel_iso = dict(su, scott=m3["scott_isotropico_m"]["urbana"])
+    a.cerca(max(sel_iso.values()) / min(sel_iso.values()), m3["razon_urbana_scott_isotropico"],
+            "selectores: la razón de la ciudad con el isótropo", 1e-9)
 
     # -----------------------------------------------------------------
     a.titulo("5 · El riesgo relativo, recalculado por definición")
@@ -738,6 +796,44 @@ def main() -> int:
     a.cierto(m7["bogota"]["curva"]["razon_bulto"] < m7["bei"]["elevacion"]["razon_bulto"]
              < m7["bei"]["pendiente"]["razon_bulto"],
              "rhohat: el orden en el bulto es el que el módulo cuenta")
+
+    # LA CURVA Y DÓNDE CAEN SUS EXTREMOS (tercera revisión, 2026-10-27). El
+    # módulo decía que el máximo y el mínimo viven «casi siempre» en los
+    # extremos; lo que se sostiene es que el mínimo cae en una cola en las
+    # tres, y el máximo solo en una. La curva publicada son cien nodos
+    # interpolados de la de spatstat: no puede salirse de sus extremos.
+    curvas = (("bei/elev", m7["bei"]["elevacion"]), ("bei/grad", m7["bei"]["pendiente"]),
+              ("bogotá", m7["bogota"]["curva"]))
+    for etq, c in curvas:
+        cz, cr_ = np.asarray(c["curva_z"], float), np.asarray(c["curva_rho"], float)
+        # Con la holgura de las seis cifras significativas de `r6`, que en
+        # la elevación de bei (≈150 m, paso de 0.4 m) son 1e-4 m por nodo.
+        a.cierto(len(cz) == len(cr_) == 100
+                 and np.allclose(np.diff(cz), (cz[-1] - cz[0]) / 99, rtol=0, atol=2e-5 * np.abs(cz).max()),
+                 f"rhohat/{etq}: cien nodos equiespaciados")
+        a.cierto(cr_.max() <= c["rho_max"] * (1 + 1e-5) and cr_.min() >= c["rho_min"] * (1 - 1e-5),
+                 f"rhohat/{etq}: la curva no rebasa sus extremos")
+        a.cierto(cz[0] - 1e-6 * abs(cz[0]) <= c["z_del_maximo"] <= cz[-1] * (1 + 1e-6)
+                 and cz[0] - 1e-6 * abs(cz[0]) <= c["z_del_minimo"] <= cz[-1] * (1 + 1e-6),
+                 f"rhohat/{etq}: sus extremos caen dentro del rango")
+        for cual in ("maximo", "minimo"):
+            z = c[f"z_del_{cual}"]
+            a.igual(int(c["bulto_desde"] <= z <= c["bulto_hasta"]), int(c[f"{cual}_en_el_bulto"]),
+                    f"rhohat/{etq}: ¿el {cual} en el bulto?")
+    a.cierto(all(int(c["minimo_en_el_bulto"]) == 0 for _, c in curvas),
+             "rhohat: el mínimo cae en una cola en las tres")
+    a.igual(sum(int(c["maximo_en_el_bulto"]) for _, c in curvas), 2,
+            "rhohat: el máximo, dentro del bulto en dos de tres")
+    # El centro de masa de las sedes sale de las sedes; el centroide de la
+    # ventana, no. El módulo publica la lección con los dos.
+    cv = m7["bogota"]["centroide_ventana"]
+    cw = v_urb.centroid
+    a.cerca(float(np.hypot(cw.x - cx, cw.y - cy)), cv["distancia_al_centro_de_masa_m"],
+            "rhohat: del centroide de la ventana al de las sedes", 1e-6)
+    a.cierto(cv["razon"] / cv["razon_bulto"] > 1
+             and cv["razon_bulto"] < m7["bei"]["elevacion"]["razon_bulto"],
+             "rhohat: con el centroide, la lección sobrevive",
+             f"{cv['razon']:.1f} en todo el rango, {cv['razon_bulto']:.2f} en el bulto")
 
     # -----------------------------------------------------------------
     a.titulo("8 · ppm: la identidad de la EMV y la cuadratura")
@@ -1124,6 +1220,13 @@ def main() -> int:
              f"hasta {max(d['mu_pct'] for d in m11['divergencia']):.1f} % en mu")
     dup = m11["duplicados"]
     a.igual(dup["n_con"] - dup["n_sin"], dup["repetidos"], "kppm: los repetidos, recontados")
+    # «40 sitios» eran 40 sedes sobrantes en 39 sitios (tercera revisión):
+    # se recuentan los sitios y las sedes implicadas, por coordenada exacta.
+    a.igual(len(urb), dup["n_con"], "kppm: con duplicados son todas las sedes")
+    gr = urb.groupby(["x", "y"]).size()
+    a.igual(int((gr >= 2).sum()), dup["sitios"], "kppm: los sitios con más de una sede")
+    a.igual(int(gr[gr >= 2].sum()), dup["implicadas"], "kppm: y las sedes implicadas")
+    a.igual(dup["implicadas"] - dup["sitios"], dup["repetidos"], "kppm: implicadas menos sitios, sobrantes")
     a.cierto(dup["cambio_maximo_pct"] < 15,
              "kppm: los duplicados no descuadran el ajuste",
              f"como mucho {dup['cambio_maximo_pct']:.1f} %")
@@ -1192,7 +1295,12 @@ def main() -> int:
              "hawkes: la simulación cuadra con la teoría",
              f"{h['tasa_simulada']:.3f} contra {h['tasa_teorica']:.3f}")
 
-    def dispersion(ev, k=200):
+    # El índice depende del ancho del intervalo de conteo, y el módulo lo
+    # publica: se recalcula con ESE ancho, no con uno escrito aquí.
+    k_int = int(round(h["T"] / h["ancho_intervalo"]))
+    a.cerca(h["T"] / k_int, h["ancho_intervalo"], "hawkes: el ancho del intervalo cabe entero en T", 1e-12)
+
+    def dispersion(ev, k=k_int):
         cnt, _ = np.histogram(ev, bins=np.linspace(0, h["T"], k + 1))
         return float(cnt.var(ddof=1) / cnt.mean())
     a.cerca(dispersion(th), h["dispersion_hawkes"],
@@ -1201,6 +1309,22 @@ def main() -> int:
     a.cierto(dispersion(th) > dispersion(tp),
              "hawkes: el autoexcitado sale más agregado",
              f"{dispersion(th):.2f} contra {dispersion(tp):.2f}")
+    a.cerca(1 / (1 - h["razon_ramificacion"]) ** 2, h["dispersion_limite"],
+            "hawkes: el límite del índice, 1/(1 - a/b)²", 1e-9)
+    a.cierto(1 < h["dispersion_hawkes"] < h["dispersion_limite"],
+             "hawkes: el índice medido, por debajo de su límite",
+             f"{h['dispersion_hawkes']:.2f} contra {h['dispersion_limite']:.2f}")
+    # La pregunta del módulo 12 lleva sus propios parámetros, y su respuesta
+    # no puede ser la que el módulo 11 ya publica.
+    hq = h["pregunta"]
+    a.cerca(hq["alpha"] / hq["beta"], hq["razon_ramificacion"], "hawkes/pregunta: la razón de ramificación", 1e-9)
+    a.cerca(hq["mu"] / (1 - hq["alpha"] / hq["beta"]), hq["tasa_teorica"],
+            "hawkes/pregunta: la tasa teórica", 1e-9)
+    a.cierto(hq["razon_ramificacion"] < 1, "hawkes/pregunta: el proceso es estacionario")
+    a.cierto(abs(hq["tasa_teorica"] - h["tasa_teorica"]) > 0.05
+             and (hq["mu"], hq["alpha"], hq["beta"]) != (h["mu"], h["alpha"], h["beta"]),
+             "hawkes/pregunta: no se contesta copiando el módulo",
+             f"{hq['tasa_teorica']:.3f} contra {h['tasa_teorica']:.3f}")
 
     # -----------------------------------------------------------------
     a.titulo("11 · Los cinco ejercicios")

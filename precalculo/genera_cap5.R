@@ -370,6 +370,21 @@ SEL_URB <- cacheado("sel_urbana",  selectores(p_urb))
 SCOTT_Y_KEN <- cacheado("scott_y_kennedy", as.numeric(bw.scott(p_ken))[2])
 SCOTT_Y_URB <- cacheado("scott_y_urbana",  as.numeric(bw.scott(p_urb))[2])
 
+# LOS FOCOS DEL σ MÁS ESTRECHO SON GRUPOS, NO COLEGIOS (tercera revisión,
+# 2026-10-27). El módulo decía que con σ pequeño «aparecen focos que son
+# colegios concretos». Una sede sola levanta 1/(2 pi sigma^2), que no pasa
+# del primer tramo de la leyenda común; el foco más alto reúne varias.
+foco_fam <- local({
+  im <- fam$imagenes[[1]]; s <- fam$sigmas[1]
+  ij <- which(as.matrix(im$v) == max(as.numeric(im$v), na.rm = TRUE), arr.ind = TRUE)[1, ]
+  x0 <- im$xcol[ij[2]]; y0 <- im$yrow[ij[1]]
+  list(sigma_m = r10(s), pico_una_sede_km2 = r10(1e6 / (2 * pi * s^2)),
+       sedes_a_un_sigma_del_maximo = sum((p_ken$x - x0)^2 + (p_ken$y - y0)^2 <= s^2),
+       primer_corte_km2 = r10(seq(FAM_ESC_KM2[1], FAM_ESC_KM2[2], length.out = 8L)[2]))
+})
+if (!(foco_fam$pico_una_sede_km2 < foco_fam$primer_corte_km2 && foco_fam$sedes_a_un_sigma_del_maximo >= 3))
+  stop("una sede sola ya se ve en el mapa de la familia, o el foco más alto ya no es un grupo: el módulo 2 lo afirma")
+
 D$m2 <- list(
   sigma_m = SIG_REF,
   nucleos = list(
@@ -383,7 +398,8 @@ D$m2 <- list(
     sigmas_m = r10(fam$sigmas),
     max_km2 = r10(fam$maximos * 1e6),
     caida_pct = r10(100 * (max(fam$maximos) - min(fam$maximos)) / max(fam$maximos)),
-    escala = r10(FAM_ESC_KM2)))
+    escala = r10(FAM_ESC_KM2),
+    foco = foco_fam))
 
 message(sprintf("   nucleos: el maximo varia %.1f%% · anchos: varia %.1f%%",
                 D$m2$nucleos$max_dif_pct, D$m2$familia$caida_pct))
@@ -421,7 +437,33 @@ con_nombres <- function(v) {
     stop("los selectores perderían su nombre al publicarse")
   z
 }
+# DOS DE LOS CUATRO NO BUSCAN UN ÓPTIMO CONTINUO (tercera revisión,
+# 2026-10-27; lo había anotado el registro de las láminas). `bw.ppl` y
+# `bw.CvL` evalúan su criterio en `ns` anchos de una rejilla geométrica
+# —16 por defecto— y devuelven el mejor. El cruce que el módulo leía
+# (bw.ppl por encima de bw.diggle en Kennedy y por debajo en la ciudad) es
+# de esa rejilla: con una fina, bw.ppl queda por debajo en las dos. Se
+# publica el defecto, leído de la propia función, y los valores finos.
+NS_DEFECTO <- c(ppl = eval(formals(bw.ppl)$ns), CvL = eval(formals(bw.CvL)$ns))
+NS_FINO <- 256L
+fino <- function(p) c(ppl = as.numeric(bw.ppl(p, ns = NS_FINO)),
+                      CvL = as.numeric(bw.CvL(p, ns = NS_FINO)))
+FINO_KEN <- cacheado(sprintf("sel_fino_%d_kennedy", NS_FINO), fino(p_ken))
+FINO_URB <- cacheado(sprintf("sel_fino_%d_urbana", NS_FINO), fino(p_urb))
+if (!(SEL_KEN[["ppl"]] > SEL_KEN[["diggle"]] && SEL_URB[["ppl"]] < SEL_URB[["diggle"]]))
+  stop("con la rejilla por defecto ya no hay cruce entre bw.ppl y bw.diggle: el módulo 3 lo comenta")
+if (!(FINO_KEN[["ppl"]] < SEL_KEN[["diggle"]] && FINO_URB[["ppl"]] < SEL_URB[["diggle"]]))
+  stop("con la rejilla fina el cruce sigue: el módulo 3 dice que es de la rejilla")
+# Y `bw.scott` da UN ancho si se le pide (`isotropic = TRUE`): la media
+# geométrica de los dos. Con él la razón de la ciudad cambia.
+SCOTT_ISO <- c(kennedy = as.numeric(bw.scott(p_ken, isotropic = TRUE)),
+               urbana  = as.numeric(bw.scott(p_urb, isotropic = TRUE)))
+sel_iso_urb <- SEL_URB; sel_iso_urb[["scott"]] <- SCOTT_ISO[["urbana"]]
 D$m3 <- list(
+  ns_defecto = list(ppl = NS_DEFECTO[["ppl"]], CvL = NS_DEFECTO[["CvL"]]), ns_fino = NS_FINO,
+  fino = list(kennedy = con_nombres(FINO_KEN), urbana = con_nombres(FINO_URB)),
+  scott_isotropico_m = list(kennedy = r10(SCOTT_ISO[["kennedy"]]), urbana = r10(SCOTT_ISO[["urbana"]])),
+  razon_urbana_scott_isotropico = r10(max(sel_iso_urb) / min(sel_iso_urb)),
   kennedy = list(n = npoints(p_ken),
                  sigmas_m = con_nombres(SEL_KEN),
                  scott_y_m = r10(SCOTT_Y_KEN),
@@ -514,6 +556,16 @@ if (is.unsorted(sapply(borde, function(f) f$exceso_defecto_pct), strictly = TRUE
 
 kde_con <- density(p_ken, sigma = SIG_REF, dimyx = c(99L, NX_KEN))
 
+coste_kde <- cacheado("coste_kde_kennedy_800", {
+  mide <- function(...) median(replicate(20L, system.time(
+    density(p_ken, sigma = 800, dimyx = c(99L, NX_KEN), ...))[["elapsed"]]))
+  list(defecto = mide(), sin_corregir = mide(edge = FALSE), diggle = mide(diggle = TRUE),
+       medido_en = sprintf("%s, R %s", R.version$platform, getRversion()))
+})
+coste_kde[c("defecto", "sin_corregir", "diggle")] <- lapply(coste_kde[c("defecto", "sin_corregir", "diggle")], r10)
+if (max(unlist(coste_kde[c("defecto", "sin_corregir", "diggle")])) > 1)
+  stop("la KDE de Kennedy dejó de costar menos de un segundo: el contraste con los 555 del capítulo 4 cambia")
+
 D$m4 <- list(
   n = npoints(p_ken), sigmas_m = SIG_BORDE, tabla = borde,
   # La cifra que resume el módulo: a 800 m, no corregir y corregir por
@@ -525,7 +577,10 @@ D$m4 <- list(
   # dejar dicho: allí la corrección de borde de K costaba 555 veces la
   # alternativa y había que ELEGIR; aquí las tres cuestan lo mismo y no
   # hay nada que elegir por precio, solo por lo que cada una conserva.
-  coste_segundos = list(defecto = 0.15, sin_corregir = 0.14, diggle = 0.15))
+  # MEDIDOS, no escritos (tercera revisión, 2026-10-27): eran 0.15 / 0.14 /
+  # 0.15, literales que venían de la ciudad a 128 x 128 (A.21) y que este
+  # módulo leía como de Kennedy. Mediana de 20, una vez, y se cachea.
+  coste_segundos = coste_kde)
 
 message(sprintf("   a sigma=800 m: sin corregir %+.2f%%, defecto %+.2f%%, Diggle %+.4f%% · horquilla %.1f puntos",
                 borde[[3]]$fuga_sin_corregir_pct, borde[[3]]$exceso_defecto_pct,
@@ -790,11 +845,20 @@ rango_rho <- function(p, cov) {
   q <- quantile(vp, c(0.05, 0.95))
   b <- x >= q[1] & x <= q[2]
   if (sum(b) < 5L) stop("el bulto de la covariable se quedó sin nodos")
+  # LA CURVA, Y NO SOLO SUS RAZONES (tercera revisión, 2026-10-27): el módulo
+  # dice que rhohat «dibuja» la relación y no la dibujaba, y el módulo 9 se
+  # apoya en su forma. Se publica reducida a cien nodos, y dónde caen su
+  # máximo y su mínimo.
+  xs <- seq(min(x), max(x), length.out = 100L)
   list(rho_min = min(y), rho_max = max(y), razon = max(y) / min(y),
        bulto_desde = q[[1]], bulto_hasta = q[[2]],
        rho_min_bulto = min(y[b]), rho_max_bulto = max(y[b]),
        razon_bulto = max(y[b]) / min(y[b]),
-       cola_infla = (max(y) / min(y)) / (max(y[b]) / min(y[b])))
+       cola_infla = (max(y) / min(y)) / (max(y[b]) / min(y[b])),
+       z_del_maximo = x[which.max(y)], z_del_minimo = x[which.min(y)],
+       maximo_en_el_bulto = x[which.max(y)] >= q[[1]] && x[which.max(y)] <= q[[2]],
+       minimo_en_el_bulto = x[which.min(y)] >= q[[1]] && x[which.min(y)] <= q[[2]],
+       curva_z = xs, curva_rho = approx(x, y, xout = xs)$y)
 }
 
 # EL CASO CANÓNICO: `bei`, 3 604 árboles de Barro Colorado, con la
@@ -819,6 +883,20 @@ if (rd$razon_bulto > re$razon_bulto || re$razon_bulto > rg$razon_bulto)
   stop("el orden de las tres covariables en el bulto cambió: revisa el módulo 7")
 if (min(re$cola_infla, rg$cola_infla, rd$cola_infla) < 1)
   stop("alguna cola dejó de inflar la razón, que es lo que el módulo 7 afirma")
+# Lo que infla el titular es el MÍNIMO en una cola, en las tres curvas; el
+# máximo no siempre (tercera revisión: «el máximo y el mínimo viven en los
+# extremos» era falso para dos de las tres).
+if (any(c(re$minimo_en_el_bulto, rg$minimo_en_el_bulto, rd$minimo_en_el_bulto)))
+  stop("el mínimo de alguna rhohat cae en el bulto: el módulo 7 dice que lo que infla el titular es el mínimo en la cola")
+
+# LA COVARIABLE SALE DEL PATRÓN, Y SE DICE (tercera revisión; M20 de la
+# segunda). El centro de masa es de las propias sedes, justo lo que el módulo
+# prohíbe dos párrafos antes. Se mide la misma curva con el centroide de la
+# ventana, que no sale de las sedes: la lección sobrevive, y se publica.
+cent_w <- centroid.owin(W_URB)
+rd_cent <- rango_rho(p_urb, distfun(ppp(cent_w$x, cent_w$y, window = W_URB)))
+if (!(rd_cent$cola_infla > 1 && rd_cent$razon_bulto < re$razon_bulto))
+  stop("con el centroide de la ventana la lección del módulo 7 cambia")
 
 D$m7 <- list(
   bei = list(n = npoints(bei),
@@ -827,6 +905,10 @@ D$m7 <- list(
   bogota = list(covariable = "distancia al centro de masa de las sedes",
                 n = npoints(p_urb),
                 curva = lapply(rd, r6),
+                centroide_ventana = list(
+                  distancia_al_centro_de_masa_m = r10(sqrt((cent_w$x - mean(p_urb$x))^2 +
+                                                           (cent_w$y - mean(p_urb$y))^2)),
+                  razon = r6(rd_cent$razon), razon_bulto = r6(rd_cent$razon_bulto)),
                 # el enlace con el módulo 9, que ajusta esta misma
                 # covariable con una forma funcional que no es la suya
                 z_del_ppm_lineal = NULL),
@@ -1655,6 +1737,10 @@ D$m11 <- list(
   duplicados = list(
     n_con = npoints(p_urb), n_sin = npoints(p_unico),
     repetidos = npoints(p_urb) - npoints(p_unico),
+    # «40 sitios» eran 40 SEDES sobrantes en 39 sitios (tercera revisión):
+    # se publican las dos cuentas y las sedes implicadas.
+    sitios = sum(table(paste(p_urb$x, p_urb$y)) >= 2L),
+    implicadas = sum(table(paste(p_urb$x, p_urb$y))[table(paste(p_urb$x, p_urb$y)) >= 2L]),
     efecto = dup_efecto, cambio_maximo_pct = r10(cambio_max),
     que = "la decisión 3 del capítulo 4 conservó los duplicados; aquí se mide qué le hacen a un ajuste, y la respuesta es casi nada"),
   nota = "kppm pide K con el correction por defecto, que en ventana no rectangular es la isotrópica; cambiarlo no es un acelerón, es otra respuesta",
@@ -1674,7 +1760,17 @@ D$m11 <- list(
     tasa_teorica = r10(tasa_teo), tasa_simulada = r10(tasa_obs),
     n_eventos = length(ev_h),
     dispersion_hawkes = r10(d_h), dispersion_poisson = r10(d_p),
-    veces_mas_agregado = r10(d_h / d_p)))
+    veces_mas_agregado = r10(d_h / d_p),
+    # El índice depende del ancho del intervalo de conteo, y se dice: con
+    # intervalos anchos tiende a 1/(1 - alpha/beta)^2 (tercera revisión).
+    ancho_intervalo = HAW$T / 200L,
+    dispersion_limite = r10(1 / (1 - ramif)^2),
+    # La pregunta 2 del módulo 12 pedía la tasa con los MISMOS parámetros cuya
+    # respuesta el módulo publica en prosa y en su simulador: se contestaba de
+    # memoria (tercera revisión). Lleva los suyos, calculados aquí.
+    pregunta = local({ q <- list(mu = 0.4, alpha = 0.6, beta = 1.5)
+      c(q, list(razon_ramificacion = r10(q$alpha / q$beta),
+                tasa_teorica = r10(q$mu / (1 - q$alpha / q$beta)))) })))
 
 message(sprintf("   %d ajustes · duplicados mueven como mucho %.1f%% · divergencia máxima en mu: %.1f%% · Hawkes: %.2f eventos/u (teórica %.2f), %.1f veces más agregado que su Poisson",
                 length(ajustes), cambio_max, max(sapply(divergencia, function(d) d$mu_pct)),
@@ -1701,10 +1797,13 @@ MAPAS$kennedy_familia <- lapply(seq_along(fam$sigmas), function(i) {
   c(g, list(sigma_m = r10(fam$sigmas[i]), escala_comun = r10(FAM_ESC_KM2)))
 })
 
+# CON SU CONTORNO (tercera revisión, 2026-10-27): el módulo 1 presentaba la
+# ventana —«un contorno y no una caja»— sobre un mapa que no la dibujaba.
+contorno_ken <- lapply(W_KEN$bdry, function(b) cbind(c(b$x, b$x[1]), c(b$y, b$y[1])))
 MAPAS$kennedy_puntos <- geo_puntos(
   cbind(p_ken$x, p_ken$y),
   titulo = sprintf("Kennedy · %d sedes educativas", npoints(p_ken)),
-  leyenda = "sede")
+  leyenda = "sede", lineas = contorno_ken)
 
 # Los dos mapas del módulo 5 que NO son el mismo mapa.
 MAPAS$ciudad_oferta <- geo_rejilla(
@@ -1733,8 +1832,13 @@ MAPAS$proporcion_oficial <- geo_rejilla(
   escala = c(0, 1),
   titulo = "Proporción de sedes oficiales · P(oficial)", leyenda = "proporción")
 
+# Los niveles en el orden de relrisk (privado, oficial) y no en el
+# alfabético: el primer nivel se pinta en naranja, y el naranja es el lado
+# «privado» de la rampa del mapa de P(oficial) que este mapa controla. Con
+# el alfabético, lo oficial salía naranja al lado de una superficie donde el
+# naranja es mayoría privada (tercera revisión, 2026-10-27).
 MAPAS$sector_puntos <- geo_puntos(
-  cbind(p_sec$x, p_sec$y), marcas = as.character(marks(p_sec)),
+  cbind(p_sec$x, p_sec$y), marcas = marks(p_sec),
   titulo = sprintf("Sedes por sector · %d oficiales, %d privadas",
                    sum(marca == "oficial"), sum(marca == "privado")),
   leyenda = "sector")
