@@ -730,7 +730,10 @@ def main() -> int:
     # máximo es el mínimo de la superficie de arriba, y entre sus 50 vecinos
     # las oficiales tienen que quedar por debajo de la proporción global.
     ord_def = m6.get("orientacion_niveles_por_defecto")
-    if a.cierto(isinstance(ord_def, (int, float)), "riesgo: está la guarda con los niveles por defecto"):
+    # Un auditor no se muere ante un ráster roto: si la superficie recalculada
+    # se queda sin un solo valor (una caja desordenada, por ejemplo), lo dice.
+    if (a.cierto(isinstance(ord_def, (int, float)), "riesgo: está la guarda con los niveles por defecto")
+            and a.cierto(bool(np.isfinite(prop).any()), "riesgo: la superficie recalculada tiene valores")):
         iy_m, ix_m = np.unravel_index(np.nanargmin(prop), prop.shape)
         d_m = np.hypot(urb["x"].to_numpy() - xcc[ix_m], urb["y"].to_numpy() - ycc[iy_m])
         fr_def = float(ofi[np.argsort(d_m, kind="stable")[:50]].mean())
