@@ -1027,7 +1027,7 @@ def cargar_entradas(m, sesiones):
             fila_z("Thomas", "iso"), fila_z("Thomas", "translate"),
             fila_z("MatClust", "iso"), fila_z("MatClust", "translate"),
             fila_z("LGCP", "iso"), fila_z("LGCP", "translate")])
-        TAB(2, "El proyecto integrador declara", [
+        TAB(2, "Cinco decisiones que se declaran", [
             [None, None, [lambda: r("urbana.n_capa"), lambda: r("urbana.n_urbana")]],
             [None, None, [lambda: r("anchos.caida_pct"), lambda: r("anchos.sigmas_m[0]"), lambda: r("anchos.sigmas_m[6]")]],
             [None, None, [800, lambda: r("bordes.800.masa_defecto"), lambda: r("bordes.800.masa_diggle")]],
