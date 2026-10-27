@@ -49,6 +49,7 @@ Uso:  python3 precalculo/ensambla_cap5.py
 """
 from __future__ import annotations
 
+import html as _html
 import json
 import pathlib
 import sys
@@ -206,8 +207,17 @@ def tabs(etiqueta, r_code, py_code):
 """
 
 
-def sim(ident, titulo, pie="", alto=260, mandos=True):
+def sim(ident, titulo, pie="", alto=260, mandos=True, *, aria):
     """Un componente con su lienzo, su lectura y —si los tiene— sus mandos.
+
+    `aria` ES OBLIGATORIO, y es lo que oye quien no ve el gráfico (M9 de la
+    segunda revisión, cerrado en la tercera). Hasta el 2026-10-27 el lienzo
+    llevaba el título como `aria-label`: «El pico contra el ancho de banda»,
+    sin ejes, sin series y sin datos. Ahora dice qué se dibuja —los ejes, las
+    series con su color, qué cambian los mandos—, y la lectura, que es donde
+    están las cifras, es su descripción (`aria-describedby`) y se anuncia
+    cuando cambia (`aria-live`), como en el apéndice A. El ensamblado para si
+    un lienzo vuelve a repetir su título.
 
     `mandos=False` es para los que NO los tienen, y no es cosmética. Hasta la
     revisión del 2026-09-02 esta función emitía siempre el
@@ -225,9 +235,9 @@ def sim(ident, titulo, pie="", alto=260, mandos=True):
         <h4><i class="fas {icono}" aria-hidden="true"></i> {titulo}</h4>
         {f'<p class="simulador-intro">{pie}</p>' if pie else ''}
 {'        <div class="simulador-controles"></div>' + chr(10) if mandos else ''}        <div class="grafico-wrapper" style="height:{alto}px;">
-          <canvas role="img" aria-label="{titulo}"></canvas>
+          <canvas role="img" aria-label="{_html.escape(aria)}" aria-describedby="lectura-{ident}"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-{ident}" aria-live="polite"></div>
       </div>
 """
 
@@ -482,8 +492,22 @@ _SUB2 = dict(
 # MÓDULO 1 · De contar a suavizar
 # =====================================================================
 _f = m1["frontera"]
+
+# LOS NOMBRES DE SEDE, CON SUS TILDES (N1 de la primera revisión, cerrado en
+# la tercera). La SED los escribe en mayúsculas y sin tildes, y `.title()`
+# solo arreglaba la caja: el capítulo publicaba «Debora Arango Perez», que ni
+# es el atributo citado ni el nombre bien escrito. Se escriben aquí a mano, y
+# una sede nueva en la frontera para el ensamblado hasta que tenga el suyo.
+NOMBRES_SEDE = {
+    "DEBORA ARANGO PEREZ": "Débora Arango Pérez",
+    "INSTITUTO CLARA FEY": "Instituto Clara Fey",
+    "COLEGIO SAGRADO CORAZON": "Colegio Sagrado Corazón",
+}
+_sin_nombre = [s["nombre"] for s in _f["sedes"] if s["nombre"] not in NOMBRES_SEDE]
+if _sin_nombre:
+    sys.exit(f"PARADO: sedes de la frontera sin su nombre escrito en NOMBRES_SEDE: {_sin_nombre}")
 _disc = "; ".join(
-    f'«{s["nombre"].title()}», que el atributo pone en {s["atributo"]} y la geometría deja '
+    f'«{NOMBRES_SEDE[s["nombre"]]}», que el atributo pone en {s["atributo"]} y la geometría deja '
     f'{"dentro" if s["dentro_geometria"] else "fuera"}, a {n(s["dist_borde_m"], 1)} m del borde'
     for s in _f["sedes"])
 
@@ -523,7 +547,9 @@ MOD1 = cabecera(
         <p>La capa de sedes trae una columna <code>localidad</code>; la de localidades trae la
           geometría. Por el atributo son {ent(_f["n_atributo"])} sedes, por la geometría
           {ent(_f["n_geometria"])}. Discrepan {ent(_f["n_discrepan"])}, y las tres están a menos
-          de {n(_f["dist_max_m"], 0)} m del borde: {_disc}.</p>
+          de {n(_f["dist_max_m"], 0)} m del borde: {_disc}. (Los nombres van con sus tildes; la capa
+          los trae en mayúsculas y sin ellas, <code>{_f["sedes"][0]["nombre"]}</code>, y así hay que
+          buscarlos.)</p>
         <p>Manda la geometría, porque es la que usa <code>ppp()</code>: la ventana de un patrón
           puntual es un objeto geométrico y no admite otra respuesta. Pero la discrepancia no se
           esconde, porque es la lección del capítulo 2 y del 3 vista desde un tercer sitio:
@@ -648,7 +674,12 @@ MOD2 = cabecera(
 {sim("cap5-anchos", "El pico contra el ancho de banda",
       "El deslizador mueve σ. La curva no se mueve —el ancho ya es su eje, en pasos que "
       "multiplican σ por √2, y el eje vertical empieza en cero—: lo que se mueve es el "
-      "punto que marca dónde estás, y el mapa de abajo.")}
+      "punto que marca dónde estás, y el mapa de abajo.",
+      aria=f"Gráfico de línea con el área rellena. En el eje horizontal, los {FAM['n']} anchos de banda σ "
+           f"del deslizador, de {ent(FAM['sigmas_m'][0])} a {ent(FAM['sigmas_m'][-1])} m; en el vertical, "
+           "desde cero, la intensidad máxima de la superficie de Kennedy, en sedes por km². La curva baja a "
+           "medida que el núcleo se abre, y un punto más grande marca el σ elegido con el deslizador, que "
+           "cambia también el mapa de abajo.")}
 {mapa_html("cap5-familia", "Intensidad por núcleos sobre Kennedy, con σ regulable")}
       <p class="pie-figura">Las {ent(FAM["n"])} superficies comparten <strong>una sola escala de
         color</strong>, y eso no es presentación: normalizada cada una contra su propio máximo,
@@ -739,6 +770,19 @@ _TOPES = "; ".join(
     f'devuelve {n(t["sigma"], 4)}'
     for t in m3["topes"])
 
+# EL SUELO DEL SIMULADOR ES EL DE CADA VENTANA (M11 de la segunda revisión).
+# Hasta el 2026-10-27 las barras de Kennedy se pintaban contra el suelo de la
+# ciudad, y dos salían en rojo siendo dibujables, contra lo que el módulo 1
+# dice en prosa. Ahora el suelo, su celda y los que quedan debajo vienen de R.
+_suelo_ken = m3["kennedy"]["sigma_minimo_dibujable_m"]
+_suelo_urb = m3["urbana"]["sigma_minimo_dibujable_m"]
+
+
+def _bajo(s):
+    b = [f"<code>bw.{k}</code>" for k in s["bajo_el_suelo"]]
+    return "ninguno" if not b else " y ".join([", ".join(b[:-1]), b[-1]] if len(b) > 1 else b)
+
+
 MOD3 = cabecera(
     3, "Selectores de ancho de banda", "Bandwidth selectors",
     "Saber qué optimiza cada uno de los cuatro selectores, por qué discrepan y "
@@ -800,8 +844,18 @@ MOD3 = cabecera(
 
 {sim("cap5-selectores", "Los cuatro selectores sobre las dos ventanas",
       "Cambia de ventana y mira dos cosas: cuánto se abre el abanico y si el orden "
-      "de los cuatro se conserva. La línea marca el σ mínimo que la rejilla de la "
-      "ciudad puede dibujar sin mentir, que es lo que descarta dos de ellos en el módulo 5.")}
+      "de los cuatro se conserva. La línea marca el σ mínimo que la rejilla de "
+      f"<em>esa</em> ventana puede dibujar sin mentir, tres celdas: {ent(_suelo_ken)} m "
+      f"sobre {m1['ventana']['nombre']}, con celdas de {ent(m3['kennedy']['celda_m'])} m, y "
+      f"{ent(_suelo_urb)} m sobre la ciudad, con celdas de {ent(m3['urbana']['celda_m'])} m. "
+      f"En rojo va el selector que queda debajo: en {m1['ventana']['nombre']}, "
+      f"{_bajo(m3['kennedy'])}; en la ciudad, {_bajo(m3['urbana'])}, los que el módulo 5 "
+      "descarta.",
+      aria="Gráfico de barras: el σ, en metros, que elige cada uno de los cuatro selectores —bw.diggle, "
+           "bw.ppl, bw.CvL y bw.scott— sobre la ventana que marquen los botones, Kennedy o la ciudad "
+           "entera. Una línea gris discontinua marca el σ mínimo que la rejilla de esa ventana puede "
+           "dibujar; la barra que queda por debajo va en rojo y las demás en verde. La lectura da el "
+           "suelo, el más estrecho, el más ancho y cuántas veces discrepan.")}
       <p>Lo que el abanico enseña no es que alguno esté mal calculado. Es que
         <strong>«el ancho óptimo» no es una propiedad del patrón</strong>: es la respuesta a una
         pregunta que hay que hacer antes, y cada selector hace una distinta. Elegir sin decir
@@ -987,7 +1041,13 @@ MOD4 = cabecera(
       "Los tres anchos van en el eje y los dos botones cambian lo que se mide: la masa "
       "integrada contra n, o su desviación en tanto por ciento. Lo que interesa no es "
       "cuál barra está más alta, sino que las dos desviaciones crecen con σ: el problema "
-      "del borde no es un detalle fijo, escala con el núcleo.")}
+      "del borde no es un detalle fijo, escala con el núcleo.",
+      aria="Gráfico de barras agrupadas, un grupo por ancho de banda σ, con tres barras: sin corregir en "
+           "rojo, la corrección por defecto en naranja y diggle = TRUE en verde. En la primera vista miden "
+           "la integral de la intensidad sobre la ventana, desde cero y con una línea gris discontinua en n, "
+           "el número de sedes; en la segunda, cuánto se aparta cada una de n, en tanto por ciento. Sin "
+           "corregir se queda corta, la de por defecto se pasa y la de Diggle cae en n, y las dos "
+           "desviaciones crecen con σ.")}
       <p>Entre no corregir y corregir por defecto hay
         {firma(n(m4["horquilla_pct"]), " puntos porcentuales")} a σ =
         {ent(m4["sigmas_m"][-1])} m. Y la horquilla también se ve en el pico del mapa: sin
@@ -1209,8 +1269,13 @@ MOD5 = cabecera(
 
 {sim("cap5-capas", "Las tres capas, y cuánto se parecen",
       "Las barras son el máximo de cada superficie —en su propia unidad, que por eso "
-      "van en escala logarítmica— y la lectura trae las tres correlaciones. Cambia de "
-      "capa y mira cuál es la pareja que menos se parece.")}
+      "van en escala logarítmica— y la lectura trae la correlación de la capa elegida con "
+      "las otras dos. Cambia de capa y mira cuál es la pareja que menos se parece.",
+      aria="Gráfico de barras en escala logarítmica: el máximo por km² de cada una de las tres superficies "
+           "de la ciudad —la oferta (todas las sedes), el bachillerato (las sedes con grado 11) y los "
+           "estudiantes (los evaluados en Saber 11)—. La barra de la capa elegida con los botones va en "
+           "naranja y las otras dos en verde; la lectura da cuántos puntos entran, su unidad y su "
+           "correlación con las otras dos.")}
       <p>Ninguno de los tres es «el mapa de la demanda». El primero dice dónde hay colegio, el
         segundo dónde hay bachillerato y el tercero dónde están los estudiantes que ya lo cursan
         —que no es lo mismo que dónde <em>haría falta</em> que lo hubiera, porque un estudiante
@@ -1455,7 +1520,12 @@ MOD6 = cabecera(
 {sim("cap5-riesgo", "Contar puntos y mirar el mapa dan respuestas distintas",
       "Cada patrón trae la proporción contando puntos y la superficie con su mínimo, su "
       "mediana y su máximo. La lectura añade en qué fracción del área el tipo es mayoría, "
-      "que es lo que la mediana no dice.")}
+      "que es lo que la mediana no dice.",
+      aria="Gráfico de barras sobre un eje de probabilidad de 0 a 1: el mínimo, la mediana y el máximo de "
+           "la superficie de proporción —P(laringe) en chorley o P(oficial) en Bogotá, según el botón—, "
+           "con la mediana en naranja y los extremos en gris. Una línea verde discontinua marca la "
+           "proporción que da contar puntos, para compararla con la mediana del mapa; la lectura añade en "
+           "qué fracción del área el tipo es mayoría.")}
       <p>Las dos cifras son ciertas y contestan preguntas distintas: «¿qué fracción de las sedes
         es oficial?» —{n(_bg["prop_global"], 4)}— y «¿en qué fracción de la ciudad son
         mayoría?» —el {pct(_bg["pct_area_mayoria"], 1)}—. La mediana contesta una tercera: qué valor
@@ -1624,7 +1694,12 @@ MOD7 = cabecera(
       "La curva ρ(z) de cada covariable, en verde donde hay datos —entre los percentiles 5 "
       "y 95 de la covariable en los puntos— y en gris discontinuo en las colas. El "
       "triángulo azul es el mínimo y el círculo naranja, el máximo: mira dónde cae cada "
-      "uno y cuánto cambia la razón al quitar las colas.")}
+      "uno y cuánto cambia la razón al quitar las colas.",
+      aria="Gráfico de línea: la curva rhohat ρ(z), en puntos por km², contra la covariable que elijan los "
+           "botones —la elevación o la pendiente en bei, o la distancia al centro en Bogotá—. Entre los "
+           "percentiles 5 y 95 de la covariable la curva va en verde continuo, y en las colas en gris "
+           "discontinuo; un triángulo azul marca su mínimo y un círculo naranja, su máximo. La lectura dice "
+           "en qué tramo cae cada uno y cuánto infla la cola la razón entre los dos.")}
       <p>Ordenadas por la razón del bulto, las tres covariables quedan al revés que por el
         titular: la pendiente de <code>bei</code> es la que más manda
         ({n(m7["bei"]["pendiente"]["razon_bulto"], 2)} ×) y la distancia al centro de Bogotá la
@@ -1989,7 +2064,13 @@ MOD8 = cabecera(
       f"nd = {_cu['tabla'][-1]['nd']}— y la miran de tres maneras: la banda del coeficiente, "
       "que apenas se mueve; el AIC, que se mueve lo que decide un modelo; y la "
       "log-verosimilitud por dentro, la que publica <code>ppm</code> contra la de la integral "
-      "bien hecha.")}
+      "bien hecha.",
+      aria=f"Gráfico de línea con tres vistas, una por botón, sobre el número de puntos ficticios de la "
+           f"cuadratura, de nd = {_cu['tabla'][0]['nd']} a nd = {_cu['tabla'][-1]['nd']}. En la primera, el "
+           "coeficiente de la distancia por km en verde, su intervalo del 95 % como banda gris, la pendiente "
+           "con la integral exacta en azul discontinuo y el cero en rojo discontinuo; en la segunda, el AIC "
+           "en naranja; en la tercera, la log-verosimilitud que publica ppm en naranja, la de la integral "
+           "bien hecha en verde y su máximo en verde discontinuo.")}
       <p>La regla que sale de aquí es corta: <strong>la cuadratura viaja con el modelo</strong>.
         Comparar dos <code>ppm</code> por AIC solo vale si los dos se ajustaron con la misma, y eso
         incluye al modelo constante, que <code>ppm</code> ajusta sin ninguna si no se le obliga.
@@ -2136,7 +2217,12 @@ MOD9 = cabecera(
       "Las barras son |z| por coeficiente bajo Poisson —el módulo 11 la corrige—, sin el intercepto —su |z| no se interpreta en "
       "un <code>ppm</code>, y es tan grande que con él dentro los demás no se ven—. La "
       f"línea naranja es el {n(m11['tendencia']['z_critico'], 2)} con el que se leen: el ajuste crudo no tiene ninguna "
-      "barra, y esa ausencia es todo el módulo. La lectura trae el número de condición.")}
+      "barra, y esa ausencia es todo el módulo. La lectura trae el número de condición.",
+      aria="Gráfico de barras: el valor absoluto de la z de cada coeficiente, sin el intercepto, en el "
+           "ajuste que marquen los botones —coordenadas crudas, coordenadas centradas o la distancia al "
+           f"centro—, con una línea naranja discontinua en |z| = {n(m11['tendencia']['z_critico'], 2)}. En el "
+           "ajuste crudo no hay errores estándar y las barras se quedan en cero, en rojo; en los otros dos "
+           "van en verde.")}
       <p>Pásese por los tres y mírese la barra que falta. El primero no tiene ninguna, y sin
         embargo su AIC es el mismo que el del segundo: <strong>el modelo está bien ajustado y solo
         es ilegible</strong>. Es una distinción que conviene tener clara antes de la siguiente
@@ -2293,7 +2379,13 @@ MOD10 = cabecera(
       "ahí el modelo es la línea del 1, y lo que se lee es cuántas veces hay más parejas "
       "de las que produciría. La primera es la K que divide por el núcleo de la llamada; "
       "la segunda, la que divide por el modelo. Mira dónde se separa cada una, y hasta "
-      "dónde — la tercera da la K sin dividir.".replace("{NSIM}", ent(m10["nsim"])))}
+      "dónde — la tercera da la K sin dividir.".replace("{NSIM}", ent(m10["nsim"])),
+      aria=f"Gráfico de línea contra la distancia r, en metros, con tres vistas: la K inhomogénea del "
+           f"patrón en verde grueso, la banda de {ent(m10['nsim'])} simulaciones del modelo en gris y su media "
+           "en naranja discontinuo. En las dos primeras todo va dividido por esa media, que queda en 1, con "
+           "la intensidad estimada por un núcleo o por el propio modelo; en la tercera, la K sin dividir. "
+           "Donde la línea verde sale por encima de la banda, el patrón tiene más parejas cercanas de las "
+           "que el modelo produce; la lectura da entre qué radios.")}
       <p>La respuesta es que <strong>no basta</strong>. Con el núcleo de la llamada, la K
         observada se sale de la banda en el {firma(pct(m10["pct_r_fuera_de_banda"], 0))} de los
         radios, y por arriba; hay muchas más parejas cercanas de las que un Poisson inhomogéneo con este
@@ -2616,7 +2708,12 @@ MOD11 = cabecera(
 {sim("cap5-conglomerado", "Los tres modelos por las dos correcciones",
       "Cada par de barras es el mismo modelo estimado dos veces. Lo que hay que "
       "mirar no es cuál barra es más alta, sino cuánto se separan las dos del "
-      "mismo par — y que el orden entre modelos apenas cambia.")}
+      "mismo par — y que el orden entre modelos apenas cambia.",
+      aria="Gráfico de barras: los tres modelos de conglomerado —Thomas, MatClust y el Cox "
+           "log-gaussiano—, cada uno con dos barras, la K isotrópica en rojo y la de traslación en verde. "
+           "Los botones cambian lo que miden: la escala del conglomerado en metros, μ (los hijos por centro, "
+           "que el Cox log-gaussiano no tiene y deja sin barra) o los segundos que tarda el ajuste, en escala "
+           "logarítmica.")}
       <p>La consecuencia es una regla y no una preferencia: <strong>un ajuste de conglomerado sin
         decir con qué estimación de K se hizo está incompleto</strong>. En este material la
         corrección viaja dentro del dato, junto al ajuste, para que no se pueda desincronizar de
@@ -2725,7 +2822,11 @@ MOD11 = cabecera(
 {sim("cap5-hawkes", "Un Hawkes contra un Poisson de su misma tasa",
       "Los dos procesos tienen el mismo número de eventos y la misma tasa media. "
       "Lo único distinto es cómo se reparten, y el índice de dispersión lo mide: "
-      "vale 1 bajo Poisson.", mandos=False)}
+      "vale 1 bajo Poisson.", mandos=False,
+      aria="Gráfico de barras: el índice de dispersión de los conteos —la varianza entre la media— de un "
+           "proceso de Hawkes autoexcitado, en rojo, y de un Poisson de su misma tasa, en verde, con una "
+           "línea gris discontinua en 1, lo que vale bajo Poisson. La barra del Hawkes mide "
+           f"{n(_hw['veces_mas_agregado'], 1)} veces la del Poisson.")}
       <p>Con {ent(_hw["n_eventos"])} eventos cada uno, el índice de dispersión del Hawkes vale
         {firma(n(_hw["dispersion_hawkes"]))} y el del Poisson
         {firma(n(_hw["dispersion_poisson"]))}: {n(_hw["veces_mas_agregado"], 1)} veces más
@@ -3155,8 +3256,9 @@ TABLA_FAMILIA = """, tabla: function () {
 GEOMAPAS_JS = (
     FAMILIA_JS
     + geomapa('cap5-kennedy', 'kennedy_puntos',
-              _etq('Las 262 sedes educativas que caen dentro de la ventana de Kennedy, '
-                   'dibujadas como una nube de puntos con el contorno de la localidad.'))
+              _etq(f'Las {ent(m1["ventana"]["n"])} sedes educativas que caen dentro de la ventana de '
+                   f'{m1["ventana"]["nombre"]}, dibujadas como una nube de puntos con el contorno de la '
+                   'localidad.'))
     + "    GEOMAPAS['cap5-familia'] = {\n"
       "      fuente: () => superficieDeSigma(D5.m2.familia.sigmas_m[famIdx]),\n"
       "      paleta: 'naranja',\n"
@@ -3166,7 +3268,7 @@ GEOMAPAS_JS = (
       + TABLA_FAMILIA + "\n    };\n"
     + geomapa('cap5-oferta', 'ciudad_oferta', ", paleta: 'naranja'" + _etq(
         'Intensidad de sedes educativas sobre la ventana urbana de Bogotá, estimada '
-        'por núcleos gaussianos con sigma de 720 metros: la oferta de colegios.'))
+        f'por núcleos gaussianos con sigma de {ent(D["m5"]["sigma_m"])} metros: la oferta de colegios.'))
     + geomapa('cap5-bachillerato', 'ciudad_bachillerato', ", paleta: 'naranja'" + _etq(
         'Intensidad de las sedes con grado 11 sobre la ventana urbana, con el mismo ancho de '
         'banda y sin pesos: el paso intermedio entre la oferta y los estudiantes.'))
@@ -3174,11 +3276,12 @@ GEOMAPAS_JS = (
         'La misma estimación sobre las sedes con grado 11, pesada cada una por sus '
         'evaluados en Saber 11: dónde están los estudiantes, no los edificios.'))
     + geomapa('cap5-proporcion', 'proporcion_oficial', ", paleta: 'divergente'" + _etq(
-        'Proporción de sedes oficiales sobre el total, estimada como cociente de dos '
-        'intensidades; la escala va fija de cero a uno y el punto medio es la mitad.'))
+        'Proporción de sedes oficiales: en cada sitio, la intensidad de las oficiales dividida por la '
+        'de todas las sedes, las dos estimadas por núcleos; la escala va fija de cero a uno y el punto '
+        'medio es la mitad.'))
     + geomapa('cap5-sector', 'sector_puntos', _etq(
-        'Las mismas sedes sin suavizar, con un color por sector: 709 oficiales y '
-        '1 398 privadas dentro del perímetro urbano.'))
+        f'Las mismas sedes sin suavizar, con un color por sector: {ent(D["m6"]["bogota"]["oficiales"])} '
+        f'oficiales y {ent(D["m6"]["bogota"]["privadas"])} privadas dentro del perímetro urbano.'))
 )
 
 
@@ -3344,11 +3447,13 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       });
       const pinta = () => {
         const s = D5.m3[VENT[i]], v = NOM.map(k => s.sigmas_m[k]);
-        const suelo = D5.m5.rejilla.sigma_minimo_dibujable_m;
+        // EL SUELO DE LA VENTANA QUE SE MIRA, no el de la ciudad (M11 de la
+        // segunda revisión): Kennedy se dibuja con celdas de 78 m y allí caben los cuatro.
+        const suelo = s.sigma_minimo_dibujable_m;
         g.data.datasets = [
           { type: 'bar', label: 'σ elegido', data: v,
             backgroundColor: v.map(x => x < suelo ? C5.rojo : C5.verde) },
-          { type: 'line', label: 'σ mínimo dibujable sobre la ciudad',
+          { type: 'line', label: 'σ mínimo dibujable en esta ventana',
             data: NOM.map(() => suelo), borderColor: C5.gris, borderDash: [5, 4],
             borderWidth: 1.5, pointRadius: 0 }
         ];
@@ -3357,6 +3462,10 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
         lectura5(raiz, [
           ['ventana', ETQ[i]],
           ['n', mil5(s.n)],
+          ['σ mínimo dibujable', n5(suelo, 0) + ' m (' + D5.m2.familia.celdas_por_sigma +
+                                 ' celdas de ' + n5(s.celda_m, 0) + ' m)'],
+          ['por debajo, en rojo', s.bajo_el_suelo.length
+            ? s.bajo_el_suelo.map(k => 'bw.' + k).join(' y ') : 'ninguno'],
           ['el más estrecho', 'bw.' + orden[0] + ' · ' + n5(s.sigmas_m[orden[0]], 0) + ' m'],
           ['el más ancho', 'bw.' + orden[3] + ' · ' + n5(s.sigmas_m[orden[3]], 0) + ' m'],
           ['cuánto discrepan', '×' + n5(s.razon, 2)],
@@ -4253,6 +4362,29 @@ def main() -> int:
         problemas.append(f"R y Python descuadrados: {bl_r} y {bl_py}")
     if lienzos != con_alt:
         problemas.append(f"lienzos sin aria-label: {lienzos - con_alt}")
+    # NI EL TÍTULO COMO ETIQUETA, NI UNA LECTURA QUE NO LO DESCRIBA (M9). Tener
+    # `aria-label` no basta: hasta el 2026-10-27 los once lo tenían, y era el
+    # título. Se mira el marcado tal como lo escribe `sim()`, y se exige que
+    # lo cubra entero: un simulador con lectura que la expresión no reconozca
+    # también para, porque sería uno que esta guarda no está mirando.
+    _sims = list(_re.finditer(
+        r'data-simulador="([^"]+)">\s*<h4>((?:(?!</h4>).)*)</h4>(?:(?!data-simulador=).)*?'
+        r'<div class="grafico-wrapper"[^>]*>\s*<canvas([^>]*)></canvas>\s*</div>\s*'
+        r'<div class="simulador-lectura"([^>]*)>', marcado, _re.S))
+    _con_lectura = marcado.count('class="simulador-lectura"')
+    if len(_sims) != _con_lectura:
+        problemas.append(f"simuladores con lectura: {_con_lectura}, "
+                         f"y la guarda de accesibilidad reconoce {len(_sims)}")
+    for m in _sims:
+        ident, lienzo, caja = m.group(1), m.group(3), m.group(4)
+        titulo = _html.unescape(_re.sub(r"<[^>]+>", "", m.group(2))).strip()
+        etq = _re.search(r'aria-label="([^"]*)"', lienzo)
+        etq = _html.unescape(etq.group(1)).strip() if etq else ""
+        if titulo in etq or len(etq) < 80:
+            problemas.append(f"{ident}: el aria-label no describe el gráfico («{etq[:50]}»)")
+        if (f'aria-describedby="lectura-{ident}"' not in lienzo
+                or f'id="lectura-{ident}"' not in caja or 'aria-live="polite"' not in caja):
+            problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
     if ejercicios != N_EJERCICIOS:
         problemas.append(f"ejercicios: {ejercicios} (la desviación declarada son "
                          f"{N_EJERCICIOS})")

@@ -158,6 +158,9 @@ DEBE_CUBRIR = [
     ("que la vecindad se solapa y no tiene bordes rectos", "se solapa"),
     ("la ventana de trabajo y por qué se baja a una localidad", "kennedy"),
     ("el término de corrección de borde e(u), aunque sea para aplazarlo", "corrección de borde"),
+    # N1 de la primera revisión: los nombres de sede van con sus tildes, y se dice cómo están en la capa.
+    ("dice que la capa trae los nombres de sede sin tildes", "los trae en mayúsculas y sin ellas"),
+    ("escribe los nombres de sede con sus tildes", "débora arango pérez"),
     # Módulo 2 — el núcleo importa poco, el ancho lo es todo
     ("los cuatro núcleos comparados al mismo σ", "epanechnikov"),
     ("que «al mismo σ» es a la misma desviación típica", "desviación típica"),
@@ -172,6 +175,9 @@ DEBE_CUBRIR = [
     ("qué optimiza cada uno", "validación cruzada"),
     ("el criterio de Cronie y van Lieshout", "cronie"),
     ("el selector que devuelve el extremo de su intervalo", "intervalo de búsqueda"),
+    # M11 de la segunda revisión: el suelo del simulador es el de cada ventana.
+    ("dice que cada ventana tiene su suelo en el simulador de selectores",
+     "ventana puede dibujar sin mentir, tres celdas"),
     # Módulo 4 — corrección de borde en la KDE
     ("la identidad que la comprueba: la integral vale n", "integral"),
     ("la corrección de Diggle, que conserva el conteo", "diggle = true"),

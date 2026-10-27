@@ -2355,7 +2355,27 @@ round(rbind(iso = unlist(parameters(k_iso)),
 # mu: plántulas por conglomerado
 round(c(iso = k_iso$mu, trans = k_tr$mu), 3)
 #>   iso trans
-#> 2.633 3.265'''
+#> 2.633 3.265
+
+# ¿Es plano el valle? Se mide: cada contraste, evaluado en el óptimo del otro.
+# El contraste es el de kppm —la media de |K^q - K_θ^q|^p entre rmin y rmax—
+contraste <- function(k, par) {
+  K <- k$Fit$Stat; ct <- k$Fit$mcfit$ctrl
+  dentro <- K$r >= ct$rmin & K$r <= ct$rmax
+  Kt <- pi * K$r^2 + (1 - exp(-K$r^2 / (4 * par$scale^2))) / par$kappa
+  mean(abs(K[[fvnames(K, ".y")]]^ct$q - Kt^ct$q)[dentro]^ct$p)
+}
+p_iso <- parameters(k_iso); p_tr <- parameters(k_tr)
+# La comprobación: en su propio óptimo da el valor que guarda cada ajuste
+c(iso = all.equal(contraste(k_iso, p_iso), k_iso$Fit$mcfit$opt$value),
+  trans = all.equal(contraste(k_tr, p_tr), k_tr$Fit$mcfit$opt$value))
+#>   iso trans
+#>  TRUE  TRUE
+# Cuánto sube, en %, cada contraste en los parámetros del otro ajuste
+round(100 * c(iso = contraste(k_iso, p_tr) / contraste(k_iso, p_iso) - 1,
+              trans = contraste(k_tr, p_iso) / contraste(k_tr, p_tr) - 1), 2)
+#>   iso trans
+#>  2.82  2.77'''
 
 PY_6 = '''import json, numpy as np
 sol = json.load(open("precalculo/salidas/cap5_soluciones.json"))["e5"]["solucion"]
@@ -2365,13 +2385,35 @@ sol = json.load(open("precalculo/salidas/cap5_soluciones.json"))["e5"]["solucion
 def K_thomas(r, kappa, escala):
     return np.pi * r ** 2 + (1 - np.exp(-r ** 2 / (4 * escala ** 2))) / kappa
 
-# La comprobación: cuánto se separan las dos curvas donde están los grumos
+# La comprobación: cuánto se separan las dos curvas donde están los grumos, en
+# %, y cuánto su exceso sobre πr², que es lo único que fijan los parámetros
 for r in (0.05, 0.1):
     a = K_thomas(r, sol["isotropica"]["kappa"], sol["isotropica"]["escala"])
     b = K_thomas(r, sol["traslacion"]["kappa"], sol["traslacion"]["escala"])
-    print(r, round(a, 5), round(b, 5), round(100 * abs(a - b) / a, 2))
-#> 0.05 0.0183 0.0195 6.55
-#> 0.1 0.06015 0.0647 7.55'''
+    ea, eb = a - np.pi * r ** 2, b - np.pi * r ** 2
+    print(r, round(a, 5), round(b, 5), round(100 * abs(a - b) / a, 2),
+          round(100 * abs(ea - eb) / ea, 2))
+#> 0.05 0.0183 0.0195 6.55 11.48
+#> 0.1 0.06015 0.0647 7.55 15.81'''
+
+
+# EL «VALLE CASI PLANO» DE LA RUTINA 6, MEDIDO Y NO SUPUESTO (2026-10-27). La
+# frase venía del capítulo 5, donde la tercera revisión la tumbó para Bogotá
+# (cada contraste sube un 178 % en el óptimo del otro). Sobre las secuoyas se
+# midió y se sostiene: sube menos de un 3 %. Las cifras de la prosa se leen de
+# las salidas de los dos bloques, que `verifica_bloques.py` vuelve a ejecutar;
+# escritas a mano aquí, nada las ataría. Y el ensamblado para si dejan de
+# decir lo que la prosa dice.
+def _salidas(bloque):
+    return [linea[3:].split() for linea in bloque.splitlines() if linea.startswith("#> ")]
+
+
+_K6 = {f[0]: f for f in _salidas(PY_6)}     # r, K iso, K trans, % de la K, % del exceso
+_C6 = _salidas(R_6)[-1]                     # lo que sube el contraste iso y el de traslación
+if not (set(_K6) == {"0.05", "0.1"} and len(_C6) == 2
+        and all(float(_K6[r][4]) > 1.5 * float(_K6[r][3]) for r in _K6)
+        and all(float(c) < 5 for c in _C6)):
+    sys.exit(f"PARADO: la rutina 6 ya no dice lo que su prosa: {_K6} · {_C6}")
 
 
 def mod_rutinas(num):
@@ -2493,11 +2535,22 @@ def mod_rutinas(num):
         <code>"iso"</code>.</p>
 
       <p>Python no ajusta <code>kppm</code>: lee los dos juegos de parámetros que R dejó escritos y
-        evalúa con ellos la K teórica de Thomas, que tiene fórmula cerrada. Las curvas teóricas de
-        los dos ajustes se separan bastante menos de lo que cambian κ y
-        las plántulas por conglomerado: el contraste mínimo busca en un valle casi plano, y por eso
-        cambiar el estimador de K mueve tanto el sitio del mínimo. Son dos descripciones distintas
-        del mismo dato, y ninguna es «la» correcta: lo obligatorio es escribir cuál se usó.</p>
+        evalúa con ellos la K teórica de Thomas, que tiene fórmula cerrada. Las dos curvas se
+        separan un """ + _K6["0.05"][3] + """ % a r = 0.05 y un """ + _K6["0.1"][3] + """ % a r = 0.1,
+        bastante menos de lo que cambian κ y las plántulas por conglomerado. Pero esa comparación
+        exagera el parecido, porque las dos K llevan el mismo πr², que no depende de los parámetros;
+        lo que los parámetros fijan es el exceso sobre πr², y ese se separa casi el doble: un
+        """ + _K6["0.05"][4] + """ % y un """ + _K6["0.1"][4] + """ %.</p>
+
+      <p>Que el contraste mínimo busque en un valle casi plano no se supone: se mide, y es lo que
+        hacen las últimas líneas de la pestaña de R. Cada contraste, evaluado en los parámetros del
+        otro ajuste, sube apenas un """ + _C6[0] + """ % y un """ + _C6[1] + """ %: pasar de un
+        óptimo al otro no le cuesta casi nada a ninguno de los dos. Sobre las secuoyas el valle sí es
+        casi plano, y por eso cambiar el estimador de K mueve tanto el sitio del mínimo. No es una
+        propiedad de <code>kppm</code>: sobre las sedes de Bogotá, """ + enlace_modulo(
+          "cap5", 11, "el módulo 11 del capítulo 5") + """ explica por qué allí no lo es. Son dos
+        descripciones distintas del mismo dato, y ninguna es «la» correcta: lo obligatorio es
+        escribir cuál se usó.</p>
 
       <p>El bloque que viene no se responde con un módulo suelto: cruza los dos capítulos.</p>
 """ + CIERRE
