@@ -56,6 +56,18 @@ Subió a 820 cuando la animación de K y g de los módulos 8 y 9 se fusionó con
     corrección y poco para un ensamblado desbocado. El motor es lo que pesa, y un motor
     más grande es una decisión que se verá aquí, no un descuido.
 
+SUBIÓ A 840 con los rojos de la auditoría R2 (2026-10-27), que se comieron ese margen:
+
+  · el documento pasa de **810.2 a 821.1 KB** (+10.9). De ellos, **6.1 son la banda del
+    95 %** que `cap4-envolvente` dibuja ahora en los tres patrones (V01): la de antes era
+    el mínimo y el máximo, y esos dos bordes se quedan en el JSON porque los lee el
+    abanico del módulo 8. Otros 0.7 son la segunda línea de `cap4-cuadrantes` (V02), la
+    cola que lee su prosa, las parejas y el p de Monte Carlo del módulo 6 (V05) y el
+    tramo en que se sale cada observada; el resto, la prosa de los siete arreglos y los
+    comentarios que los explican;
+  · la cota sigue atada al arnés: 821 < 840 < 821 + 312 = 1133;
+  · 840 vuelve a dejar **19 KB de margen**.
+
 Uso:  python3 precalculo/audita_texto_cap4.py
 Devuelve 1 si algo falla.
 """
@@ -66,7 +78,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP4_KB = 820.0
+TOPE_CAP4_KB = 840.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
@@ -106,7 +118,10 @@ DEBE_CUBRIR = [
     # Módulo 2 — la intensidad
     ("la intensidad λ", "intensidad"),
     ("el estimador por conteo", "n entre el área"),
-    ("que λ puede no ser constante", "no tiene una sola"),
+    # Y que los conteos no deciden si lo es (auditoría R2, V03): el marcador
+    # era «no tiene una sola», la conclusión que el módulo 5 dice que el χ²
+    # no puede sacar y que la trampa 3 marca incorrecta.
+    ("que λ puede no ser constante, y los conteos no lo deciden", "los conteos no lo dicen"),
     # Módulo 3 — los tres regímenes
     ("el régimen aleatorio", "aleatorio"),
     ("el régimen regular", "regular"),
@@ -212,8 +227,12 @@ AFIRMACIONES = [
      "no dice nada"),
     ("dice exactamente qué es lo que el χ² no mira",
      "dentro de su celda"),
-    ("declara la ceguera del χ² por debajo del tamaño de celda",
-     "menor que el cuadrante"),
+    # Lo que de la escala menor que la celda le llega al χ² y lo que no
+    # (auditoría R2, V06). Exigía «ciego a toda estructura de escala menor
+    # que el cuadrante», que es falso para el agrupamiento: unos grumos
+    # pequeños vuelven desiguales los conteos y el χ² los detecta.
+    ("dice que los grumos pequeños le llegan por los conteos y una regularidad suave no",
+     "una regularidad suave a esa escala apenas los mueve"),
     ("dice que pasar el test de cuadrantes no certifica aleatoriedad",
      "no certifica aleatoriedad"),
     ("repite la lección del capítulo 3: la escala es parte del resultado",

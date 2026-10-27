@@ -23,10 +23,13 @@
 # Y UNA PROPIA, QUE COSTÓ ANTES DE ESCRIBIR UNA LÍNEA
 #
 # 4. El nombre de una ruta no dice lo que mide; el generador del capítulo
-#    sí. `m2.urbana_hist.teorico` parece la referencia «con las celdas
-#    recortadas» y es UNA Poisson de media común (genera_cap4.R, junto a
-#    `urbana_hist`). La pregunta A2 se escribió sobre lo que es, no sobre lo
-#    que su nombre sugiere. Antes de añadir aquí una ruta, abrir el `.R`.
+#    sí. `m2.urbana_hist.teorico` parecía la referencia «con las celdas
+#    recortadas» y era UNA Poisson de media común (genera_cap4.R, junto a
+#    `urbana_hist`). La pregunta A2 se escribió sobre lo que era, no sobre lo
+#    que su nombre sugería. Desde la auditoría R2 del capítulo 4 (V02,
+#    2026-10-27) `teorico` SÍ es la de las celdas recortadas, y la de media
+#    común, la que A2 usa, se llama `teorico_media_comun`: la ruta cambió y
+#    la pregunta no. Antes de añadir aquí una ruta, abrir el `.R`.
 #
 # LOS EJERCICIOS VAN SOBRE `murchison` (D5 del plan)
 #
@@ -1874,7 +1877,7 @@ desde <- function(doc, rutas) lapply(rutas, function(x) list(origen = unname(ARC
 
 # A2 · el histograma de los conteos y su referencia de media común
 h_c <- serie("cap4", "m2.urbana_hist.centros"); h_o <- serie("cap4", "m2.urbana_hist.conteo")
-h_t <- serie("cap4", "m2.urbana_hist.teorico"); h_b <- serie("cap4", "m2.urbana_hist.bordes")
+h_t <- serie("cap4", "m2.urbana_hist.teorico_media_comun"); h_b <- serie("cap4", "m2.urbana_hist.bordes")
 if (sum(h_o) != val("c4m2_celdas")) para("el histograma no cuenta las celdas vivas")
 der <- h_b[-1]; izq <- h_b[-length(h_b)]
 G_HIST <- list(
@@ -1886,7 +1889,10 @@ G_HIST <- list(
     obs_desde_60 = sum(h_o[izq >= 60]), ref_desde_60 = r10(sum(h_t[izq >= 60])),
     media = val("c4m2_media")),
   desde = desde("cap4", c(centros = "m2.urbana_hist.centros", observado = "m2.urbana_hist.conteo",
-                          referencia = "m2.urbana_hist.teorico"))
+                          # La de media común, que es la que la pregunta usa como
+                          # referencia ingenua: desde la auditoría R2 del cap. 4
+                          # (V02), `teorico` es la de λ constante celda a celda.
+                          referencia = "m2.urbana_hist.teorico_media_comun"))
 )
 
 # A6 · la esperanza mínima por rejilla sobre la ventana urbana

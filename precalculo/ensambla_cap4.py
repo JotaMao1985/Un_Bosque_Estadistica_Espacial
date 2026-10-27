@@ -45,6 +45,7 @@ Uso:  python3 precalculo/ensambla_cap4.py
 from __future__ import annotations
 
 import json
+import math
 import re
 import pathlib
 import sys
@@ -442,6 +443,15 @@ print([round(float(dentro_urb.sum() / (v_urb.area / 1e6)), 4),
 # =====================================================================
 # MÓDULO 2 · La intensidad λ
 # =====================================================================
+# La cola derecha del reparto, que es lo que la prosa manda mirar desde
+# que la línea del simulador es la de λ constante celda a celda (auditoría
+# R2, V02). El precálculo ya comprueba que esas celdas superan todas la
+# esperanza de la celda más grande; aquí se comprueba que la frase que lo
+# cuenta siga siendo la del redondeo hacia abajo de esa esperanza.
+_cola = m2['urbana_hist']['cola']
+if not (_cola['minimo'] > math.floor(m2['urbana']['esperanza_max']) and _cola['maximo'] == m2['urbana']['maximo']):
+    sys.exit(f"PARADO: el módulo 2 dice que las {_cola['celdas']} celdas de la cola superan lo que "
+             f"esperaría la celda más grande y llegan hasta la más poblada; el precálculo dice {_cola}")
 MOD2 = cabecera(
     2, "La intensidad λ", "Intensity",
     "Estimar la intensidad por conteo, y ver que un solo número solo describe el "
@@ -468,10 +478,11 @@ MOD2 = cabecera(
       </div>
 
       <p>Ese número describe el patrón <strong>solo si λ es constante</strong>; es decir,
-        solo si la ventana está igual de poblada en todas partes. Comprobarlo no necesita
-        teoría: se parte la ventana en cuadrantes, se cuentan los puntos que caen en cada uno
-        y se mira si los conteos se parecen entre sí. Si la intensidad fuera la misma en todo
-        el recinto, se parecerían salvo por el azar del propio conteo.</p>
+        solo si la ventana está igual de poblada en todas partes. Una primera pista no
+        necesita teoría: se parte la ventana en cuadrantes, se cuentan los puntos que caen en
+        cada uno y se mira si los conteos se parecen entre sí. Si el patrón fuera el más
+        simple —λ constante y puntos que caen sin influirse unos a otros, el Poisson homogéneo
+        que el módulo 4 presenta—, se parecerían salvo por el azar del propio conteo.</p>
 
       <p>Con una rejilla de {m2['urbana']['nx']}×{m2['urbana']['ny']} sobre el perímetro
         urbano quedan {firma(ent(m2['urbana']['celdas']))} celdas con algo de área dentro de
@@ -602,16 +613,26 @@ MOD2 = cabecera(
 
       <p>El simulador de abajo usa esa misma rejilla y pone una junto a otra las dos cosas
         que acabamos de comparar: en barras, cuántas celdas tienen cada conteo; en línea,
-        cuántas lo tendrían si λ fuera constante. Mira cómo se separan.</p>
+        cuántas lo tendrían si λ fuera constante, contando con que cada celda espera según su
+        área recortada. Fíjate en dónde se separan: sobre todo a la derecha, con
+        {firma(ent(_cola['celdas']))} celdas de {ent(_cola['minimo'])} a
+        {ent(_cola['maximo'])} sedes cuando ni la celda entera más grande esperaría más de
+        {ent(math.floor(m2['urbana']['esperanza_max']))}. La línea gris, más fina, es la
+        referencia que el recuadro descartó: una sola Poisson de media común, como si todas
+        las celdas midieran igual. La diferencia entre las dos líneas la pone entera el
+        recorte de las celdas, no el patrón.</p>
 
 {sim('cap4-cuadrantes', 'Contar en cuadrantes',
-     'La rejilla es fija —la que declara la lectura—: la barra es el reparto observado de sedes por celda y la línea, el que daría una intensidad constante.', 300, mandos=False)}
+     'La rejilla es fija —la que declara la lectura—: la barra es el reparto observado de sedes por celda; la línea naranja, el que daría una intensidad constante sobre estas mismas celdas recortadas, y la gris, el de una sola Poisson de media común, como si midieran igual.', 300, mandos=False)}
 
       <p>Lo que acabas de ver no es que Bogotá tenga «mucha» o «poca» intensidad, sino que
-        <strong>no tiene una sola</strong>. Una λ que cambia de un sitio a otro se llama
-        <strong>inhomogénea</strong>, y es el caso normal, no la excepción. A partir de aquí un
-        número deja de servir y hay que describir el patrón con funciones: de eso se ocupan los
-        módulos 7 a 9, y antes hace falta saber contra qué compararlas.</p>
+        <strong>sus conteos no son los de un Poisson homogéneo</strong>. Puede ser que λ
+        cambie de un sitio a otro —una λ así se llama <strong>inhomogénea</strong>, y en una
+        ciudad es el caso normal, no la excepción— o que las sedes se agrupen aunque λ no
+        cambie. Qué falla, λ o la independencia, los conteos no lo dicen, y el módulo 5
+        explica por qué. En los dos casos un solo número deja de bastar y hay que describir el
+        patrón con funciones: de eso se ocupan los módulos 7 a 9, y antes hace falta saber
+        contra qué compararlas.</p>
 
 {tabs('Contar en cuadrantes y contrastar',
       '''qc &lt;- quadratcount(p_urb, nx = 10, ny = 10)
@@ -1117,10 +1138,14 @@ MOD5 = cabecera(
         {n(m5['ce_original'], 5)} a {n(m5['ce_rebarajado'], 5)}.</p>
       </div>
 
-      <p>Lo que el χ² no mira es <strong>dónde cae cada punto dentro de su celda</strong>.
-        Dicho de otro modo: es ciego a toda estructura de escala menor que el cuadrante. Por
-        eso pasar el test de cuadrantes no certifica aleatoriedad; certifica que los
-        <em>conteos</em> son compatibles con ella, que es bastante menos.</p>
+      <p>Lo que el χ² no mira es <strong>dónde cae cada punto dentro de su celda</strong>:
+        fijados los conteos, le da igual cómo se colocan dentro. La estructura de escala menor
+        que la celda solo le llega por lo que hace con los conteos: unos grumos pequeños los
+        vuelven más desiguales y el χ² los detecta, aunque quepan muchos en una celda; una
+        regularidad suave a esa escala apenas los mueve, y esa sí se le escapa. Lo que no
+        altera los conteos, como esta rebaraja, no lo ve. Por eso pasar el test de cuadrantes
+        no certifica aleatoriedad; certifica que los <em>conteos</em> son compatibles con
+        ella, que es bastante menos.</p>
 
 {TABS_M5}
       <p>La rebaraja del código es la demostración entera, y por eso se escribe en las dos
@@ -1138,6 +1163,13 @@ MOD5 = cabecera(
 # =====================================================================
 _nx_baja = m6['redwood_nx_esperanza_baja']
 _n_tam = len(m6['nxs'])
+# Por qué empeora el p de la rejilla más fina (auditoría R2, V05): las
+# parejas que comparten celda y el p de Monte Carlo, del precálculo, que
+# ya comprueba que ese p supera al asintótico y al de la rejilla de 10×10.
+_rf = m6['redwood_fina']
+if _rf['nx'] != m6['nxs'][-1] or m6['redwood']['nx'][-1] != _rf['nx']:
+    sys.exit(f"PARADO: el módulo 6 lee la rejilla más fina como la de {_rf['nx']}×{_rf['nx']}, "
+             f"y el barrido acaba en {m6['nxs'][-1]}")
 # Bogotá rompe el supuesto a saltos: la ventana recorta las celdas, y la
 # rejilla de 5×5 lo respeta después de que 3×3 y 4×4 lo rompieran. El
 # párrafo que cierra el simulador lo cuenta con estas cuatro rejillas, así
@@ -1152,8 +1184,8 @@ MOD6 = cabecera(
     6, "El tamaño del cuadrante", "Quadrat size",
     "Reconocer el MAUP del capítulo 3 dentro de un test de patrones puntuales: "
     "la misma pregunta, el mismo dato y un veredicto que depende de la celda."
-) + f"""      <p>El módulo 5 dejó la pregunta abierta: si el χ² es ciego por debajo del tamaño de
-        la celda, ¿qué tamaño se elige? No hay una respuesta técnica, y eso ya lo vimos en
+) + f"""      <p>El módulo 5 dejó la pregunta abierta: si el χ² no ve lo que pasa dentro de cada
+        celda, ¿qué tamaño se elige? No hay una respuesta técnica, y eso ya lo vimos en
         el capítulo 3 con otro nombre. Es el <strong>efecto de escala</strong> del MAUP,
         ahora sobre un patrón puntual.</p>
 
@@ -1170,7 +1202,7 @@ MOD6 = cabecera(
         grita en ninguna escala cuando no hay nada por lo que gritar. Sobre las sedes de
         Bogotá rechazan los {ent(_n_tam)}, de la rejilla más gruesa a la más fina. El
         veredicto depende de la celda <strong>cuando el patrón está en el filo</strong>;
-        cuando es claramente aleatorio o claramente inhomogéneo, la elección no lo mueve.</p>
+        cuando está claramente cerca de CSR o claramente lejos, la elección no lo mueve.</p>
 
       <p>Y en el otro extremo el problema se invierte. El p-valor del test no es exacto: sale
         de aproximar el estadístico por una distribución χ², y esa aproximación solo vale si
@@ -1216,11 +1248,18 @@ MOD6 = cabecera(
         la moraleja escrita en p-valores: {n(m6['redwood']['p_valor'][0], 5)} con la rejilla
         de 2×2, {n(m6['redwood']['p_valor'][3], 5)} con la de 5×5, un cero redondeado con la
         de 10×10 — y otra vez {firma(n(m6['redwood']['p_valor'][9], 5))} con la de 20×20. El
-        p-valor <strong>deja de mejorar y empeora</strong>. No es que el patrón se vuelva
-        menos agregado cuando se mira más fino: es que con {ent(m6['redwood']['celdas'][-1])}
-        celdas y {ent(m5['n'])} plántulas cada esperanza es minúscula y el χ² deja de seguir
-        la distribución de la que sale su p-valor. La huella del supuesto roto estaba en la
-        última línea de la tabla.</p>
+        p-valor <strong>deja de mejorar y empeora</strong>, y no es un artefacto. No es que el
+        patrón se vuelva menos agregado cuando se mira más fino: con celdas iguales, el χ² solo
+        cuenta cuántas parejas de plántulas comparten celda, y con celdas más pequeñas que los
+        grumos quedan pocas —{firma(ent(_rf['parejas']))} en la rejilla de
+        {_rf['nx']}×{_rf['nx']}, cuando el azar daría {n(_rf['parejas_azar'], 1)}—, así que le
+        queda poca señal. Con {ent(m6['redwood']['celdas'][-1])} celdas y {ent(m5['n'])}
+        plántulas, además, cada esperanza es minúscula y el χ² deja de seguir la distribución
+        de la que sale su p-valor; pero ese error tira hacia el otro lado. Simulando la nula
+        —<code>quadrat.test(..., method = "MonteCarlo")</code>, con
+        {ent(_rf['nsim_mc'])} simulaciones—, el p de la rejilla de {_rf['nx']}×{_rf['nx']}
+        sale {firma(n(_rf['p_mc'], 5))}, unas {n(_rf['veces_mc'], 0)} veces el de la tabla. La
+        aproximación rota no explica que el p empeore: lo disimula.</p>
 
       <p>Con seis módulos hechos ya hay cuerda suficiente para caer en las trampas
         habituales de este material. Las cuatro de abajo se responden con lo visto hasta
@@ -1386,9 +1425,10 @@ MOD7 = cabecera(
         leen como un patrón agregado: la mitad de las sedes tiene otra a menos de
         {firma(n(m7['bogota']['g_mediana'], 2), ' m')} y la mitad de la ventana tiene una sede a
         menos de {firma(n(m7['bogota']['f_mediana'], 2), ' m')}, cuando bajo CSR las dos
-        medianas serían {n(m7['bogota']['csr_mediana'], 2)} m. Pero el módulo 2 ya enseñó que
-        Bogotá no tiene una sola λ, y una intensidad que cambia de una zona a otra deja
-        exactamente esa huella: vecinos cerca donde hay muchas sedes y huecos donde hay pocas.
+        medianas serían {n(m7['bogota']['csr_mediana'], 2)} m. Pero nada de lo visto hasta
+        aquí descarta que λ cambie de una zona a otra de Bogotá —el mapa del módulo 1 lo hace
+        verosímil, y el capítulo 5 lo mide—, y una intensidad así deja exactamente esa huella:
+        vecinos cerca donde hay muchas sedes y huecos donde hay pocas.
         Lo honesto es leerlo como <strong>exceso de vecinos cercanos y de huecos</strong>
         respecto de CSR, no como la prueba de que las sedes se atraigan.</p>
 
@@ -1709,10 +1749,10 @@ MOD8 = cabecera(
         esté por encima de la recta en todo \\(r\\) no prueba que haya estructura a todas las
         escalas —el módulo siguiente enseña por qué K no puede decir <em>dónde</em>—, y
         tampoco prueba que los colegios se atraigan: contra CSR, puntos que se atraen y una
-        intensidad que cambia de un barrio a otro dejan la <strong>misma huella</strong>, y el
-        módulo 2 ya mostró que \\(\\lambda\\) no es constante sobre Bogotá. Es la advertencia
-        del módulo 5 sobre el χ² —un rechazo no dice cuál de las dos propiedades falla—, y aquí
-        vale igual.</p>
+        intensidad que cambia de un barrio a otro dejan la <strong>misma huella</strong>, y
+        nada de lo visto hasta aquí descarta que \\(\\lambda\\) cambie sobre Bogotá. Es la
+        advertencia del módulo 5 sobre el χ² —un rechazo no dice cuál de las dos propiedades
+        falla—, y aquí vale igual.</p>
 
       <p>En los tres canónicos va escrito el <strong>signo</strong>, porque dice hacia dónde
         se aparta la curva: {n_signo(m8['cells']['desvio_con_signo'])} en las células,
@@ -1780,8 +1820,9 @@ MOD8 = cabecera(
           módulo 9 lo enseña con las secuoyas y trae la función que sí lo dice.</li>
         <li><strong>Supone que \\(\\lambda\\) es constante y que la dirección no
           importa.</strong> Lo primero es la <em>estacionariedad</em>: contra CSR, una
-          intensidad que cambia de una zona a otra deja la misma huella que la atracción, y el
-          módulo 2 ya mostró que la de las sedes cambia. La K inhomogénea del módulo 10 del
+          intensidad que cambia de una zona a otra deja la misma huella que la atracción, y
+          que la de las sedes cambie es verosímil, aunque nada de este capítulo lo pruebe. La
+          K inhomogénea del módulo 10 del
           capítulo 5 compara contra una \\(\\lambda\\) que cambia. Lo segundo es la
           <em>isotropía</em>: K solo mira distancias, así que un patrón alineado en una
           dirección —uno que siguiera una avenida, por ejemplo— se promedia con todas las
@@ -2065,7 +2106,7 @@ MOD9 = cabecera(
         cociente vale 1 en todo r.</p>
 
 {sim('cap4-kg', 'K contra g sobre el mismo patrón',
-     'Las dos curvas del mismo dato: mira hasta dónde sigue K separada de su teórica y dónde vuelve g a 1.', 300)}
+     'Las dos curvas del mismo dato, cada una dividida por lo que valdría bajo CSR, así que la línea gris del 1 vale para las dos: mira hasta dónde sigue K separada de su teórica y dónde vuelve g a 1.', 300)}
 
       <p>Sobre las secuoyas, g alcanza {firma(n(m9['redwood']['g_max'], 5))} a una distancia
         de {firma(n(m9['redwood']['r_g_max'], 5))} y ha vuelto a 1 en
@@ -2124,8 +2165,8 @@ MOD9 = cabecera(
         Puede ser que los colegios se atraigan —que donde hay uno sea más probable que se abra
         otro al lado—, o puede ser que simplemente haya zonas de la ciudad con muchas sedes y
         zonas con pocas, cada una repartida al azar dentro de la suya. Contra CSR las dos
-        dejan exactamente esta huella, y el módulo 2 ya enseñó que λ no es constante sobre
-        Bogotá: una intensidad que cambia a escala de kilómetros produce por sí sola un exceso
+        dejan exactamente esta huella, y nada de lo visto hasta aquí descarta que λ cambie
+        sobre Bogotá: una intensidad que cambia a escala de kilómetros produce por sí sola un exceso
         de parejas a escala de kilómetros, sin que ningún colegio atraiga a otro. Separar las
         dos lecturas exige estimar primero cómo cambia λ de un sitio a otro y comparar contra
         <em>eso</em> en vez de contra CSR, que es justo donde empieza el capítulo 5. Hasta
@@ -2336,6 +2377,14 @@ MOD10 = cabecera(
 # MÓDULO 11 · Envolventes de simulación
 # =====================================================================
 _e39, _e999 = ESC[39], ESC[999]
+# Dónde se sale la observada de los pinos de la banda del 95 % (auditoría
+# R2, V01): un tramo corto, que el precálculo mide en su rejilla fina y ya
+# comprueba que el test global no rechaza. La frase da el centro del tramo.
+_jp = m11['japanesepines']
+if not (_jp['sale'] == 1 and _jp['sale_r_hasta'] - _jp['sale_r_desde'] < 0.02):
+    sys.exit(f"PARADO: el módulo 11 dice que la observada de los pinos se sale de la banda "
+             f"en un tramo corto; el precálculo dice {_jp['sale_r_desde']}–{_jp['sale_r_hasta']}")
+_jp_sale = (_jp['sale_r_desde'] + _jp['sale_r_hasta']) / 2
 MOD11 = cabecera(
     11, "Envolventes de simulación", "Simulation envelopes",
     "Construir la banda de referencia que hace interpretable una curva, y saber "
@@ -2343,15 +2392,15 @@ MOD11 = cabecera(
 ) + f"""      <p>El módulo 4 dejó el problema planteado: una curva observada no se puede juzgar sin
         saber cuánto se mueve el azar. La solución es simular. Se generan
         {firma(ent(m11['nsim']))} patrones de CSR con la misma intensidad y la misma
-        ventana, se calcula K para cada uno y se dibuja la banda que forman. La lectura que
-        tienta es inmediata: si la observada se sale de la banda, hay algo que CSR no
-        explica.</p>
+        ventana, se calcula K para cada uno y, en cada r, se dibuja la banda que deja dentro
+        el 95 % central de las simuladas. La lectura que tienta es inmediata: si la observada
+        se sale de la banda, hay algo que CSR no explica.</p>
 
       <p>Es la herramienta estándar, y esa lectura, tal cual, está mal. Este módulo existe
         sobre todo para decir por qué, y el recuadro de más abajo mide cuánto.</p>
 
 {sim('cap4-envolvente', 'La envolvente y la curva observada',
-     'Elige el patrón: la banda son las simulaciones de CSR y la línea gruesa, el dato.', 300)}
+     'Elige el patrón: la banda es, en cada r, el 95 % central de las simulaciones de CSR, y la línea gruesa, el dato.', 300)}
 
       <div class="key-insight">
         <p style="margin:0;">La banda puntual es un intervalo al 95 % <strong>para cada r por
@@ -2371,9 +2420,11 @@ MOD11 = cabecera(
         pinos en un cuadrado, {ent(m1['urbana']['n'])} sedes en una ventana de
         {ent(m10['ventana']['piezas'])} piezas— y casi la misma tasa. La pone sobre todo el
         procedimiento, no el dato: mirar {ent(m11['tasa_salida_bogota']['nodos_r'])}
-        distancias con una banda al 95 % en cada una. En los pinos, además, la curva observada
-        no se sale en ningún r, y aun así la mitad de sus propias simulaciones nulas sí lo
-        hacen.</p>
+        distancias con una banda al 95 % en cada una. En los pinos, que el test global de abajo
+        no rechaza (p = {n(m11['test_global']['dclf_japanesepines_p'], 5)}), la curva observada
+        se sale de esa misma banda del 95 % en un tramo corto, cerca de
+        r = {n(_jp_sale, 2)}, igual que la mitad de sus propias simulaciones nulas se sale en
+        algún r.</p>
 
       <p>La salida correcta es un <strong>test de desviación global</strong>, que resume la
         curva entera en un número antes de compararla. El de Diggle-Cressie-Loosmore-Ford
@@ -2405,7 +2456,9 @@ MOD11 = cabecera(
         convención: es aritmética.</p>
 
       <p>Y aquí está la trampa que casi todo el mundo pisa. La banda que <code>envelope()</code>
-        dibuja por defecto es el <em>mínimo y el máximo</em> de las simulaciones. En general
+        dibuja por defecto es el <em>mínimo y el máximo</em> de las simulaciones. La del
+        simulador de arriba no es esa: es la del 95 % en cada r, la misma contra la que se
+        midió el {n(m11['tasa_salida_bogota']['pct'], 1)} %. En general
         se puede tomar la k-ésima más baja y la k-ésima más alta en vez de los extremos: ese k
         es el <strong>rango</strong> —el argumento <code>nrank</code>—, y con rango k el nivel
         puntual de la banda es 2k/(nsim+1). Por defecto k vale 1, así que el nivel vale
@@ -2830,14 +2883,28 @@ SIMULADORES_JS = r"""
         data: {
           labels: h.centros.map(c => n5(c, 0)),
           datasets: [
+            // Las barras DETRÁS de las líneas (`order` mayor se pinta antes):
+            // la primera clase espera 13 celdas y tiene 17, y con la barra
+            // delante el arranque de la línea quedaba tapado.
             { type: 'bar', label: 'celdas observadas', data: h.conteo,
-              backgroundColor: C4.verde },
-            { type: 'line', label: 'referencia: una Poisson de la misma media',
+              backgroundColor: C4.verde, order: 1 },
+            // LA REFERENCIA DE λ CONSTANTE DE VERDAD: cada celda, una Poisson
+            // de media su propia esperanza, la del área recortada (auditoría
+            // R2, V02). La de media común se queda, fina y en gris, rotulada
+            // como lo que es: la referencia que el recuadro del módulo descarta.
+            // Rótulos cortos: a 375 px los largos se cortaban, y el pie y la
+            // prosa ya dicen qué es cada línea.
+            { type: 'line', label: 'λ constante, celda a celda',
               data: h.teorico, borderColor: C4.naranja, borderDash: [6, 4],
-              pointRadius: 0, tension: 0.3 }
+              pointRadius: 0, tension: 0.3, order: 0 },
+            { type: 'line', label: 'media común, que aquí no vale',
+              data: h.teorico_media_comun, borderColor: C4.gris, borderWidth: 1.5,
+              borderDash: [2, 3], pointRadius: 0, tension: 0.3, order: 0 }
           ]
         },
         options: { responsive: true, maintainAspectRatio: false,
+          // La leyenda en el orden del pie, no en el de `order`.
+          plugins: { legend: { labels: { sort: (a, b) => a.datasetIndex - b.datasetIndex } } },
           scales: { y: { beginAtZero: true, title: { display: true, text: 'celdas' } },
                     x: { title: { display: true, text: 'sedes en la celda' } } } }
       });
@@ -3194,24 +3261,32 @@ SIMULADORES_JS = r"""
       const ctx = raiz.querySelector('canvas').getContext('2d');
       const g = new Chart(ctx, {
         type: 'line', data: { datasets: [] },
+        // UN SOLO EJE, el de la razón contra CSR (auditoría R2, V07). Hasta
+        // entonces g iba en el izquierdo y K/K teórica en el derecho, cada
+        // uno con su escala, y la única gris era g = 1: en los pinos, 62 de
+        // los 100 nodos de K quedaban al otro lado de ella, y K parecía por
+        // encima de CSR cuando el módulo 8 publica L − r negativa. Las dos
+        // son razones contra lo que valdrían bajo CSR, y las dos valen 1
+        // ahí, así que una sola gris sirve para las dos, como en la gráfica
+        // de la animación `cap4-kanillo`.
         options: { responsive: true, maintainAspectRatio: false, parsing: false,
           scales: {
             x: { type: 'linear', title: { display: true, text: 'r' } },
-            y: { title: { display: true, text: 'g(r)' } },
-            y2: { position: 'right', title: { display: true, text: 'K(r) / K teórica' },
-                  grid: { drawOnChartArea: false } }
+            y: { title: { display: true, text: 'razón contra CSR' } }
           } }
       });
       const pinta = () => {
         const gg = D4.m9[CLAVES[i]], kk = D4.m8[CLAVES[i]];
         const razon = kk.r.map((r, j) => kk.k_teo[j] > 0 ? kk.k_obs[j] / kk.k_teo[j] : null);
+        const r0 = Math.min(gg.r[0], kk.r[0]);
+        const r1 = Math.max(gg.r[gg.r.length - 1], kk.r[kk.r.length - 1]);
         g.data.datasets = [
           { label: 'g(r): mira solo el anillo', data: curva4(gg.r, gg.g_obs),
             borderColor: C4.morado, pointRadius: 0, tension: 0.2 },
-          { label: 'g bajo CSR', data: curva4(gg.r, gg.g_teo), borderColor: C4.gris,
-            borderDash: [5, 4], pointRadius: 0 },
-          { label: 'K observada / K teórica: arrastra', yAxisID: 'y2',
-            data: curva4(kk.r, razon), borderColor: C4.verde, pointRadius: 0, tension: 0.2 }
+          { label: 'K observada / K teórica', data: curva4(kk.r, razon),
+            borderColor: C4.verde, pointRadius: 0, tension: 0.2 },
+          { label: 'CSR: 1 (para las dos)', data: [{ x: r0, y: 1 }, { x: r1, y: 1 }],
+            borderColor: C4.gris, borderDash: [5, 4], pointRadius: 0 }
         ];
         g.update();
         lectura4(raiz, [
@@ -3372,10 +3447,15 @@ SIMULADORES_JS = r"""
       });
       const pinta = () => {
         const e = D4.m11[CLAVES[i]];
+        // LA BANDA DEL 95 %, la misma contra la que se mide la tasa de salida
+        // de la última fila (auditoría R2, V01). Antes se dibujaba el mínimo y
+        // el máximo de las 999 —un contraste puntual al 0,2 %, del que no se
+        // sale ninguna simulación— con la tasa del 95 % debajo.
+        const pct = n5(100 * D4.m11.nivel_puntual, 0) + ' %';
         g.data.datasets = [
-          { label: 'techo de la banda', data: curva4(e.r, e.hi), borderColor: C4.gris,
+          { label: 'techo de la banda del ' + pct, data: curva4(e.r, e.hi95), borderColor: C4.gris,
             pointRadius: 0, fill: '+1', backgroundColor: 'rgba(138,138,138,0.18)' },
-          { label: 'suelo de la banda', data: curva4(e.r, e.lo), borderColor: C4.gris,
+          { label: 'suelo de la banda del ' + pct, data: curva4(e.r, e.lo95), borderColor: C4.gris,
             pointRadius: 0 },
           { label: 'K observada', data: curva4(e.r, e.obs), borderColor: C4.verde,
             borderWidth: 3, pointRadius: 0, tension: 0.2 },
@@ -3519,10 +3599,10 @@ QUIZ_JS = r"""
         tipo: 'opcion',
         pregunta: 'Dos patrones tienen exactamente el mismo χ² en el test de cuadrantes. ¿Qué se puede concluir?',
         opciones: [
-          { texto: 'Que sus conteos por celda coinciden, y nada de lo que hay dentro', correcta: true,
-            retro: 'Correcto, y el módulo 5 lo construye a propósito: los dos patrones dan χ² = ' + n5(D4.m5.original.chi2, 4) + ' y su distancia media al vecino se multiplica por ' + n5(D4.m5.nn_cociente, 2) + '.' },
-          { texto: 'Poco: el χ² solo compara la intensidad media de los dos',
-            retro: 'No. El χ² solo usa cuántos puntos hay en cada celda, así que dos repartos idénticos por celda le dan el mismo número aunque los puntos estén colocados de forma opuesta.' },
+          { texto: 'Poco: ni siquiera que sus conteos por celda coincidan', correcta: true,
+            retro: 'Correcto. El χ² resume los conteos en un número, y números iguales salen de conteos distintos: intercambiar el contenido de dos celdas de igual área no lo mueve. Y con los mismos conteos tampoco dice nada de lo que hay dentro: el módulo 5 construye dos patrones con χ² = ' + n5(D4.m5.original.chi2, 4) + ' cuya distancia media al vecino se multiplica por ' + n5(D4.m5.nn_cociente, 2) + '. Lo único que comparten, si la rejilla es la misma, es el veredicto.' },
+          { texto: 'Que los dos tienen la misma intensidad media, y nada más',
+            retro: 'No. El χ² no compara los dos patrones entre sí: cada uno se mide contra su propia esperanza, y dos patrones con n muy distintos pueden dar el mismo número.' },
           { texto: 'Que los dos colocan sus puntos de una manera muy parecida',
             retro: 'Tampoco: el χ² del módulo 5 rechaza en los dos casos. Lo que no distingue es la estructura DENTRO de cada celda.' },
           { texto: 'Que ninguno de los dos se aparta de una intensidad constante',
@@ -3530,7 +3610,7 @@ QUIZ_JS = r"""
         ] },
       {
         tipo: 'multiple',
-        pregunta: 'El test de cuadrantes sobre las sedes de Bogotá con una rejilla 10×10 rechaza con un p-valor minúsculo. ¿Qué afirmaciones son correctas?',
+        pregunta: 'El test de cuadrantes sobre las sedes de Bogotá con una rejilla 10×10 rechaza con un p-valor minúsculo. Con ese resultado y nada más, ¿qué afirmaciones están justificadas?',
         opciones: [
           { texto: 'El patrón no es compatible con un Poisson homogéneo', correcta: true,
             retro: 'Eso es exactamente lo que dice el test, ni más ni menos: la nula es el Poisson homogéneo, y se rechaza.' },
@@ -3634,7 +3714,7 @@ QUIZ_JS = r"""
         pregunta: 'La curva observada se sale de la banda del 95 % en un tramo corto de r. ¿Qué se puede afirmar?',
         opciones: [
           { texto: 'Que la banda es puntual, y mirarla entera son muchos contrastes a la vez', correcta: true,
-            retro: 'Eso es. De las ' + miles4(D4.m11.tasa_salida_bogota.nsim) + ' simulaciones de CSR puro con que se construyó la banda, el ' + n5(D4.m11.tasa_salida_bogota.pct, 1) + ' % se sale de ella en algún r. Para la curva entera hace falta un test global.' },
+            retro: 'Eso es. De las ' + miles4(D4.m11.tasa_salida_bogota.nsim) + ' simulaciones de CSR puro con que se construyó la banda, el ' + n5(D4.m11.tasa_salida_bogota.pct, 1) + ' % se sale de ella en algún r. Es lo que les pasa a los pinos del módulo 11, cuyo test global no rechaza. Para la curva entera hace falta un test global.' },
           { texto: 'Que el patrón no es CSR, con un p menor que 0.05 para la curva entera',
             retro: 'Ese es exactamente el error que el módulo 11 desmonta: el 5 % es el nivel de CADA r por separado, no el de la curva.' },
           { texto: 'Que conviene subir nsim para estrechar la banda y así confirmarlo',

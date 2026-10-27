@@ -313,6 +313,44 @@ def main() -> int:
     a.igual(int(np.max(obs[vivas])), q["maximo"], "m2: la celda más poblada")
     a.igual(int(np.sum(esp[vivas] < 5)), q["celdas_esperanza_baja"],
             "m2: celdas con esperanza < 5")   # el supuesto que discute el módulo 5
+
+    # LAS LÍNEAS DEL SIMULADOR (auditoría R2, V02), rehechas con las
+    # esperanzas de aquí. La naranja es la de λ constante celda a celda: la
+    # suma, celda a celda, de la probabilidad Poisson de caer en cada clase
+    # con la media de SU celda recortada. La gris, una Poisson de media
+    # común, la que el recuadro descarta. Las clases son las de `hist()`:
+    # (b_k, b_k+1], salvo la primera, que incluye el 0.
+    hu = D["m2"]["urbana_hist"]
+    bordes = np.array(hu["bordes"], dtype=float)
+
+    def en_clase(mu):
+        pr = np.diff(poisson.cdf(bordes, mu))
+        pr[0] += poisson.pmf(0, mu)
+        return pr
+    ov = obs[vivas]
+    clase = np.clip(np.searchsorted(bordes, ov, side="left") - 1, 0, len(bordes) - 2)
+    a.cierto(np.array_equal(np.bincount(clase, minlength=len(bordes) - 1), hu["conteo"]),
+             "m2/simulador: las barras son el reparto de los conteos")
+    mezcla = np.sum([en_clase(e) for e in esp[vivas]], axis=0)
+    comun = en_clase(float(np.mean(ov))) * len(ov)
+    a.cierto(np.allclose(mezcla, hu["teorico"], rtol=1e-5, atol=1e-9),
+             "m2/simulador: la línea de λ constante es la mezcla de las celdas",
+             f"máx. dif. {float(np.max(np.abs(mezcla - np.array(hu['teorico'])))):.2e}")
+    a.cierto(np.allclose(comun, hu["teorico_media_comun"], rtol=1e-5, atol=1e-9),
+             "m2/simulador: la gris es una Poisson de media común")
+    # La cola que la prosa lee: desde la primera clase en que la mezcla ya no
+    # espera, entre todas las que quedan, ni una vigésima de celda.
+    cola = hu["cola"]
+    resto = np.cumsum(mezcla[::-1])[::-1]
+    k = int(np.argmax(resto < 0.05))
+    a.igual(bordes[k], cola["desde"], "m2/cola: empieza donde la mezcla ya no espera nada")
+    en_cola = ov[ov > bordes[k]]
+    a.igual(len(en_cola), cola["celdas"], "m2/cola: celdas observadas en ella", 0)
+    a.igual(int(en_cola.min()), cola["minimo"], "m2/cola: la menos poblada", 0)
+    a.igual(int(en_cola.max()), cola["maximo"], "m2/cola: la más poblada", 0)
+    a.cierto(en_cola.min() > esp[vivas].max(),
+             "m2/cola: todas superan la esperanza de la celda más grande",
+             f"{int(en_cola.min())} > {esp[vivas].max():.2f}")
     a.cierto(q["p_valor"] > 0, "m2: el p-valor publicado no es cero",
              f"{q['p_valor']:.3g}")
     a.cerca(math.log10(q["p_valor"]), q["p_log10"], "m2: el log10 del p-valor", 1e-6)
@@ -516,6 +554,23 @@ def main() -> int:
     a.igual(primera, m6["redwood_nx_esperanza_baja"],
             "m6: el primer tamaño con esperanza < 5 es el publicado")
     a.igual(sum(b["rechaza"]), m6["redwood_rechazos"], "m6: el conteo de rechazos de redwood")
+    # POR QUÉ EMPEORA EL p DE LA REJILLA FINA (auditoría R2, V05). Las
+    # parejas que comparten celda salen de los conteos de la rejilla de 20×20
+    # sobre las coordenadas publicadas, y en celdas iguales el χ² es función
+    # de ellas: X² = 2m·parejas/n + m − n. El p de Monte Carlo sale del
+    # generador aleatorio de R; se auditan su sentido y su cociente.
+    rf = m6["redwood_fina"]
+    xr, yr = np.array(D["m5"]["x1"]), np.array(D["m5"]["y1"])
+    cf = conteos_rejilla(xr, yr, D["m3"]["redwood"]["ventana"], rf["nx"], rf["nx"])
+    n_r, m_r = int(cf.sum()), rf["nx"] ** 2
+    parejas = int(np.sum(cf * (cf - 1) // 2))
+    a.igual(parejas, rf["parejas"], "m6/fina: parejas de plántulas en la misma celda", 0)
+    a.cerca(n_r * (n_r - 1) / 2 / m_r, rf["parejas_azar"], "m6/fina: las que daría el azar, C(n,2)/m")
+    a.cerca(2 * m_r * parejas / n_r + m_r - n_r, b["chi2"][-1],
+            "m6/fina: el χ² es función de las parejas", 1e-6)
+    a.cierto(rf["p_mc"] > b["p_valor"][-1] and rf["p_mc"] > rf["p_mc_10"],
+             "m6/fina: simulando la nula, el p es mayor que el asintótico y que el de 10×10")
+    a.cerca(rf["p_mc"] / b["p_valor"][-1], rf["veces_mc"], "m6/fina: cuántas veces el de la tabla", 1e-6)
 
     # -----------------------------------------------------------------
     a.titulo("7 · G y F: el átomo de los duplicados")
@@ -1037,12 +1092,22 @@ def main() -> int:
     for nm in ("bogota", "redwood", "japanesepines"):
         e = m11[nm]
         lo, hi, obs = np.array(e["lo"]), np.array(e["hi"]), np.array(e["obs"])
+        lo95, hi95 = np.array(e["lo95"]), np.array(e["hi95"])
         a.igual(len(lo), len(hi), f"m11/{nm}: tantos suelos como techos")
         a.cierto(bool(np.all(lo <= hi + 1e-12)),
                  f"m11/{nm}: el suelo nunca supera al techo")
-        sale = bool(np.any((obs < lo - 1e-9) | (obs > hi + 1e-9)))
-        a.igual(int(sale), e["sale"],
-                f"m11/{nm}: «se sale» cuadra con curva y banda")
+        # LA BANDA QUE SE DIBUJA es la del 95 % (auditoría R2, V01), y va
+        # dentro del mínimo y el máximo de las mismas simulaciones.
+        a.igual(len(lo95), len(obs), f"m11/{nm}: la banda del 95 % tiene un nodo por r")
+        tol = 1e-5 * np.maximum(np.abs(hi), 1e-12)
+        a.cierto(bool(np.all((lo95 <= hi95 + tol) & (lo <= lo95 + tol) & (hi95 <= hi + tol))),
+                 f"m11/{nm}: la del 95 % va dentro del mínimo y el máximo")
+        fuera = (obs < lo95 - 1e-9) | (obs > hi95 + 1e-9)
+        a.igual(int(bool(np.any(fuera))), e["sale"],
+                f"m11/{nm}: «se sale» cuadra con curva y banda del 95 %")
+        a.igual(int(np.sum(fuera)), e["sale_nodos"], f"m11/{nm}: en cuántos nodos se sale", 0)
+        a.cierto(e["sale_r_desde"] <= e["sale_r_hasta"],
+                 f"m11/{nm}: el tramo en que se sale está bien orientado")
         a.cierto(e["correccion"] == "translate", f"m11/{nm}: declara su corrección")
         a.igual(e["nsim"], m11["nsim"], f"m11/{nm}: declara su nsim")
     # LA CIFRA DEL MÓDULO: la tasa de salida bajo CSR no se parece al 5 %.

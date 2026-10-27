@@ -1558,9 +1558,9 @@ BLOQUE_C = [
                 f"cuantiles de cobertura {cn('niveles.cap4_cobertura_pct')} y un {c('c5m10_nivel')} "
                 f"para la del mínimo y el máximo. Contra la banda hecha con todas, ninguna se saldría "
                 f"del mínimo y el máximo; por eso el capítulo 5 compara cada curva con la banda de las "
-                f"demás. Ojo: la banda que el capítulo 4 dibuja en su módulo 11 es también "
-                f"la del mínimo y el máximo; la tasa del {c('c4m11_tasa_bog')} se midió contra la de "
-                f"cuantiles. En las dos, mirar cientos de radios a la vez hace que la tasa supere de "
+                f"demás. La banda que el capítulo 4 dibuja en su módulo 11 es justo esa, la de "
+                f"cuantiles, contra la que se midió la tasa del {c('c4m11_tasa_bog')}. En las dos, "
+                f"mirar cientos de radios a la vez hace que la tasa supere de "
                 f"lejos el nivel puntual: es la lección común del módulo 11 del capítulo 4 y del 10 "
                 f"del capítulo 5."),
              op("Que en el capítulo 5 las curvas y la banda se dividen por la media del modelo, y "

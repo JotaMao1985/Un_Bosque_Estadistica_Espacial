@@ -357,22 +357,68 @@ D$m2 <- list(
   # evaluaba la Poisson en JavaScript, que es una cifra naciendo fuera de
   # R aunque sea una curva de modelo.
   #
-  # La referencia es UNA Poisson de media común, y las celdas de esta
-  # ventana NO tienen la misma área porque el perímetro las recorta. Eso
-  # no es un descuido: es parte de por qué el ajuste falla, y por eso se
-  # rotula como referencia y no como ajuste.
+  # LA REFERENCIA ES LA DE λ CONSTANTE DE VERDAD, celda a celda (auditoría
+  # R2 del 2026-10-26, V02). Hasta entonces era UNA Poisson de media común
+  # para las 65 celdas, y se presentaba como «lo que daría una intensidad
+  # constante»: es justo la referencia que el recuadro del mismo módulo
+  # descarta, porque el perímetro recorta las celdas y no miden igual. Con
+  # ella la «joroba» hacia 30 sedes que el estudiante veía separarse era
+  # casi entera la rejilla: dibujaba 21,8 celdas en 30-35 donde λ
+  # constante espera 2,7, y 0 celdas en 0-5 donde espera 13,1.
+  #
+  # La de ahora es la mezcla: bajo λ constante la celda j cuenta una
+  # Poisson de media E_j = λ|A_j|, su área ya recortada, y el número
+  # esperado de celdas en una clase es la suma, celda a celda, de la
+  # probabilidad de que su conteo caiga en ella. Las clases son las de
+  # `hist()`: la primera cerrada por la izquierda, así que incluye el 0
+  # (el `diff(ppois(bordes))` de antes lo dejaba fuera).
+  #
+  # La de media común se conserva como SEGUNDA línea, rotulada como lo
+  # que es: el 1 de los libros, que aquí no vale. Enseña el error que el
+  # recuadro describe.
   urbana_hist = local({
     v <- as.vector(quadratcount(p_urb, nx = 10, ny = 10))
+    E <- as.vector(suppressWarnings(quadrat.test(p_urb, nx = 10, ny = 10))$expected)
     h <- hist(v, breaks = 18, plot = FALSE)
-    list(centros = r6(h$mids), bordes = r6(h$breaks),
+    b <- h$breaks
+    en_clase <- function(mu) {
+      pr <- diff(ppois(b, mu)); pr[1] <- pr[1] + dpois(0, mu); pr
+    }
+    mezcla <- rowSums(vapply(E, en_clase, numeric(length(b) - 1L)))
+    comun  <- en_clase(mean(v)) * length(v)
+    # LA COLA DERECHA, que es lo que la prosa manda mirar: desde qué clase
+    # la mezcla ya no espera, entre todas las que quedan, ni una vigésima
+    # de celda, y cuántas celdas observadas caen ahí.
+    resto <- rev(cumsum(rev(mezcla)))
+    k <- which(resto < 0.05)[1]
+    en_cola <- v[v > b[k]]
+    list(centros = r6(h$mids), bordes = r6(b),
          conteo = as.integer(h$counts),
-         teorico = r6(diff(ppois(h$breaks, mean(v))) * length(v)))
+         teorico = r6(mezcla),
+         teorico_media_comun = r6(comun),
+         cola = list(desde = r6(b[k]), esperadas = r6(resto[k]),
+                     celdas = length(en_cola), minimo = min(en_cola), maximo = max(en_cola)))
   }),
   # bei es el contraste canónico: 3 604 árboles cuya intensidad varía
   # con la elevación del terreno, y por eso su chi2 es enorme. El
   # capítulo 5 lo modela; aquí solo se constata que lambda no es una
   # constante y que un solo número la describía mal.
   bei_veces_chi2 = r10(q_bei$chi2 / q_jap$chi2))
+
+# Lo que la línea y la prosa del módulo 2 afirman de la referencia nueva.
+# La mezcla reparte las 65 celdas entre las clases, como las barras; y
+# las celdas de la cola superan TODAS la esperanza de la celda más grande,
+# que es lo que la frase «ni la celda entera más grande esperaría más»
+# da por hecho.
+local({
+  hu <- D$m2$urbana_hist
+  ancla(sum(hu$teorico), q_urb$celdas, "la mezcla reparte todas las celdas vivas", tol = 1e-4)
+  ancla(sum(hu$teorico_media_comun), q_urb$celdas,
+        "la de media común reparte todas las celdas vivas", tol = 1e-4)
+  if (!(hu$cola$celdas > 0 && hu$cola$minimo > q_urb$esperanza_max))
+    stop("las celdas de la cola ya no superan la esperanza de la celda más grande: ",
+         "el módulo 2 lo afirma")
+})
 
 # El ancla de este módulo es una identidad, no una cita: el chi2 del test
 # de cuadrantes ES el índice de dispersión multiplicado por los grados de
@@ -676,6 +722,63 @@ D$m6 <- list(
   # esperanza por celda baja de 5 y el chi2 deja de valer. La escala que
   # más resuelve es la que rompe el supuesto.
   redwood_nx_esperanza_baja = b_red$nx[b_red$celdas_esperanza_baja > 0][1])
+
+# POR QUÉ EMPEORA EL p DE LA REJILLA MÁS FINA (auditoría R2 del
+# 2026-10-26, V05). El módulo decía que el p de 20×20 empeora porque, con
+# esperanzas minúsculas, el χ² deja de seguir su distribución: «la huella
+# del supuesto roto». Va al revés. Simulando la nula, el p de 20×20 sale
+# MAYOR que el asintótico de la tabla: la aproximación rota lo hacía
+# parecer mejor, no peor. Y el empeoramiento es real: con celdas iguales,
+# X² = (m/n)·ΣO² − n, así que el χ² solo depende de cuántas PAREJAS de
+# puntos comparten celda, y con celdas más pequeñas que los grumos quedan
+# pocas. Se publican las dos cosas: las parejas, contra las C(n,2)/m que
+# daría el azar, y el p de Monte Carlo de `quadrat.test`, que es la orden
+# que la prosa nombra. Ojo con esa orden: rompe los empates del
+# estadístico con `jitter()`, y con un χ² tan discreto eso la acerca a un
+# p medio; la cifra es la de la orden, con su semilla y su nsim, no la
+# del p exacto.
+NSIM_QMC <- 99999L
+qmc <- local({
+  f <- file.path(CACHE, sprintf("cap4_quadrat_mc_redwood_%d.rds", NSIM_QMC))
+  if (file.exists(f)) readRDS(f) else {
+    # Sin tocar el generador de lo que viene detrás: con caché o sin ella,
+    # el resto del precálculo tiene que ver el mismo estado aleatorio.
+    estado <- if (exists(".Random.seed", envir = globalenv())) get(".Random.seed", envir = globalenv())
+    v <- lapply(c(10L, 20L), function(k) {
+      set.seed(SEM_CIEGO + k)
+      quadrat.test(redwood, nx = k, ny = k, method = "MonteCarlo", nsim = NSIM_QMC)$p.value
+    })
+    if (!is.null(estado)) assign(".Random.seed", estado, envir = globalenv())
+    names(v) <- c("nx10", "nx20"); saveRDS(v, f); v
+  }
+})
+D$m6$redwood_fina <- local({
+  k <- length(NXS)
+  O <- as.vector(quadratcount(redwood, nx = NXS[k], ny = NXS[k]))
+  n <- sum(O); m <- length(O)
+  list(nx = NXS[k], parejas = as.integer(sum(choose(O, 2))),
+       parejas_azar = r10(choose(n, 2) / m),
+       nsim_mc = NSIM_QMC,
+       p_mc = r10(qmc$nx20), p_mc_10 = r10(qmc$nx10),
+       veces_mc = r10(qmc$nx20 / b_red$p_valor[k]))
+})
+local({
+  rf <- D$m6$redwood_fina; k <- length(NXS)
+  ancla(rf$parejas, (sum(as.vector(quadratcount(redwood, nx = rf$nx))^2) - npoints(redwood)) / 2,
+        "parejas que comparten celda = (ΣO² − n)/2", tol = 0)
+  # Las dos afirmaciones del párrafo, comprobadas: el p de la rejilla fina
+  # empeora también simulando la nula (no es un artefacto), y la
+  # aproximación lo daba MÁS pequeño (tira hacia el otro lado).
+  if (!(rf$p_mc > rf$p_mc_10))
+    stop("simulando la nula, el p de 20×20 ya no es peor que el de 10×10: el módulo 6 lo afirma")
+  if (!(rf$p_mc > b_red$p_valor[k]))
+    stop("el p de Monte Carlo de 20×20 ya no supera al asintótico: el módulo 6 lo afirma")
+  if (!(rf$parejas > rf$parejas_azar))
+    stop("en 20×20 ya no comparten celda más parejas que con el azar: el módulo 6 lo afirma")
+})
+message(sprintf("  redwood 20x20: %d parejas en la misma celda (azar %.2f) · p MC %.5f, x%.1f el asintótico",
+                D$m6$redwood_fina$parejas, D$m6$redwood_fina$parejas_azar,
+                D$m6$redwood_fina$p_mc, D$m6$redwood_fina$veces_mc))
 if (D$m6$japanesepines_rechazos == 0L && D$m6$redwood_rechazos == length(NXS))
   message("  (sin cambio de veredicto en japanesepines: el módulo 6 lo dice así)")
 message(sprintf("  redwood rechaza en %d de %d tamaños · esperanza < 5 desde nx=%s",
@@ -1298,18 +1401,35 @@ env_bog <- envolvente(p_urb, "bogota", Kest, NSIM_ENV, SEM_ENV)
 env_red <- envolvente(redwood, "redwood", Kest, NSIM_ENV, SEM_ENV + 1L)
 env_jap <- envolvente(japanesepines, "japanesepines", Kest, NSIM_ENV, SEM_ENV + 2L)
 
-# LA TASA DE SALIDA, calculada sobre las simulaciones ya guardadas: no
-# cuesta ni una simulación más, y es la cifra que da sentido al módulo.
-tasa_salida <- function(env, nivel = 0.95) {
+# LA BANDA PUNTUAL AL 95 %, la que se DIBUJA y la que se MIDE, que son
+# una sola desde la auditoría R2 del 2026-10-26 (V01). Hasta entonces el
+# simulador dibujaba la banda por defecto de `envelope()` —el mínimo y el
+# máximo de las 999, un contraste puntual al 2/1000 = 0,2 %— y la
+# llamaba «intervalo al 95 %», mientras el 52 % de salidas se medía
+# contra ESTA, la de cuantiles, que no se dibujaba en ningún sitio. De la
+# dibujada no se salía ninguna simulación, por construcción. Y la frase
+# de los pinos («la observada no se sale en ningún r») era falsa con las
+# dos: contra la del 95 % se sale en un tramo corto.
+#
+# No vale cambiarla por la de rango 25 (`nrank = 25`, también al 5 % con
+# 999): no es la misma banda, y contra ella se salen 507 simulaciones de
+# Bogotá, no 522. Se dibuja exactamente la que se mide.
+banda95 <- function(env, nivel = 0.95) {
   simf <- attr(env, "simfuns")
   M <- as.matrix(as.data.frame(simf)[, -1])       # filas = r, columnas = sims
   ok <- apply(M, 1, function(z) all(is.finite(z)))
   M <- M[ok, , drop = FALSE]
   a <- (1 - nivel) / 2
-  lo <- apply(M, 1, quantile, probs = a)
-  hi <- apply(M, 1, quantile, probs = 1 - a)
-  fuera <- apply(M, 2, function(col) any(col < lo | col > hi))
-  list(nsim = ncol(M), nodos_r = nrow(M),
+  list(r = env$r[ok], obs = as.numeric(env$obs)[ok], M = M, nivel = nivel,
+       lo = apply(M, 1, quantile, probs = a),
+       hi = apply(M, 1, quantile, probs = 1 - a))
+}
+# LA TASA DE SALIDA, calculada sobre las simulaciones ya guardadas: no
+# cuesta ni una simulación más, y es la cifra que da sentido al módulo.
+tasa_salida <- function(env, nivel = 0.95) {
+  b <- banda95(env, nivel)
+  fuera <- apply(b$M, 2, function(col) any(col < b$lo | col > b$hi))
+  list(nsim = ncol(b$M), nodos_r = nrow(b$M),
        fuera = sum(fuera), pct = r6(100 * mean(fuera)), nivel = nivel)
 }
 ts_bog <- tasa_salida(env_bog); ts_red <- tasa_salida(env_red)
@@ -1323,17 +1443,33 @@ serie_env <- function(env, nombre) {
   # «patrón: Pinos japoneses» en la primera fila y el 52,3 % de Bogotá en
   # la última. El dato ya se calculaba para dos de los tres; ahora para
   # los tres, y dentro del patrón al que pertenece.
+  b <- banda95(env)
+  en_rg <- function(y) r6(approx(b$r, y, xout = rg, rule = 2)$y)
+  obs <- curva(env, "obs", rg); lo95 <- en_rg(b$lo); hi95 <- en_rg(b$hi)
+  fuera <- obs > hi95 | obs < lo95
+  # Dónde se sale, medido en la rejilla fina en que se calculó y no en la
+  # de publicación: en los pinos el tramo es tan corto que en la de 101
+  # nodos ocupa uno solo.
+  r_f <- b$r[which(b$obs > b$hi | b$obs < b$lo)]
   list(nombre = nombre, nsim = NSIM_ENV, correccion = CORR,
        tasa_salida = tasa_salida(env),
-       r = r6(rg), obs = curva(env, "obs", rg), teo = curva(env, "theo", rg),
+       r = r6(rg), obs = obs, teo = curva(env, "theo", rg),
+       # La banda que se DIBUJA: la del 95 %, la misma que mide la tasa.
+       lo95 = lo95, hi95 = hi95,
+       # El mínimo y el máximo de las 999, que NO se dibujan: los lee el
+       # abanico del módulo 8 («la más baja y la más alta de las 999»).
        lo = curva(env, "lo", rg), hi = curva(env, "hi", rg),
-       # Si la observada se sale, y dónde. La primera r en que se sale es
-       # la escala de la estructura, y es lo que se interpreta.
-       sale = as.integer(any(curva(env, "obs", rg) > curva(env, "hi", rg) |
-                             curva(env, "obs", rg) < curva(env, "lo", rg))))
+       # Si la observada se sale de la banda dibujada, y dónde. La primera
+       # r en que se sale es la escala de la estructura, y es lo que se
+       # interpreta.
+       sale = as.integer(any(fuera)), sale_nodos = sum(fuera),
+       sale_r_desde = if (length(r_f)) r6(min(r_f)) else NA,
+       sale_r_hasta = if (length(r_f)) r6(max(r_f)) else NA)
 }
 D$m11 <- list(
-  nsim = NSIM_ENV, correccion = CORR, nivel_puntual = 0.95,
+  # El nivel puntual de la banda dibujada, el mismo con que se mide la
+  # tasa de salida: sale de la función y no de escribirlo aquí.
+  nsim = NSIM_ENV, correccion = CORR, nivel_puntual = ts_bog$nivel,
   bogota = serie_env(env_bog, "Sedes educativas, ventana urbana"),
   redwood = serie_env(env_red, "Plántulas de secuoya"),
   japanesepines = serie_env(env_jap, "Pinos japoneses"),
@@ -1352,6 +1488,22 @@ D$m11$test_global <- list(
   mad_bogota_p  = pval(mad.test(env_bog)$p.value),
   dclf_japanesepines_p = pval(dclf.test(env_jap)$p.value),
   mad_japanesepines_p  = pval(mad.test(env_jap)$p.value))
+
+# LA FRASE DE LOS PINOS, comprobada: el test global no rechaza y aun así
+# la observada se sale de la banda del 95 % en un tramo corto. Es el caso
+# que la pregunta 7 del cuestionario describe, y el módulo lo cuenta así.
+local({
+  jp <- D$m11$japanesepines
+  if (!(D$m11$test_global$dclf_japanesepines_p > 0.05 && jp$sale == 1L && jp$sale_nodos <= 3L))
+    stop("los pinos ya no son «el test global no rechaza y la observada se sale de la banda ",
+         "del 95 % en un tramo corto»: el módulo 11 lo afirma")
+  for (nm in c("bogota", "redwood", "japanesepines")) {
+    e <- D$m11[[nm]]
+    tol <- 1e-5 * pmax(abs(e$hi), 1e-12)
+    if (any(e$lo95 < e$lo - tol | e$hi95 > e$hi + tol))
+      stop(sprintf("en %s la banda del 95 %% se sale del mínimo-máximo", nm))
+  }
+})
 
 # EL ABANICO DE LAS SIMULACIONES, A DOS DISTANCIAS (2026-09-23). Es una
 # desventaja de K que el módulo 8 enseña con estas mismas 999
