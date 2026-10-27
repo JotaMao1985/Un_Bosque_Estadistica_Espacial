@@ -1181,7 +1181,7 @@ D$m9 <- list(
   # El enlace con el módulo 7, que es lo que impide leer mal esta z: el
   # modelo lineal no ve nada porque supone una forma que la relación no
   # tiene, y rhohat ya enseñó que en el bulto la variación es de 1,6.
-  nota_dcen = "z pequeño no es ausencia de relación: es ausencia de relación LOG-LINEAL (ver módulo 7)")
+  nota_dcen = "z pequeña no es ausencia de relación: es no haber encontrado una relación LOG-LINEAL, y con conglomerado tampoco la no lineal (ver módulos 7 y 11)")
 
 message(sprintf("   crudo: singular (cond rec %.1e) · centrado: cond rec %.1e, %.0f veces mejor · z de la distancia: %.2f",
                 rc_crudo, rc_centr, D$m9$mejora_condicion, c_dcen$z[2]))
@@ -1330,6 +1330,64 @@ if (!(r_mad_obs < max(rg_env[dentro_r][fuera[dentro_r]]) &&
       test_global$r_min_mad_superan_m > max(rg_env[dentro_r][fuera[dentro_r]])))
   stop("la peor desviación de la observada ya no cae dentro del tramo, o las que la superan ya no caen pasado él: el porqué del MAD cambió")
 
+# --- ¿POR QUÉ INTENSIDAD DIVIDE LA K INHOMOGÉNEA? (tercera revisión, 2026-10-27)
+# La llamada de arriba no le pasa `lambda` a `Kinhom`, y sin ella `Kinhom` no
+# divide por la intensidad del MODELO —lo que el módulo decía—: la estima por
+# núcleo en cada patrón, con exclusión del propio punto y el ancho por defecto
+# de density.ppp. Se comprueba aquí que es eso lo que se publicó, se dice con
+# qué ancho, y se publica también la envolvente que divide por el modelo,
+# porque qué λ divide decide hasta dónde llega el exceso: es el «el ancho lo
+# es todo» del módulo 2 otra vez.
+sig_lambda <- attr(density(p_urb), "sigma")
+k_nucleo <- Kinhom(p_urb, lambda = density(p_urb, at = "points", leaveoneout = TRUE),
+                   correction = CORR_ENV, r = env_inh$r)
+if (!isTRUE(all.equal(k_nucleo$trans, env_inh$obs)))
+  stop("la K publicada ya no es la que divide por el núcleo por defecto: el módulo 10 lo afirma")
+
+env_mod <- cacheado(sprintf("env_kinhom_lambda_modelo_%d_%s_simfuns", NSIM_ENV, CORR_ENV), {
+  set.seed(SEM_ENV)
+  envelope(f_centr, Kinhom, nsim = NSIM_ENV, correction = CORR_ENV, lambda = f_centr,
+           verbose = FALSE, savefuns = TRUE)
+})
+obs_m <- ppp_curva(env_mod, "obs", rg_env); lo_m <- ppp_curva(env_mod, "lo", rg_env)
+hi_m  <- ppp_curva(env_mod, "hi", rg_env);  mme_m <- ppp_curva(env_mod, "mmean", rg_env)
+fuera_m <- obs_m > hi_m | obs_m < lo_m
+i_fuera_m <- which(fuera_m[dentro_r])
+if (!length(i_fuera_m) || !all(diff(i_fuera_m) == 1L))
+  stop("con la λ del modelo el tramo fuera de la banda ya no es un intervalo: el módulo 10 lo cuenta como uno")
+lambda_modelo <- list(
+  pct_r_fuera_de_banda = r10(100 * mean(fuera_m[dentro_r])),
+  primer_r_fuera_m = r10(min(rg_env[dentro_r][fuera_m[dentro_r]])),
+  ultimo_r_fuera_m = r10(max(rg_env[dentro_r][fuera_m[dentro_r]])),
+  nodos_dentro_tras_el_tramo = sum(dentro_r) - max(i_fuera_m),
+  dclf_p = pval(dclf.test(env_mod)$p.value),
+  curva = list(obs = r10(obs_m), lo = r10(lo_m), hi = r10(hi_m), mmean = r10(mme_m)))
+# Lo que la prosa afirma: con la λ del modelo el exceso llega MÁS LEJOS que
+# con el núcleo, y el test global rechaza con las dos.
+if (!(lambda_modelo$ultimo_r_fuera_m > max(rg_env[dentro_r][fuera[dentro_r]]) &&
+      lambda_modelo$dclf_p < 0.05))
+  stop("con la λ del modelo el exceso ya no llega más lejos que con el núcleo, o el DCLF dejó de rechazar")
+
+# --- EL VEREDICTO VALE PARA UN PLANO, NO PARA «LA INTENSIDAD VARIABLE» --------
+# Lo que se contrastó arriba es UN modelo de intensidad, un plano en x e y. Con
+# una tendencia flexible la misma envolvente deja de rechazar: con un solo
+# patrón, intensidad variable y agrupación no se separan (auditoría B de las
+# láminas, 2026-10-01; tercera revisión del capítulo, 2026-10-27). Se mide con
+# dos grados y la misma envolvente que la publicada.
+flex <- lapply(c(4L, 12L), function(gr) {
+  # bquote: la fórmula busca `gr` en su propio entorno, no en el de lapply
+  f <- eval(bquote(ppm(p_urb ~ polynom(xc, yc, .(gr)), covariates = COVS)))
+  e <- cacheado(sprintf("env_kinhom_grado%d_%d_%s_simfuns", gr, NSIM_ENV, CORR_ENV), {
+    set.seed(SEM_ENV)
+    envelope(f, Kinhom, nsim = NSIM_ENV, correction = CORR_ENV, verbose = FALSE, savefuns = TRUE)
+  })
+  list(grado = gr, coeficientes = length(coef(f)),
+       dclf_p = pval(dclf.test(e)$p.value), mad_p = pval(mad.test(e)$p.value))
+})
+if (!(flex[[1]]$dclf_p < 0.05 && flex[[2]]$dclf_p >= 0.05))
+  stop(sprintf("la tendencia flexible ya no hace lo que el módulo 10 dice (grado 4: p = %.4g; grado 12: p = %.4g)",
+               flex[[1]]$dclf_p, flex[[2]]$dclf_p))
+
 D$m10 <- list(
   modelo = "ppm(~ xc + yc), coordenadas centradas",
   nsim = NSIM_ENV, correccion = CORR_ENV,
@@ -1358,8 +1416,13 @@ D$m10 <- list(
   # algún radio, y los dos tests que sí contrastan la curva entera.
   tasa_salida = tasa,
   test_global = test_global,
-  # La lectura, que es lo que el módulo tiene que dejar dicho.
-  veredicto = "la intensidad variable no explica la agregación: hace falta un proceso de conglomerado")
+  # Con qué se divide: el núcleo por defecto (lo de arriba) y el modelo.
+  lambda_nucleo_sigma_m = r10(sig_lambda),
+  lambda_modelo = lambda_modelo,
+  tendencia_flexible = flex,
+  # La lectura, que es lo que el módulo tiene que dejar dicho, y acotada a lo
+  # que se contrastó.
+  veredicto = "un plano en x e y no explica la agregación; una tendencia muy flexible sí la absorbe")
 
 message(sprintf("   K inhomogénea fuera de la banda en el %.1f%% de los r, de %.0f a %.0f m (y dentro en los %d nodos siguientes)",
                 pct_fuera, D$m10$primer_r_fuera_m, D$m10$ultimo_r_fuera_m,
@@ -1498,6 +1561,50 @@ message(sprintf("   la z de xc: %.2f con Poisson, entre %.2f y %.2f con conglome
                 co_p[2] / ee_p[2], min(z_xc), max(z_xc), min(inf_xc), max(inf_xc),
                 npoints(p_urb), npoints(p_urb) / deff))
 
+# --- LA SEGUNDA z DEL MÓDULO 9, CERRADA AQUÍ (tercera revisión, 2026-10-27)
+# El módulo 9 leía la z pequeña de la distancia al centro como «no hay relación
+# log-lineal» y dejaba en pie una relación no lineal. Con conglomerado tampoco
+# esa sobrevive: un término cuadrático en la distancia, que con Poisson da un
+# Wald enorme, deja de serlo con los tres modelos (traslación, que es la
+# barata). Mismo arreglo que la z de xc: los errores, no los coeficientes.
+COVS$dk <- function(x, y) dcen(x, y) / 1000     # km, para que dk^2 no sea de 1e8
+wald2 <- function(co, V) { b <- co[2:3]; W <- as.numeric(t(b) %*% solve(V[2:3, 2:3]) %*% b)
+                           c(W = W, p = pchisq(W, 2, lower.tail = FALSE)) }
+f_cuad <- ppm(p_urb ~ dk + I(dk^2), covariates = COVS)
+w_pois <- wald2(coef(f_cuad), vcov(f_cuad))
+cuad_cong <- lapply(MODELOS, function(m) {
+  aj <- cacheado(sprintf("kppm_cuadratico_dcen_%s_%s", tolower(m), PPP_CORR), {
+    k <- ppp_kppm(p_urb, m, PPP_CORR, tendencia = ~ dk + I(dk^2), covariables = COVS)
+    list(coef = unname(coef(k$ajuste)), V = unname(vcov(k$ajuste)))
+  })
+  w <- wald2(aj$coef, aj$V)
+  list(modelo = m, correccion = PPP_CORR, wald = r10(w[["W"]]), p = pval(w[["p"]]))
+})
+if (!(w_pois[["p"]] < 1e-6 && all(sapply(cuad_cong, function(x) x$p) > 0.05)))
+  stop("el término cuadrático en la distancia ya no pasa de evidente con Poisson a nada con conglomerado: el módulo 11 lo afirma")
+
+# --- EL «VALLE» DEL CONTRASTE MÍNIMO NO ES PLANO -------------------------
+# El módulo decía que las K teóricas de los dos ajustes de Thomas casi
+# coinciden y que por eso el valle es plano. Casi coinciden porque las dos
+# llevan el mismo pi r^2, que no depende de los parámetros; lo que fijan los
+# parámetros es el EXCESO K - pi r^2, y ese no coincide. A r corto los dos
+# acuerdan kappa * sigma^2; kappa sale del exceso a r grande, que es donde las
+# dos estimaciones empíricas de K se separan (auditoría B de las láminas).
+valle <- local({
+  a <- ajustes[["Thomas/iso"]]$parametros; b <- ajustes[[paste("Thomas", PPP_CORR, sep = "/")]]$parametros
+  k_th <- function(r, k, s) pi * r^2 + (1 - exp(-r^2 / (4 * s^2))) / k
+  rr <- c(500, 1000, 2000, 3000)
+  ka <- k_th(rr, a$kappa, a$scale); kb <- k_th(rr, b$kappa, b$scale)
+  list(r_m = rr,
+       k_dif_pct = r10(100 * abs(kb - ka) / ka),
+       exceso_dif_pct = r10(100 * abs((kb - pi * rr^2) / (ka - pi * rr^2) - 1)),
+       kappa_sigma2 = list(iso = r10(a$kappa * a$scale^2), traslacion = r10(b$kappa * b$scale^2)),
+       razon_inv_kappa = r10(a$kappa / b$kappa))
+})
+if (!(valle$exceso_dif_pct[4] > 5 * valle$k_dif_pct[4] &&
+      abs(valle$kappa_sigma2$iso / valle$kappa_sigma2$traslacion - 1) < 0.05))
+  stop("el exceso de las dos K de Thomas ya no difiere mucho más que la K entera, o kappa*sigma^2 dejó de coincidir: el módulo 11 lo afirma")
+
 # --- HAWKES: el conglomerado en el TIEMPO ------------------------------
 # La conexión con ciencia de datos que pide el plan: fraude y sismología.
 # Un proceso autoexcitado no es un Poisson con intensidad variable —donde
@@ -1542,6 +1649,9 @@ if (d_h <= d_p) stop("el Hawkes no salió más agregado que el Poisson de su mis
 D$m11 <- list(
   ajustes = unname(ajustes),
   divergencia = divergencia,
+  cuadratico_dcen = list(poisson = list(wald = r10(w_pois[["W"]]), p = pval(w_pois[["p"]])),
+                         conglomerado = cuad_cong),
+  valle = valle,
   duplicados = list(
     n_con = npoints(p_urb), n_sin = npoints(p_unico),
     repetidos = npoints(p_urb) - npoints(p_unico),

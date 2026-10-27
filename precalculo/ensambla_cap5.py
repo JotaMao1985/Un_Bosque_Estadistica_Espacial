@@ -1926,11 +1926,12 @@ MOD9 = cabecera(
 
       <p>El tercer ajuste usa la covariable del módulo 7 —la distancia al centro de masa— y le
         sale z = {firma(n(_cd["z"][1], 2))}. La tentación es concluir que la distancia al centro
-        no tiene nada que ver con dónde hay colegios, y es falso: <strong>lo que ese número dice
-        es que no hay relación <em>log-lineal</em></strong>. La curva <code>rhohat</code> del
-        módulo 7 ya enseñó que en el bulto la intensidad varía
-        {n(m7["bogota"]["curva"]["razon_bulto"], 2)} veces, y que su forma no es una recta en la
-        escala del logaritmo.</p>
+        no tiene nada que ver con dónde hay colegios, y no se sigue: <strong>lo que ese número
+        dice es que el modelo no encuentra una relación <em>log-lineal</em></strong>, que no es lo
+        mismo que no haberla. La curva <code>rhohat</code> del módulo 7 ya enseñó que en el bulto
+        la intensidad varía {n(m7["bogota"]["curva"]["razon_bulto"], 2)} veces, y que su forma no
+        es una recta en la escala del logaritmo. Si esa variación es evidencia de algo, lo dice el
+        módulo 11, con los errores que cuentan con los grupos.</p>
 
       <p>Un modelo no ve lo que no puede escribir. Por eso los dos módulos van seguidos y en este
         orden: la curva sin modelo primero, el coeficiente después.</p>
@@ -1972,7 +1973,20 @@ round(c(nivel_puntual = 2 / (39 + 1),
 # 39, el p mas pequeno posible es 1/(39 + 1), y es justo el que sale.
 round(c(dclf = dclf.test(e39)$p.value, mad = mad.test(e39)$p.value), 4)
 #&gt;  dclf   mad
-#&gt; 0.025 0.025'''
+#&gt; 0.025 0.025
+
+# Y LA DECISION QUE LA LLAMADA ESCONDE. Sin `lambda`, Kinhom no divide por
+# el modelo: divide por un nucleo que estima en cada patron, con el ancho
+# por defecto de density.ppp. Con `lambda = f_centr` divide por el modelo,
+# y la observada ya no vuelve a la banda.
+set.seed({SEM})
+e39m &lt;- envelope(f_centr, Kinhom, nsim = 39, correction = &quot;translate&quot;,
+                 lambda = f_centr, verbose = FALSE)
+fuera_m &lt;- e39m$obs &gt; e39m$hi | e39m$obs &lt; e39m$lo
+round(c(pct_fuera = 100 * mean(fuera_m[dentro_r]),
+        ultimo_r_fuera = max(e39m$r[dentro_r][fuera_m[dentro_r]])), 4)
+#&gt;      pct_fuera ultimo_r_fuera
+#&gt;       100.000       5868.116'''
 
 PY10 = '''# La envolvente de 999 que el capitulo publica viaja en un CSV, con sus
 # cinco columnas: r, la K observada, el suelo y el techo de la banda, y
@@ -2001,24 +2015,28 @@ _SUB10 = dict(
     ULTIMO=n(m10["ultimo_r_fuera_m"], 4),
     RMAX=n(m10["r_max_m"], 4))
 _ts, _tg = m10["tasa_salida"], m10["test_global"]
+_tf = m10["tendencia_flexible"]
 _tc = m11["tendencia"]
 
 MOD10 = cabecera(
     10, "Diagnóstico del ajuste", "Model diagnostics",
-    "Contestar con una medición si la intensidad variable explica la agregación "
-    "del patrón, y montar la envolvente contra el modelo y no contra el azar.") + f"""
+    "Medir si un modelo de intensidad variable explica la agregación del patrón, montar "
+    "la envolvente contra el modelo y no contra el azar, y saber hasta dónde llega lo que "
+    "esa medición puede decir.") + f"""
       <p>El capítulo 4 cerró con un veredicto: las sedes de Bogotá no están repartidas al azar, y
         su K se sale de la banda de CSR por muchísimo. Pero aquella banda comparaba contra un
         proceso de <em>intensidad constante</em>, y ahora hay un modelo que admite intensidad
         variable. La pregunta de este módulo es la bisagra del capítulo:</p>
 
       <div class="tip-box">
-        <h4>La pregunta, y tiene respuesta</h4>
-        <p style="margin-bottom:0;">¿Basta con que la intensidad varíe para explicar la
-          agregación? Si la K inhomogénea del patrón cae <strong>dentro</strong> de la banda de
-          su propio modelo ajustado, entonces sí: lo que parecía atracción entre puntos era
-          intensidad variable disfrazada. Si se sale igual, hace falta otra cosa — y esa otra cosa
-          es el módulo 11.</p>
+        <h4>La pregunta, y la respuesta que admite</h4>
+        <p style="margin-bottom:0;">¿Basta la intensidad variable que escribe el modelo del
+          módulo 9 para explicar la agregación? Si la K inhomogénea del patrón cae
+          <strong>dentro</strong> de la banda de su propio modelo ajustado, ese modelo basta: lo
+          que parecía atracción entre puntos era intensidad variable disfrazada. Si se sale, ese
+          modelo no basta — y hará falta otro, o algo más que una tendencia, que es el módulo 11.
+          La respuesta vale para el modelo que se contrasta, no para «la intensidad variable» en
+          general, y al final del módulo se ve por qué importa la diferencia.</p>
       </div>
 
       <h3>Tres cambios respecto a la envolvente del capítulo 4</h3>
@@ -2027,8 +2045,14 @@ MOD10 = cabecera(
         de las {ent(m10["nsim"])} simulaciones es una realización del modelo que se ajustó en el
         módulo 9 —{m10["modelo"]}—.
         <strong>Dos:</strong> se resume con la K <em>inhomogénea</em>, que divide cada pareja por
-        la intensidad estimada en sus dos puntos — sin eso, el gradiente este-oeste del propio
-        modelo aparecería como agregación. <strong>Tres:</strong> la referencia ya no es la
+        la intensidad en sus dos puntos — sin eso, el gradiente del propio modelo aparecería como
+        agregación. Y aquí hay una decisión que la llamada esconde:
+        <code>envelope(f_centr, Kinhom, …)</code> no le pasa <code>lambda</code> a
+        <code>Kinhom</code>, y sin ella <code>Kinhom</code> no divide por la intensidad del
+        modelo, sino por una que estima en cada patrón con un núcleo y el ancho por defecto de
+        <code>density.ppp</code>: {firma(n(m10["lambda_nucleo_sigma_m"], 0), " m")}. Con
+        <code>lambda = f_centr</code> divide por el modelo. El simulador trae las dos, y
+        conviene mirarlas juntas. <strong>Tres:</strong> la referencia ya no es la
         teórica de CSR sino la <strong>media de las simulaciones</strong>. Y conviene decir por
         qué, porque la razón no es que no haya teórica: para cualquier Poisson
         <em>inhomogéneo</em> la K inhomogénea vale $\pi r^2$ —es justo el motivo de dividir cada
@@ -2042,14 +2066,15 @@ MOD10 = cabecera(
 
 {sim("cap5-envolvente", "K inhomogénea contra la banda del modelo ajustado",
       "La banda gris son las {NSIM} simulaciones del modelo; la línea verde, el patrón "
-      "real. La vista de entrada las divide por la media del modelo, porque K crece como "
+      "real. Las dos primeras vistas dividen por la media del modelo, porque K crece como "
       "el cuadrado del radio y en sus propias unidades las cuatro curvas se superponen: "
       "ahí el modelo es la línea del 1, y lo que se lee es cuántas veces hay más parejas "
-      "de las que produciría. Mira dónde se separa, desde qué radio y hasta cuál — los "
-      "otros dos botones dan la K sin dividir.".replace("{NSIM}", ent(m10["nsim"])))}
-      <p>La respuesta es que <strong>no basta</strong>. La K observada se sale de la banda en el
-        {firma(pct(m10["pct_r_fuera_de_banda"], 0))} de los radios, y por
-        arriba: hay muchas más parejas cercanas de las que un Poisson inhomogéneo con este
+      "de las que produciría. La primera es la K que divide por el núcleo de la llamada; "
+      "la segunda, la que divide por el modelo. Mira dónde se separa cada una, y hasta "
+      "dónde — la tercera da la K sin dividir.".replace("{NSIM}", ent(m10["nsim"])))}
+      <p>La respuesta es que <strong>no basta</strong>. Con el núcleo de la llamada, la K
+        observada se sale de la banda en el {firma(pct(m10["pct_r_fuera_de_banda"], 0))} de los
+        radios, y por arriba; hay muchas más parejas cercanas de las que un Poisson inhomogéneo con este
         gradiente produciría.</p>
 
       <p>Queda decir con qué seguridad, y aquí vuelve la trampa que el capítulo 4 enseñó en su
@@ -2077,23 +2102,45 @@ MOD10 = cabecera(
         modelo: la agregación es real. Lo que no se sostiene es leer el
         {pct(m10["nivel_puntual_pct"], 1)} como la seguridad de la curva entera.</p>
 
-      <p>Ese porcentaje tiene <strong>principio y final</strong>, y los dos importan. La
-        observada se separa desde {firma(n(m10["primer_r_fuera_m"]), " m")} —el primer nodo
-        distinto de cero— y vuelve dentro de la banda pasados
-        {firma(n(m10["ultimo_r_fuera_m"]), " m")}, donde se queda los
-        {ent(m10["nodos_dentro_tras_el_tramo"])} nodos que restan hasta
-        {n(m10["r_max_m"])} m. Es decir: el exceso de parejas está en las escalas cortas y
-        medias, y a escala de kilómetros el modelo de intensidad ya da cuenta de lo que hay.
-        Decir «se sale de la banda» sin decir <em>dónde</em> deja fuera la mitad de la
-        información, que además es la útil: hasta dónde llega lo que el modelo no explica. Y los
-        dos extremos se leen sobre la banda puntual: dicen por dónde pasa la separación, no son un
-        contraste hecho en cada radio.</p>
+      <p>Ese porcentaje tiene <strong>principio y final</strong>, y el final depende de con qué se
+        divide. Con el núcleo, la observada se separa desde
+        {firma(n(m10["primer_r_fuera_m"]), " m")} —el primer nodo distinto de cero— y vuelve
+        dentro de la banda pasados {firma(n(m10["ultimo_r_fuera_m"]), " m")}, donde se queda los
+        {ent(m10["nodos_dentro_tras_el_tramo"])} nodos que restan hasta {n(m10["r_max_m"])} m. Con
+        la intensidad del modelo no vuelve: se sale en el
+        {firma(pct(m10["lambda_modelo"]["pct_r_fuera_de_banda"], 0))} de los radios, de
+        {n(m10["lambda_modelo"]["primer_r_fuera_m"])} a
+        {n(m10["lambda_modelo"]["ultimo_r_fuera_m"])} m, y el DCLF da p =
+        {n(m10["lambda_modelo"]["dclf_p"])}. La diferencia no la pone el dato: la pone el núcleo
+        de {n(m10["lambda_nucleo_sigma_m"], 0)} m, que se lleva dentro de la intensidad toda
+        variación de unos kilómetros —los grupos de esa escala incluidos— y la deja fuera de la K.
+        Es el «el ancho lo es todo» del módulo 2, escondido en un argumento que la llamada no
+        escribe.</p>
 
-      <p>El veredicto que el precálculo deja escrito es <strong>«{m10["veredicto"]}»</strong>.
-        Modelar la intensidad
-        describe <em>dónde</em> hay más colegios, pero no explica que los colegios estén cerca unos
-        de otros más de lo que ese «dónde» implica. Los colegios se agrupan por razones que no
-        son la geografía de la ciudad: comparten manzana, comparten predio, comparten edificio.</p>
+      <p>Y hay una segunda razón para no leer el final del tramo como el final del exceso:
+        <strong>K acumula</strong>. Cada radio suma todas las parejas hasta él, así que un exceso
+        de las escalas cortas sigue dentro de K en los radios largos. El exceso de parejas deja de
+        crecer hacia los {n(_tg["r_mad_observada_m"], 0)} m —la peor desviación, la del MAD— y
+        desde ahí cada anillo trae menos parejas que el modelo, aunque la curva siga un buen
+        trecho por encima de la banda; además, el final del tramo se mueve con la semilla. Decir
+        «se sale de la banda» sin decir <em>dónde</em>, y con qué λ, deja fuera la información
+        útil. Los dos extremos se leen sobre la banda puntual: dicen por dónde pasa la separación,
+        no son un contraste hecho en cada radio.</p>
+
+      <p>El veredicto que el precálculo deja escrito es <strong>«{m10["veredicto"]}»</strong>, y
+        sus dos mitades importan. La primera: un plano en x e y —y también un polinomio de grado
+        {_tf[0]["grado"]}, con {_tf[0]["coeficientes"]} coeficientes: DCLF p =
+        {n(_tf[0]["dclf_p"])}— describe <em>dónde</em> hay más colegios, pero no que estén cerca
+        unos de otros más de lo que ese «dónde» implica. La segunda: con una tendencia de grado
+        {_tf[1]["grado"]} —{_tf[1]["coeficientes"]} coeficientes— la misma envolvente deja de
+        rechazar (DCLF p = {firma(n(_tf[1]["dclf_p"]))}), porque una superficie tan flexible
+        dibuja los grupos como tendencia. <strong>Con un solo patrón, intensidad variable y
+        agrupación no se separan</strong>: se decide por lo que uno está dispuesto a llamar
+        tendencia, y esa decisión se declara. Aquí la tendencia se queda en el plano porque una
+        de {_tf[1]["coeficientes"]} coeficientes describe el dato sin explicarlo, y lo que sobra se
+        modela como conglomerado en el módulo 11. Es plausible que los colegios se agrupen por
+        razones que el plano no ve —compartir manzana, predio o edificio—, y la cuenta de sedes
+        repetidas del módulo 11 apunta en esa dirección.</p>
 
       <p>Y el veredicto alcanza hacia atrás. Los errores estándar que el módulo 9 leyó son los de
         este mismo Poisson, y suponen cada sede independiente de las demás: justo lo que la banda
@@ -2116,10 +2163,14 @@ MOD10 = cabecera(
         intensidad en el norte, el residuo suavizado se ve negativo ahí. Pero tiene un límite que
         conviene saber antes de fiarse de él, y es la razón de que este módulo diagnostique con la
         K inhomogénea: <strong>un Poisson ajustado por máxima verosimilitud reproduce por
-        construcción la tendencia que se le dio</strong>, así que su residuo suavizado tiende a
-        salir plano sobre las covariables del propio modelo — y queda ciego justo a lo que aquí
-        sobra, que no es tendencia sino <em>interacción entre puntos</em>. Un residuo plano y una K
-        que se sale de la banda son perfectamente compatibles, y las dos cosas serían ciertas.</p>
+        construcción la tendencia que se le dio</strong>: su residuo, acumulado contra cada
+        covariable del propio modelo, suma cero, así que el gráfico de residuos contra
+        <code>xc</code> o contra <code>yc</code> no puede enseñar que falte algo en
+        <code>xc</code> o en <code>yc</code>. El residuo suavizado sobre el mapa sí ve que sobra
+        algo —donde hay grupos salen manchas positivas—, pero no puede decir si lo que sobra es
+        tendencia que falta o <em>interacción entre puntos</em>: una mancha es compatible con las
+        dos. La K inhomogénea tampoco lo zanja del todo, como acaba de verse, pero sí dice a qué
+        escalas.</p>
 
       <div class="nota-lateral">
         <h4>Una corrección de borde que se hereda, y por qué</h4>
@@ -2165,19 +2216,27 @@ round(c(k_trans$clustpar, mu = k_trans$mu), 6)
 #&gt; {TRANS}'''
 
 PY11 = '''# La K de un proceso de Thomas tiene forma cerrada, y con ella se ve por
-# que dos ajustes tan distintos pueden salir del mismo dato: sus curvas
-# de K casi coinciden. El contraste minimo esta buscando el minimo de un
-# valle plano, y ahi cualquier cambio en la estimacion de K lo mueve.
+# que dos ajustes tan distintos pueden salir del mismo dato. Las dos K
+# enteras casi coinciden, pero las dos llevan el mismo pi r^2, que no
+# depende de los parametros: lo que los parametros fijan es el EXCESO
+# sobre pi r^2, y ese se separa. Columnas: r, diferencia de K (%),
+# diferencia del exceso (%).
 def k_thomas(r, kappa, escala):
     return np.pi * r ** 2 + (1 - np.exp(-r ** 2 / (4 * escala ** 2))) / kappa
 
-for r in (500.0, 1000.0, 2000.0):
+for r in (500.0, 1000.0, 2000.0, 3000.0):
     a = k_thomas(r, {KI}, {SI})
     b = k_thomas(r, {KT}, {ST})
-    print(int(round(r)), round(100 * abs(b - a) / a, 1))
-#&gt; 500 0.6
-#&gt; 1000 0.9
-#&gt; 2000 4.8'''
+    ea, eb = a - np.pi * r ** 2, b - np.pi * r ** 2
+    print(int(round(r)), round(100 * abs(b - a) / a, 1), round(100 * abs(eb - ea) / ea, 1))
+#&gt; 500 0.6 1.9
+#&gt; 1000 0.9 3.3
+#&gt; 2000 4.8 23.5
+#&gt; 3000 6.9 51.5
+
+# A r corto la K fija kappa * sigma^2, y ahi los dos ajustes coinciden
+print(round({KI} * {SI} ** 2, 3), round({KT} * {ST} ** 2, 3))
+#&gt; 0.183 0.19'''
 
 R11B = '''# HAWKES: el conglomerado en el TIEMPO, y la conexion con fraude y
 # sismologia. No es un Poisson con intensidad variable —donde la
@@ -2240,6 +2299,8 @@ _SUB11B = dict(
                                      _hw["veces_mas_agregado"])))
 
 _dv = {d["modelo"]: d for d in m11["divergencia"]}
+_cq = m11["cuadratico_dcen"]
+_vl = m11["valle"]
 
 # LA z DEL MÓDULO 9, REHECHA AQUÍ. La tabla la pinta el 11 y la cita el 9:
 # si el reajuste dejara de ser el MISMO coeficiente con otro error, o si la
@@ -2261,8 +2322,9 @@ MOD11 = cabecera(
     11, "Conglomerado y autoexcitación", "Cluster and self-exciting processes",
     "Ajustar modelos que explican la agregación, descubrir que el ajuste depende "
     "de un argumento que nadie escribe, y llevar la idea al tiempo.") + f"""
-      <p>El módulo anterior dejó una pregunta sin cerrar: la intensidad variable no explica que
-        los colegios estén cerca unos de otros. Hace falta un modelo donde <strong>los puntos
+      <p>El módulo anterior dejó una pregunta sin cerrar: un plano en x e y no explica que los
+        colegios estén cerca unos de otros, y una tendencia lo bastante flexible para tragárselo
+        describe el dato sin explicarlo. Hace falta un modelo donde <strong>los puntos
         vengan en grupos</strong>, y hay tres familias clásicas, todas con la misma forma —unos
         centros invisibles, y alrededor de cada uno una nube de puntos—:</p>
 
@@ -2323,12 +2385,19 @@ MOD11 = cabecera(
         la prosa que la comenta.</p>
 
 {tabs("El mismo kppm con dos correcciones", R11.format(**_SUB11), PY11.format(**_SUB11))}
-      <p>La columna de Python explica <em>por qué</em> pasa esto, y es lo que lo hace tolerable:
-        evaluada la K teórica de Thomas con los dos juegos de parámetros, las dos curvas se
-        diferencian menos de un 1 % a 500 y 1 000 m. <strong>El valle que el contraste mínimo
-        está minimizando es casi plano</strong>, así que un cambio pequeño en la K empírica mueve
-        mucho el punto donde cae el mínimo. Dos descripciones muy distintas del mismo dato, y las
-        dos ajustan casi igual de bien.</p>
+      <p>La pestaña de Python explica <em>por qué</em> pasa esto, y no es que el valle del
+        contraste mínimo sea plano. Evaluada la K teórica de Thomas con los dos juegos de
+        parámetros, las dos curvas se diferencian poco —un {pct(_vl["k_dif_pct"][0], 1)} a
+        {ent(_vl["r_m"][0])} m, un {pct(_vl["k_dif_pct"][1], 1)} a {ent(_vl["r_m"][1])} m—, pero
+        eso es porque las dos llevan el mismo $\\pi r^2$, que no depende de los parámetros. Lo que
+        los parámetros fijan es el <strong>exceso</strong> sobre $\\pi r^2$, y ese se separa un
+        {pct(_vl["exceso_dif_pct"][2], 1)} a {ent(_vl["r_m"][2])} m y un
+        {pct(_vl["exceso_dif_pct"][3], 1)} a {ent(_vl["r_m"][3])} m. A r corto los dos ajustes
+        coinciden en κσ² ({n(_vl["kappa_sigma2"]["iso"], 3)} y
+        {n(_vl["kappa_sigma2"]["traslacion"], 3)}), que es lo que la K empírica fija ahí; κ —y con
+        él μ— sale del exceso a r grande, donde las dos estimaciones de K, la isotrópica y la de
+        traslación, se separan, y cambia {n(_vl["razon_inv_kappa"], 2)} veces. Dos descripciones
+        muy distintas del mismo dato, y cada una ajusta bien a <em>su</em> estimación de K.</p>
 
       <h3>El cabo que el capítulo 4 dejó abierto</h3>
 
@@ -2373,6 +2442,15 @@ MOD11 = cabecera(
         bajo el supuesto que el módulo 10 tumbó, y por eso se escribió en condicional. La corrección vuelve a mover la respuesta,
         como en la tabla del principio —con la isotrópica el error crece menos—, pero esta vez no
         mueve el veredicto.</p>
+
+      <p>Y la otra z del módulo 9, la de la distancia al centro, corre la misma suerte. Allí la z
+        lineal era pequeña y quedaba en pie una relación curva, la que dibuja
+        <code>rhohat</code>. Con un término cuadrático en la distancia, el Poisson da un Wald de
+        {n(_cq["poisson"]["wald"], 1)} sobre dos grados de libertad, p =
+        {f'{_cq["poisson"]["p"]:.2g}'}; con los conglomerados dentro, p =
+        {" · ".join(n(c["p"], 3) + " (" + _NOMBRE_MODELO[c["modelo"]] + ")" for c in _cq["conglomerado"])},
+        con la K de traslación. <strong>Tampoco de la relación curva hay evidencia</strong>:
+        <code>rhohat</code> la describe, y describir no es contrastar.</p>
 
       <div class="nota-lateral">
         <h4>Es el efecto de diseño del capítulo 1</h4>
@@ -3325,52 +3403,63 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     // La división la hace el navegador sobre cifras que R publica, a la
     // vista y sobre el mismo dato, igual que la del deslizador del módulo 2.
     SIMULADORES['cap5-envolvente'] = function (raiz) {
-      const c = D5.m10.curva;
-      let escala = 0;
-      const razon = v => v.map((y, k) => y / c.mmean[k]);
+      // DOS ENVOLVENTES, PORQUE LA LLAMADA ESCONDE UNA DECISIÓN. Sin `lambda`,
+      // Kinhom divide por un núcleo estimado en cada patrón; con `lambda = f_centr`,
+      // por el modelo. El tramo fuera de la banda depende de cuál (tercera revisión,
+      // 2026-10-27). La vista logarítmica se fue: con el eje en millones de m²
+      // escondía justo los radios donde el patrón se separa.
+      const r = D5.m10.curva.r, NUC = D5.m10.curva, MOD = D5.m10.lambda_modelo.curva;
+      let vista = 0;   // 0 = núcleo ÷ media, 1 = modelo ÷ media, 2 = K del núcleo, lineal
       const g = grafico5(raiz, 'line', { datasets: [] }, {
         parsing: false, scales: ejesXY('r (metros)', 'K inhomogénea'),
         plugins: { legend: { labels: { filter: it => it.text !== '' } } }
       });
       const pinta = () => {
-        const rel = escala === 0;
-        const Y = rel ? razon : (v => v);
+        const c = vista === 1 ? MOD : NUC;
+        const rel = vista !== 2;
+        const Y = rel ? (v => v.map((y, k) => y / c.mmean[k])) : (v => v);
         g.data.datasets = [
-          { label: 'techo de la banda', data: curva5(c.r, Y(c.hi)), borderColor: C5.gris,
+          { label: 'techo de la banda', data: curva5(r, Y(c.hi)), borderColor: C5.gris,
             pointRadius: 0, fill: '+1', backgroundColor: C5.grisSuave },
-          { label: '', data: curva5(c.r, Y(c.lo)), borderColor: C5.gris, pointRadius: 0 },
+          { label: '', data: curva5(r, Y(c.lo)), borderColor: C5.gris, pointRadius: 0 },
           { label: rel ? 'el modelo, que aquí vale 1' : 'media de las simulaciones',
-            data: curva5(c.r, Y(c.mmean)),
+            data: curva5(r, Y(c.mmean)),
             borderColor: C5.naranja, borderDash: [6, 4], pointRadius: 0 },
-          { label: 'K inhomogénea observada', data: curva5(c.r, Y(c.obs)),
+          { label: 'K inhomogénea observada', data: curva5(r, Y(c.obs)),
             borderColor: C5.verde, borderWidth: 3, pointRadius: 0 }
         ];
-        g.options.scales.y.type = escala === 2 ? 'logarithmic' : 'linear';
         g.options.scales.y.title.text = rel
           ? 'K observada ÷ K media del modelo'
           : 'K inhomogénea';
         g.update();
-        lectura5(raiz, [
+        const L = vista === 1 ? D5.m10.lambda_modelo : D5.m10;
+        const filas = [
           ['modelo simulado', D5.m10.modelo],
           ['simulaciones', mil5(D5.m10.nsim)],
+          ['K dividida por', vista === 1
+            ? 'la intensidad del modelo (lambda = f_centr)'
+            : 'un núcleo de ' + n5(D5.m10.lambda_nucleo_sigma_m, 0) + ' m (Kinhom sin lambda)'],
           ['corrección de K', D5.m10.correccion],
-          ['nivel puntual de la banda', n5(D5.m10.nivel_puntual_pct, 1) + ' %'],
-          // LEÍDA ENTERA, la banda no promete ese 0,2 %: la cruza en algún
-          // radio una fracción mucho mayor de curvas del propio modelo. Es la
-          // de los radios que este lienzo dibuja, no la de los de spatstat.
-          ['curvas del modelo que la cruzan', n5(D5.m10.tasa_salida.pct_simulador, 1) + ' %'],
-          ['test de la curva entera (DCLF)', 'p = ' + n5(D5.m10.test_global.dclf_p, 3)],
-          ['radios fuera de la banda', n5(D5.m10.pct_r_fuera_de_banda, 0) + ' %'],
-          // UN TRAMO, NO UN UMBRAL. Esta fila decía «desde r = 59 m» y se
-          // leía como una cola que llega al final del barrido; la curva
-          // vuelve dentro de la banda mucho antes y ya no sale.
-          ['fuera entre r =', n5(D5.m10.primer_r_fuera_m, 0) + ' m y ' +
-                             n5(D5.m10.ultimo_r_fuera_m, 0) + ' m'],
-          ['y dentro hasta el final', n5(D5.m10.r_max_m, 0) + ' m'],
-          ['veredicto', D5.m10.veredicto]]);
+          ['nivel puntual de la banda', n5(D5.m10.nivel_puntual_pct, 1) + ' %']];
+        if (vista !== 1)
+          // LEÍDA ENTERA, la banda no promete ese 0,2 %: la cruza en algún radio
+          // una fracción mucho mayor de curvas del propio modelo, medida en los
+          // radios que este lienzo dibuja.
+          filas.push(['curvas del modelo que la cruzan', n5(D5.m10.tasa_salida.pct_simulador, 1) + ' %']);
+        filas.push(
+          ['test de la curva entera (DCLF)', 'p = ' + n5(vista === 1 ? L.dclf_p : D5.m10.test_global.dclf_p, 3)],
+          ['radios fuera de la banda', n5(L.pct_r_fuera_de_banda, 0) + ' %'],
+          // UN TRAMO, NO UN UMBRAL: con el núcleo la curva vuelve dentro de la
+          // banda mucho antes del final; con el modelo, no vuelve.
+          ['fuera entre r =', n5(L.primer_r_fuera_m, 0) + ' m y ' + n5(L.ultimo_r_fuera_m, 0) + ' m'],
+          L.nodos_dentro_tras_el_tramo > 0
+            ? ['y dentro hasta el final', n5(D5.m10.r_max_m, 0) + ' m']
+            : ['y dentro hasta el final', 'no vuelve a la banda'],
+          ['veredicto', D5.m10.veredicto]);
+        lectura5(raiz, filas);
       };
-      botonera5(raiz, ['Veces la media del modelo', 'K, escala lineal', 'K, escala logarítmica'],
-                k => { escala = k; pinta(); }, 0);
+      botonera5(raiz, ['λ por núcleo · veces la media', 'λ del modelo · veces la media', 'K sin dividir'],
+                k => { vista = k; pinta(); }, 0);
       pinta();
       return [g];
     };
@@ -3677,10 +3766,10 @@ QUIZ_JS = r"""
         pista: 'La banda del módulo 10 no se simula contra CSR.',
         pregunta: 'La K inhomogénea del patrón urbano se sale de la banda de su modelo ajustado en el ' + n5(D5.m10.pct_r_fuera_de_banda, 0) + ' % de los radios. ¿Qué se concluye?',
         opciones: [
-          { texto: 'Que la intensidad variable no explica por sí sola la agregación del patrón', correcta: true,
-            retro: 'Esa es la bisagra del capítulo. Modelar la intensidad describe DÓNDE hay más colegios, no que estén cerca unos de otros más de lo que ese «dónde» implica. Y el módulo 11 enseña que el ajuste de conglomerado depende de con qué corrección se estimó K: sobre este patrón, μ pasa de ' + n5(D5.m11.ajustes[0].mu, 1) + ' a ' + n5(D5.m11.ajustes[1].mu, 1) + '.' },
+          { texto: 'Que un gradiente log-lineal en x e y no explica por sí solo la agregación del patrón', correcta: true,
+            retro: 'Esa es la bisagra del capítulo, con su alcance: se contrastó un plano, y un plano describe DÓNDE hay más colegios, no que estén cerca unos de otros más de lo que ese «dónde» implica. Con una tendencia de ' + D5.m10.tendencia_flexible[1].coeficientes + ' coeficientes la banda deja de rechazar: con un solo patrón, tendencia y agrupación no se separan. Y el módulo 11 enseña que el ajuste de conglomerado depende de con qué corrección se estimó K: sobre este patrón, μ pasa de ' + n5(D5.m11.ajustes[0].mu, 1) + ' a ' + n5(D5.m11.ajustes[1].mu, 1) + '.' },
           { texto: 'Que el modelo está mal ajustado y bastaría con añadirle covariables',
-            retro: 'Podría ayudar, pero la K inhomogénea ya descuenta la intensidad estimada: lo que sobra son parejas cercanas, y eso no lo arregla una covariable de gran escala.' },
+            retro: 'A medias. Un poco más de tendencia no basta: con un polinomio de grado ' + D5.m10.tendencia_flexible[0].grado + ' la banda sigue rechazando (DCLF p = ' + n5(D5.m10.tendencia_flexible[0].dclf_p, 3) + '). Una de grado ' + D5.m10.tendencia_flexible[1].grado + ' sí se traga la agregación (p = ' + n5(D5.m10.tendencia_flexible[1].dclf_p, 3) + '), pero porque dibuja los grupos como tendencia: describe el dato sin explicarlo. Una covariable de gran escala no arregla parejas cercanas.' },
           { texto: 'Que la banda es demasiado estrecha por usar ' + D5.m10.nsim + ' simulaciones',
             retro: 'Al revés: con ' + D5.m10.nsim + ' simulaciones y la banda por defecto el nivel puntual es ' + n5(D5.m10.nivel_puntual_pct, 1) + ' %, más exigente que el 5 % de una envolvente de 39. Y la conclusión no depende de leerla radio a radio: el test DCLF sobre la curva entera da p = ' + n5(D5.m10.test_global.dclf_p, 3) + '.' },
           { texto: 'Que el patrón no es un proceso puntual simple, y son los duplicados los que lo agregan',

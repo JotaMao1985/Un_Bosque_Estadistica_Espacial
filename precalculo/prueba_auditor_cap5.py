@@ -253,6 +253,28 @@ def defectos():
     obj("6b · el de P(oficial), volteado",
         "mapas", lambda m: m["proporcion_oficial"].__setitem__("zq", volteado(m["proporcion_oficial"])))
 
+    # --- 6c. La λ de la K inhomogénea y el veredicto (2026-10-27) --------
+    obj("6c · con la λ del modelo el exceso deja de llegar más lejos",
+        "datos", lambda d: d["m10"]["lambda_modelo"].__setitem__(
+            "ultimo_r_fuera_m", d["m10"]["ultimo_r_fuera_m"]))
+    obj("6c · la curva de la λ del modelo pierde un radio",
+        "datos", lambda d: d["m10"]["lambda_modelo"]["curva"]["obs"].pop())
+    obj("6c · el veredicto vuelve a hablar de «la intensidad variable»",
+        "datos", lambda d: d["m10"].__setitem__(
+            "veredicto", "la intensidad variable no explica la agregación: hace falta un proceso de conglomerado"))
+    obj("6c · la tendencia de grado alto pasa a rechazar",
+        "datos", lambda d: d["m10"]["tendencia_flexible"][1].__setitem__("dclf_p", 0.0131313))
+    obj("6c · el polinomio de grado alto pierde coeficientes",
+        "datos", lambda d: d["m10"]["tendencia_flexible"][1].__setitem__("coeficientes", 78))
+    obj("6c · el valle vuelve a ser plano",
+        "datos", lambda d: d["m11"]["valle"]["exceso_dif_pct"].__setitem__(3, 7.0131313))
+    obj("6c · kappa·sigma² deja de cuadrar con sus parámetros",
+        "datos", lambda d: d["m11"]["valle"]["kappa_sigma2"].__setitem__("iso", 0.2131313))
+    obj("6c · el cuadrático en la distancia pasa a ser evidente con conglomerado",
+        "datos", lambda d: d["m11"]["cuadratico_dcen"]["conglomerado"][0].update(wald=13.1313, p=0.00141))
+    obj("6c · el p del Wald deja de ser el de su chi²",
+        "datos", lambda d: d["m11"]["cuadratico_dcen"]["conglomerado"][1].__setitem__("p", 0.2131313))
+
     # --- 7. Propiedades teóricas exactas ------------------------------
     obj("7 · el nivel puntual deja de ser 2/(nsim+1)",
         "datos", lambda d: d["m10"].__setitem__("nivel_puntual_pct", 0.4131313131))
