@@ -675,11 +675,21 @@ R("10", JS("e3.solucion.rechazos_urbana"), en=(E7,))
 R("29.6", [J("m10.sesgo_max_pct"), JS("e5.solucion.sesgo_max_pct")], en=(F1,))
 R("29.60530", J("m10.sesgo_max_pct"), en=(F1,))
 R("29.60510", JS("e5.solucion.sesgo_max_pct"), en=(F1,))
-R("555", X("cociente de tiempos medido por el autor (R 4.4.1, Mac de 12 núcleos): no reproducible aquí", "m10.coste.veces_isotropica_sobre_traslacion"), en=(F1,))
-R("0.22", X("tiempo de una estimación de K con corrección de traslación: medido por el autor, depende de la máquina",
-            fn=lambda: [c["segundos"] for c in D["m10"]["correcciones"] if c["correccion"] == "translate"][0]), en=(F1,))
-R("122.66", X("tiempo de una estimación de K con corrección isotrópica: medido por el autor, depende de la máquina",
-              fn=lambda: [c["segundos"] for c in D["m10"]["correcciones"] if c["correccion"] == "isotropic"][0]), en=(F1,))
+# Los tiempos los escribió R en el JSON (medidos en el Mac del autor): se cotejan como cualquier
+# salida. Que en otra máquina sean otros lo dice la diapositiva con palabras, no una marca.
+def _seg(corr):
+    return [c["segundos"] for c in D["m10"]["correcciones"] if c["correccion"] == corr][0]
+
+
+R("555", Spec("aritm", "cociente de los dos tiempos del JSON, medidos en el Mac del autor (R 4.4.1, 12 núcleos)",
+              [("datos › m10.coste.veces_isotropica_sobre_traslacion",
+                lambda: get(D, "m10.coste.veces_isotropica_sobre_traslacion")),
+               ("datos › m10.correcciones: segundos isotrópica / traslación",
+                lambda: _seg("isotropic") / _seg("translate"))]), en=(F1,))
+R("0.22", Spec("json", "datos › m10.correcciones (translate).segundos: medido en el Mac del autor",
+               [("datos › m10.correcciones (translate).segundos", lambda: _seg("translate"))]), en=(F1,))
+R("122.66", Spec("json", "datos › m10.correcciones (isotropic).segundos: medido en el Mac del autor",
+                 [("datos › m10.correcciones (isotropic).segundos", lambda: _seg("isotropic"))]), en=(F1,))
 R("4.4.1", J("m10.coste.medido_en"), en=(F1,))
 R("12", J("m10.coste.nucleos"), en=(F1,))
 R("22", J("m10.ventana.piezas"), en=(F1, F2))

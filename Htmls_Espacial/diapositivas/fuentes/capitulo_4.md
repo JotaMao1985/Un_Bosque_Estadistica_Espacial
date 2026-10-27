@@ -41,14 +41,10 @@ La lectura que el capítulo hace del dato. Se puede discutir.
 Una postura o recomendación del autor: qué hacer, no qué se midió.
 :::
 
-::: warn [SIN VERIFICAR]
-Una cifra con esta marca no se pudo comprobar contra su fuente: no se presenta como dato confirmado.
-:::
-
 <small>Fuentes: `datos` es `cap4_datos.json` y `soluciones` es `cap4_soluciones.json`, generados con R (spatstat 3.5.1) en `precalculo/salidas/`. El cotejo de cada cifra está en `fuentes/registro_cifras_cap4.md`.</small>
 
 ???
-El pacto tiene una consecuencia práctica: todas las cifras de esta clase salen de dos archivos que genera R, no de la memoria del docente. Si un estudiante duda de una, la ruta exacta está en el registro de cifras. Las que no se pudieron comprobar aquí (los tiempos de cómputo del módulo 10) llevan la marca en la propia diapositiva.
+El pacto tiene una consecuencia práctica: todas las cifras de esta clase salen de dos archivos que genera R, no de la memoria del docente. Si un estudiante duda de una, la ruta exacta está en el registro de cifras. Los tiempos de cómputo del módulo 10 también salen de R, pero se midieron en el Mac del autor: en otra máquina serán otros, y la diapositiva dice dónde se midieron.
 
 ## «¿Está agrupado?» no tiene respuesta hasta que fijamos ventana, escala, borde y referencia {.idea etiqueta="Tesis del capítulo"}
 
@@ -693,7 +689,7 @@ Cierra la síntesis de los módulos 3 a 9: los ocho resúmenes caen del mismo la
 ![Sedes de Bogotá: K sin corregir, K de traslación y K bajo CSR](recursos/cap4/m10-1.png){alto=210}
 
 ::: info Dato
-La K sin corregir queda hasta un **29.6 %** por debajo de la corregida; el máximo, en r = **5868** m. La isotrópica cuesta **555** veces más que la de traslación [SIN VERIFICAR: tiempo medido por el autor].
+La K sin corregir queda hasta un **29.6 %** por debajo de la corregida; el máximo, en r = **5868** m. En el Mac del autor (R 4.4.1, 12 núcleos), la isotrópica tardó **555** veces más que la de traslación.
 :::
 
 ::: tip Interpretación
@@ -703,7 +699,7 @@ Faltan vecinos, nunca sobran: a r grande casi todos los discos tocan el borde.
 <small>Fuente: módulo 10 · `datos › m10`. Las envolventes usan la corrección de traslación, y se declara.</small>
 
 ???
-Hay tres correcciones clásicas —de borde, de traslación e isotrópica—, y son tres maneras de elegir el peso w_ij. Sobre la ventana de Bogotá (22 piezas, 5 agujeros, 13 767 vértices) la isotrópica tiene que cortar, pareja a pareja, un círculo contra un contorno de 13 767 vértices: lo que se paga es el borde, no n. Los tiempos (0.22 s la de traslación y 122.66 s la isotrópica por estimación de K) dependen de la máquina: el capítulo los declara medidos en R 4.4.1 sobre un Mac de 12 núcleos y aquí no se pudieron reproducir, por eso la marca. El material da el sesgo como 29.60530 % en el módulo 10 (`m10.sesgo_max_pct`) y como 29.60510 % en la solución del ejercicio 5 (`e5`): la diferencia viene de la rejilla en que se mide, y las dos redondean a 29.6, que es lo que va en la diapositiva.
+Hay tres correcciones clásicas —de borde, de traslación e isotrópica—, y son tres maneras de elegir el peso w_ij. Sobre la ventana de Bogotá (22 piezas, 5 agujeros, 13 767 vértices) la isotrópica tiene que cortar, pareja a pareja, un círculo contra un contorno de 13 767 vértices: lo que se paga es el borde, no n. Los tiempos (0.22 s la de traslación y 122.66 s la isotrópica por estimación de K) salen del JSON del precálculo, medidos en R 4.4.1 sobre un Mac de 12 núcleos: en otra máquina serán otros, y por eso la diapositiva dice dónde se midieron. El material da el sesgo como 29.60530 % en el módulo 10 (`m10.sesgo_max_pct`) y como 29.60510 % en la solución del ejercicio 5 (`e5`): la diferencia viene de la rejilla en que se mide, y las dos redondean a 29.6, que es lo que va en la diapositiva.
 
 ## Una banda al 95 % por punto no contrasta la curva: la mitad del azar puro se sale
 
