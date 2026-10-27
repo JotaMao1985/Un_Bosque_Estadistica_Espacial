@@ -323,6 +323,22 @@ def defectos():
         "datos", lambda d: d["m11"]["hawkes"]["pregunta"].update(
             {k: d["m11"]["hawkes"][k] for k in ("mu", "alpha", "beta", "razon_ramificacion", "tasa_teorica")}))
 
+    # --- 6e. Los 🟢 y la guarda de orientación (2026-10-27) ------------
+    obj("6e · la guarda deja de cazar el mapa al revés",
+        "datos", lambda d: d["m6"]["bogota"].__setitem__("orientacion_niveles_por_defecto", 0.4131313))
+    obj("6e · la EMV exacta cambia de pendiente",
+        "datos", lambda d: d["m8"]["cuadratura"]["emv_exacta"].__setitem__("pendiente", -6.91313e-06))
+    obj("6e · la EMV exacta pierde log-verosimilitud",
+        "datos", lambda d: d["m8"]["cuadratura"]["emv_exacta"].__setitem__("logver", -27551.1313131))
+    obj("6e · su distancia en errores estándar cambia",
+        "datos", lambda d: d["m8"]["cuadratura"]["emv_exacta"].__setitem__("pendiente_en_ee", 0.4131313))
+    obj("6e · maximizada, el empate se agranda",
+        "datos", lambda d: d["m8"]["comparacion"].__setitem__("gana_constante_exacta_max", 0.1313131))
+    obj("6e · las sedes con vecina a menos de 100 m cambian",
+        "datos", lambda d: d["m10"]["vecinos_100m"].__setitem__("pct_patron", 27.1313131))
+    obj("6e · el plano ya produce tantas vecinas como el patrón",
+        "datos", lambda d: d["m10"]["vecinos_100m"].__setitem__("pct_plano_media", 26.1313131))
+
     # --- 7. Propiedades teóricas exactas ------------------------------
     obj("7 · el nivel puntual deja de ser 2/(nsim+1)",
         "datos", lambda d: d["m10"].__setitem__("nivel_puntual_pct", 0.4131313131))

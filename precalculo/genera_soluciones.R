@@ -1932,9 +1932,10 @@ solucion_cap5 <- function() {
 
   en1 <- paste(
     "Calcula los cuatro selectores de ancho de banda —`bw.diggle`,",
-    "`bw.ppl`, `bw.CvL` y `bw.scott`— sobre `japanesepines`, `redwood` y",
-    "`swedishpines`. Da el cociente entre el mayor y el menor en cada",
-    "patrón. Uno de los doce valores NO es una selección: es el extremo",
+    "`bw.ppl`, `bw.CvL` y `bw.scott`, de este el primero de los dos anchos",
+    "que devuelve (`sigma.x`), como en el módulo 3— sobre `japanesepines`,",
+    "`redwood` y `swedishpines`. Da el cociente entre el mayor y el menor en",
+    "cada patrón. Uno de los doce valores NO es un óptimo: es el extremo",
     "del intervalo en el que el selector buscaba, y R lo dice en un",
     "aviso que su valor de retorno no delata. Encuéntralo, di cómo lo",
     "reconociste y explica por qué publicar ese número como «el ancho",
@@ -2086,8 +2087,10 @@ solucion_cap5 <- function() {
   # E3 · La covariable que parecía mandar
   # -------------------------------------------------------------------
   message("  E3 · la covariable que parecía mandar")
-  # `rhohat` ES ALEATORIO (el módulo 7 lo enseña: usa una cuadratura
-  # muestreada). La semilla va JUSTO antes y el enunciado lo dice, para que
+  D5_m7_grad <- jsonlite::fromJSON("precalculo/salidas/cap5_datos.json")$m7$bei$pendiente$razon
+  # `rhohat` ES ALEATORIO (el módulo 7 lo enseña: por defecto, `jitter = TRUE`
+  # mueve un poco la covariable de cada punto). La semilla va JUSTO antes y el
+  # enunciado lo dice, para que
   # el estudiante que la ponga saque la tabla cifra a cifra. Antes dependía
   # de que E1 y E2 no gastaran números aleatorios, que es cierto y frágil.
   set.seed(SEMILLA)
@@ -2190,7 +2193,14 @@ solucion_cap5 <- function() {
           "datos. El de todo el rango lo fijan las colas: su máximo cae donde no",
           "queda ningún árbol más empinado y su mínimo donde quedan unos pocos",
           "—los dos pasos de la tabla que los cuentan—, así que lo que mide es",
-          "sobre todo lo mal que se estima rho donde casi no hay árboles.")),
+          "sobre todo lo mal que se estima rho donde casi no hay árboles.",
+          # E-15 de la tercera revisión: la misma razón sale con dos valores
+          sprintf("Si comparas el de todo el rango, %s, con el %s del módulo 7, no",
+                  formatC(razon_total, format = "f", digits = 5),
+                  formatC(D5_m7_grad, format = "f", digits = 5)),
+          "es un error: es la misma curva con otro estado del generador —allí",
+          "se calcula antes la elevación—, que es por lo que el enunciado fija",
+          "la semilla justo antes.")),
         responde(en3, "di si su z es coherente con alguno de los dos", paste(
           "Con ninguno, porque no mide lo mismo: la z dice a cuántos errores",
           "estándar está el coeficiente de cero, no de qué tamaño es la relación.",

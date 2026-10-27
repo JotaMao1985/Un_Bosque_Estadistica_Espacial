@@ -725,6 +725,19 @@ def main() -> int:
     a.cierto(m6["orientacion_verificada"] > m6["prop_global"],
              "riesgo: donde el mapa es máximo dominan los oficiales",
              f"{100*m6['orientacion_verificada']:.0f} % de los 50 vecinos")
+    # LA GUARDA SOBRE EL MAPA AL REVÉS (M6-4 de la tercera revisión). Con los
+    # niveles por defecto `relrisk` pinta P(privado) = 1 − P(oficial): su
+    # máximo es el mínimo de la superficie de arriba, y entre sus 50 vecinos
+    # las oficiales tienen que quedar por debajo de la proporción global.
+    ord_def = m6.get("orientacion_niveles_por_defecto")
+    if a.cierto(isinstance(ord_def, (int, float)), "riesgo: está la guarda con los niveles por defecto"):
+        iy_m, ix_m = np.unravel_index(np.nanargmin(prop), prop.shape)
+        d_m = np.hypot(urb["x"].to_numpy() - xcc[ix_m], urb["y"].to_numpy() - ycc[iy_m])
+        fr_def = float(ofi[np.argsort(d_m, kind="stable")[:50]].mean())
+        a.igual(fr_def, ord_def, "riesgo: la guarda, recalculada sobre P(privado)", 0.1)
+        a.cierto(ord_def < m6["prop_global"] < m6["orientacion_verificada"],
+                 "riesgo: la guarda separa los dos mapas",
+                 f"{100*ord_def:.0f} % con los niveles por defecto, {100*m6['orientacion_verificada']:.0f} % fijados")
     ch = D["m6"]["chorley"]
     a.igual(ch["casos"] + ch["controles"], 1036, "riesgo: chorley suma sus 1 036 puntos")
     a.cerca(ch["casos"] / (ch["casos"] + ch["controles"]), ch["prop_global"],
@@ -1022,6 +1035,36 @@ def main() -> int:
         a.cierto(0 < cp["gana_constante_exacta"] < 2 and 0 < cp["gana_constante_misma"] < 2,
                  "comparación: bien hechas, empatan a favor del constante",
                  f"{cp['gana_constante_exacta']:.3f} y {cp['gana_constante_misma']:.3f}")
+
+        # LA EMV CON LA INTEGRAL BIEN HECHA (M8-3): maximizada, no evaluada en
+        # los coeficientes de una cuadratura. Dado el coeficiente, el intercepto
+        # tiene forma cerrada (la derivada respecto de él es n menos la
+        # integral), así que basta una búsqueda en una dimensión, sobre la
+        # misma malla de la integral de arriba.
+        ex = m8["cuadratura"].get("emv_exacta")
+        if a.cierto(isinstance(ex, dict) and all(k in ex for k in ("pendiente", "logver", "aic", "pendiente_en_ee"))
+                    and "gana_constante_exacta_max" in cp, "ppm: el módulo 8 publica la EMV exacta"):
+            from scipy.optimize import minimize_scalar
+            s_d = float(np.sum(dist))
+
+            def menos_perfil(b1):
+                b0 = np.log(n_u) - np.log(area_w * float(np.mean(np.exp(b1 * d_malla))))
+                return -(n_u * b0 + b1 * s_d - n_u)
+            o = minimize_scalar(menos_perfil, bounds=(-1e-4, 1e-4), method="bounded",
+                                options={"xatol": 1e-13})
+            a.cerca(o.x, ex["pendiente"], "EMV exacta: la pendiente que la maximiza", 0.005)
+            a.igual(-o.fun, ex["logver"], "EMV exacta: su log-verosimilitud", 0.05)
+            a.igual(-2 * ex["logver"] + 4, ex["aic"], "EMV exacta: su AIC es −2ℓ + 2k", 1e-6)
+            a.cerca(abs(ex["pendiente"] - t100["pendiente"]) / t100["ee_pendiente"], ex["pendiente_en_ee"],
+                    "EMV exacta: a cuántos e.e. de la de por defecto", 1e-4)
+            a.cierto(ex["pendiente"] < min(pend), "EMV exacta: fuera del abanico de las cuatro",
+                     f"{ex['pendiente']:.4g} contra {min(pend):.4g}")
+            a.cierto(ex["logver"] >= max(llx) - 1e-6, "EMV exacta: supera a las cuatro ℓ bien hechas")
+            a.igual(ex["aic"] - h8["aic"], cp["gana_constante_exacta_max"],
+                    "comparación: el empate, con la EMV exacta", 1e-6)
+            a.cierto(0 < cp["gana_constante_exacta_max"] < cp["gana_constante_exacta"],
+                     "comparación: maximizada, el empate se estrecha",
+                     f"{cp['gana_constante_exacta_max']:.3f} contra {cp['gana_constante_exacta']:.3f}")
         z9 = D["m9"].get("distancia", {}).get("z") or []
         a.cierto(len(z9) == 2 and abs(z9[1]) < NormalDist().inv_cdf(0.975),
                  "comparación: la z del módulo 9 tampoco ve la distancia",
@@ -1151,6 +1194,21 @@ def main() -> int:
              "veredicto: dice «un plano», no «la intensidad variable»", m10["veredicto"])
 
     # -----------------------------------------------------------------
+    # LA HIPÓTESIS DE LA MANZANA, CON LO QUE EL DATO MIDE (R16 de la tercera
+    # revisión): qué fracción de las sedes tiene otra a menos de 100 m. Las
+    # simulaciones del plano no se rehacen aquí; se exige que el patrón quede
+    # muy por encima de ellas, que es lo que el módulo dice.
+    v100 = m10.get("vecinos_100m")
+    if a.cierto(isinstance(v100, dict), "envolvente: publica los vecinos a menos de 100 m"):
+        from scipy.spatial import cKDTree
+        xy_u = np.c_[urb["x"].to_numpy(), urb["y"].to_numpy()]
+        d_nn = cKDTree(xy_u).query(xy_u, k=2)[0][:, 1]
+        a.cerca(100 * float(np.mean(d_nn < v100["radio_m"])), v100["pct_patron"],
+                "envolvente: sedes con otra a menos de 100 m", 1e-9)
+        a.cierto(v100["pct_patron"] > v100["pct_plano_media"] + 5 * v100["pct_plano_sd"],
+                 "envolvente: muy por encima de lo que da el plano",
+                 f"{v100['pct_patron']:.1f} % contra {v100['pct_plano_media']:.1f} (sd {v100['pct_plano_sd']:.1f})")
+
     a.titulo("10 · Conglomerado, y el Hawkes recalculado")
     # -----------------------------------------------------------------
     m11 = D["m11"]

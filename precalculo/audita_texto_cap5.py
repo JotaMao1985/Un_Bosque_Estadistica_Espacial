@@ -84,6 +84,13 @@ y la salida que enseña es dibujar el mapa intermedio —las sedes con grado 11,
 entre la oferta y los estudiantes (~45 KB de ráster). El documento pasa de 1 262 a 1 307 KB.
 1360 deja 53 KB de margen y sigue 259 KB por debajo de 1307 + 312. Es explicación.
 
+2026-10-27, la misma tarde, y la séptima: SUBE A 1400 KB. Los 🟡 y los 🟢 de esa revisión
+llevaron al capítulo lo que estaba dicho y no mostrado: la curva `rhohat` dibujada, las dos
+envolventes de la K inhomogénea, la guarda de orientación ejecutada en el bloque de R del
+módulo 6, la EMV con la integral exacta y Berman-Turner a mano en la pestaña de Python del
+módulo 8. El documento pasa de 1 307 a 1 357 KB, a 3 del tope. 1400 deja 43 KB de margen y
+sigue 269 KB por debajo de 1357 + 312. Es explicación, y la séptima vez que el peso cede.
+
 Y EL PRESUPUESTO DE GEOMETRÍA ES 250 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y
 los seis de este capítulo pesan **204 KB** (eran cinco y 157 KB hasta que el
@@ -109,7 +116,7 @@ import sys
 from audita_texto_base import SALIDAS, Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP5_KB = 1360.0
+TOPE_CAP5_KB = 1400.0
 # El techo de las siete superficies del deslizador, que el núcleo no ve.
 TOPE_FAMILIA_KB = 200.0
 
@@ -119,6 +126,7 @@ ESTRUCTURALES = {
     # Los años de la bibliografía y de las citas del texto
     "2026", "2025", "2024", "2023", "2022", "2021", "2019", "2015", "2014",
     "2013", "2011", "1993",
+    "1985", "2010",                            # Diggle (1985) y Diggle (2010), en el módulo 4
     "4.0",                                     # CC BY-NC-ND 4.0
     "2.ª",                                     # la edición de Bivand et al.
     # Números pequeños de estructura (módulos, capítulos, semanas)
@@ -259,7 +267,7 @@ AFIRMACIONES = [
     ("dice que la corrección por defecto divide donde se estima y la de Diggle donde está el dato",
      "donde está el dato"),
     ("declara que las tres correcciones dan mapas igual de plausibles",
-     "los tres salen plausibles"),
+     "las tres salen plausibles"),
     # 2026-10-01: «la masa se pasa» se leía como una ley del método. Una sede sola pegada al borde se queda por
     # DEBAJO de 1 con la corrección por defecto (0.90, medido contra R en `prueba_nucleo3d.py`) y las diecinueve del
     # módulo 1 suman por ENCIMA de n: depende de dónde caen los puntos. Si esta frase desaparece, vuelve la ley.
