@@ -18,9 +18,9 @@ Los enteros 0, 1 y 2 usados como constantes de definición («R < 1», «1 − G
 
 ## Resumen
 
-- 332 apariciones de cifras en 35 diapositivas; 184 cifras distintas.
+- 334 apariciones de cifras en 35 diapositivas; 184 cifras distintas.
 - CONTRASTADA · salida de R (JSON): 117
-- VERIFICADA · recómputo independiente: 86
+- VERIFICADA · recómputo independiente: 88
 - VERIFICADA · aritmética sobre el JSON: 57
 - REFERENCIA externa cotejada: 31
 - PARÁMETRO de diseño: 28
@@ -106,8 +106,8 @@ Discrepancias que aparecieron al cotejar. No son errores de la presentación: se
 | `32.41538` | cuerpo | …n algo de área dentro de la ventana), 32.41538 sedes por celda de prom… | datos › m2.urbana.media = 32.41538462 \| sedes / celdas vivas = 32.41538462 | VERIFICADA · aritmética sobre el JSON |
 | `96` | cuerpo | …a de promedio; la más poblada tiene **96** y **9** están vacías. :::… | datos › m2.urbana.maximo = 96 | CONTRASTADA · salida de R (JSON) |
 | `9` | cuerpo | …edio; la más poblada tiene **96** y **9** están vacías. ::: ::: tip… | datos › m2.urbana.vacios = 9 | CONTRASTADA · salida de R (JSON) |
-| `53.4` | cuerpo | …n él ninguna celda esperaría más de **53.4** sedes, y una tiene 96. Qu… | datos › m2.urbana.esperanza_max = 53.44938132 | CONTRASTADA · salida de R (JSON) |
-| `96` | cuerpo | …ía más de **53.4** sedes, y una tiene 96. Qué falla, λ o la independen… | datos › m2.urbana.maximo = 96 | CONTRASTADA · salida de R (JSON) |
+| `53.4` | cuerpo | …peranza más alta de una celda es de **53.4** sedes, y una tiene 96. Qu… | datos › m2.urbana.esperanza_max = 53.44938132 | CONTRASTADA · salida de R (JSON) |
+| `96` | cuerpo | …lda es de **53.4** sedes, y una tiene 96. Qué falla, λ o la independen… | datos › m2.urbana.maximo = 96 | CONTRASTADA · salida de R (JSON) |
 | `2107` | cuerpo | …fórmula: \begin{aligned}\hat{\lambda} &= \frac{n}{\|W\|} = \frac{2\,10… | datos › m1.urbana.n = 2107; recómputo independiente «n_bog» = 2107 | VERIFICADA · recómputo independiente |
 | `370.09` | cuerpo | …fórmula: \begin{aligned}\hat{\lambda} &= \frac{n}{\|W\|} = \frac{2\,10… | datos › m1.urbana.area_km2 = 370.0898165 | CONTRASTADA · salida de R (JSON) |
 | `5.6932` | cuerpo | …fórmula: \begin{aligned}\hat{\lambda} &= \frac{n}{\|W\|} = \frac{2\,10… | datos › m1.urbana.lambda_km2 = 5.693212583 | CONTRASTADA · salida de R (JSON) |
@@ -239,11 +239,13 @@ Discrepancias que aparecieron al cotejar. No son errores de la presentación: se
 | `10` | cuerpo | …os japoneses **0**, sedes de Bogotá **10**. ::: ::: tip Interpretació… | soluciones › e3.solucion.rechazos_urbana = 10 | CONTRASTADA · salida de R (JSON) |
 | `2.17` | cuerpo | …ta: su índice de dispersión ya vale **2.17**, pero con **3** grados de… | datos › m6.redwood_gruesa.dispersion = 2.172043011; recómputo independiente «disp:redwood:2» = 2.172043011 | VERIFICADA · recómputo independiente |
 | `3` | cuerpo | …spersión ya vale **2.17**, pero con **3** grados de libertad el azar… | datos › m6.redwood_gruesa.gl = 3 \| celdas de la rejilla 2×2, menos una = 3 | VERIFICADA · aritmética sobre el JSON |
-| `11` | cuerpo | …l azar da un χ² así una vez de cada **11**. ::: Fuente: · ; .… | datos › m6.redwood_gruesa.una_de_cada = 11; recómputo independiente «unade:redwood:2» = 11.23234802 | VERIFICADA · recómputo independiente |
+| `11` | cuerpo | …un χ² así de grande una vez de cada **11**. ::: Fuente: · ; .… | datos › m6.redwood_gruesa.una_de_cada = 11; recómputo independiente «unade:redwood:2» = 11.23234802 | VERIFICADA · recómputo independiente |
 | `62` | notas | …rejilla, como a ×2 de las secuoyas: 62 plántulas en cuatro celdas. C… | datos › m3.redwood.n = 62; recómputo independiente «n:redwood» = 62 | VERIFICADA · recómputo independiente |
 | `2107` | notas | …s: 62 plántulas en cuatro celdas. Con 2 107 sedes, Bogotá rechaza en l… | datos › m1.urbana.n = 2107; recómputo independiente «n_bog» = 2107 | VERIFICADA · recómputo independiente |
 | `10` | notas | …on 2 107 sedes, Bogotá rechaza en las 10 rejillas; donde no hay nada q… | número de tamaños de rejilla barridos = 10 | VERIFICADA · aritmética sobre el JSON |
-| `10` | notas | …s japoneses, no rechaza ninguna (0 de 10). Es el efecto de escala del… | número de tamaños de rejilla barridos = 10 | VERIFICADA · aritmética sobre el JSON |
+| `10` | notas | …s japoneses, no rechaza ninguna (0 de 10). El «una vez de cada 11» es… | número de tamaños de rejilla barridos = 10 | VERIFICADA · aritmética sobre el JSON |
+| `11` | notas | …inguna (0 de 10). El «una vez de cada 11» es la cola de arriba; el p d… | datos › m6.redwood_gruesa.una_de_cada = 11; recómputo independiente «unade:redwood:2» = 11.23234802 | VERIFICADA · recómputo independiente |
+| `0.17806` | notas | …; el p de ×2 en la lámina siguiente, 0.17806, cuenta las dos colas, co… | datos › m6.redwood.p_valor (nx = 2) = 0.178057; recómputo independiente «p:redwood:2» = 0.178057161 | VERIFICADA · recómputo independiente |
 
 ### Diapositiva 21 · Afinar la rejilla rompe el supuesto del χ²: con 400 celdas su p-valor ya no es de fiar
 
@@ -255,7 +257,7 @@ Discrepancias que aparecieron al cotejar. No son errores de la presentación: se
 | `10x10` | cuerpo | …0.17806 \| \| 5×5 \| 64.61 \| 0.00003 \| \| 10×10 \| 202.52 \| 0.00000… | rejillas barridas en el módulo 6 = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20] | PARÁMETRO de diseño |
 | `20x20` | cuerpo | …0003 \| \| 10×10 \| 202.52 \| 0.00000 \| \| 20×20 \| 505.74 \| 0.00045… | rejillas barridas en el módulo 6 = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20] | PARÁMETRO de diseño |
 | `3x3` | cuerpo | …a que lo respeta *y* rechaza es la de 3×3: una de diez. ::: tip Interp… | rejillas barridas en el módulo 6 = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20] | PARÁMETRO de diseño |
-| `20x20` | cuerpo | …a no vale: simulando la nula, el p de 20×20 sale **0.00326**, unas **7… | rejillas barridas en el módulo 6 = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20] | PARÁMETRO de diseño |
+| `20x20` | cuerpo | …mación falla: por simulación, el p de 20×20 sale **0.00326**, unas **7… | rejillas barridas en el módulo 6 = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20] | PARÁMETRO de diseño |
 | `10` | cuerpo | …: info Dato · secuoyas, cuatro de las 10 rejillas \| Rejilla \| χ² \| … | número de tamaños de rejilla barridos = 10 | VERIFICADA · aritmética sobre el JSON |
 | `6.52` | cuerpo | …\| χ² \| p-valor \| \|---\|---\|---\| \| \| 6.52 \| 0.17806 \| \| \| 6… | datos › m6.redwood.chi2 (nx = 2) = 6.516129032; recómputo independiente «chi2:redwood:2» = 6.516129032 | VERIFICADA · recómputo independiente |
 | `0.17806` | cuerpo | …p-valor \| \|---\|---\|---\| \| \| 6.52 \| 0.17806 \| \| \| 64.61 \| 0… | datos › m6.redwood.p_valor (nx = 2) = 0.178057; recómputo independiente «p:redwood:2» = 0.178057161 | VERIFICADA · recómputo independiente |
@@ -266,14 +268,14 @@ Discrepancias que aparecieron al cotejar. No son errores de la presentación: se
 | `505.74` | cuerpo | …0003 \| \| \| 202.52 \| 0.00000 \| \| \| 505.74 \| 0.00045 \| ::: Solo… | datos › m6.redwood.chi2 (nx = 20) = 505.7419355; recómputo independiente «chi2:redwood:20» = 505.7419355 | VERIFICADA · recómputo independiente |
 | `0.00045` | cuerpo | …\| 202.52 \| 0.00000 \| \| \| 505.74 \| 0.00045 \| ::: Solo las dos re… | datos › m6.redwood.p_valor (nx = 20) = 0.000449415; recómputo independiente «p:redwood:20» = 0.0004494149746 | VERIFICADA · recómputo independiente |
 | `5` | cuerpo | …illas más gruesas respetan **al menos 5 puntos esperados por celda**,… | regla del capítulo: al menos 5 puntos esperados por celda | CONTRASTADA · texto del capítulo |
-| `0.00326` | cuerpo | …: simulando la nula, el p de sale **0.00326**, unas **7** veces el de … | datos › m6.redwood_fina.p_mc = 0.00326 | CONTRASTADA · salida de R (JSON) |
-| `7` | cuerpo | …a, el p de sale **0.00326**, unas **7** veces el de la tabla. :::… | datos › m6.redwood_fina.veces_mc = 7.253874481 \| p de Monte Carlo / p de la tabla (nx = 20) = 7.253874481 | VERIFICADA · aritmética sobre el JSON |
-| `20x20` | notas | …ulas que comparten celda —13 en la de 20×20, cuando el azar daría 4.7—… | rejillas barridas en el módulo 6 = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20] | PARÁMETRO de diseño |
+| `0.00326` | cuerpo | …lla: por simulación, el p de sale **0.00326**, unas **7** veces el de … | datos › m6.redwood_fina.p_mc = 0.00326 | CONTRASTADA · salida de R (JSON) |
+| `7` | cuerpo | …n, el p de sale **0.00326**, unas **7** veces el de arriba. ::: F… | datos › m6.redwood_fina.veces_mc = 7.253874481 \| p de Monte Carlo / p de la tabla (nx = 20) = 7.253874481 | VERIFICADA · aritmética sobre el JSON |
+| `20x20` | notas | …los grumos quedan pocas —13 en la de 20×20, cuando el azar daría 4.7—,… | rejillas barridas en el módulo 6 = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20] | PARÁMETRO de diseño |
 | `1975` | notas | …De dónde sale: las secuoyas (Strauss, 1975; Ripley, 1977), 62 puntos e… | Strauss (1975): `redwood`; 62 plántulas (subconjunto de Ripley) · https://rdrr.io/cran/spatstat.data/man/redwood.html | REFERENCIA externa cotejada |
 | `1977` | notas | …las secuoyas (Strauss, 1975; Ripley, 1977), 62 puntos en el cuadrado u… | Ripley (1977): subconjunto de `redwood` reescalado al cuadrado unidad · https://rdrr.io/cran/spatstat.data/man/redwood.html | REFERENCIA externa cotejada |
 | `62` | notas | …cuoyas (Strauss, 1975; Ripley, 1977), 62 puntos en el cuadrado unidad.… | datos › m3.redwood.n = 62; recómputo independiente «n:redwood» = 62 | VERIFICADA · recómputo independiente |
-| `13` | notas | …jas de plántulas que comparten celda —13 en la de , cuando el azar da… | datos › m6.redwood_fina.parejas = 13; recómputo independiente «parejas:redwood:20» = 13 | VERIFICADA · recómputo independiente |
-| `4.7` | notas | …—13 en la de , cuando el azar daría 4.7— y le queda poca señal. El su… | datos › m6.redwood_fina.parejas_azar = 4.7275 \| C(n, 2) / celdas, con n del CSV = 4.7275 | VERIFICADA · aritmética sobre el JSON |
+| `13` | notas | …pequeñas que los grumos quedan pocas —13 en la de , cuando el azar da… | datos › m6.redwood_fina.parejas = 13; recómputo independiente «parejas:redwood:20» = 13 | VERIFICADA · recómputo independiente |
+| `4.7` | notas | …—13 en la de , cuando el azar daría 4.7—, así que le queda poca señal… | datos › m6.redwood_fina.parejas_azar = 4.7275 \| C(n, 2) / celdas, con n del CSV = 4.7275 | VERIFICADA · aritmética sobre el JSON |
 | `99999` | notas | …sto roto tira hacia el otro lado: con 99 999 simulaciones de la nula, … | datos › m6.redwood_fina.nsim_mc = 99999 | PARÁMETRO de diseño |
 
 ### Diapositiva 22 · Sobre las secuoyas el test rechaza con 5×5 y no con 2×2: ¿qué se hace con eso?

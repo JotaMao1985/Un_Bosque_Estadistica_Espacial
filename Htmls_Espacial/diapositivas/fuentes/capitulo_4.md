@@ -134,13 +134,13 @@ Rejilla 10×10: **65** celdas «vivas» (con algo de área dentro de la ventana)
 :::
 
 ::: tip Interpretación
-Los conteos no son los de un Poisson homogéneo: con él ninguna celda esperaría más de **53.4** sedes, y una tiene 96. Qué falla, λ o la independencia, los conteos no lo dicen (módulo 5).
+Los conteos no son los de un Poisson homogéneo: con él la esperanza más alta de una celda es de **53.4** sedes, y una tiene 96. Qué falla, λ o la independencia, los conteos no lo dicen (módulo 5).
 :::
 
 <small>Fuente: módulo 2 · `datos › m2.urbana`.</small>
 
 ???
-Es una sola cifra que se puede escribir en tres unidades: 5.6932 por km², 0.05693 por ha o 0.0000056932 por m². El CRS del capítulo mide en metros, así que R devuelve la tercera, la que parece un cero; el `* 1e6` del código es el paso a km². Sobre la rejilla: ver que los conteos no son los de un Poisson homogéneo no necesita teoría, se cuentan los puntos por celda; lo que no dicen es por qué. El mapa del módulo 1 hace verosímil que λ cambie, pero unas sedes agrupadas sobre una λ constante darían conteos igual de desiguales. Si sobra tiempo, el módulo 2 muestra además que el índice de dispersión (25.90966) no se compara con 1 sino con 15.22998, porque la ventana recorta las celdas; aquí no se proyecta.
+Es una sola cifra que se puede escribir en tres unidades: 5.6932 por km², 0.05693 por ha o 0.0000056932 por m². El CRS del capítulo mide en metros, así que R devuelve la tercera, la que parece un cero; el `* 1e6` del código es el paso a km². Sobre la rejilla: ver que los conteos no son los de un Poisson homogéneo no necesita teoría, se cuentan los puntos por celda; lo que no dicen es por qué. El mapa del módulo 1 hace verosímil que λ cambie, pero unas sedes agrupadas sobre una λ constante podrían dar conteos igual de desiguales. Si sobra tiempo, el módulo 2 muestra además que el índice de dispersión (25.90966) no se compara con 1 sino con 15.22998, porque la ventana recorta las celdas; aquí no se proyecta.
 
 # Tres regímenes y una referencia: CSR {seccion=modulo-3}
 
@@ -313,7 +313,7 @@ El χ² solo lee los conteos por celda, no cómo se colocan los puntos dentro. U
 <small>Fuente: módulo 5 · `datos › m5`. Ejemplo construido: secuoyas rebarajadas dentro de cada celda 5×5.</small>
 
 ???
-Contexto del ejemplo. Qué ilustra: que el χ² no ve cómo se colocan los puntos dentro de cada celda. De dónde sale: las secuoyas (Strauss, 1975; Ripley, 1977) con los conteos por celda de una rejilla 5×5 conservados y los puntos repartidos al azar dentro de su celda, semilla 4027: es un patrón construido a propósito, no observado. Por qué importa: es la forma más limpia de mostrar que dos patrones opuestos pueden dar el mismo χ². Es la demostración entera del módulo 5. Los conteos por celda son los mismos, uno a uno; luego el χ² es el mismo, por construcción. Y sin embargo la distancia al vecino se multiplica por 1.46484. Pasar el test de cuadrantes no certifica aleatoriedad: certifica que los conteos son compatibles con ella, que es mucho menos. Ojo con generalizar: no es ciego a toda estructura menor que la celda. Unos grumos pequeños desigualan los conteos y el χ² los detecta, aunque quepan muchos en una celda; una regularidad suave a esa escala apenas los mueve, y esa sí se le escapa. Deja abierta la pregunta: ¿quién elige el tamaño de la celda?
+Contexto del ejemplo. Qué ilustra: que el χ² no ve cómo se colocan los puntos dentro de cada celda. De dónde sale: las secuoyas (Strauss, 1975; Ripley, 1977) con los conteos por celda de una rejilla 5×5 conservados y los puntos repartidos al azar dentro de su celda, semilla 4027: es un patrón construido a propósito, no observado. Por qué importa: es la forma más limpia de mostrar que dos patrones muy distintos pueden dar el mismo χ². Es la demostración entera del módulo 5. Los conteos por celda son los mismos, uno a uno; luego el χ² es el mismo, por construcción. Y sin embargo la distancia al vecino se multiplica por 1.46484. Pasar el test de cuadrantes no certifica aleatoriedad: certifica que los conteos son compatibles con ella, que es mucho menos. Ojo con generalizar: no es ciego a toda estructura menor que la celda. Unos grumos pequeños desigualan los conteos y el χ² los detecta, aunque quepan muchos en una celda; una regularidad suave a esa escala apenas los mueve, y esa sí se le escapa. Deja abierta la pregunta: ¿quién elige el tamaño de la celda?
 
 ## El veredicto cambia con el tamaño de la celda cuando al test le falta potencia en alguna rejilla
 
@@ -324,13 +324,13 @@ Rejillas que rechazan, de 10 tamaños: secuoyas **9**, pinos japoneses **0**, se
 :::
 
 ::: tip Interpretación
-El 2×2 de las secuoyas no rechaza por falta de potencia, no de vista: su índice de dispersión ya vale **2.17**, pero con **3** grados de libertad el azar da un χ² así una vez de cada **11**.
+El 2×2 de las secuoyas no rechaza por falta de potencia, no de vista: su índice de dispersión ya vale **2.17**, pero con **3** grados de libertad el azar da un χ² así de grande una vez de cada **11**.
 :::
 
 <small>Fuente: módulo 6 · `datos › m6`; `soluciones › e3`.</small>
 
 ???
-El veredicto depende de la celda cuando al test le falta potencia en alguna rejilla, como a la 2×2 de las secuoyas: 62 plántulas en cuatro celdas. Con 2 107 sedes, Bogotá rechaza en las 10 rejillas; donde no hay nada que ver, como en los pinos japoneses, no rechaza ninguna (0 de 10). Es el efecto de escala del MAUP del capítulo 3: la escala no es un detalle de implementación, es parte del resultado.
+El veredicto depende de la celda cuando al test le falta potencia en alguna rejilla, como a la 2×2 de las secuoyas: 62 plántulas en cuatro celdas. Con 2 107 sedes, Bogotá rechaza en las 10 rejillas; donde no hay nada que ver, como en los pinos japoneses, no rechaza ninguna (0 de 10). El «una vez de cada 11» es la cola de arriba; el p de la 2×2 en la lámina siguiente, 0.17806, cuenta las dos colas, como `quadrat.test()` por defecto, y por eso la dobla. Es el efecto de escala del MAUP del capítulo 3: la escala no es un detalle de implementación, es parte del resultado.
 
 ## Afinar la rejilla rompe el supuesto del χ²: con 400 celdas su p-valor ya no es de fiar
 
@@ -346,13 +346,13 @@ El veredicto depende de la celda cuando al test le falta potencia en alguna reji
 Solo las dos rejillas más gruesas respetan **al menos 5 puntos esperados por celda**, y la única que lo respeta *y* rechaza es la de 3×3: una de diez.
 
 ::: tip Interpretación
-Con esperanzas tan pequeñas la tabla no vale: simulando la nula, el p de 20×20 sale **0.00326**, unas **7** veces el de la tabla.
+Con esperanzas tan pequeñas la aproximación falla: por simulación, el p de 20×20 sale **0.00326**, unas **7** veces el de arriba.
 :::
 
-<small>Fuente: módulo 6 · `datos › m6.redwood`.</small>
+<small>Fuente: módulo 6 · `datos › m6.redwood` y `m6.redwood_fina`.</small>
 
 ???
-Contexto del ejemplo. Qué ilustra: el supuesto roto del χ². De dónde sale: las secuoyas (Strauss, 1975; Ripley, 1977), 62 puntos en el cuadrado unidad. Por qué importa: con un patrón pequeño se ve el supuesto romperse en cuanto se afina la rejilla. El bloque de código del módulo 6 imprime exactamente estas cuatro líneas. Que el p empeore en la última no es la huella del supuesto roto: con celdas más pequeñas que los grumos, el χ² solo cuenta las parejas de plántulas que comparten celda —13 en la de 20×20, cuando el azar daría 4.7— y le queda poca señal. El supuesto roto tira hacia el otro lado: con 99 999 simulaciones de la nula, el p sale mayor que el de la tabla. La aproximación rota no explica que el p empeore: lo disimula. Con Bogotá el supuesto se rompe a saltos, no siempre al afinar, porque la ventana recorta las celdas del borde; por eso se comprueba rejilla por rejilla.
+Contexto del ejemplo. Qué ilustra: el supuesto roto del χ². De dónde sale: las secuoyas (Strauss, 1975; Ripley, 1977), 62 puntos en el cuadrado unidad. Por qué importa: con un patrón pequeño se ve el supuesto romperse en cuanto se afina la rejilla. El bloque de código del módulo 6 imprime exactamente estas cuatro líneas. Que el p empeore en la última no es la huella del supuesto roto: con celdas iguales, el χ² solo cuenta las parejas de plántulas que comparten celda, y con celdas más pequeñas que los grumos quedan pocas —13 en la de 20×20, cuando el azar daría 4.7—, así que le queda poca señal. El supuesto roto tira hacia el otro lado: con 99 999 simulaciones de la nula, el p sale mayor que el de la tabla. La aproximación rota no explica que el p empeore: lo disimula. Con Bogotá el supuesto se rompe a saltos, no siempre al afinar, porque la ventana recorta las celdas del borde; por eso se comprueba rejilla por rejilla.
 
 ## Sobre las secuoyas el test rechaza con 5×5 y no con 2×2: ¿qué se hace con eso? {.pregunta}
 

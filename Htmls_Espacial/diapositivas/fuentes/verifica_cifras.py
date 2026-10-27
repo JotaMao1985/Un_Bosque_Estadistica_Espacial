@@ -625,7 +625,7 @@ R("3", [J("m6.redwood_gruesa.gl"), A(lambda: 2 * 2 - 1, "celdas de la rejilla 2�
 R("11", I("m6.redwood_gruesa.una_de_cada", "unade:redwood:2"), en=(C3,), cx=r"de cada")
 R("400", A(lambda: max(D["m6"]["nxs"]) ** 2, "celdas de la rejilla 20×20"), en=(C4,))
 R("6.52", I(m6("chi2", 2), "chi2:redwood:2", "datos › m6.redwood.chi2 (nx = 2)"), en=(C4,))
-R("0.17806", I(m6("p_valor", 2), "p:redwood:2", "datos › m6.redwood.p_valor (nx = 2)"), en=(C4,))
+R("0.17806", I(m6("p_valor", 2), "p:redwood:2", "datos › m6.redwood.p_valor (nx = 2)"), en=(C3, C4))
 R("64.61", I(m6("chi2", 5), "chi2:redwood:5", "datos › m6.redwood.chi2 (nx = 5)"), en=(C4,))
 R("0.00003", I(m6("p_valor", 5), "p:redwood:5", "datos › m6.redwood.p_valor (nx = 5)"), en=(C4,))
 R("202.52", I(m6("chi2", 10), "chi2:redwood:10", "datos › m6.redwood.chi2 (nx = 10)"), en=(C4,))
