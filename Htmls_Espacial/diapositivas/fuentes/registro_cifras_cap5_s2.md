@@ -750,9 +750,9 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
-| `5` | notas | …Unos 5 minutos. El enunciado complet… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
+| `5` | notas | …Unos 5 minutos. El proyecto integrad… | minutos que se asignan a cada bloque de la sesión: decisión del docente, no un dato del capítulo | PARÁMETRO de diseño |
 
-### Diapositiva 41 · El proyecto integrador declara por escrito cinco decisiones antes de la primera figura
+### Diapositiva 41 · Cinco decisiones que se declaran por escrito antes de la primera figura
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|

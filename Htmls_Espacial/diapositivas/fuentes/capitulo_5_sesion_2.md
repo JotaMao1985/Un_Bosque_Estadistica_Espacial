@@ -815,12 +815,12 @@ No es un Poisson con intensidad variable, donde la variación la pone una covari
 
 # El proyecto integrador y la práctica {seccion=modulo-12}
 
-> **Módulo 12 del capítulo.** Con este capítulo se cierra el bloque de patrones puntuales y se abre el trabajo que se entrega al final del curso: elegir el patrón y declarar sus decisiones.
+> **Módulo 12 del capítulo.** Con este capítulo se cierra el bloque de patrones puntuales. Al proyecto integrador, que es de datos de área, pasa de aquí un hábito: declarar por escrito las decisiones.
 
 ???
-Unos 5 minutos. El enunciado completo y su rúbrica viven en el capítulo 10; lo que toca aquí es elegir el patrón y declarar las decisiones, que es la parte que no se puede improvisar en la última semana.
+Unos 5 minutos. El proyecto integrador no es de este bloque: es del Corte III y es de datos de área, polígonos con una variable cada uno y una matriz de pesos que dice quién es vecino de quién. Su enunciado, sus hitos y su rúbrica están en la guía del proyecto integrador, enlazada desde la portada del sitio. Un patrón de puntos solo entra allí agregado: los eventos se cuentan por unidad y se convierten en una tasa; el análisis de este bloque es materia del Corte II. Lo que pasa entero es el hábito de declarar por escrito, antes de la primera figura, las decisiones que cambian el resultado. En el proyecto tiene nombre de entrega: el preregistro, el protocolo de inferencia que se congela antes de calcular un solo Moran.
 
-## El proyecto integrador declara por escrito cinco decisiones antes de la primera figura
+## Cinco decisiones que se declaran por escrito antes de la primera figura
 
 | Decisión | Qué se declara | Dónde cambió el resultado sin cambiar la llamada |
 |---|---|---|
@@ -837,7 +837,7 @@ Se declaran por escrito aunque la llamada no las muestre: son las cinco líneas 
 <small>Fuente: módulo 12 del capítulo y las diapositivas de las dos sesiones.</small>
 
 ???
-Las cinco filas son la tesis del capítulo: una superficie de intensidad no es una descripción del dato, es una respuesta a una pregunta que alguien formuló. Las tres primeras son de la sesión 1 y las dos últimas, de hoy. Un proyecto de este bloque trae, por escrito y antes de la primera figura, la ventana y por qué esa; el ancho de banda y qué selector lo eligió, o por qué ninguno; la corrección de borde y qué conserva; y, si hay modelo, la cuadratura y la estimación de K con que se ajustó. Cotejo: `datos › m5.capas.oferta.n`, `recomputo › urbana.n_capa`, `datos › m2.familia.caida_pct`, `datos › m4.tabla[2].masa_defecto`, `datos › m4.tabla[2].masa_diggle`, `datos › m8.cuadratura.rango_aic`, `recomputo › m11_Thomas.iso.mu`, `recomputo › m11_Thomas.translate.mu`.
+Las cinco filas son la tesis del capítulo: una superficie de intensidad no es una descripción del dato, es una respuesta a una pregunta que alguien formuló. Las tres primeras son de la sesión 1 y las dos últimas, de hoy. Un trabajo con un modelo de intensidad trae, por escrito y antes de la primera figura, la ventana y por qué esa; el ancho de banda y qué selector lo eligió, o por qué ninguno; la corrección de borde y qué conserva; y, si hay modelo, la cuadratura y la estimación de K con que se ajustó. El proyecto integrador es de datos de área y sus decisiones son otras, empezando por la matriz de pesos; el hábito es el mismo, y allí se entrega como preregistro. Cotejo: `datos › m5.capas.oferta.n`, `recomputo › urbana.n_capa`, `datos › m2.familia.caida_pct`, `datos › m4.tabla[2].masa_defecto`, `datos › m4.tabla[2].masa_diggle`, `datos › m8.cuadratura.rango_aic`, `recomputo › m11_Thomas.iso.mu`, `recomputo › m11_Thomas.translate.mu`.
 
 ## Lo que se llevan hoy {.cierre}
 
@@ -859,10 +859,10 @@ Remitir a la autoevaluación del módulo 12 (ocho preguntas sin nota, cada opci�
 2. **El modelo que ajusta y no se puede leer** — ejercicio 4: `swedishpines` desplazado 4 900 000 unidades; ¿cuál no da errores estándar?
 3. **Dos correcciones, dos respuestas** — ejercicio 5: Thomas sobre `redwood` con las dos K
 4. **Autoevaluación (módulo 12)** — ocho preguntas, sin nota, con explicación en cada opción
-5. **Proyecto integrador** — elegir el patrón y declarar las cinco decisiones
+5. **Proyecto integrador** — datos de área, del Corte III: enunciado, hitos y rúbrica en su guía
 :::
 
-<small>Fuente: módulo 12 del capítulo, ejercicios 3, 4 y 5 guiados, autoevaluación y proyecto integrador.</small>
+<small>Fuente: módulo 12 del capítulo, ejercicios 3, 4 y 5 guiados, autoevaluación y guía del proyecto integrador.</small>
 
 ???
-Los ejercicios son el laboratorio de la semana: cada uno termina en una decisión que hay que defender. La rúbrica del proyecto vive en el capítulo 10. Los ejercicios 1 y 2 son de la sesión 1. El simulacro del Quiz 2 (módulo 13) no trae la clave a propósito: la página es pública. El capítulo 6 cambia de tipo de dato, de puntos sueltos a datos de área (conteos y tasas por unidad administrativa y la matriz de pesos espaciales); si aquí el ancho de banda lo decidía todo, allí lo decidirá la matriz.
+Los ejercicios son el laboratorio de la semana: cada uno termina en una decisión que hay que defender. El enunciado, los hitos y la rúbrica del proyecto integrador están en su guía, y su primera entrega es la ficha del tema. Los ejercicios 1 y 2 son de la sesión 1. El simulacro del Quiz 2 (módulo 13) no trae la clave a propósito: la página es pública. El capítulo 6 cambia de tipo de dato, de puntos sueltos a datos de área (conteos y tasas por unidad administrativa y la matriz de pesos espaciales); si aquí el ancho de banda lo decidía todo, allí lo decidirá la matriz.

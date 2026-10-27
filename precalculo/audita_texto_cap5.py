@@ -216,7 +216,7 @@ DEBE_CUBRIR = [
     ("la conexión con sismología", "sísmic"),
     ("el efecto medido de los duplicados", "duplicados"),
     # Módulo 12 — cierre
-    ("el proyecto integrador, formulado", "proyecto integrador"),
+    ("lo que pasa de este bloque al proyecto integrador", "proyecto integrador"),
     ("el enlace hacia los datos de área del capítulo 6", "datos de área"),
 ]
 

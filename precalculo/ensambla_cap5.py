@@ -2375,8 +2375,8 @@ MOD11 = cabecera(
       <p>Y con esto el capítulo tiene todas las piezas: estimar la intensidad, elegirle el ancho,
         corregirle el borde, dividir dos, modelarla con covariables, leer los coeficientes,
         diagnosticar el ajuste y, cuando el diagnóstico dice que no basta, cambiar de familia de
-        modelo y volver a leer con ella los coeficientes. El módulo siguiente lo comprueba y abre
-        el proyecto integrador.</p>
+        modelo y volver a leer con ella los coeficientes. El módulo siguiente lo comprueba y dice
+        qué pasa de aquí al proyecto integrador.</p>
 """ + CIERRE
 
 # =====================================================================
@@ -2469,7 +2469,7 @@ EJ = "".join(ejercicio(i + 1, e) for i, e in enumerate(EJERCICIOS))
 MOD12 = cabecera(
     12, "Autoevaluación y ejercicios", "Self-assessment and guided exercises",
     "Comprobar lo aprendido, practicar sobre datos reales las decisiones que este "
-    "capítulo obliga a declarar, y formular el proyecto integrador."
+    "capítulo obliga a declarar, y ver qué pasa de este bloque al proyecto integrador."
 ) + f"""      <p>El capítulo ha defendido una idea desde el módulo 1, y conviene decirla entera antes
         de comprobarla: <strong>una superficie de intensidad no es una descripción del dato, es
         una respuesta a una pregunta que alguien formuló</strong> —con qué ancho, con qué
@@ -2491,18 +2491,23 @@ MOD12 = cabecera(
 
 {EJ}
       <div class="tip-box">
-        <h4>El proyecto integrador, formulado</h4>
-        <p>Con este capítulo se cierra el módulo de patrones puntuales y se abre el trabajo que
-          se entrega al final del curso. El enunciado completo y su rúbrica viven en el capítulo
-          10; lo que toca aquí es <strong>elegir el patrón y declarar sus decisiones</strong>,
-          que es la parte que no se puede improvisar en la última semana.</p>
-        <p style="margin-bottom:0;">Un proyecto de este bloque tiene que traer, por escrito y
-          antes de la primera figura: la <strong>ventana</strong> y por qué esa; el
+        <h4>Lo que pasa de aquí al proyecto integrador</h4>
+        <p>Con este capítulo se cierra el bloque de patrones puntuales. El proyecto integrador no
+          es de este bloque: es del Corte III y es de <strong>datos de área</strong> —polígonos
+          con una variable cada uno y una matriz de pesos que dice quién es vecino de quién—. Su
+          enunciado, sus hitos y su rúbrica están en la
+          <a href="proyecto-integrador-corte-iii.html">guía del proyecto integrador</a>. Un patrón
+          de puntos solo entra allí agregado: los eventos se cuentan por unidad y se convierten en
+          una tasa, y el análisis de este capítulo es materia del Corte II, no el núcleo del
+          proyecto.</p>
+        <p style="margin-bottom:0;">Lo que sí pasa entero es un hábito: declarar por escrito,
+          antes de la primera figura, las decisiones que cambian el resultado sin cambiar la
+          llamada. En este bloque fueron cinco: la <strong>ventana</strong> y por qué esa; el
           <strong>ancho de banda</strong> y qué selector lo eligió —o por qué ninguno—; la
           <strong>corrección de borde</strong> y qué conserva; y, si hay modelo, la
-          <strong>cuadratura</strong> y la <strong>estimación de K</strong> con que se ajustó.
-          Cinco líneas. Son exactamente las cinco que este capítulo ha demostrado que cambian el
-          resultado sin cambiar la llamada.</p>
+          <strong>cuadratura</strong> y la <strong>estimación de K</strong> con que se ajustó. En
+          el proyecto ese hábito tiene nombre de entrega, el <strong>preregistro</strong>: el
+          protocolo de inferencia que se congela antes de calcular un solo Moran.</p>
       </div>
 
       <div class="definition">
