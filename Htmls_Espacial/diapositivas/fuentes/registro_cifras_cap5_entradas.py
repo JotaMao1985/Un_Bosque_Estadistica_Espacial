@@ -40,7 +40,7 @@ def cargar_entradas(m, sesiones):
          "(`recursos/cap5/genera_figuras_s1.R`). El capítulo no se modificó entonces. Arreglado el 2026-10-27, en la tercera "
          "revisión del capítulo: `geo_rejilla()` voltea los `im`, y `audita_cap5.py` comprueba que cada ráster, tal como se pinta, "
          "casa con sus sedes mejor que su reflejo (sección 12b), con cinco inyecciones en `prueba_auditor_cap5.py`."),
-        ("«0.0 y 24.9 sedes por km²» en la rejilla de 8 × 8",
+        ("«0.0 y 24.9 sedes por km²» en la rejilla de 8 × 8 (arreglado en el capítulo el 2026-10-27)",
          "El módulo 1 (y la retroalimentación de la primera pregunta de la autoevaluación) dice que los cuadrantes dan «entre 0.0 y 24.9 "
          "sedes por km²». `genera_cap5.R` calcula `conteo / (A_KEN / 64)`, o sea divide por el área media por celda de la ventana "
          "(38.51 / 64 = 0.602 km²). Pero la celda con 15 sedes es una celda interior y mide 0.895 km² (la caja entre 64): son 16.8 sedes "
@@ -49,11 +49,11 @@ def cargar_entradas(m, sesiones):
         ("«Por encima de 0.965»",
          "El módulo 2 dice que las superficies de los cuatro núcleos «correlacionan por encima de 0.965 con la gaussiana». El mínimo es "
          "el del disco, 0.9647 (0.964743…), que redondea a 0.965 pero está por debajo. Las diapositivas dicen «por encima de 0.96»."),
-        ("«Mayoritariamente de ese tipo»",
+        ("«Mayoritariamente de ese tipo» (arreglado en el capítulo el 2026-10-27)",
          "El módulo 6 dice que, donde el mapa es máximo, «los vecinos tienen que ser mayoritariamente de ese tipo». En `chorley` son el 8 % "
          "(4 de 50), y la guarda de `genera_cap5.R` compara contra la proporción global (5.6 %), no contra la mitad. Las diapositivas dicen "
          "«más que en todo el conjunto»."),
-        ("La mediana no mide «en qué fracción de la ciudad son mayoría»",
+        ("La mediana no mide «en qué fracción de la ciudad son mayoría» (arreglado en el capítulo el 2026-10-27)",
          "El módulo 6 resume la mediana de la superficie P(oficial) como la respuesta a «¿en qué fracción de la ciudad son mayoría?». La "
          "mediana es el valor de la proporción en el punto típico de la ciudad (0.3086), no una fracción del área en la que las oficiales "
          "son mayoría. Las diapositivas dicen lo primero."),
@@ -84,7 +84,7 @@ def cargar_entradas(m, sesiones):
          "Con la corrección de borde por defecto de `density`, R da exactamente 0.9391, 0.8555 y 0.9155 (`recomputo › capas_defecto`); la versión de "
          "Python divide por e(u), que es la corrección por defecto. Las cifras y los mapas del capítulo usan `diggle = TRUE` (0.943, 0.862, 0.919). "
          "No es otra discretización: son dos correcciones de borde, ambas correctas. Las diapositivas lo dicen."),
-        ("El máximo de `chorley` vive en la cola (módulo 6)",
+        ("El máximo de `chorley` vive en la cola (módulo 6) (arreglado en el capítulo el 2026-10-27)",
          "El capítulo lee el máximo de P(laringe), 0.3389, como titular («uno de cada tres cánceres registrados es de laringe»). El píxel del "
          "máximo está a 4.6 km del punto más cercano, con σ = 1 km (el vecino 50.º, a 8.2 km): es el cociente de dos masas casi nulas. La "
          "comprobación de los 50 vecinos (4 casos de 50) detecta un mapa invertido, pero no valida el máximo. Las diapositivas no lo leen como "

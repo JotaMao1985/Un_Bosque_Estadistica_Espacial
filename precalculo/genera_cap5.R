@@ -245,7 +245,17 @@ LAM_KEN <- npoints(p_ken) / (A_KEN / 1e6)
 # y las vecindades se solapan—, y las dos se pueden mirar.
 NX_CUAD <- 8L
 cuad <- quadratcount(p_ken, nx = NX_CUAD, ny = NX_CUAD)
-cuad_int <- as.numeric(cuad) / (A_KEN / (NX_CUAD * NX_CUAD)) * 1e6   # por km2
+# Cada conteo entre el área de SU tesela. La rejilla parte la CAJA, no la
+# ventana, y `quadratcount()` recorta por el borde las celdas de la orilla.
+# Hasta el 2026-10-27 se dividía por A_KEN / 64, que no es el área de
+# ninguna celda, y el máximo se publicaba en 24.9 sedes por km² en vez de
+# 16.8: las dos celdas con 15 sedes son enteras. Lo había anotado el
+# registro de cifras de las láminas el 1 oct, sin que llegara aquí.
+cuad_int <- as.numeric(intensity(cuad)) * 1e6   # por km2
+area_celda_km2 <- diff(Frame(W_KEN)$xrange) / NX_CUAD *
+  diff(Frame(W_KEN)$yrange) / NX_CUAD / 1e6        # una celda entera de la caja
+if (abs(max(cuad_int) - max(as.numeric(cuad)) / area_celda_km2) > 1e-6 * max(cuad_int))
+  stop("la celda más llena no es una celda entera: la frase del módulo 1 deja de valer")
 
 D$m1 <- list(
   ventana = list(nombre = KEN, n = npoints(p_ken), area_km2 = r10(A_KEN / 1e6),
@@ -264,6 +274,8 @@ D$m1 <- list(
       dist_borde_m = r10(d_borde[i]))),
     dist_max_m = r10(max(d_borde))),
   cuadrantes = list(nx = NX_CUAD, n_celdas = NX_CUAD * NX_CUAD,
+                    n_teselas = length(as.numeric(cuad)),
+                    area_celda_km2 = r10(area_celda_km2),
                     conteo_min = min(as.numeric(cuad)), conteo_max = max(as.numeric(cuad)),
                     intensidad_min_km2 = r10(min(cuad_int)),
                     intensidad_max_km2 = r10(max(cuad_int))))
@@ -651,6 +663,23 @@ or_ch <- orienta(rr_ch, ch, "larynx")
 if (or_ch <= sum(marks(ch) == "larynx") / npoints(ch))
   stop(sprintf("chorley: el mapa no es P(laringe) — donde es máximo solo el %.0f%% de los vecinos son casos", 100 * or_ch))
 
+# EL MÁXIMO DE UNA PROPORCIÓN SE LEE CON SUS DATOS AL LADO. El 0.3389 de
+# `chorley` se publicó como «sitios donde uno de cada tres cánceres es de
+# laringe», y cae en un rincón sin un solo punto alrededor: es el cociente de
+# dos colas de núcleo casi nulas, la trampa que el módulo 7 enseña con
+# rhohat (tercera revisión, 2026-10-27). Se publica dónde cae y cuántos
+# puntos tiene a dos anchos de banda, y la frase depende de que sean cero.
+max_xy <- function(im) {
+  ij <- which(as.matrix(im$v) == max(as.numeric(im$v), na.rm = TRUE), arr.ind = TRUE)[1, ]
+  c(x = im$xcol[ij[2]], y = im$yrow[ij[1]])
+}
+SIG_CH <- 1                                      # km, el de relrisk(ch, sigma = 1)
+mx_ch <- max_xy(rr_ch)
+d_borde_ch <- bdist.points(ppp(mx_ch[["x"]], mx_ch[["y"]], window = Window(ch)))   # km
+n_cerca_ch <- sum((ch$x - mx_ch[["x"]])^2 + (ch$y - mx_ch[["y"]])^2 <= (2 * SIG_CH)^2)
+if (n_cerca_ch > 0)
+  stop(sprintf("chorley: el máximo de P(laringe) tiene %d puntos a dos anchos; la frase del módulo 6 deja de valer", n_cerca_ch))
+
 # Y EL COLOMBIANO, CON LA SALVEDAD DICHA EN VOZ ALTA (decisión 3).
 # Oficial contra privado NO es casos contra controles: nadie «contrae»
 # ser oficial. Es la misma matemática —cociente de dos intensidades sobre
@@ -666,13 +695,31 @@ or_bog <- orienta(rr_bog, p_sec, "oficial")
 if (or_bog <= prop_global)
   stop(sprintf("Bogotá: el mapa no es P(oficial) — donde es máximo solo el %.0f%% de los vecinos son oficiales", 100 * or_bog))
 
-# LA CIFRA QUE ES EL MÓDULO. La mediana de la superficie y la proporción
-# de los puntos NO tienen por qué coincidir, y su diferencia dice algo
-# geográfico: si la mediana del ÁREA queda por debajo de la proporción de
-# los PUNTOS, el tipo está concentrado —ocupa poca superficie donde es
-# mayoría—; si queda por encima, está repartido. Se publica la
-# diferencia, con su signo, y el módulo la lee; no se decide de antemano
-# cuál de los dos signos va a salir.
+# LA PREGUNTA «¿EN QUÉ FRACCIÓN DE LA CIUDAD SON MAYORÍA?» TIENE SU CIFRA, y
+# no es la mediana: es el área donde P > 0.5. Los píxeles miden lo mismo, así
+# que la fracción de píxeles es la del área. Hasta el 2026-10-27 el módulo le
+# asignaba esa pregunta a la mediana y leía «concentrado: mayoría en poca
+# superficie» también para la laringe, que no es mayoría en ningún sitio.
+pct_mayoria_ch  <- 100 * mean(v_ch > 0.5)
+pct_mayoria_bog <- 100 * mean(v_bog > 0.5)
+
+# Y EL CONTRASTE QUE EL MAPA DE PUNTOS ENSEÑA: norte contra sur, por tercios
+# de la caja. El pie decía «privado en el centro, oficial en la periferia»,
+# que el dato sostiene a medias; el contraste fuerte es este.
+rg_y <- Frame(W_URB)$yrange
+y_sur <- rg_y[1] + diff(rg_y) / 3; y_norte <- rg_y[1] + 2 * diff(rg_y) / 3
+pct_ofi_sur   <- 100 * mean(marca[p_sec$y <  y_sur]   == "oficial")
+pct_ofi_norte <- 100 * mean(marca[p_sec$y >= y_norte] == "oficial")
+if (!(pct_ofi_sur > pct_ofi_norte))
+  stop("Bogotá: lo oficial ya no pesa más en el sur que en el norte; el pie del mapa de sectores deja de valer")
+
+# LAS CIFRAS QUE SON EL MÓDULO. Contar puntos y mirar el área contestan
+# preguntas distintas: qué fracción de las sedes es de un tipo (la global)
+# y en qué fracción del área es mayoría (`pct_area_mayoria`). La mediana de
+# la superficie contesta una tercera —qué valor deja por debajo a media
+# ventana— y su diferencia con la global se publica con su signo, pero ya no
+# se lee como «concentrado»: esa lectura daba «mayoría en poca superficie»
+# para un tipo que no es mayoría en ningún sitio.
 D$m6 <- list(
   chorley = list(
     casos = sum(marks(ch) == "larynx"), controles = sum(marks(ch) == "lung"),
@@ -682,6 +729,10 @@ D$m6 <- list(
     p_min = r10(min(v_ch)), p_max = r10(max(v_ch)), p_mediana = r10(median(v_ch)),
     prop_global = r10(sum(marks(ch) == "larynx") / npoints(ch)),
     brecha_mediana_menos_global = r10(median(v_ch) - sum(marks(ch) == "larynx") / npoints(ch)),
+    pct_area_mayoria = r10(pct_mayoria_ch),
+    maximo_dist_borde_m = r10(1000 * d_borde_ch),
+    maximo_radio_km = 2 * SIG_CH,
+    maximo_puntos_cerca = n_cerca_ch,
     orientacion_verificada = r10(or_ch)),
   bogota = list(
     que = "proporción de tipo, no riesgo epidemiológico",
@@ -691,14 +742,16 @@ D$m6 <- list(
     p_min = r10(min(v_bog)), p_max = r10(max(v_bog)), p_mediana = r10(median(v_bog)),
     prop_global = r10(prop_global),
     brecha_mediana_menos_global = r10(median(v_bog) - prop_global),
-    concentrado = median(v_bog) < prop_global,
+    pct_area_mayoria = r10(pct_mayoria_bog),
+    pct_oficiales_tercio_sur = r10(pct_ofi_sur),
+    pct_oficiales_tercio_norte = r10(pct_ofi_norte),
     orientacion_verificada = r10(or_bog)))
 
-message(sprintf("   chorley: %d casos / %d controles, mediana %.4f contra %.4f global · Bogotá: mediana %.4f contra %.4f global (%s)",
+message(sprintf("   chorley: %d casos / %d controles, mediana %.4f contra %.4f global, máximo a %.0f m del borde con %d puntos a %g km · Bogotá: mediana %.4f contra %.4f global, mayoría oficial en el %.1f%% del área, %.1f%% de oficiales en el tercio sur y %.1f%% en el norte",
                 D$m6$chorley$casos, D$m6$chorley$controles,
                 D$m6$chorley$p_mediana, D$m6$chorley$prop_global,
-                D$m6$bogota$p_mediana, prop_global,
-                if (D$m6$bogota$concentrado) "lo oficial está concentrado" else "lo oficial está repartido"))
+                1000 * d_borde_ch, n_cerca_ch, 2 * SIG_CH,
+                D$m6$bogota$p_mediana, prop_global, pct_mayoria_bog, pct_ofi_sur, pct_ofi_norte))
 
 # =====================================================================
 # MÓDULO 7 · Covariables: la intensidad como función de otra cosa
@@ -1547,6 +1600,14 @@ MAPAS$kennedy_puntos <- geo_puntos(
 MAPAS$ciudad_oferta <- geo_rejilla(
   kde_oferta * M2_A_KM2, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),
   titulo = sprintf("Sedes educativas · sigma = %.0f m", SIG_CIUDAD),
+  leyenda = "sedes por km2")
+# El del medio: las sedes con grado 11, sin pesar. Entre la oferta y los
+# estudiantes cambian DOS cosas —se caen las sedes sin undécimo y se pesa—,
+# y sin este mapa el módulo 5 atribuía toda la diferencia a la segunda
+# (tercera revisión, 2026-10-27). Con él, cada pareja vecina difiere en una.
+MAPAS$ciudad_bachillerato <- geo_rejilla(
+  kde_b11 * M2_A_KM2, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),
+  titulo = sprintf("Sedes con grado 11 · sigma = %.0f m", SIG_CIUDAD),
   leyenda = "sedes por km2")
 MAPAS$ciudad_estudiantes <- geo_rejilla(
   kde_est * M2_A_KM2, c(xr$xrange[1], xr$yrange[1], xr$xrange[2], xr$yrange[2]),

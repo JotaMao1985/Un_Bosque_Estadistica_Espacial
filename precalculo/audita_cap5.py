@@ -448,7 +448,7 @@ def main() -> int:
     # `proporcion_oficial` mucho antes: borrar ese mapa mataba al auditor
     # en la familia 5 y nunca llegaba a su propia comprobación. Un auditor
     # informa; para informar hay que llegar vivo al informe.
-    MAPAS_NECESARIOS = ("kennedy_familia", "kennedy_puntos", "ciudad_oferta",
+    MAPAS_NECESARIOS = ("kennedy_familia", "kennedy_puntos", "ciudad_oferta", "ciudad_bachillerato",
                         "ciudad_estudiantes", "proporcion_oficial", "sector_puntos")
     faltan_mapas = [n for n in MAPAS_NECESARIOS if n not in M]
     for nombre in MAPAS_NECESARIOS:
@@ -482,6 +482,32 @@ def main() -> int:
     a.cerca(float(d_borde.max()), fr["dist_max_m"], "Kennedy: la más lejos del borde, a su distancia", 1e-6)
     a.cierto(float(d_borde.max()) < 200, "Kennedy: las tres siguen siendo casos de frontera",
              f"{d_borde.max():.0f} m")
+
+    # El conteo por cuadrantes, cada celda entre SU área. Hasta el 2026-10-27
+    # el generador dividía por A_KEN/64 y nadie lo recalculaba: el máximo se
+    # publicó en 24.9 sedes por km² siendo 16.8. Aquí, sin spatstat: la
+    # rejilla parte la caja, y cada celda se recorta con la ventana.
+    cq = D["m1"]["cuadrantes"]
+    from shapely.geometry import box as _box
+    bx0, by0, bx1, by1 = W.bounds
+    xs_q, ys_q = np.linspace(bx0, bx1, cq["nx"] + 1), np.linspace(by0, by1, cq["nx"] + 1)
+    kx, ky = ken["x"].to_numpy(), ken["y"].to_numpy()
+    ixq = np.clip(np.searchsorted(xs_q, kx, "left") - 1, 0, cq["nx"] - 1)
+    iyq = np.clip(np.searchsorted(ys_q, ky, "left") - 1, 0, cq["nx"] - 1)
+    cnt_q = np.zeros((cq["nx"], cq["nx"]), int)
+    np.add.at(cnt_q, (ixq, iyq), 1)
+    area_q = np.array([[_box(xs_q[i], ys_q[j], xs_q[i + 1], ys_q[j + 1]).intersection(W).area
+                        for j in range(cq["nx"])] for i in range(cq["nx"])])
+    toca_q = area_q > 0
+    a.igual(int(toca_q.sum()), cq["n_teselas"], "cuadrantes: las celdas que tocan Kennedy")
+    a.cerca((bx1 - bx0) * (by1 - by0) / cq["nx"] ** 2 / 1e6, cq["area_celda_km2"],
+            "cuadrantes: el área de una celda entera", 1e-9)
+    dens_q = cnt_q[toca_q] / area_q[toca_q] * 1e6
+    a.cerca(float(dens_q.max()), cq["intensidad_max_km2"],
+            "cuadrantes: la intensidad máxima, cada conteo entre el área de su celda", 1e-6)
+    a.cierto(abs(cq["intensidad_max_km2"] - cq["conteo_max"] / (W.area / 1e6 / cq["nx"] ** 2)) > 1,
+             "cuadrantes: y no es el conteo entre el área de Kennedy dividida en 64",
+             f"{cq['intensidad_max_km2']:.4f} contra {cq['conteo_max'] / (W.area / 1e6 / cq['nx'] ** 2):.4f}")
 
     # -----------------------------------------------------------------
     a.titulo("2 · La KDE, recalculada por suma directa del núcleo")
@@ -614,9 +640,27 @@ def main() -> int:
     # decimales, así que su diferencia no puede exigirse mejor que eso.
     a.igual(m6["p_mediana"] - m6["prop_global"], m6["brecha_mediana_menos_global"],
             "riesgo: la brecha entre la mediana y la global", 1e-9)
-    a.cierto((m6["p_mediana"] < m6["prop_global"]) == m6["concentrado"],
-             "riesgo: el veredicto de concentración cuadra con su cifra",
-             "concentrado" if m6["concentrado"] else "repartido")
+    # «¿En qué fracción de la ciudad son mayoría?» es el área con P > 0.5, no
+    # la mediana: hasta el 2026-10-27 el módulo le asignaba esa pregunta a la
+    # mediana. Recalculada sobre la superficie de arriba (sin corrección de
+    # borde, que en un cociente con la de por defecto se cancela).
+    a.cerca(100 * float(np.nanmean(prop[mask_c & np.isfinite(prop)] > 0.5)), m6["pct_area_mayoria"],
+            "riesgo: la fracción del área donde lo oficial es mayoría", 2.0)
+    a.cierto(abs(m6["pct_area_mayoria"] - 100 * m6["p_mediana"]) > 5,
+             "riesgo: y no es la mediana leída como porcentaje",
+             f"{m6['pct_area_mayoria']:.1f} % contra {100 * m6['p_mediana']:.1f}")
+    # El contraste que el pie del mapa de sectores afirma: norte contra sur,
+    # por tercios de la caja de la ventana urbana.
+    uy = urb["y"].to_numpy()
+    ry0, ry1 = v_urb.bounds[1], v_urb.bounds[3]
+    t_sur, t_norte = ry0 + (ry1 - ry0) / 3, ry0 + 2 * (ry1 - ry0) / 3
+    a.cerca(100 * float(ofi[uy < t_sur].mean()), m6["pct_oficiales_tercio_sur"],
+            "riesgo: las oficiales del tercio sur, recontadas", 1e-6)
+    a.cerca(100 * float(ofi[uy >= t_norte].mean()), m6["pct_oficiales_tercio_norte"],
+            "riesgo: y las del tercio norte", 1e-6)
+    a.cierto(m6["pct_oficiales_tercio_sur"] > m6["pct_oficiales_tercio_norte"],
+             "riesgo: lo oficial pesa más en el sur, como dice el pie",
+             f"{m6['pct_oficiales_tercio_sur']:.1f} % contra {m6['pct_oficiales_tercio_norte']:.1f} %")
     a.cierto(m6["orientacion_verificada"] > m6["prop_global"],
              "riesgo: donde el mapa es máximo dominan los oficiales",
              f"{100*m6['orientacion_verificada']:.0f} % de los 50 vecinos")
@@ -627,6 +671,18 @@ def main() -> int:
     a.cierto(ch["orientacion_verificada"] > ch["prop_global"],
              "riesgo: y su mapa también pinta los casos",
              f"{100*ch['orientacion_verificada']:.0f} % de los vecinos")
+    # El máximo de chorley se publica con los datos que tiene alrededor: la
+    # prosa dice que no tiene un solo punto a dos anchos de banda y que cae
+    # junto al borde. No hay chorley en Python; se comprueba lo que se puede
+    # sin él: que las cifras digan lo que la frase dice y sean coherentes.
+    a.igual(ch["maximo_puntos_cerca"], 0, "riesgo: el máximo de chorley no tiene puntos a dos anchos")
+    a.cerca(ch["maximo_radio_km"], 2 * ch["sigma"], "riesgo: y esos dos anchos son dos sigmas", 1e-12)
+    a.cierto(0 <= ch["maximo_dist_borde_m"] < 1000 * ch["sigma"],
+             "riesgo: el máximo de chorley cae junto al borde, a menos de un ancho",
+             f"{ch['maximo_dist_borde_m']:.0f} m")
+    a.cierto((ch["pct_area_mayoria"] == 0) == (ch["p_max"] < 0.5),
+             "riesgo: la laringe no es mayoría en ningún sitio, y su fracción de área lo dice",
+             f"{ch['pct_area_mayoria']} % con máximo {ch['p_max']:.4f}")
 
     # -----------------------------------------------------------------
     a.titulo("6 · Los tres mapas del módulo 5")
@@ -1130,7 +1186,7 @@ def main() -> int:
              f"{zmax[0]} contra {zmax[-1]}")
     for nombre in ("kennedy_puntos", "sector_puntos"):
         a.cierto(M[nombre]["modo"] == "puntos", f"mapas/{nombre}: es del modo puntos")
-    for nombre in ("ciudad_oferta", "ciudad_estudiantes", "proporcion_oficial"):
+    for nombre in ("ciudad_oferta", "ciudad_bachillerato", "ciudad_estudiantes", "proporcion_oficial"):
         g = M[nombre]
         a.cierto(g["modo"] == "rejilla", f"mapas/{nombre}: es del modo rejilla")
         a.igual(len(g["zq"]), g["nx"] * g["ny"], f"mapas/{nombre}: el ráster tiene sus celdas")
@@ -1145,7 +1201,7 @@ def main() -> int:
     # rejilla declare sus lados, que haya una celda por posición, que -1
     # sea el único negativo y que nada se salga de la cuantización— y los
     # rásteres cruzan la misma puerta que los demás mapas.
-    for nombre in ("kennedy_puntos", "sector_puntos", "ciudad_oferta",
+    for nombre in ("kennedy_puntos", "sector_puntos", "ciudad_oferta", "ciudad_bachillerato",
                    "ciudad_estudiantes", "proporcion_oficial"):
         audita_geomapa(a, M[nombre], nombre, presupuesto_kb=560.0)
     for i, g in enumerate(M["kennedy_familia"]):
@@ -1197,6 +1253,7 @@ def main() -> int:
     ofi_pts = np.asarray(M["sector_puntos"]["marcas"]) == \
         1 + M["sector_puntos"]["niveles"].index("oficial")
     al_derecho(M["ciudad_oferta"], Xs, Ys, "oferta")
+    al_derecho(M["ciudad_bachillerato"], Xs, Ys, "bachillerato")
     al_derecho(M["ciudad_estudiantes"], Xs, Ys, "estudiantes")
     al_derecho(M["proporcion_oficial"], Xs, Ys, "P(oficial)", marcas=ofi_pts)
 

@@ -201,8 +201,23 @@ def defectos():
         "datos", lambda d: d["m6"]["bogota"].__setitem__("orientacion_verificada", 0.1313131313))
     obj("4 · y la de chorley, lo mismo",
         "datos", lambda d: d["m6"]["chorley"].__setitem__("orientacion_verificada", 0.0131313131))
-    obj("4 · el veredicto de concentración deja de cuadrar con su cifra",
-        "datos", lambda d: d["m6"]["bogota"].__setitem__("concentrado", False))
+    obj("4 · la fracción del área donde es mayoría vuelve a ser la mediana",
+        "datos", lambda d: d["m6"]["bogota"].__setitem__(
+            "pct_area_mayoria", 100 * d["m6"]["bogota"]["p_mediana"]))
+    obj("4 · el tercio sur deja de tener más oficiales que el norte",
+        "datos", lambda d: d["m6"]["bogota"].update(
+            pct_oficiales_tercio_sur=d["m6"]["bogota"]["pct_oficiales_tercio_norte"],
+            pct_oficiales_tercio_norte=d["m6"]["bogota"]["pct_oficiales_tercio_sur"]))
+    obj("4 · el máximo de chorley vuelve a tener puntos alrededor",
+        "datos", lambda d: d["m6"]["chorley"].__setitem__("maximo_puntos_cerca", 3))
+    obj("4 · la laringe pasa a ser mayoría en parte del área",
+        "datos", lambda d: d["m6"]["chorley"].__setitem__("pct_area_mayoria", 4.1313131313))
+
+    # --- 4b. El conteo por cuadrantes del módulo 1 ----------------------
+    obj("4b · la intensidad por cuadrante vuelve a dividir por el área de Kennedy entre 64",
+        "datos", lambda d: d["m1"]["cuadrantes"].__setitem__("intensidad_max_km2", 24.9267679931))
+    obj("4b · las celdas que tocan Kennedy dejan de ser las que son",
+        "datos", lambda d: d["m1"]["cuadrantes"].__setitem__("n_teselas", 64))
 
     # --- 5. La clave del deslizador, el otro defecto real -------------
     obj("5 · el sigma del mapa deja de coincidir con el del dato",
@@ -229,6 +244,8 @@ def defectos():
         "mapas", lambda m: [g.__setitem__("zq", volteado(g)) for g in m["kennedy_familia"]])
     obj("6b · solo el mapa más suave de la familia, volteado",
         "mapas", lambda m: m["kennedy_familia"][6].__setitem__("zq", volteado(m["kennedy_familia"][6])))
+    obj("6b · el de bachillerato, volteado",
+        "mapas", lambda m: m["ciudad_bachillerato"].__setitem__("zq", volteado(m["ciudad_bachillerato"])))
     obj("6b · el mapa de la oferta, volteado",
         "mapas", lambda m: m["ciudad_oferta"].__setitem__("zq", volteado(m["ciudad_oferta"])))
     obj("6b · el de los estudiantes, volteado",

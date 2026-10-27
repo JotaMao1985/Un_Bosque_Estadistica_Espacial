@@ -315,7 +315,7 @@ TITULOS = (
     ("El ancho de banda lo es todo", "El núcleo importa poco"),
     ("Selectores de ancho de banda", "Qué optimiza cada uno"),
     ("Corrección de borde en la KDE", "Y la ventana otra vez"),
-    ("La KDE como mapa de calor", "Oferta, cobertura y demanda"),
+    ("La KDE como mapa de calor", "Oferta, bachillerato y estudiantes"),
     ("Intensidad relativa", "Casos, controles y proporción de tipo"),
     ("Covariables", "La intensidad como función de otra cosa"),
     ("El Poisson inhomogéneo", "El modelo y su verosimilitud"),
@@ -356,10 +356,15 @@ round(area.owin(W) / 1e6, 4)              # km2
 # El punto de partida del capitulo 4: contar en celdas que no se solapan
 cuad &lt;- quadratcount(p, nx = {NX}, ny = {NX})
 range(as.numeric(cuad))
-#&gt; [1] {CMIN} {CMAX}'''
+#&gt; [1] {CMIN} {CMAX}
+length(as.numeric(cuad))                  # las celdas de la caja que tocan Kennedy
+#&gt; [1] {NT}
+round(range(intensity(cuad)) * 1e6, 2)    # por km2: cada conteo entre el area de SU celda
+#&gt; [1] {IR}'''
 
 PY1 = '''import geopandas as gpd
 import numpy as np
+from shapely.geometry import box
 
 cole = gpd.read_file(&quot;datos/procesado/bogota_colegios.gpkg&quot;)
 loc = gpd.read_file(&quot;datos/procesado/bogota_localidades.gpkg&quot;)
@@ -374,21 +379,45 @@ print(len(px))
 print(round(W.area / 1e6, 4))
 #&gt; {A}
 
-# El mismo conteo con el convenio de cut(): abierto por la izquierda
+# El mismo conteo con el convenio de cut(): abierto por la izquierda. La
+# rejilla parte la CAJA; R se queda con las celdas que tocan Kennedy
 x0, y0, x1, y1 = W.bounds
 nx = {NX}
-ix = np.clip(np.searchsorted(np.linspace(x0, x1, nx + 1), px, &quot;left&quot;) - 1, 0, nx - 1)
-iy = np.clip(np.searchsorted(np.linspace(y0, y1, nx + 1), py, &quot;left&quot;) - 1, 0, nx - 1)
+xs, ys = np.linspace(x0, x1, nx + 1), np.linspace(y0, y1, nx + 1)
+ix = np.clip(np.searchsorted(xs, px, &quot;left&quot;) - 1, 0, nx - 1)
+iy = np.clip(np.searchsorted(ys, py, &quot;left&quot;) - 1, 0, nx - 1)
 cnt = np.zeros((nx, nx), int)
 np.add.at(cnt, (ix, iy), 1)
 print(cnt.min(), cnt.max())
-#&gt; {CMIN} {CMAX}'''
+#&gt; {CMIN} {CMAX}
 
-_SUB1 = dict(N=ent(m1["ventana"]["n"]).replace(" ", ""),
+# Cada conteo entre el area de SU celda, recortada por el borde de Kennedy
+area = np.array([[box(xs[i], ys[j], xs[i + 1], ys[j + 1]).intersection(W).area
+                  for j in range(nx)] for i in range(nx)])
+toca = area &gt; 0
+print(toca.sum())
+#&gt; {NT}
+dens = cnt[toca] / area[toca] * 1e6       # por km2
+print(round(float(dens.min()), 2), round(float(dens.max()), 2))
+#&gt; {IRPY}'''
+
+
+def _rango_r(a, b, d=2):
+    """Como lo imprime R: los dos con d decimales y alineados a la derecha."""
+    s = [f"{float(a):.{d}f}", f"{float(b):.{d}f}"]
+    w = max(map(len, s))
+    return " ".join(x.rjust(w) for x in s)
+
+
+_SUB1 = dict(N=ent(m1["ventana"]["n"]).replace(" ", ""),
              A=n(m1["ventana"]["area_km2"], 4),
              NX=str(m1["cuadrantes"]["nx"]),
              CMIN=ent(m1["cuadrantes"]["conteo_min"]),
-             CMAX=ent(m1["cuadrantes"]["conteo_max"]))
+             CMAX=ent(m1["cuadrantes"]["conteo_max"]),
+             NT=str(m1["cuadrantes"]["n_teselas"]),
+             IR=_rango_r(m1["cuadrantes"]["intensidad_min_km2"], m1["cuadrantes"]["intensidad_max_km2"]),
+             IRPY=f'{round(float(m1["cuadrantes"]["intensidad_min_km2"]), 2)!r} '
+                  f'{round(float(m1["cuadrantes"]["intensidad_max_km2"]), 2)!r}')
 
 R2 = '''# El nucleo casi no importa: cuatro pesos distintos, el mismo mapa
 sigmas &lt;- c(&quot;gaussian&quot;, &quot;epanechnikov&quot;, &quot;quartic&quot;, &quot;disc&quot;)
@@ -467,7 +496,7 @@ MOD1 = cabecera(
         toda la ciudad, y la pregunta que un mapa invita a hacer no es cuántas sedes hay por
         kilómetro cuadrado en promedio, sino <strong>dónde</strong> hay más y dónde menos.</p>
 
-      <p>El test de cuadrantes ya daba una respuesta a eso: la rejilla parte la ventana y cuenta.
+      <p>El test de cuadrantes ya daba una respuesta a eso: la rejilla parte el plano en celdas y cuenta.
         Lo que hace este capítulo es quitarle a esa respuesta sus dos limitaciones —que las
         celdas no se solapan y que sus bordes son rectos y los puso alguien— sin cambiar la idea
         de fondo.</p>
@@ -506,8 +535,12 @@ MOD1 = cabecera(
         superficie, cada corrección de borde, cada integral— se hace contra esa forma y no contra
         la caja.</p>
 
-      <p>Con la ventana puesta, el punto de partida es el del capítulo anterior. Sobre una
-        rejilla de {m1["cuadrantes"]["nx"]} × {m1["cuadrantes"]["nx"]} celdas, la más vacía tiene
+      <p>Con la ventana puesta, el punto de partida es el del capítulo anterior: una rejilla de
+        {m1["cuadrantes"]["nx"]} × {m1["cuadrantes"]["nx"]} celdas. La rejilla parte la
+        <em>caja</em> que enmarca a Kennedy, no la localidad, así que solo
+        {m1["cuadrantes"]["n_teselas"]} de sus celdas la tocan, y las de la orilla salen recortadas
+        por el borde: cada conteo se divide por el área de <em>su</em> celda, y una entera mide
+        {n(m1["cuadrantes"]["area_celda_km2"], 2)} km². La más vacía tiene
         {ent(m1["cuadrantes"]["conteo_min"])} sedes y la más llena
         {ent(m1["cuadrantes"]["conteo_max"])}: entre
         {n(m1["cuadrantes"]["intensidad_min_km2"], 1)} y
@@ -1107,12 +1140,17 @@ MOD5 = cabecera(
         <code>bw.{m5["sigma_selector"]}</code>: {n(m5["sigma_m"], 0)} m. La resolución no es un
         detalle de presentación; aquí ha elegido selector.</p>
 
-{mapa_html("cap5-estudiantes", "Demanda: evaluados en Saber 11, con las sedes pesadas por sus estudiantes")}
-      <p class="pie-figura">El mismo σ, la misma rejilla y las mismas
-        {ent(m5["capas"]["grado_11"]["n"])} sedes: lo único que cambia es que cada punto pesa por
-        sus evaluados en vez de por uno. Compárense los dos mapas en el norte y en el suroccidente
-        —donde las manchas no coinciden es donde el edificio y el estudiante dejan de ser la
-        misma cosa—.</p>
+{mapa_html("cap5-bachillerato", "Bachillerato: las sedes con grado 11, sin pesar")}
+      <p class="pie-figura">Del mapa de arriba a este cambia una sola cosa: se quedan las
+        {ent(m5["capas"]["grado_11"]["n"])} sedes con grado 11 y se caen las demás. El mismo σ, la
+        misma rejilla, y cada sede sigue siendo un punto.</p>
+
+{mapa_html("cap5-estudiantes", "Estudiantes: las sedes con grado 11, pesadas por sus evaluados")}
+      <p class="pie-figura">Y de ese a este, otra sola cosa: las mismas
+        {ent(m5["capas"]["grado_11"]["n"])} sedes, pero cada una pesa por sus evaluados en Saber 11
+        en vez de por uno. Así cada pareja de mapas vecinos difiere en una operación —quitar la
+        primaria, pesar por estudiantes— y se ve cuál mueve qué. Donde las manchas de los dos
+        últimos no coinciden es donde el edificio y el estudiante dejan de ser la misma cosa.</p>
 
 {sim("cap5-capas", "Las tres capas, y cuánto se parecen",
       "Las barras son el máximo de cada superficie —en su propia unidad, que por eso "
@@ -1226,10 +1264,15 @@ MOD6 = cabecera(
         cociente. Cambiar los controles cambia lo que el mapa significa, y esa decisión es la
         mitad del método.</p>
 
-      <p>La proporción global de casos es {n(_ch["prop_global"], 4)}. La mediana de la superficie
-        es {n(_ch["p_mediana"], 4)} y su máximo llega a {n(_ch["p_max"], 4)}: hay sitios donde
-        uno de cada tres cánceres registrados es de laringe, seis veces la proporción de la
-        comarca.</p>
+      <p>La proporción global de casos es {n(_ch["prop_global"], 4)} y la mediana de la
+        superficie, {n(_ch["p_mediana"], 4)}. Su máximo llega a {n(_ch["p_max"], 4)}, y es tentador
+        leerlo como un sitio donde uno de cada tres cánceres es de laringe. <strong>No se lee como
+        un sitio</strong>: ese máximo cae a {n(_ch["maximo_dist_borde_m"], 0)} m del borde de la
+        ventana y no tiene un solo punto —caso ni control— a menos de
+        {n(_ch["maximo_radio_km"], 0)} km, dos anchos de banda. Allí las dos intensidades son colas
+        casi nulas de sus núcleos, y su cociente no mide nada. El máximo de una proporción se
+        publica con los datos que tiene alrededor; el módulo 7 vuelve sobre esto con
+        <code>rhohat</code>, cuyo titular es casi siempre su cola.</p>
 
       <div class="nota-lateral">
         <h4>La trampa que casi publica este módulo al revés</h4>
@@ -1243,8 +1286,8 @@ MOD6 = cabecera(
           era la contraria de la cierta.</p>
         <p style="margin-bottom:0;">Se arregla de dos formas <em>a la vez</em>, porque una sola
           no basta: se fija el orden de niveles, y se <strong>comprueba la orientación contra el
-          dato</strong> —donde el mapa dice que la proporción es máxima, los vecinos tienen que
-          ser mayoritariamente de ese tipo—. Medido: en el máximo de <code>chorley</code> el
+          dato</strong> —donde el mapa dice que la proporción es máxima, la proporción de ese
+          tipo entre los vecinos tiene que superar la global—. Medido: en el máximo de <code>chorley</code> el
           {pct(100 * _ch["orientacion_verificada"], 0)} de los cincuenta vecinos son casos, sobre
           una proporción global de {pct(100 * _ch["prop_global"], 1)}; en el de Bogotá, el
           {pct(100 * _bg["orientacion_verificada"], 0)} son oficiales. Esa segunda guarda es la
@@ -1269,25 +1312,26 @@ MOD6 = cabecera(
 
 {mapa_html("cap5-sector", "Las mismas sedes, por sector, sin suavizar")}
       <p class="pie-figura">El mapa de puntos es el control de la superficie: enseña de dónde
-        sale cada mancha y recuerda que lo privado está apiñado en el centro y lo oficial ocupa
-        la periferia.</p>
+        sale cada mancha. Lo oficial pesa más en el sur —en el tercio sur de la ciudad son
+        oficiales el {pct(_bg["pct_oficiales_tercio_sur"], 1)} de las sedes; en el tercio norte,
+        el {pct(_bg["pct_oficiales_tercio_norte"], 1)}— y lo privado domina el norte.</p>
 
-      <p>Y aquí aparece la cifra que es el módulo. La proporción de oficiales <em>contando
-        puntos</em> es {firma(n(_bg["prop_global"], 4))}; la mediana de la
-        <em>superficie</em> es {firma(n(_bg["p_mediana"], 4))}. No tienen por qué coincidir, y su
-        diferencia dice algo geográfico: como la mediana del área queda
-        <strong>por debajo</strong> de la proporción de los puntos, lo oficial está
-        <strong>concentrado</strong> —es mayoría en poca superficie—, mientras lo privado se
-        reparte por más ciudad.</p>
+      <p>Y aquí aparecen las cifras que son el módulo. La proporción de oficiales <em>contando
+        puntos</em> es {firma(n(_bg["prop_global"], 4))}. Pero son mayoría —P(oficial) por encima
+        de un medio— solo en el {firma(pct(_bg["pct_area_mayoria"], 1))} del área de la ciudad, y
+        en la mitad del área la proporción no pasa de {firma(n(_bg["p_mediana"], 4))}, la mediana
+        de la superficie. Lo oficial es mayoría en poca superficie; lo privado, en casi toda la
+        demás.</p>
 
 {sim("cap5-riesgo", "Contar puntos y mirar el mapa dan respuestas distintas",
-      "Cada patrón trae dos referencias: la proporción global —contando puntos— y la "
-      "mediana de la superficie. Que la segunda quede por debajo de la primera es lo "
-      "que significa «concentrado».")}
+      "Cada patrón trae la proporción contando puntos y la superficie con su mínimo, su "
+      "mediana y su máximo. La lectura añade en qué fracción del área el tipo es mayoría, "
+      "que es lo que la mediana no dice.")}
       <p>Las dos cifras son ciertas y contestan preguntas distintas: «¿qué fracción de las sedes
-        es oficial?» y «¿en qué fracción de la ciudad son mayoría?». Un informe que solo publique
-        una de las dos no está mintiendo, pero tampoco está diciendo lo que el lector va a
-        entender.</p>
+        es oficial?» —{n(_bg["prop_global"], 4)}— y «¿en qué fracción de la ciudad son
+        mayoría?» —el {pct(_bg["pct_area_mayoria"], 1)}—. La mediana contesta una tercera: qué valor
+        de la proporción deja por debajo a media ciudad. Un informe que solo publique una de
+        ellas no está mintiendo, pero tampoco está diciendo lo que el lector va a entender.</p>
 
 {tabs("El cociente de dos intensidades, y quién es el segundo nivel", R6.format(**_SUB6), PY6.format(**_SUB6))}
       <p>Con esto se cierra la mitad descriptiva del capítulo: ya se sabe estimar una superficie,
@@ -2799,6 +2843,9 @@ GEOMAPAS_JS = (
     + geomapa('cap5-oferta', 'ciudad_oferta', ", paleta: 'naranja'" + _etq(
         'Intensidad de sedes educativas sobre la ventana urbana de Bogotá, estimada '
         'por núcleos gaussianos con sigma de 720 metros: la oferta de colegios.'))
+    + geomapa('cap5-bachillerato', 'ciudad_bachillerato', ", paleta: 'naranja'" + _etq(
+        'Intensidad de las sedes con grado 11 sobre la ventana urbana, con el mismo ancho de '
+        'banda y sin pesos: el paso intermedio entre la oferta y los estudiantes.'))
     + geomapa('cap5-estudiantes', 'ciudad_estudiantes', ", paleta: 'naranja'" + _etq(
         'La misma estimación sobre las sedes con grado 11, pesada cada una por sus '
         'evaluados en Saber 11: dónde están los estudiantes, no los edificios.'))
@@ -3052,7 +3099,7 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       const c = D5.m5.capas;
       const CLAVES = ['oferta', 'grado_11', 'estudiantes'];
       const ETQ = ['Oferta: todas las sedes', 'Bachillerato: con grado 11',
-                   'Demanda: evaluados en Saber 11'];
+                   'Estudiantes: evaluados en Saber 11'];
       let i = 0;
       const g = grafico5(raiz, 'bar', {
         labels: ETQ,
@@ -3105,8 +3152,7 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
           ['proporción contando puntos', n5(d.prop_global, 4)],
           ['mediana de la superficie', n5(d.p_mediana, 4)],
           ['la mediana menos la global', n5(d.brecha_mediana_menos_global, 4)],
-          ['lectura', d.brecha_mediana_menos_global < 0 ? 'concentrado: mayoría en poca superficie'
-                                                        : 'repartido por la ventana'],
+          ['es mayoría en', n5(d.pct_area_mayoria, 1) + ' % del área'],
           ['orientación comprobada contra el dato', n5(100 * d.orientacion_verificada, 0) + ' %']]));
       };
       botonera5(raiz, ETQ, k => { i = k; pinta(); }, 1);
