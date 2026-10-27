@@ -22,12 +22,12 @@ Los enteros 0, 1 y 2 usados como constantes de definición no se registran: no s
 
 ## Resumen
 
-- 413 apariciones de cifras en 38 diapositivas; 211 cifras distintas.
-- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 219
+- 421 apariciones de cifras en 38 diapositivas; 213 cifras distintas.
+- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 223
 - VERIFICADA · re-ejecutada en R: 82
-- PARÁMETRO de diseño: 47
+- PARÁMETRO de diseño: 50
 - VERIFICADA · aritmética sobre cifras verificadas: 26
-- CONTRASTADA · salida de R (JSON del capítulo): 22
+- CONTRASTADA · salida de R (JSON del capítulo): 23
 - CONTRASTADA · texto del capítulo: 8
 - REFERENCIA · ficha de ayuda del paquete: 6
 - MEDIDA · depende de la máquina (con tolerancia): 3
@@ -40,7 +40,7 @@ Discrepancias que aparecieron al cotejar. No son errores de la presentación: se
 - **«0.0 y 24.9 sedes por km²» en la rejilla de 8 × 8 (arreglado en el capítulo el 2026-10-27).** El módulo 1 (y la retroalimentación de la primera pregunta de la autoevaluación) dice que los cuadrantes dan «entre 0.0 y 24.9 sedes por km²». `genera_cap5.R` calcula `conteo / (A_KEN / 64)`, o sea divide por el área media por celda de la ventana (38.51 / 64 = 0.602 km²). Pero la celda con 15 sedes es una celda interior y mide 0.895 km² (la caja entre 64): son 16.8 sedes por km² (`intensity(cuad)` da 16.757). El 24.9 no es la intensidad de ninguna celda. Además, de las 64 celdas de la rejilla, 7 caen fuera de la ventana y `quadratcount` devuelve 57. Las diapositivas solo dicen «de 0 a 15 sedes por celda».
 - **«Por encima de 0.965» (arreglado en el capítulo el 2026-10-27).** El módulo 2 dice que las superficies de los cuatro núcleos «correlacionan por encima de 0.965 con la gaussiana». El mínimo es el del disco, 0.9647 (0.964743…), que redondea a 0.965 pero está por debajo. Las diapositivas dicen «por encima de 0.96». El capítulo dice ahora «0.9647 o más».
 - **«Mayoritariamente de ese tipo» (arreglado en el capítulo el 2026-10-27).** El módulo 6 dice que, donde el mapa es máximo, «los vecinos tienen que ser mayoritariamente de ese tipo». En `chorley` son el 8 % (4 de 50), y la guarda de `genera_cap5.R` compara contra la proporción global (5.6 %), no contra la mitad. Las diapositivas dicen «más que en todo el conjunto».
-- **La mediana no mide «en qué fracción de la ciudad son mayoría» (arreglado en el capítulo el 2026-10-27).** El módulo 6 resume la mediana de la superficie P(oficial) como la respuesta a «¿en qué fracción de la ciudad son mayoría?». La mediana es el valor de la proporción en el punto típico de la ciudad (0.3086), no una fracción del área en la que las oficiales son mayoría. Las diapositivas dicen lo primero.
+- **La mediana no mide «en qué fracción de la ciudad son mayoría» (arreglado en el capítulo el 2026-10-27).** El módulo 6 resume la mediana de la superficie P(oficial) como la respuesta a «¿en qué fracción de la ciudad son mayoría?». La mediana es el valor de la proporción en el punto típico de la ciudad (0.3090), no una fracción del área en la que las oficiales son mayoría. Las diapositivas dicen lo primero.
 - **Los tiempos de la KDE están escritos a mano en el generador (arreglado en el capítulo el 2026-10-27).** `genera_cap5.R` publica `coste_segundos = list(defecto = 0.15, sin_corregir = 0.14, diggle = 0.15)` como constantes (vienen de la medición A.21 del plan, sobre la ventana urbana a 128 × 128). Se volvieron a medir y dan lo mismo (0.146, 0.138 y 0.150 s), así que la cifra es cierta; solo que el generador no la mide. Aclaración que falta en el módulo 4: son tiempos de la ciudad, no de Kennedy (en Kennedy, a 99 × 96 celdas, son del orden de 0.01 s). Desde la tercera revisión el generador los mide sobre Kennedy, los cachea con la máquina en que se midieron y el capítulo los publica así (centésimas de segundo).
 - **Los valores de `bw.ppl` y `bw.CvL` son nodos de una rejilla de 16 anchos, no óptimos (módulo 3) (arreglado en el capítulo el 2026-10-27).** El módulo 3 presenta `bw.ppl` y `bw.CvL` como selectores que optimizan; en realidad evalúan su criterio en `ns = 16` anchos de una rejilla geométrica y devuelven el mejor de ellos (`recomputo › selectores.ns_ppl`), y `bw.ppl` usa además `shortcut = TRUE`. Con 256 anchos, `bw.ppl` da 326 m en Kennedy y 350 m en la ciudad (no 374.9 y 235.9) y `bw.CvL`, 640 y 877 m (no 556.7 y 720.4) (`recomputo › selectores_fino`). Consecuencias: el cruce entre `bw.ppl` y `bw.diggle` que el capítulo comenta (375 contra 347 m en Kennedy, 236 contra 373 m en la ciudad) es un efecto de la rejilla, porque con rejilla fina `bw.ppl` queda por debajo de `bw.diggle` en las dos ventanas; y las razones 1.83 y 5.30, que usan esos nodos, son del orden de 2.0 y 3.6. Las diapositivas conservan las cifras del capítulo y dicen que son valores por defecto, no repiten «ni el orden se conserva» y llaman a σ = 720 m «el valor por defecto de `bw.CvL`», no «el óptimo». El capítulo publica desde la tercera revisión los valores con 256 anchos y dice que el cruce es de la rejilla.
 - **«El ancho mueve 13 veces lo que el núcleo» (módulo 2) (arreglado en el capítulo el 2026-10-27).** La razón 66.3 / 5.1 ≈ 13 compara cuatro formas de núcleo a un solo σ (400 m) con siete σ que abarcan un factor 8, y el 5.1 % no es una constante: a otros σ el núcleo mueve el máximo más o menos. Las diapositivas dan las dos cifras por separado y no la razón, y el capítulo dice ya que las dos no se miden igual.
@@ -651,37 +651,45 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `32` | cuerpo | …róximos son oficiales en un **64 %** (32 de 50) contra **33.65 %** en… | recomputo › oficial.vecinos_oficiales = 32 | VERIFICADA · re-ejecutada en R |
 | `50` | cuerpo | …s son oficiales en un **64 %** (32 de 50) contra **33.65 %** en el con… | recomputo › chorley.vecinos_k = 50 | VERIFICADA · re-ejecutada en R |
 | `33.65` | cuerpo | …es en un **64 %** (32 de 50) contra **33.65 %** en el conjunto. :::… | 100 × proporción global de oficiales = 33.64973897 | VERIFICADA · aritmética sobre cifras verificadas |
+| `128x218` | notas | …en la rejilla de los mapas de calor (128 × 218 celdas de 183 m) y no e… | datos › m5.rejilla.nx × ny = 128x218 | PARÁMETRO de diseño |
+| `128x128` | notas | …× 218 celdas de 183 m) y no en la de 128 × 128 que usa sin : en una ca… | datos › m6.bogota.rejilla_por_defecto.nx × ny = 128x128 | PARÁMETRO de diseño |
+| `183x312` | notas | …en una caja tan alta esa da celdas de 183 × 312 m, y σ cabe solo 2.3 v… | datos › m6.bogota.rejilla_por_defecto.celda_x_m × celda_y_m = 183x312 | PARÁMETRO de diseño |
 | `0.5` | notas | …para que el cambio de color caiga en 0.5; con uno impar, la clase cent… | el corte de la barra de P(oficial): empate entre los dos sectores | PARÁMETRO de diseño |
 | `0.5` | notas | …central se reparte a los dos lados de 0.5 y su color se lee como mayor… | el corte de la barra de P(oficial): empate entre los dos sectores | PARÁMETRO de diseño |
+| `183` | notas | …la de los mapas de calor ( celdas de 183 m) y no en la de que usa… | datos › m5.rejilla.celda_m = 183.3786167; recomputo › capas.celda_x_m = 183.3786167 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `2.3` | notas | …a esa da celdas de m, y σ cabe solo 2.3 veces en la vertical, por deb… | datos › m6.bogota.rejilla_por_defecto.celdas_por_sigma = 2.305358448; recomputo › oficial.rejilla_por_defecto.celdas_por_sigma = 2.305358448 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `3` | notas | …a vertical, por debajo de la regla de 3 celdas. Aquí casi no cambia n… | datos › meta.rejilla.celdas_por_sigma = 3 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `0.3086` | notas | …casi no cambia nada (la mediana sería 0.3086 en vez de 0.3090), pero l… | datos › m6.bogota.rejilla_por_defecto.p_mediana = 0.3086251338; recomputo › oficial.rejilla_por_defecto.mediana = 0.3086251338 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.3090` | notas | …da (la mediana sería 0.3086 en vez de 0.3090), pero la regla vale para… | datos › m6.bogota.p_mediana = 0.3089902952; recomputo › oficial.mediana = 0.3089902952 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
-### Diapositiva 41 · Contar puntos da 0.3365; mirar el mapa da 0.3086: son dos preguntas distintas
+### Diapositiva 41 · Contar puntos da 0.3365; mirar el mapa da 0.3090: son dos preguntas distintas
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
-| `0.3365` | titulo | …Contar puntos da 0.3365; mirar el mapa da 0.3086: son… | datos › m6.bogota.prop_global = 0.3364973897; recomputo › oficial.global = 0.3364973897 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.3086` | titulo | …ar puntos da 0.3365; mirar el mapa da 0.3086: son dos preguntas distin… | datos › m6.bogota.p_mediana = 0.3086251338; recomputo › oficial.mediana = 0.3086251338 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.3365` | titulo | …Contar puntos da 0.3365; mirar el mapa da 0.3090: son… | datos › m6.bogota.prop_global = 0.3364973897; recomputo › oficial.global = 0.3364973897 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.3090` | titulo | …ar puntos da 0.3365; mirar el mapa da 0.3090: son dos preguntas distin… | datos › m6.bogota.p_mediana = 0.3089902952; recomputo › oficial.mediana = 0.3089902952 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `2107` | cuerpo | …los puntos \|\|\| ::: info Dato · las 2 107 sedes urbanas 709 / 2 107 … | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `709` | cuerpo | …: info Dato · las 2 107 sedes urbanas 709 / 2 107 = **0.3365** (contan… | datos › m6.bogota.oficiales = 709; recomputo › oficial.n_oficiales = 709 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `2107` | cuerpo | …Dato · las 2 107 sedes urbanas 709 / 2 107 = **0.3365** (contando punt… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `0.3365` | cuerpo | …s 2 107 sedes urbanas 709 / 2 107 = **0.3365** (contando puntos). Medi… | datos › m6.bogota.prop_global = 0.3364973897; recomputo › oficial.global = 0.3364973897 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.3086` | cuerpo | …diana de la superficie P(oficial) = **0.3086** (contando área). Las of… | datos › m6.bogota.p_mediana = 0.3086251338; recomputo › oficial.mediana = 0.3086251338 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.3090` | cuerpo | …diana de la superficie P(oficial) = **0.3090** (contando área). Las of… | datos › m6.bogota.p_mediana = 0.3089902952; recomputo › oficial.mediana = 0.3089902952 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `0.5` | cuerpo | …iciales son mayoría, con P(oficial) > 0.5, en el **17.5 %** del área. … | umbral de mayoría de P(oficial): más de la mitad | PARÁMETRO de diseño |
-| `17.5` | cuerpo | …ayoría, con P(oficial) > 0.5, en el **17.5 %** del área. ::: ::: tip I… | recomputo › oficial.area_mayoria_oficial_pct = 17.45933385 | VERIFICADA · re-ejecutada en R |
-| `0.028` | cuerpo | …de la proporción de los puntos: poco (0.028), pero no por azar, y las … | \|mediana − global\| en el JSON = 0.0278722558 \| recomputo › oficial.brecha = 0.02787225584 | VERIFICADA · re-ejecutada en R |
-| `17.5` | cuerpo | …ción de la ciudad son mayoría?» es el 17.5 %. ::: Fuente: del capítu… | recomputo › oficial.area_mayoria_oficial_pct = 17.45933385 | VERIFICADA · re-ejecutada en R |
-| `0.028` | notas | …La diferencia es pequeña (0.028) pero tiene signo. Un informe… | \|mediana − global\| en el JSON = 0.0278722558 \| recomputo › oficial.brecha = 0.02787225584 | VERIFICADA · re-ejecutada en R |
-| `17.5` | notas | …ión de área con mayoría oficial es el 17.5 % (el capítulo contestaba c… | recomputo › oficial.area_mayoria_oficial_pct = 17.45933385 | VERIFICADA · re-ejecutada en R |
+| `17.5` | cuerpo | …ayoría, con P(oficial) > 0.5, en el **17.5 %** del área. ::: ::: tip I… | recomputo › oficial.area_mayoria_oficial_pct = 17.4533879 | VERIFICADA · re-ejecutada en R |
+| `0.028` | cuerpo | …de la proporción de los puntos: poco (0.028), pero no por azar, y las … | \|mediana − global\| en el JSON = 0.0275070944 \| recomputo › oficial.brecha = 0.02750709442 | VERIFICADA · re-ejecutada en R |
+| `17.5` | cuerpo | …ción de la ciudad son mayoría?» es el 17.5 %. ::: Fuente: del capítu… | recomputo › oficial.area_mayoria_oficial_pct = 17.4533879 | VERIFICADA · re-ejecutada en R |
+| `0.028` | notas | …La diferencia es pequeña (0.028) pero tiene signo. Un informe… | \|mediana − global\| en el JSON = 0.0275070944 \| recomputo › oficial.brecha = 0.02750709442 | VERIFICADA · re-ejecutada en R |
+| `17.5` | notas | …ión de área con mayoría oficial es el 17.5 % (el capítulo contestaba c… | recomputo › oficial.area_mayoria_oficial_pct = 17.4533879 | VERIFICADA · re-ejecutada en R |
 | `40` | notas | …es, el mismo σ y la misma rejilla: en 40 barajados la mediana va de 0.… | recomputo › permutaciones.n = 40 | VERIFICADA · re-ejecutada en R |
-| `0.324` | notas | …lla: en 40 barajados la mediana va de 0.324 a 0.342, y la observada, 0… | recomputo › permutaciones.bogota.min = 0.3242843973 | VERIFICADA · re-ejecutada en R |
-| `0.342` | notas | …40 barajados la mediana va de 0.324 a 0.342, y la observada, 0.3086, q… | recomputo › permutaciones.bogota.max = 0.3417450633 | VERIFICADA · re-ejecutada en R |
-| `0.3086` | notas | …va de 0.324 a 0.342, y la observada, 0.3086, queda a 6.4 desviaciones:… | datos › m6.bogota.p_mediana = 0.3086251338; recomputo › oficial.mediana = 0.3086251338 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `6.4` | notas | ….342, y la observada, 0.3086, queda a 6.4 desviaciones: es del dato. E… | desviaciones típicas que separan la mediana observada de la media de los barajados = 6.430194893 | VERIFICADA · aritmética sobre cifras verificadas |
+| `0.326` | notas | …lla: en 40 barajados la mediana va de 0.326 a 0.343, y la observada, 0… | recomputo › permutaciones.bogota.min = 0.3256349459 | VERIFICADA · re-ejecutada en R |
+| `0.343` | notas | …40 barajados la mediana va de 0.326 a 0.343, y la observada, 0.3090, q… | recomputo › permutaciones.bogota.max = 0.3425684026 | VERIFICADA · re-ejecutada en R |
+| `0.3090` | notas | …va de 0.326 a 0.343, y la observada, 0.3090, queda a 6.3 desviaciones:… | datos › m6.bogota.p_mediana = 0.3089902952; recomputo › oficial.mediana = 0.3089902952 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `6.3` | notas | ….343, y la observada, 0.3090, queda a 6.3 desviaciones: es del dato. E… | desviaciones típicas que separan la mediana observada de la media de los barajados = 6.343320821 | VERIFICADA · aritmética sobre cifras verificadas |
 | `0.028` | notas | …dato. En , en cambio, barajar da de 0.028 a 0.056 y la observada (0.04… | recomputo › permutaciones.chorley.min = 0.02789795294 | VERIFICADA · re-ejecutada en R |
 | `0.056` | notas | …n , en cambio, barajar da de 0.028 a 0.056 y la observada (0.0482) cae… | recomputo › permutaciones.chorley.max = 0.0559185501 | VERIFICADA · re-ejecutada en R |
 | `0.0482` | notas | …r da de 0.028 a 0.056 y la observada (0.0482) cae dentro: allí sí la p… | datos › m6.chorley.p_mediana = 0.0481849481; recomputo › chorley.mediana = 0.04818494813 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.3357` | notas | …ndo cada sitio por cuántas sedes hay (0.3357, casi la proporción de lo… | recomputo › permutaciones.bogota.media_pesada_por_intensidad = 0.3357354557 | VERIFICADA · re-ejecutada en R |
-| `0.3248` | notas | …os); mirarlo es pesar por área (media 0.3248, mediana 0.3086). Cotejo:… | recomputo › permutaciones.bogota.media_por_area = 0.3247859101 | VERIFICADA · re-ejecutada en R |
-| `0.3086` | notas | …pesar por área (media 0.3248, mediana 0.3086). Cotejo: , , , .… | datos › m6.bogota.p_mediana = 0.3086251338; recomputo › oficial.mediana = 0.3086251338 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.3359` | notas | …ndo cada sitio por cuántas sedes hay (0.3359, casi la proporción de lo… | recomputo › permutaciones.bogota.media_pesada_por_intensidad = 0.3359429174 | VERIFICADA · re-ejecutada en R |
+| `0.3252` | notas | …os); mirarlo es pesar por área (media 0.3252, mediana 0.3090). Cotejo:… | recomputo › permutaciones.bogota.media_por_area = 0.3252360911 | VERIFICADA · re-ejecutada en R |
+| `0.3090` | notas | …pesar por área (media 0.3252, mediana 0.3090). Cotejo: , , , .… | datos › m6.bogota.p_mediana = 0.3089902952; recomputo › oficial.mediana = 0.3089902952 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 
 ### Diapositiva 44 · Dónde vive cada decisión
 

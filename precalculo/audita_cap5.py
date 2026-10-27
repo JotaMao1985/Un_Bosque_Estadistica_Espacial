@@ -726,21 +726,89 @@ def main() -> int:
              "riesgo: donde el mapa es máximo dominan los oficiales",
              f"{100*m6['orientacion_verificada']:.0f} % de los 50 vecinos")
     # LA GUARDA SOBRE EL MAPA AL REVÉS (M6-4 de la tercera revisión). Con los
-    # niveles por defecto `relrisk` pinta P(privado) = 1 − P(oficial): su
-    # máximo es el mínimo de la superficie de arriba, y entre sus 50 vecinos
-    # las oficiales tienen que quedar por debajo de la proporción global.
-    ord_def = m6.get("orientacion_niveles_por_defecto")
+    # niveles por defecto `relrisk` pinta P(privado) = 1 − P(oficial), y su
+    # máximo NO es un sitio: vale 1, a nueve decimales, en todos los píxeles sin
+    # una oficial a la vista del núcleo. La primera versión de la guarda tomaba
+    # el primer empate y publicó un 10 % que era el orden de la matriz; con la
+    # rejilla de la ciudad salía un 4 %. Aquí la meseta se rehace con la suma
+    # directa —donde P(oficial) no llega a la tolerancia— y se recorre entera.
+    gd = m6.get("guarda")
+    ux_, uy_ = urb["x"].to_numpy(), urb["y"].to_numpy()
+
+    def vecinos_oficiales(iy, ix):
+        d_m = np.hypot(ux_ - xcc[ix], uy_ - ycc[iy])
+        return float(ofi[np.argsort(d_m, kind="stable")[:50]].mean())
+
     # Un auditor no se muere ante un ráster roto: si la superficie recalculada
     # se queda sin un solo valor (una caja desordenada, por ejemplo), lo dice.
-    if (a.cierto(isinstance(ord_def, (int, float)), "riesgo: está la guarda con los niveles por defecto")
+    if (a.cierto(isinstance(gd, dict) and {"fijado", "defecto", "tolerancia_meseta"} <= set(gd),
+                 "riesgo: está la guarda sobre los dos mapas")
             and a.cierto(bool(np.isfinite(prop).any()), "riesgo: la superficie recalculada tiene valores")):
-        iy_m, ix_m = np.unravel_index(np.nanargmin(prop), prop.shape)
-        d_m = np.hypot(urb["x"].to_numpy() - xcc[ix_m], urb["y"].to_numpy() - ycc[iy_m])
-        fr_def = float(ofi[np.argsort(d_m, kind="stable")[:50]].mean())
-        a.igual(fr_def, ord_def, "riesgo: la guarda, recalculada sobre P(privado)", 0.1)
-        a.cierto(ord_def < m6["prop_global"] < m6["orientacion_verificada"],
-                 "riesgo: la guarda separa los dos mapas",
-                 f"{100*ord_def:.0f} % con los niveles por defecto, {100*m6['orientacion_verificada']:.0f} % fijados")
+        iys, ixs = np.nonzero(np.isfinite(prop) & (prop <= gd["tolerancia_meseta"]))
+        fr = [vecinos_oficiales(i, j) for i, j in zip(iys, ixs)]
+        a.cierto(len(fr) >= 2 and gd["defecto"]["pixeles"] >= 2,
+                 "riesgo: el máximo del mapa al revés es una meseta",
+                 f"{len(fr)} píxeles aquí, {gd['defecto']['pixeles']} en R")
+        if fr:
+            # Dos vecinos de cincuenta: la suma directa y el binado de spatstat
+            # no tienen por qué dejar fuera de la meseta los mismos píxeles.
+            a.igual(min(fr), gd["defecto"]["min"], "riesgo: la meseta, su vecindario menos oficial", 0.041)
+            a.igual(max(fr), gd["defecto"]["max"], "riesgo: y el más oficial", 0.041)
+        a.cierto(gd["defecto"]["max"] < m6["prop_global"] < gd["fijado"]["min"],
+                 "riesgo: la guarda separa los dos mapas, empate a empate",
+                 f"hasta {100*gd['defecto']['max']:.0f} % con los niveles por defecto, "
+                 f"desde {100*gd['fijado']['min']:.0f} % fijados")
+        iy_M, ix_M = np.unravel_index(np.nanargmax(prop), prop.shape)
+        a.igual(vecinos_oficiales(iy_M, ix_M), m6["orientacion_verificada"],
+                "riesgo: la guarda, recalculada sobre P(oficial)", 0.041)
+        a.cierto(gd["fijado"]["pixeles"] == 1
+                 and gd["fijado"]["min"] == gd["fijado"]["max"] == m6["orientacion_verificada"],
+                 "riesgo: el máximo de P(oficial) es un solo sitio",
+                 f"{gd['fijado']['pixeles']} píxel(es), de {gd['fijado']['min']} a {gd['fijado']['max']}")
+
+    # LA REJILLA DE P(oficial), EN LOS DOS LADOS DE LA CELDA (M6-7 de la tercera
+    # revisión, 2026-10-27). Hasta entonces salía con la de por defecto de
+    # relrisk —128 x 128 sobre una caja alta—: σ cabía 2.3 veces en la
+    # vertical, y nada lo miraba, porque las celdas de los demás mapas son
+    # cuadradas y bastaba con el ancho.
+    fam_celdas = D["m2"]["familia"]["celdas_por_sigma"]
+    a.cierto(sg / max(dxc, dyc) >= fam_celdas,
+             "riesgo: P(oficial) cumple las tres celdas en los dos lados",
+             f"{sg / max(dxc, dyc):.2f} celdas en el lado largo ({dxc:.0f} × {dyc:.0f} m)")
+    a.cierto(nxc == M["ciudad_oferta"]["nx"] and nyc == M["ciudad_oferta"]["ny"],
+             "riesgo: con la rejilla de los mapas del módulo 5",
+             f"{nxc} × {nyc} contra {M['ciudad_oferta']['nx']} × {M['ciudad_oferta']['ny']}")
+    rj6, rd = m6["rejilla"], m6["rejilla_por_defecto"]
+    a.cierto(rj6["nx"] == nxc and rj6["ny"] == nyc, "riesgo: la rejilla declarada es la del ráster",
+             f"{rj6['nx']} × {rj6['ny']}")
+    a.cerca(rj6["celda_m"], max(dxc, dyc), "riesgo: su celda, el lado largo", 1e-6)
+    a.cerca(rj6["celdas_por_sigma"], sg / max(dxc, dyc), "riesgo: sus celdas por σ, recalculadas", 1e-6)
+    caja6 = mg["caja"]
+    a.cerca(rd["celda_x_m"], (caja6[2] - caja6[0]) / rd["nx"], "riesgo: la celda por defecto, de ancho", 1e-6)
+    a.cerca(rd["celda_y_m"], (caja6[3] - caja6[1]) / rd["ny"], "riesgo: y de alto", 1e-6)
+    a.cerca(rd["celdas_por_sigma"], sg / max(rd["celda_x_m"], rd["celda_y_m"]),
+            "riesgo: las celdas por σ de la rejilla por defecto", 1e-6)
+    a.cierto(rd["celdas_por_sigma"] < fam_celdas, "riesgo: y esa rejilla incumple la regla",
+             f"{rd['celdas_por_sigma']:.2f} celdas")
+    # Lo que la rejilla por defecto daba, recalculado por suma directa sobre
+    # ella, y la frase del módulo: que casi no se nota y que el área de mayoría
+    # redondea igual con las dos.
+    xd, yd, _, _ = rejilla_de(caja6, rd["nx"], rd["ny"])
+    Xd, Yd = np.meshgrid(xd, yd)
+    mask_d = gpd.GeoSeries(gpd.points_from_xy(Xd.ravel(), Yd.ravel())).within(
+        v_urb).to_numpy().reshape(rd["ny"], rd["nx"])
+    ko_d = kde_directa(ux_[ofi], uy_[ofi], sg, xd, yd)
+    kt_d = ko_d + kde_directa(ux_[~ofi], uy_[~ofi], sg, xd, yd)
+    prop_d = np.where((kt_d > 0) & mask_d, ko_d / np.maximum(kt_d, 1e-300), np.nan)
+    if a.cierto(bool(np.isfinite(prop_d).any()), "riesgo: la superficie por defecto tiene valores"):
+        a.igual(float(np.nanmedian(prop_d)), rd["p_mediana"], "riesgo: la mediana por defecto, recalculada", 0.02)
+        a.igual(100 * float(np.nanmean(prop_d[np.isfinite(prop_d)] > 0.5)), rd["pct_area_mayoria"],
+                "riesgo: y su área de mayoría", 2.0)
+    a.cierto(abs(rd["p_mediana"] - m6["p_mediana"]) < 0.005
+             and round(rd["pct_area_mayoria"], 1) == round(m6["pct_area_mayoria"], 1),
+             "riesgo: con las dos rejillas casi no se nota, como dice",
+             f"mediana {rd['p_mediana']:.4f} y {m6['p_mediana']:.4f}, "
+             f"mayoría {rd['pct_area_mayoria']:.1f} y {m6['pct_area_mayoria']:.1f} %")
     ch = D["m6"]["chorley"]
     a.igual(ch["casos"] + ch["controles"], 1036, "riesgo: chorley suma sus 1 036 puntos")
     a.cerca(ch["casos"] / (ch["casos"] + ch["controles"]), ch["prop_global"],

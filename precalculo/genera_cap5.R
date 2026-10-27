@@ -697,13 +697,27 @@ message("6. intensidad relativa y riesgo relativo")
 #     alrededor tienen que ser mayoritariamente de ese tipo. Esa guarda
 #     es la que habría cazado el defecto, y sobrevive a que alguien
 #     cambie los niveles sin darse cuenta.
+#
+# EL MÁXIMO PUEDE SER UNA MESETA, y entonces «donde es máximo» no es un sitio.
+# El mapa al revés de Bogotá —P(privado)— vale 1, a nueve decimales, en todos
+# los píxeles sin una sola oficial a la vista del núcleo, y según cuál de ellos
+# se mire, las oficiales van del 4 % al 12 % de los vecinos. La primera
+# versión de esta guarda (2026-10-27, la misma tarde) tomaba el primer empate
+# —el `[1, ]` de `which`, que depende del orden de la matriz— y publicó un
+# 10 %; al pasar la rejilla a la de la ciudad salió un 4 %, sin que nada del
+# mapa hubiera cambiado. La guarda recorre la meseta entera y devuelve el
+# intervalo: el mapa está al derecho si hasta el peor empate supera la global.
+TOL_MESETA <- 1e-9
 orienta <- function(im, p, nivel, k = 50L) {
-  ij <- which(as.matrix(im$v) == max(as.numeric(im$v), na.rm = TRUE), arr.ind = TRUE)[1, ]
-  x0 <- im$xcol[ij[2]]; y0 <- im$yrow[ij[1]]
-  d <- (p$x - x0)^2 + (p$y - y0)^2
-  vecinos <- marks(p)[order(d)[seq_len(min(k, npoints(p)))]]
-  mean(vecinos == nivel)
+  v <- as.matrix(im$v)
+  ij <- which(v >= max(v, na.rm = TRUE) - TOL_MESETA, arr.ind = TRUE)
+  fr <- apply(ij, 1, function(r) {
+    d <- (p$x - im$xcol[r[2]])^2 + (p$y - im$yrow[r[1]])^2
+    mean(marks(p)[order(d)[seq_len(min(k, npoints(p)))]] == nivel)
+  })
+  c(pixeles = nrow(ij), min = min(fr), max = max(fr))
 }
+meseta <- function(o) list(pixeles = as.integer(o[["pixeles"]]), min = r10(o[["min"]]), max = r10(o[["max"]]))
 
 # EL CANÓNICO PRIMERO, PORQUE ES EL QUE SE PUEDE CONTRASTAR CON EL LIBRO.
 # `chorley` son 58 casos de laringe contra 978 controles de pulmón, y los
@@ -714,9 +728,17 @@ ch <- chorley
 marks(ch) <- factor(as.character(marks(chorley)), levels = c("lung", "larynx"))
 rr_ch <- relrisk(ch, sigma = 1)
 v_ch <- as.numeric(rr_ch$v); v_ch <- v_ch[is.finite(v_ch)]
+# La caja de chorley es casi cuadrada y su sigma ancho: la rejilla por defecto
+# le basta. Se comprueba igual, porque la de Bogotá parecía bastar.
+if (1 / max(rr_ch$xstep, rr_ch$ystep) < FAM_CELDAS)
+  stop("chorley: sigma = 1 km no llega a tres celdas de la rejilla por defecto")
 or_ch <- orienta(rr_ch, ch, "larynx")
-if (or_ch <= sum(marks(ch) == "larynx") / npoints(ch))
-  stop(sprintf("chorley: el mapa no es P(laringe) — donde es máximo solo el %.0f%% de los vecinos son casos", 100 * or_ch))
+if (or_ch[["min"]] <= sum(marks(ch) == "larynx") / npoints(ch))
+  stop(sprintf("chorley: el mapa no es P(laringe) — donde es máximo solo el %.0f%% de los vecinos son casos", 100 * or_ch[["min"]]))
+# La prosa da UNA cifra para el máximo de chorley y otra para el de Bogotá:
+# vale mientras cada uno sea un solo sitio, o sus empates digan lo mismo.
+if (or_ch[["min"]] != or_ch[["max"]])
+  stop("chorley: el máximo de P(laringe) es una meseta con vecindarios distintos; la cifra única del módulo 6 deja de valer")
 
 # EL MÁXIMO DE UNA PROPORCIÓN SE LEE CON SUS DATOS AL LADO. El 0.3389 de
 # `chorley` se publicó como «sitios donde uno de cada tres cánceres es de
@@ -743,22 +765,48 @@ if (n_cerca_ch > 0)
 marca <- factor(ifelse(cole$sector[en_urb] == "Oficial", "oficial", "privado"),
                 levels = c("privado", "oficial"))   # el segundo es el que pinta
 p_sec <- suppressWarnings(ppp(XY[en_urb, 1], XY[en_urb, 2], window = W_URB, marks = marca))
-rr_bog <- relrisk(p_sec, sigma = SIG_CIUDAD)
+
+# LA REJILLA TAMBIÉN SE PASA, Y ES LA DE LOS TRES MAPAS DEL MÓDULO 5 (M6-7 de
+# la tercera revisión, 2026-10-27). `relrisk`, como `density`, parte la CAJA
+# en 128 x 128 si no se le dice otra cosa, y la caja de Bogotá es alta: las
+# celdas salían de 183 x 312 m y sigma cabía 2.3 veces en la vertical, por
+# debajo de las FAM_CELDAS que el capítulo exige a todo mapa. Las cifras
+# apenas se movían, y por eso se publican las dos: el módulo lo dice medido.
+# Pero la regla no se cumple según lo que dé el caso, y se comprueba en los
+# DOS lados de la celda: con celdas cuadradas mirar uno bastaba, y por eso
+# nadie lo vio.
+REJ_CIUDAD <- c(NY_CIUDAD, NX_CIUDAD)
+celdas_por_sigma <- function(im, s) s / max(im$xstep, im$ystep)
+rr_bog <- relrisk(p_sec, sigma = SIG_CIUDAD, dimyx = REJ_CIUDAD)
+if (celdas_por_sigma(rr_bog, SIG_CIUDAD) < FAM_CELDAS)
+  stop(sprintf("P(oficial): sigma cabe %.2f veces en la celda más larga, y la regla pide %d",
+               celdas_por_sigma(rr_bog, SIG_CIUDAD), FAM_CELDAS))
+if (!identical(dim(rr_bog), as.integer(REJ_CIUDAD)))
+  stop("P(oficial) no salió en la rejilla de los mapas del módulo 5")
 v_bog <- as.numeric(rr_bog$v); v_bog <- v_bog[is.finite(v_bog)]
+rr_128 <- relrisk(p_sec, sigma = SIG_CIUDAD)          # sin dimyx: lo que da por defecto
+v_128 <- as.numeric(rr_128$v); v_128 <- v_128[is.finite(v_128)]
+if (celdas_por_sigma(rr_128, SIG_CIUDAD) >= FAM_CELDAS)
+  stop("la rejilla por defecto de relrisk ya cumple la regla: la nota del módulo 6 deja de valer")
 prop_global <- mean(marca == "oficial")
 or_bog <- orienta(rr_bog, p_sec, "oficial")
-if (or_bog <= prop_global)
-  stop(sprintf("Bogotá: el mapa no es P(oficial) — donde es máximo solo el %.0f%% de los vecinos son oficiales", 100 * or_bog))
+if (or_bog[["min"]] <= prop_global)
+  stop(sprintf("Bogotá: el mapa no es P(oficial) — donde es máximo solo el %.0f%% de los vecinos son oficiales", 100 * or_bog[["min"]]))
+if (or_bog[["min"]] != or_bog[["max"]])
+  stop("Bogotá: el máximo de P(oficial) es una meseta con vecindarios distintos; la cifra única del módulo 6 deja de valer")
 # LA MISMA GUARDA SOBRE EL MAPA QUE SALE SIN FIJAR LOS NIVELES (M6-4 de la
 # tercera revisión, 2026-10-27). Con el orden alfabético `relrisk` pinta
 # P(privado), y es ESE mapa el que la guarda tiene que cazar: el bloque de R
 # del módulo 6 la enseña aplicada a los dos, y no solo dicha.
 p_sec_alf <- p_sec
 marks(p_sec_alf) <- factor(as.character(marca))
-or_bog_inv <- orienta(relrisk(p_sec_alf, sigma = SIG_CIUDAD), p_sec_alf, "oficial")
-if (!(or_bog_inv < prop_global && prop_global < or_bog))
-  stop(sprintf("la guarda ya no separa los dos mapas de Bogotá (%.2f con los niveles por defecto, %.2f fijados, %.2f global)",
-               or_bog_inv, or_bog, prop_global))
+or_bog_inv <- orienta(relrisk(p_sec_alf, sigma = SIG_CIUDAD, dimyx = REJ_CIUDAD), p_sec_alf, "oficial")
+if (!(or_bog_inv[["max"]] < prop_global && prop_global < or_bog[["min"]]))
+  stop(sprintf("la guarda ya no separa los dos mapas de Bogotá (hasta %.2f con los niveles por defecto, desde %.2f fijados, %.2f global)",
+               or_bog_inv[["max"]], or_bog[["min"]], prop_global))
+# Y lo que la prosa cuenta de ese máximo: que es una meseta, no un sitio.
+if (or_bog_inv[["pixeles"]] < 2)
+  stop("el máximo del mapa al revés ya no es una meseta: la nota del módulo 6 deja de valer")
 
 # LA PREGUNTA «¿EN QUÉ FRACCIÓN DE LA CIUDAD SON MAYORÍA?» TIENE SU CIFRA, y
 # no es la mediana: es el área donde P > 0.5. Los píxeles miden lo mismo, así
@@ -798,7 +846,7 @@ D$m6 <- list(
     maximo_dist_borde_m = r10(1000 * d_borde_ch),
     maximo_radio_km = 2 * SIG_CH,
     maximo_puntos_cerca = n_cerca_ch,
-    orientacion_verificada = r10(or_ch)),
+    orientacion_verificada = r10(or_ch[["min"]])),
   bogota = list(
     que = "proporción de tipo, no riesgo epidemiológico",
     que_pinta = "P(oficial)",
@@ -808,10 +856,19 @@ D$m6 <- list(
     prop_global = r10(prop_global),
     brecha_mediana_menos_global = r10(median(v_bog) - prop_global),
     pct_area_mayoria = r10(pct_mayoria_bog),
+    rejilla = list(nx = rr_bog$dim[2], ny = rr_bog$dim[1],
+                   celda_m = r10(max(rr_bog$xstep, rr_bog$ystep)),
+                   celdas_por_sigma = r10(celdas_por_sigma(rr_bog, SIG_CIUDAD))),
+    rejilla_por_defecto = list(nx = rr_128$dim[2], ny = rr_128$dim[1],
+                               celda_x_m = r10(rr_128$xstep), celda_y_m = r10(rr_128$ystep),
+                               celdas_por_sigma = r10(celdas_por_sigma(rr_128, SIG_CIUDAD)),
+                               p_mediana = r10(median(v_128)),
+                               pct_area_mayoria = r10(100 * mean(v_128 > 0.5))),
     pct_oficiales_tercio_sur = r10(pct_ofi_sur),
     pct_oficiales_tercio_norte = r10(pct_ofi_norte),
-    orientacion_verificada = r10(or_bog),
-    orientacion_niveles_por_defecto = r10(or_bog_inv)))
+    orientacion_verificada = r10(or_bog[["min"]]),
+    guarda = list(tolerancia_meseta = TOL_MESETA,
+                  fijado = meseta(or_bog), defecto = meseta(or_bog_inv))))
 
 message(sprintf("   chorley: %d casos / %d controles, mediana %.4f contra %.4f global, máximo a %.0f m del borde con %d puntos a %g km · Bogotá: mediana %.4f contra %.4f global, mayoría oficial en el %.1f%% del área, %.1f%% de oficiales en el tercio sur y %.1f%% en el norte",
                 D$m6$chorley$casos, D$m6$chorley$controles,
@@ -1943,7 +2000,12 @@ message(sprintf("  cap5_datos.json: %.1f KB",
 # haciendo falta para cazar lo que NO es contenido —un ráster que se
 # duplique por un dimyx mal puesto, una superficie de más colada por un
 # lapply—. Se deja con holgura sobre lo medido, no sin techo.
-geo_escribe(MAPAS, file.path(SALIDAS, "cap5_mapas.json"), presupuesto_kb = 560)
+#
+# Y SE MUEVE CUANDO LO MEDIDO SE MUEVE, NO ANTES. La tercera revisión
+# (2026-10-27) lo dejó en 597 KB —el aviso saltaba y nadie lo leía, que es
+# como no tenerlo— y el mapa de P(oficial) pasó luego de 128 x 128 a la
+# rejilla de la ciudad (218 x 128, M6-7): 634 KB. Son contenido, los dos.
+geo_escribe(MAPAS, file.path(SALIDAS, "cap5_mapas.json"), presupuesto_kb = 680)
 
 # --- Los CSV que leen las pestañas de Python --------------------------
 # Kennedy con lo que hace falta para recalcular su KDE desde cero: sin

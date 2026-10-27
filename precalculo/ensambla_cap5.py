@@ -1252,28 +1252,54 @@ round(c(mediana = median(v), global = mean(marks(ch) == &quot;larynx&quot;),
 #&gt; mediana  global  maxima
 #&gt;  {CH}
 
+# BOGOTA, CON EL ORDEN FIJADO. Y LA REJILLA TAMBIEN SE PASA: sin `dimyx`,
+# relrisk parte la CAJA en 128 x 128, como density, y la caja de Bogota es
+# alta. Las celdas no salen cuadradas, y en la vertical sigma no llega a
+# las tres celdas del modulo 2.
+sector &lt;- ifelse(cole$sector[en] == &quot;Oficial&quot;, &quot;oficial&quot;, &quot;privado&quot;)
+p_fij &lt;- ppp(xy[en, 1], xy[en, 2], window = WU,
+             marks = factor(sector, levels = c(&quot;privado&quot;, &quot;oficial&quot;)))
+r128 &lt;- relrisk(p_fij, sigma = sg)
+round(c(ancho = r128$xstep, alto = r128$ystep, celdas = sg / r128$ystep), 1)
+#&gt;  ancho   alto celdas
+#&gt;  {R128}
+
+# Con la de los tres mapas del modulo 5 (`d`), la regla se cumple en los
+# dos lados de la celda, y estas son las cifras que publica el modulo.
+rb &lt;- relrisk(p_fij, sigma = sg, dimyx = d)
+vb &lt;- as.numeric(rb$v); vb &lt;- vb[is.finite(vb)]
+round(c(celdas = sg / max(rb$xstep, rb$ystep), global = mean(sector == &quot;oficial&quot;),
+        mediana = median(vb), mayoria = 100 * mean(vb &gt; 0.5)), 4)
+#&gt;  celdas  global mediana mayoria
+#&gt; {RB}
+
 # Y LA GUARDA QUE CAZA EL MAPA AL REVES, aplicada a los dos de Bogota:
 # donde el mapa es maximo, los 50 vecinos mas proximos tienen que ser
 # oficiales MAS que en toda la ciudad. No mira los niveles: mira el dato.
+# Y el maximo puede ser una MESETA —P = 1 en todo pixel sin una oficial a
+# la vista del nucleo—: entonces no es un sitio, y se miran todos.
 orienta &lt;- function(im, p, nivel, k = 50) {{
-  ij &lt;- which(as.matrix(im$v) == max(im$v, na.rm = TRUE), arr.ind = TRUE)[1, ]
-  d &lt;- (p$x - im$xcol[ij[2]])^2 + (p$y - im$yrow[ij[1]])^2
-  mean(marks(p)[order(d)[1:k]] == nivel)
+  v &lt;- as.matrix(im$v)
+  ij &lt;- which(v &gt;= max(v, na.rm = TRUE) - 1e-9, arr.ind = TRUE)
+  fr &lt;- apply(ij, 1, function(r) {{
+    d2 &lt;- (p$x - im$xcol[r[2]])^2 + (p$y - im$yrow[r[1]])^2
+    mean(marks(p)[order(d2)[1:k]] == nivel)
+  }})
+  c(pixeles = nrow(ij), min = min(fr), max = max(fr))
 }}
-sector &lt;- ifelse(cole$sector[en] == &quot;Oficial&quot;, &quot;oficial&quot;, &quot;privado&quot;)
 p_def &lt;- ppp(xy[en, 1], xy[en, 2], window = WU, marks = factor(sector))
-p_fij &lt;- ppp(xy[en, 1], xy[en, 2], window = WU,
-             marks = factor(sector, levels = c(&quot;privado&quot;, &quot;oficial&quot;)))
-round(c(global  = mean(sector == &quot;oficial&quot;),
-        defecto = orienta(relrisk(p_def, sigma = sg), p_def, &quot;oficial&quot;),
-        fijado  = orienta(relrisk(p_fij, sigma = sg), p_fij, &quot;oficial&quot;)), 4)
-#&gt;  global defecto  fijado
-#&gt;  {GUARDA}'''
+rbind(defecto = orienta(relrisk(p_def, sigma = sg, dimyx = d), p_def, &quot;oficial&quot;),
+      fijado  = orienta(rb, p_fij, &quot;oficial&quot;))
+#&gt;         pixeles  min  max
+#&gt; {GUARDA_DEF}
+#&gt; {GUARDA_FIJ}'''
 
 PY6 = '''# La proporcion de tipo es un cociente entre la intensidad de un tipo y
 # la de los dos juntos, sobre la misma ventana, y se reconstruye con la KDE
 # que ya esta escrita: nada nuevo salvo dividir. Aqui, sobre Bogota,
-# P(oficial). Con la correccion de borde POR DEFECTO, como relrisk.
+# P(oficial). Con la correccion de borde POR DEFECTO, como relrisk, y en
+# la rejilla de la ciudad, la que el bloque de R le pasa con `dimyx`: las
+# dos medianas coinciden a cuatro decimales.
 of = (urb.sector == &quot;Oficial&quot;).to_numpy()
 z_ofi = kde_ciudad(UX[of], UY[of], diggle=False)
 z_pri = kde_ciudad(UX[~of], UY[~of], diggle=False)
@@ -1289,6 +1315,11 @@ print(round(float(np.nanmedian(p_of)), 4), round(float(of.mean()), 4))
 print(round(float(np.nanmax(p_of)), 4), int(of.sum()), int((~of).sum()))
 #&gt; 0.9999 {OFI} {PRI}'''
 
+def _fila_guarda(nombre, g):
+    """Una fila de la tabla que imprime `rbind(...)` en el bloque de R."""
+    return (f"{nombre} {ent_codigo(g['pixeles']):>7} {float(g['min']):.2f} {float(g['max']):.2f}")
+
+
 _SUB6 = dict(
     SIG_CH=ent(m6["chorley"]["sigma"]),
     CASOS=ent(m6["chorley"]["casos"]),
@@ -1297,13 +1328,22 @@ _SUB6 = dict(
                                   m6["chorley"]["prop_global"],
                                   m6["chorley"]["p_max"])),
     PROP=n(m6["bogota"]["prop_global"], 4),
-    GUARDA=" ".join(n(v, 4) for v in (m6["bogota"]["prop_global"],
-                                      m6["bogota"]["orientacion_niveles_por_defecto"],
-                                      m6["bogota"]["orientacion_verificada"])),
+    R128=" ".join(n(v, 1) for v in (m6["bogota"]["rejilla_por_defecto"]["celda_x_m"],
+                                    m6["bogota"]["rejilla_por_defecto"]["celda_y_m"],
+                                    m6["bogota"]["rejilla_por_defecto"]["celdas_por_sigma"])),
+    RB=" ".join(n(v, 4) for v in (m6["bogota"]["rejilla"]["celdas_por_sigma"],
+                                  m6["bogota"]["prop_global"],
+                                  m6["bogota"]["p_mediana"],
+                                  m6["bogota"]["pct_area_mayoria"])),
+    # Una fracción de 50 vecinos es múltiplo de 0.02: con dos decimales es
+    # exacta y es como la imprime R (0.04, no 0.0400).
+    GUARDA_DEF=_fila_guarda("defecto", m6["bogota"]["guarda"]["defecto"]),
+    GUARDA_FIJ=_fila_guarda("fijado ", m6["bogota"]["guarda"]["fijado"]),
     OFI=ent_codigo(m6["bogota"]["oficiales"]),
     PRI=ent_codigo(m6["bogota"]["privadas"]))
 
 _ch, _bg = m6["chorley"], m6["bogota"]
+_rd = _bg["rejilla_por_defecto"]
 
 MOD6 = cabecera(
     6, "Intensidad relativa", "Relative risk and relative intensity",
@@ -1374,8 +1414,13 @@ MOD6 = cabecera(
           {pct(100 * _bg["orientacion_verificada"], 0)} son oficiales. Esa segunda guarda es la
           que habría cazado el defecto, y sobrevive a que alguien reordene los niveles: el bloque de
           R de abajo la aplica a los dos mapas de Bogotá. Con los niveles por defecto —el mapa que
-          pinta P(privado)— solo el {pct(100 * _bg["orientacion_niveles_por_defecto"], 0)} de los
-          vecinos de su máximo son oficiales, por debajo del global, y la guarda lo caza.</p>
+          pinta P(privado)— el máximo ni siquiera es un sitio: vale 1, a nueve decimales, en
+          {ent(_bg["guarda"]["defecto"]["pixeles"])} píxeles, todos los que no tienen una sola
+          oficial a la vista del núcleo, y según cuál se mire las oficiales son entre el
+          {pct(100 * _bg["guarda"]["defecto"]["min"], 0)} y el
+          {pct(100 * _bg["guarda"]["defecto"]["max"], 0)} de sus vecinos. Por eso la guarda recorre
+          la meseta entera en vez de quedarse con el primer empate: hasta en el peor quedan por
+          debajo del global, y lo caza.</p>
       </div>
 
       <h3>Y el caso colombiano, que no es riesgo</h3>
@@ -1416,6 +1461,19 @@ MOD6 = cabecera(
         mayoría?» —el {pct(_bg["pct_area_mayoria"], 1)}—. La mediana contesta una tercera: qué valor
         de la proporción deja por debajo a media ciudad. Un informe que solo publique una de
         ellas no está mintiendo, pero tampoco está diciendo lo que el lector va a entender.</p>
+
+      <p>La mediana y el área de mayoría se leen en la rejilla de los mapas del módulo 5, de
+        {_bg["rejilla"]["nx"]} × {_bg["rejilla"]["ny"]} celdas de
+        {n(_bg["rejilla"]["celda_m"], 0)} m, y hay que pasársela a <code>relrisk</code> a mano. Sin
+        <code>dimyx</code> parte la caja en {_rd["nx"]} × {_rd["ny"]}, como
+        <code>density</code>, y como la caja de Bogotá es más alta que ancha las celdas salen de
+        {n(_rd["celda_x_m"], 0)} × {n(_rd["celda_y_m"], 0)} m: en la vertical, σ cabría
+        {n(_rd["celdas_por_sigma"], 1)} veces, por debajo de las tres del módulo 2. Aquí casi no
+        se nota —medido, la mediana pasa de {n(_rd["p_mediana"], 4)} a
+        {n(_bg["p_mediana"], 4)}, y el área de mayoría es el {pct(_rd["pct_area_mayoria"], 1)}
+        con las dos—, pero eso solo se sabe después de medir, y la regla está para no tener que
+        medirlo cada vez. Con celdas cuadradas bastaba mirar un lado; con estas hay que mirar
+        los dos, y es lo que hace el bloque de R.</p>
 
 {tabs("El cociente de dos intensidades, y quién es el segundo nivel", R6.format(**_SUB6), PY6.format(**_SUB6))}
       <p>Con esto se cierra la mitad descriptiva del capítulo: ya se sabe estimar una superficie,

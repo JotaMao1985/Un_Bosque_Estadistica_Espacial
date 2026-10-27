@@ -925,9 +925,13 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
         ("la horquilla entre corregir y no corregir el borde, cambiada",
          f"<strong>{f(m4['horquilla_pct'])}</strong> puntos porcentuales",
          f"<strong>{perturba(m4['horquilla_pct'])}</strong> puntos porcentuales"),
+        # Dos diezmilésimas y no el último dígito a «1»: con la rejilla de la
+        # ciudad (M6-7, 2026-10-27) la mediana es 0.3090, y 0.3091 coincide con
+        # el reparto de un punto de la curva rhohat de `bei` (0.30908 %), que
+        # el índice de derivadas admite. La inyección no habría medido nada.
         ("la mediana de la superficie de P(oficial), cambiada",
          f"<strong>{f(m6['bogota']['p_mediana'], 4)}</strong>",
-         f"<strong>{perturba(m6['bogota']['p_mediana'], 4)}</strong>"),
+         f"<strong>{f(m6['bogota']['p_mediana'] + 0.0002, 4)}</strong>"),
         ("la razón del bulto de la curva rhohat colombiana, cambiada",
          f"<strong>{f(m7['bogota']['curva']['razon_bulto'])}</strong> veces",
          f"<strong>{perturba(m7['bogota']['curva']['razon_bulto'])}</strong> veces"),

@@ -90,6 +90,9 @@ envolventes de la K inhomogénea, la guarda de orientación ejecutada en el bloq
 módulo 6, la EMV con la integral exacta y Berman-Turner a mano en la pestaña de Python del
 módulo 8. El documento pasa de 1 307 a 1 357 KB, a 3 del tope. 1400 deja 43 KB de margen y
 sigue 269 KB por debajo de 1357 + 312. Es explicación, y la séptima vez que el peso cede.
+Esa misma noche el tope NO se movió: el mapa de P(oficial) pasó de 128 × 128 a la rejilla de
+la ciudad (M6-7: σ cabía 2.3 celdas en la vertical) y el módulo 6 enseña la rejilla y la
+meseta de la guarda. 1 357 → 1 379 KB, 21 de margen; el ráster pasa de 28 a 47 KB empaquetado.
 
 Y EL PRESUPUESTO DE GEOMETRÍA ES 250 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y
@@ -285,6 +288,10 @@ AFIRMACIONES = [
      "segundo nivel"),
     ("declara que la guarda que caza eso es comprobar la orientación contra el dato",
      "orientación contra el dato"),
+    ("dice que el máximo del mapa al revés es una meseta y la guarda la recorre entera",
+     "recorre la meseta entera"),
+    ("dice por qué la rejilla por defecto no vale en Bogotá (M6-7)",
+     "como la caja de bogotá es más alta que ancha"),
     ("dice en qué fracción de la ciudad es mayoría lo oficial, que no es la mediana",
      "del área de la ciudad"),
     ("lee el máximo de chorley con los puntos que tiene alrededor",

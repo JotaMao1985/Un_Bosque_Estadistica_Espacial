@@ -56,7 +56,7 @@ def cargar_entradas(m, sesiones):
          "«más que en todo el conjunto»."),
         ("La mediana no mide «en qué fracción de la ciudad son mayoría» (arreglado en el capítulo el 2026-10-27)",
          "El módulo 6 resume la mediana de la superficie P(oficial) como la respuesta a «¿en qué fracción de la ciudad son mayoría?». La "
-         "mediana es el valor de la proporción en el punto típico de la ciudad (0.3086), no una fracción del área en la que las oficiales "
+         "mediana es el valor de la proporción en el punto típico de la ciudad (0.3090), no una fracción del área en la que las oficiales "
          "son mayoría. Las diapositivas dicen lo primero."),
         ("Los tiempos de la KDE están escritos a mano en el generador (arreglado en el capítulo el 2026-10-27)",
          "`genera_cap5.R` publica `coste_segundos = list(defecto = 0.15, sin_corregir = 0.14, diggle = 0.15)` como constantes (vienen de la "
@@ -139,7 +139,8 @@ def cargar_entradas(m, sesiones):
         REG("7", A(lambda: r("cuadrantes.celdas_rejilla") - r("cuadrantes.celdas_con_ventana"), "64 celdas de la rejilla − 57 con ventana"))
         REG("10", [P("distancia ilustrativa del texto del capítulo («aunque esté a diez metros»)"), T("a diez metros")], cx=r"a 10 m")
         REG(["1.2", "1.9", "2.3", "6.5", "7.9", "8.4"],
-            Spec("param", "posiciones inventadas de la ilustración (`x_j` en `genera_figuras_s1.R`)", [("genera_figuras_s1.R › x_j", _xj)]))
+            Spec("param", "posiciones inventadas de la ilustración (`x_j` en `genera_figuras_s1.R`)", [("genera_figuras_s1.R › x_j", _xj)]),
+            cx=r"dimensión")    # sin contexto, cualquier 2.3 de la sesión pasaba por una posición inventada
 
         # ---- módulo 2 ----
         REG("400", [RJ("m2.sigma_m", "nucleos.sigma_m"), J("m4.sigmas_m")])
@@ -229,7 +230,7 @@ def cargar_entradas(m, sesiones):
         REG("99x96", Spec("param", "rejilla de `density(..., dimyx = c(99, 96))` (ny × nx)", [("datos › m2.familia.ny × nx", lambda: f"{d('m2.familia.ny')}x{d('m2.familia.nx')}")]))
         REG("262.0000", RJ("m4.tabla[2].masa_diggle", "bordes.800.masa_diggle"))
         REG("224.4065", RJ("m4.tabla[2].masa_sin_corregir", "bordes.800.masa_sin"))
-        REG("128x128", P("rejilla de 128 × 128 celdas sobre la ventana urbana", "meta.rejilla.nx_ciudad"))
+        REG("128x128", P("rejilla de 128 × 128 celdas sobre la ventana urbana", "meta.rejilla.nx_ciudad"), cx=r"ciudad a 128")
         REG("0.221", J4("m10.correcciones[2].segundos"))
         REG("122.655", J4("m10.correcciones[3].segundos"))
         # Los tiempos de la KDE los mide el precálculo sobre Kennedy desde la tercera revisión (antes, 0.15 y 0.14 escritos a mano)
@@ -292,8 +293,13 @@ def cargar_entradas(m, sesiones):
         REG("6", Rr("chorley.maximo_sobre_global"))
         REG("4", Rr("chorley.vecinos_casos"), cx=r"4 de (los |sus )?50")
         REG("50", Rr("chorley.vecinos_k"), cx=r"vecinos|de 50")
-        REG("0.6914", Rr("oficial.mediana_sin_fijar_niveles"))
-        REG("0.3086", RJ("m6.bogota.p_mediana", "oficial.mediana"))
+        REG("0.6910", Rr("oficial.mediana_sin_fijar_niveles"))
+        REG("0.3090", RJ("m6.bogota.p_mediana", "oficial.mediana"))
+        # M6-7: la rejilla de P(oficial), la de la ciudad, y lo que daba la de por defecto de relrisk
+        REG("128x128", Spec("param", "rejilla por defecto de relrisk (nx × ny)", [("datos › m6.bogota.rejilla_por_defecto.nx × ny", lambda: f"{d('m6.bogota.rejilla_por_defecto.nx')}x{d('m6.bogota.rejilla_por_defecto.ny')}")]))
+        REG("183x312", Spec("param", "celdas de la rejilla por defecto (m)", [("datos › m6.bogota.rejilla_por_defecto.celda_x_m × celda_y_m", lambda: f"{d('m6.bogota.rejilla_por_defecto.celda_x_m'):.0f}x{d('m6.bogota.rejilla_por_defecto.celda_y_m'):.0f}")]))
+        REG("2.3", RJ("m6.bogota.rejilla_por_defecto.celdas_por_sigma", "oficial.rejilla_por_defecto.celdas_por_sigma"), cx=r"2\.3 veces")
+        REG("0.3086", RJ("m6.bogota.rejilla_por_defecto.p_mediana", "oficial.rejilla_por_defecto.mediana"), cx=r"sería 0\.3086")
         REG("8", [A(lambda: 100 * d("m6.chorley.orientacion_verificada"), "100 × orientación del máximo de chorley"), A(lambda: 100 * r("chorley.vecinos_prop"), "100 × vecinos casos / 50")])
         REG("5.6", A(lambda: 100 * d("m6.chorley.prop_global"), "100 × proporción global de chorley"))
         REG("64", [A(lambda: 100 * d("m6.bogota.orientacion_verificada"), "100 × orientación del máximo de Bogotá"), A(lambda: 100 * r("oficial.vecinos_prop"), "100 × vecinos oficiales / 50")], cx=r"64 %")
@@ -358,13 +364,13 @@ def cargar_entradas(m, sesiones):
         REG("85", J("m6.chorley.maximo_dist_borde_m"), cx=r"a 85 m")
         REG("0.5", P("el corte de la barra de P(oficial): empate entre los dos sectores"), cx=r"empieza en 0\.5|caiga en 0\.5|lados de 0\.5")
         REG("40", Rr("permutaciones.n"), cx=r"40 barajados")
-        REG("0.324", Rr("permutaciones.bogota.min"))
-        REG("0.342", Rr("permutaciones.bogota.max"))
-        REG("6.4", A(lambda: -r("permutaciones.bogota.desviaciones"), "desviaciones típicas que separan la mediana observada de la media de los barajados"))
+        REG("0.326", Rr("permutaciones.bogota.min"))
+        REG("0.343", Rr("permutaciones.bogota.max"))
+        REG("6.3", A(lambda: -r("permutaciones.bogota.desviaciones"), "desviaciones típicas que separan la mediana observada de la media de los barajados"))
         REG("0.028", Rr("permutaciones.chorley.min"), cx=r"da de 0\.028")
         REG("0.056", Rr("permutaciones.chorley.max"))
-        REG("0.3357", Rr("permutaciones.bogota.media_pesada_por_intensidad"))
-        REG("0.3248", Rr("permutaciones.bogota.media_por_area"))
+        REG("0.3359", Rr("permutaciones.bogota.media_pesada_por_intensidad"))
+        REG("0.3252", Rr("permutaciones.bogota.media_por_area"))
         REG("0.155", M("tiempos.ciudad_128.defecto", 0.02))
         REG("0.147", M("tiempos.ciudad_128.sin_corregir", 0.02))
         REG("0.161", M("tiempos.ciudad_128.diggle", 0.02))

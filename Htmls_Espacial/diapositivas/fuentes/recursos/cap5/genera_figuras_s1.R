@@ -260,7 +260,10 @@ dev.off()
 # ---------------------------------------------------------------------
 marca <- factor(ifelse(cole$sector[en] == "Oficial", "oficial", "privado"), levels = c("privado", "oficial"))
 p_sec <- suppressWarnings(ppp(xy[en, 1], xy[en, 2], window = WU, marks = marca))
-rr_b <- relrisk(p_sec, sigma = sg)
+# La rejilla de los mapas de calor, como el capítulo desde M6-7 (2026-10-27): sin `dimyx`, relrisk usa 128 x 128
+# sobre la caja, y en una caja tan alta las celdas salen de 183 x 312 m (σ = 2.3 celdas en la vertical).
+rr_b <- relrisk(p_sec, sigma = sg, dimyx = dd)
+stopifnot(sg / max(rr_b$xstep, rr_b$ystep) >= 3)
 vb <- as.numeric(rr_b$v); vb <- vb[is.finite(vb)]
 cat("F9 Bogotá: mediana", round(median(vb), 4), " global", round(mean(marks(p_sec) == "oficial"), 4), " oficiales:", sum(marks(p_sec) == "oficial"), " privadas:", sum(marks(p_sec) == "privado"), "\n")
 # Ocho clases y no siete (tercera revisión, 2026-10-27): con siete, la clase gris iba de 0.43 a 0.57 y la marca
@@ -283,7 +286,7 @@ plot.new()
 dev.off()
 
 # ---------------------------------------------------------------------
-# F10 · Bogotá: contar puntos (0.3365) contra la mediana de la superficie (0.3086)
+# F10 · Bogotá: contar puntos (0.3365) contra la mediana de la superficie (0.3090)
 # ---------------------------------------------------------------------
 glob <- mean(marks(p_sec) == "oficial"); med <- median(vb)
 abre_z("s1-oficial-hist", 2000, 800)
