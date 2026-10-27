@@ -265,6 +265,22 @@ if (modulo == "b_m11_dups") {
 }
 
 # ---------------------------------------------------------------------
+# S2-15 de la tercera revisión (2026-10-27): la prueba DIRECTA de que los duplicados no explican la
+# banda. Sin las sedes que repiten la posición de otra, el mismo plano y la misma envolvente.
+if (modulo == "b_m10_sindup") {
+  u <- !duplicated(cbind(pu$x, pu$y))
+  pu2 <- pu[u]
+  f2 <- ppm(pu2 ~ xc + yc, covariates = COVS)
+  set.seed(5028)
+  e2 <- quieto(envelope(f2, Kinhom, nsim = nsim_o(199), correction = "translate", verbose = FALSE, savefuns = TRUE))
+  ok <- e2$r > 0
+  fu <- e2$obs > e2$hi | e2$obs < e2$lo
+  guarda("m10b_sindup", list(n = npoints(pu2), quitadas = npoints(pu) - npoints(pu2), nsim = nsim_o(199), semilla = 5028,
+                             pct_fuera = 100 * mean(fu[ok]), ultimo_r_fuera = max(e2$r[ok][fu[ok]]),
+                             dclf = dclf.test(e2)$p.value, mad = mad.test(e2)$p.value))
+}
+
+# ---------------------------------------------------------------------
 if (modulo == "b_m11_trend") {
   # los kppm de la diapositiva 37 llevan tendencia (~ xc + yc): sus parámetros de grupo no son los de ~ 1
   res <- list()

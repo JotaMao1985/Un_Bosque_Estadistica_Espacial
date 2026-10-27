@@ -1,0 +1,21 @@
+{
+  "m10b_sindup": {
+    "n": 2067,
+    "quitadas": 40,
+    "nsim": 199,
+    "semilla": 5028,
+    "pct_fuera": 68.75,
+    "ultimo_r_fuera": 4034.32956644917,
+    "dclf": 0.005,
+    "mad": 0.005
+  },
+  "meta": {
+    "modulo": "b_m10_sindup",
+    "fecha": "2026-10-27",
+    "R": "R version 4.4.1 (2024-06-14)",
+    "segundos_totales": 41.7898409366608,
+    "spatstat": "3.5.1",
+    "spatstat.explore": "3.8.0",
+    "spatstat.model": "3.6.1"
+  }
+}

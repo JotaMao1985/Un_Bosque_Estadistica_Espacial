@@ -388,5 +388,13 @@
         "cambio_pct": -0.16108344580763
       }
     ]
+  },
+  "capas_maximo_bachillerato": {
+    "localidad": "Suba",
+    "max_km2": 9.54441897852096
+  },
+  "fuga_cerrada": {
+    "sigmas_m": [400, 800],
+    "pct": [-10.4346770165342, -19.754272096834]
   }
 }

@@ -12,7 +12,7 @@ SAL <- "Htmls_Espacial/diapositivas/fuentes/recursos/cap5/"
 # 0.25-0.4 de su lienzo. Con la letra a cex ~1.3 y res = 200, la letra de la diapositiva mide ~9-11 px (y menos aún con
 # `layout()`, que baja el cex base a 0.83 con 2 x 2 y a 0.66 con tres columnas). Achicar el lienzo Z veces deja la letra
 # Z veces mayor respecto de la figura, y la figura se muestra con el mismo `alto`: el objetivo es ~15-16 px de letra.
-ZOOM <- c("s1-kennedy" = 1.35, "s1-sigma-tres" = 1.3, "s1-borde-tres" = 1.4, "s1-bwppl-criterio" = 1.2, "s1-oferta-estudiantes" = 1.25,
+ZOOM <- c("s1-kennedy" = 1.35, "s1-sigma-tres" = 1.3, "s1-borde-tres" = 1.4, "s1-bwppl-criterio" = 1.2, "s1-bachillerato-estudiantes" = 1.25,
           "s1-chorley" = 1.25, "s1-oficial-mapa-puntos" = 1.3, "s1-nucleos-cuatro" = 1.15, "s1-tres-capas" = 1.25)
 abre_z <- function(nombre, ancho_px, alto_px) {
   z <- if (nombre %in% names(ZOOM)) ZOOM[[nombre]] else 1
@@ -193,26 +193,30 @@ mtext("intervalo ampliado a 2 · más alto = mejor", side = 3, line = 0.9, cex =
 dev.off()
 
 # ---------------------------------------------------------------------
-# F7 · Bogotá: oferta (todas las sedes) frente a estudiantes (evaluados), σ = bw.CvL
+# F7 · Bogotá: bachillerato (las 1 062 sedes con grado 11) frente a estudiantes (las mismas, pesadas por sus
+#   evaluados), σ = bw.CvL. Hasta la tercera revisión (2026-10-27, S1-07) dibujaba la oferta, y la lámina pedía
+#   comparar bachillerato con estudiantes sin mostrarlo: así cada pareja difiere en una sola cosa, el peso.
 # ---------------------------------------------------------------------
 sg <- as.numeric(bw.CvL(pu)); dd <- c(218, 128)
-k_of <- density(pu,  sigma = sg, dimyx = dd, diggle = TRUE) * 1e6
+k_of <- density(pu,  sigma = sg, dimyx = dd, diggle = TRUE) * 1e6   # la usa la figura de las tres capas (F14)
+k_11 <- density(p11, sigma = sg, dimyx = dd, diggle = TRUE) * 1e6
 k_es <- density(p11, sigma = sg, dimyx = dd, diggle = TRUE, weights = s11$s11_n[c11]) * 1e6
-cat("F7 sigma:", round(sg, 4), " maximos:", round(c(max(k_of), max(k_es)), 4), "\n")
-mc1 <- mapa_color(PAL_NARANJA, c(0, max(k_of))); mc2 <- mapa_color(PAL_NARANJA, c(0, max(k_es)))
-abre_z("s1-oferta-estudiantes", 2000, 1300)
+cat("F7 sigma:", round(sg, 4), " maximos:", round(c(max(k_11), max(k_es)), 4), "\n")
+mc1 <- mapa_color(PAL_NARANJA, c(0, max(k_of)))   # la escala de la oferta, para F14
+mcb <- mapa_color(PAL_NARANJA, c(0, max(k_11))); mc2 <- mapa_color(PAL_NARANJA, c(0, max(k_es)))
+abre_z("s1-bachillerato-estudiantes", 2000, 1300)
 layout(matrix(c(1, 2, 3, 4), 2, 2, byrow = TRUE), heights = c(1, 0.2)); par(mar = c(0.2, 0.2, 3.6, 0.2))
 et <- list(Suba = et_loc("Suba"), Bosa = et_loc("Bosa"), Kennedy = et_loc("Kennedy"))
 pos_et <- c(Suba = 1, Bosa = 2, Kennedy = 4)
 for (k in 1:2) {
-  pinta_im(if (k == 1) k_of else k_es, if (k == 1) mc1 else mc2, WU)
-  titulo_panel(if (k == 1) "Oferta: 2 107 sedes" else "Estudiantes: 145 362",
-               if (k == 1) sprintf("máximo %.1f sedes por km²", max(k_of)) else sprintf("máximo %.0f evaluados por km²", max(k_es)))
+  pinta_im(if (k == 1) k_11 else k_es, if (k == 1) mcb else mc2, WU)
+  titulo_panel(if (k == 1) "Bachillerato: 1 062 sedes" else "Estudiantes: las mismas",
+               if (k == 1) sprintf("máximo %.1f sedes por km²", max(k_11)) else sprintf("pesadas · máximo %.0f por km²", max(k_es)))
   for (n in names(et)) { points(et[[n]][1], et[[n]][2], pch = 16, cex = 0.9, col = COL_VERDE); text(et[[n]][1], et[[n]][2], n, cex = 1.2, font = 2, col = COL_VERDE, pos = pos_et[[n]], offset = 0.5) }
   norte(bb["xmin"] + 1500, bb["ymax"] - 5200, 2600)
   if (k == 1) barra_escala(bb["xmin"] + 800, bb["ymin"] + 1800, 5000, "5 km")
 }
-barra_color(mc1, "sedes por km²", c(0, 5, 10, 14.5), c("0", "5", "10", "14.5"), cex = 1.2)
+barra_color(mcb, "sedes por km²", c(0, 3, 6, 9), c("0", "3", "6", "9"), cex = 1.2)
 barra_color(mc2, "evaluados por km²", c(0, 500, 1000, 1500), c("0", "500", "1000", "1500"), cex = 1.2)
 dev.off()
 

@@ -22,13 +22,13 @@ Los enteros 0, 1 y 2 usados como constantes de definición no se registran: no s
 
 ## Resumen
 
-- 497 apariciones de cifras en 41 diapositivas; 258 cifras distintas.
-- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 230
-- VERIFICADA · re-ejecutada en R: 94
-- VERIFICADA · aritmética sobre cifras verificadas: 75
-- CONTRASTADA · salida de R (JSON del capítulo): 61
+- 506 apariciones de cifras en 41 diapositivas; 262 cifras distintas.
+- VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 231
+- VERIFICADA · re-ejecutada en R: 99
+- VERIFICADA · aritmética sobre cifras verificadas: 77
+- CONTRASTADA · salida de R (JSON del capítulo): 63
 - PARÁMETRO de diseño: 27
-- CONTRASTADA · texto del capítulo: 7
+- CONTRASTADA · texto del capítulo: 6
 - REFERENCIA · ficha de ayuda del paquete: 3
 
 ## Hallazgos en el material del capítulo
@@ -42,7 +42,7 @@ Discrepancias que aparecieron al cotejar. No son errores de la presentación: se
 - **La pregunta de `rhohat`: el ancho del núcleo también mueve el titular (módulo 7).** La autoevaluación descarta que el 36.1 se deba a un núcleo demasiado estrecho. Con `adjust` (`jitter = FALSE`) la razón total de Bogotá es 3063 con la mitad del ancho, 36.04 con el defecto, 11.95 con el doble y 2.39 con cuatro veces, y la del bulto, de 2.10 a 1.11 (`recomputo › m7b_adjust`). La cola infla la razón a cualquier ancho, pero el ancho es parte de la historia. Las diapositivas lo dicen.
 - **Aclaración: el 1.794e-10 es el condicionamiento de la matriz de diseño, no el de la información de Fisher (módulo 9) (arreglado en el capítulo el 2026-10-27).** El capítulo lo escribe bien («la matriz de diseño queda con número de condición recíproco 1.794e-10»), pero el texto que sigue habla de la información de Fisher y se puede leer como si fuera el mismo número. La información tiene un condicionamiento del orden del cuadrado (2.7e-20, `recomputo › m9b_info`), por debajo de la tolerancia de `solve` (2.2e-16); con 1.794e-10 `solve` no se quejaría. Las diapositivas distinguen los dos y avisan de los mensajes «Error in solve.default(M)» de la consola.
 - **Las cifras de la envolvente del módulo 10 son de una semilla (62 %, 7.7 %, 38.53854 veces, 3638.23 m).** El módulo 10 las publica con cinco decimales, pero con la semilla 5028 salen 62 radios fuera de 100, 77 de 999 curvas que cruzan la banda (7.70771 %), 38.53854 veces el nivel puntual y un tramo que acaba en 3638.23 m. Con ocho semillas más (`recomputo › m10b_sem_1` a `m10b_sem_8`): 64 a 67 radios, de 53 a 78 curvas (5.3 a 7.8 %), 26.5 a 39 veces el nivel, un tramo que acaba entre 3.76 y 3.93 km, y p del MAD de 0.001 a 0.004. El 0.2 % del nivel puntual no cambia. Las diapositivas dicen «entre el 5 y el 8 %», «unas 30 veces» y dan el rango de las semillas.
-- **«A menos de 0.64 %» (módulo 10).** El módulo 10 dice que la media de las 999 simulaciones queda «a menos de 0.64 %» de π r² en los 101 nodos. El máximo, sin redondear, es 0.64499 % con la semilla del capítulo (`datos › m10.mmean_vs_teorica_pct`) y llega a 0.82 % con otras (`recomputo › m10b_sem_4`). Las diapositivas dicen «a menos de 1 %». Además, son 100 radios informativos (r = 0 vale 0 en las dos curvas).
+- **«A menos de 0.64 %» (módulo 10) (arreglado en el capítulo el 2026-10-27).** El módulo 10 dice que la media de las 999 simulaciones queda «a menos de 0.64 %» de π r² en los 101 nodos. El máximo, sin redondear, es 0.64499 % con la semilla del capítulo (`datos › m10.mmean_vs_teorica_pct`) y llega a 0.82 % con otras (`recomputo › m10b_sem_4`). Las diapositivas dicen «a menos de 1 %». Además, son 100 radios informativos (r = 0 vale 0 en las dos curvas).
 - **«El exceso de parejas está en las escalas cortas y medias; a escala de kilómetros el modelo ya da cuenta» (módulo 10) (arreglado en el capítulo el 2026-10-27).** La K es acumulada: cuenta todas las parejas a menos de r, de modo que un exceso a escalas cortas la mantiene fuera de la banda a escalas mayores. Los 3638.23 m son donde la K vuelve a entrar en la banda, no donde acaba el exceso por escala. La g inhomogénea (`recomputo › m10b_pcf`, 199 simulaciones) sale de su banda sin interrupción hasta 2.2 km y vale 1.20 a 1 km y 1.06 a 2 km. «Hasta dónde llega lo que el modelo no explica» es, entonces, unos 2 km, y no 3.6 km. Las diapositivas lo dicen así. Y hay una segunda causa, que la tercera revisión destapó: esa K no divide por el modelo (ver el hallazgo siguiente).
 - **«La intensidad variable no explica la agregación» (módulo 10): se probó un plano, no «la intensidad variable» (arreglado en el capítulo el 2026-10-27).** La envolvente del módulo 10 es la de `ppm(~ xc + yc)`: un plano log-lineal en x e y (3 parámetros). Con una tendencia polinómica más flexible (`recomputo › m10b_flex`) los tests globales dejan de rechazar: grado 10 (66 parámetros), DCLF p = 0.055 y MAD 0.215; grado 12 (91 parámetros), DCLF 0.135 a 0.22 y MAD 0.345 a 0.415 (199 simulaciones). Esa curva llega a 208 sedes por km² y a casi cero en otros sitios: imita los grupos con la tendencia, y con un solo patrón tendencia y agrupación no se separan. El exceso por debajo de unos 2 km sobrevive (de 32 a 43 % de los radios siguen fuera). Las diapositivas acotan el veredicto a «un plano en x e y» y lo explican.
 - **La K inhomogénea del diagnóstico no divide por el modelo (módulo 10) (arreglado en el capítulo el 2026-10-27).** `envelope(f_centr, Kinhom, …)` no le pasa `lambda` a `Kinhom`, que entonces divide cada pareja por una intensidad estimada en cada patrón con un núcleo y el ancho por defecto de `density.ppp`, 2934.06 m (`datos › m10.lambda_nucleo_sigma_m`). Ese ancho decide hasta dónde llega el exceso: con el núcleo, 62 de 100 radios fuera, hasta 3638.23 m; con `lambda = f_centr`, los 100 (`datos › m10.lambda_modelo`). Lo encontró la tercera revisión del capítulo, que publica las dos envolventes. Las diapositivas lo dicen en las láminas 25 a 27, en la 41 (la sexta decisión) y en el cierre.
@@ -329,6 +329,8 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `1.22418` | cuerpo | …, la cuadratura por defecto, que deja 1.22418 km² sin contar. Con la i… | datos › m8.cuadratura.tabla[1].sin_contar_km2 = 1.224181623; recomputo › m8_homogeneo.forzado.faltan_km2 = 1.224181623 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `0.07` | cuerpo | …en hecha en los dos, la diferencia es 0.07; forzando al constante por … | datos › m8.comparacion.gana_constante_exacta = 0.067434246; recomputo › m8_nd.gana_constante_exacta = 0.0674342461 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `0.51644` | cuerpo | …al constante por la misma cuadratura, 0.51644, también a favor del con… | datos › m8.comparacion.gana_constante_misma = 0.5164401208; recomputo › m8_nd.gana_constante_misma = 0.5164401208 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.07` | notas | …ue más se hace y la que peor sale. El 0.07 evalúa la verosimilitud exa… | datos › m8.comparacion.gana_constante_exacta = 0.067434246; recomputo › m8_nd.gana_constante_exacta = 0.0674342461 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.01` | notas | …aximizándola, el empate se estrecha a 0.01, y su pendiente no la acier… | datos › m8.comparacion.gana_constante_exacta_max = 0.0131555205 | CONTRASTADA · salida de R (JSON del capítulo) |
 
 ### Diapositiva 19 · Ajustar con ppm
 
@@ -416,9 +418,9 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `2.93` | cuerpo | …asa ; si no, una por núcleo, aquí de 2.93 km. Sin dividir, el gradient… | ancho por defecto de density.ppp sobre la ciudad, en km = 2.934057867 | VERIFICADA · aritmética sobre cifras verificadas |
 | `999` | cuerpo | …s dos casi coinciden: la media de las 999 simulaciones queda a menos d… | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `100` | cuerpo | …ones queda a menos de 1 % de en los 100 radios que dibuja el simulado… | recomputo › m10.simulador.nodos = 100 | VERIFICADA · re-ejecutada en R |
-| `0.64` | notas | …a justa. El capítulo dice «a menos de 0.64 %»; con las cifras sin redo… | texto del capítulo: «a menos de 0.64 %» | CONTRASTADA · texto del capítulo |
-| `0.64499` | notas | …las cifras sin redondear el máximo es 0.64499 % con la semilla del cap… | datos › m10.mmean_vs_teorica_pct = 0.6449876748; recomputo › m10.mmean_vs_teorica_pct = 0.6449876748 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `0.82` | notas | …con la semilla del capítulo y llega a 0.82 % con otras, de modo que «a… | máximo de \|media − π r²\| / π r² (%) con las ocho semillas nuevas = 0.82 | VERIFICADA · aritmética sobre cifras verificadas |
+| `0.64` | notas | …justa. El capítulo decía «a menos de 0.64 %» hasta su tercera revisión… | lo que el capítulo escribía: el máximo, a dos decimales = 0.64 | VERIFICADA · aritmética sobre cifras verificadas |
+| `0.64499` | notas | …ón, y hoy da el máximo sin redondear, 0.64499 %, con la semilla del ca… | datos › m10.mmean_vs_teorica_pct = 0.6449876748; recomputo › m10.mmean_vs_teorica_pct = 0.6449876748 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `0.82` | notas | …milla del capítulo; con otras llega a 0.82 %, de modo que «a menos de … | máximo de \|media − π r²\| / π r² (%) con las ocho semillas nuevas = 0.82 | VERIFICADA · aritmética sobre cifras verificadas |
 | `999` | notas | …ación porque con la isotrópica serían 999 veces unos dos minutos ( ). … | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `2934.06` | notas | …n núcleo y el ancho por defecto de : 2934.06 m, un octavo del lado cor… | datos › m10.lambda_nucleo_sigma_m = 2934.057867 | CONTRASTADA · salida de R (JSON del capítulo) |
 
@@ -517,14 +519,21 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 |---|---|---|---|---|
 | `62` | titulo | …nea sale de la banda del modelo en el 62 % de los radios. ¿Qué se conc… | datos › m10.pct_r_fuera_de_banda = 62; recomputo › m10.pct_fuera = 62 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `999` | cuerpo | …banda es demasiado estrecha por usar 999 simulaciones. ::: respuesta… | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `40` | cuerpo | …que estén cerca unos de otros. : hay 40 sedes repetidas, pero quitarl… | datos › m11.duplicados.repetidos = 40 | CONTRASTADA · salida de R (JSON del capítulo) |
-| `6.2` | cuerpo | …as mueve los parámetros como mucho un 6.2 %. : la K inhomogénea ya des… | datos › m11.duplicados.cambio_maximo_pct = 6.152204768 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `40` | cuerpo | …que estén cerca unos de otros. : hay 40 sedes repetidas, pero sin ell… | datos › m11.duplicados.repetidos = 40 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `0.005` | cuerpo | …a K sigue fuera de la banda (DCLF p = 0.005, con 199 simulaciones). : … | recomputo › m10b_sindup.dclf = 0.005 \| recomputo › m10b_sindup.mad = 0.005 | VERIFICADA · re-ejecutada en R |
+| `199` | cuerpo | …uera de la banda (DCLF p = 0.005, con 199 simulaciones). : la K inhomo… | recomputo › m10b_pcf.nsim = 199 | VERIFICADA · re-ejecutada en R |
 | `12` | cuerpo | …a; solo una curva muy flexible (grado 12, 91 parámetros) deja de recha… | recomputo › m10b_flex.12.grado = 12 | VERIFICADA · re-ejecutada en R |
 | `91` | cuerpo | …olo una curva muy flexible (grado 12, 91 parámetros) deja de rechazar,… | recomputo › m10b_flex.12.k = 91 | VERIFICADA · re-ejecutada en R |
 | `999` | cuerpo | …atrón no se separan. : al revés; con 999 el nivel puntual es 0.2 %, má… | datos › m10.nsim = 999; recomputo › m10.nsim = 999 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `0.2` | cuerpo | …al revés; con 999 el nivel puntual es 0.2 %, más exigente que el 5 % d… | datos › m10.nivel_puntual_pct = 0.2; recomputo › m10.nivel_puntual_pct = 0.2 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `5` | cuerpo | …puntual es 0.2 %, más exigente que el 5 % de una envolvente de 39. ::… | 100 × el nivel puntual de la envolvente de 39 (0.05) = 5 | VERIFICADA · aritmética sobre cifras verificadas |
 | `39` | cuerpo | …gente que el 5 % de una envolvente de 39. ::: Fuente: del capítulo… | nsim = 2 / nivel puntual − 1, con nivel puntual 2 / (nsim + 1) = 39 | VERIFICADA · aritmética sobre cifras verificadas |
+| `6.2` | notas | …eve los parámetros de como mucho un 6.2 %—, y la prueba directa es so… | datos › m11.duplicados.cambio_maximo_pct = 6.152204768 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `40` | notas | …cta es sobre la propia banda: sin las 40 sedes sobrantes, el mismo pla… | datos › m11.duplicados.repetidos = 40 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `68.75` | notas | …sma envolvente dejan la K fuera en el 68.75 % de los radios, hasta 403… | recomputo › m10b_sindup.pct_fuera = 68.75 | VERIFICADA · re-ejecutada en R |
+| `4034` | notas | …ra en el 68.75 % de los radios, hasta 4034 m, y DCLF y MAD dan p = 0.0… | último radio fuera sin las sedes sobrantes, al metro = 4034 | VERIFICADA · aritmética sobre cifras verificadas |
+| `0.005` | notas | …s, hasta 4034 m, y DCLF y MAD dan p = 0.005 con 199 simulaciones. tien… | recomputo › m10b_sindup.dclf = 0.005 \| recomputo › m10b_sindup.mad = 0.005 | VERIFICADA · re-ejecutada en R |
+| `199` | notas | …034 m, y DCLF y MAD dan p = 0.005 con 199 simulaciones. tiene su part… | recomputo › m10b_pcf.nsim = 199 | VERIFICADA · re-ejecutada en R |
 | `12` | notas | …) y una tendencia polinómica de grado 12, ningún test global rechaza;… | recomputo › m10b_flex.12.grado = 12 | VERIFICADA · re-ejecutada en R |
 | `200` | notas | …echaza; pero esa curva llega a más de 200 sedes por km² y a casi cero … | datos › m8.cuadratura.tabla[2].nd = 200 | CONTRASTADA · salida de R (JSON del capítulo) |
 
