@@ -297,10 +297,15 @@ def _chi2_conteos(c):
     return float(((c - e) ** 2 / e).sum())
 
 
-def _chi2_redwood(k):
+def _conteos_redwood(k):
     d = REG[REG.patron == "redwood"]
     c = np.zeros((k, k), int)
     np.add.at(c, (_celda(d.x.to_numpy(), 0, 1, k), _celda(d.y.to_numpy(), -1, 0, k)), 1)
+    return c
+
+
+def _chi2_redwood(k):
+    c = _conteos_redwood(k)
     return _chi2_conteos(c)
 
 
@@ -386,6 +391,14 @@ class Independiente:
         if p[0] == "p" and p[1] == "redwood":
             kk = int(p[2])
             return _p_dos_colas(_chi2_redwood(kk), kk * kk - 1)
+        if p[0] in ("parejas", "disp", "unade") and p[1] == "redwood":
+            # parejas que comparten celda; índice de dispersión χ²/(m − 1); 1 / cola superior del χ²
+            kk = int(p[2])
+            c = _conteos_redwood(kk)
+            if p[0] == "parejas":
+                return int((c * (c - 1) // 2).sum())
+            chi = _chi2_conteos(c)
+            return chi / (kk * kk - 1) if p[0] == "disp" else 1 / chi2_dist.sf(chi, kk * kk - 1)
         if k == "chi2:celdas_reb":                       # χ² a partir de los conteos del patrón rebarajado
             return _chi2_conteos(np.array(D["m5"]["celdas"]["rebarajado"], float))
         if p[0] == "pois":
@@ -548,6 +561,7 @@ R("96", J("m2.urbana.maximo"), en=(A4,))
 R("9", J("m2.urbana.vacios"), en=(A4,))
 R("25.90966", J("m2.urbana.dispersion"), en=(A4,))
 R("15.22998", J("m2.urbana.dispersion_nula"), en=(A4,))
+R("53.4", J("m2.urbana.esperanza_max"), en=(A4,))
 # ---- B · regímenes y CSR -----------------------------------------------------------------
 R("42", I("m3.cells.n", "n:cells"))
 R("65", J("m4.lambda"), en=(B3, B4))
@@ -606,15 +620,27 @@ R(["2x2", "3x3", "10x10", "20x20"], P("rejillas barridas en el módulo 6", fn=la
 R("10", A(lambda: len(D["m6"]["nxs"]), "número de tamaños de rejilla barridos"), en=(C3, C4), cx=r"tamaños|rejillas|0 de 10|de 10\)")
 R("10", JS("e3.solucion.rechazos_urbana"), en=(C3,), cx=r"Bogotá[^0-9]{0,6}10")
 R("9", J("m6.redwood_rechazos"), en=(C3,))
+R("2.17", I("m6.redwood_gruesa.dispersion", "disp:redwood:2"), en=(C3,))
+R("3", [J("m6.redwood_gruesa.gl"), A(lambda: 2 * 2 - 1, "celdas de la rejilla 2×2, menos una")], en=(C3,), cx=r"grados")
+R("11", I("m6.redwood_gruesa.una_de_cada", "unade:redwood:2"), en=(C3,), cx=r"de cada")
 R("400", A(lambda: max(D["m6"]["nxs"]) ** 2, "celdas de la rejilla 20×20"), en=(C4,))
 R("6.52", I(m6("chi2", 2), "chi2:redwood:2", "datos › m6.redwood.chi2 (nx = 2)"), en=(C4,))
-R("0.17806", I(m6("p_valor", 2), "p:redwood:2", "datos › m6.redwood.p_valor (nx = 2)"), en=(C4,))
+R("0.17806", I(m6("p_valor", 2), "p:redwood:2", "datos › m6.redwood.p_valor (nx = 2)"), en=(C3, C4))
 R("64.61", I(m6("chi2", 5), "chi2:redwood:5", "datos › m6.redwood.chi2 (nx = 5)"), en=(C4,))
 R("0.00003", I(m6("p_valor", 5), "p:redwood:5", "datos › m6.redwood.p_valor (nx = 5)"), en=(C4,))
 R("202.52", I(m6("chi2", 10), "chi2:redwood:10", "datos › m6.redwood.chi2 (nx = 10)"), en=(C4,))
 R("0.00000", I(m6("p_valor", 10), "p:redwood:10", "datos › m6.redwood.p_valor (nx = 10)", tol=1e-6), en=(C4,))
 R("505.74", I(m6("chi2", 20), "chi2:redwood:20", "datos › m6.redwood.chi2 (nx = 20)"), en=(C4,))
 R("0.00045", I(m6("p_valor", 20), "p:redwood:20", "datos › m6.redwood.p_valor (nx = 20)"), en=(C4,))
+R("0.00326", J("m6.redwood_fina.p_mc"), en=(C4,))
+R("7", [J("m6.redwood_fina.veces_mc"),
+        A(lambda: D["m6"]["redwood_fina"]["p_mc"] / m6("p_valor", 20)(), "p de Monte Carlo / p de la tabla (nx = 20)")],
+  en=(C4,), cx=r"veces")
+R("13", I("m6.redwood_fina.parejas", "parejas:redwood:20"), en=(C4,))
+R("4.7", [J("m6.redwood_fina.parejas_azar"),
+          A(lambda: math.comb(IND["n:redwood"], 2) / max(D["m6"]["nxs"]) ** 2, "C(n, 2) / celdas, con n del CSV")],
+  en=(C4,))
+R("99999", P("simulaciones de Monte Carlo de quadrat.test (módulo 6)", "m6.redwood_fina.nsim_mc"), en=(C4,))
 # ---- D · G, F, J -------------------------------------------------------------------------
 R("0.13036", J("m7.cells.g_mediana"), en=(D3,))
 R("0.05959", J("m7.cells.f_mediana"), en=(D3,))
@@ -660,7 +686,7 @@ R("-0.01473", I("m8.japanesepines.desvio_con_signo", "Lr:japanesepines",
 R("0.05581", I("m8.redwood.desvio_con_signo", "Lr:redwood"), en=(E3,))
 R("331.67", J("m8.bogota.max_desvio"), en=(E3, E7, E8))
 R("5105", J("m8.bogota.r_max_desvio"), en=(E3, E7, E8))
-R("0.30000", J("m11.test_global.dclf_japanesepines_p"), en=(E3, F3))
+R("0.30000", J("m11.test_global.dclf_japanesepines_p"), en=(E3, F2, F3))
 R(["500", "20"], T("a 500 m, aunque la agregación real ocurre a 20 m", desc="distancias hipotéticas del enunciado del cuestionario"), en=(E4,))
 R("3.27862", J("m9.redwood.g_max"), en=(E5,))
 R("0.02250", J("m9.redwood.r_g_max"), en=(E5,))
@@ -675,11 +701,21 @@ R("10", JS("e3.solucion.rechazos_urbana"), en=(E7,))
 R("29.6", [J("m10.sesgo_max_pct"), JS("e5.solucion.sesgo_max_pct")], en=(F1,))
 R("29.60530", J("m10.sesgo_max_pct"), en=(F1,))
 R("29.60510", JS("e5.solucion.sesgo_max_pct"), en=(F1,))
-R("555", X("cociente de tiempos medido por el autor (R 4.4.1, Mac de 12 núcleos): no reproducible aquí", "m10.coste.veces_isotropica_sobre_traslacion"), en=(F1,))
-R("0.22", X("tiempo de una estimación de K con corrección de traslación: medido por el autor, depende de la máquina",
-            fn=lambda: [c["segundos"] for c in D["m10"]["correcciones"] if c["correccion"] == "translate"][0]), en=(F1,))
-R("122.66", X("tiempo de una estimación de K con corrección isotrópica: medido por el autor, depende de la máquina",
-              fn=lambda: [c["segundos"] for c in D["m10"]["correcciones"] if c["correccion"] == "isotropic"][0]), en=(F1,))
+# Los tiempos los escribió R en el JSON (medidos en el Mac del autor): se cotejan como cualquier
+# salida. Que en otra máquina sean otros lo dice la diapositiva con palabras, no una marca.
+def _seg(corr):
+    return [c["segundos"] for c in D["m10"]["correcciones"] if c["correccion"] == corr][0]
+
+
+R("555", Spec("aritm", "cociente de los dos tiempos del JSON, medidos en el Mac del autor (R 4.4.1, 12 núcleos)",
+              [("datos › m10.coste.veces_isotropica_sobre_traslacion",
+                lambda: get(D, "m10.coste.veces_isotropica_sobre_traslacion")),
+               ("datos › m10.correcciones: segundos isotrópica / traslación",
+                lambda: _seg("isotropic") / _seg("translate"))]), en=(F1,))
+R("0.22", Spec("json", "datos › m10.correcciones (translate).segundos: medido en el Mac del autor",
+               [("datos › m10.correcciones (translate).segundos", lambda: _seg("translate"))]), en=(F1,))
+R("122.66", Spec("json", "datos › m10.correcciones (isotropic).segundos: medido en el Mac del autor",
+                 [("datos › m10.correcciones (isotropic).segundos", lambda: _seg("isotropic"))]), en=(F1,))
 R("4.4.1", J("m10.coste.medido_en"), en=(F1,))
 R("12", J("m10.coste.nucleos"), en=(F1,))
 R("22", J("m10.ventana.piezas"), en=(F1, F2))
@@ -693,6 +729,12 @@ R("52.25230", T("52.25230", desc="cifra tal como la escribe el capítulo (cinco 
 R("52.15220", T("52.15220", desc="cifra tal como la escribe el capítulo (cinco decimales); el JSON guarda cuatro: 52.1522"), en=(F2,))
 R("51.05110", T("51.05110", desc="cifra tal como la escribe el capítulo (cinco decimales); el JSON guarda cuatro: 51.0511"), en=(F2,))
 R("522", J("m11.tasa_salida_bogota.fuera"), en=(F2,))
+# dónde se sale la observada de los pinos de la banda del 95 % (un solo tramo: sale == 1)
+R("0.15", A(lambda: (D["m11"]["japanesepines"]["sale_r_desde"] + D["m11"]["japanesepines"]["sale_r_hasta"]) / 2
+            if D["m11"]["japanesepines"]["sale"] == 1 else float("nan"),
+            "mitad del tramo en que la observada de los pinos sale de la banda del 95 %"), en=(F2,))
+R("2.5", P("cuantil inferior de la banda, en %", fn=lambda: 100 * (1 - D["m11"]["nivel_puntual"]) / 2), en=(F2,))
+R("97.5", P("cuantil superior de la banda, en %", fn=lambda: 100 * (1 + D["m11"]["nivel_puntual"]) / 2), en=(F2,))
 R("52.25225", A(lambda: D["m11"]["tasa_salida_bogota"]["fuera"] / D["m11"]["nsim"] * 100, "522 / 999 · 100"), en=(F2,))
 R("513", J("m11.tasa_salida_bogota.nodos_r"), en=(F2,))
 R("0.00100", J("m11.test_global.dclf_bogota_p"), en=(F3,), cx=r"dan p = \*\*0\.00100")

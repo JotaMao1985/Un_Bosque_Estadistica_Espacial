@@ -41,14 +41,10 @@ La lectura que el capítulo hace del dato. Se puede discutir.
 Una postura o recomendación del autor: qué hacer, no qué se midió.
 :::
 
-::: warn [SIN VERIFICAR]
-Una cifra con esta marca no se pudo comprobar contra su fuente: no se presenta como dato confirmado.
-:::
-
 <small>Fuentes: `datos` es `cap4_datos.json` y `soluciones` es `cap4_soluciones.json`, generados con R (spatstat 3.5.1) en `precalculo/salidas/`. El cotejo de cada cifra está en `fuentes/registro_cifras_cap4.md`.</small>
 
 ???
-El pacto tiene una consecuencia práctica: todas las cifras de esta clase salen de dos archivos que genera R, no de la memoria del docente. Si un estudiante duda de una, la ruta exacta está en el registro de cifras. Las que no se pudieron comprobar aquí (los tiempos de cómputo del módulo 10) llevan la marca en la propia diapositiva.
+El pacto tiene una consecuencia práctica: todas las cifras de esta clase salen de dos archivos que genera R, no de la memoria del docente. Si un estudiante duda de una, la ruta exacta está en el registro de cifras. Los tiempos de cómputo del módulo 10 también salen de R, pero se midieron en el Mac del autor: en otra máquina serán otros, y la diapositiva dice dónde se midieron.
 
 ## «¿Está agrupado?» no tiene respuesta hasta que fijamos ventana, escala, borde y referencia {.idea etiqueta="Tesis del capítulo"}
 
@@ -138,13 +134,13 @@ Rejilla 10×10: **65** celdas «vivas» (con algo de área dentro de la ventana)
 :::
 
 ::: tip Interpretación
-El reparto no se parece a nada uniforme: λ cambia de un sitio a otro. Una λ inhomogénea es el caso normal.
+Los conteos no son los de un Poisson homogéneo: con él la esperanza más alta de una celda es de **53.4** sedes, y una tiene 96. Qué falla, λ o la independencia, los conteos no lo dicen (módulo 5).
 :::
 
 <small>Fuente: módulo 2 · `datos › m2.urbana`.</small>
 
 ???
-Es una sola cifra que se puede escribir en tres unidades: 5.6932 por km², 0.05693 por ha o 0.0000056932 por m². El CRS del capítulo mide en metros, así que R devuelve la tercera, la que parece un cero; el `* 1e6` del código es el paso a km². Sobre la rejilla: comprobarlo no necesita teoría, se cuentan los puntos por celda. Si sobra tiempo, el módulo 2 muestra además que el índice de dispersión (25.90966) no se compara con 1 sino con 15.22998, porque la ventana recorta las celdas; aquí no se proyecta.
+Es una sola cifra que se puede escribir en tres unidades: 5.6932 por km², 0.05693 por ha o 0.0000056932 por m². El CRS del capítulo mide en metros, así que R devuelve la tercera, la que parece un cero; el `* 1e6` del código es el paso a km². Sobre la rejilla: ver que los conteos no son los de un Poisson homogéneo no necesita teoría, se cuentan los puntos por celda; lo que no dicen es por qué. El mapa del módulo 1 hace verosímil que λ cambie, pero unas sedes agrupadas sobre una λ constante podrían dar conteos igual de desiguales. Si sobra tiempo, el módulo 2 muestra además que el índice de dispersión (25.90966) no se compara con 1 sino con 15.22998, porque la ventana recorta las celdas; aquí no se proyecta.
 
 # Tres regímenes y una referencia: CSR {seccion=modulo-3}
 
@@ -311,15 +307,15 @@ Cuidado con cómo se dice: la hipótesis nula NO es «λ es constante». Es el P
 :::
 
 ::: tip Interpretación
-El χ² solo lee cuántos puntos hay en cada celda: es ciego a toda estructura de escala menor que el cuadrante.
+El χ² solo lee los conteos por celda, no cómo se colocan los puntos dentro. Unos grumos pequeños sí le llegan, porque desigualan los conteos; esta rebaraja, no.
 :::
 
 <small>Fuente: módulo 5 · `datos › m5`. Ejemplo construido: secuoyas rebarajadas dentro de cada celda 5×5.</small>
 
 ???
-Contexto del ejemplo. Qué ilustra: la ceguera del χ² a la estructura de escala menor que la celda. De dónde sale: las secuoyas (Strauss, 1975; Ripley, 1977) con los conteos por celda de una rejilla 5×5 conservados y los puntos repartidos al azar dentro de su celda, semilla 4027: es un patrón construido a propósito, no observado. Por qué importa: es la forma más limpia de mostrar que dos patrones opuestos pueden dar el mismo χ². Es la demostración entera del módulo 5. Los conteos por celda son los mismos, uno a uno; luego el χ² es el mismo, por construcción. Y sin embargo la distancia al vecino se multiplica por 1.46484. Pasar el test de cuadrantes no certifica aleatoriedad: certifica que los conteos son compatibles con ella, que es mucho menos. Deja abierta la pregunta: ¿quién elige el tamaño de la celda?
+Contexto del ejemplo. Qué ilustra: que el χ² no ve cómo se colocan los puntos dentro de cada celda. De dónde sale: las secuoyas (Strauss, 1975; Ripley, 1977) con los conteos por celda de una rejilla 5×5 conservados y los puntos repartidos al azar dentro de su celda, semilla 4027: es un patrón construido a propósito, no observado. Por qué importa: es la forma más limpia de mostrar que dos patrones muy distintos pueden dar el mismo χ². Es la demostración entera del módulo 5. Los conteos por celda son los mismos, uno a uno; luego el χ² es el mismo, por construcción. Y sin embargo la distancia al vecino se multiplica por 1.46484. Pasar el test de cuadrantes no certifica aleatoriedad: certifica que los conteos son compatibles con ella, que es mucho menos. Ojo con generalizar: no es ciego a toda estructura menor que la celda. Unos grumos pequeños desigualan los conteos y el χ² los detecta, aunque quepan muchos en una celda; una regularidad suave a esa escala apenas los mueve, y esa sí se le escapa. Deja abierta la pregunta: ¿quién elige el tamaño de la celda?
 
-## El veredicto cambia con el tamaño de la celda, pero solo cuando el patrón está en el filo
+## El veredicto cambia con el tamaño de la celda cuando al test le falta potencia en alguna rejilla
 
 ![Secuoyas: χ² por lado de rejilla, de 2×2 a 20×20. Gris: no rechaza al 5 %. Naranja: rechaza. Pálido: alguna celda espera menos de 5 puntos](recursos/cap4/m6-1.png){alto=250}
 
@@ -328,15 +324,15 @@ Rejillas que rechazan, de 10 tamaños: secuoyas **9**, pinos japoneses **0**, se
 :::
 
 ::: tip Interpretación
-El que no rechaza en las secuoyas es el 2×2: con cuatro celdas no hay resolución para ver los grumos. Es el efecto de escala del MAUP (capítulo 3).
+El 2×2 de las secuoyas no rechaza por falta de potencia, no de vista: su índice de dispersión ya vale **2.17**, pero con **3** grados de libertad el azar da un χ² así de grande una vez de cada **11**.
 :::
 
 <small>Fuente: módulo 6 · `datos › m6`; `soluciones › e3`.</small>
 
 ???
-El veredicto depende de la celda cuando el patrón está en el filo; cuando es claramente aleatorio (pinos japoneses: 0 de 10) o claramente inhomogéneo (Bogotá: 10 de 10), la elección no lo mueve. Conecta con el capítulo 3: la escala no es un detalle de implementación, es parte del resultado.
+El veredicto depende de la celda cuando al test le falta potencia en alguna rejilla, como a la 2×2 de las secuoyas: 62 plántulas en cuatro celdas. Con 2 107 sedes, Bogotá rechaza en las 10 rejillas; donde no hay nada que ver, como en los pinos japoneses, no rechaza ninguna (0 de 10). El «una vez de cada 11» es la cola de arriba; el p de la 2×2 en la lámina siguiente, 0.17806, cuenta las dos colas, como `quadrat.test()` por defecto, y por eso la dobla. Es el efecto de escala del MAUP del capítulo 3: la escala no es un detalle de implementación, es parte del resultado.
 
-## Afinar la rejilla rompe el supuesto del χ²: con 400 celdas el p-valor deja de mejorar
+## Afinar la rejilla rompe el supuesto del χ²: con 400 celdas su p-valor ya no es de fiar
 
 ::: info Dato · secuoyas, cuatro de las 10 rejillas
 | Rejilla | χ² | p-valor |
@@ -350,13 +346,13 @@ El veredicto depende de la celda cuando el patrón está en el filo; cuando es c
 Solo las dos rejillas más gruesas respetan **al menos 5 puntos esperados por celda**, y la única que lo respeta *y* rechaza es la de 3×3: una de diez.
 
 ::: tip Interpretación
-Con 400 celdas y 62 plántulas cada esperanza es minúscula y el χ² deja de seguir la distribución de su p-valor.
+Con esperanzas tan pequeñas la aproximación falla: por simulación, el p de 20×20 sale **0.00326**, unas **7** veces el de arriba.
 :::
 
-<small>Fuente: módulo 6 · `datos › m6.redwood`.</small>
+<small>Fuente: módulo 6 · `datos › m6.redwood` y `m6.redwood_fina`.</small>
 
 ???
-Contexto del ejemplo. Qué ilustra: el supuesto roto del χ². De dónde sale: las secuoyas (Strauss, 1975; Ripley, 1977), 62 puntos en el cuadrado unidad. Por qué importa: con un patrón pequeño se ve el supuesto romperse en cuanto se afina la rejilla. El bloque de código del módulo 6 imprime exactamente estas cuatro líneas. La huella del supuesto roto está en la última: el p-valor empeora. Con Bogotá el supuesto se rompe a saltos, no siempre al afinar, porque la ventana recorta las celdas del borde; por eso se comprueba rejilla por rejilla.
+Contexto del ejemplo. Qué ilustra: el supuesto roto del χ². De dónde sale: las secuoyas (Strauss, 1975; Ripley, 1977), 62 puntos en el cuadrado unidad. Por qué importa: con un patrón pequeño se ve el supuesto romperse en cuanto se afina la rejilla. El bloque de código del módulo 6 imprime exactamente estas cuatro líneas. Que el p empeore en la última no es la huella del supuesto roto: con celdas iguales, el χ² solo cuenta las parejas de plántulas que comparten celda, y con celdas más pequeñas que los grumos quedan pocas —13 en la de 20×20, cuando el azar daría 4.7—, así que le queda poca señal. El supuesto roto tira hacia el otro lado: con 99 999 simulaciones de la nula, el p sale mayor que el de la tabla. La aproximación rota no explica que el p empeore: lo disimula. Con Bogotá el supuesto se rompe a saltos, no siempre al afinar, porque la ventana recorta las celdas del borde; por eso se comprueba rejilla por rejilla.
 
 ## Sobre las secuoyas el test rechaza con 5×5 y no con 2×2: ¿qué se hace con eso? {.pregunta}
 
@@ -366,7 +362,7 @@ Contexto del ejemplo. Qué ilustra: el supuesto roto del χ². De dónde sale: l
 4. Fiarse de la rejilla gruesa, que es la que respeta la aproximación del χ².
 
 ::: respuesta La 2: declarar el tamaño de celda
-La fina rompe el supuesto del χ²; promediar no tiene sentido porque los diez contrastes usan el mismo dato; y la gruesa respeta el supuesto pero no ve nada. Es el efecto de escala del MAUP con otro nombre.
+La fina rompe el supuesto del χ²; promediar no tiene sentido porque los diez contrastes usan el mismo dato; y la gruesa respeta el supuesto pero le falta potencia: ve los conteos desiguales y aun así no rechaza. Es el efecto de escala del MAUP con otro nombre.
 :::
 
 ::: warn Criterio
@@ -580,7 +576,7 @@ Los pinos, aleatorios, tienen signo negativo como las células regulares: el sig
 <small>Fuente: módulos 8 y 11 · `datos › m8`, `m11.test_global`.</small>
 
 ???
-La transformación de Besag deshace el cuadrado: comparar una curva contra una parábola es incómodo, contra el eje horizontal no. En Bogotá el máximo es 331.67 m; que esté por encima de cero en todo r no prueba que los colegios se atraigan, porque la λ variable deja la misma huella.
+La transformación de Besag deshace el cuadrado: comparar una curva contra una parábola es incómodo, contra el eje horizontal no. En Bogotá el máximo es 331.67 m; que esté por encima de cero en todo r no prueba que los colegios se atraigan, porque una λ que cambie de zona en zona dejaría la misma huella.
 
 ## K sigue por encima a 500 m aunque la agregación ocurre a 20 m: ¿por qué? {.pregunta}
 
@@ -600,7 +596,7 @@ Las distancias son hipotéticas: el enunciado del cuestionario las pone para dar
 
 ## g mira solo el anillo: vuelve a 1 en r = 0.1450 mientras K sigue por encima
 
-![Secuoyas: g(r) frente a K observada sobre K teórica](recursos/cap4/m9-1.png){alto=250}
+![Secuoyas: g(r) y K observada sobre K teórica, las dos como razón contra CSR; la gris, el 1 de las dos](recursos/cap4/m9-1.png){alto=250}
 
 ::: info Dato
 Secuoyas: g alcanza **3.27862** en r = **0.02250** y vuelve a 1 en r = **0.1450**; K sigue por encima de su teórica y no vuelve.
@@ -613,7 +609,7 @@ La distancia a la que g regresa es el tamaño de los grumos, y K no la sabe deci
 <small>Fuente: módulo 9 · `datos › m9.redwood`.</small>
 
 ???
-Bajo CSR g vale 1 en todo r. g es la derivada de K normalizada: mira solo el anillo, no el disco. La figura es el estado inicial del simulador del módulo 9 (secuoyas). En Bogotá, g no tiene pico: vale 1.60833 en el primer nodo, 59 m, y en el último, 5868 m, todavía vale 1.01105; no regresa a 1 en ningún punto del barrido. Ese máximo en el borde izquierdo no es una escala característica: es donde empieza a mirarse.
+Bajo CSR g vale 1 en todo r. g es la derivada de K normalizada: mira solo el anillo, no el disco. La figura es el estado inicial del simulador del módulo 9 (secuoyas): las dos curvas comparten eje porque las dos son razones contra CSR, y la gris en 1 vale para ambas. En Bogotá, g no tiene pico: vale 1.60833 en el primer nodo, 59 m, y en el último, 5868 m, todavía vale 1.01105; no regresa a 1 en ningún punto del barrido. Ese máximo en el borde izquierdo no es una escala característica: es donde empieza a mirarse.
 
 ## K mira todas las escalas, pero acumula, supone λ constante y no mira lejos {columnas=1:1}
 
@@ -693,7 +689,7 @@ Cierra la síntesis de los módulos 3 a 9: los ocho resúmenes caen del mismo la
 ![Sedes de Bogotá: K sin corregir, K de traslación y K bajo CSR](recursos/cap4/m10-1.png){alto=210}
 
 ::: info Dato
-La K sin corregir queda hasta un **29.6 %** por debajo de la corregida; el máximo, en r = **5868** m. La isotrópica cuesta **555** veces más que la de traslación [SIN VERIFICAR: tiempo medido por el autor].
+La K sin corregir queda hasta un **29.6 %** por debajo de la corregida; el máximo, en r = **5868** m. En el Mac del autor (R 4.4.1, 12 núcleos), la isotrópica tardó **555** veces más que la de traslación.
 :::
 
 ::: tip Interpretación
@@ -703,14 +699,14 @@ Faltan vecinos, nunca sobran: a r grande casi todos los discos tocan el borde.
 <small>Fuente: módulo 10 · `datos › m10`. Las envolventes usan la corrección de traslación, y se declara.</small>
 
 ???
-Hay tres correcciones clásicas —de borde, de traslación e isotrópica—, y son tres maneras de elegir el peso w_ij. Sobre la ventana de Bogotá (22 piezas, 5 agujeros, 13 767 vértices) la isotrópica tiene que cortar, pareja a pareja, un círculo contra un contorno de 13 767 vértices: lo que se paga es el borde, no n. Los tiempos (0.22 s la de traslación y 122.66 s la isotrópica por estimación de K) dependen de la máquina: el capítulo los declara medidos en R 4.4.1 sobre un Mac de 12 núcleos y aquí no se pudieron reproducir, por eso la marca. El material da el sesgo como 29.60530 % en el módulo 10 (`m10.sesgo_max_pct`) y como 29.60510 % en la solución del ejercicio 5 (`e5`): la diferencia viene de la rejilla en que se mide, y las dos redondean a 29.6, que es lo que va en la diapositiva.
+Hay tres correcciones clásicas —de borde, de traslación e isotrópica—, y son tres maneras de elegir el peso w_ij. Sobre la ventana de Bogotá (22 piezas, 5 agujeros, 13 767 vértices) la isotrópica tiene que cortar, pareja a pareja, un círculo contra un contorno de 13 767 vértices: lo que se paga es el borde, no n. Los tiempos (0.22 s la de traslación y 122.66 s la isotrópica por estimación de K) salen del JSON del precálculo, medidos en R 4.4.1 sobre un Mac de 12 núcleos: en otra máquina serán otros, y por eso la diapositiva dice dónde se midieron. El material da el sesgo como 29.60530 % en el módulo 10 (`m10.sesgo_max_pct`) y como 29.60510 % en la solución del ejercicio 5 (`e5`): la diferencia viene de la rejilla en que se mide, y las dos redondean a 29.6, que es lo que va en la diapositiva.
 
 ## Una banda al 95 % por punto no contrasta la curva: la mitad del azar puro se sale
 
-![Pinos japoneses (aleatorios): banda de 999 simulaciones de CSR y K observada](recursos/cap4/m11-1.png){alto=200}
+![Pinos japoneses (aleatorios): banda del 95 % en cada r, de 999 simulaciones de CSR, y K observada](recursos/cap4/m11-1.png){alto=200}
 
 ::: info Dato
-De 999 simulaciones de CSR puro, se salen de su banda en algún r: **52.2523 %** en las sedes, **52.1522 %** en las secuoyas y **51.0511 %** en los pinos. En los pinos la observada no se sale en ningún r.
+De 999 simulaciones de CSR puro, se salen de su banda en algún r: **52.2523 %** en las sedes, **52.1522 %** en las secuoyas y **51.0511 %** en los pinos. La observada de los pinos se sale cerca de r = **0.15**, tan poco que no se ve, y el test global no rechaza (p = **0.30000**).
 :::
 
 ::: tip Interpretación
@@ -720,7 +716,7 @@ La tasa la pone el procedimiento —513 distancias con una banda al 95 % en cada
 <small>Fuente: módulo 11 · `datos › m11`.</small>
 
 ???
-El módulo 11 escribe estas tasas con cinco decimales (52.25230, 52.15220 y 51.05110), pero el JSON solo guarda cuatro y el valor exacto de la primera es 522/999 = 52.25225…: el cero final es relleno, así que aquí van con cuatro decimales. Tres patrones sin nada en común —62 plántulas y 65 pinos en un cuadrado, 2 107 sedes en una ventana de 22 piezas— y casi la misma tasa. Mirar la curva entera y decir «se sale en algún sitio, luego p < 0.05» es hacer un centenar de contrastes y quedarse con el peor.
+El módulo 11 escribe estas tasas con cinco decimales (52.25230, 52.15220 y 51.05110), pero el JSON solo guarda cuatro y el valor exacto de la primera es 522/999 = 52.25225…: el cero final es relleno, así que aquí van con cuatro decimales. Tres patrones sin nada en común —62 plántulas y 65 pinos en un cuadrado, 2 107 sedes en una ventana de 22 piezas— y casi la misma tasa. Mirar la curva entera y decir «se sale en algún sitio, luego p < 0.05» es hacer un centenar de contrastes y quedarse con el peor. Los pinos lo ilustran: la observada se sale, y el test global no rechaza. La banda dibujada es la del 95 % en cada r —los cuantiles 2.5 y 97.5 de las 999—, la misma contra la que se miden las tasas; la de `envelope()` por defecto es otra, el mínimo y el máximo de las simulaciones, y la pregunta siguiente dice qué contraste es.
 
 ## El test global resume la curva en un número y obliga a declarar estadístico y rango {columnas=1:1}
 

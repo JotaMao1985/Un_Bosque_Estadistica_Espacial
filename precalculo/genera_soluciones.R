@@ -1482,8 +1482,8 @@ solucion_cap4 <- function() {
       "se calcula SOLO con cuántos puntos hay en cada celda, y eso es",
       "justo lo que la rebaraja conserva. Clark-Evans y L sí los separan,",
       "porque miran distancias entre puntos y no conteos por caja. Lo que",
-      "el χ² no mira es la posición dentro de la celda; dicho de otro",
-      "modo, es ciego a toda estructura de escala menor que el cuadrante.",
+      "el χ² no mira es la posición dentro de la celda: fijados los",
+      "conteos, es ciego a cómo se colocan los puntos dentro de cada una.",
       "Por eso pasar el test de cuadrantes no es un certificado de",
       "aleatoriedad: es un certificado de que los CONTEOS son compatibles",
       "con la aleatoriedad, que es mucho menos.")
