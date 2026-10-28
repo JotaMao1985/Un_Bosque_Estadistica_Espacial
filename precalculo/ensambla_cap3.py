@@ -136,7 +136,7 @@ def tabs(etiqueta, r_code, py_code):
 """
 
 
-def sim(ident, titulo, pie="", alto=260, *, aria):
+def sim(ident, titulo, pie="", alto=260, mandos=True, *, aria):
     """Un simulador con su lienzo de Chart.js.
 
     `aria` ES OBLIGATORIO, y es lo que oye quien no ve el gráfico (M9 de la
@@ -152,12 +152,16 @@ def sim(ident, titulo, pie="", alto=260, *, aria):
     plantilla: inventarse una clase deja el canvas a cero de alto,
     Chart.js crea el gráfico sin quejarse y el simulador sale en blanco
     con la consola limpia (defecto nº 5 de A.13).
+    `mandos=False` es para los que no tienen ninguno (2026-10-27, el patrón del capítulo 4): hasta
+    entonces todos publicaban un `.simulador-controles` vacío —el hueco de su margen— y el icono de
+    los deslizadores. La guarda de `main()` ata el marcado al JS: un simulador con contenedor de
+    mandos tiene que llenarlo, y uno que construye mandos tiene que tener dónde.
     """
+    icono = "fa-sliders" if mandos else "fa-chart-column"
     return f"""      <div class="simulador" data-simulador="{ident}">
-        <h4><i class="fas fa-sliders" aria-hidden="true"></i> {titulo}</h4>
+        <h4><i class="fas {icono}" aria-hidden="true"></i> {titulo}</h4>
         {f'<p class="simulador-intro">{pie}</p>' if pie else ''}
-        <div class="simulador-controles"></div>
-        <div class="grafico-wrapper" style="height:{alto}px;">
+{'        <div class="simulador-controles"></div>' + chr(10) if mandos else ''}        <div class="grafico-wrapper" style="height:{alto}px;">
           <canvas role="img" aria-label="{_html.escape(aria)}" aria-describedby="lectura-{ident}"></canvas>
         </div>
         <div class="simulador-lectura" id="lectura-{ident}" aria-live="polite"></div>
@@ -434,16 +438,38 @@ def mapa_html(ident, titulo, controles=False):
 # =====================================================================
 # MÓDULO 1 · Del dato al mapa
 # =====================================================================
-_vac = ", ".join(f"{c['esquema']}/k={c['k']}" for c in m1["clases_vacias"][:3])
+# k ES LO QUE SE PIDE, NO LO QUE SALE (2026-10-27). Hasta entonces el módulo decía que 7 configuraciones
+# «dejan alguna clase sin un solo municipio»: eran las siete de Head/tails, que no tienen ninguna vacía
+# —salen con 2 clases pida uno las que pida— y que `geo_cortes` rellenaba con ceros hasta k. Lo que pasa
+# de verdad es que dos esquemas no respetan k. La frase se arma con lo que cada uno da (`salen`).
+_kno = m1["k_no_respetado"]
+def _salen(e):
+    s_ = e["salen"]
+    return (f"{e['etiqueta']} da siempre {ent(s_[0])}" if len(s_) == 1
+            else f"{e['etiqueta']} da {enumera((ent(x) for x in s_), 'o')} clases según la k que se pida")
+if len(_kno) != 2:
+    sys.exit(f"PARADO: la prosa del módulo 1 habla de «esos dos esquemas» que no respetan k, y son {len(_kno)}")
+_K_NO = ", y ".join(_salen(e) for e in _kno)
+# El ejemplo que se propone mover en el simulador: el que más clases pone de más.
+_ej = max(((e, k, c) for e in _kno for k, c in zip(e["ks"], e["n_clases"])), key=lambda t: t[2] - t[1])
+if m1["n_con_clase_vacia"]:
+    sys.exit("PARADO: la prosa del módulo 1 dice que ninguna configuración deja una clase vacía, y alguna la deja")
 # Lo que oye quien no ve el gráfico (M9): qué dibuja, con qué ejes y qué da la
 # lectura. Las cifras salen del JSON, como las de la prosa.
 _vistas_des = next(c for c in M["municipios"]["capas"] if c["id"] == "desercion")["vistas"]
+# El simulador parte de Cuantiles con k = 5, el mismo esquema y la misma k que el mapa de abajo.
+_K_INI = 5
+_ini = next(r for r in m1["rejilla"] if r["esquema"] == "quantile" and r["k"] == _K_INI)
+if max(_ini["tam"]) > 1.1 * min(_ini["tam"]):
+    sys.exit("PARADO: la descripción de cap3-config dice que con Cuantiles las barras salen casi iguales, y no")
 _ARIA_CONFIG = (
-    f"Gráfico de barras: cuántos municipios caen en cada una de las {len(_vistas_des[1]['tam'])} clases "
-    "del mapa de deserción escolar de más abajo, con el eje desde cero. Los botones eligen el esquema de "
-    f"clasificación —{enumera((v['etiqueta'] for v in _vistas_des), 'o')}—, y el de partida es "
-    f"{_vistas_des[1]['etiqueta']}, con las barras casi iguales; con los demás se descompensan. La lectura "
-    "da el esquema, cuántos municipios quedan en la clase más alta y cuántas clases quedan vacías, y las "
+    "Gráfico de barras: cuántos municipios caen en cada clase del mapa de deserción escolar, con el eje "
+    "desde cero, para la configuración elegida. Los botones eligen el esquema de clasificación "
+    f"—{enumera((v['etiqueta'] for v in _vistas_des), 'o')}— y el deslizador, el número de clases que se "
+    f"pide, k, de {m1['ks'][0]} a {m1['ks'][1]}. De partida, {_vistas_des[1]['etiqueta']} con k = {_K_INI}, "
+    "con las barras casi iguales; con los demás esquemas se descompensan. El número de barras es el de "
+    f"clases que SALEN, que no siempre es k: {_K_NO}. La lectura da el esquema, la k pedida y las clases "
+    "que salen, cuántos municipios quedan en la clase más alta, y las "
     f"{ent(m1['n_configuraciones'])} configuraciones del capítulo frente a los "
     f"{ent(m1['n_mapas_distintos'])} mapas realmente distintos.")
 MOD1 = cabecera(
@@ -475,14 +501,19 @@ MOD1 = cabecera(
       <p>Que dos configuraciones den la misma partición no es raro: lo que se compara aquí
         es <strong>a qué clase va cada municipio</strong>, no los cortes impresos. Son cosas
         distintas, y confundirlas produce falsos negativos —el anexo del módulo 3 tiene el
-        caso—. Y hay una patología que conviene ver ya: {firma(ent(m1['n_con_clase_vacia']))}
-        de esas configuraciones dejan <strong>alguna clase sin un solo municipio</strong>
-        ({_vac}…). La leyenda anuncia <em>k</em> clases y el mapa pinta menos, sin avisar.</p>
+        caso—. Y hay una patología que conviene ver ya: en {firma(ent(m1['n_k_no_respetado']))}
+        de esas configuraciones <strong>el mapa no sale con las <em>k</em> clases que se
+        pidieron</strong>. {_K_NO}: esos dos esquemas deciden por su cuenta cuántas clases
+        hay, y nada avisa. Se pide <em>k</em>, se recibe otro número, y quien no cuente las
+        cajas de la leyenda no se entera. (Clases vacías, en cambio, no deja ninguna de las
+        {ent(m1['n_configuraciones'])}: el problema no es que sobren clases, es que <em>k</em>
+        no manda.)</p>
 
       <p>El simulador de abajo recorre las {ent(m1['n_configuraciones'])} configuraciones y
         cuenta cuántos municipios caen en cada clase. Mira sobre todo la clase más alta —la
         que un titular llamaría «los peores del país»— y cómo su tamaño salta al cambiar
-        de esquema.</p>
+        de esquema. Y pide <em>k</em> = {_ej[1]} con {_ej[0]['etiqueta']}: salen
+        {ent(_ej[2])}.</p>
 
 {sim('cap3-config', 'Las 35 formas de dibujar el mismo dato',
      'Elige el esquema y el número de clases: la barra muestra cuántos municipios caen en cada una.', 300,
@@ -627,12 +658,24 @@ print(len(top_n & top_p))
 # =====================================================================
 # MÓDULO 3 · Esquemas de clasificación
 # =====================================================================
+# Pedir k = 5 no da cinco clases en todos los esquemas: «sd» pone los cortes donde caen las desviaciones
+# y sobre SID74 salen seis. La frase sale de los propios tamaños (una cifra por clase que sale).
+_m3_otro = [e for e in m3["esquemas"] if len(e["tam"]) != m3["k"]]
+if ([e["esquema"] for e in _m3_otro] != ["sd"]
+        or any(sum(e["tam"]) != m3["n"] for e in m3["esquemas"])):
+    sys.exit("PARADO: el módulo 3 dice que solo Desviación estándar se sale de las k clases pedidas sobre "
+             "SID74, y por qué, y que todos reparten los condados; la tabla ya no lo sostiene")
+_M3_OTRO = enumera(f"{e['etiqueta']} da {ent(len(e['tam']))} clases" for e in _m3_otro)
+_PIE_ESQUEMAS = (f"Los tamaños de clase que produce cada esquema sobre SID74, pidiendo k = {m3['k']}: "
+                 f"{_M3_OTRO}. De verde claro a verde oscuro, de la clase más baja a la más alta, con "
+                 "los colores del mapa de abajo.")
 _ARIA_ESQUEMAS = (
     f"Gráfico de barras apiladas, una por esquema —{enumera(e['etiqueta'] for e in m3['esquemas'])}—: "
-    f"cada barra reparte los condados de Carolina del Norte entre las {m3['k']} clases de SID74, de la más "
-    "baja, en verde muy claro, a la más alta, en verde oscuro, con el eje en condados desde cero. La "
-    "lectura da cuántos condados son, cuántos están empatados en un corte y cómo cierra el intervalo cada "
-    f"lenguaje: R, {m3['convenio_r']}, y Python, {m3['convenio_python']}.")
+    f"cada barra reparte los {ent(m3['n'])} condados de Carolina del Norte entre las clases de SID74 que "
+    f"salen pidiendo {m3['k']} —{_M3_OTRO}—, de la más baja, en verde muy claro, a la más alta, en verde "
+    "oscuro, con los colores del mapa de abajo y el eje en condados desde cero. La lectura da cuántos "
+    "condados son, cuántos están empatados en un corte y cómo cierra el intervalo cada lenguaje: R, "
+    f"{m3['convenio_r']}, y Python, {m3['convenio_python']}.")
 _esq = "".join(fila(e["etiqueta"], "/".join(str(t) for t in e["tam"]),
                     " · ".join(n(c, 2) for c in e["cortes"]))
                for e in m3["esquemas"])
@@ -664,7 +707,9 @@ MOD3 = cabecera(
         (<code>SID74</code>) en los {firma(ent(m3['n']))} condados de Carolina del Norte, con
         <em>k</em> = {m3['k']}. Media {firma(n(m3['sid_resumen']['media'], 2))},
         máximo {firma(ent(m3['sid_resumen']['max']))}, y
-        {firma(ent(m3['sid_resumen']['n_ceros']))} condados con cero casos.</p>
+        {firma(ent(m3['sid_resumen']['n_ceros']))} condados con cero casos. Y una advertencia
+        que la tabla deja ver: pedir {m3['k']} clases no las garantiza. {_M3_OTRO}, porque pone
+        los cortes donde caen las desviaciones y no donde caben {m3['k']}.</p>
 
       <div class="table-wrapper">
         <table>
@@ -676,8 +721,8 @@ MOD3 = cabecera(
         </table>
       </div>
 
-{sim('cap3-esquemas', 'Los cinco esquemas sobre el mismo dato canónico',
-     'Los tamaños de clase que produce cada esquema sobre SID74, con k = 5.', 280, aria=_ARIA_ESQUEMAS)}
+{sim('cap3-esquemas', 'Los cinco esquemas sobre el mismo dato canónico', _PIE_ESQUEMAS, 280,
+     mandos=False, aria=_ARIA_ESQUEMAS)}
 
 {mapa_html('cap3-nc', 'Carolina del Norte · SID74 bajo los cinco esquemas', controles=True)}
 
@@ -785,7 +830,7 @@ MOD4 = cabecera(
 
 {sim('cap3-discordancia', 'La matriz de discordancia',
      'Cada barra es una pareja de esquemas y su altura, el porcentaje de municipios que cambian de clase.', 300,
-     aria=_ARIA_DISCORDANCIA)}
+     mandos=False, aria=_ARIA_DISCORDANCIA)}
 
 {mapa_html('cap3-desercion', 'Colombia · deserción escolar municipal bajo los cinco esquemas', controles=True)}
 
@@ -1186,7 +1231,7 @@ MOD7 = cabecera(
 
 {sim('cap3-carto-sim', 'Hasta dónde llega cada cartograma',
      'La correlación entre área y valor: exacta en los dos propios, y un límite en el contiguo.', 280,
-     aria=_ARIA_CARTO)}
+     mandos=False, aria=_ARIA_CARTO)}
 
 {mapa_html('cap3-carto', 'Los 33 departamentos · coropleto, símbolos proporcionales y dot density', controles=True)}
 
@@ -1427,8 +1472,10 @@ _ARIA_ZONIFICACION = (
     "dan cada correlación, con la correlación en el eje horizontal y el conteo, desde cero, en el vertical. "
     f"Los botones eligen el reparto: zonas contiguas, en verde, de {n(_co['min'], 2)} a {n(_co['max'], 2)}, "
     "o zonas arbitrarias —los municipios repartidos al azar, sin mirar dónde están—, en azul, de "
-    f"{n(_ar['min'], 2)} a {n(_ar['max'], 2)}. El trazado departamental real no se dibuja: la lectura da "
-    "su correlación, la media y el recorrido del reparto elegido y en qué percentil de él cae el real.")
+    f"{n(_ar['min'], 2)} a {n(_ar['max'], 2)}. Una línea vertical naranja discontinua marca el trazado "
+    f"departamental real, r = {n(m9['r_real'], 2)}, que cae en el percentil {n(_co['percentil_real'], 1)} del "
+    f"reparto contiguo y en el {n(_ar['percentil_real'], 1)} del arbitrario. La lectura da su correlación, la "
+    "media y el recorrido del reparto elegido y en qué percentil de él cae el real.")
 _dist = "".join(fila(ent(d["escanos"]), ent(d["n"]), n(d["pct"], 2) + " %")
                 for d in GY["distribucion"] if d["n"])
 MOD9 = cabecera(
@@ -1532,12 +1579,28 @@ MOD9 = cabecera(
 # MÓDULO 10 · La falacia ecológica
 # =====================================================================
 _nu = m10["nube_individual"]
+# LAS TRES ESCALAS, DIBUJADAS (2026-10-27). El título promete «la nube individual contra la nube agregada» y el
+# pie, «la misma relación vista entre municipios»; hasta entonces solo se dibujaba la curva individual y las
+# otras escalas eran una r en la lectura. Las dos nubes vienen ahora del JSON (`nube_municipal`,
+# `nube_departamental`), y el auditor rehace sus r desde los puntos.
+_NM, _ND = m10["nube_municipal"], m10["nube_departamental"]
+_niv0, _niv9 = m10["niveles_edu"][_nu[0]["nivel"]], m10["niveles_edu"][_nu[-1]["nivel"]]
+_PIE_FALACIA = ("Los mismos estudiantes a tres escalas y sobre los mismos ejes: la media de cada nivel "
+                "educativo de la madre, con una desviación típica a cada lado; cada municipio como un "
+                "punto; cada departamento como otro. El tamaño del punto es el número de estudiantes.")
 _ARIA_FALACIA = (
-    "Gráfico de línea, en verde: el puntaje global medio de los estudiantes según el nivel educativo de la "
-    f"madre, en {len(_nu)} niveles, de {ent(_nu[0]['media'])} puntos con «{m10['niveles_edu'][_nu[0]['nivel']]}» "
-    f"a {ent(_nu[-1]['media'])} con «{m10['niveles_edu'][_nu[-1]['nivel']]}». Solo dibuja la relación entre "
-    "individuos; la lectura da la correlación medida a cuatro escalas: entre estudiantes, entre "
-    "municipios, entre municipios ponderados y entre departamentos.")
+    "Gráfico de dispersión con el nivel educativo de la madre en el eje horizontal, de "
+    f"{_nu[0]['nivel']} («{_niv0}») a {_nu[-1]['nivel']} («{_niv9}»), y el puntaje global medio en el "
+    "vertical, con los mismos ejes en las tres vistas. Los botones eligen la escala. Estudiantes: la "
+    f"media de cada uno de los {len(_nu)} niveles, en verde, de {ent(_nu[0]['media'])} a "
+    f"{ent(_nu[-1]['media'])} puntos, con una banda verde pálida de una desviación típica a cada lado, de "
+    f"{ent(min(f['sd'] for f in _nu))} a {ent(max(f['sd'] for f in _nu))} puntos, que es lo que la media "
+    f"esconde. Municipios: {ent(len(_NM['x']))} puntos azules, uno por municipio y del tamaño de sus "
+    f"estudiantes, entre {n(min(_NM['x']), 1)} y {n(max(_NM['x']), 1)} de nivel medio, con la curva "
+    f"individual de fondo en gris discontinuo. Departamentos: {ent(len(_ND['x']))} puntos naranjas, "
+    "igual. La lectura da la escala, cuántos puntos hay y la correlación medida a cuatro escalas: entre "
+    "estudiantes, entre municipios, entre municipios ponderados por sus estudiantes y entre "
+    "departamentos.")
 _barr = "".join(fila(ent(b["umbral"]), ent(b["n_municipios"]), n(b["r"], 5))
                 for b in m10["barrido"])
 _TABS_M10 = tabs(
@@ -1583,8 +1646,7 @@ MOD10 = cabecera(
         bastante como para que una política dimensionada con la cifra departamental esté
         hablando de otra cosa que una dimensionada con la individual.</p>
 
-{sim('cap3-falacia', 'La nube individual contra la nube agregada',
-     'El puntaje medio por nivel educativo de la madre, y la misma relación vista entre municipios.', 300,
+{sim('cap3-falacia', 'La nube individual contra la nube agregada', _PIE_FALACIA, 340,
      aria=_ARIA_FALACIA)}
 
       <p>Y hay una variante del error que es más sutil y más frecuente: <strong>la cifra
@@ -1978,15 +2040,52 @@ SIMULADORES_JS = f"""
       }});
     }}
 
+    // Un deslizador de pasos discretos, el mismo del capítulo 6: su rótulo, su salida y el valor que
+    // oye el lector de pantalla (`aria-valuetext`). Va en SU PROPIO `.simulador-controles`, debajo del de
+    // los botones: la plantilla pasa a fila flexible todo contenedor con un `.sim-btn` dentro, y lo hace
+    // porque «ninguna botonera comparte contenedor con un deslizador». Ese contrato se respeta.
+    function deslizador3(raiz, opciones, etiqueta, iniPos, alCambiar) {{
+      const prim = raiz.querySelector('.simulador-controles');
+      if (!prim) return;
+      raiz.querySelectorAll('.simulador-controles.deslizador3').forEach(x => x.remove());
+      const cont = document.createElement('div');
+      cont.className = 'simulador-controles deslizador3';
+      prim.insertAdjacentElement('afterend', cont);
+      const id = 'ctl-' + Math.random().toString(36).slice(2, 10);
+      const caja = document.createElement('div');
+      caja.className = 'control-slider';
+      caja.style.gridColumn = '1 / -1';
+      const rotulo = document.createElement('label');
+      rotulo.setAttribute('for', id);
+      rotulo.append(etiqueta);
+      const salida = document.createElement('output');
+      rotulo.appendChild(salida);
+      const input = document.createElement('input');
+      input.type = 'range'; input.id = id;
+      input.min = 0; input.max = opciones.length - 1; input.step = 1; input.value = iniPos;
+      const pinta = () => {{
+        const o = opciones[+input.value];
+        salida.textContent = o[1];
+        input.setAttribute('aria-valuetext', etiqueta + ': ' + o[1]);
+      }};
+      input.addEventListener('input', () => {{ pinta(); alCambiar(+input.value); }});
+      caja.append(rotulo, input);
+      cont.appendChild(caja);
+      pinta();
+    }}
+
     // Módulo 1 · las 35 configuraciones
     SIMULADORES['cap3-config'] = function (raiz) {{
+      // LAS 35 CONFIGURACIONES, todas (2026-10-27). El título y el pie prometían elegir el esquema Y el
+      // número de clases, y solo había esquema, con k = 5: eran las cinco vistas del mapa de abajo. Ahora
+      // recorre `m1.rejilla`, y cada configuración trae las clases que SALEN, que con Desviación
+      // estándar y Head/tails no son las k pedidas: el número de barras lo dice.
       const ESQ = ['equal', 'quantile', 'fisher', 'sd', 'headtails'];
       const ETQ = ['Intervalos iguales', 'Cuantiles', 'Fisher-Jenks',
                    'Desviación estándar', 'Head/tails'];
-      const capa = D3 && null;
-      const mapaMun = GEOMAPAS['cap3-desercion'].fuente;
-      const cp = mapaMun.capas.find(c => c.id === 'desercion');
-      let iEsq = 1;
+      const R = D3.m1.rejilla;
+      const KS = [...new Set(R.map(r => r.k))].sort((a, b) => a - b);
+      let iEsq = 1, iK = KS.indexOf({_K_INI});
       const ctx = raiz.querySelector('canvas').getContext('2d');
       const g = new Chart(ctx, {{
         type: 'bar',
@@ -1996,20 +2095,22 @@ SIMULADORES_JS = f"""
           scales: {{ y: {{ beginAtZero: true, title: {{ display: true, text: 'municipios' }} }} }} }}
       }});
       const pinta = () => {{
-        const v = cp.vistas[iEsq];
-        g.data.labels = v.tam.map((_, i) => 'clase ' + (i + 1));
-        g.data.datasets[0].data = v.tam;
+        const r = R.find(c => c.esquema === ESQ[iEsq] && c.k === KS[iK]);
+        g.data.labels = r.tam.map((_, i) => 'clase ' + (i + 1));
+        g.data.datasets[0].data = r.tam;
         g.update();
         lectura3(raiz, [
           ['esquema', ETQ[iEsq]],
-          ['en la clase más alta', v.tam[v.tam.length - 1] + ' municipios'],
-          ['clases vacías', v.tam.filter(t => t === 0).length],
+          ['k pedida', r.k],
+          ['clases que salen', r.n_clases === r.k ? r.n_clases : r.n_clases + ' (no las ' + r.k + ' pedidas)'],
+          ['en la clase más alta', r.tam[r.tam.length - 1] + (r.tam[r.tam.length - 1] === 1 ? ' municipio' : ' municipios')],
           ['configuraciones del capítulo', D3.m1.n_configuraciones],
           ['mapas realmente distintos', D3.m1.n_mapas_distintos]
         ]);
       }};
       botones3(raiz, ESQ.map((e, i) => ({{ etiqueta: ETQ[i], valor: i }})),
                i => {{ iEsq = i; pinta(); }}, 1);
+      deslizador3(raiz, KS.map(k => [k, 'k = ' + k]), 'clases pedidas', iK, i => {{ iK = i; pinta(); }});
       pinta();
       return [g];
     }};
@@ -2052,16 +2153,25 @@ SIMULADORES_JS = f"""
     // Módulo 3 · los cinco esquemas sobre SID74
     SIMULADORES['cap3-esquemas'] = function (raiz) {{
       const E = D3.m3.esquemas;
+      // Tantas series como clases SALGAN, no como k: Desviación estándar da seis sobre SID74 aunque se
+      // pidan cinco, y con cinco series fijas sus 2 condados de la sexta clase no se dibujaban (la
+      // barra sumaba 98 de 100). Cada trozo lleva el color que su clase tiene en el mapa de abajo
+      // (`geomapaColor`, de la plantilla): la clase k de un esquema de n clases, en (k − 1)/(n − 1).
+      const NMAX = Math.max(...E.map(e => e.tam.length));
       const ctx = raiz.querySelector('canvas').getContext('2d');
       const g = new Chart(ctx, {{
         type: 'bar',
         data: {{ labels: E.map(e => e.etiqueta),
-                datasets: [0, 1, 2, 3, 4].map(k => ({{
+                datasets: Array.from({{ length: NMAX }}, (_, k) => ({{
                   label: 'clase ' + (k + 1),
-                  data: E.map(e => e.tam[k]),
-                  backgroundColor: ['#e8f3ef', '#b8ddd0', '#7cc0aa', '#3f9c7f', '#1a7358'][k]
+                  data: E.map(e => k < e.tam.length ? e.tam[k] : null),
+                  backgroundColor: E.map(e => geomapaColor('verde', e.tam.length > 1 ? k / (e.tam.length - 1) : 0.5)),
+                  borderColor: '#ffffff', borderWidth: 1
                 }})) }},
+        // Sin leyenda: el color de «clase 3» no es el mismo en un esquema de cinco clases que en uno de
+        // seis, y la leyenda de Chart.js solo sabe pintar uno. El pie dice cómo leer el color.
         options: {{ responsive: true, maintainAspectRatio: false,
+          plugins: {{ legend: {{ display: false }} }},
           scales: {{ x: {{ stacked: true }},
                     y: {{ stacked: true, beginAtZero: true,
                          title: {{ display: true, text: 'condados' }} }} }} }}
@@ -2218,13 +2328,34 @@ SIMULADORES_JS = f"""
     SIMULADORES['cap3-zonificacion'] = function (raiz) {{
       const h = D3.m9.hist_contiguas, ha = D3.m9.hist_arbitrarias;
       let cual = 'contiguas';
+      // El trazado departamental real, MARCADO (el pie lo promete, y hasta el 2026-10-27 solo lo daba la
+      // lectura). Las barras son clases de igual ancho en un eje de categorías: el centro de la barra j está
+      // en j y sus bordes en j ± 0,5, así que r se coloca interpolando dentro de su clase.
+      const marcaReal = {{
+        id: 'marcaReal',
+        afterDatasetsDraw(ch) {{
+          const c = (cual === 'contiguas' ? h : ha).cortes, r = D3.m9.r_real;
+          const j = c.findIndex((x, k) => k < c.length - 1 && r >= x && r < c[k + 1]);
+          if (j < 0) return;
+          const x = ch.scales.x.getPixelForValue(j - 0.5 + (r - c[j]) / (c[j + 1] - c[j]));
+          const a = ch.chartArea, cx = ch.ctx, izq = x > (a.left + a.right) / 2;
+          cx.save();
+          cx.strokeStyle = C3.naranja; cx.lineWidth = 2; cx.setLineDash([6, 4]);
+          cx.beginPath(); cx.moveTo(x, a.top); cx.lineTo(x, a.bottom); cx.stroke();
+          cx.fillStyle = '#8a3d00'; cx.font = '600 12px ' + Chart.defaults.font.family;
+          cx.textAlign = izq ? 'right' : 'left';
+          cx.fillText('trazado real, r = ' + n5(r, 2), x + (izq ? -6 : 6), a.top + 14);
+          cx.restore();
+        }}
+      }};
       const ctx = raiz.querySelector('canvas').getContext('2d');
       const g = new Chart(ctx, {{
         type: 'bar',
         data: {{ labels: [], datasets: [{{ label: 'particiones', data: [], backgroundColor: C3.verde }}] }},
         options: {{ responsive: true, maintainAspectRatio: false,
           scales: {{ y: {{ beginAtZero: true, title: {{ display: true, text: 'particiones' }} }},
-                    x: {{ title: {{ display: true, text: 'correlación de la partición' }} }} }} }}
+                    x: {{ title: {{ display: true, text: 'correlación de la partición' }} }} }} }},
+        plugins: [marcaReal]
       }});
       const pinta = () => {{
         const H = cual === 'contiguas' ? h : ha;
@@ -2308,23 +2439,69 @@ SIMULADORES_JS = f"""
 
     // Módulo 10 · la falacia ecológica
     SIMULADORES['cap3-falacia'] = function (raiz) {{
-      const nu = D3.m10.nube_individual;
+      // LAS TRES ESCALAS, SOBRE LOS MISMOS EJES (2026-10-27). Hasta entonces solo se dibujaba la curva
+      // individual, y el título y el pie prometían la nube agregada. Los botones eligen la escala y la
+      // regla no cambia —nivel educativo de la madre y puntaje global, con el eje vertical fijo—, así
+      // que lo que se ve cambiar es la nube. En las vistas agregadas la curva individual queda de fondo,
+      // en gris: es la referencia contra la que se lee la otra.
+      const M10 = D3.m10, nu = M10.nube_individual, NIV = M10.niveles_edu;
+      const pts = c => c.x.map((x, i) => ({{ x, y: c.p[i], n: c.n[i] }}));
+      const radio = (c, rmin, rmax) => {{
+        const mx = Math.max(...c.n);
+        return ctx => (ctx.raw && ctx.raw.n) ? rmin + (rmax - rmin) * Math.sqrt(ctx.raw.n / mx) : rmin;
+      }};
+      const techo = nu.map(f => ({{ x: f.nivel, y: f.media + f.sd }}));
+      const suelo = nu.map(f => ({{ x: f.nivel, y: f.media - f.sd }}));
+      const todos = techo.concat(suelo).map(q => q.y).concat(M10.nube_municipal.p, M10.nube_departamental.p);
       const ctx = raiz.querySelector('canvas').getContext('2d');
       const g = new Chart(ctx, {{
-        type: 'line',
-        data: {{ labels: nu.map(x => D3.m10.niveles_edu[x.nivel] || x.nivel),
-                datasets: [{{ label: 'puntaje medio por nivel (individual)',
-                             data: nu.map(x => x.media), borderColor: C3.verde,
-                             backgroundColor: 'rgba(26,115,88,.12)', tension: .2 }}] }},
-        options: {{ responsive: true, maintainAspectRatio: false,
-          scales: {{ y: {{ title: {{ display: true, text: 'puntaje global medio' }} }} }} }}
+        type: 'scatter',
+        data: {{ datasets: [
+          {{ label: '', data: techo, showLine: true, pointRadius: 0, borderWidth: 0,
+             backgroundColor: 'rgba(26,115,88,.14)', fill: '+1' }},
+          {{ label: '', data: suelo, showLine: true, pointRadius: 0, borderWidth: 0 }},
+          {{ label: 'estudiantes: media de cada nivel', data: nu.map(f => ({{ x: f.nivel, y: f.media }})),
+             showLine: true, borderColor: C3.verde, backgroundColor: C3.verde, pointRadius: 3, tension: .2 }},
+          {{ label: 'municipios (tamaño: estudiantes)', data: pts(M10.nube_municipal),
+             backgroundColor: 'rgba(0,114,178,.35)', borderColor: 'rgba(0,114,178,.7)', borderWidth: 1,
+             pointRadius: radio(M10.nube_municipal, 1.5, 9) }},
+          {{ label: 'departamentos (tamaño: estudiantes)', data: pts(M10.nube_departamental),
+             backgroundColor: 'rgba(255,102,0,.55)', borderColor: '#8a3d00', borderWidth: 1,
+             pointRadius: radio(M10.nube_departamental, 3, 14) }}
+        ] }},
+        options: {{ responsive: true, maintainAspectRatio: false, animation: false,
+          plugins: {{ legend: {{ onClick: () => {{}},
+                                labels: {{ filter: it => it.text !== '' && !it.hidden }} }} }},
+          scales: {{
+            x: {{ type: 'linear', min: nu[0].nivel, max: nu[nu.length - 1].nivel, ticks: {{ stepSize: 1 }},
+                 title: {{ display: true, text: 'nivel educativo de la madre (' + nu[0].nivel + ' = ' +
+                   NIV[nu[0].nivel] + ', ' + nu[nu.length - 1].nivel + ' = ' + NIV[nu[nu.length - 1].nivel] + ')' }} }},
+            y: {{ min: Math.floor(Math.min(...todos) / 10) * 10, max: Math.ceil(Math.max(...todos) / 10) * 10,
+                 title: {{ display: true, text: 'puntaje global medio' }} }} }} }}
       }});
-      lectura3(raiz, [
-        ['individuo', n5(D3.m10.r_individuo)],
-        ['municipio', n5(D3.m10.r_municipio)],
-        ['municipio ponderado', n5(D3.m10.r_municipio_ponderado)],
-        ['departamento', n5(D3.m10.r_departamento)]
-      ]);
+      const VISTAS = [
+        {{ etiqueta: 'Estudiantes', ver: [0, 1, 2], puntos: miles3(D3.m8.n_estudiantes) + ' estudiantes, en ' + nu.length + ' medias' }},
+        {{ etiqueta: 'Municipios', ver: [2, 3], puntos: M10.nube_municipal.x.length + ' municipios' }},
+        {{ etiqueta: 'Departamentos', ver: [2, 4], puntos: M10.nube_departamental.x.length + ' departamentos' }}
+      ];
+      const pinta = i => {{
+        const v = VISTAS[i], ind = g.data.datasets[2];
+        g.data.datasets.forEach((d, k) => {{ d.hidden = !v.ver.includes(k); }});
+        ind.borderColor = ind.backgroundColor = i === 0 ? C3.verde : C3.gris;
+        ind.borderDash = i === 0 ? [] : [5, 4];
+        ind.pointRadius = i === 0 ? 3 : 0;
+        g.update();
+        lectura3(raiz, [
+          ['escala', v.etiqueta.toLowerCase()],
+          ['puntos', v.puntos],
+          ['r entre estudiantes', n5(M10.r_individuo)],
+          ['r entre municipios', n5(M10.r_municipio)],
+          ['r entre municipios, ponderada', n5(M10.r_municipio_ponderado)],
+          ['r entre departamentos', n5(M10.r_departamento)]
+        ]);
+      }};
+      botones3(raiz, VISTAS.map((v, i) => ({{ etiqueta: v.etiqueta, valor: i }})), pinta, 0);
+      pinta(0);
       return [g];
     }};
 """
@@ -2648,6 +2825,24 @@ def main() -> int:
         r'data-simulador="([^"]+)">\s*<h4>((?:(?!</h4>).)*)</h4>(?:(?!data-simulador=).)*?'
         r'<div class="grafico-wrapper"[^>]*>\s*<canvas([^>]*)></canvas>\s*</div>\s*'
         r'<div class="simulador-lectura"([^>]*)>', marcado, re.S))
+    # MANDOS QUE NO ESTÁN, O QUE NO TIENEN DÓNDE (2026-10-27). Un `.simulador-controles` vacío deja el hueco
+    # de su margen y el icono de los deslizadores sin nada que mover; un simulador que construye mandos sin
+    # contenedor no los enseña, porque su ayudante vuelve sin hacer nada. Se cruza el marcado de cada
+    # simulador con el cuerpo de su función (hasta su `};`), buscando las llamadas a los ayudantes.
+    for _m in re.finditer(r'data-simulador="([^"]+)">(.*?)</h4>(.*?)<div class="(?:grafico-wrapper|simulador-lectura)',
+                           marcado, re.S):
+        _ident, _tras = _m.group(1), _m.group(3)
+        _fn = SIMULADORES_JS.split(f"SIMULADORES['{_ident}'] = function", 1)
+        if len(_fn) < 2:
+            continue
+        _fn = _fn[1].split("\n    };\n", 1)[0]
+        _tiene = 'class="simulador-controles"' in _tras
+        _llena = bool(re.search(r"\b(?:botonera\w*|botones\d\w*|deslizador\w*)\(raiz\b"
+                                 r"|querySelector\('\.simulador-controles'\)", _fn))
+        if _tiene and not _llena:
+            problemas.append(f"{_ident}: publica un contenedor de mandos y su JS no pone ninguno (mandos=False)")
+        if _llena and not _tiene:
+            problemas.append(f"{_ident}: su JS construye mandos y el marcado no tiene dónde ponerlos")
     _con_lectura = marcado.count('class="simulador-lectura"') - marcado.count('<div class="gerry">')
     if len(_sims) != _con_lectura:
         problemas.append(f"simuladores con lectura: {_con_lectura}, "

@@ -169,11 +169,20 @@ geo_cortes <- function(v, n = 5, estilo = "quantile") {
   # ausentes salen como NA declarado, que el .geomapa pinta sin color.
   clase <- rep(NA_integer_, length(v))
   clase[fin] <- as.integer(classInt::findCols(ci))
-  list(estilo = estilo, n = n,
+  # `n` es lo que se PIDE, no lo que sale. «sd» pone los cortes donde caen
+  # las desviaciones (seis clases sobre SID74 con n = 5; cinco o nueve sobre
+  # la deserción, pida uno las que pida) y «headtails» se detiene por su
+  # propia regla (dos clases sobre la deserción). Hasta el 2026-10-27 `tam`
+  # contaba las n primeras: dejaba fuera los 2 condados de la sexta clase de
+  # SID74 (sumaba 98 de 100) y rellenaba con ceros clases que no existen, que
+  # el capítulo 3 leyó como «clases vacías». Se cuenta por los cortes, que es
+  # lo que pinta el mapa.
+  n_clases <- length(ci$brks) - 1L
+  list(estilo = estilo, n = n, n_clases = n_clases,
        cortes = as.numeric(ci$brks),
        clase  = clase,
        n_sin_dato = sum(!fin),
-       tam    = as.integer(table(factor(clase, levels = seq_len(n)))))
+       tam    = as.integer(table(factor(clase, levels = seq_len(n_clases)))))
 }
 
 # ---------------------------------------------------------------------

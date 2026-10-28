@@ -240,7 +240,9 @@ REUSA <- list(
   r("c3m1_config",         "cap3",  1, "m1.n_configuraciones",             "Configuraciones de esquema y k probadas sobre el mismo dato"),
   r("c3m1_distintos",      "cap3",  1, "m1.n_mapas_distintos",             "Mapas visualmente distintos que salen de ellas"),
   r("c3m1_pct",            "cap3",  1, "m1.pct_distintos",                 "Porcentaje de configuraciones que dan un mapa distinto"),
-  r("c3m1_vacias",         "cap3",  1, "m1.n_con_clase_vacia",             "Configuraciones que dejan alguna clase vacía"),
+  # Era «c3m1_vacias», «configuraciones que dejan alguna clase vacía»: 7, y falso. Eran las siete de
+  # Head/tails, que salen con 2 clases pida uno las que pida; ninguna deja una clase vacía (2026-10-27).
+  r("c3m1_otro_k",         "cap3",  1, "m1.n_k_no_respetado",              "Configuraciones en las que el esquema no da las k clases pedidas"),
 
   r("c3m2_r",              "cap3",  2, "m2.r_conteo_tasa",                 "Correlación de Pearson entre el conteo de estudiantes y el puntaje medio"),
   r("c3m2_rho",            "cap3",  2, "m2.rho_conteo_tasa",               "Correlación de Spearman entre los dos ordenamientos"),

@@ -131,7 +131,7 @@ def tabs(etiqueta, r_code, py_code):
 """
 
 
-def sim(ident, titulo, pie="", alto=260, *, aria):
+def sim(ident, titulo, pie="", alto=260, mandos=True, *, aria):
     """Un simulador con su lienzo de Chart.js.
 
     `aria` ES OBLIGATORIO, y es lo que oye quien no ve el gráfico (M9 de la
@@ -150,12 +150,16 @@ def sim(ident, titulo, pie="", alto=260, *, aria):
     simuladores salían en blanco. Consola limpia, cero errores, cero
     píxeles — solo se ve midiendo la tinta del lienzo, que es para lo que
     existe el recorrido instrumentado de T*n*.3.
+    `mandos=False` es para los que no tienen ninguno (2026-10-27, el patrón del capítulo 4): hasta
+    entonces todos publicaban un `.simulador-controles` vacío —el hueco de su margen— y el icono de
+    los deslizadores. La guarda de `main()` ata el marcado al JS: un simulador con contenedor de
+    mandos tiene que llenarlo, y uno que construye mandos tiene que tener dónde.
     """
+    icono = "fa-sliders" if mandos else "fa-chart-column"
     return f"""      <div class="simulador" data-simulador="{ident}">
-        <h4><i class="fas fa-sliders" aria-hidden="true"></i> {titulo}</h4>
+        <h4><i class="fas {icono}" aria-hidden="true"></i> {titulo}</h4>
         {f'<p class="simulador-intro">{pie}</p>' if pie else ''}
-        <div class="simulador-controles"></div>
-        <div class="grafico-wrapper" style="height:{alto}px;">
+{'        <div class="simulador-controles"></div>' + chr(10) if mandos else ''}        <div class="grafico-wrapper" style="height:{alto}px;">
           <canvas role="img" aria-label="{_html.escape(aria)}" aria-describedby="lectura-{ident}"></canvas>
         </div>
         <div class="simulador-lectura" id="lectura-{ident}" aria-live="polite"></div>
@@ -340,7 +344,7 @@ MOD1 = cabecera(
       \\qquad N(\\varphi) = \\dfrac{{a}}{{(1-e^2\\sin^2\\varphi)^{{1/2}}}} \\)</p>
 
 {sim('radios', 'Los dos radios de curvatura del elipsoide, por latitud',
-     'Con la primera excentricidad al cuadrado e² = ' + n(el['e2'], 8) + '.', aria=_ARIA_RADIOS)}
+     'Con la primera excentricidad al cuadrado e² = ' + n(el['e2'], 8) + '.', mandos=False, aria=_ARIA_RADIOS)}
       <p>Lo que el simulador enseña es que la Tierra no tiene «un radio». En cuanto una
       fórmula pide uno —y la geodesia esférica lo pide todo el rato— hay que decir cuál, y esa
       elección se paga. El módulo 6 pondrá cifra a ese pago sobre el área de Colombia; aquí
@@ -431,7 +435,7 @@ MOD2 = cabecera(
       cosas se ven a la vez en el simulador.</p>
 
 {sim('grados', 'Cuánto mide un grado, según la latitud',
-     'Distancias geodésicas sobre el elipsoide WGS84.', aria=_ARIA_GRADOS)}
+     'Distancias geodésicas sobre el elipsoide WGS84.', mandos=False, aria=_ARIA_GRADOS)}
       <p>En el ecuador un grado de longitud mide {firma(n(gr['lon_m_elipsoide'][0], 2), ' m')}
       y uno de latitud {firma(n(gr['lat_m_elipsoide'][0], 2), ' m')}; a 80° el de longitud ha
       caído a {firma(n(gr['lon_m_elipsoide'][-1], 2), ' m')}, un
@@ -765,7 +769,7 @@ MOD5 = cabecera(
       hay, y solo si alguien mira.</p>
 
 {sim('etiquetar', 'Las dos operaciones, sobre la misma capa',
-     'La capa original está en ' + et['crs_original'] + '.', aria=_ARIA_ETIQUETAR)}
+     'La capa original está en ' + et['crs_original'] + '.', mandos=False, aria=_ARIA_ETIQUETAR)}
       <p>Fíjate en que la superficie tampoco avisa. Bien reproyectada, la suma de las
       localidades da {firma(n(et['area_bien_km2'], 3), ' km²')}, que es el área de Bogotá; el
       objeto reetiquetado o bien devuelve un disparate o bien devuelve
@@ -849,7 +853,7 @@ MOD6 = cabecera(
       sobre el país y sobre los municipios.</p>
 
 {sim('medir', 'La misma geometría, medida de tres formas',
-     'Sobre los ' + ent(_mm['n']) + ' municipios; la referencia es el elipsoide GRS80.', aria=_ARIA_MEDIR)}
+     'Sobre los ' + ent(_mm['n']) + ' municipios; la referencia es el elipsoide GRS80.', mandos=False, aria=_ARIA_MEDIR)}
       <p>Sobre los municipios uno a uno la razón esfera/elipsoide va de
       {firma(n(_mm['razon_min'], 5))} a {firma(n(_mm['razon_max'], 5))}, con mediana
       {firma(n(_mm['razon_med'], 5))}. Es un sesgo, no un ruido: la esfera se equivoca siempre
@@ -1025,7 +1029,7 @@ MOD8 = cabecera(
 
 {sim('invertir', 'Qué pasa al intercambiar las dos columnas',
      'Las ' + ent(cs['n']) + ' estaciones del IDEAM, con temperatura media 1991-2020.',
-     aria=_ARIA_INVERTIR)}
+     mandos=False, aria=_ARIA_INVERTIR)}
       <p>Que el desastre sea tan grande es, paradójicamente, una suerte: aquí el error se ve a
       simple vista en cuanto alguien pinta el mapa. El caso peligroso es el país cuyos rangos
       de longitud y de latitud <em>se solapan</em>, donde una fila invertida puede caer dentro
@@ -1077,13 +1081,30 @@ _TABLA_REDONDEOS = "".join(
     for r in po["redondeos"])
 _men, _sg = po["men_descartada"], po["sesgo"]
 _ru = po["ruidos"]
+# LA CURVA DEL SIMULADOR ES LA DE LAS RÉPLICAS, no la de `ruidos`. `ruidos` es una sola realización por σ y
+# la prosa la usa así (un geocodificador se equivoca una vez); la curva unía esas tres y su pie decía
+# «cada punto es un promedio sobre réplicas», que no era verdad, y en 150 m daba otra cifra que su propia
+# lectura (2,63 % contra 3,03 %). Ahora cada punto promedia `n_replicas` realizaciones, y el de 150 m ES
+# la tasa global de la lectura: se comprueba aquí, como la forma que la descripción afirma.
+_cv = po["curva"]
+_pc = _cv["pct_medio"]
+_i150 = _cv["sigma_m"].index(_sg["sigma_m"])
+if _pc[_i150] != _sg["tasa_global_pct"] or _cv["n_replicas"] != _sg["n_replicas"]:
+    sys.exit("PARADO: el punto de la curva en la σ del sesgo ya no es la tasa global de la lectura")
+if not all(a < b for a, b in zip(_pc, _pc[1:])):
+    sys.exit("PARADO: la descripción de `degradar` dice que la curva sube con σ, y no sube")
+_obj5 = S["e5"]["solucion"]["objetivo_pct"]
+_PIE_DEGRADAR = (
+    f"Cada punto es la media de {ent(_cv['n_replicas'])} realizaciones del ruido, y el de "
+    f"{ent(_sg['sigma_m'])} m es la tasa global de la lectura. La línea discontinua es el requisito del "
+    f"ejercicio 5: el {ent(_obj5)} %.")
 _ARIA_DEGRADAR = (
     "Gráfico de línea con el área rellena, en naranja: el porcentaje de sedes que cambian de localidad, "
     "con el eje vertical desde cero, contra la desviación del ruido que se añade a su posición, σ = "
-    f"{enumera(ent(r['sigma_m']) for r in _ru)} m. Sube de {n(_ru[0]['pct_cambian'], 1)} % a "
-    f"{n(_ru[-1]['pct_cambian'], 1)} %. La lectura da la tasa global a {ent(_sg['sigma_m'])} m promediada "
-    f"sobre {ent(_sg['n_replicas'])} réplicas, su error de Monte Carlo y la tasa de la mejor y la peor "
-    "localidad.")
+    f"{enumera(ent(s_) for s_ in _cv['sigma_m'])} m. Cada punto es la media de {ent(_cv['n_replicas'])} "
+    f"realizaciones; sube de {n(_pc[0], 2)} % a {n(_pc[-1], 2)} %. Una línea gris discontinua marca el "
+    f"{ent(_obj5)} % que exige el ejercicio 5. La lectura da la tasa global a {ent(_sg['sigma_m'])} m, que es "
+    "el punto del medio, su error de Monte Carlo y la tasa de la mejor y la peor localidad.")
 MOD9 = cabecera(
     9, "Error posicional, y quién lo paga", "Geocoding error is not uniform",
     "Medir qué rompe un error de posición pequeño, y comprobar que no lo rompe igual en todas partes."
@@ -1137,9 +1158,8 @@ MOD9 = cabecera(
       {n(_ru[1]['desplaz_med_m'], 1)}&nbsp;m y el mapa se ve idéntico. Y aun así cambian de
       localidad {firma(ent(_ru[1]['n_cambian']), ' sedes')}.</p>
 
-{sim('degradar', 'Cuánto se rompe según cuánto se degrade',
-     'Cada punto es un promedio sobre réplicas; el requisito del ejercicio 5 es el 1 %.',
-     aria=_ARIA_DEGRADAR)}
+{sim('degradar', 'Cuánto se rompe según cuánto se degrade', _PIE_DEGRADAR,
+     mandos=False, aria=_ARIA_DEGRADAR)}
       <p>Hasta aquí el tamaño del daño. Falta el reparto, que es lo que de verdad convierte
       esto en un problema y no en una molestia. Promediando {firma(ent(_sg['n_replicas']), ' realizaciones')}
       del ruido de {_sg['sigma_m']}&nbsp;m —una sola daba correlaciones que bailaban entre 0,38
@@ -1269,7 +1289,7 @@ MOD10 = cabecera(
       </div>
 
 {sim('buffer', 'El mismo radio de 1 000 m, pedido en tres sistemas',
-     'El área verdadera se mide sobre el elipsoide tras deshacer la proyección.', aria=_ARIA_BUFFER)}
+     'El área verdadera se mide sobre el elipsoide tras deshacer la proyección.', mandos=False, aria=_ARIA_BUFFER)}
       <p>Y una operación que junta todo lo del capítulo en una línea: el <em>buffer</em>. Un
       radio de mil metros pedido sobre EPSG:9377 da un círculo de
       {firma(n(_bf['m9377_area_km2'], 5), ' km²')}, que es \\(\\pi\\) como debe ser. El mismo
@@ -1371,7 +1391,7 @@ MOD11 = cabecera(
       puede consultar con un <code>LIKE</code> en cualquier base de datos, sin geometría.</p>
 
 {sim('geohash', 'La celda de geohash, según cuántos caracteres',
-     'Medido sobre las ' + ent(po['n_sedes']) + ' sedes de Bogotá.', aria=_ARIA_GEOHASH)}
+     'Medido sobre las ' + ent(po['n_sedes']) + ' sedes de Bogotá.', mandos=False, aria=_ARIA_GEOHASH)}
       <p>El mapa siguiente pinta las celdas de longitud 5 sobre Bogotá, coloreadas por cuántas
       sedes cae en cada una. Fíjate en que son rectángulos alineados con los meridianos y
       paralelos, no unidades administrativas: el geohash no sabe nada de la ciudad.</p>
@@ -1834,22 +1854,28 @@ SIMULADORES_JS = r"""
 
     // --- Módulo 9 · degradar la posición -----------------------------
     SIMULADORES['degradar'] = function (raiz) {
-      const p = D2.posicional;
+      const p = D2.posicional, cv = p.curva;
+      const obj = SOL_CAP2.e5.solucion.objetivo_pct;
       const ctx = raiz.querySelector('canvas').getContext('2d');
+      // La curva es la de las réplicas (`curva`), no la realización única de `ruidos`, que es la que usa
+      // la prosa: así el punto de 150 m y la tasa global de la lectura son la misma cifra.
       const g = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: p.ruidos.map(r => '\u03c3 = ' + r.sigma_m + ' m'),
-          datasets: [{ label: '% de sedes que cambian de localidad',
-            data: p.ruidos.map(r => r.pct_cambian),
+          labels: cv.sigma_m.map(s => '\u03c3 = ' + s + ' m'),
+          datasets: [{ label: '% de sedes que cambian de localidad (media de ' + cv.n_replicas + ' réplicas)',
+            data: cv.pct_medio,
             borderColor: '#FF6600', backgroundColor: 'rgba(255,102,0,.15)',
-            fill: true, tension: .25 }]
+            fill: true, tension: .25 },
+            { label: 'requisito del ejercicio 5 (' + obj + ' %)', data: cv.sigma_m.map(() => obj),
+              borderColor: '#8a8a8a', borderDash: [6, 4], pointRadius: 0, fill: false }]
         },
         options: { responsive: true, maintainAspectRatio: false,
           scales: { y: { beginAtZero: true, title: { display: true, text: '%' } } } }
       });
       lectura(raiz, [
-        ['tasa global a 150 m', n5(p.sesgo.tasa_global_pct) + ' %'],
+        ['réplicas por punto', cv.n_replicas],
+        ['tasa global a ' + p.sesgo.sigma_m + ' m', n5(p.sesgo.tasa_global_pct) + ' %'],
         ['error de Monte Carlo', '\u00b1 ' + n5(p.sesgo.emc_global_pct)],
         ['la mejor localidad', n5(p.sesgo.tasa_min_pct) + ' %'],
         ['la peor', n5(p.sesgo.tasa_max_pct) + ' %']
@@ -2371,6 +2397,24 @@ def main() -> int:
         r'data-simulador="([^"]+)">\s*<h4>((?:(?!</h4>).)*)</h4>(?:(?!data-simulador=).)*?'
         r'<div class="grafico-wrapper"[^>]*>\s*<canvas([^>]*)></canvas>\s*</div>\s*'
         r'<div class="simulador-lectura"([^>]*)>', marcado, re.S))
+    # MANDOS QUE NO ESTÁN, O QUE NO TIENEN DÓNDE (2026-10-27). Un `.simulador-controles` vacío deja el hueco
+    # de su margen y el icono de los deslizadores sin nada que mover; un simulador que construye mandos sin
+    # contenedor no los enseña, porque su ayudante vuelve sin hacer nada. Se cruza el marcado de cada
+    # simulador con el cuerpo de su función (hasta su `};`), buscando las llamadas a los ayudantes.
+    for _m in re.finditer(r'data-simulador="([^"]+)">(.*?)</h4>(.*?)<div class="(?:grafico-wrapper|simulador-lectura)',
+                           marcado, re.S):
+        _ident, _tras = _m.group(1), _m.group(3)
+        _fn = SIMULADORES_JS.split(f"SIMULADORES['{_ident}'] = function", 1)
+        if len(_fn) < 2:
+            continue
+        _fn = _fn[1].split("\n    };\n", 1)[0]
+        _tiene = 'class="simulador-controles"' in _tras
+        _llena = bool(re.search(r"\b(?:botonera\w*|botones\d\w*|deslizador\w*)\(raiz\b"
+                                 r"|querySelector\('\.simulador-controles'\)", _fn))
+        if _tiene and not _llena:
+            problemas.append(f"{_ident}: publica un contenedor de mandos y su JS no pone ninguno (mandos=False)")
+        if _llena and not _tiene:
+            problemas.append(f"{_ident}: su JS construye mandos y el marcado no tiene dónde ponerlos")
     _con_lectura = marcado.count('class="simulador-lectura"')
     if len(_sims) != _con_lectura:
         problemas.append(f"simuladores con lectura: {_con_lectura}, "

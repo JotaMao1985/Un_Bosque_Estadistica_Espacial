@@ -10895,13 +10895,18 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
       };
       const cont = raiz.querySelector('.simulador-controles');
       cont.innerHTML = '';
+      // Interruptores, no una botonera de uno-entre-varios: cada botón dice si su corrección está
+      // encendida (aria-pressed), o el lector de pantalla no sabe qué curvas hay en el gráfico.
       Object.keys(ETQ).forEach(k => {
         const b = document.createElement('button');
+        b.type = 'button';
         b.className = 'sim-btn' + (activos[k] ? ' active' : '');
+        b.setAttribute('aria-pressed', String(activos[k]));
         b.textContent = ETQ[k];
         b.onclick = () => {
           activos[k] = !activos[k];
           b.classList.toggle('active', activos[k]);
+          b.setAttribute('aria-pressed', String(activos[k]));
           pinta();
         };
         cont.appendChild(b);

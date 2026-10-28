@@ -3491,13 +3491,18 @@ SIMULADORES_JS = r"""
       };
       const cont = raiz.querySelector('.simulador-controles');
       cont.innerHTML = '';
+      // Interruptores, no una botonera de uno-entre-varios: cada botón dice si su corrección está
+      // encendida (aria-pressed), o el lector de pantalla no sabe qué curvas hay en el gráfico.
       Object.keys(ETQ).forEach(k => {
         const b = document.createElement('button');
+        b.type = 'button';
         b.className = 'sim-btn' + (activos[k] ? ' active' : '');
+        b.setAttribute('aria-pressed', String(activos[k]));
         b.textContent = ETQ[k];
         b.onclick = () => {
           activos[k] = !activos[k];
           b.classList.toggle('active', activos[k]);
+          b.setAttribute('aria-pressed', String(activos[k]));
           pinta();
         };
         cont.appendChild(b);
@@ -3951,6 +3956,24 @@ def main() -> int:
         r'data-simulador="([^"]+)">\s*<h4>((?:(?!</h4>).)*)</h4>((?:(?!data-simulador=).)*?)'
         r'<div class="simulador-lectura"([^>]*)>', marcado, re.S)]
     _sims = [(m, lienzos_sim) for m, lienzos_sim in _sims if lienzos_sim]
+    # MANDOS QUE NO ESTÁN, O QUE NO TIENEN DÓNDE (2026-10-27). Un `.simulador-controles` vacío deja el hueco
+    # de su margen y el icono de los deslizadores sin nada que mover; un simulador que construye mandos sin
+    # contenedor no los enseña, porque su ayudante vuelve sin hacer nada. Se cruza el marcado de cada
+    # simulador con el cuerpo de su función (hasta su `};`), buscando las llamadas a los ayudantes.
+    for _m in re.finditer(r'data-simulador="([^"]+)">(.*?)</h4>(.*?)<div class="(?:grafico-wrapper|simulador-lectura)',
+                           marcado, re.S):
+        _ident, _tras = _m.group(1), _m.group(3)
+        _fn = SIMULADORES_JS.split(f"SIMULADORES['{_ident}'] = function", 1)
+        if len(_fn) < 2:
+            continue
+        _fn = _fn[1].split("\n    };\n", 1)[0]
+        _tiene = 'class="simulador-controles"' in _tras
+        _llena = bool(re.search(r"\b(?:botonera\w*|botones\d\w*|deslizador\w*)\(raiz\b"
+                                 r"|querySelector\('\.simulador-controles'\)", _fn))
+        if _tiene and not _llena:
+            problemas.append(f"{_ident}: publica un contenedor de mandos y su JS no pone ninguno (mandos=False)")
+        if _llena and not _tiene:
+            problemas.append(f"{_ident}: su JS construye mandos y el marcado no tiene dónde ponerlos")
     _con_lectura = marcado.count('class="simulador-lectura"')
     if len(_sims) != _con_lectura:
         problemas.append(f"simuladores con lectura: {_con_lectura}, "

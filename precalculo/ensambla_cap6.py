@@ -864,6 +864,9 @@ if not (_crece([c["pares"] for c in _cu]) and all(a >= b for a, b in zip(_isl, _
     sys.exit("PARADO: la descripción de cap6-umbral dice que las parejas crecen y las islas "
              "bajan hasta cero, y la curva no lo hace")
 _sin_islas = next(c for c in _cu if c["islas"] == 0)
+# Y desde dónde parten los dos deslizadores, que las descripciones dicen («de partida, k = 3»). El JS los
+# escribe a mano (`let i = 2;`), así que `main()` comprueba que sigan siendo éstos.
+_KNN_INI, _UMB_INI = 2, 3
 
 MOD4 = cabecera(
     4, TITULOS[3][0], INGLES[3],
@@ -891,16 +894,17 @@ MOD4 = cabecera(
 
 {sim("cap6-knn",
      "k, de 1 a 8: lo que garantiza y lo que rompe",
-     "El deslizador mueve k. La barra verde son las parejas distintas que el criterio une "
-     "y la naranja, los pares en los que la relación NO es recíproca. Las dos crecen, pero "
-     "no al mismo ritmo.",
+     "El deslizador mueve k y resalta su pareja de barras. La verde son las parejas distintas "
+     "que el criterio une y la naranja, los pares en los que la relación NO es recíproca. Las "
+     "dos crecen, pero no al mismo ritmo.",
       aria=f"Gráfico de barras agrupadas, una pareja por k, de {_kk[0]['k']} a {_kk[-1]['k']}: las parejas "
            "distintas que une el criterio de k vecinos más próximos, en verde, y los pares en que la "
            "relación no es recíproca, en naranja, con el eje desde cero. Las dos crecen con k, las verdes "
            f"de {ent(_kk[0]['pares'])} a {ent(_kk[-1]['pares'])} y las naranjas de "
-           f"{ent(_kk[0]['asimetricos'])} a {ent(_kk[-1]['asimetricos'])}. El deslizador elige k y no cambia "
-           "el gráfico: cambia la lectura, que da los enlaces dirigidos, las parejas, los pares no "
-           "recíprocos, el grado, si W es simétrica y los subgrafos.")}
+           f"{ent(_kk[0]['asimetricos'])} a {ent(_kk[-1]['asimetricos'])}. El deslizador elige k: su pareja "
+           f"de barras va en color pleno y las demás, atenuadas; de partida, k = {_kk[_KNN_INI]['k']}. La lectura da "
+           "los enlaces dirigidos, las parejas, los pares no recíprocos, el grado, si W es simétrica y los "
+           "subgrafos.")}
       <p>La asimetría no es un defecto que haya que corregir: es información sobre la densidad del
         patrón. Pero <em>hay que saber que está</em>, porque casi todo lo que viene después —el
         índice de Moran, los modelos autorregresivos— supone una W simétrica o la simetriza por su
@@ -940,15 +944,16 @@ MOD5 = cabecera(
 
 {sim("cap6-umbral",
      "El umbral, de corto a largo",
-     "El deslizador mueve la distancia. La barra verde son las parejas que el criterio une; "
-     "la naranja, las unidades que se quedan sin ninguna. Lo que hay que buscar es el punto "
-     "donde la naranja llega a cero, y luego mirar los subgrafos.",
+     "El deslizador mueve la distancia y resalta su pareja de barras. La verde son las parejas "
+     "que el criterio une; la naranja, las unidades que se quedan sin ninguna. Lo que hay que "
+     "buscar es el punto donde la naranja llega a cero, y luego mirar los subgrafos.",
       aria=f"Gráfico de barras agrupadas, una pareja por umbral de distancia, de {n(_cu[0]['umbral'], 2)} "
            f"a {n(_cu[-1]['umbral'], 2)}: las parejas que el umbral une, en verde, y las unidades que se "
            "quedan sin vecinos, en naranja, con el eje desde cero. Al alargar el umbral las verdes crecen y "
-           f"las naranjas bajan hasta cero en {n(_sin_islas['umbral'], 2)}. El deslizador elige el umbral y "
-           "no cambia el gráfico: cambia la lectura, que da las parejas, el grado medio, las unidades sin "
-           "vecinos, los subgrafos y si el grafo queda de una pieza.")}
+           f"las naranjas bajan hasta cero en {n(_sin_islas['umbral'], 2)}. El deslizador elige el umbral: su "
+           "pareja de barras va en color pleno y las demás, atenuadas; de partida, "
+           f"{n(_cu[_UMB_INI]['umbral'], 2)}. La lectura da las parejas, el grado medio, las unidades sin vecinos, los "
+           "subgrafos y si el grafo queda de una pieza.")}
       <h3>El umbral mínimo sin islas, y por qué no basta</h3>
 
       <p>Hay un umbral que se puede calcular en vez de tantear: <strong>la mayor de las distancias
@@ -1105,9 +1110,9 @@ MOD7 = cabecera(
 
 {sim("cap6-estilos",
      "Los cinco estilos sobre el mismo grafo",
-     "Cada botón cambia el estilo. Lo que hay que mirar no es la altura de las barras —van en "
-     "escalas distintas a propósito— sino la lectura: la suma total y qué le pasa al rezago de "
-     "la misma variable.",
+     "Cada botón cambia el estilo y pinta su barra en naranja. Las cinco barras comparten eje y "
+     "casi no se mueven: esa es la lección, no un defecto del gráfico. Lo que cambia mucho está "
+     "en la lectura: lo que suma W y cuánto pesa un mismo vecino según a quién tenga al lado.",
       aria="Gráfico de barras: la correlación entre CRIME y su rezago espacial con cada uno de los cinco "
            "estilos de W —B binaria, W por filas, S estabilizada, C global y U unitaria—, con el eje desde "
            f"cero; va de {n(min(e['cor_con_crime'] for e in m7['estilos']), 2)} a "
@@ -1261,7 +1266,7 @@ MOD10 = cabecera(
      "El dato y su rezago, lado a lado",
      "Las dos barras son la misma variable: la deserción tal cual y la media de los vecinos "
      "de cada municipio. Lo que hay que mirar no es la media —que apenas se mueve— sino la "
-     "desviación típica.",
+     "desviación típica.", mandos=False,
       aria="Gráfico de barras agrupadas en dos categorías, la media y la desviación típica, en % de "
            f"deserción y con el eje desde cero: la deserción escolar de los {ent(m10['n'])} municipios con "
            "dato, en verde, y su rezago Wy, la media de sus vecinos, en naranja. Las medias casi coinciden "
@@ -1548,6 +1553,17 @@ JS_PREAMBULO = r"""
                  azul: '#0072B2', rojo: '#D55E00', morado: '#7B3FA0',
                  verdeSuave: 'rgba(26,115,88,0.18)' };
 
+    // Un deslizador sobre un gráfico de barras tiene que mover el DIBUJO, no solo la lectura: la pareja de barras
+    // que elige va en su color y las demás, atenuadas. Hasta el 2026-10-27 el gráfico se quedaba quieto y el pie
+    // decía «el deslizador mueve k». `tono6` es un color scriptable por barra. La leyenda de Chart.js toma el color
+    // de la PRIMERA barra de cada serie (saldría atenuada en cuanto se eligiera otra), así que `leyenda6` la pinta
+    // con el color lleno de cada serie.
+    const tono6 = (lleno, tenue, elegido) => c => c.dataIndex === elegido() ? lleno : tenue;
+    const leyenda6 = llenos => ({ labels: {
+      filter: it => it.text !== '',
+      generateLabels: ch => Chart.defaults.plugins.legend.labels.generateLabels(ch)
+        .map((l, k) => Object.assign(l, { fillStyle: llenos[k], strokeStyle: llenos[k] })) } });
+
     function lectura6(raiz, pares) {
       const caja = raiz.querySelector('.simulador-lectura');
       if (!caja) return;
@@ -1701,15 +1717,18 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     SIMULADORES['cap6-knn'] = function (raiz) {
       const ks = D6.m4.columbus;
       let i = 2;
+      const el = () => i;
       const g = grafico6(raiz, 'bar',
         { labels: ks.map(k => 'k = ' + k.k),
           datasets: [
             { label: 'parejas distintas', data: ks.map(k => k.pares),
-              backgroundColor: C6.verde },
+              backgroundColor: tono6(C6.verde, 'rgba(26,115,88,0.3)', el) },
             { label: 'pares NO recíprocos', data: ks.map(k => k.asimetricos),
-              backgroundColor: C6.naranja }] },
-        { scales: { y: { beginAtZero: true, title: { display: true, text: 'pares' } } } });
+              backgroundColor: tono6(C6.naranja, 'rgba(255,102,0,0.3)', el) }] },
+        { plugins: { legend: leyenda6([C6.verde, C6.naranja]) },
+          scales: { y: { beginAtZero: true, title: { display: true, text: 'pares' } } } });
       const pinta = () => {
+        if (g) g.update();
         const k = ks[i];
         lectura6(raiz, [
           ['k', mil6(k.k)],
@@ -1730,16 +1749,19 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     SIMULADORES['cap6-umbral'] = function (raiz) {
       const cu = D6.m5.columbus.curva;
       let i = 3;
+      const el = () => i;
       const g = grafico6(raiz, 'bar',
         { labels: cu.map(c => n6(c.umbral, 2)),
           datasets: [
             { label: 'parejas unidas', data: cu.map(c => c.pares),
-              backgroundColor: C6.verde },
+              backgroundColor: tono6(C6.verde, 'rgba(26,115,88,0.3)', el) },
             { label: 'unidades sin vecinos', data: cu.map(c => c.islas),
-              backgroundColor: C6.naranja }] },
-        { scales: { y: { beginAtZero: true, title: { display: true, text: 'unidades' } },
+              backgroundColor: tono6(C6.naranja, 'rgba(255,102,0,0.3)', el) }] },
+        { plugins: { legend: leyenda6([C6.verde, C6.naranja]) },
+          scales: { y: { beginAtZero: true, title: { display: true, text: 'unidades' } },
                     x: { title: { display: true, text: 'umbral de distancia' } } } });
       const pinta = () => {
+        if (g) g.update();
         const c = cu[i];
         lectura6(raiz, [
           ['umbral', n6(c.umbral, 4)],
@@ -2159,6 +2181,24 @@ def main() -> int:
         r'data-simulador="([^"]+)">\s*<h4>((?:(?!</h4>).)*)</h4>(?:(?!data-simulador=).)*?'
         r'<div class="grafico-wrapper"[^>]*>\s*<canvas([^>]*)></canvas>\s*</div>\s*'
         r'<div class="simulador-lectura"([^>]*)>', marcado, _re.S))
+    # MANDOS QUE NO ESTÁN, O QUE NO TIENEN DÓNDE (2026-10-27). Un `.simulador-controles` vacío deja el hueco
+    # de su margen y el icono de los deslizadores sin nada que mover; un simulador que construye mandos sin
+    # contenedor no los enseña, porque su ayudante vuelve sin hacer nada. Se cruza el marcado de cada
+    # simulador con el cuerpo de su función (hasta su `};`), buscando las llamadas a los ayudantes.
+    for _m in _re.finditer(r'data-simulador="([^"]+)">(.*?)</h4>(.*?)<div class="(?:grafico-wrapper|simulador-lectura)',
+                           marcado, _re.S):
+        _ident, _tras = _m.group(1), _m.group(3)
+        _fn = SIMULADORES_JS.split(f"SIMULADORES['{_ident}'] = function", 1)
+        if len(_fn) < 2:
+            continue
+        _fn = _fn[1].split("\n    };\n", 1)[0]
+        _tiene = 'class="simulador-controles"' in _tras
+        _llena = bool(_re.search(r"\b(?:botonera\w*|botones\d\w*|deslizador\w*)\(raiz\b"
+                                 r"|querySelector\('\.simulador-controles'\)", _fn))
+        if _tiene and not _llena:
+            problemas.append(f"{_ident}: publica un contenedor de mandos y su JS no pone ninguno (mandos=False)")
+        if _llena and not _tiene:
+            problemas.append(f"{_ident}: su JS construye mandos y el marcado no tiene dónde ponerlos")
     _con_lectura = marcado.count('class="simulador-lectura"')
     if len(_sims) != _con_lectura:
         problemas.append(f"simuladores con lectura: {_con_lectura}, "
@@ -2173,6 +2213,11 @@ def main() -> int:
         if (f'aria-describedby="lectura-{ident}"' not in lienzo
                 or f'id="lectura-{ident}"' not in caja or 'aria-live="polite"' not in caja):
             problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
+    for ident, ini in (("cap6-knn", _KNN_INI), ("cap6-umbral", _UMB_INI)):
+        cuerpo = SIMULADORES_JS.split(f"SIMULADORES['{ident}'] = function", 1)[1].split("SIMULADORES[", 1)[0]
+        if f"let i = {ini};" not in cuerpo:
+            problemas.append(f"{ident}: la descripción dice que el deslizador parte de la posición {ini}, "
+                             "y el JS ya no parte de ahí")
     if bl_r != bl_py:
         problemas.append(f"bloques descuadrados: {bl_r} de R y {bl_py} de Python")
     if problemas:

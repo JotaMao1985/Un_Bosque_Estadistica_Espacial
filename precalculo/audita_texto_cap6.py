@@ -177,6 +177,14 @@ FUENTES = [
 # una reescritura, el capítulo deja de decir lo que el plan le encarga y
 # nadie se entera: el HTML seguiría siendo válido y la consola limpia.
 AFIRMACIONES = [
+    # Los pies que se pusieron de acuerdo con su gráfico el 2026-10-27: los deslizadores no movían el
+    # dibujo, y el de los estilos hablaba de «escalas distintas» sobre barras con el mismo eje.
+    ("dice que el deslizador de k resalta su pareja de barras",
+     "el deslizador mueve k y resalta su pareja de barras"),
+    ("dice que el deslizador del umbral resalta su pareja de barras",
+     "el deslizador mueve la distancia y resalta su pareja de barras"),
+    ("dice que las barras de los cinco estilos comparten eje",
+     "las cinco barras comparten eje y casi no se mueven"),
     ("dice que W es la decisión más consecuente y la menos justificada",
      "la menos justificada"),
     # Las dos que entraron con las fórmulas (2026-09-24). La primera es la

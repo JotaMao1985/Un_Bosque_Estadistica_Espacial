@@ -79,6 +79,9 @@ PRECALCULO = RAIZ / "precalculo"
 SALIDAS = PRECALCULO / "salidas"
 PROCESADO = RAIZ / "datos" / "procesado"
 CRUDO = RAIZ / "datos" / "crudo"
+# La semilla del Monte Carlo propio del auditor (la curva de `degradar`). Distinta de las de R a
+# propósito: lo que se compara es el modelo, no la secuencia de números.
+SEMILLA_AUDITOR = 20261027
 
 
 def carga(var: str, nombre: str):
@@ -643,6 +646,55 @@ def main() -> int:
     a.cierto(PO["por_estrato"]["monotono_en_estrato"] is False,
              "por estrato NO hay patrón monótono",
              "y eso también se publica")
+
+    # LA CURVA DEL SIMULADOR `degradar` (2026-10-27). Hasta entonces unía las tres realizaciones
+    # únicas de `ruidos` y su pie decía «cada punto es un promedio sobre réplicas»; en 150 m daba
+    # otra cifra que la tasa global de su propia lectura. Ahora cada σ promedia `n_replicas`
+    # realizaciones y el punto de la σ del sesgo ES esa tasa global. Aquí se rehace la curva con
+    # OTRO generador: el mismo modelo —ruido gaussiano isótropo en metros de EPSG:9377 sobre las
+    # sedes del CSV, reasignadas contra las localidades— con numpy, y cada punto tiene que caer a
+    # menos de cuatro errores de Monte Carlo combinados del de R. No comparte semilla ni RNG: si la
+    # curva viniera de otro modelo, o de una sola realización, aquí se vería.
+    CV = PO["curva"]
+    a.cierto(CV["sigma_m"] == sig, "la curva barre las mismas σ que la prosa",
+             f"{CV['sigma_m']}")
+    a.igual(CV["n_replicas"], SG["n_replicas"], "y con las réplicas del sesgo")
+    i_sg = CV["sigma_m"].index(SG["sigma_m"]) if SG["sigma_m"] in CV["sigma_m"] else -1
+    a.cierto(i_sg >= 0 and abs(CV["pct_medio"][i_sg] - SG["tasa_global_pct"]) < 1e-9
+             and abs(CV["emc_pct"][i_sg] - SG["emc_global_pct"]) < 1e-9,
+             "el punto de la σ del sesgo es la tasa global y su error",
+             f"σ = {SG['sigma_m']} m: {CV['pct_medio'][i_sg] if i_sg >= 0 else '—'} "
+             f"vs {SG['tasa_global_pct']}")
+    a.cierto(all(p < q for p, q in zip(CV["pct_medio"], CV["pct_medio"][1:])),
+             "la curva sube con σ, que es lo que dice su descripción", str(CV["pct_medio"]))
+    import shapely
+    loc9 = gpd.read_file(PROCESADO / "bogota_localidades.gpkg").to_crs(9377)
+    pol9 = list(loc9.geometry)
+    for g in pol9:
+        shapely.prepare(g)
+    xs, ys = sedes["x_9377"].to_numpy(float), sedes["y_9377"].to_numpy(float)
+
+    def _localidad(x, y):
+        out = np.full(len(x), -1)
+        for j, g in enumerate(pol9):
+            out[shapely.contains_xy(g, x, y)] = j
+        return out
+
+    verdad = _localidad(xs, ys)
+    rng = np.random.default_rng(SEMILLA_AUDITOR)
+    for s_m, p_r, e_r, ru in zip(CV["sigma_m"], CV["pct_medio"], CV["emc_pct"], PO["ruidos"]):
+        tg = np.array([np.mean(_localidad(xs + rng.normal(0, s_m, len(xs)),
+                                          ys + rng.normal(0, s_m, len(ys))) != verdad)
+                       for _ in range(CV["n_replicas"])]) * 100
+        p_py, e_py = float(tg.mean()), float(tg.std(ddof=1) / math.sqrt(len(tg)))
+        a.cierto(abs(p_py - p_r) <= 4 * math.hypot(e_r, e_py),
+                 f"σ = {s_m} m: la curva de R sale también en Python",
+                 f"R {p_r:.4f} ± {e_r:.4f} · Python {p_py:.4f} ± {e_py:.4f}")
+        # Y la realización única que cita la prosa es UNA de esas realizaciones: tiene que caer
+        # dentro del reparto, a menos de cuatro desviaciones de réplica de la media.
+        a.cierto(abs(ru["pct_cambian"] - p_r) <= 4 * e_r * math.sqrt(CV["n_replicas"]),
+                 f"σ = {s_m} m: la realización de la prosa cae en el reparto",
+                 f"{ru['pct_cambian']:.4f} contra {p_r:.4f} ± {e_r * math.sqrt(CV['n_replicas']):.4f} por réplica")
 
     # -----------------------------------------------------------------
     a.titulo("Módulo 10 · topología y DE-9IM")

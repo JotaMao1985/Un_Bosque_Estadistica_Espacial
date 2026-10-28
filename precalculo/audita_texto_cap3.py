@@ -40,6 +40,20 @@ tablero del gerrymandering (módulo 9) se fusionó con la plantilla de los PR
   · 720 deja **17 KB de margen**, el tope del capítulo 6: sitio para una
     corrección y muy poco para un ensamblado desbocado.
 
+SUBIÓ A 770 KB el 2026-10-27, cuando los simuladores empezaron a dibujar lo
+que sus pies prometían (los nueve desajustes de pies y mandos de la tercera
+revisión del capítulo 5, llevados a los caps. 2, 3, 4 y 6):
+
+  · el documento pesa **750 KB**: 717 tenía con los lienzos descritos (PR #37);
+    **18 de la nube municipal y la departamental** del módulo 10 (1 114 + 33
+    puntos con su nivel, su puntaje y su n: la falacia ecológica se ve, no se
+    lee en una r), 2 de las 35 configuraciones del módulo 1 (el deslizador de
+    k que el pie prometía) y 13 de JS, prosa y descripciones;
+  · la cota con el arnés sigue siendo la misma: 750 < 770 < 1062;
+  · 770 deja **20 KB de margen**, el mismo orden que antes. El criterio de la
+    casa es que el peso nunca es razón para recortar explicación: lo que ha
+    crecido es lo que el capítulo enseña.
+
 Uso:  python3 precalculo/audita_texto_cap3.py
 Devuelve 1 si algo falla.
 """
@@ -50,7 +64,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP3_KB = 720.0
+TOPE_CAP3_KB = 770.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
@@ -119,8 +133,19 @@ FUENTES = [
 AFIRMACIONES = [
     ("dice que elegir el mapa es una decisión de modelado",
      "decisión de modelado"),
-    ("advierte de que una clase puede quedarse vacía sin avisar",
-     "sin avisar"),
+    # Hasta el 2026-10-27 se exigía que «una clase puede quedarse vacía sin avisar», que era falso:
+    # las siete configuraciones de Head/tails no tienen ninguna clase vacía, salen con dos. Lo que
+    # se exige ahora es lo que pasa de verdad, y que se niegue lo otro.
+    ("advierte de que el esquema no siempre da las k clases pedidas",
+     "el mapa no sale con las k clases que se pidieron"),
+    ("dice que ninguna configuración deja una clase vacía",
+     "clases vacías, en cambio, no deja ninguna"),
+    ("advierte de que pedir k = 5 sobre SID74 no da cinco clases",
+     "pedir 5 clases no las garantiza"),
+    ("dice que el simulador de la falacia dibuja las tres escalas",
+     "los mismos estudiantes a tres escalas y sobre los mismos ejes"),
+    ("dice que el simulador de la zonificación marca el trazado real",
+     "con el trazado departamental real marcado"),
     ("dice que el mapa de conteos es el de la población",
      "dónde hay gente"),
     ("declara que la tasa trae su propio problema",

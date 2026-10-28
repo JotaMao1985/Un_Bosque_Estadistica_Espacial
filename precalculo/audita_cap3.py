@@ -334,26 +334,60 @@ def main() -> int:
              "no hay más mapas distintos que configuraciones",
              f"{D['m1']['n_mapas_distintos']} de {D['m1']['n_configuraciones']}")
 
-    # Las clases vacías: NO se cree la lista publicada, se recalcula
-    # cuántas configuraciones dejan una clase sin un solo municipio.
-    vacias_py = 0
-    for est in ("EqualInterval", "Quantiles", "FisherJenks", "StdMean", "HeadTailBreaks"):
-        for k in range(3, 10):
-            try:
-                if est == "StdMean":
-                    cl = mc.StdMean(des)
-                elif est == "HeadTailBreaks":
-                    cl = mc.HeadTailBreaks(des)
-                else:
-                    cl = getattr(mc, est)(des, k=k)
-            except Exception:
-                continue
-            if est in ("StdMean", "HeadTailBreaks"):
-                continue          # su k no se elige: no son comparables uno a uno
-            if len(np.unique(cl.yb)) < k:
-                vacias_py += 1
-    a.cierto(vacias_py >= 0, "recuento propio de clases vacías (equal/quantile/fisher)",
-             f"Python encuentra {vacias_py}; R publica {D['m1']['n_con_clase_vacia']} sobre los 5 esquemas")
+    # k ES LO QUE SE PIDE, NO LO QUE SALE (2026-10-27). Aquí había un recuento de «clases vacías»
+    # que terminaba en `vacias_py >= 0`, que no puede fallar; y R publicaba 7, las siete de
+    # Head/tails, que no tienen ninguna clase vacía: salen con 2 clases y `geo_cortes` rellenaba con
+    # ceros hasta k. R publica ahora las 35 configuraciones con las clases que SALEN, y aquí se
+    # recuentan las dos cosas por separado: cuántas no dan las k pedidas y cuántas dejan de verdad
+    # una clase sin municipios.
+    M1 = D["m1"]
+    rej = M1["rejilla"]
+    a.igual(len(rej), M1["n_configuraciones"], "la rejilla trae todas las configuraciones")
+    a.cierto(all(len(r["tam"]) == r["n_clases"] for r in rej),
+             "cada configuración, una cifra por clase que sale")
+    a.cierto(all(sum(r["tam"]) == M1["n_con_dato"] for r in rej),
+             "y reparte todos los municipios con dato")
+    otro = [r for r in rej if r["n_clases"] != r["k"]]
+    a.igual(len(otro), M1["n_k_no_respetado"], "configuraciones que no dan las k pedidas")
+    a.igual(sum(1 for r in rej if 0 in r["tam"]), M1["n_con_clase_vacia"],
+            "configuraciones con una clase vacía, recontadas")
+    kno = {e["esquema"]: e for e in M1["k_no_respetado"]}
+    a.cierto(sorted(kno) == sorted({r["esquema"] for r in otro}),
+             "los esquemas que no respetan k", str(sorted(kno)))
+    for e, d in kno.items():
+        a.cierto(d["salen"] == sorted({r["n_clases"] for r in rej if r["esquema"] == e})
+                 and d["ks"] == [r["k"] for r in otro if r["esquema"] == e],
+                 f"{e}: las clases que salen, recontadas", f"salen {d['salen']}")
+    # Los tres esquemas que SÍ toman k se rehacen con mapclassify en todas las k. Intervalos iguales y
+    # Fisher-Jenks tienen que dar LOS MISMOS tamaños de clase que R; Cuantiles, las mismas k clases y el
+    # mismo total, con tamaños distintos por el convenio del intervalo (la discrepancia esperada de A.2).
+    ks_todas = range(M1["ks"][0], M1["ks"][1] + 1)
+    for est, nom in (("EqualInterval", "equal"), ("FisherJenks", "fisher"), ("Quantiles", "quantile")):
+        dif = []
+        for k in ks_todas:
+            py = np.bincount(getattr(mc, est)(des, k=k).yb, minlength=k).tolist()
+            r_ = next(r for r in rej if r["esquema"] == nom and r["k"] == k)
+            if nom == "quantile":
+                if r_["n_clases"] != k or len(py) != k or sum(py) != sum(r_["tam"]):
+                    dif.append(k)
+            elif py != r_["tam"]:
+                dif.append(k)
+        a.cierto(not dif, f"{nom}: los tamaños de las k de R, también en Python"
+                 if nom != "quantile" else "quantile: k clases y el total, también en Python",
+                 f"discrepan en k = {dif}" if dif else f"k = {M1['ks'][0]} a {M1['ks'][1]}")
+    # Head/tails NO coincide entre lenguajes, y se declara como discrepancia ESPERADA, igual que la de
+    # A.2: classInt se detiene cuando la cabeza pasa del 40 % (sale con 2), mapclassify sigue partiendo.
+    # El capítulo usa las clases de R también en la pestaña de Python. Si algún día coinciden, esto avisa.
+    ht_py = len(mc.HeadTailBreaks(des).bins)
+    ht_r = kno.get("headtails", {}).get("salen", [])
+    a.cierto(ht_r == [2] and ht_py > 2, "head/tails: R y Python discrepan, y se sabe",
+             f"classInt {ht_r}, mapclassify {ht_py}")
+    # El simulador del módulo 1 y el mapa de abajo cuentan lo mismo con k = 5.
+    vd = next(c for c in M["municipios"]["capas"] if c["id"] == "desercion")["vistas"]
+    for v in (vd if isinstance(vd, list) else []):
+        r5 = next((r for r in rej if r["esquema"] == v["estilo"] and r["k"] == v["n"]), None)
+        a.cierto(r5 is not None and r5["tam"] == v["tam"],
+                 f"{v['estilo']}, k = {v['n']}: el simulador y el mapa dicen lo mismo")
 
     # --- SID74: el hallazgo A.2, comprobado como discrepancia ESPERADA
     nc = pd.read_csv(SALIDAS / "cap3_nc.csv")
@@ -363,6 +397,30 @@ def main() -> int:
     a.igual(float(sid.mean()), D["m3"]["sid_resumen"]["media"], "SID74 medio", tol=1e-6)
 
     esq = {e["esquema"]: e for e in D["m3"]["esquemas"]}
+
+    # UNA CIFRA POR CLASE QUE SALE (2026-10-27). «sd» da seis clases sobre SID74 aunque se pidan
+    # cinco, y `tam` contaba solo las cinco primeras: sumaba 98 de 100 y el gráfico apilado perdía
+    # los 2 condados de la sexta. Se recuenta cada esquema desde sus propios cortes, con el convenio
+    # de classInt ([a, b), el último cerrado), y lo mismo cada vista de los dos mapas desde sus clases.
+    for e in D["m3"]["esquemas"]:
+        c = e["cortes"]
+        rec = np.bincount(np.clip(np.searchsorted(c[1:-1], sid, side="right"), 0, len(c) - 2),
+                          minlength=len(c) - 1).tolist()
+        a.cierto(len(e["tam"]) == len(c) - 1 and e["tam"] == rec,
+                 f"SID74, {e['esquema']}: una cifra por clase, recontada", f"{e['tam']} · {rec}")
+    # Las vistas pueden llegar rotas (un objeto en vez de una lista: el arnés lo inyecta, y la
+    # sección de los mapas lo denuncia): aquí se recuentan solo si son lo que dicen ser, para que
+    # el auditor informe en vez de morir.
+    for nom, vs in (("nc_esquemas", M["nc_esquemas"]["vistas"]),
+                    ("municipios", M["municipios"]["capas"][0]["vistas"])):
+        if not isinstance(vs, list):
+            a.salta(f"{nom}: tam recontado desde las clases", "las vistas no son una lista")
+            continue
+        for v in vs:
+            nk = len(v["cortes"]) - 1
+            rec = np.bincount([k - 1 for k in v["clase"] if k is not None], minlength=nk).tolist()
+            a.cierto(v["tam"] == rec, f"{nom}, {v['estilo']}: tam recontado desde las clases",
+                     f"{v['tam']} · {rec}")
 
     # Fisher-Jenks: la partición TIENE que ser idéntica. A.2 lo midió y
     # dejó dicho que solo cambia cómo se IMPRIME la frontera.
@@ -701,6 +759,35 @@ def main() -> int:
              "la nube individual es monótona creciente en el nivel",
              f"{medias[0]:.2f} -> {medias[-1]:.2f}")
 
+    # LAS DOS NUBES AGREGADAS que dibuja el simulador del módulo 10 desde el 2026-10-27 (antes solo
+    # daba su r en la lectura). Cada punto es un municipio o un departamento del recálculo de arriba,
+    # redondeado a lo que se ve: se comparan punto a punto, sus n tienen que sumar los estudiantes de
+    # la escalera, y las r que dan esos puntos redondeados tienen que ser las publicadas a 1e-3.
+    n_dep = v2.groupby("dpto").size()
+    for nom, nube, ref, nref, r_pub, r_pon in (
+            ("municipal", D["m10"]["nube_municipal"], pm[["x", "p"]], pm["n"],
+             D["m10"]["r_municipio"], D["m10"]["r_municipio_ponderado"]),
+            ("departamental", D["m10"]["nube_departamental"], pd_[["x", "p"]], n_dep,
+             D["m10"]["r_departamento"], None)):
+        x, y, w = (np.asarray(nube[k], dtype=float) for k in ("x", "p", "n"))
+        ref, nref = ref.sort_index(), nref.sort_index()
+        a.cierto(len(x) == len(y) == len(w) == len(ref), f"nube {nom}: un punto por unidad",
+                 f"{len(x)} de {len(ref)}")
+        if len(x) == len(y) == len(w) == len(ref):
+            # Una unidad del último decimal de holgura: R y numpy pueden redondear distinto un
+            # valor que cae justo en la frontera (3,0565 y su representación binaria).
+            a.cierto(np.allclose(x, ref["x"].round(3), atol=1.01e-3)
+                     and np.allclose(y, ref["p"].round(1), atol=0.101)
+                     and np.array_equal(w, nref.to_numpy(dtype=float)),
+                     f"nube {nom}: cada punto es su unidad, redondeada")
+        a.igual(int(w.sum()), len(v), f"nube {nom}: sus n suman los estudiantes")
+        a.igual(float(np.corrcoef(x, y)[0, 1]), r_pub, f"nube {nom}: su r es la publicada", tol=1e-3)
+        if r_pon is not None:
+            q = w / w.sum()
+            cx, cy = x - (q * x).sum(), y - (q * y).sum()
+            a.igual(float((q * cx * cy).sum() / np.sqrt((q * cx ** 2).sum() * (q * cy ** 2).sum())),
+                    r_pon, f"nube {nom}: y la ponderada por n", tol=1e-3)
+
     # -----------------------------------------------------------------
     a.titulo("Módulo 8 · la curva de escala y su forma")
     # Las particiones no se pueden rehacer aquí —el sorteo es el de R—, pero
@@ -1011,6 +1098,25 @@ def main() -> int:
         a.cierto(len(e.get("pasos", [])) >= 3, f"E{i}: al menos tres pasos",
                  f"{len(e.get('pasos', []))} pasos")
         a.cierto(bool(e.get("solucion")), f"E{i}: tiene solución calculada")
+    # E1 CONTRA LA REJILLA DEL MÓDULO 1 (2026-10-27). La clase relativa se dividía por k - 1 en vez
+    # de por las clases que salen: publicaba una clase relativa de 2 y un recorrido de 1,875 en una
+    # escala de 0 a 1, y contaba 371 municipios en «la clase más alta en alguna» cuando una sola
+    # configuración del módulo 1 pone 498 en su clase más alta. Las dos cosas se cruzan aquí.
+    e1 = S["ejercicios"][0]["solucion"]
+    top = max(r["tam"][-1] for r in rej)
+    bot = max(r["tam"][0] for r in rej)
+    a.cierto(e1["n_alcanza_alta"] >= top, "E1: la clase más alta, al menos la mayor",
+             f"{e1['n_alcanza_alta']} contra {top}")
+    a.cierto(e1["n_alcanza_baja"] >= bot, "E1: la más baja, al menos la mayor",
+             f"{e1['n_alcanza_baja']} contra {bot}")
+    a.cierto(0 <= e1["recorrido_medio"] <= e1["recorrido_max"] <= 1,
+             "E1: la clase relativa no se sale de 0 a 1", f"máximo {e1['recorrido_max']}")
+    a.cierto(e1["n_camaleon"] <= min(e1["n_alcanza_alta"], e1["n_alcanza_baja"]),
+             "E1: los camaleones están en las dos cuentas")
+    a.igual(100 * e1["n_camaleon"] / e1["n"], e1["pct_camaleon"], "E1: su porcentaje", tol=1e-6)
+    ej1 = e1["ejemplo"]
+    a.cierto(ej1["clase_rel_alta"] == 1 and ej1["clase_rel_baja"] == 0,
+             "E1: el ejemplo es un camaleón de verdad", f"{ej1['municipio']}: {ej1['config_alta']} y {ej1['config_baja']}")
 
     # -----------------------------------------------------------------
     a.titulo("Formato")
