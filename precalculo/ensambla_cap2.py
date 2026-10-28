@@ -37,6 +37,7 @@ Uso:  python3 precalculo/ensambla_cap2.py
 """
 from __future__ import annotations
 
+import html as _html
 import json
 import re
 import pathlib
@@ -73,6 +74,12 @@ def ent(x):
 def ent_mate(x):
     """El mismo entero para DENTRO de una fórmula: KaTeX no entiende U+202F."""
     return f"{int(round(float(x))):,}".replace(",", r"\,")
+
+
+def enumera(xs):
+    """«a, b y c»: para las listas de las descripciones de los lienzos."""
+    xs = [str(x) for x in xs]
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " y " + xs[-1]
 
 
 def firma(valor, unidad=""):
@@ -124,8 +131,17 @@ def tabs(etiqueta, r_code, py_code):
 """
 
 
-def sim(ident, titulo, pie="", alto=260):
+def sim(ident, titulo, pie="", alto=260, *, aria):
     """Un simulador con su lienzo de Chart.js.
+
+    `aria` ES OBLIGATORIO, y es lo que oye quien no ve el gráfico (M9 de la
+    segunda revisión del capítulo 5, llevado aquí el 2026-10-27). Hasta
+    entonces el lienzo llevaba el título como `aria-label`: «Cuánto mide un
+    grado, según la latitud», sin ejes, sin series y sin datos. Ahora dice qué
+    se dibuja —los ejes, las series con su color, qué cambian los botones—, y
+    la lectura, que es donde están las cifras, es su descripción
+    (`aria-describedby`) y se anuncia cuando cambia (`aria-live`). El
+    ensamblado para si un lienzo vuelve a repetir su título.
 
     El envoltorio es `.grafico-wrapper` CON ALTURA EXPLÍCITA, que es el
     contrato de la plantilla. La primera versión de esto inventó una
@@ -140,9 +156,9 @@ def sim(ident, titulo, pie="", alto=260):
         {f'<p class="simulador-intro">{pie}</p>' if pie else ''}
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:{alto}px;">
-          <canvas role="img" aria-label="{titulo}"></canvas>
+          <canvas role="img" aria-label="{_html.escape(aria)}" aria-describedby="lectura-{ident}"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-{ident}" aria-live="polite"></div>
       </div>
 """
 
@@ -212,6 +228,26 @@ def mapa_html(ident, titulo):
 # no una unidad de trabajo. El encabezado del módulo es un contrato (§9.1),
 # así que su objetivo se amplía en la misma edición.
 _dt = el["datum"]
+# Lo que oye quien no ve los gráficos (M9): qué dibujan, con qué ejes y qué da
+# la lectura. Las cifras salen del JSON, como las de la prosa, y tampoco aquí
+# se calcula ninguna: `sin_aritmetica.py` lee también estos formateadores.
+_r = el["radios"]
+_ARIA_RADIOS = (
+    f"Gráfico de línea: los dos radios de curvatura del elipsoide, en km, en {len(_r['lat'])} latitudes "
+    f"de {n(_r['lat'][0], 0)}° a {n(_r['lat'][-1], 0)}°, puestas a la misma distancia en el eje aunque no "
+    "lo estén. N, el del primer vertical, va en verde, y M, el del meridiano, en naranja. Los dos crecen "
+    f"hacia el polo y M más deprisa, así que su razón N/M baja de {n(_r['razon_N_M'][0])} en el ecuador a "
+    f"{n(_r['razon_N_M'][-1])} a {n(_r['lat'][-1], 0)}°. La lectura da cuánto le saca N a M en el ecuador y "
+    "esas dos razones.")
+_ARIA_GRADOS = (
+    f"Gráfico de línea: cuántos metros mide un grado sobre el elipsoide WGS84 en {len(gr['lat'])} "
+    f"latitudes de {n(gr['lat'][0], 0)}° a {n(gr['lat'][-1], 0)}°, con el eje vertical desde cero. El grado "
+    f"de longitud, en naranja, cae de {ent(gr['lon_m_elipsoide'][0])} m en el ecuador a "
+    f"{ent(gr['lon_m_elipsoide'][-1])} m a {n(gr['lat'][-1], 0)}°; el de latitud, en verde, apenas se mueve "
+    f"—crece {ent(gr['lat_elipsoide_recorrido_m'])} m en todo el tramo—, y en marrón discontinuo va el de "
+    "latitud sobre la esfera, que es constante. La lectura da el grado de longitud en el ecuador y en el "
+    "extremo, cuántas veces mide el de Bogotá el de Oslo y lo que recorre el de latitud.")
+
 MOD1 = cabecera(
     1, "La Tierra no es plana ni una esfera", "Geoid, ellipsoid, datum",
     "Situar el curso dentro de un SIG, y distinguir geoide, elipsoide y datum "
@@ -304,7 +340,7 @@ MOD1 = cabecera(
       \\qquad N(\\varphi) = \\dfrac{{a}}{{(1-e^2\\sin^2\\varphi)^{{1/2}}}} \\)</p>
 
 {sim('radios', 'Los dos radios de curvatura del elipsoide, por latitud',
-     'Con la primera excentricidad al cuadrado e² = ' + n(el['e2'], 8) + '.')}
+     'Con la primera excentricidad al cuadrado e² = ' + n(el['e2'], 8) + '.', aria=_ARIA_RADIOS)}
       <p>Lo que el simulador enseña es que la Tierra no tiene «un radio». En cuanto una
       fórmula pide uno —y la geodesia esférica lo pide todo el rato— hay que decir cuál, y esa
       elección se paga. El módulo 6 pondrá cifra a ese pago sobre el área de Colombia; aquí
@@ -395,7 +431,7 @@ MOD2 = cabecera(
       cosas se ven a la vez en el simulador.</p>
 
 {sim('grados', 'Cuánto mide un grado, según la latitud',
-     'Distancias geodésicas sobre el elipsoide WGS84.')}
+     'Distancias geodésicas sobre el elipsoide WGS84.', aria=_ARIA_GRADOS)}
       <p>En el ecuador un grado de longitud mide {firma(n(gr['lon_m_elipsoide'][0], 2), ' m')}
       y uno de latitud {firma(n(gr['lat_m_elipsoide'][0], 2), ' m')}; a 80° el de longitud ha
       caído a {firma(n(gr['lon_m_elipsoide'][-1], 2), ' m')}, un
@@ -681,6 +717,13 @@ print(round(razon.min(), 6), round(0.9992 ** 2, 6))
 # MÓDULO 5 · st_transform vs. st_set_crs
 # =====================================================================
 _si = et["silencioso"]
+_ARIA_ETIQUETAR = (
+    "Gráfico de barras agrupadas en dos categorías: cuántos vértices de la capa cambian de coordenadas y "
+    "el máximo desplazamiento, en logaritmo decimal. Las barras de st_set_crs, que reetiqueta, van en "
+    "marrón y valen cero en las dos; las de st_transform, que reproyecta, van en verde: mueve "
+    f"{ent(et['transform_n_movidas'])} vértices, y su desplazamiento máximo, en logaritmo, comparte eje "
+    "con ese conteo y apenas asoma. La lectura da los vértices de la capa, los que mueve cada operación y la «longitud» "
+    f"de {ent(et['lon_absurda'])}° que sale de reetiquetar.")
 MOD5 = cabecera(
     5, "Reproyectar no es reetiquetar", "st_transform vs st_set_crs",
     "Separar las dos operaciones que todo el mundo confunde, y medir qué hace cada una."
@@ -722,7 +765,7 @@ MOD5 = cabecera(
       hay, y solo si alguien mira.</p>
 
 {sim('etiquetar', 'Las dos operaciones, sobre la misma capa',
-     'La capa original está en ' + et['crs_original'] + '.')}
+     'La capa original está en ' + et['crs_original'] + '.', aria=_ARIA_ETIQUETAR)}
       <p>Fíjate en que la superficie tampoco avisa. Bien reproyectada, la suma de las
       localidades da {firma(n(et['area_bien_km2'], 3), ' km²')}, que es el área de Bogotá; el
       objeto reetiquetado o bien devuelve un disparate o bien devuelve
@@ -767,6 +810,12 @@ print(round(mal.total_bounds[0], 1))
 # MÓDULO 6 · Medir sobre la Tierra
 # =====================================================================
 _mc, _mm, _mdi = md["colombia"], md["municipios"], md["distancias"]
+_ARIA_MEDIR = (
+    "Gráfico de barras: el área de Colombia, en km², medida de tres formas —sobre el elipsoide con "
+    "lwgeom, en verde; sobre la esfera con s2, en naranja, y proyectada en EPSG:9377, en verde claro—. "
+    f"El eje vertical no empieza en cero, así que una diferencia de {ent(_mc['dif_esfera_km2'])} km² sobre "
+    f"{ent(_mc['area_elipsoide_km2'])} se ve grande. La lectura da cuánto infla la esfera, en km² y en "
+    "tanto por ciento, a cuántos municipios equivale y cuánto se aparta la proyectada.")
 MOD6 = cabecera(
     6, "Medir sobre la Tierra", "s2, GEOS and the ellipsoid",
     "Saber sobre qué superficie mide cada función, y cuánto separa a unas de otras."
@@ -800,7 +849,7 @@ MOD6 = cabecera(
       sobre el país y sobre los municipios.</p>
 
 {sim('medir', 'La misma geometría, medida de tres formas',
-     'Sobre los ' + ent(_mm['n']) + ' municipios; la referencia es el elipsoide GRS80.')}
+     'Sobre los ' + ent(_mm['n']) + ' municipios; la referencia es el elipsoide GRS80.', aria=_ARIA_MEDIR)}
       <p>Sobre los municipios uno a uno la razón esfera/elipsoide va de
       {firma(n(_mm['razon_min'], 5))} a {firma(n(_mm['razon_max'], 5))}, con mediana
       {firma(n(_mm['razon_med'], 5))}. Es un sesgo, no un ruido: la esfera se equivoca siempre
@@ -850,6 +899,13 @@ print(round(mun.to_crs(9377).area.sum() / 1e6, 2))
 # MÓDULO 7 · Formatos vectoriales
 # =====================================================================
 _sh, _pa = fo["shapefile"], fo["pais"]
+_ARIA_FORMATOS = (
+    "Gráfico de barras: lo que pesa en KB el mismo dato guardado como Shapefile, en marrón; GeoPackage, "
+    "en verde, y GeoJSON, en naranja, con el eje desde cero. Los botones cambian el dato: los "
+    f"{ent(fo['n_rasgos'])} municipios de la muestra, o el país entero, donde el Shapefile se queda sin "
+    "barra y van solo los otros dos. La lectura da, en la muestra, cuántos archivos forman el Shapefile, "
+    "cuántos nombres de campo desfigura y cuántas veces pesa el GeoJSON lo que él; en el país, los "
+    "megabytes de los otros dos y su razón.")
 MOD7 = cabecera(
     7, "Formatos vectoriales: shapefile, GeoPackage y GeoJSON", "Where the data lives",
     "Medir las limitaciones del shapefile en vez de citarlas, y saber cuándo importan."
@@ -895,7 +951,8 @@ MOD7 = cabecera(
       {firma(n(_pa['razon'], 3))}.</p>
 
 {sim('formatos', 'Los tres formatos, sobre el mismo dato',
-     'Los megabytes del país son los ' + ent(ep['n_municipios']) + ' municipios sin simplificar.')}
+     'Los megabytes del país son los ' + ent(ep['n_municipios']) + ' municipios sin simplificar.',
+     aria=_ARIA_FORMATOS)}
       <p>La conclusión práctica no es «no uses shapefiles»: seguirás recibiéndolos. Es que en
       cuanto un dato entra en tu proyecto conviene pasarlo a GeoPackage y trabajar desde ahí,
       y que si tienes que <em>entregar</em> un shapefile, los nombres de campo se eligen antes
@@ -930,6 +987,12 @@ print("desercion_escolar_2024" in gpd.read_file("/tmp/prueba.gpkg").columns)
 # =====================================================================
 _dest = cs["destino"]
 _i_max = max(range(len(_dest["n"])), key=lambda i: _dest["n"][i])
+_ARIA_INVERTIR = (
+    f"Gráfico de barras horizontales: dónde aterrizan las {ent(cs['n'])} estaciones del IDEAM cuando se "
+    "intercambian la longitud y la latitud, una barra por destino con su número de estaciones —"
+    + "; ".join(f"{nom}, {ent(k)}" for nom, k in zip(_dest["nombre"], _dest["n"])) + "—. La lectura "
+    "da cuántas estaciones son, cuánto se desplazan de media y la que menos, en km, y cuántas caen en "
+    "Colombia.")
 MOD8 = cabecera(
     8, "De un CSV a un objeto sf", "st_as_sf and the lon/lat trap",
     "Construir geometría desde columnas, y cazar el error de orden antes de que viaje."
@@ -961,7 +1024,8 @@ MOD8 = cabecera(
       <strong>Ninguna cae en Colombia</strong>, y <code>st_as_sf</code> no dio ni un aviso.</p>
 
 {sim('invertir', 'Qué pasa al intercambiar las dos columnas',
-     'Las ' + ent(cs['n']) + ' estaciones del IDEAM, con temperatura media 1991-2020.')}
+     'Las ' + ent(cs['n']) + ' estaciones del IDEAM, con temperatura media 1991-2020.',
+     aria=_ARIA_INVERTIR)}
       <p>Que el desastre sea tan grande es, paradójicamente, una suerte: aquí el error se ve a
       simple vista en cuanto alguien pinta el mapa. El caso peligroso es el país cuyos rangos
       de longitud y de latitud <em>se solapan</em>, donde una fila invertida puede caer dentro
@@ -1013,6 +1077,13 @@ _TABLA_REDONDEOS = "".join(
     for r in po["redondeos"])
 _men, _sg = po["men_descartada"], po["sesgo"]
 _ru = po["ruidos"]
+_ARIA_DEGRADAR = (
+    "Gráfico de línea con el área rellena, en naranja: el porcentaje de sedes que cambian de localidad, "
+    "con el eje vertical desde cero, contra la desviación del ruido que se añade a su posición, σ = "
+    f"{enumera(ent(r['sigma_m']) for r in _ru)} m. Sube de {n(_ru[0]['pct_cambian'], 1)} % a "
+    f"{n(_ru[-1]['pct_cambian'], 1)} %. La lectura da la tasa global a {ent(_sg['sigma_m'])} m promediada "
+    f"sobre {ent(_sg['n_replicas'])} réplicas, su error de Monte Carlo y la tasa de la mejor y la peor "
+    "localidad.")
 MOD9 = cabecera(
     9, "Error posicional, y quién lo paga", "Geocoding error is not uniform",
     "Medir qué rompe un error de posición pequeño, y comprobar que no lo rompe igual en todas partes."
@@ -1067,7 +1138,8 @@ MOD9 = cabecera(
       localidad {firma(ent(_ru[1]['n_cambian']), ' sedes')}.</p>
 
 {sim('degradar', 'Cuánto se rompe según cuánto se degrade',
-     'Cada punto es un promedio sobre réplicas; el requisito del ejercicio 5 es el 1 %.')}
+     'Cada punto es un promedio sobre réplicas; el requisito del ejercicio 5 es el 1 %.',
+     aria=_ARIA_DEGRADAR)}
       <p>Hasta aquí el tamaño del daño. Falta el reparto, que es lo que de verdad convierte
       esto en un problema y no en una molestia. Promediando {firma(ent(_sg['n_replicas']), ' realizaciones')}
       del ruido de {_sg['sigma_m']}&nbsp;m —una sola daba correlaciones que bailaban entre 0,38
@@ -1123,6 +1195,17 @@ print(round(len(sedes) / len(pos), 4))
 # MÓDULO 10 · Validación topológica y DE-9IM
 # =====================================================================
 _lz, _de, _bf = tp["lazo"], tp["de9im"], tp["buffer"]
+_ARIA_DE9IM = (
+    "Dibujo de dos polígonos, sin ejes: un cuadrado fijo en verde y un segundo polígono en naranja que "
+    f"los {len(_de['caso'])} botones —{enumera(_de['caso'])}— colocan fuera del primero, tocándolo por un "
+    "lado, solapándolo, dentro de él o encima. La lectura da la relación, su matriz DE-9IM de nueve "
+    "caracteres y el predicado de sf que la nombra.")
+_ARIA_BUFFER = (
+    "Gráfico de barras: el área real, en km² y medida sobre el elipsoide, de un buffer de 1 000 m pedido "
+    "en tres sistemas —EPSG:9377, métrico, en verde; EPSG:3857, Web Mercator, en naranja, y grados sobre "
+    "EPSG:4326, en marrón—, con el eje desde cero. Las dos primeras rondan π, la de Web Mercator en "
+    f"{n(_bf['m3857_area_real_km2'], 2)}, y la tercera es tan pequeña que no se ve. La lectura da el radio "
+    "real en 9377 y en 3857, el área en 9377 y π.")
 MOD10 = cabecera(
     10, "Validación topológica y predicados espaciales", "st_is_valid and DE-9IM",
     "Detectar geometría inválida antes de que devuelva un número, y leer la matriz DE-9IM."
@@ -1167,7 +1250,8 @@ MOD10 = cabecera(
       canónicas.</p>
 
 {sim('de9im', 'Las cinco relaciones canónicas y su matriz DE-9IM',
-     'Cada celda cruza interior (I), frontera (B) y exterior (E) de las dos geometrías.')}
+     'Cada celda cruza interior (I), frontera (B) y exterior (E) de las dos geometrías.',
+     aria=_ARIA_DE9IM)}
       <p>Leer la matriz directamente sirve para los casos que ningún predicado con nombre
       cubre, que en trabajo real aparecen más de lo que parece: «polígonos que se tocan por
       una línea y no solo por un punto», por ejemplo, es un patrón que se escribe a mano y no
@@ -1185,7 +1269,7 @@ MOD10 = cabecera(
       </div>
 
 {sim('buffer', 'El mismo radio de 1 000 m, pedido en tres sistemas',
-     'El área verdadera se mide sobre el elipsoide tras deshacer la proyección.')}
+     'El área verdadera se mide sobre el elipsoide tras deshacer la proyección.', aria=_ARIA_BUFFER)}
       <p>Y una operación que junta todo lo del capítulo en una línea: el <em>buffer</em>. Un
       radio de mil metros pedido sobre EPSG:9377 da un círculo de
       {firma(n(_bf['m9377_area_km2'], 5), ' km²')}, que es \\(\\pi\\) como debe ser. El mismo
@@ -1236,6 +1320,15 @@ _TABLA_GEOHASH = "".join(
          n(niv["celda_ancho_km"], 3) + " × " + n(niv["celda_alto_km"], 3) + " km",
          n(_fr[niv["longitud"]]["pct_distinto"]) + " %")
     for niv in _gh["niveles"][1:4])
+_niv, _fro = _gh["niveles"], _gh["frontera"]
+_ARIA_GEOHASH = (
+    f"Gráfico combinado sobre la longitud del geohash, de {_niv[0]['longitud']} a {_niv[-1]['longitud']} "
+    "caracteres. Las barras, en verde claro y con el eje izquierdo en escala logarítmica, dan el ancho "
+    f"de la celda: de {n(_niv[0]['celda_ancho_km'], 1)} km a {n(_niv[-1]['celda_ancho_km'], 3)} km. La "
+    "línea naranja, con el eje derecho de 0 a 100, da el porcentaje de sedes cuyo vecino más próximo cae "
+    f"en otra celda, que sube de {n(_fro[0]['pct_distinto'], 1)} % a {n(_fro[-1]['pct_distinto'], 1)} %. "
+    "La lectura da cuántos puntos vuelven a su celda al codificar y decodificar, la distancia mediana al "
+    "vecino y los partidos con 6 y 7 caracteres.")
 MOD11 = cabecera(
     11, "Ingeniería de datos geoespaciales", "Spatial indexes, joins and geohash",
     "Entender por qué una unión espacial es rápida, y qué se pierde al indexar el espacio con texto."
@@ -1278,7 +1371,7 @@ MOD11 = cabecera(
       puede consultar con un <code>LIKE</code> en cualquier base de datos, sin geometría.</p>
 
 {sim('geohash', 'La celda de geohash, según cuántos caracteres',
-     'Medido sobre las ' + ent(po['n_sedes']) + ' sedes de Bogotá.')}
+     'Medido sobre las ' + ent(po['n_sedes']) + ' sedes de Bogotá.', aria=_ARIA_GEOHASH)}
       <p>El mapa siguiente pinta las celdas de longitud 5 sobre Bogotá, coloreadas por cuántas
       sedes cae en cada una. Fíjate en que son rectángulos alineados con los meridianos y
       paralelos, no unidades administrativas: el geohash no sabe nada de la ciudad.</p>
@@ -2269,6 +2362,29 @@ def main() -> int:
         problemas.append(f"hay {mods} módulos y tienen que ser 12")
     if lienzos != con_alt:
         problemas.append(f"{lienzos - con_alt} lienzos sin aria-label")
+    # NI EL TÍTULO COMO ETIQUETA, NI UNA LECTURA QUE NO LO DESCRIBA (M9). Tener
+    # `aria-label` no basta: hasta el 2026-10-27 los diez lo tenían, y era el
+    # título. Se mira el marcado tal como lo escribe `sim()`, y se exige que
+    # lo cubra entero: un simulador con lectura que la expresión no reconozca
+    # también para, porque sería uno que esta guarda no está mirando.
+    _sims = list(re.finditer(
+        r'data-simulador="([^"]+)">\s*<h4>((?:(?!</h4>).)*)</h4>(?:(?!data-simulador=).)*?'
+        r'<div class="grafico-wrapper"[^>]*>\s*<canvas([^>]*)></canvas>\s*</div>\s*'
+        r'<div class="simulador-lectura"([^>]*)>', marcado, re.S))
+    _con_lectura = marcado.count('class="simulador-lectura"')
+    if len(_sims) != _con_lectura:
+        problemas.append(f"simuladores con lectura: {_con_lectura}, "
+                         f"y la guarda de accesibilidad reconoce {len(_sims)}")
+    for m in _sims:
+        ident, lienzo, caja = m.group(1), m.group(3), m.group(4)
+        titulo = _html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
+        etq = re.search(r'aria-label="([^"]*)"', lienzo)
+        etq = _html.unescape(etq.group(1)).strip() if etq else ""
+        if titulo in etq or len(etq) < 80:
+            problemas.append(f"{ident}: el aria-label no describe el gráfico («{etq[:50]}»)")
+        if (f'aria-describedby="lectura-{ident}"' not in lienzo
+                or f'id="lectura-{ident}"' not in caja or 'aria-live="polite"' not in caja):
+            problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
     if ejercicios != 5:
         problemas.append(f"hay {ejercicios} ejercicios guiados y tienen que ser 5")
     for etq, us, rg in (("mapas", usados, registrados), ("simuladores", sims_usados, sims_reg),

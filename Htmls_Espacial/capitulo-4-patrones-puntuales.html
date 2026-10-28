@@ -4686,9 +4686,9 @@ print([round(float(dentro_urb.sum() / (v_urb.area / 1e6)), 4),
         <h4><i class="fas fa-chart-column" aria-hidden="true"></i> Contar en cuadrantes</h4>
         <p class="simulador-intro">La rejilla es fija —la que declara la lectura—: la barra es el reparto observado de sedes por celda y la línea, el que daría una intensidad constante.</p>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="Contar en cuadrantes"></canvas>
+          <canvas role="img" aria-label="Gráfico combinado sobre la rejilla de 10 × 10 que cubre la ventana urbana de Bogotá. Las barras verdes cuentan cuántas de sus 65 celdas vivas tienen cada número de sedes, agrupado en 20 tramos de 0 a 100; la línea naranja discontinua es el reparto que daría una Poisson de la misma media. El eje vertical, en celdas, empieza en cero, y no hay mandos. La lectura da la rejilla, las celdas vivas, el índice de dispersión y lo que valdría bajo Poisson con celdas recortadas, el χ², la celda más poblada y cuántas celdas esperan menos de 5 sedes." aria-describedby="lectura-cap4-cuadrantes"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-cuadrantes" aria-live="polite"></div>
       </div>
 
 
@@ -4875,9 +4875,9 @@ print(round(obs[vivas].var(ddof=1) / obs[vivas].mean(), 4))
         <p class="simulador-intro">Elige el patrón: la barra es su distribución de distancias al vecino más próximo, y la lectura, su R.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="Los tres regímenes, y cuánto se mueve su R"></canvas>
+          <canvas role="img" aria-label="Histograma de la distancia de cada punto a su vecino más próximo, en la unidad de su ventana —metros en Bogotá—, con el eje vertical en puntos desde cero, para el patrón que elijan los botones: Células (el de partida), Pinos suecos, Pinos japoneses, Secuoyas o Sedes de Bogotá. El color de las barras dice el régimen por el índice R de Clark-Evans: azul si R pasa de 1, rojo si baja de 0.95 y verde entre los dos. La lectura da el patrón, n, la distancia media observada y la que daría el azar, R y el régimen." aria-describedby="lectura-cap4-regimenes"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-regimenes" aria-live="polite"></div>
       </div>
 
 
@@ -5001,9 +5001,9 @@ for nm in ("cells", "japanesepines", "redwood"):
         <p class="simulador-intro">Conmuta entre las dos propiedades: la primera enseña el reparto de conteos contra la Poisson teórica y la segunda, cuánto se mueve la R del azar.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="Las dos propiedades de CSR"></canvas>
+          <canvas role="img" aria-label="Gráfico con dos vistas, una por botón, sobre las 2 000 realizaciones de CSR con λ|W| = 65, y el eje vertical, en realizaciones, desde cero. En «(1) el número de puntos», la de partida, las barras verdes cuentan en cuántas salen k puntos, de 41 a 95, y la línea naranja discontinua es la Poisson teórica; en «(2) cuánto se mueve R», un histograma morado del índice R de Clark-Evans de cada una. La lectura da, en la primera, la media, la varianza y el recorrido del conteo; en la segunda, la media de R, su recorrido, su intervalo central del 95 % y cuántas realizaciones darían «agregado» leyendo R &lt; 1." aria-describedby="lectura-cap4-poisson"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-poisson" aria-live="polite"></div>
       </div>
 
 
@@ -5264,9 +5264,9 @@ print([round(chi(c1), 4), round(chi(c2), 4)])
         <p class="simulador-intro">Barre el tamaño de la rejilla sobre los tres patrones: en rojo los tamaños que rechazan al 5 % y en gris los que no, y en pálido los que rompen el supuesto del χ², porque alguna celda espera menos de 5 puntos. Mira en cuál de los tres cambia el veredicto, y en cuál una rejilla más fina vuelve a respetar el supuesto.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="El veredicto en función de la celda"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras en escala logarítmica: el χ² del test de cuadrantes según el lado de la rejilla, en 10 rejillas de 2 × 2 a 20 × 20 celdas, para el patrón que elijan los botones: Secuoyas (agregado), que es el de partida, Pinos japoneses (aleatorio) o Sedes de Bogotá. En rojo las rejillas que rechazan CSR al 5 % y en gris las que no; la barra va pálida y con borde si alguna celda viva espera menos de 5 puntos, y llena si ninguna. No hay leyenda: el color lo explica el párrafo de arriba. La lectura da cuántas rechazan, qué rejillas respetan el supuesto y cuáles de ellas rechazan, y el χ² con la rejilla más gruesa y con la más fina." aria-describedby="lectura-cap4-barrido"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-barrido" aria-live="polite"></div>
       </div>
 
 
@@ -5461,9 +5461,9 @@ print([round(chi(c1), 4), round(chi(c2), 4)])
         <p class="simulador-intro">Elige el patrón: se dibujan la G y la F corregidas contra la curva que las dos tendrían bajo CSR, y en gris punteado la G sin corregir. La lectura da la mediana de cada una y la de CSR, que es la misma para las dos.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="G y F sobre los tres regímenes y sobre Bogotá"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea contra la distancia r, en la unidad de cada ventana —metros en Bogotá—, con el eje vertical de probabilidad: la G corregida en verde, la F corregida en naranja, la curva que las dos tendrían bajo CSR en azul discontinuo y la G sin corregir en gris punteado. Los botones eligen el patrón: Células, Pinos japoneses, Secuoyas (el de partida) o Sedes de Bogotá. La lectura da n, la mediana de G, la de F y la de CSR, cuántos sitios de F caen dentro de la ventana, los puntos coincidentes y lo que vale la G sin corregir en r = 0." aria-describedby="lectura-cap4-gf"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-gf" aria-live="polite"></div>
       </div>
 
 
@@ -5562,9 +5562,9 @@ print([round(chi(c1), 4), round(chi(c2), 4)])
         <p class="simulador-intro">Elige el patrón: se dibuja J(r) contra la recta J = 1 que da CSR. La lectura dice hacia dónde se aparta, no qué régimen es: eso necesita saber cuánto se aparta el azar.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="La función J sobre los tres regímenes y sobre Bogotá"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea contra la distancia r: la J observada en morado y la recta J = 1 de CSR en gris discontinuo, solo en el tramo en que F no pasa de 0.9. Los botones eligen el patrón: Células, Pinos japoneses (el de partida), Secuoyas o Sedes de Bogotá. Por debajo de 1 la J apunta a agregación y por encima a regularidad, pero sin banda del azar no da régimen. La lectura da el tramo dibujado, J en r = 0, su mínimo y su máximo con la distancia a la que caen y en cuántas distancias queda por debajo de 1." aria-describedby="lectura-cap4-j"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-j" aria-live="polite"></div>
       </div>
 
 
@@ -5842,9 +5842,9 @@ print([round(float(J(r)), 4) for r in (0.02, 0.05, 0.08)])
         <p class="simulador-intro">Conmuta entre K y L − r: es la misma información, y solo una de las dos se lee de un vistazo.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="K y L sobre el mismo patrón"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea contra la distancia r, con dos grupos de botones. El primero elige el patrón: Células, Pinos japoneses, Secuoyas o Sedes de Bogotá (el de partida). El segundo, la vista: con «Ver K», la K observada en verde contra la de CSR, π r², en gris discontinuo; con «Ver L − r», la de partida, L(r) − r en naranja contra el cero de CSR en gris discontinuo. La lectura da la corrección de borde, el mayor desvío de L − r con su signo y la distancia a la que ocurre, y si va por encima de la recta, hacia la agregación, o por debajo, hacia la regularidad; si es significativo lo dice la envolvente del módulo 11." aria-describedby="lectura-cap4-kl"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-kl" aria-live="polite"></div>
       </div>
 
 
@@ -6091,9 +6091,9 @@ print(round(float(np.max(np.abs(L - r))), 4))
         <p class="simulador-intro">Las dos curvas del mismo dato: mira hasta dónde sigue K separada de su teórica y dónde vuelve g a 1.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="K contra g sobre el mismo patrón"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea contra la distancia r con dos ejes verticales: a la izquierda, g(r) en morado y su valor bajo CSR en gris discontinuo; a la derecha, la razón entre la K observada y la teórica, en verde. Los botones eligen el patrón: Células, Pinos japoneses, Secuoyas (el de partida) o Sedes de Bogotá. La g mira solo el anillo de radio r y vuelve a 1 donde se acaba la estructura; la razón de K sigue separada más lejos, porque arrastra lo que contó cerca. La lectura da la g máxima y su distancia, dónde vuelve g a 1, el último r con g lejos de 1 y el mayor desvío |L − r| de K." aria-describedby="lectura-cap4-kg"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-kg" aria-live="polite"></div>
       </div>
 
 
@@ -6281,41 +6281,41 @@ print([round(float(g.max()), 3), round(float(centros[g.argmax()]), 4)])
           <div>
             <p class="grafico-etiqueta">G(r) · vecino más próximo</p>
             <div class="grafico-wrapper" style="height:200px; margin-top:0;">
-              <canvas role="img" aria-label="Las seis funciones sobre el mismo patrón: G(r) · vecino más próximo"></canvas>
+              <canvas role="img" aria-label="Gráfico de línea, el primero de seis: la G(r), la distribución de la distancia de cada punto a su vecino más próximo, en verde, contra su curva bajo CSR en gris discontinuo, en función de la distancia r, para el patrón que elijan los botones; la lectura es la de los seis." aria-describedby="lectura-cap4-seis"></canvas>
             </div>
           </div>
           <div>
             <p class="grafico-etiqueta">F(r) · espacio vacío</p>
             <div class="grafico-wrapper" style="height:200px; margin-top:0;">
-              <canvas role="img" aria-label="Las seis funciones sobre el mismo patrón: F(r) · espacio vacío"></canvas>
+              <canvas role="img" aria-label="Gráfico de línea, el segundo de seis: la F(r), la de la distancia de un sitio cualquiera al punto más cercano, en naranja, contra su curva bajo CSR en gris discontinuo, en función de la distancia r, para el patrón que elijan los botones; la lectura es la de los seis." aria-describedby="lectura-cap4-seis"></canvas>
             </div>
           </div>
           <div>
             <p class="grafico-etiqueta">J(r) = (1 − G) / (1 − F)</p>
             <div class="grafico-wrapper" style="height:200px; margin-top:0;">
-              <canvas role="img" aria-label="Las seis funciones sobre el mismo patrón: J(r) = (1 − G) / (1 − F)"></canvas>
+              <canvas role="img" aria-label="Gráfico de línea, el tercero de seis: la J(r), el cociente (1 − G) / (1 − F), en morado, contra la recta J = 1 de CSR en gris discontinuo, en función de la distancia r, para el patrón que elijan los botones; la lectura es la de los seis." aria-describedby="lectura-cap4-seis"></canvas>
             </div>
           </div>
           <div>
             <p class="grafico-etiqueta">K(r) · el disco</p>
             <div class="grafico-wrapper" style="height:200px; margin-top:0;">
-              <canvas role="img" aria-label="Las seis funciones sobre el mismo patrón: K(r) · el disco"></canvas>
+              <canvas role="img" aria-label="Gráfico de línea, el cuarto de seis: la K(r), los vecinos que caben en un disco de radio r divididos por la intensidad, en verde, contra π r², la de CSR, en gris discontinuo, en función de la distancia r, para el patrón que elijan los botones; la lectura es la de los seis." aria-describedby="lectura-cap4-seis"></canvas>
             </div>
           </div>
           <div>
             <p class="grafico-etiqueta">L(r) − r · K en la escala de r</p>
             <div class="grafico-wrapper" style="height:200px; margin-top:0;">
-              <canvas role="img" aria-label="Las seis funciones sobre el mismo patrón: L(r) − r · K en la escala de r"></canvas>
+              <canvas role="img" aria-label="Gráfico de línea, el quinto de seis: L(r) − r, la K en la escala de r, en naranja, contra el cero de CSR en gris discontinuo, en función de la distancia r, para el patrón que elijan los botones; la lectura es la de los seis." aria-describedby="lectura-cap4-seis"></canvas>
             </div>
           </div>
           <div>
             <p class="grafico-etiqueta">g(r) · el anillo</p>
             <div class="grafico-wrapper" style="height:200px; margin-top:0;">
-              <canvas role="img" aria-label="Las seis funciones sobre el mismo patrón: g(r) · el anillo"></canvas>
+              <canvas role="img" aria-label="Gráfico de línea, el sexto de seis: la g(r), que mira solo el anillo de radio r, en morado, contra su valor bajo CSR en gris discontinuo, en función de la distancia r, para el patrón que elijan los botones; la lectura es la de los seis." aria-describedby="lectura-cap4-seis"></canvas>
             </div>
           </div>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-seis" aria-live="polite"></div>
       </div>
 
       <p>Empieza por las secuoyas y pasa después a las células, con la tabla al lado: en cada
@@ -6414,9 +6414,9 @@ print([round(float(g.max()), 3), round(float(centros[g.argmax()]), 4)])
         <p class="simulador-intro">Activa y desactiva cada corrección sobre el patrón colombiano y mira cuánto se mueve la curva.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="Las tres correcciones, y la que no corrige"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea contra la distancia r, en metros, sobre las sedes de Bogotá: la K estimada con cada corrección de borde que esté encendida —sin corregir en rojo, de borde en gris, de traslación en verde e isotrópica en azul— y la K de CSR en gris discontinuo. Cada botón enciende o apaga una corrección; de partida van encendidas sin corregir y la de traslación. La lectura da el sesgo máximo sin corregir y a qué distancia, cuántas piezas y vértices tiene la ventana, cuántas veces más tarda la isotrópica que la de traslación y las horas que costaría su envolvente." aria-describedby="lectura-cap4-bordes"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-bordes" aria-live="polite"></div>
       </div>
 
 
@@ -6542,9 +6542,9 @@ print([int(pares[-1]), round(float(K_sin[-1]) / 1e6, 2)])
         <p class="simulador-intro">Elige el patrón: la banda son las simulaciones de CSR y la línea gruesa, el dato.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="La envolvente y la curva observada"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea contra la distancia r: la banda de 999 simulaciones de CSR sombreada en gris entre su techo y su suelo, la K observada en verde grueso y la K teórica de CSR en naranja discontinuo. Los botones eligen el patrón: Pinos japoneses (el de partida), Secuoyas o Sedes de Bogotá. La lectura da las simulaciones, la corrección, si la observada se sale de la banda, el p mínimo posible y qué parte de las simulaciones de CSR se sale también." aria-describedby="lectura-cap4-envolvente"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-envolvente" aria-live="polite"></div>
       </div>
 
 
@@ -6626,9 +6626,9 @@ print([int(pares[-1]), round(float(K_sin[-1]) / 1e6, 2)])
         <p class="simulador-intro">Las cuatro columnas son el barrido entero; el mando resalta una y la lee. En rojo, la banda por defecto; en verde, la de nivel fijo al 5 %.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="Cuántas simulaciones, y a qué nivel"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras agrupadas, una pareja por número de simulaciones —nsim = 19, 39, 99 y 999—: el ancho medio de la banda por defecto, con nrank = 1, en rojo, y el de la banda a nivel fijo del 5 %, en verde, con el eje desde cero. Los botones no cambian el gráfico: resaltan una pareja y apagan las demás. La lectura da, para la resaltada, el nivel de la banda por defecto, el nrank que daría el 5 %, si lo alcanza y el p mínimo." aria-describedby="lectura-cap4-nsim"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap4-nsim" aria-live="polite"></div>
       </div>
 
 

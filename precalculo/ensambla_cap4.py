@@ -44,6 +44,7 @@ Uso:  python3 precalculo/ensambla_cap4.py
 """
 from __future__ import annotations
 
+import html as _html
 import json
 import re
 import pathlib
@@ -118,6 +119,12 @@ def n_signo(x, d=5):
     return f"{float(x):+.{d}f}".replace("-", "\u2212")
 
 
+def enumera(xs, conj="y"):
+    """«a, b y c»: para las listas de las descripciones de los lienzos."""
+    xs = [str(x) for x in xs]
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + f" {conj} " + xs[-1]
+
+
 def firma(valor, unidad=""):
     return f"<strong>{valor}</strong>{unidad}"
 
@@ -167,8 +174,17 @@ def tabs(etiqueta, r_code, py_code):
 """
 
 
-def sim(ident, titulo, pie="", alto=260, mandos=True):
+def sim(ident, titulo, pie="", alto=260, mandos=True, *, aria):
     """Un simulador con su lienzo de Chart.js —o una figura fija, si no lleva mandos.
+
+    `aria` ES OBLIGATORIO, y es lo que oye quien no ve el gráfico (M9 de la
+    segunda revisión del capítulo 5, llevado aquí el 2026-10-27). Hasta
+    entonces el lienzo llevaba el título como `aria-label`: «Contar en
+    cuadrantes», sin ejes, sin series y sin datos. Ahora dice qué se dibuja
+    —los ejes, las series con su color, qué cambian los botones—, y la
+    lectura, que es donde están las cifras, es su descripción
+    (`aria-describedby`) y se anuncia cuando cambia (`aria-live`). El
+    ensamblado para si un lienzo vuelve a repetir su título.
 
     `mandos=False` es para los que no tienen ninguno. `cap4-cuadrantes` es una
     figura fija —la rejilla la fija el precálculo— y publicaba un contenedor de
@@ -187,9 +203,9 @@ def sim(ident, titulo, pie="", alto=260, mandos=True):
         {f'<p class="simulador-intro">{pie}</p>' if pie else ''}
 {'        <div class="simulador-controles"></div>' + chr(10) if mandos else ''}\
         <div class="grafico-wrapper" style="height:{alto}px;">
-          <canvas role="img" aria-label="{titulo}"></canvas>
+          <canvas role="img" aria-label="{_html.escape(aria)}" aria-describedby="lectura-{ident}"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-{ident}" aria-live="polite"></div>
       </div>
 """
 
@@ -221,8 +237,14 @@ def anim2d_html(ident, titulo, pie, escena):
 """
 
 
-def sim_paneles(ident, titulo, pie, paneles, alto=200):
+def sim_paneles(ident, titulo, pie, paneles, alto=200, *, aria):
     """Un simulador con VARIOS lienzos bajo los mismos mandos, en rejilla.
+
+    `aria` es la lista de descripciones, una por panel y en su orden: lo que
+    dibuja cada recuadro. Hasta el 2026-10-27 cada lienzo llevaba «título:
+    etiqueta», que repetía lo que el lector de pantalla ya había leído en el
+    `<h4>` y en la `.grafico-etiqueta`. Los seis lienzos se describen con la
+    misma lectura, que es la del patrón elegido.
 
     Nace para `cap4-seis` (2026-09-24): las seis funciones del capítulo
     sobre el mismo patrón, para que la tabla de las direcciones se pueda
@@ -236,21 +258,23 @@ def sim_paneles(ident, titulo, pie, paneles, alto=200):
     .grafico-wrapper`, pensada para paneles apilados: en rejilla desalinea
     la segunda columna.
     """
+    if len(aria) != len(paneles):
+        sys.exit(f"PARADO: {ident} tiene {len(paneles)} paneles y {len(aria)} descripciones")
     celdas = "".join(
         f"""          <div>
             <p class="grafico-etiqueta">{p}</p>
             <div class="grafico-wrapper" style="height:{alto}px; margin-top:0;">
-              <canvas role="img" aria-label="{titulo}: {p}"></canvas>
+              <canvas role="img" aria-label="{_html.escape(a)}" aria-describedby="lectura-{ident}"></canvas>
             </div>
           </div>
-""" for p in paneles)
+""" for p, a in zip(paneles, aria))
     return f"""      <div class="simulador" data-simulador="{ident}">
         <h4><i class="fas fa-sliders" aria-hidden="true"></i> {titulo}</h4>
         <p class="simulador-intro">{pie}</p>
         <div class="simulador-controles"></div>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 300px), 1fr)); column-gap:1rem;">
 {celdas}        </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-{ident}" aria-live="polite"></div>
       </div>
 """
 
@@ -442,6 +466,28 @@ print([round(float(dentro_urb.sum() / (v_urb.area / 1e6)), 4),
 # =====================================================================
 # MÓDULO 2 · La intensidad λ
 # =====================================================================
+# Lo que oye quien no ve los gráficos (M9): qué dibujan, con qué ejes y qué da
+# la lectura. Las cifras salen del JSON, como las de la prosa. `_PAT` son los
+# patrones como los rotulan los botones de los simuladores.
+_PAT = {"cells": "Células", "swedishpines": "Pinos suecos", "japanesepines": "Pinos japoneses",
+        "redwood": "Secuoyas", "bogota": "Sedes de Bogotá"}
+
+
+
+def _botones(claves, partida):
+    """«Células, Pinos japoneses, Secuoyas (el de partida) o Sedes de Bogotá»."""
+    return enumera((_PAT[k] + (" (el de partida)" if k == partida else "") for k in claves), "o")
+
+
+_q, _qh = m2["urbana"], m2["urbana_hist"]
+_ARIA_CUADRANTES = (
+    f"Gráfico combinado sobre la rejilla de {_q['nx']} × {_q['ny']} que cubre la ventana urbana de "
+    f"Bogotá. Las barras verdes cuentan cuántas de sus {_q['celdas']} celdas vivas tienen cada número de "
+    f"sedes, agrupado en {len(_qh['conteo'])} tramos de {ent(_qh['bordes'][0])} a "
+    f"{ent(_qh['bordes'][-1])}; la línea naranja discontinua es el reparto que daría una "
+    "Poisson de la misma media. El eje vertical, en celdas, empieza en cero, y no hay mandos. La lectura "
+    "da la rejilla, las celdas vivas, el índice de dispersión y lo que valdría bajo Poisson con celdas "
+    "recortadas, el χ², la celda más poblada y cuántas celdas esperan menos de 5 sedes.")
 MOD2 = cabecera(
     2, "La intensidad λ", "Intensity",
     "Estimar la intensidad por conteo, y ver que un solo número solo describe el "
@@ -605,7 +651,8 @@ MOD2 = cabecera(
         cuántas lo tendrían si λ fuera constante. Mira cómo se separan.</p>
 
 {sim('cap4-cuadrantes', 'Contar en cuadrantes',
-     'La rejilla es fija —la que declara la lectura—: la barra es el reparto observado de sedes por celda y la línea, el que daría una intensidad constante.', 300, mandos=False)}
+     'La rejilla es fija —la que declara la lectura—: la barra es el reparto observado de sedes por celda y la línea, el que daría una intensidad constante.', 300, mandos=False,
+     aria=_ARIA_CUADRANTES)}
 
       <p>Lo que acabas de ver no es que Bogotá tenga «mucha» o «poca» intensidad, sino que
         <strong>no tiene una sola</strong>. Una λ que cambia de un sitio a otro se llama
@@ -667,6 +714,13 @@ print(round(obs[vivas].var(ddof=1) / obs[vivas].mean(), 4))
 # =====================================================================
 # MÓDULO 3 · Los tres regímenes
 # =====================================================================
+_ARIA_REGIMENES = (
+    "Histograma de la distancia de cada punto a su vecino más próximo, en la unidad de su ventana "
+    "—metros en Bogotá—, con el eje vertical en puntos desde cero, para el patrón que elijan los botones: "
+    f"{_botones(['cells', 'swedishpines', 'japanesepines', 'redwood', 'bogota'], 'cells')}. El color de "
+    "las barras dice el régimen por el índice R de Clark-Evans: azul si R pasa de 1, rojo si baja de 0.95 "
+    "y verde entre los dos. La lectura da el patrón, n, la distancia media observada y la que daría el "
+    "azar, R y el régimen.")
 MOD3 = cabecera(
     3, "Los tres regímenes", "The three regimes",
     "Reconocer a ojo y con una cifra los tres comportamientos básicos —aleatorio, "
@@ -743,7 +797,8 @@ MOD3 = cabecera(
         siguiente, y es el problema central del capítulo.</p>
 
 {sim('cap4-regimenes', 'Los tres regímenes, y cuánto se mueve su R',
-     'Elige el patrón: la barra es su distribución de distancias al vecino más próximo, y la lectura, su R.', 300)}
+     'Elige el patrón: la barra es su distribución de distancias al vecino más próximo, y la lectura, su R.', 300,
+     aria=_ARIA_REGIMENES)}
 
       <p>Fíjate en los pinos japoneses, que son los aleatorios: su R no da 1 exacto. Podría
         ser que el patrón no sea del todo aleatorio, o podría ser que el azar, sin más, no
@@ -786,6 +841,15 @@ for nm in ("cells", "japanesepines", "redwood"):
 # =====================================================================
 # MÓDULO 4 · CSR
 # =====================================================================
+_ARIA_POISSON = (
+    "Gráfico con dos vistas, una por botón, sobre las "
+    f"{ent(m4['n_realizaciones'])} realizaciones de CSR con λ|W| = {ent(m4['lambda'])}, y el eje vertical, "
+    "en realizaciones, desde cero. En «(1) el número de puntos», la de partida, las barras verdes cuentan "
+    f"en cuántas salen k puntos, de {ent(m4['hist_k'][0])} a {ent(m4['hist_k'][-1])}, y la línea naranja "
+    "discontinua es la Poisson teórica; en «(2) cuánto se mueve R», un histograma morado del índice R de "
+    "Clark-Evans de cada una. La lectura da, en la primera, la media, la varianza y el recorrido del "
+    "conteo; en la segunda, la media de R, su recorrido, su intervalo central del 95 % y cuántas "
+    "realizaciones darían «agregado» leyendo R < 1.")
 MOD4 = cabecera(
     4, "CSR", "Complete Spatial Randomness",
     "Separar las DOS propiedades que definen la aleatoriedad completa, y medir "
@@ -839,7 +903,8 @@ MOD4 = cabecera(
         R sola, sin saber cuánto se mueve el azar, no dice nada.</p>
 
 {sim('cap4-poisson', 'Las dos propiedades de CSR',
-     'Conmuta entre las dos propiedades: la primera enseña el reparto de conteos contra la Poisson teórica y la segunda, cuánto se mueve la R del azar.', 300)}
+     'Conmuta entre las dos propiedades: la primera enseña el reparto de conteos contra la Poisson teórica y la segunda, cuánto se mueve la R del azar.', 300,
+     aria=_ARIA_POISSON)}
 
       <p>Ese temblor es la razón de ser de las envolventes de simulación, que llegan en el
         módulo 11. Anótalo, porque va a reaparecer con cada una de las funciones que vienen
@@ -1148,6 +1213,15 @@ _bog_baja = {nx: _bog['celdas_esperanza_baja'][_kb[nx]] for nx in (3, 4, 5, 6)}
 if not (_bog_baja[3] > 0 and _bog_baja[4] > 0 and _bog_baja[5] == 0 and _bog_baja[6] > 0):
     sys.exit(f"PARADO: el módulo 6 cuenta que Bogotá rompe el supuesto en 3×3 y 4×4, "
              f"lo respeta en 5×5 y lo vuelve a romper en 6×6, y el precálculo dice {_bog_baja}")
+_nxs = m6["redwood"]["nx"]
+_ARIA_BARRIDO = (
+    "Gráfico de barras en escala logarítmica: el χ² del test de cuadrantes según el lado de la rejilla, "
+    f"en {len(_nxs)} rejillas de {_nxs[0]} × {_nxs[0]} a {_nxs[-1]} × {_nxs[-1]} celdas, para el patrón "
+    "que elijan los botones: Secuoyas (agregado), que es el de partida, Pinos japoneses (aleatorio) o "
+    "Sedes de Bogotá. En rojo las rejillas que rechazan CSR al 5 % y en gris las que no; la barra va pálida y con "
+    "borde si alguna celda viva espera menos de 5 puntos, y llena si ninguna. No hay leyenda: el color lo "
+    "explica el párrafo de arriba. La lectura da cuántas rechazan, qué rejillas respetan el supuesto y "
+    "cuáles de ellas rechazan, y el χ² con la rejilla más gruesa y con la más fina.")
 MOD6 = cabecera(
     6, "El tamaño del cuadrante", "Quadrat size",
     "Reconocer el MAUP del capítulo 3 dentro de un test de patrones puntuales: "
@@ -1186,7 +1260,8 @@ MOD6 = cabecera(
         «correcto» que la teoría entregue: hay una decisión del analista, que se declara.</p>
 
 {sim('cap4-barrido', 'El veredicto en función de la celda',
-     'Barre el tamaño de la rejilla sobre los tres patrones: en rojo los tamaños que rechazan al 5 % y en gris los que no, y en pálido los que rompen el supuesto del χ², porque alguna celda espera menos de 5 puntos. Mira en cuál de los tres cambia el veredicto, y en cuál una rejilla más fina vuelve a respetar el supuesto.', 300)}
+     'Barre el tamaño de la rejilla sobre los tres patrones: en rojo los tamaños que rechazan al 5 % y en gris los que no, y en pálido los que rompen el supuesto del χ², porque alguna celda espera menos de 5 puntos. Mira en cuál de los tres cambia el veredicto, y en cuál una rejilla más fina vuelve a respetar el supuesto.', 300,
+     aria=_ARIA_BARRIDO)}
 
       <p>Las sedes de Bogotá enseñan algo que las secuoyas no pueden enseñar. La ventana de
         <code>redwood</code> es un cuadrado: todas sus celdas tienen la misma área, afinar la
@@ -1266,6 +1341,20 @@ if not (all(d['f_sitios'] == d['f_rejilla'] and d['g_emp_en_cero'] == 0 for d in
     sys.exit("PARADO: el módulo 7 dice que en los tres de libro cuentan todos los sitios de F y "
              "la G sin corregir vale 0 en r = 0, y que la G corregida de las sedes vale 0 ahí y "
              "en el primer nodo ya supera la fracción de coincidentes; el JSON ya no lo sostiene")
+_CUATRO = ["cells", "japanesepines", "redwood", "bogota"]
+_ARIA_GF = (
+    "Gráfico de línea contra la distancia r, en la unidad de cada ventana —metros en Bogotá—, con el eje "
+    "vertical de probabilidad: la G corregida en verde, la F corregida en naranja, la curva que las dos "
+    "tendrían bajo CSR en azul discontinuo y la G sin corregir en gris punteado. Los botones eligen el "
+    f"patrón: {_botones(_CUATRO, 'redwood')}. La lectura da n, la mediana de G, la de F y la de CSR, "
+    "cuántos sitios de F caen dentro de la ventana, los puntos coincidentes y lo que vale la G sin "
+    "corregir en r = 0.")
+_ARIA_J = (
+    "Gráfico de línea contra la distancia r: la J observada en morado y la recta J = 1 de CSR en gris "
+    f"discontinuo, solo en el tramo en que F no pasa de {n(m7['j_umbral_f'], 1)}. Los botones eligen el "
+    f"patrón: {_botones(_CUATRO, 'japanesepines')}. Por debajo de 1 la J apunta a agregación y por encima "
+    "a regularidad, pero sin banda del azar no da régimen. La lectura da el tramo dibujado, J en r = 0, "
+    "su mínimo y su máximo con la distancia a la que caen y en cuántas distancias queda por debajo de 1.")
 MOD7 = cabecera(
     7, "Las funciones G y F", "Nearest-neighbour and empty-space functions",
     "Describir el patrón con distancias en vez de con conteos, distinguir qué "
@@ -1349,7 +1438,8 @@ MOD7 = cabecera(
         la corregida no. El módulo 10 vuelve sobre el borde con la función K.</p>
 
 {sim('cap4-gf', 'G y F sobre los tres regímenes y sobre Bogotá',
-     'Elige el patrón: se dibujan la G y la F corregidas contra la curva que las dos tendrían bajo CSR, y en gris punteado la G sin corregir. La lectura da la mediana de cada una y la de CSR, que es la misma para las dos.', 300)}
+     'Elige el patrón: se dibujan la G y la F corregidas contra la curva que las dos tendrían bajo CSR, y en gris punteado la G sin corregir. La lectura da la mediana de cada una y la de CSR, que es la misma para las dos.', 300,
+     aria=_ARIA_GF)}
 
       <p>Recorre los tres patrones de libro —células, pinos japoneses y secuoyas— con la
         lectura a la vista, comparando cada mediana con la de CSR. En las células, la mitad tiene su vecina a menos de
@@ -1442,7 +1532,8 @@ MOD7 = cabecera(
         {n(m7['j_umbral_f'], 1)}, que es el tramo que el propio spatstat recomienda leer.</p>
 
 {sim('cap4-j', 'La función J sobre los tres regímenes y sobre Bogotá',
-     'Elige el patrón: se dibuja J(r) contra la recta J = 1 que da CSR. La lectura dice hacia dónde se aparta, no qué régimen es: eso necesita saber cuánto se aparta el azar.', 300)}
+     'Elige el patrón: se dibuja J(r) contra la recta J = 1 que da CSR. La lectura dice hacia dónde se aparta, no qué régimen es: eso necesita saber cuánto se aparta el azar.', 300,
+     aria=_ARIA_J)}
 
       <p>Recórrelos antes de creerle. En las células J queda por encima de 1 en todo su tramo
         y llega a {firma(n(m7['cells']['j_max'], 5))}. En las secuoyas queda por debajo en
@@ -1560,6 +1651,13 @@ PIEZAS_K = (
              "\\(\\lambda\\) de la definición.",
              f"\\({{(n-1)/|W|}}\\) = {n(_pz['lambda_otros_km2'], 5)} sedes por km²")
 )
+_ARIA_KL = (
+    "Gráfico de línea contra la distancia r, con dos grupos de botones. El primero elige el patrón: "
+    f"{_botones(_CUATRO, 'bogota')}. El segundo, la vista: con «Ver K», la K observada en verde contra la "
+    "de CSR, π r², en gris discontinuo; con «Ver L − r», la de partida, L(r) − r en naranja contra el cero "
+    "de CSR en gris discontinuo. La lectura da la corrección de borde, el mayor desvío de L − r con su "
+    "signo y la distancia a la que ocurre, y si va por encima de la recta, hacia la agregación, o por "
+    "debajo, hacia la regularidad; si es significativo lo dice la envolvente del módulo 11.")
 MOD8 = cabecera(
     8, "La función K de Ripley", "Ripley's K function",
     "Medir la estructura a TODAS las escalas a la vez, saber qué hace cada pieza de su "
@@ -1700,7 +1798,8 @@ MOD8 = cabecera(
         la de traslación de la lista de piezas.</p>
 
 {sim('cap4-kl', 'K y L sobre el mismo patrón',
-     'Conmuta entre K y L − r: es la misma información, y solo una de las dos se lee de un vistazo.', 300)}
+     'Conmuta entre K y L − r: es la misma información, y solo una de las dos se lee de un vistazo.', 300,
+     aria=_ARIA_KL)}
 
       <p>Sobre las sedes de Bogotá, \\({{L(r) - r}}\\) alcanza su máximo de
         {firma(n(m8['bogota']['max_desvio'], 2), ' m')} a una distancia de
@@ -2037,6 +2136,28 @@ if _rotas:
     sys.exit(f"PARADO: la sección de los ocho resúmenes del módulo 9 afirma lo que el "
              f"precálculo ya no sostiene: {_rotas}")
 
+_ARIA_KG = (
+    "Gráfico de línea contra la distancia r con dos ejes verticales: a la izquierda, g(r) en morado y su "
+    "valor bajo CSR en gris discontinuo; a la derecha, la razón entre la K observada y la teórica, en "
+    f"verde. Los botones eligen el patrón: {_botones(_CUATRO, 'redwood')}. La g mira solo el anillo de "
+    "radio r y vuelve a 1 donde se acaba la estructura; la razón de K sigue separada más lejos, porque "
+    "arrastra lo que contó cerca. La lectura da la g máxima y su distancia, dónde vuelve g a 1, el último r "
+    "con g lejos de 1 y el mayor desvío |L − r| de K.")
+_SEIS = " en función de la distancia r, para el patrón que elijan los botones; la lectura es la de los seis."
+_ARIA_SEIS = [
+    "Gráfico de línea, el primero de seis: la G(r), la distribución de la distancia de cada punto a su "
+    "vecino más próximo, en verde, contra su curva bajo CSR en gris discontinuo," + _SEIS,
+    "Gráfico de línea, el segundo de seis: la F(r), la de la distancia de un sitio cualquiera al punto "
+    "más cercano, en naranja, contra su curva bajo CSR en gris discontinuo," + _SEIS,
+    "Gráfico de línea, el tercero de seis: la J(r), el cociente (1 − G) / (1 − F), en morado, contra la "
+    "recta J = 1 de CSR en gris discontinuo," + _SEIS,
+    "Gráfico de línea, el cuarto de seis: la K(r), los vecinos que caben en un disco de radio r divididos "
+    "por la intensidad, en verde, contra π r², la de CSR, en gris discontinuo," + _SEIS,
+    "Gráfico de línea, el quinto de seis: L(r) − r, la K en la escala de r, en naranja, contra el cero de "
+    "CSR en gris discontinuo," + _SEIS,
+    "Gráfico de línea, el sexto de seis: la g(r), que mira solo el anillo de radio r, en morado, contra "
+    "su valor bajo CSR en gris discontinuo," + _SEIS,
+]
 MOD9 = cabecera(
     9, "La correlación de pares g(r)", "Pair correlation function",
     "Leer dónde está la estructura, entender por qué una función acumulativa "
@@ -2065,7 +2186,8 @@ MOD9 = cabecera(
         cociente vale 1 en todo r.</p>
 
 {sim('cap4-kg', 'K contra g sobre el mismo patrón',
-     'Las dos curvas del mismo dato: mira hasta dónde sigue K separada de su teórica y dónde vuelve g a 1.', 300)}
+     'Las dos curvas del mismo dato: mira hasta dónde sigue K separada de su teórica y dónde vuelve g a 1.', 300,
+     aria=_ARIA_KG)}
 
       <p>Sobre las secuoyas, g alcanza {firma(n(m9['redwood']['g_max'], 5))} a una distancia
         de {firma(n(m9['redwood']['r_g_max'], 5))} y ha vuelto a 1 en
@@ -2201,7 +2323,8 @@ MOD9 = cabecera(
 {sim_paneles('cap4-seis', 'Las seis funciones sobre el mismo patrón',
              'Elige el patrón: cada recuadro dibuja una función en color contra su referencia bajo CSR, en gris punteado.',
              ['G(r) · vecino más próximo', 'F(r) · espacio vacío', 'J(r) = (1 − G) / (1 − F)',
-              'K(r) · el disco', 'L(r) − r · K en la escala de r', 'g(r) · el anillo'])}
+              'K(r) · el disco', 'L(r) − r · K en la escala de r', 'g(r) · el anillo'],
+             aria=_ARIA_SEIS)}
       <p>Empieza por las secuoyas y pasa después a las células, con la tabla al lado: en cada
         recuadro busca el tramo en que la curva se separa de la gris, y hacia qué lado. Las dos
         salvedades que se comentaron bajo la tabla se ven ahí: la J de las secuoyas arranca por encima de
@@ -2246,6 +2369,13 @@ MOD9 = cabecera(
 # =====================================================================
 # MÓDULO 10 · Efectos de borde
 # =====================================================================
+_ARIA_BORDES = (
+    "Gráfico de línea contra la distancia r, en metros, sobre las sedes de Bogotá: la K estimada con cada "
+    "corrección de borde que esté encendida —sin corregir en rojo, de borde en gris, de traslación en "
+    "verde e isotrópica en azul— y la K de CSR en gris discontinuo. Cada botón enciende o apaga una "
+    "corrección; de partida van encendidas sin corregir y la de traslación. La lectura da el sesgo máximo "
+    "sin corregir y a qué distancia, cuántas piezas y vértices tiene la ventana, cuántas veces más tarda "
+    "la isotrópica que la de traslación y las horas que costaría su envolvente.")
 MOD10 = cabecera(
     10, "Efectos de borde", "Edge effects",
     "Ver por qué ignorar el borde no añade ruido sino SESGO, y en qué dirección; "
@@ -2274,7 +2404,8 @@ MOD10 = cabecera(
         dentro de la ventana. Las tres corrigen; no las tres cuestan lo mismo.</p>
 
 {sim('cap4-bordes', 'Las tres correcciones, y la que no corrige',
-     'Activa y desactiva cada corrección sobre el patrón colombiano y mira cuánto se mueve la curva.', 300)}
+     'Activa y desactiva cada corrección sobre el patrón colombiano y mira cuánto se mueve la curva.', 300,
+     aria=_ARIA_BORDES)}
 
       <p>Enciende a la vez las tres corregidas y la que no corrige. Las tres corregidas no
         coinciden del todo entre sí, pero las tres se despegan de la que no corrige, y cada
@@ -2336,6 +2467,20 @@ MOD10 = cabecera(
 # MÓDULO 11 · Envolventes de simulación
 # =====================================================================
 _e39, _e999 = ESC[39], ESC[999]
+_ARIA_ENVOLVENTE = (
+    "Gráfico de línea contra la distancia r: la banda de "
+    f"{enumera(sorted({ent(m11[k]['nsim']) for k in ('japanesepines', 'redwood', 'bogota')}), 'o')} "
+    "simulaciones de CSR sombreada en gris entre su techo y su suelo, la K observada en verde grueso y la "
+    "K teórica de CSR en naranja discontinuo. Los botones eligen el patrón: "
+    f"{_botones(['japanesepines', 'redwood', 'bogota'], 'japanesepines')}. La lectura da las "
+    "simulaciones, la corrección, si la observada se sale de la banda, el p mínimo posible y qué parte de "
+    "las simulaciones de CSR se sale también.")
+_ARIA_NSIM = (
+    "Gráfico de barras agrupadas, una pareja por número de simulaciones "
+    f"—nsim = {enumera(z['nsim'] for z in m11['escala_nsim'])}—: el ancho medio de la banda por defecto, "
+    "con nrank = 1, en rojo, y el de la banda a nivel fijo del 5 %, en verde, con el eje desde cero. Los "
+    "botones no cambian el gráfico: resaltan una pareja y apagan las demás. La lectura da, para la "
+    "resaltada, el nivel de la banda por defecto, el nrank que daría el 5 %, si lo alcanza y el p mínimo.")
 MOD11 = cabecera(
     11, "Envolventes de simulación", "Simulation envelopes",
     "Construir la banda de referencia que hace interpretable una curva, y saber "
@@ -2351,7 +2496,8 @@ MOD11 = cabecera(
         sobre todo para decir por qué, y el recuadro de más abajo mide cuánto.</p>
 
 {sim('cap4-envolvente', 'La envolvente y la curva observada',
-     'Elige el patrón: la banda son las simulaciones de CSR y la línea gruesa, el dato.', 300)}
+     'Elige el patrón: la banda son las simulaciones de CSR y la línea gruesa, el dato.', 300,
+     aria=_ARIA_ENVOLVENTE)}
 
       <div class="key-insight">
         <p style="margin:0;">La banda puntual es un intervalo al 95 % <strong>para cada r por
@@ -2427,7 +2573,8 @@ MOD11 = cabecera(
         {n(ESC[99]['nivel_real'], 5)}.</p>
 
 {sim('cap4-nsim', 'Cuántas simulaciones, y a qué nivel',
-     'Las cuatro columnas son el barrido entero; el mando resalta una y la lee. En rojo, la banda por defecto; en verde, la de nivel fijo al 5 %.', 300)}
+     'Las cuatro columnas son el barrido entero; el mando resalta una y la lee. En rojo, la banda por defecto; en verde, la de nivel fijo al 5 %.', 300,
+     aria=_ARIA_NSIM)}
 
       <p>Recorre los cuatro valores: la roja se ensancha de punta a punta, y la verde se
         estrecha solo entre los valores donde de verdad está al 5 % —la lectura dice en cuáles.
@@ -3793,6 +3940,33 @@ def main() -> int:
         problemas.append(f"R y Python descuadrados: {bl_r} y {bl_py}")
     if lienzos != con_alt:
         problemas.append(f"lienzos sin aria-label: {lienzos - con_alt}")
+    # NI EL TÍTULO COMO ETIQUETA, NI UNA LECTURA QUE NO LO DESCRIBA (M9). Tener
+    # `aria-label` no basta: hasta el 2026-10-27 los once lo tenían, y era el
+    # título (y los seis recuadros de `cap4-seis`, «título: etiqueta»). Se mira
+    # el marcado tal como lo escriben `sim()` y `sim_paneles()` —todos los
+    # lienzos entre el título y la lectura—, y se exige que lo cubra entero:
+    # un simulador con lectura que la expresión no reconozca también para,
+    # porque sería uno que esta guarda no está mirando.
+    _sims = [(m, re.findall(r'<canvas([^>]*)></canvas>', m.group(3))) for m in re.finditer(
+        r'data-simulador="([^"]+)">\s*<h4>((?:(?!</h4>).)*)</h4>((?:(?!data-simulador=).)*?)'
+        r'<div class="simulador-lectura"([^>]*)>', marcado, re.S)]
+    _sims = [(m, lienzos_sim) for m, lienzos_sim in _sims if lienzos_sim]
+    _con_lectura = marcado.count('class="simulador-lectura"')
+    if len(_sims) != _con_lectura:
+        problemas.append(f"simuladores con lectura: {_con_lectura}, "
+                         f"y la guarda de accesibilidad reconoce {len(_sims)}")
+    for m, lienzos_sim in _sims:
+        ident, caja = m.group(1), m.group(4)
+        titulo = _html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
+        for lienzo in lienzos_sim:
+            etq = re.search(r'aria-label="([^"]*)"', lienzo)
+            etq = _html.unescape(etq.group(1)).strip() if etq else ""
+            if titulo in etq or len(etq) < 80:
+                problemas.append(f"{ident}: el aria-label no describe el gráfico («{etq[:50]}»)")
+            if f'aria-describedby="lectura-{ident}"' not in lienzo:
+                problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
+        if f'id="lectura-{ident}"' not in caja or 'aria-live="polite"' not in caja:
+            problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
     # LA CLAVE DE LA RETROALIMENTACIÓN, COMPROBADA Y NO SUPUESTA (A.23.2).
     # Este capítulo escribió `respuesta` y `explicacion` donde el motor lee
     # `retro`, `retroAcierto` y `retroFallo`, y sus explicaciones por opción NO

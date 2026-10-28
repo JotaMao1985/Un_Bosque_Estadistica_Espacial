@@ -39,6 +39,7 @@ Uso:  python3 precalculo/ensambla_cap3.py
 """
 from __future__ import annotations
 
+import html as _html
 import json
 import pathlib
 import re
@@ -78,6 +79,12 @@ def ent(x):
 def ent_mate(x):
     """El mismo entero para DENTRO de una fórmula: KaTeX no entiende U+202F."""
     return f"{int(round(float(x))):,}".replace(",", r"\,")
+
+
+def enumera(xs, conj="y"):
+    """«a, b y c»: para las listas de las descripciones de los lienzos."""
+    xs = [str(x) for x in xs]
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + f" {conj} " + xs[-1]
 
 
 def firma(valor, unidad=""):
@@ -129,8 +136,17 @@ def tabs(etiqueta, r_code, py_code):
 """
 
 
-def sim(ident, titulo, pie="", alto=260):
+def sim(ident, titulo, pie="", alto=260, *, aria):
     """Un simulador con su lienzo de Chart.js.
+
+    `aria` ES OBLIGATORIO, y es lo que oye quien no ve el gráfico (M9 de la
+    segunda revisión del capítulo 5, llevado aquí el 2026-10-27). Hasta
+    entonces el lienzo llevaba el título como `aria-label`: «La matriz de
+    discordancia», sin ejes, sin series y sin datos. Ahora dice qué se dibuja
+    —los ejes, las series con su color, qué cambian los botones—, y la
+    lectura, que es donde están las cifras, es su descripción
+    (`aria-describedby`) y se anuncia cuando cambia (`aria-live`). El
+    ensamblado para si un lienzo vuelve a repetir su título.
 
     `.grafico-wrapper` CON ALTURA EXPLÍCITA es el contrato de la
     plantilla: inventarse una clase deja el canvas a cero de alto,
@@ -142,9 +158,9 @@ def sim(ident, titulo, pie="", alto=260):
         {f'<p class="simulador-intro">{pie}</p>' if pie else ''}
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:{alto}px;">
-          <canvas role="img" aria-label="{titulo}"></canvas>
+          <canvas role="img" aria-label="{_html.escape(aria)}" aria-describedby="lectura-{ident}"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-{ident}" aria-live="polite"></div>
       </div>
 """
 
@@ -419,6 +435,17 @@ def mapa_html(ident, titulo, controles=False):
 # MÓDULO 1 · Del dato al mapa
 # =====================================================================
 _vac = ", ".join(f"{c['esquema']}/k={c['k']}" for c in m1["clases_vacias"][:3])
+# Lo que oye quien no ve el gráfico (M9): qué dibuja, con qué ejes y qué da la
+# lectura. Las cifras salen del JSON, como las de la prosa.
+_vistas_des = next(c for c in M["municipios"]["capas"] if c["id"] == "desercion")["vistas"]
+_ARIA_CONFIG = (
+    f"Gráfico de barras: cuántos municipios caen en cada una de las {len(_vistas_des[1]['tam'])} clases "
+    "del mapa de deserción escolar de más abajo, con el eje desde cero. Los botones eligen el esquema de "
+    f"clasificación —{enumera((v['etiqueta'] for v in _vistas_des), 'o')}—, y el de partida es "
+    f"{_vistas_des[1]['etiqueta']}, con las barras casi iguales; con los demás se descompensan. La lectura "
+    "da el esquema, cuántos municipios quedan en la clase más alta y cuántas clases quedan vacías, y las "
+    f"{ent(m1['n_configuraciones'])} configuraciones del capítulo frente a los "
+    f"{ent(m1['n_mapas_distintos'])} mapas realmente distintos.")
 MOD1 = cabecera(
     1, "Del dato al mapa", "From data to map",
     "Ver cuántas decisiones hay dentro de un coropleto, y cuántos mapas distintos admite un mismo dato."
@@ -458,7 +485,8 @@ MOD1 = cabecera(
         de esquema.</p>
 
 {sim('cap3-config', 'Las 35 formas de dibujar el mismo dato',
-     'Elige el esquema y el número de clases: la barra muestra cuántos municipios caen en cada una.', 300)}
+     'Elige el esquema y el número de clases: la barra muestra cuántos municipios caen en cada una.', 300,
+     aria=_ARIA_CONFIG)}
 
       <p>Lo que acabas de mover no es una preferencia estética. Al cambiar de esquema cambia
         quién está en el grupo de alarma, y con él cambia a quién señala el mapa. Por eso
@@ -505,6 +533,15 @@ print(np.bincount(e.yb, minlength=5))
 # =====================================================================
 # MÓDULO 2 · Normalizar o mentir
 # =====================================================================
+_c10, _p10 = m2["top10_conteo"][0], m2["top10_tasa"][0]
+_ARIA_CONTEO = (
+    f"Gráfico de barras horizontales: los {len(m2['top10_conteo'])} primeros municipios del país según la "
+    "variable que elijan los botones, con el eje desde cero. Con «Conteo de estudiantes», en verde, el "
+    f"número de evaluados, que encabeza {_c10['municipio']} con {ent(_c10['n'])}; con «Puntaje medio», en "
+    f"naranja, el puntaje medio, que encabeza {_p10['municipio']} con {n(_p10['punt'], 1)}. Los botones "
+    "cambian también el mapa de abajo. La lectura da la correlación de Pearson y la de Spearman entre las "
+    "dos variables, cuántos municipios comparten los dos top-20 y qué parte de los estudiantes reúnen los "
+    "diez mayores.")
 _t10 = "".join(fila(t["municipio"], t["depto"], ent(t["n"]), n(t["punt"], 2))
                for t in m2["top10_conteo"][:6])
 MOD2 = cabecera(
@@ -544,7 +581,7 @@ MOD2 = cabecera(
         {firma(ent(m2['solape_top20']))} municipio.</p>
 
 {sim('cap3-conteo-tasa', 'Conteo contra tasa: dos mapas del mismo archivo',
-     'Conmuta entre las dos variables y mira cómo se reordena el país.', 300)}
+     'Conmuta entre las dos variables y mira cómo se reordena el país.', 300, aria=_ARIA_CONTEO)}
 
 {mapa_html('cap3-conteo-tasa-mapa', 'Los 1 122 municipios: conteo de estudiantes contra puntaje medio')}
 
@@ -590,6 +627,12 @@ print(len(top_n & top_p))
 # =====================================================================
 # MÓDULO 3 · Esquemas de clasificación
 # =====================================================================
+_ARIA_ESQUEMAS = (
+    f"Gráfico de barras apiladas, una por esquema —{enumera(e['etiqueta'] for e in m3['esquemas'])}—: "
+    f"cada barra reparte los condados de Carolina del Norte entre las {m3['k']} clases de SID74, de la más "
+    "baja, en verde muy claro, a la más alta, en verde oscuro, con el eje en condados desde cero. La "
+    "lectura da cuántos condados son, cuántos están empatados en un corte y cómo cierra el intervalo cada "
+    f"lenguaje: R, {m3['convenio_r']}, y Python, {m3['convenio_python']}.")
 _esq = "".join(fila(e["etiqueta"], "/".join(str(t) for t in e["tam"]),
                     " · ".join(n(c, 2) for c in e["cortes"]))
                for e in m3["esquemas"])
@@ -634,7 +677,7 @@ MOD3 = cabecera(
       </div>
 
 {sim('cap3-esquemas', 'Los cinco esquemas sobre el mismo dato canónico',
-     'Los tamaños de clase que produce cada esquema sobre SID74, con k = 5.', 280)}
+     'Los tamaños de clase que produce cada esquema sobre SID74, con k = 5.', 280, aria=_ARIA_ESQUEMAS)}
 
 {mapa_html('cap3-nc', 'Carolina del Norte · SID74 bajo los cinco esquemas', controles=True)}
 
@@ -690,6 +733,12 @@ print(np.bincount(f.yb, minlength=5))
 # =====================================================================
 # MÓDULO 4 · El mismo dato, cinco mapas
 # =====================================================================
+_ARIA_DISCORDANCIA = (
+    f"Gráfico de barras: las {len(m4['pares'])} parejas de esquemas, ordenadas de mayor a menor, y en cada "
+    "una el porcentaje de municipios que cambian de clase al pasar de un esquema al otro, sobre un eje de "
+    "0 a 100. Las parejas en que cambia más de la mitad van en rojo y las demás en verde. La lectura da el "
+    "máximo y el mínimo, cuántos municipios se quedan en la misma clase con los cinco esquemas y cuántos caen en la "
+    "clase más alta con cada uno.")
 _pares = "".join(fila(f"{p['etiqueta_a']} vs. {p['etiqueta_b']}", n(p["pct_cambian"], 5) + " %")
                  for p in sorted(m4["pares"], key=lambda z: -z["pct_cambian"])[:6])
 _alta = " / ".join(ent(v) for v in m4["n_en_clase_alta"])
@@ -735,7 +784,8 @@ MOD4 = cabecera(
         {firma(ent(m4['n_con_rango_max']))} municipios tienen ese mismo recorrido.</p>
 
 {sim('cap3-discordancia', 'La matriz de discordancia',
-     'Cada barra es una pareja de esquemas y su altura, el porcentaje de municipios que cambian de clase.', 300)}
+     'Cada barra es una pareja de esquemas y su altura, el porcentaje de municipios que cambian de clase.', 300,
+     aria=_ARIA_DISCORDANCIA)}
 
 {mapa_html('cap3-desercion', 'Colombia · deserción escolar municipal bajo los cinco esquemas', controles=True)}
 
@@ -815,6 +865,16 @@ _set1, _dark2, _rdylgn = _P5["Set1"], _P5["Dark2"], _P5["RdYlGn"]
 _ylorrd, _blues, _rdbu = _P5["YlOrRd"], _P5["Blues"], _P5["RdBu"]
 _par_rg = _rdylgn["simulaciones"][0]["par"]
 _suelo = m5["suelo_secuenciales"]
+_NOMBRE_VISTA = {"deuteranopia": "deuteranopía", "protanopia": "protanopía",
+                 "tritanopia": "tritanopía", "gris": "en gris"}
+_ARIA_PALETAS = (
+    f"Gráfico de barras agrupadas: para cada una de las {len(m5['paletas'])} paletas "
+    f"—{enumera(p['id'] for p in m5['paletas'])}—, la distancia de color ΔE entre sus dos clases más "
+    "parecidas, con el eje desde cero: en verde con visión normal, y en naranja en la vista que elijan los "
+    f"botones, {enumera((_NOMBRE_VISTA[v['vista']] for v in m5['vistas']), 'o')}. Cuanto más baja la "
+    "naranja respecto a la verde, más se confunden esas dos clases. La lectura da la paleta que más cae y "
+    "su familia, la secuencial más baja y cuánto cae, bajo deuteranopía, un rojo y un verde de la misma "
+    "luminosidad.")
 # La prosa dice «bajo protanopía» del suelo de las secuenciales, y nombra a
 # Blues: si R elige otra vista u otra paleta, la frase miente.
 if _suelo["tipo"] != "protanopia" or _suelo["id"] != "Blues":
@@ -916,7 +976,8 @@ MOD5 = cabecera(
         {firma(n(_rv['caida_pct'], 5), ' %')} menos: dejan de ser dos colores.</p>
 
 {sim('cap3-paletas', 'Las paletas bajo los tres tipos de daltonismo, y en gris',
-     'Elige la vista. Cada par de barras es una paleta: en verde, la distancia entre sus dos clases más parecidas con visión normal; en naranja, la misma distancia en la vista elegida.', 300)}
+     'Elige la vista. Cada par de barras es una paleta: en verde, la distancia entre sus dos clases más parecidas con visión normal; en naranja, la misma distancia en la vista elegida.', 300,
+     aria=_ARIA_PALETAS)}
 
       <p>Recorre las cuatro vistas. La que más cae es siempre una cualitativa, y ninguna
         secuencial baja de {firma(n(_suelo['dpar']), ' ΔE')}, que es lo que le queda a Blues bajo
@@ -1053,6 +1114,13 @@ mun.plot(column="desercion", scheme="quantiles", k=5,
 # =====================================================================
 # MÓDULO 7 · Más allá del coropleto
 # =====================================================================
+_ARIA_CARTO = (
+    "Gráfico de barras: la correlación entre el área que cada departamento ocupa en el cartograma y su "
+    f"valor, sobre un eje de 0 a 1.05, para los {len(m7['cartogramas'])} cartogramas, rotulados "
+    f"{enumera(c['id'] for c in m7['cartogramas'])}: "
+    + "; ".join(f"{c['nombre']}, {n(c['corr'], 3)}" for c in m7["cartogramas"]) + ". Los que llegan a 1 "
+    "van en verde y el que no, en naranja. La lectura da las tres correlaciones y el error relativo máximo "
+    f"del contiguo tras {ent(m7['barrido_contiguo'][-1]['itermax'])} iteraciones.")
 _ct = "".join(fila(c["nombre"], c["origen"], n(c["corr"], 6), n(c["max_error_rel"], 5))
               for c in m7["cartogramas"])
 _bc = " → ".join(f"{b['itermax']}: {n(b['corr'], 4)}" for b in m7["barrido_contiguo"])
@@ -1117,7 +1185,8 @@ MOD7 = cabecera(
       </div>
 
 {sim('cap3-carto-sim', 'Hasta dónde llega cada cartograma',
-     'La correlación entre área y valor: exacta en los dos propios, y un límite en el contiguo.', 280)}
+     'La correlación entre área y valor: exacta en los dos propios, y un límite en el contiguo.', 280,
+     aria=_ARIA_CARTO)}
 
 {mapa_html('cap3-carto', 'Los 33 departamentos · coropleto, símbolos proporcionales y dot density', controles=True)}
 
@@ -1179,6 +1248,17 @@ _curva = "".join(fila_fija(ent(c["zonas"]), n(c["media"], 5), n(c["sd"], 5), n(c
 _ca = m8["cartografica"]
 _fo, _f30, _coh = m8["forma"], m8["forma_30"], m9["coherencia_curva"]
 _c5 = m8["curva"][0]
+_zon = [c["zonas"] for c in m8["curva"]]
+_ARIA_ESCALA = (
+    "Gráfico de línea: la correlación entre la educación de la madre y el puntaje, calculada sobre "
+    f"particiones contiguas del país en {len(_zon)} escalas, de {ent(_zon[0])} a {ent(_zon[-1])} zonas, "
+    "puestas a la misma distancia en el eje aunque no lo estén. En verde, la media de las particiones, con "
+    "su banda de más y menos dos errores sombreada en verde claro; en naranja discontinuo, la de los "
+    f"{m8['n_departamentos']} departamentos reales, y en gris punteado, la de los estudiantes uno a uno. "
+    f"Con {ent(_zon[-1])} zonas, a la derecha, la media es la más baja, y crece hacia la izquierda hasta "
+    f"una cima. Los botones eligen cuántas particiones se promedian por escala, {ent(m8['n_rep'])} o "
+    f"{ent(m8['n_rep_30'])}. La lectura da dónde está la cima, lo justo que es el paso más corto de la "
+    f"subida —o, con {ent(m8['n_rep_30'])}, el bache— y las dos referencias.")
 # La prosa nombra escalas concretas: la cima con las 33 zonas del módulo 9, el
 # bache de la curva de 30 en esa misma escala, y los extremos de la dispersión
 # en la primera y la última fila de la tabla. Si una regeneración los mueve,
@@ -1260,7 +1340,7 @@ MOD8 = cabecera(
 {sim('cap3-escala', 'La correlación en función del número de zonas',
      'Cada punto es la correlación media de las particiones contiguas con ese número de zonas, '
      'y la banda sombreada, esa media más y menos dos errores. Conmuta entre '
-     + ent(m8['n_rep_30']) + ' y ' + ent(m8['n_rep']) + ' particiones por escala.', 300)}
+     + ent(m8['n_rep_30']) + ' y ' + ent(m8['n_rep']) + ' particiones por escala.', 300, aria=_ARIA_ESCALA)}
 
       <p>Por debajo de la cima, la media ya dice poco. Se mueve entre
         {n(_fo['izq_media_min'])} y {n(_fo['izq_media_max'])}, pero la desviación típica entre
@@ -1342,6 +1422,13 @@ print(round(gm["x"].corr(gm["p"]), 7))
 # MÓDULO 9 · MAUP II — el efecto zonificación
 # =====================================================================
 _co, _ar, _sp = m9["contiguas"], m9["arbitrarias"], m9["sin_ponderar"]
+_ARIA_ZONIFICACION = (
+    f"Histograma: cuántas de las {ent(m9['n_particiones'])} particiones del país en {m9['n_zonas']} zonas "
+    "dan cada correlación, con la correlación en el eje horizontal y el conteo, desde cero, en el vertical. "
+    f"Los botones eligen el reparto: zonas contiguas, en verde, de {n(_co['min'], 2)} a {n(_co['max'], 2)}, "
+    "o zonas arbitrarias —los municipios repartidos al azar, sin mirar dónde están—, en azul, de "
+    f"{n(_ar['min'], 2)} a {n(_ar['max'], 2)}. El trazado departamental real no se dibuja: la lectura da "
+    "su correlación, la media y el recorrido del reparto elegido y en qué percentil de él cae el real.")
 _dist = "".join(fila(ent(d["escanos"]), ent(d["n"]), n(d["pct"], 2) + " %")
                 for d in GY["distribucion"] if d["n"])
 MOD9 = cabecera(
@@ -1377,7 +1464,8 @@ MOD9 = cabecera(
         cuentan en vez de sortearlos.</p>
 
 {sim('cap3-zonificacion', 'Mil trazados distintos del mismo país',
-     'La distribución de la correlación sobre 1 000 particiones, con el trazado departamental real marcado.', 300)}
+     'La distribución de la correlación sobre 1 000 particiones, con el trazado departamental real marcado.', 300,
+     aria=_ARIA_ZONIFICACION)}
 
       <p>Y hay una segunda distribución que enseña el mecanismo. Si en vez de zonas contiguas
         se reparten los municipios <strong>al azar</strong>, sin mirar dónde están —conservando
@@ -1443,6 +1531,13 @@ MOD9 = cabecera(
 # =====================================================================
 # MÓDULO 10 · La falacia ecológica
 # =====================================================================
+_nu = m10["nube_individual"]
+_ARIA_FALACIA = (
+    "Gráfico de línea, en verde: el puntaje global medio de los estudiantes según el nivel educativo de la "
+    f"madre, en {len(_nu)} niveles, de {ent(_nu[0]['media'])} puntos con «{m10['niveles_edu'][_nu[0]['nivel']]}» "
+    f"a {ent(_nu[-1]['media'])} con «{m10['niveles_edu'][_nu[-1]['nivel']]}». Solo dibuja la relación entre "
+    "individuos; la lectura da la correlación medida a cuatro escalas: entre estudiantes, entre "
+    "municipios, entre municipios ponderados y entre departamentos.")
 _barr = "".join(fila(ent(b["umbral"]), ent(b["n_municipios"]), n(b["r"], 5))
                 for b in m10["barrido"])
 _TABS_M10 = tabs(
@@ -1489,7 +1584,8 @@ MOD10 = cabecera(
         hablando de otra cosa que una dimensionada con la individual.</p>
 
 {sim('cap3-falacia', 'La nube individual contra la nube agregada',
-     'El puntaje medio por nivel educativo de la madre, y la misma relación vista entre municipios.', 300)}
+     'El puntaje medio por nivel educativo de la madre, y la misma relación vista entre municipios.', 300,
+     aria=_ARIA_FALACIA)}
 
       <p>Y hay una variante del error que es más sutil y más frecuente: <strong>la cifra
         agregada depende de a quién dejes entrar</strong>. Si se filtran los municipios por
@@ -2541,6 +2637,31 @@ def main() -> int:
         problemas.append(f"R y Python descuadrados: {bl_r} y {bl_py}")
     if lienzos != con_alt:
         problemas.append(f"lienzos sin aria-label: {lienzos - con_alt}")
+    # NI EL TÍTULO COMO ETIQUETA, NI UNA LECTURA QUE NO LO DESCRIBA (M9). Tener
+    # `aria-label` no basta: hasta el 2026-10-27 los nueve lo tenían, y era el
+    # título. Se mira el marcado tal como lo escribe `sim()`, y se exige que
+    # lo cubra entero: un simulador con lectura que la expresión no reconozca
+    # también para, porque sería uno que esta guarda no está mirando. El
+    # tablero del gerrymandering no tiene lienzo y su lectura ya se anunciaba:
+    # es la única que se cuenta aparte.
+    _sims = list(re.finditer(
+        r'data-simulador="([^"]+)">\s*<h4>((?:(?!</h4>).)*)</h4>(?:(?!data-simulador=).)*?'
+        r'<div class="grafico-wrapper"[^>]*>\s*<canvas([^>]*)></canvas>\s*</div>\s*'
+        r'<div class="simulador-lectura"([^>]*)>', marcado, re.S))
+    _con_lectura = marcado.count('class="simulador-lectura"') - marcado.count('<div class="gerry">')
+    if len(_sims) != _con_lectura:
+        problemas.append(f"simuladores con lectura: {_con_lectura}, "
+                         f"y la guarda de accesibilidad reconoce {len(_sims)}")
+    for m in _sims:
+        ident, lienzo, caja = m.group(1), m.group(3), m.group(4)
+        titulo = _html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
+        etq = re.search(r'aria-label="([^"]*)"', lienzo)
+        etq = _html.unescape(etq.group(1)).strip() if etq else ""
+        if titulo in etq or len(etq) < 80:
+            problemas.append(f"{ident}: el aria-label no describe el gráfico («{etq[:50]}»)")
+        if (f'aria-describedby="lectura-{ident}"' not in lienzo
+                or f'id="lectura-{ident}"' not in caja or 'aria-live="polite"' not in caja):
+            problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
     # LA CLAVE DE LA RETROALIMENTACIÓN, COMPROBADA Y NO SUPUESTA (A.23.2).
     # Este capítulo escribió `respuesta` y `explicacion` donde el motor lee
     # `retro`, `retroAcierto` y `retroFallo`, y sus explicaciones por opción NO
