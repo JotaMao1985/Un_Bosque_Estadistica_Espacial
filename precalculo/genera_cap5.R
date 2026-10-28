@@ -608,6 +608,21 @@ SIG_CIUDAD <- min(dibujables)
 NY_CIUDAD <- as.integer(round(NX_CIUDAD * diff(as.rectangle(W_URB)$yrange) /
                               diff(as.rectangle(W_URB)$xrange)))
 
+# EL SUELO ES DE CADA VENTANA (M11 de la segunda revisión, cerrado en la
+# tercera). El simulador del módulo 3 pintaba en rojo, también sobre
+# Kennedy, los selectores que quedan por debajo del suelo de la CIUDAD; pero
+# Kennedy se dibuja en otra rejilla (celdas de 78 m, suelo de 233 m) y allí
+# los cuatro caben: eran dos barras rojas que el módulo 1 desmiente en prosa.
+# Cada ventana publica ahora su celda, su suelo y qué selectores quedan
+# debajo; `I()` para que una lista de uno o de ninguno siga siendo una lista.
+suelo_de <- function(sel, celda, s)
+  list(celda_m = r10(celda), sigma_minimo_dibujable_m = r10(s),
+       bajo_el_suelo = I(names(sel)[sel < s]))
+D$m3$kennedy <- c(D$m3$kennedy, suelo_de(SEL_KEN, CELDA, SIG_LO))
+D$m3$urbana  <- c(D$m3$urbana,  suelo_de(SEL_URB, CELDA_CIUDAD, SIG_MIN_CIUDAD))
+if (length(D$m3$kennedy$bajo_el_suelo))
+  stop("algún selector cae bajo el suelo de Kennedy: el módulo 1 dice que los cuatro quedan por encima")
+
 # TRES MAPAS QUE NO SON EL MISMO MAPA, y llamar a cualquiera «el mapa de
 # la demanda» es una decisión, no una descripción.
 #

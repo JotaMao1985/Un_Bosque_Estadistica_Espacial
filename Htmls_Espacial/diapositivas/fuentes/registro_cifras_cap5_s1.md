@@ -145,7 +145,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `7.7` | notas | …a caja que enmarca a Kennedy mide 7.5 7.7 km; la ventana es el contorn… | datos › m1.ventana.caja_y_km = 7.670678398; recomputo › kennedy.caja_y_km = 7.670678398 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `261` | notas | …, no la caja. Por el atributo salen 261 sedes y por la geometría, 262… | datos › m1.frontera.n_atributo = 261; recomputo › kennedy.n_atributo = 261 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `262` | notas | …salen 261 sedes y por la geometría, 262: las tres sedes de diferencia… | datos › m1.ventana.n = 262; recomputo › kennedy.n = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
-| `87` | notas | …sedes de diferencia están a menos de 87 m del borde («Debora Arango P… | datos › m1.frontera.dist_max_m = 86.55737769 | CONTRASTADA · salida de R (JSON del capítulo) |
+| `87` | notas | …sedes de diferencia están a menos de 87 m del borde («Débora Arango P… | datos › m1.frontera.dist_max_m = 86.55737769 | CONTRASTADA · salida de R (JSON del capítulo) |
 | `3` | notas | …está contenida en la ventana urbana: 3 de sus 262 sedes y el 9.8 % d… | recomputo › kennedy.sedes_fuera_de_la_urbana = 3 | VERIFICADA · re-ejecutada en R |
 | `262` | notas | …tenida en la ventana urbana: 3 de sus 262 sedes y el 9.8 % de su área … | datos › m1.ventana.n = 262; recomputo › kennedy.n = 262 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `9.8` | notas | …ntana urbana: 3 de sus 262 sedes y el 9.8 % de su área caen fuera del … | recomputo › kennedy.area_fuera_de_la_urbana_pct = 9.8417205 | VERIFICADA · re-ejecutada en R |

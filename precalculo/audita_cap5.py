@@ -662,6 +662,34 @@ def main() -> int:
     a.cerca(max(sel_iso.values()) / min(sel_iso.values()), m3["razon_urbana_scott_isotropico"],
             "selectores: la razón de la ciudad con el isótropo", 1e-9)
 
+    # EL SUELO DE CADA VENTANA (M11 de la segunda revisión, cerrado en la
+    # tercera). El simulador pintaba las barras de Kennedy contra el suelo de
+    # la ciudad. Aquí el suelo se rehace desde la rejilla en que se DIBUJA cada
+    # ventana —la caja y la resolución de su mapa, no la celda que dice R—, con
+    # el lado largo de la celda, y se recuentan los selectores de debajo.
+    for donde, mapa in (("kennedy", M["kennedy_familia"][0]), ("urbana", M["ciudad_oferta"])):
+        cj = mapa["caja"]
+        # Con un lado de cero celdas no hay celda que medir: el fallo lo da la
+        # sección 15, y aquí un NaN en vez de una división que mata al auditor.
+        larga = (max((cj[2] - cj[0]) / mapa["nx"], (cj[3] - cj[1]) / mapa["ny"])
+                 if mapa.get("nx", 0) > 0 and mapa.get("ny", 0) > 0 else float("nan"))
+        suelo = m3[donde].get("sigma_minimo_dibujable_m", float("nan"))
+        # 0.1 %: R mide la celda por el ancho, y en la ciudad la celda es un
+        # 0.05 % más alta que ancha. Confundir las dos ventanas es un 136 %.
+        a.cerca(D["m2"]["familia"]["celdas_por_sigma"] * larga, suelo,
+                f"selectores/{donde}: el suelo son tres celdas de su rejilla", 1e-3)
+        a.cerca(larga, m3[donde].get("celda_m", float("nan")),
+                f"selectores/{donde}: y la celda es la de su mapa", 1e-3)
+        debajo = sorted(k for k, v in m3[donde]["sigmas_m"].items() if v < suelo)
+        a.cierto(debajo == sorted(m3[donde].get("bajo_el_suelo", [None])),
+                 f"selectores/{donde}: los que quedan debajo, recontados",
+                 f"{debajo} contra {m3[donde].get('bajo_el_suelo')}")
+    a.cierto(not m3["kennedy"].get("bajo_el_suelo", [None]),
+             "selectores: en Kennedy caben los cuatro, como dice el módulo 1")
+    a.cerca(m3["urbana"].get("sigma_minimo_dibujable_m", float("nan")),
+            D["m5"]["rejilla"]["sigma_minimo_dibujable_m"],
+            "selectores: el suelo de la ciudad es el del módulo 5", 1e-12)
+
     # -----------------------------------------------------------------
     a.titulo("5 · El riesgo relativo, recalculado por definición")
     # -----------------------------------------------------------------

@@ -1126,9 +1126,11 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
          "classInt", "otra-cosa", True),
         ("la geometría de un mapa se sale de su presupuesto",
          '"pts": [', '"relleno": "' + "x" * 130_000 + '", "pts": ['),
+        # El ancla es la etiqueta descriptiva del simulador del pico (M9): con
+        # la vieja, que era su título, la inyección no encontraba nada que cambiar.
         ("un <canvas> se queda sin role=\"img\"",
-         '<canvas role="img" aria-label="El pico contra',
-         '<canvas aria-label="El pico contra'),
+         '<canvas role="img" aria-label="Gráfico de línea con el área rellena',
+         '<canvas aria-label="Gráfico de línea con el área rellena'),
         ("un desplegable de ejercicio pierde su aria-controls",
          'aria-expanded="false" aria-controls="cap5-e1-sol"',
          'aria-expanded="false" data-controls="cap5-e1-sol"'),
