@@ -994,14 +994,21 @@ solucion_cap3 <- function() {
   KS <- 3:9
   # Para cada municipio, la clase RELATIVA (0 = la más baja, 1 = la más
   # alta) bajo cada combinación de esquema y k. Relativa porque con k
-  # distintos «clase 3» no significa lo mismo.
+  # distintos «clase 3» no significa lo mismo. Y relativa a las clases que
+  # SALEN, no a k: «sd» y «headtails» no dan las que se piden (sobre la
+  # deserción, 5 o 9 y siempre 2). Hasta el 2026-10-27 se dividía por k - 1,
+  # y la solución publicaba una clase relativa de 2 —«sd/k=3», cinco clases
+  # leídas como tres— y un recorrido máximo de 1,875 en una escala de 0 a 1,
+  # y dejaba fuera de «la clase más alta» a quien solo llegaba a ella así.
   rel <- matrix(NA_real_, nrow = sum(ok), ncol = 0)
   cfg <- character(0)
   for (e in ESQ) for (k in KS) {
     cl <- try(classInt::classIntervals(des[ok], n = k, style = e), silent = TRUE)
     if (inherits(cl, "try-error")) next
     cc <- classInt::findCols(cl)
-    rel <- cbind(rel, (cc - 1) / (k - 1))
+    n_cl <- length(cl$brks) - 1L
+    if (n_cl < 2L) stop(sprintf("E1: %s con k = %d sale con %d clase", e, k, n_cl))
+    rel <- cbind(rel, (cc - 1) / (n_cl - 1))
     cfg <- c(cfg, sprintf("%s/k=%d", e, k))
   }
   colnames(rel) <- cfg
@@ -1013,7 +1020,11 @@ solucion_cap3 <- function() {
   recorrido <- extremo_alto - extremo_bajo
 
   mun_ok <- mun[ok, ]
-  i_peor <- which.max(recorrido)
+  # El ejemplo: el camaleón de MÁS deserción, el que más cuesta creer que
+  # pueda salir entre los mejores. Con la clase relativa bien medida todos
+  # los camaleones empatan en recorrido 1, y `which.max(recorrido)` elegía
+  # el primero de la tabla: un empate decidido por el orden de las filas.
+  i_peor <- if (any(camaleon)) which(camaleon)[which.max(des[ok][camaleon])] else which.max(recorrido)
   E$e1 <- list(
     titulo = "El mapa que quieras",
     enunciado = paste(

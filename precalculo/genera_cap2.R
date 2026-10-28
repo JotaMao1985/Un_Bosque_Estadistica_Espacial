@@ -849,6 +849,41 @@ D$posicional <- list(
 D$posicional$sedes_por_posicion_2dec <-
   r10(nrow(cole) / redondeos[[3]]$n_posiciones)
 
+# LA CURVA DEL SIMULADOR, CON RÉPLICAS. `ruidos` es UNA realización por σ, y
+# la prosa la usa así: un geocodificador concreto se equivoca una vez, y el
+# mapa de esa vez se ve idéntico. Pero el simulador unía esas tres en una
+# curva y su pie decía «cada punto es un promedio sobre réplicas»: no lo era,
+# y en 150 m la curva y la tasa global de su propia lectura daban dos cifras
+# distintas para la misma pregunta. Cada σ promedia ahora N_REP realizaciones
+# con su error de Monte Carlo; la de 150 m REUTILIZA las del sesgo, así que el
+# punto y la lectura son la misma cifra y no dos estimaciones de ella. Las
+# semillas son propias: lo que viene detrás vuelve a fijar la suya.
+tasa_rep_sigma <- function(s, semilla) {
+  set.seed(semilla)
+  vapply(seq_len(N_REP), function(k) {
+    pk <- st_as_sf(data.frame(x = xy_col_m[, 1] + rnorm(nrow(xy_col_m), 0, s),
+                              y = xy_col_m[, 2] + rnorm(nrow(xy_col_m), 0, s)),
+                   coords = c("x", "y"), crs = st_crs(cole))
+    mean(reasigna(pk))
+  }, numeric(1))
+}
+SIGMAS_CURVA <- vapply(ruidos, function(r) r$sigma_m, numeric(1))
+if (!D$posicional$sesgo$sigma_m %in% SIGMAS_CURVA)
+  stop("la σ del sesgo no está en la curva: el punto y la lectura dejarían de ser la misma cifra")
+curva_rep <- lapply(seq_along(SIGMAS_CURVA), function(i) {
+  s <- SIGMAS_CURVA[i]
+  if (s == D$posicional$sesgo$sigma_m)
+    return(list(pct = 100 * mean(tasa_sede), emc = 100 * emc_global))
+  tg <- tasa_rep_sigma(s, SEM_RUIDO + 1L + i)
+  list(pct = 100 * mean(tg), emc = 100 * sd(tg) / sqrt(N_REP))
+})
+D$posicional$curva <- list(
+  sigma_m = SIGMAS_CURVA, n_replicas = N_REP,
+  pct_medio = r10(vapply(curva_rep, `[[`, 0, "pct")),
+  emc_pct = r10(vapply(curva_rep, `[[`, 0, "emc")))
+message(sprintf("  curva con %d réplicas por σ: %s %%", N_REP,
+                paste(sprintf("%.3f", D$posicional$curva$pct_medio), collapse = " / ")))
+
 # Mapas del módulo 9
 # Las posiciones redondeadas se guardan SIN REPETIR: son 360 distintas
 # para 2 209 sedes, y ese colapso es justo lo que el mapa enseña. Guardar

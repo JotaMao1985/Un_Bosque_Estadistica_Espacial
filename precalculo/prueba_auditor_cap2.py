@@ -260,6 +260,19 @@ def defectos():
         lambda o: o["posicional"]["sesgo"].__setitem__("n_replicas", 1))
     add("el error de Monte Carlo se hincha por encima de la tasa", "datos",
         lambda o: o["posicional"]["sesgo"].__setitem__("emc_global_pct", 2.4173))
+    # La curva de `degradar` (2026-10-27): la de antes, una realización por σ, tiene que caer; y
+    # un punto corrido 0,4 puntos sin romper la forma solo lo ve el Monte Carlo propio del auditor.
+    add("la curva de degradar vuelve a ser la realización única", "datos",
+        lambda o: o["posicional"]["curva"].__setitem__(
+            "pct_medio", [r["pct_cambian"] for r in o["posicional"]["ruidos"]]))
+    add("el punto de 150 m deja de ser la tasa global de la lectura", "datos",
+        lambda o: o["posicional"]["curva"]["pct_medio"].__setitem__(1, 3.1417))
+    add("la curva de degradar deja de subir", "datos",
+        lambda o: o["posicional"]["curva"]["pct_medio"].__setitem__(2, 0.5417))
+    add("la curva se promedia sobre otras réplicas que el sesgo", "datos",
+        lambda o: o["posicional"]["curva"].__setitem__("n_replicas", 400))
+    add("el punto de 500 m se corre 0,4 puntos sin romper la forma", "datos",
+        lambda o: o["posicional"]["curva"]["pct_medio"].__setitem__(2, 12.6917))
     add("una estación invertida pasa a caer en Colombia", "datos",
         lambda o: o["csv_sf"].__setitem__("n_en_colombia", 4))
     add("el shapefile pasa a tener .cpg", "datos",

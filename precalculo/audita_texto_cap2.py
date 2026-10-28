@@ -106,6 +106,12 @@ FUENTES = [
 # una reescritura, el capítulo deja de decir lo que el plan le encarga y
 # nadie se entera: el HTML seguiría siendo válido y la consola limpia.
 AFIRMACIONES = [
+    # Los pies que se pusieron de acuerdo con su gráfico el 2026-10-27: la curva de `degradar` era una
+    # sola realización y su pie decía «promedio sobre réplicas».
+    ("dice que cada punto de la curva de degradar es una media de réplicas",
+     "cada punto es la media de 200 realizaciones del ruido"),
+    ("dice que el punto de 150 m es la tasa global de la lectura",
+     "el de 150 m es la tasa global de la lectura"),
     ("declara que la posición es un atributo de primera clase",
      "atributo de primera"),
     ("dice que una capa sin CRS declarado no es una capa",

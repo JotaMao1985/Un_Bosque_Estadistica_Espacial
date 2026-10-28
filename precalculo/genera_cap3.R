@@ -253,15 +253,34 @@ for (e in ESQUEMAS) for (k in KS) {
   fir <- paste(cl$clase, collapse = ",")
   firmas[[length(firmas) + 1L]] <- fir
   rejilla[[length(rejilla) + 1L]] <- list(
-    esquema = e, k = k, n_clases_usadas = length(unique(cl$clase)),
-    tam = as.integer(cl$tam))
+    esquema = e, k = k, n_clases = cl$n_clases,
+    n_clases_usadas = length(unique(cl$clase)), tam = as.integer(cl$tam))
 }
 n_config  <- length(firmas)
 n_mapas_distintos <- length(unique(unlist(firmas)))
 
-# Las clases VACÍAS son un fallo silencioso del esquema, no un detalle de
-# estética: la leyenda anuncia k clases y el mapa pinta menos.
-vacias <- Filter(function(r) r$n_clases_usadas < r$k, rejilla)
+# k ES LO QUE SE PIDE, NO LO QUE SALE. Hasta el 2026-10-27 aquí se contaban
+# «clases vacías» comparando las clases USADAS con k, y salían 7: las siete
+# de Head/tails. Ninguna tenía una clase vacía. Head/tails sale con 2 clases
+# pida uno las que pida —se detiene por su propia regla— y `geo_cortes`
+# rellenaba con ceros hasta k; el simulador del módulo 1 pintaba esos ceros.
+# Lo que de verdad pasa es más incómodo: en dos de los cinco esquemas k no
+# se respeta, y nada avisa. Se publican las dos cosas por separado: las
+# configuraciones que salen con otro número de clases que el pedido, y las
+# que dejan de verdad una clase sin municipios (un cero entre las que salen).
+otro_k <- Filter(function(r) r$n_clases != r$k, rejilla)
+vacias <- Filter(function(r) any(r$tam == 0L), rejilla)
+if (any(vapply(rejilla, function(r) sum(r$tam) != sum(ok_des), logical(1))))
+  stop("una configuración del módulo 1 no reparte todos los municipios con dato entre sus clases")
+k_no <- lapply(unique(vapply(otro_k, `[[`, "", "esquema")), function(e) {
+  rr <- Filter(function(r) r$esquema == e, otro_k)
+  # I(): un vector de un solo elemento (Head/tails sale siempre con 2) tiene
+  # que seguir siendo un ARRAY en el JSON, no un número suelto.
+  list(esquema = e, etiqueta = unname(ESQ_ES[e]),
+       ks = I(vapply(rr, `[[`, 0L, "k")), n_clases = I(vapply(rr, `[[`, 0L, "n_clases")),
+       salen = I(sort(unique(vapply(Filter(function(r) r$esquema == e, rejilla),
+                                    `[[`, 0L, "n_clases")))))
+})
 
 D$m1 <- list(
   n_con_dato = sum(ok_des),
@@ -270,15 +289,20 @@ D$m1 <- list(
   pct_distintos = r10(100 * n_mapas_distintos / n_config),
   ks = as.integer(range(KS)),
   n_esquemas = length(ESQUEMAS),
+  n_k_no_respetado = length(otro_k),
+  k_no_respetado = k_no,
   n_con_clase_vacia = length(vacias),
-  clases_vacias = lapply(vacias, function(r)
-    list(esquema = r$esquema, k = r$k, usadas = r$n_clases_usadas)),
+  # Las 35 configuraciones, para que el simulador del módulo 1 deje elegir
+  # esquema Y k, como dicen su título y su pie. Cada una con las clases que
+  # SALEN y cuántos municipios caen en cada una.
+  rejilla = lapply(rejilla, function(r)
+    list(esquema = r$esquema, k = r$k, n_clases = r$n_clases, tam = I(r$tam))),
   desercion = list(
     media = r10(mean(des[ok_des])), sd = r10(sd(des[ok_des])),
     min = r10(min(des[ok_des])), max = r10(max(des[ok_des])),
     mediana = r10(median(des[ok_des]))))
-message(sprintf("  %d configuraciones -> %d mapas distintos (%.2f %%); %d con clase vacia",
-                n_config, n_mapas_distintos, D$m1$pct_distintos, length(vacias)))
+message(sprintf("  %d configuraciones -> %d mapas distintos (%.2f %%); %d con otro numero de clases que k; %d con clase vacia",
+                n_config, n_mapas_distintos, D$m1$pct_distintos, length(otro_k), length(vacias)))
 
 # =====================================================================
 # B. MÓDULO 2 — Normalizar o mentir
@@ -1336,6 +1360,18 @@ r_pond <- stats::cov.wt(cbind(por_mun$x, por_mun$p), wt = por_mun$n, cor = TRUE)
 nube_ind <- v[, .(n = .N, media = r10(mean(punt_global)), sd = r10(sd(punt_global))),
               by = edu_madre][order(edu_madre)]
 
+# LA NUBE AGREGADA, que el simulador del módulo 10 promete en su título («la
+# nube individual contra la nube agregada») y en su pie, y que hasta el
+# 2026-10-27 no dibujaba: solo daba su r en la lectura. Cada municipio y cada
+# departamento es un punto —nivel educativo medio de la madre, puntaje medio—
+# con su n, que el navegador usa para el tamaño. Van redondeados a lo que se
+# ve (3 decimales de nivel, 1 de puntaje): el auditor recalcula las r desde
+# estos puntos, y tienen que salir a menos de 1e-3 de las publicadas.
+nube_de <- function(d) {
+  d <- d[order(d[[1]])]
+  list(x = round(d$x, 3), p = round(d$p, 1), n = d$n)
+}
+
 D$m10 <- list(
   r_individuo = r10(r_ind),
   r_municipio = r10(r_mun),
@@ -1346,6 +1382,8 @@ D$m10 <- list(
     list(nivel = nube_ind$edu_madre[i], n = nube_ind$n[i],
          media = nube_ind$media[i], sd = nube_ind$sd[i])),
   niveles_edu = names(EDU_MADRE),
+  nube_municipal = nube_de(por_mun),
+  nube_departamental = nube_de(por_dep),
   # Lo que la agregación destruye, en una cifra
   pct_var_dentro = r10(100 - D$m8$pct_var_entre))
 message(sprintf("  barrido: %s", paste(vapply(barrido, function(b)

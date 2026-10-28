@@ -363,6 +363,12 @@
       "monotono_en_estrato": false
     },
     "sedes_por_posicion_2dec": 6.1361111111,
+    "curva": {
+      "sigma_m": [50, 150, 500],
+      "n_replicas": 200,
+      "pct_medio": [0.9597102761, 3.0339520145, 12.2827071073],
+      "emc_pct": [0.0110047811, 0.021603334, 0.0456092319]
+    },
     "n_muestra_mapa": 700,
     "n_posiciones_2dec": 360
   },
@@ -500,7 +506,7 @@
     "capitulo": 2,
     "titulo": "SIG, sistemas de referencia y georreferenciación con sf",
     "semana": "2-3",
-    "generado": "2026-09-17",
+    "generado": "2026-10-27",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "gdal": "3.8.5",

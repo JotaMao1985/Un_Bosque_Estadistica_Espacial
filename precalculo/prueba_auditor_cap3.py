@@ -295,6 +295,44 @@ def defectos():
     obj("14 · un caso histórico se queda sin fuente",
         "datos", lambda d: d["m11"]["casos_citados"][0].__setitem__("fuente", ""))
 
+    # --- 17. k es lo que se pide, no lo que sale (2026-10-27) ---------
+    # Las cuatro primeras devuelven exactamente lo que se publicaba antes: `tam` cortado a k, los
+    # ceros de relleno de Head/tails y las «siete clases vacías». Tienen que caer todas.
+    obj("17 · SID74 «sd» vuelve a contar solo 5 de sus 6 clases",
+        "datos", lambda d: d["m3"]["esquemas"][3].__setitem__("tam", [66, 22, 7, 2, 1]))
+    obj("17 · el mapa de SID74 vuelve a contar 5 de 6",
+        "mapas", lambda d: d["nc_esquemas"]["vistas"][3].__setitem__("tam", [66, 22, 7, 2, 1]))
+    obj("17 · Head/tails vuelve a rellenar con ceros hasta k",
+        "mapas", lambda d: d["municipios"]["capas"][0]["vistas"][4].__setitem__("tam", [623, 498, 0, 0, 0]))
+    obj("17 · vuelven las siete clases vacías",
+        "datos", lambda d: d["m1"].__setitem__("n_con_clase_vacia", 7))
+    obj("17 · una configuración de la rejilla pierde su última clase",
+        "datos", lambda d: d["m1"]["rejilla"][21]["tam"].pop())
+    obj("17 · la rejilla cuenta un k incumplido de menos",
+        "datos", lambda d: d["m1"].__setitem__("n_k_no_respetado", 11))
+    obj("17 · Head/tails pasa a dar 2 o 3 clases",
+        "datos", lambda d: d["m1"]["k_no_respetado"][1].__setitem__("salen", [2, 3]))
+    obj("17 · la rejilla y el mapa dejan de decir lo mismo con k = 5",
+        "datos", lambda d: next(r for r in d["m1"]["rejilla"]
+                                if r["esquema"] == "quantile" and r["k"] == 5)["tam"].reverse())
+    obj("17 · Fisher-Jenks con k = 7 cambia sus tamaños sin cambiar el total",
+        "datos", lambda d: next(r for r in d["m1"]["rejilla"]
+                                if r["esquema"] == "fisher" and r["k"] == 7)["tam"].reverse())
+    obj("17 · la nube municipal se corre un nivel en un punto",
+        "datos", lambda d: d["m10"]["nube_municipal"]["x"].__setitem__(
+            0, d["m10"]["nube_municipal"]["x"][0] + 1))
+    obj("17 · la nube municipal se desordena",
+        "datos", lambda d: d["m10"]["nube_municipal"]["n"].reverse())
+    obj("17 · la nube departamental pierde un departamento",
+        "datos", lambda d: [d["m10"]["nube_departamental"][k].pop() for k in ("x", "p", "n")])
+    obj("17 · E1 vuelve a la clase relativa sobre k",
+        "soluciones", lambda d: d["ejercicios"][0]["solucion"].update(
+            n_alcanza_alta=371, recorrido_max=1.875))
+    obj("17 · el ejemplo de E1 deja de ser un camaleón",
+        "soluciones", lambda d: d["ejercicios"][0]["solucion"]["ejemplo"].__setitem__("clase_rel_alta", 2))
+    obj("17 · el porcentaje de camaleones de E1 se descuadra",
+        "soluciones", lambda d: d["ejercicios"][0]["solucion"].__setitem__("pct_camaleon", 27.1717171717))
+
     return D
 
 

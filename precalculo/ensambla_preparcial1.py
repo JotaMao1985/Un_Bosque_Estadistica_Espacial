@@ -254,7 +254,7 @@ PRESENTA = {
     "c3m1_config":          (0, ""),
     "c3m1_distintos":       (0, ""),
     "c3m1_pct":             (5, "%"),
-    "c3m1_vacias":          (0, ""),
+    "c3m1_otro_k":          (0, ""),
     "c3m2_rho":             (5, ""),
     "c3m2_pct_mun":         (5, "%"),
     "c3m4_discordante":     (5, "%"),
@@ -1028,8 +1028,8 @@ BLOQUE_C = [
     preg("opcion", "cap3", 1,
          f"Sobre la deserción municipal, {c('c3m1_config')} combinaciones de esquema y de "
          f"<em>k</em> producen {c('c3m1_distintos')} mapas visualmente distintos —el "
-         f"{c('c3m1_pct')} de ellas— y {c('c3m1_vacias')} dejan alguna clase sin un solo "
-         f"municipio. El dato es el mismo en todas. ¿Qué se sigue de ahí?",
+         f"{c('c3m1_pct')} de ellas—, y en {c('c3m1_otro_k')} el esquema ni siquiera da las "
+         f"<em>k</em> clases que se le piden. El dato es el mismo en todas. ¿Qué se sigue de ahí?",
          "El dato no cambia en ninguna de esas combinaciones. ¿Qué cambia entonces?",
          opciones=[
              op("Que el mapa no es el dato: entre los dos hay decisiones que el mapa no "
