@@ -534,9 +534,11 @@ def defectos_cap2() -> list[tuple[str, str, str]]:
         ("desaparece que el shapefile desfigura y no trunca",
          "No los trunca", "Los acorta", True),
         # --- 7. Accesibilidad y marcado ------------------------------
+        # El ancla es la descripción del lienzo (M9, 2026-10-27): con la etiqueta
+        # vieja, que era el título, la inyección no encontraba nada que cambiar.
         ("un lienzo se queda sin aria-label",
-         'canvas role="img" aria-label="Los dos radios',
-         'canvas role="img" data-label="Los dos radios'),
+         'canvas role="img" aria-label="Gráfico de línea: los dos radios',
+         'canvas role="img" data-label="Gráfico de línea: los dos radios'),
         # --- 8. La codificación --------------------------------------
         ("una tilde se rompe en bytes crudos", "Bogotá", "Bogot<c3><a1>"),
         # --- 9. EL ENLACE LOCAL ROTO, que en el cap. 1 no tenía sujeto -
@@ -635,9 +637,11 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
          "Es lo contrario de lo que casi todo el mundo espera",
          "Es lo que cabía esperar", True),
         # --- 8. Accesibilidad y marcado -------------------------------
+        # El ancla es la descripción del lienzo (M9, 2026-10-27): con la etiqueta
+        # vieja, que era el título, la inyección no encontraba nada que cambiar.
         ("un lienzo se queda sin aria-label",
-         'canvas role="img" aria-label="Las 35 formas',
-         'canvas role="img" data-label="Las 35 formas'),
+         'canvas role="img" aria-label="Gráfico de barras: cuántos municipios caen',
+         'canvas role="img" data-label="Gráfico de barras: cuántos municipios caen'),
         ("TODOS los mapas de capas se quedan sin tabla de respaldo",
          "tabla: d => tablaCapa", "sinTabla: d => tablaCapa", True),
         # --- 9. La codificación ---------------------------------------
@@ -760,9 +764,11 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         ("desaparece la cita a Besag", "Besag", "otro autor", True),
         ("desaparece la cita a Donnelly", "Donnelly", "la del libro", True),
         # --- 6. Accesibilidad -----------------------------------------
+        # El ancla es la descripción del lienzo (M9, 2026-10-27): con la etiqueta
+        # vieja, que era el título, la inyección no encontraba nada que cambiar.
         ("un <canvas> se queda sin aria-label",
-         'aria-label="K y L sobre el mismo patrón',
-         'data-label="K y L sobre el mismo patrón'),
+         'aria-label="Gráfico de línea contra la distancia r, con dos grupos de botones',
+         'data-label="Gráfico de línea contra la distancia r, con dos grupos de botones'),
         ("el marcador del quiz se aplana dentro del resumen",
          '<div class="quiz-resumen" role="status" hidden></div>\n        <div class="quiz-marcador">',
          '<div class="quiz-resumen" role="status" hidden>\n        <div class="quiz-marcador">'),
@@ -1351,9 +1357,11 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
          "zero.policy", "cero-politica", True),
 
         # --- 6. Accesibilidad y marcado -------------------------------
+        # El ancla es la descripción del lienzo (M9, 2026-10-27): con la etiqueta
+        # vieja, que era el título, la inyección no encontraba nada que cambiar.
         ("un lienzo sin aria-label",
-         '<canvas role="img" aria-label="Diez definiciones de vecino sobre los mismos 49 barrios">',
-         '<canvas role="img">'),
+         '<canvas role="img" aria-label="Gráfico de barras: de las',
+         '<canvas role="img" data-label="Gráfico de barras: de las'),
         ("un .geomapa renombrado, que lo deja sin fuente",
          'data-geomapa="cap6-w"', 'data-geomapa="cap6-w-2"'),
         ("la tabla de respaldo del constructor, quitada",

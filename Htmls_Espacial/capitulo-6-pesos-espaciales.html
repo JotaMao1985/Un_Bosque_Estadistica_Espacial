@@ -4506,9 +4506,9 @@ print(round(col[&quot;CRIME&quot;].mean(), 4))
         <p class="simulador-intro">Elige el criterio y mira dos cosas a la vez: el grafo, que se dibuja sobre el mapa, y el reparto de grados, que es lo que dos criterios con el mismo grado medio pueden tener distinto.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Diez definiciones de vecino sobre los mismos 49 barrios"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: de las 49 unidades —los barrios de Columbus—, cuántas tienen 0 vecinos, cuántas 1, cuántas 2 y así, con el eje desde cero, bajo el criterio que elijan los 10 botones: Contigüidad reina, Contigüidad torre, 1 vecino más próximo, 3 vecinos más próximos, 6 vecinos más próximos, Umbral: la mitad del mínimo conexo, Umbral mínimo sin islas, Delaunay, Gabriel o Esfera de influencia. Los botones cambian también el grafo del mapa de abajo. La lectura da el criterio, las parejas, los enlaces dirigidos, el grado medio y el recorrido de grados, si W es simétrica, las islas y los subgrafos." aria-describedby="lectura-cap6-constructor"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap6-constructor" aria-live="polite"></div>
       </div>
 
       <div class="geomapa" data-geomapa="cap6-w">
@@ -4642,9 +4642,9 @@ print(round(reina.mean_neighbors, 4), round(torre.mean_neighbors, 4))
         <p class="simulador-intro">Los dos primeros botones comparan los dos criterios de contacto. Los otros tres suben de orden sobre la reina, y lo que hay que mirar es que la barra no se acumula: cada orden son los que están a ESA distancia, no a esa o menos.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="La reina, la torre y los tres primeros órdenes"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: las parejas distintas de vecinos de Columbus en cinco vistas —contigüidad reina, contigüidad torre y los órdenes 1, 2 y 3 sobre la reina—, con el eje desde cero. La barra de la vista elegida con los botones va en naranja y las demás en verde pálido. Cada orden cuenta solo las parejas a esa distancia, no a esa o menos: 118, 208 y 243. La lectura da la vista, las parejas, el grado medio, el grado máximo y la densidad de W." aria-describedby="lectura-cap6-ordenes"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap6-ordenes" aria-live="polite"></div>
       </div>
 
       <p>La contigüidad de orden superior es la respuesta a «¿y los vecinos de mis vecinos?».
@@ -4741,9 +4741,9 @@ print(p_torre &lt;= p_reina)
         <p class="simulador-intro">El deslizador mueve k. La barra verde son las parejas distintas que el criterio une y la naranja, los pares en los que la relación NO es recíproca. Las dos crecen, pero no al mismo ritmo.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="k, de 1 a 8: lo que garantiza y lo que rompe"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras agrupadas, una pareja por k, de 1 a 8: las parejas distintas que une el criterio de k vecinos más próximos, en verde, y los pares en que la relación no es recíproca, en naranja, con el eje desde cero. Las dos crecen con k, las verdes de 36 a 245 y las naranjas de 23 a 98. El deslizador elige k y no cambia el gráfico: cambia la lectura, que da los enlaces dirigidos, las parejas, los pares no recíprocos, el grado, si W es simétrica y los subgrafos." aria-describedby="lectura-cap6-knn"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap6-knn" aria-live="polite"></div>
       </div>
 
       <p>La asimetría no es un defecto que haya que corregir: es información sobre la densidad del
@@ -4840,9 +4840,9 @@ print(sum(len(v) for v in k3.neighbors.values()), pares(k3))
         <p class="simulador-intro">El deslizador mueve la distancia. La barra verde son las parejas que el criterio une; la naranja, las unidades que se quedan sin ninguna. Lo que hay que buscar es el punto donde la naranja llega a cero, y luego mirar los subgrafos.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="El umbral, de corto a largo"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras agrupadas, una pareja por umbral de distancia, de 0.25 a 0.99: las parejas que el umbral une, en verde, y las unidades que se quedan sin vecinos, en naranja, con el eje desde cero. Al alargar el umbral las verdes crecen y las naranjas bajan hasta cero en 0.62. El deslizador elige el umbral y no cambia el gráfico: cambia la lectura, que da las parejas, el grado medio, las unidades sin vecinos, los subgrafos y si el grafo queda de una pieza." aria-describedby="lectura-cap6-umbral"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap6-umbral" aria-live="polite"></div>
       </div>
 
       <h3>El umbral mínimo sin islas, y por qué no basta</h3>
@@ -5120,9 +5120,9 @@ print(len(pset(delaunay)), len(pset(gabriel)), len(pset(relativa)))
         <p class="simulador-intro">Cada botón cambia el estilo. Lo que hay que mirar no es la altura de las barras —van en escalas distintas a propósito— sino la lectura: la suma total y qué le pasa al rezago de la misma variable.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Los cinco estilos sobre el mismo grafo"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: la correlación entre CRIME y su rezago espacial con cada uno de los cinco estilos de W —B binaria, W por filas, S estabilizada, C global y U unitaria—, con el eje desde cero; va de 0.61 a 0.68. La barra del estilo elegido con los botones va en naranja y las demás en verde pálido; el de partida es W. La lectura da el estilo, lo que suma toda W, el peso de un vecino de la unidad con más vecinos (10) y de la que tiene menos (2), la media del rezago y su correlación con CRIME." aria-describedby="lectura-cap6-estilos"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap6-estilos" aria-live="polite"></div>
       </div>
 
       <p>La última columna de la tabla es la que cierra el módulo. La correlación entre CRIME y su
@@ -5430,9 +5430,9 @@ print(wm.n_components)
         <p class="simulador-intro">Las dos barras son la misma variable: la deserción tal cual y la media de los vecinos de cada municipio. Lo que hay que mirar no es la media —que apenas se mueve— sino la desviación típica.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="El dato y su rezago, lado a lado"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras agrupadas en dos categorías, la media y la desviación típica, en % de deserción y con el eje desde cero: la deserción escolar de los 1 121 municipios con dato, en verde, y su rezago Wy, la media de sus vecinos, en naranja. Las medias casi coinciden —3.42 y 3.46— y la desviación del rezago es menor, 1.19 frente a 1.77. No hay mandos. La lectura da las dos medias y las dos desviaciones, cuánto contrae el rezago y la correlación entre la deserción y su rezago." aria-describedby="lectura-cap6-rezago"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap6-rezago" aria-live="polite"></div>
       </div>
 
       <h3>El rezago contrae, y hay que saberlo antes de dibujarlo</h3>

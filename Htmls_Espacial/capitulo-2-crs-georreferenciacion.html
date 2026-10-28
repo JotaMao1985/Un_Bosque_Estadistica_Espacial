@@ -4472,9 +4472,9 @@
         <p class="simulador-intro">Con la primera excentricidad al cuadrado e² = 0.00669438.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Los dos radios de curvatura del elipsoide, por latitud"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea: los dos radios de curvatura del elipsoide, en km, en 5 latitudes de 0° a 80°, puestas a la misma distancia en el eje aunque no lo estén. N, el del primer vertical, va en verde, y M, el del meridiano, en naranja. Los dos crecen hacia el polo y M más deprisa, así que su razón N/M baja de 1.00674 en el ecuador a 1.00020 a 80°. La lectura da cuánto le saca N a M en el ecuador y esas dos razones." aria-describedby="lectura-radios"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-radios" aria-live="polite"></div>
       </div>
 
       <p>Lo que el simulador enseña es que la Tierra no tiene «un radio». En cuanto una
@@ -4598,9 +4598,9 @@ print(round(g.inv(-74.0721, 4.7110, lo, la)[2], 2))
         <p class="simulador-intro">Distancias geodésicas sobre el elipsoide WGS84.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Cuánto mide un grado, según la latitud"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea: cuántos metros mide un grado sobre el elipsoide WGS84 en 11 latitudes de 0° a 80°, con el eje vertical desde cero. El grado de longitud, en naranja, cae de 111 319 m en el ecuador a 19 393 m a 80°; el de latitud, en verde, apenas se mueve —crece 1 089 m en todo el tramo—, y en marrón discontinuo va el de latitud sobre la esfera, que es constante. La lectura da el grado de longitud en el ecuador y en el extremo, cuántas veces mide el de Bogotá el de Oslo y lo que recorre el de latitud." aria-describedby="lectura-grados"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-grados" aria-live="polite"></div>
       </div>
 
       <p>En el ecuador un grado de longitud mide <strong>111319.49</strong> m
@@ -5019,9 +5019,9 @@ print(round(razon.min(), 6), round(0.9992 ** 2, 6))
         <p class="simulador-intro">La capa original está en MAGNA-SIRGAS 2018 / Origen-Nacional.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Las dos operaciones, sobre la misma capa"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras agrupadas en dos categorías: cuántos vértices de la capa cambian de coordenadas y el máximo desplazamiento, en logaritmo decimal. Las barras de st_set_crs, que reetiqueta, van en marrón y valen cero en las dos; las de st_transform, que reproyecta, van en verde: mueve 57 840 vértices, y su desplazamiento máximo, en logaritmo, comparte eje con ese conteo y apenas asoma. La lectura da los vértices de la capa, los que mueve cada operación y la «longitud» de 4 890 618° que sale de reetiquetar." aria-describedby="lectura-etiquetar"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-etiquetar" aria-live="polite"></div>
       </div>
 
       <p>Fíjate en que la superficie tampoco avisa. Bien reproyectada, la suma de las
@@ -5127,9 +5127,9 @@ print(round(mal.total_bounds[0], 1))
         <p class="simulador-intro">Sobre los 1 122 municipios; la referencia es el elipsoide GRS80.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="La misma geometría, medida de tres formas"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: el área de Colombia, en km², medida de tres formas —sobre el elipsoide con lwgeom, en verde; sobre la esfera con s2, en naranja, y proyectada en EPSG:9377, en verde claro—. El eje vertical no empieza en cero, así que una diferencia de 4 991 km² sobre 1 138 266 se ve grande. La lectura da cuánto infla la esfera, en km² y en tanto por ciento, a cuántos municipios equivale y cuánto se aparta la proyectada." aria-describedby="lectura-medir"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-medir" aria-live="polite"></div>
       </div>
 
       <p>Sobre los municipios uno a uno la razón esfera/elipsoide va de
@@ -5267,9 +5267,9 @@ print(round(mun.to_crs(9377).area.sum() / 1e6, 2))
         <p class="simulador-intro">Los megabytes del país son los 1 122 municipios sin simplificar.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Los tres formatos, sobre el mismo dato"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: lo que pesa en KB el mismo dato guardado como Shapefile, en marrón; GeoPackage, en verde, y GeoJSON, en naranja, con el eje desde cero. Los botones cambian el dato: los 60 municipios de la muestra, o el país entero, donde el Shapefile se queda sin barra y van solo los otros dos. La lectura da, en la muestra, cuántos archivos forman el Shapefile, cuántos nombres de campo desfigura y cuántas veces pesa el GeoJSON lo que él; en el país, los megabytes de los otros dos y su razón." aria-describedby="lectura-formatos"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-formatos" aria-live="polite"></div>
       </div>
 
       <p>La conclusión práctica no es «no uses shapefiles»: seguirás recibiéndolos. Es que en
@@ -5370,9 +5370,9 @@ print("desercion_escolar_2024" in gpd.read_file("/tmp/prueba.gpkg").columns)
         <p class="simulador-intro">Las 361 estaciones del IDEAM, con temperatura media 1991-2020.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Qué pasa al intercambiar las dos columnas"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras horizontales: dónde aterrizan las 361 estaciones del IDEAM cuando se intercambian la longitud y la latitud, una barra por destino con su número de estaciones —(mar abierto), 6; Antarctica, 355—. La lectura da cuántas estaciones son, cuánto se desplazan de media y la que menos, en km, y cuántas caen en Colombia." aria-describedby="lectura-invertir"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-invertir" aria-live="polite"></div>
       </div>
 
       <p>Que el desastre sea tan grande es, paradójicamente, una suerte: aquí el error se ve a
@@ -5511,9 +5511,9 @@ print(round(est.lon.min(), 2))
         <p class="simulador-intro">Cada punto es un promedio sobre réplicas; el requisito del ejercicio 5 es el 1 %.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Cuánto se rompe según cuánto se degrade"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea con el área rellena, en naranja: el porcentaje de sedes que cambian de localidad, con el eje vertical desde cero, contra la desviación del ruido que se añade a su posición, σ = 50, 150 y 500 m. Sube de 0.8 % a 13.5 %. La lectura da la tasa global a 150 m promediada sobre 200 réplicas, su error de Monte Carlo y la tasa de la mejor y la peor localidad." aria-describedby="lectura-degradar"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-degradar" aria-live="polite"></div>
       </div>
 
       <p>Hasta aquí el tamaño del daño. Falta el reparto, que es lo que de verdad convierte
@@ -5649,9 +5649,9 @@ print(round(len(sedes) / len(pos), 4))
         <p class="simulador-intro">Cada celda cruza interior (I), frontera (B) y exterior (E) de las dos geometrías.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Las cinco relaciones canónicas y su matriz DE-9IM"></canvas>
+          <canvas role="img" aria-label="Dibujo de dos polígonos, sin ejes: un cuadrado fijo en verde y un segundo polígono en naranja que los 5 botones —disjuntos, tocan, solapan, contiene y iguales— colocan fuera del primero, tocándolo por un lado, solapándolo, dentro de él o encima. La lectura da la relación, su matriz DE-9IM de nueve caracteres y el predicado de sf que la nombra." aria-describedby="lectura-de9im"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-de9im" aria-live="polite"></div>
       </div>
 
       <p>Leer la matriz directamente sirve para los casos que ningún predicado con nombre
@@ -5680,9 +5680,9 @@ print(round(len(sedes) / len(pos), 4))
         <p class="simulador-intro">El área verdadera se mide sobre el elipsoide tras deshacer la proyección.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="El mismo radio de 1 000 m, pedido en tres sistemas"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: el área real, en km² y medida sobre el elipsoide, de un buffer de 1 000 m pedido en tres sistemas —EPSG:9377, métrico, en verde; EPSG:3857, Web Mercator, en naranja, y grados sobre EPSG:4326, en marrón—, con el eje desde cero. Las dos primeras rondan π, la de Web Mercator en 3.10, y la tercera es tan pequeña que no se ve. La lectura da el radio real en 9377 y en 3857, el área en 9377 y π." aria-describedby="lectura-buffer"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-buffer" aria-live="polite"></div>
       </div>
 
       <p>Y una operación que junta todo lo del capítulo en una línea: el <em>buffer</em>. Un
@@ -5796,9 +5796,9 @@ print(A.relate(B))
         <p class="simulador-intro">Medido sobre las 2 209 sedes de Bogotá.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="La celda de geohash, según cuántos caracteres"></canvas>
+          <canvas role="img" aria-label="Gráfico combinado sobre la longitud del geohash, de 4 a 8 caracteres. Las barras, en verde claro y con el eje izquierdo en escala logarítmica, dan el ancho de la celda: de 39.0 km a 0.038 km. La línea naranja, con el eje derecho de 0 a 100, da el porcentaje de sedes cuyo vecino más próximo cae en otra celda, que sube de 1.1 % a 94.9 %. La lectura da cuántos puntos vuelven a su celda al codificar y decodificar, la distancia mediana al vecino y los partidos con 6 y 7 caracteres." aria-describedby="lectura-geohash"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-geohash" aria-live="polite"></div>
       </div>
 
       <p>El mapa siguiente pinta las celdas de longitud 5 sobre Bogotá, coloreadas por cuántas

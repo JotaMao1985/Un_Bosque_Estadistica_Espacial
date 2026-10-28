@@ -33,6 +33,7 @@ Devuelve 1 mientras el capítulo esté a medias, y lo dice.
 """
 from __future__ import annotations
 
+import html as _html
 import json
 import pathlib
 import sys
@@ -103,6 +104,12 @@ def ent_codigo(x):
     return str(int(round(float(x))))
 
 
+def enumera(xs, conj="y"):
+    """«a, b y c»: para las listas de las descripciones de los lienzos."""
+    xs = [str(x) for x in xs]
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + f" {conj} " + xs[-1]
+
+
 def firma(valor, unidad=""):
     return f"<strong>{valor}</strong>{unidad}"
 
@@ -156,15 +163,26 @@ def tabs(etiqueta, r_code, py_code):
 """
 
 
-def sim(ident, titulo, pie="", alto=260, mandos=True):
+def sim(ident, titulo, pie="", alto=260, mandos=True, *, aria):
+    """Un simulador con su lienzo de Chart.js, su lectura y sus mandos.
+
+    `aria` ES OBLIGATORIO, y es lo que oye quien no ve el gráfico (M9 de la
+    segunda revisión del capítulo 5, llevado aquí el 2026-10-27). Hasta
+    entonces el lienzo llevaba el título como `aria-label`: «El umbral, de
+    corto a largo», sin ejes, sin series y sin datos. Ahora dice qué se dibuja
+    —los ejes, las series con su color, qué cambian los mandos—, y la lectura,
+    que es donde están las cifras, es su descripción (`aria-describedby`) y
+    se anuncia cuando cambia (`aria-live`). El ensamblado para si un lienzo
+    vuelve a repetir su título.
+    """
     icono = "fa-sliders" if mandos else "fa-chart-column"
     return f"""      <div class="simulador" data-simulador="{ident}">
         <h4><i class="fas {icono}" aria-hidden="true"></i> {titulo}</h4>
         {f'<p class="simulador-intro">{pie}</p>' if pie else ''}
 {'        <div class="simulador-controles"></div>' + chr(10) if mandos else ''}        <div class="grafico-wrapper" style="height:{alto}px;">
-          <canvas role="img" aria-label="{titulo}"></canvas>
+          <canvas role="img" aria-label="{_html.escape(aria)}" aria-describedby="lectura-{ident}"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-{ident}" aria-live="polite"></div>
       </div>
 """
 
@@ -751,7 +769,13 @@ MOD2 = cabecera(
      "Diez definiciones de vecino sobre los mismos 49 barrios",
      "Elige el criterio y mira dos cosas a la vez: el grafo, que se dibuja sobre el mapa, "
      "y el reparto de grados, que es lo que dos criterios con el mismo grado medio pueden "
-     "tener distinto.")}
+     "tener distinto.",
+      aria=f"Gráfico de barras: de las {ent(m2['n'])} unidades —los barrios de Columbus—, cuántas tienen 0 "
+           "vecinos, cuántas 1, cuántas 2 y así, con el eje desde cero, bajo el criterio que elijan los "
+           f"{len(m2['criterios'])} botones: "
+           f"{enumera((c['etiqueta'] for c in m2['criterios']), 'o')}. Los botones cambian también el grafo "
+           "del mapa de abajo. La lectura da el criterio, las parejas, los enlaces dirigidos, el grado medio "
+           "y el recorrido de grados, si W es simétrica, las islas y los subgrafos.")}
 {mapa_html("cap6-w", "Columbus: el grafo del criterio elegido")}
       <p class="pie-figura">El mapa y el histograma se mueven juntos. Un punto rojo es una unidad
         sin vecinos: solo aparece con el umbral corto, y esa es la mitad de la lección del
@@ -801,7 +825,13 @@ MOD3 = cabecera(
      "La reina, la torre y los tres primeros órdenes",
      "Los dos primeros botones comparan los dos criterios de contacto. Los otros tres suben "
      "de orden sobre la reina, y lo que hay que mirar es que la barra no se acumula: cada "
-     "orden son los que están a ESA distancia, no a esa o menos.")}
+     "orden son los que están a ESA distancia, no a esa o menos.",
+      aria="Gráfico de barras: las parejas distintas de vecinos de Columbus en cinco vistas —contigüidad "
+           "reina, contigüidad torre y los órdenes 1, 2 y 3 sobre la reina—, con el eje desde cero. La "
+           "barra de la vista elegida con los botones va en naranja y las demás en verde pálido. Cada "
+           "orden cuenta solo las parejas a esa distancia, no a esa o menos: "
+           f"{enumera(ent(o['pares']) for o in m3['ordenes'])}. La lectura da la vista, las parejas, el "
+           "grado medio, el grado máximo y la densidad de W.")}
       <p>La contigüidad de orden superior es la respuesta a «¿y los vecinos de mis vecinos?».
         <code>nblag</code> la calcula, y trae una trampa de lectura: <strong>el orden 2 son los
         vecinos de los vecinos que no eran ya vecinos</strong>, no todos los que están a dos pasos.
@@ -819,6 +849,21 @@ MOD3 = cabecera(
         esquina son pocos; con una retícula regular —un ráster, un tablero— son la mitad del
         grafo. <strong>El criterio importa lo que la geometría le deje importar.</strong></p>
 """ + CIERRE
+
+# LO QUE LA DESCRIPCIÓN DE LOS DOS DESLIZADORES DICE DE LA FORMA, contra la serie:
+# que con k crecen las dos barras, y que al alargar el umbral las islas bajan
+# hasta cero mientras las parejas crecen.
+_kk = m4["columbus"]
+_crece = lambda xs: all(a < b for a, b in zip(xs, xs[1:]))
+if not (_crece([k["pares"] for k in _kk]) and _crece([k["asimetricos"] for k in _kk])):
+    sys.exit("PARADO: la descripción de cap6-knn dice que las dos barras crecen con k, y no crecen")
+_cu = m5["columbus"]["curva"]
+_isl = [c["islas"] for c in _cu]
+if not (_crece([c["pares"] for c in _cu]) and all(a >= b for a, b in zip(_isl, _isl[1:]))
+        and _isl[-1] == 0):
+    sys.exit("PARADO: la descripción de cap6-umbral dice que las parejas crecen y las islas "
+             "bajan hasta cero, y la curva no lo hace")
+_sin_islas = next(c for c in _cu if c["islas"] == 0)
 
 MOD4 = cabecera(
     4, TITULOS[3][0], INGLES[3],
@@ -848,7 +893,14 @@ MOD4 = cabecera(
      "k, de 1 a 8: lo que garantiza y lo que rompe",
      "El deslizador mueve k. La barra verde son las parejas distintas que el criterio une "
      "y la naranja, los pares en los que la relación NO es recíproca. Las dos crecen, pero "
-     "no al mismo ritmo.")}
+     "no al mismo ritmo.",
+      aria=f"Gráfico de barras agrupadas, una pareja por k, de {_kk[0]['k']} a {_kk[-1]['k']}: las parejas "
+           "distintas que une el criterio de k vecinos más próximos, en verde, y los pares en que la "
+           "relación no es recíproca, en naranja, con el eje desde cero. Las dos crecen con k, las verdes "
+           f"de {ent(_kk[0]['pares'])} a {ent(_kk[-1]['pares'])} y las naranjas de "
+           f"{ent(_kk[0]['asimetricos'])} a {ent(_kk[-1]['asimetricos'])}. El deslizador elige k y no cambia "
+           "el gráfico: cambia la lectura, que da los enlaces dirigidos, las parejas, los pares no "
+           "recíprocos, el grado, si W es simétrica y los subgrafos.")}
       <p>La asimetría no es un defecto que haya que corregir: es información sobre la densidad del
         patrón. Pero <em>hay que saber que está</em>, porque casi todo lo que viene después —el
         índice de Moran, los modelos autorregresivos— supone una W simétrica o la simetriza por su
@@ -890,7 +942,13 @@ MOD5 = cabecera(
      "El umbral, de corto a largo",
      "El deslizador mueve la distancia. La barra verde son las parejas que el criterio une; "
      "la naranja, las unidades que se quedan sin ninguna. Lo que hay que buscar es el punto "
-     "donde la naranja llega a cero, y luego mirar los subgrafos.")}
+     "donde la naranja llega a cero, y luego mirar los subgrafos.",
+      aria=f"Gráfico de barras agrupadas, una pareja por umbral de distancia, de {n(_cu[0]['umbral'], 2)} "
+           f"a {n(_cu[-1]['umbral'], 2)}: las parejas que el umbral une, en verde, y las unidades que se "
+           "quedan sin vecinos, en naranja, con el eje desde cero. Al alargar el umbral las verdes crecen y "
+           f"las naranjas bajan hasta cero en {n(_sin_islas['umbral'], 2)}. El deslizador elige el umbral y "
+           "no cambia el gráfico: cambia la lectura, que da las parejas, el grado medio, las unidades sin "
+           "vecinos, los subgrafos y si el grafo queda de una pieza.")}
       <h3>El umbral mínimo sin islas, y por qué no basta</h3>
 
       <p>Hay un umbral que se puede calcular en vez de tantear: <strong>la mayor de las distancias
@@ -1049,7 +1107,15 @@ MOD7 = cabecera(
      "Los cinco estilos sobre el mismo grafo",
      "Cada botón cambia el estilo. Lo que hay que mirar no es la altura de las barras —van en "
      "escalas distintas a propósito— sino la lectura: la suma total y qué le pasa al rezago de "
-     "la misma variable.")}
+     "la misma variable.",
+      aria="Gráfico de barras: la correlación entre CRIME y su rezago espacial con cada uno de los cinco "
+           "estilos de W —B binaria, W por filas, S estabilizada, C global y U unitaria—, con el eje desde "
+           f"cero; va de {n(min(e['cor_con_crime'] for e in m7['estilos']), 2)} a "
+           f"{n(max(e['cor_con_crime'] for e in m7['estilos']), 2)}. La barra del estilo elegido con los "
+           "botones va en naranja y las demás en verde pálido; el de partida es W. La lectura da el "
+           "estilo, lo que suma toda W, el peso de un vecino de la unidad con más vecinos "
+           f"({m7['unidad_max']['grado']}) y de la que tiene menos ({m7['unidad_min']['grado']}), la media "
+           "del rezago y su correlación con CRIME.")}
       <p>La última columna de la tabla es la que cierra el módulo. La correlación entre CRIME y su
         rezago va de {n(EST["B"]["cor_con_crime"], 4)} a {n(EST["W"]["cor_con_crime"], 4)} según el
         estilo: no es un cambio dramático, y por eso es peligroso. <strong>Un estilo mal elegido no
@@ -1195,7 +1261,14 @@ MOD10 = cabecera(
      "El dato y su rezago, lado a lado",
      "Las dos barras son la misma variable: la deserción tal cual y la media de los vecinos "
      "de cada municipio. Lo que hay que mirar no es la media —que apenas se mueve— sino la "
-     "desviación típica.")}
+     "desviación típica.",
+      aria="Gráfico de barras agrupadas en dos categorías, la media y la desviación típica, en % de "
+           f"deserción y con el eje desde cero: la deserción escolar de los {ent(m10['n'])} municipios con "
+           "dato, en verde, y su rezago Wy, la media de sus vecinos, en naranja. Las medias casi coinciden "
+           f"—{n(m10['y']['media'], 2)} y {n(m10['wy']['media'], 2)}— y la desviación del rezago es menor, "
+           f"{n(m10['wy']['sd'], 2)} frente a {n(m10['y']['sd'], 2)}. No hay mandos. La lectura da las dos "
+           "medias y las dos desviaciones, cuánto contrae el rezago y la correlación entre la deserción y "
+           "su rezago.")}
       <h3>El rezago contrae, y hay que saberlo antes de dibujarlo</h3>
 
       <p>La media de la deserción es {n(m10["y"]["media"], 4)} y la de su rezago
@@ -2077,6 +2150,29 @@ def main() -> int:
     problemas = []
     if con_alt != lienzos:
         problemas.append(f"lienzos sin aria-label: {lienzos - con_alt} de {lienzos}")
+    # NI EL TÍTULO COMO ETIQUETA, NI UNA LECTURA QUE NO LO DESCRIBA (M9). Tener
+    # `aria-label` no basta: hasta el 2026-10-27 los seis lo tenían, y era el
+    # título. Se mira el marcado tal como lo escribe `sim()`, y se exige que
+    # lo cubra entero: un simulador con lectura que la expresión no reconozca
+    # también para, porque sería uno que esta guarda no está mirando.
+    _sims = list(_re.finditer(
+        r'data-simulador="([^"]+)">\s*<h4>((?:(?!</h4>).)*)</h4>(?:(?!data-simulador=).)*?'
+        r'<div class="grafico-wrapper"[^>]*>\s*<canvas([^>]*)></canvas>\s*</div>\s*'
+        r'<div class="simulador-lectura"([^>]*)>', marcado, _re.S))
+    _con_lectura = marcado.count('class="simulador-lectura"')
+    if len(_sims) != _con_lectura:
+        problemas.append(f"simuladores con lectura: {_con_lectura}, "
+                         f"y la guarda de accesibilidad reconoce {len(_sims)}")
+    for m in _sims:
+        ident, lienzo, caja = m.group(1), m.group(3), m.group(4)
+        titulo = _html.unescape(_re.sub(r"<[^>]+>", "", m.group(2))).strip()
+        etq = _re.search(r'aria-label="([^"]*)"', lienzo)
+        etq = _html.unescape(etq.group(1)).strip() if etq else ""
+        if titulo in etq or len(etq) < 80:
+            problemas.append(f"{ident}: el aria-label no describe el gráfico («{etq[:50]}»)")
+        if (f'aria-describedby="lectura-{ident}"' not in lienzo
+                or f'id="lectura-{ident}"' not in caja or 'aria-live="polite"' not in caja):
+            problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
     if bl_r != bl_py:
         problemas.append(f"bloques descuadrados: {bl_r} de R y {bl_py} de Python")
     if problemas:

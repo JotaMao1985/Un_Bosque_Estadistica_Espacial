@@ -4602,9 +4602,9 @@
         <p class="simulador-intro">Elige el esquema y el número de clases: la barra muestra cuántos municipios caen en cada una.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="Las 35 formas de dibujar el mismo dato"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: cuántos municipios caen en cada una de las 5 clases del mapa de deserción escolar de más abajo, con el eje desde cero. Los botones eligen el esquema de clasificación —Intervalos iguales, Cuantiles, Fisher-Jenks, Desviación estándar o Head/tails—, y el de partida es Cuantiles, con las barras casi iguales; con los demás se descompensan. La lectura da el esquema, cuántos municipios quedan en la clase más alta y cuántas clases quedan vacías, y las 35 configuraciones del capítulo frente a los 24 mapas realmente distintos." aria-describedby="lectura-cap3-config"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap3-config" aria-live="polite"></div>
       </div>
 
 
@@ -4723,9 +4723,9 @@ print(np.bincount(e.yb, minlength=5))
         <p class="simulador-intro">Conmuta entre las dos variables y mira cómo se reordena el país.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="Conteo contra tasa: dos mapas del mismo archivo"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras horizontales: los 10 primeros municipios del país según la variable que elijan los botones, con el eje desde cero. Con «Conteo de estudiantes», en verde, el número de evaluados, que encabeza Bogotá, D.C. con 152 536; con «Puntaje medio», en naranja, el puntaje medio, que encabeza Cota con 303.2. Los botones cambian también el mapa de abajo. La lectura da la correlación de Pearson y la de Spearman entre las dos variables, cuántos municipios comparten los dos top-20 y qué parte de los estudiantes reúnen los diez mayores." aria-describedby="lectura-cap3-conteo-tasa"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap3-conteo-tasa" aria-live="polite"></div>
       </div>
 
 
@@ -4851,9 +4851,9 @@ print(len(top_n & top_p))
         <p class="simulador-intro">Los tamaños de clase que produce cada esquema sobre SID74, con k = 5.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:280px;">
-          <canvas role="img" aria-label="Los cinco esquemas sobre el mismo dato canónico"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras apiladas, una por esquema —Intervalos iguales, Cuantiles, Fisher-Jenks, Desviación estándar y Head/tails—: cada barra reparte los condados de Carolina del Norte entre las 5 clases de SID74, de la más baja, en verde muy claro, a la más alta, en verde oscuro, con el eje en condados desde cero. La lectura da cuántos condados son, cuántos están empatados en un corte y cómo cierra el intervalo cada lenguaje: R, [a, b), y Python, (a, b]." aria-describedby="lectura-cap3-esquemas"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap3-esquemas" aria-live="polite"></div>
       </div>
 
 
@@ -4993,9 +4993,9 @@ print(np.bincount(f.yb, minlength=5))
         <p class="simulador-intro">Cada barra es una pareja de esquemas y su altura, el porcentaje de municipios que cambian de clase.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="La matriz de discordancia"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: las 10 parejas de esquemas, ordenadas de mayor a menor, y en cada una el porcentaje de municipios que cambian de clase al pasar de un esquema al otro, sobre un eje de 0 a 100. Las parejas en que cambia más de la mitad van en rojo y las demás en verde. La lectura da el máximo y el mínimo, cuántos municipios se quedan en la misma clase con los cinco esquemas y cuántos caen en la clase más alta con cada uno." aria-describedby="lectura-cap3-discordancia"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap3-discordancia" aria-live="polite"></div>
       </div>
 
 
@@ -5178,9 +5178,9 @@ print([int((d[c] == 5).sum()) for c in cols])
         <p class="simulador-intro">Elige la vista. Cada par de barras es una paleta: en verde, la distancia entre sus dos clases más parecidas con visión normal; en naranja, la misma distancia en la vista elegida.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="Las paletas bajo los tres tipos de daltonismo, y en gris"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras agrupadas: para cada una de las 7 paletas —YlOrRd, Blues, RdYlGn, Spectral, RdBu, Set1 y Dark2—, la distancia de color ΔE entre sus dos clases más parecidas, con el eje desde cero: en verde con visión normal, y en naranja en la vista que elijan los botones, deuteranopía, protanopía, tritanopía o en gris. Cuanto más baja la naranja respecto a la verde, más se confunden esas dos clases. La lectura da la paleta que más cae y su familia, la secuencial más baja y cuánto cae, bajo deuteranopía, un rojo y un verde de la misma luminosidad." aria-describedby="lectura-cap3-paletas"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap3-paletas" aria-live="polite"></div>
       </div>
 
 
@@ -5438,9 +5438,9 @@ mun.plot(column="desercion", scheme="quantiles", k=5,
         <p class="simulador-intro">La correlación entre área y valor: exacta en los dos propios, y un límite en el contiguo.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:280px;">
-          <canvas role="img" aria-label="Hasta dónde llega cada cartograma"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: la correlación entre el área que cada departamento ocupa en el cartograma y su valor, sobre un eje de 0 a 1.05, para los 3 cartogramas, rotulados ncont, dorling y cont: No contiguo (Olson 1976), 1.000; Dorling (1996), 1.000; Contiguo (Dougenik et al. 1985), 0.817. Los que llegan a 1 van en verde y el que no, en naranja. La lectura da las tres correlaciones y el error relativo máximo del contiguo tras 60 iteraciones." aria-describedby="lectura-cap3-carto-sim"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap3-carto-sim" aria-live="polite"></div>
       </div>
 
 
@@ -5638,9 +5638,9 @@ print(round(float(np.corrcoef(a, val)[0, 1]), 10))
         <p class="simulador-intro">Cada punto es la correlación media de las particiones contiguas con ese número de zonas, y la banda sombreada, esa media más y menos dos errores. Conmuta entre 30 y 5 000 particiones por escala.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="La correlación en función del número de zonas"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea: la correlación entre la educación de la madre y el puntaje, calculada sobre particiones contiguas del país en 9 escalas, de 5 a 700 zonas, puestas a la misma distancia en el eje aunque no lo estén. En verde, la media de las particiones, con su banda de más y menos dos errores sombreada en verde claro; en naranja discontinuo, la de los 33 departamentos reales, y en gris punteado, la de los estudiantes uno a uno. Con 700 zonas, a la derecha, la media es la más baja, y crece hacia la izquierda hasta una cima. Los botones eligen cuántas particiones se promedian por escala, 5 000 o 30. La lectura da dónde está la cima, lo justo que es el paso más corto de la subida —o, con 30, el bache— y las dos referencias." aria-describedby="lectura-cap3-escala"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap3-escala" aria-live="polite"></div>
       </div>
 
 
@@ -5783,9 +5783,9 @@ print(round(gm["x"].corr(gm["p"]), 7))
         <p class="simulador-intro">La distribución de la correlación sobre 1 000 particiones, con el trazado departamental real marcado.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="Mil trazados distintos del mismo país"></canvas>
+          <canvas role="img" aria-label="Histograma: cuántas de las 1 000 particiones del país en 33 zonas dan cada correlación, con la correlación en el eje horizontal y el conteo, desde cero, en el vertical. Los botones eligen el reparto: zonas contiguas, en verde, de 0.08 a 0.79, o zonas arbitrarias —los municipios repartidos al azar, sin mirar dónde están—, en azul, de 0.27 a 0.93. El trazado departamental real no se dibuja: la lectura da su correlación, la media y el recorrido del reparto elegido y en qué percentil de él cae el real." aria-describedby="lectura-cap3-zonificacion"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap3-zonificacion" aria-live="polite"></div>
       </div>
 
 
@@ -5909,9 +5909,9 @@ print(round(gm["x"].corr(gm["p"]), 7))
         <p class="simulador-intro">El puntaje medio por nivel educativo de la madre, y la misma relación vista entre municipios.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas role="img" aria-label="La nube individual contra la nube agregada"></canvas>
+          <canvas role="img" aria-label="Gráfico de línea, en verde: el puntaje global medio de los estudiantes según el nivel educativo de la madre, en 10 niveles, de 211 puntos con «Ninguno» a 308 con «Postgrado». Solo dibuja la relación entre individuos; la lectura da la correlación medida a cuatro escalas: entre estudiantes, entre municipios, entre municipios ponderados y entre departamentos." aria-describedby="lectura-cap3-falacia"></canvas>
         </div>
-        <div class="simulador-lectura"></div>
+        <div class="simulador-lectura" id="lectura-cap3-falacia" aria-live="polite"></div>
       </div>
 
 
