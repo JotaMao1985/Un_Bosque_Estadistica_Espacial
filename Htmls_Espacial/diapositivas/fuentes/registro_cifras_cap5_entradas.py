@@ -259,6 +259,9 @@ def cargar_entradas(m, sesiones):
 
         # ---- módulo 5 ----
         REG("20224", T("periodo 20224", corpus="fuentes"))
+        REG("2022", T("periodo 20224 (calendario a de 2022)", corpus="fuentes",
+                      desc="el año de la aplicación: el ICFES escribe el periodo como año + dígito"),
+            cx=r"calendario A de 2022|Saber 11 de 2022")
         REG("11", P("grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11"), cx=r"grado 11|Saber 11")
         REG("720", RJ("m5.sigma_m", "capas.sigma_m"))
         REG("14.54", RJ("m5.capas.oferta.max_km2", "capas.max_oferta"))
