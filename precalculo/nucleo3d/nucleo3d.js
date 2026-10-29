@@ -541,6 +541,8 @@
 .n3d-lectura .n3d-r{color:#475569;font-family:'Montserrat',sans-serif;font-size:.75rem}
 .n3d-pie{grid-area:pie;margin:0;font-size:.75rem;color:#475569}
 .n3d-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.n3d-gorro{position:relative;display:inline-block}
+.n3d-gorro::before{content:'ˆ';content:'ˆ' / '';position:absolute;left:0;right:0;top:-.1em;text-align:center;line-height:1}
 .n3d-cargando{margin:0;min-height:14rem;display:grid;place-items:center;text-align:center;padding:1rem;color:#475569;font-size:.875rem;
   border:1px dashed #cbd5e1;border-radius:.6rem;background:#fff}
 .n3d-sin-webgl{padding:1rem;border:1px dashed #cbd5e1;border-radius:.5rem;background:#fff;color:#475569;font-size:.875rem}
@@ -637,6 +639,12 @@
   /* ===================================================================
      4 · EL MONTAJE: interfaz + escena. `montar` devuelve { destruir, ir }.
      =================================================================== */
+  // λ̂ SIN el circunflejo combinante (U+0302). Ni Montserrat ni Fira Code lo traen: el navegador lo pide a una fuente del
+  // sistema, y cuál sea y dónde lo ponga depende de la máquina y del peso. En negrita lo descolocaba (el título del panel
+  // decía «λ» con el sombrero al lado) y a K̂ o F̂ se lo quitaba. Aquí el sombrero es un «ˆ» (U+02C6, que las dos fuentes
+  // sí traen) dibujado encima por `.n3d-gorro`, y el combinante se queda, oculto, para el lector de pantalla y para
+  // `textContent`. El texto del capítulo no pasa por aquí: lleva KaTeX.
+  const gorro = s => String(s).replace(/(\S)\u0302/g, '<span class="n3d-gorro">$1<span class="n3d-sr">\u0302</span></span>');
   const htmlDe = E => `
 <div class="n3d-rejilla">
   <div class="n3d-pasos" role="group" aria-label="Pasos de la animación">
@@ -653,7 +661,7 @@
     </div>
     <p class="n3d-sr" id="@@ID@@-ayuda">${E.ayudaTeclado}</p>
     <p class="n3d-sr" id="@@ID@@-estado"></p>
-    <div class="n3d-panel" aria-hidden="true" hidden><h6>${E.id === 'conteo' ? 'Aportes a <span class="n3d-mat">λ̂(u)</span>' : ''}</h6><div class="n3d-ap-lista"></div>${E.id === 'conteo' ? '<div class="n3d-ap-total"><span>λ̂(u)</span><span class="n3d-ap-suma"></span></div>' : ''}</div>
+    <div class="n3d-panel" aria-hidden="true" hidden><h6>${E.id === 'conteo' ? gorro('Aportes a <span class="n3d-mat">λ̂(u)</span>') : ''}</h6><div class="n3d-ap-lista"></div>${E.id === 'conteo' ? gorro('<div class="n3d-ap-total"><span>λ̂(u)</span><span class="n3d-ap-suma"></span></div>') : ''}</div>
     <div class="n3d-perfilcaja" data-ctl="perfil" hidden><span>Los cuatro núcleos, al mismo σ</span><canvas class="n3d-perfil" role="img" aria-label="Perfil radial de los cuatro núcleos con la misma desviación típica: el gaussiano decae sin cortarse; el de Epanechnikov, el cuártico y el disco tienen soporte finito."></canvas></div>
   </div>
   <div class="n3d-mandos">
@@ -1420,7 +1428,7 @@
         const dentro = puntos.filter(p => Math.hypot(p[0] - estado.sonda[0], p[1] - estado.sonda[1]) < al).length;
         h = [['σ', f2(s)], ['λ̂(u)', f2(suma)], ['puntos dentro del círculo', dentro + ' de ' + N]];
       }
-      const html = h.map(p => `<span${p[2] ? ' class="n3d-act"' : ''}><span class="n3d-r">${p[0]}</span> <b>${p[1]}</b></span>`).join('');
+      const html = h.map(p => `<span${p[2] ? ' class="n3d-act"' : ''}><span class="n3d-r">${gorro(p[0])}</span> <b>${p[1]}</b></span>`).join('');
       if (html !== ultimaLectura) { ultimaLectura = html; lect.innerHTML = html; }
       // La descripción del lienzo lleva el ESTADO (como la de la cáscara 2D): antes un lector solo oía la ayuda de teclado.
       const est = 'Paso ' + estado.paso + ' de ' + E.pasos.length + ': ' + E.pasos[estado.paso - 1].titulo + '. ' +
@@ -1480,7 +1488,7 @@
       ley.parentNode.appendChild(medidor);
       const h5 = medidor.firstChild, par = medidor.lastChild;
       let max = 0;
-      E.pasos.forEach(q => { h5.textContent = q.titulo; par.innerHTML = q.texto; max = Math.max(max, medidor.offsetHeight); });
+      E.pasos.forEach(q => { h5.textContent = q.titulo; par.innerHTML = gorro(q.texto); max = Math.max(max, medidor.offsetHeight); });
       ley.parentNode.removeChild(medidor);
       const v = max + 'px';
       if (ley.style.minHeight !== v) ley.style.minHeight = v;
@@ -1500,7 +1508,7 @@
       const sv = ss.querySelector('input'); sv.setAttribute('aria-valuetext', 'sigma ' + f2(estado.sigma));
       if (pasoLey !== estado.paso) {          // solo se toca al cambiar de paso, no con cada deslizador
         const p = E.pasos[estado.paso - 1];
-        leyH.textContent = p.titulo; leyP.innerHTML = p.texto;
+        leyH.textContent = p.titulo; leyP.innerHTML = gorro(p.texto);
         // la región viva dice el título del paso al que se llega (no el párrafo entero, como antes; tampoco al montar)
         if (pasoLey) anuncia('Paso ' + estado.paso + ': ' + p.titulo);
         pasoLey = estado.paso;
