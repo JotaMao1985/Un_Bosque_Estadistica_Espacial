@@ -583,7 +583,8 @@ MOD2 = cabecera(
         «número de delitos» o «número de estudiantes» es, con muy poca variación,
         <strong>un mapa de dónde vive la gente</strong>.</p>
 
-      <p>Lo medimos sobre Saber 11. Tenemos {firma(ent(m2['n_estudiantes']))} estudiantes
+      <p>Lo medimos sobre Saber 11 de 2022, la aplicación de calendario A (el ICFES la archiva
+        como periodo 20224). Tenemos {firma(ent(m2['n_estudiantes']))} estudiantes
         repartidos en {firma(ent(m2['n_municipios']))} municipios, y dos formas de mirarlos:
         el <em>conteo</em> de estudiantes por municipio y su <em>puntaje global medio</em>.
         Son dos mapas del mismo archivo.</p>
@@ -1738,7 +1739,7 @@ MOD11 = cabecera(
         esos estudiantes existen en la tabla y no en el mapa, así que cualquier política
         asignada cartográficamente los salta.</p>
 
-{mapa_html('cap3-presencia', 'Municipios sin un solo estudiante en la cohorte 20224')}
+{mapa_html('cap3-presencia', 'Municipios sin un solo estudiante en Saber 11 de 2022 (calendario A)')}
 
       <p>La misma capa permite ver otra brecha, esta sí grande. Los territorios se clasifican
         por tipo, y el puntaje medio no es igual en todos:</p>

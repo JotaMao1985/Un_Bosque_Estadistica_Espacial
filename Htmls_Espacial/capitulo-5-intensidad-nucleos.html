@@ -4760,7 +4760,7 @@ print(round(kde_pico(px, py, anchos[-1], 96, 99, W), 1))
         <tbody>
             <tr><th scope="row"><code>bw.diggle</code></th><td>el error cuadrático medio de la intensidad, por validación cruzada (Berman y Diggle). Mira la superficie.</td><td>347.1</td><td>373.2</td></tr>
             <tr><th scope="row"><code>bw.ppl</code></th><td>la verosimilitud del proceso puntual, dejando fuera un punto cada vez (Loader). Mira los puntos.</td><td>374.9</td><td>235.9</td></tr>
-            <tr><th scope="row"><code>bw.CvL</code></th><td>el criterio de Cronie y van Lieshout: que la suma de 1/λ̂ sobre los puntos devuelva el área de la ventana.</td><td>556.7</td><td>720.4</td></tr>
+            <tr><th scope="row"><code>bw.CvL</code></th><td>el criterio de Cronie y van Lieshout: que la suma de $1/\hat\lambda$ sobre los puntos devuelva el área de la ventana.</td><td>556.7</td><td>720.4</td></tr>
             <tr><th scope="row"><code>bw.scott</code></th><td>el error cuadrático integrado en su aproximación asintótica, suponiendo que la intensidad fuera una normal —es la regla de referencia normal de Scott—: por eso tiene forma cerrada, sd·n<sup>−1/6</sup>, y no busca. Y no devuelve <em>un</em> ancho: devuelve uno por eje.</td><td>633.6</td><td>1251.3</td></tr>
         </tbody>
       </table>
@@ -5850,8 +5850,8 @@ print(round(float(R[ok].max() / R[ok].min()), 4),
 
       <h3>La comprobación que cierra el círculo</h3>
 
-      <p>Sin covariables, λ es una constante y su integral es λ·|W|, así que la igualdad se
-        vuelve λ̂·|W| = n: la EMV de un Poisson homogéneo <strong>es</strong> n/|W|, la
+      <p>Sin covariables, λ es una constante y su integral es $\lambda\cdot|W|$, así que la igualdad se
+        vuelve $\hat\lambda\cdot|W| = n$: la EMV de un Poisson homogéneo <strong>es</strong> n/|W|, la
         intensidad ingenua del capítulo 1. Medido sobre la ciudad, <code>ppm</code> la devuelve
         con una diferencia relativa de <strong>7.44e-16</strong> —el ruido de coma
         flotante— y la cifra a la que llega es
@@ -5891,7 +5891,7 @@ print(round(float(R[ok].max() / R[ok].min()), 4),
       <p>La prueba que la comprobación de antes no hizo es obligar a <code>ppm</code> a pasar el
         modelo homogéneo por esta maquinaria, con <code>forcefit = TRUE</code>. Devuelve
         <strong>5.71211</strong> sedes por km² en vez de 5.69321, y la
-        razón está en la igualdad ∫ λ̂ = n, ahora con la suma en lugar de la
+        razón está en la igualdad $\int\hat\lambda = n$, ahora con la suma en lugar de la
         integral: la EMV pasa a ser n / Σ w<sub>j</sub>, y los pesos por defecto <strong>no suman
         el área de la ventana</strong>. Suman 368.86563 km², y la ciudad mide
         370.08982. La intensidad sale un 0.33 % más alta.</p>
@@ -5933,7 +5933,7 @@ print(round(float(R[ok].max() / R[ok].min()), 4),
 
       <h3>De dónde salen los 9.2 puntos</h3>
 
-      <p>La igualdad ∫ λ̂ = n dice dónde mirar. En el máximo, la suma que sustituye a
+      <p>La igualdad $\int\hat\lambda = n$ dice dónde mirar. En el máximo, la suma que sustituye a
         la integral vale <strong>exactamente n</strong>, así que lo que <code>ppm</code> publica
         como log-verosimilitud es la suma de los logaritmos en las sedes menos 2 107.
         Pero la integral de verdad del modelo ajustado ya no es n: la cuadratura se deja fuera un
@@ -6371,7 +6371,7 @@ print(f&quot;{cond_rec((UX - UX.mean()) / 1000, (UY - UY.mean()) / 1000):.4g}&qu
         <em>inhomogéneo</em> la K inhomogénea vale $\pi r^2$ —es justo el motivo de dividir cada
         pareja por su intensidad—. Lo que pasa es que un objeto <code>envelope</code> sobre un
         modelo ajustado no trae esa columna, y hace bien: el sesgado aquí es el
-        <strong>estimador</strong>, por la corrección de borde y por una λ̂ sacada del propio
+        <strong>estimador</strong>, por la corrección de borde y por una $\hat\lambda$ sacada del propio
         dato, y la media de las simulaciones comete el mismo sesgo, así que es la referencia
         justa. En estos datos las dos casi coinciden y se puede comprobar: la media de las
         999 queda como mucho a un 0.64499 % de
@@ -11796,6 +11796,8 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
 .n3d-lectura .n3d-r{color:#475569;font-family:'Montserrat',sans-serif;font-size:.75rem}
 .n3d-pie{grid-area:pie;margin:0;font-size:.75rem;color:#475569}
 .n3d-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.n3d-gorro{position:relative;display:inline-block}
+.n3d-gorro::before{content:'ˆ';content:'ˆ' / '';position:absolute;left:0;right:0;top:-.1em;text-align:center;line-height:1}
 .n3d-cargando{margin:0;min-height:14rem;display:grid;place-items:center;text-align:center;padding:1rem;color:#475569;font-size:.875rem;
   border:1px dashed #cbd5e1;border-radius:.6rem;background:#fff}
 .n3d-sin-webgl{padding:1rem;border:1px dashed #cbd5e1;border-radius:.5rem;background:#fff;color:#475569;font-size:.875rem}
@@ -11892,6 +11894,12 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
   /* ===================================================================
      4 · EL MONTAJE: interfaz + escena. `montar` devuelve { destruir, ir }.
      =================================================================== */
+  // λ̂ SIN el circunflejo combinante (U+0302). Ni Montserrat ni Fira Code lo traen: el navegador lo pide a una fuente del
+  // sistema, y cuál sea y dónde lo ponga depende de la máquina y del peso. En negrita lo descolocaba (el título del panel
+  // decía «λ» con el sombrero al lado) y a K̂ o F̂ se lo quitaba. Aquí el sombrero es un «ˆ» (U+02C6, que las dos fuentes
+  // sí traen) dibujado encima por `.n3d-gorro`, y el combinante se queda, oculto, para el lector de pantalla y para
+  // `textContent`. El texto del capítulo no pasa por aquí: lleva KaTeX.
+  const gorro = s => String(s).replace(/(\S)\u0302/g, '<span class="n3d-gorro">$1<span class="n3d-sr">\u0302</span></span>');
   const htmlDe = E => `
 <div class="n3d-rejilla">
   <div class="n3d-pasos" role="group" aria-label="Pasos de la animación">
@@ -11908,7 +11916,7 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
     </div>
     <p class="n3d-sr" id="@@ID@@-ayuda">${E.ayudaTeclado}</p>
     <p class="n3d-sr" id="@@ID@@-estado"></p>
-    <div class="n3d-panel" aria-hidden="true" hidden><h6>${E.id === 'conteo' ? 'Aportes a <span class="n3d-mat">λ̂(u)</span>' : ''}</h6><div class="n3d-ap-lista"></div>${E.id === 'conteo' ? '<div class="n3d-ap-total"><span>λ̂(u)</span><span class="n3d-ap-suma"></span></div>' : ''}</div>
+    <div class="n3d-panel" aria-hidden="true" hidden><h6>${E.id === 'conteo' ? gorro('Aportes a <span class="n3d-mat">λ̂(u)</span>') : ''}</h6><div class="n3d-ap-lista"></div>${E.id === 'conteo' ? gorro('<div class="n3d-ap-total"><span>λ̂(u)</span><span class="n3d-ap-suma"></span></div>') : ''}</div>
     <div class="n3d-perfilcaja" data-ctl="perfil" hidden><span>Los cuatro núcleos, al mismo σ</span><canvas class="n3d-perfil" role="img" aria-label="Perfil radial de los cuatro núcleos con la misma desviación típica: el gaussiano decae sin cortarse; el de Epanechnikov, el cuártico y el disco tienen soporte finito."></canvas></div>
   </div>
   <div class="n3d-mandos">
@@ -12675,7 +12683,7 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
         const dentro = puntos.filter(p => Math.hypot(p[0] - estado.sonda[0], p[1] - estado.sonda[1]) < al).length;
         h = [['σ', f2(s)], ['λ̂(u)', f2(suma)], ['puntos dentro del círculo', dentro + ' de ' + N]];
       }
-      const html = h.map(p => `<span${p[2] ? ' class="n3d-act"' : ''}><span class="n3d-r">${p[0]}</span> <b>${p[1]}</b></span>`).join('');
+      const html = h.map(p => `<span${p[2] ? ' class="n3d-act"' : ''}><span class="n3d-r">${gorro(p[0])}</span> <b>${p[1]}</b></span>`).join('');
       if (html !== ultimaLectura) { ultimaLectura = html; lect.innerHTML = html; }
       // La descripción del lienzo lleva el ESTADO (como la de la cáscara 2D): antes un lector solo oía la ayuda de teclado.
       const est = 'Paso ' + estado.paso + ' de ' + E.pasos.length + ': ' + E.pasos[estado.paso - 1].titulo + '. ' +
@@ -12735,7 +12743,7 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
       ley.parentNode.appendChild(medidor);
       const h5 = medidor.firstChild, par = medidor.lastChild;
       let max = 0;
-      E.pasos.forEach(q => { h5.textContent = q.titulo; par.innerHTML = q.texto; max = Math.max(max, medidor.offsetHeight); });
+      E.pasos.forEach(q => { h5.textContent = q.titulo; par.innerHTML = gorro(q.texto); max = Math.max(max, medidor.offsetHeight); });
       ley.parentNode.removeChild(medidor);
       const v = max + 'px';
       if (ley.style.minHeight !== v) ley.style.minHeight = v;
@@ -12755,7 +12763,7 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
       const sv = ss.querySelector('input'); sv.setAttribute('aria-valuetext', 'sigma ' + f2(estado.sigma));
       if (pasoLey !== estado.paso) {          // solo se toca al cambiar de paso, no con cada deslizador
         const p = E.pasos[estado.paso - 1];
-        leyH.textContent = p.titulo; leyP.innerHTML = p.texto;
+        leyH.textContent = p.titulo; leyP.innerHTML = gorro(p.texto);
         // la región viva dice el título del paso al que se llega (no el párrafo entero, como antes; tampoco al montar)
         if (pasoLey) anuncia('Paso ' + estado.paso + ': ' + p.titulo);
         pasoLey = estado.paso;

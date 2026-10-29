@@ -99,6 +99,18 @@ CARPETAS = [RAIZ / "sitio" / "estadistica-espacial", RAIZ / "Htmls_Espacial"]
 # publicarse así y dar 130/0, que es exactamente lo que pasó.
 MOJIBAKE_RE = re.compile(r"<[0-9a-f]{2}>|<U\+[0-9A-Fa-f]{4,6}>")
 
+# El sombrero de un estimador (f̂, K̂, λ̂) llega del JSON con el circunflejo
+# COMBINANTE, U+0302, y el ensamblador lo pinta en TeX, \(\hat f\): ninguna
+# de las dos fuentes de la casa trae el U+0302, y en negrita se perdía (la
+# «f̂(14)» de una tabla de solución se leía «f(14)»). Para comparar la página
+# con el JSON, la forma TeX se devuelve a la del JSON.
+SOMBRERO_TEX_RE = re.compile(r"\\\(\\hat ?(\\lambda|[A-Za-z])\\\)")
+
+
+def sombrero_del_json(texto: str) -> str:
+    return SOMBRERO_TEX_RE.sub(lambda m: {"\\lambda": "λ"}.get(m.group(1), m.group(1)) + "\u0302", texto)
+
+
 # El tope de peso de un capítulo, y qué es de verdad.
 #
 # NO es un presupuesto de contenido. Empezó en 550 KB y se fue subiendo a
@@ -914,7 +926,7 @@ class Auditor:
                     continue
                 revisadas += 1
                 celda = next((c for etq, c in aqui.items()
-                              if html_mod.unescape(re.sub(r"<[^>]+>", "", etq)).strip()
+                              if sombrero_del_json(html_mod.unescape(re.sub(r"<[^>]+>", "", etq))).strip()
                               == paso.strip()),
                              None)
                 if celda is None:

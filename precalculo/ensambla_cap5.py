@@ -756,7 +756,7 @@ _QUE_OPTIMIZA = {
             "(Loader). Mira los puntos."),
     "CvL": ("<code>bw.CvL</code>",
             "el criterio de Cronie y van Lieshout: que la suma de "
-            "1/λ̂ sobre los puntos devuelva el área de la ventana."),
+            "$1/\\hat\\lambda$ sobre los puntos devuelva el área de la ventana."),
     "scott": ("<code>bw.scott</code>",
               "el error cuadrático integrado en su aproximación asintótica, suponiendo "
               "que la intensidad fuera una normal —es la regla de referencia normal de "
@@ -1917,8 +1917,8 @@ MOD8 = cabecera(
 
       <h3>La comprobación que cierra el círculo</h3>
 
-      <p>Sin covariables, λ es una constante y su integral es λ·|W|, así que la igualdad se
-        vuelve λ̂·|W| = n: la EMV de un Poisson homogéneo <strong>es</strong> n/|W|, la
+      <p>Sin covariables, λ es una constante y su integral es $\\lambda\\cdot|W|$, así que la igualdad se
+        vuelve $\\hat\\lambda\\cdot|W| = n$: la EMV de un Poisson homogéneo <strong>es</strong> n/|W|, la
         intensidad ingenua del capítulo 1. Medido sobre la ciudad, <code>ppm</code> la devuelve
         con una diferencia relativa de {firma(f'{_h8["dif_relativa"]:g}')} —el ruido de coma
         flotante— y la cifra a la que llega es
@@ -1958,7 +1958,7 @@ MOD8 = cabecera(
       <p>La prueba que la comprobación de antes no hizo es obligar a <code>ppm</code> a pasar el
         modelo homogéneo por esta maquinaria, con <code>forcefit = TRUE</code>. Devuelve
         {firma(n(_fz["lambda_km2"]), " sedes por km²")} en vez de {n(_h8["lambda_km2"])}, y la
-        razón está en la igualdad ∫ λ̂ = n, ahora con la suma en lugar de la
+        razón está en la igualdad $\\int\\hat\\lambda = n$, ahora con la suma en lugar de la
         integral: la EMV pasa a ser n / Σ w<sub>j</sub>, y los pesos por defecto <strong>no suman
         el área de la ventana</strong>. Suman {n(_fz["suma_pesos_km2"])} km², y la ciudad mide
         {n(_fz["area_km2"])}. La intensidad sale un {pct(_fz["exceso_pct"], 2)} más alta.</p>
@@ -1999,7 +1999,7 @@ MOD8 = cabecera(
 
       <h3>De dónde salen los {n(_cu["rango_aic"], 1)} puntos</h3>
 
-      <p>La igualdad ∫ λ̂ = n dice dónde mirar. En el máximo, la suma que sustituye a
+      <p>La igualdad $\\int\\hat\\lambda = n$ dice dónde mirar. En el máximo, la suma que sustituye a
         la integral vale <strong>exactamente n</strong>, así que lo que <code>ppm</code> publica
         como log-verosimilitud es la suma de los logaritmos en las sedes menos {ent(_h8["n"])}.
         Pero la integral de verdad del modelo ajustado ya no es n: la cuadratura se deja fuera un
@@ -2365,7 +2365,7 @@ MOD10 = cabecera(
         <em>inhomogéneo</em> la K inhomogénea vale $\pi r^2$ —es justo el motivo de dividir cada
         pareja por su intensidad—. Lo que pasa es que un objeto <code>envelope</code> sobre un
         modelo ajustado no trae esa columna, y hace bien: el sesgado aquí es el
-        <strong>estimador</strong>, por la corrección de borde y por una λ̂ sacada del propio
+        <strong>estimador</strong>, por la corrección de borde y por una $\\hat\\lambda$ sacada del propio
         dato, y la media de las simulaciones comete el mismo sesgo, así que es la referencia
         justa. En estos datos las dos casi coinciden y se puede comprobar: la media de las
         {ent(m10["nsim"])} queda como mucho a un {pct(m10["mmean_vs_teorica_pct"], 5)} de

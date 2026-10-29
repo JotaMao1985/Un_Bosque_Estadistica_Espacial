@@ -7249,7 +7249,7 @@ print(round(ucv_exacta(nn, 0.001), 4))
         <div class="ejercicio-guiado">
           <p class="ejercicio-enunciado"><span class="ejercicio-numero">1.</span><strong>Del histograma a la curva</strong>
             <span class="text-gray-500">(módulos 2 y 5)</span>.
-            Con X = {2.5, 3.5, 5, 5.5, 7, 8.5, 10, 11, 11.5, 14}, construye el histograma que R hace por defecto (<code>hist(X, probability = TRUE)</code>) y después suavízalo con ventanas de Parzen y núcleo gaussiano, con el ancho de <code>bw.nrd</code> y con h = 1. Calcula a mano f̂(7) con h = 1. ¿Cuántas modas deja cada ancho?</p>
+            Con X = {2.5, 3.5, 5, 5.5, 7, 8.5, 10, 11, 11.5, 14}, construye el histograma que R hace por defecto (<code>hist(X, probability = TRUE)</code>) y después suavízalo con ventanas de Parzen y núcleo gaussiano, con el ancho de <code>bw.nrd</code> y con h = 1. Calcula a mano \(\hat f\)(7) con h = 1. ¿Cuántas modas deja cada ancho?</p>
           <div class="ejercicio-acciones">
             <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="apa-e1-pista">
               <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista <i class="fas fa-chevron-down" aria-hidden="true"></i>
@@ -7259,7 +7259,7 @@ print(round(ucv_exacta(nn, 0.001), 4))
             </button>
           </div>
           <div class="ejercicio-panel pista" id="apa-e1-pista" hidden>
-            <p style="margin:0;">Para f̂(7) con h = 1, calcula 7 − xᵢ para cada dato, pásalo por φ y promedia. Para las modas, piensa que un dato aislado solo levanta bulto propio si h es pequeño frente a la distancia a sus vecinos, y mira cuánto sobresale cada bulto de su valle.</p>
+            <p style="margin:0;">Para \(\hat f\)(7) con h = 1, calcula 7 − xᵢ para cada dato, pásalo por φ y promedia. Para las modas, piensa que un dato aislado solo levanta bulto propio si h es pequeño frente a la distancia a sus vecinos, y mira cuánto sobresale cada bulto de su valle.</p>
           </div>
           <div class="ejercicio-panel solucion" id="apa-e1-sol" hidden>
             <table>
@@ -7271,7 +7271,7 @@ print(round(ucv_exacta(nn, 0.001), 4))
                 <tr><th scope="row">Modas del histograma por defecto</th><td>2</td></tr>
                 <tr><th scope="row">Ancho de banda de bw.nrd</th><td>2.5225</td></tr>
                 <tr><th scope="row">Suma de φ((7 − xᵢ)/1)</th><td>0.7174</td></tr>
-                <tr><th scope="row">f̂(7) con h = 1</th><td>0.0717</td></tr>
+                <tr><th scope="row">\(\hat f\)(7) con h = 1</th><td>0.0717</td></tr>
                 <tr><th scope="row">Modas con el ancho de bw.nrd</th><td>1</td></tr>
                 <tr><th scope="row">Modas con h = 1</th><td>3</td></tr>
                 <tr><th scope="row">Altura de la moda menor con h = 1</th><td>0.0428</td></tr>
@@ -7281,7 +7281,7 @@ print(round(ucv_exacta(nn, 0.001), 4))
               </tbody>
             </table>
             <p class="ejercicio-respuesta"><strong>Calcula a mano.</strong>
-              Las desviaciones 7 − xᵢ van de 4.5 a −7; sus φ suman 0.7174, y entre n = 10 queda f̂(7) = 0.0717.</p>
+              Las desviaciones 7 − xᵢ van de 4.5 a −7; sus φ suman 0.7174, y entre n = 10 queda \(\hat f\)(7) = 0.0717.</p>
             <p class="ejercicio-respuesta"><strong>¿Cuántas modas deja cada ancho?</strong>
               El histograma por defecto, con conteos 2, 2, 1, 2, 2, 1, tiene 2 modas. Con el ancho de bw.nrd (2.5225) la curva tiene 1 moda; con h = 1, 3, pero la menor —la del dato aislado 14— sobresale apenas 0.0007 de su valle (0.0428 contra 0.0421): a simple vista se ven dos bultos y un hombro.</p>
             <p class="ejercicio-lectura">El histograma por defecto sugiere dos grupos, la curva de bw.nrd los funde en uno y la de h = 1 los separa: los datos no deciden cuál de las tres lecturas es la buena; lo decide el ancho.</p>
@@ -7310,7 +7310,7 @@ print(round(ucv_exacta(nn, 0.001), 4))
               <tbody>
                 <tr><th scope="row">Distancia al tercer vecino d₃</th><td>2</td></tr>
                 <tr><th scope="row">Longitud de la ventana 2d₃</th><td>4</td></tr>
-                <tr><th scope="row">f̂(4) = k / (2 n d₃)</th><td>0.0938</td></tr>
+                <tr><th scope="row">\(\hat f\)(4) = k / (2 n d₃)</th><td>0.0938</td></tr>
                 <tr><th scope="row">Observaciones dentro de [4 − d₃, 4 + d₃]</th><td>4</td></tr>
 
               </tbody>
@@ -7334,15 +7334,15 @@ print(round(ucv_exacta(nn, 0.001), 4))
             </button>
           </div>
           <div class="ejercicio-panel pista" id="apa-e3-pista" hidden>
-            <p style="margin:0;">Para f̂(7.5), d_k es la k-ésima distancia ordenada a 7.5, no al nodo de la rejilla más cercano. Para el área, integra por trapecios sobre la rejilla y piensa en cómo decaen sus colas lejos de los datos.</p>
+            <p style="margin:0;">Para \(\hat f\)(7.5), d_k es la k-ésima distancia ordenada a 7.5, no al nodo de la rejilla más cercano. Para el área, integra por trapecios sobre la rejilla y piensa en cómo decaen sus colas lejos de los datos.</p>
           </div>
           <div class="ejercicio-panel solucion" id="apa-e3-sol" hidden>
             <table>
               <caption>Los pasos de la solución, calculados en R por <code>precalculo/genera_apendicea.R</code>.</caption>
               <thead><tr><th scope="col">Paso</th><th scope="col">Valor</th></tr></thead>
               <tbody>
-                <tr><th scope="row">f̂(7.5) con k = 5</th><td>0.0780</td></tr>
-                <tr><th scope="row">f̂(7.5) con k = 10</th><td>0.0422</td></tr>
+                <tr><th scope="row">\(\hat f\)(7.5) con k = 5</th><td>0.0780</td></tr>
+                <tr><th scope="row">\(\hat f\)(7.5) con k = 10</th><td>0.0422</td></tr>
                 <tr><th scope="row">Densidad verdadera en 7.5</th><td>0.0419</td></tr>
                 <tr><th scope="row">Con k = 5, en el nodo de la rejilla más cercano a 7.5</th><td>0.0808</td></tr>
                 <tr><th scope="row">Área de la curva con k = 5</th><td>1.2437</td></tr>
@@ -7437,7 +7437,7 @@ print(round(ucv_exacta(nn, 0.001), 4))
         <div class="ejercicio-guiado">
           <p class="ejercicio-enunciado"><span class="ejercicio-numero">6.</span><strong>Qué pasa al mover k</strong>
             <span class="text-gray-500">(módulos 7 y 8)</span>.
-            Con X = {10, 12, 13, 15, 15.5, 17, 19, 20}, estima la densidad k-NN en x = 14 para k = 1, …, 8. Discute por qué la curva de f̂(14) contra k no es monótona.</p>
+            Con X = {10, 12, 13, 15, 15.5, 17, 19, 20}, estima la densidad k-NN en x = 14 para k = 1, …, 8. Discute por qué la curva de \(\hat f\)(14) contra k no es monótona.</p>
           <div class="ejercicio-acciones">
             <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="apa-e6-pista">
               <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista <i class="fas fa-chevron-down" aria-hidden="true"></i>
@@ -7454,18 +7454,18 @@ print(round(ucv_exacta(nn, 0.001), 4))
               <caption>Los pasos de la solución, calculados en R por <code>precalculo/genera_apendicea.R</code>.</caption>
               <thead><tr><th scope="col">Paso</th><th scope="col">Valor</th></tr></thead>
               <tbody>
-                <tr><th scope="row">f̂(14) con k = 1 (d = 1)</th><td>0.0625</td></tr>
-                <tr><th scope="row">f̂(14) con k = 2 (d = 1)</th><td>0.1250</td></tr>
-                <tr><th scope="row">f̂(14) con k = 3 (d = 1.5)</th><td>0.1250</td></tr>
-                <tr><th scope="row">f̂(14) con k = 4 (d = 2)</th><td>0.1250</td></tr>
-                <tr><th scope="row">f̂(14) con k = 5 (d = 3)</th><td>0.1042</td></tr>
-                <tr><th scope="row">f̂(14) con k = 6 (d = 4)</th><td>0.0938</td></tr>
-                <tr><th scope="row">f̂(14) con k = 7 (d = 5)</th><td>0.0875</td></tr>
-                <tr><th scope="row">f̂(14) con k = 8 (d = 6)</th><td>0.0833</td></tr>
+                <tr><th scope="row">\(\hat f\)(14) con k = 1 (d = 1)</th><td>0.0625</td></tr>
+                <tr><th scope="row">\(\hat f\)(14) con k = 2 (d = 1)</th><td>0.1250</td></tr>
+                <tr><th scope="row">\(\hat f\)(14) con k = 3 (d = 1.5)</th><td>0.1250</td></tr>
+                <tr><th scope="row">\(\hat f\)(14) con k = 4 (d = 2)</th><td>0.1250</td></tr>
+                <tr><th scope="row">\(\hat f\)(14) con k = 5 (d = 3)</th><td>0.1042</td></tr>
+                <tr><th scope="row">\(\hat f\)(14) con k = 6 (d = 4)</th><td>0.0938</td></tr>
+                <tr><th scope="row">\(\hat f\)(14) con k = 7 (d = 5)</th><td>0.0875</td></tr>
+                <tr><th scope="row">\(\hat f\)(14) con k = 8 (d = 6)</th><td>0.0833</td></tr>
 
               </tbody>
             </table>
-            <p class="ejercicio-respuesta"><strong>Discute por qué la curva de f̂(14) contra k no es monótona.</strong>
+            <p class="ejercicio-respuesta"><strong>Discute por qué la curva de \(\hat f\)(14) contra k no es monótona.</strong>
               Porque el numerador sube de uno en uno y el radio sube a saltos: de k = 1 a k = 2 el radio no cambia (13 y 15 están a la misma distancia) y la estimación se duplica, de 0.0625 a 0.1250; desde k = 5 el radio crece más rápido que k y la curva baja hasta 0.0833 con k = 8, que es 1/12: los ocho datos repartidos por igual en una ventana de largo 12.</p>
             <p class="ejercicio-lectura">Un k pequeño lee pocos datos (varianza); uno grande lee el rango entero (sesgo).</p>
           </div>
@@ -11468,11 +11468,19 @@ print(round(ucv_exacta(nn, 0.001), 4))
                  verdeSuave: 'rgba(26,115,88,0.18)', naranjaSuave: 'rgba(255,102,0,0.15)',
                  azulSuave: 'rgba(0,114,178,0.15)' };
 
+    // Una etiqueta con sombrero («f̂(4)») llega con el circunflejo COMBINANTE
+    // (U+0302), que ni Fira Code ni Montserrat traen: lo pone una fuente del
+    // sistema, que en negrita lo pierde y en otra máquina puede no centrarlo.
+    // La letra pasa por KaTeX, como en la prosa; sin KaTeX todavía, se queda.
+    const sombreroA = s => (window.katex
+      ? String(s).replace(/(\S)\u0302/g, (_, c) => katex.renderToString('\\hat ' + c))
+      : s);
+
     function lecturaA(raiz, pares) {
       const caja = raiz.querySelector('.simulador-lectura');
       if (!caja) return;
       caja.innerHTML = pares.map(p =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${p[0]}</span> ` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${sombreroA(p[0])}</span> ` +
         `<span class="lectura-valor">${p[1]}</span></span>`).join('');
     }
 
@@ -12206,7 +12214,7 @@ print(round(ucv_exacta(nn, 0.001), 4))
     // quisiera seleccionar una cifra. Al pararse se escribe la última.
     function lecturaSuaveA(raiz, pares) {
       const html = pares.map(p =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${p[0]}</span> ` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${sombreroA(p[0])}</span> ` +
         `<span class="lectura-valor">${p[1]}</span></span>`).join('');
       const ahora = performance.now();
       if (raiz._corre && raiz._tLectura && ahora - raiz._tLectura < 200) { raiz._pendiente = html; return; }
