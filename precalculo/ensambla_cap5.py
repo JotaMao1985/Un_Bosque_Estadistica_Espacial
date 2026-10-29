@@ -3089,14 +3089,34 @@ MODULOS = (MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6
 # =====================================================================
 # El registro del simulacro: lo que ve el estudiante, sin clave
 # =====================================================================
+# Un estimador con sombrero (K̂, λ̂) llega del exportador con el circunflejo
+# COMBINANTE (U+0302), que ni Montserrat ni Fira Code traen: lo pone una fuente
+# del sistema, que en negrita lo pierde y en otra máquina puede no centrarlo. Se
+# pasa a TeX aquí, al pintar, y no en el exportador: el mismo texto va al CSV de
+# Brightspace, que no tiene KaTeX. La forma, \(\hat K\), es la que el exportador
+# ya usa en la pregunta 11 (\(\hat G(r)\)).
+_SOMBRERO_TEX = {"λ": r"\lambda"}
+
+
+def _sombreros(texto):
+    def tex(c):
+        if c in _SOMBRERO_TEX:
+            return rf"\(\hat{_SOMBRERO_TEX[c]}\)"
+        if not c.isascii():
+            sys.exit(f"PARADO: «{c}\u0302» lleva sombrero y no está en _SOMBRERO_TEX")
+        return rf"\(\hat {c}\)"
+    trozos = texto.split("\u0302")
+    return "".join(t[:-1] + tex(t[-1]) for t in trozos[:-1]) + trozos[-1]
+
+
 def _pregunta_sim(q):
     # la otra forma de la pregunta 2 lo dice en su etiqueta: «11. cap. 4 · mód. 4.7 · la otra forma de la pregunta 2»
     forma = f" · {q['forma']}" if q.get("forma") else ""
     base = {"n": q["n"], "etiqueta": f"cap. {q['capitulo']} · mód. {q['modulos'].replace('-', '–')}{forma}",
-            "tipo": q["tipo"], "enunciado": q["enunciado"]}
+            "tipo": q["tipo"], "enunciado": _sombreros(q["enunciado"])}
     for campo in ("opciones", "filas", "respuestas", "items", "unidades"):
         if campo in q:
-            base[campo] = q[campo]
+            base[campo] = [_sombreros(x) for x in q[campo]] if isinstance(q[campo], list) else q[campo]
     return base
 
 
@@ -4356,6 +4376,8 @@ def main() -> int:
     for pista in ("correcta", "retro", "Correcto", "Cierta.", "Falsa."):
         if pista in reg:
             problemas.append(f"el simulacro publica «{pista}»")
+    if "\u0302" in reg:
+        problemas.append("el simulacro publica un sombrero combinante sin pasar a TeX (ver _sombreros)")
     if mods != MODULOS_ESCRITOS:
         problemas.append(f"módulos: {mods} y hay {MODULOS_ESCRITOS} escritos")
     if bl_r != bl_py:

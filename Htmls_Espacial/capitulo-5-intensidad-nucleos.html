@@ -8660,8 +8660,21 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
         }
         contenedor.appendChild(caja);
       });
-      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
-      katexEn(contenedor);
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo.
+      // Con los delimitadores del MÓDULO, no con los de katexEn: el exportador del
+      // quiz escribe \( … \), que katexEn no lee. Al cargar no se notaba, porque el
+      // módulo entero pasa por KaTeX después; tras «Borrar», las fórmulas de los dos
+      // simulacros (17 en el cap. 4, 16 en el 5) volvían crudas: «\(\hat G\)».
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(contenedor, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ]
+        });
+      }
 
       function respuesta(pr, i) {
         if (pr.tipo === 'coincidencia') {
@@ -13541,7 +13554,7 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
                       "n": 5,
                       "etiqueta": "cap. 4 · mód. 4.8 y 4.10",
                       "tipo": "aritmetica",
-                      "enunciado": "<p>Una parcela rectangular mide 84 m de este a oeste y 65 m de norte a sur. Dos árboles de la parcela están separados 16.5 m en la dirección este-oeste y 19.0 m en la dirección norte-sur. En la corrección de traslación de K̂ (módulos 4.8 y 4.10), el peso de una pareja es un cociente de dos áreas: la de la ventana y la del solape entre la ventana y su copia desplazada por el vector que une los dos puntos. Cuál de las dos va en el numerador es parte de lo que se pregunta. ¿Cuánto pesa esta pareja? Responde con tres decimales, escritos con punto decimal (no con coma).</p>",
+                      "enunciado": "<p>Una parcela rectangular mide 84 m de este a oeste y 65 m de norte a sur. Dos árboles de la parcela están separados 16.5 m en la dirección este-oeste y 19.0 m en la dirección norte-sur. En la corrección de traslación de \\(\\hat K\\) (módulos 4.8 y 4.10), el peso de una pareja es un cociente de dos áreas: la de la ventana y la del solape entre la ventana y su copia desplazada por el vector que une los dos puntos. Cuál de las dos va en el numerador es parte de lo que se pregunta. ¿Cuánto pesa esta pareja? Responde con tres decimales, escritos con punto decimal (no con coma).</p>",
                       "unidades": ""
                 },
                 {
@@ -13589,7 +13602,7 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
                       ],
                       "respuestas": [
                             "Maximiza la verosimilitud del proceso puntual con todos los puntos a la vez",
-                            "Busca el σ con el que la suma de 1/λ̂ sobre los puntos devuelve el área de la ventana",
+                            "Busca el σ con el que la suma de 1/\\(\\hat\\lambda\\) sobre los puntos devuelve el área de la ventana",
                             "Maximiza la verosimilitud del proceso puntual dejando fuera un punto cada vez",
                             "Minimiza el error cuadrático medio de la intensidad estimada, por validación cruzada",
                             "Minimiza el error cuadrático medio de la intensidad estimada con todos los puntos a la vez",
@@ -13600,7 +13613,7 @@ print(round(d_h, 10), round(d_p, 10), round(d_h / d_p, 10))
                       "n": 10,
                       "etiqueta": "cap. 5 · mód. 5.4",
                       "tipo": "ordenamiento",
-                      "enunciado": "<p>Sin corrección de borde, la integral de λ̂ sobre la ventana es la suma, sede por sede, de la fracción de su núcleo que cae dentro de la ventana (módulo 5.4). El núcleo es gaussiano e isotrópico, de desviación típica σ: reparte su masa por igual en todas las direcciones, y en la dirección perpendicular a un tramo recto del borde es una normal de desviación típica σ. Cada sede está lejos de cualquier otro tramo del borde (a más de 4σ).</p><p>Ordena las cinco sedes de la que <strong>menos</strong> aporta a la integral a la que <strong>más</strong>.</p><p><em>Cada sede en su puesto suma lo mismo.</em></p><p>Puede servirte: Φ(0.5) = 0.691, Φ(1) = 0.841 y Φ(2) = 0.977, con Φ la función de distribución de la normal estándar.</p>",
+                      "enunciado": "<p>Sin corrección de borde, la integral de \\(\\hat\\lambda\\) sobre la ventana es la suma, sede por sede, de la fracción de su núcleo que cae dentro de la ventana (módulo 5.4). El núcleo es gaussiano e isotrópico, de desviación típica σ: reparte su masa por igual en todas las direcciones, y en la dirección perpendicular a un tramo recto del borde es una normal de desviación típica σ. Cada sede está lejos de cualquier otro tramo del borde (a más de 4σ).</p><p>Ordena las cinco sedes de la que <strong>menos</strong> aporta a la integral a la que <strong>más</strong>.</p><p><em>Cada sede en su puesto suma lo mismo.</em></p><p>Puede servirte: Φ(0.5) = 0.691, Φ(1) = 0.841 y Φ(2) = 0.977, con Φ la función de distribución de la normal estándar.</p>",
                       "items": [
                             "Una sede dentro, a σ/2 de un tramo recto",
                             "Una sede en el vértice de un saliente agudo, de ángulo interior 60°",
