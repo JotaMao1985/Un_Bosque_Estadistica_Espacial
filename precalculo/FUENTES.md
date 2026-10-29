@@ -32,7 +32,7 @@ duplicar el procedimiento en dos sitios es cómo terminan discrepando.
 | 2 | Deserción y cobertura neta 2024 | **MEN** (`nudc-7mev`, datos.gov.co) | CC BY-SA 4.0 | SHA-256 | caps. 6, 7, 8 |
 | 3 | Colegios de Bogotá + perímetro urbano + localidades | **SED** y **SDP**, vía Datos Abiertos Bogotá / IDECA | CC BY-SA 4.0 · CC BY 4.0 | UUID de recurso (versión 12.25) + SHA-256 | caps. 4, 5 |
 | 4 | Normales climatológicas 1991-2020 | **IDEAM** (`nsz2-kzcq`, datos.gov.co) | CC BY-SA 4.0 | SHA-256 | cap. 9 |
-| 5 | Microdatos Saber 11, periodo 20224 | **ICFES** (`kgxf-xxbe`, datos.gov.co) | CC BY-SA 4.0 | SHA-256 | caps. 3, 4, 5, 6, 7, 8 |
+| 5 | Microdatos Saber 11, periodo 20224 (calendario A de 2022) | **ICFES** (`kgxf-xxbe`, datos.gov.co) | CC BY-SA 4.0 | SHA-256 | caps. 3, 4, 5, 6, 7, 8 |
 
 **Un segundo vacío, y este era peor.** Hasta 2026-09-10 la fuente #2 **no se descargaba**:
 `llave_divipola.R` leía `datos/crudo/men_2024.json` directamente y ningún guion del repositorio

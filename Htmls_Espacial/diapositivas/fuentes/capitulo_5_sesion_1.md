@@ -423,7 +423,7 @@ Ilustración en una dimensión: una sede a 0.5 σ del borde, con σ = 1. Se qued
 ???
 Es la imagen central del módulo: el capítulo la dibuja en 3D (la lámina 26 la proyecta); aquí va en una dimensión, con su cifra. En una dimensión se calcula con la normal: la fracción del núcleo que queda a un lado del borde, a media σ, es 0.69 (la función de distribución normal en 0.5), y se sale el resto. En Kennedy, e(x) se calcula con la misma idea en dos dimensiones. Cotejo: ilustración propia (`recursos/cap5/genera_figuras_s1.R`).
 
-## Lo que el mapa no deja ver: ¿la integral de λ̂ devuelve n?
+## Lo que el mapa no deja ver: ¿la integral de \(\hat\lambda\) devuelve n?
 
 $$\int_W \hat\lambda(u)\,du \;\overset{?}{=}\; n$$
 
@@ -571,7 +571,7 @@ Unos 10 minutos. Este módulo no entra en el Quiz 2 (el quiz cubre los módulos 
 |||
 
 ::: ejemplo Tres capas sobre las mismas sedes
-**Qué ilustra:** que «el mapa de calor» no es un solo mapa. **De dónde sale:** las sedes del perímetro urbano (SED) y los evaluados en Saber 11, periodo 20224 (ICFES); el mismo σ = 720 m (el valor por defecto de `bw.CvL`). **Por qué importa:** el mapa que se publique se leerá como demanda.
+**Qué ilustra:** que «el mapa de calor» no es un solo mapa. **De dónde sale:** las sedes del perímetro urbano (SED) y los evaluados en Saber 11 de 2022 (calendario A); el mismo σ = 720 m (el valor por defecto de `bw.CvL`). **Por qué importa:** el mapa que se publique se leerá como demanda.
 :::
 
 ::: info Dato
@@ -579,7 +579,7 @@ Unos 10 minutos. Este módulo no entra en el Quiz 2 (el quiz cubre los módulos 
 :::
 
 ???
-Entre el primero y el segundo se cae media capa: una sede de primaria no tiene undécimo. Pesar por Saber 11 sin decirlo convertiría un mapa de oferta en uno de bachillerato sin que el título cambiara. El tercero cuenta personas, no edificios: su unidad ya no es «sedes por km²», y por eso cada mapa va a su propia escala. Los máximos son 14.5 sedes por km² (oferta), 9.5 (bachillerato) y 1579 evaluados por km² (estudiantes). Se parecen mucho, pero ninguna pareja correlaciona 1; la que menos se parece es oferta–estudiantes. Simulador «Las tres capas, y cuánto se parecen» (módulo 5). Con la corrección de borde por defecto de `density` las correlaciones salen 0.9391, 0.8555 y 0.9155; las cifras y los mapas del capítulo usan `diggle = TRUE` y dan las de la diapositiva. Hasta la tercera revisión la versión de Python del capítulo usaba la de por defecto y lo llamaba «otra discretización»; hoy divide como Diggle y da las mismas cifras que R. «Sedes con grado 11» son las sedes con al menos un evaluado en el periodo 20224. Cotejo: `datos › m5.capas`, `datos › m5.cor_oferta_grado11`, `datos › m5.cor_oferta_estudiantes`, `datos › m5.cor_grado11_estudiantes`, `recomputo › capas_defecto.cor_of_11`, `recomputo › capas_defecto.cor_of_es`, `recomputo › capas_defecto.cor_11_es`.
+Entre el primero y el segundo se cae media capa: una sede de primaria no tiene undécimo. Pesar por Saber 11 sin decirlo convertiría un mapa de oferta en uno de bachillerato sin que el título cambiara. El tercero cuenta personas, no edificios: su unidad ya no es «sedes por km²», y por eso cada mapa va a su propia escala. Los máximos son 14.5 sedes por km² (oferta), 9.5 (bachillerato) y 1579 evaluados por km² (estudiantes). Se parecen mucho, pero ninguna pareja correlaciona 1; la que menos se parece es oferta–estudiantes. Simulador «Las tres capas, y cuánto se parecen» (módulo 5). Con la corrección de borde por defecto de `density` las correlaciones salen 0.9391, 0.8555 y 0.9155; las cifras y los mapas del capítulo usan `diggle = TRUE` y dan las de la diapositiva. Hasta la tercera revisión la versión de Python del capítulo usaba la de por defecto y lo llamaba «otra discretización»; hoy divide como Diggle y da las mismas cifras que R. «Sedes con grado 11» son las sedes con al menos un evaluado en esa aplicación. El ICFES nombra cada aplicación con el año y un dígito de periodo: 20224 es la de calendario A de 2022. Cotejo: `datos › m5.capas`, `datos › m5.cor_oferta_grado11`, `datos › m5.cor_oferta_estudiantes`, `datos › m5.cor_grado11_estudiantes`, `recomputo › capas_defecto.cor_of_11`, `recomputo › capas_defecto.cor_of_es`, `recomputo › capas_defecto.cor_11_es`.
 
 ## Donde las manchas no coinciden, el edificio y el estudiante dejan de ser lo mismo {columnas=3:2}
 

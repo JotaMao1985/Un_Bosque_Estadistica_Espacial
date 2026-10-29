@@ -22,13 +22,13 @@ Los enteros 0, 1 y 2 usados como constantes de definición no se registran: no s
 
 ## Resumen
 
-- 421 apariciones de cifras en 38 diapositivas; 213 cifras distintas.
+- 422 apariciones de cifras en 38 diapositivas; 214 cifras distintas.
 - VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo: 223
 - VERIFICADA · re-ejecutada en R: 82
 - PARÁMETRO de diseño: 50
 - VERIFICADA · aritmética sobre cifras verificadas: 26
 - CONTRASTADA · salida de R (JSON del capítulo): 23
-- CONTRASTADA · texto del capítulo: 8
+- CONTRASTADA · texto del capítulo: 9
 - REFERENCIA · ficha de ayuda del paquete: 6
 - MEDIDA · depende de la máquina (con tolerancia): 3
 
@@ -384,7 +384,7 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `0.69` | notas | …da a un lado del borde, a media σ, es 0.69 (la función de distribución… | Φ(0.5) = 0.6914624613 | VERIFICADA · aritmética sobre cifras verificadas |
 | `0.5` | notas | …(la función de distribución normal en 0.5), y se sale el resto. En Ken… | distancia de la sede al borde, en unidades de σ, en la ilustración en una dimensión | PARÁMETRO de diseño |
 
-### Diapositiva 24 · Lo que el mapa no deja ver: ¿la integral de λ̂ devuelve n?
+### Diapositiva 24 · Lo que el mapa no deja ver: ¿la integral de \(\hat\lambda\) devuelve n?
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
@@ -503,9 +503,9 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
-| `11` | cuerpo | …urbano (SED) y los evaluados en Saber 11, periodo 20224 (ICFES); el mi… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
-| `20224` | cuerpo | …y los evaluados en Saber 11, periodo 20224 (ICFES); el mismo σ = 720 m… | texto del capítulo: «periodo 20224» | CONTRASTADA · texto del capítulo |
-| `720` | cuerpo | …, periodo 20224 (ICFES); el mismo σ = 720 m (el valor por defecto de )… | datos › m5.sigma_m = 720.3691455; recomputo › capas.sigma_m = 720.3691455 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
+| `11` | cuerpo | …urbano (SED) y los evaluados en Saber 11 de 2022 (calendario A); el mi… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
+| `2022` | cuerpo | …(SED) y los evaluados en Saber 11 de 2022 (calendario A); el mismo σ =… | el año de la aplicación: el ICFES escribe el periodo como año + dígito | CONTRASTADA · texto del capítulo |
+| `720` | cuerpo | …de 2022 (calendario A); el mismo σ = 720 m (el valor por defecto de )… | datos › m5.sigma_m = 720.3691455; recomputo › capas.sigma_m = 720.3691455 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `1062` | cuerpo | …eerá como demanda. ::: ::: info Dato 1 062 de las 2 107 sedes (50.4 %)… | datos › m5.capas.grado_11.n = 1062; recomputo › capas.n_grado11 = 1062 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `2107` | cuerpo | …anda. ::: ::: info Dato 1 062 de las 2 107 sedes (50.4 %) tienen grado… | datos › m5.capas.oferta.n = 2107; recomputo › urbana.n_urbana = 2107 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
 | `50.4` | cuerpo | …: info Dato 1 062 de las 2 107 sedes (50.4 %) tienen grado 11; son 145… | datos › m5.capas.grado_11.pct_de_las_sedes = 50.40341718; recomputo › capas.pct_grado11 = 50.40341718 | VERIFICADA · re-ejecutada en R y coincide con el JSON del capítulo |
@@ -522,7 +522,8 @@ Cada una se vuelve a evaluar con el recómputo en R cada vez que se corre el ver
 | `0.8555` | notas | …de las correlaciones salen 0.9391, 0.8555 y 0.9155; las cifras y los m… | recomputo › capas_defecto.cor_of_es = 0.8555237819 | VERIFICADA · re-ejecutada en R |
 | `0.9155` | notas | …correlaciones salen 0.9391, 0.8555 y 0.9155; las cifras y los mapas de… | recomputo › capas_defecto.cor_11_es = 0.9155181999 | VERIFICADA · re-ejecutada en R |
 | `11` | notas | …mismas cifras que R. «Sedes con grado 11» son las sedes con al menos u… | grado 11: el último grado de la educación media colombiana, el que evalúa la prueba Saber 11 | PARÁMETRO de diseño |
-| `20224` | notas | …on al menos un evaluado en el periodo 20224. Cotejo: , , , , , , .… | texto del capítulo: «periodo 20224» | CONTRASTADA · texto del capítulo |
+| `20224` | notas | …ón con el año y un dígito de periodo: 20224 es la de calendario A de 2… | texto del capítulo: «periodo 20224» | CONTRASTADA · texto del capítulo |
+| `2022` | notas | …riodo: 20224 es la de calendario A de 2022. Cotejo: , , , , , , .… | el año de la aplicación: el ICFES escribe el periodo como año + dígito | CONTRASTADA · texto del capítulo |
 
 ### Diapositiva 32 · Donde las manchas no coinciden, el edificio y el estudiante dejan de ser lo mismo
 
