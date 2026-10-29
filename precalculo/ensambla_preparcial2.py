@@ -1201,8 +1201,8 @@ BLOQUE_B = [
          respuesta=float(cn('forzado.correcto')), tolerancia=0.005, unidad="sedes/km²",
          retroAcierto=(
              f"En el máximo, la derivada respecto del intercepto es n menos la suma de la cuadratura "
-             f"—λ̂ por el peso de cada punto de la cuadratura—, y se anula: λ̂·Σw = n. Sin covariables λ̂ es una "
-             f"constante, así que λ̂ = n/Σw = {cn('forzado.correcto')}. La fórmula cerrada da "
+             f"—$\\hat\\lambda$ por el peso de cada punto de la cuadratura—, y se anula: $\\hat\\lambda$·Σw = n. Sin covariables $\\hat\\lambda$ es una "
+             f"constante, así que $\\hat\\lambda$ = n/Σw = {cn('forzado.correcto')}. La fórmula cerrada da "
              f"{dist('forzado', 'formula_cerrada')}: la cuadratura deja {cn('forzado.sin_contar_km2')} "
              f"de Kennedy sin contar, y el modelo reparte las {cn('forzado.n')} sedes sobre el área "
              f"que la cuadratura ve. Es la misma identidad que el módulo 8 mide en la ciudad "
@@ -1210,8 +1210,8 @@ BLOQUE_B = [
          retroFallo=(
              f"Si respondiste {dist('forzado', 'formula_cerrada')}, usaste el área de la ventana: es la "
              f"fórmula cerrada, la que <code>ppm</code> usa sin forcefit. Con la cuadratura, lo que "
-             f"iguala n es la suma de los pesos por λ̂, no la integral sobre la ventana entera: "
-             f"λ̂ = n/Σw.")),
+             f"iguala n es la suma de los pesos por $\\hat\\lambda$, no la integral sobre la ventana entera: "
+             f"$\\hat\\lambda$ = n/Σw.")),
 
     preg("opcion", "cap5", 9,
          f"Con pu, las sedes del perímetro urbano, y xc e yc, sus coordenadas este y norte centradas "
@@ -1323,7 +1323,7 @@ BLOQUE_B = [
                 f"módulo 10 del capítulo 5 lo resume así, y la frase se queda corta: ese radio dice hasta "
                 f"dónde arrastra K el exceso, no hasta dónde llega. Y ni siquiera lo de "
                 f"más allá queda probado: la K inhomogénea, como la calcula <code>Kinhom</code> por "
-                f"defecto, divide por una λ̂ suavizada con un núcleo de σ ≈ "
+                f"defecto, divide por una $\\hat\\lambda$ suavizada con un núcleo de σ ≈ "
                 f"{cn('kinhom_nucleo.sigma_nucleo_m')}, que absorbe lo que varía a escalas de varios "
                 f"kilómetros."),
              op("Que está en el barrido entero: la curva observada queda por encima de la línea del 1 "
@@ -1467,7 +1467,7 @@ BLOQUE_C = [
                 f"atracción entre sedes, o una intensidad que cambia a escalas más finas que la del "
                 f"modelo; el Cox log-gaussiano del módulo 11 es justo eso, y ajusta el mismo exceso. "
                 f"Ojo también con quién se lleva el exceso de las distancias largas: la K "
-                f"inhomogénea del capítulo divide cada pareja por una λ̂ suavizada de las propias sedes "
+                f"inhomogénea del capítulo divide cada pareja por una $\\hat\\lambda$ suavizada de las propias sedes "
                 f"—la que <code>Kinhom</code> estima por defecto, con un núcleo de σ ≈ "
                 f"{cn('kinhom_nucleo.sigma_nucleo_m')}—, no por el gradiente del modelo, y un núcleo de "
                 f"ese ancho se traga, en el dato y en cada simulación, lo que varía a escalas de varios "
@@ -1653,7 +1653,7 @@ BLOQUE_C = [
          # falsas eran justo las que decían que no, y el conjunto salía sin
          # saber nada. Ahora una falsa dice que entra, y en todos igual
          # (forma, ronda 5).
-         "Recorre los estimadores uno por uno —λ̂, F, K, la KDE y <code>ppm</code>— y pregúntate, en "
+         "Recorre los estimadores uno por uno —$\\hat\\lambda$, F, K, la KDE y <code>ppm</code>— y pregúntate, en "
          "cada uno, si usa la ventana y para qué.",
          opciones=[
              op(f"En F, solo cuentan como sitios desde los que medir los que caen dentro de la "
@@ -1679,7 +1679,7 @@ BLOQUE_C = [
              # «absoluta = falsa» (redacción, ronda 5).
              # Contraria a la de «en todas del mismo modo», y falsa como ella: un
              # par que se contradice sin clave (H17, ronda 5).
-             op(f"En K, corregida o no, la ventana solo entra por λ̂: las {c('c4m8_parejas')} parejas "
+             op(f"En K, corregida o no, la ventana solo entra por $\\hat\\lambda$: las {c('c4m8_parejas')} parejas "
                 f"ordenadas a 1&nbsp;km o menos se cuentan igual en cualquier ventana que contenga las "
                 f"sedes.", False,
                 "Sin corregir, sí; corregida, entra también por la corrección de borde, que pesa cada "
@@ -1687,7 +1687,7 @@ BLOQUE_C = [
                 "parejas son las mismas, pero en otra ventana no pesan lo mismo. Sin la ventana, K no "
                 "sabría qué parejas se quedaron sin observar, y saldría más baja cuanto más lejos "
                 "mira."),
-             op("La ventana entra en λ̂ = n/|W| y en las funciones de distancia, y en todas del mismo "
+             op("La ventana entra en $\\hat\\lambda$ = n/|W| y en las funciones de distancia, y en todas del mismo "
                 "modo: dividiendo por su área, |W|.", False,
                 "Entra en todas, pero no del mismo modo: en F, por los sitios desde los que se mide; "
                 "en K, por los pesos de cada pareja; en la KDE, por el divisor e(u); en ppm, por la "
@@ -2565,12 +2565,35 @@ def mod_rutinas(num):
 # enunciado, que se pinta como su encabezado; si el ancla no estuviera en el
 # enunciado, la respuesta contestaría a una pregunta que nadie ve.
 # =====================================================================
+# Un estimador con sombrero (K̂, λ̂) llega de R con el circunflejo COMBINANTE
+# (U+0302), que ni Montserrat ni Fira Code traen: lo pone una fuente del
+# sistema, y en negrita lo pierde. Los pasos de la solución van en <th>, y
+# «K̂(10 km) sin corregir» se leía «K(10 km)», la K teórica en vez de la
+# estimada. Solo la letra pasa a TeX; el resto se queda como lo escribió R,
+# y el JSON no cambia (es dato, y el arnés lo lee tal cual).
+_SOMBRERO = re.compile("(\\w)̂")
+_SOMBRERO_TEX = {"λ": r"\lambda"}
+
+
+def _sombreros(texto):
+    def tex(m):
+        c = m.group(1)
+        if c in _SOMBRERO_TEX:
+            return rf"\(\hat{_SOMBRERO_TEX[c]}\)"
+        if not c.isascii():
+            sys.exit(f"PARADO: «{c}̂» lleva sombrero y no está en _SOMBRERO_TEX")
+        return rf"\(\hat {c}\)"
+    return _SOMBRERO.sub(tex, texto)
+
+
 def _codigo(texto):
     """Las comillas invertidas pasan a <code>, y su contenido se ESCAPA:
     `D <- distfun(fallas)` llevaba un «<» crudo dentro del HTML, que el
-    navegador perdona y un extractor de texto se come entero."""
-    return re.sub(r"`([^`]+)`", lambda m: "<code>" + _html.escape(m.group(1), quote=False) + "</code>",
-                  texto)
+    navegador perdona y un extractor de texto se come entero. Fuera del
+    código, los sombreros pasan a TeX; dentro, KaTeX no entra."""
+    trozos = re.split(r"(`[^`]+`)", texto)
+    return "".join("<code>" + _html.escape(t[1:-1], quote=False) + "</code>" if i % 2 else _sombreros(t)
+                   for i, t in enumerate(trozos))
 
 
 def _pregunta(pide):
@@ -2602,7 +2625,7 @@ def _valor(v):
 
 def ejercicio(k, e):
     pasos = "".join(
-        f'                <tr><th scope="row">{p["paso"]}</th><td>{_valor(p["valor"])}</td></tr>\n'
+        f'                <tr><th scope="row">{_sombreros(p["paso"])}</th><td>{_valor(p["valor"])}</td></tr>\n'
         for p in e["pasos"])
     extra = ""
     cuad = e["solucion"].get("cuadrantes")
@@ -3180,6 +3203,14 @@ def main() -> int:
         problemas.append(f"quedan componentes de demostración: {', '.join(restos)}")
     if "<U+" in doc:
         problemas.append("el documento lleva codificación rota (<U+…>)")
+    # Ningún sombrero combinante en lo que se pinta (ver `_sombreros`). Quedan
+    # fuera el JSON incrustado, que es dato, y el código, que se copia.
+    pintado = re.sub(r"\n    const DATOS_PRE2 = \{.*?\};\n", "\n", doc, flags=re.S)
+    pintado = re.sub(r"<pre\b.*?</pre>|<code\b.*?</code>", "", pintado, flags=re.S)
+    sueltos = [pintado[max(0, m.start() - 30):m.end() + 10].replace("\n", " ")
+               for m in re.finditer("̂", pintado)]
+    if sueltos:
+        problemas.append(f"{len(sueltos)} sombreros combinantes sin pasar a TeX: «{sueltos[0]}»")
     problemas.extend(revisa_preguntas())
     registradas = len(re.findall(r"\n    AUTOEVALUACIONES\['", doc))
     contenedores = len(re.findall(r'data-quiz="', marcado))

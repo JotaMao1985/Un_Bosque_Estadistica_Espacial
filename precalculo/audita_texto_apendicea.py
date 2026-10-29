@@ -47,7 +47,7 @@ import json
 import re
 import sys
 
-from audita_texto_base import Auditor, SALIDAS, busca_capitulo
+from audita_texto_base import Auditor, SALIDAS, busca_capitulo, sombrero_del_json
 
 # El tope es una ALARMA contra un ensamblado desbocado, no un presupuesto
 # (ver `audita_texto_base.py`). La revisión 2 (2026-10-02) subió el documento
@@ -196,7 +196,8 @@ def respuestas_publicadas(a: Auditor) -> None:
         m = re.search(rf'id="apa-e{k}-sol".*?</div>', a.doc, re.S)
         if not a.exige(m is not None, f"el panel de la solución {k} está en el documento"):
             continue
-        panel = m.group(0)
+        # El sombrero va en TeX en la página y combinante en el JSON.
+        panel = sombrero_del_json(m.group(0))
         n_pub = panel.count('class="ejercicio-respuesta"')
         a.exige(n_pub == len(resp) and len(resp) > 0,
                 f"la solución {k} publica todas sus respuestas", f"{n_pub} de {len(resp)}")

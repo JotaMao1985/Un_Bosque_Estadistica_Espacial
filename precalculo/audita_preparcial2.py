@@ -785,8 +785,12 @@ def _cifra_en(token, pool):
 def marcado_de(html: str) -> str:
     """Solo el marcado de los módulos. El HTML lleva además el JSON entero
     incrustado, y buscar en todo el archivo hacía imposible que «está en la
-    página» fallara: el texto quitado de la página seguía en el JSON."""
-    return plano("".join(re.findall(r'<template id="module-.*?</template>', html, re.S)))
+    página» fallara: el texto quitado de la página seguía en el JSON.
+    El ensamblador pinta el sombrero del JSON (K̂, con el U+0302 combinante)
+    como TeX, \\(\\hat K\\): se devuelve a la forma del JSON para compararlos."""
+    marcado = plano("".join(re.findall(r'<template id="module-.*?</template>', html, re.S)))
+    return re.sub(r"\\\(\\hat ?(\\lambda|[A-Za-z])\\\)",
+                  lambda m: {"\\lambda": "λ"}.get(m.group(1), m.group(1)) + "̂", marcado)
 
 
 def familia_6(a: Auditoria, D: dict, html: str):

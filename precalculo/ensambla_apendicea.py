@@ -2978,9 +2978,32 @@ MOD12 = cabecera(
 # =====================================================================
 # MÓDULO 13 · Autoevaluación, ejercicios y lecturas
 # =====================================================================
+# Un estimador con sombrero (f̂) llega de R con el circunflejo COMBINANTE
+# (U+0302), que ni Montserrat ni Fira Code traen: lo pone una fuente del
+# sistema, y en negrita lo pierde. Los pasos de la solución van en <th>, y
+# «f̂(14) con k = 3» se leía «f(14)», la densidad verdadera en vez de la
+# estimada. Solo la letra pasa a TeX; el resto se queda como lo escribió R,
+# y el JSON no cambia.
+_SOMBRERO = _re.compile("(\\w)\u0302")
+_SOMBRERO_TEX = {"λ": r"\lambda"}
+
+
+def _sombreros(texto):
+    def tex(m):
+        c = m.group(1)
+        if c in _SOMBRERO_TEX:
+            return rf"\(\hat{_SOMBRERO_TEX[c]}\)"
+        if not c.isascii():
+            sys.exit(f"PARADO: «{c}\u0302» lleva sombrero y no está en _SOMBRERO_TEX")
+        return rf"\(\hat {c}\)"
+    return _SOMBRERO.sub(tex, texto)
+
+
 def _codigo(texto):
-    """Los acentos graves del enunciado pasan a <code>, no se borran."""
-    return _re.sub(r"`([^`]+)`", r"<code>\1</code>", texto)
+    """Los acentos graves del enunciado pasan a <code>, no se borran. Fuera
+    del código, los sombreros pasan a TeX; dentro, KaTeX no entra."""
+    trozos = _re.split(r"(`[^`]+`)", texto)
+    return "".join(f"<code>{t[1:-1]}</code>" if i % 2 else _sombreros(t) for i, t in enumerate(trozos))
 
 
 def _pregunta(pide):
@@ -3175,11 +3198,19 @@ JS_PREAMBULO = r"""
                  verdeSuave: 'rgba(26,115,88,0.18)', naranjaSuave: 'rgba(255,102,0,0.15)',
                  azulSuave: 'rgba(0,114,178,0.15)' };
 
+    // Una etiqueta con sombrero («f̂(4)») llega con el circunflejo COMBINANTE
+    // (U+0302), que ni Fira Code ni Montserrat traen: lo pone una fuente del
+    // sistema, que en negrita lo pierde y en otra máquina puede no centrarlo.
+    // La letra pasa por KaTeX, como en la prosa; sin KaTeX todavía, se queda.
+    const sombreroA = s => (window.katex
+      ? String(s).replace(/(\S)\u0302/g, (_, c) => katex.renderToString('\\hat ' + c))
+      : s);
+
     function lecturaA(raiz, pares) {
       const caja = raiz.querySelector('.simulador-lectura');
       if (!caja) return;
       caja.innerHTML = pares.map(p =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${p[0]}</span> ` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${sombreroA(p[0])}</span> ` +
         `<span class="lectura-valor">${p[1]}</span></span>`).join('');
     }
 
@@ -3927,7 +3958,7 @@ ANIMACIONES_JS = r"""
     // quisiera seleccionar una cifra. Al pararse se escribe la última.
     function lecturaSuaveA(raiz, pares) {
       const html = pares.map(p =>
-        `<span class="lectura-item"><span class="lectura-etiqueta">${p[0]}</span> ` +
+        `<span class="lectura-item"><span class="lectura-etiqueta">${sombreroA(p[0])}</span> ` +
         `<span class="lectura-valor">${p[1]}</span></span>`).join('');
       const ahora = performance.now();
       if (raiz._corre && raiz._tLectura && ahora - raiz._tLectura < 200) { raiz._pendiente = html; return; }
@@ -4617,6 +4648,13 @@ def main() -> int:
         problemas.append(f"opciones sin `retro`: {opciones_quiz - retros} de {opciones_quiz}")
     if "demo-" in marcado:
         problemas.append("quedan restos de los módulos de demostración en el marcado")
+    # Ningún sombrero combinante en lo que se pinta (ver `_sombreros`; las
+    # lecturas de los simuladores pasan por `sombreroA`). Queda fuera el código.
+    pintado = _re.sub(r"<script\b.*?</script>|<pre\b.*?</pre>|<code\b.*?</code>", "", marcado, flags=_re.S)
+    sueltos = [pintado[max(0, m.start() - 30):m.end() + 10].replace("\n", " ")
+               for m in _re.finditer("\u0302", pintado)]
+    if sueltos:
+        problemas.append(f"{len(sueltos)} sombreros combinantes sin pasar a TeX: «{sueltos[0]}»")
     if problemas:
         print("\n  PROBLEMAS:")
         for p in problemas:
