@@ -1554,7 +1554,7 @@ MAPAS$municipios <- geo_poligonos(
     list(id = "tasa", etiqueta = "Puntaje global medio (tasa)",
          leyenda = "puntaje medio", valor = val_por_divipola(mm, "punt"),
          n_clases = 5, estilo = "quantile"),
-    list(id = "presencia", etiqueta = "Presencia en la cohorte 20224",
+    list(id = "presencia", etiqueta = "Presencia en Saber 11 de 2022 (calendario A)",
          leyenda = "1 = con estudiantes, 0 = ninguno", valor = presencia,
          n_clases = 2, estilo = "equal")))
 
