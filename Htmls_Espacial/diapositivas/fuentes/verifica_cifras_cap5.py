@@ -439,7 +439,7 @@ def verifica(occ):
             errores.append(f"SIN REGISTRAR · diapositiva {o['n']} «{o['titulo'][:40]}» ({o['donde']}): {o['token']}  ← …{o['ctx']}…")
             filas.append({**o, "estado": "SIN REGISTRAR", "detalle": "", "tipo": None})
             continue
-        mejor = None
+        mejor, fallida = None, None
         for e in cands:
             clave = (id(e), o["token"])
             if clave not in cache:
@@ -450,7 +450,14 @@ def verifica(occ):
             if ok:
                 mejor = (tipo, det)
                 break
+            fallida = fallida or det
             mejor = mejor or ("error", det)
+        # Si la primera candidata falla y casa otra, la cifra NO se da por buena en silencio: la entrada que la
+        # registraba dejó de cuadrar, y la que cuadra suele ser un número igual con otro significado (el 6.05 de
+        # chorley por los 6 minutos de la apertura). Hasta el 2026-10-29 pasaba con «✓».
+        if mejor[0] != "error" and fallida:
+            errores.append(f"OTRA FUENTE · diapositiva {o['n']} «{o['titulo'][:40]}»: {o['token']} → su entrada falla "
+                           f"({fallida}) y casa otra ({mejor[1]})")
         if mejor[0] == "error":
             errores.append(f"NO COINCIDE · diapositiva {o['n']} «{o['titulo'][:40]}»: {o['token']} → {mejor[1]}")
             filas.append({**o, "estado": "ERROR", "detalle": mejor[1], "tipo": None})
@@ -660,9 +667,17 @@ def main() -> int:
     sesiones = [1, 2]
     if "--sesion" in args:
         sesiones = [int(args[args.index("--sesion") + 1])]
-    cargar_entradas(sys.modules[__name__], sesiones)
     rc = 0
     for s in sesiones:
+        # Las entradas se cargan SESIÓN POR SESIÓN. Cargadas las dos a la vez, una entrada de la sesión 1 sin `en=` ni
+        # `cx=` valía también en la 2, y como `verifica` se queda con la primera candidata que cuadra, le ganaba a la
+        # propia: el registro de la sesión 2 salía con 42 filas cambiadas a una fuente que casaba por casualidad
+        # («6 min» de la apertura contra el máximo de chorley, 6.05; «20 semillas» contra «el tope subido a 20»;
+        # «78 curvas» contra una celda de 77.8 m), y todo con «✓». Con `--sesion 2` salía bien: el registro dependía
+        # de cómo se llamara al verificador.
+        for lista in (REG_ENTRADAS, CERRADAS, AFIRMACIONES, TABLAS):
+            lista.clear()
+        cargar_entradas(sys.modules[__name__], [s])
         ruta = FUENTES_MD[s]
         if "--fuente" in args:
             ruta = Path(args[args.index("--fuente") + 1])

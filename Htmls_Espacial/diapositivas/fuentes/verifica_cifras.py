@@ -795,7 +795,7 @@ def verifica(occ):
             errores.append(f"SIN REGISTRAR · diapositiva {o['n']} «{o['titulo'][:40]}» ({o['donde']}): {o['token']}  ← …{o['ctx']}…")
             filas.append({**o, "estado": "SIN REGISTRAR", "detalle": "", "tipo": None})
             continue
-        mejor = None
+        mejor, fallida = None, None
         for e in cands:
             clave = (id(e), o["token"])
             if clave not in cache:
@@ -806,7 +806,14 @@ def verifica(occ):
             if ok:
                 mejor = (tipo, det)
                 break
+            fallida = fallida or det
             mejor = mejor or ("error", det)
+        # Si la primera candidata falla y casa otra, la cifra NO se da por buena en silencio: la entrada que la
+        # registraba dejó de cuadrar, y la que cuadra suele ser un número igual con otro significado. Hasta el
+        # 2026-10-29 pasaba con «✓» (lo destapó el verificador del capítulo 5).
+        if mejor[0] != "error" and fallida:
+            errores.append(f"OTRA FUENTE · diapositiva {o['n']} «{o['titulo'][:40]}»: {o['token']} → su entrada falla "
+                           f"({fallida}) y casa otra ({mejor[1]})")
         if mejor[0] == "error":
             errores.append(f"NO COINCIDE · diapositiva {o['n']} «{o['titulo'][:40]}»: {o['token']} → {mejor[1]}")
             filas.append({**o, "estado": "ERROR", "detalle": mejor[1], "tipo": None})
