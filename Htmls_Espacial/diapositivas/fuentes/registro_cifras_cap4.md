@@ -18,14 +18,13 @@ Los enteros 0, 1 y 2 usados como constantes de definición («R < 1», «1 − G
 
 ## Resumen
 
-- 312 apariciones de cifras en 35 diapositivas; 173 cifras distintas.
-- CONTRASTADA · salida de R (JSON): 108
+- 314 apariciones de cifras en 35 diapositivas; 173 cifras distintas.
+- CONTRASTADA · salida de R (JSON): 112
 - VERIFICADA · recómputo independiente: 82
-- VERIFICADA · aritmética sobre el JSON: 52
+- VERIFICADA · aritmética sobre el JSON: 53
 - REFERENCIA externa cotejada: 31
 - PARÁMETRO de diseño: 23
 - CONTRASTADA · texto del capítulo: 13
-- [SIN VERIFICAR]: 3
 
 ## Hallazgos en el material del capítulo
 
@@ -441,18 +440,20 @@ Discrepancias que aparecieron al cotejar. No son errores de la presentación: se
 
 | Cifra | Dónde | Contexto | Comprobación | Estado |
 |---|---|---|---|---|
+| `4.4.1` | cuerpo | …= **5868** m. En el Mac del autor (R 4.4.1, 12 núcleos), la isotrópica… | datos › m10.coste.medido_en = R 4.4.1, aarch64-apple-darwin20 | CONTRASTADA · salida de R (JSON) |
 | `29.6` | cuerpo | …to La K sin corregir queda hasta un **29.6 %** por debajo de la correg… | datos › m10.sesgo_max_pct = 29.6053 \| soluciones › e5.solucion.sesgo_max_pct = 29.6050985 | CONTRASTADA · salida de R (JSON) |
-| `5868` | cuerpo | …de la corregida; el máximo, en r = **5868** m. La isotrópica cuesta **… | datos › m10.r_sesgo_max = 5868.12 \| un cuarto del lado corto de la ventana = 5868.125 | VERIFICADA · aritmética sobre el JSON |
-| `555` | cuerpo | …= **5868** m. La isotrópica cuesta **555** veces más que la de traslac… | datos › m10.coste.veces_isotropica_sobre_traslacion = 555 | [SIN VERIFICAR] |
-| `4.4.1` | notas | …el capítulo los declara medidos en R 4.4.1 sobre un Mac de 12 núcleos … | datos › m10.coste.medido_en = R 4.4.1, aarch64-apple-darwin20 | CONTRASTADA · salida de R (JSON) |
+| `5868` | cuerpo | …de la corregida; el máximo, en r = **5868** m. En el Mac del autor (R… | datos › m10.r_sesgo_max = 5868.12 \| un cuarto del lado corto de la ventana = 5868.125 | VERIFICADA · aritmética sobre el JSON |
+| `12` | cuerpo | …**5868** m. En el Mac del autor (R , 12 núcleos), la isotrópica tardó… | datos › m10.coste.nucleos = 12 | CONTRASTADA · salida de R (JSON) |
+| `555` | cuerpo | …, 12 núcleos), la isotrópica tardó **555** veces más que la de traslac… | datos › m10.coste.veces_isotropica_sobre_traslacion = 555; datos › m10.correcciones: segundos isotrópica / traslación = 555 | VERIFICADA · aritmética sobre el JSON |
+| `4.4.1` | notas | …del JSON del precálculo, medidos en R 4.4.1 sobre un Mac de 12 núcleos… | datos › m10.coste.medido_en = R 4.4.1, aarch64-apple-darwin20 | CONTRASTADA · salida de R (JSON) |
 | `22` | notas | …eso w_ij. Sobre la ventana de Bogotá (22 piezas, 5 agujeros, 13 767 vé… | datos › m10.ventana.piezas = 22 | CONTRASTADA · salida de R (JSON) |
 | `5` | notas | …obre la ventana de Bogotá (22 piezas, 5 agujeros, 13 767 vértices) la… | datos › m10.ventana.agujeros = 5 | CONTRASTADA · salida de R (JSON) |
 | `13767` | notas | …ana de Bogotá (22 piezas, 5 agujeros, 13 767 vértices) la isotrópica t… | datos › m10.ventana.vertices = 13767 | CONTRASTADA · salida de R (JSON) |
 | `13767` | notas | …eja, un círculo contra un contorno de 13 767 vértices: lo que se paga … | datos › m10.ventana.vertices = 13767 | CONTRASTADA · salida de R (JSON) |
-| `0.22` | notas | …paga es el borde, no n. Los tiempos (0.22 s la de traslación y 122.66 … | tiempo de una estimación de K con corrección de traslación: medido por el autor, depende de la máquina = 0.221 | [SIN VERIFICAR] |
-| `122.66` | notas | …os tiempos (0.22 s la de traslación y 122.66 s la isotrópica por estim… | tiempo de una estimación de K con corrección isotrópica: medido por el autor, depende de la máquina = 122.655 | [SIN VERIFICAR] |
-| `12` | notas | …eclara medidos en R sobre un Mac de 12 núcleos y aquí no se pudieron… | datos › m10.coste.nucleos = 12 | CONTRASTADA · salida de R (JSON) |
-| `29.60530` | notas | …a marca. El material da el sesgo como 29.60530 % en el ( ) y como 29.6… | datos › m10.sesgo_max_pct = 29.6053 | CONTRASTADA · salida de R (JSON) |
+| `0.22` | notas | …paga es el borde, no n. Los tiempos (0.22 s la de traslación y 122.66 … | datos › m10.correcciones (translate).segundos = 0.221 | CONTRASTADA · salida de R (JSON) |
+| `122.66` | notas | …os tiempos (0.22 s la de traslación y 122.66 s la isotrópica por estim… | datos › m10.correcciones (isotropic).segundos = 122.655 | CONTRASTADA · salida de R (JSON) |
+| `12` | notas | …lculo, medidos en R sobre un Mac de 12 núcleos: en otra máquina será… | datos › m10.coste.nucleos = 12 | CONTRASTADA · salida de R (JSON) |
+| `29.60530` | notas | …idieron. El material da el sesgo como 29.60530 % en el ( ) y como 29.6… | datos › m10.sesgo_max_pct = 29.6053 | CONTRASTADA · salida de R (JSON) |
 | `29.60510` | notas | …go como 29.60530 % en el ( ) y como 29.60510 % en la solución del ( ):… | soluciones › e5.solucion.sesgo_max_pct = 29.6050985 | CONTRASTADA · salida de R (JSON) |
 | `29.6` | notas | …en que se mide, y las dos redondean a 29.6, que es lo que va en la dia… | datos › m10.sesgo_max_pct = 29.6053 \| soluciones › e5.solucion.sesgo_max_pct = 29.6050985 | CONTRASTADA · salida de R (JSON) |
 
