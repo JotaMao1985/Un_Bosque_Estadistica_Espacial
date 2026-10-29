@@ -8329,8 +8329,21 @@ print([int(fuera.sum()), round(100 * float(fuera.mean()), 1)])
         }
         contenedor.appendChild(caja);
       });
-      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
-      katexEn(contenedor);
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo.
+      // Con los delimitadores del MÓDULO, no con los de katexEn: el exportador del
+      // quiz escribe \( … \), que katexEn no lee. Al cargar no se notaba, porque el
+      // módulo entero pasa por KaTeX después; tras «Borrar», las fórmulas de los dos
+      // simulacros (17 en el cap. 4, 16 en el 5) volvían crudas: «\(\hat G\)».
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(contenedor, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ]
+        });
+      }
 
       function respuesta(pr, i) {
         if (pr.tipo === 'coincidencia') {
