@@ -3393,6 +3393,15 @@
       text-align: left;
     }
 
+    /* «Describir el mapa» se abre con el mismo gesto que la tabla de
+       respaldo, pero lo de dentro es prosa y se lee a tamaño de prosa. */
+    .geomapa-descripcion {
+      margin: 0.5rem 0 0 0;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: #374151;
+    }
+
     /* Los controles de un mapa interactivo reutilizan el aspecto de los
        del simulador para que no parezcan otro componente. */
     .geomapa-controles {
@@ -6841,6 +6850,28 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       return s;
     }
 
+    // LA DESCRIPCIÓN LARGA (2026-11-02). La etiqueta dice QUÉ es el mapa;
+    // la descripción, QUÉ SE VE en él: dónde está lo alto, dónde se agrupa,
+    // qué forma tiene. Sin ella, quien no ve el lienzo —o lo ve mal: un
+    // daltonismo, un mapa de 340 px en el teléfono— se queda con el nombre
+    // del mapa y sin lo que el mapa enseña. La escribe cada capítulo en el
+    // registro, `descripcion`, como cadena o como función del estado, igual
+    // que `fuente`; aquí no se inventa nada, porque un patrón no se deduce
+    // de los datos sin decidir qué importa, y eso es del módulo.
+    function geomapaDescripcion(o, d) {
+      const t = typeof o.descripcion === 'function' ? o.descripcion(d, o) : o.descripcion;
+      return t ? String(t) : '';
+    }
+
+    // Un id que no use ya otro nodo de la página. El mismo mapa puede salir
+    // en dos módulos (los pinos del capítulo 1, en el 2 y en el 3), y los
+    // nodos de la propia raíz no cuentan: al reiniciarla se reemplazan.
+    function geomapaIdLibre(base, raiz) {
+      let id = base, k = 2, n;
+      while ((n = document.getElementById(id)) && !raiz.contains(n)) id = `${base}-${k++}`;
+      return id;
+    }
+
     // ---------------- cableado declarativo ----------------
 
     function iniciarGeomapas() {
@@ -6869,16 +6900,32 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         // puntos calientes de Gi* son capas del MISMO objeto, y con el título
         // del dato los dos mapas lado a lado decían lo mismo.
         const tit0 = spec.titulo || d.titulo;
+
+        // La descripción va en DOS nodos con el mismo texto, y no por gusto.
+        // Medido en Chrome (2026-11-02, árbol de accesibilidad): un
+        // `aria-describedby` que apunta DENTRO de un <details> cerrado no le
+        // entrega nada al lector de pantalla; uno que apunta a un nodo
+        // `hidden`, sí. Así que el lector oye la copia oculta junto con el
+        // mapa, y quien ve abre «Describir el mapa» si la quiere. Cerrado por
+        // defecto para no adelantar la lectura que el módulo pide hacer; en
+        // papel sale cerrado, como la tabla de respaldo.
+        const conDesc = !!geomapaDescripcion(spec, d);
+        const idDesc = conDesc ? geomapaIdLibre(`desc-${raiz.dataset.geomapa}`, raiz) : '';
         raiz.innerHTML = `
           ${tit0 ? `<p class="geomapa-titulo">${tit0}</p>` : ''}
           <div class="geomapa-marco">
-            <canvas class="geomapa-lienzo" role="img" aria-label="${alt.replace(/"/g, '&quot;')}"></canvas>
+            <canvas class="geomapa-lienzo" role="img" aria-label="${alt.replace(/"/g, '&quot;')}"${conDesc ? ` aria-describedby="${idDesc}"` : ''}></canvas>
           </div>
           <div class="geomapa-caja-leyenda">${geomapaLeyenda(d, spec)}</div>
+          ${conDesc ? `<p class="geomapa-descripcion-oculta" id="${idDesc}" hidden></p>
+          <details class="geomapa-tabla geomapa-describe"><summary>Describir el mapa</summary><p class="geomapa-descripcion"></p></details>` : ''}
           ${spec.tabla ? `<details class="geomapa-tabla"><summary>Ver los datos en una tabla</summary>${spec.tabla(d)}</details>` : ''}`;
 
         const canvas = raiz.querySelector('.geomapa-lienzo');
         const cajaLeyenda = raiz.querySelector('.geomapa-caja-leyenda');
+        const descOculta = raiz.querySelector('.geomapa-descripcion-oculta');
+        const descVisible = raiz.querySelector('.geomapa-descripcion');
+        let descActual = null;
 
         // dibuja() REPINTA LA LEYENDA además del lienzo. Sin esto, un
         // simulador que cambia de fuente deja los rótulos de las clases
@@ -6898,6 +6945,19 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
           // registro (ver raiz.__geomapa, más abajo): solo así lienzo y
           // etiqueta siguen en la vista elegida tras girar el teléfono.
           canvas.setAttribute('aria-label', geomapaAlt(dNow, opts));
+          // La descripción sigue al estado como la etiqueta, y por la misma
+          // vía (`opts`, con los getters ya leídos). Solo se reescribe si
+          // cambió: el ResizeObserver repinta a menudo. Sin `aria-live`: tres
+          // frases leídas en voz alta en cada paso de un deslizador serían
+          // ruido, y las lecturas de los simuladores ya anuncian el cambio.
+          if (descOculta) {
+            const t = geomapaDescripcion(opts, dNow);
+            if (t !== descActual) {
+              descActual = t;
+              descOculta.textContent = t;
+              descVisible.textContent = t;
+            }
+          }
           const tit = raiz.querySelector('.geomapa-titulo');
           const titNow = opts.titulo || dNow.titulo;
           if (tit && titNow) tit.textContent = titNow;
@@ -6941,8 +7001,21 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     let capasModo = 'broad';
     const I_BROAD = DEMO.puntos_capas.resaltado2;
 
-    GEOMAPAS['poligonos'] = { fuente: () => DEMO.poligonos, paleta: 'verde' };
-    GEOMAPAS['puntos']    = { fuente: () => DEMO.puntos[puntosIdx] };
+    // `descripcion` en sus dos formas: función del dato (polígonos) y
+    // función del estado (puntos, que cambia con su botonera). En el banco
+    // se calcula aquí porque es una demostración del motor; en un capítulo
+    // la escribe el ensamblador con las cifras de R (D10).
+    GEOMAPAS['poligonos'] = { fuente: () => DEMO.poligonos, paleta: 'verde',
+      descripcion: d => {
+        const i = d.valor.indexOf(Math.max(...d.valor));
+        return `Demostración de «Describir el mapa»: ${d.n} condados en ${d.tam.length} clases `
+          + `de igual número; la tasa más alta es la de ${d.etiquetas[i]}, `
+          + `${d.valor[i].toFixed(2)} ${d.leyenda}, en la clase más oscura.`;
+      } };
+    GEOMAPAS['puntos']    = { fuente: () => DEMO.puntos[puntosIdx],
+      descripcion: () => `Demostración de una descripción que sigue al estado: patrón `
+        + `${puntosIdx + 1} de ${DEMO.puntos.length}, «${DEMO.puntos[puntosIdx].titulo}», `
+        + `con ${DEMO.puntos[puntosIdx].n} puntos.` };
     GEOMAPAS['grafo']     = { fuente: () => DEMO.grafo,
                               get variante() { return grafoVar; } };
     GEOMAPAS['rejilla']   = { fuente: () => DEMO.rejilla[rejillaSig], paleta: 'naranja' };

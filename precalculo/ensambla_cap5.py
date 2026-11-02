@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import pathlib
 import sys
 from baraja_opciones import baraja_documento
@@ -63,7 +64,13 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
-DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-5-intensidad-nucleos.html"
+PUBLICADO = RAIZ / "Htmls_Espacial" / "capitulo-5-intensidad-nucleos.html"
+# `CAP5_DESTINO` manda la salida a otra parte, como `CAP1_DESTINO` en el
+# capítulo 1: el ensamblador escribe el HTML ANTES de correr sus guardas, y
+# `prueba_ensambla_cap5.py` lo ejecuta con guardas rotas a propósito. Sin
+# esto, cada mutante dejaría lo publicado construido con el defecto. El
+# botón al índice se calcula siempre para la ruta publicada.
+DESTINO = pathlib.Path(os.environ.get("CAP5_DESTINO") or PUBLICADO)
 
 D = json.loads((SALIDAS / "cap5_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap5_mapas.json").read_text(encoding="utf-8"))
@@ -3220,13 +3227,124 @@ def _empaqueta(mapa):
     return ida_y_vuelta(mapa) if mapa.get("modo") == "rejilla" else mapa
 
 
-def geomapa(ident, clave, extra=""):
+def geomapa(ident, clave, extra="", *, descripcion):
     fuente = json.dumps(_empaqueta(M[clave]), ensure_ascii=False)
-    return f"    GEOMAPAS['{ident}'] = {{ fuente: {fuente}{extra} }};\n"
+    desc = ", descripcion: " + json.dumps(descripcion, ensure_ascii=False)
+    return f"    GEOMAPAS['{ident}'] = {{ fuente: {fuente}{extra}{desc} }};\n"
 
 
 def _etq(texto):
     return ", etiqueta: " + json.dumps(texto, ensure_ascii=False)
+
+
+# =====================================================================
+# «DESCRIBIR EL MAPA» (2026-11-02): LO QUE SE VE, NO LO QUE ES.
+#
+# La etiqueta de cada mapa dice qué es; la descripción, qué enseña: dónde
+# está lo alto, cuántas manchas, en qué localidad. El motor la pone en un
+# desplegable cerrado bajo el mapa y en una copia oculta enlazada al lienzo,
+# que es la que oye el lector de pantalla. Las cifras y los nombres los
+# publica `genera_cap5.R` («lo que se ve en cada mapa») y los rehace
+# `audita_cap5.py` por otro camino; aquí solo se les da forma. Cada frase de
+# forma («una sola mancha», «más bajos», «no en la misma localidad») tiene
+# detrás su guarda, en R o en `main()`. `revisa_textos` para el ensamblado
+# si un mapa del documento se queda sin la suya.
+# =====================================================================
+from describe_mapa import lista_y, revisa_textos  # noqa: E402
+
+_CQ, _B6 = m1["cuadrantes"], m6["bogota"]
+
+
+def _sedes(k):
+    return "ninguna" if k == 0 else ("una" if k == 1 else ent(k))
+
+
+def _mayuscula(t):
+    return t[:1].upper() + t[1:]
+
+
+def _el(zonas):
+    return lista_y([f"el {z}" for z in zonas])
+
+
+def _picos(capa, unidad, cifra):
+    p = m5["capas"][capa]["picos"]
+    return (f"el más alto, {cifra(p[0]['valor_km2'])} {unidad}, cae en {p[0]['localidad']}, en el "
+            f"{p[0]['zona']} de la ciudad; le siguen {p[1]['localidad']} ({cifra(p[1]['valor_km2'])}) y "
+            f"{p[2]['localidad']} ({cifra(p[2]['valor_km2'])})")
+
+
+DESC_KENNEDY = (
+    "Las sedes no se reparten parejo dentro del contorno de la localidad. En la rejilla de "
+    f"{_CQ['nx']} × {_CQ['nx']} que el módulo usa enseguida, el máximo —{ent(_CQ['conteo_max'])} sedes en "
+    f"una celda— cae en {_el(_CQ['zonas_conteo_max'])} de Kennedy, y la celda más vacía "
+    + ("no tiene ninguna" if _CQ["conteo_min"] == 0 else f"tiene {_sedes(_CQ['conteo_min'])}")
+    + ". El grupo más apretado —el foco que el núcleo más estrecho del módulo 2 levanta más alto— está "
+    f"en el {FAM['foco']['zona']}.")
+
+
+def _desc_familia(i):
+    k, ult = FAM["focos"][i], i == FAM["n"] - 1
+    paso = f"{n(FAM['paso_foco_km2'], 2)} sedes por km²"
+    t = (f"Con σ = {n(FAM['sigmas_m'][i], 0)} m "
+         + (f"se distinguen {ent(k)} focos, cerros que se levantan al menos un tramo de color de la "
+            f"leyenda ({paso}) sobre lo que los separa; el más alto" if k > 1 else
+            f"queda un solo foco que se levante un tramo de color de la leyenda ({paso}); su cima")
+         + f", {n(FAM['max_km2'][i], 1)} sedes por km², está en el {FAM['zona_maximo'][i]} de Kennedy.")
+    if i == 0:
+        t += (" Son grupos de sedes y no colegios sueltos: una sede sola levanta "
+              f"{n(FAM['foco']['pico_una_sede_km2'], 2)} sedes por km², que no pasa del primer color.")
+    elif k == 1:
+        t += (" Lo demás es relieve suave" + (": una sola mancha que ya no distingue barrios." if ult
+                                             else ", de menos de un tramo de color."))
+    return t + (f" La escala de color es la misma para los {ent(FAM['n'])} anchos: al abrir el núcleo el "
+                "mapa entero se aclara.")
+
+
+DESC_FAMILIA = [_desc_familia(i) for i in range(FAM["n"])]
+
+_P_OF = m5["capas"]["oferta"]["picos"]
+DESC_OFERTA = (
+    "La oferta de colegios no tiene un solo centro: la ciudad se cubre de picos separados por zonas "
+    "claras. " + _mayuscula(_picos("oferta", "sedes por km²", lambda v: n(v, 2))) + ".")
+DESC_BACHILLERATO = (
+    "Sin las sedes de primaria el mapa conserva el dibujo de la oferta, con todos los picos más bajos: "
+    + _picos("grado_11", "sedes por km²", lambda v: n(v, 2)) + ".")
+_P_11 = m5["capas"]["grado_11"]["picos"]
+DESC_ESTUDIANTES = (
+    "Pesadas por sus evaluados, las mismas sedes mueven lo alto del mapa: "
+    + _picos("estudiantes", "evaluados por km²", ent)
+    + f". En el mapa de arriba —las mismas sedes, sin pesar— el pico estaba en {_P_11[0]['localidad']}: "
+      "donde hay más edificios no es donde hay más estudiantes.")
+
+# Las tres localidades con más área de mayoría oficial (la tabla de R ya
+# viene ordenada así) y las tres de proporción media más baja. Las primeras
+# van con «el sur», que su zona sostiene (guarda en `main()`); las segundas
+# van sin punto cardinal: por tercios de la caja de la ciudad, Chapinero cae
+# en el oriente y Teusaquillo en el centro, y «el norte» habría sido el mapa
+# de la memoria, no el de la rejilla.
+_MAY = _B6["por_localidad"][:3]
+_CAFE = sorted(_B6["por_localidad"], key=lambda f: f["p_media"])[:3]
+DESC_PROPORCION = (
+    "Café donde dominan las privadas, verde donde dominan las oficiales y gris claro cerca de la mitad. "
+    "El café más oscuro está en "
+    + lista_y([f"{f['localidad']} ({n(f['p_media'], 2)} de oficiales en promedio)" if k == 0
+               else f"{f['localidad']} ({n(f['p_media'], 2)})" for k, f in enumerate(_CAFE)])
+    + ". El verde está en el sur: lo oficial es mayoría en el "
+    + lista_y([f"{n(f['pct_area_mayoria'], 0)} % del área urbana de {f['localidad']}" for f in _MAY])
+    + f". En toda la ciudad lo es en el {n(_B6['pct_area_mayoria'], 1)} % del área.")
+DESC_SECTOR = (
+    f"En azul las {ent(_B6['oficiales'])} oficiales y en naranja las {ent(_B6['privadas'])} privadas. Lo "
+    "que cambia de una punta a otra de la ciudad es la proporción: en el tercio sur el "
+    f"{n(_B6['pct_oficiales_tercio_sur'], 1)} % de las sedes son oficiales, y en el tercio norte el "
+    f"{n(_B6['pct_oficiales_tercio_norte'], 1)} %. El mapa de arriba es esta mezcla suavizada.")
+
+DESCRIPCIONES = {
+    "cap5-kennedy": [DESC_KENNEDY], "cap5-familia": DESC_FAMILIA,
+    "cap5-oferta": [DESC_OFERTA], "cap5-bachillerato": [DESC_BACHILLERATO],
+    "cap5-estudiantes": [DESC_ESTUDIANTES], "cap5-proporcion": [DESC_PROPORCION],
+    "cap5-sector": [DESC_SECTOR],
+}
 
 
 # LA FAMILIA DEL DESLIZADOR ES UNA FUNCIÓN, Y BUSCA POR SIGMA.
@@ -3243,6 +3361,9 @@ FAMILIA_JS = (
     "    // POR SU SIGMA, NUNCA POR SU POSICIÓN. Ver T1.2 y T1.3 del plan.\n"
     "    function superficieDeSigma(s) { return FAM5.find(g => g.sigma_m === s); }\n"
     "    let famIdx = 0;\n"
+    "    // Lo que se ve con cada sigma, en el orden de `sigmas_m`: lo elige el\n"
+    "    // mismo `famIdx` que elige la superficie.\n"
+    "    const DESC5_FAMILIA = " + json.dumps(DESC_FAMILIA, ensure_ascii=False) + ";\n"
 )
 
 # LA TABLA DE RESPALDO DEL DESLIZADOR, y es la lección del A.20.2 del
@@ -3278,30 +3399,35 @@ GEOMAPAS_JS = (
     + geomapa('cap5-kennedy', 'kennedy_puntos',
               _etq(f'Las {ent(m1["ventana"]["n"])} sedes educativas que caen dentro de la ventana de '
                    f'{m1["ventana"]["nombre"]}, dibujadas como una nube de puntos con el contorno de la '
-                   'localidad.'))
+                   'localidad.'), descripcion=DESC_KENNEDY)
     + "    GEOMAPAS['cap5-familia'] = {\n"
       "      fuente: () => superficieDeSigma(D5.m2.familia.sigmas_m[famIdx]),\n"
       "      paleta: 'naranja',\n"
       "      etiqueta: 'Intensidad de sedes educativas en Kennedy estimada por núcleos, "
       "sobre una rejilla de " + str(FAM["nx"]) + " por " + str(FAM["ny"]) + " celdas; "
-      "el ancho de banda se controla con el deslizador.'\n"
+      "el ancho de banda se controla con el deslizador.',\n"
+      "      descripcion: () => DESC5_FAMILIA[famIdx]"
       + TABLA_FAMILIA + "\n    };\n"
     + geomapa('cap5-oferta', 'ciudad_oferta', ", paleta: 'naranja'" + _etq(
         'Intensidad de sedes educativas sobre la ventana urbana de Bogotá, estimada '
-        f'por núcleos gaussianos con sigma de {ent(D["m5"]["sigma_m"])} metros: la oferta de colegios.'))
+        f'por núcleos gaussianos con sigma de {ent(D["m5"]["sigma_m"])} metros: la oferta de colegios.'),
+        descripcion=DESC_OFERTA)
     + geomapa('cap5-bachillerato', 'ciudad_bachillerato', ", paleta: 'naranja'" + _etq(
         'Intensidad de las sedes con grado 11 sobre la ventana urbana, con el mismo ancho de '
-        'banda y sin pesos: el paso intermedio entre la oferta y los estudiantes.'))
+        'banda y sin pesos: el paso intermedio entre la oferta y los estudiantes.'),
+        descripcion=DESC_BACHILLERATO)
     + geomapa('cap5-estudiantes', 'ciudad_estudiantes', ", paleta: 'naranja'" + _etq(
         'La misma estimación sobre las sedes con grado 11, pesada cada una por sus '
-        'evaluados en Saber 11: dónde están los estudiantes, no los edificios.'))
+        'evaluados en Saber 11: dónde están los estudiantes, no los edificios.'),
+        descripcion=DESC_ESTUDIANTES)
     + geomapa('cap5-proporcion', 'proporcion_oficial', ", paleta: 'divergente'" + _etq(
         'Proporción de sedes oficiales: en cada sitio, la intensidad de las oficiales dividida por la '
         'de todas las sedes, las dos estimadas por núcleos; la escala va fija de cero a uno y el punto '
-        'medio es la mitad.'))
+        'medio es la mitad.'), descripcion=DESC_PROPORCION)
     + geomapa('cap5-sector', 'sector_puntos', _etq(
         f'Las mismas sedes sin suavizar, con un color por sector: {ent(D["m6"]["bogota"]["oficiales"])} '
-        f'oficiales y {ent(D["m6"]["bogota"]["privadas"])} privadas dentro del perímetro urbano.'))
+        f'oficiales y {ent(D["m6"]["bogota"]["privadas"])} privadas dentro del perímetro urbano.'),
+        descripcion=DESC_SECTOR)
 )
 
 
@@ -4320,7 +4446,7 @@ def main() -> int:
     # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
     doc = baraja_documento(doc, "cap5")
 
-    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
+    doc = aplica_boton(doc, PUBLICADO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     marcado = doc[:doc.rindex("\n  <script>")]
@@ -4349,7 +4475,7 @@ def main() -> int:
     puntos_kb = sum(len(json.dumps(M[k], ensure_ascii=False)) for k in M
                     if isinstance(M[k], dict) and M[k].get("modo") == "puntos") / 1024
 
-    print(f"{DESTINO.relative_to(RAIZ)}  {kb:.0f} KB")
+    print(f"{DESTINO.relative_to(RAIZ) if DESTINO == PUBLICADO else DESTINO}  {kb:.0f} KB")
     print(f"  {mods} módulos · {sims} simuladores · {mapas} mapas · "
           f"{bl_r} bloques de R y {bl_py} de Python · {cifras} cifras anunciadas")
     print(f"  {lienzos} lienzos, {con_alt} con aria-label")
@@ -4407,6 +4533,39 @@ def main() -> int:
         if (f'aria-describedby="lectura-{ident}"' not in lienzo
                 or f'id="lectura-{ident}"' not in caja or 'aria-live="polite"' not in caja):
             problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
+    # «DESCRIBIR EL MAPA» (2026-11-02). Cada mapa que el documento usa trae su
+    # descripción —la familia, una por sigma—, y lo que esas frases afirman de
+    # la forma se comprueba contra el dato: una descripción que miente sobre
+    # el mapa es peor que ninguna, porque quien la lee no tiene cómo verla.
+    problemas += revisa_textos(marcado, GEOMAPAS_JS, DESCRIPCIONES)
+    if len(DESC_FAMILIA) != len(FAM["sigmas_m"]):
+        problemas.append("la familia no tiene una descripción por sigma")
+    if not all(b < a for a, b in zip(FAM["max_km2"], FAM["max_km2"][1:])):
+        problemas.append("«al abrir el núcleo el mapa se aclara»: el máximo no baja con sigma")
+    if FAM["focos"][-1] != 1 or not FAM["foco"]["pico_una_sede_km2"] < FAM["foco"]["primer_corte_km2"]:
+        problemas.append("la familia: o el σ más ancho no deja un solo foco, o una sede sola ya se ve")
+    if _CQ["conteo_max"] < 3 * max(_CQ["conteo_min"], 1):
+        problemas.append("Kennedy: «no se reparten parejo» y la celda más llena no triplica a la más vacía")
+    _pk = {c: m5["capas"][c]["picos"] for c in ("oferta", "grado_11", "estudiantes")}
+    if _pk["oferta"][2]["valor_km2"] < 0.5 * _pk["oferta"][0]["valor_km2"]:
+        problemas.append("la oferta: «no tiene un solo centro» y el tercer pico no llega a la mitad del primero")
+    if not (m5["capas"]["grado_11"]["max_km2"] < m5["capas"]["oferta"]["max_km2"]
+            and m5["cor_oferta_grado11"] > 0.9):
+        problemas.append("bachillerato: «el dibujo de la oferta, con los picos más bajos» ya no vale")
+    if _pk["estudiantes"][0]["localidad"] == _pk["grado_11"][0]["localidad"]:
+        problemas.append("estudiantes: el pico ya no se mueve de la localidad del mapa sin pesar")
+    if (len(_MAY) < 3 or M["proporcion_oficial"]["rango"] != [0, 1]
+            or not all(f["pct_area_mayoria"] > 50 for f in _MAY)):
+        problemas.append("P(oficial): «el verde» pide tres localidades con mayoría en más de la mitad, "
+                         "y una escala de 0 a 1")
+    if not all(f["zona"].startswith("sur") for f in _MAY):
+        problemas.append("P(oficial): «el verde está en el sur» y alguna de las tres no lo está: "
+                         + ", ".join(f"{f['localidad']} {f['zona']}" for f in _MAY))
+    # Los colores que nombran las descripciones: la paleta divergente va de
+    # café (0, privado) a verde (1, oficial), y la cualitativa pinta el primer
+    # nivel en naranja (#E69F00) y el segundo en azul (#56B4E9).
+    if M["sector_puntos"]["niveles"] != ["privado", "oficial"]:
+        problemas.append("sectores: «azul las oficiales, naranja las privadas» depende del orden de niveles")
     if ejercicios != N_EJERCICIOS:
         problemas.append(f"ejercicios: {ejercicios} (la desviación declarada son "
                          f"{N_EJERCICIOS})")

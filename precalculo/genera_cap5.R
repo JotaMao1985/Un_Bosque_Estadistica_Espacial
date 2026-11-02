@@ -1980,6 +1980,170 @@ MAPAS$sector_puntos <- geo_puntos(
                    sum(marca == "oficial"), sum(marca == "privado")),
   leyenda = "sector")
 
+# =====================================================================
+# LO QUE SE VE EN CADA MAPA (descripción larga, 2026-11-02)
+#
+# El `aria-label` de un mapa dice qué es; «Describir el mapa» dice qué se
+# ve en él: dónde está lo alto, cuántas manchas, en qué localidad. Eso son
+# cifras y nombres, y por D10 los publica R y no el ensamblador: aquí, sobre
+# los mismos objetos que se dibujan, y con las guardas que hacen falta para
+# que la frase que los lea no pueda mentir sobre la forma.
+# =====================================================================
+message("lo que se ve en cada mapa")
+
+# Los nombres con sus tildes. La capa los trae en ASCII («Ciudad Bolivar») y
+# el material no los escribe así; una localidad nueva sin traducción para.
+NOMBRE_LOC <- c(
+  "Antonio Narino" = "Antonio Nariño", "Barrios Unidos" = "Barrios Unidos", "Bosa" = "Bosa",
+  "Chapinero" = "Chapinero", "Ciudad Bolivar" = "Ciudad Bolívar", "Engativa" = "Engativá",
+  "Fontibon" = "Fontibón", "Kennedy" = "Kennedy", "La Candelaria" = "La Candelaria",
+  "Los Martires" = "Los Mártires", "Puente Aranda" = "Puente Aranda",
+  "Rafael Uribe Uribe" = "Rafael Uribe Uribe", "San Cristobal" = "San Cristóbal",
+  "Santa Fe" = "Santa Fe", "Suba" = "Suba", "Sumapaz" = "Sumapaz", "Teusaquillo" = "Teusaquillo",
+  "Tunjuelito" = "Tunjuelito", "Usaquen" = "Usaquén", "Usme" = "Usme")
+if (!all(locs$localidad %in% names(NOMBRE_LOC)))
+  stop("hay localidades sin su nombre con tildes: ", paste(setdiff(locs$localidad, names(NOMBRE_LOC)), collapse = ", "))
+
+# La zona de un punto dentro de un marco, por tercios: «norte», «suroccidente»,
+# «centro»… La y crece hacia el norte en coordenadas planas, y el navegador
+# pinta el norte arriba (`geo_rejilla` invierte las filas del `im`), así que
+# la palabra describe el sitio y el dibujo a la vez. El auditor lo comprueba
+# sobre el ráster publicado, que es lo que se ve.
+zona_de <- function(x, y, fr) {
+  fx <- (x - fr$xrange[1]) / diff(fr$xrange)
+  fy <- (y - fr$yrange[1]) / diff(fr$yrange)
+  ns <- c("sur", "", "norte")[findInterval(fy, c(1, 2) / 3) + 1]
+  eo <- c("occidente", "", "oriente")[findInterval(fx, c(1, 2) / 3) + 1]
+  ifelse(ns == "" & eo == "", "centro",
+         ifelse(ns == "", eo, ifelse(eo == "", ns, paste0(c(norte = "nor", sur = "sur")[ns], eo))))
+}
+
+localidad_en <- function(x, y) {
+  p <- st_as_sf(data.frame(x = x, y = y), coords = c("x", "y"), crs = st_crs(locs))
+  i <- st_intersects(p, locs)
+  vapply(i, function(k) if (length(k)) locs$localidad[k[1]] else NA_character_, "")
+}
+
+# Los máximos locales estrictos de un `im`, de mayor a menor: la celda que
+# supera a sus ocho vecinas. En una KDE no hay mesetas, y la guarda de abajo
+# exige que el máximo global salga el primero.
+maximos_locales <- function(im) {
+  v <- as.matrix(im$v); nr <- nrow(v); nc <- ncol(v)
+  w <- v; w[!is.finite(w)] <- -Inf
+  pad <- matrix(-Inf, nr + 2, nc + 2); pad[2:(nr + 1), 2:(nc + 1)] <- w
+  es <- is.finite(v)
+  for (di in -1:1) for (dj in -1:1) if (di != 0 || dj != 0)
+    es <- es & w > pad[(2:(nr + 1)) + di, (2:(nc + 1)) + dj]
+  ij <- which(es, arr.ind = TRUE)
+  ml <- data.frame(x = im$xcol[ij[, 2]], y = im$yrow[ij[, 1]], valor = v[ij])
+  ml <- ml[order(-ml$valor), ]
+  if (!nrow(ml) || abs(ml$valor[1] - max(im)) > 1e-9 * max(im))
+    stop("el máximo de la superficie no es un máximo local estricto")
+  ml
+}
+
+# Cuántos FOCOS se ven: picos que se levantan al menos un tramo de la
+# leyenda (`paso`) sobre el collado que los une a otro más alto —su
+# prominencia, como la de un cerro—. Se probaron antes dos cuentas más
+# simples y las dos describían otro mapa: las manchas por encima del primer
+# color dan UNA con sigma = 233 m (el 62 % del área ya pasa de ese color) y
+# DOS con 1 867, y los máximos locales dan doce con 1 867, todos de 9.9:
+# rizos del borde, no focos. Con la prominencia salen 12, 5, 2 y luego uno
+# solo, que es lo que el ojo ve y lo que el módulo 2 afirma.
+# Se recorren las celdas de la más alta a la más baja uniendo vecinas (las
+# ocho); cuando una celda une dos regiones, la del pico más bajo muere ahí y
+# su prominencia es su pico menos esa celda. El pico más alto se mide contra
+# la celda más baja.
+focos <- function(z, paso) {
+  nr <- nrow(z); nc <- ncol(z)
+  orden <- order(z, decreasing = TRUE, na.last = NA)
+  padre <- integer(length(z)); alto <- rep(NA_real_, length(z))
+  raiz <- function(a) { while (padre[a] != a) a <- padre[a]; a }
+  prom <- numeric(0)
+  for (cc in orden) {
+    i <- (cc - 1L) %% nr + 1L; j <- (cc - 1L) %/% nr + 1L
+    rs <- integer(0)
+    for (di in -1:1) for (dj in -1:1) if (di != 0 || dj != 0) {
+      ii <- i + di; jj <- j + dj
+      if (ii >= 1 && jj >= 1 && ii <= nr && jj <= nc && padre[ii + (jj - 1L) * nr])
+        rs <- c(rs, raiz(ii + (jj - 1L) * nr))
+    }
+    rs <- unique(rs)
+    if (!length(rs)) { padre[cc] <- cc; alto[cc] <- z[cc]; next }
+    rs <- rs[order(-alto[rs])]
+    for (r in rs[-1]) { prom <- c(prom, alto[r] - z[cc]); padre[r] <- rs[1] }
+    padre[cc] <- rs[1]
+  }
+  sum(c(prom, max(z, na.rm = TRUE) - min(z, na.rm = TRUE)) >= paso)
+}
+
+# MÓDULO 1 · dónde están las celdas más llenas de la rejilla de 8 x 8, y el
+# grupo más apretado de la familia.
+cnt_tesela <- vapply(tiles(as.tess(cuad)), function(w) sum(inside.owin(p_ken$x, p_ken$y, w)), 0)
+if (max(cnt_tesela) != max(as.numeric(cuad)))
+  stop("el recuento por tesela no reproduce el máximo de quadratcount")
+cen_max <- lapply(tiles(as.tess(cuad))[cnt_tesela == max(cnt_tesela)], centroid.owin)
+D$m1$cuadrantes$zonas_conteo_max <- I(unique(vapply(cen_max, function(cc) zona_de(cc$x, cc$y, Frame(W_KEN)), "")))
+D$m2$familia$foco$zona <- local({
+  ml <- maximos_locales(fam$imagenes[[1]]); zona_de(ml$x[1], ml$y[1], Frame(W_KEN))
+})
+
+# MÓDULO 2 · cuántos focos y dónde cae el máximo, sigma a sigma. El paso es
+# un tramo de la leyenda común, que es la diferencia de color más pequeña que
+# el mapa pinta. La frase del módulo —«con σ grande queda una sola mancha»—
+# se comprueba aquí.
+D$m2$familia$paso_foco_km2 <- r10(diff(FAM_ESC_KM2) / 7)
+D$m2$familia$focos <- vapply(fam$imagenes, function(im)
+  focos(as.matrix(im$v) * M2_A_KM2, diff(FAM_ESC_KM2) / 7), 0L)
+D$m2$familia$zona_maximo <- vapply(fam$imagenes, function(im) {
+  ml <- maximos_locales(im); zona_de(ml$x[1], ml$y[1], Frame(W_KEN))
+}, "")
+if (D$m2$familia$focos[FAM_N] != 1L)
+  stop("con el sigma más ancho ya no queda un solo foco: el módulo 2 lo afirma («una sola mancha»)")
+if (is.unsorted(rev(D$m2$familia$focos)))
+  stop("los focos no bajan al abrir el núcleo: la descripción de la familia lo afirma")
+
+# MÓDULO 5 · los tres picos más altos de cada superficie, cada uno en una
+# localidad distinta. Que el de la oferta y el de los estudiantes no caigan en
+# la misma localidad es justo lo que el módulo enseña sin decir dónde.
+picos_ciudad <- function(im, k = 3L) {
+  ml <- maximos_locales(im)
+  ml$localidad <- localidad_en(ml$x, ml$y)
+  if (is.na(ml$localidad[1])) stop("el máximo de la ciudad cae fuera de toda localidad")
+  ml <- ml[!is.na(ml$localidad) & !duplicated(ml$localidad), ][seq_len(k), ]
+  lapply(seq_len(k), function(i) list(
+    localidad = unname(NOMBRE_LOC[ml$localidad[i]]), valor_km2 = r10(ml$valor[i] * 1e6),
+    zona = zona_de(ml$x[i], ml$y[i], Frame(W_URB))))
+}
+D$m5$capas$oferta$picos      <- picos_ciudad(kde_oferta)
+D$m5$capas$grado_11$picos    <- picos_ciudad(kde_b11)
+D$m5$capas$estudiantes$picos <- picos_ciudad(kde_est)
+if (D$m5$capas$oferta$picos[[1]]$localidad == D$m5$capas$estudiantes$picos[[1]]$localidad)
+  stop("la oferta y los estudiantes tienen el pico en la misma localidad: la descripción del módulo 5 dice que no")
+
+# MÓDULO 6 · P(oficial) localidad por localidad: en qué fracción de su área
+# urbana es mayoría lo oficial, y su valor medio. Las celdas de la rejilla
+# miden lo mismo, así que contar celdas es medir área.
+D$m6$bogota$por_localidad <- local({
+  ij <- which(is.finite(rr_bog$v), arr.ind = TRUE)
+  cel <- data.frame(x = rr_bog$xcol[ij[, 2]], y = rr_bog$yrow[ij[, 1]], p = rr_bog$v[ij])
+  cel$loc <- localidad_en(cel$x, cel$y)
+  cel <- cel[!is.na(cel$loc), ]
+  # La zona es la del centro de sus celdas urbanas en la caja de la ciudad:
+  # deja escribir «el norte» y «el sur» con la guarda de la frase detrás.
+  t <- do.call(rbind, lapply(split(cel, cel$loc), function(g)
+    data.frame(loc = g$loc[1], pct = 100 * mean(g$p > 0.5), media = mean(g$p), n = nrow(g),
+               zona = zona_de(mean(g$x), mean(g$y), Frame(W_URB)))))
+  t <- t[order(-t$pct, -t$media), ]
+  lapply(seq_len(nrow(t)), function(i) list(
+    localidad = unname(NOMBRE_LOC[t$loc[i]]), pct_area_mayoria = r10(t$pct[i]),
+    p_media = r10(t$media[i]), celdas = t$n[i], zona = t$zona[i]))
+})
+
+message(sprintf("   focos por sigma: %s · picos: oferta en %s, estudiantes en %s",
+                paste(D$m2$familia$focos, collapse = " "),
+                D$m5$capas$oferta$picos[[1]]$localidad, D$m5$capas$estudiantes$picos[[1]]$localidad))
+
 MAPAS$meta <- list(capitulo = 5L, generado = D$meta$generado)
 
 # =====================================================================

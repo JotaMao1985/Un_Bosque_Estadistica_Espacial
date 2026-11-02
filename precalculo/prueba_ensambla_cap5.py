@@ -32,6 +32,14 @@ QUÉ COMPRUEBA, sobre el capítulo YA ENSAMBLADO (no toca nada: solo lee):
   3. **La llamada fija ya no está.** Una segunda llamada detrás de
      `loadModule(1)` también dejaría los enlaces en el módulo correcto, pero
      marcaría como visto y construiría un módulo que nadie abrió.
+  4. **Las guardas de «Describir el mapa» saben parar** (2026-11-02). Cada
+     mapa lleva una descripción de lo que se ve en él, y lo que esas frases
+     afirman de la forma («el verde está en el sur», «queda un solo foco»)
+     lo comprueba `ensambla_cap5.py` contra el dato. Aquí el ensamblador se
+     ejecuta en copia, con `CAP5_DESTINO` fuera de lo publicado, con UNA
+     guarda rota cada vez (un registro sin `descripcion`, una sigma sin su
+     texto, un dato que deja la frase en falso…), y cada copia tiene que
+     salir con error y nombrar el defecto.
 
 LA PRUEBA TAMBIÉN SE PRUEBA. Un `OK` que nadie ha visto fallar puede estar bien
 escrito o puede ser incapaz de dispararse (la lección de T0.5, que este
@@ -50,13 +58,16 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import pathlib
 import re
 import subprocess
 import sys
+import tempfile
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 CAPITULO = RAIZ / "Htmls_Espacial" / "capitulo-5-intensidad-nucleos.html"
+ENSAMBLADOR = RAIZ / "precalculo" / "ensambla_cap5.py"
 DECKS = [RAIZ / "Htmls_Espacial" / "diapositivas" / f"capitulo-5-intensidad-nucleos-sesion-{s}.html"
          for s in (1, 2)]
 
@@ -236,6 +247,88 @@ MUTANTES = [
 ]
 
 
+# (nombre, texto que aparece UNA vez en `ensambla_cap5.py`, su sustituto, lo que
+# la salida tiene que decir). Unos rompen el texto y otros el dato que la frase
+# afirma: las dos cosas son lo que la guarda vigila.
+MUTANTES_DESCRIPCION = [
+    ("la familia sin `descripcion` en el registro",
+     '      "      descripcion: () => DESC5_FAMILIA[famIdx]"\n', '', "no trae `descripcion`"),
+    ("una sigma sin su texto",
+     'DESC_FAMILIA = [_desc_familia(i) for i in range(FAM["n"])]',
+     'DESC_FAMILIA = [_desc_familia(i) for i in range(FAM["n"] - 1)]', "una descripción por sigma"),
+    ("la de sectores, corta",
+     'DESCRIPCIONES = {', 'DESC_SECTOR = "Corto."\nDESCRIPCIONES = {', "caracteres"),
+    ("la oferta, fuera de la guarda",
+     '    "cap5-oferta": [DESC_OFERTA], ', '    ', "sin textos declarados"),
+    ("el σ más ancho con dos focos",
+     'FAM = m2["familia"]', 'FAM = m2["familia"]\nFAM["focos"][-1] = 2', "un solo foco"),
+    ("el verde fuera del sur",
+     '_MAY = _B6["por_localidad"][:3]', '_MAY = _B6["por_localidad"][:3]\n_MAY[0]["zona"] = "norte"',
+     "el verde está en el sur"),
+    ("el pico de los estudiantes donde el del bachillerato",
+     '_P_11 = m5["capas"]["grado_11"]["picos"]',
+     '_P_11 = m5["capas"]["grado_11"]["picos"]\n'
+     'm5["capas"]["estudiantes"]["picos"][0]["localidad"] = _P_11[0]["localidad"]',
+     "ya no se mueve"),
+]
+
+# La copia vive en un directorio temporal: sus dos rutas relativas a
+# `__file__` se fijan al árbol de verdad, y la salida va a `CAP5_DESTINO`.
+RUTAS_DE_LA_COPIA = [
+    ("RAIZ = pathlib.Path(__file__).resolve().parent.parent",
+     f"RAIZ = pathlib.Path({str(RAIZ)!r})"),
+    ("sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))",
+     f"sys.path.insert(0, {str(RAIZ / 'precalculo')!r})"),
+]
+
+
+def ensambla_en_copia(fuente: str, tmp: pathlib.Path) -> tuple[int, str]:
+    for viejo, nuevo in RUTAS_DE_LA_COPIA:
+        fuente = fuente.replace(viejo, nuevo)
+    copia = tmp / "ensambla_cap5.py"
+    copia.write_text(fuente, encoding="utf-8")
+    entorno = dict(os.environ, CAP5_DESTINO=str(tmp / "salida.html"),
+                   PYTHONPATH=str(RAIZ / "precalculo"))
+    r = subprocess.run([sys.executable, str(copia)], cwd=RAIZ, env=entorno,
+                       capture_output=True, text=True, timeout=600)
+    return r.returncode, r.stdout + r.stderr
+
+
+def prueba_descripciones() -> tuple[int, list[str], list[str]]:
+    """(cazados, colados, inertes) de los mutantes de «Describir el mapa»."""
+    fuente = ENSAMBLADOR.read_text(encoding="utf-8")
+    cazados, colados, inertes = 0, [], []
+    for viejo, _ in RUTAS_DE_LA_COPIA:
+        if fuente.count(viejo) != 1:
+            print(f"  MAL  la copia del ensamblador no se puede fijar al árbol: «{viejo}» "
+                  f"aparece {fuente.count(viejo)} veces")
+            return 0, ["la copia"], []
+    with tempfile.TemporaryDirectory(prefix="prueba_ensambla_cap5_") as d:
+        tmp = pathlib.Path(d)
+        # Control: la copia sin mutar sale limpia. Si no, un «cazado» no diría nada.
+        cod, sal = ensambla_en_copia(fuente, tmp)
+        if cod != 0:
+            print("  MAL  la copia del ensamblador SIN mutar no sale limpia; los mutantes no medirían nada")
+            print("       " + sal[-400:].replace("\n", "\n       "))
+            return 0, ["el control"], []
+        print("  OK   control: la copia sin mutar ensambla limpia fuera de lo publicado")
+        for nombre, viejo, nuevo, espera in MUTANTES_DESCRIPCION:
+            if fuente.count(viejo) != 1:
+                inertes.append(nombre)
+                print(f"  INERTE  «{nombre}»: la cadena a mutar aparece {fuente.count(viejo)} veces y debía ser 1")
+                continue
+            cod, sal = ensambla_en_copia(fuente.replace(viejo, nuevo), tmp)
+            linea = next((l.strip() for l in sal.splitlines() if espera in l), None)
+            if cod != 0 and linea:
+                cazados += 1
+                print(f"  OK   mutante «{nombre}» para el ensamblado: {linea[:90]}")
+            else:
+                colados.append(nombre)
+                print(f"  MAL  mutante «{nombre}» NO para el ensamblado (código {cod}; "
+                      f"la salida no dice «{espera}»)")
+    return cazados, colados, inertes
+
+
 def main() -> int:
     if not CAPITULO.exists():
         sys.exit(f"PARADO: no existe {CAPITULO.relative_to(RAIZ)}; ensámblalo con ensambla_cap5.py")
@@ -267,11 +360,21 @@ def main() -> int:
             colados.append(nombre)
             print(f"  MAL  mutante «{nombre}» NO se cazó: la prueba no distingue ese defecto")
 
+    print("\n  «Describir el mapa»: las guardas del ensamblador, rotas de una en una")
+    publicado_antes = CAPITULO.read_bytes()
+    d_cazados, d_colados, d_inertes = prueba_descripciones()
+    if CAPITULO.read_bytes() != publicado_antes:
+        malos.append("el capítulo publicado cambió durante los mutantes: CAP5_DESTINO no lo protegió")
+        print(f"  MAL  {malos[-1]}")
+
     print("\n" + "=" * 70)
-    print(f"  {cazados} de {len(MUTANTES)} mutantes cazados"
+    print(f"  {cazados} de {len(MUTANTES)} mutantes del arranque cazados"
           + (f" · {len(inertes)} inerte(s)" if inertes else "") + (f" · {len(colados)} colado(s)" if colados else ""))
+    print(f"  {d_cazados} de {len(MUTANTES_DESCRIPCION)} mutantes de las descripciones paran el ensamblado"
+          + (f" · {len(d_inertes)} inerte(s)" if d_inertes else "")
+          + (f" · {len(d_colados)} colado(s)" if d_colados else ""))
     print("=" * 70)
-    ok = not malos and not colados and not inertes
+    ok = not malos and not colados and not inertes and not d_colados and not d_inertes
     return 0 if ok else 1
 
 

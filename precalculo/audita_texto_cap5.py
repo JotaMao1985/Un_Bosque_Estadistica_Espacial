@@ -94,6 +94,14 @@ Esa misma noche el tope NO se movió: el mapa de P(oficial) pasó de 128 × 128 
 la ciudad (M6-7: σ cabía 2.3 celdas en la vertical) y el módulo 6 enseña la rejilla y la
 meseta de la guarda. 1 357 → 1 379 KB, 21 de margen; el ráster pasa de 28 a 47 KB empaquetado.
 
+2026-11-02, y la octava: SUBE A 1440 KB. Cada mapa gana «Describir el mapa» —lo que se ve en él,
+para quien no lo ve: dónde está lo alto, cuántos focos, en qué localidad— y el documento pasa de
+1 387 a 1 398 KB, a 2 del tope: 3.4 del motor del `.geomapa` en la plantilla (la descripción en dos
+nodos y su comentario), 2.9 de los hechos que R publica para sostener las frases (los picos por
+localidad, P(oficial) localidad por localidad, los focos y la zona del máximo de cada sigma) y 4.7 de
+las once descripciones, siete de ellas la familia del deslizador. 1440 deja 42 KB de margen y sigue
+270 KB por debajo de 1398 + 312. Es explicación, y la octava vez que el peso cede ante ella.
+
 Y EL PRESUPUESTO DE GEOMETRÍA ES 250 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y
 los seis de este capítulo pesan **204 KB** (eran cinco y 157 KB hasta que el
@@ -119,7 +127,7 @@ import sys
 from audita_texto_base import SALIDAS, Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP5_KB = 1400.0
+TOPE_CAP5_KB = 1440.0
 # El techo de las siete superficies del deslizador, que el núcleo no ve.
 TOPE_FAMILIA_KB = 200.0
 

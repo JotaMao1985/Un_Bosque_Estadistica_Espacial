@@ -935,9 +935,14 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
         # ciudad (M6-7, 2026-10-27) la mediana es 0.3090, y 0.3091 coincide con
         # el reparto de un punto de la curva rhohat de `bei` (0.30908 %), que
         # el índice de derivadas admite. La inyección no habría medido nada.
+        # Y tres, no dos (2026-11-02): con la tabla de P(oficial) por localidad
+        # que lee «Describir el mapa», 0.3092 es también la razón entre el
+        # porcentaje de área con mayoría oficial de Suba y su proporción media
+        # (0.0580 / 0.1877), una comparación sin sentido que el índice admite
+        # porque las dos cifras viven en el mismo objeto.
         ("la mediana de la superficie de P(oficial), cambiada",
          f"<strong>{f(m6['bogota']['p_mediana'], 4)}</strong>",
-         f"<strong>{f(m6['bogota']['p_mediana'] + 0.0002, 4)}</strong>"),
+         f"<strong>{f(m6['bogota']['p_mediana'] + 0.0003, 4)}</strong>"),
         ("la razón del bulto de la curva rhohat colombiana, cambiada",
          f"<strong>{f(m7['bogota']['curva']['razon_bulto'])}</strong> veces",
          f"<strong>{perturba(m7['bogota']['curva']['razon_bulto'])}</strong> veces"),
