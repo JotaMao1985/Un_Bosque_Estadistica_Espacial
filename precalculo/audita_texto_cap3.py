@@ -54,6 +54,19 @@ revisión del capítulo 5, llevados a los caps. 2, 3, 4 y 6):
     casa es que el peso nunca es razón para recortar explicación: lo que ha
     crecido es lo que el capítulo enseña.
 
+SUBIÓ A 800 KB el 2026-11-02, cuando cada mapa ganó «Describir el mapa» —lo
+que se ve en él, para quien no lo ve: dónde cae la clase más oscura de cada
+esquema, qué departamentos encoge cada cartograma—:
+
+  · el documento pesa **766 KB**: 750 tenía; **3.4 del motor** del `.geomapa`
+    en la plantilla (la descripción en dos nodos), **5.9 de los hechos que R
+    publica** en `visto` para sostener las frases (viajan dentro de
+    `DATOS_CAP3`, como todo el JSON de cifras) y **7 de las veinte
+    descripciones**: cinco esquemas en Carolina del Norte, cinco en la
+    deserción, dos capas, tres superposiciones y cinco mapas fijos;
+  · la cota con el arnés: 766 < 800 < 1078;
+  · 800 deja **34 KB de margen**. Es explicación, y el peso vuelve a ceder.
+
 Uso:  python3 precalculo/audita_texto_cap3.py
 Devuelve 1 si algo falla.
 """
@@ -64,7 +77,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP3_KB = 770.0
+TOPE_CAP3_KB = 800.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
