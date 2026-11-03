@@ -563,6 +563,36 @@ MAPAS[["cap6-municipios"]] <- geo_grafo_multi(
   titulo = "Los 1 122 municipios y su contigüidad reina",
   leyenda = "vecinos", presupuesto = 12000L, verbose = FALSE)
 
+# LO QUE SE VE EN EL MAPA MUNICIPAL (2026-11-02). Cada mapa lleva una
+# descripción larga: lo que se VE en él, para quien no lo ve. En el grafo de
+# los 1 122 municipios lo que se ve es dónde la red es tupida y dónde rala,
+# y eso es cuántos nodos caen en cada zona del dibujo (tercios de la caja)
+# y cuántos vecinos tienen allí. El de Columbus no necesita nada nuevo: sus
+# diez criterios ya publican parejas, grados, islas y subgrafos.
+zona_de <- function(x, y, caja) {
+  fx <- (x - caja[1]) / (caja[3] - caja[1])
+  fy <- (y - caja[2]) / (caja[4] - caja[2])
+  ns <- c("sur", "", "norte")[findInterval(fy, c(1, 2) / 3) + 1]
+  eo <- c("occidente", "", "oriente")[findInterval(fx, c(1, 2) / 3) + 1]
+  ifelse(ns == "" & eo == "", "centro",
+         ifelse(ns == "", eo, ifelse(eo == "", ns, paste0(c(norte = "nor", sur = "sur")[ns], eo))))
+}
+cen_mun <- st_coordinates(suppressWarnings(st_centroid(st_geometry(mun), of_largest_polygon = TRUE)))
+zona_mun <- zona_de(cen_mun[, 1], cen_mun[, 2], MAPAS[["cap6-municipios"]]$caja)
+grado_mun <- card(mun_reina)
+por_zona <- data.frame(zona = sort(unique(zona_mun)))
+por_zona$n <- vapply(por_zona$zona, function(z) sum(zona_mun == z), 0L)
+por_zona$grado_medio <- vapply(por_zona$zona, function(z) mean(grado_mun[zona_mun == z]), 0)
+por_zona <- por_zona[order(-por_zona$n, por_zona$zona), ]
+i_max <- which(grado_mun == max(grado_mun))
+D$visto <- list(municipios = list(
+  zona = I(por_zona$zona), n = I(por_zona$n), grado_medio = I(r10(por_zona$grado_medio)),
+  grado_max = max(grado_mun), grado_max_municipio = I(mun$municipio[i_max]),
+  grado_max_depto = I(mun$departamento[i_max])))
+message(sprintf("  municipios por zona: %s · el de más vecinos: %s (%d)",
+                paste(por_zona$zona, por_zona$n, collapse = ", "),
+                paste(mun$municipio[i_max], collapse = ", "), max(grado_mun)))
+
 # =====================================================================
 # LO QUE SE ESCRIBE
 # =====================================================================

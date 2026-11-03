@@ -631,6 +631,43 @@ def main() -> int:  # noqa: C901
         a.igual(v["islas"], pub[k]["islas"], f"mapa {k}: sus islas")
 
     # -----------------------------------------------------------------
+    a.titulo("12b · Lo que se ve en el mapa municipal")
+    # «Describir el mapa» (2026-11-02): dónde es tupida y dónde rala la red de
+    # contigüidad de los 1 122 municipios —cuántos nodos caen en cada zona
+    # del dibujo (tercios de la caja) y cuántos vecinos tienen allí— y quién
+    # tiene más vecinos. Con la reina de libpysal y los centroides de
+    # shapely (el del polígono mayor, como R).
+    from describe_mapa import zona_por_tercios
+    # Con su guarda de «el mapa está»: el arnés lo borra a propósito, y un
+    # auditor que revienta no informa de nada.
+    caja6 = (M.get("cap6-municipios") or {}).get("caja")
+    if not caja6:
+        a.cierto(False, "visto: el mapa municipal está en el JSON", "no está: sin caja no hay zonas")
+        caja6 = [0, 0, 1, 1]
+
+    def _centro(g):
+        if g.geom_type == "MultiPolygon":
+            g = max(g.geoms, key=lambda pp: pp.area)
+        return g.centroid
+
+    cen6 = [_centro(g) for g in mun.geometry]
+    zona6 = [zona_por_tercios((c.x - caja6[0]) / (caja6[2] - caja6[0]),
+                              1 - (c.y - caja6[1]) / (caja6[3] - caja6[1])) for c in cen6]
+    grado6 = [len(mun_q.get(i, [])) for i in range(len(mun))]
+    VM = D["visto"]["municipios"]
+    esp = sorted(((z, zona6.count(z), float(np.mean([g for g, zz in zip(grado6, zona6) if zz == z])))
+                  for z in set(zona6)), key=lambda f: (-f[1], f[0]))
+    a.cierto([f[0] for f in esp] == VM["zona"] and [f[1] for f in esp] == VM["n"]
+             and all(abs(f[2] - g) < 1e-6 for f, g in zip(esp, VM["grado_medio"])),
+             "visto: municipios y grado medio por zona del dibujo",
+             ", ".join(f"{z} {k} ({g:.2f})" for z, k, g in esp[:4]))
+    gmax = max(grado6)
+    a.cierto(VM["grado_max"] == gmax
+             and VM["grado_max_municipio"] == [mun["municipio"].iloc[i] for i, g in enumerate(grado6) if g == gmax],
+             "visto: el municipio con más vecinos",
+             f"{gmax}: " + ", ".join(mun["municipio"].iloc[i] for i, g in enumerate(grado6) if g == gmax))
+
+    # -----------------------------------------------------------------
     a.titulo("13 · Formato")
     txt = p_datos.read_text(encoding="utf-8")
     a.cierto("Ã" not in txt and "�" not in txt,
