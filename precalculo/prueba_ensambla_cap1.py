@@ -578,8 +578,9 @@ def main() -> int:
     # superficies: no se envenenan, porque no son entrada del capítulo sino
     # parte de la herramienta. Sin esta copia el arnés muere en el control de
     # entrada con un ModuleNotFoundError, que es un rojo que no dice nada del
-    # ensamblador. Lo estrenó `baraja_opciones.py` el 2026-09-02.
-    for auxiliar in ("baraja_opciones.py", "pon_boton_indice.py"):
+    # ensamblador. Lo estrenó `baraja_opciones.py` el 2026-09-02, y el
+    # 2026-11-02 se sumó `describe_mapa.py`, las guardas de «Describir el mapa».
+    for auxiliar in ("baraja_opciones.py", "pon_boton_indice.py", "describe_mapa.py"):
         origen = ENSAMBLADOR.parent / auxiliar
         if not origen.exists():
             print(f"PARADO: falta {origen}")
@@ -692,7 +693,46 @@ def main() -> int:
                   or PUBLICADO.read_bytes() == publicado_antes)
     print(f"  {'OK  ' if igual_html else 'MAL '} el capítulo publicado no se ha tocado")
 
+    # --- LAS GUARDAS DE «DESCRIBIR EL MAPA» (2026-11-02) --------------
+    # No son `problemas.append` del inventario —viven en
+    # `guardas_de_las_descripciones()` y en `revisa_textos`—, así que el
+    # recuento de arriba no las ve. Se rompen aquí una a una, en una copia
+    # del ensamblador, y cada copia tiene que parar nombrando el defecto.
+    print("\n  «Describir el mapa»: las guardas de las descripciones, rotas de una en una")
+    fuente = ENSAMBLADOR.read_text(encoding="utf-8")
+    ANTES = "DESCRIPCIONES = {\n"
+    MUT_DESC = [
+        ("los pinos sin `descripcion` en el registro",
+         '''geomapa("cap1-pinos", "japanesepines", extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))''',
+         '''geomapa("cap1-pinos", "japanesepines")''', "no trae `descripcion`"),
+        ("la descripción de Bogotá, corta", ANTES, 'DESC_BOGOTA = "Corto."\n' + ANTES, "caracteres"),
+        ("Snow deja de apiñarse en Broad Street", ANTES, '_SN["pct_mas_cerca_broad"] = 30\n' + ANTES, "Snow:"),
+        ("la deserción más alta, en el norte", ANTES, '_DS["mayores"][0]["zona"] = "norte"\n' + ANTES, "deserción:"),
+        ("el campo deja de crecer con el alcance", ANTES, 'M["campos"][3]["rho_vecino"] = 0.99\n' + ANTES, "campo:"),
+        ("la agregación con dos celdas iguales", ANTES, "_apor[0] = _apor[1]\n" + ANTES, "agregación:"),
+        ("las estaciones frías, repartidas", ANTES, '_FR["n"][0] = 10\n' + ANTES, "IDEAM:"),
+        ("el zinc alto, del otro lado de la nube", ANTES,
+         'M["meuse"]["marcas"] = [-z for z in M["meuse"]["marcas"]]\n' + ANTES, "borde noroeste"),
+    ]
+    d_colados = 0
+    for nombre_m, viejo, nuevo, espera in MUT_DESC:
+        if fuente.count(viejo) != 1:
+            d_colados += 1
+            print(f"  INERTE  «{nombre_m}»: la cadena aparece {fuente.count(viejo)} veces y debía ser 1")
+            continue
+        copia = tmp / "ensambla_cap1_desc.py"
+        copia.write_text(fuente.replace(viejo, nuevo), encoding="utf-8")
+        cod_m, sal_m, _ = corre(tmp, copia, dict(limpias))
+        linea = next((l.strip() for l in sal_m.splitlines() if espera in l), None)
+        if cod_m != 0 and linea:
+            print(f"  OK   «{nombre_m}» para el ensamblado: {linea[:84]}")
+        else:
+            d_colados += 1
+            print(f"  MAL  «{nombre_m}» NO para el ensamblado (código {cod_m})")
+    igual_html = igual_html and (publicado_antes is None or PUBLICADO.read_bytes() == publicado_antes)
+
     print("\n" + "=" * 70)
+    print(f"  {len(MUT_DESC) - d_colados} de {len(MUT_DESC)} mutantes de las descripciones paran el ensamblado")
     print(f"  {cazados} de {cazados + colados} defectos cazados"
           + (f" · {inertes} inyección(es) INERTE(s)" if inertes else ""))
     sin_ver = [(l, f) for i, (l, f) in enumerate(guardas) if i not in vistas]
@@ -705,7 +745,7 @@ def main() -> int:
     print("=" * 70)
 
     shutil.rmtree(tmp, ignore_errors=True)
-    ok = (colados == 0 and inertes == 0 and cod == 0 and intactos and igual_html)
+    ok = (colados == 0 and inertes == 0 and cod == 0 and intactos and igual_html and d_colados == 0)
     return 0 if ok else 1
 
 

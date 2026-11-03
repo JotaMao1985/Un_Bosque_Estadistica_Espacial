@@ -477,6 +477,27 @@ def defectos() -> list[tuple[str, str, str, object]]:
     D.append(("un NaN se cuela en el JSON", "datos", "txt",
               ('"sd": ', '"sd_roto": NaN, "sd": ')))
 
+    # --- 11. Lo que se ve en cada mapa (2026-11-02) --------------------
+    # La descripción larga dice DÓNDE pasa algo; un dato con otro nombre o en
+    # otra zona no cambia ninguna cifra de la prosa y pone la frase en falso.
+    add("la deserción más alta cambia de departamento", "datos",
+        m(lambda o: o["visto"]["desercion"]["mayores"][0].__setitem__("departamento", "Vichada")))
+    add("la deserción más baja cambia de zona", "datos",
+        m(lambda o: o["visto"]["desercion"]["menores"][0].__setitem__("zona", "sur")))
+    add("la clase alta de Carolina del Norte cambia de zona", "datos",
+        m(lambda o: o["visto"]["nc"]["zona"].__setitem__(0, "suroriente")))
+    add("la clase alta de Carolina del Norte gana condados", "datos",
+        m(lambda o: o["visto"]["nc"].__setitem__("clase_alta_n", 23)))
+    add("las estaciones frías se corren de zona", "datos",
+        m(lambda o: o["visto"]["ideam"]["frias"]["n"].__setitem__(0, 25)))
+    add("el umbral de las estaciones cálidas se corre", "datos",
+        m(lambda o: o["visto"]["ideam"].__setitem__("calidas_umbral", 27.9)))
+    add("las sedes de Bogotá cambian de franja", "datos",
+        m(lambda o: o["visto"]["bogota"]["n"].__setitem__(1, 135)))
+    add("el mapa de deserción vuelve a nombrar Bogotá en inglés", "mapas",
+        m(lambda o: o["desercion"]["etiquetas"].__setitem__(
+            o["desercion"]["etiquetas"].index("Bogotá D. C."), "Bogota Capital District")))
+
     return D
 
 

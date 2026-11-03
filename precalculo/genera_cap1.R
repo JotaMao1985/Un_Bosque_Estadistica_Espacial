@@ -1941,9 +1941,13 @@ MAPAS$agregacion <- geo_poligonos(
 MAPAS$bogota <- geo_puntos(
   st_coordinates(cole),
   titulo = "Sedes educativas de Bogotá", leyenda = "sede")
+# El Distrito Capital viene en inglés en la capa de departamentos («Bogota
+# Capital District»), y la tabla de respaldo de este mapa lo publicaba así.
+# Se nombra en español aquí, en el mapa; el CSV de las pestañas no se toca.
+nombre_dep <- function(x) unname(ifelse(x == "Bogota Capital District", "Bogotá D. C.", x))
 MAPAS$desercion <- geo_poligonos(
   dep_ok, valor = dep_ok$desercion, n_clases = 5, estilo = "quantile",
-  etiquetas = dep_ok$shapeName, presupuesto = 1200L,
+  etiquetas = nombre_dep(dep_ok$shapeName), presupuesto = 1200L,
   titulo = "Deserción escolar por departamento (%)",
   leyenda = "deserción (%)", verbose = FALSE)
 # 2 decimales en la marca: una temperatura en centésimas de grado es más
@@ -2021,6 +2025,62 @@ MAPAS$realizaciones <- lapply(seq_len(N_VISTAS), function(i) {
 # =====================================================================
 # N. Escritura
 # =====================================================================
+# =====================================================================
+# LO QUE SE VE EN CADA MAPA (2026-11-02)
+# =====================================================================
+# Cada mapa lleva una descripción larga: lo que se VE en él, para quien no
+# lo ve. Lo que el JSON ya traía (Snow, los tres patrones, el campo, las
+# realizaciones, la agregación, las correlaciones del zinc y de la
+# temperatura) no se repite. Aquí va DÓNDE: la zona del dibujo —tercios de
+# la caja de cada mapa— de los extremos de la deserción, de la clase más
+# alta de Carolina del Norte y de las estaciones más frías y más cálidas,
+# y cuántas sedes de Bogotá caen en cada franja de norte a sur. El zinc no
+# lleva zona: el Mosa corre en diagonal por el dibujo, y lo que se ve —los
+# valores altos pegados al río— ya lo dice su correlación con la distancia.
+# `audita_cap1.py` lo recalcula en Python.
+message("M2 · lo que se ve en cada mapa")
+zona_de <- function(x, y, caja) {
+  fx <- (x - caja[1]) / (caja[3] - caja[1])
+  fy <- (y - caja[2]) / (caja[4] - caja[2])
+  ns <- c("sur", "", "norte")[findInterval(fy, c(1, 2) / 3) + 1]
+  eo <- c("occidente", "", "oriente")[findInterval(fx, c(1, 2) / 3) + 1]
+  ifelse(ns == "" & eo == "", "centro",
+         ifelse(ns == "", eo, ifelse(eo == "", ns, paste0(c(norte = "nor", sur = "sur")[ns], eo))))
+}
+ordena_tabla <- function(x) { tb <- table(x); tb[order(-as.integer(tb), names(tb))] }
+tabla_zonas <- function(z) { tb <- ordena_tabla(z); list(zona = I(names(tb)), n = I(as.integer(tb))) }
+cen_de <- function(g) st_coordinates(suppressWarnings(st_centroid(st_geometry(g), of_largest_polygon = TRUE)))
+
+c_dep <- cen_de(dep_ok)
+z_dep <- zona_de(c_dep[, 1], c_dep[, 2], MAPAS$desercion$caja)
+o_dep <- order(-dep_ok$desercion)
+extremo <- function(ii) lapply(ii, function(i)
+  list(departamento = nombre_dep(dep_ok$shapeName[i]), pct = r10(dep_ok$desercion[i]), zona = z_dep[i]))
+c_nc <- cen_de(nc_proj)
+z_nc <- zona_de(c_nc[, 1], c_nc[, 2], MAPAS$nc$caja)
+alta_nc <- MAPAS$nc$clase == max(MAPAS$nc$clase)
+xy_ideam <- st_coordinates(est); t_ideam <- as.numeric(est$t_media_anual)
+z_ideam <- zona_de(xy_ideam[, 1], xy_ideam[, 2], MAPAS$ideam$caja)
+q_ideam <- quantile(t_ideam, c(0.1, 0.9), names = FALSE)
+xy_cole <- st_coordinates(cole)
+fr_cole <- c("sur", "centro", "norte")[findInterval((xy_cole[, 2] - MAPAS$bogota$caja[2]) /
+                                                     (MAPAS$bogota$caja[4] - MAPAS$bogota$caja[2]),
+                                                     c(1, 2) / 3) + 1]
+D$visto <- list(
+  desercion = list(mayores = extremo(o_dep[1:3]), menores = extremo(rev(o_dep)[1:3])),
+  nc = c(list(clase_alta_n = sum(alta_nc)), tabla_zonas(z_nc[alta_nc])),
+  ideam = list(frias_umbral = r10(q_ideam[1]), calidas_umbral = r10(q_ideam[2]),
+               frias = tabla_zonas(z_ideam[t_ideam <= q_ideam[1]]),
+               calidas = tabla_zonas(z_ideam[t_ideam >= q_ideam[2]])),
+  bogota = list(franja = I(c("norte", "centro", "sur")),
+                n = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f), 0L))))
+message(sprintf("  deserción: de %s (%s) a %s (%s) · NC alta: %s · IDEAM frías: %s · Bogotá: %s",
+                nombre_dep(dep_ok$shapeName[o_dep[1]]), z_dep[o_dep[1]],
+                nombre_dep(dep_ok$shapeName[rev(o_dep)[1]]), z_dep[rev(o_dep)[1]],
+                paste(D$visto$nc$zona, D$visto$nc$n, collapse = ", "),
+                paste(D$visto$ideam$frias$zona, D$visto$ideam$frias$n, collapse = ", "),
+                paste(D$visto$bogota$franja, D$visto$bogota$n, collapse = ", ")))
+
 message("N · Escritura")
 
 D$meta <- list(

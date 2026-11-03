@@ -2503,6 +2503,191 @@ TABLA_SNOW = """      tabla: function (d) {
           + `<th scope="col">% del total</th></tr></thead><tbody>${filas}</tbody></table>`;
       }"""
 
+# =====================================================================
+# «Describir el mapa» (2026-11-02)
+# =====================================================================
+# Lo que se VE en cada mapa, para quien no lo ve: la etiqueta dice qué es
+# el mapa; esto, qué enseña. El motor lo pone en el desplegable «Describir
+# el mapa» y lo enlaza al lienzo para el lector de pantalla (ver
+# `describe_mapa.py`). Los mapas que cambian con un control —Snow, el campo,
+# las realizaciones, la agregación— llevan un texto por estado, y el
+# registro lo elige con la misma variable que elige lo que se pinta. Las
+# cifras salen del JSON —lo que faltaba lo publica R en `visto`—, y cada
+# frase sobre la forma tiene su guarda en `guardas_de_las_descripciones()`.
+from describe_mapa import lista_y, revisa_textos  # noqa: E402
+
+_VI = D["visto"]
+_SN = D["snow"]
+_D1_SNOW = {
+    "broad": (
+        f"Las {ent(_SN['n_muertes'])} muertes se apiñan en las calles alrededor de una sola bomba, la de "
+        f"Broad Street, resaltada: {ent(_SN['n_mas_cerca_broad'])} de ellas, el "
+        f"{n(_SN['pct_mas_cerca_broad'], 1)} %, la tienen como la más próxima, "
+        f"{n(_SN['razon_sobre_uniforme'], 1)} veces lo que le tocaría si se repartieran parejo entre las "
+        f"{ent(_SN['n_bombas'])} bombas."),
+    "todas": (
+        f"Un color por cada una de las {ent(_SN['n_bombas'])} bombas, según cuál le queda más cerca a cada "
+        f"muerte: el de Broad Street cubre la mancha del centro, con {ent(_SN['n_mas_cerca_broad'])} de las "
+        f"{ent(_SN['n_muertes'])}, y las demás bombas se reparten el resto."),
+    "sinlineas": (
+        f"Sin las calles de fondo, las {ent(_SN['n_muertes'])} muertes siguen formando la misma mancha, "
+        f"apretada alrededor de la bomba de Broad Street: no la dibujaban las calles."),
+}
+_PC = D["puntual_canonico"]
+DESC_PINOS = (
+    f"Los {ent(_PC['japanesepines']['n'])} pinos se reparten sin orden aparente, sin grumos marcados ni "
+    f"distancias regulares: la distancia media al vecino más próximo, "
+    f"{n(_PC['japanesepines']['nn_media'], 3)}, es casi la que daría el azar, "
+    f"{n(_PC['japanesepines']['nn_esperada'], 3)}.")
+DESC_SECUOYAS = (
+    f"Las {ent(_PC['redwood']['n'])} plántulas se amontonan en grumos, con mucho vacío entre ellos: la "
+    f"distancia media al vecino más próximo, {n(_PC['redwood']['nn_media'], 3)}, es poco más de la mitad "
+    f"de la que daría el azar, {n(_PC['redwood']['nn_esperada'], 3)}.")
+DESC_CELULAS = (
+    f"Las {ent(_PC['cells']['n'])} células se reparten casi como una rejilla, sin parejas pegadas: la "
+    f"distancia media al vecino más próximo, {n(_PC['cells']['nn_media'], 3)}, es "
+    f"{n(_PC['cells']['clark_evans'], 1)} veces la que daría el azar, {n(_PC['cells']['nn_esperada'], 3)}.")
+_BG = dict(zip(_VI["bogota"]["franja"], _VI["bogota"]["n"]))
+DESC_BOGOTA = (
+    f"Las {ent(D['colombia']['puntual']['n'])} sedes se apiñan en el tercio norte del dibujo, que es la "
+    f"ciudad: {ent(_BG['norte'])}. El tercio del medio y el del sur, el suelo rural del Distrito, tienen "
+    f"{ent(_BG['centro'])} y {ent(_BG['sur'])}.")
+_NC1 = M["nc"]
+_nc_top = sorted(zip(_NC1["valor"], _NC1["etiquetas"]), key=lambda t: (-t[0], t[1]))
+_VNC1 = _VI["nc"]
+DESC_NC = (
+    f"Con cuantiles cada color reúne unos {ent(_NC1['tam'][-1])} condados. Los "
+    f"{ent(_VNC1['clase_alta_n'])} de la clase más oscura, de {n(_NC1['cortes'][-2], 2)} a "
+    f"{n(_NC1['cortes'][-1], 2)} muertes por 1 000 nacimientos, salen repartidos por todo el estado, con "
+    f"más en el {_VNC1['zona'][0]} del dibujo ({ent(_VNC1['n'][0])}); los más altos son "
+    + lista_y([f"{nom} ({n(v, 2)})" for v, nom in _nc_top[:2]]) + ".")
+_DS = _VI["desercion"]
+_corto = lambda d: "el archipiélago de San Andrés" if d.startswith("Archipiélago") else d
+DESC_DESERCION = (
+    f"Lo más oscuro está en el sur y el oriente del país: "
+    + lista_y([f"{_corto(f['departamento'])} ({n(f['pct'], 2)} %)" for f in _DS["mayores"]])
+    + ". Lo más claro, en "
+    + lista_y([f"{_corto(f['departamento'])} ({n(f['pct'], 2)} %)" for f in _DS["menores"]]) + ".")
+_GC = D["geo_canonico"]
+DESC_MEUSE = (
+    f"Los {ent(_GC['n'])} puntos de muestreo, coloreados por su zinc, de {ent(_GC['zinc_min'])} a "
+    f"{ent(_GC['zinc_max'])} ppm, en una nube alargada en diagonal. Los más oscuros se alinean a lo largo "
+    f"de su borde noroeste, que es la orilla del río —el mapa no lo dibuja—, y el color se aclara al "
+    f"alejarse de ella: la correlación del zinc con la distancia al río es {n(_GC['corr_dist_rio'], 2)}.")
+_GEO = D["colombia"]["geo"]
+_FR, _CA = _VI["ideam"]["frias"], _VI["ideam"]["calidas"]
+DESC_IDEAM = (
+    f"Las {ent(_GEO['n'])} estaciones, coloreadas por su temperatura media, de {n(_GEO['t_min'], 1)} a "
+    f"{n(_GEO['t_max'], 1)} °C. Las más frías, de {n(_VI['ideam']['frias_umbral'], 1)} °C o menos, caen "
+    f"casi todas en el {_FR['zona'][0]} del dibujo ({ent(_FR['n'][0])}), donde están las más altas: la "
+    f"temperatura cambia {n(_GEO['gradiente'], 1)} °C por cada kilómetro de altura. Las más cálidas, de "
+    f"{n(_VI['ideam']['calidas_umbral'], 1)} °C o más, en el {_CA['zona'][0]} ({ent(_CA['n'][0])}) y en el "
+    f"{_CA['zona'][1]} ({ent(_CA['n'][1])}).")
+
+
+def _palabra_campo(rho):
+    if rho == 0:
+        return "un granulado sin manchas, cada celda por su lado"
+    if rho < 0.5:
+        return "manchas pequeñas, de pocas celdas"
+    if rho < 0.85:
+        return "manchas de varias celdas"
+    return "manchas grandes y suaves"
+
+
+DESC_CAMPO = {
+    str(c["phi"]): (
+        f"Con alcance {ent(c['phi']) if c['phi'] == int(c['phi']) else n(c['phi'], 1)}, dos celdas vecinas "
+        f"de la retícula tienen correlación "
+        f"{n(c['rho_vecino'], 2)} y el I de Moran del mapa es {n(c['moran'], 2)}: "
+        f"{_palabra_campo(c['rho_vecino'])}.")
+    for c in M["campos"]}
+DESC_REAL = {
+    str(r["id"]): (
+        f"La realización {ent(r['id'])} del mismo proceso: la retícula tiene media {n(r['media_espacial'], 2)} "
+        f"y desviación {n(r['sd_espacial'], 2)}. De una realización a otra las manchas cambian de sitio y "
+        f"de tamaño, y la media se mueve, aunque el proceso que las genera es el mismo.")
+    for r in M["realizaciones"]}
+_AG = D["agregacion_soporte"]["nc"]
+_CC = _AG["condado_caso"]
+_apor = [r["aporte_area"] for r in _CC["reparto"]]
+DESC_AGREG = {
+    "predicado": (
+        f"Los condados, coloreados por sus muertes súbitas, bajo una rejilla de {ent(_AG['n_celdas'])} "
+        f"rectángulos que no sigue ningún límite. Con «se tocan», las {ent(_CC['n_celdas_toca'])} celdas "
+        f"que toca {_CC['nombre']} dicen todas lo mismo, {ent(_CC['sids'])}: el condado entero en cada "
+        f"una."),
+    "area": (
+        f"Los condados, coloreados por sus muertes súbitas, bajo una rejilla de {ent(_AG['n_celdas'])} "
+        f"rectángulos que no sigue ningún límite. Repartiendo por área, las {ent(_CC['n_celdas_toca'])} "
+        f"celdas que toca {_CC['nombre']} dicen cifras distintas, de {n(min(_apor), 4)} en la que apenas "
+        f"roza a {n(max(_apor), 2)} en la que más condado cubre, y entre todas suman sus "
+        f"{ent(_CC['sids'])}."),
+}
+DESCRIPCIONES = {
+    "cap1-snow": [_D1_SNOW["broad"], _D1_SNOW["todas"], _D1_SNOW["sinlineas"]],
+    "cap1-pinos": [DESC_PINOS], "cap1-secuoyas": [DESC_SECUOYAS], "cap1-celulas": [DESC_CELULAS],
+    "cap1-bogota": [DESC_BOGOTA], "cap1-nc": [DESC_NC], "cap1-desercion": [DESC_DESERCION],
+    "cap1-meuse": [DESC_MEUSE], "cap1-ideam": [DESC_IDEAM],
+    "cap1-campo": list(DESC_CAMPO.values()), "cap1-realizacion": list(DESC_REAL.values()),
+    "cap1-agregacion": [DESC_AGREG["predicado"], DESC_AGREG["area"]],
+}
+
+
+def guardas_de_las_descripciones() -> list[str]:
+    """Lo que las descripciones afirman de la forma de cada mapa, contra el dato."""
+    malos = []
+
+    def exige(cond, que):
+        if not cond:
+            malos.append(que)
+
+    exige(_SN["pct_mas_cerca_broad"] > 50 and _SN["razon_sobre_uniforme"] > 2,
+          "Snow: «se apiñan alrededor de una sola bomba» ya no vale")
+    exige(abs(_PC["japanesepines"]["clark_evans"] - 1) < 0.15, "pinos: «casi lo que daría el azar» ya no vale")
+    exige(0.5 < _PC["redwood"]["clark_evans"] < 0.75, "secuoyas: «poco más de la mitad del azar» ya no vale")
+    exige(_PC["cells"]["clark_evans"] > 1.3, "células: «casi como una rejilla» ya no vale")
+    exige(_BG["norte"] * 20 > D["colombia"]["puntual"]["n"] * 19 and sum(_VI["bogota"]["n"]) == D["colombia"]["puntual"]["n"],
+          "Bogotá: «se apiñan en el tercio norte» ya no vale, o las franjas no reparten las sedes")
+    exige(_VNC1["clase_alta_n"] == _NC1["tam"][-1] and len(_VNC1["zona"]) >= 5 and _VNC1["n"][0] > _VNC1["n"][1],
+          "Carolina del Norte: «repartidos por todo el estado, con más en una zona» ya no vale")
+    exige(all(f["zona"] in ("sur", "oriente", "suroriente") for f in _DS["mayores"]),
+          "deserción: «lo más oscuro en el sur y el oriente» ya no vale")
+    exige(_GC["corr_dist_rio"] < -0.5, "zinc: «se pegan al río» y la correlación con la distancia no es negativa y fuerte")
+    # «A lo largo de su borde noroeste»: con los puntos y el zinc del mapa
+    # PUBLICADO, el eje principal de la nube y, de los 16 con más zinc (el
+    # décimo superior), cuántos caen del lado noroeste de ese eje.
+    import math
+    mz = M["meuse"]
+    px, py, zz = mz["pts"][0::2], mz["pts"][1::2], mz["marcas"]
+    mx, my = sum(px) / len(px), sum(py) / len(py)
+    sxx = sum((a - mx) ** 2 for a in px)
+    syy = sum((b - my) ** 2 for b in py)
+    sxy = sum((a - mx) * (b - my) for a, b in zip(px, py))
+    ang = 0.5 * math.atan2(2 * sxy, sxx - syy)
+    nx, ny = -math.sin(ang), math.cos(ang)
+    if nx > 0 or ny < 0:
+        nx, ny = -nx, -ny
+    top = sorted(range(len(zz)), key=lambda i: -zz[i])[:max(1, len(zz) // 10)]
+    nw = sum(((px[i] - mx) * nx + (py[i] - my) * ny) > 0 for i in top)
+    exige(len(px) == len(zz) and nw * 4 >= len(top) * 3 and sxy > 0,
+          f"zinc: «a lo largo de su borde noroeste, en una nube en diagonal» ya no vale ({nw} de {len(top)})")
+    exige(_GEO["corr_alt"] < -0.9 and _FR["n"][0] * 10 > sum(_FR["n"]) * 7,
+          "IDEAM: «las frías, casi todas en una zona, donde están las más altas» ya no vale")
+    rhos = [c["rho_vecino"] for c in M["campos"]]
+    morans = [c["moran"] for c in M["campos"]]
+    exige(rhos == sorted(rhos) and morans == sorted(morans) and rhos[0] == 0,
+          "campo: la correlación entre vecinas o el I de Moran ya no crecen con el alcance")
+    exige({str(r["phi"]) for r in D["inferencia"]["rejilla"]} == set(DESC_CAMPO),
+          "campo: los alcances del deslizador no son los que tienen texto")
+    exige({str(v["id"]) for v in D["realizaciones_vistas"]} == set(DESC_REAL),
+          "realizaciones: las vistas no son las que tienen texto")
+    exige(_CC["n_celdas_toca"] == len(_CC["reparto"]) and len(set(_apor)) == len(_apor)
+          and abs(sum(_apor) - _CC["sids"]) < 1e-6,
+          "agregación: «cifras distintas que suman sus muertes» ya no vale")
+    return malos
+
+
 GEOMAPAS_JS = (
     "    // ----------------------------------------------------------------\n"
     "    // Los mapas del capítulo. La geometría llega cuantizada desde\n"
@@ -2516,23 +2701,25 @@ GEOMAPAS_JS = (
                         "Street resaltada. La tabla de respaldo da las muertes por bomba."),
               extra=("      nombre2: 'bombas de agua',\n"
                      "      get marcaResaltada() { return snowModo === 'broad' ? D1.snow.bomba_broad : null; },\n"
-                     "      get lineas() { return snowModo !== 'sinlineas'; }"),
+                     "      get lineas() { return snowModo !== 'sinlineas'; },\n"
+                     "      descripcion: () => DESC1_SNOW[snowModo]"),
               tabla=TABLA_SNOW)
     # Los pinos salen DOS veces —módulo 2 como caso nulo, módulo 3 en la
     # terna—, y con un solo registro: el motor pinta cada `.geomapa` en su
     # propio lienzo, así que reusar el identificador no duplica los 130
     # enteros de las coordenadas en el JS.
-    + geomapa("cap1-pinos", "japanesepines")
+    + geomapa("cap1-pinos", "japanesepines", extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))
     # Secuoyas y células llevaban desde T1.2 calculadas en `genera_cap1.R`,
     # exportadas a cap1_mapas.json y sin dibujarse en ninguna parte,
     # mientras el módulo 2 afirmaba que «el módulo 3 pone tres patrones
     # puntuales uno al lado del otro» y el módulo 3 ponía una tabla. Se
     # registran aquí porque la terna ES el argumento: sin ver los tres, la
     # frase «el ojo no los separa» hay que creérsela. (2026-08-10)
-    + geomapa("cap1-secuoyas", "redwood")
-    + geomapa("cap1-celulas", "cells")
-    + geomapa("cap1-bogota", "bogota")
-    + geomapa("cap1-nc", "nc", paleta="verde", tabla=TABLA_CLASES)
+    + geomapa("cap1-secuoyas", "redwood", extra="      descripcion: " + json.dumps(DESC_SECUOYAS, ensure_ascii=False))
+    + geomapa("cap1-celulas", "cells", extra="      descripcion: " + json.dumps(DESC_CELULAS, ensure_ascii=False))
+    + geomapa("cap1-bogota", "bogota", extra="      descripcion: " + json.dumps(DESC_BOGOTA, ensure_ascii=False))
+    + geomapa("cap1-nc", "nc", paleta="verde", tabla=TABLA_CLASES,
+              extra="      descripcion: " + json.dumps(DESC_NC, ensure_ascii=False))
     # El mapa del módulo 7. Su `fuente` es un literal como los demás —lo
     # exige `audita_texto_base.geomapas()`, que sobre una función no puede
     # comprobarle cortes, n ni peso— y lo único que cambia con el botón son
@@ -2544,11 +2731,21 @@ GEOMAPAS_JS = (
                      "      get nombreResaltado() { return AGREG_CASO().nombre; },\n"
                      "      get nombreLineasResaltadas() { return 'celdas que toca'; },\n"
                      "      get etiquetasLineas() { return agregEtiquetas(); },\n"
-                     "      get etiqueta() { return agregAlt(); }"),
+                     "      get etiqueta() { return agregAlt(); },\n"
+                     "      descripcion: () => DESC1_AGREG[agregModo]"),
               tabla=TABLA_AGREGACION)
-    + geomapa("cap1-desercion", "desercion", paleta="naranja", tabla=TABLA_CLASES)
-    + geomapa("cap1-meuse", "meuse", paleta="naranja")
-    + geomapa("cap1-ideam", "ideam", paleta="divergente")
+    + geomapa("cap1-desercion", "desercion", paleta="naranja", tabla=TABLA_CLASES,
+              extra="      descripcion: " + json.dumps(DESC_DESERCION, ensure_ascii=False))
+    + geomapa("cap1-meuse", "meuse", paleta="naranja",
+              extra="      descripcion: " + json.dumps(DESC_MEUSE, ensure_ascii=False))
+    + geomapa("cap1-ideam", "ideam", paleta="divergente",
+              extra="      descripcion: " + json.dumps(DESC_IDEAM, ensure_ascii=False))
+    + "    // Lo que se ve en cada estado de los mapas que cambian con un control\n"
+      "    // (ver «Describir el mapa» en el ensamblador).\n"
+    + "    const DESC1_SNOW = " + json.dumps(_D1_SNOW, ensure_ascii=False) + ";\n"
+    + "    const DESC1_CAMPO = " + json.dumps(DESC_CAMPO, ensure_ascii=False) + ";\n"
+    + "    const DESC1_REAL = " + json.dumps(DESC_REAL, ensure_ascii=False) + ";\n"
+    + "    const DESC1_AGREG = " + json.dumps(DESC_AGREG, ensure_ascii=False) + ";\n"
     + """    // Los dos de simulador: su fuente cambia al mover un control, así que
     // es una función. El auditor lo dice en voz alta en vez de darlos por
     // comprobados — sus cortes los verifica audita_cap1.py sobre el JSON.
@@ -2562,7 +2759,8 @@ GEOMAPAS_JS = (
     GEOMAPAS['cap1-campo'] = {
       fuente: () => campoDePhi(D1.inferencia.rejilla[campoIdx].phi),
       paleta: 'divergente',
-      etiqueta: 'Campo gaussiano simulado sobre una retícula de 28 por 28 celdas; el alcance de la correlación se controla con el deslizador.'
+      etiqueta: 'Campo gaussiano simulado sobre una retícula de 28 por 28 celdas; el alcance de la correlación se controla con el deslizador.',
+      descripcion: () => DESC1_CAMPO[String(D1.inferencia.rejilla[campoIdx].phi)]
     };
     // Y lo mismo con las realizaciones: la fila de cifras manda y el mapa
     // se busca POR SU id. Antes se indexaba `MAPAS_SIM.realizaciones` con
@@ -2574,7 +2772,8 @@ GEOMAPAS_JS = (
     GEOMAPAS['cap1-realizacion'] = {
       fuente: () => realizacionDeId(D1.realizaciones_vistas[realIdx].id),
       paleta: 'divergente',
-      etiqueta: 'Una de las tres primeras realizaciones del lote de mil, del mismo proceso gaussiano, sobre una retícula de 16 por 16 celdas.'
+      etiqueta: 'Una de las tres primeras realizaciones del lote de mil, del mismo proceso gaussiano, sobre una retícula de 16 por 16 celdas.',
+      descripcion: () => DESC1_REAL[String(D1.realizaciones_vistas[realIdx].id)]
     };
 """
 )
@@ -4463,6 +4662,11 @@ def main() -> int:
           f"aporta {cc['aporte_predicado']} donde tiene {cc['sids']} · {cc['exceso']} de más, el "
           f"{n(cc['pct_del_exceso'])} % de los {cc['exceso_total']} que sobran")
 
+    # «DESCRIBIR EL MAPA» (2026-11-02). Cada mapa que el documento usa trae
+    # su descripción —los que cambian con un control, una por estado—, y lo
+    # que esas frases afirman de la forma se comprueba contra el dato.
+    problemas += revisa_textos(marcado, GEOMAPAS_JS + SIMULADORES_JS, DESCRIPCIONES)
+    problemas += guardas_de_las_descripciones()
     if problemas:
         for p in problemas:
             print(f"  MAL  {p}")
