@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import pathlib
 import sys
 from baraja_opciones import baraja_documento
@@ -63,7 +64,13 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
-DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-5-intensidad-nucleos.html"
+PUBLICADO = RAIZ / "Htmls_Espacial" / "capitulo-5-intensidad-nucleos.html"
+# `CAP5_DESTINO` manda la salida a otra parte, como `CAP1_DESTINO` en el
+# capítulo 1: el ensamblador escribe el HTML ANTES de correr sus guardas, y
+# `prueba_ensambla_cap5.py` lo ejecuta con guardas rotas a propósito. Sin
+# esto, cada mutante dejaría lo publicado construido con el defecto. El
+# botón al índice se calcula siempre para la ruta publicada.
+DESTINO = pathlib.Path(os.environ.get("CAP5_DESTINO") or PUBLICADO)
 
 D = json.loads((SALIDAS / "cap5_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap5_mapas.json").read_text(encoding="utf-8"))
@@ -542,7 +549,7 @@ MOD1 = cabecera(
         {firma(n(m1["ventana"]["area_km2"], 2), " km²")}, o sea
         {firma(n(m1["ventana"]["lambda_km2"], 2), " sedes por km²")}.</p>
 
-      <div class="nota-lateral">
+      <div class="note">
         <h4>Dos formas de preguntar «¿está en Kennedy?», y no dan lo mismo</h4>
         <p>La capa de sedes trae una columna <code>localidad</code>; la de localidades trae la
           geometría. Por el atributo son {ent(_f["n_atributo"])} sedes, por la geometría
@@ -716,6 +723,15 @@ round(sel, 4)
 round(max(sel) / min(sel), 4)          # cuanto discrepan entre si
 #&gt; [1] {RAZON}
 
+# LA CURVA DEL CRITERIO: cada ancho que probo bw.ppl y la nota que le
+# puso. Vienen dentro del resultado, y as.numeric() las tira.
+# plot(b) la dibuja.
+b &lt;- bw.ppl(p)
+nota &lt;- data.frame(h = attr(b, "h"), cv = attr(b, "cv"))
+round(nota[{FILA0}:{FILA1}, ], 1)      # alrededor de su maximo
+#&gt;        h      cv
+{FILAS}
+
 # EL SELECTOR QUE NO SELECCIONO. R avisa por consola; el valor devuelto
 # no delata nada, y 0.7071 es el extremo DERECHO de su propio intervalo.
 round(as.numeric(bw.ppl(japanesepines)), 4)
@@ -737,7 +753,112 @@ urb = pd.read_csv(&quot;precalculo/salidas/cap5_bogota_urbana.csv&quot;)
 print(round(scott(ken.x, len(ken)), 4))
 #&gt; {SCOTT_KEN}
 print(round(scott(urb.x, len(urb)), 4))
-#&gt; {SCOTT_URB}'''
+#&gt; {SCOTT_URB}
+
+import numpy as np
+
+# Y la suma de bw.CvL, a mano: el area que le «toca» a cada sede,
+# 1/lambda en su sitio, sumada. Sin dejar a nadie fuera y sin corregir el
+# borde, como la calcula R. Si el mapa acertara, daria el area de la ventana.
+P = ken[[&quot;x&quot;, &quot;y&quot;]].to_numpy()
+
+def suma_cvl(P, s):
+    d2 = ((P[:, None, :] - P[None, :, :]) ** 2).sum(-1)
+    lam = np.exp(-d2 / (2 * s * s)).sum(1) / (2 * np.pi * s * s)
+    return (1 / lam).sum() / 1e6          # en km2
+
+print(round(suma_cvl(P, {SIG_CVL}), 2))      # con el ancho que eligio bw.CvL
+#&gt; {SUMA_CVL}
+# el area de Kennedy es {AREA_KEN} km2: de sus 16 anchos, el que mas se acerca'''
+
+# LAS CURVAS DE LOS SELECTORES Y EL EJEMPLO DE LAS DOS SEDES (2026-11-03).
+# Atajos a lo que R publicó en `m3.curvas`; ver allí qué es cada cosa.
+_CU = m3["curvas"]
+_CK, _CC, _PN = _CU["kennedy"], _CU["urbana"], _CU["pinos"]
+_EJ = _CK["ejemplo"]
+_API, _AIS = _EJ["apinada"], _EJ["aislada"]
+_KEN = m1["ventana"]["nombre"]
+_N16 = _CK["ppl"]["nodos16_m"]
+# El máximo de las 16 notas de bw.ppl (los null son -inf), y el nodo de las
+# 16 de bw.CvL que eligió la función: índices de listas publicadas.
+_IMAX = max((i for i, v in enumerate(_CK["ppl"]["cv16"]) if v is not None),
+            key=lambda i: _CK["ppl"]["cv16"][i])
+_ICVL = min(range(len(_CK["cvl"]["nodos16_m"])),
+            key=lambda i: abs(_CK["cvl"]["nodos16_m"][i] - SEL_K["CvL"]))
+
+
+def _guardas_modulo3():
+    """Lo que la prosa del módulo 3 afirma de la FORMA de las curvas, contra el
+    dato. Cada frase se escribió después de leer las curvas, y dos de las que
+    se esperaban no sobrevivieron a la medida («bw.diggle casi plana», «en la
+    ciudad, lisa»); estas guardas impiden que una regeneración de R deje en
+    falso las que sí quedaron. `prueba_ensambla_cap5.py` las rompe una a una."""
+    malos = []
+
+    def exige(cond, que):
+        if not cond:
+            malos.append(que)
+
+    ma, mi = _API["marca16_km2"], _AIS["marca16_km2"]
+    exige(max(ma[:2]) < 0.01 * max(ma),
+          "la apiñada: «con los dos anchos más pequeños ni siquiera ella marca casi nada»")
+    exige(ma[-1] < 0.3 * max(ma), "la apiñada: «con uno mucho mayor su marca baja»")
+    lejos = [v for s, v in zip(_N16, mi) if s < _AIS["vecina_m"] / 4]
+    exige(bool(lejos) and max(lejos) < 0.01 * max(mi),
+          "la aislada: «mientras el núcleo sea mucho más estrecho que su vecina, marca casi cero»")
+    exige(abs(ma[-1] - mi[-1]) < 0.1 * max(ma[-1], mi[-1]) and _N16[-1] >= 1000
+          and abs(ma[_IMAX] - mi[_IMAX]) > 0.5 * max(ma[_IMAX], mi[_IMAX]),
+          "las dos marcas: «con σ de kilómetros se juntan»")
+    exige(_API["pide_m"] < m3["fino"]["kennedy"]["ppl"] < _AIS["pide_m"],
+          "el ejemplo: «la apiñada pide un σ menor que la suma y la aislada uno mayor»")
+    exige(_API["vecinas_300m"] > 0 and _AIS["vecinas_300m"] == 0,
+          "el ejemplo: la aislada tiene vecinas «a menos de 300 m»")
+    exige(_EJ["piden_menos"] + _EJ["piden_mas"] <= m3["kennedy"]["n"],
+          "el ejemplo: piden un σ distinto más sedes de las que hay")
+    cv16, ninf = _CK["ppl"]["cv16"], _CK["ppl"]["infinitos16"]
+    exige(ninf > 0 and all(v is None for v in cv16[:ninf]) and all(v is not None for v in cv16[ninf:])
+          and abs(_N16[ninf - 1] - _CK["ppl"]["infinito_hasta_m"]) < 1e-3,
+          "bw.ppl: «los anchos más pequeños, hasta X m, no tienen nota» y los -inf no son ese tramo")
+    exige(_EJ["gemelas"] <= _EJ["piden_el_minimo"],
+          "las gemelas: «están entre las que piden el σ más pequeño»")
+    s16, area = _CK["cvl"]["suma16_km2"], _CK["cvl"]["area_km2"]
+    exige(s16[0] < area < s16[-1] and all(b > a for a, b in zip(s16, s16[1:])),
+          "bw.CvL: «la suma sube, sin vaivenes, hasta cruzar el área»")
+    cruce = next((i for i in range(len(s16) - 1) if s16[i] < area <= s16[i + 1]), None)
+    exige(cruce is not None and _ICVL in (cruce, cruce + 1)
+          and abs(_CK["cvl"]["nodos16_m"][_ICVL] - SEL_K["CvL"]) < 1e-6 * SEL_K["CvL"],
+          "bw.CvL: «de sus 16 anchos, el que más se acerca es el que devuelve»")
+    dk, du = _CK["diggle"], _CC["diggle"]
+    exige(dk["meseta_pct"] < 25 and dk["subida_final_pct"] < 10,
+          "bw.diggle sobre Kennedy: «no vuelve a subir»")
+    exige(du["subida_final_pct"] > 15, "bw.diggle sobre la ciudad: «pasado su mínimo la curva sí sube»")
+    exige(dk["meseta_desde_m"] < SEL_K["diggle"] < dk["hasta_m"],
+          "bw.diggle: «su mínimo es un diente de la sierra», y no cae en ella")
+    pc = _PN["cv16"]
+    exige(all(b > a for a, b in zip(pc, pc[1:])) and abs(_PN["tope"] - m3["topes"][0]["sigma"]) < 1e-9,
+          "los pinos: «la nota sube en sus 16 anchos hasta el último»")
+    exige(_PN["ampliado"]["devuelve"] == _PN["ampliado"]["hasta"],
+          "los pinos: «con el intervalo ampliado devuelve otra vez el final»")
+    exige(_CC["ppl"]["infinitos16"] > 0 and SEL_U["ppl"] > _CC["ppl"]["infinito_hasta_m"]
+          and 0.001 <= _CC["busqueda"]["desde_m"] < 0.002,
+          "la ciudad: «un poco más de un milímetro» o «elige entre los que quedan»")
+    if malos:
+        sys.exit("PARADO: el módulo 3 afirma de sus curvas lo que el dato ya no sostiene:\n  - "
+                 + "\n  - ".join(malos))
+
+
+_guardas_modulo3()
+
+
+def _filas_r(filas):
+    """Imprime filas de un data.frame como R: el nombre de fila a la izquierda
+    y cada columna alineada a la derecha con el ancho de su valor más largo."""
+    col = [[n(h, 1) for _, h, _ in filas], [n(v, 1) for _, _, v in filas]]
+    ancho = [max(len(c) for c in cs) for cs in col]
+    nom = max(len(str(r)) for r, _, _ in filas)
+    return "\n".join(f"#&gt; {str(r):<{nom}} {a:>{ancho[0]}} {b:>{ancho[1]}}"
+                     for (r, _, _), a, b in zip(filas, *col))
+
 
 _SUB3 = dict(
     SEL=" ".join(n(m3["kennedy"]["sigmas_m"][k], 4)
@@ -745,7 +866,13 @@ _SUB3 = dict(
     RAZON=n(m3["kennedy"]["razon"], 4),
     TOPE=n(m3["topes"][0]["sigma"], 4),
     SCOTT_KEN=n(m3["kennedy"]["sigmas_m"]["scott"], 4),
-    SCOTT_URB=n(m3["urbana"]["sigmas_m"]["scott"], 4))
+    SCOTT_URB=n(m3["urbana"]["sigmas_m"]["scott"], 4),
+    # Las filas de R se numeran desde 1: la del máximo es _IMAX + 1.
+    FILA0=_IMAX, FILA1=_IMAX + 2,
+    FILAS=_filas_r([(i + 1, _N16[i], _CK["ppl"]["cv16"][i]) for i in (_IMAX - 1, _IMAX, _IMAX + 1)]),
+    SIG_CVL=n(SEL_K["CvL"], 4),
+    SUMA_CVL=n(_CK["cvl"]["suma16_km2"][_ICVL], 2),
+    AREA_KEN=n(_CK["cvl"]["area_km2"], 2))
 
 _QUE_OPTIMIZA = {
     "diggle": ("<code>bw.diggle</code>",
@@ -756,13 +883,13 @@ _QUE_OPTIMIZA = {
             "(Loader). Mira los puntos."),
     "CvL": ("<code>bw.CvL</code>",
             "el criterio de Cronie y van Lieshout: que la suma de "
-            "$1/\\hat\\lambda$ sobre los puntos devuelva el área de la ventana."),
+            "$1/\\hat\\lambda$ sobre los puntos devuelva el área de la ventana. Mira el área."),
     "scott": ("<code>bw.scott</code>",
               "el error cuadrático integrado en su aproximación asintótica, suponiendo "
               "que la intensidad fuera una normal —es la regla de referencia normal de "
               "Scott—: por eso tiene forma cerrada, "
               "sd·n<sup>−1/6</sup>, y no busca. Y no devuelve <em>un</em> ancho: "
-              "devuelve uno por eje."),
+              "devuelve uno por eje. Mira solo la dispersión y n."),
 }
 
 _TOPES = "; ".join(
@@ -785,13 +912,103 @@ def _bajo(s):
 
 MOD3 = cabecera(
     3, "Selectores de ancho de banda", "Bandwidth selectors",
-    "Saber qué optimiza cada uno de los cuatro selectores, por qué discrepan y "
-    "cómo se reconoce el que no ha seleccionado nada.") + f"""
+    "Saber cómo elige un selector de ancho de banda, qué optimiza cada uno de los cuatro, "
+    "por qué discrepan y cómo se reconoce el que no ha seleccionado nada.") + f"""
       <p>Si el ancho de banda lo decide todo, la pregunta siguiente se cae de madura: quién lo
         decide. R trae varios selectores automáticos; estos son los cuatro más usados, se llaman
         parecido y devuelven un número cada uno —casi: uno devuelve dos—. Lo que este módulo defiende es que <strong>ese número no es «el ancho
         óptimo»</strong>, porque los cuatro optimizan cosas distintas y ninguno optimiza «que el
         mapa se entienda».</p>
+
+      <p>Antes de los cuatro conviene saber qué hace cualquiera de ellos, porque todos hacen lo
+        mismo en tres pasos: <strong>prueban muchos anchos</strong>, a cada uno le ponen
+        <strong>una nota</strong> según un criterio, y <strong>devuelven el de mejor
+        nota</strong>. Lo que distingue a un selector de otro es el criterio: qué mira para poner
+        la nota. Son como cuatro jurados con cuatro reglamentos: pueden premiar a candidatos
+        distintos sin que ninguno se haya equivocado, y ninguno de los cuatro reglamentos dice
+        «que el mapa se entienda». La línea que une las notas de todos los anchos que un selector
+        prueba es su <strong>curva del criterio</strong>, y este módulo se lee mirándolas.</p>
+
+      <div class="note">
+        <h4>Repaso en una dimensión</h4>
+        <p style="margin-bottom:0;">Si es la primera vez que ves elegir un ancho con los propios
+          datos, el <a href="apendice-a-densidad.html">apéndice A</a> hace lo mismo sobre una
+          recta, donde las cuentas caben a mano: su módulo 9 trae las reglas de referencia —la de
+          Scott entre ellas— y su módulo 10, la validación cruzada, con sus curvas del criterio y
+          un ejemplo pequeño hecho paso a paso.</p>
+      </div>
+
+      <h3>Un ejemplo: quitar una sede y ver si el mapa la esperaba</h3>
+
+      <p>El criterio más fácil de seguir es el de <code>bw.ppl</code>, y cabe en dos sedes de
+        {_KEN}. La idea es esta: si un ancho es bueno, el mapa hecho <strong>sin</strong> una
+        sede, solo con las demás, debería marcar una intensidad alta en el sitio donde ella
+        estaba: el mapa la «esperaba». Se quita la sede, se estima el mapa con las otras y se lee
+        cuánto marca allí. Esa lectura se escribe \(\hat\lambda_{{-i}}(x_i)\): la intensidad en
+        el sitio \(x_i\) de la sede \(i\), estimada sin la sede \(i\). Es una forma de
+        <strong>validación cruzada</strong>: se aparta un dato, se predice con los demás y se
+        mira cuánto se acertó.</p>
+
+      <p>Las dos sedes salen de una regla y no de mirar el mapa. La <strong>apiñada</strong> es la
+        que más sedes tiene a menos de {ent(_EJ["vecindad_m"])} m: {ent(_API["vecinas_300m"])},
+        la más cercana a {ent(_API["vecina_m"])} m. La <strong>aislada</strong> es la que tiene
+        más lejos su vecina más cercana —a {ent(_AIS["vecina_m"])} m, sin ninguna otra a menos
+        de {ent(_EJ["vecindad_m"])}—, entre las que no están así por estar pegadas al borde de la
+        localidad. La regla deja fuera las {ent(_EJ["gemelas"])} sedes que comparten sitio con
+        otra, por una razón que sale más abajo.</p>
+
+{sim("cap5-ejemplo-ppl", "Lo que marca el mapa hecho sin cada sede",
+      f"Mueve σ por los {m3['ns_defecto']['ppl']} anchos que prueba <code>bw.ppl</code>. "
+      "Arriba, lo que marca, en el sitio de cada una de las dos sedes, el mapa hecho sin ella: "
+      "en verde la apiñada, en rojo y a trazos la aislada. Abajo, la nota que "
+      f"<code>bw.ppl</code> pone a cada ancho: la suma, sobre las {ent(m3['kennedy']['n'])} "
+      "sedes, del logaritmo de su marca (el porqué del logaritmo, justo debajo). Los puntos "
+      f"son sus {m3['ns_defecto']['ppl']} anchos, el grande marca el que miras, y la línea es "
+      f"una rejilla de {m3['ns_fino']}. El eje de σ es logarítmico, como la rejilla.",
+      alto=380,
+      aria="Gráfico de líneas en dos franjas con el ancho de banda σ, en metros y en escala "
+           "logarítmica, en el eje horizontal. En la franja de arriba, dos curvas: lo que marca, "
+           "en sedes por km², el mapa hecho sin la sede apiñada en el sitio donde ella estaba (verde) "
+           "y lo mismo para la sede aislada (rojo, a trazos). En la de abajo, la nota de bw.ppl, la "
+           f"suma de los logaritmos de esas marcas para todas las sedes de {_KEN}, con sus "
+           f"{m3['ns_defecto']['ppl']} anchos como puntos. Un deslizador recorre esos anchos; la "
+           "lectura da las dos marcas y la nota en el ancho elegido.")}
+      <p>Las dos sedes tiran en direcciones opuestas. A la apiñada le conviene un σ pequeño: sus
+        vecinas están cerca, y un núcleo estrecho concentra en su sitio la intensidad que ellas
+        aportan; su marca más alta llega con unos {ent(_API["pide_m"])} m. Con los dos anchos
+        más pequeños de la búsqueda, {n(_N16[0], 1)} y {n(_N16[1], 1)} m, ni siquiera ella marca
+        casi nada —el núcleo no alcanza a sus vecinas—, y con uno mucho mayor la intensidad se
+        reparte por toda la localidad y su marca baja. A la aislada, en cambio, le conviene un σ grande: mientras el núcleo sea mucho
+        más estrecho que los {ent(_AIS["vecina_m"])} m que la separan de su vecina, el mapa sin ella
+        marca prácticamente cero donde estaba, y su marca sube hasta un σ de
+        {ent(_AIS["pide_m"])} m. Con σ de kilómetros las dos marcas se juntan: el mapa se ha vuelto
+        casi una llanura y marca casi lo mismo en todas partes.</p>
+
+      <p>Ningún σ deja contentas a las dos, y <code>bw.ppl</code> no elige el de ninguna: elige
+        el que da la mejor nota sumando a todas. Con una rejilla fina, de {m3["ns_fino"]} anchos,
+        ese acuerdo cae en {firma(n(m3["fino"]["kennedy"]["ppl"], 0), " m")}. Si cada sede eligiera
+        sola, <em>pediría</em> el σ que hace más alta su propia marca, y de las
+        {ent(m3["kennedy"]["n"])}, {ent(_EJ["piden_menos"])} pedirían uno menor que ese y
+        {ent(_EJ["piden_mas"])}, uno mayor. Con los {m3["ns_defecto"]["ppl"]} anchos que la
+        función prueba por defecto —los puntos del gráfico— el mejor es
+        {firma(n(SEL_K["ppl"], 0), " m")}, el que devuelve <code>bw.ppl(p)</code>.</p>
+
+      <p>¿Por qué el logaritmo, y por qué una suma? La nota es una <strong>verosimilitud</strong>:
+        multiplica las marcas de todas las sedes, y con logaritmos el producto se vuelve una suma.
+        Y el logaritmo castiga la sorpresa sin piedad: el de una marca cercana a cero es un número
+        negativo enorme, y el de una marca cero es menos infinito. Por eso los
+        {_CK["ppl"]["infinitos16"]} anchos más pequeños de la búsqueda, hasta
+        {n(_CK["ppl"]["infinito_hasta_m"], 1)} m, no tienen nota —en el gráfico no hay punto—: con
+        un núcleo tan estrecho, alguna sede de {_KEN} queda sin nadie a su alcance, su marca es
+        cero y tumba la suma entera. Es la otra cara de la apiñada: un σ pequeño premia a las sedes
+        con vecinas cerca y hunde a las que no las tienen.</p>
+
+      <p>Y la búsqueda empieza en {n(_CK["busqueda"]["desde_m"], 1)} m, la menor distancia entre
+        dos sedes que <em>no</em> comparten sitio, por las gemelas: con un σ más pequeño, la marca
+        de una sede que comparte edificio con otra crece sin tope, porque su gemela está a 0 m.
+        Las {ent(_EJ["gemelas"])} gemelas están, de hecho, entre las
+        {ent(_EJ["piden_el_minimo"])} sedes que piden el σ más pequeño de la rejilla; por eso el
+        ejemplo no usa ninguna.</p>
 
       <h3>Qué optimiza cada uno</h3>
 
@@ -807,40 +1024,61 @@ MOD3 = cabecera(
     for k in ("diggle", "ppl", "CvL", "scott")) + f"""        </tbody>
       </table>
 
+      <p>La tabla se lee ahora con el ejemplo en la mano. <code>bw.ppl</code> es lo que acabas de
+        ver. <code>bw.diggle</code> también es validación cruzada, pero puntúa otra cosa: no cuánto marca el mapa en el sitio de cada
+        sede, sino cuánto se equivoca la <strong>superficie entera</strong>, el error cuadrático
+        medio de la intensidad estimada, y lo calcula a partir de la K de Ripley del capítulo 4,
+        sin hacer un mapa por cada ancho. <code>bw.scott</code> no prueba anchos: supone que las
+        sedes forman una sola campana normal y aplica la fórmula del mejor ancho para esa campana.
+        No tiene curva.</p>
+
+      <p><code>bw.CvL</code> es el único que no aparta a nadie, y parte de una cuenta que se puede
+        hacer de cabeza. {_KEN} tiene {ent(m3["kennedy"]["n"])} sedes en
+        {n(_CK["cvl"]["area_km2"], 1)} km²: si estuvieran repartidas por igual, a cada una le
+        tocarían {n(_EJ["area_por_sede_km2"], 3)} km². Con la intensidad estimada, a cada sede le
+        toca \(1/\hat\lambda(x_i)\): poco si está en una zona densa, mucho si está en una rala. Si
+        el mapa acierta, los trozos de todas suman el área de la ventana, y <code>bw.CvL</code>
+        busca el σ con el que esa suma da los {n(_CK["cvl"]["area_km2"], 1)} km². Con σ pequeño
+        cada sede se ve sola en un pico altísimo, su trozo es diminuto y la suma se queda corta
+        —{n(_CK["cvl"]["suma16_km2"][0], 2)} km² con {n(_CK["cvl"]["nodos16_m"][0], 1)} m—; al abrir
+        σ los picos bajan, los trozos crecen y la suma sube, sin vaivenes, hasta cruzar el área.
+        La cruza hacia los {n(m3["fino"]["kennedy"]["CvL"], 0)} m; de sus
+        {m3["ns_defecto"]["CvL"]} anchos por defecto, el que más se acerca es
+        {firma(n(SEL_K["CvL"], 0), " m")}, y es el que devuelve.</p>
+
+{sim("cap5-curvas", "Lo que mira cada selector",
+      "Las tres curvas del criterio sobre el mismo eje de anchos, logarítmico como la rejilla de "
+      "búsqueda, cada una en su franja porque cada nota se mide en su propia escala. Arriba, la de "
+      "<code>bw.ppl</code>, mejor cuanto más alta. En medio, la suma de <code>bw.CvL</code> contra "
+      "el área de la ventana, en gris: vale donde la cruza. Abajo, la de <code>bw.diggle</code>, "
+      "mejor cuanto más baja. El punto grande de cada una es lo que devuelve su selector. La línea "
+      "vertical a trazos es <code>bw.scott</code>, que no tiene curva, y la punteada, el σ mínimo que "
+      "la ventana puede dibujar. Cambia de ventana y compara las formas.",
+      alto=520,
+      aria="Gráfico de líneas en tres franjas que comparten el eje horizontal del ancho de banda σ, en "
+           f"metros y en escala logarítmica, para la ventana que marquen los botones, {_KEN} o la "
+           "ciudad entera. Arriba, la curva del criterio de bw.ppl (azul) con sus anchos de búsqueda "
+           "como puntos; en medio, la suma de bw.CvL (morado) y el área de la ventana como línea "
+           "horizontal gris; abajo, la curva de bw.diggle (verde). Un punto grande marca en cada curva "
+           "el σ que devuelve su selector, una línea vertical a trazos el de bw.scott y una punteada el "
+           "σ mínimo dibujable. La lectura da los cuatro σ.")}
+      <p>Las curvas dicen más que sus óptimos. La suma de <code>bw.CvL</code> cruza el área una sola
+        vez: hay una respuesta, aunque con {m3["ns_defecto"]["CvL"]} anchos solo se cae cerca de
+        ella. La de <code>bw.diggle</code> sobre {_KEN} es la que más enseña: baja deprisa hasta unos
+        {ent(_CK["diggle"]["meseta_desde_m"])} m y desde ahí <strong>no vuelve a subir</strong>.
+        Ondula, con dientes de hasta un {pct(_CK["diggle"]["meseta_pct"])} de lo que la curva baja
+        desde {ent(_CK["diggle"]["caida_desde_m"])} m hasta su fondo, y al final de su intervalo, en
+        {ent(_CK["diggle"]["hasta_m"])} m, queda solo un {pct(_CK["diggle"]["subida_final_pct"])}
+        por encima de su fondo. Su mínimo, {firma(n(SEL_K["diggle"], 0), " m")}, es el diente más
+        bajo de una sierra: el criterio apenas distingue entre {ent(_CK["diggle"]["meseta_desde_m"])}
+        y {ent(_CK["diggle"]["hasta_m"])} m. Sobre la ciudad, en cambio, pasado su mínimo en
+        {n(SEL_U["diggle"], 0)} m la curva sí sube: al final de su intervalo queda un
+        {pct(_CC["diggle"]["subida_final_pct"])} por encima. Un selector solo elige de verdad cuando
+        su curva tiene un fondo, o una cima, claro.</p>
+
       <p>Sobre {m1["ventana"]["nombre"]} el mayor es {firma(n(m3["kennedy"]["razon"]), " veces")}
         el menor; sobre la ciudad entera, {firma(n(m3["urbana"]["razon"]), " veces")}: sobre la
         ventana grande discrepan más.</p>
-
-      <p>Y dos de esas cifras llevan una decisión escondida. <code>bw.ppl</code> y
-        <code>bw.CvL</code> no buscan un óptimo continuo: evalúan su criterio en
-        {m3["ns_defecto"]["ppl"]} anchos de una rejilla y devuelven el mejor de ellos. Con
-        {m3["ns_fino"]}, <code>bw.ppl</code> da {n(m3["fino"]["kennedy"]["ppl"], 0)} m en
-        {m1["ventana"]["nombre"]} y {n(m3["fino"]["urbana"]["ppl"], 0)} m en la ciudad, y
-        <code>bw.CvL</code>, {n(m3["fino"]["kennedy"]["CvL"], 0)} y
-        {n(m3["fino"]["urbana"]["CvL"], 0)} m. El cruce que la tabla sugiere —<code>bw.ppl</code>
-        por encima de <code>bw.diggle</code> en {m1["ventana"]["nombre"]} y por debajo en la
-        ciudad, {n(m3["urbana"]["sigmas_m"]["ppl"], 0)} m contra
-        {n(m3["urbana"]["sigmas_m"]["diggle"], 0)}— es de la rejilla de búsqueda, no del dato:
-        con la fina, <code>bw.ppl</code> queda por debajo en las dos. Es otra decisión que la
-        llamada toma sin escribirla, y se declara con el argumento <code>ns</code>.</p>
-
-      <p>Y hay una cuarta fila que ni siquiera contesta lo mismo que las otras tres.
-        <strong><code>bw.scott</code> no devuelve un ancho: devuelve dos</strong> —
-        <code>sigma.x</code> y <code>sigma.y</code>—, porque la regla de referencia normal se
-        aplica a cada coordenada por separado. La tabla trae el primero, que es lo que da
-        <code>[1]</code>; si se le pide uno solo, <code>bw.scott(p, isotropic = TRUE)</code>
-        devuelve la media geométrica de los dos —{n(m3["scott_isotropico_m"]["kennedy"], 0)} m en
-        {m1["ventana"]["nombre"]} y {n(m3["scott_isotropico_m"]["urbana"], 0)} m en la ciudad—, y
-        con él la razón de la ciudad sería {n(m3["razon_urbana_scott_isotropico"], 2)} en vez de
-        {n(m3["urbana"]["razon"], 2)}. Sobre
-        {m1["ventana"]["nombre"]}, que es casi cuadrada, los dos casi coinciden:
-        {n(m3["kennedy"]["sigmas_m"]["scott"], 0)} m a lo ancho y
-        {n(m3["kennedy"]["scott_y_m"], 0)} m a lo alto. Sobre la ciudad, que es larga y estrecha,
-        no: {firma(n(m3["urbana"]["sigmas_m"]["scott"], 0), " m")} contra
-        {firma(n(m3["urbana"]["scott_y_m"], 0), " m")}. Se dice aquí porque quien ejecute
-        <code>bw.scott(p)</code> va a ver dos números y tiene que saber por qué — y porque es el
-        ejemplo más limpio de lo que este módulo defiende: los cuatro no dan respuestas distintas
-        a la misma pregunta, es que <strong>no se les está preguntando lo mismo</strong>.</p>
 
 {sim("cap5-selectores", "Los cuatro selectores sobre las dos ventanas",
       "Cambia de ventana y mira dos cosas: cuánto se abre el abanico y si el orden "
@@ -861,6 +1099,49 @@ MOD3 = cabecera(
         pregunta que hay que hacer antes, y cada selector hace una distinta. Elegir sin decir
         cuál se eligió es publicar una superficie sin decir qué se le pidió.</p>
 
+      <h3>Dos decisiones que la llamada toma sin escribirlas</h3>
+
+      <p>La primera ya se vio en los dos gráficos de curvas. <code>bw.ppl</code> y
+        <code>bw.CvL</code> no buscan un óptimo continuo: evalúan su criterio en
+        {m3["ns_defecto"]["ppl"]} anchos de una rejilla —los puntos— y devuelven el mejor de ellos. Con
+        {m3["ns_fino"]}, <code>bw.ppl</code> da {n(m3["fino"]["kennedy"]["ppl"], 0)} m en
+        {m1["ventana"]["nombre"]} y {n(m3["fino"]["urbana"]["ppl"], 0)} m en la ciudad, y
+        <code>bw.CvL</code>, {n(m3["fino"]["kennedy"]["CvL"], 0)} y
+        {n(m3["fino"]["urbana"]["CvL"], 0)} m. El cruce que la tabla sugiere —<code>bw.ppl</code>
+        por encima de <code>bw.diggle</code> en {m1["ventana"]["nombre"]} y por debajo en la
+        ciudad, {n(m3["urbana"]["sigmas_m"]["ppl"], 0)} m contra
+        {n(m3["urbana"]["sigmas_m"]["diggle"], 0)}— es de la rejilla de búsqueda, no del dato:
+        con la fina, <code>bw.ppl</code> queda por debajo en las dos. Es otra decisión que la
+        llamada toma sin escribirla, y se declara con el argumento <code>ns</code>.</p>
+
+      <p>Sobre la ciudad la rejilla se nota más. Empieza, como la de {_KEN}, en la menor
+        distancia entre dos sedes que no comparten sitio, y en la ciudad esa distancia es de
+        {n(_CC["busqueda"]["desde_m"], 4)} m: un poco más de un milímetro. Como los anchos de la
+        rejilla crecen en proporción, {_CC["ppl"]["infinitos16"]} de los
+        {m3["ns_defecto"]["ppl"]} se quedan en {n(_CC["ppl"]["infinito_hasta_m"], 1)} m o menos,
+        donde la nota es menos infinito, y <code>bw.ppl</code> elige entre los que quedan: su
+        {n(SEL_U["ppl"], 0)} m es uno de ellos. Y la nota de <code>bw.ppl</code> es la suma de
+        logaritmos sola, la que se dibujó arriba, porque la función usa por defecto
+        <code>shortcut = TRUE</code>: deja fuera el término que resta la integral del mapa.</p>
+
+      <p>La segunda la toma la cuarta fila, que ni siquiera contesta lo mismo que las otras tres.
+        <strong><code>bw.scott</code> no devuelve un ancho: devuelve dos</strong> —
+        <code>sigma.x</code> y <code>sigma.y</code>—, porque la regla de referencia normal se
+        aplica a cada coordenada por separado. La tabla trae el primero, que es lo que da
+        <code>[1]</code>; si se le pide uno solo, <code>bw.scott(p, isotropic = TRUE)</code>
+        devuelve la media geométrica de los dos —{n(m3["scott_isotropico_m"]["kennedy"], 0)} m en
+        {m1["ventana"]["nombre"]} y {n(m3["scott_isotropico_m"]["urbana"], 0)} m en la ciudad—, y
+        con él la razón de la ciudad sería {n(m3["razon_urbana_scott_isotropico"], 2)} en vez de
+        {n(m3["urbana"]["razon"], 2)}. Sobre
+        {m1["ventana"]["nombre"]}, que es casi cuadrada, los dos casi coinciden:
+        {n(m3["kennedy"]["sigmas_m"]["scott"], 0)} m a lo ancho y
+        {n(m3["kennedy"]["scott_y_m"], 0)} m a lo alto. Sobre la ciudad, que es larga y estrecha,
+        no: {firma(n(m3["urbana"]["sigmas_m"]["scott"], 0), " m")} contra
+        {firma(n(m3["urbana"]["scott_y_m"], 0), " m")}. Se dice aquí porque quien ejecute
+        <code>bw.scott(p)</code> va a ver dos números y tiene que saber por qué — y porque es el
+        ejemplo más limpio de lo que este módulo defiende: los cuatro no dan respuestas distintas
+        a la misma pregunta, es que <strong>no se les está preguntando lo mismo</strong>.</p>
+
       <h3>El selector que no seleccionó</h3>
 
       <p>Hay un caso peor que discrepar, y es el que este módulo quiere que se sepa reconocer.
@@ -870,7 +1151,31 @@ MOD3 = cabecera(
         <code>bw.relrisk</code>, que no es de los cuatro pero es el selector del módulo 6 y falla
         igual—: {_TOPES}.</p>
 
-      <div class="nota-lateral">
+      <p>Míralo en la nota de <code>bw.ppl</code> sobre los pinos japoneses, en el gráfico de abajo.
+        Sube en sus {m3["ns_defecto"]["ppl"]} anchos hasta el último: la búsqueda se detiene en
+        {n(_PN["tope"], 4)}, el final de su intervalo, y devuelve ese final. Con el intervalo
+        ampliado hasta {ent(_PN["ampliado"]["hasta"])}, la nota sigue subiendo, y
+        <code>bw.ppl</code> devuelve {ent(_PN["ampliado"]["devuelve"])}: otra vez el final. Es como
+        buscar la cima de una loma sin salir de un potrero: si al llegar a la cerca el terreno sigue
+        subiendo, lo que se anota es la cerca y no la cima.</p>
+
+{sim("cap5-pared", "La nota de bw.ppl sobre los pinos japoneses",
+      f"Los {m3['ns_defecto']['ppl']} puntos son los anchos que <code>bw.ppl</code> prueba por "
+      "defecto, hasta su cerca, la línea vertical a trazos; la curva sigue con el intervalo "
+      f"ampliado hasta {ent(_PN['ampliado']['hasta'])}, la segunda línea. Los pinos viven en un "
+      "cuadrado de lado 1, así que σ va en esa unidad y no en metros.",
+      alto=260, mandos=False,
+      aria="Gráfico de líneas: la nota de bw.ppl, su curva del criterio, contra el ancho de banda σ en "
+           "escala logarítmica, sobre los pinos japoneses de spatstat. Los puntos son los anchos que "
+           "la función prueba por defecto y suben hasta el último; una línea vertical a trazos marca el "
+           "final de ese intervalo y otra el del intervalo ampliado, hasta donde la curva sigue subiendo. "
+           "La lectura da lo que devuelve con cada intervalo.")}
+      <p>Que la nota siga subiendo con la cerca más lejos es, en sí, la respuesta: en todo lo medido,
+        para estos pinos un ancho mayor es algo mejor que el anterior, y el mapa que mejor los
+        «espera» es uno casi plano, de intensidad constante. El número que devuelve
+        <code>bw.ppl</code> no lo dice; lo dice la curva.</p>
+
+      <div class="note">
         <h4>Por qué el valor de retorno no delata nada</h4>
         <p>R sí avisa —«… at right-hand end of interval», maximised o minimised según el
           selector— pero el aviso va
@@ -1021,7 +1326,7 @@ MOD4 = cabecera(
         y, mejor, se mide integrando contra n. La segunda: las dos correcciones no se distinguen
         por el divisor sino por dónde se evalúa, y el recuadro de abajo lo dice entero.</p>
 
-      <div class="nota-lateral">
+      <div class="note">
         <h4>Por qué solo una de las tres conserva el conteo</h4>
         <p>Las dos correcciones dividen por la misma cosa —la fracción del núcleo que cae dentro
           de la ventana— pero <strong>la evalúan en sitios distintos</strong>. La de por defecto
@@ -1460,7 +1765,7 @@ MOD6 = cabecera(
         publica con los datos que tiene alrededor; el módulo 7 vuelve sobre esto con
         <code>rhohat</code>, cuyo titular es casi siempre su cola.</p>
 
-      <div class="nota-lateral">
+      <div class="note">
         <h4>La trampa que casi publica este módulo al revés</h4>
         <p><code>relrisk</code> devuelve la probabilidad del <strong>segundo nivel</strong> del
           factor de marcas, y los niveles se ordenan alfabéticamente. Con
@@ -1675,7 +1980,7 @@ MOD7 = cabecera(
         covariable que se puede defender es la segunda. El capítulo conserva la primera en los
         módulos 8 y 9 para que sus cifras se puedan seguir de un módulo a otro, y lo dice.</p>
 
-      <div class="nota-lateral">
+      <div class="note">
         <h4>Y no es una rareza del dato colombiano</h4>
         <p style="margin-bottom:0;">Se comprobó sobre el canónico antes de escribir la
           comparación, porque enfrentar un número inflado contra otro habría sido tramposo:
@@ -2041,7 +2346,7 @@ MOD8 = cabecera(
         inflan por la misma razón por la que los errores estándar se encogen: la verosimilitud
         cuenta como independientes sedes que no lo son.</p>
 
-      <div class="nota-lateral">
+      <div class="note">
         <h4>La comparación que más se hace es la que peor sale</h4>
         <p style="margin-bottom:0;">¿Mejora la distancia al centro al modelo constante? Con los
           AIC que devuelve <code>ppm</code>, sí, y por
@@ -2200,7 +2505,7 @@ MOD9 = cabecera(
         tercera parametrización. Y conviene notar además qué contrasta cada z: <code>~ xc + yc</code>
         compara cada coeficiente con cero por separado, no el uno con el otro.</p>
 
-      <div class="nota-lateral">
+      <div class="note">
         <h4>Cómo se detecta: el <code>try()</code> que no atrapa nada</h4>
         <p style="margin-bottom:0;"><code>vcov()</code> ante una información singular
           <strong>no falla</strong>: por dentro <code>solve()</code> sí falla, y la consola lo
@@ -2493,7 +2798,7 @@ MOD10 = cabecera(
         dos. La K inhomogénea tampoco lo zanja del todo, como acaba de verse, pero sí dice a qué
         escalas.</p>
 
-      <div class="nota-lateral">
+      <div class="note">
         <h4>Una corrección de borde que se hereda, y por qué</h4>
         <p style="margin-bottom:0;">La envolvente va con corrección de <strong>traslación</strong>,
           la misma del capítulo 4 y por el mismo motivo medido: sobre esta ventana la isotrópica
@@ -2684,7 +2989,7 @@ MOD11 = cabecera(
         {n(_dv["Thomas"]["segundos_trans"], 2)} s,
         {firma(n(_dv["Thomas"]["veces_mas_rapido"]), " veces más rápido")}.</p>
 
-      <div class="nota-lateral">
+      <div class="note">
         <h4>Y no es un acelerón: es otra respuesta</h4>
         <p>Se comprobó antes de consagrarlo, y menos mal. Los mismos datos, el mismo modelo, el
           mismo <code>kppm</code>: con la isotrópica, la ciudad son conglomerados de
@@ -2789,7 +3094,7 @@ MOD11 = cabecera(
         con la K de traslación. <strong>Tampoco de la relación curva hay evidencia</strong>:
         <code>rhohat</code> la describe, y describir no es contrastar.</p>
 
-      <div class="nota-lateral">
+      <div class="note">
         <h4>Es el efecto de diseño del capítulo 1</h4>
         <p style="margin-bottom:0;">Allí la media de celdas correlacionadas variaba más de lo que
           su n prometía, y el cociente entre las dos varianzas se llamaba efecto de diseño. Aquí es
@@ -3335,6 +3640,8 @@ JS_PREAMBULO = r"""
     // seis series y la paleta de la casa no separa bien en daltonismo.
     const C5 = { verde: '#1a7358', naranja: '#FF6600', gris: '#8a8a8a',
                  azul: '#0072B2', rojo: '#D55E00', morado: '#7B3FA0',
+                 // bw.scott en el módulo 3: el de las diapositivas, oscuro para el contraste.
+                 scott: '#8A3D00',
                  verdeSuave: 'rgba(26,115,88,0.18)', grisSuave: 'rgba(138,138,138,0.18)' };
 
     function lectura5(raiz, pares) {
@@ -3458,7 +3765,7 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     // --- Módulo 3 · los cuatro selectores ----------------------------
     SIMULADORES['cap5-selectores'] = function (raiz) {
       const VENT = ['kennedy', 'urbana'];
-      const ETQ = ['Kennedy (262 sedes)', 'Ciudad entera (2 107 sedes)'];
+      const ETQ = ETQ_VENTANAS5();
       const NOM = ['diggle', 'ppl', 'CvL', 'scott'];
       let i = 0;
       const g = grafico5(raiz, 'bar', { labels: NOM.map(k => 'bw.' + k), datasets: [] }, {
@@ -3493,6 +3800,210 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
       };
       botonera5(raiz, ETQ, k => { i = k; pinta(); }, 0);
       pinta();
+      return [g];
+    };
+
+    // --- Módulo 3 · las curvas del criterio (2026-11-03) ---------------
+    // Los rótulos de las dos ventanas salen del JSON: hasta esta fecha el
+    // simulador de barras escribía «262» y «2 107» a mano. El millar va con
+    // el espacio fino de la prosa: `toLocaleString('es-ES')` no agrupa los
+    // números de cuatro cifras y escribía «2107».
+    const miles5 = (x, sep) => String(Math.round(Number(x))).replace(/\B(?=(\d{3})+(?!\d))/g, sep || ' ');
+    // En el lienzo el fino casi no se ve (lo midió la revisión de los ejes de
+    // Chart.js, 2026-10-27): allí, y en los botones, el espacio duro.
+    const DURO5 = '\u00a0';
+    function ETQ_VENTANAS5() {
+      // En un botón el espacio fino casi no se ve («2107»): allí, el duro.
+      return [D5.m1.ventana.nombre + ' (' + miles5(D5.m3.kennedy.n, DURO5) + ' sedes)',
+              'Ciudad entera (' + miles5(D5.m3.urbana.n, DURO5) + ' sedes)'];
+    }
+    // El eje de σ es LOGARÍTMICO, como la rejilla de búsqueda, cuyos anchos
+    // crecen en proporción; las marcas de sus divisiones se fijan a mano
+    // porque las de Chart.js sobre un eje logarítmico son ilegibles.
+    const ejeSigma5 = (min, max, titulo, tics) => ({
+      type: 'logarithmic', min: min, max: max,
+      title: { display: true, text: titulo },
+      afterBuildTicks: ax => {
+        ax.ticks = (tics || [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000])
+          .filter(v => v >= ax.min && v <= ax.max).map(v => ({ value: v }));
+      },
+      ticks: { autoSkip: false, callback: v => (v >= 1000 ? miles5(v, DURO5) : String(v)) }
+    });
+    // Los rótulos de los ejes con el formato de la prosa —el menos tipográfico,
+    // el millar con espacio fino—, y sin los extremos que Chart.js añade al
+    // fijar min y max: salían como «-3,043.5», ni redondos ni con el punto
+    // decimal de la casa.
+    const fmtEje5 = v => {
+      const a = Math.abs(v);
+      return (v < 0 ? '\u2212' : '') + (a >= 1000 ? miles5(a, DURO5) : String(+a.toFixed(2)));
+    };
+    // Los límites de cada franja se redondean a un paso limpio (1, 2, 2.5 o 5
+    // por una potencia de 10): con min y max sin redondear, Chart.js los pinta
+    // como dos rótulos más, «40.75» o «−1.53». Las líneas verticales usan los
+    // mismos límites, para cruzar la franja entera.
+    const redondea5 = (lo, hi) => {
+      const bruto = (hi - lo) / 4, e = Math.pow(10, Math.floor(Math.log10(bruto)));
+      const paso = [1, 2, 2.5, 5, 10].map(m => m * e).find(q => q >= bruto);
+      return [Math.floor(lo / paso) * paso, Math.ceil(hi / paso) * paso];
+    };
+    // Una franja de un gráfico apilado: cada nota en su escala, el mismo eje σ.
+    // OJO: Chart.js apila la PRIMERA escala definida ABAJO, así que se definen
+    // de abajo arriba (la primera versión salió al revés de lo que dice el texto).
+    // `titulo = false` lo oculta: en el teléfono, con tres franjas, el título
+    // girado pisaba los números del eje (se comía el «−» de «−3 000»), y allí
+    // la leyenda ya nombra cada franja por su color.
+    const franja5 = (min, max, titulo, conTitulo) => ({
+      type: 'linear', stack: 'franjas', stackWeight: 1, offset: true, min: min, max: max,
+      title: { display: conTitulo !== false, text: titulo }, ticks: { maxTicksLimit: 6, callback: fmtEje5 },
+      // Las franjas de una pila comparten el ancho de la PRIMERA, y la de
+      // bw.diggle tiene rótulos cortos: los de bw.ppl en la ciudad, «−24 000»,
+      // salían cortados. Un ancho fijo que quepa en todas.
+      afterFit: ax => { ax.width = conTitulo === false ? 60 : 84; }
+    });
+    // Una línea vertical en una franja: dos puntos con la misma x.
+    const vertical5 = (x, eje, lo, hi, color, dash, etiqueta) => ({
+      type: 'line', label: etiqueta || '', data: [{ x: x, y: lo }, { x: x, y: hi }], yAxisID: eje,
+      borderColor: color, borderDash: dash, borderWidth: 1.5, pointRadius: 0, fill: false });
+    // Los puntos de una rejilla con su índice, sin los -inf (null): el radio
+    // de cada punto tiene que ir con SU punto, no con la posición tras filtrar.
+    const nodos5 = (hs, vs) => hs.map((x, i) => ({ x: x, y: vs[i], i: i })).filter(p => p.y != null);
+    // La nota de bw.ppl se mira cerca de su cima: por debajo, la curva cae hasta
+    // menos infinito y aplastaría la parte en la que se decide.
+    const cimaPpl5 = cv => {
+      const vivos = cv.filter(v => v != null), alto = Math.max(...vivos), fin = cv[cv.length - 1];
+      return [alto - 3 * (alto - fin), alto + 0.2 * (alto - fin)];
+    };
+    const sinLeyenda5 = { legend: { labels: { filter: it => it.text !== '', boxHeight: 2 } } };
+
+    SIMULADORES['cap5-ejemplo-ppl'] = function (raiz) {
+      const K = D5.m3.curvas.kennedy, E = K.ejemplo, P = K.ppl;
+      const h = E.h_m, h16 = P.nodos16_m;
+      const yN = redondea5(...cimaPpl5(P.cv));
+      const altoM = redondea5(0, 1.05 * Math.max(...E.apinada.marca_km2, ...E.aislada.marca_km2))[1];
+      const imax = P.cv16.reduce((b, v, i) => (v != null && (b < 0 || v > P.cv16[b])) ? i : b, -1);
+      let k = imax;
+      const g = grafico5(raiz, 'line', { datasets: [] }, {
+        scales: { x: ejeSigma5(h[0], h[h.length - 1], 'ancho de banda σ (m, escala logarítmica)'),
+                  yN: franja5(yN[0], yN[1], 'nota de bw.ppl'),
+                  yM: franja5(0, altoM, 'marca (sedes/km²)') },
+        plugins: sinLeyenda5
+      });
+      const pinta = () => {
+        const s = h16[k], p16 = nodos5(h16, P.cv16);
+        g.data.datasets = [
+          { label: 'apiñada', data: curva5(h, E.apinada.marca_km2), yAxisID: 'yM',
+            borderColor: C5.verde, backgroundColor: C5.verde, pointRadius: 0, borderWidth: 2.5 },
+          { label: 'aislada', data: curva5(h, E.aislada.marca_km2), yAxisID: 'yM',
+            borderColor: C5.rojo, backgroundColor: C5.rojo, borderDash: [7, 4], pointRadius: 0, borderWidth: 2.5 },
+          { label: 'nota, rejilla fina', data: curva5(h, P.cv), yAxisID: 'yN',
+            borderColor: C5.azul, backgroundColor: C5.azul, pointRadius: 0, borderWidth: 1.5 },
+          { label: 'los ' + h16.length + ' anchos que prueba', data: p16, yAxisID: 'yN', showLine: false,
+            borderColor: C5.azul, backgroundColor: C5.azul, pointRadius: p16.map(q => q.i === k ? 7 : 3.5) },
+          vertical5(s, 'yM', 0, altoM, C5.gris, [2, 3]),
+          vertical5(s, 'yN', yN[0], yN[1], C5.gris, [2, 3])
+        ];
+        g.update('none');
+        const marca = v => v === 0 ? '0' : v < 0.01 ? 'casi 0 (' + exp5(v, 1) + ')' : n5(v, 2);
+        lectura5(raiz, [
+          ['ancho de banda σ', n5(s, 1) + ' m'],
+          ['marca de la apiñada', marca(E.apinada.marca16_km2[k]) + ' sedes/km²'],
+          ['marca de la aislada', marca(E.aislada.marca16_km2[k]) + ' sedes/km²'],
+          ['nota de bw.ppl', P.cv16[k] == null ? '−∞: alguna sede queda con marca cero' : n5(P.cv16[k], 1)],
+          ['la mejor de los ' + h16.length, n5(h16[imax], 0) + ' m']]);
+      };
+      deslizador5(raiz, h16.map((s, i) => [i, n5(s, s < 100 ? 1 : 0) + ' m']), 'ancho de banda σ', imax,
+                  v => { k = v; pinta(); });
+      pinta();
+      return [g];
+    };
+
+    SIMULADORES['cap5-curvas'] = function (raiz) {
+      const VENT = ['kennedy', 'urbana'], ETQ = ETQ_VENTANAS5();
+      let i = 0;
+      const g = grafico5(raiz, 'line', { datasets: [] }, { plugins: sinLeyenda5 });
+      const pinta = () => {
+        const C = D5.m3.curvas[VENT[i]], W = D5.m3[VENT[i]], S = W.sigmas_m, F = D5.m3.fino[VENT[i]];
+        const suelo = W.sigma_minimo_dibujable_m, A = C.cvl.area_km2;
+        const yP = redondea5(...cimaPpl5(C.ppl.cv)), yC = redondea5(0, 3 * A);
+        // bw.diggle, de su fondo a lo que vale en el ancho desde el que la prosa
+        // mide su caída: así se ve la sierra y no el desplome de los σ pequeños.
+        const dh = C.diggle.h_m, dm = C.diggle.m, fondo = Math.min(...dm);
+        const j0 = dh.reduce((b, x, j) => Math.abs(x - C.diggle.caida_desde_m) <
+                                         Math.abs(dh[b] - C.diggle.caida_desde_m) ? j : b, 0);
+        const yD = redondea5(fondo - 0.15 * (dm[j0] - fondo), dm[j0]);
+        const x0 = Math.max(10, C.busqueda.desde_m), x1 = C.busqueda.hasta_m;
+        const p16 = nodos5(C.ppl.nodos16_m, C.ppl.cv16), c16 = nodos5(C.cvl.nodos16_m, C.cvl.suma16_km2);
+        const iP = p16.reduce((b, q) => q.y > b.y ? q : b), iC = c16.find(q => Math.abs(q.x - S.CvL) < 1e-6 * S.CvL);
+        const elegido = (x, y, eje, color) => ({ label: '', data: [{ x: x, y: y }], yAxisID: eje, showLine: false,
+          pointRadius: 7, borderWidth: 2.5, borderColor: color, backgroundColor: '#ffffff' });
+        const ancho = raiz.clientWidth >= 520;
+        g.options.scales = { x: ejeSigma5(x0, x1, 'ancho de banda σ (m, escala logarítmica)'),
+                             yD: franja5(yD[0], yD[1], 'bw.diggle ↓', ancho),
+                             yC: franja5(yC[0], yC[1], 'bw.CvL (km²)', ancho),
+                             yP: franja5(yP[0], yP[1], 'bw.ppl ↑', ancho) };
+        g.data.datasets = [
+          { label: 'bw.ppl', data: curva5(C.ppl.h_m, C.ppl.cv), yAxisID: 'yP',
+            borderColor: C5.azul, backgroundColor: C5.azul, pointRadius: 0, borderWidth: 2 },
+          { label: '', data: p16, yAxisID: 'yP', showLine: false, borderColor: C5.azul,
+            backgroundColor: C5.azul, pointRadius: 3 },
+          elegido(iP.x, iP.y, 'yP', C5.azul),
+          { label: 'bw.CvL', data: curva5(C.cvl.h_m, C.cvl.suma_km2), yAxisID: 'yC',
+            borderColor: C5.morado, backgroundColor: C5.morado, pointRadius: 0, borderWidth: 2 },
+          { label: '', data: c16, yAxisID: 'yC', showLine: false, borderColor: C5.morado,
+            backgroundColor: C5.morado, pointRadius: 3 },
+          { label: 'área de la ventana', data: [{ x: x0, y: A }, { x: x1, y: A }], yAxisID: 'yC',
+            borderColor: C5.gris, backgroundColor: C5.gris, pointRadius: 0, borderWidth: 1.5 },
+          elegido(iC ? iC.x : S.CvL, iC ? iC.y : A, 'yC', C5.morado),
+          { label: 'bw.diggle', data: curva5(dh, dm), yAxisID: 'yD',
+            borderColor: C5.verde, backgroundColor: C5.verde, pointRadius: 0, borderWidth: 2 },
+          elegido(S.diggle, fondo, 'yD', C5.verde),
+          vertical5(S.scott, 'yP', yP[0], yP[1], C5.scott, [7, 4], 'bw.scott'),
+          vertical5(S.scott, 'yC', yC[0], yC[1], C5.scott, [7, 4]),
+          vertical5(S.scott, 'yD', yD[0], yD[1], C5.scott, [7, 4]),
+          vertical5(suelo, 'yP', yP[0], yP[1], C5.gris, [2, 3], 'σ mínimo dibujable'),
+          vertical5(suelo, 'yC', yC[0], yC[1], C5.gris, [2, 3]),
+          vertical5(suelo, 'yD', yD[0], yD[1], C5.gris, [2, 3])
+        ];
+        g.update('none');
+        lectura5(raiz, [
+          ['ventana', ETQ[i]],
+          ['bw.ppl', n5(S.ppl, 0) + ' m con ' + C.ppl.nodos16_m.length + ' anchos; ' +
+                     n5(F.ppl, 0) + ' m con ' + C.busqueda.n_fino],
+          ['bw.CvL', n5(S.CvL, 0) + ' m; la suma cruza el área hacia ' + n5(F.CvL, 0) + ' m'],
+          ['bw.diggle', n5(S.diggle, 0) + ' m, el fondo de su curva'],
+          ['bw.scott', n5(S.scott, 0) + ' m: una fórmula, sin curva'],
+          ['σ mínimo dibujable', n5(suelo, 0) + ' m']]);
+      };
+      botonera5(raiz, ETQ, k => { i = k; pinta(); }, 0);
+      pinta();
+      return [g];
+    };
+
+    SIMULADORES['cap5-pared'] = function (raiz) {
+      const P = D5.m3.curvas.pinos, A = P.ampliado;
+      const alto = Math.max(...A.cv, ...P.cv16);
+      // Desde algo por debajo de su décimo primer ancho: más abajo la nota se
+      // desploma y aplastaría la subida lenta, que es lo que hay que ver.
+      const y = redondea5(alto - 3 * (alto - P.cv16[10]), alto + 0.5 * (alto - P.cv16[10]));
+      const g = grafico5(raiz, 'line', { datasets: [
+        { label: 'nota, intervalo ampliado', data: curva5(A.h, A.cv), borderColor: C5.azul,
+          backgroundColor: C5.azul, pointRadius: 0, borderWidth: 2 },
+        { label: 'los ' + P.nodos16.length + ' anchos por defecto', data: curva5(P.nodos16, P.cv16),
+          showLine: false, borderColor: C5.azul, backgroundColor: C5.azul, pointRadius: 3.5 },
+        vertical5(P.tope, 'y', y[0], y[1], C5.rojo, [7, 4], 'final del intervalo por defecto'),
+        vertical5(A.hasta, 'y', y[0], y[1], C5.gris, [2, 3], 'final del intervalo ampliado')
+      ] }, {
+        scales: { x: ejeSigma5(P.nodos16[0], A.hasta, 'ancho de banda σ (escala logarítmica; el cuadrado mide 1)',
+                               [0.01, 0.03, 0.1, 0.3, 1, 2]),
+                  y: { min: y[0], max: y[1], title: { display: true, text: 'nota de bw.ppl' },
+                       ticks: { callback: fmtEje5 } } },
+        plugins: sinLeyenda5
+      });
+      lectura5(raiz, [
+        ['intervalo por defecto', 'hasta ' + n5(P.tope, 4)],
+        ['con él devuelve', n5(P.tope, 4) + ': el final'],
+        ['intervalo ampliado', 'hasta ' + n5(A.hasta, 0)],
+        ['con él devuelve', n5(A.devuelve, 0) + ': el final otra vez']]);
       return [g];
     };
 
@@ -4320,7 +4831,7 @@ def main() -> int:
     # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
     doc = baraja_documento(doc, "cap5")
 
-    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
+    doc = aplica_boton(doc, PUBLICADO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     marcado = doc[:doc.rindex("\n  <script>")]
@@ -4349,7 +4860,7 @@ def main() -> int:
     puntos_kb = sum(len(json.dumps(M[k], ensure_ascii=False)) for k in M
                     if isinstance(M[k], dict) and M[k].get("modo") == "puntos") / 1024
 
-    print(f"{DESTINO.relative_to(RAIZ)}  {kb:.0f} KB")
+    print(f"{DESTINO.relative_to(RAIZ) if DESTINO == PUBLICADO else DESTINO}  {kb:.0f} KB")
     print(f"  {mods} módulos · {sims} simuladores · {mapas} mapas · "
           f"{bl_r} bloques de R y {bl_py} de Python · {cifras} cifras anunciadas")
     print(f"  {lienzos} lienzos, {con_alt} con aria-label")

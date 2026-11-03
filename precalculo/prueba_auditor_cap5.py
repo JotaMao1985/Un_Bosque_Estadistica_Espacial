@@ -1017,6 +1017,104 @@ def defectos():
     obj("19 · la diferencia en la escala deja de ser la suya",
         "soluciones", lambda s: sol(s, "e5")["diferencias_pct"].__setitem__("escala", 6.3131313131))
 
+    # --- 20. Las curvas de los selectores, módulo 3 (2026-11-03) -------
+    # El módulo enseña la nota que cada selector pone a cada ancho, y abre
+    # con dos sedes de Kennedy. Un defecto por comprobación de la sección 4b.
+    def cur(d, *ruta):
+        z = d["m3"]["curvas"]
+        for k in ruta:
+            z = z[k]
+        return z
+
+    def otro_maximo(lista, valor):
+        """Pone `valor` en un nodo con nota que NO es el máximo."""
+        vivos = [i for i, v in enumerate(lista) if v is not None]
+        imax = max(vivos, key=lambda i: lista[i])
+        lista[vivos[(vivos.index(imax) + 8) % len(vivos)]] = valor
+
+    obj("20 · la búsqueda de Kennedy arranca en otra distancia",
+        "datos", lambda d: cur(d, "kennedy", "busqueda").__setitem__("desde_m", 13.1313131))
+    obj("20 · la búsqueda de la ciudad acaba en otro sitio",
+        "datos", lambda d: cur(d, "urbana", "busqueda").__setitem__("hasta_m", 20131.3131313))
+    obj("20 · un nodo de los 16 de bw.ppl se mueve",
+        "datos", lambda d: cur(d, "kennedy", "ppl", "nodos16_m").__setitem__(5, 81.3131313))
+    obj("20 · un nodo de los 16 de bw.CvL se mueve",
+        "datos", lambda d: cur(d, "urbana", "cvl", "nodos16_m").__setitem__(12, 731.3131313))
+    obj("20 · un ancho de -inf pasa a tener nota",
+        "datos", lambda d: cur(d, "kennedy", "ppl", "cv16").__setitem__(2, -8131.3131313))
+    obj("20 · un ancho con nota pasa a -inf",
+        "datos", lambda d: cur(d, "urbana", "ppl", "cv16").__setitem__(14, None))
+    obj("20 · los -inf de Kennedy se cuentan mal",
+        "datos", lambda d: cur(d, "kennedy", "ppl").__setitem__("infinitos16", 4))
+    obj("20 · el último -inf de la ciudad cambia",
+        "datos", lambda d: cur(d, "urbana", "ppl").__setitem__("infinito_hasta_m", 31.3131313))
+    obj("20 · la mejor de las 16 deja de ser bw.ppl",
+        "datos", lambda d: otro_maximo(cur(d, "kennedy", "ppl", "cv16"), -3001.3131313))
+    obj("20 · el máximo de la curva fina se mueve",
+        "datos", lambda d: otro_maximo(cur(d, "urbana", "ppl", "cv"), -24001.3131313))
+    obj("20 · la suma de bw.CvL cambia en un ancho",
+        "datos", lambda d: cur(d, "kennedy", "cvl", "suma16_km2").__setitem__(9, 31.3131313))
+    obj("20 · el área de la ciudad cambia",
+        "datos", lambda d: cur(d, "urbana", "cvl").__setitem__("area_km2", 371.3131313))
+    obj("20 · la suma de bw.CvL deja de subir",
+        "datos", lambda d: cur(d, "urbana", "cvl", "suma_km2").__setitem__(20, 0.0131313))
+    obj("20 · el mínimo de bw.diggle se mueve",
+        "datos", lambda d: cur(d, "kennedy", "diggle", "m").__setitem__(10, -2.1313131))
+    obj("20 · la curva de bw.diggle sale de su intervalo",
+        "datos", lambda d: cur(d, "urbana", "diggle").__setitem__("hasta_m", 1313.1313131))
+    obj("20 · bw.diggle en Kennedy publica que vuelve a subir",
+        "datos", lambda d: cur(d, "kennedy", "diggle").__setitem__("subida_final_pct", 31.3131313))
+    obj("20 · la caída de bw.diggle se mide desde otro ancho",
+        "datos", lambda d: cur(d, "urbana", "diggle").__setitem__("caida_desde_m", 131))
+    obj("20 · bw.diggle en la ciudad deja de subir",
+        "datos", lambda d: cur(d, "urbana", "diggle", "m").__setitem__(-1, -1.4813131))
+    obj("20 · la meseta de bw.diggle se encoge",
+        "datos", lambda d: cur(d, "kennedy", "diggle").__setitem__("meseta_pct", 3.1313131))
+    obj("20 · las gemelas de Kennedy cambian",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo").__setitem__("gemelas", 7))
+    obj("20 · la apiñada gana vecinas",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "apinada").__setitem__("vecinas_300m", 13))
+    obj("20 · la aislada se acerca a su vecina",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "aislada").__setitem__("vecina_m", 513.1313131))
+    obj("20 · la apiñada se aleja del borde",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "apinada").__setitem__("borde_m", 1631.3131313))
+    obj("20 · la aislada se acerca al borde",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "aislada").__setitem__("borde_m", 1131.3131313))
+    obj("20 · la apiñada pierde una vecina",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "apinada").__setitem__("vecina_m", 71.3131313))
+    obj("20 · la aislada gana una vecina a 300 m",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "aislada").__setitem__("vecinas_300m", 1))
+    obj("20 · la marca de la apiñada cambia",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "apinada", "marca16_km2").__setitem__(8, 21.3131313))
+    obj("20 · la marca de la aislada cambia",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "aislada", "marca16_km2").__setitem__(12, 5.1313131))
+    obj("20 · la aislada deja de pedir más que la suma",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "aislada").__setitem__("pide_m", 313.1313131))
+    obj("20 · la apiñada pide otro sigma",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "apinada").__setitem__("pide_m", 131.3131313))
+    obj("20 · las que piden menos se cuentan mal",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo").__setitem__("piden_menos", 131))
+    obj("20 · las que piden más se cuentan de más",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo").__setitem__("piden_mas", 213))
+    obj("20 · las que piden el mínimo cambian",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo").__setitem__("piden_el_minimo", 13))
+    obj("20 · piden el mínimo menos sedes que gemelas hay",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo").__setitem__("piden_el_minimo", 5))
+    obj("20 · el área que toca a cada sede cambia",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo").__setitem__("area_por_sede_km2", 0.1313131))
+    obj("20 · el ejemplo cambia de rejilla",
+        "datos", lambda d: cur(d, "kennedy", "ejemplo", "h_m").__setitem__(7, 51.3131313))
+    obj("20 · el tope de los pinos se mueve",
+        "datos", lambda d: cur(d, "pinos").__setitem__("tope", 0.7131313))
+    obj("20 · la nota de los pinos deja de subir",
+        "datos", lambda d: cur(d, "pinos", "cv16").__setitem__(10, 131.3131313))
+    obj("20 · con el intervalo ampliado deja de subir",
+        "datos", lambda d: cur(d, "pinos", "ampliado", "cv").__setitem__(60, 213.1313131))
+    obj("20 · con el intervalo ampliado devuelve otra cosa",
+        "datos", lambda d: cur(d, "pinos", "ampliado").__setitem__("devuelve", 1.3131313))
+    obj("20 · las curvas desaparecen",
+        "datos", lambda d: d["m3"].pop("curvas"))
+
     return D
 
 
@@ -1051,6 +1149,9 @@ def tipo(n: str) -> str:
     # Las cuatro cuadraturas del módulo 8 repiten las mismas nueve cuentas.
     n = re.sub(r"^cuadratura nd=\d+:", "cuadratura nd=<nd>:", n)
     n = re.sub(r"en (bei/elev|bei/grad|bogotá)$", "en <covariable>", n)
+    # Las curvas del módulo 3: la sección 4b corre el MISMO código sobre las
+    # dos ventanas, y la familia 20 ataca cada comprobación en una de ellas.
+    n = re.sub(r"^curvas/(kennedy|urbana):", "curvas/<ventana>:", n)
     n = re.sub(r"^(está e\d)", "está eN", n)
     n = re.sub(r"ejercicios: está e\d", "ejercicios: está eN", n)
     return n

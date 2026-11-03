@@ -151,6 +151,32 @@ def borde_e(mask, dx, dy, sigma, nx, ny):
     return fftconvolve(mask.astype(float), k, mode="same") * dx * dy
 
 
+def sumas_de_nucleo(P, sigma, sin_si_misma):
+    """Para cada punto, la suma del núcleo gaussiano de los demás (o de todos)
+    en su sitio, sin corrección de borde: por pares, en bloques."""
+    out = np.zeros(len(P))
+    for i0 in range(0, len(P), 400):
+        d2 = ((P[i0:i0 + 400, None, :] - P[None, :, :]) ** 2).sum(-1)
+        if sin_si_misma:
+            d2[np.arange(len(d2)), np.arange(i0, i0 + len(d2))] = np.inf
+        out[i0:i0 + 400] = np.exp(-d2 / (2 * sigma ** 2)).sum(1)
+    return out / (2 * np.pi * sigma ** 2)
+
+
+def e_en_punto(x, y, sigma, W, celda=12.5):
+    """e(x): la masa del núcleo que cae dentro de la ventana, integrada sobre
+    una rejilla fina de toda la ventana. NO es lo que hace spatstat (una
+    máscara de píxeles convolucionada por FFT): aquí está la independencia, y
+    en los sigma grandes la diferencia (ver la sección 4b)."""
+    import shapely
+    x0, y0, x1, y1 = W.bounds
+    xs = np.arange(x0, x1, celda) + celda / 2
+    ys = np.arange(y0, y1, celda) + celda / 2
+    X, Y = np.meshgrid(xs, ys)
+    k = np.exp(-((X - x) ** 2 + (Y - y) ** 2) / (2 * sigma ** 2)) / (2 * np.pi * sigma ** 2)
+    return float((k * shapely.contains_xy(W, X, Y)).sum() * celda * celda)
+
+
 def masas(px, py, sigma, caja, nx, ny, mask):
     """Las tres integrales del módulo 4, por definición y no por nombre."""
     xc, yc, dx, dy = rejilla_de(caja, nx, ny)
@@ -689,6 +715,205 @@ def main() -> int:
     a.cerca(m3["urbana"].get("sigma_minimo_dibujable_m", float("nan")),
             D["m5"]["rejilla"]["sigma_minimo_dibujable_m"],
             "selectores: el suelo de la ciudad es el del módulo 5", 1e-12)
+
+    # -----------------------------------------------------------------
+    a.titulo("4b · Las notas de cada selector: sus curvas")
+    # -----------------------------------------------------------------
+    # LAS CURVAS QUE EL MÓDULO 3 DIBUJA (2026-11-03). Desde esa fecha el
+    # módulo enseña la nota que cada selector pone a cada ancho, y abre con
+    # un ejemplo: dos sedes de Kennedy y lo que marca, donde estaba cada una,
+    # el mapa hecho sin ella. Lo que aquí se rehace por otro camino:
+    #   - la rejilla de búsqueda de bw.ppl y bw.CvL, desde las distancias y
+    #     el diámetro de la ventana;
+    #   - la suma de 1/lambda de bw.CvL, que no lleva corrección de borde: se
+    #     recalcula EXACTA por pares;
+    #   - las dos sedes del ejemplo, elegidas otra vez por su regla, y su
+    #     marca con e(x) integrada sobre una rejilla fina;
+    #   - qué sedes piden un sigma menor o mayor que el de la suma, con todas
+    #     las marcas rehechas (e por FFT propia, celda de 40 m).
+    # Lo que NO se puede rehacer (la curva de bw.diggle sale de la K) se
+    # audita por sus propiedades, como el valor en la sección 4.
+    #
+    # LA TOLERANCIA DE LA MARCA EN LOS SIGMA GRANDES, MEDIDA. Hasta 560 m mi e
+    # y la de spatstat coinciden en 1e-4. Más arriba se separan: a 1 228 m un
+    # 0.3 %, a 2 708 m un 0.8 % y a 4 021 m —la mitad del diámetro, el último
+    # ancho de la búsqueda— un 11.5 %, con e = 0.29. La mía converge (celdas
+    # de 25 y de 12.5 m dan lo mismo); la de spatstat es una máscara de
+    # píxeles convolucionada por FFT, y con un núcleo de la mitad de la
+    # ventana se nota. Lo que el módulo publica es lo que `bw.ppl` calcula
+    # —la guarda de R lo exige—, así que la tolerancia va por tramos de e,
+    # cada uno por encima de lo medido en él: 1e-3 donde e >= 0.99, 1 % donde
+    # e >= 0.45 (lo medido: 0.3 y 0.8 %) y 15 % solo por debajo, que es el
+    # último ancho. Con un 15 % para todo lo que no fuera e >= 0.99, el arnés
+    # metió un 12 % de error en el ancho de 1 228 m y pasó (2026-11-03).
+    def vivo(fn, que):
+        """Una comprobación que, con el JSON roto, falla en vez de matar al auditor."""
+        try:
+            fn()
+        except (KeyError, IndexError, TypeError, ValueError, ZeroDivisionError) as err:
+            a.cierto(False, que, f"estructura rota: {type(err).__name__}")
+
+    import shapely
+    from scipy.spatial.distance import pdist
+    cu = m3.get("curvas") or {}
+    WU = gpd.read_file(PROCESADO / "bogota_ventana_urbana.gpkg").union_all()
+    Pk = np.column_stack([px, py]); Pu = np.column_stack([ux, uy_])
+    for donde, P_, W_ in (("kennedy", Pk, W), ("urbana", Pu, WU)):
+        c = cu.get(donde) or {}
+        sg, fn_ = m3[donde]["sigmas_m"], m3["fino"][donde]
+        dd = pdist(P_)
+        desde, hasta = float(dd[dd > 0].min()), float(pdist(np.asarray(W_.convex_hull.exterior.coords)).max() / 2)
+        n16 = np.geomspace(desde, hasta, 16)
+
+        def busqueda():
+            a.cerca(desde, c["busqueda"]["desde_m"], f"curvas/{donde}: la búsqueda arranca en la menor distancia", 1e-5)
+            a.cerca(hasta, c["busqueda"]["hasta_m"], f"curvas/{donde}: y acaba en medio diámetro", 1e-6)
+            for sel in ("ppl", "cvl"):
+                pub = np.asarray(c[sel]["nodos16_m"], dtype=float)
+                a.cierto(len(pub) == 16 and np.allclose(pub, n16, rtol=2e-5),
+                         f"curvas/{donde}: los 16 de {sel} son la serie geométrica")
+        vivo(busqueda, f"curvas/{donde}: la búsqueda")
+
+        def ppl():
+            cv16 = c["ppl"]["cv16"]
+            # -inf (null) donde alguna sede queda con marca CERO: su vecina más
+            # cercana está tan lejos que el núcleo se queda en el cero de la máquina.
+            cero = [bool(sumas_de_nucleo(P_, s, True).min() == 0) for s in n16]
+            a.cierto([v is None for v in cv16] == cero, f"curvas/{donde}: los -inf son los de una marca cero",
+                     f"{sum(cero)} anchos")
+            a.igual(sum(cero), c["ppl"]["infinitos16"], f"curvas/{donde}: y se cuentan bien")
+            a.cerca(max(s for s, z in zip(n16, cero) if z), c["ppl"]["infinito_hasta_m"],
+                    f"curvas/{donde}: hasta el ancho que dice", 2e-5)
+            fin = [(v, s) for v, s in zip(cv16, c["ppl"]["nodos16_m"]) if v is not None]
+            a.cerca(max(fin)[1], sg["ppl"], f"curvas/{donde}: la mejor de las 16 es bw.ppl", 1e-5)
+            fin2 = [(v, s) for v, s in zip(c["ppl"]["cv"], c["ppl"]["h_m"]) if v is not None]
+            a.cerca(max(fin2)[1], fn_["ppl"], f"curvas/{donde}: la de la curva fina, ppl fino", 1e-5)
+        vivo(ppl, f"curvas/{donde}: la curva de bw.ppl")
+
+        def cvl():
+            S16 = np.array([(1 / sumas_de_nucleo(P_, s, False)).sum() / 1e6 for s in n16])
+            pub = np.asarray(c["cvl"]["suma16_km2"], dtype=float)
+            a.cierto(len(pub) == 16 and np.allclose(S16, pub, rtol=5e-5),
+                     f"curvas/{donde}: la suma de 1/λ de bw.CvL, rehecha",
+                     f"{np.max(np.abs(S16 / pub - 1)):.1e}" if len(pub) == 16 else "")
+            a.cerca(W_.area / 1e6, c["cvl"]["area_km2"], f"curvas/{donde}: el área contra la que cruza", 1e-9)
+            a.cerca(float(n16[np.argmin((S16 - W_.area / 1e6) ** 2)]), sg["CvL"],
+                    f"curvas/{donde}: el cruce de las 16 es bw.CvL", 1e-5)
+            s = np.asarray(c["cvl"]["suma_km2"], dtype=float)
+            cruces = int((np.diff(np.sign(s - c["cvl"]["area_km2"])) != 0).sum())
+            a.cierto(bool(np.all(np.diff(s) > 0)) and cruces == 1,
+                     f"curvas/{donde}: la suma sube y cruza el área una vez", f"{cruces} cruces")
+        vivo(cvl, f"curvas/{donde}: la curva de bw.CvL")
+
+        def diggle():
+            h, m = np.asarray(c["diggle"]["h_m"], dtype=float), np.asarray(c["diggle"]["m"], dtype=float)
+            a.cerca(float(h[np.argmin(m)]), sg["diggle"], f"curvas/{donde}: el mínimo de diggle es bw.diggle", 1e-5)
+            # 1e-5 relativo: los nodos van con 6 cifras y el tope con 10.
+            a.cierto(float(h.max()) <= c["diggle"]["hasta_m"] * (1 + 1e-5), f"curvas/{donde}: dentro de su intervalo")
+            a.igual(c["diggle"]["caida_desde_m"], 100, f"curvas/{donde}: la caída se mide desde 100 m")
+            caida = m[np.argmin(np.abs(h - c["diggle"]["caida_desde_m"]))] - m.min()
+            final = 100 * (m[-1] - m.min()) / caida
+            a.igual(final, c["diggle"]["subida_final_pct"], f"curvas/{donde}: lo que diggle sube al final", tol=2)
+            if donde == "kennedy":
+                a.cierto(final < 10, "curvas/kennedy: diggle no vuelve a subir", f"{final:.1f} %")
+                mes = 100 * (m[h >= c["diggle"]["meseta_desde_m"]].max() - m.min()) / caida
+                pm = c["diggle"]["meseta_pct"]
+                # Lo dibujado son 66 de 256 nodos: el diente más alto puede
+                # caer fuera, así que lo dibujado queda por DEBAJO de lo publicado.
+                a.cierto(mes <= pm + 1e-7 and pm < 25, "curvas/kennedy: y sus dientes caben en lo dicho",
+                         f"{mes:.1f} % dibujado, {pm:.1f} % publicado")
+            else:
+                a.cierto(final > 15, "curvas/urbana: pasado el mínimo, diggle sube", f"{final:.1f} %")
+        vivo(diggle, f"curvas/{donde}: la curva de bw.diggle")
+
+    # El ejemplo: las dos sedes, elegidas otra vez por su regla.
+    def ejemplo():
+        e = cu["kennedy"]["ejemplo"]
+        d = np.sqrt(((Pk[:, None, :] - Pk[None, :, :]) ** 2).sum(-1))
+        np.fill_diagonal(d, np.inf)
+        nnd = d.min(1)
+        cerca_ = (d < e["vecindad_m"]).sum(1)
+        bd = np.array([W.boundary.distance(shapely.Point(x, y)) for x, y in Pk])
+        cand = np.where(nnd > 0)[0]
+        api = cand[np.lexsort((nnd[cand], -cerca_[cand]))[0]]
+        cb = np.where((nnd > 0) & (bd > nnd))[0]
+        ais = cb[np.argmax(nnd[cb])]
+        a.igual(int((nnd == 0).sum()), e["gemelas"], "curvas/ejemplo: las sedes con gemela")
+        a.cerca(W.area / 1e6 / len(Pk), e["area_por_sede_km2"], "curvas/ejemplo: el área que toca a cada sede", 1e-9)
+        n16 = np.asarray(cu["kennedy"]["ppl"]["nodos16_m"], dtype=float)
+        for nombre, i in (("apinada", api), ("aislada", ais)):
+            pub = e[nombre]
+            a.igual(int(cerca_[i]), pub["vecinas_300m"], f"curvas/ejemplo: la {nombre[:7]}, sus vecinas")
+            a.cerca(float(nnd[i]), pub["vecina_m"], f"curvas/ejemplo: la {nombre[:7]}, su vecina", 1e-6)
+            a.cerca(float(bd[i]), pub["borde_m"], f"curvas/ejemplo: la {nombre[:7]}, su borde", 1e-6)
+            malas = []
+            for k, s in enumerate(n16):
+                raw = np.exp(-(d[i] ** 2) / (2 * s * s)).sum() / (2 * np.pi * s * s)
+                ee = 1.0 if bd[i] > 8 * s else e_en_punto(*Pk[i], s, W)
+                mia, pv = raw / ee * 1e6, pub["marca16_km2"][k]
+                tol = 1e-3 if ee >= 0.99 else 1e-2 if ee >= 0.45 else 0.15
+                # Por debajo de 1e-12 sedes por km² es el cero práctico: allí
+                # los dos cálculos difieren en el 0.1 % de un 3e-247.
+                if not ((mia < 1e-12 and pv < 1e-12) or (pv > 0 and abs(mia / pv - 1) <= tol)):
+                    malas.append(f"{s:.0f} m")
+            a.cierto(len(pub["marca16_km2"]) == 16 and not malas,
+                     f"curvas/ejemplo: la marca de la {nombre[:7]}, rehecha", ", ".join(malas))
+        # Lo que cada una pide, rehecho sobre la rejilla fina (la e es la de
+        # la FFT de abajo; la apiñada pide donde e = 1 y se exige el nodo).
+        a.cierto(e["apinada"]["pide_m"] < m3["fino"]["kennedy"]["ppl"] < e["aislada"]["pide_m"],
+                 "curvas/ejemplo: una pide menos que la suma, otra más")
+        # Todas las marcas, con e por FFT propia: quién pide menos y quién más.
+        b = cu["kennedy"]["busqueda"]
+        H = np.geomspace(b["desde_m"], b["hasta_m"], b["n_fino"])
+        celda = 40.0
+        x0, y0, x1, y1 = W.bounds
+        xs = np.arange(x0, x1, celda) + celda / 2; ys = np.arange(y0, y1, celda) + celda / 2
+        mascara = shapely.contains_xy(W, *np.meshgrid(xs, ys)).astype(float)
+        fx = (px - xs[0]) / celda; fy = (py - ys[0]) / celda
+        i0 = np.clip(fx.astype(int), 0, len(xs) - 2); j0 = np.clip(fy.astype(int), 0, len(ys) - 2)
+        tx, ty = fx - i0, fy - j0
+        L = np.zeros((len(Pk), len(H)))
+        for k, s in enumerate(H):
+            if s < celda:
+                E = mascara
+            else:
+                r = int(np.ceil(5 * s / celda)); g = np.arange(-r, r + 1) * celda
+                ker = np.exp(-(g[None, :] ** 2 + g[:, None] ** 2) / (2 * s * s)) / (2 * np.pi * s * s) * celda ** 2
+                E = fftconvolve(mascara, ker, mode="same")
+            ep = ((1 - tx) * (1 - ty) * E[j0, i0] + tx * (1 - ty) * E[j0, i0 + 1] +
+                  (1 - tx) * ty * E[j0 + 1, i0] + tx * ty * E[j0 + 1, i0 + 1])
+            L[:, k] = np.exp(-(d ** 2) / (2 * s * s)).sum(1) / (2 * np.pi * s * s) / np.maximum(ep, 1e-12)
+        pide = H[L.argmax(1)]
+        sp = m3["fino"]["kennedy"]["ppl"]
+        a.cerca(float(pide[api]), e["apinada"]["pide_m"], "curvas/ejemplo: lo que pide la apiñada, rehecho", 1e-6)
+        a.cierto(pide[ais] > 2 * sp and e["aislada"]["pide_m"] > 2 * sp,
+                 "curvas/ejemplo: la aislada pide más del doble, rehecho",
+                 f"{pide[ais]:.0f} aquí, {e['aislada']['pide_m']:.0f} en R")
+        with np.errstate(divide="ignore"):
+            a.cerca(float(H[np.log(L).sum(0).argmax()]), sp, "curvas/ejemplo: el máximo de la suma, rehecho", 1e-6)
+        # ±1 en los dos recuentos, medido: la e de aquí (celda de 40 m) y la de
+        # spatstat (su máscara, de unos 65 m sobre Kennedy) no son la misma
+        # aproximación, y una sede de frontera cuyo máximo cae junto al de la
+        # suma cambia de lado (R: 155, 106 y una que pide justo ese; aquí 154 y
+        # 107). Un recuento cambiado a propósito se mueve más que eso.
+        a.igual(int((pide < sp * (1 - 1e-9)).sum()), e["piden_menos"], "curvas/ejemplo: las que piden un sigma menor", tol=1)
+        a.igual(int((pide > sp * (1 + 1e-9)).sum()), e["piden_mas"], "curvas/ejemplo: las que piden uno mayor", tol=1)
+        a.igual(int((pide == H[0]).sum()), e["piden_el_minimo"], "curvas/ejemplo: las que piden el mínimo")
+        a.cierto(bool(np.all(pide[nnd == 0] == H[0])) and e["piden_el_minimo"] >= e["gemelas"],
+                 "curvas/ejemplo: las gemelas, entre las del mínimo")
+        a.cierto(e["piden_menos"] + e["piden_mas"] <= len(Pk), "curvas/ejemplo: no se cuentan de más")
+        a.cierto(np.allclose(e["h_m"], cu["kennedy"]["ppl"]["h_m"]), "curvas/ejemplo: en la misma rejilla que bw.ppl")
+    vivo(ejemplo, "curvas/ejemplo: las dos sedes")
+
+    def pinos():
+        pn = cu["pinos"]
+        a.cerca(pn["tope"], np.sqrt(2) / 2, "curvas/pinos: el tope es medio diámetro del cuadrado", 1e-9)
+        a.cerca(pn["tope"], m3["topes"][0]["sigma"], "curvas/pinos: y es el valor que devolvió", 1e-9)
+        a.cierto(bool(np.all(np.diff(pn["cv16"]) > 0)), "curvas/pinos: su nota sube hasta la cerca")
+        h, v = np.asarray(pn["ampliado"]["h"], dtype=float), np.asarray(pn["ampliado"]["cv"], dtype=float)
+        a.cierto(bool(np.all(np.diff(v[h >= pn["tope"]]) > 0)), "curvas/pinos: y sigue subiendo más allá")
+        a.cerca(pn["ampliado"]["devuelve"], pn["ampliado"]["hasta"], "curvas/pinos: ampliado, choca con la nueva", 1e-9)
+    vivo(pinos, "curvas/pinos: la curva de bw.ppl")
 
     # -----------------------------------------------------------------
     a.titulo("5 · El riesgo relativo, recalculado por definición")
