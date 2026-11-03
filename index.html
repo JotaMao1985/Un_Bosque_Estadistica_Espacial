@@ -2,817 +2,789 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Material de estudio interactivo de Estadística Espacial (20929) — Universidad El Bosque, 2026-II. Diez capítulos autocontenidos con mapas, simuladores y código en R y Python.">
-    <meta name="author" content="Universidad El Bosque — Estadística">
-    <title>Estadística Espacial — Menú Principal UnBosque</title>
-
-    <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <!-- External Resources -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-
-    <!-- Tailwind Configuration — la misma paleta que los capítulos -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Montserrat', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: '#012820',
-                        secondary: '#FF6600',
-                        navy: '#012820',
-                        gold: '#FFC24B',
-                        bg: '#F8FAFC',
-                        surface: '#FFFFFF',
-                    }
-                }
-            }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadística Espacial · UnBosque 2026-II</title>
+  <meta name="description"
+    content="Material de estudio interactivo de Estadística Espacial (20929) — Universidad El Bosque, 2026-II. Diez capítulos autocontenidos con mapas, simuladores y código en R y Python.">
+  <meta name="author" content="Universidad El Bosque — Estadística">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <!-- La misma paleta que los capítulos -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Montserrat', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'] },
+          colors: {
+            primary: '#012820', secondary: '#FF6600', navy: '#012820',
+            gold: '#FFC24B', bg: '#F8FAFC', surface: '#FFFFFF',
+          }
         }
-    </script>
+      }
+    }
+  </script>
+  <style>
+    /* La portada lleva los componentes de la de Diseño de Experimentos
+       (Htmls/index.html de ese curso), para que los dos sitios se lean como
+       uno: la cabecera de los capítulos, un bloque de entrada, una sección
+       por corte y la tarjeta `.tarjeta`. Se traen solo los que se usan aquí. */
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #F8FAFC;
+      color: #1E293B;
+      scroll-behavior: smooth;
+    }
 
-    <style>
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #F8FAFC;
-            color: #1E293B;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+    .bosque-header { background: linear-gradient(180deg, #012820 0%, #001F18 100%); }
+    .bosque-gradient { background: linear-gradient(140deg, #012820 0%, #FF6600 100%); }
 
-        /* Gradiente institucional: el verde de El Bosque hacia el naranja de acento */
-        .bosque-gradient {
-            background: linear-gradient(140deg, #012820 0%, #FF6600 100%);
-        }
+    .hero {
+      background:
+        radial-gradient(1200px 400px at 15% -20%, rgba(255, 102, 0, 0.18), transparent 60%),
+        linear-gradient(140deg, #012820 0%, #02382D 55%, #001F18 100%);
+    }
 
-        .bosque-header {
-            background: linear-gradient(180deg, #012820 0%, #01412F 100%);
-        }
+    /* ------------------------------------------------------------------
+       Componente .tarjeta — una tarjeta por pieza del curso
+       ------------------------------------------------------------------
+       El enlace envuelve la tarjeta entera con ::after, no solo el rótulo
+       «Abrir»: el área de clic es toda la tarjeta pero en el árbol de
+       accesibilidad hay UN enlace con un nombre que se basta solo, no seis
+       trozos sueltos. Por eso el <a> lleva el título dentro y el resto es
+       texto hermano.
+       ------------------------------------------------------------------ */
+    .tarjeta {
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-        .bosque-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
+    .tarjeta::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: linear-gradient(180deg, #012820, #FF6600);
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
 
-        .bosque-card:hover {
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
-            transform: translateY(-5px);
-        }
+    .tarjeta:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(1, 40, 32, 0.16);
+      border-color: rgba(255, 102, 0, 0.4);
+    }
 
-        .bosque-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #012820, #FF6600);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
+    .tarjeta:hover::before { opacity: 1; }
 
-        .bosque-card:hover::before {
-            transform: scaleX(1);
-        }
+    .tarjeta:focus-within {
+      outline: 3px solid rgba(255, 102, 0, 0.55);
+      outline-offset: 2px;
+    }
 
-        .card-number {
-            position: absolute;
-            right: 15px;
-            top: -10px;
-            font-size: 5rem;
-            font-weight: 800;
-            color: rgba(1, 40, 32, 0.05);
-            z-index: 0;
-            line-height: 1;
-        }
+    .tarjeta-num {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.15rem;
+      background: linear-gradient(140deg, #012820 0%, #FF6600 100%);
+      box-shadow: 0 6px 16px rgba(1, 40, 32, 0.25);
+      flex-shrink: 0;
+    }
 
-        .card-content {
-            z-index: 1;
-            padding: 2rem 1.5rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
+    /* `nowrap`, como en Diseño: la píldora no se parte. Por eso aquí solo
+       lleva rótulos cortos —las semanas, el alcance en dos palabras— y lo
+       largo va en el rótulo de al lado, que sí parte línea: a 375 px una
+       píldora de cuarenta caracteres se sale de la tarjeta. */
+    .tarjeta-semana {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #012820;
+      background: rgba(255, 102, 0, 0.12);
+      border: 1px solid rgba(255, 102, 0, 0.3);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
 
-        .card-title {
-            color: #012820;
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            line-height: 1.3;
-        }
+    /* La píldora gris: material fuera del cronograma (el apéndice) y
+       capítulos que todavía no existen. */
+    .tarjeta-semana.tenue { color: #475569; background: #E2E8F0; border-color: #CBD5E1; }
 
-        .card-desc {
-            color: #64748B;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            flex-grow: 1;
-            margin-bottom: 1.5rem;
-        }
+    .tarjeta-titulo { color: #012820; font-weight: 700; line-height: 1.3; }
+    .tarjeta-titulo a { color: inherit; text-decoration: none; }
 
-        .card-btn {
-            display: inline-flex;
-            align-items: center;
-            color: #FF6600;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: color 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+    .tarjeta-titulo a::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
 
-        .card-btn i {
-            margin-left: 0.5rem;
-            transition: transform 0.2s ease;
-        }
+    .tarjeta-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.9rem;
+      font-size: 0.75rem;
+      color: #64748B;
+    }
 
-        .bosque-card:hover .card-btn {
-            color: #012820;
-        }
+    .tarjeta-abrir {
+      color: #FF6600;
+      font-weight: 600;
+      font-size: 0.875rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: gap .2s ease;
+    }
 
-        .bosque-card:hover .card-btn i {
-            transform: translateX(4px);
-        }
+    .tarjeta:hover .tarjeta-abrir { gap: 0.75rem; }
 
-        /* La semana del cronograma, arriba a la izquierda de cada tarjeta */
-        .card-semana {
-            display: inline-block;
-            /* `.card-content` es flex en columna: sin esto, el inline-block se
-               estira a todo el ancho de la tarjeta por align-items: stretch y
-               la píldora deja de parecer una píldora. */
-            align-self: flex-start;
-            background: #F1F5F4;
-            color: #012820;
-            border: 1px solid #D8E6E0;
-            padding: 0.2rem 0.7rem;
-            border-radius: 999px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            margin-bottom: 1rem;
-        }
+    /* Un SEGUNDO enlace dentro de la tarjeta —las diapositivas, la plantilla
+       del proyecto—. El enlace del título cubre la tarjeta entera con un
+       `::after` en `inset: 0`, así que cualquier otro tiene que ponerse POR
+       ENCIMA o el clic se lo come la capa de arriba: `position: relative` y
+       un `z-index` mayor. No contradice el comentario del componente —que
+       pide un solo enlace y no seis trozos sueltos—: son dos acciones
+       distintas, cada una con su nombre entero, no fragmentos del mismo
+       destino. */
+    .tarjeta-extra {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-left: 1.25rem;
+      color: #64748B;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-decoration: none;
+      border-bottom: 2px solid rgba(255, 102, 0, 0.35);
+    }
 
-        /* Los capítulos que aún no existen NO son enlaces: se ven, para que el
-           estudiante tenga el mapa del curso, pero no prometen una página que
-           devolvería un 404. */
-        .bosque-card.pendiente {
-            box-shadow: none;
-            border: 1px dashed #CBD5E1;
-            background: #FCFDFD;
-        }
+    .tarjeta-extra:hover { color: #012820; border-bottom-color: #FF6600; }
+    .tarjeta-extra:focus-visible { outline: 3px solid rgba(255, 102, 0, 0.6); outline-offset: 3px; }
 
-        .bosque-card.pendiente:hover {
-            transform: none;
-            box-shadow: none;
-        }
+    /* Las diapositivas de clase, en una línea propia debajo de «Abrir el
+       capítulo». Cada sesión es un `.tarjeta-extra`, por encima del
+       `::after` del título; el rótulo no, así que pulsarlo abre el
+       capítulo, como el resto de la tarjeta. */
+    .tarjeta-diapositivas {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px dashed #E2E8F0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #94A3B8;
+    }
 
-        .bosque-card.pendiente::before {
-            display: none;
-        }
+    .tarjeta-diapositivas .tarjeta-extra { margin-left: 0; }
 
-        .bosque-card.pendiente .card-title {
-            color: #64748B;
-        }
+    /* La tarjeta de un capítulo que TODAVÍA NO EXISTE. No es un enlace roto
+       ni un enlace a ninguna parte: es texto, y lo dice. Está para que el
+       estudiante tenga el mapa entero del curso. */
+    .tarjeta-pendiente {
+      background: #F1F5F9;
+      border-style: dashed;
+      border-color: #CBD5E1;
+      box-shadow: none;
+    }
 
-        .bosque-card.pendiente .card-number {
-            color: rgba(100, 116, 139, 0.06);
-        }
+    .tarjeta-pendiente:hover { transform: none; box-shadow: none; border-color: #CBD5E1; }
+    .tarjeta-pendiente:hover::before { opacity: 0; }
+    .tarjeta-pendiente .tarjeta-num { background: #94A3B8; box-shadow: none; }
+    .tarjeta-pendiente .tarjeta-titulo { color: #475569; }
 
-        .etiqueta-pendiente {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            color: #94A3B8;
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+    .tarjeta-aviso {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #92400E;
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.6rem;
+    }
 
-        header {
-            padding: 4rem 1.5rem;
-            text-align: center;
-            color: white;
-            position: relative;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
+    .corte-rotulo {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      border-bottom: 2px solid rgba(1, 40, 32, 0.12);
+      padding-bottom: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
 
-        .badge-bosque {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 0.4rem 1.2rem;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-bottom: 1.5rem;
-            backdrop-filter: blur(4px);
-        }
+    .corte-rotulo h2 { color: #012820; font-weight: 800; font-size: 1.35rem; margin: 0; }
+    .corte-rotulo .corte-semanas { color: #FF6600; font-weight: 700; font-size: 0.85rem; }
+    .corte-rotulo .corte-lema { color: #64748B; font-size: 0.85rem; font-style: italic; }
 
-        /* Va por CLASE, no por elemento. El preflight de Tailwind resetea
-           `h1 { font-size: inherit; font-weight: inherit }` y el CDN lo
-           inyecta en tiempo de ejecución, DESPUÉS de este bloque: una regla
-           `h1 {...}` tiene la misma especificidad y pierde por orden, así que
-           el título salía a 16 px y peso 400 —más pequeño que su propio
-           subtítulo, que sí funciona porque `p.subtitle` lleva clase—. */
-        .titulo-principal {
-            font-size: 3rem;
-            font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 1rem;
-        }
+    a:focus-visible { outline: 3px solid rgba(255, 102, 0, 0.6); outline-offset: 3px; }
 
-        p.subtitle {
-            font-size: 1.15rem;
-            opacity: 0.9;
-            max-width: 640px;
-            margin: 0 auto;
-            font-weight: 400;
-        }
-
-        main {
-            flex-grow: 1;
-        }
-
-        .seccion-titulo {
-            color: #012820;
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 0.4rem;
-        }
-
-        .seccion-nota {
-            color: #64748B;
-            font-size: 0.95rem;
-            margin-bottom: 2rem;
-        }
-
-        footer {
-            background-color: #012820;
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            font-size: 0.9rem;
-            margin-top: 4rem;
-        }
-
-        footer a {
-            color: #FFC24B;
-            text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-            .titulo-principal { font-size: 2.2rem; }
-            header { padding: 3rem 1rem; }
-        }
-    </style>
+    ::-webkit-scrollbar { width: 9px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #012820, #FF6600); border-radius: 4px; }
+  </style>
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col">
+  <a href="#contenido"
+    class="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:m-3 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:text-primary">Saltar
+    al contenido</a>
 
-    <header class="bosque-header">
-        <div class="max-w-7xl mx-auto relative z-10">
-            <div class="badge-bosque">Universidad El Bosque · 2026-II</div>
-            <h1 class="titulo-principal">Estadística Espacial</h1>
-            <p class="subtitle">Material de estudio interactivo del curso 20929. Cada capítulo es una página
-                autocontenida con mapas, simuladores y el mismo análisis resuelto en R y en Python.</p>
-        </div>
-    </header>
+  <header class="bosque-header sticky top-0 z-50 shadow-lg" role="banner">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
+      <div class="bosque-gradient p-3 rounded-xl shadow-md">
+        <i class="fas fa-chart-line text-xl text-white" aria-hidden="true"></i>
+      </div>
+      <div>
+        <p class="text-xl font-bold text-white leading-tight tracking-tight">Estadística Espacial</p>
+        <p class="text-xs text-white/70 font-medium tracking-wide">UNIVERSIDAD EL BOSQUE • ESTADÍSTICA • 2026-II</p>
+      </div>
+    </div>
+  </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+  <!-- Las cifras de la fila de abajo son las de los capítulos y las cuenta
+       `precalculo/cuenta_sitio.py` sobre los archivos publicados: si una no
+       coincide, el contador sale en rojo. -->
+  <section class="hero text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20">
+      <span class="tarjeta-semana"
+        style="color:#fff; background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,0.25);">
+        <i class="fas fa-graduation-cap mr-1" aria-hidden="true"></i> Material de estudio · código 20929
+      </span>
+      <h1 class="mt-4 text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">Estadística Espacial</h1>
+      <p class="mt-4 max-w-3xl text-white/80 text-base md:text-lg leading-relaxed">
+        Diez capítulos alineados con el cronograma, de la semana 1 a la 16. Cada uno es una página
+        autocontenida con mapas, simuladores, el mismo análisis resuelto en
+        <strong class="text-white">R y en Python</strong> con su salida real, ejercicios guiados y
+        autoevaluación.
+      </p>
+      <div class="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/75">
+        <span><i class="fas fa-book-open text-secondary mr-2" aria-hidden="true"></i>7 capítulos</span>
+        <span><i class="fas fa-sliders text-secondary mr-2" aria-hidden="true"></i>77 simuladores</span>
+        <span><i class="fas fa-map text-secondary mr-2" aria-hidden="true"></i>56 mapas</span>
+        <span><i class="fas fa-code text-secondary mr-2" aria-hidden="true"></i>75 bloques en R y Python</span>
+        <span><i class="fas fa-list-check text-secondary mr-2" aria-hidden="true"></i>86 módulos</span>
+      </div>
+    </div>
+  </section>
 
-        <h2 class="seccion-titulo">Capítulos publicados</h2>
-        <p class="seccion-nota">Listos para estudiar. Cada uno trae doce módulos, autoevaluación y ejercicios
-            guiados.</p>
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12" id="contenido">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            <!-- Capítulo 1 -->
-            <a href="Htmls_Espacial/capitulo-1-datos-espaciales.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">1</div>
-                    <div class="card-content">
-                        <span class="card-semana">Semana 1</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
-                                <i class="fas fa-map-location-dot"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Datos espaciales y la primera ley</h2>
-                        </div>
-                        <p class="card-desc">Del mapa del cólera de John Snow a los tres tipos de dato espacial.
-                            La ley de Tobler medida en vez de citada, por qué se rompe la inferencia clásica y qué
-                            queda del tamaño de muestra cuando hay dependencia.</p>
-                        <div>
-                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Capítulo 2 -->
-            <a href="Htmls_Espacial/capitulo-2-crs-georreferenciacion.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">2</div>
-                    <div class="card-content">
-                        <span class="card-semana">Semanas 2–3</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-orange-50 text-secondary flex items-center justify-center">
-                                <i class="fas fa-globe"></i>
-                            </div>
-                            <h2 class="card-title mb-0">CRS y georreferenciación</h2>
-                        </div>
-                        <p class="card-desc">La Tierra no es plana ni una esfera: geoide, elipsoide y datum.
-                            Cuánto mide un grado, por qué proyectar siempre destruye algo y cómo se maneja todo eso
-                            con <code>sf</code>.</p>
-                        <div>
-                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Capítulo 3 -->
-            <a href="Htmls_Espacial/capitulo-3-cartografia-maup.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">3</div>
-                    <div class="card-content">
-                        <span class="card-semana">Semanas 4–5</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-amber-50 text-gold flex items-center justify-center">
-                                <i class="fas fa-layer-group"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Cartografía estadística y el MAUP</h2>
-                        </div>
-                        <p class="card-desc">Qué decisiones hay dentro de un coropleto. Normalizar o mentir,
-                            por qué R y Python discrepan al clasificar, y el problema de la unidad de área
-                            modificable con dato colombiano.</p>
-                        <div>
-                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Capítulo 4 -->
-            <a href="Htmls_Espacial/capitulo-4-patrones-puntuales.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">4</div>
-                    <div class="card-content">
-                        <span class="card-semana">Semanas 6–7</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
-                                <i class="fas fa-braille"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Patrones puntuales: CSR y funciones de resumen</h2>
-                        </div>
-                        <p class="card-desc">Cuando lo aleatorio es la localización. La ventana forma parte
-                            del estimador, el test de cuadrantes es ciego por debajo de su celda, y una
-                            envolvente no dice lo que casi todo el mundo lee en ella.</p>
-                        <div>
-                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Capítulo 5 -->
-            <a href="Htmls_Espacial/capitulo-5-intensidad-nucleos.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">5</div>
-                    <div class="card-content">
-                        <span class="card-semana">Semanas 8–10</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
-                                <i class="fas fa-fire"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Intensidad por núcleos y modelamiento de procesos puntuales</h2>
-                        </div>
-                        <p class="card-desc">De una cifra para toda la ciudad a una superficie. El ancho de
-                            banda lo decide todo y ningún selector lo elige por ti; solo una de las tres
-                            correcciones de borde conserva el conteo; y hay llamadas que eligen su propia
-                            corrección sin mencionarla y mueven el ajuste un 93 %.</p>
-                        <div>
-                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-
-            <!-- Capítulo 6 -->
-            <a href="Htmls_Espacial/capitulo-6-pesos-espaciales.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">6</div>
-                    <div class="card-content">
-                        <span class="card-semana">Semanas 10–11</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
-                                <i class="fas fa-diagram-project"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Datos de área y la matriz de pesos espaciales</h2>
-                        </div>
-                        <p class="card-desc">W no viene con el dato: la elige quien analiza, y es la
-                            decisión más consecuente del análisis de área y la menos justificada. Diez
-                            definiciones de vecino sobre los mismos 49 barrios; el umbral que quita las
-                            islas y deja el grafo partido; y por qué estandarizar por filas es la capa
-                            de una red neuronal sobre grafos.</p>
-                        <div>
-                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-
-            <!-- Capítulo 7 -->
-            <a href="Htmls_Espacial/capitulo-7-autocorrelacion.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">7</div>
-                    <div class="card-content">
-                        <span class="card-semana">Semanas 12–13</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
-                                <i class="fas fa-chart-area"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Autocorrelación espacial global y local</h2>
-                        </div>
-                        <p class="card-desc">¿Lo cercano se parece más de lo que cabría esperar por azar? El I
-                            de Moran y la c de Geary, sus tres inferencias y el suelo del p de permutación;
-                            los mapas LISA y por qué el que sale por defecto exagera; y Gi*, que mide
-                            intensidad y no similitud. Sobre Columbus, la rejilla de Getis y Ord y la
-                            deserción de los municipios.</p>
-                        <div>
-                            <span class="card-btn">Explorar capítulo <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <h2 class="seccion-titulo mt-16">Diapositivas de clase</h2>
-        <p class="seccion-nota">Para dar la clase, no para leer el capítulo. Cada presentación sale del capítulo del
-            mismo número y trae notas para quien presenta: <code>P</code> abre la vista del presentador y
-            <code>F</code> la pantalla completa.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            <!-- Diapositivas del capítulo 4 -->
-            <a href="Htmls_Espacial/diapositivas/capitulo-4-patrones-puntuales.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">D4</div>
-                    <div class="card-content">
-                        <span class="card-semana">Capítulo 4 · clase magistral de 90 min</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
-                                <i class="fas fa-person-chalkboard"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Patrones puntuales · diapositivas de clase</h2>
-                        </div>
-                        <p class="card-desc">Cada cifra trae su fuente y cada afirmación su etiqueta: dato,
-                            interpretación o criterio. Las cifras se cotejan contra las salidas de R y, donde
-                            se puede, se recalculan desde los puntos crudos; lo que no se pudo comprobar
-                            lleva la marca <strong>[SIN VERIFICAR]</strong>.</p>
-                        <div>
-                            <span class="card-btn">Abrir las diapositivas <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Diapositivas del capítulo 5 · sesión 1 -->
-            <a href="Htmls_Espacial/diapositivas/capitulo-5-intensidad-nucleos-sesion-1.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">D5</div>
-                    <div class="card-content">
-                        <span class="card-semana">Capítulo 5 · sesión 1 de 2 · 90 min</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
-                                <i class="fas fa-person-chalkboard"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Estimar la intensidad · diapositivas de clase</h2>
-                        </div>
-                        <p class="card-desc">Módulos 1 a 6, del conteo en cuadrantes a la intensidad relativa. Una
-                            superficie de intensidad responde una pregunta que alguien formuló (con qué
-                            ancho, con qué corrección de borde, sobre qué ventana) y cada diapositiva dice
-                            cuál. Trae las animaciones 3D de los módulos 1 y 4.</p>
-                        <div>
-                            <span class="card-btn">Abrir las diapositivas <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Diapositivas del capítulo 5 · sesión 2 -->
-            <a href="Htmls_Espacial/diapositivas/capitulo-5-intensidad-nucleos-sesion-2.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">D5</div>
-                    <div class="card-content">
-                        <span class="card-semana">Capítulo 5 · sesión 2 de 2 · 90 min</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
-                                <i class="fas fa-person-chalkboard"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Modelar la intensidad · diapositivas de clase</h2>
-                        </div>
-                        <p class="card-desc">Módulos 7 a 11 y el cierre del bloque, de las covariables al
-                            conglomerado. En cada paso un resultado sale limpio y no se puede creer: la cola
-                            de una curva, la cuadratura, las coordenadas, la banda del diagnóstico y la
-                            estimación de K. Cada cifra trae su fuente y cada afirmación su etiqueta.</p>
-                        <div>
-                            <span class="card-btn">Abrir las diapositivas <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        <h2 class="seccion-titulo mt-16">Talleres</h2>
-        <p class="seccion-nota">Lo que se califica. Cada taller trae dentro su rúbrica y el banco de
-            preguntas de la defensa: no hay anexo del profesor que buscar.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            <!-- Taller 1 -->
-            <a href="Htmls_Espacial/taller-1-caps-1-2.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">T1</div>
-                    <div class="card-content">
-                        <span class="card-semana">Corte I · capítulos 1 y 2</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-orange-50 text-secondary flex items-center justify-center">
-                                <i class="fas fa-clipboard-check"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Taller 1 · Datos espaciales y georreferenciación</h2>
-                        </div>
-                        <p class="card-desc">Siete tareas sobre los dos primeros capítulos, y cada quien
-                            con las suyas: los tres últimos dígitos de tu documento fijan tu municipio, tus
-                            40 estaciones y tu patrón puntual. Se evalúa decidir con una cifra en la mano y
-                            detectar un procedimiento equivocado cuyo resultado se ve razonable.
-                            Escrito 60 % + defensa 40 %.</p>
-                        <div>
-                            <span class="card-btn">Abrir el taller <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Taller 2 -->
-            <a href="Htmls_Espacial/taller-2-cap-4.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">T2</div>
-                    <div class="card-content">
-                        <span class="card-semana">Corte II · capítulo 4 entero</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-orange-50 text-secondary flex items-center justify-center">
-                                <i class="fas fa-clipboard-check"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Taller 2 · Patrones puntuales</h2>
-                        </div>
-                        <p class="card-desc">Cinco tareas sobre los once módulos del capítulo 4, y cuatro
-                            de las cinco son de refutación: no piden producir un resultado, piden decidir si
-                            uno que ya está sobre la mesa se sostiene. Tu documento completo fija tu
-                            localidad de Bogotá y tus patrones, así que ninguna tarea se contesta sin tus
-                            datos. Trae dentro las dos rúbricas y el banco de 36 preguntas de la
-                            sustentación. Escrito 40 % + defensa 60 %.</p>
-                        <div>
-                            <span class="card-btn">Abrir el taller <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        <h2 class="seccion-titulo mt-16">Proyecto integrador</h2>
-        <p class="seccion-nota">El trabajo final del curso, por hitos: un territorio real con datos abiertos,
-            el protocolo fijado antes de calcular nada y una defensa delante del grupo.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            <!-- Proyecto integrador del Corte III -->
-            <a href="Htmls_Espacial/proyecto-integrador-corte-iii.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">P</div>
-                    <div class="card-content">
-                        <span class="card-semana">Corte III · semanas 13 a 16</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-orange-50 text-secondary flex items-center justify-center">
-                                <i class="fas fa-map-location-dot"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Proyecto integrador · Corte III</h2>
-                        </div>
-                        <p class="card-desc">Diez módulos: qué datos valen, el repositorio, los cuatro hitos —la
-                            ficha del martes 27 de octubre, el preregistro, el avance y el informe—, la opción
-                            conjunta con Series de Tiempo, la exposición y la rúbrica entera. La W se fija antes
-                            de calcular el primer Moran, y el mapa LISA se corrige por multiplicidad. Trae una
-                            plantilla de informe en R. 50 % del Corte III.</p>
-                        <div>
-                            <span class="card-btn">Abrir la guía <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        <h2 class="seccion-titulo mt-16">Preparciales</h2>
-        <p class="seccion-nota">Lo que no se califica. Se puede repetir tantas veces como haga falta,
-            y cada opción incorrecta explica a qué error lleva y qué cifra sale de él.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            <!-- Preparcial del Corte I -->
-            <a href="Htmls_Espacial/preparcial-corte-1.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">P1</div>
-                    <div class="card-content">
-                        <span class="card-semana">Corte I · capítulos 1 y 2 + capítulo 3 hasta MAUP I</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-orange-50 text-secondary flex items-center justify-center">
-                                <i class="fas fa-list-check"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Preparcial del Corte I</h2>
-                        </div>
-                        <p class="card-desc">Los 30 módulos que evalúa el parcial, con la frontera del
-                            temario dibujada: qué entra y qué no. Trae el catálogo de los diez errores
-                            que se repiten —los diez que no dan error, corren y devuelven un número
-                            razonable que no es el que se creía calcular—, cada uno con la cifra que lo
-                            mide y el módulo al que volver.</p>
-                        <div>
-                            <span class="card-btn">Abrir el preparcial <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Preparcial del Corte II -->
-            <a href="Htmls_Espacial/preparcial-corte-2.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">P2</div>
-                    <div class="card-content">
-                        <span class="card-semana">Corte II · capítulos 4 y 5</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-orange-50 text-secondary flex items-center justify-center">
-                                <i class="fas fa-list-check"></i>
-                            </div>
-                            <h2 class="card-title mb-0">Preparcial del Corte II</h2>
-                        </div>
-                        <p class="card-desc">Los 22 módulos de patrones puntuales que evalúa el parcial, una
-                            pregunta por cada uno y seis que cruzan los dos capítulos. Trae seis rutinas con su
-                            salida real, cinco ejercicios sobre un patrón que el curso no había usado —el oro
-                            de Murchison, de la ventana al modelo— y los quince errores que se repiten, cada uno
-                            con la cifra que lo mide.</p>
-                        <div>
-                            <span class="card-btn">Abrir el preparcial <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        <h2 class="seccion-titulo mt-16">Apéndices</h2>
-        <p class="seccion-nota">Material de repaso: lo que un capítulo da por sabido, desarrollado aparte.
-            No es temario de ninguna semana; se abre cuando un capítulo lo pide.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            <!-- Apéndice A -->
-            <a href="Htmls_Espacial/apendice-a-densidad.html" class="block group">
-                <div class="bosque-card">
-                    <div class="card-number">A</div>
-                    <div class="card-content">
-                        <span class="card-semana">Repaso para el capítulo 5</span>
-                        <div class="flex items-center gap-3 mb-3 relative z-10">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
-                                <i class="fas fa-chart-area"></i>
-                            </div>
-                            <h2 class="card-title mb-0">La densidad en una dimensión</h2>
-                        </div>
-                        <p class="card-desc">Todo lo que el estimador de intensidad por núcleos decide —el
-                            ancho, la forma del núcleo, el selector, la corrección de borde— hecho primero
-                            sobre un renglón, donde se puede dibujar y calcular a mano: del histograma al
-                            núcleo, el sesgo y la varianza, la validación cruzada y lo que le pasa a todo
-                            eso con las distancias entre las sedes de Bogotá.</p>
-                        <div>
-                            <span class="card-btn">Abrir el apéndice <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        <h2 class="seccion-titulo mt-16">En preparación</h2>
-        <p class="seccion-nota">El resto del cronograma. Aparecen aquí para que tengas el mapa completo del curso;
-            todavía no hay página que abrir.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            <div class="bosque-card pendiente">
-                <div class="card-number">8</div>
-                <div class="card-content">
-                    <span class="card-semana">Semana 14</span>
-                    <div class="flex items-center gap-3 mb-3 relative z-10">
-                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
-                            <i class="fas fa-scale-balanced"></i>
-                        </div>
-                        <h2 class="card-title mb-0">Econometría espacial</h2>
-                    </div>
-                    <p class="card-desc">Modelos SAR, SEM y SDM, y regresión geográficamente ponderada (GWR).</p>
-                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
-                </div>
+    <section class="mb-12">
+      <div class="corte-rotulo">
+        <h2>Corte I</h2>
+        <span class="corte-semanas">Semanas 1–5</span>
+        <span class="corte-lema">Qué es un dato espacial, dónde está y cómo se pinta sin mentir</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <article class="tarjeta p-5" data-capitulo="1">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-map-location-dot" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Semana 1</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 1</span>
             </div>
-
-            <div class="bosque-card pendiente">
-                <div class="card-number">9</div>
-                <div class="card-content">
-                    <span class="card-semana">Semana 15</span>
-                    <div class="flex items-center gap-3 mb-3 relative z-10">
-                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
-                            <i class="fas fa-mountain-sun"></i>
-                        </div>
-                        <h2 class="card-title mb-0">Geoestadística</h2>
-                    </div>
-                    <p class="card-desc">El variograma y el kriging: predecir donde no se midió.</p>
-                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
-                </div>
-            </div>
-
-            <div class="bosque-card pendiente">
-                <div class="card-number">10</div>
-                <div class="card-content">
-                    <span class="card-semana">Semana 16</span>
-                    <div class="flex items-center gap-3 mb-3 relative z-10">
-                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <h2 class="card-title mb-0">ML espacial y proyecto integrador</h2>
-                    </div>
-                    <p class="card-desc">Aprendizaje automático con dependencia espacial, datos espacio-temporales
-                        y el cierre del curso. La guía del proyecto integrador ya está publicada, más arriba.</p>
-                    <div><span class="etiqueta-pendiente"><i class="fas fa-clock"></i> Próximamente</span></div>
-                </div>
-            </div>
-
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/capitulo-1-datos-espaciales.html">Datos espaciales y la primera ley</a>
+            </h3>
+          </div>
         </div>
-
-        <!-- Cómo está hecho: es material de un curso de estadística, y de dónde
-             salen las cifras forma parte de lo que se enseña. -->
-        <div class="mt-16 bg-white rounded-2xl border border-slate-200 p-8">
-            <h2 class="seccion-titulo"><i class="fas fa-flask-vial mr-2" style="color:#FF6600;"></i>Cómo está hecho
-                este material</h2>
-            <p class="text-slate-600 leading-relaxed mb-4" style="max-width: 72ch;">
-                Ninguna cifra de estas páginas está escrita a mano. Todas las calcula R desde las fuentes
-                primarias, viajan al navegador en un JSON y un arnés de auditoría las recalcula de forma
-                independiente en Python antes de publicar: si las dos vías no coinciden, el capítulo no sale.
-                Los bloques de código se <em>ejecutan</em> de verdad y se contrasta su salida contra la que
-                anuncian.
-            </p>
-            <p class="text-slate-600 leading-relaxed" style="max-width: 72ch;">
-                Los datos son en su mayoría colombianos —sedes educativas de Bogotá, estaciones del IDEAM,
-                deserción escolar municipal— junto a los casos canónicos de la literatura, para que puedas
-                contrastar cada número contra el libro de texto.
-            </p>
-            <div class="mt-6">
-                <a href="https://github.com/JotaMao1985/Un_Bosque_Estadistica_Espacial"
-                   class="card-btn" style="color:#FF6600;">
-                    Ver el código en GitHub <i class="fas fa-arrow-up-right-from-square"></i>
-                </a>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Del mapa del cólera de John Snow a los
+          tres tipos de dato espacial. La ley de Tobler medida en vez de citada, por qué se rompe la inferencia
+          clásica y qué queda del tamaño de muestra cuando hay dependencia.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>12 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>10 simuladores</span>
+          <span><i class="fas fa-map mr-1" aria-hidden="true"></i>13 mapas</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>10 bloques R/Python</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el capítulo <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      <article class="tarjeta p-5" data-capitulo="2">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-globe" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Semanas 2–3</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 2</span>
             </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/capitulo-2-crs-georreferenciacion.html">CRS y georreferenciación</a>
+            </h3>
+          </div>
         </div>
-
-    </main>
-
-    <footer>
-        <div class="max-w-7xl mx-auto px-4">
-            <p class="mb-2"><strong>Universidad El Bosque</strong> — Estadística</p>
-            <p class="mb-2">Estadística Espacial (20929) · 2026-II</p>
-            <p class="text-xs" style="color:#9FBDB2;">Material de estudio interactivo. Publicado con GitHub Pages.</p>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">La Tierra no es plana ni una esfera:
+          geoide, elipsoide y datum. Cuánto mide un grado, por qué proyectar siempre destruye algo y cómo se
+          maneja todo eso con <code>sf</code>.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>12 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>10 simuladores</span>
+          <span><i class="fas fa-map mr-1" aria-hidden="true"></i>7 mapas</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>11 bloques R/Python</span>
         </div>
-    </footer>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el capítulo <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      <article class="tarjeta p-5" data-capitulo="3">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-layer-group" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Semanas 4–5</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 3</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/capitulo-3-cartografia-maup.html">Cartografía estadística y el MAUP</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Qué decisiones hay dentro de un
+          coropleto. Normalizar o mentir, por qué R y Python discrepan al clasificar, y el problema de la unidad
+          de área modificable con dato colombiano.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>12 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>10 simuladores</span>
+          <span><i class="fas fa-map mr-1" aria-hidden="true"></i>9 mapas</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>9 bloques R/Python</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el capítulo <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      <article class="tarjeta p-5">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Capítulos 1 y 2</span>
+              <span class="text-xs font-semibold text-primary">Escrito 60 % + defensa 40 %</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/taller-1-caps-1-2.html">Taller 1 · Datos espaciales y georreferenciación</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Siete tareas sobre los dos primeros
+          capítulos, y cada quien con las suyas: los tres últimos dígitos de tu documento fijan tu municipio, tus
+          40 estaciones y tu patrón puntual. Se evalúa decidir con una cifra en la mano y detectar un
+          procedimiento equivocado cuyo resultado se ve razonable. Trae dentro su rúbrica y el banco de
+          preguntas de la defensa: no hay anexo del profesor que buscar.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>9 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>1 simulador</span>
+          <span><i class="fas fa-map mr-1" aria-hidden="true"></i>1 mapa</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el taller <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      <article class="tarjeta p-5">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-list-check" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Capítulos 1 a 3</span>
+              <span class="text-xs font-semibold text-primary">No se califica</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/preparcial-corte-1.html">Preparcial del Corte I</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Los 30 módulos que evalúa el parcial
+          —los capítulos 1 y 2, y el 3 hasta MAUP I—, con la frontera del temario dibujada: qué entra y qué no.
+          Trae el catálogo de los diez errores que se repiten —los diez que no dan error, corren y devuelven un
+          número razonable que no es el que se creía calcular—, cada uno con la cifra que lo mide y el módulo al
+          que volver. Se puede repetir tantas veces como haga falta, y cada opción incorrecta explica a qué
+          error lleva y qué cifra sale de él.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>7 módulos</span>
+          <span><i class="fas fa-circle-question mr-1" aria-hidden="true"></i>36 preguntas</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>6 bloques R/Python</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el preparcial <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      </div>
+    </section>
 
+    <section class="mb-12">
+      <div class="corte-rotulo">
+        <h2>Corte II</h2>
+        <span class="corte-semanas">Semanas 6–10</span>
+        <span class="corte-lema">Patrones puntuales: de describirlos a modelarlos</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <article class="tarjeta p-5" data-capitulo="4">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-braille" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Semanas 6–7</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 4</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/capitulo-4-patrones-puntuales.html">Patrones puntuales: CSR y funciones de resumen</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Cuando lo aleatorio es la
+          localización. La ventana forma parte del estimador, el test de cuadrantes es ciego por debajo de su
+          celda, y una envolvente no dice lo que casi todo el mundo lee en ella.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>13 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>14 simuladores</span>
+          <span><i class="fas fa-map mr-1" aria-hidden="true"></i>7 mapas</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>11 bloques R/Python</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el capítulo <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+        <p class="tarjeta-diapositivas mt-3">
+          <span><i class="fas fa-chalkboard-user mr-1" aria-hidden="true"></i>Diapositivas de clase</span>
+          <a class="tarjeta-extra" href="Htmls_Espacial/diapositivas/capitulo-4-patrones-puntuales.html" aria-label="Clase magistral de 90 minutos: diapositivas del capítulo 4">Clase de 90 min</a>
+        </p>
+      </article>
+      <article class="tarjeta p-5" data-capitulo="5">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-fire" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Semanas 8–10</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 5</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/capitulo-5-intensidad-nucleos.html">Intensidad por núcleos y modelamiento de procesos puntuales</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">De una cifra para toda la ciudad a una
+          superficie. El ancho de banda lo decide todo y ningún selector lo elige por ti; solo una de las tres
+          correcciones de borde conserva el conteo; y hay llamadas que eligen su propia corrección sin
+          mencionarla y mueven el ajuste un 93 %.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>13 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>13 simuladores</span>
+          <span><i class="fas fa-map mr-1" aria-hidden="true"></i>7 mapas</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>12 bloques R/Python</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el capítulo <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+        <p class="tarjeta-diapositivas mt-3">
+          <span><i class="fas fa-chalkboard-user mr-1" aria-hidden="true"></i>Diapositivas de clase</span>
+          <a class="tarjeta-extra" href="Htmls_Espacial/diapositivas/capitulo-5-intensidad-nucleos-sesion-1.html" aria-label="Sesión 1, módulos 1 a 6: diapositivas del capítulo 5">Sesión 1 · módulos 1–6</a>
+          <a class="tarjeta-extra" href="Htmls_Espacial/diapositivas/capitulo-5-intensidad-nucleos-sesion-2.html" aria-label="Sesión 2, módulos 7 a 11 y cierre: diapositivas del capítulo 5">Sesión 2 · módulos 7–11</a>
+        </p>
+        <p class="mt-2 text-xs text-slate-500 leading-relaxed">La sesión 1 va del conteo en cuadrantes a la
+          intensidad relativa y trae las animaciones 3D de los módulos 1 y 4. En la 2, de las covariables al
+          conglomerado, cada paso deja un resultado limpio que no se puede creer: la cola de una curva, la
+          cuadratura, las coordenadas, la banda del diagnóstico y la estimación de K.</p>
+      </article>
+      <article class="tarjeta p-5">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Capítulo 4 entero</span>
+              <span class="text-xs font-semibold text-primary">Escrito 40 % + defensa 60 %</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/taller-2-cap-4.html">Taller 2 · Patrones puntuales</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Cinco tareas sobre los once módulos del
+          capítulo 4, y cuatro de las cinco son de refutación: no piden producir un resultado, piden decidir si
+          uno que ya está sobre la mesa se sostiene. Tu documento completo fija tu localidad de Bogotá y tus
+          patrones, así que ninguna tarea se contesta sin tus datos. Trae dentro las dos rúbricas y el banco de
+          36 preguntas de la sustentación.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>7 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>4 simuladores</span>
+          <span><i class="fas fa-map mr-1" aria-hidden="true"></i>7 mapas</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el taller <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      <article class="tarjeta p-5">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-list-check" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Capítulos 4 y 5</span>
+              <span class="text-xs font-semibold text-primary">No se califica</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/preparcial-corte-2.html">Preparcial del Corte II</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Los 22 módulos de patrones puntuales
+          que evalúa el parcial, una pregunta por cada uno y seis que cruzan los dos capítulos. Trae seis rutinas
+          con su salida real, cinco ejercicios sobre un patrón que el curso no había usado —el oro de Murchison,
+          de la ventana al modelo— y los quince errores que se repiten, cada uno con la cifra que lo mide. Se
+          puede repetir tantas veces como haga falta, y cada opción incorrecta explica a qué error lleva y qué
+          cifra sale de él.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>7 módulos</span>
+          <span><i class="fas fa-circle-question mr-1" aria-hidden="true"></i>28 preguntas</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>6 bloques R/Python</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el preparcial <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      </div>
+    </section>
+
+    <section class="mb-12">
+      <div class="corte-rotulo">
+        <h2>Corte III</h2>
+        <span class="corte-semanas">Semanas 10–16</span>
+        <span class="corte-lema">La dependencia entre vecinos: medirla y modelarla</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <article class="tarjeta p-5" data-capitulo="6">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-diagram-project" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Semanas 10–11</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 6</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/capitulo-6-pesos-espaciales.html">Datos de área y la matriz de pesos espaciales</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">W no viene con el dato: la elige quien
+          analiza, y es la decisión más consecuente del análisis de área y la menos justificada. Diez
+          definiciones de vecino sobre los mismos 49 barrios; el umbral que quita las islas y deja el grafo
+          partido; y por qué estandarizar por filas es la capa de una red neuronal sobre grafos.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>12 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>7 simuladores</span>
+          <span><i class="fas fa-map mr-1" aria-hidden="true"></i>2 mapas</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>11 bloques R/Python</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el capítulo <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      <article class="tarjeta p-5" data-capitulo="7">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-chart-area" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Semanas 12–13</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 7</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/capitulo-7-autocorrelacion.html">Autocorrelación espacial global y local</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">¿Lo cercano se parece más de lo que
+          cabría esperar por azar? El I de Moran y la c de Geary, sus tres inferencias y el suelo del p de
+          permutación; los mapas LISA y por qué el que sale por defecto exagera; y Gi*, que mide intensidad y no
+          similitud. Sobre Columbus, la rejilla de Getis y Ord y la deserción de los municipios.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>12 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>13 simuladores</span>
+          <span><i class="fas fa-map mr-1" aria-hidden="true"></i>11 mapas</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>11 bloques R/Python</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el capítulo <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      <article class="tarjeta p-5">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-map-location-dot" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana">Semanas 13 a 16</span>
+              <span class="text-xs font-semibold text-primary">50 % del Corte III</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/proyecto-integrador-corte-iii.html">Proyecto integrador · Corte III</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">El trabajo final del curso, por hitos:
+          un territorio real con datos abiertos, el protocolo fijado antes de calcular nada y una defensa delante
+          del grupo. Diez módulos: qué datos valen, el repositorio, los cuatro hitos —la ficha del martes 27 de
+          octubre, el preregistro, el avance y el informe—, la opción conjunta con Series de Tiempo, la
+          exposición y la rúbrica entera. La W se fija antes de calcular el primer Moran, y el mapa LISA se
+          corrige por multiplicidad. Trae una plantilla de informe en R.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>10 módulos</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir la guía <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span><a class="tarjeta-extra" href="Htmls_Espacial/proyecto-integrador-plantilla.Rmd" download><i class="fas fa-file-code" aria-hidden="true"></i> Plantilla del informe</a></p>
+      </article>
+      <article class="tarjeta tarjeta-pendiente p-5" data-capitulo="8">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-scale-balanced" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana tenue">Semana 14</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 8</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">Econometría espacial</h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Modelos SAR, SEM y SDM, y regresión
+          geográficamente ponderada (GWR).</p>
+        <p class="mt-4"><span class="tarjeta-aviso"><i class="fas fa-clock mr-1" aria-hidden="true"></i>Próximamente:
+            todavía no hay página que abrir</span></p>
+      </article>
+      <article class="tarjeta tarjeta-pendiente p-5" data-capitulo="9">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-mountain-sun" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana tenue">Semana 15</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 9</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">Geoestadística</h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">El variograma y el kriging: predecir
+          donde no se midió.</p>
+        <p class="mt-4"><span class="tarjeta-aviso"><i class="fas fa-clock mr-1" aria-hidden="true"></i>Próximamente:
+            todavía no hay página que abrir</span></p>
+      </article>
+      <article class="tarjeta tarjeta-pendiente p-5" data-capitulo="10">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-robot" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana tenue">Semana 16</span>
+              <span class="text-xs font-semibold text-slate-400">Capítulo 10</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">ML espacial y proyecto integrador</h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Aprendizaje automático con dependencia
+          espacial, datos espacio-temporales y el cierre del curso. La guía del proyecto integrador ya está
+          publicada, en este mismo corte.</p>
+        <p class="mt-4"><span class="tarjeta-aviso"><i class="fas fa-clock mr-1" aria-hidden="true"></i>Próximamente:
+            todavía no hay página que abrir</span></p>
+      </article>
+      </div>
+    </section>
+
+    <section class="mb-12">
+      <div class="corte-rotulo">
+        <h2>Material complementario</h2>
+        <span class="corte-semanas">Fuera del cronograma</span>
+        <span class="corte-lema">Lo que un capítulo da por sabido, desarrollado aparte: no es temario de ninguna
+          semana, y se abre cuando un capítulo lo pide</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <article class="tarjeta p-5">
+        <div class="flex items-start gap-4">
+          <div class="tarjeta-num"><i class="fas fa-puzzle-piece" aria-hidden="true"></i></div>
+          <div class="min-w-0 flex-grow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="tarjeta-semana tenue">Apéndice A</span>
+              <span class="text-xs font-semibold text-slate-400">Repaso para el capítulo 5</span>
+            </div>
+            <h3 class="tarjeta-titulo mt-2 text-base">
+              <a href="Htmls_Espacial/apendice-a-densidad.html">La densidad en una dimensión</a>
+            </h3>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed flex-grow">Todo lo que el estimador de intensidad
+          por núcleos decide —el ancho, la forma del núcleo, el selector, la corrección de borde— hecho primero
+          sobre un renglón, donde se puede dibujar y calcular a mano: del histograma al núcleo, el sesgo y la
+          varianza, la validación cruzada y lo que le pasa a todo eso con las distancias entre las sedes de
+          Bogotá.</p>
+        <div class="tarjeta-meta mt-4">
+          <span><i class="fas fa-list-ul mr-1" aria-hidden="true"></i>13 módulos</span>
+          <span><i class="fas fa-sliders mr-1" aria-hidden="true"></i>17 simuladores</span>
+          <span><i class="fas fa-code mr-1" aria-hidden="true"></i>12 bloques R/Python</span>
+        </div>
+        <p class="mt-4"><span class="tarjeta-abrir">Abrir el apéndice <i class="fas fa-arrow-right"
+              aria-hidden="true"></i></span></p>
+      </article>
+      </div>
+    </section>
+
+    <!-- Cómo está hecho: es material de un curso de estadística, y de dónde
+         salen las cifras forma parte de lo que se enseña. -->
+    <section class="mb-4">
+      <div class="corte-rotulo">
+        <h2>Cómo está hecho este material</h2>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 text-sm md:text-base text-slate-600 leading-relaxed">
+        <p class="mb-4" style="max-width: 72ch;">
+          Ninguna cifra de estas páginas está escrita a mano. Todas las calcula R desde las fuentes
+          primarias, viajan al navegador en un JSON y un arnés de auditoría las recalcula de forma
+          independiente en Python antes de publicar: si las dos vías no coinciden, el capítulo no sale.
+          Los bloques de código se <em>ejecutan</em> de verdad y se contrasta su salida contra la que
+          anuncian.
+        </p>
+        <p class="mb-4" style="max-width: 72ch;">
+          Las diapositivas de clase salen del capítulo del mismo número y siguen la misma regla: cada cifra
+          trae su fuente y cada afirmación su etiqueta —dato, interpretación o criterio—. Las cifras se cotejan
+          contra las salidas de R y, donde se puede, se recalculan desde los puntos crudos; lo que no se pudo
+          comprobar lleva la marca <strong>[SIN VERIFICAR]</strong>. Son para dar la clase, no para leer el
+          capítulo, y traen notas para quien presenta: <code>P</code> abre la vista del presentador y
+          <code>F</code> la pantalla completa.
+        </p>
+        <p style="max-width: 72ch;">
+          Los datos son en su mayoría colombianos —sedes educativas de Bogotá, estaciones del IDEAM,
+          deserción escolar municipal— junto a los casos canónicos de la literatura, para que puedas
+          contrastar cada número contra el libro de texto.
+        </p>
+        <p class="mt-6">
+          <a class="tarjeta-abrir" href="https://github.com/JotaMao1985/Un_Bosque_Estadistica_Espacial">Ver el
+            código en GitHub <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bosque-header mt-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="bosque-gradient p-2 rounded-lg shadow-md">
+            <i class="fas fa-chart-line text-white" aria-hidden="true"></i>
+          </div>
+          <div>
+            <p class="text-white font-semibold">Estadística Espacial</p>
+            <p class="text-xs text-white/60">Universidad El Bosque • Estadística • Curso 20929 • 2026-II</p>
+          </div>
+        </div>
+        <p class="text-xs text-white/60 max-w-md md:text-right">
+          Material de estudio interactivo. Publicado con GitHub Pages.
+        </p>
+      </div>
+    </div>
+  </footer>
 </body>
+
 </html>

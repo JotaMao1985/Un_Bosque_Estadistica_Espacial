@@ -15,7 +15,7 @@
 #   5. campos_vivos.py      — ningún campo de courseData se declara sin leerse
 #   6. audita_texto_*.py    — las cifras de la prosa, incluidas las de KaTeX
 #   7. prueba_texto.py      — le inyecta defectos al auditor de prosa
-#   8. cuenta_sitio.py      — los totales, contados y no recordados
+#   8. cuenta_sitio.py      — los totales, contados y no recordados (y los de la portada)
 #   (y, desde el 2026-10-01, la matemática de las animaciones contra R)
 #
 # Los TALLERES corren por un bucle propio (C8 del Taller 1): no son
@@ -295,8 +295,10 @@ fi
 paso "pon_boton_indice.py — el botón al índice, en todas las páginas" \
      python3 precalculo/prueba_boton_indice.py
 
-paso "cuenta_sitio.py — los totales" \
-     python3 precalculo/cuenta_sitio.py
+# Desde el 2026-11-03 comprueba también las cifras de la portada, y con
+# `--prueba` se las rompe antes a sí misma: cuesta lo mismo que contarlas.
+paso "cuenta_sitio.py — los totales, y las cifras de la portada" \
+     python3 precalculo/cuenta_sitio.py --prueba
 
 echo ""
 echo "================================================================"
