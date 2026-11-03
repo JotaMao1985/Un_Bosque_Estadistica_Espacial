@@ -1230,9 +1230,12 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
         # corto cae dentro por azar. Es la debilidad que `sin_aritmetica`
         # documenta, aquí con sujeto. Lo que SÍ los protege es
         # `audita_cap6.py`, que los recalcula uno a uno con libpysal.
+        # 8 887 dejó de morder el 2026-11-03: con el JSON nuevo de la auditoría
+        # de contenido, el índice de cifras derivadas ya la trae por azar. 7 919
+        # está comprobado fuera del índice.
         ("las parejas que solo tiene la reina, cambiadas a una cifra imposible",
          f"<strong>{ent(m3['solo_reina'])}</strong> parejas",
-         "<strong>8 887</strong> parejas"),
+         "<strong>7 919</strong> parejas"),
         ("los pares no recíprocos de k = 3, cambiados a una cifra imposible",
          f"<strong>{ent(m4['columbus'][2]['asimetricos'])}</strong> pares",
          "<strong>8 913</strong> pares"),
@@ -1294,9 +1297,11 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
         ("el grado de la esfera de influencia, cambiado en la tabla",
          f'<td>{ent(CR["esfera"]["pares"])}</td><td>{f(CR["esfera"]["grado"], 4)}</td>',
          f'<td>{ent(CR["esfera"]["pares"])}</td><td>{perturba(CR["esfera"]["grado"], 4)}</td>'),
+        # El último decimal (49.0001) cae desde el 2026-11-03 dentro del índice:
+        # es enlaces / grado del orden 4 de la reina, que da n con su redondeo.
         ("la suma del estilo S, cambiada en la tabla",
          f'<td>{f(m7["estilos"][2]["suma_total"], 4)}</td>',
-         f'<td>{perturba(m7["estilos"][2]["suma_total"], 4)}</td>'),
+         f'<td>{f(m7["estilos"][2]["suma_total"] + 0.0007, 4)}</td>'),
 
         # --- 4. En una solución de ejercicio --------------------------
         ("un paso de la solución del ejercicio 1, alterado",
@@ -1383,6 +1388,74 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
          'href="capitulo-4-patrones-puntualez.html"'),
         ("el documento desbocado",
          "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
+
+        # --- 9. LA COMA DECIMAL (rehecha sobre main el 2026-11-03; en su rama
+        # desde el 2026-09-25): `pct()`, el rótulo del mapa municipal y un
+        # formateador de las lecturas.
+        ("vuelve el pct() con coma decimal",
+         f"el rezago es un\n        <strong>{f(m10['contraccion_pct'], 2)} %</strong>",
+         f"el rezago es un\n        <strong>{f(m10['contraccion_pct'], 2).replace('.', ',')} %</strong>"),
+        ("el rótulo del mapa municipal vuelve a escribir coma",
+         f"grado medio {f(m3['municipios']['reina']['grado'], 2)} y",
+         f"grado medio {f(m3['municipios']['reina']['grado'], 2).replace('.', ',')} y"),
+        ("un formateador de las lecturas vuelve a escribir coma",
+         "Number(x).toFixed(d == null ? 4 : d);",
+         "Number(x).toFixed(d == null ? 4 : d).replace('.', ',');"),
+
+        # --- 10. LOS ACENTOS GRAVES DE MARKDOWN (rehechos sobre main el
+        # 2026-11-03). Las cuatro primeras son los defectos que había; la quinta,
+        # un acento ESCAPADO dentro de una plantilla, que sí llega a la página; la
+        # sexta prueba el recuento del índice lateral.
+        ("el h2 del módulo 8 vuelve a publicar acentos graves",
+         ">El flujo de <code>spdep</code>\n", ">El flujo de `spdep`\n"),
+        ("un título del índice lateral vuelve a los acentos graves",
+         'title: "Islas y <code>zero.policy</code>"', 'title: "Islas y `zero.policy`"'),
+        ("un subtítulo del índice lateral vuelve a los acentos graves",
+         'subtitle: "Y <code>sfdep</code> como interfaz tidy"',
+         'subtitle: "Y `sfdep` como interfaz tidy"'),
+        ("una retroalimentación del quiz vuelve a los acentos graves",
+         "<code>nblag</code> no acumula", "`nblag` no acumula"),
+        ("una plantilla del JavaScript escapa un acento grave",
+         "<table><caption>Los diez criterios sobre los mismos `",
+         "<table><caption>Los diez \\`criterios\\` sobre los mismos `"),
+        ("el índice lateral pierde una entrada",
+         '        { id: 12, title: "Autoevaluación y ejercicios", '
+         'subtitle: "Trece preguntas y cinco ejercicios" },\n', ""),
+
+        # --- 11. LAS FRASES FALSAS QUE TENÍA (auditoría de contenido del
+        # 2026-11-03). Cada inyección vuelve a meter una, donde estaba, sin
+        # quitar la afirmación que la sustituyó: así solo la caza `PROHIBIDAS`.
+        ("la pista de la P2 vuelve a llamar a la reina «de Anselin»",
+         "Es la reina de los polígonos, igual en spdep y en libpysal",
+         "Es la cifra que publica Anselin, la reina de los polígonos"),
+        ("el umbral municipal vuelve a ser la distancia de San Andrés",
+         "</strong> km, y no lo fija el mar.",
+         "</strong> km —la distancia que separa a San Andrés de su vecino más próximo—, y no lo fija el mar."),
+        ("vuelven Leticia y Manizales de vecinas",
+         "Esa W es correcta y es inútil.",
+         "Esa W es correcta y es inútil, aunque haga que Leticia y Manizales sean vecinas."),
+        ("vuelve «Moran supone una W simétrica»",
+         "patrón. Pero <em>hay que saber que está</em>",
+         "patrón, y casi todo lo que viene supone una W simétrica o la simetriza. Pero <em>hay que saber que está</em>"),
+        ("la retro de la P4 vuelve a quedarse sin unidades nuevas",
+         "Sí, y no antes de tiempo:", "Sí: ya casi no hay unidades nuevas a las que llegar, y no antes de tiempo:"),
+        ("la etiqueta del umbral vuelve a llamar conexo al sin islas",
+         '"Umbral: la mitad del mínimo sin islas"', '"Umbral: la mitad del mínimo conexo"'),
+        ("vuelve «casi todo el mundo es vecino de casi todo el mundo»",
+         "cada barrio promedia con casi la cuarta parte del mapa",
+         "casi todo el mundo es vecino de casi todo el mundo"),
+        ("la retro de la P11 vuelve a tirar hacia abajo de cualquier resumen",
+         "y ese cero se mezcla en los resúmenes sin avisar",
+         "y ese cero tira hacia abajo de cualquier resumen sin avisar"),
+        ("vuelve «W es dispersa siempre»",
+         "<strong>Las W razonables son dispersas</strong>",
+         "<strong>Las W razonables son dispersas</strong> (W es dispersa siempre)"),
+        ("el recuadro del módulo 12 vuelve a la dependencia «entera»",
+         "y el capítulo mide si la respuesta la hereda también",
+         "y su respuesta va a depender, entera, de esa W"),
+        ("vuelve el número escrito en letras",
+         "y el reparto es tan desigual como el\n        mapa:",
+         "y cada municipio sería vecino de ciento setenta y nueve; el reparto es tan desigual como el\n        mapa:"),
     ]
 
 

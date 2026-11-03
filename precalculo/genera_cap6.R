@@ -210,19 +210,27 @@ W_COL <- list(
   gabriel  = graph2nb(gabrielneigh(col_xy), sym = TRUE),
   esfera   = graph2nb(soi.graph(tri2nb(col_cent), col_cent), sym = TRUE))
 
-# LAS DOS ANCLAS QUE VALIDAN EL TABLERO ENTERO. Son las cifras que
-# Anselin publica para Columbus, y si alguna se moviera —otra versión de
-# spdep, otro archivo, otro convenio de contigüidad— el capítulo entero
-# estaría midiendo otra cosa sin avisar.
-ancla(resumen_nb(W_COL$reina)$pares, 118, "Columbus reina: aristas (Anselin)", tol = 0)
-ancla(resumen_nb(W_COL$reina)$grado, 4.8163, "Columbus reina: grado medio (Anselin)", tol = 1e-4)
-ancla(resumen_nb(W_COL$torre)$pares, 100, "Columbus torre: aristas (Anselin)", tol = 0)
-ancla(resumen_nb(W_COL$torre)$grado, 4.0816, "Columbus torre: grado medio (Anselin)", tol = 1e-4)
+# LAS DOS ANCLAS QUE VALIDAN EL TABLERO ENTERO: la reina y la torre de los
+# polígonos, tal como las dan `poly2nb` aquí y `libpysal` en el auditor (y
+# como las documenta libpysal, cuyo `columbus.gal` es esta reina). NO son
+# «las de Anselin», como decían estas etiquetas hasta el 2026-11-03: la W que
+# Anselin publicó con los datos (1988), el `COL.nb` de spdep, tiene 116
+# parejas, y el capítulo la mide más abajo (`m3$gal`). Si alguna se moviera
+# —otra versión de spdep, otro archivo, otro convenio de contigüidad— el
+# capítulo entero estaría midiendo otra cosa sin avisar.
+ancla(resumen_nb(W_COL$reina)$pares, 118, "Columbus reina: parejas de poly2nb y libpysal", tol = 0)
+ancla(resumen_nb(W_COL$reina)$grado, 4.8163, "Columbus reina: grado medio de poly2nb y libpysal", tol = 1e-4)
+ancla(resumen_nb(W_COL$torre)$pares, 100, "Columbus torre: parejas de poly2nb y libpysal", tol = 0)
+ancla(resumen_nb(W_COL$torre)$grado, 4.0816, "Columbus torre: grado medio de poly2nb y libpysal", tol = 1e-4)
 
+# `d_conexo` es el umbral SIN ISLAS, no el conexo: con él el grafo sigue en
+# dos pedazos, que es la lección del módulo 5. El identificador se queda
+# porque lo usan el mapa y la caché; la etiqueta, que es lo que se lee, ya no
+# lo llama conexo (hasta el 2026-11-03 decía «la mitad del mínimo conexo»).
 ETQ_W <- c(reina = "Contigüidad reina", torre = "Contigüidad torre",
            k1 = "1 vecino más próximo", k3 = "3 vecinos más próximos",
            k6 = "6 vecinos más próximos",
-           d_mitad = "Umbral: la mitad del mínimo conexo",
+           d_mitad = "Umbral: la mitad del mínimo sin islas",
            d_conexo = "Umbral mínimo sin islas",
            delaunay = "Delaunay", gabriel = "Gabriel", esfera = "Esfera de influencia")
 
@@ -255,20 +263,79 @@ ar_de <- function(nb) {
   if (is.null(ar)) character(0) else paste(ar[, 1], ar[, 2], sep = "-")
 }
 solo_reina <- setdiff(ar_de(W_COL$reina), ar_de(W_COL$torre))
+solo_reina_mun <- setdiff(ar_de(mun_reina), ar_de(mun_torre))
 
 # Contigüidad de orden superior: `nblag` NO acumula. El orden 2 son los
 # vecinos de los vecinos que no eran ya vecinos, y esa exclusión es la
 # mitad de la idea.
-lags <- nblag(W_COL$reina, maxlag = 3L)
+#
+# HASTA EL DIÁMETRO, NO HASTA 3. Con tres órdenes la prosa leyó «al tercer
+# orden el mapa se está quedando sin sitios», y la serie entera dice otra
+# cosa: hace cima en el 3 (243 parejas) con menos de la mitad de las parejas
+# alcanzadas, y el 4 todavía añade 234 (auditoría del 2026-11-03, R5). El
+# diámetro es el primer orden que ya no encuentra a nadie, menos uno.
+lags <- suppressWarnings(nblag(W_COL$reina, maxlag = 20L))
+p_orden <- vapply(lags, function(nb) resumen_nb(nb, nrow(col))$pares, numeric(1))
+diametro <- max(which(p_orden > 0))
+if (diametro >= 20L) stop("PARADO: el diámetro de la reina de Columbus no cabe en maxlag = 20")
+lags <- lags[seq_len(diametro)]
+parejas_posibles <- nrow(col) * (nrow(col) - 1) / 2
+acum <- cumsum(p_orden[seq_len(diametro)])
+ancla(acum[diametro], parejas_posibles, "nblag hasta el diámetro recorre todas las parejas", tol = 0)
+
+# LA GAL DE ANSELIN (1988), el `COL.nb` de spdep, alineada por POLYID con la
+# reina de los polígonos: su orden es el de `COL.OLD`, no el del gpkg. Es la
+# W que usa el capítulo 7, y el módulo 3 decía que la reina era «la de
+# Anselin». Se publica en qué se diferencian, y cuántas de las parejas que
+# solo tiene la reina son contactos de esquina.
+data(oldcol, package = "spdep")
+ancla(isTRUE(all.equal(COL.OLD$CRIME[order(COL.OLD$POLYID)], col$CRIME[order(col$POLYID)])), 1,
+      "COL.OLD y el gpkg son los mismos barrios por POLYID", tol = 0)
+pares_lab <- function(nb, lab) {
+  ij <- do.call(rbind, lapply(seq_along(nb), function(i) {
+    j <- nb[[i]]; j <- j[j > 0]
+    if (length(j) == 0) NULL else cbind(lab[i], lab[j]) }))
+  unique(paste(pmin(ij[, 1], ij[, 2]), pmax(ij[, 1], ij[, 2]), sep = "-"))
+}
+p_reina_pol <- pares_lab(W_COL$reina, col$POLYID)
+p_gal <- pares_lab(COL.nb, COL.OLD$POLYID)
+p_esquina_pol <- {
+  ij <- do.call(rbind, strsplit(solo_reina, "-"))
+  paste(pmin(col$POLYID[as.integer(ij[, 1])], col$POLYID[as.integer(ij[, 2])]),
+        pmax(col$POLYID[as.integer(ij[, 1])], col$POLYID[as.integer(ij[, 2])]), sep = "-")
+}
+gal_solo_reina <- setdiff(p_reina_pol, p_gal)
+gal_solo_gal <- setdiff(p_gal, p_reina_pol)
+# La copia `columbus.gal` que trae spData, por si alguien la toma por la de
+# Anselin: no coincide con ninguna de las dos.
+gal_spdata <- read.gal(system.file("weights/columbus.gal", package = "spData"))
+
 D$m3 <- list(
   reina = resumen_nb(W_COL$reina, nrow(col)),
   torre = resumen_nb(W_COL$torre, nrow(col)),
   solo_reina = length(solo_reina),
+  # Qué parte de la reina son esquinas, en los tres mapas del capítulo
+  # (el de `nc` lo publican las soluciones): «el criterio importa lo que la
+  # geometría le deje importar», con la cifra al lado.
+  pct_esquina = r4(100 * length(solo_reina) / resumen_nb(W_COL$reina, nrow(col))$pares),
+  diametro = diametro,
+  parejas_posibles = parejas_posibles,
   ordenes = lapply(seq_along(lags), function(i)
-    c(list(orden = i), resumen_nb(lags[[i]], nrow(col)))),
+    c(list(orden = i, acumuladas = acum[i], pct_acumulado = r4(100 * acum[i] / parejas_posibles)),
+      resumen_nb(lags[[i]], nrow(col)))),
+  gal = list(pares = length(p_gal),
+             enlaces = sum(card(COL.nb)),
+             grado = r4(mean(card(COL.nb))),
+             solo_reina = length(gal_solo_reina),
+             solo_reina_esquinas = sum(gal_solo_reina %in% p_esquina_pol),
+             solo_gal = length(gal_solo_gal),
+             pares_spdata = sum(card(gal_spdata)) / 2),
   # Y sobre el caso real, para que la comparación exista
   municipios = list(reina = resumen_nb(mun_reina, nrow(mun)),
-                    torre = resumen_nb(mun_torre, nrow(mun))))
+                    torre = resumen_nb(mun_torre, nrow(mun)),
+                    solo_reina = length(solo_reina_mun),
+                    pct_esquina = r4(100 * length(solo_reina_mun) /
+                                     resumen_nb(mun_reina, nrow(mun))$pares)))
 
 # =====================================================================
 # D. MÓDULO 4 — k vecinos más próximos, y la simetría rota
@@ -306,6 +373,35 @@ D$m4 <- list(
   simetrizada_k3 = {
     nb <- make.sym.nb(knn2nb(knearneigh(col_cent, k = 3)))
     c(list(k = 3L), resumen_nb(nb, nrow(col)))
+  },
+  # QUÉ CAMBIA SIMETRIZAR, medido en el índice que viene después. La prosa
+  # decía que «el índice de Moran supone una W simétrica o la simetriza sin
+  # decirlo», y no: `moran.test` usa la W de k vecinos tal como viene, y la
+  # cifra cambia si se simetriza antes (auditoría del 2026-11-03, R4). La
+  # comprobación a mano asegura que spdep no simetriza por debajo.
+  moran_k3 = {
+    lw3 <- nb2listw(knn2nb(knearneigh(col_cent, k = 3)), style = "W")
+    lw3s <- nb2listw(make.sym.nb(knn2nb(knearneigh(col_cent, k = 3))), style = "W")
+    z <- col$CRIME - mean(col$CRIME); W3 <- listw2mat(lw3)
+    a_mano <- (nrow(col) / sum(W3)) * sum(z * (W3 %*% z)) / sum(z^2)
+    I3 <- unname(moran.test(col$CRIME, lw3)$estimate[1])
+    ancla(I3, a_mano, "moran.test con k = 3 es la fórmula sin simetrizar", tol = 1e-10)
+    list(asimetrica = r4(I3),
+         simetrizada = r4(unname(moran.test(col$CRIME, lw3s)$estimate[1])),
+         # La W por filas de la REINA tampoco es simétrica, aunque la vecindad
+         # lo sea: w_ij = 1/d_i. Lo dice el capítulo 7 y lo comprueba esto.
+         reina_por_filas_simetrica = isSymmetric(unname(nb2mat(W_COL$reina, style = "W"))))
+  },
+  # San Andrés con k = 4: a qué distancia lo une el criterio con la costa.
+  # La prosa decía «700 km de mar», escrito a mano.
+  san_andres_k4 = {
+    sa <- which(card(mun_reina) == 0L)[1]
+    v <- knn2nb(knearneigh(mun_cent, k = 4))[[sa]]
+    dv <- as.numeric(st_distance(mun_cent[sa], mun_cent[v])) / 1000
+    cont <- mun$departamento[v] != mun$departamento[sa]   # fuera, la del propio archipiélago
+    list(municipio = as.character(mun$municipio[sa]),
+         costa_min_km = r4(min(dv[cont])), costa_max_km = r4(max(dv[cont])),
+         vecinos_costa = sum(cont))
   })
 
 # =====================================================================
@@ -314,16 +410,60 @@ D$m4 <- list(
 # =====================================================================
 message("E. modulo 5 - umbral de distancia")
 
-curva_umbral <- function(cent, umbrales, n) {
+curva_umbral <- function(cent, umbrales, n, km = TRUE) {
   lapply(umbrales, function(u) {
     nb <- suppressWarnings(dnearneigh(cent, 0, u))
     # `umbral_km` va aquí y no se calcula en la prosa: dividir entre mil en
     # el ensamblador es aritmética en el texto, que es lo que D10 prohíbe.
-    c(list(umbral = r4(u), umbral_km = r4(u / 1000)), resumen_nb(nb, n))
+    # Columbus no la lleva: no tiene CRS, y sus «0.0006 km» no los leía nadie.
+    c(list(umbral = r4(u)), if (km) list(umbral_km = r4(u / 1000)), resumen_nb(nb, n))
   })
 }
 u_col <- seq(d1_col * 0.4, d1_col * 1.6, length.out = 7)
-d1_mun <- max(unlist(nbdists(knn2nb(knearneigh(mun_cent, k = 1)), mun_cent)))
+k1_mun <- knn2nb(knearneigh(mun_cent, k = 1))
+dnn_mun <- unlist(nbdists(k1_mun, mun_cent))
+d1_mun <- max(dnn_mun)
+
+# EL UMBRAL QUE CONECTA, que no es el que quita las islas. Es la arista más
+# larga del árbol generador mínimo de los centroides: por debajo de ella el
+# grafo tiene al menos dos pedazos, y en ella, uno (Prim, sobre la matriz de
+# distancias). La prosa decía «hace falta subir hasta 0.7426», que es solo el
+# punto siguiente del barrido; el ejercicio 3 ya lo calculaba así para `nc`.
+cuello_mst <- function(dm) {
+  n <- nrow(dm); dentro <- c(TRUE, rep(FALSE, n - 1)); mejor <- dm[1, ]; mx <- 0
+  for (s in 2:n) {
+    mejor[dentro] <- Inf; j <- which.min(mejor)
+    mx <- max(mx, mejor[j]); dentro[j] <- TRUE; mejor <- pmin(mejor, dm[j, ])
+  }
+  mx
+}
+u_conexo_col <- cuello_mst(as.matrix(dist(col_xy)))
+nb_conexo_col <- dnearneigh(col_cent, 0, u_conexo_col)
+ancla(n.comp.nb(nb_conexo_col)$nc, 1, "Columbus: en el umbral conexo el grafo es una pieza", tol = 0)
+ancla(n.comp.nb(suppressWarnings(dnearneigh(col_cent, 0, u_conexo_col * (1 - 1e-9))))$nc > 1, 1,
+      "Columbus: justo por debajo del umbral conexo, más de una pieza", tol = 0)
+
+# QUIÉN FIJA EL UMBRAL MUNICIPAL. La prosa decía que 166.8 km era «la
+# distancia que separa a San Andrés de su vecino más próximo», y es la de
+# Puerto Carreño: San Andrés tiene a Providencia a 98 km. El archipiélago no
+# lo une ningún umbral por debajo de su distancia a la costa.
+mun_xy <- st_coordinates(mun_cent)
+i_fija <- which.max(dnn_mun)
+sa_i <- which(card(mun_reina) == 0L)
+arch <- mun$departamento == mun$departamento[sa_i[1]]
+d_arch <- as.matrix(dist(mun_xy))
+costa <- which(!arch)
+d_costa <- d_arch[sa_i, costa, drop = FALSE]
+j_costa <- costa[arrayInd(which.min(d_costa), dim(d_costa))[2]]
+u_todo_mun <- cuello_mst(d_arch)
+u_continente <- cuello_mst(d_arch[!arch, !arch])
+nb_umbral_mun <- suppressWarnings(dnearneigh(mun_cent, 0, d1_mun))
+# Leticia y Manizales, que la prosa ponía de vecinas en esa W. No lo son: el
+# contraste que sí da es el de sus grados.
+i_let <- which(mun$municipio == "Leticia" & mun$departamento == "Amazonas")
+i_man <- which(mun$municipio == "Manizales" & mun$departamento == "Caldas")
+stopifnot(length(i_let) == 1L, length(i_man) == 1L)
+i_mas <- which.max(card(nb_umbral_mun))
 
 D$m5 <- list(
   columbus = list(umbral_sin_islas = r4(d1_col),
@@ -344,14 +484,38 @@ D$m5 <- list(
                   # curva. Decía «con el doble» del punto más alto del barrido,
                   # y el barrido llega a 1,6 veces: el doble no está medido.
                   multiplos = r4(u_col / d1_col),
-                  curva = curva_umbral(col_cent, u_col, nrow(col))),
+                  umbral_conexo = r4(u_conexo_col),
+                  en_el_conexo = resumen_nb(nb_conexo_col, nrow(col)),
+                  curva = curva_umbral(col_cent, u_col, nrow(col), km = FALSE)),
   municipios = list(
     umbral_sin_islas_m = r4(d1_mun),
     umbral_sin_islas_km = r4(d1_mun / 1000),
     # LA CIFRA QUE ES EL MÓDULO: el umbral que no deja a nadie solo
     # convierte la vecindad en un sinsentido, y encima es impublicable
     # como dibujo. Esa W se mira como número.
-    en_el_umbral = resumen_nb(suppressWarnings(dnearneigh(mun_cent, 0, d1_mun)), nrow(mun)),
+    en_el_umbral = resumen_nb(nb_umbral_mun, nrow(mun)),
+    fija_el_umbral = list(municipio = as.character(mun$municipio[i_fija]),
+                          departamento = as.character(mun$departamento[i_fija]),
+                          vecino = as.character(mun$municipio[k1_mun[[i_fija]]]),
+                          km = r4(dnn_mun[i_fija] / 1000)),
+    san_andres = list(municipio = as.character(mun$municipio[sa_i[1]]),
+                      vecino = as.character(mun$municipio[k1_mun[[sa_i[1]]]]),
+                      vecino_km = r4(dnn_mun[sa_i[1]] / 1000),
+                      vecinos_en_el_umbral = as.character(mun$municipio[nb_umbral_mun[[sa_i[1]]]]),
+                      costa = as.character(mun$municipio[j_costa]),
+                      costa_departamento = as.character(mun$departamento[j_costa]),
+                      costa_km = r4(min(d_costa) / 1000)),
+    # Las dos aristas más largas del árbol generador mínimo: la que une el
+    # continente consigo mismo y la que le une el archipiélago.
+    umbral_conecta_continente_km = r4(u_continente / 1000),
+    umbral_conecta_todo_km = r4(u_todo_mun / 1000),
+    leticia_manizales = list(km = r4(d_arch[i_let, i_man] / 1000),
+                             vecinas = i_man %in% nb_umbral_mun[[i_let]],
+                             grado_leticia = length(nb_umbral_mun[[i_let]]),
+                             grado_manizales = length(nb_umbral_mun[[i_man]])),
+    mas_conectado = list(municipio = as.character(mun$municipio[i_mas]),
+                         departamento = as.character(mun$departamento[i_mas]),
+                         grado = length(nb_umbral_mun[[i_mas]])),
     curva = curva_umbral(mun_cent, c(30e3, 50e3, 100e3, d1_mun), nrow(mun))))
 
 # =====================================================================
@@ -372,12 +536,40 @@ contenida_en <- function(a, b) {
   # ¿toda arista de `a` está en `b`?
   all(ar_de(a) %in% ar_de(b))
 }
+# LA ESFERA DE INFLUENCIA POR SU DEFINICIÓN: i y j son vecinos si sus
+# círculos se solapan, d_ij <= r_i + r_j, con r el radio al vecino más
+# próximo. `soi.graph` no la calcula así: parte de la triangulación y se
+# queda con las aristas de Delaunay que la cumplen. La prosa la daba por
+# «subconjunto de Delaunay, con una regla más exigente», y por definición no
+# lo es (auditoría del 2026-11-03, 4.3). Se publican las dos cuentas y se
+# comprueba que la de spdep es exactamente la intersección.
+dm_col <- as.matrix(dist(col_xy)); diag(dm_col) <- Inf
+r_col <- apply(dm_col, 1, min)
+soi_def <- which(dm_col <= outer(r_col, r_col, "+") & upper.tri(dm_col), arr.ind = TRUE)
+p_soi_def <- paste(soi_def[, 1], soi_def[, 2], sep = "-")
+p_del <- ar_de(geo_nb_col$delaunay)
+ancla(setequal(intersect(p_soi_def, p_del), ar_de(geo_nb_col$esfera)), 1,
+      "la esfera de spdep es la de la definición restringida a Delaunay", tol = 0)
+p_rei <- ar_de(W_COL$reina)
+
 D$m6 <- list(
   columbus = lapply(names(geo_nb_col), function(k)
     c(list(id = k), resumen_nb(geo_nb_col[[k]], nrow(col)))),
   anidamiento = list(
     relativa_en_gabriel = contenida_en(geo_nb_col$relativa, geo_nb_col$gabriel),
-    gabriel_en_delaunay = contenida_en(geo_nb_col$gabriel, geo_nb_col$delaunay)),
+    gabriel_en_delaunay = contenida_en(geo_nb_col$gabriel, geo_nb_col$delaunay),
+    # La esfera de spdep NO es una cadena con Gabriel: tiene más parejas y
+    # ninguna de las dos contiene a la otra.
+    gabriel_en_esfera = contenida_en(geo_nb_col$gabriel, geo_nb_col$esfera),
+    esfera_en_gabriel = contenida_en(geo_nb_col$esfera, geo_nb_col$gabriel)),
+  esfera_definicion = list(pares = length(p_soi_def),
+                           fuera_de_delaunay = sum(!p_soi_def %in% p_del),
+                           pares_spdep = length(ar_de(geo_nb_col$esfera))),
+  # «Muy cerca de la contigüidad reina, y no es casualidad»: cuánto, pareja
+  # a pareja.
+  delaunay_y_reina = list(comunes = length(intersect(p_del, p_rei)),
+                          solo_delaunay = length(setdiff(p_del, p_rei)),
+                          solo_reina = length(setdiff(p_rei, p_del))),
   municipios = {
     g <- list(delaunay = tri2nb(mun_cent),
               gabriel  = graph2nb(gabrielneigh(st_coordinates(mun_cent)), sym = TRUE),
@@ -418,6 +610,9 @@ i_min <- which.min(card(W_COL$reina))     # el que menos
 D$m7 <- list(
   unidad_max = list(i = i_max, grado = card(W_COL$reina)[i_max]),
   unidad_min = list(i = i_min, grado = card(W_COL$reina)[i_min]),
+  # Cuántas veces más pesa el vecino de la unidad de menos vecinos que el de
+  # la de más, con W: la prosa lo escribía en letras («cinco veces»).
+  razon_w = r4(card(W_COL$reina)[i_max] / card(W_COL$reina)[i_min]),
   estilos = lapply(ESTILOS, function(e) {
     lw <- nb2listw(W_COL$reina, style = e)
     pesos <- unlist(lw$weights)
@@ -495,7 +690,30 @@ D$m9 <- list(
   # Lo que el `zero.policy` hace de verdad: la fila de la isla se queda a
   # cero, así que su rezago es 0 — que NO es «no tiene rezago», es «su
   # rezago vale cero», y esa diferencia se cuela en cualquier media.
-  lag_isla = r4(lag.listw(lw_mun, ifelse(ok_des, des, 0), zero.policy = TRUE)[islas_i[1]]))
+  lag_isla = r4(lag.listw(lw_mun, ifelse(ok_des, des, 0), zero.policy = TRUE)[islas_i[1]]),
+  # Y QUÉ LE HACE ESE CERO A LOS RESÚMENES, medido. La prosa decía que tira
+  # «de cualquier resumen hacia abajo», también de la correlación, y con este
+  # dato la correlación SUBE: las dos islas tienen la deserción por debajo de
+  # la media, y «dato bajo, rezago cero» encaja con la tendencia. Moran centra,
+  # así que para él el cero vale «la media», y su cifra depende del convenio
+  # de spdep para el n (auditoría del 2026-11-03, 4.4).
+  efecto_cero = local({
+    nbs <- subset.nb(mun_reina, ok_des); yy <- des[ok_des]; cv <- card(nbs) > 0
+    lw0 <- nb2listw(nbs, style = "W", zero.policy = TRUE)
+    w0 <- lag.listw(lw0, yy, zero.policy = TRUE)
+    lws <- nb2listw(subset.nb(nbs, cv), style = "W")
+    list(desercion_islas = r4(des[islas_i]),
+         media_y = r4(mean(yy)),
+         media_wy_con_ceros = r4(mean(w0)), media_wy_sin_islas = r4(mean(w0[cv])),
+         cor_con_ceros = r4(cor(yy, w0)), cor_sin_islas = r4(cor(yy[cv], w0[cv])),
+         moran_con_islas = r5(moran.test(yy, lw0, zero.policy = TRUE)$estimate[[1]]),
+         moran_con_islas_sin_ajuste = r5(moran.test(yy, lw0, zero.policy = TRUE,
+                                                    adjust.n = FALSE)$estimate[[1]]),
+         moran_sin_islas = r5(moran.test(yy[cv], lws)$estimate[[1]]))
+  }),
+  # `nb2listw` también se niega con el estilo B, que no divide por nada: es
+  # una política de spdep, no una división por cero.
+  falla_tambien_con_B = inherits(try(nb2listw(mun_reina, style = "B"), silent = TRUE), "try-error"))
 
 # =====================================================================
 # J. MÓDULO 10 — El rezago espacial Wy
@@ -511,9 +729,22 @@ lw_sub <- nb2listw(nb_sub, style = "W", zero.policy = TRUE)
 wy <- lag.listw(lw_sub, des[sub], zero.policy = TRUE)
 tiene_vecino <- card(nb_sub) > 0
 
+# LA MISMA CORRELACIÓN CON OTRAS W. La prosa decía «con la torre, con
+# k = 4 o con un umbral de 30 km sale otra» sin enseñarla, y que la
+# respuesta del capítulo 7 dependería «entera» de la W. Se mide.
+cor_con <- function(nbx) {
+  s <- subset.nb(nbx, ok_des); cv <- card(s) > 0
+  w <- lag.listw(nb2listw(s, style = "W", zero.policy = TRUE), des[sub], zero.policy = TRUE)
+  list(correlacion = r4(cor(des[sub][cv], w[cv])), sin_vecinos = sum(!cv))
+}
+
 D$m10 <- list(
   n = length(sub),
   islas_en_el_subconjunto = sum(!tiene_vecino),
+  n_con_vecinos = sum(tiene_vecino),
+  otras_w = list(torre = cor_con(mun_torre),
+                 k4 = cor_con(knn2nb(knearneigh(mun_cent, k = 4))),
+                 umbral_30km = c(list(km = 30), cor_con(suppressWarnings(dnearneigh(mun_cent, 0, 30e3))))),
   correlacion = r4(cor(des[sub][tiene_vecino], wy[tiene_vecino])),
   y = list(media = r4(mean(des[sub])), sd = r4(sd(des[sub]))),
   wy = list(media = r4(mean(wy[tiene_vecino])), sd = r4(sd(wy[tiene_vecino]))),

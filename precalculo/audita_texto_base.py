@@ -50,6 +50,9 @@ QUÉ MIRA CADA COMPROBACIÓN, Y POR QUÉ NINGUNA SOBRA
                     UTF-8. Ver `utf8.R`.
   · `enlaces`     — que ningún enlace local apunte al vacío.
   · `coherencia`  — que las tildes y los símbolos lleguen enteros.
+  · `sin_acentos_graves` — que ningún `x` de Markdown llegue a la página
+                    sin pasar a `<code>`: en el marcado, en el índice
+                    lateral y en las cadenas del JavaScript.
 
 EL PUNTO CIEGO QUE SE HEREDA, MEDIDO Y NO DISIMULADO
 
@@ -110,6 +113,28 @@ SOMBRERO_TEX_RE = re.compile(r"\\\(\\hat ?(\\lambda|[A-Za-z])\\\)")
 def sombrero_del_json(texto: str) -> str:
     return SOMBRERO_TEX_RE.sub(lambda m: {"\\lambda": "λ"}.get(m.group(1), m.group(1)) + "\u0302", texto)
 
+# UN DECIMAL ESCRITO CON COMA: «0,38», «13,5». No lo son la coma de una
+# enumeración («2, 110», lleva espacio), la de un intervalo a la inglesa
+# («[0,0.2]», la sigue un punto con cifra) ni un millar a la inglesa
+# («1,234,567», la sigue otra coma con cifra). La mirada final es
+# `(?!\d|[.,]\d)`, y las dos formas más sencillas tienen un agujero cada una:
+# `(?![\d,])`, la del capítulo 5, deja escapar el decimal seguido de una
+# coma de PUNTUACIÓN —«entre 0,38 y 0,72, así», «con k = 0,9992, a
+# cambio»—, y así se escaparon dos del capítulo 2 en el primer censo;
+# `(?![\d.]|,\d)` deja escapar el que cierra una frase —«k = 0,9992. ¿Cuál»,
+# del quiz del mismo capítulo—, y lo destapó su inyección.
+COMA_DECIMAL = re.compile(r"(?<![\d.,])\d+,\d+(?!\d|[.,]\d)")
+# Los formateadores de JavaScript, que escriben las lecturas al mover un
+# control y por eso no están en el HTML: el `.replace('.', ',')` del `exp5`
+# del capítulo 5, y un `toLocaleString` con regional española cuyo
+# resultado no pasa después por `.replace(/\./g, …)`. Esa regional escribe
+# coma decimal y PUNTO de millar: el `milC` del capítulo 1 publicaba
+# «2.621» por 2 621 en un capítulo que escribe los decimales con punto.
+PUNTO_A_COMA = re.compile(
+    r"""\.replace\(\s*(?:(['"])\.\1|/\\\./g?)\s*,\s*(['"]),\2\s*\)""")
+REGIONAL_ES = re.compile(
+    r"""toLocaleString\(\s*(['"])es[-_][A-Za-z]+\1[^)]*\)(?!\.replace\(/\\\./g)""")
+PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 
 # El tope de peso de un capítulo, y qué es de verdad.
 #
@@ -142,6 +167,90 @@ def busca_capitulo(nombre: str) -> pathlib.Path:
         if p.exists():
             return p
     sys.exit(f"PARADO: no encuentro {nombre} en {[str(d) for d in CARPETAS]}")
+
+
+# Tras estas palabras, una `/` abre una expresión regular y no divide.
+_ANTES_DE_REGEX = re.compile(r"\b(?:return|typeof|case|in|of|new|delete|void|throw)\s*$")
+
+
+def literales_js(js: str) -> list[tuple[str, str]]:
+    """Los literales de cadena de un guion: (comilla, contenido).
+
+    Un lector mínimo, no un analizador. Salta los comentarios `//` y
+    `/* … */` y los literales de expresión regular —una `/` abre uno si lo
+    último significativo fue un operador, un signo de apertura o una palabra
+    como `return`—, y de una plantilla `…` salta lo que va dentro de `${…}`.
+    Los escapes se conservan tal cual, así que un «\\`» dentro de una
+    plantilla se puede buscar.
+
+    Hace falta leer así, y no por líneas, porque en el JavaScript de un
+    capítulo el acento grave es SINTAXIS: abre y cierra las plantillas con
+    que se escriben las lecturas y las tablas. Solo es un defecto dentro de
+    una cadena entre comillas, y por líneas un apóstrofo de un comentario
+    («Moran's I») se confundiría con el principio de una.
+    """
+    out: list[tuple[str, str]] = []
+    i, n = 0, len(js)
+    prev = ""                     # lo último significativo fuera de cadenas
+    while i < n:
+        c = js[i]
+        if c in "'\"`":
+            j, trozos = i + 1, []
+            while j < n and js[j] != c:
+                if js[j] == "\\":
+                    trozos.append(js[j:j + 2])
+                    j += 2
+                    continue
+                if c != "`" and js[j] == "\n":
+                    break         # cadena sin cerrar: no se arrastra el error
+                if c == "`" and js.startswith("${", j):
+                    prof, j = 0, j + 1
+                    while j < n:
+                        if js[j] in "'\"":
+                            k = j + 1
+                            while k < n and js[k] != js[j]:
+                                k += 2 if js[k] == "\\" else 1
+                            j = k + 1
+                            continue
+                        prof += {"{": 1, "}": -1}.get(js[j], 0)
+                        j += 1
+                        if prof == 0:
+                            break
+                    trozos.append("${…}")
+                    continue
+                trozos.append(js[j])
+                j += 1
+            out.append((c, "".join(trozos)))
+            i, prev = j + 1, "a"
+            continue
+        if js.startswith("//", i):
+            j = js.find("\n", i)
+            i = n if j < 0 else j
+            continue
+        if js.startswith("/*", i):
+            j = js.find("*/", i + 2)
+            i = n if j < 0 else j + 2
+            continue
+        if c == "/" and (prev == "" or prev in "(,=:[!&|?{};+-*%<>~^"
+                         or _ANTES_DE_REGEX.search(js[max(0, i - 12):i])):
+            j, clase = i + 1, False
+            while j < n and js[j] != "\n":
+                if js[j] == "\\":
+                    j += 2
+                    continue
+                if js[j] == "[":
+                    clase = True
+                elif js[j] == "]":
+                    clase = False
+                elif js[j] == "/" and not clase:
+                    break
+                j += 1
+            i, prev = j + 1, "a"
+            continue
+        if not c.isspace():
+            prev = c
+        i += 1
+    return out
 
 
 class Auditor:
@@ -996,6 +1105,98 @@ class Auditor:
                     f"{len(crudas)} fórmula(s), la primera: "
                     f"{' '.join(crudas[0].split())[:70]}"))
 
+    # -----------------------------------------------------------------
+    def decimales_con_punto(self, deliberadas: dict[str, str] | None = None) -> None:
+        """UN SOLO SEPARADOR DECIMAL, EL PUNTO, en las cuatro puertas.
+
+        El curso publica con punto: el 2026-09-25, sobre la prosa de los
+        once documentos, más de mil decimales con punto contra una
+        treintena con coma, y el plan del preparcial ya decía «punto
+        decimal y no coma». Las comas que quedaban entraban por cuatro
+        sitios, y cada comprobación de aquí mira uno, porque ninguno ve los
+        otros:
+
+          1. la prosa —el `pct()` del capítulo 6, «entre 0,38 y 0,72» del
+             2, «—0,02 y −0,09—» del 1—, que `cifras()` no puede cazar
+             porque lee «66,3» como 66.3 y la da por buena;
+          2. las fórmulas, que `prosa_txt` no trae: `\\(\\rho = 0{,}01\\)`;
+          3. el JavaScript DEL CAPÍTULO —el quiz, sus retroalimentaciones,
+             la leyenda de un gráfico, el JSON de las soluciones—, que se
+             pinta en el navegador y el auditor de prosa corta antes;
+          4. los formateadores, que escriben las lecturas de los
+             simuladores al mover un control: ahí no hay cifra que leer,
+             así que se mira la causa.
+
+        En 3 y 4 se descuentan los comentarios y la PLANTILLA, línea a
+        línea: lo que se mira es lo que el capítulo añade. La plantilla es
+        otra superficie con su propio pendiente —su tabla ordenable formatea
+        con `es-CO`, y hoy solo la usa el fixture—, y denunciarlo aquí lo
+        repetiría en cada capítulo sin que ninguno pudiera arreglarlo.
+
+        `deliberadas` son las comas que el capítulo publica PORQUE son
+        comas —el CSV con coma decimal del capítulo 2 es lo que se enseña a
+        leer—, con su razón. Se declaran por el literal que casa, sin signo
+        («69,94000»), como `estructurales`: una cifra vecina con coma sigue
+        cayendo.
+        """
+        print("\n=== Los decimales, con punto ==============================")
+        deliberadas = deliberadas or {}
+
+        def comas(texto: str) -> list[str]:
+            return [" ".join(texto[max(0, m.start() - 30):m.end() + 8].split())
+                    for m in COMA_DECIMAL.finditer(texto)
+                    if m.group(0) not in deliberadas]
+
+        prosa = comas(self.prosa_txt)
+        self.exige(not prosa, "la prosa no escribe ningún decimal con coma",
+                   " · ".join(f"«{c}»" for c in prosa[:3]))
+        # `0{,}01` es como se escribe en LaTeX una coma decimal sin el
+        # espacio de puntuación detrás, y es la forma que tenía la única
+        # del capítulo 1. Medido antes de escribir esto: de las 425
+        # fórmulas del sitio, ninguna otra da positivo —ni un `[0,1]`—.
+        formulas = re.findall(r"\$\$.*?\$\$|\\\(.*?\\\)", self.cuerpo, re.S)
+        en_formulas = comas("  ".join(formulas).replace("{,}", ","))
+        self.exige(not en_formulas, "ninguna fórmula escribe un decimal con coma",
+                   " · ".join(f"«{c}»" for c in en_formulas[:3])
+                   or f"{len(formulas)} fórmulas")
+
+        # El JavaScript propio: fuera las líneas que trae la plantilla tal
+        # cual, las de comentario y la cola `// …` de una línea de código.
+        comun = set()
+        if PLANTILLA.exists():
+            base = PLANTILLA.read_text(encoding="utf-8")
+            for g in re.findall(r"<script[^>]*>(.*?)</script>", base, re.S):
+                comun.update(l.strip() for l in g.splitlines())
+        propias = []
+        for g in re.findall(r"<script[^>]*>(.*?)</script>", self.doc, re.S):
+            # Los comentarios de BLOQUE, enteros. Mirar solo cómo empieza cada
+            # línea dejaba pasar las de en medio cuando no llevan asterisco, y
+            # el motor `anim2d.js` (2026-10-02, posterior a esta guarda) las
+            # escribe así: «blanco sobre el naranja da 2,94:1» es un comentario,
+            # no una cifra que el estudiante lea (2026-11-03).
+            g = re.sub(r"/\*.*?\*/", " ", g, flags=re.S)
+            for l in g.splitlines():
+                s = l.strip()
+                if (not s or s in comun or s == "*"
+                        or s.startswith(("//", "/*", "* ", "*/"))):
+                    continue
+                propias.append(re.sub(r"\s//\s.*$", "", l))
+        guion = "\n".join(propias)
+        # Y el CSS que el JavaScript escribe en cadenas: `minmax(0,1fr)` de una
+        # rejilla no es un decimal. Las demás funciones de CSS con comas
+        # —`rgba(26,115,88,0.18)`— ya las descarta el patrón, porque la coma
+        # siguiente va seguida de cifra.
+        guion = re.sub(r"minmax\(\s*[^()]*\)", "minmax()", guion)
+        js = comas(guion)
+        self.exige(not js, "el JavaScript del capítulo no publica decimales con coma",
+                   " · ".join(f"«{c}»" for c in js[:3])
+                   or (f"deliberadas: {', '.join(deliberadas)}" if deliberadas else ""))
+        formateadores = [" ".join(guion[max(0, m.start() - 40):m.end()].split())
+                         for p in (PUNTO_A_COMA, REGIONAL_ES) for m in p.finditer(guion)]
+        self.exige(not formateadores,
+                   "ningún formateador escribe coma decimal ni punto de millar",
+                   " · ".join(f"«{c}»" for c in formateadores[:2]))
+
     def codificacion(self) -> None:
         """Bytes crudos donde debería haber una tilde.
 
@@ -1116,6 +1317,95 @@ class Auditor:
             self.exige(cadena in self.doc, f"el texto conserva «{cadena}» intacto")
         for orden in ordenes:
             self.exige(orden in self.doc, f"el material usa «{orden}»")
+
+    # -----------------------------------------------------------------
+    def sin_acentos_graves(self) -> None:
+        """NINGÚN ACENTO GRAVE DE MARKDOWN A LA VISTA DEL ESTUDIANTE.
+
+        El material se escribe con la costumbre de Markdown —`spdep`— y se
+        publica en HTML, donde nada convierte eso en `<code>` salvo que un
+        ensamblador lo haga a propósito. El 2026-09-26 se medían cuatro
+        capítulos que lo publicaban tal cual: el título «El flujo de
+        `spdep`» del 6, en su h2 y en el índice lateral; «Ajustar con
+        `ppm`» del 5; la lectura de un ejercicio del 2 y dos del 4, porque
+        su ensamblador borraba los acentos del enunciado y volcaba la
+        lectura sin tocar; y cinco cadenas del quiz del 6, cuatro
+        retroalimentaciones y una opción.
+
+        Tres superficies, porque ninguna ve las otras:
+
+          1. el marcado de los módulos —h2, objetivo, prosa, enunciados,
+             lecturas—, sin los `<pre>` ni el `<code>` en línea: ahí el
+             acento grave es código de R, que escribe así los nombres no
+             sintácticos;
+          2. el índice lateral, que la plantilla pinta con `innerHTML` desde
+             `courseData`: el título y el subtítulo de cada módulo;
+          3. las cadenas entre comillas del JavaScript —el quiz y sus
+             retroalimentaciones, que también se pintan con `innerHTML`—.
+             En una plantilla `…` el acento es sintaxis y solo cuenta el
+             escapado, que sí llega a la página.
+
+        De la tercera se descuenta el JSON de las soluciones (`SOL_CAPn`)
+        MIENTRAS NADA LO LEA: se incrusta tal cual sale de R, con los
+        acentos del enunciado, y lo que el estudiante ve de él es lo que el
+        ensamblador pintó en el marcado, que ya mira la primera. Si una
+        línea del guion empieza a leerlo, vuelve a contar solo.
+        """
+        print("\n=== Los acentos graves de Markdown ========================")
+
+        def recorte(texto: str, i: int, j: int) -> str:
+            t = texto[max(0, i - 50):j + 30]
+            t = re.sub(r"^[^<]*>|<[^>]*$", "", t)
+            return " ".join(html_mod.unescape(re.sub(r"<[^>]+>", " ", t)).split())
+
+        # 1. El marcado.
+        marcado = re.sub(r"<pre[^>]*>.*?</pre>", " ", self.cuerpo, flags=re.S)
+        marcado = re.sub(r"<code[^>]*>.*?</code>", " ", marcado, flags=re.S)
+        modulos = [(m.start(), m.group(1)) for m in
+                   re.finditer(r'<template id="module-(\d+)">', marcado)]
+
+        def modulo(i: int) -> str:
+            k = next((num for ini, num in reversed(modulos) if ini < i), None)
+            return f"módulo {k}" if k else "fuera de los módulos"
+
+        malos = [f"{modulo(m.start())}: «{recorte(marcado, m.start(), m.end())}»"
+                 for m in re.finditer(r"`[^`\n]{0,80}`|`", marcado)]
+        self.exige(not malos, "el marcado no publica ningún acento grave",
+                   " · ".join(malos[:3]) + (f" (y {len(malos) - 3} más)"
+                                            if len(malos) > 3 else ""))
+
+        # 2. El índice lateral. Se exige haber leído una entrada por módulo:
+        # si un cambio de formato dejara vacía la búsqueda, la comprobación
+        # de debajo daría OK sobre nada.
+        cd = re.search(r"const courseData = \{\s*modules: \[(.*?)\n\s*\]\s*\};",
+                       self.doc, re.S)
+        entradas = re.findall(r"\{ id: (\d+), (.*?) \},?$", cd.group(1), re.M) if cd else []
+        self.exige(0 < len(modulos) == len(entradas),
+                   "un módulo y una entrada del índice lateral, leídos",
+                   f"{len(modulos)} módulos y {len(entradas)} entradas")
+        malos = [f"{k}: «{v}»" for k, campos in entradas
+                 for v in map(json.loads, re.findall(r'"(?:[^"\\]|\\.)*"', campos))
+                 if "`" in v]
+        self.exige(not malos, "ninguna entrada del índice lateral lleva acento grave",
+                   " · ".join(malos))
+
+        # 3. Las cadenas del JavaScript, sin `courseData`, que ya se ha
+        # mirado, ni el JSON de soluciones que nadie lee.
+        js = "\n".join(re.findall(r"<script[^>]*>(.*?)</script>", self.doc, re.S))
+        js = re.sub(r"const courseData = \{.*?\n\s*\};", " ", js, count=1, flags=re.S)
+        for nombre in re.findall(r"const (SOL_\w+) = ", js):
+            if len(re.findall(r"\b" + nombre + r"\b", self.doc)) == 1:
+                js = re.sub(r"const " + nombre + r" = .*?;\n", "\n", js, count=1)
+        cadenas = literales_js(js)
+        malos = [f"«{' '.join(t.split())[:70]}»" for q, t in cadenas
+                 if ("`" in t if q != "`" else "\\`" in t)]
+        if malos:
+            detalle = " · ".join(malos[:3]) + (f" (y {len(malos) - 3} más)"
+                                               if len(malos) > 3 else "")
+        else:
+            detalle = f"{len(cadenas)} cadenas leídas"
+        self.exige(bool(cadenas) and not malos,
+                   "ninguna cadena del JavaScript lleva acento grave", detalle)
 
     def peso(self, kb: float = TOPE_KB) -> None:
         """Alarma contra un ensamblado desbocado, no presupuesto de contenido.
