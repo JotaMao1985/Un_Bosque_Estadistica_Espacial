@@ -452,6 +452,27 @@ def defectos():
     obj("15 · el anillo del resumen se publica más estrecho", "kresumen",
         lambda d: d.__setitem__("h_anillo", 0.005))
 
+    # --- 16. Lo que se ve en cada mapa (2026-11-02) ----------------------
+    # La descripción larga de los mapas de sedes dice DÓNDE se apiñan; una
+    # zona cambiada de sitio no mueve ninguna cifra de la prosa.
+    obj("16 · la zona más densa del urbano gana sedes", "datos",
+        lambda d: d["visto"]["urbano"]["n"].__setitem__(0, 265))
+    obj("16 · dos zonas del urbano cambian de nombre entre sí", "datos",
+        lambda d: d["visto"]["urbano"]["zona"].__setitem__(
+            slice(0, 2), d["visto"]["urbano"]["zona"][1::-1]))
+    obj("16 · la densidad de una zona del urbano se corre", "datos",
+        lambda d: d["visto"]["urbano"]["dens_km2"].__setitem__(2, 6.9171717171))
+    obj("16 · el área de una zona del D.C. se corre", "datos",
+        lambda d: d["visto"]["dc"]["area_km2"].__setitem__(1, 506.8348660982))
+    obj("16 · la franja norte del D.C. pierde sedes", "datos",
+        lambda d: d["visto"]["dc"]["franja_n"].__setitem__(0, 2071))
+    obj("16 · las franjas del D.C. cambian de orden", "datos",
+        lambda d: d["visto"]["dc"]["franja"].reverse())
+    obj("16 · el claro más grande del urbano se agranda", "datos",
+        lambda d: d["visto"]["urbano"]["claros_radio_km"].__setitem__(0, 3.4171717171))
+    obj("16 · un claro del urbano cambia de zona", "datos",
+        lambda d: d["visto"]["urbano"]["claros_zona"].__setitem__(2, "centro"))
+
     return D
 
 

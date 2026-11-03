@@ -56,6 +56,17 @@ Subió a 820 cuando la animación de K y g de los módulos 8 y 9 se fusionó con
     corrección y poco para un ensamblado desbocado. El motor es lo que pesa, y un motor
     más grande es una decisión que se verá aquí, no un descuido.
 
+SUBIÓ A 850 KB el 2026-11-02, cuando cada mapa ganó «Describir el mapa» —lo que se ve en él,
+para quien no lo ve: dónde se apiñan las sedes, cuánto se separan las células, dónde están
+los grumos—. Estaba a 0.9 KB del tope desde los lienzos descritos (PR #37):
+
+  · el documento pesa **826 KB**: 819 de antes; **3.4 del motor** del `.geomapa` en la
+    plantilla (la descripción en dos nodos), **1.2 de los hechos que R publica** en `visto`
+    (la densidad por zona de los dos mapas de sedes y sus claros, el círculo vacío más grande)
+    y **1.9 de las siete descripciones**;
+  · la cota con el arnés: 826 < 850 < 1138;
+  · 850 deja **24 KB de margen**. Es explicación, y el peso vuelve a ceder ante ella.
+
 Uso:  python3 precalculo/audita_texto_cap4.py
 Devuelve 1 si algo falla.
 """
@@ -66,7 +77,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP4_KB = 820.0
+TOPE_CAP4_KB = 850.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {

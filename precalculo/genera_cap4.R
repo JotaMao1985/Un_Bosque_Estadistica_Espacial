@@ -1542,6 +1542,80 @@ MAPAS$ceguera_rebarajado <- geo_puntos(cbind(D$m5$x2, D$m5$y2), lineas = lin5,
   titulo = sprintf("Rebarajado dentro de cada celda · χ² = %.4f", D$m5$rebarajado$chi2),
   leyenda = "punto")
 
+# =====================================================================
+# LO QUE SE VE EN CADA MAPA (2026-11-02)
+# =====================================================================
+# Cada mapa lleva una descripción larga: lo que se VE en él, para quien no
+# lo ve. Los tres regímenes y la ceguera de los cuadrantes ya tienen en el
+# JSON todo lo que sus frases necesitan (la distancia al vecino, Clark-Evans,
+# las celdas vacías). Los dos mapas de sedes no: «más apretadas aquí, más
+# ralas allá» pide la densidad de cada zona del dibujo —tercios de la caja—
+# medida sobre la parte de la ventana que cae en ella, no el conteo, porque
+# las zonas de una ventana irregular no tienen la misma área. Y en el D.C.,
+# cuántas sedes caen en cada franja de norte a sur. `audita_cap4.py` lo
+# recalcula con shapely.
+message("lo que se ve en cada mapa")
+zona_de <- function(x, y, caja) {
+  fx <- (x - caja[1]) / (caja[3] - caja[1])
+  fy <- (y - caja[2]) / (caja[4] - caja[2])
+  ns <- c("sur", "", "norte")[findInterval(fy, c(1, 2) / 3) + 1]
+  eo <- c("occidente", "", "oriente")[findInterval(fx, c(1, 2) / 3) + 1]
+  ifelse(ns == "" & eo == "", "centro",
+         ifelse(ns == "", eo, ifelse(eo == "", ns, paste0(c(norte = "nor", sur = "sur")[ns], eo))))
+}
+densidad_por_zona <- function(x, y, ventana, caja) {
+  xs <- seq(caja[1], caja[3], length.out = 4); ys <- seq(caja[2], caja[4], length.out = 4)
+  filas <- list()
+  for (i in 1:3) for (j in 1:3) {
+    celda <- st_sfc(st_polygon(list(rbind(c(xs[i], ys[j]), c(xs[i + 1], ys[j]), c(xs[i + 1], ys[j + 1]),
+                                          c(xs[i], ys[j + 1]), c(xs[i], ys[j])))), crs = st_crs(ventana))
+    a <- sum(as.numeric(st_area(suppressWarnings(st_intersection(st_geometry(ventana), celda))))) / 1e6
+    z <- zona_de((xs[i] + xs[i + 1]) / 2, (ys[j] + ys[j + 1]) / 2, caja)
+    filas[[length(filas) + 1]] <- data.frame(zona = z, franja = c("sur", "centro", "norte")[j],
+                                             n = sum(zona_de(x, y, caja) == z), area_km2 = a)
+  }
+  d <- do.call(rbind, filas)
+  d <- d[d$area_km2 > 0, ]
+  d$dens_km2 <- d$n / d$area_km2
+  d[order(-d$dens_km2, d$zona), ]
+}
+dz_urb <- densidad_por_zona(p_urb$x, p_urb$y, v_urb, MAPAS$patron_urbano$caja)
+dz_dc  <- densidad_por_zona(p_dc$x, p_dc$y, v_dc, MAPAS$patron_dc$caja)
+if (sum(dz_urb$n) != npoints(p_urb) || sum(dz_dc$n) != npoints(p_dc))
+  stop("las zonas de los mapas de sedes no reparten todas las sedes")
+# LOS CLAROS DEL MAPA URBANO. Lo primero que se ve en él no es la densidad
+# sino los huecos: «las sedes llenan el perímetro» es falso a la vista. Se
+# mide el círculo vacío más grande con el centro dentro del perímetro —en
+# una rejilla de 100 m, la distancia de cada nodo a la sede más próxima— y
+# los dos siguientes que no se solapan con él ni entre sí.
+PASO_CLAROS <- 100
+bb <- st_bbox(v_urb)
+nodos <- expand.grid(x = seq(bb[["xmin"]], bb[["xmax"]], by = PASO_CLAROS),
+                     y = seq(bb[["ymin"]], bb[["ymax"]], by = PASO_CLAROS))
+nodos <- nodos[inside.owin(nodos$x, nodos$y, p_urb$window), ]
+d_nodo <- nncross(ppp(nodos$x, nodos$y, window = p_urb$window), p_urb, what = "dist")
+claros <- integer(0)
+for (i in order(-d_nodo)) {
+  if (all(sqrt((nodos$x[i] - nodos$x[claros])^2 + (nodos$y[i] - nodos$y[claros])^2) >
+          d_nodo[i] + d_nodo[claros])) claros <- c(claros, i)
+  if (length(claros) == 3) break
+}
+fr_dc <- aggregate(cbind(n, area_km2) ~ franja, dz_dc, sum)
+fr_dc <- fr_dc[match(c("norte", "centro", "sur"), fr_dc$franja), ]
+de_tabla <- function(d) list(zona = I(d$zona), n = I(d$n), area_km2 = I(r10(d$area_km2)),
+                             dens_km2 = I(r10(d$dens_km2)))
+D$visto <- list(
+  urbano = c(de_tabla(dz_urb), list(
+    claros_paso_m = PASO_CLAROS,
+    claros_radio_km = I(r10(d_nodo[claros] / 1000)),
+    claros_zona = I(zona_de(nodos$x[claros], nodos$y[claros], MAPAS$patron_urbano$caja)),
+    claros_x = I(r10(nodos$x[claros])), claros_y = I(r10(nodos$y[claros])))),
+  dc = c(de_tabla(dz_dc), list(franja = I(fr_dc$franja), franja_n = I(fr_dc$n),
+                               franja_area_km2 = I(r10(fr_dc$area_km2)))))
+message(sprintf("  urbano: la zona más densa es %s (%.1f por km²) y la menos, %s (%.1f) · D.C.: %s sedes por franja",
+                dz_urb$zona[1], dz_urb$dens_km2[1], dz_urb$zona[nrow(dz_urb)],
+                dz_urb$dens_km2[nrow(dz_urb)], paste(fr_dc$franja, fr_dc$n, collapse = ", ")))
+
 MAPAS$meta <- list(capitulo = 4L, generado = D$meta$generado)
 
 # =====================================================================
