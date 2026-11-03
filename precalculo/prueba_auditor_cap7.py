@@ -554,6 +554,25 @@ def defectos():
     obj("14 · el valor de Python de la discrepancia cambia",
         "datos", lambda d: d["discrepancias"][0].__setitem__("valor_python", 0.371717))
 
+
+    # --- 15. Lo que se ve en cada mapa (2026-11-02) --------------------
+    # La descripción larga dice DÓNDE cae cada categoría; una zona o un
+    # departamento cambiados no mueven ninguna cifra de la prosa.
+    obj("15 · los alto-alto de Columbus cambian de zona", "datos",
+        lambda d: d["visto"]["columbus"]["lisa"][0]["zona"].__setitem__(0, "norte"))
+    obj("15 · los bajo-bajo de Columbus pierden una unidad", "datos",
+        lambda d: d["visto"]["columbus"]["lisa"][1]["zona_n"].__setitem__(0, 1))
+    obj("15 · la clase alta de CRIME cambia de zona", "datos",
+        lambda d: d["visto"]["columbus"]["crime"]["alta"]["zona"].__setitem__(0, "sur"))
+    obj("15 · los alto-alto municipales cambian de departamento", "datos",
+        lambda d: d["visto"]["municipios"]["lisa"][0]["depto"].__setitem__(0, "Boyacá"))
+    obj("15 · una categoría de Gi* municipal cambia de tamaño", "datos",
+        lambda d: d["visto"]["municipios"]["gistar"][0].__setitem__("n", 70))
+    obj("15 · los calientes de Getis-Ord cambian de zona", "datos",
+        lambda d: d["visto"]["getisord"]["calientes"]["zona_n"].__setitem__(0, 20))
+    obj("15 · el máximo de Getis-Ord cambia de zona", "datos",
+        lambda d: d["visto"]["getisord"].__setitem__("valor_max_zona", "sur"))
+
     return D
 
 

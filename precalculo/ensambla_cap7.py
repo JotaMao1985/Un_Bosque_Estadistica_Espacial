@@ -48,6 +48,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import pathlib
 import re
 import sys
@@ -58,7 +59,12 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
-DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-7-autocorrelacion.html"
+PUBLICADO = RAIZ / "Htmls_Espacial" / "capitulo-7-autocorrelacion.html"
+# `CAP7_DESTINO` manda la salida a otra parte, como en los capítulos 1 a 6:
+# el ensamblador escribe el HTML ANTES de correr sus guardas, y
+# `prueba_ensambla_cap7.py` lo ejecuta con guardas rotas a propósito. El
+# botón al índice se calcula siempre para la ruta publicada.
+DESTINO = pathlib.Path(os.environ.get("CAP7_DESTINO") or PUBLICADO)
 
 D = json.loads((SALIDAS / "cap7_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap7_mapas.json").read_text(encoding="utf-8"))
@@ -2408,6 +2414,219 @@ def _etq(texto):
     return ",\n      etiqueta: " + json.dumps(texto, ensure_ascii=False)
 
 
+# =====================================================================
+# «Describir el mapa» (2026-11-02)
+# =====================================================================
+# Lo que se VE en cada mapa, para quien no lo ve: la etiqueta dice qué es
+# el mapa y cuántas unidades caen en cada categoría; esto dice DÓNDE. El
+# motor lo pone en el desplegable «Describir el mapa» y lo enlaza al lienzo
+# para el lector de pantalla (ver `describe_mapa.py`). Casi todos los mapas
+# del capítulo cambian con una pestaña —Columbus o los municipios, la capa,
+# la corrección por multiplicidad, la vecindad—, así que cada uno lleva un
+# texto por estado y el registro lo elige con el mismo `E7` que elige lo
+# que se pinta. Las zonas las publica R en `visto` (tercios de la caja del
+# dibujo), y cada frase sobre la forma tiene su guarda.
+from describe_mapa import lista_y, revisa_textos  # noqa: E402
+
+_V7 = D["visto"]
+_MP7 = {"col": M["cap7-columbus"], "mun": M["cap7-municipios"]}
+_VG7 = {"col": _V7["columbus"], "mun": _V7["municipios"]}
+_UNI7 = {"col": ("Columbus", "barrios"), "mun": ("los municipios", "municipios")}
+_CORR7 = {"lisa": "sin corregir", "lisa_bonferroni": "con Bonferroni", "lisa_fdr": "con FDR"}
+
+
+def _capa7(geo, cid):
+    return next(c for c in _MP7[geo]["capas"] if c["id"] == cid)
+
+
+def _donde(x, reparto="repartidos"):
+    """Dónde caen, sin decir más de lo que las cuentas sostienen. «Sobre todo» solo si lo nombrado
+    pasa de la mitad: una zona, si la segunda no llega a la mitad de ella («sobre todo en el centro
+    del dibujo (3)»); dos, si juntas pasan y la tercera no empata con la segunda («sobre todo en el
+    norte (22) y en el centro (15) del dibujo»). Hasta tres zonas sin eso se nombran todas, con su
+    cuenta; con más, «repartidos por todo el dibujo» y dónde hay más. Antes se nombraban solo las
+    dos primeras con «entre», y la clase baja de CRIME, que cae en cinco zonas (4, 2, 2, 1 y 1),
+    salía «entre el suroccidente y el norte», con el norte empatado con el suroriente.
+    En los municipios van los departamentos que más ponen, porque el tercio central del dibujo
+    tiene 709 de los 1 122 y la zona no diría nada. R publica los tres primeros; uno con una sola
+    unidad se calla si quedan unidades sin nombrar, porque empata con alguno que no se nombra."""
+    tot = sum(x["zona_n"])
+    if "depto" in x:
+        ds = list(zip(x["depto"], x["depto_n"]))
+        if sum(x["depto_n"]) == tot:
+            return f"en {ds[0][0]}" if len(ds) == 1 else "en " + lista_y([f"{d} ({ent(k)})" for d, k in ds])
+        ds = [(d, k) for d, k in ds if k > 1]
+        if not ds:
+            return f"{reparto} por el país, uno por departamento"
+        lista = lista_y([f"{d} ({ent(k)})" for d, k in ds])
+        if sum(k for _, k in ds) * 2 > tot:
+            return "sobre todo en " + lista
+        return f"{reparto} por el país, con más en " + lista
+    zs, ks = x["zona"], x["zona_n"]
+    if len(zs) == 1:
+        return f"en el {zs[0]} del dibujo"
+    if ks[0] * 2 > tot and ks[1] * 2 < ks[0]:
+        return f"sobre todo en el {zs[0]} del dibujo ({ent(ks[0])})"
+    if len(zs) <= 3:
+        return f"{reparto} entre " + lista_y([f"el {z} ({ent(k)})" for z, k in zip(zs, ks)]) + " del dibujo"
+    if (ks[0] + ks[1]) * 2 > tot and ks[1] > ks[2]:
+        return f"sobre todo en el {zs[0]} ({ent(ks[0])}) y en el {zs[1]} ({ent(ks[1])}) del dibujo"
+    if ks[0] > ks[1]:
+        return f"{reparto} por todo el dibujo, con más en el {zs[0]} ({ent(ks[0])})"
+    return f"{reparto} por todo el dibujo"
+
+
+def _valores7(geo, cid):
+    capa, v = _capa7(geo, cid), _VG7[geo][cid]
+    return (f"En {_UNI7[geo][0]}, la clase más alta de {capa['etiqueta'].lower()}, de "
+            f"{n(capa['cortes'][-2], 2)} a {n(capa['cortes'][-1], 2)}, cae {_donde(v['alta'], 'repartida')}, "
+            f"y la más baja, de {n(capa['cortes'][0], 2)} a {n(capa['cortes'][1], 2)}, "
+            f"queda {_donde(v['baja'], 'repartida')}.")
+
+
+def _lisa7(geo, cid):
+    capa, niv = _capa7(geo, cid), _VG7[geo][cid]
+    partes = [f"{ent(x['n'])} {x['nivel'].lower()} {_donde(x)}" for x in niv]
+    ns = dict(zip(capa["niveles"], capa["tam"])).get("No significativo", 0)
+    s = (f"En {_UNI7[geo][0]}, con LISA {_CORR7[cid]}: " + (lista_y(partes) if partes else "ninguna unidad significativa")
+         + f"; las otras {ent(ns)} no son significativas.")
+    if cid != "lisa":
+        aa = next((x["n"] for x in _VG7[geo]["lisa"] if x["nivel"] == "Alto-alto"), 0)
+        s += f" Sin corregir, los alto-alto eran {ent(aa)}: la corrección deja solo los más fuertes."
+    return s
+
+
+def _gi7(geo):
+    capa, niv = _capa7(geo, "gistar"), _VG7[geo]["gistar"]
+    cal = [x for x in niv if x["nivel"].startswith("Caliente")]
+    fri = [x for x in niv if x["nivel"].startswith("Frío")]
+    f = lambda xs: lista_y([f"{ent(x['n'])} {x['nivel'].lower()[len(x['nivel'].split()[0]) + 1:]} {_donde(x)}" for x in xs])
+    return (f"En {_UNI7[geo][0]}, con Gi*: calientes, " + (f(cal) if cal else "ninguno")
+            + "; fríos, " + (f(fri) if fri else "ninguno") + ".")
+
+
+DESC7_COLUMBUS_M1 = _valores7("col", "crime")
+DESC7_DIAG = {"col": _valores7("col", "crime") + " La unidad elegida va resaltada en naranja.",
+              "mun": _valores7("mun", "desercion") + " La unidad elegida va resaltada en naranja."}
+_W7 = {c["id"]: c for c in D["m7"]["columbus"]}
+
+
+# Cómo empieza cada texto. Las k de los vecinos más próximos salen de su
+# etiqueta publicada, que es donde está la cifra.
+_LEAD7 = {
+    "gal": "Con el GAL de Anselin, la vecindad original del conjunto",
+    "reina": "Con contigüidad reina",
+    "torre": "Con contigüidad torre, que exige compartir un borde y no le basta una esquina",
+    "d_mitad": "Con un umbral de distancia de la mitad del que conecta a todos",
+    "d_conexo": "Con el umbral de distancia más corto que no deja a ningún barrio sin vecinos",
+    "delaunay": "Con la triangulación de Delaunay",
+    "gabriel": "Con el grafo de Gabriel, que se queda con una parte de las aristas de Delaunay",
+    "esfera": "Con la esfera de influencia",
+}
+
+
+def _w7(c):
+    v = M["cap7-w"]["variantes"][c["id"]]
+    # Con k vecinos más próximos todos tienen los mismos: «entre 3 y 3, 3.0 de media» no se dice.
+    tiene = (f"exactamente {ent(min(v['grados']))}" if min(v["grados"]) == max(v["grados"]) else
+             f"entre {ent(min(v['grados']))} y {ent(max(v['grados']))}, {n(c['grado'], 1)} de media")
+    s = (f"{_LEAD7.get(c['id']) or 'Con ' + c['etiqueta']}: "
+         f"{ent(c['pares'])} parejas de vecinos, y cada barrio tiene {tiene}.")
+    if c["islas"]:
+        s += f" {ent(c['islas'])} barrios se quedan sin ninguno: son los puntos rojos."
+    if not c["simetrica"]:
+        s += " No es simétrico: que un barrio tenga a otro entre sus vecinos no obliga al otro a tenerlo a él."
+    s += f" Con esta vecindad, el I de Moran de CRIME vale {n(c['I'], 3)}."
+    return s
+
+
+DESC7_W = {c["id"]: _w7(c) for c in D["m7"]["columbus"]}
+DESC7_LOCAL = _lisa7("col", "lisa") + " El barrio elegido va resaltado."
+DESC7_COLUMBUS_LISA = _lisa7("col", "lisa")
+DESC7_M9 = {"desercion": _valores7("mun", "desercion"), "lisa": _lisa7("mun", "lisa")}
+DESC7_MULT = {f"{g}|{c}": _lisa7(g, c) for g in ("col", "mun") for c in ("lisa", "lisa_bonferroni", "lisa_fdr")}
+_GO = _V7["getisord"]
+_GG = M["cap7-getisord-g"]
+_GV = M["cap7-getisord-valor"]
+DESC7_GO_VALOR = (
+    f"La rejilla de Getis y Ord, en siete clases por cuantiles de {n(_GV['cortes'][0], 2)} a "
+    f"{n(_GV['cortes'][-1], 2)}: el valor más alto, {n(_GO['valor_max'], 2)}, está en el "
+    f"{_GO['valor_max_zona']} del dibujo. Dónde se juntan las celdas altas lo dice el mapa de al lado, el de Gi*.")
+DESC7_GO_G = (
+    f"Las celdas calientes, con z de {n(_GG['cortes'][-3], 2)} o más, están "
+    + _donde(_GO["calientes"], "repartidas")
+    + "; las frías, con z de " + n(_GG["cortes"][2], 2) + " o menos, "
+    + _donde(_GO["frios"], "repartidas") + ".")
+DESC7_LADO_LISA = {g: _lisa7(g, "lisa") for g in ("col", "mun")}
+DESC7_LADO_GI = {g: _gi7(g) for g in ("col", "mun")}
+DESCRIPCIONES = {
+    "cap7-columbus-m1": [DESC7_COLUMBUS_M1], "cap7-diagrama-mapa": list(DESC7_DIAG.values()),
+    "cap7-w-mapa": list(DESC7_W.values()), "cap7-local-mapa": [DESC7_LOCAL],
+    "cap7-columbus-lisa": [DESC7_COLUMBUS_LISA], "cap7-municipios-m9": list(DESC7_M9.values()),
+    "cap7-multiplicidad-mapa": list(DESC7_MULT.values()), "cap7-getisord-valor": [DESC7_GO_VALOR],
+    "cap7-getisord-g": [DESC7_GO_G], "cap7-lado-lisa": list(DESC7_LADO_LISA.values()),
+    "cap7-lado-gi": list(DESC7_LADO_GI.values()),
+}
+
+
+def guardas_de_las_descripciones() -> list[str]:
+    """Lo que las descripciones afirman de cada mapa, contra el dato."""
+    malos = []
+
+    def exige(cond, que):
+        if not cond:
+            malos.append(que)
+
+    for geo in ("col", "mun"):
+        for capa in _MP7[geo]["capas"]:
+            v = _VG7[geo].get(capa["id"])
+            if capa.get("tipo") == "categoria":
+                tam = dict(zip(capa["niveles"], capa["tam"]))
+                exige(v is not None and all(x["n"] == tam.get(x["nivel"]) == sum(x["zona_n"]) for x in v)
+                      and {x["nivel"] for x in v} == {k for k, m in tam.items() if m and k != "No significativo"},
+                      f"{_UNI7[geo][0]}, {capa['id']}: las categorías que se nombran no son las del mapa")
+            else:
+                exige(v is not None and sum(v["alta"]["zona_n"]) == capa["tam"][-1]
+                      and sum(v["baja"]["zona_n"]) == capa["tam"][0],
+                      f"{_UNI7[geo][0]}, {capa['id']}: la clase alta o la baja no tienen las unidades del mapa")
+    exige(set(DESC7_W) == set(M["cap7-w"]["variantes"]) and set(DESC7_W) - {"k1", "k3", "k6"} == set(_LEAD7),
+          "Columbus: las vecindades publicadas ya no son las que tienen texto")
+    for c in D["m7"]["columbus"]:
+        v = M["cap7-w"]["variantes"][c["id"]]
+        exige(v["n_aristas"] == c["pares"] and v["islas"] == c["islas"],
+              f"Columbus, {c['id']}: el texto cuenta parejas o puntos rojos que el mapa no dibuja")
+    exige(bool(_GO["calientes"]["zona"]) and bool(_GO["frios"]["zona"]),
+          "Getis-Ord: el texto habla de celdas calientes y frías, y falta alguna de las dos")
+
+    # Cada «dónde» contra las cuentas de su categoría, sobre la frase que sale: «sobre todo» solo si
+    # lo nombrado pasa de la mitad; «en …» y «entre …», solo si lo nombrado es todo; «con más en»,
+    # solo si no pasa.
+    def nombrados(t):
+        return sum(int(re.sub(r"\D", "", k)) for k in re.findall(r"\(([^()]*\d)\)", t))
+
+    def cuentas():
+        for geo in ("col", "mun"):
+            for cid, v in _VG7[geo].items():
+                for x in (v if isinstance(v, list) else (v["alta"], v["baja"])):
+                    yield f"{_UNI7[geo][0]}, {cid}", x
+        yield "Getis-Ord, calientes", _GO["calientes"]
+        yield "Getis-Ord, fríos", _GO["frios"]
+
+    for que, x in cuentas():
+        t, tot = _donde(x), sum(x["zona_n"])
+        k = nombrados(t)
+        if t.startswith("sobre todo"):
+            vale = k * 2 > tot
+        elif t.startswith("en ") or " entre " in t:
+            vale = k == tot or (k == 0 and len(x["depto"] if "depto" in x else x["zona"]) == 1)
+        elif " con más en " in t:
+            vale = k * 2 <= tot
+        else:
+            vale = k == 0
+        exige(vale, f"{que}: «{t}» dice más de lo que sostienen sus {tot} unidades")
+    return malos
+
+
 GEOMAPAS_JS = (
     "    // Los mapas del capítulo, UNA sola vez: la geometría municipal es lo que\n"
     "    // pesa, y la comparten los mapas de los módulos 4, 9, 10 y 11.\n"
@@ -2454,12 +2673,13 @@ GEOMAPAS_JS = (
         + `<th scope="col">Gi*</th></tr></thead><tbody>${filas}</tbody></table>`;
     }
 
-    GEOMAPAS['cap7-columbus-m1'] = { fuente: COL7, capa: 'crime', paleta: 'naranja',
+    GEOMAPAS['cap7-columbus-m1'] = { fuente: COL7, capa: 'crime', paleta: 'naranja', descripcion: DESC7.m1,
       titulo: 'Columbus: la tasa de delitos (CRIME) de los 49 barrios',
       etiqueta: 'Los 49 barrios de Columbus coloreados por su tasa de delitos, CRIME, en cinco clases de igual número de barrios: los valores altos se agrupan.',
       tabla: () => tablaColumbus7() };
     GEOMAPAS['cap7-diagrama-mapa'] = {
       fuente: () => E7.diagTab === 'mun' ? MUN7 : COL7,
+      descripcion: () => DESC7.diag[E7.diagTab],
       get capa() { return E7.diagTab === 'mun' ? 'desercion' : 'crime'; },
       get resaltado() { return E7.diagSel == null ? null : (E7.diagTab === 'mun' ? MUN7_IDX[E7.diagSel] : E7.diagSel); },
       get titulo() { return E7.diagTab === 'mun' ? 'Los municipios: la unidad elegida, sobre la deserción'
@@ -2470,31 +2690,50 @@ GEOMAPAS_JS = (
       paleta: 'verde', nombreSinDato: SIN_DATO7,
       tabla: d => tablaCapa7(d, E7.diagTab === 'mun' ? 'desercion' : 'crime') };
     GEOMAPAS['cap7-w-mapa'] = { fuente: MAPAS_CAP7['cap7-w'], get variante() { return E7.w; },
+      descripcion: () => DESC7.w[E7.w],
       etiqueta: 'Los 49 barrios de Columbus con el grafo de la vecindad elegida: cada línea une dos barrios que esa definición considera vecinos, y un punto rojo es un barrio que se queda sin ninguno.' };
     GEOMAPAS['cap7-local-mapa'] = { fuente: COL7, capa: 'lisa', get resaltado() { return E7.localSel; },
+      descripcion: DESC7.local,
       titulo: 'Columbus: el barrio elegido, sobre su categoría LISA',
       tabla: () => tablaColumbus7() };
     GEOMAPAS['cap7-columbus-lisa'] = { fuente: COL7, capa: 'lisa', tabla: () => tablaColumbus7(),
+      descripcion: DESC7.lisa,
       titulo: 'Columbus: los conglomerados LISA de CRIME, sin corregir' };
     GEOMAPAS['cap7-municipios-m9'] = { fuente: MUN7, get capa() { return E7.m9capa; }, paleta: 'naranja',
+      descripcion: () => DESC7.m9[E7.m9capa],
       get titulo() { return E7.m9capa === 'lisa' ? 'Los municipios: los conglomerados LISA de la deserción, sin corregir'
                                                  : 'Los municipios: la deserción escolar (MEN, 2024)'; },
       nombreSinDato: SIN_DATO7, tabla: d => tablaCapa7(d, E7.m9capa) };
     GEOMAPAS['cap7-multiplicidad-mapa'] = { fuente: () => E7.multTab === 'mun' ? MUN7 : COL7,
       get capa() { return E7.multCapa; }, nombreSinDato: SIN_DATO7, tabla: d => tablaCapa7(d, E7.multCapa),
+      descripcion: () => DESC7.mult[E7.multTab + '|' + E7.multCapa],
       get titulo() { return (E7.multTab === 'mun' ? 'Los municipios' : 'Columbus') + ': conglomerados LISA '
         + ({ lisa: 'sin corregir', lisa_bonferroni: 'con Bonferroni', lisa_fdr: 'con FDR' })[E7.multCapa]; } };
     GEOMAPAS['cap7-getisord-valor'] = { fuente: MAPAS_CAP7['cap7-getisord-valor'], paleta: 'verde',
+      descripcion: DESC7.go_valor,
       etiqueta: 'La rejilla de 16 por 16 celdas de Getis y Ord, coloreada por el valor de cada celda en siete clases.' };
     GEOMAPAS['cap7-getisord-g'] = { fuente: MAPAS_CAP7['cap7-getisord-g'], paleta: 'frio_caliente',
+      descripcion: DESC7.go_g,
       etiqueta: 'La misma rejilla coloreada por la z de Gi* con un umbral de distancia de 30, cortada en ±1.645, ±1.96 y ±2.576: siete niveles, de frío al 99 % en azul a caliente al 99 % en rojo.' };
     GEOMAPAS['cap7-lado-lisa'] = { fuente: () => E7.ladoTab === 'mun' ? MUN7 : COL7, capa: 'lisa',
+      descripcion: () => DESC7.lado_lisa[E7.ladoTab],
       get titulo() { return (E7.ladoTab === 'mun' ? 'Los municipios' : 'Columbus') + ': conglomerados LISA, sin corregir'; },
       nombreSinDato: SIN_DATO7, tabla: d => tablaCapa7(d, 'lisa') };
     GEOMAPAS['cap7-lado-gi'] = { fuente: () => E7.ladoTab === 'mun' ? MUN7 : COL7, capa: 'gistar',
+      descripcion: () => DESC7.lado_gi[E7.ladoTab],
       get titulo() { return (E7.ladoTab === 'mun' ? 'Los municipios' : 'Columbus') + ': puntos calientes y fríos de Gi*'; },
       nombreSinDato: SIN_DATO7, tabla: d => tablaCapa7(d, 'gistar') };
 """)
+# Los textos de «Describir el mapa», como un objeto de JS DELANTE de los
+# registros: los que son una cadena fija se leen al crear el registro.
+GEOMAPAS_JS = (
+    "    // Lo que se ve en cada estado de cada mapa (ver «Describir el mapa»).\n"
+    + "    const DESC7 = " + json.dumps({
+        "m1": DESC7_COLUMBUS_M1, "diag": DESC7_DIAG, "w": DESC7_W, "local": DESC7_LOCAL,
+        "lisa": DESC7_COLUMBUS_LISA, "m9": DESC7_M9, "mult": DESC7_MULT, "go_valor": DESC7_GO_VALOR,
+        "go_g": DESC7_GO_G, "lado_lisa": DESC7_LADO_LISA, "lado_gi": DESC7_LADO_GI}, ensure_ascii=False) + ";\n"
+    + GEOMAPAS_JS)
+
 
 
 # =====================================================================
@@ -3434,7 +3673,7 @@ def main() -> int:
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
     doc = baraja_documento(doc, "cap7")
-    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
+    doc = aplica_boton(doc, PUBLICADO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- El recuento, contado y no recordado --------------------------
@@ -3449,7 +3688,7 @@ def main() -> int:
     con_alt = sum(1 for c in marcado.split("<canvas")[1:] if "aria-label" in c.split(">")[0])
     kb = DESTINO.stat().st_size / 1024
 
-    print(f"{DESTINO.relative_to(RAIZ)}  {kb:.0f} KB")
+    print(f"{DESTINO.relative_to(RAIZ) if DESTINO == PUBLICADO else DESTINO}  {kb:.0f} KB")
     print(f"  {mods} módulos · {sims} simuladores · {mapas} mapas · "
           f"{bl_r} bloques de R y {bl_py} de Python · {cifras} líneas #> anunciadas")
     print(f"  {lienzos} lienzos, {con_alt} con aria-label")
@@ -3470,6 +3709,11 @@ def main() -> int:
     if "«" in "".join(re.findall(r'<code class="language-[a-z]+">(.*?)</code>', doc, re.S)) and \
             _HUECO.search("".join(re.findall(r'<code class="language-[a-z]+">(.*?)</code>', doc, re.S))):
         problemas.append("un hueco «ASÍ» se quedó sin rellenar en un bloque de código")
+    # «DESCRIBIR EL MAPA» (2026-11-02). Cada mapa que el documento usa trae
+    # su descripción —los de pestañas, una por estado—, y lo que esas frases
+    # afirman se comprueba contra el dato.
+    problemas += revisa_textos(marcado, GEOMAPAS_JS, DESCRIPCIONES)
+    problemas += guardas_de_las_descripciones()
     if problemas:
         print("\n  PROBLEMAS:")
         for p in problemas:

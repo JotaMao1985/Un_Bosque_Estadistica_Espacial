@@ -37,6 +37,18 @@ EL TOPE DE PESO ES 820 KB, y la aritmética va escrita:
   · 820 deja ~40 KB de margen: sitio para una revisión, no para un
     ensamblado desbocado.
 
+SUBIÓ A 860 KB el 2026-11-02, cuando cada mapa ganó «Describir el mapa» —lo que se ve en él,
+para quien no lo ve: dónde caen los alto-alto, los bajo-bajo, los calientes y los fríos, en
+qué departamentos se juntan—:
+
+  · el documento pesa **826 KB**: 809 tenía; **3.4 del motor** del `.geomapa` en la plantilla
+    (la descripción en dos nodos), **4.7 de los hechos que R publica** en `visto` (la zona de
+    cada categoría en Columbus y los departamentos que más ponen en los municipios) y **7.7 de
+    las descripciones**: once mapas, y casi todos cambian con una pestaña —Columbus o los
+    municipios, la corrección, la capa, once vecindades—, así que van treinta textos;
+  · la cota con el arnés: 826 < 860 < 1138;
+  · 860 deja **34 KB de margen**. Es explicación, y el peso vuelve a ceder ante ella.
+
 Uso:  python3 precalculo/audita_texto_cap7.py
 Devuelve 1 si algo falla.
 """
@@ -50,7 +62,7 @@ import sys
 from audita_texto_base import Auditor, SALIDAS
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP7_KB = 820.0
+TOPE_CAP7_KB = 860.0
 
 # Cifras que NO son resultados: identificadores, años, páginas y versiones.
 ESTRUCTURALES = {

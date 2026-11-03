@@ -55,8 +55,12 @@ def lista_y(nombres: list[str]) -> str:
 
 def zona_por_tercios(fx: float, fy_desde_arriba: float) -> str:
     """La zona de un punto por tercios, con x de occidente a oriente y y de norte a sur."""
-    eo = ("occidente", "", "oriente")[min(2, int(fx * 3))]
-    ns = ("norte", "", "sur")[min(2, int(fy_desde_arriba * 3))]
+    # Acotado por los dos lados: `min` para un punto sobre el borde derecho o
+    # inferior de la caja (fx = 1), `max` para uno que, en un JSON roto, cae
+    # antes del borde izquierdo o superior. Un índice negativo no falla: da
+    # en silencio un tercio equivocado (o revienta, si baja de -3).
+    eo = ("occidente", "", "oriente")[min(2, max(0, int(fx * 3)))]
+    ns = ("norte", "", "sur")[min(2, max(0, int(fy_desde_arriba * 3)))]
     if not ns and not eo:
         return "centro"
     if not ns:
@@ -82,20 +86,25 @@ def celda_maxima(g: dict) -> int:
 def registrados(js: str) -> dict[str, str]:
     """{id: cuerpo} de cada `GEOMAPAS['id'] = { … };` del bloque de JavaScript.
 
-    El cuerpo llega hasta el `};` que cierra el registro al nivel de sangría
-    con el que se abrió, que es como lo escriben los siete ensambladores.
+    El cuerpo es lo que hay entre la llave que abre el registro y la que lo
+    cierra, contando llaves. Hasta el 2026-11-02 se cortaba en el primer
+    `};` en línea propia, que es como escriben los capítulos 1 a 6; el 7
+    cierra sus registros al final de una línea (`… tabla: () => t() };`), y
+    con aquel corte el cuerpo de un registro se tragaba el siguiente: la
+    guarda podía ver el `descripcion` de otro mapa y dar por bueno uno que
+    no lo tiene. Las llaves de las plantillas `${…}` van en pareja, así que
+    contarlas todas no descuadra.
     """
     out = {}
-    for m in re.finditer(r"^( *)GEOMAPAS\['([^']+)'\]\s*=\s*\{", js, re.M):
-        sangria, ident = m.group(1), m.group(2)
-        fin = js.find("\n" + sangria + "};", m.end())
-        una_linea = js.find("};", m.end())
-        corte = js.find("\n", m.end())
-        # Registro de una línea: `GEOMAPAS['x'] = { fuente: … };`
-        if una_linea != -1 and (corte == -1 or una_linea < corte):
-            out[ident] = js[m.end():una_linea]
-        else:
-            out[ident] = js[m.end():fin if fin != -1 else len(js)]
+    for m in re.finditer(r"GEOMAPAS\['([^']+)'\]\s*=\s*\{", js):
+        prof, i = 1, m.end()
+        while i < len(js) and prof:
+            if js[i] == "{":
+                prof += 1
+            elif js[i] == "}":
+                prof -= 1
+            i += 1
+        out[m.group(1)] = js[m.end():i - 1]
     return out
 
 

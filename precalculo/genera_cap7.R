@@ -1056,6 +1056,72 @@ if (rg_g[1] >= -Z_CORTES[1] || rg_g[2] <= Z_CORTES[1])
 MAPAS[["cap7-getisord-g"]]$cortes <- c(rg_g[1], -Z_CORTES, rev(Z_CORTES), rg_g[2])
 
 # =====================================================================
+# LO QUE SE VE EN CADA MAPA (2026-11-02)
+# =====================================================================
+# Cada mapa lleva una descripción larga: lo que se VE en él, para quien no
+# lo ve. Las etiquetas de los mapas categóricos ya dicen cuántas unidades
+# caen en cada categoría; lo que falta es DÓNDE —en qué zona del dibujo,
+# tercios de la caja, caen los alto-alto, los bajo-bajo, los calientes y
+# los fríos—, y en las capas de valores, dónde caen la clase más alta y la
+# más baja. `audita_cap7.py` lo recalcula en Python.
+message("L2. lo que se ve en cada mapa")
+zona_de <- function(x, y, caja) {
+  fx <- (x - caja[1]) / (caja[3] - caja[1])
+  fy <- (y - caja[2]) / (caja[4] - caja[2])
+  ns <- c("sur", "", "norte")[findInterval(fy, c(1, 2) / 3) + 1]
+  eo <- c("occidente", "", "oriente")[findInterval(fx, c(1, 2) / 3) + 1]
+  ifelse(ns == "" & eo == "", "centro",
+         ifelse(ns == "", eo, ifelse(eo == "", ns, paste0(c(norte = "nor", sur = "sur")[ns], eo))))
+}
+ordena_tabla <- function(x) { tb <- table(x); tb[order(-as.integer(tb), names(tb))] }
+# `zona_n` y no `n`: en las capas categóricas la tabla va junto al total de
+# la categoría, que ya se llama `n`, y un JSON con dos claves iguales pierde una.
+tabla_zonas <- function(z) { tb <- ordena_tabla(z); list(zona = I(names(tb)), zona_n = I(as.integer(tb))) }
+cen_de <- function(g) st_coordinates(suppressWarnings(st_centroid(st_geometry(g), of_largest_polygon = TRUE)))
+# En los municipios, la zona del dibujo no informa: el tercio central tiene
+# 709 de los 1 122 y casi todo cae «en el centro». Allí cada categoría lleva
+# además los departamentos donde más unidades tiene, que es lo que se lee.
+tabla_deptos <- function(d, k = 3) {
+  tb <- ordena_tabla(d)
+  list(depto = I(head(names(tb), k)), depto_n = I(head(as.integer(tb), k)))
+}
+visto_capas <- function(mapa, zonas, deptos = NULL) {
+  out <- list()
+  for (cp in mapa$capas) {
+    if (identical(cp$tipo, "categoria")) {
+      out[[cp$id]] <- Filter(Negate(is.null), lapply(seq_along(cp$niveles), function(k) {
+        en <- !is.na(cp$valor) & cp$valor == k
+        if (!any(en) || cp$niveles[k] == "No significativo") return(NULL)
+        c(list(nivel = cp$niveles[k], n = sum(en)), tabla_zonas(zonas[en]),
+          if (!is.null(deptos)) tabla_deptos(deptos[en]))
+      }))
+    } else {
+      cl <- cp$clase
+      alta <- !is.na(cl) & cl == max(cl, na.rm = TRUE); baja <- !is.na(cl) & cl == min(cl, na.rm = TRUE)
+      out[[cp$id]] <- list(alta = c(tabla_zonas(zonas[alta]), if (!is.null(deptos)) tabla_deptos(deptos[alta])),
+                           baja = c(tabla_zonas(zonas[baja]), if (!is.null(deptos)) tabla_deptos(deptos[baja])))
+    }
+  }
+  out
+}
+# Con prefijo `zona_` y `cen_`: `z_col` y `z_mun` ya son, más arriba, el
+# dato estandarizado que viaja a los CSV, y pisarlos los dejaba vacíos.
+cen_col <- cen_de(col); zona_col <- zona_de(cen_col[, 1], cen_col[, 2], MAPAS[["cap7-columbus"]]$caja)
+cen_mun <- cen_de(mun); zona_mun <- zona_de(cen_mun[, 1], cen_mun[, 2], MAPAS[["cap7-municipios"]]$caja)
+zona_go <- zona_de(go_xyz$x, go_xyz$y, caja_go)
+g_go <- as.numeric(G30s)
+D$visto <- list(
+  columbus = visto_capas(MAPAS[["cap7-columbus"]], zona_col),
+  municipios = visto_capas(MAPAS[["cap7-municipios"]], zona_mun, mun$departamento),
+  getisord = list(calientes = tabla_zonas(zona_go[g_go >= qnorm(0.975)]),
+                  frios = tabla_zonas(zona_go[g_go <= -qnorm(0.975)]),
+                  valor_max = r10(max(go_xyz$val)), valor_max_zona = zona_go[which.max(go_xyz$val)]))
+message(sprintf("  Columbus, alto-alto sin corregir: %s · municipios, alto-alto: %s · Getis-Ord, calientes: %s",
+                paste(D$visto$columbus$lisa[[1]]$zona, D$visto$columbus$lisa[[1]]$zona_n, collapse = ", "),
+                paste(head(D$visto$municipios$lisa[[1]]$zona, 3), head(D$visto$municipios$lisa[[1]]$zona_n, 3), collapse = ", "),
+                paste(D$visto$getisord$calientes$zona, D$visto$getisord$calientes$zona_n, collapse = ", ")))
+
+# =====================================================================
 # LO QUE SE ESCRIBE
 # =====================================================================
 message("M. escribiendo")
