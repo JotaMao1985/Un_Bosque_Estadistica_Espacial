@@ -34,12 +34,19 @@ Cambios respecto a la versión de Muestreo:
   · Cuenta las líneas `#>`, que son las cifras que `verifica_bloques.py`
     contrasta: un capítulo con muchos bloques y pocos `#>` está
     publicando código que nadie comprueba.
+  · Y comprueba las cifras de la PORTADA (2026-11-03). Desde que la portada
+    lleva el estilo de la de Diseño de Experimentos, cada tarjeta trae su
+    fila de cifras —módulos, simuladores, mapas, bloques, preguntas— y el
+    bloque de entrada los totales de los capítulos. La portada se sigue
+    escribiendo a mano, así que esas cifras se contrastan aquí contra lo
+    contado; con `--prueba`, la guarda se rompe a sí misma.
 
-    python3 precalculo/cuenta_sitio.py
+    python3 precalculo/cuenta_sitio.py [--prueba]
 """
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -110,6 +117,202 @@ def tabla(titulo: str, rutas: list[Path]) -> list[int]:
     print(f"  {len(rutas)} archivo(s) · {kb:.0f} KB"
           + (f" · {kb/len(rutas):.0f} KB de media" if rutas else ""))
     return totales
+
+
+def cuenta(p: Path) -> dict[str, int]:
+    """Los CAMPOS de un archivo, por nombre: lo que la portada tiene que decir."""
+    h = p.read_text(encoding="utf-8")
+    m = marcado(h)
+    return {n: f(h, m) for n, f in CAMPOS}
+
+
+# La fila de cifras de cada tarjeta de la portada y el campo que la respalda.
+# «bloques R/Python» promete PARES: solo vale si R y Python coinciden, y por
+# eso no tiene un campo propio sino los dos.
+ROTULOS_TARJETA = {"módulo": "módulos", "simulador": "simulad.", "mapa": "geomapas",
+                   "pregunta": "preguntas"}
+ROTULOS_HERO = {"simuladores": "simulad.", "mapas": "geomapas", "módulos": "módulos"}
+
+
+def revisa_portada(texto: str, cuentas: dict[str, dict[str, int]],
+                   capitulos: list[str]) -> tuple[list[str], list[str]]:
+    """Lo que la portada dice frente a lo que hay. Devuelve (informe, problemas).
+
+    `cuentas` lleva los CAMPOS de cada archivo del curso (los bancos de prueba
+    no: no se enlazan porque no son del curso) y `capitulos`, cuáles de ellos
+    son capítulos, que son los que suma el bloque de entrada. Es una función
+    pura para que `--prueba` pueda dársela rota sin tocar el archivo.
+    """
+    informe: list[str] = []
+    problemas: list[str] = []
+
+    # ¿Se llega a lo publicado desde la portada? El Taller 1 estuvo
+    # ensamblado, auditado y en verde durante toda una fase siendo
+    # **inalcanzable**: existía el archivo y no lo enlazaba nadie. Un
+    # capítulo que no se enlaza no está publicado, está subido, y esa
+    # diferencia no la ve ningún auditor de cifras.
+    huerfanos = [n for n in cuentas if n not in texto]
+    for n in huerfanos:
+        informe.append(f"⚠ {n} — publicado y SIN enlace desde la portada")
+    if huerfanos:
+        problemas.append(f"{len(huerfanos)} página(s) sin enlace desde la portada")
+    else:
+        informe.append(f"los {len(cuentas)} archivos del curso están enlazados")
+
+    # Las tarjetas. Si no hay ninguna, la guarda está CIEGA, y eso es rojo: la
+    # versión anterior buscaba `bosque-card` y `card-number`, y con la marca de
+    # Diseño habría encontrado cero tarjetas y dicho «ninguno de los 0
+    # publicados sigue pendiente» en verde.
+    tarjetas = re.findall(r"<article\b([^>]*)>(.*?)</article>", texto, re.S)
+    tarjetas = [(a, c) for a, c in tarjetas if re.search(r'class="tarjeta\b', a)]
+    if not tarjetas:
+        informe.append('⚠ ninguna tarjeta `<article class="tarjeta…">`: la guarda no ve nada')
+        problemas.append("la portada no tiene tarjetas que comprobar")
+        return informe, problemas
+
+    # Y LA OTRA MITAD de los huérfanos: un capítulo publicado NO puede seguir
+    # anunciado como «Próximamente» en otra tarjeta.
+    #
+    # Existe porque pasó TRES VECES seguidas. La portada se mantiene a
+    # mano, y al publicar los capítulos 4, 5 y 6 se añadió la tarjeta
+    # nueva sin quitar la vieja: durante semanas el estudiante abría el
+    # capítulo 4 desde arriba y lo encontraba abajo con un reloj y un
+    # «Próximamente». El enlace estaba —así que la comprobación de
+    # huérfanos daba verde— y el defecto vivía en la MISMA página, tres
+    # secciones más abajo. Se encontró leyendo la portada, no contándola.
+    publicadas: set[str] = set()
+    pendientes: set[str] = set()
+    for atributos, cuerpo in tarjetas:
+        num = re.search(r'data-capitulo="(\d+)"', atributos)
+        if not num:
+            continue
+        if "tarjeta-pendiente" in atributos:
+            pendientes.add(num.group(1))
+            if "href=" in cuerpo:
+                informe.append(f"⚠ el capítulo {num.group(1)} está «En preparación» y lleva un enlace")
+                problemas.append(f"capítulo {num.group(1)} pendiente con enlace")
+        else:
+            publicadas.add(num.group(1))
+    if not publicadas | pendientes:
+        informe.append("⚠ ninguna tarjeta lleva `data-capitulo`: no se puede ver "
+                       "qué capítulos salen publicados y cuáles pendientes")
+        problemas.append("ninguna tarjeta con data-capitulo")
+    dobles = sorted(publicadas & pendientes, key=int)
+    for n in dobles:
+        informe.append(f"⚠ el capítulo {n} sale como publicado Y como «En preparación» "
+                       "en la misma portada")
+    if dobles:
+        problemas.append(f"{len(dobles)} capítulo(s) anunciados a la vez como publicados y pendientes")
+    else:
+        informe.append(f"y ninguno de los {len(publicadas)} publicados sigue anunciado como pendiente")
+
+    # Las cifras de cada tarjeta, contra lo contado en el archivo que enlaza su
+    # título. Ninguna se escribe sin que alguien la haya contado antes, y el
+    # día que se reensamble un capítulo con un módulo más, la portada no puede
+    # seguir diciendo el número viejo en verde.
+    vistas = 0
+    malas = 0
+    for atributos, cuerpo in tarjetas:
+        enlace = re.search(r'class="tarjeta-titulo[^"]*">\s*<a href="([^"]+)"', cuerpo)
+        if not enlace:
+            continue
+        nombre = enlace.group(1).split("/")[-1]
+        if nombre not in cuentas:
+            continue
+        c = cuentas[nombre]
+        fila = re.search(r'class="tarjeta-meta[^"]*">(.*?)</div>', cuerpo, re.S)
+        # El plural va aparte («simulador» + «es», «mapa» + «s») para poder
+        # comprobar también que «1 simuladores» no se cuela.
+        cifras = re.findall(r">(\d+) (módulo|simulador|mapa|pregunta|bloques R/Python)(e?s)?<",
+                            fila.group(1) if fila else "")
+        if not any(base == "módulo" for _, base, _ in cifras):
+            informe.append(f"⚠ {nombre}: su tarjeta no dice cuántos módulos tiene")
+            problemas.append(f"{nombre} sin fila de cifras")
+        for numero, base, plural in cifras:
+            n = int(numero)
+            rotulo = base + plural
+            vistas += 1
+            if base == "bloques R/Python":
+                real = c["bloq. R"]
+                if c["bloq. R"] != c["bloq. Py"]:
+                    informe.append(f"⚠ {nombre}: «bloques R/Python» promete pares y tiene "
+                                   f"{c['bloq. R']} de R y {c['bloq. Py']} de Python")
+                    problemas.append(f"{nombre} sin bloques pareados")
+                    malas += 1
+                    continue
+            else:
+                real = c[ROTULOS_TARJETA[base]]
+                if (n == 1) == bool(plural):
+                    informe.append(f"⚠ {nombre}: «{numero} {rotulo}» no concuerda en número")
+                    problemas.append(f"{nombre}: «{numero} {rotulo}» no concuerda en número")
+                    malas += 1
+            if n != real:
+                informe.append(f"⚠ {nombre}: la portada dice {n} {rotulo} y tiene {real}")
+                problemas.append(f"{nombre}: {rotulo} {n} ≠ {real}")
+                malas += 1
+
+    # El bloque de entrada: los totales de los CAPÍTULOS, no del sitio entero.
+    hero = re.search(r'<section class="hero[^"]*">(.*?)</section>', texto, re.S)
+    totales = re.findall(r">(\d+) (capítulos|simuladores|mapas|bloques en R y Python|módulos)<",
+                         hero.group(1) if hero else "")
+    if not totales:
+        informe.append("⚠ el bloque de entrada no tiene cifras que comprobar")
+        problemas.append("bloque de entrada sin cifras")
+    suma = {campo: sum(cuentas[n][campo] for n in capitulos) for campo in cuentas[capitulos[0]]} \
+        if capitulos else {}
+    for numero, rotulo in totales:
+        n = int(numero)
+        vistas += 1
+        if rotulo == "capítulos":
+            real = len(capitulos)
+        elif rotulo == "bloques en R y Python":
+            real = suma.get("bloq. R", 0)
+            if suma.get("bloq. R") != suma.get("bloq. Py"):
+                informe.append("⚠ el bloque de entrada promete pares de R y Python y no los hay")
+                problemas.append("bloque de entrada sin bloques pareados")
+                malas += 1
+                continue
+        else:
+            real = suma.get(ROTULOS_HERO[rotulo], 0)
+        if n != real:
+            informe.append(f"⚠ el bloque de entrada dice {n} {rotulo} y los capítulos suman {real}")
+            problemas.append(f"bloque de entrada: {rotulo} {n} ≠ {real}")
+            malas += 1
+    if not malas:
+        informe.append(f"y sus {vistas} cifras coinciden con lo contado")
+    return informe, problemas
+
+
+def prueba(texto: str, cuentas: dict[str, dict[str, int]], capitulos: list[str]) -> int:
+    """Se rompe a sí misma. Una comprobación que nadie ha visto fallar puede
+    estar bien escrita o ser incapaz de fallar, y desde fuera se ven igual."""
+    print("\n=== Autoprueba: se le inyectan defectos a la portada ===")
+    if revisa_portada(texto, cuentas, capitulos)[1]:
+        print("  MAL  el control no está limpio: la portada ya viene rota")
+        return 1
+    print("  OK   control · la portada sale limpia sin inyectar nada")
+    casos = [
+        ("una cifra de tarjeta que no es la contada", "12 módulos<", "11 módulos<", "≠"),
+        ("un total del bloque de entrada que no suma", "77 simuladores<", "78 simuladores<", "entrada"),
+        ("un capítulo publicado y pendiente a la vez",
+         'tarjeta-pendiente p-5" data-capitulo="8"', 'tarjeta-pendiente p-5" data-capitulo="1"', "a la vez"),
+        ("una página publicada sin enlace", 'href="Htmls_Espacial/taller-2-cap-4.html"', 'href="#"', "sin enlace"),
+        ("una cifra en singular con plural", ">1 simulador<", ">1 simuladores<", "número"),
+        ("una portada sin tarjetas (la marca cambió)", "<article", "<div", "tarjetas"),
+    ]
+    fallos = 0
+    for nombre, viejo, nuevo, clave in casos:
+        roto = texto.replace(viejo, nuevo) if viejo == "<article" else texto.replace(viejo, nuevo, 1)
+        if roto == texto:
+            print(f"  MAL  INERTE · «{nombre}» no cambió la portada")
+            fallos += 1
+            continue
+        problemas = revisa_portada(roto, cuentas, capitulos)[1]
+        cazado = any(clave in p for p in problemas)
+        print(f"  {'OK ' if cazado else 'MAL'}  «{nombre}» → "
+              + ("cazado" if cazado else f"pasa ({problemas or 'sin problemas'})"))
+        fallos += 0 if cazado else 1
+    return fallos
 
 
 def main() -> None:
@@ -206,50 +409,23 @@ def main() -> None:
             print(f"    · {p.name} — no se está contando en ninguna tabla")
         problemas.append(f"{len(sueltos)} archivo(s) sin clasificar")
 
-    # ¿Se llega a lo publicado desde la portada? El Taller 1 estuvo
-    # ensamblado, auditado y en verde durante toda una fase siendo
-    # **inalcanzable**: existía el archivo y no lo enlazaba nadie. Un
-    # capítulo que no se enlaza no está publicado, está subido, y esa
-    # diferencia no la ve ningún auditor de cifras. Los bancos de prueba
-    # quedan fuera a propósito: no se enlazan porque no son del curso.
+    # La portada: que enlace todo lo publicado, que no anuncie como pendiente
+    # un capítulo que ya está, y que sus cifras sean las contadas. Los bancos
+    # de prueba quedan fuera a propósito: no se enlazan porque no son del curso.
     portada = RAIZ / "index.html"
+    autoprueba = 0
     if portada.exists():
         texto = portada.read_text(encoding="utf-8")
-        huerfanos = [p.name for p in caps + talleres + preparciales + apendices + proyectos
-                     if p.name not in texto]
-        print("\n  Enlaces desde la portada (index.html):")
-        if huerfanos:
-            for n in huerfanos:
-                print(f"    ⚠ {n} — publicado y SIN enlace desde la portada")
-            problemas.append(f"{len(huerfanos)} página(s) sin enlace desde la portada")
-        else:
-            print(f"    los {len(caps) + len(talleres) + len(preparciales) + len(apendices) + len(proyectos)} archivos "
-                  f"del curso están enlazados")
-
-        # Y LA OTRA MITAD, que faltaba: un capítulo publicado NO puede seguir
-        # anunciado como «Próximamente» más abajo.
-        #
-        # Existe porque pasó TRES VECES seguidas. La portada se mantiene a
-        # mano, y al publicar los capítulos 4, 5 y 6 se añadió la tarjeta
-        # nueva sin quitar la vieja: durante semanas el estudiante abría el
-        # capítulo 4 desde arriba y lo encontraba abajo con un reloj y un
-        # «Próximamente». El enlace estaba —así que la comprobación de
-        # huérfanos daba verde— y el defecto vivía en la MISMA página, tres
-        # secciones más abajo. Se encontró leyendo la portada, no contándola.
-        tarjetas = re.findall(
-            r'class="bosque-card( pendiente)?"[\s\S]{0,1400}?card-number">(\d+)<', texto)
-        publicadas = {n for clase, n in tarjetas if not clase.strip()}
-        pendientes = {n for clase, n in tarjetas if clase.strip()}
-        dobles = sorted(publicadas & pendientes, key=int)
-        if dobles:
-            for n in dobles:
-                print(f"    ⚠ el capítulo {n} sale como publicado Y como "
-                      f"«En preparación» en la misma portada")
-            problemas.append(
-                f"{len(dobles)} capítulo(s) anunciados a la vez como publicados y pendientes")
-        else:
-            print(f"    y ninguno de los {len(publicadas)} publicados sigue "
-                  f"anunciado como pendiente")
+        cuentas = {p.name: cuenta(p) for p in caps + talleres + preparciales + apendices + proyectos}
+        informe, malos = revisa_portada(texto, cuentas, [p.name for p in caps])
+        print("\n  La portada (index.html):")
+        for linea in informe:
+            print(f"    {linea}")
+        problemas += malos
+        if "--prueba" in sys.argv[1:]:
+            autoprueba = prueba(texto, cuentas, [p.name for p in caps])
+            if autoprueba:
+                problemas.append(f"la autoprueba de la portada falla en {autoprueba} caso(s)")
 
     # Desglose de los modos del .geomapa: el §4 del plan reparte los cinco
     # entre los capítulos, y así se ve cuáles siguen sin estrenarse.
