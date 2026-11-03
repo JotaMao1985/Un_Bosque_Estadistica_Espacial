@@ -293,7 +293,7 @@ def prueba(texto: str, cuentas: dict[str, dict[str, int]], capitulos: list[str])
     print("  OK   control · la portada sale limpia sin inyectar nada")
     casos = [
         ("una cifra de tarjeta que no es la contada", "12 módulos<", "11 módulos<", "≠"),
-        ("un total del bloque de entrada que no suma", "77 simuladores<", "78 simuladores<", "entrada"),
+        ("un total del bloque de entrada que no suma", "80 simuladores<", "81 simuladores<", "entrada"),
         ("un capítulo publicado y pendiente a la vez",
          'tarjeta-pendiente p-5" data-capitulo="8"', 'tarjeta-pendiente p-5" data-capitulo="1"', "a la vez"),
         ("una página publicada sin enlace", 'href="Htmls_Espacial/taller-2-cap-4.html"', 'href="#"', "sin enlace"),

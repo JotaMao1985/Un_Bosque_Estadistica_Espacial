@@ -94,6 +94,14 @@ Esa misma noche el tope NO se movió: el mapa de P(oficial) pasó de 128 × 128 
 la ciudad (M6-7: σ cabía 2.3 celdas en la vertical) y el módulo 6 enseña la rejilla y la
 meseta de la guarda. 1 357 → 1 379 KB, 21 de margen; el ráster pasa de 28 a 47 KB empaquetado.
 
+2026-11-03, y la octava: SUBE A 1470 KB. El módulo 3 se leía críptico para quien empieza
+(lo dijo Javier): afirmaba que los cuatro selectores «optimizan cosas distintas» sin enseñar
+nunca qué. Gana el ejemplo de las dos sedes de Kennedy, las curvas del criterio de los tres
+que buscan —en Kennedy, en la ciudad y en los pinos japoneses— y la suma de `bw.CvL` a mano
+en la pestaña de Python: ~14 KB de curvas en el JSON incrustado, tres simuladores y su prosa.
+El documento pasa de 1 386.9 a 1 427.8 KB. 1470 deja 42 KB de margen y sigue 270 KB por
+debajo de 1427.8 + 312. Es explicación, y la octava vez que el peso cede.
+
 Y EL PRESUPUESTO DE GEOMETRÍA ES 250 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y
 los seis de este capítulo pesan **204 KB** (eran cinco y 157 KB hasta que el
@@ -119,7 +127,7 @@ import sys
 from audita_texto_base import SALIDAS, Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP5_KB = 1400.0
+TOPE_CAP5_KB = 1470.0
 # El techo de las siete superficies del deslizador, que el núcleo no ve.
 TOPE_FAMILIA_KB = 200.0
 

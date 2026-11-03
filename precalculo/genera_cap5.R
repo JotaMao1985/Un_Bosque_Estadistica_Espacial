@@ -478,6 +478,183 @@ message(sprintf("   Kennedy: %.0f a %.0f m (razon %.2f) · ciudad: %.0f a %.0f m
                 min(SEL_KEN), max(SEL_KEN), D$m3$kennedy$razon,
                 min(SEL_URB), max(SEL_URB), D$m3$urbana$razon))
 
+# LAS NOTAS QUE PONE CADA SELECTOR, Y NO SOLO EL NÚMERO QUE DEVUELVE
+# (2026-11-03). Hasta aquí el módulo publicaba lo que devuelve cada selector
+# y pedía creer que «optimizan cosas distintas» sin enseñar qué. Un selector
+# prueba anchos, a cada uno le pone una nota con su criterio y devuelve el
+# de mejor nota; aquí se publican esas notas, que bw.optim ya trae en
+# attr(, "h") y attr(, "cv") y `selectores()` tira con `as.numeric()`:
+#   - bw.ppl: la suma, sobre las sedes, del logaritmo de lo que marca el
+#     mapa hecho SIN cada una en el sitio donde estaba (con `shortcut`, el
+#     defecto, sin el término integral). Y esa marca para dos sedes, la
+#     apiñada y la aislada: el ejemplo con que el módulo abre.
+#   - bw.CvL: la suma de 1/lambda en las sedes —sin dejar ninguna fuera y
+#     sin corrección de borde, como la calcula la función— contra el área.
+#   - bw.diggle: su criterio M sobre su propia rejilla, que sale de la K.
+# Claves de cache NUEVAS: `selectores()` no puede crecer (ver arriba) y la
+# cache busca por nombre. El 16 de bw.ppl y bw.CvL son 16 nodos de la misma
+# serie geométrica que los 256 de la rejilla fina (cada 17), y se comprueba.
+curva_de <- function(b) list(h = as.numeric(attr(b, "h")), cv = as.numeric(attr(b, "cv")))
+curvas_sel <- function(p, con_marcas) {
+  b16 <- bw.ppl(p); b256 <- bw.ppl(p, ns = NS_FINO)
+  v16 <- bw.CvL(p); v256 <- bw.CvL(p, ns = NS_FINO)
+  H <- as.numeric(attr(b256, "h"))
+  # Lo que marca el mapa hecho sin cada sede donde estaba: una fila por sede.
+  L <- if (con_marcas) sapply(H, function(s)
+    as.numeric(density(p, sigma = s, at = "points", leaveoneout = TRUE))) else NULL
+  S <- sapply(H, function(s)
+    sum(1 / as.numeric(density(p, sigma = s, at = "points", leaveoneout = FALSE, edge = FALSE))))
+  list(ppl16 = curva_de(b16), ppl = curva_de(b256), cvl16 = curva_de(v16), cvl = curva_de(v256),
+       diggle = curva_de(bw.diggle(p)), H = H, L = L, S = S)
+}
+CUR_KEN <- cacheado(sprintf("curvas_%d_kennedy", NS_FINO), curvas_sel(p_ken, TRUE))
+CUR_URB <- cacheado(sprintf("curvas_%d_urbana", NS_FINO), curvas_sel(p_urb, FALSE))
+
+# Las guardas de que estas curvas SON las de los selectores publicados.
+cada17 <- seq(1L, NS_FINO, by = (NS_FINO - 1L) %/% (NS_DEFECTO[["ppl"]] - 1L))
+for (cu in list(CUR_KEN, CUR_URB)) {
+  if (!isTRUE(all.equal(cu$ppl16$h, cu$H[cada17])) || !isTRUE(all.equal(cu$cvl16$h, cu$H[cada17])))
+    stop("los 16 nodos de bw.ppl o bw.CvL ya no están en la rejilla fina: el módulo 3 los dibuja juntos")
+  if (!isTRUE(all.equal(cu$ppl$h, cu$H)) || !isTRUE(all.equal(cu$cvl$h, cu$H)))
+    stop("bw.ppl y bw.CvL dejaron de compartir rejilla")
+}
+if (!isTRUE(all.equal(CUR_KEN$ppl$h[which.max(CUR_KEN$ppl$cv)], FINO_KEN[["ppl"]])) ||
+    !isTRUE(all.equal(CUR_KEN$ppl16$h[which.max(CUR_KEN$ppl16$cv)], SEL_KEN[["ppl"]])) ||
+    !isTRUE(all.equal(CUR_URB$ppl16$h[which.max(CUR_URB$ppl16$cv)], SEL_URB[["ppl"]])) ||
+    !isTRUE(all.equal(CUR_URB$ppl$h[which.max(CUR_URB$ppl$cv)], FINO_URB[["ppl"]])) ||
+    !isTRUE(all.equal(CUR_KEN$diggle$h[which.min(CUR_KEN$diggle$cv)], SEL_KEN[["diggle"]])) ||
+    !isTRUE(all.equal(CUR_URB$diggle$h[which.min(CUR_URB$diggle$cv)], SEL_URB[["diggle"]])))
+  stop("el óptimo de una curva publicada no es el sigma que devuelve su selector")
+# La suma de los logaritmos de las marcas ES el criterio de bw.ppl.
+fin_k <- is.finite(CUR_KEN$ppl$cv)
+if (!isTRUE(all.equal(colSums(log(CUR_KEN$L))[fin_k], CUR_KEN$ppl$cv[fin_k])) ||
+    any(is.finite(colSums(log(CUR_KEN$L))[!fin_k])))
+  stop("la suma de los logaritmos de lo que marca cada mapa ya no es el criterio de bw.ppl")
+# Y (suma de 1/lambda - área)^2 ES el de bw.CvL.
+for (cu in list(list(CUR_KEN, A_KEN), list(CUR_URB, area.owin(W_URB))))
+  if (!isTRUE(all.equal((cu[[1]]$S - cu[[2]])^2, cu[[1]]$cvl$cv)))
+    stop("la suma de 1/lambda ya no da el criterio de bw.CvL")
+
+# EL EJEMPLO: DOS SEDES DE KENNEDY ELEGIDAS POR UNA REGLA, NO A OJO.
+#   - la apiñada: la que más sedes tiene a menos de 300 m, entre las que no
+#     comparten sitio con otra (una gemela a 0 m «predice» a su pareja a la
+#     perfección cuando sigma tiende a cero, y el ejemplo sería ese);
+#     desempata la vecina más cercana.
+#   - la aislada: la de vecina más lejana, entre las que tienen esa vecina
+#     más cerca que el borde (si no, lo que la aísla es la ventana).
+VEC_M <- 300
+nnd_k <- nndist(p_ken); bd_k <- bdist.points(p_ken)
+d300_k <- colSums(pairdist(p_ken) < VEC_M) - 1L
+cand_a <- which(nnd_k > 0)
+i_api <- cand_a[order(-d300_k[cand_a], nnd_k[cand_a])[1]]
+cand_b <- which(nnd_k > 0 & bd_k > nnd_k)
+i_ais <- cand_b[order(-nnd_k[cand_b])[1]]
+H_K <- CUR_KEN$H
+pide_k <- H_K[apply(CUR_KEN$L, 1, which.max)]     # el sigma que pediría cada sede sola
+sig_ppl_fino <- FINO_KEN[["ppl"]]
+if (!(pide_k[i_api] < sig_ppl_fino && sig_ppl_fino < pide_k[i_ais]))
+  stop("la apiñada ya no pide un sigma menor que el de la suma, o la aislada uno mayor: es el ejemplo del módulo 3")
+# Las gemelas piden el sigma más pequeño de la rejilla: cuanto más estrecho
+# el núcleo, más marca, en su sitio, la sede que comparte el edificio. El
+# texto lo dice al explicar por qué el ejemplo las deja fuera.
+if (!all(pide_k[nnd_k == 0] == min(H_K)))
+  stop("alguna sede gemela ya no pide el sigma más pequeño de la rejilla: el módulo 3 lo afirma")
+# Con sigma de unas decenas de metros, alguna sede queda con marca CERO: su
+# logaritmo es menos infinito y tumba la suma. Se publica hasta dónde.
+infin_k <- CUR_KEN$ppl16$h[!is.finite(CUR_KEN$ppl16$cv)]
+infin_u <- CUR_URB$ppl16$h[!is.finite(CUR_URB$ppl16$cv)]
+if (!length(infin_k) || max(infin_k) >= min(CUR_KEN$ppl16$h[is.finite(CUR_KEN$ppl16$cv)]))
+  stop("los anchos de -Inf de bw.ppl sobre Kennedy ya no son un tramo inicial")
+if (!length(infin_u) || max(infin_u) >= min(CUR_URB$ppl16$h[is.finite(CUR_URB$ppl16$cv)]))
+  stop("los anchos de -Inf de bw.ppl sobre la ciudad ya no son un tramo inicial")
+# La suma de bw.CvL crece con sigma y cruza el área UNA vez: es lo que el
+# texto dice («la suma sube y la búsqueda se queda donde iguala el área»).
+for (cu in list(list(CUR_KEN, A_KEN), list(CUR_URB, area.owin(W_URB))))
+  if (!all(diff(cu[[1]]$S) > 0) || sum(diff(sign(cu[[1]]$S - cu[[2]])) != 0) != 1L)
+    stop("la suma de 1/lambda dejó de crecer con sigma o cruza el área más de una vez")
+# LA CURVA DE bw.diggle SOBRE KENNEDY NO TIENE UN FONDO CLARO, y es la
+# medida la que lo dijo. Se esperaba «baja y después casi plana»; medido,
+# baja deprisa hasta unos 200 m y desde ahí ondula —con dientes de hasta un
+# 15 % de su caída— hasta el final de su intervalo, sin volver a subir: su
+# mínimo es el diente más bajo. Tampoco la de la ciudad es lisa (también
+# tiene dientes), así que lo que separa las dos no es la suavidad sino que
+# la de la ciudad, pasado su mínimo, SUBE. Las dos medidas, como parte de
+# lo que la curva baja de 100 m a su mínimo:
+#   - meseta (Kennedy): lo más alto que llega de 200 m al final;
+#   - subida final (las dos): cuánto queda por encima del mínimo al final.
+DG_CAIDA_M <- 100; DG_MESETA_M <- 200
+dg_rel <- function(dg, que) {
+  ok <- is.finite(dg$cv); h <- dg$h[ok]; m <- dg$cv[ok]
+  caida <- m[which.min(abs(h - DG_CAIDA_M))] - min(m)
+  switch(que, meseta = (max(m[h >= DG_MESETA_M]) - min(m)) / caida, final = (m[length(m)] - min(m)) / caida)
+}
+dg_meseta <- dg_rel(CUR_KEN$diggle, "meseta")
+dg_final <- c(kennedy = dg_rel(CUR_KEN$diggle, "final"), urbana = dg_rel(CUR_URB$diggle, "final"))
+message(sprintf("   bw.diggle: meseta de Kennedy %.1f%%; al final de su intervalo queda %.1f%% por encima del mínimo en Kennedy y %.1f%% en la ciudad",
+                100 * dg_meseta, 100 * dg_final[["kennedy"]], 100 * dg_final[["urbana"]]))
+if (!(dg_meseta < 0.25 && dg_final[["kennedy"]] < 0.10 && dg_final[["urbana"]] > 0.15))
+  stop("la curva de bw.diggle ya no ondula sin subir sobre Kennedy, o ya no sube sobre la ciudad: el módulo 3 lo describe")
+
+# Los pinos: el criterio de bw.ppl con el intervalo por defecto y ampliado.
+PIN_AMPLIADO <- 2
+nnd_j <- nndist(japanesepines)
+pin16 <- curva_de(bw.ppl(japanesepines, warn = FALSE))
+pin_amp <- curva_de(bw.ppl(japanesepines, srange = c(min(nnd_j[nnd_j > 0]), PIN_AMPLIADO), ns = 64, warn = FALSE))
+if (!all(diff(pin16$cv) > 0) || !all(diff(pin_amp$cv[pin_amp$h >= max(pin16$h)]) > 0) ||
+    !isTRUE(all.equal(max(pin16$h), tope_ppl$sigma)))
+  stop("el criterio de bw.ppl sobre los pinos ya no sube hasta el final de su intervalo: el módulo 3 lo dibuja")
+
+# La rejilla de DIBUJO: uno de cada cinco nodos finos, más los 16 por
+# defecto, el óptimo fino y el último. Con 256 por curva el capítulo
+# cargaría ~20 KB de puntos que la vista no distingue.
+dibujo <- function(cu) sort(unique(c(seq(1L, NS_FINO, by = 5L), cada17, NS_FINO,
+                                     which.max(cu$ppl$cv), which.min(cu$cvl$cv))))
+pub_ventana <- function(cu, area_m2, desde) {
+  i <- dibujo(cu)
+  dg <- cu$diggle; j <- sort(unique(c(seq(2L, length(dg$h), by = 4L), length(dg$h), which.min(dg$cv))))
+  list(
+    busqueda = list(desde_m = r10(desde), hasta_m = r10(max(cu$H)), n_fino = NS_FINO),
+    ppl = list(h_m = r6(cu$H[i]), cv = r6(cu$ppl$cv[i]),
+               nodos16_m = r6(cu$ppl16$h), cv16 = r6(cu$ppl16$cv),
+               infinitos16 = sum(!is.finite(cu$ppl16$cv)),
+               infinito_hasta_m = r10(max(cu$ppl16$h[!is.finite(cu$ppl16$cv)]))),
+    cvl = list(h_m = r6(cu$H[i]), suma_km2 = r6(cu$S[i] / 1e6), area_km2 = r10(area_m2 / 1e6),
+               nodos16_m = r6(cu$cvl16$h), suma16_km2 = r6(cu$S[cada17] / 1e6)),
+    diggle = list(h_m = r6(dg$h[j]), m = r6(dg$cv[j]), hasta_m = r10(max(dg$h))))
+}
+marca <- function(k) list(
+  vecinas_300m = d300_k[k], vecina_m = r10(nnd_k[k]), borde_m = r10(bd_k[k]),
+  pide_m = r10(pide_k[k]),
+  marca_km2 = r6(CUR_KEN$L[k, dibujo(CUR_KEN)] * 1e6),
+  marca16_km2 = r6(CUR_KEN$L[k, cada17] * 1e6))
+CK <- pub_ventana(CUR_KEN, A_KEN, min(nnd_k[nnd_k > 0]))
+# En porcentaje, que es como lo dice el texto; y los dos anchos que las
+# definen, para que el texto no los escriba a mano.
+CK$diggle$caida_desde_m <- DG_CAIDA_M
+CK$diggle$meseta_desde_m <- DG_MESETA_M
+CK$diggle$meseta_pct <- r10(100 * dg_meseta)
+CK$diggle$subida_final_pct <- r10(100 * dg_final[["kennedy"]])
+CK$ejemplo <- list(
+  que = "lo que marca, donde estaba cada sede, el mapa hecho sin ella (sedes por km2)",
+  vecindad_m = VEC_M, h_m = r6(H_K[dibujo(CUR_KEN)]),
+  apinada = marca(i_api), aislada = marca(i_ais),
+  piden_menos = sum(pide_k < sig_ppl_fino), piden_mas = sum(pide_k > sig_ppl_fino),
+  piden_el_minimo = sum(pide_k == min(H_K)), gemelas = sum(nnd_k == 0),
+  # La cuenta con que el texto presenta bw.CvL: el área que toca a cada sede
+  # si estuvieran repartidas por igual.
+  area_por_sede_km2 = r10(A_KEN / 1e6 / npoints(p_ken)))
+CU <- pub_ventana(CUR_URB, area.owin(W_URB), { nn <- nndist(p_urb); min(nn[nn > 0]) })
+CU$diggle$caida_desde_m <- DG_CAIDA_M
+CU$diggle$subida_final_pct <- r10(100 * dg_final[["urbana"]])
+D$m3$curvas <- list(
+  que = "la nota que cada selector pone a cada ancho, y la que eligió",
+  kennedy = CK, urbana = CU,
+  pinos = list(nodos16 = r6(pin16$h), cv16 = r6(pin16$cv), tope = r10(max(pin16$h)),
+               ampliado = list(hasta = PIN_AMPLIADO, h = r6(pin_amp$h), cv = r6(pin_amp$cv),
+                               devuelve = r10(pin_amp$h[which.max(pin_amp$cv)]))))
+message(sprintf("   curvas: la apiñada pide %.0f m, la aislada %.0f, la suma %.0f; %d de 16 anchos -Inf en la ciudad",
+                pide_k[i_api], pide_k[i_ais], sig_ppl_fino, length(infin_u)))
+
 # =====================================================================
 # MÓDULO 4 · Corrección de borde en la KDE, y la ventana otra vez
 # =====================================================================

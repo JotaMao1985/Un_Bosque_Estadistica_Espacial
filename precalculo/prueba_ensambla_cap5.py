@@ -33,6 +33,14 @@ QUÉ COMPRUEBA, sobre el capítulo YA ENSAMBLADO (no toca nada: solo lee):
      `loadModule(1)` también dejaría los enlaces en el módulo correcto, pero
      marcaría como visto y construiría un módulo que nadie abrió.
 
+  4. **Las guardas del módulo 3 saben parar** (2026-11-03). El módulo enseña la
+     curva del criterio de cada selector y abre con dos sedes de Kennedy, y lo que
+     sus frases afirman de la forma («la apiñada pide un σ menor», «la suma de
+     bw.CvL sube sin vaivenes», «bw.diggle no vuelve a subir»…) lo comprueba
+     `ensambla_cap5.py` contra el dato. Aquí el ensamblador se ejecuta en copia,
+     con `CAP5_DESTINO` fuera de lo publicado, con UN dato que deja una frase en
+     falso cada vez, y cada copia tiene que salir con error y nombrar la frase.
+
 LA PRUEBA TAMBIÉN SE PRUEBA. Un `OK` que nadie ha visto fallar puede estar bien
 escrito o puede ser incapaz de dispararse (la lección de T0.5, que este
 proyecto ya pagó dos veces). Por eso 11 mutantes en memoria del propio
@@ -50,13 +58,16 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import pathlib
 import re
 import subprocess
 import sys
+import tempfile
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 CAPITULO = RAIZ / "Htmls_Espacial" / "capitulo-5-intensidad-nucleos.html"
+ENSAMBLADOR = RAIZ / "precalculo" / "ensambla_cap5.py"
 DECKS = [RAIZ / "Htmls_Espacial" / "diapositivas" / f"capitulo-5-intensidad-nucleos-sesion-{s}.html"
          for s in (1, 2)]
 
@@ -236,6 +247,104 @@ MUTANTES = [
 ]
 
 
+# LAS GUARDAS DEL MÓDULO 3 (2026-11-03). Cada mutante inyecta un dato justo
+# después de que el ensamblador arme sus atajos a `m3.curvas`, y deja en falso
+# UNA frase del módulo; la guarda tiene que parar y nombrarla. (nombre, dato
+# inyectado, lo que la salida tiene que decir.)
+TRAS_LOS_ATAJOS = ('            key=lambda i: abs(_CK["cvl"]["nodos16_m"][i] - SEL_K["CvL"]))\n')
+MUTANTES_MODULO3 = [
+    ("la apiñada marca algo con los dos anchos más pequeños",
+     '_API["marca16_km2"][1] = 5.0', "ni siquiera ella marca"),
+    ("la marca de la apiñada no baja con σ grande",
+     '_API["marca16_km2"][-1] = 36.0', "su marca baja"),
+    ("la aislada marca algo lejos de su vecina",
+     '_AIS["marca16_km2"][5] = 1.0', "marca casi cero"),
+    ("las dos marcas no se juntan con σ de kilómetros",
+     '_AIS["marca16_km2"][-1] = 1.0', "se juntan"),
+    ("la apiñada pide más que la suma",
+     '_API["pide_m"] = 900.0', "la apiñada pide un σ menor"),
+    ("la aislada con vecinas a menos de 300 m",
+     '_AIS["vecinas_300m"] = 2', "a menos de 300 m"),
+    ("piden un σ distinto más sedes de las que hay",
+     '_EJ["piden_mas"] = 200', "más sedes de las que hay"),
+    ("un -inf en medio de la rejilla",
+     '_CK["ppl"]["cv16"][5] = None', "no tienen nota"),
+    ("menos sedes piden el mínimo que gemelas hay",
+     '_EJ["piden_el_minimo"] = 3', "las gemelas"),
+    ("la suma de bw.CvL baja en un ancho",
+     '_CK["cvl"]["suma16_km2"][8] = 1.0', "sin vaivenes"),
+    ("bw.CvL devuelve un ancho lejos del cruce",
+     '_ICVL = 3', "el que más se acerca"),
+    ("bw.diggle vuelve a subir sobre Kennedy",
+     '_CK["diggle"]["subida_final_pct"] = 12.0', "no vuelve a subir"),
+    ("bw.diggle no sube sobre la ciudad",
+     '_CC["diggle"]["subida_final_pct"] = 5.0', "la curva sí sube"),
+    ("el mínimo de bw.diggle fuera de la sierra",
+     '_CK["diggle"]["meseta_desde_m"] = 400', "diente de la sierra"),
+    ("la nota de los pinos baja en un ancho",
+     '_PN["cv16"][9] = 100.0', "hasta el último"),
+    ("con el intervalo ampliado devuelve otra cosa",
+     '_PN["ampliado"]["devuelve"] = 1.5', "otra vez el final"),
+    ("la ciudad elige un ancho de -inf",
+     '_CC["ppl"]["infinito_hasta_m"] = 300.0', "elige entre los que quedan"),
+]
+
+# La copia vive en un directorio temporal: sus dos rutas relativas a
+# `__file__` se fijan al árbol de verdad, y la salida va a `CAP5_DESTINO`.
+RUTAS_DE_LA_COPIA = [
+    ("RAIZ = pathlib.Path(__file__).resolve().parent.parent",
+     f"RAIZ = pathlib.Path({str(RAIZ)!r})"),
+    ("sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))",
+     f"sys.path.insert(0, {str(RAIZ / 'precalculo')!r})"),
+]
+
+
+def ensambla_en_copia(fuente: str, tmp: pathlib.Path) -> tuple[int, str]:
+    for viejo, nuevo in RUTAS_DE_LA_COPIA:
+        fuente = fuente.replace(viejo, nuevo)
+    copia = tmp / "ensambla_cap5.py"
+    copia.write_text(fuente, encoding="utf-8")
+    entorno = dict(os.environ, CAP5_DESTINO=str(tmp / "salida.html"),
+                   PYTHONPATH=str(RAIZ / "precalculo"))
+    r = subprocess.run([sys.executable, str(copia)], cwd=RAIZ, env=entorno,
+                       capture_output=True, text=True, timeout=600)
+    return r.returncode, r.stdout + r.stderr
+
+
+def prueba_modulo3() -> tuple[int, list[str], list[str]]:
+    """(cazados, colados, inertes) de los mutantes de las guardas del módulo 3."""
+    fuente = ENSAMBLADOR.read_text(encoding="utf-8")
+    cazados, colados, inertes = 0, [], []
+    for viejo, _ in RUTAS_DE_LA_COPIA:
+        if fuente.count(viejo) != 1:
+            print(f"  MAL  la copia del ensamblador no se puede fijar al árbol: «{viejo}» "
+                  f"aparece {fuente.count(viejo)} veces")
+            return 0, ["la copia"], []
+    if fuente.count(TRAS_LOS_ATAJOS) != 1:
+        print(f"  INERTE  el punto donde se inyectan los datos aparece {fuente.count(TRAS_LOS_ATAJOS)} veces")
+        return 0, [], [m[0] for m in MUTANTES_MODULO3]
+    with tempfile.TemporaryDirectory(prefix="prueba_ensambla_cap5_") as d:
+        tmp = pathlib.Path(d)
+        # Control: la copia sin mutar sale limpia. Si no, un «cazado» no diría nada.
+        cod, sal = ensambla_en_copia(fuente, tmp)
+        if cod != 0:
+            print("  MAL  la copia del ensamblador SIN mutar no sale limpia; los mutantes no medirían nada")
+            print("       " + sal[-400:].replace("\n", "\n       "))
+            return 0, ["el control"], []
+        print("  OK   control: la copia sin mutar ensambla limpia fuera de lo publicado")
+        for nombre, dato, espera in MUTANTES_MODULO3:
+            cod, sal = ensambla_en_copia(fuente.replace(TRAS_LOS_ATAJOS, TRAS_LOS_ATAJOS + dato + "\n"), tmp)
+            linea = next((l.strip() for l in sal.splitlines() if espera in l), None)
+            if cod != 0 and linea:
+                cazados += 1
+                print(f"  OK   mutante «{nombre}» para el ensamblado: {linea[:90]}")
+            else:
+                colados.append(nombre)
+                print(f"  MAL  mutante «{nombre}» NO para el ensamblado (código {cod}; "
+                      f"la salida no dice «{espera}»)")
+    return cazados, colados, inertes
+
+
 def main() -> int:
     if not CAPITULO.exists():
         sys.exit(f"PARADO: no existe {CAPITULO.relative_to(RAIZ)}; ensámblalo con ensambla_cap5.py")
@@ -267,11 +376,21 @@ def main() -> int:
             colados.append(nombre)
             print(f"  MAL  mutante «{nombre}» NO se cazó: la prueba no distingue ese defecto")
 
+    print("\n  Módulo 3: las guardas de la forma de las curvas, rotas de una en una")
+    publicado_antes = CAPITULO.read_bytes()
+    m_cazados, m_colados, m_inertes = prueba_modulo3()
+    if CAPITULO.read_bytes() != publicado_antes:
+        malos.append("el capítulo publicado cambió durante los mutantes: CAP5_DESTINO no lo protegió")
+        print(f"  MAL  {malos[-1]}")
+
     print("\n" + "=" * 70)
-    print(f"  {cazados} de {len(MUTANTES)} mutantes cazados"
+    print(f"  {cazados} de {len(MUTANTES)} mutantes del arranque cazados"
           + (f" · {len(inertes)} inerte(s)" if inertes else "") + (f" · {len(colados)} colado(s)" if colados else ""))
+    print(f"  {m_cazados} de {len(MUTANTES_MODULO3)} mutantes del módulo 3 paran el ensamblado"
+          + (f" · {len(m_inertes)} inerte(s)" if m_inertes else "")
+          + (f" · {len(m_colados)} colado(s)" if m_colados else ""))
     print("=" * 70)
-    ok = not malos and not colados and not inertes
+    ok = not malos and not colados and not inertes and not m_colados and not m_inertes
     return 0 if ok else 1
 
 
