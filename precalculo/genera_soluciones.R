@@ -2539,8 +2539,11 @@ solucion_cap6 <- function() {
   E$e4 <- list(
     titulo = "El estilo que mueve la conclusión",
     enunciado = paste(
+      # El ×1000 va en el código y no solo en las palabras: el enunciado decía
+      # «por mil nacimientos (SID74 / BIR74)», y quien tecleara ese código sacaba
+      # medias de 0.002 donde el E5 publica 2.05 (auditoría del 2026-11-03).
       "Sobre <code>nc</code>, calcula la tasa de muerte súbita infantil por mil nacimientos",
-      "(<code>SID74 / BIR74</code>) y su rezago espacial bajo los cinco estilos de",
+      "(<code>1000 * SID74 / BIR74</code>) y su rezago espacial bajo los cinco estilos de",
       "<code>nb2listw</code>. Da la correlación entre la tasa y su rezago en cada uno.",
       "Contesta: tres de los cinco dan EXACTAMENTE la misma correlación. ¿Cuáles y por qué?"),
     pasos = list(
@@ -2571,6 +2574,16 @@ solucion_cap6 <- function() {
   pond <- function(v) sum(g5 * v) / sum(g5)
   if (!is.symmetric.nb(reina) || abs(pond(wy) - pond(y)) > 1e-10)
     stop("E5: W por filas tendría que conservar la media ponderada por el grado, y no la conserva")
+  # CUÁNTO SE ESTRECHA SÍ DICE ALGO DEL TERRITORIO (2026-11-03). La lectura
+  # decía que el mapa más plano «no dice nada sobre Carolina del Norte», y el
+  # módulo 10 enseña lo contrario un paso más allá: que se estreche no dice
+  # nada, pero CUÁNTO, sí. Con los mismos valores repartidos al azar entre
+  # los condados se mide cuánto se estrecharía sin geografía.
+  set.seed(SEMILLA)
+  contr <- function(v) 100 * (1 - sd(lag.listw(lw, v)) / sd(v))
+  contr_baraja <- replicate(2000L, contr(sample(y)))
+  contr_real <- contr(y)
+  menos <- contr_real < median(contr_baraja)
   E$e5 <- list(
     titulo = "La contracción del rezago",
     enunciado = paste(
@@ -2587,14 +2600,27 @@ solucion_cap6 <- function() {
       list(paso = "Desviación del rezago", valor = r10(sd(wy))),
       list(paso = "Contracción de la desviación (%)",
            valor = r10(100 * (1 - sd(wy) / sd(y)))),
+      list(paso = "Contracción con la tasa repartida al azar (%, mediana de 2 000 repartos)",
+           valor = r10(median(contr_baraja))),
+      list(paso = "Repartos al azar que se estrechan menos que la tasa real (%)",
+           valor = r10(100 * mean(contr_baraja < contr_real))),
       list(paso = "Correlación entre la tasa y su rezago", valor = r10(cor(y, wy)))),
     solucion = list(
       lectura = paste(
-        "El del rezago, y no dice nada sobre Carolina del Norte: promediar contrae. La media de",
-        "varios números queda entre el menor y el mayor de ellos, y el rezago es esa media hecha",
-        "una vez por condado: ningún valor del rezago se sale del rango de la tasa, y la desviación",
-        "cae mucho. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza»",
-        "en el territorio cuando lo que se ha suavizado es la operación. Las medias simples se",
+        "El del rezago, y QUE se vea más plano no dice nada sobre Carolina del Norte: promediar",
+        "contrae. La media de varios números queda entre el menor y el mayor de ellos, y el rezago",
+        "es esa media hecha una vez por condado: ningún valor del rezago se sale del rango de la",
+        "tasa, y la desviación cae mucho. Publicar los dos mapas con la misma escala sugiere que la",
+        "variable «se suaviza» en el territorio cuando lo que se ha suavizado es la operación.",
+        "Lo que sí dice algo del territorio es CUÁNTO se estrecha. Repartida al azar entre los",
+        sprintf("condados, la misma tasa se estrecharía un %.1f %% de mediana; la real, un %.1f %%,",
+                median(contr_baraja), contr_real),
+        if (menos) sprintf(paste("y solo el %.2f %% de los repartos se estrecha menos que ella:",
+                                 "los condados vecinos se parecen, y promediar valores parecidos",
+                                 "los iguala poco."), 100 * mean(contr_baraja < contr_real))
+        else paste("que no es menos que lo que da el azar, así que aquí el mapa más plano tampoco",
+                   "delata que los vecinos se parezcan."),
+        "Las medias simples se",
         "parecen, pero no por obligación: cada condado entra en el promedio de cada uno de sus",
         "vecinos, así que en el rezago no pesan todos igual. Lo que no se mueve nunca, con una",
         "vecindad simétrica como la reina, es la media ponderada por el grado, la que cuenta a cada",

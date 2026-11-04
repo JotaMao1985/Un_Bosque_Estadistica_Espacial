@@ -93,15 +93,16 @@ def carga(var: str, nombre: str):
 #     cache se descarta sola. Una cache que sobrevive a su fuente es un
 #     auditor que aprueba lo que ya no está mirando.
 # =====================================================================
-def reina_municipal(mun, ruta: pathlib.Path) -> dict:
+def reina_municipal(mun, ruta: pathlib.Path, criterio: str = "reina") -> dict:
     st = ruta.stat()
     llave = f"{st.st_size}·{int(st.st_mtime)}·{len(mun)}"
-    f = PRECALCULO / "cache" / "audita_cap6_reina.json"
+    f = PRECALCULO / "cache" / f"audita_cap6_{criterio}.json"
     if f.exists():
         guardado = json.loads(f.read_text(encoding="utf-8"))
         if guardado.get("llave") == llave:
             return {int(k): v for k, v in guardado["vecinos"].items()}
-    v = de_w(weights.Queen.from_dataframe(mun, use_index=True))
+    clase = weights.Queen if criterio == "reina" else weights.Rook
+    v = de_w(clase.from_dataframe(mun, use_index=True))
     f.parent.mkdir(parents=True, exist_ok=True)
     f.write_text(json.dumps({"llave": llave, "vecinos": v}), encoding="utf-8")
     return v
@@ -213,6 +214,67 @@ def pesos_estilo(vecinos: dict, estilo: str) -> np.ndarray:
     raise ValueError(estilo)
 
 
+# =====================================================================
+# LO QUE AÑADIÓ LA AUDITORÍA DE CONTENIDO DEL 2026-11-03
+#
+# Cinco frases del capítulo eran falsas con las cifras bien calculadas: la
+# reina como «la de Anselin», el umbral municipal atribuido a San Andrés,
+# Leticia y Manizales de vecinas, «Moran supone una W simétrica» y la serie
+# de órdenes que «se queda sin sitios». La prosa nueva se apoya en cifras
+# nuevas, y cada una se recalcula aquí por un camino que no pasa por spdep.
+# =====================================================================
+def cuello_mst(d: np.ndarray) -> float:
+    """La arista más larga del árbol generador mínimo (Prim): el umbral
+    mínimo con el que el grafo de distancias queda de una pieza."""
+    n = len(d)
+    dentro = np.zeros(n, dtype=bool)
+    dentro[0] = True
+    mejor = d[0].copy()
+    mx = 0.0
+    for _ in range(n - 1):
+        mejor[dentro] = np.inf
+        j = int(np.argmin(mejor))
+        mx = max(mx, float(mejor[j]))
+        dentro[j] = True
+        mejor = np.minimum(mejor, d[j])
+    return mx
+
+
+def distancias_bfs(vecinos: dict) -> np.ndarray:
+    """La distancia en el grafo entre cada par, por recorridos en anchura."""
+    n = len(vecinos)
+    dist = np.full((n, n), -1, dtype=int)
+    for s in vecinos:
+        dist[s, s] = 0
+        cola = deque([s])
+        while cola:
+            u = cola.popleft()
+            for v in vecinos[u]:
+                if dist[s, v] < 0:
+                    dist[s, v] = dist[s, u] + 1
+                    cola.append(v)
+    return dist
+
+
+def moran_i(y: np.ndarray, Wm: np.ndarray, n_ajustado: int | None = None) -> float:
+    """I = (n / S0) · z'Wz / z'z, con el n que se le diga (el de spdep con
+    `adjust.n = TRUE` descuenta las unidades sin vecinos)."""
+    z = y - y.mean()
+    n = len(y) if n_ajustado is None else n_ajustado
+    return float(n / Wm.sum() * (z @ Wm @ z) / (z @ z))
+
+
+def lee_gal(ruta: pathlib.Path) -> dict:
+    """Un archivo GAL: cabecera, y luego pares de líneas «id n» / «vecinos»."""
+    filas = [l.split() for l in ruta.read_text(encoding="utf-8").splitlines() if l.strip()]
+    vec, k = {}, 1
+    while k < len(filas):
+        i = int(filas[k][0])
+        vec[i] = [int(x) for x in filas[k + 1]] if int(filas[k][1]) > 0 else []
+        k += 2 if int(filas[k][1]) > 0 else 1
+    return vec
+
+
 def main() -> int:  # noqa: C901
     a = Auditoria("Precálculo del capítulo 6 verificado")
     D, p_datos = carga("CAP6_DATOS", "cap6_datos.json")
@@ -284,17 +346,39 @@ def main() -> int:  # noqa: C901
         sim = all(i in vecinos_de(v, j) for i in v for j in v[i])
         a.cierto(sim == p["simetrica"], f"{k}: la simetría publicada es la real",
                  f"real {sim} · publicada {p['simetrica']}")
-    a.salta("esfera: recalculada", "libpysal no trae la esfera de influencia")
+    # LA ESFERA DE INFLUENCIA, POR SU DEFINICIÓN. libpysal no la trae, y
+    # hasta el 2026-11-03 este auditor se conformaba con que su tamaño cayera
+    # «entre Gabriel y Delaunay», que es justo la propiedad que `soi.graph`
+    # fabrica al partir de la triangulación. Ahora se calcula: i y j son
+    # vecinos si d_ij <= r_i + r_j, con r el radio al más próximo. La de spdep
+    # tiene que ser esa misma esfera RESTRINGIDA a Delaunay, y la definición
+    # tiene parejas fuera de Delaunay.
+    r_nn = d.min(axis=1)
+    p_soi = {(i, j) for i in range(len(xy)) for j in range(i + 1, len(xy))
+             if d[i, j] <= r_nn[i] + r_nn[j]}
+    p_del = {tuple(sorted((i, j))) for i in nb_col["delaunay"] for j in nb_col["delaunay"][i]}
+    p_gab = {tuple(sorted((i, j))) for i in nb_col["gabriel"] for j in nb_col["gabriel"][i]}
+    p_soi_del = p_soi & p_del
+    ed = D["m6"]["esfera_definicion"]
     esf = pub["esfera"]
-    a.cierto(pub["gabriel"]["pares"] <= esf["pares"] <= pub["delaunay"]["pares"],
-             "esfera: su tamaño cae entre Gabriel y Delaunay",
-             f"{pub['gabriel']['pares']} ≤ {esf['pares']} ≤ {pub['delaunay']['pares']}")
+    a.igual(len(p_soi), ed["pares"], "esfera por definición: parejas")
+    a.igual(len(p_soi - p_del), ed["fuera_de_delaunay"], "esfera por definición: fuera de Delaunay")
+    a.cierto(len(p_soi - p_del) > 0, "la esfera por definición NO está contenida en Delaunay")
+    a.igual(len(p_soi_del), esf["pares"], "la esfera de spdep es la definición restringida a Delaunay")
+    a.igual(esf["pares"], ed["pares_spdep"], "y el JSON lo publica dos veces igual")
     a.cierto(esf["simetrica"], "esfera: es simétrica, como debe")
+    an = D["m6"]["anidamiento"]
+    a.cierto(an["gabriel_en_esfera"] == (p_gab <= p_soi_del), "¿Gabriel dentro de la esfera?, recalculado",
+             f"publicado {an['gabriel_en_esfera']}")
+    a.cierto(an["esfera_en_gabriel"] == (p_soi_del <= p_gab), "¿la esfera dentro de Gabriel?, recalculado",
+             f"publicado {an['esfera_en_gabriel']}")
 
-    # Las anclas de Anselin, comprobadas también desde este lado.
-    a.igual(resumen(nb_col["reina"])["pares"], 118, "Anselin: reina, 118 parejas")
-    a.igual(resumen(nb_col["reina"])["grado"], 4.8163, "Anselin: reina, grado 4,8163", tol=1e-4)
-    a.igual(resumen(nb_col["torre"])["pares"], 100, "Anselin: torre, 100 parejas")
+    # Las anclas del tablero: la reina y la torre de los POLÍGONOS, que dan
+    # igual poly2nb y libpysal. Hasta el 2026-11-03 se llamaban «de Anselin»,
+    # y la W de Anselin, la GAL de 1988, tiene 116 parejas (sección 3).
+    a.igual(resumen(nb_col["reina"])["pares"], 118, "reina de los polígonos: 118 parejas")
+    a.igual(resumen(nb_col["reina"])["grado"], 4.8163, "reina de los polígonos: grado 4.8163", tol=1e-4)
+    a.igual(resumen(nb_col["torre"])["pares"], 100, "torre de los polígonos: 100 parejas")
 
     # -----------------------------------------------------------------
     a.titulo("3 · Contigüidad: reina, torre y los órdenes")
@@ -303,6 +387,50 @@ def main() -> int:  # noqa: C901
     a.igual(len(p_r - p_t), D["m3"]["solo_reina"],
             "las parejas que solo tiene la reina")
     a.cierto(p_t <= p_r, "y la torre está contenida en la reina")
+    a.igual(100 * len(p_r - p_t) / len(p_r), D["m3"]["pct_esquina"],
+            "qué parte de la reina son esquinas", tol=1e-3)
+    # LOS ÓRDENES, HASTA EL DIÁMETRO, por distancias en el grafo. `nblag`
+    # cuenta el orden k como los que están a distancia EXACTAMENTE k: es lo
+    # mismo que un recorrido en anchura, sin pasar por spdep.
+    dist_r = distancias_bfs(nb_col["reina"])
+    sup = dist_r[np.triu_indices(len(dist_r), 1)]
+    a.cierto(bool((sup > 0).all()), "la reina de Columbus es conexa (toda pareja tiene distancia)")
+    por_orden = np.bincount(sup)[1:]
+    a.igual(len(por_orden), D["m3"]["diametro"], "el diámetro de la reina")
+    a.igual(len(D["m3"]["ordenes"]), D["m3"]["diametro"], "se publica un orden por cada paso del diámetro")
+    a.igual(len(sup), D["m3"]["parejas_posibles"], "las parejas posibles, n(n − 1)/2")
+    acum = np.cumsum(por_orden)
+    for o in D["m3"]["ordenes"]:
+        k = o["orden"]
+        a.igual(por_orden[k - 1], o["pares"], f"orden {k}: parejas (BFS)")
+        a.igual(acum[k - 1], o["acumuladas"], f"orden {k}: acumuladas")
+        a.igual(100 * acum[k - 1] / len(sup), o["pct_acumulado"], f"orden {k}: % acumulado", tol=1e-3)
+    cima = int(np.argmax(por_orden)) + 1
+    a.cierto(cima == 3, "la serie hace cima en el orden 3, que es lo que el módulo lee", f"cima en {cima}")
+    # LA GAL DE ANSELIN no está en Python (es el `COL.nb` de spdep), así que
+    # se comprueba lo que se puede: que sus cuentas cuadren con la reina, y
+    # que el otro generador, el de la animación, publique las mismas parejas.
+    g = D["m3"]["gal"]
+    a.igual(g["pares"], D["m3"]["reina"]["pares"] - g["solo_reina"] + g["solo_gal"],
+            "GAL: reina − las que solo tiene la reina + las que solo tiene la GAL")
+    a.igual(g["enlaces"], 2 * g["pares"], "GAL: es simétrica, enlaces = 2 · parejas")
+    a.igual(g["grado"], g["enlaces"] / D["m1"]["columbus"]["n"], "GAL: grado medio", tol=1e-4)
+    a.cierto(g["solo_reina_esquinas"] <= min(g["solo_reina"], D["m3"]["solo_reina"]),
+             "GAL: las esquinas que le faltan no son más que las que tiene la reina")
+    RS = json.loads((SALIDAS / "cap6_rezago2d_resumen.json").read_text(encoding="utf-8"))
+    a.igual(g["pares"], RS["parejas_gal"], "GAL: las mismas parejas que publica la animación")
+    # La biblioteca de R del usuario o la del sistema, la que la tenga.
+    gal_sp = next((f for raiz, patron in (
+        (pathlib.Path.home() / "Library" / "R", "*/*/library/spData/weights/columbus.gal"),
+        (pathlib.Path("/Library/Frameworks/R.framework/Versions"),
+         "*/Resources/library/spData/weights/columbus.gal"))
+        if raiz.exists() for f in raiz.glob(patron)), None)
+    if gal_sp is None:
+        a.salta("el columbus.gal de spData", "no está instalado en esta máquina")
+    else:
+        vg = lee_gal(gal_sp)
+        a.igual(len({tuple(sorted((i, j))) for i in vg for j in vg[i]}), g["pares_spdata"],
+                "el columbus.gal de spData: parejas, leído del archivo")
     mun_q = reina_municipal(mun, PROCESADO / "colombia_adm2.gpkg")
     rm = resumen(mun_q)
     a.igual(rm["pares"], D["m3"]["municipios"]["reina"]["pares"],
@@ -312,6 +440,13 @@ def main() -> int:  # noqa: C901
     a.igual(rm["islas"], D["m3"]["municipios"]["reina"]["islas"], "municipios reina: islas")
     a.igual(rm["subgrafos"], D["m3"]["municipios"]["reina"]["subgrafos"],
             "municipios reina: subgrafos")
+    mun_t = reina_municipal(mun, PROCESADO / "colombia_adm2.gpkg", "torre")
+    pm_r = {tuple(sorted((i, j))) for i in mun_q for j in mun_q[i]}
+    pm_t = {tuple(sorted((i, j))) for i in mun_t for j in mun_t[i]}
+    a.igual(len(pm_t), D["m3"]["municipios"]["torre"]["pares"], "municipios torre: parejas")
+    a.igual(len(pm_r - pm_t), D["m3"]["municipios"]["solo_reina"], "municipios: las que solo tiene la reina")
+    a.igual(100 * len(pm_r - pm_t) / len(pm_r), D["m3"]["municipios"]["pct_esquina"],
+            "municipios: qué parte de la reina son esquinas", tol=1e-3)
 
     # -----------------------------------------------------------------
     a.titulo("4 · k vecinos: siempre k, y la simetría rota")
@@ -323,6 +458,18 @@ def main() -> int:  # noqa: C901
         a.cierto(p["simetrica"] is False, f"k={k}: se publica como asimétrica")
     a.cierto(all(p["grado"] == p["k"] for p in D["m4"]["columbus"]),
              "todas las k dan grado k, que es el punto")
+    # Moran con la W de k = 3 tal como viene, y simetrizada antes: la prosa
+    # decía que Moran «supone una W simétrica», y las dos cifras difieren.
+    v3 = de_w(weights.KNN.from_dataframe(col, k=3, use_index=True))
+    mk = D["m4"]["moran_k3"]
+    I_asim = moran_i(crime_de(col), pesos_estilo(v3, "W"))
+    I_sim = moran_i(crime_de(col), pesos_estilo(simetrizar(v3), "W"))
+    a.igual(I_asim, mk["asimetrica"], "Moran con k = 3 sin simetrizar", tol=1e-4)
+    a.igual(I_sim, mk["simetrizada"], "Moran con k = 3 simetrizada", tol=1e-4)
+    a.cierto(abs(I_asim - I_sim) > 0.01, "simetrizar cambia el índice", f"{I_asim:.4f} frente a {I_sim:.4f}")
+    Wr = pesos_estilo(nb_col["reina"], "W")
+    a.cierto(mk["reina_por_filas_simetrica"] == bool(np.allclose(Wr, Wr.T)),
+             "la reina por filas no es simétrica, y así se publica")
 
     # -----------------------------------------------------------------
     a.titulo("5 · Umbral de distancia, e islas")
@@ -350,6 +497,84 @@ def main() -> int:  # noqa: C901
     a.cierto(mm["en_el_umbral"]["grado"] > 100,
              "y su grado medio lo hace impublicable",
              f"{mm['en_el_umbral']['grado']}")
+
+    # EL UMBRAL QUE CONECTA COLUMBUS: la arista más larga del árbol
+    # generador mínimo. La prosa decía «hace falta subir hasta 0.7426», que
+    # es solo el punto siguiente del barrido.
+    c5 = D["m5"]["columbus"]
+    u_con = cuello_mst(np.where(np.isinf(d), 0.0, d))
+    a.igual(u_con, c5["umbral_conexo"], "Columbus: el umbral mínimo que conecta", tol=1e-3)
+    rc = resumen(banda(d, u_con))
+    a.igual(rc["subgrafos"], 1, "Columbus: en ese umbral, una sola pieza")
+    a.igual(rc["subgrafos"], c5["en_el_conexo"]["subgrafos"], "y así se publica")
+    a.igual(rc["pares"], c5["en_el_conexo"]["pares"], "Columbus: parejas en el umbral conexo")
+    a.igual(rc["grado"], c5["en_el_conexo"]["grado"], "Columbus: grado en el umbral conexo", tol=1e-4)
+    a.cierto(resumen(banda(d, u_con * (1 - 1e-9)))["subgrafos"] > 1,
+             "Columbus: justo por debajo, más de una pieza")
+    a.cierto(c5["umbral_sin_islas"] < c5["umbral_conexo"] < c5["curva"][4]["umbral"],
+             "el conexo cae entre el sin islas y el punto siguiente del barrido")
+
+    # QUIÉN FIJA EL UMBRAL MUNICIPAL, y lo que pasa con el archipiélago. La
+    # prosa lo atribuía a San Andrés, y es de Puerto Carreño.
+    cen_m = mun.geometry.centroid
+    xym = np.c_[cen_m.x, cen_m.y]
+    dm = np.sqrt(((xym[:, None, :] - xym[None, :, :]) ** 2).sum(-1))
+    np.fill_diagonal(dm, np.inf)
+    nn_m = dm.min(axis=1)
+    nom = mun["municipio"].to_numpy()
+    dep = mun["departamento"].to_numpy()
+    i_f = int(np.argmax(nn_m))
+    fu = mm["fija_el_umbral"]
+    a.igual(nn_m.max() / 1000, mm["umbral_sin_islas_km"], "municipios: el umbral sin islas, en km", tol=1e-3)
+    a.cierto(nom[i_f] == fu["municipio"] and dep[i_f] == fu["departamento"],
+             "lo fija el municipio que se publica", f"{nom[i_f]} ({dep[i_f]})")
+    a.cierto(nom[int(np.argmin(dm[i_f]))] == fu["vecino"], "y su vecino más próximo es el publicado",
+             nom[int(np.argmin(dm[i_f]))])
+    a.igual(nn_m[i_f] / 1000, fu["km"], "a esa distancia", tol=1e-3)
+    sa = int(np.where(np.array([len(mun_q[i]) for i in mun_q]) == 0)[0][0])
+    a.cierto(nom[sa] == mm["san_andres"]["municipio"] == D["m9"]["islas_nombre"][0],
+             "la primera isla de la reina es San Andrés", nom[sa])
+    sam = mm["san_andres"]
+    a.cierto(nom[int(np.argmin(dm[sa]))] == sam["vecino"], "el vecino más próximo de San Andrés",
+             nom[int(np.argmin(dm[sa]))])
+    a.igual(nn_m[sa] / 1000, sam["vecino_km"], "y a qué distancia", tol=1e-3)
+    a.cierto(nn_m[sa] < nn_m.max(), "San Andrés NO es quien fija el umbral")
+    en_u = np.where(dm[sa] <= nn_m.max())[0]
+    a.cierto(set(nom[en_u]) == {sam["vecinos_en_el_umbral"]} if isinstance(sam["vecinos_en_el_umbral"], str)
+             else set(nom[en_u]) == set(sam["vecinos_en_el_umbral"]),
+             "en el umbral, San Andrés solo tiene a los vecinos publicados", str(sorted(set(nom[en_u]))))
+    arch = dep == dep[sa]
+    costa = np.where(~arch)[0]
+    dc = dm[np.ix_(np.where(arch)[0], costa)]
+    jc = costa[np.unravel_index(np.argmin(dc), dc.shape)[1]]
+    a.cierto(nom[jc] == sam["costa"] and dep[jc] == sam["costa_departamento"],
+             "el municipio de la costa más cercano al archipiélago", f"{nom[jc]} ({dep[jc]})")
+    a.igual(dc.min() / 1000, sam["costa_km"], "y su distancia", tol=1e-3)
+    d0 = np.where(np.isinf(dm), 0.0, dm)
+    a.igual(cuello_mst(d0[np.ix_(~arch, ~arch)]) / 1000, mm["umbral_conecta_continente_km"],
+            "el umbral que conecta el continente", tol=1e-3)
+    a.igual(cuello_mst(d0) / 1000, mm["umbral_conecta_todo_km"], "el que conecta todo, archipiélago incluido",
+            tol=1e-3)
+    il = int(np.where((nom == "Leticia") & (dep == "Amazonas"))[0][0])
+    im = int(np.where((nom == "Manizales") & (dep == "Caldas"))[0][0])
+    lm = mm["leticia_manizales"]
+    grado_u = (dm <= nn_m.max()).sum(axis=1)
+    a.igual(dm[il, im] / 1000, lm["km"], "Leticia–Manizales, en km", tol=1e-3)
+    a.cierto(lm["vecinas"] == bool(dm[il, im] <= nn_m.max()), "¿vecinas en esa W?, recalculado",
+             f"publicado {lm['vecinas']}")
+    a.igual(grado_u[il], lm["grado_leticia"], "los vecinos de Leticia en esa W")
+    a.igual(grado_u[im], lm["grado_manizales"], "los de Manizales")
+    a.igual(grado_u.max(), mm["en_el_umbral"]["grado_max"], "el más conectado: su grado")
+    a.cierto(nom[int(np.argmax(grado_u))] == mm["mas_conectado"]["municipio"]
+             and int(grado_u.max()) == mm["mas_conectado"]["grado"],
+             "y quién es", f"{nom[int(np.argmax(grado_u))]} con {int(grado_u.max())}")
+    # San Andrés con k = 4: a qué distancia lo une el criterio con la costa
+    sk = D["m4"]["san_andres_k4"]
+    v4 = np.argsort(dm[sa])[:4]
+    dk = dm[sa, v4][dep[v4] != dep[sa]] / 1000
+    a.igual(len(dk), sk["vecinos_costa"], "k = 4: vecinos de San Andrés en la costa")
+    a.igual(dk.min(), sk["costa_min_km"], "k = 4: el más cercano, en km", tol=1e-3)
+    a.igual(dk.max(), sk["costa_max_km"], "k = 4: el más lejano, en km", tol=1e-3)
 
     # -----------------------------------------------------------------
     a.titulo("6 · Vecindades geométricas y su anidamiento")
@@ -395,6 +620,8 @@ def main() -> int:  # noqa: C901
     grados = np.array([len(nb_col["reina"][i]) for i in nb_col["reina"]])
     a.igual(grados[i_max], D["m7"]["unidad_max"]["grado"], "la unidad de más vecinos")
     a.igual(grados[i_min], D["m7"]["unidad_min"]["grado"], "la de menos")
+    a.igual(grados[i_max] / grados[i_min], D["m7"]["razon_w"],
+            "cuántas veces pesa más, con W, el vecino de la de menos", tol=1e-4)
     for e in ("B", "W", "S", "C", "U"):
         Wm = pesos_estilo(nb_col["reina"], e)
         p = pube[e]
@@ -444,6 +671,8 @@ def main() -> int:  # noqa: C901
              "el mensaje de R menciona zero.policy",
              (D["m9"]["error_sin_zero_policy"] or "")[:40])
     a.igual(D["m9"]["lag_isla"], 0.0, "el rezago de una isla vale cero")
+    a.salta("nb2listw se niega también con el estilo B",
+            "es un comportamiento de spdep, no una cifra; lo mide el generador")
 
     # -----------------------------------------------------------------
     a.titulo("10 · El rezago sobre la deserción")
@@ -473,6 +702,40 @@ def main() -> int:  # noqa: C901
     a.cierto(abs(wy[con].mean() - y[con].mean()) > 1e-3,
              "la media simple sí se mueve: no «tiene que» coincidir",
              f"{y[con].mean():.4f} → {wy[con].mean():.4f}")
+    a.igual(int(con.sum()), D["m10"]["n_con_vecinos"], "municipios con dato y con vecinos")
+
+    # QUÉ LE HACE EL CERO DE LAS ISLAS A LOS RESÚMENES (módulo 9). La prosa
+    # decía que los tira todos hacia abajo; la correlación sube. Moran, con el
+    # n de spdep: `adjust.n = TRUE` descuenta las unidades sin vecinos.
+    ec = D["m9"]["efecto_cero"]
+    islas_sub = np.where(~con)[0]
+    for k_, (calc, publ) in enumerate(zip(y[islas_sub], ec["desercion_islas"]), 1):
+        a.igual(calc, publ, f"la deserción de la isla {k_}", tol=1e-4)
+    a.igual(y.mean(), ec["media_y"], "la media de la deserción", tol=1e-4)
+    a.igual(wy.mean(), ec["media_wy_con_ceros"], "media de Wy con el cero de las islas", tol=1e-4)
+    a.igual(wy[con].mean(), ec["media_wy_sin_islas"], "media de Wy sin las islas", tol=1e-4)
+    a.igual(np.corrcoef(y, wy)[0, 1], ec["cor_con_ceros"], "cor(y, Wy) con el cero", tol=1e-4)
+    a.igual(np.corrcoef(y[con], wy[con])[0, 1], ec["cor_sin_islas"], "cor(y, Wy) sin las islas", tol=1e-4)
+    a.cierto(ec["cor_con_ceros"] > ec["cor_sin_islas"], "con este dato, el cero SUBE la correlación")
+    a.igual(moran_i(y, Wsub, int(con.sum())), ec["moran_con_islas"], "Moran con las islas (adjust.n)",
+            tol=1e-5)
+    a.igual(moran_i(y, Wsub), ec["moran_con_islas_sin_ajuste"], "Moran con las islas (sin ajuste)", tol=1e-5)
+    a.igual(moran_i(y[con], Wsub[np.ix_(con, con)]), ec["moran_sin_islas"], "Moran sin las islas", tol=1e-5)
+
+    # LA MISMA CORRELACIÓN CON OTRAS W (módulo 10): torre, k = 4 y 30 km.
+    def cor_w(vec_todos):
+        nbs = {i: [idx[j] for j in vec_todos[v] if j in idx] for i, v in enumerate(sub)}
+        Ws = pesos_estilo(nbs, "W")
+        w_ = Ws @ y
+        cv = np.array([len(nbs[i]) for i in nbs]) > 0
+        return float(np.corrcoef(y[cv], w_[cv])[0, 1]), int((~cv).sum())
+    knn4 = {i: [int(j) for j in np.argsort(dm[i])[:4]] for i in range(len(dm))}
+    b30 = {i: [int(j) for j in np.where(dm[i] <= 30000.0)[0]] for i in range(len(dm))}
+    ow = D["m10"]["otras_w"]
+    for clave, vec_t in (("torre", mun_t), ("k4", knn4), ("umbral_30km", b30)):
+        r_, sv = cor_w(vec_t)
+        a.igual(r_, ow[clave]["correlacion"], f"correlación con la W {clave}", tol=1e-4)
+        a.igual(sv, ow[clave]["sin_vecinos"], f"municipios sin vecinos con la W {clave}")
 
     # El módulo dice que el I de Moran del capítulo 7 es la PENDIENTE de Wy
     # sobre y —no su correlación— cuando W va por filas. Es una identidad,
