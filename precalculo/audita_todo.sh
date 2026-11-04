@@ -16,6 +16,7 @@
 #   6. audita_texto_*.py    — las cifras de la prosa, incluidas las de KaTeX
 #   7. prueba_texto.py      — le inyecta defectos al auditor de prosa
 #   8. cuenta_sitio.py      — los totales, contados y no recordados (y los de la portada)
+#   9. calendario_portada.py — el calendario del proyecto en la portada, desde datos.py
 #   (y, desde el 2026-10-01, la matemática de las animaciones contra R)
 #
 # Los TALLERES corren por un bucle propio (C8 del Taller 1): no son
@@ -299,6 +300,16 @@ paso "pon_boton_indice.py — el botón al índice, en todas las páginas" \
 # `--prueba` se las rompe antes a sí misma: cuesta lo mismo que contarlas.
 paso "cuenta_sitio.py — los totales, y las cifras de la portada" \
      python3 precalculo/cuenta_sitio.py --prueba
+
+# El calendario de entregas del proyecto en la portada (2026-11-04): lo escribe
+# `calendario_portada.py` desde `proyecto/datos.py`, con su .ics. Aquí se regenera
+# en memoria y se compara, se comprueba por su cuenta cada día de la semana, y con
+# `--prueba` se rompe a sí mismo, incluido el caso de un datos.py que cambia sin
+# que nadie regenere la portada.
+if [ -f "precalculo/calendario_portada.py" ]; then
+  paso "calendario_portada.py --revisar — el calendario de la portada y el .ics, al día con datos.py" \
+       python3 precalculo/calendario_portada.py --revisar --prueba
+fi
 
 echo ""
 echo "================================================================"

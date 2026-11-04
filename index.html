@@ -240,6 +240,222 @@
     .corte-rotulo .corte-semanas { color: #FF6600; font-weight: 700; font-size: 0.85rem; }
     .corte-rotulo .corte-lema { color: #64748B; font-size: 0.85rem; font-style: italic; }
 
+    /* ------------------------------------------------------------------
+       El calendario del proyecto integrador
+       ------------------------------------------------------------------
+       Va ARRIBA de los cortes y no dentro del III: no es material, es lo
+       que hay que entregar y cuándo, y quien abre la portada en las
+       semanas 13 a 16 viene a buscar eso antes que un capítulo. Su HTML
+       lo escribe `precalculo/calendario_portada.py` desde
+       `proyecto/datos.py`; aquí solo está su forma.
+
+       En el teléfono es una línea de tiempo vertical: la fecha a la
+       izquierda y una raya que la une con la siguiente. Desde 1024 px,
+       cinco columnas con la raya en horizontal. Las dos rayas son el
+       `::before` de cada hito menos el último, y por eso cruzan el
+       hueco del `gap` (1rem) hasta la fecha del siguiente.
+
+       Sin JavaScript el calendario se lee entero. El guion del final
+       solo AÑADE: marca qué entregas cerraron, cuál es la próxima y
+       cuántos días faltan, con la hora de Bogotá y no la del equipo. */
+    .calendario {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .hito {
+      position: relative;
+      display: grid;
+      grid-template-columns: 3.5rem minmax(0, 1fr);
+      gap: 0 1rem;
+    }
+
+    .hito:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 1.75rem;
+      top: 3.5rem;
+      bottom: -1rem;
+      width: 2px;
+      margin-left: -1px;
+      background: #CBD5E1;
+    }
+
+    .hito-fecha {
+      position: relative;
+      z-index: 1;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      background: linear-gradient(140deg, #012820 0%, #FF6600 100%);
+      box-shadow: 0 6px 16px rgba(1, 40, 32, 0.25);
+    }
+
+    .hito-dia { font-size: 1.4rem; font-weight: 800; line-height: 1; }
+    .hito-dia.doble { font-size: 0.85rem; letter-spacing: -0.01em; }
+    .hito-mes {
+      margin-top: 0.2rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    .hito-cuerpo {
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      padding: 0.95rem 1.1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .hito-semana {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #C2410C;
+    }
+
+    .hito-nombre { color: #012820; font-weight: 700; font-size: 1rem; line-height: 1.3; }
+    .hito-cierre { font-size: 0.85rem; font-weight: 600; color: #1E293B; line-height: 1.45; }
+    .hito-que { font-size: 0.85rem; color: #475569; line-height: 1.55; flex-grow: 1; }
+    .hito-nota { font-size: 0.75rem; color: #64748B; line-height: 1.45; }
+
+    .hito-pie {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem 0.75rem;
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      color: #64748B;
+    }
+
+    .hito-pie code { color: #012820; font-weight: 600; }
+
+    .hito-peso {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #012820;
+      background: rgba(255, 102, 0, 0.12);
+      border: 1px solid rgba(255, 102, 0, 0.3);
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    /* Lo que pone el guion: la píldora de estado de cada hito y la frase
+       de arriba. Ninguna de las dos existe sin JavaScript. Sin transiciones
+       a propósito: el estado se pinta al cargar, y una transición lo haría
+       destellar en cada visita. La píldora SÍ parte línea, al revés que
+       `.tarjeta-semana`: a 1024 px la columna deja ~145 px y «Próxima ·
+       faltan 6 días» no cabe en una. */
+    .hito-estado {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      max-width: 100%;
+      margin-bottom: 0.15rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1.35;
+      padding: 0.2rem 0.6rem;
+      border-radius: 0.75rem;
+    }
+
+    .hito[data-estado="cerro"] .hito-estado { color: #475569; background: #E2E8F0; }
+    .hito[data-estado="proxima"] .hito-estado { color: #fff; background: #012820; }
+
+    .hito[data-estado="proxima"] .hito-estado::before {
+      content: '';
+      width: 0.45rem;
+      height: 0.45rem;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: #FF6600;
+      animation: hito-pulso 1.8s ease-in-out infinite;
+    }
+
+    @keyframes hito-pulso { 50% { box-shadow: 0 0 0 4px rgba(255, 102, 0, 0.35); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hito[data-estado="proxima"] .hito-estado::before { animation: none; }
+    }
+
+    .hito[data-estado="cerro"] .hito-fecha { background: #94A3B8; box-shadow: none; }
+    .hito[data-estado="cerro"]::before { background: #94A3B8; }
+    .hito[data-estado="cerro"] .hito-cuerpo { background: #F8FAFC; box-shadow: none; }
+    .hito[data-estado="cerro"] .hito-nombre { color: #475569; }
+
+    .hito[data-estado="proxima"] .hito-fecha {
+      box-shadow: 0 0 0 4px rgba(255, 102, 0, 0.25), 0 6px 16px rgba(1, 40, 32, 0.25);
+    }
+
+    .hito[data-estado="proxima"] .hito-cuerpo {
+      border-color: rgba(255, 102, 0, 0.55);
+      box-shadow: 0 12px 32px rgba(255, 102, 0, 0.14);
+    }
+
+    .calendario-hoy {
+      margin-bottom: 1.25rem;
+      padding: 0.75rem 1rem;
+      border-left: 4px solid #FF6600;
+      border-radius: 0.5rem;
+      background: #fff;
+      font-size: 0.9rem;
+      color: #1E293B;
+      line-height: 1.5;
+    }
+
+    .calendario-reglas {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: #475569;
+      line-height: 1.6;
+    }
+
+    .calendario-reglas p { max-width: 80ch; }
+    .calendario-reglas p + p { margin-top: 0.6rem; }
+    .calendario-reglas strong { color: #1E293B; }
+
+    .calendario-enlaces {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 2rem;
+      margin-top: 1rem !important;
+    }
+
+    @media (min-width: 1024px) {
+      .calendario { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .hito { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 0.9rem 0; }
+      /* En columnas de ~200 px el peso y la etiqueta caben juntos en unas
+         tarjetas y no en otras: apilados siempre, los pies quedan iguales. */
+      .hito-pie { flex-direction: column; align-items: flex-start; }
+      .hito:not(:last-child)::before {
+        left: 3.5rem;
+        right: -1rem;
+        top: 1.75rem;
+        bottom: auto;
+        width: auto;
+        height: 2px;
+        margin: -1px 0 0 0;
+      }
+    }
+
     a:focus-visible { outline: 3px solid rgba(255, 102, 0, 0.6); outline-offset: 3px; }
 
     ::-webkit-scrollbar { width: 9px; }
@@ -292,6 +508,101 @@
   </section>
 
   <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12" id="contenido">
+
+    <!-- CALENDARIO-PROYECTO · lo escribe precalculo/calendario_portada.py desde proyecto/datos.py: no se edita a mano -->
+    <section class="mb-12" id="calendario-proyecto" aria-labelledby="calendario-proyecto-titulo">
+      <div class="corte-rotulo">
+        <h2 id="calendario-proyecto-titulo">Calendario del proyecto integrador</h2>
+        <span class="corte-semanas">Semanas 13–16</span>
+        <span class="corte-lema">Cuatro entregas por release en GitHub y una exposición en clase. El proyecto
+          vale el 50&nbsp;% del Corte III.</span>
+      </div>
+      <ol class="calendario">
+        <li class="hito" data-hito="ficha" data-limite="2026-10-27T11:00:00-05:00">
+          <div class="hito-fecha" aria-hidden="true"><span class="hito-dia">27</span><span
+              class="hito-mes">oct</span></div>
+          <div class="hito-cuerpo">
+            <p class="hito-semana">Hito 1 · semana 13</p>
+            <h3 class="hito-nombre">Ficha del tema</h3>
+            <p class="hito-cierre">Cierra el <time datetime="2026-10-27T11:00:00-05:00">martes 27 de octubre a las
+                11:00</time></p>
+            <p class="hito-que">Una ficha de unas 150 palabras: territorio, unidades, fuentes y pregunta.</p>
+            <p class="hito-nota">La respuesta llega el jueves 29 de octubre, en clase.</p>
+            <p class="hito-pie"><span class="hito-peso">Sin nota</span><span>release
+                <code>ficha</code></span></p>
+          </div>
+        </li>
+        <li class="hito" data-hito="preregistro" data-limite="2026-11-03T11:00:00-05:00">
+          <div class="hito-fecha" aria-hidden="true"><span class="hito-dia">3</span><span
+              class="hito-mes">nov</span></div>
+          <div class="hito-cuerpo">
+            <p class="hito-semana">Hito 2 · semana 14</p>
+            <h3 class="hito-nombre">Preregistro</h3>
+            <p class="hito-cierre">Cierra el <time datetime="2026-11-03T11:00:00-05:00">martes 3 de noviembre a las
+                11:00</time></p>
+            <p class="hito-que">El protocolo de inferencia espacial, congelado antes de calcular un solo Moran.</p>
+            <p class="hito-pie"><span class="hito-peso">15&nbsp;% del proyecto</span><span>release
+                <code>preregistro</code></span></p>
+          </div>
+        </li>
+        <li class="hito" data-hito="avance" data-limite="2026-11-10T11:00:00-05:00">
+          <div class="hito-fecha" aria-hidden="true"><span class="hito-dia">10</span><span
+              class="hito-mes">nov</span></div>
+          <div class="hito-cuerpo">
+            <p class="hito-semana">Hito 3 · semana 15</p>
+            <h3 class="hito-nombre">Avance</h3>
+            <p class="hito-cierre">Cierra el <time datetime="2026-11-10T11:00:00-05:00">martes 10 de noviembre a las
+                11:00</time></p>
+            <p class="hito-que">La unión verificada, el mapa exploratorio y la W construida y descrita.</p>
+            <p class="hito-pie"><span class="hito-peso">10&nbsp;% del proyecto</span><span>release
+                <code>avance</code></span></p>
+          </div>
+        </li>
+        <li class="hito" data-hito="informe" data-limite="2026-11-15T11:00:00-05:00">
+          <div class="hito-fecha" aria-hidden="true"><span class="hito-dia">15</span><span
+              class="hito-mes">nov</span></div>
+          <div class="hito-cuerpo">
+            <p class="hito-semana">Hito 4 · semana 15</p>
+            <h3 class="hito-nombre">Informe y código</h3>
+            <p class="hito-cierre">Cierra el <time datetime="2026-11-15T11:00:00-05:00">domingo 15 de noviembre a las
+                11:00</time></p>
+            <p class="hito-que">El informe, el código que lo produce y los datos.</p>
+            <p class="hito-pie"><span class="hito-peso">45&nbsp;% del proyecto</span><span>release
+                <code>informe</code></span></p>
+          </div>
+        </li>
+        <li class="hito" data-hito="exposicion" data-desde="2026-11-17T00:00:00-05:00" data-limite="2026-11-20T00:00:00-05:00">
+          <div class="hito-fecha" aria-hidden="true"><span class="hito-dia doble">17 o 19</span><span
+              class="hito-mes">nov</span></div>
+          <div class="hito-cuerpo">
+            <p class="hito-semana">Semana 16</p>
+            <h3 class="hito-nombre">Exposición</h3>
+            <p class="hito-cierre">En clase, el <time datetime="2026-11-17">martes 17</time> o el
+              <time datetime="2026-11-19">jueves 19 de noviembre</time></p>
+            <p class="hito-que">10 minutos por equipo y 5 de
+              preguntas. El día exacto se acuerda en clase.</p>
+            <p class="hito-pie"><span class="hito-peso">30&nbsp;% del
+                proyecto</span><span>sin release</span></p>
+          </div>
+        </li>
+      </ol>
+      <div class="calendario-reglas">
+        <p>Las cuatro entregas cierran a las <strong>11:00, hora de Colombia</strong>, y se entregan
+          como una release del repositorio del proyecto en GitHub, con la etiqueta que dice su tarjeta: cuenta la hora en que GitHub publica la
+          release. Por cada sesión de retraso se descuenta el 15&nbsp;% de la nota que
+          habría tenido la entrega a tiempo; la ficha no tiene nota, y la exposición no se puede atrasar.</p>
+        <p>Son las mismas fechas y la misma hora que las del proyecto de Series de Tiempo, así que la opción
+          conjunta no mueve ninguna. Si tienes un acuerdo individual por escrito con el docente, valen las
+          fechas de tu acuerdo.</p>
+        <p class="calendario-enlaces">
+          <a class="tarjeta-abrir" href="Htmls_Espacial/proyecto-integrador-corte-iii.html">Qué lleva cada entrega, en la guía <i
+              class="fas fa-arrow-right" aria-hidden="true"></i></a>
+          <a class="tarjeta-abrir" href="Htmls_Espacial/proyecto-integrador-calendario.ics">Añadir las cuatro entregas a tu calendario <i
+              class="fas fa-calendar-plus" aria-hidden="true"></i></a>
+        </p>
+      </div>
+    </section>
+    <!-- /CALENDARIO-PROYECTO -->
 
     <section class="mb-12">
       <div class="corte-rotulo">
@@ -785,6 +1096,103 @@
       </div>
     </div>
   </footer>
+
+  <!-- El calendario del proyecto: qué entregas cerraron, cuál es la próxima y
+       cuántos días faltan. Lee los `data-limite` que escribe
+       precalculo/calendario_portada.py y no lleva ninguna fecha propia. Los días
+       se cuentan en la hora de Bogotá (UTC−5, sin horario de verano) y no en la
+       del equipo de quien abre la página: a las 23:00 del lunes en Madrid ya es
+       martes, y «cierra hoy» sería mentira en Bogotá. -->
+  <script>
+    (function () {
+      var lista = document.querySelector('#calendario-proyecto .calendario');
+      if (!lista) return;
+      var hitos = Array.prototype.slice.call(lista.querySelectorAll('.hito[data-limite]'));
+      var BOGOTA = 5 * 3600 * 1000;
+
+      function diaBogota(ms) { return new Date(ms - BOGOTA).toISOString().slice(0, 10); }
+      function diasEntre(a, b) { return Math.round((Date.parse(b) - Date.parse(a)) / 864e5); }
+      function limpio(el) { return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; }
+
+      // Cuánto falta, dicho en días de calendario: el avance del martes a las
+      // 11:00 «cierra mañana» todo el lunes, y no «falta 1 día» solo desde las 11.
+      function cuenta(hoy, dia, verbo) {
+        var n = diasEntre(hoy, dia);
+        if (n <= 0) return verbo + ' hoy';
+        if (n === 1) return verbo + ' mañana';
+        return 'faltan ' + n + ' días';
+      }
+
+      function pinta(ahora) {
+        var hoy = diaBogota(ahora), proxima = null, cola = '';
+        hitos.forEach(function (li) {
+          var expo = li.dataset.hito === 'exposicion';
+          var estado = ahora >= Date.parse(li.dataset.limite) ? 'cerro' : (proxima ? 'despues' : 'proxima');
+          li.dataset.estado = estado;
+          var pill = li.querySelector('.hito-estado');
+          if (estado === 'despues') { if (pill) pill.remove(); return; }
+          if (!pill) {
+            pill = document.createElement('p');
+            pill.className = 'hito-estado';
+            li.querySelector('.hito-cuerpo').prepend(pill);
+          }
+          if (estado === 'cerro') { pill.textContent = expo ? 'Ya pasó' : 'Cerró'; return; }
+          proxima = li;
+          if (expo && ahora >= Date.parse(li.dataset.desde)) cola = 'esta semana';
+          else if (expo) cola = cuenta(hoy, li.dataset.desde.slice(0, 10), 'desde');
+          else cola = cuenta(hoy, li.dataset.limite.slice(0, 10), 'cierra');
+          pill.textContent = 'Próxima · ' + cola;
+        });
+        frase(proxima, cola);
+      }
+
+      // Lo que la frase de arriba añade después de la fecha, que ya está dicha:
+      // «Faltan 6 días.», «Es mañana.», y para la exposición, que tiene dos días
+      // posibles, cuánto falta para el PRIMERO.
+      function remate(cola, expo) {
+        if (cola === 'esta semana') return 'Es esta semana.';
+        if (cola.indexOf('faltan') === 0) {
+          return 'F' + cola.slice(1) + (expo ? ' para la primera de las dos clases.' : '.');
+        }
+        var manana = / mañana$/.test(cola);
+        if (expo) return manana ? 'La primera de las dos clases es mañana.' : 'La primera de las dos clases es hoy.';
+        return manana ? 'Es mañana.' : 'Es hoy.';
+      }
+
+      // La frase de arriba: lo mismo que las píldoras, en una oración que se
+      // lee sin mirar el dibujo (y que un lector de pantalla oye primero).
+      function frase(li, cola) {
+        var p = document.querySelector('#calendario-proyecto .calendario-hoy');
+        if (!p) {
+          p = document.createElement('p');
+          p.className = 'calendario-hoy';
+          lista.parentNode.insertBefore(p, lista);
+        }
+        p.textContent = '';
+        var fuerte = document.createElement('strong');
+        if (!li) {
+          p.textContent = 'El proyecto terminó: las cuatro entregas cerraron y la exposición ya pasó.';
+          return;
+        }
+        if (li.dataset.hito === 'exposicion') {
+          var donde = limpio(li.querySelector('.hito-cierre'));
+          fuerte.textContent = 'la exposición';
+          p.append('Las cuatro entregas cerraron. Queda ', fuerte, ': ' +
+            donde.charAt(0).toLowerCase() + donde.slice(1) + '. ' + remate(cola, true));
+          return;
+        }
+        fuerte.textContent = limpio(li.querySelector('.hito-nombre'));
+        p.append('Próxima entrega: ', fuerte, ', que cierra el ' +
+          limpio(li.querySelector('.hito-cierre time')) + '. ' + remate(cola, false));
+      }
+
+      pinta(Date.now());
+      setInterval(function () { pinta(Date.now()); }, 60000);
+      // Para probar el calendario en otra fecha desde la consola:
+      // pintaCalendario(Date.parse('2026-11-15T10:00:00-05:00')).
+      window.pintaCalendario = pinta;
+    })();
+  </script>
 </body>
 
 </html>
