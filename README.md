@@ -57,6 +57,9 @@ reglas viven **solo** en el módulo 8 de la guía de Series; esta la enlaza y no
 `proyecto/` (`datos.py`, los módulos y la tabla de potencia del Moran, que sale de `proyecto/potencia.R`), la
 construye `precalculo/ensambla_proyecto.py` y la vigilan `precalculo/audita_proyecto.py` —ocho frentes, con el R de
 la guía y de la plantilla corrido de verdad— y su arnés. Las decisiones, en `PLAN_Proyecto_Integrador.md`.
+Desde el 4 de noviembre la portada abre con el **calendario de entregas** del proyecto, que sale del mismo
+`datos.py` (`precalculo/calendario_portada.py`, con un `.ics` para añadirlo al calendario): mover una fecha es
+tocar `datos.py`, reensamblar la guía y volver a correr ese guion; si no se corre, el arnés sale en rojo.
 
 **El Taller 2 está publicado y se reparte el lunes 21 de septiembre.** Antes de fusionarlo se
 cerraron cuatro defectos, medidos y escritos en el §0 del `PLAN_Taller_2_Cap_4.md`. El que
@@ -321,7 +324,7 @@ solo se corren si se cambia el taller.
 | `precalculo/salidas/` | El precálculo: los JSON y CSV que consume el navegador |
 | `entrega/` | Lo que el estudiante se descarga de un taller: la plantilla LaTeX y sus datos |
 | `plantilla/` | La plantilla base de la que salen todos los capítulos |
-| `index.html` | La portada del sitio |
+| `index.html` | La portada del sitio. Su calendario de entregas del proyecto no se edita a mano: lo escribe `precalculo/calendario_portada.py` desde `proyecto/datos.py`, con el `.ics` que se descarga de ahí |
 
 Los archivos `prueba-auditoria.html` y `prueba-geomapa.html` son bancos de prueba del
 motor, no material del curso. `cuenta_sitio.py` los cuenta aparte por esa razón, y por la

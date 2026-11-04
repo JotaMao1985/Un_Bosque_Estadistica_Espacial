@@ -1,0 +1,90 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Universidad El Bosque//Estadistica Espacial 20929//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Proyecto integrador · Estadística Espacial
+X-WR-TIMEZONE:America/Bogota
+BEGIN:VEVENT
+UID:proyecto-ee-2026-ii-ficha@jotamao1985.github.io
+DTSTAMP:20261104T000000Z
+DTSTART:20261027T160000Z
+SUMMARY:Proyecto Espacial · cierra: Ficha del tema (release ficha)
+DESCRIPTION:Cierra a las 11:00\, hora de Colombia. Qué se entrega: una fic
+ ha de unas 150 palabras: territorio\, unidades\, fuentes y pregunta. Va co
+ mo una release del repositorio del proyecto en GitHub\, con la etiqueta «
+ ficha». No tiene nota. La guía: https://jotamao1985.github.io/Un_Bosque_
+ Estadistica_Espacial/Htmls_Espacial/proyecto-integrador-corte-iii.html
+URL:https://jotamao1985.github.io/Un_Bosque_Estadistica_Espacial/Htmls_Espa
+ cial/proyecto-integrador-corte-iii.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P1D
+DESCRIPTION:Mañana a las 11:00 cierra: Ficha del tema
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:proyecto-ee-2026-ii-preregistro@jotamao1985.github.io
+DTSTAMP:20261104T000000Z
+DTSTART:20261103T160000Z
+SUMMARY:Proyecto Espacial · cierra: Preregistro (release preregistro)
+DESCRIPTION:Cierra a las 11:00\, hora de Colombia. Qué se entrega: el prot
+ ocolo de inferencia espacial\, congelado antes de calcular un solo Moran. 
+ Va como una release del repositorio del proyecto en GitHub\, con la etique
+ ta «preregistro». Vale el 15 % del proyecto\, y cada sesión de retraso 
+ descuenta el 15 % de esa nota. La guía: https://jotamao1985.github.io/Un_
+ Bosque_Estadistica_Espacial/Htmls_Espacial/proyecto-integrador-corte-iii.h
+ tml
+URL:https://jotamao1985.github.io/Un_Bosque_Estadistica_Espacial/Htmls_Espa
+ cial/proyecto-integrador-corte-iii.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P1D
+DESCRIPTION:Mañana a las 11:00 cierra: Preregistro
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:proyecto-ee-2026-ii-avance@jotamao1985.github.io
+DTSTAMP:20261104T000000Z
+DTSTART:20261110T160000Z
+SUMMARY:Proyecto Espacial · cierra: Avance (release avance)
+DESCRIPTION:Cierra a las 11:00\, hora de Colombia. Qué se entrega: la uni
+ ón verificada\, el mapa exploratorio y la W construida y descrita. Va com
+ o una release del repositorio del proyecto en GitHub\, con la etiqueta «a
+ vance». Vale el 10 % del proyecto\, y cada sesión de retraso descuenta e
+ l 15 % de esa nota. La guía: https://jotamao1985.github.io/Un_Bosque_Esta
+ distica_Espacial/Htmls_Espacial/proyecto-integrador-corte-iii.html
+URL:https://jotamao1985.github.io/Un_Bosque_Estadistica_Espacial/Htmls_Espa
+ cial/proyecto-integrador-corte-iii.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P1D
+DESCRIPTION:Mañana a las 11:00 cierra: Avance
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:proyecto-ee-2026-ii-informe@jotamao1985.github.io
+DTSTAMP:20261104T000000Z
+DTSTART:20261115T160000Z
+SUMMARY:Proyecto Espacial · cierra: Informe y código (release informe)
+DESCRIPTION:Cierra a las 11:00\, hora de Colombia. Qué se entrega: el info
+ rme\, el código que lo produce y los datos. Va como una release del repos
+ itorio del proyecto en GitHub\, con la etiqueta «informe». Vale el 45 % 
+ del proyecto\, y cada sesión de retraso descuenta el 15 % de esa nota. La
+  exposición es en clase\, el martes 17 de noviembre o el jueves 19 de nov
+ iembre: el día exacto se acuerda en clase. La guía: https://jotamao1985.
+ github.io/Un_Bosque_Estadistica_Espacial/Htmls_Espacial/proyecto-integrado
+ r-corte-iii.html
+URL:https://jotamao1985.github.io/Un_Bosque_Estadistica_Espacial/Htmls_Espa
+ cial/proyecto-integrador-corte-iii.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P1D
+DESCRIPTION:Mañana a las 11:00 cierra: Informe y código
+END:VALARM
+END:VEVENT
+END:VCALENDAR
