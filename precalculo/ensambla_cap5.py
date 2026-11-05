@@ -3809,8 +3809,9 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     // el espacio fino de la prosa: `toLocaleString('es-ES')` no agrupa los
     // números de cuatro cifras y escribía «2107».
     const miles5 = (x, sep) => String(Math.round(Number(x))).replace(/\B(?=(\d{3})+(?!\d))/g, sep || ' ');
-    // En el lienzo el fino casi no se ve (lo midió la revisión de los ejes de
-    // Chart.js, 2026-10-27): allí, y en los botones, el espacio duro.
+    // Los ejes, con el fino, como los de la plantilla (decisión de Javier,
+    // 2026-11-04): en el lienzo mide 1.4-1.7 px y detrás de un «1» apenas se
+    // ve, y se acepta así. En los botones, que son texto de la página, el duro.
     const DURO5 = '\u00a0';
     function ETQ_VENTANAS5() {
       // En un botón el espacio fino casi no se ve («2107»): allí, el duro.
@@ -3827,7 +3828,7 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
         ax.ticks = (tics || [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000])
           .filter(v => v >= ax.min && v <= ax.max).map(v => ({ value: v }));
       },
-      ticks: { autoSkip: false, callback: v => (v >= 1000 ? miles5(v, DURO5) : String(v)) }
+      ticks: { autoSkip: false, callback: v => (v >= 1000 ? miles5(v) : String(v)) }
     });
     // Los rótulos de los ejes con el formato de la prosa —el menos tipográfico,
     // el millar con espacio fino—, y sin los extremos que Chart.js añade al
@@ -3835,7 +3836,7 @@ SIMULADORES_JS = JS_PREAMBULO + r"""
     // decimal de la casa.
     const fmtEje5 = v => {
       const a = Math.abs(v);
-      return (v < 0 ? '\u2212' : '') + (a >= 1000 ? miles5(a, DURO5) : String(+a.toFixed(2)));
+      return (v < 0 ? '\u2212' : '') + (a >= 1000 ? miles5(a) : String(+a.toFixed(2)));
     };
     // Los límites de cada franja se redondean a un paso limpio (1, 2, 2.5 o 5
     // por una potencia de 10): con min y max sin redondear, Chart.js los pinta
