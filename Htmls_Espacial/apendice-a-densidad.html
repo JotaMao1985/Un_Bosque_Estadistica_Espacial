@@ -8140,6 +8140,52 @@ print(round(ucv_exacta(nn, 0.001), 4))
       gris: '#94a3b8'
     };
 
+    // Los números de TODOS los gráficos, con la convención del material:
+    // punto decimal y millares separados («22 000», «0.25»). Chart.js escribe
+    // los ejes y la ventana emergente con Intl.NumberFormat y, si nadie le
+    // fija `locale`, en el idioma DEL NAVEGADOR: en es-CO el eje de distancias
+    // del cap. 5 decía «5.000» —que esta prosa lee cinco— y la ventana
+    // «0,125»; en inglés, «5,000». Se fija en-US, que ya trae el punto, y su
+    // coma de millares se cambia en los ejes numéricos y en `getLabelForValue`,
+    // que es de donde lee la ventana emergente.
+    //
+    // DOS separadores, decisión de Javier (2026-11-04). Los rótulos de los ejes
+    // (`ticks.callback`) llevan el fino U+202F de `ent()`, el mismo de la prosa,
+    // sabiendo lo que cuesta: en el lienzo, a 11-12 px en Montserrat o
+    // Helvetica, mide 1.4-1.7 px, la mitad que un espacio, y detrás de un «1»
+    // apenas se ve —por eso la ronda 5 de los gráficos del Preparcial II lo
+    // cambió por el duro U+00A0 en su `milesPreparcial`—. La ventana emergente
+    // (`getLabelForValue`) lleva el duro: su título va en negrita, y ahí el fino
+    // mide 0.5 px y «2 699.333» se leía «2699.333». La notación científica, que
+    // Chart.js usa por debajo de 1e-4, sale como en R: «-1.4e-5» y no
+    // «-1.400000E-5».
+    //
+    // Se lo salta un gráfico con su propio `ticks.callback`, que escribe lo
+    // que quiere; y lo rompería uno que fijara `options.locale`, porque la
+    // sustitución da por hecho que la coma es la de en-US.
+    function numeroGrafico(texto, miles) {
+      return String(texto).replace(/,/g, miles)
+        .replace(/^(-?\d+(?:\.\d*?)?)0*E/, (_, m) => m.replace(/\.$/, '') + 'e');
+    }
+    // Sin Chart.js (la CDN caída) los gráficos no salen, pero el resto de la
+    // página sí: una referencia suelta aquí arriba la tumbaría entera.
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.locale = 'en-US';
+      ['linear', 'logarithmic', 'radialLinear'].forEach(tipo => {
+        const ticks = Chart.defaults.scales[tipo].ticks;
+        const propio = ticks.callback;
+        ticks.callback = function (valor, i, todos) {
+          return numeroGrafico(propio.call(this, valor, i, todos), '\u202f');
+        };
+      });
+      [Chart.LinearScale, Chart.LogarithmicScale, Chart.RadialLinearScale].forEach(Escala => {
+        const propio = Escala.prototype.getLabelForValue;
+        Escala.prototype.getLabelForValue = function (valor) {
+          return numeroGrafico(propio.call(this, valor), '\u00a0');
+        };
+      });
+    }
+
     function crearGraficoLinea(canvas, etiquetas, datasets, opciones = {}) {
       return new Chart(canvas, {
         type: 'line',
@@ -9071,8 +9117,21 @@ print(round(ucv_exacta(nn, 0.001), 4))
         }
         contenedor.appendChild(caja);
       });
-      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
-      katexEn(contenedor);
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo.
+      // Con los delimitadores del MÓDULO, no con los de katexEn: el exportador del
+      // quiz escribe \( … \), que katexEn no lee. Al cargar no se notaba, porque el
+      // módulo entero pasa por KaTeX después; tras «Borrar», las fórmulas de los dos
+      // simulacros (17 en el cap. 4, 16 en el 5) volvían crudas: «\(\hat G\)».
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(contenedor, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ]
+        });
+      }
 
       function respuesta(pr, i) {
         if (pr.tipo === 'coincidencia') {

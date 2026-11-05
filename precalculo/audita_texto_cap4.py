@@ -36,7 +36,7 @@ tiene sujeto y debería estar corriendo sobre ellas. Queda anotado en el
 plan; arreglarlo es tocar el capítulo 3, que está cerrado y verificado, y
 eso no cabe en T3.3.
 
-EL TOPE DE PESO ES 820 KB, y no el de la casa (700), con la cuenta delante. En main fue
+EL TOPE DE PESO ES 840 KB, y no el de la casa (700), con la cuenta delante. En main fue
 760 desde el 2026-10-02 sin que cambiara el contenido: al reensamblar para recoger la regla
 del botón puesto con colores forzados y en papel (2.9 KB, PR #13) entraron también los
 6.8 KB del simulacro del Quiz 2 que el capítulo no había recogido (de 693.5 a 703.2 KB).
@@ -56,6 +56,19 @@ Subió a 820 cuando la animación de K y g de los módulos 8 y 9 se fusionó con
     corrección y poco para un ensamblado desbocado. El motor es lo que pesa, y un motor
     más grande es una decisión que se verá aquí, no un descuido.
 
+Subió a 840 el 2026-11-04, con el formato de los números de los gráficos (el bloque
+`numeroGrafico()` de la plantilla), cuando el documento ya estaba a 0.9 KB del 820 sin que
+el capítulo hubiera cambiado de tamaño:
+
+  · de 801.3 a 819.1 KB, todo plantilla y accesibilidad: 7.1 de la capa categórica que
+    trajo el capítulo 7 (8401903), 7.9 de los gráficos descritos para el lector de
+    pantalla (a729d5c), 1.1 del botón «← Índice», 0.7 de los comentarios del motor de
+    mapas, 0.7 de las fórmulas del simulacro tras «Borrar» (e85a458) y 0.3 de los pies
+    (19d1b45);
+  · con los 2.4 KB de `numeroGrafico()` pesa **821.5 KB**, y la cota del arnés se cumple:
+    821.5 < 840 < 1133;
+  · 840 vuelve a dejar **18.5 KB de margen**, el del 2026-10-07.
+
 Uso:  python3 precalculo/audita_texto_cap4.py
 Devuelve 1 si algo falla.
 """
@@ -66,7 +79,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP4_KB = 820.0
+TOPE_CAP4_KB = 840.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
