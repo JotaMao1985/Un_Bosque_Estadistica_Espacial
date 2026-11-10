@@ -4558,6 +4558,17 @@
         <strong>llave</strong> con que se unen, casi siempre el código DIVIPOLA. Unir sin perder unidades es
         parte del proyecto, y el avance pide contarlas antes y después (módulo 6).</p>
 
+      <div class="definition">
+        <h4><i class="fas fa-download mr-2" aria-hidden="true"></i>Los datos se vuelven a descargar</h4>
+        <p style="margin-bottom:0;">El docente vuelve a descargar la geometría y la variable de las fuentes que
+          citas, con la fecha de descarga que declaras en el README, y las compara con tus archivos de
+          <code>datos/crudos/</code>. <strong>Si no coinciden, P1 e I7 quedan en insuficiente.</strong> Las
+          revisiones que la propia fuente publique después de tu fecha de descarga no cuentan como diferencia,
+          siempre que la fuente las documente: por eso el enlace y la fecha tienen que ser exactos, y si la
+          fuente tiene versiones —la del Marco Geoestadístico, el commit de geoBoundaries—, se cita la
+          versión.</p>
+      </div>
+
       <div class="warning">
         <p style="margin:0;"><strong>No valen</strong> los datos del material ni de los talleres: Columbus y
           <code>oldcol</code>, <code>nc</code>, <code>auckland</code>, <code>getisord</code>,
@@ -6790,8 +6801,21 @@ table(unidades$lisa)   # con nc, ninguna unidad pasa la corrección: también es
         }
         contenedor.appendChild(caja);
       });
-      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
-      katexEn(contenedor);
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo.
+      // Con los delimitadores del MÓDULO, no con los de katexEn: el exportador del
+      // quiz escribe \( … \), que katexEn no lee. Al cargar no se notaba, porque el
+      // módulo entero pasa por KaTeX después; tras «Borrar», las fórmulas de los dos
+      // simulacros (17 en el cap. 4, 16 en el 5) volvían crudas: «\(\hat G\)».
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(contenedor, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ]
+        });
+      }
 
       function respuesta(pr, i) {
         if (pr.tipo === 'coincidencia') {
@@ -7337,7 +7361,7 @@ table(unidades$lisa)   # con nc, ninguna unidad pasa la corrección: también es
             {
               "nombre": "Insuficiente",
               "rango": "0,8",
-              "observa": "Falta la fuente de la geometría o de la variable, o su fecha de descarga; no se dice cuántas unidades hay, o no llegan al mínimo."
+              "observa": "Falta la fuente de la geometría o de la variable, o su fecha de descarga; no se dice cuántas unidades hay, o no llegan al mínimo; o la geometría o la variable no coinciden con las que se vuelven a descargar de las fuentes citadas."
             }
           ]
         },
@@ -7590,7 +7614,7 @@ table(unidades$lisa)   # con nc, ninguna unidad pasa la corrección: también es
             {
               "nombre": "Insuficiente",
               "rango": "0,8",
-              "observa": "El informe no se reproduce desde el repositorio —faltan los datos, hay rutas absolutas— o el análisis cambia respecto al preregistro sin decirlo."
+              "observa": "El informe no se reproduce desde el repositorio —faltan los datos, hay rutas absolutas—, el análisis cambia respecto al preregistro sin decirlo o una descarga cruda no coincide con la que se vuelve a descargar de su fuente."
             }
           ]
         },
