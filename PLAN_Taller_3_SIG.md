@@ -98,7 +98,19 @@ PYTHONPATH="$A/Resources/python3.11/site-packages:$A/Resources/qgis/python:$A/Re
 
 ## §5 Pendiente y riesgos
 
-- Windows: en comprobación en la VM de UTM (ver el informe de la sesión).
+- **Windows, comprobado el 2026-11-11** en la VM de UTM (Windows 11, QGIS 3.44.15 del MSI
+  `QGIS-OSGeo4W-3.44.15-2.msi`, Python 3.12.15, numpy 2.4.6): las 1 443 cifras coinciden con las de
+  macOS (peor diferencia relativa 6,2·10⁻¹⁰) y con las de Linux (6,9·10⁻¹⁰); G/F, K/L con su banda y
+  las densidades, bit a bit. La clave queda en `precalculo/cache/taller3_claves_qgis_windows.json`.
+  El complemento se activa y sus cuatro herramientas aparecen en `qgis_process`. Lo que salió:
+  - `claves_qgis_taller3.py` sobrescribía cuatro archivos temporales que una capa viva tenía abiertos;
+    Windows lo niega. Arreglado con nombres únicos (`U()`); rehecha la clave en Mac: 0 diferencias.
+  - Con `QGIS_CUSTOM_CONFIG_PATH` en una ruta con tilde, QGIS crea el perfil en otra carpeta y no ve
+    el complemento. Solo afecta a quien fije esa variable. **No probado**: un usuario de Windows con
+    tilde en el nombre (perfil por omisión en `%APPDATA%`); cargar datos y complemento desde rutas
+    con tildes y espacios sí funcionó.
+  - La consola de Windows muestra «χ²» como «?²» en la salida de `qgis_process`: cosmético.
+  - Probado sin ventana y con la cuenta SYSTEM del agente, no con clics ni con un usuario corriente.
 - Riesgo: calendario. Se publica el jueves 12 para dar cinco días; el informe del proyecto vence el domingo 15.
 - **Sin auditoría independiente**, y dicho en `audita_taller3.py`: `bw.diggle`, `bw.ppl` y los
   coeficientes de `ppm` (reimplementarlos sería copiar `spatstat`) y los cortes de Jenks de QGIS.

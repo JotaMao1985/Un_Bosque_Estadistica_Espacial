@@ -54,6 +54,15 @@ QgsApplication.processingRegistry().addProvider(prov)
 import numpy as np
 
 TMP = tempfile.mkdtemp(prefix="t3_")
+_N = [0]
+
+
+def U(nombre):
+    """ruta unica en TMP: Windows no deja sobrescribir un archivo que una capa viva tiene abierto"""
+    _N[0] += 1
+    b, e = os.path.splitext(nombre)
+    return os.path.join(TMP, "%s_%d%s" % (b, _N[0], e))
+
 NX = (3, 4, 5)
 R_GF = (100, 150, 200)
 R_KL = (200, 300, 400)
@@ -149,9 +158,9 @@ for nombre in sorted(conteo):
         continue
     filtro = "\"localidad\" = '%s'" % nombre
     mia = capa(run("native:extractbyexpression", INPUT=loc, EXPRESSION=filtro,
-                   OUTPUT=os.path.join(TMP, "mia.gpkg"))["OUTPUT"])
+                   OUTPUT=U("mia.gpkg"))["OUTPUT"])
     mias = capa(run("native:extractbylocation", INPUT=sedes, PREDICATE=[0], INTERSECT=mia,
-                    OUTPUT=os.path.join(TMP, "mias.gpkg"))["OUTPUT"])
+                    OUTPUT=U("mias.gpkg"))["OUTPUT"])
     assert mias.featureCount() == conteo[nombre], nombre
 
     nn = run("native:nearestneighbouranalysis", INPUT=mias,
@@ -185,12 +194,12 @@ for nombre in sorted(conteo):
                             "banda_sup": r["BANDA_SUP"], "usables": r["USABLES_R"]}
     L["calor"] = {}
     for radio in RADIOS:
-        tif = os.path.join(TMP, "calor.tif")
+        tif = U("calor.tif")
         run("qgis:heatmapkerneldensityestimation", INPUT=mias, RADIUS=radio, PIXEL_SIZE=50,
             KERNEL=0, OUTPUT_VALUE=1, OUTPUT=tif)
         est = run("native:rasterlayerstatistics", INPUT=tif, BAND=1)
         zon = capa(run("native:zonalstatisticsfb", INPUT=mia, INPUT_RASTER=tif, RASTER_BAND=1,
-                       COLUMN_PREFIX="z_", STATISTICS=[1], OUTPUT=os.path.join(TMP, "zon.gpkg"))["OUTPUT"])
+                       COLUMN_PREFIX="z_", STATISTICS=[1], OUTPUT=U("zon.gpkg"))["OUTPUT"])
         dentro = float(next(zon.getFeatures())["z_sum"])
         ras = QgsRasterLayer(tif, "r")
         px = ras.rasterUnitsPerPixelX() * ras.rasterUnitsPerPixelY()
