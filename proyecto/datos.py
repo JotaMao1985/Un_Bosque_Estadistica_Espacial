@@ -168,6 +168,14 @@ N_EJEMPLO_NSIM = 33        # los departamentos
 PROYECTO_DEL_CORTE = 50
 QUICES_DEL_CORTE = 50
 CORTE_III_DEL_CURSO = 40
+
+# El Taller 3 (capítulos 1 a 5 en QGIS) cuenta como uno de los quices del
+# corte: decisión de Javier del 2026-11-10. Es el único que no se hace en
+# clase. La fecha y la hora viven aquí y en `precalculo/ensambla_taller3.py`,
+# y `audita_proyecto.py` exige que las dos páginas digan lo mismo.
+TALLER3_ENTREGA = date(2026, 11, 17)
+TALLER3_HORA = "11:00"
+TALLER3_PAGINA = "taller-3-sig-caps-1-5.html"
 PROYECTO_DEL_CURSO = PROYECTO_DEL_CORTE * CORTE_III_DEL_CURSO / 100
 
 NIVELES = [("insuficiente", 1.0), ("aceptable", 3.5), ("sólido", 5.0)]

@@ -321,6 +321,17 @@ def main() -> int:
     talleres = re.findall(r"[^.]*Talleres 4 y 5[^.]*", V)
     A.check("C", len(talleres) == 1 and "ni Talleres 4 y 5" in talleres[0],
             "PE1 · los Talleres 4 y 5 solo se nombran para decir que no los hay")
+    # El Taller 3 es uno de los quices (2026-11-10). Se nombra una vez, como
+    # quiz, y con la misma fecha y hora que publica su propia página.
+    taller3 = re.findall(r"[^.]*Taller 3[^.]*", V)
+    A.check("C", len(taller3) == 1 and "Uno de esos quices" in taller3[0]
+            and D.frase_fecha(D.TALLER3_ENTREGA) in taller3[0] and D.TALLER3_HORA in taller3[0],
+            "el Taller 3 se nombra una vez, como quiz y con su fecha")
+    pag_t3 = (RAIZ / "Htmls_Espacial" / D.TALLER3_PAGINA)
+    txt_t3 = pag_t3.read_text(encoding="utf-8") if pag_t3.is_file() else ""
+    fecha_t3 = D.frase_fecha(D.TALLER3_ENTREGA).removeprefix("el ")
+    A.check("C", fecha_t3 in txt_t3 and f"a las {D.TALLER3_HORA}" in txt_t3,
+            "la página del Taller 3 publica esa misma fecha y hora")
     vr = texto_visible(mod(T_REPOSITORIO))
     A.check("C", "repositorio privado de GitHub" in V and D.USUARIO_DOCENTE in vr and D.NOMBRE_REPO in vr,
             "F3 · repositorio privado, con el docente invitado y su nombre")

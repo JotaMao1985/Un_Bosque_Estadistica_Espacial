@@ -260,8 +260,8 @@ MOD1 = cabecera(
       <ol class="lista-literales" type="1">
         <li>Pestaña <strong>SRC</strong>: elige <strong>EPSG:9377</strong> (MAGNA-SIRGAS / Origen
           Nacional). Es el sistema en el que se mide en este taller.</li>
-        <li>Pestaña <strong>General</strong>, apartado <strong>Mediciones</strong>: en
-          <strong>Elipsoide</strong> elige <strong>Ninguno/Planimétrico</strong>. Con un elipsoide
+        <li>Pestaña <strong>General</strong>, apartado <strong>Mediciones</strong>: comprueba que en
+          <strong>Elipsoide</strong> diga <strong>Ninguno/Planimétrico</strong>, y si no, elígelo. Con un elipsoide
           puesto, QGIS mide distancias y áreas sobre la superficie curva y no sobre el plano de la
           proyección: es la diferencia del capítulo 2, módulo 6, y mueve las últimas cifras
           de varias de tus cifras de control.</li>
@@ -422,14 +422,14 @@ MOD3 = cabecera(
     "de tu localidad, y cuenta cuántas de las "
     f"{D['ciudad']['localidades']} localidades no están en la misma clase en los dos mapas.",
     f"{herr('Crear cuadricula', 'native:creategrid')}: tipo de cuadrícula, <strong>Rectángulo "
-    f"(polígono)</strong>; extensión de la cuadrícula, «Calcular a partir de la capa» ▸ "
+    f"(polígono)</strong>; extensión de la cuadrícula, «Calcular a partir de capa» ▸ "
     f"<code>perimetro_urbano</code>; espaciado horizontal y vertical, <strong>2000</strong> metros; "
     f"SRC, EPSG:9377. Repite con <strong>4000</strong>.",
     f"{herr('Contar puntos en un polígono', 'native:countpointsinpolygon')} sobre cada cuadrícula, "
     f"con <code>sedes</code>. Guarda los resultados como <code>rejilla_2000</code> y "
     f"<code>rejilla_4000</code>. De cada una necesitas tres números de su columna "
     f"<code>NUMPOINTS</code>: cuántas celdas tienen al menos una sede, el máximo y la suma. Los da "
-    f"{herr('Estadísticas básicas para campos', 'native:basicstatisticsforfields')}, o el panel "
+    f"{herr('Basic statistics for fields', 'native:basicstatisticsforfields')} —su nombre sale en inglés—, o el panel "
     f"<strong>Ver ▸ Paneles ▸ Estadísticas</strong>.",
 ]) + f"""
 
@@ -473,7 +473,7 @@ MOD4 = cabecera(
     f"nombre <strong>exacto</strong> del buscador. Guarda el resultado como "
     f"<code>mi_localidad</code>.",
     f"{herr('Extraer por ubicacion', 'native:extractbylocation')}: extraer objetos de "
-    f"<code>sedes</code>; predicado geométrico, <strong>interseca</strong>; comparando con los "
+    f"<code>sedes</code>; predicado geométrico, <strong>intersecan</strong>; comparando con los "
     f"objetos de <code>mi_localidad</code>. Guarda el resultado como <code>mis_sedes</code>. Su "
     f"número de objetos tiene que ser tu <em>n</em>.",
     f"Grupo del taller ▸ <strong>1 · Test de cuadrantes (χ²) sobre la ventana real</strong>: capa "
@@ -483,7 +483,7 @@ MOD4 = cabecera(
     f"lee las cifras en el Registro o en el informe.",
     f"{herr('Análisis de vecinos más próximos', 'native:nearestneighbouranalysis')} sobre "
     f"<code>mis_sedes</code>. Devuelve cinco cifras: distancia media observada, distancia media "
-    f"esperada, índice de vecino más próximo, número de puntos y valor Z.",
+    f"esperada, índice de vecinos más próximos, número de puntos y puntaje Z.",
     "A mano, o en la calculadora que prefieras: la distancia esperada bajo un Poisson homogéneo es "
     "\\(0.5 / \\sqrt{n / A}\\). Calcúlala con el <strong>área de tu localidad</strong> en m² "
     "—la tienes de T1— y divide la distancia observada por ella. Ese es el índice con la ventana "

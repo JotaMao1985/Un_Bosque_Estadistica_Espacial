@@ -4465,7 +4465,9 @@
       <p><strong>El Corte III no tiene examen final</strong>, ni Talleres 4 y 5: su nota sale de dos partes. El
         proyecto vale el <strong>50 %</strong> de la nota del Corte III, y los quices que
         se hacen en clase, el otro <strong>50 %</strong>. Los quices son los que evalúan la
-        econometría espacial y la geoestadística, que el proyecto no exige (módulo 2). El Corte III es el
+        econometría espacial y la geoestadística, que el proyecto no exige (módulo 2). Uno de esos quices
+        no se hace en clase: es el <a href="taller-3-sig-caps-1-5.html">Taller 3</a>, que recorre los capítulos 1
+        a 5 en QGIS y se entrega el martes 17 de noviembre, a más tardar a las 11:00. El Corte III es el
         40 % del curso: en total, el proyecto es el
         <strong>20 %</strong> de tu nota final. Dentro del proyecto, cada hito pesa
         esto:</p>
@@ -6790,8 +6792,21 @@ table(unidades$lisa)   # con nc, ninguna unidad pasa la corrección: también es
         }
         contenedor.appendChild(caja);
       });
-      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
-      katexEn(contenedor);
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo.
+      // Con los delimitadores del MÓDULO, no con los de katexEn: el exportador del
+      // quiz escribe \( … \), que katexEn no lee. Al cargar no se notaba, porque el
+      // módulo entero pasa por KaTeX después; tras «Borrar», las fórmulas de los dos
+      // simulacros (17 en el cap. 4, 16 en el 5) volvían crudas: «\(\hat G\)».
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(contenedor, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ]
+        });
+      }
 
       function respuesta(pr, i) {
         if (pr.tipo === 'coincidencia') {
