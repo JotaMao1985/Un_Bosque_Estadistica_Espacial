@@ -4398,22 +4398,23 @@
         <strong>Columbus</strong> son <strong>49</strong> barrios de Ohio, el
         tablero con el que Anselin escribió los ejemplos que todo el mundo cita. Es pequeño a
         propósito: con 49 unidades se ve <em>una a una</em> qué cambia al cambiar la definición de
-        vecino, y eso es lo que hace falta para entenderla. Su variable es la tasa de delitos, con
+        vecino, y eso es lo que hace falta para entenderla. Su variable es CRIME, los robos en
+        viviendas y de vehículos por cada mil hogares, con
         media <strong>35.1288</strong> y desviación
         <strong>16.7321</strong>.</p>
 
       <p>El otro son los <strong>1 122</strong> municipios de Colombia con su
         deserción escolar —1 121 con dato, media
-        <strong>3,4236 %</strong>, desviación
-        1.7667 y
+        <strong>3.4236 %</strong>, desviación
+        1.7667 puntos y
         6 ceros exactos—, el mismo hilo que viene
         desde el capítulo 1. Ahí no se ve nada unidad por unidad: lo que se ve es lo que un dato
         real trae y un tablero de laboratorio no tiene.</p>
 
       <div class="geomapa" data-geomapa="cap6-municipios">
-        <p class="geomapa-titulo">Los 1 122 municipios y su contigüidad reina</p>
+        <p class="geomapa-titulo">Los 1 122 municipios y su contigüidad reina</p>
         <div class="geomapa-marco">
-          <canvas class="geomapa-lienzo" role="img" aria-label="Los 1 122 municipios y su contigüidad reina"></canvas>
+          <canvas class="geomapa-lienzo" role="img" aria-label="Los 1 122 municipios y su contigüidad reina"></canvas>
         </div>
         <div class="geomapa-pie-caja"></div>
       </div>
@@ -4506,7 +4507,7 @@ print(round(col[&quot;CRIME&quot;].mean(), 4))
         <p class="simulador-intro">Elige el criterio y mira dos cosas a la vez: el grafo, que se dibuja sobre el mapa, y el reparto de grados, que es lo que dos criterios con el mismo grado medio pueden tener distinto.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Gráfico de barras: de las 49 unidades —los barrios de Columbus—, cuántas tienen 0 vecinos, cuántas 1, cuántas 2 y así, con el eje desde cero, bajo el criterio que elijan los 10 botones: Contigüidad reina, Contigüidad torre, 1 vecino más próximo, 3 vecinos más próximos, 6 vecinos más próximos, Umbral: la mitad del mínimo conexo, Umbral mínimo sin islas, Delaunay, Gabriel o Esfera de influencia. Los botones cambian también el grafo del mapa de abajo. La lectura da el criterio, las parejas, los enlaces dirigidos, el grado medio y el recorrido de grados, si W es simétrica, las islas y los subgrafos." aria-describedby="lectura-cap6-constructor"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: de las 49 unidades —los barrios de Columbus—, cuántas tienen 0 vecinos, cuántas 1, cuántas 2 y así, con el eje desde cero, bajo el criterio que elijan los 10 botones: Contigüidad reina, Contigüidad torre, 1 vecino más próximo, 3 vecinos más próximos, 6 vecinos más próximos, Umbral: la mitad del mínimo sin islas, Umbral mínimo sin islas, Delaunay, Gabriel o Esfera de influencia. Los botones cambian también el grafo del mapa de abajo. La lectura da el criterio, las parejas, los enlaces dirigidos, el grado medio y el recorrido de grados, si W es simétrica, las islas y los subgrafos." aria-describedby="lectura-cap6-constructor"></canvas>
         </div>
         <div class="simulador-lectura" id="lectura-cap6-constructor" aria-live="polite"></div>
       </div>
@@ -4531,18 +4532,18 @@ print(round(col[&quot;CRIME&quot;].mean(), 4))
         <p class="tabla-titulo">Los diez criterios sobre los 49 barrios de Columbus</p>
         <div class="tabla-envoltorio">
           <table class="tabla-datos">
-            <thead><tr><th>Criterio</th><th>Enlaces</th><th>Parejas</th><th>Grado medio</th><th>Islas</th><th>Subgrafos</th></tr></thead>
+            <thead><tr><th>Criterio</th><th>Parejas</th><th>Enlaces</th><th>Grado medio</th><th>Islas</th><th>Subgrafos</th></tr></thead>
             <tbody>
-            <tr><th scope="row">Contigüidad reina</th><td>236</td><td>118</td><td>4.8163</td><td>0</td><td>1</td></tr>
-            <tr><th scope="row">Contigüidad torre</th><td>200</td><td>100</td><td>4.0816</td><td>0</td><td>1</td></tr>
-            <tr><th scope="row">1 vecino más próximo</th><td>49</td><td>36</td><td>1.0000</td><td>0</td><td>13</td></tr>
-            <tr><th scope="row">3 vecinos más próximos</th><td>147</td><td>94</td><td>3.0000</td><td>0</td><td>1</td></tr>
-            <tr><th scope="row">6 vecinos más próximos</th><td>294</td><td>178</td><td>6.0000</td><td>0</td><td>1</td></tr>
-            <tr><th scope="row">Umbral: la mitad del mínimo conexo</th><td>34</td><td>17</td><td>0.6939</td><td>28</td><td>33</td></tr>
-            <tr><th scope="row">Umbral mínimo sin islas</th><td>252</td><td>126</td><td>5.1429</td><td>0</td><td>2</td></tr>
-            <tr><th scope="row">Delaunay</th><td>268</td><td>134</td><td>5.4694</td><td>0</td><td>1</td></tr>
-            <tr><th scope="row">Gabriel</th><td>184</td><td>92</td><td>3.7551</td><td>0</td><td>1</td></tr>
-            <tr><th scope="row">Esfera de influencia</th><td>208</td><td>104</td><td>4.2449</td><td>0</td><td>1</td></tr>
+            <tr><th scope="row">Contigüidad reina</th><td>118</td><td>236</td><td>4.8163</td><td>0</td><td>1</td></tr>
+            <tr><th scope="row">Contigüidad torre</th><td>100</td><td>200</td><td>4.0816</td><td>0</td><td>1</td></tr>
+            <tr><th scope="row">1 vecino más próximo</th><td>36</td><td>49</td><td>1.0000</td><td>0</td><td>13</td></tr>
+            <tr><th scope="row">3 vecinos más próximos</th><td>94</td><td>147</td><td>3.0000</td><td>0</td><td>1</td></tr>
+            <tr><th scope="row">6 vecinos más próximos</th><td>178</td><td>294</td><td>6.0000</td><td>0</td><td>1</td></tr>
+            <tr><th scope="row">Umbral: la mitad del mínimo sin islas</th><td>17</td><td>34</td><td>0.6939</td><td>28</td><td>33</td></tr>
+            <tr><th scope="row">Umbral mínimo sin islas</th><td>126</td><td>252</td><td>5.1429</td><td>0</td><td>2</td></tr>
+            <tr><th scope="row">Delaunay</th><td>134</td><td>268</td><td>5.4694</td><td>0</td><td>1</td></tr>
+            <tr><th scope="row">Gabriel</th><td>92</td><td>184</td><td>3.7551</td><td>0</td><td>1</td></tr>
+            <tr><th scope="row">Esfera de influencia</th><td>104</td><td>208</td><td>4.2449</td><td>0</td><td>1</td></tr>
             </tbody>
           </table>
         </div>
@@ -4629,20 +4630,30 @@ print(round(reina.mean_neighbors, 4), round(torre.mean_neighbors, 4))
 
       <p>Sobre Columbus la diferencia es de <strong>18</strong> parejas: la reina
         une 118 y la torre 100, con grados medios de
-        <strong>4.8163</strong> y <strong>4.0816</strong>. Son las dos
-        cifras que Anselin publica, y el precálculo <em>para</em> si alguna deja de salir: un
-        tablero canónico sirve justamente para eso.</p>
+        <strong>4.8163</strong> y <strong>4.0816</strong>. Son las cifras
+        que dan <code>poly2nb</code> aquí y <code>libpysal</code> en la columna de Python, cada una
+        por su lado, y el precálculo <em>para</em> si alguna deja de salir: un tablero canónico
+        sirve justamente para eso.</p>
+
+      <p>Lo que no son es «las de Anselin». La W que Anselin publicó con estos datos en 1988 —el
+        <code>COL.nb</code> de <code>spdep</code>, la que usa el capítulo 7— une
+        <strong>116</strong> parejas: le faltan 3 de la
+        reina —las 3, contactos de esquina— y trae
+        1 que los polígonos no tocan. Y ni siquiera circula una sola
+        copia: el <code>columbus.gal</code> que trae <code>spData</code> tiene
+        115. <strong>Ni el tablero canónico viene con su W</strong>, que
+        es la tesis de este capítulo en pequeño.</p>
 
       <p>Y una relación que conviene tener clara antes de elegir: <strong>la torre está contenida
         en la reina</strong>. No son dos criterios rivales, es uno más exigente que el otro, y por
         eso la reina nunca puede tener menos vecinos.</p>
 
       <div class="simulador" data-simulador="cap6-ordenes">
-        <h4><i class="fas fa-sliders" aria-hidden="true"></i> La reina, la torre y los tres primeros órdenes</h4>
-        <p class="simulador-intro">Los dos primeros botones comparan los dos criterios de contacto. Los otros tres suben de orden sobre la reina, y lo que hay que mirar es que la barra no se acumula: cada orden son los que están a ESA distancia, no a esa o menos.</p>
+        <h4><i class="fas fa-sliders" aria-hidden="true"></i> La torre, la reina y todos sus órdenes</h4>
+        <p class="simulador-intro">El primer botón es la torre. Los demás suben de orden sobre la reina, del 1 —que es la reina misma— al 9, el último en el que todavía hay a quién llegar. Lo que hay que mirar es que la barra no se acumula: cada orden son los que están a ESA distancia, no a esa o menos. Lo acumulado lo da la lectura.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Gráfico de barras: las parejas distintas de vecinos de Columbus en cinco vistas —contigüidad reina, contigüidad torre y los órdenes 1, 2 y 3 sobre la reina—, con el eje desde cero. La barra de la vista elegida con los botones va en naranja y las demás en verde pálido. Cada orden cuenta solo las parejas a esa distancia, no a esa o menos: 118, 208 y 243. La lectura da la vista, las parejas, el grado medio, el grado máximo y la densidad de W." aria-describedby="lectura-cap6-ordenes"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras: las parejas distintas de vecinos de Columbus en 10 vistas —la contigüidad torre y los órdenes 1 a 9 sobre la reina—, con el eje desde cero. La barra de la vista elegida con los botones va en naranja y las demás en verde pálido. La torre une 100; cada orden cuenta solo las parejas a esa distancia, no a esa o menos: 118, 208, 243, 234, 171, 120, 60, 18 y 4. La lectura da la vista, las parejas, el grado medio, el grado máximo, la densidad de W y, en los órdenes, cuántas parejas se han alcanzado hasta ese orden de las 1 176 posibles." aria-describedby="lectura-cap6-ordenes"></canvas>
         </div>
         <div class="simulador-lectura" id="lectura-cap6-ordenes" aria-live="polite"></div>
       </div>
@@ -4650,10 +4661,16 @@ print(round(reina.mean_neighbors, 4), round(torre.mean_neighbors, 4))
       <p>La contigüidad de orden superior es la respuesta a «¿y los vecinos de mis vecinos?».
         <code>nblag</code> la calcula, y trae una trampa de lectura: <strong>el orden 2 son los
         vecinos de los vecinos que no eran ya vecinos</strong>, no todos los que están a dos pasos.
-        De ahí que la serie sea 118,
-        208 y 243 parejas y no una suma
-        que crece sin parar: al tercer orden el mapa se está quedando sin sitios nuevos adonde
-        llegar.</p>
+        La serie entera llega hasta el orden 9, el diámetro del grafo —los pasos
+        que separan a los dos barrios más alejados—, y es
+        118, 208, 243, 234, 171, 120, 60, 18 y 4 parejas.</p>
+
+      <p>Sube hasta el orden 3 y desde ahí baja, porque el mapa es finito y
+        cada vez quedan menos barrios nuevos a los que llegar. Pero en la cima falta mucho: hasta
+        el orden 3 se ha llegado al <strong>48.38 %</strong> de las
+        1 176 parejas posibles, y el orden 4 todavía añade
+        <strong>234</strong>. <strong>Lo que frena la serie es el borde del mapa, no que ya
+        no quede a quién llegar.</strong></p>
 
       <div class="code-tabs">
         <div class="code-tabs-nav" role="tablist" aria-label="Reina, torre y órdenes">
@@ -4666,10 +4683,15 @@ sum(card(reina)) / 2 - sum(card(torre)) / 2
 #&gt; [1] 18
 
 # Y la contigüidad de ORDEN SUPERIOR no acumula: el orden 2 son los
-# vecinos de los vecinos que no eran ya vecinos.
-ordenes &lt;- nblag(reina, maxlag = 3)
-sapply(ordenes, function(nb) sum(card(nb)) / 2)
-#&gt; [1] 118 208 243</code></pre>
+# vecinos de los vecinos que no eran ya vecinos. Hasta el diámetro:
+ordenes &lt;- nblag(reina, maxlag = 9)
+p &lt;- sapply(ordenes, function(nb) sum(card(nb)) / 2)
+p
+#&gt; [1] 118 208 243 234 171 120 60 18 4
+
+# Lo acumulado llega a todas las parejas posibles, choose(49, 2)
+cumsum(p)
+#&gt; [1] 118 326 569 803 974 1094 1154 1172 1176</code></pre>
         </div>
         <div class="code-tab-panel" data-lang="python" hidden>
           <pre><code class="language-python"># El mismo cálculo, por conjuntos de parejas
@@ -4682,7 +4704,13 @@ print(len(p_reina - p_torre))
 # La torre está CONTENIDA en la reina: no son dos criterios distintos,
 # es uno más exigente que el otro.
 print(p_torre &lt;= p_reina)
-#&gt; True</code></pre>
+#&gt; True
+
+# Los órdenes, como distancias en el grafo: el orden k son las parejas a k pasos
+from scipy.sparse.csgraph import shortest_path
+pasos = shortest_path(reina.sparse, unweighted=True)
+print(np.bincount(pasos[np.triu_indices(len(pasos), 1)].astype(int))[1:].tolist())
+#&gt; [118, 208, 243, 234, 171, 120, 60, 18, 4]</code></pre>
         </div>
       </div>
 
@@ -4690,9 +4718,12 @@ print(p_torre &lt;= p_reina)
         3 285 parejas por reina y
         3 198 por torre, un grado medio de
         5.8556 contra
-        5.7005. Con fronteras irregulares los contactos de
-        esquina son pocos; con una retícula regular —un ráster, un tablero— son la mitad del
-        grafo. <strong>El criterio importa lo que la geometría le deje importar.</strong></p>
+        5.7005. Las esquinas son
+        87 parejas, el 2.65 % de
+        la reina, frente al 15.25 % de los barrios de Columbus: con fronteras tan
+        irregulares como las municipales los contactos de esquina son pocos, y con una retícula
+        regular —un ráster, un tablero— son la mitad del grafo. <strong>El criterio importa lo que
+        la geometría le deje importar.</strong></p>
     </div>
   </template>
 
@@ -4747,15 +4778,21 @@ print(p_torre &lt;= p_reina)
       </div>
 
       <p>La asimetría no es un defecto que haya que corregir: es información sobre la densidad del
-        patrón. Pero <em>hay que saber que está</em>, porque casi todo lo que viene después —el
-        índice de Moran, los modelos autorregresivos— supone una W simétrica o la simetriza por su
-        cuenta sin decirlo.</p>
+        patrón. Pero <em>hay que saber que está</em>, porque lo que se calcule después la usa tal
+        como viene. El índice de Moran del capítulo 7 y los modelos SAR del 8 aceptan una W
+        asimétrica sin tocarla; el que de verdad exige simetría es el modelo CAR, y
+        <code>spatialreg</code> avisa si no la tiene. Y ni siquiera la W más usada es simétrica: la
+        reina estandarizada por filas no lo es, porque el peso que \(i\) le da a \(j\) es
+        \(1/d_i\) y el que \(j\) le da a \(i\), \(1/d_j\).</p>
 
       <p>Simetrizar tiene un coste que se ve en una cifra. <code>make.sym.nb</code> añade las
         aristas que faltan, así que el grado <strong>deja de valer k</strong>: la k = 3 de Columbus
         pasa a <strong>3.8367</strong> de media, con unidades de hasta
         6 vecinos. Se gana la simetría y se pierde
-        exactamente lo que hacía atractivo al criterio.</p>
+        exactamente lo que hacía atractivo al criterio. Y lo que venga después cambia: sobre el
+        mismo CRIME, el índice de Moran con la k = 3 vale <strong>0.5838</strong>
+        tal como viene y <strong>0.5177</strong> simetrizada. Simetrizar es una
+        decisión más sobre W, y como todas, hay que escribirla.</p>
 
       <div class="code-tabs">
         <div class="code-tabs-nav" role="tablist" aria-label="k vecinos y la simetría">
@@ -4777,7 +4814,14 @@ sum(card(k3))
 # Forzar la simetría añade aristas, así que el grado deja de valer k
 sim &lt;- make.sym.nb(k3)
 round(mean(card(sim)), 4)
-#&gt; [1] 3.8367</code></pre>
+#&gt; [1] 3.8367
+
+# Y cambia lo que venga después: el I de Moran de CRIME, con la W tal
+# como viene y simetrizada. moran.test no simetriza por su cuenta
+round(moran.test(col$CRIME, nb2listw(k3))$estimate[[1]], 4)
+#&gt; [1] 0.5838
+round(moran.test(col$CRIME, nb2listw(sim))$estimate[[1]], 4)
+#&gt; [1] 0.5177</code></pre>
         </div>
         <div class="code-tab-panel" data-lang="python" hidden>
           <pre><code class="language-python">k3 = weights.KNN.from_dataframe(col, k=3, use_index=True)
@@ -4790,16 +4834,24 @@ print(asim)
 
 # Y por eso enlaces y parejas no son el doble uno del otro
 print(sum(len(v) for v in k3.neighbors.values()), pares(k3))
-#&gt; 147 94</code></pre>
+#&gt; 147 94
+
+# El I de Moran con esa W tal como viene: esda tampoco la simetriza
+from esda.moran import Moran
+k3.transform = &quot;r&quot;
+print(round(Moran(col[&quot;CRIME&quot;], k3, permutations=0).I, 4))
+#&gt; 0.5838</code></pre>
         </div>
       </div>
 
       <p>Sobre los municipios pasa lo mismo y más marcado: k = 4 deja
         <strong>1 084</strong> pares asimétricos sobre
         4 488 enlaces. Y aquí aparece la otra cara del criterio:
-        con k vecinos <strong>no hay islas nunca</strong> —el archipiélago de San Andrés queda
-        unido al continente por 700 km de mar—, lo cual resuelve un problema del módulo 9 creando
-        uno peor: una vecindad que no significa nada.</p>
+        con k vecinos <strong>no hay islas nunca</strong> —San Andrés queda
+        unido a 3 municipios de la costa, a entre
+        668 y 712 km de
+        mar—, lo cual resuelve un problema del módulo 9 creando uno peor: una vecindad que no
+        significa nada.</p>
     </div>
   </template>
 
@@ -4832,15 +4884,17 @@ print(sum(len(v) for v in k3.neighbors.values()), pares(k3))
         <strong>28</strong> de los 49 barrios se quedan sin
         vecinos y el mapa se parte en 33 pedazos. Con
         <strong>1.6</strong> veces ese umbral —el punto más alto del
-        barrido—, el grado medio sube a 11.3469 y la vecindad
-        deja de distinguir nada: casi todo el mundo es vecino de casi todo el mundo.</p>
+        barrido—, el grado medio sube a 11.3469, más del doble
+        que en el umbral justo, y W ocupa ya el 23.64 % de
+        sus casillas: cada barrio promedia con casi la cuarta parte del mapa, y la vecindad empieza
+        a no distinguir lo cercano de lo que solo está en la misma ciudad.</p>
 
       <div class="simulador" data-simulador="cap6-umbral">
         <h4><i class="fas fa-sliders" aria-hidden="true"></i> El umbral, de corto a largo</h4>
-        <p class="simulador-intro">El deslizador mueve la distancia y resalta su pareja de barras. La verde son las parejas que el criterio une; la naranja, las unidades que se quedan sin ninguna. Lo que hay que buscar es el punto donde la naranja llega a cero, y luego mirar los subgrafos.</p>
+        <p class="simulador-intro">El deslizador mueve la distancia y resalta su pareja de barras. La verde son las parejas que el criterio une; la naranja, las unidades que se quedan sin ninguna. Lo que hay que buscar es el punto donde la naranja llega a cero, y luego mirar los subgrafos. El umbral que de verdad conecta el mapa cae entre dos puntos del barrido, y lo da la lectura.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:260px;">
-          <canvas role="img" aria-label="Gráfico de barras agrupadas, una pareja por umbral de distancia, de 0.25 a 0.99: las parejas que el umbral une, en verde, y las unidades que se quedan sin vecinos, en naranja, con el eje desde cero. Al alargar el umbral las verdes crecen y las naranjas bajan hasta cero en 0.62. El deslizador elige el umbral: su pareja de barras va en color pleno y las demás, atenuadas; de partida, 0.62. La lectura da las parejas, el grado medio, las unidades sin vecinos, los subgrafos y si el grafo queda de una pieza." aria-describedby="lectura-cap6-umbral"></canvas>
+          <canvas role="img" aria-label="Gráfico de barras agrupadas, una pareja por umbral de distancia, de 0.2475 a 0.9902: las parejas que el umbral une, en verde, y las unidades que se quedan sin vecinos, en naranja, con el eje desde cero. Al alargar el umbral las verdes crecen y las naranjas bajan hasta cero en 0.6189. El deslizador elige el umbral: su pareja de barras va en color pleno y las demás, atenuadas; de partida, 0.6189. La lectura da las parejas, el grado medio, las unidades sin vecinos, los subgrafos, si el grafo queda de una pieza y el umbral mínimo que lo conecta, 0.6829." aria-describedby="lectura-cap6-umbral"></canvas>
         </div>
         <div class="simulador-lectura" id="lectura-cap6-umbral" aria-live="polite"></div>
       </div>
@@ -4855,9 +4909,13 @@ print(sum(len(v) for v in k3.neighbors.values()), pares(k3))
         <strong>0</strong> islas… y el grafo sigue teniendo
         <strong>2</strong> subgrafos. <strong>Quitar las
         islas no conecta el grafo</strong>: son dos propiedades distintas, y la que suele importar
-        —que la información pueda viajar de cualquier unidad a cualquier otra— es la segunda. Hace
-        falta subir hasta 0.7426 para que el mapa sea una
-        sola pieza.</p>
+        —que la información pueda viajar de cualquier unidad a cualquier otra— es la segunda.</p>
+
+      <p>El umbral que sí lo conecta también se calcula en vez de tantearse. Es la arista más larga
+        del <strong>árbol generador mínimo</strong> de los centroides —el árbol que une todos los
+        puntos con la menor longitud total—: por debajo de ella hay al menos dos pedazos, y en ella,
+        uno. Sobre Columbus vale <strong>0.6829</strong>, entre dos puntos del
+        barrido, y ahí el grado medio es 5.9184.</p>
 
       <div class="code-tabs">
         <div class="code-tabs-nav" role="tablist" aria-label="El umbral y sus islas">
@@ -4901,23 +4959,34 @@ print(justo.n_components)
       <h3>Y sobre el dato real, la cifra que cierra el módulo</h3>
 
       <p>En los municipios de Colombia el umbral mínimo sin islas es de
-        <strong>166.8</strong> km —la distancia que separa a
-        San Andrés de su vecino más próximo—. A esa distancia el grafo tiene
+        <strong>166.8</strong> km, y no lo fija el mar. Es la
+        distancia de Puerto Carreño (Vichada) a La Primavera, su vecino más
+        próximo: lo decide el municipio más solo del continente, que es la densidad desigual del
+        título con nombre propio. San Andrés tiene a Providencia a
+        98.0 km, así que el archipiélago no fija nada.</p>
+
+      <p>A esa distancia el grafo tiene
         <strong>100 450</strong> parejas y un grado medio de
-        <strong>179.1</strong>: cada municipio sería vecino de
-        ciento setenta y nueve, y el más conectado de
-        368.</p>
+        <strong>179.1</strong>, y el reparto es tan desigual como el
+        mapa: el más conectado, el municipio de La Dorada (Caldas), es vecino de
+        368; Manizales lo es de 287, y Leticia, de
+        2.</p>
 
-      <p>Esa W es correcta y es inútil. No hay ninguna pregunta razonable cuya respuesta dependa
-        de que Leticia y Manizales sean vecinas. <strong>Y sigue teniendo
-        2 subgrafos</strong>, así que ni
-        siquiera compra lo que se pagó por ella. La lección del módulo cabe en una frase: el umbral
-        que arregla las islas rompe la vecindad, y cuando eso pasa el problema no es el umbral
-        — es que la escala del dato no es uniforme.</p>
+      <p>Esa W es correcta y es inútil. Promediar 287 municipios en Manizales
+        y 2 en Leticia no es medir lo mismo en dos sitios: es una vecindad
+        distinta en cada uno. <strong>Y sigue teniendo
+        2 subgrafos</strong> —el continente, y
+        San Andrés con Providencia—, así que ni siquiera compra lo que se pagó por ella:
+        para unir el archipiélago a la costa haría falta llegar a
+        668.2 km, lo que separa a San Andrés de
+        Acandí. La lección del módulo cabe en una frase: el umbral que arregla las islas
+        rompe la vecindad, y cuando eso pasa el problema no es el umbral — es que la escala del
+        dato no es uniforme.</p>
 
-      <p>Es también la única de las diez definiciones de este capítulo que <strong>no se puede
-        dibujar</strong>: cien mil aristas sobre mil polígonos son una mancha. Se mira como
-        número, y eso también es parte de saber elegir una W.</p>
+      <p>Es también la única W de este capítulo que <strong>no se puede dibujar</strong>:
+        100 450 parejas sobre 1 122
+        polígonos son una mancha. Se mira como número, y eso también es parte de saber elegir
+        una W.</p>
     </div>
   </template>
 
@@ -4949,9 +5018,12 @@ print(justo.n_components)
         unidos por un lado de la triangulación, que es la que evita los triángulos alargados. Sobre
         Columbus da <strong>134</strong> parejas y grado medio
         5.4694, muy cerca de la contigüidad reina — y no es casualidad:
-        las dos están diciendo «los que rodean».</p>
+        las dos están diciendo «los que rodean». Comparten
+        104 parejas; Delaunay tiene
+        30 que la reina no, y la reina
+        14 que Delaunay no.</p>
 
-      <p>Las otras tres son subconjuntos suyos, cada una con una regla más exigente:</p>
+      <p>Las otras tres salen de ella, y dos son subconjuntos suyos con una regla más exigente:</p>
 
         <p class="tabla-titulo">Las cuatro vecindades geométricas sobre Columbus</p>
         <div class="tabla-envoltorio">
@@ -4968,15 +5040,24 @@ print(justo.n_components)
 
       <p>El <strong>grafo de Gabriel</strong> se queda con las parejas cuyo círculo de diámetro
         <em>ij</em> no contiene a nadie más. La <strong>vecindad relativa</strong> aprieta más: no
-        puede haber nadie más cerca de los dos que ellos entre sí. Y la <strong>esfera de
-        influencia</strong> une a los que se solapan con el círculo centrado en cada punto y radio
-        su distancia al más próximo.</p>
+        puede haber nadie más cerca de los dos que ellos entre sí.</p>
+
+      <p>La <strong>esfera de influencia</strong> mira otra cosa. Alrededor de cada punto se dibuja
+        un círculo con radio su distancia al vecino más próximo, y son vecinos dos puntos cuyos
+        círculos se solapan. Esa regla no se escribe sobre Delaunay, y por definición no cabe en
+        ella: sobre Columbus da <strong>125</strong> parejas, y
+        21 no son de Delaunay. Las
+        104 de la tabla son las de <code>spdep</code>, cuyo
+        <code>soi.graph</code> recibe la triangulación y se queda con las aristas que cumplen la
+        regla. Es el módulo 8 por adelantado: un convenio de la biblioteca que su nombre no dice.</p>
 
       <p>Lo que hace que esto sea una familia y no una lista es que <strong>están anidadas</strong>:
         <strong>relativa ⊆ Gabriel ⊆ Delaunay</strong>. El precálculo no lo cita: lo comprueba, y el
         auditor lo vuelve a comprobar con la otra biblioteca. Por eso los grados caen de
         5.4694 a 3.7551 y a
-        2.4082 sin que ninguna añada nada que la anterior no tuviera.</p>
+        2.4082 sin que ninguna añada nada que la anterior no tuviera. La
+        esfera queda fuera de esa cadena: tiene más parejas que Gabriel, y ninguna de las dos
+        contiene a la otra.</p>
 
       <div class="code-tabs">
         <div class="code-tabs-nav" role="tablist" aria-label="Las vecindades geométricas">
@@ -4991,7 +5072,15 @@ rel &lt;- graph2nb(relativeneigh(st_coordinates(cent)), sym = TRUE)
 soi &lt;- graph2nb(soi.graph(tri2nb(cent), cent), sym = TRUE)
 
 sapply(list(del, gab, rel, soi), function(nb) sum(card(nb)) / 2)
-#&gt; [1] 134 92 59 104</code></pre>
+#&gt; [1] 134 92 59 104
+
+# La esfera por su DEFINICIÓN —se unen los puntos cuyos círculos de radio
+# «distancia al más próximo» se solapan— tiene más: soi.graph parte de
+# Delaunay y solo mira sus aristas
+dd &lt;- as.matrix(dist(st_coordinates(cent))); diag(dd) &lt;- Inf
+r &lt;- apply(dd, 1, min)
+sum(dd &lt;= outer(r, r, &quot;+&quot;) &amp; upper.tri(dd))
+#&gt; [1] 125</code></pre>
         </div>
         <div class="code-tab-panel" data-lang="python" hidden>
           <pre><code class="language-python">delaunay = weights.Delaunay(xy)
@@ -5006,7 +5095,12 @@ print(pset(relativa) &lt;= pset(gabriel) &lt;= pset(delaunay))
 #&gt; True
 
 print(len(pset(delaunay)), len(pset(gabriel)), len(pset(relativa)))
-#&gt; 134 92 59</code></pre>
+#&gt; 134 92 59
+
+# La esfera por su definición, con la matriz de distancias del módulo 5
+r = d.min(axis=1)
+print(int(np.triu(d &lt;= r[:, None] + r[None, :], 1).sum()))
+#&gt; 125</code></pre>
         </div>
       </div>
 
@@ -5014,7 +5108,9 @@ print(len(pset(delaunay)), len(pset(gabriel)), len(pset(relativa)))
         2 527 y 1 528 parejas— y la
         esfera de influencia queda en medio con 2 685. Ninguna de
         las cuatro deja islas: al no mirar fronteras, hasta San Andrés acaba con algún vecino.
-        <strong>Es la misma solución tramposa que los k vecinos</strong>, con otro nombre.</p>
+        Delaunay, Gabriel y la relativa lo consiguen con <strong>la misma solución tramposa que
+        los k vecinos</strong>: unen el archipiélago a la costa. La esfera no, y el párrafo
+        siguiente dice por qué.</p>
 
       <p>Pero <strong>no tener islas no es estar conectado</strong>, y la esfera de influencia lo
         enseña en el mismo mapa: su grafo se parte en
@@ -5105,8 +5201,8 @@ print(len(pset(delaunay)), len(pset(gabriel)), len(pset(relativa)))
         <em>la media de los vecinos</em>. Es el más usado y el que casi siempre se quiere. Su
         precio se ve en la tabla: el vecino de la unidad de grado 2
         pesa <strong>0.5000</strong> y el de la de grado
-        10 pesa <strong>0.1000</strong>. <strong>El mismo
-        vecino vale cinco veces más según a quién esté al lado</strong>, y eso es exactamente lo
+        10 pesa <strong>0.1000</strong>. <strong>Un vecino
+        vale 5 veces más según a quién esté al lado</strong>, y eso es exactamente lo
         que la estandarización por filas hace: no reparte influencia, la concentra en las unidades
         con pocos vecinos.</p>
 
@@ -5179,7 +5275,7 @@ print([round(float(estilo(A, e).sum()), 4) for e in &quot;BWSCU&quot;])
   </template>
 
   <!-- ============================================================ -->
-  <!-- MÓDULO 8 · El flujo de `spdep`                                  -->
+  <!-- MÓDULO 8 · El flujo de spdep                                    -->
   <!-- ============================================================ -->
   <template id="module-8">
     <div class="animate-fade-in">
@@ -5187,13 +5283,13 @@ print([round(float(estilo(A, e).sum()), 4) for e in &quot;BWSCU&quot;])
         <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
           <span>Módulo 8</span>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El flujo de `spdep`
-          <span class="text-gray-400 font-normal text-2xl">/ The spdep workflow</span></h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">El flujo de <code>spdep</code>
+          <span class="text-gray-400 font-normal text-2xl">/ The <code>spdep</code> workflow</span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
             <h3 class="font-bold text-gray-800 text-sm" style="margin:0;">Objetivo</h3>
-            <p class="text-gray-600 text-sm" style="margin:0;">Recorrer el flujo completo de `spdep` y ver que `sfdep` es la misma maquinaria con otra sintaxis.</p>
+            <p class="text-gray-600 text-sm" style="margin:0;">Recorrer el flujo completo de <code>spdep</code> y ver que <code>sfdep</code> es la misma maquinaria con otra sintaxis.</p>
           </div>
         </div>
       </div>
@@ -5209,7 +5305,7 @@ print([round(float(estilo(A, e).sum()), 4) for e in &quot;BWSCU&quot;])
         <li><code>nb2listw</code> — <strong>cuánto pesa cada uno</strong>. Convierte el
           <code>nb</code> en un <code>listw</code> añadiéndole los pesos del estilo elegido.</li>
         <li><code>lag.listw</code> — <strong>qué se hace con eso</strong>. El rezago, que es el
-          módulo siguiente.</li>
+          módulo 10; antes, el 9 se ocupa de quien no tiene vecinos.</li>
       </ol>
 
       <p>La separación entre los dos primeros pasos no es burocracia: es la que permite comparar
@@ -5268,7 +5364,7 @@ print(pares(w))
   </template>
 
   <!-- ============================================================ -->
-  <!-- MÓDULO 9 · Islas y `zero.policy`                                -->
+  <!-- MÓDULO 9 · Islas y zero.policy                                  -->
   <!-- ============================================================ -->
   <template id="module-9">
     <div class="animate-fade-in">
@@ -5276,8 +5372,8 @@ print(pares(w))
         <div class="flex items-center space-x-2 text-sm text-secondary font-semibold mb-2 uppercase tracking-wide">
           <span>Módulo 9</span>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Islas y `zero.policy`
-          <span class="text-gray-400 font-normal text-2xl">/ Islands and zero.policy</span></h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="border:none; padding:0;">Islas y <code>zero.policy</code>
+          <span class="text-gray-400 font-normal text-2xl">/ Islands and <code>zero.policy</code></span></h2>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-start gap-3">
           <span class="text-xl">🎯</span>
           <div>
@@ -5300,9 +5396,10 @@ print(pares(w))
       <h3>Lo primero que hace R es lo correcto: fallar</h3>
 
       <p><code>nb2listw</code> sobre una vecindad con islas <strong>se niega</strong>, con el
-        mensaje <code>Empty neighbour sets found (zero.policy: FALSE)</code>. Y tiene razón: la fila de una unidad sin
-        vecinos no tiene media, así que un peso estandarizado por filas no existe para ella. Dividir
-        por cero es la operación, y R prefiere parar.</p>
+        mensaje <code>Empty neighbour sets found (zero.policy: FALSE)</code>. Y tiene razón, aunque no por la
+        aritmética: se niega también con el estilo B, que no divide por nada. Es una política de
+        <code>spdep</code>, y la sana. La fila de una unidad sin vecinos no tiene media, y R prefiere
+        que lo decida quien analiza a decidirlo por él.</p>
 
       <p>La salida es <code>zero.policy = TRUE</code>, y ahí empieza lo que este módulo quiere que
         se sepa. <strong>No arregla el problema: lo convierte en un cero.</strong> La fila se queda
@@ -5348,10 +5445,30 @@ print(wm.n_components)
       <h3>Por qué ese cero engaña</h3>
 
       <p>Un cero es un número, y los números entran en las medias. Si el rezago de las islas vale
-        cero y la variable no está centrada, esas unidades <strong>tiran de cualquier resumen hacia
-        abajo</strong> sin que nada lo avise: la media del rezago baja, la correlación entre el
-        dato y su rezago baja, y el índice de Moran del capítulo 7 —que se calcula con ese mismo
-        rezago— baja también.</p>
+        cero, esas dos unidades se mezclan en cualquier resumen sin que nada lo avise, <strong>y ni
+        siquiera se sabe de antemano hacia dónde lo empujan</strong>. Medido sobre la deserción, con
+        las islas dentro y fuera:</p>
+
+        <p class="tabla-titulo">La deserción con el rezago de las islas a cero y sin las islas. «n de spdep» es el ajuste que descuenta las unidades sin vecinos (<code>adjust.n = TRUE</code>, el valor por defecto)</p>
+        <div class="tabla-envoltorio">
+          <table class="tabla-datos">
+            <thead><tr><th>Resumen</th><th>Con el cero</th><th>Sin las islas</th></tr></thead>
+            <tbody>
+            <tr><th scope="row">Media de <em>Wy</em></th><td>3.4531</td><td>3.4593</td></tr>
+            <tr><th scope="row">cor(<em>y</em>, <em>Wy</em>)</th><td>0.5680</td><td>0.5677</td></tr>
+            <tr><th scope="row">I, n de <code>spdep</code></th><td>0.38091</td><td>0.38153</td></tr>
+            <tr><th scope="row">I, n sin ajustar</th><td>0.38159</td><td>0.38153</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      <p>La media del rezago baja, como cabía esperar de un cero. La correlación <strong>sube</strong>:
+        San Andrés y Providencia tienen la deserción por debajo de la media
+        (2.01 y 1.41, frente a
+        3.4236), y una pareja «dato bajo, rezago cero» encaja con la tendencia. Y el
+        índice de Moran del capítulo 7 baja o sube según cómo cuente <code>spdep</code> el n,
+        porque Moran centra la variable: para él, el rezago cero de una isla vale «la media», no
+        cero. Lo que engaña no es la dirección: es que no se ve.</p>
 
       <p>Las tres salidas honestas, y las tres hay que escribirlas:</p>
 
@@ -5359,9 +5476,11 @@ print(wm.n_components)
         <li><strong>Quitar las islas del análisis</strong> y decir cuántas eran. Es lo que hace el
           módulo siguiente: el rezago se calcula sobre el subconjunto con dato y con vecinos.</li>
         <li><strong>Cambiar de criterio</strong>, a k vecinos o a un umbral largo. Resuelve la
-          aritmética y crea otro problema: San Andrés acaba siendo vecino de la costa a
-          167 km de mar. Una vecindad que no significa
-          nada da un número que tampoco.</li>
+          aritmética y crea otro problema. Con k = 4, San Andrés acaba siendo
+          vecino de Acandí, a 668 km de mar; con un
+          umbral, ni eso, porque hasta 668.2 km el
+          archipiélago sigue en su propio pedazo (módulo 5). Una vecindad que no significa nada da un
+          número que tampoco.</li>
         <li><strong>Analizar cada componente por separado</strong>, que es lo correcto cuando los
           subgrafos son grandes y no dos puntos en el Caribe.</li>
       </ul>
@@ -5442,13 +5561,15 @@ print(wm.n_components)
         igual. Lo que W estandarizada por filas conserva exactamente, con una vecindad simétrica como la
         reina, es otra media: la <strong>ponderada por el grado</strong>, la que cuenta a cada municipio
         tantas veces como vecinos tiene. Lo que cambia, y mucho, es la dispersión: las desviaciones
-        típicas son <strong>1.7667</strong> y <strong>1.1874</strong>, y el rezago es un
-        <strong>32,79 %</strong> más estrecho.</p>
+        típicas son <strong>1.7667</strong> y <strong>1.1874</strong> —la del rezago,
+        sobre los 1 119 que tienen vecinos—, y el rezago es un
+        <strong>32.79 %</strong> más estrecho.</p>
 
       <p>No es un artefacto: <strong>promediar contrae</strong>. La media de varios números queda entre
         el menor y el mayor de ellos, así que ningún valor de <em>Wy</em> se sale del rango de <em>y</em>,
         y en la práctica su desviación típica queda bastante por debajo. El rezago es exactamente eso
-        hecho 1 121 veces. La consecuencia práctica es de mapa: si se dibujan <em>y</em> y
+        hecho una vez por municipio con vecinos, 1 119 veces. La consecuencia
+        práctica es de mapa: si se dibujan <em>y</em> y
         <em>Wy</em> con la misma escala de color, el segundo se ve más plano, y eso no dice nada sobre el
         territorio — dice que uno es un promedio del otro.</p>
 
@@ -5502,8 +5623,10 @@ print(wm.n_components)
           <button class="code-tab-btn" data-lang="python" role="tab" aria-selected="false">Python</button>
         </div>
         <div class="code-tab-panel" data-lang="r">
-          <pre><code class="language-r"># El rezago es la media de los vecinos, y punto
-des &lt;- read.csv(&quot;datos/procesado/municipios_llave.csv&quot;)$desercion
+          <pre><code class="language-r"># El rezago es la media de los vecinos, y punto. La deserción viene en
+# otra tabla: se cruza por la llave, no por la posición de las filas
+llave &lt;- read.csv(&quot;datos/procesado/municipios_llave.csv&quot;)
+des &lt;- llave$desercion[match(mun$shapeID, llave$shapeID)]
 ok  &lt;- is.finite(des)
 sub &lt;- subset.nb(nb, ok)
 lw  &lt;- nb2listw(sub, style = &quot;W&quot;, zero.policy = TRUE)
@@ -5525,7 +5648,8 @@ round(sd(wy[con]), 4)
           <pre><code class="language-python">import pandas as pd
 
 llave = pd.read_csv(&quot;datos/procesado/municipios_llave.csv&quot;)
-des = llave[&quot;desercion&quot;].to_numpy(dtype=float)
+# Por la llave, no por la posición: el orden de una tabla no es un contrato
+des = mun[[&quot;shapeID&quot;]].merge(llave, on=&quot;shapeID&quot;, how=&quot;left&quot;)[&quot;desercion&quot;].to_numpy(dtype=float)
 ok = np.isfinite(des)
 
 # El subconjunto con dato, con su propia W
@@ -5545,10 +5669,14 @@ print(round(float(100 * (1 - wy[con].std(ddof=1) / y.std(ddof=1))), 4))
       </div>
 
       <p>Y una advertencia que el capítulo 7 va a cobrar: esa correlación de
-        0.5677 <strong>depende de la W que se eligió</strong>. Con la torre, con
-        k = 4 o con un umbral de 30 km sale otra, y
-        ninguna es la verdadera. El índice de Moran hereda entera esa dependencia, y por eso este
-        capítulo va antes que aquel.</p>
+        0.5677 es la de la reina, y <strong>depende de la W que se eligió</strong>.
+        Con la torre sale 0.5623; con k = 4,
+        0.5662; con un umbral de 30 km, que deja a
+        108 municipios sin vecinos, 0.5872.
+        Aquí la W mueve la cifra en la segunda decimal y no cambia la lectura: lo cercano se parece
+        con las cuatro. Ninguna es la verdadera, y no siempre se mueve tan poco. El índice de Moran
+        hereda esa dependencia, y el capítulo 7 mide cuánto le mueve el valor y si llega a moverle
+        la conclusión. Por eso este capítulo va antes que aquel.</p>
     </div>
   </template>
 
@@ -5580,11 +5708,15 @@ print(round(float(100 * (1 - wy[con].std(ddof=1) / y.std(ddof=1))), 4))
       <p>Lo primero que eso explica es la forma de la matriz. Columbus tiene
         <strong>2 401</strong> casillas y solo
         <strong>236</strong> están ocupadas: un
-        <strong>9,83 %</strong>. En los municipios la densidad baja a
-        <strong>0,5219 %</strong>. <strong>W es dispersa siempre</strong>,
-        y por eso <code>spdep</code> no guarda una matriz sino listas de vecinos: una matriz densa
-        de 1 122 × 1 122 son 1 258 884 números para guardar
-        6 570.</p>
+        <strong>9.83 %</strong> contando la diagonal, que en W siempre es cero; fuera
+        de ella, el 10.034 % que daba la lectura del módulo 3. En los
+        municipios la densidad baja a <strong>0.5219 %</strong>.
+        <strong>Las W razonables son dispersas</strong>, y por eso <code>spdep</code> no guarda una
+        matriz sino listas de vecinos: una matriz densa de 1 122 ×
+        1 122 son 1 258 884 números para guardar
+        6 570. La del umbral municipal del módulo 5 enseña lo que
+        cuesta una que no lo es: 200 900 casillas
+        ocupadas, el 15.97 %.</p>
 
       <h3>Estandarizar por filas es normalizar por el grado</h3>
 
@@ -5649,7 +5781,8 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
 
       <p>Quien haya visto redes neuronales sobre grafos acaba de reconocer la fórmula. Una capa de
         <em>paso de mensajes</em> hace, en su versión más simple, esto: cada nodo recibe la media de
-        lo que tienen sus vecinos, y con eso actualiza su propio valor. En notación de GNN:</p>
+        lo que tienen sus vecinos, y eso es su nuevo valor. En notación de GNN, la capa que agrega
+        por la media es:</p>
 
       <div class="formula">
         $$H' = \sigma\!\left(D^{-1} A\, H\, \Theta\right)$$
@@ -5660,6 +5793,13 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         parámetros que la red aprende. En esa literatura suele llamarse W, y no es la W de este
         capítulo: aquí W es \(D^{-1}A\). Lo de dentro, \(D^{-1}AH\), es <em>exactamente</em>
         el rezago espacial de este capítulo, calculado para cada columna de \(H\) a la vez.</p>
+
+      <p>Con una salvedad que conviene conocer antes de leer esa literatura: la red más citada, la
+        GCN de Kipf y Welling, no usa \(D^{-1}A\) sino
+        \(\tilde D^{-1/2}\tilde A\,\tilde D^{-1/2}\), con \(\tilde A = A + I\). Suma a cada
+        nodo como vecino de sí mismo, para que su propio valor entre en la media, y normaliza por
+        los dos lados, así que la matriz que resulta es simétrica. Es otra W, elegida por quien
+        diseñó la red.</p>
 
       <p>La correspondencia no es una analogía bonita, y tiene dos consecuencias concretas:</p>
 
@@ -5682,7 +5822,8 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       <p>Con esto el capítulo tiene sus piezas: qué es un vecino, cuánto pesa, qué se hace con eso y
         qué pasa cuando alguien no tiene ninguno. El capítulo siguiente hace la única pregunta que
         faltaba — <em>¿lo cercano se parece más de lo que cabría esperar por azar?</em>— y va a
-        descubrir que la respuesta depende de la W que se eligió aquí.</p>
+        medir cuánto depende de la W que se eligió aquí: el valor del índice cambia con ella, y si
+        cambia también la respuesta es lo que el capítulo 7 comprueba.</p>
     </div>
   </template>
 
@@ -5812,7 +5953,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
 
         <div class="ejercicio-guiado">
           <p class="ejercicio-enunciado"><span class="ejercicio-numero">4.</span><strong>El estilo que mueve la conclusión.</strong>
-            Sobre <code>nc</code>, calcula la tasa de muerte súbita infantil por mil nacimientos (<code>SID74 / BIR74</code>) y su rezago espacial bajo los cinco estilos de <code>nb2listw</code>. Da la correlación entre la tasa y su rezago en cada uno. Contesta: tres de los cinco dan EXACTAMENTE la misma correlación. ¿Cuáles y por qué?</p>
+            Sobre <code>nc</code>, calcula la tasa de muerte súbita infantil por mil nacimientos (<code>1000 * SID74 / BIR74</code>) y su rezago espacial bajo los cinco estilos de <code>nb2listw</code>. Da la correlación entre la tasa y su rezago en cada uno. Contesta: tres de los cinco dan EXACTAMENTE la misma correlación. ¿Cuáles y por qué?</p>
           <div class="ejercicio-acciones">
             <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="cap6-e4-sol">
               <i class="fas fa-key" aria-hidden="true"></i> Solución <i class="fas fa-chevron-down" aria-hidden="true"></i>
@@ -5856,23 +5997,23 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
                 <tr><th scope="row">Desviación de la tasa</th><td>1.57334</td></tr>
                 <tr><th scope="row">Desviación del rezago</th><td>0.927801</td></tr>
                 <tr><th scope="row">Contracción de la desviación (%)</th><td>41.0298</td></tr>
+                <tr><th scope="row">Contracción con la tasa repartida al azar (%, mediana de 2 000 repartos)</th><td>52.9248</td></tr>
+                <tr><th scope="row">Repartos al azar que se estrechan menos que la tasa real (%)</th><td>1.05</td></tr>
                 <tr><th scope="row">Correlación entre la tasa y su rezago</th><td>0.391572</td></tr>
 
               </tbody>
             </table>
-            <p class="ejercicio-lectura">El del rezago, y no dice nada sobre Carolina del Norte: promediar contrae. La media de varios números queda entre el menor y el mayor de ellos, y el rezago es esa media hecha una vez por condado: ningún valor del rezago se sale del rango de la tasa, y la desviación cae mucho. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la operación. Las medias simples se parecen, pero no por obligación: cada condado entra en el promedio de cada uno de sus vecinos, así que en el rezago no pesan todos igual. Lo que no se mueve nunca, con una vecindad simétrica como la reina, es la media ponderada por el grado, la que cuenta a cada condado tantas veces como vecinos tiene: es la misma en la tasa y en su rezago.</p>
+            <p class="ejercicio-lectura">El del rezago, y QUE se vea más plano no dice nada sobre Carolina del Norte: promediar contrae. La media de varios números queda entre el menor y el mayor de ellos, y el rezago es esa media hecha una vez por condado: ningún valor del rezago se sale del rango de la tasa, y la desviación cae mucho. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la operación. Lo que sí dice algo del territorio es CUÁNTO se estrecha. Repartida al azar entre los condados, la misma tasa se estrecharía un 52.9 % de mediana; la real, un 41.0 %, y solo el 1.05 % de los repartos se estrecha menos que ella: los condados vecinos se parecen, y promediar valores parecidos los iguala poco. Las medias simples se parecen, pero no por obligación: cada condado entra en el promedio de cada uno de sus vecinos, así que en el rezago no pesan todos igual. Lo que no se mueve nunca, con una vecindad simétrica como la reina, es la media ponderada por el grado, la que cuenta a cada condado tantas veces como vecinos tiene: es la misma en la tasa y en su rezago.</p>
           </div>
         </div>
 
-      <p>Con esto el capítulo cierra sus piezas: qué es un vecino, cuánto pesa cada uno, qué se hace
-        con eso y qué pasa cuando alguien no tiene ninguno.</p>
 
       <div class="tip-box">
         <h4>Dónde sigue esto</h4>
         <p style="margin-bottom:0;">El <strong>capítulo 7</strong> hace la única pregunta que falta
-          —<em>¿lo cercano se parece más de lo que cabría esperar por azar?</em>— y su respuesta va a
-          depender, entera, de la W que se haya elegido aquí: el índice de Moran se calcula con
-          <em>y</em> y <em>Wy</em>, así que hereda esta decisión completa. Los anteriores son
+          —<em>¿lo cercano se parece más de lo que cabría esperar por azar?</em>—. El índice de Moran
+          se calcula con <em>y</em> y <em>Wy</em>, así que su valor hereda la W que se haya elegido
+          aquí, y el capítulo mide si la respuesta la hereda también. Los anteriores son
           <a href="capitulo-1-datos-espaciales.html">Datos espaciales y la primera ley de la
           geografía</a>, <a href="capitulo-2-crs-georreferenciacion.html">SIG, sistemas de
           referencia y georreferenciación</a>,
@@ -5924,8 +6065,8 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         { id: 5, title: "Umbral de distancia", subtitle: "Islas y densidad desigual" },
         { id: 6, title: "Vecindades geométricas", subtitle: "Delaunay, Gabriel y esfera de influencia" },
         { id: 7, title: "De vecinos a pesos", subtitle: "Los estilos B, W, S, C y U" },
-        { id: 8, title: "El flujo de `spdep`", subtitle: "Y `sfdep` como interfaz tidy" },
-        { id: 9, title: "Islas y `zero.policy`", subtitle: "Qué hace R con quien no tiene vecinos" },
+        { id: 8, title: "El flujo de <code>spdep</code>", subtitle: "Y <code>sfdep</code> como interfaz tidy" },
+        { id: 9, title: "Islas y <code>zero.policy</code>", subtitle: "Qué hace R con quien no tiene vecinos" },
         { id: 10, title: "El rezago espacial Wy", subtitle: "La media de los vecinos" },
         { id: 11, title: "W es un grafo", subtitle: "Adyacencia, paso de mensajes y GNN" },
         { id: 12, title: "Autoevaluación y ejercicios", subtitle: "Trece preguntas y cinco ejercicios" },
@@ -5934,8 +6075,8 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
 
     // Todas las cifras del capítulo, tal como salieron del precálculo.
     // El JavaScript no lleva ninguna escrita: las saca de aquí.
-    const DATOS_CAP6 = {"m1": {"columbus": {"n": 49, "variables": {"crime": {"media": 35.1288, "sd": 16.7321, "min": 0.1783, "max": 68.892}, "hoval": {"media": 38.4362, "sd": 18.4661}, "inc": {"media": 14.3749, "sd": 5.7034}}}, "municipios": {"n": 1122, "con_dato": 1121, "sin_dato": 1, "desercion": {"media": 3.4236, "sd": 1.7667, "min": 0, "max": 14.81, "ceros": 6}, "departamentos": 33}}, "m2": {"tablero": "columbus", "n": 49, "umbral_sin_islas": 0.6189, "criterios": [{"id": "reina", "etiqueta": "Contigüidad reina", "enlaces": 236, "pares": 118, "simetrica": true, "grado": 4.8163, "grado_min": 2, "grado_max": 10, "islas": 0, "subgrafos": 1, "densidad_pct": 10.034}, {"id": "torre", "etiqueta": "Contigüidad torre", "enlaces": 200, "pares": 100, "simetrica": true, "grado": 4.0816, "grado_min": 2, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 8.5034}, {"id": "k1", "etiqueta": "1 vecino más próximo", "enlaces": 49, "pares": 36, "simetrica": false, "grado": 1, "grado_min": 1, "grado_max": 1, "islas": 0, "subgrafos": 13, "densidad_pct": 2.0833}, {"id": "k3", "etiqueta": "3 vecinos más próximos", "enlaces": 147, "pares": 94, "simetrica": false, "grado": 3, "grado_min": 3, "grado_max": 3, "islas": 0, "subgrafos": 1, "densidad_pct": 6.25}, {"id": "k6", "etiqueta": "6 vecinos más próximos", "enlaces": 294, "pares": 178, "simetrica": false, "grado": 6, "grado_min": 6, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 12.5}, {"id": "d_mitad", "etiqueta": "Umbral: la mitad del mínimo conexo", "enlaces": 34, "pares": 17, "simetrica": true, "grado": 0.6939, "grado_min": 0, "grado_max": 3, "islas": 28, "subgrafos": 33, "densidad_pct": 1.4456}, {"id": "d_conexo", "etiqueta": "Umbral mínimo sin islas", "enlaces": 252, "pares": 126, "simetrica": true, "grado": 5.1429, "grado_min": 1, "grado_max": 11, "islas": 0, "subgrafos": 2, "densidad_pct": 10.7143}, {"id": "delaunay", "etiqueta": "Delaunay", "enlaces": 268, "pares": 134, "simetrica": true, "grado": 5.4694, "grado_min": 3, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 11.3946}, {"id": "gabriel", "etiqueta": "Gabriel", "enlaces": 184, "pares": 92, "simetrica": true, "grado": 3.7551, "grado_min": 1, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 7.8231}, {"id": "esfera", "etiqueta": "Esfera de influencia", "enlaces": 208, "pares": 104, "simetrica": true, "grado": 4.2449, "grado_min": 2, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 8.8435}], "histograma": [{"id": "reina", "conteo": [0, 0, 5, 9, 12, 5, 9, 3, 4, 1, 1, 0]}, {"id": "torre", "conteo": [0, 0, 7, 10, 17, 8, 3, 3, 0, 1, 0, 0]}, {"id": "k1", "conteo": [0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "k3", "conteo": [0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "k6", "conteo": [0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0]}, {"id": "d_mitad", "conteo": [28, 11, 7, 3, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "d_conexo", "conteo": [0, 4, 8, 6, 2, 5, 8, 6, 2, 6, 1, 1]}, {"id": "delaunay", "conteo": [0, 0, 0, 2, 10, 13, 16, 4, 3, 1, 0, 0]}, {"id": "gabriel", "conteo": [0, 1, 9, 12, 11, 11, 5, 0, 0, 0, 0, 0]}, {"id": "esfera", "conteo": [0, 0, 6, 7, 18, 8, 8, 1, 1, 0, 0, 0]}]}, "m3": {"reina": {"enlaces": 236, "pares": 118, "simetrica": true, "grado": 4.8163, "grado_min": 2, "grado_max": 10, "islas": 0, "subgrafos": 1, "densidad_pct": 10.034}, "torre": {"enlaces": 200, "pares": 100, "simetrica": true, "grado": 4.0816, "grado_min": 2, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 8.5034}, "solo_reina": 18, "ordenes": [{"orden": 1, "enlaces": 236, "pares": 118, "simetrica": true, "grado": 4.8163, "grado_min": 2, "grado_max": 10, "islas": 0, "subgrafos": 1, "densidad_pct": 10.034}, {"orden": 2, "enlaces": 416, "pares": 208, "simetrica": true, "grado": 8.4898, "grado_min": 1, "grado_max": 16, "islas": 0, "subgrafos": 1, "densidad_pct": 17.6871}, {"orden": 3, "enlaces": 486, "pares": 243, "simetrica": true, "grado": 9.9184, "grado_min": 1, "grado_max": 18, "islas": 0, "subgrafos": 1, "densidad_pct": 20.6633}], "municipios": {"reina": {"enlaces": 6570, "pares": 3285, "simetrica": true, "grado": 5.8556, "grado_min": 0, "grado_max": 20, "islas": 2, "subgrafos": 3, "densidad_pct": 0.5224}, "torre": {"enlaces": 6396, "pares": 3198, "simetrica": true, "grado": 5.7005, "grado_min": 0, "grado_max": 19, "islas": 2, "subgrafos": 3, "densidad_pct": 0.5085}}}, "m4": {"columbus": [{"k": 1, "asimetricos": 23, "enlaces": 49, "pares": 36, "simetrica": false, "grado": 1, "grado_min": 1, "grado_max": 1, "islas": 0, "subgrafos": 13, "densidad_pct": 2.0833}, {"k": 2, "asimetricos": 26, "enlaces": 98, "pares": 62, "simetrica": false, "grado": 2, "grado_min": 2, "grado_max": 2, "islas": 0, "subgrafos": 1, "densidad_pct": 4.1667}, {"k": 3, "asimetricos": 41, "enlaces": 147, "pares": 94, "simetrica": false, "grado": 3, "grado_min": 3, "grado_max": 3, "islas": 0, "subgrafos": 1, "densidad_pct": 6.25}, {"k": 4, "asimetricos": 46, "enlaces": 196, "pares": 121, "simetrica": false, "grado": 4, "grado_min": 4, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 8.3333}, {"k": 5, "asimetricos": 55, "enlaces": 245, "pares": 150, "simetrica": false, "grado": 5, "grado_min": 5, "grado_max": 5, "islas": 0, "subgrafos": 1, "densidad_pct": 10.4167}, {"k": 6, "asimetricos": 62, "enlaces": 294, "pares": 178, "simetrica": false, "grado": 6, "grado_min": 6, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 12.5}, {"k": 7, "asimetricos": 77, "enlaces": 343, "pares": 210, "simetrica": false, "grado": 7, "grado_min": 7, "grado_max": 7, "islas": 0, "subgrafos": 1, "densidad_pct": 14.5833}, {"k": 8, "asimetricos": 98, "enlaces": 392, "pares": 245, "simetrica": false, "grado": 8, "grado_min": 8, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 16.6667}], "municipios_k4": {"k": 4, "asimetricos": 1084, "enlaces": 4488, "pares": 2786, "simetrica": false, "grado": 4, "grado_min": 4, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 0.3568}, "simetrizada_k3": {"k": 3, "enlaces": 188, "pares": 94, "simetrica": true, "grado": 3.8367, "grado_min": 3, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 7.9932}}, "m5": {"columbus": {"umbral_sin_islas": 0.6189, "la_mitad": {"enlaces": 34, "pares": 17, "simetrica": true, "grado": 0.6939, "grado_min": 0, "grado_max": 3, "islas": 28, "subgrafos": 33, "densidad_pct": 1.4456}, "islas_en_la_mitad": 28, "multiplos": [0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6], "curva": [{"umbral": 0.2475, "umbral_km": 0.0002, "enlaces": 18, "pares": 9, "simetrica": true, "grado": 0.3673, "grado_min": 0, "grado_max": 3, "islas": 37, "subgrafos": 40, "densidad_pct": 0.7653}, {"umbral": 0.3713, "umbral_km": 0.0004, "enlaces": 72, "pares": 36, "simetrica": true, "grado": 1.4694, "grado_min": 0, "grado_max": 6, "islas": 17, "subgrafos": 23, "densidad_pct": 3.0612}, {"umbral": 0.4951, "umbral_km": 0.0005, "enlaces": 170, "pares": 85, "simetrica": true, "grado": 3.4694, "grado_min": 0, "grado_max": 9, "islas": 4, "subgrafos": 8, "densidad_pct": 7.2279}, {"umbral": 0.6189, "umbral_km": 0.0006, "enlaces": 252, "pares": 126, "simetrica": true, "grado": 5.1429, "grado_min": 1, "grado_max": 11, "islas": 0, "subgrafos": 2, "densidad_pct": 10.7143}, {"umbral": 0.7426, "umbral_km": 0.0007, "enlaces": 340, "pares": 170, "simetrica": true, "grado": 6.9388, "grado_min": 1, "grado_max": 13, "islas": 0, "subgrafos": 1, "densidad_pct": 14.4558}, {"umbral": 0.8664, "umbral_km": 0.0009, "enlaces": 466, "pares": 233, "simetrica": true, "grado": 9.5102, "grado_min": 3, "grado_max": 17, "islas": 0, "subgrafos": 1, "densidad_pct": 19.8129}, {"umbral": 0.9902, "umbral_km": 0.001, "enlaces": 556, "pares": 278, "simetrica": true, "grado": 11.3469, "grado_min": 3, "grado_max": 21, "islas": 0, "subgrafos": 1, "densidad_pct": 23.6395}]}, "municipios": {"umbral_sin_islas_m": 166760.8752, "umbral_sin_islas_km": 166.7609, "en_el_umbral": {"enlaces": 200900, "pares": 100450, "simetrica": true, "grado": 179.0553, "grado_min": 1, "grado_max": 368, "islas": 0, "subgrafos": 2, "densidad_pct": 15.9728}, "curva": [{"umbral": 30000, "umbral_km": 30, "enlaces": 10018, "pares": 5009, "simetrica": true, "grado": 8.9287, "grado_min": 0, "grado_max": 27, "islas": 109, "subgrafos": 128, "densidad_pct": 0.7965}, {"umbral": 50000, "umbral_km": 50, "enlaces": 26444, "pares": 13222, "simetrica": true, "grado": 23.5686, "grado_min": 0, "grado_max": 64, "islas": 46, "subgrafos": 51, "densidad_pct": 2.1025}, {"umbral": 100000, "umbral_km": 100, "enlaces": 89182, "pares": 44591, "simetrica": true, "grado": 79.4848, "grado_min": 0, "grado_max": 178, "islas": 11, "subgrafos": 19, "densidad_pct": 7.0905}, {"umbral": 166760.8752, "umbral_km": 166.7609, "enlaces": 200900, "pares": 100450, "simetrica": true, "grado": 179.0553, "grado_min": 1, "grado_max": 368, "islas": 0, "subgrafos": 2, "densidad_pct": 15.9728}]}}, "m6": {"columbus": [{"id": "delaunay", "enlaces": 268, "pares": 134, "simetrica": true, "grado": 5.4694, "grado_min": 3, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 11.3946}, {"id": "gabriel", "enlaces": 184, "pares": 92, "simetrica": true, "grado": 3.7551, "grado_min": 1, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 7.8231}, {"id": "relativa", "enlaces": 118, "pares": 59, "simetrica": true, "grado": 2.4082, "grado_min": 1, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 5.017}, {"id": "esfera", "enlaces": 208, "pares": 104, "simetrica": true, "grado": 4.2449, "grado_min": 2, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 8.8435}], "anidamiento": {"relativa_en_gabriel": true, "gabriel_en_delaunay": true}, "municipios": [{"id": "delaunay", "enlaces": 6706, "pares": 3353, "simetrica": true, "grado": 5.9768, "grado_min": 3, "grado_max": 12, "islas": 0, "subgrafos": 1, "densidad_pct": 0.5332, "tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122, "subgrafo_menor_municipios": []}, {"id": "gabriel", "enlaces": 5054, "pares": 2527, "simetrica": true, "grado": 4.5045, "grado_min": 1, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 0.4018, "tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122, "subgrafo_menor_municipios": []}, {"id": "relativa", "enlaces": 3056, "pares": 1528, "simetrica": true, "grado": 2.7237, "grado_min": 1, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 0.243, "tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122, "subgrafo_menor_municipios": []}, {"id": "esfera", "enlaces": 5370, "pares": 2685, "simetrica": true, "grado": 4.7861, "grado_min": 1, "grado_max": 9, "islas": 0, "subgrafos": 2, "densidad_pct": 0.4269, "tamanos_subgrafo": [1120, 2], "subgrafo_menor_n": 2, "subgrafo_menor_municipios": ["San Andrés", "Providencia"]}]}, "m7": {"unidad_max": {"i": 20, "grado": 10}, "unidad_min": {"i": 1, "grado": 2}, "estilos": [{"id": "B", "suma_total": 236, "peso_max": 1, "peso_min": 1, "lag_medio": 182.1596, "lag_sd": 114.3577, "cor_con_crime": 0.6063}, {"id": "W", "suma_total": 49, "peso_max": 0.1, "peso_min": 0.5, "lag_medio": 35.0508, "lag_sd": 12.2396, "cor_con_crime": 0.6838}, {"id": "S", "suma_total": 49, "peso_max": 0.1472, "peso_min": 0.329, "lag_medio": 36.5058, "lag_sd": 17.3801, "cor_con_crime": 0.6679}, {"id": "C", "suma_total": 49, "peso_max": 0.2076, "peso_min": 0.2076, "lag_medio": 37.8213, "lag_sd": 23.7438, "cor_con_crime": 0.6063}, {"id": "U", "suma_total": 1, "peso_max": 0.0042, "peso_min": 0.0042, "lag_medio": 0.7719, "lag_sd": 0.4846, "cor_con_crime": 0.6063}]}, "m8": {"pasos": ["poly2nb", "nb2listw", "lag.listw"], "wy_primeros": [24.71427, 26.24684, 29.41175], "sfdep_disponible": true, "dif_max": 0, "n_pares_spdep": 118, "n_pares_sfdep": 118}, "m9": {"islas": 2, "islas_i": [1006, 1105], "islas_i0": [1005, 1104], "islas_nombre": ["San Andrés", "Providencia"], "islas_departamento": ["Archipiélago de San Andrés, Providencia y Santa Catalina", "Archipiélago de San Andrés, Providencia y Santa Catalina"], "subgrafos": 3, "tamanos_subgrafo": [1120, 1, 1], "error_sin_zero_policy": "Empty neighbour sets found (zero.policy: FALSE)", "lag_isla": 0}, "m10": {"n": 1121, "islas_en_el_subconjunto": 2, "correlacion": 0.5677, "y": {"media": 3.4236, "sd": 1.7667}, "wy": {"media": 3.4593, "sd": 1.1874}, "contraccion_pct": 32.7912}, "m11": {"columbus": {"n": 49, "casillas": 2401, "no_ceros": 236, "densidad_pct": 9.8292, "d_inv_a_igual_w": 0, "lag_es_producto": 0}, "municipios": {"n": 1122, "casillas": 1258884, "no_ceros": 6570, "densidad_pct": 0.5219}}, "meta": {"capitulo": 6, "semanas": "10-11", "semilla": 2026, "generado": "2026-09-17", "tableros": {"laboratorio": "columbus", "caso": "municipios de Colombia"}, "anclas": 6}};
-    const SOL_CAP6 = {"e1": {"titulo": "La esquina que cambia el grado", "enunciado": "Sobre los 100 condados de <code>nc</code>, construye la contigüidad reina y la torre. Di cuántas parejas une cada una, cuántas hay SOLO en la reina y cuánto se mueve el grado medio. Después contesta: ¿puede la torre tener más vecinos que la reina en algún condado? Justifícalo con la definición, no con el dato.", "pasos": [{"paso": "Parejas por contigüidad reina", "valor": 245}, {"paso": "Parejas por contigüidad torre", "valor": 231}, {"paso": "Parejas que solo tiene la reina", "valor": 14}, {"paso": "Grado medio con la reina", "valor": 4.9}, {"paso": "Grado medio con la torre", "valor": 4.62}, {"paso": "Condados cuyo grado cambia", "valor": 26}], "solucion": {"lectura": "No puede. La torre exige compartir un TRAMO de frontera y la reina se conforma con un punto, así que toda pareja de la torre lo es también de la reina: la torre está contenida en la reina. La diferencia son los contactos de esquina, que sobre fronteras administrativas irregulares son pocos y sobre una retícula regular serían la mitad del grafo. El criterio importa lo que la geometría le deje importar."}}, "e2": {"titulo": "La reciprocidad rota", "enunciado": "Construye la vecindad de los 4 vecinos más próximos sobre <code>nc</code>. Comprueba si es simétrica y cuenta los pares (i, j) en los que j es vecino de i pero i no lo es de j. Simetrízala con <code>make.sym.nb</code> y di qué le pasa al grado. Después contesta: ¿por qué la suma de la matriz W estandarizada por filas NO cambia al simetrizar?", "pasos": [{"paso": "¿Es simétrica k = 4? (1 = sí)", "valor": 0}, {"paso": "Pares no recíprocos", "valor": 66}, {"paso": "Enlaces dirigidos con k = 4", "valor": 400}, {"paso": "Parejas distintas con k = 4", "valor": 233}, {"paso": "Grado medio tras simetrizar", "valor": 4.66}, {"paso": "Grado máximo tras simetrizar", "valor": 7}], "solucion": {"lectura": "Porque el estilo W divide cada fila por su propio grado, así que TODA fila suma 1 tenga los vecinos que tenga: la suma de la matriz vale n antes y después. Lo que cambia no es el total sino el reparto, y con él la influencia de cada vecino. Simetrizar compra la simetría al precio de perder lo que hacía atractivo al criterio: que el grado valiera k."}}, "e3": {"titulo": "El umbral que no conecta", "enunciado": "Calcula el umbral de distancia MÍNIMO que no deja ningún condado sin vecinos sobre <code>nc</code>. Comprueba cuántos subgrafos tiene el grafo en ese umbral. Después busca el umbral mínimo que además lo deja CONEXO, y di cuánto crece el grado medio entre los dos. Contesta: ¿por qué no basta con quitar las islas?", "pasos": [{"paso": "Umbral mínimo sin islas (m)", "valor": 41086.4599501477}, {"paso": "Subgrafos en ese umbral", "valor": 4}, {"paso": "Grado medio en ese umbral", "valor": 2.8}, {"paso": "Umbral mínimo que conecta (m)", "valor": 45057.839728433}, {"paso": "Grado medio ahí", "valor": 3.6}, {"paso": "Cuánto crece el grado (veces)", "valor": 1.2857142857}], "solucion": {"lectura": "Porque no tener islas y ser conexo son propiedades distintas. Que nadie esté solo garantiza que toda unidad tiene con quién promediar; que el grafo sea conexo garantiza que la información puede viajar de cualquier unidad a cualquier otra, y es lo que casi siempre importa. Comprarla sube el umbral, y con él el grado medio: la vecindad se vuelve menos informativa justo cuando se vuelve utilizable."}}, "e4": {"titulo": "El estilo que mueve la conclusión", "enunciado": "Sobre <code>nc</code>, calcula la tasa de muerte súbita infantil por mil nacimientos (<code>SID74 / BIR74</code>) y su rezago espacial bajo los cinco estilos de <code>nb2listw</code>. Da la correlación entre la tasa y su rezago en cada uno. Contesta: tres de los cinco dan EXACTAMENTE la misma correlación. ¿Cuáles y por qué?", "pasos": [{"paso": "Correlación con el estilo B", "valor": 0.3191004697}, {"paso": "Correlación con el estilo W", "valor": 0.3915715349}, {"paso": "Correlación con el estilo S", "valor": 0.3766278583}, {"paso": "Correlación con el estilo C", "valor": 0.3191004697}, {"paso": "Correlación con el estilo U", "valor": 0.3191004697}, {"paso": "Estilos que coinciden con B", "valor": 3}], "solucion": {"lectura": "B, C y U. Los tres son la MISMA matriz multiplicada por una constante —C por n dividido entre el total, U por uno entre el total— y una constante no mueve una correlación. Los que sí la cambian son W y S, que es exactamente lo que hacen: tratar a las filas de forma distinta según su grado. Elegir entre B, C y U es una decisión de escala; elegir entre esos y W o S es una decisión sobre qué significa el rezago."}}, "e5": {"titulo": "La contracción del rezago", "enunciado": "Con la misma tasa del ejercicio anterior y la contigüidad reina estandarizada por filas, compara la distribución de la tasa con la de su rezago: media, desviación típica y correlación. Después contesta: si dibujas los dos mapas con la MISMA escala de color, ¿cuál se verá más plano y por qué? ¿Es eso una propiedad del territorio?", "pasos": [{"paso": "Media de la tasa", "valor": 2.0455960298}, {"paso": "Media del rezago", "valor": 2.0349276202}, {"paso": "Media de la tasa ponderada por el grado", "valor": 2.0700982265}, {"paso": "Media del rezago ponderada por el grado", "valor": 2.0700982265}, {"paso": "Desviación de la tasa", "valor": 1.5733399933}, {"paso": "Desviación del rezago", "valor": 0.9278014659}, {"paso": "Contracción de la desviación (%)", "valor": 41.0298174676}, {"paso": "Correlación entre la tasa y su rezago", "valor": 0.3915715349}], "solucion": {"lectura": "El del rezago, y no dice nada sobre Carolina del Norte: promediar contrae. La media de varios números queda entre el menor y el mayor de ellos, y el rezago es esa media hecha una vez por condado: ningún valor del rezago se sale del rango de la tasa, y la desviación cae mucho. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la operación. Las medias simples se parecen, pero no por obligación: cada condado entra en el promedio de cada uno de sus vecinos, así que en el rezago no pesan todos igual. Lo que no se mueve nunca, con una vecindad simétrica como la reina, es la media ponderada por el grado, la que cuenta a cada condado tantas veces como vecinos tiene: es la misma en la tasa y en su rezago."}}, "meta": {"capitulo": 6, "semilla": 2026, "n_ejercicios": 5, "generado": "2026-10-02"}};
+    const DATOS_CAP6 = {"m1": {"columbus": {"n": 49, "variables": {"crime": {"media": 35.1288, "sd": 16.7321, "min": 0.1783, "max": 68.892}, "hoval": {"media": 38.4362, "sd": 18.4661}, "inc": {"media": 14.3749, "sd": 5.7034}}}, "municipios": {"n": 1122, "con_dato": 1121, "sin_dato": 1, "desercion": {"media": 3.4236, "sd": 1.7667, "min": 0, "max": 14.81, "ceros": 6}, "departamentos": 33}}, "m2": {"tablero": "columbus", "n": 49, "umbral_sin_islas": 0.6189, "criterios": [{"id": "reina", "etiqueta": "Contigüidad reina", "enlaces": 236, "pares": 118, "simetrica": true, "grado": 4.8163, "grado_min": 2, "grado_max": 10, "islas": 0, "subgrafos": 1, "densidad_pct": 10.034}, {"id": "torre", "etiqueta": "Contigüidad torre", "enlaces": 200, "pares": 100, "simetrica": true, "grado": 4.0816, "grado_min": 2, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 8.5034}, {"id": "k1", "etiqueta": "1 vecino más próximo", "enlaces": 49, "pares": 36, "simetrica": false, "grado": 1, "grado_min": 1, "grado_max": 1, "islas": 0, "subgrafos": 13, "densidad_pct": 2.0833}, {"id": "k3", "etiqueta": "3 vecinos más próximos", "enlaces": 147, "pares": 94, "simetrica": false, "grado": 3, "grado_min": 3, "grado_max": 3, "islas": 0, "subgrafos": 1, "densidad_pct": 6.25}, {"id": "k6", "etiqueta": "6 vecinos más próximos", "enlaces": 294, "pares": 178, "simetrica": false, "grado": 6, "grado_min": 6, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 12.5}, {"id": "d_mitad", "etiqueta": "Umbral: la mitad del mínimo sin islas", "enlaces": 34, "pares": 17, "simetrica": true, "grado": 0.6939, "grado_min": 0, "grado_max": 3, "islas": 28, "subgrafos": 33, "densidad_pct": 1.4456}, {"id": "d_conexo", "etiqueta": "Umbral mínimo sin islas", "enlaces": 252, "pares": 126, "simetrica": true, "grado": 5.1429, "grado_min": 1, "grado_max": 11, "islas": 0, "subgrafos": 2, "densidad_pct": 10.7143}, {"id": "delaunay", "etiqueta": "Delaunay", "enlaces": 268, "pares": 134, "simetrica": true, "grado": 5.4694, "grado_min": 3, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 11.3946}, {"id": "gabriel", "etiqueta": "Gabriel", "enlaces": 184, "pares": 92, "simetrica": true, "grado": 3.7551, "grado_min": 1, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 7.8231}, {"id": "esfera", "etiqueta": "Esfera de influencia", "enlaces": 208, "pares": 104, "simetrica": true, "grado": 4.2449, "grado_min": 2, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 8.8435}], "histograma": [{"id": "reina", "conteo": [0, 0, 5, 9, 12, 5, 9, 3, 4, 1, 1, 0]}, {"id": "torre", "conteo": [0, 0, 7, 10, 17, 8, 3, 3, 0, 1, 0, 0]}, {"id": "k1", "conteo": [0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "k3", "conteo": [0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "k6", "conteo": [0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0]}, {"id": "d_mitad", "conteo": [28, 11, 7, 3, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "d_conexo", "conteo": [0, 4, 8, 6, 2, 5, 8, 6, 2, 6, 1, 1]}, {"id": "delaunay", "conteo": [0, 0, 0, 2, 10, 13, 16, 4, 3, 1, 0, 0]}, {"id": "gabriel", "conteo": [0, 1, 9, 12, 11, 11, 5, 0, 0, 0, 0, 0]}, {"id": "esfera", "conteo": [0, 0, 6, 7, 18, 8, 8, 1, 1, 0, 0, 0]}]}, "m3": {"reina": {"enlaces": 236, "pares": 118, "simetrica": true, "grado": 4.8163, "grado_min": 2, "grado_max": 10, "islas": 0, "subgrafos": 1, "densidad_pct": 10.034}, "torre": {"enlaces": 200, "pares": 100, "simetrica": true, "grado": 4.0816, "grado_min": 2, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 8.5034}, "solo_reina": 18, "pct_esquina": 15.2542, "diametro": 9, "parejas_posibles": 1176, "ordenes": [{"orden": 1, "acumuladas": 118, "pct_acumulado": 10.034, "enlaces": 236, "pares": 118, "simetrica": true, "grado": 4.8163, "grado_min": 2, "grado_max": 10, "islas": 0, "subgrafos": 1, "densidad_pct": 10.034}, {"orden": 2, "acumuladas": 326, "pct_acumulado": 27.7211, "enlaces": 416, "pares": 208, "simetrica": true, "grado": 8.4898, "grado_min": 1, "grado_max": 16, "islas": 0, "subgrafos": 1, "densidad_pct": 17.6871}, {"orden": 3, "acumuladas": 569, "pct_acumulado": 48.3844, "enlaces": 486, "pares": 243, "simetrica": true, "grado": 9.9184, "grado_min": 1, "grado_max": 18, "islas": 0, "subgrafos": 1, "densidad_pct": 20.6633}, {"orden": 4, "acumuladas": 803, "pct_acumulado": 68.2823, "enlaces": 468, "pares": 234, "simetrica": true, "grado": 9.551, "grado_min": 2, "grado_max": 15, "islas": 0, "subgrafos": 1, "densidad_pct": 19.898}, {"orden": 5, "acumuladas": 974, "pct_acumulado": 82.8231, "enlaces": 342, "pares": 171, "simetrica": true, "grado": 6.9796, "grado_min": 1, "grado_max": 15, "islas": 0, "subgrafos": 1, "densidad_pct": 14.5408}, {"orden": 6, "acumuladas": 1094, "pct_acumulado": 93.0272, "enlaces": 240, "pares": 120, "simetrica": true, "grado": 4.898, "grado_min": 0, "grado_max": 15, "islas": 5, "subgrafos": 6, "densidad_pct": 10.2041}, {"orden": 7, "acumuladas": 1154, "pct_acumulado": 98.1293, "enlaces": 120, "pares": 60, "simetrica": true, "grado": 2.449, "grado_min": 0, "grado_max": 15, "islas": 19, "subgrafos": 21, "densidad_pct": 5.102}, {"orden": 8, "acumuladas": 1172, "pct_acumulado": 99.6599, "enlaces": 36, "pares": 18, "simetrica": true, "grado": 0.7347, "grado_min": 0, "grado_max": 6, "islas": 36, "subgrafos": 38, "densidad_pct": 1.5306}, {"orden": 9, "acumuladas": 1176, "pct_acumulado": 100, "enlaces": 8, "pares": 4, "simetrica": true, "grado": 0.1633, "grado_min": 0, "grado_max": 2, "islas": 45, "subgrafos": 46, "densidad_pct": 0.3401}], "gal": {"pares": 116, "enlaces": 232, "grado": 4.7347, "solo_reina": 3, "solo_reina_esquinas": 3, "solo_gal": 1, "pares_spdata": 115}, "municipios": {"reina": {"enlaces": 6570, "pares": 3285, "simetrica": true, "grado": 5.8556, "grado_min": 0, "grado_max": 20, "islas": 2, "subgrafos": 3, "densidad_pct": 0.5224}, "torre": {"enlaces": 6396, "pares": 3198, "simetrica": true, "grado": 5.7005, "grado_min": 0, "grado_max": 19, "islas": 2, "subgrafos": 3, "densidad_pct": 0.5085}, "solo_reina": 87, "pct_esquina": 2.6484}}, "m4": {"columbus": [{"k": 1, "asimetricos": 23, "enlaces": 49, "pares": 36, "simetrica": false, "grado": 1, "grado_min": 1, "grado_max": 1, "islas": 0, "subgrafos": 13, "densidad_pct": 2.0833}, {"k": 2, "asimetricos": 26, "enlaces": 98, "pares": 62, "simetrica": false, "grado": 2, "grado_min": 2, "grado_max": 2, "islas": 0, "subgrafos": 1, "densidad_pct": 4.1667}, {"k": 3, "asimetricos": 41, "enlaces": 147, "pares": 94, "simetrica": false, "grado": 3, "grado_min": 3, "grado_max": 3, "islas": 0, "subgrafos": 1, "densidad_pct": 6.25}, {"k": 4, "asimetricos": 46, "enlaces": 196, "pares": 121, "simetrica": false, "grado": 4, "grado_min": 4, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 8.3333}, {"k": 5, "asimetricos": 55, "enlaces": 245, "pares": 150, "simetrica": false, "grado": 5, "grado_min": 5, "grado_max": 5, "islas": 0, "subgrafos": 1, "densidad_pct": 10.4167}, {"k": 6, "asimetricos": 62, "enlaces": 294, "pares": 178, "simetrica": false, "grado": 6, "grado_min": 6, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 12.5}, {"k": 7, "asimetricos": 77, "enlaces": 343, "pares": 210, "simetrica": false, "grado": 7, "grado_min": 7, "grado_max": 7, "islas": 0, "subgrafos": 1, "densidad_pct": 14.5833}, {"k": 8, "asimetricos": 98, "enlaces": 392, "pares": 245, "simetrica": false, "grado": 8, "grado_min": 8, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 16.6667}], "municipios_k4": {"k": 4, "asimetricos": 1084, "enlaces": 4488, "pares": 2786, "simetrica": false, "grado": 4, "grado_min": 4, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 0.3568}, "simetrizada_k3": {"k": 3, "enlaces": 188, "pares": 94, "simetrica": true, "grado": 3.8367, "grado_min": 3, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 7.9932}, "moran_k3": {"asimetrica": 0.5838, "simetrizada": 0.5177, "reina_por_filas_simetrica": false}, "san_andres_k4": {"municipio": "San Andrés", "costa_min_km": 668.1816, "costa_max_km": 711.9788, "vecinos_costa": 3}}, "m5": {"columbus": {"umbral_sin_islas": 0.6189, "la_mitad": {"enlaces": 34, "pares": 17, "simetrica": true, "grado": 0.6939, "grado_min": 0, "grado_max": 3, "islas": 28, "subgrafos": 33, "densidad_pct": 1.4456}, "islas_en_la_mitad": 28, "multiplos": [0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6], "umbral_conexo": 0.6829, "en_el_conexo": {"enlaces": 290, "pares": 145, "simetrica": true, "grado": 5.9184, "grado_min": 1, "grado_max": 12, "islas": 0, "subgrafos": 1, "densidad_pct": 12.3299}, "curva": [{"umbral": 0.2475, "enlaces": 18, "pares": 9, "simetrica": true, "grado": 0.3673, "grado_min": 0, "grado_max": 3, "islas": 37, "subgrafos": 40, "densidad_pct": 0.7653}, {"umbral": 0.3713, "enlaces": 72, "pares": 36, "simetrica": true, "grado": 1.4694, "grado_min": 0, "grado_max": 6, "islas": 17, "subgrafos": 23, "densidad_pct": 3.0612}, {"umbral": 0.4951, "enlaces": 170, "pares": 85, "simetrica": true, "grado": 3.4694, "grado_min": 0, "grado_max": 9, "islas": 4, "subgrafos": 8, "densidad_pct": 7.2279}, {"umbral": 0.6189, "enlaces": 252, "pares": 126, "simetrica": true, "grado": 5.1429, "grado_min": 1, "grado_max": 11, "islas": 0, "subgrafos": 2, "densidad_pct": 10.7143}, {"umbral": 0.7426, "enlaces": 340, "pares": 170, "simetrica": true, "grado": 6.9388, "grado_min": 1, "grado_max": 13, "islas": 0, "subgrafos": 1, "densidad_pct": 14.4558}, {"umbral": 0.8664, "enlaces": 466, "pares": 233, "simetrica": true, "grado": 9.5102, "grado_min": 3, "grado_max": 17, "islas": 0, "subgrafos": 1, "densidad_pct": 19.8129}, {"umbral": 0.9902, "enlaces": 556, "pares": 278, "simetrica": true, "grado": 11.3469, "grado_min": 3, "grado_max": 21, "islas": 0, "subgrafos": 1, "densidad_pct": 23.6395}]}, "municipios": {"umbral_sin_islas_m": 166760.8752, "umbral_sin_islas_km": 166.7609, "en_el_umbral": {"enlaces": 200900, "pares": 100450, "simetrica": true, "grado": 179.0553, "grado_min": 1, "grado_max": 368, "islas": 0, "subgrafos": 2, "densidad_pct": 15.9728}, "fija_el_umbral": {"municipio": "Puerto Carreño", "departamento": "Vichada", "vecino": "La Primavera", "km": 166.7609}, "san_andres": {"municipio": "San Andrés", "vecino": "Providencia", "vecino_km": 98.0343, "vecinos_en_el_umbral": "Providencia", "costa": "Acandí", "costa_departamento": "Chocó", "costa_km": 668.1816}, "umbral_conecta_continente_km": 166.7609, "umbral_conecta_todo_km": 668.1816, "leticia_manizales": {"km": 1129.1882, "vecinas": false, "grado_leticia": 2, "grado_manizales": 287}, "mas_conectado": {"municipio": "La Dorada", "departamento": "Caldas", "grado": 368}, "curva": [{"umbral": 30000, "umbral_km": 30, "enlaces": 10018, "pares": 5009, "simetrica": true, "grado": 8.9287, "grado_min": 0, "grado_max": 27, "islas": 109, "subgrafos": 128, "densidad_pct": 0.7965}, {"umbral": 50000, "umbral_km": 50, "enlaces": 26444, "pares": 13222, "simetrica": true, "grado": 23.5686, "grado_min": 0, "grado_max": 64, "islas": 46, "subgrafos": 51, "densidad_pct": 2.1025}, {"umbral": 100000, "umbral_km": 100, "enlaces": 89182, "pares": 44591, "simetrica": true, "grado": 79.4848, "grado_min": 0, "grado_max": 178, "islas": 11, "subgrafos": 19, "densidad_pct": 7.0905}, {"umbral": 166760.8752, "umbral_km": 166.7609, "enlaces": 200900, "pares": 100450, "simetrica": true, "grado": 179.0553, "grado_min": 1, "grado_max": 368, "islas": 0, "subgrafos": 2, "densidad_pct": 15.9728}]}}, "m6": {"columbus": [{"id": "delaunay", "enlaces": 268, "pares": 134, "simetrica": true, "grado": 5.4694, "grado_min": 3, "grado_max": 9, "islas": 0, "subgrafos": 1, "densidad_pct": 11.3946}, {"id": "gabriel", "enlaces": 184, "pares": 92, "simetrica": true, "grado": 3.7551, "grado_min": 1, "grado_max": 6, "islas": 0, "subgrafos": 1, "densidad_pct": 7.8231}, {"id": "relativa", "enlaces": 118, "pares": 59, "simetrica": true, "grado": 2.4082, "grado_min": 1, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 5.017}, {"id": "esfera", "enlaces": 208, "pares": 104, "simetrica": true, "grado": 4.2449, "grado_min": 2, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 8.8435}], "anidamiento": {"relativa_en_gabriel": true, "gabriel_en_delaunay": true, "gabriel_en_esfera": false, "esfera_en_gabriel": false}, "esfera_definicion": {"pares": 125, "fuera_de_delaunay": 21, "pares_spdep": 104}, "delaunay_y_reina": {"comunes": 104, "solo_delaunay": 30, "solo_reina": 14}, "municipios": [{"id": "delaunay", "enlaces": 6706, "pares": 3353, "simetrica": true, "grado": 5.9768, "grado_min": 3, "grado_max": 12, "islas": 0, "subgrafos": 1, "densidad_pct": 0.5332, "tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122, "subgrafo_menor_municipios": []}, {"id": "gabriel", "enlaces": 5054, "pares": 2527, "simetrica": true, "grado": 4.5045, "grado_min": 1, "grado_max": 8, "islas": 0, "subgrafos": 1, "densidad_pct": 0.4018, "tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122, "subgrafo_menor_municipios": []}, {"id": "relativa", "enlaces": 3056, "pares": 1528, "simetrica": true, "grado": 2.7237, "grado_min": 1, "grado_max": 4, "islas": 0, "subgrafos": 1, "densidad_pct": 0.243, "tamanos_subgrafo": [1122], "subgrafo_menor_n": 1122, "subgrafo_menor_municipios": []}, {"id": "esfera", "enlaces": 5370, "pares": 2685, "simetrica": true, "grado": 4.7861, "grado_min": 1, "grado_max": 9, "islas": 0, "subgrafos": 2, "densidad_pct": 0.4269, "tamanos_subgrafo": [1120, 2], "subgrafo_menor_n": 2, "subgrafo_menor_municipios": ["San Andrés", "Providencia"]}]}, "m7": {"unidad_max": {"i": 20, "grado": 10}, "unidad_min": {"i": 1, "grado": 2}, "razon_w": 5, "estilos": [{"id": "B", "suma_total": 236, "peso_max": 1, "peso_min": 1, "lag_medio": 182.1596, "lag_sd": 114.3577, "cor_con_crime": 0.6063}, {"id": "W", "suma_total": 49, "peso_max": 0.1, "peso_min": 0.5, "lag_medio": 35.0508, "lag_sd": 12.2396, "cor_con_crime": 0.6838}, {"id": "S", "suma_total": 49, "peso_max": 0.1472, "peso_min": 0.329, "lag_medio": 36.5058, "lag_sd": 17.3801, "cor_con_crime": 0.6679}, {"id": "C", "suma_total": 49, "peso_max": 0.2076, "peso_min": 0.2076, "lag_medio": 37.8213, "lag_sd": 23.7438, "cor_con_crime": 0.6063}, {"id": "U", "suma_total": 1, "peso_max": 0.0042, "peso_min": 0.0042, "lag_medio": 0.7719, "lag_sd": 0.4846, "cor_con_crime": 0.6063}]}, "m8": {"pasos": ["poly2nb", "nb2listw", "lag.listw"], "wy_primeros": [24.71427, 26.24684, 29.41175], "sfdep_disponible": true, "dif_max": 0, "n_pares_spdep": 118, "n_pares_sfdep": 118}, "m9": {"islas": 2, "islas_i": [1006, 1105], "islas_i0": [1005, 1104], "islas_nombre": ["San Andrés", "Providencia"], "islas_departamento": ["Archipiélago de San Andrés, Providencia y Santa Catalina", "Archipiélago de San Andrés, Providencia y Santa Catalina"], "subgrafos": 3, "tamanos_subgrafo": [1120, 1, 1], "error_sin_zero_policy": "Empty neighbour sets found (zero.policy: FALSE)", "lag_isla": 0, "efecto_cero": {"desercion_islas": [2.01, 1.41], "media_y": 3.4236, "media_wy_con_ceros": 3.4531, "media_wy_sin_islas": 3.4593, "cor_con_ceros": 0.568, "cor_sin_islas": 0.5677, "moran_con_islas": 0.38091, "moran_con_islas_sin_ajuste": 0.38159, "moran_sin_islas": 0.38153}, "falla_tambien_con_B": true}, "m10": {"n": 1121, "islas_en_el_subconjunto": 2, "n_con_vecinos": 1119, "otras_w": {"torre": {"correlacion": 0.5623, "sin_vecinos": 2}, "k4": {"correlacion": 0.5662, "sin_vecinos": 0}, "umbral_30km": {"km": 30, "correlacion": 0.5872, "sin_vecinos": 108}}, "correlacion": 0.5677, "y": {"media": 3.4236, "sd": 1.7667}, "wy": {"media": 3.4593, "sd": 1.1874}, "contraccion_pct": 32.7912}, "m11": {"columbus": {"n": 49, "casillas": 2401, "no_ceros": 236, "densidad_pct": 9.8292, "d_inv_a_igual_w": 0, "lag_es_producto": 0}, "municipios": {"n": 1122, "casillas": 1258884, "no_ceros": 6570, "densidad_pct": 0.5219}}, "meta": {"capitulo": 6, "semanas": "10-11", "semilla": 2026, "generado": "2026-11-03", "tableros": {"laboratorio": "columbus", "caso": "municipios de Colombia"}, "anclas": 12}};
+    const SOL_CAP6 = {"e1": {"titulo": "La esquina que cambia el grado", "enunciado": "Sobre los 100 condados de <code>nc</code>, construye la contigüidad reina y la torre. Di cuántas parejas une cada una, cuántas hay SOLO en la reina y cuánto se mueve el grado medio. Después contesta: ¿puede la torre tener más vecinos que la reina en algún condado? Justifícalo con la definición, no con el dato.", "pasos": [{"paso": "Parejas por contigüidad reina", "valor": 245}, {"paso": "Parejas por contigüidad torre", "valor": 231}, {"paso": "Parejas que solo tiene la reina", "valor": 14}, {"paso": "Grado medio con la reina", "valor": 4.9}, {"paso": "Grado medio con la torre", "valor": 4.62}, {"paso": "Condados cuyo grado cambia", "valor": 26}], "solucion": {"lectura": "No puede. La torre exige compartir un TRAMO de frontera y la reina se conforma con un punto, así que toda pareja de la torre lo es también de la reina: la torre está contenida en la reina. La diferencia son los contactos de esquina, que sobre fronteras administrativas irregulares son pocos y sobre una retícula regular serían la mitad del grafo. El criterio importa lo que la geometría le deje importar."}}, "e2": {"titulo": "La reciprocidad rota", "enunciado": "Construye la vecindad de los 4 vecinos más próximos sobre <code>nc</code>. Comprueba si es simétrica y cuenta los pares (i, j) en los que j es vecino de i pero i no lo es de j. Simetrízala con <code>make.sym.nb</code> y di qué le pasa al grado. Después contesta: ¿por qué la suma de la matriz W estandarizada por filas NO cambia al simetrizar?", "pasos": [{"paso": "¿Es simétrica k = 4? (1 = sí)", "valor": 0}, {"paso": "Pares no recíprocos", "valor": 66}, {"paso": "Enlaces dirigidos con k = 4", "valor": 400}, {"paso": "Parejas distintas con k = 4", "valor": 233}, {"paso": "Grado medio tras simetrizar", "valor": 4.66}, {"paso": "Grado máximo tras simetrizar", "valor": 7}], "solucion": {"lectura": "Porque el estilo W divide cada fila por su propio grado, así que TODA fila suma 1 tenga los vecinos que tenga: la suma de la matriz vale n antes y después. Lo que cambia no es el total sino el reparto, y con él la influencia de cada vecino. Simetrizar compra la simetría al precio de perder lo que hacía atractivo al criterio: que el grado valiera k."}}, "e3": {"titulo": "El umbral que no conecta", "enunciado": "Calcula el umbral de distancia MÍNIMO que no deja ningún condado sin vecinos sobre <code>nc</code>. Comprueba cuántos subgrafos tiene el grafo en ese umbral. Después busca el umbral mínimo que además lo deja CONEXO, y di cuánto crece el grado medio entre los dos. Contesta: ¿por qué no basta con quitar las islas?", "pasos": [{"paso": "Umbral mínimo sin islas (m)", "valor": 41086.4599501477}, {"paso": "Subgrafos en ese umbral", "valor": 4}, {"paso": "Grado medio en ese umbral", "valor": 2.8}, {"paso": "Umbral mínimo que conecta (m)", "valor": 45057.839728433}, {"paso": "Grado medio ahí", "valor": 3.6}, {"paso": "Cuánto crece el grado (veces)", "valor": 1.2857142857}], "solucion": {"lectura": "Porque no tener islas y ser conexo son propiedades distintas. Que nadie esté solo garantiza que toda unidad tiene con quién promediar; que el grafo sea conexo garantiza que la información puede viajar de cualquier unidad a cualquier otra, y es lo que casi siempre importa. Comprarla sube el umbral, y con él el grado medio: la vecindad se vuelve menos informativa justo cuando se vuelve utilizable."}}, "e4": {"titulo": "El estilo que mueve la conclusión", "enunciado": "Sobre <code>nc</code>, calcula la tasa de muerte súbita infantil por mil nacimientos (<code>1000 * SID74 / BIR74</code>) y su rezago espacial bajo los cinco estilos de <code>nb2listw</code>. Da la correlación entre la tasa y su rezago en cada uno. Contesta: tres de los cinco dan EXACTAMENTE la misma correlación. ¿Cuáles y por qué?", "pasos": [{"paso": "Correlación con el estilo B", "valor": 0.3191004697}, {"paso": "Correlación con el estilo W", "valor": 0.3915715349}, {"paso": "Correlación con el estilo S", "valor": 0.3766278583}, {"paso": "Correlación con el estilo C", "valor": 0.3191004697}, {"paso": "Correlación con el estilo U", "valor": 0.3191004697}, {"paso": "Estilos que coinciden con B", "valor": 3}], "solucion": {"lectura": "B, C y U. Los tres son la MISMA matriz multiplicada por una constante —C por n dividido entre el total, U por uno entre el total— y una constante no mueve una correlación. Los que sí la cambian son W y S, que es exactamente lo que hacen: tratar a las filas de forma distinta según su grado. Elegir entre B, C y U es una decisión de escala; elegir entre esos y W o S es una decisión sobre qué significa el rezago."}}, "e5": {"titulo": "La contracción del rezago", "enunciado": "Con la misma tasa del ejercicio anterior y la contigüidad reina estandarizada por filas, compara la distribución de la tasa con la de su rezago: media, desviación típica y correlación. Después contesta: si dibujas los dos mapas con la MISMA escala de color, ¿cuál se verá más plano y por qué? ¿Es eso una propiedad del territorio?", "pasos": [{"paso": "Media de la tasa", "valor": 2.0455960298}, {"paso": "Media del rezago", "valor": 2.0349276202}, {"paso": "Media de la tasa ponderada por el grado", "valor": 2.0700982265}, {"paso": "Media del rezago ponderada por el grado", "valor": 2.0700982265}, {"paso": "Desviación de la tasa", "valor": 1.5733399933}, {"paso": "Desviación del rezago", "valor": 0.9278014659}, {"paso": "Contracción de la desviación (%)", "valor": 41.0298174676}, {"paso": "Contracción con la tasa repartida al azar (%, mediana de 2 000 repartos)", "valor": 52.9248166939}, {"paso": "Repartos al azar que se estrechan menos que la tasa real (%)", "valor": 1.05}, {"paso": "Correlación entre la tasa y su rezago", "valor": 0.3915715349}], "solucion": {"lectura": "El del rezago, y QUE se vea más plano no dice nada sobre Carolina del Norte: promediar contrae. La media de varios números queda entre el menor y el mayor de ellos, y el rezago es esa media hecha una vez por condado: ningún valor del rezago se sale del rango de la tasa, y la desviación cae mucho. Publicar los dos mapas con la misma escala sugiere que la variable «se suaviza» en el territorio cuando lo que se ha suavizado es la operación. Lo que sí dice algo del territorio es CUÁNTO se estrecha. Repartida al azar entre los condados, la misma tasa se estrecharía un 52.9 % de mediana; la real, un 41.0 %, y solo el 1.05 % de los repartos se estrecha menos que ella: los condados vecinos se parecen, y promediar valores parecidos los iguala poco. Las medias simples se parecen, pero no por obligación: cada condado entra en el promedio de cada uno de sus vecinos, así que en el rezago no pesan todos igual. Lo que no se mueve nunca, con una vecindad simétrica como la reina, es la media ponderada por el grado, la que cuenta a cada condado tantas veces como vecinos tiene: es la misma en la tasa y en su rezago."}}, "meta": {"capitulo": 6, "semilla": 2026, "n_ejercicios": 5, "generado": "2026-11-03"}};
     const D6 = DATOS_CAP6;
 
     // Los datos del capítulo se incrustan aquí, generados por
@@ -7257,8 +7398,21 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         }
         contenedor.appendChild(caja);
       });
-      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
-      katexEn(contenedor);
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo.
+      // Con los delimitadores del MÓDULO, no con los de katexEn: el exportador del
+      // quiz escribe \( … \), que katexEn no lee. Al cargar no se notaba, porque el
+      // módulo entero pasa por KaTeX después; tras «Borrar», las fórmulas de los dos
+      // simulacros (17 en el cap. 4, 16 en el 5) volvían crudas: «\(\hat G\)».
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(contenedor, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ]
+        });
+      }
 
       function respuesta(pr, i) {
         if (pr.tipo === 'coincidencia') {
@@ -9025,7 +9179,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     };
     GEOMAPAS['cap6-municipios'] = {
       fuente: MAPAS_CAP6["cap6-municipios"],
-      etiqueta: "Los 1 122 municipios de Colombia unidos por contigüidad reina: 3 285 parejas, grado medio 5,86 y dos municipios sin vecinos, San Andrés y Providencia, dibujados en rojo."
+      etiqueta: "Los 1 122 municipios de Colombia unidos por contigüidad reina: 3 285 parejas, grado medio 5.86 y 2 municipios sin vecinos, San Andrés y Providencia, dibujados en rojo."
     };
 
     const TABLAS_RANKING = {};
@@ -9360,20 +9514,18 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     };
 
     // --- Módulo 3 · contigüidad y órdenes ----------------------------
+    // La torre y los órdenes de la reina HASTA EL DIÁMETRO, no hasta 3: con tres barras la serie
+    // parecía quedarse sin sitios en el orden 3, y ahí hace cima con menos de la mitad del mapa.
     SIMULADORES['cap6-ordenes'] = function (raiz) {
       const m3 = D6.m3;
-      const vistas = [
-        { etq: 'Reina', d: m3.reina },
-        { etq: 'Torre', d: m3.torre },
-        { etq: 'Orden 1', d: m3.ordenes[0] },
-        { etq: 'Orden 2', d: m3.ordenes[1] },
-        { etq: 'Orden 3', d: m3.ordenes[2] }];
-      let i = 0;
+      const vistas = [{ etq: 'Torre', d: m3.torre }].concat(m3.ordenes.map(o =>
+        ({ etq: o.orden === 1 ? 'Reina · orden 1' : 'Orden ' + o.orden, d: o })));
+      let i = 1;
       const g = grafico6(raiz, 'bar',
         { labels: vistas.map(v => v.etq),
           datasets: [{ label: 'parejas distintas',
                        data: vistas.map(v => v.d.pares),
-                       backgroundColor: vistas.map((_, k) => k === 0 ? C6.naranja : C6.verde) }] },
+                       backgroundColor: vistas.map((_, k) => k === i ? C6.naranja : C6.verdeSuave) }] },
         { scales: { y: { beginAtZero: true, title: { display: true, text: 'parejas' } } } });
       const pinta = () => {
         if (g) {
@@ -9387,9 +9539,11 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
           ['parejas', mil6(d.pares)],
           ['grado medio', n6(d.grado)],
           ['grado máximo', mil6(d.grado_max)],
-          ['densidad de W', n6(d.densidad_pct, 3) + ' %']]);
+          ['densidad de W', n6(d.densidad_pct, 3) + ' %']].concat(d.acumuladas == null ? [] : [
+          ['alcanzadas hasta este orden', mil6(d.acumuladas) + ' de ' + mil6(m3.parejas_posibles) +
+            ' (' + n6(d.pct_acumulado, 2) + ' %)']]));
       };
-      botonera6(raiz, vistas.map(v => v.etq), k => { i = k; pinta(); }, 0);
+      botonera6(raiz, vistas.map(v => v.etq), k => { i = k; pinta(); }, i);
       pinta();
       return g ? [g] : [];
     };
@@ -9432,14 +9586,14 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
       let i = 3;
       const el = () => i;
       const g = grafico6(raiz, 'bar',
-        { labels: cu.map(c => n6(c.umbral, 2)),
+        { labels: cu.map(c => n6(c.umbral, 4)),
           datasets: [
             { label: 'parejas unidas', data: cu.map(c => c.pares),
               backgroundColor: tono6(C6.verde, 'rgba(26,115,88,0.3)', el) },
             { label: 'unidades sin vecinos', data: cu.map(c => c.islas),
               backgroundColor: tono6(C6.naranja, 'rgba(255,102,0,0.3)', el) }] },
         { plugins: { legend: leyenda6([C6.verde, C6.naranja]) },
-          scales: { y: { beginAtZero: true, title: { display: true, text: 'unidades' } },
+          scales: { y: { beginAtZero: true, title: { display: true, text: 'parejas y unidades' } },
                     x: { title: { display: true, text: 'umbral de distancia' } } } });
       const pinta = () => {
         if (g) g.update();
@@ -9450,9 +9604,10 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
           ['grado medio', n6(c.grado)],
           ['unidades sin vecinos', mil6(c.islas)],
           ['subgrafos', mil6(c.subgrafos)],
-          ['¿una sola pieza?', c.subgrafos === 1 ? 'sí' : 'NO']]);
+          ['¿una sola pieza?', c.subgrafos === 1 ? 'sí' : 'NO'],
+          ['umbral mínimo que conecta', n6(D6.m5.columbus.umbral_conexo)]]);
       };
-      deslizador6(raiz, cu.map(c => [c.umbral, n6(c.umbral, 3)]),
+      deslizador6(raiz, cu.map(c => [c.umbral, n6(c.umbral, 4)]),
                   'umbral de distancia', i, k => { i = k; pinta(); });
       pinta();
       return g ? [g] : [];
@@ -10983,21 +11138,21 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         pista: 'Piensa en qué cambiaría entre dos realizaciones del mismo proceso.',
         pregunta: 'En un dato de área —municipios, condados, barrios—, ¿qué es lo aleatorio?',
         opciones: [
-          { texto: 'Nada: los datos de área son deterministas',
-            retro: 'Si no hubiera nada aleatorio no habría nada que inferir. Lo aleatorio es el valor, y el modelo va sobre cómo se relacionan los valores de unidades vecinas.' },
-          { texto: 'El valor que toma cada unidad, porque las unidades están fijas', correcta: true,
+          { texto: 'Nada: un dato de área es un censo, y un censo no tiene azar',
+            retro: 'Que sea un censo no quita el azar: el valor observado es una realización de un proceso que podría haber dado otro. Si no hubiera nada aleatorio no habría nada que inferir, y el modelo va justamente sobre cómo se relacionan los valores de unidades vecinas.' },
+          { texto: 'El valor de cada unidad: las unidades están fijas', correcta: true,
             retro: 'Eso es. Un municipio no se mueve entre dos realizaciones: lo que cambia es lo que lleva dentro. Por eso la pregunta deja de ser «¿por qué aquí?» y pasa a ser «¿por qué este valor aquí y no el de al lado?».' },
           { texto: 'La posición de las unidades, como en un patrón puntual',
             retro: 'Eso es un patrón puntual, que es el capítulo 4. Allí lo aleatorio es dónde caen los puntos; aquí las unidades vienen dibujadas de antemano por alguien.' },
-          { texto: 'El número de unidades',
+          { texto: 'El número de unidades, que cambia de una realización a otra',
             retro: 'El número lo fija la división administrativa, no el azar. En un patrón puntual sí es aleatorio, y esa es una de las diferencias entre los dos tipos de dato.' }
         ] },
       {
         tipo: 'numerica',
-        pista: 'Es la cifra canónica de Anselin, y el precálculo para si deja de salir.',
+        pista: 'Es la cifra con la que se valida el tablero: la dan igual spdep y libpysal.',
         pregunta: '¿Cuántas parejas de vecinos une la contigüidad REINA sobre los 49 barrios de Columbus?',
         respuesta: D6.m2.criterios[0].pares, tolerancia: 0,
-        retroAcierto: 'Son ' + mil6(D6.m2.criterios[0].pares) + ' parejas y ' + mil6(D6.m2.criterios[0].enlaces) + ' enlaces dirigidos, con grado medio ' + n6(D6.m2.criterios[0].grado) + '. Es la cifra que publica Anselin, y por eso el tablero se valida solo.',
+        retroAcierto: 'Son ' + mil6(D6.m2.criterios[0].pares) + ' parejas y ' + mil6(D6.m2.criterios[0].enlaces) + ' enlaces dirigidos, con grado medio ' + n6(D6.m2.criterios[0].grado) + '. Es la reina de los polígonos, igual en spdep y en libpysal, y por eso el tablero se valida solo. La W que Anselin publicó con estos datos une ' + mil6(D6.m3.gal.pares) + ': ni el tablero canónico trae una sola W.',
         retroFallo: 'Son ' + mil6(D6.m2.criterios[0].pares) + '. Cuidado con confundirlas con los enlaces dirigidos, que son ' + mil6(D6.m2.criterios[0].enlaces) + ': en una vecindad simétrica uno es el doble del otro.'
       },
       {
@@ -11005,29 +11160,29 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         pista: 'Fíjate en qué exige cada criterio para considerar que dos unidades se tocan.',
         pregunta: '¿Puede un polígono tener MÁS vecinos por contigüidad torre que por contigüidad reina?',
         opciones: [
-          { texto: 'Depende del sistema de referencia',
+          { texto: 'Depende del sistema de referencia en que estén los polígonos',
             retro: 'El sistema de referencia cambia las coordenadas, no la relación de contacto entre polígonos vecinos.' },
           { texto: 'Sí, si la capa tiene errores topológicos',
-            retro: 'Con topología rota puede pasar cualquier cosa, pero entonces el problema no es el criterio: es que la capa no representa lo que dice representar.' },
+            retro: 'Ni así. Una topología rota cambia qué parejas se tocan, y entonces la capa no representa lo que dice representar; pero un tramo de frontera compartido sigue teniendo puntos compartidos, así que la torre no puede ganar ninguna pareja que la reina no tenga.' },
           { texto: 'No: la torre está contenida en la reina, siempre', correcta: true,
             retro: 'Exacto. La torre exige compartir un tramo de frontera y la reina se conforma con un punto, así que toda pareja de la torre lo es también de la reina. Sobre Columbus la reina añade ' + mil6(D6.m3.solo_reina) + ' parejas de esquina.' },
-          { texto: 'Sí, cuando los polígonos son muy irregulares',
+          { texto: 'Sí, cuando las fronteras son muy irregulares y tienen muchos vértices',
             retro: 'La irregularidad cambia CUÁNTAS parejas de esquina hay, no quién contiene a quién. Un contacto de tramo también es un contacto de punto.' }
         ] },
       {
         tipo: 'multiple',
         pista: 'Son dos. Piensa en qué significa exactamente «orden 2».',
         pregunta: 'Sobre la contigüidad de orden superior con <code>nblag</code>, marca <strong>todo</strong> lo que es cierto.',
-        retroAcierto: 'Las dos: el orden 2 excluye a los que ya eran vecinos de orden 1, y por eso la serie no crece sin parar.',
-        retroFallo: 'Las dos ciertas son que el orden 2 excluye a los vecinos de orden 1 y que la serie acaba frenándose cuando al mapa le quedan pocas unidades nuevas a las que llegar. Frenarse no es pararse: las parejas siguen subiendo, de ' + mil6(D6.m3.ordenes[0].pares) + ' a ' + mil6(D6.m3.ordenes[1].pares) + ' y de ahí a ' + mil6(D6.m3.ordenes[2].pares) + ', cada vez con un salto menor.',
+        retroAcierto: 'Las dos: el orden 2 excluye a los que ya eran vecinos de orden 1, y la serie sube hasta una cima y baja después, porque el mapa se acaba.',
+        retroFallo: 'Las dos ciertas son que el orden 2 excluye a los vecinos de orden 1 y que la serie acaba bajando porque el mapa es finito. Sobre Columbus es ' + D6.m3.ordenes.map(o => mil6(o.pares)).join(', ') + ': sube hasta el orden 3 y baja hasta el ' + mil6(D6.m3.diametro) + ', el diámetro del grafo.',
         opciones: [
           { texto: 'El grado medio de orden 2 es el cuadrado del de orden 1',
-            retro: 'No: eso valdría en un grafo infinito sin ciclos. En un mapa real los caminos se solapan y el crecimiento es mucho menor.' },
-          { texto: 'La serie de parejas por orden acaba frenándose porque el mapa es finito', correcta: true,
-            retro: 'Sí: al tercer orden ya casi no hay unidades nuevas a las que llegar, y por eso el salto de ' + mil6(D6.m3.ordenes[1].pares) + ' a ' + mil6(D6.m3.ordenes[2].pares) + ' es mucho menor que el anterior.' },
-          { texto: 'El orden 2 son los vecinos de los vecinos que NO eran ya vecinos', correcta: true,
-            retro: 'Eso es, y es la trampa de lectura del módulo: `nblag` no acumula. Sobre Columbus da ' + mil6(D6.m3.ordenes[0].pares) + ', ' + mil6(D6.m3.ordenes[1].pares) + ' y ' + mil6(D6.m3.ordenes[2].pares) + ' parejas.' },
-          { texto: 'El orden 2 incluye a los vecinos de orden 1',
+            retro: 'No, ni siquiera en un grafo sin ciclos: en un árbol donde todos tienen d vecinos, el orden 2 tiene d(d − 1), porque de cada vecino hay que descontar el camino de vuelta. El d² cuenta paseos de dos pasos, los de ida y vuelta incluidos, que es lo que hace W² en el módulo 11.' },
+          { texto: 'La serie acaba bajando porque el mapa es finito', correcta: true,
+            retro: 'Sí, y no antes de tiempo: sube hasta el orden 3, con ' + mil6(D6.m3.ordenes[2].pares) + ' parejas, y baja desde ahí. En esa cima solo se ha llegado al ' + n6(D6.m3.ordenes[2].pct_acumulado, 2) + ' % de las ' + mil6(D6.m3.parejas_posibles) + ' parejas posibles, y el orden 4 todavía añade ' + mil6(D6.m3.ordenes[3].pares) + ': lo que la frena es el borde del mapa.' },
+          { texto: 'El orden 2 son los vecinos de los vecinos que no lo eran ya', correcta: true,
+            retro: 'Eso es, y es la trampa de lectura del módulo: <code>nblag</code> no acumula. Sobre Columbus da ' + mil6(D6.m3.ordenes[0].pares) + ', ' + mil6(D6.m3.ordenes[1].pares) + ' y ' + mil6(D6.m3.ordenes[2].pares) + ' parejas en los tres primeros órdenes.' },
+          { texto: 'El orden 2 incluye también a los vecinos de orden 1, sumados',
             retro: 'No los incluye, y suponerlo hace que se cuenten dos veces las mismas parejas. Si se quiere la vecindad acumulada hay que unirlas a mano.' }
         ] },
       {
@@ -11035,13 +11190,13 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         pista: '¿Ser de los tres más próximos a alguien obliga a que ese alguien lo sea de ti?',
         pregunta: 'Una vecindad de k vecinos más próximos, ¿es simétrica?',
         opciones: [
-          { texto: 'Sí, siempre: la distancia es simétrica',
+          { texto: 'Sí, siempre: la distancia de A a B es la de B a A',
             retro: 'La distancia sí lo es; «estar entre los k más cercanos» no. B puede ser de los tres más cercanos a A sin que A lo sea de B, y basta con que B esté en una zona más densa.' },
-          { texto: 'No, y por eso sus enlaces dirigidos no son el doble de sus parejas', correcta: true,
+          { texto: 'No: sus enlaces dirigidos no son el doble de sus parejas', correcta: true,
             retro: 'Eso es. Con k = 3 sobre Columbus hay ' + mil6(D6.m4.columbus[2].enlaces) + ' enlaces dirigidos pero solo ' + mil6(D6.m4.columbus[2].pares) + ' parejas distintas, porque ' + mil6(D6.m4.columbus[2].asimetricos) + ' pares no son recíprocos.' },
-          { texto: 'Sí, porque `knearneigh` la simetriza sola',
-            retro: 'No la simetriza: hay que pedirlo con `make.sym.nb`, y al hacerlo el grado deja de valer k —sube a ' + n6(D6.m4.simetrizada_k3.grado) + ' de media—.' },
-          { texto: 'Solo si k es par',
+          { texto: 'Sí, porque <code>knearneigh</code> la simetriza sola',
+            retro: 'No la simetriza: hay que pedirlo con <code>make.sym.nb</code>, y al hacerlo el grado deja de valer k —sube a ' + n6(D6.m4.simetrizada_k3.grado) + ' de media— y el I de Moran de CRIME pasa de ' + n6(D6.m4.moran_k3.asimetrica) + ' a ' + n6(D6.m4.moran_k3.simetrizada) + '.' },
+          { texto: 'Solo si k es par, porque entonces los vecinos se emparejan',
             retro: 'La paridad de k no tiene nada que ver. Lo que decide la reciprocidad es cómo esté repartida la densidad de puntos.' }
         ] },
       {
@@ -11059,10 +11214,10 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         retroAcierto: 'Las dos: se calcula sin tantear, y quitar las islas no basta para conectar el grafo.',
         retroFallo: 'Las dos ciertas son que se calcula como la mayor distancia al vecino más próximo y que en ese umbral el grafo puede seguir partido.',
         opciones: [
-          { texto: 'Es el umbral que maximiza la autocorrelación',
+          { texto: 'Es el umbral que maximiza la autocorrelación de la variable',
             retro: 'No optimiza nada de eso: es una condición sobre las islas, no sobre la variable. De hecho no mira la variable en ningún momento.' },
           { texto: 'Garantiza que la información puede viajar entre dos unidades cualesquiera',
-            retro: 'Eso es la conexidad, y es justo lo que NO garantiza. Hace falta subir más el umbral, y con él sube el grado medio.' },
+            retro: 'Eso es la conexidad, y es justo lo que NO garantiza. Hace falta subir más el umbral, hasta la arista más larga del árbol generador mínimo: ' + n6(D6.m5.columbus.umbral_conexo) + ' en Columbus, donde el grado medio ya es ' + n6(D6.m5.columbus.en_el_conexo.grado) + '.' },
           { texto: 'En ese umbral el grafo puede seguir teniendo varios subgrafos', correcta: true,
             retro: 'Y los tiene: ' + mil6(D6.m5.columbus.curva[3].subgrafos) + ' sobre Columbus y ' + mil6(D6.m5.municipios.en_el_umbral.subgrafos) + ' sobre los municipios. No tener islas y ser conexo son propiedades distintas.' },
           { texto: 'Es la mayor de las distancias de cada unidad a su vecino más próximo', correcta: true,
@@ -11087,13 +11242,13 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         pista: '¿Cuál hace que cada fila de W sume 1?',
         pregunta: 'Quieres que el rezago espacial sea la MEDIA de los vecinos. ¿Qué estilo de <code>nb2listw</code> eliges?',
         opciones: [
-          { texto: 'C, la global',
+          { texto: 'C, la global: el mismo peso en todo el mapa',
             retro: 'C reparte un peso igual a todas las aristas del mapa, así que la matriz suma n pero las FILAS no suman 1: una unidad con más vecinos sigue sumando más.' },
-          { texto: 'B, la binaria',
+          { texto: 'B, la binaria: cada vecino pesa 1',
             retro: 'Con B el rezago es la SUMA de los vecinos, no la media, y las unidades del centro pesan más solo por estar rodeadas. La matriz suma ' + mil6(D6.m7.estilos[0].suma_total) + ', que son los enlaces dirigidos.' },
           { texto: 'W, la estandarización por filas', correcta: true,
             retro: 'Eso es: divide cada fila por su grado, así que toda fila suma 1 y la matriz entera suma n = ' + mil6(D6.m7.estilos[1].suma_total) + '. Su precio es que el vecino de una unidad con pocos vecinos pesa mucho más.' },
-          { texto: 'U, la unitaria',
+          { texto: 'U, la unitaria: la matriz entera suma 1',
             retro: 'U hace que toda la matriz sume 1, no cada fila. Es una escala global, no una media por unidad.' }
         ] },
       {
@@ -11103,13 +11258,13 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         retroAcierto: 'Las dos: son la misma matriz por una constante, y por eso la correlación del rezago no distingue entre ellos.',
         retroFallo: 'Las dos ciertas son que se diferencian en una constante y que dan la misma correlación del rezago.',
         opciones: [
-          { texto: 'Elegir entre ellos cambia la conclusión del análisis',
-            retro: 'No la cambia si lo que se calcula es una correlación o un índice de Moran, precisamente porque solo se diferencian en una escala. Sí importa si se lee el valor absoluto del rezago.' },
+          { texto: 'Elegir entre ellos cambia el índice de Moran que se calcule',
+            retro: 'No lo cambia: el índice de Moran lleva n/S₀ delante, y una constante que multiplica W multiplica también S₀. Lo que sí cambia es el valor absoluto del rezago, que con B es una suma y con U una fracción diminuta.' },
           { texto: 'Los tres son la misma matriz multiplicada por una constante', correcta: true,
             retro: 'Eso es: B por 1, C por n entre el total y U por uno entre el total. Sus sumas son ' + mil6(D6.m7.estilos[0].suma_total) + ', ' + mil6(D6.m7.estilos[3].suma_total) + ' y ' + mil6(D6.m7.estilos[4].suma_total) + '.' },
-          { texto: 'Los tres dan exactamente la misma correlación entre y y su rezago', correcta: true,
+          { texto: 'Los tres dan la misma correlación entre y y su rezago', correcta: true,
             retro: 'Sí: ' + n6(D6.m7.estilos[0].cor_con_crime) + ' los tres, porque una constante no mueve una correlación. Los que sí la cambian son W y S.' },
-          { texto: 'Los tres hacen que cada fila sume 1',
+          { texto: 'Los tres hacen que cada fila de la matriz sume exactamente 1',
             retro: 'Ninguno de los tres lo hace. El que estandariza por filas es W, y por eso es el único cuyo rezago es una media.' }
         ] },
       {
@@ -11117,14 +11272,14 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         pista: 'Piensa en qué VALOR queda en la fila de una unidad sin vecinos.',
         pregunta: 'Una capa tiene dos unidades sin vecinos y usas <code>zero.policy = TRUE</code>. ¿Qué acabas de hacer?',
         opciones: [
-          { texto: 'Nada: es una opción de presentación',
-            retro: 'Cambia el resultado numérico de todo lo que venga después. Sin ella `nb2listw` falla con «' + D6.m9.error_sin_zero_policy + '», que es lo correcto.' },
-          { texto: 'Excluir esas unidades del análisis',
+          { texto: 'Nada que cambie un resultado: es una opción de presentación',
+            retro: 'Cambia el resultado numérico de todo lo que venga después. Sin ella <code>nb2listw</code> falla con «' + D6.m9.error_sin_zero_policy + '», que es lo correcto.' },
+          { texto: 'Excluir esas dos unidades de todo lo que se calcule después',
             retro: 'No las excluye: las deja dentro con una fila vacía. Excluirlas es una decisión distinta —y más honesta— que hay que tomar explícitamente.' },
-          { texto: 'Convertir su rezago en un CERO, que entra en todas las medias', correcta: true,
-            retro: 'Eso es, y es lo que hay que declarar. Sobre los municipios el rezago de San Andrés vale ' + n6(D6.m9.lag_isla) + ', y ese cero tira hacia abajo de cualquier resumen sin que nada avise.' },
+          { texto: 'Dejar su rezago en cero, un número que entra en las medias', correcta: true,
+            retro: 'Eso es, y es lo que hay que declarar. Sobre los municipios el rezago de San Andrés vale ' + n6(D6.m9.lag_isla) + ', y ese cero se mezcla en los resúmenes sin avisar, en una dirección que depende del dato: con la deserción, la media del rezago baja de ' + n6(D6.m9.efecto_cero.media_wy_sin_islas) + ' a ' + n6(D6.m9.efecto_cero.media_wy_con_ceros) + ' y la correlación con la deserción SUBE de ' + n6(D6.m9.efecto_cero.cor_sin_islas) + ' a ' + n6(D6.m9.efecto_cero.cor_con_ceros) + '.' },
           { texto: 'Hacer que R estime sus vecinos por interpolación',
-            retro: 'R no inventa vecinos en ningún caso. `zero.policy` solo decide si acepta filas vacías o se niega a construir los pesos.' }
+            retro: 'R no inventa vecinos en ningún caso. <code>zero.policy</code> solo decide si acepta filas vacías o se niega a construir los pesos.' }
         ] },
       {
         tipo: 'opcion',
@@ -11132,12 +11287,12 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
         pregunta: 'Dibujas la deserción municipal y su rezago Wy con la misma escala de color. El segundo mapa se ve más plano. ¿Qué significa?',
         opciones: [
           { texto: 'Que la deserción está espacialmente autocorrelacionada',
-            retro: 'La autocorrelación se ve en la CORRELACIÓN entre y y Wy —aquí ' + n6(D6.m10.correlacion) + '—, no en que el mapa del rezago se vea plano. Eso último pasaría también sin autocorrelación ninguna.' },
-          { texto: 'Nada sobre el territorio: promediar contrae, y el rezago es una media', correcta: true,
-            retro: 'Eso es. La desviación pasa de ' + n6(D6.m10.y.sd) + ' a ' + n6(D6.m10.wy.sd) + ', un ' + n6(D6.m10.contraccion_pct, 2) + ' % menos, y eso pasaría con cualquier variable. Las medias, en cambio, casi coinciden.' },
-          { texto: 'Que la W elegida tiene demasiados vecinos',
-            retro: 'Más vecinos contraen más, es cierto, pero la contracción existe con cualquier W: es una propiedad de promediar, no de esta vecindad.' },
-          { texto: 'Que hay un error en el cálculo del rezago',
+            retro: 'Que se vea más plano no lo dice: pasaría también sin autocorrelación ninguna. La delata otra cosa: que Wy siga a y —la pendiente de Wy sobre y, que es el índice de Moran del capítulo 7— o que el rezago se estreche MENOS de lo que se estrecharía con los valores repartidos al azar.' },
+          { texto: 'Nada, por sí solo: promediar contrae, haya o no geografía', correcta: true,
+            retro: 'Eso es. La desviación pasa de ' + n6(D6.m10.y.sd) + ' a ' + n6(D6.m10.wy.sd) + ', un ' + n6(D6.m10.contraccion_pct, 2) + ' % menos, y algo así pasaría con cualquier variable. Lo que sí dice algo del territorio es CUÁNTO se estrecha: el módulo 10 lo mide en Columbus, donde CRIME se estrecha menos que sus mismos valores repartidos al azar.' },
+          { texto: 'Que la W elegida tiene demasiados vecinos para este mapa',
+            retro: 'Con más vecinos se suele contraer más, pero la contracción existe con cualquier W: es una propiedad de promediar, no de esta vecindad.' },
+          { texto: 'Que hay un error en el cálculo del rezago o de la escala',
             retro: 'Es justo lo contrario: si el mapa del rezago NO se viera más plano habría que sospechar del cálculo.' }
         ] },
       {
@@ -11148,7 +11303,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
           { texto: 'A/n: la adyacencia dividida por el número de unidades',
             retro: 'Eso es el estilo U —dividir por una constante—, no la estandarización por filas. La suma total sería 1 en vez de n.' },
           { texto: 'A⁻¹D: el grado normalizado por la adyacencia',
-            retro: 'La adyacencia no es invertible en general —es dispersa y tiene filas enteras de ceros si hay islas—, así que esa expresión ni siquiera está definida.' },
+            retro: 'No es la estandarización por filas: aquí se invierte la adyacencia, no el grado. A⁻¹ ni siquiera existe siempre —una isla deja una fila de ceros y la hace singular—, y cuando existe, como en la reina de Columbus, A⁻¹D es otra matriz que nada tiene que ver con promediar vecinos.' },
           { texto: 'D⁻¹A: la adyacencia normalizada por el grado', correcta: true,
             retro: 'Exacto, y no se parece: ES. El precálculo lo comprueba y la diferencia máxima entre las dos matrices vale ' + n6(D6.m11.columbus.d_inv_a_igual_w, 0) + '. Es también la capa de paso de mensajes de una GNN.' },
           { texto: 'AᵀA: la matriz de coocurrencias',

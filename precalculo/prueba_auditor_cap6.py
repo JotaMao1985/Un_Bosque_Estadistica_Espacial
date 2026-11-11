@@ -374,6 +374,68 @@ def defectos():
     obj("15 · el cociente de desviaciones del resumen cambia", "resumen2d",
         lambda d: d.__setitem__("moran_razon_sd", 0.8313131313))
 
+    # --- 16. Lo que añadió la auditoría de contenido del 2026-11-03 ---
+    # Cada una imita una de las frases falsas que había, vuelta cifra: si la
+    # prosa vuelve a decirlas, el dato que la sostiene tiene que caer aquí.
+    def m5m(d):
+        return d["m5"]["municipios"]
+
+    obj("16 · el umbral municipal se atribuye a San Andrés", "datos",
+        lambda d: m5m(d)["fija_el_umbral"].__setitem__("municipio", "San Andrés"))
+    obj("16 · el vecino de quien fija el umbral cambia", "datos",
+        lambda d: m5m(d)["fija_el_umbral"].__setitem__("vecino", "Cumaribo"))
+    obj("16 · San Andrés queda a 166.8 km de su vecino", "datos",
+        lambda d: m5m(d)["san_andres"].__setitem__("vecino_km", 166.1313))
+    obj("16 · San Andrés gana un vecino de la costa en el umbral", "datos",
+        lambda d: m5m(d)["san_andres"].__setitem__("vecinos_en_el_umbral", ["Providencia", "Acandí"]))
+    obj("16 · la costa queda más cerca del archipiélago", "datos",
+        lambda d: m5m(d)["san_andres"].__setitem__("costa_km", 167.1313))
+    obj("16 · el umbral que une el archipiélago se confunde con el sin islas", "datos",
+        lambda d: m5m(d).__setitem__("umbral_conecta_todo_km", m5m(d)["umbral_sin_islas_km"]))
+    obj("16 · Leticia y Manizales se publican como vecinas", "datos",
+        lambda d: m5m(d)["leticia_manizales"].__setitem__("vecinas", True))
+    obj("16 · Leticia gana vecinos en el umbral", "datos",
+        lambda d: m5m(d)["leticia_manizales"].__setitem__("grado_leticia", 13))
+    obj("16 · el más conectado cambia de municipio", "datos",
+        lambda d: m5m(d)["mas_conectado"].__setitem__("municipio", "Manizales"))
+    obj("16 · el umbral conexo de Columbus es el punto siguiente del barrido", "datos",
+        lambda d: d["m5"]["columbus"].__setitem__("umbral_conexo", d["m5"]["columbus"]["curva"][4]["umbral"]))
+    obj("16 · el grafo del umbral conexo se parte", "datos",
+        lambda d: d["m5"]["columbus"]["en_el_conexo"].__setitem__("subgrafos", 2))
+    obj("16 · la esfera por definición cabe en Delaunay", "datos",
+        lambda d: d["m6"]["esfera_definicion"].__setitem__("fuera_de_delaunay", 0))
+    obj("16 · la esfera por definición cambia de tamaño", "datos",
+        lambda d: d["m6"]["esfera_definicion"].__setitem__("pares", 113))
+    obj("16 · la esfera se publica dentro de Gabriel", "datos",
+        lambda d: d["m6"]["anidamiento"].__setitem__("esfera_en_gabriel", True))
+    obj("16 · la serie de órdenes se corta en el 3", "datos",
+        lambda d: d["m3"].__setitem__("ordenes", d["m3"]["ordenes"][:3]))
+    obj("16 · el orden 4 pierde parejas", "datos",
+        lambda d: d["m3"]["ordenes"][3].__setitem__("pares", 131))
+    obj("16 · el acumulado al orden 3 se publica como casi todo", "datos",
+        lambda d: d["m3"]["ordenes"][2].__setitem__("pct_acumulado", 93.1313))
+    obj("16 · la GAL de Anselin se publica como la reina", "datos",
+        lambda d: d["m3"]["gal"].__setitem__("pares", 118))
+    obj("16 · las esquinas de la reina cambian", "datos",
+        lambda d: d["m3"].__setitem__("pct_esquina", 31.1313))
+    obj("16 · Moran con k = 3 se publica simetrizado", "datos",
+        lambda d: d["m4"]["moran_k3"].__setitem__("asimetrica", d["m4"]["moran_k3"]["simetrizada"]))
+    obj("16 · la reina por filas se publica simétrica", "datos",
+        lambda d: d["m4"]["moran_k3"].__setitem__("reina_por_filas_simetrica", True))
+    obj("16 · San Andrés queda a 700 km exactos con k = 4", "datos",
+        lambda d: d["m4"]["san_andres_k4"].__setitem__("costa_min_km", 700.0))
+    obj("16 · el cero de las islas baja la correlación", "datos",
+        lambda d: d["m9"]["efecto_cero"].__setitem__("cor_con_ceros", 0.5313))
+    obj("16 · Moran con las islas pierde el ajuste de n", "datos",
+        lambda d: d["m9"]["efecto_cero"].__setitem__(
+            "moran_con_islas", d["m9"]["efecto_cero"]["moran_con_islas_sin_ajuste"]))
+    obj("16 · la correlación con la torre cambia", "datos",
+        lambda d: d["m10"]["otras_w"]["torre"].__setitem__("correlacion", 0.6131))
+    obj("16 · el umbral de 30 km pierde sus municipios sin vecinos", "datos",
+        lambda d: d["m10"]["otras_w"]["umbral_30km"].__setitem__("sin_vecinos", 0))
+    obj("16 · el cociente de pesos de W cambia", "datos",
+        lambda d: d["m7"].__setitem__("razon_w", 2.1313))
+
     return D
 
 

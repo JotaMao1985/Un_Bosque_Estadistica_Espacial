@@ -22,7 +22,20 @@ Qué comprueba, por encima:
   · accesibilidad del marcado, los `.geomapa` y su presupuesto;
   · que la codificación no se haya roto y que los enlaces resuelvan.
 
-EL TOPE DE PESO ES 740 KB. Fue 720 hasta que la capa categórica del
+EL TOPE DE PESO ES 760 KB. Fue 740 hasta la auditoría de contenido del
+2026-11-03, y se sube con la cuenta delante, como las veces anteriores:
+
+  · el documento pesa **741.0 KB** (758 818 bytes): 725.2 en 1f2eb0f y
+    **15.9 de lo que la auditoría pidió enseñar**: la serie de órdenes hasta
+    el diámetro, el umbral que conecta, quién fija el umbral municipal, la
+    GAL de Anselin frente a la reina, la esfera por definición, la tabla del
+    cero de las islas, las otras W del módulo 10, la GCN, los bloques de
+    código que lo comprueban, 2.6 KB más de JSON y la plantilla del simulacro
+    del PR #41, que el capítulo no había recogido. Con 740 no cabía por 1 KB;
+  · la cota del arnés sigue en pie: 741.0 < 760 < 1053 (el tamaño + 312);
+  · 760 deja **19 KB de margen**, lo que dejaba 740 cuando se fijó.
+
+Fue 720 hasta que la capa categórica del
 `.geomapa` (la del capítulo 7) entró en la plantilla (2026-10-13), y se sube
 con la cuenta delante, como la vez anterior:
 
@@ -77,7 +90,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP6_KB = 740.0
+TOPE_CAP6_KB = 760.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {
@@ -90,9 +103,9 @@ ESTRUCTURALES = {
     # Números pequeños de estructura (módulos, capítulos, semanas, órdenes
     # de contigüidad, valores de k y nombres de estilo)
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
-    # Los dos que el capítulo escribe como parte de una fórmula o de un
-    # nombre y no como medición: el exponente de D⁻¹ y el «orden 2».
-    "700",                                     # los km de mar del módulo 4
+    # «700», los km de mar del módulo 4, estuvo aquí hasta el 2026-11-03: era
+    # una cifra escrita a mano. Ahora salen del JSON (668 y 712).
+    "1988",                                    # la GAL de Anselin (1988)
 }
 
 # El temario que el §6 del plan le asigna al capítulo 6, módulo a módulo.
@@ -125,7 +138,7 @@ DEBE_CUBRIR = [
     ("la densidad desigual", "densidad"),
     ("el umbral mínimo sin islas", "umbral mínimo sin islas"),
     ("que quitar islas no conecta el grafo", "no conecta el grafo"),
-    ("que esa W es impublicable como dibujo", "de las diez definiciones"),
+    ("que esa W es impublicable como dibujo", "no se puede dibujar"),
     # Módulo 6 — vecindades geométricas
     ("la triangulación de Delaunay", "delaunay"),
     ("el grafo de Gabriel", "gabriel"),
@@ -286,6 +299,52 @@ AFIRMACIONES = [
      "a cada municipio tantas veces como vecinos tiene"),
     ("dice que en la solución del ejercicio 5 lo que no se mueve es la media ponderada por el grado",
      "lo que no se mueve nunca, con una vecindad simétrica como la reina, es la media ponderada por el grado"),
+    # Las que entraron con la auditoría de contenido del 2026-11-03: lo que la prosa nueva afirma en lugar
+    # de las cinco frases falsas. Cada una tiene su contraria en PROHIBIDAS.
+    ("dice que la reina de los polígonos no es la W de Anselin", "lo que no son es «las de anselin»"),
+    ("dice que ni el tablero canónico trae una sola W", "ni el tablero canónico viene con su w"),
+    ("dice que la serie de órdenes sube hasta una cima y baja", "y desde ahí baja"),
+    ("dice que lo que frena la serie es el borde del mapa", "lo que frena la serie es el borde del mapa"),
+    ("dice que Moran y SAR aceptan una W asimétrica", "aceptan una w asimétrica sin tocarla"),
+    ("dice que la reina por filas tampoco es simétrica", "ni siquiera la w más usada es simétrica"),
+    ("dice que simetrizar cambia el índice de Moran", "simetrizar es una decisión más sobre w"),
+    ("dice que el umbral municipal no lo fija el mar", "y no lo fija el mar"),
+    ("dice que el archipiélago no fija el umbral", "el archipiélago no fija nada"),
+    ("dice que el umbral conexo es la arista más larga del árbol generador mínimo",
+     "árbol generador mínimo"),
+    ("dice que la esfera por definición no cabe en Delaunay", "por definición no cabe en ella"),
+    ("dice que la esfera de spdep parte de la triangulación", "recibe la triangulación"),
+    ("dice que no se sabe hacia dónde empuja el cero de las islas", "ni siquiera se sabe de antemano hacia dónde"),
+    ("dice que con este dato la correlación sube con el cero", "la correlación sube"),
+    ("dice que nb2listw se niega también con el estilo B", "se niega también con el estilo b"),
+    ("dice que la GCN de Kipf y Welling usa otra W", "es otra w, elegida por quien"),
+    ("dice que el capítulo 7 mide si la respuesta depende de W", "si cambia también la respuesta"),
+]
+
+# LO QUE EL CAPÍTULO NO PUEDE VOLVER A DECIR (auditoría de contenido del 2026-11-03). Son las frases falsas
+# que tenía, y se buscan en el documento ENTERO —prosa, retroalimentaciones del cuestionario, lecturas y
+# comentarios—, porque tres de ellas vivían en el JavaScript del banco, que la prosa no trae. Ninguna es
+# castellano corriente: una guarda que salta con él se acaba desactivando.
+PROHIBIDAS = [
+    "las dos cifras que anselin publica", "cifra canónica de anselin", "es la cifra que publica anselin",
+    "la distancia que separa a san andrés de su vecino más próximo",
+    "leticia y manizales sean vecinas",
+    "supone una w simétrica o la simetriza",
+    "se está quedando sin sitios nuevos", "ya casi no hay unidades nuevas", "las parejas siguen subiendo",
+    "la mitad del mínimo conexo",
+    "casi todo el mundo es vecino de casi todo el mundo",
+    "tiran de cualquier resumen hacia abajo", "tira hacia abajo de cualquier resumen",
+    "w es dispersa siempre",
+    "dividir por cero es la operación",
+    "eso valdría en un grafo infinito sin ciclos",
+    "con topología rota puede pasar cualquier cosa",
+    "es dispersa y tiene filas enteras de ceros",
+    "la autocorrelación se ve en la correlación",
+    "depender, entera",
+    "el rezago, que es el módulo siguiente",
+    "a 167 km de mar",
+    "ciento setenta y nueve",
+    "va a descubrir que la respuesta depende",
 ]
 
 # Lo que el CÓDIGO del capítulo no puede dejar de decir. `afirmaciones()` lee la prosa sin los bloques `<pre>` (los
@@ -338,10 +397,18 @@ def main() -> int:
     codigo = html.unescape(a.cuerpo).lower()
     for que, clave in AFIRMACIONES_CODIGO:
         a.exige(clave in codigo, que)
+    # El documento ENTERO, scripts incluidos: `cuerpo` no trae el JavaScript, y ahí viven el banco y las
+    # etiquetas del JSON (la primera versión de esto miraba `cuerpo` y no vio tres de las inyecciones).
+    entero = html.unescape(a.doc).lower()
+    print("\n=== Lo que el capítulo no puede volver a decir ============")
+    for frase in PROHIBIDAS:
+        a.exige(frase not in entero, f"el documento no dice «{frase}»")
     a.accesibilidad()
     a.geomapas()
+    a.decimales_con_punto()
     a.formulas_escapadas()
     a.codificacion()
+    a.sin_acentos_graves()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)
     a.peso(TOPE_CAP6_KB)
