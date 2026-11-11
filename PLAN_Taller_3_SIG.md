@@ -56,12 +56,29 @@ radio de L ∈ {200, 300, 400} m, radio del mapa de calor ∈ {600, 800, 1000} m
   3,7·10⁻¹⁰. La banda de 99 simulaciones incluida: `default_rng` es reproducible entre plataformas.
 - **El mapa de calor «Escalado» integra n** (masa total = n exacto), y **radio R ≡ σ = R/√8** con
   núcleo cuártico: la masa dentro de la localidad coincide con `density(..., edge = FALSE)` a la
-  décima, y el máximo al 1–2 % (las rejillas de píxeles no están alineadas).
+  décima (hasta 0,54 %), y el máximo hasta el 4,2 % (Usaquén, 600 m). La causa la midió el auditor
+  independiente: QGIS desplaza cada punto hasta ±25 m en y al pasarlo a la rejilla (cuenta la fila
+  desde arriba y la fracción de píxel desde abajo), y su pico queda hasta 2,5 % sobre el exacto;
+  `density()` también reparte los puntos en píxeles. El enunciado no da ninguna de estas cifras.
+- **El «Jenks» de QGIS 3.44.15 no es el Fisher–Jenks óptimo** sobre estas 20 densidades: su tercer
+  corte es 5,44103 y el óptimo, 6,11232 (`mapclassify.NaturalBreaks` reproduce a QGIS, `FisherJenks`
+  da el óptimo). La clave es lo que muestra QGIS, que es lo que ve el estudiante: 5 localidades
+  cambian de clase; con el óptimo serían 6. Cuatro de las cinco están justo en un corte.
 - **EPSG:3857 infla el área un 1,4 % en Bogotá**, no el 0,65 % de 1/cos²φ: Web Mercator aplica
   fórmulas de esfera a latitudes del elipsoide. El enunciado no adelanta la cifra.
 - **El índice de vecino más próximo se mueve en los dos sentidos** al corregir el área (la caja de
   los puntos puede ser mayor o menor que la localidad). El enunciado no adelanta el sentido.
 - Los nombres de las herramientas son los de `qgis_es.qm` de la 3.44.15, con sus erratas.
+
+## §3b Los auditores
+
+- `audita_taller3.py` (geo_env): 1 980 comprobaciones; rehace T1 a T4 sin `nucleo.py` ni QGIS y las
+  contrasta con las claves de `precalculo/cache/`. Sin claves (clon limpio) audita solo lo público y
+  lo dice: 128 comprobaciones y 12 bloques SALTADOS.
+- `prueba_auditor_taller3.py`: 144 de 144 defectos inyectados cazados.
+- `audita_texto_taller3.py`: 130 comprobaciones (fechas contra el `.tex` y el PDF, enlaces, tope de
+  520 KB, identificadores y parámetros del enunciado contra los que corrió el guion de las claves,
+  el ZIP con los mismos bytes que la carpeta, la huella de datos, ninguna cifra de control en la página).
 
 ## §4 Órdenes de validación
 
@@ -72,6 +89,7 @@ docker run --rm --platform linux/amd64 -e QT_QPA_PLATFORM=offscreen -v "$CARPETA
 # macOS, con el Python de la aplicación
 A=/Applications/QGIS-LTR.app/Contents
 QT_QPA_PLATFORM=offscreen PYTHONHOME="$A/Frameworks" QGIS_PREFIX_PATH="$A/MacOS" \
+PROJ_DATA="$A/Resources/qgis/proj" GDAL_DATA="$A/Resources/qgis/gdal" \
 PYTHONPATH="$A/Resources/python3.11/site-packages:$A/Resources/qgis/python:$A/Resources/qgis/python/plugins" \
   $A/MacOS/python3.12 precalculo/claves_qgis_taller3.py entrega/datos entrega/qgis/taller3_espacial claves_mac.json
 ```
@@ -81,8 +99,10 @@ PYTHONPATH="$A/Resources/python3.11/site-packages:$A/Resources/qgis/python:$A/Re
 ## §5 Pendiente y riesgos
 
 - Windows: en comprobación en la VM de UTM (ver el informe de la sesión).
-- Recorrido completo en la **interfaz** de QGIS, no solo por consola.
-- `audita_taller3.py` independiente, auditor de prosa y arnés de inyección.
-- Corte III: decir en la guía del proyecto que el Taller 3 es uno de los quices; tarjeta en la portada.
 - Riesgo: calendario. Se publica el jueves 12 para dar cinco días; el informe del proyecto vence el domingo 15.
+- **Sin auditoría independiente**, y dicho en `audita_taller3.py`: `bw.diggle`, `bw.ppl` y los
+  coeficientes de `ppm` (reimplementarlos sería copiar `spatstat`) y los cortes de Jenks de QGIS.
+- **Sin recorrido con clics** en la interfaz de QGIS: no se concedió el control de la aplicación. Los
+  nombres de menús, herramientas y opciones salen de `qgis_es.qm`; una variante entera la resolvió a
+  ciegas un lector que solo tenía la página, con `qgis_process`, y sus 34 cifras coincidieron.
 - No verificado: QGIS 4.x (el complemento está escrito para que cargue, pero no se probó).
