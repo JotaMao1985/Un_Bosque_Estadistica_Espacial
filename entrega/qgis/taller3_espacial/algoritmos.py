@@ -181,8 +181,8 @@ class Entorno(_Base):
 
     def shortHelpString(self):
         return ("Imprime la versión de QGIS y de numpy, la huella del archivo de datos y la línea de "
-                "identificación que va en la portada de la entrega. Si la huella no es la del enunciado, "
-                "el archivo no es el del taller: descárgalo otra vez.")
+                "entorno que va en la portada de la entrega. El enunciado dice qué huella tiene que salir: "
+                "si no es esa, el archivo no es el del taller, y hay que descargarlo otra vez.")
 
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterFile(
@@ -288,10 +288,9 @@ class Cuadrantes(_Base):
         emin = float(esp[areas > 0].min())
         lineas = ["Rejilla %d × %d sobre la caja de la ventana: %d celdas con área." % (nx, ny, gl + 1),
                   "χ² = %.5f con %d grados de libertad." % (x2, gl),
-                  "p de la cola derecha (más dispersión de la esperada) = %.5g; p bilateral = %.5g." % (p_der, p_bil),
+                  "p de la cola derecha = %.5g." % p_der,
                   "Índice de dispersión χ²/gl = %.5f." % (x2 / gl),
-                  "Menor conteo esperado = %.5f%s" % (emin, " — por debajo de 5: la aproximación χ² es dudosa."
-                                                      if emin < 5 else ".")]
+                  "Menor conteo esperado = %.5f." % emin]
         for s in lineas:
             feedback.pushInfo(s)
         ruta = self.parameterAsFileOutput(parameters, self.INFORME, context)
@@ -462,9 +461,8 @@ class RipleyKL(_Base):
                           % (rl, k[q], lr[q], usables, len(x)))
             if nsim > 0:
                 res.update({"BANDA_INF": self._valor(lo[q]), "BANDA_SUP": self._valor(hi[q])})
-                fuera = lr[q] > hi[q] or lr[q] < lo[q]
-                lineas.append("Banda de %d simulaciones en ese r: de %.5f a %.5f m. El patrón queda %s."
-                              % (nsim, lo[q], hi[q], "FUERA" if fuera else "dentro"))
+                lineas.append("Banda de %d simulaciones en ese r: de %.5f a %.5f m."
+                              % (nsim, lo[q], hi[q]))
         for s in lineas:
             feedback.pushInfo(s)
         svg = N.svg_lineas(rg, [("L(r) − r", lr, VERDE, False), ("Poisson", np.zeros(len(rg)), GRIS, True)],

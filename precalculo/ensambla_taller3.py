@@ -38,6 +38,7 @@ Uso:  python3 precalculo/ensambla_taller3.py
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import pathlib
@@ -65,6 +66,9 @@ ENTREGA = "martes 17 de noviembre de 2026"
 HORA_LIMITE = "11:00"
 QGIS_VERSION = "3.44.15"
 SEMILLA_ENVOLVENTE = D["semilla"]
+# La huella del archivo de datos, la misma que imprime la herramienta 0 del
+# complemento: los doce primeros caracteres del SHA-256 de `taller3.gpkg`.
+HUELLA_DATOS = hashlib.sha256((RAIZ / "entrega" / "datos" / "taller3.gpkg").read_bytes()).hexdigest()[:12]
 PESOS = {1: 15, 2: 20, 3: 30, 4: 20, 5: 15}
 
 
@@ -196,8 +200,8 @@ MOD1 = cabecera(
           lo dijo en su primer módulo: el SIG de este curso se escribe en vez de pulsarse, porque
           <strong>un clic no deja rastro</strong>. Eso sigue en pie. Pero fuera de aquí vas a
           recibir mapas y cifras hechos con clics, y hay que saber leerlos. Este taller hace las
-          dos cosas: usa QGIS para lo que QGIS hace bien, y le obliga a dejar rastro —el proyecto,
-          el GeoPackage de resultados y el historial de procesos se entregan—. Y donde QGIS no
+          dos cosas: usa QGIS para lo que QGIS hace bien, y le obliga a dejar rastro —el proyecto
+          y el GeoPackage de resultados se entregan—. Y donde QGIS no
           llega, lo dice, y vuelve a R.</p>
       </div>
 
@@ -205,7 +209,7 @@ MOD1 = cabecera(
         <p style="margin-bottom:0;"><strong>Qué vale y cuándo se entrega.</strong> El taller cuenta
           como <strong>uno de los quices del Corte III</strong>. Se entrega el <strong>{ENTREGA}, a
           más tardar a las {HORA_LIMITE}</strong>, por Brightspace. No se aceptan entregas tarde. El
-          trabajo completo son unas <strong>cuatro horas</strong>; no lo dejes para la víspera,
+          trabajo completo son <strong>entre cuatro y cinco horas</strong>; no lo dejes para la víspera,
           porque la primera media hora es instalar.</p>
       </div>
 
@@ -228,7 +232,10 @@ MOD1 = cabecera(
         <li><strong>La caja de herramientas.</strong> Menú <strong>Procesos ▸ Caja de
           herramientas</strong>. Al final de la lista tiene que aparecer el grupo <strong>«Taller 3 ·
           Estadística espacial»</strong>, con cuatro herramientas numeradas del 0 al 3. Si no
-          aparece, el complemento no se instaló.</li>
+          aparece, el complemento no se instaló. Las demás herramientas del enunciado se buscan
+          escribiendo su nombre en la casilla de búsqueda de la caja; van escritas <strong>como salen
+          en pantalla</strong>, con las erratas de la traducción («Crear cuadricula», «Extraer por
+          ubicacion»), y con su identificador al lado.</li>
         <li><strong>R</strong>, el que ya usas en el curso, con <code>sf</code> y
           <code>spatstat</code>. Solo lo pide la última tarea.</li>
       </ol>
@@ -263,8 +270,9 @@ MOD1 = cabecera(
         <li>Pestaña <strong>General</strong>, apartado <strong>Mediciones</strong>: comprueba que en
           <strong>Elipsoide</strong> diga <strong>Ninguno/Planimétrico</strong>, y si no, elígelo. Con un elipsoide
           puesto, QGIS mide distancias y áreas sobre la superficie curva y no sobre el plano de la
-          proyección: es la diferencia del capítulo 2, módulo 6, y mueve las últimas cifras
-          de varias de tus cifras de control.</li>
+          proyección: es la diferencia del capítulo 2, módulo 6. Aquí le afecta a una herramienta, el
+          análisis de vecinos más próximos de T3, que mide sus distancias con el elipsoide del
+          proyecto: con uno puesto, su índice se mueve en la tercera cifra.</li>
         <li>Para las áreas, en este taller se escribe siempre <code>area($geometry)</code>, que
           mide en el plano de la capa, y <strong>no</strong> <code>$area</code>, que obedece al
           ajuste anterior. Con el elipsoide en «Ninguno» dan lo mismo; escribir la primera te
@@ -320,10 +328,11 @@ MOD1 = cabecera(
             cualquier editor mientras el resultado sea un PDF con esa estructura.</li>
           <li><code>T3_Apellido_TuDocumento.zip</code> — tu proyecto <code>taller3.qgz</code> y tu
             <code>resultados.gpkg</code>. Es el rastro: las cifras del escrito tienen que poder
-            leerse en esas capas.</li>
+            rehacerse a partir de esas capas.</li>
         </ol>
         <p style="margin-bottom:0;">Las cifras se escriben con <strong>cinco decimales</strong>
-          cuando la herramienta los da, y con punto o coma decimal, como prefieras. Una cifra de
+          cuando la herramienta los da, y con punto o coma decimal, como prefieras; un valor p muy
+          pequeño se escribe en notación científica, como lo da la herramienta. Una cifra de
           control cuenta como correcta si coincide con la del curso en sus <strong>tres primeras
           cifras significativas</strong>.</p>
       </div>
@@ -347,7 +356,8 @@ MOD2 = cabecera(
     f"Caja de herramientas ▸ grupo «Taller 3 · Estadística espacial» ▸ <strong>0 · Entorno y línea "
     f"de identificación</strong>. Elige tu <code>taller3.gpkg</code>, escribe tu documento y pulsa "
     f"Ejecutar. En la pestaña <strong>Registro</strong> sale una línea que empieza por "
-    f"<code>T3 · doc</code>: cópiala tal cual, va en la portada.",
+    f"<code>T3 · doc</code>: cópiala tal cual, va en la portada. Tiene que decir "
+    f"<code>datos {HUELLA_DATOS}</code>: si dice otra cosa, tu archivo no es el del taller.",
     "Arrastra <code>taller3.gpkg</code> a la ventana de QGIS y carga sus dos capas. Arrastra "
     "después <code>taller3_sedes_3857.geojson</code>. Botón derecho sobre la capa de sedes ▸ "
     "<strong>Propiedades ▸ Información</strong>: anota su SRC y su número de objetos.",
@@ -359,15 +369,15 @@ MOD2 = cabecera(
     f"<code>sedes_reetiquetadas</code>.",
     f"{herr('Contar puntos en un polígono', 'native:countpointsinpolygon')}: polígonos, "
     f"<code>localidades</code>; puntos, <code>sedes_reetiquetadas</code>. Abre la tabla de "
-    f"atributos del resultado y mira la columna <code>NUMPOINTS</code>. Haz después «Zum a la "
-    f"capa» sobre <code>sedes_reetiquetadas</code> y mira dónde quedó.",
+    f"atributos del resultado y mira la columna <code>NUMPOINTS</code>. Después, botón derecho "
+    f"sobre <code>sedes_reetiquetadas</code> y acerca la vista a esa capa: mira dónde quedó.",
     f"{herr('Reproyectar capa', 'native:reprojectlayer')} sobre <code>localidades</code>, ahora "
     f"hacia <strong>EPSG:3857</strong>. Guárdala como <code>localidades_3857</code>.",
     f"{herr('Calculadora de campos', 'native:fieldcalculator')}, una vez sobre "
     f"<code>localidades</code> y otra sobre <code>localidades_3857</code>: campo nuevo "
     f"<code>area_km2</code>, tipo decimal, precisión 5, fórmula "
-    f"<code>area($geometry) / 1000000</code>. Lee el área de <strong>tu</strong> localidad en las "
-    f"dos tablas.",
+    f"<code>area($geometry) / 1000000</code>. Guarda los resultados como <code>areas_9377</code> y "
+    f"<code>areas_3857</code>, y lee el área de <strong>tu</strong> localidad en las dos tablas.",
 ]) + f"""
 
 """ + tarea(1, "Reproyectar no es reetiquetar",
@@ -378,7 +388,7 @@ MOD2 = cabecera(
     f"{FRASE} En dos líneas: qué hizo «Asignar proyección» con las coordenadas, qué hizo "
     f"«Reproyectar capa», y dónde quedaron en el mapa las sedes reetiquetadas.",
     f"{CIFRA} El área de tu localidad en EPSG:9377 y en EPSG:3857, en km², y cuánto por ciento "
-    f"difieren. {FRASE} Cuál de las dos usarías para calcular una densidad de sedes y por qué; y "
+    f"mayor o menor es la segunda <strong>respecto de la primera</strong>. {FRASE} Cuál de las dos usarías para calcular una densidad de sedes y por qué; y "
     f"si esa diferencia sería mayor, menor o igual para una ciudad a 60° de latitud.",
     f"{FRASE} De las dos capas con las que vas a trabajar —las sedes y las localidades con su "
     f"conteo de sedes—, di qué tipo de dato espacial es cada una y <strong>qué es lo "
@@ -409,14 +419,17 @@ MOD3 = cabecera(
     f"{herr('Calculadora de campos', 'native:fieldcalculator')} sobre "
     f"<code>localidades_conteo</code>: campo nuevo <code>densidad</code>, decimal, precisión 5, "
     f"fórmula <code>\"NUMPOINTS\" / (area($geometry) / 1000000)</code>. Son sedes por km². Guarda "
-    f"el resultado encima de <code>localidades_conteo</code> o con ese mismo nombre.",
+    f"este resultado como <code>localidades_densidad</code>: es la capa con la que sigues.",
     "Abre la tabla de atributos y ordénala, pulsando la cabecera, primero por "
     "<code>NUMPOINTS</code> y luego por <code>densidad</code>, de mayor a menor. Anota el puesto de "
     "tu localidad en cada orden.",
-    "Botón derecho sobre la capa ▸ <strong>Propiedades ▸ Simbología</strong>: tipo "
+    "Botón derecho sobre <code>localidades_densidad</code> ▸ <strong>Propiedades ▸ Simbología</strong>: tipo "
     "<strong>Graduado</strong>, valor <code>densidad</code>, <strong>5 clases</strong>, modo "
     "<strong>Conteo igual (cuantil)</strong>, y pulsa Clasificar. Anota en qué clase cae tu "
-    "localidad, contando desde la más baja (1) hasta la más alta (5).",
+    "localidad, contando desde la más baja (1) hasta la más alta (5). <strong>La clase se lee en los "
+    "límites de la leyenda, con esta regla: el límite superior pertenece a la clase.</strong> Una "
+    "localidad cuya densidad coincide con un corte está en la clase de abajo, que es como la pinta "
+    "QGIS; y con Jenks pasa a menudo, porque sus cortes son valores de los datos.",
     "Duplica la capa (botón derecho ▸ Duplicar capa) y en la copia cambia el modo a "
     "<strong>Rupturas naturales (Jenks)</strong>, con las mismas 5 clases. Anota otra vez la clase "
     "de tu localidad, y cuenta cuántas de las "
@@ -428,9 +441,13 @@ MOD3 = cabecera(
     f"{herr('Contar puntos en un polígono', 'native:countpointsinpolygon')} sobre cada cuadrícula, "
     f"con <code>sedes</code>. Guarda los resultados como <code>rejilla_2000</code> y "
     f"<code>rejilla_4000</code>. De cada una necesitas tres números de su columna "
-    f"<code>NUMPOINTS</code>: cuántas celdas tienen al menos una sede, el máximo y la suma. Los da "
+    f"<code>NUMPOINTS</code>: el máximo, la suma y cuántas celdas tienen al menos una sede. El máximo "
+    f"y la suma los da "
     f"{herr('Basic statistics for fields', 'native:basicstatisticsforfields')} —su nombre sale en inglés—, o el panel "
-    f"<strong>Ver ▸ Paneles ▸ Estadísticas</strong>.",
+    f"<strong>Ver ▸ Paneles ▸ Estadísticas</strong>. Las celdas con sedes no: esas herramientas cuentan "
+    f"todas las celdas, las vacías también. Abre la tabla de atributos de la rejilla, usa "
+    f"<strong>Seleccionar objetos usando una expresión</strong> con <code>\"NUMPOINTS\" &gt; 0</code>, "
+    f"y lee cuántos objetos quedaron seleccionados en el título de la tabla.",
 ]) + f"""
 
 """ + tarea(2, "Del conteo al mapa, y otra vez",
@@ -499,9 +516,9 @@ MOD4 = cabecera(
 ]) + f"""
 
       <div class="note">
-        <p style="margin-bottom:0;"><strong>Las tres herramientas del taller son código que puedes
+        <p style="margin-bottom:0;"><strong>Las herramientas 1, 2 y 3 del taller son código que puedes
           leer.</strong> Están en el ZIP que instalaste: <code>nucleo.py</code> tiene las cuentas, en
-          menos de cuatrocientas líneas y sin nada de QGIS. Corrigen el borde por <em>muestra
+          unas cuatrocientas líneas y sin nada de QGIS. Corrigen el borde por <em>muestra
           reducida</em> —para cada r solo cuentan los puntos a más de r del borde de la ventana—,
           que es la corrección <code>"border"</code> del capítulo 4, módulo 10. Se contrastaron
           contra <code>spatstat</code> sobre estas mismas localidades.</p>
@@ -551,7 +568,8 @@ MOD5 = cabecera(
     f"calor</strong> de tu variante, en metros; tamaño de píxel X e Y, <strong>50</strong>; forma "
     f"del núcleo (<em>Kernel shape</em>), <strong>Cuártico</strong>; escala del valor de salida "
     f"(<em>Output value scaling</em>), <strong>Escalado</strong>. Guarda el ráster como "
-    f"<code>calor.tif</code>.",
+    f"<code>calor.tif</code>. Con «En bruto», que es lo que viene puesto, ninguna de las cifras que "
+    f"siguen cuadra: el ráster deja de estar en sedes por m².",
     f"{herr('Estadísticas de capa ráster', 'native:rasterlayerstatistics')} sobre "
     f"<code>calor.tif</code>: anota el <strong>máximo</strong> y la <strong>suma</strong>.",
     f"{herr('Estadísticas de zona', 'native:zonalstatisticsfb')}: capa de entrada, "
@@ -613,16 +631,16 @@ stopifnot(npoints(p) == MI_N)
 sigma &lt;- MI_RADIO / sqrt(8)
 sin &lt;- density(p, sigma = sigma, kernel = "quartic", edge = FALSE, eps = 50)
 con &lt;- density(p, sigma = sigma, kernel = "quartic", edge = TRUE, diggle = TRUE, eps = 50)
-c(pico_sin = max(sin) * 1e6, masa_sin = integral(sin),
-  pico_con = max(con) * 1e6, masa_con = integral(con))
+print(c(pico_sin = max(sin) * 1e6, masa_sin = integral(sin),
+        pico_con = max(con) * 1e6, masa_con = integral(con)))
 
 # (b) El ancho de banda que QGIS no elige
 s &lt;- c(diggle = bw.diggle(p), ppl = bw.ppl(p))
-rbind(sigma = s, radio_qgis = s * sqrt(8))
+print(rbind(sigma = s, radio_qgis = s * sqrt(8)))
 
 # (c) Un modelo: la intensidad como función de la posición, centrada y en km
 q &lt;- rescale(shift(p, origin = "centroid"), 1000, "km")
-coef(summary(ppm(q ~ x + y)))"""
+print(coef(summary(ppm(q ~ x + y))))"""
 
 MOD6 = cabecera(
     6, "T5 · Lo que el SIG no hace", "Where the GIS stops",
@@ -636,8 +654,10 @@ MOD6 = cabecera(
 
 """ + variante() + f"""
 
-      <p>Copia el bloque en un script, en la carpeta de tus datos, rellena las tres primeras líneas
-        y córrelo entero. No hay que escribir nada más.</p>
+      <p>Copia el bloque en un script y guárdalo <strong>en la carpeta de tus datos</strong>. Rellena
+        las tres primeras líneas y córrelo entero, con esa carpeta como directorio de trabajo: en
+        RStudio, <strong>Session ▸ Set Working Directory ▸ To Source File Location</strong>. No hay
+        que escribir nada más; las tres salidas se imprimen solas.</p>
 
       <pre><code class="language-r arranque">{BLOQUE_R}</code></pre>
 
@@ -893,14 +913,14 @@ RUBRICA_JS = """    RUBRICAS['taller3'] = {
         },
         {
           clave: 'C', nombre: 'Rastro y honestidad', puntos: 15,
-          foco: 'Mide si lo entregado <strong>se puede rehacer</strong>: que las cifras del escrito '
-            + 'se lean en las capas del GeoPackage, que el proyecto abra, y que la bitácora diga qué '
+          foco: 'Mide si lo entregado <strong>se puede rehacer</strong>: que el GeoPackage traiga las '
+            + 'capas que el enunciado nombra, que el proyecto abra, y que la bitácora diga qué '
             + 'se consultó con IA y cómo se comprobó. Aquí se descuenta resolver una variante ajena, '
             + 'y ese descuento <strong>tiene piso: no baja de 6</strong>.',
           niveles: [
-            { nombre: 'Excelente', rango: '14–15', observa: 'El proyecto abre, las capas tienen los nombres del enunciado y las cifras del escrito están en ellas; la bitácora dice qué se verificó.' },
+            { nombre: 'Excelente', rango: '14–15', observa: 'El proyecto abre y las capas tienen los nombres del enunciado; la bitácora dice qué se verificó.' },
             { nombre: 'Aceptable', rango: '10–13', observa: 'El rastro está, con alguna capa sin guardar o sin nombre; la bitácora es razonable.' },
-            { nombre: 'Insuficiente', rango: '6–9', observa: 'Faltan varias capas, o la bitácora es genérica, o las cifras del escrito no están en lo entregado.' },
+            { nombre: 'Insuficiente', rango: '6–9', observa: 'Faltan varias capas, o la bitácora es genérica, o las cifras del escrito no salen de lo entregado.' },
             { nombre: 'No logrado', rango: '0–5', observa: 'No hay bitácora, o lo que declara es falso.' }
           ]
         }
