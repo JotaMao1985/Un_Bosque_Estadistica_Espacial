@@ -31,7 +31,7 @@ Estadística Espacial 2026-II (20929) · Corte III. Abierto el 2026-11-10.
 | Formato | Guiado, con variante por documento, sin defensa |
 | Entrega | Martes 17 de noviembre de 2026 |
 
-Supuestos de la sesión, sin confirmar: hora límite 11:00; pesa como un quiz más.
+Confirmado por Javier el 2026-11-11: hora límite 11:00, y pesa como un quiz más.
 
 ## §2 Qué evalúa cada tarea
 
