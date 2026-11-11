@@ -1,0 +1,198 @@
+% ============================================================================
+% Taller 3 — Los capitulos 1 a 5 en un SIG de escritorio (QGIS)
+% Estadistica Espacial (20929) · Corte III · Universidad El Bosque · 2026-II
+%
+% PLANTILLA DE ENTREGA. Se entrega el PDF compilado, por Brightspace, junto
+% con un ZIP que lleva tu proyecto (taller3.qgz) y tu resultados.gpkg.
+%
+% Como usarla:
+%   1. Pega en la portada, sin cambiar un caracter, las DOS lineas: la de
+%      identificacion (la da el buscador del taller) y la de entorno (la da
+%      la herramienta «0 · Entorno» en QGIS). Sin ellas, la entrega esta
+%      incompleta.
+%   2. Antes de seguir con T2, comprueba que el conteo de sedes de tu
+%      localidad es el n de tu linea de identificacion.
+%   3. Rellena las cifras de control de cada tarea y responde cada lectura
+%      donde dice \marcador{...}. Los marcadores que queden sin sustituir se
+%      ven en gris en el PDF.
+%   4. Compila con pdflatex (o subela a Overleaf tal cual) y entrega el PDF.
+%
+% Nombre de los archivos:  T3_Apellido_TuDocumento.pdf  y  .zip
+%
+% La plantilla es una ayuda, no una obligacion: vale cualquier editor
+% mientras el resultado sea un PDF con esta misma estructura.
+% ============================================================================
+\documentclass[11pt,a4paper,oneside]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,top=2.3cm,bottom=2.3cm,left=2.4cm,right=2.4cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\setlength{\headheight}{14pt}
+\usepackage{titlesec}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{ubosque}{RGB}{0,102,51}
+\definecolor{grisclaro}{RGB}{240,240,240}
+\definecolor{grismarcador}{RGB}{130,130,130}
+
+\hypersetup{colorlinks=true, linkcolor=ubosque, urlcolor=blue!70!black,
+            pdftitle={Taller 3 - Estadistica Espacial 20929}}
+
+% --- El calendario, en un solo sitio. Lo coteja audita_texto_taller3.py
+%     contra las constantes de ensambla_taller3.py. ---
+\newcommand{\fechaentrega}{martes 17 de noviembre de 2026}
+\newcommand{\horalimite}{11:00}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Taller 3 --- Estadística Espacial (20929)}}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{\small Universidad El Bosque}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+\setlength{\parskip}{0.5\baselineskip}
+\setlength{\parindent}{0pt}
+\emergencystretch=3em
+\setcounter{secnumdepth}{0}
+\titleformat{\section}{\normalfont\large\bfseries\color{ubosque}}{}{0em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{}{0em}{}
+
+% Un hueco por rellenar: se ve en gris y entre corchetes.
+\newcommand{\marcador}[1]{\textcolor{grismarcador}{[\,#1\,]}}
+% Una fila de la hoja de cifras: que cifra es, y su hueco.
+\newcommand{\cifra}[1]{#1 & \marcador{cifra} \\}
+\newenvironment{cifras}{\par\medskip\noindent\tabularx{\textwidth}{@{}X>{\raggedleft\arraybackslash}p{4.2cm}@{}}\toprule
+  \textbf{Cifra de control} & \textbf{Tu valor} \\ \midrule}{\bottomrule\endtabularx\par\medskip}
+
+\begin{document}
+
+% ---------------------------------------------------------------- Portada
+\begin{center}
+  {\Large\bfseries\color{ubosque} Taller 3 · Los capítulos 1 a 5 en QGIS}\\[0.3em]
+  {\large Estadística Espacial (20929) · Corte III · 2026-II}\\[0.8em]
+  \marcador{Nombre completo}
+\end{center}
+
+\textbf{Entrega:} \fechaentrega, a más tardar a las \horalimite, por Brightspace.
+
+\subsection{Línea de identificación (la del buscador, literal)}
+\marcador{pega aquí la línea que empieza por tu documento}
+
+\subsection{Línea de entorno (la de la herramienta 0, literal)}
+\marcador{pega aquí la línea que empieza por «T3 · doc»}
+
+\subsection{Bitácora de uso de IA}
+\marcador{Qué consultaste, qué te respondió y cómo comprobaste que era cierto. Una
+línea por consulta basta. Si no usaste ninguna, dilo.}
+
+\newpage
+% -------------------------------------------------------------------- T1
+\section{T1 · Reproyectar no es reetiquetar}
+
+\begin{cifras}
+  \cifra{(a) SRC con el que llega la capa de sedes}
+  \cifra{(a) Número de objetos de la capa de sedes}
+  \cifra{(b) Sedes reetiquetadas dentro de alguna localidad}
+  \cifra{(c) Área de tu localidad en EPSG:9377 (km²)}
+  \cifra{(c) Área de tu localidad en EPSG:3857 (km²)}
+  \cifra{(c) Diferencia entre las dos (\%)}
+\end{cifras}
+
+\textbf{(b)} \marcador{qué hizo cada herramienta con las coordenadas, y dónde quedaron las sedes reetiquetadas}
+
+\textbf{(c)} \marcador{qué área usarías para una densidad y por qué; y a 60° de latitud}
+
+\textbf{(d)} \marcador{tipo de dato de cada capa y qué es lo aleatorio en cada una}
+
+% -------------------------------------------------------------------- T2
+\section{T2 · Del conteo al mapa, y otra vez}
+
+\begin{cifras}
+  \cifra{(a) Sedes de tu localidad}
+  \cifra{(a) Densidad (sedes por km²)}
+  \cifra{(a) Puesto por conteo · puesto por densidad}
+  \cifra{(b) Clase con cuantiles · clase con Jenks}
+  \cifra{(b) Localidades que cambian de clase}
+  \cifra{(c) Rejilla de 2 km: celdas con sedes · máximo · suma}
+  \cifra{(c) Rejilla de 4 km: celdas con sedes · máximo · suma}
+\end{cifras}
+
+\textbf{(a)} \marcador{qué pregunta contesta cada mapa}
+
+\textbf{(b)} \marcador{qué optimiza cada esquema y cuál elegirías aquí}
+
+\textbf{(c)} \marcador{por qué la suma no es el total de sedes; qué cambió al cambiar la unidad, y su nombre}
+
+% -------------------------------------------------------------------- T3
+\section{T3 · El patrón de tu localidad}
+
+\begin{cifras}
+  \cifra{(a) $\chi^2$ · grados de libertad}
+  \cifra{(a) p de la cola derecha}
+  \cifra{(a) Menor conteo esperado}
+  \cifra{(b) Índice de vecino más próximo de QGIS}
+  \cifra{(b) Área que usó QGIS (km²)}
+  \cifra{(b) Índice con el área de tu localidad}
+  \cifra{(c) G · F · Poisson, en tu radio}
+  \cifra{(d) $L(r)-r$ en tu radio (m)}
+  \cifra{(d) Banda: inferior · superior (m)}
+  \cifra{(d) Puntos a más de $r$ del borde}
+\end{cifras}
+
+\textbf{(a)} \marcador{la hipótesis nula entera; los grados de libertad; si la aproximación se sostiene}
+
+\textbf{(b)} \marcador{qué ventana usó QGIS, por qué no es la tuya, hacia dónde movió el índice; su corrección de borde}
+
+\textbf{(c)} \marcador{qué mide G y qué mide F, y qué dice el orden de las tres}
+
+\textbf{(d)} \marcador{dentro o fuera; a qué nivel; por qué no vale elegir r mirando la gráfica}
+
+% -------------------------------------------------------------------- T4
+\section{T4 · El mapa de calor es un estimador}
+
+\begin{cifras}
+  \cifra{(a) Máximo del mapa (sedes por km²)}
+  \cifra{(a) Masa total}
+  \cifra{(a) Masa dentro de tu localidad}
+  \cifra{(a) Masa fuera (\%)}
+  \cifra{(c) $\sigma$ que corresponde a tu radio (m)}
+\end{cifras}
+
+\textbf{(a)} \marcador{el máximo frente al $\lambda$ medio de tu localidad}
+
+\textbf{(b)} \marcador{con qué coincide la masa total y por qué; qué pasa en el borde y qué haría una corrección}
+
+\textbf{(c)} \marcador{por qué radio y $\sigma$ no son el mismo número; qué pasaría al duplicar el radio}
+
+% -------------------------------------------------------------------- T5
+\section{T5 · Lo que el SIG no hace}
+
+\begin{cifras}
+  \cifra{(a) \texttt{pico\_sin} · \texttt{masa\_sin}}
+  \cifra{(a) \texttt{pico\_con} · \texttt{masa\_con}}
+  \cifra{(b) $\sigma$ de \texttt{bw.diggle} · de \texttt{bw.ppl} (m)}
+  \cifra{(b) Sus radios equivalentes en QGIS (m)}
+  \cifra{(c) Coeficiente de \texttt{x} · su z}
+  \cifra{(c) Coeficiente de \texttt{y} · su z}
+\end{cifras}
+
+\textbf{(a)} \marcador{con qué cifras de T4 se compara cada masa; por qué los picos no son idénticos}
+
+\textbf{(b)} \marcador{qué optimiza cada selector; tu radio frente a ellos; qué harías si no coinciden}
+
+\textbf{(c)} \marcador{qué dicen los coeficientes; si los z son de fiar a la vista de T3(d)}
+
+\textbf{(d)} \marcador{el balance: una cosa que QGIS dio más fácil y dos decisiones que tomó por ti}
+
+\end{document}
