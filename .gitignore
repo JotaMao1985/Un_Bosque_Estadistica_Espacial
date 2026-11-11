@@ -173,3 +173,22 @@ precalculo/verifica_taller2.R
 # produjo —`AUDITORIA_CONTENIDO_CAP5.md`— NO entra, igual que el del preparcial:
 # los informes de auditoría se quedan en la carpeta de trabajo.
 !/PLAN_Revision_Capitulo_5.md
+
+# ---------------------------------------------------------------------
+# TALLER 3 (capítulos 1 a 5 en QGIS, Corte III). Ver PLAN_Taller_3_SIG.md.
+#
+# El plan entra como los demás planes. Lo que el enunciado manda descargar
+# tiene que estar en el repositorio —la lección del Taller 1—: los dos
+# archivos de datos, el complemento de QGIS empaquetado y la plantilla de
+# entrega compilada. Los produce `precalculo/datos_taller3.R`.
+#
+# A diferencia de los Talleres 1 y 2, `genera_taller3.R` SÍ se versiona:
+# no sabe nada que el enunciado no diga (reparte una localidad y cuatro
+# números). Lo que no viaja son las CLAVES, y esas viven en
+# `precalculo/cache/`, que ya está fuera del repositorio.
+# ---------------------------------------------------------------------
+!/PLAN_Taller_3_SIG.md
+!/entrega/datos/taller3.gpkg
+!/entrega/datos/taller3_sedes_3857.geojson
+!/entrega/plantilla_taller3.pdf
+!/entrega/qgis/taller3_espacial.zip

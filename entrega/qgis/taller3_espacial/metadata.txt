@@ -1,0 +1,16 @@
+[general]
+name=Taller 3 · Estadística espacial
+description=Herramientas del Taller 3: test de cuadrantes, G, F y J, y K y L de Ripley con envolvente, con la ventana real y corrección de borde.
+about=Material del curso Estadística Espacial 2026-II (20929), Universidad El Bosque. Añade a la caja de herramientas de procesos el grupo «Taller 3 · Estadística espacial». Las cuentas están en nucleo.py, en numpy puro, y se contrastaron contra spatstat. No instala nada más.
+version=1.0.0
+qgisMinimumVersion=3.34
+qgisMaximumVersion=4.99
+author=Javier Mauricio Sierra
+email=noreply@example.org
+hasProcessingProvider=yes
+category=Analysis
+experimental=False
+deprecated=False
+homepage=https://jotamao1985.github.io/
+tracker=https://jotamao1985.github.io/
+repository=https://jotamao1985.github.io/
