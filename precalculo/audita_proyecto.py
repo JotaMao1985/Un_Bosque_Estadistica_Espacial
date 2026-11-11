@@ -345,6 +345,17 @@ def main() -> int:
             "DE11 · la declaración de IA es obligatoria")
     A.check("C", "no se aprueba como núcleo" in vq and all(f"capítulo {c}" in vq for c in (8, 9, 10)),
             "DE8 · los caps. 8, 9 y 10 no se exigen ni son núcleo")
+    # La regla de Series (Javier, 21 oct), aplicada en Espacial el 10 nov: el docente vuelve a
+    # descargar y, si no coincide, P1 e I7 quedan en insuficiente; las revisiones documentadas
+    # por la fuente después de la fecha de descarga no cuentan.
+    A.check("C", "Los datos se vuelven a descargar" in vq and "Si no coinciden, P1 e I7 quedan en insuficiente" in vq
+            and "no cuentan como diferencia" in vq,
+            "la re-descarga: el módulo 2 dice la regla, su consecuencia y su excepción")
+    if R:
+        insuf = {c["clave"]: next(n["observa"] for n in c["niveles"] if n["nombre"].lower() == "insuficiente")
+                 for c in R["criterios"]}
+        A.check("C", all("vuelve" in insuf.get(k, "") and "descargar" in insuf.get(k, "") for k in ("P1", "I7")),
+                "la re-descarga está en el insuficiente de P1 y de I7")
 
     # ------------------------------------------------------------------ D
     print("\n=== D · Estructura ===")
