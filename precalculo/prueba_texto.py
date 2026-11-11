@@ -782,9 +782,10 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
         # --- EL PESO, con su tope propio desde el 2026-10-02 ----------
         # Hasta entonces este capítulo no inyectaba el ensamblado
         # desbocado, así que su comprobación de peso nunca se había visto
-        # fallar. Con el tope subido a 760 KB, y a 820 con la animación
-        # de K y g (2026-10-07), hay que demostrar que sigue mordiendo:
-        # 801 + 312 queda por encima. La rama de la animación traía su
+        # fallar. Con el tope subido a 760 KB, a 820 con la animación
+        # de K y g (2026-10-07) y a 840 con el formato de los números de
+        # los gráficos (2026-11-04), hay que demostrar que sigue mordiendo:
+        # 821.5 + 312 queda por encima. La rama de la animación traía su
         # propia inyección de peso; las dos se fundieron en esta.
         ("el documento desbocado",
          "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
