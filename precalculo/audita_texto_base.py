@@ -230,6 +230,11 @@ class Auditor:
         # dejarlos metería `dep$desercion` como si fuera una cifra.
         prosa = re.sub(r"<pre>.*?</pre>", " ", cuerpo, flags=re.S)
         prosa = re.sub(r"<code[^>]*>.*?</code>", " ", prosa, flags=re.S)
+        # Las citas y las listas de referencias tampoco son prosa del capítulo: las escribe
+        # genera_referencias.py desde Zotero (años, páginas, DOI) y las audita
+        # audita_citas.py. Sin esto, los dígitos de un DOI salían como cifras sin respaldo.
+        prosa = re.sub(r'<cite class="cita".*?</cite>', " ", prosa, flags=re.S)
+        prosa = re.sub(r'<ul class="lista-fuentes">.*?</ul>', " ", prosa, flags=re.S)
         con_formulas = prosa
         prosa = re.sub(r"\$\$.*?\$\$", " ", prosa, flags=re.S)
         prosa = re.sub(r"\$[^$]*\$", " ", prosa)

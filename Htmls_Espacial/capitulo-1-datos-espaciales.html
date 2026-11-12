@@ -1391,6 +1391,13 @@
       color: #6b7280;
     }
 
+    /* Capa de fuentes (2026-11-12): la cita en el texto es APA, no un título, y
+       no va en cursiva. Su texto lo escribe genera_referencias.py. */
+    cite.cita { font-style: normal; }
+    cite.cita a { color: inherit; text-decoration: underline dotted; }
+    .lista-fuentes { margin: 0.5rem 0 0; padding-left: 1.25rem; font-size: 0.9rem; }
+    .lista-fuentes li { margin-bottom: 0.35rem; overflow-wrap: anywhere; }
+
     details {
       background: white;
       border: 1px solid #e5e7eb;
@@ -4416,10 +4423,11 @@
         algo o es casualidad— no había estadística espacial que valiera: había un médico, un brote y un
         plano.</p>
 
-      <p>Londres, verano de 1854. En el Soho mueren <strong>578</strong> personas de cólera en poco más
+      <p><span data-afirma="c1-m1-01">Londres, verano de 1854. En el Soho mueren <strong>578</strong> personas de cólera en poco más
         de un mes. La teoría médica del momento culpa al aire viciado. John Snow sospecha del agua, no tiene con qué
         demostrarlo, y hace algo que entonces no era un método: <em>dibuja los muertos en un plano</em>, con las
-        <strong>13</strong> bombas públicas del barrio encima.</p>
+        <strong>13</strong> bombas públicas del barrio encima
+        <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 261"><a href="#ref-m1-baddeley2015spatial" title="Baddeley, A., Rubak, E., y Turner, R. (2015). Spatial Point Patterns: Methodology and Applications with R. Chapman and Hall/CRC. https://doi.org/10.1201/b19708">(Baddeley et al., 2015, p. 261)</a></cite></span>.</p>
 
       <p>Ese plano es el primer objeto de este curso, y conviene mirarlo antes de definir nada. Ponlo en
         <em>Broad Street contra el resto</em> y fíjate en dónde cae la mancha.</p>
@@ -4955,8 +4963,9 @@ print([str(w.message).split(".")[0] for w in ws])
         </div>
       </div>
 
-      <p>La cita es de 1970 y es la frase más repetida del área: <em>«todo está relacionado con todo lo demás, pero
-        las cosas cercanas están más relacionadas que las lejanas»</em>. Dicha así no es una ley: es una impresión.
+      <p><span data-afirma="c1-m3-01">La cita es de 1970 y es la frase más repetida del área: <em>«todo está
+        relacionado con todo lo demás, pero las cosas cercanas están más relacionadas que las lejanas»</em>
+        <cite class="cita" data-ref="tobler1970computer" data-via="pebesma2023spatial" data-loc="§15.1"><a href="#ref-m3-tobler1970computer" title="Tobler, W. R. (1970). A Computer Movie Simulating Urban Growth in the Detroit Region. Economic Geography, 46, 234. https://doi.org/10.2307/143141">(Tobler, 1970, citado en Pebesma y Bivand, 2023, §15.1)</a></cite></span>. Dicha así no es una ley: es una impresión.
         Lo que la convierte en algo utilizable es que se puede <strong>medir</strong>, y medirla es lo que hace el
         correlograma.</p>
 
@@ -5101,11 +5110,13 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           Bajo CSR, con intensidad \(\lambda\) puntos por unidad de área, ese promedio se sabe de antemano:</p>
         <p style="text-align:center;">$$E[\bar{d}_{\min}] = \frac{1}{2\sqrt{\lambda}},
           \qquad\qquad R = \frac{\bar{d}_{\min}}{E[\bar{d}_{\min}]}$$</p>
-        <p style="margin-bottom:0;">Ese cociente \(R\) es el <strong>índice de Clark-Evans</strong> (1954), y es
+        <p style="margin-bottom:0;"><span data-afirma="c1-m3-02">Ese cociente \(R\) es el <strong>índice de
+          Clark-Evans</strong> <cite class="cita" data-ref="clark1954distance" data-via="baddeley2015spatial"
+          data-loc="p. 258"><a href="#ref-m3-clark1954distance" title="Clark, P. J., y Evans, F. C. (1954). Distance to Nearest Neighbor as a Measure of Spatial Relationships in Populations. Ecology, 35(4), 445-453. https://doi.org/10.2307/1931034">(Clark y Evans, 1954, citado en Baddeley et al., 2015, p. 258)</a></cite>, y es
           una división entre dos distancias: cuánto se separan los puntos de verdad, dividido entre cuánto se
           separarían por puro azar. De ahí le vienen sus dos propiedades: no tiene unidades, y su referencia es el
           <strong>1</strong>. Por debajo de 1 los puntos están <em>más cerca</em> de lo que daría el azar
-          —agregación—; por encima, más lejos —regularidad—. Con los 65 pinos sobre su
+          —agregación—; por encima, más lejos —regularidad—.</span> Con los 65 pinos sobre su
           ventana de área 1 sale λ = 65, y con ella
           \(E[\bar{d}_{\min}] = 0.06202\): contra esa cifra se compara la
           distancia observada de 0.06599 que viste en el módulo 2, y el cociente da
@@ -6687,22 +6698,41 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
 
       <div class="references">
         <h3><i class="fas fa-book-open mr-2" aria-hidden="true"></i>Lecturas de este capítulo</h3>
+        <!-- Generada: el texto de cada cita y la lista de abajo los escribe genera_referencias.py
+             desde bibliografia/referencias.json (Zotero). Solo las obras con ejemplar en el corpus
+             llevan localizador, y cada uno está contrastado en bibliografia/contraste/cap1.yml. -->
         <ul style="margin-bottom:0;">
-          <li>Pebesma y Bivand, <em>Spatial Data Science</em>, <strong>caps. 1 y 3</strong> — los tipos de dato y la
-            anatomía de <code>sf</code>. Acceso abierto:
+          <li data-afirma="c1-m12-01"><cite class="cita" data-ref="pebesma2023spatial" data-loc="§1.6" data-modo="narrativa"><a href="#ref-m12-pebesma2023spatial" title="Pebesma, E., y Bivand, R. (2023). Spatial Data Science: With Applications in R. Chapman and Hall/CRC. https://doi.org/10.1201/9780429459016">Pebesma y Bivand (2023, §1.6)</a></cite>,
+            el soporte de un dato espacial, y
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§7.1" data-modo="narrativa"><a href="#ref-m12-pebesma2023spatial" title="Pebesma, E., y Bivand, R. (2023). Spatial Data Science: With Applications in R. Chapman and Hall/CRC. https://doi.org/10.1201/9780429459016">Pebesma y Bivand (2023, §7.1)</a></cite>, la anatomía de
+            un objeto <code>sf</code>. Acceso abierto:
             <a href="https://r-spatial.org/book/" target="_blank" rel="noopener">r-spatial.org/book</a>.</li>
-          <li>Cressie, <em>Statistics for Spatial Data</em>, <strong>§1.1–1.3</strong> — la clasificación en tres
-            tipos y el problema de la realización única. Es la fuente de casi todo este capítulo.</li>
-          <li>Baddeley, Rubak y Turner, <em>Spatial Point Patterns</em>, <strong>caps. 3 y 5</strong> — el objeto
-            <code>ppp</code>, la ventana y la intensidad.</li>
-          <li>Bivand, Pebesma y Gómez-Rubio, <em>Applied Spatial Data Analysis with R</em>,
-            <strong>cap. 1</strong> — el ecosistema de paquetes y de dónde viene cada uno.</li>
-          <li>Tobler, W. (1970). «A Computer Movie Simulating Urban Growth in the Detroit Region»,
-            <em>Economic Geography</em>, 46, 234-240 — la primera ley, en su contexto original, que es más modesto
-            de lo que la cita sugiere.</li>
-          <li>Moraga, <em>Geospatial Health Data</em> — el caso de Snow y la epidemiología espacial. Acceso abierto:
+          <li data-afirma="c1-m12-02"><cite class="cita" data-ref="baddeley2015spatial" data-loc="cap. 3" data-modo="narrativa"><a href="#ref-m12-baddeley2015spatial" title="Baddeley, A., Rubak, E., y Turner, R. (2015). Spatial Point Patterns: Methodology and Applications with R. Chapman and Hall/CRC. https://doi.org/10.1201/b19708">Baddeley et al. (2015, cap. 3)</a></cite>,
+            el objeto <code>ppp</code> y la ventana, y
+            <cite class="cita" data-ref="baddeley2015spatial" data-loc="cap. 6" data-modo="narrativa"><a href="#ref-m12-baddeley2015spatial" title="Baddeley, A., Rubak, E., y Turner, R. (2015). Spatial Point Patterns: Methodology and Applications with R. Chapman and Hall/CRC. https://doi.org/10.1201/b19708">Baddeley et al. (2015, cap. 6)</a></cite>, la intensidad.</li>
+          <li><cite class="cita" data-ref="cressie1993statistics" data-modo="narrativa"><a href="#ref-m12-cressie1993statistics" title="Cressie, N. A. C. (1993). Statistics for Spatial Data (Rev. ed.). Wiley. https://doi.org/10.1002/9781119115151">Cressie (1993)</a></cite>, para la teoría de los tres
+            tipos de dato con más profundidad que este curso.</li>
+          <li><cite class="cita" data-ref="bivand2013applied" data-modo="narrativa"><a href="#ref-m12-bivand2013applied" title="Bivand, R. S., Pebesma, E., y Gómez-Rubio, V. (2013). Applied Spatial Data Analysis with R (2.ª ed.). Springer New York. https://doi.org/10.1007/978-1-4614-7618-4">Bivand et al. (2013)</a></cite>, el ecosistema de paquetes
+            de R espacial.</li>
+          <li><cite class="cita" data-ref="tobler1970computer" data-modo="narrativa"><a href="#ref-m12-tobler1970computer" title="Tobler, W. R. (1970). A Computer Movie Simulating Urban Growth in the Detroit Region. Economic Geography, 46, 234. https://doi.org/10.2307/143141">Tobler (1970)</a></cite>, el artículo de la primera ley.
+            <span data-afirma="c1-m12-03">Que llamarla «ley» es prematuro lo recogen
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§15.1" data-modo="narrativa"><a href="#ref-m12-pebesma2023spatial" title="Pebesma, E., y Bivand, R. (2023). Spatial Data Science: With Applications in R. Chapman and Hall/CRC. https://doi.org/10.1201/9780429459016">Pebesma y Bivand (2023, §15.1)</a></cite>.</span></li>
+          <li data-afirma="c1-m12-04"><cite class="cita" data-ref="moraga2019geospatial" data-loc="§1.1" data-modo="narrativa"><a href="#ref-m12-moraga2019geospatial" title="Moraga, P. (2019). Geospatial Health Data: Modeling and Visualization with R-INLA and Shiny. Chapman and Hall/CRC. https://doi.org/10.1201/9780429341823">Moraga (2019, §1.1)</a></cite>,
+            el caso de Snow, uno de los ejemplos más conocidos del análisis espacial. Acceso abierto:
             <a href="https://www.paulamoraga.com/book-geospatial/" target="_blank" rel="noopener">paulamoraga.com/book-geospatial</a>.</li>
         </ul>
+        <h4 style="margin-top:1rem;">Referencias de este capítulo</h4>
+        <!--REFERENCIAS-CAPITULO:inicio-->
+        <ul class="lista-fuentes">
+          <li id="ref-baddeley2015spatial">Baddeley, A., Rubak, E., y Turner, R. (2015). <em>Spatial Point Patterns: Methodology and Applications with R</em>. Chapman and Hall/CRC. <a target="_blank" rel="noopener" href="https://doi.org/10.1201/b19708">https://doi.org/10.1201/b19708</a></li>
+          <li id="ref-bivand2013applied">Bivand, R. S., Pebesma, E., y Gómez-Rubio, V. (2013). <em>Applied Spatial Data Analysis with R</em> (2.ª ed.). Springer New York. <a target="_blank" rel="noopener" href="https://doi.org/10.1007/978-1-4614-7618-4">https://doi.org/10.1007/978-1-4614-7618-4</a></li>
+          <li id="ref-clark1954distance">Clark, P. J., y Evans, F. C. (1954). Distance to Nearest Neighbor as a Measure of Spatial Relationships in Populations. <em>Ecology</em>, <em>35</em>(4), 445-453. <a target="_blank" rel="noopener" href="https://doi.org/10.2307/1931034">https://doi.org/10.2307/1931034</a></li>
+          <li id="ref-cressie1993statistics">Cressie, N. A. C. (1993). <em>Statistics for Spatial Data</em> (Rev. ed.). Wiley. <a target="_blank" rel="noopener" href="https://doi.org/10.1002/9781119115151">https://doi.org/10.1002/9781119115151</a></li>
+          <li id="ref-moraga2019geospatial">Moraga, P. (2019). <em>Geospatial Health Data: Modeling and Visualization with R-INLA and Shiny</em>. Chapman and Hall/CRC. <a target="_blank" rel="noopener" href="https://doi.org/10.1201/9780429341823">https://doi.org/10.1201/9780429341823</a></li>
+          <li id="ref-pebesma2023spatial">Pebesma, E., y Bivand, R. (2023). <em>Spatial Data Science: With Applications in R</em>. Chapman and Hall/CRC. <a target="_blank" rel="noopener" href="https://doi.org/10.1201/9780429459016">https://doi.org/10.1201/9780429459016</a></li>
+          <li id="ref-tobler1970computer">Tobler, W. R. (1970). A Computer Movie Simulating Urban Growth in the Detroit Region. <em>Economic Geography</em>, <em>46</em>, 234. <a target="_blank" rel="noopener" href="https://doi.org/10.2307/143141">https://doi.org/10.2307/143141</a></li>
+        </ul>
+        <!--REFERENCIAS-CAPITULO:fin-->
       </div>
 
       <div class="definition">
@@ -8095,8 +8125,21 @@ print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
         }
         contenedor.appendChild(caja);
       });
-      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo
-      katexEn(contenedor);
+      // las fórmulas, también después de «Borrar», que rehace todo desde el texto crudo.
+      // Con los delimitadores del MÓDULO, no con los de katexEn: el exportador del
+      // quiz escribe \( … \), que katexEn no lee. Al cargar no se notaba, porque el
+      // módulo entero pasa por KaTeX después; tras «Borrar», las fórmulas de los dos
+      // simulacros (17 en el cap. 4, 16 en el 5) volvían crudas: «\(\hat G\)».
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(contenedor, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ]
+        });
+      }
 
       function respuesta(pr, i) {
         if (pr.tipo === 'coincidencia') {

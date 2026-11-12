@@ -1391,6 +1391,13 @@
       color: #6b7280;
     }
 
+    /* Capa de fuentes (2026-11-12): la cita en el texto es APA, no un título, y
+       no va en cursiva. Su texto lo escribe genera_referencias.py. */
+    cite.cita { font-style: normal; }
+    cite.cita a { color: inherit; text-decoration: underline dotted; }
+    .lista-fuentes { margin: 0.5rem 0 0; padding-left: 1.25rem; font-size: 0.9rem; }
+    .lista-fuentes li { margin-bottom: 0.35rem; overflow-wrap: anywhere; }
+
     details {
       background: white;
       border: 1px solid #e5e7eb;

@@ -527,6 +527,7 @@ def corre(tmp: pathlib.Path, guion: pathlib.Path,
         if var:
             entorno[var] = str(ruta)
     entorno["CAP1_DESTINO"] = str(tmp / "salida.html")
+    entorno["ESPACIAL_RAIZ"] = str(RAIZ)   # la bibliografía real, no la de la copia
     # Los ordinales de la COPIA, que es la que se ejecuta: una sustitución de
     # texto puede haberle movido las líneas respecto del original.
     orden = {ln: i for i, (ln, _) in enumerate(inventario(guion))}
@@ -579,7 +580,10 @@ def main() -> int:
     # parte de la herramienta. Sin esta copia el arnés muere en el control de
     # entrada con un ModuleNotFoundError, que es un rojo que no dice nada del
     # ensamblador. Lo estrenó `baraja_opciones.py` el 2026-09-02.
-    for auxiliar in ("baraja_opciones.py", "pon_boton_indice.py"):
+    # Desde el 2026-11-12 también los de la capa de fuentes: el ensamblador escribe
+    # las citas con `genera_referencias.genera()`.
+    for auxiliar in ("baraja_opciones.py", "pon_boton_indice.py",
+                     "genera_referencias.py", "fuentes_config.py"):
         origen = ENSAMBLADOR.parent / auxiliar
         if not origen.exists():
             print(f"PARADO: falta {origen}")

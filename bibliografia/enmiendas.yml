@@ -1,0 +1,28 @@
+# Campos que el traductor de Zotero no trajo, con la evidencia de cada uno.
+# Las aplica precalculo/exporta_zotero.py. Lo correcto a largo plazo es llevar el
+# dato a Zotero y borrar la enmienda: el guion avisa cuando una ya sobra.
+# Cada evidencia se consultó el 2026-11-12 desde esta sesión (no de memoria).
+bivand2013applied:
+  edition:
+    valor: "2"
+    evidencia: https://openlibrary.org/isbn/9781461476184.json
+    consulta: 2026-11-12
+    nota: "Open Library: edition_name «2nd ed. 2013.». Crossref no registra la edición; la ficha de Springer devolvió una página antibots."
+diggle2013statistical:
+  edition:
+    valor: "3"
+    evidencia: https://www.taylorfrancis.com/books/mono/10.1201/b15326/statistical-analysis-spatial-spatio-temporal-point-patterns-peter-diggle
+    consulta: 2026-11-12
+    nota: "La ficha de Taylor & Francis dice bookEdition «3rd Edition»; Crossref trae edition-number 0. Publicado el 2013-07-23, copyright 2014."
+scott2015multivariate:
+  edition:
+    valor: "2"
+    evidencia: https://openlibrary.org/isbn/9780471697558.json
+    consulta: 2026-11-12
+    nota: "Open Library: edition_name «2 edition». Crossref trae edition-number 1, que contradice que la 1.ª ed. (1992) sea otro registro (10.1002/9780470316849)."
+cressie1993statistics:
+  edition:
+    valor: "Rev. ed."
+    evidencia: https://openlibrary.org/isbn/9780471002550.json
+    consulta: 2026-11-12
+    nota: "Open Library: edition_name «Rev. ed.», 1993. Crossref trae edition-number 1; la 1.ª ed. de 1991 tiene otro ISBN (9780471843368)."

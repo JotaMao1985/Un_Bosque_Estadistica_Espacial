@@ -20,6 +20,14 @@
 !/ensamblado/
 !/proyecto/
 
+# Capa de fuentes (norma común de los cursos de El Bosque, desde 2026-11-12).
+# `bibliografia/` guarda la instantánea de Zotero, la huella de cada ejemplar,
+# los índices delgados de localizadores y el registro de contraste. Los PDF y
+# su texto NO: viven en `Trabajo 2026/Fuentes/20929/`, fuera del repo (ver
+# precalculo/fuentes_config.py). `*.pdf` y `*.epub` siguen ignorados abajo.
+!/CLAUDE.md
+!/bibliografia/
+
 # Dentro de lo reactivado, esto nunca se versiona.
 
 # Material con derechos de autor: los libros de texto NO se versionan ni se

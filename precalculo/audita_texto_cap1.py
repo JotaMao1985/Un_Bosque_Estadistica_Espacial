@@ -175,7 +175,10 @@ def main() -> int:
     a.codificacion()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)
-    a.peso()
+    # 720 KB desde el 2026-11-12: la capa de fuentes le añade al capítulo sus citas
+    # generadas y la lista de referencias (unos 7 KB). Sigue por debajo de
+    # tamaño + 312 KB, la cota del arnés de inyección (ver TOPE_KB en audita_texto_base).
+    a.peso(720.0)
     return a.cierre()
 
 

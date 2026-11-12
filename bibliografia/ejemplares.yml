@@ -1,0 +1,19 @@
+# Ejemplares leídos: la huella de cada PDF, nunca el PDF.
+# `archivo`, `sha256` y `paginas` los escribe extrae_fuente.py.
+# `edicion_comprobada`, `desfase` (página del PDF − página impresa, si es
+# constante), `procedencia` y `nota` se llenan a mano mirando la portada;
+# el guion los respeta.
+baddeley2015spatial:
+  archivo: baddeley2015spatial.pdf
+  desfase: 19
+  edicion_comprobada: 'Página de derechos (p. 7 del PDF): «© 2016 by Taylor & Francis Group, LLC», «Version
+    Date: 20151015». Crossref y Taylor & Francis: publicado el 2015-11-11. Sin número de edición: es la
+    1.ª.'
+  nota: 'Desfase constante de 19 en 796 de 806 páginas medidas (p. 30 del PDF = p. 11 impresa). El año
+    que se cita (2015, fecha de publicación) y el del copyright (2016) difieren: decide Javier.'
+  paginas: 830
+  paginas_sin_texto: 0
+  procedencia: 'PDF que Javier dejó en la carpeta del curso el 2026-11-12. POR CONFIRMAR: el nombre del
+    archivo tiene el formato de una biblioteca de descargas; el texto no lleva marcas de ningún sitio.
+    La norma pide copia propia o de biblioteca.'
+  sha256: 128f4afda81de571ed0ae96e0b09af17078ac50ce18030bde680edada89cf432

@@ -311,6 +311,26 @@ if [ -f "precalculo/calendario_portada.py" ]; then
        python3 precalculo/calendario_portada.py --revisar --prueba
 fi
 
+# Del 2026-11-12: la capa de fuentes (norma común de los cursos de El Bosque,
+# `Vault/Estandar/Capa de fuentes.md`). El arnés del auditor de citas no toca
+# Zotero, los PDF ni la red, y cuesta segundos: corre también con `--rapido`.
+# El auditor sobre el material corre en cuanto existe la instantánea de Zotero;
+# en una copia sin el corpus (`Trabajo 2026/Fuentes/20929/`) lo que no puede
+# leer lo informa con --sin-cache en vez de darlo por bueno.
+paso "prueba_audita_citas.py — el auditor de citas caza cada defecto inyectado" \
+     python3 precalculo/prueba_audita_citas.py
+if [ -f "bibliografia/referencias.json" ]; then
+  if [ -d "$HOME/Documents/Trabajo 2026/Fuentes/20929/texto" ]; then
+    paso "audita_citas.py — ninguna cita de memoria" \
+         python3 precalculo/audita_citas.py
+  else
+    paso "audita_citas.py --sin-cache — ninguna cita de memoria (sin corpus en esta máquina)" \
+         python3 precalculo/audita_citas.py --sin-cache
+  fi
+  paso "audita_citas.py --uso-comprobar — el contrato con el vault, al día" \
+       python3 precalculo/audita_citas.py --uso-comprobar
+fi
+
 echo ""
 echo "================================================================"
 if [ "$FALLOS" -eq 0 ]; then

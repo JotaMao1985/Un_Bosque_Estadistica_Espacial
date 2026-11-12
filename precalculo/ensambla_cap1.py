@@ -64,6 +64,7 @@ from baraja_opciones import baraja_documento
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 from pon_boton_indice import aplica as aplica_boton
+import genera_referencias
 SALIDAS = RAIZ / "precalculo" / "salidas"
 
 
@@ -266,10 +267,11 @@ MOD1 = cabecera(
         algo o es casualidad— no había estadística espacial que valiera: había un médico, un brote y un
         plano.</p>
 
-      <p>Londres, verano de 1854. En el Soho mueren <strong>{sn['n_muertes']}</strong> personas de cólera en poco más
+      <p><span data-afirma="c1-m1-01">Londres, verano de 1854. En el Soho mueren <strong>{sn['n_muertes']}</strong> personas de cólera en poco más
         de un mes. La teoría médica del momento culpa al aire viciado. John Snow sospecha del agua, no tiene con qué
         demostrarlo, y hace algo que entonces no era un método: <em>dibuja los muertos en un plano</em>, con las
-        <strong>{sn['n_bombas']}</strong> bombas públicas del barrio encima.</p>
+        <strong>{sn['n_bombas']}</strong> bombas públicas del barrio encima
+        <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 261"></cite></span>.</p>
 
       <p>Ese plano es el primer objeto de este curso, y conviene mirarlo antes de definir nada. Ponlo en
         <em>Broad Street contra el resto</em> y fíjate en dónde cae la mancha.</p>
@@ -791,8 +793,9 @@ MOD3 = cabecera(
     3, "La primera ley de Tobler", "Tobler's first law",
     "Medir la primera ley en vez de citarla, con un control que la niega y "
     "un caso donde lo que parece dependencia es otra cosa.") + f"""
-      <p>La cita es de 1970 y es la frase más repetida del área: <em>«todo está relacionado con todo lo demás, pero
-        las cosas cercanas están más relacionadas que las lejanas»</em>. Dicha así no es una ley: es una impresión.
+      <p><span data-afirma="c1-m3-01">La cita es de 1970 y es la frase más repetida del área: <em>«todo está
+        relacionado con todo lo demás, pero las cosas cercanas están más relacionadas que las lejanas»</em>
+        <cite class="cita" data-ref="tobler1970computer" data-via="pebesma2023spatial" data-loc="§15.1"></cite></span>. Dicha así no es una ley: es una impresión.
         Lo que la convierte en algo utilizable es que se puede <strong>medir</strong>, y medirla es lo que hace el
         correlograma.</p>
 
@@ -930,11 +933,13 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           Bajo CSR, con intensidad \\(\\lambda\\) puntos por unidad de área, ese promedio se sabe de antemano:</p>
         <p style="text-align:center;">$$E[\\bar{{d}}_{{\\min}}] = \\frac{{1}}{{2\\sqrt{{\\lambda}}}},
           \\qquad\\qquad R = \\frac{{\\bar{{d}}_{{\\min}}}}{{E[\\bar{{d}}_{{\\min}}]}}$$</p>
-        <p style="margin-bottom:0;">Ese cociente \\(R\\) es el <strong>índice de Clark-Evans</strong> (1954), y es
+        <p style="margin-bottom:0;"><span data-afirma="c1-m3-02">Ese cociente \\(R\\) es el <strong>índice de
+          Clark-Evans</strong> <cite class="cita" data-ref="clark1954distance" data-via="baddeley2015spatial"
+          data-loc="p. 258"></cite>, y es
           una división entre dos distancias: cuánto se separan los puntos de verdad, dividido entre cuánto se
           separarían por puro azar. De ahí le vienen sus dos propiedades: no tiene unidades, y su referencia es el
           <strong>1</strong>. Por debajo de 1 los puntos están <em>más cerca</em> de lo que daría el azar
-          —agregación—; por encima, más lejos —regularidad—. Con los {pc['japanesepines']['n']} pinos sobre su
+          —agregación—; por encima, más lejos —regularidad—.</span> Con los {pc['japanesepines']['n']} pinos sobre su
           ventana de área {pc['japanesepines']['area']} sale λ = {pc['japanesepines']['lambda']}, y con ella
           \\(E[\\bar{{d}}_{{\\min}}] = {n(pc['japanesepines']['nn_esperada'])}\\): contra esa cifra se compara la
           distancia observada de {n(pc['japanesepines']['nn_media'])} que viste en el módulo 2, y el cociente da
@@ -2354,22 +2359,31 @@ MOD12 = cabecera(
 
       <div class="references">
         <h3><i class="fas fa-book-open mr-2" aria-hidden="true"></i>Lecturas de este capítulo</h3>
+        <!-- Generada: el texto de cada cita y la lista de abajo los escribe genera_referencias.py
+             desde bibliografia/referencias.json (Zotero). Solo las obras con ejemplar en el corpus
+             llevan localizador, y cada uno está contrastado en bibliografia/contraste/cap1.yml. -->
         <ul style="margin-bottom:0;">
-          <li>Pebesma y Bivand, <em>Spatial Data Science</em>, <strong>caps. 1 y 3</strong> — los tipos de dato y la
-            anatomía de <code>sf</code>. Acceso abierto:
+          <li data-afirma="c1-m12-01"><cite class="cita" data-ref="pebesma2023spatial" data-loc="§1.6" data-modo="narrativa"></cite>,
+            el soporte de un dato espacial, y
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§7.1" data-modo="narrativa"></cite>, la anatomía de
+            un objeto <code>sf</code>. Acceso abierto:
             <a href="https://r-spatial.org/book/" target="_blank" rel="noopener">r-spatial.org/book</a>.</li>
-          <li>Cressie, <em>Statistics for Spatial Data</em>, <strong>§1.1–1.3</strong> — la clasificación en tres
-            tipos y el problema de la realización única. Es la fuente de casi todo este capítulo.</li>
-          <li>Baddeley, Rubak y Turner, <em>Spatial Point Patterns</em>, <strong>caps. 3 y 5</strong> — el objeto
-            <code>ppp</code>, la ventana y la intensidad.</li>
-          <li>Bivand, Pebesma y Gómez-Rubio, <em>Applied Spatial Data Analysis with R</em>,
-            <strong>cap. 1</strong> — el ecosistema de paquetes y de dónde viene cada uno.</li>
-          <li>Tobler, W. (1970). «A Computer Movie Simulating Urban Growth in the Detroit Region»,
-            <em>Economic Geography</em>, 46, 234-240 — la primera ley, en su contexto original, que es más modesto
-            de lo que la cita sugiere.</li>
-          <li>Moraga, <em>Geospatial Health Data</em> — el caso de Snow y la epidemiología espacial. Acceso abierto:
+          <li data-afirma="c1-m12-02"><cite class="cita" data-ref="baddeley2015spatial" data-loc="cap. 3" data-modo="narrativa"></cite>,
+            el objeto <code>ppp</code> y la ventana, y
+            <cite class="cita" data-ref="baddeley2015spatial" data-loc="cap. 6" data-modo="narrativa"></cite>, la intensidad.</li>
+          <li><cite class="cita" data-ref="cressie1993statistics" data-modo="narrativa"></cite>, para la teoría de los tres
+            tipos de dato con más profundidad que este curso.</li>
+          <li><cite class="cita" data-ref="bivand2013applied" data-modo="narrativa"></cite>, el ecosistema de paquetes
+            de R espacial.</li>
+          <li><cite class="cita" data-ref="tobler1970computer" data-modo="narrativa"></cite>, el artículo de la primera ley.
+            <span data-afirma="c1-m12-03">Que llamarla «ley» es prematuro lo recogen
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§15.1" data-modo="narrativa"></cite>.</span></li>
+          <li data-afirma="c1-m12-04"><cite class="cita" data-ref="moraga2019geospatial" data-loc="§1.1" data-modo="narrativa"></cite>,
+            el caso de Snow, uno de los ejemplos más conocidos del análisis espacial. Acceso abierto:
             <a href="https://www.paulamoraga.com/book-geospatial/" target="_blank" rel="noopener">paulamoraga.com/book-geospatial</a>.</li>
         </ul>
+        <h4 style="margin-top:1rem;">Referencias de este capítulo</h4>
+        <!--REFERENCIAS-CAPITULO:inicio--><!--REFERENCIAS-CAPITULO:fin-->
       </div>
 
       <div class="definition">
@@ -3988,6 +4002,10 @@ def main() -> int:
     doc = baraja_documento(doc, "cap1")
 
     doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
+    # Capa de fuentes (2026-11-12): el texto de las <cite class="cita"> y la lista de
+    # referencias del capítulo los escribe genera_referencias.py desde la instantánea de
+    # Zotero. Nadie los teclea; audita_citas.py (F02) comprueba que no se desfasen.
+    doc = genera_referencias.genera(doc, *genera_referencias.carga_biblioteca())
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- Guardas de salida ----------------------------------------------

@@ -1,0 +1,149 @@
+# Registro de contraste del capítulo 1 (norma común «Capa de fuentes» v1.1).
+# Piloto de la Fase GD, 2026-11-12: lector Opus → redacción → dos verificadores de
+# contexto limpio (Sonnet y Opus) que no recibieron el veredicto esperado.
+# Cada `cita` es literal (≤ 25 palabras) y audita_citas.py la busca en el corpus.
+capitulo: 1
+afirmaciones:
+- id: c1-m1-01
+  tipo: historica
+  afirmacion: 'Snow, Soho 1854: dibuja los muertos en un plano con las bombas'
+  hash_texto: 8ca6a275b6cd805b
+  veredicto: con-matiz
+  nota: 'La p. 261 respalda el núcleo: Snow, Soho, cólera de 1854 y un análisis espacial de los muertos
+    frente a las bombas de agua (allí, una teselación de Dirichlet que muestra la cercanía a la bomba
+    de Broad Street). NO aparecen en esa página: «poco más de un mes», la teoría del aire viciado (miasma),
+    que Snow «sospecha del agua» sin «con qué demostrarlo», ni que mapear «no era un método»; esos elementos
+    necesitan otra fuente. Además, Pebesma y Bivand (2023, §15.1) matizan el relato: Snow ya tenía una
+    hipótesis firme y el mapa se preparó después de inhabilitar la bomba, como documentación.'
+  redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
+  verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
+  fecha: 2026-11-12
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 261
+    clase: PDF
+    pagina_pdf: 280
+    cita: people who died in the Soho cholera epidemic of 1854 lived closer to the infected Broad Street
+      pump than to any other water pump.
+- id: c1-m3-01
+  tipo: atribucion
+  afirmacion: la primera ley es una cita de Tobler (1970)
+  hash_texto: ce646e7e54db4b6f
+  veredicto: con-matiz
+  nota: El §15.1 reporta la frase de Tobler y la fecha 1970 (Tobler 1970; también vía la cita de Olsson,
+    «Tobler (1970, 236)»), y la traducción es fiel. Que sea «la frase más repetida del área» no lo dice
+    la fuente; es una valoración del curso sin respaldo en el §15.1.
+  redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
+  verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
+  fecha: 2026-11-12
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §15.1
+    clase: WEB
+    instantanea: 15-Measures
+    cita: Tobler’s first law of geography, “Everything is related to everything else, but near things
+      are more related than distant things”
+    segunda_mano_de: tobler1970computer
+- id: c1-m3-02
+  tipo: definicion
+  afirmacion: 'índice de Clark-Evans: R = d̄min/E[d̄min], sin unidades, referencia 1'
+  hash_texto: 7e91b429bdcec5d6
+  veredicto: respaldada
+  nota: La p. 258 define R como la media de las distancias al vecino más cercano dividida entre E[D] =
+    1/(2√λ) bajo un proceso de Poisson, la atribuye a Clark y Evans [155], dice que es adimensional y
+    que R = 1 corresponde al azar, R > 1 a regularidad y R < 1 a agrupamiento. La fuente usa «suggests»
+    (sugiere), y el curso lo enuncia como lectura del cociente, lo que es consistente con la definición.
+  redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
+  verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
+  fecha: 2026-11-12
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 258
+    clase: PDF
+    pagina_pdf: 277
+    cita: the value R = 1 is consistent with a completely random pattern; R > 1 suggests regularity, while
+      R < 1 suggests clustering.
+    segunda_mano_de: clark1954distance
+- id: c1-m12-01
+  tipo: atribucion
+  afirmacion: 'Pebesma y Bivand: §1.6 el soporte, §7.1 la anatomía de sf'
+  hash_texto: 9ad9e534e1f0ed14
+  veredicto: respaldada
+  nota: 'El §1.6 («Support») trata justamente el soporte de un atributo espacial (puntual, de bloque,
+    identidad), y el §7.1 («Package sf») describe la estructura de un objeto sf: subclase de data.frame,
+    columna de geometría sfc con objetos sfg y sus metadatos (sf_column, agr, crs, bbox).'
+  redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
+  verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
+  fecha: 2026-11-12
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §1.6
+    clase: WEB
+    instantanea: 01-hello
+    cita: The spatial area an attribute value refers to is called its support
+  - clave: pebesma2023spatial
+    loc: §7.1
+    clase: WEB
+    instantanea: 07-Introsf
+    cita: Package sf represents sets of simple features in sf objects, a sub-class of a data.frame or
+      tibble.
+- id: c1-m12-02
+  tipo: atribucion
+  afirmacion: 'Baddeley et al.: cap. 3 ppp y ventana, cap. 6 intensidad'
+  hash_texto: bfaa791a74d7a344
+  veredicto: respaldada
+  nota: El cap. 3 (impresas pp. 49–80) introduce el objeto de clase "ppp" en el §3.3 (p. 54) y la ventana
+    de observación, clase "owin", en el §3.5 (p. 61). El cap. 6 (desde p. 157) se titula «Intensity» y
+    está dedicado entero a ella.
+  redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
+  verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
+  fecha: 2026-11-12
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: cap. 3
+    clase: PDF
+    pagina_pdf: 73
+    cita: A spatial point pattern in two-dimensional space is stored in spatstat as an object of class
+      "ppp" (for ‘planar point pattern’).
+  - clave: baddeley2015spatial
+    loc: cap. 6
+    clase: PDF
+    pagina_pdf: 176
+    cita: Investigation of the intensity of a point pattern is one of the first and most important steps
+      in data analysis.
+- id: c1-m12-03
+  tipo: atribucion
+  afirmacion: llamar «ley» a la de Tobler es prematuro (Olsson, recogido por Pebesma y Bivand)
+  hash_texto: 87173ba27c7d542c
+  veredicto: respaldada
+  nota: El §15.1 recoge la cita de Olsson (1970, p. 228) según la cual elevar la frase de Tobler al rango
+    de «primera ley» es, en el mejor caso, prematuro; los autores la suscriben («It is not and has never
+    been the case that ... always holds absolutely»). El juicio de «prematuro» es de Olsson, citado por
+    Pebesma y Bivand, y el verbo «recogen» lo refleja bien.
+  redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
+  verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
+  fecha: 2026-11-12
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §15.1
+    clase: WEB
+    instantanea: 15-Measures
+    cita: the elevation of this statement to the status of ‘the first law of geography’ is at best premature.
+- id: c1-m12-04
+  tipo: atribucion
+  afirmacion: 'Moraga §1.1: el caso de Snow, ejemplo conocido del análisis espacial'
+  hash_texto: d83c657fe65d0116
+  veredicto: respaldada
+  nota: 'Reverificado tras corregir la frase (antes decía «origen de la epidemiología espacial», que la
+    fuente no dice): §1.1 presenta la investigación de Snow como uno de los ejemplos más famosos de análisis
+    espacial.'
+  redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
+  verificado_por: verificador de contexto limpio Sonnet 5.5
+  fecha: 2026-11-12
+  fuentes:
+  - clave: moraga2019geospatial
+    loc: §1.1
+    clase: WEB
+    instantanea: sec-intro
+    cita: John Snow’s cholera-outbreak investigation in London in 1854 provides one of the most famous
+      examples of spatial analysis.
