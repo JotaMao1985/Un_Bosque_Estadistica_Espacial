@@ -9,13 +9,13 @@ baddeley2015spatial:
   edicion_comprobada: 'Página de derechos (p. 7 del PDF): «© 2016 by Taylor & Francis Group, LLC», «Version
     Date: 20151015». Crossref y Taylor & Francis: publicado el 2015-11-11. Sin número de edición: es la
     1.ª.'
-  nota: 'Desfase constante de 19 en 796 de 806 páginas medidas (p. 30 del PDF = p. 11 impresa). El año
-    que se cita (2015, fecha de publicación) y el del copyright (2016) difieren: decide Javier.'
+  nota: Desfase constante de 19 en 796 de 806 páginas medidas (p. 30 del PDF = p. 11 impresa). Se cita
+    como 2016, el año de copyright (decisión de Javier, 2026-11-12; enmiendas.yml); la publicación electrónica
+    es del 2015-11-11. La clave conserva el 2015.
   paginas: 830
   paginas_sin_texto: 0
-  procedencia: 'PDF que Javier dejó en la carpeta del curso el 2026-11-12. POR CONFIRMAR: el nombre del
-    archivo tiene el formato de una biblioteca de descargas; el texto no lleva marcas de ningún sitio.
-    La norma pide copia propia o de biblioteca.'
+  procedencia: Biblioteca personal de Javier (confirmado por él el 2026-11-12). El nombre del archivo
+    original no es el de la biblioteca, y el texto no lleva marcas de ningún sitio de descarga.
   sha256: 128f4afda81de571ed0ae96e0b09af17078ac50ce18030bde680edada89cf432
 mas2018analisis:
   archivo: mas2018analisis.pdf

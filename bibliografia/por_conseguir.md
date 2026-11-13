@@ -8,7 +8,7 @@ localizador, o como cita de segunda mano (`data-via`). El auditor lo hace cumpli
 
 | Clave | Ejemplar | Nota |
 |---|---|---|
-| `baddeley2015spatial` | PDF de Javier, 830 pp., desfase 19 | **Procedencia por confirmar** (el nombre del archivo tiene formato de biblioteca de descargas). Año: publicado 2015-11-11, © 2016 |
+| `baddeley2015spatial` | PDF de la biblioteca personal de Javier, 830 pp., desfase 19 | Se cita **2016** (año de copyright; decisión de Javier, 2026-11-12). La clave conserva el 2015 |
 | `pebesma2023spatial` | Instantánea de r-spatial.org/book (17 capítulos) | Se cita por sección, nunca por página |
 | `moraga2019geospatial` | Instantánea de 5 capítulos de paulamoraga.com/book-geospatial | Ídem |
 | `snow1855mode` | Escaneo de la Wellcome Library (archive.org), dominio público | OCR con erratas; desfase variable por las láminas |
@@ -60,3 +60,10 @@ Se transcriben de la portada (`origen: portada`) cuando haya ejemplar, o de la f
 - **Años en conflicto en la prosa:** Snow 1854 (brote) frente a 1855 (libro), que es correcto si se
   dice así; Scott 1979, 1985 y 2015 son tres obras distintas; Getis y Ord 1992, Ord y Getis 1995 y
   Getis y Ord 1996 también.
+
+## Pie de referencias de la plantilla
+
+El pie «Referencias Bibliográficas» de `plantilla/plantilla-capitulo.html` está escrito a mano y se
+estampa en todos los documentos: todavía dice Baddeley et al. (2015), y no sale del catálogo.
+Pasarlo a `<!--PIE-REFERENCIAS-->` generado (rol `basica`) toca los trece documentos: va con el
+reensamblado general, no con el piloto.

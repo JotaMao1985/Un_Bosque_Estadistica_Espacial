@@ -26,3 +26,10 @@ cressie1993statistics:
     evidencia: https://openlibrary.org/isbn/9780471002550.json
     consulta: 2026-11-12
     nota: "Open Library: edition_name «Rev. ed.», 1993. Crossref trae edition-number 1; la 1.ª ed. de 1991 tiene otro ISBN (9780471843368)."
+baddeley2015spatial:
+  issued:
+    valor:
+      date-parts: [[2016]]
+    evidencia: https://www.routledge.com/Spatial-Point-Patterns-Methodology-and-Applications-with-R/Baddeley-Rubak-Turner/p/book/9781482210200
+    consulta: 2026-11-12
+    nota: "Decisión de Javier (2026-11-12): se cita el año de copyright, 2016. La ficha de Routledge dice «Copyright 2016» y la página de derechos del ejemplar (p. 7 del PDF), «© 2016 by Taylor & Francis Group». Crossref y Taylor & Francis dan la publicación electrónica el 2015-11-11. La clave baddeley2015spatial NO cambia: la norma común no cambia una clave asignada aunque se corrija el año."
