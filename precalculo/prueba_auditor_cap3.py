@@ -333,6 +333,45 @@ def defectos():
     obj("17 · el porcentaje de camaleones de E1 se descuadra",
         "soluciones", lambda d: d["ejercicios"][0]["solucion"].__setitem__("pct_camaleon", 27.1717171717))
 
+    # --- 18. Lo que se ve en cada mapa (2026-11-02) ----------------------
+    # La descripción larga de cada mapa dice DÓNDE pasa algo y QUIÉN lo
+    # ocupa; un dato con otro nombre o en otra zona no cambia ninguna cifra
+    # de la prosa y pone la frase en falso.
+    obj("18 · el puntaje medio más alto cambia de municipio",
+        "datos", lambda d: d["visto"]["m2"]["tasa_altos"][0].__setitem__("municipio", "Paipa"))
+    obj("18 · un puntaje bajo cambia de número de estudiantes",
+        "datos", lambda d: d["visto"]["m2"]["tasa_bajos"][1].__setitem__("n", 417))
+    obj("18 · la mediana de estudiantes por municipio se corre",
+        "datos", lambda d: d["visto"]["m2"].__setitem__("mediana_n", 317))
+    obj("18 · la clase alta del conteo gana municipios",
+        "datos", lambda d: d["visto"]["m2"].__setitem__("conteo_alta_n", 231))
+    obj("18 · la clase alta del conteo pierde estudiantes",
+        "datos", lambda d: d["visto"]["m2"].__setitem__("conteo_alta_pct_estudiantes", 71.4172))
+    obj("18 · la deserción por cuantiles pone más en el norte",
+        "datos", lambda d: d["visto"]["m4"]["oscura"][1]["zonas_n"].__setitem__(1, 61))
+    obj("18 · un municipio de la clase más oscura cambia de nombre",
+        "datos", lambda d: d["visto"]["m4"]["oscura"][0]["municipios"].__setitem__(0, "Mitú"))
+    obj("18 · el departamento que más pone en head/tails cambia",
+        "datos", lambda d: d["visto"]["m4"]["oscura"][4]["deptos"].__setitem__(0, "Boyacá"))
+    obj("18 · la parte de los estudiantes de Bogotá se corre",
+        "datos", lambda d: d["visto"]["m7"]["est_pct"].__setitem__(2, 12.4172))
+    obj("18 · el contiguo deja al Amazonas más grande de lo que es",
+        "datos", lambda d: d["visto"]["m7"]["area_pct_cont"].__setitem__(28, 0.6417))
+    obj("18 · el Olson deja de ser exacto en Bogotá",
+        "datos", lambda d: d["visto"]["m7"]["area_pct_ncont"].__setitem__(2, 14.0172))
+    obj("18 · el área de la clase más clara del coropleto se corre",
+        "datos", lambda d: d["visto"]["m7"].__setitem__("clase_baja_area_pct", 30.4172))
+    obj("18 · los puntos del dot density cambian de zona",
+        "datos", lambda d: d["visto"]["m7"]["puntos_zonas_n"].__setitem__(0, 331))
+    obj("18 · el hexágono más oscuro cambia de valor",
+        "datos", lambda d: d["visto"]["m7"].__setitem__("hex_max", 140417.0))
+    obj("18 · el hexágono más oscuro lo aporta quien no puede",
+        "datos", lambda d: d["visto"]["m7"].__setitem__("hex_max_aporta", "Cundinamarca"))
+    obj("18 · un municipio sin estudiantes cambia de zona",
+        "datos", lambda d: d["visto"]["m11"]["sin_estudiantes"][0].__setitem__("zona", "norte"))
+    obj("18 · se pierde un municipio sin estudiantes",
+        "datos", lambda d: d["visto"]["m11"]["sin_estudiantes"].pop())
+
     return D
 
 

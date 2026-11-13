@@ -1622,6 +1622,86 @@ def main() -> int:
     a.cierto(all(morans[i] < morans[i + 1] for i in range(len(morans) - 1)),
              "el I de los campos crece con el rango",
              " < ".join(f"{m:.4f}" for m in morans))
+    # =================================================================
+    a.titulo("11b · Lo que se ve en cada mapa")
+    # =================================================================
+    # «Describir el mapa» (2026-11-02): DÓNDE caen los extremos de la
+    # deserción, la clase alta de Carolina del Norte y las estaciones más
+    # frías y más cálidas, y cuántas sedes de Bogotá hay en cada franja de
+    # norte a sur. Con geopandas sobre las capas, y los centroides del
+    # polígono mayor, como R. Cada mapa con su guarda de «está»: el arnés
+    # los rompe a propósito, y un auditor que revienta no informa de nada.
+    from collections import Counter
+    from describe_mapa import zona_por_tercios
+
+    def _zona(x, y, caja):
+        return zona_por_tercios((x - caja[0]) / (caja[2] - caja[0]),
+                                1 - (y - caja[1]) / (caja[3] - caja[1]))
+
+    def _centro(g):
+        if g.geom_type == "MultiPolygon":
+            g = max(g.geoms, key=lambda pp: pp.area)
+        return g.centroid
+
+    def _tabla(z):
+        return sorted(Counter(z).items(), key=lambda kv: (-kv[1], kv[0]))
+
+    V = D.get("visto", {})
+    ds, md = V.get("desercion", {}), M.get("desercion", {})
+    if ds and md.get("etiquetas") and md.get("caja"):
+        dep_v = gpd.read_file(PROCESADO / "colombia_adm1.gpkg")
+        nom = {("Bogotá D. C." if s == "Bogota Capital District" else s): g
+               for s, g in zip(dep_v["shapeName"], dep_v.geometry)}
+        filas = sorted(zip(md["valor"], md["etiquetas"]), key=lambda f: -f[0])
+        ok = True
+        for clave, ff in (("mayores", filas[:3]), ("menores", filas[::-1][:3])):
+            esp = [(e, round(v, 6), _zona(_centro(nom[e]).x, _centro(nom[e]).y, md["caja"]) if e in nom else "?")
+                   for v, e in ff]
+            pub = [(f["departamento"], round(f["pct"], 6), f["zona"]) for f in ds.get(clave, [])]
+            ok = ok and esp == pub
+        a.cierto(ok, "visto: los extremos de la deserción y su zona",
+                 f"{filas[0][1]} y {filas[-1][1]}")
+        # Y el nombre del Distrito Capital en español, en todo el mapa: la
+        # tabla de respaldo lo publicaba en inglés («Bogota Capital District»).
+        a.cierto("Bogotá D. C." in md["etiquetas"] and not any("District" in e for e in md["etiquetas"]),
+                 "visto: el mapa de deserción nombra Bogotá en español")
+    else:
+        a.cierto(False, "visto: los extremos de la deserción y su zona", "falta el dato o el mapa")
+    vn, mn = V.get("nc", {}), M.get("nc", {})
+    if vn and mn.get("clase") and len(mn["clase"]) == len(nc):
+        nc_u = nc.to_crs(32617)
+        zn = [_zona(_centro(g).x, _centro(g).y, mn["caja"]) for g in nc_u.geometry]
+        alta = [z for z, k in zip(zn, mn["clase"]) if k == max(mn["clase"])]
+        a.cierto(vn["clase_alta_n"] == len(alta) and list(zip(vn["zona"], vn["n"])) == _tabla(alta),
+                 "visto: Carolina del Norte, la clase alta por zona",
+                 ", ".join(f"{z} {k}" for z, k in _tabla(alta)[:3]))
+    else:
+        a.cierto(False, "visto: Carolina del Norte, la clase alta por zona", "falta el dato o el mapa")
+    vi, mi = V.get("ideam", {}), M.get("ideam", {})
+    if vi and mi.get("caja"):
+        q10, q90 = np.quantile(est.t_media_anual.to_numpy(), [0.1, 0.9])
+        zi = [_zona(x, y, mi["caja"]) for x, y in zip(est.geometry.x, est.geometry.y)]
+        tt = est.t_media_anual.to_numpy()
+        fr = _tabla([z for z, v in zip(zi, tt) if v <= q10])
+        ca = _tabla([z for z, v in zip(zi, tt) if v >= q90])
+        a.cierto(abs(q10 - vi["frias_umbral"]) < 1e-8 and abs(q90 - vi["calidas_umbral"]) < 1e-8
+                 and list(zip(vi["frias"]["zona"], vi["frias"]["n"])) == fr
+                 and list(zip(vi["calidas"]["zona"], vi["calidas"]["n"])) == ca,
+                 "visto: IDEAM, las frías y las cálidas por zona",
+                 f"frías {fr[:2]} · cálidas {ca[:2]}")
+    else:
+        a.cierto(False, "visto: IDEAM, las frías y las cálidas por zona", "falta el dato o el mapa")
+    vb, mb = V.get("bogota", {}), M.get("bogota", {})
+    if vb and mb.get("caja"):
+        cj = mb["caja"]
+        fy = (cole.geometry.y.to_numpy() - cj[1]) / (cj[3] - cj[1])
+        fr = ["sur" if f < 1 / 3 else ("centro" if f < 2 / 3 else "norte") for f in fy]
+        esp = [Counter(fr)[f] for f in ("norte", "centro", "sur")]
+        a.cierto(vb["franja"] == ["norte", "centro", "sur"] and vb["n"] == esp,
+                 "visto: Bogotá, las sedes por franja", f"{esp}")
+    else:
+        a.cierto(False, "visto: Bogotá, las sedes por franja", "falta el dato o el mapa")
+
 
     # =================================================================
     a.titulo("12 · Formato, codificación y redondeo")

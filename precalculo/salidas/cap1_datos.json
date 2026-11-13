@@ -1532,11 +1532,70 @@
       }
     ]
   },
+  "visto": {
+    "desercion": {
+      "mayores": [
+        {
+          "departamento": "Caquetá",
+          "pct": 6.733125,
+          "zona": "sur"
+        },
+        {
+          "departamento": "Vichada",
+          "pct": 6.3525,
+          "zona": "oriente"
+        },
+        {
+          "departamento": "Putumayo",
+          "pct": 5.9238461538,
+          "zona": "sur"
+        }
+      ],
+      "menores": [
+        {
+          "departamento": "Archipiélago de San Andrés, Providencia y Santa Catalina",
+          "pct": 1.71,
+          "zona": "noroccidente"
+        },
+        {
+          "departamento": "Nariño",
+          "pct": 1.99578125,
+          "zona": "occidente"
+        },
+        {
+          "departamento": "Boyacá",
+          "pct": 2.1629268293,
+          "zona": "centro"
+        }
+      ]
+    },
+    "nc": {
+      "clase_alta_n": 20,
+      "zona": ["nororiente", "centro", "sur", "occidente", "oriente", "norte", "suroriente"],
+      "n": [7, 4, 3, 2, 2, 1, 1]
+    },
+    "ideam": {
+      "frias_umbral": 13.9,
+      "calidas_umbral": 28.3,
+      "frias": {
+        "zona": ["centro", "suroccidente", "norte"],
+        "n": [29, 7, 1]
+      },
+      "calidas": {
+        "zona": ["norte", "centro", "nororiente", "oriente"],
+        "n": [21, 15, 2, 1]
+      }
+    },
+    "bogota": {
+      "franja": ["norte", "centro", "sur"],
+      "n": [2159, 35, 15]
+    }
+  },
   "meta": {
     "capitulo": 1,
     "titulo": "Datos espaciales y la primera ley de la geografía",
     "semana": 1,
-    "generado": "2026-09-24",
+    "generado": "2026-11-02",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "anclas_verificadas": 29

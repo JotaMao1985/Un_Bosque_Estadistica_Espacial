@@ -94,13 +94,22 @@ Esa misma noche el tope NO se movió: el mapa de P(oficial) pasó de 128 × 128 
 la ciudad (M6-7: σ cabía 2.3 celdas en la vertical) y el módulo 6 enseña la rejilla y la
 meseta de la guarda. 1 357 → 1 379 KB, 21 de margen; el ráster pasa de 28 a 47 KB empaquetado.
 
-2026-11-03, y la octava: SUBE A 1470 KB. El módulo 3 se leía críptico para quien empieza
+2026-11-02, y la octava: SUBE A 1440 KB (rama de mapas descritos). Cada mapa gana «Describir el mapa» —lo que se ve en él,
+para quien no lo ve: dónde está lo alto, cuántos focos, en qué localidad— y el documento pasa de
+1 387 a 1 398 KB, a 2 del tope: 3.4 del motor del `.geomapa` en la plantilla (la descripción en dos
+nodos y su comentario), 2.9 de los hechos que R publica para sostener las frases (los picos por
+localidad, P(oficial) localidad por localidad, los focos y la zona del máximo de cada sigma) y 4.7 de
+las once descripciones, siete de ellas la familia del deslizador. 1440 deja 42 KB de margen y sigue
+270 KB por debajo de 1398 + 312. Es explicación, y la octava vez que el peso cede ante ella.
+2026-11-03, y la novena: SUBE A 1470 KB. El módulo 3 se leía críptico para quien empieza
 (lo dijo Javier): afirmaba que los cuatro selectores «optimizan cosas distintas» sin enseñar
 nunca qué. Gana el ejemplo de las dos sedes de Kennedy, las curvas del criterio de los tres
 que buscan —en Kennedy, en la ciudad y en los pinos japoneses— y la suma de `bw.CvL` a mano
 en la pestaña de Python: ~14 KB de curvas en el JSON incrustado, tres simuladores y su prosa.
 El documento pasa de 1 386.9 a 1 427.8 KB. 1470 deja 42 KB de margen y sigue 270 KB por
 debajo de 1427.8 + 312. Es explicación, y la octava vez que el peso cede.
+2026-11-13: las dos ramas se fusionan. El documento suma las dos ampliaciones (~1 439 KB) y 1470
+sigue con ~31 KB de margen y por debajo de tamaño + 312: se queda en 1470.
 
 Y EL PRESUPUESTO DE GEOMETRÍA ES 250 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y

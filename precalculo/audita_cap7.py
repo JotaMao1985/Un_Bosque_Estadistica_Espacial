@@ -1069,6 +1069,81 @@ def main() -> int:  # noqa: C901
         a.cierto(r.get("nx") == 16 and r.get("ny") == 16 and len(r.get("zq", [])) == 256, f"{etq}: 16 × 16")
         a.igual(r.get("rango", [0, 0])[0], ref.min(), f"{etq}: su mínimo", tol=1e-4)
         a.igual(r.get("rango", [0, 0])[1], ref.max(), f"{etq}: su máximo", tol=1e-4)
+    # -----------------------------------------------------------------
+    a.titulo("12b · Lo que se ve en cada mapa")
+    # «Describir el mapa» (2026-11-02): DÓNDE cae cada categoría —en
+    # Columbus, por zona del dibujo; en los municipios, además, por los
+    # departamentos que más ponen— y dónde se juntan las celdas calientes y
+    # frías de Getis-Ord. Con geopandas y los centroides del polígono mayor,
+    # como R, y con la Gi* que esta misma auditoría rehizo con esda. Cada
+    # mapa con su guarda de «está»: el arnés los rompe a propósito.
+    from collections import Counter
+    from describe_mapa import zona_por_tercios
+
+    def _zona(x, y, caja):
+        return zona_por_tercios((x - caja[0]) / (caja[2] - caja[0]),
+                                1 - (y - caja[1]) / (caja[3] - caja[1]))
+
+    def _centro(gm):
+        if gm.geom_type == "MultiPolygon":
+            gm = max(gm.geoms, key=lambda pp: pp.area)
+        return gm.centroid
+
+    def _tabla(z, k=None):
+        tb = sorted(Counter(z).items(), key=lambda kv: (-kv[1], kv[0]))
+        return tb[:k] if k else tb
+
+    def _cuadra(pub, zonas, deptos, en):
+        z = [zonas[i] for i in en]
+        ok = list(zip(pub.get("zona", []), pub.get("zona_n", []))) == _tabla(z)
+        if deptos is not None:
+            ok = ok and list(zip(pub.get("depto", []), pub.get("depto_n", []))) == _tabla([deptos[i] for i in en], 3)
+        return ok
+
+    V7 = D.get("visto", {})
+    for geo, clave, gdf, deptos in (("columbus", "cap7-columbus", col, None),
+                                    ("municipios", "cap7-municipios", mun, list(mun["departamento"]))):
+        mp, pv = M.get(clave) or {}, V7.get(geo) or {}
+        if not mp.get("caja") or not mp.get("capas") or not pv:
+            a.cierto(False, f"visto/{geo}: el mapa y su dato están", "falta alguno")
+            continue
+        zonas = [_zona(_centro(gm).x, _centro(gm).y, mp["caja"]) for gm in gdf.geometry]
+        for capa in mp["capas"]:
+            pub = pv.get(capa["id"])
+            if pub is None or len(capa.get("valor") or []) != len(zonas):
+                a.cierto(False, f"visto/{geo} {capa['id']}: zonas por categoría", "falta el dato, o la capa no está entera")
+                continue
+            if capa.get("tipo") == "categoria":
+                ok = True
+                esp = [nv for k, nv in enumerate(capa["niveles"], start=1)
+                       if nv != "No significativo" and any(v == k for v in capa["valor"])]
+                ok = [x["nivel"] for x in pub] == esp
+                for x in pub:
+                    k = capa["niveles"].index(x["nivel"]) + 1 if x["nivel"] in capa["niveles"] else -1
+                    en = [i for i, v in enumerate(capa["valor"]) if v == k]
+                    ok = ok and x["n"] == len(en) and _cuadra(x, zonas, deptos, en)
+            elif "clase" in capa and isinstance(pub, dict) and {"alta", "baja"} <= set(pub):
+                cl = capa["clase"]
+                vals = [c for c in cl if c is not None]
+                ok = all(_cuadra(pub[ext], zonas, deptos, [i for i, c in enumerate(cl) if c == f(vals)])
+                         for ext, f in (("alta", max), ("baja", min)))
+            else:
+                # Ni categórica declarada ni capa de clases: el JSON se rompió
+                # (el arnés le quita el `tipo` a una capa); se dice, no se revienta.
+                ok = False
+            a.cierto(ok, f"visto/{geo} {capa['id']}: dónde cae cada clase", "")
+    go = V7.get("getisord") or {}
+    cg = (M.get("cap7-getisord-g") or {}).get("caja")
+    if go and cg:
+        zg = [_zona(x, y, cg) for x, y in gxy]
+        a.cierto(list(zip(go["calientes"]["zona"], go["calientes"]["zona_n"])) == _tabla([z for z, s in zip(zg, G30s.Zs) if s >= 1.959963984540054])
+                 and list(zip(go["frios"]["zona"], go["frios"]["zona_n"])) == _tabla([z for z, s in zip(zg, G30s.Zs) if s <= -1.959963984540054])
+                 and abs(go["valor_max"] - val.max()) < 1e-9 and go["valor_max_zona"] == zg[int(np.argmax(val))],
+                 "visto/getisord: calientes, fríos y el máximo",
+                 f"calientes {_tabla([z for z, s in zip(zg, G30s.Zs) if s >= 1.959963984540054])[:2]}")
+    else:
+        a.cierto(False, "visto/getisord: calientes, fríos y el máximo", "falta el dato o el mapa")
+
 
     # -----------------------------------------------------------------
     a.titulo("13 · Discrepancias declaradas y formato")

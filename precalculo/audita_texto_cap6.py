@@ -35,6 +35,17 @@ con la cuenta delante, como la vez anterior:
   · la cota del arnés sigue en pie: 720.2 < 740 < 1032 (el tamaño + 312);
   · 740 deja **20 KB de margen**, lo mismo que dejaba 720 cuando se fijó.
 
+SUBIÓ A 760 KB el 2026-11-02, cuando cada mapa ganó «Describir el mapa» —lo que se ve en él,
+para quien no lo ve: cuántas parejas une cada uno de los diez criterios de Columbus, cuántos
+barrios deja sueltos, dónde se apiña la red de los 1 122 municipios—:
+
+  · el documento pesa **732 KB**: 725 de antes; **3.4 del motor** del `.geomapa` en la
+    plantilla (la descripción en dos nodos), **0.35 de los hechos que R publica** en `visto`
+    (los municipios y su grado por zona del dibujo) y **2.3 de las once descripciones**, diez
+    de ellas los criterios del grafo;
+  · la cota con el arnés: 732 < 760 < 1044;
+  · 760 deja **28 KB de margen**. Es explicación, y el peso vuelve a ceder ante ella.
+
 Lo que sigue es la cuenta de la vez anterior.
 
 Fue 640 hasta que entró la animación 2D del módulo 10 (2026-10-02), y se
@@ -77,7 +88,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP6_KB = 740.0
+TOPE_CAP6_KB = 760.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {

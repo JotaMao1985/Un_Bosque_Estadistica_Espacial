@@ -27,6 +27,9 @@ en este proyecto o que este capítulo puede sufrir:
   11. solución de un ejercicio guiado alterada
   12. coherencia entre módulos rota
   13. ancla externa (la fuente descartada del MEN) desactivada
+  14. lo que se ve en un mapa: la rejilla en grados, un extremo con otro
+      nombre o en otra zona, una tasa o un conteo que no es el del mapa
+      (2026-11-02, «Describir el mapa»)
 
 Uso:  python3 precalculo/prueba_auditor_cap2.py
 Devuelve 1 si algún defecto se cuela.
@@ -301,6 +304,55 @@ def defectos():
         lambda o: o["ingenieria"]["geohash"]["niveles"][3].__setitem__("n_celdas", 1417))
     add("los aciertos exactos superan a los candidatos del índice", "datos",
         lambda o: o["ingenieria"]["join"].__setitem__("aciertos_exactos", 41732))
+
+    # --- 14. Lo que se ve en cada mapa (2026-11-02) ----------------------
+    # La descripción larga de cada mapa dice DÓNDE pasa algo; un dato en otro
+    # sitio no cambia ninguna cifra de la prosa y pone la frase en falso.
+    add("la rejilla del mundo, con la latitud del revés", "datos",
+        lambda o: o["visto"]["proyecciones_mundo"]["lat"].reverse())
+    add("una distancia al centro de la azimutal, corrida", "datos",
+        lambda o: o["visto"]["proyecciones_mundo"]["dist_centro_km"].__setitem__(4, 1546.1096))
+    add("la ω mínima de Mollweide pasa a ser la del ecuador", "datos",
+        lambda o: o["visto"]["proyecciones_mundo"]["omega_min_grados"].__setitem__(2, 12.4172))
+    add("la rejilla de Colombia, con la latitud del revés", "datos",
+        lambda o: o["visto"]["proyecciones_colombia"]["lat"].reverse())
+    add("la ω de 3857 sobre Colombia, en otra unidad", "datos",
+        lambda o: o["visto"]["proyecciones_colombia"]["omega_max_grados"].__setitem__(0, 0.0067087))
+    add("el meridiano de 3116 pasa a ser el de Bogotá redondeado", "datos",
+        lambda o: o["visto"]["proyecciones_colombia"].__setitem__("meridiano_3116", -74.0))
+    add("el departamento con más error cambia de nombre", "datos",
+        lambda o: o["visto"]["error_3116"]["mayores"][0].__setitem__("departamento", "Guainía"))
+    add("el departamento con menos error cambia de zona", "datos",
+        lambda o: o["visto"]["error_3116"]["menores"][0].__setitem__("zona", "oriente"))
+    add("el error de un extremo se corre", "datos",
+        lambda o: o["visto"]["error_3116"]["mayores"][1].__setitem__("pct", 0.9175))
+    add("el error deja de seguir la distancia al meridiano", "datos",
+        lambda o: o["visto"]["error_3116"].__setitem__("cor_spearman_distancia_meridiano", 0.6172))
+    add("el mapa del error pierde los nombres de los departamentos", "mapas",
+        lambda o: o["error_3116"].pop("etiquetas"))
+    add("dos departamentos del mapa cambian de nombre entre sí", "mapas",
+        lambda o: o["error_3116"]["etiquetas"].__setitem__(
+            slice(0, 2), o["error_3116"]["etiquetas"][1::-1]))
+    add("la localidad más oscura del sesgo cambia de tasa", "datos",
+        lambda o: o["visto"]["sesgo"]["pct"].__setitem__(0, 11.4172))
+    add("una localidad del sesgo cambia de número de sedes", "datos",
+        lambda o: o["visto"]["sesgo"]["n_sedes"].__setitem__(18, 41))
+    add("el sesgo de una localidad se corre sin romper el orden", "datos",
+        lambda o: o["visto"]["sesgo"]["pct"].__setitem__(9, 3.3172))
+    add("dos localidades del sesgo cambian de sitio", "datos",
+        lambda o: o["visto"]["sesgo"]["localidad"].__setitem__(
+            slice(0, 2), o["visto"]["sesgo"]["localidad"][1::-1]))
+    add("el paso de la cuadrícula del redondeo se corre", "datos",
+        lambda o: o["visto"]["degradado"].__setitem__("paso_lat_m", 1111.9493))
+    add("el cruce más lleno de la cuadrícula cambia de cuenta", "datos",
+        lambda o: o["visto"]["degradado"].__setitem__("max_sedes_posicion", 31))
+    add("la celda de geohash más llena cambia de localidad", "datos",
+        lambda o: o["visto"]["geohash"]["mayores"][0].__setitem__("localidad", "Antonio Nariño"))
+    add("las celdas claras del geohash pasan a ser las de 1 a 3 sedes", "datos",
+        lambda o: (o["visto"]["geohash"].__setitem__("n_claras", 22),
+                   o["visto"]["geohash"].__setitem__("claras_max", 3)))
+    add("las estaciones invertidas vuelven a aterrizar en inglés", "datos",
+        lambda o: o["csv_sf"]["destino"]["nombre"].__setitem__(1, "Antarctica"))
 
     return D
 

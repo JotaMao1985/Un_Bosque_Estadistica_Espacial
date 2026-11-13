@@ -374,6 +374,20 @@ def defectos():
     obj("15 · el cociente de desviaciones del resumen cambia", "resumen2d",
         lambda d: d.__setitem__("moran_razon_sd", 0.8313131313))
 
+
+    # --- 16. Lo que se ve en el mapa municipal (2026-11-02) --------------
+    # La descripción larga dice DÓNDE es tupida la red; una zona cambiada de
+    # sitio no mueve ninguna cifra de la prosa.
+    obj("16 · la zona con más municipios gana nodos", "datos",
+        lambda d: d["visto"]["municipios"]["n"].__setitem__(0, 719))
+    obj("16 · dos zonas del grafo municipal cambian de nombre", "datos",
+        lambda d: d["visto"]["municipios"]["zona"].__setitem__(
+            slice(0, 2), d["visto"]["municipios"]["zona"][1::-1]))
+    obj("16 · el grado medio de una zona se corre", "datos",
+        lambda d: d["visto"]["municipios"]["grado_medio"].__setitem__(1, 5.9171717171))
+    obj("16 · el municipio con más vecinos cambia", "datos",
+        lambda d: d["visto"]["municipios"].__setitem__("grado_max_municipio", ["Medellín"]))
+
     return D
 
 

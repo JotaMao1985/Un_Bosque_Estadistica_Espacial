@@ -577,7 +577,7 @@ def main() -> int:
              f"mínimo {CS['desplazamiento_km_min']:.1f} km")
     a.igual(sum(CS["destino"]["n"]), CS["n"], "el destino reparte las 361")
     a.igual(CS["n_en_colombia"], 0, "NINGUNA cae en Colombia al invertir")
-    a.cierto("Antarctica" in CS["destino"]["nombre"],
+    a.cierto("la Antártida" in CS["destino"]["nombre"],
              "y la mayoría aterriza en la Antártida",
              f"{max(CS['destino']['n'])} de {CS['n']}")
     a.cierto(all(-90 <= v <= 90 for v in (CS["caja_mal"][1], CS["caja_mal"][3])),
@@ -782,8 +782,12 @@ def main() -> int:
     kb_total = 0.0
     for nombre, mapa in M.items():
         kb_total += audita_geomapa(a, mapa, nombre)
-    a.cierto(kb_total <= 120, "el conjunto de mapas cabe en el presupuesto del capítulo",
-             f"{kb_total:.1f} KB de 120")
+    # 120 KB hasta el 2026-11-02, cuando los mapas del error de 3116 y del
+    # sesgo ganaron el nombre de cada unidad (33 departamentos y 20
+    # localidades): su tabla de respaldo numeraba las filas 1…33, y la
+    # descripción larga necesita los nombres. 120.6 KB; el techo sube a 125.
+    a.cierto(kb_total <= 125, "el conjunto de mapas cabe en el presupuesto del capítulo",
+             f"{kb_total:.1f} KB de 125")
 
     pm = M["proyecciones_mundo"]
     a.igual(len(pm["vistas"]), 6, "el mapa del mundo trae las seis vistas")
@@ -831,6 +835,183 @@ def main() -> int:
             a.cierto(ancho > 0 and alto > 0,
                      f"{nombre}{'/' + etq if etq else ''}: la caja tiene área",
                      f"{ancho:.1f} × {alto:.1f}, las dos positivas")
+
+    # -----------------------------------------------------------------
+    a.titulo("Lo que se ve en cada mapa")
+    # «Describir el mapa» (2026-11-02): lo que R publica en `visto` para que
+    # el ensamblador escriba qué se VE en cada mapa —dónde se deforman las
+    # elipses, qué departamento sale más oscuro, en qué localidad caen las
+    # celdas de geohash—. Se rehace aquí con pyproj, shapely y el geohash de
+    # este archivo. La rejilla de las indicatrices se cruza con Snyder punto
+    # a punto: una rejilla en otro orden pondría cada frase en el sitio
+    # equivocado sin cambiar ni una cifra.
+    import unicodedata
+    from collections import Counter
+    from describe_mapa import zona_por_tercios
+
+    def _ascii(s):
+        return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
+
+    def _zona(x, y, caja):
+        return zona_por_tercios((x - caja[0]) / (caja[2] - caja[0]),
+                                1 - (y - caja[1]) / (caja[3] - caja[1]))
+
+    V = D["visto"]
+    RM = V["proyecciones_mundo"]
+    a.cierto(list(zip(RM["lon"], RM["lat"])) == rejilla, "visto: la rejilla del mundo, en su orden",
+             f"{len(RM['lon'])} puntos, y la del auditor tiene {len(rejilla)}")
+    cx, cy = RM["centro_azimutal"]
+    a.cierto(f"lat_0={cy} +lon_0={cx}" in CRS_PROY["Azimutal equidistante (Bogotá)"],
+             "visto: el centro es el de la azimutal", f"({cx}, {cy})")
+    if len(RM["dist_centro_km"]) == len(rejilla):
+        d_py = np.array(GEOD.inv([cx] * len(rejilla), [cy] * len(rejilla),
+                                 [lo for lo, _ in rejilla], [la for _, la in rejilla])[2]) / 1000
+        peor = max(abs(x - y) for x, y in zip(d_py, RM["dist_centro_km"]))
+        a.cierto(peor < 1e-3, "visto: distancias al centro de la azimutal", f"peor dif {peor:.2e} km")
+    else:
+        a.cierto(False, "visto: distancias al centro de la azimutal",
+                 f"{len(RM['dist_centro_km'])} y la rejilla tiene {len(rejilla)}")
+    vistas_m = M["proyecciones_mundo"]["vistas"]
+    for i, (v, etq) in enumerate(zip(vistas_m, rotulos_de_vistas([v["nombre"] for v in vistas_m]))):
+        crs = CRS_PROY.get(v["nombre"])
+        ind = v.get("indicatrices") or {}
+        if crs is None or len(ind.get("s", [])) != len(rejilla):
+            a.cierto(False, f"visto/{etq}: la rejilla casa con Snyder", "sin CRS o sin indicatrices")
+            continue
+        trf = pyproj.Transformer.from_crs(4326, pyproj.CRS(crs), always_xy=True)
+        vals = [tissot_snyder(trf, lo, la, EA, E2) for lo, la in rejilla]
+        ds = max(abs(w["s"] - s) for w, s in zip(vals, ind["s"]))
+        dw = max(abs(w["omega"] - o) for w, o in zip(vals, ind["omega"]))
+        a.cierto(ds < 2e-4 and dw < 2e-4, f"visto/{etq}: la rejilla casa con Snyder",
+                 f"peor dif s {ds:.1e}, ω {dw:.1e} rad")
+        a.igual(math.degrees(min(w["omega"] for w in vals)), RM["omega_min_grados"][i],
+                f"visto/{etq}: ω mínima en grados", tol=2e-3)
+
+    RC = V["proyecciones_colombia"]
+    CRS_CO = {"Web Mercator (3857)": "EPSG:3857", "MAGNA-SIRGAS / Bogotá (3116)": "EPSG:3116",
+              "MAGNA-SIRGAS / Origen Nacional (9377)": "EPSG:9377"}
+    rej_co = list(zip(RC["lon"], RC["lat"]))
+    vistas_c = M["proyecciones_colombia"]["vistas"]
+    for i, (v, etq) in enumerate(zip(vistas_c, rotulos_de_vistas([v["nombre"] for v in vistas_c]))):
+        ind = v.get("indicatrices") or {}
+        if v["nombre"] not in CRS_CO or len(ind.get("s", [])) != len(rej_co):
+            a.cierto(False, f"visto/co {etq}: la rejilla casa con Snyder", "sin CRS o sin indicatrices")
+            continue
+        trf = pyproj.Transformer.from_crs(4326, pyproj.CRS(CRS_CO[v["nombre"]]), always_xy=True)
+        vals = [tissot_snyder(trf, lo, la, EA, E2) for lo, la in rej_co]
+        ds = max(abs(w["s"] - s) for w, s in zip(vals, ind["s"]))
+        dw = max(abs(w["omega"] - o) for w, o in zip(vals, ind["omega"]))
+        a.cierto(ds < 2e-4 and dw < 2e-4, f"visto/co {etq}: la rejilla casa con Snyder",
+                 f"peor dif s {ds:.1e}, ω {dw:.1e} rad")
+        a.igual(math.degrees(max(w["omega"] for w in vals)), RC["omega_max_grados"][i],
+                f"visto/co {etq}: ω máxima en grados", tol=2e-3)
+    for epsg, clave in ((3116, "meridiano_3116"), (9377, "meridiano_9377")):
+        a.igual(pyproj.CRS(epsg).to_dict().get("lon_0"), RC[clave],
+                f"visto: meridiano central de {epsg}", tol=1e-9)
+
+    # El error de 3116 por departamento: el área plana de 3116 contra la
+    # geodésica de pyproj, y los nombres, zonas y extremos que de ahí salen.
+    E3 = M["error_3116"]
+    dep = gpd.read_file(PROCESADO / "colombia_adm1.gpkg")
+    dep_ll = dep.to_crs(4326)
+    pct = 100 * (dep_ll.to_crs(3116).area.to_numpy()
+                 / np.array([area_geod(g) for g in dep_ll.geometry]) - 1)
+    peor = float(np.max(np.abs(pct - np.array(E3["valor"])))) if len(E3["valor"]) == len(pct) else 99.0
+    a.cierto(peor < 1e-3, "visto: el error de 3116 de cada departamento",
+             f"peor dif {peor:.1e} puntos")
+    NOMBRE_DEP = {"Bogota Capital District": "Bogotá D. C."}
+    nom = [NOMBRE_DEP.get(s, s) for s in dep["shapeName"]]
+    a.cierto(E3.get("etiquetas") == nom, "visto: el mapa nombra cada departamento",
+             "la tabla de respaldo numeraba 1…33 sin ellas")
+    cen9 = dep.to_crs(9377).geometry.centroid
+    zon = [_zona(c.x, c.y, E3["caja"]) for c in cen9]
+    orden = sorted(range(len(pct)), key=lambda k: -pct[k])
+    VE = V["error_3116"]
+    for clave, ii in (("mayores", orden[:3]), ("menores", orden[::-1][:3])):
+        pub = VE[clave]
+        a.cierto([f["departamento"] for f in pub] == [nom[k] for k in ii]
+                 and [f["zona"] for f in pub] == [zon[k] for k in ii]
+                 and all(abs(f["pct"] - pct[k]) < 1e-3 for f, k in zip(pub, ii)),
+                 f"visto: error de 3116, los tres {clave}",
+                 ", ".join(f"{nom[k]} {pct[k]:.4f} {zon[k]}" for k in ii))
+    lon_c = dep_ll.geometry.centroid.x.to_numpy()
+    rk = lambda z: np.argsort(np.argsort(z))
+    sp = float(np.corrcoef(rk(pct), rk(np.abs(lon_c - RC["meridiano_3116"])))[0, 1])
+    a.igual(sp, VE["cor_spearman_distancia_meridiano"],
+            "visto: Spearman del error con la distancia al meridiano", tol=0.02)
+
+    # El sesgo: las 20 localidades del mapa, con sus sedes y su tasa, por un
+    # Monte Carlo propio (otra semilla, otro generador) localidad a localidad.
+    SS = V["sesgo"]
+    ms = M["sesgo_localidades"]
+    mapa_s = dict(zip(ms.get("etiquetas", []), ms["valor"]))
+    a.cierto(sorted(SS["localidad"]) == sorted(mapa_s)
+             and all(abs(mapa_s.get(lc, -1) - p) < 1e-6 for lc, p in zip(SS["localidad"], SS["pct"])),
+             "visto: el sesgo nombra lo que pinta el mapa", f"{len(mapa_s)} localidades")
+    a.cierto(SS["pct"] == sorted(SS["pct"], reverse=True), "visto: el sesgo va de más a menos")
+    nombres9 = list(loc9["localidad"])
+    a.cierto(sorted(_ascii(x) for x in SS["localidad"]) == sorted(nombres9)
+             and all(_ascii(x) in nombres9 for x in mapa_s),
+             "visto: los nombres son los de la capa, con tildes")
+    rng2 = np.random.default_rng(SEMILLA_AUDITOR + 1)
+    reps = np.array([_localidad(xs + rng2.normal(0, SG["sigma_m"], len(xs)),
+                                ys + rng2.normal(0, SG["sigma_m"], len(ys))) != verdad
+                     for _ in range(SG["n_replicas"])])
+    fuera, peor_z = [], 0.0
+    for lc, p_r, k_r in zip(SS["localidad"], SS["pct"], SS["n_sedes"]):
+        j = nombres9.index(_ascii(lc)) if _ascii(lc) in nombres9 else -1
+        en = verdad == j
+        if j < 0 or int(en.sum()) != k_r:
+            fuera.append(f"{lc}: {int(en.sum()) if j >= 0 else '—'} sedes y declara {k_r}")
+            continue
+        tr = reps[:, en].mean(axis=1) * 100
+        e = float(tr.std(ddof=1) / math.sqrt(len(tr))) or 1e-9
+        z = abs(float(tr.mean()) - p_r) / (math.sqrt(2) * e)
+        peor_z = max(peor_z, z)
+        if z > 4:
+            fuera.append(f"{lc}: R {p_r:.3f} · Python {tr.mean():.3f} ± {e:.3f}")
+    a.cierto(not fuera, "visto: sedes y tasa del sesgo, localidad a localidad",
+             "; ".join(fuera[:3]) if fuera else f"peor desvío {peor_z:.2f} errores de MC")
+
+    # La cuadrícula del redondeo.
+    G = V["degradado"]
+    lat0, lon0 = float(np.median(sedes["lat"])), float(np.median(sedes["lon"]))
+    a.igual(lat0, G["lat_referencia"], "visto: latitud de referencia del redondeo", tol=1e-8)
+    a.igual(GEOD.inv(lon0, lat0, lon0, lat0 + G["paso_grados"])[2], G["paso_lat_m"],
+            "visto: el paso norte-sur de la cuadrícula", tol=1e-3)
+    a.igual(GEOD.inv(lon0, lat0, lon0 + G["paso_grados"], lat0)[2], G["paso_lon_m"],
+            "visto: el paso oriente-occidente", tol=1e-3)
+    cnt = Counter(zip(np.round(sedes["lon"].to_numpy(), 2), np.round(sedes["lat"].to_numpy(), 2)))
+    a.igual(max(cnt.values()), G["max_sedes_posicion"], "visto: sedes en el cruce más lleno")
+
+    # Las celdas de geohash: el geohash de este archivo, sobre el CSV.
+    GV, gm = V["geohash"], M["geohash"]
+    g5 = [geohash(lo, la, 5) for lo, la in zip(sedes["lon"], sedes["lat"])]
+    celdas = list(dict.fromkeys(g5))
+    n_c = Counter(g5)
+    a.cierto([n_c[c] for c in celdas] == [int(v) for v in gm["valor"]],
+             "visto: las celdas del mapa, en su orden", f"{len(celdas)} celdas")
+    loc_sede = [nombres9[j] if j >= 0 else None for j in verdad]
+
+    def mayoritaria(c):
+        cuenta = Counter(lc for g, lc in zip(g5, loc_sede) if g == c and lc is not None)
+        return sorted(cuenta.items(), key=lambda kv: (-kv[1], kv[0]))[0] if cuenta else (None, 0)
+
+    top = sorted(celdas, key=lambda c: (-n_c[c], c))[:3]
+    a.cierto([(c["n"], _ascii(c["localidad"]), c["sedes_localidad"]) for c in GV["mayores"]]
+             == [(n_c[c], *mayoritaria(c)) for c in top],
+             "visto: geohash, las tres celdas más llenas",
+             ", ".join(f"{n_c[c]} {mayoritaria(c)}" for c in top))
+    clase_min = min(gm["clase"])
+    claras = [c for c, k in zip(celdas, gm["clase"]) if k == clase_min]
+    rep_cl = Counter(mayoritaria(c)[0] for c in claras if mayoritaria(c)[0] is not None)
+    rep_cl = sorted(rep_cl.items(), key=lambda kv: (-kv[1], kv[0]))
+    a.cierto(GV["clase_clara"] == clase_min and GV["n_claras"] == len(claras)
+             and [GV["claras_min"], GV["claras_max"]] == [min(n_c[c] for c in claras),
+                                                          max(n_c[c] for c in claras)]
+             and [(_ascii(x), k) for x, k in zip(GV["claras_localidad"], GV["claras_n"])] == rep_cl,
+             "visto: geohash, las celdas del color más claro",
+             f"{len(claras)} celdas: " + ", ".join(f"{x} {k}" for x, k in rep_cl))
 
     # -----------------------------------------------------------------
     a.titulo("Formato y coherencia general")

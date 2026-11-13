@@ -1608,6 +1608,122 @@ MAPAS$dep_hexbin <- geo_poligonos(
 # del objeto `municipios`: no necesita su propia geometría.
 
 # =====================================================================
+# L2. LO QUE SE VE EN CADA MAPA
+# =====================================================================
+# Cada mapa del capítulo lleva desde el 2026-11-02 una descripción larga:
+# lo que se VE en él, para quien no lo ve —dónde cae la clase más oscura de
+# cada esquema, qué departamentos encoge un cartograma, qué municipios no
+# tienen polígono de color—. La escribe el ensamblador con cifras de aquí;
+# lo que el JSON ya traía (los diez primeros de cada lista, el tamaño de
+# cada clase) no se repite. `audita_cap3.py` lo recalcula en Python.
+message("L2. lo que se ve en cada mapa")
+
+# La zona de un punto dentro de la caja de un mapa, por tercios: la regla
+# de los capítulos 2 y 5. La caja es la del dibujo, así que la palabra
+# describe el sitio en el lienzo.
+zona_de <- function(x, y, caja) {
+  fx <- (x - caja[1]) / (caja[3] - caja[1])
+  fy <- (y - caja[2]) / (caja[4] - caja[2])
+  ns <- c("sur", "", "norte")[findInterval(fy, c(1, 2) / 3) + 1]
+  eo <- c("occidente", "", "oriente")[findInterval(fx, c(1, 2) / 3) + 1]
+  ifelse(ns == "" & eo == "", "centro",
+         ifelse(ns == "", eo, ifelse(eo == "", ns, paste0(c(norte = "nor", sur = "sur")[ns], eo))))
+}
+# De mayor a menor, y a igualdad por nombre: el JSON sale igual cada vez.
+ordena_tabla <- function(x) {
+  tb <- table(x)
+  if (!length(tb)) return(tb)
+  tb[order(-as.integer(tb), names(tb))]
+}
+# `I()`: con `auto_unbox`, un vector de un solo elemento saldría como un
+# escalar («sur» en vez de ["sur"]), y quien lee el JSON tendría que
+# distinguir los dos casos para recorrer lo mismo.
+cabeza <- function(tb, k = 3) list(nombre = I(head(names(tb), k)), n = I(head(as.integer(tb), k)))
+
+# La capa municipal (MGN) trae algunos nombres sin su tilde. Se corrigen
+# los que estas descripciones nombran, aquí y no en la capa: tocar la capa
+# movería los CSV y las cifras de las pestañas de Python.
+TILDES_MUN <- c("Bojaya" = "Bojayá", "Caruru" = "Carurú")
+con_tilde <- function(x) unname(ifelse(x %in% names(TILDES_MUN), TILDES_MUN[x], x))
+
+# --- Módulo 2: el puntaje medio y quién ocupa sus extremos ------------
+# El módulo publica los diez primeros de cada lista; el mapa de la tasa
+# tiene también un extremo de abajo, y la frase del módulo es que los
+# extremos los ocupan municipios con muy pocos estudiantes. Se publica
+# cuántos tiene cada uno, y la mediana para compararlos.
+fila_mm <- function(d) lapply(seq_len(nrow(d)), function(i)
+  list(municipio = con_tilde(d$municipio[i]), depto = d$depto[i], n = d$n[i], punt = r10(d$punt[i])))
+capa <- function(id) MAPAS$municipios$capas[[which(vapply(MAPAS$municipios$capas, `[[`, "", "id") == id)]]
+cl_conteo <- capa("conteo")$clase
+alta_conteo <- !is.na(cl_conteo) & cl_conteo == max(cl_conteo, na.rm = TRUE)
+n_mun <- val_por_divipola(mm, "n")
+visto_m2 <- list(
+  tasa_altos = fila_mm(mm[order(-punt)][1:3]),
+  tasa_bajos = fila_mm(mm[order(punt)][1:3]),
+  mediana_n = median(mm$n),
+  conteo_alta_n = sum(alta_conteo),
+  conteo_alta_pct_estudiantes = r10(100 * sum(n_mun[alta_conteo]) / sum(n_mun, na.rm = TRUE)))
+
+# --- Módulo 4: dónde cae la clase más oscura de cada esquema ----------
+# La prosa dice «conmuta el esquema y mira el norte del país». Cada
+# esquema pone en su clase más alta un número muy distinto de municipios
+# (de 1 a 225), y esto dice cuántos y dónde: por zona del dibujo y por
+# departamento.
+cen_mun <- st_coordinates(suppressWarnings(st_centroid(st_geometry(mun), of_largest_polygon = TRUE)))
+zona_mun <- zona_de(cen_mun[, 1], cen_mun[, 2], MAPAS$municipios$caja)
+oscura_des <- lapply(capa("desercion")$vistas, function(vv) {
+  cl <- vv$clase
+  en <- !is.na(cl) & cl == max(cl, na.rm = TRUE)
+  zt <- ordena_tabla(zona_mun[en]); dt <- ordena_tabla(mun$departamento[en])
+  list(estilo = vv$estilo, clase = max(cl, na.rm = TRUE), n = sum(en),
+       zonas = I(names(zt)), zonas_n = I(as.integer(zt)),
+       deptos = cabeza(dt)$nombre, deptos_n = cabeza(dt)$n,
+       municipios = I(if (sum(en) <= 3) con_tilde(mun$municipio[en]) else character(0)),
+       municipios_depto = I(if (sum(en) <= 3) mun$departamento[en] else character(0)))
+})
+
+# --- Módulo 7: lo que cada cartograma hace con el área ---------------
+# Una tabla por departamento: su parte del área del país en el mapa y en
+# cada cartograma, y su parte de los estudiantes. Es lo que el ojo
+# compara al pasar de un mapa a otro.
+pct <- function(a) r10(100 * a / sum(a))
+cl_cor <- MAPAS$dep_coropleto$clase
+cen_dd <- zona_de(dd1[, 1], dd1[, 2], MAPAS$dep_coropleto$caja)
+zt_dd <- ordena_tabla(cen_dd)
+# El hexágono más oscuro se nombra por el departamento que MÁS le aporta
+# en el reparto por área, no por el de su centro: el centro del de más
+# estudiantes cae en Tolima, y lo que lo oscurece es Bogotá.
+i_hex <- which.max(hexes$v)
+aporte <- inter_dt[id_hex == hexes$id_hex[i_hex], .(v = sum(n_est * a / a_dep)), by = id_dep][order(-v)]
+visto_m7 <- list(
+  departamento = dep$nombre,
+  est_pct = pct(dep$n_est),
+  area_pct_mapa = pct(area_dep),
+  area_pct_ncont = pct(as.numeric(st_area(carto_n))),
+  area_pct_dorling = pct(as.numeric(st_area(carto_d))),
+  area_pct_cont = pct(as.numeric(st_area(carto_c))),
+  clase_baja_area_pct = r10(sum(pct(area_dep)[cl_cor == min(cl_cor)])),
+  clase_baja_est_pct = r10(sum(pct(dep$n_est)[cl_cor == min(cl_cor)])),
+  puntos_zonas = I(names(zt_dd)), puntos_zonas_n = I(as.integer(zt_dd)),
+  hex_max = r10(hexes$v[i_hex]), hex_max_aporta = dep$nombre[aporte$id_dep[1]],
+  hex_max_aporta_pct = r10(100 * aporte$v[1] / hexes$v[i_hex]))
+
+# --- Módulo 11: los municipios sin un solo estudiante -----------------
+sin_est <- which(presencia == 0)
+visto_m11 <- list(sin_estudiantes = lapply(sin_est, function(i)
+  list(municipio = con_tilde(mun$municipio[i]), depto = mun$departamento[i], zona = zona_mun[i])))
+
+D$visto <- list(m2 = visto_m2, m4 = list(oscura = oscura_des), m7 = visto_m7, m11 = visto_m11)
+message(sprintf(paste("  tasa: de %s (%d est.) a %s (%d est.), mediana %g · deserción, clase alta:",
+                      "%s · cartogramas: Bogotá pasa del %.2f %% del área al %.2f %% (Olson)",
+                      "· %d municipios sin estudiantes"),
+                visto_m2$tasa_altos[[1]]$municipio, visto_m2$tasa_altos[[1]]$n,
+                visto_m2$tasa_bajos[[1]]$municipio, visto_m2$tasa_bajos[[1]]$n, visto_m2$mediana_n,
+                paste(vapply(oscura_des, function(o) sprintf("%s %d", o$estilo, o$n), ""), collapse = ", "),
+                visto_m7$area_pct_mapa[dep$nombre == "Bogotá, D.C."],
+                visto_m7$area_pct_ncont[dep$nombre == "Bogotá, D.C."], length(sin_est)))
+
+# =====================================================================
 # M. SALIDA
 # =====================================================================
 message("M. escribiendo")

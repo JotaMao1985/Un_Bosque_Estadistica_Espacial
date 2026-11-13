@@ -21,6 +21,24 @@ Qué comprueba, por encima:
   · que la codificación no se haya roto (las tildes son el canario);
   · que los enlaces relativos existan.
 
+EL TOPE DE PESO ES 730 KB, no los 700 de la casa, desde el 2026-11-02, con la
+cuenta delante. Ese día cada mapa ganó «Describir el mapa» —lo que se ve en él,
+para quien no lo ve: dónde se apiñan las muertes de Snow, qué departamentos
+salen más oscuros, cómo crecen las manchas del campo con el alcance—:
+
+  · el documento pesa **704 KB**: 693.6 tenía; **3.4 del motor** del
+    `.geomapa` en la plantilla (la descripción en dos nodos), **0.9 de los
+    hechos que R publica** en `visto` (los extremos de la deserción, la clase alta
+    de Carolina del Norte, las estaciones frías y cálidas, las franjas de las
+    sedes) y **4.7 de las descripciones**: doce mapas, y los que cambian con
+    un control llevan un texto por estado (tres de Snow, siete del campo, tres
+    realizaciones y dos lecturas de la agregación);
+  · la cota que ata esta comprobación a su arnés es **por encima del tamaño y
+    por debajo de ese tamaño + 312 KB**, porque `prueba_texto.py` la tumba
+    inyectando 320 000 bytes: 704 < 730 < 1016;
+  · 730 deja **26 KB de margen**, el orden de los otros capítulos. Es
+    explicación, y el peso cede ante ella.
+
 Uso:  python3 precalculo/audita_texto_cap1.py
 Devuelve 1 si algo falla.
 """
@@ -147,6 +165,9 @@ CADENAS = [
     "realización", "cólera", "Bogotá", "Soho",
 ]
 
+# El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
+TOPE_CAP1_KB = 730.0
+
 ORDENES = [r"\frac", r"\lambda", r"\rho", r"\gamma", r"\sum", r"\text",
            r"\operatorname", r"\mathbb", r"\bar", r"\lVert"]
 
@@ -175,10 +196,7 @@ def main() -> int:
     a.codificacion()
     a.enlaces()
     a.coherencia(CADENAS, ORDENES)
-    # 720 KB desde el 2026-11-12: la capa de fuentes le añade al capítulo sus citas
-    # generadas y la lista de referencias (unos 7 KB). Sigue por debajo de
-    # tamaño + 312 KB, la cota del arnés de inyección (ver TOPE_KB en audita_texto_base).
-    a.peso(720.0)
+    a.peso(TOPE_CAP1_KB)
     return a.cierre()
 
 

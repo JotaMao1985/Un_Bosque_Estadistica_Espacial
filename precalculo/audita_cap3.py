@@ -1089,6 +1089,179 @@ def main() -> int:
              f"{kb_total:.1f} KB de 260")
 
     # -----------------------------------------------------------------
+    a.titulo("Lo que se ve en cada mapa")
+    # «Describir el mapa» (2026-11-02): lo que R publica en `visto` para que
+    # el ensamblador escriba qué se VE en cada mapa —dónde cae la clase más
+    # oscura de cada esquema, qué departamentos encoge cada cartograma, qué
+    # municipios no tienen estudiantes—. Se rehace aquí: los extremos del
+    # puntaje desde los microdatos, las zonas desde la capa municipal con
+    # geopandas, y las áreas de los cartogramas desde el CSV y la geometría
+    # publicada, decodificada.
+    import unicodedata
+    from collections import Counter
+    import geopandas as gpd
+    from describe_mapa import zona_por_tercios
+
+    def _ascii(s):
+        return unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode()
+
+    def _zona(x, y, caja):
+        return zona_por_tercios((x - caja[0]) / (caja[2] - caja[0]),
+                                1 - (y - caja[1]) / (caja[3] - caja[1]))
+
+    def _real(qx, qy, caja, q):
+        """De la cuantización de `geo_qxy` (un cuadrado centrado en la caja, y hacia arriba) a coordenadas."""
+        r = max(caja[2] - caja[0], caja[3] - caja[1])
+        cx, cy = (caja[0] + caja[2]) / 2, (caja[1] + caja[3]) / 2
+        return cx - r / 2 + qx / q * r, cy - r / 2 + qy / q * r
+
+    def _top(cuenta, k=3):
+        return sorted(cuenta.items(), key=lambda kv: (-kv[1], _ascii(kv[0])))[:k]
+
+    V = D["visto"]
+    capas = {c["id"]: c for c in M["municipios"]["capas"]}
+
+    # Módulo 2: los extremos del puntaje medio, desde los microdatos.
+    V2 = V["m2"]
+    llave = mun.set_index("divipola")
+    ag = agr.copy()
+    ag["municipio"] = [llave.loc[d, "municipio"] for d in ag.index]
+    ag["depto"] = [llave.loc[d, "departamento"] for d in ag.index]
+    for clave, asc, que in (("tasa_altos", False, "más altos"), ("tasa_bajos", True, "más bajos")):
+        esp = ag.sort_values("mean", ascending=asc).head(3)
+        pub = V2[clave]
+        ok = len(pub) == 3 and all(
+            _ascii(p["municipio"]) == _ascii(m) and _ascii(p["depto"]) == _ascii(dd)
+            and p["n"] == int(s) and abs(p["punt"] - x) < 1e-6
+            for p, (m, dd, s, x) in zip(pub, zip(esp["municipio"], esp["depto"], esp["size"], esp["mean"])))
+        a.cierto(ok, f"visto: los tres puntajes medios {que}",
+                 ", ".join(f"{m} {int(s)} {x:.1f}" for m, s, x in zip(esp["municipio"], esp["size"], esp["mean"])))
+    a.igual(float(ag["size"].median()), V2["mediana_n"], "visto: la mediana de estudiantes por municipio")
+    # Toda comprobación nueva sobre una capa recalculada lleva su guarda de
+    # «la capa está entera»: el arnés le quita valores a propósito, y un
+    # auditor que revienta no informa de nada (la lección del cap. 5, R3).
+    ct = capas["conteo"]
+    if len(ct["valor"]) == len(ct["clase"]) == 1122:
+        top_ct = max(k for k in ct["clase"] if k is not None)
+        alta = [i for i, k in enumerate(ct["clase"]) if k == top_ct]
+        tot = sum(x for x in ct["valor"] if x is not None)
+        a.igual(len(alta), V2["conteo_alta_n"], "visto: municipios de la clase más alta del conteo")
+        a.igual(100 * sum(ct["valor"][i] or 0 for i in alta) / tot, V2["conteo_alta_pct_estudiantes"],
+                "visto: y su parte de los estudiantes", tol=1e-6)
+    else:
+        a.cierto(False, "visto: la capa del conteo está entera",
+                 f"{len(ct['valor'])} valores y {len(ct['clase'])} clases para 1122 municipios")
+
+    # Módulo 4: la clase más oscura de cada esquema, por zona y departamento,
+    # con los centroides de la capa municipal (el del polígono mayor, como R).
+    g = gpd.read_file(PROCESADO / "colombia_adm2.gpkg")
+    ll = mun.set_index("shapeID") if "shapeID" in mun.columns else None
+    if ll is None:
+        ll = pd.read_csv(PROCESADO / "municipios_llave.csv", dtype=str).set_index("shapeID")
+    g_mun = [ll.loc[s, "municipio"] for s in g["shapeID"]]
+    g_dep = [ll.loc[s, "departamento"] for s in g["shapeID"]]
+    a.cierto([_ascii(x) for x in g_mun] == [_ascii(x) for x in M["municipios"]["etiquetas"]],
+             "visto: la capa y el mapa municipal, en el mismo orden", f"{len(g_mun)} municipios")
+
+    def _centro(geom):
+        if geom.geom_type == "MultiPolygon":
+            geom = max(geom.geoms, key=lambda pp: pp.area)
+        return geom.centroid
+
+    cen = [_centro(x) for x in g.geometry]
+    zonas_m = [_zona(c.x, c.y, M["municipios"]["caja"]) for c in cen]
+    osc = {o["estilo"]: o for o in V["m4"]["oscura"]}
+    for vv in capas["desercion"]["vistas"]:
+        if len(vv["clase"]) != len(zonas_m):
+            a.cierto(False, f"visto: deserción, {vv['estilo']}: la clase más oscura",
+                     f"{len(vv['clase'])} clases para {len(zonas_m)} municipios")
+            continue
+        top = max(k for k in vv["clase"] if k is not None)
+        en = [i for i, k in enumerate(vv["clase"]) if k == top]
+        zt, dt = Counter(zonas_m[i] for i in en), Counter(g_dep[i] for i in en)
+        o = osc.get(vv["estilo"], {})
+        pub_z = list(zip(o.get("zonas", []), o.get("zonas_n", [])))
+        ok = (o.get("n") == len(en) and o.get("clase") == top
+              and sorted(pub_z) == sorted(zt.items())
+              and [k for _, k in _top(dt)] == list(o.get("deptos_n", []))
+              and all(dt.get(next((x for x in dt if _ascii(x) == _ascii(dd)), None), -1) == k
+                      for dd, k in zip(o.get("deptos", []), o.get("deptos_n", []))))
+        if len(en) <= 3:
+            ok = ok and [(_ascii(g_mun[i]), _ascii(g_dep[i])) for i in en] == [
+                (_ascii(m), _ascii(dd)) for m, dd in zip(o.get("municipios", []), o.get("municipios_depto", []))]
+        a.cierto(ok, f"visto: deserción, {vv['estilo']}: la clase más oscura",
+                 f"{len(en)} municipios · " + ", ".join(f"{z} {k}" for z, k in _top(zt, 4)))
+
+    # Módulo 7: las partes del área y de los estudiantes, departamento a departamento.
+    V7 = V["m7"]
+    depc = dep.set_index("departamento")
+    nom7 = V7["departamento"]
+    est = [float(depc.loc[d0, "n_est"]) for d0 in nom7]
+    are = [float(depc.loc[d0, "area_km2"]) for d0 in nom7]
+    p_est = [100 * x / sum(est) for x in est]
+    p_are = [100 * x / sum(are) for x in are]
+    dif = lambda u, w: max(abs(x - y) for x, y in zip(u, w))
+    a.cierto(dif(p_est, V7["est_pct"]) < 1e-6, "visto: la parte de los estudiantes, por departamento",
+             f"peor dif {dif(p_est, V7['est_pct']):.1e}")
+    a.cierto(dif(p_are, V7["area_pct_mapa"]) < 1e-4, "visto: la parte del área, por departamento",
+             f"peor dif {dif(p_are, V7['area_pct_mapa']):.1e}")
+    a.cierto(dif(V7["area_pct_ncont"], p_est) < 1e-6 and dif(V7["area_pct_dorling"], p_est) < 1e-6,
+             "visto: Olson y Dorling, área igual a estudiantes")
+
+    def _areas(m):
+        """El área de cada rasgo de un mapa publicado, por la fórmula del cordón, en su cuantización."""
+        out = []
+        for rasgo in m["geom"]:
+            tot_a = 0.0
+            for parte in rasgo:
+                xs, ys, ax, ay = [], [], 0, 0
+                for i in range(0, len(parte), 2):
+                    ax = parte[i] if (i == 0 or m.get("codificacion") != "delta") else ax + parte[i]
+                    ay = parte[i + 1] if (i == 0 or m.get("codificacion") != "delta") else ay + parte[i + 1]
+                    xs.append(ax); ys.append(ay)
+                tot_a += abs(sum(xs[i] * ys[i - 1] - xs[i - 1] * ys[i] for i in range(len(xs)))) / 2
+            out.append(tot_a)
+        return out
+
+    ac = _areas(M["dep_cont"])
+    p_ac = [100 * x / sum(ac) for x in ac]
+    orden = [M["dep_cont"]["etiquetas"].index(d0) for d0 in nom7]
+    # 0.2 puntos de tolerancia, MEDIDOS: la geometría publicada va simplificada
+    # a 1 400 vértices, y eso solo ya aparta del área de R 0.03 puntos en el
+    # coropleto, 0.09 en el Olson y 0.14 en el contiguo (Risaralda y Caldas,
+    # pequeños y quebrados). Un dato cambiado de sitio se mueve mucho más.
+    a.cierto(dif([p_ac[i] for i in orden], V7["area_pct_cont"]) < 0.2,
+             "visto: el contiguo, desde su geometría publicada",
+             f"peor dif {dif([p_ac[i] for i in orden], V7['area_pct_cont']):.3f} puntos")
+    cl = M["dep_coropleto"]["clase"]
+    baja = [M["dep_coropleto"]["etiquetas"][i] for i, k in enumerate(cl) if k == min(cl)]
+    a.igual(sum(p_are[nom7.index(d0)] for d0 in baja), V7["clase_baja_area_pct"],
+            "visto: el área de la clase más clara", tol=1e-4)
+    a.igual(sum(p_est[nom7.index(d0)] for d0 in baja), V7["clase_baja_est_pct"],
+            "visto: y sus estudiantes", tol=1e-6)
+    dc = M["dep_coropleto"]
+    den = next(s for s in dc["superpuestos"] if s["id"] == "densidad")
+    zp = Counter(_zona(*_real(den["pts"][i], den["pts"][i + 1], dc["caja"], dc["q"]), dc["caja"])
+                 for i in range(0, len(den["pts"]), 2))
+    a.cierto(sorted(zip(V7["puntos_zonas"], V7["puntos_zonas_n"])) == sorted(zp.items()),
+             "visto: los puntos del dot density, por zona", ", ".join(f"{z} {k}" for z, k in _top(zp, 4)))
+    hx = M["dep_hexbin"]
+    a.igual(max(hx["valor"]), V7["hex_max"], "visto: el hexágono más oscuro", tol=1e-6)
+    a.cierto(V7["hex_max_aporta"] in nom7 and 50 < V7["hex_max_aporta_pct"] <= 100
+             and est[nom7.index(V7["hex_max_aporta"])] >= V7["hex_max"] * V7["hex_max_aporta_pct"] / 100 - 1e-6,
+             "visto: quién lo aporta cabe en sus estudiantes",
+             f"{V7['hex_max_aporta']} {V7['hex_max_aporta_pct']:.1f} %")
+
+    # Módulo 11: los municipios sin un solo estudiante.
+    con_est = set(s11["divipola"].dropna())
+    sin = [i for i, s in enumerate(g["shapeID"]) if ll.loc[s, "divipola"] not in con_est]
+    pub = V["m11"]["sin_estudiantes"]
+    a.cierto([(_ascii(g_mun[i]), _ascii(g_dep[i]), zonas_m[i]) for i in sin]
+             == [(_ascii(x["municipio"]), _ascii(x["depto"]), x["zona"]) for x in pub],
+             "visto: los municipios sin un solo estudiante",
+             ", ".join(g_mun[i] for i in sin))
+
+    # -----------------------------------------------------------------
     a.titulo("Los ejercicios")
     a.igual(S["capitulo"], 3, "el JSON de soluciones es del capítulo 3")
     a.igual(len(S["ejercicios"]), 4, "cuatro ejercicios, el molde del capítulo 1")

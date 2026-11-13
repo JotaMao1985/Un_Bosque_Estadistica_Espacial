@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import pathlib
 import sys
 
@@ -45,7 +46,12 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
-DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-6-pesos-espaciales.html"
+PUBLICADO = RAIZ / "Htmls_Espacial" / "capitulo-6-pesos-espaciales.html"
+# `CAP6_DESTINO` manda la salida a otra parte, como en los capítulos 1 a 5:
+# el ensamblador escribe el HTML ANTES de correr sus guardas, y
+# `prueba_ensambla_cap6.py` lo ejecuta con guardas rotas a propósito. El
+# botón al índice se calcula siempre para la ruta publicada.
+DESTINO = pathlib.Path(os.environ.get("CAP6_DESTINO") or PUBLICADO)
 
 D = json.loads((SALIDAS / "cap6_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap6_mapas.json").read_text(encoding="utf-8"))
@@ -1515,6 +1521,116 @@ TABLA_W = """, tabla: function () {
       }"""
 
 
+# =====================================================================
+# «Describir el mapa» (2026-11-02)
+# =====================================================================
+# Lo que se VE en cada mapa, para quien no lo ve: la etiqueta dice qué es
+# el mapa; esto, qué enseña. El motor lo pone en el desplegable «Describir
+# el mapa» y lo enlaza al lienzo para el lector de pantalla (ver
+# `describe_mapa.py`). El grafo de Columbus lleva un texto por criterio, y
+# el registro lo elige con la misma variable que elige lo que se pinta
+# (`estadoCap6.w`); sus cifras son las de la tabla del módulo 2. El de los
+# municipios usa lo que R publica en `visto`. Cada frase sobre la forma
+# tiene su guarda en `main()`.
+from describe_mapa import lista_y, revisa_textos  # noqa: E402
+
+_CRIT = {c["id"]: c for c in D["m2"]["criterios"]}
+# Cómo empieza cada texto. Las k de los vecinos más próximos salen de su
+# etiqueta publicada, que es donde está la cifra.
+_LEAD = {
+    "reina": "Con contigüidad reina",
+    "torre": "Con contigüidad torre, que exige compartir un borde y no le basta una esquina",
+    "d_mitad": "Con un umbral de distancia de la mitad del que conecta a todos",
+    "d_conexo": "Con el umbral de distancia más corto que no deja a ningún barrio sin vecinos",
+    "delaunay": "Con la triangulación de Delaunay",
+    "gabriel": "Con el grafo de Gabriel, que se queda con una parte de las aristas de Delaunay",
+    "esfera": "Con la esfera de influencia",
+}
+_PARES = [c["pares"] for c in D["m2"]["criterios"]]
+
+
+def _desc_w(c):
+    lead = _LEAD.get(c["id"]) or f"Con {c['etiqueta']}"
+    s = f"{lead}: {ent(c['pares'])} parejas de vecinos, y "
+    if c["grado_min"] == c["grado_max"]:
+        s += f"todos los barrios tienen exactamente {ent(c['grado_min'])}."
+    else:
+        s += (f"cada barrio tiene entre {ent(c['grado_min'])} y {ent(c['grado_max'])}, "
+              f"{n(c['grado'], 1)} de media.")
+    if c["pares"] == max(_PARES):
+        s += " Es el más tupido de los diez."
+    if c["pares"] == min(_PARES):
+        s += " Es el más ralo de los diez."
+    if c["islas"]:
+        s += f" {ent(c['islas'])} barrios se quedan sin ninguno: son los puntos rojos."
+    s += (" El grafo es una sola pieza." if c["subgrafos"] == 1
+          else f" El grafo se rompe en {ent(c['subgrafos'])} pedazos.")
+    if not c["simetrica"]:
+        s += (" Y no es simétrico: que un barrio tenga a otro entre sus vecinos no obliga al otro a "
+              "tenerlo a él.")
+    return s
+
+
+DESC_W = {c["id"]: _desc_w(c) for c in D["m2"]["criterios"]}
+
+_VM6 = D["visto"]["municipios"]
+_z6 = dict(zip(_VM6["zona"], zip(_VM6["n"], _VM6["grado_medio"])))
+DESC_MUNICIPIOS = (
+    f"La red se apiña en el centro del dibujo, con {ent(_z6['centro'][0])} de los "
+    f"{ent(D['m1']['municipios']['n'])} municipios, y en el norte, con {ent(_z6['norte'][0])}. En el oriente "
+    f"y el suroriente solo hay {ent(_z6['oriente'][0])} y {ent(_z6['suroriente'][0])}, y la red se vuelve unas "
+    f"pocas líneas largas. Cada "
+    f"municipio toca de media a {n(_z6['centro'][1], 1)} vecinos en el centro y a {n(_z6['norte'][1], 1)} en "
+    f"el norte, y el que más tiene es {lista_y(_VM6['grado_max_municipio'])}, con {ent(_VM6['grado_max'])}.")
+DESCRIPCIONES = {"cap6-w": [DESC_W[c["id"]] for c in D["m2"]["criterios"]],
+                 "cap6-municipios": [DESC_MUNICIPIOS]}
+
+
+def guardas_de_las_descripciones() -> list[str]:
+    """Lo que las descripciones afirman de la forma de cada mapa, contra el dato."""
+    malos = []
+
+    def exige(cond, que):
+        if not cond:
+            malos.append(que)
+
+    exige(set(_CRIT) - {"k1", "k3", "k6"} == set(_LEAD) and set(_CRIT) >= {"k1", "k3", "k6"},
+          "Columbus: los criterios publicados ya no son los que tienen comienzo de frase")
+    exige(set(_CRIT) == set(M["cap6-w"]["variantes"]), "Columbus: los criterios del dato no son las variantes del mapa")
+    exige(_CRIT["gabriel"]["pares"] < _CRIT["delaunay"]["pares"],
+          "Columbus: «Gabriel se queda con una parte de las aristas de Delaunay» y no tiene menos parejas")
+    for c in D["m2"]["criterios"]:
+        v = M["cap6-w"]["variantes"][c["id"]]
+        exige(v["n_aristas"] == c["pares"] and v["islas"] == c["islas"],
+              f"Columbus, {c['id']}: el texto cuenta parejas o puntos rojos que el mapa no dibuja")
+    exige(_VM6["zona"][:2] == ["centro", "norte"]
+          and (_z6["oriente"][0] + _z6["suroriente"][0]) * 20 < D["m1"]["municipios"]["n"],
+          "municipios: «se apiña en el centro y el norte, y el oriente y el suroriente tienen pocos» ya no vale")
+    # «Unas pocas líneas largas»: la mediana de las aristas que tocan el
+    # oriente y el suroriente, medida sobre el grafo PUBLICADO (nodos y aristas
+    # del mapa, en su cuantización), triplica la del centro.
+    from statistics import median
+    from describe_mapa import zona_por_tercios
+    mm = M["cap6-municipios"]
+    caja, q, nod = mm["caja"], mm["q"], mm["nodos"]
+    r = max(caja[2] - caja[0], caja[3] - caja[1])
+    cx, cy = (caja[0] + caja[2]) / 2, (caja[1] + caja[3]) / 2
+    xy = [(cx - r / 2 + nod[2 * i] / q * r, cy - r / 2 + nod[2 * i + 1] / q * r) for i in range(len(nod) // 2)]
+    zz = [zona_por_tercios((x - caja[0]) / (caja[2] - caja[0]), 1 - (y - caja[1]) / (caja[3] - caja[1]))
+          for x, y in xy]
+    ar = mm["variantes"]["reina"]["aristas"]
+    largo = {}
+    for k in range(0, len(ar), 2):
+        i, j = ar[k] - 1, ar[k + 1] - 1
+        d_ij = ((xy[i][0] - xy[j][0]) ** 2 + (xy[i][1] - xy[j][1]) ** 2) ** 0.5
+        for z in (zz[i], zz[j]):
+            largo.setdefault(z, []).append(d_ij)
+    exige(min(ar) == 1 and all(z in largo for z in ("centro", "oriente", "suroriente"))
+          and min(median(largo["oriente"]), median(largo["suroriente"])) > 3 * median(largo["centro"]),
+          "municipios: «en el oriente y el suroriente, unas pocas líneas largas» ya no vale")
+    return malos
+
+
 GEOMAPAS_JS = (
     "    const MAPAS_CAP6 = " + json.dumps(M, ensure_ascii=False) + ";\n\n"
     + "    // El criterio que el constructor del módulo 2 tiene elegido. El mapa\n"
@@ -1523,15 +1639,18 @@ GEOMAPAS_JS = (
       "    // ResizeObserver y el conmutador de visión del color repintan sin\n"
       "    // opciones. Con eso, girar el teléfono devolvía el grafo a la reina\n"
       "    // mientras la botonera, el histograma y la lectura seguían en k = 3.\n"
-      "    const estadoCap6 = { w: D6.m2.criterios[0].id };\n\n"
+      "    const estadoCap6 = { w: D6.m2.criterios[0].id };\n"
+      "    // Lo que se ve con cada criterio (ver «Describir el mapa» en el ensamblador).\n"
+    + "    const DESC6_W = " + json.dumps(DESC_W, ensure_ascii=False) + ";\n\n"
     + geomapa("cap6-w", "cap6-w", ",\n      get variante() { return estadoCap6.w; }" + _etq(
         "Los 49 barrios de Columbus con el grafo del criterio de vecindad elegido: "
         "cada línea une dos unidades que ese criterio considera vecinas, y un punto rojo "
-        "es una unidad que se ha quedado sin ninguna.") + TABLA_W)
+        "es una unidad que se ha quedado sin ninguna.") + TABLA_W
+        + ",\n      descripcion: () => DESC6_W[estadoCap6.w]")
     + geomapa("cap6-municipios", "cap6-municipios", _etq(
         "Los 1 122 municipios de Colombia unidos por contigüidad reina: 3 285 parejas, "
         "grado medio 5,86 y dos municipios sin vecinos, San Andrés y Providencia, "
-        "dibujados en rojo."))
+        "dibujados en rojo.") + ",\n      descripcion: " + json.dumps(DESC_MUNICIPIOS, ensure_ascii=False))
 )
 
 
@@ -2149,7 +2268,7 @@ def main() -> int:
     # de una en una, las preguntas nacen con la correcta delante.
     doc = baraja_documento(doc, "cap6")
 
-    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
+    doc = aplica_boton(doc, PUBLICADO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- El recuento, contado y no recordado --------------------------
@@ -2164,7 +2283,7 @@ def main() -> int:
     con_alt = sum(1 for c in marcado.split("<canvas")[1:] if "aria-label" in c.split(">")[0])
     kb = DESTINO.stat().st_size / 1024
 
-    print(f"{DESTINO.relative_to(RAIZ)}  {kb:.0f} KB")
+    print(f"{DESTINO.relative_to(RAIZ) if DESTINO == PUBLICADO else DESTINO}  {kb:.0f} KB")
     print(f"  {mods} módulos · {sims} simuladores · {mapas} mapas · "
           f"{bl_r} bloques de R y {bl_py} de Python · {cifras} cifras anunciadas")
     print(f"  {lienzos} lienzos, {con_alt} con aria-label")
@@ -2220,6 +2339,11 @@ def main() -> int:
                              "y el JS ya no parte de ahí")
     if bl_r != bl_py:
         problemas.append(f"bloques descuadrados: {bl_r} de R y {bl_py} de Python")
+    # «DESCRIBIR EL MAPA» (2026-11-02). Cada mapa que el documento usa trae
+    # su descripción —el de Columbus, una por criterio—, y lo que esas frases
+    # afirman de la forma se comprueba contra el dato.
+    problemas += revisa_textos(marcado, GEOMAPAS_JS, DESCRIPCIONES)
+    problemas += guardas_de_las_descripciones()
     if problemas:
         print("\n  PROBLEMAS:")
         for p in problemas:

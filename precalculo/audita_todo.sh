@@ -193,6 +193,12 @@ fi
 paso "sin_aritmetica.py — ninguna cifra de la prosa se calcula fuera de R" \
      python3 precalculo/sin_aritmetica.py --prueba
 
+# Del 2026-11-02: la guarda que para un ensamblado si un mapa se queda sin
+# «Describir el mapa» vive en un solo sitio para los siete ensambladores, y
+# aquí se rompe a sí misma. Cuesta milésimas.
+paso "describe_mapa.py — la guarda de la descripción larga de los mapas" \
+     python3 precalculo/describe_mapa.py --prueba
+
 # Del 2026-08-14, y por la misma razón que el de arriba: mira el CONTRATO
 # entre el dato y quien lo pinta, que es donde no llega ninguna comprobación
 # de comportamiento. `courseData` declaraba tres campos que la barra lateral
