@@ -262,6 +262,14 @@
       "citas": 0,
       "afirmaciones": {}
     },
+    "mas2018analisis": {
+      "rol": "complementaria",
+      "ejemplar": true,
+      "edicion_comprobada": "Portada interior y página de créditos (p. 6 del PDF): European Scientific Institute, «July, 2018», ISBN 978-608-4642-66-4. La misma página dice «Copyright c 2013 by the author»: se cita 2018, la fecha de publicación.",
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
     "moraga2019geospatial": {
       "rol": "complementaria",
       "ejemplar": true,
@@ -419,6 +427,14 @@
       "rol": "primaria",
       "ejemplar": false,
       "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "snow1855mode": {
+      "rol": "primaria",
+      "ejemplar": true,
+      "edicion_comprobada": "Portada (p. 5 del PDF): «Second Edition, much Enlarged», London, John Churchill, MDCCCLV (1855). Prefacio a la segunda edición en la p. 7 del PDF.",
       "capitulos": [],
       "citas": 0,
       "afirmaciones": {}

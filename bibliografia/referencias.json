@@ -1245,6 +1245,27 @@
     "volume": "15"
   },
   {
+    "ISBN": "978-608-4642-66-4",
+    "URL": "https://eujournal.org/files/journals/1/books/JeanFrancoisMas.pdf",
+    "author": [
+      {
+        "family": "Mas",
+        "given": "Jean-François"
+      }
+    ],
+    "id": "mas2018analisis",
+    "issued": {
+      "date-parts": [
+        [
+          "2018"
+        ]
+      ]
+    },
+    "publisher": "European Scientific Institute",
+    "title": "Análisis espacial con R: Usa R como un Sistema de Información Geográfica",
+    "type": "book"
+  },
+  {
     "DOI": "10.1201/9780429341823",
     "ISBN": "978-0-429-34182-3",
     "URL": "https://www.taylorfrancis.com/books/9781000732030",
@@ -2029,6 +2050,28 @@
     "publisher-place": "London ; New York",
     "source": "Library of Congress ISBN",
     "title": "Density estimation for statistics and data analysis",
+    "type": "book"
+  },
+  {
+    "URL": "https://archive.org/details/b28985266",
+    "author": [
+      {
+        "family": "Snow",
+        "given": "John"
+      }
+    ],
+    "edition": "2",
+    "id": "snow1855mode",
+    "issued": {
+      "date-parts": [
+        [
+          "1855"
+        ]
+      ]
+    },
+    "publisher": "John Churchill",
+    "publisher-place": "London",
+    "title": "On the mode of communication of cholera",
     "type": "book"
   },
   {

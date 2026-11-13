@@ -1,6 +1,6 @@
 # Obras por conseguir · Estadística Espacial (20929)
 
-Estado al 2026-11-12. Mientras una obra no tenga **ejemplar local** (PDF propio o de biblioteca, o
+Estado al 2026-11-12 (58 obras en Zotero). Mientras una obra no tenga **ejemplar local** (PDF propio o de biblioteca, o
 instantánea web registrada), la norma común solo la deja aparecer como lectura recomendada, sin
 localizador, o como cita de segunda mano (`data-via`). El auditor lo hace cumplir (F14).
 
@@ -11,7 +11,8 @@ localizador, o como cita de segunda mano (`data-via`). El auditor lo hace cumpli
 | `baddeley2015spatial` | PDF de Javier, 830 pp., desfase 19 | **Procedencia por confirmar** (el nombre del archivo tiene formato de biblioteca de descargas). Año: publicado 2015-11-11, © 2016 |
 | `pebesma2023spatial` | Instantánea de r-spatial.org/book (17 capítulos) | Se cita por sección, nunca por página |
 | `moraga2019geospatial` | Instantánea de 5 capítulos de paulamoraga.com/book-geospatial | Ídem |
-| Snow (1855), Mas (2018) | PDF abiertos ya descargados al corpus | Falta darlos de alta en Zotero (la pantalla se bloqueó a mitad del alta) |
+| `snow1855mode` | Escaneo de la Wellcome Library (archive.org), dominio público | OCR con erratas; desfase variable por las láminas |
+| `mas2018analisis` | PDF de acceso abierto de la editorial | Desfase 10 |
 
 ## Prioridad para el capítulo 1
 
