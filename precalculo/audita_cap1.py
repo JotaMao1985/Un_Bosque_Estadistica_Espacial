@@ -1017,108 +1017,285 @@ def main() -> int:
     a.cierto(ne["caso_n1000_rho001"] < 100,
              "con rho=0.01 y n=1000 queda menos del 10 %",
              f"{ne['caso_n1000_rho001']:.5f}")
-    for e in ne["exacto_campo"]:
-        a.igual(100 * e["n_eff"] / D["inferencia"]["n"], e["pct"],
-                f"campo phi={e['phi']}: porcentaje de información", 1e-6)
+
+    # --- La fórmula es exacta (R1, C1-18) ------------------------------
+    #
+    # Var(Zbar) = (sigma^2/n)[1 + (n-1) rho_medio] es una identidad, con
+    # rho_medio la correlación media entre pares. Así que el n_eff de la
+    # fórmula y el exacto del módulo 4 no «cuentan la misma historia»: son
+    # el mismo número, en cada phi. El rho medio se rehace AQUÍ desde la
+    # retícula, promediando rho(h) sobre el triángulo de pares, sin pasar
+    # por R ni por la suma 1'R1 de la sección 3.
+    N4 = inf["n"]
+    _tri = np.triu_indices(N4, 1)
+    a.igual(len(_tri[0]), N4 * (N4 - 1) // 2, "los pares de la retícula son n(n-1)/2")
+
+    def rho_medio(dist_pares, phi):
+        return 0.0 if phi <= 0 else float(np.exp(-dist_pares / phi).mean())
+
+    a.igual(len(ne["exacto_campo"]), len(fila), "un n_eff exacto por cada phi del módulo 4")
+    rho_de_phi = {}
+    for e, r in zip(ne["exacto_campo"], fila):
+        phi = e["phi"]
+        a.igual(phi, r["phi"], f"campo phi={phi}: el alcance es el de su fila del módulo 4")
+        a.igual(e["n_eff"], r["n_eff"], f"campo phi={phi}: el n_eff exacto es el del módulo 4")
+        a.igual(100 * e["n_eff"] / N4, e["pct"],
+                f"campo phi={phi}: porcentaje de información", 1e-6)
+        rm = rho_medio(_DIST[_tri], phi)
+        rho_de_phi[phi] = rm
+        a.igual(rm, e["rho_medio"], f"campo phi={phi}: rho medio rehecho desde la retícula", 1e-9)
+        a.igual(N4 / (1 + (N4 - 1) * rm), e["n_eff"],
+                f"campo phi={phi}: n/(1+(n-1) rho medio) ES el n_eff exacto", 1e-9)
+        a.igual(e["n_eff_formula"], e["n_eff"],
+                f"campo phi={phi}: y R publica los dos iguales", 1e-9)
     a.igual(ne["desercion_municipal"], ir["n_eff"], "el n_eff real coincide con el suyo")
     a.igual(ne["desercion_pct"], ir["pct_informacion"], "y su porcentaje también")
+    # El caso de la autoevaluación: el quiz no lleva ninguna cifra a mano,
+    # así que todas las que imprime tienen que salir de la rejilla.
+    cq = ne["caso_quiz"]
+    a.igual(cq["n"], ne["enes"][-1], "quiz: su n es el último de la rejilla")
+    a.cierto(cq["rho"] in ne["rhos"] and cq["rho_otro"] in ne["rhos"],
+             "quiz: sus dos rho están en la rejilla", f"{cq['rho']} y {cq['rho_otro']}")
+    a.igual(cq["n"] / (1 + (cq["n"] - 1) * cq["rho"]), cq["n_eff"], "quiz: su n_eff", 1e-9)
+    a.igual(ne["rejilla"][-1]["n_eff"][ne["rhos"].index(cq["rho"])], cq["n_eff"],
+            "quiz: que es el de la rejilla", 1e-9)
+    a.igual(round(cq["n_eff"]), cq["n_eff_redondo"], "quiz: la respuesta redondeada")
+    a.igual(cq["n"] - cq["n_eff_redondo"], cq["sobran"], "quiz: las observaciones que sobran")
+    a.igual(round(1 / cq["rho"]), cq["techo"], "quiz: el techo de su rho")
+    a.igual(round(1 / cq["rho_otro"]), cq["techo_otro"], "quiz: el techo del otro rho")
+    a.igual(round(100 * cq["rho"]), cq["pct_ingenuo"], "quiz: el porcentaje del distractor")
+    a.igual(round(cq["n"] * (1 - cq["rho"])), cq["ingenuo"], "quiz: el distractor ingenuo")
+    a.cierto(len({cq["n_eff_redondo"], cq["ingenuo"], cq["techo_otro"], cq["n"]}) == 4,
+             "quiz: las cuatro opciones son distintas")
+    a.cierto("rho_medio" in ne["formula"],
+             "la fórmula declarada habla del rho medio entre pares", ne["formula"][:40])
 
-    # --- Los dos rho del titular (T2.1) -------------------------------
+    # --- El rho medio que corresponde al titular -----------------------
     #
-    # El módulo publica DOS rho y su discrepancia, así que hay que verificar
-    # los dos por caminos distintos: el implícito es álgebra —se despeja de
-    # n_eff y tiene que devolverlo— y el estimado es una medición sobre el
-    # mapa, que se rehace aquí desde el GeoPackage original con geopandas y
-    # libpysal, sin pasar por R.
-    from libpysal.weights import DistanceBand, W
+    # Es un despeje, así que la ida y la vuelta cierran. Las tolerancias
+    # están MEDIDAS: el JSON redondea a diez decimales y ese 5e-11 se
+    # amplifica al volver por la fórmula (1.8e-07 medido -> 1e-5).
     rt = ne["rho_del_titular"]
     a.igual(rt["n"], ir["n_municipios"], "el rho del titular habla de los mismos municipios")
     a.igual(rt["n_eff_publicado"], ir["n_eff"], "y del mismo n_eff")
     nr = rt["n"]
-    # 1 · El implícito es un despeje, así que la ida y la vuelta cierran.
-    #
-    # LAS TOLERANCIAS DE ESTE BLOQUE ESTÁN MEDIDAS, NO ESTIMADAS, y son más
-    # anchas de lo que uno escribiría a ojo. El JSON redondea a diez
-    # decimales, y ese error de 5e-11 se AMPLIFICA al pasar por un cociente
-    # de rho pequeños o por la fórmula del n_eff:
-    #
-    #     despeje del implícito   4.3e-11   ->  1e-9   (23x de margen)
-    #     razón entre los dos rho 1.4e-07   ->  1e-5   (72x)
-    #     n_eff con el estimado   4.0e-06   ->  1e-3   (247x)
-    #     vuelta al n_eff titular 1.8e-07   ->  1e-5   (56x)
-    #
-    # El rho estimado vale 0.0021, así que un redondeo en la undécima cifra
-    # es un error relativo de 2e-8 — y multiplicado por 331 de n_eff, cuatro
-    # millonésimas. Escribir 1e-6 aquí habría puesto rojo un capítulo
-    # correcto, que es la forma más rápida de enseñar a ignorar el informe.
     a.igual((nr / rt["n_eff_publicado"] - 1) / (nr - 1), rt["implicito"],
-            "el rho implícito es el despeje de n_eff", 1e-9)
+            "el rho medio del titular es el despeje de n_eff", 1e-9)
     a.igual(nr / (1 + (nr - 1) * rt["implicito"]), rt["n_eff_publicado"],
             "y devuelve el n_eff del titular", 1e-5)
-    a.cierto(rt["implicito"] > rt["estimado"],
-             "el rho que la equicorrelación necesita supera al medido",
-             f"{rt['implicito']:.7f} > {rt['estimado']:.7f}")
-    a.igual(rt["implicito"] / rt["estimado"], rt["razon_rho"],
-            "la razón entre los dos rho", 1e-5)
-    a.igual(nr / (1 + (nr - 1) * rt["estimado"]), rt["n_eff_con_estimado"],
-            "el n_eff que daría el rho medido", 1e-3)
-    a.igual(rt["n_eff_con_estimado"] / rt["n_eff_publicado"], rt["razon_n_eff"],
-            "y la razón de información entre los dos", 1e-7)
+    # El despeje es APROXIMADO, y el capítulo cuantifica una de las razones:
+    # ee_iid sale de s², que se encoge con la correlación (E[s²] =
+    # sigma²(1 - rho medio), sección 3), así que el cociente de remuestreos
+    # estima n(1-rho)/(1+(n-1)rho). Se rehace el despeje de esa expresión.
+    neff_t = rt["n_eff_publicado"]
+    a.igual((nr - neff_t) / (nr + (nr - 1) * neff_t), rt["implicito_con_s2"],
+            "el rho medio del titular contando con que s² se encoge", 1e-9)
+    a.igual(nr * (1 - rt["implicito_con_s2"]) / (1 + (nr - 1) * rt["implicito_con_s2"]),
+            neff_t, "y devuelve el n_eff del titular por la otra expresión", 1e-5)
+    # 1e-7: cociente de dos rho de ~0.0146 redondeados a diez decimales
+    # (medido: 3,9e-9, 26 veces de holgura).
+    a.igual(100 * (1 - rt["implicito_con_s2"] / rt["implicito"]), rt["diferencia_s2_pct"],
+            "lo que la corrección por s² rebaja el rho medio, en %", 1e-7)
+    a.cierto(0 < rt["diferencia_s2_pct"] < 5, "y es una rebaja pequeña",
+             f"{rt['diferencia_s2_pct']:.5f} %")
+    # El «rho medido» —la I de Moran por bandas promediada por pares— se
+    # retiró en R1 porque no estima el rho medio (C1-19). Que no vuelva.
+    CLAVES_RT = {"n", "n_eff_publicado", "implicito", "implicito_con_s2", "diferencia_s2_pct"}
+    a.cierto(set(rt) == CLAVES_RT,
+             "el titular no publica ningún «rho medido» sobre el mapa",
+             ", ".join(sorted(set(rt) ^ CLAVES_RT)))
 
-    # 2 · El estimado, rehecho desde el original.
+    # --- Por qué el rho medio no se mide sobre el mapa (C1-19) ---------
     #
-    # Se lee el GeoPackage y la llave, no el CSV del generador: independencia
-    # TOTAL. Los puntos son `representative_point()` contra el
-    # `st_point_on_surface()` de sf — el mismo concepto en las dos
-    # bibliotecas—, y las bandas se construyen restando dos DistanceBand.
-    #
-    # LA CONVENCIÓN, que aquí no se puede esquivar. `spdep::moran.test` con
-    # `zero.policy = TRUE` toma n = unidades CON vecinos y `esda.Moran` toma
-    # n = todas: es la discrepancia `moran_islas` que el módulo 7 declara, y
-    # en la banda de 0 a 25 km son 156 islas de 1 121, así que cambia la I en
-    # la SEGUNDA cifra, no en la cuarta. Las dos convenciones se convierten
-    # exactamente una en otra, y por eso el capítulo publica `islas` por
-    # banda: sin ese entero, esta comprobación sería imposible y habría que
-    # declararla saltada.
+    # Centrando con la media muestral, el promedio de los productos cruzados
+    # de TODOS los pares, dividido por la varianza (con 1/n), vale -1/(n-1)
+    # para cualquier dato. El capítulo lo publica medido sobre las réplicas
+    # del módulo 4; aquí se comprueba lo publicado y se rehace la medición
+    # con réplicas PROPIAS —otro generador, otra semilla—, por fuerza bruta
+    # sobre la matriz de productos.
+    cz = ne["centrado"]
+    i4c = [i for i, r in enumerate(fila) if r["phi"] == cz["phi"]]
+    a.cierto(len(i4c) == 1 and cz["phi"] == 4, "la demostración corre con phi = 4",
+             str(cz["phi"]))
+    a.igual(cz["n"], N4, "sobre la retícula del módulo 4")
+    a.igual(cz["nrep"], inf["nrep"], "y con sus mismas réplicas")
+    a.igual(cz["media"], 0, "la media verdadera del proceso simulado es 0")
+    a.igual(cz["varianza"], inf["sigma"] ** 2, "y su varianza, la del módulo 4")
+    a.igual(rho_de_phi[cz["phi"]], cz["rho_medio_verdadero"],
+            "el rho medio verdadero, rehecho desde la retícula", 1e-9)
+    a.igual(-1 / (N4 - 1), cz["menos_inv_n1"], "-1/(n-1) con n = 256", 1e-9)
+    a.igual(cz["centrado_min"], cz["menos_inv_n1"],
+            "el menor promedio centrado de las réplicas es -1/(n-1)", 1e-9)
+    a.igual(cz["centrado_max"], cz["menos_inv_n1"],
+            "y el mayor también", 1e-9)
+    a.cierto(0 <= cz["desviacion_max"] <= 1e-9,
+             "la desviación máxima respecto de -1/(n-1) es redondeo",
+             f"{cz['desviacion_max']:.1e}")
+
+    def pares_medios(z):
+        """Media de z_i z_j sobre los n(n-1) pares i != j, por fuerza bruta."""
+        return (np.outer(z, z).sum() - (z ** 2).sum()) / (len(z) * (len(z) - 1))
+
+    def centrado(z):
+        zc = z - z.mean()
+        return pares_medios(zc) / (zc ** 2).mean()
+
+    NREP_A = 3000
+    _R4 = np.exp(-_DIST / cz["phi"])
+    _L4 = np.linalg.cholesky(_R4 + 1e-9 * np.eye(N4))
+    _Z = _L4 @ np.random.default_rng(20929).standard_normal((N4, NREP_A))
+    cen_a = np.array([centrado(_Z[:, k]) for k in range(NREP_A)])
+    a.cierto(np.abs(cen_a + 1 / (N4 - 1)).max() < 1e-9,
+             "en réplicas propias el promedio centrado también es -1/(n-1)",
+             f"desvío máx. {np.abs(cen_a + 1 / (N4 - 1)).max():.1e} en {NREP_A}")
+    # Con la media VERDADERA (0) y la varianza verdadera (1) el promedio sí
+    # apunta al rho medio, pero con una dispersión entre réplicas mayor que
+    # el propio valor. Es una forma cuadrática z'Az de una normal, así que
+    # su desviación típica tiene fórmula: sqrt(2 tr((AR)^2)).
+    cmv = cz["con_media_verdadera"]
+    a.cierto(abs(cmv["media"] - cz["rho_medio_verdadero"]) <= 4 * cmv["emc"],
+             "con la media verdadera el promedio apunta al rho medio",
+             f"{cmv['media']:.5f} ± {cmv['emc']:.5f} frente a {cz['rho_medio_verdadero']:.5f}")
+    a.igual(cmv["sd"] / math.sqrt(cz["nrep"]), cmv["emc"],
+            "su error de Monte Carlo es sd/sqrt(réplicas)", 1e-9)
+    _A = (np.ones((N4, N4)) - np.eye(N4)) / (N4 * (N4 - 1))
+    _AR = _A @ _R4
+    sd_teo = math.sqrt(2 * np.trace(_AR @ _AR))
+    # 12 %: la sd de una variable casi ji-cuadrado de 1 g.l., estimada con
+    # 3 000 réplicas, tiene un error relativo de ~3,4 %.
+    a.cierto(abs(cmv["sd"] - sd_teo) <= 0.12 * sd_teo,
+             "su desviación típica entre réplicas cuadra con la teórica",
+             f"{cmv['sd']:.5f} frente a {sd_teo:.5f}")
+    a.cierto(cmv["sd"] > cz["rho_medio_verdadero"],
+             "y supera al valor que se quiere estimar",
+             f"{cmv['sd']:.5f} > {cz['rho_medio_verdadero']:.5f}")
+    con_mu_a = np.array([pares_medios(_Z[:, k] - cz["media"]) / cz["varianza"]
+                         for k in range(NREP_A)])
+    a.cierto(abs(con_mu_a.mean() - cz["rho_medio_verdadero"])
+             <= 4 * con_mu_a.std(ddof=1) / math.sqrt(NREP_A),
+             "en réplicas propias también apunta al rho medio",
+             f"{con_mu_a.mean():.5f}")
+    # El porcentaje de réplicas con promedio negativo se contrasta contra una
+    # referencia mucho más fina que las 3 000 réplicas de arriba: 200 000
+    # réplicas propias, con el promedio por su forma cerrada
+    # ((suma)² - suma de cuadrados) / (n(n-1)), que para esto no hay nada que
+    # demostrar por fuerza bruta. La referencia tiene un error típico de 0,07
+    # puntos; el de R, con 3 000 réplicas, es sqrt(0,098 · 0,902 / 3000) =
+    # 0,54 puntos. Se exigen 2 puntos, 3,7 errores típicos. Con las 3 000
+    # réplicas de antes como referencia y 3 puntos de margen, un 13 % pasaba.
+    _ZG = _L4 @ np.random.default_rng(929).standard_normal((N4, 200_000))
+    _ZG = (_ZG - cz["media"]) / math.sqrt(cz["varianza"])
+    con_mu_g = (_ZG.sum(0) ** 2 - (_ZG ** 2).sum(0)) / (N4 * (N4 - 1))
+    pct_neg_g = 100 * float((con_mu_g < 0).mean())
+    a.cierto(abs(pct_neg_g - cmv["pct_negativas"]) <= 2,
+             "el porcentaje de réplicas con promedio negativo, rehecho",
+             f"{pct_neg_g:.2f} frente a {cmv['pct_negativas']:.2f}")
+
+    # Y sobre el dato real, leído del GeoPackage y de la llave, no del CSV
+    # del generador.
     gm = gpd.read_file(PROCESADO / "colombia_adm2.gpkg")
     llave = pd.read_csv(PROCESADO / "municipios_llave.csv", dtype=str)
     gm = gm.merge(llave[["shapeID", "desercion"]], on="shapeID", how="left")
     gm["desercion"] = pd.to_numeric(gm["desercion"], errors="coerce")
-    gm = gm[gm["desercion"].notna()].reset_index(drop=True)
-    a.igual(len(gm), rt["n"], "los municipios con dato, contados por geopandas")
-    ptos = gm.geometry.representative_point()
-    xy_m = np.c_[ptos.x.values, ptos.y.values]
-    y_m = gm["desercion"].to_numpy()
-    a.igual(len(rt["bandas"]), rt["n_bandas"], "el correlograma trae las bandas que declara")
-    suma_pares = suma_I = 0.0
-    for b in rt["bandas"]:
-        etq = f"rho {b['d1']}-{b['d2']} km"
-        vec = DistanceBand(xy_m, threshold=b["d2"] * 1000, binary=True,
-                           silence_warnings=True).neighbors
-        if b["d1"] > 0:
-            dentro = DistanceBand(xy_m, threshold=b["d1"] * 1000, binary=True,
-                                  silence_warnings=True).neighbors
-            vec = {k: sorted(set(vec[k]) - set(dentro[k])) for k in vec}
-        a.igual(sum(len(v) for v in vec.values()) / 2, b["pares"], f"{etq}: los pares")
-        a.igual(sum(1 for v in vec.values() if not v), b["islas"], f"{etq}: las islas")
-        w = W(vec, silence_warnings=True)
-        w.transform = "r"
-        # 1e-9: la I publicada viene redondeada a diez decimales, y la
-        # conversión de convención no añade error propio (medido: 5e-11).
-        a.igual(Moran(y_m, w, permutations=0).I, b["I"] * nr / (nr - b["islas"]),
-                f"{etq}: la I de Moran, con la convención de esda", 1e-9)
-        suma_pares += b["pares"]
-        suma_I += b["I"] * b["pares"]
-    a.igual(suma_pares, rt["pares_totales"], "los pares del correlograma suman los declarados")
-    a.igual(suma_I / suma_pares, rt["estimado"],
-            "el rho estimado es la media de las I ponderada por pares", 1e-9)
-    a.igual(rt["bandas"][0]["I"], rt["I_primera_banda"],
-            "la I de la primera banda que publica la prosa")
-    a.igual(sum(b["pares"] for b in rt["bandas"] if b["I"] < 0), rt["pares_lejanos"],
-            "los pares con correlación negativa que cita la prosa")
-    a.cierto(rt["bandas"][0]["I"] > 10 * rt["estimado"],
-             "entre vecinos la correlación supera su promedio",
-             f"{rt['bandas'][0]['I']:.5f} contra {rt['estimado']:.7f}")
+    y_m = gm.loc[gm["desercion"].notna(), "desercion"].to_numpy()
+    cc = cz["colombia"]
+    a.igual(len(y_m), cc["n"], "los municipios con dato, contados por geopandas")
+    a.igual(cc["n"], rt["n"], "que son los del titular")
+    a.igual(-1 / (cc["n"] - 1), cc["menos_inv_n1"], "-1/(n-1) con los municipios", 1e-9)
+    a.igual(centrado(y_m), cc["centrado"],
+            "el promedio centrado de la deserción, rehecho", 1e-9)
+    a.igual(cc["centrado"], cc["menos_inv_n1"], "que es -1/(n-1)", 1e-9)
+
+    # --- El techo, rellenando o ampliando (C1-21) ----------------------
+    #
+    # «n_eff tiende a 1/rho» solo vale con el rho medio fijo. Las dos
+    # configuraciones se reconstruyen aquí: la misma región de lado 16
+    # partida en k x k celdas con la observación en el CENTRO de cada una
+    # (relleno) y paso 1 con k celdas por lado (ampliación).
+    from scipy.spatial.distance import pdist
+    tc = ne["techo"]
+    Lr = tc["lado_relleno"]
+    a.igual(tc["phi"], cz["phi"], "la tabla del techo usa el mismo alcance")
+    a.igual(Lr, inf["k"], "la región del relleno es la de las celdas del módulo 4")
+    a.igual(tc["paso_ampliacion"], 1, "y la ampliación va a paso 1, como aquella retícula")
+    a.cierto([f["k"] for f in tc["rejilla"]] == list(tc["ks"]),
+             "la tabla trae una fila por cada k declarado", str(tc["ks"]))
+    for f in tc["rejilla"]:
+        k = f["k"]
+        a.igual(k * k, f["n"], f"techo k={k}: n = k²")
+        g = np.array([(x, y) for y in range(k) for x in range(k)], float)
+        for modo, xy_t in (("relleno", (g + 0.5) * Lr / k),
+                           ("ampliacion", g * tc["paso_ampliacion"])):
+            rm = rho_medio(pdist(xy_t), tc["phi"])
+            a.igual(rm, f[modo]["rho_medio"], f"techo k={k}, {modo}: rho medio", 1e-9)
+            # 1e-7: el n_eff llega hasta 48 y la media de 8 millones de
+            # pares difiere entre R y numpy en la undécima cifra.
+            a.igual(f["n"] / (1 + (f["n"] - 1) * rm), f[modo]["n_eff"],
+                    f"techo k={k}, {modo}: n_eff", 1e-7)
+        if k == inf["k"]:
+            for modo in ("relleno", "ampliacion"):
+                a.igual(f[modo]["n_eff"], inf["n_eff_phi4"],
+                        f"techo k={k}, {modo}: es la retícula del módulo 4", 1e-8)
+    tf = tc["rejilla"]
+    a.cierto(inf["k"] in tc["ks"], "la retícula del módulo 4 está en la tabla")
+
+    # El límite del relleno: rho_inf = E[rho(|U-V|)] con U y V uniformes en
+    # el cuadrado. R lo saca de una integral doble con `integrate`; aquí va
+    # por DOS caminos que no comparten nada con ese:
+    #   · una cuadratura de punto medio de 4000 x 4000 sobre la misma
+    #     integral (error medido 3,8e-9 -> 1e-7, 26 veces de holgura);
+    #   · un Monte Carlo que no usa la integral: 4 millones de pares de
+    #     puntos al azar en el cuadrado (error típico 9e-5; se exigen 4).
+    _m = 4000
+    _x = (np.arange(_m) + 0.5) * Lr / _m
+    _X, _Y = np.meshgrid(_x, _x)
+    rho_inf_q = float((4 / Lr ** 4) * (np.exp(-np.hypot(_X, _Y) / tc["phi"])
+                                       * (Lr - _X) * (Lr - _Y)).sum() * (Lr / _m) ** 2)
+    a.igual(rho_inf_q, tc["rho_inf"], "rho_inf del relleno, por cuadratura propia", 1e-7)
+    _rng = np.random.default_rng(20929)
+    _N = 4_000_000
+    _d = _rng.uniform(0, Lr, (_N, 2)) - _rng.uniform(0, Lr, (_N, 2))
+    _r = np.exp(-np.hypot(_d[:, 0], _d[:, 1]) / tc["phi"])
+    _se = float(_r.std(ddof=1) / math.sqrt(_N))
+    a.cierto(abs(_r.mean() - tc["rho_inf"]) <= 4 * _se,
+             "rho_inf del relleno, por Monte Carlo de pares al azar",
+             f"{_r.mean():.5f} ± {_se:.5f} frente a {tc['rho_inf']:.5f}")
+    a.igual(1 / tc["rho_inf"], tc["techo_inf"], "el techo del relleno es 1/rho_inf", 1e-7)
+
+    # Lo que el capítulo afirma del relleno es ESTANCAMIENTO. Las cotas son
+    # las del generador, y están medidas: el último salto mueve el n_eff un
+    # 0,059 % (se exige < 0,25 %, cuatro veces) y a la última fila le falta
+    # un 0,017 % para 1/rho_inf (se exige < 0,1 %, casi seis veces).
+    a.igual(100 * (tf[-1]["relleno"]["n_eff"] / tf[-2]["relleno"]["n_eff"] - 1),
+            tc["ultimo_salto_pct"], "el último salto del relleno, en %", 1e-6)
+    a.igual(100 * (1 - tf[-1]["relleno"]["n_eff"] / tc["techo_inf"]),
+            tc["falta_techo_pct"], "lo que le falta a la última fila para su techo, en %", 1e-6)
+    a.cierto(abs(tc["ultimo_salto_pct"]) < 0.25,
+             "al rellenar el n_eff se estanca: el último salto es pequeño",
+             f"{tc['ultimo_salto_pct']:.5f} %")
+    a.cierto(0 <= tc["falta_techo_pct"] < 0.1,
+             "y la última fila está en 1/rho_inf, por debajo",
+             f"{tc['falta_techo_pct']:.5f} %")
+    a.cierto(all(f["relleno"]["n_eff"] <= tc["techo_inf"] for f in tf),
+             "con este diseño ninguna fila del relleno supera 1/rho_inf")
+    a.cierto(all(abs(tf[i + 1]["relleno"]["rho_medio"] - tc["rho_inf"])
+                 < abs(tf[i]["relleno"]["rho_medio"] - tc["rho_inf"])
+                 for i in range(len(tf) - 1)),
+             "al rellenar el rho medio se acerca a rho_inf fila a fila")
+
+    a.igual(tf[-1]["n"] / tf[0]["n"], tc["factor_n"], "por cuánto se multiplica n")
+    a.igual(tf[-1]["relleno"]["n_eff"] / tf[0]["relleno"]["n_eff"], tc["factor_relleno"],
+            "por cuánto se multiplica n_eff al rellenar", 1e-8)
+    a.igual(tf[-1]["ampliacion"]["n_eff"] / tf[0]["ampliacion"]["n_eff"],
+            tc["factor_ampliacion"], "y al ampliar", 1e-7)
+    a.cierto(all(tf[i]["ampliacion"]["rho_medio"] > tf[i + 1]["ampliacion"]["rho_medio"]
+                 and tf[i]["ampliacion"]["n_eff"] < tf[i + 1]["ampliacion"]["n_eff"]
+                 for i in range(len(tf) - 1)),
+             "al ampliar el rho medio cae y el n_eff crece")
+    # Medido: 1,019 al rellenar y 19,18 al ampliar, con n x 64 en los dos.
+    a.cierto(abs(tc["factor_relleno"] - 1) < 0.05 and tc["factor_ampliacion"] > 10,
+             "multiplicar n apenas mueve el n_eff al rellenar y sí al ampliar",
+             f"{tc['factor_relleno']:.5f} y {tc['factor_ampliacion']:.5f}")
 
     # =================================================================
     a.titulo("5 · Una realización frente a muchas")

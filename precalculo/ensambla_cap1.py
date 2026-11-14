@@ -105,6 +105,9 @@ co, tb, inf = D["colombia"], D["tobler"], D["inferencia"]
 ir, ne, ur = D["inferencia_real"], D["n_efectivo"], D["una_realizacion"]
 rv = D["realizaciones_vistas"]
 rt = ne["rho_del_titular"]
+# Módulo 5: la demostración del centrado y la tabla del techo. `rt` conserva
+# solo el rho medio que corresponde al titular; el «rho medido» se retiró.
+cz, tc = ne["centrado"], ne["techo"]
 es, ec, ag = D["escala"], D["escala_correlacion"], D["agregacion"]
 eco, an, cv = D["ecosistema"], D["anatomia"], D["cv_espacial"]
 sop = ac["soporte"]
@@ -1102,6 +1105,12 @@ if r4 is None:
     sys.exit("PARADO: inferencia.rejilla ya no trae la fila de phi = 4, y de ella "
              "salen todas las cifras del módulo 4.\n"
              f"        Alcances disponibles: {[f['phi'] for f in inf['rejilla']]}")
+# La fila gemela del módulo 5 —el n_eff exacto y el de la fórmula con su rho
+# medio—, buscada por el mismo valor y no por posición, por lo mismo.
+e4 = next((e for e in ne["exacto_campo"] if e["phi"] == r4["phi"]), None)
+if e4 is None:
+    sys.exit("PARADO: n_efectivo.exacto_campo ya no trae la fila de phi = 4, y el "
+             "módulo 5 compara sobre ella el n_eff exacto con el de la fórmula.")
 MOD4 = cabecera(
     4, "Por qué se rompe la inferencia clásica", "Broken standard errors",
     "Medir cuánto miente un intervalo de confianza calculado como si las "
@@ -1270,12 +1279,20 @@ print(f"n = {len(x)}, {len(grupos)} bloques, "
 # =====================================================================
 # MÓDULO 5 · Tamaño de muestra efectivo
 # =====================================================================
+# Las filas de la tabla «rellenar frente a ampliar». Se montan fuera del
+# f-string del módulo porque llevan un bucle; las cifras, todas de R.
+FILAS_TECHO = "\n".join(
+    f"""          <tr><th scope="row">{f['k']}</th><td>{ent(f['n'])}</td>
+            <td>{n(f['relleno']['rho_medio'])}</td><td>{n(f['relleno']['n_eff'])}</td>
+            <td>{n(f['ampliacion']['rho_medio'])}</td><td>{n(f['ampliacion']['n_eff'])}</td></tr>"""
+    for f in tc["rejilla"])
+
 MOD5 = cabecera(
     5, "Tamaño de muestra efectivo", "Effective sample size",
     "Traducir «hay dependencia» a una cifra que se entienda: cuántas "
     "observaciones independientes valen las que tienes.") + f"""
       <p>El módulo 4 dejó una pregunta incómoda: si el intervalo honesto es {n(ir['factor'])} veces más ancho, ¿de
-        cuántos municipios estamos hablando en realidad? El <strong>tamaño de muestra efectivo</strong> responde
+        cuántos municipios se trata en realidad? El <strong>tamaño de muestra efectivo</strong> responde
         justo eso.</p>
 
       <p>La respuesta para Colombia, primero, y la fórmula después. Los <strong>{ent(ne['desercion_n'])}</strong>
@@ -1284,86 +1301,253 @@ MOD5 = cabecera(
         tener.</p>
 
       <div class="definition">
-        <h3>De dónde sale ese 5 %</h3>
-        <p>Se define \\(n_{{\\text{{eff}}}}\\) como el número de observaciones independientes que darían la misma
-          varianza de la media. Con correlación constante \\(\\rho\\) entre todos los pares,</p>
-        <p style="text-align:center;">$$n_{{\\text{{eff}}}} = \\frac{{n}}{{1 + (n-1)\\rho}}$$</p>
-        <p style="margin-bottom:0;">Y con eso a la vista aparece lo que de verdad enseña este módulo: cuando
-          \\(n \\to \\infty\\), \\(n_{{\\text{{eff}}}} \\to 1/\\rho\\). <strong>Hay un techo.</strong> Con
-          \\(\\rho = 0.01\\) —una correlación que nadie llamaría preocupante— ese techo son 100 observaciones,
-          da igual cuántas se recojan.</p>
+        <h3>Qué cuenta el tamaño efectivo</h3>
+        <p>Se define \\(n_{{\\text{{eff}}}}\\) como el número de observaciones <em>independientes</em> que darían la
+          misma varianza de la media que las \\(n\\) observaciones correlacionadas que se tienen. Si todas tienen
+          la misma varianza, ese número tiene fórmula cerrada:</p>
+        <p style="text-align:center;">$$n_{{\\text{{eff}}}} = \\frac{{n}}{{1 + (n-1)\\,\\bar{{\\rho}}}}$$</p>
+        <p style="text-align:center;">$$\\bar{{\\rho}} = \\frac{{1}}{{n(n-1)}} \\sum_{{i \\neq j}} \\rho_{{ij}}$$</p>
+        <p style="margin-bottom:0;">Aquí \\(\\rho_{{ij}}\\) es la correlación entre las observaciones \\(i\\) y
+          \\(j\\) —si solo depende de la distancia que las separa, \\(\\rho(h_{{ij}})\\)— y \\(\\bar{{\\rho}}\\) es su
+          <strong>media sobre todos los pares</strong>. La fórmula no es una aproximación ni exige que todos los
+          pares se parezcan lo mismo: <strong>es una identidad</strong>. La correlación puede decaer con la
+          distancia, como en el correlograma del módulo 3; a la varianza de la media solo le llega su promedio.</p>
       </div>
+
+      <div class="derivacion">
+        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-n-eff">
+          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+          <span class="derivacion-texto">Ver de dónde sale \\(n_{{\\text{{eff}}}} = n/(1+(n-1)\\bar{{\\rho}})\\)</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="derivacion-panel" id="der-n-eff" hidden>
+          <ol class="derivacion-pasos">
+            <li>
+              <p>La media es una suma dividida entre \\(n\\), y la varianza de una suma es la suma de
+                <strong>todas</strong> las covarianzas: cada observación con cada una, incluida ella misma.</p>
+              $$\\operatorname{{Var}}(\\bar{{Z}}) = \\frac{{1}}{{n^2}} \\sum_{{i=1}}^{{n}} \\sum_{{j=1}}^{{n}}
+                \\operatorname{{Cov}}(Z_i, Z_j)$$
+            </li>
+            <li>
+              <p>En esa suma doble hay dos clases de términos. Los \\(n\\) de la diagonal, con \\(i = j\\), son
+                varianzas. Los \\(n(n-1)\\) restantes son covarianzas entre observaciones distintas, y si todas
+                tienen la misma varianza \\(\\sigma^2\\) cada una vale \\(\\sigma^2 \\rho_{{ij}}\\). Es el único
+                supuesto de todo el desarrollo.</p>
+              $$\\operatorname{{Var}}(\\bar{{Z}}) = \\frac{{1}}{{n^2}} \\Bigl( n\\,\\sigma^2 +
+                \\sigma^2 \\sum_{{i \\neq j}} \\rho_{{ij}} \\Bigr)$$
+            </li>
+            <li>
+              <p>La suma de las correlaciones es el número de pares por su media,
+                \\(\\sum_{{i \\neq j}} \\rho_{{ij}} = n(n-1)\\,\\bar{{\\rho}}\\). Eso no supone que las
+                \\(\\rho_{{ij}}\\) sean iguales: solo le pone nombre a su promedio.</p>
+              $$\\operatorname{{Var}}(\\bar{{Z}}) = \\frac{{\\sigma^2}}{{n}} \\bigl[ 1 + (n-1)\\,\\bar{{\\rho}} \\bigr]$$
+            </li>
+            <li>
+              <p>Con \\(m\\) observaciones independientes la varianza de la media sería \\(\\sigma^2/m\\). El
+                tamaño efectivo es el \\(m\\) que iguala las dos.</p>
+              $$\\frac{{\\sigma^2}}{{n_{{\\text{{eff}}}}}} = \\frac{{\\sigma^2}}{{n}} \\bigl[ 1 + (n-1)\\,\\bar{{\\rho}} \\bigr]
+                \\quad\\Longrightarrow\\quad n_{{\\text{{eff}}}} = \\frac{{n}}{{1 + (n-1)\\,\\bar{{\\rho}}}}$$
+            </li>
+          </ol>
+          <p class="derivacion-resultado">El corchete del paso 3 es el mismo del módulo 4, que lo dejó escrito
+            como \\(1 + \\tfrac{{1}}{{n}}\\sum_{{i \\neq j}} \\rho_{{ij}}\\): es el efecto de diseño, las veces que la
+            varianza de la media supera a la que habría con independencia. Y como la suma doble del paso 1 recorre
+            la matriz de covarianzas entera, calcular \\(n_{{\\text{{eff}}}}\\) con esa matriz o con
+            \\(\\bar{{\\rho}}\\) es hacer la misma cuenta por dos caminos.</p>
+        </div>
+      </div>
+
+      <p>Con la fórmula a la vista aparece lo que enseña este módulo. Si \\(\\bar{{\\rho}}\\) se mantiene fijo
+        mientras \\(n\\) crece, \\(n_{{\\text{{eff}}}} \\to 1/\\bar{{\\rho}}\\): <strong>hay un techo.</strong> Con
+        \\(\\bar{{\\rho}} = {ne['rhos'][1]}\\) —una correlación media que nadie llamaría preocupante— ese techo son
+        {ent(1 / ne['rhos'][1])} observaciones. La condición «si \\(\\bar{{\\rho}}\\) se mantiene fijo» no es un
+        tecnicismo: se examina justo después del simulador.</p>
 
       <div class="simulador" data-simulador="n-efectivo">
         <h4><i class="fas fa-compress" aria-hidden="true"></i> El techo de la información</h4>
-        <p class="simulador-intro">Mueve \\(\\rho\\) y mira cuánto aporta pasar de
+        <p class="simulador-intro">Mueve \\(\\bar{{\\rho}}\\) y mira cuánto aporta pasar de
           {ent_mate(ne['enes'][0])} a {ent_mate(ne['enes'][-1])} observaciones: la curva se despega de la
-          diagonal —el caso sin correlación— y se aplasta contra el techo \\(1/\\rho\\), que se mueve con el
-          deslizador. El rombo es Colombia, y ahora lleva <strong>dos curvas fijas</strong> detrás: la del
-          \\(\\rho\\) que <em>implica</em> ese {n(ne['desercion_municipal'])} —pasa por el rombo, porque de ahí se
-          despeja— y la del \\(\\rho\\) <em>medido</em> sobre el mapa, que pasa muy por encima. La distancia entre
-          las dos es el asunto del recuadro de abajo.</p>
+          diagonal —el caso sin correlación— y se aplasta contra el techo \\(1/\\bar{{\\rho}}\\), que se mueve con
+          el deslizador. Cada curva mantiene \\(\\bar{{\\rho}}\\) fijo a lo largo de todo el eje. El rombo es
+          Colombia, y la curva fija que pasa por él es la del \\(\\bar{{\\rho}}\\) que corresponde a ese
+          {n(ne['desercion_municipal'])}; de dónde sale se explica más abajo.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:300px;">
-          <canvas aria-label="Tamaño de muestra efectivo frente al número de observaciones, para la correlación que fija el deslizador, con el techo un partido por rho, la diagonal sin correlación, el punto de Colombia y las dos curvas de referencia: la del rho implícito, que pasa por ese punto, y la del rho medido en el mapa, que pasa por encima" role="img"></canvas>
+          <canvas aria-label="Tamaño de muestra efectivo frente al número de observaciones, para la correlación media entre pares que fija el deslizador, con el techo uno partido por esa correlación media, la diagonal sin correlación, el punto de Colombia y la curva de la correlación media que corresponde a ese punto, que pasa por él" role="img"></canvas>
         </div>
         <div class="simulador-lectura"></div>
       </div>
 
-      <p>Con \\(n = {ent_mate(ne['enes'][-1])}\\) y \\(\\rho = {ne['rhos'][1]}\\) el tamaño efectivo es
+      <p>Con \\(n = {ent_mate(ne['enes'][-1])}\\) y \\(\\bar{{\\rho}} = {ne['rhos'][1]}\\) el tamaño efectivo es
         <strong>{n(ne['rejilla'][-1]['n_eff'][1])}</strong>: el
         <strong>{n(ne['rejilla'][-1]['pct'][1])}&nbsp;%</strong>. Y con
-        \\(\\rho = {ne['rhos'][4]}\\) baja a <strong>{n(ne['rejilla'][-1]['n_eff'][4])}</strong>. Mil observaciones
-        que valen por diez.</p>
-
-      <div class="definition">
-        <h3>De dónde sale el {n(ne['desercion_municipal'])}, y qué \\(\\rho\\) hay detrás</h3>
-        <p>Ninguno. Esa cifra <strong>no viene de estimar un \\(\\rho\\)</strong>: viene del módulo 4, del cociente
-          entre los dos remuestreos, \\(n \\cdot (ee_{{\\text{{iid}}}}/ee_{{\\text{{bloques}}}})^2\\). La
-          equicorrelación no interviene en ningún paso. Así que la pregunta honesta no es cuál es el \\(\\rho\\)
-          escondido —no lo hay— sino <strong>cuáles son los dos \\(\\rho\\) que se pueden poner ahí</strong>, y en
-          qué se separan.</p>
-        <ul>
-          <li><strong>El \\(\\rho\\) implícito, {n(rt['implicito'])}.</strong> El que la equicorrelación
-            <em>necesitaría</em> para explicar la pérdida medida. Se despeja de la fórmula,
-            \\(\\rho = (n/n_{{\\text{{eff}}}} - 1)/(n-1)\\), así que reproduce el
-            {n(ne['desercion_municipal'])} por construcción. <strong>No es una estimación de nada:</strong> es una
-            retro-transformación, y por eso su curva pasa por el rombo — no puede no pasar.</li>
-          <li><strong>El \\(\\rho\\) medido, {n(rt['estimado'])}.</strong> La correlación media entre pares,
-            estimada sobre el mapa con el mismo método del ejercicio 3: un correlograma de
-            {ent(rt['n_bandas'])} bandas, la I de Moran de cada una y el promedio ponderado por sus pares. Con él,
-            los {ent(ne['desercion_n'])} municipios informarían como <strong>{n(rt['n_eff_con_estimado'])}</strong>,
-            no como {n(ne['desercion_municipal'])}.</li>
-        </ul>
-        <p style="margin-bottom:0;">Se separan un factor <strong>{n(rt['razon_rho'])}</strong> en \\(\\rho\\) y
-          <strong>{n(rt['razon_n_eff'])}</strong> en información. Y esa discrepancia no es un fallo del montaje:
-          <strong>es la medida del supuesto</strong>. Sigue leyendo.</p>
-      </div>
+        \\(\\bar{{\\rho}} = {ne['rhos'][4]}\\) baja a <strong>{n(ne['rejilla'][-1]['n_eff'][4])}</strong>. Mil
+        observaciones que valen por diez.</p>
 
       <div class="warning">
-        <p><strong>La fórmula supone equicorrelación, y eso es falso en el espacio.</strong>
-          El correlograma del módulo 3 dice justo lo contrario: la correlación decae con la distancia. Así que
-          \\(n_{{\\text{{eff}}}}\\) sirve como <strong>orden de magnitud</strong> y como argumento —«no tengo
-          {ent(ne['desercion_n'])} datos, tengo el {n(ne['desercion_pct'])}&nbsp;% de esa información»—, no como cifra de
-          diseño muestral. El cálculo exacto necesita la matriz de covarianzas entera, y eso llega en el capítulo 9.
-          Se dice aquí y no en una nota al pie porque es la clase de matiz que se pierde al citar.</p>
-        <p style="margin-bottom:0;"><strong>Y ahora esa advertencia trae número.</strong> Mira por qué se separan
-          los dos \\(\\rho\\). Entre municipios vecinos —la primera banda, de 0 a
-          {ent(rt['bandas'][0]['d2'])}&nbsp;km— la I vale <strong>{n(rt['I_primera_banda'])}</strong>, que es mucho;
-          pero entre {ent(rt['bandas'][4]['d1'])} y {ent(rt['bandas'][5]['d2'])}&nbsp;km se vuelve
-          <em>negativa</em>, y ahí están {ent(rt['pares_lejanos'])} de los {ent(rt['pares_totales'])} pares. La
-          equicorrelación obliga a resumir todo eso en <strong>un</strong> número, y el promedio se hunde hacia
-          cero. Por eso el \\(\\rho\\) que haría falta para explicar la pérdida real es
-          {n(rt['razon_rho'])} veces el que se mide: no es que la medición falle, es que
-          <strong>el supuesto no cabe en el dato</strong>. Un \\(\\rho\\) solo no puede describir a la vez a los
-          vecinos y a los municipios que están a {ent(rt['bandas'][6]['d2'])}&nbsp;km.</p>
+        <p><strong>Que haya techo depende de cómo se añadan los datos.</strong> \\(\\bar{{\\rho}}\\) no es una
+          constante del fenómeno: es el promedio de \\(\\rho(h)\\) sobre los pares que se tienen, y cambia cuando
+          cambian los pares. Hay dos maneras de pasar de {ent(tc['rejilla'][0]['n'])} a
+          {ent(tc['rejilla'][-1]['n'])} observaciones, y llevan a sitios opuestos.</p>
+        <ul style="margin-bottom:0;">
+          <li><strong>Rellenar.</strong> La región no cambia y la red se hace más densa. Las distancias entre
+            pares se reparten cada vez más como las de dos puntos tomados al azar dentro de la región, así que
+            \\(\\bar{{\\rho}}\\) tiende a una constante positiva, \\(\\bar{{\\rho}}_\\infty\\), que solo
+            depende de la región y de \\(\\rho(h)\\). Esa constante es la que crea el techo:
+            \\(n_{{\\text{{eff}}}}\\) se estanca en \\(1/\\bar{{\\rho}}_\\infty\\).</li>
+          <li><strong>Ampliar.</strong> La separación entre observaciones no cambia y la región crece. Entran
+            pares cada vez más lejanos y los cercanos pesan cada vez menos en el promedio, así que
+            \\(\\bar{{\\rho}}\\) cae hacia cero: no hay techo.</li>
+        </ul>
       </div>
 
-      <p>Sobre el campo simulado del módulo 4 la cuenta se puede hacer <em>exacta</em>, porque la covarianza se
-        conoce. Con \\(\\phi = {r4['phi']}\\), las {inf['n']} celdas valen
-        <strong>{n(ne['exacto_campo'][4]['n_eff'])}</strong>: un
-        {n(ne['exacto_campo'][4]['pct'])}&nbsp;% de la información. La aproximación por equicorrelación y el cálculo
-        exacto cuentan la misma historia.</p>
+      <p>La tabla hace las dos cuentas sobre el campo del módulo 4, con \\(\\rho(h) = e^{{-h/\\phi}}\\) y
+        \\(\\phi = {tc['phi']}\\). Al rellenar, la región es siempre el cuadrado de lado {tc['lado_relleno']}
+        que ocupan las celdas de aquella retícula, partido en celdas cada vez más pequeñas con una observación
+        en el centro de cada una; al ampliar, el paso entre observaciones es siempre
+        {tc['paso_ampliacion']}.</p>
+
+      <table>
+        <caption>Tamaño efectivo de la media al pasar de {tc['rejilla'][0]['k']} a {tc['rejilla'][-1]['k']} celdas
+          por lado, rellenando la misma región o ampliándola. Con {inf['k']} celdas por lado las dos son la
+          retícula del módulo 4.</caption>
+        <thead>
+          <tr><th scope="col">Celdas por lado</th><th scope="col">\\(n\\)</th>
+            <th scope="col">\\(\\bar{{\\rho}}\\) al rellenar</th>
+            <th scope="col">\\(n_{{\\text{{eff}}}}\\) al rellenar</th>
+            <th scope="col">\\(\\bar{{\\rho}}\\) al ampliar</th>
+            <th scope="col">\\(n_{{\\text{{eff}}}}\\) al ampliar</th></tr>
+        </thead>
+        <tbody>
+{FILAS_TECHO}
+        </tbody>
+      </table>
+
+      <p>Al rellenar, \\(n\\) se multiplica por {tc['factor_n']} y el tamaño efectivo apenas se mueve: pasa de
+        {n(tc['rejilla'][0]['relleno']['n_eff'])} a {n(tc['rejilla'][-1]['relleno']['n_eff'])},
+        {n(tc['factor_relleno'])} veces el de partida, y el último salto —de {ent(tc['rejilla'][-2]['n'])} a
+        {ent(tc['rejilla'][-1]['n'])} observaciones— lo sube un {n(tc['ultimo_salto_pct'])}&nbsp;%. Se está
+        estancando, y el límite se puede calcular: la correlación media entre dos puntos tomados al azar en esa
+        región es \\(\\bar{{\\rho}}_\\infty = {n(tc['rho_inf'])}\\), y su inverso,
+        \\(1/\\bar{{\\rho}}_\\infty = \\) <strong>{n(tc['techo_inf'])}</strong>, es el techo. La última fila
+        queda a un {n(tc['falta_techo_pct'])}&nbsp;% de él, y por debajo: con este diseño el tamaño efectivo se
+        acerca al techo desde abajo. Lo que no depende de dónde se pongan los puntos es el límite: mientras se
+        repartan por igual en toda la región, por muchas observaciones que se añadan, el tamaño efectivo de su
+        media acaba en \\(1/\\bar{{\\rho}}_\\infty\\).</p>
+
+      <p>Al ampliar, el mismo aumento de \\(n\\) multiplica el tamaño efectivo por
+        <strong>{n(tc['factor_ampliacion'])}</strong>, porque \\(\\bar{{\\rho}}\\) cae de
+        {n(tc['rejilla'][0]['ampliacion']['rho_medio'])} a {n(tc['rejilla'][-1]['ampliacion']['rho_medio'])}: ahí
+        no hay límite. Más puntos en la misma región no es más región. Lo que separa un caso del otro es hasta
+        dónde llega \\(\\rho(h)\\) comparado con el tamaño de la región, y esa función es la que el módulo 6
+        mira con el variograma.</p>
+
+      <div class="definition">
+        <h3>Qué \\(\\bar{{\\rho}}\\) hay detrás del {n(ne['desercion_municipal'])} de Colombia</h3>
+        <p>Esa cifra no salió de medir correlaciones: viene del módulo 4, del cociente entre los dos remuestreos,
+          \\(n \\cdot (ee_{{\\text{{iid}}}}/ee_{{\\text{{bloques}}}})^2\\). Leída con la fórmula, a esa
+          varianza le corresponde una correlación media, que se despeja:</p>
+        <p style="text-align:center;">$$\\bar{{\\rho}} = \\frac{{n/n_{{\\text{{eff}}}} - 1}}{{n - 1}} =
+          {n(rt['implicito'])}$$</p>
+        <p>Es la correlación media entre pares de municipios <strong>que corresponde a la varianza que midió el
+          remuestreo por departamentos</strong>, y su curva pasa por el rombo del simulador porque de ahí se
+          despeja. No es una medición aparte, y es aproximada por tres lados.</p>
+        <ul style="margin-bottom:0;">
+          <li>Hereda la incertidumbre del remuestreo y su supuesto, que los {ent(ir['n_departamentos'])}
+            departamentos son bloques independientes entre sí. Si entre departamentos vecinos queda dependencia
+            positiva, el remuestreo subestima la varianza y este \\(\\bar{{\\rho}}\\) se queda corto.</li>
+          <li>La identidad pide la misma varianza en todas las observaciones, y los municipios no la
+            tienen.</li>
+          <li>El error estándar ingenuo sale de \\(s^2\\), que se encoge con la correlación: la esperanza que
+            dio el módulo 4 equivale a \\(\\sigma^2(1 - \\bar{{\\rho}})\\). Así que el cociente de remuestreos
+            no estima \\(n/(1+(n-1)\\bar{{\\rho}})\\) sino
+            \\(n(1-\\bar{{\\rho}})/(1+(n-1)\\bar{{\\rho}})\\). Despejando de esta segunda expresión sale
+            {n(rt['implicito_con_s2'])}, un {n(rt['diferencia_s2_pct'])}&nbsp;% menos. La corrección es pequeña,
+            pero deja claro que la cifra es una lectura de la varianza y no una medida de la correlación.</li>
+        </ul>
+      </div>
+
+      <p>Lo natural sería no pasar por el remuestreo y medir \\(\\bar{{\\rho}}\\) directamente sobre el mapa, como
+        se mide cualquier correlación: centrar cada dato con la media, promediar los productos de todos los pares
+        y dividir por la varianza. <strong>No se puede</strong>, y la razón no es el ruido. Ese promedio vale
+        \\(-1/(n-1)\\) para cualquier conjunto de datos que no sea constante, tenga la correlación que
+        tenga.</p>
+
+      <div class="derivacion">
+        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-centrado">
+          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+          <span class="derivacion-texto">Ver por qué el promedio de todos los pares vale siempre \\(-1/(n-1)\\)</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="derivacion-panel" id="der-centrado" hidden>
+          <ol class="derivacion-pasos">
+            <li>
+              <p>El estimador que se escribiría sin pensarlo dos veces: arriba, la media de los productos cruzados
+                sobre los \\(n(n-1)\\) pares; abajo, la varianza muestral. Las dos con la media muestral
+                \\(\\bar{{z}}\\), que es la única que se tiene.</p>
+              $$r = \\frac{{\\dfrac{{1}}{{n(n-1)}} \\displaystyle\\sum_{{i \\neq j}} (z_i - \\bar{{z}})(z_j - \\bar{{z}})}}
+                {{\\dfrac{{1}}{{n}} \\displaystyle\\sum_{{i}} (z_i - \\bar{{z}})^2}}$$
+            </li>
+            <li>
+              <p>Las desviaciones respecto de la media muestral suman cero. No es una propiedad del dato: es lo
+                que significa haber restado \\(\\bar{{z}}\\).</p>
+              $$\\sum_{{i}} (z_i - \\bar{{z}}) = 0$$
+            </li>
+            <li>
+              <p>El cuadrado de esa suma también es cero, y al desarrollarlo aparecen justo las dos sumas del
+                estimador: los cuadrados y los productos cruzados.</p>
+              $$0 = \\Bigl( \\sum_{{i}} (z_i - \\bar{{z}}) \\Bigr)^2 = \\sum_{{i}} (z_i - \\bar{{z}})^2 +
+                \\sum_{{i \\neq j}} (z_i - \\bar{{z}})(z_j - \\bar{{z}})$$
+            </li>
+            <li>
+              <p>Así que los productos cruzados no traen información propia: son la suma de cuadrados cambiada de
+                signo. Al sustituir, la suma de cuadrados se cancela y no queda nada del dato.</p>
+              $$r = \\frac{{-\\dfrac{{1}}{{n(n-1)}} \\displaystyle\\sum_{{i}} (z_i - \\bar{{z}})^2}}
+                {{\\dfrac{{1}}{{n}} \\displaystyle\\sum_{{i}} (z_i - \\bar{{z}})^2}} = -\\frac{{1}}{{n-1}}$$
+            </li>
+          </ol>
+          <p class="derivacion-resultado">En ningún paso ha intervenido la correlación, la distribución ni el
+            espacio. Es la misma cuenta que deja \\(E[I] = -1/(n-1)\\) en el módulo 3: la I de Moran con todos los
+            pares como vecinos y el mismo peso para todos es exactamente este cociente. Por eso promediar un
+            correlograma sobre todas las distancias no mide \\(\\bar{{\\rho}}\\): si entran todos los pares y
+            cada uno pesa lo mismo, el promedio es exactamente \\(-1/(n-1)\\), y lo que salga positivo de cerca
+            tiene que compensarse con negativo en otras distancias.</p>
+        </div>
+      </div>
+
+      <p>La comprobación, sobre el campo simulado del módulo 4, donde la respuesta se conoce. Con
+        \\(\\phi = {cz['phi']}\\) la correlación media verdadera entre las {cz['n']} celdas es
+        <strong>{n(cz['rho_medio_verdadero'])}</strong>. En las {ent(cz['nrep'])} réplicas, el promedio centrado
+        de todos los pares va de {n(cz['centrado_min'])} a {n(cz['centrado_max'])}: el mismo número en todas, y es
+        \\(-1/(n-1)\\) con \\(n = {cz['n']}\\). Sobre la deserción de los {ent(cz['colombia']['n'])} municipios
+        sale <strong>{n(cz['colombia']['centrado'])}</strong>, otra vez \\(-1/(n-1)\\): lo que daría cualquier
+        otra variable medida en esos municipios.</p>
+
+      <p>Hay dos obstáculos, y la simulación los separa. El primero es el <strong>centrado</strong>. En la
+        simulación la media verdadera del proceso se conoce —es {cz['media']}, con varianza {cz['varianza']}—, y
+        el mismo promedio calculado con ella en lugar de \\(\\bar{{z}}\\) sí apunta a \\(\\bar{{\\rho}}\\): su
+        media sobre las réplicas es {n(cz['con_media_verdadera']['media'])}, con un error de Monte Carlo de
+        {n(cz['con_media_verdadera']['emc'])}. El segundo es la <strong>realización única</strong>: aun con la
+        media verdadera, de una réplica a otra ese promedio varía con desviación típica
+        <strong>{n(cz['con_media_verdadera']['sd'])}</strong>, más que el valor que busca, y en el
+        {n(cz['con_media_verdadera']['pct_negativas'])}&nbsp;% de las réplicas sale negativo. Con una sola
+        realización, y con la media estimada sobre ese mismo dato, \\(\\bar{{\\rho}}\\) no se puede identificar
+        sin un modelo de la covarianza. Es el problema que ocupa el módulo 6.</p>
+
+      <p>Sobre ese campo se ve también que la fórmula no aproxima nada. Con \\(\\phi = {r4['phi']}\\), el tamaño
+        efectivo de las {inf['n']} celdas calculado con la matriz de correlaciones entera es
+        <strong>{n(e4['n_eff'])}</strong>; el que da la fórmula con \\(\\bar{{\\rho}} = {n(e4['rho_medio'])}\\) es
+        <strong>{n(e4['n_eff_formula'])}</strong>. No se parecen: son el mismo número, un
+        {n(e4['pct'])}&nbsp;% de la información.</p>
+
+      <div class="warning">
+        <p style="margin-bottom:0;"><strong>La fórmula es para la media, y solo para ella.</strong> Todo el
+          desarrollo parte de \\(\\operatorname{{Var}}(\\bar{{Z}})\\). Para otro estimador —una pendiente de
+          regresión, una varianza, la correlación entre dos variables— la cuenta es otra y el tamaño efectivo
+          también. «Tengo el {n(ne['desercion_pct'])}&nbsp;% de la información» es una afirmación sobre la media
+          de la deserción, no sobre cualquier cosa que se calcule con esos {ent(ne['desercion_n'])}
+          municipios.</p>
+      </div>
 
 """ + tabs(
     "El tamaño efectivo, y su techo",
@@ -3366,28 +3550,24 @@ SIMULADORES_JS = r"""
       const DIEZ = [];
       for (let p = 1; p <= XMAX; p *= 10) DIEZ.push(p);
       const params = { rho: ne.rhos[1] };
-      // T2.1. Las dos curvas de referencia que contestan «¿de dónde sale el
-      // 64.52155?». La del rho IMPLÍCITO pasa por el rombo por construcción
-      // —ese rho se despeja de ahí— y la del ESTIMADO no pasa: la distancia
-      // entre las dos ES la advertencia del módulo sobre la equicorrelación,
-      // dibujada en vez de escrita. Se quedan fijas; la que se mueve sigue
-      // siendo la del deslizador.
+      // La curva de referencia de Colombia: la del rho medio que corresponde
+      // al n_eff del titular. Pasa por el rombo porque ese rho se despeja de
+      // ahí, y se queda fija; la que se mueve es la del deslizador. No hay
+      // curva de una correlación media «leída del mapa»: ese promedio vale
+      // -1/(n-1) para cualquier dato (`n_efectivo.centrado`) y no la estima.
       const rt = ne.rho_del_titular;
       const curva = rho => EJE.map(n => ({ x: n, y: nEff(n, rho) }));
       // Por referencia y no por índice: `cuadra()` leía `datasets[0]` y
       // `datasets[3]` a mano, y meter series nuevas entre ellas era
       // exactamente el descuadre silencioso de T1.2. Ahora cada serie tiene
       // nombre en el código.
-      const dsMovil = { label: 'n efectivo con este rho', data: [], borderWidth: 2.5,
+      const dsMovil = { label: 'n efectivo con este rho medio', data: [], borderWidth: 2.5,
           borderColor: COLORES_GRAFICO.secundario, pointRadius: 0 };
-      const dsTecho = { label: 'techo 1/rho', data: [], borderColor: '#111',
+      const dsTecho = { label: 'techo 1/rho medio', data: [], borderColor: '#111',
           borderDash: [3, 3], pointRadius: 0 };
-      const dsImpl = { label: 'el rho que implica el dato (' + n5(rt.implicito) + ')',
+      const dsImpl = { label: 'el rho medio que corresponde a Colombia (' + n5(rt.implicito) + ')',
           data: curva(rt.implicito), borderColor: COLORES_GRAFICO.terciario,
           borderWidth: 1.5, pointRadius: 0 };
-      const dsEst = { label: 'el rho medido en el mapa (' + n5(rt.estimado) + ')',
-          data: curva(rt.estimado), borderColor: COLORES_GRAFICO.primario,
-          borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0 };
       const dsRombo = { label: 'Colombia (' + mil(ne.desercion_n) + ')',
           data: [{ x: ne.desercion_n, y: ne.desercion_municipal }],
           borderColor: COLORES_GRAFICO.terciario,
@@ -3398,7 +3578,7 @@ SIMULADORES_JS = r"""
         { label: 'sin correlación', borderColor: COLORES_GRAFICO.gris,
           data: [{ x: XMIN, y: XMIN }, { x: XMAX, y: XMAX }],
           borderDash: [6, 4], pointRadius: 0 },
-        dsImpl, dsEst, dsRombo
+        dsImpl, dsRombo
       ], { scales: {
         x: Object.assign({ type: 'logarithmic', min: XMIN, max: XMAX,
           title: { display: true, text: 'observaciones, n' } }, fijos(ne.enes)),
@@ -3419,23 +3599,15 @@ SIMULADORES_JS = r"""
           mal.push('el rombo dibuja (' + col.x + ', ' + col.y + ') y el JSON dice ('
             + ne.desercion_n + ', ' + ne.desercion_municipal + ')');
         }
-        // T2.1: que la curva del rho implícito PASE por el rombo, leída de lo
-        // dibujado y no recalculada aparte. Es la afirmación que el módulo
-        // estrena —«este rho es el que explica ese punto»— y la única forma de
-        // que no se quede en promesa. Tolerancia 1e-6: el rho del JSON viene
-        // redondeado a diez decimales y el punto está sobre 64.
+        // Que la curva del rho medio de Colombia PASE por el rombo, leída de
+        // lo dibujado y no recalculada aparte: la prosa dice que pasa, y es la
+        // única forma de que no se quede en promesa. Tolerancia 1e-6: el rho
+        // del JSON viene redondeado a diez decimales y el punto está sobre 64.
         const yImpl = dsImpl.data.find(p => p.x === ne.desercion_n);
         if (!yImpl || Math.abs(yImpl.y - ne.desercion_municipal) > 1e-6) {
-          mal.push('la curva del rho implícito pasa por '
+          mal.push('la curva del rho medio de Colombia pasa por '
             + (yImpl ? yImpl.y : 'ningún punto en n = ' + ne.desercion_n)
             + ' y el rombo está en ' + ne.desercion_municipal);
-        }
-        // Y que la del estimado NO pase: si algún día coincidieran, la prosa
-        // que habla de su discrepancia habría dejado de ser cierta.
-        const yEst = dsEst.data.find(p => p.x === ne.desercion_n);
-        if (yEst && Math.abs(yEst.y - ne.desercion_municipal) <= 1e-6) {
-          mal.push('la curva del rho estimado pasa también por el rombo: el módulo '
-            + 'publica una discrepancia que ya no existe');
         }
         const k = ne.rhos.indexOf(params.rho);
         if (k >= 0) {
@@ -3462,16 +3634,14 @@ SIMULADORES_JS = r"""
       const lee = () => {
         const r = params.rho, n0 = ne.enes[0], n1 = ne.enes[ULT];
         lectura(raiz, [
-          ['rho', r.toFixed(3)],
-          ['techo 1/rho', r > 0 ? n5(1 / r) : 'sin correlación no hay techo'],
+          ['rho medio entre pares', r.toFixed(3)],
+          ['techo 1/rho medio', r > 0 ? n5(1 / r) : 'sin correlación no hay techo'],
           ['n = ' + mil(n0) + ' informan como', n5(nEff(n0, r))],
           ['n = ' + mil(n1) + ' informan como', n5(nEff(n1, r))],
           ['lo que aporta pasar de uno a otro', n5(nEff(n1, r) - nEff(n0, r))],
           ['Colombia: ' + mil(ne.desercion_n) + ' municipios valen', n5(ne.desercion_municipal)],
-          ['con este rho valdrían', n5(nEff(ne.desercion_n, r))],
-          ['el rho que implica ese 64.52155', n5(rt.implicito)],
-          ['el rho medido en el mapa', n5(rt.estimado)],
-          ['con el medido valdrían', n5(rt.n_eff_con_estimado)]]);
+          ['con este rho medio valdrían', n5(nEff(ne.desercion_n, r))],
+          ['el rho medio que corresponde a ese ' + n5(ne.desercion_municipal), n5(rt.implicito)]]);
       };
       // Sí se usa `crearControles`, la fábrica de la plantilla que T1.2
       // descartó: allí el valor del control era una posición y había que
@@ -3480,7 +3650,7 @@ SIMULADORES_JS = r"""
       // `cuadra()` va DESPUÉS de `pinta()` —al revés que en T1.2— porque
       // aquí lo que comprueba es lo ya dibujado, y nada puede lanzar.
       crearControles(raiz.querySelector('.simulador-controles'),
-        [{ clave: 'rho', etiqueta: 'correlación rho', min: 0, max: RHO_MAX,
+        [{ clave: 'rho', etiqueta: 'correlación media rho', min: 0, max: RHO_MAX,
            paso: 0.001, decimales: 3 }],
         params, () => { pinta(); cuadra(); lee(); }
       // La rejilla de `.simulador-controles` es de dos columnas, pensada
@@ -3770,22 +3940,34 @@ QUIZ_JS = r"""
       },
       {
         tipo: 'opcion', modulo: 5,
-        pregunta: 'Tienes 1 000 observaciones con una correlación de 0.10 entre todas las parejas. '
-          + '¿A cuántas observaciones independientes equivalen?',
-        pista: 'La fórmula es n / (1 + (n-1) rho). Haz la cuenta con la cabeza antes de mirar.',
+        // Ninguna cifra a mano: todas son de `n_efectivo.caso_quiz`, que R
+        // publica y el auditor rehace desde la rejilla.
+        pregunta: 'Tienes ' + miles1(D1.n_efectivo.caso_quiz.n) + ' observaciones cuya correlación media '
+          + 'entre parejas es ' + n5(D1.n_efectivo.caso_quiz.rho, 2) + '. '
+          + '¿A cuántas observaciones independientes equivalen para estimar la media?',
+        pista: 'La fórmula es n / (1 + (n-1) rho), con rho la correlación media entre parejas. Haz la cuenta '
+          + 'con la cabeza antes de mirar.',
         opciones: [
-          { texto: 'Alrededor de 10', correcta: true,
-            retro: 'Exactamente ' + n5(D1.n_efectivo.rejilla[D1.n_efectivo.rejilla.length - 1].n_eff[4])
-              + '. Y no es que "pierdas" 990: es que nunca las tuviste.' },
-          { texto: 'Alrededor de 900', correcta: false,
-            retro: 'Esa sería la intuición de "pierdo un 10 %", y falla por dos órdenes de magnitud. Módulo 5.' },
-          { texto: 'Alrededor de 100', correcta: false,
-            retro: 'Cerca del techo con rho = 0.01, no con 0.10. Con rho = 0.10 el techo es 10. Módulo 5.' },
-          { texto: 'Las 1 000: la correlación no afecta al tamaño de muestra.', correcta: false,
+          { texto: 'Alrededor de ' + D1.n_efectivo.caso_quiz.n_eff_redondo, correcta: true,
+            retro: 'Exactamente ' + n5(D1.n_efectivo.caso_quiz.n_eff)
+              + '. Y no es que "pierdas" ' + D1.n_efectivo.caso_quiz.sobran + ': es que nunca las tuviste.' },
+          { texto: 'Alrededor de ' + D1.n_efectivo.caso_quiz.ingenuo, correcta: false,
+            retro: 'Esa sería la intuición de "pierdo un ' + D1.n_efectivo.caso_quiz.pct_ingenuo
+              + ' %", y falla por dos órdenes de magnitud. Módulo 5.' },
+          { texto: 'Alrededor de ' + D1.n_efectivo.caso_quiz.techo_otro, correcta: false,
+            retro: 'Cerca del techo con una correlación media de ' + n5(D1.n_efectivo.caso_quiz.rho_otro, 2)
+              + ', no de ' + n5(D1.n_efectivo.caso_quiz.rho, 2) + '. Con '
+              + n5(D1.n_efectivo.caso_quiz.rho, 2) + ' el techo es ' + D1.n_efectivo.caso_quiz.techo
+              + '. Módulo 5.' },
+          { texto: 'Las ' + miles1(D1.n_efectivo.caso_quiz.n)
+              + ': la correlación no afecta al tamaño de muestra.', correcta: false,
             retro: 'Afecta, y mucho. Ése es justo el módulo 5.' }
         ],
-        retroAcierto: 'Y lo importante es el techo: n_eff tiende a 1/rho, así que añadir datos deja de servir.',
-        retroFallo: 'Módulo 5. La respuesta corta: hay un techo, y está en 1/rho.'
+        retroAcierto: 'Y lo importante es el techo: mientras la correlación media no cambie, n_eff tiende a '
+          + '1/rho. Al añadir datos dentro de la misma región la correlación media tiende a una constante y el '
+          + 'tamaño efectivo se estanca; al ampliar la región, si la correlación decae con la distancia, la '
+          + 'correlación media baja y no hay techo.',
+        retroFallo: 'Módulo 5. La respuesta corta: con la correlación media fija hay un techo, y está en 1/rho.'
       },
       {
         tipo: 'multiple', modulo: 7,
@@ -4296,6 +4478,17 @@ def main() -> int:
     if sucias:
         problemas.append(f"{len(sucias)} fórmula(s) con un espacio que KaTeX no "
                          f"entiende: {sucias[:3]} — usa ent_mate()")
+    # Una barra invertida SUELTA en la prosa de este archivo no llega al HTML
+    # como barra: Python la lee como secuencia de escape y `\\bar`, `\\rho`,
+    # `\\frac` y `\\text` escritos con una sola barra se convierten en un
+    # retroceso, un retorno de carro, un salto de página y un tabulador. La
+    # fórmula deja de serlo, KaTeX protesta en la consola de UN módulo y los
+    # auditores de cifras siguen en verde, porque las cifras están. Pasó al
+    # reescribir el módulo 5 y lo vio solo la comprobación en el navegador.
+    control = sorted({f"U+{ord(c):04X}" for c in doc if ord(c) < 32 and c not in "\n\t"})
+    if control or "\t" in marcado:
+        problemas.append(f"el documento lleva caracteres de control ({control or ['U+0009']}): "
+                         f"casi seguro una fórmula escrita con una sola barra invertida")
     if doc.count("<template") != doc.count("</template>"):
         problemas.append("las plantillas no abren y cierran igual")
     for que, us, rg in [("geomapa", usados, registrados), ("simulador", sims_usados, sims_reg),
@@ -4431,46 +4624,105 @@ def main() -> int:
           f"{len(ne['enes'])}×{len(ne['rhos'])} anclas de R contra la curva que "
           f"evalúa el navegador")
 
-    # Los DOS rho del módulo 5 (T2.1). La prosa no publica solo dos cifras:
-    # publica una RELACIÓN entre ellas —cuál es mayor, en qué factor, y que
-    # una reproduce el titular y la otra no— y además nombra distancias
-    # concretas del correlograma por su posición en la lista. Nada de eso lo
-    # ve el auditor de prosa, que comprueba que las cifras existan en el JSON,
-    # ni el del precálculo, que comprueba cada cifra por su lado.
-    rtg = ne["rho_del_titular"]
+    # El módulo 5, sobre lo que su prosa AFIRMA y ningún auditor ve. El de
+    # prosa comprueba que cada cifra exista en el JSON y el del precálculo
+    # comprueba cada cifra por su lado; ninguno lee las frases que las unen
+    # —«el mismo número en todas», «no sube», «más que el valor que busca»—.
+    # Hasta R1 esta guarda protegía la discrepancia entre un rho «implícito»
+    # y otro «medido»; el segundo se retiró porque no estimaba nada (el
+    # promedio centrado de todos los pares vale -1/(n-1) con cualquier dato)
+    # y la guarda vigila ahora que no vuelva.
+    rtg, czg, tcg = ne["rho_del_titular"], ne["centrado"], ne["techo"]
+    inf5 = D["inferencia"]      # `inf` a secas es otra cosa dentro de main()
     if rtg["n"] != ne["desercion_n"]:
         problemas.append(f"el rho del titular habla de {rtg['n']} municipios y el módulo "
                          f"publica {ne['desercion_n']}")
     if abs(rtg["n"] / (1 + (rtg["n"] - 1) * rtg["implicito"])
            - ne["desercion_municipal"]) > 1e-5:
-        problemas.append(f"el rho implícito {rtg['implicito']} ya no reproduce el "
-                         f"{ne['desercion_municipal']} del titular, y la prosa dice que "
-                         f"pasa por el rombo «por construcción»")
-    if not rtg["implicito"] > rtg["estimado"]:
-        problemas.append(f"el rho implícito ({rtg['implicito']}) ya no supera al medido "
-                         f"({rtg['estimado']}): la prosa cuenta la discrepancia al revés")
-    # Las bandas que la prosa nombra POR SU POSICIÓN. Si R cambiara el
-    # esquema, el texto seguiría sacando las cifras del JSON y diría otras
-    # distancias con los dos auditores en verde — el mismo agujero que T1.1
-    # tapó con las anclas de `rhos`.
-    ANCLAS_BANDA = {(0, "d2"): 25, (4, "d1"): 175, (5, "d2"): 500, (6, "d2"): 800}
-    for (i, extremo), valor in sorted(ANCLAS_BANDA.items()):
-        if i >= len(rtg["bandas"]) or rtg["bandas"][i][extremo] != valor:
-            problemas.append(f"la banda {i} ya no tiene {extremo} = {valor} km: la prosa del "
-                             f"módulo 5 nombra esa distancia dándola por sabida")
-    if any(b["d2"] != rtg["bandas"][i + 1]["d1"] for i, b in enumerate(rtg["bandas"][:-1])):
-        problemas.append("las bandas del rho estimado dejan huecos o se solapan: su promedio "
-                         "ponderado no cubriría todos los pares")
-    # Y la afirmación central del recuadro: que la correlación se vuelve
-    # negativa a media distancia, que es lo que explica por qué el promedio
-    # se hunde. Sin esto, la explicación podría quedar desmentida por el dato.
-    if not (rtg["bandas"][4]["I"] < 0 and rtg["bandas"][5]["I"] < 0):
-        problemas.append(f"la prosa dice que entre {rtg['bandas'][4]['d1']} y "
-                         f"{rtg['bandas'][5]['d2']} km la I se vuelve negativa, y vale "
-                         f"{rtg['bandas'][4]['I']} y {rtg['bandas'][5]['I']}")
-    print(f"  módulo 5, rho del titular: implícito {n(rtg['implicito'], 7)} contra medido "
-          f"{n(rtg['estimado'], 7)} · factor {n(rtg['razon_rho'])} · "
-          f"{len(rtg['bandas'])} bandas, {rtg['pares_totales']} pares")
+        problemas.append(f"el rho medio {rtg['implicito']} ya no reproduce el "
+                         f"{ne['desercion_municipal']} del titular, y la prosa dice que su "
+                         f"curva pasa por el rombo porque de ahí se despeja")
+    RETIRADOS = {"estimado", "n_eff_con_estimado", "razon_rho", "razon_n_eff",
+                 "I_primera_banda", "n_bandas", "pares_totales", "pares_lejanos",
+                 "bandas", "metodo"}
+    if RETIRADOS & set(rtg):
+        problemas.append(f"vuelve el «rho medido» al JSON: {sorted(RETIRADOS & set(rtg))} — "
+                         f"ese promedio por bandas no estima el rho medio")
+    # «Es exacta»: los dos n_eff del campo se imprimen uno junto al otro y la
+    # prosa dice que son el mismo número.
+    if n(e4["n_eff"]) != n(e4["n_eff_formula"]):
+        problemas.append(f"el n_eff exacto ({e4['n_eff']}) y el de la fórmula "
+                         f"({e4['n_eff_formula']}) ya no se imprimen iguales, y la prosa "
+                         f"dice que son el mismo número")
+    # La demostración del centrado.
+    if (czg["n"], czg["phi"], czg["nrep"]) != (inf5["n"], r4["phi"], inf5["nrep"]):
+        problemas.append("la demostración del centrado ya no corre sobre las réplicas del "
+                         "módulo 4 con phi = 4, que es lo que dice la prosa")
+    if czg["rho_medio_verdadero"] != e4["rho_medio"]:
+        problemas.append("el rho medio verdadero de la demostración no es el de la fila de "
+                         "phi = 4 de exacto_campo")
+    if not (n(czg["centrado_min"]) == n(czg["centrado_max"]) == n(czg["menos_inv_n1"])):
+        problemas.append(f"el promedio centrado va de {czg['centrado_min']} a "
+                         f"{czg['centrado_max']} y -1/(n-1) vale {czg['menos_inv_n1']}: la "
+                         f"prosa dice «el mismo número en todas»")
+    if (czg["colombia"]["n"] != ne["desercion_n"]
+            or n(czg["colombia"]["centrado"]) != n(czg["colombia"]["menos_inv_n1"])):
+        problemas.append("sobre la deserción el promedio centrado ya no se imprime como "
+                         "-1/(n-1), o habla de otros municipios")
+    cmv = czg["con_media_verdadera"]
+    if abs(cmv["media"] - czg["rho_medio_verdadero"]) > 4 * cmv["emc"]:
+        problemas.append(f"con la media verdadera el promedio da {cmv['media']} y la prosa "
+                         f"dice que apunta a {czg['rho_medio_verdadero']}")
+    if not cmv["sd"] > czg["rho_medio_verdadero"]:
+        problemas.append(f"la desviación típica entre réplicas ({cmv['sd']}) ya no supera "
+                         f"al rho medio ({czg['rho_medio_verdadero']}): la prosa dice «más que "
+                         f"el valor que busca»")
+    # La media y la varianza que la prosa nombra son las que R usó, y el
+    # proceso es el del módulo 4, que declara su sigma.
+    if czg["varianza"] != inf5["sigma"] ** 2:
+        problemas.append(f"la demostración del centrado declara varianza {czg['varianza']} y "
+                         f"el módulo 4 declara sigma = {inf5['sigma']}: ya no es el mismo proceso")
+    # El rho medio de Colombia y su corrección por s^2: la prosa dice «un
+    # tanto por ciento MENOS» y «la corrección es pequeña».
+    if not (rtg["implicito_con_s2"] < rtg["implicito"] and 0 < rtg["diferencia_s2_pct"] < 5):
+        problemas.append(f"la corrección por s² del rho medio de Colombia ya no es una rebaja "
+                         f"pequeña ({rtg['diferencia_s2_pct']} %), y la prosa lo dice así")
+    # La tabla «rellenar frente a ampliar» y las frases que la leen.
+    tf = tcg["rejilla"]
+    f16 = next((f for f in tf if f["k"] == inf5["k"]), None)
+    if f16 is None or not (n(f16["relleno"]["n_eff"]) == n(f16["ampliacion"]["n_eff"])
+                           == n(e4["n_eff"])):
+        problemas.append(f"la tabla del techo no trae la fila de {inf5['k']} celdas por lado, "
+                         f"o ya no coincide con la retícula del módulo 4 como dice su pie")
+    if tcg["phi"] != r4["phi"] or tcg["lado_relleno"] != inf5["k"]:
+        problemas.append("la tabla del techo ya no usa el alcance ni el lado del módulo 4")
+    if tcg["factor_n"] * tf[0]["n"] != tf[-1]["n"]:
+        problemas.append("factor_n no es el cociente entre la última fila y la primera")
+    # El relleno SE ESTANCA, y la prosa lo dice con tres frases: «apenas se
+    # mueve», «la última fila queda a un … % de él» y «se acerca al techo
+    # desde abajo». Las cotas son las del generador (medido: 0,059 % el
+    # último salto y 0,017 % lo que falta), con la misma holgura.
+    if not abs(tcg["ultimo_salto_pct"]) < 0.25:
+        problemas.append(f"al rellenar, el último salto mueve el n_eff un "
+                         f"{tcg['ultimo_salto_pct']} %: la prosa dice que se estanca")
+    if not 0 <= tcg["falta_techo_pct"] < 0.1:
+        problemas.append(f"al rellenar, la última fila queda a {tcg['falta_techo_pct']} % de "
+                         f"1/rho_inf: la prosa dice que está en el límite y por debajo")
+    if any(f["relleno"]["n_eff"] > tcg["techo_inf"] for f in tf):
+        problemas.append("al rellenar, alguna fila supera 1/rho_inf, y la prosa dice que con "
+                         "este diseño el n_eff se acerca al techo desde abajo")
+    if abs(1 / tcg["rho_inf"] - tcg["techo_inf"]) > 1e-6:
+        problemas.append("techo_inf ya no es 1/rho_inf, y la prosa lo llama su inverso")
+    if not (tf[-1]["ampliacion"]["rho_medio"] < tf[0]["ampliacion"]["rho_medio"]
+            and tcg["factor_ampliacion"] > 1):
+        problemas.append("al ampliar, el rho medio no cae o el n_eff no crece: la prosa "
+                         "dice lo contrario")
+    # La prosa imprime el techo de rho = 0.01 como entero, con `ent()`.
+    if abs(1 / ne["rhos"][1] - round(1 / ne["rhos"][1])) > 1e-9:
+        problemas.append("1/rho del ancla ya no es entero y la prosa lo imprime como tal")
+    print(f"  módulo 5: rho medio de Colombia {n(rtg['implicito'], 7)} · n_eff exacto y de "
+          f"fórmula {n(e4['n_eff'])} · centrado {n(czg['centrado_min'], 7)} en "
+          f"{czg['nrep']} réplicas · tabla del techo de {len(tf)} filas")
 
     # Las DOS listas del módulo 6, emparejadas aquí y no de palabra. Hasta
     # T1.3 no eran dos vistas de un lote sino dos SIMULACIONES distintas

@@ -380,45 +380,139 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["realizaciones"][1].__setitem__(
             "zq", o["realizaciones"][1]["zq"][:200])))
 
-    # --- 15. Los dos rho del módulo 5 (T2.1) -----------------------------
+    # --- 15. El módulo 5 sobre lo verdadero (R1) --------------------------
     #
-    # El módulo publica un rho DESPEJADO y un rho MEDIDO, y la gracia está en
-    # su distancia. Las inyecciones atacan las dos naturalezas: el despeje se
-    # rompe rompiendo el álgebra, y la medición se rompe tocando el
-    # correlograma —los pares, las islas, la I— que el auditor rehace desde el
-    # GeoPackage con geopandas. `islas` es el entero sin el cual esa
-    # reconstrucción sería imposible: convierte la convención de spdep en la
-    # de esda, y por eso también se inyecta.
-    add("el rho implícito deja de ser el despeje", "datos",
+    # Hasta R1 esta tanda atacaba un rho DESPEJADO y un rho «MEDIDO» por
+    # bandas, y la distancia entre los dos. El segundo se retiró: el promedio
+    # centrado de todos los pares vale -1/(n-1) con cualquier dato, así que no
+    # medía la correlación media. Lo que el módulo publica ahora son tres
+    # cosas, y las inyecciones atacan las tres: que la fórmula con el rho
+    # medio ES el n_eff exacto, que el promedio centrado es -1/(n-1) y no
+    # depende del dato, y que el techo 1/rho solo aparece al rellenar.
+    add("el rho medio del titular deja de ser el despeje", "datos",
         m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
             "implicito", 0.0173941)))
-    add("el rho estimado no es la media ponderada de sus bandas", "datos",
+    add("vuelve un «rho medido» sobre el mapa al titular", "datos",
         m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "estimado", 0.0041739)))
-    add("una I de banda no es la que mide el mapa", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][2].__setitem__(
-            "I", 0.1739417)))
-    add("los pares de una banda no son los que hay", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][3].__setitem__(
-            "pares", 41739)))
-    add("las islas de una banda no son las que hay", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][0].__setitem__(
-            "islas", 41)))
-    add("el n_eff que daría el rho medido está mal", "datos",
+            "estimado", 0.0021195)))
+    add("el rho medio de un campo no es el de la retícula", "datos",
+        m(lambda o: o["n_efectivo"]["exacto_campo"][4].__setitem__(
+            "rho_medio", 0.2173941)))
+    add("el n_eff de la fórmula se separa del exacto", "datos",
+        m(lambda o: o["n_efectivo"]["exacto_campo"][4].__setitem__(
+            "n_eff_formula", 5.4173941)))
+    add("el n_eff exacto de un campo no es el del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["exacto_campo"][2].__setitem__(
+            "n_eff", 41.7394173)))
+    add("la fórmula declarada vuelve a hablar de un rho a secas", "datos",
+        m(lambda o: o["n_efectivo"].__setitem__(
+            "formula", "n_eff = n / (1 + (n-1) rho)")))
+    add("el rho medio verdadero de la demostración cambia", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "rho_medio_verdadero", 0.1739417)))
+    add("-1/(n-1) se calcula con n en vez de n-1", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "menos_inv_n1", -0.00390625)))
+    add("el promedio centrado de alguna réplica no es -1/(n-1)", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "centrado_max", 0.0021195)))
+    add("el menor promedio centrado se aparta de -1/(n-1)", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "centrado_min", -0.0417394)))
+    add("la desviación máxima deja de ser redondeo", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "desviacion_max", 0.0041739)))
+    add("con la media verdadera el promedio no apunta al rho medio", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "media", 0.0417394)))
+    add("la dispersión entre réplicas se encoge por debajo del rho medio", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "sd", 0.0417394)))
+    add("el error de Monte Carlo no es sd/sqrt(réplicas)", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "emc", 0.0173941)))
+    add("el porcentaje de réplicas negativas no es el que sale", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "pct_negativas", 41.7394173)))
+    add("la demostración deja de correr sobre las réplicas del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__("nrep", 417)))
+    add("el promedio centrado de la deserción no es -1/(n-1)", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["colombia"].__setitem__(
+            "centrado", 0.0021195)))
+    add("-1/(n-1) de los municipios se calcula con n", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["colombia"].__setitem__(
+            "menos_inv_n1", -0.0008920607)))
+    add("la demostración habla de otros municipios", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["colombia"].__setitem__("n", 1113)))
+    add("un rho medio del relleno no es el de su retícula", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][3]["relleno"].__setitem__(
+            "rho_medio", 0.1739417)))
+    add("un n_eff del relleno no sale de su rho medio", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][2]["relleno"].__setitem__(
+            "n_eff", 5.4173941)))
+    # El relleno deja de ESTANCARSE: la última fila se escapa, con su rho
+    # medio movido a juego para que la cuenta de la fila siga cuadrando y lo
+    # único roto sea el estancamiento.
+    add("el relleno deja de estancarse en la última fila", "datos",
+        m(lambda o: (
+            o["n_efectivo"]["techo"]["rejilla"][3]["relleno"].__setitem__("n_eff", 6.5),
+            o["n_efectivo"]["techo"]["rejilla"][3]["relleno"].__setitem__(
+                "rho_medio", (4096 / 6.5 - 1) / 4095))))
+    add("rho_inf no es la correlación media de la región", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("rho_inf", 0.1941739)))
+    add("rho_inf se mueve en la cuarta cifra", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("rho_inf", 0.1936662)))
+    add("el techo del relleno no es 1/rho_inf", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("techo_inf", 5.4173941)))
+    add("el último salto del relleno no es el de la tabla", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("ultimo_salto_pct", 0.1739417)))
+    add("lo que falta para el techo no es lo que falta", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("falta_techo_pct", 0.0417394)))
+    add("la región del relleno deja de ser la del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("lado_relleno", 15)))
+    add("la ampliación cambia de paso", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("paso_ampliacion", 2)))
+    add("el rho medio de Colombia corregido por s² no es su despeje", "datos",
         m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "n_eff_con_estimado", 417.3941)))
-    add("la razón entre los dos rho no es su cociente", "datos",
+            "implicito_con_s2", 0.0141739)))
+    add("la rebaja por s² no es la que separa los dos rho", "datos",
         m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "razon_rho", 4.173941)))
-    add("los pares totales no suman los de las bandas", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "pares_totales", 417394)))
-    add("los pares lejanos declarados no son los de I negativa", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "pares_lejanos", 41739)))
-    add("la I de la primera banda que cita la prosa no es la suya", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "I_primera_banda", 0.4173941)))
+            "diferencia_s2_pct", 4.1739417)))
+    add("la media del proceso simulado deja de ser 0", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__("media", 0.5)))
+    add("la varianza del proceso simulado no es la del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__("varianza", 2)))
+    add("el porcentaje de réplicas negativas se va a 13", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "pct_negativas", 13.0)))
+    add("la respuesta del quiz no es la de la rejilla", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("n_eff", 9.4173941)))
+    add("el quiz redondea mal su respuesta", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("n_eff_redondo", 9)))
+    add("el techo que cita el quiz no es 1/rho", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("techo", 100)))
+    add("el distractor del quiz coincide con otra opción", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("ingenuo", 100)))
+    add("el otro techo del quiz no es el de su rho", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("techo_otro", 50)))
+    add("el quiz pregunta por un n que no está en la rejilla", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("n", 2000)))
+    add("un rho medio de la ampliación no es el de su retícula", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][0]["ampliacion"].__setitem__(
+            "rho_medio", 0.4173941)))
+    add("un n_eff de la ampliación no sale de su rho medio", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][2]["ampliacion"].__setitem__(
+            "n_eff", 17.3941739)))
+    add("la fila de 16 por lado deja de ser la retícula del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][1].__setitem__("k", 17)))
+    add("el factor del relleno no es el cociente de sus extremos", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__(
+            "factor_relleno", 1.4173941)))
+    add("el factor de la ampliación no es el cociente de sus extremos", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__(
+            "factor_ampliacion", 41.7394173)))
+    add("la tabla del techo cambia de alcance sin decirlo", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("phi", 8)))
 
     # --- 16. El puente de phi al factor, del módulo 4 (T2.2) -------------
     #

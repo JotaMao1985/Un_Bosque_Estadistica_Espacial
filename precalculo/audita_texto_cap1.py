@@ -21,32 +21,34 @@ Qué comprueba, por encima:
   · que la codificación no se haya roto (las tildes son el canario);
   · que los enlaces relativos existan.
 
-EL TOPE DE PESO ES 730 KB, no los 700 de la casa, desde el 2026-11-02, con la
-cuenta delante. Ese día cada mapa ganó «Describir el mapa» —lo que se ve en él,
-para quien no lo ve: dónde se apiñan las muertes de Snow, qué departamentos
-salen más oscuros, cómo crecen las manchas del campo con el alcance—:
+EL TOPE DE PESO ES 1000 KB desde el 2026-11-14, por orden de Javier: lo que
+importa es la calidad de la información y de las explicaciones, no el tamaño.
+La historia, para no repetirla: 700 de la casa, 730 el 2026-11-02 (los mapas
+descritos) y, con la reescritura del módulo 5 (R1 · T1.1: dos deducciones, la
+tabla de rellenar frente a ampliar), el capítulo llegó a 720 KB. Subirlo de
+treinta en treinta convertía el tope en un presupuesto que cada ronda del
+plan de mejora tendría que negociar, y eso es justo lo que no es:
 
-  · el documento pesa **704 KB**: 693.6 tenía; **3.4 del motor** del
-    `.geomapa` en la plantilla (la descripción en dos nodos), **0.9 de los
-    hechos que R publica** en `visto` (los extremos de la deserción, la clase alta
-    de Carolina del Norte, las estaciones frías y cálidas, las franjas de las
-    sedes) y **4.7 de las descripciones**: doce mapas, y los que cambian con
-    un control llevan un texto por estado (tres de Snow, siete del campo, tres
-    realizaciones y dos lecturas de la agregación);
-  · la cota que ata esta comprobación a su arnés es **por encima del tamaño y
-    por debajo de ese tamaño + 312 KB**, porque `prueba_texto.py` la tumba
-    inyectando 320 000 bytes: 704 < 730 < 1016;
-  · 730 deja **26 KB de margen**, el orden de los otros capítulos. Es
-    explicación, y el peso cede ante ella.
+  · es la alarma contra un ensamblado desbocado (T0.5), nada más;
+  · la cota que la ata a su arnés es **por encima del tamaño y por debajo de
+    ese tamaño + 312 KB**, porque `prueba_texto.py` la tumba inyectando
+    320 000 bytes: 720 < 1000 < 1033. Como el capítulo ya pasa de 688 KB,
+    crecer no deja ciego al arnés: solo lo hace bajar el tope por debajo del
+    tamaño, o adelgazar el capítulo por debajo de 688 KB con el tope aquí.
+  · Si un día el capítulo se acerca a 1000, se vuelve a subir con la misma
+    cuenta: el contenido manda.
 
 Uso:  python3 precalculo/audita_texto_cap1.py
 Devuelve 1 si algo falla.
 """
 from __future__ import annotations
 
+import html
+import json
+import re
 import sys
 
-from audita_texto_base import Auditor
+from audita_texto_base import SALIDAS, Auditor
 
 # Cifras que NO son resultados: identificadores, años, códigos, versiones y
 # referencias bibliográficas. Se declaran para que el auditor no denuncie
@@ -128,10 +130,16 @@ AFIRMACIONES = [
      "la ventana es parte del dato"),
     ("distingue sesgo de la estimación de sesgo de la confianza",
      "no es la estimación, es"),
-    ("advierte de que n_eff supone equicorrelación y eso es falso en el espacio",
-     "equicorrelación"),
+    ("dice que la fórmula de n_eff con la correlación media es una identidad",
+     "es una identidad"),
     ("dice que hay un techo en la información",
-     "techo"),
+     "hay un techo"),
+    ("y que el techo depende de cómo se añadan los datos",
+     "depende de cómo se añadan los datos"),
+    ("dice que la correlación media no se puede medir directamente sobre el mapa",
+     "para cualquier conjunto de datos"),
+    ("advierte de que la fórmula de n_eff vale para la media y no para otro estimador",
+     "es para la media, y solo para ella"),
     ("dice que agregar NO siempre infla la correlación",
      "no siempre"),
     ("dice que el cambio de signo del estrato no aguanta el barrido",
@@ -165,8 +173,76 @@ CADENAS = [
     "realización", "cólera", "Bogotá", "Soho",
 ]
 
+# Lo que el capítulo NO puede volver a decir. Hasta la ronda R1 el módulo 5
+# enseñaba cuatro cosas falsas, y una reescritura descuidada las devuelve
+# con todas las cifras en regla, porque ninguna es una cifra:
+#
+#   · que n_eff = n/(1+(n-1)rho) «supone equicorrelación». Con rho la
+#     correlación MEDIA entre pares es una identidad de Var(Zbar);
+#   · que por eso solo sirve de «orden de magnitud»;
+#   · que hay un rho «medido» o «estimado» sobre el mapa: el promedio
+#     centrado de todos los pares vale -1/(n-1) con cualquier dato;
+#   · el título «De dónde sale ese 5 %», con la cifra escrita a mano.
+#
+# Se busca en el DOCUMENTO ENTERO y no solo en la prosa: la mitad de esas
+# frases vivía en el JavaScript —la leyenda y la lectura del simulador— y
+# en el JSON incrustado, que la extracción de prosa descarta. El patrón del
+# rho tolera lo que el marcado mete entre la letra y el adjetivo: el cierre
+# de la fórmula, espacios y una etiqueta.
+#
+# Dos acotaciones, las dos a la vista:
+#
+#   · «orden de magnitud» se busca SOLO en el módulo 5. Fuera de él es una
+#     expresión corriente —un comentario de un bloque de código la usa con
+#     razón— y «órdenes de magnitud», en plural, es otra frase.
+#   · La LECTURA del ejercicio 3 queda exenta por ahora. Sigue diciendo que
+#     «la fórmula de equicorrelación supone…», porque su solución usa el
+#     método que R1 retiró del módulo; rehacerla es la tarea T1.2 del plan
+#     de mejora y no se toca desde aquí. La exención se imprime en el
+#     informe cada vez que actúa, y al cerrar T1.2 se quita poniendo
+#     `EXENTA_LECTURA_E3 = False`.
+EXENTA_LECTURA_E3 = True
+
+PROHIBIDAS = [
+    ("no dice que la fórmula de n_eff supone equicorrelación", "todo",
+     r"equicorrelaci"),
+    ("no rebaja la fórmula de n_eff a un orden de magnitud", "modulo5",
+     r"orden de magnitud"),
+    ("no publica un rho «medido» o «estimado» sobre el mapa", "todo",
+     r"(?:rho|ρ)(?:\}|\\\)|\s|</?[a-z]+>)*(?:medid|estimad)"),
+    ("no vuelve el título «De dónde sale ese…»", "todo",
+     r"de dónde sale ese\b"),
+]
+
+
+def prohibidas(a: Auditor) -> None:
+    print("\n=== Lo que el capítulo no puede volver a decir ============")
+    doc = a.doc.lower()
+    if EXENTA_LECTURA_E3:
+        lectura = json.loads((SALIDAS / "cap1_soluciones.json").read_text(
+            encoding="utf-8"))["e3"]["lectura"]
+        quitadas = 0
+        # La lectura viaja dos veces: como texto del ejercicio y dentro del
+        # JSON incrustado, cada una con su escapado.
+        for forma in {lectura, html.escape(lectura), html.escape(lectura, quote=False),
+                      json.dumps(lectura, ensure_ascii=False)[1:-1]}:
+            quitadas += doc.count(forma.lower())
+            doc = doc.replace(forma.lower(), " ")
+        print(f"  ···  exenta la lectura del ejercicio 3 ({quitadas} apariciones): "
+              f"pendiente de T1.2")
+    ini = doc.find('<template id="module-5">')
+    fin = doc.find("</template>", ini)
+    a.exige(ini >= 0 and fin > ini, "el módulo 5 se puede aislar para leerlo")
+    ambitos = {"todo": doc, "modulo5": doc[ini:fin] if ini >= 0 else ""}
+    for que, ambito, patron in PROHIBIDAS:
+        m = re.search(patron, ambitos[ambito])
+        a.exige(m is None, que,
+                "" if m is None else "aparece: «"
+                + ambitos[ambito][max(0, m.start() - 30):m.end() + 20].replace("\n", " ") + "»")
+
+
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP1_KB = 730.0
+TOPE_CAP1_KB = 1000.0
 
 ORDENES = [r"\frac", r"\lambda", r"\rho", r"\gamma", r"\sum", r"\text",
            r"\operatorname", r"\mathbb", r"\bar", r"\lVert"]
@@ -190,6 +266,7 @@ def main() -> int:
     a.temario(DEBE_CUBRIR)
     a.fuentes(FUENTES)
     a.afirmaciones(AFIRMACIONES)
+    prohibidas(a)
     a.accesibilidad()
     a.geomapas()
     a.decimales_con_punto()

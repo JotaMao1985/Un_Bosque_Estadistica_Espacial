@@ -686,127 +686,326 @@ D$inferencia_real <- list(
 # =====================================================================
 message("E · n efectivo")
 
-# La fórmula cerrada bajo equicorrelación, que es la que se demuestra en
-# el módulo: n_eff = n / (1 + (n-1) rho).
-n_eff_equi <- function(n, rho) n / (1 + (n - 1) * rho)
+# LA FÓRMULA ES EXACTA, y eso gobierna todo el bloque. Con varianzas
+# iguales,
+#     Var(Zbar) = (1/n^2) sum_i sum_j Cov(Z_i, Z_j)
+#               = (sigma^2/n) [1 + (n-1) rho_medio],
+# con rho_medio = (1/(n(n-1))) sum_{i != j} rho_ij, la correlación media
+# entre pares. Es una identidad: no supone que todos los pares tengan la
+# misma correlación, solo los promedia. Así que n / (1 + (n-1) rho_medio)
+# es el tamaño efectivo de la MEDIA sea cual sea la estructura, y el
+# argumento `rho` de esta función es siempre esa media entre pares. Hasta
+# R1 el módulo decía que la fórmula «suponía equicorrelación» y la trataba
+# de orden de magnitud; era falso, y de ese error colgaban un «rho medido»
+# y una razón entre dos rho que no medían nada (par académico, C1-18 y
+# C1-19).
+n_eff_media <- function(n, rho) n / (1 + (n - 1) * rho)
 RHOS <- c(0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8)
 NN   <- c(25L, 50L, 100L, 250L, 500L, 1000L)
 
+# La correlación media entre pares de una configuración de puntos con
+# rho(h) = exp(-h/phi): la media de rho sobre las n(n-1)/2 distancias.
+# Con phi = 0 no hay correlación entre celdas distintas.
+rho_medio_de <- function(xy, phi)
+  if (phi <= 0) 0 else mean(exp(-as.numeric(dist(xy)) / phi))
+
+# El campo del módulo 4, alcance por alcance: el n_eff EXACTO (n^2/1'R1,
+# calculado allí), el rho_medio VERDADERO —la covarianza se conoce— y el
+# n_eff que da la fórmula con él. Los dos n_eff tienen que ser el mismo
+# número, y se comprueba aquí antes de que el capítulo lo diga. Van por
+# caminos distintos: uno suma la matriz R entera, el otro promedia rho
+# sobre las distancias entre pares.
+exacto_campo <- lapply(mc, function(m) {
+  rho_m <- rho_medio_de(rej, m$phi)
+  n_f   <- n_eff_media(N4, rho_m)
+  if (abs(n_f - m$n_eff) > 1e-9)
+    stop(sprintf("n/(1+(n-1) rho_medio) no reproduce el n_eff exacto en phi = %.1f: %.12f vs %.12f",
+                 m$phi, n_f, m$n_eff))
+  list(phi = m$phi, n_eff = m$n_eff, pct = r10(100 * m$n_eff / N4),
+       rho_medio = r10(rho_m), n_eff_formula = r10(n_f))
+})
+
 D$n_efectivo <- list(
-  formula = "n_eff = n / (1 + (n-1) rho)",
+  formula = paste("n_eff = n / (1 + (n-1) rho_medio), con rho_medio la",
+                  "correlación media entre pares; exacta para la media"),
   rhos = r10(RHOS), enes = NN,
-  # Una rejilla n x rho: es el simulador del módulo
+  # Una rejilla n x rho_medio: es el simulador del módulo
   rejilla = lapply(NN, function(n) list(
     n = n,
-    n_eff = r10(vapply(RHOS, function(r) n_eff_equi(n, r), numeric(1))),
-    pct   = r10(vapply(RHOS, function(r) 100 * n_eff_equi(n, r) / n, numeric(1))))),
+    n_eff = r10(vapply(RHOS, function(r) n_eff_media(n, r), numeric(1))),
+    pct   = r10(vapply(RHOS, function(r) 100 * n_eff_media(n, r) / n, numeric(1))))),
   # El caso que más impresiona y que conviene tener publicado: con una
   # correlación pequeñísima, la mitad de la muestra se evapora.
-  caso_n1000_rho001 = r10(n_eff_equi(1000, 0.01)),
-  # El n_eff EXACTO del campo simulado, que no supone equicorrelación
-  exacto_campo = lapply(mc, function(m) list(phi = m$phi, n_eff = m$n_eff,
-                                             pct = r10(100 * m$n_eff / N4))),
+  caso_n1000_rho001 = r10(n_eff_media(1000, 0.01)),
+  # Las cifras de la pregunta del módulo 5 en la autoevaluación: n = 1000
+  # con rho_medio = 0.1, sus respuestas y sus distractores. Se publican
+  # para que el quiz no lleve ninguna escrita a mano.
+  caso_quiz = list(
+    n = 1000L, rho = 0.1,
+    n_eff = r10(n_eff_media(1000, 0.1)),
+    n_eff_redondo = as.integer(round(n_eff_media(1000, 0.1))),
+    techo = as.integer(round(1 / 0.1)),
+    # las que «sobran», y el distractor de quien resta un 10 %
+    sobran = as.integer(1000 - round(n_eff_media(1000, 0.1))),
+    pct_ingenuo = as.integer(round(100 * 0.1)),
+    ingenuo = as.integer(round(1000 * (1 - 0.1))),
+    # el distractor que confunde con el techo de rho_medio = 0.01
+    rho_otro = 0.01,
+    techo_otro = as.integer(round(1 / 0.01))),
+  exacto_campo = exacto_campo,
   # Y los dos datos reales
   desercion_municipal = r10(D$inferencia_real$n_eff),
   desercion_n = n_muni,
   desercion_pct = r10(D$inferencia_real$pct_informacion)
 )
 
-# --- E.1 El rho del titular: el implícito y el estimado (T2.1) --------
+# --- E.1 El rho medio que corresponde al titular ----------------------
 #
-# EL DEFECTO QUE CIERRA. El titular del módulo dice que 1 121 municipios
-# informan como 64.52155, y no dice con qué rho. T1.1.b encontró por qué:
-# NO HAY RHO. Ese 64.52155 es `n * (ee_iid/ee_blq)^2`, un cociente de dos
-# remuestreos del módulo 4, y no pasa por la equicorrelación en ningún
-# momento. Así que la pregunta no era «¿cuál es el rho escondido?» sino
-# «¿cuál publicamos?», y se publican LOS DOS, porque decir en qué se
-# separan es el contenido del módulo y no una nota al pie:
+# El titular del módulo —1 121 municipios informan como 64.52155— NO sale
+# de estimar una correlación: es `n * (ee_iid/ee_blq)^2`, el cociente de
+# los dos remuestreos del módulo 4. Como la fórmula es exacta, a esa
+# varianza le corresponde UN rho medio, el que se despeja de ella:
+#     rho_medio = (n/n_eff - 1) / (n - 1).
+# No es una medición directa de la correlación entre municipios: es la
+# varianza del remuestreo por departamentos escrita en otra unidad, y
+# hereda su incertidumbre y sus supuestos (departamentos como bloques
+# independientes). El capítulo lo publica con esas palabras.
 #
-#   IMPLÍCITO   el rho que la equicorrelación NECESITARÍA para explicar la
-#               inflación medida. Se despeja de n_eff = n/(1+(n-1)rho), así
-#               que reproduce 64.52155 por construcción. No es una
-#               estimación de nada: es una retro-transformación, y el
-#               capítulo lo dice con esas palabras.
-#   ESTIMADO    el rho medio entre pares, medido sobre el mapa con el MISMO
-#               método del ejercicio 3 —correlograma por bandas, I de Moran
-#               por banda, promediada con el número de pares de cada una—.
-#               Éste sí es una estimación.
-#
-# Y no coinciden ni de lejos. Eso NO es un fallo del montaje: es la
-# demostración de la advertencia que el capítulo ya hacía sin medirla —que
-# la equicorrelación es falsa en el espacio—. La equicorrelación supone UN
-# rho para todos los pares; en el mapa el rho decae con la distancia y
-# llega a ponerse negativo, y como la inmensa mayoría de los pares son
-# lejanos, el promedio se hunde hacia cero. El rho que haría falta para
-# explicar la pérdida de información resulta ser varias veces el que se
-# mide. La advertencia pasa de afirmación a cociente.
-message("E.1 · el rho implícito y el rho estimado del módulo 5")
+# RETIRADO EN R1 (C1-19): `estimado`, `n_eff_con_estimado`, `razon_rho`,
+# `razon_n_eff`, `I_primera_banda`, `n_bandas`, `pares_totales`,
+# `pares_lejanos`, `bandas` y `metodo`. Eran un «rho medido» —la I de
+# Moran por bandas hasta 800 km, promediada por pares— que no estima
+# rho_medio: por qué, en E.2. `genera_preparcial1.R` leía tres de esos
+# campos (`estimado`, `n_eff_con_estimado`, `I_primera_banda`): es la
+# tarea T1.3 del plan.
+message("E.1 · el rho medio que corresponde al titular del módulo 5")
 
 RHO_N     <- n_muni
 RHO_N_EFF <- D$inferencia_real$n_eff
 rho_implicito <- (RHO_N / RHO_N_EFF - 1) / (RHO_N - 1)
 
-# Las MISMAS bandas del ejercicio 3, y a propósito: el estudiante que haga
-# el ejercicio tiene que poder repetir aquí el gesto sin cambiar de método.
-BANDAS_RHO <- c(0, 25, 50, 100, 175, 300, 500, 800) * 1000
-xy_muni <- st_coordinates(suppressWarnings(st_point_on_surface(st_geometry(muni_ok))))
-banda_rho <- lapply(seq_len(length(BANDAS_RHO) - 1L), function(i) {
-  nb <- suppressWarnings(dnearneigh(xy_muni, BANDAS_RHO[i], BANDAS_RHO[i + 1]))
-  pares <- sum(card(nb)) / 2
-  I <- if (all(card(nb) == 0)) NA_real_ else
-    suppressWarnings(moran.test(muni_ok$desercion,
-                                nb2listw(nb, style = "W", zero.policy = TRUE),
-                                zero.policy = TRUE))$estimate[["Moran I statistic"]]
-  # Las islas DE ESTA BANDA, y no como curiosidad: son la única forma de que
-  # el auditor en Python reproduzca esta I. `spdep::moran.test` con
-  # `zero.policy = TRUE` toma n = unidades CON vecinos y `esda.Moran` toma
-  # n = todas (la discrepancia `moran_islas` que el módulo 7 ya declara), así
-  # que las dos convenciones se convierten exactamente una en otra:
-  #     I_esda = I_spdep * n / (n - islas)
-  # En la banda de 0 a 25 km casi la mitad de los municipios no tiene un solo
-  # vecino, así que aquí eso no es un detalle de la cuarta cifra.
-  list(d1 = as.integer(BANDAS_RHO[i] / 1000), d2 = as.integer(BANDAS_RHO[i + 1] / 1000),
-       I = r10(I), pares = as.integer(pares),
-       islas = as.integer(sum(card(nb) == 0)))
-})
-Is_rho <- vapply(banda_rho, function(b) b$I, numeric(1))
-np_rho <- vapply(banda_rho, function(b) b$pares, numeric(1))
-rho_estimado <- sum(Is_rho * np_rho, na.rm = TRUE) / sum(np_rho[!is.na(Is_rho)])
-
-# El generador SE DETIENE si el implícito dejara de reproducir el titular:
-# es una identidad algebraica, así que un fallo aquí significa que alguien
+# El generador SE DETIENE si el despeje dejara de devolver el titular: es
+# una identidad algebraica, así que un fallo aquí significa que alguien
 # cambió la fórmula y no el despeje.
-if (abs(n_eff_equi(RHO_N, rho_implicito) - RHO_N_EFF) > 1e-6)
-  stop(sprintf("el rho implícito no reproduce el n_eff del titular: %.5f vs %.5f",
-               n_eff_equi(RHO_N, rho_implicito), RHO_N_EFF))
+if (abs(n_eff_media(RHO_N, rho_implicito) - RHO_N_EFF) > 1e-6)
+  stop(sprintf("el rho medio despejado no reproduce el n_eff del titular: %.5f vs %.5f",
+               n_eff_media(RHO_N, rho_implicito), RHO_N_EFF))
+
+# EL DESPEJE ES APROXIMADO, por dos razones que el capítulo declara:
+#   1. la identidad pide la misma varianza en todas las observaciones, y
+#      los municipios no la tienen;
+#   2. `ee_iid` sale de s^2, y el módulo 4 enseña que s^2 se encoge con la
+#      correlación: E[s^2] = sigma^2 (n/(n-1)) (1 - 1/n_eff) = sigma^2 (1 - rho_medio).
+#      Así que n (ee_iid/ee_blq)^2 no estima n/(1+(n-1)rho) sino
+#      n (1-rho)/(1+(n-1)rho).
+# La segunda se puede cuantificar: se despeja rho de esa otra expresión,
+#     rho = (n - n_eff) / (n + (n-1) n_eff),
+# y se publica cuánto se aparta del despeje directo.
+rho_con_s2 <- (RHO_N - RHO_N_EFF) / (RHO_N + (RHO_N - 1) * RHO_N_EFF)
+if (abs(RHO_N * (1 - rho_con_s2) / (1 + (RHO_N - 1) * rho_con_s2) - RHO_N_EFF) > 1e-6)
+  stop("el rho medio corregido por s^2 no reproduce el n_eff del titular")
 
 D$n_efectivo$rho_del_titular <- list(
   n = RHO_N,
   n_eff_publicado = r10(RHO_N_EFF),
   implicito = r10(rho_implicito),
-  estimado  = r10(rho_estimado),
-  # Qué n_eff daría el rho estimado si la equicorrelación valiera. La
-  # distancia entre este número y el 64.52155 es lo que mide el error del
-  # supuesto sobre este dato concreto.
-  n_eff_con_estimado = r10(n_eff_equi(RHO_N, rho_estimado)),
-  razon_rho   = r10(rho_implicito / rho_estimado),
-  razon_n_eff = r10(n_eff_equi(RHO_N, rho_estimado) / RHO_N_EFF),
-  # La primera banda es la cifra que un lector desprevenido citaría como
-  # «la» correlación —vecinos contra vecinos—, y es dos órdenes de magnitud
-  # mayor que el promedio sobre todos los pares. Publicarla evita la
-  # objeción y de paso enseña de dónde sale la diferencia.
-  I_primera_banda = r10(Is_rho[1]),
-  n_bandas = length(banda_rho),
-  pares_totales = as.integer(sum(np_rho)),
-  pares_lejanos = as.integer(sum(np_rho[Is_rho < 0 & !is.na(Is_rho)])),
-  bandas = banda_rho,
-  metodo = paste("correlograma por bandas sobre los puntos interiores de los",
-                 "municipios, I de Moran por banda y promedio ponderado por el",
-                 "número de pares de cada una — el método del ejercicio 3")
+  # el mismo despeje contando con que s^2 se encoge, y lo que cambia
+  implicito_con_s2 = r10(rho_con_s2),
+  diferencia_s2_pct = r10(100 * (1 - rho_con_s2 / rho_implicito))
 )
-message(sprintf("  · rho implícito %.7f (reproduce %.5f) · rho estimado %.7f (daría %.5f)",
-                rho_implicito, RHO_N_EFF, rho_estimado,
-                n_eff_equi(RHO_N, rho_estimado)))
+
+# --- E.2 Por qué rho_medio no se puede medir sobre el mapa ------------
+#
+# La tentación es estimarlo como se estima cualquier correlación: centrar
+# con la media muestral, promediar los productos cruzados de todos los
+# pares y dividir por la varianza. No funciona, y no por ruido: como
+# sum_i (z_i - zbar) = 0,
+#     sum_{i != j} (z_i - zbar)(z_j - zbar) = - sum_i (z_i - zbar)^2,
+# de modo que ese promedio, dividido por (1/n) sum_i (z_i - zbar)^2, vale
+# -1/(n-1) PARA CUALQUIER DATO. No depende de la correlación que haya.
+#
+# Se MIDE en vez de afirmarse, sobre las mismas réplicas del módulo 4 con
+# phi = 4, donde el rho medio verdadero se conoce. La suma se hace por
+# fuerza bruta sobre la matriz de productos, sin usar la identidad que se
+# quiere comprobar.
+message("E.2 · el promedio centrado de todos los pares, réplica a réplica")
+
+PHI_C <- 4
+i_c   <- which(PHIS == PHI_C)
+R_c   <- exp(-DIST4 / PHI_C)
+L_c   <- t(chol(R_c + diag(JITTER, N4)))
+set.seed(SEMILLA + 100L + round(PHI_C * 10))      # la semilla del módulo 4
+Z_c   <- L_c %*% matrix(rnorm(N4 * NREP), N4, NREP)
+# Que sean de verdad LAS réplicas del módulo 4 y no otras del mismo proceso.
+if (abs(sd(colMeans(Z_c)) - mc[[i_c]]$ee_real) > 1e-9)
+  stop("E.2 no ha regenerado las réplicas del módulo 4 con phi = 4")
+
+# Todos los pares i != j: la suma de la matriz de productos menos su
+# diagonal, entre n(n-1).
+pares_medios <- function(z)
+  (sum(tcrossprod(z)) - sum(z^2)) / (length(z) * (length(z) - 1))
+centrado <- apply(Z_c, 2, function(z) {
+  zc <- z - mean(z)
+  pares_medios(zc) / mean(zc^2)
+})
+inv_c <- -1 / (N4 - 1)
+if (max(abs(centrado - inv_c)) > 1e-9)
+  stop(sprintf("el promedio centrado de todos los pares se aparta de -1/(n-1): %.3e",
+               max(abs(centrado - inv_c))))
+
+# Y el contraste que señala al culpable. El MISMO promedio, pero centrando
+# con la media verdadera del proceso (0) y dividiendo por su varianza (1):
+# eso sí apunta a rho_medio en promedio. Lo que lo impide en la práctica no
+# es la fórmula sino que la media haya que estimarla con el mismo dato, y
+# que solo haya una realización: de una réplica a otra ese promedio varía
+# más de lo que vale. Es el problema del módulo 6.
+MEDIA_C <- 0; VAR_C <- 1          # las del proceso: Z = L %*% rnorm
+con_mu <- apply(Z_c, 2, function(z) pares_medios(z - MEDIA_C) / VAR_C)
+rho_c  <- exacto_campo[[i_c]]$rho_medio
+# CONTROL: la media sobre réplicas tiene que caer sobre el rho verdadero
+# dentro de su error de Monte Carlo (4 errores típicos).
+if (abs(mean(con_mu) - rho_c) > 4 * sd(con_mu) / sqrt(NREP))
+  stop(sprintf("con la media verdadera el promedio de pares no apunta a rho_medio: %.5f vs %.5f",
+               mean(con_mu), rho_c))
+
+# Lo mismo sobre el dato real: la deserción de los 1 121 municipios.
+zc_col <- muni_ok$desercion - mean(muni_ok$desercion)
+centrado_col <- pares_medios(zc_col) / mean(zc_col^2)
+if (abs(centrado_col - (-1 / (n_muni - 1))) > 1e-9)
+  stop("en la deserción municipal el promedio centrado no vale -1/(n-1)")
+
+D$n_efectivo$centrado <- list(
+  phi = PHI_C, n = N4, nrep = NREP,
+  # la media y la varianza verdaderas del proceso simulado, que la prosa
+  # nombra al hablar del promedio «con la media verdadera»
+  media = MEDIA_C, varianza = VAR_C,
+  rho_medio_verdadero = r10(rho_c),
+  menos_inv_n1 = r10(inv_c),
+  # El menor y el mayor de las réplicas: si son el mismo número, y es
+  # -1/(n-1), no hay nada más que enseñar.
+  centrado_min = r10(min(centrado)),
+  centrado_max = r10(max(centrado)),
+  # Comprobación, no cifra para el lector: del orden de 1e-15, así que con
+  # diez decimales viaja como 0.
+  desviacion_max = r10(max(abs(centrado - inv_c))),
+  # Con la media verdadera: insesgado, e inservible con una sola réplica.
+  con_media_verdadera = list(
+    media = r10(mean(con_mu)),
+    sd    = r10(sd(con_mu)),
+    emc   = r10(sd(con_mu) / sqrt(NREP)),
+    # Cuántas réplicas dan un promedio NEGATIVO aun conociendo la media
+    pct_negativas = r10(100 * mean(con_mu < 0))),
+  colombia = list(
+    n = n_muni,
+    menos_inv_n1 = r10(-1 / (n_muni - 1)),
+    centrado = r10(centrado_col))
+)
+message(sprintf("  · rho medio verdadero %.7f · centrado en [%.10f, %.10f] · -1/(n-1) = %.10f",
+                rho_c, min(centrado), max(centrado), inv_c))
+
+# --- E.3 El techo, y cuándo lo hay (C1-21) ----------------------------
+#
+# «n_eff tiende a 1/rho» solo vale con rho_medio FIJO, y rho_medio depende
+# de cómo se añadan las observaciones. Dos formas de pasar de k = 8 a
+# k = 64 por lado con la misma correlación rho(h) = exp(-h/4):
+#
+#   RELLENO      la región no cambia —el cuadrado de lado 16 que ocupan las
+#                16 x 16 celdas del módulo 4— y se parte en k x k celdas
+#                cada vez más pequeñas, con una observación en el CENTRO de
+#                cada una. La distribución de las distancias entre pares
+#                tiende a la de dos puntos al azar en la región, así que
+#                rho_medio tiende a una constante positiva, rho_inf, y
+#                n_eff se estanca en 1/rho_inf.
+#   AMPLIACIÓN   el paso no cambia (1) y la región crece. Entran pares cada
+#                vez más lejanos: rho_medio tiende a 0 y n_eff crece sin
+#                techo.
+#
+# Con k = 16 las dos son la retícula del módulo 4, y se comprueba.
+#
+# POR QUÉ CENTROS DE CELDA. La primera versión de esta tabla anclaba la red
+# en las esquinas del cuadrado —puntos en 0, L/(k-1), ..., L—, y con ese
+# diseño n_eff BAJABA al rellenar. Era un artefacto: los puntos del borde
+# pesan de más con k pequeño (con k = 2, 3, 4 incluso subía primero). El
+# centro de celda es la convención del módulo 4 («distancia entre centros
+# de celda») y no privilegia el borde.
+message("E.3 · relleno frente a ampliación")
+
+KS_TECHO <- c(8L, 16L, 32L, 64L)
+LADO     <- K4                 # las 16 celdas de lado 1 del módulo 4
+PASO_AMP <- 1
+techo <- lapply(KS_TECHO, function(k) {
+  g  <- expand.grid(x = seq_len(k), y = seq_len(k))
+  nk <- k^2
+  rho_amp <- rho_medio_de(g * PASO_AMP, PHI_C)
+  rho_rel <- rho_medio_de((g - 0.5) * LADO / k, PHI_C)
+  list(k = k, n = as.integer(nk),
+       relleno    = list(rho_medio = r10(rho_rel),
+                         n_eff = r10(n_eff_media(nk, rho_rel))),
+       ampliacion = list(rho_medio = r10(rho_amp),
+                         n_eff = r10(n_eff_media(nk, rho_amp))))
+})
+t16 <- techo[[which(KS_TECHO == K4)]]
+if (abs(t16$relleno$n_eff - exacto_campo[[i_c]]$n_eff) > 1e-8 ||
+    abs(t16$ampliacion$n_eff - exacto_campo[[i_c]]$n_eff) > 1e-8)
+  stop("con k = 16 el relleno y la ampliación no son la retícula del módulo 4")
+
+# El límite del relleno: la correlación media entre DOS PUNTOS AL AZAR de
+# la región, rho_inf = E[rho(|U - V|)] con U y V uniformes en el cuadrado.
+# La diferencia de dos uniformes en [0, L] tiene densidad triangular, así
+# que la integral de cuatro dimensiones se queda en dos:
+#     rho_inf = (4/L^4) int_0^L int_0^L rho(sqrt(x^2+y^2)) (L-x)(L-y) dx dy
+# Solo depende de la región y de rho(h): no del número de observaciones ni
+# de dónde se pongan.
+rho_inf <- (4 / LADO^4) * integrate(function(ys) vapply(ys, function(y)
+  integrate(function(x) exp(-sqrt(x^2 + y^2) / PHI_C) * (LADO - x),
+            0, LADO, rel.tol = 1e-11, subdivisions = 500L)$value * (LADO - y),
+  numeric(1)), 0, LADO, rel.tol = 1e-11, subdivisions = 500L)$value
+techo_inf <- 1 / rho_inf
+
+rel_neff <- vapply(techo, function(t) t$relleno$n_eff, numeric(1))
+rel_rho  <- vapply(techo, function(t) t$relleno$rho_medio, numeric(1))
+amp_neff <- vapply(techo, function(t) t$ampliacion$n_eff, numeric(1))
+amp_rho  <- vapply(techo, function(t) t$ampliacion$rho_medio, numeric(1))
+NT <- length(techo)
+# Lo que el capítulo afirma del RELLENO es ESTANCAMIENTO, y se mide antes
+# de imprimirlo. Tres pruebas, con las tolerancias medidas y no elegidas:
+#   · el último salto (de 32 a 64 por lado, n x 4) mueve n_eff un 0,058 %:
+#     se exige menos de 0,25 %, cuatro veces de holgura;
+#   · la última fila queda a un 0,017 % de 1/rho_inf: se exige menos de
+#     0,1 %, casi seis veces;
+#   · con este diseño ninguna fila supera 1/rho_inf (la prosa lo dice).
+ultimo_salto_pct <- 100 * (rel_neff[NT] / rel_neff[NT - 1] - 1)
+falta_techo_pct  <- 100 * (1 - rel_neff[NT] / techo_inf)
+if (abs(ultimo_salto_pct) > 0.25)
+  stop(sprintf("al rellenar, n_eff no se estanca: el último salto es de %.4f %%",
+               ultimo_salto_pct))
+if (abs(falta_techo_pct) > 0.1)
+  stop(sprintf("al rellenar, la última fila queda a %.4f %% de 1/rho_inf",
+               falta_techo_pct))
+if (any(rel_neff > techo_inf))
+  stop("al rellenar, alguna fila supera 1/rho_inf: la prosa dice que no")
+# Y de la AMPLIACIÓN, que rho_medio cae y n_eff crece con n.
+if (any(diff(amp_rho) >= 0) || any(diff(amp_neff) <= 0) ||
+    amp_neff[NT] / amp_neff[1] < 10)
+  stop("la ampliación no se comporta como el módulo 5 dice")
+
+D$n_efectivo$techo <- list(
+  phi = PHI_C, lado_relleno = as.integer(LADO), paso_ampliacion = PASO_AMP,
+  ks = KS_TECHO,
+  rejilla = techo,
+  # El límite del relleno y su techo
+  rho_inf   = r10(rho_inf),
+  techo_inf = r10(techo_inf),
+  ultimo_salto_pct = r10(ultimo_salto_pct),
+  falta_techo_pct  = r10(falta_techo_pct),
+  # Los cocientes que resumen la tabla: por cuánto se multiplica n entre
+  # la primera fila y la última, y por cuánto n_eff en cada columna.
+  factor_n          = as.integer(techo[[NT]]$n / techo[[1]]$n),
+  factor_relleno    = r10(rel_neff[NT] / rel_neff[1]),
+  factor_ampliacion = r10(amp_neff[NT] / amp_neff[1])
+)
+message(sprintf("  · relleno: n_eff %s · 1/rho_inf = %.7f (rho_inf = %.7f)",
+                paste(sprintf("%.5f", rel_neff), collapse = " / "), techo_inf, rho_inf))
 
 # =====================================================================
 # F. MÓDULO 6 — Estacionariedad, isotropía y una sola realización

@@ -245,19 +245,61 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("el rombo de Colombia se sube por encima de la diagonal", "datos",
         lambda o: o["n_efectivo"].__setitem__("desercion_municipal", 2000.0))
 
-    # --- Módulo 5: los dos rho del titular (T2.1) -----------------------
-    obj("el rho implícito deja de reproducir el titular", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__("implicito", 0.02))
-    obj("el rho medido supera al implícito y la prosa queda del revés", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__("estimado", 0.05))
+    # --- Módulo 5: lo que su prosa afirma (R1) ---------------------------
+    #
+    # Una inyección por guarda. Lo que se ataca no son cifras sueltas —eso es
+    # de los auditores— sino las FRASES que las unen: «pasa por el rombo», «son
+    # el mismo número», «el mismo número en todas», «más que el valor que
+    # busca», «no sube». Y que el rho «medido» por bandas, retirado en esta
+    # ronda, no pueda volver al JSON sin que el ensamblador pare.
+    ne5 = lambda o: o["n_efectivo"]                                   # noqa: E731
+    obj("el rho medio de Colombia deja de reproducir el titular", "datos",
+        lambda o: ne5(o)["rho_del_titular"].__setitem__("implicito", 0.02))
     obj("el rho del titular habla de otros municipios", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__("n", 1113))
-    obj("una banda que la prosa nombra cambia de distancia", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][0].__setitem__("d2", 30))
-    obj("las bandas del correlograma dejan un hueco", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][2].__setitem__("d2", 120))
-    obj("la correlación deja de ser negativa a media distancia", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][4].__setitem__("I", 0.017394))
+        lambda o: ne5(o)["rho_del_titular"].__setitem__("n", 1113))
+    obj("vuelve un rho «medido» sobre el mapa al JSON", "datos",
+        lambda o: ne5(o)["rho_del_titular"].__setitem__("estimado", 0.0021195))
+    obj("el n_eff de la fórmula deja de imprimirse igual que el exacto", "datos",
+        lambda o: ne5(o)["exacto_campo"][4].__setitem__("n_eff_formula", 5.2))
+    obj("el n_eff exacto del módulo 5 se queda sin la fila de phi = 4", "datos",
+        lambda o: ne5(o)["exacto_campo"][4].__setitem__("phi", 5))
+    obj("la demostración del centrado cambia de réplicas", "datos",
+        lambda o: ne5(o)["centrado"].__setitem__("nrep", 500))
+    obj("el rho medio verdadero no es el de la fila de phi = 4", "datos",
+        lambda o: ne5(o)["centrado"].__setitem__("rho_medio_verdadero", 0.17394))
+    obj("el promedio centrado deja de ser el mismo en todas las réplicas", "datos",
+        lambda o: ne5(o)["centrado"].__setitem__("centrado_max", 0.0021195))
+    obj("sobre la deserción el promedio centrado no es -1/(n-1)", "datos",
+        lambda o: ne5(o)["centrado"]["colombia"].__setitem__("centrado", 0.0021195))
+    obj("con la media verdadera el promedio ya no apunta al rho medio", "datos",
+        lambda o: ne5(o)["centrado"]["con_media_verdadera"].__setitem__("media", 0.05))
+    obj("la dispersión entre réplicas baja del rho medio", "datos",
+        lambda o: ne5(o)["centrado"]["con_media_verdadera"].__setitem__("sd", 0.1))
+    obj("el proceso simulado deja de tener varianza 1", "datos",
+        lambda o: o["inferencia"].__setitem__("sigma", 2))
+    obj("la tabla del techo pierde la fila de la retícula del módulo 4", "datos",
+        lambda o: ne5(o)["techo"]["rejilla"][1].__setitem__("k", 17))
+    obj("la tabla del techo cambia de alcance", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("phi", 8))
+    obj("factor_n deja de ser el cociente de los extremos de la tabla", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("factor_n", 16))
+    obj("al rellenar el último salto deja de ser pequeño", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("ultimo_salto_pct", 3.0))
+    obj("la última fila del relleno se queda lejos de su techo", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("falta_techo_pct", 2.0))
+    obj("una fila del relleno supera 1/rho_inf", "datos",
+        lambda o: ne5(o)["techo"]["rejilla"][0]["relleno"].__setitem__("n_eff", 5.5))
+    obj("techo_inf deja de ser el inverso de rho_inf", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("rho_inf", 0.25))
+    # Una fórmula escrita con UNA barra invertida en el ensamblador: Python la
+    # convierte en un carácter de control y el HTML sale con las cifras bien
+    # y la fórmula rota. Pasó de verdad al reescribir este módulo.
+    txt("una fórmula del módulo 5 se escribe con una sola barra invertida", "ensamblador",
+        "Hay dos maneras de pasar de", "Hay dos \\bar maneras de pasar de")
+    obj("la corrección por s² del rho de Colombia deja de ser una rebaja", "datos",
+        lambda o: ne5(o)["rho_del_titular"].__setitem__("implicito_con_s2", 0.02))
+    obj("al ampliar el rho medio deja de caer", "datos",
+        lambda o: ne5(o)["techo"]["rejilla"][3]["ampliacion"].__setitem__("rho_medio", 0.5))
 
     # --- Módulo 4: las dos rejillas del campo gaussiano (T1.2) ----------
     obj("un campo simulado se queda sin fila de cifras", "mapas",

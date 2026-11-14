@@ -570,7 +570,7 @@
     "ancho_bloques": 0.8609117426
   },
   "n_efectivo": {
-    "formula": "n_eff = n / (1 + (n-1) rho)",
+    "formula": "n_eff = n / (1 + (n-1) rho_medio), con rho_medio la correlación media entre pares; exacta para la media",
     "rhos": [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8],
     "enes": [25, 50, 100, 250, 500, 1000],
     "rejilla": [
@@ -606,41 +606,67 @@
       }
     ],
     "caso_n1000_rho001": 90.991810737,
+    "caso_quiz": {
+      "n": 1000,
+      "rho": 0.1,
+      "n_eff": 9.910802775,
+      "n_eff_redondo": 10,
+      "techo": 10,
+      "sobran": 990,
+      "pct_ingenuo": 10,
+      "ingenuo": 900,
+      "rho_otro": 0.01,
+      "techo_otro": 100
+    },
     "exacto_campo": [
       {
         "phi": 0,
         "n_eff": 256,
-        "pct": 100
+        "pct": 100,
+        "rho_medio": 0,
+        "n_eff_formula": 256
       },
       {
         "phi": 0.5,
         "n_eff": 135.2534586191,
-        "pct": 52.8333822731
+        "pct": 52.8333822731,
+        "rho_medio": 0.0035009519,
+        "n_eff_formula": 135.2534586191
       },
       {
         "phi": 1,
         "n_eff": 45.7511810441,
-        "pct": 17.8715550954
+        "pct": 17.8715550954,
+        "rho_medio": 0.0180215058,
+        "n_eff_formula": 45.7511810441
       },
       {
         "phi": 2,
         "n_eff": 14.1632297613,
-        "pct": 5.5325116255
+        "pct": 5.5325116255,
+        "rho_medio": 0.0669606797,
+        "n_eff_formula": 14.1632297613
       },
       {
         "phi": 4,
         "n_eff": 5.1581674595,
-        "pct": 2.0149091639
+        "pct": 2.0149091639,
+        "rho_medio": 0.1907059956,
+        "n_eff_formula": 5.1581674595
       },
       {
         "phi": 8,
         "n_eff": 2.5177091096,
-        "pct": 0.9834801209
+        "pct": 0.9834801209,
+        "rho_medio": 0.3948224979,
+        "n_eff_formula": 2.5177091096
       },
       {
         "phi": 16,
         "n_eff": 1.6328170891,
-        "pct": 0.6378191754
+        "pct": 0.6378191754,
+        "rho_medio": 0.6109186209,
+        "n_eff_formula": 1.6328170891
       }
     ],
     "desercion_municipal": 64.5215456118,
@@ -650,66 +676,94 @@
       "n": 1121,
       "n_eff_publicado": 64.5215456118,
       "implicito": 0.0146196798,
-      "estimado": 0.0021242543,
-      "n_eff_con_estimado": 331.7387719662,
-      "razon_rho": 6.8822642863,
-      "razon_n_eff": 5.141519299,
-      "I_primera_banda": 0.2882024967,
-      "n_bandas": 7,
-      "pares_totales": 573306,
-      "pares_lejanos": 312508,
-      "bandas": [
+      "implicito_con_s2": 0.0143963558,
+      "diferencia_s2_pct": 1.5275573995
+    },
+    "centrado": {
+      "phi": 4,
+      "n": 256,
+      "nrep": 3000,
+      "media": 0,
+      "varianza": 1,
+      "rho_medio_verdadero": 0.1907059956,
+      "menos_inv_n1": -0.0039215686,
+      "centrado_min": -0.0039215686,
+      "centrado_max": -0.0039215686,
+      "desviacion_max": 0,
+      "con_media_verdadera": {
+        "media": 0.1878131819,
+        "sd": 0.2717083123,
+        "emc": 0.0049606924,
+        "pct_negativas": 9.7666666667
+      },
+      "colombia": {
+        "n": 1121,
+        "menos_inv_n1": -0.0008928571,
+        "centrado": -0.0008928571
+      }
+    },
+    "techo": {
+      "phi": 4,
+      "lado_relleno": 16,
+      "paso_ampliacion": 1,
+      "ks": [8, 16, 32, 64],
+      "rejilla": [
         {
-          "d1": 0,
-          "d2": 25,
-          "I": 0.2882024967,
-          "pares": 3482,
-          "islas": 156
+          "k": 8,
+          "n": 64,
+          "relleno": {
+            "rho_medio": 0.184147816,
+            "n_eff": 5.0788360711
+          },
+          "ampliacion": {
+            "rho_medio": 0.3902352729,
+            "n_eff": 2.5014830872
+          }
         },
         {
-          "d1": 25,
-          "d2": 50,
-          "I": 0.2870733053,
-          "pares": 9756,
-          "islas": 47
+          "k": 16,
+          "n": 256,
+          "relleno": {
+            "rho_medio": 0.1907059956,
+            "n_eff": 5.1581674595
+          },
+          "ampliacion": {
+            "rho_medio": 0.1907059956,
+            "n_eff": 5.1581674595
+          }
         },
         {
-          "d1": 50,
-          "d2": 100,
-          "I": 0.1810417344,
-          "pares": 31482,
-          "islas": 13
+          "k": 32,
+          "n": 1024,
+          "relleno": {
+            "rho_medio": 0.1925241522,
+            "n_eff": 5.1729657987
+          },
+          "ampliacion": {
+            "rho_medio": 0.069087265,
+            "n_eff": 14.286457295
+          }
         },
         {
-          "d1": 100,
-          "d2": 175,
-          "I": 0.0758220381,
-          "pares": 63507,
-          "islas": 3
-        },
-        {
-          "d1": 175,
-          "d2": 300,
-          "I": -0.052893668,
-          "pares": 127896,
-          "islas": 2
-        },
-        {
-          "d1": 300,
-          "d2": 500,
-          "I": -0.0549104602,
-          "pares": 184612,
-          "islas": 2
-        },
-        {
-          "d1": 500,
-          "d2": 800,
-          "I": 0.0249121516,
-          "pares": 152571,
-          "islas": 0
+          "k": 64,
+          "n": 4096,
+          "relleno": {
+            "rho_medio": 0.1930022219,
+            "n_eff": 5.176003723
+          },
+          "ampliacion": {
+            "rho_medio": 0.0206050045,
+            "n_eff": 47.9751728511
+          }
         }
       ],
-      "metodo": "correlograma por bandas sobre los puntos interiores de los municipios, I de Moran por banda y promedio ponderado por el número de pares de cada una — el método del ejercicio 3"
+      "rho_inf": 0.1931661713,
+      "techo_inf": 5.1768898942,
+      "ultimo_salto_pct": 0.0587269357,
+      "falta_techo_pct": 0.01711783,
+      "factor_n": 64,
+      "factor_relleno": 1.019131874,
+      "factor_ampliacion": 19.1786916716
     }
   },
   "una_realizacion": {
@@ -1595,7 +1649,7 @@
     "capitulo": 1,
     "titulo": "Datos espaciales y la primera ley de la geografía",
     "semana": 1,
-    "generado": "2026-11-02",
+    "generado": "2026-11-14",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "anclas_verificadas": 29

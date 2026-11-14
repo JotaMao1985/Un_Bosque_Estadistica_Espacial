@@ -439,6 +439,20 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         ("el bloque de la diagnóstica de entrada se queda sin marcador",
          '<div class="quiz" data-quiz="cap1-diagnostica">',
          '<div class="cuestionario" data-quiz="cap1-diagnostica">'),
+        # --- LO QUE EL MÓDULO 5 NO PUEDE VOLVER A DECIR (R1, 2026-11-14).
+        # Cuatro frases falsas que el módulo enseñó hasta esa ronda, y que
+        # vuelven con todas las cifras en regla porque ninguna es una cifra.
+        # La tercera entra por el JavaScript —la lectura del simulador—, que
+        # es por donde la extracción de prosa no mira.
+        ("el módulo 5 vuelve a decir que la fórmula supone equicorrelación",
+         "<strong>es una identidad</strong>", "<strong>supone equicorrelación</strong>"),
+        ("la fórmula de n_eff se rebaja a orden de magnitud",
+         "<strong>La fórmula es para la media, y solo para ella.</strong>",
+         "<strong>La fórmula sirve como orden de magnitud.</strong>"),
+        ("vuelve un rho medido sobre el mapa, por la lectura del simulador",
+         "['el rho medio que corresponde a ese '", "['el rho medido en el mapa, y no ese '"),
+        ("vuelve el título con la cifra escrita a mano",
+         "<h3>Qué cuenta el tamaño efectivo</h3>", "<h3>De dónde sale ese resultado</h3>"),
         # --- LA COMA DECIMAL (2026-09-25), por sus cuatro puertas: el
         # capítulo tenía una en cada una. Ninguna de estas la caza
         # `cifras()`, que lee «0,02» como 0.02 y la da por buena; solo
@@ -446,7 +460,7 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         ("vuelve una coma decimal a la prosa",
          "opuestos —0.02 y −0.09—", "opuestos —0,02 y −0.09—"),
         ("una fórmula vuelve a escribir la coma de LaTeX",
-         r"\(\rho = 0.01\)", r"\(\rho = 0{,}01\)"),
+         r"\(\bar{\rho} = 0.01\)", r"\(\bar{\rho} = 0{,}01\)"),
         ("la leyenda de un gráfico vuelve a escribir coma",
          "label: '0.95 prometido'", "label: '0,95 prometido'"),
         ("la lectura del módulo 7 vuelve a agrupar los millares con punto",
