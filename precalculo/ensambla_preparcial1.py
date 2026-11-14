@@ -211,9 +211,7 @@ PRESENTA = {
     "neff_desercion_n":     (0, ""),
     "neff_rho_implicito":   (5, ""),
     "neff_pct":             (5, "%"),
-    "neff_I_primera_banda": (5, ""),
-    "neff_rho_estimado":    (5, ""),
-    "neff_con_estimado":    (5, ""),
+    "neff_centrado_col":    (5, ""),
     "realiz_n":             (0, ""),
     "realiz_rechaza":       (0, "%"),
     "realiz_esperado":      (0, "%"),
@@ -549,33 +547,36 @@ BLOQUE_A = [
                 "información aporta cada una, y eso es el tamaño efectivo del módulo 5.")]),
 
     preg("numerica", "cap1", 5,
-         f"Sobre los {c('neff_desercion_n')} municipios con dato de deserción, el ρ que la "
-         f"equicorrelación <em>necesitaría</em> para explicar la pérdida de información ya "
-         f"medida vale {c('neff_rho_implicito')}. ¿A qué tamaño efectivo de muestra "
-         f"equivale? Da dos decimales.",
-         "n<sub>eff</sub> es el número de observaciones independientes que darían la misma "
-         "varianza de la media. La fórmula que lo despeja está en el módulo 5 del capítulo 1; "
-         "fíjate en qué supone sobre la correlación entre pares antes de meter el ρ que te dan.",
+         f"Sobre los {c('neff_desercion_n')} municipios con dato de deserción, la correlación "
+         f"media entre pares que corresponde a la varianza que midió el remuestreo por "
+         f"departamentos, $\\bar{{\\rho}}$, vale {c('neff_rho_implicito')}. ¿A qué tamaño "
+         f"efectivo de muestra equivale? Da dos decimales.",
+         "El tamaño efectivo es el número de observaciones independientes que darían la misma "
+         "varianza de la media, y con varianzas iguales vale "
+         "$n_{\\text{eff}} = n / (1 + (n-1)\\,\\bar{\\rho})$ (módulo 5 del capítulo 1). "
+         "$\\bar{\\rho}$ es la media de la correlación sobre <strong>todos</strong> los pares "
+         "de municipios, no la correlación entre vecinos.",
          respuesta=float(val("neff_desercion")), tolerancia=0.5,
          retroAcierto=f"{c('neff_desercion')}: los {c('neff_desercion_n')} municipios "
                       f"aportan solo el {c('neff_pct')} de la información que tendrían "
-                      f"si fueran independientes. Y fíjate en de dónde salió ese ρ: no se "
-                      f"estimó, se <strong>despejó</strong> de ese mismo tamaño efectivo, "
-                      f"que a su vez viene del cociente entre los dos remuestreos del módulo "
-                      f"4. La cuenta lo devuelve por construcción. La correlación media de "
-                      f"verdad —la medida sobre el mapa con el correlograma de bandas— es "
-                      f"{c('neff_rho_estimado')}, y con ella los mismos municipios "
-                      f"informarían como {c('neff_con_estimado')}. Esa distancia no es un "
-                      f"fallo del montaje: es la medida de cuánto se aparta la realidad del "
-                      f"supuesto de equicorrelación, que en el espacio siempre es falso.",
+                      f"si fueran independientes. Ese $\\bar{{\\rho}}$ no se midió sobre el "
+                      f"mapa: se <strong>despejó</strong> de la varianza que dio el remuestreo "
+                      f"por departamentos del módulo 4, así que la cuenta devuelve el tamaño "
+                      f"efectivo por construcción. Es un ejercicio de la fórmula, no una "
+                      f"comprobación independiente. Y no hay un camino directo: centrados con "
+                      f"la media muestral, el promedio de los productos de todos los pares "
+                      f"dividido por la varianza vale $-1/(n-1)$ con cualquier dato que no sea constante —sobre "
+                      f"estos municipios, {c('neff_centrado_col')}—, de modo que "
+                      f"$\\bar{{\\rho}}$ no se puede medir promediando el correlograma del "
+                      f"mapa.",
          retroFallo=f"Son {c('neff_desercion')}. Si te salió {dist(N1, 'resta_lineal')}, "
-                    f"descontaste la correlación linealmente en vez de dividir por el efecto "
-                    f"de diseño. Si te salió {dist(N1, 'rho_primera_banda')}, usaste el Moran "
-                    f"de la primera banda ({c('neff_I_primera_banda')}) como si fuera el ρ "
-                    f"único que la fórmula pide: la correlación de los vecinos inmediatos no "
-                    f"vale para todos los pares, que es justo lo que la equicorrelación "
-                    f"supone. Y si te salió {dist(N1, 'multiplica')}, multiplicaste por el "
-                    f"efecto de diseño en vez de dividir."),
+                    f"descontaste la correlación linealmente, $n(1-\\bar{{\\rho}})$, en vez "
+                    f"de dividir por el efecto de diseño. Si te salió {dist(N1, 'techo')}, "
+                    f"calculaste $1/\\bar{{\\rho}}$: es el techo al que tiende el tamaño "
+                    f"efectivo cuando $n$ crece con $\\bar{{\\rho}}$ fijo, no el valor que "
+                    f"corresponde a los {c('neff_desercion_n')} municipios que hay, que queda "
+                    f"por debajo. Y si te salió {dist(N1, 'multiplica')}, multiplicaste por el "
+                    f"efecto de diseño, $1 + (n-1)\\,\\bar{{\\rho}}$, en vez de dividir."),
 
     preg("opcion", "cap1", 6,
          f"Simulando {c('realiz_n')} realizaciones del mismo proceso espacial, la prueba "

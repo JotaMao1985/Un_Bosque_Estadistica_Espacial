@@ -436,9 +436,15 @@ def main() -> int:  # noqa: C901
     dist1 = {d["id"]: d["valor"] for d in N1["distractores"]}
     a.igual(n1 * (1 - rho), dist1["resta_lineal"],
             "N1: el distractor de la resta lineal", 1e-9)
-    a.igual(neff(n1, REU["neff_I_primera_banda"]["valor"]),
-            dist1["rho_primera_banda"],
-            "N1: el que mete el Moran de la primera banda", 1e-9)
+    a.igual(1 / rho, dist1["techo"],
+            "N1: el que da el techo, 1/rho_medio", 1e-9)
+    # La numérica acepta medio punto de error y el techo queda a menos de
+    # cuatro del correcto: si se acercaran más que la tolerancia, el motor
+    # daría por bueno el error que el distractor nombra.
+    a.cierto(abs(dist1["techo"] - N1["correcto"]) > 0.5,
+             "N1: el techo queda fuera de la tolerancia de la pregunta (0.5)")
+    a.igual(-1 / (n1 - 1), REU["neff_centrado_col"]["valor"],
+            "N1: el promedio centrado de todos los pares es -1/(n-1)", 1e-9)
     a.igual(n1 * (1 + (n1 - 1) * rho), dist1["multiplica"],
             "N1: el que multiplica por el efecto de diseño", 1e-9)
     nota = N1["nota_n_menos_1"]

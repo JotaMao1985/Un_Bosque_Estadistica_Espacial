@@ -192,6 +192,15 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("N1: dos distractores dejan de distinguirse a 2 decimales", "datos",
         lambda o: o["nuevo"]["n_efectivo"]["distractores"][1].__setitem__(
             "valor", o["nuevo"]["n_efectivo"]["correcto"] + 0.001))
+    obj("N1: el distractor del techo deja de ser 1/rho_medio", "datos",
+        lambda o: o["nuevo"]["n_efectivo"]["distractores"][1].__setitem__(
+            "valor", 69.1234567891))
+    obj("N1: el techo se mete dentro de la tolerancia de la pregunta", "datos",
+        lambda o: o["nuevo"]["n_efectivo"]["distractores"][1].__setitem__(
+            "valor", o["nuevo"]["n_efectivo"]["correcto"] + 0.4))
+    obj("N1: el promedio centrado de todos los pares deja de ser -1/(n-1)", "datos",
+        lambda o: o["reutilizado"]["neff_centrado_col"].__setitem__(
+            "valor", 0.0021242543))
     obj("N2: el grado de longitud deja de ser el que da pyproj", "datos",
         lambda o: o["nuevo"]["grado_longitud"].__setitem__(
             "correcto", 110123.4567891011))
