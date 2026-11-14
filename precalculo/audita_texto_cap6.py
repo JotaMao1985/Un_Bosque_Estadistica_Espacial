@@ -351,6 +351,7 @@ def main() -> int:
         a.exige(clave in codigo, que)
     a.accesibilidad()
     a.geomapas()
+    a.decimales_con_punto()
     a.formulas_escapadas()
     a.codificacion()
     a.enlaces()

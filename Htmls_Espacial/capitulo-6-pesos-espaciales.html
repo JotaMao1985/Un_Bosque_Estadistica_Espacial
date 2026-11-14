@@ -4420,7 +4420,7 @@
 
       <p>El otro son los <strong>1 122</strong> municipios de Colombia con su
         deserción escolar —1 121 con dato, media
-        <strong>3,4236 %</strong>, desviación
+        <strong>3.4236 %</strong>, desviación
         1.7667 y
         6 ceros exactos—, el mismo hilo que viene
         desde el capítulo 1. Ahí no se ve nada unidad por unidad: lo que se ve es lo que un dato
@@ -5459,7 +5459,7 @@ print(wm.n_components)
         reina, es otra media: la <strong>ponderada por el grado</strong>, la que cuenta a cada municipio
         tantas veces como vecinos tiene. Lo que cambia, y mucho, es la dispersión: las desviaciones
         típicas son <strong>1.7667</strong> y <strong>1.1874</strong>, y el rezago es un
-        <strong>32,79 %</strong> más estrecho.</p>
+        <strong>32.79 %</strong> más estrecho.</p>
 
       <p>No es un artefacto: <strong>promediar contrae</strong>. La media de varios números queda entre
         el menor y el mayor de ellos, así que ningún valor de <em>Wy</em> se sale del rango de <em>y</em>,
@@ -5596,8 +5596,8 @@ print(round(float(100 * (1 - wy[con].std(ddof=1) / y.std(ddof=1))), 4))
       <p>Lo primero que eso explica es la forma de la matriz. Columbus tiene
         <strong>2 401</strong> casillas y solo
         <strong>236</strong> están ocupadas: un
-        <strong>9,83 %</strong>. En los municipios la densidad baja a
-        <strong>0,5219 %</strong>. <strong>W es dispersa siempre</strong>,
+        <strong>9.83 %</strong>. En los municipios la densidad baja a
+        <strong>0.5219 %</strong>. <strong>W es dispersa siempre</strong>,
         y por eso <code>spdep</code> no guarda una matriz sino listas de vecinos: una matriz densa
         de 1 122 × 1 122 son 1 258 884 números para guardar
         6 570.</p>
@@ -9110,7 +9110,7 @@ print(round(100 * (A &gt; 0).sum() / A.size, 4))
     };
     GEOMAPAS['cap6-municipios'] = {
       fuente: MAPAS_CAP6["cap6-municipios"],
-      etiqueta: "Los 1 122 municipios de Colombia unidos por contigüidad reina: 3 285 parejas, grado medio 5,86 y dos municipios sin vecinos, San Andrés y Providencia, dibujados en rojo.",
+      etiqueta: "Los 1 122 municipios de Colombia unidos por contigüidad reina: 3 285 parejas, grado medio 5.86 y dos municipios sin vecinos, San Andrés y Providencia, dibujados en rojo.",
       descripcion: "La red se apiña en el centro del dibujo, con 709 de los 1 122 municipios, y en el norte, con 232. En el oriente y el suroriente solo hay 23 y 14, y la red se vuelve unas pocas líneas largas. Cada municipio toca de media a 6.1 vecinos en el centro y a 5.6 en el norte, y el que más tiene es Bogotá, D.C., con 20."
     };
 
