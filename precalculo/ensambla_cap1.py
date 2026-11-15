@@ -58,6 +58,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import pathlib
 import sys
 from baraja_opciones import baraja_documento
@@ -1360,7 +1361,7 @@ MOD5 = cabecera(
       <p>Con la fórmula a la vista aparece lo que enseña este módulo. Si \\(\\bar{{\\rho}}\\) se mantiene fijo
         mientras \\(n\\) crece, \\(n_{{\\text{{eff}}}} \\to 1/\\bar{{\\rho}}\\): <strong>hay un techo.</strong> Con
         \\(\\bar{{\\rho}} = {ne['rhos'][1]}\\) —una correlación media que nadie llamaría preocupante— ese techo son
-        {ent(1 / ne['rhos'][1])} observaciones. La condición «si \\(\\bar{{\\rho}}\\) se mantiene fijo» no es un
+        {ent(ne['caso_quiz']['techo_otro'])} observaciones. La condición «si \\(\\bar{{\\rho}}\\) se mantiene fijo» no es un
         tecnicismo: se examina justo después del simulador.</p>
 
       <div class="simulador" data-simulador="n-efectivo">
@@ -2409,14 +2410,23 @@ def valor_paso(v):
     return n(v)                     # medidas: cinco decimales, como manda D10
 
 
-def ejercicio(k, e):
+def ejercicio(k, e, datos="", codigo=""):
     """Un ejercicio guiado, con su pista y su solución calculada.
 
     Ni el enunciado ni las cifras se escriben aquí: salen de
     `genera_soluciones.R`, que resuelve el ejercicio de verdad en R. Un
     ejercicio cuya solución se escribe de memoria es una solución sin
     verificar delante de un estudiante que se la va a creer.
+
+    `datos` va debajo del enunciado, a la vista: es el enlace de descarga
+    del archivo que el ejercicio usa. `codigo` va dentro de la solución,
+    detrás de la lectura: el código que da las cifras de la tabla. La
+    lectura puede traer varios párrafos, separados por una línea en blanco.
     """
+    parrafos = [t.strip() for t in e["lectura"].split("\n\n") if t.strip()]
+    lectura = "\n".join(
+        f"""            <p{' style="margin-bottom:0;"' if i == len(parrafos) - 1 and not codigo else ''}>{t}</p>"""
+        for i, t in enumerate(parrafos))
     pasos = "\n".join(
         f"""            <tr><th scope="row">{p['paso']}</th><td>{
             valor_paso(p['valor'])}</td></tr>"""
@@ -2425,7 +2435,7 @@ def ejercicio(k, e):
         <div class="ejercicio-guiado">
           <p class="ejercicio-enunciado"><span class="ejercicio-numero">{k}.</span><strong>{e['titulo']}.</strong>
             {e['enunciado'].replace('`', '')}</p>
-          <div class="ejercicio-acciones">
+{datos}          <div class="ejercicio-acciones">
             <button type="button" class="ejercicio-boton" aria-expanded="false" aria-controls="cap1-e{k}-pista">
               <i class="fas fa-lightbulb" aria-hidden="true"></i> Pista <i class="fas fa-chevron-down" aria-hidden="true"></i>
             </button>
@@ -2444,8 +2454,8 @@ def ejercicio(k, e):
 {pasos}
               </tbody>
             </table>
-            <p style="margin-bottom:0;">{e['lectura']}</p>
-          </div>
+{lectura}
+{codigo}          </div>
         </div>
 """
 
@@ -2457,11 +2467,112 @@ PISTAS = [
     "Los dos remuestreos tienen que dar la MISMA media: si no, hay un error en el montaje, no un hallazgo. Lo que "
     "cambia es la anchura. Y para la última parte, no compares los dos intervalos entero contra entero: mira los "
     "dos tramos donde uno llega y el otro no.",
-    "El apartado (c) es una pregunta con trampa, y la trampa es buena. Escribe el límite de la fórmula cuando n "
-    "crece sin parar, con rho fijo, y mira qué queda.",
+    "El apartado (a) es el módulo 4 con otro dato: entre los dos remuestreos solo cambia lo que se saca de la "
+    "urna, estaciones sueltas o departamentos enteros con todas sus estaciones dentro. Para (b), despeja la "
+    "correlación media de la fórmula del módulo 5 y escribe el límite de esa fórmula cuando n crece con la "
+    "correlación fija. Para (c), vuelve a la tabla del módulo 5 que compara rellenar con ampliar. Para (d), los "
+    "residuos se remuestrean igual que la temperatura: lo único que cambia es qué se ha tomado por media.",
     "Agrupa por CERCANÍA, no por departamento: así el efecto que veas será de la escala y no de dónde estén las "
     "fronteras. Y antes de responder «¿cuál es la correlación?», pregúntate si la pregunta está bien planteada.",
 ]
+
+# Lo que el ejercicio 3 lleva además de su enunciado y su tabla: el enlace al
+# archivo público —el mismo del Taller 1— y el código de la solución. Hasta
+# R1 el ejercicio leía `datos/procesado/`, que no se publica, y no se podía
+# hacer desde fuera.
+e3s = S["e3"]["solucion"]
+E3_ARCHIVO = pathlib.PurePosixPath(e3s["archivo"]).name
+E3_DATOS = f"""          <p class="text-sm" style="margin:0.25rem 0 0.5rem;"><a href="../{e3s['archivo']}" download target="_blank" rel="noopener">
+            Descargar <code>{E3_ARCHIVO}</code></a> — el archivo de estaciones del Taller&nbsp;1. El código de la
+            solución lo busca en <code>{e3s['archivo']}</code>: esa ruta se cambia por la del lugar donde se
+            haya guardado.</p>
+"""
+e3r = e3s["residuos"]
+E3_CODIGO = tabs(
+    "El ejercicio 3: los dos remuestreos, el tamaño efectivo y lo que implica",
+    f"""library(sf)
+
+# El archivo descargado: la ruta se cambia por la del lugar donde se guardo.
+est3 &lt;- st_read("{e3s['archivo']}", quiet = TRUE)
+temp &lt;- est3$t_media_anual
+# El orden de los bloques, fijado por bytes ("radix"): si se deja al
+# orden alfabetico de la maquina, la misma semilla elige otros
+# departamentos en otra configuracion regional.
+dep3 &lt;- factor(est3$departamento,
+               levels = sort(unique(est3$departamento), method = "radix"))
+
+# Las semillas y el orden son los del precalculo, asi que esto reproduce
+# las cifras de la tabla EXACTAMENTE con el generador por defecto de R
+# (el que da RNGkind(): Mersenne-Twister, Inversion, Rejection). Estan
+# calculadas con {S['meta']['r'].split(' (')[0]}; con otro generador salen otras.
+n_efectivo &lt;- function(y, B = {e3s['nboot']}) {{
+  bloques &lt;- split(y, dep3)
+  set.seed({e3s['semilla_iid']})
+  ee_iid &lt;- sd(replicate(B, mean(sample(y, length(y), replace = TRUE))))
+  set.seed({e3s['semilla_bloques']})
+  ee_blq &lt;- sd(replicate(B, {{
+    sel &lt;- sample(seq_along(bloques), length(bloques), replace = TRUE)
+    mean(unlist(bloques[sel], use.names = FALSE))
+  }}))
+  c(ee_iid = ee_iid, ee_blq = ee_blq, n_eff = length(y) * (ee_iid / ee_blq)^2)
+}}
+# La correlacion media que corresponde a esa varianza, despejada de
+# n_eff = n / (1 + (n - 1) rho), y lo que implica SI se mantiene fija.
+n_para &lt;- function(m, rho) if (m * rho &gt;= 1) Inf else m * (1 - rho) / (1 - m * rho)
+resume &lt;- function(r, n = length(temp)) {{
+  rho &lt;- (n / r[["n_eff"]] - 1) / (n - 1)
+  cat(sprintf("rho = %.5f | techo = %.5f | para {e3s['objetivos'][0]}: %.5f | para {e3s['objetivos'][1]}: %.5f\\n",
+              rho, 1 / rho, n_para({e3s['objetivos'][0]}, rho), n_para({e3s['objetivos'][1]}, rho)))
+}}
+
+# (a) y (b), con la temperatura
+a &lt;- n_efectivo(temp)
+cat(sprintf("i.i.d. = %.5f | bloques = %.5f | n_eff = %.5f\\n",
+            a[["ee_iid"]], a[["ee_blq"]], a[["n_eff"]]))
+#&gt; i.i.d. = {n(e3s['ee_iid'])} | bloques = {n(e3s['ee_bloques'])} | n_eff = {n(e3s['n_eff'])}
+resume(a)
+#&gt; rho = {n(e3s['rho_medio'])} | techo = {n(e3s['techo'])} | para {e3s['objetivos'][0]}: {n(e3s['n_para_25'])} | para {e3s['objetivos'][1]}: Inf
+
+# (d), con los residuos de la regresion sobre la altitud
+ajuste &lt;- lm(temp ~ est3$altitud_m)
+d &lt;- n_efectivo(unname(residuals(ajuste)))
+cat(sprintf("R2 = %.5f | n_eff = %.5f\\n", summary(ajuste)$r.squared, d[["n_eff"]]))
+#&gt; R2 = {n(e3r['r2'])} | n_eff = {n(e3r['n_eff'])}
+resume(d)
+#&gt; rho = {n(e3r['rho_medio'])} | techo = {n(e3r['techo'])} | para {e3s['objetivos'][0]}: {n(e3r['n_para_25'])} | para {e3s['objetivos'][1]}: {n(e3r['n_para_50'])}""",
+    f"""import geopandas as gpd, numpy as np
+
+est3 = gpd.read_file("{e3s['archivo']}")
+temp = est3.t_media_anual.to_numpy()
+dep = est3.departamento.to_numpy()
+
+# OJO: esto NO reproduce las cifras de R. numpy y R tienen generadores
+# distintos y la misma semilla no da las mismas replicas: las cifras salen
+# parecidas, no iguales. Lo que no cambia es la conclusion, y es lo unico
+# que se imprime.
+def techo(y, B={e3s['nboot']}):
+    rng = np.random.default_rng({e3s['semilla_iid']})
+    grupos = [y[dep == k] for k in np.unique(dep)]
+    ee_iid = np.std([rng.choice(y, y.size, replace=True).mean()
+                     for _ in range(B)], ddof=1)
+    ee_blq = np.std([np.concatenate([grupos[i] for i in
+                     rng.integers(0, len(grupos), len(grupos))]).mean()
+                     for _ in range(B)], ddof=1)
+    n_eff = y.size * (ee_iid / ee_blq) ** 2
+    return (y.size - 1) / (y.size / n_eff - 1)       # 1 / rho
+
+# (a) y (b), con la temperatura
+t_temp = techo(temp)
+print(f"n = {{temp.size}}, {{np.unique(dep).size}} bloques | {e3s['objetivos'][0]} bajo el techo: "
+      f"{{{e3s['objetivos'][0]} &lt; t_temp}} | {e3s['objetivos'][1]} bajo el techo: {{{e3s['objetivos'][1]} &lt; t_temp}}")
+#> n = {e3s['n']}, {e3s['n_bloques']} bloques | {e3s['objetivos'][0]} bajo el techo: {e3s['objetivo_25_alcanzable']} | {e3s['objetivos'][1]} bajo el techo: {e3s['objetivo_50_alcanzable']}
+
+# (d), con los residuos de la regresion sobre la altitud
+alt = est3.altitud_m.to_numpy()
+res = temp - np.polyval(np.polyfit(alt, temp, 1), alt)
+t_res = techo(res)
+print(f"con los residuos | {e3s['objetivos'][1]} bajo el techo: {{{e3s['objetivos'][1]} &lt; t_res}} | el techo sube: {{t_res &gt; t_temp}}")
+#> con los residuos | {e3s['objetivos'][1]} bajo el techo: {e3r['objetivo_50_alcanzable']} | el techo sube: {e3r['techo_sube']}""")
 
 MOD12 = cabecera(
     12, "Autoevaluación y ejercicios guiados", "Self-assessment",
@@ -2488,7 +2599,7 @@ MOD12 = cabecera(
         <p class="text-sm" style="margin-bottom:0.5rem;">Intenta cada uno <strong>antes</strong> de abrir nada. La
           pista dice por dónde entrar sin dar la respuesta; la solución trae los pasos con sus cifras, calculadas en
           R por <code>precalculo/genera_soluciones.R</code> y no escritas de memoria.</p>
-{ejercicio(1, S['e1'])}{ejercicio(2, S['e2'])}{ejercicio(3, S['e3'])}{ejercicio(4, S['e4'])}
+{ejercicio(1, S['e1'])}{ejercicio(2, S['e2'])}{ejercicio(3, S['e3'], datos=E3_DATOS, codigo=E3_CODIGO)}{ejercicio(4, S['e4'])}
       </div>
 
       <div class="definition">
@@ -4624,6 +4735,135 @@ def main() -> int:
           f"{len(ne['enes'])}×{len(ne['rhos'])} anclas de R contra la curva que "
           f"evalúa el navegador")
 
+    # El ejercicio 3, sobre lo que su lectura AFIRMA. La lectura la escribe R
+    # con las cifras dentro, así que cada número existe en el JSON; lo que
+    # ningún auditor de cifras ve son las frases: «la red actual ya la
+    # supera», «la de 50 no la alcanza ninguna red», «siempre entre 25 y 50»,
+    # «aquí −0.00278». Y que el ejercicio se pueda hacer: el archivo que
+    # enlaza tiene que existir donde el enlace dice.
+    g3, t3 = S["e3"]["solucion"], S["e3"]
+    texto3 = " ".join([t3["enunciado"], t3["lectura"]] + [str(p["paso"]) for p in t3["pasos"]]
+                      + [str(p["valor"]) for p in t3["pasos"]])
+    # `ESPACIAL_RAIZ` es la raíz de verdad cuando el arnés ejecuta una copia
+    # del ensamblador desde un temporal: el archivo se busca en el repo.
+    raiz_repo = pathlib.Path(os.environ.get("ESPACIAL_RAIZ") or RAIZ)
+    if not (raiz_repo / g3["archivo"]).is_file():
+        problemas.append(f"el ejercicio 3 enlaza {g3['archivo']}, que no está en el repo")
+    if not g3["archivo"].startswith("entrega/datos/"):
+        problemas.append(f"el ejercicio 3 lee {g3['archivo']}, que no es un archivo publicado")
+    if f'href="../{g3["archivo"]}"' not in doc:
+        problemas.append("el ejercicio 3 no enlaza la descarga de su archivo")
+    if not (0 < g3["n_eff"] < g3["n"] and g3["rho_medio"] > 0):
+        problemas.append("ejercicio 3: el remuestreo por bloques no ensancha, y todo el "
+                         "apartado (b) parte de que sí")
+    if abs((g3["n"] / g3["n_eff"] - 1) / (g3["n"] - 1) - g3["rho_medio"]) > 1e-9:
+        problemas.append("ejercicio 3: la correlación media no es la que se despeja del n_eff")
+    obj_bajo, obj_alto = g3["objetivos"]
+    if not (g3["objetivo_25_alcanzable"] and not g3["objetivo_50_alcanzable"]
+            and obj_bajo < g3["techo"] < obj_alto):
+        problemas.append(f"ejercicio 3: el techo ({g3['techo']}) ya no separa {obj_bajo} de "
+                         f"{obj_alto}, y la lectura y la tabla dicen que sí")
+    if not (obj_bajo < g3["otras_semillas"]["techo_min"]
+            <= g3["otras_semillas"]["techo_max"] < obj_alto):
+        problemas.append("ejercicio 3: con otras semillas el techo se sale de entre los dos "
+                         "objetivos, y la lectura dice «siempre»")
+    if not (g3["n_para_25"] <= g3["estaciones_para_25"] < g3["n_para_25"] + 1
+            and g3["estaciones_para_25"] < g3["n"]):
+        problemas.append("ejercicio 3: las estaciones para el primer objetivo no son el "
+                         "redondeo hacia arriba, o la red actual ya no las supera")
+    for clave in ("ee_iid", "ee_bloques", "factor", "n_eff", "pct_informacion", "rho_medio",
+                  "techo", "n_para_25"):
+        if n(g3[clave]) not in t3["lectura"]:
+            problemas.append(f"ejercicio 3: la lectura no cita {clave} = {n(g3[clave])}")
+    esperado3 = -1 / (g3["n"] - 1)
+    if abs(g3["centrado_todos_los_pares"] - esperado3) > 1e-9 or \
+            n(g3["centrado_todos_los_pares"]).replace("-", "−") not in t3["lectura"]:
+        problemas.append("ejercicio 3: el promedio centrado de todos los pares no es "
+                         "−1/(n − 1), o la lectura no lo cita")
+    for vetada in ("equicorrelaci", "estima la correlación", "todos los pares:",
+                   "datos/procesado"):
+        if vetada in texto3.lower():
+            problemas.append(f"ejercicio 3: vuelve «{vetada}», que es el planteamiento que "
+                             f"R1 retiró")
+    for campo in ("bandas_km", "moran_por_banda", "pares_por_banda"):
+        if campo in g3:
+            problemas.append(f"ejercicio 3: vuelve el campo {campo} del correlograma por bandas")
+    # El archivo tiene que estar VERSIONADO, no solo en el disco: `datos/` existe
+    # en la máquina de quien ensambla y no en el sitio. Si git no está o esto no
+    # es un repo, la comprobación se salta y se dice; no se da por buena.
+    try:
+        en_git = subprocess.run(["git", "ls-files", "--error-unmatch", g3["archivo"]],
+                                cwd=str(raiz_repo), capture_output=True, text=True)
+        if en_git.returncode == 1:
+            problemas.append(f"el ejercicio 3 enlaza {g3['archivo']}, que no está versionado: "
+                             f"no llegará al sitio")
+        elif en_git.returncode != 0:
+            print(f"  ejercicio 3: git no pudo decir si {g3['archivo']} está versionado "
+                  f"(código {en_git.returncode}); no se comprueba")
+    except OSError:
+        print(f"  ejercicio 3: git no está disponible; no se comprueba que {g3['archivo']} "
+              f"esté versionado")
+
+    # (b), segunda mitad: «frente al dato, no». La lectura nombra los dos
+    # departamentos de los extremos y dice que UNO SOLO voltea la respuesta.
+    jk3 = g3["jackknife"]
+    techos_jk = [d["techo"] for d in jk3["por_departamento"]]
+    if len(techos_jk) != g3["n_bloques"]:
+        problemas.append("ejercicio 3: el jackknife no trae un techo por departamento")
+    if jk3["minimo"]["techo"] != min(techos_jk) or jk3["maximo"]["techo"] != max(techos_jk):
+        problemas.append("ejercicio 3: el mínimo o el máximo del jackknife no son los de su lista")
+    sobre_jk = sum(t > obj_alto for t in techos_jk)
+    if sobre_jk != jk3["n_sobre_objetivo"] or sobre_jk != 1 or not jk3["maximo"]["techo"] > obj_alto:
+        problemas.append(f"ejercicio 3: {sobre_jk} departamento(s) llevan el techo por encima de "
+                         f"{obj_alto} al quitarlos, y la lectura dice que uno solo voltea la respuesta")
+    if not obj_bajo < jk3["minimo"]["techo"] < g3["techo"] < jk3["maximo"]["techo"]:
+        problemas.append("ejercicio 3: el techo de la red entera no queda entre los dos extremos "
+                         "del jackknife")
+    # «Aquí pesa más que la semilla»: el recorrido del jackknife contiene al de las semillas.
+    if not (jk3["minimo"]["techo"] < g3["otras_semillas"]["techo_min"]
+            and g3["otras_semillas"]["techo_max"] < jk3["maximo"]["techo"]):
+        problemas.append("ejercicio 3: quitar un departamento ya no mueve el techo más que "
+                         "cambiar de semilla, y la lectura dice que sí")
+    for extremo in ("minimo", "maximo"):
+        if f"{n(jk3[extremo]['techo'])} sin {jk3[extremo]['departamento']}" not in t3["lectura"]:
+            problemas.append(f"ejercicio 3: la lectura no cita el techo sin "
+                             f"{jk3[extremo]['departamento']}")
+        if not any(p["paso"].endswith(f"sin {jk3[extremo]['departamento']}")
+                   and p["valor"] == jk3[extremo]["techo"] for p in t3["pasos"]):
+            problemas.append(f"ejercicio 3: la tabla no trae el techo sin "
+                             f"{jk3[extremo]['departamento']}")
+    # (c): con pesos por filas el promedio «sale positivo» y «depende de la elección».
+    pf3 = g3["pesos_filas"]
+    if not all(v > 0 for v in pf3["promedio"]) or len({n(v) for v in pf3["promedio"]}) != len(pf3["promedio"]):
+        problemas.append("ejercicio 3: el promedio con pesos por filas no es positivo o no cambia "
+                         "con el ancho de banda, y la lectura dice las dos cosas")
+    for ancho, v in zip(pf3["anchos_km"], pf3["promedio"]):
+        if f"{ancho} km" not in t3["lectura"] or n(v) not in t3["lectura"]:
+            problemas.append(f"ejercicio 3: la lectura no cita el promedio con bandas de {ancho} km")
+    # (d): con los residuos «la correlación baja» y 50 «pide ahora» un número finito.
+    r3 = g3["residuos"]
+    if not (0 < r3["rho_medio"] < g3["rho_medio"] and r3["techo"] > obj_alto
+            and r3["objetivo_50_alcanzable"] and r3["techo_sube"]
+            and g3["otras_semillas"]["residuos_techo_min"] > obj_alto):
+        problemas.append(f"ejercicio 3: con los residuos de la altitud el techo ({r3['techo']}) ya "
+                         f"no pasa de {obj_alto}, o no con todas las semillas, y el apartado (d) "
+                         f"dice que sí")
+    if abs((g3["n"] / r3["n_eff"] - 1) / (g3["n"] - 1) - r3["rho_medio"]) > 1e-9:
+        problemas.append("ejercicio 3: la correlación media de los residuos no se despeja de su n_eff")
+    if not r3["n_para_50"] <= r3["estaciones_para_50"] < r3["n_para_50"] + 1:
+        problemas.append("ejercicio 3: las estaciones para 50 con los residuos no son el redondeo "
+                         "hacia arriba")
+    for clave in ("r2", "n_eff", "rho_medio", "techo", "caida_rho_pct", "n_para_50"):
+        if n(r3[clave]) not in t3["lectura"]:
+            problemas.append(f"ejercicio 3: la lectura no cita residuos.{clave} = {n(r3[clave])}")
+    if not 0.5 < r3["r2"] < 1:
+        problemas.append("ejercicio 3: la altitud ya no explica «casi toda» la temperatura")
+    for apartado in ("(a)", "(b)", "(c)", "(d)"):
+        if apartado not in t3["enunciado"] or f"{apartado} " not in t3["lectura"]:
+            problemas.append(f"ejercicio 3: el apartado {apartado} no está en el enunciado y en la lectura")
+    print(f"  ejercicio 3: n_eff {n(g3['n_eff'])} de {g3['n']}, techo {n(g3['techo'])} "
+          f"entre {obj_bajo} y {obj_alto}; lee {g3['archivo']}")
+
     # El módulo 5, sobre lo que su prosa AFIRMA y ningún auditor ve. El de
     # prosa comprueba que cada cifra exista en el JSON y el del precálculo
     # comprueba cada cifra por su lado; ninguno lee las frases que las unen
@@ -4717,9 +4957,13 @@ def main() -> int:
             and tcg["factor_ampliacion"] > 1):
         problemas.append("al ampliar, el rho medio no cae o el n_eff no crece: la prosa "
                          "dice lo contrario")
-    # La prosa imprime el techo de rho = 0.01 como entero, con `ent()`.
-    if abs(1 / ne["rhos"][1] - round(1 / ne["rhos"][1])) > 1e-9:
-        problemas.append("1/rho del ancla ya no es entero y la prosa lo imprime como tal")
+    # La prosa da el techo de rhos[1] sin dividir (sin_aritmetica.py): lo lee de
+    # caso_quiz.techo_otro, que R calcula para la misma correlación. Si R cambiara
+    # uno sin el otro, la frase mentiría.
+    cq = ne["caso_quiz"]
+    if not (cq["rho_otro"] == ne["rhos"][1] and abs(cq["techo_otro"] * ne["rhos"][1] - 1) < 1e-9):
+        problemas.append("el módulo 5 da el techo de rhos[1] con caso_quiz.techo_otro, y ya no son "
+                         "la misma correlación o el techo no es su inverso")
     print(f"  módulo 5: rho medio de Colombia {n(rtg['implicito'], 7)} · n_eff exacto y de "
           f"fórmula {n(e4['n_eff'])} · centrado {n(czg['centrado_min'], 7)} en "
           f"{czg['nrep']} réplicas · tabla del techo de {len(tf)} filas")

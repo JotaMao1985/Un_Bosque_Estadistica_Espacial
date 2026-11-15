@@ -365,6 +365,17 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         ("una cifra de la solución del ejercicio 3",
          f"<td>{f(S['e3']['solucion']['n_eff'])}</td>",
          f"<td>{perturba(S['e3']['solucion']['n_eff'])}</td>"),
+        # Las cifras que la segunda vuelta de T1.2 añadió a la LECTURA del
+        # ejercicio 3: el jackknife por departamento y los residuos de la altitud.
+        ("el techo sin el departamento que voltea la respuesta, cambiado en la lectura",
+         f"a {f(S['e3']['solucion']['jackknife']['maximo']['techo'])} sin ",
+         f"a {perturba(S['e3']['solucion']['jackknife']['maximo']['techo'])} sin "),
+        ("la caída de la correlación con los residuos, cambiada en la lectura",
+         f"un {f(S['e3']['solucion']['residuos']['caida_rho_pct'])}",
+         f"un {perturba(S['e3']['solucion']['residuos']['caida_rho_pct'])}"),
+        ("el techo de los residuos, cambiado en la tabla",
+         f"<td>{f(S['e3']['solucion']['residuos']['techo'])}</td>",
+         f"<td>{perturba(S['e3']['solucion']['residuos']['techo'])}</td>"),
         # --- 4. Un tema del temario que desaparece --------------------
         ("el capítulo deja de hablar de estacionariedad",
          "estacionariedad", "invariancia-en-el-espacio", True),
@@ -453,6 +464,16 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
          "['el rho medio que corresponde a ese '", "['el rho medido en el mapa, y no ese '"),
         ("vuelve el título con la cifra escrita a mano",
          "<h3>Qué cuenta el tamaño efectivo</h3>", "<h3>De dónde sale ese resultado</h3>"),
+        # El ejercicio 3 dejó de estar exento de estas guardas en T1.2: su
+        # enunciado y su lectura son ahora las dos puertas por las que el
+        # planteamiento viejo —un rho sacado de un correlograma y «la
+        # fórmula de equicorrelación»— puede volver.
+        ("la lectura del ejercicio 3 vuelve a hablar de la fórmula de equicorrelación",
+         "No sale de medir correlaciones: se despeja de",
+         "Sale de la fórmula de equicorrelación: se despeja de"),
+        ("el enunciado del ejercicio 3 vuelve a pedir un rho estimado con el correlograma",
+         "¿Qué correlación media entre pares corresponde a esa varianza?",
+         "¿Cuál es el rho estimado con el correlograma por bandas?"),
         # --- LA COMA DECIMAL (2026-09-25), por sus cuatro puertas: el
         # capítulo tenía una en cada una. Ninguna de estas la caza
         # `cifras()`, que lee «0,02» como 0.02 y la da por buena; solo

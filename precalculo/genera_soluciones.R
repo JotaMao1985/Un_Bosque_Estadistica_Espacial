@@ -209,94 +209,405 @@ solucion_cap1 <- function() {
   # Invierte el n efectivo: en vez de preguntar cuánta información hay,
   # pregunta cuántas observaciones habría que tomar. Es la pregunta que
   # un estudiante se va a encontrar cuando diseñe un muestreo.
+  #
+  # EL HILO ES EL DEL MÓDULO 5, sobre otro dato. El tamaño efectivo sale
+  # del cociente de dos remuestreos —estaciones sueltas frente a
+  # departamentos enteros, el método del módulo 4 (`genera_cap1.R`, D.2)—
+  # y la correlación media entre pares NO se mide: se despeja de esa
+  # varianza con la identidad n_eff = n / (1 + (n - 1) rho).
+  #
+  # Hasta la ronda R1 este ejercicio pedía «estimar» esa correlación
+  # promediando un correlograma por bandas cortado en 800 km, con pesos
+  # estandarizados por filas. Ese promedio no es la correlación media, por
+  # dos razones distintas que no hay que mezclar:
+  #   · con todos los pares y EL MISMO PESO, el promedio centrado vale
+  #     -1/(n-1) para cualquier dato (módulo 5): no mide nada;
+  #   · con pesos estandarizados por filas el promedio ya no es -1/(n-1)
+  #     —sale positivo—, pero pondera los pares de otra manera y la cifra
+  #     depende de las bandas y del corte: cortando en 500 km ni 25
+  #     independientes eran alcanzables, en 800 km sí 25 y no 50, y con
+  #     todas las bandas hasta la distancia máxima también 50.
+  # Las bandas salieron del cálculo; quedan solo en el apartado (c), como
+  # la demostración de que la cifra depende de la elección.
+  #
+  # El dato es el archivo PÚBLICO del Taller 1, no `datos/procesado/`: un
+  # ejercicio que el estudiante no puede ejecutar no es un ejercicio. Ese
+  # archivo ya se repartió: aquí solo se lee.
   # -------------------------------------------------------------------
   message("  E3 · n efectivo, al revés")
-  est <- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
-  xy <- st_coordinates(est)
-  n_est <- nrow(est)
+  ARCHIVO_E3 <- "entrega/datos/taller1_estaciones.gpkg"
+  est <- st_read(ARCHIVO_E3, quiet = TRUE)
+  temp <- est$t_media_anual
+  stopifnot(!anyNA(temp), !anyNA(est$departamento), !anyNA(est$altitud_m))
+  n_est <- length(temp)
+  # EL ORDEN DE LOS BLOQUES NO PUEDE DEPENDER DE LA REGIONAL. `split()`
+  # sobre un vector de texto ordena los grupos con LC_COLLATE, y la misma
+  # semilla elige entonces OTROS departamentos según la máquina: en es_ES
+  # «Córdoba» va antes que «Cundinamarca» y en C va después. El orden
+  # "radix" es el de los bytes y es el mismo en todas partes.
+  dep_e3 <- factor(est$departamento,
+                   levels = sort(unique(est$departamento), method = "radix"))
+  n_dep <- nlevels(dep_e3)
+  NB3 <- 4000L
+  SEM_IID <- SEMILLA + 960L
+  SEM_BLQ <- SEMILLA + 961L
 
-  # La correlación media entre pares se estima con un correlograma por
-  # bandas, no suponiéndola constante. Aquí basta con la primera banda
-  # para tener una cota, y con la media sobre todas las bandas para tener
-  # el rho medio que pide la fórmula de equicorrelación.
-  bandas <- c(0, 25, 50, 100, 175, 300, 500, 800) * 1000
-  Is <- vapply(seq_len(length(bandas) - 1L), function(i) {
-    nb <- suppressWarnings(dnearneigh(xy, bandas[i], bandas[i + 1]))
-    if (all(card(nb) == 0)) return(NA_real_)
-    lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
-    suppressWarnings(moran.test(est$t_media_anual, lw,
-                                zero.policy = TRUE))$estimate[["Moran I statistic"]]
-  }, numeric(1))
-
-  # rho medio sobre TODOS los pares: la media de las I por banda,
-  # ponderada por el número de pares de cada banda.
-  npares <- vapply(seq_len(length(bandas) - 1L), function(i) {
-    nb <- suppressWarnings(dnearneigh(xy, bandas[i], bandas[i + 1]))
-    sum(card(nb)) / 2
-  }, numeric(1))
-  rho_medio <- sum(Is * npares, na.rm = TRUE) / sum(npares[!is.na(Is)])
-
-  n_eff_equi <- function(n, rho) n / (1 + (n - 1) * rho)
+  # Los dos remuestreos, escritos como función porque se repiten con
+  # otras semillas, sin un departamento y sobre los residuos. Devuelve
+  # los dos errores estándar.
+  remuestrea_e3 <- function(y, dep, B, s_iid, s_blq) {
+    bl <- split(y, droplevels(dep))
+    set.seed(s_iid)
+    b_i <- replicate(B, mean(sample(y, length(y), replace = TRUE)))
+    set.seed(s_blq)
+    b_b <- replicate(B, {
+      e <- sample(seq_along(bl), length(bl), replace = TRUE)
+      mean(unlist(bl[e], use.names = FALSE))
+    })
+    c(iid = sd(b_i), bloques = sd(b_b))
+  }
+  # Todo lo que el ejercicio deriva de esos dos errores estándar. La
+  # correlación es la que CORRESPONDE a la varianza del remuestreo por
+  # bloques; no es una medición aparte.
+  deriva_e3 <- function(ee, n) {
+    n_eff <- n * (ee[["iid"]] / ee[["bloques"]])^2
+    rho <- (n / n_eff - 1) / (n - 1)
+    list(n_eff = n_eff, rho = rho, techo = 1 / rho)
+  }
   # Y al revés: para tener la precisión de `objetivo` observaciones
-  # independientes, ¿cuántas correlacionadas hacen falta?
+  # independientes CON ESA MISMA rho, ¿cuántas correlacionadas hacen falta?
   #   n_eff = n/(1+(n-1)rho)  =>  n = n_eff (1-rho) / (1 - n_eff rho)
   n_para <- function(objetivo, rho) {
-    if (rho <= 0) return(objetivo)
-    if (objetivo * rho >= 1) return(Inf)   # el techo: 1/rho, se alcance o no
+    if (objetivo * rho >= 1) return(Inf)   # por encima del techo 1/rho
     objetivo * (1 - rho) / (1 - objetivo * rho)
   }
 
+  ee3 <- remuestrea_e3(temp, dep_e3, NB3, SEM_IID, SEM_BLQ)
+  d3 <- deriva_e3(ee3, n_est)
+  # Con rho <= 0 no hay techo ni cuenta que hacer: el ejercicio entero
+  # dejaría de tener sentido, y eso se dice aquí y no en la prosa.
+  if (!(d3$n_eff < n_est) || !(d3$rho > 0))
+    stop("E3: el remuestreo por bloques no ensancha (n_eff >= n o rho <= 0)")
+  OBJETIVOS <- c(25L, 50L)
+  para_25 <- n_para(OBJETIVOS[1], d3$rho)
+  para_50 <- n_para(OBJETIVOS[2], d3$rho)
+  # La lectura afirma que 25 se alcanza y 50 no. Si un dato o una semilla
+  # nuevos lo cambian, hay que reescribirla, no publicarla.
+  if (!is.finite(para_25) || is.finite(para_50))
+    stop("E3: el techo ya no separa 25 de 50; la lectura hay que rehacerla")
+
+  # --- (d) Lo mismo, descontando la altitud ----------------------------
+  # La temperatura es casi toda altitud. Con la media del país como única
+  # media, ese gradiente cuenta como parecido entre estaciones del mismo
+  # departamento; con la altitud en la media, deja de contar. Mismas
+  # semillas, para que el estudiante lo reproduzca.
+  aj_alt <- lm(temp ~ est$altitud_m)
+  res_alt <- unname(residuals(aj_alt))
+  r2_alt <- summary(aj_alt)$r.squared
+  ee_res <- remuestrea_e3(res_alt, dep_e3, NB3, SEM_IID, SEM_BLQ)
+  d_res <- deriva_e3(ee_res, n_est)
+  para_50_res <- n_para(OBJETIVOS[2], d_res$rho)
+  # La lectura de (d) dice que con los residuos la correlación baja y que
+  # 50 pasa a ser alcanzable. Si deja de ser así, se para.
+  if (!(d_res$rho > 0 && d_res$rho < d3$rho) || !is.finite(para_50_res))
+    stop("E3 (d): con los residuos la correlación no baja o 50 sigue fuera")
+
+  # --- Cuánto de eso es la semilla -------------------------------------
+  # El estudiante que lo haga en Python, o con otra semilla, no va a
+  # obtener estas cifras: obtiene otras parecidas. Lo que tiene que
+  # sostenerse es la conclusión, así que se repite el cálculo con otras
+  # parejas de semillas, sobre la temperatura y sobre los residuos, y se
+  # publica el rango.
+  N_OTRAS <- 20L
+  otras <- lapply(seq_len(N_OTRAS), function(k)
+    deriva_e3(remuestrea_e3(temp, dep_e3, NB3,
+                            SEMILLA + 1000L + k, SEMILLA + 1100L + k), n_est))
+  otros_techos <- vapply(otras, function(o) o$techo, numeric(1))
+  otros_neff <- vapply(otras, function(o) o$n_eff, numeric(1))
+  if (!all(otros_techos > OBJETIVOS[1] & otros_techos < OBJETIVOS[2]))
+    stop("E3: con alguna semilla el techo no queda entre 25 y 50")
+  otras_res <- vapply(seq_len(N_OTRAS), function(k)
+    deriva_e3(remuestrea_e3(res_alt, dep_e3, NB3,
+                            SEMILLA + 1000L + k, SEMILLA + 1100L + k),
+              n_est)$techo, numeric(1))
+  if (!all(otras_res > OBJETIVOS[2]))
+    stop("E3 (d): con alguna semilla el techo de los residuos no pasa de 50")
+
+  # --- Cuánto de eso es el dato: un departamento menos -----------------
+  # La semilla no es la única fuente de incertidumbre, ni la mayor. Se
+  # quita un departamento cada vez y se rehace todo el cálculo.
+  #
+  # EL B DE AQUÍ SE RAZONA: tiene que ser el ruido el que no decida. Con
+  # B = 4 000 el techo se mueve de una pareja de semillas a otra con la
+  # desviación típica que se mide abajo (`sd(otros_techos)`, del orden de
+  # una unidad). Con B = 20 000, cinco veces más, baja a menos de la
+  # mitad. Se exige que cada techo quede a más de cuatro de esas
+  # desviaciones del umbral de 50: si alguno queda más cerca, contar
+  # cuántos lo pasan sería contar ruido, y se para.
+  NB_JK <- 20000L
+  SEM_JK_IID <- SEMILLA + 962L
+  SEM_JK_BLQ <- SEMILLA + 963L
+  jk <- lapply(levels(dep_e3), function(dpto) {
+    queda <- dep_e3 != dpto
+    d <- deriva_e3(remuestrea_e3(temp[queda], dep_e3[queda], NB_JK,
+                                 SEM_JK_IID, SEM_JK_BLQ), sum(queda))
+    list(departamento = dpto, estaciones = as.integer(sum(!queda)),
+         techo = r10(d$techo))
+  })
+  jk_techo <- vapply(jk, function(j) j$techo, numeric(1))
+  sd_semilla_jk <- sd(otros_techos) / sqrt(NB_JK / NB3)
+  if (any(abs(jk_techo - OBJETIVOS[2]) < 4 * sd_semilla_jk))
+    stop("E3: algún techo del jackknife queda a menos de 4 sd de 50; sube NB_JK")
+  jk_min <- jk[[which.min(jk_techo)]]
+  jk_max <- jk[[which.max(jk_techo)]]
+  jk_sobre <- sum(jk_techo > OBJETIVOS[2])
+  # La lectura está escrita para lo que pasa: UN departamento voltea la
+  # respuesta. Con cero o con varios hay que reescribirla.
+  if (jk_sobre != 1L || !(jk_min$techo > OBJETIVOS[1]))
+    stop("E3: el jackknife ya no deja un solo departamento sobre 50")
+
+  # --- (c) Promediar un correlograma -----------------------------------
+  # Con todos los pares y el mismo peso: el promedio centrado, calculado
+  # de verdad sobre las 361 temperaturas y no escrito como -1/(n-1).
+  zc <- temp - mean(temp)
+  centrado <- ((sum(zc)^2 - sum(zc^2)) / (n_est * (n_est - 1))) / mean(zc^2)
+  stopifnot(abs(centrado + 1 / (n_est - 1)) < 1e-9)
+  # Con pesos estandarizados por filas —el estilo "W", el que `nb2listw`
+  # pone si no se le dice otra cosa— la I de Moran de cada banda se
+  # promedia ponderando por el número de pares de la banda. Las bandas
+  # cubren TODOS los pares. Se hace a mano, con la matriz de distancias,
+  # para que el auditor lo pueda rehacer sin spdep.
+  stopifnot(identical(eval(formals(spdep::nb2listw)$style), "W"))
+  dist_km <- as.matrix(dist(st_coordinates(est))) / 1000
+  promedio_w <- function(ancho) {
+    cortes <- seq(0, ceiling(max(dist_km) / ancho) * ancho, by = ancho)
+    num <- 0; pares <- 0
+    for (b in seq_len(length(cortes) - 1L)) {
+      A <- (dist_km > cortes[b] & dist_km <= cortes[b + 1L]) * 1
+      diag(A) <- 0
+      card <- rowSums(A); con <- card > 0
+      if (!any(con)) next
+      W <- A[con, , drop = FALSE] / card[con]
+      I_b <- (n_est / sum(con)) * sum(W * outer(zc[con], zc)) / sum(zc^2)
+      num <- num + I_b * sum(A) / 2
+      pares <- pares + sum(A) / 2
+    }
+    stopifnot(pares == n_est * (n_est - 1) / 2)
+    num / pares
+  }
+  ANCHOS_W <- c(50L, 100L, 200L)
+  prom_w <- vapply(ANCHOS_W, promedio_w, numeric(1))
+  # La lectura dice que sale positivo y que cambia con el ancho.
+  if (!all(prom_w > 0) || length(unique(sprintf("%.5f", prom_w))) != 3L)
+    stop("E3 (c): el promedio con pesos W no es positivo o no cambia con las bandas")
+
+  fino <- function(x) format(as.integer(x), big.mark = "\u202f")
+  f5 <- function(x) sprintf("%.5f", x)
+  menos <- function(x) sub("-", "\u2212", f5(x))
+
   E$e3 <- list(
     titulo = "Cuántas estaciones hacen falta de verdad",
-    enunciado = paste(
-      "Con las 361 estaciones del IDEAM, estima la correlación media",
-      "entre pares mediante un correlograma por bandas de distancia.",
-      "Con esa correlación y la fórmula del tamaño de muestra efectivo,",
-      "responde: (a) ¿a cuántas estaciones independientes equivale la",
-      "red actual? (b) Si quisieras la precisión de 25 estaciones",
-      "independientes, ¿cuántas correlacionadas necesitarías? (c) ¿Y la",
-      "de 50? ¿Hay algún número de estaciones que baste?"),
+    enunciado = paste0(
+      "Descarga `taller1_estaciones.gpkg`: las ", n_est, " estaciones del ",
+      "IDEAM, con su temperatura media anual (columna `t_media_anual`), su ",
+      "altitud (columna `altitud_m`) y su departamento (columna ",
+      "`departamento`). (a) Calcula el error ",
+      "estándar de la temperatura media de dos maneras, como en el módulo ",
+      "4 y con ", fino(NB3), " réplicas cada una: remuestreando estaciones ",
+      "sueltas (semilla ", SEM_IID, ") y remuestreando departamentos ",
+      "enteros (semilla ", SEM_BLQ, "). Con el cociente de los dos, ¿a ",
+      "cuántas estaciones independientes equivale la red, y con qué ",
+      "fracción de la información se queda? (b) ¿Qué correlación media ",
+      "entre pares corresponde a esa varianza? Si esa correlación se ",
+      "mantuviera fija al cambiar el número de estaciones, ¿cuántas harían ",
+      "falta para tener la precisión de ", OBJETIVOS[1], " independientes? ",
+      "¿Y la de ", OBJETIVOS[2], "? (c) Sin calcular nada más: ¿de qué ",
+      "depende que esa correlación se mantenga fija cuando se añaden ",
+      "estaciones? ¿Y por qué no vale obtenerla promediando un ",
+      "correlograma de las ", n_est, "? (d) Repite (a) y (b), con las ",
+      "mismas semillas, sobre los residuos de la regresión lineal de la ",
+      "temperatura sobre la altitud. ¿Qué cambia, y por qué?"),
+    # Los rótulos son cortos a propósito: en el teléfono la tabla es tan
+    # ancha como su rótulo más largo. Lo que cada cifra es lo dice la lectura.
     pasos = list(
       list(paso = "Estaciones", valor = as.integer(n_est)),
-      list(paso = "I de Moran de la primera banda (0-25 km)",
-           valor = r10(Is[1])),
-      list(paso = "Correlación media entre pares, ponderada por pares",
-           valor = r10(rho_medio)),
-      list(paso = "n efectivo de la red actual",
-           valor = r10(n_eff_equi(n_est, rho_medio))),
-      list(paso = "Techo de información: 1/rho",
-           valor = r10(1 / rho_medio))
+      list(paso = "Departamentos (bloques del remuestreo)",
+           valor = as.integer(n_dep)),
+      list(paso = "Temperatura media anual (°C)", valor = r10(mean(temp))),
+      list(paso = "e.e. remuestreando estaciones", valor = r10(ee3[["iid"]])),
+      list(paso = "e.e. remuestreando departamentos",
+           valor = r10(ee3[["bloques"]])),
+      list(paso = "(a) Tamaño efectivo de la red",
+           valor = r10(d3$n_eff)),
+      list(paso = "(a) Información que conserva (%)",
+           valor = r10(100 * d3$n_eff / n_est)),
+      list(paso = "(b) Correlación media entre pares",
+           valor = r10(d3$rho)),
+      list(paso = "(b) Techo con esa correlación fija",
+           valor = r10(d3$techo)),
+      list(paso = sprintf("(b) n que despeja la fórmula para %d",
+                          OBJETIVOS[1]),
+           valor = r10(para_25)),
+      list(paso = sprintf("(b) Estaciones para la precisión de %d",
+                          OBJETIVOS[1]),
+           valor = as.integer(ceiling(para_25))),
+      list(paso = sprintf("(b) Estaciones para la precisión de %d",
+                          OBJETIVOS[2]),
+           valor = "Ninguna: supera el techo"),
+      list(paso = sprintf("(b) Techo sin %s", jk_min$departamento),
+           valor = jk_min$techo),
+      list(paso = sprintf("(b) Techo sin %s", jk_max$departamento),
+           valor = jk_max$techo),
+      list(paso = "(d) R² de la temperatura con la altitud",
+           valor = r10(r2_alt)),
+      list(paso = "(d) Tamaño efectivo, con los residuos",
+           valor = r10(d_res$n_eff)),
+      list(paso = "(d) Correlación media, con los residuos",
+           valor = r10(d_res$rho)),
+      list(paso = "(d) Techo, con los residuos",
+           valor = r10(d_res$techo)),
+      list(paso = sprintf("(d) Estaciones para la precisión de %d",
+                          OBJETIVOS[2]),
+           valor = as.integer(ceiling(para_50_res)))
     ),
     solucion = list(
+      archivo = ARCHIVO_E3,
       n = as.integer(n_est),
-      bandas_km = r10(bandas / 1000),
-      moran_por_banda = r10(Is),
-      pares_por_banda = as.integer(npares),
-      rho_medio = r10(rho_medio),
-      n_eff = r10(n_eff_equi(n_est, rho_medio)),
-      pct_informacion = r10(100 * n_eff_equi(n_est, rho_medio) / n_est),
-      # El techo: por mucho que se añadan estaciones, n_eff no pasa de
-      # 1/rho. Es la respuesta al apartado (c) y la que suele sorprender.
-      techo = r10(1 / rho_medio),
-      # 25 está por debajo del techo, así que tiene respuesta finita.
-      n_para_25 = r10(n_para(25, rho_medio)),
-      objetivo_25_alcanzable = is.finite(n_para(25, rho_medio)),
-      # 50 está por encima: no existe ninguna red, por grande que sea,
-      # que dé esa precisión con esta correlación. `Inf` no viaja a JSON,
-      # así que la respuesta se publica como el booleano y no como null.
-      objetivo_50_alcanzable = is.finite(n_para(50, rho_medio)),
-      objetivo_100_alcanzable = is.finite(n_para(100, rho_medio))
+      n_bloques = as.integer(n_dep),
+      nboot = NB3,
+      semilla_iid = SEM_IID, semilla_bloques = SEM_BLQ,
+      media = r10(mean(temp)),
+      ee_iid = r10(ee3[["iid"]]), ee_bloques = r10(ee3[["bloques"]]),
+      factor = r10(ee3[["bloques"]] / ee3[["iid"]]),
+      n_eff = r10(d3$n_eff),
+      pct_informacion = r10(100 * d3$n_eff / n_est),
+      # La correlación media que corresponde a la varianza del remuestreo
+      # por bloques: (n/n_eff - 1)/(n - 1). Se despeja, no se mide.
+      rho_medio = r10(d3$rho),
+      # El techo SI esa correlación se mantiene fija al crecer n. Que se
+      # mantenga depende de cómo se añadan las estaciones: apartado (c).
+      techo = r10(d3$techo),
+      objetivos = OBJETIVOS,
+      n_para_25 = r10(para_25),
+      estaciones_para_25 = as.integer(ceiling(para_25)),
+      objetivo_25_alcanzable = is.finite(para_25),
+      # 50 está por encima del techo. `Inf` no viaja a JSON, así que la
+      # respuesta se publica como el booleano y no como null.
+      objetivo_50_alcanzable = is.finite(para_50),
+      otras_semillas = list(
+        n = N_OTRAS,
+        n_eff_min = r10(min(otros_neff)), n_eff_max = r10(max(otros_neff)),
+        techo_min = r10(min(otros_techos)), techo_max = r10(max(otros_techos)),
+        techo_sd = r10(sd(otros_techos)),
+        residuos_techo_min = r10(min(otras_res)),
+        residuos_techo_max = r10(max(otras_res))
+      ),
+      # Un departamento menos: lo que el dato, y no la semilla, mueve.
+      jackknife = list(
+        nboot = NB_JK,
+        semilla_iid = SEM_JK_IID, semilla_bloques = SEM_JK_BLQ,
+        por_departamento = jk,
+        minimo = jk_min, maximo = jk_max,
+        n_sobre_objetivo = as.integer(jk_sobre)
+      ),
+      # Apartado (c): lo que da promediar todos los pares, con este dato.
+      centrado_todos_los_pares = r10(centrado),
+      # Y con pesos estandarizados por filas, en bandas de tres anchos.
+      pesos_filas = list(anchos_km = ANCHOS_W, promedio = r10(prom_w)),
+      # Apartado (d): lo mismo sobre los residuos de temp ~ altitud.
+      residuos = list(
+        r2 = r10(r2_alt),
+        ee_iid = r10(ee_res[["iid"]]), ee_bloques = r10(ee_res[["bloques"]]),
+        n_eff = r10(d_res$n_eff),
+        rho_medio = r10(d_res$rho),
+        techo = r10(d_res$techo),
+        caida_rho_pct = r10(100 * (1 - d_res$rho / d3$rho)),
+        techo_sube = d_res$techo > d3$techo,
+        n_para_25 = r10(n_para(OBJETIVOS[1], d_res$rho)),
+        n_para_50 = r10(para_50_res),
+        estaciones_para_50 = as.integer(ceiling(para_50_res)),
+        objetivo_50_alcanzable = is.finite(para_50_res)
+      )
     ),
-    lectura = paste(
-      "El apartado (c) es el que enseña. Con correlación positiva",
-      "constante el tamaño efectivo tiene un TECHO en 1/rho: añadir",
-      "estaciones deja de aportar información mucho antes de lo que",
-      "cualquiera esperaría. Ojo con el modelo, eso sí: la fórmula de",
-      "equicorrelación supone que todas las parejas se parecen lo mismo,",
-      "y el correlograma dice justo lo contrario —la correlación decae",
-      "con la distancia—. Por eso el resultado es una COTA orientativa y",
-      "no una cifra de diseño; el cálculo exacto necesita la matriz de",
-      "correlación entera, que es lo que llega en el capítulo 9.")
+    lectura = paste0(
+      "(a) Los dos remuestreos dan errores estándar muy distintos: ",
+      f5(ee3[["iid"]]), " °C con estaciones sueltas y ",
+      f5(ee3[["bloques"]]), " °C con departamentos enteros, ",
+      f5(ee3[["bloques"]] / ee3[["iid"]]), " veces más. Para la temperatura ",
+      "media, las ", n_est, " estaciones informan como ", f5(d3$n_eff),
+      " independientes: la red conserva el ", f5(100 * d3$n_eff / n_est),
+      "\u00a0% de la información que aparenta.",
+      # Una línea en blanco separa los párrafos: el ensamblador parte ahí.
+      "\n\n(b) A esa varianza le corresponde una correlación media entre pares ",
+      "de ", f5(d3$rho), ". No sale de medir correlaciones: se despeja de ",
+      "la varianza que dio el remuestreo, y hereda las tres salvedades que ",
+      "el módulo 5 pone a la cifra de Colombia. La primera tiene sentido ",
+      "conocido: el remuestreo trata los ", n_dep, " departamentos como ",
+      "bloques independientes entre sí, y si entre departamentos vecinos ",
+      "queda dependencia positiva, subestima la varianza, esta correlación ",
+      "se queda corta y el techo verdadero es menor. Si esa correlación se ",
+      "mantuviera fija, el ",
+      "tamaño efectivo no pasaría de ", f5(d3$techo), " por muchas ",
+      "estaciones que se añadieran. La precisión de ", OBJETIVOS[1],
+      " independientes pide ", f5(para_25), " estaciones, es decir, ",
+      as.integer(ceiling(para_25)), "; la red actual, con ", n_est,
+      ", ya la supera, porque informa como ", f5(d3$n_eff), ". La de ",
+      OBJETIVOS[2], " queda por encima del techo: con esa correlación fija ",
+      "no la alcanza ninguna red, por grande que sea.",
+      "\n\nCuánto aguanta esa conclusión tiene dos respuestas. Frente a la ",
+      "semilla, aguanta: con otras ", N_OTRAS, " parejas de semillas el ",
+      "techo va de ", f5(min(otros_techos)), " a ", f5(max(otros_techos)),
+      ", siempre entre ", OBJETIVOS[1], " y ", OBJETIVOS[2], ". Frente al ",
+      "dato, no. Al quitar un departamento cada vez y repetir el cálculo, ",
+      "con ", fino(NB_JK), " réplicas, el techo va de ", f5(jk_min$techo),
+      " sin ", jk_min$departamento, " a ", f5(jk_max$techo), " sin ",
+      jk_max$departamento, ", que tiene ", jk_max$estaciones, " de las ",
+      n_est, " estaciones. Sin ", jk_max$departamento, " la precisión de ",
+      OBJETIVOS[2], " pasa a ser alcanzable: un solo departamento de los ",
+      n_dep, " voltea la respuesta. Es la incertidumbre heredada del ",
+      "remuestreo, la de la primera salvedad del módulo 5, y aquí pesa ",
+      "más que la semilla.",
+      "\n\n(c) Que la correlación media se mantenga fija no es una propiedad ",
+      "de la temperatura: depende de cómo se añadan las estaciones. Si las ",
+      "nuevas se reparten como las actuales, las distancias entre pares se ",
+      "siguen repartiendo igual, la correlación media apenas cambia y el ",
+      "techo se sostiene. Si se ponen donde hoy hay pocas, como en la ",
+      "Orinoquía o la Amazonía, la correlación media cambia aunque el ",
+      "territorio sea el mismo. Y si la red se amplía a una región mayor, ",
+      "entran pares cada vez más lejanos, la correlación media baja y el ",
+      "tamaño efectivo sigue creciendo: ahí no hay techo. Es la tabla del ",
+      "módulo 5 que compara rellenar con ampliar.",
+      "\n\nEsa correlación tampoco se puede obtener promediando un ",
+      "correlograma de las ", n_est, " estaciones. Con todos los pares y el ",
+      "mismo peso para todos, el promedio centrado vale ",
+      "\u22121/(n\u00a0\u2212\u00a01), aquí ", menos(centrado),
+      ", con este dato y con cualquier otro. Con pesos estandarizados por ",
+      "filas, que es lo que spdep pone si no se le pide otra cosa, el ",
+      "promedio deja de ser ese y sale positivo: en bandas de ",
+      ANCHOS_W[2], " km, ponderando cada banda por sus pares, da ",
+      f5(prom_w[2]), ". Pero tampoco es la correlación media: esos pesos ",
+      "ponderan los pares de otra manera, y la cifra depende de la ",
+      "elección. Con bandas de ", ANCHOS_W[1], " km da ", f5(prom_w[1]),
+      " y con bandas de ", ANCHOS_W[3], " km, ", f5(prom_w[3]), ".",
+      "\n\n(d) La altitud sola explica casi toda la temperatura: el R² de ",
+      "la regresión es ", f5(r2_alt), ". Con sus residuos, los mismos dos ",
+      "remuestreos dan un tamaño efectivo de ", f5(d_res$n_eff),
+      ", una correlación media de ", f5(d_res$rho), ", un ",
+      f5(100 * (1 - d_res$rho / d3$rho)), "\u00a0% menor, y un techo de ",
+      f5(d_res$techo), ". La precisión de ", OBJETIVOS[2],
+      " independientes, que en (b) no alcanzaba ninguna red, pide ahora ",
+      f5(para_50_res), " estaciones, es decir, ",
+      as.integer(ceiling(para_50_res)), ". Con otras ", N_OTRAS,
+      " parejas de semillas ese techo va de ", f5(min(otras_res)), " a ",
+      f5(max(otras_res)), ", siempre por encima de ", OBJETIVOS[2],
+      ". La red es la misma; lo que ha cambiado es qué se toma por media. ",
+      "En (b) la media era una sola cifra para todo el país, y que las ",
+      "estaciones de un mismo departamento estén a alturas parecidas ",
+      "contaba como correlación entre ellas. Aquí la media cambia con la ",
+      "altitud y ese parecido deja de contar. El techo depende, entonces, ",
+      "también del modelo de la media: decidir qué parte del dato es media ",
+      "y qué parte es dependencia es el problema de la estacionariedad, ",
+      "el del módulo 6.")
   )
 
   # -------------------------------------------------------------------

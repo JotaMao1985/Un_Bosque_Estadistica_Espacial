@@ -52,6 +52,7 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 import os
 import pathlib
 import re
@@ -254,8 +255,142 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["e1"]["solucion"].__setitem__("factor_otras", 1.1739)))
     add("E2: el IC honesto deja de contener al ingenuo", "soluciones",
         m(lambda o: o["e2"]["solucion"].__setitem__("ee_bloques", 0.1739417)))
+    # E3 (R1 · T1.2). El ejercicio dejó de «medir» un rho con bandas: el n
+    # efectivo sale de dos remuestreos sobre el archivo público y todo lo
+    # demás se despeja de él. Los mutantes de los campos del correlograma
+    # (`moran_por_banda`, `bandas_km`) se retiraron con los campos.
+    e3m = lambda o: o["e3"]["solucion"]       # noqa: E731
     add("E3: el techo deja de ser 1/rho", "soluciones",
-        m(lambda o: o["e3"]["solucion"].__setitem__("techo", 41.73914)))
+        m(lambda o: e3m(o).__setitem__("techo", 41.73914)))
+    add("E3: vuelve el rho de las bandas, que no se despeja del n efectivo", "soluciones",
+        m(lambda o: e3m(o).__setitem__("rho_medio", 0.0314555721)))
+    add("E3: el n efectivo deja de salir de sus dos e.e.", "soluciones",
+        m(lambda o: e3m(o).__setitem__("n_eff", 41.7394173)))
+    add("E3: el factor deja de ser el cociente de los e.e.", "soluciones",
+        m(lambda o: e3m(o).__setitem__("factor", 3.1739417)))
+    add("E3: el porcentaje de información deja de ser n_eff/n", "soluciones",
+        m(lambda o: e3m(o).__setitem__("pct_informacion", 11.7394173)))
+    add("E3: vuelven las 113 estaciones para 25 independientes", "soluciones",
+        m(lambda o: e3m(o).__setitem__("n_para_25", 113.3517394)))
+    add("E3: las estaciones para 25 se redondean hacia abajo", "soluciones",
+        m(lambda o: e3m(o).__setitem__("estaciones_para_25", 56)))
+    add("E3: la bandera dice que 50 independientes se alcanzan", "soluciones",
+        m(lambda o: e3m(o).__setitem__("objetivo_50_alcanzable", True)))
+    add("E3: la temperatura media deja de ser la del archivo público", "soluciones",
+        m(lambda o: e3m(o).__setitem__("media", 22.4173941)))
+    add("E3: un departamento de más entre los bloques", "soluciones",
+        m(lambda o: e3m(o).__setitem__("n_bloques", 33)))
+    add("E3: el promedio centrado de todos los pares sale positivo", "soluciones",
+        m(lambda o: e3m(o).__setitem__("centrado_todos_los_pares", 0.0027777778)))
+    add("E3: con otra semilla el techo pasa de 50", "soluciones",
+        m(lambda o: e3m(o)["otras_semillas"].__setitem__("techo_max", 51.7394173)))
+    add("E3: el rango de las otras semillas no contiene a la referencia", "soluciones",
+        m(lambda o: e3m(o)["otras_semillas"].__setitem__("n_eff_min", 40.9173941)))
+    add("E3: el ejercicio vuelve a leer el dato que no se publica", "soluciones",
+        m(lambda o: e3m(o).__setitem__(
+            "archivo", "datos/procesado/colombia_estaciones_clima.gpkg")))
+    add("E3: vuelve el correlograma por bandas al JSON", "soluciones",
+        m(lambda o: e3m(o).__setitem__("moran_por_banda", [0.41739, 0.21739])))
+    add("E3: la tabla calla sobre el objetivo que no se alcanza", "soluciones",
+        m(lambda o: o["e3"].__setitem__(
+            "pasos", [p for p in o["e3"]["pasos"] if not isinstance(p["valor"], str)])))
+
+    # Segunda vuelta de T1.2: el jackknife por departamento, los residuos de
+    # la altitud y el promedio con pesos por filas.
+    jkm = lambda o: e3m(o)["jackknife"]       # noqa: E731
+    add("E3: los departamentos del jackknife vuelven al orden de la regional", "soluciones",
+        m(lambda o: jkm(o)["por_departamento"].insert(
+            0, jkm(o)["por_departamento"].pop(1))))
+    add("E3: un departamento cualquiera pasa a llevar el techo sobre 50", "soluciones",
+        m(lambda o: jkm(o)["por_departamento"][5].__setitem__("techo", 52.1739417)))
+    add("E3: el techo sin un departamento se mueve un 15 %, sin cruzar el umbral", "soluciones",
+        m(lambda o: jkm(o)["por_departamento"][7].__setitem__(
+            "techo", jkm(o)["por_departamento"][7]["techo"] * 0.85)))
+    add("E3: el máximo del jackknife no es el de su lista", "soluciones",
+        m(lambda o: jkm(o)["maximo"].__setitem__("techo", 61.7394173)))
+    add("E3: el máximo del jackknife cambia de departamento", "soluciones",
+        m(lambda o: jkm(o)["maximo"].__setitem__("departamento", "Cundinamarca")))
+    add("E3: el mínimo del jackknife cambia de número de estaciones", "soluciones",
+        m(lambda o: jkm(o)["minimo"].__setitem__("estaciones", 41)))
+    add("E3: dos departamentos voltean la respuesta, según la cuenta", "soluciones",
+        m(lambda o: jkm(o).__setitem__("n_sobre_objetivo", 2)))
+    add("E3: el jackknife se queda con las réplicas del ejercicio", "soluciones",
+        m(lambda o: jkm(o).__setitem__("nboot", 4000)))
+    add("E3: la semilla pasa a mover el techo más que el dato", "soluciones",
+        m(lambda o: e3m(o)["otras_semillas"].__setitem__("techo_min", 30.1739417)))
+    add("E3: la tabla pierde el techo sin el departamento que voltea", "soluciones",
+        m(lambda o: o["e3"].__setitem__(
+            "pasos", [p for p in o["e3"]["pasos"]
+                      if not p["paso"].endswith("sin " + jkm(o)["maximo"]["departamento"])])))
+    add("E3: la tabla pierde las estaciones enteras para 25", "soluciones",
+        m(lambda o: o["e3"].__setitem__(
+            "pasos", [p for p in o["e3"]["pasos"]
+                      if p["paso"] != "(b) Estaciones para la precisión de 25"])))
+    rsm = lambda o: e3m(o)["residuos"]        # noqa: E731
+    add("E3 (d): el R² de la altitud no es el de la regresión", "soluciones",
+        m(lambda o: rsm(o).__setitem__("r2", 0.9173941)))
+    add("E3 (d): la correlación de los residuos no se despeja de su n efectivo", "soluciones",
+        m(lambda o: rsm(o).__setitem__("rho_medio", 0.0156173)))
+    add("E3 (d): el techo de los residuos deja de ser 1/rho", "soluciones",
+        m(lambda o: rsm(o).__setitem__("techo", 64.1739417)))
+    add("E3 (d): la caída de la correlación es «cerca de un tercio» a mano", "soluciones",
+        m(lambda o: rsm(o).__setitem__("caida_rho_pct", 31.7394173)))
+    add("E3 (d): las estaciones para 50 se redondean hacia abajo", "soluciones",
+        m(lambda o: rsm(o).__setitem__("estaciones_para_50",
+                                       rsm(o)["estaciones_para_50"] - 1)))
+    add("E3 (d): la bandera dice que 50 sigue sin alcanzarse", "soluciones",
+        m(lambda o: rsm(o).__setitem__("objetivo_50_alcanzable", False)))
+    add("E3 (d): el n para 25 con los residuos no sale de la fórmula", "soluciones",
+        m(lambda o: rsm(o).__setitem__("n_para_25", 41.7394173)))
+    add("E3 (d): con otra semilla el techo de los residuos baja de 50", "soluciones",
+        m(lambda o: e3m(o)["otras_semillas"].__setitem__("residuos_techo_min", 49.1739417)))
+
+    # Como arriba: el mutante que las identidades no ven, ahora en (d).
+    def e3_residuos_coherente(o, factor):
+        e, r = o["e3"]["solucion"], o["e3"]["solucion"]["residuos"]
+        r["ee_bloques"] *= factor
+        r["n_eff"] = e["n"] * (r["ee_iid"] / r["ee_bloques"]) ** 2
+        rho = (e["n"] / r["n_eff"] - 1) / (e["n"] - 1)
+        rho0 = (e["n"] / e["n_eff"] - 1) / (e["n"] - 1)
+        r["rho_medio"], r["techo"] = rho, 1 / rho
+        r["caida_rho_pct"] = 100 * (1 - rho / rho0)
+        b, al = e["objetivos"]
+        r["n_para_25"] = b * (1 - rho) / (1 - b * rho)
+        r["n_para_50"] = al * (1 - rho) / (1 - al * rho)
+        r["estaciones_para_50"] = math.ceil(r["n_para_50"])
+        for p in o["e3"]["pasos"]:
+            if p["paso"] == f"(d) Estaciones para la precisión de {al}":
+                p["valor"] = r["estaciones_para_50"]
+    add("E3 (d): el e.e. por departamentos de los residuos baja un 15 %, con todo coherente",
+        "soluciones", m(lambda o: e3_residuos_coherente(o, 0.85)))
+
+    pfm = lambda o: e3m(o)["pesos_filas"]     # noqa: E731
+    add("E3 (c): el promedio con pesos por filas es el del verificador, no el de estas bandas",
+        "soluciones", m(lambda o: pfm(o)["promedio"].__setitem__(1, 0.0191739)))
+    add("E3 (c): el promedio con pesos por filas sale negativo", "soluciones",
+        m(lambda o: pfm(o)["promedio"].__setitem__(0, -0.0027777778)))
+    add("E3 (c): las bandas cambian de ancho sin cambiar la cifra", "soluciones",
+        m(lambda o: pfm(o)["anchos_km"].__setitem__(2, 300)))
+
+    # El mutante que las identidades NO ven: el e.e. por departamentos sale
+    # un 9 % más bajo y TODO lo que se despeja de él se recalcula coherente,
+    # banderas incluidas. Solo lo caza el remuestreo propio del auditor, y
+    # está aquí para probar que su tolerancia de Monte Carlo no es un coladero.
+    def e3_coherente(o, ee_blq):
+        e = o["e3"]["solucion"]
+        e["ee_bloques"] = ee_blq
+        e["factor"] = ee_blq / e["ee_iid"]
+        e["n_eff"] = e["n"] * (e["ee_iid"] / ee_blq) ** 2
+        e["pct_informacion"] = 100 * e["n_eff"] / e["n"]
+        rho = (e["n"] / e["n_eff"] - 1) / (e["n"] - 1)
+        e["rho_medio"], e["techo"] = rho, 1 / rho
+        b, al = e["objetivos"]
+        e["n_para_25"] = b * (1 - rho) / (1 - b * rho)
+        e["estaciones_para_25"] = math.ceil(e["n_para_25"])
+        e["objetivo_25_alcanzable"] = b * rho < 1
+        e["objetivo_50_alcanzable"] = al * rho < 1
+    add("E3: el e.e. por departamentos baja un 9 %, con todo lo derivado coherente",
+        "soluciones", m(lambda o: e3_coherente(o, 0.8)))
     add("E4: la r deja de crecer con el tamaño de la unidad", "soluciones",
         m(lambda o: o["e4"]["solucion"]["conglomerado"].__setitem__("r", 0.41739)))
     add("E4: la r municipal deja de ser la del módulo 7", "soluciones",

@@ -1646,20 +1646,296 @@ def main() -> int:
             "E2: la zona alta empieza donde acaba el IC ingenuo", 1e-8)
     a.cierto(e2["factor"] > 1, "E2: el bloque ensancha", f"{e2['factor']:.5f}")
 
+    # E3 · El n efectivo al revés, sobre la temperatura de las estaciones.
+    #
+    # Hasta R1 esta sección comprobaba la aritmética de un rho «medido» con
+    # un correlograma por bandas y daba verde sobre un planteamiento que no
+    # medía nada. Ahora rehace el ejercicio entero desde el archivo PÚBLICO
+    # —el que el enunciado manda descargar—, con su propio remuestreo.
     e3 = S["e3"]["solucion"]
-    a.igual(e3["n"], D["colombia"]["geo"]["n"], "E3: las mismas estaciones")
-    a.igual(e3["n"] / (1 + (e3["n"] - 1) * e3["rho_medio"]), e3["n_eff"],
-            "E3: el n efectivo por la fórmula", 1e-7)
-    a.igual(1 / e3["rho_medio"], e3["techo"], "E3: el techo es 1/rho", 1e-7)
-    a.igual(100 * e3["n_eff"] / e3["n"], e3["pct_informacion"], "E3: el porcentaje", 1e-6)
+    a.cierto(e3["archivo"].startswith("entrega/datos/") and (RAIZ / e3["archivo"]).is_file(),
+             "E3: lee un archivo publicado, y está en el repo", e3["archivo"])
+    pub3 = gpd.read_file(RAIZ / e3["archivo"])
+    t3 = pub3.t_media_anual.to_numpy()
+    n3 = len(t3)
+    a.igual(n3, e3["n"], "E3: estaciones del archivo público")
+    a.igual(e3["n"], D["colombia"]["geo"]["n"], "E3: las mismas estaciones del módulo 2")
+    # El archivo público es una copia del procesado. Si divergen, el
+    # ejercicio y el resto del capítulo hablan de datos distintos.
+    a.cierto(np.array_equal(np.sort(t3), np.sort(est.t_media_anual.to_numpy())),
+             "E3:   y con las mismas temperaturas que el dato procesado")
+    a.igual(t3.mean(), e3["media"], "E3: temperatura media", 1e-8)
+    dep3 = pub3.departamento.to_numpy()
+    nombres3 = np.unique(dep3)
+    a.igual(len(nombres3), e3["n_bloques"], "E3: departamentos (bloques)")
+
+    # Los dos remuestreos, por un camino que no es el de R.
+    #
+    # LA TOLERANCIA ES DE MONTE CARLO Y SE RAZONA, no se elige. R publica
+    # cada error estándar con B = 4 000 réplicas: la desviación típica de
+    # una réplica a otra de una desviación típica estimada así es, en
+    # relativo, 1/sqrt(2B) ≈ 1.1 % si las medias remuestreadas son
+    # aproximadamente normales. La referencia de aquí no tiene ese ruido:
+    #   · i.i.d.: no se remuestrea. Con B infinito el bootstrap de la media
+    #     da EXACTAMENTE sd(ddof=0)/sqrt(n), así que se compara con la
+    #     fórmula;
+    #   · bloques: 200 000 réplicas (ruido relativo ≈ 0.16 %).
+    # Cinco desviaciones típicas de lo publicado son un 5.6 %: se pide 6 %.
+    # El n efectivo lleva el cociente al cuadrado, así que su ruido relativo
+    # es 2·sqrt(2)·1.1 % ≈ 3.2 %; cinco veces eso, 16 %. Al techo le llega
+    # multiplicado por 1/(1 − n_eff/n) ≈ 1.12: 18 %. Son tolerancias anchas
+    # porque el ruido lo es; lo que NO es ruido —las identidades entre las
+    # cifras publicadas— se comprueba abajo a 1e-9.
+    ee_iid_ref = t3.std(ddof=0) / math.sqrt(n3)
+    sumas3 = np.array([t3[dep3 == k].sum() for k in nombres3])
+    tam3 = np.array([(dep3 == k).sum() for k in nombres3])
+    rng3 = np.random.default_rng(20929)
+    medias3 = []
+    for _ in range(20):
+        sel3 = rng3.integers(0, len(nombres3), (10_000, len(nombres3)))
+        medias3.append(sumas3[sel3].sum(axis=1) / tam3[sel3].sum(axis=1))
+    ee_blq_ref = np.concatenate(medias3).std(ddof=1)
+    n_eff_ref = n3 * (ee_iid_ref / ee_blq_ref) ** 2
+    techo_ref = (n3 - 1) / (n3 / n_eff_ref - 1)
+    a.cierto(abs(e3["ee_iid"] / ee_iid_ref - 1) < 0.06,
+             "E3: el e.e. i.i.d. es el de la fórmula, salvo Monte Carlo",
+             f"R {e3['ee_iid']:.5f} · exacto {ee_iid_ref:.5f}")
+    a.cierto(abs(e3["ee_bloques"] / ee_blq_ref - 1) < 0.06,
+             "E3: el e.e. por departamentos, rehecho con 200 000 réplicas",
+             f"R {e3['ee_bloques']:.5f} · aquí {ee_blq_ref:.5f}")
+    a.cierto(abs(e3["n_eff"] / n_eff_ref - 1) < 0.16,
+             "E3: el n efectivo, rehecho", f"R {e3['n_eff']:.3f} · aquí {n_eff_ref:.3f}")
+    a.cierto(abs(e3["techo"] / techo_ref - 1) < 0.18,
+             "E3: el techo, rehecho", f"R {e3['techo']:.3f} · aquí {techo_ref:.3f}")
+    # La conclusión no puede depender del ruido: la referencia sin ruido
+    # también deja el techo entre los dos objetivos.
+    obj_bajo, obj_alto = e3["objetivos"]
+    a.cierto(obj_bajo < techo_ref < obj_alto,
+             f"E3: con 200 000 réplicas el techo también queda entre {obj_bajo} y {obj_alto}",
+             f"{techo_ref:.3f}")
+    a.cierto(e3["otras_semillas"]["n_eff_min"] <= n_eff_ref <= e3["otras_semillas"]["n_eff_max"],
+             "E3: el rango de las otras semillas contiene a la referencia",
+             f"{e3['otras_semillas']['n_eff_min']:.3f} a {e3['otras_semillas']['n_eff_max']:.3f}")
+    a.cierto(obj_bajo < e3["otras_semillas"]["techo_min"]
+             <= e3["otras_semillas"]["techo_max"] < obj_alto,
+             "E3: y con ninguna de ellas el techo sale de entre los dos objetivos")
+    a.cierto(e3["otras_semillas"]["n_eff_min"] < e3["otras_semillas"]["n_eff_max"]
+             and e3["otras_semillas"]["techo_min"] < e3["otras_semillas"]["techo_max"],
+             "E3:   y el rango es un rango")
+    a.igual((n3 - 1) / (n3 / e3["otras_semillas"]["n_eff_min"] - 1),
+            e3["otras_semillas"]["techo_min"], "E3:   cuyo techo mínimo es el del n_eff mínimo", 1e-8)
+    a.igual((n3 - 1) / (n3 / e3["otras_semillas"]["n_eff_max"] - 1),
+            e3["otras_semillas"]["techo_max"], "E3:   y el máximo, el del máximo", 1e-8)
+
+    # Las identidades. Todas se rehacen DESDE n_eff, y no unas de otras: el
+    # JSON guarda diez decimales, y un rho redondeado a 1e-10 mueve el
+    # techo 1e-7 y las estaciones para 25, 2e-7. Desde n_eff el error de
+    # redondeo que se propaga queda por debajo de 2e-10.
+    a.igual(e3["ee_bloques"] / e3["ee_iid"], e3["factor"], "E3: el factor", 1e-7)
+    a.igual(e3["n"] * (e3["ee_iid"] / e3["ee_bloques"]) ** 2, e3["n_eff"],
+            "E3: el n efectivo es n·(ee_iid/ee_bloques)²", 1e-6)
+    a.igual(100 * e3["n_eff"] / e3["n"], e3["pct_informacion"], "E3: el porcentaje", 1e-8)
+    rho3 = (e3["n"] / e3["n_eff"] - 1) / (e3["n"] - 1)
+    a.igual(rho3, e3["rho_medio"], "E3: la correlación media se despeja del n efectivo", 1e-9)
+    a.igual(1 / rho3, e3["techo"], "E3: el techo es 1/rho", 1e-9)
+    a.igual(obj_bajo * (1 - rho3) / (1 - obj_bajo * rho3), e3["n_para_25"],
+            f"E3: las estaciones para la precisión de {obj_bajo} independientes", 1e-9)
+    a.igual(math.ceil(e3["n_para_25"]), e3["estaciones_para_25"],
+            "E3:   y su redondeo hacia arriba")
+    a.cierto(e3["estaciones_para_25"] / (1 + (e3["estaciones_para_25"] - 1) * rho3) >= obj_bajo
+             > (e3["estaciones_para_25"] - 1) / (1 + (e3["estaciones_para_25"] - 2) * rho3),
+             "E3:   que es la primera red que llega al objetivo")
+    a.cierto(e3["estaciones_para_25"] < e3["n"], "E3:   y la red actual ya la supera")
+    a.cierto(0 < e3["rho_medio"] and e3["n_eff"] < e3["n"],
+             "E3: el remuestreo por bloques ensancha", f"rho = {e3['rho_medio']:.5f}")
     a.cierto(e3["n_eff"] < e3["techo"], "E3: el n efectivo respeta su techo")
+    # Las banderas se recalculan, no se creen.
+    a.cierto(e3["objetivo_25_alcanzable"] == (obj_bajo * rho3 < 1)
+             and e3["objetivo_50_alcanzable"] == (obj_alto * rho3 < 1),
+             "E3: las banderas dicen lo que dice el techo")
     a.cierto(e3["objetivo_25_alcanzable"] and not e3["objetivo_50_alcanzable"],
-             "E3: 25 estaciones independientes se alcanzan y 50 no")
-    a.cierto(not e3["objetivo_100_alcanzable"], "E3:   y 100 tampoco")
-    a.cierto(25 < e3["techo"] < 50, "E3: el techo separa los dos objetivos",
-             f"{e3['techo']:.5f}")
-    a.igual(len(e3["moran_por_banda"]), len(e3["bandas_km"]) - 1,
-            "E3: una I por banda")
+             f"E3: {obj_bajo} independientes se alcanzan y {obj_alto} no",
+             f"techo {e3['techo']:.5f}")
+    # Apartado (c): el promedio centrado de todos los pares, sobre el dato.
+    z3 = t3 - t3.mean()
+    centrado3 = ((z3.sum() ** 2 - (z3 ** 2).sum()) / (n3 * (n3 - 1))) / (z3 ** 2).mean()
+    a.igual(centrado3, e3["centrado_todos_los_pares"],
+            "E3: el promedio centrado de todos los pares, sobre las temperaturas", 1e-9)
+    a.igual(-1 / (n3 - 1), e3["centrado_todos_los_pares"], "E3:   y vale −1/(n − 1)", 1e-9)
+    a.cierto(not ({"bandas_km", "moran_por_banda", "pares_por_banda"} & set(e3)),
+             "E3: no vuelve el correlograma por bandas")
+    a.cierto(any(p["paso"] == f"(b) Estaciones para la precisión de {obj_alto}"
+                 and isinstance(p["valor"], str) for p in S["e3"]["pasos"]),
+             "E3: la tabla responde también al objetivo que no se alcanza")
+
+    # --- E3, segunda vuelta: el dato, la altitud y los pesos por filas ---
+    #
+    # El orden de los bloques. R los fija con sort(method = "radix"), que es
+    # el orden de los bytes; np.unique ordena por punto de código, que en
+    # UTF-8 es el mismo orden. Si la lista publicada no viene así, el
+    # generador ha vuelto a depender de LC_COLLATE.
+    jk3 = e3["jackknife"]
+    lista3 = jk3["por_departamento"]
+    a.cierto([d["departamento"] for d in lista3] == list(nombres3),
+             "E3: los departamentos van en orden de bytes, no en el de la regional",
+             f"{len(lista3)} departamentos")
+    a.cierto([d["estaciones"] for d in lista3] == [int(v) for v in tam3],
+             "E3:   y cada uno con sus estaciones")
+
+    # Un departamento menos. El e.e. i.i.d. sale de la fórmula y el de
+    # bloques de 50 000 réplicas propias. R usa B = 20 000: por la regla
+    # 1/sqrt(2B) su techo llevaría un ruido relativo de ≈ 1.6 %, pero esa
+    # regla supone normalidad y aquí se queda corta —las medias por bloques
+    # tienen colas, y dos corridas largas de la red entera difieren más de
+    # lo que predice—, así que se pide un 10 % y no cinco veces 1.6 %. Es
+    # ancho, y aun así separa lo que importa: el departamento que voltea la
+    # respuesta está a más de un 10 % del umbral.
+    techos_ref = []
+    for k, nombre in enumerate(nombres3):
+        queda = dep3 != nombre
+        n_k = int(queda.sum())
+        ee_i = t3[queda].std(ddof=0) / math.sqrt(n_k)
+        s_k, m_k = np.delete(sumas3, k), np.delete(tam3, k)
+        medias_k = []
+        for _ in range(5):
+            sel_k = rng3.integers(0, len(s_k), (10_000, len(s_k)))
+            medias_k.append(s_k[sel_k].sum(axis=1) / m_k[sel_k].sum(axis=1))
+        ee_b = np.concatenate(medias_k).std(ddof=1)
+        ne_k = n_k * (ee_i / ee_b) ** 2
+        techos_ref.append((n_k - 1) / (n_k / ne_k - 1))
+    techos_ref = np.array(techos_ref)
+    techos_pub = np.array([d["techo"] for d in lista3])
+    peor3 = int(np.argmax(np.abs(techos_pub / techos_ref - 1)))
+    a.cierto(np.all(np.abs(techos_pub / techos_ref - 1) < 0.10),
+             "E3: el techo sin cada departamento, rehecho uno a uno",
+             f"el peor: {nombres3[peor3]}, R {techos_pub[peor3]:.3f} · aquí {techos_ref[peor3]:.3f}")
+    a.igual(techos_pub.min(), jk3["minimo"]["techo"], "E3: el techo mínimo es el de la lista", 1e-12)
+    a.igual(techos_pub.max(), jk3["maximo"]["techo"], "E3: y el máximo también", 1e-12)
+    a.cierto(jk3["minimo"]["departamento"] == nombres3[int(techos_pub.argmin())]
+             and jk3["maximo"]["departamento"] == nombres3[int(techos_pub.argmax())],
+             "E3:   cada uno con su departamento",
+             f"{jk3['minimo']['departamento']} y {jk3['maximo']['departamento']}")
+    a.cierto(jk3["minimo"]["estaciones"] == int(tam3[int(techos_pub.argmin())])
+             and jk3["maximo"]["estaciones"] == int(tam3[int(techos_pub.argmax())]),
+             "E3:   y con sus estaciones")
+    a.igual(int((techos_pub > obj_alto).sum()), jk3["n_sobre_objetivo"],
+            f"E3: cuántos departamentos llevan el techo por encima de {obj_alto}")
+    a.cierto(jk3["n_sobre_objetivo"] == 1,
+             "E3: un solo departamento voltea la respuesta, como dice la lectura")
+    # Y lo mismo con el remuestreo de aquí: que no sea cosa de la semilla de R.
+    a.cierto(int((techos_ref > obj_alto).sum()) == 1
+             and nombres3[int(techos_ref.argmax())] == jk3["maximo"]["departamento"],
+             "E3:   y con el remuestreo propio es el mismo departamento",
+             f"{nombres3[int(techos_ref.argmax())]}: {techos_ref.max():.3f}")
+    a.cierto(jk3["minimo"]["departamento"] in
+             {nombres3[i] for i in np.argsort(techos_ref)[:3]},
+             "E3:   y el del mínimo está entre los tres más bajos de aquí",
+             f"{jk3['minimo']['departamento']}: {techos_ref[list(nombres3).index(jk3['minimo']['departamento'])]:.3f}")
+    a.cierto(jk3["minimo"]["techo"] < e3["otras_semillas"]["techo_min"]
+             and e3["otras_semillas"]["techo_max"] < jk3["maximo"]["techo"],
+             "E3: quitar un departamento mueve el techo más que cambiar de semilla")
+    a.cierto(0 < e3["otras_semillas"]["techo_sd"]
+             < e3["otras_semillas"]["techo_max"] - e3["otras_semillas"]["techo_min"],
+             "E3: la desviación entre semillas cabe en su recorrido",
+             f"{e3['otras_semillas']['techo_sd']:.3f}")
+    a.cierto(jk3["nboot"] > e3["nboot"], "E3: el jackknife usa más réplicas que el ejercicio",
+             f"{jk3['nboot']} frente a {e3['nboot']}")
+
+    # (d) Los residuos de la temperatura sobre la altitud.
+    r3 = e3["residuos"]
+    alt3 = pub3.altitud_m.to_numpy()
+    coef3 = np.polyfit(alt3, t3, 1)
+    res3 = t3 - np.polyval(coef3, alt3)
+    a.igual(1 - (res3 ** 2).sum() / ((t3 - t3.mean()) ** 2).sum(), r3["r2"],
+            "E3 (d): el R² de la temperatura sobre la altitud", 1e-9)
+    ee_iid_res = res3.std(ddof=0) / math.sqrt(n3)
+    sumas_r = np.array([res3[dep3 == k].sum() for k in nombres3])
+    medias_r = []
+    for _ in range(20):
+        sel_r = rng3.integers(0, len(nombres3), (10_000, len(nombres3)))
+        medias_r.append(sumas_r[sel_r].sum(axis=1) / tam3[sel_r].sum(axis=1))
+    ee_blq_res = np.concatenate(medias_r).std(ddof=1)
+    n_eff_res = n3 * (ee_iid_res / ee_blq_res) ** 2
+    techo_res = (n3 - 1) / (n3 / n_eff_res - 1)
+    # Las mismas tolerancias de Monte Carlo que arriba, por la misma cuenta.
+    a.cierto(abs(r3["ee_iid"] / ee_iid_res - 1) < 0.06,
+             "E3 (d): el e.e. i.i.d. de los residuos, salvo Monte Carlo",
+             f"R {r3['ee_iid']:.5f} · exacto {ee_iid_res:.5f}")
+    a.cierto(abs(r3["ee_bloques"] / ee_blq_res - 1) < 0.06,
+             "E3 (d): el e.e. por departamentos de los residuos, rehecho",
+             f"R {r3['ee_bloques']:.5f} · aquí {ee_blq_res:.5f}")
+    a.cierto(abs(r3["n_eff"] / n_eff_res - 1) < 0.16,
+             "E3 (d): el n efectivo de los residuos, rehecho",
+             f"R {r3['n_eff']:.3f} · aquí {n_eff_res:.3f}")
+    a.cierto(abs(r3["techo"] / techo_res - 1) < 0.18,
+             "E3 (d): el techo de los residuos, rehecho",
+             f"R {r3['techo']:.3f} · aquí {techo_res:.3f}")
+    a.cierto(techo_res > obj_alto and techo_res > techo_ref,
+             f"E3 (d): con 200 000 réplicas ese techo también pasa de {obj_alto} y del de (b)",
+             f"{techo_res:.3f}")
+    a.cierto(obj_alto < e3["otras_semillas"]["residuos_techo_min"]
+             < e3["otras_semillas"]["residuos_techo_max"],
+             f"E3 (d): con las otras semillas tampoco baja de {obj_alto}",
+             f"{e3['otras_semillas']['residuos_techo_min']:.3f} a "
+             f"{e3['otras_semillas']['residuos_techo_max']:.3f}")
+    a.igual(e3["n"] * (r3["ee_iid"] / r3["ee_bloques"]) ** 2, r3["n_eff"],
+            "E3 (d): el n efectivo es n·(ee_iid/ee_bloques)²", 1e-6)
+    rho_r = (e3["n"] / r3["n_eff"] - 1) / (e3["n"] - 1)
+    a.igual(rho_r, r3["rho_medio"], "E3 (d): la correlación media se despeja del n efectivo", 1e-9)
+    a.igual(1 / rho_r, r3["techo"], "E3 (d): el techo es 1/rho", 1e-9)
+    a.igual(100 * (1 - rho_r / rho3), r3["caida_rho_pct"],
+            "E3 (d): la caída relativa de la correlación", 1e-7)
+    a.cierto(0 < r3["caida_rho_pct"] < 100, "E3 (d):   y es una caída",
+             f"{r3['caida_rho_pct']:.3f} %")
+    a.igual(obj_alto * (1 - rho_r) / (1 - obj_alto * rho_r), r3["n_para_50"],
+            f"E3 (d): las estaciones para la precisión de {obj_alto}", 1e-7)
+    a.igual(obj_bajo * (1 - rho_r) / (1 - obj_bajo * rho_r), r3["n_para_25"],
+            f"E3 (d): y para la de {obj_bajo}", 1e-9)
+    a.igual(math.ceil(r3["n_para_50"]), r3["estaciones_para_50"],
+            "E3 (d):   con su redondeo hacia arriba")
+    a.cierto(r3["objetivo_50_alcanzable"] == (obj_alto * rho_r < 1)
+             and r3["techo_sube"] == (r3["techo"] > e3["techo"]),
+             "E3 (d): las banderas dicen lo que dicen las cifras")
+    a.cierto(r3["objetivo_50_alcanzable"] and r3["techo_sube"],
+             f"E3 (d): con los residuos {obj_alto} independientes pasan a ser alcanzables")
+
+    # (c) El promedio por bandas con pesos estandarizados por filas. No hay
+    # azar: se rehace exacto. La I de cada banda, con pesos 1/(vecinos de i),
+    # ponderada por los pares de la banda; las bandas cubren todos los pares.
+    pf3 = e3["pesos_filas"]
+    xy3 = np.column_stack([pub3.geometry.x.to_numpy(), pub3.geometry.y.to_numpy()])
+    dist3 = np.sqrt(((xy3[:, None, :] - xy3[None, :, :]) ** 2).sum(-1)) / 1000
+    for ancho, publicado in zip(pf3["anchos_km"], pf3["promedio"]):
+        cortes = np.arange(0, math.ceil(dist3.max() / ancho) * ancho + ancho / 2, ancho)
+        num = pares = 0.0
+        for lo, hi in zip(cortes[:-1], cortes[1:]):
+            A = ((dist3 > lo) & (dist3 <= hi)).astype(float)
+            np.fill_diagonal(A, 0)
+            card = A.sum(axis=1)
+            con = card > 0
+            if not con.any():
+                continue
+            W = A[con] / card[con, None]
+            I_b = (n3 / con.sum()) * (W * np.outer(z3[con], z3)).sum() / (z3 ** 2).sum()
+            num += I_b * A.sum() / 2
+            pares += A.sum() / 2
+        a.igual(pares, n3 * (n3 - 1) / 2, f"E3 (c): las bandas de {ancho} km cubren todos los pares")
+        a.igual(num / pares, publicado,
+                f"E3 (c): el promedio con pesos por filas, bandas de {ancho} km", 1e-9)
+    a.cierto(all(v > 0 for v in pf3["promedio"])
+             and len({round(v, 5) for v in pf3["promedio"]}) == len(pf3["promedio"]),
+             "E3 (c): sale positivo y cambia con el ancho de banda",
+             " · ".join(f"{v:.5f}" for v in pf3["promedio"]))
+    a.cierto(all(abs(v - e3["centrado_todos_los_pares"]) > 0.01 for v in pf3["promedio"]),
+             "E3 (c):   y no es el −1/(n − 1) de los pesos iguales")
+    # La tabla publica lo que la lectura afirma.
+    pasos3 = {p["paso"]: p["valor"] for p in S["e3"]["pasos"]}
+    a.cierto(pasos3.get(f"(b) Techo sin {jk3['minimo']['departamento']}") == jk3["minimo"]["techo"]
+             and pasos3.get(f"(b) Techo sin {jk3['maximo']['departamento']}") == jk3["maximo"]["techo"],
+             "E3: la tabla trae los dos extremos del jackknife")
+    a.cierto(pasos3.get(f"(b) Estaciones para la precisión de {obj_bajo}") == e3["estaciones_para_25"]
+             and pasos3.get(f"(d) Estaciones para la precisión de {obj_alto}") == r3["estaciones_para_50"],
+             "E3: y las estaciones enteras de (b) y de (d)")
 
     e4 = S["e4"]["solucion"]
     a.igual(e4["municipal"]["r"], ec["principal"]["r_municipal"],

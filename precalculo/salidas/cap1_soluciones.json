@@ -92,44 +92,314 @@
   },
   "e3": {
     "titulo": "Cuántas estaciones hacen falta de verdad",
-    "enunciado": "Con las 361 estaciones del IDEAM, estima la correlación media entre pares mediante un correlograma por bandas de distancia. Con esa correlación y la fórmula del tamaño de muestra efectivo, responde: (a) ¿a cuántas estaciones independientes equivale la red actual? (b) Si quisieras la precisión de 25 estaciones independientes, ¿cuántas correlacionadas necesitarías? (c) ¿Y la de 50? ¿Hay algún número de estaciones que baste?",
+    "enunciado": "Descarga `taller1_estaciones.gpkg`: las 361 estaciones del IDEAM, con su temperatura media anual (columna `t_media_anual`), su altitud (columna `altitud_m`) y su departamento (columna `departamento`). (a) Calcula el error estándar de la temperatura media de dos maneras, como en el módulo 4 y con 4 000 réplicas cada una: remuestreando estaciones sueltas (semilla 2986) y remuestreando departamentos enteros (semilla 2987). Con el cociente de los dos, ¿a cuántas estaciones independientes equivale la red, y con qué fracción de la información se queda? (b) ¿Qué correlación media entre pares corresponde a esa varianza? Si esa correlación se mantuviera fija al cambiar el número de estaciones, ¿cuántas harían falta para tener la precisión de 25 independientes? ¿Y la de 50? (c) Sin calcular nada más: ¿de qué depende que esa correlación se mantenga fija cuando se añaden estaciones? ¿Y por qué no vale obtenerla promediando un correlograma de las 361? (d) Repite (a) y (b), con las mismas semillas, sobre los residuos de la regresión lineal de la temperatura sobre la altitud. ¿Qué cambia, y por qué?",
     "pasos": [
       {
         "paso": "Estaciones",
         "valor": 361
       },
       {
-        "paso": "I de Moran de la primera banda (0-25 km)",
-        "valor": 0.606348194
+        "paso": "Departamentos (bloques del remuestreo)",
+        "valor": 32
       },
       {
-        "paso": "Correlación media entre pares, ponderada por pares",
-        "valor": 0.0314555721
+        "paso": "Temperatura media anual (°C)",
+        "valor": 22.4033240997
       },
       {
-        "paso": "n efectivo de la red actual",
-        "valor": 29.2924233237
+        "paso": "e.e. remuestreando estaciones",
+        "valor": 0.2893703248
       },
       {
-        "paso": "Techo de información: 1/rho",
-        "valor": 31.7908698444
+        "paso": "e.e. remuestreando departamentos",
+        "valor": 0.8641803976
+      },
+      {
+        "paso": "(a) Tamaño efectivo de la red",
+        "valor": 40.4768179685
+      },
+      {
+        "paso": "(a) Información que conserva (%)",
+        "valor": 11.2124149497
+      },
+      {
+        "paso": "(b) Correlación media entre pares",
+        "valor": 0.021996348
+      },
+      {
+        "paso": "(b) Techo con esa correlación fija",
+        "valor": 45.4620922465
+      },
+      {
+        "paso": "(b) n que despeja la fórmula para 25",
+        "valor": 54.3225146663
+      },
+      {
+        "paso": "(b) Estaciones para la precisión de 25",
+        "valor": 55
+      },
+      {
+        "paso": "(b) Estaciones para la precisión de 50",
+        "valor": "Ninguna: supera el techo"
+      },
+      {
+        "paso": "(b) Techo sin Antioquia",
+        "valor": 36.4238899089
+      },
+      {
+        "paso": "(b) Techo sin Boyacá",
+        "valor": 56.2636447077
+      },
+      {
+        "paso": "(d) R² de la temperatura con la altitud",
+        "valor": 0.958657576
+      },
+      {
+        "paso": "(d) Tamaño efectivo, con los residuos",
+        "valor": 51.2944879401
+      },
+      {
+        "paso": "(d) Correlación media, con los residuos",
+        "valor": 0.0167716479
+      },
+      {
+        "paso": "(d) Techo, con los residuos",
+        "valor": 59.6244333386
+      },
+      {
+        "paso": "(d) Estaciones para la precisión de 50",
+        "valor": 305
       }
     ],
     "solucion": {
+      "archivo": "entrega/datos/taller1_estaciones.gpkg",
       "n": 361,
-      "bandas_km": [0, 25, 50, 100, 175, 300, 500, 800],
-      "moran_por_banda": [0.606348194, 0.5709433411, 0.3001496815, 0.1744989117, 0.0805992971, -0.0881923155, -0.0034261725],
-      "pares_por_banda": [277, 806, 2794, 6302, 12975, 19427, 16040],
-      "rho_medio": 0.0314555721,
-      "n_eff": 29.2924233237,
-      "pct_informacion": 8.114244688,
-      "techo": 31.7908698444,
-      "n_para_25": 113.353924276,
+      "n_bloques": 32,
+      "nboot": 4000,
+      "semilla_iid": 2986,
+      "semilla_bloques": 2987,
+      "media": 22.4033240997,
+      "ee_iid": 0.2893703248,
+      "ee_bloques": 0.8641803976,
+      "factor": 2.9864167936,
+      "n_eff": 40.4768179685,
+      "pct_informacion": 11.2124149497,
+      "rho_medio": 0.021996348,
+      "techo": 45.4620922465,
+      "objetivos": [25, 50],
+      "n_para_25": 54.3225146663,
+      "estaciones_para_25": 55,
       "objetivo_25_alcanzable": true,
       "objetivo_50_alcanzable": false,
-      "objetivo_100_alcanzable": false
+      "otras_semillas": {
+        "n": 20,
+        "n_eff_min": 37.7439251002,
+        "n_eff_max": 41.8740454536,
+        "techo_min": 42.0342078344,
+        "techo_max": 47.2373247883,
+        "techo_sd": 1.356065106,
+        "residuos_techo_min": 59.420538827,
+        "residuos_techo_max": 68.3724464902
+      },
+      "jackknife": {
+        "nboot": 20000,
+        "semilla_iid": 2988,
+        "semilla_bloques": 2989,
+        "por_departamento": [
+          {
+            "departamento": "Amazonas",
+            "estaciones": 1,
+            "techo": 43.3252041577
+          },
+          {
+            "departamento": "Antioquia",
+            "estaciones": 40,
+            "techo": 36.4238899089
+          },
+          {
+            "departamento": "Arauca",
+            "estaciones": 3,
+            "techo": 43.5742123199
+          },
+          {
+            "departamento": "Archipiélago de San Andres, Providencia y Santa Catalina",
+            "estaciones": 2,
+            "techo": 43.0076210236
+          },
+          {
+            "departamento": "Atlántico",
+            "estaciones": 3,
+            "techo": 43.5055772386
+          },
+          {
+            "departamento": "Bolívar",
+            "estaciones": 7,
+            "techo": 42.7704645449
+          },
+          {
+            "departamento": "Boyacá",
+            "estaciones": 30,
+            "techo": 56.2636447077
+          },
+          {
+            "departamento": "Caldas",
+            "estaciones": 6,
+            "techo": 42.962459982
+          },
+          {
+            "departamento": "Caquetá",
+            "estaciones": 8,
+            "techo": 44.9162269469
+          },
+          {
+            "departamento": "Casanare",
+            "estaciones": 7,
+            "techo": 43.631067358
+          },
+          {
+            "departamento": "Cauca",
+            "estaciones": 17,
+            "techo": 40.3495905245
+          },
+          {
+            "departamento": "Cesar",
+            "estaciones": 11,
+            "techo": 45.5143984336
+          },
+          {
+            "departamento": "Chocó",
+            "estaciones": 6,
+            "techo": 44.5126586077
+          },
+          {
+            "departamento": "Cundinamarca",
+            "estaciones": 25,
+            "techo": 42.6074107057
+          },
+          {
+            "departamento": "Córdoba",
+            "estaciones": 14,
+            "techo": 44.2812172645
+          },
+          {
+            "departamento": "Guainía",
+            "estaciones": 1,
+            "techo": 43.6079287121
+          },
+          {
+            "departamento": "Guaviare",
+            "estaciones": 3,
+            "techo": 43.7472494512
+          },
+          {
+            "departamento": "Huila",
+            "estaciones": 24,
+            "techo": 40.3750625398
+          },
+          {
+            "departamento": "La Guajira",
+            "estaciones": 7,
+            "techo": 42.7006323262
+          },
+          {
+            "departamento": "Magdalena",
+            "estaciones": 10,
+            "techo": 41.9593518786
+          },
+          {
+            "departamento": "Meta",
+            "estaciones": 13,
+            "techo": 42.6194259189
+          },
+          {
+            "departamento": "Nariño",
+            "estaciones": 18,
+            "techo": 40.3853492444
+          },
+          {
+            "departamento": "Norte de Santander",
+            "estaciones": 17,
+            "techo": 39.4937248731
+          },
+          {
+            "departamento": "Putumayo",
+            "estaciones": 8,
+            "techo": 42.046167336
+          },
+          {
+            "departamento": "Quindío",
+            "estaciones": 1,
+            "techo": 43.3612199777
+          },
+          {
+            "departamento": "RIsaralda",
+            "estaciones": 5,
+            "techo": 42.592467802
+          },
+          {
+            "departamento": "Santander",
+            "estaciones": 24,
+            "techo": 37.7069212294
+          },
+          {
+            "departamento": "Sucre",
+            "estaciones": 4,
+            "techo": 42.9987786589
+          },
+          {
+            "departamento": "Tolima",
+            "estaciones": 31,
+            "techo": 40.6001231133
+          },
+          {
+            "departamento": "Valle del Cauca",
+            "estaciones": 11,
+            "techo": 41.3521751167
+          },
+          {
+            "departamento": "Vaupés",
+            "estaciones": 1,
+            "techo": 43.844301102
+          },
+          {
+            "departamento": "Vichada",
+            "estaciones": 3,
+            "techo": 43.3674367255
+          }
+        ],
+        "minimo": {
+          "departamento": "Antioquia",
+          "estaciones": 40,
+          "techo": 36.4238899089
+        },
+        "maximo": {
+          "departamento": "Boyacá",
+          "estaciones": 30,
+          "techo": 56.2636447077
+        },
+        "n_sobre_objetivo": 1
+      },
+      "centrado_todos_los_pares": -0.0027777778,
+      "pesos_filas": {
+        "anchos_km": [50, 100, 200],
+        "promedio": [0.0267378593, 0.0250317077, 0.0233184951]
+      },
+      "residuos": {
+        "r2": 0.958657576,
+        "ee_iid": 0.058621697,
+        "ee_bloques": 0.1555165589,
+        "n_eff": 51.2944879401,
+        "rho_medio": 0.0167716479,
+        "techo": 59.6244333386,
+        "caida_rho_pct": 23.7525797717,
+        "techo_sube": true,
+        "n_para_25": 42.3288034531,
+        "n_para_50": 304.5604415139,
+        "estaciones_para_50": 305,
+        "objetivo_50_alcanzable": true
+      }
     },
-    "lectura": "El apartado (c) es el que enseña. Con correlación positiva constante el tamaño efectivo tiene un TECHO en 1/rho: añadir estaciones deja de aportar información mucho antes de lo que cualquiera esperaría. Ojo con el modelo, eso sí: la fórmula de equicorrelación supone que todas las parejas se parecen lo mismo, y el correlograma dice justo lo contrario —la correlación decae con la distancia—. Por eso el resultado es una COTA orientativa y no una cifra de diseño; el cálculo exacto necesita la matriz de correlación entera, que es lo que llega en el capítulo 9."
+    "lectura": "(a) Los dos remuestreos dan errores estándar muy distintos: 0.28937 °C con estaciones sueltas y 0.86418 °C con departamentos enteros, 2.98642 veces más. Para la temperatura media, las 361 estaciones informan como 40.47682 independientes: la red conserva el 11.21241 % de la información que aparenta.\n\n(b) A esa varianza le corresponde una correlación media entre pares de 0.02200. No sale de medir correlaciones: se despeja de la varianza que dio el remuestreo, y hereda las tres salvedades que el módulo 5 pone a la cifra de Colombia. La primera tiene sentido conocido: el remuestreo trata los 32 departamentos como bloques independientes entre sí, y si entre departamentos vecinos queda dependencia positiva, subestima la varianza, esta correlación se queda corta y el techo verdadero es menor. Si esa correlación se mantuviera fija, el tamaño efectivo no pasaría de 45.46209 por muchas estaciones que se añadieran. La precisión de 25 independientes pide 54.32251 estaciones, es decir, 55; la red actual, con 361, ya la supera, porque informa como 40.47682. La de 50 queda por encima del techo: con esa correlación fija no la alcanza ninguna red, por grande que sea.\n\nCuánto aguanta esa conclusión tiene dos respuestas. Frente a la semilla, aguanta: con otras 20 parejas de semillas el techo va de 42.03421 a 47.23732, siempre entre 25 y 50. Frente al dato, no. Al quitar un departamento cada vez y repetir el cálculo, con 20 000 réplicas, el techo va de 36.42389 sin Antioquia a 56.26364 sin Boyacá, que tiene 30 de las 361 estaciones. Sin Boyacá la precisión de 50 pasa a ser alcanzable: un solo departamento de los 32 voltea la respuesta. Es la incertidumbre heredada del remuestreo, la de la primera salvedad del módulo 5, y aquí pesa más que la semilla.\n\n(c) Que la correlación media se mantenga fija no es una propiedad de la temperatura: depende de cómo se añadan las estaciones. Si las nuevas se reparten como las actuales, las distancias entre pares se siguen repartiendo igual, la correlación media apenas cambia y el techo se sostiene. Si se ponen donde hoy hay pocas, como en la Orinoquía o la Amazonía, la correlación media cambia aunque el territorio sea el mismo. Y si la red se amplía a una región mayor, entran pares cada vez más lejanos, la correlación media baja y el tamaño efectivo sigue creciendo: ahí no hay techo. Es la tabla del módulo 5 que compara rellenar con ampliar.\n\nEsa correlación tampoco se puede obtener promediando un correlograma de las 361 estaciones. Con todos los pares y el mismo peso para todos, el promedio centrado vale −1/(n − 1), aquí −0.00278, con este dato y con cualquier otro. Con pesos estandarizados por filas, que es lo que spdep pone si no se le pide otra cosa, el promedio deja de ser ese y sale positivo: en bandas de 100 km, ponderando cada banda por sus pares, da 0.02503. Pero tampoco es la correlación media: esos pesos ponderan los pares de otra manera, y la cifra depende de la elección. Con bandas de 50 km da 0.02674 y con bandas de 200 km, 0.02332.\n\n(d) La altitud sola explica casi toda la temperatura: el R² de la regresión es 0.95866. Con sus residuos, los mismos dos remuestreos dan un tamaño efectivo de 51.29449, una correlación media de 0.01677, un 23.75258 % menor, y un techo de 59.62443. La precisión de 50 independientes, que en (b) no alcanzaba ninguna red, pide ahora 304.56044 estaciones, es decir, 305. Con otras 20 parejas de semillas ese techo va de 59.42054 a 68.37245, siempre por encima de 50. La red es la misma; lo que ha cambiado es qué se toma por media. En (b) la media era una sola cifra para todo el país, y que las estaciones de un mismo departamento estén a alturas parecidas contaba como correlación entre ellas. Aquí la media cambia con la altitud y ese parecido deja de contar. El techo depende, entonces, también del modelo de la media: decidir qué parte del dato es media y qué parte es dependencia es el problema de la estacionariedad, el del módulo 6."
   },
   "e4": {
     "titulo": "¿Cuál es «la» correlación?",
@@ -176,7 +446,7 @@
     "capitulo": 1,
     "semilla": 2026,
     "n_ejercicios": 4,
-    "generado": "2026-08-06",
+    "generado": "2026-11-14",
     "r": "R version 4.4.1 (2024-06-14)"
   }
 }

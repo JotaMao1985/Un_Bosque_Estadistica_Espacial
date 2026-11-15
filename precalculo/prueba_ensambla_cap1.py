@@ -291,6 +291,8 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: ne5(o)["techo"]["rejilla"][0]["relleno"].__setitem__("n_eff", 5.5))
     obj("techo_inf deja de ser el inverso de rho_inf", "datos",
         lambda o: ne5(o)["techo"].__setitem__("rho_inf", 0.25))
+    obj("el techo del ejemplo del módulo 5 deja de ser 1/rhos[1]", "datos",
+        lambda o: ne5(o)["caso_quiz"].__setitem__("techo_otro", 50))
     # Una fórmula escrita con UNA barra invertida en el ensamblador: Python la
     # convierte en un carácter de control y el HTML sale con las cifras bien
     # y la fórmula rota. Pasó de verdad al reescribir este módulo.
@@ -300,6 +302,84 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: ne5(o)["rho_del_titular"].__setitem__("implicito_con_s2", 0.02))
     obj("al ampliar el rho medio deja de caer", "datos",
         lambda o: ne5(o)["techo"]["rejilla"][3]["ampliacion"].__setitem__("rho_medio", 0.5))
+
+    # --- Ejercicio 3: el n efectivo al revés (R1 · T1.2) -----------------
+    #
+    # El ejercicio se rehízo sobre el archivo público del Taller 1 y el
+    # remuestreo por bloques. Sus guardas leen lo que la lectura AFIRMA —«la
+    # red actual ya la supera», «siempre entre 25 y 50»— y que el ejercicio
+    # se pueda hacer desde fuera. Una inyección por guarda.
+    e3g = lambda o: o["e3"]["solucion"]       # noqa: E731
+    obj("el ejercicio 3 enlaza un archivo que no está en el repo", "soluciones",
+        lambda o: e3g(o).__setitem__("archivo", "entrega/datos/no_existe.gpkg"))
+    obj("el ejercicio 3 vuelve a leer el dato que no se publica", "soluciones",
+        lambda o: e3g(o).__setitem__("archivo",
+                                     "precalculo/salidas/cap1_soluciones.json"))
+    txt("el ejercicio 3 pierde el enlace de descarga", "ensamblador",
+        "{ejercicio(3, S['e3'], datos=E3_DATOS, codigo=E3_CODIGO)}",
+        "{ejercicio(3, S['e3'], codigo=E3_CODIGO)}")
+    obj("ejercicio 3: el remuestreo por bloques deja de ensanchar", "soluciones",
+        lambda o: e3g(o).__setitem__("n_eff", 417.39417))
+    obj("ejercicio 3: vuelve el rho de las bandas", "soluciones",
+        lambda o: e3g(o).__setitem__("rho_medio", 0.0314555721))
+    obj("ejercicio 3: la bandera dice que 50 independientes se alcanzan", "soluciones",
+        lambda o: e3g(o).__setitem__("objetivo_50_alcanzable", True))
+    obj("ejercicio 3: con otra semilla el techo pasa de 50", "soluciones",
+        lambda o: e3g(o)["otras_semillas"].__setitem__("techo_max", 51.73941))
+    obj("ejercicio 3: las estaciones para 25 se redondean hacia abajo", "soluciones",
+        lambda o: e3g(o).__setitem__("estaciones_para_25", 56))
+    obj("ejercicio 3: la lectura cita un techo que no es el del JSON", "soluciones",
+        lambda o: e3g(o).__setitem__("techo", 44.1739417))
+    obj("ejercicio 3: el promedio centrado sale positivo", "soluciones",
+        lambda o: e3g(o).__setitem__("centrado_todos_los_pares", 0.0027777778))
+    obj("ejercicio 3: la lectura vuelve a la fórmula de equicorrelación", "soluciones",
+        lambda o: o["e3"].__setitem__(
+            "lectura", o["e3"]["lectura"] + " Es la fórmula de equicorrelación."))
+    obj("ejercicio 3: vuelve el correlograma por bandas al JSON", "soluciones",
+        lambda o: e3g(o).__setitem__("moran_por_banda", [0.41739, 0.21739]))
+    # Segunda vuelta: el jackknife, los pesos por filas y los residuos. El
+    # archivo sin versionar lo dispara ya el primer mutante de esta familia
+    # (un archivo que no existe tampoco está en git).
+    jkg = lambda o: e3g(o)["jackknife"]       # noqa: E731
+    obj("ejercicio 3: el jackknife pierde un departamento", "soluciones",
+        lambda o: jkg(o)["por_departamento"].pop(3))
+    obj("ejercicio 3: el máximo del jackknife no es el de su lista", "soluciones",
+        lambda o: jkg(o)["maximo"].__setitem__("techo", 61.73941))
+    obj("ejercicio 3: ningún departamento voltea ya la respuesta", "soluciones",
+        lambda o: (jkg(o)["maximo"].__setitem__("techo", 47.9),
+                   [d.__setitem__("techo", 47.9) for d in jkg(o)["por_departamento"]
+                    if d["departamento"] == jkg(o)["maximo"]["departamento"]],
+                   jkg(o).__setitem__("n_sobre_objetivo", 0)))
+    obj("ejercicio 3: el techo de la red sale del recorrido del jackknife", "soluciones",
+        lambda o: (jkg(o)["minimo"].__setitem__("techo", 20.5),
+                   [d.__setitem__("techo", 20.5) for d in jkg(o)["por_departamento"]
+                    if d["departamento"] == jkg(o)["minimo"]["departamento"]]))
+    obj("ejercicio 3: la semilla mueve el techo más que el dato", "soluciones",
+        lambda o: e3g(o)["otras_semillas"].__setitem__("techo_min", 30.17394))
+    obj("ejercicio 3: la lectura nombra un departamento y el JSON otro", "soluciones",
+        lambda o: jkg(o)["minimo"].__setitem__("departamento", "Santander"))
+    obj("ejercicio 3: la tabla pierde el techo sin el departamento que voltea", "soluciones",
+        lambda o: o["e3"].__setitem__(
+            "pasos", [p for p in o["e3"]["pasos"]
+                      if not p["paso"].endswith("sin " + jkg(o)["maximo"]["departamento"])]))
+    obj("ejercicio 3: el promedio con pesos por filas sale negativo", "soluciones",
+        lambda o: e3g(o)["pesos_filas"]["promedio"].__setitem__(0, -0.0027777778))
+    obj("ejercicio 3: la lectura cita un promedio por filas que no es el del JSON", "soluciones",
+        lambda o: e3g(o)["pesos_filas"]["promedio"].__setitem__(2, 0.0241739))
+    obj("ejercicio 3: el techo de los residuos deja de pasar de 50", "soluciones",
+        lambda o: (e3g(o)["residuos"].__setitem__("techo", 48.17394),
+                   e3g(o)["residuos"].__setitem__("objetivo_50_alcanzable", False)))
+    obj("ejercicio 3: la correlación de los residuos no se despeja de su n_eff", "soluciones",
+        lambda o: e3g(o)["residuos"].__setitem__("rho_medio", 0.0201739))
+    obj("ejercicio 3: las estaciones para 50 con los residuos, mal redondeadas", "soluciones",
+        lambda o: e3g(o)["residuos"].__setitem__(
+            "estaciones_para_50", e3g(o)["residuos"]["estaciones_para_50"] + 2))
+    obj("ejercicio 3: la lectura cita una caída de la correlación que no es la del JSON",
+        "soluciones", lambda o: e3g(o)["residuos"].__setitem__("caida_rho_pct", 31.73941))
+    obj("ejercicio 3: la altitud deja de explicar casi toda la temperatura", "soluciones",
+        lambda o: e3g(o)["residuos"].__setitem__("r2", 0.4173941))
+    obj("ejercicio 3: el enunciado pierde el apartado (d)", "soluciones",
+        lambda o: o["e3"].__setitem__("enunciado", o["e3"]["enunciado"].replace("(d) ", "")))
 
     # --- Módulo 4: las dos rejillas del campo gaussiano (T1.2) ----------
     obj("un campo simulado se queda sin fila de cifras", "mapas",

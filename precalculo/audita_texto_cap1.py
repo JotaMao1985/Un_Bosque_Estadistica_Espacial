@@ -43,12 +43,10 @@ Devuelve 1 si algo falla.
 """
 from __future__ import annotations
 
-import html
-import json
 import re
 import sys
 
-from audita_texto_base import SALIDAS, Auditor
+from audita_texto_base import Auditor
 
 # Cifras que NO son resultados: identificadores, años, códigos, versiones y
 # referencias bibliográficas. Se declaran para que el auditor no denuncie
@@ -195,13 +193,11 @@ CADENAS = [
 #   · «orden de magnitud» se busca SOLO en el módulo 5. Fuera de él es una
 #     expresión corriente —un comentario de un bloque de código la usa con
 #     razón— y «órdenes de magnitud», en plural, es otra frase.
-#   · La LECTURA del ejercicio 3 queda exenta por ahora. Sigue diciendo que
-#     «la fórmula de equicorrelación supone…», porque su solución usa el
-#     método que R1 retiró del módulo; rehacerla es la tarea T1.2 del plan
-#     de mejora y no se toca desde aquí. La exención se imprime en el
-#     informe cada vez que actúa, y al cerrar T1.2 se quita poniendo
-#     `EXENTA_LECTURA_E3 = False`.
-EXENTA_LECTURA_E3 = True
+#   · La LECTURA del ejercicio 3 estuvo exenta mientras su solución usó
+#     el método que R1 retiró del módulo (un correlograma por bandas y «la
+#     fórmula de equicorrelación»). T1.2 rehízo el ejercicio sobre el
+#     remuestreo por bloques y la exención se quitó: estas guardas leen ya
+#     el documento entero, la lectura y el JSON incrustado incluidos.
 
 PROHIBIDAS = [
     ("no dice que la fórmula de n_eff supone equicorrelación", "todo",
@@ -218,18 +214,6 @@ PROHIBIDAS = [
 def prohibidas(a: Auditor) -> None:
     print("\n=== Lo que el capítulo no puede volver a decir ============")
     doc = a.doc.lower()
-    if EXENTA_LECTURA_E3:
-        lectura = json.loads((SALIDAS / "cap1_soluciones.json").read_text(
-            encoding="utf-8"))["e3"]["lectura"]
-        quitadas = 0
-        # La lectura viaja dos veces: como texto del ejercicio y dentro del
-        # JSON incrustado, cada una con su escapado.
-        for forma in {lectura, html.escape(lectura), html.escape(lectura, quote=False),
-                      json.dumps(lectura, ensure_ascii=False)[1:-1]}:
-            quitadas += doc.count(forma.lower())
-            doc = doc.replace(forma.lower(), " ")
-        print(f"  ···  exenta la lectura del ejercicio 3 ({quitadas} apariciones): "
-              f"pendiente de T1.2")
     ini = doc.find('<template id="module-5">')
     fin = doc.find("</template>", ini)
     a.exige(ini >= 0 and fin > ini, "el módulo 5 se puede aislar para leerlo")
