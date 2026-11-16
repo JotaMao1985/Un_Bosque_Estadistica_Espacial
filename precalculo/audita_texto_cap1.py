@@ -126,6 +126,17 @@ AFIRMACIONES = [
      "geométrico"),
     ("dice que la ventana forma parte del estimador",
      "la ventana es parte del dato"),
+    # R1 · T1.4: lo que sustituye a las frases retiradas tiene que estar.
+    ("dice que el factor entre las dos intensidades mide la inhomogeneidad",
+     "inhomogeneidad"),
+    ("da la condición de media de la estacionariedad intrínseca",
+     "que su media sea cero"),
+    ("dice que la referencia del variograma es el teórico promediado en la clase",
+     "promediada sobre esos mismos pares"),
+    ("dice que sin ponderar la media solo es insesgada con probabilidades iguales",
+     "solo es insesgada cuando todas las probabilidades son iguales"),
+    ("compara la red con una referencia de puntos uniformes",
+     "de manera uniforme sobre el país"),
     ("distingue sesgo de la estimación de sesgo de la confianza",
      "no es la estimación, es"),
     ("dice que la fórmula de n_eff con la correlación media es una identidad",
@@ -208,6 +219,43 @@ PROHIBIDAS = [
      r"(?:rho|ρ)(?:\}|\\\)|\s|</?[a-z]+>)*(?:medid|estimad)"),
     ("no vuelve el título «De dónde sale ese…»", "todo",
      r"de dónde sale ese\b"),
+    # --- R1 · T1.4: seis frases falsas más, de los módulos 2, 6 y 10 y de
+    # la pregunta del gráfico. Como las de arriba, ninguna es una cifra:
+    #   · el perímetro urbano SÍ es una ventana (una subregión de una región
+    #     exhaustiva es exhaustiva); el factor entre las dos intensidades
+    #     mide la inhomogeneidad, no «ventana frente a recorte»;
+    #   · el movimiento browniano tiene varianza finita en cada punto: lo
+    #     que no es, es estacionario de segundo orden;
+    #   · con probabilidades de inclusión desiguales la media muestral está
+    #     sesgada, y la incorrelación de dos extracciones es del diseño;
+    #   · las celdas de Thiessen de puntos uniformes NO son parecidas;
+    #   · «la media está cada vez peor estimada» es CIERTO en precisión, así
+    #     que no puede ser un distractor, y «sigue bien estimada» confunde
+    #     insesgadez con precisión.
+    ("no llama «recorte» al perímetro urbano (módulo 2)", "todo",
+     r"no es una ventana sino un recorte|la otra la de un recorte"),
+    ("no dice que el browniano no tiene varianza finita (módulo 6)", "todo",
+     r"el movimiento browniano lo es|intrínseco sin tener varianza finita"),
+    ("no dice que la media muestral estima la poblacional «y punto» (módulo 10)", "todo",
+     r"media poblacional, y punto"),
+    ("no dice sin más que dos observaciones vecinas no están correlacionadas (módulo 10)", "todo",
+     r"vecinas (?:<em>)?no(?:</em>)? están correlacionadas"),
+    ("no dice que las áreas de Thiessen serían parecidas con igual probabilidad (módulo 10)",
+     "todo", r"áreas serían parecidas"),
+    # El IC de la mediana de la referencia es de la mediana de la
+    # DISTRIBUCIÓN, no un intervalo donde caería la de otra semilla; y
+    # ponderar «por la inversa» sin más describe la media ponderada (Hájek),
+    # que solo es aproximadamente insesgada.
+    ("no presenta el IC de la mediana como lo que movería otra semilla (módulo 10)", "todo",
+     r"otra semilla (?:la|esa mediana se) mover"),
+    ("no describe Horvitz–Thompson como una media ponderada (módulo 10)", "todo",
+     r"basta ponderar cada observación por la inversa"),
+    # La banda del variograma no se abre por falta de pares: en esta rejilla
+    # los pares CRECEN con el rezago (preparcial 1; aquí, por si vuelve).
+    ("no atribuye la dispersión del variograma a que haya menos pares", "todo",
+     r"menos pares que promediar"),
+    ("no usa como distractor una frase cierta, ni llama «bien estimada» a una media imprecisa",
+     "todo", r"la media está cada vez peor estimada|la media sigue bien estimada"),
 ]
 
 

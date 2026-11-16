@@ -105,6 +105,7 @@ sn, pc, ac, gc = D["snow"], D["puntual_canonico"], D["area_canonico"], D["geo_ca
 co, tb, inf = D["colombia"], D["tobler"], D["inferencia"]
 ir, ne, ur = D["inferencia_real"], D["n_efectivo"], D["una_realizacion"]
 rv = D["realizaciones_vistas"]
+vg6 = ur["variograma"]      # módulo 6: teórico en h entero, teórico de la clase, media y banda
 rt = ne["rho_del_titular"]
 # Módulo 5: la demostración del centrado y la tabla del techo. `rt` conserva
 # solo el rho medio que corresponde al titular; el «rho medido» se retiró.
@@ -115,6 +116,7 @@ sop = ac["soporte"]
 agn, agco = D["agregacion_soporte"]["nc"], D["agregacion_soporte"]["colombia"]
 cc = agn["condado_caso"]        # el condado que el mapa del módulo 7 señala
 dm = D["diseno_modelo"]
+ru = dm["referencia_uniforme"]   # módulo 10: Thiessen de puntos uniformes, la referencia de la red
 
 
 def n(x, d=5):
@@ -467,14 +469,18 @@ MOD2 = cabecera(
 
       <p>Bogotá hace lo contrario, y por eso va al lado. Las <strong>{ent(co['puntual']['n'])}</strong> sedes no
         están tiradas al azar: dibujan las calles, y con ellas la densidad de la ciudad. Aquí sí hay algo que
-        explicar. Y fíjate en el borde, que es donde este mapa se pone interesante:
+        explicar. Y conviene mirar el borde, que es donde este mapa se pone interesante:
         <strong>{ent(co['puntual']['n_urbana'])}</strong> de las {ent(co['puntual']['n'])} caen dentro del
         perímetro urbano y <strong>{ent(co['puntual']['n_dc'])}</strong> dentro del Distrito Capital. El mismo
         patrón admite al menos tres bordes distintos, y elegir no es cuestión de gusto: la <em>ventana</em> de un
-        patrón puntual es, por definición, la región sobre la que el dato es <strong>exhaustivo</strong> —aquella
-        donde puedes afirmar que no falta ningún punto—. Con ese criterio el perímetro urbano no es una ventana
-        sino un recorte, y el propio dato lo delata: las dos cifras de arriba no coinciden porque hay sedes dentro
-        del Distrito y fuera del perímetro. La nota que cierra este módulo le pone precio a confundirlos.</p>
+        patrón puntual es, por definición, una región sobre la que el dato es <strong>exhaustivo</strong> —aquella
+        donde se puede afirmar que no falta ningún punto—. Con ese criterio valen las dos que se acaban de
+        nombrar, el perímetro urbano y el Distrito: si el dato es exhaustivo en el Distrito, lo es en cualquier
+        región contenida en él, y el perímetro urbano lo está. Lo que no vale es una ventana que se salga de la
+        región donde el dato es exhaustivo, porque el área que sobra entra en el denominador sin que nadie haya
+        buscado puntos en ella. Entre dos ventanas válidas se elige por la región que se quiere describir, y las
+        dos cifras de arriba ya avisan de que no describen la misma: hay sedes dentro del Distrito y fuera del
+        perímetro. La nota que cierra este módulo mide cuánto cambia la respuesta.</p>
 
       <p>Lo que comparten los dos mapas es justo lo que define el tipo: en ninguno se ha medido nada <em>en</em> el
         punto. No existe el «valor del pino» ni el «valor de la sede». Si volviéramos a tomar el dato, lo que
@@ -782,10 +788,14 @@ print([str(w.message).split(".")[0] for w in ws])
           moverla. La intensidad \\(\\lambda\\) de las sedes de
           Bogotá vale <strong>{n(co['puntual']['lambda_urbana'])}</strong> sedes/km² sobre el perímetro urbano
           ({n(co['puntual']['area_urbana_km2'], 1)} km²) y <strong>{n(co['puntual']['lambda_dc'])}</strong> sobre el
-          Distrito Capital completo ({n(co['puntual']['area_dc_km2'], 1)} km², Sumapaz incluido). Mismo dato, mismas
-          sedes, y un factor de <strong>{n(co['puntual']['factor_lambda'])}</strong> según dónde se ponga el borde.
-          Y no son dos estimaciones rivales de lo mismo: una es la de una ventana y la otra la de un recorte. El
-          capítulo 4 empieza justo ahí.</p>
+          Distrito Capital completo ({n(co['puntual']['area_dc_km2'], 1)} km², Sumapaz incluido). Mismo dato, y
+          un factor de <strong>{n(co['puntual']['factor_lambda'])}</strong> según dónde se ponga el borde.
+          Y no son dos estimaciones rivales de lo mismo, ni una buena y otra mala: las dos ventanas son válidas, y
+          cada cociente \\(n/|W|\\) estima la intensidad <em>media</em> de su propia región,
+          \\(\\frac{{1}}{{|W|}}\\int_W \\lambda(s)\\,ds\\), donde \\(\\lambda(s)\\) es la intensidad en cada
+          sitio. El factor no mide un error: mide cuánto cambia la intensidad de un sitio a otro —la
+          <em>inhomogeneidad</em> del patrón—, porque el Distrito añade al perímetro un territorio extenso y casi
+          sin sedes. Elegir ventana es elegir qué región se describe. El capítulo 4 empieza justo ahí.</p>
       </div>
 """ + CIERRE
 
@@ -1590,11 +1600,13 @@ MOD6 = cabecera(
         <p class="simulador-intro">Tres realizaciones de un campo gaussiano con media {ur['media_del_proceso']} y
           alcance \\(\\phi = {ur['phi']}\\) sobre {ur['k']}×{ur['k']} celdas. <strong>Cambia de realización</strong> y
           mira moverse las tres cosas a la vez: el mapa, la lectura y —debajo— el variograma <em>de esa</em>
-          realización contra el teórico y la banda del 5&nbsp;% al 95&nbsp;%.</p>
+          realización contra el teórico y la banda del 5&nbsp;% al 95&nbsp;%. La curva punteada es el teórico
+          promediado sobre los pares de cada rezago; el texto de debajo del simulador explica por qué no es
+          \\(\\gamma\\) en el rezago entero.</p>
         <div class="simulador-controles"></div>
         <div class="geomapa" data-geomapa="cap1-realizacion"></div>
         <div class="grafico-wrapper" style="height:250px;">
-          <canvas aria-label="Variograma de una realización frente al teórico, con la banda del 5 al 95 por ciento sobre mil realizaciones" role="img"></canvas>
+          <canvas aria-label="Variograma de una realización frente al teórico promediado en cada rezago, con la banda del 5 al 95 por ciento sobre mil realizaciones" role="img"></canvas>
         </div>
         <div class="simulador-lectura"></div>
       </div>
@@ -1629,16 +1641,26 @@ MOD6 = cabecera(
           <li><strong>De segundo orden:</strong> \\(E[Z(s)] = \\mu\\) para todo \\(s\\), y
             \\(\\operatorname{{Cov}}(Z(s), Z(s+h)) = C(h)\\) depende solo de la separación \\(h\\), no de dónde
             estén los dos puntos.</li>
-          <li><strong>Intrínseca:</strong> más débil, y por eso más usada. Solo pide que las diferencias sean
-            estacionarias: \\(\\tfrac{{1}}{{2}}\\operatorname{{Var}}(Z(s+h) - Z(s)) = \\gamma(h)\\). Un proceso puede
-            ser intrínseco sin tener varianza finita —el movimiento browniano lo es— y por eso el variograma es más
-            general que la covarianza.</li>
+          <li><strong>Intrínseca:</strong> más débil, y por eso más usada. No pide nada del proceso en sí, solo
+            de sus <em>diferencias</em>, y pide dos cosas: que su media sea cero,
+            \\(E[Z(s+h) - Z(s)] = 0\\), y que su varianza dependa solo de la separación,
+            \\(\\tfrac{{1}}{{2}}\\operatorname{{Var}}(Z(s+h) - Z(s)) = \\gamma(h)\\). Todo proceso estacionario de
+            segundo orden es intrínseco, con \\(\\gamma(h) = C(0) - C(h)\\), pero no al revés. El ejemplo de siempre
+            es el movimiento browniano en la recta: tiene varianza finita en cada punto,
+            \\(\\operatorname{{Var}}B(t) = t\\), pero esa varianza crece con \\(t\\), así que no existe una \\(C(h)\\)
+            que valga igual en todas partes y el proceso no es estacionario de segundo orden. Sus diferencias, en
+            cambio, cumplen las dos condiciones, con \\(\\gamma(h) = |h|/2\\). Por eso el variograma es más general
+            que la covarianza.</li>
           <li><strong>Isotropía:</strong> además, que \\(C\\) y \\(\\gamma\\) dependan solo de \\(\\lVert h \\rVert\\)
             y no de la dirección. Es una comodidad, no una ley: la anisotropía del capítulo 9 es lo que pasa cuando
             no se cumple.</li>
         </ul>
         <p style="margin-bottom:0;">Sin estacionariedad no hay repetición, y sin repetición no hay estimación. El
-          precio: si la media cambia de sitio a sitio —una <em>tendencia</em>—, ese cambio se contabiliza como
+          precio: si la media cambia de sitio a sitio —una <em>tendencia</em>—, lo que se rompe es la primera
+          condición de la intrínseca, porque \\(E[Z(s+h) - Z(s)]\\) deja de ser cero. El variograma empírico promedia
+          diferencias al cuadrado, y si \\(m(s)\\) es la media en cada sitio, la esperanza de cada sumando ya no es
+          \\(\\gamma(h)\\) sino \\(\\gamma(h) + \\tfrac{{1}}{{2}}\\,(m(s+h) - m(s))^2\\). Con una tendencia lineal ese
+          término de más crece como \\(h^2\\): el cambio de media se contabiliza como
           dependencia. Es exactamente lo que pasaba con la altitud en el módulo 3.</p>
       </div>
 
@@ -1653,12 +1675,21 @@ MOD6 = cabecera(
       </div>
 
       <p>El variograma del simulador enseña el otro lado del problema, y por eso <strong>cambia con el
-        botón</strong>: cada realización trae el suyo. Las tres se apartan del teórico, en su peor rezago, en
+        botón</strong>: cada realización trae el suyo. Antes de leerlo hay que decir contra qué se compara. El
+        estimador promedia, en el rezago \\(k\\), todos los pares de celdas cuya distancia queda a menos de media
+        celda de \\(k\\), y esos pares no están todos a distancia \\(k\\): en el rezago 1 entran los vecinos de lado,
+        a distancia 1, y también los diagonales, a \\(\\sqrt{{2}}\\). La referencia justa de cada rezago no es entonces
+        \\(\\gamma(k)\\), sino \\(\\gamma\\) promediada sobre esos mismos pares, \\(\\bar\\gamma_k\\), que es la curva
+        punteada del gráfico. En el rezago 1 vale <strong>{n(vg6['teorico_clase'][0])}</strong> frente a
+        \\(\\gamma(1) = {n(vg6['teorico'][0])}\\), y la media de las {ent(ur['n_realizaciones'])} realizaciones,
+        {n(vg6['media'][0])}, cae sobre la primera y no sobre la segunda.</p>
+
+      <p>Contra esa referencia, las tres realizaciones se apartan, en su peor rezago, en
         {n(rv[0]['desvio_rel_max'])}, {n(rv[1]['desvio_rel_max'])} y {n(rv[2]['desvio_rel_max'])} veces su valor
         —rezagos {ent(rv[0]['lag_desvio_max'])}, {ent(rv[1]['lag_desvio_max'])} y
         {ent(rv[2]['lag_desvio_max'])}—, y la banda del 5&nbsp;% al 95&nbsp;% en el rezago 4 tiene una anchura de
-        <strong>{n(ur['banda_rel_lag4'])}</strong> veces el valor teórico. Es tan ancha que las tres caben dentro de
-        ella en los ocho rezagos —en el 4 se apartan {n(rv[0]['desvio_rel_lag4'])},
+        <strong>{n(ur['banda_rel_lag4'])}</strong> veces el valor de referencia. Es tan ancha que las tres caben
+        dentro de ella en los ocho rezagos —en el 4 se apartan {n(rv[0]['desvio_rel_lag4'])},
         {n(rv[1]['desvio_rel_lag4'])} y {n(rv[2]['desvio_rel_lag4'])}—, y conviene no leer eso como un aprobado:
         <strong>caber en la banda no es parecerse al proceso</strong>, porque la banda mide lo que puede pasar, no lo
         que pasó. Con una realización no se puede saber si lo que se ve es el proceso o el azar de esa realización:
@@ -2251,9 +2282,15 @@ MOD10 = cabecera(
         <ul>
           <li><strong>Basado en el diseño:</strong> lo aleatorio es <em>el muestreo</em>. Exige que el dato venga de
             un muestreo probabilístico, con probabilidades de inclusión conocidas y positivas. A cambio no hace
-            falta postular ningún modelo: la media muestral estima la media poblacional, y punto. Y algo que
-            sorprende: bajo este marco dos observaciones vecinas <em>no</em> están correlacionadas, porque lo que
-            se repite al imaginar otra muestra no son ellas sino los sorteos.</li>
+            falta postular ningún modelo: sumar cada observación dividida por su probabilidad de inclusión, y
+            dividir esa suma por el tamaño de la población —el estimador de Horvitz–Thompson—, estima sin sesgo
+            la media poblacional. La media muestral sin ponderar, en general,
+            solo es insesgada cuando todas las probabilidades son iguales; si no lo son, se
+            sesga hacia lo que el diseño sobrerrepresenta. Y algo que sorprende: en un muestreo aleatorio simple,
+            dos extracciones distintas son (casi) incorreladas aunque el campo de debajo sea suave, porque lo que
+            se repite al imaginar otra muestra no son ellas sino los sorteos. Es una propiedad de ese diseño y no
+            de todos: si lo que se sortea son conglomerados de sitios vecinos, dos extracciones del mismo
+            conglomerado sí están correlacionadas.</li>
           <li><strong>Basado en el modelo:</strong> lo aleatorio es <em>el proceso</em>. Se supone que lo observado
             es una realización de \\(Z(s)\\) y se postula su estructura de covarianza. No exige saber cómo se
             eligieron las localizaciones — y es el único que permite predecir en un punto concreto.</li>
@@ -2266,9 +2303,18 @@ MOD10 = cabecera(
         muestreó, se ubicó</strong> — donde había cómo llegar y a quién servir. Sin probabilidades de inclusión, el
         marco basado en el diseño sencillamente no está disponible. Se puede medir lo que eso cuesta. Reparte
         Colombia en polígonos de Thiessen, uno por estación: el área de cada polígono es el territorio que esa
-        estación representa. Bajo un muestreo de igual probabilidad esas áreas serían parecidas. Van de
-        <strong>{n(dm['area_min_km2'], 2)}</strong> a <strong>{ent(dm['area_max_km2'])}</strong> km², una razón de
-        <strong>{n(dm['razon_areas'])}</strong>.</p>
+        estación representa. Esas áreas no saldrían iguales ni con un muestreo de igual probabilidad, así que
+        hace falta una referencia. En {ent(ru['n_muestras'])} muestras de {ent(ru['n_puntos'])} puntos repartidos
+        al azar y de manera uniforme sobre el país, con sus polígonos construidos y recortados igual que los de la
+        red, la celda mayor es, en la mediana, <strong>{n(ru['razon_mediana'], 1)}</strong> veces la menor, y en
+        nueve de cada diez muestras esa razón queda entre {n(ru['razon_p05'], 1)} y
+        {n(ru['razon_p95'], 1)}.</p>
+
+      <p>En la red del IDEAM las áreas van de <strong>{n(dm['area_min_km2'], 2)}</strong> a
+        <strong>{ent(dm['area_max_km2'])}</strong> km², una razón de <strong>{n(dm['razon_areas'], 1)}</strong>:
+        {n(ru['red_sobre_mediana'], 1)} veces la mediana de la referencia y {n(ru['red_sobre_p95'], 1)} veces su
+        percentil 95. Ninguna de las {ent(ru['n_muestras'])} muestras llega a esa razón. La red no se parece a
+        un muestreo de igual probabilidad.</p>
 
       <table>
         <caption>La temperatura media anual de Colombia según se pese cada estación por igual o por el territorio que representa.</caption>
@@ -2294,8 +2340,11 @@ MOD10 = cabecera(
 
       <div class="warning">
         <p style="margin-bottom:0;"><strong>Y ahora el freno, porque la columna de la derecha tampoco es la
-          verdad.</strong> Pesar por Thiessen supone que cada estación representa exactamente su territorio más
-          próximo, que es una suposición tan discutible como la anterior — solo que menos ingenua. No es «la
+          verdad.</strong> Pesar por Thiessen hace aquí un papel análogo al de ponderar por la inversa de la
+          probabilidad de inclusión —darle más peso a lo que la muestra representa de menos—, pero no es lo mismo:
+          el área de un polígono no es una probabilidad de inclusión, porque nadie sorteó nada. Supone que cada
+          estación representa exactamente su territorio más próximo, que es una suposición tan discutible como la
+          anterior — solo que menos ingenua. No es «la
           respuesta correcta»: es la prueba de que la media muestral <em>no</em> lo era. Hacerlo bien exige un
           modelo del campo, con su estructura de covarianza, y eso es el kriging del capítulo 9.</p>
       </div>
@@ -3795,7 +3844,7 @@ SIMULADORES_JS = r"""
       const dsUna = { label: 'una realización', data: VISTAS[realIdx].variograma,
                       borderColor: COLORES_GRAFICO.secundario, pointRadius: 3 };
       const g = crearGraficoLinea(canvas, v.lags.map(String), [
-        { label: 'teórico', data: v.teorico, borderColor: COLORES_GRAFICO.primario,
+        { label: 'teórico, promediado en la clase', data: v.teorico_clase, borderColor: COLORES_GRAFICO.primario,
           borderDash: [4, 3], pointRadius: 0 },
         { label: 'media de ' + u.n_realizaciones + ' realizaciones', data: v.media,
           borderColor: COLORES_GRAFICO.terciario, pointRadius: 2 },
@@ -3842,7 +3891,7 @@ SIMULADORES_JS = r"""
         lectura(raiz, [['realización', r.id],
           ['su media espacial', n5(r.media)], ['la del proceso', u.media_del_proceso],
           ['su sd espacial', n5(r.sd)],
-          ['su variograma se aparta del teórico', n5(r.desvio_rel_max) + ' (rezago ' + r.lag_desvio_max + ')'],
+          ['su variograma se aparta del teórico de la clase', n5(r.desvio_rel_max) + ' (rezago ' + r.lag_desvio_max + ')'],
           ['rezagos fuera de la banda', r.lags_fuera_banda + ' de ' + v.lags.length],
           ['sd de las medias sobre ' + u.n_realizaciones, n5(u.sd_de_las_medias)],
           ['engañarían al análisis ingenuo', n5(u.pct_rechaza_ingenuo) + ' %'],
@@ -4261,18 +4310,24 @@ QUIZ_JS = r"""
             retro: 'Con phi = ' + D1.inferencia.rejilla[4].phi + ' el real es '
               + n5(D1.inferencia.rejilla[4].factor) + ' veces el ingenuo. La fórmula clásica solo mira la '
               + 'dispersión de los datos, no cómo se relacionan entre sí.' },
-          { texto: 'La media está cada vez peor estimada al crecer phi.', correcta: false,
-            retro: 'La media sigue bien estimada: la simulación da '
-              + n5(D1.una_realizacion.media_de_las_medias) + ' con media verdadera '
-              + D1.una_realizacion.media_del_proceso + '. Lo que falla es la CONFIANZA, no la estimación. '
-              + 'Ésa es la parte que hace el fallo difícil de ver.' },
+          { texto: 'La estimación de la media se sesga cada vez más al crecer phi.', correcta: false,
+            retro: 'No hay sesgo, con ningún phi: la esperanza de una suma es la suma de las esperanzas, así '
+              + 'que la media de las celdas tiene por esperanza la media del proceso, haya la correlación que '
+              + 'haya. El ' + n5(D1.una_realizacion.media_de_las_medias) + ' que promedian las medias de '
+              + D1.una_realizacion.n_realizaciones + ' realizaciones con phi = ' + D1.una_realizacion.phi
+              + ' es ruido de la simulación, no sesgo: cada una de esas medias tiene desviación típica '
+              + n5(D1.una_realizacion.sd_de_las_medias) + '. Lo que crece con phi es esa dispersión —el e.e. '
+              + 'real pasa de ' + n5(D1.inferencia.rejilla[0].ee_real) + ' a '
+              + n5(D1.inferencia.rejilla[D1.inferencia.rejilla.length - 1].ee_real) + ' en el gráfico—, y el '
+              + 'e.e. ingenuo no se entera.' },
           { texto: 'El e.e. real crece porque la varianza del proceso crece con phi.', correcta: false,
             retro: 'La varianza marginal es la misma para todo phi; lo que cambia es la covarianza entre celdas.' },
           { texto: 'Con phi grande hay menos datos, y por eso sube el error.', correcta: false,
             retro: 'Hay siempre ' + D1.inferencia.n + ' celdas. Lo que baja es la información que aportan: el n '
               + 'efectivo pasa de ' + D1.inferencia.n + ' a ' + n5(D1.inferencia.n_eff_phi4) + '.' }
         ],
-        retroAcierto: 'Y no es un sesgo de la estimación: es un sesgo de la confianza.',
+        retroAcierto: 'Y no es un sesgo de la estimación, que sigue centrada en la media verdadera aunque cada '
+          + 'vez con menos precisión: es un sesgo de la confianza.',
         retroFallo: 'Módulo 4.'
       },
       {
@@ -5043,6 +5098,99 @@ def main() -> int:
                          f"máximo: el botón no cambiaría la curva a la vista")
     print(f"  módulo 6: {len(mr)} mapas de {k6}×{k6} emparejados con sus filas por media "
           f"y sd · {n_lags} rezagos por curva · las curvas se separan {sep:.5f}")
+
+    # ----------------------------------------------------------------
+    # R1 · T1.4. Las afirmaciones nuevas de los módulos 2, 6 y 10 y de la
+    # pregunta del gráfico que dependen de una cifra. Cada una es una frase
+    # que quedaría falsa, con todos los auditores de cifras en verde, si el
+    # dato cambiara de dirección.
+    # ----------------------------------------------------------------
+    # Módulo 2: «el perímetro urbano está contenido en el Distrito» y «el
+    # Distrito añade un territorio extenso y casi sin sedes». Lo segundo se
+    # mide: la intensidad de lo que el Distrito añade, por debajo de una
+    # décima de la del perímetro (medido: 0.08 frente a 5.69 sedes/km²).
+    pu = co["puntual"]
+    # Estricto en las sedes: la prosa afirma que HAY sedes dentro del Distrito
+    # y fuera del perímetro.
+    if not (pu["n_urbana"] < pu["n_dc"] and pu["area_urbana_km2"] < pu["area_dc_km2"]):
+        problemas.append("módulo 2: el perímetro urbano ya no cabe en el Distrito con sedes de "
+                         "sobra (tantas o más sedes, o más área): la prosa dice que está "
+                         "contenido en él y que hay sedes dentro del Distrito y fuera del perímetro")
+    else:
+        lam_resto = ((pu["n_dc"] - pu["n_urbana"])
+                     / (pu["area_dc_km2"] - pu["area_urbana_km2"]))
+        if not lam_resto < 0.1 * pu["lambda_urbana"]:
+            problemas.append(f"módulo 2: lo que el Distrito añade al perímetro tiene {lam_resto:.3f} "
+                             f"sedes/km², y la prosa lo llama «casi sin sedes»")
+    if not pu["factor_lambda"] > 1:
+        problemas.append("módulo 2: la intensidad del perímetro ya no supera a la del Distrito")
+
+    # Módulo 6: la referencia del variograma es el teórico PROMEDIADO EN LA
+    # CLASE. La prosa dice (a) que en el rezago 1 no coincide con gamma(1),
+    # (b) que la media de las realizaciones cae sobre el primero y no sobre
+    # el segundo, y (c) «contra esa referencia» da tres desvíos y sus
+    # rezagos: se rehacen aquí contra `teorico_clase`, de modo que si R
+    # volviera a medirlos contra gamma en h entero la frase no saldría.
+    tcl, ten, vme = vg6.get("teorico_clase", []), vg6["teorico"], vg6["media"]
+    if len(tcl) != n_lags:
+        problemas.append(f"módulo 6: el teórico de la clase trae {len(tcl)} rezagos y la "
+                         f"banda {n_lags}: la curva punteada no se podría dibujar")
+    else:
+        if n(tcl[0]) == n(ten[0]):
+            problemas.append("módulo 6: en el rezago 1 el teórico de la clase y gamma(1) se "
+                             "publican iguales, y la prosa los distingue")
+        if not abs(vme[0] - tcl[0]) < 0.1 * abs(vme[0] - ten[0]):
+            problemas.append(f"módulo 6: la media de las realizaciones en el rezago 1 "
+                             f"({vme[0]}) ya no cae sobre el teórico de la clase ({tcl[0]}) "
+                             f"y lejos de gamma(1) ({ten[0]}), como dice la prosa")
+        for fila in rv:
+            if len(fila.get("variograma", [])) != n_lags:
+                continue                      # ya denunciada arriba
+            rel = [abs(v - t) / t for v, t in zip(fila["variograma"], tcl)]
+            if (abs(max(rel) - fila["desvio_rel_max"]) > 1e-7
+                    or vg6["lags"][rel.index(max(rel))] != fila["lag_desvio_max"]
+                    or abs(rel[vg6["lags"].index(4)] - fila["desvio_rel_lag4"]) > 1e-7):
+                problemas.append(f"realización {fila['id']}: sus desvíos publicados no son "
+                                 f"los medidos contra el teórico de la clase, que es la "
+                                 f"referencia que la prosa declara")
+
+    # Módulo 10: la red frente a la referencia de puntos uniformes. El
+    # argumento se sostiene solo si la red queda MUY por encima: diez veces
+    # el percentil 95 y por encima de la mayor razón simulada. Si deja de
+    # estarlo, el ensamblado para y el párrafo se reescribe.
+    if not (ru["n_puntos"] == dm["n"]):
+        problemas.append("módulo 10: la referencia uniforme no usa tantos puntos como "
+                         "estaciones tiene la red")
+    if not (ru["razon_p05"] < ru["razon_mediana_ic95"][0] <= ru["razon_mediana"]
+            <= ru["razon_mediana_ic95"][1] < ru["razon_p95"] <= ru["razon_max"]):
+        problemas.append("módulo 10: los cuantiles de la referencia uniforme no están en orden "
+                         "(p05 < IC de la mediana < p95 <= máximo)")
+    if not (dm["razon_areas"] > 10 * ru["razon_p95"] and dm["razon_areas"] > ru["razon_max"]):
+        problemas.append(f"módulo 10: la razón de áreas de la red ({dm['razon_areas']}) ya no "
+                         f"queda claramente por encima de la referencia uniforme (p95 = "
+                         f"{ru['razon_p95']}, máx. = {ru['razon_max']}): el argumento no se "
+                         f"sostiene como está escrito")
+    if (abs(dm["razon_areas"] / ru["razon_mediana"] - ru["red_sobre_mediana"]) > 1e-6
+            or abs(dm["razon_areas"] / ru["razon_p95"] - ru["red_sobre_p95"]) > 1e-6):
+        problemas.append("módulo 10: «veces la mediana» o «veces el percentil 95» no son el "
+                         "cociente de las cifras que la misma frase publica")
+
+    # Q4: la retroalimentación del distractor dice que la media es
+    # insesgada (el promedio de las medias, a menos de cuatro errores de
+    # Monte Carlo de la media verdadera) y que el e.e. real CRECE de un
+    # extremo al otro de la rejilla del gráfico.
+    emc_media = ur["sd_de_las_medias"] / ur["n_realizaciones"] ** 0.5
+    if not abs(ur["media_de_las_medias"] - ur["media_del_proceso"]) < 4 * emc_media:
+        problemas.append(f"Q4: el promedio de las medias ({ur['media_de_las_medias']}) queda a "
+                         f"más de cuatro errores de Monte Carlo de la media verdadera: la "
+                         f"retroalimentación dice «no hay sesgo»")
+    rej4 = D["inferencia"]["rejilla"]
+    if not rej4[-1]["ee_real"] > 2 * rej4[0]["ee_real"]:
+        problemas.append("Q4: el e.e. real ya no crece de un extremo al otro de la rejilla, "
+                         "y la retroalimentación dice que la media es cada vez menos precisa")
+    print(f"  T1.4: perímetro dentro del Distrito · teórico de clase {n(tcl[0]) if tcl else '—'} "
+          f"frente a gamma(1) = {n(ten[0])} · red {n(dm['razon_areas'], 1)} frente a p95 "
+          f"{n(ru['razon_p95'], 1)} de la referencia")
 
     # El módulo 1 estrena el acumulado, que el NAVEGADOR suma desde la serie
     # diaria. Eso vuelve comprobables cuatro cuentas que hasta ahora nadie

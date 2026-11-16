@@ -1035,6 +1035,43 @@ vario_de <- function(z) vapply(pares_lag, function(p)
   mean(0.5 * (z[p[, 1]] - z[p[, 2]])^2), numeric(1))
 V <- vapply(seq_len(NREAL), function(i) vario_de(CAMPOS[, i]), numeric(length(LAGS)))
 
+# LA REFERENCIA DE CADA CLASE (R1 · T1.4, hallazgo C1-25). Las clases son
+# |d - h| < 0.5, así que la clase h NO contiene solo pares a distancia h:
+# la 1 mezcla los vecinos a distancia 1 con los diagonales, a sqrt(2); la 2,
+# los de 2 con los de sqrt(5); y así. El estimador promedia
+# 0.5 (z_i - z_j)^2 sobre TODOS los pares de la clase, y la esperanza de
+# cada sumando es gamma(d_ij), no gamma(h). Luego lo que el estimador
+# estima sin sesgo es
+#     gbar_h = media de gamma(d_ij) sobre los pares de la clase h,
+# con los mismos pares y el mismo peso —uno por par— que el estimador.
+# Comparar contra gamma(h) en h entero metía un sesgo de agrupamiento en la
+# cuenta del «desvío» (en la clase 1, 0.2583 frente a 0.2212).
+# Se publican las dos curvas: `teorico` (gamma en h entero), para poder
+# decir cuánto las separa, y `teorico_clase` (gbar), que es contra la que
+# se compara y la que se dibuja.
+GAMMA6 <- function(d) 1 - exp(-d / PHI6)
+TEO6_ENTERO <- GAMMA6(LAGS)
+TEO6 <- vapply(pares_lag, function(p) mean(GAMMA6(DIST4[p])), numeric(1))
+N_PARES6 <- vapply(pares_lag, nrow, integer(1))
+# Control: la media de las NREAL réplicas tiene que caer sobre gbar. El
+# error de Monte Carlo de cada media es sd(V[h, ]) / sqrt(NREAL); se
+# exigen menos de 4 errores en cada clase (ocho comparaciones, y las
+# clases están correlacionadas: 4 deja el falso positivo muy por debajo
+# del 1 %). Y que la referencia vieja NO lo cumpla en la clase 1: si lo
+# cumpliera, la distinción que la prosa enseña no se vería.
+emc_V <- apply(V, 1, sd) / sqrt(NREAL)
+z_clase  <- (rowMeans(V) - TEO6) / emc_V
+z_entero <- (rowMeans(V) - TEO6_ENTERO) / emc_V
+if (any(abs(z_clase) > 4))
+  stop(sprintf("la media de las réplicas no cae sobre el teórico de la clase: z = %s",
+               paste(sprintf("%.2f", z_clase), collapse = ", ")))
+if (abs(z_entero[1]) < 10)
+  stop("en la clase 1 la media de las réplicas ya no distingue gamma(1) del promedio de la clase")
+message(sprintf("  · teórico por clase: %s · en h entero: %s · z de la media: %s",
+                paste(sprintf("%.5f", TEO6), collapse = " "),
+                paste(sprintf("%.5f", TEO6_ENTERO), collapse = " "),
+                paste(sprintf("%.2f", z_clase), collapse = " ")))
+
 # CONTROL ENTRE MÓDULOS. El módulo 4 mide la cobertura de un IC al 95 %
 # con phi = 4 sobre 3 000 réplicas; el módulo 6 mide, sobre otras 1 000
 # realizaciones y con otra semilla, cuántas rechazarían la media
@@ -1078,14 +1115,20 @@ D$una_realizacion <- list(
   medias_muestra = r10(medias_real[1:12]),
   variograma = list(
     lags = LAGS,
-    teorico = r10(1 - exp(-LAGS / PHI6)),
+    # gamma(h) en h entero: NO es la referencia de las clases; se publica
+    # para medir cuánto se separa de la que sí lo es.
+    teorico = r10(TEO6_ENTERO),
+    # La referencia: gamma promediada sobre los pares de cada clase.
+    teorico_clase = r10(TEO6),
+    n_pares = N_PARES6,
     media   = r10(rowMeans(V)),
     q05     = r10(apply(V, 1, quantile, 0.05)),
     q95     = r10(apply(V, 1, quantile, 0.95))),
   # El ancho relativo de la banda al lag 4: cuánto puede desviarse el
   # variograma de UNA realización del del proceso que lo generó.
+  # Relativo al teórico DE LA CLASE 4, como todo lo demás.
   banda_rel_lag4 = r10((quantile(V[4, ], 0.95) - quantile(V[4, ], 0.05)) /
-                         (1 - exp(-4 / PHI6)))
+                         TEO6[4])
 )
 
 # --- F.1 Las tres realizaciones que el capítulo ENSEÑA -----------------
@@ -1111,8 +1154,8 @@ stopifnot(N_VISTAS <= NREAL, N_VISTAS <= length(D$una_realizacion$medias_muestra
 
 # Cuánto se aparta del proceso el variograma de cada una, en el peor lag
 # y en el lag 4 —el que el texto usa para el ancho de banda—. Convierte
-# la tesis del módulo en una medida en vez de una afirmación.
-TEO6 <- 1 - exp(-LAGS / PHI6)
+# la tesis del módulo en una medida en vez de una afirmación. La
+# referencia es TEO6, el teórico promediado en cada clase (arriba).
 D$realizaciones_vistas <- lapply(seq_len(N_VISTAS), function(i) list(
   id = i,
   media = r10(medias_real[i]),
@@ -1889,8 +1932,10 @@ D$cv_espacial <- list(
 # La red del IDEAM no se muestreó: se ubicó, donde había cómo llegar y a
 # quién servir. Para ponerle cifra se construyen los polígonos de Thiessen
 # de las 361 estaciones, recortados al país: el área de cada celda es el
-# territorio que esa estación «representa». Bajo un muestreo de igual
-# probabilidad esas áreas serían parecidas. No lo son.
+# territorio que esa estación «representa». Esas áreas NO serían iguales
+# ni con un muestreo de igual probabilidad —las celdas de Voronoi de puntos
+# uniformes también varían mucho—, así que la razón entre la mayor y la
+# menor se compara contra una referencia simulada (J.2b, más abajo).
 #
 # El emparejamiento celda -> estación va por CONTENCIÓN y no por el orden
 # que devuelve st_voronoi, que no es el de entrada. Y el recorte lleva un
@@ -1916,6 +1961,126 @@ media_area <- sum(t_ideam * area_vor) / sum(area_vor)
 ancla(round(sum(area_vor), -4), 1140000,
       "área continental de Colombia reconstruida por Thiessen (km²)", tol = 1e4)
 
+# ---------------------------------------------------------------------
+# J.2b · LA REFERENCIA: Thiessen de puntos uniformes (R1 · T1.4, C1-32)
+#
+# «Bajo un muestreo de igual probabilidad esas áreas serían parecidas» era
+# falso: con puntos uniformes la celda mayor es decenas de veces la menor.
+# Lo que sostiene el argumento no es que la razón de la red sea grande,
+# sino que sea MUCHO mayor que la de un muestreo de igual probabilidad. Se
+# simula: N_REF muestras de nrow(est) puntos uniformes sobre el mismo
+# polígono del país y en el mismo CRS que la red, con el Voronoi construido
+# sobre la misma caja y recortado al mismo polígono.
+#
+# `razon_thiessen()` es la rutina de la referencia. Para no recortar las
+# 361 celdas contra un polígono de ~94 000 vértices en cada muestra, solo
+# recorta las que no caen enteras dentro del país; el área de las demás es
+# la suya. Y se le pasa también LA RED: tiene que devolver la misma razón
+# que el cálculo de arriba (que recorta todas y empareja por contención).
+# Si no, referencia y red no estarían medidas con la misma vara.
+#
+# CUÁNTAS MUESTRAS. La distribución de la razón es muy asimétrica a la
+# derecha (dos puntos muy juntos bastan para una celda diminuta), así que
+# se resume con cuantiles y no con media y sd. Lo que la prosa afirma es
+# (a) dónde cae la mediana y el intervalo del 5 % al 95 %, y (b) que la
+# red queda muy por encima. Medido en un estudio aparte de 2 400 muestras
+# (en Python, con otro generador y otra semilla), partido en bloques:
+#
+#                         p05        mediana    p95      máximo
+#   seis bloques de 400   21.0–22.4  40.4–43.4  116–145  302–1000
+#   dos bloques de 1 000  21.9–22.1  41.4       121–133  469–1000
+#   las 2 400             21.9       41.7       125      1000
+#
+# Con 400 la mediana ya se mueve solo unas tres unidades entre bloques y
+# el p95 unas treinta; con 1 000, la mediana no se mueve en el primer
+# decimal y el p95 unas doce (y el IC al 95 % de la mediana por
+# estadísticos de orden se publica: la prosa lo dice). La razón de la red,
+# 4 652, es unas 110 veces la mediana y unas 37 veces el p95, y ninguna de
+# las 2 400 muestras llega a ella: ninguna semilla cambia lo que se afirma,
+# y por eso bastan N_REF = 1000. El MÁXIMO sí es de la semilla (la cola es
+# pesada: entre 300 y 1 000 según el bloque), y por eso la prosa no lo usa
+# como referencia sino como constatación: «ninguna de las N muestras llega
+# a esa razón». Las cifras se publican con un decimal: son las de ESTA
+# simulación, con su semilla.
+#
+# Son ~0.6 s por muestra (unos diez minutos): se cachea. La llave lleva la
+# semilla, el número de muestras y de puntos, y el tamaño y la fecha del
+# .gpkg del país: si cambia cualquiera, la caché se descarta sola.
+# ---------------------------------------------------------------------
+N_REF <- 1000L
+SEMILLA_REF <- SEMILLA + 800L
+caja_pais <- st_as_sfc(st_bbox(pais_geo))
+bb_pais <- st_bbox(pais_geo)
+stopifnot(st_crs(est) == st_crs(pais_geo))
+
+uniformes_en_pais <- function(n) {
+  # Rechazo sobre la caja: uniforme en la caja y dentro del país es
+  # uniforme en el país.
+  xy <- matrix(numeric(0), 0, 2)
+  while (nrow(xy) < n) {
+    cand <- cbind(runif(2L * n, bb_pais[["xmin"]], bb_pais[["xmax"]]),
+                  runif(2L * n, bb_pais[["ymin"]], bb_pais[["ymax"]]))
+    pts <- st_as_sf(as.data.frame(cand), coords = 1:2, crs = st_crs(pais_geo))
+    xy <- rbind(xy, cand[lengths(st_intersects(pts, pais_geo)) > 0, , drop = FALSE])
+  }
+  st_as_sf(as.data.frame(xy[seq_len(n), , drop = FALSE]), coords = 1:2,
+           crs = st_crs(pais_geo))
+}
+razon_thiessen <- function(pts) {
+  v <- st_collection_extract(
+    st_voronoi(st_union(st_geometry(pts)), caja_pais), "POLYGON")
+  a <- as.numeric(st_area(v))
+  borde <- lengths(st_within(v, pais_geo)) == 0
+  rec <- suppressWarnings(st_intersection(v[borde], pais_geo))
+  # st_intersection descarta las intersecciones vacías: si faltara alguna,
+  # las áreas se pegarían a celdas que no son.
+  stopifnot(length(rec) == sum(borde))
+  a[borde] <- as.numeric(st_area(rec))
+  stopifnot(length(a) == nrow(pts), all(a > 0))
+  max(a) / min(a)
+}
+razon_red <- max(area_vor) / min(area_vor)
+if (abs(razon_thiessen(est) / razon_red - 1) > 1e-9)
+  stop("la rutina de la referencia no reproduce la razón de áreas de la red")
+
+f_pais <- file.info("datos/procesado/colombia_adm1.gpkg")
+llave_ref <- sprintf("%d_%d_%d_%.0f_%d", SEMILLA_REF, N_REF, nrow(est),
+                     f_pais$size, as.integer(f_pais$mtime))
+f_ref <- file.path(AQUI, "cache", sprintf("cap1_thiessen_uniforme_%s.rds", llave_ref))
+if (file.exists(f_ref)) {
+  razones_ref <- readRDS(f_ref)
+  message("  referencia de Thiessen uniforme: de la cache")
+} else {
+  message(sprintf("  simulando %d muestras uniformes de %d puntos (lento, se cachea)...",
+                  N_REF, nrow(est)))
+  # El estado del generador se guarda y se repone: con caché este tramo no
+  # consume números aleatorios y sin ella sí, y lo que venga después no
+  # puede depender de si la caché estaba.
+  estado_rng <- get(".Random.seed", envir = globalenv())
+  set.seed(SEMILLA_REF)
+  razones_ref <- vapply(seq_len(N_REF), function(i)
+    razon_thiessen(uniformes_en_pais(nrow(est))), numeric(1))
+  assign(".Random.seed", estado_rng, envir = globalenv())
+  dir.create(dirname(f_ref), showWarnings = FALSE, recursive = TRUE)
+  saveRDS(razones_ref, f_ref)
+}
+stopifnot(length(razones_ref) == N_REF, all(is.finite(razones_ref)), all(razones_ref > 1))
+# IC al 95 % de la mediana por estadísticos de orden (binomial): no supone
+# forma ninguna, que con esta cola es lo prudente.
+ord_ref <- sort(razones_ref)
+ic_med <- ord_ref[c(qbinom(0.025, N_REF, 0.5), qbinom(0.975, N_REF, 0.5) + 1L)]
+q_ref <- quantile(razones_ref, c(0.05, 0.5, 0.95), names = FALSE)
+# LA GUARDA DEL ARGUMENTO: la red, muy por encima de la referencia. «Muy»
+# es diez veces el percentil 95 y por encima de la mayor razón simulada.
+if (!(razon_red > 10 * q_ref[3] && razon_red > max(razones_ref)))
+  stop(sprintf(paste("la razón de áreas de la red (%.1f) ya no queda claramente por",
+                     "encima de la referencia uniforme (p95 = %.1f, máx. = %.1f)"),
+               razon_red, q_ref[3], max(razones_ref)))
+message(sprintf(paste("  · Thiessen uniforme, %d muestras: mediana %.2f (IC 95 %% %.2f–%.2f),",
+                      "p05 %.2f, p95 %.2f, máx. %.2f · la red: %.2f"),
+                N_REF, q_ref[2], ic_med[1], ic_med[2], q_ref[1], q_ref[3],
+                max(razones_ref), razon_red))
+
 D$diseno_modelo <- list(
   n = nrow(est),
   area_total_km2 = r10(sum(area_vor)),
@@ -1930,7 +2095,18 @@ D$diseno_modelo <- list(
   # Y la CAUSA, que sin ella la brecha parece un accidente: las
   # estaciones están mucho más arriba que el territorio que representan.
   alt_media_simple = r10(mean(est$altitud_m)),
-  alt_media_area   = r10(sum(est$altitud_m * area_vor) / sum(area_vor))
+  alt_media_area   = r10(sum(est$altitud_m * area_vor) / sum(area_vor)),
+  # La referencia contra la que se lee `razon_areas` (J.2b).
+  referencia_uniforme = list(
+    n_muestras = N_REF, n_puntos = nrow(est), semilla = SEMILLA_REF,
+    razon_mediana = r10(q_ref[2]),
+    razon_mediana_ic95 = r10(ic_med),
+    razon_p05 = r10(q_ref[1]),
+    razon_p95 = r10(q_ref[3]),
+    razon_max = r10(max(razones_ref)),
+    red_sobre_mediana = r10(razon_red / q_ref[2]),
+    red_sobre_p95     = r10(razon_red / q_ref[3])
+  )
 )
 
 # =====================================================================

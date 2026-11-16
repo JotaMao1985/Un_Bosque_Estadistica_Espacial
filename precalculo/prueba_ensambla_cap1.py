@@ -203,7 +203,7 @@ def defectos() -> list[tuple[str, str, str, object]]:
     txt("las dos autoevaluaciones se quedan en una", "ensamblador",
         'data-quiz="cap1-diagnostica"', 'data-quiz="cap1"')
     txt("un lienzo se queda sin aria-label", "ensamblador",
-        'aria-label="Variograma de una realización frente al teórico, con la banda '
+        'aria-label="Variograma de una realización frente al teórico promediado en cada rezago, con la banda '
         'del 5 al 95 por ciento sobre mil realizaciones" role="img"', 'role="img"')
     txt("una plantilla abre y no cierra", "ensamblador",
         "</template>\n", "\n")
@@ -439,6 +439,46 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: [r.__setitem__("variograma",
                                  list(o["realizaciones_vistas"][0]["variograma"]))
                    for r in o["realizaciones_vistas"]])
+
+    # --- R1 · T1.4: módulos 2, 6 y 10 y la pregunta del gráfico ----------
+    # Una inyección por guarda nueva. Todas entran por el JSON de cifras:
+    # lo que vigilan es que la FRASE siga siendo cierta si el dato cambia.
+    obj("el perímetro urbano deja de caber en el Distrito", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__(
+            "n_urbana", o["colombia"]["puntual"]["n_dc"]))
+    obj("lo que el Distrito añade al perímetro deja de estar casi vacío", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__(
+            "area_dc_km2", o["colombia"]["puntual"]["area_urbana_km2"] + 10))
+    obj("la intensidad del perímetro deja de superar a la del Distrito", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__("factor_lambda", 0.9173941))
+    obj("el teórico de la clase pierde un rezago", "datos",
+        lambda o: o["una_realizacion"]["variograma"].__setitem__(
+            "teorico_clase", o["una_realizacion"]["variograma"]["teorico_clase"][:7]))
+    obj("el teórico de la clase 1 vuelve a ser gamma(1)", "datos",
+        lambda o: o["una_realizacion"]["variograma"]["teorico_clase"].__setitem__(
+            0, o["una_realizacion"]["variograma"]["teorico"][0]))
+    obj("la media de las realizaciones cae sobre gamma(1) y no sobre la clase", "datos",
+        lambda o: o["una_realizacion"]["variograma"]["media"].__setitem__(
+            0, o["una_realizacion"]["variograma"]["teorico"][0]))
+    obj("un desvío publicado vuelve a medirse contra gamma en h entero", "datos",
+        lambda o: o["realizaciones_vistas"][1].__setitem__(
+            "desvio_rel_max",
+            max(abs(v - t) / t for v, t in zip(
+                o["realizaciones_vistas"][1]["variograma"],
+                o["una_realizacion"]["variograma"]["teorico"]))))
+    obj("la referencia uniforme no usa tantos puntos como estaciones", "datos",
+        lambda o: o["diseno_modelo"]["referencia_uniforme"].__setitem__("n_puntos", 360))
+    obj("los cuantiles de la referencia uniforme se desordenan", "datos",
+        lambda o: o["diseno_modelo"]["referencia_uniforme"].__setitem__("razon_p05", 91.73941))
+    obj("la red deja de estar muy por encima de la referencia uniforme", "datos",
+        lambda o: o["diseno_modelo"].__setitem__("razon_areas", 917.3941))
+    obj("«veces la mediana» deja de ser el cociente de sus dos cifras", "datos",
+        lambda o: o["diseno_modelo"]["referencia_uniforme"].__setitem__(
+            "red_sobre_mediana", 41.73941))
+    obj("el promedio de las medias deja de estar sobre la media verdadera", "datos",
+        lambda o: o["una_realizacion"].__setitem__("media_de_las_medias", 0.2173941))
+    obj("el e.e. real deja de crecer con el alcance", "datos",
+        lambda o: o["inferencia"]["rejilla"][-1].__setitem__("ee_real", 0.0717394))
 
     # --- Módulo 1: la serie del brote (T1.4) ----------------------------
     obj("las tres series del brote dejan de medir lo mismo", "datos",

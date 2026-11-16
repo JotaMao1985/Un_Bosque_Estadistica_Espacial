@@ -1339,7 +1339,8 @@ BLOQUE_D = [
                 "posiciones no las puso el fenómeno.")]),
 
     preg("grafico", "cap1", 6,
-         f"El gráfico traza el variograma teórico de un proceso y, encima, lo que devuelven "
+         f"El gráfico traza el variograma teórico de un proceso —promediado sobre los pares "
+         f"que agrupa cada retardo— y, encima, lo que devuelven "
          f"{c('realiz_n')} realizaciones suyas: la media de todas ellas y la banda entre los "
          f"percentiles 5 y 95. ¿Qué se lee?",
          "Fíjate en cuánto se abre la banda a medida que crece el retardo, y en dónde cae la "
@@ -1347,9 +1348,10 @@ BLOQUE_D = [
          alto=250,
          descripcionGrafico=f"Variograma con cuatro líneas sobre los retardos "
                             f"{ent(GR['g_variograma']['lags'][0])} a "
-                            f"{ent(GR['g_variograma']['lags'][-1])}. El teórico va de "
-                            f"{n(GR['g_variograma']['teorico'][0], 4)} a "
-                            f"{n(GR['g_variograma']['teorico'][-1], 4)}; la media de "
+                            f"{ent(GR['g_variograma']['lags'][-1])}. El teórico, promediado sobre "
+                            f"los pares de cada retardo, va de "
+                            f"{n(GR['g_variograma']['teorico_clase'][0], 4)} a "
+                            f"{n(GR['g_variograma']['teorico_clase'][-1], 4)}; la media de "
                             f"{c('realiz_n')} realizaciones, de "
                             f"{n(GR['g_variograma']['media'][0], 4)} a "
                             f"{n(GR['g_variograma']['media'][-1], 4)}. Las otras dos son los "
@@ -1364,7 +1366,7 @@ BLOQUE_D = [
             const gris = { backgroundColor: 'transparent', pointRadius: 0, borderWidth: 1.5,
                            borderColor: COLORES_GRAFICO.gris };
             return crearGraficoLinea(canvas, g.lags.map(x => String(x)), [
-              { label: 'Teórico', data: g.teorico, borderColor: COLORES_GRAFICO.primario,
+              { label: 'Teórico, promediado en la clase', data: g.teorico_clase, borderColor: COLORES_GRAFICO.primario,
                 backgroundColor: 'transparent', borderDash: [6, 4],
                 pointRadius: 0, borderWidth: 2 },
               { label: 'Media de las realizaciones', data: g.media,
@@ -1381,13 +1383,17 @@ BLOQUE_D = [
                 "crece el retardo. Con un solo mapa —que es lo que siempre se tiene— se está en "
                 "algún punto de esa banda, sin saber en cuál."),
              op("Que el estimador del variograma está sesgado en los retardos grandes.", False,
-                "El sesgo que propone no está donde lo pone: en los retardos grandes la media "
-                "de las realizaciones y el teórico van juntos, y lo que crece ahí es la "
-                "dispersión —hay menos pares que promediar—, que es varianza y no sesgo. La "
-                "única separación visible está en el retardo más corto, y tampoco es del "
-                "estimador: cada retardo agrupa los pares que caen a media unidad de él, y en el "
-                "primero eso mezcla los vecinos de al lado con los de la diagonal, que están "
-                "más lejos."),
+                "El sesgo que propone no está en el gráfico: la media de las realizaciones va "
+                "pegada al teórico en todos los retardos, también en los grandes. Lo que crece "
+                "ahí es la dispersión, que es varianza y no sesgo, y no crece por falta de "
+                "pares. Crece porque cada diferencia al cuadrado varía más cuanto mayor es la "
+                "semivarianza, y porque en un mapa que mide pocas veces el alcance de la "
+                "correlación las diferencias a retardo largo dependen de unas pocas "
+                "fluctuaciones grandes y están muy correlacionadas entre sí: promediar muchas "
+                "estabiliza poco. El teórico se dibuja promediado en cada retardo porque el "
+                "estimador agrupa los pares que caen a media unidad de él —en el primero, los "
+                "vecinos de al lado y los de la diagonal—, no solo los que están a esa "
+                "distancia exacta."),
              op("Que el proceso deja de ser estacionario a partir de cierto retardo.", False,
                 "El proceso simulado es estacionario por construcción. Confundir la apertura de "
                 "la banda con una pérdida de estacionariedad es leer una propiedad del estimador "

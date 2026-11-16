@@ -651,6 +651,23 @@ if (!all(diff(elip_lon) < 0))
   para("la curva de los metros por grado de longitud deja de bajar en todo su ",
        "recorrido, y el texto alternativo de D04 lo afirma")
 
+# La referencia de g_variograma es el teórico PROMEDIADO EN LA CLASE de
+# cada retardo (`teorico_clase` del capítulo 1), no gamma en el retardo
+# entero: las clases del estimador agrupan los pares a media unidad del
+# retardo, y lo que el estimador estima sin sesgo es gamma promediada sobre
+# esos pares. La retroalimentación de la pregunta afirma que la media de las
+# realizaciones va pegada a esa referencia EN TODOS los retardos; se
+# comprueba aquí (medido: como mucho un 0,7 %; se exige menos del 2 %).
+vario_ref <- unlist(vario$teorico_clase)
+vario_med <- unlist(vario$media)
+if (length(vario_ref) != length(vario_med))
+  para("el capitulo 1 no trae un teorico de clase por retardo: g_variograma no ",
+       "tendria referencia que dibujar")
+if (any(abs(vario_med - vario_ref) / vario_ref >= 0.02))
+  para("la media de las realizaciones se separa mas de un 2 % del teorico de la ",
+       "clase en algun retardo, y la retroalimentacion de la pregunta del ",
+       "variograma dice que van juntos en todos")
+
 GRAFICOS <- list(
   g_cobertura = list(
     modulo = "cap1.m4", titulo = "Cobertura real de un IC al 95 % según la dependencia",
@@ -659,7 +676,7 @@ GRAFICOS <- list(
   ),
   g_variograma = list(
     modulo = "cap1.m6", titulo = "Variograma: el teórico y lo que da UNA realización",
-    lags = unlist(vario$lags), teorico = unlist(vario$teorico),
+    lags = unlist(vario$lags), teorico_clase = vario_ref,
     media = unlist(vario$media), q05 = unlist(vario$q05), q95 = unlist(vario$q95)
   ),
   g_grado = list(

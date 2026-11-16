@@ -354,6 +354,14 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: o["graficos"]["g_escala"].__setitem__("modulo", "cap3.m11"))
     obj("la curva del efecto escala deja de ser la del capítulo 3", "datos",
         lambda o: o["graficos"]["g_escala"]["media"].__setitem__(0, 0.4123456789))
+    obj("la referencia del variograma deja de ser el teórico de la clase del capítulo 1",
+        "datos",
+        lambda o: o["graficos"]["g_variograma"]["teorico_clase"].__setitem__(0, 0.2211992169))
+    obj("el variograma vuelve a traer gamma en el retardo entero", "datos",
+        lambda o: o["graficos"]["g_variograma"].__setitem__(
+            "teorico", list(o["graficos"]["g_variograma"]["teorico_clase"])))
+    obj("la media del variograma se despega de su referencia", "datos",
+        lambda o: o["graficos"]["g_variograma"]["media"].__setitem__(7, 0.9123456789))
     obj("un error del catálogo cita una clave que no existe", "datos",
         lambda o: o["errores"][0]["claves"].append("clave_inventada"))
     obj("el capítulo 2 mueve la columna esférica que s2 tiene que reproducir",

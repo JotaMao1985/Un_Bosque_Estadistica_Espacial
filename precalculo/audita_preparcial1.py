@@ -766,6 +766,21 @@ def main() -> int:  # noqa: C901
     curva = en_ruta(CAPS["cap3_datos.json"], "m8.curva")
     a.cierto([c["media"] for c in curva] == GRAFICOS["g_escala"]["media"],
              "g_escala dibuja la curva del capítulo 3")
+    # g_variograma: la referencia es el teórico PROMEDIADO EN LA CLASE del
+    # capítulo 1 (R1 · T1.4), no gamma en el retardo entero, y las otras tres
+    # series son las del mismo lote. La retroalimentación de la pregunta dice
+    # que la media va pegada a esa referencia en todos los retardos.
+    vario1 = en_ruta(CAPS["cap1_datos.json"], "una_realizacion.variograma")
+    gv = GRAFICOS["g_variograma"]
+    a.cierto(all(gv.get(k) == vario1.get(k)
+                 for k in ("lags", "teorico_clase", "media", "q05", "q95")),
+             "g_variograma dibuja el teórico de la clase, la media y la banda del capítulo 1")
+    a.cierto("teorico" not in gv,
+             "g_variograma no arrastra gamma en el retardo entero como referencia")
+    a.cierto(len(gv.get("teorico_clase", [])) == len(gv["media"])
+             and all(abs(m_ - t_) / t_ < 0.02
+                     for m_, t_ in zip(gv["media"], gv.get("teorico_clase", []))),
+             "  y la media de las realizaciones va pegada a él en todos los retardos")
     pares4 = en_ruta(CAPS["cap3_datos.json"], "m4.pares")
     a.cierto([p["pct_cambian"] for p in pares4] == GRAFICOS["g_discordancia"]["pct"],
              "g_discordancia dibuja los pares del capítulo 3")

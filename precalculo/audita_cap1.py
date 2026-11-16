@@ -90,6 +90,69 @@ def carga(var: str, nombre: str):
 
 
 # =====================================================================
+# LA REFERENCIA DE THIESSEN CON PUNTOS UNIFORMES, simulada AQUÍ (R1 · T1.4)
+#
+# El módulo 10 compara la razón entre la mayor y la menor celda de Thiessen
+# de la red del IDEAM con la que saldría de puntos uniformes. R la simula
+# con `sf`; este auditor la simula por su cuenta, con otro generador (el de
+# numpy), otra semilla y otra biblioteca geométrica (shapely), y no lee
+# nada de lo que R publicó.
+#
+# Son ~0.25 s por muestra, cuatro minutos las mil, y el ARNÉS ejecuta el
+# auditor una vez por inyección: se guarda, con las dos cautelas de la
+# caché de `audita_cap6.py`:
+#
+#   · guarda lo que ESTE auditor simuló, no lo que R publicó;
+#   · la llave lleva el tamaño y la fecha del .gpkg del país, el número de
+#     puntos, el de muestras y la semilla: si cambia algo, se descarta.
+# =====================================================================
+N_REF_AUDITOR = 1000
+SEMILLA_REF_AUDITOR = 20929
+
+
+def razones_thiessen_uniforme(pais, ruta: pathlib.Path, n_puntos: int) -> list:
+    """Razón máx./mín. del área de Thiessen en N_REF_AUDITOR muestras uniformes."""
+    import numpy as np
+    import shapely
+    from shapely import MultiPoint, voronoi_polygons
+
+    st = ruta.stat()
+    llave = (f"{st.st_size}·{int(st.st_mtime)}·{n_puntos}·{N_REF_AUDITOR}·"
+             f"{SEMILLA_REF_AUDITOR}")
+    f = PRECALCULO / "cache" / "audita_cap1_thiessen_uniforme.json"
+    if f.exists():
+        guardado = json.loads(f.read_text(encoding="utf-8"))
+        if guardado.get("llave") == llave:
+            return guardado["razones"]
+    shapely.prepare(pais)
+    x0, y0, x1, y1 = pais.bounds
+    rng = np.random.default_rng(SEMILLA_REF_AUDITOR)
+
+    def muestra() -> "np.ndarray":
+        # Rechazo sobre la caja del país.
+        xy = np.empty((0, 2))
+        while len(xy) < n_puntos:
+            c = np.column_stack([rng.uniform(x0, x1, 2 * n_puntos),
+                                 rng.uniform(y0, y1, 2 * n_puntos)])
+            xy = np.vstack([xy, c[shapely.contains_xy(pais, c[:, 0], c[:, 1])]])
+        return xy[:n_puntos]
+
+    razones = []
+    for _ in range(N_REF_AUDITOR):
+        celdas = np.array(voronoi_polygons(MultiPoint(muestra()),
+                                           extend_to=pais.envelope).geoms)
+        # Solo se recortan las celdas que no caen enteras dentro del país.
+        dentro = shapely.contains(pais, celdas)
+        ar = shapely.area(celdas)
+        ar[~dentro] = shapely.area(shapely.intersection(celdas[~dentro], pais))
+        assert len(ar) == n_puntos and (ar > 0).all()
+        razones.append(float(ar.max() / ar.min()))
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(json.dumps({"llave": llave, "razones": razones}), encoding="utf-8")
+    return razones
+
+
+# =====================================================================
 def main() -> int:
     import numpy as np
     import pandas as pd
@@ -1336,6 +1399,60 @@ def main() -> int:
     a.cierto(all(vg["teorico"][i] < vg["teorico"][i + 1]
                  for i in range(len(vg["teorico"]) - 1)),
              "el variograma teórico crece con el lag")
+    # --- La referencia de cada clase, rehecha desde la GEOMETRÍA ----------
+    #
+    # R1 · T1.4 (C1-25). Las clases del estimador son |d − h| < 0.5, así que
+    # la clase h mezcla distancias (la 1: d = 1 y d = √2). Lo que el
+    # estimador estima sin sesgo es la media de γ(d) sobre los pares de la
+    # clase, no γ(h). Aquí se rehace sin mirar nada de R: se enumeran los
+    # desplazamientos (dx, dy) de la retícula k×k, cada uno con su número
+    # EXACTO de pares —(k − |dx|)(k − |dy|), contando cada par no ordenado
+    # una vez—, y se promedia γ(d) = 1 − exp(−d/φ) con esos pesos. Es otra
+    # ruta que la de R (que indexa la matriz de distancias de 256×256) y es
+    # exacta: tolerancia 1e-9, la del redondeo del JSON.
+    k6, phi6 = ur["k"], ur["phi"]
+    suma_g = {h: 0.0 for h in vg["lags"]}
+    cuenta = {h: 0 for h in vg["lags"]}
+    for dx in range(0, k6):
+        for dy in range(-(k6 - 1), k6):
+            # media-plano: cada par no ordenado una sola vez
+            if dx == 0 and dy <= 0:
+                continue
+            d = math.hypot(dx, dy)
+            pares = (k6 - dx) * (k6 - abs(dy))
+            for h in vg["lags"]:
+                if abs(d - h) < 0.5:
+                    suma_g[h] += pares * (1 - math.exp(-d / phi6))
+                    cuenta[h] += pares
+    gbar = [suma_g[h] / cuenta[h] for h in vg["lags"]]
+    tc_ok = (len(vg.get("teorico_clase", [])) == len(vg["lags"])
+             and len(vg.get("n_pares", [])) == len(vg["lags"]))
+    a.cierto(tc_ok, "el variograma trae un teórico de clase y un número de pares por rezago")
+    if tc_ok:
+        for k, h in enumerate(vg["lags"]):
+            a.igual(cuenta[h], vg["n_pares"][k], f"pares de la clase {h}, contados en la retícula")
+            a.igual(gbar[k], vg["teorico_clase"][k],
+                    f"teórico promediado en la clase {h}", 1e-9)
+            # La media de las réplicas cae sobre la referencia de la clase.
+            # Su error de Monte Carlo no se publica, pero se acota desde la
+            # banda: para una distribución de una sola moda, la sd no pasa
+            # de (q95 − q05) / 2 con holgura (en la normal es / 3.29), así
+            # que emc ≤ (q95 − q05) / (2 √NREAL). Se piden menos de 4 de
+            # esas cotas: medido, la peor clase queda a 0.5.
+            cota = (vg["q95"][k] - vg["q05"][k]) / (2 * math.sqrt(ur["n_realizaciones"]))
+            a.cierto(abs(vg["media"][k] - gbar[k]) < 4 * cota,
+                     f"  la media de las réplicas cae sobre él en la clase {h}",
+                     f"|{vg['media'][k]:.5f} − {gbar[k]:.5f}| frente a 4 × {cota:.5f}")
+        # Lo que la prosa afirma del rezago 1: la referencia de la clase y
+        # γ(1) NO son la misma cifra, y la media de las réplicas distingue.
+        a.cierto(abs(vg["media"][0] - vg["teorico_clase"][0])
+                 < 0.1 * abs(vg["media"][0] - vg["teorico"][0]),
+                 "en el rezago 1 la media cae sobre el teórico de la clase y no sobre γ(1)",
+                 f"media {vg['media'][0]:.5f}, de clase {vg['teorico_clase'][0]:.5f}, "
+                 f"γ(1) = {vg['teorico'][0]:.5f}")
+    a.igual((vg["q95"][vg["lags"].index(4)] - vg["q05"][vg["lags"].index(4)])
+            / gbar[vg["lags"].index(4)], ur["banda_rel_lag4"],
+            "el ancho de la banda en el rezago 4, relativo al teórico de su clase", 1e-7)
     a.cierto(ur["banda_rel_lag4"] > 0.2,
              "una sola realización se desvía del proceso",
              f"{ur['banda_rel_lag4']:.5f}")
@@ -1413,7 +1530,9 @@ def main() -> int:
             a.igual(propio[k], fila["variograma"][k],
                     f"{q}: su variograma en el rezago {h}", 5e-3)
         # Y las cifras que la prosa y la lectura estrenan sobre esa curva.
-        rel = [abs(fila["variograma"][k] - vg["teorico"][k]) / vg["teorico"][k]
+        # Contra el teórico DE LA CLASE, rehecho arriba desde la retícula
+        # (`gbar`), no contra el que publica R ni contra γ en h entero.
+        rel = [abs(fila["variograma"][k] - gbar[k]) / gbar[k]
                for k in range(len(vg["lags"]))]
         a.igual(max(rel), fila["desvio_rel_max"], f"{q}: su desvío relativo máximo", 1e-7)
         a.igual(vg["lags"][rel.index(max(rel))], fila["lag_desvio_max"],
@@ -1559,6 +1678,76 @@ def main() -> int:
     a.cierto(dm["brecha_c"] > 1,
              "  así que la media muestral no estima la del país",
              f"{dm['brecha_c']:.5f} °C de brecha")
+
+    # --- La referencia: Thiessen de puntos uniformes (R1 · T1.4, C1-32) ---
+    #
+    # R publica cuantiles de SU simulación; aquí se contrastan con OTRA
+    # simulación independiente, así que la comparación es entre dos Monte
+    # Carlo y la tolerancia se razona sin suponer forma (la cola es pesada):
+    #
+    #   · Si q es el cuantil p de la muestra de R (N_R valores) y F̂ la
+    #     fracción de la muestra de aquí (N_A valores) que queda por debajo
+    #     de q, entonces F̂ − p tiene desviación típica
+    #     sqrt(p(1−p)(1/N_R + 1/N_A)), sea cual sea la distribución. Se
+    #     aceptan 4 de esas desviaciones: con mil y mil, ±0.089 en la
+    #     mediana y ±0.039 en los percentiles 5 y 95. Un cuantil publicado
+    #     que no fuera el suyo (la mediana en el lugar del p95, un p95 de
+    #     otra distribución) cae muy lejos de eso.
+    #   · El IC de la mediana que R publica no se puede rehacer sin su
+    #     muestra; se le exige contener a su mediana, solaparse con el IC
+    #     que sale de la muestra de aquí y tener una anchura comparable
+    #     (entre la mitad y el doble).
+    #   · El máximo de R es un valor extremo y no tiene réplica: se exige
+    #     que la muestra de aquí casi nunca lo supere (el número de
+    #     excedencias de un máximo de N es ~Poisson(1): 8 o más tiene
+    #     probabilidad 1e-5).
+    #   · Los dos cocientes, exactos desde las cifras que los forman.
+    ru = dm.get("referencia_uniforme")
+    a.cierto(isinstance(ru, dict), "el módulo 10 publica la referencia de puntos uniformes")
+    if isinstance(ru, dict):
+        a.igual(ru["n_puntos"], len(est), "la referencia usa tantos puntos como estaciones hay")
+        a.cierto(ru["n_muestras"] >= 400,
+                 "  y bastantes muestras para lo que la prosa afirma",
+                 f"{ru['n_muestras']} muestras")
+        ref = np.sort(np.asarray(razones_thiessen_uniforme(
+            pais, PROCESADO / "colombia_adm1.gpkg", len(est))))
+        n_a, n_r = len(ref), ru["n_muestras"]
+        for campo, p_q in (("razon_p05", 0.05), ("razon_mediana", 0.5), ("razon_p95", 0.95)):
+            frac = float((ref < ru[campo]).mean())
+            tol = 4 * math.sqrt(p_q * (1 - p_q) * (1 / n_r + 1 / n_a))
+            a.cierto(abs(frac - p_q) <= tol,
+                     f"{campo}: es el cuantil {p_q} de una simulación independiente",
+                     f"deja por debajo el {frac:.4f} de {n_a} muestras propias "
+                     f"(se admite {p_q} ± {tol:.4f})")
+        lo_a = float(ref[int(np.floor(n_a / 2 - 1.96 * math.sqrt(n_a) / 2)) - 1])
+        hi_a = float(ref[int(np.ceil(n_a / 2 + 1.96 * math.sqrt(n_a) / 2))])
+        lo_r, hi_r = ru["razon_mediana_ic95"]
+        a.cierto(lo_r <= ru["razon_mediana"] <= hi_r,
+                 "el IC de la mediana contiene a la mediana",
+                 f"{lo_r:.3f} ≤ {ru['razon_mediana']:.3f} ≤ {hi_r:.3f}")
+        a.cierto(lo_r <= hi_a and lo_a <= hi_r,
+                 "  y se solapa con el de la simulación independiente",
+                 f"R {lo_r:.3f}–{hi_r:.3f}, aquí {lo_a:.3f}–{hi_a:.3f}")
+        a.cierto(0.5 * (hi_a - lo_a) <= hi_r - lo_r <= 2 * (hi_a - lo_a),
+                 "  con una anchura comparable",
+                 f"R {hi_r - lo_r:.3f}, aquí {hi_a - lo_a:.3f}")
+        exced = int((ref > ru["razon_max"]).sum())
+        a.cierto(exced <= 7 and ru["razon_max"] >= ru["razon_p95"],
+                 "razon_max es un máximo creíble de la referencia",
+                 f"{exced} de {n_a} muestras propias lo superan")
+        a.igual(dm["razon_areas"] / ru["razon_mediana"], ru["red_sobre_mediana"],
+                "la razón de la red, en veces la mediana de la referencia", 1e-6)
+        a.igual(dm["razon_areas"] / ru["razon_p95"], ru["red_sobre_p95"],
+                "  y en veces su percentil 95", 1e-6)
+        # Lo que la prosa afirma, comprobado contra la simulación de AQUÍ.
+        a.cierto(av.max() / av.min() > 10 * float(np.quantile(ref, 0.95))
+                 and av.max() / av.min() > float(ref.max()),
+                 "la red queda muy por encima de un muestreo de igual probabilidad",
+                 f"{av.max() / av.min():.1f} frente a un p95 de "
+                 f"{float(np.quantile(ref, 0.95)):.1f} y un máximo de {float(ref.max()):.1f}")
+        a.cierto(dm["razon_areas"] > ru["razon_max"],
+                 "  y por encima de la mayor razón que R simuló",
+                 f"{dm['razon_areas']:.1f} > {ru['razon_max']:.1f}")
 
     # =================================================================
     a.titulo("9 · Glosario, ecosistema y árbol de decisión")

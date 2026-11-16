@@ -495,6 +495,60 @@ def defectos() -> list[tuple[str, str, str, object]]:
             "desvio_rel_max", 0.4173941)))
     add("el rezago del desvío máximo señala a otro", "datos",
         m(lambda o: o["realizaciones_vistas"][2].__setitem__("lag_desvio_max", 2)))
+    # R1 · T1.4: la referencia del variograma es el teórico PROMEDIADO EN LA
+    # CLASE. Un mutante por campo nuevo o cambiado.
+    add("el teórico de una clase no es el promedio sobre sus pares", "datos",
+        m(lambda o: o["una_realizacion"]["variograma"]["teorico_clase"].__setitem__(
+            0, o["una_realizacion"]["variograma"]["teorico"][0])))
+    add("el número de pares de una clase no es el de la retícula", "datos",
+        m(lambda o: o["una_realizacion"]["variograma"]["n_pares"].__setitem__(1, 1289)))
+    add("la media de las réplicas se va del teórico de la clase", "datos",
+        m(lambda o: o["una_realizacion"]["variograma"]["media"].__setitem__(
+            0, o["una_realizacion"]["variograma"]["teorico"][0])))
+    add("el ancho de banda del rezago 4 vuelve a medirse contra gamma(4)", "datos",
+        m(lambda o: o["una_realizacion"].__setitem__(
+            "banda_rel_lag4",
+            (o["una_realizacion"]["variograma"]["q95"][3]
+             - o["una_realizacion"]["variograma"]["q05"][3])
+            / o["una_realizacion"]["variograma"]["teorico"][3])))
+    add("el desvío del rezago 4 vuelve a medirse contra gamma(4)", "datos",
+        m(lambda o: o["realizaciones_vistas"][0].__setitem__(
+            "desvio_rel_lag4",
+            abs(o["realizaciones_vistas"][0]["variograma"][3]
+                - o["una_realizacion"]["variograma"]["teorico"][3])
+            / o["una_realizacion"]["variograma"]["teorico"][3])))
+    add("el desvío máximo vuelve a medirse contra gamma en h entero", "datos",
+        m(lambda o: o["realizaciones_vistas"][1].__setitem__(
+            "desvio_rel_max",
+            max(abs(v - t) / t for v, t in zip(
+                o["realizaciones_vistas"][1]["variograma"],
+                o["una_realizacion"]["variograma"]["teorico"])))))
+    # R1 · T1.4: la referencia de Thiessen con puntos uniformes (módulo 10).
+    RU = lambda o: o["diseno_modelo"]["referencia_uniforme"]
+    add("la referencia uniforme desaparece", "datos",
+        m(lambda o: o["diseno_modelo"].pop("referencia_uniforme")))
+    add("la referencia uniforme no usa tantos puntos como estaciones", "datos",
+        m(lambda o: RU(o).__setitem__("n_puntos", 360)))
+    add("la referencia uniforme se queda en treinta muestras", "datos",
+        m(lambda o: RU(o).__setitem__("n_muestras", 30)))
+    add("la mediana de la referencia es la de otra distribución", "datos",
+        m(lambda o: RU(o).__setitem__("razon_mediana", 51.73941)))
+    add("el percentil 5 de la referencia no es el suyo", "datos",
+        m(lambda o: RU(o).__setitem__("razon_p05", 27.17394)))
+    add("el percentil 95 de la referencia no es el suyo", "datos",
+        m(lambda o: RU(o).__setitem__("razon_p95", 81.73941)))
+    add("el IC de la mediana deja fuera a la mediana", "datos",
+        m(lambda o: RU(o).__setitem__(
+            "razon_mediana_ic95", [RU(o)["razon_mediana"] + 0.5, RU(o)["razon_mediana"] + 3])))
+    add("el IC de la mediana es diez veces más ancho", "datos",
+        m(lambda o: RU(o).__setitem__(
+            "razon_mediana_ic95", [RU(o)["razon_mediana"] - 15, RU(o)["razon_mediana"] + 15])))
+    add("el máximo de la referencia es una razón corriente", "datos",
+        m(lambda o: RU(o).__setitem__("razon_max", RU(o)["razon_p95"] + 1)))
+    add("«veces la mediana» no es el cociente", "datos",
+        m(lambda o: RU(o).__setitem__("red_sobre_mediana", 41.73941)))
+    add("«veces el percentil 95» no es el cociente", "datos",
+        m(lambda o: RU(o).__setitem__("red_sobre_p95", 17.39412)))
     add("los rezagos fuera de banda declarados no son los que hay", "datos",
         m(lambda o: o["realizaciones_vistas"][0].__setitem__("lags_fuera_banda", 3)))
     add("el campo del mapa cambia y su curva no", "mapas",

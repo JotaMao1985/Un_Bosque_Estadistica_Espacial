@@ -113,7 +113,7 @@ GRAFICOS = {
         "x": "lags",
         "titulo_x": "Retardo",
         "series": [
-            {"label": "Teórico", "campo": "teorico",
+            {"label": "Teórico, promediado en la clase", "campo": "teorico_clase",
              "color": PRIMARIO, "trazo": "--", "puntos": False},
             {"label": "Media de las realizaciones", "campo": "media",
              "color": SECUNDARIO, "trazo": "-", "puntos": True},
