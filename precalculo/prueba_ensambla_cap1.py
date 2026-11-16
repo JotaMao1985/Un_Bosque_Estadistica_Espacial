@@ -230,6 +230,9 @@ def defectos() -> list[tuple[str, str, str, object]]:
         veces=0)
     txt("un espacio fino se cuela dentro de una fórmula", "ensamblador",
         "\\\\(\\\\phi = {ur['phi']}\\\\)", "\\\\(\\\\phi = 4\\u202f000\\\\)")
+    txt("un espacio fino de LaTeX se cuela en la prosa", "ensamblador",
+        "{ent(ne['enes'][0])} a {ent(ne['enes'][-1])} observaciones",
+        "{ent_mate(ne['enes'][0])} a {ent_mate(ne['enes'][-1])} observaciones")
 
     # --- Módulo 5: el deslizador de rho (T1.1) --------------------------
     txt("el tope del deslizador deja de ser legible", "ensamblador",

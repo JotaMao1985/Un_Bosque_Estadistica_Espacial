@@ -1377,7 +1377,7 @@ MOD5 = cabecera(
       <div class="simulador" data-simulador="n-efectivo">
         <h4><i class="fas fa-compress" aria-hidden="true"></i> El techo de la información</h4>
         <p class="simulador-intro">Mueve \\(\\bar{{\\rho}}\\) y mira cuánto aporta pasar de
-          {ent_mate(ne['enes'][0])} a {ent_mate(ne['enes'][-1])} observaciones: la curva se despega de la
+          {ent(ne['enes'][0])} a {ent(ne['enes'][-1])} observaciones: la curva se despega de la
           diagonal —el caso sin correlación— y se aplasta contra el techo \\(1/\\bar{{\\rho}}\\), que se mueve con
           el deslizador. Cada curva mantiene \\(\\bar{{\\rho}}\\) fijo a lo largo de todo el eje. El rombo es
           Colombia, y la curva fija que pasa por él es la del \\(\\bar{{\\rho}}\\) que corresponde a ese
@@ -4644,6 +4644,15 @@ def main() -> int:
     if sucias:
         problemas.append(f"{len(sucias)} fórmula(s) con un espacio que KaTeX no "
                          f"entiende: {sucias[:3]} — usa ent_mate()")
+    # Y al revés: `\,` es el espacio fino de LaTeX y solo existe DENTRO de una
+    # fórmula. En la prosa sale tal cual, y el módulo 5 publicó «pasar de 25 a
+    # 1\,000 observaciones» porque `ent_mate()` se usó fuera de `\(...\)`.
+    prosa = re.sub(r"\\\(.*?\\\)|\$\$.*?\$\$|<script.*?</script>|<pre.*?</pre>",
+                   " ", marcado, flags=re.S)
+    crudos = [" ".join(m.group(0).split()) for m in re.finditer(r"[^<>]{0,30}\\,[^<>]{0,12}", prosa)]
+    if crudos:
+        problemas.append(f"{len(crudos)} espacio(s) fino(s) de LaTeX fuera de una fórmula, que salen "
+                         f"crudos en la prosa: {crudos[:3]} — fuera de \\(...\\) va ent()")
     # Una barra invertida SUELTA en la prosa de este archivo no llega al HTML
     # como barra: Python la lee como secuencia de escape y `\\bar`, `\\rho`,
     # `\\frac` y `\\text` escritos con una sola barra se convierten en un
