@@ -446,13 +446,37 @@ moran_banda <- function(coords, z, d1, d2) {
   nb <- suppressWarnings(dnearneigh(coords, d1, d2))
   card_nb <- card(nb)
   if (all(card_nb == 0)) return(list(I = NA_real_, p = NA_real_,
-                                     n_pares = 0L, grado = 0))
+                                     n_pares = 0L, grado = 0,
+                                     n_con_vecinos = 0L, esperado = NA_real_,
+                                     esperado_programa = NA_real_))
   lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
   mt <- suppressWarnings(moran.test(z, lw, zero.policy = TRUE))
+  # LA REFERENCIA DE CADA BANDA NO ES LA DE TODAS (R1 · T1.6, C1-12). Con
+  # `zero.policy = TRUE` y `adjust.n = TRUE`, `moran.test` sustituye n por
+  # n' —las unidades CON vecinos en la banda— en dos sitios: en el factor
+  # n/S0 de la I y en la esperanza que imprime, -1/(n' - 1). Pero las
+  # unidades sin vecinos siguen dentro del centrado y de sum(z^2): la I que
+  # publica es (n'/S0) z'Wz / z'z con z centrada sobre las n. Bajo
+  # permutación E[z_i z_j] = -sum(z^2)/(n(n-1)) para i != j, luego
+  #     E[I] = -n' / (n (n - 1)).
+  # ESA es la esperanza por permutación de la cifra publicada, y la que el
+  # capítulo dibuja como referencia (`esperado`). El -1/(n' - 1) que
+  # imprime el programa es su convención, no esa media: va aparte, en
+  # `esperado_programa`, para que el capítulo pueda decirlo. Con n' = n las
+  # dos coinciden. C.2 comprueba la fórmula permutando de verdad.
+  n_con <- sum(card_nb > 0)
+  n_tot <- length(z)
+  e_programa <- mt$estimate[["Expectation"]]
+  if (abs(e_programa + 1 / (n_con - 1)) > 1e-12)
+    stop(sprintf("la esperanza que imprime moran.test en la banda %g-%g no es -1/(n' - 1) con n' = %d",
+                 d1, d2, n_con))
   list(I = r10(mt$estimate[["Moran I statistic"]]),
        p = r10(mt$p.value),
        n_pares = as.integer(sum(card_nb) / 2),
-       grado = r10(mean(card_nb)))
+       grado = r10(mean(card_nb)),
+       n_con_vecinos = as.integer(n_con),
+       esperado = r10(-n_con / (n_tot * (n_tot - 1))),
+       esperado_programa = r10(e_programa))
 }
 
 correlograma <- function(coords, z, cortes, escala = 1) {
@@ -474,6 +498,33 @@ cor_meuse <- correlograma(xy_meuse, log(meuse$zinc),
 xy_est <- st_coordinates(est)
 cor_ideam <- correlograma(xy_est, est$t_media_anual,
                           c(0, 25, 50, 100, 175, 300, 500, 800) * 1000, escala = 1000)
+
+# --- C.2b La esperanza de la primera banda, permutando de verdad ------
+# La referencia por banda es -n'/(n(n-1)), y no el -1/(n'-1) que imprime
+# moran.test. Es una cuenta de tres líneas, pero contradice la salida del
+# programa, así que no se da por buena: se permuta la temperatura entre las
+# estaciones y se calcula cada vez la MISMA I que publica spdep. El estado
+# del generador se guarda y se devuelve, para no mover lo que viene detrás.
+estado_rng_c2b <- get(".Random.seed", envir = globalenv())
+B1_D <- c(0, 25) * 1000
+nb_b1 <- suppressWarnings(dnearneigh(xy_est, B1_D[1], B1_D[2]))
+W_b1 <- listw2mat(nb2listw(nb_b1, style = "W", zero.policy = TRUE))
+n_con_b1 <- sum(card(nb_b1) > 0)
+z_b1 <- est$t_media_anual - mean(est$t_media_anual)
+I_b1 <- function(zz) (n_con_b1 / sum(W_b1)) * sum(zz * (W_b1 %*% zz)) / sum(zz^2)
+if (abs(I_b1(z_b1) - cor_ideam$bandas[[1]]$I) > 1e-9)
+  stop("C.2b: la I escrita a mano no es la que publica moran.test en la primera banda")
+NPERM_B1 <- 20000L
+set.seed(SEMILLA + 2L)
+perm_b1 <- replicate(NPERM_B1, I_b1(sample(z_b1)))
+emc_b1 <- sd(perm_b1) / sqrt(NPERM_B1)
+if (abs(mean(perm_b1) - cor_ideam$bandas[[1]]$esperado) > 4 * emc_b1)
+  stop(sprintf("C.2b: la media por permutación (%.6f) no es -n'/(n(n-1)) = %.6f",
+               mean(perm_b1), cor_ideam$bandas[[1]]$esperado))
+# Y sí se separa de la convención del programa: es lo que la prosa afirma.
+if (!(abs(mean(perm_b1) - cor_ideam$bandas[[1]]$esperado_programa) > 4 * emc_b1))
+  stop("C.2b: la media por permutación ya no se distingue de -1/(n' - 1)")
+assign(".Random.seed", estado_rng_c2b, envir = globalenv())
 
 # --- C.3 CONTRAEJEMPLO 1: el mismo dato, permutado --------------------
 # Destruir la posición y conservar los valores deja el correlograma plano
@@ -498,6 +549,9 @@ cor_resid <- correlograma(xy_est, res_alt,
 # En `cells` lo cercano NO se parece más: los puntos se repelen. Tobler
 # describe una tendencia empírica dominante, no una ley física.
 D$tobler <- list(
+  # C.2b · la esperanza de la primera banda del IDEAM, por permutación
+  permutacion_banda1 = list(
+    nperm = NPERM_B1, media = r10(mean(perm_b1)), emc = r10(emc_b1)),
   meuse  = cor_meuse,
   ideam  = cor_ideam,
   permutado = cor_perm,
@@ -541,7 +595,10 @@ PHIS <- c(0, 0.5, 1, 2, 4, 8, 16)
 # Cholesky no falle por redondeo con phi grande. 1e-9 sobre una varianza
 # de 1 es invisible, y se declara aquí en vez de esconderse.
 JITTER <- 1e-9
-t_crit <- qt(0.975, N4 - 1)
+# El nivel de la prueba, con nombre (R1 · T1.6, C1-26): el módulo 6 la
+# enuncia —t de una muestra, H0: mu = 0, bilateral— y su alfa sale de aquí.
+ALFA <- 0.05
+t_crit <- qt(1 - ALFA / 2, N4 - 1)
 
 mc <- lapply(PHIS, function(phi) {
   R <- if (phi <= 0) diag(N4) else exp(-DIST4 / phi)
@@ -620,6 +677,7 @@ D$inferencia <- list(
   # decir en qué se mide h, y nadie podía llegar a e^(-1/4) por su cuenta.
   escala_h = "distancia euclídea entre centros de celda, medida en pasos de retícula",
   sigma = 1,
+  alfa = ALFA,
   t_critico = r10(t_crit),
   rejilla = mc,
   # Las dos cifras con las que cierra el módulo
@@ -661,6 +719,151 @@ boot_blq <- replicate(NBOOT, {
 ee_iid <- sd(boot_iid)
 ee_blq <- sd(boot_blq)
 
+# --- D.2b Lo que el remuestreo por departamentos supone, y lo que no --
+# (R1 · T1.6, C1-17). Tres cosas que el módulo publicaba sin decir:
+#
+#   1. LAS RÉPLICAS POR BLOQUES NO ESTÁN CENTRADAS EN LA MEDIA MUESTRAL.
+#      Los departamentos tienen tamaños muy desiguales, así que cada
+#      réplica reúne un número distinto de municipios y su media,
+#      `mean(unlist(bloques[elegidos]))`, es un cociente de dos sumas
+#      aleatorias: un estimador de razón. Su esperanza bajo el remuestreo
+#      no es la media muestral. Los intervalos del módulo sí están
+#      centrados en ella, pero porque se CONSTRUYEN así (media ± z·ee), no
+#      porque las réplicas lo estén. Con las 4 000 réplicas del módulo el
+#      desvío apenas se separa de su ruido, así que la ESPERANZA de las
+#      réplicas se calcula aparte y con precisión: remuestrear K bloques con
+#      reemplazo es sortear cuántas veces sale cada uno (una multinomial), y
+#      la media de la réplica es (conteos·sumas)/(conteos·tamaños). Dos
+#      millones de réplicas cuestan segundos. Se para si el desvío deja de
+#      superar holgadamente su error de Monte Carlo: la prosa dice que no
+#      es ruido.
+#   2. EL ERROR ESTÁNDAR POR BLOQUES ES INCIERTO. Son 33 bloques. Se quita
+#      un departamento cada vez y se rehacen los dos remuestreos. El
+#      RECORRIDO de esos 33 valores es la sensibilidad a un departamento, NO
+#      la incertidumbre: cada cálculo comparte 31 de sus 32 departamentos
+#      con cualquier otro, así que los 33 valores se parecen mucho más que
+#      33 estimaciones independientes. El error estándar JACKKNIFE repone
+#      esa dispersión: sqrt((K-1)/K * sum((f_i - media)^2)). Se publican los
+#      dos, cada uno con su nombre.
+#   3. CUÁNTO DE ESO ES LA SEMILLA. Con todos los departamentos y otras
+#      parejas de semillas, para poder comparar los dos recorridos.
+#
+# EL ESTADO DEL GENERADOR SE GUARDA Y SE DEVUELVE. Este bloque entra en
+# medio de un guion cuyas secciones siguientes no siempre fijan semilla al
+# empezar; sin esto, añadirlo movería cifras ajenas.
+estado_rng_d2b <- get(".Random.seed", envir = globalenv())
+
+media_muni <- mean(muni_ok$desercion)
+desvio_iid <- mean(boot_iid) - media_muni
+desvio_blq <- mean(boot_blq) - media_muni
+emc_media_iid <- ee_iid / sqrt(NBOOT)
+emc_media_blq <- ee_blq / sqrt(NBOOT)
+# La esperanza de las réplicas por bloques, por la multinomial.
+esperanza_bloques <- function(sumas, tams, B, lote = 200000L) {
+  K <- length(sumas); s1 <- 0; s2 <- 0
+  stopifnot(B %% lote == 0)
+  for (b in seq_len(B / lote)) {
+    cnt <- rmultinom(lote, K, rep(1 / K, K))            # K x lote
+    m <- as.vector(crossprod(cnt, sumas)) / as.vector(crossprod(cnt, tams))
+    s1 <- s1 + sum(m); s2 <- s2 + sum(m^2)
+  }
+  media <- s1 / B
+  list(media = media, emc = sqrt((s2 / B - media^2) / B))
+}
+NREP_ESP <- 2000000L
+set.seed(SEMILLA + 204L)
+esp_blq <- esperanza_bloques(vapply(bloques, sum, numeric(1)), lengths(bloques), NREP_ESP)
+desvio_esp <- esp_blq$media - media_muni
+if (!(abs(desvio_esp) > 10 * esp_blq$emc))
+  stop("D.2b: la esperanza de las réplicas por bloques ya no se separa de la media muestral; ",
+       "la prosa del módulo 4 dice que no es ruido")
+# Las 4 000 réplicas del módulo tienen que ser compatibles con ella.
+if (!(abs(mean(boot_blq) - esp_blq$media) < 4 * emc_media_blq))
+  stop("D.2b: las réplicas del módulo no son compatibles con su esperanza")
+if (!(abs(desvio_iid) < 3 * emc_media_iid))
+  stop("D.2b: la media de las réplicas i.i.d. se separa de la muestral")
+
+remuestrea_d2 <- function(y, dpto, B, s_iid, s_blq) {
+  bl <- split(y, dpto)
+  set.seed(s_iid)
+  b_i <- replicate(B, mean(sample(y, length(y), replace = TRUE)))
+  set.seed(s_blq)
+  b_b <- replicate(B, {
+    e <- sample(seq_along(bl), length(bl), replace = TRUE)
+    mean(unlist(bl[e], use.names = FALSE))
+  })
+  c(iid = sd(b_i), bloques = sd(b_b))
+}
+deriva_d2 <- function(ee, n) list(factor = ee[["bloques"]] / ee[["iid"]],
+                                  n_eff = n * (ee[["iid"]] / ee[["bloques"]])^2)
+
+# Otras semillas, con todos los departamentos y el B del módulo.
+N_OTRAS_D2 <- 20L
+otras_d2 <- lapply(seq_len(N_OTRAS_D2), function(k)
+  deriva_d2(remuestrea_d2(muni_ok$desercion, muni_ok$dpto, NBOOT,
+                          SEMILLA + 1200L + k, SEMILLA + 1300L + k), n_muni))
+otros_factor <- vapply(otras_d2, function(o) o$factor, numeric(1))
+otros_neff_d2 <- vapply(otras_d2, function(o) o$n_eff, numeric(1))
+
+# Un departamento menos. EL B SE RAZONA, como en el ejercicio 3: tiene que
+# ser el dato, y no el ruido, lo que ponga el recorrido. Con B = 4 000 el
+# factor se mueve de una pareja de semillas a otra con `sd(otros_factor)`;
+# con B = 20 000, cinco veces más, esa desviación baja a menos de la mitad.
+# Se exige que el recorrido del factor al quitar departamentos sea más de
+# ocho veces esa desviación, y que el extremo que la prosa NOMBRA quede a
+# más de cuatro del siguiente: si no, el nombre lo pondría el ruido.
+NB_JK_D2 <- 20000L
+SEM_JK_D2_IID <- SEMILLA + 202L
+SEM_JK_D2_BLQ <- SEMILLA + 203L
+nombre_dpto <- tapply(muni_ok$departamento, muni_ok$dpto, function(v) v[1])
+if (any(tapply(muni_ok$departamento, muni_ok$dpto,
+               function(v) length(unique(v))) != 1L))
+  stop("D.2b: un prefijo DIVIPOLA con más de un nombre de departamento")
+jk_d2 <- lapply(names(bloques), function(cod) {
+  queda <- muni_ok$dpto != cod
+  d <- deriva_d2(remuestrea_d2(muni_ok$desercion[queda], muni_ok$dpto[queda],
+                               NB_JK_D2, SEM_JK_D2_IID, SEM_JK_D2_BLQ), sum(queda))
+  list(dpto = cod, departamento = unname(nombre_dpto[[cod]]),
+       municipios = as.integer(sum(!queda)),
+       factor = r10(d$factor), n_eff = r10(d$n_eff))
+})
+jk_factor <- vapply(jk_d2, function(j) j$factor, numeric(1))
+jk_neff <- vapply(jk_d2, function(j) j$n_eff, numeric(1))
+# El error estándar jackknife, con los 33 valores.
+ee_jk <- function(v) sqrt((length(v) - 1) / length(v) * sum((v - mean(v))^2))
+ee_jk_factor <- ee_jk(jk_factor)
+ee_jk_neff <- ee_jk(jk_neff)
+# La prosa dice que el recorrido se queda corto: medio recorrido es menor
+# que el error estándar. Y que el n efectivo se conoce en orden de magnitud.
+if (!(diff(range(jk_factor)) / 2 < ee_jk_factor && diff(range(jk_neff)) / 2 < ee_jk_neff))
+  stop("D.2b: medio recorrido ya no queda por debajo del error estándar jackknife")
+if (!(ee_jk_neff > 0.25 * n_muni * (ee_iid / ee_blq)^2))
+  stop("D.2b: el e.e. jackknife del n efectivo baja del 25 %; «orden de magnitud» sobra")
+# Y la referencia de ese mismo B con los 33, para leer el recorrido.
+todos_jk <- deriva_d2(remuestrea_d2(muni_ok$desercion, muni_ok$dpto, NB_JK_D2,
+                                    SEM_JK_D2_IID, SEM_JK_D2_BLQ), n_muni)
+sd_semilla_jk_d2 <- sd(otros_factor) / sqrt(NB_JK_D2 / NBOOT)
+if (!(diff(range(jk_factor)) > 8 * sd_semilla_jk_d2))
+  stop("D.2b: el recorrido del factor sin un departamento no supera al ruido; sube NB_JK_D2")
+# La prosa nombra el departamento cuya ausencia más BAJA el factor (y más
+# sube el n efectivo). Tiene que ser el mismo en las dos cuentas y quedar
+# lejos del segundo.
+i_bajo <- which.min(jk_factor)
+if (i_bajo != which.max(jk_neff))
+  stop("D.2b: el factor mínimo y el n efectivo máximo no son del mismo departamento")
+if (!(sort(jk_factor)[2] - jk_factor[i_bajo] > 4 * sd_semilla_jk_d2))
+  stop("D.2b: el departamento del extremo no se separa del siguiente; no se puede nombrar")
+# Y dice que los recorridos contienen al titular y son más anchos que los
+# de la semilla.
+n_eff_titular <- n_muni * (ee_iid / ee_blq)^2
+if (!(min(jk_neff) < min(otros_neff_d2) && max(otros_neff_d2) < max(jk_neff)))
+  stop("D.2b: quitar un departamento ya no mueve el n efectivo más que la semilla")
+if (!(min(jk_neff) < n_eff_titular && n_eff_titular < max(jk_neff)) ||
+    !(min(jk_factor) < ee_blq / ee_iid && ee_blq / ee_iid < max(jk_factor)))
+  stop("D.2b: el titular del módulo queda fuera del recorrido sin un departamento")
+
+assign(".Random.seed", estado_rng_d2b, envir = globalenv())
+
 D$inferencia_real <- list(
   n_municipios = n_muni,
   n_departamentos = length(bloques),
@@ -678,7 +881,49 @@ D$inferencia_real <- list(
   ic_iid = r10(mean(muni_ok$desercion) + c(-1, 1) * 1.959964 * ee_iid),
   ic_bloques = r10(mean(muni_ok$desercion) + c(-1, 1) * 1.959964 * ee_blq),
   ancho_iid = r10(2 * 1.959964 * ee_iid),
-  ancho_bloques = r10(2 * 1.959964 * ee_blq)
+  ancho_bloques = r10(2 * 1.959964 * ee_blq),
+  # D.2b · dónde caen las réplicas. Los intervalos de arriba se centran en
+  # la media muestral por construcción; las réplicas por bloques, no.
+  replicas = list(
+    media_iid = r10(mean(boot_iid)),
+    media_bloques = r10(mean(boot_blq)),
+    desvio_iid = r10(desvio_iid),
+    desvio_bloques = r10(desvio_blq),
+    emc_media_iid = r10(emc_media_iid),
+    emc_media_bloques = r10(emc_media_blq),
+    # la esperanza de las réplicas por bloques, con precisión (multinomial)
+    nrep_esperanza = NREP_ESP,
+    esperanza_bloques = r10(esp_blq$media),
+    emc_esperanza = r10(esp_blq$emc),
+    desvio_esperanza = r10(desvio_esp),
+    desvio_esperanza_pct_ee = r10(100 * desvio_esp / ee_blq),
+    bloque_min = as.integer(min(lengths(bloques))),
+    bloque_max = as.integer(max(lengths(bloques)))
+  ),
+  # D.2b · cuánto es la semilla, con los 33 departamentos y el B del módulo
+  otras_semillas = list(
+    n = N_OTRAS_D2,
+    factor_min = r10(min(otros_factor)), factor_max = r10(max(otros_factor)),
+    factor_sd = r10(sd(otros_factor)),
+    n_eff_min = r10(min(otros_neff_d2)), n_eff_max = r10(max(otros_neff_d2))
+  ),
+  # D.2b · un departamento menos: lo que mueve el dato
+  sin_un_departamento = list(
+    nboot = NB_JK_D2,
+    semilla_iid = SEM_JK_D2_IID, semilla_bloques = SEM_JK_D2_BLQ,
+    n_departamentos_quedan = as.integer(length(bloques) - 1L),
+    por_departamento = jk_d2,
+    factor_min = r10(min(jk_factor)), factor_max = r10(max(jk_factor)),
+    n_eff_min = r10(min(jk_neff)), n_eff_max = r10(max(jk_neff)),
+    # el departamento cuya ausencia más baja el factor: el que la prosa nombra
+    extremo = jk_d2[[i_bajo]],
+    # el error estándar jackknife: la incertidumbre, que no es el recorrido
+    ee_jackknife_factor = r10(ee_jk_factor),
+    ee_jackknife_n_eff = r10(ee_jk_neff),
+    ee_jackknife_n_eff_pct = r10(100 * ee_jk_neff / (n_muni * (ee_iid / ee_blq)^2)),
+    # con los 33 y este mismo B, para situar el recorrido
+    factor_todos = r10(todos_jk$factor), n_eff_todos = r10(todos_jk$n_eff)
+  )
 )
 
 # =====================================================================
@@ -686,127 +931,326 @@ D$inferencia_real <- list(
 # =====================================================================
 message("E · n efectivo")
 
-# La fórmula cerrada bajo equicorrelación, que es la que se demuestra en
-# el módulo: n_eff = n / (1 + (n-1) rho).
-n_eff_equi <- function(n, rho) n / (1 + (n - 1) * rho)
+# LA FÓRMULA ES EXACTA, y eso gobierna todo el bloque. Con varianzas
+# iguales,
+#     Var(Zbar) = (1/n^2) sum_i sum_j Cov(Z_i, Z_j)
+#               = (sigma^2/n) [1 + (n-1) rho_medio],
+# con rho_medio = (1/(n(n-1))) sum_{i != j} rho_ij, la correlación media
+# entre pares. Es una identidad: no supone que todos los pares tengan la
+# misma correlación, solo los promedia. Así que n / (1 + (n-1) rho_medio)
+# es el tamaño efectivo de la MEDIA sea cual sea la estructura, y el
+# argumento `rho` de esta función es siempre esa media entre pares. Hasta
+# R1 el módulo decía que la fórmula «suponía equicorrelación» y la trataba
+# de orden de magnitud; era falso, y de ese error colgaban un «rho medido»
+# y una razón entre dos rho que no medían nada (par académico, C1-18 y
+# C1-19).
+n_eff_media <- function(n, rho) n / (1 + (n - 1) * rho)
 RHOS <- c(0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8)
 NN   <- c(25L, 50L, 100L, 250L, 500L, 1000L)
 
+# La correlación media entre pares de una configuración de puntos con
+# rho(h) = exp(-h/phi): la media de rho sobre las n(n-1)/2 distancias.
+# Con phi = 0 no hay correlación entre celdas distintas.
+rho_medio_de <- function(xy, phi)
+  if (phi <= 0) 0 else mean(exp(-as.numeric(dist(xy)) / phi))
+
+# El campo del módulo 4, alcance por alcance: el n_eff EXACTO (n^2/1'R1,
+# calculado allí), el rho_medio VERDADERO —la covarianza se conoce— y el
+# n_eff que da la fórmula con él. Los dos n_eff tienen que ser el mismo
+# número, y se comprueba aquí antes de que el capítulo lo diga. Van por
+# caminos distintos: uno suma la matriz R entera, el otro promedia rho
+# sobre las distancias entre pares.
+exacto_campo <- lapply(mc, function(m) {
+  rho_m <- rho_medio_de(rej, m$phi)
+  n_f   <- n_eff_media(N4, rho_m)
+  if (abs(n_f - m$n_eff) > 1e-9)
+    stop(sprintf("n/(1+(n-1) rho_medio) no reproduce el n_eff exacto en phi = %.1f: %.12f vs %.12f",
+                 m$phi, n_f, m$n_eff))
+  list(phi = m$phi, n_eff = m$n_eff, pct = r10(100 * m$n_eff / N4),
+       rho_medio = r10(rho_m), n_eff_formula = r10(n_f))
+})
+
 D$n_efectivo <- list(
-  formula = "n_eff = n / (1 + (n-1) rho)",
+  formula = paste("n_eff = n / (1 + (n-1) rho_medio), con rho_medio la",
+                  "correlación media entre pares; exacta para la media"),
   rhos = r10(RHOS), enes = NN,
-  # Una rejilla n x rho: es el simulador del módulo
+  # Una rejilla n x rho_medio: es el simulador del módulo
   rejilla = lapply(NN, function(n) list(
     n = n,
-    n_eff = r10(vapply(RHOS, function(r) n_eff_equi(n, r), numeric(1))),
-    pct   = r10(vapply(RHOS, function(r) 100 * n_eff_equi(n, r) / n, numeric(1))))),
+    n_eff = r10(vapply(RHOS, function(r) n_eff_media(n, r), numeric(1))),
+    pct   = r10(vapply(RHOS, function(r) 100 * n_eff_media(n, r) / n, numeric(1))))),
   # El caso que más impresiona y que conviene tener publicado: con una
   # correlación pequeñísima, la mitad de la muestra se evapora.
-  caso_n1000_rho001 = r10(n_eff_equi(1000, 0.01)),
-  # El n_eff EXACTO del campo simulado, que no supone equicorrelación
-  exacto_campo = lapply(mc, function(m) list(phi = m$phi, n_eff = m$n_eff,
-                                             pct = r10(100 * m$n_eff / N4))),
+  caso_n1000_rho001 = r10(n_eff_media(1000, 0.01)),
+  # Las cifras de la pregunta del módulo 5 en la autoevaluación: n = 1000
+  # con rho_medio = 0.1, sus respuestas y sus distractores. Se publican
+  # para que el quiz no lleve ninguna escrita a mano.
+  caso_quiz = list(
+    n = 1000L, rho = 0.1,
+    n_eff = r10(n_eff_media(1000, 0.1)),
+    n_eff_redondo = as.integer(round(n_eff_media(1000, 0.1))),
+    techo = as.integer(round(1 / 0.1)),
+    # las que «sobran», y el distractor de quien resta un 10 %
+    sobran = as.integer(1000 - round(n_eff_media(1000, 0.1))),
+    pct_ingenuo = as.integer(round(100 * 0.1)),
+    ingenuo = as.integer(round(1000 * (1 - 0.1))),
+    # el distractor que confunde con el techo de rho_medio = 0.01
+    rho_otro = 0.01,
+    techo_otro = as.integer(round(1 / 0.01))),
+  exacto_campo = exacto_campo,
   # Y los dos datos reales
   desercion_municipal = r10(D$inferencia_real$n_eff),
   desercion_n = n_muni,
   desercion_pct = r10(D$inferencia_real$pct_informacion)
 )
 
-# --- E.1 El rho del titular: el implícito y el estimado (T2.1) --------
+# --- E.1 El rho medio que corresponde al titular ----------------------
 #
-# EL DEFECTO QUE CIERRA. El titular del módulo dice que 1 121 municipios
-# informan como 64.52155, y no dice con qué rho. T1.1.b encontró por qué:
-# NO HAY RHO. Ese 64.52155 es `n * (ee_iid/ee_blq)^2`, un cociente de dos
-# remuestreos del módulo 4, y no pasa por la equicorrelación en ningún
-# momento. Así que la pregunta no era «¿cuál es el rho escondido?» sino
-# «¿cuál publicamos?», y se publican LOS DOS, porque decir en qué se
-# separan es el contenido del módulo y no una nota al pie:
+# El titular del módulo —1 121 municipios informan como 64.52155— NO sale
+# de estimar una correlación: es `n * (ee_iid/ee_blq)^2`, el cociente de
+# los dos remuestreos del módulo 4. Como la fórmula es exacta, a esa
+# varianza le corresponde UN rho medio, el que se despeja de ella:
+#     rho_medio = (n/n_eff - 1) / (n - 1).
+# No es una medición directa de la correlación entre municipios: es la
+# varianza del remuestreo por departamentos escrita en otra unidad, y
+# hereda su incertidumbre y sus supuestos (departamentos como bloques
+# independientes). El capítulo lo publica con esas palabras.
 #
-#   IMPLÍCITO   el rho que la equicorrelación NECESITARÍA para explicar la
-#               inflación medida. Se despeja de n_eff = n/(1+(n-1)rho), así
-#               que reproduce 64.52155 por construcción. No es una
-#               estimación de nada: es una retro-transformación, y el
-#               capítulo lo dice con esas palabras.
-#   ESTIMADO    el rho medio entre pares, medido sobre el mapa con el MISMO
-#               método del ejercicio 3 —correlograma por bandas, I de Moran
-#               por banda, promediada con el número de pares de cada una—.
-#               Éste sí es una estimación.
-#
-# Y no coinciden ni de lejos. Eso NO es un fallo del montaje: es la
-# demostración de la advertencia que el capítulo ya hacía sin medirla —que
-# la equicorrelación es falsa en el espacio—. La equicorrelación supone UN
-# rho para todos los pares; en el mapa el rho decae con la distancia y
-# llega a ponerse negativo, y como la inmensa mayoría de los pares son
-# lejanos, el promedio se hunde hacia cero. El rho que haría falta para
-# explicar la pérdida de información resulta ser varias veces el que se
-# mide. La advertencia pasa de afirmación a cociente.
-message("E.1 · el rho implícito y el rho estimado del módulo 5")
+# RETIRADO EN R1 (C1-19): `estimado`, `n_eff_con_estimado`, `razon_rho`,
+# `razon_n_eff`, `I_primera_banda`, `n_bandas`, `pares_totales`,
+# `pares_lejanos`, `bandas` y `metodo`. Eran un «rho medido» —la I de
+# Moran por bandas hasta 800 km, promediada por pares— que no estima
+# rho_medio: por qué, en E.2. `genera_preparcial1.R` leía tres de esos
+# campos (`estimado`, `n_eff_con_estimado`, `I_primera_banda`): es la
+# tarea T1.3 del plan.
+message("E.1 · el rho medio que corresponde al titular del módulo 5")
 
 RHO_N     <- n_muni
 RHO_N_EFF <- D$inferencia_real$n_eff
 rho_implicito <- (RHO_N / RHO_N_EFF - 1) / (RHO_N - 1)
 
-# Las MISMAS bandas del ejercicio 3, y a propósito: el estudiante que haga
-# el ejercicio tiene que poder repetir aquí el gesto sin cambiar de método.
-BANDAS_RHO <- c(0, 25, 50, 100, 175, 300, 500, 800) * 1000
-xy_muni <- st_coordinates(suppressWarnings(st_point_on_surface(st_geometry(muni_ok))))
-banda_rho <- lapply(seq_len(length(BANDAS_RHO) - 1L), function(i) {
-  nb <- suppressWarnings(dnearneigh(xy_muni, BANDAS_RHO[i], BANDAS_RHO[i + 1]))
-  pares <- sum(card(nb)) / 2
-  I <- if (all(card(nb) == 0)) NA_real_ else
-    suppressWarnings(moran.test(muni_ok$desercion,
-                                nb2listw(nb, style = "W", zero.policy = TRUE),
-                                zero.policy = TRUE))$estimate[["Moran I statistic"]]
-  # Las islas DE ESTA BANDA, y no como curiosidad: son la única forma de que
-  # el auditor en Python reproduzca esta I. `spdep::moran.test` con
-  # `zero.policy = TRUE` toma n = unidades CON vecinos y `esda.Moran` toma
-  # n = todas (la discrepancia `moran_islas` que el módulo 7 ya declara), así
-  # que las dos convenciones se convierten exactamente una en otra:
-  #     I_esda = I_spdep * n / (n - islas)
-  # En la banda de 0 a 25 km casi la mitad de los municipios no tiene un solo
-  # vecino, así que aquí eso no es un detalle de la cuarta cifra.
-  list(d1 = as.integer(BANDAS_RHO[i] / 1000), d2 = as.integer(BANDAS_RHO[i + 1] / 1000),
-       I = r10(I), pares = as.integer(pares),
-       islas = as.integer(sum(card(nb) == 0)))
-})
-Is_rho <- vapply(banda_rho, function(b) b$I, numeric(1))
-np_rho <- vapply(banda_rho, function(b) b$pares, numeric(1))
-rho_estimado <- sum(Is_rho * np_rho, na.rm = TRUE) / sum(np_rho[!is.na(Is_rho)])
-
-# El generador SE DETIENE si el implícito dejara de reproducir el titular:
-# es una identidad algebraica, así que un fallo aquí significa que alguien
+# El generador SE DETIENE si el despeje dejara de devolver el titular: es
+# una identidad algebraica, así que un fallo aquí significa que alguien
 # cambió la fórmula y no el despeje.
-if (abs(n_eff_equi(RHO_N, rho_implicito) - RHO_N_EFF) > 1e-6)
-  stop(sprintf("el rho implícito no reproduce el n_eff del titular: %.5f vs %.5f",
-               n_eff_equi(RHO_N, rho_implicito), RHO_N_EFF))
+if (abs(n_eff_media(RHO_N, rho_implicito) - RHO_N_EFF) > 1e-6)
+  stop(sprintf("el rho medio despejado no reproduce el n_eff del titular: %.5f vs %.5f",
+               n_eff_media(RHO_N, rho_implicito), RHO_N_EFF))
+
+# EL DESPEJE ES APROXIMADO, por dos razones que el capítulo declara:
+#   1. la identidad pide la misma varianza en todas las observaciones, y
+#      los municipios no la tienen;
+#   2. `ee_iid` sale de s^2, y el módulo 4 enseña que s^2 se encoge con la
+#      correlación: E[s^2] = sigma^2 (n/(n-1)) (1 - 1/n_eff) = sigma^2 (1 - rho_medio).
+#      Así que n (ee_iid/ee_blq)^2 no estima n/(1+(n-1)rho) sino
+#      n (1-rho)/(1+(n-1)rho).
+# La segunda se puede cuantificar: se despeja rho de esa otra expresión,
+#     rho = (n - n_eff) / (n + (n-1) n_eff),
+# y se publica cuánto se aparta del despeje directo.
+rho_con_s2 <- (RHO_N - RHO_N_EFF) / (RHO_N + (RHO_N - 1) * RHO_N_EFF)
+if (abs(RHO_N * (1 - rho_con_s2) / (1 + (RHO_N - 1) * rho_con_s2) - RHO_N_EFF) > 1e-6)
+  stop("el rho medio corregido por s^2 no reproduce el n_eff del titular")
 
 D$n_efectivo$rho_del_titular <- list(
   n = RHO_N,
   n_eff_publicado = r10(RHO_N_EFF),
   implicito = r10(rho_implicito),
-  estimado  = r10(rho_estimado),
-  # Qué n_eff daría el rho estimado si la equicorrelación valiera. La
-  # distancia entre este número y el 64.52155 es lo que mide el error del
-  # supuesto sobre este dato concreto.
-  n_eff_con_estimado = r10(n_eff_equi(RHO_N, rho_estimado)),
-  razon_rho   = r10(rho_implicito / rho_estimado),
-  razon_n_eff = r10(n_eff_equi(RHO_N, rho_estimado) / RHO_N_EFF),
-  # La primera banda es la cifra que un lector desprevenido citaría como
-  # «la» correlación —vecinos contra vecinos—, y es dos órdenes de magnitud
-  # mayor que el promedio sobre todos los pares. Publicarla evita la
-  # objeción y de paso enseña de dónde sale la diferencia.
-  I_primera_banda = r10(Is_rho[1]),
-  n_bandas = length(banda_rho),
-  pares_totales = as.integer(sum(np_rho)),
-  pares_lejanos = as.integer(sum(np_rho[Is_rho < 0 & !is.na(Is_rho)])),
-  bandas = banda_rho,
-  metodo = paste("correlograma por bandas sobre los puntos interiores de los",
-                 "municipios, I de Moran por banda y promedio ponderado por el",
-                 "número de pares de cada una — el método del ejercicio 3")
+  # el mismo despeje contando con que s^2 se encoge, y lo que cambia
+  implicito_con_s2 = r10(rho_con_s2),
+  diferencia_s2_pct = r10(100 * (1 - rho_con_s2 / rho_implicito))
 )
-message(sprintf("  · rho implícito %.7f (reproduce %.5f) · rho estimado %.7f (daría %.5f)",
-                rho_implicito, RHO_N_EFF, rho_estimado,
-                n_eff_equi(RHO_N, rho_estimado)))
+
+# --- E.2 Por qué rho_medio no se puede medir sobre el mapa ------------
+#
+# La tentación es estimarlo como se estima cualquier correlación: centrar
+# con la media muestral, promediar los productos cruzados de todos los
+# pares y dividir por la varianza. No funciona, y no por ruido: como
+# sum_i (z_i - zbar) = 0,
+#     sum_{i != j} (z_i - zbar)(z_j - zbar) = - sum_i (z_i - zbar)^2,
+# de modo que ese promedio, dividido por (1/n) sum_i (z_i - zbar)^2, vale
+# -1/(n-1) PARA CUALQUIER DATO. No depende de la correlación que haya.
+#
+# Se MIDE en vez de afirmarse, sobre las mismas réplicas del módulo 4 con
+# phi = 4, donde el rho medio verdadero se conoce. La suma se hace por
+# fuerza bruta sobre la matriz de productos, sin usar la identidad que se
+# quiere comprobar.
+message("E.2 · el promedio centrado de todos los pares, réplica a réplica")
+
+PHI_C <- 4
+i_c   <- which(PHIS == PHI_C)
+R_c   <- exp(-DIST4 / PHI_C)
+L_c   <- t(chol(R_c + diag(JITTER, N4)))
+set.seed(SEMILLA + 100L + round(PHI_C * 10))      # la semilla del módulo 4
+Z_c   <- L_c %*% matrix(rnorm(N4 * NREP), N4, NREP)
+# Que sean de verdad LAS réplicas del módulo 4 y no otras del mismo proceso.
+if (abs(sd(colMeans(Z_c)) - mc[[i_c]]$ee_real) > 1e-9)
+  stop("E.2 no ha regenerado las réplicas del módulo 4 con phi = 4")
+
+# Todos los pares i != j: la suma de la matriz de productos menos su
+# diagonal, entre n(n-1).
+pares_medios <- function(z)
+  (sum(tcrossprod(z)) - sum(z^2)) / (length(z) * (length(z) - 1))
+centrado <- apply(Z_c, 2, function(z) {
+  zc <- z - mean(z)
+  pares_medios(zc) / mean(zc^2)
+})
+inv_c <- -1 / (N4 - 1)
+if (max(abs(centrado - inv_c)) > 1e-9)
+  stop(sprintf("el promedio centrado de todos los pares se aparta de -1/(n-1): %.3e",
+               max(abs(centrado - inv_c))))
+
+# Y el contraste que señala al culpable. El MISMO promedio, pero centrando
+# con la media verdadera del proceso (0) y dividiendo por su varianza (1):
+# eso sí apunta a rho_medio en promedio. Lo que lo impide en la práctica no
+# es la fórmula sino que la media haya que estimarla con el mismo dato, y
+# que solo haya una realización: de una réplica a otra ese promedio varía
+# más de lo que vale. Es el problema del módulo 6.
+MEDIA_C <- 0; VAR_C <- 1          # las del proceso: Z = L %*% rnorm
+con_mu <- apply(Z_c, 2, function(z) pares_medios(z - MEDIA_C) / VAR_C)
+rho_c  <- exacto_campo[[i_c]]$rho_medio
+# CONTROL: la media sobre réplicas tiene que caer sobre el rho verdadero
+# dentro de su error de Monte Carlo (4 errores típicos).
+if (abs(mean(con_mu) - rho_c) > 4 * sd(con_mu) / sqrt(NREP))
+  stop(sprintf("con la media verdadera el promedio de pares no apunta a rho_medio: %.5f vs %.5f",
+               mean(con_mu), rho_c))
+
+# Lo mismo sobre el dato real: la deserción de los 1 121 municipios.
+zc_col <- muni_ok$desercion - mean(muni_ok$desercion)
+centrado_col <- pares_medios(zc_col) / mean(zc_col^2)
+if (abs(centrado_col - (-1 / (n_muni - 1))) > 1e-9)
+  stop("en la deserción municipal el promedio centrado no vale -1/(n-1)")
+
+D$n_efectivo$centrado <- list(
+  phi = PHI_C, n = N4, nrep = NREP,
+  # la media y la varianza verdaderas del proceso simulado, que la prosa
+  # nombra al hablar del promedio «con la media verdadera»
+  media = MEDIA_C, varianza = VAR_C,
+  rho_medio_verdadero = r10(rho_c),
+  menos_inv_n1 = r10(inv_c),
+  # El menor y el mayor de las réplicas: si son el mismo número, y es
+  # -1/(n-1), no hay nada más que enseñar.
+  centrado_min = r10(min(centrado)),
+  centrado_max = r10(max(centrado)),
+  # Comprobación, no cifra para el lector: del orden de 1e-15, así que con
+  # diez decimales viaja como 0.
+  desviacion_max = r10(max(abs(centrado - inv_c))),
+  # Con la media verdadera: insesgado, e inservible con una sola réplica.
+  con_media_verdadera = list(
+    media = r10(mean(con_mu)),
+    sd    = r10(sd(con_mu)),
+    emc   = r10(sd(con_mu) / sqrt(NREP)),
+    # Cuántas réplicas dan un promedio NEGATIVO aun conociendo la media
+    pct_negativas = r10(100 * mean(con_mu < 0))),
+  colombia = list(
+    n = n_muni,
+    menos_inv_n1 = r10(-1 / (n_muni - 1)),
+    centrado = r10(centrado_col))
+)
+message(sprintf("  · rho medio verdadero %.7f · centrado en [%.10f, %.10f] · -1/(n-1) = %.10f",
+                rho_c, min(centrado), max(centrado), inv_c))
+
+# --- E.3 El techo, y cuándo lo hay (C1-21) ----------------------------
+#
+# «n_eff tiende a 1/rho» solo vale con rho_medio FIJO, y rho_medio depende
+# de cómo se añadan las observaciones. Dos formas de pasar de k = 8 a
+# k = 64 por lado con la misma correlación rho(h) = exp(-h/4):
+#
+#   RELLENO      la región no cambia —el cuadrado de lado 16 que ocupan las
+#                16 x 16 celdas del módulo 4— y se parte en k x k celdas
+#                cada vez más pequeñas, con una observación en el CENTRO de
+#                cada una. La distribución de las distancias entre pares
+#                tiende a la de dos puntos al azar en la región, así que
+#                rho_medio tiende a una constante positiva, rho_inf, y
+#                n_eff se estanca en 1/rho_inf.
+#   AMPLIACIÓN   el paso no cambia (1) y la región crece. Entran pares cada
+#                vez más lejanos: rho_medio tiende a 0 y n_eff crece sin
+#                techo.
+#
+# Con k = 16 las dos son la retícula del módulo 4, y se comprueba.
+#
+# POR QUÉ CENTROS DE CELDA. La primera versión de esta tabla anclaba la red
+# en las esquinas del cuadrado —puntos en 0, L/(k-1), ..., L—, y con ese
+# diseño n_eff BAJABA al rellenar. Era un artefacto: los puntos del borde
+# pesan de más con k pequeño (con k = 2, 3, 4 incluso subía primero). El
+# centro de celda es la convención del módulo 4 («distancia entre centros
+# de celda») y no privilegia el borde.
+message("E.3 · relleno frente a ampliación")
+
+KS_TECHO <- c(8L, 16L, 32L, 64L)
+LADO     <- K4                 # las 16 celdas de lado 1 del módulo 4
+PASO_AMP <- 1
+techo <- lapply(KS_TECHO, function(k) {
+  g  <- expand.grid(x = seq_len(k), y = seq_len(k))
+  nk <- k^2
+  rho_amp <- rho_medio_de(g * PASO_AMP, PHI_C)
+  rho_rel <- rho_medio_de((g - 0.5) * LADO / k, PHI_C)
+  list(k = k, n = as.integer(nk),
+       relleno    = list(rho_medio = r10(rho_rel),
+                         n_eff = r10(n_eff_media(nk, rho_rel))),
+       ampliacion = list(rho_medio = r10(rho_amp),
+                         n_eff = r10(n_eff_media(nk, rho_amp))))
+})
+t16 <- techo[[which(KS_TECHO == K4)]]
+if (abs(t16$relleno$n_eff - exacto_campo[[i_c]]$n_eff) > 1e-8 ||
+    abs(t16$ampliacion$n_eff - exacto_campo[[i_c]]$n_eff) > 1e-8)
+  stop("con k = 16 el relleno y la ampliación no son la retícula del módulo 4")
+
+# El límite del relleno: la correlación media entre DOS PUNTOS AL AZAR de
+# la región, rho_inf = E[rho(|U - V|)] con U y V uniformes en el cuadrado.
+# La diferencia de dos uniformes en [0, L] tiene densidad triangular, así
+# que la integral de cuatro dimensiones se queda en dos:
+#     rho_inf = (4/L^4) int_0^L int_0^L rho(sqrt(x^2+y^2)) (L-x)(L-y) dx dy
+# Solo depende de la región y de rho(h): no del número de observaciones ni
+# de dónde se pongan.
+rho_inf <- (4 / LADO^4) * integrate(function(ys) vapply(ys, function(y)
+  integrate(function(x) exp(-sqrt(x^2 + y^2) / PHI_C) * (LADO - x),
+            0, LADO, rel.tol = 1e-11, subdivisions = 500L)$value * (LADO - y),
+  numeric(1)), 0, LADO, rel.tol = 1e-11, subdivisions = 500L)$value
+techo_inf <- 1 / rho_inf
+
+rel_neff <- vapply(techo, function(t) t$relleno$n_eff, numeric(1))
+rel_rho  <- vapply(techo, function(t) t$relleno$rho_medio, numeric(1))
+amp_neff <- vapply(techo, function(t) t$ampliacion$n_eff, numeric(1))
+amp_rho  <- vapply(techo, function(t) t$ampliacion$rho_medio, numeric(1))
+NT <- length(techo)
+# Lo que el capítulo afirma del RELLENO es ESTANCAMIENTO, y se mide antes
+# de imprimirlo. Tres pruebas, con las tolerancias medidas y no elegidas:
+#   · el último salto (de 32 a 64 por lado, n x 4) mueve n_eff un 0,058 %:
+#     se exige menos de 0,25 %, cuatro veces de holgura;
+#   · la última fila queda a un 0,017 % de 1/rho_inf: se exige menos de
+#     0,1 %, casi seis veces;
+#   · con este diseño ninguna fila supera 1/rho_inf (la prosa lo dice).
+ultimo_salto_pct <- 100 * (rel_neff[NT] / rel_neff[NT - 1] - 1)
+falta_techo_pct  <- 100 * (1 - rel_neff[NT] / techo_inf)
+if (abs(ultimo_salto_pct) > 0.25)
+  stop(sprintf("al rellenar, n_eff no se estanca: el último salto es de %.4f %%",
+               ultimo_salto_pct))
+if (abs(falta_techo_pct) > 0.1)
+  stop(sprintf("al rellenar, la última fila queda a %.4f %% de 1/rho_inf",
+               falta_techo_pct))
+if (any(rel_neff > techo_inf))
+  stop("al rellenar, alguna fila supera 1/rho_inf: la prosa dice que no")
+# Y de la AMPLIACIÓN, que rho_medio cae y n_eff crece con n.
+if (any(diff(amp_rho) >= 0) || any(diff(amp_neff) <= 0) ||
+    amp_neff[NT] / amp_neff[1] < 10)
+  stop("la ampliación no se comporta como el módulo 5 dice")
+
+D$n_efectivo$techo <- list(
+  phi = PHI_C, lado_relleno = as.integer(LADO), paso_ampliacion = PASO_AMP,
+  ks = KS_TECHO,
+  rejilla = techo,
+  # El límite del relleno y su techo
+  rho_inf   = r10(rho_inf),
+  techo_inf = r10(techo_inf),
+  ultimo_salto_pct = r10(ultimo_salto_pct),
+  falta_techo_pct  = r10(falta_techo_pct),
+  # Los cocientes que resumen la tabla: por cuánto se multiplica n entre
+  # la primera fila y la última, y por cuánto n_eff en cada columna.
+  factor_n          = as.integer(techo[[NT]]$n / techo[[1]]$n),
+  factor_relleno    = r10(rel_neff[NT] / rel_neff[1]),
+  factor_ampliacion = r10(amp_neff[NT] / amp_neff[1])
+)
+message(sprintf("  · relleno: n_eff %s · 1/rho_inf = %.7f (rho_inf = %.7f)",
+                paste(sprintf("%.5f", rel_neff), collapse = " / "), techo_inf, rho_inf))
 
 # =====================================================================
 # F. MÓDULO 6 — Estacionariedad, isotropía y una sola realización
@@ -835,6 +1279,43 @@ pares_lag <- lapply(LAGS, function(h) which(abs(DIST4 - h) < 0.5 & upper.tri(DIS
 vario_de <- function(z) vapply(pares_lag, function(p)
   mean(0.5 * (z[p[, 1]] - z[p[, 2]])^2), numeric(1))
 V <- vapply(seq_len(NREAL), function(i) vario_de(CAMPOS[, i]), numeric(length(LAGS)))
+
+# LA REFERENCIA DE CADA CLASE (R1 · T1.4, hallazgo C1-25). Las clases son
+# |d - h| < 0.5, así que la clase h NO contiene solo pares a distancia h:
+# la 1 mezcla los vecinos a distancia 1 con los diagonales, a sqrt(2); la 2,
+# los de 2 con los de sqrt(5); y así. El estimador promedia
+# 0.5 (z_i - z_j)^2 sobre TODOS los pares de la clase, y la esperanza de
+# cada sumando es gamma(d_ij), no gamma(h). Luego lo que el estimador
+# estima sin sesgo es
+#     gbar_h = media de gamma(d_ij) sobre los pares de la clase h,
+# con los mismos pares y el mismo peso —uno por par— que el estimador.
+# Comparar contra gamma(h) en h entero metía un sesgo de agrupamiento en la
+# cuenta del «desvío» (en la clase 1, 0.2583 frente a 0.2212).
+# Se publican las dos curvas: `teorico` (gamma en h entero), para poder
+# decir cuánto las separa, y `teorico_clase` (gbar), que es contra la que
+# se compara y la que se dibuja.
+GAMMA6 <- function(d) 1 - exp(-d / PHI6)
+TEO6_ENTERO <- GAMMA6(LAGS)
+TEO6 <- vapply(pares_lag, function(p) mean(GAMMA6(DIST4[p])), numeric(1))
+N_PARES6 <- vapply(pares_lag, nrow, integer(1))
+# Control: la media de las NREAL réplicas tiene que caer sobre gbar. El
+# error de Monte Carlo de cada media es sd(V[h, ]) / sqrt(NREAL); se
+# exigen menos de 4 errores en cada clase (ocho comparaciones, y las
+# clases están correlacionadas: 4 deja el falso positivo muy por debajo
+# del 1 %). Y que la referencia vieja NO lo cumpla en la clase 1: si lo
+# cumpliera, la distinción que la prosa enseña no se vería.
+emc_V <- apply(V, 1, sd) / sqrt(NREAL)
+z_clase  <- (rowMeans(V) - TEO6) / emc_V
+z_entero <- (rowMeans(V) - TEO6_ENTERO) / emc_V
+if (any(abs(z_clase) > 4))
+  stop(sprintf("la media de las réplicas no cae sobre el teórico de la clase: z = %s",
+               paste(sprintf("%.2f", z_clase), collapse = ", ")))
+if (abs(z_entero[1]) < 10)
+  stop("en la clase 1 la media de las réplicas ya no distingue gamma(1) del promedio de la clase")
+message(sprintf("  · teórico por clase: %s · en h entero: %s · z de la media: %s",
+                paste(sprintf("%.5f", TEO6), collapse = " "),
+                paste(sprintf("%.5f", TEO6_ENTERO), collapse = " "),
+                paste(sprintf("%.2f", z_clase), collapse = " ")))
 
 # CONTROL ENTRE MÓDULOS. El módulo 4 mide la cobertura de un IC al 95 %
 # con phi = 4 sobre 3 000 réplicas; el módulo 6 mide, sobre otras 1 000
@@ -867,7 +1348,7 @@ D$una_realizacion <- list(
   # círculo entre los dos módulos.
   pct_rechaza_ingenuo = r10(100 * p_rech),
   emc_rechaza = r10(100 * sqrt(p_rech * (1 - p_rech) / NREAL)),
-  pct_esperado_si_valiera = 5,
+  pct_esperado_si_valiera = r10(100 * ALFA),
   # El mismo número que el módulo 4 mide como cobertura, visto del
   # derecho. Se publican los dos y se declara que tienen que cuadrar.
   pct_rechaza_modulo4 = r10(100 * (1 - mc[[which(PHIS == PHI6)]]$cobertura)),
@@ -879,14 +1360,20 @@ D$una_realizacion <- list(
   medias_muestra = r10(medias_real[1:12]),
   variograma = list(
     lags = LAGS,
-    teorico = r10(1 - exp(-LAGS / PHI6)),
+    # gamma(h) en h entero: NO es la referencia de las clases; se publica
+    # para medir cuánto se separa de la que sí lo es.
+    teorico = r10(TEO6_ENTERO),
+    # La referencia: gamma promediada sobre los pares de cada clase.
+    teorico_clase = r10(TEO6),
+    n_pares = N_PARES6,
     media   = r10(rowMeans(V)),
     q05     = r10(apply(V, 1, quantile, 0.05)),
     q95     = r10(apply(V, 1, quantile, 0.95))),
   # El ancho relativo de la banda al lag 4: cuánto puede desviarse el
   # variograma de UNA realización del del proceso que lo generó.
+  # Relativo al teórico DE LA CLASE 4, como todo lo demás.
   banda_rel_lag4 = r10((quantile(V[4, ], 0.95) - quantile(V[4, ], 0.05)) /
-                         (1 - exp(-4 / PHI6)))
+                         TEO6[4])
 )
 
 # --- F.1 Las tres realizaciones que el capítulo ENSEÑA -----------------
@@ -912,8 +1399,8 @@ stopifnot(N_VISTAS <= NREAL, N_VISTAS <= length(D$una_realizacion$medias_muestra
 
 # Cuánto se aparta del proceso el variograma de cada una, en el peor lag
 # y en el lag 4 —el que el texto usa para el ancho de banda—. Convierte
-# la tesis del módulo en una medida en vez de una afirmación.
-TEO6 <- 1 - exp(-LAGS / PHI6)
+# la tesis del módulo en una medida en vez de una afirmación. La
+# referencia es TEO6, el teórico promediado en cada clase (arriba).
 D$realizaciones_vistas <- lapply(seq_len(N_VISTAS), function(i) list(
   id = i,
   media = r10(medias_real[i]),
@@ -969,6 +1456,12 @@ dep_ok <- dep[!is.na(dep$desercion), ]
 nb_dep <- suppressWarnings(poly2nb(dep_ok, queen = TRUE))
 lw_dep <- nb2listw(nb_dep, style = "W", zero.policy = TRUE)
 mi_dep <- moran.test(dep_ok$desercion, lw_dep, zero.policy = TRUE)
+# La prosa nombra la prueba: aleatorización y una cola (la de la
+# autocorrelación positiva). Son los valores por defecto de `moran.test`;
+# si spdep los cambiara, el módulo 7 describiría otra prueba.
+stopifnot(isTRUE(formals(spdep::moran.test)$randomisation),
+          identical(eval(formals(spdep::moran.test)$alternative), "greater"),
+          mi_dep$alternative == "greater", mi_mun$alternative == "greater")
 
 # ---------------------------------------------------------------------
 # LA I DE MORAN NO VALE LO MISMO EN R QUE EN PYTHON, Y LA CULPA ES DE LAS
@@ -1166,6 +1659,21 @@ D$escala <- list(
   islas_departamental = as.integer(sum(card(nb_dep) == 0)),
   caida_pct = r10(100 * (1 - mi_dep$estimate[["Moran I statistic"]] /
                            mi_mun$estimate[["Moran I statistic"]])),
+  # R1 · T1.6 (C1-27). Las dos I no son comparables entre sí: usan pesos
+  # distintos y n distinto, y su varianza bajo la nula es otra. Lo que sí
+  # se puede comparar es la posición de cada una en SU distribución nula:
+  # la desviación estándar de `moran.test` (aleatorización, una cola).
+  z_municipal = r10(mi_mun$statistic[[1]]),
+  z_departamental = r10(mi_dep$statistic[[1]]),
+  ee_municipal = r10(sqrt(mi_mun$estimate[["Variance"]])),
+  ee_departamental = r10(sqrt(mi_dep$estimate[["Variance"]])),
+  razon_ee = r10(sqrt(mi_dep$estimate[["Variance"]] / mi_mun$estimate[["Variance"]])),
+  # La z NO mide cuánta autocorrelación queda: crece con n. Si la I
+  # departamental fuera IGUAL a la municipal, con la nula departamental
+  # (su esperanza y su desviación) esta sería su z.
+  z_departamental_si_igual = r10((mi_mun$estimate[["Moran I statistic"]] -
+                                    mi_dep$estimate[["Expectation"]]) /
+                                   sqrt(mi_dep$estimate[["Variance"]])),
   # El otro convenio, el que usa esda. Ver D$discrepancias.
   moran_municipal_n_total = r10(I_con_n_total(muni_ok$desercion, lw_mun)),
   moran_departamental_n_total = r10(I_con_n_total(dep_ok$desercion, lw_dep))
@@ -1690,8 +2198,10 @@ D$cv_espacial <- list(
 # La red del IDEAM no se muestreó: se ubicó, donde había cómo llegar y a
 # quién servir. Para ponerle cifra se construyen los polígonos de Thiessen
 # de las 361 estaciones, recortados al país: el área de cada celda es el
-# territorio que esa estación «representa». Bajo un muestreo de igual
-# probabilidad esas áreas serían parecidas. No lo son.
+# territorio que esa estación «representa». Esas áreas NO serían iguales
+# ni con un muestreo de igual probabilidad —las celdas de Voronoi de puntos
+# uniformes también varían mucho—, así que la razón entre la mayor y la
+# menor se compara contra una referencia simulada (J.2b, más abajo).
 #
 # El emparejamiento celda -> estación va por CONTENCIÓN y no por el orden
 # que devuelve st_voronoi, que no es el de entrada. Y el recorte lleva un
@@ -1717,6 +2227,126 @@ media_area <- sum(t_ideam * area_vor) / sum(area_vor)
 ancla(round(sum(area_vor), -4), 1140000,
       "área continental de Colombia reconstruida por Thiessen (km²)", tol = 1e4)
 
+# ---------------------------------------------------------------------
+# J.2b · LA REFERENCIA: Thiessen de puntos uniformes (R1 · T1.4, C1-32)
+#
+# «Bajo un muestreo de igual probabilidad esas áreas serían parecidas» era
+# falso: con puntos uniformes la celda mayor es decenas de veces la menor.
+# Lo que sostiene el argumento no es que la razón de la red sea grande,
+# sino que sea MUCHO mayor que la de un muestreo de igual probabilidad. Se
+# simula: N_REF muestras de nrow(est) puntos uniformes sobre el mismo
+# polígono del país y en el mismo CRS que la red, con el Voronoi construido
+# sobre la misma caja y recortado al mismo polígono.
+#
+# `razon_thiessen()` es la rutina de la referencia. Para no recortar las
+# 361 celdas contra un polígono de ~94 000 vértices en cada muestra, solo
+# recorta las que no caen enteras dentro del país; el área de las demás es
+# la suya. Y se le pasa también LA RED: tiene que devolver la misma razón
+# que el cálculo de arriba (que recorta todas y empareja por contención).
+# Si no, referencia y red no estarían medidas con la misma vara.
+#
+# CUÁNTAS MUESTRAS. La distribución de la razón es muy asimétrica a la
+# derecha (dos puntos muy juntos bastan para una celda diminuta), así que
+# se resume con cuantiles y no con media y sd. Lo que la prosa afirma es
+# (a) dónde cae la mediana y el intervalo del 5 % al 95 %, y (b) que la
+# red queda muy por encima. Medido en un estudio aparte de 2 400 muestras
+# (en Python, con otro generador y otra semilla), partido en bloques:
+#
+#                         p05        mediana    p95      máximo
+#   seis bloques de 400   21.0–22.4  40.4–43.4  116–145  302–1000
+#   dos bloques de 1 000  21.9–22.1  41.4       121–133  469–1000
+#   las 2 400             21.9       41.7       125      1000
+#
+# Con 400 la mediana ya se mueve solo unas tres unidades entre bloques y
+# el p95 unas treinta; con 1 000, la mediana no se mueve en el primer
+# decimal y el p95 unas doce (y el IC al 95 % de la mediana por
+# estadísticos de orden se publica: la prosa lo dice). La razón de la red,
+# 4 652, es unas 110 veces la mediana y unas 37 veces el p95, y ninguna de
+# las 2 400 muestras llega a ella: ninguna semilla cambia lo que se afirma,
+# y por eso bastan N_REF = 1000. El MÁXIMO sí es de la semilla (la cola es
+# pesada: entre 300 y 1 000 según el bloque), y por eso la prosa no lo usa
+# como referencia sino como constatación: «ninguna de las N muestras llega
+# a esa razón». Las cifras se publican con un decimal: son las de ESTA
+# simulación, con su semilla.
+#
+# Son ~0.6 s por muestra (unos diez minutos): se cachea. La llave lleva la
+# semilla, el número de muestras y de puntos, y el tamaño y la fecha del
+# .gpkg del país: si cambia cualquiera, la caché se descarta sola.
+# ---------------------------------------------------------------------
+N_REF <- 1000L
+SEMILLA_REF <- SEMILLA + 800L
+caja_pais <- st_as_sfc(st_bbox(pais_geo))
+bb_pais <- st_bbox(pais_geo)
+stopifnot(st_crs(est) == st_crs(pais_geo))
+
+uniformes_en_pais <- function(n) {
+  # Rechazo sobre la caja: uniforme en la caja y dentro del país es
+  # uniforme en el país.
+  xy <- matrix(numeric(0), 0, 2)
+  while (nrow(xy) < n) {
+    cand <- cbind(runif(2L * n, bb_pais[["xmin"]], bb_pais[["xmax"]]),
+                  runif(2L * n, bb_pais[["ymin"]], bb_pais[["ymax"]]))
+    pts <- st_as_sf(as.data.frame(cand), coords = 1:2, crs = st_crs(pais_geo))
+    xy <- rbind(xy, cand[lengths(st_intersects(pts, pais_geo)) > 0, , drop = FALSE])
+  }
+  st_as_sf(as.data.frame(xy[seq_len(n), , drop = FALSE]), coords = 1:2,
+           crs = st_crs(pais_geo))
+}
+razon_thiessen <- function(pts) {
+  v <- st_collection_extract(
+    st_voronoi(st_union(st_geometry(pts)), caja_pais), "POLYGON")
+  a <- as.numeric(st_area(v))
+  borde <- lengths(st_within(v, pais_geo)) == 0
+  rec <- suppressWarnings(st_intersection(v[borde], pais_geo))
+  # st_intersection descarta las intersecciones vacías: si faltara alguna,
+  # las áreas se pegarían a celdas que no son.
+  stopifnot(length(rec) == sum(borde))
+  a[borde] <- as.numeric(st_area(rec))
+  stopifnot(length(a) == nrow(pts), all(a > 0))
+  max(a) / min(a)
+}
+razon_red <- max(area_vor) / min(area_vor)
+if (abs(razon_thiessen(est) / razon_red - 1) > 1e-9)
+  stop("la rutina de la referencia no reproduce la razón de áreas de la red")
+
+f_pais <- file.info("datos/procesado/colombia_adm1.gpkg")
+llave_ref <- sprintf("%d_%d_%d_%.0f_%d", SEMILLA_REF, N_REF, nrow(est),
+                     f_pais$size, as.integer(f_pais$mtime))
+f_ref <- file.path(AQUI, "cache", sprintf("cap1_thiessen_uniforme_%s.rds", llave_ref))
+if (file.exists(f_ref)) {
+  razones_ref <- readRDS(f_ref)
+  message("  referencia de Thiessen uniforme: de la cache")
+} else {
+  message(sprintf("  simulando %d muestras uniformes de %d puntos (lento, se cachea)...",
+                  N_REF, nrow(est)))
+  # El estado del generador se guarda y se repone: con caché este tramo no
+  # consume números aleatorios y sin ella sí, y lo que venga después no
+  # puede depender de si la caché estaba.
+  estado_rng <- get(".Random.seed", envir = globalenv())
+  set.seed(SEMILLA_REF)
+  razones_ref <- vapply(seq_len(N_REF), function(i)
+    razon_thiessen(uniformes_en_pais(nrow(est))), numeric(1))
+  assign(".Random.seed", estado_rng, envir = globalenv())
+  dir.create(dirname(f_ref), showWarnings = FALSE, recursive = TRUE)
+  saveRDS(razones_ref, f_ref)
+}
+stopifnot(length(razones_ref) == N_REF, all(is.finite(razones_ref)), all(razones_ref > 1))
+# IC al 95 % de la mediana por estadísticos de orden (binomial): no supone
+# forma ninguna, que con esta cola es lo prudente.
+ord_ref <- sort(razones_ref)
+ic_med <- ord_ref[c(qbinom(0.025, N_REF, 0.5), qbinom(0.975, N_REF, 0.5) + 1L)]
+q_ref <- quantile(razones_ref, c(0.05, 0.5, 0.95), names = FALSE)
+# LA GUARDA DEL ARGUMENTO: la red, muy por encima de la referencia. «Muy»
+# es diez veces el percentil 95 y por encima de la mayor razón simulada.
+if (!(razon_red > 10 * q_ref[3] && razon_red > max(razones_ref)))
+  stop(sprintf(paste("la razón de áreas de la red (%.1f) ya no queda claramente por",
+                     "encima de la referencia uniforme (p95 = %.1f, máx. = %.1f)"),
+               razon_red, q_ref[3], max(razones_ref)))
+message(sprintf(paste("  · Thiessen uniforme, %d muestras: mediana %.2f (IC 95 %% %.2f–%.2f),",
+                      "p05 %.2f, p95 %.2f, máx. %.2f · la red: %.2f"),
+                N_REF, q_ref[2], ic_med[1], ic_med[2], q_ref[1], q_ref[3],
+                max(razones_ref), razon_red))
+
 D$diseno_modelo <- list(
   n = nrow(est),
   area_total_km2 = r10(sum(area_vor)),
@@ -1731,7 +2361,18 @@ D$diseno_modelo <- list(
   # Y la CAUSA, que sin ella la brecha parece un accidente: las
   # estaciones están mucho más arriba que el territorio que representan.
   alt_media_simple = r10(mean(est$altitud_m)),
-  alt_media_area   = r10(sum(est$altitud_m * area_vor) / sum(area_vor))
+  alt_media_area   = r10(sum(est$altitud_m * area_vor) / sum(area_vor)),
+  # La referencia contra la que se lee `razon_areas` (J.2b).
+  referencia_uniforme = list(
+    n_muestras = N_REF, n_puntos = nrow(est), semilla = SEMILLA_REF,
+    razon_mediana = r10(q_ref[2]),
+    razon_mediana_ic95 = r10(ic_med),
+    razon_p05 = r10(q_ref[1]),
+    razon_p95 = r10(q_ref[3]),
+    razon_max = r10(max(razones_ref)),
+    red_sobre_mediana = r10(razon_red / q_ref[2]),
+    red_sobre_p95     = r10(razon_red / q_ref[3])
+  )
 )
 
 # =====================================================================
@@ -1941,9 +2582,13 @@ MAPAS$agregacion <- geo_poligonos(
 MAPAS$bogota <- geo_puntos(
   st_coordinates(cole),
   titulo = "Sedes educativas de Bogotá", leyenda = "sede")
+# El Distrito Capital viene en inglés en la capa de departamentos («Bogota
+# Capital District»), y la tabla de respaldo de este mapa lo publicaba así.
+# Se nombra en español aquí, en el mapa; el CSV de las pestañas no se toca.
+nombre_dep <- function(x) unname(ifelse(x == "Bogota Capital District", "Bogotá D. C.", x))
 MAPAS$desercion <- geo_poligonos(
   dep_ok, valor = dep_ok$desercion, n_clases = 5, estilo = "quantile",
-  etiquetas = dep_ok$shapeName, presupuesto = 1200L,
+  etiquetas = nombre_dep(dep_ok$shapeName), presupuesto = 1200L,
   titulo = "Deserción escolar por departamento (%)",
   leyenda = "deserción (%)", verbose = FALSE)
 # 2 decimales en la marca: una temperatura en centésimas de grado es más
@@ -2021,6 +2666,62 @@ MAPAS$realizaciones <- lapply(seq_len(N_VISTAS), function(i) {
 # =====================================================================
 # N. Escritura
 # =====================================================================
+# =====================================================================
+# LO QUE SE VE EN CADA MAPA (2026-11-02)
+# =====================================================================
+# Cada mapa lleva una descripción larga: lo que se VE en él, para quien no
+# lo ve. Lo que el JSON ya traía (Snow, los tres patrones, el campo, las
+# realizaciones, la agregación, las correlaciones del zinc y de la
+# temperatura) no se repite. Aquí va DÓNDE: la zona del dibujo —tercios de
+# la caja de cada mapa— de los extremos de la deserción, de la clase más
+# alta de Carolina del Norte y de las estaciones más frías y más cálidas,
+# y cuántas sedes de Bogotá caen en cada franja de norte a sur. El zinc no
+# lleva zona: el Mosa corre en diagonal por el dibujo, y lo que se ve —los
+# valores altos pegados al río— ya lo dice su correlación con la distancia.
+# `audita_cap1.py` lo recalcula en Python.
+message("M2 · lo que se ve en cada mapa")
+zona_de <- function(x, y, caja) {
+  fx <- (x - caja[1]) / (caja[3] - caja[1])
+  fy <- (y - caja[2]) / (caja[4] - caja[2])
+  ns <- c("sur", "", "norte")[findInterval(fy, c(1, 2) / 3) + 1]
+  eo <- c("occidente", "", "oriente")[findInterval(fx, c(1, 2) / 3) + 1]
+  ifelse(ns == "" & eo == "", "centro",
+         ifelse(ns == "", eo, ifelse(eo == "", ns, paste0(c(norte = "nor", sur = "sur")[ns], eo))))
+}
+ordena_tabla <- function(x) { tb <- table(x); tb[order(-as.integer(tb), names(tb))] }
+tabla_zonas <- function(z) { tb <- ordena_tabla(z); list(zona = I(names(tb)), n = I(as.integer(tb))) }
+cen_de <- function(g) st_coordinates(suppressWarnings(st_centroid(st_geometry(g), of_largest_polygon = TRUE)))
+
+c_dep <- cen_de(dep_ok)
+z_dep <- zona_de(c_dep[, 1], c_dep[, 2], MAPAS$desercion$caja)
+o_dep <- order(-dep_ok$desercion)
+extremo <- function(ii) lapply(ii, function(i)
+  list(departamento = nombre_dep(dep_ok$shapeName[i]), pct = r10(dep_ok$desercion[i]), zona = z_dep[i]))
+c_nc <- cen_de(nc_proj)
+z_nc <- zona_de(c_nc[, 1], c_nc[, 2], MAPAS$nc$caja)
+alta_nc <- MAPAS$nc$clase == max(MAPAS$nc$clase)
+xy_ideam <- st_coordinates(est); t_ideam <- as.numeric(est$t_media_anual)
+z_ideam <- zona_de(xy_ideam[, 1], xy_ideam[, 2], MAPAS$ideam$caja)
+q_ideam <- quantile(t_ideam, c(0.1, 0.9), names = FALSE)
+xy_cole <- st_coordinates(cole)
+fr_cole <- c("sur", "centro", "norte")[findInterval((xy_cole[, 2] - MAPAS$bogota$caja[2]) /
+                                                     (MAPAS$bogota$caja[4] - MAPAS$bogota$caja[2]),
+                                                     c(1, 2) / 3) + 1]
+D$visto <- list(
+  desercion = list(mayores = extremo(o_dep[1:3]), menores = extremo(rev(o_dep)[1:3])),
+  nc = c(list(clase_alta_n = sum(alta_nc)), tabla_zonas(z_nc[alta_nc])),
+  ideam = list(frias_umbral = r10(q_ideam[1]), calidas_umbral = r10(q_ideam[2]),
+               frias = tabla_zonas(z_ideam[t_ideam <= q_ideam[1]]),
+               calidas = tabla_zonas(z_ideam[t_ideam >= q_ideam[2]])),
+  bogota = list(franja = I(c("norte", "centro", "sur")),
+                n = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f), 0L))))
+message(sprintf("  deserción: de %s (%s) a %s (%s) · NC alta: %s · IDEAM frías: %s · Bogotá: %s",
+                nombre_dep(dep_ok$shapeName[o_dep[1]]), z_dep[o_dep[1]],
+                nombre_dep(dep_ok$shapeName[rev(o_dep)[1]]), z_dep[rev(o_dep)[1]],
+                paste(D$visto$nc$zona, D$visto$nc$n, collapse = ", "),
+                paste(D$visto$ideam$frias$zona, D$visto$ideam$frias$n, collapse = ", "),
+                paste(D$visto$bogota$franja, D$visto$bogota$n, collapse = ", ")))
+
 message("N · Escritura")
 
 D$meta <- list(

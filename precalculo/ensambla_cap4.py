@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import re
 import pathlib
 import sys
@@ -56,7 +57,12 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
-DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-4-patrones-puntuales.html"
+PUBLICADO = RAIZ / "Htmls_Espacial" / "capitulo-4-patrones-puntuales.html"
+# `CAP4_DESTINO` manda la salida a otra parte, como en los capítulos 1, 2, 3
+# y 5: el ensamblador escribe el HTML ANTES de correr sus guardas, y
+# `prueba_ensambla_cap4.py` lo ejecuta con guardas rotas a propósito. El
+# botón al índice se calcula siempre para la ruta publicada.
+DESTINO = pathlib.Path(os.environ.get("CAP4_DESTINO") or PUBLICADO)
 
 D = json.loads((SALIDAS / "cap4_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap4_mapas.json").read_text(encoding="utf-8"))
@@ -2870,28 +2876,133 @@ TABLA_CEGUERA = """, tabla: function () {
       }"""
 
 
+# =====================================================================
+# «Describir el mapa» (2026-11-02)
+# =====================================================================
+# Lo que se VE en cada mapa, para quien no lo ve: la etiqueta dice qué es
+# el mapa; esto, qué enseña. El motor lo pone en el desplegable «Describir
+# el mapa» y lo enlaza al lienzo para el lector de pantalla (ver
+# `describe_mapa.py`). Los tres regímenes y la ceguera de los cuadrantes se
+# describen con lo que el módulo ya publica (la distancia al vecino,
+# Clark-Evans, las celdas vacías); los dos mapas de sedes, con la densidad
+# por zona del dibujo que R publica en `visto`. Cada frase sobre la forma
+# tiene su guarda en `main()`.
+from describe_mapa import lista_y, revisa_textos  # noqa: E402
+
+_VI = D["visto"]
+# Las zonas del mapa urbano con superficie de verdad: una cuña de la ventana
+# que asoma a otra zona del dibujo (la del noroccidente mide 0.34 km² y no
+# tiene sedes) no es una zona que se vea.
+_AREA_MIN_KM2 = 20
+_U = _VI["urbano"]
+_zu = [(z, k, a, d) for z, k, a, d in zip(_U["zona"], _U["n"], _U["area_km2"], _U["dens_km2"])
+       if a >= _AREA_MIN_KM2]
+_densas, _ralas = _zu[:3], _zu[::-1][:2][::-1]
+_cr, _cz = _U["claros_radio_km"], _U["claros_zona"]
+DESC_URBANO = (
+    f"Las {ent(m1['urbana']['n'])} sedes cubren casi todo el perímetro, pero con claros: los dos más "
+    f"grandes, en el {_cz[0]} y en el {_cz[1]} del dibujo, dejan círculos de unos {n(_cr[0], 1)} y "
+    f"{n(_cr[1], 1)} km de radio sin ninguna sede, y otro de {n(_cr[2], 1)} km se abre en el {_cz[2]}. "
+    f"Tampoco tienen la misma densidad: por zonas del dibujo, la más apretada es el {_densas[0][0]}, con "
+    f"{n(_densas[0][3], 1)} sedes por km², y le siguen el {_densas[1][0]} y el {_densas[2][0]} "
+    f"({n(_densas[1][3], 1)} y {n(_densas[2][3], 1)}); las más ralas son el {_ralas[0][0]} y el "
+    f"{_ralas[1][0]} ({n(_ralas[0][3], 1)} y {n(_ralas[1][3], 1)}).")
+_DC = _VI["dc"]
+_fr = dict(zip(_DC["franja"], zip(_DC["franja_n"], _DC["franja_area_km2"])))
+DESC_DC = (
+    f"Las mismas sedes dentro del Distrito Capital entero, que se alarga hacia el sur por su suelo "
+    f"rural: {ent(_fr['norte'][0])} de las {ent(m1['dc']['n'])} caen en el tercio norte del dibujo. El "
+    f"tercio del medio se queda con {ent(_fr['centro'][0])} y el del sur con {ent(_fr['sur'][0])}, en "
+    f"{ent(_fr['centro'][1])} y {ent(_fr['sur'][1])} km²: casi todo el mapa está vacío.")
+_C, _J, _R = m3["cells"], m3["japanesepines"], m3["redwood"]
+DESC_CELLS = (
+    f"Las {ent(_C['n'])} células se reparten casi como una rejilla, sin parejas pegadas ni huecos "
+    f"grandes: ninguna tiene a su vecina más próxima a menos de {n(_C['nn_min'], 3)}, y esa distancia "
+    f"va de {n(_C['nn_min'], 3)} a {n(_C['nn_max'], 3)}, con una media de {n(_C['nn_media'], 3)}, "
+    f"cuando el azar daría {n(_C['nn_esperada'], 3)}.")
+DESC_PINOS = (
+    f"Los {ent(_J['n'])} pinos no siguen ningún orden: hay parejas casi pegadas —la más cercana, a "
+    f"{n(_J['nn_min'], 3)}— y pinos apartados, con el vecino más próximo hasta a {n(_J['nn_max'], 3)}. "
+    f"La distancia media al vecino, {n(_J['nn_media'], 3)}, es casi la que daría el azar, "
+    f"{n(_J['nn_esperada'], 3)}.")
+DESC_REDWOOD = (
+    f"Las {ent(_R['n'])} plántulas se amontonan en grumos con mucho espacio vacío entre ellos: la "
+    f"distancia media al vecino más próximo, {n(_R['nn_media'], 3)}, es poco más de la mitad de la que "
+    f"daría el azar, {n(_R['nn_esperada'], 3)}, y las dos más cercanas están a {n(_R['nn_min'], 3)}.")
+_O, _RB = m5["original"], m5["rebarajado"]
+DESC_CEGUERA_O = (
+    f"La rejilla de {ent(_O['nx'])} × {ent(_O['ny'])} cuadrantes sobre las plántulas: "
+    f"{ent(_O['vacios'])} celdas se quedan vacías y la más llena tiene {ent(_O['maximo'])}. Dentro de las "
+    f"celdas las plántulas no se reparten: se apiñan en grumos, con el vecino más próximo a "
+    f"{n(m5['nn_original'], 3)} de media.")
+DESC_CEGUERA_R = (
+    f"Las mismas cuentas por celda —{ent(_RB['vacios'])} vacías, {ent(_RB['maximo'])} en la más "
+    f"llena—, pero dentro de cada una los puntos caen al azar: los grumos desaparecen y la distancia "
+    f"media al vecino más próximo sube de {n(m5['nn_original'], 3)} a {n(m5['nn_rebarajado'], 3)}. "
+    f"El χ² no ve la diferencia.")
+DESCRIPCIONES = {
+    "cap4-urbano": [DESC_URBANO], "cap4-dc": [DESC_DC], "cap4-cells": [DESC_CELLS],
+    "cap4-japanesepines": [DESC_PINOS], "cap4-redwood": [DESC_REDWOOD],
+    "cap4-ceguera-original": [DESC_CEGUERA_O], "cap4-ceguera-rebarajado": [DESC_CEGUERA_R],
+}
+
+
+def guardas_de_las_descripciones() -> list[str]:
+    """Lo que las descripciones afirman de la forma de cada mapa, contra el dato."""
+    malos = []
+
+    def exige(cond, que):
+        if not cond:
+            malos.append(que)
+
+    exige(len(_cr) == 3 and _cr == sorted(_cr, reverse=True) and _cr[2] >= 1,
+          "urbano: los claros no son tres, no van de mayor a menor, o el tercero no llega a 1 km")
+    exige(len(_zu) >= 5 and sum(_U["n"]) == m1["urbana"]["n"]
+          and all(d1 >= d2 for (_, _, _, d1), (_, _, _, d2) in zip(_zu, _zu[1:])),
+          "urbano: las zonas no reparten las sedes, o no van de más densa a menos")
+    exige(sum(_DC["n"]) == m1["dc"]["n"] and _fr["norte"][0] * 20 > m1["dc"]["n"] * 19
+          and _fr["centro"][1] + _fr["sur"][1] > _fr["norte"][1],
+          "D.C.: «casi todas en el tercio norte y casi todo el mapa vacío» ya no vale")
+    exige(_C["clark_evans"] > 1.3 and _C["nn_min"] > _C["nn_esperada"],
+          "células: «casi como una rejilla, ninguna más cerca de lo que daría el azar» ya no vale")
+    exige(abs(_J["clark_evans"] - 1) < 0.15 and _J["nn_min"] * 4 < _J["nn_media"],
+          "pinos: «casi lo que daría el azar, con parejas casi pegadas» ya no vale")
+    exige(0.5 < _R["clark_evans"] < 0.75, "secuoyas: «poco más de la mitad de lo que daría el azar» ya no vale")
+    exige(_O["vacios"] == _RB["vacios"] and _O["maximo"] == _RB["maximo"] and _O["chi2"] == _RB["chi2"]
+          and m5["nn_rebarajado"] > m5["nn_original"],
+          "ceguera: las cuentas por celda o el χ² ya no son las mismas, o los grumos no desaparecen")
+    return malos
+
+
 GEOMAPAS_JS = (
     geomapa('cap4-urbano', 'patron_urbano',
             _etq('Las 2 107 sedes educativas que caen dentro del perímetro urbano de '
-                 'Bogotá, sobre el contorno del propio perímetro.'))
+                 'Bogotá, sobre el contorno del propio perímetro.')
+            + ", descripcion: " + json.dumps(DESC_URBANO, ensure_ascii=False))
     + geomapa('cap4-dc', 'patron_dc',
               _etq('Las mismas sedes sobre el Distrito Capital completo, cuya superficie '
-                   'es más de cuatro veces mayor.'))
+                   'es más de cuatro veces mayor.')
+              + ", descripcion: " + json.dumps(DESC_DC, ensure_ascii=False))
     + geomapa('cap4-cells', 'cells',
               _etq('Patrón regular: 42 células biológicas, más separadas entre sí de lo '
-                   'que daría el azar.'))
+                   'que daría el azar.')
+              + ", descripcion: " + json.dumps(DESC_CELLS, ensure_ascii=False))
     + geomapa('cap4-japanesepines', 'japanesepines',
               _etq('Patrón aleatorio: 65 pinos japoneses, sin atracción ni repulsión '
-                   'aparentes.'))
+                   'aparentes.')
+              + ", descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))
     + geomapa('cap4-redwood', 'redwood',
               _etq('Patrón agregado: 62 plántulas de secuoya, en grumos alrededor de los '
-                   'árboles madre.'))
+                   'árboles madre.')
+              + ", descripcion: " + json.dumps(DESC_REDWOOD, ensure_ascii=False))
     + geomapa('cap4-ceguera-original', 'ceguera_original',
               _etq('Las plántulas de secuoya con la rejilla de cuadrantes encima: los '
-                   'grumos se ven dentro de las celdas.') + TABLA_CEGUERA)
+                   'grumos se ven dentro de las celdas.') + TABLA_CEGUERA
+              + ", descripcion: " + json.dumps(DESC_CEGUERA_O, ensure_ascii=False))
     + geomapa('cap4-ceguera-rebarajado', 'ceguera_rebarajado',
               _etq('El mismo número de puntos en cada celda, repartidos al azar dentro '
-                   'de la suya: mismo χ², sin grumos.') + TABLA_CEGUERA)
+                   'de la suya: mismo χ², sin grumos.') + TABLA_CEGUERA
+              + ", descripcion: " + json.dumps(DESC_CEGUERA_R, ensure_ascii=False))
 )
 
 
@@ -3656,7 +3767,7 @@ QUIZ_JS = r"""
     AUTOEVALUACIONES['cap4-trampas'] = [
       {
         tipo: 'opcion',
-        pregunta: 'Un informe dice «en Bogotá hay 5,7 colegios por km²». ¿Qué le falta para ser una afirmación completa?',
+        pregunta: 'Un informe dice «en Bogotá hay 5.7 colegios por km²». ¿Qué le falta para ser una afirmación completa?',
         opciones: [
           { texto: 'Decir cuál es la ventana de observación usada', correcta: true,
             retro: 'Eso es. Con el perímetro urbano salen ' + n5(D4.m1.urbana.lambda_km2, 4) + ' sedes/km²; con el Distrito Capital entero, ' + n5(D4.m1.dc.lambda_km2, 4) + '. La misma ciudad y el mismo dato, con un factor de ' + n5(D4.m1.factor_lambda, 2) + ' entre las dos.' },
@@ -3899,7 +4010,7 @@ def main() -> int:
     # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
     doc = baraja_documento(doc, "cap4")
 
-    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
+    doc = aplica_boton(doc, PUBLICADO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- El recuento, contado y no recordado --------------------------
@@ -3916,7 +4027,7 @@ def main() -> int:
     quices = marcado.count('data-quiz="')
     kb = DESTINO.stat().st_size / 1024
 
-    print(f"{DESTINO.relative_to(RAIZ)}  {kb:.0f} KB")
+    print(f"{DESTINO.relative_to(RAIZ) if DESTINO == PUBLICADO else DESTINO}  {kb:.0f} KB")
     print(f"  {mods} módulos · {sims} simuladores · {mapas} mapas · "
           f"{bl_r} bloques de R y {bl_py} de Python · {cifras} cifras anunciadas")
     print(f"  {lienzos} lienzos, {con_alt} con aria-label · "
@@ -4013,6 +4124,11 @@ def main() -> int:
         if "retroAcierto:" not in bloque or "retroFallo:" not in bloque:
             problemas.append("una numérica sin `retroAcierto` o sin `retroFallo`: "
                              "quien falle verá «undefined» detrás de la respuesta")
+    # «DESCRIBIR EL MAPA» (2026-11-02). Cada mapa que el documento usa trae
+    # su descripción, y lo que esas frases afirman de la forma se comprueba
+    # contra el dato.
+    problemas += revisa_textos(marcado, GEOMAPAS_JS, DESCRIPCIONES)
+    problemas += guardas_de_las_descripciones()
     if problemas:
         print("\n  PROBLEMAS:")
         for p in problemas:

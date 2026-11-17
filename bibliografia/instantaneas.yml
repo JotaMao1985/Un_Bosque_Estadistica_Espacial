@@ -1,0 +1,124 @@
+# Páginas web leídas: URL, fecha de consulta y huella del texto guardado.
+# El texto vive en bibliografia/_local/web/ (fuera de git).
+moraga2019geospatial:
+  index:
+    consulta: '2026-11-12'
+    palabras: 178
+    sha256: a685533c1feccbacee40f988b2982464c756a1d98dd37765f5a386314a981046
+    url: https://www.paulamoraga.com/book-geospatial/index.html
+  sec-arealdatatheory:
+    consulta: '2026-11-12'
+    palabras: 5955
+    sha256: 043fa1ae1367ef777e6b69cddeeb21abf24247eba28058e6d610a6a1609821f8
+    url: https://www.paulamoraga.com/book-geospatial/sec-arealdatatheory.html
+  sec-geostatisticaldatatheory:
+    consulta: '2026-11-12'
+    palabras: 5056
+    sha256: 2b73391bc9e001624320a7c0fe98994a5af81ea2d059e35395276b4e2a3e141d
+    url: https://www.paulamoraga.com/book-geospatial/sec-geostatisticaldatatheory.html
+  sec-intro:
+    consulta: '2026-11-12'
+    palabras: 923
+    sha256: 0e75e2d326c06e7842a64479016e14857c7f38c94d3797e739d11e31c836115a
+    url: https://www.paulamoraga.com/book-geospatial/sec-intro.html
+  sec-spatialdataandCRS:
+    consulta: '2026-11-12'
+    palabras: 3626
+    sha256: 29f3fa607a0d581b66e2f2f513a7228eef7cc08895038642b342e32e5da4c0b6
+    url: https://www.paulamoraga.com/book-geospatial/sec-spatialdataandCRS.html
+pebesma2023spatial:
+  01-hello:
+    consulta: '2026-11-12'
+    palabras: 2968
+    sha256: 7156c2816bd4876e32cac0c7712afead2c74500ae4b7e042d066ef2207af62f5
+    url: https://r-spatial.org/book/01-hello.html
+  02-Spaces:
+    consulta: '2026-11-12'
+    palabras: 4427
+    sha256: 6c2d135bb111e81e82145a688a71db7944586d8b3a8da10de350f3c7db85e799
+    url: https://r-spatial.org/book/02-Spaces.html
+  03-Geometries:
+    consulta: '2026-11-12'
+    palabras: 5281
+    sha256: 073078526b5d2fea3673d2bed88e1b6df6c967d1a813ec19956e9d7ccd6455cb
+    url: https://r-spatial.org/book/03-Geometries.html
+  04-Spherical:
+    consulta: '2026-11-12'
+    palabras: 1259
+    sha256: 89b874878c424f8953a93479783fc8ea655fa5100c72b29b0be1bd9c89dc16b4
+    url: https://r-spatial.org/book/04-Spherical.html
+  05-Attributes:
+    consulta: '2026-11-12'
+    palabras: 3741
+    sha256: b84c391337977d22589e23337b2f016b5032429060ff15064e5531190545a522
+    url: https://r-spatial.org/book/05-Attributes.html
+  06-Cubes:
+    consulta: '2026-11-12'
+    palabras: 8372
+    sha256: ebd4940b6921e639c294632ada2812b2e6834eaaac9036ccfd1bc001d1aacda7
+    url: https://r-spatial.org/book/06-Cubes.html
+  07-Introsf:
+    consulta: '2026-11-12'
+    palabras: 11456
+    sha256: 856fdf22ca93438725cd85df94ebf346326e23e61d175a1282379e211355e163
+    url: https://r-spatial.org/book/07-Introsf.html
+  08-Plotting:
+    consulta: '2026-11-12'
+    palabras: 3234
+    sha256: 63469941705ca6008f99fc0c957998a64b69ce436f6b9321d6eddfb2b11ea5f8
+    url: https://r-spatial.org/book/08-Plotting.html
+  09-Large:
+    consulta: '2026-11-12'
+    palabras: 4396
+    sha256: 0efaec1fd058b2cc57c92c619eee9b7db8fbaa1e79ef80afb4c125e1d2af42fd
+    url: https://r-spatial.org/book/09-Large.html
+  10-Models:
+    consulta: '2026-11-12'
+    palabras: 3610
+    sha256: e95539a8dc892f76d18116e5f7ffff7339003dcfb4e20f70f62f4ecabc5ea27b
+    url: https://r-spatial.org/book/10-Models.html
+  11-PointPattern:
+    consulta: '2026-11-12'
+    palabras: 2687
+    sha256: e2c0973dbf559e9226a05de301a698dcde409d280704feef7578bc3a953215f9
+    url: https://r-spatial.org/book/11-PointPattern.html
+  12-Interpolation:
+    consulta: '2026-11-12'
+    palabras: 3597
+    sha256: a6a8286a50143bb84f4cfa71304caece9739a1506a2448d192a252f08d116a3c
+    url: https://r-spatial.org/book/12-Interpolation.html
+  13-Geostatistics:
+    consulta: '2026-11-12'
+    palabras: 2164
+    sha256: 4e5f6c33bf8d240532b17fedd7fdf819692f28ae5812a233640683255daba1f5
+    url: https://r-spatial.org/book/13-Geostatistics.html
+  14-Areal:
+    consulta: '2026-11-12'
+    palabras: 5310
+    sha256: 6c24b76e16cb1dde796cdf78fa8fa35004ab5dcfd9d1b83f245c803253d450ca
+    url: https://r-spatial.org/book/14-Areal.html
+  15-Measures:
+    consulta: '2026-11-12'
+    palabras: 7519
+    sha256: b92a677187f53f07c9de7b68f0aaae5411f232719851503cef9f81d5e2bb46ea
+    url: https://r-spatial.org/book/15-Measures.html
+  16-SpatialRegression:
+    consulta: '2026-11-12'
+    palabras: 4027
+    sha256: 6b5b54542310006ba99c2c22a5645396d8109960dfbc59b27245bd812379c366
+    url: https://r-spatial.org/book/16-SpatialRegression.html
+  17-Econometrics:
+    consulta: '2026-11-12'
+    palabras: 5046
+    sha256: 2c018032980b7560da2d15610f7d3756202625d2a9a33a4752a3511068afe769
+    url: https://r-spatial.org/book/17-Econometrics.html
+  ERRATA:
+    consulta: '2026-11-12'
+    palabras: 29
+    sha256: fe204d23521409d8c6a58670efdd209b8f57122aa98f1cfb3420f78332f1fe37
+    url: https://r-spatial.org/book/ERRATA.html
+  index:
+    consulta: '2026-11-12'
+    palabras: 1317
+    sha256: e449d52f1257faede3812321a50e7225eb209cca2dad93aef8cdb3ebe87136e7
+    url: https://r-spatial.org/book/index.html

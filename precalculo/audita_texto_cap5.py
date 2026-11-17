@@ -94,13 +94,22 @@ Esa misma noche el tope NO se movió: el mapa de P(oficial) pasó de 128 × 128 
 la ciudad (M6-7: σ cabía 2.3 celdas en la vertical) y el módulo 6 enseña la rejilla y la
 meseta de la guarda. 1 357 → 1 379 KB, 21 de margen; el ráster pasa de 28 a 47 KB empaquetado.
 
-2026-11-03, y la octava: SUBE A 1470 KB. El módulo 3 se leía críptico para quien empieza
+2026-11-02, y la octava: SUBE A 1440 KB (rama de mapas descritos). Cada mapa gana «Describir el mapa» —lo que se ve en él,
+para quien no lo ve: dónde está lo alto, cuántos focos, en qué localidad— y el documento pasa de
+1 387 a 1 398 KB, a 2 del tope: 3.4 del motor del `.geomapa` en la plantilla (la descripción en dos
+nodos y su comentario), 2.9 de los hechos que R publica para sostener las frases (los picos por
+localidad, P(oficial) localidad por localidad, los focos y la zona del máximo de cada sigma) y 4.7 de
+las once descripciones, siete de ellas la familia del deslizador. 1440 deja 42 KB de margen y sigue
+270 KB por debajo de 1398 + 312. Es explicación, y la octava vez que el peso cede ante ella.
+2026-11-03, y la novena: SUBE A 1470 KB. El módulo 3 se leía críptico para quien empieza
 (lo dijo Javier): afirmaba que los cuatro selectores «optimizan cosas distintas» sin enseñar
 nunca qué. Gana el ejemplo de las dos sedes de Kennedy, las curvas del criterio de los tres
 que buscan —en Kennedy, en la ciudad y en los pinos japoneses— y la suma de `bw.CvL` a mano
 en la pestaña de Python: ~14 KB de curvas en el JSON incrustado, tres simuladores y su prosa.
 El documento pasa de 1 386.9 a 1 427.8 KB. 1470 deja 42 KB de margen y sigue 270 KB por
 debajo de 1427.8 + 312. Es explicación, y la octava vez que el peso cede.
+2026-11-13: las dos ramas se fusionan. El documento suma las dos ampliaciones (~1 439 KB) y 1470
+sigue con ~31 KB de margen y por debajo de tamaño + 312: se queda en 1470.
 
 Y EL PRESUPUESTO DE GEOMETRÍA ES 250 KB, con un punto ciego declarado.
 El núcleo suma el peso de los mapas cuyo `fuente` es un JSON literal, y
@@ -533,37 +542,6 @@ def respuestas_publicadas(a: Auditor) -> None:
         a.exige(not faltan, f"la solución {k} publica cada respuesta entera", "; ".join(faltan))
 
 
-# El final es `(?!\d|[.,]\d)` y no `(?![\d,])`: con este, un decimal seguido de una coma de
-# puntuación se escapaba: la rama de M6 dejaba «sigma = 0,5, 1 y 2» en el enunciado del E2 (visto al
-# llevarla sobre main, 2026-09-26). `(?![\d.]|,\d)` tampoco sirve: pierde el decimal que cierra una frase.
-COMA_DECIMAL = re.compile(r"(?<![\d.,])\d+,\d+(?!\d|[.,]\d)")
-# Un formateador de JavaScript que cambia el punto por coma: `.replace('.', ',')`
-# o `.replace(/\./g, ',')`. Las lecturas de los simuladores no están en el
-# HTML —se escriben al mover un control—, así que en ellas se mira la causa.
-PUNTO_A_COMA = re.compile(
-    r"""\.replace\(\s*(?:(['"])\.\1|/\\\./g?)\s*,\s*(['"]),\2\s*\)""")
-
-
-def decimales_con_punto(a: Auditor) -> None:
-    """M6 · UN SOLO SEPARADOR DECIMAL, EL PUNTO.
-
-    `n()` escribía punto y `pct()` coma, y los dos alimentaban los mismos
-    párrafos: «de 29.5 por km² a 9.9 por km²: un 66,3 %». El curso publica
-    con punto —más de mil decimales contra una treintena—, y la coma
-    volvía por tres puertas: `pct()`, un «1,96» escrito a mano y el `exp5`
-    de las lecturas. Se cierran las dos que se pueden mirar sin ejecutar la
-    página: la prosa publicada y los formateadores que escriben las lecturas.
-    """
-    print("\n=== Los decimales, con punto =================================")
-    comas = [a.prosa_txt[max(0, m.start() - 30):m.end() + 5].strip()
-             for m in COMA_DECIMAL.finditer(a.prosa_txt)]
-    a.exige(not comas, "la prosa no escribe ningún decimal con coma",
-            " · ".join(f"«{c}»" for c in comas[:3]))
-    guiones = "\n".join(re.findall(r"<script[^>]*>(.*?)</script>", a.doc, re.S))
-    cambios = [guiones[max(0, m.start() - 50):m.end()].strip().splitlines()[-1]
-               for m in PUNTO_A_COMA.finditer(guiones)]
-    a.exige(not cambios, "ningún formateador cambia el punto por coma",
-            " · ".join(cambios[:2]))
 
 
 def figuras_simulacro(a: Auditor) -> None:
@@ -644,7 +622,9 @@ def main() -> int:
     a.geomapas()
     familia(a)
     respuestas_publicadas(a)
-    decimales_con_punto(a)
+    # La guarda vive en el núcleo desde que la rama de la coma decimal
+    # (5b2590a) entró aquí: la copia local no veía fórmulas ni el JavaScript.
+    a.decimales_con_punto()
     figuras_simulacro(a)
     titulos_sin_acento_grave(a)
     a.formulas_escapadas()

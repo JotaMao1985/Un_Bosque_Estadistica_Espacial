@@ -1,0 +1,2295 @@
+[
+  {
+    "DOI": "10.1007/978-94-015-7799-1",
+    "ISBN": "978-90-481-8311-1",
+    "URL": "http://link.springer.com/10.1007/978-94-015-7799-1",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Anselin",
+        "given": "Luc"
+      }
+    ],
+    "collection-title": "Studies in Operational Regional Science",
+    "id": "anselin1988spatial",
+    "issued": {
+      "date-parts": [
+        [
+          "1988"
+        ]
+      ]
+    },
+    "license": "http://www.springer.com/tdm",
+    "publisher": "Springer Netherlands",
+    "publisher-place": "Dordrecht",
+    "source": "DOI.org (Crossref)",
+    "title": "Spatial Econometrics: Methods and Models",
+    "title-short": "Spatial Econometrics",
+    "type": "book",
+    "volume": "4"
+  },
+  {
+    "DOI": "10.1111/j.1538-4632.1995.tb00338.x",
+    "ISSN": "0016-7363, 1538-4632",
+    "URL": "https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00338.x",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Anselin",
+        "given": "Luc"
+      }
+    ],
+    "container-title": "Geographical Analysis",
+    "id": "anselin1995local",
+    "issue": "2",
+    "issued": {
+      "date-parts": [
+        [
+          "1995",
+          4
+        ]
+      ]
+    },
+    "journalAbbreviation": "Geographical Analysis",
+    "language": "en",
+    "page": "93-115",
+    "source": "DOI.org (Crossref)",
+    "title": "Local Indicators of Spatial Association—LISA",
+    "type": "article-journal",
+    "volume": "27"
+  },
+  {
+    "ISBN": "978-0-9863421-0-3",
+    "author": [
+      {
+        "family": "Anselin",
+        "given": "Luc"
+      },
+      {
+        "family": "Rey",
+        "given": "Sergio J."
+      }
+    ],
+    "id": "anselin2014modern",
+    "issued": {
+      "date-parts": [
+        [
+          "2014"
+        ]
+      ]
+    },
+    "language": "eng",
+    "number-of-pages": "368",
+    "publisher": "GeoDa Press",
+    "publisher-place": "Chicago, IL",
+    "source": "K10plus ISBN",
+    "title": "Modern spatial econometrics in practice: a guide to GeoDa, GeoDaSpace and PySAL",
+    "title-short": "Modern spatial econometrics in practice",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1002/(SICI)1097-0258(19990830)18:16<2147::AID-SIM179>3.0.CO;2-I",
+    "ISSN": "0277-6715, 1097-0258",
+    "URL": "https://onlinelibrary.wiley.com/doi/10.1002/(SICI)1097-0258(19990830)18:16<2147::AID-SIM179>3.0.CO;2-I",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Assunção",
+        "given": "Renato M."
+      },
+      {
+        "family": "Reis",
+        "given": "Edna A."
+      }
+    ],
+    "container-title": "Statistics in Medicine",
+    "id": "assuncao1999new",
+    "issue": "16",
+    "issued": {
+      "date-parts": [
+        [
+          "1999",
+          8,
+          30
+        ]
+      ]
+    },
+    "journalAbbreviation": "Statist. Med.",
+    "language": "en",
+    "license": "http://doi.wiley.com/10.1002/tdm_license_1.1",
+    "page": "2147-2162",
+    "source": "DOI.org (Crossref)",
+    "title": "A new proposal to adjust Moran'sI for population density",
+    "type": "article-journal",
+    "volume": "18"
+  },
+  {
+    "DOI": "10.2307/2531159",
+    "ISSN": "0006341X",
+    "URL": "https://www.jstor.org/stable/2531159?origin=crossref",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Baddeley",
+        "given": "A. J."
+      },
+      {
+        "family": "Silverman",
+        "given": "B. W."
+      }
+    ],
+    "container-title": "Biometrics",
+    "id": "baddeley1984cautionary",
+    "issue": "4",
+    "issued": {
+      "date-parts": [
+        [
+          "1984",
+          12
+        ]
+      ]
+    },
+    "journalAbbreviation": "Biometrics",
+    "page": "1089",
+    "source": "DOI.org (Crossref)",
+    "title": "A Cautionary Example on the Use of Second-Order Methods for Analyzing Point Patterns",
+    "type": "article-journal",
+    "volume": "40"
+  },
+  {
+    "DOI": "10.18637/jss.v012.i06",
+    "ISSN": "1548-7660",
+    "URL": "http://www.jstatsoft.org/v12/i06/",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Baddeley",
+        "given": "Adrian"
+      },
+      {
+        "family": "Turner",
+        "given": "Rolf"
+      }
+    ],
+    "container-title": "Journal of Statistical Software",
+    "id": "baddeley2005spatstat",
+    "issue": "6",
+    "issued": {
+      "date-parts": [
+        [
+          "2005"
+        ]
+      ]
+    },
+    "journalAbbreviation": "J. Stat. Soft.",
+    "language": "en",
+    "source": "DOI.org (Crossref)",
+    "title": "<b>spatstat</b> : An <i>R</i> Package for Analyzing Spatial Point Patterns",
+    "title-short": "<b>spatstat</b>",
+    "type": "article-journal",
+    "volume": "12"
+  },
+  {
+    "DOI": "10.1201/b19708",
+    "ISBN": "978-0-429-16170-4",
+    "URL": "https://www.taylorfrancis.com/books/9781482210217",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Baddeley",
+        "given": "Adrian"
+      },
+      {
+        "family": "Rubak",
+        "given": "Ege"
+      },
+      {
+        "family": "Turner",
+        "given": "Rolf"
+      }
+    ],
+    "edition": "0",
+    "id": "baddeley2015spatial",
+    "issued": {
+      "date-parts": [
+        [
+          2016
+        ]
+      ]
+    },
+    "language": "en",
+    "publisher": "Chapman and Hall/CRC",
+    "source": "DOI.org (Crossref)",
+    "title": "Spatial Point Patterns: Methodology and Applications with R",
+    "title-short": "Spatial Point Patterns",
+    "type": "book"
+  },
+  {
+    "DOI": "10.2307/1427858",
+    "ISSN": "0001-8678, 1475-6064",
+    "URL": "https://www.cambridge.org/core/product/identifier/S0001867800027762/type/journal_article",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Bedford",
+        "given": "T."
+      },
+      {
+        "family": "Van Den Berg",
+        "given": "J."
+      }
+    ],
+    "container-title": "Advances in Applied Probability",
+    "id": "bedford1997remark",
+    "issue": "1",
+    "issued": {
+      "date-parts": [
+        [
+          "1997",
+          3
+        ]
+      ]
+    },
+    "journalAbbreviation": "Advances in Applied Probability",
+    "language": "en",
+    "license": "https://www.cambridge.org/core/terms",
+    "page": "19-25",
+    "source": "DOI.org (Crossref)",
+    "title": "A Remark on the Van Lieshout and Baddeley <i>J</i> -Function for Point Processes",
+    "type": "article-journal",
+    "volume": "29"
+  },
+  {
+    "DOI": "10.1111/j.2517-6161.1995.tb02031.x",
+    "ISSN": "1369-7412, 1467-9868",
+    "URL": "https://academic.oup.com/jrsssb/article/57/1/289/7035855",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Benjamini",
+        "given": "Yoav"
+      },
+      {
+        "family": "Hochberg",
+        "given": "Yosef"
+      }
+    ],
+    "container-title": "Journal of the Royal Statistical Society Series B: Statistical Methodology",
+    "id": "benjamini1995controlling",
+    "issue": "1",
+    "issued": {
+      "date-parts": [
+        [
+          "1995",
+          1,
+          1
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "https://academic.oup.com/journals/pages/open_access/funder_policies/chorus/standard_publication_model",
+    "page": "289-300",
+    "source": "DOI.org (Crossref)",
+    "title": "Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing",
+    "title-short": "Controlling the False Discovery Rate",
+    "type": "article-journal",
+    "volume": "57"
+  },
+  {
+    "DOI": "10.1111/j.2517-6161.1989.tb01750.x",
+    "ISSN": "1369-7412, 1467-9868",
+    "URL": "https://academic.oup.com/jrsssb/article/51/1/81/7027794",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Berman",
+        "given": "Mark"
+      },
+      {
+        "family": "Diggle",
+        "given": "Peter"
+      }
+    ],
+    "container-title": "Journal of the Royal Statistical Society Series B: Statistical Methodology",
+    "id": "berman1989estimating",
+    "issue": "1",
+    "issued": {
+      "date-parts": [
+        [
+          "1989",
+          9,
+          1
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "https://academic.oup.com/journals/pages/open_access/funder_policies/chorus/standard_publication_model",
+    "page": "81-92",
+    "source": "DOI.org (Crossref)",
+    "title": "Estimating Weighted Integrals of the Second-Order Intensity of a Spatial Point Process",
+    "type": "article-journal",
+    "volume": "51"
+  },
+  {
+    "DOI": "10.1007/978-1-4614-7618-4",
+    "ISBN": "978-1-4614-7617-7",
+    "URL": "https://link.springer.com/10.1007/978-1-4614-7618-4",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Bivand",
+        "given": "Roger S."
+      },
+      {
+        "family": "Pebesma",
+        "given": "Edzer"
+      },
+      {
+        "family": "Gómez-Rubio",
+        "given": "Virgilio"
+      }
+    ],
+    "edition": "2",
+    "id": "bivand2013applied",
+    "issued": {
+      "date-parts": [
+        [
+          "2013"
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "https://www.springernature.com/gp/researchers/text-and-data-mining",
+    "publisher": "Springer New York",
+    "publisher-place": "New York, NY",
+    "source": "DOI.org (Crossref)",
+    "title": "Applied Spatial Data Analysis with R",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1007/s11749-018-0599-x",
+    "ISSN": "1133-0686, 1863-8260",
+    "URL": "http://link.springer.com/10.1007/s11749-018-0599-x",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Bivand",
+        "given": "Roger S."
+      },
+      {
+        "family": "Wong",
+        "given": "David W. S."
+      }
+    ],
+    "container-title": "TEST",
+    "id": "bivand2018comparing",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "2018",
+          9
+        ]
+      ]
+    },
+    "journalAbbreviation": "TEST",
+    "language": "en",
+    "page": "716-748",
+    "source": "DOI.org (Crossref)",
+    "title": "Comparing implementations of global and local indicators of spatial association",
+    "type": "article-journal",
+    "volume": "27"
+  },
+  {
+    "ISBN": "978-0-19-823365-7",
+    "author": [
+      {
+        "family": "Burrough",
+        "given": "P. A."
+      },
+      {
+        "family": "McDonnell",
+        "given": "Rachael"
+      },
+      {
+        "family": "Burrough",
+        "given": "P. A."
+      }
+    ],
+    "call-number": "G70.212 .B87 1998",
+    "collection-title": "Spatial information systems",
+    "id": "burrough1998principles",
+    "issued": {
+      "date-parts": [
+        [
+          "1998"
+        ]
+      ]
+    },
+    "number-of-pages": "333",
+    "publisher": "Oxford University Press",
+    "publisher-place": "Oxford ; New York",
+    "source": "Library of Congress ISBN",
+    "title": "Principles of geographical information systems",
+    "type": "book"
+  },
+  {
+    "DOI": "10.2307/1931034",
+    "ISSN": "00129658",
+    "URL": "http://doi.wiley.com/10.2307/1931034",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Clark",
+        "given": "Philip J."
+      },
+      {
+        "family": "Evans",
+        "given": "Francis C."
+      }
+    ],
+    "container-title": "Ecology",
+    "id": "clark1954distance",
+    "issue": "4",
+    "issued": {
+      "date-parts": [
+        [
+          "1954",
+          10
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "http://doi.wiley.com/10.1002/tdm_license_1.1",
+    "page": "445-453",
+    "source": "DOI.org (Crossref)",
+    "title": "Distance to Nearest Neighbor as a Measure of Spatial Relationships in Populations",
+    "type": "article-journal",
+    "volume": "35"
+  },
+  {
+    "DOI": "10.2307/2530424",
+    "ISSN": "0006341X",
+    "URL": "https://www.jstor.org/stable/2530424?origin=crossref",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Cox",
+        "given": "Trevor F."
+      }
+    ],
+    "container-title": "Biometrics",
+    "id": "cox1981reflexive",
+    "issue": "2",
+    "issued": {
+      "date-parts": [
+        [
+          "1981",
+          6
+        ]
+      ]
+    },
+    "journalAbbreviation": "Biometrics",
+    "page": "367",
+    "source": "DOI.org (Crossref)",
+    "title": "Reflexive Nearest Neighbours",
+    "type": "article-journal",
+    "volume": "37"
+  },
+  {
+    "DOI": "10.1002/9781119115151",
+    "ISBN": "978-0-471-00255-0",
+    "URL": "https://onlinelibrary.wiley.com/doi/book/10.1002/9781119115151",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Cressie",
+        "given": "Noel A. C."
+      }
+    ],
+    "collection-title": "Wiley Series in Probability and Statistics",
+    "edition": "Rev. ed.",
+    "id": "cressie1993statistics",
+    "issued": {
+      "date-parts": [
+        [
+          "1993",
+          9,
+          10
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "http://doi.wiley.com/10.1002/tdm_license_1.1, http://doi.wiley.com/10.1002/tdm_license_1.1",
+    "publisher": "Wiley",
+    "source": "DOI.org (Crossref)",
+    "title": "Statistics for Spatial Data",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1093/biomet/asy001",
+    "ISSN": "0006-3444, 1464-3510",
+    "URL": "https://academic.oup.com/biomet/article/105/2/455/4867681",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Cronie",
+        "given": "O"
+      },
+      {
+        "family": "Van Lieshout",
+        "given": "M N M"
+      }
+    ],
+    "container-title": "Biometrika",
+    "id": "cronie2018non",
+    "issue": "2",
+    "issued": {
+      "date-parts": [
+        [
+          "2018",
+          6,
+          1
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "https://academic.oup.com/journals/pages/about_us/legal/notices",
+    "page": "455-462",
+    "source": "DOI.org (Crossref)",
+    "title": "A non-model-based approach to bandwidth selection for kernel estimators of spatial intensity functions",
+    "type": "article-journal",
+    "volume": "105"
+  },
+  {
+    "DOI": "10.1111/j.1538-4632.1984.tb00797.x",
+    "ISSN": "0016-7363, 1538-4632",
+    "URL": "https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1984.tb00797.x",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "De Jong",
+        "given": "P."
+      },
+      {
+        "family": "Sprenger",
+        "given": "C."
+      },
+      {
+        "family": "Van Veen",
+        "given": "F."
+      }
+    ],
+    "container-title": "Geographical Analysis",
+    "id": "dejong1984extreme",
+    "issue": "1",
+    "issued": {
+      "date-parts": [
+        [
+          "1984",
+          1
+        ]
+      ]
+    },
+    "journalAbbreviation": "Geographical Analysis",
+    "language": "en",
+    "page": "17-24",
+    "source": "DOI.org (Crossref)",
+    "title": "<i>On Extreme Values of Moran's</i> I <i>and Geary's c</i>",
+    "type": "article-journal",
+    "volume": "16"
+  },
+  {
+    "DOI": "10.1007/s12061-026-09833-z",
+    "ISSN": "1874-463X, 1874-4621",
+    "URL": "https://link.springer.com/10.1007/s12061-026-09833-z",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Demirel",
+        "given": "Yasin"
+      },
+      {
+        "family": "Türk",
+        "given": "Esra"
+      },
+      {
+        "family": "Türk",
+        "given": "Tarık"
+      }
+    ],
+    "container-title": "Applied Spatial Analysis and Policy",
+    "id": "demirel2026optimizing",
+    "issue": "1",
+    "issued": {
+      "date-parts": [
+        [
+          "2026",
+          3
+        ]
+      ]
+    },
+    "journalAbbreviation": "Appl. Spatial Analysis",
+    "language": "en",
+    "page": "62",
+    "source": "DOI.org (Crossref)",
+    "title": "Optimizing Retail Location Selection Strategies Using Spatial Statistics and GIS: A Decision Support Framework for Supermarket Chains in Emerging Urban Centers",
+    "title-short": "Optimizing Retail Location Selection Strategies Using Spatial Statistics and GIS",
+    "type": "article-journal",
+    "volume": "19"
+  },
+  {
+    "DOI": "10.2307/2347366",
+    "ISSN": "00359254",
+    "URL": "https://www.jstor.org/stable/2347366?origin=crossref",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Diggle",
+        "given": "Peter"
+      }
+    ],
+    "container-title": "Applied Statistics",
+    "id": "diggle1985kernel",
+    "issue": "2",
+    "issued": {
+      "date-parts": [
+        [
+          "1985"
+        ]
+      ]
+    },
+    "journalAbbreviation": "Applied Statistics",
+    "page": "138",
+    "source": "DOI.org (Crossref)",
+    "title": "A Kernel Method for Smoothing Point Process Data",
+    "type": "article-journal",
+    "volume": "34"
+  },
+  {
+    "DOI": "10.2307/2982977",
+    "ISSN": "09641998",
+    "URL": "https://www.jstor.org/stable/10.2307/2982977?origin=crossref",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Diggle",
+        "given": "Peter J."
+      }
+    ],
+    "container-title": "Journal of the Royal Statistical Society. Series A (Statistics in Society)",
+    "id": "diggle1990point",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1990"
+        ]
+      ]
+    },
+    "journalAbbreviation": "Journal of the Royal Statistical Society. Series A (Statistics in Society)",
+    "page": "349",
+    "source": "DOI.org (Crossref)",
+    "title": "A Point Process Modelling Approach to Raised Incidence of a Rare Phenomenon in the Vicinity of a Prespecified Point",
+    "type": "article-journal",
+    "volume": "153"
+  },
+  {
+    "DOI": "10.1201/b15326",
+    "ISBN": "978-0-429-09809-3",
+    "URL": "https://www.taylorfrancis.com/books/9781466560246",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Diggle",
+        "given": "Peter J."
+      }
+    ],
+    "edition": "3",
+    "id": "diggle2013statistical",
+    "issued": {
+      "date-parts": [
+        [
+          "2013",
+          7,
+          23
+        ]
+      ]
+    },
+    "language": "en",
+    "publisher": "Chapman and Hall/CRC",
+    "source": "DOI.org (Crossref)",
+    "title": "Statistical Analysis of Spatial and Spatio-Temporal Point Patterns",
+    "type": "book"
+  },
+  {
+    "ISBN": "978-1-872464-09-1",
+    "author": [
+      {
+        "family": "Dorling",
+        "given": "Daniel"
+      }
+    ],
+    "call-number": "GA102.3 .D67 1996",
+    "collection-number": "59",
+    "collection-title": "Concepts and techniques in modern geography",
+    "id": "dorling1996area",
+    "issued": {
+      "date-parts": [
+        [
+          "1996"
+        ]
+      ]
+    },
+    "number-of-pages": "69",
+    "publisher": "School of Environmental Sciences, University of East Anglia",
+    "publisher-place": "Norwich, England",
+    "source": "Library of Congress ISBN",
+    "title": "Area cartograms: their use and creation",
+    "title-short": "Area cartograms",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1111/j.0033-0124.1985.00075.x",
+    "ISSN": "0033-0124, 1467-9272",
+    "URL": "http://www.tandfonline.com/doi/abs/10.1111/j.0033-0124.1985.00075.x",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Dougenik",
+        "given": "James A."
+      },
+      {
+        "family": "Chrisman",
+        "given": "Nicholas R."
+      },
+      {
+        "family": "Niemeyer",
+        "given": "Duane R."
+      }
+    ],
+    "container-title": "The Professional Geographer",
+    "id": "dougenik1985algorithm",
+    "issue": "1",
+    "issued": {
+      "date-parts": [
+        [
+          "1985",
+          2
+        ]
+      ]
+    },
+    "journalAbbreviation": "The Professional Geographer",
+    "language": "en",
+    "page": "75-81",
+    "source": "DOI.org (Crossref)",
+    "title": "AN ALGORITHM TO CONSTRUCT CONTINUOUS AREA CARTOGRAMS∗",
+    "type": "article-journal",
+    "volume": "37"
+  },
+  {
+    "DOI": "10.1137/1114019",
+    "ISSN": "0040-585X, 1095-7219",
+    "URL": "https://epubs.siam.org/doi/10.1137/1114019",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Epanechnikov",
+        "given": "V. A."
+      }
+    ],
+    "container-title": "Theory of Probability & Its Applications",
+    "id": "epanechnikov1969non",
+    "issue": "1",
+    "issued": {
+      "date-parts": [
+        [
+          "1969",
+          1
+        ]
+      ]
+    },
+    "journalAbbreviation": "Theory Probab. Appl.",
+    "language": "en",
+    "page": "153-158",
+    "source": "DOI.org (Crossref)",
+    "title": "Non-Parametric Estimation of a Multivariate Probability Density",
+    "type": "article-journal",
+    "volume": "14"
+  },
+  {
+    "DOI": "10.2307/2986645",
+    "ISSN": "14669404",
+    "URL": "https://www.jstor.org/stable/2986645?origin=crossref",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Geary",
+        "given": "R. C."
+      }
+    ],
+    "container-title": "The Incorporated Statistician",
+    "id": "geary1954contiguity",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1954",
+          11
+        ]
+      ]
+    },
+    "journalAbbreviation": "The Incorporated Statistician",
+    "page": "115",
+    "source": "DOI.org (Crossref)",
+    "title": "The Contiguity Ratio and Statistical Mapping",
+    "type": "article-journal",
+    "volume": "5"
+  },
+  {
+    "DOI": "10.1080/01621459.1934.10506247",
+    "ISSN": "0162-1459, 1537-274X",
+    "URL": "http://www.tandfonline.com/doi/abs/10.1080/01621459.1934.10506247",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Gehlke",
+        "given": "C. E."
+      },
+      {
+        "family": "Biehl",
+        "given": "Katherine"
+      }
+    ],
+    "container-title": "Journal of the American Statistical Association",
+    "id": "gehlke1934certain",
+    "issue": "185A",
+    "issued": {
+      "date-parts": [
+        [
+          "1934",
+          3
+        ]
+      ]
+    },
+    "journalAbbreviation": "Journal of the American Statistical Association",
+    "language": "en",
+    "page": "169-170",
+    "source": "DOI.org (Crossref)",
+    "title": "Certain Effects of Grouping upon the Size of the Correlation Coefficient in Census Tract Material",
+    "type": "article-journal",
+    "volume": "29"
+  },
+  {
+    "DOI": "10.1111/j.1538-4632.1992.tb00261.x",
+    "ISSN": "0016-7363, 1538-4632",
+    "URL": "https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Getis",
+        "given": "Arthur"
+      },
+      {
+        "family": "Ord",
+        "given": "J. K."
+      }
+    ],
+    "container-title": "Geographical Analysis",
+    "id": "getis1992analysis",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1992",
+          7
+        ]
+      ]
+    },
+    "journalAbbreviation": "Geographical Analysis",
+    "language": "en",
+    "page": "189-206",
+    "source": "DOI.org (Crossref)",
+    "title": "The Analysis of Spatial Association by Use of Distance Statistics",
+    "type": "article-journal",
+    "volume": "24"
+  },
+  {
+    "DOI": "10.1007/BF00147776",
+    "ISSN": "0960-3174, 1573-1375",
+    "URL": "http://link.springer.com/10.1007/BF00147776",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Jones",
+        "given": "M. C."
+      }
+    ],
+    "container-title": "Statistics and Computing",
+    "id": "jones1993simple",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1993",
+          9
+        ]
+      ]
+    },
+    "journalAbbreviation": "Stat Comput",
+    "language": "en",
+    "license": "http://www.springer.com/tdm",
+    "page": "135-146",
+    "source": "DOI.org (Crossref)",
+    "title": "Simple boundary correction for kernel density estimation",
+    "type": "article-journal",
+    "volume": "3"
+  },
+  {
+    "DOI": "10.1111/j.1740-9713.2016.00960.x",
+    "ISSN": "1740-9705, 1740-9713",
+    "URL": "https://academic.oup.com/jrssig/article/13/5/14/7029190",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Lum",
+        "given": "Kristian"
+      },
+      {
+        "family": "Isaac",
+        "given": "William"
+      }
+    ],
+    "container-title": "Significance",
+    "id": "lum2016predict",
+    "issue": "5",
+    "issued": {
+      "date-parts": [
+        [
+          "2016",
+          10,
+          1
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "https://academic.oup.com/journals/pages/open_access/funder_policies/chorus/standard_publication_model",
+    "page": "14-19",
+    "source": "DOI.org (Crossref)",
+    "title": "To Predict and Serve?",
+    "type": "article-journal",
+    "volume": "13"
+  },
+  {
+    "DOI": "10.1109/TVCG.2009.113",
+    "ISSN": "1077-2626",
+    "URL": "http://ieeexplore.ieee.org/document/5290741/",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Machado",
+        "given": "G.M."
+      },
+      {
+        "family": "Oliveira",
+        "given": "M.M."
+      },
+      {
+        "family": "Fernandes",
+        "given": "L."
+      }
+    ],
+    "container-title": "IEEE Transactions on Visualization and Computer Graphics",
+    "id": "machado2009physiologically",
+    "issue": "6",
+    "issued": {
+      "date-parts": [
+        [
+          "2009",
+          11
+        ]
+      ]
+    },
+    "journalAbbreviation": "IEEE Trans. Visual. Comput. Graphics",
+    "license": "https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html",
+    "page": "1291-1298",
+    "source": "DOI.org (Crossref)",
+    "title": "A Physiologically-based Model for Simulation of Color Vision Deficiency",
+    "type": "article-journal",
+    "volume": "15"
+  },
+  {
+    "ISBN": "978-608-4642-66-4",
+    "URL": "https://eujournal.org/files/journals/1/books/JeanFrancoisMas.pdf",
+    "author": [
+      {
+        "family": "Mas",
+        "given": "Jean-François"
+      }
+    ],
+    "id": "mas2018analisis",
+    "issued": {
+      "date-parts": [
+        [
+          "2018"
+        ]
+      ]
+    },
+    "publisher": "European Scientific Institute",
+    "title": "Análisis espacial con R: Usa R como un Sistema de Información Geográfica",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1201/9780429341823",
+    "ISBN": "978-0-429-34182-3",
+    "URL": "https://www.taylorfrancis.com/books/9781000732030",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Moraga",
+        "given": "Paula"
+      }
+    ],
+    "edition": "1",
+    "id": "moraga2019geospatial",
+    "issued": {
+      "date-parts": [
+        [
+          "2019",
+          11,
+          21
+        ]
+      ]
+    },
+    "language": "en",
+    "publisher": "Chapman and Hall/CRC",
+    "source": "DOI.org (Crossref)",
+    "title": "Geospatial Health Data: Modeling and Visualization with R-INLA and Shiny",
+    "title-short": "Geospatial Health Data",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1093/biomet/37.1-2.17",
+    "ISSN": "0006-3444, 1464-3510",
+    "URL": "https://academic.oup.com/biomet/article-lookup/doi/10.1093/biomet/37.1-2.17",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Moran",
+        "given": "P. A. P."
+      }
+    ],
+    "container-title": "Biometrika",
+    "id": "moran1950notes",
+    "issue": "1-2",
+    "issued": {
+      "date-parts": [
+        [
+          "1950"
+        ]
+      ]
+    },
+    "journalAbbreviation": "Biometrika",
+    "language": "en",
+    "page": "17-23",
+    "source": "DOI.org (Crossref)",
+    "title": "NOTES ON CONTINUOUS STOCHASTIC PHENOMENA",
+    "type": "article-journal",
+    "volume": "37"
+  },
+  {
+    "DOI": "10.1111/j.0033-0124.1976.00371.x",
+    "ISSN": "0033-0124, 1467-9272",
+    "URL": "http://www.tandfonline.com/doi/abs/10.1111/j.0033-0124.1976.00371.x",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Olson",
+        "given": "Judy M."
+      }
+    ],
+    "container-title": "The Professional Geographer",
+    "id": "olson1976noncontiguous",
+    "issue": "4",
+    "issued": {
+      "date-parts": [
+        [
+          "1976",
+          11
+        ]
+      ]
+    },
+    "journalAbbreviation": "The Professional Geographer",
+    "language": "en",
+    "page": "371-380",
+    "source": "DOI.org (Crossref)",
+    "title": "NONCONTIGUOUS AREA CARTOGRAMS",
+    "type": "article-journal",
+    "volume": "28"
+  },
+  {
+    "DOI": "10.1111/j.1538-4632.1995.tb00912.x",
+    "ISSN": "0016-7363, 1538-4632",
+    "URL": "https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Ord",
+        "given": "J. K."
+      },
+      {
+        "family": "Getis",
+        "given": "Arthur"
+      }
+    ],
+    "container-title": "Geographical Analysis",
+    "id": "ord1995local",
+    "issue": "4",
+    "issued": {
+      "date-parts": [
+        [
+          "1995",
+          10
+        ]
+      ]
+    },
+    "journalAbbreviation": "Geographical Analysis",
+    "language": "en",
+    "page": "286-306",
+    "source": "DOI.org (Crossref)",
+    "title": "Local Spatial Autocorrelation Statistics: Distributional Issues and an Application",
+    "title-short": "Local Spatial Autocorrelation Statistics",
+    "type": "article-journal",
+    "volume": "27"
+  },
+  {
+    "DOI": "10.1214/aoms/1177704472",
+    "ISSN": "0003-4851",
+    "URL": "http://projecteuclid.org/euclid.aoms/1177704472",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Parzen",
+        "given": "Emanuel"
+      }
+    ],
+    "container-title": "The Annals of Mathematical Statistics",
+    "id": "parzen1962estimation",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1962",
+          9
+        ]
+      ]
+    },
+    "journalAbbreviation": "Ann. Math. Statist.",
+    "language": "en",
+    "page": "1065-1076",
+    "source": "DOI.org (Crossref)",
+    "title": "On Estimation of a Probability Density Function and Mode",
+    "type": "article-journal",
+    "volume": "33"
+  },
+  {
+    "DOI": "10.32614/RJ-2018-009",
+    "ISSN": "2073-4859",
+    "URL": "https://journal.r-project.org/archive/2018/RJ-2018-009/index.html",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Pebesma",
+        "given": "Edzer"
+      }
+    ],
+    "container-title": "The R Journal",
+    "id": "pebesma2018simple",
+    "issue": "1",
+    "issued": {
+      "date-parts": [
+        [
+          "2018"
+        ]
+      ]
+    },
+    "journalAbbreviation": "The R Journal",
+    "language": "en",
+    "page": "439",
+    "source": "DOI.org (Crossref)",
+    "title": "Simple Features for R: Standardized Support for Spatial Vector Data",
+    "title-short": "Simple Features for R",
+    "type": "article-journal",
+    "volume": "10"
+  },
+  {
+    "DOI": "10.1201/9780429459016",
+    "ISBN": "978-0-429-45901-6",
+    "URL": "https://www.taylorfrancis.com/books/9780429459016",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Pebesma",
+        "given": "Edzer"
+      },
+      {
+        "family": "Bivand",
+        "given": "Roger"
+      }
+    ],
+    "edition": "1",
+    "id": "pebesma2023spatial",
+    "issued": {
+      "date-parts": [
+        [
+          "2023",
+          5,
+          10
+        ]
+      ]
+    },
+    "language": "en",
+    "publisher": "Chapman and Hall/CRC",
+    "publisher-place": "New York",
+    "source": "DOI.org (Crossref)",
+    "title": "Spatial Data Science: With Applications in R",
+    "title-short": "Spatial Data Science",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1007/978-0-387-78167-9",
+    "ISBN": "978-0-387-78166-2",
+    "URL": "https://link.springer.com/10.1007/978-0-387-78167-9",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Peng",
+        "given": "Roger D."
+      },
+      {
+        "family": "Dominici",
+        "given": "F."
+      }
+    ],
+    "id": "peng2008statistical",
+    "issued": {
+      "date-parts": [
+        [
+          "2008"
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "https://www.springernature.com/gp/researchers/text-and-data-mining",
+    "publisher": "Springer New York",
+    "publisher-place": "New York, NY",
+    "source": "DOI.org (Crossref)",
+    "title": "Statistical Methods for Environmental Epidemiology with R: A Case Study in Air Pollution and Health",
+    "title-short": "Statistical Methods for Environmental Epidemiology with R",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1201/9780429292507",
+    "ISBN": "978-0-429-29250-7",
+    "URL": "https://www.taylorfrancis.com/books/9780429292507",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Rey",
+        "given": "Sergio"
+      },
+      {
+        "family": "Arribas-Bel",
+        "given": "Dani"
+      },
+      {
+        "family": "Wolf",
+        "given": "Levi John"
+      }
+    ],
+    "edition": "1",
+    "id": "rey2023geographic",
+    "issued": {
+      "date-parts": [
+        [
+          "2023",
+          5,
+          16
+        ]
+      ]
+    },
+    "language": "en",
+    "publisher": "Chapman and Hall/CRC",
+    "publisher-place": "Boca Raton",
+    "source": "DOI.org (Crossref)",
+    "title": "Geographic Data Science with Python",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1111/j.2517-6161.1977.tb01615.x",
+    "ISSN": "1369-7412, 1467-9868",
+    "URL": "https://academic.oup.com/jrsssb/article/39/2/172/7027573",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Ripley",
+        "given": "B. D."
+      }
+    ],
+    "container-title": "Journal of the Royal Statistical Society Series B: Statistical Methodology",
+    "id": "ripley1977modelling",
+    "issue": "2",
+    "issued": {
+      "date-parts": [
+        [
+          "1977",
+          1,
+          1
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "https://academic.oup.com/journals/pages/open_access/funder_policies/chorus/standard_publication_model",
+    "page": "172-192",
+    "source": "DOI.org (Crossref)",
+    "title": "Modelling Spatial Patterns",
+    "type": "article-journal",
+    "volume": "39"
+  },
+  {
+    "DOI": "10.1111/ecog.02881",
+    "ISSN": "0906-7590, 1600-0587",
+    "URL": "https://nsojournals.onlinelibrary.wiley.com/doi/10.1111/ecog.02881",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Roberts",
+        "given": "David R."
+      },
+      {
+        "family": "Bahn",
+        "given": "Volker"
+      },
+      {
+        "family": "Ciuti",
+        "given": "Simone"
+      },
+      {
+        "family": "Boyce",
+        "given": "Mark S."
+      },
+      {
+        "family": "Elith",
+        "given": "Jane"
+      },
+      {
+        "family": "Guillera‐Arroita",
+        "given": "Gurutzeta"
+      },
+      {
+        "family": "Hauenstein",
+        "given": "Severin"
+      },
+      {
+        "family": "Lahoz‐Monfort",
+        "given": "José J."
+      },
+      {
+        "family": "Schröder",
+        "given": "Boris"
+      },
+      {
+        "family": "Thuiller",
+        "given": "Wilfried"
+      },
+      {
+        "family": "Warton",
+        "given": "David I."
+      },
+      {
+        "family": "Wintle",
+        "given": "Brendan A."
+      },
+      {
+        "family": "Hartig",
+        "given": "Florian"
+      },
+      {
+        "family": "Dormann",
+        "given": "Carsten F."
+      }
+    ],
+    "container-title": "Ecography",
+    "id": "roberts2017crossvalidation",
+    "issue": "8",
+    "issued": {
+      "date-parts": [
+        [
+          "2017",
+          8
+        ]
+      ]
+    },
+    "journalAbbreviation": "Ecography",
+    "language": "en",
+    "page": "913-929",
+    "source": "DOI.org (Crossref)",
+    "title": "Cross‐validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure",
+    "type": "article-journal",
+    "volume": "40"
+  },
+  {
+    "DOI": "10.2307/2087176",
+    "ISSN": "00031224",
+    "URL": "http://www.jstor.org/stable/2087176?origin=crossref",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Robinson",
+        "given": "W. S."
+      }
+    ],
+    "container-title": "American Sociological Review",
+    "id": "robinson1950ecological",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1950",
+          6
+        ]
+      ]
+    },
+    "journalAbbreviation": "American Sociological Review",
+    "page": "351",
+    "source": "DOI.org (Crossref)",
+    "title": "Ecological Correlations and the Behavior of Individuals",
+    "type": "article-journal",
+    "volume": "15"
+  },
+  {
+    "DOI": "10.1214/aoms/1177728190",
+    "ISSN": "0003-4851",
+    "URL": "http://projecteuclid.org/euclid.aoms/1177728190",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Rosenblatt",
+        "given": "Murray"
+      }
+    ],
+    "container-title": "The Annals of Mathematical Statistics",
+    "id": "rosenblatt1956remarks",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1956",
+          9
+        ]
+      ]
+    },
+    "journalAbbreviation": "Ann. Math. Statist.",
+    "language": "en",
+    "page": "832-837",
+    "source": "DOI.org (Crossref)",
+    "title": "Remarks on Some Nonparametric Estimates of a Density Function",
+    "type": "article-journal",
+    "volume": "27"
+  },
+  {
+    "DOI": "10.1093/biomet/66.3.605",
+    "ISSN": "0006-3444, 1464-3510",
+    "URL": "https://academic.oup.com/biomet/article-lookup/doi/10.1093/biomet/66.3.605",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Scott",
+        "given": "David W."
+      }
+    ],
+    "container-title": "Biometrika",
+    "id": "scott1979optimal",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1979"
+        ]
+      ]
+    },
+    "journalAbbreviation": "Biometrika",
+    "language": "en",
+    "page": "605-610",
+    "source": "DOI.org (Crossref)",
+    "title": "On optimal and data-based histograms",
+    "type": "article-journal",
+    "volume": "66"
+  },
+  {
+    "DOI": "10.1214/aos/1176349654",
+    "ISSN": "0090-5364, 2168-8966",
+    "URL": "https://projecteuclid.org/journals/annals-of-statistics/volume-13/issue-3/Averaged-Shifted-Histograms--Effective-Nonparametric-Density-Estimators-in-Several/10.1214/aos/1176349654.full",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Scott",
+        "given": "David W."
+      }
+    ],
+    "container-title": "The Annals of Statistics",
+    "id": "scott1985averaged",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1985",
+          9,
+          1
+        ]
+      ]
+    },
+    "journalAbbreviation": "Ann. Statist.",
+    "page": "1024-1040",
+    "source": "DOI.org (Crossref)",
+    "title": "Averaged Shifted Histograms: Effective Nonparametric Density Estimators in Several Dimensions",
+    "title-short": "Averaged Shifted Histograms",
+    "type": "article-journal",
+    "volume": "13"
+  },
+  {
+    "DOI": "10.1080/01621459.1987.10478550",
+    "ISSN": "0162-1459, 1537-274X",
+    "URL": "https://www.tandfonline.com/doi/full/10.1080/01621459.1987.10478550",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Scott",
+        "given": "David W."
+      },
+      {
+        "family": "Terrell",
+        "given": "George R."
+      }
+    ],
+    "container-title": "Journal of the American Statistical Association",
+    "id": "scott1987biased",
+    "issue": "400",
+    "issued": {
+      "date-parts": [
+        [
+          "1987",
+          12
+        ]
+      ]
+    },
+    "journalAbbreviation": "Journal of the American Statistical Association",
+    "language": "en",
+    "page": "1131-1146",
+    "source": "DOI.org (Crossref)",
+    "title": "Biased and Unbiased Cross-Validation in Density Estimation",
+    "type": "article-journal",
+    "volume": "82"
+  },
+  {
+    "DOI": "10.1002/9781118575574",
+    "ISBN": "978-0-471-69755-8",
+    "URL": "https://onlinelibrary.wiley.com/doi/book/10.1002/9781118575574",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Scott",
+        "given": "David W."
+      }
+    ],
+    "collection-title": "Wiley Series in Probability and Statistics",
+    "edition": "2",
+    "id": "scott2015multivariate",
+    "issued": {
+      "date-parts": [
+        [
+          "2015",
+          3,
+          27
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "http://doi.wiley.com/10.1002/tdm_license_1.1",
+    "publisher": "Wiley",
+    "source": "DOI.org (Crossref)",
+    "title": "Multivariate Density Estimation: Theory, Practice, and Visualization",
+    "title-short": "Multivariate Density Estimation",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1111/j.2517-6161.1991.tb01857.x",
+    "ISSN": "1369-7412, 1467-9868",
+    "URL": "https://academic.oup.com/jrsssb/article/53/3/683/7028194",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Sheather",
+        "given": "S. J."
+      },
+      {
+        "family": "Jones",
+        "given": "M. C."
+      }
+    ],
+    "container-title": "Journal of the Royal Statistical Society Series B: Statistical Methodology",
+    "id": "sheather1991reliable",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1991",
+          7,
+          1
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "https://academic.oup.com/journals/pages/open_access/funder_policies/chorus/standard_publication_model",
+    "page": "683-690",
+    "source": "DOI.org (Crossref)",
+    "title": "A Reliable Data-Based Bandwidth Selection Method for Kernel Density Estimation",
+    "type": "article-journal",
+    "volume": "53"
+  },
+  {
+    "ISBN": "978-0-412-24620-3",
+    "author": [
+      {
+        "family": "Silverman",
+        "given": "B. W."
+      }
+    ],
+    "call-number": "QA276.8 .S555 1986",
+    "collection-title": "Monographs on statistics and applied probability",
+    "id": "silverman1986density",
+    "issued": {
+      "date-parts": [
+        [
+          "1986"
+        ]
+      ]
+    },
+    "number-of-pages": "175",
+    "publisher": "Chapman and Hall",
+    "publisher-place": "London ; New York",
+    "source": "Library of Congress ISBN",
+    "title": "Density estimation for statistics and data analysis",
+    "type": "book"
+  },
+  {
+    "URL": "https://archive.org/details/b28985266",
+    "author": [
+      {
+        "family": "Snow",
+        "given": "John"
+      }
+    ],
+    "edition": "2",
+    "id": "snow1855mode",
+    "issued": {
+      "date-parts": [
+        [
+          "1855"
+        ]
+      ]
+    },
+    "publisher": "John Churchill",
+    "publisher-place": "London",
+    "title": "On the mode of communication of cholera",
+    "type": "book"
+  },
+  {
+    "author": [
+      {
+        "family": "Snyder",
+        "given": "John P."
+      }
+    ],
+    "genre": "Professional Paper",
+    "id": "snyder1987map",
+    "issued": {
+      "date-parts": [
+        [
+          "1987"
+        ]
+      ]
+    },
+    "language": "en",
+    "note": "collection-title: Professional Paper",
+    "publisher": "US Geological Survey",
+    "source": "DOI.org (Crossref)",
+    "title": "Map projections: A working manual",
+    "type": "report"
+  },
+  {
+    "DOI": "10.1093/biomet/62.2.467",
+    "ISSN": "0006-3444, 1464-3510",
+    "URL": "https://academic.oup.com/biomet/article-lookup/doi/10.1093/biomet/62.2.467",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Strauss",
+        "given": "D. J."
+      }
+    ],
+    "container-title": "Biometrika",
+    "id": "strauss1975model",
+    "issue": "2",
+    "issued": {
+      "date-parts": [
+        [
+          "1975",
+          8,
+          1
+        ]
+      ]
+    },
+    "journalAbbreviation": "Biometrika",
+    "language": "en",
+    "page": "467-475",
+    "source": "DOI.org (Crossref)",
+    "title": "A model for clustering",
+    "type": "article-journal",
+    "volume": "62"
+  },
+  {
+    "DOI": "10.2307/143141",
+    "ISSN": "00130095",
+    "URL": "https://www.jstor.org/stable/143141?origin=crossref",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Tobler",
+        "given": "W. R."
+      }
+    ],
+    "container-title": "Economic Geography",
+    "id": "tobler1970computer",
+    "issued": {
+      "date-parts": [
+        [
+          "1970",
+          6
+        ]
+      ]
+    },
+    "journalAbbreviation": "Economic Geography",
+    "page": "234",
+    "source": "DOI.org (Crossref)",
+    "title": "A Computer Movie Simulating Urban Growth in the Detroit Region",
+    "type": "article-journal",
+    "volume": "46"
+  },
+  {
+    "DOI": "10.1111/j.1467-9574.1996.tb01501.x",
+    "ISSN": "0039-0402, 1467-9574",
+    "URL": "https://onlinelibrary.wiley.com/doi/10.1111/j.1467-9574.1996.tb01501.x",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Van Lieshout",
+        "given": "M. N. M."
+      },
+      {
+        "family": "Baddeley",
+        "given": "A. J."
+      }
+    ],
+    "container-title": "Statistica Neerlandica",
+    "id": "vanlieshout1996nonparametric",
+    "issue": "3",
+    "issued": {
+      "date-parts": [
+        [
+          "1996",
+          11
+        ]
+      ]
+    },
+    "journalAbbreviation": "Statistica Neerlandica",
+    "language": "en",
+    "page": "344-361",
+    "source": "DOI.org (Crossref)",
+    "title": "A nonparametric measure of spatial interaction in point patterns",
+    "type": "article-journal",
+    "volume": "50"
+  },
+  {
+    "DOI": "10.1002/0471662682",
+    "ISBN": "978-0-471-38771-8",
+    "URL": "https://onlinelibrary.wiley.com/doi/book/10.1002/0471662682",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Waller",
+        "given": "Lance A."
+      },
+      {
+        "family": "Gotway",
+        "given": "Carol A."
+      }
+    ],
+    "collection-title": "Wiley Series in Probability and Statistics",
+    "edition": "1",
+    "id": "waller2004applied",
+    "issued": {
+      "date-parts": [
+        [
+          "2004",
+          7
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "http://doi.wiley.com/10.1002/tdm_license_1.1, http://doi.wiley.com/10.1002/tdm_license_1.1",
+    "publisher": "Wiley",
+    "source": "DOI.org (Crossref)",
+    "title": "Applied Spatial Statistics for Public Health Data",
+    "type": "book"
+  },
+  {
+    "DOI": "10.1007/978-1-4899-4493-1",
+    "ISBN": "978-0-412-55270-0",
+    "URL": "http://link.springer.com/10.1007/978-1-4899-4493-1",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Wand",
+        "given": "M. P."
+      },
+      {
+        "family": "Jones",
+        "given": "M. C."
+      }
+    ],
+    "id": "wand1995kernel",
+    "issued": {
+      "date-parts": [
+        [
+          "1995"
+        ]
+      ]
+    },
+    "language": "en",
+    "license": "http://www.springer.com/tdm",
+    "publisher": "Springer US",
+    "publisher-place": "Boston, MA",
+    "source": "DOI.org (Crossref)",
+    "title": "Kernel Smoothing",
+    "type": "book"
+  }
+]

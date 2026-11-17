@@ -183,10 +183,6 @@ CADENAS = [
 ORDENES = [r"\hat f", r"\frac", r"\sum", r"\int", r"\sigma", r"\lambda",
            r"\mu_2", r"\operatorname{Var}", r"\phi", r"\text{AMISE}"]
 
-COMA_DECIMAL = re.compile(r"(?<![\d.,])\d+,\d+(?!\d|[.,]\d)")
-PUNTO_A_COMA = re.compile(r"""\.replace\(\s*(?:(['"])\.\1|/\\\./g?)\s*,\s*(['"]),\2\s*\)""")
-
-
 def respuestas_publicadas(a: Auditor) -> None:
     """CADA RESPUESTA DEL JSON, EN SU PANEL, Y NINGUNA DE MÁS (lección M5 del cap. 5)."""
     print("\n=== Las respuestas de los ejercicios, en su panel ==========")
@@ -206,17 +202,6 @@ def respuestas_publicadas(a: Auditor) -> None:
         a.exige(not faltan, f"la solución {k} publica cada respuesta entera", "; ".join(faltan))
 
 
-def decimales_con_punto(a: Auditor) -> None:
-    """UN SOLO SEPARADOR DECIMAL, EL PUNTO (regla M6 del capítulo 5)."""
-    print("\n=== Los decimales, con punto =================================")
-    comas = [a.prosa_txt[max(0, m.start() - 30):m.end() + 5].strip()
-             for m in COMA_DECIMAL.finditer(a.prosa_txt)]
-    a.exige(not comas, "la prosa no escribe ningún decimal con coma",
-            " · ".join(f"«{c}»" for c in comas[:3]))
-    guiones = "\n".join(re.findall(r"<script[^>]*>(.*?)</script>", a.doc, re.S))
-    cambios = [guiones[max(0, m.start() - 50):m.end()].strip().splitlines()[-1]
-               for m in PUNTO_A_COMA.finditer(guiones)]
-    a.exige(not cambios, "ningún formateador cambia el punto por coma", " · ".join(cambios[:2]))
 
 
 def titulos_sin_acento_grave(a: Auditor) -> None:
@@ -306,7 +291,9 @@ def main() -> int:
     a.afirmaciones(AFIRMACIONES)
     a.accesibilidad()
     respuestas_publicadas(a)
-    decimales_con_punto(a)
+    # La guarda vive en el núcleo desde que la rama de la coma decimal
+    # (5b2590a) entró aquí: la copia local no veía fórmulas ni el JavaScript.
+    a.decimales_con_punto()
     titulos_sin_acento_grave(a)
     motor_al_dia(a)
     figura_del_plano(a)

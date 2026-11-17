@@ -142,10 +142,8 @@ REUSA <- list(
   r("neff_desercion",      "cap1",  5, "n_efectivo.desercion_municipal",   "Tamaño efectivo de los 1121 municipios con deserción"),
   r("neff_desercion_n",    "cap1",  5, "n_efectivo.desercion_n",           "Municipios con dato de deserción"),
   r("neff_pct",            "cap1",  5, "n_efectivo.desercion_pct",         "Porcentaje de la información nominal que queda tras la autocorrelación"),
-  r("neff_rho_implicito",  "cap1",  5, "n_efectivo.rho_del_titular.implicito", "El rho que la equicorrelación NECESITARÍA para dar ese n efectivo: se despeja de él, no se estima"),
-  r("neff_rho_estimado",   "cap1",  5, "n_efectivo.rho_del_titular.estimado", "La correlación media entre pares medida de verdad sobre el mapa, con el correlograma de 7 bandas"),
-  r("neff_con_estimado",   "cap1",  5, "n_efectivo.rho_del_titular.n_eff_con_estimado", "n efectivo que daría la correlación media medida, en vez del rho retro-transformado"),
-  r("neff_I_primera_banda","cap1",  5, "n_efectivo.rho_del_titular.I_primera_banda", "Moran I de la primera banda: la correlación de los vecinos inmediatos, que NO es el rho medio"),
+  r("neff_rho_implicito",  "cap1",  5, "n_efectivo.rho_del_titular.implicito", "Correlación media entre pares de municipios que corresponde a la varianza que midió el remuestreo por departamentos: se despeja de ella, no se mide sobre el mapa"),
+  r("neff_centrado_col",   "cap1",  5, "n_efectivo.centrado.colombia.centrado", "Promedio de los productos de todos los pares de municipios, centrados con la media muestral y divididos por la varianza: vale -1/(n-1) con cualquier dato que no sea constante"),
 
   r("realiz_rechaza",      "cap1",  6, "una_realizacion.pct_rechaza_ingenuo", "Porcentaje de veces que la prueba ingenua rechaza siendo cierta H0"),
   r("realiz_esperado",     "cap1",  6, "una_realizacion.pct_esperado_si_valiera", "Porcentaje que debería rechazar si la prueba fuera válida"),
@@ -336,7 +334,6 @@ if (length(setdiff(cubiertos, esperados)))
 # ---------------------------------------------------------------------
 n1  <- val("neff_desercion_n")
 rho <- val("neff_rho_implicito")
-I1  <- val("neff_I_primera_banda")
 neff <- function(n, r) n / (1 + (n - 1) * r)
 N1 <- list(
   modulo = "cap1.m5", n = n1, rho = rho, decimales = 2,
@@ -344,8 +341,8 @@ N1 <- list(
   distractores = list(
     list(id = "resta_lineal", valor = n1 * (1 - rho),
          error = "descontar la correlación linealmente, como si quitara una fracción de las observaciones en vez de dividir por el efecto de diseño"),
-    list(id = "rho_primera_banda", valor = neff(n1, I1),
-         error = "meter en la fórmula el Moran I de la primera banda de distancia: la correlación de los vecinos inmediatos no es la que la equicorrelación pide, que es una sola para todos los pares"),
+    list(id = "techo", valor = 1 / rho,
+         error = "dar el techo 1/rho_medio, el límite del tamaño efectivo cuando n crece con la correlación media fija, en vez del valor que corresponde a los n municipios que hay"),
     list(id = "multiplica", valor = n1 * (1 + (n1 - 1) * rho),
          error = "multiplicar por el efecto de diseño en vez de dividir")
   ),
@@ -654,6 +651,23 @@ if (!all(diff(elip_lon) < 0))
   para("la curva de los metros por grado de longitud deja de bajar en todo su ",
        "recorrido, y el texto alternativo de D04 lo afirma")
 
+# La referencia de g_variograma es el teórico PROMEDIADO EN LA CLASE de
+# cada retardo (`teorico_clase` del capítulo 1), no gamma en el retardo
+# entero: las clases del estimador agrupan los pares a media unidad del
+# retardo, y lo que el estimador estima sin sesgo es gamma promediada sobre
+# esos pares. La retroalimentación de la pregunta afirma que la media de las
+# realizaciones va pegada a esa referencia EN TODOS los retardos; se
+# comprueba aquí (medido: como mucho un 0,7 %; se exige menos del 2 %).
+vario_ref <- unlist(vario$teorico_clase)
+vario_med <- unlist(vario$media)
+if (length(vario_ref) != length(vario_med))
+  para("el capitulo 1 no trae un teorico de clase por retardo: g_variograma no ",
+       "tendria referencia que dibujar")
+if (any(abs(vario_med - vario_ref) / vario_ref >= 0.02))
+  para("la media de las realizaciones se separa mas de un 2 % del teorico de la ",
+       "clase en algun retardo, y la retroalimentacion de la pregunta del ",
+       "variograma dice que van juntos en todos")
+
 GRAFICOS <- list(
   g_cobertura = list(
     modulo = "cap1.m4", titulo = "Cobertura real de un IC al 95 % según la dependencia",
@@ -662,7 +676,7 @@ GRAFICOS <- list(
   ),
   g_variograma = list(
     modulo = "cap1.m6", titulo = "Variograma: el teórico y lo que da UNA realización",
-    lags = unlist(vario$lags), teorico = unlist(vario$teorico),
+    lags = unlist(vario$lags), teorico_clase = vario_ref,
     media = unlist(vario$media), q05 = unlist(vario$q05), q95 = unlist(vario$q95)
   ),
   g_grado = list(
@@ -824,6 +838,15 @@ ancla("N1 reproduce el n efectivo del capítulo 1",
       N1$correcto, val("neff_desercion"), 1e-6)
 ancla("N1 el % de información cuadra",
       N1$correcto / n1 * 100, val("neff_pct"), 1e-6)
+# El techo queda cerca del correcto (n ya es grande), y la pregunta acepta
+# medio punto de error: si un día dejaran de separarse más que eso, el
+# distractor se corregiría como acierto.
+ancla_cierto("N1 el techo 1/rho_medio queda fuera de la tolerancia de la pregunta",
+             abs(1 / rho - N1$correcto) > 0.5,
+             paste0("1/rho_medio = ", format(1 / rho, digits = 10),
+                    " contra ", format(N1$correcto, digits = 10)))
+ancla("N1 el promedio centrado de todos los pares es -1/(n-1)",
+      val("neff_centrado_col"), -1 / (n1 - 1), 1e-9)
 ancla("N2 reproduce el grado de longitud del capítulo 2 sobre el elipsoide",
       N2$correcto, val("grad_lon_elip")[2], 1e-4)
 ancla("N2 el distractor de s2 reproduce la columna esférica del capítulo",

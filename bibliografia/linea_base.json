@@ -1,0 +1,317 @@
+{
+ "resumen": {
+  "ensambla_cap1.py": {
+   "fuera-del-catalogo": 3
+  },
+  "ensambla_cap2.py": {},
+  "ensambla_cap3.py": {
+   "catalogada-sin-ejemplar": 1
+  },
+  "ensambla_cap4.py": {
+   "catalogada-sin-ejemplar": 3
+  },
+  "ensambla_cap5.py": {
+   "catalogada-sin-ejemplar": 1
+  },
+  "ensambla_cap6.py": {},
+  "ensambla_cap7.py": {
+   "catalogada-sin-ejemplar": 10,
+   "fuera-del-catalogo": 3
+  },
+  "ensambla_apendicea.py": {
+   "catalogada-sin-ejemplar": 11
+  }
+ },
+ "menciones": {
+  "ensambla_cap1.py": [
+   {
+    "linea": 232,
+    "autores": "Snow",
+    "anio": "1854",
+    "claves": [],
+    "estado": "fuera-del-catalogo"
+   },
+   {
+    "linea": 430,
+    "autores": "de Numata",
+    "anio": "1961",
+    "claves": [],
+    "estado": "fuera-del-catalogo"
+   },
+   {
+    "linea": 1051,
+    "autores": "de Donnelly",
+    "anio": "1978",
+    "claves": [],
+    "estado": "fuera-del-catalogo"
+   }
+  ],
+  "ensambla_cap2.py": [],
+  "ensambla_cap3.py": [
+   {
+    "linea": 1037,
+    "autores": "de Machado, Oliveira y Fernandes",
+    "anio": "2009",
+    "claves": [
+     "machado2009physiologically"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   }
+  ],
+  "ensambla_cap4.py": [
+   {
+    "linea": 1518,
+    "autores": "van Lieshout y Baddeley",
+    "anio": "1996",
+    "claves": [
+     "vanlieshout1996nonparametric"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1557,
+    "autores": "Bedford y van den Berg",
+    "anio": "1997",
+    "claves": [
+     "bedford1997remark"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1915,
+    "autores": "Baddeley y Silverman",
+    "anio": "1984",
+    "claves": [
+     "baddeley1984cautionary"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   }
+  ],
+  "ensambla_cap5.py": [
+   {
+    "linea": 1338,
+    "autores": "de Jones",
+    "anio": "1993",
+    "claves": [
+     "jones1993simple"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   }
+  ],
+  "ensambla_cap6.py": [],
+  "ensambla_cap7.py": [
+   {
+    "linea": 22,
+    "autores": "de Anselin",
+    "anio": "1995",
+    "claves": [
+     "anselin1995local"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1104,
+    "autores": "Anselin",
+    "anio": "1995",
+    "claves": [
+     "anselin1995local"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1131,
+    "autores": "de Jong, Sprenger y van Veen",
+    "anio": "1984",
+    "claves": [
+     "dejong1984extreme"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1198,
+    "autores": "Anselin",
+    "anio": "1995",
+    "claves": [
+     "anselin1995local"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1312,
+    "autores": "Anselin",
+    "anio": "1996",
+    "claves": [],
+    "estado": "fuera-del-catalogo"
+   },
+   {
+    "linea": 1430,
+    "autores": "Geary",
+    "anio": "1954",
+    "claves": [
+     "geary1954contiguity"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1751,
+    "autores": "Anselin",
+    "anio": "1995",
+    "claves": [
+     "anselin1995local"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2039,
+    "autores": "Benjamini y Hochberg",
+    "anio": "1995",
+    "claves": [
+     "benjamini1995controlling"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2174,
+    "autores": "Getis y Ord",
+    "anio": "1992",
+    "claves": [
+     "getis1992analysis"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2199,
+    "autores": "de Getis y Ord",
+    "anio": "1992",
+    "claves": [
+     "getis1992analysis"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2211,
+    "autores": "Getis y Ord",
+    "anio": "1996",
+    "claves": [],
+    "estado": "fuera-del-catalogo"
+   },
+   {
+    "linea": 2288,
+    "autores": "Assunção y Reis",
+    "anio": "1999",
+    "claves": [
+     "assuncao1999new"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2303,
+    "autores": "Getis",
+    "anio": "1995",
+    "claves": [],
+    "estado": "fuera-del-catalogo"
+   }
+  ],
+  "ensambla_apendicea.py": [
+   {
+    "linea": 1370,
+    "autores": "Scott",
+    "anio": "1985",
+    "claves": [
+     "scott1985averaged"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1413,
+    "autores": "Scott",
+    "anio": "1985",
+    "claves": [
+     "scott1985averaged"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1784,
+    "autores": "Rosenblatt",
+    "anio": "1956",
+    "claves": [
+     "rosenblatt1956remarks"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1784,
+    "autores": "Parzen",
+    "anio": "1962",
+    "claves": [
+     "parzen1962estimation"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 1955,
+    "autores": "Epanechnikov",
+    "anio": "1969",
+    "claves": [
+     "epanechnikov1969non"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2430,
+    "autores": "Silverman",
+    "anio": "1986",
+    "claves": [
+     "silverman1986density"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2525,
+    "autores": "Scott y Terrell",
+    "anio": "1987",
+    "claves": [
+     "scott1987biased"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2536,
+    "autores": "Diggle",
+    "anio": "1985",
+    "claves": [
+     "diggle1985kernel"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2536,
+    "autores": "Berman y Diggle",
+    "anio": "1989",
+    "claves": [
+     "berman1989estimating"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2537,
+    "autores": "Cronie y van Lieshout",
+    "anio": "2018",
+    "claves": [
+     "cronie2018non"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   },
+   {
+    "linea": 2605,
+    "autores": "Sheather y Jones",
+    "anio": "1991",
+    "claves": [
+     "sheather1991reliable"
+    ],
+    "estado": "catalogada-sin-ejemplar"
+   }
+  ]
+ }
+}

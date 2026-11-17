@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import re
 import pathlib
 import sys
@@ -48,7 +49,13 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
-DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-2-crs-georreferenciacion.html"
+PUBLICADO = RAIZ / "Htmls_Espacial" / "capitulo-2-crs-georreferenciacion.html"
+# `CAP2_DESTINO` manda la salida a otra parte, como en los capítulos 1 y 5: el
+# ensamblador escribe el HTML ANTES de correr sus guardas, y
+# `prueba_ensambla_cap2.py` lo ejecuta con guardas rotas a propósito. Sin
+# esto, cada mutante dejaría lo publicado construido con el defecto. El
+# botón al índice se calcula siempre para la ruta publicada.
+DESTINO = pathlib.Path(os.environ.get("CAP2_DESTINO") or PUBLICADO)
 
 D = json.loads((SALIDAS / "cap2_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap2_mapas.json").read_text(encoding="utf-8"))
@@ -203,14 +210,24 @@ def quiz_html(ident, titulo, bajada):
 """
 
 
-def mapa_html(ident, titulo):
-    return f"""      <div class="geomapa" data-geomapa="{ident}">
+def mapa_html(ident, titulo, controles=False):
+    """El div de un `.geomapa`, y sus botones FUERA de él.
+
+    Hasta el 2026-11-02 este div llevaba dentro un `.geomapa-controles`, y
+    `iniciarGeomapas()` REESCRIBE el innerHTML del mapa para montar su marco,
+    su leyenda y sus desplegables: los botones de las proyecciones no
+    existieron nunca. La prosa del módulo 3 decía «cambia de proyección con
+    los botones» y el mapa enseñaba Mercator y nada más, sin un error en
+    consola. Van como HERMANO del mapa, como en el capítulo 3, y los pone
+    `cablearCap2()`.
+    """
+    ctrl = (f'      <div class="geomapa-controles" id="ctrl-{ident}" role="group" '
+            f'aria-label="Elige la proyección del mapa"></div>\n' if controles else "")
+    return ctrl + f"""      <div class="geomapa" data-geomapa="{ident}">
         <p class="geomapa-titulo">{titulo}</p>
         <div class="geomapa-marco">
           <canvas class="geomapa-lienzo" role="img" aria-label="{titulo}"></canvas>
         </div>
-        <div class="geomapa-controles"></div>
-        <div class="geomapa-pie-caja"></div>
       </div>
 """
 
@@ -544,7 +561,7 @@ MOD3 = cabecera(
       la latitud como si fueran coordenadas planas, que es lo que hace cualquier programa al
       que no se le dice nada.</p>
 
-{mapa_html('cap2-proyecciones', 'El mundo bajo seis proyecciones, con la distorsión medida')}
+{mapa_html('cap2-proyecciones', 'El mundo bajo seis proyecciones, con la distorsión medida', controles=True)}
       <p>Mercator mantiene todas las elipses redondas y las hincha hacia los polos; Mollweide
       y Equal Earth las mantienen del mismo tamaño y las aplastan; Robinson no hace ni una
       cosa ni la otra. Eso que se ve, medido sobre las {ent(pr['n_indicatrices'])}
@@ -646,7 +663,7 @@ MOD4 = cabecera(
       el segundo colorea los departamentos por el error de área que comete 3116. Mira el
       contraste entre el centro del país y los extremos oriental y occidental.</p>
 
-{mapa_html('cap2-proyecciones-co', 'Colombia bajo tres sistemas de referencia')}
+{mapa_html('cap2-proyecciones-co', 'Colombia bajo tres sistemas de referencia', controles=True)}
 {mapa_html('cap2-error-3116', 'Exceso de área de EPSG:3116, por departamento')}
       <p>El patrón es el que la teoría anuncia: el error de una transversa de Mercator crece
       al alejarse de su meridiano central, y crece rápido. Repartiendo los municipios por su
@@ -1162,8 +1179,8 @@ MOD9 = cabecera(
      mandos=False, aria=_ARIA_DEGRADAR)}
       <p>Hasta aquí el tamaño del daño. Falta el reparto, que es lo que de verdad convierte
       esto en un problema y no en una molestia. Promediando {firma(ent(_sg['n_replicas']), ' realizaciones')}
-      del ruido de {_sg['sigma_m']}&nbsp;m —una sola daba correlaciones que bailaban entre 0,38
-      y 0,72, así que no era una medida sino una anécdota— la tasa global de reasignación es
+      del ruido de {_sg['sigma_m']}&nbsp;m —una sola daba correlaciones que bailaban entre 0.38
+      y 0.72, así que no era una medida sino una anécdota— la tasa global de reasignación es
       {firma(n(_sg['tasa_global_pct']) + ' %')} con un error de Monte Carlo de
       {n(_sg['emc_global_pct'])} puntos.</p>
 
@@ -1583,22 +1600,336 @@ COURSE_DATA = (
 # =====================================================================
 # Los mapas
 # =====================================================================
-def geomapa(ident, clave, paleta=None, etiqueta=None, extra=""):
-    """Un registro de GEOMAPAS con su fuente como LITERAL (ver cap. 1)."""
+def geomapa(ident, clave, paleta=None, etiqueta=None, extra="", *, descripcion, vista=None):
+    """Un registro de GEOMAPAS con su fuente como LITERAL (ver cap. 1).
+
+    `descripcion` es lo que se VE en el mapa («Describir el mapa», ver
+    `describe_mapa.py`): una cadena, o una lista con un texto por vista
+    cuando el mapa cambia de vista. `vista` es entonces la variable de
+    estado que eligen los botones, y el registro la lee con un getter.
+    """
     partes = [f"      fuente: {json.dumps(M[clave], ensure_ascii=False)}"]
     if paleta:
         partes.append(f"      paleta: '{paleta}'")
     if etiqueta:
         partes.append(f"      etiqueta: '{etiqueta}'")
+    if vista:
+        partes.append(f"      get vista() {{ return {vista}; }}")
+    if isinstance(descripcion, list):
+        partes.append(f"      descripcion: (d, o) => {json.dumps(descripcion, ensure_ascii=False)}"
+                      f"[o.vista || 0]")
+    else:
+        partes.append(f"      descripcion: {json.dumps(descripcion, ensure_ascii=False)}")
     if extra:
         partes.append(extra)
     return f"    GEOMAPAS['{ident}'] = {{\n" + ",\n".join(partes) + "\n    };\n"
 
+# =====================================================================
+# «Describir el mapa» (2026-11-02)
+# =====================================================================
+# Lo que se VE en cada mapa, para quien no lo ve: la etiqueta dice qué es
+# el mapa; esto, qué enseña. El motor lo pone en el desplegable «Describir
+# el mapa» y lo enlaza al lienzo para el lector de pantalla (ver
+# `describe_mapa.py`). Las cifras y los nombres salen del JSON —lo que
+# faltaba lo publica R en `visto`—, y cada frase sobre la forma («crecen
+# con la latitud», «lo más oscuro está en los extremos») tiene su guarda en
+# `main()`: una descripción que miente sobre el mapa es peor que ninguna,
+# porque quien la lee no tiene cómo verlo.
+from describe_mapa import lista_y, revisa_textos  # noqa: E402
 
-VISTAS_MUNDO = """      controles: function (d) {
-        return d.vistas.map((v, i) => ({ etiqueta: v.nombre, valor: i }));
-      },
-      alCambiar: function (valor, o) { o.vista = Number(valor); }"""
+_VI = D["visto"]
+_PMV = M["proyecciones_mundo"]["vistas"]
+_RM = _VI["proyecciones_mundo"]
+_PCV = M["proyecciones_colombia"]["vistas"]
+_RC = _VI["proyecciones_colombia"]
+_IV = {v["nombre"]: k for k, v in enumerate(_PMV)}
+_IC = {v["nombre"]: k for k, v in enumerate(_PCV)}
+
+
+def _empates(vals, mayor):
+    """Los índices del extremo de una lista publicada, a los decimales con que se dibuja."""
+    ext = max(vals) if mayor else min(vals)
+    return [i for i, v in enumerate(vals) if v == ext]
+
+
+def _en(rej, ix, eje):
+    """Los valores distintos de la rejilla (`lon` o `lat`) en esos índices, ordenados."""
+    return sorted({rej[eje][i] for i in ix})
+
+
+def _ind(vistas, i, que):
+    return vistas[i]["indicatrices"][que]
+
+
+# --- Módulo 3: el mundo, una descripción por proyección ----------------
+_n_ind = len(_RM["lon"])
+_r_km = ent(pr["radio_km"])
+_i = _IV["Mercator"]
+_mer = (_empates(_ind(_PMV, _i, "s"), False), _empates(_ind(_PMV, _i, "s"), True))
+_D_MERC = (
+    f"Con Mercator las {ent(_n_ind)} elipses salen redondas —la deformación angular no pasa de "
+    f"{n(PT['omega_max_grados'][_i], 3)}°— y crecen con la latitud: en el ecuador un círculo de "
+    f"{_r_km} km conserva su área ({n(PT['s_min'][_i], 2)}), y a {ent(max(_en(_RM, _mer[1], 'lat')))}° "
+    f"de latitud, al norte y al sur, ocupa {n(PT['s_max'][_i], 2)} veces la suya. Por eso el mapa se "
+    f"corta en los {ent(pr['lat_corte'])}°: hacia el polo el área crece sin límite.")
+_i = _IV["Web Mercator (3857)"]
+_web = _empates(_ind(_PMV, _i, "s"), True)
+_D_WEB = (
+    f"Con Web Mercator el mapa es, a la vista, el mismo que con Mercator: las elipses crecen igual "
+    f"hacia los polos, hasta {n(PT['s_max'][_i], 2)} veces el área a {ent(max(_en(_RM, _web, 'lat')))}° "
+    f"de latitud. La diferencia no se ve: ya no son círculos exactos —la deformación angular llega a "
+    f"{n(PT['omega_max_grados'][_i], 2)}°—, porque 3857 aplica el Mercator de la esfera a "
+    f"coordenadas del elipsoide.")
+
+
+def _formas(i):
+    """Dónde se deforma MENOS y MÁS una proyección: (índices del mínimo, del máximo) de ω."""
+    om = _ind(_PMV, i, "omega")
+    return _empates(om, False), _empates(om, True)
+
+
+_i = _IV["Mollweide"]
+_mol = _formas(_i)
+_D_MOLL = (
+    f"Con Mollweide todas las elipses ocupan casi la misma área —la escala va de "
+    f"{n(PT['s_min'][_i], 3)} a {n(PT['s_max'][_i], 3)}—, pero no tienen la misma forma: donde menos "
+    f"se deforman es a {ent(max(_en(_RM, _mol[0], 'lat')))}° de latitud cerca del meridiano central "
+    f"({n(_RM['omega_min_grados'][_i], 1)}°), y hacia los bordes se aplastan y se inclinan, hasta "
+    f"{n(PT['omega_max_grados'][_i], 1)}° en las esquinas del mapa, a "
+    f"{ent(max(_en(_RM, _mol[1], 'lat')))}° de latitud y {ent(max(_en(_RM, _mol[1], 'lon')))}° de "
+    f"longitud.")
+_i = _IV["Equal Earth"]
+_ee = _formas(_i)
+_D_EE = (
+    f"Con Equal Earth la escala de área vale {n(PT['s_med'][_i], 3)} en las {ent(_n_ind)} elipses: "
+    f"el área se conserva exacta. La forma no: las elipses menos deformadas, a "
+    f"{ent(max(_en(_RM, _ee[0], 'lat')))}° de latitud cerca del meridiano central, ya se tuercen "
+    f"{n(_RM['omega_min_grados'][_i], 1)}°, y las de las esquinas, a "
+    f"{ent(max(_en(_RM, _ee[1], 'lat')))}° de latitud y {ent(max(_en(_RM, _ee[1], 'lon')))}° de "
+    f"longitud, {n(PT['omega_max_grados'][_i], 1)}°.")
+_i = _IV["Robinson"]
+_rob_s = (_empates(_ind(_PMV, _i, "s"), False), _empates(_ind(_PMV, _i, "s"), True))
+_rob = _formas(_i)
+_D_ROB = (
+    f"Con Robinson no se conservan ni el área ni la forma, pero ninguna se rompe mucho: las elipses "
+    f"del ecuador salen más pequeñas que las demás ({n(PT['s_min'][_i], 2)} del área) y las de "
+    f"{ent(max(_en(_RM, _rob_s[1], 'lat')))}° de latitud, más grandes ({n(PT['s_max'][_i], 2)}), y "
+    f"la deformación angular va de {n(_RM['omega_min_grados'][_i], 1)}°, a "
+    f"{ent(max(_en(_RM, _rob[0], 'lat')))}° de latitud cerca del meridiano central, a "
+    f"{n(PT['omega_max_grados'][_i], 1)}° en las esquinas.")
+_i = _IV["Azimutal equidistante (Bogotá)"]
+_az_s = (_empates(_ind(_PMV, _i, "s"), False), _empates(_ind(_PMV, _i, "s"), True))
+_az = _formas(_i)
+_dc = _RM["dist_centro_km"]
+_D_AZ = (
+    f"La azimutal equidistante está centrada en Bogotá. La elipse más cercana, a "
+    f"{ent(_dc[_az_s[0][0]])} km, es casi un círculo de su mismo tamaño ({n(PT['s_min'][_i], 2)} del "
+    f"área y {n(_RM['omega_min_grados'][_i], 1)}° de deformación angular); al alejarse crecen y se "
+    f"estiran, y la más lejana, a {ent(_dc[_az_s[1][0]])} km —casi al otro lado de la Tierra—, ocupa "
+    f"{n(PT['s_max'][_i], 2)} veces su área y se deforma {n(PT['omega_max_grados'][_i], 1)}°.")
+DESC_MUNDO = [{"Mercator": _D_MERC, "Web Mercator (3857)": _D_WEB, "Mollweide": _D_MOLL,
+               "Equal Earth": _D_EE, "Robinson": _D_ROB,
+               "Azimutal equidistante (Bogotá)": _D_AZ}[v["nombre"]] for v in _PMV]
+
+# --- Módulo 4: Colombia bajo tres sistemas -----------------------------
+_nco = len(_RC["lon"])
+_rco = ent(_PCV[0]["indicatrices"]["radio_km"])
+_i = _IC["Web Mercator (3857)"]
+_cw = (_empates(_ind(_PCV, _i, "s"), False), _empates(_ind(_PCV, _i, "s"), True))
+_D_CO_WEB = (
+    f"Con Web Mercator la silueta de Colombia y sus {ent(_nco)} círculos de {_rco} km se ven casi "
+    f"como en los otros dos sistemas. Los círculos crecen un poco al alejarse del ecuador —la escala "
+    f"de área es {n(_PCV[_i]['s_min'], 3)} a {ent(_en(_RC, _cw[0], 'lat')[0])}° de latitud y "
+    f"{n(_PCV[_i]['s_max'], 3)} a {ent(_en(_RC, _cw[1], 'lat')[0])}°, en el norte—, y no son círculos "
+    f"exactos: la deformación angular llega a {n(_RC['omega_max_grados'][_i], 2)}°, demasiado poco "
+    f"para verse.")
+_i = _IC["MAGNA-SIRGAS / Bogotá (3116)"]
+_c16 = (_empates(_ind(_PCV, _i, "s"), False), _empates(_ind(_PCV, _i, "s"), True))
+_D_CO_3116 = (
+    f"Con 3116 los {ent(_nco)} círculos son círculos —la proyección es conforme— y casi del mismo "
+    f"tamaño: la escala de área vale {n(_PCV[_i]['s_min'], 3)} en la columna de "
+    f"{ent(_en(_RC, _c16[0], 'lon')[0])}°, la más cercana al meridiano de Bogotá, y crece hacia los "
+    f"lados, hasta {n(_PCV[_i]['s_max'], 3)} en el extremo oriental, a "
+    f"{ent(_en(_RC, _c16[1], 'lon')[0])}°. A la vista no cambia nada; lo que esa diferencia le hace "
+    f"al área de cada departamento lo pinta el mapa siguiente.")
+_i = _IC["MAGNA-SIRGAS / Origen Nacional (9377)"]
+_c93 = (_empates(_ind(_PCV, _i, "s"), False), _empates(_ind(_PCV, _i, "s"), True))
+_D_CO_9377 = (
+    f"Con 9377, otra vez círculos del mismo tamaño a la vista. La escala de área baja de 1 en la "
+    f"columna de {ent(_en(_RC, _c93[0], 'lon')[0])}°, la más cercana al meridiano 73: vale "
+    f"{n(_PCV[_i]['s_min'], 4)}, porque el factor de escala de 9377, menor que 1, encoge el centro. "
+    f"Hacia los lados sube, hasta {n(_PCV[_i]['s_max'], 4)} en el extremo oriental, a "
+    f"{ent(_en(_RC, _c93[1], 'lon')[0])}°.")
+DESC_COLOMBIA = [{"Web Mercator (3857)": _D_CO_WEB, "MAGNA-SIRGAS / Bogotá (3116)": _D_CO_3116,
+                  "MAGNA-SIRGAS / Origen Nacional (9377)": _D_CO_9377}[v["nombre"]] for v in _PCV]
+
+# --- Módulo 4: el error de área de 3116 --------------------------------
+_E3 = _VI["error_3116"]
+_may, _men = _E3["mayores"], _E3["menores"]
+DESC_ERROR = (
+    f"El color crece del centro del país hacia los lados, como la distancia al meridiano de Bogotá. "
+    f"Lo más claro está en la franja central, de norte a sur: {_men[0]['departamento']} "
+    f"({n(_men[0]['pct'], 4)} %), {_men[1]['departamento']} y {_men[2]['departamento']}. Lo más "
+    f"oscuro, en los extremos: el {_may[0]['departamento']}, en el {_may[0]['zona']}, con "
+    f"{n(_may[0]['pct'], 2)} %, y {_may[1]['departamento']} ({n(_may[1]['pct'], 2)} %) y "
+    f"{_may[2]['departamento']} ({n(_may[2]['pct'], 2)} %), en el {_may[1]['zona']}.")
+
+# --- Módulo 8: las estaciones invertidas ---------------------------------
+_cb, _cm = cs["caja_bien"], cs["caja_mal"]
+_dst = cs["destino"]
+_i_dst = max(range(len(_dst["n"])), key=lambda k: _dst["n"][k])
+DESC_INVERTIDOS = (
+    f"Los rombos, las {ent(cs['n'])} estaciones donde están, dibujan Colombia en el noroccidente de "
+    f"Suramérica. Los puntos, las mismas estaciones con la longitud y la latitud cambiadas de sitio, "
+    f"forman una franja al pie del mapa, entre las longitudes {n(_cm[0], 2)} y {n(_cm[2], 2)} y las "
+    f"latitudes {n(_cm[1], 2)} y {n(_cm[3], 2)}: {_dst['nombre'][_i_dst]}, al sur del golfo de "
+    f"Guinea. {ent(_dst['n'][_i_dst])} caen en tierra antártica y {ent(cs['n_en_mar'])} en el mar; "
+    f"ninguna queda en Colombia.")
+
+# --- Módulo 9: el redondeo y el sesgo ------------------------------------
+_DG = _VI["degradado"]
+_r2 = po["redondeos"][2]
+DESC_DEGRADADO = (
+    f"Los puntos forman una cuadrícula: filas y columnas separadas {n(_DG['paso_grados'], 2)}°, unos "
+    f"{ent(_DG['paso_lat_m'])} m de norte a sur y {ent(_DG['paso_lon_m'])} m de oriente a occidente, "
+    f"y las {ent(po['n_sedes'])} sedes quedan en {ent(_r2['n_posiciones'])} de sus cruces, hasta "
+    f"{ent(_DG['max_sedes_posicion'])} en uno solo. Los rombos, {ent(po['n_muestra_mapa'])} posiciones "
+    f"reales tomadas al azar, no tienen esa regularidad: se reparten como las sedes, cada una a menos "
+    f"de {ent(_r2['desplaz_max_m'])} m de su punto.")
+_SS = _VI["sesgo"]
+_ses = list(zip(_SS["localidad"], _SS["pct"], _SS["n_sedes"]))
+_oscuras, _claras = _ses[:3], _ses[::-1][:3]
+_pocas = [(loc, k) for loc, _, k in _oscuras + _claras if k < _SS["umbral_cuadro"]]
+DESC_SESGO = (
+    "Los colores no se reparten parejo. El naranja más oscuro está en "
+    + lista_y([f"{loc} ({n(p, 2)} %)" for loc, p, _ in _oscuras])
+    + "; el más claro, en " + lista_y([f"{loc} ({n(p, 2)} %)" for loc, p, _ in _claras]) + "."
+    + "".join(f" {loc} tiene solo {ent(k)} sedes, así que su color sale de pocas." for loc, k in _pocas))
+
+# --- Módulo 11: las celdas de geohash ------------------------------------
+_GH = _VI["geohash"]
+_n5 = ig["geohash"]["niveles"][1]
+_sin_loc = _GH["n_claras"] - sum(_GH["claras_n"])
+DESC_GEOHASH = (
+    f"Son {ent(_n5['n_celdas'])} rectángulos iguales, de unos {n(_n5['celda_ancho_km'], 1)} × "
+    f"{n(_n5['celda_alto_km'], 1)} km, en filas y columnas alineadas con los meridianos y los "
+    f"paralelos; solo se pintan las celdas que tienen alguna sede. Las más oscuras tienen "
+    + lista_y([ent(c["n"]) for c in _GH["mayores"]]) + " sedes, y la localidad con más sedes en "
+    + "cada una es, por orden, "
+    + lista_y([f"{c['localidad']} ({ent(c['sedes_localidad'])} de {ent(c['n'])})" for c in _GH["mayores"]])
+    + f". Las {ent(_GH['n_claras'])} más claras, de {ent(_GH['claras_min'])} o "
+    f"{ent(_GH['claras_max'])} sedes, caen sobre todo en {_GH['claras_localidad'][0]} "
+    f"({ent(_GH['claras_n'][0])}), y las demás en "
+    + lista_y([f"{loc} ({ent(k)})" for loc, k in zip(_GH["claras_localidad"][1:], _GH["claras_n"][1:])])
+    + (f", más {ent(_sin_loc)} cuya sede no cae en ninguna localidad" if _sin_loc else "") + ".")
+
+DESCRIPCIONES = {
+    "cap2-proyecciones": DESC_MUNDO, "cap2-proyecciones-co": DESC_COLOMBIA,
+    "cap2-error-3116": [DESC_ERROR], "cap2-invertidos": [DESC_INVERTIDOS],
+    "cap2-degradado": [DESC_DEGRADADO], "cap2-sesgo": [DESC_SESGO], "cap2-geohash": [DESC_GEOHASH],
+}
+
+
+def guardas_de_las_descripciones() -> list[str]:
+    """Lo que las descripciones afirman de la forma de cada mapa, contra el dato."""
+    malos = []
+
+    def exige(cond, que):
+        if not cond:
+            malos.append(que)
+
+    lat_g, lon_g = _RM["lat"], _RM["lon"]
+    lat_ext = [min(lat_g), max(lat_g)]
+    abs_lon_min = min(abs(x) for x in lon_g)
+    exige(set(_IV) == {"Mercator", "Web Mercator (3857)", "Mollweide", "Equal Earth", "Robinson",
+                       "Azimutal equidistante (Bogotá)"} and len(_IV) == len(_PMV),
+          "proyecciones: las vistas del mapa ya no son las seis que tienen texto")
+    exige(len(lat_g) == len(_ind(_PMV, 0, "s")), "proyecciones: la rejilla no es la de las indicatrices")
+    # Mercator: redondas, el ecuador conserva el área y el máximo está en las dos filas extremas.
+    i = _IV["Mercator"]
+    exige(PT["omega_max_grados"][i] < 1e-3 and _en(_RM, _mer[0], "lat") == [0]
+          and _en(_RM, _mer[1], "lat") == lat_ext,
+          "Mercator: «redondas, conservan el área en el ecuador y crecen hasta las filas extremas» ya no vale")
+    i = _IV["Web Mercator (3857)"]
+    exige(0.01 < PT["omega_max_grados"][i] < 1 and _en(_RM, _web, "lat") == lat_ext,
+          "Web Mercator: «crecen igual hacia los polos y la deformación no se ve» ya no vale")
+    # Mollweide, Equal Earth y Robinson: lo menos deformado cerca del meridiano central, lo más en las esquinas.
+    for nom, (mn, mx) in (("Mollweide", _mol), ("Equal Earth", _ee), ("Robinson", _rob)):
+        exige({abs(x) for x in _en(_RM, mn, "lon")} == {abs_lon_min}
+              and {abs(x) for x in _en(_RM, mx, "lon")} == {max(abs(x) for x in lon_g)}
+              and _en(_RM, mx, "lat") == lat_ext,
+              f"{nom}: «lo menos deformado cerca del meridiano central y lo más en las esquinas» ya no vale")
+    i = _IV["Mollweide"]
+    exige(all(abs(s - 1) < 0.01 for s in _ind(_PMV, i, "s")), "Mollweide: «casi la misma área» ya no vale")
+    i = _IV["Equal Earth"]
+    exige(all(abs(s - 1) < 1e-3 for s in _ind(_PMV, i, "s")), "Equal Earth: «el área se conserva exacta» ya no vale")
+    exige(_en(_RM, _rob_s[0], "lat") == [0] and _en(_RM, _rob_s[1], "lat") == lat_ext
+          and PT["s_min"][_IV["Robinson"]] < 1 < PT["s_max"][_IV["Robinson"]],
+          "Robinson: «el ecuador más pequeño y las filas extremas más grandes» ya no vale")
+    # La azimutal: lo mínimo y lo máximo de área y de forma, en la más cercana y en la más lejana de Bogotá.
+    cerca = min(range(len(_dc)), key=lambda k: _dc[k])
+    lejos = max(range(len(_dc)), key=lambda k: _dc[k])
+    exige(_az_s[0] == [cerca] and _az[0] == [cerca] and _az_s[1] == [lejos] and _az[1] == [lejos],
+          "azimutal: el área y la forma ya no se deforman menos en la más cercana y más en la más lejana")
+    exige(_dc[lejos] > 15000, "azimutal: «casi al otro lado de la Tierra» y la más lejana está a menos de 15 000 km")
+    exige(_RM["centro_azimutal"] == [-74.0721, 4.711], "azimutal: el centro ya no es Bogotá")
+    # Colombia.
+    lat_c, lon_c = _RC["lat"], _RC["lon"]
+    exige(set(_IC) == {"Web Mercator (3857)", "MAGNA-SIRGAS / Bogotá (3116)",
+                       "MAGNA-SIRGAS / Origen Nacional (9377)"} and len(_IC) == len(_PCV),
+          "Colombia: las vistas del mapa ya no son las tres que tienen texto")
+    cerca_ec = min(lat_c, key=abs)
+    exige(_en(_RC, _cw[0], "lat") == [cerca_ec] and _en(_RC, _cw[1], "lat") == [max(lat_c)]
+          and all(_ind(_PCV, _IC["Web Mercator (3857)"], "s")[a] <= _ind(_PCV, _IC["Web Mercator (3857)"], "s")[b]
+                  for a in range(_nco) for b in range(_nco)
+                  if lon_c[a] == lon_c[b] and abs(lat_c[a]) < abs(lat_c[b])),
+          "Colombia, 3857: «crecen al alejarse del ecuador, hasta el norte» ya no vale")
+    for nom, par, mer in (("MAGNA-SIRGAS / Bogotá (3116)", _c16, _RC["meridiano_3116"]),
+                          ("MAGNA-SIRGAS / Origen Nacional (9377)", _c93, _RC["meridiano_9377"])):
+        cols = sorted(set(lon_c))
+        exige(_en(_RC, par[0], "lon") == [min(cols, key=lambda x: abs(x - mer))]
+              and _en(_RC, par[1], "lon") == [max(cols)] == [max(cols, key=lambda x: abs(x - mer))],
+              f"Colombia, {nom}: «lo menor junto a su meridiano y lo mayor en el extremo oriental» ya no vale")
+        exige(_PCV[_IC[nom]]["omega_max"] < 1e-6, f"Colombia, {nom}: «son círculos» y no es conforme")
+    exige(_PCV[_IC["MAGNA-SIRGAS / Origen Nacional (9377)"]]["s_min"] < 1,
+          "Colombia, 9377: «baja de 1 en el centro» ya no vale")
+    exige(0.01 < _RC["omega_max_grados"][_IC["Web Mercator (3857)"]] < 1,
+          "Colombia, 3857: «la deformación angular no se ve» ya no vale")
+    # El error de 3116.
+    centro = {"norte", "centro", "sur"}
+    exige(_E3["cor_spearman_distancia_meridiano"] > 0.9,
+          "error de 3116: «crece como la distancia al meridiano» y la correlación de rangos no pasa de 0.9")
+    exige(all(f["zona"] in centro for f in _men), "error de 3116: lo más claro ya no está en la franja central")
+    exige(all(f["zona"] not in centro for f in _may) and _may[1]["zona"] == _may[2]["zona"],
+          "error de 3116: lo más oscuro ya no está en los extremos, o el segundo y el tercero no comparten zona")
+    exige(_may[0]["departamento"].startswith("Archipiélago"),
+          "error de 3116: el texto dice «el …» delante del primero, que era el archipiélago")
+    # Las invertidas.
+    exige(_cm[0] < 0 < _cm[2] and _cm[3] < -60 and _dst["nombre"][_i_dst] == "la Antártida",
+          "invertidas: «la Antártida, al sur del golfo de Guinea» ya no vale")
+    exige(cs["n_en_colombia"] == 0 and _dst["n"][_i_dst] + cs["n_en_mar"] == cs["n"],
+          "invertidas: o alguna cae en Colombia, o el reparto entre tierra y mar no suma")
+    exige(_cb[2] < -60 and _cb[1] < 0 < _cb[3], "invertidas: la caja de los rombos ya no es la de Colombia")
+    # El redondeo.
+    exige(_DG["max_sedes_posicion"] >= 2 and _r2["n_posiciones"] == M["degradado"]["n"]
+          and po["n_muestra_mapa"] == M["degradado"]["n2"] and round(_r2["desplaz_max_m"]) > _r2["desplaz_max_m"],
+          "redondeo: la cuadrícula, la muestra o «a menos de N m» ya no cuadran con el mapa")
+    # El sesgo: lo que se nombra es lo que pinta el mapa.
+    _mapa = dict(zip(M["sesgo_localidades"].get("etiquetas", []), M["sesgo_localidades"]["valor"]))
+    exige(len(_mapa) == len(_SS["localidad"]) and all(abs(_mapa.get(loc, -1) - p) < 1e-6
+                                                     for loc, p in zip(_SS["localidad"], _SS["pct"]))
+          and _SS["pct"] == sorted(_SS["pct"], reverse=True),
+          "sesgo: las localidades que se nombran no son, con su valor, las del mapa")
+    # El geohash.
+    gh = M["geohash"]
+    cl = max(gh["clase"])
+    exige(all(gh["clase"][gh["valor"].index(c["n"])] == cl for c in _GH["mayores"])
+          and _GH["clase_clara"] == min(gh["clase"])
+          and sum(1 for c in gh["clase"] if c == _GH["clase_clara"]) == _GH["n_claras"]
+          and _GH["claras_n"][0] * 2 > _GH["n_claras"],
+          "geohash: «las más oscuras», «las más claras» o «sobre todo en …» ya no cuadran con el mapa")
+    return malos
+
 
 GEOMAPAS_JS = (
     "    // ----------------------------------------------------------------\n"
@@ -1608,12 +1939,17 @@ GEOMAPAS_JS = (
     "    // y descomposición en valores singulares — el navegador no calcula\n"
     "    // ni una de esas cosas, solo las dibuja.\n"
     "    // ----------------------------------------------------------------\n"
+    + "    // La vista que eligen los botones de los dos mapas de proyecciones.\n"
+    + "    let vistaMundo2 = 0, vistaCo2 = 0;\n"
     + geomapa("cap2-proyecciones", "proyecciones_mundo",
-              etiqueta="Cambia de proyección y compara las elipses: redondas = sin deformación angular; grandes = área inflada.")
+              etiqueta="Cambia de proyección y compara las elipses: redondas = sin deformación angular; grandes = área inflada.",
+              vista="vistaMundo2", descripcion=DESC_MUNDO)
     + geomapa("cap2-proyecciones-co", "proyecciones_colombia",
-              etiqueta="Colombia bajo Web Mercator y sus dos sistemas oficiales.")
+              etiqueta="Colombia bajo Web Mercator y sus dos sistemas oficiales.",
+              vista="vistaCo2", descripcion=DESC_COLOMBIA)
     + geomapa("cap2-error-3116", "error_3116", paleta="divergente",
               etiqueta="Exceso de área de EPSG:3116 frente al área geodésica, por departamento.",
+              descripcion=DESC_ERROR,
               extra="""      tabla: function (d) {
         const filas = d.valor.map((v, i) => `<tr><th scope="row">${(d.etiquetas || [])[i] || (i + 1)}</th>`
           + `<td>${v.toFixed(5)}</td><td>${d.clase[i]}</td></tr>`).join('');
@@ -1622,13 +1958,55 @@ GEOMAPAS_JS = (
           + `<th scope="col">Clase</th></tr></thead><tbody>${filas}</tbody></table>`;
       }""")
     + geomapa("cap2-invertidos", "invertidos",
-              etiqueta="Rombos: las 361 estaciones donde están. Puntos: las mismas con lon y lat intercambiadas.")
+              etiqueta="Rombos: las 361 estaciones donde están. Puntos: las mismas con lon y lat intercambiadas.",
+              descripcion=DESC_INVERTIDOS)
     + geomapa("cap2-degradado", "degradado",
-              etiqueta="El redondeo a dos decimales convierte un patrón puntual en una retícula.")
+              etiqueta="El redondeo a dos decimales convierte un patrón puntual en una retícula.",
+              descripcion=DESC_DEGRADADO)
     + geomapa("cap2-sesgo", "sesgo_localidades", paleta="naranja",
-              etiqueta="Promedio sobre 200 realizaciones de un error posicional de 150 m.")
+              etiqueta="Promedio sobre 200 realizaciones de un error posicional de 150 m.",
+              descripcion=DESC_SESGO)
     + geomapa("cap2-geohash", "geohash", paleta="verde",
-              etiqueta="Las celdas son rectángulos de la rejilla del geohash, no unidades administrativas.")
+              etiqueta="Las celdas son rectángulos de la rejilla del geohash, no unidades administrativas.",
+              descripcion=DESC_GEOHASH)
+    + r"""
+    // --- Los botones de las dos proyecciones (2026-11-02) ---------------
+    // El módulo 3 decía «cambia de proyección con los botones» desde el
+    // primer día, y el mapa no tenía ninguno: la botonera iba DENTRO del
+    // div del mapa, e `iniciarGeomapas()` reescribe ese innerHTML. Se veía
+    // Mercator, y en el módulo 4 Web Mercator, y nada más. Ahora va como
+    // HERMANO del mapa, como en el capítulo 3, y la vista vive en una
+    // variable que el registro lee con un getter: así la conservan el
+    // ResizeObserver, el conmutador de daltonismo y la vuelta al módulo.
+    // Los botones se marcan con la vista que ya hay, no con la primera.
+    function cablearCap2() {
+      [['cap2-proyecciones', () => vistaMundo2, v => { vistaMundo2 = v; }],
+       ['cap2-proyecciones-co', () => vistaCo2, v => { vistaCo2 = v; }]].forEach(([id, lee, pon]) => {
+        const raiz = mainContent.querySelector(`[data-geomapa="${id}"]`);
+        const cont = document.getElementById('ctrl-' + id);
+        if (!raiz || !cont || !raiz.__geomapa) return;
+        cont.innerHTML = '';
+        GEOMAPAS[id].fuente.vistas.forEach((v, i) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'geomapa-boton' + (i === lee() ? ' activo' : '');
+          b.setAttribute('aria-pressed', String(i === lee()));
+          b.textContent = v.nombre;
+          b.onclick = () => {
+            cont.querySelectorAll('.geomapa-boton').forEach(x => {
+              x.classList.remove('activo');
+              x.setAttribute('aria-pressed', 'false');
+            });
+            b.classList.add('activo');
+            b.setAttribute('aria-pressed', 'true');
+            pon(i);
+            raiz.__geomapa.dibuja();
+          };
+          cont.appendChild(b);
+        });
+      });
+    }
+"""
 )
 
 # =====================================================================
@@ -2031,12 +2409,12 @@ QUIZ_JS = r"""
       },
       {
         tipo: 'numerica', modulo: 4,
-        pregunta: 'EPSG:9377 es una transversa de Mercator con factor de escala k = 0,9992. '
+        pregunta: 'EPSG:9377 es una transversa de Mercator con factor de escala k = 0.9992. '
           + '¿Cuál es, exactamente, la razón de área MÍNIMA que puede dar sobre Colombia?',
         pista: 'Es conforme: la escala de área es el cuadrado de la lineal.',
         respuesta: 0.998401, tolerancia: 0.00005,
         unidad: '',
-        retroAcierto: 'k² = 0,998401. Y el capítulo lo mide sobre los 1 122 municipios: sale '
+        retroAcierto: 'k² = 0.998401. Y el capítulo lo mide sobre los 1 122 municipios: sale '
           + 'exactamente eso, lo que confirma de paso que la referencia de área es la correcta.',
         retroFallo: 'En una proyección conforme a = b, así que s = a². En el meridiano central a = k. Módulo 4.'
       },
@@ -2145,7 +2523,7 @@ QUIZ_JS = r"""
             retro: 'Eso sí se lee: su ω máxima es '
               + n5(DATOS_CAP2.proyecciones.tabla.omega_max_grados[0], 5) + '°.' },
           { texto: 'Que Equal Earth conserva las áreas.', correcta: false,
-            retro: 'También se lee: su escala de área es 1,000 en toda la rejilla.' },
+            retro: 'También se lee: su escala de área es 1.000 en toda la rejilla.' },
           { texto: 'Que Robinson no conserva ninguna de las dos.', correcta: false,
             retro: 'Se lee igualmente: es la fila de compromiso.' }
         ],
@@ -2314,6 +2692,9 @@ def main() -> int:
     if len(vieja) != 1:
         sys.exit(f"PARADO: {len(vieja)} registros de GEOMAPAS['demo-mapa'], se esperaba 1")
     doc = sustituye(doc, vieja[0], GEOMAPAS_JS.rstrip("\n"), "los siete .geomapa")
+    doc = sustituye(doc, "        iniciarGeomapas();\n",
+                    "        iniciarGeomapas();\n        cablearCap2();\n",
+                    "la llamada a cablearCap2()")
 
     # El glosario de notación es del capítulo 1: aquí el de demostración
     # se retira sin sustituto, y el módulo que lo usaba no existe.
@@ -2354,7 +2735,7 @@ def main() -> int:
     # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
     doc = baraja_documento(doc, "cap2")
 
-    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
+    doc = aplica_boton(doc, PUBLICADO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- Guardas de salida ----------------------------------------------
@@ -2377,7 +2758,7 @@ def main() -> int:
     sims_usados, sims_reg = par(r'data-simulador="([^"]+)"', r"SIMULADORES\['([^']+)'\]\s*=")
     quiz_usados, quiz_reg = par(r'data-quiz="([^"]+)"', r"AUTOEVALUACIONES\['([^']+)'\]\s*=")
 
-    print(f"\n{DESTINO.relative_to(RAIZ)}  {len(doc)/1024:.0f} KB")
+    print(f"\n{DESTINO.relative_to(RAIZ) if DESTINO == PUBLICADO else DESTINO}  {len(doc)/1024:.0f} KB")
     print(f"  {mods} módulos · {len(sims_usados)} simuladores · {len(usados)} mapas · "
           f"{bloques_r} bloques de R y {bloques_py} de Python · {cifras} cifras anunciadas")
     print(f"  {lienzos} lienzos, {con_alt} con aria-label · "
@@ -2439,6 +2820,20 @@ def main() -> int:
             problemas.append(f"{etq} usados y no registrados: {sorted(huerfanos)}")
         if sobrantes:
             problemas.append(f"{etq} registrados y no usados: {sorted(sobrantes)}")
+
+    # «DESCRIBIR EL MAPA» (2026-11-02). Cada mapa que el documento usa trae
+    # su descripción —los de las proyecciones, una por vista—, y lo que esas
+    # frases afirman de la forma se comprueba contra el dato.
+    problemas += revisa_textos(marcado, GEOMAPAS_JS, DESCRIPCIONES)
+    problemas += guardas_de_las_descripciones()
+    # Y los botones de las proyecciones, que no existieron hasta esa fecha:
+    # su contenedor fuera del mapa, el getter que lee la vista y la llamada
+    # que los pone. Sin cualquiera de los tres, el mapa enseña una sola vista.
+    for _id, _var in (("cap2-proyecciones", "vistaMundo2"), ("cap2-proyecciones-co", "vistaCo2")):
+        if (f'id="ctrl-{_id}"' not in marcado
+                or f"get vista() {{ return {_var}; }}" not in GEOMAPAS_JS
+                or "        iniciarGeomapas();\n        cablearCap2();\n" not in doc):
+            problemas.append(f"{_id}: sin botones de vista (contenedor, getter o llamada a cablearCap2)")
 
     # Los tipos de pregunta que el motor CONOCE. Un tipo inventado no da
     # error de sintaxis: revienta en tiempo de ejecución dentro de

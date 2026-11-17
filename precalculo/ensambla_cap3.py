@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import pathlib
 import re
 import sys
@@ -50,7 +51,12 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 from pon_boton_indice import aplica as aplica_boton
 PLANTILLA = RAIZ / "plantilla" / "plantilla-capitulo.html"
 SALIDAS = RAIZ / "precalculo" / "salidas"
-DESTINO = RAIZ / "Htmls_Espacial" / "capitulo-3-cartografia-maup.html"
+PUBLICADO = RAIZ / "Htmls_Espacial" / "capitulo-3-cartografia-maup.html"
+# `CAP3_DESTINO` manda la salida a otra parte, como en los capítulos 1, 2 y
+# 5: el ensamblador escribe el HTML ANTES de correr sus guardas, y
+# `prueba_ensambla_cap3.py` lo ejecuta con guardas rotas a propósito. El
+# botón al índice se calcula siempre para la ruta publicada.
+DESTINO = pathlib.Path(os.environ.get("CAP3_DESTINO") or PUBLICADO)
 
 D = json.loads((SALIDAS / "cap3_datos.json").read_text(encoding="utf-8"))
 M = json.loads((SALIDAS / "cap3_mapas.json").read_text(encoding="utf-8"))
@@ -1959,9 +1965,309 @@ TABLA_RESPALDO = """    // La tabla de respaldo de los mapas de capas. Para quie
 """
 
 
+# =====================================================================
+# «Describir el mapa» (2026-11-02)
+# =====================================================================
+# Lo que se VE en cada mapa, para quien no lo ve: la etiqueta dice qué es
+# el mapa; esto, qué enseña. El motor lo pone en el desplegable «Describir
+# el mapa» y lo enlaza al lienzo para el lector de pantalla (ver
+# `describe_mapa.py`). Los mapas que cambian de esquema, de capa o de
+# superposición llevan un texto por estado, y el registro lo elige con la
+# misma variable que elige lo que se pinta. Las cifras y los nombres salen
+# del JSON —lo que faltaba lo publica R en `visto`—, y cada frase sobre la
+# forma tiene su guarda en `main()`: una descripción que miente sobre el
+# mapa es peor que ninguna, porque quien la lee no tiene cómo verlo.
+from describe_mapa import lista_y, revisa_textos  # noqa: E402
+
+_VI = D["visto"]
+# --- Módulo 3: Carolina del Norte, un texto por esquema ----------------
+# Lo que cambia de un esquema a otro es cuántos condados caen en cada clase
+# y cuáles quedan en la más oscura: las dos cosas están en las vistas del
+# mapa (`tam` y `clase`), y los nombres en sus `etiquetas`.
+_NC = M["nc_esquemas"]
+
+
+def _oscuros_nc(v):
+    """Los condados de la clase más alta de una vista, del mayor SID74 al menor."""
+    top = max(v["clase"])
+    return sorted(((_NC["valor"][i], _NC["etiquetas"][i]) for i, c in enumerate(v["clase"]) if c == top),
+                  key=lambda t: (-t[0], t[1]))
+
+
+def _nombres_nc(osc):
+    """«Mecklenburg (44 muertes) y Cumberland (38)»: la unidad, una vez y junto a la primera cifra."""
+    return lista_y([f"{nom} ({ent(val)}{' muertes' if k == 0 else ''})" for k, (val, nom) in enumerate(osc)])
+
+
+_VNC = {v["estilo"]: v for v in _NC["vistas"]}
+_o_nc = {e: _oscuros_nc(v) for e, v in _VNC.items()}
+_D_NC = {
+    "equal": (
+        f"Con intervalos iguales casi todo el estado sale del verde más claro: "
+        f"{ent(_VNC['equal']['tam'][0])} de los {ent(_NC['n'])} condados caen en la primera clase, y en la "
+        f"más oscura solo quedan {ent(len(_o_nc['equal']))}, {_nombres_nc(_o_nc['equal'])}. El mapa enseña "
+        f"esos dos y un fondo casi uniforme."),
+    "quantile": (
+        f"Con cuantiles las clases salen parejas —entre {ent(min(_VNC['quantile']['tam']))} y "
+        f"{ent(max(_VNC['quantile']['tam']))} condados cada una— y el verde oscuro se extiende: "
+        f"{ent(len(_o_nc['quantile']))} condados en la clase más alta, de {ent(_VNC['quantile']['cortes'][-2])} a "
+        f"{ent(_VNC['quantile']['cortes'][-1])} muertes, donde con intervalos iguales había "
+        f"{ent(len(_o_nc['equal']))}."),
+    "fisher": (
+        f"Con Fisher-Jenks las clases siguen los saltos del dato —"
+        + ", ".join(ent(t) for t in _VNC["fisher"]["tam"][:-1]) + f" y {ent(_VNC['fisher']['tam'][-1])} "
+        f"condados, de la más clara a la más oscura— y en la más oscura quedan "
+        f"{ent(len(_o_nc['fisher']))}: {_nombres_nc(_o_nc['fisher'])}."),
+    "sd": (
+        f"Con desviación estándar salen {ent(len(_VNC['sd']['tam']))} clases y no las "
+        f"{ent(_VNC['sd']['n'])} pedidas, contadas desde la media: {ent(_VNC['sd']['tam'][0])} condados en la "
+        f"más clara y {ent(len(_o_nc['sd']))} en la más oscura, {_nombres_nc(_o_nc['sd'])}."),
+    "headtails": (
+        f"Con head/tails cada clase separa la cola de la anterior: "
+        + ", ".join(ent(t) for t in _VNC["headtails"]["tam"][:-1]) + f" y {ent(_VNC['headtails']['tam'][-1])} "
+        f"condados, y en la más oscura otra vez {_nombres_nc(_o_nc['headtails'])}."),
+}
+DESC_NC = [_D_NC[v["estilo"]] for v in _NC["vistas"]]
+
+# --- Módulo 2: el conteo y el puntaje medio ------------------------------
+_CAPAS = {c["id"]: c for c in M["municipios"]["capas"]}
+_CT, _TS = _CAPAS["conteo"], _CAPAS["tasa"]
+_m2v = _VI["m2"]
+_top = D["m2"]["top10_conteo"]
+_alt, _baj = _m2v["tasa_altos"], _m2v["tasa_bajos"]
+_D_CONTEO = (
+    f"Con el conteo, el color sigue a la población. La clase más oscura, {ent(_m2v['conteo_alta_n'])} "
+    f"municipios con {ent(_CT['cortes'][-2])} estudiantes o más, reúne el "
+    f"{n(_m2v['conteo_alta_pct_estudiantes'], 1)} % de los estudiantes del país; ahí están "
+    + lista_y([f"{x['municipio']} ({ent(x['n'])})" for x in _top[:3]])
+    + f". Los {ent(_CT['n_sin_dato'])} municipios sin un solo estudiante quedan fuera de las clases.")
+_D_TASA = (
+    f"Con el puntaje medio el país se reordena y las ciudades grandes dejan de dominar. Los puntajes "
+    f"más altos son los de "
+    + lista_y([f"{x['municipio']} ({x['depto']}, {n(x['punt'], 1)})" for x in _alt])
+    + f"; los más bajos, los de tres municipios de {_baj[0]['depto']}: "
+    + lista_y([f"{x['municipio']} ({n(x['punt'], 1)})" for x in _baj]) + ".")
+DESC_CT = {"conteo": _D_CONTEO, "tasa": _D_TASA}
+
+# --- Módulo 4: la deserción bajo los cinco esquemas ----------------------
+_DES = _CAPAS["desercion"]
+_OSC = {o["estilo"]: o for o in _VI["m4"]["oscura"]}
+_VDES = {v["estilo"]: v for v in _DES["vistas"]}
+
+
+def _en_zona(o, z):
+    """Cuántos municipios de la clase más oscura caen en la zona `z` del dibujo (0 si ninguno)."""
+    return dict(zip(o["zonas"], o["zonas_n"])).get(z, 0)
+
+
+def _deptos(o):
+    return lista_y([f"{d} ({ent(k)})" for d, k in zip(o["deptos"], o["deptos_n"])])
+
+
+def _pocos(o):
+    return lista_y([f"{m} ({d})" for m, d in zip(o["municipios"], o["municipios_depto"])])
+
+
+_o, _v = _OSC["equal"], _VDES["equal"]
+_D_DES = {"equal": (
+    f"Con intervalos iguales el país sale casi entero en los dos tonos más claros —"
+    f"{ent(_v['tam'][0])} y {ent(_v['tam'][1])} municipios— y la clase más oscura, de "
+    f"{n(_v['cortes'][-2], 2)} a {n(_v['cortes'][-1], 2)} %, la ocupan {ent(_o['n'])}: {_pocos(_o)}. "
+    f"En el norte del dibujo no queda ninguno en ella.")}
+_o, _v = _OSC["quantile"], _VDES["quantile"]
+_D_DES["quantile"] = (
+    f"Con cuantiles cada clase tiene unos {ent(_v['tam'][-1])} municipios, y la más oscura, de "
+    f"{n(_v['cortes'][-2], 2)} a {n(_v['cortes'][-1], 2)} %, se reparte por todo el país: "
+    f"{ent(_en_zona(_o, 'centro'))} de sus {ent(_o['n'])} municipios están en el centro del dibujo y "
+    f"{ent(_en_zona(_o, 'norte'))} en el norte. Los departamentos que más ponen son {_deptos(_o)}.")
+_o, _v = _OSC["fisher"], _VDES["fisher"]
+_D_DES["fisher"] = (
+    f"Con Fisher-Jenks la clase más oscura, de {n(_v['cortes'][-2], 2)} a {n(_v['cortes'][-1], 2)} %, "
+    f"se queda en {ent(_o['n'])} municipios: {ent(_en_zona(_o, 'centro'))} en el centro del dibujo y "
+    f"apenas {ent(_en_zona(_o, 'norte'))} en el norte. Los departamentos que más ponen son {_deptos(_o)}.")
+_o, _v = _OSC["sd"], _VDES["sd"]
+_D_DES["sd"] = (
+    f"Con desviación estándar casi todo el país sale claro —{ent(_v['tam'][0])} y {ent(_v['tam'][1])} "
+    f"municipios en las dos primeras clases— y la más oscura la ocupa un solo municipio, {_pocos(_o)}, con "
+    f"{n(max(x for x in _DES['valor'] if x is not None), 2)} %. En el norte no queda ninguno en ella.")
+_o, _v = _OSC["headtails"], _VDES["headtails"]
+_D_DES["headtails"] = (
+    f"Con head/tails el mapa se queda en {ent(len(_v['tam']))} clases, partidas en "
+    f"{n(_v['cortes'][1], 2)} %: {ent(_v['tam'][0])} municipios claros y {ent(_v['tam'][1])} oscuros. "
+    f"Casi medio país sale del naranja más oscuro, {ent(_en_zona(_o, 'centro'))} de esos municipios en el "
+    f"centro del dibujo y {ent(_en_zona(_o, 'norte'))} en el norte.")
+DESC_DES = [_D_DES[v["estilo"]] for v in _DES["vistas"]]
+
+# --- Módulo 7: el coropleto, sus dos superposiciones y los cartogramas --
+_m7 = _VI["m7"]
+# En una lista, «Bogotá, D.C.» y «Archipiélago de San Andrés, Providencia y
+# Santa Catalina» traen sus propias comas y su propia «y», y la enumeración
+# se deshace al oído. Se nombran corto; el dato no cambia.
+_CORTO = {"Bogotá, D.C.": "Bogotá",
+          "Archipiélago de San Andrés, Providencia y Santa Catalina": "el archipiélago de San Andrés"}
+_c = lambda d: _CORTO.get(d, d)
+_m7d = D["m7"]
+_COR = M["dep_coropleto"]
+_ix = {d: i for i, d in enumerate(_m7["departamento"])}
+_por_est = sorted(range(len(_m7["departamento"])), key=lambda i: -_m7["est_pct"][i])
+_claro = [_COR["etiquetas"][i] for i, c in enumerate(_COR["clase"]) if c == min(_COR["clase"])]
+_claro = sorted(_claro, key=lambda d: _m7["est_pct"][_ix[d]])
+_g = lambda d, k: _m7[k][_ix[d]]
+_B, _AMZ = "Bogotá, D.C.", "Amazonas"
+_dd = dict(zip(_m7["puntos_zonas"], _m7["puntos_zonas_n"]))
+_D_CARTO = {
+    "nada": (
+        f"Los {ent(_m7d['n_departamentos'])} departamentos, coloreados por sus estudiantes. Lo más oscuro "
+        f"son " + lista_y([_c(_m7["departamento"][i]) for i in _por_est[:3]]) + ", y Bogotá apenas se ve: "
+        f"tiene el {n(_g(_B, 'est_pct'), 2)} % de los estudiantes en el {n(_g(_B, 'area_pct_mapa'), 2)} % "
+        f"del área. Los {ent(len(_claro))} de la clase más clara —" + lista_y([_c(d) for d in _claro]) + "— ocupan el "
+        f"{n(_m7['clase_baja_area_pct'], 1)} % del país con el {n(_m7['clase_baja_est_pct'], 2)} % de los "
+        f"estudiantes: un tercio del mapa, en el color más claro, para lo que menos pesa."),
+    "simbolos": (
+        f"Sobre el coropleto, un círculo por departamento con el área proporcional a sus estudiantes. El "
+        f"de Bogotá es el más grande, con un radio {n(_m7d['simbolos']['radio_max_rel'], 1)} veces el del "
+        f"más pequeño, el de {_m7['departamento'][_por_est[-1]]}, que es apenas un punto: el tamaño "
+        f"devuelve a Bogotá el peso que el color le quitaba."),
+    "densidad": (
+        f"Sobre el coropleto, {ent(_m7d['dot_density']['n_puntos'])} puntos, uno por cada "
+        f"{ent(_m7d['dot_density']['por_punto'])} estudiantes, sorteados al azar dentro de cada "
+        f"departamento: {ent(_dd.get('centro', 0))} caen en el centro del dibujo y {ent(_dd.get('norte', 0))} "
+        f"en el norte, y el oriente y el sur quedan casi vacíos, con {ent(_dd.get('oriente', 0))} y "
+        f"{ent(_dd.get('sur', 0))}."),
+}
+DESC_CARTO = _D_CARTO
+DESC_NCONT = (
+    f"Cada departamento encoge alrededor de su centro, sin moverse de su sitio, hasta que su área es "
+    f"proporcional a sus estudiantes. Bogotá, la que más estudiantes tiene por kilómetro cuadrado, "
+    f"conserva su tamaño, y por eso su parte del área dibujada sube del {n(_g(_B, 'area_pct_mapa'), 2)} % al "
+    f"{n(_g(_B, 'area_pct_ncont'), 2)} %; todos los demás encogen, y el {_AMZ}, que ocupa el "
+    f"{n(_g(_AMZ, 'area_pct_mapa'), 2)} % del mapa, queda en el {n(_g(_AMZ, 'area_pct_ncont'), 2)} %.")
+DESC_DORLING = (
+    f"Un círculo por departamento, de área proporcional a sus estudiantes, empujado hasta que no se "
+    f"solape con los vecinos. Los más grandes son " + lista_y(
+        [f"{_c(_m7['departamento'][i])} ({n(_m7['area_pct_dorling'][i], 2)} %{' del área' if k == 0 else ''})"
+         for k, i in enumerate(_por_est[:2])])
+    + "; el mapa pierde la forma del país y solo conserva, más o menos, dónde está cada uno.")
+DESC_CONT = (
+    f"El país se deforma sin romperse: cada departamento sigue tocando a sus vecinos, pero cambia de "
+    f"tamaño. " + lista_y([_c(_m7["departamento"][i]) for i in _por_est[1:4]]) + " crecen, y la Amazonía "
+    f"encoge: el {_AMZ} pasa del {n(_g(_AMZ, 'area_pct_mapa'), 2)} % del área al "
+    f"{n(_g(_AMZ, 'area_pct_cont'), 2)} %. No llega a ser exacto: Bogotá, con el "
+    f"{n(_g(_B, 'est_pct'), 2)} % de los estudiantes, se queda en el {n(_g(_B, 'area_pct_cont'), 2)} % del "
+    f"área.")
+_HX = M["dep_hexbin"]
+DESC_HEXBIN = (
+    f"Son {ent(_m7d['hexbin']['n_hexagonos'])} hexágonos iguales, de {ent(_m7d['hexbin']['lado_km'])} km de "
+    f"lado, con los estudiantes de cada departamento repartidos según el área que cae en cada uno. El más "
+    f"oscuro suma {ent(_m7['hex_max'])} estudiantes, el {n(_m7['hex_max_aporta_pct'], 1)} % de ellos de "
+    f"{_c(_m7['hex_max_aporta'])}, y los {ent(_HX['tam'][0])} de la clase más clara no llegan a "
+    f"{ent(_HX['cortes'][1])}.")
+
+# --- Módulo 11: los municipios sin un solo estudiante --------------------
+_SIN = _VI["m11"]["sin_estudiantes"]
+_PRES = _CAPAS["presencia"]
+_dep_sin = []
+for x in _SIN:
+    if x["depto"] not in _dep_sin:
+        _dep_sin.append(x["depto"])
+DESC_PRESENCIA = (
+    f"Casi todo el mapa es verde oscuro: {ent(_PRES['tam'][1])} municipios aportan al menos un estudiante. Los "
+    f"{ent(_PRES['tam'][0])} que no aportan ninguno salen en café, todos en el sur y el oriente del "
+    f"dibujo, en la Amazonía: "
+    + "; ".join(lista_y([x["municipio"] for x in _SIN if x["depto"] == d]) + f", en {d}" for d in _dep_sin)
+    + ".")
+
+DESCRIPCIONES = {
+    "cap3-nc": DESC_NC, "cap3-desercion": DESC_DES,
+    "cap3-conteo-tasa-mapa": [DESC_CT["conteo"], DESC_CT["tasa"]],
+    "cap3-carto": [DESC_CARTO["nada"], DESC_CARTO["simbolos"], DESC_CARTO["densidad"]],
+    "cap3-carto-ncont": [DESC_NCONT], "cap3-carto-dorling": [DESC_DORLING],
+    "cap3-carto-cont": [DESC_CONT], "cap3-hexbin": [DESC_HEXBIN], "cap3-presencia": [DESC_PRESENCIA],
+}
+
+
+def guardas_de_las_descripciones() -> list[str]:
+    """Lo que las descripciones afirman de la forma de cada mapa, contra el dato."""
+    malos = []
+
+    def exige(cond, que):
+        if not cond:
+            malos.append(que)
+
+    # Carolina del Norte: la clase más oscura es la última de cada vista.
+    for e, v in _VNC.items():
+        exige(max(v["clase"]) == len(v["cortes"]) - 1 and len(_o_nc[e]) == v["tam"][-1],
+              f"Carolina del Norte, {e}: la clase más oscura no es la última, o no tiene los condados nombrados")
+    exige(_VNC["equal"]["tam"][0] * 2 > _NC["n"] and len(_o_nc["equal"]) == 2,
+          "Carolina del Norte, intervalos iguales: «casi todo el estado en la primera clase y esos dos» ya no vale")
+    exige(max(_VNC["quantile"]["tam"]) <= 2 * min(_VNC["quantile"]["tam"]),
+          "Carolina del Norte, cuantiles: «las clases salen parejas» ya no vale")
+    exige(len(_VNC["sd"]["tam"]) != _VNC["sd"]["n"],
+          "Carolina del Norte, desviación estándar: «salen N clases y no las pedidas» ya no vale")
+    # Conteo y puntaje medio.
+    exige(_m2v["conteo_alta_n"] == _CT["tam"][-1], "conteo: la clase más oscura no tiene los municipios que se dicen")
+    _vt = [x for x in _TS["valor"] if x is not None]
+    exige(abs(max(_vt) - _alt[0]["punt"]) < 1e-6 and abs(min(_vt) - _baj[0]["punt"]) < 1e-6
+          and len({x["depto"] for x in _baj}) == 1,
+          "puntaje medio: los extremos nombrados no son los del mapa, o los tres más bajos no son de un departamento")
+    # Deserción: la clase más oscura de cada esquema, y el norte.
+    for e, v in _VDES.items():
+        o = _OSC[e]
+        exige(o["clase"] == len(v["cortes"]) - 1 and o["n"] == v["tam"][-1],
+              f"deserción, {e}: la clase más oscura no es la última, o no tiene los municipios que se dicen")
+    exige(_OSC["equal"]["n"] == 2 and "norte" not in _OSC["equal"]["zonas"],
+          "deserción, intervalos iguales: «dos municipios y ninguno en el norte» ya no vale")
+    exige(len(_OSC["quantile"]["zonas"]) >= 6, "deserción, cuantiles: «se reparte por todo el país» ya no vale")
+    exige(_en_zona(_OSC["fisher"], "norte") * 3 < _en_zona(_OSC["fisher"], "centro"),
+          "deserción, Fisher-Jenks: «apenas N en el norte» frente al centro ya no vale")
+    _vd = [(x, i) for i, x in enumerate(_DES["valor"]) if x is not None]
+    exige(_OSC["sd"]["n"] == 1 and "norte" not in _OSC["sd"]["zonas"]
+          and M["municipios"]["etiquetas"][max(_vd)[1]] == _OSC["sd"]["municipios"][0],
+          "deserción, desviación estándar: «un solo municipio, el de más deserción, fuera del norte» ya no vale")
+    _ht = _VDES["headtails"]["tam"]
+    exige(len(_ht) == 2 and 0.35 < _ht[1] / sum(_ht) < 0.65,
+          "deserción, head/tails: «dos clases y medio país oscuro» ya no vale")
+    # El coropleto departamental y sus superposiciones.
+    _alta = max(_COR["clase"])
+    exige(all(_COR["clase"][_COR["etiquetas"].index(_m7["departamento"][i])] == _alta for i in _por_est[:3]),
+          "coropleto: los tres de más estudiantes no están en la clase más oscura")
+    exige(_g(_B, "area_pct_mapa") < 0.5 and len(_claro) == _COR["tam"][0]
+          and 25 < _m7["clase_baja_area_pct"] < 45,
+          "coropleto: «Bogotá apenas se ve» o «un tercio del mapa con lo que menos pesa» ya no vale")
+    exige(_m7["departamento"][_por_est[0]] == _B, "símbolos: el círculo más grande ya no es el de Bogotá")
+    exige(_dd.get("centro", 0) > _dd.get("oriente", 0) + _dd.get("sur", 0)
+          and _dd.get("norte", 0) > _dd.get("oriente", 0) + _dd.get("sur", 0)
+          and (_dd.get("oriente", 0) + _dd.get("sur", 0)) * 20 < _m7d["dot_density"]["n_puntos"],
+          "dot density: «el oriente y el sur casi vacíos» ya no vale")
+    _dens = max(range(len(_m7["departamento"])), key=lambda i: _m7["est_pct"][i] / max(_m7["area_pct_mapa"][i], 1e-12))
+    exige(_m7["departamento"][_dens] == _B
+          and all(abs(a - b) < 1e-6 for a, b in zip(_m7["area_pct_ncont"], _m7["est_pct"])),
+          "Olson: Bogotá ya no es la más densa, o el área deja de ser exacta")
+    exige(all(abs(_m7["area_pct_dorling"][i] - _m7["est_pct"][i]) < 1e-6 for i in _por_est[:2]),
+          "Dorling: el área de los dos más grandes no es su parte de los estudiantes")
+    exige(all(_m7["area_pct_cont"][i] > _m7["area_pct_mapa"][i] for i in _por_est[1:4])
+          and _g(_AMZ, "area_pct_cont") < _g(_AMZ, "area_pct_mapa") and _g(_B, "area_pct_cont") < _g(_B, "est_pct"),
+          "contiguo: «crecen», «la Amazonía encoge» o «no llega a ser exacto» ya no vale")
+    exige(abs(_m7["hex_max"] - max(_HX["valor"])) < 1e-6 and _m7["hex_max_aporta_pct"] > 50
+          and sum(1 for c in _HX["clase"] if c == min(_HX["clase"])) == _HX["tam"][0],
+          "hexbin: el más oscuro, quién lo aporta o la clase más clara ya no cuadran con el mapa")
+    # Presencia.
+    exige(_PRES["tam"][0] == len(_SIN) and _PRES["tam"][1] > 0.95 * sum(_PRES["tam"])
+          and {x["zona"] for x in _SIN} <= {"sur", "suroriente", "oriente"},
+          "presencia: los municipios sin estudiantes ya no son los del sur y el oriente")
+    return malos
+
+
 GEOMAPAS_JS = (
     "    // Estado de los mapas conmutables del capítulo.\n"
     "    let ncVista = 1, desVista = 1, ctCapa = 'conteo', cartoSuper = [];\n\n"
+    + "    // Lo que se ve en cada estado de los mapas conmutables (ver «Describir el\n"
+      "    // mapa» en el ensamblador): el registro elige el texto con la misma\n"
+      "    // variable que elige lo que se pinta.\n"
+    + "    const DESC3_NC = " + json.dumps(DESC_NC, ensure_ascii=False) + ";\n"
+    + "    const DESC3_DES = " + json.dumps(DESC_DES, ensure_ascii=False) + ";\n"
+    + "    const DESC3_CT = " + json.dumps(DESC_CT, ensure_ascii=False) + ";\n"
+    + "    const DESC3_CARTO = " + json.dumps(DESC_CARTO, ensure_ascii=False) + ";\n\n"
     + "    // Los 1 122 municipios, UNA sola vez: tres mapas del capítulo\n"
       "    // los comparten y solo cambian de capa.\n"
     + "    const MAPA_MUNICIPIOS = " + json.dumps(M["municipios"], ensure_ascii=False) + ";\n\n"
@@ -1970,27 +2276,36 @@ GEOMAPAS_JS = (
               ", get vista() { return ncVista; }"
               ", etiqueta: 'Los 100 condados de Carolina del Norte coloreados por SID74,"
               " con el esquema de clasificación que se elija.'"
-              ", tabla: d => tablaCapa(d, 0, ncVista)")
+              ", tabla: d => tablaCapa(d, 0, ncVista)"
+              ", descripcion: () => DESC3_NC[ncVista]")
     + "    GEOMAPAS['cap3-desercion'] = { fuente: MAPA_MUNICIPIOS, paleta: 'naranja',"
       " capa: 'desercion', get vista() { return desVista; },"
       " etiqueta: 'Los 1 122 municipios de Colombia coloreados por su tasa de deserción"
       " escolar, con el esquema de clasificación que se elija.',"
-      " tabla: d => tablaCapa(d, 'desercion', desVista) };\n"
+      " tabla: d => tablaCapa(d, 'desercion', desVista),"
+      " descripcion: () => DESC3_DES[desVista] };\n"
     + "    GEOMAPAS['cap3-conteo-tasa-mapa'] = { fuente: MAPA_MUNICIPIOS, paleta: 'verde',"
       " get capa() { return ctCapa; },"
       " etiqueta: 'Los 1 122 municipios coloreados por el conteo de estudiantes o por su"
       " puntaje medio, según lo que se elija.',"
-      " tabla: d => tablaCapa(d, ctCapa, null) };\n"
+      " tabla: d => tablaCapa(d, ctCapa, null),"
+      " descripcion: () => DESC3_CT[ctCapa] };\n"
     + "    GEOMAPAS['cap3-presencia'] = { fuente: MAPA_MUNICIPIOS, paleta: 'divergente',"
       " capa: 'presencia',"
       " etiqueta: 'Los 1 122 municipios, distinguiendo los que aportan al menos un"
       " estudiante a la cohorte de los que no aportan ninguno.',"
-      " tabla: d => tablaCapa(d, 'presencia', null) };\n"
-    + geomapa('cap3-carto', 'dep_coropleto', 'verde', ", get superpuestas() { return cartoSuper; }")
-    + geomapa('cap3-carto-ncont', 'dep_ncont', 'verde')
-    + geomapa('cap3-carto-dorling', 'dep_dorling', 'verde')
-    + geomapa('cap3-carto-cont', 'dep_cont', 'verde')
-    + geomapa('cap3-hexbin', 'dep_hexbin', 'naranja')
+      " tabla: d => tablaCapa(d, 'presencia', null),"
+      " descripcion: " + json.dumps(DESC_PRESENCIA, ensure_ascii=False) + " };\n"
+    + geomapa('cap3-carto', 'dep_coropleto', 'verde', ", get superpuestas() { return cartoSuper; }"
+              ", descripcion: () => DESC3_CARTO[cartoSuper[0] || 'nada']")
+    + geomapa('cap3-carto-ncont', 'dep_ncont', 'verde',
+              ", descripcion: " + json.dumps(DESC_NCONT, ensure_ascii=False))
+    + geomapa('cap3-carto-dorling', 'dep_dorling', 'verde',
+              ", descripcion: " + json.dumps(DESC_DORLING, ensure_ascii=False))
+    + geomapa('cap3-carto-cont', 'dep_cont', 'verde',
+              ", descripcion: " + json.dumps(DESC_CONT, ensure_ascii=False))
+    + geomapa('cap3-hexbin', 'dep_hexbin', 'naranja',
+              ", descripcion: " + json.dumps(DESC_HEXBIN, ensure_ascii=False))
 )
 
 SIMULADORES_JS = f"""
@@ -2781,7 +3096,7 @@ def main() -> int:
     # los cinco capítulos tenían la correcta la PRIMERA, y el motor no baraja.
     doc = baraja_documento(doc, "cap3")
 
-    doc = aplica_boton(doc, DESTINO, RAIZ, "franja")
+    doc = aplica_boton(doc, PUBLICADO, RAIZ, "franja")
     DESTINO.write_text(doc, encoding="utf-8")
 
     # --- El recuento, contado y no recordado --------------------------
@@ -2798,7 +3113,7 @@ def main() -> int:
     quices = marcado.count('data-quiz="')
     kb = DESTINO.stat().st_size / 1024
 
-    print(f"{DESTINO.relative_to(RAIZ)}  {kb:.0f} KB")
+    print(f"{DESTINO.relative_to(RAIZ) if DESTINO == PUBLICADO else DESTINO}  {kb:.0f} KB")
     print(f"  {mods} módulos · {sims} simuladores · {mapas} mapas · "
           f"{bl_r} bloques de R y {bl_py} de Python · {cifras} cifras anunciadas")
     print(f"  {lienzos} lienzos, {con_alt} con aria-label · "
@@ -2858,6 +3173,11 @@ def main() -> int:
         if (f'aria-describedby="lectura-{ident}"' not in lienzo
                 or f'id="lectura-{ident}"' not in caja or 'aria-live="polite"' not in caja):
             problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
+    # «DESCRIBIR EL MAPA» (2026-11-02). Cada mapa que el documento usa trae
+    # su descripción —los conmutables, una por estado—, y lo que esas frases
+    # afirman de la forma se comprueba contra el dato.
+    problemas += revisa_textos(marcado, GEOMAPAS_JS, DESCRIPCIONES)
+    problemas += guardas_de_las_descripciones()
     # LA CLAVE DE LA RETROALIMENTACIÓN, COMPROBADA Y NO SUPUESTA (A.23.2).
     # Este capítulo escribió `respuesta` y `explicacion` donde el motor lee
     # `retro`, `retroAcierto` y `retroFallo`, y sus explicaciones por opción NO

@@ -1,0 +1,493 @@
+{
+  "norma": 1,
+  "curso": 20929,
+  "generado": "2026-11-12",
+  "obras": {
+    "anselin1988spatial": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "anselin1995local": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "anselin2014modern": {
+      "rol": "basica",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "assuncao1999new": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "baddeley1984cautionary": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "baddeley2005spatstat": {
+      "rol": "datos",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "baddeley2015spatial": {
+      "rol": "basica",
+      "ejemplar": true,
+      "edicion_comprobada": "Página de derechos (p. 7 del PDF): «© 2016 by Taylor & Francis Group, LLC», «Version Date: 20151015». Crossref y Taylor & Francis: publicado el 2015-11-11. Sin número de edición: es la 1.ª.",
+      "capitulos": [
+        1
+      ],
+      "citas": 3,
+      "afirmaciones": {
+        "con-matiz": 1,
+        "respaldada": 2
+      }
+    },
+    "bedford1997remark": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "benjamini1995controlling": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "berman1989estimating": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "bivand2013applied": {
+      "rol": "basica",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 1,
+      "afirmaciones": {}
+    },
+    "bivand2018comparing": {
+      "rol": "datos",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "burrough1998principles": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "clark1954distance": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 1,
+      "afirmaciones": {}
+    },
+    "cox1981reflexive": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "cressie1993statistics": {
+      "rol": "basica",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 1,
+      "afirmaciones": {}
+    },
+    "cronie2018non": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "dejong1984extreme": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "demirel2026optimizing": {
+      "rol": "complementaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "diggle1985kernel": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "diggle1990point": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "diggle2013statistical": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "dorling1996area": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "dougenik1985algorithm": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "epanechnikov1969non": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "geary1954contiguity": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "gehlke1934certain": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "getis1992analysis": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "jones1993simple": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "lum2016predict": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "machado2009physiologically": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "mas2018analisis": {
+      "rol": "complementaria",
+      "ejemplar": true,
+      "edicion_comprobada": "Portada interior y página de créditos (p. 6 del PDF): European Scientific Institute, «July, 2018», ISBN 978-608-4642-66-4. La misma página dice «Copyright c 2013 by the author»: se cita 2018, la fecha de publicación.",
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "moraga2019geospatial": {
+      "rol": "complementaria",
+      "ejemplar": true,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 1,
+      "afirmaciones": {
+        "respaldada": 1
+      }
+    },
+    "moran1950notes": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "olson1976noncontiguous": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "ord1995local": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "parzen1962estimation": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "pebesma2018simple": {
+      "rol": "datos",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "pebesma2023spatial": {
+      "rol": "basica",
+      "ejemplar": true,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 3,
+      "afirmaciones": {
+        "con-matiz": 1,
+        "respaldada": 2
+      }
+    },
+    "peng2008statistical": {
+      "rol": "complementaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "rey2023geographic": {
+      "rol": "complementaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "ripley1977modelling": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "roberts2017crossvalidation": {
+      "rol": "complementaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "robinson1950ecological": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "rosenblatt1956remarks": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "scott1979optimal": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "scott1985averaged": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "scott1987biased": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "scott2015multivariate": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "sheather1991reliable": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "silverman1986density": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "snow1855mode": {
+      "rol": "primaria",
+      "ejemplar": true,
+      "edicion_comprobada": "Portada (p. 5 del PDF): «Second Edition, much Enlarged», London, John Churchill, MDCCCLV (1855). Prefacio a la segunda edición en la p. 7 del PDF.",
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "snyder1987map": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "strauss1975model": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "tobler1970computer": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 2,
+      "afirmaciones": {}
+    },
+    "vanlieshout1996nonparametric": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "waller2004applied": {
+      "rol": "complementaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    },
+    "wand1995kernel": {
+      "rol": "primaria",
+      "ejemplar": false,
+      "edicion_comprobada": null,
+      "capitulos": [],
+      "citas": 0,
+      "afirmaciones": {}
+    }
+  }
+}

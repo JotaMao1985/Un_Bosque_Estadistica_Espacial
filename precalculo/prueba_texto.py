@@ -365,6 +365,17 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         ("una cifra de la solución del ejercicio 3",
          f"<td>{f(S['e3']['solucion']['n_eff'])}</td>",
          f"<td>{perturba(S['e3']['solucion']['n_eff'])}</td>"),
+        # Las cifras que la segunda vuelta de T1.2 añadió a la LECTURA del
+        # ejercicio 3: el jackknife por departamento y los residuos de la altitud.
+        ("el techo sin el departamento que voltea la respuesta, cambiado en la lectura",
+         f"a {f(S['e3']['solucion']['jackknife']['maximo']['techo'])} sin ",
+         f"a {perturba(S['e3']['solucion']['jackknife']['maximo']['techo'])} sin "),
+        ("la caída de la correlación con los residuos, cambiada en la lectura",
+         f"un {f(S['e3']['solucion']['residuos']['caida_rho_pct'])}",
+         f"un {perturba(S['e3']['solucion']['residuos']['caida_rho_pct'])}"),
+        ("el techo de los residuos, cambiado en la tabla",
+         f"<td>{f(S['e3']['solucion']['residuos']['techo'])}</td>",
+         f"<td>{perturba(S['e3']['solucion']['residuos']['techo'])}</td>"),
         # --- 4. Un tema del temario que desaparece --------------------
         ("el capítulo deja de hablar de estacionariedad",
          "estacionariedad", "invariancia-en-el-espacio", True),
@@ -439,6 +450,207 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         ("el bloque de la diagnóstica de entrada se queda sin marcador",
          '<div class="quiz" data-quiz="cap1-diagnostica">',
          '<div class="cuestionario" data-quiz="cap1-diagnostica">'),
+        # --- LO QUE EL MÓDULO 5 NO PUEDE VOLVER A DECIR (R1, 2026-11-14).
+        # Cuatro frases falsas que el módulo enseñó hasta esa ronda, y que
+        # vuelven con todas las cifras en regla porque ninguna es una cifra.
+        # La tercera entra por el JavaScript —la lectura del simulador—, que
+        # es por donde la extracción de prosa no mira.
+        ("el módulo 5 vuelve a decir que la fórmula supone equicorrelación",
+         "<strong>es una identidad</strong>", "<strong>supone equicorrelación</strong>"),
+        ("la fórmula de n_eff se rebaja a orden de magnitud",
+         "<strong>La fórmula es para la media, y solo para ella.</strong>",
+         "<strong>La fórmula sirve como orden de magnitud.</strong>"),
+        ("vuelve un rho medido sobre el mapa, por la lectura del simulador",
+         "['el rho medio que corresponde a ese '", "['el rho medido en el mapa, y no ese '"),
+        ("vuelve el título con la cifra escrita a mano",
+         "<h3>Qué cuenta el tamaño efectivo</h3>", "<h3>De dónde sale ese resultado</h3>"),
+        # El ejercicio 3 dejó de estar exento de estas guardas en T1.2: su
+        # enunciado y su lectura son ahora las dos puertas por las que el
+        # planteamiento viejo —un rho sacado de un correlograma y «la
+        # fórmula de equicorrelación»— puede volver.
+        ("la lectura del ejercicio 3 vuelve a hablar de la fórmula de equicorrelación",
+         "No sale de medir correlaciones: se despeja de",
+         "Sale de la fórmula de equicorrelación: se despeja de"),
+        ("el enunciado del ejercicio 3 vuelve a pedir un rho estimado con el correlograma",
+         "¿Qué correlación media entre pares corresponde a esa varianza?",
+         "¿Cuál es el rho estimado con el correlograma por bandas?"),
+        # --- LO QUE LOS MÓDULOS 2, 6 Y 10 Y LA Q4 NO PUEDEN VOLVER A DECIR
+        # (R1 · T1.4, 2026-11-16). Una inyección por frase retirada; la de
+        # la Q4 entra por el JavaScript del cuestionario.
+        ("el módulo 2 vuelve a decir que el perímetro urbano es un recorte",
+         "Con ese criterio valen las dos que se acaban de",
+         "Con ese criterio el perímetro urbano no es una ventana sino un recorte, y las dos de"),
+        ("la nota del módulo 2 vuelve a oponer ventana y recorte",
+         "las dos ventanas son válidas, y",
+         "una es la de una ventana y la otra la de un recorte, y"),
+        ("el módulo 6 vuelve a poner al browniano como proceso sin varianza finita",
+         "pero no al revés. El ejemplo de siempre",
+         "y un proceso puede ser intrínseco sin tener varianza finita. El ejemplo de siempre"),
+        ("el módulo 6 vuelve a decir «el movimiento browniano lo es»",
+         "pero no al revés. El ejemplo de siempre",
+         "pero no al revés —el movimiento browniano lo es—. El ejemplo de siempre"),
+        ("el módulo 10 vuelve a decir que la media muestral estima la poblacional, y punto",
+         "ningún modelo: sumar cada observación",
+         "ningún modelo: la media muestral estima la media poblacional, y punto. Cabe sumar cada "
+         "observación"),
+        ("el módulo 10 vuelve a describir Horvitz–Thompson como una media ponderada",
+         "ningún modelo: sumar cada observación dividida por su probabilidad de inclusión, y",
+         "ningún modelo: basta ponderar cada observación por la inversa de su probabilidad, y"),
+        ("el módulo 10 vuelve a leer el IC de la mediana como lo que movería otra semilla",
+         "veces la menor, y en",
+         "veces la menor —otra semilla la movería poco—, y en"),
+        ("el capítulo atribuye la dispersión del variograma a que haya menos pares",
+         "porque la banda mide lo que puede pasar, no lo",
+         "porque hay menos pares que promediar y la banda mide lo que puede pasar, no lo"),
+        ("el módulo 10 vuelve a decir que dos observaciones vecinas no están correlacionadas",
+         "Y algo que sorprende: en un muestreo aleatorio simple,",
+         "Y algo que sorprende: bajo este marco dos observaciones vecinas <em>no</em> están "
+         "correlacionadas,"),
+        ("el módulo 10 vuelve a decir que con igual probabilidad las áreas serían parecidas",
+         "Esas áreas no saldrían iguales ni con un muestreo de igual probabilidad",
+         "Bajo un muestreo de igual probabilidad esas áreas serían parecidas"),
+        ("la Q4 recupera el distractor que era cierto",
+         "'La estimación de la media se sesga cada vez más al crecer phi.'",
+         "'La media está cada vez peor estimada al crecer phi.'"),
+        ("la retroalimentación de la Q4 vuelve a confundir insesgada con bien estimada",
+         "retro: 'No hay sesgo, con ningún phi: la",
+         "retro: 'La media sigue bien estimada, con todo phi: la"),
+        # --- LAS IMPRECISIONES DE R1 · T1.6 (2026-11-16). Una inyección por
+        # frase retirada, por la puerta por la que estaba: la prosa, la
+        # lectura de un simulador, el cuestionario, la pista o un bloque de
+        # código.
+        ("el módulo 1 vuelve a decir que el dato dice otra cosa",
+         "El dato no permite atribuírselo:", "El dato dice otra cosa:"),
+        ("la Q2 vuelve a decir que el dato contradice la retirada del mango",
+         "y el dato no la sostiene: la curva", "y el dato la contradice: la curva"),
+        ("el módulo 2 vuelve a escribir λ = n/|W|",
+         r"$$\hat{\lambda} = \frac{n}{|W|}$$", r"$$\lambda = \frac{n}{|W|}$$"),
+        ("el patrón puntual vuelve a ser «el propio conjunto de índices»",
+         "que observar. Lo aleatorio es el",
+         "que observar: aleatorio es el propio conjunto de índices. Lo aleatorio es el"),
+        ("la formalización vuelve a poner un Z(s) en los tres tipos",
+         "<p>En los tres casos hay un dominio",
+         r"<p>En los tres casos hay un proceso \(Z(s)\) sobre un dominio"),
+        ("el tipo geoestadístico vuelve a ser «dónde lo miramos»",
+         "serían <strong>los valores</strong>", "sería <strong>dónde lo miramos</strong>"),
+        ("el módulo 3 vuelve a decir que la agregación apenas pesa",
+         "Las dos cosas tiran de",
+         "La agregación de lejos apenas pesa en la cuenta. Las dos cosas tiran de"),
+        ("el módulo 3 vuelve a decir que R es ciego a lo que pase más allá",
+         "Es un único número, y en un único número",
+         "Es ciego a todo lo que pase más allá. Es un único número, y en un único número"),
+        ("el módulo 3 vuelve a decir que I no vale cero bajo la nula",
+         "Lo que queda un poco por debajo de cero bajo esa nula es",
+         "Fíjate en que I no vale cero bajo la hipótesis nula. Lo que queda por debajo es"),
+        ("el módulo 3 vuelve a explicar E[I] por la diagonal excluida",
+         "Y queda por debajo por el",
+         "Es el artefacto de comparar cada unidad consigo misma excluida. Y queda por debajo por el"),
+        ("vuelve el código muerto al bloque del correlograma",
+         "\nbanda &lt;- function(lo, hi) {",
+         "\nd   &lt;- as.numeric(st_distance(est)) / 1000\n\nbanda &lt;- function(lo, hi) {"),
+        ("el módulo 4 vuelve a exigir que todas las correlaciones se anulen",
+         "Vale 1 cuando la suma de las",
+         "Vale 1 solo si todas las correlaciones se anulan, o sea, cuando la suma de las"),
+        ("el módulo 4 vuelve a decir que los dos están centrados en el mismo sitio",
+         "Los dos comparten centro porque los dos se han construido",
+         "Los dos están centrados en el mismo sitio porque los dos se han construido"),
+        ("la pista del ejercicio 2 vuelve a exigir la misma media a los dos remuestreos",
+         "Los dos intervalos se centran en la MISMA cifra",
+         "Los dos remuestreos tienen que dar la MISMA media"),
+        ("el módulo 4 vuelve a llamar honesto al intervalo por bloques",
+         "El intervalo por bloques es cuatro veces más ancho",
+         "El intervalo honesto es cuatro veces más ancho"),
+        ("el módulo 6 vuelve a decir «declararía significativa» sin nombrar la prueba",
+         ", rechaza en el", ", declararía significativa la media en el"),
+        ("el módulo 7 vuelve a presentar la caída de la I como una magnitud",
+         "<p>La I departamental es un <strong>", "<p>Una caída del <strong>"),
+        ("vuelve la crónica de producción al módulo 7",
+         "<strong>Ese barrido no es celo.</strong>",
+         "<strong>Ese barrido no es celo, es una cicatriz.</strong>"),
+        ("el módulo 10 vuelve a llamar real al error por bloques",
+         "<p>El error al predecir en una zona no medida es un", "<p>El error real es un"),
+        ("la lectura del simulador de validación vuelve a decir «el error real»",
+         "'en una zona no medida el error es mayor en'", "'el error real es mayor en'"),
+        ("la diagnóstica vuelve a decir «el RMSE real»",
+         "el RMSE al predecir en una zona no medida es un '", "el RMSE real es un '"),
+        ("la diagnóstica vuelve a callar el signo de la correlación",
+         "Con datos espaciales positivamente correlacionados", "Con datos espaciales correlacionados"),
+        # Y lo que las sustituye, que no puede desaparecer en silencio.
+        ("el módulo 1 deja de llamar ingenuo al reparto por igual",
+         "El reparto es ingenuo porque ignora dos", "El reparto es razonable aunque ignora dos"),
+        ("el módulo 2 deja de decir que la intensidad es del proceso",
+         "Es una propiedad del proceso y no se observa", "Es una propiedad del dato y se observa"),
+        ("el módulo 2 deja de decir que lo aleatorio es el campo",
+         "lo aleatorio es el propio campo", "lo aleatorio es dónde se mide el campo"),
+        ("el módulo 3 deja de decir que los dos efectos pueden cancelarse",
+         "pueden cancelarse en la media", "nunca se cancelan en la media"),
+        ("el módulo 3 deja de decir bajo qué nula vale E[I]",
+         "<strong>permutación</strong>: los mismos", "<strong>siempre</strong>: los mismos"),
+        ("el módulo 4 deja de nombrar el supuesto del remuestreo por departamentos",
+         "<strong>independientes entre sí</strong>", "<strong>una sola muestra</strong>"),
+        ("el módulo 4 deja de decir que la media de una réplica es un estimador de razón",
+         "<em>estimador de razón</em>", "<em>estimador corriente</em>"),
+        ("el módulo 4 vuelve a presentar el recorrido como la incertidumbre",
+         "<strong>sensibilidad a un solo departamento</strong>, no la incertidumbre",
+         "<strong>incertidumbre del factor</strong>, toda la incertidumbre"),
+        ("el módulo 4 deja de decir que el tamaño efectivo se conoce en orden de magnitud",
+         "se conoce solo en orden de magnitud", "se conoce con cinco decimales"),
+        ("el módulo 2 deja de condicionar la frase del borde a la homogeneidad",
+         "Si el proceso es homogéneo, su intensidad", "En cualquier caso, su intensidad"),
+        ("el módulo 3 deja de decir que −1/(n′ − 1) es la convención del programa",
+         "es la convención del programa, no la media", "es la esperanza de la banda, no una media"),
+        ("el módulo 7 deja de decir que la prueba departamental tiene menos potencia",
+         "tiene mucha menos potencia", "tiene la misma potencia"),
+        # Y lo que la segunda ronda retiró, que tampoco puede volver.
+        ("el módulo 5 vuelve a decir que quitar un departamento mide la incertidumbre",
+         "el módulo 4 le pone un error estándar, y es de",
+         "el módulo 4 la mide quitando un departamento cada vez, y es de"),
+        ("el módulo 7 vuelve a decir que las z sí se pueden comparar",
+         "y es ella, con su p, la que dice", "eso sí se puede comparar, y es ella, con su p, la que dice"),
+        ("el módulo 7 vuelve a decir que la I varía N veces más",
+         "la desviación estándar de la I bajo la nula con", "la I varía 6.3 veces más bajo la nula con"),
+        ("el módulo 3 vuelve a dar −1/(n′ − 1) como la referencia de la banda",
+         "así que la esperanza por permutación de la", "y la referencia de esa banda es la de la"),
+        ("el módulo 2 vuelve a decir sin condición que la intensidad no se entera del borde",
+         "Si el proceso es homogéneo, su intensidad",
+         "La intensidad del proceso no se entera del borde. Si el proceso es homogéneo, su intensidad"),
+        ("el módulo 4 vuelve a hacer del desvío la razón de centrar el intervalo",
+         "El intervalo se centra en la media muestral porque ésa es la estimación",
+         "El desvío es la razón de que el intervalo se centre en la media muestral, que es la estimación"),
+        ("el enunciado del ejercicio 2 vuelve a llamar honesto al intervalo por bloques",
+         "descartaría y el de bloques no", "descartaría y el honesto no"),
+        ("el módulo 6 deja de nombrar la prueba",
+         r"bilateral y con \(\alpha", r"de una cola y con \(\alpha"),
+        ("el módulo 7 deja de decir que la z sitúa cada I en su propia nula",
+         "sitúa cada I en su propia nula", "sitúa las dos I en una escala común"),
+        ("el módulo 7 deja de decir que lo que crece es el valor absoluto",
+         "lo único que crece es el valor", "lo que crece es el valor"),
+        # Y las afirmaciones nuevas, que no pueden desaparecer en silencio.
+        ("el módulo 2 deja de decir que el factor mide la inhomogeneidad",
+         "<em>inhomogeneidad</em> del patrón", "<em>diferencia</em> del patrón"),
+        ("la intrínseca pierde su condición de media",
+         "que su media sea cero,", "que sean estacionarias,"),
+        ("el módulo 6 deja de decir contra qué referencia se compara el variograma",
+         "promediada sobre esos mismos pares", "evaluada en ese mismo rezago"),
+        ("el módulo 10 deja de decir cuándo es insesgada la media sin ponderar",
+         "solo es insesgada cuando todas las probabilidades son iguales",
+         "es insesgada con cualquier diseño probabilístico"),
+        ("el módulo 10 se queda sin la referencia de puntos uniformes",
+         "de manera uniforme sobre el país", "con la densidad de la red sobre el país"),
+        # --- LA COMA DECIMAL (2026-09-25), por sus cuatro puertas: el
+        # capítulo tenía una en cada una. Ninguna de estas la caza
+        # `cifras()`, que lee «0,02» como 0.02 y la da por buena; solo
+        # `decimales_con_punto()`.
+        ("vuelve una coma decimal a la prosa",
+         f"inequívoca, a {f(es['z_municipal'])}",
+         f"inequívoca, a {f(es['z_municipal']).replace('.', ',')}"),
+        ("una fórmula vuelve a escribir la coma de LaTeX",
+         r"\(\bar{\rho} = 0.01\)", r"\(\bar{\rho} = 0{,}01\)"),
+        ("la leyenda de un gráfico vuelve a escribir coma",
+         "label: '0.95 prometido'", "label: '0,95 prometido'"),
+        ("la lectura del módulo 7 vuelve a agrupar los millares con punto",
+         r"const miles1 = x => String(Math.round(Number(x))).replace(/\B(?=(\d{3})+$)/g, '\u202f');",
+         "const miles1 = x => Number(x).toLocaleString('es-CO');"),
     ]
 
 
@@ -545,6 +757,19 @@ def defectos_cap2() -> list[tuple[str, str, str]]:
         ("el enlace al capítulo 1 apunta a un archivo que no existe",
          'href="capitulo-1-datos-espaciales.html"',
          'href="capitulo-1-datos-espacialess.html"'),
+        # --- LA COMA DECIMAL (2026-09-25). La primera es la que la guarda
+        # del capítulo 5 no ve: un decimal seguido de una coma de
+        # puntuación. La última prueba que la coma DELIBERADA del módulo 8
+        # se exime por su literal y no por su sitio.
+        ("vuelve una coma decimal seguida de una coma de puntuación",
+         "y 0.72, así que no era una medida", "y 0,72, así que no era una medida"),
+        ("el quiz vuelve a escribir el factor de escala con coma",
+         "factor de escala k = 0.9992. '", "factor de escala k = 0,9992. '"),
+        ("el JSON del precálculo vuelve a traer una coma decimal",
+         '"tipo": "transversa de Mercator, k = 0.9992"',
+         '"tipo": "transversa de Mercator, k = 0,9992"'),
+        ("la coma deliberada del módulo 8 no exime a otra cifra",
+         '"ejemplo_lon": "-69,94000"', '"ejemplo_lon": "-69,94001"'),
     ]
 
 
@@ -657,6 +882,12 @@ def defectos_cap3() -> list[tuple[str, str, str]]:
         # mordiendo: 703 + 312 queda por encima.
         ("el documento desbocado",
          "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
+        # --- LA COMA DECIMAL (2026-09-25). Este capítulo no tenía ninguna:
+        # la inyección prueba que la guarda está conectada, no que haya
+        # arreglado nada.
+        ("vuelve una coma decimal a la prosa",
+         f(D["m8"]["forma"]["cima_media"]),
+         f(D["m8"]["forma"]["cima_media"]).replace(".", ",")),
     ]
 
 
@@ -846,6 +1077,13 @@ def defectos_cap4() -> list[tuple[str, str, str]]:
          "no la animación", "ni hace falta", True),
         ("se cae del temario la sección del disco, punto a punto",
          "El disco, punto a punto", "Un disco cualquiera", True),
+        # --- LA COMA DECIMAL (2026-09-25). El titular inventado del
+        # ejercicio 1 y del quiz iba con coma; se decidió punto, porque el
+        # estudiante lo compara con lambdas que la página escribe con punto.
+        ("el titular del ejercicio 1 vuelve a la coma",
+         "hay 5.7 colegios por kilómetro", "hay 5,7 colegios por kilómetro"),
+        ("el titular del quiz vuelve a la coma",
+         "«en Bogotá hay 5.7 colegios por km²»", "«en Bogotá hay 5,7 colegios por km²»"),
     ]
 
 
@@ -935,9 +1173,14 @@ def defectos_cap5() -> list[tuple[str, str, str]]:
         # ciudad (M6-7, 2026-10-27) la mediana es 0.3090, y 0.3091 coincide con
         # el reparto de un punto de la curva rhohat de `bei` (0.30908 %), que
         # el índice de derivadas admite. La inyección no habría medido nada.
+        # Y tres, no dos (2026-11-02): con la tabla de P(oficial) por localidad
+        # que lee «Describir el mapa», 0.3092 es también la razón entre el
+        # porcentaje de área con mayoría oficial de Suba y su proporción media
+        # (0.0580 / 0.1877), una comparación sin sentido que el índice admite
+        # porque las dos cifras viven en el mismo objeto.
         ("la mediana de la superficie de P(oficial), cambiada",
          f"<strong>{f(m6['bogota']['p_mediana'], 4)}</strong>",
-         f"<strong>{f(m6['bogota']['p_mediana'] + 0.0002, 4)}</strong>"),
+         f"<strong>{f(m6['bogota']['p_mediana'] + 0.0003, 4)}</strong>"),
         ("la razón del bulto de la curva rhohat colombiana, cambiada",
          f"<strong>{f(m7['bogota']['curva']['razon_bulto'])}</strong> veces",
          f"<strong>{perturba(m7['bogota']['curva']['razon_bulto'])}</strong> veces"),
@@ -1383,6 +1626,17 @@ def defectos_cap6() -> list[tuple[str, str, str]]:
          'href="capitulo-4-patrones-puntualez.html"'),
         ("el documento desbocado",
          "  <script>", "  <script>\n    // " + "x" * 320000 + "\n"),
+
+        # --- 9. LA COMA DECIMAL (2026-09-25): `pct()`, el rótulo del mapa
+        # municipal y un formateador de las lecturas.
+        ("vuelve el pct() con coma decimal",
+         f"el rezago es un <strong>{f(m10['contraccion_pct'], 2)} %</strong>",
+         f"el rezago es un <strong>{f(m10['contraccion_pct'], 2).replace('.', ',')} %</strong>"),
+        ("el rótulo del mapa municipal vuelve a escribir coma",
+         "grado medio 5.86 y dos municipios", "grado medio 5,86 y dos municipios"),
+        ("un formateador de las lecturas vuelve a escribir coma",
+         "Number(x).toFixed(d == null ? 4 : d);",
+         "Number(x).toFixed(d == null ? 4 : d).replace('.', ',');"),
     ]
 
 

@@ -1391,6 +1391,13 @@
       color: #6b7280;
     }
 
+    /* Capa de fuentes (2026-11-12): la cita en el texto es APA, no un título, y
+       no va en cursiva. Su texto lo escribe genera_referencias.py. */
+    cite.cita { font-style: normal; }
+    cite.cita a { color: inherit; text-decoration: underline dotted; }
+    .lista-fuentes { margin: 0.5rem 0 0; padding-left: 1.25rem; font-size: 0.9rem; }
+    .lista-fuentes li { margin-bottom: 0.35rem; overflow-wrap: anywhere; }
+
     details {
       background: white;
       border: 1px solid #e5e7eb;
@@ -4031,6 +4038,15 @@
       border-bottom: 1px solid #e5e7eb;
       padding: 0.25rem 0.4rem;
       text-align: left;
+    }
+
+    /* «Describir el mapa» se abre con el mismo gesto que la tabla de
+       respaldo, pero lo de dentro es prosa y se lee a tamaño de prosa. */
+    .geomapa-descripcion {
+      margin: 0.5rem 0 0 0;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: #374151;
     }
 
     /* Los controles de un mapa interactivo reutilizan el aspecto de los
@@ -6808,10 +6824,12 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     // misma por construcción. Un mapa con escalas distintas en x e y es
     // un mapa mal dibujado.
     //
-    //   GEOMAPAS['id'] = { fuente, alto, paleta, etiqueta, tabla }
+    //   GEOMAPAS['id'] = { fuente, alto, paleta, etiqueta, descripcion, tabla }
     //
     // `fuente` es el objeto del JSON o una función que lo devuelve (para
     // los simuladores, que cambian de dato al mover un control).
+    // `descripcion` es lo que se ve en el mapa, para quien no lo ve (ver
+    // `geomapaDescripcion`); también puede ser una función del estado.
     //
     // Los cortes de clase NO se calculan aquí: los trae R con classInt.
     // Reimplementar Fisher-Jenks en JS sería pedir un desastre, y además
@@ -7872,6 +7890,28 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       return s;
     }
 
+    // LA DESCRIPCIÓN LARGA (2026-11-02). La etiqueta dice QUÉ es el mapa;
+    // la descripción, QUÉ SE VE en él: dónde está lo alto, dónde se agrupa,
+    // qué forma tiene. Sin ella, quien no ve el lienzo —o lo ve mal: un
+    // daltonismo, un mapa de 340 px en el teléfono— se queda con el nombre
+    // del mapa y sin lo que el mapa enseña. La escribe cada capítulo en el
+    // registro, `descripcion`, como cadena o como función del estado, igual
+    // que `fuente`; aquí no se inventa nada, porque un patrón no se deduce
+    // de los datos sin decidir qué importa, y eso es del módulo.
+    function geomapaDescripcion(o, d) {
+      const t = typeof o.descripcion === 'function' ? o.descripcion(d, o) : o.descripcion;
+      return t ? String(t) : '';
+    }
+
+    // Un id que no use ya otro nodo de la página. El mismo mapa puede salir
+    // en dos módulos (los pinos del capítulo 1, en el 2 y en el 3), y los
+    // nodos de la propia raíz no cuentan: al reiniciarla se reemplazan.
+    function geomapaIdLibre(base, raiz) {
+      let id = base, k = 2, n;
+      while ((n = document.getElementById(id)) && !raiz.contains(n)) id = `${base}-${k++}`;
+      return id;
+    }
+
     // ---------------- cableado declarativo ----------------
 
     function iniciarGeomapas() {
@@ -7900,16 +7940,32 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         // puntos calientes de Gi* son capas del MISMO objeto, y con el título
         // del dato los dos mapas lado a lado decían lo mismo.
         const tit0 = spec.titulo || d.titulo;
+
+        // La descripción va en DOS nodos con el mismo texto, y no por gusto.
+        // Medido en Chrome (2026-11-02, árbol de accesibilidad): un
+        // `aria-describedby` que apunta DENTRO de un <details> cerrado no le
+        // entrega nada al lector de pantalla; uno que apunta a un nodo
+        // `hidden`, sí. Así que el lector oye la copia oculta junto con el
+        // mapa, y quien ve abre «Describir el mapa» si la quiere. Cerrado por
+        // defecto para no adelantar la lectura que el módulo pide hacer; en
+        // papel sale cerrado, como la tabla de respaldo.
+        const conDesc = !!geomapaDescripcion(spec, d);
+        const idDesc = conDesc ? geomapaIdLibre(`desc-${raiz.dataset.geomapa}`, raiz) : '';
         raiz.innerHTML = `
           ${tit0 ? `<p class="geomapa-titulo">${tit0}</p>` : ''}
           <div class="geomapa-marco">
-            <canvas class="geomapa-lienzo" role="img" aria-label="${alt.replace(/"/g, '&quot;')}"></canvas>
+            <canvas class="geomapa-lienzo" role="img" aria-label="${alt.replace(/"/g, '&quot;')}"${conDesc ? ` aria-describedby="${idDesc}"` : ''}></canvas>
           </div>
           <div class="geomapa-caja-leyenda">${geomapaLeyenda(d, spec)}</div>
+          ${conDesc ? `<p class="geomapa-descripcion-oculta" id="${idDesc}" hidden></p>
+          <details class="geomapa-tabla geomapa-describe"><summary>Describir el mapa</summary><p class="geomapa-descripcion"></p></details>` : ''}
           ${spec.tabla ? `<details class="geomapa-tabla"><summary>Ver los datos en una tabla</summary>${spec.tabla(d)}</details>` : ''}`;
 
         const canvas = raiz.querySelector('.geomapa-lienzo');
         const cajaLeyenda = raiz.querySelector('.geomapa-caja-leyenda');
+        const descOculta = raiz.querySelector('.geomapa-descripcion-oculta');
+        const descVisible = raiz.querySelector('.geomapa-descripcion');
+        let descActual = null;
 
         // dibuja() REPINTA LA LEYENDA además del lienzo. Sin esto, un
         // simulador que cambia de fuente deja los rótulos de las clases
@@ -7929,6 +7985,19 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
           // registro (ver raiz.__geomapa, más abajo): solo así lienzo y
           // etiqueta siguen en la vista elegida tras girar el teléfono.
           canvas.setAttribute('aria-label', geomapaAlt(dNow, opts));
+          // La descripción sigue al estado como la etiqueta, y por la misma
+          // vía (`opts`, con los getters ya leídos). Solo se reescribe si
+          // cambió: el ResizeObserver repinta a menudo. Sin `aria-live`: tres
+          // frases leídas en voz alta en cada paso de un deslizador serían
+          // ruido, y las lecturas de los simuladores ya anuncian el cambio.
+          if (descOculta) {
+            const t = geomapaDescripcion(opts, dNow);
+            if (t !== descActual) {
+              descActual = t;
+              descOculta.textContent = t;
+              descVisible.textContent = t;
+            }
+          }
           const tit = raiz.querySelector('.geomapa-titulo');
           const titNow = opts.titulo || dNow.titulo;
           if (tit && titNow) tit.textContent = titNow;

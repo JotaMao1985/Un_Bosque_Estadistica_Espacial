@@ -1217,6 +1217,78 @@ def main() -> int:
              f"{kb:.1f} KB de 150")
 
     # -----------------------------------------------------------------
+    a.titulo("13c · Lo que se ve en cada mapa")
+    # -----------------------------------------------------------------
+    # «Describir el mapa» (2026-11-02): la densidad de sedes en cada zona del
+    # dibujo (tercios de la caja del mapa), medida sobre la parte de la
+    # ventana que cae en ella, y en el D.C. cuántas caen en cada franja de
+    # norte a sur. Se rehace con shapely sobre el GeoPackage, no sobre el
+    # JSON: las frases del ensamblador dicen dónde se apiñan las sedes, y una
+    # zona cambiada de sitio no movería ninguna cifra de la prosa.
+    from shapely.geometry import box
+    from describe_mapa import zona_por_tercios
+
+    def _zona(x, y, caja):
+        return zona_por_tercios((x - caja[0]) / (caja[2] - caja[0]),
+                                1 - (y - caja[1]) / (caja[3] - caja[1]))
+
+    for clave, w, xy, mapa in (("urbano", w_urb, XY[dentro_urb], M["patron_urbano"]),
+                               ("dc", w_dc, XY[dentro_dc], M["patron_dc"])):
+        caja, pub = mapa["caja"], D["visto"][clave]
+        xs, ys = np.linspace(caja[0], caja[2], 4), np.linspace(caja[1], caja[3], 4)
+        zonas_pts = [_zona(x, y, caja) for x, y in xy]
+        filas, franjas = [], {}
+        for i in range(3):
+            for j in range(3):
+                a_km2 = w.intersection(box(xs[i], ys[j], xs[i + 1], ys[j + 1])).area / 1e6
+                if a_km2 <= 0:
+                    continue
+                z = _zona((xs[i] + xs[i + 1]) / 2, (ys[j] + ys[j + 1]) / 2, caja)
+                k = zonas_pts.count(z)
+                filas.append((z, k, a_km2, k / a_km2))
+                fr = ("sur", "centro", "norte")[j]
+                franjas[fr] = (franjas.get(fr, (0, 0.0))[0] + k, franjas.get(fr, (0, 0.0))[1] + a_km2)
+        filas.sort(key=lambda f: (-f[3], f[0]))
+        ok = (len(filas) == len(pub["zona"])
+              and [f[0] for f in filas] == pub["zona"] and [f[1] for f in filas] == pub["n"]
+              and all(abs(f[2] - x) < 1e-4 and abs(f[3] - d) < 1e-6
+                      for f, x, d in zip(filas, pub["area_km2"], pub["dens_km2"])))
+        a.cierto(ok, f"visto/{clave}: sedes por km² en cada zona",
+                 ", ".join(f"{z} {d:.2f}" for z, _, _, d in filas[:4]))
+        if clave == "urbano":
+            # Los claros: el círculo vacío más grande con el centro dentro de
+            # la ventana, en la misma rejilla, y los dos siguientes que no se
+            # solapan. Con scipy, no con spatstat.
+            # Con alias: un `import` dentro de main() vuelve local el nombre en
+            # TODA la función, y el cKDTree del módulo 5, más arriba, revienta.
+            from scipy.spatial import cKDTree as _arbol
+            import shapely as _shp
+            paso = pub["claros_paso_m"]
+            minx, miny, maxx, maxy = w.bounds
+            gx, gy = np.meshgrid(np.arange(minx, maxx + paso / 2, paso), np.arange(miny, maxy + paso / 2, paso))
+            nod = np.c_[gx.ravel(), gy.ravel()]
+            nod = nod[_shp.contains_xy(w, nod[:, 0], nod[:, 1])]
+            dn, _ = _arbol(xy).query(nod)
+            el = []
+            for i in np.argsort(-dn, kind="stable"):
+                if all(np.hypot(*(nod[i] - nod[j])) > dn[i] + dn[j] for j in el):
+                    el.append(i)
+                if len(el) == 3:
+                    break
+            esp = [(dn[i] / 1000, _zona(nod[i][0], nod[i][1], caja)) for i in el]
+            ok = (len(pub["claros_radio_km"]) == 3
+                  and all(abs(r - rp) < paso / 1000 and z == zp
+                          for (r, z), rp, zp in zip(esp, pub["claros_radio_km"], pub["claros_zona"])))
+            a.cierto(ok, "visto/urbano: los tres claros más grandes",
+                     ", ".join(f"{r:.2f} km {z}" for r, z in esp))
+        if clave == "dc":
+            esp = [(fr, franjas[fr][0], franjas[fr][1]) for fr in ("norte", "centro", "sur")]
+            ok = (pub["franja"] == [e[0] for e in esp] and pub["franja_n"] == [e[1] for e in esp]
+                  and all(abs(e[2] - x) < 1e-4 for e, x in zip(esp, pub["franja_area_km2"])))
+            a.cierto(ok, "visto/dc: las sedes de cada franja de norte a sur",
+                     ", ".join(f"{fr} {k}" for fr, k, _ in esp))
+
+    # -----------------------------------------------------------------
     a.titulo("13b · La animación de K y g (módulos 8 y 9), recalculada")
     # -----------------------------------------------------------------
     # `genera_cap4_kanillo2d.R` cuenta las parejas a mano en R; aquí se cuentan otra vez con numpy

@@ -203,7 +203,7 @@ def defectos() -> list[tuple[str, str, str, object]]:
     txt("las dos autoevaluaciones se quedan en una", "ensamblador",
         'data-quiz="cap1-diagnostica"', 'data-quiz="cap1"')
     txt("un lienzo se queda sin aria-label", "ensamblador",
-        'aria-label="Variograma de una realización frente al teórico, con la banda '
+        'aria-label="Variograma de una realización frente al teórico promediado en cada rezago, con la banda '
         'del 5 al 95 por ciento sobre mil realizaciones" role="img"', 'role="img"')
     txt("una plantilla abre y no cierra", "ensamblador",
         "</template>\n", "\n")
@@ -230,6 +230,9 @@ def defectos() -> list[tuple[str, str, str, object]]:
         veces=0)
     txt("un espacio fino se cuela dentro de una fórmula", "ensamblador",
         "\\\\(\\\\phi = {ur['phi']}\\\\)", "\\\\(\\\\phi = 4\\u202f000\\\\)")
+    txt("un espacio fino de LaTeX se cuela en la prosa", "ensamblador",
+        "{ent(ne['enes'][0])} a {ent(ne['enes'][-1])} observaciones",
+        "{ent_mate(ne['enes'][0])} a {ent_mate(ne['enes'][-1])} observaciones")
 
     # --- Módulo 5: el deslizador de rho (T1.1) --------------------------
     txt("el tope del deslizador deja de ser legible", "ensamblador",
@@ -245,19 +248,141 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("el rombo de Colombia se sube por encima de la diagonal", "datos",
         lambda o: o["n_efectivo"].__setitem__("desercion_municipal", 2000.0))
 
-    # --- Módulo 5: los dos rho del titular (T2.1) -----------------------
-    obj("el rho implícito deja de reproducir el titular", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__("implicito", 0.02))
-    obj("el rho medido supera al implícito y la prosa queda del revés", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__("estimado", 0.05))
+    # --- Módulo 5: lo que su prosa afirma (R1) ---------------------------
+    #
+    # Una inyección por guarda. Lo que se ataca no son cifras sueltas —eso es
+    # de los auditores— sino las FRASES que las unen: «pasa por el rombo», «son
+    # el mismo número», «el mismo número en todas», «más que el valor que
+    # busca», «no sube». Y que el rho «medido» por bandas, retirado en esta
+    # ronda, no pueda volver al JSON sin que el ensamblador pare.
+    ne5 = lambda o: o["n_efectivo"]                                   # noqa: E731
+    obj("el rho medio de Colombia deja de reproducir el titular", "datos",
+        lambda o: ne5(o)["rho_del_titular"].__setitem__("implicito", 0.02))
     obj("el rho del titular habla de otros municipios", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__("n", 1113))
-    obj("una banda que la prosa nombra cambia de distancia", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][0].__setitem__("d2", 30))
-    obj("las bandas del correlograma dejan un hueco", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][2].__setitem__("d2", 120))
-    obj("la correlación deja de ser negativa a media distancia", "datos",
-        lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][4].__setitem__("I", 0.017394))
+        lambda o: ne5(o)["rho_del_titular"].__setitem__("n", 1113))
+    obj("vuelve un rho «medido» sobre el mapa al JSON", "datos",
+        lambda o: ne5(o)["rho_del_titular"].__setitem__("estimado", 0.0021195))
+    obj("el n_eff de la fórmula deja de imprimirse igual que el exacto", "datos",
+        lambda o: ne5(o)["exacto_campo"][4].__setitem__("n_eff_formula", 5.2))
+    obj("el n_eff exacto del módulo 5 se queda sin la fila de phi = 4", "datos",
+        lambda o: ne5(o)["exacto_campo"][4].__setitem__("phi", 5))
+    obj("la demostración del centrado cambia de réplicas", "datos",
+        lambda o: ne5(o)["centrado"].__setitem__("nrep", 500))
+    obj("el rho medio verdadero no es el de la fila de phi = 4", "datos",
+        lambda o: ne5(o)["centrado"].__setitem__("rho_medio_verdadero", 0.17394))
+    obj("el promedio centrado deja de ser el mismo en todas las réplicas", "datos",
+        lambda o: ne5(o)["centrado"].__setitem__("centrado_max", 0.0021195))
+    obj("sobre la deserción el promedio centrado no es -1/(n-1)", "datos",
+        lambda o: ne5(o)["centrado"]["colombia"].__setitem__("centrado", 0.0021195))
+    obj("con la media verdadera el promedio ya no apunta al rho medio", "datos",
+        lambda o: ne5(o)["centrado"]["con_media_verdadera"].__setitem__("media", 0.05))
+    obj("la dispersión entre réplicas baja del rho medio", "datos",
+        lambda o: ne5(o)["centrado"]["con_media_verdadera"].__setitem__("sd", 0.1))
+    obj("el proceso simulado deja de tener varianza 1", "datos",
+        lambda o: o["inferencia"].__setitem__("sigma", 2))
+    obj("la tabla del techo pierde la fila de la retícula del módulo 4", "datos",
+        lambda o: ne5(o)["techo"]["rejilla"][1].__setitem__("k", 17))
+    obj("la tabla del techo cambia de alcance", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("phi", 8))
+    obj("factor_n deja de ser el cociente de los extremos de la tabla", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("factor_n", 16))
+    obj("al rellenar el último salto deja de ser pequeño", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("ultimo_salto_pct", 3.0))
+    obj("la última fila del relleno se queda lejos de su techo", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("falta_techo_pct", 2.0))
+    obj("una fila del relleno supera 1/rho_inf", "datos",
+        lambda o: ne5(o)["techo"]["rejilla"][0]["relleno"].__setitem__("n_eff", 5.5))
+    obj("techo_inf deja de ser el inverso de rho_inf", "datos",
+        lambda o: ne5(o)["techo"].__setitem__("rho_inf", 0.25))
+    obj("el techo del ejemplo del módulo 5 deja de ser 1/rhos[1]", "datos",
+        lambda o: ne5(o)["caso_quiz"].__setitem__("techo_otro", 50))
+    # Una fórmula escrita con UNA barra invertida en el ensamblador: Python la
+    # convierte en un carácter de control y el HTML sale con las cifras bien
+    # y la fórmula rota. Pasó de verdad al reescribir este módulo.
+    txt("una fórmula del módulo 5 se escribe con una sola barra invertida", "ensamblador",
+        "Hay dos maneras de pasar de", "Hay dos \\bar maneras de pasar de")
+    obj("la corrección por s² del rho de Colombia deja de ser una rebaja", "datos",
+        lambda o: ne5(o)["rho_del_titular"].__setitem__("implicito_con_s2", 0.02))
+    obj("al ampliar el rho medio deja de caer", "datos",
+        lambda o: ne5(o)["techo"]["rejilla"][3]["ampliacion"].__setitem__("rho_medio", 0.5))
+
+    # --- Ejercicio 3: el n efectivo al revés (R1 · T1.2) -----------------
+    #
+    # El ejercicio se rehízo sobre el archivo público del Taller 1 y el
+    # remuestreo por bloques. Sus guardas leen lo que la lectura AFIRMA —«la
+    # red actual ya la supera», «siempre entre 25 y 50»— y que el ejercicio
+    # se pueda hacer desde fuera. Una inyección por guarda.
+    e3g = lambda o: o["e3"]["solucion"]       # noqa: E731
+    obj("el ejercicio 3 enlaza un archivo que no está en el repo", "soluciones",
+        lambda o: e3g(o).__setitem__("archivo", "entrega/datos/no_existe.gpkg"))
+    obj("el ejercicio 3 vuelve a leer el dato que no se publica", "soluciones",
+        lambda o: e3g(o).__setitem__("archivo",
+                                     "precalculo/salidas/cap1_soluciones.json"))
+    txt("el ejercicio 3 pierde el enlace de descarga", "ensamblador",
+        "{ejercicio(3, S['e3'], datos=E3_DATOS, codigo=E3_CODIGO)}",
+        "{ejercicio(3, S['e3'], codigo=E3_CODIGO)}")
+    obj("ejercicio 3: el remuestreo por bloques deja de ensanchar", "soluciones",
+        lambda o: e3g(o).__setitem__("n_eff", 417.39417))
+    obj("ejercicio 3: vuelve el rho de las bandas", "soluciones",
+        lambda o: e3g(o).__setitem__("rho_medio", 0.0314555721))
+    obj("ejercicio 3: la bandera dice que 50 independientes se alcanzan", "soluciones",
+        lambda o: e3g(o).__setitem__("objetivo_50_alcanzable", True))
+    obj("ejercicio 3: con otra semilla el techo pasa de 50", "soluciones",
+        lambda o: e3g(o)["otras_semillas"].__setitem__("techo_max", 51.73941))
+    obj("ejercicio 3: las estaciones para 25 se redondean hacia abajo", "soluciones",
+        lambda o: e3g(o).__setitem__("estaciones_para_25", 56))
+    obj("ejercicio 3: la lectura cita un techo que no es el del JSON", "soluciones",
+        lambda o: e3g(o).__setitem__("techo", 44.1739417))
+    obj("ejercicio 3: el promedio centrado sale positivo", "soluciones",
+        lambda o: e3g(o).__setitem__("centrado_todos_los_pares", 0.0027777778))
+    obj("ejercicio 3: la lectura vuelve a la fórmula de equicorrelación", "soluciones",
+        lambda o: o["e3"].__setitem__(
+            "lectura", o["e3"]["lectura"] + " Es la fórmula de equicorrelación."))
+    obj("ejercicio 3: vuelve el correlograma por bandas al JSON", "soluciones",
+        lambda o: e3g(o).__setitem__("moran_por_banda", [0.41739, 0.21739]))
+    # Segunda vuelta: el jackknife, los pesos por filas y los residuos. El
+    # archivo sin versionar lo dispara ya el primer mutante de esta familia
+    # (un archivo que no existe tampoco está en git).
+    jkg = lambda o: e3g(o)["jackknife"]       # noqa: E731
+    obj("ejercicio 3: el jackknife pierde un departamento", "soluciones",
+        lambda o: jkg(o)["por_departamento"].pop(3))
+    obj("ejercicio 3: el máximo del jackknife no es el de su lista", "soluciones",
+        lambda o: jkg(o)["maximo"].__setitem__("techo", 61.73941))
+    obj("ejercicio 3: ningún departamento voltea ya la respuesta", "soluciones",
+        lambda o: (jkg(o)["maximo"].__setitem__("techo", 47.9),
+                   [d.__setitem__("techo", 47.9) for d in jkg(o)["por_departamento"]
+                    if d["departamento"] == jkg(o)["maximo"]["departamento"]],
+                   jkg(o).__setitem__("n_sobre_objetivo", 0)))
+    obj("ejercicio 3: el techo de la red sale del recorrido del jackknife", "soluciones",
+        lambda o: (jkg(o)["minimo"].__setitem__("techo", 20.5),
+                   [d.__setitem__("techo", 20.5) for d in jkg(o)["por_departamento"]
+                    if d["departamento"] == jkg(o)["minimo"]["departamento"]]))
+    obj("ejercicio 3: la semilla mueve el techo más que el dato", "soluciones",
+        lambda o: e3g(o)["otras_semillas"].__setitem__("techo_min", 30.17394))
+    obj("ejercicio 3: la lectura nombra un departamento y el JSON otro", "soluciones",
+        lambda o: jkg(o)["minimo"].__setitem__("departamento", "Santander"))
+    obj("ejercicio 3: la tabla pierde el techo sin el departamento que voltea", "soluciones",
+        lambda o: o["e3"].__setitem__(
+            "pasos", [p for p in o["e3"]["pasos"]
+                      if not p["paso"].endswith("sin " + jkg(o)["maximo"]["departamento"])]))
+    obj("ejercicio 3: el promedio con pesos por filas sale negativo", "soluciones",
+        lambda o: e3g(o)["pesos_filas"]["promedio"].__setitem__(0, -0.0027777778))
+    obj("ejercicio 3: la lectura cita un promedio por filas que no es el del JSON", "soluciones",
+        lambda o: e3g(o)["pesos_filas"]["promedio"].__setitem__(2, 0.0241739))
+    obj("ejercicio 3: el techo de los residuos deja de pasar de 50", "soluciones",
+        lambda o: (e3g(o)["residuos"].__setitem__("techo", 48.17394),
+                   e3g(o)["residuos"].__setitem__("objetivo_50_alcanzable", False)))
+    obj("ejercicio 3: la correlación de los residuos no se despeja de su n_eff", "soluciones",
+        lambda o: e3g(o)["residuos"].__setitem__("rho_medio", 0.0201739))
+    obj("ejercicio 3: las estaciones para 50 con los residuos, mal redondeadas", "soluciones",
+        lambda o: e3g(o)["residuos"].__setitem__(
+            "estaciones_para_50", e3g(o)["residuos"]["estaciones_para_50"] + 2))
+    obj("ejercicio 3: la lectura cita una caída de la correlación que no es la del JSON",
+        "soluciones", lambda o: e3g(o)["residuos"].__setitem__("caida_rho_pct", 31.73941))
+    obj("ejercicio 3: la altitud deja de explicar casi toda la temperatura", "soluciones",
+        lambda o: e3g(o)["residuos"].__setitem__("r2", 0.4173941))
+    obj("ejercicio 3: el enunciado pierde el apartado (d)", "soluciones",
+        lambda o: o["e3"].__setitem__("enunciado", o["e3"]["enunciado"].replace("(d) ", "")))
 
     # --- Módulo 4: las dos rejillas del campo gaussiano (T1.2) ----------
     obj("un campo simulado se queda sin fila de cifras", "mapas",
@@ -317,6 +442,46 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: [r.__setitem__("variograma",
                                  list(o["realizaciones_vistas"][0]["variograma"]))
                    for r in o["realizaciones_vistas"]])
+
+    # --- R1 · T1.4: módulos 2, 6 y 10 y la pregunta del gráfico ----------
+    # Una inyección por guarda nueva. Todas entran por el JSON de cifras:
+    # lo que vigilan es que la FRASE siga siendo cierta si el dato cambia.
+    obj("el perímetro urbano deja de caber en el Distrito", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__(
+            "n_urbana", o["colombia"]["puntual"]["n_dc"]))
+    obj("lo que el Distrito añade al perímetro deja de estar casi vacío", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__(
+            "area_dc_km2", o["colombia"]["puntual"]["area_urbana_km2"] + 10))
+    obj("la intensidad del perímetro deja de superar a la del Distrito", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__("factor_lambda", 0.9173941))
+    obj("el teórico de la clase pierde un rezago", "datos",
+        lambda o: o["una_realizacion"]["variograma"].__setitem__(
+            "teorico_clase", o["una_realizacion"]["variograma"]["teorico_clase"][:7]))
+    obj("el teórico de la clase 1 vuelve a ser gamma(1)", "datos",
+        lambda o: o["una_realizacion"]["variograma"]["teorico_clase"].__setitem__(
+            0, o["una_realizacion"]["variograma"]["teorico"][0]))
+    obj("la media de las realizaciones cae sobre gamma(1) y no sobre la clase", "datos",
+        lambda o: o["una_realizacion"]["variograma"]["media"].__setitem__(
+            0, o["una_realizacion"]["variograma"]["teorico"][0]))
+    obj("un desvío publicado vuelve a medirse contra gamma en h entero", "datos",
+        lambda o: o["realizaciones_vistas"][1].__setitem__(
+            "desvio_rel_max",
+            max(abs(v - t) / t for v, t in zip(
+                o["realizaciones_vistas"][1]["variograma"],
+                o["una_realizacion"]["variograma"]["teorico"]))))
+    obj("la referencia uniforme no usa tantos puntos como estaciones", "datos",
+        lambda o: o["diseno_modelo"]["referencia_uniforme"].__setitem__("n_puntos", 360))
+    obj("los cuantiles de la referencia uniforme se desordenan", "datos",
+        lambda o: o["diseno_modelo"]["referencia_uniforme"].__setitem__("razon_p05", 91.73941))
+    obj("la red deja de estar muy por encima de la referencia uniforme", "datos",
+        lambda o: o["diseno_modelo"].__setitem__("razon_areas", 917.3941))
+    obj("«veces la mediana» deja de ser el cociente de sus dos cifras", "datos",
+        lambda o: o["diseno_modelo"]["referencia_uniforme"].__setitem__(
+            "red_sobre_mediana", 41.73941))
+    obj("el promedio de las medias deja de estar sobre la media verdadera", "datos",
+        lambda o: o["una_realizacion"].__setitem__("media_de_las_medias", 0.2173941))
+    obj("el e.e. real deja de crecer con el alcance", "datos",
+        lambda o: o["inferencia"]["rejilla"][-1].__setitem__("ee_real", 0.0717394))
 
     # --- Módulo 1: la serie del brote (T1.4) ----------------------------
     obj("las tres series del brote dejan de medir lo mismo", "datos",
@@ -402,6 +567,91 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("el reparto deja de cubrir el condado entero", "datos",
         lambda o: o["agregacion_soporte"]["nc"]["condado_caso"].__setitem__(
             "fraccion_total_pct", 96.4173941))
+
+    # --- R1 · T1.6: lo que afirman los módulos 3, 4, 6 y 7 y el ejercicio 2 --
+    #
+    # Una inyección por guarda nueva. Como en el módulo 5, lo que se ataca son
+    # las frases que unen las cifras: «solo N de las 361», «por encima», «no
+    # es ruido», «muy desiguales», «el extremo lo pone», «bastante menos»,
+    # «inequívoca», «varía N veces más», «por debajo».
+    SERIES3 = ("ideam", "residuos_altitud", "permutado")
+
+    def banda3(o, i, n_con, esperado=None, programa=None):
+        """La misma banda, en las tres series: así no salta la guarda de la rejilla común."""
+        n_ = o["colombia"]["geo"]["n"]
+        for nombre in SERIES3:
+            b = o["tobler"][nombre]["bandas"][i]
+            b["n_con_vecinos"] = n_con
+            b["esperado"] = -n_con / (n_ * (n_ - 1)) if esperado is None else esperado
+            b["esperado_programa"] = -1 / (n_con - 1) if programa is None else programa
+    obj("la E[I] por banda de una serie deja de ser la de las otras", "datos",
+        lambda o: o["tobler"]["residuos_altitud"]["bandas"][0].__setitem__("n_con_vecinos", 251))
+    obj("la E[I] de una banda deja de ser -n'/(n(n - 1))", "datos",
+        lambda o: banda3(o, 2, o["tobler"]["ideam"]["bandas"][2]["n_con_vecinos"], -0.0031))
+    obj("la esperanza que imprime el programa deja de ser -1/(n' - 1)", "datos",
+        lambda o: banda3(o, 2, o["tobler"]["ideam"]["bandas"][2]["n_con_vecinos"], programa=-0.0031))
+    obj("las permutaciones pasan a respaldar la convención del programa", "datos",
+        lambda o: o["tobler"]["permutacion_banda1"].__setitem__(
+            "media", o["tobler"]["ideam"]["bandas"][0]["esperado_programa"]))
+    obj("en la primera banda todas las estaciones tienen vecinos", "datos",
+        lambda o: banda3(o, 0, o["colombia"]["geo"]["n"]))
+    obj("en la última banda alguna estación se queda sin vecinos", "datos",
+        lambda o: banda3(o, -1, o["colombia"]["geo"]["n"] - 3))
+    ir4 = lambda o: o["inferencia_real"]                              # noqa: E731
+
+    def replicas_abajo(o):
+        r = ir4(o)["replicas"]
+        r["desvio_esperanza"] = -abs(r["desvio_esperanza"])
+        r["esperanza_bloques"] = ir4(o)["media"] + r["desvio_esperanza"]
+    obj("la esperanza de las réplicas por bloques pasa a quedar por debajo de la media muestral",
+        "datos", replicas_abajo)
+    obj("el desvío de la esperanza pasa a ser ruido", "datos",
+        lambda o: ir4(o)["replicas"].__setitem__("emc_esperanza", 0.01))
+    obj("las réplicas de la tabla se salen de su ruido alrededor de la esperanza", "datos",
+        lambda o: ir4(o)["replicas"].__setitem__("media_bloques", 3.48))
+    obj("el error estándar jackknife no sale de la lista ni supera a medio recorrido", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("ee_jackknife_factor", 0.3))
+    obj("el tamaño efectivo, con tres e.e. jackknife, deja de quedar muy lejos de los municipios", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("ee_jackknife_n_eff", 80.0))
+    obj("el e.e. jackknife del tamaño efectivo baja del 25 % de la cifra", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("ee_jackknife_n_eff_pct", 20.0))
+    obj("la z de una I departamental igual a la municipal se sale de entre las dos z", "datos",
+        lambda o: o["escala"].__setitem__("z_departamental_si_igual", 25.0))
+    obj("el ejercicio 3 publica un e.e. jackknife que su lectura no cita", "soluciones",
+        lambda o: o["e3"]["solucion"]["jackknife"].__setitem__("ee_techo", 5.0))
+    obj("las réplicas i.i.d. se separan de la media muestral", "datos",
+        lambda o: ir4(o)["replicas"].__setitem__("desvio_iid", 0.002))
+    obj("los departamentos dejan de ser de tamaños muy desiguales", "datos",
+        lambda o: ir4(o)["replicas"].__setitem__("bloque_min", 20))
+    obj("la lista de un departamento menos no cuadra con el módulo", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("n_departamentos_quedan", 33))
+    obj("el recorrido sin un departamento no es el de su lista", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("factor_min", 3.5))
+    obj("el extremo que la prosa nombra es otro departamento", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__(
+            "extremo", dict(ir4(o)["sin_un_departamento"]["por_departamento"][0])))
+    obj("sin el departamento del extremo el factor ya no baja", "datos",
+        lambda o: ir4(o).__setitem__("factor", 3.0))
+    obj("el titular del módulo se sale del recorrido sin un departamento", "datos",
+        lambda o: ir4(o).__setitem__("n_eff", 50.0))
+    obj("cambiar de semilla mueve tanto como quitar un departamento", "datos",
+        lambda o: ir4(o)["otras_semillas"].update(n_eff_min=40.0, n_eff_max=80.0))
+    obj("el alfa de la prueba del módulo 6 no es el porcentaje que debería rechazar", "datos",
+        lambda o: o["inferencia"].__setitem__("alfa", 0.01))
+    obj("la I municipal deja de ser inequívoca", "datos",
+        lambda o: o["escala"].__setitem__("z_municipal", 1.2))
+    obj("la I departamental deja de variar más que la municipal", "datos",
+        lambda o: o["escala"].update(razon_ee=0.8, ee_departamental=0.8 * o["escala"]["ee_municipal"]))
+    obj("un intervalo del ejercicio 2 deja de estar centrado en la media", "soluciones",
+        lambda o: o["e2"]["solucion"]["ic_bloques"].__setitem__(
+            1, o["e2"]["solucion"]["ic_bloques"][1] + 0.4))
+
+    def e2_al_otro_lado(o):
+        e = o["e2"]["solucion"]
+        e["desvio_esperanza"] = -e["desvio_esperanza"]
+        e["esperanza_replicas_bloques"] = e["media"] + e["desvio_esperanza"]
+    obj("las réplicas del ejercicio 2 caen al otro lado de lo que dice la lectura", "soluciones",
+        e2_al_otro_lado)
 
     # --- El presupuesto de geometría ------------------------------------
     obj("la geometría se sale del presupuesto de 120 KB", "mapas",
@@ -527,6 +777,7 @@ def corre(tmp: pathlib.Path, guion: pathlib.Path,
         if var:
             entorno[var] = str(ruta)
     entorno["CAP1_DESTINO"] = str(tmp / "salida.html")
+    entorno["ESPACIAL_RAIZ"] = str(RAIZ)   # la bibliografía real, no la de la copia
     # Los ordinales de la COPIA, que es la que se ejecuta: una sustitución de
     # texto puede haberle movido las líneas respecto del original.
     orden = {ln: i for i, (ln, _) in enumerate(inventario(guion))}
@@ -578,8 +829,11 @@ def main() -> int:
     # superficies: no se envenenan, porque no son entrada del capítulo sino
     # parte de la herramienta. Sin esta copia el arnés muere en el control de
     # entrada con un ModuleNotFoundError, que es un rojo que no dice nada del
-    # ensamblador. Lo estrenó `baraja_opciones.py` el 2026-09-02.
-    for auxiliar in ("baraja_opciones.py", "pon_boton_indice.py"):
+    # ensamblador. Lo estrenó `baraja_opciones.py` el 2026-09-02; el 2026-11-02 se
+    # sumó `describe_mapa.py`, las guardas de «Describir el mapa», y el 2026-11-12 los
+    # de la capa de fuentes: el ensamblador escribe las citas con `genera_referencias.genera()`.
+    for auxiliar in ("baraja_opciones.py", "pon_boton_indice.py", "describe_mapa.py",
+                     "genera_referencias.py", "fuentes_config.py"):
         origen = ENSAMBLADOR.parent / auxiliar
         if not origen.exists():
             print(f"PARADO: falta {origen}")
@@ -692,7 +946,46 @@ def main() -> int:
                   or PUBLICADO.read_bytes() == publicado_antes)
     print(f"  {'OK  ' if igual_html else 'MAL '} el capítulo publicado no se ha tocado")
 
+    # --- LAS GUARDAS DE «DESCRIBIR EL MAPA» (2026-11-02) --------------
+    # No son `problemas.append` del inventario —viven en
+    # `guardas_de_las_descripciones()` y en `revisa_textos`—, así que el
+    # recuento de arriba no las ve. Se rompen aquí una a una, en una copia
+    # del ensamblador, y cada copia tiene que parar nombrando el defecto.
+    print("\n  «Describir el mapa»: las guardas de las descripciones, rotas de una en una")
+    fuente = ENSAMBLADOR.read_text(encoding="utf-8")
+    ANTES = "DESCRIPCIONES = {\n"
+    MUT_DESC = [
+        ("los pinos sin `descripcion` en el registro",
+         '''geomapa("cap1-pinos", "japanesepines", extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))''',
+         '''geomapa("cap1-pinos", "japanesepines")''', "no trae `descripcion`"),
+        ("la descripción de Bogotá, corta", ANTES, 'DESC_BOGOTA = "Corto."\n' + ANTES, "caracteres"),
+        ("Snow deja de apiñarse en Broad Street", ANTES, '_SN["pct_mas_cerca_broad"] = 30\n' + ANTES, "Snow:"),
+        ("la deserción más alta, en el norte", ANTES, '_DS["mayores"][0]["zona"] = "norte"\n' + ANTES, "deserción:"),
+        ("el campo deja de crecer con el alcance", ANTES, 'M["campos"][3]["rho_vecino"] = 0.99\n' + ANTES, "campo:"),
+        ("la agregación con dos celdas iguales", ANTES, "_apor[0] = _apor[1]\n" + ANTES, "agregación:"),
+        ("las estaciones frías, repartidas", ANTES, '_FR["n"][0] = 10\n' + ANTES, "IDEAM:"),
+        ("el zinc alto, del otro lado de la nube", ANTES,
+         'M["meuse"]["marcas"] = [-z for z in M["meuse"]["marcas"]]\n' + ANTES, "borde noroeste"),
+    ]
+    d_colados = 0
+    for nombre_m, viejo, nuevo, espera in MUT_DESC:
+        if fuente.count(viejo) != 1:
+            d_colados += 1
+            print(f"  INERTE  «{nombre_m}»: la cadena aparece {fuente.count(viejo)} veces y debía ser 1")
+            continue
+        copia = tmp / "ensambla_cap1_desc.py"
+        copia.write_text(fuente.replace(viejo, nuevo), encoding="utf-8")
+        cod_m, sal_m, _ = corre(tmp, copia, dict(limpias))
+        linea = next((l.strip() for l in sal_m.splitlines() if espera in l), None)
+        if cod_m != 0 and linea:
+            print(f"  OK   «{nombre_m}» para el ensamblado: {linea[:84]}")
+        else:
+            d_colados += 1
+            print(f"  MAL  «{nombre_m}» NO para el ensamblado (código {cod_m})")
+    igual_html = igual_html and (publicado_antes is None or PUBLICADO.read_bytes() == publicado_antes)
+
     print("\n" + "=" * 70)
+    print(f"  {len(MUT_DESC) - d_colados} de {len(MUT_DESC)} mutantes de las descripciones paran el ensamblado")
     print(f"  {cazados} de {cazados + colados} defectos cazados"
           + (f" · {inertes} inyección(es) INERTE(s)" if inertes else ""))
     sin_ver = [(l, f) for i, (l, f) in enumerate(guardas) if i not in vistas]
@@ -705,7 +998,7 @@ def main() -> int:
     print("=" * 70)
 
     shutil.rmtree(tmp, ignore_errors=True)
-    ok = (colados == 0 and inertes == 0 and cod == 0 and intactos and igual_html)
+    ok = (colados == 0 and inertes == 0 and cod == 0 and intactos and igual_html and d_colados == 0)
     return 0 if ok else 1
 
 

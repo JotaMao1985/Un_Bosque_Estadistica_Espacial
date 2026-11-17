@@ -1,0 +1,424 @@
+{
+  "coleccion": "Docencia/20929 Estadística Espacial",
+  "coleccion_clave": "IIT2HWT5",
+  "obras": {
+    "anselin1988spatial": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "book",
+      "zotero": "FEAJH3DW"
+    },
+    "anselin1995local": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "AZID2KQJ"
+    },
+    "anselin2014modern": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "basica",
+      "tipo": "book",
+      "zotero": "Y8HM4IKH"
+    },
+    "assuncao1999new": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "FPJ78VK4"
+    },
+    "baddeley1984cautionary": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "X36LB7N3"
+    },
+    "baddeley2005spatstat": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "datos",
+      "tipo": "journalArticle",
+      "zotero": "5QT9IS7M"
+    },
+    "baddeley2015spatial": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "basica",
+      "tipo": "book",
+      "zotero": "7E8TEADL"
+    },
+    "bedford1997remark": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "2B92VBD7"
+    },
+    "benjamini1995controlling": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "QXIVVBQ9"
+    },
+    "berman1989estimating": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "XLWCDFZU"
+    },
+    "bivand2013applied": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "basica",
+      "tipo": "book",
+      "zotero": "KK9AWXB7"
+    },
+    "bivand2018comparing": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "datos",
+      "tipo": "journalArticle",
+      "zotero": "ZIN8WUNB"
+    },
+    "burrough1998principles": {
+      "adjuntos": [],
+      "etiquetas": [
+        "Geographic information systems"
+      ],
+      "rol": "primaria",
+      "tipo": "book",
+      "zotero": "84GF7TE8"
+    },
+    "clark1954distance": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "4Y7LQ2UD"
+    },
+    "cox1981reflexive": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "LIHXVST2"
+    },
+    "cressie1993statistics": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "basica",
+      "tipo": "book",
+      "zotero": "34KJWJQM"
+    },
+    "cronie2018non": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "KLC43VPJ"
+    },
+    "dejong1984extreme": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "8DWSDXCK"
+    },
+    "demirel2026optimizing": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "complementaria",
+      "tipo": "journalArticle",
+      "zotero": "6HZS7J7T"
+    },
+    "diggle1985kernel": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "IA78KDK2"
+    },
+    "diggle1990point": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "WIDWI3H7"
+    },
+    "diggle2013statistical": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "book",
+      "zotero": "YJCC3XJ9"
+    },
+    "dorling1996area": {
+      "adjuntos": [],
+      "etiquetas": [
+        "Cartography",
+        "Methodology"
+      ],
+      "rol": "primaria",
+      "tipo": "book",
+      "zotero": "8WMH3ZW2"
+    },
+    "dougenik1985algorithm": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "RVPPNYVT"
+    },
+    "epanechnikov1969non": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "JDH3BVDB"
+    },
+    "geary1954contiguity": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "IVRNRRFF"
+    },
+    "gehlke1934certain": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "3QP5DDMT"
+    },
+    "getis1992analysis": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "IM3BQ3XR"
+    },
+    "jones1993simple": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "CG9RDVD5"
+    },
+    "lum2016predict": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "C8WYN3H7"
+    },
+    "machado2009physiologically": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "GWEM72BY"
+    },
+    "mas2018analisis": {
+      "adjuntos": [],
+      "etiquetas": [
+        "origen: portada"
+      ],
+      "rol": "complementaria",
+      "tipo": "book",
+      "zotero": "83GVDVW8"
+    },
+    "moraga2019geospatial": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "complementaria",
+      "tipo": "book",
+      "zotero": "SCCKBJCN"
+    },
+    "moran1950notes": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "VM4D8R2V"
+    },
+    "olson1976noncontiguous": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "BNECU8HK"
+    },
+    "ord1995local": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "MF57TQUU"
+    },
+    "parzen1962estimation": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "H5HF5RQS"
+    },
+    "pebesma2018simple": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "datos",
+      "tipo": "journalArticle",
+      "zotero": "BSQGNA4K"
+    },
+    "pebesma2023spatial": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "basica",
+      "tipo": "book",
+      "zotero": "CQQQGHJJ"
+    },
+    "peng2008statistical": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "complementaria",
+      "tipo": "book",
+      "zotero": "DDQKI6UQ"
+    },
+    "rey2023geographic": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "complementaria",
+      "tipo": "book",
+      "zotero": "ANLKWCME"
+    },
+    "ripley1977modelling": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "V4BU6K4E"
+    },
+    "roberts2017crossvalidation": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "complementaria",
+      "tipo": "journalArticle",
+      "zotero": "YFPTVS49"
+    },
+    "robinson1950ecological": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "XZL68A8X"
+    },
+    "rosenblatt1956remarks": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "QKNSUVS2"
+    },
+    "scott1979optimal": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "C3LQDW9F"
+    },
+    "scott1985averaged": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "HSVFP6DC"
+    },
+    "scott1987biased": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "WRUQBCPY"
+    },
+    "scott2015multivariate": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "book",
+      "zotero": "EXW6CNEW"
+    },
+    "sheather1991reliable": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "NWBTMQNS"
+    },
+    "silverman1986density": {
+      "adjuntos": [],
+      "etiquetas": [
+        "Estimation theory"
+      ],
+      "rol": "primaria",
+      "tipo": "book",
+      "zotero": "E73DWBWS"
+    },
+    "snow1855mode": {
+      "adjuntos": [],
+      "etiquetas": [
+        "origen: portada"
+      ],
+      "rol": "primaria",
+      "tipo": "book",
+      "zotero": "ZFXAA774"
+    },
+    "snyder1987map": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "report",
+      "zotero": "TP7XDMIS"
+    },
+    "strauss1975model": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "CHGW82N8"
+    },
+    "tobler1970computer": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "GDFQXKYS"
+    },
+    "vanlieshout1996nonparametric": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "journalArticle",
+      "zotero": "UQRGP4U9"
+    },
+    "waller2004applied": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "complementaria",
+      "tipo": "book",
+      "zotero": "HRTFWRKE"
+    },
+    "wand1995kernel": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "primaria",
+      "tipo": "book",
+      "zotero": "RG2J5HDA"
+    }
+  },
+  "zotero": "10.0.9"
+}

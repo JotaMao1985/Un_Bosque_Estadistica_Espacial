@@ -436,9 +436,15 @@ def main() -> int:  # noqa: C901
     dist1 = {d["id"]: d["valor"] for d in N1["distractores"]}
     a.igual(n1 * (1 - rho), dist1["resta_lineal"],
             "N1: el distractor de la resta lineal", 1e-9)
-    a.igual(neff(n1, REU["neff_I_primera_banda"]["valor"]),
-            dist1["rho_primera_banda"],
-            "N1: el que mete el Moran de la primera banda", 1e-9)
+    a.igual(1 / rho, dist1["techo"],
+            "N1: el que da el techo, 1/rho_medio", 1e-9)
+    # La numérica acepta medio punto de error y el techo queda a menos de
+    # cuatro del correcto: si se acercaran más que la tolerancia, el motor
+    # daría por bueno el error que el distractor nombra.
+    a.cierto(abs(dist1["techo"] - N1["correcto"]) > 0.5,
+             "N1: el techo queda fuera de la tolerancia de la pregunta (0.5)")
+    a.igual(-1 / (n1 - 1), REU["neff_centrado_col"]["valor"],
+            "N1: el promedio centrado de todos los pares es -1/(n-1)", 1e-9)
     a.igual(n1 * (1 + (n1 - 1) * rho), dist1["multiplica"],
             "N1: el que multiplica por el efecto de diseño", 1e-9)
     nota = N1["nota_n_menos_1"]
@@ -760,6 +766,21 @@ def main() -> int:  # noqa: C901
     curva = en_ruta(CAPS["cap3_datos.json"], "m8.curva")
     a.cierto([c["media"] for c in curva] == GRAFICOS["g_escala"]["media"],
              "g_escala dibuja la curva del capítulo 3")
+    # g_variograma: la referencia es el teórico PROMEDIADO EN LA CLASE del
+    # capítulo 1 (R1 · T1.4), no gamma en el retardo entero, y las otras tres
+    # series son las del mismo lote. La retroalimentación de la pregunta dice
+    # que la media va pegada a esa referencia en todos los retardos.
+    vario1 = en_ruta(CAPS["cap1_datos.json"], "una_realizacion.variograma")
+    gv = GRAFICOS["g_variograma"]
+    a.cierto(all(gv.get(k) == vario1.get(k)
+                 for k in ("lags", "teorico_clase", "media", "q05", "q95")),
+             "g_variograma dibuja el teórico de la clase, la media y la banda del capítulo 1")
+    a.cierto("teorico" not in gv,
+             "g_variograma no arrastra gamma en el retardo entero como referencia")
+    a.cierto(len(gv.get("teorico_clase", [])) == len(gv["media"])
+             and all(abs(m_ - t_) / t_ < 0.02
+                     for m_, t_ in zip(gv["media"], gv.get("teorico_clase", []))),
+             "  y la media de las realizaciones va pegada a él en todos los retardos")
     pares4 = en_ruta(CAPS["cap3_datos.json"], "m4.pares")
     a.cierto([p["pct_cambian"] for p in pares4] == GRAFICOS["g_discordancia"]["pct"],
              "g_discordancia dibuja los pares del capítulo 3")

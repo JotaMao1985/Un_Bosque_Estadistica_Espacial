@@ -558,13 +558,14 @@ def main() -> int:
     # Los máximos de las siete superficies, recalculados. Es la afirmación
     # del módulo 2 —al abrir el núcleo la superficie se aplana— y aquí se
     # comprueba contra una KDE que no es la de spatstat.
-    maxs, sup0 = [], None
+    maxs, sups = [], []
     for s in fam["sigmas_m"]:
         cr = kde_directa(px, py, s, xc, yc)
         e = borde_e(mask, dx, dy, s, nx, ny)
         sup = np.where((e > 0) & mask, cr / np.maximum(e, 1e-300), np.nan)
         maxs.append(float(np.nanmax(sup)) * 1e6)
-        sup0 = sup if sup0 is None else sup0
+        sups.append(sup)
+    sup0 = sups[0]
     for i, s in enumerate(fam["sigmas_m"]):
         a.cerca(maxs[i], fam["max_km2"][i],
                 f"familia: el máximo con sigma={s:.0f} m", TOL_SUP)
@@ -1842,6 +1843,187 @@ def main() -> int:
     al_derecho(M["ciudad_bachillerato"], Xs, Ys, "bachillerato")
     al_derecho(M["ciudad_estudiantes"], Xs, Ys, "estudiantes")
     al_derecho(M["proporcion_oficial"], Xs, Ys, "P(oficial)", marcas=ofi_pts)
+
+    # -----------------------------------------------------------------
+    a.titulo("12c · Lo que se ve en cada mapa")
+    # -----------------------------------------------------------------
+    # «Describir el mapa» (2026-11-02) lee de R dónde está lo alto, cuántas
+    # manchas hay y en qué localidad. Aquí se rehace por otro camino: las
+    # manchas y el máximo de la familia sobre la KDE de la sección 2, que no es
+    # la de spatstat; los picos de la ciudad sobre el ráster PUBLICADO, que es
+    # lo que se ve; P(oficial) por localidad sobre el cociente de la sección 5.
+    # Y cada zona se cuenta también sobre el dibujo: si un ráster volviera a
+    # salir volteado, «norte» dejaría de casar con el mapa.
+    import unicodedata
+    from scipy import ndimage
+    from describe_mapa import celda_maxima, zona_dibujada, zona_por_tercios
+
+    def igual_txt(calc, pub, que):
+        # `igual` es numérico; las zonas y los nombres son palabras.
+        return a.cierto(calc == pub, que, f"{calc} / {pub}")
+
+    def ascii_(s):
+        return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
+
+    def localidades_de(xs, ys):
+        pts = gpd.GeoDataFrame(geometry=gpd.points_from_xy(xs, ys), crs=locs.crs)
+        j = gpd.sjoin(pts, locs[["localidad", "geometry"]], how="left", predicate="within")
+        j = j[~j.index.duplicated()]
+        return j["localidad"].to_numpy()
+
+    OCHO = np.ones((3, 3), int)
+
+    def prominencias(z):
+        """La prominencia de cada pico: de la celda más alta a la más baja,
+        uniendo vecinas; al juntarse dos regiones muere la del pico más bajo,
+        con su pico menos esa celda. Otra implementación que la de R."""
+        ny_, nx_ = z.shape
+        plano = z.ravel()
+        orden = [c for c in np.argsort(-np.nan_to_num(plano, nan=-np.inf), kind="stable")
+                 if np.isfinite(plano[c])]
+        padre, alto, prom = {}, {}, []
+
+        def raiz(c):
+            while padre[c] != c:
+                padre[c] = padre[padre[c]]
+                c = padre[c]
+            return c
+        for c in orden:
+            f, k = divmod(int(c), nx_)
+            rs = {raiz(ff * nx_ + kk) for ff in (f - 1, f, f + 1) for kk in (k - 1, k, k + 1)
+                  if (ff, kk) != (f, k) and 0 <= ff < ny_ and 0 <= kk < nx_ and ff * nx_ + kk in padre}
+            if not rs:
+                padre[c], alto[c] = c, plano[c]
+                continue
+            rs = sorted(rs, key=lambda r: -alto[r])
+            for r in rs[1:]:
+                prom.append(alto[r] - plano[c])
+                padre[r] = rs[0]
+            padre[c] = rs[0]
+        prom.append(np.nanmax(plano) - np.nanmin(plano))
+        return np.asarray(prom)
+
+    def legible(g, etq):
+        # Un ráster roto se informa y se salta: el auditor tiene que llegar
+        # vivo al informe (la lección del PR #32, otra vez aquí).
+        nx_, ny_ = g.get("nx"), g.get("ny")
+        ok_ = (isinstance(nx_, int) and isinstance(ny_, int) and nx_ > 0 and ny_ > 0
+               and len(g.get("zq") or []) == nx_ * ny_ and g.get("zqmax")
+               and len(g.get("rango") or []) == 2 and len(g.get("caja") or []) == 4)
+        return a.cierto(bool(ok_), f"visto/{etq}: el ráster se puede leer", f"nx = {nx_}, ny = {ny_}")
+
+    def rejilla_valores(g):
+        z = np.asarray(g["zq"], float).reshape(g["ny"], g["nx"])
+        lo, hi = g["rango"]
+        return np.where(z >= 0, lo + z / g["zqmax"] * (hi - lo), np.nan)
+
+    fo = fam["foco"]
+    nfo = fam.get("focos") or []
+    zmx = fam.get("zona_maximo") or []
+    esc = fam["escala"]
+    a.cerca((esc[1] - esc[0]) / 7, fam.get("paso_foco_km2", -1), "visto/familia: el paso es un tramo", 1e-6)
+    if a.cierto(len(nfo) == len(sups) and len(zmx) == len(sups),
+                "visto/familia: focos y zona, uno por sigma", f"{len(nfo)}, {len(zmx)}"):
+        paso = (esc[1] - esc[0]) / 7
+        pubs = M["kennedy_familia"]
+        a.cierto(len(pubs) == len(sups), "visto/familia: una superficie publicada por sigma",
+                 f"{len(pubs)} de {len(sups)}")
+        for i, sup in enumerate(sups):
+            s = fam["sigmas_m"][i]
+            g = pubs[i] if i < len(pubs) else {}
+            # EXACTA sobre lo que se ve: el ráster publicado, con este código.
+            leg = legible(g, f"familia σ={s:.0f}")
+            if leg:
+                pr_pub = prominencias(rejilla_valores(g))
+                a.igual(int((pr_pub >= paso).sum()), nfo[i], f"visto/familia: focos con σ={s:.0f}")
+            # Y POR BANDA sobre la KDE propia. Las dos KDE difieren hasta un
+            # TOL_SUP de la superficie, así que una prominencia —resta de dos
+            # valores— puede moverse 2·TOL_SUP del máximo: con σ = 233 m dos
+            # focos se levantan 4.34 y 4.28 sobre un paso de 4.22, y esta KDE
+            # cuenta 10 donde spatstat cuenta 12. Exigir la cifra exacta aquí
+            # sería medir el redondeo; lo que se exige es que la de R caiga
+            # dentro de lo que esta KDE permite.
+            pr = prominencias(sup * 1e6)
+            holgura = 2 * TOL_SUP * float(np.nanmax(sup)) * 1e6
+            lo_, hi_ = int((pr >= paso + holgura).sum()), int((pr >= paso - holgura).sum())
+            a.cierto(lo_ <= nfo[i] <= hi_, f"visto/familia: focos en la banda σ={s:.0f}",
+                     f"{nfo[i]} en [{lo_}, {hi_}]")
+            iy, ix = np.unravel_index(np.nanargmax(sup), sup.shape)
+            z_py = zona_por_tercios((ix + 0.5) / nx, 1 - (iy + 0.5) / ny)
+            z_dib = zona_dibujada(g, celda_maxima(g)) if leg else "ilegible"
+            a.cierto(z_py == zmx[i] == z_dib, f"visto/familia: el máximo, en su zona σ={s:.0f}",
+                     f"R {zmx[i]}, Python {z_py}, dibujo {z_dib}")
+        a.cierto(nfo[-1] == 1, "visto/familia: con el σ más ancho, un foco", f"{nfo[-1]}")
+        a.cierto(fo.get("zona") == zmx[0], "visto/foco: es el máximo del σ menor",
+                 f"{fo.get('zona')} y {zmx[0]}")
+
+    # Las celdas más llenas de la rejilla de 8 x 8 (sección 1), por su centro.
+    # (`cq` ya no es la rejilla: el módulo 11 reusa el nombre.)
+    cq1 = D["m1"]["cuadrantes"]
+    llenas = np.argwhere(cnt_q == cnt_q.max())
+    z_q = sorted({zona_por_tercios((i + 0.5) / cq1["nx"], 1 - (j + 0.5) / cq1["nx"]) for i, j in llenas})
+    igual_txt(z_q, sorted(cq1.get("zonas_conteo_max") or []), "visto/cuadrantes: zonas de las más llenas")
+
+    # Los picos de la ciudad, sobre el ráster que se ve: máximos locales del
+    # cuantizado (con sus mesetas fundidas), por localidad distinta.
+    for clave, capa in (("ciudad_oferta", "oferta"), ("ciudad_bachillerato", "grado_11"),
+                        ("ciudad_estudiantes", "estudiantes")):
+        g, picos = M[clave], m5["capas"][capa].get("picos") or []
+        if not a.cierto(len(picos) == 3, f"visto/{capa}: tres picos publicados", f"{len(picos)}"):
+            continue
+        if not legible(g, capa):
+            continue
+        z = np.asarray(g["zq"], float).reshape(g["ny"], g["nx"])
+        pico = (z == ndimage.maximum_filter(z, size=3, mode="constant", cval=-1)) & (z > 0)
+        lab, n_lab = ndimage.label(pico, structure=OCHO)
+        rep = [np.argwhere(lab == k)[0] for k in range(1, n_lab + 1)]
+        rep.sort(key=lambda fc: -z[fc[0], fc[1]])
+        x0, y0, x1, y1 = g["caja"]
+        fx = np.array([x0 + (c + 0.5) * (x1 - x0) / g["nx"] for _, c in rep])
+        fy = np.array([y1 - (f + 0.5) * (y1 - y0) / g["ny"] for f, _ in rep])
+        loc = localidades_de(fx, fy)
+        vistas = []
+        for k, l in enumerate(loc):
+            if isinstance(l, str) and l not in vistas:
+                vistas.append(l)
+                if len(vistas) == 1:
+                    lo, hi = g["rango"]
+                    v1 = lo + z[rep[k][0], rep[k][1]] / g["zqmax"] * (hi - lo)
+                    a.cierto(abs(v1 - picos[0]["valor_km2"]) <= (hi - lo) / g["zqmax"],
+                             f"visto/{capa}: el pico más alto, su valor",
+                             f"{v1:.3f} contra {picos[0]['valor_km2']:.3f}")
+                    igual_txt(zona_dibujada(g, int(rep[k][0] * g["nx"] + rep[k][1])), picos[0]["zona"],
+                              f"visto/{capa}: el pico más alto, su zona")
+        igual_txt(vistas[:3], [ascii_(p["localidad"]) for p in picos],
+                  f"visto/{capa}: las localidades de los picos")
+        a.cerca(picos[0]["valor_km2"], m5["capas"][capa]["max_km2"],
+                f"visto/{capa}: el primer pico es el máximo", 1e-9)
+
+    # P(oficial) por localidad, sobre el cociente recalculado.
+    pl = m6.get("por_localidad") or []
+    if a.cierto(len(pl) > 0, "visto/P(oficial): la tabla por localidad", f"{len(pl)}"):
+        loc_c = localidades_de(Xc.ravel(), Yc.ravel()).reshape(Xc.shape)
+        ok = mask_c & np.isfinite(prop)
+        ux0, uy0, ux1, uy1 = v_urb.bounds
+        for fila in pl:
+            en = ok & (loc_c == ascii_(fila["localidad"]))
+            # Las celdas de cada localidad: la misma rejilla y la misma ventana
+            # tienen que repartirse igual entre localidades, salvo las de la
+            # orilla, que cada máscara decide por su lado.
+            a.cierto(abs(int(en.sum()) - fila.get("celdas", -1)) <= max(3, 0.02 * fila.get("celdas", 0)),
+                     f"visto/P(oficial): celdas de {fila['localidad'][:18]}",
+                     f"{int(en.sum())} contra {fila.get('celdas')}")
+            if en.any():
+                zl = zona_por_tercios((Xc[en].mean() - ux0) / (ux1 - ux0), (uy1 - Yc[en].mean()) / (uy1 - uy0))
+                igual_txt(zl, fila.get("zona"), f"visto/P(oficial): zona de {fila['localidad'][:18]}")
+            # En puntos porcentuales y no relativa: casi todas valen 0, y el
+            # cociente de aquí no lleva la corrección de borde de `relrisk`.
+            pct = 100 * float((prop[en] > 0.5).mean()) if en.any() else -100.0
+            a.cierto(abs(pct - fila["pct_area_mayoria"]) <= 3.0,
+                     f"visto/P(oficial): mayoría en {fila['localidad'][:18]}",
+                     f"{pct:.1f} contra {fila['pct_area_mayoria']:.1f} %")
+        orden = [f["pct_area_mayoria"] for f in pl]
+        a.cierto(orden == sorted(orden, reverse=True), "visto/P(oficial): ordenada de más a menos")
 
     # -----------------------------------------------------------------
     a.titulo("13 · Formato")

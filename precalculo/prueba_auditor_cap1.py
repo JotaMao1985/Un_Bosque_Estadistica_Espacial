@@ -52,6 +52,7 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 import os
 import pathlib
 import re
@@ -254,8 +255,262 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["e1"]["solucion"].__setitem__("factor_otras", 1.1739)))
     add("E2: el IC honesto deja de contener al ingenuo", "soluciones",
         m(lambda o: o["e2"]["solucion"].__setitem__("ee_bloques", 0.1739417)))
+    # E3 (R1 · T1.2). El ejercicio dejó de «medir» un rho con bandas: el n
+    # efectivo sale de dos remuestreos sobre el archivo público y todo lo
+    # demás se despeja de él. Los mutantes de los campos del correlograma
+    # (`moran_por_banda`, `bandas_km`) se retiraron con los campos.
+    e3m = lambda o: o["e3"]["solucion"]       # noqa: E731
     add("E3: el techo deja de ser 1/rho", "soluciones",
-        m(lambda o: o["e3"]["solucion"].__setitem__("techo", 41.73914)))
+        m(lambda o: e3m(o).__setitem__("techo", 41.73914)))
+    add("E3: vuelve el rho de las bandas, que no se despeja del n efectivo", "soluciones",
+        m(lambda o: e3m(o).__setitem__("rho_medio", 0.0314555721)))
+    add("E3: el n efectivo deja de salir de sus dos e.e.", "soluciones",
+        m(lambda o: e3m(o).__setitem__("n_eff", 41.7394173)))
+    add("E3: el factor deja de ser el cociente de los e.e.", "soluciones",
+        m(lambda o: e3m(o).__setitem__("factor", 3.1739417)))
+    add("E3: el porcentaje de información deja de ser n_eff/n", "soluciones",
+        m(lambda o: e3m(o).__setitem__("pct_informacion", 11.7394173)))
+    add("E3: vuelven las 113 estaciones para 25 independientes", "soluciones",
+        m(lambda o: e3m(o).__setitem__("n_para_25", 113.3517394)))
+    add("E3: las estaciones para 25 se redondean hacia abajo", "soluciones",
+        m(lambda o: e3m(o).__setitem__("estaciones_para_25", 56)))
+    add("E3: la bandera dice que 50 independientes se alcanzan", "soluciones",
+        m(lambda o: e3m(o).__setitem__("objetivo_50_alcanzable", True)))
+    add("E3: la temperatura media deja de ser la del archivo público", "soluciones",
+        m(lambda o: e3m(o).__setitem__("media", 22.4173941)))
+    add("E3: un departamento de más entre los bloques", "soluciones",
+        m(lambda o: e3m(o).__setitem__("n_bloques", 33)))
+    add("E3: el promedio centrado de todos los pares sale positivo", "soluciones",
+        m(lambda o: e3m(o).__setitem__("centrado_todos_los_pares", 0.0027777778)))
+    add("E3: con otra semilla el techo pasa de 50", "soluciones",
+        m(lambda o: e3m(o)["otras_semillas"].__setitem__("techo_max", 51.7394173)))
+    add("E3: el rango de las otras semillas no contiene a la referencia", "soluciones",
+        m(lambda o: e3m(o)["otras_semillas"].__setitem__("n_eff_min", 40.9173941)))
+    add("E3: el ejercicio vuelve a leer el dato que no se publica", "soluciones",
+        m(lambda o: e3m(o).__setitem__(
+            "archivo", "datos/procesado/colombia_estaciones_clima.gpkg")))
+    add("E3: vuelve el correlograma por bandas al JSON", "soluciones",
+        m(lambda o: e3m(o).__setitem__("moran_por_banda", [0.41739, 0.21739])))
+    add("E3: la tabla calla sobre el objetivo que no se alcanza", "soluciones",
+        m(lambda o: o["e3"].__setitem__(
+            "pasos", [p for p in o["e3"]["pasos"] if not isinstance(p["valor"], str)])))
+
+    # Segunda vuelta de T1.2: el jackknife por departamento, los residuos de
+    # la altitud y el promedio con pesos por filas.
+    jkm = lambda o: e3m(o)["jackknife"]       # noqa: E731
+    add("E3: los departamentos del jackknife vuelven al orden de la regional", "soluciones",
+        m(lambda o: jkm(o)["por_departamento"].insert(
+            0, jkm(o)["por_departamento"].pop(1))))
+    add("E3: un departamento cualquiera pasa a llevar el techo sobre 50", "soluciones",
+        m(lambda o: jkm(o)["por_departamento"][5].__setitem__("techo", 52.1739417)))
+    add("E3: el techo sin un departamento se mueve un 15 %, sin cruzar el umbral", "soluciones",
+        m(lambda o: jkm(o)["por_departamento"][7].__setitem__(
+            "techo", jkm(o)["por_departamento"][7]["techo"] * 0.85)))
+    add("E3: el máximo del jackknife no es el de su lista", "soluciones",
+        m(lambda o: jkm(o)["maximo"].__setitem__("techo", 61.7394173)))
+    add("E3: el máximo del jackknife cambia de departamento", "soluciones",
+        m(lambda o: jkm(o)["maximo"].__setitem__("departamento", "Cundinamarca")))
+    add("E3: el mínimo del jackknife cambia de número de estaciones", "soluciones",
+        m(lambda o: jkm(o)["minimo"].__setitem__("estaciones", 41)))
+    add("E3: dos departamentos voltean la respuesta, según la cuenta", "soluciones",
+        m(lambda o: jkm(o).__setitem__("n_sobre_objetivo", 2)))
+    add("E3: el jackknife se queda con las réplicas del ejercicio", "soluciones",
+        m(lambda o: jkm(o).__setitem__("nboot", 4000)))
+    add("E3: la semilla pasa a mover el techo más que el dato", "soluciones",
+        m(lambda o: e3m(o)["otras_semillas"].__setitem__("techo_min", 30.1739417)))
+    add("E3: la tabla pierde el techo sin el departamento que voltea", "soluciones",
+        m(lambda o: o["e3"].__setitem__(
+            "pasos", [p for p in o["e3"]["pasos"]
+                      if not p["paso"].endswith("sin " + jkm(o)["maximo"]["departamento"])])))
+    add("E3: la tabla pierde las estaciones enteras para 25", "soluciones",
+        m(lambda o: o["e3"].__setitem__(
+            "pasos", [p for p in o["e3"]["pasos"]
+                      if p["paso"] != "(b) Estaciones para la precisión de 25"])))
+    rsm = lambda o: e3m(o)["residuos"]        # noqa: E731
+    add("E3 (d): el R² de la altitud no es el de la regresión", "soluciones",
+        m(lambda o: rsm(o).__setitem__("r2", 0.9173941)))
+    add("E3 (d): la correlación de los residuos no se despeja de su n efectivo", "soluciones",
+        m(lambda o: rsm(o).__setitem__("rho_medio", 0.0156173)))
+    add("E3 (d): el techo de los residuos deja de ser 1/rho", "soluciones",
+        m(lambda o: rsm(o).__setitem__("techo", 64.1739417)))
+    add("E3 (d): la caída de la correlación es «cerca de un tercio» a mano", "soluciones",
+        m(lambda o: rsm(o).__setitem__("caida_rho_pct", 31.7394173)))
+    add("E3 (d): las estaciones para 50 se redondean hacia abajo", "soluciones",
+        m(lambda o: rsm(o).__setitem__("estaciones_para_50",
+                                       rsm(o)["estaciones_para_50"] - 1)))
+    add("E3 (d): la bandera dice que 50 sigue sin alcanzarse", "soluciones",
+        m(lambda o: rsm(o).__setitem__("objetivo_50_alcanzable", False)))
+    add("E3 (d): el n para 25 con los residuos no sale de la fórmula", "soluciones",
+        m(lambda o: rsm(o).__setitem__("n_para_25", 41.7394173)))
+    add("E3 (d): con otra semilla el techo de los residuos baja de 50", "soluciones",
+        m(lambda o: e3m(o)["otras_semillas"].__setitem__("residuos_techo_min", 49.1739417)))
+
+    # Como arriba: el mutante que las identidades no ven, ahora en (d).
+    def e3_residuos_coherente(o, factor):
+        e, r = o["e3"]["solucion"], o["e3"]["solucion"]["residuos"]
+        r["ee_bloques"] *= factor
+        r["n_eff"] = e["n"] * (r["ee_iid"] / r["ee_bloques"]) ** 2
+        rho = (e["n"] / r["n_eff"] - 1) / (e["n"] - 1)
+        rho0 = (e["n"] / e["n_eff"] - 1) / (e["n"] - 1)
+        r["rho_medio"], r["techo"] = rho, 1 / rho
+        r["caida_rho_pct"] = 100 * (1 - rho / rho0)
+        b, al = e["objetivos"]
+        r["n_para_25"] = b * (1 - rho) / (1 - b * rho)
+        r["n_para_50"] = al * (1 - rho) / (1 - al * rho)
+        r["estaciones_para_50"] = math.ceil(r["n_para_50"])
+        for p in o["e3"]["pasos"]:
+            if p["paso"] == f"(d) Estaciones para la precisión de {al}":
+                p["valor"] = r["estaciones_para_50"]
+    add("E3 (d): el e.e. por departamentos de los residuos baja un 15 %, con todo coherente",
+        "soluciones", m(lambda o: e3_residuos_coherente(o, 0.85)))
+
+    pfm = lambda o: e3m(o)["pesos_filas"]     # noqa: E731
+    add("E3 (c): el promedio con pesos por filas es el del verificador, no el de estas bandas",
+        "soluciones", m(lambda o: pfm(o)["promedio"].__setitem__(1, 0.0191739)))
+    add("E3 (c): el promedio con pesos por filas sale negativo", "soluciones",
+        m(lambda o: pfm(o)["promedio"].__setitem__(0, -0.0027777778)))
+    add("E3 (c): las bandas cambian de ancho sin cambiar la cifra", "soluciones",
+        m(lambda o: pfm(o)["anchos_km"].__setitem__(2, 300)))
+
+    # El mutante que las identidades NO ven: el e.e. por departamentos sale
+    # un 9 % más bajo y TODO lo que se despeja de él se recalcula coherente,
+    # banderas incluidas. Solo lo caza el remuestreo propio del auditor, y
+    # está aquí para probar que su tolerancia de Monte Carlo no es un coladero.
+    def e3_coherente(o, ee_blq):
+        e = o["e3"]["solucion"]
+        e["ee_bloques"] = ee_blq
+        e["factor"] = ee_blq / e["ee_iid"]
+        e["n_eff"] = e["n"] * (e["ee_iid"] / ee_blq) ** 2
+        e["pct_informacion"] = 100 * e["n_eff"] / e["n"]
+        rho = (e["n"] / e["n_eff"] - 1) / (e["n"] - 1)
+        e["rho_medio"], e["techo"] = rho, 1 / rho
+        b, al = e["objetivos"]
+        e["n_para_25"] = b * (1 - rho) / (1 - b * rho)
+        e["estaciones_para_25"] = math.ceil(e["n_para_25"])
+        e["objetivo_25_alcanzable"] = b * rho < 1
+        e["objetivo_50_alcanzable"] = al * rho < 1
+    add("E3: el e.e. por departamentos baja un 9 %, con todo lo derivado coherente",
+        "soluciones", m(lambda o: e3_coherente(o, 0.8)))
+    # --- R1 · T1.6 (2026-11-16): un mutante por campo nuevo ---------------
+    #
+    # Los campos que entraron con las imprecisiones del capítulo: la z de las
+    # dos I (módulo 7), el alfa de la prueba (módulo 6), la E[I] de cada banda
+    # (módulo 3) y, en el módulo 4, dónde caen las réplicas del remuestreo,
+    # cuánto mueve la semilla y cuánto mueve quitar un departamento. Más las
+    # medias de las réplicas del ejercicio 2. Los «coherentes» mueven una
+    # cifra de Monte Carlo y TODO lo que se deriva de ella: solo los caza el
+    # remuestreo propio del auditor, y están para probar que su tolerancia no
+    # es un coladero.
+    esc_ = lambda o: o["escala"]                                     # noqa: E731
+    irm = lambda o: o["inferencia_real"]                             # noqa: E731
+    rpm = lambda o: irm(o)["replicas"]                               # noqa: E731
+    osm_ = lambda o: irm(o)["otras_semillas"]                        # noqa: E731
+    sum_ = lambda o: irm(o)["sin_un_departamento"]                   # noqa: E731
+    for campo, valor in (("z_municipal", 19.41739), ("z_departamental", 1.71349),
+                         ("ee_municipal", 0.0214913), ("ee_departamental", 0.0914137),
+                         ("razon_ee", 5.41739)):
+        add(f"T1.6 · módulo 7: escala.{campo} deja de cuadrar", "datos",
+            m(lambda o, c=campo, v=valor: esc_(o).__setitem__(c, v)))
+    add("T1.6 · módulo 6: el alfa de la prueba no es el del t crítico", "datos",
+        m(lambda o: o["inferencia"].__setitem__("alfa", 0.01)))
+    for campo, valor in (("media_iid", 3.4291473), ("media_bloques", 3.4114937),
+                         ("desvio_iid", 0.0041739), ("desvio_bloques", 0.0291473),
+                         ("emc_media_iid", 0.0041739), ("emc_media_bloques", 0.0014937),
+                         ("esperanza_bloques", 3.4514937), ("desvio_esperanza", 0.0291473),
+                         ("emc_esperanza", 0.0014937), ("desvio_esperanza_pct_ee", 3.1417393),
+                         ("nrep_esperanza", 4000),
+                         ("bloque_min", 5), ("bloque_max", 90)):
+        add(f"T1.6 · módulo 4: replicas.{campo} deja de cuadrar", "datos",
+            m(lambda o, c=campo, v=valor: rpm(o).__setitem__(c, v)))
+
+    def replicas_coherentes(o, media_blq):
+        ir_, r_ = irm(o), rpm(o)
+        r_["esperanza_bloques"] = media_blq
+        r_["desvio_esperanza"] = media_blq - ir_["media"]
+        r_["desvio_esperanza_pct_ee"] = 100 * r_["desvio_esperanza"] / ir_["ee_bootstrap_bloques"]
+    add("T1.6 · módulo 4: la esperanza de las réplicas pasa a quedar por debajo, con todo coherente",
+        "datos", m(lambda o: replicas_coherentes(o, 3.4)))
+    for campo, valor in (("n", 3), ("factor_min", 3.9141739), ("factor_max", 4.5141739),
+                         ("factor_sd", 0.9141739), ("n_eff_min", 55.141739),
+                         ("n_eff_max", 71.141739)):
+        add(f"T1.6 · módulo 4: otras_semillas.{campo} deja de cuadrar", "datos",
+            m(lambda o, c=campo, v=valor: osm_(o).__setitem__(c, v)))
+
+    def semillas_coherentes(o, f_min, f_max):
+        s_, n_ = osm_(o), irm(o)["n_municipios"]
+        s_["factor_min"], s_["factor_max"] = f_min, f_max
+        s_["n_eff_min"], s_["n_eff_max"] = n_ / f_max ** 2, n_ / f_min ** 2
+    add("T1.6 · módulo 4: el rango de las semillas se corre entero, con todo coherente",
+        "datos", m(lambda o: semillas_coherentes(o, 4.5, 4.6)))
+    add("T1.6 · módulo 4: el jackknife se queda con las réplicas del módulo", "datos",
+        m(lambda o: sum_(o).__setitem__("nboot", 4000)))
+    add("T1.6 · módulo 4: los dos remuestreos del jackknife comparten semilla", "datos",
+        m(lambda o: sum_(o).__setitem__("semilla_bloques", sum_(o)["semilla_iid"])))
+    add("T1.6 · módulo 4: tras quitar un departamento siguen quedando todos", "datos",
+        m(lambda o: sum_(o).__setitem__("n_departamentos_quedan", 33)))
+    for campo, valor in (("dpto", "99"), ("departamento", "Macondo"), ("municipios", 71),
+                         ("factor", 4.9141739), ("n_eff", 81.141739)):
+        add(f"T1.6 · módulo 4: una fila del jackknife cambia de {campo}", "datos",
+            m(lambda o, c=campo, v=valor: sum_(o)["por_departamento"][3].__setitem__(c, v)))
+
+    def fila_coherente(o, k, factor):
+        f, n_ = sum_(o)["por_departamento"][k], irm(o)["n_municipios"]
+        f["factor"], f["n_eff"] = factor, (n_ - f["municipios"]) / factor ** 2
+    add("T1.6 · módulo 4: el factor sin un departamento sube un 13 %, con su n efectivo coherente",
+        "datos", m(lambda o: fila_coherente(o, 3, 4.75)))
+    for campo, valor in (("factor_min", 3.4141739), ("factor_max", 4.6141739),
+                         ("n_eff_min", 49.141739), ("n_eff_max", 79.141739),
+                         ("factor_todos", 4.6141739), ("n_eff_todos", 71.141739),
+                         ("ee_jackknife_factor", 0.4141739), ("ee_jackknife_n_eff", 12.141739),
+                         ("ee_jackknife_n_eff_pct", 21.41739)):
+        add(f"T1.6 · módulo 4: sin_un_departamento.{campo} deja de cuadrar", "datos",
+            m(lambda o, c=campo, v=valor: sum_(o).__setitem__(c, v)))
+    add("T1.6 · módulo 4: el extremo del jackknife pasa a ser otro departamento", "datos",
+        m(lambda o: sum_(o).__setitem__("extremo", dict(sum_(o)["por_departamento"][0]))))
+    add("T1.6 · módulo 7: la z de una I departamental igual a la municipal deja de cuadrar", "datos",
+        m(lambda o: esc_(o).__setitem__("z_departamental_si_igual", 5.41739)))
+    add("T1.6 · módulo 3: la esperanza que imprime el programa no es la de su n", "datos",
+        m(lambda o: o["tobler"]["ideam"]["bandas"][1].__setitem__("esperado_programa", -0.0025141)))
+    add("T1.6 · módulo 3: las permutaciones de R pasan a dar la convención del programa", "datos",
+        m(lambda o: o["tobler"]["permutacion_banda1"].__setitem__(
+            "media", o["tobler"]["ideam"]["bandas"][0]["esperado_programa"])))
+    add("T1.6 · módulo 3: el error de las permutaciones no es el de su número", "datos",
+        m(lambda o: o["tobler"]["permutacion_banda1"].__setitem__("emc", 0.0001141)))
+    add("T1.6 · módulo 3: R permuta demasiado poco", "datos",
+        m(lambda o: o["tobler"]["permutacion_banda1"].__setitem__("nperm", 500)))
+    add("T1.6 · E3: el e.e. jackknife del techo no sale de su lista", "soluciones",
+        m(lambda o: o["e3"]["solucion"]["jackknife"].__setitem__("ee_techo", 7.141739)))
+    add("T1.6 · módulo 3: en la primera banda todas las estaciones tienen vecinos", "datos",
+        m(lambda o: o["tobler"]["ideam"]["bandas"][0].__setitem__("n_con_vecinos", 361)))
+    add("T1.6 · módulo 3: la E[I] de la primera banda vuelve a ser la del conjunto", "datos",
+        m(lambda o: o["tobler"]["ideam"]["bandas"][0].__setitem__(
+            "esperado", o["tobler"]["ideam"]["esperado"])))
+    add("T1.6 · módulo 3: una banda de meuse cuenta mal sus puntos con vecinos", "datos",
+        m(lambda o: o["tobler"]["meuse"]["bandas"][1].__setitem__("n_con_vecinos", 141)))
+    add("T1.6 · módulo 3: la E[I] de una banda del permutado no es la de su n", "datos",
+        m(lambda o: o["tobler"]["permutado"]["bandas"][2].__setitem__("esperado", -0.0041739)))
+    e2m = lambda o: o["e2"]["solucion"]                              # noqa: E731
+    for campo, valor in (("media_replicas_iid", 81.2141739), ("media_replicas_bloques", 80.7141739),
+                         ("desvio_replicas_bloques", 0.0414173), ("emc_media_bloques", 0.0414173),
+                         ("esperanza_replicas_bloques", 81.2141739), ("desvio_esperanza", 0.0414173),
+                         ("emc_esperanza", 0.0091417), ("nrep_esperanza", 4000)):
+        add(f"T1.6 · E2: {campo} deja de cuadrar", "soluciones",
+            m(lambda o, c=campo, v=valor: e2m(o).__setitem__(c, v)))
+
+    def e2_coherente(o, media_blq):
+        e = e2m(o)
+        e["media_replicas_bloques"] = media_blq
+        e["desvio_replicas_bloques"] = media_blq - e["media"]
+    add("T1.6 · E2: las réplicas por bloques se corren 0.3 puntos, con su desvío coherente",
+        "soluciones", m(lambda o: e2_coherente(o, 81.3185191793)))
+    def e2_esperanza_coherente(o, desvio):
+        e = e2m(o)
+        e["desvio_esperanza"] = desvio
+        e["esperanza_replicas_bloques"] = e["media"] + desvio
+    add("T1.6 · E2: la esperanza de las réplicas cambia de lado, con su desvío coherente",
+        "soluciones", m(lambda o: e2_esperanza_coherente(o, 0.02)))
+    add("T1.6 · E2: un intervalo deja de estar centrado en la media de los municipios", "soluciones",
+        m(lambda o: e2m(o)["ic_bloques"].__setitem__(1, e2m(o)["ic_bloques"][1] + 0.4)))
     add("E4: la r deja de crecer con el tamaño de la unidad", "soluciones",
         m(lambda o: o["e4"]["solucion"]["conglomerado"].__setitem__("r", 0.41739)))
     add("E4: la r municipal deja de ser la del módulo 7", "soluciones",
@@ -360,6 +615,60 @@ def defectos() -> list[tuple[str, str, str, object]]:
             "desvio_rel_max", 0.4173941)))
     add("el rezago del desvío máximo señala a otro", "datos",
         m(lambda o: o["realizaciones_vistas"][2].__setitem__("lag_desvio_max", 2)))
+    # R1 · T1.4: la referencia del variograma es el teórico PROMEDIADO EN LA
+    # CLASE. Un mutante por campo nuevo o cambiado.
+    add("el teórico de una clase no es el promedio sobre sus pares", "datos",
+        m(lambda o: o["una_realizacion"]["variograma"]["teorico_clase"].__setitem__(
+            0, o["una_realizacion"]["variograma"]["teorico"][0])))
+    add("el número de pares de una clase no es el de la retícula", "datos",
+        m(lambda o: o["una_realizacion"]["variograma"]["n_pares"].__setitem__(1, 1289)))
+    add("la media de las réplicas se va del teórico de la clase", "datos",
+        m(lambda o: o["una_realizacion"]["variograma"]["media"].__setitem__(
+            0, o["una_realizacion"]["variograma"]["teorico"][0])))
+    add("el ancho de banda del rezago 4 vuelve a medirse contra gamma(4)", "datos",
+        m(lambda o: o["una_realizacion"].__setitem__(
+            "banda_rel_lag4",
+            (o["una_realizacion"]["variograma"]["q95"][3]
+             - o["una_realizacion"]["variograma"]["q05"][3])
+            / o["una_realizacion"]["variograma"]["teorico"][3])))
+    add("el desvío del rezago 4 vuelve a medirse contra gamma(4)", "datos",
+        m(lambda o: o["realizaciones_vistas"][0].__setitem__(
+            "desvio_rel_lag4",
+            abs(o["realizaciones_vistas"][0]["variograma"][3]
+                - o["una_realizacion"]["variograma"]["teorico"][3])
+            / o["una_realizacion"]["variograma"]["teorico"][3])))
+    add("el desvío máximo vuelve a medirse contra gamma en h entero", "datos",
+        m(lambda o: o["realizaciones_vistas"][1].__setitem__(
+            "desvio_rel_max",
+            max(abs(v - t) / t for v, t in zip(
+                o["realizaciones_vistas"][1]["variograma"],
+                o["una_realizacion"]["variograma"]["teorico"])))))
+    # R1 · T1.4: la referencia de Thiessen con puntos uniformes (módulo 10).
+    RU = lambda o: o["diseno_modelo"]["referencia_uniforme"]
+    add("la referencia uniforme desaparece", "datos",
+        m(lambda o: o["diseno_modelo"].pop("referencia_uniforme")))
+    add("la referencia uniforme no usa tantos puntos como estaciones", "datos",
+        m(lambda o: RU(o).__setitem__("n_puntos", 360)))
+    add("la referencia uniforme se queda en treinta muestras", "datos",
+        m(lambda o: RU(o).__setitem__("n_muestras", 30)))
+    add("la mediana de la referencia es la de otra distribución", "datos",
+        m(lambda o: RU(o).__setitem__("razon_mediana", 51.73941)))
+    add("el percentil 5 de la referencia no es el suyo", "datos",
+        m(lambda o: RU(o).__setitem__("razon_p05", 27.17394)))
+    add("el percentil 95 de la referencia no es el suyo", "datos",
+        m(lambda o: RU(o).__setitem__("razon_p95", 81.73941)))
+    add("el IC de la mediana deja fuera a la mediana", "datos",
+        m(lambda o: RU(o).__setitem__(
+            "razon_mediana_ic95", [RU(o)["razon_mediana"] + 0.5, RU(o)["razon_mediana"] + 3])))
+    add("el IC de la mediana es diez veces más ancho", "datos",
+        m(lambda o: RU(o).__setitem__(
+            "razon_mediana_ic95", [RU(o)["razon_mediana"] - 15, RU(o)["razon_mediana"] + 15])))
+    add("el máximo de la referencia es una razón corriente", "datos",
+        m(lambda o: RU(o).__setitem__("razon_max", RU(o)["razon_p95"] + 1)))
+    add("«veces la mediana» no es el cociente", "datos",
+        m(lambda o: RU(o).__setitem__("red_sobre_mediana", 41.73941)))
+    add("«veces el percentil 95» no es el cociente", "datos",
+        m(lambda o: RU(o).__setitem__("red_sobre_p95", 17.39412)))
     add("los rezagos fuera de banda declarados no son los que hay", "datos",
         m(lambda o: o["realizaciones_vistas"][0].__setitem__("lags_fuera_banda", 3)))
     add("el campo del mapa cambia y su curva no", "mapas",
@@ -380,45 +689,139 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["realizaciones"][1].__setitem__(
             "zq", o["realizaciones"][1]["zq"][:200])))
 
-    # --- 15. Los dos rho del módulo 5 (T2.1) -----------------------------
+    # --- 15. El módulo 5 sobre lo verdadero (R1) --------------------------
     #
-    # El módulo publica un rho DESPEJADO y un rho MEDIDO, y la gracia está en
-    # su distancia. Las inyecciones atacan las dos naturalezas: el despeje se
-    # rompe rompiendo el álgebra, y la medición se rompe tocando el
-    # correlograma —los pares, las islas, la I— que el auditor rehace desde el
-    # GeoPackage con geopandas. `islas` es el entero sin el cual esa
-    # reconstrucción sería imposible: convierte la convención de spdep en la
-    # de esda, y por eso también se inyecta.
-    add("el rho implícito deja de ser el despeje", "datos",
+    # Hasta R1 esta tanda atacaba un rho DESPEJADO y un rho «MEDIDO» por
+    # bandas, y la distancia entre los dos. El segundo se retiró: el promedio
+    # centrado de todos los pares vale -1/(n-1) con cualquier dato, así que no
+    # medía la correlación media. Lo que el módulo publica ahora son tres
+    # cosas, y las inyecciones atacan las tres: que la fórmula con el rho
+    # medio ES el n_eff exacto, que el promedio centrado es -1/(n-1) y no
+    # depende del dato, y que el techo 1/rho solo aparece al rellenar.
+    add("el rho medio del titular deja de ser el despeje", "datos",
         m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
             "implicito", 0.0173941)))
-    add("el rho estimado no es la media ponderada de sus bandas", "datos",
+    add("vuelve un «rho medido» sobre el mapa al titular", "datos",
         m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "estimado", 0.0041739)))
-    add("una I de banda no es la que mide el mapa", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][2].__setitem__(
-            "I", 0.1739417)))
-    add("los pares de una banda no son los que hay", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][3].__setitem__(
-            "pares", 41739)))
-    add("las islas de una banda no son las que hay", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"]["bandas"][0].__setitem__(
-            "islas", 41)))
-    add("el n_eff que daría el rho medido está mal", "datos",
+            "estimado", 0.0021195)))
+    add("el rho medio de un campo no es el de la retícula", "datos",
+        m(lambda o: o["n_efectivo"]["exacto_campo"][4].__setitem__(
+            "rho_medio", 0.2173941)))
+    add("el n_eff de la fórmula se separa del exacto", "datos",
+        m(lambda o: o["n_efectivo"]["exacto_campo"][4].__setitem__(
+            "n_eff_formula", 5.4173941)))
+    add("el n_eff exacto de un campo no es el del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["exacto_campo"][2].__setitem__(
+            "n_eff", 41.7394173)))
+    add("la fórmula declarada vuelve a hablar de un rho a secas", "datos",
+        m(lambda o: o["n_efectivo"].__setitem__(
+            "formula", "n_eff = n / (1 + (n-1) rho)")))
+    add("el rho medio verdadero de la demostración cambia", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "rho_medio_verdadero", 0.1739417)))
+    add("-1/(n-1) se calcula con n en vez de n-1", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "menos_inv_n1", -0.00390625)))
+    add("el promedio centrado de alguna réplica no es -1/(n-1)", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "centrado_max", 0.0021195)))
+    add("el menor promedio centrado se aparta de -1/(n-1)", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "centrado_min", -0.0417394)))
+    add("la desviación máxima deja de ser redondeo", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__(
+            "desviacion_max", 0.0041739)))
+    add("con la media verdadera el promedio no apunta al rho medio", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "media", 0.0417394)))
+    add("la dispersión entre réplicas se encoge por debajo del rho medio", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "sd", 0.0417394)))
+    add("el error de Monte Carlo no es sd/sqrt(réplicas)", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "emc", 0.0173941)))
+    add("el porcentaje de réplicas negativas no es el que sale", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "pct_negativas", 41.7394173)))
+    add("la demostración deja de correr sobre las réplicas del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__("nrep", 417)))
+    add("el promedio centrado de la deserción no es -1/(n-1)", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["colombia"].__setitem__(
+            "centrado", 0.0021195)))
+    add("-1/(n-1) de los municipios se calcula con n", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["colombia"].__setitem__(
+            "menos_inv_n1", -0.0008920607)))
+    add("la demostración habla de otros municipios", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["colombia"].__setitem__("n", 1113)))
+    add("un rho medio del relleno no es el de su retícula", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][3]["relleno"].__setitem__(
+            "rho_medio", 0.1739417)))
+    add("un n_eff del relleno no sale de su rho medio", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][2]["relleno"].__setitem__(
+            "n_eff", 5.4173941)))
+    # El relleno deja de ESTANCARSE: la última fila se escapa, con su rho
+    # medio movido a juego para que la cuenta de la fila siga cuadrando y lo
+    # único roto sea el estancamiento.
+    add("el relleno deja de estancarse en la última fila", "datos",
+        m(lambda o: (
+            o["n_efectivo"]["techo"]["rejilla"][3]["relleno"].__setitem__("n_eff", 6.5),
+            o["n_efectivo"]["techo"]["rejilla"][3]["relleno"].__setitem__(
+                "rho_medio", (4096 / 6.5 - 1) / 4095))))
+    add("rho_inf no es la correlación media de la región", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("rho_inf", 0.1941739)))
+    add("rho_inf se mueve en la cuarta cifra", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("rho_inf", 0.1936662)))
+    add("el techo del relleno no es 1/rho_inf", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("techo_inf", 5.4173941)))
+    add("el último salto del relleno no es el de la tabla", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("ultimo_salto_pct", 0.1739417)))
+    add("lo que falta para el techo no es lo que falta", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("falta_techo_pct", 0.0417394)))
+    add("la región del relleno deja de ser la del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("lado_relleno", 15)))
+    add("la ampliación cambia de paso", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("paso_ampliacion", 2)))
+    add("el rho medio de Colombia corregido por s² no es su despeje", "datos",
         m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "n_eff_con_estimado", 417.3941)))
-    add("la razón entre los dos rho no es su cociente", "datos",
+            "implicito_con_s2", 0.0141739)))
+    add("la rebaja por s² no es la que separa los dos rho", "datos",
         m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "razon_rho", 4.173941)))
-    add("los pares totales no suman los de las bandas", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "pares_totales", 417394)))
-    add("los pares lejanos declarados no son los de I negativa", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "pares_lejanos", 41739)))
-    add("la I de la primera banda que cita la prosa no es la suya", "datos",
-        m(lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__(
-            "I_primera_banda", 0.4173941)))
+            "diferencia_s2_pct", 4.1739417)))
+    add("la media del proceso simulado deja de ser 0", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__("media", 0.5)))
+    add("la varianza del proceso simulado no es la del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"].__setitem__("varianza", 2)))
+    add("el porcentaje de réplicas negativas se va a 13", "datos",
+        m(lambda o: o["n_efectivo"]["centrado"]["con_media_verdadera"].__setitem__(
+            "pct_negativas", 13.0)))
+    add("la respuesta del quiz no es la de la rejilla", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("n_eff", 9.4173941)))
+    add("el quiz redondea mal su respuesta", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("n_eff_redondo", 9)))
+    add("el techo que cita el quiz no es 1/rho", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("techo", 100)))
+    add("el distractor del quiz coincide con otra opción", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("ingenuo", 100)))
+    add("el otro techo del quiz no es el de su rho", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("techo_otro", 50)))
+    add("el quiz pregunta por un n que no está en la rejilla", "datos",
+        m(lambda o: o["n_efectivo"]["caso_quiz"].__setitem__("n", 2000)))
+    add("un rho medio de la ampliación no es el de su retícula", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][0]["ampliacion"].__setitem__(
+            "rho_medio", 0.4173941)))
+    add("un n_eff de la ampliación no sale de su rho medio", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][2]["ampliacion"].__setitem__(
+            "n_eff", 17.3941739)))
+    add("la fila de 16 por lado deja de ser la retícula del módulo 4", "datos",
+        m(lambda o: o["n_efectivo"]["techo"]["rejilla"][1].__setitem__("k", 17)))
+    add("el factor del relleno no es el cociente de sus extremos", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__(
+            "factor_relleno", 1.4173941)))
+    add("el factor de la ampliación no es el cociente de sus extremos", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__(
+            "factor_ampliacion", 41.7394173)))
+    add("la tabla del techo cambia de alcance sin decirlo", "datos",
+        m(lambda o: o["n_efectivo"]["techo"].__setitem__("phi", 8)))
 
     # --- 16. El puente de phi al factor, del módulo 4 (T2.2) -------------
     #
@@ -476,6 +879,27 @@ def defectos() -> list[tuple[str, str, str, object]]:
               ('"media": 3.4', '"media": 3.417394173941739, "media_vieja": 3.4')))
     D.append(("un NaN se cuela en el JSON", "datos", "txt",
               ('"sd": ', '"sd_roto": NaN, "sd": ')))
+
+    # --- 11. Lo que se ve en cada mapa (2026-11-02) --------------------
+    # La descripción larga dice DÓNDE pasa algo; un dato con otro nombre o en
+    # otra zona no cambia ninguna cifra de la prosa y pone la frase en falso.
+    add("la deserción más alta cambia de departamento", "datos",
+        m(lambda o: o["visto"]["desercion"]["mayores"][0].__setitem__("departamento", "Vichada")))
+    add("la deserción más baja cambia de zona", "datos",
+        m(lambda o: o["visto"]["desercion"]["menores"][0].__setitem__("zona", "sur")))
+    add("la clase alta de Carolina del Norte cambia de zona", "datos",
+        m(lambda o: o["visto"]["nc"]["zona"].__setitem__(0, "suroriente")))
+    add("la clase alta de Carolina del Norte gana condados", "datos",
+        m(lambda o: o["visto"]["nc"].__setitem__("clase_alta_n", 23)))
+    add("las estaciones frías se corren de zona", "datos",
+        m(lambda o: o["visto"]["ideam"]["frias"]["n"].__setitem__(0, 25)))
+    add("el umbral de las estaciones cálidas se corre", "datos",
+        m(lambda o: o["visto"]["ideam"].__setitem__("calidas_umbral", 27.9)))
+    add("las sedes de Bogotá cambian de franja", "datos",
+        m(lambda o: o["visto"]["bogota"]["n"].__setitem__(1, 135)))
+    add("el mapa de deserción vuelve a nombrar Bogotá en inglés", "mapas",
+        m(lambda o: o["desercion"]["etiquetas"].__setitem__(
+            o["desercion"]["etiquetas"].index("Bogotá D. C."), "Bogota Capital District")))
 
     return D
 

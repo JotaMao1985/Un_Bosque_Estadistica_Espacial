@@ -192,6 +192,15 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("N1: dos distractores dejan de distinguirse a 2 decimales", "datos",
         lambda o: o["nuevo"]["n_efectivo"]["distractores"][1].__setitem__(
             "valor", o["nuevo"]["n_efectivo"]["correcto"] + 0.001))
+    obj("N1: el distractor del techo deja de ser 1/rho_medio", "datos",
+        lambda o: o["nuevo"]["n_efectivo"]["distractores"][1].__setitem__(
+            "valor", 69.1234567891))
+    obj("N1: el techo se mete dentro de la tolerancia de la pregunta", "datos",
+        lambda o: o["nuevo"]["n_efectivo"]["distractores"][1].__setitem__(
+            "valor", o["nuevo"]["n_efectivo"]["correcto"] + 0.4))
+    obj("N1: el promedio centrado de todos los pares deja de ser -1/(n-1)", "datos",
+        lambda o: o["reutilizado"]["neff_centrado_col"].__setitem__(
+            "valor", 0.0021242543))
     obj("N2: el grado de longitud deja de ser el que da pyproj", "datos",
         lambda o: o["nuevo"]["grado_longitud"].__setitem__(
             "correcto", 110123.4567891011))
@@ -345,6 +354,14 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: o["graficos"]["g_escala"].__setitem__("modulo", "cap3.m11"))
     obj("la curva del efecto escala deja de ser la del capítulo 3", "datos",
         lambda o: o["graficos"]["g_escala"]["media"].__setitem__(0, 0.4123456789))
+    obj("la referencia del variograma deja de ser el teórico de la clase del capítulo 1",
+        "datos",
+        lambda o: o["graficos"]["g_variograma"]["teorico_clase"].__setitem__(0, 0.2211992169))
+    obj("el variograma vuelve a traer gamma en el retardo entero", "datos",
+        lambda o: o["graficos"]["g_variograma"].__setitem__(
+            "teorico", list(o["graficos"]["g_variograma"]["teorico_clase"])))
+    obj("la media del variograma se despega de su referencia", "datos",
+        lambda o: o["graficos"]["g_variograma"]["media"].__setitem__(7, 0.9123456789))
     obj("un error del catálogo cita una clave que no existe", "datos",
         lambda o: o["errores"][0]["claves"].append("clave_inventada"))
     obj("el capítulo 2 mueve la columna esférica que s2 tiene que reproducir",

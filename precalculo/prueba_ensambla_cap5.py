@@ -32,6 +32,14 @@ QUÉ COMPRUEBA, sobre el capítulo YA ENSAMBLADO (no toca nada: solo lee):
   3. **La llamada fija ya no está.** Una segunda llamada detrás de
      `loadModule(1)` también dejaría los enlaces en el módulo correcto, pero
      marcaría como visto y construiría un módulo que nadie abrió.
+  4. **Las guardas de «Describir el mapa» saben parar** (2026-11-02). Cada
+     mapa lleva una descripción de lo que se ve en él, y lo que esas frases
+     afirman de la forma («el verde está en el sur», «queda un solo foco»)
+     lo comprueba `ensambla_cap5.py` contra el dato. Aquí el ensamblador se
+     ejecuta en copia, con `CAP5_DESTINO` fuera de lo publicado, con UNA
+     guarda rota cada vez (un registro sin `descripcion`, una sigma sin su
+     texto, un dato que deja la frase en falso…), y cada copia tiene que
+     salir con error y nombrar el defecto.
 
   4. **Las guardas del módulo 3 saben parar** (2026-11-03). El módulo enseña la
      curva del criterio de cada selector y abre con dos sedes de Kennedy, y lo que
@@ -289,6 +297,31 @@ MUTANTES_MODULO3 = [
      '_CC["ppl"]["infinito_hasta_m"] = 300.0', "elige entre los que quedan"),
 ]
 
+# (nombre, texto que aparece UNA vez en `ensambla_cap5.py`, su sustituto, lo que
+# la salida tiene que decir). Unos rompen el texto y otros el dato que la frase
+# afirma: las dos cosas son lo que la guarda vigila.
+MUTANTES_DESCRIPCION = [
+    ("la familia sin `descripcion` en el registro",
+     '      "      descripcion: () => DESC5_FAMILIA[famIdx]"\n', '', "no trae `descripcion`"),
+    ("una sigma sin su texto",
+     'DESC_FAMILIA = [_desc_familia(i) for i in range(FAM["n"])]',
+     'DESC_FAMILIA = [_desc_familia(i) for i in range(FAM["n"] - 1)]', "una descripción por sigma"),
+    ("la de sectores, corta",
+     'DESCRIPCIONES = {', 'DESC_SECTOR = "Corto."\nDESCRIPCIONES = {', "caracteres"),
+    ("la oferta, fuera de la guarda",
+     '    "cap5-oferta": [DESC_OFERTA], ', '    ', "sin textos declarados"),
+    ("el σ más ancho con dos focos",
+     'FAM = m2["familia"]', 'FAM = m2["familia"]\nFAM["focos"][-1] = 2', "un solo foco"),
+    ("el verde fuera del sur",
+     '_MAY = _B6["por_localidad"][:3]', '_MAY = _B6["por_localidad"][:3]\n_MAY[0]["zona"] = "norte"',
+     "el verde está en el sur"),
+    ("el pico de los estudiantes donde el del bachillerato",
+     '_P_11 = m5["capas"]["grado_11"]["picos"]',
+     '_P_11 = m5["capas"]["grado_11"]["picos"]\n'
+     'm5["capas"]["estudiantes"]["picos"][0]["localidad"] = _P_11[0]["localidad"]',
+     "ya no se mueve"),
+]
+
 # La copia vive en un directorio temporal: sus dos rutas relativas a
 # `__file__` se fijan al árbol de verdad, y la salida va a `CAP5_DESTINO`.
 RUTAS_DE_LA_COPIA = [
@@ -311,8 +344,13 @@ def ensambla_en_copia(fuente: str, tmp: pathlib.Path) -> tuple[int, str]:
     return r.returncode, r.stdout + r.stderr
 
 
-def prueba_modulo3() -> tuple[int, list[str], list[str]]:
-    """(cazados, colados, inertes) de los mutantes de las guardas del módulo 3."""
+def prueba_guardas(grupo: str) -> tuple[int, list[str], list[str]]:
+    """(cazados, colados, inertes) de un grupo de mutantes de las guardas del ensamblador.
+
+    `modulo3`: los datos del módulo 3 se inyectan tras sus atajos (2026-11-03).
+    `descripciones`: el texto o el dato de «Describir el mapa» se sustituye (2026-11-02).
+    Los dos llegaron por ramas distintas y se fusionaron el 2026-11-13.
+    """
     fuente = ENSAMBLADOR.read_text(encoding="utf-8")
     cazados, colados, inertes = 0, [], []
     for viejo, _ in RUTAS_DE_LA_COPIA:
@@ -320,7 +358,7 @@ def prueba_modulo3() -> tuple[int, list[str], list[str]]:
             print(f"  MAL  la copia del ensamblador no se puede fijar al árbol: «{viejo}» "
                   f"aparece {fuente.count(viejo)} veces")
             return 0, ["la copia"], []
-    if fuente.count(TRAS_LOS_ATAJOS) != 1:
+    if grupo == "modulo3" and fuente.count(TRAS_LOS_ATAJOS) != 1:
         print(f"  INERTE  el punto donde se inyectan los datos aparece {fuente.count(TRAS_LOS_ATAJOS)} veces")
         return 0, [], [m[0] for m in MUTANTES_MODULO3]
     with tempfile.TemporaryDirectory(prefix="prueba_ensambla_cap5_") as d:
@@ -332,8 +370,19 @@ def prueba_modulo3() -> tuple[int, list[str], list[str]]:
             print("       " + sal[-400:].replace("\n", "\n       "))
             return 0, ["el control"], []
         print("  OK   control: la copia sin mutar ensambla limpia fuera de lo publicado")
-        for nombre, dato, espera in MUTANTES_MODULO3:
-            cod, sal = ensambla_en_copia(fuente.replace(TRAS_LOS_ATAJOS, TRAS_LOS_ATAJOS + dato + "\n"), tmp)
+        if grupo == "modulo3":
+            casos = [(nombre, fuente.replace(TRAS_LOS_ATAJOS, TRAS_LOS_ATAJOS + dato + "\n"), espera)
+                     for nombre, dato, espera in MUTANTES_MODULO3]
+        else:
+            casos = []
+            for nombre, viejo, nuevo, espera in MUTANTES_DESCRIPCION:
+                if fuente.count(viejo) != 1:
+                    inertes.append(nombre)
+                    print(f"  INERTE  «{nombre}»: la cadena a mutar aparece {fuente.count(viejo)} veces y debía ser 1")
+                    continue
+                casos.append((nombre, fuente.replace(viejo, nuevo), espera))
+        for nombre, mutada, espera in casos:
+            cod, sal = ensambla_en_copia(mutada, tmp)
             linea = next((l.strip() for l in sal.splitlines() if espera in l), None)
             if cod != 0 and linea:
                 cazados += 1
@@ -376,9 +425,11 @@ def main() -> int:
             colados.append(nombre)
             print(f"  MAL  mutante «{nombre}» NO se cazó: la prueba no distingue ese defecto")
 
-    print("\n  Módulo 3: las guardas de la forma de las curvas, rotas de una en una")
     publicado_antes = CAPITULO.read_bytes()
-    m_cazados, m_colados, m_inertes = prueba_modulo3()
+    print("\n  Módulo 3: las guardas de la forma de las curvas, rotas de una en una")
+    m_cazados, m_colados, m_inertes = prueba_guardas("modulo3")
+    print("\n  «Describir el mapa»: las guardas del ensamblador, rotas de una en una")
+    d_cazados, d_colados, d_inertes = prueba_guardas("descripciones")
     if CAPITULO.read_bytes() != publicado_antes:
         malos.append("el capítulo publicado cambió durante los mutantes: CAP5_DESTINO no lo protegió")
         print(f"  MAL  {malos[-1]}")
@@ -389,8 +440,12 @@ def main() -> int:
     print(f"  {m_cazados} de {len(MUTANTES_MODULO3)} mutantes del módulo 3 paran el ensamblado"
           + (f" · {len(m_inertes)} inerte(s)" if m_inertes else "")
           + (f" · {len(m_colados)} colado(s)" if m_colados else ""))
+    print(f"  {d_cazados} de {len(MUTANTES_DESCRIPCION)} mutantes de las descripciones paran el ensamblado"
+          + (f" · {len(d_inertes)} inerte(s)" if d_inertes else "")
+          + (f" · {len(d_colados)} colado(s)" if d_colados else ""))
     print("=" * 70)
-    ok = not malos and not colados and not inertes and not m_colados and not m_inertes
+    ok = (not malos and not colados and not inertes and not m_colados and not m_inertes
+          and not d_colados and not d_inertes)
     return 0 if ok else 1
 
 

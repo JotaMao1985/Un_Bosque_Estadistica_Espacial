@@ -92,6 +92,41 @@ dist_elip <- function(a, b) con_s2(FALSE, as.numeric(st_distance(a, b, by_elemen
 dist_esf  <- function(a, b) con_s2(TRUE,  as.numeric(st_distance(a, b, by_element = TRUE)))
 pto <- function(lon, lat, crs = 4326) st_sfc(st_point(c(lon, lat)), crs = crs)
 
+# ---------------------------------------------------------------------
+# Los nombres, con sus tildes (2026-11-02)
+#
+# La capa de localidades trae los nombres sin tildes («Los Martires»,
+# «Fontibon»), la de departamentos trae el Distrito Capital en inglés y
+# `spData::world` nombra la Antártida en inglés. El capítulo los publicaba
+# tal cual: el módulo 9 decía «va de 0.22 % en Fontibon a 12.43 % en Los
+# Martires», y el 8, que las estaciones «aterrizan en Antarctica». Se
+# corrigen aquí, en el origen, y un nombre que no está en la tabla PARA el
+# guion en vez de colarse. La tabla de las localidades es la del capítulo 5.
+# ---------------------------------------------------------------------
+NOMBRE_LOC <- c(
+  "Antonio Narino" = "Antonio Nariño", "Barrios Unidos" = "Barrios Unidos", "Bosa" = "Bosa",
+  "Chapinero" = "Chapinero", "Ciudad Bolivar" = "Ciudad Bolívar", "Engativa" = "Engativá",
+  "Fontibon" = "Fontibón", "Kennedy" = "Kennedy", "La Candelaria" = "La Candelaria",
+  "Los Martires" = "Los Mártires", "Puente Aranda" = "Puente Aranda",
+  "Rafael Uribe Uribe" = "Rafael Uribe Uribe", "San Cristobal" = "San Cristóbal",
+  "Santa Fe" = "Santa Fe", "Suba" = "Suba", "Sumapaz" = "Sumapaz", "Teusaquillo" = "Teusaquillo",
+  "Tunjuelito" = "Tunjuelito", "Usaquen" = "Usaquén", "Usme" = "Usme")
+# Los 32 departamentos ya traen sus tildes; solo el Distrito Capital viene en inglés.
+NOMBRE_DEP <- c("Bogota Capital District" = "Bogotá D. C.")
+NOMBRE_DESTINO <- c("Antarctica" = "la Antártida", "(mar abierto)" = "(mar abierto)")
+con_tildes <- function(x, tabla, que) {
+  falta <- setdiff(unique(x), names(tabla))
+  if (length(falta)) stop(sprintf("%s sin su nombre en español: %s", que, paste(falta, collapse = ", ")))
+  unname(tabla[x])
+}
+nombre_dep <- function(x) {
+  y <- unname(ifelse(x %in% names(NOMBRE_DEP), NOMBRE_DEP[x], x))
+  if (any(grepl("District|Capital|Bogota\\b", y)))
+    stop("queda un departamento con el nombre en inglés: ",
+         paste(y[grepl("District|Capital|Bogota\\b", y)], collapse = ", "))
+  y
+}
+
 D <- list()
 MAPAS <- list()
 
@@ -351,7 +386,7 @@ EPSG_LISTA <- list(
   list(codigo = 3116L, nombre = "MAGNA-SIRGAS / Colombia Bogotá zone",
        tipo = "transversa de Mercator, k = 1"),
   list(codigo = 9377L, nombre = "MAGNA-SIRGAS 2018 / Origen-Nacional",
-       tipo = "transversa de Mercator, k = 0,9992"))
+       tipo = "transversa de Mercator, k = 0.9992"))
 
 epsg_fila <- function(e) {
   ap <- as.numeric(st_area(st_transform(mun_ll, e$codigo)))
@@ -458,8 +493,11 @@ ancla(nrow(dep), 33, "departamentos de la capa nacional", tol = 0)
 dep_ll <- st_transform(dep, 4326)
 dep_verdad <- area_elip(dep_ll)
 dep_err <- 100 * (as.numeric(st_area(st_transform(dep_ll, 3116))) / dep_verdad - 1)
+# `etiquetas`: sin ellas, la tabla de respaldo del mapa («Ver los datos en
+# una tabla») numeraba los departamentos del 1 al 33.
 MAPAS$error_3116 <- geo_poligonos(
   st_transform(dep_ll, 9377), valor = dep_err, n_clases = 5, estilo = "quantile",
+  etiquetas = nombre_dep(dep$shapeName),
   titulo = "Error de área de EPSG:3116 por departamento",
   leyenda = "% de exceso sobre el área geodésica", presupuesto = 900L, verbose = FALSE)
 
@@ -468,14 +506,15 @@ MAPAS$error_3116 <- geo_poligonos(
 # interno no aporta nada a la comparación. Lo que hay que ver es cómo
 # cambia la SILUETA.
 contorno_co <- st_sf(pais = "Colombia", geom = st_union(st_geometry(dep_ll)))
+REJ_CO <- list(lon = rep(c(-77, -74, -71, -68), each = 4),
+               lat = rep(c(-3, 2, 7, 11), times = 4))
 MAPAS$proyecciones_colombia <- geo_proyeccion(
   contorno_co,
   list(list(nombre = "Web Mercator (3857)", crs = 3857, familia = "conforme sobre la esfera"),
        list(nombre = "MAGNA-SIRGAS / Bogotá (3116)", crs = 3116, familia = "conforme"),
        list(nombre = "MAGNA-SIRGAS / Origen Nacional (9377)", crs = 9377, familia = "conforme")),
   titulo = "Colombia bajo tres sistemas", presupuesto = 500L, verbose = FALSE,
-  tissot = list(lon = rep(c(-77, -74, -71, -68), each = 4),
-                lat = rep(c(-3, 2, 7, 11), times = 4)), radio_km = 120)
+  tissot = REJ_CO, radio_km = 120)
 
 # =====================================================================
 # E. MÓDULO 5 — st_transform vs. st_set_crs
@@ -670,7 +709,8 @@ s2_antes <- suppressMessages(sf_use_s2(FALSE))
 donde <- suppressWarnings(suppressMessages(
   st_join(inv, world[, c("name_long", "continent")], join = st_within)))
 suppressMessages(sf_use_s2(s2_antes))
-tb_donde <- table(ifelse(is.na(donde$name_long), "(mar abierto)", donde$name_long))
+tb_donde <- table(con_tildes(ifelse(is.na(donde$name_long), "(mar abierto)", donde$name_long),
+                             NOMBRE_DESTINO, "un destino de las estaciones invertidas"))
 
 D$csv_sf <- list(
   n = n_est,
@@ -803,6 +843,7 @@ agg <- data.frame(cod = agg$cod, n = as.integer(agg$x[, 1]), tasa = agg$x[, 2])
 agg <- merge(agg, st_drop_geometry(loc[, c("cod_loca", "localidad", "perim_km",
                                            "area_km2", "compacidad")]),
              by.x = "cod", by.y = "cod_loca")
+agg$localidad <- con_tildes(agg$localidad, NOMBRE_LOC, "una localidad")
 # El error de Monte Carlo de la tasa GLOBAL, publicado y no escondido.
 tasa_global_rep <- colMeans(reps)
 emc_global <- sd(tasa_global_rep) / sqrt(N_REP)
@@ -912,6 +953,7 @@ loc_tasa <- merge(loc, data.frame(cod_loca = agg$cod, tasa = 100 * agg$tasa),
 MAPAS$sesgo_localidades <- geo_poligonos(
   loc_tasa, valor = ifelse(is.na(loc_tasa$tasa), 0, loc_tasa$tasa),
   n_clases = 5, estilo = "quantile",
+  etiquetas = con_tildes(loc_tasa$localidad, NOMBRE_LOC, "una localidad"),
   titulo = "Sedes que cambian de localidad con 150 m de error (200 réplicas)",
   leyenda = "% de las sedes de la localidad", presupuesto = 1000L, verbose = FALSE)
 
@@ -1101,9 +1143,161 @@ MAPAS$geohash <- geo_poligonos(
   leyenda = "sedes por celda", presupuesto = 1500L, verbose = FALSE)
 
 # =====================================================================
-# L. Coherencia entre módulos, antes de escribir nada
+# L. Lo que se ve en cada mapa
 # =====================================================================
-message("L · coherencia entre módulos")
+# Cada mapa del capítulo lleva desde el 2026-11-02 una descripción larga:
+# lo que se VE en él, para quien no lo ve —dónde crecen las elipses, qué
+# departamento sale más oscuro, dónde aterrizan las estaciones invertidas—.
+# La escribe el ensamblador con cifras de aquí, y lo que el JSON ya traía
+# (las indicatrices, el valor de cada unidad, la caja de las invertidas) no
+# se repite. Aquí va lo que faltaba: la rejilla de las indicatrices en
+# grados, los extremos con su nombre y su zona, el paso de la cuadrícula del
+# redondeo y en qué localidad caen las celdas de geohash. `audita_cap2.py`
+# lo recalcula todo en Python, por otro camino.
+message("L · lo que se ve en cada mapa")
+
+# La zona de un punto dentro de la caja de un mapa, por tercios: «norte»,
+# «suroccidente», «centro»… Es la regla del capítulo 5. La caja es la del
+# dibujo (`geo_caja`), así que la palabra describe el sitio en el lienzo.
+zona_de <- function(x, y, caja) {
+  fx <- (x - caja[1]) / (caja[3] - caja[1])
+  fy <- (y - caja[2]) / (caja[4] - caja[2])
+  ns <- c("sur", "", "norte")[findInterval(fy, c(1, 2) / 3) + 1]
+  eo <- c("occidente", "", "oriente")[findInterval(fx, c(1, 2) / 3) + 1]
+  ifelse(ns == "" & eo == "", "centro",
+         ifelse(ns == "", eo, ifelse(eo == "", ns, paste0(c(norte = "nor", sur = "sur")[ns], eo))))
+}
+# Una tabla de frecuencias de mayor a menor, y a igualdad por nombre: `sort`
+# no promete el orden de los empates, y el JSON tiene que salir igual cada vez.
+ordena_tabla <- function(x) {
+  tb <- table(x)
+  if (!length(tb)) return(tb)
+  tb[order(-as.integer(tb), names(tb))]
+}
+
+# --- Módulo 3: dónde se deforma cada proyección -----------------------
+# Las indicatrices llegan al navegador en coordenadas del lienzo; para decir
+# DÓNDE se deforma una proyección hacen falta en grados. Es la rejilla que
+# se le pasó a geo_proyeccion(), en el mismo orden. La deformación angular
+# MÍNIMA no estaba publicada (la tabla trae la mediana y la máxima).
+CENTRO_AEQD <- c(-74.0721, 4.711)
+if (!grepl("lat_0=4.711 +lon_0=-74.0721", PROY_MUNDO[[6]]$crs, fixed = TRUE))
+  stop("el centro de la azimutal equidistante ya no es el que se mide aquí")
+rej_sfc <- st_sfc(lapply(seq_len(nrow(REJ)), function(i) st_point(c(REJ$lon[i], REJ$lat[i]))),
+                  crs = 4326)
+d_centro <- dist_elip(rej_sfc, rep(pto(CENTRO_AEQD[1], CENTRO_AEQD[2]), nrow(REJ))) / 1000
+om_min <- vapply(PROY_MUNDO, function(p) {
+  tt <- geo_tissot(p$crs, REJ$lon, REJ$lat)
+  if (nrow(tt) != nrow(REJ)) stop("geo_tissot perdió puntos de la rejilla en ", p$nombre)
+  min(tt$omega) * 180 / pi
+}, numeric(1))
+
+# --- Módulo 4: los meridianos centrales, leídos del CRS ----------------
+meridiano <- function(epsg) {
+  p4 <- st_crs(epsg)$proj4string
+  as.numeric(sub("+lon_0=", "", regmatches(p4, regexpr("\\+lon_0=[-0-9.]+", p4)), fixed = TRUE))
+}
+MER_CO <- c(e3116 = meridiano(3116), e9377 = meridiano(9377))
+ancla(MER_CO[["e3116"]], -74.0775079166667, "EPSG:3116 · meridiano central", tol = 1e-9)
+ancla(MER_CO[["e9377"]], -73, "EPSG:9377 · meridiano central", tol = 1e-9)
+
+# --- Módulo 4: el error de 3116, departamento a departamento ----------
+dep_nom <- nombre_dep(dep$shapeName)
+dep_cen9 <- st_coordinates(st_centroid(st_geometry(st_transform(dep_ll, 9377))))
+dep_cenll <- st_coordinates(suppressWarnings(st_centroid(st_geometry(dep_ll))))
+dep_zona <- zona_de(dep_cen9[, 1], dep_cen9[, 2], MAPAS$error_3116$caja)
+o_err <- order(-dep_err)
+extremo_dep <- function(ii) lapply(ii, function(i)
+  list(departamento = dep_nom[i], pct = r10(dep_err[i]), zona = dep_zona[i],
+       lon_centroide = r10(dep_cenll[i, 1])))
+cor_mer <- cor(dep_err, abs(dep_cenll[, 1] - MER_CO[["e3116"]]), method = "spearman")
+
+# --- Módulo 9: el sesgo, las 20 localidades del mapa ------------------
+# El cuadro del módulo usa las 17 con 30 sedes o más; el MAPA pinta las 20,
+# y la descripción describe el mapa. Va con cuántas sedes tiene cada una,
+# para poder decir cuándo un color sale de muy pocas.
+n_sedes_loc <- as.integer(table(factor(verdad_loc, levels = loc_tasa$cod_loca)))
+o_ses <- order(-loc_tasa$tasa, loc_tasa$cod_loca)
+ses_loc <- data.frame(
+  localidad = con_tildes(loc_tasa$localidad, NOMBRE_LOC, "una localidad")[o_ses],
+  pct = r10(loc_tasa$tasa[o_ses]), n_sedes = n_sedes_loc[o_ses])
+if (anyNA(ses_loc$pct)) stop("una localidad del mapa del sesgo no tiene tasa")
+
+# --- Módulo 9: la cuadrícula del redondeo -----------------------------
+# Redondear a dos decimales deja las sedes en los cruces de una cuadrícula
+# de 0.01°. Cuánto mide eso en el suelo depende de la latitud: se mide en la
+# mediana de las sedes, sobre el elipsoide.
+lat0 <- median(xy_col[, 2]); lon0 <- median(xy_col[, 1])
+paso_lat_m <- dist_elip(pto(lon0, lat0), pto(lon0, lat0 + 0.01))
+paso_lon_m <- dist_elip(pto(lon0, lat0), pto(lon0 + 0.01, lat0))
+por_pos <- table(paste(round(xy_col[, 1], 2), round(xy_col[, 2], 2)))
+if (length(por_pos) != D$posicional$n_posiciones_2dec)
+  stop("las posiciones de la cuadrícula no son las del mapa del redondeo")
+
+# --- Módulo 11: en qué localidad caen las celdas de geohash -----------
+# Cada celda se nombra por la localidad de la MAYORÍA de sus sedes, no por
+# la de su centro: una celda de 5 km pisa dos o tres localidades, y lo que
+# el color cuenta son sus sedes.
+loc_sede <- rep(NA_character_, length(verdad_loc))
+con_loc <- !is.na(verdad_loc)
+loc_sede[con_loc] <- con_tildes(loc$localidad[match(verdad_loc[con_loc], loc$cod_loca)],
+                                NOMBRE_LOC, "una localidad")
+celdas_gh <- lapply(cel_unicas, function(s) {
+  en <- g6 == s
+  tb <- ordena_tabla(loc_sede[en])
+  # Una celda cuyas sedes no caen en ninguna localidad (la sede que el
+  # join del módulo 11 deja fuera) se queda sin nombre, y no se inventa.
+  list(celda = s, n = sum(en), localidad = if (length(tb)) names(tb)[1] else NA_character_,
+       sedes_localidad = if (length(tb)) as.integer(tb[1]) else 0L)
+})
+n_cel <- vapply(celdas_gh, function(z) as.integer(z$n), integer(1))
+if (!identical(n_cel, as.integer(MAPAS$geohash$valor)))
+  stop("las celdas de geohash no son las del mapa, en el mismo orden")
+o_gh <- order(-n_cel, cel_unicas)
+# Las celdas del color MÁS CLARO que se ve. No «las de 1 a 3 sedes», que es
+# lo que parece decir la leyenda: los cortes por cuantiles empatan en 1, la
+# primera clase («1 – 1») sale vacía y las celdas de 3 sedes caen en la clase
+# siguiente. La descripción cuenta lo que se ve, y lo que se ve es el color.
+clase_gh <- as.integer(MAPAS$geohash$clase)
+clara <- clase_gh == min(clase_gh)
+tb_claras <- ordena_tabla(vapply(celdas_gh[clara], function(z) z$localidad, ""))
+
+D$visto <- list(
+  proyecciones_mundo = list(
+    lon = REJ$lon, lat = REJ$lat,
+    centro_azimutal = CENTRO_AEQD,
+    dist_centro_km = r10(d_centro),
+    omega_min_grados = r10(om_min)),
+  proyecciones_colombia = list(
+    lon = REJ_CO$lon, lat = REJ_CO$lat,
+    # El mapa trae la ω de cada vista en radianes; el texto la dice en grados.
+    omega_max_grados = r10(vapply(MAPAS$proyecciones_colombia$vistas,
+                                  function(v) v$omega_max * 180 / pi, numeric(1))),
+    meridiano_3116 = r10(MER_CO[["e3116"]]), meridiano_9377 = r10(MER_CO[["e9377"]])),
+  error_3116 = list(
+    mayores = extremo_dep(o_err[1:3]),
+    menores = extremo_dep(rev(o_err)[1:3]),
+    cor_spearman_distancia_meridiano = r10(cor_mer)),
+  sesgo = list(localidad = ses_loc$localidad, pct = ses_loc$pct, n_sedes = ses_loc$n_sedes,
+               umbral_cuadro = 30L),
+  degradado = list(paso_grados = 0.01, lat_referencia = r10(lat0),
+                   paso_lat_m = r10(paso_lat_m), paso_lon_m = r10(paso_lon_m),
+                   max_sedes_posicion = as.integer(max(por_pos))),
+  geohash = list(
+    mayores = lapply(celdas_gh[o_gh[1:3]], function(z) z[c("n", "localidad", "sedes_localidad")]),
+    clase_clara = min(clase_gh), n_claras = sum(clara),
+    claras_min = min(n_cel[clara]), claras_max = max(n_cel[clara]),
+    claras_localidad = names(tb_claras), claras_n = as.integer(tb_claras)))
+message(sprintf(paste("  error de 3116: mayor %s (%s), menor %s (%s), Spearman con la distancia",
+                      "al meridiano %.3f · sesgo: de %s a %s · geohash: %d celdas claras, de %d a %d sedes"),
+                dep_nom[o_err[1]], dep_zona[o_err[1]], dep_nom[rev(o_err)[1]],
+                dep_zona[rev(o_err)[1]], cor_mer, ses_loc$localidad[1],
+                ses_loc$localidad[nrow(ses_loc)], sum(clara), min(n_cel[clara]), max(n_cel[clara])))
+
+# =====================================================================
+# M. Coherencia entre módulos, antes de escribir nada
+# =====================================================================
+message("M · coherencia entre módulos")
 
 # El módulo 3 y el módulo 6 tienen que contar la MISMA historia sobre la
 # esfera: la desviación de Mollweide respecto de 1 y el exceso de área de
@@ -1124,9 +1318,9 @@ if (abs(razon_nuestra / razon_men - 1) > 0.25)
                      "y la fuente del MEN daba %.4f"), razon_nuestra, razon_men))
 
 # =====================================================================
-# M. Escritura
+# N. Escritura
 # =====================================================================
-message("M · escritura")
+message("N · escritura")
 
 D$meta <- list(
   capitulo = 2L,

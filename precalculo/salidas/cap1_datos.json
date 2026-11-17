@@ -144,6 +144,11 @@
     }
   },
   "tobler": {
+    "permutacion_banda1": {
+      "nperm": 20000,
+      "media": -0.0021854098,
+      "emc": 0.000335228
+    },
     "meuse": {
       "bandas": [
         {
@@ -153,7 +158,10 @@
           "I": 0.5537842123,
           "p": 0,
           "n_pares": 166,
-          "grado": 2.1419354839
+          "grado": 2.1419354839,
+          "n_con_vecinos": 126,
+          "esperado": -0.0052785924,
+          "esperado_programa": -0.008
         },
         {
           "d1": 150,
@@ -162,7 +170,10 @@
           "I": 0.4331063365,
           "p": 0,
           "n_pares": 530,
-          "grado": 6.8387096774
+          "grado": 6.8387096774,
+          "n_con_vecinos": 154,
+          "esperado": -0.0064516129,
+          "esperado_programa": -0.0065359477
         },
         {
           "d1": 300,
@@ -171,7 +182,10 @@
           "I": 0.1703824721,
           "p": 1.34e-07,
           "n_pares": 905,
-          "grado": 11.6774193548
+          "grado": 11.6774193548,
+          "n_con_vecinos": 155,
+          "esperado": -0.0064935065,
+          "esperado_programa": -0.0064935065
         },
         {
           "d1": 500,
@@ -180,7 +194,10 @@
           "I": -0.0448210361,
           "p": 0.9170797943,
           "n_pares": 1317,
-          "grado": 16.9935483871
+          "grado": 16.9935483871,
+          "n_con_vecinos": 155,
+          "esperado": -0.0064935065,
+          "esperado_programa": -0.0064935065
         },
         {
           "d1": 750,
@@ -189,7 +206,10 @@
           "I": -0.1634454748,
           "p": 1,
           "n_pares": 1828,
-          "grado": 23.5870967742
+          "grado": 23.5870967742,
+          "n_con_vecinos": 155,
+          "esperado": -0.0064935065,
+          "esperado_programa": -0.0064935065
         },
         {
           "d1": 1100,
@@ -198,7 +218,10 @@
           "I": -0.0357034104,
           "p": 0.9307490613,
           "n_pares": 2146,
-          "grado": 27.6903225806
+          "grado": 27.6903225806,
+          "n_con_vecinos": 155,
+          "esperado": -0.0064935065,
+          "esperado_programa": -0.0064935065
         },
         {
           "d1": 1600,
@@ -207,7 +230,10 @@
           "I": 0.0119625648,
           "p": 0.1455754486,
           "n_pares": 2598,
-          "grado": 33.5225806452
+          "grado": 33.5225806452,
+          "n_con_vecinos": 155,
+          "esperado": -0.0064935065,
+          "esperado_programa": -0.0064935065
         }
       ],
       "esperado": -0.0064935065
@@ -221,7 +247,10 @@
           "I": 0.606348194,
           "p": 0,
           "n_pares": 277,
-          "grado": 1.5346260388
+          "grado": 1.5346260388,
+          "n_con_vecinos": 252,
+          "esperado": -0.0019390582,
+          "esperado_programa": -0.0039840637
         },
         {
           "d1": 25,
@@ -230,7 +259,10 @@
           "I": 0.5709433411,
           "p": 0,
           "n_pares": 806,
-          "grado": 4.4653739612
+          "grado": 4.4653739612,
+          "n_con_vecinos": 321,
+          "esperado": -0.0024699908,
+          "esperado_programa": -0.003125
         },
         {
           "d1": 50,
@@ -239,7 +271,10 @@
           "I": 0.3001496815,
           "p": 0,
           "n_pares": 2794,
-          "grado": 15.4792243767
+          "grado": 15.4792243767,
+          "n_con_vecinos": 345,
+          "esperado": -0.002654663,
+          "esperado_programa": -0.0029069767
         },
         {
           "d1": 100,
@@ -248,7 +283,10 @@
           "I": 0.1744989117,
           "p": 0,
           "n_pares": 6302,
-          "grado": 34.9141274238
+          "grado": 34.9141274238,
+          "n_con_vecinos": 358,
+          "esperado": -0.0027546938,
+          "esperado_programa": -0.0028011204
         },
         {
           "d1": 175,
@@ -257,7 +295,10 @@
           "I": 0.0805992971,
           "p": 0,
           "n_pares": 12975,
-          "grado": 71.8836565097
+          "grado": 71.8836565097,
+          "n_con_vecinos": 358,
+          "esperado": -0.0027546938,
+          "esperado_programa": -0.0028011204
         },
         {
           "d1": 300,
@@ -266,7 +307,10 @@
           "I": -0.0881923155,
           "p": 1,
           "n_pares": 19427,
-          "grado": 107.6288088643
+          "grado": 107.6288088643,
+          "n_con_vecinos": 358,
+          "esperado": -0.0027546938,
+          "esperado_programa": -0.0028011204
         },
         {
           "d1": 500,
@@ -275,7 +319,10 @@
           "I": -0.0034261725,
           "p": 0.537658802,
           "n_pares": 16040,
-          "grado": 88.864265928
+          "grado": 88.864265928,
+          "n_con_vecinos": 361,
+          "esperado": -0.0027777778,
+          "esperado_programa": -0.0027777778
         }
       ],
       "esperado": -0.0027777778
@@ -289,7 +336,10 @@
           "I": -0.0253357115,
           "p": 0.6229252837,
           "n_pares": 277,
-          "grado": 1.5346260388
+          "grado": 1.5346260388,
+          "n_con_vecinos": 252,
+          "esperado": -0.0019390582,
+          "esperado_programa": -0.0039840637
         },
         {
           "d1": 25,
@@ -298,7 +348,10 @@
           "I": -0.0056339055,
           "p": 0.5241886686,
           "n_pares": 806,
-          "grado": 4.4653739612
+          "grado": 4.4653739612,
+          "n_con_vecinos": 321,
+          "esperado": -0.0024699908,
+          "esperado_programa": -0.003125
         },
         {
           "d1": 50,
@@ -307,7 +360,10 @@
           "I": -0.0042744517,
           "p": 0.523697139,
           "n_pares": 2794,
-          "grado": 15.4792243767
+          "grado": 15.4792243767,
+          "n_con_vecinos": 345,
+          "esperado": -0.002654663,
+          "esperado_programa": -0.0029069767
         },
         {
           "d1": 100,
@@ -316,7 +372,10 @@
           "I": -0.0101443335,
           "p": 0.6719079883,
           "n_pares": 6302,
-          "grado": 34.9141274238
+          "grado": 34.9141274238,
+          "n_con_vecinos": 358,
+          "esperado": -0.0027546938,
+          "esperado_programa": -0.0028011204
         },
         {
           "d1": 175,
@@ -325,7 +384,10 @@
           "I": -0.0070030654,
           "p": 0.6585625392,
           "n_pares": 12975,
-          "grado": 71.8836565097
+          "grado": 71.8836565097,
+          "n_con_vecinos": 358,
+          "esperado": -0.0027546938,
+          "esperado_programa": -0.0028011204
         },
         {
           "d1": 300,
@@ -334,7 +396,10 @@
           "I": -0.0078310555,
           "p": 0.7903374356,
           "n_pares": 19427,
-          "grado": 107.6288088643
+          "grado": 107.6288088643,
+          "n_con_vecinos": 358,
+          "esperado": -0.0027546938,
+          "esperado_programa": -0.0028011204
         },
         {
           "d1": 500,
@@ -343,7 +408,10 @@
           "I": 0.0020741099,
           "p": 0.2396543155,
           "n_pares": 16040,
-          "grado": 88.864265928
+          "grado": 88.864265928,
+          "n_con_vecinos": 361,
+          "esperado": -0.0027777778,
+          "esperado_programa": -0.0027777778
         }
       ],
       "esperado": -0.0027777778
@@ -357,7 +425,10 @@
           "I": 0.4257999245,
           "p": 1e-10,
           "n_pares": 277,
-          "grado": 1.5346260388
+          "grado": 1.5346260388,
+          "n_con_vecinos": 252,
+          "esperado": -0.0019390582,
+          "esperado_programa": -0.0039840637
         },
         {
           "d1": 25,
@@ -366,7 +437,10 @@
           "I": 0.3639600063,
           "p": 0,
           "n_pares": 806,
-          "grado": 4.4653739612
+          "grado": 4.4653739612,
+          "n_con_vecinos": 321,
+          "esperado": -0.0024699908,
+          "esperado_programa": -0.003125
         },
         {
           "d1": 50,
@@ -375,7 +449,10 @@
           "I": 0.2640802093,
           "p": 0,
           "n_pares": 2794,
-          "grado": 15.4792243767
+          "grado": 15.4792243767,
+          "n_con_vecinos": 345,
+          "esperado": -0.002654663,
+          "esperado_programa": -0.0029069767
         },
         {
           "d1": 100,
@@ -384,7 +461,10 @@
           "I": 0.1340095986,
           "p": 0,
           "n_pares": 6302,
-          "grado": 34.9141274238
+          "grado": 34.9141274238,
+          "n_con_vecinos": 358,
+          "esperado": -0.0027546938,
+          "esperado_programa": -0.0028011204
         },
         {
           "d1": 175,
@@ -393,7 +473,10 @@
           "I": -0.0147459886,
           "p": 0.8774461783,
           "n_pares": 12975,
-          "grado": 71.8836565097
+          "grado": 71.8836565097,
+          "n_con_vecinos": 358,
+          "esperado": -0.0027546938,
+          "esperado_programa": -0.0028011204
         },
         {
           "d1": 300,
@@ -402,7 +485,10 @@
           "I": -0.0400761831,
           "p": 0.9999999989,
           "n_pares": 19427,
-          "grado": 107.6288088643
+          "grado": 107.6288088643,
+          "n_con_vecinos": 358,
+          "esperado": -0.0027546938,
+          "esperado_programa": -0.0028011204
         },
         {
           "d1": 500,
@@ -411,7 +497,10 @@
           "I": -0.0428071836,
           "p": 0.9999999974,
           "n_pares": 16040,
-          "grado": 88.864265928
+          "grado": 88.864265928,
+          "n_con_vecinos": 361,
+          "esperado": -0.0027777778,
+          "esperado_programa": -0.0027777778
         }
       ],
       "esperado": -0.0027777778
@@ -430,6 +519,7 @@
     "jitter": 1e-09,
     "escala_h": "distancia euclídea entre centros de celda, medida en pasos de retícula",
     "sigma": 1,
+    "alfa": 0.05,
     "t_critico": 1.9693105698,
     "rejilla": [
       {
@@ -567,10 +657,288 @@
     "ic_iid": [3.3203062041, 3.5268481224],
     "ic_bloques": [2.9931212919, 3.8540330346],
     "ancho_iid": 0.2065419183,
-    "ancho_bloques": 0.8609117426
+    "ancho_bloques": 0.8609117426,
+    "replicas": {
+      "media_iid": 3.4233495763,
+      "media_bloques": 3.439538552,
+      "desvio_iid": -0.000227587,
+      "desvio_bloques": 0.0159613888,
+      "emc_media_iid": 0.0008331057,
+      "emc_media_bloques": 0.0034725663,
+      "nrep_esperanza": 2000000,
+      "esperanza_bloques": 3.443135336,
+      "emc_esperanza": 0.0001570062,
+      "desvio_esperanza": 0.0195581728,
+      "desvio_esperanza_pct_ee": 8.9052832298,
+      "bloque_min": 1,
+      "bloque_max": 125
+    },
+    "otras_semillas": {
+      "n": 20,
+      "factor_min": 4.0824392003,
+      "factor_max": 4.3549979709,
+      "factor_sd": 0.0728801681,
+      "n_eff_min": 59.1057453841,
+      "n_eff_max": 67.261440103
+    },
+    "sin_un_departamento": {
+      "nboot": 20000,
+      "semilla_iid": 2228,
+      "semilla_bloques": 2229,
+      "n_departamentos_quedan": 32,
+      "por_departamento": [
+        {
+          "dpto": "05",
+          "departamento": "Antioquia",
+          "municipios": 125,
+          "factor": 4.3873489539,
+          "n_eff": 51.7434023967
+        },
+        {
+          "dpto": "08",
+          "departamento": "Atlántico",
+          "municipios": 23,
+          "factor": 4.3110431002,
+          "n_eff": 59.079608744
+        },
+        {
+          "dpto": "11",
+          "departamento": "Bogotá, D.C.",
+          "municipios": 1,
+          "factor": 4.2551912313,
+          "n_eff": 61.855718789
+        },
+        {
+          "dpto": "13",
+          "departamento": "Bolívar",
+          "municipios": 46,
+          "factor": 4.2476336331,
+          "n_eff": 59.5819019394
+        },
+        {
+          "dpto": "15",
+          "departamento": "Boyacá",
+          "municipios": 123,
+          "factor": 3.6212031766,
+          "n_eff": 76.1070267729
+        },
+        {
+          "dpto": "17",
+          "departamento": "Caldas",
+          "municipios": 27,
+          "factor": 4.2874326693,
+          "n_eff": 59.5144872516
+        },
+        {
+          "dpto": "18",
+          "departamento": "Caquetá",
+          "municipios": 16,
+          "factor": 4.1728842035,
+          "n_eff": 63.4584721102
+        },
+        {
+          "dpto": "19",
+          "departamento": "Cauca",
+          "municipios": 42,
+          "factor": 4.2686095414,
+          "n_eff": 59.2172974287
+        },
+        {
+          "dpto": "20",
+          "departamento": "Cesar",
+          "municipios": 25,
+          "factor": 4.1275743588,
+          "n_eff": 64.3310651773
+        },
+        {
+          "dpto": "23",
+          "departamento": "Córdoba",
+          "municipios": 30,
+          "factor": 4.2475822785,
+          "n_eff": 60.470164523
+        },
+        {
+          "dpto": "25",
+          "departamento": "Cundinamarca",
+          "municipios": 116,
+          "factor": 4.3822688153,
+          "n_eff": 52.3320843897
+        },
+        {
+          "dpto": "27",
+          "departamento": "Chocó",
+          "municipios": 30,
+          "factor": 4.3862569876,
+          "n_eff": 56.706991151
+        },
+        {
+          "dpto": "41",
+          "departamento": "Huila",
+          "municipios": 37,
+          "factor": 4.2007488835,
+          "n_eff": 61.4293388221
+        },
+        {
+          "dpto": "44",
+          "departamento": "La Guajira",
+          "municipios": 15,
+          "factor": 4.2598603738,
+          "n_eff": 60.9486931779
+        },
+        {
+          "dpto": "47",
+          "departamento": "Magdalena",
+          "municipios": 30,
+          "factor": 4.306317602,
+          "n_eff": 58.8318677944
+        },
+        {
+          "dpto": "50",
+          "departamento": "Meta",
+          "municipios": 29,
+          "factor": 4.218993758,
+          "n_eff": 61.3486305519
+        },
+        {
+          "dpto": "52",
+          "departamento": "Nariño",
+          "municipios": 64,
+          "factor": 4.2209319188,
+          "n_eff": 59.3278066453
+        },
+        {
+          "dpto": "54",
+          "departamento": "Norte de Santander",
+          "municipios": 40,
+          "factor": 4.316030025,
+          "n_eff": 58.0305623928
+        },
+        {
+          "dpto": "63",
+          "departamento": "Quindio",
+          "municipios": 12,
+          "factor": 4.2343357539,
+          "n_eff": 61.8530276594
+        },
+        {
+          "dpto": "66",
+          "departamento": "Risaralda",
+          "municipios": 14,
+          "factor": 4.2181094786,
+          "n_eff": 62.217409685
+        },
+        {
+          "dpto": "68",
+          "departamento": "Santander",
+          "municipios": 87,
+          "factor": 4.3266256384,
+          "n_eff": 55.2359591588
+        },
+        {
+          "dpto": "70",
+          "departamento": "Sucre",
+          "municipios": 26,
+          "factor": 4.2954237034,
+          "n_eff": 59.3474550847
+        },
+        {
+          "dpto": "73",
+          "departamento": "Tolima",
+          "municipios": 47,
+          "factor": 4.3175324094,
+          "n_eff": 57.6146686874
+        },
+        {
+          "dpto": "76",
+          "departamento": "Valle del Cauca",
+          "municipios": 42,
+          "factor": 3.9018959795,
+          "n_eff": 70.8712462775
+        },
+        {
+          "dpto": "81",
+          "departamento": "Arauca",
+          "municipios": 7,
+          "factor": 4.2284938337,
+          "n_eff": 62.3036926789
+        },
+        {
+          "dpto": "85",
+          "departamento": "Casanare",
+          "municipios": 19,
+          "factor": 4.248659713,
+          "n_eff": 61.0488795004
+        },
+        {
+          "dpto": "86",
+          "departamento": "Putumayo",
+          "municipios": 13,
+          "factor": 4.2413516145,
+          "n_eff": 61.5929783623
+        },
+        {
+          "dpto": "88",
+          "departamento": "Archipiélago de San Andrés, Providencia y Santa Catalina",
+          "municipios": 2,
+          "factor": 4.2698465004,
+          "n_eff": 61.3769864818
+        },
+        {
+          "dpto": "91",
+          "departamento": "Amazonas",
+          "municipios": 11,
+          "factor": 4.3717244377,
+          "n_eff": 58.078771326
+        },
+        {
+          "dpto": "94",
+          "departamento": "Guainía",
+          "municipios": 8,
+          "factor": 4.2746531912,
+          "n_eff": 60.9106723267
+        },
+        {
+          "dpto": "95",
+          "departamento": "Guaviare",
+          "municipios": 4,
+          "factor": 4.2448521837,
+          "n_eff": 61.9909125969
+        },
+        {
+          "dpto": "97",
+          "departamento": "Vaupés",
+          "municipios": 6,
+          "factor": 4.2618178199,
+          "n_eff": 61.3882291311
+        },
+        {
+          "dpto": "99",
+          "departamento": "Vichada",
+          "municipios": 4,
+          "factor": 4.2641695253,
+          "n_eff": 61.4305281212
+        }
+      ],
+      "factor_min": 3.6212031766,
+      "factor_max": 4.3873489539,
+      "n_eff_min": 51.7434023967,
+      "n_eff_max": 76.1070267729,
+      "extremo": {
+        "dpto": "15",
+        "departamento": "Boyacá",
+        "municipios": 123,
+        "factor": 3.6212031766,
+        "n_eff": 76.1070267729
+      },
+      "ee_jackknife_factor": 0.7858911866,
+      "ee_jackknife_n_eff": 24.2911040956,
+      "ee_jackknife_n_eff_pct": 37.6480505314,
+      "factor_todos": 4.2133974255,
+      "n_eff_todos": 63.1452608292
+    }
   },
   "n_efectivo": {
-    "formula": "n_eff = n / (1 + (n-1) rho)",
+    "formula": "n_eff = n / (1 + (n-1) rho_medio), con rho_medio la correlación media entre pares; exacta para la media",
     "rhos": [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8],
     "enes": [25, 50, 100, 250, 500, 1000],
     "rejilla": [
@@ -606,41 +974,67 @@
       }
     ],
     "caso_n1000_rho001": 90.991810737,
+    "caso_quiz": {
+      "n": 1000,
+      "rho": 0.1,
+      "n_eff": 9.910802775,
+      "n_eff_redondo": 10,
+      "techo": 10,
+      "sobran": 990,
+      "pct_ingenuo": 10,
+      "ingenuo": 900,
+      "rho_otro": 0.01,
+      "techo_otro": 100
+    },
     "exacto_campo": [
       {
         "phi": 0,
         "n_eff": 256,
-        "pct": 100
+        "pct": 100,
+        "rho_medio": 0,
+        "n_eff_formula": 256
       },
       {
         "phi": 0.5,
         "n_eff": 135.2534586191,
-        "pct": 52.8333822731
+        "pct": 52.8333822731,
+        "rho_medio": 0.0035009519,
+        "n_eff_formula": 135.2534586191
       },
       {
         "phi": 1,
         "n_eff": 45.7511810441,
-        "pct": 17.8715550954
+        "pct": 17.8715550954,
+        "rho_medio": 0.0180215058,
+        "n_eff_formula": 45.7511810441
       },
       {
         "phi": 2,
         "n_eff": 14.1632297613,
-        "pct": 5.5325116255
+        "pct": 5.5325116255,
+        "rho_medio": 0.0669606797,
+        "n_eff_formula": 14.1632297613
       },
       {
         "phi": 4,
         "n_eff": 5.1581674595,
-        "pct": 2.0149091639
+        "pct": 2.0149091639,
+        "rho_medio": 0.1907059956,
+        "n_eff_formula": 5.1581674595
       },
       {
         "phi": 8,
         "n_eff": 2.5177091096,
-        "pct": 0.9834801209
+        "pct": 0.9834801209,
+        "rho_medio": 0.3948224979,
+        "n_eff_formula": 2.5177091096
       },
       {
         "phi": 16,
         "n_eff": 1.6328170891,
-        "pct": 0.6378191754
+        "pct": 0.6378191754,
+        "rho_medio": 0.6109186209,
+        "n_eff_formula": 1.6328170891
       }
     ],
     "desercion_municipal": 64.5215456118,
@@ -650,66 +1044,94 @@
       "n": 1121,
       "n_eff_publicado": 64.5215456118,
       "implicito": 0.0146196798,
-      "estimado": 0.0021242543,
-      "n_eff_con_estimado": 331.7387719662,
-      "razon_rho": 6.8822642863,
-      "razon_n_eff": 5.141519299,
-      "I_primera_banda": 0.2882024967,
-      "n_bandas": 7,
-      "pares_totales": 573306,
-      "pares_lejanos": 312508,
-      "bandas": [
+      "implicito_con_s2": 0.0143963558,
+      "diferencia_s2_pct": 1.5275573995
+    },
+    "centrado": {
+      "phi": 4,
+      "n": 256,
+      "nrep": 3000,
+      "media": 0,
+      "varianza": 1,
+      "rho_medio_verdadero": 0.1907059956,
+      "menos_inv_n1": -0.0039215686,
+      "centrado_min": -0.0039215686,
+      "centrado_max": -0.0039215686,
+      "desviacion_max": 0,
+      "con_media_verdadera": {
+        "media": 0.1878131819,
+        "sd": 0.2717083123,
+        "emc": 0.0049606924,
+        "pct_negativas": 9.7666666667
+      },
+      "colombia": {
+        "n": 1121,
+        "menos_inv_n1": -0.0008928571,
+        "centrado": -0.0008928571
+      }
+    },
+    "techo": {
+      "phi": 4,
+      "lado_relleno": 16,
+      "paso_ampliacion": 1,
+      "ks": [8, 16, 32, 64],
+      "rejilla": [
         {
-          "d1": 0,
-          "d2": 25,
-          "I": 0.2882024967,
-          "pares": 3482,
-          "islas": 156
+          "k": 8,
+          "n": 64,
+          "relleno": {
+            "rho_medio": 0.184147816,
+            "n_eff": 5.0788360711
+          },
+          "ampliacion": {
+            "rho_medio": 0.3902352729,
+            "n_eff": 2.5014830872
+          }
         },
         {
-          "d1": 25,
-          "d2": 50,
-          "I": 0.2870733053,
-          "pares": 9756,
-          "islas": 47
+          "k": 16,
+          "n": 256,
+          "relleno": {
+            "rho_medio": 0.1907059956,
+            "n_eff": 5.1581674595
+          },
+          "ampliacion": {
+            "rho_medio": 0.1907059956,
+            "n_eff": 5.1581674595
+          }
         },
         {
-          "d1": 50,
-          "d2": 100,
-          "I": 0.1810417344,
-          "pares": 31482,
-          "islas": 13
+          "k": 32,
+          "n": 1024,
+          "relleno": {
+            "rho_medio": 0.1925241522,
+            "n_eff": 5.1729657987
+          },
+          "ampliacion": {
+            "rho_medio": 0.069087265,
+            "n_eff": 14.286457295
+          }
         },
         {
-          "d1": 100,
-          "d2": 175,
-          "I": 0.0758220381,
-          "pares": 63507,
-          "islas": 3
-        },
-        {
-          "d1": 175,
-          "d2": 300,
-          "I": -0.052893668,
-          "pares": 127896,
-          "islas": 2
-        },
-        {
-          "d1": 300,
-          "d2": 500,
-          "I": -0.0549104602,
-          "pares": 184612,
-          "islas": 2
-        },
-        {
-          "d1": 500,
-          "d2": 800,
-          "I": 0.0249121516,
-          "pares": 152571,
-          "islas": 0
+          "k": 64,
+          "n": 4096,
+          "relleno": {
+            "rho_medio": 0.1930022219,
+            "n_eff": 5.176003723
+          },
+          "ampliacion": {
+            "rho_medio": 0.0206050045,
+            "n_eff": 47.9751728511
+          }
         }
       ],
-      "metodo": "correlograma por bandas sobre los puntos interiores de los municipios, I de Moran por banda y promedio ponderado por el número de pares de cada una — el método del ejercicio 3"
+      "rho_inf": 0.1931661713,
+      "techo_inf": 5.1768898942,
+      "ultimo_salto_pct": 0.0587269357,
+      "falta_techo_pct": 0.01711783,
+      "factor_n": 64,
+      "factor_relleno": 1.019131874,
+      "factor_ampliacion": 19.1786916716
     }
   },
   "una_realizacion": {
@@ -734,11 +1156,13 @@
     "variograma": {
       "lags": [1, 2, 3, 4, 5, 6, 7, 8],
       "teorico": [0.2211992169, 0.3934693403, 0.5276334473, 0.6321205588, 0.7134952031, 0.7768698399, 0.8262260565, 0.8646647168],
+      "teorico_clase": [0.2582696758, 0.4161387869, 0.5317475829, 0.6374385132, 0.7227425851, 0.7812312826, 0.8284661857, 0.8644222148],
+      "n_pares": [930, 1288, 1588, 2842, 2252, 2868, 2574, 2724],
       "media": [0.2573559467, 0.4144596839, 0.5291182435, 0.6336924656, 0.7178457587, 0.7763288654, 0.8234470378, 0.8598726901],
       "q05": [0.2142743109, 0.3209898928, 0.3822494401, 0.4302709122, 0.4691613342, 0.4841921118, 0.4963451477, 0.5045240669],
       "q95": [0.3051485846, 0.5237966883, 0.7042336019, 0.8873273286, 1.0348607782, 1.1539911725, 1.2709190474, 1.3905082377]
     },
-    "banda_rel_lag4": 0.7230526045
+    "banda_rel_lag4": 0.717020398
   },
   "realizaciones_vistas": [
     {
@@ -746,9 +1170,9 @@
       "media": 0.1048800029,
       "sd": 0.937812186,
       "variograma": [0.2505606592, 0.3745864371, 0.4548081632, 0.553996243, 0.6253730917, 0.7221417807, 0.8236601205, 0.9135783645],
-      "desvio_rel_max": 0.1380224936,
+      "desvio_rel_max": 0.144691621,
       "lag_desvio_max": 3,
-      "desvio_rel_lag4": 0.1235908479,
+      "desvio_rel_lag4": 0.1309024611,
       "lags_fuera_banda": 0
     },
     {
@@ -756,9 +1180,9 @@
       "media": 0.4700825839,
       "sd": 0.9096668055,
       "variograma": [0.2775788319, 0.457469636, 0.5576635045, 0.6300359162, 0.7039085114, 0.8067058436, 0.8660896777, 0.9012472925],
-      "desvio_rel_max": 0.2548816208,
-      "lag_desvio_max": 1,
-      "desvio_rel_lag4": 0.003297856,
+      "desvio_rel_max": 0.0993198674,
+      "lag_desvio_max": 2,
+      "desvio_rel_lag4": 0.0116130369,
       "lags_fuera_banda": 0
     },
     {
@@ -766,9 +1190,9 @@
       "media": 0.1952287936,
       "sd": 1.0739143854,
       "variograma": [0.2490699033, 0.3997071979, 0.5069493493, 0.6561835022, 0.8212522526, 0.9421448302, 1.0432210009, 1.1478520295],
-      "desvio_rel_max": 0.3275111234,
+      "desvio_rel_max": 0.3278835386,
       "lag_desvio_max": 8,
-      "desvio_rel_lag4": 0.038067016,
+      "desvio_rel_lag4": 0.0294067406,
       "lags_fuera_banda": 0
     }
   ],
@@ -854,6 +1278,12 @@
     "grado_departamental": 4.4848484848,
     "islas_departamental": 1,
     "caida_pct": 83.304097589,
+    "z_municipal": 21.2973337099,
+    "z_departamental": 0.84877892,
+    "ee_municipal": 0.0179272386,
+    "ee_departamental": 0.1129317401,
+    "razon_ee": 6.299449842,
+    "z_departamental_si_igual": 3.6585462318,
     "moran_municipal_n_total": 0.3815887282,
     "moran_departamental_n_total": 0.0655833914
   },
@@ -1316,7 +1746,19 @@
     "t_media_area": 24.9728055916,
     "brecha_c": 2.5694814919,
     "alt_media_simple": 1097.2576177285,
-    "alt_media_area": 478.9926127487
+    "alt_media_area": 478.9926127487,
+    "referencia_uniforme": {
+      "n_muestras": 1000,
+      "n_puntos": 361,
+      "semilla": 2826,
+      "razon_mediana": 40.9523587476,
+      "razon_mediana_ic95": [39.447273912, 42.3225683368],
+      "razon_p05": 22.4057593882,
+      "razon_p95": 123.2626514667,
+      "razon_max": 826.2585183205,
+      "red_sobre_mediana": 113.5966465271,
+      "red_sobre_p95": 37.7409585608
+    }
   },
   "glosario": {
     "titulo": "Notación de Estadística Espacial",
@@ -1532,11 +1974,70 @@
       }
     ]
   },
+  "visto": {
+    "desercion": {
+      "mayores": [
+        {
+          "departamento": "Caquetá",
+          "pct": 6.733125,
+          "zona": "sur"
+        },
+        {
+          "departamento": "Vichada",
+          "pct": 6.3525,
+          "zona": "oriente"
+        },
+        {
+          "departamento": "Putumayo",
+          "pct": 5.9238461538,
+          "zona": "sur"
+        }
+      ],
+      "menores": [
+        {
+          "departamento": "Archipiélago de San Andrés, Providencia y Santa Catalina",
+          "pct": 1.71,
+          "zona": "noroccidente"
+        },
+        {
+          "departamento": "Nariño",
+          "pct": 1.99578125,
+          "zona": "occidente"
+        },
+        {
+          "departamento": "Boyacá",
+          "pct": 2.1629268293,
+          "zona": "centro"
+        }
+      ]
+    },
+    "nc": {
+      "clase_alta_n": 20,
+      "zona": ["nororiente", "centro", "sur", "occidente", "oriente", "norte", "suroriente"],
+      "n": [7, 4, 3, 2, 2, 1, 1]
+    },
+    "ideam": {
+      "frias_umbral": 13.9,
+      "calidas_umbral": 28.3,
+      "frias": {
+        "zona": ["centro", "suroccidente", "norte"],
+        "n": [29, 7, 1]
+      },
+      "calidas": {
+        "zona": ["norte", "centro", "nororiente", "oriente"],
+        "n": [21, 15, 2, 1]
+      }
+    },
+    "bogota": {
+      "franja": ["norte", "centro", "sur"],
+      "n": [2159, 35, 15]
+    }
+  },
   "meta": {
     "capitulo": 1,
     "titulo": "Datos espaciales y la primera ley de la geografía",
     "semana": 1,
-    "generado": "2026-09-24",
+    "generado": "2026-11-16",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "anclas_verificadas": 29

@@ -1115,6 +1115,50 @@ def defectos():
     obj("20 · las curvas desaparecen",
         "datos", lambda d: d["m3"].pop("curvas"))
 
+    # --- 21. Lo que se ve en cada mapa (descripción larga, 2026-11-02) -
+    # Las cifras y los nombres que lee «Describir el mapa». Cada una se
+    # rompe como se rompería de verdad: una mancha de más, una zona que no es
+    # la del dibujo, un pico en otra localidad, la tabla desordenada.
+    def fam(d): return d["m2"]["familia"]
+    def picos(d, c): return d["m5"]["capas"][c]["picos"]
+    def pl(d): return d["m6"]["bogota"]["por_localidad"]
+    obj("21 · una sigma con focos de más",
+        "datos", lambda d: fam(d)["focos"].__setitem__(2, 17))
+    obj("21 · el sigma más ancho deja dos focos",
+        "datos", lambda d: fam(d)["focos"].__setitem__(-1, 2))
+    obj("21 · el paso de los focos deja de ser un tramo",
+        "datos", lambda d: fam(d).__setitem__("paso_foco_km2", 3.1717171717))
+    obj("21 · falta la descripción de una sigma",
+        "datos", lambda d: fam(d)["zona_maximo"].pop())
+    obj("21 · el máximo de una sigma, en otra zona",
+        "datos", lambda d: fam(d)["zona_maximo"].__setitem__(
+            3, "suroriente" if fam(d)["zona_maximo"][3] != "suroriente" else "noroccidente"))
+    obj("21 · el foco, en otra zona",
+        "datos", lambda d: fam(d)["foco"].__setitem__(
+            "zona", "suroriente" if fam(d)["foco"]["zona"] != "suroriente" else "noroccidente"))
+    obj("21 · las celdas más llenas, en otra zona",
+        "datos", lambda d: d["m1"]["cuadrantes"].__setitem__("zonas_conteo_max", ["sur", "oriente"]))
+    obj("21 · un pico de la oferta en otra localidad",
+        "datos", lambda d: picos(d, "oferta")[1].__setitem__("localidad", "Sumapaz"))
+    obj("21 · el pico de los estudiantes vale otra cosa",
+        "datos", lambda d: picos(d, "estudiantes")[0].__setitem__("valor_km2", 1717.1313131313))
+    obj("21 · el pico del bachillerato, en otra zona",
+        "datos", lambda d: picos(d, "grado_11")[0].__setitem__(
+            "zona", "suroriente" if picos(d, "grado_11")[0]["zona"] != "suroriente" else "noroccidente"))
+    obj("21 · la oferta pierde un pico",
+        "datos", lambda d: picos(d, "oferta").pop())
+    obj("21 · la mayoría oficial de una localidad cambia",
+        "datos", lambda d: pl(d)[0].__setitem__("pct_area_mayoria", 71.3131313131))
+    obj("21 · una localidad, en otra zona",
+        "datos", lambda d: pl(d)[0].__setitem__(
+            "zona", "nororiente" if pl(d)[0]["zona"] != "nororiente" else "suroccidente"))
+    obj("21 · una localidad, con otras celdas",
+        "datos", lambda d: pl(d)[1].__setitem__("celdas", 4171))
+    obj("21 · la tabla por localidad, desordenada",
+        "datos", lambda d: pl(d).reverse())
+    obj("21 · la tabla por localidad, vacía",
+        "datos", lambda d: pl(d).clear())
+
     return D
 
 
@@ -1132,6 +1176,12 @@ def tipo(n: str) -> str:
     n = re.sub(r"^mapas/(ciudad_oferta|ciudad_estudiantes|proporcion_oficial)", "mapas/<ráster>", n)
     n = re.sub(r"^mapas/(kennedy_puntos|sector_puntos)", "mapas/<puntos>", n)
     n = re.sub(r"sigma=\d+", "sigma=S", n)
+    # Lo que se ve en cada mapa: siete sigmas, tres capas y veinte localidades
+    # repiten la misma comprobación (2026-11-02).
+    n = re.sub(r"σ=\d+", "σ=S", n)
+    n = re.sub(r"^visto/(oferta|grado_11|estudiantes):", "visto/<capa>:", n)
+    n = re.sub(r"mayoría en .+$", "mayoría en <localidad>", n)
+    n = re.sub(r"P\(oficial\): (zona|celdas) de .+$", r"P(oficial): \1 de <localidad>", n)
     n = re.sub(r"con sigma=[\d.]+ m", "con sigma=S m", n)
     n = re.sub(r"^ejercicios/e\d", "ejercicios/eN", n)
     # M5: la misma cuenta repetida por patrón, por corrección o por

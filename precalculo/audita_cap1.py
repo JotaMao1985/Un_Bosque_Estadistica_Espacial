@@ -90,6 +90,69 @@ def carga(var: str, nombre: str):
 
 
 # =====================================================================
+# LA REFERENCIA DE THIESSEN CON PUNTOS UNIFORMES, simulada AQUÍ (R1 · T1.4)
+#
+# El módulo 10 compara la razón entre la mayor y la menor celda de Thiessen
+# de la red del IDEAM con la que saldría de puntos uniformes. R la simula
+# con `sf`; este auditor la simula por su cuenta, con otro generador (el de
+# numpy), otra semilla y otra biblioteca geométrica (shapely), y no lee
+# nada de lo que R publicó.
+#
+# Son ~0.25 s por muestra, cuatro minutos las mil, y el ARNÉS ejecuta el
+# auditor una vez por inyección: se guarda, con las dos cautelas de la
+# caché de `audita_cap6.py`:
+#
+#   · guarda lo que ESTE auditor simuló, no lo que R publicó;
+#   · la llave lleva el tamaño y la fecha del .gpkg del país, el número de
+#     puntos, el de muestras y la semilla: si cambia algo, se descarta.
+# =====================================================================
+N_REF_AUDITOR = 1000
+SEMILLA_REF_AUDITOR = 20929
+
+
+def razones_thiessen_uniforme(pais, ruta: pathlib.Path, n_puntos: int) -> list:
+    """Razón máx./mín. del área de Thiessen en N_REF_AUDITOR muestras uniformes."""
+    import numpy as np
+    import shapely
+    from shapely import MultiPoint, voronoi_polygons
+
+    st = ruta.stat()
+    llave = (f"{st.st_size}·{int(st.st_mtime)}·{n_puntos}·{N_REF_AUDITOR}·"
+             f"{SEMILLA_REF_AUDITOR}")
+    f = PRECALCULO / "cache" / "audita_cap1_thiessen_uniforme.json"
+    if f.exists():
+        guardado = json.loads(f.read_text(encoding="utf-8"))
+        if guardado.get("llave") == llave:
+            return guardado["razones"]
+    shapely.prepare(pais)
+    x0, y0, x1, y1 = pais.bounds
+    rng = np.random.default_rng(SEMILLA_REF_AUDITOR)
+
+    def muestra() -> "np.ndarray":
+        # Rechazo sobre la caja del país.
+        xy = np.empty((0, 2))
+        while len(xy) < n_puntos:
+            c = np.column_stack([rng.uniform(x0, x1, 2 * n_puntos),
+                                 rng.uniform(y0, y1, 2 * n_puntos)])
+            xy = np.vstack([xy, c[shapely.contains_xy(pais, c[:, 0], c[:, 1])]])
+        return xy[:n_puntos]
+
+    razones = []
+    for _ in range(N_REF_AUDITOR):
+        celdas = np.array(voronoi_polygons(MultiPoint(muestra()),
+                                           extend_to=pais.envelope).geoms)
+        # Solo se recortan las celdas que no caen enteras dentro del país.
+        dentro = shapely.contains(pais, celdas)
+        ar = shapely.area(celdas)
+        ar[~dentro] = shapely.area(shapely.intersection(celdas[~dentro], pais))
+        assert len(ar) == n_puntos and (ar > 0).all()
+        razones.append(float(ar.max() / ar.min()))
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(json.dumps({"llave": llave, "razones": razones}), encoding="utf-8")
+    return razones
+
+
+# =====================================================================
 def main() -> int:
     import numpy as np
     import pandas as pd
@@ -464,6 +527,51 @@ def main() -> int:
              f"{esc['moran_municipal']:.5f} -> {esc['moran_departamental']:.5f}")
     a.cierto(esc["p_municipal"] < 0.01,
              "el I municipal es inequívoco", f"p = {esc['p_municipal']:.3e}")
+
+    # R1 · T1.6 (C1-27) · la z de cada I, rehecha con la varianza bajo
+    # aleatorización escrita aquí y no leída de spdep. El convenio es el de
+    # `moran.test(zero.policy = TRUE)`: n cuenta las unidades CON vecinos en
+    # la I, en E[I] y en la varianza, y la curtosis K se calcula con todas.
+    from scipy import stats as _st
+
+    def z_moran(x, w):
+        W = w.sparse.tocsr()
+        z_ = x - x.mean()
+        n_ = len(x) - len(w.islands)
+        s0 = W.sum()
+        s1 = 0.5 * (W + W.T).power(2).sum()
+        s2 = ((np.asarray(W.sum(axis=1)).ravel() + np.asarray(W.sum(axis=0)).ravel()) ** 2).sum()
+        i_ = (n_ / s0) * float(z_ @ (W @ z_)) / float(z_ @ z_)
+        k_ = len(x) * (z_ ** 4).sum() / (z_ ** 2).sum() ** 2
+        ei = -1 / (n_ - 1)
+        vi = n_ * (s1 * (n_ ** 2 - 3 * n_ + 3) - n_ * s2 + 3 * s0 ** 2)
+        vi -= k_ * (s1 * (n_ ** 2 - n_) - 2 * n_ * s2 + 6 * s0 ** 2)
+        vi = vi / ((n_ - 1) * (n_ - 2) * (n_ - 3) * s0 ** 2) - ei ** 2
+        return i_, (i_ - ei) / math.sqrt(vi), math.sqrt(vi)
+
+    i_m, z_m, ee_m = z_moran(d_ok.desercion.to_numpy(), w_mun)
+    i_d, z_d, ee_d = z_moran(dep_ok.desercion.to_numpy(), w_dep)
+    a.igual(i_m, esc["moran_municipal"], "la I municipal, por la fórmula escrita aquí", 1e-6)
+    a.igual(i_d, esc["moran_departamental"], "  y la departamental", 1e-6)
+    a.igual(z_m, esc["z_municipal"], "la z de la I municipal (aleatorización)", 1e-5)
+    a.igual(z_d, esc["z_departamental"], "la z de la I departamental", 1e-6)
+    a.igual(ee_m, esc["ee_municipal"], "la desviación de la I municipal bajo la nula", 1e-7)
+    a.igual(ee_d, esc["ee_departamental"], "  y la de la departamental", 1e-7)
+    a.igual(esc["ee_departamental"] / esc["ee_municipal"], esc["razon_ee"],
+            "cuántas veces más varía la I departamental", 1e-7)
+    a.igual(float(_st.norm.sf(esc["z_departamental"])), esc["p_departamental"],
+            "el p departamental es el de una cola de esa z", 1e-8)
+    # La z que tendría una I departamental IGUAL a la municipal: con la nula
+    # departamental (su esperanza y su desviación), no con la municipal.
+    a.igual((esc["moran_municipal"] + 1 / (len(dep_ok) - len(w_dep.islands) - 1)) / ee_d,
+            esc["z_departamental_si_igual"],
+            "la z de una I departamental igual a la municipal", 1e-6)
+    a.cierto(esc["z_departamental"] < esc["z_departamental_si_igual"] < esc["z_municipal"],
+             "  y queda entre las dos: la z crece con n",
+             f"{esc['z_departamental']:.3f} < {esc['z_departamental_si_igual']:.3f} < {esc['z_municipal']:.3f}")
+    a.cierto(esc["z_municipal"] > 3 and esc["razon_ee"] > 1,
+             "la I municipal queda lejos de su nula y la departamental varía más",
+             f"z = {esc['z_municipal']:.3f} · razón {esc['razon_ee']:.3f}")
 
     # =================================================================
     a.titulo("2b bis · Agregar: el predicado, la conservación y el reparto")
@@ -894,6 +1002,12 @@ def main() -> int:
     a.cierto(str(inf.get("escala_h", "")).strip() != "",
              "la escala de h está declarada", str(inf.get("escala_h", ""))[:46])
     a.igual(inf.get("sigma"), 1, "la varianza marginal declarada es 1")
+    # R1 · T1.6 (C1-26) · el nivel de la prueba que el módulo 6 enuncia.
+    from scipy import stats as _st4
+    a.igual(float(_st4.t.ppf(1 - inf["alfa"] / 2, inf["n"] - 1)), inf["t_critico"],
+            "el t crítico es el bilateral de ese alfa", 1e-8)
+    a.igual(100 * inf["alfa"], D["una_realizacion"]["pct_esperado_si_valiera"],
+            "y el porcentaje que «debería» rechazar es ese alfa")
     cobs, neffs, facs = [], [], []
     for r in fila:
         phi = r["phi"]
@@ -1001,6 +1115,188 @@ def main() -> int:
     a.igual((ir["ic_bloques"][0] + ir["ic_bloques"][1]) / 2, ir["media"],
             "  y el de bloques también", 1e-7)
 
+    # --- R1 · T1.6 (C1-17) · dónde caen las réplicas, y cuánto se le puede
+    # creer al error estándar por bloques ---------------------------------
+    #
+    # Las identidades entre lo publicado, a 1e-8. Y lo que es Monte Carlo,
+    # rehecho aquí por otro camino y con otro generador, con tolerancias que
+    # se razonan como en el ejercicio 3:
+    #   · la media de las réplicas por bloques: R la publica con B = 4 000 y
+    #     un error de Monte Carlo `emc_media_bloques`; la referencia de aquí
+    #     usa 400 000 réplicas (diez veces menos ruido). Se pide que queden
+    #     a menos de cinco de esos errores.
+    #   · el factor sin un departamento: R usa B = 20 000 y aquí 50 000. El
+    #     ruido relativo de una desviación típica estimada con B réplicas es
+    #     1/sqrt(2B) ≈ 0.5 % si las medias fueran normales; no lo son del
+    #     todo —colas—, así que se pide un 5 % al factor y un 10 % al n
+    #     efectivo, que lleva el factor al cuadrado. Es ancho y aun así
+    #     separa lo que la prosa afirma: el departamento del extremo queda a
+    #     más de un 5 % del siguiente.
+    rp_, os_, su_ = ir["replicas"], ir["otras_semillas"], ir["sin_un_departamento"]
+    x_d = d_ok.desercion.to_numpy()
+    cod_d = d_ok.divipola.str[:2].to_numpy()
+    cods = np.unique(cod_d)
+    sum_d = np.array([x_d[cod_d == k].sum() for k in cods])
+    tam_d = np.array([(cod_d == k).sum() for k in cods])
+    nom_d = [d_ok.departamento[cod_d == k].iloc[0] for k in cods]
+    a.igual(len(cods), ir["n_departamentos"], "departamentos (bloques del remuestreo)")
+    a.igual(int(tam_d.min()), rp_["bloque_min"], "el departamento más pequeño")
+    a.igual(int(tam_d.max()), rp_["bloque_max"], "  y el más grande")
+    a.igual(rp_["media_bloques"] - ir["media"], rp_["desvio_bloques"],
+            "el desvío de las réplicas por bloques es su media menos la muestral", 1e-8)
+    a.igual(rp_["media_iid"] - ir["media"], rp_["desvio_iid"], "  y el de las i.i.d.", 1e-8)
+    a.igual(ir["ee_bootstrap_bloques"] / math.sqrt(ir["nboot"]), rp_["emc_media_bloques"],
+            "el error de Monte Carlo de la media de las réplicas por bloques", 1e-8)
+    a.igual(ir["ee_bootstrap_iid"] / math.sqrt(ir["nboot"]), rp_["emc_media_iid"],
+            "  y el de las i.i.d.", 1e-8)
+    a.igual(rp_["esperanza_bloques"] - ir["media"], rp_["desvio_esperanza"],
+            "el desvío de la esperanza de las réplicas por bloques", 1e-8)
+    a.igual(100 * rp_["desvio_esperanza"] / ir["ee_bootstrap_bloques"], rp_["desvio_esperanza_pct_ee"],
+            "  y como porcentaje del e.e. por bloques", 1e-6)
+    a.cierto(rp_["nrep_esperanza"] >= 1_000_000,
+             "la esperanza se calcula con al menos un millón de réplicas", str(rp_["nrep_esperanza"]))
+    a.cierto(abs(rp_["desvio_iid"]) < 3 * rp_["emc_media_iid"],
+             "las réplicas i.i.d. sí están centradas en la media muestral",
+             f"{rp_['desvio_iid']:.5f} frente a un e.M.C. de {rp_['emc_media_iid']:.5f}")
+    rng_d = np.random.default_rng(20929)
+
+    def medias_bloques(sumas, tams, lotes):
+        out = []
+        for _ in range(lotes):
+            sel = rng_d.integers(0, len(sumas), (10_000, len(sumas)))
+            out.append(sumas[sel].sum(axis=1) / tams[sel].sum(axis=1))
+        return np.concatenate(out)
+
+    ref_d = medias_bloques(sum_d, tam_d, 40)
+    emc_ref = ref_d.std(ddof=1) / math.sqrt(len(ref_d))
+    # R2 de T1.6 · LA ESPERANZA DE LAS RÉPLICAS, y no la media de 4 000. R la
+    # calcula con 2·10^6 réplicas multinomiales; aquí, con 400 000 de otro
+    # generador. Cada una trae su error de Monte Carlo, y se pide que
+    # difieran menos de cinco veces el error conjunto. El error que R declara
+    # tiene que ser el de ese número de réplicas: la desviación de una media
+    # por bloques entre la raíz de las réplicas, con un 10 % de holgura
+    # porque la desviación de aquí también es una estimación.
+    a.cierto(abs(rp_["esperanza_bloques"] - ref_d.mean())
+             < 5 * math.hypot(rp_["emc_esperanza"], emc_ref),
+             "la esperanza de las réplicas por bloques, rehecha con 400 000",
+             f"R {rp_['esperanza_bloques']:.5f} ± {rp_['emc_esperanza']:.5f} · "
+             f"aquí {ref_d.mean():.5f} ± {emc_ref:.5f}")
+    a.cierto(abs(rp_["emc_esperanza"] * math.sqrt(rp_["nrep_esperanza"]) / ref_d.std(ddof=1) - 1) < 0.10,
+             "  y su error de Monte Carlo es el de ese número de réplicas",
+             f"{rp_['emc_esperanza']:.6f}")
+    a.cierto(ref_d.mean() - x_d.mean() > 10 * emc_ref,
+             "el desvío no es de la semilla de R: aquí también queda por encima de la muestral",
+             f"{ref_d.mean() - x_d.mean():.5f} con un e.M.C. de {emc_ref:.5f}")
+    a.cierto(rp_["desvio_esperanza"] > 10 * rp_["emc_esperanza"],
+             "en lo publicado el desvío de la esperanza supera diez veces su error",
+             f"{rp_['desvio_esperanza'] / rp_['emc_esperanza']:.1f} errores de Monte Carlo")
+    a.cierto(abs(rp_["media_bloques"] - rp_["esperanza_bloques"]) < 4 * rp_["emc_media_bloques"],
+             "las 4 000 réplicas del módulo son compatibles con esa esperanza",
+             f"{rp_['media_bloques']:.5f} frente a {rp_['esperanza_bloques']:.5f}")
+    ee_iid_d = x_d.std(ddof=0) / math.sqrt(len(x_d))
+    fac_ref = ref_d.std(ddof=1) / ee_iid_d
+    neff_ref = len(x_d) / fac_ref ** 2
+    a.cierto(abs(ir["factor"] / fac_ref - 1) < 0.06,
+             "el factor del módulo, rehecho con 400 000 réplicas",
+             f"R {ir['factor']:.5f} · aquí {fac_ref:.5f}")
+    # Otras semillas.
+    a.cierto(os_["n"] >= 10 and os_["factor_min"] < os_["factor_max"],
+             "otras semillas: hay un rango", f"{os_['n']} parejas")
+    a.igual(ir["n_municipios"] / os_["factor_max"] ** 2, os_["n_eff_min"],
+            "otras semillas: el n efectivo mínimo es el del factor máximo", 1e-6)
+    a.igual(ir["n_municipios"] / os_["factor_min"] ** 2, os_["n_eff_max"],
+            "  y el máximo, el del mínimo", 1e-6)
+    a.cierto(os_["n_eff_min"] <= neff_ref <= os_["n_eff_max"],
+             "otras semillas: el rango contiene a la referencia",
+             f"{os_['n_eff_min']:.3f} a {os_['n_eff_max']:.3f} · referencia {neff_ref:.3f}")
+    a.cierto(0 < os_["factor_sd"] < os_["factor_max"] - os_["factor_min"],
+             "otras semillas: la desviación cabe en el rango", f"{os_['factor_sd']:.5f}")
+    # Un departamento menos.
+    lista_d = su_["por_departamento"]
+    a.cierto([f["dpto"] for f in lista_d] == list(cods),
+             "sin un departamento: la lista recorre los prefijos DIVIPOLA en orden",
+             f"{len(lista_d)} departamentos")
+    a.cierto([f["departamento"] for f in lista_d] == nom_d
+             and [f["municipios"] for f in lista_d] == [int(v) for v in tam_d],
+             "  cada uno con su nombre y sus municipios")
+    a.igual(su_["n_departamentos_quedan"], len(cods) - 1, "  y quedan los demás")
+    a.cierto(isinstance(su_["semilla_iid"], int) and isinstance(su_["semilla_bloques"], int)
+             and su_["semilla_iid"] != su_["semilla_bloques"],
+             "sin un departamento: los dos remuestreos llevan semillas enteras y distintas",
+             f"{su_['semilla_iid']} y {su_['semilla_bloques']}")
+    a.cierto(su_["nboot"] >= 5 * ir["nboot"],
+             "sin un departamento: más réplicas que el módulo, para que el ruido no decida",
+             str(su_["nboot"]))
+    fac_pub = np.array([f["factor"] for f in lista_d])
+    nef_pub = np.array([f["n_eff"] for f in lista_d])
+    a.cierto(np.allclose((len(x_d) - tam_d) / fac_pub ** 2, nef_pub, atol=1e-6, rtol=0),
+             "sin un departamento: cada n efectivo es (n − los suyos)/factor²")
+    fac_k = []
+    for k in range(len(cods)):
+        queda = cod_d != cods[k]
+        ee_i = x_d[queda].std(ddof=0) / math.sqrt(queda.sum())
+        fac_k.append(medias_bloques(np.delete(sum_d, k), np.delete(tam_d, k), 5).std(ddof=1) / ee_i)
+    fac_k = np.array(fac_k)
+    peor_d = int(np.argmax(np.abs(fac_pub / fac_k - 1)))
+    a.cierto(np.all(np.abs(fac_pub / fac_k - 1) < 0.05),
+             "sin un departamento: el factor, rehecho uno a uno con 50 000 réplicas",
+             f"el peor: {nom_d[peor_d]}, R {fac_pub[peor_d]:.4f} · aquí {fac_k[peor_d]:.4f}")
+    a.cierto(np.all(np.abs(nef_pub / ((len(x_d) - tam_d) / fac_k ** 2) - 1) < 0.10),
+             "  y el n efectivo")
+    a.igual(fac_pub.min(), su_["factor_min"], "sin un departamento: el factor mínimo es el de la lista", 1e-12)
+    a.igual(fac_pub.max(), su_["factor_max"], "  y el máximo", 1e-12)
+    a.igual(nef_pub.min(), su_["n_eff_min"], "  el n efectivo mínimo", 1e-12)
+    a.igual(nef_pub.max(), su_["n_eff_max"], "  y el máximo", 1e-12)
+    i_ext = int(fac_pub.argmin())
+    a.cierto(su_["extremo"] == lista_d[i_ext] and int(nef_pub.argmax()) == i_ext,
+             "sin un departamento: el extremo es el del factor mínimo y el n efectivo máximo",
+             su_["extremo"]["departamento"])
+    a.cierto(int(fac_k.argmin()) == i_ext,
+             "  y con el remuestreo de aquí es el mismo departamento", nom_d[int(fac_k.argmin())])
+    a.cierto(np.sort(fac_pub)[1] / fac_pub[i_ext] - 1 > 0.05,
+             "  separado del siguiente por más que la tolerancia",
+             f"{fac_pub[i_ext]:.4f} frente a {np.sort(fac_pub)[1]:.4f}")
+    # R2 de T1.6 · EL RECORRIDO NO ES LA INCERTIDUMBRE. El error estándar
+    # jackknife sale de los 33 valores publicados —identidad— y se rehace
+    # además con los 33 factores del remuestreo de aquí. Esos difieren de los
+    # de R hasta un 5 % cada uno, y el jackknife amplía las diferencias entre
+    # ellos, así que la tolerancia es ancha, un 25 %; lo que la prosa afirma
+    # —que supera a medio recorrido y que deja el n efectivo en orden de
+    # magnitud— se comprueba con las dos versiones.
+    def ee_jk(v):
+        v = np.asarray(v, float)
+        return math.sqrt((len(v) - 1) / len(v) * ((v - v.mean()) ** 2).sum())
+
+    a.igual(ee_jk(fac_pub), su_["ee_jackknife_factor"], "el e.e. jackknife del factor sale de la lista", 1e-8)
+    a.igual(ee_jk(nef_pub), su_["ee_jackknife_n_eff"], "  y el del n efectivo", 1e-7)
+    a.igual(100 * su_["ee_jackknife_n_eff"] / ir["n_eff"], su_["ee_jackknife_n_eff_pct"],
+            "  que es ese porcentaje del titular", 1e-6)
+    nef_k = (len(x_d) - tam_d) / fac_k ** 2
+    a.cierto(abs(su_["ee_jackknife_factor"] / ee_jk(fac_k) - 1) < 0.25
+             and abs(su_["ee_jackknife_n_eff"] / ee_jk(nef_k) - 1) < 0.25,
+             "el e.e. jackknife, rehecho con el remuestreo de aquí",
+             f"factor R {su_['ee_jackknife_factor']:.4f} · aquí {ee_jk(fac_k):.4f} | "
+             f"n_eff R {su_['ee_jackknife_n_eff']:.3f} · aquí {ee_jk(nef_k):.3f}")
+    a.cierto((su_["factor_max"] - su_["factor_min"]) / 2 < su_["ee_jackknife_factor"]
+             and (fac_k.max() - fac_k.min()) / 2 < ee_jk(fac_k),
+             "medio recorrido del factor queda por debajo de su e.e. jackknife, en R y aquí",
+             f"{(su_['factor_max'] - su_['factor_min']) / 2:.4f} < {su_['ee_jackknife_factor']:.4f}")
+    a.cierto((su_["n_eff_max"] - su_["n_eff_min"]) / 2 < su_["ee_jackknife_n_eff"],
+             "  y medio recorrido del n efectivo, por debajo del suyo")
+    a.cierto(su_["ee_jackknife_n_eff_pct"] > 25 and 100 * ee_jk(nef_k) / neff_ref > 25,
+             "el n efectivo se conoce solo en orden de magnitud: su e.e. pasa del 25 %",
+             f"{su_['ee_jackknife_n_eff_pct']:.1f} %")
+    a.cierto(su_["factor_min"] < ir["factor"] < su_["factor_max"]
+             and su_["n_eff_min"] < ir["n_eff"] < su_["n_eff_max"],
+             "sin un departamento: el recorrido contiene al titular del módulo")
+    a.cierto(su_["n_eff_min"] < os_["n_eff_min"] and os_["n_eff_max"] < su_["n_eff_max"],
+             "  y es más ancho que el de las semillas")
+    a.cierto(abs(su_["factor_todos"] / fac_ref - 1) < 0.05,
+             "con los 33 y las mismas réplicas, el factor es el de la referencia",
+             f"R {su_['factor_todos']:.5f} · aquí {fac_ref:.5f}")
+    a.igual(ir["n_municipios"] / su_["factor_todos"] ** 2, su_["n_eff_todos"],
+            "  y su n efectivo sale de él", 1e-6)
+
     # =================================================================
     a.titulo("4 · El tamaño de muestra efectivo")
     # =================================================================
@@ -1017,108 +1313,285 @@ def main() -> int:
     a.cierto(ne["caso_n1000_rho001"] < 100,
              "con rho=0.01 y n=1000 queda menos del 10 %",
              f"{ne['caso_n1000_rho001']:.5f}")
-    for e in ne["exacto_campo"]:
-        a.igual(100 * e["n_eff"] / D["inferencia"]["n"], e["pct"],
-                f"campo phi={e['phi']}: porcentaje de información", 1e-6)
+
+    # --- La fórmula es exacta (R1, C1-18) ------------------------------
+    #
+    # Var(Zbar) = (sigma^2/n)[1 + (n-1) rho_medio] es una identidad, con
+    # rho_medio la correlación media entre pares. Así que el n_eff de la
+    # fórmula y el exacto del módulo 4 no «cuentan la misma historia»: son
+    # el mismo número, en cada phi. El rho medio se rehace AQUÍ desde la
+    # retícula, promediando rho(h) sobre el triángulo de pares, sin pasar
+    # por R ni por la suma 1'R1 de la sección 3.
+    N4 = inf["n"]
+    _tri = np.triu_indices(N4, 1)
+    a.igual(len(_tri[0]), N4 * (N4 - 1) // 2, "los pares de la retícula son n(n-1)/2")
+
+    def rho_medio(dist_pares, phi):
+        return 0.0 if phi <= 0 else float(np.exp(-dist_pares / phi).mean())
+
+    a.igual(len(ne["exacto_campo"]), len(fila), "un n_eff exacto por cada phi del módulo 4")
+    rho_de_phi = {}
+    for e, r in zip(ne["exacto_campo"], fila):
+        phi = e["phi"]
+        a.igual(phi, r["phi"], f"campo phi={phi}: el alcance es el de su fila del módulo 4")
+        a.igual(e["n_eff"], r["n_eff"], f"campo phi={phi}: el n_eff exacto es el del módulo 4")
+        a.igual(100 * e["n_eff"] / N4, e["pct"],
+                f"campo phi={phi}: porcentaje de información", 1e-6)
+        rm = rho_medio(_DIST[_tri], phi)
+        rho_de_phi[phi] = rm
+        a.igual(rm, e["rho_medio"], f"campo phi={phi}: rho medio rehecho desde la retícula", 1e-9)
+        a.igual(N4 / (1 + (N4 - 1) * rm), e["n_eff"],
+                f"campo phi={phi}: n/(1+(n-1) rho medio) ES el n_eff exacto", 1e-9)
+        a.igual(e["n_eff_formula"], e["n_eff"],
+                f"campo phi={phi}: y R publica los dos iguales", 1e-9)
     a.igual(ne["desercion_municipal"], ir["n_eff"], "el n_eff real coincide con el suyo")
     a.igual(ne["desercion_pct"], ir["pct_informacion"], "y su porcentaje también")
+    # El caso de la autoevaluación: el quiz no lleva ninguna cifra a mano,
+    # así que todas las que imprime tienen que salir de la rejilla.
+    cq = ne["caso_quiz"]
+    a.igual(cq["n"], ne["enes"][-1], "quiz: su n es el último de la rejilla")
+    a.cierto(cq["rho"] in ne["rhos"] and cq["rho_otro"] in ne["rhos"],
+             "quiz: sus dos rho están en la rejilla", f"{cq['rho']} y {cq['rho_otro']}")
+    a.igual(cq["n"] / (1 + (cq["n"] - 1) * cq["rho"]), cq["n_eff"], "quiz: su n_eff", 1e-9)
+    a.igual(ne["rejilla"][-1]["n_eff"][ne["rhos"].index(cq["rho"])], cq["n_eff"],
+            "quiz: que es el de la rejilla", 1e-9)
+    a.igual(round(cq["n_eff"]), cq["n_eff_redondo"], "quiz: la respuesta redondeada")
+    a.igual(cq["n"] - cq["n_eff_redondo"], cq["sobran"], "quiz: las observaciones que sobran")
+    a.igual(round(1 / cq["rho"]), cq["techo"], "quiz: el techo de su rho")
+    a.igual(round(1 / cq["rho_otro"]), cq["techo_otro"], "quiz: el techo del otro rho")
+    a.igual(round(100 * cq["rho"]), cq["pct_ingenuo"], "quiz: el porcentaje del distractor")
+    a.igual(round(cq["n"] * (1 - cq["rho"])), cq["ingenuo"], "quiz: el distractor ingenuo")
+    a.cierto(len({cq["n_eff_redondo"], cq["ingenuo"], cq["techo_otro"], cq["n"]}) == 4,
+             "quiz: las cuatro opciones son distintas")
+    a.cierto("rho_medio" in ne["formula"],
+             "la fórmula declarada habla del rho medio entre pares", ne["formula"][:40])
 
-    # --- Los dos rho del titular (T2.1) -------------------------------
+    # --- El rho medio que corresponde al titular -----------------------
     #
-    # El módulo publica DOS rho y su discrepancia, así que hay que verificar
-    # los dos por caminos distintos: el implícito es álgebra —se despeja de
-    # n_eff y tiene que devolverlo— y el estimado es una medición sobre el
-    # mapa, que se rehace aquí desde el GeoPackage original con geopandas y
-    # libpysal, sin pasar por R.
-    from libpysal.weights import DistanceBand, W
+    # Es un despeje, así que la ida y la vuelta cierran. Las tolerancias
+    # están MEDIDAS: el JSON redondea a diez decimales y ese 5e-11 se
+    # amplifica al volver por la fórmula (1.8e-07 medido -> 1e-5).
     rt = ne["rho_del_titular"]
     a.igual(rt["n"], ir["n_municipios"], "el rho del titular habla de los mismos municipios")
     a.igual(rt["n_eff_publicado"], ir["n_eff"], "y del mismo n_eff")
     nr = rt["n"]
-    # 1 · El implícito es un despeje, así que la ida y la vuelta cierran.
-    #
-    # LAS TOLERANCIAS DE ESTE BLOQUE ESTÁN MEDIDAS, NO ESTIMADAS, y son más
-    # anchas de lo que uno escribiría a ojo. El JSON redondea a diez
-    # decimales, y ese error de 5e-11 se AMPLIFICA al pasar por un cociente
-    # de rho pequeños o por la fórmula del n_eff:
-    #
-    #     despeje del implícito   4.3e-11   ->  1e-9   (23x de margen)
-    #     razón entre los dos rho 1.4e-07   ->  1e-5   (72x)
-    #     n_eff con el estimado   4.0e-06   ->  1e-3   (247x)
-    #     vuelta al n_eff titular 1.8e-07   ->  1e-5   (56x)
-    #
-    # El rho estimado vale 0.0021, así que un redondeo en la undécima cifra
-    # es un error relativo de 2e-8 — y multiplicado por 331 de n_eff, cuatro
-    # millonésimas. Escribir 1e-6 aquí habría puesto rojo un capítulo
-    # correcto, que es la forma más rápida de enseñar a ignorar el informe.
     a.igual((nr / rt["n_eff_publicado"] - 1) / (nr - 1), rt["implicito"],
-            "el rho implícito es el despeje de n_eff", 1e-9)
+            "el rho medio del titular es el despeje de n_eff", 1e-9)
     a.igual(nr / (1 + (nr - 1) * rt["implicito"]), rt["n_eff_publicado"],
             "y devuelve el n_eff del titular", 1e-5)
-    a.cierto(rt["implicito"] > rt["estimado"],
-             "el rho que la equicorrelación necesita supera al medido",
-             f"{rt['implicito']:.7f} > {rt['estimado']:.7f}")
-    a.igual(rt["implicito"] / rt["estimado"], rt["razon_rho"],
-            "la razón entre los dos rho", 1e-5)
-    a.igual(nr / (1 + (nr - 1) * rt["estimado"]), rt["n_eff_con_estimado"],
-            "el n_eff que daría el rho medido", 1e-3)
-    a.igual(rt["n_eff_con_estimado"] / rt["n_eff_publicado"], rt["razon_n_eff"],
-            "y la razón de información entre los dos", 1e-7)
+    # El despeje es APROXIMADO, y el capítulo cuantifica una de las razones:
+    # ee_iid sale de s², que se encoge con la correlación (E[s²] =
+    # sigma²(1 - rho medio), sección 3), así que el cociente de remuestreos
+    # estima n(1-rho)/(1+(n-1)rho). Se rehace el despeje de esa expresión.
+    neff_t = rt["n_eff_publicado"]
+    a.igual((nr - neff_t) / (nr + (nr - 1) * neff_t), rt["implicito_con_s2"],
+            "el rho medio del titular contando con que s² se encoge", 1e-9)
+    a.igual(nr * (1 - rt["implicito_con_s2"]) / (1 + (nr - 1) * rt["implicito_con_s2"]),
+            neff_t, "y devuelve el n_eff del titular por la otra expresión", 1e-5)
+    # 1e-7: cociente de dos rho de ~0.0146 redondeados a diez decimales
+    # (medido: 3,9e-9, 26 veces de holgura).
+    a.igual(100 * (1 - rt["implicito_con_s2"] / rt["implicito"]), rt["diferencia_s2_pct"],
+            "lo que la corrección por s² rebaja el rho medio, en %", 1e-7)
+    a.cierto(0 < rt["diferencia_s2_pct"] < 5, "y es una rebaja pequeña",
+             f"{rt['diferencia_s2_pct']:.5f} %")
+    # El «rho medido» —la I de Moran por bandas promediada por pares— se
+    # retiró en R1 porque no estima el rho medio (C1-19). Que no vuelva.
+    CLAVES_RT = {"n", "n_eff_publicado", "implicito", "implicito_con_s2", "diferencia_s2_pct"}
+    a.cierto(set(rt) == CLAVES_RT,
+             "el titular no publica ningún «rho medido» sobre el mapa",
+             ", ".join(sorted(set(rt) ^ CLAVES_RT)))
 
-    # 2 · El estimado, rehecho desde el original.
+    # --- Por qué el rho medio no se mide sobre el mapa (C1-19) ---------
     #
-    # Se lee el GeoPackage y la llave, no el CSV del generador: independencia
-    # TOTAL. Los puntos son `representative_point()` contra el
-    # `st_point_on_surface()` de sf — el mismo concepto en las dos
-    # bibliotecas—, y las bandas se construyen restando dos DistanceBand.
-    #
-    # LA CONVENCIÓN, que aquí no se puede esquivar. `spdep::moran.test` con
-    # `zero.policy = TRUE` toma n = unidades CON vecinos y `esda.Moran` toma
-    # n = todas: es la discrepancia `moran_islas` que el módulo 7 declara, y
-    # en la banda de 0 a 25 km son 156 islas de 1 121, así que cambia la I en
-    # la SEGUNDA cifra, no en la cuarta. Las dos convenciones se convierten
-    # exactamente una en otra, y por eso el capítulo publica `islas` por
-    # banda: sin ese entero, esta comprobación sería imposible y habría que
-    # declararla saltada.
+    # Centrando con la media muestral, el promedio de los productos cruzados
+    # de TODOS los pares, dividido por la varianza (con 1/n), vale -1/(n-1)
+    # para cualquier dato. El capítulo lo publica medido sobre las réplicas
+    # del módulo 4; aquí se comprueba lo publicado y se rehace la medición
+    # con réplicas PROPIAS —otro generador, otra semilla—, por fuerza bruta
+    # sobre la matriz de productos.
+    cz = ne["centrado"]
+    i4c = [i for i, r in enumerate(fila) if r["phi"] == cz["phi"]]
+    a.cierto(len(i4c) == 1 and cz["phi"] == 4, "la demostración corre con phi = 4",
+             str(cz["phi"]))
+    a.igual(cz["n"], N4, "sobre la retícula del módulo 4")
+    a.igual(cz["nrep"], inf["nrep"], "y con sus mismas réplicas")
+    a.igual(cz["media"], 0, "la media verdadera del proceso simulado es 0")
+    a.igual(cz["varianza"], inf["sigma"] ** 2, "y su varianza, la del módulo 4")
+    a.igual(rho_de_phi[cz["phi"]], cz["rho_medio_verdadero"],
+            "el rho medio verdadero, rehecho desde la retícula", 1e-9)
+    a.igual(-1 / (N4 - 1), cz["menos_inv_n1"], "-1/(n-1) con n = 256", 1e-9)
+    a.igual(cz["centrado_min"], cz["menos_inv_n1"],
+            "el menor promedio centrado de las réplicas es -1/(n-1)", 1e-9)
+    a.igual(cz["centrado_max"], cz["menos_inv_n1"],
+            "y el mayor también", 1e-9)
+    a.cierto(0 <= cz["desviacion_max"] <= 1e-9,
+             "la desviación máxima respecto de -1/(n-1) es redondeo",
+             f"{cz['desviacion_max']:.1e}")
+
+    def pares_medios(z):
+        """Media de z_i z_j sobre los n(n-1) pares i != j, por fuerza bruta."""
+        return (np.outer(z, z).sum() - (z ** 2).sum()) / (len(z) * (len(z) - 1))
+
+    def centrado(z):
+        zc = z - z.mean()
+        return pares_medios(zc) / (zc ** 2).mean()
+
+    NREP_A = 3000
+    _R4 = np.exp(-_DIST / cz["phi"])
+    _L4 = np.linalg.cholesky(_R4 + 1e-9 * np.eye(N4))
+    _Z = _L4 @ np.random.default_rng(20929).standard_normal((N4, NREP_A))
+    cen_a = np.array([centrado(_Z[:, k]) for k in range(NREP_A)])
+    a.cierto(np.abs(cen_a + 1 / (N4 - 1)).max() < 1e-9,
+             "en réplicas propias el promedio centrado también es -1/(n-1)",
+             f"desvío máx. {np.abs(cen_a + 1 / (N4 - 1)).max():.1e} en {NREP_A}")
+    # Con la media VERDADERA (0) y la varianza verdadera (1) el promedio sí
+    # apunta al rho medio, pero con una dispersión entre réplicas mayor que
+    # el propio valor. Es una forma cuadrática z'Az de una normal, así que
+    # su desviación típica tiene fórmula: sqrt(2 tr((AR)^2)).
+    cmv = cz["con_media_verdadera"]
+    a.cierto(abs(cmv["media"] - cz["rho_medio_verdadero"]) <= 4 * cmv["emc"],
+             "con la media verdadera el promedio apunta al rho medio",
+             f"{cmv['media']:.5f} ± {cmv['emc']:.5f} frente a {cz['rho_medio_verdadero']:.5f}")
+    a.igual(cmv["sd"] / math.sqrt(cz["nrep"]), cmv["emc"],
+            "su error de Monte Carlo es sd/sqrt(réplicas)", 1e-9)
+    _A = (np.ones((N4, N4)) - np.eye(N4)) / (N4 * (N4 - 1))
+    _AR = _A @ _R4
+    sd_teo = math.sqrt(2 * np.trace(_AR @ _AR))
+    # 12 %: la sd de una variable casi ji-cuadrado de 1 g.l., estimada con
+    # 3 000 réplicas, tiene un error relativo de ~3,4 %.
+    a.cierto(abs(cmv["sd"] - sd_teo) <= 0.12 * sd_teo,
+             "su desviación típica entre réplicas cuadra con la teórica",
+             f"{cmv['sd']:.5f} frente a {sd_teo:.5f}")
+    a.cierto(cmv["sd"] > cz["rho_medio_verdadero"],
+             "y supera al valor que se quiere estimar",
+             f"{cmv['sd']:.5f} > {cz['rho_medio_verdadero']:.5f}")
+    con_mu_a = np.array([pares_medios(_Z[:, k] - cz["media"]) / cz["varianza"]
+                         for k in range(NREP_A)])
+    a.cierto(abs(con_mu_a.mean() - cz["rho_medio_verdadero"])
+             <= 4 * con_mu_a.std(ddof=1) / math.sqrt(NREP_A),
+             "en réplicas propias también apunta al rho medio",
+             f"{con_mu_a.mean():.5f}")
+    # El porcentaje de réplicas con promedio negativo se contrasta contra una
+    # referencia mucho más fina que las 3 000 réplicas de arriba: 200 000
+    # réplicas propias, con el promedio por su forma cerrada
+    # ((suma)² - suma de cuadrados) / (n(n-1)), que para esto no hay nada que
+    # demostrar por fuerza bruta. La referencia tiene un error típico de 0,07
+    # puntos; el de R, con 3 000 réplicas, es sqrt(0,098 · 0,902 / 3000) =
+    # 0,54 puntos. Se exigen 2 puntos, 3,7 errores típicos. Con las 3 000
+    # réplicas de antes como referencia y 3 puntos de margen, un 13 % pasaba.
+    _ZG = _L4 @ np.random.default_rng(929).standard_normal((N4, 200_000))
+    _ZG = (_ZG - cz["media"]) / math.sqrt(cz["varianza"])
+    con_mu_g = (_ZG.sum(0) ** 2 - (_ZG ** 2).sum(0)) / (N4 * (N4 - 1))
+    pct_neg_g = 100 * float((con_mu_g < 0).mean())
+    a.cierto(abs(pct_neg_g - cmv["pct_negativas"]) <= 2,
+             "el porcentaje de réplicas con promedio negativo, rehecho",
+             f"{pct_neg_g:.2f} frente a {cmv['pct_negativas']:.2f}")
+
+    # Y sobre el dato real, leído del GeoPackage y de la llave, no del CSV
+    # del generador.
     gm = gpd.read_file(PROCESADO / "colombia_adm2.gpkg")
     llave = pd.read_csv(PROCESADO / "municipios_llave.csv", dtype=str)
     gm = gm.merge(llave[["shapeID", "desercion"]], on="shapeID", how="left")
     gm["desercion"] = pd.to_numeric(gm["desercion"], errors="coerce")
-    gm = gm[gm["desercion"].notna()].reset_index(drop=True)
-    a.igual(len(gm), rt["n"], "los municipios con dato, contados por geopandas")
-    ptos = gm.geometry.representative_point()
-    xy_m = np.c_[ptos.x.values, ptos.y.values]
-    y_m = gm["desercion"].to_numpy()
-    a.igual(len(rt["bandas"]), rt["n_bandas"], "el correlograma trae las bandas que declara")
-    suma_pares = suma_I = 0.0
-    for b in rt["bandas"]:
-        etq = f"rho {b['d1']}-{b['d2']} km"
-        vec = DistanceBand(xy_m, threshold=b["d2"] * 1000, binary=True,
-                           silence_warnings=True).neighbors
-        if b["d1"] > 0:
-            dentro = DistanceBand(xy_m, threshold=b["d1"] * 1000, binary=True,
-                                  silence_warnings=True).neighbors
-            vec = {k: sorted(set(vec[k]) - set(dentro[k])) for k in vec}
-        a.igual(sum(len(v) for v in vec.values()) / 2, b["pares"], f"{etq}: los pares")
-        a.igual(sum(1 for v in vec.values() if not v), b["islas"], f"{etq}: las islas")
-        w = W(vec, silence_warnings=True)
-        w.transform = "r"
-        # 1e-9: la I publicada viene redondeada a diez decimales, y la
-        # conversión de convención no añade error propio (medido: 5e-11).
-        a.igual(Moran(y_m, w, permutations=0).I, b["I"] * nr / (nr - b["islas"]),
-                f"{etq}: la I de Moran, con la convención de esda", 1e-9)
-        suma_pares += b["pares"]
-        suma_I += b["I"] * b["pares"]
-    a.igual(suma_pares, rt["pares_totales"], "los pares del correlograma suman los declarados")
-    a.igual(suma_I / suma_pares, rt["estimado"],
-            "el rho estimado es la media de las I ponderada por pares", 1e-9)
-    a.igual(rt["bandas"][0]["I"], rt["I_primera_banda"],
-            "la I de la primera banda que publica la prosa")
-    a.igual(sum(b["pares"] for b in rt["bandas"] if b["I"] < 0), rt["pares_lejanos"],
-            "los pares con correlación negativa que cita la prosa")
-    a.cierto(rt["bandas"][0]["I"] > 10 * rt["estimado"],
-             "entre vecinos la correlación supera su promedio",
-             f"{rt['bandas'][0]['I']:.5f} contra {rt['estimado']:.7f}")
+    y_m = gm.loc[gm["desercion"].notna(), "desercion"].to_numpy()
+    cc = cz["colombia"]
+    a.igual(len(y_m), cc["n"], "los municipios con dato, contados por geopandas")
+    a.igual(cc["n"], rt["n"], "que son los del titular")
+    a.igual(-1 / (cc["n"] - 1), cc["menos_inv_n1"], "-1/(n-1) con los municipios", 1e-9)
+    a.igual(centrado(y_m), cc["centrado"],
+            "el promedio centrado de la deserción, rehecho", 1e-9)
+    a.igual(cc["centrado"], cc["menos_inv_n1"], "que es -1/(n-1)", 1e-9)
+
+    # --- El techo, rellenando o ampliando (C1-21) ----------------------
+    #
+    # «n_eff tiende a 1/rho» solo vale con el rho medio fijo. Las dos
+    # configuraciones se reconstruyen aquí: la misma región de lado 16
+    # partida en k x k celdas con la observación en el CENTRO de cada una
+    # (relleno) y paso 1 con k celdas por lado (ampliación).
+    from scipy.spatial.distance import pdist
+    tc = ne["techo"]
+    Lr = tc["lado_relleno"]
+    a.igual(tc["phi"], cz["phi"], "la tabla del techo usa el mismo alcance")
+    a.igual(Lr, inf["k"], "la región del relleno es la de las celdas del módulo 4")
+    a.igual(tc["paso_ampliacion"], 1, "y la ampliación va a paso 1, como aquella retícula")
+    a.cierto([f["k"] for f in tc["rejilla"]] == list(tc["ks"]),
+             "la tabla trae una fila por cada k declarado", str(tc["ks"]))
+    for f in tc["rejilla"]:
+        k = f["k"]
+        a.igual(k * k, f["n"], f"techo k={k}: n = k²")
+        g = np.array([(x, y) for y in range(k) for x in range(k)], float)
+        for modo, xy_t in (("relleno", (g + 0.5) * Lr / k),
+                           ("ampliacion", g * tc["paso_ampliacion"])):
+            rm = rho_medio(pdist(xy_t), tc["phi"])
+            a.igual(rm, f[modo]["rho_medio"], f"techo k={k}, {modo}: rho medio", 1e-9)
+            # 1e-7: el n_eff llega hasta 48 y la media de 8 millones de
+            # pares difiere entre R y numpy en la undécima cifra.
+            a.igual(f["n"] / (1 + (f["n"] - 1) * rm), f[modo]["n_eff"],
+                    f"techo k={k}, {modo}: n_eff", 1e-7)
+        if k == inf["k"]:
+            for modo in ("relleno", "ampliacion"):
+                a.igual(f[modo]["n_eff"], inf["n_eff_phi4"],
+                        f"techo k={k}, {modo}: es la retícula del módulo 4", 1e-8)
+    tf = tc["rejilla"]
+    a.cierto(inf["k"] in tc["ks"], "la retícula del módulo 4 está en la tabla")
+
+    # El límite del relleno: rho_inf = E[rho(|U-V|)] con U y V uniformes en
+    # el cuadrado. R lo saca de una integral doble con `integrate`; aquí va
+    # por DOS caminos que no comparten nada con ese:
+    #   · una cuadratura de punto medio de 4000 x 4000 sobre la misma
+    #     integral (error medido 3,8e-9 -> 1e-7, 26 veces de holgura);
+    #   · un Monte Carlo que no usa la integral: 4 millones de pares de
+    #     puntos al azar en el cuadrado (error típico 9e-5; se exigen 4).
+    _m = 4000
+    _x = (np.arange(_m) + 0.5) * Lr / _m
+    _X, _Y = np.meshgrid(_x, _x)
+    rho_inf_q = float((4 / Lr ** 4) * (np.exp(-np.hypot(_X, _Y) / tc["phi"])
+                                       * (Lr - _X) * (Lr - _Y)).sum() * (Lr / _m) ** 2)
+    a.igual(rho_inf_q, tc["rho_inf"], "rho_inf del relleno, por cuadratura propia", 1e-7)
+    _rng = np.random.default_rng(20929)
+    _N = 4_000_000
+    _d = _rng.uniform(0, Lr, (_N, 2)) - _rng.uniform(0, Lr, (_N, 2))
+    _r = np.exp(-np.hypot(_d[:, 0], _d[:, 1]) / tc["phi"])
+    _se = float(_r.std(ddof=1) / math.sqrt(_N))
+    a.cierto(abs(_r.mean() - tc["rho_inf"]) <= 4 * _se,
+             "rho_inf del relleno, por Monte Carlo de pares al azar",
+             f"{_r.mean():.5f} ± {_se:.5f} frente a {tc['rho_inf']:.5f}")
+    a.igual(1 / tc["rho_inf"], tc["techo_inf"], "el techo del relleno es 1/rho_inf", 1e-7)
+
+    # Lo que el capítulo afirma del relleno es ESTANCAMIENTO. Las cotas son
+    # las del generador, y están medidas: el último salto mueve el n_eff un
+    # 0,059 % (se exige < 0,25 %, cuatro veces) y a la última fila le falta
+    # un 0,017 % para 1/rho_inf (se exige < 0,1 %, casi seis veces).
+    a.igual(100 * (tf[-1]["relleno"]["n_eff"] / tf[-2]["relleno"]["n_eff"] - 1),
+            tc["ultimo_salto_pct"], "el último salto del relleno, en %", 1e-6)
+    a.igual(100 * (1 - tf[-1]["relleno"]["n_eff"] / tc["techo_inf"]),
+            tc["falta_techo_pct"], "lo que le falta a la última fila para su techo, en %", 1e-6)
+    a.cierto(abs(tc["ultimo_salto_pct"]) < 0.25,
+             "al rellenar el n_eff se estanca: el último salto es pequeño",
+             f"{tc['ultimo_salto_pct']:.5f} %")
+    a.cierto(0 <= tc["falta_techo_pct"] < 0.1,
+             "y la última fila está en 1/rho_inf, por debajo",
+             f"{tc['falta_techo_pct']:.5f} %")
+    a.cierto(all(f["relleno"]["n_eff"] <= tc["techo_inf"] for f in tf),
+             "con este diseño ninguna fila del relleno supera 1/rho_inf")
+    a.cierto(all(abs(tf[i + 1]["relleno"]["rho_medio"] - tc["rho_inf"])
+                 < abs(tf[i]["relleno"]["rho_medio"] - tc["rho_inf"])
+                 for i in range(len(tf) - 1)),
+             "al rellenar el rho medio se acerca a rho_inf fila a fila")
+
+    a.igual(tf[-1]["n"] / tf[0]["n"], tc["factor_n"], "por cuánto se multiplica n")
+    a.igual(tf[-1]["relleno"]["n_eff"] / tf[0]["relleno"]["n_eff"], tc["factor_relleno"],
+            "por cuánto se multiplica n_eff al rellenar", 1e-8)
+    a.igual(tf[-1]["ampliacion"]["n_eff"] / tf[0]["ampliacion"]["n_eff"],
+            tc["factor_ampliacion"], "y al ampliar", 1e-7)
+    a.cierto(all(tf[i]["ampliacion"]["rho_medio"] > tf[i + 1]["ampliacion"]["rho_medio"]
+                 and tf[i]["ampliacion"]["n_eff"] < tf[i + 1]["ampliacion"]["n_eff"]
+                 for i in range(len(tf) - 1)),
+             "al ampliar el rho medio cae y el n_eff crece")
+    # Medido: 1,019 al rellenar y 19,18 al ampliar, con n x 64 en los dos.
+    a.cierto(abs(tc["factor_relleno"] - 1) < 0.05 and tc["factor_ampliacion"] > 10,
+             "multiplicar n apenas mueve el n_eff al rellenar y sí al ampliar",
+             f"{tc['factor_relleno']:.5f} y {tc['factor_ampliacion']:.5f}")
 
     # =================================================================
     a.titulo("5 · Una realización frente a muchas")
@@ -1159,6 +1632,60 @@ def main() -> int:
     a.cierto(all(vg["teorico"][i] < vg["teorico"][i + 1]
                  for i in range(len(vg["teorico"]) - 1)),
              "el variograma teórico crece con el lag")
+    # --- La referencia de cada clase, rehecha desde la GEOMETRÍA ----------
+    #
+    # R1 · T1.4 (C1-25). Las clases del estimador son |d − h| < 0.5, así que
+    # la clase h mezcla distancias (la 1: d = 1 y d = √2). Lo que el
+    # estimador estima sin sesgo es la media de γ(d) sobre los pares de la
+    # clase, no γ(h). Aquí se rehace sin mirar nada de R: se enumeran los
+    # desplazamientos (dx, dy) de la retícula k×k, cada uno con su número
+    # EXACTO de pares —(k − |dx|)(k − |dy|), contando cada par no ordenado
+    # una vez—, y se promedia γ(d) = 1 − exp(−d/φ) con esos pesos. Es otra
+    # ruta que la de R (que indexa la matriz de distancias de 256×256) y es
+    # exacta: tolerancia 1e-9, la del redondeo del JSON.
+    k6, phi6 = ur["k"], ur["phi"]
+    suma_g = {h: 0.0 for h in vg["lags"]}
+    cuenta = {h: 0 for h in vg["lags"]}
+    for dx in range(0, k6):
+        for dy in range(-(k6 - 1), k6):
+            # media-plano: cada par no ordenado una sola vez
+            if dx == 0 and dy <= 0:
+                continue
+            d = math.hypot(dx, dy)
+            pares = (k6 - dx) * (k6 - abs(dy))
+            for h in vg["lags"]:
+                if abs(d - h) < 0.5:
+                    suma_g[h] += pares * (1 - math.exp(-d / phi6))
+                    cuenta[h] += pares
+    gbar = [suma_g[h] / cuenta[h] for h in vg["lags"]]
+    tc_ok = (len(vg.get("teorico_clase", [])) == len(vg["lags"])
+             and len(vg.get("n_pares", [])) == len(vg["lags"]))
+    a.cierto(tc_ok, "el variograma trae un teórico de clase y un número de pares por rezago")
+    if tc_ok:
+        for k, h in enumerate(vg["lags"]):
+            a.igual(cuenta[h], vg["n_pares"][k], f"pares de la clase {h}, contados en la retícula")
+            a.igual(gbar[k], vg["teorico_clase"][k],
+                    f"teórico promediado en la clase {h}", 1e-9)
+            # La media de las réplicas cae sobre la referencia de la clase.
+            # Su error de Monte Carlo no se publica, pero se acota desde la
+            # banda: para una distribución de una sola moda, la sd no pasa
+            # de (q95 − q05) / 2 con holgura (en la normal es / 3.29), así
+            # que emc ≤ (q95 − q05) / (2 √NREAL). Se piden menos de 4 de
+            # esas cotas: medido, la peor clase queda a 0.5.
+            cota = (vg["q95"][k] - vg["q05"][k]) / (2 * math.sqrt(ur["n_realizaciones"]))
+            a.cierto(abs(vg["media"][k] - gbar[k]) < 4 * cota,
+                     f"  la media de las réplicas cae sobre él en la clase {h}",
+                     f"|{vg['media'][k]:.5f} − {gbar[k]:.5f}| frente a 4 × {cota:.5f}")
+        # Lo que la prosa afirma del rezago 1: la referencia de la clase y
+        # γ(1) NO son la misma cifra, y la media de las réplicas distingue.
+        a.cierto(abs(vg["media"][0] - vg["teorico_clase"][0])
+                 < 0.1 * abs(vg["media"][0] - vg["teorico"][0]),
+                 "en el rezago 1 la media cae sobre el teórico de la clase y no sobre γ(1)",
+                 f"media {vg['media'][0]:.5f}, de clase {vg['teorico_clase'][0]:.5f}, "
+                 f"γ(1) = {vg['teorico'][0]:.5f}")
+    a.igual((vg["q95"][vg["lags"].index(4)] - vg["q05"][vg["lags"].index(4)])
+            / gbar[vg["lags"].index(4)], ur["banda_rel_lag4"],
+            "el ancho de la banda en el rezago 4, relativo al teórico de su clase", 1e-7)
     a.cierto(ur["banda_rel_lag4"] > 0.2,
              "una sola realización se desvía del proceso",
              f"{ur['banda_rel_lag4']:.5f}")
@@ -1236,7 +1763,9 @@ def main() -> int:
             a.igual(propio[k], fila["variograma"][k],
                     f"{q}: su variograma en el rezago {h}", 5e-3)
         # Y las cifras que la prosa y la lectura estrenan sobre esa curva.
-        rel = [abs(fila["variograma"][k] - vg["teorico"][k]) / vg["teorico"][k]
+        # Contra el teórico DE LA CLASE, rehecho arriba desde la retícula
+        # (`gbar`), no contra el que publica R ni contra γ en h entero.
+        rel = [abs(fila["variograma"][k] - gbar[k]) / gbar[k]
                for k in range(len(vg["lags"]))]
         a.igual(max(rel), fila["desvio_rel_max"], f"{q}: su desvío relativo máximo", 1e-7)
         a.igual(vg["lags"][rel.index(max(rel))], fila["lag_desvio_max"],
@@ -1267,6 +1796,66 @@ def main() -> int:
             a.igual((b["d1"] + b["d2"]) / 2, b["centro"],
                     f"  centro de la banda {b['d1']}-{b['d2']}", 1e-7)
             a.cierto(b["n_pares"] > 0, f"  y tiene pares", str(b["n_pares"]))
+    # R1 · T1.6 (C1-12) · cuántas unidades tienen vecinos en cada banda y la
+    # E[I] que les corresponde, rehechas con la matriz de distancias. Las
+    # tres series del IDEAM comparten estaciones, así que comparten cuenta.
+    def con_vecinos(xy, d1, d2):
+        dd = np.sqrt(((xy[:, None, :] - xy[None, :, :]) ** 2).sum(-1))
+        A = (dd >= d1) & (dd <= d2)
+        np.fill_diagonal(A, False)
+        return int(A.any(axis=1).sum())
+
+    xy_est = np.c_[est.geometry.x, est.geometry.y] / 1000
+    xy_me = me[["x", "y"]].to_numpy(float)
+    for nombre, xy_b in (("meuse", xy_me), ("ideam", xy_est), ("permutado", xy_est),
+                         ("residuos_altitud", xy_est)):
+        for b in D["tobler"][nombre]["bandas"]:
+            a.igual(con_vecinos(xy_b, b["d1"], b["d2"]), b["n_con_vecinos"],
+                    f"{nombre}: unidades con vecinos en la banda {b['d1']}-{b['d2']}")
+            a.igual(-b["n_con_vecinos"] / (len(xy_b) * (len(xy_b) - 1)), b["esperado"],
+                    f"  su esperanza por permutación es −n′/(n(n − 1))", 1e-9)
+            a.igual(-1 / (b["n_con_vecinos"] - 1), b["esperado_programa"],
+                    f"  y la que imprime el programa, −1/(n′ − 1)", 1e-9)
+    b_id = D["tobler"]["ideam"]["bandas"]
+    a.cierto(b_id[0]["n_con_vecinos"] < D["colombia"]["geo"]["n"] == b_id[-1]["n_con_vecinos"],
+             "ideam: en la banda corta faltan estaciones y en la última están todas",
+             f"{b_id[0]['n_con_vecinos']} y {b_id[-1]['n_con_vecinos']}")
+    # R2 de T1.6 · LA ESPERANZA SE COMPRUEBA PERMUTANDO, no con la fórmula que
+    # se quiere comprobar. Se arma la I con el convenio de spdep —n′ en el
+    # factor, las 361 en el centrado y en la suma de cuadrados— y se permutan
+    # las temperaturas 20 000 veces con el generador de aquí. La media tiene
+    # que caer a menos de cuatro errores de Monte Carlo de −n′/(n(n − 1)) y a
+    # más de cuatro de −1/(n′ − 1). Lo mismo se le pide a la media que R
+    # publica, y su error tiene que ser el de sus permutaciones.
+    b0_ = b_id[0]
+    dd0 = np.sqrt(((xy_est[:, None, :] - xy_est[None, :, :]) ** 2).sum(-1))
+    A0 = ((dd0 >= b0_["d1"]) & (dd0 <= b0_["d2"])).astype(float)
+    np.fill_diagonal(A0, 0.0)
+    g0 = A0.sum(1)
+    W0 = np.zeros_like(A0)
+    W0[g0 > 0] = A0[g0 > 0] / g0[g0 > 0, None]
+    z0 = est.t_media_anual.to_numpy() - est.t_media_anual.mean()
+    f0 = (g0 > 0).sum() / W0.sum() / (z0 @ z0)
+    a.igual(f0 * (z0 @ W0 @ z0), b0_["I"], "ideam: la I de la primera banda, con el convenio de spdep", 1e-7)
+    rng_p = np.random.default_rng(20929)
+    perm0 = []
+    for _ in range(20):
+        P = rng_p.permuted(np.tile(z0, (1000, 1)), axis=1)
+        perm0.append(f0 * ((P @ W0) * P).sum(axis=1))
+    perm0 = np.concatenate(perm0)
+    emc0 = perm0.std(ddof=1) / math.sqrt(len(perm0))
+    a.cierto(abs(perm0.mean() - b0_["esperado"]) < 4 * emc0 < abs(perm0.mean() - b0_["esperado_programa"]),
+             "ideam: 20 000 permutaciones de aquí dan −n′/(n(n − 1)) y no −1/(n′ − 1)",
+             f"{perm0.mean():.6f} ± {emc0:.6f} · {b0_['esperado']:.6f} frente a {b0_['esperado_programa']:.6f}")
+    pb = D["tobler"]["permutacion_banda1"]
+    a.cierto(pb["nperm"] >= 10_000, "ideam: R permuta al menos 10 000 veces", str(pb["nperm"]))
+    a.cierto(abs(pb["media"] - b0_["esperado"]) < 4 * pb["emc"] < abs(pb["media"] - b0_["esperado_programa"]),
+             "ideam: las permutaciones de R dicen lo mismo",
+             f"{pb['media']:.6f} ± {pb['emc']:.6f}")
+    a.cierto(abs(pb["emc"] * math.sqrt(pb["nperm"]) / perm0.std(ddof=1) - 1) < 0.10,
+             "  y su error de Monte Carlo es el de ese número de permutaciones", f"{pb['emc']:.6f}")
+    a.cierto(abs(pb["media"] - perm0.mean()) < 5 * math.hypot(pb["emc"], emc0),
+             "  y su media es compatible con la de aquí")
     # El decaimiento es el contenido del módulo, así que se comprueba.
     for nombre in ("meuse", "ideam"):
         bs = [b["I"] for b in D["tobler"][nombre]["bandas"] if b["I"] is not None]
@@ -1383,6 +1972,76 @@ def main() -> int:
              "  así que la media muestral no estima la del país",
              f"{dm['brecha_c']:.5f} °C de brecha")
 
+    # --- La referencia: Thiessen de puntos uniformes (R1 · T1.4, C1-32) ---
+    #
+    # R publica cuantiles de SU simulación; aquí se contrastan con OTRA
+    # simulación independiente, así que la comparación es entre dos Monte
+    # Carlo y la tolerancia se razona sin suponer forma (la cola es pesada):
+    #
+    #   · Si q es el cuantil p de la muestra de R (N_R valores) y F̂ la
+    #     fracción de la muestra de aquí (N_A valores) que queda por debajo
+    #     de q, entonces F̂ − p tiene desviación típica
+    #     sqrt(p(1−p)(1/N_R + 1/N_A)), sea cual sea la distribución. Se
+    #     aceptan 4 de esas desviaciones: con mil y mil, ±0.089 en la
+    #     mediana y ±0.039 en los percentiles 5 y 95. Un cuantil publicado
+    #     que no fuera el suyo (la mediana en el lugar del p95, un p95 de
+    #     otra distribución) cae muy lejos de eso.
+    #   · El IC de la mediana que R publica no se puede rehacer sin su
+    #     muestra; se le exige contener a su mediana, solaparse con el IC
+    #     que sale de la muestra de aquí y tener una anchura comparable
+    #     (entre la mitad y el doble).
+    #   · El máximo de R es un valor extremo y no tiene réplica: se exige
+    #     que la muestra de aquí casi nunca lo supere (el número de
+    #     excedencias de un máximo de N es ~Poisson(1): 8 o más tiene
+    #     probabilidad 1e-5).
+    #   · Los dos cocientes, exactos desde las cifras que los forman.
+    ru = dm.get("referencia_uniforme")
+    a.cierto(isinstance(ru, dict), "el módulo 10 publica la referencia de puntos uniformes")
+    if isinstance(ru, dict):
+        a.igual(ru["n_puntos"], len(est), "la referencia usa tantos puntos como estaciones hay")
+        a.cierto(ru["n_muestras"] >= 400,
+                 "  y bastantes muestras para lo que la prosa afirma",
+                 f"{ru['n_muestras']} muestras")
+        ref = np.sort(np.asarray(razones_thiessen_uniforme(
+            pais, PROCESADO / "colombia_adm1.gpkg", len(est))))
+        n_a, n_r = len(ref), ru["n_muestras"]
+        for campo, p_q in (("razon_p05", 0.05), ("razon_mediana", 0.5), ("razon_p95", 0.95)):
+            frac = float((ref < ru[campo]).mean())
+            tol = 4 * math.sqrt(p_q * (1 - p_q) * (1 / n_r + 1 / n_a))
+            a.cierto(abs(frac - p_q) <= tol,
+                     f"{campo}: es el cuantil {p_q} de una simulación independiente",
+                     f"deja por debajo el {frac:.4f} de {n_a} muestras propias "
+                     f"(se admite {p_q} ± {tol:.4f})")
+        lo_a = float(ref[int(np.floor(n_a / 2 - 1.96 * math.sqrt(n_a) / 2)) - 1])
+        hi_a = float(ref[int(np.ceil(n_a / 2 + 1.96 * math.sqrt(n_a) / 2))])
+        lo_r, hi_r = ru["razon_mediana_ic95"]
+        a.cierto(lo_r <= ru["razon_mediana"] <= hi_r,
+                 "el IC de la mediana contiene a la mediana",
+                 f"{lo_r:.3f} ≤ {ru['razon_mediana']:.3f} ≤ {hi_r:.3f}")
+        a.cierto(lo_r <= hi_a and lo_a <= hi_r,
+                 "  y se solapa con el de la simulación independiente",
+                 f"R {lo_r:.3f}–{hi_r:.3f}, aquí {lo_a:.3f}–{hi_a:.3f}")
+        a.cierto(0.5 * (hi_a - lo_a) <= hi_r - lo_r <= 2 * (hi_a - lo_a),
+                 "  con una anchura comparable",
+                 f"R {hi_r - lo_r:.3f}, aquí {hi_a - lo_a:.3f}")
+        exced = int((ref > ru["razon_max"]).sum())
+        a.cierto(exced <= 7 and ru["razon_max"] >= ru["razon_p95"],
+                 "razon_max es un máximo creíble de la referencia",
+                 f"{exced} de {n_a} muestras propias lo superan")
+        a.igual(dm["razon_areas"] / ru["razon_mediana"], ru["red_sobre_mediana"],
+                "la razón de la red, en veces la mediana de la referencia", 1e-6)
+        a.igual(dm["razon_areas"] / ru["razon_p95"], ru["red_sobre_p95"],
+                "  y en veces su percentil 95", 1e-6)
+        # Lo que la prosa afirma, comprobado contra la simulación de AQUÍ.
+        a.cierto(av.max() / av.min() > 10 * float(np.quantile(ref, 0.95))
+                 and av.max() / av.min() > float(ref.max()),
+                 "la red queda muy por encima de un muestreo de igual probabilidad",
+                 f"{av.max() / av.min():.1f} frente a un p95 de "
+                 f"{float(np.quantile(ref, 0.95)):.1f} y un máximo de {float(ref.max()):.1f}")
+        a.cierto(dm["razon_areas"] > ru["razon_max"],
+                 "  y por encima de la mayor razón que R simuló",
+                 f"{dm['razon_areas']:.1f} > {ru['razon_max']:.1f}")
+
     # =================================================================
     a.titulo("9 · Glosario, ecosistema y árbol de decisión")
     # =================================================================
@@ -1468,21 +2127,348 @@ def main() -> int:
     a.igual(e2["zona_desacuerdo_superior"][0], e2["ic_iid"][1],
             "E2: la zona alta empieza donde acaba el IC ingenuo", 1e-8)
     a.cierto(e2["factor"] > 1, "E2: el bloque ensancha", f"{e2['factor']:.5f}")
+    # R1 · T1.6 · dónde caen las réplicas del E2. Los intervalos se centran
+    # en la media de los municipios por construcción; la media de las
+    # réplicas por departamentos es otra, y se rehace con 400 000.
+    a.igual((e2["ic_iid"][0] + e2["ic_iid"][1]) / 2, e2["media"],
+            "E2: el IC ingenuo está centrado en la media de los municipios", 1e-7)
+    a.igual((e2["ic_bloques"][0] + e2["ic_bloques"][1]) / 2, e2["media"],
+            "E2:   y el de bloques también", 1e-7)
+    a.igual(e2["media_replicas_bloques"] - e2["media"], e2["desvio_replicas_bloques"],
+            "E2: el desvío de las réplicas por bloques", 1e-8)
+    a.igual(e2["ee_bloques"] / math.sqrt(e2["nboot"]), e2["emc_media_bloques"],
+            "E2: su error de Monte Carlo", 1e-8)
+    a.cierto(abs(e2["media_replicas_iid"] - e2["media"]) < 5 * e2["ee_iid"] / math.sqrt(e2["nboot"]),
+             "E2: las réplicas i.i.d. promedian la media de los municipios, salvo Monte Carlo",
+             f"{e2['media_replicas_iid']:.5f} frente a {e2['media']:.5f}")
+    x_c = cob.cobertura.to_numpy()
+    cod_c = cob.divipola.str[:2].to_numpy()
+    cods_c = np.unique(cod_c)
+    ref_c = medias_bloques(np.array([x_c[cod_c == k].sum() for k in cods_c]),
+                           np.array([(cod_c == k).sum() for k in cods_c]), 40)
+    a.cierto(abs(e2["media_replicas_bloques"] - ref_c.mean()) < 5 * e2["emc_media_bloques"],
+             "E2: la media de las réplicas por bloques, rehecha con 400 000",
+             f"R {e2['media_replicas_bloques']:.5f} · aquí {ref_c.mean():.5f}")
+    # Y su esperanza, que es lo que la lectura afirma: 2·10^6 réplicas en R,
+    # 400 000 aquí, cinco errores conjuntos.
+    emc_c = ref_c.std(ddof=1) / math.sqrt(len(ref_c))
+    a.igual(e2["esperanza_replicas_bloques"] - e2["media"], e2["desvio_esperanza"],
+            "E2: el desvío de la esperanza de las réplicas por bloques", 1e-8)
+    a.cierto(abs(e2["esperanza_replicas_bloques"] - ref_c.mean())
+             < 5 * math.hypot(e2["emc_esperanza"], emc_c),
+             "E2: la esperanza de las réplicas por bloques, rehecha con 400 000",
+             f"R {e2['esperanza_replicas_bloques']:.5f} ± {e2['emc_esperanza']:.5f} · "
+             f"aquí {ref_c.mean():.5f} ± {emc_c:.5f}")
+    a.cierto(e2["nrep_esperanza"] >= 1_000_000
+             and abs(e2["emc_esperanza"] * math.sqrt(e2["nrep_esperanza"]) / ref_c.std(ddof=1) - 1) < 0.10,
+             "E2:   con su error de Monte Carlo, el de ese número de réplicas")
+    a.cierto(abs(e2["desvio_esperanza"]) > 10 * e2["emc_esperanza"]
+             and (ref_c.mean() - x_c.mean()) * e2["desvio_esperanza"] > 0
+             and abs(ref_c.mean() - x_c.mean()) > 5 * emc_c,
+             "E2: el desvío de la esperanza no es ruido, y aquí sale del mismo lado",
+             f"R {e2['desvio_esperanza']:.5f} · aquí {ref_c.mean() - x_c.mean():.5f}")
+    a.cierto(abs(e2["media_replicas_bloques"] - e2["esperanza_replicas_bloques"])
+             < 4 * e2["emc_media_bloques"],
+             "E2: las 4 000 réplicas del ejercicio son compatibles con esa esperanza")
 
+    # E3 · El n efectivo al revés, sobre la temperatura de las estaciones.
+    #
+    # Hasta R1 esta sección comprobaba la aritmética de un rho «medido» con
+    # un correlograma por bandas y daba verde sobre un planteamiento que no
+    # medía nada. Ahora rehace el ejercicio entero desde el archivo PÚBLICO
+    # —el que el enunciado manda descargar—, con su propio remuestreo.
     e3 = S["e3"]["solucion"]
-    a.igual(e3["n"], D["colombia"]["geo"]["n"], "E3: las mismas estaciones")
-    a.igual(e3["n"] / (1 + (e3["n"] - 1) * e3["rho_medio"]), e3["n_eff"],
-            "E3: el n efectivo por la fórmula", 1e-7)
-    a.igual(1 / e3["rho_medio"], e3["techo"], "E3: el techo es 1/rho", 1e-7)
-    a.igual(100 * e3["n_eff"] / e3["n"], e3["pct_informacion"], "E3: el porcentaje", 1e-6)
+    a.cierto(e3["archivo"].startswith("entrega/datos/") and (RAIZ / e3["archivo"]).is_file(),
+             "E3: lee un archivo publicado, y está en el repo", e3["archivo"])
+    pub3 = gpd.read_file(RAIZ / e3["archivo"])
+    t3 = pub3.t_media_anual.to_numpy()
+    n3 = len(t3)
+    a.igual(n3, e3["n"], "E3: estaciones del archivo público")
+    a.igual(e3["n"], D["colombia"]["geo"]["n"], "E3: las mismas estaciones del módulo 2")
+    # El archivo público es una copia del procesado. Si divergen, el
+    # ejercicio y el resto del capítulo hablan de datos distintos.
+    a.cierto(np.array_equal(np.sort(t3), np.sort(est.t_media_anual.to_numpy())),
+             "E3:   y con las mismas temperaturas que el dato procesado")
+    a.igual(t3.mean(), e3["media"], "E3: temperatura media", 1e-8)
+    dep3 = pub3.departamento.to_numpy()
+    nombres3 = np.unique(dep3)
+    a.igual(len(nombres3), e3["n_bloques"], "E3: departamentos (bloques)")
+
+    # Los dos remuestreos, por un camino que no es el de R.
+    #
+    # LA TOLERANCIA ES DE MONTE CARLO Y SE RAZONA, no se elige. R publica
+    # cada error estándar con B = 4 000 réplicas: la desviación típica de
+    # una réplica a otra de una desviación típica estimada así es, en
+    # relativo, 1/sqrt(2B) ≈ 1.1 % si las medias remuestreadas son
+    # aproximadamente normales. La referencia de aquí no tiene ese ruido:
+    #   · i.i.d.: no se remuestrea. Con B infinito el bootstrap de la media
+    #     da EXACTAMENTE sd(ddof=0)/sqrt(n), así que se compara con la
+    #     fórmula;
+    #   · bloques: 200 000 réplicas (ruido relativo ≈ 0.16 %).
+    # Cinco desviaciones típicas de lo publicado son un 5.6 %: se pide 6 %.
+    # El n efectivo lleva el cociente al cuadrado, así que su ruido relativo
+    # es 2·sqrt(2)·1.1 % ≈ 3.2 %; cinco veces eso, 16 %. Al techo le llega
+    # multiplicado por 1/(1 − n_eff/n) ≈ 1.12: 18 %. Son tolerancias anchas
+    # porque el ruido lo es; lo que NO es ruido —las identidades entre las
+    # cifras publicadas— se comprueba abajo a 1e-9.
+    ee_iid_ref = t3.std(ddof=0) / math.sqrt(n3)
+    sumas3 = np.array([t3[dep3 == k].sum() for k in nombres3])
+    tam3 = np.array([(dep3 == k).sum() for k in nombres3])
+    rng3 = np.random.default_rng(20929)
+    medias3 = []
+    for _ in range(20):
+        sel3 = rng3.integers(0, len(nombres3), (10_000, len(nombres3)))
+        medias3.append(sumas3[sel3].sum(axis=1) / tam3[sel3].sum(axis=1))
+    ee_blq_ref = np.concatenate(medias3).std(ddof=1)
+    n_eff_ref = n3 * (ee_iid_ref / ee_blq_ref) ** 2
+    techo_ref = (n3 - 1) / (n3 / n_eff_ref - 1)
+    a.cierto(abs(e3["ee_iid"] / ee_iid_ref - 1) < 0.06,
+             "E3: el e.e. i.i.d. es el de la fórmula, salvo Monte Carlo",
+             f"R {e3['ee_iid']:.5f} · exacto {ee_iid_ref:.5f}")
+    a.cierto(abs(e3["ee_bloques"] / ee_blq_ref - 1) < 0.06,
+             "E3: el e.e. por departamentos, rehecho con 200 000 réplicas",
+             f"R {e3['ee_bloques']:.5f} · aquí {ee_blq_ref:.5f}")
+    a.cierto(abs(e3["n_eff"] / n_eff_ref - 1) < 0.16,
+             "E3: el n efectivo, rehecho", f"R {e3['n_eff']:.3f} · aquí {n_eff_ref:.3f}")
+    a.cierto(abs(e3["techo"] / techo_ref - 1) < 0.18,
+             "E3: el techo, rehecho", f"R {e3['techo']:.3f} · aquí {techo_ref:.3f}")
+    # La conclusión no puede depender del ruido: la referencia sin ruido
+    # también deja el techo entre los dos objetivos.
+    obj_bajo, obj_alto = e3["objetivos"]
+    a.cierto(obj_bajo < techo_ref < obj_alto,
+             f"E3: con 200 000 réplicas el techo también queda entre {obj_bajo} y {obj_alto}",
+             f"{techo_ref:.3f}")
+    a.cierto(e3["otras_semillas"]["n_eff_min"] <= n_eff_ref <= e3["otras_semillas"]["n_eff_max"],
+             "E3: el rango de las otras semillas contiene a la referencia",
+             f"{e3['otras_semillas']['n_eff_min']:.3f} a {e3['otras_semillas']['n_eff_max']:.3f}")
+    a.cierto(obj_bajo < e3["otras_semillas"]["techo_min"]
+             <= e3["otras_semillas"]["techo_max"] < obj_alto,
+             "E3: y con ninguna de ellas el techo sale de entre los dos objetivos")
+    a.cierto(e3["otras_semillas"]["n_eff_min"] < e3["otras_semillas"]["n_eff_max"]
+             and e3["otras_semillas"]["techo_min"] < e3["otras_semillas"]["techo_max"],
+             "E3:   y el rango es un rango")
+    a.igual((n3 - 1) / (n3 / e3["otras_semillas"]["n_eff_min"] - 1),
+            e3["otras_semillas"]["techo_min"], "E3:   cuyo techo mínimo es el del n_eff mínimo", 1e-8)
+    a.igual((n3 - 1) / (n3 / e3["otras_semillas"]["n_eff_max"] - 1),
+            e3["otras_semillas"]["techo_max"], "E3:   y el máximo, el del máximo", 1e-8)
+
+    # Las identidades. Todas se rehacen DESDE n_eff, y no unas de otras: el
+    # JSON guarda diez decimales, y un rho redondeado a 1e-10 mueve el
+    # techo 1e-7 y las estaciones para 25, 2e-7. Desde n_eff el error de
+    # redondeo que se propaga queda por debajo de 2e-10.
+    a.igual(e3["ee_bloques"] / e3["ee_iid"], e3["factor"], "E3: el factor", 1e-7)
+    a.igual(e3["n"] * (e3["ee_iid"] / e3["ee_bloques"]) ** 2, e3["n_eff"],
+            "E3: el n efectivo es n·(ee_iid/ee_bloques)²", 1e-6)
+    a.igual(100 * e3["n_eff"] / e3["n"], e3["pct_informacion"], "E3: el porcentaje", 1e-8)
+    rho3 = (e3["n"] / e3["n_eff"] - 1) / (e3["n"] - 1)
+    a.igual(rho3, e3["rho_medio"], "E3: la correlación media se despeja del n efectivo", 1e-9)
+    a.igual(1 / rho3, e3["techo"], "E3: el techo es 1/rho", 1e-9)
+    a.igual(obj_bajo * (1 - rho3) / (1 - obj_bajo * rho3), e3["n_para_25"],
+            f"E3: las estaciones para la precisión de {obj_bajo} independientes", 1e-9)
+    a.igual(math.ceil(e3["n_para_25"]), e3["estaciones_para_25"],
+            "E3:   y su redondeo hacia arriba")
+    a.cierto(e3["estaciones_para_25"] / (1 + (e3["estaciones_para_25"] - 1) * rho3) >= obj_bajo
+             > (e3["estaciones_para_25"] - 1) / (1 + (e3["estaciones_para_25"] - 2) * rho3),
+             "E3:   que es la primera red que llega al objetivo")
+    a.cierto(e3["estaciones_para_25"] < e3["n"], "E3:   y la red actual ya la supera")
+    a.cierto(0 < e3["rho_medio"] and e3["n_eff"] < e3["n"],
+             "E3: el remuestreo por bloques ensancha", f"rho = {e3['rho_medio']:.5f}")
     a.cierto(e3["n_eff"] < e3["techo"], "E3: el n efectivo respeta su techo")
+    # Las banderas se recalculan, no se creen.
+    a.cierto(e3["objetivo_25_alcanzable"] == (obj_bajo * rho3 < 1)
+             and e3["objetivo_50_alcanzable"] == (obj_alto * rho3 < 1),
+             "E3: las banderas dicen lo que dice el techo")
     a.cierto(e3["objetivo_25_alcanzable"] and not e3["objetivo_50_alcanzable"],
-             "E3: 25 estaciones independientes se alcanzan y 50 no")
-    a.cierto(not e3["objetivo_100_alcanzable"], "E3:   y 100 tampoco")
-    a.cierto(25 < e3["techo"] < 50, "E3: el techo separa los dos objetivos",
-             f"{e3['techo']:.5f}")
-    a.igual(len(e3["moran_por_banda"]), len(e3["bandas_km"]) - 1,
-            "E3: una I por banda")
+             f"E3: {obj_bajo} independientes se alcanzan y {obj_alto} no",
+             f"techo {e3['techo']:.5f}")
+    # Apartado (c): el promedio centrado de todos los pares, sobre el dato.
+    z3 = t3 - t3.mean()
+    centrado3 = ((z3.sum() ** 2 - (z3 ** 2).sum()) / (n3 * (n3 - 1))) / (z3 ** 2).mean()
+    a.igual(centrado3, e3["centrado_todos_los_pares"],
+            "E3: el promedio centrado de todos los pares, sobre las temperaturas", 1e-9)
+    a.igual(-1 / (n3 - 1), e3["centrado_todos_los_pares"], "E3:   y vale −1/(n − 1)", 1e-9)
+    a.cierto(not ({"bandas_km", "moran_por_banda", "pares_por_banda"} & set(e3)),
+             "E3: no vuelve el correlograma por bandas")
+    a.cierto(any(p["paso"] == f"(b) Estaciones para la precisión de {obj_alto}"
+                 and isinstance(p["valor"], str) for p in S["e3"]["pasos"]),
+             "E3: la tabla responde también al objetivo que no se alcanza")
+
+    # --- E3, segunda vuelta: el dato, la altitud y los pesos por filas ---
+    #
+    # El orden de los bloques. R los fija con sort(method = "radix"), que es
+    # el orden de los bytes; np.unique ordena por punto de código, que en
+    # UTF-8 es el mismo orden. Si la lista publicada no viene así, el
+    # generador ha vuelto a depender de LC_COLLATE.
+    jk3 = e3["jackknife"]
+    lista3 = jk3["por_departamento"]
+    a.cierto([d["departamento"] for d in lista3] == list(nombres3),
+             "E3: los departamentos van en orden de bytes, no en el de la regional",
+             f"{len(lista3)} departamentos")
+    a.cierto([d["estaciones"] for d in lista3] == [int(v) for v in tam3],
+             "E3:   y cada uno con sus estaciones")
+
+    # Un departamento menos. El e.e. i.i.d. sale de la fórmula y el de
+    # bloques de 50 000 réplicas propias. R usa B = 20 000: por la regla
+    # 1/sqrt(2B) su techo llevaría un ruido relativo de ≈ 1.6 %, pero esa
+    # regla supone normalidad y aquí se queda corta —las medias por bloques
+    # tienen colas, y dos corridas largas de la red entera difieren más de
+    # lo que predice—, así que se pide un 10 % y no cinco veces 1.6 %. Es
+    # ancho, y aun así separa lo que importa: el departamento que voltea la
+    # respuesta está a más de un 10 % del umbral.
+    techos_ref = []
+    for k, nombre in enumerate(nombres3):
+        queda = dep3 != nombre
+        n_k = int(queda.sum())
+        ee_i = t3[queda].std(ddof=0) / math.sqrt(n_k)
+        s_k, m_k = np.delete(sumas3, k), np.delete(tam3, k)
+        medias_k = []
+        for _ in range(5):
+            sel_k = rng3.integers(0, len(s_k), (10_000, len(s_k)))
+            medias_k.append(s_k[sel_k].sum(axis=1) / m_k[sel_k].sum(axis=1))
+        ee_b = np.concatenate(medias_k).std(ddof=1)
+        ne_k = n_k * (ee_i / ee_b) ** 2
+        techos_ref.append((n_k - 1) / (n_k / ne_k - 1))
+    techos_ref = np.array(techos_ref)
+    techos_pub = np.array([d["techo"] for d in lista3])
+    peor3 = int(np.argmax(np.abs(techos_pub / techos_ref - 1)))
+    a.cierto(np.all(np.abs(techos_pub / techos_ref - 1) < 0.10),
+             "E3: el techo sin cada departamento, rehecho uno a uno",
+             f"el peor: {nombres3[peor3]}, R {techos_pub[peor3]:.3f} · aquí {techos_ref[peor3]:.3f}")
+    # R2 de T1.6 · el recorrido del E3 es sensibilidad; la lectura da además
+    # el error estándar jackknife del techo, que sale de la misma lista.
+    a.igual(math.sqrt((len(techos_pub) - 1) / len(techos_pub)
+                      * ((techos_pub - techos_pub.mean()) ** 2).sum()), jk3["ee_techo"],
+            "E3: el e.e. jackknife del techo sale de la lista", 1e-7)
+    a.cierto((techos_pub.max() - techos_pub.min()) / 2 < jk3["ee_techo"],
+             "E3:   y medio recorrido queda por debajo de él",
+             f"{(techos_pub.max() - techos_pub.min()) / 2:.3f} < {jk3['ee_techo']:.3f}")
+    a.igual(techos_pub.min(), jk3["minimo"]["techo"], "E3: el techo mínimo es el de la lista", 1e-12)
+    a.igual(techos_pub.max(), jk3["maximo"]["techo"], "E3: y el máximo también", 1e-12)
+    a.cierto(jk3["minimo"]["departamento"] == nombres3[int(techos_pub.argmin())]
+             and jk3["maximo"]["departamento"] == nombres3[int(techos_pub.argmax())],
+             "E3:   cada uno con su departamento",
+             f"{jk3['minimo']['departamento']} y {jk3['maximo']['departamento']}")
+    a.cierto(jk3["minimo"]["estaciones"] == int(tam3[int(techos_pub.argmin())])
+             and jk3["maximo"]["estaciones"] == int(tam3[int(techos_pub.argmax())]),
+             "E3:   y con sus estaciones")
+    a.igual(int((techos_pub > obj_alto).sum()), jk3["n_sobre_objetivo"],
+            f"E3: cuántos departamentos llevan el techo por encima de {obj_alto}")
+    a.cierto(jk3["n_sobre_objetivo"] == 1,
+             "E3: un solo departamento voltea la respuesta, como dice la lectura")
+    # Y lo mismo con el remuestreo de aquí: que no sea cosa de la semilla de R.
+    a.cierto(int((techos_ref > obj_alto).sum()) == 1
+             and nombres3[int(techos_ref.argmax())] == jk3["maximo"]["departamento"],
+             "E3:   y con el remuestreo propio es el mismo departamento",
+             f"{nombres3[int(techos_ref.argmax())]}: {techos_ref.max():.3f}")
+    a.cierto(jk3["minimo"]["departamento"] in
+             {nombres3[i] for i in np.argsort(techos_ref)[:3]},
+             "E3:   y el del mínimo está entre los tres más bajos de aquí",
+             f"{jk3['minimo']['departamento']}: {techos_ref[list(nombres3).index(jk3['minimo']['departamento'])]:.3f}")
+    a.cierto(jk3["minimo"]["techo"] < e3["otras_semillas"]["techo_min"]
+             and e3["otras_semillas"]["techo_max"] < jk3["maximo"]["techo"],
+             "E3: quitar un departamento mueve el techo más que cambiar de semilla")
+    a.cierto(0 < e3["otras_semillas"]["techo_sd"]
+             < e3["otras_semillas"]["techo_max"] - e3["otras_semillas"]["techo_min"],
+             "E3: la desviación entre semillas cabe en su recorrido",
+             f"{e3['otras_semillas']['techo_sd']:.3f}")
+    a.cierto(jk3["nboot"] > e3["nboot"], "E3: el jackknife usa más réplicas que el ejercicio",
+             f"{jk3['nboot']} frente a {e3['nboot']}")
+
+    # (d) Los residuos de la temperatura sobre la altitud.
+    r3 = e3["residuos"]
+    alt3 = pub3.altitud_m.to_numpy()
+    coef3 = np.polyfit(alt3, t3, 1)
+    res3 = t3 - np.polyval(coef3, alt3)
+    a.igual(1 - (res3 ** 2).sum() / ((t3 - t3.mean()) ** 2).sum(), r3["r2"],
+            "E3 (d): el R² de la temperatura sobre la altitud", 1e-9)
+    ee_iid_res = res3.std(ddof=0) / math.sqrt(n3)
+    sumas_r = np.array([res3[dep3 == k].sum() for k in nombres3])
+    medias_r = []
+    for _ in range(20):
+        sel_r = rng3.integers(0, len(nombres3), (10_000, len(nombres3)))
+        medias_r.append(sumas_r[sel_r].sum(axis=1) / tam3[sel_r].sum(axis=1))
+    ee_blq_res = np.concatenate(medias_r).std(ddof=1)
+    n_eff_res = n3 * (ee_iid_res / ee_blq_res) ** 2
+    techo_res = (n3 - 1) / (n3 / n_eff_res - 1)
+    # Las mismas tolerancias de Monte Carlo que arriba, por la misma cuenta.
+    a.cierto(abs(r3["ee_iid"] / ee_iid_res - 1) < 0.06,
+             "E3 (d): el e.e. i.i.d. de los residuos, salvo Monte Carlo",
+             f"R {r3['ee_iid']:.5f} · exacto {ee_iid_res:.5f}")
+    a.cierto(abs(r3["ee_bloques"] / ee_blq_res - 1) < 0.06,
+             "E3 (d): el e.e. por departamentos de los residuos, rehecho",
+             f"R {r3['ee_bloques']:.5f} · aquí {ee_blq_res:.5f}")
+    a.cierto(abs(r3["n_eff"] / n_eff_res - 1) < 0.16,
+             "E3 (d): el n efectivo de los residuos, rehecho",
+             f"R {r3['n_eff']:.3f} · aquí {n_eff_res:.3f}")
+    a.cierto(abs(r3["techo"] / techo_res - 1) < 0.18,
+             "E3 (d): el techo de los residuos, rehecho",
+             f"R {r3['techo']:.3f} · aquí {techo_res:.3f}")
+    a.cierto(techo_res > obj_alto and techo_res > techo_ref,
+             f"E3 (d): con 200 000 réplicas ese techo también pasa de {obj_alto} y del de (b)",
+             f"{techo_res:.3f}")
+    a.cierto(obj_alto < e3["otras_semillas"]["residuos_techo_min"]
+             < e3["otras_semillas"]["residuos_techo_max"],
+             f"E3 (d): con las otras semillas tampoco baja de {obj_alto}",
+             f"{e3['otras_semillas']['residuos_techo_min']:.3f} a "
+             f"{e3['otras_semillas']['residuos_techo_max']:.3f}")
+    a.igual(e3["n"] * (r3["ee_iid"] / r3["ee_bloques"]) ** 2, r3["n_eff"],
+            "E3 (d): el n efectivo es n·(ee_iid/ee_bloques)²", 1e-6)
+    rho_r = (e3["n"] / r3["n_eff"] - 1) / (e3["n"] - 1)
+    a.igual(rho_r, r3["rho_medio"], "E3 (d): la correlación media se despeja del n efectivo", 1e-9)
+    a.igual(1 / rho_r, r3["techo"], "E3 (d): el techo es 1/rho", 1e-9)
+    a.igual(100 * (1 - rho_r / rho3), r3["caida_rho_pct"],
+            "E3 (d): la caída relativa de la correlación", 1e-7)
+    a.cierto(0 < r3["caida_rho_pct"] < 100, "E3 (d):   y es una caída",
+             f"{r3['caida_rho_pct']:.3f} %")
+    a.igual(obj_alto * (1 - rho_r) / (1 - obj_alto * rho_r), r3["n_para_50"],
+            f"E3 (d): las estaciones para la precisión de {obj_alto}", 1e-7)
+    a.igual(obj_bajo * (1 - rho_r) / (1 - obj_bajo * rho_r), r3["n_para_25"],
+            f"E3 (d): y para la de {obj_bajo}", 1e-9)
+    a.igual(math.ceil(r3["n_para_50"]), r3["estaciones_para_50"],
+            "E3 (d):   con su redondeo hacia arriba")
+    a.cierto(r3["objetivo_50_alcanzable"] == (obj_alto * rho_r < 1)
+             and r3["techo_sube"] == (r3["techo"] > e3["techo"]),
+             "E3 (d): las banderas dicen lo que dicen las cifras")
+    a.cierto(r3["objetivo_50_alcanzable"] and r3["techo_sube"],
+             f"E3 (d): con los residuos {obj_alto} independientes pasan a ser alcanzables")
+
+    # (c) El promedio por bandas con pesos estandarizados por filas. No hay
+    # azar: se rehace exacto. La I de cada banda, con pesos 1/(vecinos de i),
+    # ponderada por los pares de la banda; las bandas cubren todos los pares.
+    pf3 = e3["pesos_filas"]
+    xy3 = np.column_stack([pub3.geometry.x.to_numpy(), pub3.geometry.y.to_numpy()])
+    dist3 = np.sqrt(((xy3[:, None, :] - xy3[None, :, :]) ** 2).sum(-1)) / 1000
+    for ancho, publicado in zip(pf3["anchos_km"], pf3["promedio"]):
+        cortes = np.arange(0, math.ceil(dist3.max() / ancho) * ancho + ancho / 2, ancho)
+        num = pares = 0.0
+        for lo, hi in zip(cortes[:-1], cortes[1:]):
+            A = ((dist3 > lo) & (dist3 <= hi)).astype(float)
+            np.fill_diagonal(A, 0)
+            card = A.sum(axis=1)
+            con = card > 0
+            if not con.any():
+                continue
+            W = A[con] / card[con, None]
+            I_b = (n3 / con.sum()) * (W * np.outer(z3[con], z3)).sum() / (z3 ** 2).sum()
+            num += I_b * A.sum() / 2
+            pares += A.sum() / 2
+        a.igual(pares, n3 * (n3 - 1) / 2, f"E3 (c): las bandas de {ancho} km cubren todos los pares")
+        a.igual(num / pares, publicado,
+                f"E3 (c): el promedio con pesos por filas, bandas de {ancho} km", 1e-9)
+    a.cierto(all(v > 0 for v in pf3["promedio"])
+             and len({round(v, 5) for v in pf3["promedio"]}) == len(pf3["promedio"]),
+             "E3 (c): sale positivo y cambia con el ancho de banda",
+             " · ".join(f"{v:.5f}" for v in pf3["promedio"]))
+    a.cierto(all(abs(v - e3["centrado_todos_los_pares"]) > 0.01 for v in pf3["promedio"]),
+             "E3 (c):   y no es el −1/(n − 1) de los pesos iguales")
+    # La tabla publica lo que la lectura afirma.
+    pasos3 = {p["paso"]: p["valor"] for p in S["e3"]["pasos"]}
+    a.cierto(pasos3.get(f"(b) Techo sin {jk3['minimo']['departamento']}") == jk3["minimo"]["techo"]
+             and pasos3.get(f"(b) Techo sin {jk3['maximo']['departamento']}") == jk3["maximo"]["techo"],
+             "E3: la tabla trae los dos extremos del jackknife")
+    a.cierto(pasos3.get(f"(b) Estaciones para la precisión de {obj_bajo}") == e3["estaciones_para_25"]
+             and pasos3.get(f"(d) Estaciones para la precisión de {obj_alto}") == r3["estaciones_para_50"],
+             "E3: y las estaciones enteras de (b) y de (d)")
 
     e4 = S["e4"]["solucion"]
     a.igual(e4["municipal"]["r"], ec["principal"]["r_municipal"],
@@ -1622,6 +2608,86 @@ def main() -> int:
     a.cierto(all(morans[i] < morans[i + 1] for i in range(len(morans) - 1)),
              "el I de los campos crece con el rango",
              " < ".join(f"{m:.4f}" for m in morans))
+    # =================================================================
+    a.titulo("11b · Lo que se ve en cada mapa")
+    # =================================================================
+    # «Describir el mapa» (2026-11-02): DÓNDE caen los extremos de la
+    # deserción, la clase alta de Carolina del Norte y las estaciones más
+    # frías y más cálidas, y cuántas sedes de Bogotá hay en cada franja de
+    # norte a sur. Con geopandas sobre las capas, y los centroides del
+    # polígono mayor, como R. Cada mapa con su guarda de «está»: el arnés
+    # los rompe a propósito, y un auditor que revienta no informa de nada.
+    from collections import Counter
+    from describe_mapa import zona_por_tercios
+
+    def _zona(x, y, caja):
+        return zona_por_tercios((x - caja[0]) / (caja[2] - caja[0]),
+                                1 - (y - caja[1]) / (caja[3] - caja[1]))
+
+    def _centro(g):
+        if g.geom_type == "MultiPolygon":
+            g = max(g.geoms, key=lambda pp: pp.area)
+        return g.centroid
+
+    def _tabla(z):
+        return sorted(Counter(z).items(), key=lambda kv: (-kv[1], kv[0]))
+
+    V = D.get("visto", {})
+    ds, md = V.get("desercion", {}), M.get("desercion", {})
+    if ds and md.get("etiquetas") and md.get("caja"):
+        dep_v = gpd.read_file(PROCESADO / "colombia_adm1.gpkg")
+        nom = {("Bogotá D. C." if s == "Bogota Capital District" else s): g
+               for s, g in zip(dep_v["shapeName"], dep_v.geometry)}
+        filas = sorted(zip(md["valor"], md["etiquetas"]), key=lambda f: -f[0])
+        ok = True
+        for clave, ff in (("mayores", filas[:3]), ("menores", filas[::-1][:3])):
+            esp = [(e, round(v, 6), _zona(_centro(nom[e]).x, _centro(nom[e]).y, md["caja"]) if e in nom else "?")
+                   for v, e in ff]
+            pub = [(f["departamento"], round(f["pct"], 6), f["zona"]) for f in ds.get(clave, [])]
+            ok = ok and esp == pub
+        a.cierto(ok, "visto: los extremos de la deserción y su zona",
+                 f"{filas[0][1]} y {filas[-1][1]}")
+        # Y el nombre del Distrito Capital en español, en todo el mapa: la
+        # tabla de respaldo lo publicaba en inglés («Bogota Capital District»).
+        a.cierto("Bogotá D. C." in md["etiquetas"] and not any("District" in e for e in md["etiquetas"]),
+                 "visto: el mapa de deserción nombra Bogotá en español")
+    else:
+        a.cierto(False, "visto: los extremos de la deserción y su zona", "falta el dato o el mapa")
+    vn, mn = V.get("nc", {}), M.get("nc", {})
+    if vn and mn.get("clase") and len(mn["clase"]) == len(nc):
+        nc_u = nc.to_crs(32617)
+        zn = [_zona(_centro(g).x, _centro(g).y, mn["caja"]) for g in nc_u.geometry]
+        alta = [z for z, k in zip(zn, mn["clase"]) if k == max(mn["clase"])]
+        a.cierto(vn["clase_alta_n"] == len(alta) and list(zip(vn["zona"], vn["n"])) == _tabla(alta),
+                 "visto: Carolina del Norte, la clase alta por zona",
+                 ", ".join(f"{z} {k}" for z, k in _tabla(alta)[:3]))
+    else:
+        a.cierto(False, "visto: Carolina del Norte, la clase alta por zona", "falta el dato o el mapa")
+    vi, mi = V.get("ideam", {}), M.get("ideam", {})
+    if vi and mi.get("caja"):
+        q10, q90 = np.quantile(est.t_media_anual.to_numpy(), [0.1, 0.9])
+        zi = [_zona(x, y, mi["caja"]) for x, y in zip(est.geometry.x, est.geometry.y)]
+        tt = est.t_media_anual.to_numpy()
+        fr = _tabla([z for z, v in zip(zi, tt) if v <= q10])
+        ca = _tabla([z for z, v in zip(zi, tt) if v >= q90])
+        a.cierto(abs(q10 - vi["frias_umbral"]) < 1e-8 and abs(q90 - vi["calidas_umbral"]) < 1e-8
+                 and list(zip(vi["frias"]["zona"], vi["frias"]["n"])) == fr
+                 and list(zip(vi["calidas"]["zona"], vi["calidas"]["n"])) == ca,
+                 "visto: IDEAM, las frías y las cálidas por zona",
+                 f"frías {fr[:2]} · cálidas {ca[:2]}")
+    else:
+        a.cierto(False, "visto: IDEAM, las frías y las cálidas por zona", "falta el dato o el mapa")
+    vb, mb = V.get("bogota", {}), M.get("bogota", {})
+    if vb and mb.get("caja"):
+        cj = mb["caja"]
+        fy = (cole.geometry.y.to_numpy() - cj[1]) / (cj[3] - cj[1])
+        fr = ["sur" if f < 1 / 3 else ("centro" if f < 2 / 3 else "norte") for f in fy]
+        esp = [Counter(fr)[f] for f in ("norte", "centro", "sur")]
+        a.cierto(vb["franja"] == ["norte", "centro", "sur"] and vb["n"] == esp,
+                 "visto: Bogotá, las sedes por franja", f"{esp}")
+    else:
+        a.cierto(False, "visto: Bogotá, las sedes por franja", "falta el dato o el mapa")
+
 
     # =================================================================
     a.titulo("12 · Formato, codificación y redondeo")

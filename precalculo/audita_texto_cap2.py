@@ -171,13 +171,27 @@ CADENAS = [
 ORDENES = [r"\dfrac", r"\varphi", r"\sin", r"\arcsin", r"\omega"]
 
 
+# Las comas que el capítulo publica PORQUE son comas. El módulo 8 enseña a
+# leer un CSV exportado con configuración regional española, y su ejemplo
+# tiene que traer la coma: es justo lo que `read.csv` lee como texto. Se
+# declara por el literal exacto, así que otra cifra con coma sigue cayendo.
+DECIMALES_CON_COMA = {
+    "69,94000": "la longitud del CSV con coma decimal del módulo 8",
+}
+
+
 def main() -> int:
     a = Auditor(
         capitulo="capitulo-2-crs-georreferenciacion.html",
         var_entorno="CAP2_HTML",
         jsons=["cap2_datos.json", "cap2_soluciones.json"],
         estructurales=ESTRUCTURALES,
-        presupuesto_geomapa_kb=120.0,
+        # 120 KB hasta el 2026-11-02. Ese día los mapas del error de 3116 y
+        # del sesgo ganaron el nombre de cada unidad (33 departamentos y 20
+        # localidades): la tabla de respaldo del primero numeraba las filas
+        # 1…33, y la descripción larga de los dos necesita los nombres.
+        # 120.6 KB, y el techo sube a 125, el mismo que `audita_cap2.py`.
+        presupuesto_geomapa_kb=125.0,
         # Los cortes de clase que el HTML incrusta salen de AQUÍ, no del
         # JSON de cifras. Va por su propio parámetro para que sus decenas de
         # miles de coordenadas no entren en el índice de la prosa.
@@ -191,6 +205,7 @@ def main() -> int:
     a.afirmaciones(AFIRMACIONES)
     a.accesibilidad()
     a.geomapas()
+    a.decimales_con_punto(DECIMALES_CON_COMA)
     a.formulas_escapadas()
     a.codificacion()
     a.enlaces()

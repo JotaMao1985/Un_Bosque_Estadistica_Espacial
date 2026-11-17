@@ -132,7 +132,7 @@
       {
         "codigo": 9377,
         "nombre": "MAGNA-SIRGAS 2018 / Origen-Nacional",
-        "tipo": "transversa de Mercator, k = 0,9992",
+        "tipo": "transversa de Mercator, k = 0.9992",
         "razon_med": 0.9994344381,
         "razon_min": 0.9984008547,
         "razon_max": 1.0208895377,
@@ -264,7 +264,7 @@
     "caja_bien": [-81.73, -4.19, -67.49, 13.36],
     "caja_mal": [-4.19, -81.73, 13.36, -67.49],
     "destino": {
-      "nombre": ["(mar abierto)", "Antarctica"],
+      "nombre": ["(mar abierto)", "la Antártida"],
       "n": [6, 355]
     },
     "n_en_tierra": 355,
@@ -343,7 +343,7 @@
       "tasa_global_pct": 3.0339520145,
       "emc_global_pct": 0.021603334,
       "n_localidades_con_30": 17,
-      "localidad": ["Los Martires", "Santa Fe", "Teusaquillo", "Antonio Narino", "Rafael Uribe Uribe", "Tunjuelito", "Barrios Unidos", "Bosa", "Puente Aranda", "San Cristobal", "Ciudad Bolivar", "Usaquen", "Kennedy", "Usme", "Engativa", "Suba", "Fontibon"],
+      "localidad": ["Los Mártires", "Santa Fe", "Teusaquillo", "Antonio Nariño", "Rafael Uribe Uribe", "Tunjuelito", "Barrios Unidos", "Bosa", "Puente Aranda", "San Cristóbal", "Ciudad Bolívar", "Usaquén", "Kennedy", "Usme", "Engativá", "Suba", "Fontibón"],
       "n": [35, 30, 56, 43, 120, 67, 63, 146, 94, 128, 149, 130, 262, 107, 258, 356, 97],
       "tasa_pct": [12.4285714286, 10.8666666667, 10.0178571429, 9.9651162791, 7.7041666667, 6.7910447761, 5.873015873, 3.6952054795, 3.2127659574, 3.08203125, 2.2214765101, 2.1115384615, 1.9103053435, 1.2570093458, 1.0813953488, 0.6193820225, 0.2216494845],
       "area_km2": [6.5007637118, 45.0769406268, 14.164211825, 4.8696477037, 13.8061316, 9.8910700203, 11.8790741139, 23.8861858166, 17.2761530949, 48.9977186926, 129.7443233523, 65.0656966322, 38.5128148288, 214.6365736735, 35.8084459794, 100.3547012318, 33.2143820838],
@@ -353,8 +353,8 @@
       "tasa_min_pct": 0.2216494845,
       "tasa_max_pct": 12.4285714286,
       "razon_max_min": 56.073089701,
-      "peor": "Los Martires",
-      "mejor": "Fontibon"
+      "peor": "Los Mártires",
+      "mejor": "Fontibón"
     },
     "por_estrato": {
       "estrato": [1, 2, 3, 4, 5, 6],
@@ -502,16 +502,113 @@
       "d_vecino_media_m": 218.3240911908
     }
   },
+  "visto": {
+    "proyecciones_mundo": {
+      "lon": [-150, -90, -30, 30, 90, 150, -150, -90, -30, 30, 90, 150, -150, -90, -30, 30, 90, 150, -150, -90, -30, 30, 90, 150, -150, -90, -30, 30, 90, 150],
+      "lat": [-60, -60, -60, -60, -60, -60, -30, -30, -30, -30, -30, -30, 0, 0, 0, 0, 0, 0, 30, 30, 30, 30, 30, 30, 60, 60, 60, 60, 60, 60],
+      "centro_azimutal": [-74.0721, 4.711],
+      "dist_centro_km": [9681.2883859487, 7310.0190912291, 8138.924349207, 11238.7261753173, 13723.6454918375, 12835.9000285876, 8928.7786377722, 4200.0833535469, 6066.2106640747, 11630.9760479798, 16749.9353096981, 14621.1204217769, 8457.5011568781, 1846.1096191445, 4927.9664231328, 11579.7679697065, 18188.5619542997, 15109.0774687981, 8398.1095601747, 3261.7695625153, 5404.3323175881, 11099.4169797131, 15808.8278103792, 13955.9502983696, 8773.3892604921, 6281.1901983495, 7172.9975913495, 10330.5451388659, 12694.6692657808, 11869.4239165765],
+      "omega_min_grados": [1.1791e-06, 0.0964630789, 10.722837755, 10.4771044067, 4.9316632922, 0.8076552834]
+    },
+    "proyecciones_colombia": {
+      "lon": [-77, -77, -77, -77, -74, -74, -74, -74, -71, -71, -71, -71, -68, -68, -68, -68],
+      "lat": [-3, 2, 7, 11, -3, 2, 7, 11, -3, 2, 7, 11, -3, 2, 7, 11],
+      "omega_max_grados": [0.3843826034, 1.2006e-06, 1.1832e-06],
+      "meridiano_3116": -74.0775079167,
+      "meridiano_9377": -73
+    },
+    "error_3116": {
+      "mayores": [
+        {
+          "departamento": "Archipiélago de San Andrés, Providencia y Santa Catalina",
+          "pct": 1.6506941343,
+          "zona": "noroccidente",
+          "lon_centroide": -81.5633960877
+        },
+        {
+          "departamento": "Guainía",
+          "pct": 0.8775095139,
+          "zona": "oriente",
+          "lon_centroide": -68.8130023572
+        },
+        {
+          "departamento": "Vichada",
+          "pct": 0.6940464854,
+          "zona": "oriente",
+          "lon_centroide": -69.4156434055
+        }
+      ],
+      "menores": [
+        {
+          "departamento": "Bogotá D. C.",
+          "pct": 0.000636208,
+          "zona": "centro",
+          "lon_centroide": -74.1816957519
+        },
+        {
+          "departamento": "Magdalena",
+          "pct": 0.0039214392,
+          "zona": "norte",
+          "lon_centroide": -74.2609588144
+        },
+        {
+          "departamento": "Cundinamarca",
+          "pct": 0.0056977282,
+          "zona": "centro",
+          "lon_centroide": -74.0977063847
+        }
+      ],
+      "cor_spearman_distancia_meridiano": 0.9869652406
+    },
+    "sesgo": {
+      "localidad": ["Los Mártires", "Santa Fe", "Teusaquillo", "Antonio Nariño", "Rafael Uribe Uribe", "Tunjuelito", "Barrios Unidos", "La Candelaria", "Bosa", "Chapinero", "Puente Aranda", "San Cristóbal", "Ciudad Bolívar", "Usaquén", "Kennedy", "Usme", "Engativá", "Suba", "Sumapaz", "Fontibón"],
+      "pct": [12.4285714286, 10.8666666667, 10.0178571429, 9.9651162791, 7.7041666667, 6.7910447761, 5.873015873, 5.5277777778, 3.6952054795, 3.4615384615, 3.2127659574, 3.08203125, 2.2214765101, 2.1115384615, 1.9103053435, 1.2570093458, 1.0813953488, 0.6193820225, 0.4130434783, 0.2216494845],
+      "n_sedes": [35, 30, 56, 43, 120, 67, 63, 18, 146, 26, 94, 128, 149, 130, 262, 107, 258, 356, 23, 97],
+      "umbral_cuadro": 30
+    },
+    "degradado": {
+      "paso_grados": 0.01,
+      "lat_referencia": 4.6293034207,
+      "paso_lat_m": 1105.815244526,
+      "paso_lon_m": 1109.5875596273,
+      "max_sedes_posicion": 24
+    },
+    "geohash": {
+      "mayores": [
+        {
+          "n": 218,
+          "localidad": "Rafael Uribe Uribe",
+          "sedes_localidad": 71
+        },
+        {
+          "n": 194,
+          "localidad": "Engativá",
+          "sedes_localidad": 112
+        },
+        {
+          "n": 171,
+          "localidad": "Kennedy",
+          "sedes_localidad": 167
+        }
+      ],
+      "clase_clara": 2,
+      "n_claras": 17,
+      "claras_min": 1,
+      "claras_max": 2,
+      "claras_localidad": ["Sumapaz", "Usme", "Ciudad Bolívar", "Santa Fe"],
+      "claras_n": [11, 3, 1, 1]
+    }
+  },
   "meta": {
     "capitulo": 2,
     "titulo": "SIG, sistemas de referencia y georreferenciación con sf",
     "semana": "2-3",
-    "generado": "2026-10-27",
+    "generado": "2026-11-13",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "gdal": "3.8.5",
     "geos": "3.13.0",
     "proj": "9.5.1",
-    "anclas_verificadas": 29
+    "anclas_verificadas": 31
   }
 }

@@ -1,0 +1,45 @@
+# Ejemplares leídos: la huella de cada PDF, nunca el PDF.
+# `archivo`, `sha256` y `paginas` los escribe extrae_fuente.py.
+# `edicion_comprobada`, `desfase` (página del PDF − página impresa, si es
+# constante), `procedencia` y `nota` se llenan a mano mirando la portada;
+# el guion los respeta.
+baddeley2015spatial:
+  archivo: baddeley2015spatial.pdf
+  desfase: 19
+  edicion_comprobada: 'Página de derechos (p. 7 del PDF): «© 2016 by Taylor & Francis Group, LLC», «Version
+    Date: 20151015». Crossref y Taylor & Francis: publicado el 2015-11-11. Sin número de edición: es la
+    1.ª.'
+  nota: Desfase constante de 19 en 796 de 806 páginas medidas (p. 30 del PDF = p. 11 impresa). Se cita
+    como 2016, el año de copyright (decisión de Javier, 2026-11-12; enmiendas.yml); la publicación electrónica
+    es del 2015-11-11. La clave conserva el 2015.
+  paginas: 830
+  paginas_sin_texto: 0
+  procedencia: Biblioteca personal de Javier (confirmado por él el 2026-11-12). El nombre del archivo
+    original no es el de la biblioteca, y el texto no lleva marcas de ningún sitio de descarga.
+  sha256: 128f4afda81de571ed0ae96e0b09af17078ac50ce18030bde680edada89cf432
+mas2018analisis:
+  archivo: mas2018analisis.pdf
+  desfase: 10
+  edicion_comprobada: 'Portada interior y página de créditos (p. 6 del PDF): European Scientific Institute,
+    «July, 2018», ISBN 978-608-4642-66-4. La misma página dice «Copyright c 2013 by the author»: se cita
+    2018, la fecha de publicación.'
+  nota: Desfase de 10 en 85 de las páginas con número legible en el encabezado.
+  paginas: 151
+  paginas_sin_texto: 7
+  procedencia: PDF de acceso abierto en la web de la editorial (https://eujournal.org/files/journals/1/books/JeanFrancoisMas.pdf),
+    descargado el 2026-11-12 con autorización de Javier.
+  sha256: 9b3e8463a02d123bf339e79c6bc2030f8cdf2c30011095c25d1def3e8e1ee099
+snow1855mode:
+  archivo: snow1855mode.pdf
+  desfase: null
+  edicion_comprobada: 'Portada (p. 5 del PDF): «Second Edition, much Enlarged», London, John Churchill,
+    MDCCCLV (1855). Prefacio a la segunda edición en la p. 7 del PDF.'
+  nota: 'Escaneo con OCR: el texto trae erratas («COl.LEGE», «JIEMBEH»), así que una cita literal puede
+    no coincidir aunque el pasaje sea el correcto; citar tramos cortos. El desfase no es constante por
+    las láminas intercaladas: 12 en las pp. 14–59 del PDF, 14 en las 60–90 y 16 desde la 91. El auditor
+    comprueba el número impreso en el encabezado.'
+  paginas: 214
+  paginas_sin_texto: 9
+  procedencia: Escaneo de la Wellcome Library en archive.org (https://archive.org/details/b28985266),
+    marca de dominio público; descargado el 2026-11-12 con autorización de Javier.
+  sha256: d72c12480a292aee9968629a8f6be999db8a0f5592b52118b455756eeb0f01c1
