@@ -193,7 +193,9 @@ RUBRICA = [
         dict(id="P1", nombre="El territorio y sus datos", puntos=4,
              foco="Mide si se sabe de dónde sale cada dato y si se puede volver a descargar.",
              insuficiente="Falta la fuente de la geometría o de la variable, o su fecha de "
-                          "descarga; no se dice cuántas unidades hay, o no llegan al mínimo.",
+                          "descarga; no se dice cuántas unidades hay, o no llegan al mínimo; o la "
+                          "geometría o la variable no coinciden con las que se vuelven a descargar "
+                          "de las fuentes citadas.",
              aceptable="Fuentes, fechas y número de unidades, pero sin la llave con que se unen "
                        "la geometría y la variable, o sin el CRS en que se va a medir.",
              solido="Fuentes citables con su fecha de descarga, el tipo y el número de unidades, "
@@ -311,7 +313,9 @@ RUBRICA = [
              foco="Mide si lo que se hizo es lo que se dijo que se haría, y si cualquiera puede "
                   "volver a hacerlo.",
              insuficiente="El informe no se reproduce desde el repositorio —faltan los datos, hay "
-                          "rutas absolutas— o el análisis cambia respecto al preregistro sin decirlo.",
+                          "rutas absolutas—, el análisis cambia respecto al preregistro sin decirlo "
+                          "o una descarga cruda no coincide con la que se vuelve a descargar de su "
+                          "fuente.",
              aceptable="El informe se reproduce, pero el README no dice cómo, los datos crudos se "
                        "editaron a mano o lo exploratorio va mezclado con lo confirmatorio.",
              solido="Se clona el repositorio, se sigue el README y el informe sale entero; los "

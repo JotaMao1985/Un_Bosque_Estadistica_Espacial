@@ -79,6 +79,11 @@ estudiantes cursan las dos materias y pueden presentar un solo proyecto conjunto
   dos cosas es autoplagio. No nombra a nadie ni copia las reglas del acuerdo. El frente H exige las dos vías y
   que no vuelva «única excepción»: auditor con 220 comprobaciones y 0 fallos; arnés con 58 de 58 (tres
   defectos nuevos).
+- 2026-11-10: **la regla de la re-descarga de Series, aplicada también en Espacial** (Javier: «Sí, aplícala»). El
+  docente vuelve a descargar la geometría y la variable de las fuentes citadas, con la fecha declarada en el
+  README, y si no coinciden con `datos/crudos/`, P1 e I7 quedan en insuficiente; las revisiones que la fuente
+  documente después de la fecha de descarga no cuentan. Va en un recuadro del módulo 2 y en el insuficiente de P1
+  y de I7. **Llega después del preregistro (3 nov)**: P1 ya se entregó sin conocerla. Auditor 222/0, arnés 60/60.
 
 ## 1. Lo que ya no se discute (cerrado en el plan de Series, 2026-10-21)
 

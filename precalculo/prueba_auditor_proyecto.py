@@ -109,6 +109,10 @@ DEFECTOS = [
     ("la declaración de IA deja de ser obligatoria", "C",
      sub(r"la declaración de uso es\s+obligatoria", "la declaración de uso es opcional"), False),
     ("el kriging vuelve a aprobarse como núcleo", "C", cambia("no se aprueba como núcleo", "se aprueba como núcleo"), False),
+    ("la re-descarga pierde su consecuencia", "C",
+     cambia("Si no coinciden, P1 e I7 quedan en insuficiente.", "Si no coinciden, se habla."), False),
+    ("I7 deja de mirar la re-descarga", "C",
+     cambia("o una descarga cruda no coincide con la que se vuelve a descargar de su fuente.", "."), False),
     # --- D · Estructura
     ("un enlace roto", "D", cambia('href="capitulo-6-pesos-espaciales.html"', 'href="capitulo-6-pesos.html"'), False),
     ("un enlace local con ancla", "D",
