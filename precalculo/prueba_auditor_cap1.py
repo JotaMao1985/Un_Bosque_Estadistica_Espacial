@@ -391,6 +391,126 @@ def defectos() -> list[tuple[str, str, str, object]]:
         e["objetivo_50_alcanzable"] = al * rho < 1
     add("E3: el e.e. por departamentos baja un 9 %, con todo lo derivado coherente",
         "soluciones", m(lambda o: e3_coherente(o, 0.8)))
+    # --- R1 · T1.6 (2026-11-16): un mutante por campo nuevo ---------------
+    #
+    # Los campos que entraron con las imprecisiones del capítulo: la z de las
+    # dos I (módulo 7), el alfa de la prueba (módulo 6), la E[I] de cada banda
+    # (módulo 3) y, en el módulo 4, dónde caen las réplicas del remuestreo,
+    # cuánto mueve la semilla y cuánto mueve quitar un departamento. Más las
+    # medias de las réplicas del ejercicio 2. Los «coherentes» mueven una
+    # cifra de Monte Carlo y TODO lo que se deriva de ella: solo los caza el
+    # remuestreo propio del auditor, y están para probar que su tolerancia no
+    # es un coladero.
+    esc_ = lambda o: o["escala"]                                     # noqa: E731
+    irm = lambda o: o["inferencia_real"]                             # noqa: E731
+    rpm = lambda o: irm(o)["replicas"]                               # noqa: E731
+    osm_ = lambda o: irm(o)["otras_semillas"]                        # noqa: E731
+    sum_ = lambda o: irm(o)["sin_un_departamento"]                   # noqa: E731
+    for campo, valor in (("z_municipal", 19.41739), ("z_departamental", 1.71349),
+                         ("ee_municipal", 0.0214913), ("ee_departamental", 0.0914137),
+                         ("razon_ee", 5.41739)):
+        add(f"T1.6 · módulo 7: escala.{campo} deja de cuadrar", "datos",
+            m(lambda o, c=campo, v=valor: esc_(o).__setitem__(c, v)))
+    add("T1.6 · módulo 6: el alfa de la prueba no es el del t crítico", "datos",
+        m(lambda o: o["inferencia"].__setitem__("alfa", 0.01)))
+    for campo, valor in (("media_iid", 3.4291473), ("media_bloques", 3.4114937),
+                         ("desvio_iid", 0.0041739), ("desvio_bloques", 0.0291473),
+                         ("emc_media_iid", 0.0041739), ("emc_media_bloques", 0.0014937),
+                         ("esperanza_bloques", 3.4514937), ("desvio_esperanza", 0.0291473),
+                         ("emc_esperanza", 0.0014937), ("desvio_esperanza_pct_ee", 3.1417393),
+                         ("nrep_esperanza", 4000),
+                         ("bloque_min", 5), ("bloque_max", 90)):
+        add(f"T1.6 · módulo 4: replicas.{campo} deja de cuadrar", "datos",
+            m(lambda o, c=campo, v=valor: rpm(o).__setitem__(c, v)))
+
+    def replicas_coherentes(o, media_blq):
+        ir_, r_ = irm(o), rpm(o)
+        r_["esperanza_bloques"] = media_blq
+        r_["desvio_esperanza"] = media_blq - ir_["media"]
+        r_["desvio_esperanza_pct_ee"] = 100 * r_["desvio_esperanza"] / ir_["ee_bootstrap_bloques"]
+    add("T1.6 · módulo 4: la esperanza de las réplicas pasa a quedar por debajo, con todo coherente",
+        "datos", m(lambda o: replicas_coherentes(o, 3.4)))
+    for campo, valor in (("n", 3), ("factor_min", 3.9141739), ("factor_max", 4.5141739),
+                         ("factor_sd", 0.9141739), ("n_eff_min", 55.141739),
+                         ("n_eff_max", 71.141739)):
+        add(f"T1.6 · módulo 4: otras_semillas.{campo} deja de cuadrar", "datos",
+            m(lambda o, c=campo, v=valor: osm_(o).__setitem__(c, v)))
+
+    def semillas_coherentes(o, f_min, f_max):
+        s_, n_ = osm_(o), irm(o)["n_municipios"]
+        s_["factor_min"], s_["factor_max"] = f_min, f_max
+        s_["n_eff_min"], s_["n_eff_max"] = n_ / f_max ** 2, n_ / f_min ** 2
+    add("T1.6 · módulo 4: el rango de las semillas se corre entero, con todo coherente",
+        "datos", m(lambda o: semillas_coherentes(o, 4.5, 4.6)))
+    add("T1.6 · módulo 4: el jackknife se queda con las réplicas del módulo", "datos",
+        m(lambda o: sum_(o).__setitem__("nboot", 4000)))
+    add("T1.6 · módulo 4: los dos remuestreos del jackknife comparten semilla", "datos",
+        m(lambda o: sum_(o).__setitem__("semilla_bloques", sum_(o)["semilla_iid"])))
+    add("T1.6 · módulo 4: tras quitar un departamento siguen quedando todos", "datos",
+        m(lambda o: sum_(o).__setitem__("n_departamentos_quedan", 33)))
+    for campo, valor in (("dpto", "99"), ("departamento", "Macondo"), ("municipios", 71),
+                         ("factor", 4.9141739), ("n_eff", 81.141739)):
+        add(f"T1.6 · módulo 4: una fila del jackknife cambia de {campo}", "datos",
+            m(lambda o, c=campo, v=valor: sum_(o)["por_departamento"][3].__setitem__(c, v)))
+
+    def fila_coherente(o, k, factor):
+        f, n_ = sum_(o)["por_departamento"][k], irm(o)["n_municipios"]
+        f["factor"], f["n_eff"] = factor, (n_ - f["municipios"]) / factor ** 2
+    add("T1.6 · módulo 4: el factor sin un departamento sube un 13 %, con su n efectivo coherente",
+        "datos", m(lambda o: fila_coherente(o, 3, 4.75)))
+    for campo, valor in (("factor_min", 3.4141739), ("factor_max", 4.6141739),
+                         ("n_eff_min", 49.141739), ("n_eff_max", 79.141739),
+                         ("factor_todos", 4.6141739), ("n_eff_todos", 71.141739),
+                         ("ee_jackknife_factor", 0.4141739), ("ee_jackknife_n_eff", 12.141739),
+                         ("ee_jackknife_n_eff_pct", 21.41739)):
+        add(f"T1.6 · módulo 4: sin_un_departamento.{campo} deja de cuadrar", "datos",
+            m(lambda o, c=campo, v=valor: sum_(o).__setitem__(c, v)))
+    add("T1.6 · módulo 4: el extremo del jackknife pasa a ser otro departamento", "datos",
+        m(lambda o: sum_(o).__setitem__("extremo", dict(sum_(o)["por_departamento"][0]))))
+    add("T1.6 · módulo 7: la z de una I departamental igual a la municipal deja de cuadrar", "datos",
+        m(lambda o: esc_(o).__setitem__("z_departamental_si_igual", 5.41739)))
+    add("T1.6 · módulo 3: la esperanza que imprime el programa no es la de su n", "datos",
+        m(lambda o: o["tobler"]["ideam"]["bandas"][1].__setitem__("esperado_programa", -0.0025141)))
+    add("T1.6 · módulo 3: las permutaciones de R pasan a dar la convención del programa", "datos",
+        m(lambda o: o["tobler"]["permutacion_banda1"].__setitem__(
+            "media", o["tobler"]["ideam"]["bandas"][0]["esperado_programa"])))
+    add("T1.6 · módulo 3: el error de las permutaciones no es el de su número", "datos",
+        m(lambda o: o["tobler"]["permutacion_banda1"].__setitem__("emc", 0.0001141)))
+    add("T1.6 · módulo 3: R permuta demasiado poco", "datos",
+        m(lambda o: o["tobler"]["permutacion_banda1"].__setitem__("nperm", 500)))
+    add("T1.6 · E3: el e.e. jackknife del techo no sale de su lista", "soluciones",
+        m(lambda o: o["e3"]["solucion"]["jackknife"].__setitem__("ee_techo", 7.141739)))
+    add("T1.6 · módulo 3: en la primera banda todas las estaciones tienen vecinos", "datos",
+        m(lambda o: o["tobler"]["ideam"]["bandas"][0].__setitem__("n_con_vecinos", 361)))
+    add("T1.6 · módulo 3: la E[I] de la primera banda vuelve a ser la del conjunto", "datos",
+        m(lambda o: o["tobler"]["ideam"]["bandas"][0].__setitem__(
+            "esperado", o["tobler"]["ideam"]["esperado"])))
+    add("T1.6 · módulo 3: una banda de meuse cuenta mal sus puntos con vecinos", "datos",
+        m(lambda o: o["tobler"]["meuse"]["bandas"][1].__setitem__("n_con_vecinos", 141)))
+    add("T1.6 · módulo 3: la E[I] de una banda del permutado no es la de su n", "datos",
+        m(lambda o: o["tobler"]["permutado"]["bandas"][2].__setitem__("esperado", -0.0041739)))
+    e2m = lambda o: o["e2"]["solucion"]                              # noqa: E731
+    for campo, valor in (("media_replicas_iid", 81.2141739), ("media_replicas_bloques", 80.7141739),
+                         ("desvio_replicas_bloques", 0.0414173), ("emc_media_bloques", 0.0414173),
+                         ("esperanza_replicas_bloques", 81.2141739), ("desvio_esperanza", 0.0414173),
+                         ("emc_esperanza", 0.0091417), ("nrep_esperanza", 4000)):
+        add(f"T1.6 · E2: {campo} deja de cuadrar", "soluciones",
+            m(lambda o, c=campo, v=valor: e2m(o).__setitem__(c, v)))
+
+    def e2_coherente(o, media_blq):
+        e = e2m(o)
+        e["media_replicas_bloques"] = media_blq
+        e["desvio_replicas_bloques"] = media_blq - e["media"]
+    add("T1.6 · E2: las réplicas por bloques se corren 0.3 puntos, con su desvío coherente",
+        "soluciones", m(lambda o: e2_coherente(o, 81.3185191793)))
+    def e2_esperanza_coherente(o, desvio):
+        e = e2m(o)
+        e["desvio_esperanza"] = desvio
+        e["esperanza_replicas_bloques"] = e["media"] + desvio
+    add("T1.6 · E2: la esperanza de las réplicas cambia de lado, con su desvío coherente",
+        "soluciones", m(lambda o: e2_esperanza_coherente(o, 0.02)))
+    add("T1.6 · E2: un intervalo deja de estar centrado en la media de los municipios", "soluciones",
+        m(lambda o: e2m(o)["ic_bloques"].__setitem__(1, e2m(o)["ic_bloques"][1] + 0.4)))
     add("E4: la r deja de crecer con el tamaño de la unidad", "soluciones",
         m(lambda o: o["e4"]["solucion"]["conglomerado"].__setitem__("r", 0.41739)))
     add("E4: la r municipal deja de ser la del módulo 7", "soluciones",

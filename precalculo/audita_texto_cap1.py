@@ -139,6 +139,37 @@ AFIRMACIONES = [
      "de manera uniforme sobre el país"),
     ("distingue sesgo de la estimación de sesgo de la confianza",
      "no es la estimación, es"),
+    # R1 · T1.6: lo que sustituye a las imprecisiones retiradas.
+    ("llama ingenuo al reparto por igual entre bombas y dice qué ignora (módulo 1)",
+     "el reparto es ingenuo porque ignora"),
+    ("dice que la intensidad es del proceso y que n/|W| la estima (módulo 2)",
+     "es una propiedad del proceso"),
+    ("dice que en el tipo geoestadístico lo aleatorio es el campo (módulo 2)",
+     "lo aleatorio es el propio campo"),
+    ("dice que agregación y repulsión pueden cancelarse en la media de R (módulo 3)",
+     "pueden cancelarse en la media"),
+    ("dice bajo qué nula vale E[I] = −1/(n − 1) (módulo 3)",
+     "hipótesis nula de permutación"),
+    ("nombra el supuesto del remuestreo por departamentos (módulo 4)",
+     "departamentos como independientes entre sí"),
+    ("dice que la media de una réplica por bloques es un estimador de razón (módulo 4)",
+     "estimador de razón"),
+    ("dice que el recorrido sin un departamento es sensibilidad, no incertidumbre (módulo 4)",
+     "mide la sensibilidad a un solo departamento"),
+    ("dice que con 33 bloques el tamaño efectivo se conoce en orden de magnitud (módulo 4)",
+     "se conoce solo en orden de magnitud"),
+    ("condiciona a la homogeneidad que la intensidad no dependa del borde (módulo 2)",
+     "si el proceso es homogéneo, su intensidad"),
+    ("dice que −1/(n′ − 1) es la convención del programa (módulo 3)",
+     "es la convención del programa"),
+    ("dice que la z departamental mezcla efecto y potencia (módulo 7)",
+     "mucha menos potencia"),
+    ("nombra la prueba del módulo 6",
+     "bilateral y con"),
+    ("dice que la z sitúa cada I en su propia nula (módulo 7)",
+     "sitúa cada i en su propia nula"),
+    ("dice que entre dos correlaciones de signo opuesto lo que crece es el valor absoluto (módulo 7)",
+     "lo único que crece es el valor absoluto"),
     ("dice que la fórmula de n_eff con la correlación media es una identidad",
      "es una identidad"),
     ("dice que hay un techo en la información",
@@ -256,6 +287,80 @@ PROHIBIDAS = [
      r"menos pares que promediar"),
     ("no usa como distractor una frase cierta, ni llama «bien estimada» a una media imprecisa",
      "todo", r"la media está cada vez peor estimada|la media sigue bien estimada"),
+    # --- R1 · T1.6: las imprecisiones de los módulos 1, 2, 3, 4, 6, 7 y 10 y
+    # de la diagnóstica. Cada una es una frase que decía de más o de menos:
+    #   · que el 90 % de los ataques precediera a la retirada del mango no
+    #     «dice otra cosa» ni «contradice» nada: no permite atribuirle el
+    #     final del brote, que es menos;
+    #   · λ es del proceso y n/|W| su estimador; en un patrón puntual no hay
+    #     Z(s), y en el geoestadístico lo aleatorio (marco del curso) es el
+    #     campo, no «dónde lo miramos»;
+    #   · las manchas SÍ pesan en R (suben la densidad local): no «apenas
+    #     pesa», ni R es «ciego» a ellas;
+    #   · lo que no vale cero bajo la nula es E[I], y por el centrado;
+    #   · el corchete vale 1 cuando la SUMA de las correlaciones se anula;
+    #   · las réplicas por bloques no están centradas en la media muestral,
+    #     y el remuestreo por departamentos no es «el honesto» sin más;
+    #   · «declararía significativa» sin nombrar la prueba; el porcentaje de
+    #     caída entre dos I con pesos y n distintos no es una magnitud;
+    #   · el error de la validación por bloques no es «el real»;
+    #   · con correlación NEGATIVA el error estándar clásico sale grande.
+    # Y dos que no eran de contenido: la crónica de producción del módulo 7
+    # y una línea de código muerto en el bloque del correlograma.
+    ("no dice que el dato «dice otra cosa» o «contradice» la retirada del mango (módulo 1)",
+     "todo", r"el dato dice otra cosa|el dato la contradice"),
+    ("no escribe λ = n/|W| ni llama aleatorio al «conjunto de índices» (módulo 2)", "todo",
+     r"\$\$\\lambda = \\frac\{n\}|propio conjunto de índices|en los tres casos hay un proceso"),
+    ("no dice que en el tipo geoestadístico lo aleatorio es dónde se mira (módulo 2)", "todo",
+     r"dónde lo miramos|dónde miramos"),
+    ("no dice que la agregación «apenas pesa» en R ni que R es ciego a ella (módulo 3)", "todo",
+     r"apenas\s+pesa|ciego a todo lo que pase"),
+    ("no dice que I «no vale cero» bajo la nula ni lo explica por la diagonal (módulo 3)", "todo",
+     r"no vale cero bajo|consigo misma excluida"),
+    ("no deja código muerto en el bloque del correlograma (módulo 3)", "todo",
+     r"as\.numeric\(st_distance"),
+    ("no dice que el corchete vale 1 solo si todas las correlaciones se anulan (módulo 4)", "todo",
+     r"solo si todas las correlaciones"),
+    ("no dice que los dos remuestreos están centrados en el mismo sitio (módulo 4 y ejercicio 2)",
+     "todo", r"centrados en el mismo sitio|tienen que dar la misma media"),
+    ("no llama «honesto» sin más al intervalo o al error estándar por bloques", "todo",
+     r"intervalo honesto|error estándar honesto"),
+    ("no dice «declararía significativa» sin nombrar la prueba (módulo 6)", "todo",
+     r"declararía significativa"),
+    ("no presenta la caída de la I como una magnitud (módulo 7)", "todo",
+     r"una caída del\s*<strong>"),
+    ("no cuenta la crónica de producción del módulo 7", "todo",
+     r"iba a publicar|es una cicatriz|cociente entre dos ceros"),
+    ("no llama «real» al error de la validación por bloques (módulo 10)", "todo",
+     r"el error real|rmse real"),
+    ("no afirma sin signo que con datos correlacionados el e.e. clásico sale pequeño", "todo",
+     r"datos espaciales correlacionados"),
+    # --- R1 · T1.6, segunda ronda: lo que la primera escribió de más.
+    #   · el recorrido de «un departamento menos» NO mide la incertidumbre
+    #     (los cálculos comparten casi todos sus bloques): es sensibilidad;
+    #   · las z de dos I con n distinto tampoco se comparan sin más: la z
+    #     crece con n, y mezcla efecto y potencia;
+    #   · −1/(n′ − 1) es lo que imprime moran.test, no la esperanza por
+    #     permutación de la I que publica, que es −n′/(n(n − 1));
+    #   · que la intensidad no dependa del borde solo vale si el proceso es
+    #     homogéneo;
+    #   · el intervalo se centra en la media muestral porque es el
+    #     estimador, no «por» el desvío de las réplicas;
+    #   · «varía N veces más» por «su desviación estándar es N veces».
+    ("no dice que quitar un departamento «mide» la incertidumbre (módulo 5)", "todo",
+     r"la mide quitando un departamento"),
+    ("no dice que las z de las dos I «sí se pueden comparar» (módulo 7)", "todo",
+     r"eso sí se puede comparar"),
+    ("no dice que la I «varía N veces más» (módulo 7)", "todo",
+     r"varía [\d.]+ veces más"),
+    ("no presenta −1/(n′ − 1) como la referencia de la banda (módulo 3)", "todo",
+     r"la referencia de esa banda es"),
+    ("no dice sin condición que la intensidad no se entera del borde (módulo 2)", "todo",
+     r"la intensidad del proceso no se entera"),
+    ("no hace del desvío «la razón» de que el intervalo se centre en la media (módulo 4)", "todo",
+     r"es la\s+razón de que el intervalo se centre"),
+    ("no llama «honesto» al intervalo en el enunciado del ejercicio 2", "todo",
+     r"y el honesto no"),
 ]
 
 

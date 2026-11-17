@@ -568,6 +568,91 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: o["agregacion_soporte"]["nc"]["condado_caso"].__setitem__(
             "fraccion_total_pct", 96.4173941))
 
+    # --- R1 · T1.6: lo que afirman los módulos 3, 4, 6 y 7 y el ejercicio 2 --
+    #
+    # Una inyección por guarda nueva. Como en el módulo 5, lo que se ataca son
+    # las frases que unen las cifras: «solo N de las 361», «por encima», «no
+    # es ruido», «muy desiguales», «el extremo lo pone», «bastante menos»,
+    # «inequívoca», «varía N veces más», «por debajo».
+    SERIES3 = ("ideam", "residuos_altitud", "permutado")
+
+    def banda3(o, i, n_con, esperado=None, programa=None):
+        """La misma banda, en las tres series: así no salta la guarda de la rejilla común."""
+        n_ = o["colombia"]["geo"]["n"]
+        for nombre in SERIES3:
+            b = o["tobler"][nombre]["bandas"][i]
+            b["n_con_vecinos"] = n_con
+            b["esperado"] = -n_con / (n_ * (n_ - 1)) if esperado is None else esperado
+            b["esperado_programa"] = -1 / (n_con - 1) if programa is None else programa
+    obj("la E[I] por banda de una serie deja de ser la de las otras", "datos",
+        lambda o: o["tobler"]["residuos_altitud"]["bandas"][0].__setitem__("n_con_vecinos", 251))
+    obj("la E[I] de una banda deja de ser -n'/(n(n - 1))", "datos",
+        lambda o: banda3(o, 2, o["tobler"]["ideam"]["bandas"][2]["n_con_vecinos"], -0.0031))
+    obj("la esperanza que imprime el programa deja de ser -1/(n' - 1)", "datos",
+        lambda o: banda3(o, 2, o["tobler"]["ideam"]["bandas"][2]["n_con_vecinos"], programa=-0.0031))
+    obj("las permutaciones pasan a respaldar la convención del programa", "datos",
+        lambda o: o["tobler"]["permutacion_banda1"].__setitem__(
+            "media", o["tobler"]["ideam"]["bandas"][0]["esperado_programa"]))
+    obj("en la primera banda todas las estaciones tienen vecinos", "datos",
+        lambda o: banda3(o, 0, o["colombia"]["geo"]["n"]))
+    obj("en la última banda alguna estación se queda sin vecinos", "datos",
+        lambda o: banda3(o, -1, o["colombia"]["geo"]["n"] - 3))
+    ir4 = lambda o: o["inferencia_real"]                              # noqa: E731
+
+    def replicas_abajo(o):
+        r = ir4(o)["replicas"]
+        r["desvio_esperanza"] = -abs(r["desvio_esperanza"])
+        r["esperanza_bloques"] = ir4(o)["media"] + r["desvio_esperanza"]
+    obj("la esperanza de las réplicas por bloques pasa a quedar por debajo de la media muestral",
+        "datos", replicas_abajo)
+    obj("el desvío de la esperanza pasa a ser ruido", "datos",
+        lambda o: ir4(o)["replicas"].__setitem__("emc_esperanza", 0.01))
+    obj("las réplicas de la tabla se salen de su ruido alrededor de la esperanza", "datos",
+        lambda o: ir4(o)["replicas"].__setitem__("media_bloques", 3.48))
+    obj("el error estándar jackknife no sale de la lista ni supera a medio recorrido", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("ee_jackknife_factor", 0.3))
+    obj("el tamaño efectivo, con tres e.e. jackknife, deja de quedar muy lejos de los municipios", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("ee_jackknife_n_eff", 80.0))
+    obj("el e.e. jackknife del tamaño efectivo baja del 25 % de la cifra", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("ee_jackknife_n_eff_pct", 20.0))
+    obj("la z de una I departamental igual a la municipal se sale de entre las dos z", "datos",
+        lambda o: o["escala"].__setitem__("z_departamental_si_igual", 25.0))
+    obj("el ejercicio 3 publica un e.e. jackknife que su lectura no cita", "soluciones",
+        lambda o: o["e3"]["solucion"]["jackknife"].__setitem__("ee_techo", 5.0))
+    obj("las réplicas i.i.d. se separan de la media muestral", "datos",
+        lambda o: ir4(o)["replicas"].__setitem__("desvio_iid", 0.002))
+    obj("los departamentos dejan de ser de tamaños muy desiguales", "datos",
+        lambda o: ir4(o)["replicas"].__setitem__("bloque_min", 20))
+    obj("la lista de un departamento menos no cuadra con el módulo", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("n_departamentos_quedan", 33))
+    obj("el recorrido sin un departamento no es el de su lista", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__("factor_min", 3.5))
+    obj("el extremo que la prosa nombra es otro departamento", "datos",
+        lambda o: ir4(o)["sin_un_departamento"].__setitem__(
+            "extremo", dict(ir4(o)["sin_un_departamento"]["por_departamento"][0])))
+    obj("sin el departamento del extremo el factor ya no baja", "datos",
+        lambda o: ir4(o).__setitem__("factor", 3.0))
+    obj("el titular del módulo se sale del recorrido sin un departamento", "datos",
+        lambda o: ir4(o).__setitem__("n_eff", 50.0))
+    obj("cambiar de semilla mueve tanto como quitar un departamento", "datos",
+        lambda o: ir4(o)["otras_semillas"].update(n_eff_min=40.0, n_eff_max=80.0))
+    obj("el alfa de la prueba del módulo 6 no es el porcentaje que debería rechazar", "datos",
+        lambda o: o["inferencia"].__setitem__("alfa", 0.01))
+    obj("la I municipal deja de ser inequívoca", "datos",
+        lambda o: o["escala"].__setitem__("z_municipal", 1.2))
+    obj("la I departamental deja de variar más que la municipal", "datos",
+        lambda o: o["escala"].update(razon_ee=0.8, ee_departamental=0.8 * o["escala"]["ee_municipal"]))
+    obj("un intervalo del ejercicio 2 deja de estar centrado en la media", "soluciones",
+        lambda o: o["e2"]["solucion"]["ic_bloques"].__setitem__(
+            1, o["e2"]["solucion"]["ic_bloques"][1] + 0.4))
+
+    def e2_al_otro_lado(o):
+        e = o["e2"]["solucion"]
+        e["desvio_esperanza"] = -e["desvio_esperanza"]
+        e["esperanza_replicas_bloques"] = e["media"] + e["desvio_esperanza"]
+    obj("las réplicas del ejercicio 2 caen al otro lado de lo que dice la lectura", "soluciones",
+        e2_al_otro_lado)
+
     # --- El presupuesto de geometría ------------------------------------
     obj("la geometría se sale del presupuesto de 120 KB", "mapas",
         lambda o: o["nc"].__setitem__("relleno", "x" * 70_000))

@@ -117,6 +117,11 @@ agn, agco = D["agregacion_soporte"]["nc"], D["agregacion_soporte"]["colombia"]
 cc = agn["condado_caso"]        # el condado que el mapa del módulo 7 señala
 dm = D["diseno_modelo"]
 ru = dm["referencia_uniforme"]   # módulo 10: Thiessen de puntos uniformes, la referencia de la red
+# Módulo 4 (R1 · T1.6): dónde caen las réplicas del remuestreo, cuánto mueve
+# la semilla y cuánto mueve quitar un departamento.
+rp, osm, sud = ir["replicas"], ir["otras_semillas"], ir["sin_un_departamento"]
+b0 = tb["ideam"]["bandas"][0]    # módulo 3: la banda corta, la que tiene estaciones sin vecinos
+pb1 = tb["permutacion_banda1"]   # y su esperanza, comprobada permutando
 
 
 def n(x, d=5):
@@ -294,9 +299,13 @@ MOD1 = cabecera(
 
       <p>La cifra que sostiene el mapa: de las {sn['n_muertes']} muertes,
         <strong>{sn['n_mas_cerca_broad']}</strong> tienen la bomba de Broad Street como la más próxima. Eso es el
-        <strong>{n(sn['pct_mas_cerca_broad'])}&nbsp;%</strong>. Si las muertes se repartieran por igual entre las
-        {sn['n_bombas']} bombas, a cada una le tocaría el {n(sn['pct_esperado_uniforme'])}&nbsp;%: Broad Street
-        concentra <strong>{n(sn['razon_sobre_uniforme'])} veces</strong> lo que le tocaría.</p>
+        <strong>{n(sn['pct_mas_cerca_broad'])}&nbsp;%</strong>. Como referencia sirve un <strong>reparto
+        ingenuo</strong>: si las muertes se repartieran por igual entre las {sn['n_bombas']} bombas, a cada una le
+        tocaría el {n(sn['pct_esperado_uniforme'])}&nbsp;%, y Broad Street concentra
+        <strong>{n(sn['razon_sobre_uniforme'])} veces</strong> esa parte. El reparto es ingenuo porque ignora dos
+        cosas: que las bombas no sirven áreas del mismo tamaño dentro del plano y que no las usa la misma población.
+        La cifra dice que la concentración es grande; no dice cuánta de ella se debería solo al área que le toca a
+        Broad Street o a la gente que vivía en ella.</p>
 
       <div class="definition">
         <h3>Y ahora la parte formal: qué es un patrón puntual</h3>
@@ -345,10 +354,14 @@ print(f"{(mas_cerca == i_broad).sum()} de {len(mu)} = "
 #> """ + f"{sn['n_mas_cerca_broad']} de {sn['n_muertes']} = {n(sn['pct_mas_cerca_broad'])} %") + f"""
       <p>Hay una segunda mitad de la historia, y es la que suele contarse mal. El 8 de septiembre de 1854 la
         parroquia retiró el mango de la bomba de Broad Street, y el brote se apagó. La lectura cómoda es que lo apagó
-        la retirada del mango. El dato dice otra cosa: el <strong>{n(sn['pct_ataques_antes_mango'])}&nbsp;%</strong>
-        de los ataques había ocurrido <em>antes</em> de ese día, y desde el pico del {sn['fecha_pico']}
-        —{sn['ataques_pico']} ataques— hasta el {sn['fecha_mango']} —{sn['ataques_dia_mango']}— ya habían caído un
-        <strong>{n(sn['caida_hasta_mango_pct'])}&nbsp;%</strong>.</p>
+        la retirada del mango. El dato no permite atribuírselo: el
+        <strong>{n(sn['pct_ataques_antes_mango'])}&nbsp;%</strong> de los ataques había ocurrido <em>antes</em> de
+        ese día, y desde el pico del {sn['fecha_pico']} —{sn['ataques_pico']} ataques— hasta el
+        {sn['fecha_mango']} —{sn['ataques_dia_mango']}— ya habían caído un
+        <strong>{n(sn['caida_hasta_mango_pct'])}&nbsp;%</strong>. Los ataques ya venían cayendo. Tampoco permite
+        decir lo contrario, que la retirada no sirviera de nada: entre beber el agua y enfermar pasa un tiempo, así
+        que parte de los ataques de los días siguientes corresponde a exposiciones anteriores a la retirada, y la
+        curva no puede medir su efecto.</p>
 
       <div class="simulador" data-simulador="snow-serie">
         <h4><i class="fas fa-chart-line" aria-hidden="true"></i> La curva del brote y el día del mango</h4>
@@ -449,20 +462,29 @@ MOD2 = cabecera(
 
       <div class="definition">
         <h3>La intensidad \\(\\lambda\\), que es lo primero que se mide de un patrón puntual</h3>
-        <p>Es la <strong>densidad de puntos</strong>: cuántos hay por unidad de área. Con \\(n\\) puntos sobre una
-          ventana \\(W\\) de área \\(|W|\\),</p>
-        <p style="text-align:center;">$$\\lambda = \\frac{{n}}{{|W|}}$$</p>
+        <p>Es la <strong>densidad de puntos</strong> del proceso que generó el patrón: cuántos se esperan por
+          unidad de área. Si el proceso es <em>homogéneo</em> —la misma densidad en todas partes—, el número de
+          puntos que caen en una región \\(B\\), \\(N(B)\\), tiene una esperanza proporcional al área de la
+          región:</p>
+        <p style="text-align:center;">$$E[N(B)] = \\lambda\\,|B|$$</p>
+        <p>Esa constante \\(\\lambda\\) es la intensidad. Es una propiedad del proceso y no se observa: se
+          <strong>estima</strong>. Con \\(n\\) puntos sobre una ventana \\(W\\) de área \\(|W|\\), el estimador
+          es</p>
+        <p style="text-align:center;">$$\\hat{{\\lambda}} = \\frac{{n}}{{|W|}}$$</p>
         <p>Con los pinos, \\(n = {pc['japanesepines']['n']}\\) y \\(|W| = {pc['japanesepines']['area']}\\), así que
-          \\(\\lambda = {pc['japanesepines']['lambda']}\\) árboles por unidad de área. Se lee como cualquier
+          \\(\\hat{{\\lambda}} = {pc['japanesepines']['lambda']}\\) árboles por unidad de área. Se lee como cualquier
           densidad —habitantes por km², árboles por hectárea— y, como cualquier densidad, <strong>tiene
           unidades</strong>: el mismo patrón medido en km² o en hectáreas da dos números distintos sin que se
           mueva un solo punto. Cuando en este curso veas un \\(\\lambda\\) suelto, pregunta siempre «¿por unidad de
           qué?».</p>
         <p style="margin-bottom:0;">Y ahora la parte incómoda, que es la razón de presentarla aquí y no en una
           tabla de fórmulas. El numerador lo pone el dato: los puntos están donde están y son los que son. El
-          denominador lo pones <strong>tú</strong>, al decidir dónde acaba la ventana. \\(\\lambda\\) es de las
-          pocas cifras del curso que se puede cambiar sin tocar el dato: mueve el borde y cambia, sin que se mueva
-          un solo pino. Con los pinos no se nota, porque la ventana viene con ellos. Con el mapa que sigue, sí.</p>
+          denominador lo pones <strong>tú</strong>, al decidir dónde acaba la ventana. \\(\\hat{{\\lambda}}\\) es
+          de las pocas cifras del curso que se puede cambiar sin tocar el dato: mueve el borde y cambia, sin que se
+          mueva un solo pino. Lo que cambia es la <em>estimación</em>. Si el proceso es homogéneo, su intensidad
+          no se entera de dónde se dibuje el borde; si no lo es, cada borde estima además otra cosa, la intensidad
+          media de la región que encierra, y la nota que cierra este módulo lo mide. Con los pinos no se nota, porque la ventana viene con ellos. Con el mapa que
+          sigue, sí.</p>
       </div>
 
       <div class="geomapa" data-geomapa="cap1-bogota"></div>
@@ -557,14 +579,19 @@ MOD2 = cabecera(
         realidad «lo cercano está a la misma altura», y la cifra incomoda.</p>
 
       <p>Lo que comparten: entre dos estaciones <em>hay</em> temperatura, y entre dos puntos de la vega <em>hay</em>
-        zinc. Simplemente no se midieron. Si volviéramos a tomar el dato en otras localizaciones, el campo de
-        debajo sería el mismo; lo único que cambiaría es <strong>dónde lo miramos</strong>. De ahí sale el permiso
-        para predecir, que es justo lo que los otros dos tipos no tienen.</p>
+        zinc. Simplemente no se midieron. En el marco de este curso —el <em>basado en el modelo</em>, que el
+        módulo 10 separa del basado en el diseño— lo aleatorio es el propio campo \\(Z(\\cdot)\\): el mapa entero
+        de temperaturas es una realización de un proceso, y las \\(n\\) localizaciones donde se mide se toman como
+        fijas. Si se volviera a tomar el dato, lo que saldría distinto serían <strong>los valores</strong>, en esos
+        puntos y en todos los demás. Que haya un valor en todo punto, y no solo donde se midió, es lo que da
+        permiso para predecir, y es justo lo que los otros dos tipos no tienen. La otra lectura —el campo quieto
+        y lo aleatorio, dónde se mide— es la del muestreo, y se deja para el módulo 10.</p>
 
       <p>Vuelve ahora al párrafo del principio. Los seis mapas se parecen bastante entre sí —puntos y polígonos de
         colores— y sin embargo la pregunta «¿qué saldría distinto si volviéramos a tomar el dato?» los ha partido
         limpiamente en tres: cambian las <em>posiciones</em>, cambian los <em>valores</em> sobre unidades fijas, o
-        cambia <em>dónde miramos</em> un campo que ya estaba ahí. La tabla resume lo que acabas de hacer.</p>
+        cambian los valores de un <em>campo</em> que existe en todo punto y se observa en unos pocos. La tabla
+        resume lo que acabas de hacer.</p>
 
       <!-- Los tres tipos van en las COLUMNAS y los cinco atributos en las filas,
            que es la transpuesta de como se escribiría de primeras. Dos razones.
@@ -656,15 +683,18 @@ MOD2 = cabecera(
 
       <div class="definition">
         <h3>La formalización, ahora que ya has visto los seis mapas</h3>
-        <p>En los tres casos hay un proceso \\(Z(s)\\) sobre un dominio \\(D \\subset \\mathbb{{R}}^2\\). Lo que cambia
-          es <strong>qué es aleatorio</strong>:</p>
+        <p>En los tres casos hay un dominio \\(D \\subset \\mathbb{{R}}^2\\) y algo aleatorio sobre él. Lo que
+          cambia es <strong>qué es aleatorio</strong>:</p>
         <ul>
-          <li><strong>Patrón puntual:</strong> aleatorio es el propio conjunto de índices. \\(D\\) es fijo (la
-            <em>ventana</em>) y lo que se observa es \\(\\{{s_1, \\dots, s_N\\}}\\), con \\(N\\) también aleatorio.</li>
+          <li><strong>Patrón puntual:</strong> no hay ningún valor \\(Z(s)\\) que observar. Lo aleatorio es el
+            propio conjunto de puntos \\(\\{{s_1, \\dots, s_N\\}}\\) dentro de \\(D\\) —que aquí es fijo: la
+            <em>ventana</em>—, con \\(N\\) también aleatorio. Dicho de otro modo, lo aleatorio es el conteo
+            \\(N(B)\\), el número de puntos que caen en cada región \\(B\\) de la ventana.</li>
           <li><strong>Dato de área:</strong> los índices son un conjunto <em>fijo y numerable</em> de unidades
-            \\(A_1, \\dots, A_n\\) —los municipios—, y aleatorio es \\(Z(A_i)\\).</li>
-          <li><strong>Geoestadístico:</strong> \\(Z(s)\\) existe para <em>todo</em> \\(s \\in D\\) —hay una
-            temperatura en cada punto de Colombia— y solo se observa en \\(n\\) localizaciones elegidas.</li>
+            \\(A_1, \\dots, A_n\\) —los municipios—, y aleatorio es el valor \\(Z(A_i)\\) de cada una.</li>
+          <li><strong>Geoestadístico:</strong> hay un valor \\(Z(s)\\) para <em>todo</em> \\(s \\in D\\) —una
+            temperatura en cada punto de Colombia—. Aleatorio es ese campo entero, y solo se observa en \\(n\\)
+            localizaciones, que se toman como fijas.</li>
         </ul>
         <p style="margin-bottom:0;">De ahí sale una consecuencia que conviene tener presente desde ya: en el caso
           geoestadístico <strong>tiene sentido predecir dónde no se ha medido</strong>, y en el de área no. Preguntar
@@ -785,7 +815,7 @@ print([str(w.message).split(".")[0] for w in ws])
 #> ['Geometry is in a geographic CRS']""") + f"""
       <div class="note">
         <p style="margin-bottom:0;"><strong>La ventana no es un detalle,</strong> y aquí está la factura de
-          moverla. La intensidad \\(\\lambda\\) de las sedes de
+          moverla. La intensidad estimada \\(\\hat{{\\lambda}} = n/|W|\\) de las sedes de
           Bogotá vale <strong>{n(co['puntual']['lambda_urbana'])}</strong> sedes/km² sobre el perímetro urbano
           ({n(co['puntual']['area_urbana_km2'], 1)} km²) y <strong>{n(co['puntual']['lambda_dc'])}</strong> sobre el
           Distrito Capital completo ({n(co['puntual']['area_dc_km2'], 1)} km², Sumapaz incluido). Mismo dato, y
@@ -846,9 +876,23 @@ MOD3 = cabecera(
         <p style="text-align:center;">$$I = \\frac{{n}}{{S_0}} \\cdot
           \\frac{{\\sum_i \\sum_j w_{{ij}} z_i z_j}}{{\\sum_i z_i^2}},
           \\qquad S_0 = \\sum_i \\sum_j w_{{ij}}, \\qquad E[I] = -\\frac{{1}}{{n-1}}$$</p>
-        <p style="margin-bottom:0;">Con las {co['geo']['n']} estaciones, \\(E[I] = {n(tb['ideam']['esperado'], 6)}\\).
-          Fíjate en que <strong>\\(I\\) no vale cero bajo la hipótesis nula</strong>, vale un poco menos: es el
-          artefacto de comparar cada unidad consigo misma excluida. El capítulo 7 lo desarrolla.</p>
+        <p>Con las {co['geo']['n']} estaciones, \\(E[I] = {n(tb['ideam']['esperado'], 6)}\\). Es el valor
+          esperado bajo la hipótesis nula de <strong>permutación</strong>: los mismos valores, repartidos al azar
+          entre las mismas posiciones. Lo que queda un poco por debajo de cero bajo esa nula es
+          <strong>\\(E[I]\\)</strong>, no \\(I\\), que en cada reparto sale distinta. Y queda por debajo por el
+          <strong>centrado</strong>: los \\(z_i\\) suman cero, así que los productos \\(z_i z_j\\) entre unidades
+          distintas suman \\(-\\sum_i z_i^2\\), y su promedio es negativo con cualquier dato. El capítulo 7 hace
+          la cuenta entera.</p>
+        <p style="margin-bottom:0;">Esa referencia cambia en las bandas donde hay estaciones sin vecinos. En
+          la de {b0['d1']}–{b0['d2']} km solo <strong>{b0['n_con_vecinos']}</strong> de las {co['geo']['n']}
+          tienen alguna otra a esa distancia. <code>spdep</code> las deja fuera al contar —multiplica por
+          \\(n' = {b0['n_con_vecinos']}\\) en vez de por \\(n\\)—, pero siguen dentro del centrado y de la suma de
+          cuadrados, así que la esperanza por permutación de la \\(I\\) que publica es
+          \\(-n'/(n(n-1)) = {n(b0['esperado'], 6)}\\). Permutando de verdad las temperaturas
+          {ent(pb1['nperm'])} veces, la media sale \\({n(pb1['media'], 6)}\\), con un error de Monte Carlo de
+          {n(pb1['emc'], 6)}. La línea de referencia del gráfico está dibujada así, banda a banda.
+          <code>moran.test</code> imprime como esperanza otra cifra, \\(-1/(n'-1) = {n(b0['esperado_programa'], 6)}\\):
+          es la convención del programa, no la media por permutación de la \\(I\\) que calcula.</p>
       </div>
 
       <div class="warning">
@@ -874,8 +918,6 @@ MOD3 = cabecera(
     """library(sf); library(spdep)
 
 est &lt;- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
-d   &lt;- as.numeric(st_distance(est)) / 1000        # a km; quita las unidades
-dim(d) &lt;- c(nrow(est), nrow(est))
 
 banda &lt;- function(lo, hi) {
   nb &lt;- dnearneigh(st_coordinates(est), lo * 1000, hi * 1000)
@@ -954,7 +996,7 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           separarían por puro azar. De ahí le vienen sus dos propiedades: no tiene unidades, y su referencia es el
           <strong>1</strong>. Por debajo de 1 los puntos están <em>más cerca</em> de lo que daría el azar
           —agregación—; por encima, más lejos —regularidad—.</span> Con los {pc['japanesepines']['n']} pinos sobre su
-          ventana de área {pc['japanesepines']['area']} sale λ = {pc['japanesepines']['lambda']}, y con ella
+          ventana de área {pc['japanesepines']['area']} sale \\(\\hat{{\\lambda}} = {pc['japanesepines']['lambda']}\\), y con ella
           \\(E[\\bar{{d}}_{{\\min}}] = {n(pc['japanesepines']['nn_esperada'])}\\): contra esa cifra se compara la
           distancia observada de {n(pc['japanesepines']['nn_media'])} que viste en el módulo 2, y el cociente da
           {n(pc['japanesepines']['clark_evans'])}.</p>
@@ -1077,20 +1119,25 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
       <div class="warning">
         <p><strong>Y una advertencia sobre la fila del medio.</strong> {n(pc['japanesepines']['clark_evans'])}
           está cerca de 1, y la tabla dice «compatible con el azar», no «aleatorio». La diferencia no es cautela
-          retórica: \\(R\\) se construye <em>solo</em> con la distancia al vecino <strong>más próximo</strong>, así
-          que solo ve la escala más corta del patrón y es ciego a todo lo que pase más allá.</p>
+          retórica: \\(R\\) se construye <em>solo</em> con la distancia al vecino <strong>más próximo</strong>, y de
+          ella solo con la media. Es un único número, y en un único número dos estructuras opuestas pueden
+          compensarse.</p>
         <p style="margin-bottom:0;">El caso que lo rompe es corriente en ecología, que es de donde salen las
           secuoyas: árboles que compiten con el de al lado y por eso se separan a corta distancia, pero que
-          crecen en manchas grandes marcadas por el suelo o la humedad. La repulsión de cerca <em>sube</em>
-          \\(R\\); la agregación de lejos, que ocurre a una escala mucho mayor que la del vecino inmediato, apenas
-          pesa en la cuenta. Las dos cosas se compensan y \\(R\\) puede quedarse en 1 sobre un patrón que a la
-          escala de las manchas está claramente agregado. Que \\(R\\) valga 1 no prueba que el patrón sea
-          aleatorio: prueba que <em>a la escala del vecino más próximo</em> no se distingue de serlo.</p>
+          crecen en manchas grandes marcadas por el suelo o la humedad. Las dos cosas tiran de \\(R\\) en sentidos
+          opuestos. La repulsión alarga la distancia al vecino más próximo y <em>sube</em> \\(R\\). Las manchas
+          hacen lo contrario, aunque sean mucho mayores que esa distancia: concentran los puntos, la densidad
+          dentro de cada mancha es mayor que la del conjunto de la ventana —que es la que entra en la distancia
+          esperada—, y los vecinos quedan más cerca de lo que esa densidad media anuncia. Eso <em>baja</em>
+          \\(R\\). Los dos efectos pueden cancelarse en la media, y \\(R\\) quedarse en 1 sobre un patrón que a
+          la escala de las manchas está claramente agregado. Que \\(R\\) valga 1 no prueba que el patrón sea
+          aleatorio: prueba que la distancia <em>media</em> al vecino más próximo es la que daría el azar con
+          esa densidad.</p>
       </div>
 
       <p style="margin-bottom:0;">Y ahí está la razón de dividir por la distancia esperada en vez de comparar las
-        observadas: descontada la densidad, lo que queda en \\(R\\) es la <em>disposición</em> —pero solo a una
-        escala—. El capítulo 4 sustituye este único número por las funciones \\(G\\), \\(F\\), \\(K\\) y \\(g\\),
+        observadas: descontada la densidad, lo que queda en \\(R\\) es la <em>disposición</em> —pero resumida en
+        un solo número—. El capítulo 4 sustituye este único número por las funciones \\(G\\), \\(F\\), \\(K\\) y \\(g\\),
         que dicen a qué distancia ocurre cada cosa en vez de resumirlo todo en un escalar, y son exactamente la
         herramienta que le falta a la advertencia de arriba.</p>
 """ + CIERRE
@@ -1170,8 +1217,8 @@ MOD4 = cabecera(
           \\frac{{1}}{{n^2}}\\left[\\sum_i \\operatorname{{Var}}(Z_i)
           + \\sum_{{i \\neq j}} \\operatorname{{Cov}}(Z_i, Z_j)\\right]
           = \\frac{{\\sigma^2}}{{n}}\\left[1 + \\frac{{1}}{{n}}\\sum_{{i \\neq j}} \\rho_{{ij}}\\right]$$</p>
-        <p>El corchete es el <strong>factor de inflación por diseño</strong>. Vale 1 solo si todas las correlaciones
-          se anulan. De \\(\\phi = {r4['phi']}\\) a las cifras que publica el módulo hay tres pasos, y conviene
+        <p>El corchete es el <strong>factor de inflación por diseño</strong>. Vale 1 cuando la suma de las
+          correlaciones se anula —en particular, si todas son cero—. De \\(\\phi = {r4['phi']}\\) a las cifras que publica el módulo hay tres pasos, y conviene
           verlos separados porque el tercero es el que casi nadie cuenta.</p>
         <p><strong>Uno · de \\(\\phi\\) a la correlación.</strong> Como \\(h\\) va en pasos de retícula, dos celdas
           contiguas están a \\(h = 1\\), así que su correlación es \\(e^{{-1/\\phi}}\\). Con
@@ -1208,7 +1255,7 @@ MOD4 = cabecera(
         escolar de los <strong>{ent(ir['n_municipios'])}</strong> municipios colombianos tiene media
         {n(ir['media'])}&nbsp;%. Su error estándar se estima dos veces por remuestreo con
         {ent(ir['nboot'])} réplicas: remuestreando <em>municipios sueltos</em> —que es suponer independencia— y
-        remuestreando <strong>departamentos enteros</strong>, que respeta la dependencia dentro de cada uno.</p>
+        remuestreando <strong>departamentos enteros</strong>, que conserva la dependencia dentro de cada uno.</p>
 
       <table>
         <caption>Error estándar de la deserción media municipal por dos remuestreos, y el intervalo al 95 % que
@@ -1225,8 +1272,58 @@ MOD4 = cabecera(
         </tbody>
       </table>
 
-      <p>Factor <strong>{n(ir['factor'])}</strong>. El intervalo honesto es cuatro veces más ancho que el ingenuo, y
-        eso con dato real, sin simular nada. Los dos están centrados en el mismo sitio.</p>
+      <p>Factor <strong>{n(ir['factor'])}</strong>. El intervalo por bloques es cuatro veces más ancho que el
+        ingenuo, y eso con dato real, sin simular nada. Los dos comparten centro porque los dos se han construido
+        alrededor de la media muestral, {n(ir['media'])}, sumándole y restándole el error estándar de cada
+        remuestreo multiplicado por el cuantil normal.</p>
+
+      <p>Las réplicas, en cambio, no comparten centro. Las del remuestreo de municipios sueltos promedian
+        {n(rp['media_iid'])}, a menos de un error de Monte Carlo de la media muestral. Las del remuestreo por
+        departamentos tienen otra esperanza: calculada con {ent(rp['nrep_esperanza'])} réplicas, vale
+        <strong>{n(rp['esperanza_bloques'])}</strong>, {n(rp['desvio_esperanza'])} por encima de la media muestral,
+        con un error de Monte Carlo de {n(rp['emc_esperanza'])}. Las {ent(ir['nboot'])} réplicas de la tabla
+        promedian {n(rp['media_bloques'])}, dentro de su propio ruido alrededor de esa esperanza. El desvío no es
+        ruido, y tiene explicación. Los departamentos tienen entre {rp['bloque_min']} y {rp['bloque_max']}
+        municipios, así que cada réplica reúne un número distinto de municipios y su media es un cociente de dos
+        sumas que cambian a la vez —un <em>estimador de razón</em>—, cuya esperanza no es la media de partida.
+        El desvío es pequeño, el {n(rp['desvio_esperanza_pct_ee'])}&nbsp;% del error estándar por bloques, y no
+        cambia la tabla. El intervalo se centra en la media muestral porque ésa es la estimación y el intervalo se
+        construye a su alrededor; el desvío es un motivo más para no recentrarlo en la media de las réplicas.</p>
+
+      <div class="warning">
+        <p><strong>Lo que ese error estándar supone, y cuánto se le puede creer.</strong> Remuestrear departamentos
+          enteros conserva la dependencia <em>dentro</em> de cada departamento y, a cambio, trata los
+          {ent(ir['n_departamentos'])} departamentos como <strong>independientes entre sí</strong>. Si los
+          departamentos vecinos se parecen, esa dependencia queda fuera de la cuenta y el error estándar por
+          bloques también se queda corto: corrige al ingenuo, pero no es el verdadero.</p>
+        <p>Además es una estimación hecha con {ent(ir['n_departamentos'])} bloques de tamaños muy desiguales, y
+          ella misma es incierta. Una primera mirada es quitar un departamento cada vez y repetir los dos
+          remuestreos con los {ent(sud['n_departamentos_quedan'])} que quedan, con {ent(sud['nboot'])} réplicas
+          para que el ruido de Monte Carlo no decida. El factor va de <strong>{n(sud['factor_min'])}</strong> a
+          <strong>{n(sud['factor_max'])}</strong>, y el tamaño efectivo que el módulo 5 saca de él, de
+          <strong>{n(sud['n_eff_min'])}</strong> a <strong>{n(sud['n_eff_max'])}</strong> municipios. El factor
+          más bajo y el tamaño efectivo más alto salen al quitar {sud['extremo']['departamento']}, que tiene
+          {ent(sud['extremo']['municipios'])} de los {ent(ir['n_municipios'])} municipios: sin él, el factor queda
+          por debajo del de la tabla y el tamaño efectivo, por encima.</p>
+        <p>Ese recorrido mide la <strong>sensibilidad a un solo departamento</strong>, no la incertidumbre, y como
+          medida de la incertidumbre se queda corto. Cada uno de esos {ent(ir['n_departamentos'])} cálculos
+          comparte con cualquier otro todos sus departamentos menos uno, así que sus resultados se parecen entre
+          sí mucho más de lo que se parecerían {ent(ir['n_departamentos'])} estimaciones independientes. El
+          <em>jackknife</em> repone lo que falta: toma la dispersión de los \\(K = {ir['n_departamentos']}\\)
+          valores \\(f_i\\) alrededor de su media y la amplía con el número de bloques,</p>
+        <p style="text-align:center;">$$\\widehat{{ee}}_{{\\text{{jk}}}} =
+          \\sqrt{{\\frac{{K-1}}{{K}} \\sum_{{i=1}}^{{K}} \\left(f_i - \\bar{{f}}\\right)^2}}$$</p>
+        <p style="margin-bottom:0;">Da un error estándar de <strong>{n(sud['ee_jackknife_factor'])}</strong> para
+          el factor y de <strong>{n(sud['ee_jackknife_n_eff'])}</strong> municipios para el tamaño efectivo, el
+          {n(sud['ee_jackknife_n_eff_pct'])}&nbsp;% de la cifra publicada: más que medio recorrido en los dos
+          casos. Con {ent(ir['n_departamentos'])} bloques, el tamaño efectivo se conoce solo en orden de magnitud:
+          queda muy lejos de los {ent(ir['n_municipios'])} municipios, pero la cifra de la tabla,
+          {n(ir['n_eff'])}, no se puede leer con sus decimales. Cambiar de semilla mueve las cifras
+          bastante menos que quitar un departamento: con otras {ent(osm['n'])} parejas de semillas y los
+          {ent(ir['n_departamentos'])} departamentos, el tamaño efectivo va de {n(osm['n_eff_min'])} a
+          {n(osm['n_eff_max'])}. La incertidumbre que pesa no es la del generador de números aleatorios: es la de
+          contar con {ent(ir['n_departamentos'])} bloques.</p>
+      </div>
 
 """ + tabs(
     "El error estándar ingenuo frente al de bloques, sobre la deserción real",
@@ -1244,14 +1341,69 @@ B &lt;- 4000
 set.seed(2226)
 ee_iid &lt;- sd(replicate(B, mean(sample(ok$desercion, nrow(ok), replace = TRUE))))
 set.seed(2227)
-ee_blq &lt;- sd(replicate(B, {
+rep_blq &lt;- replicate(B, {
   sel &lt;- sample(seq_along(bloques), length(bloques), replace = TRUE)
   mean(unlist(bloques[sel], use.names = FALSE))
-}))
+})
+ee_blq &lt;- sd(rep_blq)
 cat(sprintf("i.i.d. = %.5f | bloques = %.5f | factor = %.5f\\n",
             ee_iid, ee_blq, ee_blq / ee_iid))
 #&gt; """ + f"i.i.d. = {n(ir['ee_bootstrap_iid'])} | bloques = "
-    f"{n(ir['ee_bootstrap_bloques'])} | factor = {n(ir['factor'])}",
+    f"{n(ir['ee_bootstrap_bloques'])} | factor = {n(ir['factor'])}" + """
+
+# Las replicas por bloques NO tienen por esperanza la media muestral: cada
+# una reune un numero distinto de municipios, y su media es un cociente de
+# dos sumas. Con 4 000 replicas la diferencia apenas se separa del ruido,
+# asi que la esperanza se calcula aparte: remuestrear departamentos es
+# sortear cuantas veces sale cada uno (una multinomial).
+sumas &lt;- sapply(bloques, sum)
+tams  &lt;- lengths(bloques)
+K &lt;- length(bloques)
+set.seed(2230)
+total &lt;- 0
+for (lote in 1:10) {
+  veces &lt;- rmultinom(200000, K, rep(1 / K, K))        # K x 200 000
+  total &lt;- total + sum(as.vector(crossprod(veces, sumas)) /
+                       as.vector(crossprod(veces, tams)))
+}
+cat(sprintf("media muestral = %.5f | replicas de arriba = %.5f | su esperanza = %.5f\\n",
+            mean(ok$desercion), mean(rep_blq), total / 2e6))
+#&gt; """ + f"media muestral = {n(ir['media'])} | replicas de arriba = "
+    f"{n(rp['media_bloques'])} | su esperanza = {n(rp['esperanza_bloques'])}" + """
+
+# Cuanto depende ese factor de un solo departamento: se quita uno cada vez
+# y se repiten los dos remuestreos con los que quedan, con mas replicas
+# para que el ruido no decida. Tarda alrededor de medio minuto.
+B_sin &lt;- """ + str(sud['nboot']) + """
+sin_uno &lt;- sapply(names(bloques), function(d) {
+  q  &lt;- ok$dpto != d
+  y  &lt;- ok$desercion[q]
+  bl &lt;- split(y, ok$dpto[q])
+  set.seed(""" + str(sud['semilla_iid']) + """)
+  e_i &lt;- sd(replicate(B_sin, mean(sample(y, length(y), replace = TRUE))))
+  set.seed(""" + str(sud['semilla_bloques']) + """)
+  e_b &lt;- sd(replicate(B_sin, {
+    sel &lt;- sample(seq_along(bl), length(bl), replace = TRUE)
+    mean(unlist(bl[sel], use.names = FALSE))
+  }))
+  c(factor = e_b / e_i, n_eff = length(y) * (e_i / e_b)^2)
+})
+cat(sprintf("factor: de %.5f a %.5f | n efectivo: de %.5f a %.5f\\n",
+            min(sin_uno["factor", ]), max(sin_uno["factor", ]),
+            min(sin_uno["n_eff", ]), max(sin_uno["n_eff", ])))
+#&gt; """ + f"factor: de {n(sud['factor_min'])} a {n(sud['factor_max'])} | n efectivo: de "
+    f"{n(sud['n_eff_min'])} a {n(sud['n_eff_max'])}" + """
+
+# Ese recorrido es la sensibilidad a un departamento, no la incertidumbre:
+# los 33 calculos comparten casi todos sus departamentos. El error estandar
+# jackknife la repone con esos mismos valores.
+ee_jk &lt;- apply(sin_uno, 1, function(v) {
+  sqrt((length(v) - 1) / length(v) * sum((v - mean(v))^2))
+})
+cat(sprintf("e.e. jackknife: factor %.5f | n efectivo %.5f\\n",
+            ee_jk[["factor"]], ee_jk[["n_eff"]]))
+#&gt; """ + f"e.e. jackknife: factor {n(sud['ee_jackknife_factor'])} | n efectivo "
+    f"{n(sud['ee_jackknife_n_eff'])}",
     """import pandas as pd, numpy as np
 
 mun = pd.read_csv("datos/procesado/municipios_llave.csv", dtype={"divipola": str})
@@ -1302,7 +1454,7 @@ MOD5 = cabecera(
     5, "Tamaño de muestra efectivo", "Effective sample size",
     "Traducir «hay dependencia» a una cifra que se entienda: cuántas "
     "observaciones independientes valen las que tienes.") + f"""
-      <p>El módulo 4 dejó una pregunta incómoda: si el intervalo honesto es {n(ir['factor'])} veces más ancho, ¿de
+      <p>El módulo 4 dejó una pregunta incómoda: si el intervalo por bloques es {n(ir['factor'])} veces más ancho, ¿de
         cuántos municipios se trata en realidad? El <strong>tamaño de muestra efectivo</strong> responde
         justo eso.</p>
 
@@ -1464,8 +1616,8 @@ MOD5 = cabecera(
           remuestreo por departamentos</strong>, y su curva pasa por el rombo del simulador porque de ahí se
           despeja. No es una medición aparte, y es aproximada por tres lados.</p>
         <ul style="margin-bottom:0;">
-          <li>Hereda la incertidumbre del remuestreo y su supuesto, que los {ent(ir['n_departamentos'])}
-            departamentos son bloques independientes entre sí. Si entre departamentos vecinos queda dependencia
+          <li>Hereda la incertidumbre del remuestreo —el módulo 4 le pone un error estándar, y es de
+            {n(sud['ee_jackknife_n_eff'])} municipios— y su supuesto, que los {ent(ir['n_departamentos'])} departamentos son bloques independientes entre sí. Si entre departamentos vecinos queda dependencia
             positiva, el remuestreo subestima la varianza y este \\(\\bar{{\\rho}}\\) se queda corto.</li>
           <li>La identidad pide la misma varianza en todas las observaciones, y los municipios no la
             tienen.</li>
@@ -1619,10 +1771,11 @@ MOD6 = cabecera(
 
       <div class="warning">
         <p><strong>La cifra que hay que recordar de este módulo.</strong> De esas {ent(ur['n_realizaciones'])}
-          realizaciones —todas del mismo proceso, todas con media verdadera {ur['media_del_proceso']}— el análisis
-          ingenuo declararía significativa la media en el <strong>{n(ur['pct_rechaza_ingenuo'])}&nbsp;%</strong> de
-          los casos (± {n(ur['emc_rechaza'])}), cuando debería hacerlo en el
-          {n(ur['pct_esperado_si_valiera'])}&nbsp;%.</p>
+          realizaciones —todas del mismo proceso, todas con media verdadera {ur['media_del_proceso']}— la prueba que
+          haría el análisis ingenuo, una \\(t\\) de una muestra para \\(H_0\\!: \\mu = {ur['media_del_proceso']}\\),
+          bilateral y con \\(\\alpha = {D['inferencia']['alfa']}\\), rechaza en el
+          <strong>{n(ur['pct_rechaza_ingenuo'])}&nbsp;%</strong> de los casos (± {n(ur['emc_rechaza'])}), cuando
+          debería hacerlo en el {n(ur['pct_esperado_si_valiera'])}&nbsp;%.</p>
         <p style="margin-bottom:0;">Y aquí conviene ver que ese {n(ur['pct_rechaza_ingenuo'])}&nbsp;% es el módulo 4
           del revés: allí la <em>cobertura</em> con \\(\\phi = {r4['phi']}\\) salía {n(r4['cobertura'])}, o sea un
           {n(ur['pct_rechaza_modulo4'])}&nbsp;% de rechazo. Los dos números miden lo mismo por caminos distintos y se
@@ -1782,10 +1935,26 @@ MOD7 = cabecera(
     "veces de signo— según sobre qué unidades se mida. Y, con las unidades "
     "quietas, según cómo se agregue.") + f"""
       <p>La deserción escolar de los {ent(es['n_municipal'])} municipios colombianos tiene un índice de Moran de
-        <strong>{n(es['moran_municipal'])}</strong>: autocorrelación inequívoca. Agrega esos municipios a los
-        {es['n_departamental']} departamentos y la misma variable da <strong>{n(es['moran_departamental'])}</strong>,
-        que ya no se distingue del azar (p&nbsp;=&nbsp;{n(es['p_departamental'])}). Una caída del
-        <strong>{n(es['caida_pct'])}&nbsp;%</strong>.</p>
+        <strong>{n(es['moran_municipal'])}</strong>: autocorrelación inequívoca, a {n(es['z_municipal'])}
+        desviaciones estándar de lo que daría el azar. Agrega esos municipios a los {es['n_departamental']}
+        departamentos y la misma variable da <strong>{n(es['moran_departamental'])}</strong>, a
+        {n(es['z_departamental'])} desviaciones: ya no se distingue del azar
+        (p&nbsp;=&nbsp;{n(es['p_departamental'])}, en la prueba de Moran bajo aleatorización y a una cola, la de
+        la autocorrelación positiva, que es la que hace <code>moran.test</code>).</p>
+
+      <p>La I departamental es un <strong>{n(es['caida_pct'])}&nbsp;%</strong> menor que la municipal. Ese
+        porcentaje describe las dos cifras, pero no mide cuánta autocorrelación «se pierde» al agregar: las dos I
+        no se obtienen con la misma regla. Cada una usa su propia matriz de pesos —contigüidad entre municipios,
+        contigüidad entre departamentos— y su propio \\(n\\), y la desviación estándar de la I bajo la nula con
+        {es['n_departamental']} unidades es {n(es['razon_ee'])} veces la de {ent(es['n_municipal'])}.</p>
+
+      <p>La \\(z\\) sitúa cada I en su propia nula, y es ella, con su p, la que dice que la municipal es
+        inequívoca y que la departamental no se distingue del azar. Pero tampoco las dos \\(z\\) se comparan entre
+        sí como medida de cuánta autocorrelación queda, porque la \\(z\\) crece con \\(n\\). Si la I departamental
+        fuera <em>igual</em> a la municipal, {n(es['moran_municipal'])}, su \\(z\\) sería
+        <strong>{n(es['z_departamental_si_igual'])}</strong>, no {n(es['z_municipal'])}. Que la departamental no
+        se distinga del azar mezcla dos cosas: que la I baja, y que con {es['n_departamental']} unidades la prueba
+        tiene mucha menos potencia.</p>
 
       <p>No se ha cambiado el dato, ni la variable, ni el país. Se ha cambiado <strong>la unidad de análisis</strong>,
         y la unidad de análisis es una <strong>decisión de modelado</strong>, no de presentación. Eso es el
@@ -1838,12 +2007,13 @@ MOD7 = cabecera(
         <strong>{n(pr['diferencia_umbral_30'])}</strong>.</p>
 
       <div class="note">
-        <p style="margin-bottom:0;"><strong>Ese barrido no es celo, es una cicatriz.</strong> La primera versión de
-          este módulo iba a publicar que la correlación subía un 345&nbsp;% al agregar, con otro par de variables.
-          Era cierto en el sentido aritmético y falso en el que importa: las dos cifras eran ruido con signos
-          opuestos —0.02 y −0.09— y el «345&nbsp;%» era el cociente entre dos ceros. Lo salvó barrer el umbral en
-          vez de publicar una cifra sola, que es la misma receta que ya había salvado la falacia ecológica del
-          capítulo 3 en la fase anterior.</p>
+        <p style="margin-bottom:0;"><strong>Ese barrido no es celo.</strong> Un porcentaje de cambio entre dos
+          correlaciones solo significa algo si las dos están lejos de cero. Cuando las dos son ruido alrededor de
+          cero, el cociente entre ellas puede dar cualquier cosa —un cambio de varios cientos por ciento entre dos
+          cifras que no se distinguen de cero—, y si además tienen signos opuestos lo único que crece es el valor
+          absoluto \\(|r|\\), no la correlación. Por eso, antes de publicar cuánto cambia una correlación al
+          agregar, se comprueba que las dos cifras se sostienen: se barre el umbral de tamaño en vez de dar una
+          cifra sola.</p>
       </div>
 
       <div class="warning">
@@ -1851,7 +2021,7 @@ MOD7 = cabecera(
           {av['a_corta']} × {av['b_corta']}, en naranja en la gráfica de los {ec['n_pares']} pares:
           <strong>{n(av['r_municipal'])}</strong> por municipio, <strong>{n(av['r_departamental'])}</strong> por
           departamento. Con {av['n_departamentos']} departamentos, esa cifra departamental no se distingue de cero
-          (p&nbsp;=&nbsp;{n(av['p_departamental'])}). Y el estrato arrastra un problema propio: lo declara cada
+          (p&nbsp;=&nbsp;{n(av['p_departamental'])}, en la prueba bilateral de la correlación de Pearson). Y el estrato arrastra un problema propio: lo declara cada
           estudiante, no todos lo declaran, y la fracción que lo declara va con el puntaje
           (r&nbsp;=&nbsp;{n(av['cor_cobertura_puntaje'])} entre municipios). Donde lo declaran pocos, el «estrato
           medio» es el de un subgrupo, y no uno cualquiera.</p>
@@ -2249,8 +2419,8 @@ MOD10 = cabecera(
         </tbody>
       </table>
 
-      <p>El error real es un <strong>{n(cv['inflacion_pct'])}&nbsp;%</strong> mayor que el que anuncia la validación
-        aleatoria. Y el R² es la cifra que más duele: pasa de <strong>{n(cv['r2_aleatoria'])}</strong> —un modelo
+      <p>El error al predecir en una zona no medida es un <strong>{n(cv['inflacion_pct'])}&nbsp;%</strong> mayor
+        que el que anuncia la validación aleatoria. Y el R² es la cifra que más duele: pasa de <strong>{n(cv['r2_aleatoria'])}</strong> —un modelo
         que parece explicar dos tercios de la variación— a <strong>{n(cv['r2_bloques'])}</strong>, que es
         <em>negativo</em>: predecir la media global lo haría mejor.</p>
 
@@ -2513,9 +2683,11 @@ PISTAS = [
     "No calcules las distancias dos veces: la matriz muerte × bomba ya la tienes. Quitar una bomba es quedarse "
     "con las otras doce columnas y volver a tomar el mínimo por fila. Y separa los dos grupos ANTES de promediar; "
     "si promedias las 578 juntas, el efecto se diluye y no verás nada.",
-    "Los dos remuestreos tienen que dar la MISMA media: si no, hay un error en el montaje, no un hallazgo. Lo que "
-    "cambia es la anchura. Y para la última parte, no compares los dos intervalos entero contra entero: mira los "
-    "dos tramos donde uno llega y el otro no.",
+    "Los dos intervalos se centran en la MISMA cifra, la media de los municipios, y lo que cambia entre ellos es "
+    "la anchura. La media de las réplicas es otra cosa: la del remuestreo por departamentos no tiene por qué "
+    "coincidir con la de los municipios, porque los departamentos no son del mismo tamaño, y una diferencia "
+    "pequeña ahí no es un error del montaje. Para la última parte, no compares los dos intervalos entero contra "
+    "entero: mira los dos tramos donde uno llega y el otro no.",
     "El apartado (a) es el módulo 4 con otro dato: entre los dos remuestreos solo cambia lo que se saca de la "
     "urna, estaciones sueltas o departamentos enteros con todas sus estaciones dentro. Para (b), despeja la "
     "correlación media de la fórmula del módulo 5 y escribe el límite de esa fórmula cuando n crece con la "
@@ -3309,8 +3481,8 @@ SIMULADORES_JS = r"""
         } else {
           lectura(raiz, [['muertes de la celda de Broad St', `${s.n_mas_cerca_broad} de ${s.n_muertes}`],
             ['porcentaje', n5(s.pct_mas_cerca_broad) + ' %'],
-            ['si se repartieran por igual', n5(s.pct_esperado_uniforme) + ' %'],
-            ['razón', n5(s.razon_sobre_uniforme) + '×']]);
+            ['reparto ingenuo, por igual entre bombas', n5(s.pct_esperado_uniforme) + ' %'],
+            ['razón sobre ese reparto', n5(s.razon_sobre_uniforme) + '×']]);
         }
       };
       botonera(raiz, [['broad', 'Broad Street contra el resto'],
@@ -3491,7 +3663,9 @@ SIMULADORES_JS = r"""
       const g = crearGraficoLinea(canvas, ejes,
         SERIES.map(x => ({ label: x.etiqueta, data: x.d.bandas.map(b => b.I),
           borderColor: x.color, borderDash: x.dash, tension: 0.2, pointRadius: 3 }))
-          .concat([{ label: ESPERADO, data: ejes.map(() => t.ideam.esperado),
+          // Banda a banda: con unidades sin vecinos, spdep multiplica por n'
+          // y no por n, y la esperanza por permutación es -n'/(n(n - 1)).
+          .concat([{ label: ESPERADO, data: t.ideam.bandas.map(b => b.esperado),
             borderColor: COLORES_GRAFICO.primario, borderDash: [2, 3], pointRadius: 0 }]),
         { scales: { x: { title: { display: true, text: 'banda de distancia (km)' } },
                     y: { title: { display: true, text: 'I de Moran' } } } });
@@ -3566,7 +3740,10 @@ SIMULADORES_JS = r"""
       };
       const lee = () => {
         const u = t.ideam.bandas.length - 1;
-        const filas = [[ESPERADO, n5(t.ideam.esperado, 6)]];
+        const filas = [[ESPERADO + ', con las ' + t.ideam.bandas[u].n_con_vecinos + ' estaciones',
+          n5(t.ideam.esperado, 6)],
+          ['y en la primera banda, con las ' + t.ideam.bandas[0].n_con_vecinos + ' que tienen vecinos',
+            n5(t.ideam.bandas[0].esperado, 6)]];
         if (params.real) {
           filas.push(['primera banda, dato real', n5(t.ideam.bandas[0].I)],
             ['última banda, dato real', n5(t.ideam.bandas[u].I)]);
@@ -4035,7 +4212,7 @@ SIMULADORES_JS = r"""
                            : { etiqueta: 'R²', tituloValor: 'R²' });
         lectura(raiz, vista === 'rmse'
           ? [['RMSE aleatoria', n5(c.rmse_aleatoria)], ['RMSE por bloques', n5(c.rmse_bloques)],
-             ['el error real es mayor en', n5(c.inflacion_pct) + ' %'],
+             ['en una zona no medida el error es mayor en', n5(c.inflacion_pct) + ' %'],
              ['sd de la variable', n5(c.sd_variable)]]
           : [['R² aleatoria', n5(c.r2_aleatoria)], ['R² por bloques', n5(c.r2_bloques)],
              ['lectura', 'negativo: predecir la media global lo haría mejor']]);
@@ -4082,17 +4259,19 @@ QUIZ_JS = r"""
       },
       {
         tipo: 'opcion', modulo: 4,
-        pregunta: '¿Verdadero o falso? Con datos espaciales correlacionados, el error estándar clásico '
-          + '$s/\\sqrt{n}$ sale demasiado PEQUEÑO, y por eso los intervalos de confianza salen más estrechos de '
-          + 'lo que deberían.',
+        pregunta: '¿Verdadero o falso? Con datos espaciales positivamente correlacionados —lo cercano se '
+          + 'parece—, el error estándar clásico $s/\\sqrt{n}$ sale demasiado PEQUEÑO, y por eso los intervalos de '
+          + 'confianza salen más estrechos de lo que deberían.',
         pista: 'Piensa en si dos observaciones vecinas aportan información nueva o información repetida.',
         opciones: [
           { texto: 'Verdadero', correcta: true,
-            retro: 'Y el capítulo lo mide: con dato colombiano real el error estándar honesto es '
-              + n5(D1.inferencia_real.factor) + ' veces el ingenuo.' },
+            retro: 'Y el capítulo lo mide: con dato colombiano real, el error estándar que conserva la '
+              + 'dependencia dentro de cada departamento es ' + n5(D1.inferencia_real.factor) + ' veces el ingenuo. '
+              + 'El signo importa: con correlación negativa pasaría lo contrario.' },
           { texto: 'Falso', correcta: false,
             retro: 'Observaciones que se parecen aportan menos información de la que su número sugiere, así que '
-              + 'la fórmula clásica infla la confianza. Módulo 4.' }
+              + 'la fórmula clásica infla la confianza. Sería falso con correlación negativa, y por eso la '
+              + 'pregunta dice «positivamente». Módulo 4.' }
         ],
         retroAcierto: 'Y no es un matiz: la cobertura de un intervalo nominal al 95 % baja a '
           + n5(D1.inferencia.cobertura_phi4) + ' en el ejemplo del módulo 4.',
@@ -4174,9 +4353,10 @@ QUIZ_JS = r"""
           + 'aleatoria de 10 pliegues. ¿Qué esperas que pase?',
         pista: 'Piensa en qué tan lejos está cada punto de prueba del punto de entrenamiento más próximo.',
         opciones: [
-          { texto: 'El desempeño estimado saldrá mejor de lo que el modelo consigue de verdad.', correcta: true,
-            retro: 'El capítulo lo mide: el RMSE real es un ' + n5(D1.cv_espacial.inflacion_pct)
-              + ' % mayor que el que anuncia la CV aleatoria. Módulo 10.' },
+          { texto: 'El desempeño estimado saldrá mejor del que el modelo tendrá en una zona donde no se ha medido.',
+            correcta: true,
+            retro: 'El capítulo lo mide: el RMSE al predecir en una zona no medida es un '
+              + n5(D1.cv_espacial.inflacion_pct) + ' % mayor que el que anuncia la CV aleatoria. Módulo 10.' },
           { texto: 'Saldrá peor, porque los pliegues rompen la estructura espacial.', correcta: false,
             retro: 'Al revés: la CV aleatoria deja vecinos en entrenamiento y prueba, y eso AYUDA al modelo de '
               + 'forma artificial. Módulo 10.' },
@@ -4240,8 +4420,9 @@ QUIZ_JS = r"""
           + 'Broad Street como la más próxima? Responde con dos decimales.',
         respuesta: Number(n5(D1.snow.pct_mas_cerca_broad, 2)), tolerancia: 0.05,
         pista: 'Está en el módulo 1, y es la cifra que sostiene el mapa entero.',
-        retroAcierto: 'Y frente al ' + n5(D1.snow.pct_esperado_uniforme) + ' % que daría un reparto uniforme entre '
-          + 'las ' + D1.snow.n_bombas + ' bombas, son ' + n5(D1.snow.razon_sobre_uniforme) + ' veces.',
+        retroAcierto: 'Y frente al ' + n5(D1.snow.pct_esperado_uniforme) + ' % de un reparto ingenuo, por igual '
+          + 'entre las ' + D1.snow.n_bombas + ' bombas, son ' + n5(D1.snow.razon_sobre_uniforme) + ' veces. Ingenuo '
+          + 'porque ignora el área que sirve cada bomba y la población que la usa.',
         retroFallo: 'Son ' + D1.snow.n_mas_cerca_broad + ' de ' + D1.snow.n_muertes + ', o sea el '
           + n5(D1.snow.pct_mas_cerca_broad) + ' %.'
       },
@@ -4251,11 +4432,13 @@ QUIZ_JS = r"""
           + 'retirara el mango de la bomba. ¿Qué se sigue de ahí?',
         pista: 'Ojo con confundir "el brote se apagó después" con "se apagó por eso".',
         opciones: [
-          { texto: 'Que el mapa no puede atribuirle a la retirada del mango el final del brote.', correcta: true,
-            retro: 'El ' + n5(D1.snow.fecha_mango === null ? 0 : D1.snow.caida_hasta_mango_pct)
-              + ' % de la caída ya había ocurrido ese día. Snow tenía razón sobre el agua, pero no por este dato.' },
+          { texto: 'Que el dato no permite atribuirle a la retirada del mango el final del brote.', correcta: true,
+            retro: 'Ese día los ataques diarios ya habían caído un '
+              + n5(D1.snow.fecha_mango === null ? 0 : D1.snow.caida_hasta_mango_pct)
+              + ' % desde el pico. Tampoco prueba que la retirada no sirviera: solo que el descenso no la necesitó '
+              + 'para empezar.' },
           { texto: 'Que la retirada del mango fue lo que apagó el brote.', correcta: false,
-            retro: 'Es la lectura cómoda, y el dato la contradice: la curva ya venía cayendo. Módulo 1.' },
+            retro: 'Es la lectura cómoda, y el dato no la sostiene: la curva ya venía cayendo antes. Módulo 1.' },
           { texto: 'Que los datos de Snow están mal digitalizados.', correcta: false,
             retro: 'Están bien: coinciden con los polígonos de Thiessen en '
               + D1.snow.n_coinciden_tobler + ' de ' + D1.snow.n_muertes + '.' },
@@ -4337,8 +4520,16 @@ QUIZ_JS = r"""
           + D1.escala.n_departamental + ' departamentos. ¿Qué porcentaje cae? Dos decimales.',
         respuesta: Number(n5(D1.escala.caida_pct, 2)), tolerancia: 0.05,
         pista: 'Es una caída porcentual normal y corriente sobre el valor municipal.',
-        retroAcierto: 'Y no ha cambiado ni el dato ni la variable: solo la unidad de análisis.',
-        retroFallo: 'Cae el ' + n5(D1.escala.caida_pct) + ' %. Módulo 7.'
+        retroAcierto: 'Y no ha cambiado ni el dato ni la variable: solo la unidad de análisis. El porcentaje '
+          + 'describe las dos cifras, no mide cuánta autocorrelación se pierde: las dos I usan pesos y n distintos. '
+          + 'Tampoco sus z (' + n5(D1.escala.z_municipal) + ' y ' + n5(D1.escala.z_departamental) + ') se comparan '
+          + 'sin más: con ' + D1.escala.n_departamental + ' unidades, una I igual a la municipal tendría z = '
+          + n5(D1.escala.z_departamental_si_igual) + '.',
+        retroFallo: 'Cae el ' + n5(D1.escala.caida_pct) + ' %. Es una descripción de las dos cifras, no una medida '
+          + 'de cuánta autocorrelación se pierde: las dos I usan pesos y n distintos. Tampoco sus z ('
+          + n5(D1.escala.z_municipal) + ' y ' + n5(D1.escala.z_departamental) + ') se comparan sin más: con '
+          + D1.escala.n_departamental + ' unidades, una I igual a la municipal tendría z = '
+          + n5(D1.escala.z_departamental_si_igual) + '. Módulo 7.'
       },
       {
         tipo: 'opcion', modulo: 6,
@@ -5274,6 +5465,36 @@ def main() -> int:
         if tb[nombre]["esperado"] != tb["ideam"]["esperado"]:
             problemas.append(f"tobler.{nombre}.esperado no es el de ideam: E[I] es una sola "
                              f"recta para las tres series")
+        # R1 · T1.6 (C1-12). La referencia se dibuja banda a banda con la de
+        # `ideam`; vale para las tres porque comparten estaciones y bandas.
+        if [(b["n_con_vecinos"], b["esperado"], b["esperado_programa"]) for b in tb[nombre]["bandas"]] != \
+                [(b["n_con_vecinos"], b["esperado"], b["esperado_programa"]) for b in tb["ideam"]["bandas"]]:
+            problemas.append(f"la E[I] por banda de tobler.{nombre} no es la de ideam: la línea de "
+                             f"referencia del correlograma solo sería la de una de las tres series")
+    # Lo que el módulo 3 AFIRMA de esa referencia (C1-12): que es la esperanza
+    # por permutación, -n'/(n(n - 1)), con n' las estaciones con vecinos; que
+    # el programa imprime otra, -1/(n' - 1); que permutando de verdad sale la
+    # primera y no la segunda; que en la banda corta faltan estaciones y en
+    # la última están todas —la lectura del simulador empareja el -1/(n - 1)
+    # del conjunto con el n de esa banda—.
+    n_est3 = co["geo"]["n"]
+    for b in tb["ideam"]["bandas"]:
+        if abs(b["esperado"] + b["n_con_vecinos"] / (n_est3 * (n_est3 - 1))) > 1e-9:
+            problemas.append(f"la E[I] de la banda {b['d1']}-{b['d2']} ({b['esperado']}) no es "
+                             f"-n'/(n(n - 1)) con n' = {b['n_con_vecinos']}, y la prosa lo dice")
+        if abs(b["esperado_programa"] + 1 / (b["n_con_vecinos"] - 1)) > 1e-9:
+            problemas.append(f"la esperanza que imprime el programa en la banda {b['d1']}-{b['d2']} "
+                             f"({b['esperado_programa']}) no es -1/(n' - 1), y la prosa dice que sí")
+    if not (abs(pb1["media"] - b0["esperado"]) < 4 * pb1["emc"]
+            < abs(pb1["media"] - b0["esperado_programa"])):
+        problemas.append(f"la media de las permutaciones de la primera banda ({pb1['media']} ± {pb1['emc']}) "
+                         f"ya no respalda -n'/(n(n - 1)) frente a la convención del programa")
+    if not b0["n_con_vecinos"] < n_est3:
+        problemas.append(f"en la primera banda las {b0['n_con_vecinos']} estaciones tienen vecinos: el "
+                         f"módulo 3 dice que solo las tienen algunas de las {n_est3}")
+    if tb["ideam"]["bandas"][-1]["n_con_vecinos"] != n_est3:
+        problemas.append("en la última banda ya no tienen vecinos todas las estaciones: su referencia "
+                         "no es el -1/(n - 1) del conjunto que la prosa y la lectura le ponen al lado")
     # La fila «cuánto de la I era altitud» solo sale con las dos series
     # encendidas, y es exactamente esta cuenta entre ellas.
     i_r, i_a = tb["ideam"]["bandas"][0]["I"], tb["residuos_altitud"]["bandas"][0]["I"]
@@ -5282,6 +5503,122 @@ def main() -> int:
                          f"de {i_r} a {i_a} entre las dos series que el interruptor compara")
     print(f"  módulo 3: {len(bandas_ref)} bandas comunes a las 3 series · "
           f"E[I] = {n(tb['ideam']['esperado'], 6)} para las tres")
+
+    # --- R1 · T1.6 · lo que el módulo 4 afirma de su remuestreo ---------
+    #
+    # Ninguna de estas frases es una cifra, así que ningún auditor las lee:
+    # «por encima», «no es ruido», «a menos de un error de Monte Carlo»,
+    # «muy desiguales», «el extremo lo pone», «baja», «sube», «bastante
+    # menos». Cada una depende de un signo o de un orden que R podría cambiar
+    # con otro dato.
+    irg = D["inferencia_real"]
+    rpg, osg, sug = irg["replicas"], irg["otras_semillas"], irg["sin_un_departamento"]
+    if not rpg["desvio_esperanza"] > 0 or \
+            abs(rpg["esperanza_bloques"] - irg["media"] - rpg["desvio_esperanza"]) > 1e-8:
+        problemas.append(f"la esperanza de las réplicas por departamentos es {rpg['esperanza_bloques']} y la "
+                         f"media muestral {irg['media']}: el módulo 4 dice «{rpg['desvio_esperanza']} por encima»")
+    if not rpg["desvio_esperanza"] > 10 * rpg["emc_esperanza"]:
+        problemas.append(f"el desvío de la esperanza ({rpg['desvio_esperanza']}) no supera diez veces su "
+                         f"error de Monte Carlo ({rpg['emc_esperanza']}), y el módulo 4 dice que no es ruido")
+    if not abs(rpg["media_bloques"] - rpg["esperanza_bloques"]) < 3 * rpg["emc_media_bloques"]:
+        problemas.append(f"las réplicas de la tabla promedian {rpg['media_bloques']}, fuera de su ruido "
+                         f"alrededor de la esperanza {rpg['esperanza_bloques']}: la prosa dice «dentro»")
+    if not abs(rpg["desvio_iid"]) < rpg["emc_media_iid"]:
+        problemas.append(f"las réplicas i.i.d. se desvían {rpg['desvio_iid']} de la media muestral, más "
+                         f"que un error de Monte Carlo ({rpg['emc_media_iid']}), y la prosa dice que menos")
+    if not rpg["bloque_max"] >= 10 * rpg["bloque_min"]:
+        problemas.append(f"los departamentos tienen entre {rpg['bloque_min']} y {rpg['bloque_max']} "
+                         f"municipios: ya no son «de tamaños muy desiguales»")
+    filas_jk = sug["por_departamento"]
+    if len(filas_jk) != irg["n_departamentos"] or \
+            sug["n_departamentos_quedan"] != irg["n_departamentos"] - 1 or \
+            sum(f["municipios"] for f in filas_jk) != irg["n_municipios"]:
+        problemas.append("la lista de «un departamento menos» no recorre los departamentos del módulo 4 "
+                         "o sus municipios no suman los del remuestreo")
+    else:
+        fac_jk = [f["factor"] for f in filas_jk]
+        nef_jk = [f["n_eff"] for f in filas_jk]
+        if (min(fac_jk), max(fac_jk), min(nef_jk), max(nef_jk)) != \
+                (sug["factor_min"], sug["factor_max"], sug["n_eff_min"], sug["n_eff_max"]):
+            problemas.append("los recorridos del factor y del tamaño efectivo sin un departamento no son "
+                             "el mínimo y el máximo de la lista que R publica")
+        ext = sug["extremo"]
+        if ext != filas_jk[fac_jk.index(min(fac_jk))] or ext["n_eff"] != max(nef_jk):
+            problemas.append(f"{ext['departamento']} no es el departamento cuya ausencia da el factor "
+                             f"más bajo y el tamaño efectivo más alto, y la prosa lo nombra")
+        if not (ext["factor"] < irg["factor"] and ext["n_eff"] > irg["n_eff"]):
+            problemas.append(f"sin {ext['departamento']} el factor ya no queda por debajo del de la "
+                             f"tabla del módulo 4, o el tamaño efectivo por encima")
+    if not (sug["factor_min"] < irg["factor"] < sug["factor_max"]
+            and sug["n_eff_min"] < irg["n_eff"] < sug["n_eff_max"]):
+        problemas.append("el factor o el tamaño efectivo del titular quedan fuera del recorrido que da "
+                         "quitar un departamento")
+    # El recorrido NO es la incertidumbre: el error estándar jackknife sale de
+    # los mismos valores, supera a medio recorrido y deja el tamaño efectivo
+    # «en orden de magnitud».
+    if len(filas_jk) == irg["n_departamentos"]:
+        def _ee_jk(v):
+            m_ = sum(v) / len(v)
+            return ((len(v) - 1) / len(v) * sum((x - m_) ** 2 for x in v)) ** 0.5
+        if abs(_ee_jk([f["factor"] for f in filas_jk]) - sug["ee_jackknife_factor"]) > 1e-7 or \
+                abs(_ee_jk([f["n_eff"] for f in filas_jk]) - sug["ee_jackknife_n_eff"]) > 1e-6:
+            problemas.append("el error estándar jackknife publicado no sale de los valores de la lista "
+                             "«un departamento menos»")
+    if not ((sug["factor_max"] - sug["factor_min"]) / 2 < sug["ee_jackknife_factor"]
+            and (sug["n_eff_max"] - sug["n_eff_min"]) / 2 < sug["ee_jackknife_n_eff"]):
+        problemas.append("medio recorrido ya no queda por debajo del error estándar jackknife, y el "
+                         "módulo 4 dice que el recorrido se queda corto")
+    # «Queda muy lejos de los 1 121»: ni a tres errores estándar jackknife por encima llega a la cuarta
+    # parte de los municipios.
+    if not irg["n_eff"] + 3 * sug["ee_jackknife_n_eff"] < irg["n_municipios"] / 4:
+        problemas.append(f"el tamaño efectivo más tres e.e. jackknife ({irg['n_eff']} + 3 × "
+                         f"{sug['ee_jackknife_n_eff']}) llega a la cuarta parte de los municipios: «muy lejos "
+                         f"de los {irg['n_municipios']}» ya no se sostiene")
+    if not sug["ee_jackknife_n_eff_pct"] > 25 or \
+            abs(100 * sug["ee_jackknife_n_eff"] / irg["n_eff"] - sug["ee_jackknife_n_eff_pct"]) > 1e-6:
+        problemas.append(f"el e.e. jackknife del tamaño efectivo es el {sug['ee_jackknife_n_eff_pct']} % "
+                         f"de la cifra: «solo en orden de magnitud» ya no se sostiene")
+    if not (osg["n_eff_max"] - osg["n_eff_min"]) < 0.5 * (sug["n_eff_max"] - sug["n_eff_min"]):
+        problemas.append(f"cambiar de semilla mueve el tamaño efectivo de {osg['n_eff_min']} a "
+                         f"{osg['n_eff_max']}: ya no es «bastante menos» que quitar un departamento")
+    # El módulo 6 nombra la prueba y su nivel; el 5 % que «debería» rechazar
+    # es ese mismo alfa.
+    if abs(100 * D["inferencia"]["alfa"] - ur["pct_esperado_si_valiera"]) > 1e-9:
+        problemas.append(f"el módulo 6 enuncia la prueba con alfa = {D['inferencia']['alfa']} y dice que "
+                         f"debería rechazar en el {ur['pct_esperado_si_valiera']} %")
+    # El módulo 7 acompaña cada I de su z y dice qué se sigue de ellas.
+    if not (es["z_municipal"] > 3 and es["p_departamental"] > D["inferencia"]["alfa"]):
+        problemas.append(f"la I municipal (z = {es['z_municipal']}) ya no es inequívoca o la departamental "
+                         f"(p = {es['p_departamental']}) ya se distingue del azar: el módulo 7 dice lo contrario")
+    if not es["z_departamental"] < es["z_departamental_si_igual"] < es["z_municipal"]:
+        problemas.append(f"la z de una I departamental igual a la municipal ({es['z_departamental_si_igual']}) "
+                         f"ya no queda entre las dos z: el módulo 7 la usa para separar potencia de efecto")
+    if not es["razon_ee"] > 1 or \
+            abs(es["ee_departamental"] / es["ee_municipal"] - es["razon_ee"]) > 1e-7:
+        problemas.append(f"bajo la nula la I departamental ya no varía más que la municipal "
+                         f"(razón {es['razon_ee']}), y la prosa dice cuántas veces más")
+    # El ejercicio 2: sus intervalos se centran en la media muestral POR
+    # CONSTRUCCIÓN, y la lectura dice hacia qué lado caen las réplicas.
+    g2, t2 = S["e2"]["solucion"], S["e2"]
+    if any(abs((g2[k][0] + g2[k][1]) / 2 - g2["media"]) > 1e-7 for k in ("ic_iid", "ic_bloques")):
+        problemas.append("ejercicio 2: algún intervalo ya no está centrado en la media de los municipios, "
+                         "y la lectura y la pista dicen que los dos lo están")
+    lado2 = "por debajo" if g2["desvio_esperanza"] < 0 else "por encima"
+    if n(g2["esperanza_replicas_bloques"]) not in t2["lectura"] or f" {lado2} de la media" not in t2["lectura"] \
+            or abs(g2["esperanza_replicas_bloques"] - g2["media"] - g2["desvio_esperanza"]) > 1e-8 \
+            or not abs(g2["desvio_esperanza"]) > 10 * g2["emc_esperanza"]:
+        problemas.append(f"ejercicio 2: la lectura no dice que la esperanza de las réplicas por departamentos "
+                         f"es {n(g2['esperanza_replicas_bloques'])}, {lado2} de la media de los municipios, "
+                         f"o ese desvío ya no supera su error de Monte Carlo")
+    # El ejercicio 3: su recorrido es sensibilidad, y la lectura da el e.e. jackknife.
+    jk3b = S["e3"]["solucion"]["jackknife"]
+    if n(jk3b["ee_techo"]) not in S["e3"]["lectura"] or \
+            not (jk3b["maximo"]["techo"] - jk3b["minimo"]["techo"]) / 2 < jk3b["ee_techo"]:
+        problemas.append("ejercicio 3: la lectura no da el error estándar jackknife del techo, o medio "
+                         "recorrido ya no queda por debajo de él")
+    print(f"  módulo 4: esperanza de las réplicas por bloques {n(rpg['desvio_esperanza'])} por encima de la "
+          f"media · sin un departamento, n_eff de {n(sug['n_eff_min'])} a {n(sug['n_eff_max'])} · e.e. "
+          f"jackknife {n(sug['ee_jackknife_n_eff'])} · extremo: {sug['extremo']['departamento']}")
 
     # --- T2.4 · el mapa del módulo 7 y el caso que señala ---------------
     #

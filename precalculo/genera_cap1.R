@@ -446,13 +446,37 @@ moran_banda <- function(coords, z, d1, d2) {
   nb <- suppressWarnings(dnearneigh(coords, d1, d2))
   card_nb <- card(nb)
   if (all(card_nb == 0)) return(list(I = NA_real_, p = NA_real_,
-                                     n_pares = 0L, grado = 0))
+                                     n_pares = 0L, grado = 0,
+                                     n_con_vecinos = 0L, esperado = NA_real_,
+                                     esperado_programa = NA_real_))
   lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
   mt <- suppressWarnings(moran.test(z, lw, zero.policy = TRUE))
+  # LA REFERENCIA DE CADA BANDA NO ES LA DE TODAS (R1 · T1.6, C1-12). Con
+  # `zero.policy = TRUE` y `adjust.n = TRUE`, `moran.test` sustituye n por
+  # n' —las unidades CON vecinos en la banda— en dos sitios: en el factor
+  # n/S0 de la I y en la esperanza que imprime, -1/(n' - 1). Pero las
+  # unidades sin vecinos siguen dentro del centrado y de sum(z^2): la I que
+  # publica es (n'/S0) z'Wz / z'z con z centrada sobre las n. Bajo
+  # permutación E[z_i z_j] = -sum(z^2)/(n(n-1)) para i != j, luego
+  #     E[I] = -n' / (n (n - 1)).
+  # ESA es la esperanza por permutación de la cifra publicada, y la que el
+  # capítulo dibuja como referencia (`esperado`). El -1/(n' - 1) que
+  # imprime el programa es su convención, no esa media: va aparte, en
+  # `esperado_programa`, para que el capítulo pueda decirlo. Con n' = n las
+  # dos coinciden. C.2 comprueba la fórmula permutando de verdad.
+  n_con <- sum(card_nb > 0)
+  n_tot <- length(z)
+  e_programa <- mt$estimate[["Expectation"]]
+  if (abs(e_programa + 1 / (n_con - 1)) > 1e-12)
+    stop(sprintf("la esperanza que imprime moran.test en la banda %g-%g no es -1/(n' - 1) con n' = %d",
+                 d1, d2, n_con))
   list(I = r10(mt$estimate[["Moran I statistic"]]),
        p = r10(mt$p.value),
        n_pares = as.integer(sum(card_nb) / 2),
-       grado = r10(mean(card_nb)))
+       grado = r10(mean(card_nb)),
+       n_con_vecinos = as.integer(n_con),
+       esperado = r10(-n_con / (n_tot * (n_tot - 1))),
+       esperado_programa = r10(e_programa))
 }
 
 correlograma <- function(coords, z, cortes, escala = 1) {
@@ -474,6 +498,33 @@ cor_meuse <- correlograma(xy_meuse, log(meuse$zinc),
 xy_est <- st_coordinates(est)
 cor_ideam <- correlograma(xy_est, est$t_media_anual,
                           c(0, 25, 50, 100, 175, 300, 500, 800) * 1000, escala = 1000)
+
+# --- C.2b La esperanza de la primera banda, permutando de verdad ------
+# La referencia por banda es -n'/(n(n-1)), y no el -1/(n'-1) que imprime
+# moran.test. Es una cuenta de tres líneas, pero contradice la salida del
+# programa, así que no se da por buena: se permuta la temperatura entre las
+# estaciones y se calcula cada vez la MISMA I que publica spdep. El estado
+# del generador se guarda y se devuelve, para no mover lo que viene detrás.
+estado_rng_c2b <- get(".Random.seed", envir = globalenv())
+B1_D <- c(0, 25) * 1000
+nb_b1 <- suppressWarnings(dnearneigh(xy_est, B1_D[1], B1_D[2]))
+W_b1 <- listw2mat(nb2listw(nb_b1, style = "W", zero.policy = TRUE))
+n_con_b1 <- sum(card(nb_b1) > 0)
+z_b1 <- est$t_media_anual - mean(est$t_media_anual)
+I_b1 <- function(zz) (n_con_b1 / sum(W_b1)) * sum(zz * (W_b1 %*% zz)) / sum(zz^2)
+if (abs(I_b1(z_b1) - cor_ideam$bandas[[1]]$I) > 1e-9)
+  stop("C.2b: la I escrita a mano no es la que publica moran.test en la primera banda")
+NPERM_B1 <- 20000L
+set.seed(SEMILLA + 2L)
+perm_b1 <- replicate(NPERM_B1, I_b1(sample(z_b1)))
+emc_b1 <- sd(perm_b1) / sqrt(NPERM_B1)
+if (abs(mean(perm_b1) - cor_ideam$bandas[[1]]$esperado) > 4 * emc_b1)
+  stop(sprintf("C.2b: la media por permutación (%.6f) no es -n'/(n(n-1)) = %.6f",
+               mean(perm_b1), cor_ideam$bandas[[1]]$esperado))
+# Y sí se separa de la convención del programa: es lo que la prosa afirma.
+if (!(abs(mean(perm_b1) - cor_ideam$bandas[[1]]$esperado_programa) > 4 * emc_b1))
+  stop("C.2b: la media por permutación ya no se distingue de -1/(n' - 1)")
+assign(".Random.seed", estado_rng_c2b, envir = globalenv())
 
 # --- C.3 CONTRAEJEMPLO 1: el mismo dato, permutado --------------------
 # Destruir la posición y conservar los valores deja el correlograma plano
@@ -498,6 +549,9 @@ cor_resid <- correlograma(xy_est, res_alt,
 # En `cells` lo cercano NO se parece más: los puntos se repelen. Tobler
 # describe una tendencia empírica dominante, no una ley física.
 D$tobler <- list(
+  # C.2b · la esperanza de la primera banda del IDEAM, por permutación
+  permutacion_banda1 = list(
+    nperm = NPERM_B1, media = r10(mean(perm_b1)), emc = r10(emc_b1)),
   meuse  = cor_meuse,
   ideam  = cor_ideam,
   permutado = cor_perm,
@@ -541,7 +595,10 @@ PHIS <- c(0, 0.5, 1, 2, 4, 8, 16)
 # Cholesky no falle por redondeo con phi grande. 1e-9 sobre una varianza
 # de 1 es invisible, y se declara aquí en vez de esconderse.
 JITTER <- 1e-9
-t_crit <- qt(0.975, N4 - 1)
+# El nivel de la prueba, con nombre (R1 · T1.6, C1-26): el módulo 6 la
+# enuncia —t de una muestra, H0: mu = 0, bilateral— y su alfa sale de aquí.
+ALFA <- 0.05
+t_crit <- qt(1 - ALFA / 2, N4 - 1)
 
 mc <- lapply(PHIS, function(phi) {
   R <- if (phi <= 0) diag(N4) else exp(-DIST4 / phi)
@@ -620,6 +677,7 @@ D$inferencia <- list(
   # decir en qué se mide h, y nadie podía llegar a e^(-1/4) por su cuenta.
   escala_h = "distancia euclídea entre centros de celda, medida en pasos de retícula",
   sigma = 1,
+  alfa = ALFA,
   t_critico = r10(t_crit),
   rejilla = mc,
   # Las dos cifras con las que cierra el módulo
@@ -661,6 +719,151 @@ boot_blq <- replicate(NBOOT, {
 ee_iid <- sd(boot_iid)
 ee_blq <- sd(boot_blq)
 
+# --- D.2b Lo que el remuestreo por departamentos supone, y lo que no --
+# (R1 · T1.6, C1-17). Tres cosas que el módulo publicaba sin decir:
+#
+#   1. LAS RÉPLICAS POR BLOQUES NO ESTÁN CENTRADAS EN LA MEDIA MUESTRAL.
+#      Los departamentos tienen tamaños muy desiguales, así que cada
+#      réplica reúne un número distinto de municipios y su media,
+#      `mean(unlist(bloques[elegidos]))`, es un cociente de dos sumas
+#      aleatorias: un estimador de razón. Su esperanza bajo el remuestreo
+#      no es la media muestral. Los intervalos del módulo sí están
+#      centrados en ella, pero porque se CONSTRUYEN así (media ± z·ee), no
+#      porque las réplicas lo estén. Con las 4 000 réplicas del módulo el
+#      desvío apenas se separa de su ruido, así que la ESPERANZA de las
+#      réplicas se calcula aparte y con precisión: remuestrear K bloques con
+#      reemplazo es sortear cuántas veces sale cada uno (una multinomial), y
+#      la media de la réplica es (conteos·sumas)/(conteos·tamaños). Dos
+#      millones de réplicas cuestan segundos. Se para si el desvío deja de
+#      superar holgadamente su error de Monte Carlo: la prosa dice que no
+#      es ruido.
+#   2. EL ERROR ESTÁNDAR POR BLOQUES ES INCIERTO. Son 33 bloques. Se quita
+#      un departamento cada vez y se rehacen los dos remuestreos. El
+#      RECORRIDO de esos 33 valores es la sensibilidad a un departamento, NO
+#      la incertidumbre: cada cálculo comparte 31 de sus 32 departamentos
+#      con cualquier otro, así que los 33 valores se parecen mucho más que
+#      33 estimaciones independientes. El error estándar JACKKNIFE repone
+#      esa dispersión: sqrt((K-1)/K * sum((f_i - media)^2)). Se publican los
+#      dos, cada uno con su nombre.
+#   3. CUÁNTO DE ESO ES LA SEMILLA. Con todos los departamentos y otras
+#      parejas de semillas, para poder comparar los dos recorridos.
+#
+# EL ESTADO DEL GENERADOR SE GUARDA Y SE DEVUELVE. Este bloque entra en
+# medio de un guion cuyas secciones siguientes no siempre fijan semilla al
+# empezar; sin esto, añadirlo movería cifras ajenas.
+estado_rng_d2b <- get(".Random.seed", envir = globalenv())
+
+media_muni <- mean(muni_ok$desercion)
+desvio_iid <- mean(boot_iid) - media_muni
+desvio_blq <- mean(boot_blq) - media_muni
+emc_media_iid <- ee_iid / sqrt(NBOOT)
+emc_media_blq <- ee_blq / sqrt(NBOOT)
+# La esperanza de las réplicas por bloques, por la multinomial.
+esperanza_bloques <- function(sumas, tams, B, lote = 200000L) {
+  K <- length(sumas); s1 <- 0; s2 <- 0
+  stopifnot(B %% lote == 0)
+  for (b in seq_len(B / lote)) {
+    cnt <- rmultinom(lote, K, rep(1 / K, K))            # K x lote
+    m <- as.vector(crossprod(cnt, sumas)) / as.vector(crossprod(cnt, tams))
+    s1 <- s1 + sum(m); s2 <- s2 + sum(m^2)
+  }
+  media <- s1 / B
+  list(media = media, emc = sqrt((s2 / B - media^2) / B))
+}
+NREP_ESP <- 2000000L
+set.seed(SEMILLA + 204L)
+esp_blq <- esperanza_bloques(vapply(bloques, sum, numeric(1)), lengths(bloques), NREP_ESP)
+desvio_esp <- esp_blq$media - media_muni
+if (!(abs(desvio_esp) > 10 * esp_blq$emc))
+  stop("D.2b: la esperanza de las réplicas por bloques ya no se separa de la media muestral; ",
+       "la prosa del módulo 4 dice que no es ruido")
+# Las 4 000 réplicas del módulo tienen que ser compatibles con ella.
+if (!(abs(mean(boot_blq) - esp_blq$media) < 4 * emc_media_blq))
+  stop("D.2b: las réplicas del módulo no son compatibles con su esperanza")
+if (!(abs(desvio_iid) < 3 * emc_media_iid))
+  stop("D.2b: la media de las réplicas i.i.d. se separa de la muestral")
+
+remuestrea_d2 <- function(y, dpto, B, s_iid, s_blq) {
+  bl <- split(y, dpto)
+  set.seed(s_iid)
+  b_i <- replicate(B, mean(sample(y, length(y), replace = TRUE)))
+  set.seed(s_blq)
+  b_b <- replicate(B, {
+    e <- sample(seq_along(bl), length(bl), replace = TRUE)
+    mean(unlist(bl[e], use.names = FALSE))
+  })
+  c(iid = sd(b_i), bloques = sd(b_b))
+}
+deriva_d2 <- function(ee, n) list(factor = ee[["bloques"]] / ee[["iid"]],
+                                  n_eff = n * (ee[["iid"]] / ee[["bloques"]])^2)
+
+# Otras semillas, con todos los departamentos y el B del módulo.
+N_OTRAS_D2 <- 20L
+otras_d2 <- lapply(seq_len(N_OTRAS_D2), function(k)
+  deriva_d2(remuestrea_d2(muni_ok$desercion, muni_ok$dpto, NBOOT,
+                          SEMILLA + 1200L + k, SEMILLA + 1300L + k), n_muni))
+otros_factor <- vapply(otras_d2, function(o) o$factor, numeric(1))
+otros_neff_d2 <- vapply(otras_d2, function(o) o$n_eff, numeric(1))
+
+# Un departamento menos. EL B SE RAZONA, como en el ejercicio 3: tiene que
+# ser el dato, y no el ruido, lo que ponga el recorrido. Con B = 4 000 el
+# factor se mueve de una pareja de semillas a otra con `sd(otros_factor)`;
+# con B = 20 000, cinco veces más, esa desviación baja a menos de la mitad.
+# Se exige que el recorrido del factor al quitar departamentos sea más de
+# ocho veces esa desviación, y que el extremo que la prosa NOMBRA quede a
+# más de cuatro del siguiente: si no, el nombre lo pondría el ruido.
+NB_JK_D2 <- 20000L
+SEM_JK_D2_IID <- SEMILLA + 202L
+SEM_JK_D2_BLQ <- SEMILLA + 203L
+nombre_dpto <- tapply(muni_ok$departamento, muni_ok$dpto, function(v) v[1])
+if (any(tapply(muni_ok$departamento, muni_ok$dpto,
+               function(v) length(unique(v))) != 1L))
+  stop("D.2b: un prefijo DIVIPOLA con más de un nombre de departamento")
+jk_d2 <- lapply(names(bloques), function(cod) {
+  queda <- muni_ok$dpto != cod
+  d <- deriva_d2(remuestrea_d2(muni_ok$desercion[queda], muni_ok$dpto[queda],
+                               NB_JK_D2, SEM_JK_D2_IID, SEM_JK_D2_BLQ), sum(queda))
+  list(dpto = cod, departamento = unname(nombre_dpto[[cod]]),
+       municipios = as.integer(sum(!queda)),
+       factor = r10(d$factor), n_eff = r10(d$n_eff))
+})
+jk_factor <- vapply(jk_d2, function(j) j$factor, numeric(1))
+jk_neff <- vapply(jk_d2, function(j) j$n_eff, numeric(1))
+# El error estándar jackknife, con los 33 valores.
+ee_jk <- function(v) sqrt((length(v) - 1) / length(v) * sum((v - mean(v))^2))
+ee_jk_factor <- ee_jk(jk_factor)
+ee_jk_neff <- ee_jk(jk_neff)
+# La prosa dice que el recorrido se queda corto: medio recorrido es menor
+# que el error estándar. Y que el n efectivo se conoce en orden de magnitud.
+if (!(diff(range(jk_factor)) / 2 < ee_jk_factor && diff(range(jk_neff)) / 2 < ee_jk_neff))
+  stop("D.2b: medio recorrido ya no queda por debajo del error estándar jackknife")
+if (!(ee_jk_neff > 0.25 * n_muni * (ee_iid / ee_blq)^2))
+  stop("D.2b: el e.e. jackknife del n efectivo baja del 25 %; «orden de magnitud» sobra")
+# Y la referencia de ese mismo B con los 33, para leer el recorrido.
+todos_jk <- deriva_d2(remuestrea_d2(muni_ok$desercion, muni_ok$dpto, NB_JK_D2,
+                                    SEM_JK_D2_IID, SEM_JK_D2_BLQ), n_muni)
+sd_semilla_jk_d2 <- sd(otros_factor) / sqrt(NB_JK_D2 / NBOOT)
+if (!(diff(range(jk_factor)) > 8 * sd_semilla_jk_d2))
+  stop("D.2b: el recorrido del factor sin un departamento no supera al ruido; sube NB_JK_D2")
+# La prosa nombra el departamento cuya ausencia más BAJA el factor (y más
+# sube el n efectivo). Tiene que ser el mismo en las dos cuentas y quedar
+# lejos del segundo.
+i_bajo <- which.min(jk_factor)
+if (i_bajo != which.max(jk_neff))
+  stop("D.2b: el factor mínimo y el n efectivo máximo no son del mismo departamento")
+if (!(sort(jk_factor)[2] - jk_factor[i_bajo] > 4 * sd_semilla_jk_d2))
+  stop("D.2b: el departamento del extremo no se separa del siguiente; no se puede nombrar")
+# Y dice que los recorridos contienen al titular y son más anchos que los
+# de la semilla.
+n_eff_titular <- n_muni * (ee_iid / ee_blq)^2
+if (!(min(jk_neff) < min(otros_neff_d2) && max(otros_neff_d2) < max(jk_neff)))
+  stop("D.2b: quitar un departamento ya no mueve el n efectivo más que la semilla")
+if (!(min(jk_neff) < n_eff_titular && n_eff_titular < max(jk_neff)) ||
+    !(min(jk_factor) < ee_blq / ee_iid && ee_blq / ee_iid < max(jk_factor)))
+  stop("D.2b: el titular del módulo queda fuera del recorrido sin un departamento")
+
+assign(".Random.seed", estado_rng_d2b, envir = globalenv())
+
 D$inferencia_real <- list(
   n_municipios = n_muni,
   n_departamentos = length(bloques),
@@ -678,7 +881,49 @@ D$inferencia_real <- list(
   ic_iid = r10(mean(muni_ok$desercion) + c(-1, 1) * 1.959964 * ee_iid),
   ic_bloques = r10(mean(muni_ok$desercion) + c(-1, 1) * 1.959964 * ee_blq),
   ancho_iid = r10(2 * 1.959964 * ee_iid),
-  ancho_bloques = r10(2 * 1.959964 * ee_blq)
+  ancho_bloques = r10(2 * 1.959964 * ee_blq),
+  # D.2b · dónde caen las réplicas. Los intervalos de arriba se centran en
+  # la media muestral por construcción; las réplicas por bloques, no.
+  replicas = list(
+    media_iid = r10(mean(boot_iid)),
+    media_bloques = r10(mean(boot_blq)),
+    desvio_iid = r10(desvio_iid),
+    desvio_bloques = r10(desvio_blq),
+    emc_media_iid = r10(emc_media_iid),
+    emc_media_bloques = r10(emc_media_blq),
+    # la esperanza de las réplicas por bloques, con precisión (multinomial)
+    nrep_esperanza = NREP_ESP,
+    esperanza_bloques = r10(esp_blq$media),
+    emc_esperanza = r10(esp_blq$emc),
+    desvio_esperanza = r10(desvio_esp),
+    desvio_esperanza_pct_ee = r10(100 * desvio_esp / ee_blq),
+    bloque_min = as.integer(min(lengths(bloques))),
+    bloque_max = as.integer(max(lengths(bloques)))
+  ),
+  # D.2b · cuánto es la semilla, con los 33 departamentos y el B del módulo
+  otras_semillas = list(
+    n = N_OTRAS_D2,
+    factor_min = r10(min(otros_factor)), factor_max = r10(max(otros_factor)),
+    factor_sd = r10(sd(otros_factor)),
+    n_eff_min = r10(min(otros_neff_d2)), n_eff_max = r10(max(otros_neff_d2))
+  ),
+  # D.2b · un departamento menos: lo que mueve el dato
+  sin_un_departamento = list(
+    nboot = NB_JK_D2,
+    semilla_iid = SEM_JK_D2_IID, semilla_bloques = SEM_JK_D2_BLQ,
+    n_departamentos_quedan = as.integer(length(bloques) - 1L),
+    por_departamento = jk_d2,
+    factor_min = r10(min(jk_factor)), factor_max = r10(max(jk_factor)),
+    n_eff_min = r10(min(jk_neff)), n_eff_max = r10(max(jk_neff)),
+    # el departamento cuya ausencia más baja el factor: el que la prosa nombra
+    extremo = jk_d2[[i_bajo]],
+    # el error estándar jackknife: la incertidumbre, que no es el recorrido
+    ee_jackknife_factor = r10(ee_jk_factor),
+    ee_jackknife_n_eff = r10(ee_jk_neff),
+    ee_jackknife_n_eff_pct = r10(100 * ee_jk_neff / (n_muni * (ee_iid / ee_blq)^2)),
+    # con los 33 y este mismo B, para situar el recorrido
+    factor_todos = r10(todos_jk$factor), n_eff_todos = r10(todos_jk$n_eff)
+  )
 )
 
 # =====================================================================
@@ -1103,7 +1348,7 @@ D$una_realizacion <- list(
   # círculo entre los dos módulos.
   pct_rechaza_ingenuo = r10(100 * p_rech),
   emc_rechaza = r10(100 * sqrt(p_rech * (1 - p_rech) / NREAL)),
-  pct_esperado_si_valiera = 5,
+  pct_esperado_si_valiera = r10(100 * ALFA),
   # El mismo número que el módulo 4 mide como cobertura, visto del
   # derecho. Se publican los dos y se declara que tienen que cuadrar.
   pct_rechaza_modulo4 = r10(100 * (1 - mc[[which(PHIS == PHI6)]]$cobertura)),
@@ -1211,6 +1456,12 @@ dep_ok <- dep[!is.na(dep$desercion), ]
 nb_dep <- suppressWarnings(poly2nb(dep_ok, queen = TRUE))
 lw_dep <- nb2listw(nb_dep, style = "W", zero.policy = TRUE)
 mi_dep <- moran.test(dep_ok$desercion, lw_dep, zero.policy = TRUE)
+# La prosa nombra la prueba: aleatorización y una cola (la de la
+# autocorrelación positiva). Son los valores por defecto de `moran.test`;
+# si spdep los cambiara, el módulo 7 describiría otra prueba.
+stopifnot(isTRUE(formals(spdep::moran.test)$randomisation),
+          identical(eval(formals(spdep::moran.test)$alternative), "greater"),
+          mi_dep$alternative == "greater", mi_mun$alternative == "greater")
 
 # ---------------------------------------------------------------------
 # LA I DE MORAN NO VALE LO MISMO EN R QUE EN PYTHON, Y LA CULPA ES DE LAS
@@ -1408,6 +1659,21 @@ D$escala <- list(
   islas_departamental = as.integer(sum(card(nb_dep) == 0)),
   caida_pct = r10(100 * (1 - mi_dep$estimate[["Moran I statistic"]] /
                            mi_mun$estimate[["Moran I statistic"]])),
+  # R1 · T1.6 (C1-27). Las dos I no son comparables entre sí: usan pesos
+  # distintos y n distinto, y su varianza bajo la nula es otra. Lo que sí
+  # se puede comparar es la posición de cada una en SU distribución nula:
+  # la desviación estándar de `moran.test` (aleatorización, una cola).
+  z_municipal = r10(mi_mun$statistic[[1]]),
+  z_departamental = r10(mi_dep$statistic[[1]]),
+  ee_municipal = r10(sqrt(mi_mun$estimate[["Variance"]])),
+  ee_departamental = r10(sqrt(mi_dep$estimate[["Variance"]])),
+  razon_ee = r10(sqrt(mi_dep$estimate[["Variance"]] / mi_mun$estimate[["Variance"]])),
+  # La z NO mide cuánta autocorrelación queda: crece con n. Si la I
+  # departamental fuera IGUAL a la municipal, con la nula departamental
+  # (su esperanza y su desviación) esta sería su z.
+  z_departamental_si_igual = r10((mi_mun$estimate[["Moran I statistic"]] -
+                                    mi_dep$estimate[["Expectation"]]) /
+                                   sqrt(mi_dep$estimate[["Variance"]])),
   # El otro convenio, el que usa esda. Ver D$discrepancias.
   moran_municipal_n_total = r10(I_con_n_total(muni_ok$desercion, lw_mun)),
   moran_departamental_n_total = r10(I_con_n_total(dep_ok$desercion, lw_dep))

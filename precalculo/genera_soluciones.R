@@ -149,6 +149,44 @@ solucion_cap1 <- function() {
   ee_i <- sd(b_iid); ee_b <- sd(b_blq)
   media <- mean(cob$cobertura)
   z <- 1.959964
+  # DÓNDE CAEN LAS RÉPLICAS (R1 · T1.6). Los dos intervalos se construyen
+  # como media ± z·ee: comparten centro porque se centran en la media
+  # muestral, no porque las réplicas lo hagan. Las del remuestreo por
+  # departamentos NO tienen por qué promediar la media muestral: los
+  # departamentos son de tamaños desiguales, cada réplica reúne un número
+  # distinto de municipios y su media es un cociente de dos sumas
+  # aleatorias. Con las 4 000 réplicas del ejercicio el desvío es en buena
+  # parte ruido —con otra semilla puede cambiar de signo—, así que la
+  # ESPERANZA de las réplicas se calcula aparte y con precisión, como en el
+  # módulo 4 (`genera_cap1.R`, D.2b): remuestrear K bloques es sortear
+  # cuántas veces sale cada uno, una multinomial. El sentido del desvío lo
+  # pone ese cálculo, y se para si no supera holgadamente su error.
+  desvio_b <- mean(b_blq) - media
+  emc_b <- ee_b / sqrt(NB)
+  esperanza_bloques <- function(sumas, tams, B, lote = 200000L) {
+    K <- length(sumas); s1 <- 0; s2 <- 0
+    stopifnot(B %% lote == 0)
+    for (b in seq_len(B / lote)) {
+      cnt <- rmultinom(lote, K, rep(1 / K, K))
+      m <- as.vector(crossprod(cnt, sumas)) / as.vector(crossprod(cnt, tams))
+      s1 <- s1 + sum(m); s2 <- s2 + sum(m^2)
+    }
+    med <- s1 / B
+    list(media = med, emc = sqrt((s2 / B - med^2) / B))
+  }
+  NREP_ESP2 <- 2000000L
+  estado_rng_e2 <- get(".Random.seed", envir = globalenv())
+  set.seed(SEMILLA + 902L)
+  esp2 <- esperanza_bloques(vapply(bloques, sum, numeric(1)), lengths(bloques), NREP_ESP2)
+  assign(".Random.seed", estado_rng_e2, envir = globalenv())
+  desvio_esp2 <- esp2$media - media
+  if (!(abs(desvio_esp2) > 10 * esp2$emc))
+    stop("E2: la esperanza de las réplicas por bloques no se separa de la media; reescribe la lectura")
+  if (!(abs(mean(b_blq) - esp2$media) < 4 * emc_b))
+    stop("E2: las réplicas del ejercicio no son compatibles con su esperanza")
+  n_eff2 <- n * (ee_i / ee_b)^2
+  f5e2 <- function(x) sprintf("%.5f", x)
+  fino2 <- function(x) format(as.integer(x), big.mark = "\u202f")
 
   E$e2 <- list(
     titulo = "El intervalo de confianza que miente",
@@ -157,9 +195,11 @@ solucion_cap1 <- function() {
       "Calcula (a) el error estándar de la media suponiendo",
       "independencia, por remuestreo de municipios uno a uno, y (b) el",
       "mismo error estándar remuestreando DEPARTAMENTOS enteros. Con",
-      "cada uno construye el intervalo al 95 %. Después identifica el",
-      "conjunto de valores de referencia que el intervalo ingenuo",
-      "descartaría y el honesto no: ¿sobre qué coberturas objetivo",
+      "cada uno construye el intervalo normal al 95 % alrededor de la",
+      "media de los municipios: la media más y menos el cuantil normal",
+      "por el error estándar. Después identifica el conjunto de valores",
+      "de referencia que el intervalo ingenuo descartaría y el de bloques",
+      "no: ¿sobre qué coberturas objetivo",
       "llevarían los dos métodos a conclusiones OPUESTAS?"),
     pasos = list(
       list(paso = "Municipios con dato de cobertura", valor = as.integer(n)),
@@ -175,7 +215,17 @@ solucion_cap1 <- function() {
       media = r10(media),
       ee_iid = r10(ee_i), ee_bloques = r10(ee_b),
       factor = r10(ee_b / ee_i),
-      n_eff = r10(n * (ee_i / ee_b)^2),
+      n_eff = r10(n_eff2),
+      # las medias de las réplicas: la de bloques no es la muestral
+      media_replicas_iid = r10(mean(b_iid)),
+      media_replicas_bloques = r10(mean(b_blq)),
+      desvio_replicas_bloques = r10(desvio_b),
+      emc_media_bloques = r10(emc_b),
+      # y su esperanza, con precisión
+      nrep_esperanza = NREP_ESP2,
+      esperanza_replicas_bloques = r10(esp2$media),
+      emc_esperanza = r10(esp2$emc),
+      desvio_esperanza = r10(desvio_esp2),
       ic_iid = r10(media + c(-1, 1) * z * ee_i),
       ic_bloques = r10(media + c(-1, 1) * z * ee_b),
       ancho_iid = r10(2 * z * ee_i),
@@ -192,15 +242,32 @@ solucion_cap1 <- function() {
       contiene = (media - z * ee_b) <= (media - z * ee_i) &&
                  (media + z * ee_i) <= (media + z * ee_b)
     ),
-    lectura = paste(
-      "Los dos intervalos están centrados en el mismo sitio: la media no",
-      "cambia. Lo que cambia es la anchura, y con ella lo que se puede",
-      "afirmar. Sobre los dos tramos de desacuerdo el método ingenuo",
-      "declara una diferencia significativa donde el honesto no la ve.",
-      "Ése es el daño exacto de ignorar la dependencia espacial: no",
-      "sesga la estimación, sesga la CONFIANZA. Y fíjate en el orden de",
-      "magnitud del n efectivo: 1 121 municipios informan como unos",
-      "pocos cientos, no como 1 121.")
+    lectura = paste0(
+      "Los dos intervalos se construyen alrededor de la misma cifra, la ",
+      "media de los ", fino2(n), " municipios, sumándole y restándole el ",
+      "error estándar de cada remuestreo multiplicado por el cuantil ",
+      "normal: por eso comparten centro. Lo que cambia es la anchura, y ",
+      "con ella lo que se puede afirmar. Sobre los dos tramos de ",
+      "desacuerdo el método ingenuo declara una diferencia significativa ",
+      "donde el de bloques no la ve. Ése es el daño de ignorar la ",
+      "dependencia espacial: no mueve la estimación, infla la CONFIANZA. ",
+      "Para la media de la cobertura, los ", fino2(n), " municipios ",
+      "informan como ", f5e2(n_eff2), " independientes.",
+      # Una línea en blanco separa los párrafos: el ensamblador parte ahí.
+      "\n\nLas réplicas, en cambio, no comparten centro. Las ",
+      fino2(NB), " del remuestreo por departamentos promedian ",
+      f5e2(mean(b_blq)), ", con un error de Monte Carlo de ", f5e2(emc_b),
+      ": con tan pocas, buena parte de su distancia a la media de los ",
+      "municipios es ruido, y con otra semilla puede cambiar de signo. Lo ",
+      "que no es ruido es su esperanza. Calculada con ", fino2(NREP_ESP2),
+      " réplicas, vale ", f5e2(esp2$media), ": ", f5e2(abs(desvio_esp2)),
+      if (desvio_esp2 < 0) " por debajo" else " por encima",
+      " de la media de los municipios, con un error de Monte Carlo de ",
+      f5e2(esp2$emc), ". No es un fallo del montaje: los departamentos no ",
+      "tienen el mismo número de municipios, así que cada réplica reúne ",
+      "una cantidad distinta y su media es un cociente de dos sumas que ",
+      "cambian a la vez. La esperanza de un cociente así no es la media ",
+      "de partida. El módulo 4 mide ese desvío en la deserción.")
   )
 
   # -------------------------------------------------------------------
@@ -358,6 +425,13 @@ solucion_cap1 <- function() {
   sd_semilla_jk <- sd(otros_techos) / sqrt(NB_JK / NB3)
   if (any(abs(jk_techo - OBJETIVOS[2]) < 4 * sd_semilla_jk))
     stop("E3: algún techo del jackknife queda a menos de 4 sd de 50; sube NB_JK")
+  # El recorrido de arriba es la SENSIBILIDAD a un departamento, no la
+  # incertidumbre del techo: los cálculos comparten casi todos sus
+  # departamentos. El error estándar jackknife la repone, con los mismos
+  # valores y sin remuestrear nada más.
+  ee_jk_techo <- sqrt((n_dep - 1) / n_dep * sum((jk_techo - mean(jk_techo))^2))
+  if (!(diff(range(jk_techo)) / 2 < ee_jk_techo))
+    stop("E3: medio recorrido del jackknife ya no queda por debajo de su error estándar")
   jk_min <- jk[[which.min(jk_techo)]]
   jk_max <- jk[[which.max(jk_techo)]]
   jk_sobre <- sum(jk_techo > OBJETIVOS[2])
@@ -508,7 +582,8 @@ solucion_cap1 <- function() {
         semilla_iid = SEM_JK_IID, semilla_bloques = SEM_JK_BLQ,
         por_departamento = jk,
         minimo = jk_min, maximo = jk_max,
-        n_sobre_objetivo = as.integer(jk_sobre)
+        n_sobre_objetivo = as.integer(jk_sobre),
+        ee_techo = r10(ee_jk_techo)
       ),
       # Apartado (c): lo que da promediar todos los pares, con este dato.
       centrado_todos_los_pares = r10(centrado),
@@ -564,7 +639,11 @@ solucion_cap1 <- function() {
       jk_max$departamento, ", que tiene ", jk_max$estaciones, " de las ",
       n_est, " estaciones. Sin ", jk_max$departamento, " la precisión de ",
       OBJETIVOS[2], " pasa a ser alcanzable: un solo departamento de los ",
-      n_dep, " voltea la respuesta. Es la incertidumbre heredada del ",
+      n_dep, " voltea la respuesta. Ese recorrido es la sensibilidad a un ",
+      "solo departamento, y se queda corto como medida de la incertidumbre: ",
+      "los cálculos comparten casi todos sus departamentos. El error ",
+      "estándar jackknife del techo, que el módulo 4 explica, es ",
+      f5(ee_jk_techo), ". Es la incertidumbre heredada del ",
       "remuestreo, la de la primera salvedad del módulo 5, y aquí pesa ",
       "más que la semilla.",
       "\n\n(c) Que la correlación media se mantenga fija no es una propiedad ",
