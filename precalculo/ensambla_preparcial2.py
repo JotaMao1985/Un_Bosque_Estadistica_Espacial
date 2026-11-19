@@ -2949,7 +2949,9 @@ QUIZ_JS = ("""    // Los ejes de las preguntas de gráfico del preparcial, con t
     function pluginsPreparcial(filtro, opciones = {}) {
       const estrecho = estrechoPreparcial;
       const etiquetas = {
-        font: ctx => ({ family: 'Montserrat', size: estrecho(ctx) ? 10 : 12 }),
+        // 11 px en el teléfono, y no 10 (2026-11-17): con la leyenda al pie y las
+        // entradas largas partidas en renglones por la plantilla, ya cabe.
+        font: ctx => ({ family: 'Montserrat', size: estrecho(ctx) ? 11 : 12 }),
         boxWidth: ctx => estrecho(ctx) ? 12 : 24,
         padding: ctx => estrecho(ctx) ? 6 : 10,
         sort: (a, b) => a.datasetIndex - b.datasetIndex

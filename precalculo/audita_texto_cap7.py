@@ -49,6 +49,18 @@ qué departamentos se juntan—:
   · la cota con el arnés: 826 < 860 < 1138;
   · 860 deja **34 KB de margen**. Es explicación, y el peso vuelve a ceder ante ella.
 
+SUBIÓ A 960 KB el 2026-11-17, con las reglas compartidas de las gráficas en la plantilla
+(R2, T2.1: la fusión profunda de `crearGraficoLinea`, la leyenda al pie y la letra de la casa en
+todos los gráficos, el suelo de la letra de los rótulos y el color de las marcas del `.geomapa`).
+El documento no cambió una palabra y se pasaba del tope de 860:
+
+  · pesa **864 KB**: 827 de antes y **37 de la plantilla**, casi todo comentario
+    —por qué cada regla, que es lo que evita que se deshaga—;
+  · la cota con el arnés: 864 < 960 < 1176;
+  · 960 deja **96 KB de margen**, y es a propósito más que otras veces. El criterio lo
+    fijó Javier: el peso nunca recorta explicación, y el tope se sube de una vez hasta donde el
+    arnés sigue mordiendo, no de 20 en 20. Quedan rondas de mejora sobre esta misma plantilla.
+
 Uso:  python3 precalculo/audita_texto_cap7.py
 Devuelve 1 si algo falla.
 """
@@ -62,7 +74,7 @@ import sys
 from audita_texto_base import Auditor, SALIDAS
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP7_KB = 860.0
+TOPE_CAP7_KB = 960.0
 
 # Cifras que NO son resultados: identificadores, años, páginas y versiones.
 ESTRUCTURALES = {

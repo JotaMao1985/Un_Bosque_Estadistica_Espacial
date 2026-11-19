@@ -38,6 +38,18 @@ encima del tamaño y por debajo de ese tamaño + 312 KB (`prueba_texto.py` la
 tumba inyectando 320 000 bytes). 880 deja unos 60 KB de margen y queda más de
 200 por debajo del techo.
 
+SUBIÓ A 970 KB el 2026-11-17, con las reglas compartidas de las gráficas en la plantilla
+(R2, T2.1: la fusión profunda de `crearGraficoLinea`, la leyenda al pie y la letra de la casa en
+todos los gráficos, el suelo de la letra de los rótulos y el color de las marcas del `.geomapa`).
+El documento no cambió una palabra y se pasaba del tope de 880:
+
+  · pesa **871 KB**: 830 de antes y **41 de la plantilla**, casi todo comentario
+    —por qué cada regla, que es lo que evita que se deshaga—;
+  · la cota con el arnés: 871 < 970 < 1183;
+  · 970 deja **99 KB de margen**, y es a propósito más que otras veces. El criterio lo
+    fijó Javier: el peso nunca recorta explicación, y el tope se sube de una vez hasta donde el
+    arnés sigue mordiendo, no de 20 en 20. Quedan rondas de mejora sobre esta misma plantilla.
+
 Uso:  python3 precalculo/audita_texto_apendicea.py
 Devuelve 1 si algo falla.
 """
@@ -56,7 +68,7 @@ from audita_texto_base import Auditor, SALIDAS, busca_capitulo, sombrero_del_jso
 # con él, por debajo de tamaño + 312 KB para que `prueba_texto.py` no quede
 # ciego. Las tres animaciones (2026-10-03) lo subieron a 820 KB —con la
 # plantilla de colores forzados ya dentro— y el tope pasó de 840 a 880.
-TOPE_KB = 880.0
+TOPE_KB = 970.0
 DOCUMENTO = "apendice-a-densidad.html"
 MOTOR = SALIDAS.parent / "densidad1d.js"
 MOTOR_ANIM = SALIDAS.parent / "anim1d.js"
