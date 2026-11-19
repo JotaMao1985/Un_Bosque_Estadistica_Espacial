@@ -717,6 +717,105 @@ def defectos() -> list[tuple[str, str, str, object]]:
     # con los datos publicados.
     falta("el JSON de datos no está donde apunta la variable de entorno", "datos")
 
+    # --- R2 · T2.4: las tres gráficas nuevas ------------------------------
+    #
+    # Una inyección por guarda, como en R1. Se atacan las frases que la prosa
+    # pone entre las cifras —«ninguna llega», «la reproducen», «algo más»,
+    # «muy por encima», «ya no se distingue», «en ninguna», «casi la misma»,
+    # «una muestra de ella», «a un lado y a otro»— y el cableado de lo que el
+    # navegador dibuja: el histograma, la franja y los cien segmentos.
+    al_ = lambda o: o["snow"]["aleatorizacion"]                      # noqa: E731
+    ev_ = lambda o: o["tobler"]["envolvente"]                        # noqa: E731
+    ci_ = lambda o: o["inferencia"]["cien_ic"]                       # noqa: E731
+    # Módulo 1.
+    obj("T2.4 m1: el histograma de la nula deja de sumar las recolocaciones", "datos",
+        lambda o: al_(o)["hist_frec"].__setitem__(0, al_(o)["hist_frec"][0] + 1))
+    obj("T2.4 m1: la media publicada de la nula no es la del histograma", "datos",
+        lambda o: al_(o).__setitem__("media_nula_pct", al_(o)["media_nula_pct"] + 0.5))
+    obj("T2.4 m1: el máximo de la nula en porcentaje no es el de su recuento", "datos",
+        lambda o: al_(o).__setitem__("max_nula_pct", 13.5))
+    obj("T2.4 m1: una recolocación pasa a alcanzar al observado", "datos",
+        lambda o: al_(o).__setitem__("n_mayor_o_igual", 1))
+    obj("T2.4 m1: las recolocaciones dejan de reproducir la parte de calle", "datos",
+        lambda o: al_(o).__setitem__("emc_media_pct", 0.001))
+    obj("T2.4 m1: las partes de calle dejan de sumar la calle entera", "datos",
+        lambda o: al_(o)["pct_calle_por_bomba"].__setitem__(0, al_(o)["pct_calle_por_bomba"][0] + 1))
+    obj("T2.4 m1: a Broad St le toca menos calle que el reparto ingenuo", "datos",
+        lambda o: al_(o).__setitem__("pct_calle_broad", 7.0))
+    obj("T2.4 m1: «veces lo que le tocaría por calle» deja de ser su cociente", "datos",
+        lambda o: al_(o).__setitem__("razon_sobre_calle", 6.5))
+    obj("T2.4 m1: el observado deja de quedar lejísimos de la nula", "datos",
+        lambda o: al_(o).__setitem__("z_observado", 4.0))
+    # Módulo 3.
+    obj("T2.4 m3: la envolvente deja de ir sobre las bandas del correlograma", "datos",
+        lambda o: ev_(o)["ideam"][0].__setitem__("d2", 26))
+    obj("T2.4 m3: la posición publicada de una banda no es la de su I", "datos",
+        lambda o: ev_(o)["ideam"][6].__setitem__("posicion", "debajo"))
+    obj("T2.4 m3: la envolvente deja de estar centrada en E[I]", "datos",
+        lambda o: ev_(o)["ideam"][2].__setitem__("media", ev_(o)["ideam"][2]["media"] + 0.01))
+    # El paro duro: sin banda por debajo no hay párrafo que escribir.
+    obj("T2.4 m3: la temperatura se queda sin banda por debajo de la franja", "datos",
+        lambda o: ev_(o)["ideam"][5].__setitem__("posicion", "dentro"))
+    obj("T2.4 m3: la banda negativa ya no queda bajo todas las permutaciones", "datos",
+        lambda o: ev_(o)["ideam"][5].__setitem__("min", -0.09))
+    obj("T2.4 m3: la primera banda deja de quedar «muy por encima»", "datos",
+        lambda o: ev_(o)["ideam"][0].__setitem__("hi", 0.3))
+    obj("T2.4 m3: los residuos dejan de leerse «dentro» entre 175 y 300 km", "datos",
+        lambda o: ev_(o)["residuos_altitud"][4].__setitem__("posicion", "encima"))
+    obj("T2.4 m3: el recuento de bandas fuera no es el de las posiciones", "datos",
+        lambda o: ev_(o).__setitem__("n_fuera_ideam", 5))
+    obj("T2.4 m3: la permutación suelta se sale de la franja", "datos",
+        lambda o: ev_(o).__setitem__("n_fuera_permutado", 1))
+    obj("T2.4 m3: los residuos se leen distinto contra la franja de la temperatura", "datos",
+        lambda o: ev_(o)["ideam"][4].__setitem__("lo", -0.01))
+    obj("T2.4 m3: las dos envolventes dejan de ser «casi la misma»", "datos",
+        lambda o: ev_(o)["residuos_altitud"][0].__setitem__("hi", 0.12))
+    obj("T2.4 m3: los cuantiles del pie de la tabla no son los del nivel", "datos",
+        lambda o: ev_(o).__setitem__("cuantil_lo_pct", 5))
+    # Módulo 4.
+    obj("T2.4 m4: los cien intervalos pasan a ser de otro alcance", "datos",
+        lambda o: ci_(o).__setitem__("phi", 2))
+    obj("T2.4 m4: el recuento publicado no es el de los intervalos dibujados", "datos",
+        lambda o: ci_(o).__setitem__("n_cubren_ingenuo", 30))
+    obj("T2.4 m4: los cien dejan de ser una muestra de la cobertura publicada", "datos",
+        lambda o: next(f for f in o["inferencia"]["rejilla"] if f["phi"] == 4).__setitem__(
+            "cobertura", 0.5))
+    obj("T2.4 m4: el cociente de los dos semianchos deja de cuadrar", "datos",
+        lambda o: ci_(o).__setitem__("razon_semianchos", 6.0))
+    obj("T2.4 m4: con el e.e. verdadero la cobertura ya no es la prometida", "datos",
+        lambda o: ci_(o).__setitem__("cobertura_exacto", 0.90))
+    obj("T2.4 m4: las cien medias caen todas del mismo lado del cero", "datos",
+        lambda o: ci_(o).__setitem__("media", [abs(x) for x in ci_(o)["media"]]))
+    # Segunda ronda de T2.4: el marco del plano, lo que el eje deja fuera, la
+    # suma por bandas, «no es raro», y los dos cocientes del módulo 4.
+    obj("T2.4 r2 m1: la tabla de marcos no acaba en las cifras del titular", "datos",
+        lambda o: al_(o)["marcos"][-1].__setitem__("pct_calle_broad", 8.7))
+    obj("T2.4 r2 m1: en un marco la razón no es el observado entre su parte", "datos",
+        lambda o: al_(o)["marcos"][1].__setitem__("razon_sobre_calle", 4.5))
+    obj("T2.4 r2 m1: la parte de calle deja de bajar al ensanchar el marco", "datos",
+        lambda o: al_(o)["marcos"][0].__setitem__("pct_longitud", 60.0))
+    obj("T2.4 r2 m1: con el marco estrecho el dato deja de quedar lejos", "datos",
+        lambda o: al_(o)["marcos"][0].__setitem__("z_binomial", 4.0))
+    ma_ = lambda o: o["tobler"]["mas_alla"]                          # noqa: E731
+    su_ = lambda o: o["tobler"]["sumas"]                             # noqa: E731
+    obj("T2.4 r2 m3: las parejas de más allá del eje pasan a quedar dentro", "datos",
+        lambda o: ma_(o).__setitem__("posicion", "dentro"))
+    obj("T2.4 r2 m3: las sumas por banda dejan de dar -1", "datos",
+        lambda o: su_(o).__setitem__("mas_alla", -1.9))
+    obj("T2.4 r2 m3: las parejas cortas no son las bandas por encima", "datos",
+        lambda o: su_(o).__setitem__("cortas", 11.0))
+    obj("T2.4 r2 m3: una banda corta pasa a sumar en negativo", "datos",
+        lambda o: (su_(o)["bandas"][0].__setitem__("suma", -1.0),
+                   su_(o)["bandas"][1].__setitem__("suma", su_(o)["bandas"][1]["suma"]
+                                                   + 1.0 + 1.6567309834)))
+    obj("T2.4 r2 m3: casi ninguna permutación se sale en alguna banda", "datos",
+        lambda o: ev_(o).__setitem__("pct_alguna_fuera", 4.0))
+    obj("T2.4 r2 m4: el cociente de semianchos pasa a ser el factor del recuadro", "datos",
+        lambda o: ci_(o).__setitem__(
+            "razon_semianchos", next(f for f in o["inferencia"]["rejilla"] if f["phi"] == 4)["factor"]))
+    obj("T2.4 r2 m4: el nivel escrito deja de ser el de alfa", "datos",
+        lambda o: o["inferencia"].__setitem__("nivel_pct", 90))
+
     return D
 
 

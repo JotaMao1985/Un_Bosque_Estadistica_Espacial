@@ -1012,6 +1012,25 @@
       .grafico-wrapper {
         height: 260px;
       }
+
+      /* Gráfico con leyenda en el teléfono (R-E, 2026-11-17). La clase la pone
+         el plugin `leyendaEstrecha` en el padre del lienzo —un
+         `.grafico-wrapper` o un `.quiz-grafico`— cuando el gráfico lleva
+         leyenda, y solo entonces. Es `min-height` y no `height` porque el alto
+         de cada caja va en línea (`style="height:260px"`), y un mínimo es lo
+         único que una regla de hoja le gana a un estilo en línea sin
+         `!important`: la caja de 260 crece a 300 y la de 380 se queda como
+         está. Medido a 375 px: con la leyenda arriba, en cuatro filas, al
+         trazado le quedaban 73–150 px de alto.
+
+         300 px es el suelo de todas. Una leyenda de cuatro o cinco filas se
+         come un tercio de eso, y cuántas filas son no se sabe hasta que el
+         gráfico está dibujado: el plugin lo mide entonces y, si al trazado le
+         faltan píxeles para llegar a su mínimo, deja aquí el alto que hace
+         falta, en `--grafico-alto-minimo`. */
+      .grafico-leyenda-abajo {
+        min-height: max(300px, var(--grafico-alto-minimo, 0px));
+      }
     }
 
     /* Tables - CSS Puro */
@@ -4016,6 +4035,14 @@
       margin: 0.45rem 0 0 0;
     }
 
+    /* La clave de los rótulos que no cupieron en el lienzo (R-F). Sustituye a
+       unos rótulos cuyo suelo son 11 px de pantalla, así que no puede medir
+       menos: el pie corriente, a 0.78rem, se queda en 10.9 px. */
+    .geomapa-clave {
+      font-size: max(11px, 0.8125rem);
+      color: #374151;
+    }
+
     .geomapa-tabla {
       margin-top: 0.6rem;
       font-size: 0.8rem;
@@ -4861,7 +4888,7 @@ print(f"I = {mi.I:.6f} | E[I] sin estructura = {mi.EI:.6f}")
         </div>
       </div>
 
-      <p>El valor esperado bajo independencia <strong>no es cero</strong>: es −1/(n−1), y por eso el
+      <p>El valor esperado bajo la nula de permutación <strong>no es cero</strong>: es −1/(n−1), y por eso el
         índice se compara contra él y no contra el origen. Los dos programas coinciden hasta el
         sexto decimal, que es lo que hay que exigirle a un cruce entre R y Python — y el capítulo 3
         trae el caso en el que <em>no</em> coinciden, que es el siguiente.</p>
@@ -5240,7 +5267,7 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
     // Cada cifra reutilizada trae de qué archivo y de qué ruta vino, que es lo
     // que permite a audita_preparcial1.py comprobar que el capítulo no se ha
     // movido debajo.
-    const DATOS_PRE1 = {"meta": {"documento": "preparcial-corte-1", "corte": "I", "fecha_parcial": "2026-09-01", "generado": "2026-11-16T13:03:58", "semilla": 2026, "n_modulos_alcance": 30, "n_reutilizadas": 130, "n_nuevas": 8, "n_graficos": 6, "n_errores": 10, "n_anclas": 14, "alcance": ["cap1.m1", "cap1.m2", "cap1.m3", "cap1.m4", "cap1.m5", "cap1.m6", "cap1.m7", "cap1.m8", "cap1.m9", "cap1.m10", "cap1.m11", "cap2.m1", "cap2.m2", "cap2.m3", "cap2.m4", "cap2.m5", "cap2.m6", "cap2.m7", "cap2.m8", "cap2.m9", "cap2.m10", "cap2.m11", "cap3.m1", "cap3.m2", "cap3.m3", "cap3.m4", "cap3.m5", "cap3.m6", "cap3.m7", "cap3.m8"], "r_version": "R version 4.4.1 (2024-06-14)", "paquetes": {"jsonlite": "2.0.0", "sf": "1.0.22"}}, "reutilizado": {"snow_muertes": {"origen": "cap1_datos.json", "ruta": "snow.n_muertes", "doc": "cap1", "modulo": 1, "que": "Muertes del brote de Broad Street, 1854", "valor": 578}, "snow_pct_broad": {"origen": "cap1_datos.json", "ruta": "snow.pct_mas_cerca_broad", "doc": "cap1", "modulo": 1, "que": "Porcentaje de muertes cuya bomba más cercana es la de Broad Street", "valor": 62.1107266436}, "snow_razon_uniforme": {"origen": "cap1_datos.json", "ruta": "snow.razon_sobre_uniforme", "doc": "cap1", "modulo": 1, "que": "Veces por encima de lo esperado si las 13 bombas fueran equivalentes", "valor": 8.0743944637}, "snow_caida_mango": {"origen": "cap1_datos.json", "ruta": "snow.caida_hasta_mango_pct", "doc": "cap1", "modulo": 1, "que": "Porcentaje de caída de los ataques antes de quitar la manija de la bomba", "valor": 91.6083916084}, "ce_redwood": {"origen": "cap1_datos.json", "ruta": "puntual_canonico.redwood.clark_evans", "doc": "cap1", "modulo": 2, "que": "Clark-Evans de las secuoyas (agregado, <1)", "valor": 0.6186501573}, "ce_pinos": {"origen": "cap1_datos.json", "ruta": "puntual_canonico.japanesepines.clark_evans", "doc": "cap1", "modulo": 2, "que": "Clark-Evans de los pinos japoneses: cerca de 1, compatible con aleatoriedad", "valor": 1.0640020553}, "ce_celulas": {"origen": "cap1_datos.json", "ruta": "puntual_canonico.cells.clark_evans", "doc": "cap1", "modulo": 2, "que": "Clark-Evans de las células (regular, >1)", "valor": 1.6716795148}, "nc_tasa_global": {"origen": "cap1_datos.json", "ruta": "area_canonico.tasa_global", "doc": "cap1", "modulo": 2, "que": "Tasa global de SIDS en Carolina del Norte, por mil", "valor": 2.0214448937}, "meuse_corr_rio": {"origen": "cap1_datos.json", "ruta": "geo_canonico.corr_dist_rio", "doc": "cap1", "modulo": 2, "que": "Correlación entre log-zinc y distancia al río (meuse)", "valor": -0.7394275589}, "tobler_ideam_b1": {"origen": "cap1_datos.json", "ruta": "tobler.ideam.bandas[1].I", "doc": "cap1", "modulo": 3, "que": "Moran I de la primera banda de distancia, estaciones del IDEAM", "valor": 0.606348194}, "tobler_perm_b1": {"origen": "cap1_datos.json", "ruta": "tobler.permutado.bandas[1].I", "doc": "cap1", "modulo": 3, "que": "Moran I de la primera banda tras permutar las estaciones al azar", "valor": -0.0253357115}, "tobler_esperado": {"origen": "cap1_datos.json", "ruta": "tobler.ideam.esperado", "doc": "cap1", "modulo": 3, "que": "E[I] bajo independencia, -1/(n-1)", "valor": -0.0027777778}, "tobler_caida_alt": {"origen": "cap1_datos.json", "ruta": "tobler.caida_por_altitud_pct", "doc": "cap1", "modulo": 3, "que": "Porcentaje en que cae la autocorrelación al descontar la altitud", "valor": 29.776334998}, "inf_cobertura_ind": {"origen": "cap1_datos.json", "ruta": "inferencia.cobertura_independiente", "doc": "cap1", "modulo": 4, "que": "Cobertura real del IC al 95 % con datos independientes", "valor": 0.953}, "inf_cobertura_phi4": {"origen": "cap1_datos.json", "ruta": "inferencia.cobertura_phi4", "doc": "cap1", "modulo": 4, "que": "Cobertura real de un IC nominal al 95 % bajo dependencia (phi = 4)", "valor": 0.197}, "inf_factor_phi4": {"origen": "cap1_datos.json", "ruta": "inferencia.factor_phi4", "doc": "cap1", "modulo": 4, "que": "Veces que se subestima el error estándar ingenuo", "valor": 7.857975732}, "inf_inflacion": {"origen": "cap1_datos.json", "ruta": "inferencia.inflacion_varianza_phi4", "doc": "cap1", "modulo": 4, "que": "Porcentaje en que la varianza real supera a la ingenua", "valor": 61.7477826052}, "inf_real_factor": {"origen": "cap1_datos.json", "ruta": "inferencia_real.factor", "doc": "cap1", "modulo": 4, "que": "Veces que se subestima el error estándar sobre el dato real: bootstrap por bloques contra iid", "valor": 4.1682180039}, "inf_cobertura_phi16": {"origen": "cap1_datos.json", "ruta": "inferencia.rejilla[7].cobertura", "doc": "cap1", "modulo": 4, "que": "Cobertura real del IC al 95 % en el extremo derecho de la curva (phi = 16)", "valor": 0.0753333333}, "neff_desercion": {"origen": "cap1_datos.json", "ruta": "n_efectivo.desercion_municipal", "doc": "cap1", "modulo": 5, "que": "Tamaño efectivo de los 1121 municipios con deserción", "valor": 64.5215456118}, "neff_desercion_n": {"origen": "cap1_datos.json", "ruta": "n_efectivo.desercion_n", "doc": "cap1", "modulo": 5, "que": "Municipios con dato de deserción", "valor": 1121}, "neff_pct": {"origen": "cap1_datos.json", "ruta": "n_efectivo.desercion_pct", "doc": "cap1", "modulo": 5, "que": "Porcentaje de la información nominal que queda tras la autocorrelación", "valor": 5.7557132571}, "neff_rho_implicito": {"origen": "cap1_datos.json", "ruta": "n_efectivo.rho_del_titular.implicito", "doc": "cap1", "modulo": 5, "que": "Correlación media entre pares de municipios que corresponde a la varianza que midió el remuestreo por departamentos: se despeja de ella, no se mide sobre el mapa", "valor": 0.0146196798}, "neff_centrado_col": {"origen": "cap1_datos.json", "ruta": "n_efectivo.centrado.colombia.centrado", "doc": "cap1", "modulo": 5, "que": "Promedio de los productos de todos los pares de municipios, centrados con la media muestral y divididos por la varianza: vale -1/(n-1) con cualquier dato que no sea constante", "valor": -0.0008928571}, "realiz_rechaza": {"origen": "cap1_datos.json", "ruta": "una_realizacion.pct_rechaza_ingenuo", "doc": "cap1", "modulo": 6, "que": "Porcentaje de veces que la prueba ingenua rechaza siendo cierta H0", "valor": 82}, "realiz_esperado": {"origen": "cap1_datos.json", "ruta": "una_realizacion.pct_esperado_si_valiera", "doc": "cap1", "modulo": 6, "que": "Porcentaje que debería rechazar si la prueba fuera válida", "valor": 5}, "realiz_sd_medias": {"origen": "cap1_datos.json", "ruta": "una_realizacion.sd_de_las_medias", "doc": "cap1", "modulo": 6, "que": "Desviación de la media entre 1000 realizaciones del mismo proceso", "valor": 0.4214459097}, "realiz_n": {"origen": "cap1_datos.json", "ruta": "una_realizacion.n_realizaciones", "doc": "cap1", "modulo": 6, "que": "Realizaciones simuladas del proceso", "valor": 1000}, "realiz_emc": {"origen": "cap1_datos.json", "ruta": "una_realizacion.emc_rechaza", "doc": "cap1", "modulo": 6, "que": "Error de Monte Carlo del porcentaje de rechazo, en puntos porcentuales", "valor": 1.2149074039}, "escala_moran_mun": {"origen": "cap1_datos.json", "ruta": "escala.moran_municipal", "doc": "cap1", "modulo": 7, "que": "Moran I de la deserción a nivel municipal", "valor": 0.3809079276}, "escala_moran_dep": {"origen": "cap1_datos.json", "ruta": "escala.moran_departamental", "doc": "cap1", "modulo": 7, "que": "Moran I de la misma variable agregada a departamento", "valor": 0.0635960159}, "escala_caida": {"origen": "cap1_datos.json", "ruta": "escala.caida_pct", "doc": "cap1", "modulo": 7, "que": "Porcentaje en que cae el Moran I al agregar", "valor": 83.304097589}, "escala_n_dep": {"origen": "cap1_datos.json", "ruta": "escala.n_departamental", "doc": "cap1", "modulo": 7, "que": "Unidades del nivel departamental: el n con el que se calcula el Moran agregado", "valor": 33}, "soporte_inflacion": {"origen": "cap1_datos.json", "ruta": "agregacion_soporte.nc.inflacion_pct", "doc": "cap1", "modulo": 7, "que": "Porcentaje en que se infla el total al repartir por rectángulos sin ponderar por área", "valor": 292.9535232384}, "eco_gdal": {"origen": "cap1_datos.json", "ruta": "ecosistema.sistema.GDAL", "doc": "cap1", "modulo": 8, "que": "Versión de GDAL bajo sf", "valor": "3.8.5"}, "eco_geos": {"origen": "cap1_datos.json", "ruta": "ecosistema.sistema.GEOS", "doc": "cap1", "modulo": 8, "que": "Versión de GEOS bajo sf", "valor": "3.13.0"}, "eco_proj": {"origen": "cap1_datos.json", "ruta": "ecosistema.sistema.PROJ", "doc": "cap1", "modulo": 8, "que": "Versión de PROJ bajo sf", "valor": "9.5.1"}, "anat_pct_geom": {"origen": "cap1_datos.json", "ruta": "anatomia.nc.pct_geometria", "doc": "cap1", "modulo": 9, "que": "Porcentaje de los bytes de un objeto sf que ocupa la geometría", "valor": 81.2056539471}, "anat_filas": {"origen": "cap1_datos.json", "ruta": "anatomia.nc.filas", "doc": "cap1", "modulo": 9, "que": "Condados de nc: las filas del objeto sf", "valor": 100}, "anat_vertices": {"origen": "cap1_datos.json", "ruta": "anatomia.nc.n_vertices", "doc": "cap1", "modulo": 9, "que": "Vértices de los 100 condados de nc", "valor": 2529}, "anat_multiples": {"origen": "cap1_datos.json", "ruta": "anatomia.nc.n_partes_multiples", "doc": "cap1", "modulo": 9, "que": "Condados con más de una parte (MULTIPOLYGON de verdad)", "valor": 6}, "anat_ppp_n": {"origen": "cap1_datos.json", "ruta": "anatomia.ppp.n", "doc": "cap1", "modulo": 9, "que": "Puntos del ppp de los pinos japoneses", "valor": 65}, "cv_rmse_alea": {"origen": "cap1_datos.json", "ruta": "cv_espacial.rmse_aleatoria", "doc": "cap1", "modulo": 10, "que": "RMSE con validación cruzada aleatoria", "valor": 3.163068919}, "cv_rmse_bloques": {"origen": "cap1_datos.json", "ruta": "cv_espacial.rmse_bloques", "doc": "cap1", "modulo": 10, "que": "RMSE con validación cruzada por bloques espaciales", "valor": 5.5461948224}, "cv_inflacion": {"origen": "cap1_datos.json", "ruta": "cv_espacial.inflacion_pct", "doc": "cap1", "modulo": 10, "que": "Porcentaje en que el error por bloques supera al que anuncia la validación aleatoria", "valor": 75.3422060824}, "cv_r2_bloques": {"origen": "cap1_datos.json", "ruta": "cv_espacial.r2_bloques", "doc": "cap1", "modulo": 10, "que": "R2 por bloques: negativo, peor que predecir la media", "valor": -0.0273462716}, "glos_n_filas": {"origen": "cap1_datos.json", "ruta": "glosario.filas", "doc": "cap1", "modulo": 11, "que": "Entradas del glosario de notación del curso", "valor": 15}, "elip_a": {"origen": "cap2_datos.json", "ruta": "elipsoide.a", "doc": "cap2", "modulo": 1, "que": "Semieje mayor del WGS84, en metros", "valor": 6378137}, "elip_a_menos_b": {"origen": "cap2_datos.json", "ruta": "elipsoide.a_menos_b", "doc": "cap2", "modulo": 1, "que": "Diferencia entre semiejes: cuánto se aparta la Tierra de una esfera", "valor": 21384.6857548207}, "elip_f_inv": {"origen": "cap2_datos.json", "ruta": "elipsoide.aplanamiento_inv", "doc": "cap2", "modulo": 1, "que": "Aplanamiento inverso del WGS84", "valor": 298.257223563}, "elip_datum_desp": {"origen": "cap2_datos.json", "ruta": "elipsoide.datum.desp_medio_m", "doc": "cap2", "modulo": 1, "que": "Desplazamiento medio al cambiar de datum (WGS84 a Bogotá 1975)", "valor": 490.6773764496}, "grad_lat": {"origen": "cap2_datos.json", "ruta": "grados.lat", "doc": "cap2", "modulo": 2, "que": "Latitudes tabuladas", "valor": [0, 4.711, 10, 20, 30, 40, 45, 50, 59.9139, 70, 80]}, "grad_lon_elip": {"origen": "cap2_datos.json", "ruta": "grados.lon_m_elipsoide", "doc": "cap2", "modulo": 2, "que": "Metros de un grado de longitud sobre el elipsoide", "valor": [111319.4907932736, 110945.908636103, 109639.3221054624, 104646.9309332806, 96485.9740837231, 85393.4091296043, 78846.334709795, 71695.2196060255, 55944.3981013817, 38186.113293304, 19393.2468013869]}, "grad_lon_esfera": {"origen": "cap2_datos.json", "ruta": "grados.lon_m_esfera", "doc": "cap2", "modulo": 2, "que": "Metros de un grado de longitud sobre la esfera de s2", "valor": [111195.1011774839, 110819.4343168508, 109505.755825001, 104489.0609018683, 96297.4768270793, 85179.9426495647, 78626.3110895063, 71474.3009302451, 55741.6674726477, 38030.5382034552, 19308.5890003343]}, "grad_bogota_oslo": {"origen": "cap2_datos.json", "ruta": "grados.bogota_vs_oslo", "doc": "cap2", "modulo": 2, "que": "Veces que un grado de longitud es más largo en Bogotá que en Oslo", "valor": 1.9831459878}, "proy_omega_med": {"origen": "cap2_datos.json", "ruta": "proyecciones.tabla.omega_med_grados", "doc": "cap2", "modulo": 3, "que": "Distorsión angular media por proyección", "valor": [1.9549e-06, 0.2888806989, 26.8486737738, 31.1372794053, 23.1911823307, 25.6670988722]}, "proy_razon_max": {"origen": "cap2_datos.json", "ruta": "proyecciones.tabla.razon_max", "doc": "cap2", "modulo": 3, "que": "Razón de área máxima por proyección", "valor": [19.6446089313, 19.6505491778, 1.0105309063, 1.0048255997, 1.5996283852, 301.1565224416]}, "proy_nombres": {"origen": "cap2_datos.json", "ruta": "proyecciones.tabla.nombre", "doc": "cap2", "modulo": 3, "que": "Las seis proyecciones comparadas", "valor": ["Mercator", "Web Mercator (3857)", "Mollweide", "Equal Earth", "Robinson", "Azimutal equidistante (Bogotá)"]}, "proy_ninguna": {"origen": "cap2_datos.json", "ruta": "proyecciones.ninguna_conforme_y_equivalente", "doc": "cap2", "modulo": 3, "que": "Ninguna proyección es conforme y equivalente a la vez", "valor": true}, "epsg_3116_max": {"origen": "cap2_datos.json", "ruta": "epsg.continente.max_3116_pct", "doc": "cap2", "modulo": 4, "que": "Error de área máximo con EPSG:3116 en el continente, en %", "valor": 1.5501213573}, "epsg_9377_max": {"origen": "cap2_datos.json", "ruta": "epsg.continente.max_9377_pct", "doc": "cap2", "modulo": 4, "que": "Error de área máximo con EPSG:9377 en el continente, en %", "valor": 0.9490068395}, "epsg_3116_med": {"origen": "cap2_datos.json", "ruta": "epsg.continente.med_3116_pct", "doc": "cap2", "modulo": 4, "que": "Error de área mediano con EPSG:3116", "valor": 0.0442485925}, "epsg_9377_med": {"origen": "cap2_datos.json", "ruta": "epsg.continente.med_9377_pct", "doc": "cap2", "modulo": 4, "que": "Error de área mediano con EPSG:9377", "valor": 0.1336906368}, "etiq_transform": {"origen": "cap2_datos.json", "ruta": "etiquetar.transform_max_delta", "doc": "cap2", "modulo": 5, "que": "Cambio máximo del NÚMERO de la coordenada al reproyectar de verdad: de metros a grados, así que no es una distancia ni va en metros", "valor": 4890691.575343235}, "etiq_set_crs": {"origen": "cap2_datos.json", "ruta": "etiquetar.set_crs_max_delta", "doc": "cap2", "modulo": 5, "que": "Desplazamiento de los vértices al reetiquetar con st_set_crs", "valor": 0}, "etiq_lon_absurda": {"origen": "cap2_datos.json", "ruta": "etiquetar.lon_absurda", "doc": "cap2", "modulo": 5, "que": "Longitud que queda tras reetiquetar mal: ninguna Tierra tiene esa coordenada", "valor": 4890617.5888089575}, "etiq_silencioso": {"origen": "cap2_datos.json", "ruta": "etiquetar.silencioso.desplazamiento_m", "doc": "cap2", "modulo": 5, "que": "Desplazamiento de un st_transform 4686->4326: cero, y tampoco avisa", "valor": 0}, "etiq_n_localidades": {"origen": "cap2_datos.json", "ruta": "etiquetar.n_localidades", "doc": "cap2", "modulo": 5, "que": "Localidades de Bogotá sobre las que se hace el ensayo de reetiquetado", "valor": 20}, "medir_dif_esfera": {"origen": "cap2_datos.json", "ruta": "medir.colombia.dif_esfera_km2", "doc": "cap2", "modulo": 6, "que": "km2 de diferencia al medir Colombia sobre esfera o elipsoide", "valor": 4991.34555698}, "medir_dif_esfera_pct": {"origen": "cap2_datos.json", "ruta": "medir.colombia.dif_esfera_pct", "doc": "cap2", "modulo": 6, "que": "Diferencia relativa al medir el área de Colombia sobre la esfera en vez del elipsoide", "valor": 0.4385044558}, "medir_dist_max": {"origen": "cap2_datos.json", "ruta": "medir.distancias.dif_max_m", "doc": "cap2", "modulo": 6, "que": "Diferencia máxima entre distancia esférica y geodésica, en metros", "valor": 8882.565603382}, "medir_equiv_mun": {"origen": "cap2_datos.json", "ruta": "medir.municipios.equivalente_a_municipios", "doc": "cap2", "modulo": 6, "que": "A cuántos municipios equivale el error acumulado", "valor": 1078}, "form_campos_largos": {"origen": "cap2_datos.json", "ruta": "formatos.shapefile.n_campos_largos", "doc": "cap2", "modulo": 7, "que": "Campos cuyo nombre desfigura el shapefile quitándoles vocales: NO los trunca a 10", "valor": 5}, "form_n_rasgos": {"origen": "cap2_datos.json", "ruta": "formatos.n_rasgos", "doc": "cap2", "modulo": 7, "que": "Rasgos guardados en los tres formatos: NO son las localidades de m5", "valor": 60}, "form_n_campos": {"origen": "cap2_datos.json", "ruta": "formatos.shapefile.n_campos", "doc": "cap2", "modulo": 7, "que": "Columnas del conjunto que se guarda en los tres formatos", "valor": 9}, "form_gpkg_razon": {"origen": "cap2_datos.json", "ruta": "formatos.gpkg.razon_sobre_shp", "doc": "cap2", "modulo": 7, "que": "Tamaño del GeoPackage respecto del shapefile", "valor": 1.0394543586}, "form_geojson_razon": {"origen": "cap2_datos.json", "ruta": "formatos.geojson.razon_sobre_shp", "doc": "cap2", "modulo": 7, "que": "Tamaño del GeoJSON respecto del shapefile", "valor": 3.3320647948}, "form_logico": {"origen": "cap2_datos.json", "ruta": "formatos.shapefile.tipo_logico_despues", "doc": "cap2", "modulo": 7, "que": "En qué se convierte un logical al pasar por shapefile", "valor": "integer"}, "csv_desplaz_med": {"origen": "cap2_datos.json", "ruta": "csv_sf.desplazamiento_km_med", "doc": "cap2", "modulo": 8, "que": "Distancia a la que aterriza un punto con lon y lat invertidos", "valor": 10293.1357101606}, "csv_en_colombia": {"origen": "cap2_datos.json", "ruta": "csv_sf.n_en_colombia", "doc": "cap2", "modulo": 8, "que": "Estaciones que caen en Colombia con las coordenadas invertidas", "valor": 0}, "csv_hubo_aviso": {"origen": "cap2_datos.json", "ruta": "csv_sf.hubo_aviso", "doc": "cap2", "modulo": 8, "que": "¿Avisó sf del error?", "valor": false}, "csv_coma_na": {"origen": "cap2_datos.json", "ruta": "csv_sf.coma_decimal.n_na", "doc": "cap2", "modulo": 8, "que": "NA que produce la coma decimal al leerse como texto", "valor": 5}, "pos_razon_max_min": {"origen": "cap2_datos.json", "ruta": "posicional.sesgo.razon_max_min", "doc": "cap2", "modulo": 9, "que": "Veces que la tasa de error posicional es peor en la localidad peor que en la mejor", "valor": 56.073089701}, "pos_corr": {"origen": "cap2_datos.json", "ruta": "posicional.sesgo.corr_pearson", "doc": "cap2", "modulo": 9, "que": "Correlación entre compacidad de la localidad y tasa de error", "valor": 0.6243549453}, "pos_tasa_global": {"origen": "cap2_datos.json", "ruta": "posicional.sesgo.tasa_global_pct", "doc": "cap2", "modulo": 9, "que": "Tasa global de error de asignación, en %", "valor": 3.0339520145}, "pos_sedes_por_pos": {"origen": "cap2_datos.json", "ruta": "posicional.sedes_por_posicion_2dec", "doc": "cap2", "modulo": 9, "que": "Sedes que comparten posición al redondear a 2 decimales", "valor": 6.1361111111}, "topo_area_antes": {"origen": "cap2_datos.json", "ruta": "topologia.lazo.area_antes", "doc": "cap2", "modulo": 10, "que": "Área del polígono con autointersección antes de repararlo", "valor": 0}, "topo_area_despues": {"origen": "cap2_datos.json", "ruta": "topologia.lazo.area_despues", "doc": "cap2", "modulo": 10, "que": "Área tras st_make_valid", "valor": 2}, "topo_buffer_grados": {"origen": "cap2_datos.json", "ruta": "topologia.buffer.grados_area_km2", "doc": "cap2", "modulo": 10, "que": "Área de un buffer de radio 1 000 construido sobre grados, leída como km²", "valor": 8e-10}, "topo_buffer_3857": {"origen": "cap2_datos.json", "ruta": "topologia.buffer.m3857_area_real_km2", "doc": "cap2", "modulo": 10, "que": "Área real de ese buffer hecho en Web Mercator: parece bien y no lo está", "valor": 3.0983762166}, "topo_buffer_9377": {"origen": "cap2_datos.json", "ruta": "topologia.buffer.m9377_area_km2", "doc": "cap2", "modulo": 10, "que": "Área del mismo buffer pedido sobre EPSG:9377, que es el que sale bien", "valor": 3.1401573746}, "ing_reduccion": {"origen": "cap2_datos.json", "ruta": "ingenieria.join.reduccion", "doc": "cap2", "modulo": 11, "que": "Veces que el índice espacial reduce los pares a comparar", "valor": 11.106083459}, "ing_pares_bruta": {"origen": "cap2_datos.json", "ruta": "ingenieria.join.pares_fuerza_bruta", "doc": "cap2", "modulo": 11, "que": "Pares por fuerza bruta", "valor": 44180}, "ing_pares_cajas": {"origen": "cap2_datos.json", "ruta": "ingenieria.join.pares_tras_cajas", "doc": "cap2", "modulo": 11, "que": "Pares tras el filtro de cajas", "valor": 3978}, "ing_vecino_mediana": {"origen": "cap2_datos.json", "ruta": "ingenieria.geohash.d_vecino_mediana_m", "doc": "cap2", "modulo": 11, "que": "Distancia mediana al vecino más cercano, en metros", "valor": 148.6307964968}, "c3m1_config": {"origen": "cap3_datos.json", "ruta": "m1.n_configuraciones", "doc": "cap3", "modulo": 1, "que": "Configuraciones de esquema y k probadas sobre el mismo dato", "valor": 35}, "c3m1_distintos": {"origen": "cap3_datos.json", "ruta": "m1.n_mapas_distintos", "doc": "cap3", "modulo": 1, "que": "Mapas visualmente distintos que salen de ellas", "valor": 24}, "c3m1_pct": {"origen": "cap3_datos.json", "ruta": "m1.pct_distintos", "doc": "cap3", "modulo": 1, "que": "Porcentaje de configuraciones que dan un mapa distinto", "valor": 68.5714285714}, "c3m1_otro_k": {"origen": "cap3_datos.json", "ruta": "m1.n_k_no_respetado", "doc": "cap3", "modulo": 1, "que": "Configuraciones en las que el esquema no da las k clases pedidas", "valor": 12}, "c3m2_r": {"origen": "cap3_datos.json", "ruta": "m2.r_conteo_tasa", "doc": "cap3", "modulo": 2, "que": "Correlación de Pearson entre el conteo de estudiantes y el puntaje medio", "valor": 0.1002125295}, "c3m2_rho": {"origen": "cap3_datos.json", "ruta": "m2.rho_conteo_tasa", "doc": "cap3", "modulo": 2, "que": "Correlación de Spearman entre los dos ordenamientos", "valor": -0.0383391246}, "c3m2_solape": {"origen": "cap3_datos.json", "ruta": "m2.solape_top20", "doc": "cap3", "modulo": 2, "que": "Municipios comunes a los 20 primeros por conteo y por puntaje medio", "valor": 1}, "c3m2_pct_est": {"origen": "cap3_datos.json", "ruta": "m2.pct_estudiantes_top10", "doc": "cap3", "modulo": 2, "que": "Porcentaje de estudiantes que vive en los 10 municipios con más conteo", "valor": 35.2962604117}, "c3m2_pct_mun": {"origen": "cap3_datos.json", "ruta": "m2.pct_municipios_top10", "doc": "cap3", "modulo": 2, "que": "Porcentaje de municipios que son esos diez", "valor": 0.8984725966}, "c3m3_cortes": {"origen": "cap3_datos.json", "ruta": "m3.cortes_cuantiles", "doc": "cap3", "modulo": 3, "que": "Cortes por cuantiles sobre SID74, k=5", "valor": [0, 1, 4, 5, 10, 44]}, "c3m3_empatados": {"origen": "cap3_datos.json", "ruta": "m3.n_empatados", "doc": "cap3", "modulo": 3, "que": "Condados empatados justo en un corte", "valor": 39}, "c3m3_convenio_r": {"origen": "cap3_datos.json", "ruta": "m3.convenio_r", "doc": "cap3", "modulo": 3, "que": "Lado cerrado del intervalo en classInt", "valor": "[a, b)"}, "c3m3_convenio_py": {"origen": "cap3_datos.json", "ruta": "m3.convenio_python", "doc": "cap3", "modulo": 3, "que": "Lado cerrado del intervalo en mapclassify", "valor": "(a, b]"}, "c3m4_discordante": {"origen": "cap3_datos.json", "ruta": "m4.par_mas_discordante.pct_cambian", "doc": "cap3", "modulo": 4, "que": "Porcentaje de municipios que cambian de clase entre los dos esquemas más discordantes", "valor": 80.0178412132}, "c3m4_concordante": {"origen": "cap3_datos.json", "ruta": "m4.par_mas_concordante.pct_cambian", "doc": "cap3", "modulo": 4, "que": "Porcentaje de municipios que cambian de clase entre los dos esquemas más concordantes", "valor": 3.6574487065}, "c3m4_estables": {"origen": "cap3_datos.json", "ruta": "m4.pct_estables", "doc": "cap3", "modulo": 4, "que": "Porcentaje de municipios que no cambian de clase con ningún esquema", "valor": 19.9821587868}, "c3m4_rango_max": {"origen": "cap3_datos.json", "ruta": "m4.rango_max", "doc": "cap3", "modulo": 4, "que": "Clases distintas que llega a tomar un mismo municipio", "valor": 3}, "c3m5_dE_normal": {"origen": "cap3_datos.json", "ruta": "m5.rojo_verde.dE_normal", "doc": "cap3", "modulo": 5, "que": "Distancia perceptual entre el rojo y el verde en visión típica", "valor": 72.1453877419}, "c3m5_dE_deuter": {"origen": "cap3_datos.json", "ruta": "m5.rojo_verde.dE_deuteranopia", "doc": "cap3", "modulo": 5, "que": "Distancia perceptual entre el rojo y el verde bajo deuteranopia", "valor": 4.0279778292}, "c3m5_caida": {"origen": "cap3_datos.json", "ruta": "m5.rojo_verde.caida_pct", "doc": "cap3", "modulo": 5, "que": "Porcentaje en que cae esa distancia perceptual", "valor": 94.4168602384}, "c3m5_comparaciones": {"origen": "cap3_datos.json", "ruta": "m5.n_comparaciones_cvd", "doc": "cap3", "modulo": 5, "que": "Comparaciones de color simuladas", "valor": 153}, "c3m6_verbos": {"origen": "cap3_datos.json", "ruta": "m6.n_verbos", "doc": "cap3", "modulo": 6, "que": "Verbos de tmap verificados ejecutando", "valor": 12}, "c3m6_version": {"origen": "cap3_datos.json", "ruta": "m6.version_tmap", "doc": "cap3", "modulo": 6, "que": "Versión de tmap del material", "valor": "4.2"}, "c3m7_por_punto": {"origen": "cap3_datos.json", "ruta": "m7.dot_density.por_punto", "doc": "cap3", "modulo": 7, "que": "Estudiantes que representa cada punto del dot density", "valor": 2000}, "c3m7_n_puntos": {"origen": "cap3_datos.json", "ruta": "m7.dot_density.n_puntos", "doc": "cap3", "modulo": 7, "que": "Puntos dibujados", "valor": 535}, "c3m7_hexagonos": {"origen": "cap3_datos.json", "ruta": "m7.hexbin.n_hexagonos", "doc": "cap3", "modulo": 7, "que": "Hexágonos del hexbin", "valor": 129}, "c3m7_razon_simbolos": {"origen": "cap3_datos.json", "ruta": "m7.simbolos.razon_valor", "doc": "cap3", "modulo": 7, "que": "Razón entre el valor mayor y el menor en símbolos proporcionales", "valor": 196.0616966581}, "c3m7_radio_simbolos": {"origen": "cap3_datos.json", "ruta": "m7.simbolos.radio_max_rel", "doc": "cap3", "modulo": 7, "que": "Veces que el círculo mayor supera al menor EN RADIO, con el área bien construida", "valor": 14.0022032787}, "c3m8_r_ind": {"origen": "cap3_datos.json", "ruta": "m8.r_individuo", "doc": "cap3", "modulo": 8, "que": "Correlación educación de la madre / puntaje, a nivel individual", "valor": 0.3627227986}, "c3m8_r_mun": {"origen": "cap3_datos.json", "ruta": "m8.r_municipio", "doc": "cap3", "modulo": 8, "que": "Correlación educación de la madre / puntaje, agregada a municipio", "valor": 0.3033293938}, "c3m8_r_dep": {"origen": "cap3_datos.json", "ruta": "m8.r_departamento", "doc": "cap3", "modulo": 8, "que": "Correlación educación de la madre / puntaje, agregada a departamento", "valor": 0.5126096936}, "c3m8_subida": {"origen": "cap3_datos.json", "ruta": "m8.subida_ind_dep_pct", "doc": "cap3", "modulo": 8, "que": "Porcentaje que sube la correlación al pasar del individuo al departamento", "valor": 41.3227113359}, "c3m8_pct_var": {"origen": "cap3_datos.json", "ruta": "m8.pct_var_entre", "doc": "cap3", "modulo": 8, "que": "Porcentaje de la varianza total que vive entre municipios", "valor": 14.8816806985}, "c3m8_n_rep": {"origen": "cap3_datos.json", "ruta": "m8.n_rep", "doc": "cap3", "modulo": 8, "que": "Particiones contiguas por escala en la curva del efecto escala", "valor": 5000}, "c3m8_ee_max": {"origen": "cap3_datos.json", "ruta": "m8.forma.ee_max", "doc": "cap3", "modulo": 8, "que": "El mayor error de la media de esa curva, entre todas sus escalas", "valor": 0.0035001579}}, "nuevo": {"n_efectivo": {"modulo": "cap1.m5", "n": 1121, "rho": 0.0146196798, "decimales": 2, "correcto": 64.5215454332, "distractores": [{"id": "resta_lineal", "valor": 1104.6113389442, "error": "descontar la correlación linealmente, como si quitara una fracción de las observaciones en vez de dividir por el efecto de diseño"}, {"id": "techo", "valor": 68.4009508881, "error": "dar el techo 1/rho_medio, el límite del tamaño efectivo cuando n crece con la correlación media fija, en vez del valor que corresponde a los n municipios que hay"}, {"id": "multiplica", "valor": 19476.300382496, "error": "multiplicar por el efecto de diseño en vez de dividir"}], "nota_n_menos_1": {"n_grande": 1121, "con_n_menos_1": 64.5215454332, "con_n": 64.467298339, "n_pequeno": 25, "con_n_menos_1_25": 18.5065603305, "con_n_25": 18.3084193035, "dice": "con n grande el (n-1) es indiferente; el término manda cuando n es pequeño"}}, "grado_longitud": {"modulo": "cap2.m2", "lat": 4.711, "decimales": 1, "correcto": 110945.908636103, "dif_s2_m": -126.4743192522, "distractores": [{"id": "s2_esfera", "valor": 110819.4343168508, "error": "dejar que st_distance mida con s2, que trabaja sobre una esfera, creyendo que mide sobre el elipsoide"}, {"id": "olvida_coseno", "valor": 111322.0042321017, "error": "olvidar el coseno de la latitud: da el grado del ecuador en cualquier paralelo"}, {"id": "radio_meridional", "valor": 110208.1805260214, "error": "usar el radio meridional M en vez del primo vertical N"}], "nota_arco": {"valor": 110945.9181349321, "dif_m": 0.0094988291385, "dice": "el arco de paralelo va por encima de la geodésica, y la separación crece con la latitud"}}, "convenio_intervalo": {"modulo": "cap3.m3", "n": 100, "cortes": [0, 1, 4, 5, 10, 44], "tam_r": [13, 25, 13, 26, 23], "tam_python": [24, 27, 11, 19, 19], "primera_clase_r": 13, "primera_clase_python": 24, "movidos_primera": 11, "error": "clasificar por cuantiles con el intervalo cerrado por el otro lado", "decimales": 0, "correcto": 11, "distractores": [{"id": "primera_clase_python", "valor": 24, "error": "dar el tamaño de la primera clase en Python en vez de cuántos condados ENTRAN en ella al cambiar de convenio"}, {"id": "primera_clase_r", "valor": 13, "error": "dar el tamaño de la primera clase en R en vez de la diferencia entre las dos"}, {"id": "todos_los_empates", "valor": 39, "error": "contar los condados empatados en CUALQUIERA de los cinco cortes, cuando la pregunta es por los que se mueven en el primero"}]}, "euclidea_grados": {"modulo": "cap2.m6", "n_estaciones": 361, "n_pares": 64980, "km_por_grado": 111.3194907933, "referencia": "geodésica sobre el elipsoide WGS84 (lwgeom)", "error_med_pct": 0.59887242389, "error_max_pct": 2.5064803671, "error_min_pct": 0.0095340467402, "pct_sobreestima": 100, "peor_par": {"a": 45, "b": 213, "d_geodesica_km": 1026.1402157819, "d_ingenua_km": 1051.8602188299}, "error": "medir distancias euclídeas sobre grados y convertirlas con un factor fijo"}, "cv_inflacion": {"modulo": "cap1.m10", "decimales": 5, "correcto": 75.3422060824, "distractores": [{"id": "base_bloques", "valor": 42.9686655394, "error": "tomar como base el error por bloques en vez del de la validación aleatoria: lo que se infla es el optimista, así que el denominador es él"}, {"id": "razon", "valor": 175.3422060798, "error": "dar la razón entre los dos errores en vez del incremento: el 100 % de partida ya está en el modelo, y lo que se pregunta es cuánto se le añade"}, {"id": "cuadraticos", "valor": 207.4488923294, "error": "comparar los errores CUADRÁTICOS en vez de sus raíces, que es comparar MSE cuando la pregunta habla de RMSE"}]}, "indice_espacial": {"modulo": "cap2.m11", "decimales": 5, "correcto": 11.106083459, "distractores": [{"id": "al_reves", "valor": 0.090040742417, "error": "dividir al revés: eso es la fracción de trabajo que queda, no las veces que se reduce"}, {"id": "olvida_el_resto", "valor": 10.106083459, "error": "contar solo los pares que se ahorran y olvidar los que quedan por comparar: el trabajo no baja a cero, baja a los pares tras el filtro"}, {"id": "pct_reduccion", "valor": 90.9959257583, "error": "dar el porcentaje en que se reduce en vez de las veces: describen el mismo hecho y no son el mismo número"}]}, "caida_color": {"modulo": "cap3.m5", "decimales": 5, "correcto": 94.4168602384, "distractores": [{"id": "lo_que_queda", "valor": 5.5831397616, "error": "dar el porcentaje de distancia que QUEDA en vez del que se pierde"}, {"id": "diferencia", "valor": 68.1174099127, "error": "dar la caída en unidades de distancia perceptual en vez de en porcentaje"}, {"id": "base_suma", "valor": 89.4241831144, "error": "normalizar por la SUMA de las dos distancias —la diferencia relativa simétrica, que se usa cuando ninguno de los dos valores es el de partida— en vez de por la de partida, que aquí sí existe: se cae DESDE la visión típica"}]}, "efecto_escala": {"modulo": "cap3.m8", "decimales": 5, "correcto": 41.3227113359, "distractores": [{"id": "base_departamento", "valor": 29.2399650009, "error": "tomar como base la correlación agregada en vez de la individual: se sube DESDE el individuo, así que el denominador es él"}, {"id": "razon", "valor": 141.3227113318, "error": "dar la razón entre las dos correlaciones en vez del incremento: el 100 % de partida ya está contado"}, {"id": "base_municipio", "valor": 68.9944014915, "error": "medir la subida desde la correlación MUNICIPAL en vez de desde la del estudiante: el enunciado agrega de estudiantes a departamentos, no de municipios a departamentos"}]}}, "graficos": {"g_cobertura": {"modulo": "cap1.m4", "titulo": "Cobertura real de un IC al 95 % según la dependencia", "phi": [0, 0.5, 1, 2, 4, 8, 16], "cobertura": [0.953, 0.8473333333, 0.587, 0.335, 0.197, 0.1223333333, 0.0753333333]}, "g_variograma": {"modulo": "cap1.m6", "titulo": "Variograma: el teórico y lo que da UNA realización", "lags": [1, 2, 3, 4, 5, 6, 7, 8], "teorico_clase": [0.2582696758, 0.4161387869, 0.5317475829, 0.6374385132, 0.7227425851, 0.7812312826, 0.8284661857, 0.8644222148], "media": [0.2573559467, 0.4144596839, 0.5291182435, 0.6336924656, 0.7178457587, 0.7763288654, 0.8234470378, 0.8598726901], "q05": [0.2142743109, 0.3209898928, 0.3822494401, 0.4302709122, 0.4691613342, 0.4841921118, 0.4963451477, 0.5045240669], "q95": [0.3051485846, 0.5237966883, 0.7042336019, 0.8873273286, 1.0348607782, 1.1539911725, 1.2709190474, 1.3905082377]}, "g_grado": {"modulo": "cap2.m2", "titulo": "Metros de un grado de longitud según la latitud", "lat": [0, 4.711, 10, 20, 30, 40, 45, 50, 59.9139, 70, 80], "elipsoide": [111319.4907932736, 110945.908636103, 109639.3221054624, 104646.9309332806, 96485.9740837231, 85393.4091296043, 78846.334709795, 71695.2196060255, 55944.3981013817, 38186.113293304, 19393.2468013869], "esfera": [111195.1011774839, 110819.4343168508, 109505.755825001, 104489.0609018683, 96297.4768270793, 85179.9426495647, 78626.3110895063, 71474.3009302451, 55741.6674726477, 38030.5382034552, 19308.5890003343]}, "g_proyecciones": {"modulo": "cap2.m3", "titulo": "Distorsión de área y de ángulo por proyección", "nombre": ["Mercator", "Web Mercator (3857)", "Mollweide", "Equal Earth", "Robinson", "Azimutal equidistante (Bogotá)"], "razon_max": [19.6446089313, 19.6505491778, 1.0105309063, 1.0048255997, 1.5996283852, 301.1565224416], "omega_med": [1.9549e-06, 0.2888806989, 26.8486737738, 31.1372794053, 23.1911823307, 25.6670988722]}, "g_discordancia": {"modulo": "cap3.m4", "titulo": "% de municipios que cambian de clase, por par de esquemas", "etiqueta": ["Intervalos iguales / Cuantiles", "Intervalos iguales / Fisher-Jenks", "Intervalos iguales / Desviación estándar", "Intervalos iguales / Head/tails", "Cuantiles / Fisher-Jenks", "Cuantiles / Desviación estándar", "Cuantiles / Head/tails", "Fisher-Jenks / Desviación estándar", "Fisher-Jenks / Head/tails", "Desviación estándar / Head/tails"], "pct": [79.8394290812, 71.36485281, 17.5735950045, 20.9634255129, 46.3871543265, 79.9286351472, 80.0178412132, 78.768956289, 78.858162355, 3.6574487065]}, "g_escala": {"modulo": "cap3.m8", "titulo": "La correlación según el número de zonas", "zonas": [5, 10, 20, 33, 50, 100, 200, 400, 700], "media": [0.5151024592, 0.4875360672, 0.5292264594, 0.5472286653, 0.5390651235, 0.5001667573, 0.4512017316, 0.3939682386, 0.340533413], "sd": [0.2474985385, 0.1582517711, 0.1176857304, 0.0889540035, 0.0715263424, 0.0515781798, 0.0392378932, 0.0274373081, 0.0193742661], "forma": {"cima_zonas": 33, "cima_media": 0.5472286653, "cruce_antes": 400, "cruce_despues": 700}}}, "errores": [{"id": "set_crs", "titulo": "Reetiquetar creyendo que se reproyecta", "doc": "cap2", "modulo": 5, "claves": ["etiq_set_crs", "etiq_transform", "etiq_lon_absurda"], "dice": "st_set_crs no mueve ni un vértice y no da error; st_transform mueve todos", "nuevas": []}, {"id": "lonlat", "titulo": "Invertir el orden lon/lat", "doc": "cap2", "modulo": 8, "claves": ["csv_desplaz_med", "csv_en_colombia", "csv_hubo_aviso"], "dice": "el punto aterriza a miles de kilómetros y sf no avisa", "nuevas": []}, {"id": "conteo_tasa", "titulo": "Leer un mapa de conteos como mapa de riesgo", "doc": "cap3", "modulo": 2, "claves": ["c3m2_r", "c3m2_solape", "c3m2_pct_est"], "dice": "el mapa de conteos es el mapa de la población", "nuevas": []}, {"id": "euclidea", "titulo": "Medir distancias euclídeas sobre grados", "doc": "cap2", "modulo": 6, "claves": [], "dice": "un grado no mide lo mismo en el ecuador que en Bogotá, y el error nunca se compensa", "nuevas": [{"ruta": "euclidea_grados.error_med_pct", "que": "Error medio del método ingenuo sobre los 64 980 pares de estaciones del IDEAM"}, {"ruta": "euclidea_grados.error_max_pct", "que": "Error del peor par de los 64 980"}, {"ruta": "euclidea_grados.pct_sobreestima", "que": "Porcentaje de pares en los que el método ingenuo se pasa: al ser siempre por exceso, el error no se cancela al promediar"}]}, {"id": "ee_ingenuo", "titulo": "Usar el error estándar clásico con datos autocorrelacionados", "doc": "cap1", "modulo": 4, "claves": ["inf_cobertura_phi4", "inf_factor_phi4", "inf_inflacion"], "dice": "el IC al 95 % cubre mucho menos del 95 %", "nuevas": []}, {"id": "cv_aleatoria", "titulo": "Validar un modelo espacial con CV aleatoria", "doc": "cap1", "modulo": 10, "claves": ["cv_rmse_alea", "cv_rmse_bloques", "cv_inflacion"], "dice": "el desempeño estimado está inflado porque el vecino está en el otro pliegue", "nuevas": []}, {"id": "agregacion", "titulo": "Comparar correlaciones entre niveles de agregación", "doc": "cap3", "modulo": 8, "claves": ["c3m8_r_ind", "c3m8_r_dep", "c3m8_subida"], "dice": "la correlación sube al agregar y no es la misma cantidad", "nuevas": []}, {"id": "paleta", "titulo": "Codificar con rojo y verde", "doc": "cap3", "modulo": 5, "claves": ["c3m5_dE_normal", "c3m5_dE_deuter", "c3m5_caida"], "dice": "bajo deuteranopia los dos colores casi coinciden", "nuevas": []}, {"id": "intervalo", "titulo": "Clasificar por cuantiles sin mirar el lado cerrado", "doc": "cap3", "modulo": 3, "claves": ["c3m3_empatados", "c3m3_convenio_r", "c3m3_convenio_py"], "dice": "R y Python dan particiones distintas del mismo dato con el mismo nombre", "nuevas": []}, {"id": "buffer_grados", "titulo": "Hacer un buffer o medir un área en grados", "doc": "cap2", "modulo": 10, "claves": ["topo_buffer_grados", "topo_buffer_3857", "topo_buffer_9377"], "dice": "el resultado sale en grados cuadrados, que no son ninguna superficie", "nuevas": []}]};
+    const DATOS_PRE1 = {"meta": {"documento": "preparcial-corte-1", "corte": "I", "fecha_parcial": "2026-09-01", "generado": "2026-11-18T09:35:41", "semilla": 2026, "n_modulos_alcance": 30, "n_reutilizadas": 130, "n_nuevas": 8, "n_graficos": 6, "n_errores": 10, "n_anclas": 14, "alcance": ["cap1.m1", "cap1.m2", "cap1.m3", "cap1.m4", "cap1.m5", "cap1.m6", "cap1.m7", "cap1.m8", "cap1.m9", "cap1.m10", "cap1.m11", "cap2.m1", "cap2.m2", "cap2.m3", "cap2.m4", "cap2.m5", "cap2.m6", "cap2.m7", "cap2.m8", "cap2.m9", "cap2.m10", "cap2.m11", "cap3.m1", "cap3.m2", "cap3.m3", "cap3.m4", "cap3.m5", "cap3.m6", "cap3.m7", "cap3.m8"], "r_version": "R version 4.4.1 (2024-06-14)", "paquetes": {"jsonlite": "2.0.0", "sf": "1.0.22"}}, "reutilizado": {"snow_muertes": {"origen": "cap1_datos.json", "ruta": "snow.n_muertes", "doc": "cap1", "modulo": 1, "que": "Muertes del brote de Broad Street, 1854", "valor": 578}, "snow_pct_broad": {"origen": "cap1_datos.json", "ruta": "snow.pct_mas_cerca_broad", "doc": "cap1", "modulo": 1, "que": "Porcentaje de muertes cuya bomba más cercana es la de Broad Street", "valor": 62.1107266436}, "snow_razon_uniforme": {"origen": "cap1_datos.json", "ruta": "snow.razon_sobre_uniforme", "doc": "cap1", "modulo": 1, "que": "Veces por encima de lo esperado si las 13 bombas fueran equivalentes", "valor": 8.0743944637}, "snow_caida_mango": {"origen": "cap1_datos.json", "ruta": "snow.caida_hasta_mango_pct", "doc": "cap1", "modulo": 1, "que": "Porcentaje de caída de los ataques antes de quitar la manija de la bomba", "valor": 91.6083916084}, "ce_redwood": {"origen": "cap1_datos.json", "ruta": "puntual_canonico.redwood.clark_evans", "doc": "cap1", "modulo": 2, "que": "Clark-Evans de las secuoyas (agregado, <1)", "valor": 0.6186501573}, "ce_pinos": {"origen": "cap1_datos.json", "ruta": "puntual_canonico.japanesepines.clark_evans", "doc": "cap1", "modulo": 2, "que": "Clark-Evans de los pinos japoneses: cerca de 1, compatible con aleatoriedad", "valor": 1.0640020553}, "ce_celulas": {"origen": "cap1_datos.json", "ruta": "puntual_canonico.cells.clark_evans", "doc": "cap1", "modulo": 2, "que": "Clark-Evans de las células (regular, >1)", "valor": 1.6716795148}, "nc_tasa_global": {"origen": "cap1_datos.json", "ruta": "area_canonico.tasa_global", "doc": "cap1", "modulo": 2, "que": "Tasa global de SIDS en Carolina del Norte, por mil", "valor": 2.0214448937}, "meuse_corr_rio": {"origen": "cap1_datos.json", "ruta": "geo_canonico.corr_dist_rio", "doc": "cap1", "modulo": 2, "que": "Correlación entre log-zinc y distancia al río (meuse)", "valor": -0.7394275589}, "tobler_ideam_b1": {"origen": "cap1_datos.json", "ruta": "tobler.ideam.bandas[1].I", "doc": "cap1", "modulo": 3, "que": "Moran I de la primera banda de distancia, estaciones del IDEAM", "valor": 0.606348194}, "tobler_perm_b1": {"origen": "cap1_datos.json", "ruta": "tobler.permutado.bandas[1].I", "doc": "cap1", "modulo": 3, "que": "Moran I de la primera banda tras permutar las estaciones al azar", "valor": -0.0253357115}, "tobler_esperado": {"origen": "cap1_datos.json", "ruta": "tobler.ideam.bandas[1].esperado", "doc": "cap1", "modulo": 3, "que": "E[I] bajo permutación en la primera banda, -n'/(n(n-1)) con n' las estaciones con vecinos", "valor": -0.0019390582}, "tobler_caida_alt": {"origen": "cap1_datos.json", "ruta": "tobler.caida_por_altitud_pct", "doc": "cap1", "modulo": 3, "que": "Porcentaje en que cae la autocorrelación al descontar la altitud", "valor": 29.776334998}, "inf_cobertura_ind": {"origen": "cap1_datos.json", "ruta": "inferencia.cobertura_independiente", "doc": "cap1", "modulo": 4, "que": "Cobertura real del IC al 95 % con datos independientes", "valor": 0.953}, "inf_cobertura_phi4": {"origen": "cap1_datos.json", "ruta": "inferencia.cobertura_phi4", "doc": "cap1", "modulo": 4, "que": "Cobertura real de un IC nominal al 95 % bajo dependencia (phi = 4)", "valor": 0.197}, "inf_factor_phi4": {"origen": "cap1_datos.json", "ruta": "inferencia.factor_phi4", "doc": "cap1", "modulo": 4, "que": "Veces que se subestima el error estándar ingenuo", "valor": 7.857975732}, "inf_inflacion": {"origen": "cap1_datos.json", "ruta": "inferencia.inflacion_varianza_phi4", "doc": "cap1", "modulo": 4, "que": "Porcentaje en que la varianza real supera a la ingenua", "valor": 61.7477826052}, "inf_real_factor": {"origen": "cap1_datos.json", "ruta": "inferencia_real.factor", "doc": "cap1", "modulo": 4, "que": "Veces que se subestima el error estándar sobre el dato real: bootstrap por bloques contra iid", "valor": 4.1682180039}, "inf_cobertura_phi16": {"origen": "cap1_datos.json", "ruta": "inferencia.rejilla[7].cobertura", "doc": "cap1", "modulo": 4, "que": "Cobertura real del IC al 95 % en el extremo derecho de la curva (phi = 16)", "valor": 0.0753333333}, "neff_desercion": {"origen": "cap1_datos.json", "ruta": "n_efectivo.desercion_municipal", "doc": "cap1", "modulo": 5, "que": "Tamaño efectivo de los 1121 municipios con deserción", "valor": 64.5215456118}, "neff_desercion_n": {"origen": "cap1_datos.json", "ruta": "n_efectivo.desercion_n", "doc": "cap1", "modulo": 5, "que": "Municipios con dato de deserción", "valor": 1121}, "neff_pct": {"origen": "cap1_datos.json", "ruta": "n_efectivo.desercion_pct", "doc": "cap1", "modulo": 5, "que": "Porcentaje de la información nominal que queda tras la autocorrelación", "valor": 5.7557132571}, "neff_rho_implicito": {"origen": "cap1_datos.json", "ruta": "n_efectivo.rho_del_titular.implicito", "doc": "cap1", "modulo": 5, "que": "Correlación media entre pares de municipios que corresponde a la varianza que midió el remuestreo por departamentos: se despeja de ella, no se mide sobre el mapa", "valor": 0.0146196798}, "neff_centrado_col": {"origen": "cap1_datos.json", "ruta": "n_efectivo.centrado.colombia.centrado", "doc": "cap1", "modulo": 5, "que": "Promedio de los productos de todos los pares de municipios, centrados con la media muestral y divididos por la varianza: vale -1/(n-1) con cualquier dato que no sea constante", "valor": -0.0008928571}, "realiz_rechaza": {"origen": "cap1_datos.json", "ruta": "una_realizacion.pct_rechaza_ingenuo", "doc": "cap1", "modulo": 6, "que": "Porcentaje de veces que la prueba ingenua rechaza siendo cierta H0", "valor": 82}, "realiz_esperado": {"origen": "cap1_datos.json", "ruta": "una_realizacion.pct_esperado_si_valiera", "doc": "cap1", "modulo": 6, "que": "Porcentaje que debería rechazar si la prueba fuera válida", "valor": 5}, "realiz_sd_medias": {"origen": "cap1_datos.json", "ruta": "una_realizacion.sd_de_las_medias", "doc": "cap1", "modulo": 6, "que": "Desviación de la media entre 1000 realizaciones del mismo proceso", "valor": 0.4214459097}, "realiz_n": {"origen": "cap1_datos.json", "ruta": "una_realizacion.n_realizaciones", "doc": "cap1", "modulo": 6, "que": "Realizaciones simuladas del proceso", "valor": 1000}, "realiz_emc": {"origen": "cap1_datos.json", "ruta": "una_realizacion.emc_rechaza", "doc": "cap1", "modulo": 6, "que": "Error de Monte Carlo del porcentaje de rechazo, en puntos porcentuales", "valor": 1.2149074039}, "escala_moran_mun": {"origen": "cap1_datos.json", "ruta": "escala.moran_municipal", "doc": "cap1", "modulo": 7, "que": "Moran I de la deserción a nivel municipal", "valor": 0.3809079276}, "escala_moran_dep": {"origen": "cap1_datos.json", "ruta": "escala.moran_departamental", "doc": "cap1", "modulo": 7, "que": "Moran I de la misma variable agregada a departamento", "valor": 0.0635960159}, "escala_caida": {"origen": "cap1_datos.json", "ruta": "escala.caida_pct", "doc": "cap1", "modulo": 7, "que": "Porcentaje en que cae el Moran I al agregar", "valor": 83.304097589}, "escala_n_dep": {"origen": "cap1_datos.json", "ruta": "escala.n_departamental", "doc": "cap1", "modulo": 7, "que": "Unidades del nivel departamental: el n con el que se calcula el Moran agregado", "valor": 33}, "soporte_inflacion": {"origen": "cap1_datos.json", "ruta": "agregacion_soporte.nc.inflacion_pct", "doc": "cap1", "modulo": 7, "que": "Porcentaje en que se infla el total al repartir por rectángulos sin ponderar por área", "valor": 292.9535232384}, "eco_gdal": {"origen": "cap1_datos.json", "ruta": "ecosistema.sistema.GDAL", "doc": "cap1", "modulo": 8, "que": "Versión de GDAL bajo sf", "valor": "3.8.5"}, "eco_geos": {"origen": "cap1_datos.json", "ruta": "ecosistema.sistema.GEOS", "doc": "cap1", "modulo": 8, "que": "Versión de GEOS bajo sf", "valor": "3.13.0"}, "eco_proj": {"origen": "cap1_datos.json", "ruta": "ecosistema.sistema.PROJ", "doc": "cap1", "modulo": 8, "que": "Versión de PROJ bajo sf", "valor": "9.5.1"}, "anat_pct_geom": {"origen": "cap1_datos.json", "ruta": "anatomia.nc.pct_geometria", "doc": "cap1", "modulo": 9, "que": "Porcentaje de los bytes de un objeto sf que ocupa la geometría", "valor": 81.2056539471}, "anat_filas": {"origen": "cap1_datos.json", "ruta": "anatomia.nc.filas", "doc": "cap1", "modulo": 9, "que": "Condados de nc: las filas del objeto sf", "valor": 100}, "anat_vertices": {"origen": "cap1_datos.json", "ruta": "anatomia.nc.n_vertices", "doc": "cap1", "modulo": 9, "que": "Vértices de los 100 condados de nc", "valor": 2529}, "anat_multiples": {"origen": "cap1_datos.json", "ruta": "anatomia.nc.n_partes_multiples", "doc": "cap1", "modulo": 9, "que": "Condados con más de una parte (MULTIPOLYGON de verdad)", "valor": 6}, "anat_ppp_n": {"origen": "cap1_datos.json", "ruta": "anatomia.ppp.n", "doc": "cap1", "modulo": 9, "que": "Puntos del ppp de los pinos japoneses", "valor": 65}, "cv_rmse_alea": {"origen": "cap1_datos.json", "ruta": "cv_espacial.rmse_aleatoria", "doc": "cap1", "modulo": 10, "que": "RMSE con validación cruzada aleatoria", "valor": 3.163068919}, "cv_rmse_bloques": {"origen": "cap1_datos.json", "ruta": "cv_espacial.rmse_bloques", "doc": "cap1", "modulo": 10, "que": "RMSE con validación cruzada por bloques espaciales", "valor": 5.5461948224}, "cv_inflacion": {"origen": "cap1_datos.json", "ruta": "cv_espacial.inflacion_pct", "doc": "cap1", "modulo": 10, "que": "Porcentaje en que el error por bloques supera al que anuncia la validación aleatoria", "valor": 75.3422060824}, "cv_r2_bloques": {"origen": "cap1_datos.json", "ruta": "cv_espacial.r2_bloques", "doc": "cap1", "modulo": 10, "que": "R2 por bloques: negativo, peor que predecir la media", "valor": -0.0273462716}, "glos_n_filas": {"origen": "cap1_datos.json", "ruta": "glosario.filas", "doc": "cap1", "modulo": 11, "que": "Entradas del glosario de notación del curso", "valor": 15}, "elip_a": {"origen": "cap2_datos.json", "ruta": "elipsoide.a", "doc": "cap2", "modulo": 1, "que": "Semieje mayor del WGS84, en metros", "valor": 6378137}, "elip_a_menos_b": {"origen": "cap2_datos.json", "ruta": "elipsoide.a_menos_b", "doc": "cap2", "modulo": 1, "que": "Diferencia entre semiejes: cuánto se aparta la Tierra de una esfera", "valor": 21384.6857548207}, "elip_f_inv": {"origen": "cap2_datos.json", "ruta": "elipsoide.aplanamiento_inv", "doc": "cap2", "modulo": 1, "que": "Aplanamiento inverso del WGS84", "valor": 298.257223563}, "elip_datum_desp": {"origen": "cap2_datos.json", "ruta": "elipsoide.datum.desp_medio_m", "doc": "cap2", "modulo": 1, "que": "Desplazamiento medio al cambiar de datum (WGS84 a Bogotá 1975)", "valor": 490.6773764496}, "grad_lat": {"origen": "cap2_datos.json", "ruta": "grados.lat", "doc": "cap2", "modulo": 2, "que": "Latitudes tabuladas", "valor": [0, 4.711, 10, 20, 30, 40, 45, 50, 59.9139, 70, 80]}, "grad_lon_elip": {"origen": "cap2_datos.json", "ruta": "grados.lon_m_elipsoide", "doc": "cap2", "modulo": 2, "que": "Metros de un grado de longitud sobre el elipsoide", "valor": [111319.4907932736, 110945.908636103, 109639.3221054624, 104646.9309332806, 96485.9740837231, 85393.4091296043, 78846.334709795, 71695.2196060255, 55944.3981013817, 38186.113293304, 19393.2468013869]}, "grad_lon_esfera": {"origen": "cap2_datos.json", "ruta": "grados.lon_m_esfera", "doc": "cap2", "modulo": 2, "que": "Metros de un grado de longitud sobre la esfera de s2", "valor": [111195.1011774839, 110819.4343168508, 109505.755825001, 104489.0609018683, 96297.4768270793, 85179.9426495647, 78626.3110895063, 71474.3009302451, 55741.6674726477, 38030.5382034552, 19308.5890003343]}, "grad_bogota_oslo": {"origen": "cap2_datos.json", "ruta": "grados.bogota_vs_oslo", "doc": "cap2", "modulo": 2, "que": "Veces que un grado de longitud es más largo en Bogotá que en Oslo", "valor": 1.9831459878}, "proy_omega_med": {"origen": "cap2_datos.json", "ruta": "proyecciones.tabla.omega_med_grados", "doc": "cap2", "modulo": 3, "que": "Distorsión angular media por proyección", "valor": [1.9549e-06, 0.2888806989, 26.8486737738, 31.1372794053, 23.1911823307, 25.6670988722]}, "proy_razon_max": {"origen": "cap2_datos.json", "ruta": "proyecciones.tabla.razon_max", "doc": "cap2", "modulo": 3, "que": "Razón de área máxima por proyección", "valor": [19.6446089313, 19.6505491778, 1.0105309063, 1.0048255997, 1.5996283852, 301.1565224416]}, "proy_nombres": {"origen": "cap2_datos.json", "ruta": "proyecciones.tabla.nombre", "doc": "cap2", "modulo": 3, "que": "Las seis proyecciones comparadas", "valor": ["Mercator", "Web Mercator (3857)", "Mollweide", "Equal Earth", "Robinson", "Azimutal equidistante (Bogotá)"]}, "proy_ninguna": {"origen": "cap2_datos.json", "ruta": "proyecciones.ninguna_conforme_y_equivalente", "doc": "cap2", "modulo": 3, "que": "Ninguna proyección es conforme y equivalente a la vez", "valor": true}, "epsg_3116_max": {"origen": "cap2_datos.json", "ruta": "epsg.continente.max_3116_pct", "doc": "cap2", "modulo": 4, "que": "Error de área máximo con EPSG:3116 en el continente, en %", "valor": 1.5501213573}, "epsg_9377_max": {"origen": "cap2_datos.json", "ruta": "epsg.continente.max_9377_pct", "doc": "cap2", "modulo": 4, "que": "Error de área máximo con EPSG:9377 en el continente, en %", "valor": 0.9490068395}, "epsg_3116_med": {"origen": "cap2_datos.json", "ruta": "epsg.continente.med_3116_pct", "doc": "cap2", "modulo": 4, "que": "Error de área mediano con EPSG:3116", "valor": 0.0442485925}, "epsg_9377_med": {"origen": "cap2_datos.json", "ruta": "epsg.continente.med_9377_pct", "doc": "cap2", "modulo": 4, "que": "Error de área mediano con EPSG:9377", "valor": 0.1336906368}, "etiq_transform": {"origen": "cap2_datos.json", "ruta": "etiquetar.transform_max_delta", "doc": "cap2", "modulo": 5, "que": "Cambio máximo del NÚMERO de la coordenada al reproyectar de verdad: de metros a grados, así que no es una distancia ni va en metros", "valor": 4890691.575343235}, "etiq_set_crs": {"origen": "cap2_datos.json", "ruta": "etiquetar.set_crs_max_delta", "doc": "cap2", "modulo": 5, "que": "Desplazamiento de los vértices al reetiquetar con st_set_crs", "valor": 0}, "etiq_lon_absurda": {"origen": "cap2_datos.json", "ruta": "etiquetar.lon_absurda", "doc": "cap2", "modulo": 5, "que": "Longitud que queda tras reetiquetar mal: ninguna Tierra tiene esa coordenada", "valor": 4890617.5888089575}, "etiq_silencioso": {"origen": "cap2_datos.json", "ruta": "etiquetar.silencioso.desplazamiento_m", "doc": "cap2", "modulo": 5, "que": "Desplazamiento de un st_transform 4686->4326: cero, y tampoco avisa", "valor": 0}, "etiq_n_localidades": {"origen": "cap2_datos.json", "ruta": "etiquetar.n_localidades", "doc": "cap2", "modulo": 5, "que": "Localidades de Bogotá sobre las que se hace el ensayo de reetiquetado", "valor": 20}, "medir_dif_esfera": {"origen": "cap2_datos.json", "ruta": "medir.colombia.dif_esfera_km2", "doc": "cap2", "modulo": 6, "que": "km2 de diferencia al medir Colombia sobre esfera o elipsoide", "valor": 4991.34555698}, "medir_dif_esfera_pct": {"origen": "cap2_datos.json", "ruta": "medir.colombia.dif_esfera_pct", "doc": "cap2", "modulo": 6, "que": "Diferencia relativa al medir el área de Colombia sobre la esfera en vez del elipsoide", "valor": 0.4385044558}, "medir_dist_max": {"origen": "cap2_datos.json", "ruta": "medir.distancias.dif_max_m", "doc": "cap2", "modulo": 6, "que": "Diferencia máxima entre distancia esférica y geodésica, en metros", "valor": 8882.565603382}, "medir_equiv_mun": {"origen": "cap2_datos.json", "ruta": "medir.municipios.equivalente_a_municipios", "doc": "cap2", "modulo": 6, "que": "A cuántos municipios equivale el error acumulado", "valor": 1078}, "form_campos_largos": {"origen": "cap2_datos.json", "ruta": "formatos.shapefile.n_campos_largos", "doc": "cap2", "modulo": 7, "que": "Campos cuyo nombre desfigura el shapefile quitándoles vocales: NO los trunca a 10", "valor": 5}, "form_n_rasgos": {"origen": "cap2_datos.json", "ruta": "formatos.n_rasgos", "doc": "cap2", "modulo": 7, "que": "Rasgos guardados en los tres formatos: NO son las localidades de m5", "valor": 60}, "form_n_campos": {"origen": "cap2_datos.json", "ruta": "formatos.shapefile.n_campos", "doc": "cap2", "modulo": 7, "que": "Columnas del conjunto que se guarda en los tres formatos", "valor": 9}, "form_gpkg_razon": {"origen": "cap2_datos.json", "ruta": "formatos.gpkg.razon_sobre_shp", "doc": "cap2", "modulo": 7, "que": "Tamaño del GeoPackage respecto del shapefile", "valor": 1.0394543586}, "form_geojson_razon": {"origen": "cap2_datos.json", "ruta": "formatos.geojson.razon_sobre_shp", "doc": "cap2", "modulo": 7, "que": "Tamaño del GeoJSON respecto del shapefile", "valor": 3.3320647948}, "form_logico": {"origen": "cap2_datos.json", "ruta": "formatos.shapefile.tipo_logico_despues", "doc": "cap2", "modulo": 7, "que": "En qué se convierte un logical al pasar por shapefile", "valor": "integer"}, "csv_desplaz_med": {"origen": "cap2_datos.json", "ruta": "csv_sf.desplazamiento_km_med", "doc": "cap2", "modulo": 8, "que": "Distancia a la que aterriza un punto con lon y lat invertidos", "valor": 10293.1357101606}, "csv_en_colombia": {"origen": "cap2_datos.json", "ruta": "csv_sf.n_en_colombia", "doc": "cap2", "modulo": 8, "que": "Estaciones que caen en Colombia con las coordenadas invertidas", "valor": 0}, "csv_hubo_aviso": {"origen": "cap2_datos.json", "ruta": "csv_sf.hubo_aviso", "doc": "cap2", "modulo": 8, "que": "¿Avisó sf del error?", "valor": false}, "csv_coma_na": {"origen": "cap2_datos.json", "ruta": "csv_sf.coma_decimal.n_na", "doc": "cap2", "modulo": 8, "que": "NA que produce la coma decimal al leerse como texto", "valor": 5}, "pos_razon_max_min": {"origen": "cap2_datos.json", "ruta": "posicional.sesgo.razon_max_min", "doc": "cap2", "modulo": 9, "que": "Veces que la tasa de error posicional es peor en la localidad peor que en la mejor", "valor": 56.073089701}, "pos_corr": {"origen": "cap2_datos.json", "ruta": "posicional.sesgo.corr_pearson", "doc": "cap2", "modulo": 9, "que": "Correlación entre compacidad de la localidad y tasa de error", "valor": 0.6243549453}, "pos_tasa_global": {"origen": "cap2_datos.json", "ruta": "posicional.sesgo.tasa_global_pct", "doc": "cap2", "modulo": 9, "que": "Tasa global de error de asignación, en %", "valor": 3.0339520145}, "pos_sedes_por_pos": {"origen": "cap2_datos.json", "ruta": "posicional.sedes_por_posicion_2dec", "doc": "cap2", "modulo": 9, "que": "Sedes que comparten posición al redondear a 2 decimales", "valor": 6.1361111111}, "topo_area_antes": {"origen": "cap2_datos.json", "ruta": "topologia.lazo.area_antes", "doc": "cap2", "modulo": 10, "que": "Área del polígono con autointersección antes de repararlo", "valor": 0}, "topo_area_despues": {"origen": "cap2_datos.json", "ruta": "topologia.lazo.area_despues", "doc": "cap2", "modulo": 10, "que": "Área tras st_make_valid", "valor": 2}, "topo_buffer_grados": {"origen": "cap2_datos.json", "ruta": "topologia.buffer.grados_area_km2", "doc": "cap2", "modulo": 10, "que": "Área de un buffer de radio 1 000 construido sobre grados, leída como km²", "valor": 8e-10}, "topo_buffer_3857": {"origen": "cap2_datos.json", "ruta": "topologia.buffer.m3857_area_real_km2", "doc": "cap2", "modulo": 10, "que": "Área real de ese buffer hecho en Web Mercator: parece bien y no lo está", "valor": 3.0983762166}, "topo_buffer_9377": {"origen": "cap2_datos.json", "ruta": "topologia.buffer.m9377_area_km2", "doc": "cap2", "modulo": 10, "que": "Área del mismo buffer pedido sobre EPSG:9377, que es el que sale bien", "valor": 3.1401573746}, "ing_reduccion": {"origen": "cap2_datos.json", "ruta": "ingenieria.join.reduccion", "doc": "cap2", "modulo": 11, "que": "Veces que el índice espacial reduce los pares a comparar", "valor": 11.106083459}, "ing_pares_bruta": {"origen": "cap2_datos.json", "ruta": "ingenieria.join.pares_fuerza_bruta", "doc": "cap2", "modulo": 11, "que": "Pares por fuerza bruta", "valor": 44180}, "ing_pares_cajas": {"origen": "cap2_datos.json", "ruta": "ingenieria.join.pares_tras_cajas", "doc": "cap2", "modulo": 11, "que": "Pares tras el filtro de cajas", "valor": 3978}, "ing_vecino_mediana": {"origen": "cap2_datos.json", "ruta": "ingenieria.geohash.d_vecino_mediana_m", "doc": "cap2", "modulo": 11, "que": "Distancia mediana al vecino más cercano, en metros", "valor": 148.6307964968}, "c3m1_config": {"origen": "cap3_datos.json", "ruta": "m1.n_configuraciones", "doc": "cap3", "modulo": 1, "que": "Configuraciones de esquema y k probadas sobre el mismo dato", "valor": 35}, "c3m1_distintos": {"origen": "cap3_datos.json", "ruta": "m1.n_mapas_distintos", "doc": "cap3", "modulo": 1, "que": "Mapas visualmente distintos que salen de ellas", "valor": 24}, "c3m1_pct": {"origen": "cap3_datos.json", "ruta": "m1.pct_distintos", "doc": "cap3", "modulo": 1, "que": "Porcentaje de configuraciones que dan un mapa distinto", "valor": 68.5714285714}, "c3m1_otro_k": {"origen": "cap3_datos.json", "ruta": "m1.n_k_no_respetado", "doc": "cap3", "modulo": 1, "que": "Configuraciones en las que el esquema no da las k clases pedidas", "valor": 12}, "c3m2_r": {"origen": "cap3_datos.json", "ruta": "m2.r_conteo_tasa", "doc": "cap3", "modulo": 2, "que": "Correlación de Pearson entre el conteo de estudiantes y el puntaje medio", "valor": 0.1002125295}, "c3m2_rho": {"origen": "cap3_datos.json", "ruta": "m2.rho_conteo_tasa", "doc": "cap3", "modulo": 2, "que": "Correlación de Spearman entre los dos ordenamientos", "valor": -0.0383391246}, "c3m2_solape": {"origen": "cap3_datos.json", "ruta": "m2.solape_top20", "doc": "cap3", "modulo": 2, "que": "Municipios comunes a los 20 primeros por conteo y por puntaje medio", "valor": 1}, "c3m2_pct_est": {"origen": "cap3_datos.json", "ruta": "m2.pct_estudiantes_top10", "doc": "cap3", "modulo": 2, "que": "Porcentaje de estudiantes que vive en los 10 municipios con más conteo", "valor": 35.2962604117}, "c3m2_pct_mun": {"origen": "cap3_datos.json", "ruta": "m2.pct_municipios_top10", "doc": "cap3", "modulo": 2, "que": "Porcentaje de municipios que son esos diez", "valor": 0.8984725966}, "c3m3_cortes": {"origen": "cap3_datos.json", "ruta": "m3.cortes_cuantiles", "doc": "cap3", "modulo": 3, "que": "Cortes por cuantiles sobre SID74, k=5", "valor": [0, 1, 4, 5, 10, 44]}, "c3m3_empatados": {"origen": "cap3_datos.json", "ruta": "m3.n_empatados", "doc": "cap3", "modulo": 3, "que": "Condados empatados justo en un corte", "valor": 39}, "c3m3_convenio_r": {"origen": "cap3_datos.json", "ruta": "m3.convenio_r", "doc": "cap3", "modulo": 3, "que": "Lado cerrado del intervalo en classInt", "valor": "[a, b)"}, "c3m3_convenio_py": {"origen": "cap3_datos.json", "ruta": "m3.convenio_python", "doc": "cap3", "modulo": 3, "que": "Lado cerrado del intervalo en mapclassify", "valor": "(a, b]"}, "c3m4_discordante": {"origen": "cap3_datos.json", "ruta": "m4.par_mas_discordante.pct_cambian", "doc": "cap3", "modulo": 4, "que": "Porcentaje de municipios que cambian de clase entre los dos esquemas más discordantes", "valor": 80.0178412132}, "c3m4_concordante": {"origen": "cap3_datos.json", "ruta": "m4.par_mas_concordante.pct_cambian", "doc": "cap3", "modulo": 4, "que": "Porcentaje de municipios que cambian de clase entre los dos esquemas más concordantes", "valor": 3.6574487065}, "c3m4_estables": {"origen": "cap3_datos.json", "ruta": "m4.pct_estables", "doc": "cap3", "modulo": 4, "que": "Porcentaje de municipios que no cambian de clase con ningún esquema", "valor": 19.9821587868}, "c3m4_rango_max": {"origen": "cap3_datos.json", "ruta": "m4.rango_max", "doc": "cap3", "modulo": 4, "que": "Clases distintas que llega a tomar un mismo municipio", "valor": 3}, "c3m5_dE_normal": {"origen": "cap3_datos.json", "ruta": "m5.rojo_verde.dE_normal", "doc": "cap3", "modulo": 5, "que": "Distancia perceptual entre el rojo y el verde en visión típica", "valor": 72.1453877419}, "c3m5_dE_deuter": {"origen": "cap3_datos.json", "ruta": "m5.rojo_verde.dE_deuteranopia", "doc": "cap3", "modulo": 5, "que": "Distancia perceptual entre el rojo y el verde bajo deuteranopia", "valor": 4.0279778292}, "c3m5_caida": {"origen": "cap3_datos.json", "ruta": "m5.rojo_verde.caida_pct", "doc": "cap3", "modulo": 5, "que": "Porcentaje en que cae esa distancia perceptual", "valor": 94.4168602384}, "c3m5_comparaciones": {"origen": "cap3_datos.json", "ruta": "m5.n_comparaciones_cvd", "doc": "cap3", "modulo": 5, "que": "Comparaciones de color simuladas", "valor": 153}, "c3m6_verbos": {"origen": "cap3_datos.json", "ruta": "m6.n_verbos", "doc": "cap3", "modulo": 6, "que": "Verbos de tmap verificados ejecutando", "valor": 12}, "c3m6_version": {"origen": "cap3_datos.json", "ruta": "m6.version_tmap", "doc": "cap3", "modulo": 6, "que": "Versión de tmap del material", "valor": "4.2"}, "c3m7_por_punto": {"origen": "cap3_datos.json", "ruta": "m7.dot_density.por_punto", "doc": "cap3", "modulo": 7, "que": "Estudiantes que representa cada punto del dot density", "valor": 2000}, "c3m7_n_puntos": {"origen": "cap3_datos.json", "ruta": "m7.dot_density.n_puntos", "doc": "cap3", "modulo": 7, "que": "Puntos dibujados", "valor": 535}, "c3m7_hexagonos": {"origen": "cap3_datos.json", "ruta": "m7.hexbin.n_hexagonos", "doc": "cap3", "modulo": 7, "que": "Hexágonos del hexbin", "valor": 129}, "c3m7_razon_simbolos": {"origen": "cap3_datos.json", "ruta": "m7.simbolos.razon_valor", "doc": "cap3", "modulo": 7, "que": "Razón entre el valor mayor y el menor en símbolos proporcionales", "valor": 196.0616966581}, "c3m7_radio_simbolos": {"origen": "cap3_datos.json", "ruta": "m7.simbolos.radio_max_rel", "doc": "cap3", "modulo": 7, "que": "Veces que el círculo mayor supera al menor EN RADIO, con el área bien construida", "valor": 14.0022032787}, "c3m8_r_ind": {"origen": "cap3_datos.json", "ruta": "m8.r_individuo", "doc": "cap3", "modulo": 8, "que": "Correlación educación de la madre / puntaje, a nivel individual", "valor": 0.3627227986}, "c3m8_r_mun": {"origen": "cap3_datos.json", "ruta": "m8.r_municipio", "doc": "cap3", "modulo": 8, "que": "Correlación educación de la madre / puntaje, agregada a municipio", "valor": 0.3033293938}, "c3m8_r_dep": {"origen": "cap3_datos.json", "ruta": "m8.r_departamento", "doc": "cap3", "modulo": 8, "que": "Correlación educación de la madre / puntaje, agregada a departamento", "valor": 0.5126096936}, "c3m8_subida": {"origen": "cap3_datos.json", "ruta": "m8.subida_ind_dep_pct", "doc": "cap3", "modulo": 8, "que": "Porcentaje que sube la correlación al pasar del individuo al departamento", "valor": 41.3227113359}, "c3m8_pct_var": {"origen": "cap3_datos.json", "ruta": "m8.pct_var_entre", "doc": "cap3", "modulo": 8, "que": "Porcentaje de la varianza total que vive entre municipios", "valor": 14.8816806985}, "c3m8_n_rep": {"origen": "cap3_datos.json", "ruta": "m8.n_rep", "doc": "cap3", "modulo": 8, "que": "Particiones contiguas por escala en la curva del efecto escala", "valor": 5000}, "c3m8_ee_max": {"origen": "cap3_datos.json", "ruta": "m8.forma.ee_max", "doc": "cap3", "modulo": 8, "que": "El mayor error de la media de esa curva, entre todas sus escalas", "valor": 0.0035001579}}, "nuevo": {"n_efectivo": {"modulo": "cap1.m5", "n": 1121, "rho": 0.0146196798, "decimales": 2, "correcto": 64.5215454332, "distractores": [{"id": "resta_lineal", "valor": 1104.6113389442, "error": "descontar la correlación linealmente, como si quitara una fracción de las observaciones en vez de dividir por el efecto de diseño"}, {"id": "techo", "valor": 68.4009508881, "error": "dar el techo 1/rho_medio, el límite del tamaño efectivo cuando n crece con la correlación media fija, en vez del valor que corresponde a los n municipios que hay"}, {"id": "multiplica", "valor": 19476.300382496, "error": "multiplicar por el efecto de diseño en vez de dividir"}], "nota_n_menos_1": {"n_grande": 1121, "con_n_menos_1": 64.5215454332, "con_n": 64.467298339, "n_pequeno": 25, "con_n_menos_1_25": 18.5065603305, "con_n_25": 18.3084193035, "dice": "con n grande el (n-1) es indiferente; el término manda cuando n es pequeño"}}, "grado_longitud": {"modulo": "cap2.m2", "lat": 4.711, "decimales": 1, "correcto": 110945.908636103, "dif_s2_m": -126.4743192522, "distractores": [{"id": "s2_esfera", "valor": 110819.4343168508, "error": "dejar que st_distance mida con s2, que trabaja sobre una esfera, creyendo que mide sobre el elipsoide"}, {"id": "olvida_coseno", "valor": 111322.0042321017, "error": "olvidar el coseno de la latitud: da el grado del ecuador en cualquier paralelo"}, {"id": "radio_meridional", "valor": 110208.1805260214, "error": "usar el radio meridional M en vez del primo vertical N"}], "nota_arco": {"valor": 110945.9181349321, "dif_m": 0.0094988291385, "dice": "el arco de paralelo va por encima de la geodésica, y la separación crece con la latitud"}}, "convenio_intervalo": {"modulo": "cap3.m3", "n": 100, "cortes": [0, 1, 4, 5, 10, 44], "tam_r": [13, 25, 13, 26, 23], "tam_python": [24, 27, 11, 19, 19], "primera_clase_r": 13, "primera_clase_python": 24, "movidos_primera": 11, "error": "clasificar por cuantiles con el intervalo cerrado por el otro lado", "decimales": 0, "correcto": 11, "distractores": [{"id": "primera_clase_python", "valor": 24, "error": "dar el tamaño de la primera clase en Python en vez de cuántos condados ENTRAN en ella al cambiar de convenio"}, {"id": "primera_clase_r", "valor": 13, "error": "dar el tamaño de la primera clase en R en vez de la diferencia entre las dos"}, {"id": "todos_los_empates", "valor": 39, "error": "contar los condados empatados en CUALQUIERA de los cinco cortes, cuando la pregunta es por los que se mueven en el primero"}]}, "euclidea_grados": {"modulo": "cap2.m6", "n_estaciones": 361, "n_pares": 64980, "km_por_grado": 111.3194907933, "referencia": "geodésica sobre el elipsoide WGS84 (lwgeom)", "error_med_pct": 0.59887242389, "error_max_pct": 2.5064803671, "error_min_pct": 0.0095340467402, "pct_sobreestima": 100, "peor_par": {"a": 45, "b": 213, "d_geodesica_km": 1026.1402157819, "d_ingenua_km": 1051.8602188299}, "error": "medir distancias euclídeas sobre grados y convertirlas con un factor fijo"}, "cv_inflacion": {"modulo": "cap1.m10", "decimales": 5, "correcto": 75.3422060824, "distractores": [{"id": "base_bloques", "valor": 42.9686655394, "error": "tomar como base el error por bloques en vez del de la validación aleatoria: lo que se infla es el optimista, así que el denominador es él"}, {"id": "razon", "valor": 175.3422060798, "error": "dar la razón entre los dos errores en vez del incremento: el 100 % de partida ya está en el modelo, y lo que se pregunta es cuánto se le añade"}, {"id": "cuadraticos", "valor": 207.4488923294, "error": "comparar los errores CUADRÁTICOS en vez de sus raíces, que es comparar MSE cuando la pregunta habla de RMSE"}]}, "indice_espacial": {"modulo": "cap2.m11", "decimales": 5, "correcto": 11.106083459, "distractores": [{"id": "al_reves", "valor": 0.090040742417, "error": "dividir al revés: eso es la fracción de trabajo que queda, no las veces que se reduce"}, {"id": "olvida_el_resto", "valor": 10.106083459, "error": "contar solo los pares que se ahorran y olvidar los que quedan por comparar: el trabajo no baja a cero, baja a los pares tras el filtro"}, {"id": "pct_reduccion", "valor": 90.9959257583, "error": "dar el porcentaje en que se reduce en vez de las veces: describen el mismo hecho y no son el mismo número"}]}, "caida_color": {"modulo": "cap3.m5", "decimales": 5, "correcto": 94.4168602384, "distractores": [{"id": "lo_que_queda", "valor": 5.5831397616, "error": "dar el porcentaje de distancia que QUEDA en vez del que se pierde"}, {"id": "diferencia", "valor": 68.1174099127, "error": "dar la caída en unidades de distancia perceptual en vez de en porcentaje"}, {"id": "base_suma", "valor": 89.4241831144, "error": "normalizar por la SUMA de las dos distancias —la diferencia relativa simétrica, que se usa cuando ninguno de los dos valores es el de partida— en vez de por la de partida, que aquí sí existe: se cae DESDE la visión típica"}]}, "efecto_escala": {"modulo": "cap3.m8", "decimales": 5, "correcto": 41.3227113359, "distractores": [{"id": "base_departamento", "valor": 29.2399650009, "error": "tomar como base la correlación agregada en vez de la individual: se sube DESDE el individuo, así que el denominador es él"}, {"id": "razon", "valor": 141.3227113318, "error": "dar la razón entre las dos correlaciones en vez del incremento: el 100 % de partida ya está contado"}, {"id": "base_municipio", "valor": 68.9944014915, "error": "medir la subida desde la correlación MUNICIPAL en vez de desde la del estudiante: el enunciado agrega de estudiantes a departamentos, no de municipios a departamentos"}]}}, "graficos": {"g_cobertura": {"modulo": "cap1.m4", "titulo": "Cobertura real de un IC al 95 % según la dependencia", "phi": [0, 0.5, 1, 2, 4, 8, 16], "cobertura": [0.953, 0.8473333333, 0.587, 0.335, 0.197, 0.1223333333, 0.0753333333]}, "g_variograma": {"modulo": "cap1.m6", "titulo": "Variograma: el teórico y lo que da UNA realización", "lags": [1, 2, 3, 4, 5, 6, 7, 8], "teorico_clase": [0.2582696758, 0.4161387869, 0.5317475829, 0.6374385132, 0.7227425851, 0.7812312826, 0.8284661857, 0.8644222148], "media": [0.2573559467, 0.4144596839, 0.5291182435, 0.6336924656, 0.7178457587, 0.7763288654, 0.8234470378, 0.8598726901], "q05": [0.2142743109, 0.3209898928, 0.3822494401, 0.4302709122, 0.4691613342, 0.4841921118, 0.4963451477, 0.5045240669], "q95": [0.3051485846, 0.5237966883, 0.7042336019, 0.8873273286, 1.0348607782, 1.1539911725, 1.2709190474, 1.3905082377]}, "g_grado": {"modulo": "cap2.m2", "titulo": "Metros de un grado de longitud según la latitud", "lat": [0, 4.711, 10, 20, 30, 40, 45, 50, 59.9139, 70, 80], "elipsoide": [111319.4907932736, 110945.908636103, 109639.3221054624, 104646.9309332806, 96485.9740837231, 85393.4091296043, 78846.334709795, 71695.2196060255, 55944.3981013817, 38186.113293304, 19393.2468013869], "esfera": [111195.1011774839, 110819.4343168508, 109505.755825001, 104489.0609018683, 96297.4768270793, 85179.9426495647, 78626.3110895063, 71474.3009302451, 55741.6674726477, 38030.5382034552, 19308.5890003343]}, "g_proyecciones": {"modulo": "cap2.m3", "titulo": "Distorsión de área y de ángulo por proyección", "nombre": ["Mercator", "Web Mercator (3857)", "Mollweide", "Equal Earth", "Robinson", "Azimutal equidistante (Bogotá)"], "razon_max": [19.6446089313, 19.6505491778, 1.0105309063, 1.0048255997, 1.5996283852, 301.1565224416], "omega_med": [1.9549e-06, 0.2888806989, 26.8486737738, 31.1372794053, 23.1911823307, 25.6670988722]}, "g_discordancia": {"modulo": "cap3.m4", "titulo": "% de municipios que cambian de clase, por par de esquemas", "etiqueta": ["Intervalos iguales / Cuantiles", "Intervalos iguales / Fisher-Jenks", "Intervalos iguales / Desviación estándar", "Intervalos iguales / Head/tails", "Cuantiles / Fisher-Jenks", "Cuantiles / Desviación estándar", "Cuantiles / Head/tails", "Fisher-Jenks / Desviación estándar", "Fisher-Jenks / Head/tails", "Desviación estándar / Head/tails"], "pct": [79.8394290812, 71.36485281, 17.5735950045, 20.9634255129, 46.3871543265, 79.9286351472, 80.0178412132, 78.768956289, 78.858162355, 3.6574487065]}, "g_escala": {"modulo": "cap3.m8", "titulo": "La correlación según el número de zonas", "zonas": [5, 10, 20, 33, 50, 100, 200, 400, 700], "media": [0.5151024592, 0.4875360672, 0.5292264594, 0.5472286653, 0.5390651235, 0.5001667573, 0.4512017316, 0.3939682386, 0.340533413], "sd": [0.2474985385, 0.1582517711, 0.1176857304, 0.0889540035, 0.0715263424, 0.0515781798, 0.0392378932, 0.0274373081, 0.0193742661], "forma": {"cima_zonas": 33, "cima_media": 0.5472286653, "cruce_antes": 400, "cruce_despues": 700}}}, "errores": [{"id": "set_crs", "titulo": "Reetiquetar creyendo que se reproyecta", "doc": "cap2", "modulo": 5, "claves": ["etiq_set_crs", "etiq_transform", "etiq_lon_absurda"], "dice": "st_set_crs no mueve ni un vértice y no da error; st_transform mueve todos", "nuevas": []}, {"id": "lonlat", "titulo": "Invertir el orden lon/lat", "doc": "cap2", "modulo": 8, "claves": ["csv_desplaz_med", "csv_en_colombia", "csv_hubo_aviso"], "dice": "el punto aterriza a miles de kilómetros y sf no avisa", "nuevas": []}, {"id": "conteo_tasa", "titulo": "Leer un mapa de conteos como mapa de riesgo", "doc": "cap3", "modulo": 2, "claves": ["c3m2_r", "c3m2_solape", "c3m2_pct_est"], "dice": "el mapa de conteos es el mapa de la población", "nuevas": []}, {"id": "euclidea", "titulo": "Medir distancias euclídeas sobre grados", "doc": "cap2", "modulo": 6, "claves": [], "dice": "un grado no mide lo mismo en el ecuador que en Bogotá, y el error nunca se compensa", "nuevas": [{"ruta": "euclidea_grados.error_med_pct", "que": "Error medio del método ingenuo sobre los 64 980 pares de estaciones del IDEAM"}, {"ruta": "euclidea_grados.error_max_pct", "que": "Error del peor par de los 64 980"}, {"ruta": "euclidea_grados.pct_sobreestima", "que": "Porcentaje de pares en los que el método ingenuo se pasa: al ser siempre por exceso, el error no se cancela al promediar"}]}, {"id": "ee_ingenuo", "titulo": "Usar el error estándar clásico con datos autocorrelacionados", "doc": "cap1", "modulo": 4, "claves": ["inf_cobertura_phi4", "inf_factor_phi4", "inf_inflacion"], "dice": "el IC al 95 % cubre mucho menos del 95 %", "nuevas": []}, {"id": "cv_aleatoria", "titulo": "Validar un modelo espacial con CV aleatoria", "doc": "cap1", "modulo": 10, "claves": ["cv_rmse_alea", "cv_rmse_bloques", "cv_inflacion"], "dice": "el desempeño estimado está inflado porque el vecino está en el otro pliegue", "nuevas": []}, {"id": "agregacion", "titulo": "Comparar correlaciones entre niveles de agregación", "doc": "cap3", "modulo": 8, "claves": ["c3m8_r_ind", "c3m8_r_dep", "c3m8_subida"], "dice": "la correlación sube al agregar y no es la misma cantidad", "nuevas": []}, {"id": "paleta", "titulo": "Codificar con rojo y verde", "doc": "cap3", "modulo": 5, "claves": ["c3m5_dE_normal", "c3m5_dE_deuter", "c3m5_caida"], "dice": "bajo deuteranopia los dos colores casi coinciden", "nuevas": []}, {"id": "intervalo", "titulo": "Clasificar por cuantiles sin mirar el lado cerrado", "doc": "cap3", "modulo": 3, "claves": ["c3m3_empatados", "c3m3_convenio_r", "c3m3_convenio_py"], "dice": "R y Python dan particiones distintas del mismo dato con el mismo nombre", "nuevas": []}, {"id": "buffer_grados", "titulo": "Hacer un buffer o medir un área en grados", "doc": "cap2", "modulo": 10, "claves": ["topo_buffer_grados", "topo_buffer_3857", "topo_buffer_9377"], "dice": "el resultado sale en grados cuadrados, que no son ninguna superficie", "nuevas": []}]};
 
     // Los datos del capítulo se incrustan aquí, generados por
     // precalculo/genera_*.R:  const DATOS_CAPn = { ... };
@@ -5634,7 +5661,7 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       return new Chart(canvas, {
         type: 'line',
         data: { labels: etiquetas, datasets: datasets },
-        options: Object.assign({
+        options: fusionarOpcionesGrafico({
           responsive: true,
           maintainAspectRatio: false,
           animation: false,
@@ -5664,6 +5691,637 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
             }
           }
         }, opciones)
+      });
+    }
+
+    // La fusión de las opciones de la casa con las del simulador, EN
+    // PROFUNDIDAD (R-D, 2026-11-17). Hasta entonces era un `Object.assign`,
+    // que es superficial: quien pasaba `scales: { y: { title: … } }` para
+    // ponerle título a un eje se llevaba por delante `scales.x` entero —la
+    // letra, `maxRotation: 0`, `maxTicksLimit`, la rejilla apagada— y la letra
+    // de su propio eje y. El gráfico salía con la fuente del sistema y los
+    // rótulos girados 45°, y nadie lo había pedido.
+    //
+    // Tres reglas, y ninguna más:
+    //   1. Dos objetos LITERALES se funden clave a clave; lo que el simulador
+    //      no nombra se queda como lo trae la casa.
+    //   2. Todo lo demás lo decide el simulador y sustituye entero: un número,
+    //      una cadena, `false`, una FUNCIÓN (las opciones «scriptables» de
+    //      Chart.js, que no se pueden fundir con nada) y un ARREGLO
+    //      (`borderDash: [2, 3]` no es «los dos primeros de cuatro»).
+    //   3. `undefined` no borra: es no haber dicho nada. Para quitar algo de la
+    //      casa se dice su contrario (`maxRotation: 50`, `grid: { display:
+    //      true }`), que es lo que se lee en el simulador.
+    //
+    // Y un eje que la casa no conoce (`y2`, `yN`…) hereda la LETRA del eje al
+    // que se parece —Fira Code si es vertical, Montserrat si es horizontal—,
+    // y solo la letra: su rejilla, sus límites y su lado son del simulador.
+    // Literal: `{…}` a secas. Ni un arreglo, ni una función, ni una instancia
+    // de nada (un degradado del lienzo, un `Date`): su prototipo no es el de
+    // los objetos llanos.
+    function esObjetoLiteral(v) {
+      return v !== null && typeof v === 'object' &&
+             Object.getPrototypeOf(v) === Object.prototype;
+    }
+
+    function fusionProfunda(base, extra) {
+      const out = {};
+      Object.keys(base).forEach(k => {
+        out[k] = esObjetoLiteral(base[k]) ? fusionProfunda(base[k], {}) : base[k];
+      });
+      Object.keys(extra || {}).forEach(k => {
+        const v = extra[k];
+        if (v === undefined) return;
+        out[k] = (esObjetoLiteral(v) && esObjetoLiteral(out[k])) ? fusionProfunda(out[k], v) : v;
+      });
+      return out;
+    }
+
+    function fusionarOpcionesGrafico(casa, opciones) {
+      const out = fusionProfunda(casa, opciones || {});
+      const ejes = out.scales || {};
+      Object.keys(ejes).forEach(id => {
+        if (id === 'x' || id === 'y' || !esObjetoLiteral(ejes[id])) return;
+        const e = ejes[id];
+        // El mismo criterio que Chart.js: `axis` si lo dice, luego el lado
+        // (`position`), luego la primera letra del identificador.
+        const vertical = e.axis ? e.axis === 'y'
+          : (e.position === 'left' || e.position === 'right') ? true
+          : (e.position === 'top' || e.position === 'bottom') ? false
+          : id[0] !== 'x';
+        const letra = casa.scales[vertical ? 'y' : 'x'].ticks.font;
+        ejes[id] = fusionProfunda({ ticks: { font: letra } }, e);
+      });
+      return out;
+    }
+
+    // ----------------------------------------------------------------
+    // La leyenda, ABAJO en el teléfono (R-E, 2026-11-17).
+    //
+    // Las cajas de los gráficos tienen el alto fijo, en línea, y la leyenda
+    // de Chart.js va arriba con una muestra de 40 px por serie. A 375 px el
+    // lienzo mide 226 de ancho: cuatro series son cuatro filas, y al trazado
+    // le quedaban entre 73 y 150 px de alto en medio material.
+    //
+    // Es un plugin GLOBAL y no una opción de `crearGraficoLinea` porque la
+    // mayoría de los simuladores de los capítulos 2 a 7 crean su gráfico con
+    // `new Chart` a secas: así el arreglo los alcanza sin tocarlos. En una
+    // pantalla de 640 px o menos —el mismo corte que el resto de la hoja—:
+    //   · la leyenda baja al pie;
+    //   · la muestra de cada serie pasa a 12 px, o a lo que haga falta para
+    //     que quepa un trazo discontinuo entero (ver muestraLeyendaEstrecha);
+    //   · una entrada más ancha que el lienzo se parte en renglones: Chart.js
+    //     centra cada entrada, y la que no cabe empieza fuera del lienzo por
+    //     la izquierda, que es justo donde va su muestra de color (ver
+    //     etiquetasLeyendaEstrecha);
+    //   · el padre del lienzo recibe `.grafico-leyenda-abajo`, que le da un
+    //     alto mínimo de 300 px (ver la hoja);
+    //   · y si aun así, con el gráfico ya dibujado, al TRAZADO le quedan
+    //     menos de GRAFICO_TRAZADO_MIN px de alto —una leyenda de cinco
+    //     filas—, la caja crece lo que falta. La leyenda al pie cuesta 10 px
+    //     que arriba no costaba (el rótulo más alto del eje y ya no se apoya
+    //     en ella), y sin esto los gráficos que ya tenían 300 px de caja
+    //     habrían salido perdiendo.
+    //
+    // LO QUE RESPETA. Un gráfico sin leyenda no se toca, se haya quitado con
+    // `legend: { display: false }` o con `legend: false`. Si el simulador
+    // fijó él una posición que no es `top` (`position: 'right'`) o una
+    // muestra que ya es de 12 px o menos, manda él.
+    //
+    // NO SE ESCRIBE EN LAS OPCIONES DEL GRÁFICO, NI EN UNA COPIA. Las dos
+    // cosas se probaron y las dos rompían algo. Escribir en las opciones del
+    // simulador le cambiaba la leyenda a todos los gráficos que compartían
+    // ese objeto. Darle al gráfico una copia y devolverle el original al
+    // volver a una pantalla ancha perdía todo lo que el simulador hubiera
+    // escrito entre tanto en `grafico.options` —el título de un eje, su tipo,
+    // su máximo—: bastaba girar el teléfono.
+    //
+    // Lo que se hace es NO GUARDAR NADA. En cada trazo, después de que el
+    // plugin de la leyenda de Chart.js haya leído las opciones del gráfico,
+    // a la CAJA de la leyenda —el objeto que la pinta, no las opciones— se
+    // le pone delante un velo: un `Proxy` que contesta `bottom` cuando se le
+    // pregunta la posición, la muestra estrecha cuando se le pregunta el
+    // ancho, y lo demás lo deja pasar tal cual. En el trazo siguiente
+    // Chart.js vuelve a leer las opciones, intactas, y el velo se vuelve a
+    // poner o no según el ancho de ESE momento. No hay estado que devolver,
+    // ni historia: el mismo gráfico con el mismo ancho sale siempre igual,
+    // venga de donde venga, y lo que el simulador escribe en sus opciones es
+    // lo único que hay escrito en ellas.
+    const GRAFICO_ESTRECHO = '(max-width: 640px)';
+    // El alto que se le garantiza al área de trazado en el teléfono, en px.
+    // Es lo que tiene en el escritorio un gráfico corriente de 260 px de caja.
+    const GRAFICO_TRAZADO_MIN = 170;
+
+    // La muestra de la leyenda en el teléfono: 12 px, salvo que alguna serie
+    // vaya a trazos. En 12 px no cabe un patrón `[6, 4]` —se ve una raya, igual
+    // que la serie continua de al lado—, así que se da el ancho de dos trazos y
+    // su hueco, sin pasar de 24. Se calcula en cada trazo, con las series que
+    // haya ENTONCES: muchos simuladores añaden la serie a trazos después de
+    // crear el gráfico.
+    function muestraLeyendaEstrecha(chart) {
+      const series = (chart.config.data && chart.config.data.datasets) || [];
+      let ancho = 12;
+      series.forEach(s => {
+        const d = s && s.borderDash;
+        if (Array.isArray(d) && d.length && d[0] > 0) {
+          ancho = Math.max(ancho, Math.min(24, 2 * d[0] + (d[1] || d[0])));
+        }
+      });
+      return ancho;
+    }
+
+    // Parte en renglones un texto que no cabe en `ancho` px. Devuelve siempre
+    // un arreglo de renglones: uno solo si el texto cabe, o si es una sola
+    // palabra y no hay por dónde partir. Sirve a la leyenda y a los títulos de
+    // los ejes.
+    function partirTextoGrafico(texto, ancho, mide) {
+      if (typeof texto !== 'string' || mide(texto) <= ancho) return [texto];
+      const palabras = texto.split(' ');
+      if (palabras.length < 2) return [texto];
+      const renglones = [];
+      let actual = '';
+      palabras.forEach(p => {
+        const prueba = actual ? actual + ' ' + p : p;
+        if (actual && mide(prueba) > ancho) { renglones.push(actual); actual = p; }
+        else actual = prueba;
+      });
+      if (actual) renglones.push(actual);
+      return renglones;
+    }
+
+    // `generateLabels` de la leyenda, envuelto: las entradas las fabrica quien
+    // las fabricaba (el simulador, el tipo de gráfico o Chart.js) y aquí solo
+    // se parte el texto de las que no caben.
+    //
+    // CADA RENGLÓN ES UNA ENTRADA. Chart.js 4.4 admite un texto de varias
+    // líneas en la leyenda vertical, pero en la horizontal —arriba o al pie—
+    // mide el arreglo como una sola cadena y le da el alto de una línea. Así
+    // que el segundo renglón va como una entrada más, de la misma serie, con
+    // la muestra TRANSPARENTE: ocupa su sitio, y el texto continúa alineado
+    // con el de arriba. Pulsar cualquiera de las dos esconde la serie, y las
+    // dos se tachan juntas, porque comparten `datasetIndex` y `hidden`.
+    //
+    // Y CADA RENGLÓN DE UNA ENTRADA PARTIDA OCUPA SU FILA ENTERA. Chart.js
+    // llena las filas de la leyenda con las entradas que quepan, y un último
+    // renglón corto compartía fila con la entrada siguiente: «…sin» y
+    // «cuadratura ▢ cero» se leían como una sola cosa. Los renglones de una
+    // entrada partida se rellenan por la derecha con espacios duros hasta el
+    // ancho de la fila: nada más cabe a su lado, y los renglones quedan
+    // alineados por la izquierda, uno debajo de otro.
+    function etiquetasLeyendaEstrecha(original, muestra) {
+      return function (chart) {
+        const items = original.call(this, chart) || [];
+        const etq = chart.options.plugins.legend.labels;
+        const letra = Chart.helpers.toFont(etq.font);
+        // lo que ocupa una entrada además de su texto: la muestra, media letra
+        // de separación y el relleno de la leyenda a cada lado
+        const ancho = chart.width - muestra - letra.size / 2 - 2 * (typeof etq.padding === 'number' ? etq.padding : 10);
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.font = letra.string;
+        const mide = t => ctx.measureText(t).width;
+        const duro = mide('\u00a0') || 3;
+        const llena = t => t + '\u00a0'.repeat(Math.max(0, Math.floor((ancho - mide(t)) / duro)));
+        const partidas = [];
+        items.forEach(it => {
+          const renglones = partirTextoGrafico(it.text, ancho, mide);
+          if (renglones.length < 2) { partidas.push(it); return; }
+          renglones.forEach((renglon, k) => {
+            partidas.push(k === 0 ? Object.assign({}, it, { text: llena(renglon) })
+              : Object.assign({}, it, { text: llena(renglon), fillStyle: 'transparent', strokeStyle: 'transparent',
+                                        lineWidth: 0, pointStyle: false, continuacion: true }));
+          });
+        });
+        ctx.restore();
+        return partidas;
+      };
+    }
+
+    // ¿Lleva leyenda el gráfico, y es de los que llenan su caja? Se pregunta
+    // a las opciones tal como están AHORA.
+    function leyendaEstrechaAplica(chart, estrecho) {
+      if (!estrecho || !chart.legend) return false;
+      const crudo = chart.config.options && chart.config.options.plugins;
+      // `legend: false` es quitar la leyenda, igual que `display: false`.
+      if (crudo && crudo.legend === false) return false;
+      const ley = chart.options.plugins && chart.options.plugins.legend;
+      return !!ley && ley.display !== false;
+    }
+
+    // El velo sobre la caja de la leyenda (ver arriba). Va en `beforeUpdate`,
+    // DESPUÉS del de la leyenda de Chart.js —los plugins de la biblioteca se
+    // registran antes que este—, que es quien acaba de darle a la caja sus
+    // opciones y su posición.
+    function velarLeyendaEstrecha(chart, estrecho) {
+      const aplica = leyendaEstrechaAplica(chart, estrecho);
+      const caja = chart.canvas && chart.canvas.parentNode;
+      const estado = chart.$leyendaEstrecha || (chart.$leyendaEstrecha = { caja: null, alto: 0 });
+      // La caja se recuerda AQUÍ: al destruir un gráfico, Chart.js suelta su
+      // lienzo antes de avisar a los plugins, y ya no hay por dónde llegar.
+      if (caja) estado.caja = caja;
+      // Solo crece la caja de un gráfico que llena su caja: con
+      // `maintainAspectRatio` el alto sale del ancho, y un mínimo dejaría
+      // un hueco en blanco debajo.
+      estado.crece = aplica && !!estado.caja && chart.options.maintainAspectRatio === false;
+      if (estado.caja) {
+        if (estado.crece) estado.caja.classList.add('grafico-leyenda-abajo');
+        else soltarCajaGrafico(estado);
+      }
+      if (!aplica) return;
+      const opciones = chart.legend.options;
+      const baja = opciones.position === undefined || opciones.position === 'top';
+      const ancha = typeof opciones.labels.boxWidth === 'number' && opciones.labels.boxWidth > 12;
+      const muestra = ancha ? muestraLeyendaEstrecha(chart) : opciones.labels.boxWidth;
+      const genera = etiquetasLeyendaEstrecha(opciones.labels.generateLabels, typeof muestra === 'number' ? muestra : 12);
+      const etiquetas = new Proxy(opciones.labels, {
+        get(t, k) { return k === 'boxWidth' ? muestra : k === 'generateLabels' ? genera : t[k]; }
+      });
+      chart.legend.options = new Proxy(opciones, {
+        get(t, k) { return k === 'position' && baja ? 'bottom' : k === 'labels' ? etiquetas : t[k]; }
+      });
+      if (baja) chart.legend.position = 'bottom';
+    }
+
+    function soltarCajaGrafico(estado) {
+      if (!estado || !estado.caja) return;
+      estado.caja.classList.remove('grafico-leyenda-abajo');
+      estado.caja.style.removeProperty('--grafico-alto-minimo');
+      estado.alto = 0;
+    }
+
+    // EL GIRO DE LOS RÓTULOS NO SE PELEA CON EL ALTO. Chart.js gira los
+    // rótulos del eje x tanto como el alto del gráfico le deja: a un eje
+    // horizontal le da, como mucho, la mitad del alto del lienzo. Con más
+    // alto, más giro, y un eje más alto. Si la caja crece para darle sitio al
+    // trazado, el eje se queda con el sitio —medido en el módulo 5 del
+    // capítulo 5: los rótulos pasaban de 30° a 50° y la caja de 260 a 406 px
+    // para ganar los mismos 83 de trazado—.
+    //
+    // Así que el giro se calcula SIEMPRE como si el lienzo midiera lo que
+    // mide con el alto que la caja trae escrito (`style="height:260px"`):
+    // el eje decide su giro con la mitad de ESE alto, crezca la caja lo que
+    // crezca. Es una cuenta, no un recuerdo: no depende de cuántas veces se
+    // haya girado el teléfono ni de por qué ancho se haya pasado antes. Se
+    // hace envolviendo el método del EJE —el objeto, no sus opciones—, y se
+    // quita cuando la caja deja de crecer.
+    function acotarGiroGrafico(chart, estado) {
+      const alto0 = estado.crece ? parseFloat(estado.caja.style && estado.caja.style.height) : NaN;
+      const marco = alto0 > 0 ? marcoCajaGrafico(estado.caja) : 0;
+      // la mitad del alto del lienzo, que es lo que Chart.js le da a un eje horizontal
+      const tope = (alto0 - marco) / 2;
+      Object.keys(chart.scales || {}).forEach(id => {
+        const eje = chart.scales[id];
+        if (!(alto0 > 0)) { delete eje.calculateLabelRotation; return; }
+        eje.$altoGiro = tope;
+        if (Object.prototype.hasOwnProperty.call(eje, 'calculateLabelRotation')) return;
+        const propio = eje.calculateLabelRotation;
+        if (typeof propio !== 'function') return;
+        eje.calculateLabelRotation = function () {
+          const real = this.maxHeight;
+          if (this.isHorizontal() && real > this.$altoGiro) this.maxHeight = this.$altoGiro;
+          try { return propio.call(this); } finally { this.maxHeight = real; }
+        };
+      });
+    }
+
+    // El relleno y el borde de la caja, que cuentan en su alto si es `border-box`.
+    function marcoCajaGrafico(caja) {
+      const cs = window.getComputedStyle(caja);
+      const px = v => parseFloat(v) || 0;
+      return cs.boxSizing === 'border-box'
+        ? px(cs.paddingTop) + px(cs.paddingBottom) + px(cs.borderTopWidth) + px(cs.borderBottomWidth)
+        : 0;
+    }
+
+    // Con el gráfico ya compuesto: el alto que la caja necesita para que el
+    // trazado llegue a su mínimo. Es lo que en el lienzo NO es trazado —la
+    // leyenda, los ejes—, que depende del ancho y no del alto, más el mínimo,
+    // más el relleno y el borde de la caja. Se pide SIEMPRE, también cuando
+    // sobra: la hoja se queda con el mayor entre eso y sus 300 px, así que
+    // pedir menos no encoge nada, y en cambio una medida pasajera (una
+    // leyenda que luego pierde una fila, un lienzo a medio medir) no deja la
+    // caja crecida para siempre.
+    //
+    // La cuenta sale del LIENZO y no del alto de la caja, a propósito. Chart.js
+    // no cambia el tamaño del lienzo en el acto: espera al siguiente fotograma
+    // y, si hay una animación en marcha, a que el gráfico se redibuje. En ese
+    // rato la caja ya ha crecido y el lienzo no, y una cuenta hecha con el
+    // alto de la caja pediría otros 30 px a cada `update()` del simulador
+    // —medido: 330, 360, 390…—. Con el alto del lienzo, la cuenta da lo mismo
+    // antes y después de que el lienzo alcance a su caja, y no oscila. Los
+    // 2 px de holgura absorben el redondeo.
+    function asegurarTrazadoGrafico(chart) {
+      const estado = chart.$leyendaEstrecha, a = chart.chartArea;
+      if (!estado || !estado.crece || !estado.caja || !a) return;
+      const alto = Math.ceil(chart.height - (a.bottom - a.top) + GRAFICO_TRAZADO_MIN + marcoCajaGrafico(estado.caja));
+      if (Math.abs(alto - (estado.alto || 0)) > 2) {
+        estado.alto = alto;
+        estado.caja.style.setProperty('--grafico-alto-minimo', alto + 'px');
+      }
+    }
+
+    // EL TÍTULO DE UN EJE CABE EN SU EJE (2026-11-17). Chart.js escribe el
+    // título de un eje en una sola línea, tan larga como sea, centrada en el
+    // eje: si el eje es más corto, el título se sale del lienzo por los dos
+    // lados y se corta —«máximo por km² (escala log)» se leía «por kr»—, y
+    // los de dos ejes apilados se montan uno sobre otro. Con Montserrat, que
+    // es más ancha que la letra por defecto, pasaba en cinco gráficos.
+    //
+    // El título que no cabe en el largo de su eje se parte en renglones:
+    // Chart.js sí sabe pintar un título de varias líneas, y le hace sitio.
+    //
+    // SE DECIDE DENTRO DE LA COMPOSICIÓN, NO DESPUÉS. La primera versión medía
+    // con el gráfico ya compuesto y, si hacía falta partir, lo recomponía. Era
+    // un bucle esperando su caso: partir el título ensancha el eje, eso
+    // estrecha el trazado, eso gira los rótulos del otro eje y lo hace más
+    // alto, eso acorta este… y en el módulo 1 del apéndice A dos composiciones
+    // se alternaban sin fin y colgaban la pestaña. Además la recomposición
+    // llegaba con la animación inicial en marcha y dejaba las barras pintadas
+    // contra la escala vieja.
+    //
+    // Ahora no se recompone nada. Chart.js, al componer, le pregunta a cada
+    // eje cuánto ocupa (`fit`) diciéndole el largo que le toca, y lo repite
+    // las veces que haga falta mientras encaja unos ejes con otros. Ahí mismo
+    // —envolviendo ese método del eje— se parte el título para ESE largo. Y
+    // dentro de una composición SOLO SE PARTE HACIA MÁS ESTRECHO: un título
+    // partido para 150 px no vuelve a una línea porque el eje, al partirlo,
+    // haya ganado unos píxeles. Eso es lo que garantiza que termina: las
+    // maneras de partir un título son tantas como palabras tiene, y nunca se
+    // vuelve a una anterior. En la composición siguiente
+    // se empieza de cero, así que el resultado depende del gráfico y de su
+    // tamaño, no de lo que pasó antes.
+    //
+    // Como con la leyenda, no se escribe en las opciones: el eje lleva delante
+    // un velo que contesta los renglones cuando se le pregunta el texto del
+    // título.
+    const GRAFICO_TITULO_HOLGURA = 16;
+    function partirTituloEje(eje) {
+      const titulo = eje.$titulo;
+      if (!titulo) return;
+      // El largo que Chart.js anuncia en este paso, menos una holgura. Después
+      // de preguntarle a un eje, la composición todavía puede quitarle unos
+      // píxeles —el eje de al lado se ensancha al partir SU título— sin
+      // volver a preguntarle: medido, hasta 7 px. Con GRAFICO_TITULO_HOLGURA
+      // el título cabe también en el largo que le queda al final.
+      const largo = Math.min((eje.isHorizontal() ? eje.maxWidth : eje.maxHeight) - GRAFICO_TITULO_HOLGURA,
+                             eje.$tituloTope);
+      if (!(largo > 0)) return;
+      const ctx = eje.ctx;
+      ctx.save();
+      ctx.font = titulo.letra;
+      const renglones = partirTextoGrafico(titulo.entero, largo, x => ctx.measureText(x).width);
+      ctx.restore();
+      // Solo hacia más estrecho. Se recuerda el largo MENOR para el que se ha
+      // partido en esta composición, y solo se vuelve a partir para uno
+      // menor aún. (Comparar el número de renglones no bastaba: «densidad
+      // estimada de sedes educativas / por» y «densidad estimada de / sedes
+      // educativas por» son dos renglones las dos veces, y la primera mide
+      // 239 px donde la segunda mide 155.)
+      if (largo < eje.$tituloLargo) {
+        eje.$tituloLargo = largo;
+        eje.$tituloRenglones = renglones.length > 1 ? renglones : null;
+      }
+    }
+
+    // UN EJE DE POCAS CATEGORÍAS NO SE SALTA NINGUNA (2026-11-18). Cuando los
+    // rótulos de un eje no caben, Chart.js los gira y, si aun así no caben,
+    // se salta algunos. En un eje de fechas no importa; en un gráfico de tres
+    // barras —Thomas, MatClust, LGCP— desaparecía la del medio, y la prosa
+    // compara las tres. En un eje horizontal de categorías con
+    // GRAFICO_POCAS_CATEGORIAS o menos no se salta ninguna (`autoSkip`
+    // apagado, por el velo del eje).
+    //
+    // Y NINGÚN RÓTULO PISA AL DE AL LADO (2026-11-19). Apagar `autoSkip` a
+    // secas dejaba seis nombres de proyección encimados en un eje que además
+    // tenía prohibido girar: «MercatoWMeollweEdqe…». Hay DOS salidas, y se
+    // elige una entera, nunca una mezcla:
+    //   1. PARTIDOS Y SIN GIRO. Si partiendo por los espacios todos los
+    //      renglones de todos los rótulos caben en su hueco, se parten y el
+    //      eje no gira.
+    //   2. ENTEROS Y GIRADOS. Si alguno no cabe ni partido —una palabra sola
+    //      más ancha que el hueco—, no se parte ninguno, y el eje gira al
+    //      menos lo necesario para que dos rótulos vecinos no se toquen: el
+    //      giro en que el paso entre categorías, visto de lado, iguala el
+    //      alto de un renglón. Ese giro mínimo manda sobre el `maxRotation`
+    //      del simulador y sobre el tope de alto: un rótulo girado de más
+    //      se lee; dos encimados, no.
+    // Partir y girar a la vez era lo peor de los dos: los renglones de un
+    // rótulo girado se intercalan con los del vecino.
+    //
+    // También se hace dentro de la composición, en el momento en que el eje
+    // fabrica sus rótulos y ya sabe su ancho, y no escribe en nada.
+    const GRAFICO_POCAS_CATEGORIAS = 6;
+    function partirRotulosEje(eje, marcas) {
+      eje.$pocas = eje.type === 'category' && eje.isHorizontal() &&
+                   marcas.length >= 2 && marcas.length <= GRAFICO_POCAS_CATEGORIAS;
+      eje.$sinGiro = false;
+      eje.$giroMinimo = 0;
+      if (!eje.$pocas || !(eje.maxWidth > 0)) return;
+      // el paso entre dos categorías, y el hueco de cada una con 6 px de
+      // aire, que es lo que Chart.js pide entre dos rótulos antes de girarlos
+      const paso = eje.maxWidth / marcas.length;
+      const hueco = paso - 6;
+      const letra = Chart.helpers.toFont(eje.options.ticks.font);
+      const ctx = eje.ctx;
+      ctx.save();
+      ctx.font = letra.string;
+      const mide = x => ctx.measureText(String(x)).width;
+      const renglonesDe = m => typeof m.label === 'string' ? partirTextoGrafico(m.label, hueco, mide)
+                             : Array.isArray(m.label) ? m.label : [m.label];
+      const partidos = marcas.map(renglonesDe);
+      const caben = partidos.every(rs => rs.every(r => mide(r) <= hueco));
+      ctx.restore();
+      if (caben) {
+        marcas.forEach((m, k) => { if (typeof m.label === 'string' && partidos[k].length > 1) m.label = partidos[k]; });
+        eje.$sinGiro = true;
+        return;
+      }
+      // enteros: el alto de lo que ya traían (un rótulo puede venir en dos renglones del simulador)
+      const renglones = Math.max(...marcas.map(m => Array.isArray(m.label) ? m.label.length : 1));
+      const alto = renglones * (letra.lineHeight || letra.size * 1.2) + 2;
+      eje.$giroMinimo = alto >= paso ? 90 : Math.ceil(Math.asin(alto / paso) * 180 / Math.PI);
+    }
+
+    // UN SOLO REAJUSTE, Y DENTRO DE LA MISMA COMPOSICIÓN (2026-11-19). La
+    // holgura no bastaba siempre: con un eje que al partir SU título le quita
+    // al otro más de 16 px, quedaban títulos más largos que su eje —23 px en
+    // un gráfico del capítulo 5, hasta 31 en una prueba con 1 560 gráficos
+    // fabricados—. Con el gráfico ya compuesto se mira el largo que le quedó
+    // DE VERDAD a cada eje; si algún título no cabe en él, ese largo pasa a
+    // ser su tope y se compone UNA vez más, en el acto.
+    //
+    // No reabre lo que se cerró. Es síncrono: ocurre dentro del mismo
+    // `update()`, antes de que Chart.js coloque un solo punto, así que no hay
+    // nada pintado contra una composición vieja. Es uno: no hay segundo
+    // intento, pase lo que pase. Y los renglones siguen sin poder disminuir
+    // dentro de la composición, de modo que el reajuste solo puede partir
+    // más, nunca volver atrás.
+    function reajustarTitulosGrafico(chart) {
+      if (!Chart.layouts || typeof Chart.layouts.update !== 'function') return;
+      let falta = false;
+      Object.keys(chart.scales || {}).forEach(id => {
+        const eje = chart.scales[id], titulo = eje.$titulo;
+        if (!titulo) return;
+        const largo = eje.isHorizontal() ? eje.width : eje.height;
+        if (!(largo > 0)) return;
+        const renglones = eje.$tituloRenglones || [titulo.entero];
+        const ctx = eje.ctx;
+        ctx.save();
+        ctx.font = titulo.letra;
+        const ancho = Math.max(...renglones.map(r => ctx.measureText(r).width));
+        ctx.restore();
+        // 2 px de respiro: un título a ras del eje se parte también
+        if (ancho > largo - 2) { eje.$tituloTope = largo - GRAFICO_TITULO_HOLGURA; falta = true; }
+      });
+      if (!falta) return;
+      Chart.layouts.update(chart, chart.width, chart.height, chart._minPadding || 0);
+      // lo que Chart.js hace con cada caja al acabar de componer
+      (chart.boxes || []).forEach(caja => { if (typeof caja.configure === 'function') caja.configure(); });
+    }
+
+    // UN RÓTULO GIRADO NO SE SALE DEL LIENZO (2026-11-19). Un rótulo girado
+    // cuelga de su marca hacia la izquierda. Chart.js le hace sitio al PRIMERO
+    // —le da al eje un relleno por ese lado— y da por hecho que los demás,
+    // que están más a la derecha, caben. No es verdad cuando el segundo es
+    // bastante más largo que el primero: «Web Mercator (3857)» detrás de
+    // «Mercator» se salía 25 px del lienzo, y la pregunta pide leerlo. En un
+    // eje de pocas categorías con los rótulos girados se mira lo que
+    // sobresale CADA uno por la izquierda del eje, y el relleno es el mayor.
+    // Va después de que el eje diga cuánto ocupa, que es cuando ya tiene su
+    // giro y sus medidas, y dentro de la misma composición.
+    function despejarRotulosEje(eje) {
+      if (!eje.$pocas || !(eje.labelRotation > 0) || eje.position === 'top') return;
+      const medidas = typeof eje._getLabelSizes === 'function' ? eje._getLabelSizes() : null;
+      const anchos = medidas && medidas.widths;
+      const marcas = eje.ticks || [];
+      if (!anchos || anchos.length !== marcas.length) return;
+      const giro = eje.labelRotation * Math.PI / 180;
+      const coseno = Math.cos(giro);
+      // el rótulo girado es un rectángulo: por la izquierda asoma su largo y,
+      // además, lo que su alto se echa hacia ese lado al inclinarse
+      const canto = ((medidas.highest && medidas.highest.height) || 14) * Math.sin(giro);
+      let sobresale = 0;
+      marcas.forEach((m, k) => {
+        const centro = eje.getPixelForTick(k) - eje.left;
+        sobresale = Math.max(sobresale, anchos[k] * coseno + canto - centro);
+      });
+      // 3 px de aire, los que deja Chart.js con el primero
+      const relleno = Math.ceil(sobresale + 3);
+      if (relleno > (eje.paddingLeft || 0)) {
+        eje.paddingLeft = relleno;
+        if (eje._margins) eje._margins.left = Math.max(eje._margins.left || 0, relleno);
+      }
+    }
+
+    // El velo de cada eje y los dos métodos envueltos. En cada trazo: Chart.js
+    // acaba de darle al eje sus opciones, intactas; aquí se le pone el velo
+    // delante y se apunta qué título tiene AHORA.
+    function prepararEjesGrafico(chart) {
+      Object.keys(chart.scales || {}).forEach(id => {
+        const eje = chart.scales[id];
+        const opciones = eje.options;
+        if (!opciones) return;
+        const titulo = opciones.title, marcas = opciones.ticks;
+        eje.$tituloRenglones = null;
+        eje.$tituloLargo = Infinity;
+        eje.$tituloTope = Infinity;
+        eje.$pocas = false;
+        eje.$sinGiro = false;
+        eje.$giroMinimo = 0;
+        eje.$titulo = (titulo && titulo.display && typeof titulo.text === 'string')
+          ? { entero: titulo.text, letra: Chart.helpers.toFont(titulo.font).string } : null;
+        const tituloVelado = titulo && new Proxy(titulo, {
+          get(t, k) { return k === 'text' && eje.$tituloRenglones ? eje.$tituloRenglones : t[k]; }
+        });
+        const marcasVeladas = marcas && new Proxy(marcas, {
+          get(t, k) {
+            if (!eje.$pocas) return t[k];
+            if (k === 'autoSkip') return false;
+            if (k === 'minRotation') return eje.$sinGiro ? 0 : Math.max(t[k] || 0, eje.$giroMinimo);
+            if (k === 'maxRotation') return eje.$sinGiro ? 0 : Math.max(t[k] || 0, eje.$giroMinimo);
+            return t[k];
+          }
+        });
+        eje.options = new Proxy(opciones, {
+          get(t, k) { return k === 'title' && tituloVelado ? tituloVelado : k === 'ticks' && marcasVeladas ? marcasVeladas : t[k]; }
+        });
+        if (Object.prototype.hasOwnProperty.call(eje, 'fit')) return;
+        const ocupa = eje.fit, rotula = eje.generateTickLabels;
+        if (typeof ocupa !== 'function' || typeof rotula !== 'function') return;
+        eje.fit = function () { partirTituloEje(this); const r = ocupa.call(this); despejarRotulosEje(this); return r; };
+        eje.generateTickLabels = function (lista) { rotula.call(this, lista); partirRotulosEje(this, lista); };
+      });
+    }
+
+    // LA LETRA DE LA CASA, EN TODOS LOS GRÁFICOS (G-10, 2026-11-17).
+    // `crearGraficoLinea` pone Montserrat y Fira Code, pero casi todos los
+    // simuladores de los capítulos 2 a 7 y del apéndice crean su gráfico con
+    // `new Chart` a secas y salían con la letra por defecto de Chart.js. Se
+    // fija en los valores por defecto de la biblioteca, que es lo que lee
+    // quien no dice nada; quien fija su letra sigue mandando:
+    //   · Montserrat para todo —leyenda, títulos, ventana emergente—;
+    //   · en las marcas de los ejes, a 11 px, Fira Code para las cifras de
+    //     un eje vertical y Montserrat para lo demás: los nombres de un eje
+    //     de categorías, aunque vaya en vertical (las barras horizontales), y
+    //     el eje horizontal.
+    //
+    // EL INTERLINEADO DE LAS CIFRAS NO ES EL DE SIEMPRE, y no es por gusto.
+    // Chart.js decide cuántas marcas caben en un eje vertical por el alto de
+    // renglón de su letra. Al pasar de 12 a 11 px cabían más, y los ejes
+    // salían con el doble de marcas —de 6 a 11 en media docena de gráficos—
+    // y, en uno logarítmico, con «1,000» y «700» encimados. Con 11 px y un
+    // interlineado de 1.32 el renglón mide 14.5 px, una décima más que los
+    // 14.4 que medía a 12 px con el 1.2 por defecto. La décima es a propósito:
+    // el eje horizontal, con la letra más baja, deja al vertical 1 px más de
+    // alto, y varios ejes estaban justo en el borde de ganar una marca (174 px
+    // entre 17.4 son 10 justas). Así los ejes conservan las marcas que tenían.
+    function letraMarcasGrafico(ctx) {
+      const eje = ctx && ctx.scale;
+      const cifras = !!eje && eje.axis === 'y' && eje.type !== 'category';
+      return cifras ? { family: 'Fira Code', size: 11, lineHeight: 1.32 }
+                    : { family: 'Montserrat', size: 11 };
+    }
+
+    // Un lienzo no se repinta solo cuando llega una fuente: el gráfico que se
+    // dibujó antes de que cargara Fira Code se quedaría con la letra de
+    // respaldo, y con los anchos medidos con ella. Se piden las dos y, al
+    // llegar, se recomponen los gráficos que ya estén en pantalla.
+    function recomponerGraficosConLetra() {
+      if (!document.fonts || typeof document.fonts.load !== 'function') return Promise.resolve();
+      return Promise.all([document.fonts.load('11px "Fira Code"'), document.fonts.load('12px Montserrat')])
+        .then(() => Object.values(Chart.instances || {}).forEach(g => {
+          // `stop()` antes: si la fuente llega con la animación inicial en
+          // marcha, la animación seguiría hacia los puntos de la composición
+          // vieja y dejaría las barras fuera de su escala.
+          if (g.canvas && g.canvas.isConnected) { g.stop(); g.update('none'); }
+        }))
+        .catch(() => { /* sin la fuente, el gráfico sigue con la de respaldo */ });
+    }
+
+    // Sin Chart.js (la CDN caída) los gráficos no salen, pero el resto de la
+    // página sí: una referencia suelta aquí la tumbaría entera.
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.font.family = 'Montserrat';
+      Chart.defaults.scale.ticks.font = letraMarcasGrafico;
+      Chart.defaults.plugins.tooltip.bodyFont = { family: 'Fira Code' };
+      recomponerGraficosConLetra();
+
+      const esEstrecho = () => typeof window.matchMedia === 'function' &&
+                               window.matchMedia(GRAFICO_ESTRECHO).matches;
+      Chart.register({
+        id: 'leyendaEstrecha',
+        beforeUpdate(chart) {
+          velarLeyendaEstrecha(chart, esEstrecho());
+          acotarGiroGrafico(chart, chart.$leyendaEstrecha);
+          prepararEjesGrafico(chart);
+        },
+        afterLayout(chart) {
+          reajustarTitulosGrafico(chart);
+          asegurarTrazadoGrafico(chart);
+        },
+        // Un simulador que destruye su gráfico y crea otro en el mismo
+        // lienzo no hereda la caja crecida del anterior.
+        beforeDestroy(chart) { soltarCajaGrafico(chart.$leyendaEstrecha); }
       });
     }
 
@@ -7158,8 +7816,17 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       '#4D7C0F'
     ];
 
+    // Las paletas que tienen un CENTRO: un tono neutro en medio y un color a
+    // cada lado. Solo ellas atienden al `centro` del dato (R-C, 2026-11-17).
+    const GEOMAPA_DIVERGENTES = ['divergente', 'frio_caliente'];
+
     const GEOMAPA_ACENTO = '#FF6600';
     const GEOMAPA_APAGADO = 'rgba(1,40,32,.28)';
+    // El filo de un punto y la silueta de un coropleto (R-C): la misma tinta
+    // del material, translúcida. Es lo que separa del fondo `#fbfdfc` al tono
+    // más claro de una rampa (`#e8f3ef`, `#fff0e0`), que sin filo se perdía.
+    const GEOMAPA_FILO = 'rgba(1,40,32,.55)';
+    const GEOMAPA_SILUETA = 'rgba(1,40,32,.42)';
     const GEOMAPA_SIN_DATO = '#e5e7eb';
 
     // ================================================================
@@ -7254,6 +7921,63 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
       const a = hex(p[i]), b = hex(p[i + 1]);
       return geomapaTinta(`rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`);
+    }
+
+    // ================================================================
+    // EL CENTRO DE UNA PALETA DIVERGENTE (R-C, 2026-11-17)
+    //
+    // Una divergente dice dos cosas a la vez: el TONO, de qué lado de un
+    // valor de referencia cae el dato, y la INTENSIDAD, cuánto se aleja. Sin
+    // saber cuál es ese valor, el motor repartía la rampa entre el mínimo y
+    // el máximo —o entre la primera clase y la última— y el tono neutro caía
+    // donde cayera: en 18.4 °C en un mapa de temperaturas, en la clase de
+    // −0.93 a −0.25 en un campo de media cero. Naranja y verde aparentaban
+    // leer un signo que no leían.
+    //
+    // El centro lo da EL DATO (`centro`, que escribe geo.R: 0 en un campo
+    // centrado, 1 en un cociente, la media si esa es la referencia), nunca
+    // se deduce aquí; y sin él todo sigue exactamente como estaba. Con él:
+    //   · el tono neutro es el centro, y solo el centro;
+    //   · la rampa es SIMÉTRICA: a igual distancia del centro, igual
+    //     intensidad, aunque el dato llegue más lejos por un lado que por el
+    //     otro. El lado corto no alcanza el tono más oscuro, y eso es
+    //     información, no un defecto.
+    // Solo atienden al centro las paletas de `GEOMAPA_DIVERGENTES`: en una
+    // secuencial no hay tono neutro que colocar.
+    // ================================================================
+    function geomapaCentro(paleta, d, capa) {
+      if (!GEOMAPA_DIVERGENTES.includes(paleta)) return null;
+      const c = (capa && capa.centro != null) ? capa.centro : (d ? d.centro : null);
+      return (typeof c === 'number' && isFinite(c)) ? c : null;
+    }
+
+    // Posición en la rampa, 0..1, de un valor `v` dado el centro `c` y la
+    // semiamplitud `semi` (la mayor distancia al centro que hay que pintar).
+    function geomapaTCentrado(v, c, semi) {
+      if (!(semi > 0)) return 0.5;
+      return Math.max(0, Math.min(1, 0.5 + 0.5 * (v - c) / semi));
+    }
+
+    // Posición en la rampa de la clase `k` (1..n) de unos `cortes`. Sin
+    // centro es el reparto de siempre, por ORDEN de clase. Con centro manda
+    // el punto medio de la clase: la que contiene el centro es el tono
+    // neutro, y las demás se alejan de él en proporción a lo que se aleja su
+    // punto medio. Así unos cortes que R no hizo simétricos se pintan igual
+    // con el signo en su sitio; hacerlos simétricos es del capítulo.
+    function geomapaTClase(cortes, k, centro) {
+      const n = cortes.length - 1;
+      if (centro == null) return n > 1 ? (k - 1) / (n - 1) : 0.5;
+      if (cortes[k - 1] < centro && centro < cortes[k]) return 0.5;
+      let semi = 0;
+      for (let j = 1; j <= n; j++) {
+        if (cortes[j - 1] < centro && centro < cortes[j]) continue;
+        semi = Math.max(semi, Math.abs((cortes[j - 1] + cortes[j]) / 2 - centro));
+      }
+      return geomapaTCentrado((cortes[k - 1] + cortes[k]) / 2, centro, semi);
+    }
+
+    function geomapaColorClase(paleta, cortes, k, centro) {
+      return geomapaColor(paleta, geomapaTClase(cortes, k, centro));
     }
 
     // Conmuta el tipo de visión y repinta TODOS los mapas vivos. Es una
@@ -7396,6 +8120,37 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       return ctx.createPattern(c, 'repeat');
     }
 
+    // ¿Comparten frontera las unidades de un mapa de polígonos? Se mira en la
+    // geometría misma: en un teselado —condados, municipios— casi todos los
+    // vértices de una unidad son también de su vecina; en un cartograma no
+    // contiguo o en uno de Dorling, ninguno. Se cuenta qué parte de los
+    // vértices distintos pertenece a dos unidades o más, y el corte va en
+    // GEOMAPA_TESELADO_MIN. Medido en los mapas del material: los teselados dan
+    // de 0.31 (las 20 localidades de Bogotá) a 0.92 (los 1 122 municipios); el
+    // cartograma no contiguo, 0.007, y el de Dorling, 0. Se calcula una vez
+    // por dato y se guarda sin enumerar, como `__geom`.
+    const GEOMAPA_TESELADO_MIN = 0.1;
+    function geomapaFronteraComun(geom) {
+      const duenio = new Map();
+      let comunes = 0;
+      geom.forEach((rasgo, i) => rasgo.forEach(parte => {
+        for (let k = 0; k + 1 < parte.length; k += 2) {
+          const clave = parte[k] * 65536 + parte[k + 1];
+          const j = duenio.get(clave);
+          if (j === undefined) duenio.set(clave, i);
+          else if (j !== i && j !== -1) { duenio.set(clave, -1); comunes++; }
+        }
+      }));
+      return duenio.size ? comunes / duenio.size : 0;
+    }
+    function geomapaEsTeselado(d, geom) {
+      if (d.__teselado === undefined) {
+        Object.defineProperty(d, '__teselado',
+          { value: geomapaFronteraComun(geom) >= GEOMAPA_TESELADO_MIN, enumerable: false });
+      }
+      return d.__teselado;
+    }
+
     function geomapaPintaPoligonos(ctx, d, aj, o) {
       const cp = geomapaCapa(d, o);
       const clase = cp.clase, nCl = cp.cortes ? cp.cortes.length - 1 : 0;
@@ -7409,8 +8164,39 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       // o sin vecinos) va rayado.
       const cat = cp.tipo === 'categoria' && Array.isArray(cp.niveles);
       const nNiv = cat ? cp.niveles.length : 0;
+      const centro = cat ? null : geomapaCentro(o.paleta, d, cp);
       let rayado = null;
       const conBorde = [];
+      // LA SILUETA (R-C, 2026-11-17). El primer tono de las rampas
+      // (`#e8f3ef`, `#fff0e0`) apenas se separa del fondo del marco
+      // (`#fbfdfc`), y con los bordes entre unidades en blanco, un condado
+      // de la clase más baja que diera al mar se quedaba sin orilla. Se
+      // traza TODO el contorno en tinta ANTES de rellenar nada: los rellenos
+      // tapan después la mitad interior de cada trazo y los de los vecinos,
+      // la exterior, así que solo sobrevive lo que no tiene vecino —el
+      // perfil del territorio y de sus islas—. Por dentro el mapa queda
+      // como estaba, con sus bordes blancos.
+      //
+      // SOLO EN UN TESELADO. Donde las unidades no se tocan —un cartograma
+      // no contiguo, uno de Dorling— no hay vecino que tape la mitad exterior
+      // del trazo, y cada unidad se queda con un halo de 1 px todo alrededor.
+      // En esos mapas EL ÁREA ES EL DATO: medido en el módulo 7 del capítulo
+      // 3, el halo doblaba la tinta a 375 px y hacía crecer de 5 a 8 veces a
+      // los departamentos más pequeños. Un mapa que miente en lo que mide es
+      // peor que uno con una orilla pálida, así que por defecto la silueta
+      // solo se traza si las unidades comparten frontera (geomapaEsTeselado);
+      // `silueta: true` y `silueta: false` en el registro mandan sobre eso.
+      // Un cartograma CONTIGUO es un teselado y la llevaría: ahí el registro
+      // tiene que decir `silueta: false`, porque su área también es el dato.
+      if (o.silueta === true || (o.silueta !== false && geomapaEsTeselado(d, geom))) {
+        const dprS = o.dpr || window.devicePixelRatio || 1;
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = geomapaTinta(GEOMAPA_SILUETA);
+        ctx.lineWidth = 2 * dprS;
+        geom.forEach(rasgo => rasgo.forEach(parte => ctx.stroke(geomapaTrazo(ctx, aj, parte))));
+        ctx.restore();
+      }
       // Qué rasgo va resaltado lo puede decir EL DATO (`d.resaltado`, que
       // escribe geo.R) además de la opción de siempre. Los dos conviven y no
       // usan el mismo convenio, a propósito y dicho en voz alta: lo que viene
@@ -7438,7 +8224,8 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
         } else {
           const k = clase ? clase[i] : null;
           if (k != null && isFinite(k)) {
-            relleno = geomapaColor(o.paleta, nCl > 1 ? (k - 1) / (nCl - 1) : 0.5);
+            relleno = nCl > 0 ? geomapaColorClase(o.paleta, cp.cortes, k, centro)
+                              : geomapaColor(o.paleta, 0.5);
           } else {
             relleno = geomapaTinta(GEOMAPA_SIN_DATO);
           }
@@ -7469,8 +8256,9 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
           ctx.strokeStyle = geomapaTinta('#012820'); ctx.lineWidth = 2.2 * dpr; ctx.stroke(p);
         }));
       }
-      geomapaPintaLineas(ctx, d, aj, o);
+      const clave = geomapaPintaLineas(ctx, d, aj, o);
       geomapaPintaSuperpuestos(ctx, d, aj, o);
+      return clave;
     }
 
     // Polilíneas SOBRE el coropleto (T2.7 del capítulo 1). El caso que las
@@ -7494,8 +8282,13 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
     //
     // `o.etiquetasLineas` va emparejada con `d.lineas_resaltadas`, no con
     // `d.lineas`: son cinco rótulos para cinco celdas, no cien.
+    // El suelo de la letra de un rótulo pintado DENTRO del lienzo, en px de
+    // pantalla (CSS). 11 es el cuerpo de las marcas de los ejes de los
+    // gráficos: por debajo no se lee en un teléfono.
+    const GEOMAPA_ROTULO_MIN = 11;
+
     function geomapaPintaLineas(ctx, d, aj, o) {
-      if (!d.lineas || !d.lineas.length || o.lineas === false) return;
+      if (!d.lineas || !d.lineas.length || o.lineas === false) return null;
       const dpr = o.dpr || 1;
       const idx = d.lineas_resaltadas || [];
       const res = new Set(idx.map(k => k - 1));       // R es 1-indexado
@@ -7533,12 +8326,34 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       });
 
       // Los rótulos, en el centro de la caja de cada celda resaltada.
+      //
+      // EL SUELO DE LA LETRA ES DE PANTALLA (R-F, 2026-11-17). El lienzo se
+      // dimensiona en píxeles de dispositivo, y el suelo de antes
+      // (`Math.max(9, …)`) se comparaba con ellos: en un teléfono, con
+      // densidad 2, eran 4.5 px de pantalla, y los rótulos de la rejilla
+      // del módulo 7 del capítulo 1 —que son la lección de ese mapa— salían
+      // de 4 a 6 px. Ahora son GEOMAPA_ROTULO_MIN px de pantalla, medidos
+      // con la densidad real (este pintor no recibe `o.dpr` en el modo de
+      // polígonos, así que se le pregunta a la ventana).
+      //
+      // Y UN RÓTULO QUE NO CABE NO SE ENCIMA. Con el suelo en su sitio, a
+      // 375 px una celda de la rejilla mide unos 23 × 8 px y «14.51» mide
+      // 30: cinco rótulos legibles se pisarían entre sí. Cuando alguno no
+      // cabe en su celda, las celdas se NUMERAN —un dígito sí cabe— y el
+      // pintor devuelve la clave (`[número, rótulo]`) para que `dibuja()` la
+      // escriba debajo de la leyenda, a tamaño de texto. O caben todos o se
+      // numeran todos: media rejilla con cifras y media con números no se lee.
+      let clave = null;
       const rot = o.etiquetasLineas;
       if (rot && rot.length) {
-        const px = Math.max(9, Math.min(ctx.canvas.width, ctx.canvas.height) * 0.038);
-        ctx.font = `700 ${px}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+        const dprReal = o.dpr || window.devicePixelRatio || 1;
+        const suelo = GEOMAPA_ROTULO_MIN * dprReal;
+        const px = Math.max(suelo, Math.min(ctx.canvas.width, ctx.canvas.height) * 0.038);
+        const fuente = t => `700 ${t}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+        ctx.font = fuente(px);
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        const celdas = [];
         idx.forEach((k, j) => {
           const texto = rot[j];
           const seg = d.lineas[k - 1];
@@ -7551,14 +8366,27 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
             if (Y < y0) y0 = Y;
             if (Y > y1) y1 = Y;
           }
+          celdas.push({ letrero: String(texto), x0, x1, y0, y1 });
+        });
+        // 0.72 es la altura de las cifras respecto del cuerpo de la letra:
+        // es lo que de verdad ocupa «14.51», que no tiene astas descendentes.
+        const cabe = c => ctx.measureText(c.letrero).width + 2 * dprReal <= c.x1 - c.x0 &&
+                          px * 0.72 <= c.y1 - c.y0;
+        if (!celdas.every(cabe)) {
+          clave = celdas.map((c, j) => [String(j + 1), c.letrero]);
+          celdas.forEach((c, j) => { c.letrero = String(j + 1); });
+          ctx.font = fuente(suelo);
+        }
+        celdas.forEach(c => {
           ctx.strokeStyle = geomapaTinta('rgba(255,255,255,.92)');
           ctx.lineWidth = 3.4 * dpr;
-          ctx.strokeText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+          ctx.strokeText(c.letrero, (c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2);
           ctx.fillStyle = geomapaTinta('#012820');
-          ctx.fillText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+          ctx.fillText(c.letrero, (c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2);
         });
       }
       ctx.restore();
+      return clave;
     }
 
     // Capas de puntos sobre el coropleto: símbolos proporcionales y dot
@@ -7650,11 +8478,56 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       // clasificación: no hay empates que repartir, así que no hay aquí
       // ningún tercer convenio como el de classInt y mapclassify (A.2).
       if (d.cortes && d.clase) {
-        const nCl = d.cortes.length - 1;
-        return geomapaColor(o.paleta, nCl > 1 ? (d.clase[i] - 1) / (nCl - 1) : 0.5);
+        return geomapaColorClase(o.paleta, d.cortes, d.clase[i], geomapaCentro(o.paleta, d));
       }
+      return geomapaColor(o.paleta, geomapaTRampa(d, m, o));
+    }
+
+    // Posición en la rampa de una marca numérica SIN clasificar (R-C,
+    // 2026-11-17). Por defecto, lineal entre el mínimo y el máximo, como
+    // siempre. El dato puede pedir otras dos cosas, y las pide él (geo.R), no
+    // se adivinan mirando los números:
+    //   · `centro`, con una paleta divergente: rampa simétrica alrededor de
+    //     ese valor (ver geomapaCentro);
+    //   · `marcas_escala: 'log'`: la rampa recorre el logaritmo. Es para la
+    //     variable asimétrica —el zinc del Mosa, de 113 a 1 839 ppm—, que en
+    //     lineal deja casi todos los puntos en los dos tonos más claros y
+    //     gasta la rampa en media docena. Con algún valor que no sea
+    //     positivo no hay logaritmo que tomar y se queda en lineal; la
+    //     leyenda dice cuál de las dos se pintó (geomapaEscalaMarcas).
+    function geomapaEscalaMarcas(d) {
       const r = geomapaRangoMarcas(d);
-      return geomapaColor(o.paleta, r.hi > r.lo ? (m - r.lo) / (r.hi - r.lo) : 0.5);
+      return (d.marcas_escala === 'log' && r.lo > 0 && r.hi > r.lo) ? 'log' : 'lineal';
+    }
+
+    function geomapaTRampa(d, m, o) {
+      const r = geomapaRangoMarcas(d);
+      const c = geomapaCentro(o.paleta, d);
+      if (c != null) return geomapaTCentrado(m, c, Math.max(Math.abs(r.hi - c), Math.abs(r.lo - c)));
+      if (!(r.hi > r.lo)) return 0.5;
+      if (geomapaEscalaMarcas(d) === 'log') return Math.log(m / r.lo) / Math.log(r.hi / r.lo);
+      return (m - r.lo) / (r.hi - r.lo);
+    }
+
+    // El radio de los puntos, en px de PANTALLA (CSS), sin multiplicar aún
+    // por la densidad (R-C, 2026-11-17). Era 2.6 para todo, y 2 209 sedes de
+    // Bogotá a 2.6 px son una mancha maciza donde no se cuenta ni se ve
+    // dónde hay más. Manda, por este orden:
+    //   1. `radio` en el DATO (geo.R): el capítulo sabe qué necesita su mapa;
+    //   2. si no, el número de puntos: hasta 600 se queda en 2.6, y de ahí
+    //      en adelante el ÁREA de cada punto baja en proporción —la tinta
+    //      total no crece con n—, con un suelo de 1.4 px, que es lo menos
+    //      que sigue siendo un punto y no un grano.
+    // La opción `radio` del registro sigue mandando sobre los dos, y sigue
+    // en píxeles de dispositivo, como estaba: quien la usa ya la tiene medida.
+    const GEOMAPA_RADIO = 2.6, GEOMAPA_RADIO_MIN = 1.4, GEOMAPA_RADIO_N = 600;
+    // El radio, en px de pantalla, por debajo del cual un punto va sin filo.
+    const GEOMAPA_FILO_MIN = 2;
+    function geomapaRadioPuntos(d) {
+      if (typeof d.radio === 'number' && d.radio > 0) return d.radio;
+      const n = d.pts ? d.pts.length / 2 : 0;
+      if (n <= GEOMAPA_RADIO_N) return GEOMAPA_RADIO;
+      return Math.max(GEOMAPA_RADIO_MIN, GEOMAPA_RADIO * Math.sqrt(GEOMAPA_RADIO_N / n));
     }
 
     function geomapaPintaPuntos(ctx, d, aj, o) {
@@ -7684,14 +8557,33 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       }
 
       // ---- capa principal: los puntos, coloreados por su marca ---------
+      // Cada punto lleva un FILO fino en tinta (R-C, 2026-11-17). Sin él, los
+      // puntos claros de una rampa desaparecían contra el fondo, y los que
+      // se solapan se fundían en una mancha: con el filo se cuentan. El filo
+      // se adelgaza con el radio —nunca pasa de un quinto— para que en un
+      // mapa de dos mil puntos no sea él lo que se ve. No lo llevan los
+      // apagados de «ésta contra el resto», que están ahí para no verse. Se
+      // quita con `filo: false`.
+      //
+      // Y NO LO LLEVAN LOS PUNTOS PEQUEÑOS. Por debajo de GEOMAPA_FILO_MIN px
+      // de radio el filo es buena parte del punto, y la tinta oscura le
+      // cambia el tono: medido en las 2 107 sedes de Bogotá, a 1.4 px el
+      // naranja `#FF6600` de la leyenda se veía (223, 92, 2) en el mapa. El
+      // color de un punto tiene que ser el de su muestra en la leyenda; un
+      // mapa de dos mil puntos se lee por su densidad, no punto a punto.
       const r = o.radio || 3;
+      const dprP = o.dpr || 1;
       const plano = o.color || GEOMAPA_ACENTO;
+      const filo = o.filo !== false && r >= GEOMAPA_FILO_MIN * dprP;
+      ctx.strokeStyle = geomapaTinta(GEOMAPA_FILO);
+      ctx.lineWidth = Math.min(0.6 * dprP, r / 5);
       for (let i = 0; i < d.pts.length; i += 2) {
         const c = geomapaColorMarca(d, i / 2, o);
         ctx.fillStyle = c || plano;
         ctx.beginPath();
         ctx.arc(aj.x(d.pts[i]), aj.y(d.pts[i + 1]), r, 0, Math.PI * 2);
         ctx.fill();
+        if (filo && c !== GEOMAPA_APAGADO) ctx.stroke();
       }
 
       // ---- segunda capa: otro tipo de objeto (las 13 bombas) -----------
@@ -7801,11 +8693,20 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       const x0 = aj.x(c.x0), x1 = aj.x(c.x1);
       const y0 = aj.y(c.y1), y1 = aj.y(c.y0);          // y invertida
       const cw = (x1 - x0) / d.nx, ch = (y1 - y0) / d.ny;
+      // Con `centro` (y una paleta divergente) la rampa se centra en él y es
+      // simétrica (R-C, ver geomapaCentro). Hace falta el recorrido real,
+      // `rango`, para saber qué valor es cada nivel cuantizado; sin él no
+      // hay con qué centrar y se pinta como siempre.
+      const centro = Array.isArray(d.rango) ? geomapaCentro(o.paleta, d) : null;
+      const lo = centro != null ? d.rango[0] : 0, hi = centro != null ? d.rango[1] : 0;
+      const semi = Math.max(Math.abs(hi - centro), Math.abs(lo - centro));
       for (let r = 0; r < d.ny; r++) {
         for (let cc = 0; cc < d.nx; cc++) {
           const z = zq[r * d.nx + cc];
           if (z < 0) continue;                          // celda sin dato
-          ctx.fillStyle = geomapaColor(o.paleta, z / d.zqmax);
+          ctx.fillStyle = geomapaColor(o.paleta, centro != null
+            ? geomapaTCentrado(lo + (z / d.zqmax) * (hi - lo), centro, semi)
+            : z / d.zqmax);
           // +1 para que no queden costuras blancas entre celdas
           ctx.fillRect(x0 + cc * cw, y0 + r * ch, cw + 1, ch + 1);
         }
@@ -7913,8 +8814,11 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       const q = fuenteCaja.q || d.q || 4096;
       const aj = geomapaAjuste(canvas, geomapaCajaQ(fuenteCaja.caja, q), (o.margen || 6) * dpr);
 
-      if (d.modo === 'poligonos') geomapaPintaPoligonos(ctx, d, aj, o);
-      else if (d.modo === 'puntos') geomapaPintaPuntos(ctx, d, aj, Object.assign({ radio: 2.6 * dpr, dpr: dpr }, o));
+      // Si algún rótulo no cupo en el lienzo, el pintor numeró las celdas y
+      // devuelve la clave; viaja en `aj` para que `dibuja()` la escriba.
+      aj.clave = null;
+      if (d.modo === 'poligonos') aj.clave = geomapaPintaPoligonos(ctx, d, aj, o) || null;
+      else if (d.modo === 'puntos') geomapaPintaPuntos(ctx, d, aj, Object.assign({ radio: geomapaRadioPuntos(d) * dpr, dpr: dpr }, o));
       else if (d.modo === 'grafo') geomapaPintaGrafo(ctx, d, aj, o);
       else if (d.modo === 'rejilla') geomapaPintaRejilla(ctx, d, aj, o);
       else if (d.modo === 'proyeccion') geomapaPintaProyeccion(ctx, d, aj, Object.assign({ dpr: dpr }, o));
@@ -7971,8 +8875,9 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
           if (d.cortes) {
             const nc = d.cortes.length - 1;
             const fmt = fmtCon(decimales(d.cortes));
+            const cMarcas = geomapaCentro(o.paleta, d);
             for (let i = 0; i < nc; i++) {
-              cajas.push(muestra(geomapaColor(o.paleta, nc > 1 ? i / (nc - 1) : 0.5),
+              cajas.push(muestra(geomapaColorClase(o.paleta, d.cortes, i + 1, cMarcas),
                 `${fmt(d.cortes[i])} – ${fmt(d.cortes[i + 1])}`));
             }
           } else {
@@ -7980,14 +8885,25 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
             // únicos valores que el lector puede leer del mapa sin mentirse.
             // Poner cajitas de clase aquí sería dibujar unas fronteras que
             // no ha calculado nadie.
+            //
+            // La barra recorre los VALORES, de extremo a extremo, y cada parada
+            // lleva el color que el mapa le da a ese valor: con `centro` el
+            // tono neutro cae donde cae el centro, no en la mitad de la barra.
+            // En escala logarítmica recorre el logaritmo, y lo dice: sin el
+            // aviso, quien lea la mitad de la barra como la media de los
+            // extremos leería mal.
             const r = geomapaRangoMarcas(d);
             const fmt = fmtCon(decimales([r.lo, r.hi]));
+            const log = geomapaEscalaMarcas(d) === 'log' && geomapaCentro(o.paleta, d) == null;
             const paradas = [];
-            for (let i = 0; i <= 10; i++) paradas.push(geomapaColor(o.paleta, i / 10));
+            for (let i = 0; i <= 20; i++) {
+              const v = log ? r.lo * Math.pow(r.hi / r.lo, i / 20) : r.lo + (r.hi - r.lo) * i / 20;
+              paradas.push(geomapaColor(o.paleta, geomapaTRampa(d, v, o)));
+            }
             cajas.push(`<span class="geomapa-rampa">
           <span>${fmt(r.lo)}</span>
           <span class="geomapa-rampa-barra" style="background:linear-gradient(to right,${paradas.join(',')})"></span>
-          <span>${fmt(r.hi)}</span>
+          <span>${fmt(r.hi)}${log ? ' · escala logarítmica' : ''}</span>
         </span>`);
           }
         }
@@ -8043,13 +8959,30 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       // capas va vacío, así que los mapas del capítulo 3 se publicaban sin
       // decir en qué se medían. Si la capa no trae la suya, la del raíz.
       let cat = null;
+      // El color de la caja de cada clase es EL MISMO que pinta el mapa, y
+      // sale de la misma función: `tClase(k)` es la posición en la rampa de
+      // la clase k. Con `centro` deja de ser «por orden» (R-C, 2026-11-17).
+      let tClase = k => geomapaTClase(cortes, k, null);
       if (d.modo === 'poligonos') {
         const cp = geomapaCapa(d, o);
         if (cp.tipo === 'categoria' && Array.isArray(cp.niveles)) cat = cp;
-        else if (cp.cortes) cortes = cp.cortes;
+        else if (cp.cortes) {
+          cortes = cp.cortes;
+          const cPol = geomapaCentro(o.paleta, d, cp);
+          tClase = k => geomapaTClase(cortes, k, cPol);
+        }
         if (d.capas && d.capas.length && cp.leyenda) etiqueta = cp.leyenda;
       }
-      if (d.modo === 'rejilla' && d.cortes) cortes = d.cortes;
+      if (d.modo === 'rejilla' && d.cortes) {
+        cortes = d.cortes;
+        // El ráster es continuo: la caja de una clase lleva el color que el
+        // mapa le da a su punto medio, con la misma regla que las celdas.
+        const cRej = Array.isArray(d.rango) ? geomapaCentro(o.paleta, d) : null;
+        if (cRej != null) {
+          const semi = Math.max(Math.abs(d.rango[1] - cRej), Math.abs(d.rango[0] - cRej));
+          tClase = k => geomapaTCentrado((cortes[k - 1] + cortes[k]) / 2, cRej, semi);
+        }
+      }
 
       // Lo que un coropleto puede llevar encima y NO es una clase: el rasgo
       // resaltado y la retícula ajena (T2.7 del cap. 1). Si no se rotulan, el mapa
@@ -8103,7 +9036,7 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       const fmt = fmtCon(decimales(cortes));
       const cajas = [];
       for (let i = 0; i < n; i++) {
-        cajas.push(muestra(geomapaColor(o.paleta, n > 1 ? i / (n - 1) : 0.5),
+        cajas.push(muestra(geomapaColor(o.paleta, tClase(i + 1)),
           `${fmt(cortes[i])} – ${fmt(cortes[i + 1])}`));
       }
       cajas.push(...extras);
@@ -8289,7 +9222,19 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
           const tit = raiz.querySelector('.geomapa-titulo');
           const titNow = opts.titulo || dNow.titulo;
           if (tit && titNow) tit.textContent = titNow;
-          return pintarGeomapa(canvas, dNow, opts);
+          const aj = pintarGeomapa(canvas, dNow, opts);
+          // La clave de los rótulos que no cupieron (R-F): debajo de la
+          // leyenda, que se acaba de reescribir arriba, así que no se acumula.
+          if (aj && aj.clave && cajaLeyenda) {
+            const p = document.createElement('p');
+            p.className = 'geomapa-pie geomapa-clave';
+            const fuerte = document.createElement('strong');
+            fuerte.textContent = 'Rótulos por número';
+            p.append(fuerte, ' (a este ancho no caben en el mapa): ' +
+              aj.clave.map(par => `${par[0]} → ${par[1]}`).join(' · '));
+            cajaLeyenda.appendChild(p);
+          }
+          return aj;
         };
         dibuja();
 
@@ -8349,10 +9294,15 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       function formatea(columna, valor) {
         if (columna.tipo === 'texto') return valor === undefined ? '' : String(valor);
         if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) return '—';
+        // La convención del material (R-B, 2026-11-17): punto decimal y
+        // millares con el espacio fino de la prosa, U+202F. Antes era
+        // `toLocaleString('es-CO')`, que escribe «2.621» por dos mil
+        // seiscientos veintiuno y «0,25» por un cuarto: justo al revés que
+        // el resto de la página, donde «2.621» se lee dos coma seis.
         const d = columna.decimales === undefined ? 2 : columna.decimales;
-        return Number(valor).toLocaleString('es-CO', {
-          minimumFractionDigits: d, maximumFractionDigits: d
-        }) + (columna.sufijo || '');
+        const partes = Number(valor).toFixed(d).split('.');
+        partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
+        return partes.join('.') + (columna.sufijo || '');
       }
 
       function dibuja() {
@@ -8572,15 +9522,15 @@ print(f"departamento n = {len(dep):4d}   r = {dep.x.corr(dep.p):.7f}")
       {
         tipo: "opcion",
         repaso: { orden: 103, etiqueta: "Cap. 1 · módulo 3 — La primera ley de Tobler", href: "capitulo-1-datos-espaciales.html" },
-        pregunta: "Sobre las estaciones del IDEAM, el Moran I de la primera banda de distancia vale 0.60635. Permutando las temperaturas al azar entre las mismas estaciones baja a -0.02534, y el valor esperado bajo independencia es -0.00278. ¿Qué papel juega la permutación?",
+        pregunta: "Sobre las estaciones del IDEAM, el Moran I de la primera banda de distancia vale 0.60635. Permutando las temperaturas al azar entre las mismas estaciones baja a -0.02534. En esa banda, el valor esperado del índice bajo permutación es -0.00194. ¿Qué papel juega la permutación?",
         pista: "¿Qué cambia al permutar y qué se queda igual?",
         opciones: [
           { texto: "Corrige el sesgo del estimador del Moran I.", correcta: false,
-            retro: "No corrige nada: es una referencia, no un ajuste. El sesgo del estimador es otra cosa y se ve en que el valor esperado bajo independencia no es cero, sino -0.00278." },
+            retro: "No corrige nada: es una referencia, no un ajuste. El sesgo del estimador es otra cosa y se ve en que el valor esperado bajo permutación no es cero, sino -0.00194." },
           { texto: "Demuestra que la temperatura depende de la altitud.", correcta: false,
             retro: "Eso lo mide otra comparación —descontar la altitud baja la autocorrelación un 29.77633&nbsp;%—, no la permutación, que no sabe nada de altitud." },
-          { texto: "Da la referencia empírica de «sin ley»: lo que sale cuando la posición ya no lleva información.", correcta: true,
-            retro: "Las estaciones siguen donde estaban y las distancias son las mismas; lo único que se rompe es el vínculo entre lugar y valor. Por eso el valor permutado es con lo que hay que comparar, y no con cero." },
+          { texto: "Es una muestra de la referencia «sin ley»: lo que sale cuando la posición ya no lleva información.", correcta: true,
+            retro: "Las estaciones siguen donde estaban y las distancias son las mismas; lo único que se rompe es el vínculo entre lugar y valor. Una permutación es una sola extracción de esa referencia: repetida muchas veces da el intervalo contra el que se compara el dato —la envolvente del módulo 3—, y no un valor suelto ni el cero." },
           { texto: "Aumenta el tamaño de muestra disponible.", correcta: false,
             retro: "El número de estaciones no cambia. Lo que se genera son escenarios del mismo tamaño bajo una hipótesis nula, que es justo lo contrario de tener más datos." }
         ]

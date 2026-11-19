@@ -245,6 +245,167 @@ def main() -> int:
     a.igual(sum(s["serie_muertes"]), fe["muertes"].sum(), "suma de la serie de muertes")
 
     # =================================================================
+    a.titulo("1a bis · Snow: la prueba de aleatorización")
+    # =================================================================
+    # R2 · T2.4 (C1-01). Tres caminos que no pasan por R:
+    #   · la parte de calle de cada bomba —la media EXACTA de la nula— se
+    #     rehace con otra geometría: R recorta cada tramo con desigualdades
+    #     lineales; aquí GEOS construye el diagrama de Voronoi de las bombas
+    #     y mide cuánta calle cae en cada celda;
+    #   · la nula tiene forma cerrada, Binomial(n, p): el histograma que R
+    #     publica se contrasta contra ella con una ji-cuadrado;
+    #   · y se recoloca de nuevo aquí, con otro generador.
+    # LAS TOLERANCIAS DE MONTE CARLO. La media de B recolocaciones tiene
+    # error sd/sqrt(B): se le dejan 4. Una desviación típica estimada con B
+    # valores tiene error relativo ~ 1/sqrt(2B): se le dejan 4. La
+    # ji-cuadrado se rechaza con p < 0.001. Con la semilla fija nada de esto
+    # es un sorteo en cada corrida: o cuadra o no.
+    from shapely.geometry import LineString, Point as _Punto
+    from scipy import stats as _st1
+    al = s["aleatorizacion"]
+    ca = pd.read_csv(SALIDAS / "cap1_snow_calles.csv")
+    lineas = [LineString(g[["x", "y"]].to_numpy()) for _, g in ca.groupby("calle", sort=True)]
+    a.igual(len(lineas), s["n_segmentos"], "calles en el CSV de calles")
+    a.igual(sum(len(l.coords) - 1 for l in lineas), al["n_tramos"], "tramos rectos de calle")
+    lon_total = sum(l.length for l in lineas)
+    x0, y0, x1, y1 = ca.x.min(), ca.y.min(), ca.x.max(), ca.y.max()
+    celdas = list(voronoi_diagram(MultiPoint(bo), envelope=box(x0 - 5, y0 - 5, x1 + 5, y1 + 5)).geoms)
+    a.igual(len(celdas), len(bo), "celdas de Voronoi, una por bomba")
+    parte = []
+    for j in range(len(bo)):
+        suya = [c for c in celdas if c.contains(_Punto(bo[j]))]
+        parte.append(100 * sum(l.intersection(suya[0]).length for l in lineas) / lon_total
+                     if len(suya) == 1 else float("nan"))
+    a.igual(sum(parte), 100.0, "las celdas se reparten la calle entera", 1e-6)
+    a.cierto(al["bombas"] == etiq, "las partes de calle van en el orden de las bombas")
+    a.igual(len(al["pct_calle_por_bomba"]), len(bo), "una parte de calle por bomba")
+    for j, (calc, pub) in enumerate(zip(parte, al["pct_calle_por_bomba"])):
+        a.igual(calc, pub, f"parte de calle de la bomba {j + 1}, por Voronoi", 1e-6)
+    a.igual(parte[i_broad], al["pct_calle_broad"], "parte de calle de Broad St", 1e-6)
+    a.igual(s["pct_mas_cerca_broad"] / parte[i_broad], al["razon_sobre_calle"],
+            "el observado entre la parte de calle", 1e-6)
+    a.cierto(s["pct_esperado_uniforme"] < al["pct_calle_broad"]
+             and al["razon_sobre_calle"] < s["razon_sobre_uniforme"],
+             "a Broad St le toca más calle que el reparto ingenuo",
+             f"{al['pct_calle_broad']:.5f} frente a {s['pct_esperado_uniforme']:.5f}")
+    n_mu, k_obs, B_rec = s["n_muertes"], s["n_mas_cerca_broad"], al["n_recolocaciones"]
+    # Segunda ronda · LA PARTE DE CALLE SEGÚN EL MARCO. Las calles se recortan
+    # con GEOS al rectángulo de las muertes y a ese rectángulo ensanchado, y
+    # la parte de Broad St se rehace con su celda de Voronoi. R lo hace
+    # recortando tramo a tramo (Liang-Barsky) y con desigualdades lineales.
+    celda_broad = [c for c in celdas if c.contains(_Punto(bo[i_broad]))][0]
+    cm = [mu[:, 0].min(), mu[:, 0].max(), mu[:, 1].min(), mu[:, 1].max()]
+    for calc, pub, que in zip(cm, al["caja_muertes"], ("x mín.", "x máx.", "y mín.", "y máx.")):
+        a.igual(calc, pub, f"caja de las muertes, {que}", 1e-7)
+    for calc, pub, que in zip([x0, x1, y0, y1], al["caja_calles"], ("x mín.", "x máx.", "y mín.", "y máx.")):
+        a.igual(calc, pub, f"caja de las calles, {que}", 1e-6)
+    a.cierto([m["margen"] for m in al["marcos"]] == [0, 1, 2, None],
+             "los marcos son la caja de las muertes, +1, +2 y el plano")
+    a.cierto(all(isinstance(m["marco"], str) and m["marco"].strip() for m in al["marcos"])
+             and al["marcos"][0]["marco"] == "el rectángulo de las muertes"
+             and al["marcos"][-1]["marco"] == "el plano entero"
+             and all(str(m["margen"]) in m["marco"] for m in al["marcos"][1:-1]),
+             "cada marco lleva el nombre de lo que recorta")
+    for m in al["marcos"]:
+        rot = "marco entero" if m["margen"] is None else f"marco +{m['margen']}"
+        if m["margen"] is None:
+            dentro = lineas
+        else:
+            caja_r = box(cm[0] - m["margen"], cm[2] - m["margen"], cm[1] + m["margen"], cm[3] + m["margen"])
+            dentro = [l.intersection(caja_r) for l in lineas]
+        lon_m = sum(g.length for g in dentro)
+        p_m = sum(g.intersection(celda_broad).length for g in dentro) / lon_m
+        a.igual(100 * lon_m / lon_total, m["pct_longitud"], f"{rot}: calle que entra, en % del plano", 1e-6)
+        a.igual(100 * p_m, m["pct_calle_broad"], f"{rot}: parte de calle de Broad St", 1e-6)
+        a.igual(k_obs / n_mu / p_m, m["razon_sobre_calle"], f"{rot}: observado entre esa parte", 1e-6)
+        a.igual((k_obs - n_mu * p_m) / math.sqrt(n_mu * p_m * (1 - p_m)), m["z_binomial"],
+                f"{rot}: desviaciones típicas binomiales", 1e-5)
+    a.cierto(all(m["z_binomial"] > 10 for m in al["marcos"]),
+             "el rechazo se mantiene con cualquiera de los marcos",
+             " · ".join(f"{m['z_binomial']:.1f}" for m in al["marcos"]))
+    a.cierto(all(x["pct_calle_broad"] > y["pct_calle_broad"] for x, y in zip(al["marcos"], al["marcos"][1:]))
+             and 2 * al["marcos"][0]["razon_sobre_calle"] < al["marcos"][-1]["razon_sobre_calle"],
+             "la parte explicada sí depende del marco",
+             " · ".join(f"{m['razon_sobre_calle']:.2f}" for m in al["marcos"]))
+    # El histograma, y todo lo que se resume de él.
+    K, F = np.array(al["hist_n"]), np.array(al["hist_frec"])
+    a.cierto(B_rec >= 999, "recolocaciones suficientes", str(B_rec))
+    # La semilla no se puede rehacer desde aquí; sí que sea propia: entera y
+    # distinta de la del guion y de las dos de la envolvente del módulo 3.
+    _sem_env = D["tobler"]["envolvente"]
+    _sems = [D["meta"]["semilla"], al["semilla"], _sem_env["semilla_ideam"], _sem_env["semilla_residuos"]]
+    a.cierto(all(isinstance(x, int) for x in _sems) and len(set(_sems)) == len(_sems),
+             "las semillas nuevas son enteras y distintas entre sí", str(_sems))
+    a.igual(int(F.sum()), B_rec, "el histograma suma las recolocaciones")
+    a.cierto(len(K) == len(F) == al["max_nula_n"] - al["min_nula_n"] + 1
+             and list(K) == list(range(al["min_nula_n"], al["max_nula_n"] + 1))
+             and F[0] > 0 and F[-1] > 0,
+             "el histograma trae una barra por recuento posible")
+    media_k = float((K * F).sum() / B_rec)
+    sd_k = math.sqrt(float(((K - media_k) ** 2 * F).sum() / (B_rec - 1)))
+    a.igual(100 * media_k / n_mu, al["media_nula_pct"], "media de la nula, desde el histograma", 1e-7)
+    a.igual(100 * sd_k / n_mu, al["sd_nula_pct"], "su desviación típica", 1e-7)
+    a.igual(100 * sd_k / n_mu / math.sqrt(B_rec), al["emc_media_pct"],
+            "y el error de Monte Carlo de la media", 1e-8)
+    a.igual(100 * al["min_nula_n"] / n_mu, al["min_nula_pct"], "mínimo de la nula, en porcentaje", 1e-7)
+    a.igual(100 * al["max_nula_n"] / n_mu, al["max_nula_pct"], "máximo de la nula, en porcentaje", 1e-7)
+    a.igual(int(F[K >= k_obs].sum()), al["n_mayor_o_igual"],
+            "recolocaciones que igualan o superan al observado")
+    a.cierto(al["n_mayor_o_igual"] == 0 and al["max_nula_n"] < k_obs,
+             "ninguna recolocación llega al observado",
+             f"la mayor, {al['max_nula_n']} muertes frente a {k_obs}")
+    a.igual(1 / (B_rec + 1), al["p_cota"], "la cota del valor p es 1/(B + 1)", 1e-12)
+    a.igual((k_obs - media_k) / sd_k, al["z_observado"],
+            "desviaciones típicas del observado a la nula", 1e-6)
+    # La forma cerrada.
+    p_b = parte[i_broad] / 100
+    a.cierto(np.allclose(B_rec * _st1.binom.pmf(K, n_mu, p_b), al["hist_binomial"],
+                         rtol=1e-6, atol=1e-7),
+             "la curva binomial es B·P(K = k) con la parte de calle")
+    a.igual(100 * math.sqrt(n_mu * p_b * (1 - p_b)) / n_mu, al["sd_binomial_pct"],
+            "desviación típica de la binomial", 1e-7)
+    a.cierto(abs(al["media_nula_pct"] - parte[i_broad]) < 4 * al["emc_media_pct"],
+             "la media simulada reproduce la parte de calle",
+             f"{al['media_nula_pct']:.5f} ± {al['emc_media_pct']:.5f} frente a {parte[i_broad]:.5f}")
+    a.cierto(abs(al["sd_nula_pct"] / al["sd_binomial_pct"] - 1) < 4 / math.sqrt(2 * B_rec),
+             "y la desviación típica simulada, la binomial",
+             f"{al['sd_nula_pct']:.5f} frente a {al['sd_binomial_pct']:.5f}")
+    # Ji-cuadrado del histograma contra la binomial. Cada cola se agrupa con
+    # la primera barra que espera al menos 5 recolocaciones; la binomial es
+    # unimodal, así que las de en medio las esperan todas.
+    esp_k = B_rec * _st1.binom.pmf(np.arange(n_mu + 1), n_mu, p_b)
+    obs_k = np.zeros(n_mu + 1)
+    obs_k[K] = F
+    _bien = np.flatnonzero(esp_k >= 5)
+    k_iz, k_de = int(_bien[0]), int(_bien[-1])
+    o_ji = np.r_[obs_k[:k_iz + 1].sum(), obs_k[k_iz + 1:k_de], obs_k[k_de:].sum()]
+    e_ji = np.r_[esp_k[:k_iz + 1].sum(), esp_k[k_iz + 1:k_de], esp_k[k_de:].sum()]
+    ji = float(((o_ji - e_ji) ** 2 / e_ji).sum())
+    p_ji = float(_st1.chi2.sf(ji, len(o_ji) - 1))
+    a.cierto(e_ji.min() >= 5 and p_ji > 0.001,
+             "el histograma es compatible con la binomial",
+             f"ji-cuadrado {ji:.1f} con {len(o_ji) - 1} g. l., p = {p_ji:.3f}")
+    # Y se recoloca aquí, con numpy: 2 000 repartos sobre las calles.
+    seg = np.array([(x_a, y_a, x_b, y_b) for l in lineas
+                    for (x_a, y_a), (x_b, y_b) in zip(l.coords[:-1], l.coords[1:])])
+    lon_seg = np.hypot(seg[:, 2] - seg[:, 0], seg[:, 3] - seg[:, 1])
+    rng_s = np.random.default_rng(20929)
+    N_PY = 2000
+    cual = rng_s.choice(len(seg), size=(N_PY, n_mu), p=lon_seg / lon_seg.sum())
+    u_s = rng_s.random((N_PY, n_mu))
+    pts = np.stack([seg[cual, 0] + u_s * (seg[cual, 2] - seg[cual, 0]),
+                    seg[cual, 1] + u_s * (seg[cual, 3] - seg[cual, 1])], axis=-1)
+    k_py = (arbol.query(pts.reshape(-1, 2))[1].reshape(N_PY, n_mu) == i_broad).sum(axis=1)
+    emc_py = 100 * k_py.std(ddof=1) / n_mu / math.sqrt(N_PY)
+    a.cierto(abs(100 * k_py.mean() / n_mu - parte[i_broad]) < 4 * emc_py,
+             "2 000 recolocaciones de aquí dan la misma media",
+             f"{100 * k_py.mean() / n_mu:.5f} ± {emc_py:.5f}")
+    a.cierto(abs(100 * k_py.mean() / n_mu - al["media_nula_pct"]) < 5 * math.hypot(emc_py, al["emc_media_pct"]),
+             "  compatible con la media que publica R")
+    a.cierto(int(k_py.max()) < k_obs, "  y tampoco aquí llega ninguna al observado",
+             f"la mayor, {int(k_py.max())} muertes frente a {k_obs}")
+
+    # =================================================================
     a.titulo("1b · Los patrones puntuales canónicos")
     # =================================================================
     a.salta("la lectura de spatstat.data",
@@ -1078,6 +1239,68 @@ def main() -> int:
              "y la razón está publicada: E[s^2] es menor que sigma^2",
              f"{inf['s2_esperada_phi4']:.5f}")
 
+    # R2 · T2.4 · los cien intervalos que el módulo 4 dibuja. Las cien medias
+    # y sus semianchos salen del generador de R y no se pueden rehacer aquí;
+    # lo que sí: el error estándar verdadero (de 1'R1, con la retícula de
+    # arriba), el cuantil, los recuentos, y que las cien se comporten como
+    # una muestra de las réplicas que el módulo publica. Tolerancias: una
+    # proporción sobre 100 tiene error sqrt(p(1 - p)/100), se le dejan 3; la
+    # media de 100 medias, ee_exacto/10, se le dejan 4; una desviación típica
+    # de 100 valores, un 7 % (1/sqrt(200)), se le dejan 4.
+    a.igual(100 * (1 - inf["alfa"]), inf["nivel_pct"], "el nivel de los intervalos es el de alfa", 1e-9)
+    ci = inf["cien_ic"]
+    r4a = fila[i4]
+    n_ci = ci["n"]
+    a.igual(ci["phi"], r4a["phi"], "los cien intervalos son los de phi = 4")
+    a.cierto(len(ci["media"]) == len(ci["semiancho_ingenuo"]) == n_ci == 100,
+             "cien medias con sus cien semianchos")
+    ee_ex4 = math.sqrt(np.exp(-_DIST / ci["phi"]).sum()) / inf["n"]
+    a.igual(ee_ex4, ci["ee_exacto"], "e.e. verdadero de la media, desde 1'R1", 1e-8)
+    a.igual(float(_st4.norm.ppf(1 - inf["alfa"] / 2)), ci["z_critico"],
+            "el cuantil normal bilateral de ese alfa", 1e-8)
+    a.igual(ci["z_critico"] * ee_ex4, ci["semiancho_exacto"], "semiancho con el e.e. verdadero", 1e-8)
+    m_ci, h_ci = np.array(ci["media"]), np.array(ci["semiancho_ingenuo"])
+    a.igual(int((np.abs(m_ci) <= h_ci).sum()), ci["n_cubren_ingenuo"],
+            "intervalos ingenuos que cubren el cero, recontados")
+    a.igual(int((np.abs(m_ci) <= ci["semiancho_exacto"]).sum()), ci["n_cubren_exacto"],
+            "y con el e.e. verdadero, recontados")
+    a.igual(float(h_ci.mean()), ci["semiancho_ingenuo_medio"], "semiancho ingenuo medio", 1e-8)
+    a.igual(ci["semiancho_exacto"] / float(h_ci.mean()), ci["razon_semianchos"],
+            "cociente de los dos semianchos", 1e-7)
+    a.cierto(abs(ci["n_cubren_ingenuo"] / n_ci - r4a["cobertura"])
+             <= 3 * math.sqrt(r4a["cobertura"] * (1 - r4a["cobertura"]) / n_ci),
+             "los cien son compatibles con la cobertura publicada",
+             f"{ci['n_cubren_ingenuo']} de {n_ci} frente a {r4a['cobertura']:.5f}")
+    a.cierto(abs(float(h_ci.mean()) / inf["t_critico"] - r4a["ee_ingenuo"]) <= 0.06 * r4a["ee_ingenuo"],
+             "sus semianchos son t por el e.e. ingenuo del módulo",
+             f"{float(h_ci.mean()) / inf['t_critico']:.5f} frente a {r4a['ee_ingenuo']:.5f}")
+    a.cierto(abs(float(m_ci.mean())) <= 4 * ee_ex4 / math.sqrt(n_ci),
+             "las cien medias se centran en la media verdadera", f"{float(m_ci.mean()):.5f}")
+    a.cierto(abs(float(m_ci.std(ddof=1)) / ee_ex4 - 1) <= 4 / math.sqrt(2 * n_ci),
+             "y se dispersan como dice el e.e. verdadero",
+             f"{float(m_ci.std(ddof=1)):.5f} frente a {ee_ex4:.5f}")
+    a.igual(math.sqrt(ci["cobertura_exacto"] * (1 - ci["cobertura_exacto"]) / inf["nrep"]),
+            ci["emc_cobertura_exacto"], "error de Monte Carlo de la cobertura exacta", 1e-9)
+    a.cierto(abs(ci["cobertura_exacto"] - (1 - inf["alfa"])) <= 4 * ci["emc_cobertura_exacto"],
+             "con el e.e. verdadero la cobertura es la nominal",
+             f"{ci['cobertura_exacto']:.5f} ± {ci['emc_cobertura_exacto']:.5f}")
+    a.cierto(abs(ci["n_cubren_exacto"] / n_ci - ci["cobertura_exacto"])
+             <= 3 * math.sqrt(ci["cobertura_exacto"] * (1 - ci["cobertura_exacto"]) / n_ci),
+             "y los cien, compatibles con ella", f"{ci['n_cubren_exacto']} de {n_ci}")
+    # Y simulando aquí, con numpy: la cobertura con el e.e. verdadero es la
+    # nominal y la ingenua es la del módulo. 2 000 campos, otro generador.
+    L4 = np.linalg.cholesky(np.exp(-_DIST / ci["phi"]) + inf["jitter"] * np.eye(inf["n"]))
+    Z4 = L4 @ np.random.default_rng(20929).standard_normal((inf["n"], 2000))
+    med4, ee4 = Z4.mean(axis=0), Z4.std(axis=0, ddof=1) / math.sqrt(inf["n"])
+    cob_ex_py = float((np.abs(med4) <= ci["semiancho_exacto"]).mean())
+    cob_in_py = float((np.abs(med4) <= inf["t_critico"] * ee4).mean())
+    a.cierto(abs(cob_ex_py - ci["cobertura_exacto"])
+             <= 4 * math.hypot(ci["emc_cobertura_exacto"], math.sqrt(0.95 * 0.05 / 2000)),
+             "2 000 campos de aquí dan la misma cobertura exacta", f"{cob_ex_py:.5f}")
+    a.cierto(abs(cob_in_py - r4a["cobertura"])
+             <= 4 * math.hypot(r4a["emc_cobertura"], math.sqrt(cob_in_py * (1 - cob_in_py) / 2000)),
+             "y la misma cobertura ingenua que el módulo", f"{cob_in_py:.5f}")
+
     # =================================================================
     a.titulo("3b · La réplica sobre dato real")
     # =================================================================
@@ -1856,6 +2079,177 @@ def main() -> int:
              "  y su error de Monte Carlo es el de ese número de permutaciones", f"{pb['emc']:.6f}")
     a.cierto(abs(pb["media"] - perm0.mean()) < 5 * math.hypot(pb["emc"], emc0),
              "  y su media es compatible con la de aquí")
+    # R2 · T2.4 (G-16, C1-13) · LA ENVOLVENTE DE PERMUTACIÓN, rehecha aquí.
+    # Para cada banda se arma la I con el convenio de spdep y se permutan los
+    # valores 1 000 veces con el generador de numpy; de ahí salen unos
+    # cuantiles propios contra los que se leen los de R.
+    # LA TOLERANCIA. Un cuantil del 2,5 % estimado con B valores tiene error
+    # típico sd·sqrt(0.025·0.975/B)/f, y con la densidad normal en 1.96 eso
+    # es 0.027 sd con las 9 999 de R y 0.085 sd con las 1 000 de aquí. A la
+    # diferencia se le dejan 5 errores combinados (0.44 sd). Es ancha para
+    # un cuantil y estrecha para lo que importa: la I de cada banda queda,
+    # salvo en una, a más de una desviación típica del borde.
+    ev = D["tobler"]["envolvente"]
+    a.cierto(ev["nperm"] >= 999, "envolvente: al menos 999 permutaciones", str(ev["nperm"]))
+    a.igual(100 * ev["nivel"], ev["nivel_pct"], "envolvente: el nivel, en porcentaje", 1e-9)
+    a.igual(100 * (1 - ev["nivel"]) / 2, ev["cuantil_lo_pct"], "envolvente: cuantil inferior", 1e-9)
+    a.igual(100 * (1 + ev["nivel"]) / 2, ev["cuantil_hi_pct"], "envolvente: cuantil superior", 1e-9)
+    a.igual((ev["nperm"] + 1) * (1 - ev["nivel"]) / 2, ev["orden_lo"],
+            "envolvente: el estadístico de orden inferior", 1e-9)
+    a.igual((ev["nperm"] + 1) * (1 + ev["nivel"]) / 2, ev["orden_hi"],
+            "envolvente: el estadístico de orden superior", 1e-9)
+    N_PY_ENV = 1000
+    C_Q = math.sqrt(0.025 * 0.975) / float(_st4.norm.pdf(_st4.norm.ppf(0.975)))
+    tol_q = 5 * C_Q * math.hypot(1 / math.sqrt(ev["nperm"]), 1 / math.sqrt(N_PY_ENV))
+    res_alt = est.t_media_anual.to_numpy() - np.polyval(
+        np.polyfit(est.altitud_m.to_numpy(float), est.t_media_anual.to_numpy(), 1),
+        est.altitud_m.to_numpy(float))
+    rng_e = np.random.default_rng(20929)
+
+    def lee_banda(I, lo, hi):
+        return "encima" if I > hi else "debajo" if I < lo else "dentro"
+
+    pos_py = {}
+    for serie, valores in (("ideam", est.t_media_anual.to_numpy()), ("residuos_altitud", res_alt)):
+        zc = valores - valores.mean()
+        P = rng_e.permuted(np.tile(zc, (N_PY_ENV, 1)), axis=1)
+        pos_py[serie] = []
+        perms_py = []
+        a.igual(len(ev[serie]), len(D["tobler"][serie]["bandas"]), f"{serie}: una envolvente por banda")
+        for b, e in zip(D["tobler"][serie]["bandas"], ev[serie]):
+            rot = f"{serie[:8]} {b['d1']}-{b['d2']}"
+            A = ((dd0 >= b["d1"]) & (dd0 <= b["d2"])).astype(float)
+            np.fill_diagonal(A, 0.0)
+            gr = A.sum(1)
+            Wb = np.zeros_like(A)
+            Wb[gr > 0] = A[gr > 0] / gr[gr > 0, None]
+            fb = (gr > 0).sum() / Wb.sum() / (zc @ zc)
+            a.igual(fb * (zc @ Wb @ zc), b["I"], f"{rot}: la I, con el convenio de spdep", 1e-7)
+            Ip = fb * ((P @ Wb) * P).sum(axis=1)
+            sd_py = float(Ip.std(ddof=1))
+            lo_py, hi_py = np.quantile(Ip, [0.025, 0.975])
+            a.cierto((e["d1"], e["d2"]) == (b["d1"], b["d2"]), f"{rot}: la envolvente es de esa banda")
+            a.cierto(abs(e["lo"] - lo_py) <= tol_q * sd_py and abs(e["hi"] - hi_py) <= tol_q * sd_py,
+                     f"{rot}: bordes, contra permutaciones de aquí",
+                     f"[{e['lo']:.5f}, {e['hi']:.5f}] frente a [{lo_py:.5f}, {hi_py:.5f}]")
+            a.cierto(abs(e["sd"] / sd_py - 1) <= 4 / math.sqrt(2 * N_PY_ENV) + 4 / math.sqrt(2 * ev["nperm"]),
+                     f"{rot}: su desviación típica", f"{e['sd']:.5f} frente a {sd_py:.5f}")
+            a.igual(e["sd"] / math.sqrt(ev["nperm"]), e["emc"], f"{rot}: su error de Monte Carlo", 1e-8)
+            a.cierto(abs(e["media"] - b["esperado"]) <= 4 * e["emc"],
+                     f"{rot}: centrada en la E[I] de la banda",
+                     f"{e['media']:.6f} ± {e['emc']:.6f} frente a {b['esperado']:.6f}")
+            a.cierto(e["min"] <= e["lo"] < b["esperado"] < e["hi"] <= e["max"],
+                     f"{rot}: mínimo, bordes y máximo, en orden")
+            # El mínimo y el máximo de 9 999 permutaciones no se pueden
+            # reproducir con otras 1 000. Sí acotar: el extremo de unos diez
+            # mil valores de una distribución de una sola moda queda entre 2
+            # y 8 desviaciones típicas de su media (medido aquí: de 3.4 a 6.8).
+            a.cierto(2 <= (e["media"] - e["min"]) / e["sd"] <= 8 and 2 <= (e["max"] - e["media"]) / e["sd"] <= 8,
+                     f"{rot}: sus extremos, a distancia creíble",
+                     f"{(e['media'] - e['min']) / e['sd']:.1f} y {(e['max'] - e['media']) / e['sd']:.1f} sd")
+            a.cierto(lee_banda(b["I"], e["lo"], e["hi"]) == e["posicion"],
+                     f"{rot}: la posición publicada es la de su I", e["posicion"])
+            a.cierto(lee_banda(b["I"], lo_py, hi_py) == e["posicion"],
+                     f"{rot}: y la misma contra los bordes de aquí", e["posicion"])
+            pos_py[serie].append((b["I"], float(Ip.min())))
+            perms_py.append(Ip)
+        if serie == "ideam":
+            # Segunda ronda · en cuántas permutaciones se sale al menos una
+            # banda, contra las franjas que publica R y con las permutaciones
+            # de aquí. Tolerancia: 4 errores de las dos proporciones.
+            Pm = np.array(perms_py).T
+            lo_r = np.array([e["lo"] for e in ev["ideam"]]); hi_r = np.array([e["hi"] for e in ev["ideam"]])
+            alguna_py = float((((Pm < lo_r) | (Pm > hi_r)).sum(axis=1) > 0).mean())
+            a.igual(math.sqrt(ev["pct_alguna_fuera"] / 100 * (1 - ev["pct_alguna_fuera"] / 100) / ev["nperm"]) * 100,
+                    ev["emc_alguna_fuera_pct"], "error de Monte Carlo de «alguna banda fuera»", 1e-8)
+            a.cierto(abs(100 * alguna_py - ev["pct_alguna_fuera"])
+                     <= 4 * math.hypot(ev["emc_alguna_fuera_pct"],
+                                       100 * math.sqrt(alguna_py * (1 - alguna_py) / N_PY_ENV)),
+                     "permutaciones con alguna banda fuera de su franja",
+                     f"R {ev['pct_alguna_fuera']:.2f} % · aquí {100 * alguna_py:.2f} %")
+            a.cierto(ev["pct_alguna_fuera"] - 4 * ev["emc_alguna_fuera_pct"] > 10,
+                     "  y no es raro: más de una de cada diez")
+            # Las parejas que el eje deja fuera, como una banda más.
+            mx = D["tobler"]["mas_alla"]
+            a.igual(float(dd0.max()), mx["d_max"], "más allá del eje: la distancia máxima, en km", 1e-5)
+            a.igual(mx["d1"], b_id[-1]["d2"], "más allá del eje: empieza donde acaba el gráfico")
+            Ax = (dd0 > mx["d1"]).astype(float)
+            a.igual(int(Ax.sum() / 2), mx["n_pares"], "más allá del eje: parejas")
+            a.igual(len(zc) * (len(zc) - 1) // 2, mx["n_pares_total"], "parejas de la red entera")
+            a.igual(100 * mx["n_pares"] / mx["n_pares_total"], mx["pct_pares"],
+                    "más allá del eje: porcentaje de las parejas", 1e-7)
+            gx = Ax.sum(1)
+            a.igual(int((gx > 0).sum()), mx["n_con_vecinos"], "más allá del eje: estaciones con pareja")
+            Wx = np.zeros_like(Ax)
+            Wx[gx > 0] = Ax[gx > 0] / gx[gx > 0, None]
+            fx = (gx > 0).sum() / Wx.sum() / (zc @ zc)
+            a.igual(fx * (zc @ Wx @ zc), mx["I"], "más allá del eje: la I, convenio de spdep", 1e-7)
+            Ix = fx * ((P @ Wx) * P).sum(axis=1)
+            lox, hix = np.quantile(Ix, [0.025, 0.975])
+            sdx = float(Ix.std(ddof=1))
+            a.cierto(abs(mx["lo"] - lox) <= tol_q * sdx and abs(mx["hi"] - hix) <= tol_q * sdx,
+                     "más allá del eje: su franja, contra la de aquí",
+                     f"[{mx['lo']:.5f}, {mx['hi']:.5f}] frente a [{lox:.5f}, {hix:.5f}]")
+            a.cierto(abs(mx["sd"] / sdx - 1) <= 4 / math.sqrt(2 * N_PY_ENV) + 4 / math.sqrt(2 * ev["nperm"]),
+                     "más allá del eje: desviación típica", f"{mx['sd']:.5f} frente a {sdx:.5f}")
+            a.cierto(abs(mx["media"] + mx["n_con_vecinos"] / (len(zc) * (len(zc) - 1)))
+                     <= 4 * mx["sd"] / math.sqrt(ev["nperm"]),
+                     "más allá del eje: la franja se centra en su E[I]", f"{mx['media']:.6f}")
+            a.cierto(lee_banda(mx["I"], mx["lo"], mx["hi"]) == mx["posicion"] == "debajo"
+                     and lee_banda(mx["I"], lox, hix) == "debajo",
+                     "más allá del eje: queda por debajo de su franja", mx["posicion"])
+            # La suma de z_i z_j por banda, en unidades de sum(z^2)/2.
+            sm = D["tobler"]["sumas"]
+            zz = np.outer(zc, zc)
+            sup = np.triu(np.ones_like(dd0, dtype=bool), 1)
+            mitad = (zc @ zc) / 2
+            sumas_py = []
+            a.igual(len(sm["bandas"]), len(b_id), "sumas: una por banda del correlograma")
+            for b, sb in zip(b_id, sm["bandas"]):
+                cual = sup & (dd0 > b["d1"]) & (dd0 <= b["d2"])
+                a.cierto((sb["d1"], sb["d2"]) == (b["d1"], b["d2"]),
+                         f"sumas {b['d1']}-{b['d2']}: es esa banda")
+                a.igual(int(cual.sum()), sb["n_pares"], f"sumas {b['d1']}-{b['d2']}: parejas")
+                a.igual(sb["n_pares"], b["n_pares"], f"sumas {b['d1']}-{b['d2']}: las del correlograma")
+                a.igual(float(zz[cual].sum() / mitad), sb["suma"], f"sumas {b['d1']}-{b['d2']}: z_i z_j", 1e-7)
+                sumas_py.append(float(zz[cual].sum() / mitad))
+            fuera_py = float(zz[sup & (dd0 > mx["d1"])].sum() / mitad)
+            a.igual(fuera_py, sm["mas_alla"], "sumas: las parejas de más allá del eje", 1e-7)
+            a.igual(sum(sumas_py) + fuera_py, -1.0, "sumas: todas las parejas dan −1", 1e-8)
+            a.igual(sm["total"], -1.0, "sumas: y el total publicado también", 1e-8)
+            nc_ = sm["n_bandas_cortas"]
+            a.igual(sum(x == "encima" for x in [e["posicion"] for e in ev["ideam"]]), nc_,
+                    "sumas: las bandas cortas son las de por encima")
+            a.igual(sum(sumas_py[:nc_]), sm["cortas"], "sumas: las bandas cortas", 1e-7)
+            a.igual(sum(sumas_py[nc_:]) + fuera_py, sm["largas"], "sumas: todo lo demás", 1e-7)
+            a.cierto(all(x > 0 for x in sumas_py[:nc_]) and all(x < 0 for x in sumas_py[nc_:]) and fuera_py < 0
+                     and sumas_py[nc_] < 0.5 * sm["largas"] and sm["cortas"] > 5,
+                     "sumas: cortas positivas, largas negativas, y dónde",
+                     " ".join(f"{x:.2f}" for x in sumas_py + [fuera_py]))
+    pos_t = [e["posicion"] for e in ev["ideam"]]
+    pos_r = [e["posicion"] for e in ev["residuos_altitud"]]
+    a.igual(sum(x != "dentro" for x in pos_t), ev["n_fuera_ideam"], "bandas de la temperatura fuera")
+    a.igual(sum(x != "dentro" for x in pos_r), ev["n_fuera_residuos"], "bandas de los residuos fuera")
+    # Lo que el módulo 3 lee en la envolvente.
+    a.cierto(pos_t == ["encima"] * (len(pos_t) - 2) + ["debajo", "dentro"],
+             "temperatura: encima, una banda debajo y la última dentro", " ".join(pos_t))
+    i_neg = pos_t.index("debajo") if "debajo" in pos_t else 0
+    a.cierto(b_id[i_neg]["I"] < ev["ideam"][i_neg]["min"] and pos_py["ideam"][i_neg][0] < pos_py["ideam"][i_neg][1],
+             "la banda negativa, bajo todas las permutaciones",
+             f"{b_id[i_neg]['I']:.5f} frente a un mínimo de {ev['ideam'][i_neg]['min']:.5f}")
+    a.cierto(pos_r[-3:] == ["dentro", "debajo", "debajo"] and set(pos_r[:-3]) == {"encima"},
+             "residuos: encima, una dentro y las dos últimas debajo", " ".join(pos_r))
+    a.cierto([lee_banda(b["I"], e["lo"], e["hi"])
+              for b, e in zip(D["tobler"]["residuos_altitud"]["bandas"], ev["ideam"])] == pos_r,
+             "los residuos se leen igual contra la otra envolvente")
+    pos_p = [lee_banda(b["I"], e["lo"], e["hi"])
+             for b, e in zip(D["tobler"]["permutado"]["bandas"], ev["ideam"])]
+    a.cierto(pos_p == ev["posicion_permutado"], "la permutación suelta, contra la envolvente",
+             " ".join(pos_p))
+    a.igual(sum(x != "dentro" for x in pos_p), ev["n_fuera_permutado"],
+            "bandas de la permutación suelta fuera")
+    a.cierto(ev["n_fuera_permutado"] == 0, "  y no se sale en ninguna")
+
     # El decaimiento es el contenido del módulo, así que se comprueba.
     for nombre in ("meuse", "ideam"):
         bs = [b["I"] for b in D["tobler"][nombre]["bandas"] if b["I"] is not None]

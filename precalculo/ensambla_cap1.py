@@ -57,6 +57,7 @@ from __future__ import annotations
 
 import json
 import os
+import math
 import re
 import subprocess
 import pathlib
@@ -122,6 +123,23 @@ ru = dm["referencia_uniforme"]   # módulo 10: Thiessen de puntos uniformes, la 
 rp, osm, sud = ir["replicas"], ir["otras_semillas"], ir["sin_un_departamento"]
 b0 = tb["ideam"]["bandas"][0]    # módulo 3: la banda corta, la que tiene estaciones sin vecinos
 pb1 = tb["permutacion_banda1"]   # y su esperanza, comprobada permutando
+# El alto de la caja de las tres gráficas de R2 · T2.4. En pantalla ancha,
+# 360 px; por debajo de 640 px crece hasta 440 px a 375 px de ancho. La
+# leyenda va abajo y en el teléfono se apila en cuatro o cinco filas: con
+# un alto fijo se comía el área de trazado (G-11). Va en línea y con `max`
+# y `min` porque un atributo `style` no admite `@media`; la cuenta es la
+# recta que pasa por (375 px, 440 px) y (640 px, 360 px).
+ALTO_T24 = "height:max(360px, min(440px, calc(553px - 30.2vw)));"
+# R2 · T2.4: las tres gráficas nuevas. Cada una dibuja una cifra que el
+# capítulo ya publicaba y solo se leía.
+al = sn["aleatorizacion"]        # módulo 1: la prueba de aleatorización de Snow
+env3 = tb["envolvente"]          # módulo 3: la envolvente de permutación del correlograma
+ci = inf["cien_ic"]              # módulo 4: cien intervalos de las réplicas de phi = 4
+# Segunda ronda de T2.4: lo que las tres gráficas dejaban sin decir.
+mc1 = al["marcos"]               # módulo 1: la parte de calle según el marco del plano
+ma3 = tb["mas_alla"]             # módulo 3: las parejas que el eje deja fuera
+su3 = tb["sumas"]                # módulo 3: la suma de z_i z_j por banda
+NIVEL4 = f"{inf['nivel_pct']:g}"  # módulo 4: el nivel de los intervalos, de R
 
 
 def n(x, d=5):
@@ -239,6 +257,13 @@ def tabs(etiqueta, r_code, py_code):
 # dirección se rompe el error estándar (pregunta 2), ni que la ventana
 # forma parte del estimador (pregunta 8), ni cuáles son los tres tipos
 # (pregunta 1).
+# El marco más estrecho —el rectángulo de las muertes— y las filas de la tabla.
+MARCO_MIN = mc1[0]
+FILAS_MARCOS = "\n".join(
+    f"          <tr><th scope=\"row\">{m['marco'][0].upper() + m['marco'][1:]}</th>"
+    f"<td>{n(m['pct_longitud'], 2)}</td><td>{n(m['pct_calle_broad'])}</td>"
+    f"<td>{n(m['razon_sobre_calle'])}</td><td>{n(m['z_binomial'], 2)}</td></tr>"
+    for m in mc1)
 MOD1 = cabecera(
     1, "El mapa que cambió la epidemiología", "Snow, 1854",
     "Ver un patrón puntual convertirse en un argumento, y medir exactamente "
@@ -304,8 +329,89 @@ MOD1 = cabecera(
         tocaría el {n(sn['pct_esperado_uniforme'])}&nbsp;%, y Broad Street concentra
         <strong>{n(sn['razon_sobre_uniforme'])} veces</strong> esa parte. El reparto es ingenuo porque ignora dos
         cosas: que las bombas no sirven áreas del mismo tamaño dentro del plano y que no las usa la misma población.
-        La cifra dice que la concentración es grande; no dice cuánta de ella se debería solo al área que le toca a
-        Broad Street o a la gente que vivía en ella.</p>
+        La primera se puede medir con lo que el plano trae; la segunda, no.</p>
+
+      <p>La primera se mide con una <strong>prueba de aleatorización</strong>. Se recolocan las
+        {sn['n_muertes']} muertes al azar sobre las calles del plano —cada una en un punto sorteado con
+        probabilidad proporcional a la longitud de calle— y se vuelve a calcular el mismo porcentaje: cuántas
+        tienen la bomba de Broad Street como la más próxima. Repetido {ent(al['n_recolocaciones'])} veces, eso da
+        la distribución de ese porcentaje cuando lo único que decide dónde cae una muerte es cuánta calle hay en
+        cada sitio. Esa es la <strong>hipótesis nula</strong>, y el histograma la dibuja junto al dato.</p>
+
+      <div class="simulador" data-simulador="snow-nula">
+        <h4><i class="fas fa-shuffle" aria-hidden="true"></i> La prueba de aleatorización: el dato frente a
+          {ent(al['n_recolocaciones'])} repartos al azar</h4>
+        <p class="simulador-intro">En gris, cuántas de las {ent(al['n_recolocaciones'])} recolocaciones dieron
+          cada porcentaje de muertes más cerca de Broad Street. La línea naranja es el porcentaje observado, y la
+          de trazos, el reparto ingenuo. La curva fina es una binomial: como cada muerte se recoloca por
+          separado y cae en la parte de Broad Street con la misma probabilidad, aquí la nula tiene además
+          fórmula, y sirve de control de que la simulación está bien hecha. Se simula de todos modos porque recolocar es el procedimiento que
+          sigue sirviendo cuando no hay fórmula. Con <strong>acercar a la nula</strong> el eje se cierra sobre el
+          histograma y el dato se sale del gráfico por la derecha.</p>
+        <div class="simulador-controles"></div>
+        <div class="grafico-wrapper" style="{ALTO_T24}">
+          <canvas aria-label="Histograma del porcentaje de muertes cuya bomba más próxima es Broad Street en {ent(al['n_recolocaciones'])} recolocaciones al azar sobre las calles: va del {n(al['min_nula_pct'])} al {n(al['max_nula_pct'])} por ciento, con media {n(al['media_nula_pct'])}. Una línea vertical marca el {n(sn['pct_mas_cerca_broad'])} por ciento observado, muy a la derecha de todo el histograma" role="img"></canvas>
+        </div>
+        <div class="simulador-lectura"></div>
+      </div>
+
+      <p>A Broad Street le toca el <strong>{n(al['pct_calle_broad'])}&nbsp;%</strong> de la longitud de calle del
+        plano: es la parte de calle que queda más cerca de esa bomba que de cualquier otra, y es la media de la
+        nula. Se calcula sin simular, tramo a tramo, y las recolocaciones la reproducen: promedian
+        {n(al['media_nula_pct'])}&nbsp;%, con un error de Monte Carlo de {n(al['emc_media_pct'])}. Es algo más que
+        el {n(sn['pct_esperado_uniforme'])}&nbsp;% del reparto ingenuo: con el plano entero, el observado es
+        <strong>{n(al['razon_sobre_calle'])} veces</strong> lo que le tocaría por calle, donde el reparto ingenuo
+        decía {n(sn['razon_sobre_uniforme'])}.</p>
+
+      <p>Ninguna de las {ent(al['n_recolocaciones'])} recolocaciones llega al
+        {n(sn['pct_mas_cerca_broad'])}&nbsp;% observado. La mayor da {n(al['max_nula_pct'])}&nbsp;%, y el dato queda
+        a {n(al['z_observado'])} desviaciones típicas de la media de la nula. El valor p de la prueba es, por tanto,
+        \\(p \\le 1/(B + 1) = {n(al['p_cota'])}\\), con \\(B = {ent_mate(al['n_recolocaciones'])}\\)
+        recolocaciones: el dato cuenta como una más. Se da como cota y no como cero: la simulación no puede
+        afirmar nada más fino que una entre \\(B + 1\\). La binomial, que es la fórmula de esta misma
+        nula, da una cifra mucho menor. No se publica porque un valor p tan extremo solo valdría si el modelo
+        fuera exacto —muertes independientes entre sí, este marco del plano y no otro—, y no lo es. La cota
+        dice lo que hace falta sin aparentar una precisión que el modelo no tiene.</p>
+
+      <p>La parte de calle, en cambio, no es una cifra firme: depende de hasta dónde llega el plano. Las
+        calles digitalizadas cubren bastante más terreno que las muertes, y cuanta más calle lejana entra en
+        la cuenta, menor es la parte que le toca a Broad Street. La tabla rehace la cuenta con las calles
+        recortadas al rectángulo que encierra las muertes y a ese rectángulo ensanchado; las distancias van
+        en las unidades del plano, que no tiene escala publicada.</p>
+
+      <table>
+        <caption>La parte de calle de Broad Street según el marco que se le ponga al plano. La última
+          columna es la distancia del dato a lo que la nula espera, en desviaciones típicas de la
+          binomial.</caption>
+        <thead>
+          <tr><th scope="col">Calles que entran</th><th scope="col">% de la calle del plano</th>
+            <th scope="col">Parte de Broad St (%)</th><th scope="col">Observado / parte</th>
+            <th scope="col">Desviaciones típicas</th></tr>
+        </thead>
+        <tbody>
+{FILAS_MARCOS}
+        </tbody>
+      </table>
+
+      <p>Con solo las calles del rectángulo de las muertes, a Broad Street le toca el
+        {n(MARCO_MIN['pct_calle_broad'])}&nbsp;% y el observado es {n(MARCO_MIN['razon_sobre_calle'])} veces esa
+        parte, no {n(al['razon_sobre_calle'])}. Lo que no cambia con el marco es el rechazo: también con el más
+        estrecho el dato queda a {n(MARCO_MIN['z_binomial'], 2)} desviaciones típicas de lo que la nula espera.
+        Cuánta de la concentración explica la calle no se puede decir con una sola cifra. Que no la explica
+        entera, sí.</p>
+
+      <div class="note">
+        <p><strong>Lo que esa nula permite concluir, y lo que no.</strong> Permite concluir una cosa:
+          la concentración alrededor de Broad Street no se explica por la cantidad de calle que esa bomba tiene
+          más cerca que las demás. No permite más. La nula no sabe cuánta gente vivía en cada tramo: dos tramos
+          que miden lo mismo cuentan igual, estén llenos de viviendas o no. Tampoco sabe de qué bomba bebía cada
+          quien, que no tiene por qué ser la más próxima. Y no fija el marco: qué calles entran lo decide
+          hasta dónde se dibujó el plano, no el brote.</p>
+        <p style="margin-bottom:0;">Además recoloca cada muerte por separado, como si las muertes fueran
+          independientes entre sí. Varias muertes de una misma casa no lo son, y con muertes agrupadas la nula
+          sería más ancha que la del histograma. Con el dato a {n(al['z_observado'])} desviaciones típicas eso no
+          cambia la conclusión; sí es una razón para leer el valor p como una cota y no como una medida fina.</p>
+      </div>
 
       <div class="definition">
         <h3>Y ahora la parte formal: qué es un patrón puntual</h3>
@@ -833,6 +939,28 @@ print([str(w.message).split(".")[0] for w in ws])
 # =====================================================================
 # MÓDULO 3 · La primera ley de Tobler
 # =====================================================================
+# R2 · T2.4: la envolvente de permutación. Lo que la prosa dice de cada
+# banda —«por encima», «dentro», «por debajo»— se LEE de `posicion`, que
+# es de R, y los recuentos de aquí abajo son longitudes de listas, no
+# aritmética sobre cifras. Las guardas de `main()` atan cada frase a esas
+# posiciones.
+POS3 = {"encima": "por encima", "dentro": "dentro", "debajo": "por debajo"}
+_pos_t = [e["posicion"] for e in env3["ideam"]]
+_pos_r = [e["posicion"] for e in env3["residuos_altitud"]]
+# Cuántas bandas seguidas, desde la primera, quedan por encima.
+N_ENCIMA3 = next((i for i, x in enumerate(_pos_t) if x != "encima"), len(_pos_t))
+N_ENCIMA3_RES = next((i for i, x in enumerate(_pos_r) if x != "encima"), len(_pos_r))
+if "debajo" not in _pos_t or not 0 < N_ENCIMA3_RES < len(_pos_r):
+    sys.exit("PARADO: tobler.envolvente ya no trae una banda de la temperatura por debajo de su "
+             "franja, o los residuos no pasan de «encima» a otra cosa: el módulo 3 lo afirma.")
+I_DEB3 = _pos_t.index("debajo")
+B_DEB3, E_DEB3 = tb["ideam"]["bandas"][I_DEB3], env3["ideam"][I_DEB3]
+FILAS_ENV3 = "\n".join(
+    f"          <tr><th scope=\"row\">{b['d1']}–{b['d2']}</th><td>{n(b['I'])}</td>"
+    f"<td>{n(e['lo'])} a {n(e['hi'])}</td><td>{POS3[e['posicion']]}</td>"
+    f"<td>{n(r['I'])}</td><td>{n(f['lo'])} a {n(f['hi'])}</td><td>{POS3[f['posicion']]}</td></tr>"
+    for b, e, r, f in zip(tb["ideam"]["bandas"], env3["ideam"],
+                          tb["residuos_altitud"]["bandas"], env3["residuos_altitud"]))
 MOD3 = cabecera(
     3, "La primera ley de Tobler", "Tobler's first law",
     "Medir la primera ley en vez de citarla, con un control que la niega y "
@@ -849,25 +977,64 @@ MOD3 = cabecera(
 
       <div class="simulador" data-simulador="correlograma">
         <h4><i class="fas fa-signal" aria-hidden="true"></i> El correlograma: la primera ley, medida</h4>
-        <p class="simulador-intro">Índice de Moran por bandas de distancia. Tres series que puedes
-          <strong>encender y apagar</strong>: el dato real, el mismo dato con las temperaturas
-          <strong>permutadas al azar</strong> —el control— y los residuos tras quitar la altitud.
-          E[I] bajo independencia se queda siempre, porque es la referencia contra la que se leen
-          las otras tres. Deja solo el permutado y mira qué aspecto tiene un correlograma sin nada
-          dentro; enciende luego el real y compara.</p>
+        <p class="simulador-intro">Índice de Moran por bandas de distancia. El eje horizontal va en
+          kilómetros y cada punto está en el centro de su banda, así que las bandas cortas quedan juntas a
+          la izquierda: es la escala real del decaimiento. La franja gris es la
+          <strong>envolvente de permutación</strong>: en cada banda, el intervalo donde cae el
+          {env3['nivel_pct']:g}&nbsp;% de las {ent(env3['nperm'])} I que salen al repartir los mismos valores
+          al azar entre las mismas estaciones. La línea de puntos es la media de esas I, E[I] bajo
+          permutación. Tres series se pueden <strong>encender y apagar</strong>: el dato real, los residuos
+          tras quitar la altitud y <strong>una</strong> permutación suelta, que es un reparto al azar como
+          los que forman la franja.</p>
         <div class="simulador-controles"></div>
-        <div class="grafico-wrapper" style="height:270px;">
-          <canvas aria-label="Índice de Moran por bandas de distancia para las estaciones del IDEAM, su versión permutada y sus residuos tras quitar la altitud" role="img"></canvas>
+        <div class="grafico-wrapper" style="{ALTO_T24}">
+          <canvas aria-label="Índice de Moran de la temperatura de las estaciones del IDEAM por bandas de distancia, de 0 a {tb['ideam']['bandas'][-1]['d2']} kilómetros, con la envolvente de permutación del {env3['nivel_pct']:g} por ciento. La temperatura queda por encima de la envolvente en las {N_ENCIMA3} bandas hasta {tb['ideam']['bandas'][N_ENCIMA3 - 1]['d2']} kilómetros, por debajo entre {B_DEB3['d1']} y {B_DEB3['d2']} y dentro en la última. Se dibujan también los residuos tras quitar la altitud y una permutación suelta, que queda dentro en todas las bandas" role="img"></canvas>
         </div>
+        <p class="simulador-intro" style="margin-top:0.75rem;">La franja dibujada es la de la temperatura;
+          si la única serie encendida son los residuos, es la suya, que es casi la misma. Con
+          <strong>acercar a la franja</strong> el eje vertical se cierra sobre ella: es la vista para leer
+          las bandas largas, donde la franja es estrecha.</p>
         <div class="simulador-lectura"></div>
       </div>
 
       <p>La primera banda ({tb['ideam']['bandas'][0]['d1']}–{tb['ideam']['bandas'][0]['d2']} km) da
-        <strong>{n(tb['ideam']['bandas'][0]['I'])}</strong>; la última
-        ({tb['ideam']['bandas'][-1]['d1']}–{tb['ideam']['bandas'][-1]['d2']} km) da
-        <strong>{n(tb['ideam']['bandas'][-1]['I'])}</strong>, que ya no se distingue del valor esperado bajo
-        independencia, <strong>{n(tb['ideam']['esperado'], 6)}</strong>. Eso es la primera ley con una cifra
-        delante.</p>
+        <strong>{n(tb['ideam']['bandas'][0]['I'])}</strong>, muy por encima de su franja, que va de
+        {n(env3['ideam'][0]['lo'])} a {n(env3['ideam'][0]['hi'])}. Las {N_ENCIMA3} bandas hasta
+        {tb['ideam']['bandas'][N_ENCIMA3 - 1]['d2']} km quedan todas por encima: a esas distancias dos estaciones
+        se parecen más de lo que se parecerían con las temperaturas repartidas al azar. La última del
+        gráfico ({tb['ideam']['bandas'][-1]['d1']}–{tb['ideam']['bandas'][-1]['d2']} km) da
+        <strong>{n(tb['ideam']['bandas'][-1]['I'])}</strong> y cae dentro de la suya, de
+        {n(env3['ideam'][-1]['lo'])} a {n(env3['ideam'][-1]['hi'])}: ya no se distingue de un reparto al azar,
+        cuyo valor esperado es <strong>{n(tb['ideam']['esperado'], 6)}</strong>. Eso es la primera ley con una
+        cifra delante: el parecido es grande entre estaciones cercanas y se pierde con la distancia.</p>
+
+      <p>El eje acaba en {ma3['d1']} km y la red no. La pareja de estaciones más alejada está a
+        {ent(ma3['d_max'])} km, y quedan fuera del gráfico {ent(ma3['n_pares'])} de las
+        {ent(ma3['n_pares_total'])} parejas, el {n(ma3['pct_pares'])}&nbsp;%. Tratadas como una banda más, dan
+        \\(I = {n(ma3['I'])}\\), por debajo de su franja, que va de {n(ma3['lo'])} a {n(ma3['hi'])}. No se
+        dibujan porque el eje tendría que llegar casi al triple y las bandas cortas, que son las que enseñan
+        la ley, se quedarían sin sitio. Pero cuentan, y lo que sigue explica por qué salen negativas.</p>
+
+      <p>Entre las bandas que quedan por encima y la que cae dentro hay una, además, por debajo. De
+        {B_DEB3['d1']} a {B_DEB3['d2']} km la I vale <strong>{n(B_DEB3['I'])}</strong>, y la franja ahí va de
+        {n(E_DEB3['lo'])} a {n(E_DEB3['hi'])}. Es autocorrelación <em>negativa</em>: a esa distancia dos
+        estaciones se parecen menos que dos tomadas al azar. No contradice la primera ley: es su
+        contrapartida, y que la haya es obligado. Las temperaturas están centradas en la media de todas las
+        estaciones, y eso fija una cuenta. Sumados los productos \\(z_i z_j\\) de todas las parejas, y
+        medidos en unidades de \\(\\tfrac{{1}}{{2}}\\sum_i z_i^2\\), el total es exactamente \\(-1\\),
+        con cualquier dato. Las parejas a menos de {B_DEB3['d1']} km suman {n(su3['cortas'])}; las demás
+        tienen que sumar, por tanto, {n(su3['largas'])}. Con las bandas cortas tan positivas,
+        tiene que haber bandas negativas. Lo que el dato decide es dónde caen: {n(su3['bandas'][I_DEB3]['suma'])} en la
+        de {B_DEB3['d1']}–{B_DEB3['d2']} km, {n(su3['bandas'][-1]['suma'])} en la de
+        {tb['ideam']['bandas'][-1]['d1']}–{tb['ideam']['bandas'][-1]['d2']} km y {n(su3['mas_alla'])} más
+        allá de {ma3['d1']} km. La franja no avisa de esto, porque permutar deshace también el parecido a
+        corta distancia: compara cada banda con un reparto en el que las demás tampoco tienen nada.</p>
+
+      <p>La franja es <strong>puntual</strong>: cada banda tiene su propio {env3['nivel_pct']:g}&nbsp;%. Con
+        {len(tb['ideam']['bandas'])} bandas no es raro que alguna se salga por puro azar: en el
+        {n(env3['pct_alguna_fuera'])}&nbsp;% de las {ent(env3['nperm'])} permutaciones se sale al menos una.
+        Una banda suelta que asoma apenas fuera de la franja no prueba nada. Aquí no es el caso: la
+        temperatura se sale en {env3['n_fuera_ideam']} de las {len(tb['ideam']['bandas'])}.</p>
 
       <div class="definition">
         <h3>El índice de Moran, que es la herramienta de todo el curso</h3>
@@ -910,8 +1077,33 @@ MOD3 = cabecera(
 
       <p>El control es la otra mitad del argumento. Permutando las temperaturas entre las mismas estaciones
         —mismas posiciones, mismas distancias, mismos pesos— la primera banda cae a
-        <strong>{n(tb['permutado']['bandas'][0]['I'])}</strong>. Si el correlograma del dato real y el del permutado
-        se parecieran, la estructura que estamos midiendo la estaría poniendo la geometría y no el fenómeno.</p>
+        <strong>{n(tb['permutado']['bandas'][0]['I'])}</strong>. Eso es una permutación, y una sola no dice
+        cuánto puede moverse la I por puro azar: lo dice la franja, que reúne {ent(env3['nperm'])}. La
+        permutación suelta queda dentro de la franja en las {len(tb['ideam']['bandas'])} bandas. Si el
+        correlograma del dato real quedara también dentro, la estructura que se está midiendo la estaría
+        poniendo la geometría de la red y no el fenómeno.</p>
+
+      <p>La tabla reúne las {len(tb['ideam']['bandas'])} bandas, cada serie con su propia franja. Los residuos
+        tras quitar la altitud se leen como la temperatura en las {N_ENCIMA3_RES} primeras; entre
+        {tb['ideam']['bandas'][N_ENCIMA3_RES]['d1']} y {tb['ideam']['bandas'][N_ENCIMA3_RES]['d2']} km ya caen
+        dentro de su franja, y en las dos últimas, por debajo. Quitada la altitud, la dependencia a corta
+        distancia sigue ahí y se agota antes. La franja de los residuos es una aproximación: salen de un
+        ajuste y no son intercambiables entre estaciones como lo son los datos.</p>
+
+      <table>
+        <caption>Índice de Moran por banda y envolvente de permutación del {env3['nivel_pct']:g} %
+          (cuantiles del {env3['cuantil_lo_pct']:g} y del {env3['cuantil_hi_pct']:g} % de
+          {ent(env3['nperm'])} permutaciones), para la temperatura y para sus residuos tras quitar la
+          altitud. La envolvente es puntual: vale banda a banda.</caption>
+        <thead>
+          <tr><th scope="col">Banda (km)</th><th scope="col">I, temperatura</th>
+            <th scope="col">Su franja</th><th scope="col">Queda</th>
+            <th scope="col">I, residuos</th><th scope="col">Su franja</th><th scope="col">Queda</th></tr>
+        </thead>
+        <tbody>
+{FILAS_ENV3}
+        </tbody>
+      </table>
 
 """ + tabs(
     "El correlograma por bandas, en R y en Python",
@@ -1209,6 +1401,47 @@ MOD4 = cabecera(
         {n(r4['rho_vecino'])}— la cobertura se desploma a <strong>{n(r4['cobertura'])}</strong>
         (± {n(r4['emc_cobertura'])} de error de Monte Carlo). Un intervalo que promete equivocarse una vez de cada
         veinte se equivoca <strong>cuatro de cada cinco</strong>.</p>
+
+      <p>Esa cobertura se puede ver. El gráfico toma {ci['n']} de las {ent(inf['nrep'])} réplicas de
+        \\(\\phi = {ci['phi']}\\) —las {ci['n']} primeras, sin elegirlas— y dibuja el intervalo de cada una como un
+        segmento vertical, con su media en el centro. La línea horizontal es la media verdadera, cero. Un
+        intervalo que la cruza acierta; uno que no la toca, en naranja, se equivoca.</p>
+
+      <div class="simulador" data-simulador="cien-ic">
+        <h4><i class="fas fa-grip-lines-vertical" aria-hidden="true"></i> {ci['n']} intervalos al
+          {NIVEL4}&nbsp;%, uno por réplica</h4>
+        <p class="simulador-intro">Cada segmento es el intervalo de una réplica y cada punto, su media. Las
+          {ci['n']} medias son las mismas en las dos vistas: lo único que cambia al conmutar es el largo de los
+          segmentos. En la primera vista el error estándar es el que calcula el programa,
+          \\(s/\\sqrt{{n}}\\); en la segunda, el verdadero, que aquí se conoce porque el campo se ha
+          simulado.</p>
+        <div class="simulador-controles"></div>
+        <div class="grafico-wrapper" style="{ALTO_T24}">
+          <canvas aria-label="{ci['n']} intervalos de confianza al {NIVEL4} por ciento de la media, uno por réplica del campo con alcance {ci['phi']}, dibujados en vertical alrededor de la media verdadera, cero. Con el error estándar ingenuo cubren el cero {ci['n_cubren_ingenuo']} de los {ci['n']}; con el error estándar verdadero, {ci['n_cubren_exacto']}" role="img"></canvas>
+        </div>
+        <div class="simulador-lectura"></div>
+      </div>
+
+      <p>De estos {ci['n']} intervalos ingenuos cubren el cero <strong>{ci['n_cubren_ingenuo']}</strong>. Ese
+        recuento no es la cobertura del módulo, sino el de una muestra de {ci['n']} réplicas: sobre las
+        {ent(inf['nrep'])} réplicas la cobertura es {n(r4['cobertura'])}, y otras {ci['n']} réplicas darían otro
+        recuento cercano. Lo que el dibujo enseña es la razón del fallo. Las medias se reparten a un lado y a
+        otro del cero, sin irse hacia ninguno, y cada segmento es mucho más corto que la distancia que separa unas
+        medias de otras.</p>
+
+      <p>Con el error estándar verdadero, \\(\\sqrt{{\\mathbf{{1}}^\\top R\\,\\mathbf{{1}}}}/n =
+        {n(ci['ee_exacto'])}\\) —el que sale de sumar todas las correlaciones, como en el recuadro de abajo—, las
+        medias no se mueven: son las mismas {ci['n']}. Cambia el largo de los segmentos, cuyo semiancho pasa de
+        {n(ci['semiancho_ingenuo_medio'])} en promedio a {n(ci['semiancho_exacto'])}, que es
+        <strong>{n(ci['razon_semianchos'])} veces</strong> el primero, y entonces cubren el cero
+        <strong>{ci['n_cubren_exacto']}</strong> de los {ci['n']}. Ese cociente no es el {n(r4['factor'])} del
+        recuadro de abajo, aunque los dos dicen lo mismo: aquí se dividen los semianchos de estas {ci['n']}
+        réplicas, cada uno con su cuantil; allí, la desviación típica de las {ent(inf['nrep'])} medias entre
+        su error estándar ingenuo medio. Sobre las {ent(inf['nrep'])} réplicas, ese
+        intervalo cubre {n(ci['cobertura_exacto'])} (± {n(ci['emc_cobertura_exacto'])}), el {NIVEL4}&nbsp;%
+        prometido.
+        La media estaba bien en las dos vistas. Lo que estaba mal era el largo del segmento, es decir, el error
+        estándar.</p>
 
       <div class="definition">
         <h3>De dónde sale el destrozo, en tres pasos</h3>
@@ -3635,6 +3868,156 @@ SIMULADORES_JS = r"""
       return [g];
     };
 
+    // Las tres gráficas de R2 · T2.4 llevan el eje horizontal LINEAL, no de
+    // categorías, y por eso declaran sus escalas enteras: fuente, rejilla y
+    // rotación. `crearGraficoLinea` fusiona las opciones de la casa con las
+    // del simulador, y la fusión está cambiando de superficial a profunda;
+    // escritas así, estas tres salen igual con cualquiera de las dos.
+    const EJE_X_LINEAL = (titulo, extra) => Object.assign({
+      type: 'linear',
+      title: { display: true, text: titulo, font: { family: 'Montserrat', size: 11 } },
+      ticks: { font: { family: 'Montserrat', size: 11 }, maxRotation: 0, autoSkip: false },
+      grid: { display: false }
+    }, extra || {});
+    // En el teléfono el título del eje vertical se quita: girado ocupa una
+    // columna de píxeles que el área de trazado necesita, y lo que mide el
+    // eje lo dicen el título del simulador y su entradilla.
+    const ESTRECHO = window.matchMedia('(max-width: 480px)').matches;
+    const EJE_Y_CASA = (titulo, extra) => Object.assign({
+      title: { display: !ESTRECHO, text: titulo, font: { family: 'Montserrat', size: 11 } },
+      ticks: { font: { family: 'Fira Code', size: 11 } },
+      grid: { color: 'rgba(148, 163, 184, 0.2)' }
+    }, extra || {});
+    const LEYENDA_CASA = extra => Object.assign({
+      position: 'bottom',
+      labels: Object.assign({ font: { family: 'Montserrat', size: ESTRECHO ? 11 : 12 },
+                              boxWidth: 14, padding: ESTRECHO ? 6 : 10 },
+        (extra && extra.labels) || {})
+    }, extra ? Object.fromEntries(Object.entries(extra).filter(p => p[0] !== 'labels')) : {});
+    const AVISO_CASA = extra => Object.assign({
+      backgroundColor: '#012820', titleFont: { family: 'Montserrat' },
+      bodyFont: { family: 'Fira Code' }
+    }, extra || {});
+
+    // 1.3 · La prueba de aleatorización --------------------------------
+    // El histograma de la nula y el dato, en el mismo eje. Todo sale de
+    // `snow.aleatorizacion`: R recolocó, contó y publicó cuántas veces salió
+    // cada recuento. Aquí solo se pasa de muertes a porcentaje —dividir
+    // entre las muertes— para que el eje sea el del titular del módulo.
+    SIMULADORES['snow-nula'] = function (raiz) {
+      const s = D1.snow, a = s.aleatorizacion;
+      const canvas = raiz.querySelector('canvas');
+      const pct = k => 100 * k / s.n_muertes;
+      const u = a.hist_n.length - 1;
+      // Un escalón centrado en cada recuento posible, con un cero a cada lado
+      // para que el histograma cierre contra el eje.
+      const barras = [{ x: pct(a.hist_n[0] - 1), y: 0 }]
+        .concat(a.hist_n.map((k, i) => ({ x: pct(k), y: a.hist_frec[i] })))
+        .concat([{ x: pct(a.hist_n[u] + 1), y: 0 }]);
+      const techo = Math.max.apply(null, a.hist_frec);
+      const obs = s.pct_mas_cerca_broad;
+      const INGENUO = 'Reparto ingenuo, 1/' + s.n_bombas;
+      const vertical = x => [{ x: x, y: 0 }, { x: x, y: techo }];
+      // Los dos encuadres. El completo llega hasta la decena que contiene al
+      // observado; el otro se cierra sobre la nula.
+      const VISTAS = {
+        completa: { min: 0, max: 10 * Math.ceil(obs / 10), paso: 10 },
+        nula: { min: Math.floor(a.min_nula_pct), max: Math.ceil(a.max_nula_pct), paso: 1 }
+      };
+      let vista = 'completa';
+      const g = crearGraficoLinea(canvas, [], [
+        { label: 'Recolocaciones al azar sobre las calles', data: barras, stepped: 'middle',
+          fill: true, backgroundColor: 'rgba(148, 163, 184, 0.40)',
+          borderColor: COLORES_GRAFICO.gris, borderWidth: 1, pointRadius: 0 },
+        { label: 'Binomial: la nula, con fórmula',
+          data: a.hist_n.map((k, i) => ({ x: pct(k), y: a.hist_binomial[i] })),
+          borderColor: COLORES_GRAFICO.primario, backgroundColor: COLORES_GRAFICO.primario,
+          borderWidth: 1.5, pointRadius: 0 },
+        { label: INGENUO, data: vertical(s.pct_esperado_uniforme),
+          borderColor: COLORES_GRAFICO.terciario, backgroundColor: COLORES_GRAFICO.terciario,
+          borderDash: [4, 3], borderWidth: 1.5, pointRadius: 0 },
+        { label: 'Observado', data: vertical(obs), borderColor: COLORES_GRAFICO.secundario,
+          backgroundColor: COLORES_GRAFICO.secundario, borderWidth: 3, pointRadius: 0 }
+      ], {
+        interaction: { mode: 'nearest', axis: 'x', intersect: false },
+        plugins: {
+          legend: LEYENDA_CASA({ onClick: () => {} }),
+          tooltip: AVISO_CASA({
+            filter: it => it.datasetIndex === 0 && it.dataIndex > 0 && it.dataIndex <= u + 1,
+            callbacks: {
+              title: its => its.length
+                ? a.hist_n[its[0].dataIndex - 1] + ' de ' + s.n_muertes + ' muertes, el '
+                  + n5(pct(a.hist_n[its[0].dataIndex - 1]), 2) + ' %' : '',
+              label: it => it.parsed.y + ' de ' + miles1(a.n_recolocaciones) + ' recolocaciones'
+            }
+          })
+        },
+        scales: {
+          x: EJE_X_LINEAL('% de las muertes más cerca de Broad Street', {
+            min: VISTAS.completa.min, max: VISTAS.completa.max,
+            ticks: { font: { family: 'Montserrat', size: 11 }, maxRotation: 0,
+                     stepSize: VISTAS.completa.paso } }),
+          y: EJE_Y_CASA('recolocaciones', { beginAtZero: true })
+        }
+      });
+      // Lo dibujado contra lo que R publica por otro lado: el histograma
+      // tiene que sumar las recolocaciones, dar la media publicada y quedar
+      // entero a la izquierda del observado.
+      const cuadra = () => {
+        const mal = [];
+        const total = a.hist_frec.reduce((x, y) => x + y, 0);
+        if (total !== a.n_recolocaciones) {
+          mal.push('el histograma suma ' + total + ' y R publica ' + a.n_recolocaciones
+            + ' recolocaciones');
+        }
+        const media = a.hist_n.reduce((x, k, i) => x + pct(k) * a.hist_frec[i], 0) / total;
+        if (!(Math.abs(media - a.media_nula_pct) <= 1e-6)) {
+          mal.push('la media del histograma es ' + media + ' y R publica ' + a.media_nula_pct);
+        }
+        if (g.data.datasets[3].data[0].x !== s.pct_mas_cerca_broad) {
+          mal.push('la línea del observado no está en ' + s.pct_mas_cerca_broad);
+        }
+        if (!(a.hist_n[u] < s.n_mas_cerca_broad) || a.n_mayor_o_igual !== 0) {
+          mal.push('alguna recolocación alcanza al observado y la lectura dice que ninguna');
+        }
+        if (!mal.length) return true;
+        console.error('snow-nula: ' + mal.length + ' descuadre(s) entre lo dibujado y el JSON — '
+          + mal.join(' · '));
+        return false;
+      };
+      const pinta = () => {
+        const v = VISTAS[vista];
+        g.options.scales.x.min = v.min;
+        g.options.scales.x.max = v.max;
+        g.options.scales.x.ticks.stepSize = v.paso;
+        g.update('none');
+      };
+      const lee = () => {
+        const filas = [
+          ['observado', n5(obs) + ' %'],
+          ['media de la nula: la parte de calle de Broad St', n5(a.pct_calle_broad) + ' %'],
+          ['observado / media de la nula', n5(a.razon_sobre_calle) + ' veces'],
+          ['la recolocación más alta', n5(a.max_nula_pct) + ' %'],
+          ['recolocaciones que igualan o superan al observado',
+            a.n_mayor_o_igual + ' de ' + miles1(a.n_recolocaciones)],
+          ['valor p', '≤ ' + n5(a.p_cota)],
+          ['con solo las calles del rectángulo de las muertes', n5(a.marcos[0].pct_calle_broad)
+            + ' % · observado ' + n5(a.marcos[0].razon_sobre_calle) + ' veces']];
+        if (vista === 'nula') {
+          filas.push(['reparto ingenuo', n5(s.pct_esperado_uniforme) + ' %'],
+            ['el observado, fuera del encuadre', 'a ' + n5(a.z_observado)
+              + ' desviaciones típicas de la media']);
+        }
+        lectura(raiz, filas);
+      };
+      botonera(raiz, [['completa', 'La nula y el dato'], ['nula', 'Acercar a la nula']],
+        v => { vista = v; pinta(); lee(); }, vista);
+      pinta();
+      cuadra();
+      lee();
+      return [g];
+    };
+
     // 3 · El correlograma ---------------------------------------------
     // Los interruptores están para que la comparación sea del estudiante y
     // no del autor: el módulo afirma que buena parte de la I es altitud y
@@ -3644,7 +4027,17 @@ SIMULADORES_JS = r"""
     SIMULADORES['correlograma'] = function (raiz) {
       const t = D1.tobler;
       const canvas = raiz.querySelector('canvas');
-      const ejes = t.ideam.bandas.map(b => `${b.d1}–${b.d2}`);
+      // R2 · T2.4 (G-16): el eje horizontal es la distancia, lineal. Antes
+      // era un eje de categorías y las siete bandas, de 25 a 300 km de ancho,
+      // salían equiespaciadas: el decaimiento quedaba deformado.
+      const env = t.envolvente;
+      const u7 = t.ideam.bandas.length - 1;
+      // Cada serie, un punto en el centro de su banda.
+      const puntos = d => d.bandas.map(b => ({ x: b.centro, y: b.I }));
+      // La franja y la referencia valen a lo ancho de la banda: dos puntos por
+      // banda, en sus dos bordes, que unidos dibujan el escalón.
+      const escalon = (filas, campo) => filas.reduce((v, f) =>
+        v.concat([{ x: f.d1, y: f[campo] }, { x: f.d2, y: f[campo] }]), []);
       // Una sola lista manda: de aquí salen el dataset, el interruptor y las
       // filas de la lectura. El rótulo del interruptor ES el de la leyenda,
       // a propósito: el estudiante ve qué trazo apaga cada casilla, y la
@@ -3655,20 +4048,71 @@ SIMULADORES_JS = r"""
           color: COLORES_GRAFICO.secundario, dash: [] },
         { clave: 'altitud', etiqueta: 'Residuos tras quitar la altitud', d: t.residuos_altitud,
           color: COLORES_GRAFICO.terciario, dash: [] },
-        { clave: 'permutado', etiqueta: 'Permutado al azar (control)', d: t.permutado,
-          color: COLORES_GRAFICO.gris, dash: [5, 4] }
+        { clave: 'permutado', etiqueta: 'Una permutación al azar', d: t.permutado,
+          color: '#64748b', dash: [5, 4] }
       ];
-      const ESPERADO = 'E[I] bajo independencia';
-      const params = { real: true, altitud: true, permutado: true };
-      const g = crearGraficoLinea(canvas, ejes,
-        SERIES.map(x => ({ label: x.etiqueta, data: x.d.bandas.map(b => b.I),
-          borderColor: x.color, borderDash: x.dash, tension: 0.2, pointRadius: 3 }))
+      const ESPERADO = 'E[I] bajo permutación';
+      const FRANJA = 'Envolvente de permutación, ' + env.nivel_pct + ' %';
+      const BORDE = 'borde superior de la envolvente';
+      // El cuarto interruptor no enciende una serie: cierra el eje vertical
+      // sobre la franja. A la escala del dato entero, la franja de las bandas
+      // largas mide un par de píxeles, y es ahí donde la prosa dice que una
+      // banda cae dentro y otra por debajo.
+      const ZOOM = 'Acercar a la franja';
+      const params = { real: true, altitud: true, permutado: true, zoom: false };
+      const LIM_ZOOM = Math.ceil(20 * 1.5 * Math.max.apply(null,
+        env.ideam.concat(env.residuos_altitud).map(f => Math.max(Math.abs(f.lo), Math.abs(f.hi)))))
+        / 20;
+      // Qué envolvente va detrás. La de la temperatura vale también para la
+      // permutación suelta, que reparte sus mismos valores; la de los
+      // residuos solo cuando son la única serie del dato encendida. R para si
+      // la lectura de alguna banda dependiera de cuál de las dos se dibuja.
+      // La permutación suelta reparte TEMPERATURAS: con ella encendida la
+      // franja es la de la temperatura, para no leerla contra una ajena.
+      const cualEnv = () => (!params.real && params.altitud && !params.permutado)
+        ? 'residuos_altitud' : 'ideam';
+      // Las marcas del eje, en los bordes de banda que caben: los de las tres
+      // primeras están a 25 km uno de otro y se pisarían.
+      const bordes = [t.ideam.bandas[0].d1].concat(t.ideam.bandas.map(b => b.d2));
+      // Se guarda un borde si queda a 75 km o más del anterior guardado; en el
+      // teléfono, a 100 o más.
+      const marcas = bordes.reduce((v, x) => (!v.length
+        || x - v[v.length - 1] >= (ESTRECHO ? 100 : 75)) ? v.concat([x]) : v, []);
+      const g = crearGraficoLinea(canvas, [],
+        // La franja va primero para quedar debajo de las series: el borde
+        // superior sin trazo, y el inferior relleno hasta él.
+        [{ label: BORDE, data: escalon(env.ideam, 'hi'), borderWidth: 0, pointRadius: 0,
+           borderColor: 'rgba(148, 163, 184, 0)' },
+         { label: FRANJA, data: escalon(env.ideam, 'lo'), borderWidth: 0, pointRadius: 0,
+           borderColor: 'rgba(148, 163, 184, 0)', backgroundColor: 'rgba(148, 163, 184, 0.38)',
+           fill: '-1' }]
+        .concat(SERIES.map(x => ({ label: x.etiqueta, data: puntos(x.d),
+          borderColor: x.color, backgroundColor: x.color, borderDash: x.dash, borderWidth: 2,
+          pointRadius: 3 })))
           // Banda a banda: con unidades sin vecinos, spdep multiplica por n'
           // y no por n, y la esperanza por permutación es -n'/(n(n - 1)).
-          .concat([{ label: ESPERADO, data: t.ideam.bandas.map(b => b.esperado),
-            borderColor: COLORES_GRAFICO.primario, borderDash: [2, 3], pointRadius: 0 }]),
-        { scales: { x: { title: { display: true, text: 'banda de distancia (km)' } },
-                    y: { title: { display: true, text: 'I de Moran' } } } });
+          .concat([{ label: ESPERADO, data: escalon(t.ideam.bandas, 'esperado'),
+            borderColor: COLORES_GRAFICO.primario, backgroundColor: COLORES_GRAFICO.primario,
+            borderDash: [2, 3], borderWidth: 1.5, pointRadius: 0 }]),
+        { interaction: { mode: 'nearest', axis: 'x', intersect: false },
+          plugins: {
+            // El borde superior no es una serie: es media franja. Fuera de la leyenda.
+            legend: LEYENDA_CASA({ labels: { filter: it => it.text !== BORDE } }),
+            tooltip: AVISO_CASA({
+              filter: it => SERIES.some(x => x.etiqueta === it.dataset.label),
+              callbacks: {
+                title: its => its.length ? 'banda de ' + t.ideam.bandas[its[0].dataIndex].d1 + ' a '
+                  + t.ideam.bandas[its[0].dataIndex].d2 + ' km' : '',
+                label: it => it.dataset.label + ': ' + n5(it.parsed.y)
+              }
+            })
+          },
+          scales: {
+            x: EJE_X_LINEAL('distancia entre estaciones (km)', {
+              min: bordes[0], max: bordes[bordes.length - 1],
+              afterBuildTicks: eje => { eje.ticks = marcas.map(v => ({ value: v })); } }),
+            y: EJE_Y_CASA('I de Moran')
+          } });
       const idx = etiqueta => g.data.datasets.findIndex(ds => ds.label === etiqueta);
       // La leyenda de Chart.js también oculta trazos al pulsarla, y sería un
       // segundo mando sobre el mismo estado: pulsarla dejaría la casilla
@@ -3694,7 +4138,7 @@ SIMULADORES_JS = r"""
       // que tienen que coincidir. Anexo T1.4.
       const DEBE = { 'Temperatura (dato real)': t.ideam,
                      'Residuos tras quitar la altitud': t.residuos_altitud,
-                     'Permutado al azar (control)': t.permutado };
+                     'Una permutación al azar': t.permutado };
       const cuadra = () => {
         const mal = [];
         Object.keys(DEBE).forEach(etiqueta => {
@@ -3708,10 +4152,36 @@ SIMULADORES_JS = r"""
               : 'sin marcar y se dibuja'));
           }
           const json = DEBE[etiqueta].bandas.map(b => b.I);
-          const dib = g.data.datasets[i].data;
+          const dib = g.data.datasets[i].data.map(p => p.y);
           if (dib.length !== json.length || dib.some((v, k) => v !== json[k])) {
             mal.push('«' + etiqueta + '» dibuja ' + dib[0] + ' en la primera banda y su serie del '
               + 'JSON trae ' + json[0]);
+          }
+          // Y cada punto en el centro de SU banda: con el eje lineal, un
+          // punto corrido de banda se dibuja sin protestar.
+          if (g.data.datasets[i].data.some((p, k) => !(t.ideam.bandas[k].d1 < p.x
+              && p.x < t.ideam.bandas[k].d2))) {
+            mal.push('«' + etiqueta + '» tiene algún punto fuera de su banda');
+          }
+        });
+        // La franja dibujada es la que toca, entera, y la serie que la lleva
+        // detrás cae donde R dice: por encima, dentro o por debajo.
+        const cual = cualEnv(), fr = env[cual];
+        const iLo = idx(FRANJA), iHi = idx(BORDE);
+        const mismo = (i, campo) => i >= 0 && g.data.datasets[i].data.length === 2 * fr.length
+          && fr.every((f, k) => g.data.datasets[i].data[2 * k].y === f[campo]
+            && g.data.datasets[i].data[2 * k + 1].y === f[campo]
+            && g.data.datasets[i].data[2 * k].x === f.d1
+            && g.data.datasets[i].data[2 * k + 1].x === f.d2);
+        if (!mismo(iLo, 'lo') || !mismo(iHi, 'hi') || !g.isDatasetVisible(iLo)
+            || !g.isDatasetVisible(iHi)) {
+          mal.push('la franja dibujada no es la envolvente de «' + cual + '» que publica R');
+        }
+        t[cual].bandas.forEach((b, k) => {
+          const donde = b.I > fr[k].hi ? 'encima' : b.I < fr[k].lo ? 'debajo' : 'dentro';
+          if (donde !== fr[k].posicion) {
+            mal.push('la banda ' + b.d1 + '–' + b.d2 + ' de «' + cual + '» se dibuja ' + donde
+              + ' de la franja y R dice ' + fr[k].posicion);
           }
         });
         const e = idx(ESPERADO);
@@ -3736,31 +4206,61 @@ SIMULADORES_JS = r"""
       };
       const pinta = () => {
         SERIES.forEach(x => g.setDatasetVisibility(idx(x.etiqueta), params[x.clave]));
+        const fr = env[cualEnv()];
+        g.data.datasets[idx(BORDE)].data = escalon(fr, 'hi');
+        g.data.datasets[idx(FRANJA)].data = escalon(fr, 'lo');
+        g.options.scales.y.min = params.zoom ? -LIM_ZOOM : undefined;
+        g.options.scales.y.max = params.zoom ? LIM_ZOOM : undefined;
         g.update('none');
       };
+      // «por encima», «dentro», «por debajo»: la palabra sale de la posición
+      // que publica R, no de una comparación hecha aquí.
+      const QUEDA = { encima: 'por encima', dentro: 'dentro', debajo: 'por debajo' };
+      const franja = f => n5(f.lo) + ' a ' + n5(f.hi);
       const lee = () => {
-        const u = t.ideam.bandas.length - 1;
+        const u = u7;
+        const cual = cualEnv(), fr = env[cual];
+        const iNeg = env.ideam.findIndex(f => f.posicion === 'debajo');
         const filas = [[ESPERADO + ', con las ' + t.ideam.bandas[u].n_con_vecinos + ' estaciones',
           n5(t.ideam.esperado, 6)],
           ['y en la primera banda, con las ' + t.ideam.bandas[0].n_con_vecinos + ' que tienen vecinos',
-            n5(t.ideam.bandas[0].esperado, 6)]];
+            n5(t.ideam.bandas[0].esperado, 6)],
+          ['franja dibujada: la de ' + (cual === 'ideam' ? 'la temperatura' : 'los residuos')
+            + ', primera banda', franja(fr[0])],
+          ['y última banda', franja(fr[u])]];
         if (params.real) {
-          filas.push(['primera banda, dato real', n5(t.ideam.bandas[0].I)],
-            ['última banda, dato real', n5(t.ideam.bandas[u].I)]);
+          filas.push(['primera banda, dato real', n5(t.ideam.bandas[0].I) + ' · '
+              + QUEDA[env.ideam[0].posicion]],
+            ['última banda, dato real', n5(t.ideam.bandas[u].I) + ' · '
+              + QUEDA[env.ideam[u].posicion]]);
+          if (iNeg >= 0) {
+            filas.push(['banda de ' + t.ideam.bandas[iNeg].d1 + '–' + t.ideam.bandas[iNeg].d2
+              + ' km, dato real', n5(t.ideam.bandas[iNeg].I) + ' · ' + QUEDA.debajo
+              + ' (franja: ' + franja(env.ideam[iNeg]) + ')']);
+          }
+          filas.push(['bandas del dato real fuera de su franja',
+            env.n_fuera_ideam + ' de ' + (u + 1)],
+            ['parejas a más de ' + t.mas_alla.d1 + ' km, fuera del eje', n5(t.mas_alla.I) + ' · '
+              + QUEDA[t.mas_alla.posicion] + ' (franja: ' + n5(t.mas_alla.lo) + ' a '
+              + n5(t.mas_alla.hi) + ')']);
         }
         if (params.altitud) filas.push(['primera banda, sin la altitud',
-          n5(t.residuos_altitud.bandas[0].I)]);
+          n5(t.residuos_altitud.bandas[0].I) + ' · ' + QUEDA[env.residuos_altitud[0].posicion]],
+          ['bandas de los residuos fuera de su franja', env.n_fuera_residuos + ' de ' + (u + 1)]);
         // Solo con las dos encendidas: es una comparación entre ellas, y
         // enseñarla con una apagada sería publicar la conclusión de un
         // contraste que el estudiante no tiene delante.
         if (params.real && params.altitud) filas.push(['cuánto de la I era altitud',
           n5(t.caida_por_altitud_pct) + ' %']);
-        if (params.permutado) filas.push(['primera banda, permutado',
-          n5(t.permutado.bandas[0].I)]);
+        if (params.permutado) filas.push(['primera banda, la permutación suelta',
+          n5(t.permutado.bandas[0].I)],
+          ['bandas de la permutación suelta fuera de la franja',
+            env.n_fuera_permutado + ' de ' + (u + 1)]);
         lectura(raiz, filas);
       };
       crearInterruptores(raiz.querySelector('.simulador-controles'),
-        SERIES.map(x => ({ clave: x.clave, etiqueta: x.etiqueta })), params,
+        SERIES.map(x => ({ clave: x.clave, etiqueta: x.etiqueta }))
+          .concat([{ clave: 'zoom', etiqueta: ZOOM }]), params,
         () => { pinta(); cuadra(); lee(); });
       pinta();
       cuadra();
@@ -3847,6 +4347,108 @@ SIMULADORES_JS = r"""
       cuadra();
       lee();
       pinta();
+      return [g];
+    };
+
+    // 4.2 · Cien intervalos --------------------------------------------
+    // La cobertura del módulo, vista. Las cien medias y los semianchos son
+    // los de las cien primeras réplicas de phi = 4, tal como salen de R; aquí
+    // solo se decide el color de cada segmento —¿contiene al cero?— y se
+    // CUENTA, y el recuento se contrasta con el que R publica.
+    SIMULADORES['cien-ic'] = function (raiz) {
+      const inf = D1.inferencia, c = inf.cien_ic;
+      const f4 = inf.rejilla.find(f => f.phi === c.phi);
+      const canvas = raiz.querySelector('canvas');
+      let modo = 'ingenuo';
+      const semi = i => modo === 'ingenuo' ? c.semiancho_ingenuo[i] : c.semiancho_exacto;
+      const cubre = i => Math.abs(c.media[i]) <= semi(i);
+      // Un segmento vertical por réplica: sus dos extremos y un hueco, para
+      // que la línea no una un intervalo con el siguiente.
+      const segmentos = quiere => c.media.reduce((v, m, i) => cubre(i) !== quiere ? v
+        : v.concat([{ x: i + 1, y: m - semi(i) }, { x: i + 1, y: m + semi(i) },
+                    { x: i + 1, y: null }]), []);
+      // El eje vertical NO cambia al conmutar: se fija con el intervalo más
+      // ancho, para que la diferencia de largo se vea sobre la misma escala.
+      // Redondeado al medio punto de arriba, para que las marcas del eje
+      // caigan en medios puntos y una de ellas sea el cero.
+      const tope = Math.ceil(2 * (Math.max.apply(null, c.media.map(Math.abs))
+        + c.semiancho_exacto)) / 2;
+      const CUBRE = 'Cubre la media verdadera', NO_CUBRE = 'No la cubre';
+      const g = crearGraficoLinea(canvas, [], [
+        { label: CUBRE, data: [], borderColor: COLORES_GRAFICO.primario,
+          backgroundColor: COLORES_GRAFICO.primario, borderWidth: ESTRECHO ? 1 : 1.5,
+          pointRadius: 0, spanGaps: false },
+        { label: NO_CUBRE, data: [], borderColor: COLORES_GRAFICO.secundario,
+          backgroundColor: COLORES_GRAFICO.secundario, borderWidth: ESTRECHO ? 1 : 1.5,
+          pointRadius: 0, spanGaps: false },
+        // La media, como una rayita horizontal y no como un punto: el
+        // segmento ingenuo mide unos diez píxeles y un punto lo tapaba.
+        { label: 'Media de la réplica', data: c.media.map((m, i) => ({ x: i + 1, y: m })),
+          showLine: false, pointStyle: 'line', pointRadius: ESTRECHO ? 1.5 : 3,
+          pointBorderWidth: 1.5, pointBorderColor: '#64748b', borderColor: '#64748b',
+          backgroundColor: '#64748b' },
+        { label: 'Media verdadera, 0', data: [{ x: 0, y: 0 }, { x: c.n + 1, y: 0 }],
+          borderColor: COLORES_GRAFICO.terciario, backgroundColor: COLORES_GRAFICO.terciario,
+          borderDash: [5, 3], borderWidth: 1.5, pointRadius: 0 }
+      ], {
+        events: [],
+        plugins: { legend: LEYENDA_CASA({ onClick: () => {} }), tooltip: { enabled: false } },
+        scales: {
+          x: EJE_X_LINEAL('réplica', { min: 0, max: c.n + 1,
+            ticks: { font: { family: 'Montserrat', size: 11 }, maxRotation: 0, stepSize: 20,
+                     includeBounds: false } }),
+          y: EJE_Y_CASA('media y su intervalo', { min: -tope, max: tope,
+            ticks: { font: { family: 'Fira Code', size: 11 }, stepSize: 0.5,
+                     includeBounds: false } })
+        }
+      });
+      const cuenta = () => c.media.filter((_, i) => cubre(i)).length;
+      const cuadra = () => {
+        const debe = modo === 'ingenuo' ? c.n_cubren_ingenuo : c.n_cubren_exacto;
+        const mal = [];
+        if (cuenta() !== debe) {
+          mal.push('se dibujan ' + cuenta() + ' intervalos que cubren y R publica ' + debe);
+        }
+        if (c.media.length !== c.n || c.semiancho_ingenuo.length !== c.n) {
+          mal.push('no hay ' + c.n + ' medias con sus ' + c.n + ' semianchos');
+        }
+        if (!f4) mal.push('la rejilla no trae la fila de phi = ' + c.phi);
+        if (!mal.length) return true;
+        console.error('cien-ic: ' + mal.join(' · '));
+        return false;
+      };
+      const pinta = () => {
+        g.data.datasets[0].data = segmentos(true);
+        g.data.datasets[1].data = segmentos(false);
+        g.update('none');
+        canvas.setAttribute('aria-label', c.n + ' intervalos de confianza al ' + inf.nivel_pct
+          + ' por ciento de la media, uno por réplica del campo con alcance ' + c.phi + ', en vertical alrededor de la '
+          + 'media verdadera, cero. Con el error estándar '
+          + (modo === 'ingenuo' ? 'ingenuo' : 'verdadero') + ' cubren el cero ' + cuenta()
+          + ' de los ' + c.n + '; los que no lo cubren van en naranja.');
+      };
+      const lee = () => {
+        if (!f4) return;
+        lectura(raiz, modo === 'ingenuo' ? [
+          ['cubren la media verdadera', cuenta() + ' de estos ' + c.n],
+          ['semiancho medio de los ' + c.n, n5(c.semiancho_ingenuo_medio)],
+          ['cobertura sobre las ' + miles1(inf.nrep) + ' réplicas',
+            n5(f4.cobertura) + ' ± ' + n5(f4.emc_cobertura)],
+          ['cobertura prometida', n5(1 - inf.alfa, 2)]
+        ] : [
+          ['cubren la media verdadera', cuenta() + ' de estos ' + c.n],
+          ['semiancho, el mismo para todos', n5(c.semiancho_exacto)],
+          ['veces el ingenuo', n5(c.razon_semianchos)],
+          ['cobertura sobre las ' + miles1(inf.nrep) + ' réplicas',
+            n5(c.cobertura_exacto) + ' ± ' + n5(c.emc_cobertura_exacto)],
+          ['cobertura prometida', n5(1 - inf.alfa, 2)]]);
+      };
+      botonera(raiz, [['ingenuo', 'Error estándar ingenuo, s/√n'],
+                      ['exacto', 'Error estándar verdadero']],
+        v => { modo = v; pinta(); cuadra(); lee(); }, modo);
+      pinta();
+      cuadra();
+      lee();
       return [g];
     };
 
@@ -5674,6 +6276,221 @@ def main() -> int:
     print(f"  módulo 7: {cc['nombre']} toca {cc['n_celdas_toca']} de {agn['n_celdas']} celdas · "
           f"aporta {cc['aporte_predicado']} donde tiene {cc['sids']} · {cc['exceso']} de más, el "
           f"{n(cc['pct_del_exceso'])} % de los {cc['exceso_total']} que sobran")
+
+    # --- R2 · T2.4 · las tres gráficas nuevas ---------------------------
+    #
+    # Las cifras de las tres las rehace `audita_cap1.py`. Lo que se vigila
+    # aquí son las FRASES que la prosa pone entre ellas, y el cableado de lo
+    # que el navegador dibuja. Varias dependen de un Monte Carlo: R ya para
+    # si el ruido las pudiera voltear, y aquí se comprueba otra vez sobre lo
+    # publicado, porque el JSON puede llegar de otra parte.
+    #
+    # MÓDULO 1 · la prueba de aleatorización.
+    n_m1, k_obs1 = sn["n_muertes"], sn["n_mas_cerca_broad"]
+    if not (len(al["hist_n"]) == len(al["hist_frec"]) == len(al["hist_binomial"])
+            and sum(al["hist_frec"]) == al["n_recolocaciones"]
+            and al["hist_n"] == list(range(al["min_nula_n"], al["max_nula_n"] + 1))):
+        problemas.append("módulo 1: el histograma de la nula no trae una barra por recuento, o sus "
+                         "barras no suman las recolocaciones que la prosa dice")
+    if abs(sum(k * f for k, f in zip(al["hist_n"], al["hist_frec"])) * 100 / n_m1
+           / al["n_recolocaciones"] - al["media_nula_pct"]) > 1e-6:
+        problemas.append("módulo 1: la media de la nula publicada no es la del histograma que se dibuja")
+    if abs(al["max_nula_pct"] - 100 * al["max_nula_n"] / n_m1) > 1e-6 or \
+            abs(al["min_nula_pct"] - 100 * al["min_nula_n"] / n_m1) > 1e-6:
+        problemas.append("módulo 1: el máximo o el mínimo de la nula en porcentaje no son los de su "
+                         "recuento de muertes")
+    # «Ninguna llega», «la mayor da», y el p como COTA 1/(B + 1).
+    if not (al["n_mayor_o_igual"] == 0 and al["max_nula_n"] < k_obs1
+            and abs(al["p_cota"] - 1 / (al["n_recolocaciones"] + 1)) < 1e-12):
+        problemas.append("módulo 1: alguna recolocación alcanza al observado, o el valor p ya no es la "
+                         "cota 1/(B + 1): la prosa dice «ninguna» y «se da como cota»")
+    # «Es la media de la nula» y «las recolocaciones la reproducen».
+    if not abs(al["media_nula_pct"] - al["pct_calle_broad"]) < 4 * al["emc_media_pct"]:
+        problemas.append(f"módulo 1: las recolocaciones promedian {al['media_nula_pct']} y la parte de calle "
+                         f"de Broad St es {al['pct_calle_broad']}: ya no la reproducen dentro de su error")
+    i_b1 = sn["bomba_broad"] - 1
+    if not (len(al["pct_calle_por_bomba"]) == sn["n_bombas"] == len(al["bombas"])
+            and abs(sum(al["pct_calle_por_bomba"]) - 100) < 1e-6
+            and al["pct_calle_por_bomba"][i_b1] == al["pct_calle_broad"]
+            and al["bombas"][i_b1] == "Broad St"):
+        problemas.append("módulo 1: las partes de calle de las bombas no suman la calle entera, o la de "
+                         "Broad St no es la que la prosa publica")
+    # «Algo más que el reparto ingenuo», y el cociente.
+    if not (sn["pct_esperado_uniforme"] < al["pct_calle_broad"]
+            and 1 < al["razon_sobre_calle"] < sn["razon_sobre_uniforme"]):
+        problemas.append("módulo 1: la parte de calle de Broad St ya no es «algo más» que el reparto "
+                         "ingenuo, o el observado deja de superarla")
+    # Segunda ronda · el marco del plano. La tabla y el párrafo que la lee:
+    # la última fila es el plano entero y trae las cifras del titular; cada
+    # razón es el observado entre su parte de calle; al ensanchar el marco la
+    # parte de calle baja; y «lo que no cambia es el rechazo» —el dato a más
+    # de diez desviaciones típicas también con el marco más estrecho—
+    # mientras la razón cambia a más del doble.
+    if not (mc1[-1]["margen"] is None and mc1[-1]["pct_calle_broad"] == al["pct_calle_broad"]
+            and mc1[-1]["razon_sobre_calle"] == al["razon_sobre_calle"]
+            and MARCO_MIN["margen"] == 0 and abs(mc1[-1]["pct_longitud"] - 100) < 1e-9):
+        problemas.append("módulo 1: la tabla de marcos no acaba en el plano entero con las cifras del "
+                         "titular, o no empieza en el rectángulo de las muertes")
+    if any(abs(m["razon_sobre_calle"] - sn["pct_mas_cerca_broad"] / m["pct_calle_broad"]) > 1e-6
+           or abs(m["z_binomial"] - (k_obs1 - n_m1 * m["pct_calle_broad"] / 100)
+                  / math.sqrt(n_m1 * m["pct_calle_broad"] / 100 * (1 - m["pct_calle_broad"] / 100))) > 1e-6
+           for m in mc1):
+        problemas.append("módulo 1: en algún marco la razón no es el observado entre su parte de calle, "
+                         "o las desviaciones típicas no son las de su binomial")
+    if not (all(a_["pct_calle_broad"] > b_["pct_calle_broad"] and a_["pct_longitud"] < b_["pct_longitud"]
+                for a_, b_ in zip(mc1, mc1[1:]))
+            and 2 * MARCO_MIN["razon_sobre_calle"] < al["razon_sobre_calle"]):
+        problemas.append("módulo 1: la parte de calle ya no baja al ensanchar el marco, o la razón ya no "
+                         "cambia tanto como para decir que no cabe en una sola cifra")
+    if not all(m["z_binomial"] > 10 for m in mc1):
+        problemas.append(f"módulo 1: con algún marco el dato queda a menos de diez desviaciones típicas "
+                         f"({[round(m['z_binomial'], 1) for m in mc1]}); la prosa dice que el rechazo no "
+                         f"cambia con el marco")
+    if abs(al["razon_sobre_calle"] - sn["pct_mas_cerca_broad"] / al["pct_calle_broad"]) > 1e-6:
+        problemas.append("módulo 1: «veces lo que le tocaría por calle» no es el observado entre la parte "
+                         "de calle")
+    # «Eso no cambia la conclusión»: el dato tiene que quedar lejísimos.
+    if not al["z_observado"] > 10:
+        problemas.append(f"módulo 1: el observado queda a {al['z_observado']} desviaciones típicas de la "
+                         f"nula; la nota dice que la dependencia entre muertes no cambia la conclusión")
+    print(f"  módulo 1: {ent(al['n_recolocaciones'])} recolocaciones sobre {al['n_tramos']} tramos · a Broad St "
+          f"le toca el {n(al['pct_calle_broad'])} % de la calle · observado {n(al['razon_sobre_calle'])} "
+          f"veces · ninguna de las recolocaciones pasa de {n(al['max_nula_pct'])} %")
+
+    # MÓDULO 3 · la envolvente de permutación.
+    nb3 = len(tb["ideam"]["bandas"])
+    for serie in ("ideam", "residuos_altitud"):
+        fr = env3[serie]
+        if [(e["d1"], e["d2"]) for e in fr] != bandas_ref:
+            problemas.append(f"módulo 3: la envolvente de {serie} no va sobre las bandas del correlograma")
+            continue
+        for b, e in zip(tb[serie]["bandas"], fr):
+            donde = "encima" if b["I"] > e["hi"] else "debajo" if b["I"] < e["lo"] else "dentro"
+            if donde != e["posicion"] or not e["lo"] < b["esperado"] < e["hi"]:
+                problemas.append(f"módulo 3: en la banda {b['d1']}-{b['d2']} de {serie}, la posición "
+                                 f"publicada ({e['posicion']}) no es la de su I frente a la franja, o la "
+                                 f"franja no contiene a E[I]")
+            if abs(e["media"] - b["esperado"]) > 4 * e["emc"]:
+                problemas.append(f"módulo 3: la envolvente de {serie} en {b['d1']}-{b['d2']} km no está "
+                                 f"centrada en la E[I] que el gráfico dibuja como referencia")
+    # Lo que la prosa dice de la temperatura: por encima hasta la antepenúltima,
+    # UNA por debajo —y por debajo de todas las permutaciones— y la última dentro.
+    if _pos_t != ["encima"] * (nb3 - 2) + ["debajo", "dentro"] or N_ENCIMA3 != nb3 - 2:
+        problemas.append(f"módulo 3: la temperatura ya no va «por encima … por debajo, dentro» "
+                         f"({_pos_t}); la prosa dice que la última banda no se distingue del azar")
+    if not B_DEB3["I"] < E_DEB3["min"] < E_DEB3["lo"]:
+        problemas.append("módulo 3: la banda negativa ya no queda por debajo de todas las permutaciones")
+    if not tb["ideam"]["bandas"][0]["I"] > 3 * env3["ideam"][0]["hi"]:
+        problemas.append("módulo 3: la primera banda ya no queda «muy por encima» de su franja")
+    # Y de los residuos: como la temperatura al principio, una dentro, y las dos últimas por debajo.
+    if _pos_r != ["encima"] * N_ENCIMA3_RES + ["dentro", "debajo", "debajo"] or not N_ENCIMA3_RES < N_ENCIMA3:
+        problemas.append(f"módulo 3: los residuos ya no van «por encima, dentro, y las dos últimas por "
+                         f"debajo» ({_pos_r}), o no se agotan antes que la temperatura")
+    if env3["n_fuera_ideam"] != sum(x != "dentro" for x in _pos_t) or \
+            env3["n_fuera_residuos"] != sum(x != "dentro" for x in _pos_r):
+        problemas.append("módulo 3: el recuento de bandas fuera de la franja no es el de sus posiciones")
+    # La permutación suelta, contra la franja de la temperatura: «en ninguna».
+    fuera_perm = sum(not e["lo"] <= b["I"] <= e["hi"]
+                     for b, e in zip(tb["permutado"]["bandas"], env3["ideam"]))
+    if fuera_perm != 0 or env3["n_fuera_permutado"] != 0:
+        problemas.append(f"módulo 3: la permutación suelta se sale de la franja en {fuera_perm} banda(s), "
+                         f"y la prosa dice que queda dentro en todas")
+    # El gráfico dibuja UNA franja cada vez, y «son casi la misma»: los
+    # residuos tienen que leerse igual contra la de la temperatura, y los
+    # bordes de las dos no pueden separarse más de un 10 % del ancho.
+    if [("encima" if b["I"] > e["hi"] else "debajo" if b["I"] < e["lo"] else "dentro")
+            for b, e in zip(tb["residuos_altitud"]["bandas"], env3["ideam"])] != _pos_r:
+        problemas.append("módulo 3: los residuos se leen distinto contra la franja de la temperatura que "
+                         "contra la suya, y el gráfico dibuja una sola")
+    if any(max(abs(a["lo"] - b["lo"]), abs(a["hi"] - b["hi"])) > 0.10 * (a["hi"] - a["lo"])
+           for a, b in zip(env3["ideam"], env3["residuos_altitud"])):
+        problemas.append("módulo 3: las dos envolventes ya no son «casi la misma»")
+    # Segunda ronda · las parejas que el eje deja fuera, la suma por bandas
+    # y «no es raro que alguna se salga».
+    n_e3 = co["geo"]["n"]
+    if not (ma3["posicion"] == "debajo" and ma3["I"] < ma3["lo"] < ma3["hi"]
+            and ma3["d1"] == tb["ideam"]["bandas"][-1]["d2"]
+            and ma3["n_pares_total"] == n_e3 * (n_e3 - 1) // 2
+            and abs(ma3["pct_pares"] - 100 * ma3["n_pares"] / ma3["n_pares_total"]) < 1e-6
+            and 2.5 < ma3["d_max"] / ma3["d1"] < 3):
+        problemas.append("módulo 3: las parejas de más allá del eje ya no quedan por debajo de su franja, "
+                         "su porcentaje no cuadra o el eje ya no tendría que llegar «casi al triple»")
+    s_b3 = [s["suma"] for s in su3["bandas"]]
+    if not ([(s["d1"], s["d2"], s["n_pares"]) for s in su3["bandas"]]
+            == [(b["d1"], b["d2"], b["n_pares"]) for b in tb["ideam"]["bandas"]]
+            and sum(s["n_pares"] for s in su3["bandas"]) + ma3["n_pares"] == ma3["n_pares_total"]
+            and abs(sum(s_b3) + su3["mas_alla"] + 1) < 1e-7 and abs(su3["total"] + 1) < 1e-7):
+        problemas.append("módulo 3: las sumas por banda no van sobre las parejas del correlograma, o no "
+                         "reúnen todas las parejas con total -1, y la prosa dice «exactamente»")
+    if not (su3["n_bandas_cortas"] == N_ENCIMA3 == I_DEB3
+            and abs(su3["cortas"] - sum(s_b3[:N_ENCIMA3])) < 1e-7
+            and abs(su3["largas"] + su3["cortas"] + 1) < 1e-7):
+        problemas.append("módulo 3: «las parejas a menos de … km» no son las bandas que quedan por encima, "
+                         "o las demás no suman lo que falta hasta -1")
+    if not (all(x > 0 for x in s_b3[:N_ENCIMA3]) and su3["cortas"] > 5
+            and all(x < 0 for x in s_b3[N_ENCIMA3:]) and su3["mas_alla"] < 0
+            and s_b3[I_DEB3] < 0.5 * su3["largas"]):
+        problemas.append("módulo 3: las bandas cortas ya no suman en positivo y las largas en negativo, o "
+                         "la banda bajo la franja ya no se lleva la mayor parte: la prosa lo lee así")
+    if not env3["pct_alguna_fuera"] - 4 * env3["emc_alguna_fuera_pct"] > 10:
+        problemas.append(f"módulo 3: solo en el {env3['pct_alguna_fuera']} % de las permutaciones se sale "
+                         f"alguna banda; «no es raro» ya no se sostiene")
+    # El nivel y los cuantiles que el pie de la tabla escribe.
+    if not (env3["nivel_pct"] == 95 and abs(env3["cuantil_lo_pct"] - (100 - env3["nivel_pct"]) / 2) < 1e-9
+            and abs(env3["cuantil_lo_pct"] + env3["cuantil_hi_pct"] - 100) < 1e-9
+            and abs(env3["orden_lo"] - (env3["nperm"] + 1) * env3["cuantil_lo_pct"] / 100) < 1e-9
+            and env3["orden_lo"] + env3["orden_hi"] == env3["nperm"] + 1):
+        problemas.append("módulo 3: el nivel de la envolvente, sus cuantiles o sus estadísticos de orden "
+                         "no cuadran entre sí")
+    print(f"  módulo 3: envolvente del {env3['nivel_pct']:g} % con {ent(env3['nperm'])} permutaciones · "
+          f"temperatura {_pos_t.count('encima')} por encima, {_pos_t.count('debajo')} por debajo, "
+          f"{_pos_t.count('dentro')} dentro · residuos {_pos_r.count('encima')}/{_pos_r.count('debajo')}/"
+          f"{_pos_r.count('dentro')} · la permutación suelta, {fuera_perm} fuera")
+
+    # MÓDULO 4 · cien intervalos.
+    n_ci = ci["n"]
+    cub_ing = sum(abs(m) <= s for m, s in zip(ci["media"], ci["semiancho_ingenuo"]))
+    cub_exa = sum(abs(m) <= ci["semiancho_exacto"] for m in ci["media"])
+    if not (len(ci["media"]) == len(ci["semiancho_ingenuo"]) == n_ci and ci["phi"] == r4["phi"]):
+        problemas.append("módulo 4: los intervalos dibujados no son tantos como dice la prosa, o no son "
+                         "los del alcance que el módulo destaca")
+    if cub_ing != ci["n_cubren_ingenuo"] or cub_exa != ci["n_cubren_exacto"]:
+        problemas.append(f"módulo 4: se dibujan {cub_ing} y {cub_exa} intervalos que cubren el cero y la "
+                         f"prosa publica {ci['n_cubren_ingenuo']} y {ci['n_cubren_exacto']}")
+    # «Una muestra de ella»: el recuento de los cien, compatible con la cobertura.
+    if abs(cub_ing / n_ci - r4["cobertura"]) > 3 * math.sqrt(r4["cobertura"] * (1 - r4["cobertura"]) / n_ci):
+        problemas.append("módulo 4: el recuento de los intervalos dibujados ya no es compatible con la "
+                         "cobertura publicada, y la prosa lo llama una muestra de ella")
+    # El error estándar verdadero es el de la fila de phi, y los semianchos cuadran.
+    if not (abs(ci["ee_exacto"] - r4["ee_exacto"]) < 1e-9
+            and abs(ci["semiancho_exacto"] - ci["z_critico"] * ci["ee_exacto"]) < 1e-8
+            and abs(ci["semiancho_ingenuo_medio"] - sum(ci["semiancho_ingenuo"]) / n_ci) < 1e-8
+            and abs(ci["razon_semianchos"] - ci["semiancho_exacto"] / ci["semiancho_ingenuo_medio"]) < 1e-7):
+        problemas.append("módulo 4: el error estándar verdadero de los intervalos no es el de la rejilla, "
+                         "o los semianchos y su cociente no cuadran")
+    # «Entonces cubren casi todos» y «el 95 % prometido».
+    if not (cub_exa >= 0.9 * n_ci and cub_ing < cub_exa
+            and abs(ci["cobertura_exacto"] - (1 - D["inferencia"]["alfa"])) < 4 * ci["emc_cobertura_exacto"]):
+        problemas.append("módulo 4: con el error estándar verdadero los intervalos ya no cubren lo "
+                         "prometido, y la prosa dice que sí")
+    # Segunda ronda · el cociente de semianchos y el factor del recuadro: «no
+    # es el mismo, aunque los dos dicen lo mismo». Y el nivel, que sale de R.
+    if not (n(ci["razon_semianchos"]) != n(r4["factor"])
+            and abs(ci["razon_semianchos"] / r4["factor"] - 1) < 0.05):
+        problemas.append(f"módulo 4: el cociente de semianchos ({ci['razon_semianchos']}) y el factor del "
+                         f"recuadro ({r4['factor']}) ya son la misma cifra o ya no se parecen: la prosa "
+                         f"dice que son distintos y dicen lo mismo")
+    if abs(D["inferencia"]["nivel_pct"] - 100 * (1 - D["inferencia"]["alfa"])) > 1e-9:
+        problemas.append("módulo 4: el nivel de los intervalos que la prosa escribe no es el de alfa")
+    # «A un lado y a otro del cero, sin irse hacia ninguno» y «mucho más corto».
+    pos_ci = sum(m > 0 for m in ci["media"])
+    media_ci = sum(ci["media"]) / n_ci
+    sd_ci = math.sqrt(sum((m - media_ci) ** 2 for m in ci["media"]) / (n_ci - 1))
+    if abs(pos_ci - n_ci / 2) > 1.5 * math.sqrt(n_ci) or not sd_ci > 2 * max(ci["semiancho_ingenuo"]):
+        problemas.append(f"módulo 4: {pos_ci} de las medias dibujadas son positivas, o los segmentos ya "
+                         f"no son más cortos que lo que se separan las medias: la prosa lee las dos cosas")
+    print(f"  módulo 4: {n_ci} intervalos de phi = {ci['phi']} · cubren {cub_ing} con el e.e. ingenuo y "
+          f"{cub_exa} con el verdadero · {pos_ci} medias positivas · semiancho ×{n(ci['razon_semianchos'])}")
 
     # «DESCRIBIR EL MAPA» (2026-11-02). Cada mapa que el documento usa trae
     # su descripción —los que cambian con un control, una por estado—, y lo

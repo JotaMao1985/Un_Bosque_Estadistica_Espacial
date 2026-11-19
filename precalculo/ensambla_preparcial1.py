@@ -484,18 +484,19 @@ BLOQUE_A = [
     preg("opcion", "cap1", 3,
          f"Sobre las estaciones del IDEAM, el Moran I de la primera banda de distancia vale "
          f"{c('tobler_ideam_b1')}. Permutando las temperaturas al azar entre las mismas "
-         f"estaciones baja a {c('tobler_perm_b1')}, y el valor esperado bajo independencia "
-         f"es {c('tobler_esperado')}. ¿Qué papel juega la permutación?",
+         f"estaciones baja a {c('tobler_perm_b1')}. En esa banda, el valor esperado del índice "
+         f"bajo permutación es {c('tobler_esperado')}. ¿Qué papel juega la permutación?",
          "¿Qué cambia al permutar y qué se queda igual?",
          opciones=[
-             op("Da la referencia empírica de «sin ley»: lo que sale cuando la posición ya no "
+             op("Es una muestra de la referencia «sin ley»: lo que sale cuando la posición ya no "
                 "lleva información.", True,
                 "Las estaciones siguen donde estaban y las distancias son las mismas; lo único que "
-                "se rompe es el vínculo entre lugar y valor. Por eso el valor permutado es con lo "
-                "que hay que comparar, y no con cero."),
+                "se rompe es el vínculo entre lugar y valor. Una permutación es una sola extracción "
+                "de esa referencia: repetida muchas veces da el intervalo contra el que se compara "
+                "el dato —la envolvente del módulo 3—, y no un valor suelto ni el cero."),
              op("Corrige el sesgo del estimador del Moran I.", False,
                 "No corrige nada: es una referencia, no un ajuste. El sesgo del estimador es otra "
-                "cosa y se ve en que el valor esperado bajo independencia no es cero, sino "
+                "cosa y se ve en que el valor esperado bajo permutación no es cero, sino "
                 f"{c('tobler_esperado')}."),
              op("Demuestra que la temperatura depende de la altitud.", False,
                 "Eso lo mide otra comparación —descontar la altitud baja la autocorrelación un "
@@ -2047,7 +2048,7 @@ print(f"n = {len(nc)} | vecinos por condado = "
 mi = esda.Moran(nc["SID74"].values, w)
 print(f"I = {mi.I:.6f} | E[I] sin estructura = {mi.EI:.6f}")
 #&gt; I = 0.147741 | E[I] sin estructura = -0.010101''') + f"""
-      <p>El valor esperado bajo independencia <strong>no es cero</strong>: es −1/(n−1), y por eso el
+      <p>El valor esperado bajo la nula de permutación <strong>no es cero</strong>: es −1/(n−1), y por eso el
         índice se compara contra él y no contra el origen. Los dos programas coinciden hasta el
         sexto decimal, que es lo que hay que exigirle a un cruce entre R y Python — y el capítulo 3
         trae el caso en el que <em>no</em> coinciden, que es el siguiente.</p>

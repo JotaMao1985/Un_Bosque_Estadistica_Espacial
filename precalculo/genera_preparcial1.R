@@ -129,7 +129,11 @@ REUSA <- list(
 
   r("tobler_ideam_b1",     "cap1",  3, "tobler.ideam.bandas[1].I",         "Moran I de la primera banda de distancia, estaciones del IDEAM"),
   r("tobler_perm_b1",      "cap1",  3, "tobler.permutado.bandas[1].I",     "Moran I de la primera banda tras permutar las estaciones al azar"),
-  r("tobler_esperado",     "cap1",  3, "tobler.ideam.esperado",            "E[I] bajo independencia, -1/(n-1)"),
+  # La esperanza POR PERMUTACIÓN DE ESA BANDA, que es de la que habla la
+  # pregunta: -n'/(n(n-1)), con n' las estaciones que tienen vecinos en ella.
+  # Hasta R2 · T2.4 esta clave traía el -1/(n-1) del conjunto, que no es la
+  # referencia de la primera banda (capítulo 1, módulo 3).
+  r("tobler_esperado",     "cap1",  3, "tobler.ideam.bandas[1].esperado",  "E[I] bajo permutación en la primera banda, -n'/(n(n-1)) con n' las estaciones con vecinos"),
   r("tobler_caida_alt",    "cap1",  3, "tobler.caida_por_altitud_pct",     "Porcentaje en que cae la autocorrelación al descontar la altitud"),
 
   r("inf_cobertura_ind",   "cap1",  4, "inferencia.cobertura_independiente", "Cobertura real del IC al 95 % con datos independientes"),

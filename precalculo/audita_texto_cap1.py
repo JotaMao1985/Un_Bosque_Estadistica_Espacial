@@ -170,6 +170,37 @@ AFIRMACIONES = [
      "sitúa cada i en su propia nula"),
     ("dice que entre dos correlaciones de signo opuesto lo que crece es el valor absoluto (módulo 7)",
      "lo único que crece es el valor absoluto"),
+    # R2 · T2.4: lo que las tres gráficas nuevas obligan a decir. Una prueba
+    # de aleatorización sin lo que su nula controla, una envolvente sin decir
+    # que es puntual y cien intervalos confundidos con la cobertura son tres
+    # formas de dibujar bien y enseñar mal.
+    ("dice lo que la nula de la aleatorización no controla (módulo 1)",
+     "la nula no sabe cuánta gente vivía en cada tramo"),
+    ("da el valor p de la aleatorización como cota y no como cero (módulo 1)",
+     "se da como cota y no como cero"),
+    ("dice que la envolvente del correlograma es puntual (módulo 3)",
+     "cada banda tiene su propio"),
+    ("dice que la última banda no se distingue de un reparto al azar (módulo 3)",
+     "ya no se distingue de un reparto al azar"),
+    ("comenta la banda negativa del correlograma (módulo 3)",
+     "se parecen menos que dos tomadas al azar"),
+    ("distingue el recuento de los cien intervalos de la cobertura (módulo 4)",
+     "no es la cobertura del módulo"),
+    ("dice que lo que falla en los cien intervalos es el error estándar (módulo 4)",
+     "lo que estaba mal era el largo del segmento"),
+    # R2 · T2.4, segunda ronda.
+    ("dice que la parte de calle depende del marco del plano (módulo 1)",
+     "depende de hasta dónde llega el plano"),
+    ("dice que el rechazo no cambia con el marco (módulo 1)",
+     "lo que no cambia con el marco es el rechazo"),
+    ("dice que hay parejas más allá del eje del correlograma (módulo 3)",
+     "y la red no"),
+    ("dice que con bandas cortas positivas tiene que haber bandas negativas (módulo 3)",
+     "tiene que haber bandas negativas"),
+    ("distingue el cociente de semianchos del factor del recuadro (módulo 4)",
+     "ese cociente no es el"),
+    ("dice que la binomial es la fórmula de la misma nula que se simula (módulo 1)",
+     "es la fórmula de esta misma"),
     ("dice que la fórmula de n_eff con la correlación media es una identidad",
      "es una identidad"),
     ("dice que hay un techo en la información",
@@ -361,6 +392,44 @@ PROHIBIDAS = [
      r"es la\s+razón de que el intervalo se centre"),
     ("no llama «honesto» al intervalo en el enunciado del ejercicio 2", "todo",
      r"y el honesto no"),
+    # --- R2 · T2.4. Dos frases que las gráficas nuevas hacen fáciles de
+    # escribir y que serían falsas:
+    #   · un valor p «de cero». Con B recolocaciones y ninguna que alcance al
+    #     dato, lo que se sabe es p < 1/(B + 1), no p = 0;
+    #   · una envolvente «simultánea» o «global». La del correlograma se
+    #     calcula banda a banda: su 95 % vale para cada banda, no para las
+    #     siete a la vez.
+    ("no da un valor p de cero en la prueba de aleatorización (módulo 1)", "todo",
+     r"valor p (?:es|vale|de|igual a) (?:0|cero)\b|valor p nulo|p-valor (?:es|vale|de) (?:0|cero)\b"),
+    ("no llama simultánea ni global a la envolvente del correlograma (módulo 3)", "todo",
+     r"(?:envolvente|franja) (?:simultánea|global)"),
+    # --- R2 · T2.4, segunda ronda: cinco frases de la primera que el
+    # verificador tumbó.
+    #   · la calle explica «una parte pequeña»: cuánta, depende del marco del
+    #     plano (de 3.0 a 7.2 veces);
+    #   · la conclusión de la prueba «es exacta»: depende de la nula;
+    #   · la banda negativa «en parte es obligada»: que haya bandas negativas
+    #     es obligado del todo; lo que decide el dato es cuáles;
+    #   · p < 1/(B + 1): el p de Monte Carlo es (0 + 1)/(B + 1), así que es ≤;
+    #   · la línea de E[I] es «el centro» de la franja: es su media, y la
+    #     franja es asimétrica.
+    ("no dice que la calle explica «una parte pequeña» de la concentración (módulo 1)", "todo",
+     r"es una parte pequeña"),
+    ("no llama «exacta» a la conclusión de la prueba de aleatorización (módulo 1)", "todo",
+     r"una cosa, y es exacta"),
+    ("no dice que la banda negativa es obligada solo «en parte» (módulo 3)", "todo",
+     r"en parte es obligado"),
+    ("no escribe el valor p de Monte Carlo con desigualdad estricta (módulo 1)", "todo",
+     r"p (?:&lt;|<) 1/\(b \+ 1\)|'valor p', '< '"),
+    ("no llama «centro» de la franja a la línea de E[I] (módulo 3)", "todo",
+     r"es su centro, e\[i\]"),
+    # --- R2 · T2.4, tercera ronda. La binomial no «descansa en la
+    # independencia» más que la simulación: es la fórmula de la misma nula,
+    # que también recoloca cada muerte por separado. Lo que la hace
+    # impublicable es la precisión que aparenta, no un supuesto que la
+    # simulación no tenga.
+    ("no dice que la binomial descansa en una independencia que la simulación no supone (módulo 1)",
+     "todo", r"descansa entera en que las muertes"),
 ]
 
 
