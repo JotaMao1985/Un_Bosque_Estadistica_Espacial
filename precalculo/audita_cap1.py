@@ -3084,6 +3084,218 @@ def main() -> int:
 
 
     # =================================================================
+    a.titulo("11c · Las gráficas y los mapas de R2 · T2.2")
+    # =================================================================
+    # Lo que T2.2 añadió a los mapas, rehecho aquí por otra vía. Cada bloque
+    # empieza comprobando que su campo está: el arnés los quita a propósito.
+    from shapely.geometry import Polygon, Point, box
+
+    def _descuantiza(g, plano):
+        """De los enteros de un mapa a las unidades de su dato (inversa de geo_qxy)."""
+        cj = g["caja"]
+        rx, ry = cj[2] - cj[0], cj[3] - cj[1]
+        r = max(rx, ry)
+        ox, oy = cj[0] + rx / 2 - r / 2, cj[1] + ry / 2 - r / 2
+        v = np.asarray(plano, float)
+        return np.column_stack([v[0::2] / g["q"] * r + ox, v[1::2] / g["q"] * r + oy])
+
+    # --- Las celdas de Voronoi de las bombas de Snow -----------------------
+    ms = M["snow"]
+    celdas = ms.get("celdas")
+    if isinstance(celdas, list) and len(celdas) == s["n_bombas"] and all(len(c) >= 6 for c in celdas):
+        mu = sn[sn.tipo == "muerte"][["x", "y"]].to_numpy()
+        bo = sn[sn.tipo == "bomba"][["x", "y"]].to_numpy()
+        # La bomba más próxima a cada muerte, por distancia, sin mirar el mapa.
+        cerca = np.argmin(np.hypot(mu[:, None, 0] - bo[None, :, 0], mu[:, None, 1] - bo[None, :, 1]), axis=1)
+        pols = [Polygon(_descuantiza(ms, c)) for c in celdas]
+        tol = 2 * max(ms["caja"][2] - ms["caja"][0], ms["caja"][3] - ms["caja"][1]) / ms["q"]
+        a.cierto(all(pp.is_valid for pp in pols), "Snow: las trece celdas son polígonos válidos")
+        a.cierto(all(pols[k].distance(Point(*bo[k])) == 0 for k in range(len(bo))),
+                 "Snow: cada bomba cae dentro de su celda")
+        fuera = sum(pols[c].distance(Point(*m_)) > tol for c, m_ in zip(cerca, mu))
+        a.igual(fuera, 0, "Snow: cada muerte cae en la celda de su bomba más próxima")
+        # Y que de verdad sea SU celda y no una mayor que la contenga: en la
+        # celda de otra bomba no cae, salvo las que rozan una frontera.
+        ajenas = sum(any(pols[k].distance(Point(*m_)) == 0 and pols[k].exterior.distance(Point(*m_)) > tol
+                         for k in range(len(pols)) if k != c) for c, m_ in zip(cerca, mu))
+        a.igual(ajenas, 0, "Snow: ninguna muerte cae además dentro de la celda de otra bomba")
+        marco = box(*ms["caja"])
+        a.igual(sum(pp.area for pp in pols), marco.area, "Snow: las celdas reparten el marco del mapa",
+                1e-3 * marco.area)
+        # Contra el diagrama de Voronoi hecho aquí, celda a celda.
+        vor = list(voronoi_diagram(MultiPoint([tuple(b) for b in bo]), envelope=marco).geoms)
+        peor = 0.0
+        for k in range(len(bo)):
+            mia = [v for v in vor if v.contains(Point(*bo[k]))]
+            peor = max(peor, mia[0].intersection(marco).symmetric_difference(pols[k]).area if mia else marco.area)
+        a.cierto(peor < 1e-3 * marco.area, "Snow: cada celda es la de Voronoi de su bomba",
+                 f"peor diferencia {peor:.5f} de {marco.area:.1f}")
+    else:
+        a.cierto(False, "Snow: el mapa trae una celda por bomba", "falta `celdas` o no son trece")
+    a.cierto(ms.get("leyenda") == "", "Snow: el mapa va sin pie de leyenda")
+
+    # --- El Mosa: la escala y el marco ---------------------------------------
+    mm = M["meuse"]
+    a.cierto(mm.get("marcas_escala") == "log", "Mosa: la rampa del zinc es logarítmica")
+    meuse = pd.read_csv(SALIDAS / "cap1_meuse.csv")
+    xm, ym = meuse.x.to_numpy(), meuse.y.to_numpy()
+    lado = max(xm.max() - xm.min(), ym.max() - ym.min())
+    esp = [xm.min() - 0.1 * lado, ym.min() - 0.1 * lado, xm.max() + 0.1 * lado, ym.max() + 0.1 * lado]
+    a.cierto(all(abs(u - v) < 1e-6 for u, v in zip(esp, mm["caja"])),
+             "Mosa: el marco es la caja de los puntos más un décimo de su lado")
+    orillas = mm.get("lineas") or []
+    a.igual(len(orillas), 2, "Mosa: el mapa trae las dos orillas del río")
+    if len(orillas) == 2 and len(mm["pts"]) == 2 * len(meuse):
+        from shapely.geometry import LineString, MultiLineString
+        rio = MultiLineString([LineString(_descuantiza(mm, l)) for l in orillas])
+        d_rio = np.array([rio.distance(Point(x_, y_)) for x_, y_ in zip(xm, ym)])
+        # El río dibujado tiene que ser el del dato: la distancia a sus
+        # orillas ordena los puntos como la `dist` de meuse.
+        a.cierto(float(np.corrcoef(d_rio, meuse.dist.to_numpy())[0, 1]) > 0.95,
+                 "Mosa: la distancia a las orillas dibujadas es la del dato",
+                 f"r = {np.corrcoef(d_rio, meuse.dist.to_numpy())[0, 1]:.4f}")
+        a.cierto(float(np.corrcoef(np.log(meuse.zinc.to_numpy()), d_rio)[0, 1]) < -0.5,
+                 "Mosa: el zinc baja al alejarse de las orillas dibujadas")
+        xy_m = _descuantiza(mm, mm["pts"])
+        a.cierto(bool(np.all(np.abs(np.round(xy_m[:, 0]) - xm) <= 1) and np.all(np.abs(np.round(xy_m[:, 1]) - ym) <= 1)),
+                 "Mosa: las coordenadas de la tabla de respaldo, al metro")
+
+    # --- La ventana del acercamiento del módulo 7 ----------------------------
+    mg = M["agregacion"]
+    zm = mg.get("zoom")
+    if isinstance(zm, dict) and len(zm.get("caja", [])) == 4:
+        celdas_r = [_descuantiza(mg, mg["lineas"][k - 1]) for k in mg["lineas_resaltadas"]]
+        todo = np.vstack(celdas_r)
+        todas = np.vstack([_descuantiza(mg, l) for l in mg["lineas"]])
+        px = (todas[:, 0].max() - todas[:, 0].min()) / 10
+        py = (todas[:, 1].max() - todas[:, 1].min()) / 10
+        esp = [max(mg["caja"][0], todo[:, 0].min() - px), max(mg["caja"][1], todo[:, 1].min() - py),
+               min(mg["caja"][2], todo[:, 0].max() + px), min(mg["caja"][3], todo[:, 1].max() + py)]
+        tol = 3 * max(mg["caja"][2] - mg["caja"][0], mg["caja"][3] - mg["caja"][1]) / mg["q"]
+        a.cierto(all(abs(u - v) < tol for u, v in zip(esp, zm["caja"])),
+                 "agregación: la ventana es la caja de las celdas del caso más una celda por lado",
+                 f"{[round(v) for v in zm['caja']]}")
+        dentro = sum(zm["caja"][0] < l[:, 0].mean() < zm["caja"][2] and zm["caja"][1] < l[:, 1].mean() < zm["caja"][3]
+                     for l in (_descuantiza(mg, l)[:-1] for l in mg["lineas"]))
+        a.igual(dentro, zm["n_celdas"], "agregación: las celdas que se ven en el acercamiento")
+        a.igual(zm["columnas"] * zm["filas"], zm["n_celdas"], "agregación: y son columnas por filas")
+    else:
+        a.cierto(False, "agregación: el mapa trae la ventana del acercamiento", "falta `zoom`")
+
+    # --- IDEAM: el contorno, las franjas de altitud y los pliegues -----------
+    mi_ = M["ideam"]
+    cont = mi_.get("lineas") or []
+    a.cierto(len(cont) >= 1, "IDEAM: el mapa trae el contorno del país")
+    if cont:
+        from shapely.ops import unary_union
+        pais_d = unary_union([Polygon(_descuantiza(mi_, l)) for l in cont if len(l) >= 8])
+        real = dep.to_crs(est.crs).geometry.union_all()
+        a.cierto(pais_d.symmetric_difference(real).area < 0.03 * real.area,
+                 "IDEAM: el contorno dibujado es el del país, simplificado",
+                 f"{100 * pais_d.symmetric_difference(real).area / real.area:.2f} % de diferencia")
+    pa = D["visto"]["ideam"].get("por_altitud")
+    if isinstance(pa, list) and pa:
+        alt, tt_ = est.altitud_m.to_numpy(), est.t_media_anual.to_numpy()
+        ok = sum(f["n"] for f in pa) == len(est)
+        for f in pa:
+            en = (alt >= f["desde"]) & (alt < f["hasta"])
+            ok = ok and int(en.sum()) == f["n"] and f["hasta"] - f["desde"] == 500 \
+                and abs(float(tt_[en].mean()) - f["t_media"]) < 1e-8
+        a.cierto(ok, "IDEAM: las estaciones por franja de altitud y su temperatura media",
+                 f"{len(pa)} franjas")
+    else:
+        a.cierto(False, "IDEAM: las estaciones por franja de altitud y su temperatura media", "falta")
+    pl_a, pl_b = mi_.get("pliegue_aleatorio"), mi_.get("pliegue_bloques")
+    if isinstance(pl_a, list) and isinstance(pl_b, list) and len(pl_a) == len(pl_b) == len(est):
+        # LA VALIDACIÓN CRUZADA, REHECHA con los pliegues publicados: la media
+        # de las k vecinas más próximas del entrenamiento, y el RMSE agrupando
+        # los errores de todos los pliegues. Hasta T2.2 el auditor solo podía
+        # comprobar la aritmética entre las cifras; ahora las reproduce.
+        xy_e = np.column_stack([est.geometry.x.to_numpy(), est.geometry.y.to_numpy()])
+        z_e = est.t_media_anual.to_numpy()
+        dd = np.hypot(xy_e[:, None, 0] - xy_e[None, :, 0], xy_e[:, None, 1] - xy_e[None, :, 1])
+
+        def _rmse(pl):
+            pl = np.asarray(pl)
+            err = []
+            for f in sorted(set(pl.tolist())):
+                te, tr = np.where(pl == f)[0], np.where(pl != f)[0]
+                for i in te:
+                    o = tr[np.argsort(dd[i, tr], kind="stable")[:cv["k_vecinos"]]]
+                    err.append(z_e[i] - z_e[o].mean())
+            return float(np.sqrt(np.mean(np.square(err))))
+
+        a.igual(_rmse(pl_a), cv["rmse_aleatoria"], "CV: el RMSE aleatorio, rehecho con sus pliegues", 1e-6)
+        a.igual(_rmse(pl_b), cv["rmse_bloques"], "CV: el RMSE por bloques, rehecho con sus pliegues", 1e-6)
+        a.cierto(sorted(np.bincount(pl_b)[1:].tolist()) == cv["tam_pliegues"], "CV: los tamaños de los bloques")
+        a.cierto(set(pl_a) == set(pl_b) == set(range(1, cv["n_pliegues"] + 1)), "CV: los dos repartos usan todos los pliegues")
+        vec = np.argmin(dd + np.diag(np.full(len(est), np.inf)), axis=1)
+        a.igual(int(np.sum(np.asarray(pl_a) == np.asarray(pl_a)[vec])), cv.get("vecina_en_su_pliegue_aleatoria"),
+                "CV: estaciones con su vecina más próxima en su pliegue, al azar")
+        a.igual(int(np.sum(np.asarray(pl_b) == np.asarray(pl_b)[vec])), cv.get("vecina_en_su_pliegue_bloques"),
+                "CV: y por bloques")
+    else:
+        a.cierto(False, "CV: el mapa trae los dos repartos, estación a estación", "faltan los pliegues")
+
+    # --- Los campos y las realizaciones: la escala y las clases --------------
+    for lista, etq in ((M["campos"], "campo"), (M["realizaciones"], "realización")):
+        rangos = set()
+        for i, g in enumerate(lista):
+            q = f"{etq} {i}"
+            co = g["cortes"]
+            a.igual(g.get("centro"), 0, f"{q}: la escala está centrada en 0")
+            a.cierto(abs(g["rango"][0] + g["rango"][1]) < 1e-7
+                     and all(abs(co[k] + co[-1 - k]) < 1e-7 for k in range(len(co))),
+                     f"{q}: el recorrido y los cortes son simétricos")
+            a.cierto(abs(co[0] - g["rango"][0]) < 1e-7 and abs(co[-1] - g["rango"][1]) < 1e-7
+                     and np.allclose(np.diff(co), np.diff(co)[0], atol=1e-7),
+                     f"{q}: siete clases de anchura igual sobre el recorrido")
+            rangos.add(tuple(g["rango"]))
+            lo, hi = g["rango"]
+            z = np.asarray(g["zq"], float) / g["zqmax"] * (hi - lo) + lo
+            tam = g.get("tam")
+            if isinstance(tam, list) and len(tam) == len(co) - 1:
+                # Las celdas de cada clase, rehechas desde el campo dibujado. La
+                # cuantización mueve cada valor hasta media milésima del
+                # recorrido: una celda pegada a un corte puede cambiar de clase.
+                mio = np.histogram(z, bins=co)[0]
+                cerca_ = sum(int(np.sum(np.abs(z - c) < (hi - lo) / g["zqmax"])) for c in co[1:-1])
+                a.igual(sum(tam), g["nx"] * g["ny"], f"{q}: las clases reparten todas las celdas")
+                a.cierto(int(np.abs(mio - np.asarray(tam)).sum()) <= 2 * cerca_,
+                         f"{q}: las celdas de cada clase, rehechas desde el mapa",
+                         f"{mio.tolist()} frente a {tam}")
+            else:
+                a.cierto(False, f"{q}: trae cuántas celdas caen en cada clase", "falta `tam`")
+            a.cierto(max(abs(lo), abs(hi)) >= float(np.abs(z).max()) - 1e-9, f"{q}: el recorrido cubre el campo")
+        a.igual(len(rangos), 1, f"{etq}: toda la familia comparte escala")
+    for lista, etq in ((M["campos"], "campo"), (M["realizaciones"], "realización")):
+        tope = max(float(np.abs(np.asarray(g["zq"], float) / g["zqmax"] * (g["rango"][1] - g["rango"][0])
+                                + g["rango"][0]).max()) for g in lista)
+        a.igual(tope, lista[0]["rango"][1], f"{etq}: el recorrido común es el mayor valor absoluto de la familia", 1e-6)
+    inf_ = D["inferencia"]
+    for g in M["campos"]:
+        a.igual(g["nx"], inf_["k"], f"campo phi={g['phi']}: va en la retícula de la simulación")
+        lo, hi = g["rango"]
+        z = np.asarray(g["zq"], float) / g["zqmax"] * (hi - lo) + lo
+        a.igual(float(z.mean()), g.get("media_espacial"), f"campo phi={g['phi']}: su media, rehecha desde el mapa", 2e-3)
+        # Y su I de Moran, con vecindad de reina y pesos por filas, rehecho
+        # desde el campo dibujado.
+        k_ = g["nx"]
+        zc = z.reshape(k_, k_) - z.mean()
+        num = den = 0.0
+        for f_ in range(k_):
+            for c_ in range(k_):
+                vs = [zc[f_ + u, c_ + v] for u in (-1, 0, 1) for v in (-1, 0, 1)
+                      if (u or v) and 0 <= f_ + u < k_ and 0 <= c_ + v < k_]
+                num += zc[f_, c_] * sum(vs) / len(vs)
+        den = float((zc ** 2).sum())
+        a.igual(num / den, g["moran"], f"campo phi={g['phi']}: su I de Moran, rehecho desde el mapa", 5e-3)
+    c4 = [g for g in M["campos"] if g["phi"] == inf_["cien_ic"]["phi"]]
+    a.cierto(len(c4) == 1 and abs(c4[0].get("media_espacial", 9) - inf_["cien_ic"]["media"][0]) < 1e-7,
+             "campo: el del alcance destacado es la réplica 1 de la simulación",
+             f"{c4[0].get('media_espacial') if c4 else '—'} frente a {inf_['cien_ic']['media'][0]}")
+
+    # =================================================================
     a.titulo("12 · Formato, codificación y redondeo")
     # =================================================================
     for nombre, ruta in (("datos", ruta_d), ("mapas", ruta_m), ("soluciones", ruta_s)):

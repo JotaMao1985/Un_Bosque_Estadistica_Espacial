@@ -123,13 +123,12 @@ ru = dm["referencia_uniforme"]   # módulo 10: Thiessen de puntos uniformes, la 
 rp, osm, sud = ir["replicas"], ir["otras_semillas"], ir["sin_un_departamento"]
 b0 = tb["ideam"]["bandas"][0]    # módulo 3: la banda corta, la que tiene estaciones sin vecinos
 pb1 = tb["permutacion_banda1"]   # y su esperanza, comprobada permutando
-# El alto de la caja de las tres gráficas de R2 · T2.4. En pantalla ancha,
-# 360 px; por debajo de 640 px crece hasta 440 px a 375 px de ancho. La
-# leyenda va abajo y en el teléfono se apila en cuatro o cinco filas: con
-# un alto fijo se comía el área de trazado (G-11). Va en línea y con `max`
-# y `min` porque un atributo `style` no admite `@media`; la cuenta es la
-# recta que pasa por (375 px, 440 px) y (640 px, 360 px).
-ALTO_T24 = "height:max(360px, min(440px, calc(553px - 30.2vw)));"
+# El alto de la caja de las tres gráficas de R2 · T2.4: 360 px. Era una
+# cuenta en línea que crecía hasta 440 px en el teléfono, para que la
+# leyenda apilada no se comiera el trazado (G-11). Desde R2 · T2.1 eso lo
+# hace la plantilla con todos los gráficos —leyenda al pie y un alto mínimo
+# de trazado—, así que aquí queda solo el alto de pantalla ancha.
+ALTO_T24 = "height:360px;"
 # R2 · T2.4: las tres gráficas nuevas. Cada una dibuja una cifra que el
 # capítulo ya publicaba y solo se leía.
 al = sn["aleatorizacion"]        # módulo 1: la prueba de aleatorización de Snow
@@ -316,7 +315,9 @@ MOD1 = cabecera(
         <h4><i class="fas fa-map-location-dot" aria-hidden="true"></i> El mapa de Snow, capa a capa</h4>
         <p class="simulador-intro">Las <strong>{sn['n_segmentos']}</strong> calles del Soho de fondo, las
           {sn['n_muertes']} muertes digitalizadas por Dodson y Tobler (NCGIA, 1992) y las {sn['n_bombas']} bombas en
-          rombo. Conmuta entre colorear por bomba más próxima y resaltar solo Broad Street.</p>
+          rombo. Conmuta entre colorear por bomba más próxima y resaltar solo Broad Street. Las líneas a
+          trazos parten el plano en las celdas de las bombas: dentro de cada celda, la bomba más próxima es
+          la suya.</p>
         <div class="simulador-controles"></div>
         <div class="geomapa" data-geomapa="cap1-snow"></div>
         <div class="simulador-lectura"></div>
@@ -667,7 +668,8 @@ MOD2 = cabecera(
       </div>
       <div class="geomapa" data-geomapa="cap1-meuse"></div>
 
-      <p>El mapa del Mosa parece manchas de color hasta que uno sabe por dónde va el río. El zinc va de
+      <p>El mapa del Mosa parece manchas de color hasta que uno sabe por dónde va el río. Las dos líneas del
+        mapa son sus orillas. El zinc va de
         <strong>{gc['zinc_min']}</strong> a <strong>{ent(gc['zinc_max'])}</strong> ppm, con media
         <strong>{n(gc['zinc_media'])}</strong> y desviación <strong>{n(gc['zinc_sd'])}</strong>, y con una
         asimetría de <strong>{n(gc['asimetria_zinc'])}</strong> que es la razón de que en este dato se trabaje
@@ -1383,14 +1385,23 @@ MOD4 = cabecera(
 
       <div class="simulador" data-simulador="ee-ingenuo">
         <h4><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> El error estándar ingenuo, medido</h4>
-        <p class="simulador-intro">Recorre el alcance de la correlación con el deslizador. Las curvas no se mueven,
-          y es a propósito: el alcance ya es el eje horizontal, así que están dibujadas todas a la vez. Lo que se
-          mueve es el marcador que dice dónde estás, el campo simulado de debajo y la lectura. Empieza por la
-          izquierda, en \\(\\phi = 0\\) —el mismo ruido, todavía sin correlación— y mira dónde la cobertura se
-          despega del 95&nbsp;% que el intervalo promete.</p>
+        <p class="simulador-intro">El deslizador recorre el alcance de la correlación. Las curvas no se mueven,
+          y es a propósito: el alcance ya es el eje horizontal, así que están dibujadas todas a la vez, en dos
+          paneles que comparten ese eje. Arriba van los dos errores estándar y abajo, la cobertura, cada
+          magnitud en su escala. Lo que se mueve es el marcador que señala el alcance elegido, el campo de
+          debajo y la lectura. El campo es un ejemplo sobre la misma retícula de {inf['k']}×{inf['k']} de la
+          simulación: en \\(\\phi = {ci['phi']}\\) es la primera de las {ent(inf['nrep'])} réplicas que miden
+          las cifras, y en los demás alcances es ese mismo ruido pasado por la correlación de cada uno. El
+          blanco es el cero. Conviene empezar por la izquierda, en \\(\\phi = 0\\) —el ruido solo, todavía sin
+          correlación—, y ver dónde la cobertura se despega del {NIVEL4}&nbsp;% que el intervalo promete.</p>
         <div class="simulador-controles"></div>
-        <div class="grafico-wrapper" style="height:250px;">
-          <canvas aria-label="Error estándar ingenuo frente al real, y cobertura del intervalo al 95 por ciento, en función del alcance de la correlación. Un marcador vertical señala el alcance elegido con el deslizador" role="img"></canvas>
+        <p class="grafico-etiqueta">Error estándar de la media: el que se calcularía y el real</p>
+        <div class="grafico-wrapper" style="height:230px;">
+          <canvas data-panel="ee" aria-label="Error estándar ingenuo de la media frente al real, en función del alcance de la correlación. Un marcador vertical señala el alcance elegido con el deslizador" role="img"></canvas>
+        </div>
+        <p class="grafico-etiqueta">Cobertura del intervalo al {NIVEL4}&nbsp;%</p>
+        <div class="grafico-wrapper" style="height:210px;">
+          <canvas data-panel="cobertura" aria-label="Cobertura del intervalo de confianza al {NIVEL4} por ciento, en función del alcance de la correlación, frente a la cobertura prometida. Un marcador vertical señala el alcance elegido con el deslizador" role="img"></canvas>
         </div>
         <div class="geomapa" data-geomapa="cap1-campo"></div>
         <div class="simulador-lectura"></div>
@@ -1414,7 +1425,8 @@ MOD4 = cabecera(
           {ci['n']} medias son las mismas en las dos vistas: lo único que cambia al conmutar es el largo de los
           segmentos. En la primera vista el error estándar es el que calcula el programa,
           \\(s/\\sqrt{{n}}\\); en la segunda, el verdadero, que aquí se conoce porque el campo se ha
-          simulado.</p>
+          simulado. El primer segmento, el de la izquierda, es el del campo que dibuja el simulador anterior
+          en \\(\\phi = {ci['phi']}\\).</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="{ALTO_T24}">
           <canvas aria-label="{ci['n']} intervalos de confianza al {NIVEL4} por ciento de la media, uno por réplica del campo con alcance {ci['phi']}, dibujados en vertical alrededor de la media verdadera, cero. Con el error estándar ingenuo cubren el cero {ci['n_cubren_ingenuo']} de los {ci['n']}; con el error estándar verdadero, {ci['n_cubren_exacto']}" role="img"></canvas>
@@ -1990,7 +2002,7 @@ MOD6 = cabecera(
           \\(\\gamma\\) en el rezago entero.</p>
         <div class="simulador-controles"></div>
         <div class="geomapa" data-geomapa="cap1-realizacion"></div>
-        <div class="grafico-wrapper" style="height:250px;">
+        <div class="grafico-wrapper" style="height:290px;">
           <canvas aria-label="Variograma de una realización frente al teórico promediado en cada rezago, con la banda del 5 al 95 por ciento sobre mil realizaciones" role="img"></canvas>
         </div>
         <div class="simulador-lectura"></div>
@@ -2196,11 +2208,12 @@ MOD7 = cabecera(
       <div class="simulador" data-simulador="agregacion">
         <h4><i class="fas fa-object-group" aria-hidden="true"></i> Agregar cambia la correlación</h4>
         <p class="simulador-intro">Sobre {ent(ag['niveles'][0]['n_unidades'])} celdas con correlación conocida, se
-          promedian bloques cada vez más grandes y se recalcula la correlación. Y al lado, los
-          {ec['n_pares']} pares reales de variables colombianas a las dos escalas.</p>
+          promedian bloques cada vez más grandes y se recalcula la correlación. El segundo botón cambia a los
+          {ec['n_pares']} pares reales de variables colombianas: cada renglón une la correlación del par entre
+          municipios, el círculo hueco, con la del mismo par entre departamentos, el círculo lleno.</p>
         <div class="simulador-controles"></div>
         <div class="grafico-wrapper" style="height:250px;">
-          <canvas aria-label="Correlación entre dos variables según el tamaño del bloque de agregación, y cuánto cambia al agregar cada uno de los {ec['n_pares']} pares reales, con el par de aviso en naranja" role="img"></canvas>
+          <canvas aria-label="Correlación entre dos variables según el tamaño del bloque de agregación; y, con el segundo botón, la correlación de cada uno de los {ec['n_pares']} pares reales entre municipios y entre departamentos, sobre un eje de menos uno a uno, con el par de aviso en naranja" role="img"></canvas>
         </div>
         <div class="simulador-lectura"></div>
       </div>
@@ -2224,11 +2237,15 @@ MOD7 = cabecera(
 
       <div class="warning">
         <p><strong>Ahora la parte incómoda: agregar no siempre infla.</strong> La versión corta de esta lección —«al
-          agregar sube la correlación»— es falsa, y basta el dato colombiano para verlo. Sobre
+          agregar, la correlación se hace más fuerte»— es falsa, y basta el dato colombiano para verlo. Sobre
           {ec['n_variables']} variables municipales, los {ec['n_pares']} pares con correlación apreciable se reparten
-          así al pasar de municipio a departamento: <strong>{ec['n_suben']} suben</strong> y
-          <strong>{ec['n_bajan']} bajan</strong>. Uno de los que bajan llega a cruzar el cero y cambia de signo, y
-          es el único de los {ec['n_pares']} que no aguanta la comprobación que el módulo hace justo después.</p>
+          así al pasar de municipio a departamento: en <strong>{ec['n_suben']}</strong> la correlación <strong>se
+          aleja del cero</strong> —se hace más fuerte, sea positiva o negativa— y en
+          <strong>{ec['n_bajan']}</strong> <strong>se acerca al cero</strong>, es decir, se debilita. Lo que se
+          cuenta es el valor absoluto, \\(|r|\\): una correlación negativa que se debilita se mueve hacia la
+          derecha en el gráfico, y aun así pierde fuerza. Uno de los pares que se acercan al cero llega a
+          cruzarlo y cambia de signo, y es el único de los {ec['n_pares']} que no aguanta la comprobación que el
+          módulo hace justo después.</p>
         <p style="margin-bottom:0;">Agregar <em>cambia</em> la correlación. En qué dirección, depende de cómo estén
           repartidos el componente compartido y el ruido, y eso no se sabe de antemano.</p>
       </div>
@@ -2275,7 +2292,8 @@ MOD7 = cabecera(
           <strong>{n(av['r_departamental_sin_bajo_umbral'])}</strong>; con el umbral de {av['umbral_n']}
           estudiantes, en <strong>{n(av['r_departamental_n30'])}</strong>. Lo que sobrevive es que agregar se
           lleva esa correlación a cero, no que le dé la vuelta. Y la tesis del recuadro no depende de este par:
-          {_nombres_bajan} también bajan, y siguen bajando con el umbral de {av['umbral_n']} estudiantes.</p>
+          {_nombres_bajan} también se acercan al cero, y lo siguen haciendo con el umbral de
+          {av['umbral_n']} estudiantes.</p>
       </div>
 
       <p>Hasta aquí la <strong>escala</strong>: cambiar el tamaño de la unidad cambia el resultado. Queda la otra
@@ -2306,7 +2324,8 @@ MOD7 = cabecera(
         <h4><i class="fas fa-table-cells-large" aria-hidden="true"></i> El doble conteo, celda a celda</h4>
         <p class="simulador-intro">Los {ac['n']} condados coloreados por sus muertes súbitas, con la rejilla de
           {agn['n_celdas']} rectángulos encima. En naranja, {cc['nombre']}; con borde grueso, las
-          {cc['n_celdas_toca']} celdas que toca.</p>
+          {cc['n_celdas_toca']} celdas que toca. El mapa abre acercado a esas celdas, que es donde se lee la
+          cifra que recibe cada una; el segundo par de botones cambia al estado entero, para situarlas.</p>
         <div class="simulador-controles"></div>
         <div class="geomapa" data-geomapa="cap1-agregacion"></div>
         <div class="simulador-lectura"></div>
@@ -2632,10 +2651,17 @@ MOD10 = cabecera(
       <div class="simulador" data-simulador="cv-espacial">
         <h4><i class="fas fa-scissors" aria-hidden="true"></i> Validación cruzada aleatoria contra por bloques</h4>
         <p class="simulador-intro">Mismo modelo, mismo dato, mismos {cv['n_pliegues']} pliegues. Lo único que cambia
-          es cómo se reparten.</p>
+          es cómo se reparten, y los dos mapas de debajo lo enseñan: cada estación lleva el color de su
+          pliegue. En el gráfico del RMSE, la línea de trazos es la desviación típica de la variable, que es
+          prácticamente el error que se cometería prediciendo siempre la media: la barra de los bloques la
+          pasa por poco, y por eso cada barra lleva su cifra encima.</p>
         <div class="simulador-controles"></div>
-        <div class="grafico-wrapper" style="height:240px;">
-          <canvas aria-label="RMSE y R cuadrado de la validación cruzada aleatoria frente a la validación por bloques espaciales" role="img"></canvas>
+        <div class="grafico-wrapper" style="height:260px;">
+          <canvas aria-label="RMSE y R cuadrado de la validación cruzada aleatoria frente a la validación por bloques espaciales. En el RMSE, una línea de trazos marca la desviación típica de la variable, que la barra de los bloques supera; en el R cuadrado, la barra de los bloques queda por debajo de cero" role="img"></canvas>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 items-start" style="margin-top:1rem;">
+          <div class="geomapa" data-geomapa="cap1-pliegues-azar"></div>
+          <div class="geomapa" data-geomapa="cap1-pliegues-bloques"></div>
         </div>
         <div class="simulador-lectura"></div>
       </div>
@@ -3161,17 +3187,36 @@ MODULOS = (MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6 + MOD7 + MOD8 + MOD9
 # El JSON entero viaja al navegador. Los simuladores y el quiz sacan de
 # ahí sus cifras con `n5()`, así que NINGUNA cifra del JavaScript está
 # escrita: no puede quedarse vieja cuando el precálculo cambie.
+# LAS DURACIONES DE LOS MÓDULOS 1, 3, 4, 7 Y 10 (R2 · T2.2). Los tres
+# primeros crecieron con las gráficas de R2 · T2.4 y seguían anunciando lo
+# de antes; el 7 y el 10 crecieron aquí.
+#
+# LA REGLA, para que se pueda rehacer: a la duración que el módulo tenía al
+# cerrar R1 se le suma un minuto por cada 200 palabras de prosa añadidas
+# (redondeando al minuto más próximo), dos por cada simulador nuevo y uno si
+# gana mapas sin ganar simulador.
+#
+# EL RECUENTO: las palabras de cada `<template id="module-N">` del HTML
+# publicado, quitando los bloques `<pre>`, las fórmulas `\(...\)` y `$$...$$`
+# y las etiquetas, y partiendo por espacios. La referencia es el capítulo del
+# commit cd97da7, el último de R1. Con ese recuento:
+#   módulo 1    993 -> 1 860 palabras (+867) y un simulador más   12 -> 18 min
+#   módulo 3  2 240 -> 3 014 (+774)                               10 -> 14 min
+#   módulo 4  1 512 -> 1 975 (+463) y un simulador más            12 -> 16 min
+#   módulo 7  1 999 -> 2 107 (+108)                               14 -> 15 min
+#   módulo 10 1 254 -> 1 316 (+62) y los dos mapas de pliegues    13 -> 14 min
+# El guion que cuenta está en `diagnostico_cap1/palabras_por_modulo.py`.
 MODULOS_NAV = [
-    ("El mapa que cambió la epidemiología", "12 min"),
+    ("El mapa que cambió la epidemiología", "18 min"),
     ("Los tres tipos de dato espacial", "14 min"),
-    ("La primera ley de Tobler", "10 min"),
-    ("Por qué se rompe la inferencia clásica", "12 min"),
+    ("La primera ley de Tobler", "14 min"),
+    ("Por qué se rompe la inferencia clásica", "16 min"),
     ("Tamaño de muestra efectivo", "8 min"),
     ("Estacionariedad y una sola realización", "10 min"),
-    ("Escala, soporte y agregación", "14 min"),
+    ("Escala, soporte y agregación", "15 min"),
     ("El ecosistema de R espacial", "8 min"),
     ("Anatomía de un objeto sf", "8 min"),
-    ("Dependencia espacial en ciencia de datos", "13 min"),
+    ("Dependencia espacial en ciencia de datos", "14 min"),
     ("Glosario de notación del curso", "5 min"),
     ("Autoevaluación y ejercicios guiados", "15 min"),
 ]
@@ -3271,6 +3316,97 @@ TABLA_SNOW = """      tabla: function (d) {
           + `<th scope="col">% del total</th></tr></thead><tbody>${filas}</tbody></table>`;
       }"""
 
+# R2 · T2.2 (G-24): las tablas de respaldo de los mapas que no la tenían.
+# Ninguna calcula una cifra nueva: las coordenadas de un patrón puntual se
+# leen de los mismos enteros que pinta el lienzo —deshaciendo la
+# cuantización, que es una regla de tres— y los resúmenes vienen de R.
+
+# La rampa de la temperatura (G-05): secuencial, de oscuro a claro y de
+# frío a cálido. Son siete paradas de la escala «plasma».
+PALETA_TERMICA = ["#0d0887", "#5c01a6", "#9c179e", "#cc4778", "#ed7953", "#fdb42f", "#f0f921"]
+
+# De los enteros del mapa a las unidades del dato: la inversa exacta de
+# `geo_qxy()` de R. Va como función suelta porque la usan tres tablas.
+COORDS_JS = """    // De los enteros cuantizados de un mapa a las unidades de su dato.
+    function coordsDeMapa(d) {
+      const c = d.caja, rx = c[2] - c[0], ry = c[3] - c[1], r = Math.max(rx, ry);
+      const x0 = c[0] + rx / 2 - r / 2, y0 = c[1] + ry / 2 - r / 2;
+      const xy = [];
+      for (let i = 0; i < d.pts.length; i += 2) {
+        xy.push([d.pts[i] / d.q * r + x0, d.pts[i + 1] / d.q * r + y0]);
+      }
+      return xy;
+    }
+"""
+
+# Los tres patrones canónicos: sus coordenadas, con tres decimales, que es
+# la resolución del lienzo sobre una ventana de lado 1 (1/4096). La guarda
+# de salida las compara con las del dato, punto a punto.
+TABLA_PUNTOS = """      tabla: function (d) {
+        const filas = coordsDeMapa(d).map((p, i) => `<tr><th scope="row">${i + 1}</th>`
+          + `<td>${p[0].toFixed(3)}</td><td>${p[1].toFixed(3)}</td></tr>`).join('');
+        return `<table><caption>Coordenadas de los ${d.n} puntos de «${d.titulo}», en unidades de la `
+          + `ventana.</caption><thead><tr><th scope="col">Punto</th><th scope="col">x</th>`
+          + `<th scope="col">y</th></tr></thead><tbody>${filas}</tbody></table>`;
+      }"""
+
+# El Mosa: posición y zinc de cada punto. Las coordenadas salen del lienzo,
+# cuya resolución aquí es de un metro escaso: van al metro, y la guarda de
+# salida comprueba que ninguna se aparta más de uno de la del dato.
+TABLA_MEUSE = """      tabla: function (d) {
+        const filas = coordsDeMapa(d).map((p, i) => `<tr><th scope="row">${i + 1}</th>`
+          + `<td>${Math.round(p[0])}</td><td>${Math.round(p[1])}</td><td>${d.marcas[i]}</td></tr>`).join('');
+        return `<table><caption>${d.titulo}: posición y zinc de los ${d.n} puntos de muestreo. `
+          + `Las coordenadas van en metros del sistema holandés (EPSG:${D1.geo_canonico.crs_epsg}), `
+          + `leídas del dibujo y redondeadas al metro.</caption><thead><tr>`
+          + `<th scope="col">Punto</th><th scope="col">x (m)</th><th scope="col">y (m)</th>`
+          + `<th scope="col">zinc (ppm)</th></tr></thead><tbody>${filas}</tbody></table>`;
+      }"""
+
+# Bogotá: 2 209 filas de coordenadas no son una tabla que alguien lea. Va
+# lo que el mapa deja ver, contado por R: cuántas sedes hay en cada tercio
+# del dibujo, de norte a sur.
+TABLA_BOGOTA = """      tabla: function (d) {
+        const v = D1.visto.bogota;
+        const filas = v.franja.map((f, i) => `<tr><th scope="row">tercio ${f}</th>`
+          + `<td>${miles1(v.n[i])}</td><td>${n5(100 * v.n[i] / d.n, 1)}</td></tr>`).join('');
+        return `<table><caption>${d.titulo}: las ${miles1(d.n)} sedes por tercio del dibujo, de norte a sur. `
+          + `Las coordenadas de cada una están en el archivo de datos del curso.</caption><thead><tr>`
+          + `<th scope="col">Franja</th><th scope="col">Sedes</th><th scope="col">% del total</th>`
+          + `</tr></thead><tbody>${filas}</tbody></table>`;
+      }"""
+
+# IDEAM: las estaciones por franja de altitud, con su temperatura media.
+# Es la tabla que dice lo que el mapa enseña con el color.
+TABLA_IDEAM = """      tabla: function (d) {
+        const filas = D1.visto.ideam.por_altitud.map(f => `<tr><th scope="row">de ${miles1(f.desde)} a `
+          + `menos de ${miles1(f.hasta)} m</th><td>${f.n}</td><td>${n5(f.t_media, 1)}</td></tr>`).join('');
+        return `<table><caption>${d.titulo}: las ${d.n} estaciones por franja de altitud.</caption>`
+          + `<thead><tr><th scope="col">Altitud</th><th scope="col">Estaciones</th>`
+          + `<th scope="col">Temperatura media (°C)</th></tr></thead><tbody>${filas}</tbody></table>`;
+      }"""
+
+# Las retículas simuladas: cuántas celdas caen en cada clase de la leyenda.
+# El recuento lo trae R (`tam`), con los mismos cortes.
+TABLA_REJILLA = """      tabla: function (d) {
+        const filas = d.tam.map((k, i) => `<tr><th scope="row">de ${n5(d.cortes[i], 2)} a `
+          + `${n5(d.cortes[i + 1], 2)}</th><td>${k}</td></tr>`).join('');
+        return `<table><caption>${d.titulo}: celdas en cada clase de la leyenda, de las `
+          + `${d.nx * d.ny}.</caption><thead><tr><th scope="col">Valor de z</th>`
+          + `<th scope="col">Celdas</th></tr></thead><tbody>${filas}</tbody></table>`;
+      }"""
+
+# Los pliegues de la validación cruzada: cuántas estaciones tiene cada uno.
+TABLA_PLIEGUES = """      tabla: function (d) {
+        const cuenta = new Array(D1.cv_espacial.n_pliegues).fill(0);
+        d.marcas.forEach(m => { cuenta[m - 1]++; });
+        const filas = cuenta.map((k, i) => `<tr><th scope="row">pliegue ${i + 1}</th>`
+          + `<td>${k}</td></tr>`).join('');
+        return `<table><caption>${d.titulo}: estaciones en cada pliegue, de las ${d.n}.</caption>`
+          + `<thead><tr><th scope="col">Pliegue</th><th scope="col">Estaciones</th></tr></thead>`
+          + `<tbody>${filas}</tbody></table>`;
+      }"""
+
 # =====================================================================
 # «Describir el mapa» (2026-11-02)
 # =====================================================================
@@ -3292,14 +3428,22 @@ _D1_SNOW = {
         f"Broad Street, resaltada: {ent(_SN['n_mas_cerca_broad'])} de ellas, el "
         f"{n(_SN['pct_mas_cerca_broad'], 1)} %, la tienen como la más próxima, "
         f"{n(_SN['razon_sobre_uniforme'], 1)} veces lo que le tocaría si se repartieran parejo entre las "
-        f"{ent(_SN['n_bombas'])} bombas."),
+        f"{ent(_SN['n_bombas'])} bombas. Unas líneas a trazos parten el plano en las {ent(_SN['n_bombas'])} "
+        f"celdas de las bombas —lo que queda más cerca de cada una—, y la de Broad Street, en el centro, "
+        f"lleva el borde naranja: esas muertes son las que caen dentro."),
     "todas": (
         f"Un color por cada una de las {ent(_SN['n_bombas'])} bombas, según cuál le queda más cerca a cada "
-        f"muerte: el de Broad Street cubre la mancha del centro, con {ent(_SN['n_mas_cerca_broad'])} de las "
-        f"{ent(_SN['n_muertes'])}, y las demás bombas se reparten el resto."),
+        f"muerte: el de Broad Street, naranja, cubre la mancha del centro, con "
+        f"{ent(_SN['n_mas_cerca_broad'])} de las {ent(_SN['n_muertes'])}, y las demás bombas se reparten el "
+        f"resto. Las líneas a trazos son los bordes de las celdas: cada color queda dentro de la suya."),
     "sinlineas": (
         f"Sin las calles de fondo, las {ent(_SN['n_muertes'])} muertes siguen formando la misma mancha, "
         f"apretada alrededor de la bomba de Broad Street: no la dibujaban las calles."),
+}
+_T1_SNOW = {
+    "broad": "Muertes por cólera, Soho, 1854: las que tienen más cerca la bomba de Broad Street, contra el resto",
+    "todas": "Muertes por cólera, Soho, 1854, coloreadas por su bomba más próxima",
+    "sinlineas": "Muertes por cólera, Soho, 1854, coloreadas por su bomba más próxima, sin las calles",
 }
 _PC = D["puntual_canonico"]
 DESC_PINOS = (
@@ -3339,14 +3483,18 @@ DESC_DESERCION = (
 _GC = D["geo_canonico"]
 DESC_MEUSE = (
     f"Los {ent(_GC['n'])} puntos de muestreo, coloreados por su zinc, de {ent(_GC['zinc_min'])} a "
-    f"{ent(_GC['zinc_max'])} ppm, en una nube alargada en diagonal. Los más oscuros se alinean a lo largo "
-    f"de su borde noroeste, que es la orilla del río —el mapa no lo dibuja—, y el color se aclara al "
-    f"alejarse de ella: la correlación del zinc con la distancia al río es {n(_GC['corr_dist_rio'], 2)}.")
+    f"{ent(_GC['zinc_max'])} ppm, en una nube alargada en diagonal. El río, dibujado con las dos líneas "
+    f"de sus orillas, la bordea por el noroeste y la rodea por el sur. Los puntos más oscuros se alinean "
+    f"a lo largo de ese borde noroeste, pegados a la orilla, y el color se aclara al alejarse de ella: la "
+    f"correlación del zinc con la distancia al río es {n(_GC['corr_dist_rio'], 2)}. El color recorre el "
+    f"logaritmo del zinc.")
 _GEO = D["colombia"]["geo"]
 _FR, _CA = _VI["ideam"]["frias"], _VI["ideam"]["calidas"]
 DESC_IDEAM = (
-    f"Las {ent(_GEO['n'])} estaciones, coloreadas por su temperatura media, de {n(_GEO['t_min'], 1)} a "
-    f"{n(_GEO['t_max'], 1)} °C. Las más frías, de {n(_VI['ideam']['frias_umbral'], 1)} °C o menos, caen "
+    f"Las {ent(_GEO['n'])} estaciones, con el contorno del país de fondo, coloreadas por su temperatura "
+    f"media. Las del archipiélago de San Andrés, arriba a la izquierda, se ven sobre el mar: a esta escala "
+    f"las islas son más pequeñas que un punto. La temperatura va de "
+    f"{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo. Las más frías, de {n(_VI['ideam']['frias_umbral'], 1)} °C o menos, caen "
     f"casi todas en el {_FR['zona'][0]} del dibujo ({ent(_FR['n'][0])}), donde están las más altas: la "
     f"temperatura cambia {n(_GEO['gradiente'], 1)} °C por cada kilómetro de altura. Las más cálidas, de "
     f"{n(_VI['ideam']['calidas_umbral'], 1)} °C o más, en el {_CA['zona'][0]} ({ent(_CA['n'][0])}) y en el "
@@ -3379,26 +3527,59 @@ DESC_REAL = {
 _AG = D["agregacion_soporte"]["nc"]
 _CC = _AG["condado_caso"]
 _apor = [r["aporte_area"] for r in _CC["reparto"]]
-DESC_AGREG = {
+_ZM = M["agregacion"]["zoom"]
+_BASE_AGREG = {
+    "estado": (
+        f"Los condados, coloreados por sus muertes súbitas, bajo una rejilla de {ent(_AG['n_celdas'])} "
+        f"rectángulos que no sigue ningún límite. {_CC['nombre']}, en naranja, cae en "
+        f"{ent(_CC['n_celdas_toca'])} celdas, resaltadas. "),
+    "zoom": (
+        f"La zona de {_CC['nombre']}, acercada: {ent(_ZM['n_celdas'])} rectángulos enteros de los "
+        f"{ent(_AG['n_celdas'])} de la rejilla, en {ent(_ZM['columnas'])} columnas y {ent(_ZM['filas'])} "
+        f"filas, con el borde de los que los rodean asomando por los lados, sobre los condados coloreados "
+        f"por sus muertes súbitas. El condado, en naranja, cae en "
+        f"{ent(_CC['n_celdas_toca'])} celdas, resaltadas. "),
+}
+_REGLA_AGREG = {
     "predicado": (
-        f"Los condados, coloreados por sus muertes súbitas, bajo una rejilla de {ent(_AG['n_celdas'])} "
-        f"rectángulos que no sigue ningún límite. Con «se tocan», las {ent(_CC['n_celdas_toca'])} celdas "
-        f"que toca {_CC['nombre']} dicen todas lo mismo, {ent(_CC['sids'])}: el condado entero en cada "
-        f"una."),
+        f"Con «se tocan», esas {ent(_CC['n_celdas_toca'])} celdas reciben todas lo mismo, "
+        f"{ent(_CC['sids'])}: el condado entero en cada una."),
     "area": (
-        f"Los condados, coloreados por sus muertes súbitas, bajo una rejilla de {ent(_AG['n_celdas'])} "
-        f"rectángulos que no sigue ningún límite. Repartiendo por área, las {ent(_CC['n_celdas_toca'])} "
-        f"celdas que toca {_CC['nombre']} dicen cifras distintas, de {n(min(_apor), 4)} en la que apenas "
-        f"roza a {n(max(_apor), 2)} en la que más condado cubre, y entre todas suman sus "
-        f"{ent(_CC['sids'])}."),
+        f"Repartiendo por área, esas {ent(_CC['n_celdas_toca'])} celdas reciben cifras distintas, de "
+        f"{n(min(_apor), 4)} en la que apenas roza a {n(max(_apor), 2)} en la que más condado cubre, y "
+        f"entre todas suman sus {ent(_CC['sids'])}."),
+}
+# Una descripción por estado del mapa: la regla y el encuadre. Solo el
+# encuadre acercado lleva las cifras escritas dentro de las celdas.
+DESC_AGREG = {
+    f"{regla}-{vista}": _BASE_AGREG[vista] + _REGLA_AGREG[regla]
+    + (" Cada celda resaltada lleva su cifra escrita dentro." if vista == "zoom" else "")
+    for regla in _REGLA_AGREG for vista in _BASE_AGREG}
+_CV = D["cv_espacial"]
+DESC_PLIEGUES = {
+    "aleatorio": (
+        f"Cada estación lleva el color de su pliegue, y los {ent(_CV['n_pliegues'])} colores salen mezclados "
+        f"por todo el mapa: de las {ent(_CV['n'])} estaciones, solo "
+        f"{ent(_CV['vecina_en_su_pliegue_aleatoria'])} tienen a su vecina más próxima en su mismo pliegue. "
+        f"Cuando a una estación le toca la prueba, casi siempre tiene al lado una del entrenamiento."),
+    "bloques": (
+        f"Cada estación lleva el color de su pliegue, y cada color ocupa una región del mapa: "
+        f"{ent(_CV['vecina_en_su_pliegue_bloques'])} de las {ent(_CV['n'])} estaciones tienen a su vecina "
+        f"más próxima en su mismo pliegue. Cuando a una región le toca la prueba, sus estaciones se "
+        f"predicen con las de otras regiones."),
+}
+TITULO_PLIEGUES = {
+    "aleatorio": f"Los {ent(_CV['n_pliegues'])} pliegues, repartidos al azar",
+    "bloques": f"Los {ent(_CV['n_pliegues'])} pliegues, por bloques espaciales",
 }
 DESCRIPCIONES = {
+    "cap1-pliegues-azar": [DESC_PLIEGUES["aleatorio"]], "cap1-pliegues-bloques": [DESC_PLIEGUES["bloques"]],
     "cap1-snow": [_D1_SNOW["broad"], _D1_SNOW["todas"], _D1_SNOW["sinlineas"]],
     "cap1-pinos": [DESC_PINOS], "cap1-secuoyas": [DESC_SECUOYAS], "cap1-celulas": [DESC_CELULAS],
     "cap1-bogota": [DESC_BOGOTA], "cap1-nc": [DESC_NC], "cap1-desercion": [DESC_DESERCION],
     "cap1-meuse": [DESC_MEUSE], "cap1-ideam": [DESC_IDEAM],
     "cap1-campo": list(DESC_CAMPO.values()), "cap1-realizacion": list(DESC_REAL.values()),
-    "cap1-agregacion": [DESC_AGREG["predicado"], DESC_AGREG["area"]],
+    "cap1-agregacion": list(DESC_AGREG.values()),
 }
 
 
@@ -3456,6 +3637,236 @@ def guardas_de_las_descripciones() -> list[str]:
     return malos
 
 
+
+# =====================================================================
+# Las guardas de R2 · T2.2: lo que las gráficas y los mapas afirman
+# =====================================================================
+def _coords_de_mapa(g):
+    """La inversa de `geo_qxy()`: de los enteros del mapa a las unidades del dato.
+
+    La misma cuenta que `coordsDeMapa()` en el navegador, escrita aparte.
+    """
+    c = g["caja"]
+    rx, ry = c[2] - c[0], c[3] - c[1]
+    r = max(rx, ry)
+    x0, y0 = c[0] + rx / 2 - r / 2, c[1] + ry / 2 - r / 2
+    return [(g["pts"][i] / g["q"] * r + x0, g["pts"][i + 1] / g["q"] * r + y0)
+            for i in range(0, len(g["pts"]), 2)]
+
+
+def _dentro(x, y, pol):
+    """¿Cae (x, y) dentro del polígono `pol` (lista plana de vértices)?"""
+    n, dentro = len(pol) // 2, False
+    for i in range(n):
+        x1, y1 = pol[2 * i], pol[2 * i + 1]
+        x2, y2 = pol[2 * ((i + 1) % n)], pol[2 * ((i + 1) % n) + 1]
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+            dentro = not dentro
+    return dentro
+
+
+def _a_borde(x, y, pol):
+    """La distancia de (x, y) al borde del polígono, en las unidades del polígono."""
+    import math
+    n, mejor = len(pol) // 2, float("inf")
+    for i in range(n):
+        x1, y1 = pol[2 * i], pol[2 * i + 1]
+        x2, y2 = pol[2 * ((i + 1) % n)], pol[2 * ((i + 1) % n) + 1]
+        dx, dy = x2 - x1, y2 - y1
+        t = 0 if dx == dy == 0 else max(0, min(1, ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy)))
+        mejor = min(mejor, math.hypot(x - x1 - t * dx, y - y1 - t * dy))
+    return mejor
+
+
+def _claridad(hexa):
+    """Luminancia relativa de un color `#rrggbb` (sRGB)."""
+    def lin(u):
+        u /= 255
+        return u / 12.92 if u <= 0.04045 else ((u + 0.055) / 1.055) ** 2.4
+    r, g, b = (int(hexa[i:i + 2], 16) for i in (1, 3, 5))
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+
+
+def guardas_de_t22(plantilla: str, marcado: str) -> list[str]:
+    """Lo que los mapas y gráficos de R2 · T2.2 dan por sabido, contra el dato."""
+    import csv
+    malos = []
+    # Los CSV del dato crudo, que escribe R junto a los JSON. Con el arnés de
+    # inyección este guion corre desde una copia: `ESPACIAL_RAIZ` dice dónde
+    # está el árbol de verdad, como para la bibliografía.
+    crudos = pathlib.Path(os.environ.get("ESPACIAL_RAIZ") or RAIZ) / "precalculo" / "salidas"
+
+    def exige(cond, que):
+        if not cond:
+            malos.append(que)
+
+    # --- G-09: la banda del marcador, en unidades del eje -----------------
+    exige("eje.getPixelForValue(i - medio)" in SIMULADORES_JS and "fillRect(x - 10" not in SIMULADORES_JS,
+          "marcador: la banda vuelve a medirse en píxeles y no en unidades del eje")
+
+    # --- G-20: las celdas de Snow y el naranja de Broad Street ------------
+    sn, ms = D["snow"], M["snow"]
+    celdas = ms.get("celdas", [])
+    exige(len(celdas) == sn["n_bombas"], "Snow: no hay una celda por bomba")
+    if len(celdas) == sn["n_bombas"]:
+        fuera = 0
+        for i, marca in enumerate(ms["marcas"]):
+            x, y = ms["pts"][2 * i], ms["pts"][2 * i + 1]
+            pol = celdas[marca - 1]
+            # Dos unidades de la cuantización de holgura: una muerte pegada
+            # al borde de su celda puede caer del otro lado al redondear.
+            if not _dentro(x, y, pol) and _a_borde(x, y, pol) > 2:
+                fuera += 1
+        exige(fuera == 0, f"Snow: {fuera} muerte(s) fuera de la celda de la bomba que llevan por marca")
+        # Cada bomba, dentro de su propia celda.
+        exige(all(_dentro(ms["puntos2"][2 * k], ms["puntos2"][2 * k + 1], celdas[k])
+                  for k in range(sn["n_bombas"])), "Snow: alguna bomba no cae en su celda")
+    exige(ms.get("leyenda") == "", "Snow: el mapa vuelve a llevar pie de leyenda, debajo de las entradas")
+    import re as _re
+    m = _re.search(r"const GEOMAPA_CUALITATIVA = \[(.*?)\];", plantilla, _re.S)
+    cual = _re.findall(r"'(#[0-9A-Fa-f]{6})'", m.group(1)) if m else []
+    exige(len(cual) >= sn["n_bombas"] and cual.count("#D55E00") == 1
+          and cual.index("#D55E00") != sn["bomba_broad"] - 1,
+          "Snow: la paleta cualitativa de la plantilla ya no es la que el cambio de color da por sabida")
+    exige(cual.count("#E69F00") == 1 and "#F0E442" not in [c.upper() for c in cual],
+          "Snow: la paleta de la plantilla ya no trae el ámbar que se cambia por amarillo, o ya trae ese amarillo")
+    exige("#FF6600" not in [c.upper() for c in cual],
+          "Snow: la paleta cualitativa ya trae el naranja del acento: dos bombas saldrían del mismo color")
+    exige("const GEOMAPA_ACENTO = '#FF6600';" in plantilla, "Snow: el acento de la plantilla ya no es el naranja")
+
+    # --- G-04: el Mosa -----------------------------------------------------
+    mm = M["meuse"]
+    exige(mm.get("marcas_escala") == "log" and min(mm["marcas"]) > 0,
+          "Mosa: la rampa del zinc ya no recorre el logaritmo")
+    exige(len(mm.get("lineas", [])) == 2 and all(len(l) >= 8 for l in mm["lineas"]),
+          "Mosa: el mapa no trae las dos orillas del río")
+    with open(crudos / "cap1_meuse.csv", encoding="utf-8") as f:
+        crudo = list(csv.DictReader(f))
+    xy = _coords_de_mapa(mm)
+    exige(len(crudo) == len(xy) and all(
+        abs(round(px) - float(c["x"])) <= 1 and abs(round(py) - float(c["y"])) <= 1
+        and float(c["zinc"]) == z for (px, py), c, z in zip(xy, crudo, mm["marcas"])),
+        "Mosa: la tabla de respaldo no da la posición (al metro) o el zinc del dato")
+
+    # --- G-24: las coordenadas de los tres patrones ------------------------
+    with open(crudos / "cap1_ppp.csv", encoding="utf-8") as f:
+        ppp = list(csv.DictReader(f))
+    for clave in ("japanesepines", "redwood", "cells"):
+        dato = [(float(c["x"]), float(c["y"])) for c in ppp if c["patron"] == clave]
+        mapa = _coords_de_mapa(M[clave])
+        exige(len(dato) == len(mapa) and all(
+            f"{a:.3f}" == f"{round(b, 3) + 0:.3f}" and f"{c:.3f}" == f"{round(d, 3) + 0:.3f}"
+            for (a, c), (b, d) in zip(mapa, dato)),
+            f"{clave}: la tabla de respaldo no da las coordenadas del dato a tres decimales")
+
+    # --- G-05: la temperatura ------------------------------------------------
+    luz = [_claridad(c) for c in PALETA_TERMICA]
+    exige(all(a < b for a, b in zip(luz, luz[1:])),
+          "IDEAM: la rampa de la temperatura no va de oscuro a claro de punta a punta")
+    exige(_re.search(r"\btermica\s*:", plantilla) is None,
+          "IDEAM: la plantilla ya trae una paleta «termica» y este capítulo la pisaría")
+    exige(len(M["ideam"].get("lineas", [])) >= 1, "IDEAM: el mapa no trae el contorno del país")
+    # «Las del archipiélago de San Andrés, arriba a la izquierda, se ven sobre
+    # el mar»: hay estaciones en la esquina noroeste del dibujo, y ninguna de
+    # ellas cae dentro de un anillo del contorno que se llegue a ver (los de
+    # las islas miden menos que un punto).
+    mi = M["ideam"]
+    esquina = [(mi["pts"][i], mi["pts"][i + 1]) for i in range(0, len(mi["pts"]), 2)
+               if mi["pts"][i] < mi["q"] / 4 and mi["pts"][i + 1] > 3 * mi["q"] / 4]
+    visibles = [l for l in mi.get("lineas", [])
+                if max(l[0::2]) - min(l[0::2]) > 40 or max(l[1::2]) - min(l[1::2]) > 40]
+    exige(esquina and visibles and not any(_dentro(x, y, l) for x, y in esquina for l in visibles),
+          "IDEAM: «las de San Andrés, arriba a la izquierda, se ven sobre el mar» ya no vale")
+    pa = D["visto"]["ideam"]["por_altitud"]
+    exige(sum(f["n"] for f in pa) == D["colombia"]["geo"]["n"]
+          and all(a["hasta"] == b["desde"] for a, b in zip(pa, pa[1:]))
+          and all(a["t_media"] > b["t_media"] for a, b in zip(pa, pa[1:])),
+          "IDEAM: las franjas de altitud no reparten las estaciones, o la temperatura ya no baja con la altura")
+
+    # --- G-06 y G-07: los campos y las realizaciones ------------------------
+    inf = D["inferencia"]
+    for familia, lista in (("campo", M["campos"]), ("realización", M["realizaciones"])):
+        for g in lista:
+            c = g["cortes"]
+            exige(g.get("centro") == 0 and abs(g["rango"][0] + g["rango"][1]) < 1e-6
+                  and all(abs(c[k] + c[-1 - k]) < 1e-6 for k in range(len(c)))
+                  and len(c) % 2 == 0,
+                  f"{familia}: la escala ya no es simétrica y centrada en 0 («{g['titulo']}»)")
+            exige(sum(g.get("tam", [])) == g["nx"] * g["ny"] and len(g.get("tam", [])) == len(c) - 1,
+                  f"{familia}: `tam` no reparte las celdas entre las clases («{g['titulo']}»)")
+        exige(len({tuple(g["rango"]) for g in lista}) == 1,
+              f"{familia}: los mapas de la familia ya no comparten escala")
+    exige(all(g["nx"] == inf["k"] and g["ny"] == inf["k"] for g in M["campos"]),
+          "campo: el mapa ya no va en la retícula de la simulación")
+    c4 = [g for g in M["campos"] if g["phi"] == inf["cien_ic"]["phi"]]
+    exige(len(c4) == 1 and abs(c4[0]["media_espacial"] - inf["cien_ic"]["media"][0]) < 1e-6,
+          "campo: el del alcance destacado ya no es la réplica 1 de la simulación")
+    exige(not any("rango" in g["titulo"] for g in M["campos"]),
+          "campo: el título vuelve a llamar «rango» al alcance")
+
+    # --- G-13: el encuadre acercado ------------------------------------------
+    ma = M["agregacion"]
+    z = ma.get("zoom", {})
+    cj, cz = ma["caja"], z.get("caja", [0, 0, 0, 0])
+    exige(cj[0] - 1e-6 <= cz[0] < cz[2] <= cj[2] + 1e-6 and cj[1] - 1e-6 <= cz[1] < cz[3] <= cj[3] + 1e-6,
+          "agregación: la ventana del acercamiento se sale de la caja del mapa")
+    exige(z.get("n_celdas") == z.get("columnas", 0) * z.get("filas", 0),
+          "agregación: las celdas del acercamiento no son columnas por filas")
+    rx, ry = cj[2] - cj[0], cj[3] - cj[1]
+    r = max(rx, ry)
+    o = (cj[0] + rx / 2 - r / 2, cj[1] + ry / 2 - r / 2)
+    for k in ma["lineas_resaltadas"]:
+        seg = ma["lineas"][k - 1]
+        xs = [v / ma["q"] * r + o[0] for v in seg[0::2]]
+        ys = [v / ma["q"] * r + o[1] for v in seg[1::2]]
+        tol = 2 * r / ma["q"]
+        exige(cz[0] - tol <= min(xs) and max(xs) <= cz[2] + tol and cz[1] - tol <= min(ys) and max(ys) <= cz[3] + tol,
+              f"agregación: la celda resaltada {k} queda fuera del acercamiento")
+
+    # --- G-21: una proporción sobre mil lleva un decimal ----------------------
+    ur = D["una_realizacion"]
+    cuenta = ur["pct_rechaza_ingenuo"] * ur["n_realizaciones"] / 100
+    exige(abs(cuenta - round(cuenta)) < 1e-9 and abs(ur["pct_rechaza_ingenuo"] * 10 - round(ur["pct_rechaza_ingenuo"] * 10)) < 1e-9,
+          "módulo 6: el porcentaje de rechazos ya no cabe en un decimal y la lectura lo escribe con uno")
+
+    # --- G-18: las pesas ------------------------------------------------------
+    ec = D["escala_correlacion"]
+    aleja = sum(abs(p["r_departamental"]) > abs(p["r_municipal"]) for p in ec["pares"])
+    cruza = sum(p["r_departamental"] * p["r_municipal"] < 0 for p in ec["pares"])
+    exige(aleja == ec["n_suben"] and len(ec["pares"]) - aleja == ec["n_bajan"] and cruza == ec["n_invierten"]
+          and ec["n_invierten_entre_bajan"] == cruza
+          and all(-1 <= p["r_municipal"] <= 1 and -1 <= p["r_departamental"] <= 1 for p in ec["pares"]),
+          "módulo 7: «se alejan del 0», «se acercan» y «lo cruzan» ya no cuentan lo que R publica")
+    exige(all(abs(q["r_departamental_n30"]) < abs(q["r_municipal_n30"])
+              for q in ec["caso_aviso"]["bajan_sin_estrato"]),
+          "módulo 7: los pares sin estrato ya no «se acercan al cero» con el umbral de estudiantes")
+
+    # --- G-15: los dos repartos de la validación cruzada ----------------------
+    cv, mi = D["cv_espacial"], M["ideam"]
+    for clave in ("pliegue_aleatorio", "pliegue_bloques"):
+        v = mi.get(clave, [])
+        exige(len(v) == cv["n"] and set(v) == set(range(1, cv["n_pliegues"] + 1)),
+              f"módulo 10: `{clave}` no reparte las estaciones en los pliegues")
+    exige(sorted(mi.get("pliegue_bloques", []).count(k) for k in range(1, cv["n_pliegues"] + 1))
+          == cv["tam_pliegues"], "módulo 10: los pliegues del mapa no tienen los tamaños publicados")
+    exige(cv["vecina_en_su_pliegue_aleatoria"] * 4 < cv["n"] < cv["vecina_en_su_pliegue_bloques"] * 4 / 3,
+          "módulo 10: «casi nunca» y «casi siempre» ya no describen dónde queda la vecina más próxima")
+    exige(cv["rmse_bloques"] > cv["sd_variable"] > cv["rmse_aleatoria"] and cv["r2_bloques"] < 0 < cv["r2_aleatoria"],
+          "módulo 10: la barra de los bloques ya no supera la desviación típica, o el R² ya no es negativo")
+
+    # --- G-25: el deslizador de rho lleva el de Colombia ----------------------
+    exige("rt.implicito]))].sort(" in SIMULADORES_JS and "ne.rhos.filter(v => v <= RHO_MAX)" in SIMULADORES_JS,
+          "módulo 5: las posiciones del deslizador ya no salen de la rejilla de R y del rho de Colombia")
+    rt = D["n_efectivo"]["rho_del_titular"]["implicito"]
+    exige(0 < rt < 0.3 and all(abs(rt - v) > 5e-4 for v in D["n_efectivo"]["rhos"] + [0.001, 0.002, 0.005, 0.03, 0.075, 0.15]),
+          "módulo 5: el rho de Colombia coincide con otra posición del deslizador, o queda fuera de su recorrido")
+
+    # --- G-08: dos paneles ------------------------------------------------------
+    exige('data-panel="ee"' in marcado and 'data-panel="cobertura"' in marcado and "yAxisID" not in SIMULADORES_JS,
+          "módulo 4: los errores estándar y la cobertura vuelven a compartir lienzo con dos ejes")
+    return malos
+
+
 GEOMAPAS_JS = (
     "    // ----------------------------------------------------------------\n"
     "    // Los mapas del capítulo. La geometría llega cuantizada desde\n"
@@ -3466,26 +3877,34 @@ GEOMAPAS_JS = (
     + geomapa("cap1-snow", "snow",
               etiqueta=("Mapa de Snow: las 578 muertes por cólera del Soho en 1854, sobre 528 "
                         "segmentos de calle, con las 13 bombas de agua en rombo y la de Broad "
-                        "Street resaltada. La tabla de respaldo da las muertes por bomba."),
+                        "Street resaltada, y a trazos las celdas de las bombas. La tabla de respaldo "
+                        "da las muertes por bomba."),
               extra=("      nombre2: 'bombas de agua',\n"
                      "      get marcaResaltada() { return snowModo === 'broad' ? D1.snow.bomba_broad : null; },\n"
                      "      get lineas() { return snowModo !== 'sinlineas'; },\n"
+                     # El título dice qué significa el color en cada vista: es el
+                     # título de la leyenda, y va encima de ella (G-20).
+                     "      get titulo() { return TITULO1_SNOW[snowModo]; },\n"
                      "      descripcion: () => DESC1_SNOW[snowModo]"),
               tabla=TABLA_SNOW)
     # Los pinos salen DOS veces —módulo 2 como caso nulo, módulo 3 en la
     # terna—, y con un solo registro: el motor pinta cada `.geomapa` en su
     # propio lienzo, así que reusar el identificador no duplica los 130
     # enteros de las coordenadas en el JS.
-    + geomapa("cap1-pinos", "japanesepines", extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))
+    + geomapa("cap1-pinos", "japanesepines", tabla=TABLA_PUNTOS,
+              extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))
     # Secuoyas y células llevaban desde T1.2 calculadas en `genera_cap1.R`,
     # exportadas a cap1_mapas.json y sin dibujarse en ninguna parte,
     # mientras el módulo 2 afirmaba que «el módulo 3 pone tres patrones
     # puntuales uno al lado del otro» y el módulo 3 ponía una tabla. Se
     # registran aquí porque la terna ES el argumento: sin ver los tres, la
     # frase «el ojo no los separa» hay que creérsela. (2026-08-10)
-    + geomapa("cap1-secuoyas", "redwood", extra="      descripcion: " + json.dumps(DESC_SECUOYAS, ensure_ascii=False))
-    + geomapa("cap1-celulas", "cells", extra="      descripcion: " + json.dumps(DESC_CELULAS, ensure_ascii=False))
-    + geomapa("cap1-bogota", "bogota", extra="      descripcion: " + json.dumps(DESC_BOGOTA, ensure_ascii=False))
+    + geomapa("cap1-secuoyas", "redwood", tabla=TABLA_PUNTOS,
+              extra="      descripcion: " + json.dumps(DESC_SECUOYAS, ensure_ascii=False))
+    + geomapa("cap1-celulas", "cells", tabla=TABLA_PUNTOS,
+              extra="      descripcion: " + json.dumps(DESC_CELULAS, ensure_ascii=False))
+    + geomapa("cap1-bogota", "bogota", tabla=TABLA_BOGOTA,
+              extra="      descripcion: " + json.dumps(DESC_BOGOTA, ensure_ascii=False))
     + geomapa("cap1-nc", "nc", paleta="verde", tabla=TABLA_CLASES,
               extra="      descripcion: " + json.dumps(DESC_NC, ensure_ascii=False))
     # El mapa del módulo 7. Su `fuente` es un literal como los demás —lo
@@ -3500,17 +3919,106 @@ GEOMAPAS_JS = (
                      "      get nombreLineasResaltadas() { return 'celdas que toca'; },\n"
                      "      get etiquetasLineas() { return agregEtiquetas(); },\n"
                      "      get etiqueta() { return agregAlt(); },\n"
-                     "      descripcion: () => DESC1_AGREG[agregModo]"),
+                     "      descripcion: () => DESC1_AGREG[agregModo + '-' + agregVista]"),
               tabla=TABLA_AGREGACION)
+    # EL ENCUADRE ACERCADO (R2 · T2.2, G-13). El literal de arriba es el mapa
+    # entero, y es lo que el auditor de texto comprueba. La vista acercada no
+    # trae geometría nueva: son los mismos vértices, pasados del marco de la
+    # caja entera al de la ventana que calcula R (`zoom.caja`). Es un cambio
+    # de marco —una resta y un cociente por coordenada—, no un cálculo: las
+    # clases, los cortes, el resalte y la rejilla son los del literal. El
+    # registro entrega una u otra según el botón.
+    + """    (function () {
+      const base = GEOMAPAS['cap1-agregacion'].fuente, z = base.zoom;
+      const marco = c => {
+        const rx = c[2] - c[0], ry = c[3] - c[1], r = Math.max(rx, ry);
+        return { r: r, o: [c[0] + rx / 2 - r / 2, c[1] + ry / 2 - r / 2] };
+      };
+      const m0 = marco(base.caja), m1 = marco(z.caja);
+      const pasa = v => v.map((t, i) => ((t / base.q * m0.r + m0.o[i % 2]) - m1.o[i % 2]) / m1.r * base.q);
+      const cerca = Object.assign({}, base, {
+        caja: z.caja,
+        geom: base.geom.map(rasgo => rasgo.map(pasa)),
+        lineas: base.lineas.map(pasa),
+        // El lienzo deja ver, además de los rectángulos de la ventana, el
+        // borde de los que la rodean: el título dice lo que se ve.
+        titulo: 'La zona de ' + AGREG_CASO().nombre + ': ' + z.n_celdas + ' rectángulos enteros de los '
+          + D1.agregacion_soporte.nc.n_celdas + ' de la rejilla, y el borde de sus vecinos'
+      });
+      Object.defineProperty(GEOMAPAS['cap1-agregacion'], 'fuente', {
+        get() { return agregVista === 'zoom' ? cerca : base; }
+      });
+    })();
+"""
     + geomapa("cap1-desercion", "desercion", paleta="naranja", tabla=TABLA_CLASES,
               extra="      descripcion: " + json.dumps(DESC_DESERCION, ensure_ascii=False))
-    + geomapa("cap1-meuse", "meuse", paleta="naranja",
-              extra="      descripcion: " + json.dumps(DESC_MEUSE, ensure_ascii=False))
-    + geomapa("cap1-ideam", "ideam", paleta="divergente",
-              extra="      descripcion: " + json.dumps(DESC_IDEAM, ensure_ascii=False))
+    # El río, en el azul de la casa y más grueso que una calle: es lo que
+    # hace legible el mapa, no un fondo (G-04).
+    + geomapa("cap1-meuse", "meuse", paleta="naranja", tabla=TABLA_MEUSE,
+              extra=("      colorLineas: 'rgba(14, 116, 144, 0.9)',\n"
+                     "      anchoLineas: 1.6,\n"
+                     "      descripcion: " + json.dumps(DESC_MEUSE, ensure_ascii=False)))
+    # LA TEMPERATURA NO DIVERGE (G-05). Iba con la paleta divergente: el tono
+    # neutro caía en la mitad del recorrido, un valor sin significado, y el
+    # frío salía naranja. Va con una rampa secuencial propia de este capítulo,
+    # de oscuro a claro y de frío a cálido —violeta, magenta, naranja,
+    # amarillo—, que sigue leyéndose en gris porque la claridad crece de punta
+    # a punta; la guarda de salida lo comprueba.
+    + "    GEOMAPA_PALETAS.termica = " + json.dumps(PALETA_TERMICA) + ";\n"
+    + geomapa("cap1-ideam", "ideam", paleta="termica", tabla=TABLA_IDEAM,
+              extra=("      colorLineas: 'rgba(1, 40, 32, 0.45)',\n"
+                     "      anchoLineas: 1,\n"
+                     "      descripcion: " + json.dumps(DESC_IDEAM, ensure_ascii=False)))
+    # Los dos repartos de la validación cruzada del módulo 10 (G-15): las
+    # mismas estaciones y el mismo contorno que el mapa de arriba, con el
+    # pliegue por marca. La fuente es una función porque se deriva de ese
+    # literal; no lleva `niveles`, así que la leyenda no gasta diez casillas
+    # en decir «pliegue 1… pliegue 10»: lo que importa es si los colores se
+    # mezclan o se agrupan.
+    + """    function pliegues1(clave, titulo) {
+      const base = GEOMAPAS['cap1-ideam'].fuente;
+      return Object.assign({}, base, {
+        titulo: titulo, marcas: base['pliegue_' + clave], marcas_tipo: 'categoria',
+        marcas_escala: undefined,
+        leyenda: 'un color por pliegue · de fondo, el contorno del país'
+      });
+    }
+"""
+    + "".join(
+        f"""    const PLIEGUES1_{ident.upper()} = pliegues1('{clave}', {json.dumps(TITULO_PLIEGUES[clave], ensure_ascii=False)});
+    GEOMAPAS['cap1-pliegues-{ident}'] = {{
+      fuente: () => PLIEGUES1_{ident.upper()},
+      colorLineas: 'rgba(1, 40, 32, 0.45)',
+      anchoLineas: 1,
+      etiqueta: {json.dumps(TITULO_PLIEGUES[clave] + ": las " + ent(_CV["n"]) + " estaciones del IDEAM, con el contorno del país de fondo, cada una con el color de su pliegue.", ensure_ascii=False)},
+      descripcion: {json.dumps(DESC_PLIEGUES[clave], ensure_ascii=False)},
+{TABLA_PLIEGUES}
+    }};
+""" for ident, clave in (("azar", "aleatorio"), ("bloques", "bloques")))
+    + COORDS_JS
     + "    // Lo que se ve en cada estado de los mapas que cambian con un control\n"
       "    // (ver «Describir el mapa» en el ensamblador).\n"
     + "    const DESC1_SNOW = " + json.dumps(_D1_SNOW, ensure_ascii=False) + ";\n"
+    + "    const TITULO1_SNOW = " + json.dumps(_T1_SNOW, ensure_ascii=False) + ";\n"
+    # EL NARANJA ES DE BROAD STREET EN LAS DOS VISTAS (R2 · T2.2, G-20). La
+    # paleta cualitativa del motor reparte sus trece colores por orden, y a la
+    # bomba de Broad Street le tocaba el rosa mientras el bermellón iba a otra:
+    # el naranja significaba Broad Street en una vista y otra bomba en la
+    # siguiente. Aquí, y solo en este capítulo, el color de la casilla de Broad
+    # Street pasa a ser el acento del material y su rosa va a la casilla que
+    # tenía el bermellón, que deja de usarse. La guarda de salida comprueba
+    # que la paleta de la plantilla sigue siendo la que esto da por sabida.
+    + "    (function () {\n"
+      "      const iBroad = D1.snow.bomba_broad - 1, iBermellon = GEOMAPA_CUALITATIVA.indexOf('#D55E00');\n"
+      "      if (iBermellon < 0 || iBermellon === iBroad) return;\n"
+      "      GEOMAPA_CUALITATIVA[iBermellon] = GEOMAPA_CUALITATIVA[iBroad];\n"
+      "      GEOMAPA_CUALITATIVA[iBroad] = GEOMAPA_ACENTO;\n"
+      # Y el ámbar de la primera casilla —Oxford Market—, que en la leyenda
+      # quedaba al lado del naranja y se confundía con él, pasa al amarillo
+      # de la misma familia de Okabe e Ito.
+      "      const iAmbar = GEOMAPA_CUALITATIVA.indexOf('#E69F00');\n"
+      "      if (iAmbar >= 0 && iAmbar !== iBroad) GEOMAPA_CUALITATIVA[iAmbar] = '#F0E442';\n"
+      "    })();\n"
     + "    const DESC1_CAMPO = " + json.dumps(DESC_CAMPO, ensure_ascii=False) + ";\n"
     + "    const DESC1_REAL = " + json.dumps(DESC_REAL, ensure_ascii=False) + ";\n"
     + "    const DESC1_AGREG = " + json.dumps(DESC_AGREG, ensure_ascii=False) + ";\n"
@@ -3527,8 +4035,13 @@ GEOMAPAS_JS = (
     GEOMAPAS['cap1-campo'] = {
       fuente: () => campoDePhi(D1.inferencia.rejilla[campoIdx].phi),
       paleta: 'divergente',
-      etiqueta: 'Campo gaussiano simulado sobre una retícula de 28 por 28 celdas; el alcance de la correlación se controla con el deslizador.',
-      descripcion: () => DESC1_CAMPO[String(D1.inferencia.rejilla[campoIdx].phi)]
+      get etiqueta() {
+        return 'Campo gaussiano simulado sobre una retícula de ' + D1.inferencia.k + ' por '
+          + D1.inferencia.k + ' celdas, la de la simulación; el alcance de la correlación se controla '
+          + 'con el deslizador. El blanco es el cero, el naranja lo negativo y el verde lo positivo.';
+      },
+      descripcion: () => DESC1_CAMPO[String(D1.inferencia.rejilla[campoIdx].phi)],
+TABLA_REJILLA_AQUI
     };
     // Y lo mismo con las realizaciones: la fila de cifras manda y el mapa
     // se busca POR SU id. Antes se indexaba `MAPAS_SIM.realizaciones` con
@@ -3540,10 +4053,25 @@ GEOMAPAS_JS = (
     GEOMAPAS['cap1-realizacion'] = {
       fuente: () => realizacionDeId(D1.realizaciones_vistas[realIdx].id),
       paleta: 'divergente',
-      etiqueta: 'Una de las tres primeras realizaciones del lote de mil, del mismo proceso gaussiano, sobre una retícula de 16 por 16 celdas.',
-      descripcion: () => DESC1_REAL[String(D1.realizaciones_vistas[realIdx].id)]
+      get etiqueta() {
+        return 'Una de las ' + D1.realizaciones_vistas.length + ' primeras realizaciones del lote de '
+          + miles1(D1.una_realizacion.n_realizaciones) + ', del mismo proceso gaussiano, sobre una retícula de '
+          + D1.una_realizacion.k + ' por ' + D1.una_realizacion.k + ' celdas. El blanco es el cero, el '
+          + 'naranja lo negativo y el verde lo positivo, con la misma escala en las tres.';
+      },
+      descripcion: () => DESC1_REAL[String(D1.realizaciones_vistas[realIdx].id)],
+TABLA_REJILLA_AQUI
     };
-"""
+    // La tabla de respaldo de un mapa se escribe una vez, al crearlo. La de
+    // estos dos tiene que seguir al control: se rehace con el dato de ahora.
+    function refrescaTabla1(raizMapa, ident) {
+      const vieja = raizMapa && raizMapa.querySelector('details.geomapa-tabla:not(.geomapa-describe) table');
+      if (!vieja) return;
+      const caja = document.createElement('div');
+      caja.innerHTML = GEOMAPAS[ident].tabla(GEOMAPAS[ident].fuente());
+      vieja.innerHTML = caja.querySelector('table').innerHTML;
+    }
+""".replace("TABLA_REJILLA_AQUI", TABLA_REJILLA)
 )
 
 
@@ -3558,6 +4086,9 @@ SIMULADORES_JS = r"""
     // índice en `inferencia.rejilla`; el mapa se busca por phi. Arranca en
     // 4 —phi = 4— que es el caso del que habla la prosa de debajo.
     let snowModo = 'broad', campoIdx = 4, realIdx = 0, agregModo = 'predicado';
+    // El encuadre del mapa del módulo 7: acercado a las celdas del caso, o el
+    // estado entero. Arranca acercado, que es donde se leen las cifras.
+    let agregVista = 'zoom';
 
     // ---- El mapa del módulo 7, sus dos lecturas ----------------------
     // Viven aquí arriba y no dentro del simulador porque los tres las
@@ -3571,8 +4102,14 @@ SIMULADORES_JS = r"""
     // que `lineas_resaltadas` — que es el de `reparto`, y el ensamblador
     // comprueba que sigan siendo el mismo orden. Con «se tocan» las cinco
     // dicen lo mismo, y ver el conteo repetido cinco veces ES la lección.
+    //
+    // Solo en el encuadre acercado (R2 · T2.2, G-13). Con el estado entero
+    // cada celda mide en el teléfono unos 23 × 8 px: los rótulos no caben, y
+    // numerados se montaban unos sobre otros. Ese encuadre queda para ver
+    // dónde está la rejilla; las cifras se leen en el otro.
     function agregEtiquetas() {
       const c = AGREG_CASO();
+      if (agregVista !== 'zoom') return null;
       return agregModo === 'area'
         ? c.reparto.map(r => n5(r.aporte_area, 2))
         : c.reparto.map(() => String(c.sids));
@@ -3580,9 +4117,21 @@ SIMULADORES_JS = r"""
 
     function agregAlt() {
       const g = D1.agregacion_soporte.nc, c = g.condado_caso;
-      const base = `Los ${D1.area_canonico.n} condados de Carolina del Norte coloreados por sus muertes `
-        + `súbitas, con una rejilla de ${g.n_celdas} rectángulos superpuesta. ${c.nombre}, en naranja, `
-        + `cae en ${c.n_celdas_toca} celdas, resaltadas con borde grueso`;
+      const z = GEOMAPAS['cap1-agregacion'].fuente.zoom;
+      const base = (agregVista === 'zoom'
+        ? `La zona de ${c.nombre}, acercada: ${z.n_celdas} rectángulos enteros de los ${g.n_celdas} de la `
+          + `rejilla, y el borde de sus vecinos, sobre los condados de Carolina del Norte, coloreados por `
+          + `sus muertes súbitas. `
+        : `Los ${D1.area_canonico.n} condados de Carolina del Norte coloreados por sus muertes `
+          + `súbitas, con una rejilla de ${g.n_celdas} rectángulos superpuesta. `)
+        + `${c.nombre}, en naranja, cae en ${c.n_celdas_toca} celdas, resaltadas con borde grueso`;
+      if (agregVista !== 'zoom') {
+        return agregModo === 'area'
+          ? `${base}. Repartiendo por área, las ${c.n_celdas_toca} reciben entre todas las ${c.sids} `
+            + `muertes del condado.`
+          : `${base}. Emparejar por «se tocan» entrega las ${c.sids} muertes del condado a cada una: `
+            + `${c.aporte_predicado} en total.`;
+      }
       return agregModo === 'area'
         ? `${base}. Cada celda lleva escrito lo que le tocaría repartiendo por área; las `
           + `${c.n_celdas_toca} cifras suman las ${c.sids} muertes del condado.`
@@ -3598,19 +4147,79 @@ SIMULADORES_JS = r"""
       afterDatasetsDraw(chart) {
         const i = chart.$marcadorX;
         if (i === undefined || i === null) return;
-        const x = chart.scales.x.getPixelForValue(i);
+        const eje = chart.scales.x;
+        const x = eje.getPixelForValue(i);
         const a = chart.chartArea, ctx = chart.ctx;
+        // LA BANDA SE MIDE EN UNIDADES DEL EJE, no en píxeles (R2 · T2.2, G-09).
+        // Medía 20 px fijos: a 375 px cada día de la serie de Snow ocupa unos
+        // 4, y la banda del mango cubría cinco días cuando el dato dice uno.
+        // Ahora va de media categoría antes a media después —un día, en esa
+        // serie—, o lo que diga `$marcadorAncho`, también en categorías.
+        const medio = (chart.$marcadorAncho === undefined ? 1 : chart.$marcadorAncho) / 2;
+        const x0 = Math.max(a.left, eje.getPixelForValue(i - medio));
+        const x1 = Math.min(a.right, eje.getPixelForValue(i + medio));
         ctx.save();
         // Fuera de COLORES_GRAFICO a propósito: los cuatro colores están
         // gastados y un marcador del color de una serie se lee como serie.
         ctx.fillStyle = 'rgba(1, 40, 32, 0.10)';
-        ctx.fillRect(x - 10, a.top, 20, a.bottom - a.top);
+        ctx.fillRect(x0, a.top, x1 - x0, a.bottom - a.top);
         ctx.strokeStyle = 'rgba(1, 40, 32, 0.75)';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x, a.top);
         ctx.lineTo(x, a.bottom);
         ctx.stroke();
+        ctx.restore();
+      }
+    });
+
+    // Una recta horizontal de referencia que cruza TODO el trazado, con su
+    // rótulo, y la cifra de cada barra encima de ella (R2 · T2.2). Las
+    // «líneas» de `crearGraficoBarras` son una serie más: van del centro de
+    // la primera barra al de la última y no llevan cifra. Inerte mientras
+    // nadie ponga `$rectaY` o `$cifrasBarras`.
+    Chart.register({
+      id: 'rectaY',
+      afterDatasetsDraw(chart) {
+        const a = chart.chartArea, ctx = chart.ctx, eje = chart.scales.y;
+        ctx.save();
+        ctx.font = "600 11px 'Fira Code', monospace";
+        ctx.textBaseline = 'bottom';
+        // Las cajas de las cifras, para que el rótulo de la recta no las pise.
+        const cajas = [];
+        if (chart.$cifrasBarras) {
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#012820';
+          chart.getDatasetMeta(0).data.forEach((barra, i) => {
+            const t = chart.$cifrasBarras[i], w = ctx.measureText(t).width;
+            const y = Math.min(barra.y, eje.getPixelForValue(0)) - 4;
+            ctx.fillText(t, barra.x, y);
+            cajas.push({ x0: barra.x - w / 2, x1: barra.x + w / 2, y0: y - 13, y1: y });
+          });
+        }
+        const r = chart.$rectaY;
+        chart.$rotuloPisado = false;
+        if (r) {
+          const y = eje.getPixelForValue(r.valor);
+          // El rótulo va a la izquierda, sobre la recta. Si con su texto
+          // largo alcanzara la cifra de una barra —en el teléfono—, va el
+          // corto; y si aun así la pisara, se dice (`$rotuloPisado`), que es
+          // lo que la medición del capítulo lee.
+          const pisa = t => cajas.some(c => a.left + 6 + ctx.measureText(t).width + 4 > c.x0
+            && a.left + 6 < c.x1 && y - 3 > c.y0 && y - 16 < c.y1);
+          const rotulo = pisa(r.rotulo) ? r.corto : r.rotulo;
+          chart.$rotuloPisado = pisa(rotulo);
+          ctx.strokeStyle = COLORES_GRAFICO.secundario;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          ctx.moveTo(a.left, y);
+          ctx.lineTo(a.right, y);
+          ctx.stroke();
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#8a3d00';
+          ctx.fillText(rotulo, a.left + 6, y - 3);
+        }
         ctx.restore();
       }
     });
@@ -3631,17 +4240,30 @@ SIMULADORES_JS = r"""
     // discrepar, que es lo que T1.4.e cerró para la leyenda de Chart.js y lo
     // que la verificación de T1.3 encontró aquí. Sin el argumento se comporta
     // como antes, así que las botoneras de estado local no se enteran.
-    function botonera(raiz, opciones, alPulsar, valorInicial) {
-      const cont = raiz.querySelector('.simulador-controles');
+    //
+    // `grupo` (R2 · T2.2) es para el simulador que lleva DOS botoneras: con
+    // él la botonera no vacía el contenedor, sino que se añade como un grupo
+    // con nombre —`role="group"` y `aria-label`— en su propio renglón, y solo
+    // atiende a sus botones. Sin él, todo como estaba.
+    function botonera(raiz, opciones, alPulsar, valorInicial, grupo) {
+      const cont0 = raiz.querySelector('.simulador-controles');
       // Si el valor no está entre las opciones se marca la primera, como
       // hacía siempre: mejor un mando coherente consigo mismo que ninguno.
       const ini = Math.max(0, opciones.findIndex(o => String(o[0]) === String(valorInicial)));
+      let cont = cont0;
+      if (grupo) {
+        cont = document.createElement('div');
+        cont.setAttribute('role', 'group');
+        cont.setAttribute('aria-label', grupo);
+        cont.style.cssText = 'display:flex;flex-wrap:wrap;gap:0.5rem;flex-basis:100%;';
+        cont0.appendChild(cont);
+      }
       cont.innerHTML = opciones.map((o, i) =>
         `<button type="button" class="geomapa-boton${i === ini ? ' activo' : ''}" ` +
         `aria-pressed="${i === ini}" data-v="${o[0]}">${o[1]}</button>`).join('');
       cont.addEventListener('click', e => {
         const b = e.target.closest('.geomapa-boton');
-        if (!b) return;
+        if (!b || b.parentElement !== cont) return;
         cont.querySelectorAll('.geomapa-boton').forEach(x => {
           x.classList.remove('activo');
           x.setAttribute('aria-pressed', 'false');
@@ -3701,29 +4323,88 @@ SIMULADORES_JS = r"""
     // 1.1 · El mapa de Snow -------------------------------------------
     SIMULADORES['snow-mapa'] = function (raiz) {
       const s = D1.snow;
+      const d = GEOMAPAS['cap1-snow'].fuente;
       const mapa = () => raiz.querySelector('[data-geomapa="cap1-snow"]');
-      const pinta = () => { const m = mapa(); if (m && m.__geomapa) m.__geomapa.dibuja(); };
+      // LAS CELDAS DE LAS TRECE BOMBAS (R2 · T2.2, G-20). La lectura habla de
+      // «la celda de Broad St» y el mapa no la dibujaba. Son los polígonos de
+      // Voronoi que calcula R (`celdas`), cuantizados contra la misma caja que
+      // los puntos. El motor no tiene una segunda capa de líneas, así que se
+      // trazan ENCIMA de lo que él pinta, con el mismo ajuste que devuelve su
+      // `dibuja()`: a trazos finos las trece y, en el modo de Broad Street, la
+      // suya con borde naranja. Sin las calles no van: ese modo existe para
+      // ver la mancha sola.
+      const pintaCeldas = aj => {
+        const m = mapa();
+        if (!aj || !m || !d.celdas || snowModo === 'sinlineas') return;
+        const ctx = m.__geomapa.canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const traza = c => {
+          ctx.beginPath();
+          for (let i = 0; i < c.length; i += 2) {
+            if (i) ctx.lineTo(aj.x(c[i]), aj.y(c[i + 1]));
+            else ctx.moveTo(aj.x(c[i]), aj.y(c[i + 1]));
+          }
+          ctx.closePath();
+        };
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.setLineDash([5 * dpr, 4 * dpr]);
+        ctx.strokeStyle = 'rgba(1, 40, 32, 0.6)';
+        ctx.lineWidth = dpr;
+        d.celdas.forEach(c => { traza(c); ctx.stroke(); });
+        if (snowModo === 'broad') {
+          ctx.setLineDash([]);
+          ctx.strokeStyle = GEOMAPA_ACENTO;
+          ctx.lineWidth = 2.2 * dpr;
+          traza(d.celdas[s.bomba_broad - 1]);
+          ctx.stroke();
+        }
+        ctx.restore();
+        // Y la leyenda las explica. El motor la reescribe en cada trazo, así
+        // que se añaden después de él, como las celdas.
+        const ley = m.querySelector('.geomapa-leyenda');
+        if (ley && !ley.querySelector('.celdas-snow')) {
+          const entrada = (borde, texto) => `<span class="geomapa-clase celdas-snow">`
+            + `<span class="geomapa-muestra" style="background:transparent;border:${borde}"></span>`
+            + `<span>${texto}</span></span>`;
+          ley.insertAdjacentHTML('beforeend',
+            entrada('1px dashed rgba(1, 40, 32, 0.7)', 'celda de cada bomba: lo que le queda más cerca')
+            + (snowModo === 'broad' ? entrada('2px solid ' + GEOMAPA_ACENTO, 'celda de Broad St') : ''));
+        }
+      };
+      const pinta = () => { const m = mapa(); if (m && m.__geomapa) pintaCeldas(m.__geomapa.dibuja()); };
+      // El motor repinta el mapa por su cuenta cuando cambia de tamaño, y ese
+      // trazo se lleva las celdas. Se vuelven a poner en el cuadro siguiente:
+      // dentro del mismo aviso de tamaño no se puede, porque el del motor
+      // puede llegar después. El primer trazo va por la misma vía: al
+      // construirse el simulador el mapa todavía no existe.
+      let cuadro = 0;
+      const repinta = () => { cancelAnimationFrame(cuadro); cuadro = requestAnimationFrame(pinta); };
+      const vigia = new ResizeObserver(repinta);
+      vigia.observe(mapa());
       const lee = () => {
         if (snowModo === 'todas') {
           lectura(raiz, [['bombas', s.n_bombas],
             ['un color por bomba', 'trece categorías: más de las que una paleta cualitativa separa'],
-            ['la del centro', 'Broad Street, en rombo naranja']]);
+            ['en naranja', 'Broad Street: sus muertes y su rombo, como en la otra vista'],
+            ['a trazos', 'la celda de cada bomba: lo que le queda más cerca que cualquier otra']]);
         } else if (snowModo === 'sinlineas') {
           lectura(raiz, [['muertes', s.n_muertes],
             ['sin el fondo', 'la mancha sigue ahí: no la dibujaban las calles']]);
         } else {
-          lectura(raiz, [['muertes de la celda de Broad St', `${s.n_mas_cerca_broad} de ${s.n_muertes}`],
+          lectura(raiz, [['muertes de la celda de Broad St, la del borde naranja', `${s.n_mas_cerca_broad} de ${s.n_muertes}`],
             ['porcentaje', n5(s.pct_mas_cerca_broad) + ' %'],
             ['reparto ingenuo, por igual entre bombas', n5(s.pct_esperado_uniforme) + ' %'],
             ['razón sobre ese reparto', n5(s.razon_sobre_uniforme) + '×']]);
         }
       };
       botonera(raiz, [['broad', 'Broad Street contra el resto'],
-                      ['todas', 'Un color por bomba (13)'],
+                      ['todas', 'Un color por bomba (' + s.n_bombas + ')'],
                       ['sinlineas', 'Sin las calles']],
         v => { snowModo = v; pinta(); lee(); }, snowModo);
       lee();
-      return [];
+      // Lo que se destruye al salir del módulo: el vigía y el cuadro pendiente.
+      return [{ destroy() { vigia.disconnect(); cancelAnimationFrame(cuadro); } }];
     };
 
     // 7.1 · El doble conteo, celda a celda -----------------------------
@@ -3746,7 +4427,7 @@ SIMULADORES_JS = r"""
           lectura(raiz, [['la regla', '«repartir por área» — st_interpolate_aw'],
             ['a cada celda', '«su parte», proporcional al área que le cae'],
             [`${c.nombre} aporta`, `${c.sids} en total, que son las que tiene`],
-            ['la celda que solo roza', `${n5(c.roce_pct, 4)} % del condado → ${n5(c.roce_aporte_area, 4)} muertes`],
+            ['la celda que solo roza', `${n5(c.roce_pct)} % del condado → ${n5(c.roce_aporte_area)} muertes`],
             ['total sobre la rejilla', `${miles1(g.total_por_area)}, el exacto`]]);
         } else {
           lectura(raiz, [['la regla', '«se tocan» — st_intersects'],
@@ -3758,7 +4439,10 @@ SIMULADORES_JS = r"""
       };
       botonera(raiz, [['predicado', 'Emparejar por «se tocan»'],
                       ['area', 'Repartir por área']],
-        v => { agregModo = v; pinta(); lee(); }, agregModo);
+        v => { agregModo = v; pinta(); lee(); }, agregModo, 'Regla de agregación');
+      botonera(raiz, [['zoom', 'Acercar a ' + c.nombre],
+                      ['estado', 'El estado entero']],
+        v => { agregVista = v; pinta(); }, agregVista, 'Encuadre del mapa');
       lee();
       return [];
     };
@@ -3793,7 +4477,9 @@ SIMULADORES_JS = r"""
       const g = crearGraficoLinea(canvas, s.serie_fecha.map(corto),
         SERIES.map(x => ({ label: x.etiqueta, data: x.diario, borderColor: x.color,
           backgroundColor: x.fondo, fill: x.fondo !== undefined, tension: 0.25, pointRadius: 0 })),
-        { scales: { y: { title: { display: true, text: 'casos por día' } } } });
+        // Cinco fechas a lo sumo: con más, en el teléfono se pisaban.
+        { scales: { x: { title: { display: true, text: 'día (mes/día de 1854)' }, ticks: { maxTicksLimit: 5 } },
+                    y: { title: { display: true, text: 'casos por día' } } } });
       // El día del mango, con el marcador de T1.2. Antes era un dataset de 43
       // valores con UNO no nulo y pointRadius 0: un punto suelto sin vecinos
       // y sin radio no pinta nada, así que la serie existía solo en la
@@ -3869,35 +4555,17 @@ SIMULADORES_JS = r"""
     };
 
     // Las tres gráficas de R2 · T2.4 llevan el eje horizontal LINEAL, no de
-    // categorías, y por eso declaran sus escalas enteras: fuente, rejilla y
-    // rotación. `crearGraficoLinea` fusiona las opciones de la casa con las
-    // del simulador, y la fusión está cambiando de superficial a profunda;
-    // escritas así, estas tres salen igual con cualquiera de las dos.
-    const EJE_X_LINEAL = (titulo, extra) => Object.assign({
-      type: 'linear',
-      title: { display: true, text: titulo, font: { family: 'Montserrat', size: 11 } },
-      ticks: { font: { family: 'Montserrat', size: 11 }, maxRotation: 0, autoSkip: false },
-      grid: { display: false }
-    }, extra || {});
-    // En el teléfono el título del eje vertical se quita: girado ocupa una
-    // columna de píxeles que el área de trazado necesita, y lo que mide el
-    // eje lo dicen el título del simulador y su entradilla.
-    const ESTRECHO = window.matchMedia('(max-width: 480px)').matches;
-    const EJE_Y_CASA = (titulo, extra) => Object.assign({
-      title: { display: !ESTRECHO, text: titulo, font: { family: 'Montserrat', size: 11 } },
-      ticks: { font: { family: 'Fira Code', size: 11 } },
-      grid: { color: 'rgba(148, 163, 184, 0.2)' }
-    }, extra || {});
-    const LEYENDA_CASA = extra => Object.assign({
-      position: 'bottom',
-      labels: Object.assign({ font: { family: 'Montserrat', size: ESTRECHO ? 11 : 12 },
-                              boxWidth: 14, padding: ESTRECHO ? 6 : 10 },
-        (extra && extra.labels) || {})
-    }, extra ? Object.fromEntries(Object.entries(extra).filter(p => p[0] !== 'labels')) : {});
-    const AVISO_CASA = extra => Object.assign({
-      backgroundColor: '#012820', titleFont: { family: 'Montserrat' },
-      bodyFont: { family: 'Fira Code' }
-    }, extra || {});
+    // categorías. Desde que `crearGraficoLinea` funde las opciones en
+    // profundidad (R2 · T2.1) ya no declaran la letra, la rejilla ni la
+    // rotación: las heredan de la casa, como cualquier otro gráfico, y la
+    // leyenda baja sola al pie en el teléfono. Aquí queda lo único propio:
+    // que el eje es lineal y que sus marcas no se saltan.
+    const EJE_X_LINEAL = (titulo, extra) => fusionarOpcionesGrafico(
+      { type: 'linear', title: { display: true, text: titulo }, ticks: { autoSkip: false } },
+      extra || {});
+    // ¿Teléfono? Se pregunta en cada trazo y no una vez al cargar: quien gira
+    // el teléfono cambia de respuesta con la página abierta.
+    const estrecho = () => window.matchMedia('(max-width: 480px)').matches;
 
     // 1.3 · La prueba de aleatorización --------------------------------
     // El histograma de la nula y el dato, en el mismo eje. Todo sale de
@@ -3941,8 +4609,8 @@ SIMULADORES_JS = r"""
       ], {
         interaction: { mode: 'nearest', axis: 'x', intersect: false },
         plugins: {
-          legend: LEYENDA_CASA({ onClick: () => {} }),
-          tooltip: AVISO_CASA({
+          legend: { onClick: () => {} },
+          tooltip: {
             filter: it => it.datasetIndex === 0 && it.dataIndex > 0 && it.dataIndex <= u + 1,
             callbacks: {
               title: its => its.length
@@ -3950,14 +4618,13 @@ SIMULADORES_JS = r"""
                   + n5(pct(a.hist_n[its[0].dataIndex - 1]), 2) + ' %' : '',
               label: it => it.parsed.y + ' de ' + miles1(a.n_recolocaciones) + ' recolocaciones'
             }
-          })
+          }
         },
         scales: {
           x: EJE_X_LINEAL('% de las muertes más cerca de Broad Street', {
             min: VISTAS.completa.min, max: VISTAS.completa.max,
-            ticks: { font: { family: 'Montserrat', size: 11 }, maxRotation: 0,
-                     stepSize: VISTAS.completa.paso } }),
-          y: EJE_Y_CASA('recolocaciones', { beginAtZero: true })
+            ticks: { stepSize: VISTAS.completa.paso } }),
+          y: { title: { display: true, text: 'recolocaciones' }, beginAtZero: true }
         }
       });
       // Lo dibujado contra lo que R publica por otro lado: el histograma
@@ -4075,9 +4742,9 @@ SIMULADORES_JS = r"""
       // primeras están a 25 km uno de otro y se pisarían.
       const bordes = [t.ideam.bandas[0].d1].concat(t.ideam.bandas.map(b => b.d2));
       // Se guarda un borde si queda a 75 km o más del anterior guardado; en el
-      // teléfono, a 100 o más.
-      const marcas = bordes.reduce((v, x) => (!v.length
-        || x - v[v.length - 1] >= (ESTRECHO ? 100 : 75)) ? v.concat([x]) : v, []);
+      // teléfono, a 100 o más. Se decide en cada composición del eje.
+      const marcas = () => bordes.reduce((v, x) => (!v.length
+        || x - v[v.length - 1] >= (estrecho() ? 100 : 75)) ? v.concat([x]) : v, []);
       const g = crearGraficoLinea(canvas, [],
         // La franja va primero para quedar debajo de las series: el borde
         // superior sin trazo, y el inferior relleno hasta él.
@@ -4097,21 +4764,21 @@ SIMULADORES_JS = r"""
         { interaction: { mode: 'nearest', axis: 'x', intersect: false },
           plugins: {
             // El borde superior no es una serie: es media franja. Fuera de la leyenda.
-            legend: LEYENDA_CASA({ labels: { filter: it => it.text !== BORDE } }),
-            tooltip: AVISO_CASA({
+            legend: { labels: { filter: it => it.text !== BORDE } },
+            tooltip: {
               filter: it => SERIES.some(x => x.etiqueta === it.dataset.label),
               callbacks: {
                 title: its => its.length ? 'banda de ' + t.ideam.bandas[its[0].dataIndex].d1 + ' a '
                   + t.ideam.bandas[its[0].dataIndex].d2 + ' km' : '',
                 label: it => it.dataset.label + ': ' + n5(it.parsed.y)
               }
-            })
+            }
           },
           scales: {
             x: EJE_X_LINEAL('distancia entre estaciones (km)', {
               min: bordes[0], max: bordes[bordes.length - 1],
-              afterBuildTicks: eje => { eje.ticks = marcas.map(v => ({ value: v })); } }),
-            y: EJE_Y_CASA('I de Moran')
+              afterBuildTicks: eje => { eje.ticks = marcas().map(v => ({ value: v })); } }),
+            y: { title: { display: true, text: 'I de Moran' } }
           } });
       const idx = etiqueta => g.data.datasets.findIndex(ds => ds.label === etiqueta);
       // La leyenda de Chart.js también oculta trazos al pulsarla, y sería un
@@ -4271,21 +4938,34 @@ SIMULADORES_JS = r"""
     // 4 · El error estándar ingenuo -----------------------------------
     SIMULADORES['ee-ingenuo'] = function (raiz) {
       const r = D1.inferencia.rejilla;
-      const canvas = raiz.querySelector('canvas');
       const ejes = r.map(f => f.phi);
-      const g = crearGraficoLinea(canvas, ejes, [
+      // DOS PANELES Y NO DOS EJES (R2 · T2.2, G-08). Los errores estándar y la
+      // cobertura iban en el mismo lienzo, cada uno con su eje vertical, y
+      // dos escalas sin relación fabricaban un cruce —«e.e. real» con
+      // «cobertura», en phi = 2— que no significa nada. Ahora cada magnitud
+      // tiene su panel y su escala, y comparten el eje horizontal: el alcance.
+      const lienzo = k => raiz.querySelector('canvas[data-panel="' + k + '"]');
+      const ejeX = { title: { display: true, text: 'alcance φ' } };
+      // El mismo ancho para el eje vertical de los dos: así los siete
+      // alcances caen en la misma vertical arriba y abajo.
+      const ANCHO_EJE = 58;
+      const ejeY = extra => fusionarOpcionesGrafico({ afterFit: eje => { eje.width = ANCHO_EJE; } }, extra);
+      const gEE = crearGraficoLinea(lienzo('ee'), ejes, [
         { label: 'e.e. que se calcularía (ingenuo)', data: r.map(f => f.ee_ingenuo),
           borderColor: COLORES_GRAFICO.gris, tension: 0.2, pointRadius: 3 },
         { label: 'e.e. real', data: r.map(f => f.ee_real),
-          borderColor: COLORES_GRAFICO.secundario, tension: 0.2, pointRadius: 3 },
-        { label: 'cobertura del IC al 95 %', data: r.map(f => f.cobertura),
-          borderColor: COLORES_GRAFICO.terciario, tension: 0.2, pointRadius: 3, yAxisID: 'y2' },
-        { label: '0.95 prometido', data: r.map(() => 0.95), borderColor: COLORES_GRAFICO.primario,
-          borderDash: [2, 3], pointRadius: 0, yAxisID: 'y2' }
-      ], { scales: { x: { title: { display: true, text: 'alcance de la correlación, phi' } },
-                     y: { title: { display: true, text: 'error estándar' } },
-                     y2: { position: 'right', min: 0, max: 1, grid: { display: false },
-                           title: { display: true, text: 'cobertura' } } } });
+          borderColor: COLORES_GRAFICO.secundario, tension: 0.2, pointRadius: 3 }
+      ], { scales: { x: ejeX,
+                     y: ejeY({ beginAtZero: true, title: { display: true, text: 'error estándar' } }) } });
+      const PROMETIDO = n5(1 - D1.inferencia.alfa, 2) + ' prometido';
+      const gCob = crearGraficoLinea(lienzo('cobertura'), ejes, [
+        { label: 'cobertura del IC al ' + D1.inferencia.nivel_pct + ' %', data: r.map(f => f.cobertura),
+          borderColor: COLORES_GRAFICO.terciario, tension: 0.2, pointRadius: 3 },
+        { label: PROMETIDO, data: r.map(() => 1 - D1.inferencia.alfa),
+          borderColor: COLORES_GRAFICO.primario, borderDash: [2, 3], pointRadius: 0 }
+      ], { scales: { x: ejeX,
+                     y: ejeY({ min: 0, max: 1, title: { display: true, text: 'cobertura' } }) } });
+      const PANELES = [gEE, gCob];
       // La única guarda posible contra un descuadre que solo existe en
       // tiempo de ejecución. `campo` DEBE salir de la misma `fuente()` que
       // invoca el motor: buscarlo aquí por phi la vuelve tautológica —así
@@ -4305,7 +4985,7 @@ SIMULADORES_JS = r"""
       };
       const lee = () => {
         const f = r[campoIdx];
-        lectura(raiz, [['phi', f.phi],
+        lectura(raiz, [['alcance φ', f.phi],
           ['correlación entre vecinos', n5(f.rho_vecino)],
           ['e.e. ingenuo', n5(f.ee_ingenuo)], ['e.e. real', n5(f.ee_real)],
           ['factor', n5(f.factor)],
@@ -4318,19 +4998,23 @@ SIMULADORES_JS = r"""
           ['de las ' + D1.inferencia.n + ' celdas, informan', n5(f.n_eff)]]);
       };
       // El marcador dice DÓNDE estás sobre unas curvas que no se mueven: el
-      // alcance ya es el eje horizontal. La cuarta serie —la recta del
-      // 0,95— no lleva punto que marcar.
+      // alcance ya es el eje horizontal, y va en los dos paneles. La recta de
+      // la cobertura prometida no lleva punto que marcar. La banda mide un
+      // tercio de categoría: aquí señala una posición, no un intervalo.
       const pinta = () => {
-        g.$marcadorX = campoIdx;
-        g.data.datasets.slice(0, 3).forEach(ds => {
-          ds.pointRadius = ejes.map((_, i) => i === campoIdx ? 7 : 3);
+        PANELES.forEach(g => {
+          g.$marcadorX = campoIdx;
+          g.$marcadorAncho = 1 / 3;
+          g.data.datasets.filter(ds => ds.label !== PROMETIDO).forEach(ds => {
+            ds.pointRadius = ejes.map((_, i) => i === campoIdx ? 7 : 3);
+          });
+          g.update('none');
         });
-        g.update('none');
       };
       // Las posiciones del control se DERIVAN de la intersección de las dos
       // rejillas, no se escriben: si R exporta o quita un campo, el control
       // se ajusta solo y nunca ofrece una posición sin campo detrás.
-      const conCampo = r.map((f, i) => [i, 'phi = ' + f.phi])
+      const conCampo = r.map((f, i) => [i, 'φ = ' + f.phi])
                         .filter(p => campoDePhi(r[p[0]].phi));
       // El control manda sobre el estado, y no al revés: si el arranque
       // cayera en un alcance sin campo, `findIndex` daría −1, el <input> lo
@@ -4340,14 +5024,14 @@ SIMULADORES_JS = r"""
       deslizador(raiz, conCampo, 'alcance de la correlación', ini, v => {
           campoIdx = v;
           const m = raiz.querySelector('[data-geomapa="cap1-campo"]');
-          if (cuadra() && m && m.__geomapa) m.__geomapa.dibuja();
+          if (cuadra() && m && m.__geomapa) { m.__geomapa.dibuja(); refrescaTabla1(m, 'cap1-campo'); }
           lee();
           pinta();
         });
       cuadra();
       lee();
       pinta();
-      return [g];
+      return PANELES;
     };
 
     // 4.2 · Cien intervalos --------------------------------------------
@@ -4376,15 +5060,15 @@ SIMULADORES_JS = r"""
       const CUBRE = 'Cubre la media verdadera', NO_CUBRE = 'No la cubre';
       const g = crearGraficoLinea(canvas, [], [
         { label: CUBRE, data: [], borderColor: COLORES_GRAFICO.primario,
-          backgroundColor: COLORES_GRAFICO.primario, borderWidth: ESTRECHO ? 1 : 1.5,
+          backgroundColor: COLORES_GRAFICO.primario, borderWidth: () => estrecho() ? 1 : 1.5,
           pointRadius: 0, spanGaps: false },
         { label: NO_CUBRE, data: [], borderColor: COLORES_GRAFICO.secundario,
-          backgroundColor: COLORES_GRAFICO.secundario, borderWidth: ESTRECHO ? 1 : 1.5,
+          backgroundColor: COLORES_GRAFICO.secundario, borderWidth: () => estrecho() ? 1 : 1.5,
           pointRadius: 0, spanGaps: false },
         // La media, como una rayita horizontal y no como un punto: el
         // segmento ingenuo mide unos diez píxeles y un punto lo tapaba.
         { label: 'Media de la réplica', data: c.media.map((m, i) => ({ x: i + 1, y: m })),
-          showLine: false, pointStyle: 'line', pointRadius: ESTRECHO ? 1.5 : 3,
+          showLine: false, pointStyle: 'line', pointRadius: () => estrecho() ? 1.5 : 3,
           pointBorderWidth: 1.5, pointBorderColor: '#64748b', borderColor: '#64748b',
           backgroundColor: '#64748b' },
         { label: 'Media verdadera, 0', data: [{ x: 0, y: 0 }, { x: c.n + 1, y: 0 }],
@@ -4392,14 +5076,12 @@ SIMULADORES_JS = r"""
           borderDash: [5, 3], borderWidth: 1.5, pointRadius: 0 }
       ], {
         events: [],
-        plugins: { legend: LEYENDA_CASA({ onClick: () => {} }), tooltip: { enabled: false } },
+        plugins: { legend: { onClick: () => {} }, tooltip: { enabled: false } },
         scales: {
           x: EJE_X_LINEAL('réplica', { min: 0, max: c.n + 1,
-            ticks: { font: { family: 'Montserrat', size: 11 }, maxRotation: 0, stepSize: 20,
-                     includeBounds: false } }),
-          y: EJE_Y_CASA('media y su intervalo', { min: -tope, max: tope,
-            ticks: { font: { family: 'Fira Code', size: 11 }, stepSize: 0.5,
-                     includeBounds: false } })
+            ticks: { stepSize: 20, includeBounds: false } }),
+          y: { title: { display: true, text: 'media y su intervalo' }, min: -tope, max: tope,
+               ticks: { stepSize: 0.5, includeBounds: false } }
         }
       });
       const cuenta = () => c.media.filter((_, i) => cubre(i)).length;
@@ -4482,8 +5164,15 @@ SIMULADORES_JS = r"""
       const mil = v => String(v).replace(/\B(?=(\d{3})+$)/g, '\u202f');
       // Los ticks del eje x SON los enes de R, no los que elija Chart.js: el
       // estudiante ve la rejilla publicada y no una escala paralela.
-      const fijos = lista => ({
-        afterBuildTicks: a => { a.ticks = lista.map(value => ({ value })); },
+      //
+      // En el teléfono van uno de cada dos, contando desde el último: con los
+      // seis, «500» y «1 000» se pisaban a 375 px (R2 · T2.2).
+      const fijos = (lista, ralea) => ({
+        afterBuildTicks: a => {
+          const u = lista.length - 1;
+          a.ticks = lista.filter((_, i) => !(ralea && a.chart.width < 420 && (u - i) % 2))
+            .map(value => ({ value }));
+        },
         ticks: { callback: mil, autoSkip: false }
       });
       const DIEZ = [];
@@ -4495,6 +5184,9 @@ SIMULADORES_JS = r"""
       // curva de una correlación media «leída del mapa»: ese promedio vale
       // -1/(n-1) para cualquier dato (`n_efectivo.centrado`) y no la estima.
       const rt = ne.rho_del_titular;
+      // Tres decimales, salvo el de Colombia, que lleva los cinco de la casa:
+      // con tres se confundiría con la posición de al lado.
+      const fmtRho = v => v === rt.implicito ? n5(v) : v.toFixed(3);
       const curva = rho => EJE.map(n => ({ x: n, y: nEff(n, rho) }));
       // Por referencia y no por índice: `cuadra()` leía `datasets[0]` y
       // `datasets[3]` a mano, y meter series nuevas entre ellas era
@@ -4520,7 +5212,7 @@ SIMULADORES_JS = r"""
         dsImpl, dsRombo
       ], { scales: {
         x: Object.assign({ type: 'logarithmic', min: XMIN, max: XMAX,
-          title: { display: true, text: 'observaciones, n' } }, fijos(ne.enes)),
+          title: { display: true, text: 'observaciones, n' } }, fijos(ne.enes, true)),
         y: Object.assign({ type: 'logarithmic', min: 1, max: XMAX,
           title: { display: true, text: 'n efectivo' } }, fijos(DIEZ)) } });
       // La guarda que hacía falta desde que el navegador EVALÚA la fórmula:
@@ -4573,7 +5265,7 @@ SIMULADORES_JS = r"""
       const lee = () => {
         const r = params.rho, n0 = ne.enes[0], n1 = ne.enes[ULT];
         lectura(raiz, [
-          ['rho medio entre pares', r.toFixed(3)],
+          ['rho medio entre pares', fmtRho(r)],
           ['techo 1/rho medio', r > 0 ? n5(1 / r) : 'sin correlación no hay techo'],
           ['n = ' + mil(n0) + ' informan como', n5(nEff(n0, r))],
           ['n = ' + mil(n1) + ' informan como', n5(nEff(n1, r))],
@@ -4582,19 +5274,22 @@ SIMULADORES_JS = r"""
           ['con este rho medio valdrían', n5(nEff(ne.desercion_n, r))],
           ['el rho medio que corresponde a ese ' + n5(ne.desercion_municipal), n5(rt.implicito)]]);
       };
-      // Sí se usa `crearControles`, la fábrica de la plantilla que T1.2
-      // descartó: allí el valor del control era una posición y había que
-      // repintar el <output> a mano; aquí el valor ES rho, que es lo que hay
-      // que leer. Arranca en rho = 0.01, el caso del que habla la prosa.
-      // `cuadra()` va DESPUÉS de `pinta()` —al revés que en T1.2— porque
-      // aquí lo que comprueba es lo ya dibujado, y nada puede lanzar.
-      crearControles(raiz.querySelector('.simulador-controles'),
-        [{ clave: 'rho', etiqueta: 'correlación media rho', min: 0, max: RHO_MAX,
-           paso: 0.001, decimales: 3 }],
-        params, () => { pinta(); cuadra(); lee(); }
-      // La rejilla de `.simulador-controles` es de dos columnas, pensada
-      // para pares de deslizadores; uno solo se quedaría en la mitad.
-      ).rho.parentElement.style.gridColumn = '1 / -1';
+      // EL DESLIZADOR RECORRE UNA LISTA DE POSICIONES, no un tramo continuo
+      // (R2 · T2.2, G-25). De 0 a 0.3 con paso 0.001, las correlaciones medias
+      // que importan —las de pocas centésimas— caían en el primer 5 % del
+      // recorrido, unos 12 px en el teléfono, y no había forma de dejar el
+      // dedo sobre ellas. La lista aprieta las posiciones donde el techo
+      // cambia deprisa: lleva los rho de la rejilla de R hasta el tope —las
+      // anclas que `cuadra()` compara una a una—, el rho medio que corresponde
+      // a Colombia, exacto, y unas pocas posiciones intermedias. Y con
+      // `deslizador()` el lector de pantalla anuncia la correlación, no la
+      // posición (G-24).
+      const POSICIONES = [...new Set(ne.rhos.filter(v => v <= RHO_MAX)
+        .concat([0.001, 0.002, 0.005, 0.03, 0.075, 0.15, rt.implicito]))].sort((a, b) => a - b);
+      deslizador(raiz,
+        POSICIONES.map(v => [v, fmtRho(v) + (v === rt.implicito ? ' · el de Colombia' : '')]),
+        'correlación media rho', POSICIONES.indexOf(params.rho),
+        v => { params.rho = v; pinta(); cuadra(); lee(); });
       pinta();
       cuadra();
       lee();
@@ -4625,14 +5320,19 @@ SIMULADORES_JS = r"""
       const g = crearGraficoLinea(canvas, v.lags.map(String), [
         { label: 'teórico, promediado en la clase', data: v.teorico_clase, borderColor: COLORES_GRAFICO.primario,
           borderDash: [4, 3], pointRadius: 0 },
-        { label: 'media de ' + u.n_realizaciones + ' realizaciones', data: v.media,
+        { label: 'media de ' + miles1(u.n_realizaciones) + ' realizaciones', data: v.media,
           borderColor: COLORES_GRAFICO.terciario, pointRadius: 2 },
         dsUna,
         { label: 'banda 5 %–95 %', data: v.q05, borderColor: 'rgba(148,163,184,.5)',
           pointRadius: 0, fill: '+1' },
+        // El borde de arriba de la banda no es otra serie: va sin nombre y
+        // fuera de la leyenda, que antes le dejaba una casilla vacía (G-17).
         { label: '', data: v.q95, borderColor: 'rgba(148,163,184,.5)', pointRadius: 0 }
-      ], { scales: { x: { title: { display: true, text: 'rezago' } },
-                     y: { title: { display: true, text: 'semivarianza' } } } });
+      ], { plugins: { legend: { labels: { filter: it => it.text !== '' } },
+                      tooltip: { filter: it => it.dataset.label !== '' } },
+           // Una semivarianza se lee desde cero, y el rezago va en pasos de retícula.
+           scales: { x: { title: { display: true, text: 'rezago (pasos de retícula)' } },
+                     y: { beginAtZero: true, title: { display: true, text: 'semivarianza' } } } });
       // Guarda de ejecución, y la única capaz de ver este descuadre: las
       // cifras del JSON eran correctas y la prosa también: lo que estaba mal
       // era el cableado, y eso solo existe cuando el navegador ya dibujó.
@@ -4672,9 +5372,12 @@ SIMULADORES_JS = r"""
           ['su sd espacial', n5(r.sd)],
           ['su variograma se aparta del teórico de la clase', n5(r.desvio_rel_max) + ' (rezago ' + r.lag_desvio_max + ')'],
           ['rezagos fuera de la banda', r.lags_fuera_banda + ' de ' + v.lags.length],
-          ['sd de las medias sobre ' + u.n_realizaciones, n5(u.sd_de_las_medias)],
-          ['engañarían al análisis ingenuo', n5(u.pct_rechaza_ingenuo) + ' %'],
-          ['deberían ser', n5(u.pct_esperado_si_valiera) + ' %']]);
+          ['sd de las medias sobre ' + miles1(u.n_realizaciones), n5(u.sd_de_las_medias)],
+          // Una proporción sobre mil realizaciones tiene un decimal, no cinco;
+          // y el nivel de la prueba se escribe como se eligió (G-21).
+          ['engañarían al análisis ingenuo', n5(u.pct_rechaza_ingenuo, 1) + ' % de las '
+            + miles1(u.n_realizaciones)],
+          ['deberían ser', u.pct_esperado_si_valiera + ' %']]);
       };
       // Los rótulos salen del `id` de cada fila y no de su posición: si R
       // enseñara otras tres, el botón diría cuáles sin tocar esta línea.
@@ -4686,7 +5389,7 @@ SIMULADORES_JS = r"""
           const i = VISTAS.findIndex(r => r.id === +v2);
           if (i >= 0) realIdx = i;
           const m = raiz.querySelector('[data-geomapa="cap1-realizacion"]');
-          if (cuadra() && m && m.__geomapa) m.__geomapa.dibuja();
+          if (cuadra() && m && m.__geomapa) { m.__geomapa.dibuja(); refrescaTabla1(m, 'cap1-realizacion'); }
           pinta();
           lee();
         }, VISTAS[realIdx].id);
@@ -4703,10 +5406,24 @@ SIMULADORES_JS = r"""
       let vista = 'sim';
       let g = null;
       const caja = raiz.querySelector('.grafico-wrapper');
+      // EL ALTO DE LA CAJA SIGUE AL ANCHO DE LA VENTANA, no al momento en que
+      // se pulsó el botón. Trece renglones con rótulo de dos líneas no caben
+      // en 250 px; y en el teléfono la leyenda baja al pie y los rótulos van
+      // de dos a cuatro líneas, así que hace falta más. Antes se decidía solo
+      // al pulsar: quien abría los pares con el teléfono tumbado y lo giraba
+      // se quedaba con la caja baja y los trece rótulos montados. Ahora lo
+      // decide esta función, que se llama al dibujar y cada vez que la
+      // ventana cambia de tamaño. No hay bucle: el alto depende solo de la
+      // vista y del ancho de la ventana, nunca del alto que resulta.
+      const ajustaAlto = () => {
+        const alto = vista === 'sim' ? '250px'
+          : (window.matchMedia('(max-width: 640px)').matches ? '840px' : '470px');
+        if (caja.style.height !== alto) caja.style.height = alto;
+      };
+      window.addEventListener('resize', ajustaAlto);
       const dibuja = () => {
         if (g) { g.destroy(); const i = graficosActivos.indexOf(g); if (i >= 0) graficosActivos.splice(i, 1); }
-        // Trece barras con rótulo de dos líneas no caben en 250 px.
-        caja.style.height = vista === 'sim' ? '250px' : '440px';
+        ajustaAlto();
         if (vista === 'sim') {
           g = crearGraficoLinea(canvas, a.niveles.map(x => x.bloque + '×' + x.bloque), [
             { label: 'correlación', data: a.niveles.map(x => x.corr),
@@ -4720,19 +5437,89 @@ SIMULADORES_JS = r"""
             ['bloques de 16×16', n5(a.corr_max)], ['subida', n5(a.subida_pct) + ' %'],
             ['mecanismo', a.mecanismo]]);
         } else {
-          // Cada barra lleva el nombre de su par, en dos líneas para que quepa en
-          // el teléfono —el «×» abre la segunda, que es la más corta—, y la del
-          // par con aviso va en naranja: la prosa la nombra y el lector tiene
-          // que poder encontrarla.
+          // UN RENGLÓN POR PAR, DE −1 A 1 (R2 · T2.2, G-18). Antes era el
+          // cambio relativo de la correlación, en tanto por ciento, que es
+          // inestable cerca de 0 y convertía un cambio de signo —de 0.28 a
+          // −0.20— en «−170 %». Ahora cada par es una pesa: el círculo hueco
+          // es su correlación entre municipios, el lleno la de entre
+          // departamentos, y el trazo que los une es lo que mueve agregar. El
+          // 0 lleva línea propia, así que cruzarlo se ve. El par con aviso va
+          // en naranja: la prosa lo nombra y hay que poder encontrarlo.
           const av = e.caso_aviso;
           const conAviso = p => p.a === av.a && p.b === av.b;
-          g = crearGraficoBarras(canvas, e.pares.map(p => [p.a_corta, '× ' + p.b_corta]),
-            e.pares.map(p => p.cambio_pct),
-            { horizontal: true, etiqueta: 'cambio al agregar (%)',
-              tituloValor: 'cambio de la correlación al agregar (%)',
-              color: e.pares.map(p => conAviso(p) ? COLORES_GRAFICO.secundario : COLORES_GRAFICO.primario) });
-          lectura(raiz, [['pares examinados', e.n_pares], ['suben', e.n_suben],
-            ['bajan', e.n_bajan], ['de los que bajan, cambian de signo', e.n_invierten_entre_bajan],
+          const color = p => conAviso(p) ? COLORES_GRAFICO.secundario : COLORES_GRAFICO.primario;
+          const MUN = 'entre municipios', DEP = 'entre departamentos';
+          g = crearGraficoLinea(canvas, [], [
+            { label: MUN, data: e.pares.map((p, i) => ({ x: p.r_municipal, y: i })), showLine: false,
+              pointRadius: 5, pointBorderWidth: 2, pointBackgroundColor: '#ffffff',
+              pointBorderColor: e.pares.map(color), borderColor: COLORES_GRAFICO.primario,
+              backgroundColor: '#ffffff' },
+            { label: DEP, data: e.pares.map((p, i) => ({ x: p.r_departamental, y: i })), showLine: false,
+              pointRadius: 5, pointBorderWidth: 2, pointBackgroundColor: e.pares.map(color),
+              pointBorderColor: e.pares.map(color), borderColor: COLORES_GRAFICO.primario,
+              backgroundColor: COLORES_GRAFICO.primario },
+            // El trazo de cada pesa: dos puntos y un hueco, para que no una
+            // un par con el siguiente. Va el último para quedar debajo.
+            { label: '', data: e.pares.reduce((v, p, i) => v.concat([{ x: p.r_municipal, y: i },
+                { x: p.r_departamental, y: i }, { x: null, y: null }]), []),
+              segment: { borderColor: c => color(e.pares[Math.floor(c.p0DataIndex / 3)]) },
+              borderWidth: 2, pointRadius: 0, spanGaps: false, order: 1 },
+            { label: 'en naranja, el par con aviso', data: [], borderColor: COLORES_GRAFICO.secundario,
+              backgroundColor: COLORES_GRAFICO.secundario, pointRadius: 0 }
+          ], {
+            interaction: { mode: 'nearest', axis: 'y', intersect: false },
+            plugins: {
+              legend: { onClick: () => {}, labels: { filter: it => it.text !== '' } },
+              tooltip: {
+                filter: (it, k) => k === 0 && it.dataset.label !== '',
+                callbacks: {
+                  title: its => its.length ? e.pares[its[0].dataIndex].a_corta + ' × '
+                    + e.pares[its[0].dataIndex].b_corta : '',
+                  label: it => 'municipios ' + n5(e.pares[it.dataIndex].r_municipal)
+                    + ' → departamentos ' + n5(e.pares[it.dataIndex].r_departamental)
+                }
+              }
+            },
+            scales: {
+              x: { type: 'linear', min: -1, max: 1,
+                   title: { display: true, text: 'correlación entre las dos variables' },
+                   ticks: { stepSize: 0.5 },
+                   grid: { display: true, lineWidth: c => c.tick && c.tick.value === 0 ? 1.5 : 1,
+                           color: c => c.tick && c.tick.value === 0
+                             ? 'rgba(1, 40, 32, 0.7)' : 'rgba(148, 163, 184, 0.2)' } },
+              // Un renglón por par, el primero arriba; el rótulo, en dos
+              // líneas para que quepa en el teléfono.
+              y: { type: 'linear', reverse: true, min: -0.6, max: e.pares.length - 0.4,
+                   afterBuildTicks: eje => { eje.ticks = e.pares.map((_, i) => ({ value: i })); },
+                   ticks: { autoSkip: false, font: { family: 'Fira Code', size: 10 },
+                            // En el teléfono el eje no pasa de la mitad del lienzo:
+                            // el renglón de más de quince letras se parte por su
+                            // último espacio.
+                            callback: function (v) {
+                              const par = e.pares[v];
+                              if (!par) return '';
+                              const lineas = [par.a_corta, '× ' + par.b_corta];
+                              if (this.chart.width >= 400) return lineas;
+                              return lineas.reduce((out, t) => {
+                                const k = t.lastIndexOf(' ');
+                                return out.concat(t.length > 15 && k > 1 ? [t.slice(0, k), t.slice(k + 1)] : [t]);
+                              }, []);
+                            } },
+                   grid: { display: false } }
+            }
+          });
+          // Lo dibujado contra lo que R cuenta: cuántas pesas se alejan del 0,
+          // cuántas se acercan y cuántas lo cruzan.
+          const seAleja = e.pares.filter(p => Math.abs(p.r_departamental) > Math.abs(p.r_municipal)).length;
+          const cruza = e.pares.filter(p => p.r_departamental * p.r_municipal < 0).length;
+          if (seAleja !== e.n_suben || e.pares.length - seAleja !== e.n_bajan || cruza !== e.n_invierten
+              || g.data.datasets[0].data.length !== e.n_pares) {
+            console.error('agregacion: las pesas dibujadas no cuentan lo que publica R — se alejan del 0 '
+              + seAleja + ' (R: ' + e.n_suben + '), cruzan el 0 ' + cruza + ' (R: ' + e.n_invierten + ')');
+          }
+          lectura(raiz, [['pares examinados', e.n_pares],
+            ['se alejan del 0 al agregar', e.n_suben],
+            ['se acercan al 0', e.n_bajan], ['de los que se acercan, lo cruzan', e.n_invierten_entre_bajan],
             ['en naranja, el par con aviso', av.a_corta + ' × ' + av.b_corta + ': '
               + n5(av.r_municipal) + ' → ' + n5(av.r_departamental)],
             ['ese par, sin ' + av.influyente.municipio, n5(av.influyente.r_departamental_sin_el)],
@@ -4743,7 +5530,9 @@ SIMULADORES_JS = r"""
       botonera(raiz, [['sim', 'Simulación controlada'], ['real', 'Los ' + e.n_pares + ' pares reales']],
         v => { vista = v; dibuja(); });
       dibuja();
-      return g ? [g] : [];
+      // Lo que se destruye al salir del módulo: el gráfico que haya entonces
+      // —no el primero, que es el que se devolvía— y la escucha del tamaño.
+      return [{ destroy() { window.removeEventListener('resize', ajustaAlto); if (g) g.destroy(); } }];
     };
 
     // 8 · El árbol de decisión -----------------------------------------
@@ -4805,23 +5594,62 @@ SIMULADORES_JS = r"""
       const canvas = raiz.querySelector('canvas');
       let vista = 'rmse';
       let g = null;
+      // El suelo del eje del R²: el quinto de punto por debajo del menor.
+      const R2_MIN = Math.floor(5 * Math.min(0, c.r2_aleatoria, c.r2_bloques)) / 5;
       const dibuja = () => {
         if (g) { g.destroy(); const i = graficosActivos.indexOf(g); if (i >= 0) graficosActivos.splice(i, 1); }
         const datos = vista === 'rmse' ? [c.rmse_aleatoria, c.rmse_bloques]
                                        : [c.r2_aleatoria, c.r2_bloques];
+        // En el RMSE, la desviación típica de la variable como recta de
+        // referencia (R2 · T2.2, G-15): es el error de predecir siempre la
+        // media, y la barra de los bloques la supera. Eso es lo que quiere
+        // decir un R² negativo, y antes solo estaba en la lectura.
+        //
+        // La recta cruza el trazado entero y cada barra lleva su cifra
+        // encima: la de los bloques pasa de la recta por siete centésimas de
+        // grado, un par de píxeles, y sin las cifras «la supera» no se veía.
+        // El eje sigue saliendo de 0, y no se acerca a esa diferencia: las
+        // dos barras se comparan por su largo, y la razón entre ellas es la
+        // cifra del módulo. Cortar el eje la falsearía.
         g = crearGraficoBarras(canvas, ['CV aleatoria', 'CV por bloques'], datos,
-          vista === 'rmse' ? { etiqueta: 'RMSE (°C)', tituloValor: 'RMSE (°C)', min: 0 }
-                           : { etiqueta: 'R²', tituloValor: 'R²' });
-        lectura(raiz, vista === 'rmse'
+          vista === 'rmse' ? { etiqueta: 'RMSE (°C)', tituloValor: 'RMSE (°C)', min: 0,
+                               max: Math.ceil(Math.max(c.rmse_bloques, c.sd_variable) + 1) }
+                           : { etiqueta: 'R²', tituloValor: 'R²', min: R2_MIN, max: 1 });
+        g.$cifrasBarras = datos.map(v => n5(v));
+        if (vista === 'rmse') g.$rectaY = { valor: c.sd_variable, rotulo: 'sd de la variable: ' + n5(c.sd_variable),
+                                            corto: 'sd: ' + n5(c.sd_variable) };
+        g.options.plugins.legend.display = false;
+        g.update('none');
+        if (vista === 'r2') {
+          // EL CERO, MARCADO (G-14). El eje iba de −1 a 1 con paso 0.4: ni una
+          // marca ni una línea en 0, y el R² negativo de los bloques —la
+          // lección— era un trazo de un píxel sin referencia. Ahora el eje
+          // baja solo hasta donde hace falta, va de quinto en quinto y el 0
+          // lleva la línea oscura.
+          const ey = g.options.scales.y, cero = t => t.tick && Math.abs(t.tick.value) < 1e-9;
+          ey.min = R2_MIN;
+          ey.max = 1;
+          ey.ticks.stepSize = 0.2;
+          ey.ticks.callback = v => Math.abs(v) < 1e-9 ? '0' : Number(v).toFixed(1);
+          ey.grid.color = t => cero(t) ? 'rgba(1, 40, 32, 0.75)' : 'rgba(148, 163, 184, 0.2)';
+          ey.grid.lineWidth = t => cero(t) ? 1.5 : 1;
+          g.update('none');
+        }
+        graficosActivos.push(g);
+        const vecinas = [
+          ['estaciones con su vecina más próxima en su mismo pliegue, al azar',
+            c.vecina_en_su_pliegue_aleatoria + ' de ' + c.n],
+          ['y por bloques', c.vecina_en_su_pliegue_bloques + ' de ' + c.n]];
+        lectura(raiz, (vista === 'rmse'
           ? [['RMSE aleatoria', n5(c.rmse_aleatoria)], ['RMSE por bloques', n5(c.rmse_bloques)],
              ['en una zona no medida el error es mayor en', n5(c.inflacion_pct) + ' %'],
              ['sd de la variable', n5(c.sd_variable)]]
           : [['R² aleatoria', n5(c.r2_aleatoria)], ['R² por bloques', n5(c.r2_bloques)],
-             ['lectura', 'negativo: predecir la media global lo haría mejor']]);
+             ['lectura', 'negativo: predecir la media global lo haría mejor']]).concat(vecinas));
       };
       botonera(raiz, [['rmse', 'RMSE'], ['r2', 'R²']], v => { vista = v; dibuja(); });
       dibuja();
-      return g ? [g] : [];
+      return [];
     };
 """
 
@@ -4919,9 +5747,10 @@ QUIZ_JS = r"""
           { texto: 'Las dos cifras pueden ser muy distintas aunque el dato sea el mismo.', correcta: true,
             retro: 'El par principal del capítulo va de ' + n5(D1.escala_correlacion.principal.r_municipal)
               + ' a ' + n5(D1.escala_correlacion.principal.r_departamental) + '.' },
-          { texto: 'Agregar no siempre sube la correlación: a veces la baja o le cambia el signo.', correcta: true,
-            retro: 'De los ' + D1.escala_correlacion.n_pares + ' pares reales del capítulo, '
-              + D1.escala_correlacion.n_suben + ' suben y ' + D1.escala_correlacion.n_bajan + ' bajan. '
+          { texto: 'Agregar no siempre refuerza la correlación: a veces la debilita o le cambia el signo.', correcta: true,
+            retro: 'De los ' + D1.escala_correlacion.n_pares + ' pares reales del capítulo, en '
+              + D1.escala_correlacion.n_suben + ' la correlación se aleja del cero al agregar y en '
+              + D1.escala_correlacion.n_bajan + ' se acerca a él: se cuenta su valor absoluto. '
               + 'Cambiar de signo también puede pasar —el capítulo 3 lo cuenta con Robinson—, pero el único '
               + 'par del módulo que lo hace, ' + D1.escala_correlacion.caso_aviso.a_corta + ' × '
               + D1.escala_correlacion.caso_aviso.b_corta + ', no aguanta el barrido.' },
@@ -4931,7 +5760,7 @@ QUIZ_JS = r"""
             retro: 'Las dos pueden estar perfectamente calculadas. Eso es exactamente el MAUP.' }
         ],
         retroAcierto: 'Las dos. La unidad de análisis es una decisión de modelado, no de presentación.',
-        retroFallo: 'Las dos ciertas son que las dos cifras pueden diferir con el mismo dato y que agregar no siempre sube la correlación. Módulo 7.'
+        retroFallo: 'Las dos ciertas son que las dos cifras pueden diferir con el mismo dato y que agregar no siempre refuerza la correlación. Módulo 7.'
       },
       {
         tipo: 'opcion', modulo: 6,
@@ -5074,20 +5903,21 @@ QUIZ_JS = r"""
       {
         tipo: 'grafico', modulo: 4,
         alto: 210,
-        descripcionGrafico: 'Dos curvas frente al alcance de la correlación: el error estándar que se calcularía '
-          + 'suponiendo independencia, casi plano, y el error estándar real, que crece sin parar.',
+        descripcionGrafico: 'Dos curvas frente al alcance de la correlación: el error estándar que se calcularía, '
+          + 'el ingenuo, casi plano, y el error estándar real, que crece sin parar.',
         pregunta: 'Lectura de gráfico. Las dos curvas son el error estándar de la MISMA media sobre el mismo '
           + 'campo simulado. ¿Qué está pasando?',
         pista: 'Fíjate en cuál de las dos casi no se mueve, y pregúntate por qué no se entera de nada.',
         dibujar: canvas => {
           const r = D1.inferencia.rejilla;
           return crearGraficoLinea(canvas, r.map(f => String(f.phi)), [
-            { label: 'e.e. suponiendo independencia', data: r.map(f => f.ee_ingenuo),
+            // Los mismos nombres de serie que el simulador del módulo 4 (G-12).
+            { label: 'e.e. que se calcularía (ingenuo)', data: r.map(f => f.ee_ingenuo),
               borderColor: COLORES_GRAFICO.gris, tension: 0.2, pointRadius: 3 },
             { label: 'e.e. real', data: r.map(f => f.ee_real),
               borderColor: COLORES_GRAFICO.secundario, tension: 0.2, pointRadius: 3 }
-          ], { scales: { x: { title: { display: true, text: 'alcance de la correlación, phi' } },
-                         y: { title: { display: true, text: 'error estándar' } } } });
+          ], { scales: { x: { title: { display: true, text: 'alcance φ' } },
+                         y: { beginAtZero: true, title: { display: true, text: 'error estándar' } } } });
         },
         opciones: [
           { texto: 'El e.e. ingenuo no ve la correlación, así que subestima cada vez más al crecer phi.',
@@ -6497,6 +7327,8 @@ def main() -> int:
     # que esas frases afirman de la forma se comprueba contra el dato.
     problemas += revisa_textos(marcado, GEOMAPAS_JS + SIMULADORES_JS, DESCRIPCIONES)
     problemas += guardas_de_las_descripciones()
+    # R2 · T2.2: lo que las gráficas y los mapas afirman, contra el dato.
+    problemas += guardas_de_t22(PLANTILLA.read_text(encoding="utf-8"), marcado)
     if problemas:
         for p in problemas:
             print(f"  MAL  {p}")

@@ -168,6 +168,15 @@ def inventario(ruta: pathlib.Path = ENSAMBLADOR) -> list[tuple[int, str]]:
 # ruta apuntando a un archivo que NO EXISTE, que es la única manera de llegar
 # a la guarda que se dispara antes de que haya nada que leer. (T2.2b)
 # =====================================================================
+# nombre de la inyección -> trozo del mensaje de la guarda que TIENE que
+# dispararse. Las guardas de `guardas_de_t22()` no son `problemas.append` y
+# el inventario de arriba no las cuenta: para ellas no basta con que el
+# ensamblado pare, tiene que parar diciendo ESO. Sin esto, una inyección
+# que cazaba otra guarda anterior daba por probada una que nunca se disparó
+# (verificación de R2 · T2.2: tres casos).
+ESPERA: dict[str, str] = {}
+
+
 def defectos() -> list[tuple[str, str, str, object]]:
     """(nombre, superficie, tipo, acción). tipo ∈ {'obj', 'txt', 'falta'}."""
     D: list[tuple[str, str, str, object]] = []
@@ -816,6 +825,134 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("T2.4 r2 m4: el nivel escrito deja de ser el de alfa", "datos",
         lambda o: o["inferencia"].__setitem__("nivel_pct", 90))
 
+    # --- R2 · T2.2: las gráficas y los mapas propios (guardas_de_t22) ----
+    txt("T2.2: la banda del marcador vuelve a medirse en píxeles", "ensamblador",
+        "const x0 = Math.max(a.left, eje.getPixelForValue(i - medio));",
+        "const x0 = x - 10;")
+    obj("T2.2: una bomba de Snow se queda sin celda", "mapas",
+        lambda o: o["snow"]["celdas"].pop())
+    obj("T2.2: dos bombas de Snow se cambian la celda", "mapas",
+        lambda o: o["snow"]["celdas"].__setitem__(slice(5, 7), o["snow"]["celdas"][5:7][::-1]))
+    obj("T2.2: el mapa de Snow vuelve a llevar pie de leyenda", "mapas",
+        lambda o: o["snow"].__setitem__("leyenda", "bomba más próxima"))
+    txt("T2.2: la paleta de la plantilla pierde el bermellón", "plantilla",
+        "'#E69F00', '#56B4E9', '#009E73', '#B8860B', '#0072B2', '#D55E00',",
+        "'#E69F00', '#56B4E9', '#009E73', '#B8860B', '#0072B2', '#D55F00',")
+    txt("T2.2: la paleta de la plantilla ya trae el naranja del acento", "plantilla",
+        "'#CC79A7', '#525252', '#8B4513', '#6A3D9A', '#00868B', '#C71585',",
+        "'#CC79A7', '#525252', '#FF6600', '#6A3D9A', '#00868B', '#C71585',")
+    obj("T2.2: la rampa del zinc vuelve a ser lineal", "mapas",
+        lambda o: o["meuse"].pop("marcas_escala"))
+    obj("T2.2: el Mosa pierde una orilla", "mapas",
+        lambda o: o["meuse"]["lineas"].pop())
+    obj("T2.2: un punto del Mosa se corre diez metros", "mapas",
+        lambda o: o["meuse"]["pts"].__setitem__(0, o["meuse"]["pts"][0] + 10))
+    obj("T2.2: un pino se corre una centésima", "mapas",
+        lambda o: o["japanesepines"]["pts"].__setitem__(0, o["japanesepines"]["pts"][0] + 41))
+    txt("T2.2: la rampa de la temperatura deja de ir de oscuro a claro", "ensamblador",
+        '"#cc4778", "#ed7953"', '"#ed7953", "#cc4778"')
+    txt("T2.2: la plantilla ya trae una paleta termica", "plantilla",
+        "      grises:   ['#f5f5f5',", "      termica: ['#000000', '#ffffff'],\n      grises:   ['#f5f5f5',")
+    obj("T2.2: el mapa del IDEAM pierde el contorno", "mapas",
+        lambda o: o["ideam"].pop("lineas"))
+    obj("T2.2: las franjas de altitud no suman las estaciones", "datos",
+        lambda o: o["visto"]["ideam"]["por_altitud"][0].__setitem__("n", 149))
+    obj("T2.2: un campo pierde el centro", "mapas",
+        lambda o: o["campos"][3].pop("centro"))
+    obj("T2.2: una realización va con escala propia", "mapas",
+        lambda o: o["realizaciones"][1].__setitem__("rango", [-2.0, 2.0]))
+    obj("T2.2: el recuento por clase de un campo no suma", "mapas",
+        lambda o: o["campos"][0]["tam"].__setitem__(0, 99))
+    # 32 × 8 y no 28 × 28: las celdas siguen siendo 256, así que `tam` sigue
+    # sumando y la única guarda que puede saltar es la de la retícula.
+    obj("T2.2: el campo vuelve a la rejilla de 28", "mapas",
+        lambda o: [(g.__setitem__("nx", 32), g.__setitem__("ny", 8)) for g in o["campos"]])
+    obj("T2.2: el campo destacado no es la réplica 1", "mapas",
+        lambda o: o["campos"][4].__setitem__("media_espacial", 0.5))
+    obj("T2.2: el título del campo vuelve a decir «rango»", "mapas",
+        lambda o: o["campos"][4].__setitem__("titulo", "Campo gaussiano, rango = 4"))
+    obj("T2.2: la ventana del acercamiento se sale del mapa", "mapas",
+        lambda o: o["agregacion"]["zoom"]["caja"].__setitem__(2, o["agregacion"]["caja"][2] + 5000))
+    obj("T2.2: el acercamiento declara celdas que no son columnas por filas", "mapas",
+        lambda o: o["agregacion"]["zoom"].__setitem__("n_celdas", 21))
+    obj("T2.2: una celda del caso queda fuera del acercamiento", "mapas",
+        lambda o: o["agregacion"]["zoom"]["caja"].__setitem__(0, o["agregacion"]["zoom"]["caja"][0] + 400000))
+    obj("T2.2: el porcentaje de rechazos ya no cabe en un decimal", "datos",
+        lambda o: o["una_realizacion"].__setitem__("pct_rechaza_ingenuo", 82.04))
+    # Se mueve UN par, no el recuento: con `n_suben` cambiado paraba antes el
+    # `PARADO` que exige que los dos recuentos sumen los pares.
+    obj("T2.2: los pares que se alejan del 0 no son los que cuenta R", "datos",
+        lambda o: next(p for p in o["escala_correlacion"]["pares"]
+                       if 0 < p["r_departamental"] < p["r_municipal"] and not p["invierte_signo"])
+        .__setitem__("r_departamental", 0.95))
+    obj("T2.2: un pliegue se queda sin estaciones", "mapas",
+        lambda o: o["ideam"].__setitem__("pliegue_aleatorio",
+                                         [1 if v == 10 else v for v in o["ideam"]["pliegue_aleatorio"]]))
+    obj("T2.2: los bloques del mapa no tienen los tamaños publicados", "datos",
+        lambda o: o["cv_espacial"]["tam_pliegues"].__setitem__(0, 3))
+    obj("T2.2: la vecina más próxima ya no separa los dos repartos", "datos",
+        lambda o: o["cv_espacial"].__setitem__("vecina_en_su_pliegue_aleatoria", 200))
+    obj("T2.2: la barra de los bloques ya no supera la desviación típica", "datos",
+        lambda o: o["cv_espacial"].__setitem__("sd_variable", 6.0))
+    txt("T2.2: el deslizador de rho pierde el de Colombia", "ensamblador",
+        ".concat([0.001, 0.002, 0.005, 0.03, 0.075, 0.15, rt.implicito]))].sort(",
+        ".concat([0.001, 0.002, 0.005, 0.03, 0.075, 0.15]))].sort(")
+    obj("T2.2: el rho de Colombia cae sobre otra posición del deslizador", "datos",
+        lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__("implicito", 0.02))
+    txt("T2.2: la cobertura vuelve al lienzo de los errores estándar", "ensamblador",
+        'canvas data-panel="cobertura"', 'canvas data-panel="otro"')
+
+    obj("T2.2: los dos recuentos de pares dejan de sumar los pares", "datos",
+        lambda o: o["escala_correlacion"].__setitem__("n_suben", 9))
+    txt("T2.2: el acento de la plantilla deja de ser el naranja", "plantilla",
+        "const GEOMAPA_ACENTO = '#FF6600';", "const GEOMAPA_ACENTO = '#FF6601';")
+    txt("T2.2: la plantilla pierde el ámbar que se cambia por amarillo", "plantilla",
+        "'#E69F00', '#56B4E9',", "'#E69F01', '#56B4E9',")
+    obj("T2.2: las estaciones de San Andrés caen dentro del contorno", "mapas",
+        lambda o: o["ideam"]["lineas"].append([0, 3000, 1000, 3000, 1000, 4096, 0, 4096, 0, 3000]))
+    obj("T2.2: un par sin estrato deja de acercarse al cero", "datos",
+        lambda o: o["escala_correlacion"]["caso_aviso"]["bajan_sin_estrato"][0]
+        .__setitem__("r_departamental_n30", -0.5))
+    for _nombre, _mensaje in (
+            ("T2.2: el acento de la plantilla deja de ser el naranja", "el acento de la plantilla ya no es el naranja"),
+            ("T2.2: la plantilla pierde el ámbar que se cambia por amarillo", "ya no trae el ámbar"),
+            ("T2.2: las estaciones de San Andrés caen dentro del contorno", "se ven sobre el mar"),
+            ("T2.2: un par sin estrato deja de acercarse al cero", "ya no «se acercan al cero»"),
+            ('T2.2: la banda del marcador vuelve a medirse en píxeles', 'marcador:'),
+            ('T2.2: una bomba de Snow se queda sin celda', 'no hay una celda por bomba'),
+            ('T2.2: dos bombas de Snow se cambian la celda', 'fuera de la celda de la bomba'),
+            ('T2.2: el mapa de Snow vuelve a llevar pie de leyenda', 'pie de leyenda'),
+            ('T2.2: la paleta de la plantilla pierde el bermellón', 'ya no es la que el cambio de color'),
+            ('T2.2: la paleta de la plantilla ya trae el naranja del acento', 'ya trae el naranja del acento'),
+            ('T2.2: la rampa del zinc vuelve a ser lineal', 'ya no recorre el logaritmo'),
+            ('T2.2: el Mosa pierde una orilla', 'las dos orillas'),
+            ('T2.2: un punto del Mosa se corre diez metros', 'Mosa: la tabla de respaldo'),
+            ('T2.2: un pino se corre una centésima', 'japanesepines: la tabla de respaldo'),
+            ('T2.2: la rampa de la temperatura deja de ir de oscuro a claro', 'de oscuro a claro'),
+            ('T2.2: la plantilla ya trae una paleta termica', 'ya trae una paleta «termica»'),
+            ('T2.2: el mapa del IDEAM pierde el contorno', 'no trae el contorno'),
+            ('T2.2: las franjas de altitud no suman las estaciones', 'franjas de altitud'),
+            ('T2.2: un campo pierde el centro', 'simétrica y centrada en 0'),
+            ('T2.2: una realización va con escala propia', 'ya no comparten escala'),
+            ('T2.2: el recuento por clase de un campo no suma', '`tam` no reparte'),
+            ('T2.2: el campo vuelve a la rejilla de 28', 'ya no va en la retícula de la simulación'),
+            ('T2.2: el campo destacado no es la réplica 1', 'ya no es la réplica 1'),
+            ('T2.2: el título del campo vuelve a decir «rango»', 'vuelve a llamar «rango»'),
+            ('T2.2: la ventana del acercamiento se sale del mapa', 'se sale de la caja'),
+            ('T2.2: el acercamiento declara celdas que no son columnas por filas', 'no son columnas por filas'),
+            ('T2.2: una celda del caso queda fuera del acercamiento', 'queda fuera del acercamiento'),
+            ('T2.2: el porcentaje de rechazos ya no cabe en un decimal', 'ya no cabe en un decimal'),
+            ('T2.2: los pares que se alejan del 0 no son los que cuenta R', 'ya no cuentan lo que R publica'),
+            ('T2.2: un pliegue se queda sin estaciones', 'no reparte las estaciones en los pliegues'),
+            ('T2.2: los bloques del mapa no tienen los tamaños publicados', 'no tienen los tamaños publicados'),
+            ('T2.2: la vecina más próxima ya no separa los dos repartos', '«casi nunca» y «casi siempre»'),
+            ('T2.2: la barra de los bloques ya no supera la desviación típica', 'ya no supera la desviación típica'),
+            ('T2.2: el deslizador de rho pierde el de Colombia', 'ya no salen de la rejilla de R'),
+            ('T2.2: el rho de Colombia cae sobre otra posición del deslizador', 'coincide con otra posición'),
+            ('T2.2: la cobertura vuelve al lienzo de los errores estándar', 'vuelven a compartir lienzo'),
+    ):
+        ESPERA[_nombre] = _mensaje
+
     return D
 
 
@@ -1013,7 +1150,12 @@ def main() -> int:
         cod, sal, pisadas = corre(tmp, rutas["ensamblador"], rutas)
         vistas |= pisadas
         ms = males(sal)
-        if cod != 0 and ms:
+        if cod != 0 and ms and nombre in ESPERA and not any(ESPERA[nombre] in m for m in ms):
+            # Paró, pero no la guarda que esta inyección existe para probar.
+            colados += 1
+            etiqueta = "OTRA"
+            print(f"      se esperaba un MAL con «{ESPERA[nombre]}»")
+        elif cod != 0 and ms:
             cazados += 1
             etiqueta = "CAZADO"
         elif cod != 0:
@@ -1055,8 +1197,9 @@ def main() -> int:
     ANTES = "DESCRIPCIONES = {\n"
     MUT_DESC = [
         ("los pinos sin `descripcion` en el registro",
-         '''geomapa("cap1-pinos", "japanesepines", extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))''',
-         '''geomapa("cap1-pinos", "japanesepines")''', "no trae `descripcion`"),
+         '''geomapa("cap1-pinos", "japanesepines", tabla=TABLA_PUNTOS,
+              extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))''',
+         '''geomapa("cap1-pinos", "japanesepines", tabla=TABLA_PUNTOS)''', "no trae `descripcion`"),
         ("la descripción de Bogotá, corta", ANTES, 'DESC_BOGOTA = "Corto."\n' + ANTES, "caracteres"),
         ("Snow deja de apiñarse en Broad Street", ANTES, '_SN["pct_mas_cerca_broad"] = 30\n' + ANTES, "Snow:"),
         ("la deserción más alta, en el norte", ANTES, '_DS["mayores"][0]["zona"] = "norte"\n' + ANTES, "deserción:"),

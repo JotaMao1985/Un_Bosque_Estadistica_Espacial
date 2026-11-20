@@ -2063,6 +2063,8 @@
     "tam_pliegues": [1, 2, 8, 28, 30, 50, 56, 60, 62, 64],
     "tam_pliegue_min": 1,
     "tam_pliegue_max": 64,
+    "vecina_en_su_pliegue_aleatoria": 36,
+    "vecina_en_su_pliegue_bloques": 348,
     "frontera": "El desarrollo (blockCV, spatialsample, tamaño de bloque guiado por el rango del variograma y área de aplicabilidad) es del capítulo 10."
   },
   "diseno_modelo": {
@@ -2349,13 +2351,63 @@
       "frias_umbral": 13.9,
       "calidas_umbral": 28.3,
       "frias": {
-        "zona": ["centro", "suroccidente", "norte"],
-        "n": [29, 7, 1]
+        "zona": ["centro", "suroccidente", "norte", "occidente"],
+        "n": [28, 7, 1, 1]
       },
       "calidas": {
-        "zona": ["norte", "centro", "nororiente", "oriente"],
-        "n": [21, 15, 2, 1]
-      }
+        "zona": ["norte", "centro", "oriente"],
+        "n": [23, 15, 1]
+      },
+      "por_altitud": [
+        {
+          "desde": 0,
+          "hasta": 500,
+          "n": 150,
+          "t_media": 27.3273333333
+        },
+        {
+          "desde": 500,
+          "hasta": 1000,
+          "n": 36,
+          "t_media": 24.9472222222
+        },
+        {
+          "desde": 1000,
+          "hasta": 1500,
+          "n": 53,
+          "t_media": 22.1377358491
+        },
+        {
+          "desde": 1500,
+          "hasta": 2000,
+          "n": 42,
+          "t_media": 18.6785714286
+        },
+        {
+          "desde": 2000,
+          "hasta": 2500,
+          "n": 37,
+          "t_media": 16.1513513514
+        },
+        {
+          "desde": 2500,
+          "hasta": 3000,
+          "n": 35,
+          "t_media": 13.1685714286
+        },
+        {
+          "desde": 3000,
+          "hasta": 3500,
+          "n": 6,
+          "t_media": 10.1333333333
+        },
+        {
+          "desde": 3500,
+          "hasta": 4000,
+          "n": 2,
+          "t_media": 6.65
+        }
+      ]
     },
     "bogota": {
       "franja": ["norte", "centro", "sur"],
@@ -2366,7 +2418,7 @@
     "capitulo": 1,
     "titulo": "Datos espaciales y la primera ley de la geografía",
     "semana": 1,
-    "generado": "2026-11-17",
+    "generado": "2026-11-19",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "anclas_verificadas": 29

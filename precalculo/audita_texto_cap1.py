@@ -430,6 +430,35 @@ PROHIBIDAS = [
     # simulación no tenga.
     ("no dice que la binomial descansa en una independencia que la simulación no supone (módulo 1)",
      "todo", r"descansa entera en que las muertes"),
+    # --- R2 · T2.2: lo que las gráficas y los mapas dejaron de decir.
+    #   · el mapa del Mosa dibuja el río: su descripción ya no puede decir
+    #     que no;
+    #   · el campo del módulo 4 va en la retícula de la simulación, y phi es
+    #     el alcance, no el rango (en un modelo exponencial el rango práctico
+    #     es unas tres veces phi);
+    #   · los trece pares reales no están «al lado» de la simulación: se
+    #     llega a ellos con un botón; y no se dibuja su cambio relativo, que
+    #     cerca de 0 no significa nada;
+    #   · la cobertura y los errores estándar no comparten lienzo con dos
+    #     ejes verticales.
+    ("no dice que el mapa del Mosa no dibuja el río (módulo 2)", "todo",
+     r"el mapa no lo dibuja"),
+    ("no vuelve la retícula de 28 por 28 al campo del módulo 4", "todo",
+     r"28 por 28 celdas|28\s?×\s?28"),
+    ("no llama «rango» al alcance del campo (módulo 4)", "todo",
+     r"campo gaussiano, rango"),
+    ("no dice que los pares reales están «al lado» de la simulación (módulo 7)", "todo",
+     r"y al lado, los"),
+    ("no dibuja el cambio relativo de una correlación (módulo 7)", "todo",
+     r"cambio de la correlación al agregar \(%\)|cambio al agregar \(%\)"),
+    ("no vuelve el doble eje al gráfico del módulo 4", "todo",
+     r"yaxisid:\s*'y2'"),
+    # --- R2 · T2.2, segunda ronda. «8 suben y 5 bajan» cuenta el valor
+    # absoluto de la correlación, y el gráfico de pesas tiene un eje con
+    # signo: una correlación negativa que «baja» se ve moverse a la derecha.
+    # Los pares se alejan del cero o se acercan a él.
+    ("no cuenta los pares reales como «suben» y «bajan» (módulo 7)", "todo",
+     r"suben\b.{0,60}\bbajan\b|agregar no siempre sube la correlación"),
 ]
 
 

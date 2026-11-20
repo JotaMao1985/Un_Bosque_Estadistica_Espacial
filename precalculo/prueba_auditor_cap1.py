@@ -1110,6 +1110,95 @@ def defectos() -> list[tuple[str, str, str, object]]:
     add("R2 · T2.4 · r2 m4: el nivel de los intervalos no es el de alfa", "datos",
         pon(inf_, "nivel_pct", 90))
 
+    # --- R2 · T2.2: las gráficas y los mapas propios del capítulo -------
+    def _cambia(lista, i, j):
+        lista[i], lista[j] = lista[j], lista[i]
+
+    def _otro_pliegue(o, clave):
+        v = o["ideam"][clave]
+        j = next(k for k in range(1, len(v)) if v[k] != v[0])
+        v[0], v[j] = v[j], v[0]
+
+    add("R2 · T2.2 · Snow: desaparecen las celdas de las bombas", "mapas",
+        m(lambda o: o["snow"].pop("celdas")))
+    add("R2 · T2.2 · Snow: dos bombas se cambian la celda", "mapas",
+        m(lambda o: _cambia(o["snow"]["celdas"], 6, 5)))
+    add("R2 · T2.2 · Snow: la celda de Broad St crece hacia un lado", "mapas",
+        m(lambda o: o["snow"]["celdas"][6].__setitem__(0, o["snow"]["celdas"][6][0] + 400)))
+    add("R2 · T2.2 · Snow: falta una celda", "mapas",
+        m(lambda o: o["snow"]["celdas"].pop()))
+    add("R2 · T2.2 · Snow: vuelve el pie de leyenda bajo las entradas", "mapas",
+        m(lambda o: o["snow"].__setitem__("leyenda", "bomba más próxima")))
+    add("R2 · T2.2 · Mosa: la rampa vuelve a ser lineal", "mapas",
+        m(lambda o: o["meuse"].pop("marcas_escala")))
+    add("R2 · T2.2 · Mosa: el marco ya no es el de los puntos", "mapas",
+        m(lambda o: o["meuse"]["caja"].__setitem__(0, o["meuse"]["caja"][0] - 300)))
+    add("R2 · T2.2 · Mosa: se pierde una orilla", "mapas",
+        m(lambda o: o["meuse"]["lineas"].pop()))
+    add("R2 · T2.2 · Mosa: el río dibujado es otro", "mapas",
+        m(lambda o: o["meuse"].__setitem__("lineas", [[4096 - v if i % 2 == 0 else v for i, v in enumerate(l)]
+                                                    for l in o["meuse"]["lineas"]])))
+    add("R2 · T2.2 · m7: la ventana del acercamiento se corre", "mapas",
+        m(lambda o: o["agregacion"]["zoom"]["caja"].__setitem__(0, o["agregacion"]["zoom"]["caja"][0] + 150000)))
+    add("R2 · T2.2 · m7: el acercamiento declara otras celdas", "mapas",
+        m(lambda o: o["agregacion"]["zoom"].__setitem__("n_celdas", 25)))
+    add("R2 · T2.2 · m7: desaparece la ventana del acercamiento", "mapas",
+        m(lambda o: o["agregacion"].pop("zoom")))
+    add("R2 · T2.2 · IDEAM: desaparece el contorno del país", "mapas",
+        m(lambda o: o["ideam"].pop("lineas")))
+    add("R2 · T2.2 · IDEAM: el contorno es de otro sitio", "mapas",
+        m(lambda o: o["ideam"].__setitem__("lineas", [[v // 2 for v in l] for l in o["ideam"]["lineas"]])))
+    add("R2 · T2.2 · IDEAM: una franja de altitud cuenta de más", "datos",
+        m(lambda o: o["visto"]["ideam"]["por_altitud"][2].__setitem__(
+            "n", o["visto"]["ideam"]["por_altitud"][2]["n"] + 1)))
+    add("R2 · T2.2 · IDEAM: la temperatura media de una franja cambia", "datos",
+        m(lambda o: o["visto"]["ideam"]["por_altitud"][4].__setitem__("t_media", 16.41739)))
+    add("R2 · T2.2 · IDEAM: desaparecen las franjas de altitud", "datos",
+        m(lambda o: o["visto"]["ideam"].pop("por_altitud")))
+    add("R2 · T2.2 · m10: dos estaciones se cambian de pliegue al azar", "mapas",
+        m(lambda o: _otro_pliegue(o, "pliegue_aleatorio")))
+    add("R2 · T2.2 · m10: dos estaciones se cambian de bloque", "mapas",
+        m(lambda o: _otro_pliegue(o, "pliegue_bloques")))
+    add("R2 · T2.2 · m10: el mapa pierde un reparto", "mapas",
+        m(lambda o: o["ideam"].pop("pliegue_bloques")))
+    add("R2 · T2.2 · m10: las vecinas en su pliegue, al azar, cambian", "datos",
+        m(lambda o: o["cv_espacial"].__setitem__("vecina_en_su_pliegue_aleatoria", 37)))
+    add("R2 · T2.2 · m10: las vecinas en su bloque cambian", "datos",
+        m(lambda o: o["cv_espacial"].__setitem__("vecina_en_su_pliegue_bloques", 340)))
+    add("R2 · T2.2 · m10: el RMSE aleatorio no es el de sus pliegues", "datos",
+        m(lambda o: (o["cv_espacial"].__setitem__("rmse_aleatoria", o["cv_espacial"]["rmse_aleatoria"] * 1.001),
+                     o["cv_espacial"].__setitem__("razon", o["cv_espacial"]["rmse_bloques"] / (o["cv_espacial"]["rmse_aleatoria"])),
+                     o["cv_espacial"].__setitem__("inflacion_pct", 100 * (o["cv_espacial"]["razon"] - 1)),
+                     o["cv_espacial"].__setitem__("r2_aleatoria", 1 - o["cv_espacial"]["rmse_aleatoria"] ** 2 / o["cv_espacial"]["sd_variable"] ** 2))))
+    add("R2 · T2.2 · m4: un campo pierde el centro de su escala", "mapas",
+        m(lambda o: o["campos"][2].pop("centro")))
+    add("R2 · T2.2 · m4: los cortes de un campo dejan de ser simétricos", "mapas",
+        m(lambda o: o["campos"][4]["cortes"].__setitem__(0, o["campos"][4]["cortes"][0] - 0.5)))
+    add("R2 · T2.2 · m4: un campo va con otra escala que los demás", "mapas",
+        m(lambda o: o["campos"][1].__setitem__("rango", [-3.5, 3.5])))
+    add("R2 · T2.2 · m4: las celdas por clase de un campo cambian", "mapas",
+        m(lambda o: (o["campos"][4]["tam"].__setitem__(2, o["campos"][4]["tam"][2] + 9),
+                     o["campos"][4]["tam"].__setitem__(3, o["campos"][4]["tam"][3] - 9))))
+    add("R2 · T2.2 · m4: un campo pierde su recuento por clase", "mapas",
+        m(lambda o: o["campos"][0].pop("tam")))
+    add("R2 · T2.2 · m4: la media del campo destacado no es la de la réplica 1", "mapas",
+        m(lambda o: o["campos"][4].__setitem__("media_espacial", o["campos"][4]["media_espacial"] + 0.05)))
+    add("R2 · T2.2 · m4: la réplica 1 de los cien intervalos es otra", "datos",
+        m(lambda o: o["inferencia"]["cien_ic"]["media"].__setitem__(
+            0, o["inferencia"]["cien_ic"]["media"][0] + 0.0004)))
+    add("R2 · T2.2 · m4: el I de Moran de un campo no es el de su mapa", "mapas",
+        m(lambda o: o["campos"][5].__setitem__("moran", o["campos"][5]["moran"] + 0.02)))
+    add("R2 · T2.2 · m4: un campo vuelve a la rejilla de 28×28", "mapas",
+        m(lambda o: (o["campos"][3].__setitem__("nx", 28), o["campos"][3].__setitem__("ny", 28))))
+    add("R2 · T2.2 · m6: una realización pierde el centro de su escala", "mapas",
+        m(lambda o: o["realizaciones"][0].__setitem__("centro", 0.3)))
+    add("R2 · T2.2 · m6: las celdas por clase de una realización cambian", "mapas",
+        m(lambda o: (o["realizaciones"][2]["tam"].__setitem__(1, o["realizaciones"][2]["tam"][1] + 12),
+                     o["realizaciones"][2]["tam"].__setitem__(5, o["realizaciones"][2]["tam"][5] - 12))))
+    add("R2 · T2.2 · m6: el recorrido común no es el de las tres", "mapas",
+        m(lambda o: [g.__setitem__("rango", [-3.0, 3.0]) or g.__setitem__(
+            "cortes", [-3.0 + 6.0 * k / 7 for k in range(8)]) for g in o["realizaciones"]]))
+
     return D
 
 

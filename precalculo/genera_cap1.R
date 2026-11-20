@@ -2695,6 +2695,13 @@ pl_espacial <- km$cluster
 rmse_al <- rmse_cv(pl_aleatorio)
 rmse_es <- rmse_cv(pl_espacial)
 
+# La vecina más próxima de cada estación (la primera, si hay empate).
+vecina_cv <- apply(as.matrix(dist(xy_cv)) + diag(Inf, n_cv), 1, which.min)
+# Lo que el mapa de los pliegues deja ver, y su descripción afirma.
+if (!(mean(pl_aleatorio == pl_aleatorio[vecina_cv]) < 0.25 &&
+      mean(pl_espacial == pl_espacial[vecina_cv]) > 0.75))
+  stop("J: los dos repartos ya no se separan por dónde queda la vecina más próxima")
+
 D$cv_espacial <- list(
   n = n_cv, k_vecinos = K_VECINOS, n_pliegues = NPLIEGUES,
   variable = "temperatura media anual (°C)",
@@ -2719,6 +2726,13 @@ D$cv_espacial <- list(
   tam_pliegues = as.integer(sort(as.vector(table(pl_espacial)))),
   tam_pliegue_min = as.integer(min(table(pl_espacial))),
   tam_pliegue_max = as.integer(max(table(pl_espacial))),
+  # R2 · T2.2 (G-15): lo que separa los dos repartos, contado. De cada
+  # estación, si su vecina más próxima quedó en su MISMO pliegue —y por
+  # tanto fuera del entrenamiento cuando a ella le toca la prueba—. Con el
+  # reparto al azar casi nunca; por bloques, casi siempre. Es el mecanismo
+  # del módulo: al azar, la vecina de al lado está siempre para ayudar.
+  vecina_en_su_pliegue_aleatoria = as.integer(sum(pl_aleatorio == pl_aleatorio[vecina_cv])),
+  vecina_en_su_pliegue_bloques   = as.integer(sum(pl_espacial == pl_espacial[vecina_cv])),
   frontera = paste("El desarrollo (blockCV, spatialsample, tamaño de bloque",
                    "guiado por el rango del variograma y área de",
                    "aplicabilidad) es del capítulo 10.")
@@ -3034,7 +3048,46 @@ MAPAS$snow <- geo_puntos(
   puntos2 = bombas, etiquetas2 = as.character(Snow.pumps$label),
   resaltado2 = i_broad,
   titulo = "Muertes por cólera y bombas de agua, Soho, 1854",
-  leyenda = "bomba más próxima")
+  # Sin pie de leyenda (R2 · T2.2, G-20): «bomba más próxima» es el TÍTULO de
+  # la leyenda y el motor lo escribía debajo de las entradas. Lo dice el
+  # título del mapa, que el capítulo redacta para cada vista.
+  leyenda = "")
+
+# --- M.1b Las celdas de las trece bombas (R2 · T2.2, G-20) ------------
+# La lectura del simulador habla de «la celda de Broad St» y el mapa no la
+# dibujaba. La celda de una bomba es el conjunto de puntos que la tienen
+# como la más próxima: el polígono de Voronoi de las trece, recortado al
+# marco del mapa. Se construye aquí, con la misma distancia euclídea que
+# `mas_cerca`, y no se toman los polígonos que Tobler distribuye con el
+# dato (`Snow.polygons`), que discrepan de esa asignación en un puñado de
+# muertes (ver arriba, `celda_tobler`).
+#
+# Y SE COMPRUEBA CONTRA LO QUE EL MAPA COLOREA: cada muerte tiene que caer
+# dentro de la celda de la bomba que lleva por marca. Si una sola cayera en
+# otra, el mapa pintaría un punto de un color dentro de la celda de otro.
+caja_snow  <- MAPAS$snow$caja
+marco_snow <- st_as_sfc(st_bbox(c(xmin = caja_snow[1], ymin = caja_snow[2],
+                                  xmax = caja_snow[3], ymax = caja_snow[4])))
+pts_bombas <- st_as_sf(data.frame(x = bombas[, 1], y = bombas[, 2]), coords = c("x", "y"))
+vor_snow <- st_collection_extract(
+  st_voronoi(st_union(pts_bombas), envelope = marco_snow), "POLYGON")
+vor_snow <- st_intersection(vor_snow, marco_snow)
+cual_vor <- unlist(st_intersects(pts_bombas, vor_snow))
+stopifnot(length(cual_vor) == nrow(bombas), !anyDuplicated(cual_vor))
+celdas_snow <- vor_snow[cual_vor]
+pts_muertes <- st_as_sf(data.frame(x = muertes[, 1], y = muertes[, 2]), coords = c("x", "y"))
+en_celda <- st_intersects(pts_muertes, celdas_snow)
+if (!all(vapply(seq_along(en_celda), function(i) mas_cerca[i] %in% en_celda[[i]], logical(1))))
+  stop("M.1b: alguna muerte no cae en la celda de Voronoi de su bomba más próxima")
+# Entre todas cubren el marco, sin solaparse.
+if (abs(sum(as.numeric(st_area(celdas_snow))) - as.numeric(st_area(marco_snow))) >
+    1e-9 * as.numeric(st_area(marco_snow)))
+  stop("M.1b: las trece celdas no reparten el marco del mapa")
+MAPAS$snow$celdas <- unname(lapply(seq_along(celdas_snow), function(k) {
+  m <- st_coordinates(celdas_snow[k])[, 1:2, drop = FALSE]
+  qq <- geo_qxy(m[, 1], m[, 2], caja_snow)
+  as.integer(rbind(qq$x, qq$y))
+}))
 
 # --- M.2 Los tres tipos de dato, canónicos ----------------------------
 # La ventana se LEE del objeto, no se escribe. Escrita a mano estuvo mal
@@ -3073,9 +3126,40 @@ MAPAS$nc <- geo_poligonos(
   titulo = "Tasa de muerte súbita infantil, Carolina del Norte 1974-78",
   leyenda = "por 1 000 nacimientos", verbose = FALSE)
 
+# R2 · T2.2 (G-04). La prosa dice que el mapa «parece manchas de color hasta
+# que uno sabe por dónde va el río», y el río no estaba dibujado. Va como
+# capa de líneas: las dos orillas de `meuse.riv`, el contorno del cauce que
+# `sp` distribuye con el dato, recortadas a un marco que es la caja de los
+# puntos ensanchada un décimo de su lado mayor, para que el meandro del
+# suroeste se vea entero. Y la rampa recorre el logaritmo del zinc: en
+# lineal, con asimetría 1.46, casi todos los puntos caían en los dos tonos
+# más claros.
+data(meuse.riv, package = "sp")
+xy_zinc <- as.matrix(meuse[, c("x", "y")])
+MARGEN_RIO <- 0.10
+lado_meuse <- max(diff(range(xy_zinc[, 1])), diff(range(xy_zinc[, 2])))
+caja_meuse <- c(min(xy_zinc[, 1]), min(xy_zinc[, 2]), max(xy_zinc[, 1]), max(xy_zinc[, 2])) +
+  c(-1, -1, 1, 1) * MARGEN_RIO * lado_meuse
+marco_meuse <- st_as_sfc(st_bbox(c(xmin = caja_meuse[1], ymin = caja_meuse[2],
+                                   xmax = caja_meuse[3], ymax = caja_meuse[4])))
+cauce <- st_sfc(st_polygon(list(meuse.riv)))
+stopifnot(st_is_valid(cauce))
+orillas <- st_cast(st_cast(st_intersection(st_boundary(cauce), marco_meuse), "MULTILINESTRING"),
+                   "LINESTRING")
+lineas_rio <- lapply(seq_along(orillas), function(k) st_coordinates(orillas[k])[, 1:2, drop = FALSE])
+# La distancia de cada punto al cauce dibujado, para poder decir que los
+# valores altos se pegan a ESE río y no a otro: tiene que contar lo mismo
+# que la `dist` del dato, que viene normalizada y es la que usa
+# `corr_dist_rio`.
+d_cauce <- as.numeric(st_distance(st_as_sf(meuse, coords = c("x", "y")), cauce))
+if (cor(d_cauce, meuse$dist) < 0.95 || cor(log(meuse$zinc), d_cauce) > -0.5)
+  stop("M.2: el cauce dibujado no es el río al que se pegan los valores altos de zinc")
 MAPAS$meuse <- geo_puntos(
-  as.matrix(meuse[, c("x", "y")]), marcas = as.numeric(meuse$zinc),
-  titulo = "Zinc en la vega del Mosa", leyenda = "ppm")
+  xy_zinc, marcas = as.numeric(meuse$zinc), caja = caja_meuse,
+  lineas = lineas_rio,
+  titulo = "Zinc en la vega del Mosa",
+  leyenda = "ppm · las dos líneas son las orillas del río")
+MAPAS$meuse$marcas_escala <- "log"
 
 # --- M.2b El mapa del módulo 7: la rejilla encima de los condados -----
 #
@@ -3114,6 +3198,26 @@ MAPAS$agregacion <- geo_poligonos(
                    nrow(nc_ag), nrow(rej_nc)),
   leyenda = "muertes súbitas, 1974-78")
 
+# R2 · T2.2 (G-13). En el teléfono las cinco celdas del caso miden unos
+# 23 × 8 px y sus rótulos —que son la lección del mapa— no caben. El mapa
+# gana una segunda vista, ACERCADA: la misma geometría mirada por una
+# ventana que es la caja de las celdas que toca el condado, ensanchada una
+# celda por cada lado. Aquí solo se calcula la ventana y lo que cae dentro;
+# el navegador reencuadra con ella los mismos vértices, sin geometría nueva.
+bb_caso <- as.numeric(st_bbox(st_geometry(rej_nc)[cel_caso]))
+zoom_ag <- c(max(bb_rej[1], bb_caso[1] - paso_x), max(bb_rej[2], bb_caso[2] - paso_y),
+             min(bb_rej[3], bb_caso[3] + paso_x), min(bb_rej[4], bb_caso[4] + paso_y))
+ctr_rej <- st_coordinates(st_centroid(st_geometry(rej_nc)))
+cel_vista <- which(ctr_rej[, 1] > zoom_ag[1] & ctr_rej[, 1] < zoom_ag[3] &
+                   ctr_rej[, 2] > zoom_ag[2] & ctr_rej[, 2] < zoom_ag[4])
+stopifnot(all(cel_caso %in% cel_vista))
+MAPAS$agregacion$zoom <- list(
+  caja = r10(zoom_ag),
+  n_celdas = length(cel_vista),
+  columnas = as.integer(round((zoom_ag[3] - zoom_ag[1]) / paso_x)),
+  filas    = as.integer(round((zoom_ag[4] - zoom_ag[2]) / paso_y)))
+stopifnot(MAPAS$agregacion$zoom$columnas * MAPAS$agregacion$zoom$filas == length(cel_vista))
+
 # --- M.3 Los tres tipos, colombianos ----------------------------------
 # Sin marcas: el capítulo 1 solo enseña que esto es un patrón puntual.
 # La marca (urbana/rural, sector, jornada) es del capítulo 4, y aquí
@@ -3133,53 +3237,94 @@ MAPAS$desercion <- geo_poligonos(
 # 2 decimales en la marca: una temperatura en centésimas de grado es más
 # precisión de la que tiene el dato y de la que distingue una rampa de
 # color, y cada decimal de más son bytes del presupuesto.
+# R2 · T2.2 (G-05). Las estaciones flotaban sin referencia: va de fondo el
+# contorno del país, que es la unión de los departamentos del mapa de
+# deserción, simplificada. Solo los anillos exteriores de cada parte —las
+# islas incluidas—, porque es una silueta y no una capa de unidades.
+pais <- st_union(st_geometry(dep_ok))
+pais <- geo_simplifica(st_sf(geom = st_cast(pais, "POLYGON")), presupuesto = 420L, verbose = FALSE)
+lineas_pais <- unlist(lapply(st_geometry(pais), function(g) {
+  if (inherits(g, "MULTIPOLYGON")) lapply(g, function(pp) pp[[1]][, 1:2, drop = FALSE])
+  else list(g[[1]][, 1:2, drop = FALSE])
+}), recursive = FALSE)
+stopifnot(st_crs(est) == st_crs(dep_ok))
 MAPAS$ideam <- geo_puntos(
   st_coordinates(est), marcas = round(as.numeric(est$t_media_anual), 2),
+  lineas = lineas_pais,
   titulo = "Temperatura media anual, estaciones del IDEAM",
-  leyenda = "°C")
+  leyenda = "°C · de fondo, el contorno del país")
+# R2 · T2.2 (G-15). Los dos repartos de la validación cruzada del módulo 10,
+# estación a estación, para dibujarlos: es lo único que cambia entre las dos
+# barras del simulador. Son los mismos vectores con los que se midió el
+# RMSE; el auditor lo rehace con ellos.
+stopifnot(identical(unname(st_coordinates(est)), unname(xy_cv)))
+MAPAS$ideam$pliegue_aleatorio <- as.integer(pl_aleatorio)
+MAPAS$ideam$pliegue_bloques   <- as.integer(pl_espacial)
 
 # --- M.4 Los campos gaussianos de los simuladores ---------------------
-# Una realización por valor de phi, en 28 x 28. Son la fuente del
-# simulador «campo gaussiano con correlación regulable» del módulo 3-4.
+# Un campo por valor de phi, sobre la MISMA retícula de K4 x K4 que mide
+# las cifras del módulo 4 (R2 · T2.2, G-07). Hasta aquí eran de 28 x 28,
+# con ruido propio, mientras la lectura de debajo hablaba de «las 256
+# celdas»: el mapa no era el campo de la simulación ni decía qué era.
 #
-# 28 y no 32: sobre un lienzo de ~350 px cada celda son 12 px, que se lee
-# igual de bien, y las rejillas juntas bajan casi a la mitad. El
-# presupuesto del capítulo manda sobre la resolución cuando la resolución
-# de más no se ve.
+# AHORA EL DE phi = 4 ES LA RÉPLICA 1 DE LA SIMULACIÓN. El ruido blanco es
+# el de la primera columna de la matriz de D.1 para ese alcance —la misma
+# semilla, los mismos N4 primeros normales— y pasa por el mismo factor de
+# Cholesky, así que el campo es, celda a celda, el primero de los 3 000 que
+# midieron la cobertura y el primero de los cien intervalos de D.1b. Se
+# comprueba abajo contra su media.
+#
+# Y LOS OTROS SEIS PASAN ESE MISMO RUIDO por la correlación de su alcance:
+# así lo único que cambia entre un mapa y el siguiente es phi, no la
+# realización. Sin esto el simulador parecería cambiar de dato al mover el
+# control. No son la réplica 1 de sus propias simulaciones —cada alcance
+# sortea con su semilla—, y el capítulo lo dice.
 #
 # PHIS_VER cubre los SIETE alcances de `inferencia.rejilla` y no cinco
 # (T1.2): el deslizador del módulo 4 recorre las cifras de esa rejilla, y
 # dejar dos posiciones sin campo obligaba a acortar el control justo en
 # los dos extremos que más enseñan — phi = 0 es la imagen de la
 # independencia.
-K8 <- 28L; N8 <- K8^2
-rej8 <- expand.grid(x = seq_len(K8), y = seq_len(K8))
-D8 <- as.matrix(dist(rej8))
-PHIS_VER <- c(0, 0.5, 1, 2, 4, 8, 16)
-set.seed(SEMILLA + 600L)
-# El MISMO ruido blanco para todos los phi: así lo único que cambia entre
-# un mapa y el siguiente es la correlación, no la realización. Sin esto
-# el simulador parecería estar cambiando de dato al mover el control.
-e8 <- rnorm(N8)
-MAPAS$campos <- lapply(PHIS_VER, function(phi) {
-  # phi = 0 es el caso LÍMITE, no un valor más: rho(h) = 0 para todo
-  # h > 0, o sea R = I y el campo ES el ruido blanco de arriba. La
-  # fórmula no sirve ahí —D8/0 da NaN en la diagonal—, así que se
-  # despacha aparte. Y como el ruido es común a todos los phi, el mapa
-  # de phi = 0 enseña literalmente el punto de partida de los otros seis.
-  z <- if (phi == 0) e8 else
-    as.numeric(t(chol(exp(-D8 / phi) + diag(1e-8, N8))) %*% e8)
-  g <- geo_rejilla(matrix(z, K8, K8), caja = c(0, 0, K8, K8),
-                   titulo = sprintf("Campo gaussiano, rango = %g", phi),
-                   leyenda = "z", n_clases = 7, estilo = "equal")
+PHIS_VER <- PHIS
+semilla_antes <- if (exists(".Random.seed", envir = globalenv())) get(".Random.seed", envir = globalenv()) else NULL
+set.seed(SEMILLA + 100L + round(PHI_CIEN * 10))
+e_ver <- rnorm(N4)
+if (!is.null(semilla_antes)) assign(".Random.seed", semilla_antes, envir = globalenv())
+campo_de <- function(phi) {
+  # phi = 0 es el caso LÍMITE: R = I y el campo ES el ruido blanco. Se
+  # despacha como en D.1, con la misma matriz y el mismo jitter.
+  R <- if (phi <= 0) diag(N4) else exp(-DIST4 / phi)
+  as.numeric(t(chol(R + diag(JITTER, N4))) %*% e_ver)
+}
+Z_VER <- lapply(PHIS_VER, campo_de)
+if (abs(mean(Z_VER[[which(PHIS_VER == PHI_CIEN)]]) - replicas_cien$medias[1]) > 1e-12)
+  stop("M.4: el campo de phi = ", PHI_CIEN, " ya no es la réplica 1 de la simulación")
+# UNA SOLA ESCALA PARA LOS SIETE, Y CENTRADA EN CERO (G-06). El proceso
+# tiene media 0: el tono neutro de la paleta divergente tiene que ser el 0,
+# y a igual distancia del 0, igual intensidad. La escala es simétrica,
+# ±(el mayor valor absoluto de los siete), y los cortes son siete clases de
+# anchura igual sobre ella, de modo que la del medio queda centrada en 0.
+A_VER <- max(abs(unlist(Z_VER)))
+cuenta_clases <- function(z, brks) as.integer(table(cut(z, brks, include.lowest = TRUE, right = FALSE)))
+MAPAS$campos <- lapply(seq_along(PHIS_VER), function(j) {
+  phi <- PHIS_VER[j]; z <- Z_VER[[j]]
+  g <- geo_rejilla(matrix(z, K4, K4), caja = c(0, 0, K4, K4),
+                   titulo = sprintf("Campo gaussiano de %d × %d celdas, alcance φ = %g", K4, K4, phi),
+                   leyenda = "z", n_clases = 7, estilo = "equal", escala = c(-A_VER, A_VER))
+  g$centro <- 0
+  g$tam <- cuenta_clases(z, g$cortes)
+  stopifnot(sum(g$tam) == N4)
   g$phi <- r10(phi)
   g$rho_vecino <- r10(if (phi == 0) 0 else exp(-1 / phi))
+  g$media_espacial <- r10(mean(z))
   g$moran <- r10(local({
-    nb <- cell2nb(K8, K8, type = "queen")
+    nb <- cell2nb(K4, K4, type = "queen")
     moran.test(z, nb2listw(nb, style = "W"))$estimate[["Moran I statistic"]]
   }))
   g
 })
+# Lo que la descripción de cada campo afirma: el I de Moran crece con phi.
+stopifnot(!is.unsorted(vapply(MAPAS$campos, function(g) g$moran, numeric(1)), strictly = TRUE))
 
 # --- M.5 Los mapas de las tres realizaciones que se enseñan -----------
 # Las tres primeras del lote de la sección F, en su MISMA rejilla de
@@ -3191,11 +3336,20 @@ MAPAS$campos <- lapply(PHIS_VER, function(phi) {
 # `mean(z)`/`sd(z)` sobre el vector del mapa, y no una copia de
 # `medias_real[i]`: las dos rutas tienen que coincidir y el ensamblador
 # lo exige. Copiarlas de la sección F volvería tautológica esa guarda.
+# R2 · T2.2 (G-06): como los campos de M.4, una sola escala para las tres,
+# simétrica y centrada en la media del proceso, 0. Con cada mapa
+# normalizado contra su propio recorrido, la clase blanca caía en un valor
+# distinto en cada uno y la media de la realización —que es lo que el
+# módulo dice que se mueve— no se veía moverse.
+A_REAL <- max(abs(CAMPOS[, seq_len(N_VISTAS)]))
 MAPAS$realizaciones <- lapply(seq_len(N_VISTAS), function(i) {
   z <- CAMPOS[, i]
   g <- geo_rejilla(matrix(z, K6, K6), caja = c(0, 0, K6, K6),
                    titulo = sprintf("Realización %d del mismo proceso", i),
-                   leyenda = "z", n_clases = 7, estilo = "equal")
+                   leyenda = "z", n_clases = 7, estilo = "equal", escala = c(-A_REAL, A_REAL))
+  g$centro <- 0
+  g$tam <- cuenta_clases(z, g$cortes)
+  stopifnot(sum(g$tam) == N6)
   g$id             <- i
   g$media_espacial <- r10(mean(z))
   g$sd_espacial    <- r10(sd(z))
@@ -3251,7 +3405,18 @@ D$visto <- list(
   nc = c(list(clase_alta_n = sum(alta_nc)), tabla_zonas(z_nc[alta_nc])),
   ideam = list(frias_umbral = r10(q_ideam[1]), calidas_umbral = r10(q_ideam[2]),
                frias = tabla_zonas(z_ideam[t_ideam <= q_ideam[1]]),
-               calidas = tabla_zonas(z_ideam[t_ideam >= q_ideam[2]])),
+               calidas = tabla_zonas(z_ideam[t_ideam >= q_ideam[2]]),
+               # R2 · T2.2 (G-24): la tabla de respaldo del mapa. Las
+               # estaciones por franja de altitud de 500 m, [desde, hasta),
+               # con cuántas hay y su temperatura media.
+               por_altitud = local({
+                 PASO_ALT <- 500
+                 fr <- floor(est$altitud_m / PASO_ALT)
+                 lapply(sort(unique(fr)), function(f) list(
+                   desde = as.integer(f * PASO_ALT), hasta = as.integer((f + 1) * PASO_ALT),
+                   n = as.integer(sum(fr == f)),
+                   t_media = r10(mean(t_ideam[fr == f]))))
+               })),
   bogota = list(franja = I(c("norte", "centro", "sur")),
                 n = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f), 0L))))
 message(sprintf("  deserción: de %s (%s) a %s (%s) · NC alta: %s · IDEAM frías: %s · Bogotá: %s",
