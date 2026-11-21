@@ -102,7 +102,9 @@
       "nn_sd": 0.0312936961,
       "nn_esperada": 0.0620173673,
       "clark_evans": 1.0640020553,
-      "clark_evans_donnelly": 1.0075072432
+      "clark_evans_donnelly": 1.0075072432,
+      "area_caja": 0.912,
+      "lambda_caja": 71.2719298246
     },
     "redwood": {
       "nombre": "Plántulas de secuoya",
@@ -176,7 +178,10 @@
       "area_dc_km2": 1633.1403988709,
       "n_dc": 2208,
       "lambda_dc": 1.3519964368,
-      "factor_lambda": 4.2109671503
+      "factor_lambda": 4.2109671503,
+      "area_caja_km2": 4613.3072578413,
+      "lambda_caja": 0.4788321862,
+      "pct_caja_fuera_dc": 66.724448619
     },
     "area": {
       "nombre": "Deserción escolar municipal",
@@ -2411,14 +2416,17 @@
     },
     "bogota": {
       "franja": ["norte", "centro", "sur"],
-      "n": [2159, 35, 15]
+      "n": [2171, 24, 14],
+      "urbana": [2107, 0, 0],
+      "fuera_dc": [0, 1, 0],
+      "margen_urbano_m": 34.7364817127
     }
   },
   "meta": {
     "capitulo": 1,
     "titulo": "Datos espaciales y la primera ley de la geografía",
     "semana": 1,
-    "generado": "2026-11-19",
+    "generado": "2026-11-21",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "anclas_verificadas": 29

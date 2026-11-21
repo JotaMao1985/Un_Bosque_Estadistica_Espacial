@@ -477,6 +477,13 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         # --- LO QUE LOS MÓDULOS 2, 6 Y 10 Y LA Q4 NO PUEDEN VOLVER A DECIR
         # (R1 · T1.4, 2026-11-16). Una inyección por frase retirada; la de
         # la Q4 entra por el JavaScript del cuestionario.
+        # R2 · T2.3 (ronda 2): la respuesta de los pinos y el rótulo de su rectángulo.
+        ("la respuesta de los pinos vuelve a atribuir el cambio de λ̂ a que la ventana se fije antes de mirar",
+         "y se fija antes de mirarlos. Como",
+         "y se fija antes de mirar, y por eso cambiarla cambia la intensidad. Como"),
+        ("el rectángulo de los pinos vuelve a rotularse como ventana",
+         "etiqueta: PUESTO1(pinosVentana === 'caja') + PINOS1_NOMBRE[pinosVentana]",
+         "etiqueta: 'ventana: ' + PINOS1_NOMBRE[pinosVentana]"),
         ("el módulo 2 vuelve a decir que el perímetro urbano es un recorte",
          "Con ese criterio valen las dos que se acaban de",
          "Con ese criterio el perímetro urbano no es una ventana sino un recorte, y las dos de"),

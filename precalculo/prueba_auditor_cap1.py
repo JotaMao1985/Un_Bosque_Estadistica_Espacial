@@ -1199,6 +1199,35 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: [g.__setitem__("rango", [-3.0, 3.0]) or g.__setitem__(
             "cortes", [-3.0 + 6.0 * k / 7 for k in range(8)]) for g in o["realizaciones"]]))
 
+    # --- R2 · T2.3: los bordes de Bogotá y la caja de los pinos ----------
+    add("R2 · T2.3 · Bogotá: el área del rectángulo de las sedes cambia", "datos",
+        m(lambda o: o["colombia"]["puntual"].__setitem__("area_caja_km2", 4613.41739)))
+    add("R2 · T2.3 · Bogotá: la intensidad con el rectángulo cambia", "datos",
+        m(lambda o: o["colombia"]["puntual"].__setitem__("lambda_caja", 0.48417)))
+    add("R2 · T2.3 · Bogotá: lo que el rectángulo se sale del Distrito cambia", "datos",
+        m(lambda o: o["colombia"]["puntual"].__setitem__("pct_caja_fuera_dc", 61.7)))
+    add("R2 · T2.3 · Bogotá: el mapa pierde sus bordes", "mapas",
+        m(lambda o: o["bogota"].pop("bordes")))
+    add("R2 · T2.3 · Bogotá: el perímetro urbano y el Distrito se cambian el nombre", "mapas",
+        m(lambda o: o["bogota"]["bordes"].update(urbano=o["bogota"]["bordes"]["distrito"],
+                                                 distrito=o["bogota"]["bordes"]["urbano"])))
+    add("R2 · T2.3 · Bogotá: el rectángulo dibujado no es el de las sedes", "mapas",
+        m(lambda o: o["bogota"]["bordes"]["caja"][0].__setitem__(0, o["bogota"]["bordes"]["caja"][0][0] - 300)))
+    add("R2 · T2.3 · Bogotá: una sede del perímetro urbano se lee como del resto del Distrito", "mapas",
+        m(lambda o: o["bogota"]["dentro"].__setitem__(o["bogota"]["dentro"].index(2), 1)))
+    add("R2 · T2.3 · Bogotá: el mapa pierde el borde de cada sede", "mapas",
+        m(lambda o: o["bogota"].pop("dentro")))
+    add("R2 · T2.3 · Bogotá: una sede urbana en el tercio del medio", "datos",
+        m(lambda o: o["visto"]["bogota"]["urbana"].__setitem__(1, 1)))
+    add("R2 · T2.3 · Bogotá: ninguna sede fuera del Distrito en el tercio del medio", "datos",
+        m(lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0)))
+    add("R2 · T2.3 · Bogotá: el perímetro urbano baja del corte", "datos",
+        m(lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -5.0)))
+    add("R2 · T2.3 · pinos: el área del rectángulo de los puntos cambia", "datos",
+        m(lambda o: o["puntual_canonico"]["japanesepines"].__setitem__("area_caja", 0.93)))
+    add("R2 · T2.3 · pinos: la intensidad con ese rectángulo cambia", "datos",
+        m(lambda o: o["puntual_canonico"]["japanesepines"].__setitem__("lambda_caja", 70.41739)))
+
     return D
 
 

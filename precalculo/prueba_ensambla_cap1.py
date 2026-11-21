@@ -913,7 +913,97 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("T2.2: un par sin estrato deja de acercarse al cero", "datos",
         lambda o: o["escala_correlacion"]["caso_aviso"]["bajan_sin_estrato"][0]
         .__setitem__("r_departamental_n30", -0.5))
+    # --- R2 · T2.3 ---
+    obj("T2.3: el mapa de Bogotá pierde un borde", "mapas",
+        lambda o: o["bogota"]["bordes"].pop("distrito"))
+    obj("T2.3: el Distrito sale más denso que el perímetro urbano", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__("lambda_dc", 6.5))
+    obj("T2.3: una intensidad de Bogotá no es sus sedes entre su área", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__("area_caja_km2", 4000.0))
+    obj("T2.3: el rectángulo de las sedes cabe en el Distrito", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__("pct_caja_fuera_dc", 0.0))
+    obj("T2.3: el rectángulo dibujado en Bogotá no ciñe a las sedes", "mapas",
+        lambda o: o["bogota"]["bordes"]["caja"][0].__setitem__(0, o["bogota"]["bordes"]["caja"][0][0] - 200))
+    obj("T2.3: la lectura de Bogotá pone una sede urbana en el resto del Distrito", "mapas",
+        lambda o: o["bogota"]["dentro"].__setitem__(o["bogota"]["dentro"].index(2), 1))
+    obj("T2.3: con el rectángulo de los pinos la intensidad baja", "datos",
+        lambda o: o["puntual_canonico"]["japanesepines"].__setitem__("lambda_caja", 60.0))
+    txt("T2.3: un mapa del módulo 2 pierde su mando de la pregunta", "ensamblador",
+        "controles: [interruptorAleatorio('meuse')],", "controles: [],")
+    txt("T2.3: el capítulo vuelve a escribir en la paleta del motor", "ensamblador",
+        "      const lista = GEOMAPA_CUALITATIVA.slice();",
+        "      const lista = GEOMAPA_CUALITATIVA; GEOMAPA_CUALITATIVA[0] = '#F0E442';")
+    txt("T2.3: el título de Bogotá se copia con Object.assign y se congela", "ensamblador",
+        "    Object.defineProperties(GEOMAPAS['cap1-bogota'], Object.getOwnPropertyDescriptors({",
+        "    Object.assign(GEOMAPAS['cap1-bogota'], {",
+        "      descripcion: () => DESC1_BOGOTA[bogotaVentana]\n    }));",
+        "      descripcion: () => DESC1_BOGOTA[bogotaVentana]\n    });")
+    # --- R2 · T2.3, ronda 2: lo que escriben las lecturas, los títulos y las respuestas
+    # (las diez del verificador, A–J, más las de R1, N1, N3 y los tercios).
+    txt("T2.3b: las tres frases del borde de Bogotá, en orden invertido", "ensamblador",
+        "const BOGOTA1_DONDE = ['fuera del Distrito Capital', 'en el Distrito Capital, fuera del perímetro urbano',\n                           'dentro del perímetro urbano, y por tanto del Distrito Capital'];",
+        "const BOGOTA1_DONDE = ['dentro del perímetro urbano, y por tanto del Distrito Capital', 'en el Distrito Capital, fuera del perímetro urbano',\n                           'fuera del Distrito Capital'];")
+    txt("T2.3b: «entra / no entra» cruzado entre perímetro y Distrito", "ensamblador",
+        "(bogotaVentana === 'distrito' ? k >= 1 : k === 2)", "(bogotaVentana === 'distrito' ? k === 2 : k >= 1)")
+    txt("T2.3b: la respuesta de Carolina del Norte, la de los puntuales", "ensamblador",
+        'id="aleatorio-nc" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es el valor de cada unidad.</strong>',
+        'id="aleatorio-nc" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es dónde.</strong>')
+    txt("T2.3b: la clase se lee con los cortes de la siguiente", "ensamblador",
+        "de ${n5(d.cortes[k - 1], 2)} a `\n        + `${n5(d.cortes[k], 2)}", "de ${n5(d.cortes[k], 2)} a `\n        + `${n5(d.cortes[k + 1], 2)}")
+    txt("T2.3b: el título del perímetro urbano con las sedes del Distrito", "ensamblador",
+        "Con el perímetro urbano por ventana: ${miles1(p.n_urbana)}", "Con el perímetro urbano por ventana: ${miles1(p.n_dc)}")
+    txt("T2.3b: el zinc del punto vecino", "ensamblador",
+        "${miles1(d.marcas[i])} ppm de zinc", "${miles1(d.marcas[(i + 1) % d.n])} ppm de zinc")
+    txt("T2.3b: el título de los pinos con la intensidad de la otra ventana", "ensamblador",
+        "intensidad estimada ${cifra(p.lambda_caja, 5)}", "intensidad estimada ${cifra(p.lambda, 5)}")
+    txt("T2.3b: Snow lee la bomba con los niveles corridos", "ensamblador",
+        "d.niveles[d.marcas[i] - 1]", "d.niveles[d.marcas[i] % d.niveles.length]")
+    txt("T2.3b: la prosa da al rectángulo de los pinos el área de la ventana", "ensamblador",
+        "{n(pc['japanesepines']['area_caja'], 3)} y", "{n(pc['japanesepines']['area'], 3)} y")
+    txt("T2.3b: Bogotá rotula su rectángulo como ventana", "ensamblador",
+        "etiqueta: PUESTO1(bogotaVentana === 'caja') + BOGOTA1_NOMBRE[bogotaVentana]",
+        "etiqueta: 'ventana: ' + BOGOTA1_NOMBRE[bogotaVentana]")
+    txt("T2.3b: los pinos rotulan su rectángulo como ventana", "ensamblador",
+        "etiqueta: PUESTO1(pinosVentana === 'caja') + PINOS1_NOMBRE[pinosVentana]",
+        "etiqueta: 'ventana: ' + PINOS1_NOMBRE[pinosVentana]")
+    txt("T2.3b: la respuesta de los pinos deja de decir por qué el rectángulo no vale", "ensamblador",
+        "El rectángulo que ciñe a los puntos no es una ventana: lo dibujan",
+        "El rectángulo que ciñe a los puntos también sirve: lo dibujan")
+    txt("T2.3b: la lectura de Bogotá vuelve a escribir «de el»", "ensamblador",
+        "' en la cuenta ' + DE1(BOGOTA1_NOMBRE[bogotaVentana])", "' en la cuenta de ' + BOGOTA1_NOMBRE[bogotaVentana]")
+    txt("T2.3b: los siete mapas vuelven a la etiqueta del motor", "ensamblador",
+        "Object.keys(ETIQUETA1).forEach(k => { GEOMAPAS[k].etiqueta = ETIQUETA1[k]; });", "")
+    obj("T2.3b: el perímetro urbano baja del corte de los tercios", "datos",
+        lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -3.0))
+    obj("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "datos",
+        lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0))
     for _nombre, _mensaje in (
+            ("T2.3: el título de Bogotá se copia con Object.assign y se congela", "no siguen a su mando"),
+            ("T2.3b: las tres frases del borde de Bogotá, en orden invertido", "no dicen el borde o la cuenta"),
+            ("T2.3b: «entra / no entra» cruzado entre perímetro y Distrito", "no dicen el borde o la cuenta"),
+            ("T2.3b: la respuesta de Carolina del Norte, la de los puntuales", "no es la de su tipo de dato"),
+            ("T2.3b: la clase se lee con los cortes de la siguiente", "no dan el valor o la clase"),
+            ("T2.3b: el título del perímetro urbano con las sedes del Distrito", "el título no da las sedes"),
+            ("T2.3b: el zinc del punto vecino", "no dan el zinc"),
+            ("T2.3b: el título de los pinos con la intensidad de la otra ventana", "no da el área y la intensidad de ese borde"),
+            ("T2.3b: Snow lee la bomba con los niveles corridos", "no dan la bomba"),
+            ("T2.3b: la prosa da al rectángulo de los pinos el área de la ventana", "la prosa no da el área"),
+            ("T2.3b: Bogotá rotula su rectángulo como ventana", "se rotula como ventana"),
+            ("T2.3b: los pinos rotulan su rectángulo como ventana", "se rotula como ventana"),
+            ("T2.3b: la respuesta de los pinos deja de decir por qué el rectángulo no vale", "no dice por qué el rectángulo"),
+            ("T2.3b: la lectura de Bogotá vuelve a escribir «de el»", "«de el»"),
+            ("T2.3b: los siete mapas vuelven a la etiqueta del motor", "la etiqueta accesible no es"),
+            ("T2.3b: el perímetro urbano baja del corte de los tercios", "ya no cabe en el tercio norte"),
+            ("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "no cuadran con las del dato"),
+            ("T2.3: el mapa de Bogotá pierde un borde", "no trae los tres bordes"),
+            ("T2.3: la lectura de Bogotá pone una sede urbana en el resto del Distrito", "no cuadra con las sedes de cada ventana"),
+            ("T2.3: el Distrito sale más denso que el perímetro urbano", "ya no bajan del perímetro urbano"),
+            ("T2.3: una intensidad de Bogotá no es sus sedes entre su área", "no es sus sedes entre su área"),
+            ("T2.3: el rectángulo de las sedes cabe en el Distrito", "ya no se sale del Distrito"),
+            ("T2.3: el rectángulo dibujado en Bogotá no ciñe a las sedes", "no es el que ciñe a las sedes"),
+            ("T2.3: con el rectángulo de los pinos la intensidad baja", "la intensidad ya no sube"),
+            ("T2.3: un mapa del módulo 2 pierde su mando de la pregunta", "sin el mando que la enseña"),
+            ("T2.3: el capítulo vuelve a escribir en la paleta del motor", "vuelve a escribir en la paleta"),
             ("T2.2: el acento de la plantilla deja de ser el naranja", "el acento de la plantilla ya no es el naranja"),
             ("T2.2: la plantilla pierde el ámbar que se cambia por amarillo", "ya no trae el ámbar"),
             ("T2.2: las estaciones de San Andrés caen dentro del contorno", "se ven sobre el mar"),
@@ -1200,7 +1290,7 @@ def main() -> int:
          '''geomapa("cap1-pinos", "japanesepines", tabla=TABLA_PUNTOS,
               extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))''',
          '''geomapa("cap1-pinos", "japanesepines", tabla=TABLA_PUNTOS)''', "no trae `descripcion`"),
-        ("la descripción de Bogotá, corta", ANTES, 'DESC_BOGOTA = "Corto."\n' + ANTES, "caracteres"),
+        ("la descripción de Bogotá, corta", ANTES, 'DESC_BOGOTA_V["urbano"] = "Corto."\n' + ANTES, "caracteres"),
         ("Snow deja de apiñarse en Broad Street", ANTES, '_SN["pct_mas_cerca_broad"] = 30\n' + ANTES, "Snow:"),
         ("la deserción más alta, en el norte", ANTES, '_DS["mayores"][0]["zona"] = "norte"\n' + ANTES, "deserción:"),
         ("el campo deja de crecer con el alcance", ANTES, 'M["campos"][3]["rho_vecino"] = 0.99\n' + ANTES, "campo:"),

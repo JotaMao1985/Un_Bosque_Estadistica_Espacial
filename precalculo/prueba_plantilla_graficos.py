@@ -138,8 +138,12 @@ function lienzoFalso(ancho, alto) {
     measureText(t) { return { width: String(t).length * 0.6 * parseFloat(/(\d+(?:\.\d+)?)px/.exec(ctx.font)[1]) }; },
     strokeText(t) { log.push(['halo', t, ctx.font]); },
     fillText(t) { log.push(['texto', t, ctx.font]); },
-    setTransform() {}, clearRect() {}, createPattern() { return 'rayado'; }
+    setTransform() {}, clearRect() {}, createPattern() { return 'rayado'; },
+    // lo que usa el motor desde R2 · T2.3: trazos discontinuos, transparencia y rectángulos
+    setLineDash(v) { log.push(['trazo', v.join(',')]); }, rect() {}, isPointInPath() { return false; }
   };
+  let alfa = 1;
+  Object.defineProperty(ctx, 'globalAlpha', { get: () => alfa, set(v) { alfa = v; log.push(['alfa', v]); } });
   return ctx;
 }
 const ultimoDe = a => a[a.length - 1];
@@ -845,6 +849,7 @@ seccion('R-F', () => {
   const cajaLeyenda = { innerHTML: '', appendChild(n) { hijos.push(n); } };
   l = lienzoMapa(277);
   const raiz = { dataset: { geomapa: 'prueba-clave' }, set innerHTML(v) {}, contains: () => false,
+                 querySelectorAll: () => [],
                  querySelector: s => s === '.geomapa-lienzo' ? l.cv : s === '.geomapa-caja-leyenda' ? cajaLeyenda : null };
   GEOMAPAS['prueba-clave'] = { fuente: dato(), etiquetasLineas: ['14.51', '6.47'] };
   mainContent.lista = [raiz];
@@ -932,6 +937,211 @@ seccion('R-C', () => {
   pide(geomapaFronteraComun([[[0, 0, 10, 0, 10, 10, 0, 10]], [[10, 0, 20, 0, 20, 10, 10, 10]]]) > 0.3, 'R-C: no se ve la frontera común de dos unidades vecinas');
   // un solo vértice compartido por una unidad consigo misma no es frontera
   pide(cerca(geomapaFronteraComun([[[0, 0, 10, 0, 10, 10, 0, 0]]]), 0), 'R-C: una unidad hace frontera consigo misma');
+});
+
+// ================== T2.3 · lectura, mandos, capas de líneas, colores ==================
+seccion('T2.3', () => {
+  DPR = 2;
+  const q = 4096;
+  const puntos = () => ({ modo: 'puntos', titulo: 'Prueba', leyenda: 'u', caja: [0, 0, 1, 1], q, n: 3,
+    pts: [100, 100, 2000, 2000, 4000, 4000], marcas: [1, 2, 1], marcas_tipo: 'categoria', niveles: ['uno', 'dos'] });
+  // --- el color de una categoría lo puede fijar el registro
+  pide(geomapaColorCategoria(2, ['#111111', '#222222']) === '#222222', 'T2.3: `coloresCategoria` no decide el color de la categoría');
+  pide(geomapaColorCategoria(2) === GEOMAPA_CUALITATIVA[1], 'T2.3: sin `coloresCategoria` ya no sale la paleta de la casa');
+  let ctx = lienzoFalso(600, 600);
+  geomapaPintaPuntos(ctx, puntos(), identidad, { radio: 6, dpr: 2, coloresCategoria: ['#111111', '#222222'] });
+  pide(ctx.log.some(x => x[0] === 'fill' && x[1] === '#222222'), 'T2.3: los puntos no se pintan con `coloresCategoria`');
+  pide(geomapaLeyenda(puntos(), { coloresCategoria: ['#111111', '#222222'] }).includes('#222222'),
+       'T2.3: la leyenda no usa `coloresCategoria` y contradice al mapa');
+  // --- las capas de líneas: se pintan, encima de los puntos, con su trazo en px de pantalla
+  ctx = lienzoFalso(600, 600);
+  const capas = [{ lineas: [[0, 0, 100, 0, 100, 100]], color: '#abcdef', ancho: 2, trazo: [5, 4], cierra: true, etiqueta: 'celdas' },
+                 { lineas: [[0, 0, 9, 9]], color: '#fedcba' }];
+  geomapaPintaPuntos(ctx, puntos(), identidad, { radio: 6, dpr: 2, capasLineas: capas });
+  const iCapa = ctx.log.findIndex(x => x[0] === 'stroke' && x[1] === '#abcdef');
+  const iUltimoPunto = ctx.log.map(x => x[0]).lastIndexOf('arc');
+  pide(iCapa >= 0, 'T2.3: una capa de `capasLineas` no se pinta');
+  pide(iCapa < 0 || iCapa > iUltimoPunto, 'T2.3: las capas de líneas quedan debajo de los puntos');
+  pide(iCapa < 0 || cerca(ctx.log[iCapa][2], 4), 'T2.3: el ancho de una capa de líneas no va en px de pantalla');
+  pide(iCapa < 0 || ctx.log.some(x => x[0] === 'trazo' && x[1] === '10,8'), 'T2.3: el trazo discontinuo de una capa no se escala con la densidad');
+  pide(iCapa < 0 || ctx.log.some(x => x[0] === 'stroke' && x[1] === '#fedcba'), 'T2.3: la segunda capa de líneas no se pinta');
+  ctx = lienzoFalso(600, 600);
+  geomapaPintaPuntos(ctx, puntos(), identidad, { radio: 6, dpr: 2 });
+  pide(!ctx.log.some(x => x[0] === 'trazo'), 'T2.3: un mapa sin `capasLineas` pinta capas de líneas');
+  const ley = geomapaLeyenda(puntos(), { capasLineas: capas });
+  pide(ley.includes('celdas') && ley.includes('dashed'), 'T2.3: la capa con etiqueta no sale en la leyenda con su trazo');
+  pide(!ley.includes('#fedcba'), 'T2.3: una capa sin etiqueta sale en la leyenda');
+  // --- la transparencia de los puntos: se pone y se quita
+  ctx = lienzoFalso(600, 600);
+  geomapaPintaPuntos(ctx, puntos(), identidad, { radio: 6, dpr: 2, opacidadPuntos: 0.4 });
+  const alfas = ctx.log.filter(x => x[0] === 'alfa').map(x => x[1]);
+  pide(alfas[0] === 0.4, 'T2.3: `opacidadPuntos` no vuelve translúcidos los puntos');
+  pide(alfas.length >= 1 && ctx.globalAlpha === 1, 'T2.3: la transparencia de los puntos no se repone y alcanza a lo que se pinta después');
+  ctx = lienzoFalso(600, 600);
+  geomapaPintaPuntos(ctx, puntos(), identidad, { radio: 6, dpr: 2 });
+  pide(!ctx.log.some(x => x[0] === 'alfa'), 'T2.3: sin `opacidadPuntos` se toca la transparencia');
+  // --- qué unidad hay en un punto del lienzo
+  ctx = lienzoFalso(600, 600);
+  pide(geomapaNumUnidades(puntos()) === 3, 'T2.3: un mapa de tres puntos no tiene tres unidades');
+  pide(geomapaUnidadEn(ctx, puntos(), identidad, 2005, 1996, 20) === 1, 'T2.3: el punto más próximo al cursor no es el señalado');
+  pide(geomapaUnidadEn(ctx, puntos(), identidad, 1000, 1000, 20) === -1, 'T2.3: se señala un punto que queda fuera del alcance del cursor');
+  const rej = { modo: 'rejilla', caja: [0, 0, 4, 2], q, nx: 4, ny: 2, zq: [0, 1, 2, 3, 4, 5, 6, 7], zqmax: 7 };
+  const marco = geomapaMarcoRejilla(rej, identidad);
+  pide(geomapaNumUnidades(rej) === 8, 'T2.3: una rejilla de 4 × 2 no tiene ocho unidades');
+  pide(geomapaUnidadEn(ctx, rej, identidad, marco.x0 + 2.5 * marco.cw, marco.y0 + 1.5 * marco.ch, 20) === 6,
+       'T2.3: la celda bajo el cursor no es la de su fila y su columna');
+  pide(geomapaUnidadEn(ctx, rej, identidad, marco.x0 - 5, marco.y0 + 1, 20) === -1, 'T2.3: fuera de la rejilla se señala una celda');
+  // donde dos polígonos se solapan se ve el último que se pinta, y es el que se lee
+  const solapa = { modo: 'poligonos', caja: [0, 0, 1, 1], q,
+    geom: [[[0, 0, 4096, 0, 4096, 4096, 0, 4096]], [[1000, 1000, 2000, 1000, 2000, 2000, 1000, 2000]]] };
+  const ctxDentro = Object.assign(lienzoFalso(600, 600), { isPointInPath: () => true });
+  pide(geomapaUnidadEn(ctxDentro, solapa, identidad, 1500, 1500, 20) === 1,
+       'T2.3: donde dos unidades se solapan se lee la de debajo y no la que se ve');
+  // --- el teclado recorre las unidades
+  pide(geomapaTeclaUnidad('ArrowRight', -1, 5) === 0 && geomapaTeclaUnidad('ArrowRight', 4, 5) === 0
+       && geomapaTeclaUnidad('ArrowDown', 1, 5) === 2, 'T2.3: la flecha derecha no lleva a la unidad siguiente, dando la vuelta');
+  pide(geomapaTeclaUnidad('ArrowLeft', 0, 5) === 4 && geomapaTeclaUnidad('ArrowUp', 3, 5) === 2
+       && geomapaTeclaUnidad('ArrowLeft', -1, 5) === 4, 'T2.3: la flecha izquierda no lleva a la unidad anterior, dando la vuelta');
+  pide(geomapaTeclaUnidad('Home', 3, 5) === 0 && geomapaTeclaUnidad('End', 1, 5) === 4, 'T2.3: Inicio y Fin no llevan a los extremos');
+  pide(geomapaTeclaUnidad('Escape', 3, 5) === -1, 'T2.3: Escape no suelta la unidad señalada');
+  pide(geomapaTeclaUnidad('a', 3, 5) === undefined && geomapaTeclaUnidad('Tab', 3, 5) === undefined,
+       'T2.3: el mapa se queda con teclas que no son suyas');
+  // --- el cableado: lienzo enfocable, lectura por teclado y mandos
+  const monta = (spec) => {
+    const l = lienzoMapa(300), oyentes = {}, html = [];
+    l.cv.addEventListener = (tipo, f) => { oyentes[tipo] = f; };
+    const lectura = { textContent: '', clases: {}, classList: { toggle(c, v) { lectura.clases[c] = v; } } };
+    const botones = (spec.controles || []).map((g, k) => g.opciones.map((op, j) => {
+      const b = { dataset: { opcion: String(j) }, atributos: {}, clases: {},
+                  classList: { toggle(c, v) { b.clases[c] = v; } }, setAttribute(a, v) { b.atributos[a] = v; } };
+      return b;
+    }));
+    const cajas = botones.map((bs, k) => {
+      const caja = { dataset: { grupo: String(k) }, querySelectorAll: () => bs, addEventListener(t, f) { caja.clic = f; },
+                     after(el) { caja.despues = el; } };
+      bs.forEach(b => { b.parentElement = caja; b.closest = () => b; });
+      return caja;
+    });
+    const raiz = { dataset: { geomapa: 'prueba-lectura' }, set innerHTML(v) { html.push(String(v)); }, contains: () => false,
+                   querySelectorAll: s => /geomapa-controles/.test(s) ? cajas : [],
+                   querySelector: s => s === '.geomapa-lienzo' ? l.cv : s === '.geomapa-lectura' ? (spec.lectura ? lectura : null)
+                     : s === '.geomapa-caja-leyenda' ? { innerHTML: '', appendChild() {} }
+                     : /^\.geomapa-controles\[data-grupo="(\d+)"\]$/.test(s) ? cajas[+/(\d+)/.exec(s)[1]] : null };
+    // El lienzo mide 300 px CSS y, a densidad DPR, DPR veces eso en píxeles de dispositivo.
+    l.cv.getBoundingClientRect = () => ({ left: 0, top: 0, width: 300, height: l.cv.height / DPR });
+    GEOMAPAS['prueba-lectura'] = spec;
+    mainContent.lista = [raiz];
+    iniciarGeomapas();
+    mainContent.lista = [];
+    return { html: html.join(''), oyentes, lectura, botones, cajas, ctx: l.ctx, cv: l.cv, raiz };
+  };
+  const tecla = (m, k) => { let frenada = false; m.oyentes.keydown({ key: k, preventDefault() { frenada = true; } }); return frenada; };
+  let m = monta({ fuente: puntos(), lectura: (i, d) => 'unidad ' + i + ' de ' + d.n });
+  pide(/<canvas[^>]*tabindex="0"/.test(m.html), 'T2.3: el lienzo de un mapa con `lectura` no recibe el foco del teclado');
+  pide(/geomapa-lectura[^>]*role="status"/.test(m.html), 'T2.3: la lectura no se anuncia (falta `role="status"`)');
+  pide(typeof m.oyentes.keydown === 'function' && typeof m.oyentes.pointermove === 'function',
+       'T2.3: el mapa con `lectura` no escucha el teclado o el cursor');
+  if (typeof m.oyentes.keydown === 'function') {
+    pide(tecla(m, 'ArrowRight') && m.lectura.textContent === 'unidad 0 de 3', 'T2.3: la flecha no escribe la lectura de la primera unidad (' + m.lectura.textContent + ')');
+    tecla(m, 'ArrowRight');
+    pide(m.lectura.textContent === 'unidad 1 de 3' && m.lectura.clases.vacia === false, 'T2.3: la segunda flecha no pasa a la unidad siguiente');
+    pide(m.ctx.log.some(x => x[0] === 'stroke' && x[1] === '#ffffff'), 'T2.3: la unidad señalada no se marca en el lienzo');
+    tecla(m, 'Escape');
+    pide(/flechas/.test(m.lectura.textContent) && m.lectura.clases.vacia === true, 'T2.3: al soltar con Escape no vuelve la indicación de cómo leer el mapa');
+    pide(tecla(m, 'a') === false, 'T2.3: el mapa frena una tecla que no es suya');
+  }
+  m = monta({ fuente: puntos() });
+  pide(!/tabindex/.test(m.html) && !/geomapa-lectura/.test(m.html) && !m.oyentes.keydown,
+       'T2.3: un mapa que no pide `lectura` se vuelve enfocable o gana una caja de lectura');
+  pide(!/geomapa-controles/.test(m.html), 'T2.3: un mapa sin `controles` gana una botonera');
+  // --- los mandos
+  let vista = 'a', luz = false, trazos = 0;
+  m = monta({ fuente: puntos(), get descripcion() { trazos++; return 'x'.repeat(130); }, controles: [
+    { etiqueta: 'Vista', opciones: [['a', 'Una'], ['b', 'Otra']], valor: () => vista, alPulsar: v => { vista = v; } },
+    { etiqueta: 'Luz', opciones: [[true, 'Encender']], valor: () => luz, alPulsar: v => { luz = v; } }] });
+  pide(/role="group" aria-label="Vista"/.test(m.html) && /Otra<\/button>/.test(m.html), 'T2.3: los mandos del mapa no se escriben como un grupo con nombre');
+  pide(lee(m, 'botones.0.0.atributos.aria-pressed') === 'true' && lee(m, 'botones.0.1.atributos.aria-pressed') === 'false',
+       'T2.3: los mandos no dicen cuál de sus opciones está puesta');
+  if (m.cajas[0] && m.cajas[0].clic) {
+    const antes = trazos;
+    m.cajas[0].clic({ target: m.botones[0][1] });
+    pide(vista === 'b', 'T2.3: pulsar un mando no le pasa su valor al capítulo');
+    pide(trazos > antes, 'T2.3: pulsar un mando no repinta el mapa');
+    pide(lee(m, 'botones.0.1.atributos.aria-pressed') === 'true' && lee(m, 'botones.0.0.atributos.aria-pressed') === 'false',
+         'T2.3: tras pulsar, el mando sigue marcando la opción anterior');
+    m.cajas[1].clic({ target: m.botones[1][0] });
+    pide(luz === true && lee(m, 'botones.1.0.atributos.aria-pressed') === 'true', 'T2.3: un mando de una sola opción no funciona como interruptor');
+    m.cajas[1].clic({ target: m.botones[1][0] });
+    pide(luz === false, 'T2.3: el interruptor no se apaga al pulsarlo otra vez');
+  } else pide(false, 'T2.3: los mandos del mapa no escuchan el clic');
+
+  // ---- ronda 2 ----------------------------------------------------------------
+  // El cursor y el dedo llegan en px CSS; el lienzo está en px de dispositivo.
+  // A densidad 2 y 3 el punto que se lee tiene que ser el que hay bajo el cursor.
+  [2, 3].forEach(dpr => {
+    DPR = dpr;
+    const mm = monta({ fuente: puntos(), lectura: (i, d) => 'unidad ' + i + ' de ' + d.n });
+    const aj = pintarGeomapa(mm.cv, puntos(), {});
+    const css = v => v / dpr;
+    mm.oyentes.pointermove({ clientX: css(aj.x(2000)) + 1, clientY: css(aj.y(2000)) - 1, pointerType: 'mouse' });
+    pide(mm.lectura.textContent === 'unidad 1 de 3',
+         'T2.3: a densidad ' + dpr + ' el cursor no lee el punto que tiene debajo (' + mm.lectura.textContent + ')');
+    // El dedo que se levanta no borra la lectura; el ratón que sale, sí.
+    mm.oyentes.pointerleave({ pointerType: 'touch' });
+    pide(mm.lectura.textContent === 'unidad 1 de 3', 'T2.3: al levantar el dedo se borra la lectura');
+    mm.oyentes.pointerleave({ pointerType: 'mouse' });
+    pide(/flechas/.test(mm.lectura.textContent), 'T2.3: al sacar el ratón del mapa no vuelve la indicación');
+  });
+  DPR = 2;
+  // Si el dato encoge y la unidad señalada ya no existe, se suelta.
+  let datoVivo1 = puntos();
+  const lecturasPedidas = [];
+  m = monta({ get fuente() { return datoVivo1; }, lectura: (i, d) => { lecturasPedidas.push(i); return 'unidad ' + i + ' de ' + d.n; } });
+  tecla(m, 'End');
+  pide(m.lectura.textContent === 'unidad 2 de 3', 'T2.3: Fin no lleva a la última unidad');
+  datoVivo1 = Object.assign(puntos(), { n: 2, pts: [100, 100, 2000, 2000] });
+  lecturasPedidas.length = 0;
+  m.raiz.__geomapa.dibuja();
+  pide(/flechas/.test(m.lectura.textContent) && !lecturasPedidas.includes(2),
+       'T2.3: el dato encoge y el mapa sigue leyendo una unidad que ya no existe');
+  // Escape sin nada señalado no es del mapa.
+  pide(tecla(m, 'Escape') === false, 'T2.3: Escape sin unidad señalada se lo queda el mapa');
+  // La marca de la unidad: el anillo a 4 px de pantalla del punto; el contorno del polígono, en blanco y tinta.
+  ctx = lienzoFalso(600, 600);
+  geomapaResaltaUnidad(ctx, puntos(), identidad, 1, { dpr: 2 });
+  const anillo = ctx.log.find(x => x[0] === 'arc');
+  pide(anillo && cerca(anillo[1], (geomapaRadioPuntos(puntos()) + 4) * 2), 'T2.3: el anillo del punto señalado no va a 4 px del punto');
+  ctx = lienzoFalso(600, 600);
+  geomapaResaltaUnidad(ctx, puntos(), identidad, 1, { dpr: 2, radio: 10 });
+  const anillo2 = ctx.log.find(x => x[0] === 'arc');
+  pide(anillo2 && cerca(anillo2[1], (10 / 2 + 4) * 2), 'T2.3: el anillo ignora el radio que da el registro');
+  const pol = { modo: 'poligonos', caja: [0, 0, 1, 1], q, geom: [[[0, 0, 100, 0, 100, 100, 0, 100]],
+                                                              [[1000, 1000, 1001, 1000, 1001, 1001, 1000, 1001]]] };
+  ctx = lienzoFalso(600, 600);
+  geomapaResaltaUnidad(ctx, pol, identidad, 0, { dpr: 2 });
+  pide(ctx.log.some(x => x[0] === 'stroke' && x[1] === '#ffffff' && cerca(x[2], 9))
+       && ctx.log.some(x => x[0] === 'stroke' && x[1] === '#012820' && cerca(x[2], 4)),
+       'T2.3: el contorno del polígono señalado no se pinta (blanco debajo, tinta encima)');
+  // Una isla de menos de un píxel se puede tocar: el borde más cercano, dentro del alcance.
+  ctx = lienzoFalso(600, 600);
+  pide(geomapaUnidadEn(ctx, pol, identidad, 1010, 1000.5, 20) === 1, 'T2.3: una unidad diminuta no se puede tocar');
+  pide(geomapaUnidadEn(ctx, pol, identidad, 1100, 1100, 20) === -1, 'T2.3: se lee una unidad lejos del alcance del dedo');
+  // `controla`: el elemento que enseña el interruptor va debajo de su botonera, con aria-controls y aria-expanded.
+  const respuesta = { id: 'resp-prueba', hidden: true };
+  const getId0 = document.getElementById;
+  document.getElementById = id => id === 'resp-prueba' ? respuesta : null;
+  m = monta({ fuente: puntos(), controles: [{ etiqueta: 'Pregunta', controla: 'resp-prueba', opciones: [[true, 'Ver']],
+    valor: () => !respuesta.hidden, alPulsar: v => { respuesta.hidden = !v; } }] });
+  document.getElementById = getId0;
+  pide(m.cajas[0] && m.cajas[0].despues === respuesta, 'T2.3: lo que enseña el interruptor no se pone debajo de su botonera');
+  pide(/aria-controls="resp-prueba"/.test(m.html), 'T2.3: el interruptor no dice qué controla (aria-controls)');
+  pide(lee(m, 'botones.0.0.atributos.aria-expanded') === 'false' && lee(m, 'botones.0.0.atributos.aria-pressed') === undefined,
+       'T2.3: el interruptor que enseña algo no dice si está abierto con aria-expanded');
+  if (m.cajas[0] && m.cajas[0].clic) {
+    m.cajas[0].clic({ target: m.botones[0][0] });
+    pide(respuesta.hidden === false && lee(m, 'botones.0.0.atributos.aria-expanded') === 'true',
+         'T2.3: al pulsar, el interruptor no abre lo que controla o no lo dice');
+  }
 });
 
 // =========================== R-B · la tabla ordenable ===========================
@@ -1323,6 +1533,114 @@ INYECCIONES = [
     ("el ráster ignora el centro",
      "            ? geomapaTCentrado(lo + (z / d.zqmax) * (hi - lo), centro, semi)\n            : z / d.zqmax);",
      "            ? z / d.zqmax\n            : z / d.zqmax);", "R-C"),
+    # ------------------------------------------------------------------ T2.3
+    ('el registro ya no decide el color de una categoría',
+     '      const lista = Array.isArray(colores) && colores.length ? colores : GEOMAPA_CUALITATIVA;',
+     '      const lista = GEOMAPA_CUALITATIVA;', "T2.3"),
+    ('los puntos ignoran `coloresCategoria`',
+     '        return geomapaColorCategoria(m, o.coloresCategoria);',
+     '        return geomapaColorCategoria(m);', "T2.3"),
+    ('la leyenda ignora `coloresCategoria`',
+     '              muestra(geomapaColorCategoria(i + 1, o.coloresCategoria), esc(nv))));',
+     '              muestra(geomapaColorCategoria(i + 1), esc(nv))));', "T2.3"),
+    ('las capas de líneas no se pintan',
+     '      geomapaPintaCapasLineas(ctx, aj, o);\n',
+     '', "T2.3"),
+    ('las capas de líneas se pintan debajo de los puntos',
+     '      const opaco = !(o.opacidadPuntos > 0 && o.opacidadPuntos < 1);',
+     '      geomapaPintaCapasLineas(ctx, aj, o);\n      o = Object.assign({}, o, { capasLineas: null });\n      const opaco = !(o.opacidadPuntos > 0 && o.opacidadPuntos < 1);', "T2.3"),
+    ('el ancho de una capa va en px de dispositivo',
+     '        ctx.lineWidth = (capa.ancho || 1) * dpr;',
+     '        ctx.lineWidth = (capa.ancho || 1);', "T2.3"),
+    ('el trazo de una capa no se escala',
+     '        ctx.setLineDash((capa.trazo || []).map(v => v * dpr));',
+     '        ctx.setLineDash(capa.trazo || []);', "T2.3"),
+    ('una capa sin etiqueta sale en la leyenda',
+     '          if (!capa || !capa.etiqueta) return;',
+     '          if (!capa) return;', "T2.3"),
+    ('la leyenda calla las capas de líneas',
+     '        (Array.isArray(o.capasLineas) ? o.capasLineas : []).forEach(capa => {\n          if (!capa || !capa.etiqueta) return;',
+     '        [].forEach(capa => {\n          if (!capa || !capa.etiqueta) return;', "T2.3"),
+    ('`opacidadPuntos` no hace nada',
+     '      if (!opaco) ctx.globalAlpha = o.opacidadPuntos;\n',
+     '', "T2.3"),
+    ('la transparencia de los puntos no se repone',
+     '      if (!opaco) ctx.globalAlpha = 1;\n',
+     '', "T2.3"),
+    ('cualquier punto del mapa queda al alcance del cursor',
+     '        let mejor = -1, dMejor = alcance * alcance;',
+     '        let mejor = -1, dMejor = Infinity;', "T2.3"),
+    ('donde dos polígonos se solapan se lee el de debajo',
+     'for (let k = geom.length - 1; k >= 0; k--) {\n          for (let j = 0; j < geom[k].length; j++) {',
+     'for (let k = 0; k < geom.length; k++) {\n          for (let j = 0; j < geom[k].length; j++) {', "T2.3"),
+    ('el cursor no pasa de px CSS a px de dispositivo',
+     '(ev.clientX - r.left) * kx, (ev.clientY - r.top) * ky, 14 * kx);',
+     '(ev.clientX - r.left), (ev.clientY - r.top), 14);', "T2.3"),
+    ('al levantar el dedo se borra la lectura',
+     "canvas.addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse') senala(-1); });",
+     "canvas.addEventListener('pointerleave', ev => { senala(-1); });", "T2.3"),
+    ('no se suelta la unidad si el dato encoge',
+     'if (senalada >= geomapaNumUnidades(dNow)) senalada = -1;', '', "T2.3"),
+    ('el anillo del punto a 40 px',
+     '(rPunto + 4) * dpr, 0, Math.PI * 2);', '(rPunto + 40) * dpr, 0, Math.PI * 2);', "T2.3"),
+    ('el anillo ignora el radio del registro',
+     'const rPunto = o.radio > 0 ? o.radio / dpr : geomapaRadioPuntos(d);', 'const rPunto = geomapaRadioPuntos(d);', "T2.3"),
+    ('el contorno del polígono señalado no se pinta',
+     "          ctx.lineWidth = 4.5 * dpr; ctx.strokeStyle = '#ffffff'; ctx.stroke(camino);\n          ctx.lineWidth = 2 * dpr; ctx.strokeStyle = geomapaTinta('#012820'); ctx.stroke(camino);",
+     '          void camino;', "T2.3"),
+    ('una isla diminuta no se puede tocar',
+     'let cerca = -1, dCerca = alcance;', 'let cerca = -1, dCerca = 0;', "T2.3"),
+    ('Escape sin nada señalado se lo queda el mapa',
+     'if (i === undefined || (i === -1 && senalada < 0)) return;', 'if (i === undefined) return;', "T2.3"),
+    ('lo que controla un interruptor se queda lejos de él',
+     'if (el && caja && caja.after) caja.after(el);', '', "T2.3"),
+    ('el interruptor no dice qué controla',
+     "${g.controla ? ` aria-controls=\"${escAttr(g.controla)}\"` : ''}", '', "T2.3"),
+    ('el interruptor que enseña algo usa aria-pressed',
+     "b.setAttribute(g.controla && g.opciones.length === 1 ? 'aria-expanded' : 'aria-pressed', puesto ? 'true' : 'false');",
+     "b.setAttribute('aria-pressed', puesto ? 'true' : 'false');", "T2.3"),
+    ('la celda señalada cambia fila por columna',
+     'fila >= 0 && fila < d.ny) ? fila * d.nx + col : -1;',
+     'fila >= 0 && fila < d.ny) ? col * d.nx + fila : -1;', "T2.3"),
+    ('la flecha derecha no da la vuelta',
+     'return i < 0 ? 0 : (i + 1) % n;',
+     'return i < 0 ? 0 : Math.min(n - 1, i + 1);', "T2.3"),
+    ('la flecha izquierda no retrocede',
+     'return i < 0 ? n - 1 : (i - 1 + n) % n;',
+     'return i < 0 ? n - 1 : (i + 1) % n;', "T2.3"),
+    ('Escape no suelta la unidad',
+     "      if (tecla === 'Escape') return -1;\n",
+     '', "T2.3"),
+    ('el mapa se queda con todas las teclas',
+     "      if (tecla === 'Escape') return -1;\n      return undefined;",
+     "      if (tecla === 'Escape') return -1;\n      return i;", "T2.3"),
+    ('un mapa sin lectura se vuelve enfocable',
+     '${conLectura ? \' tabindex="0"\' : \'\'}',
+     ' tabindex="0"', "T2.3"),
+    ('el lienzo con lectura no recibe el foco',
+     '${conLectura ? \' tabindex="0"\' : \'\'}',
+     '', "T2.3"),
+    ('la lectura no se anuncia',
+     '<p class="geomapa-lectura vacia" role="status" aria-live="polite">',
+     '<p class="geomapa-lectura vacia">', "T2.3"),
+    ('el teclado deja de escucharse',
+     "          canvas.addEventListener('keydown', ev => {",
+     "          canvas.addEventListener('keyup', ev => {", "T2.3"),
+    ('la unidad señalada no se marca en el lienzo',
+     "            if (senalada >= 0 && aj) geomapaResaltaUnidad(canvas.getContext('2d'), dNow, aj, senalada, opts);\n",
+     '', "T2.3"),
+    ('al soltar no vuelve la indicación',
+     "String(spec.lectura(senalada, dNow, opts) || '') : pista;",
+     "String(spec.lectura(senalada, dNow, opts) || '') : '';", "T2.3"),
+    ('los mandos no marcan la opción puesta',
+     "              b.setAttribute(g.controla && g.opciones.length === 1 ? 'aria-expanded' : 'aria-pressed', puesto ? 'true' : 'false');\n",
+     '', "T2.3"),
+    ('el interruptor recibe su rótulo y no su contrario',
+     '            g.alPulsar(g.opciones.length === 1 ? !ahora : g.opciones[+b.dataset.opcion][0]);',
+     '            g.alPulsar(g.opciones[+b.dataset.opcion][0]);', "T2.3"),
+    ('pulsar un mando no repinta',
+     '            g.alPulsar(g.opciones.length === 1 ? !ahora : g.opciones[+b.dataset.opcion][0]);\n            dibuja();',
+     '            g.alPulsar(g.opciones.length === 1 ? !ahora : g.opciones[+b.dataset.opcion][0]);', "T2.3"),
     # ------------------------------------------------------------------ R-B
     ("la rúbrica deja de leer el nombre que le pasan los talleres",
      "spec.rotuloAnula ||", "spec.letreroAnula ||", "R-B"),

@@ -557,7 +557,8 @@ MOD2 = cabecera(
           y las {ent(co['puntual']['n'])} sedes educativas de Bogotá. En los dos casos no se ha medido nada en cada
           punto: el punto <em>es</em> el dato.</p>
       </div>
-      <div class="geomapa" data-geomapa="cap1-pinos"></div>
+      <div class="geomapa" data-geomapa="cap1-pinos-ventana"></div>
+      <p class="geomapa-pie" id="aleatorio-pinos" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es dónde.</strong> Si se volviera a tomar el dato, los pinos caerían en otros sitios y podrían ser más o menos. La ventana, no: es la región donde se contaron, y se fija antes de mirarlos. Como \\(\\hat{{\\lambda}} = n/|W|\\), cambiar de ventana cambia la intensidad estimada sin mover un pino. El rectángulo que ciñe a los puntos no es una ventana: lo dibujan los propios pinos, así que es tan aleatorio como ellos, y por construcción no deja ninguno fuera. Por eso su \\(\\hat{{\\lambda}}\\) sale siempre más alto que con la ventana del dato, que lo contiene.</p>
 
       <p>Los pinos son el <strong>caso nulo</strong>, y por eso son el canónico. Su distancia media al vecino más
         próximo —<strong>{n(pc['japanesepines']['nn_media'])}</strong> en unidades de la ventana— es
@@ -590,11 +591,17 @@ MOD2 = cabecera(
           de las pocas cifras del curso que se puede cambiar sin tocar el dato: mueve el borde y cambia, sin que se
           mueva un solo pino. Lo que cambia es la <em>estimación</em>. Si el proceso es homogéneo, su intensidad
           no se entera de dónde se dibuje el borde; si no lo es, cada borde estima además otra cosa, la intensidad
-          media de la región que encierra, y la nota que cierra este módulo lo mide. Con los pinos no se nota, porque la ventana viene con ellos. Con el mapa que
-          sigue, sí.</p>
+          media de la región que encierra, y la nota que cierra este módulo lo mide. El cambio se puede provocar en el
+          mapa de los pinos: con el rectángulo que ciñe a los puntos, el área pasa de {pc['japanesepines']['area']} a
+          {n(pc['japanesepines']['area_caja'], 3)} y \\(\\hat{{\\lambda}}\\), de {pc['japanesepines']['lambda']} a
+          {n(pc['japanesepines']['lambda_caja'])}, sin que se mueva un pino. Pero ese rectángulo no es otra ventana:
+          no se fijó antes de mirar, lo dibujan los propios pinos, que por construcción quedan todos dentro, y por eso
+          infla \\(\\hat{{\\lambda}}\\). Con los pinos no hay nada que elegir, porque la ventana viene con el dato.
+          Con el mapa que sigue, sí.</p>
       </div>
 
       <div class="geomapa" data-geomapa="cap1-bogota"></div>
+      <p class="geomapa-pie" id="aleatorio-bogota" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es dónde.</strong> Si se volviera a tomar el dato, los puntos caerían en otros sitios y podrían ser más o menos. La ventana, no: es una región donde el dato es exhaustivo, y se fija antes de mirar. Como \\(\\hat{{\\lambda}} = n/|W|\\), el perímetro urbano y el Distrito dan dos intensidades distintas sin mover una sede. El rectángulo que ciñe a las sedes no vale como ventana por dos razones: lo dibujan los propios puntos, y se sale del Distrito, así que su área cuenta suelo donde nadie buscó sedes.</p>
 
       <p>Bogotá hace lo contrario, y por eso va al lado. Las <strong>{ent(co['puntual']['n'])}</strong> sedes no
         están tiradas al azar: dibujan las calles, y con ellas la densidad de la ciudad. Aquí sí hay algo que
@@ -623,6 +630,7 @@ MOD2 = cabecera(
           los dos mapas los calculó <code>classInt</code> en R y viajan en el JSON: el navegador solo pinta.</p>
       </div>
       <div class="geomapa" data-geomapa="cap1-nc"></div>
+      <p class="geomapa-pie" id="aleatorio-nc" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es el valor de cada unidad.</strong> Si se volviera a tomar el dato, cambiarían los valores y, con ellos, los colores. Los límites no: las unidades estaban ahí antes del dato y seguirán después.</p>
 
       <p>Carolina del Norte se lee con la leyenda en la mano: cinco clases por cuantiles. La tasa va de
         <strong>{ac['tasa_min']}</strong> a <strong>{n(ac['tasa_max'])}</strong> por mil según el condado, con
@@ -648,6 +656,7 @@ MOD2 = cabecera(
         capítulo 3 entero.</p>
 
       <div class="geomapa" data-geomapa="cap1-desercion"></div>
+      <p class="geomapa-pie" id="aleatorio-desercion" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es el valor de cada unidad.</strong> Si se volviera a tomar el dato, cambiarían los valores y, con ellos, los colores. Los límites no: las unidades estaban ahí antes del dato y seguirán después.</p>
 
       <p>El mapa colombiano es el mismo objeto con otras unidades: <strong>{es['n_departamental']}</strong>
         departamentos, los mismos cinco cortes por cuantiles. Y trae una trampa que conviene destapar desde la
@@ -667,6 +676,7 @@ MOD2 = cabecera(
           se midieron. Por eso aquí —y solo aquí— tiene sentido predecir dónde no hay dato.</p>
       </div>
       <div class="geomapa" data-geomapa="cap1-meuse"></div>
+      <p class="geomapa-pie" id="aleatorio-meuse" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es el campo entero.</strong> Si se volviera a tomar el dato, cambiarían los valores: en los puntos medidos y en todos los demás, donde también hay un valor que nadie midió. Los sitios donde se mide se toman como fijos.</p>
 
       <p>El mapa del Mosa parece manchas de color hasta que uno sabe por dónde va el río. Las dos líneas del
         mapa son sus orillas. El zinc va de
@@ -678,6 +688,7 @@ MOD2 = cabecera(
         de inundación, y el metal lo trajeron las crecidas.</p>
 
       <div class="geomapa" data-geomapa="cap1-ideam"></div>
+      <p class="geomapa-pie" id="aleatorio-ideam" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es el campo entero.</strong> Si se volviera a tomar el dato, cambiarían los valores: en los puntos medidos y en todos los demás, donde también hay un valor que nadie midió. Los sitios donde se mide se toman como fijos.</p>
 
       <p>Las <strong>{co['geo']['n']}</strong> estaciones del IDEAM hacen lo mismo con otra variable. La
         temperatura media anual va de <strong>{n(co['geo']['t_min'], 1)}</strong> a
@@ -3316,6 +3327,22 @@ TABLA_SNOW = """      tabla: function (d) {
           + `<th scope="col">% del total</th></tr></thead><tbody>${filas}</tbody></table>`;
       }"""
 
+# EL PRESUPUESTO DE GEOMETRÍA DEL CAPÍTULO, Y POR QUÉ SUBE A 135 KB (R2 · T2.3).
+# Eran 120 KB, medidos aquí como se incrusta el JSON en el HTML —con un
+# espacio tras cada separador, que es como lo escribe `json.dumps`—. Al
+# cerrar T2.2 la geometría iba por 115.3 KB. Los tres bordes de Bogotá que
+# pide G-03 —el perímetro urbano, el Distrito y el rectángulo de las sedes,
+# simplificados a 220 y 160 vértices— añaden 4.5 KB: 119.8, a dos décimas
+# del tope. El tope pasa a 135: lo de entonces más un margen de 15 KB, que
+# es lo que ocupan tres capas de borde como estas. Después entró el borde en
+# que cae cada sede (`dentro`, una cifra por sede para la lectura del mapa),
+# 6.4 KB más: 126.2.
+# No es un presupuesto de contenido sino una alarma contra una geometría
+# sin simplificar —un mapa municipal entero son varios cientos de KB—, y a
+# 135 sigue saltando ante eso. El auditor del precálculo mide otra cosa, el
+# archivo tal como lo escribe R, sin espacios: ahí van 105.2 de 120.
+PRESUPUESTO_GEO_KB = 135
+
 # R2 · T2.2 (G-24): las tablas de respaldo de los mapas que no la tenían.
 # Ninguna calcula una cifra nueva: las coordenadas de un patrón puntual se
 # leen de los mismos enteros que pinta el lienzo —deshaciendo la
@@ -3407,6 +3434,168 @@ TABLA_PLIEGUES = """      tabla: function (d) {
           + `<tbody>${filas}</tbody></table>`;
       }"""
 
+M2_JS = r'''    // ================================================================
+    // LOS SEIS MAPAS DEL MÓDULO 2, CABLEADOS (R2 · T2.3)
+    //
+    // Cada par enseña lo que le es propio a su tipo, y los seis comparten el
+    // mismo interruptor: «¿Qué es aleatorio aquí?». La respuesta está
+    // escrita debajo de cada mapa y el interruptor la enseña; así la
+    // pregunta del módulo se contesta sobre el mapa, con el mismo gesto en
+    // los seis.
+    //   · puntuales: la VENTANA se puede cambiar sin mover un punto, y la
+    //     intensidad estimada cambia con ella;
+    //   · de área: cada unidad dice su valor y la CLASE en que cae;
+    //   · geoestadísticos: cada punto dice el VALOR MEDIDO en él.
+    // Ninguna cifra se calcula aquí: las intensidades, las áreas y los
+    // cortes vienen de R.
+    // ================================================================
+    // El interruptor: su estado es el propio párrafo de la respuesta, que
+    // está en el marcado del módulo. Así no hay un segundo estado que pueda
+    // discrepar de lo que se ve al volver al módulo.
+    function interruptorAleatorio(ident) {
+      const parrafo = () => document.getElementById('aleatorio-' + ident);
+      // `controla`: el motor pone la respuesta justo debajo del botón (donde
+      // se ve al pulsar, también en el teléfono) y la enlaza con aria-controls
+      // y aria-expanded.
+      return { etiqueta: 'La pregunta del módulo', controla: 'aleatorio-' + ident,
+               opciones: [[true, '¿Qué es aleatorio aquí?']],
+               valor: () => { const p = parrafo(); return !!p && !p.hidden; },
+               alPulsar: v => { const p = parrafo(); if (p) p.hidden = !v; } };
+    }
+    // El rectángulo que ciñe a los puntos de un mapa, en sus unidades
+    // cuantizadas: es geometría de lo que ya está dibujado.
+    function cajaDePuntos1(d) {
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (let i = 0; i < d.pts.length; i += 2) {
+        x0 = Math.min(x0, d.pts[i]); x1 = Math.max(x1, d.pts[i]);
+        y0 = Math.min(y0, d.pts[i + 1]); y1 = Math.max(y1, d.pts[i + 1]);
+      }
+      return [x0, y0, x1, y0, x1, y1, x0, y1];
+    }
+    const BORDE_PUESTO = { color: '#012820', ancho: 2.2, cierra: true };
+    // El rótulo del borde puesto: «ventana» solo si lo es. El rectángulo que
+    // ciñe a los puntos no lo es en ningún mapa (lo eligen los datos).
+    // «de» + artículo: «del perímetro urbano», no «de el perímetro urbano».
+    const DE1 = s => s.startsWith('el ') ? 'del ' + s.slice(3) : 'de ' + s;
+    const PUESTO1 = noValido => noValido ? 'borde puesto, que no es una ventana: ' : 'ventana: ';
+    const BORDE_OTRO = { color: 'rgba(100, 116, 139, 0.9)', ancho: 1, trazo: [4, 4], cierra: true };
+
+    // --- Los pinos del módulo 2: el mismo dato que el de la terna del
+    // módulo 3, con sus dos bordes. La fuente se deriva de aquel literal sin
+    // su `ventana`, porque aquí los dos rectángulos son capas con nombre.
+    let pinosVentana = 'dato';
+    const PINOS1 = Object.assign({}, GEOMAPAS['cap1-pinos'].fuente);
+    const PINOS1_BORDES = { dato: [[PINOS1.ventana[0], PINOS1.ventana[1], PINOS1.ventana[2], PINOS1.ventana[1],
+                                    PINOS1.ventana[2], PINOS1.ventana[3], PINOS1.ventana[0], PINOS1.ventana[3]]],
+                            caja: [cajaDePuntos1(PINOS1)] };
+    delete PINOS1.ventana;
+    const PINOS1_NOMBRE = { dato: 'la ventana que viene con el dato', caja: 'el rectángulo que ciñe a los puntos' };
+    GEOMAPAS['cap1-pinos-ventana'] = {
+      fuente: () => PINOS1,
+      get titulo() {
+        const p = D1.puntual_canonico.japanesepines;
+        // Un entero se escribe entero, como en la prosa (área 1, intensidad 65).
+        const cifra = (x, dec) => Number.isInteger(x) ? String(x) : n5(x, dec);
+        return pinosVentana === 'dato'
+          ? `Pinos japoneses. Con la ventana del dato: ${p.n} pinos en un área de ${cifra(p.area, 3)}, intensidad estimada ${cifra(p.lambda, 5)}`
+          : `Pinos japoneses. Con el rectángulo de los puntos: ${p.n} pinos en un área de ${cifra(p.area_caja, 3)}, intensidad estimada ${cifra(p.lambda_caja, 5)}. No es una ventana válida`;
+      },
+      get capasLineas() {
+        const otra = pinosVentana === 'dato' ? 'caja' : 'dato';
+        return [Object.assign({ lineas: PINOS1_BORDES[otra], etiqueta: 'el otro borde: ' + PINOS1_NOMBRE[otra] }, BORDE_OTRO),
+                Object.assign({ lineas: PINOS1_BORDES[pinosVentana], etiqueta: PUESTO1(pinosVentana === 'caja') + PINOS1_NOMBRE[pinosVentana] }, BORDE_PUESTO)];
+      },
+      get etiqueta() {
+        // La etiqueta dice el patrón, no solo qué hay (G-24).
+        return 'Los ' + PINOS1.n + ' pinos japoneses, repartidos por el cuadrado sin un orden que se vea. '
+          + (pinosVentana === 'caja' ? 'Borde continuo: ' : 'Ventana: ')
+          + PINOS1_NOMBRE[pinosVentana] + (pinosVentana === 'caja' ? ', que no es una ventana válida' : '')
+          + '; a trazos, ' + PINOS1_NOMBRE[pinosVentana === 'dato' ? 'caja' : 'dato'] + '.';
+      },
+      controles: [{ etiqueta: 'El borde con que se cuenta', opciones: [['dato', 'La ventana del dato'], ['caja', 'El rectángulo de los puntos']],
+                    valor: () => pinosVentana, alPulsar: v => { pinosVentana = v; } },
+                  interruptorAleatorio('pinos')],
+      lectura: (i, d) => { const p = coordsDeMapa(d)[i];
+        return `Pino ${i + 1} de ${d.n}, en x = ${p[0].toFixed(3)}, y = ${p[1].toFixed(3)}. No lleva ningún valor: su posición es el dato.`; },
+      descripcion: () => DESC1_PINOS_VENTANA[pinosVentana],
+__TABLA_PUNTOS__
+    };
+
+    // --- Bogotá: los tres bordes de los que habla la prosa.
+    let bogotaVentana = 'urbano';
+    const BOGOTA1_DONDE = ['fuera del Distrito Capital', 'en el Distrito Capital, fuera del perímetro urbano',
+                           'dentro del perímetro urbano, y por tanto del Distrito Capital'];
+    const BOGOTA1_NOMBRE = { urbano: 'el perímetro urbano', distrito: 'el Distrito Capital',
+                             caja: 'el rectángulo que ciñe a las sedes' };
+    // `defineProperties` con los descriptores, y no `Object.assign`: este
+    // último LEE los getters al copiar y deja escrito su valor de ese
+    // momento, así que el título, el borde y la etiqueta se quedaban para
+    // siempre en la primera ventana mientras el botón marcaba otra.
+    Object.defineProperties(GEOMAPAS['cap1-bogota'], Object.getOwnPropertyDescriptors({
+      opacidadPuntos: 0.45,
+      // El Distrito es cuatro veces más alto que ancho: con el alto por
+      // defecto la ciudad se quedaba en una mancha de 40 px.
+      alto: 600,
+      get titulo() {
+        const p = D1.colombia.puntual;
+        if (bogotaVentana === 'urbano') return `Sedes educativas de Bogotá. Con el perímetro urbano por ventana: ${miles1(p.n_urbana)} sedes en ${n5(p.area_urbana_km2, 2)} km², ${n5(p.lambda_urbana)} por km²`;
+        if (bogotaVentana === 'distrito') return `Sedes educativas de Bogotá. Con el Distrito Capital por ventana: ${miles1(p.n_dc)} sedes en ${n5(p.area_dc_km2, 2)} km², ${n5(p.lambda_dc)} por km²`;
+        return `Sedes educativas de Bogotá. Con el rectángulo de las sedes: ${miles1(p.n)} sedes en ${n5(p.area_caja_km2, 2)} km², ${n5(p.lambda_caja)} por km². No es una ventana válida`;
+      },
+      get capasLineas() {
+        const b = GEOMAPAS['cap1-bogota'].fuente.bordes;
+        const capas = Object.keys(BOGOTA1_NOMBRE).filter(k => k !== bogotaVentana)
+          .map((k, j) => Object.assign({ lineas: b[k] }, BORDE_OTRO, j === 0 ? { etiqueta: 'los otros dos bordes' } : {}));
+        return capas.concat([Object.assign({ lineas: b[bogotaVentana],
+          etiqueta: PUESTO1(bogotaVentana === 'caja') + BOGOTA1_NOMBRE[bogotaVentana] }, BORDE_PUESTO)]);
+      },
+      get etiqueta() {
+        // El patrón y los bordes (G-24): las sedes se apiñan en el tercio norte
+        // del dibujo, que es la ciudad (`visto.bogota`, contado por R).
+        return 'Las ' + miles1(D1.colombia.puntual.n) + ' sedes educativas de Bogotá, apiñadas en el norte, que es la ciudad; '
+          + 'el sur rural del Distrito casi no tiene. Borde continuo: ' + BOGOTA1_NOMBRE[bogotaVentana] + '; a trazos, los otros dos.';
+      },
+      controles: [{ etiqueta: 'El borde con que se cuenta', opciones: [['urbano', 'Perímetro urbano'], ['distrito', 'Distrito Capital'],
+                                                   ['caja', 'Rectángulo de las sedes']],
+                    valor: () => bogotaVentana, alPulsar: v => { bogotaVentana = v; } },
+                  interruptorAleatorio('bogota')],
+      // Cada sede dice en qué borde cae y si entra en la cuenta de la
+      // ventana puesta. La pertenencia la escribe R (`dentro`: 2 perímetro
+      // urbano, 1 resto del Distrito, 0 fuera de él), la misma que cuentan
+      // `n_urbana` y `n_dc`; aquí no se decide nada con geometría.
+      lectura: (i, d) => {
+        const k = d.dentro[i];
+        const donde = BOGOTA1_DONDE[k];
+        const cuenta = bogotaVentana === 'caja' || (bogotaVentana === 'distrito' ? k >= 1 : k === 2);
+        return `Sede ${miles1(i + 1)} de ${miles1(d.n)}: ${donde}. `
+          + (bogotaVentana === 'caja' ? 'Con el rectángulo de las sedes entra en la cuenta, como todas.'
+             : (cuenta ? 'Entra' : 'No entra') + ' en la cuenta ' + DE1(BOGOTA1_NOMBRE[bogotaVentana]) + '.');
+      },
+      descripcion: () => DESC1_BOGOTA[bogotaVentana]
+    }));
+
+    // --- Los dos de área: cada unidad dice su valor y su clase.
+    const lecturaClase = (unidad, medida) => (i, d) => {
+      const k = d.clase[i];
+      return `${d.etiquetas[i]}: ${n5(d.valor[i], 2)} ${medida}. Clase ${k} de ${d.cortes.length - 1}, de ${n5(d.cortes[k - 1], 2)} a `
+        + `${n5(d.cortes[k], 2)}. ${unidad} es fijo: lo que cambiaría al volver a tomar el dato es este valor.`;
+    };
+    Object.assign(GEOMAPAS['cap1-nc'], { controles: [interruptorAleatorio('nc')],
+      lectura: lecturaClase('El condado', 'muertes súbitas por 1\u202f000 nacimientos') });
+    Object.assign(GEOMAPAS['cap1-desercion'], { controles: [interruptorAleatorio('desercion')],
+      lectura: lecturaClase('El departamento', '% de deserción') });
+
+    // --- Los dos geoestadísticos: cada punto dice lo que se midió en él.
+    Object.assign(GEOMAPAS['cap1-meuse'], { controles: [interruptorAleatorio('meuse')],
+      lectura: (i, d) => `Punto de muestreo ${i + 1} de ${d.n}: ${miles1(d.marcas[i])} ppm de zinc. Es lo medido aquí; entre este punto y los de al lado también hay zinc, sin medir.` });
+    Object.assign(GEOMAPAS['cap1-ideam'], { controles: [interruptorAleatorio('ideam')],
+      lectura: (i, d) => `Estación ${i + 1} de ${d.n}: ${n5(d.marcas[i], 1)} °C de temperatura media anual. Es lo medido aquí; entre esta estación y las de al lado también hay temperatura, sin medir.` });
+
+    // --- Y el mapa de Snow: cada muerte dice su bomba más próxima.
+    Object.assign(GEOMAPAS['cap1-snow'], {
+      lectura: (i, d) => `Muerte ${i + 1} de ${d.n}: su bomba más próxima es la de ${d.niveles[d.marcas[i] - 1]}.` });
+'''
+
 # =====================================================================
 # «Describir el mapa» (2026-11-02)
 # =====================================================================
@@ -3460,10 +3649,48 @@ DESC_CELULAS = (
     f"distancia media al vecino más próximo, {n(_PC['cells']['nn_media'], 3)}, es "
     f"{n(_PC['cells']['clark_evans'], 1)} veces la que daría el azar, {n(_PC['cells']['nn_esperada'], 3)}.")
 _BG = dict(zip(_VI["bogota"]["franja"], _VI["bogota"]["n"]))
+# R2 · T2.3 (ronda 2): los dos tercios del sur no son «el suelo rural del
+# Distrito» sin más. Una de sus sedes cae fuera del Distrito, y el perímetro
+# urbano acaba a pocos metros del corte. R cuenta las dos cosas (`urbana`,
+# `fuera_dc`, `margen_urbano_m`) y la frase dice lo que cuentan.
+_BGU = dict(zip(_VI["bogota"]["franja"], _VI["bogota"]["urbana"]))
+_BGF = dict(zip(_VI["bogota"]["franja"], _VI["bogota"]["fuera_dc"]))
+_BG_FUERA_SUR = _BGF["centro"] + _BGF["sur"]
 DESC_BOGOTA = (
     f"Las {ent(D['colombia']['puntual']['n'])} sedes se apiñan en el tercio norte del dibujo, que es la "
-    f"ciudad: {ent(_BG['norte'])}. El tercio del medio y el del sur, el suelo rural del Distrito, tienen "
-    f"{ent(_BG['centro'])} y {ent(_BG['sur'])}.")
+    f"ciudad: {ent(_BG['norte'])}, entre ellas las {ent(_BGU['norte'])} del perímetro urbano, que cabe entero "
+    f"en ese tercio y acaba {n(_VI['bogota']['margen_urbano_m'], 1)} m al norte del corte. El tercio del "
+    f"medio y el del sur, fuera del perímetro, tienen {ent(_BG['centro'])} y {ent(_BG['sur'])}, "
+    + ("todas dentro del Distrito." if _BG_FUERA_SUR == 0 else
+       "dentro del Distrito salvo una, que cae fuera de él." if _BG_FUERA_SUR == 1 else
+       f"dentro del Distrito salvo {ent(_BG_FUERA_SUR)}, que caen fuera de él."))
+_PJ = _PC["japanesepines"]
+DESC_PINOS_VENTANA = {
+    "dato": DESC_PINOS + (
+        f" El borde continuo es la ventana que viene con el dato, de área {_PJ['area']}: con ella la "
+        f"intensidad estimada es {_PJ['lambda']} pinos por unidad de área. A trazos, el rectángulo que "
+        f"ciñe a los puntos."),
+    "caja": DESC_PINOS + (
+        f" El borde continuo es ahora el rectángulo que ciñe a los puntos, de área {n(_PJ['area_caja'], 3)}: "
+        f"sin que se haya movido un pino, la intensidad estimada pasa a {n(_PJ['lambda_caja'])}. No es una "
+        f"ventana: lo dibujan los propios pinos, que quedan todos dentro. A trazos, la ventana que viene con el "
+        f"dato."),
+}
+_BP = D["colombia"]["puntual"]
+DESC_BOGOTA_V = {
+    "urbano": DESC_BOGOTA + (
+        f" El borde continuo es el perímetro urbano, que ciñe la mancha del norte: dentro caen "
+        f"{ent(_BP['n_urbana'])} sedes, {n(_BP['lambda_urbana'])} por km². A trazos, el Distrito Capital, "
+        f"que baja mucho más al sur, y el rectángulo que ciñe a las sedes."),
+    "distrito": DESC_BOGOTA + (
+        f" El borde continuo es el Distrito Capital, que incluye todo el sur rural casi vacío: dentro caen "
+        f"{ent(_BP['n_dc'])} sedes, {n(_BP['lambda_dc'])} por km². A trazos, el perímetro urbano, mucho "
+        f"menor, y el rectángulo que ciñe a las sedes."),
+    "caja": DESC_BOGOTA + (
+        f" El borde continuo es el rectángulo que ciñe a las sedes: el {n(_BP['pct_caja_fuera_dc'])} % de "
+        f"su área queda fuera del Distrito, donde nadie buscó sedes, y por eso no es una ventana válida. Con "
+        f"él saldrían {n(_BP['lambda_caja'])} sedes por km². A trazos, el perímetro urbano y el Distrito."),
+}
 _NC1 = M["nc"]
 _nc_top = sorted(zip(_NC1["valor"], _NC1["etiquetas"]), key=lambda t: (-t[0], t[1]))
 _VNC1 = _VI["nc"]
@@ -3500,6 +3727,43 @@ DESC_IDEAM = (
     f"{n(_VI['ideam']['calidas_umbral'], 1)} °C o más, en el {_CA['zona'][0]} ({ent(_CA['n'][0])}) y en el "
     f"{_CA['zona'][1]} ({ent(_CA['n'][1])}).")
 
+
+# LA ETIQUETA ACCESIBLE DE LOS SIETE MAPAS QUE NO LA TENÍAN (R2 · T2.3, G-24).
+# Sin `etiqueta`, el motor componía «título, n unidades. palabra de la
+# leyenda», que dice qué hay pero no qué se ve. Cada etiqueta lleva el patrón,
+# y el patrón es una frase de su descripción larga, que ya tiene guarda en
+# `guardas_de_las_descripciones()`: aquí no se afirma nada que allí no se
+# compruebe. La guarda de abajo exige que la frase esté en las dos.
+PATRON1 = {
+    "cap1-pinos": "se reparten sin orden aparente, sin grumos marcados ni distancias regulares",
+    "cap1-secuoyas": "se amontonan en grumos, con mucho vacío entre ellos",
+    "cap1-celulas": "se reparten casi como una rejilla, sin parejas pegadas",
+    "cap1-nc": f"salen repartidos por todo el estado, con más en el {_VNC1['zona'][0]} del dibujo",
+    "cap1-desercion": "en el sur y el oriente del país",
+    "cap1-meuse": "pegados a la orilla",
+    "cap1-ideam": f"casi todas en el {_FR['zona'][0]} del dibujo",
+}
+DESC_DE1 = {"cap1-pinos": DESC_PINOS, "cap1-secuoyas": DESC_SECUOYAS, "cap1-celulas": DESC_CELULAS,
+            "cap1-nc": DESC_NC, "cap1-desercion": DESC_DESERCION, "cap1-meuse": DESC_MEUSE,
+            "cap1-ideam": DESC_IDEAM}
+ETIQUETA1 = {
+    "cap1-pinos": f"Pinos japoneses: los {ent(_PC['japanesepines']['n'])} árboles "
+                  f"{PATRON1['cap1-pinos']}.",
+    "cap1-secuoyas": f"Plántulas de secuoya: las {ent(_PC['redwood']['n'])} "
+                     f"{PATRON1['cap1-secuoyas']}.",
+    "cap1-celulas": f"Células: las {ent(_PC['cells']['n'])} {PATRON1['cap1-celulas']}.",
+    "cap1-nc": f"Tasa de muerte súbita infantil en los {ent(_NC1['n'])} condados de Carolina del Norte, en "
+               f"{ent(len(_NC1['tam']))} clases por cuantiles: los de la clase más alta "
+               f"{PATRON1['cap1-nc']}.",
+    "cap1-desercion": f"Deserción escolar en los {ent(M['desercion']['n'])} departamentos de Colombia, en "
+                      f"{ent(len(M['desercion']['tam']))} clases por cuantiles: lo más alto está "
+                      f"{PATRON1['cap1-desercion']}.",
+    "cap1-meuse": f"Zinc en los {ent(_GC['n'])} puntos de muestreo de la vega del Mosa: los más altos se "
+                  f"alinean a lo largo del borde noroeste de la nube, {PATRON1['cap1-meuse']} del río, y el zinc "
+                  f"baja al alejarse de ella.",
+    "cap1-ideam": f"Temperatura media anual en las {ent(_GEO['n'])} estaciones del IDEAM: las más frías, "
+                  f"{PATRON1['cap1-ideam']}, donde están las más altas.",
+}
 
 def _palabra_campo(rho):
     if rho == 0:
@@ -3576,7 +3840,8 @@ DESCRIPCIONES = {
     "cap1-pliegues-azar": [DESC_PLIEGUES["aleatorio"]], "cap1-pliegues-bloques": [DESC_PLIEGUES["bloques"]],
     "cap1-snow": [_D1_SNOW["broad"], _D1_SNOW["todas"], _D1_SNOW["sinlineas"]],
     "cap1-pinos": [DESC_PINOS], "cap1-secuoyas": [DESC_SECUOYAS], "cap1-celulas": [DESC_CELULAS],
-    "cap1-bogota": [DESC_BOGOTA], "cap1-nc": [DESC_NC], "cap1-desercion": [DESC_DESERCION],
+    "cap1-pinos-ventana": list(DESC_PINOS_VENTANA.values()),
+    "cap1-bogota": list(DESC_BOGOTA_V.values()), "cap1-nc": [DESC_NC], "cap1-desercion": [DESC_DESERCION],
     "cap1-meuse": [DESC_MEUSE], "cap1-ideam": [DESC_IDEAM],
     "cap1-campo": list(DESC_CAMPO.values()), "cap1-realizacion": list(DESC_REAL.values()),
     "cap1-agregacion": list(DESC_AGREG.values()),
@@ -3598,6 +3863,15 @@ def guardas_de_las_descripciones() -> list[str]:
     exige(_PC["cells"]["clark_evans"] > 1.3, "células: «casi como una rejilla» ya no vale")
     exige(_BG["norte"] * 20 > D["colombia"]["puntual"]["n"] * 19 and sum(_VI["bogota"]["n"]) == D["colombia"]["puntual"]["n"],
           "Bogotá: «se apiñan en el tercio norte» ya no vale, o las franjas no reparten las sedes")
+    # El margen se MIDE: el perímetro urbano tiene que acabar al norte del corte
+    # (y por tanto los tercios del sur, «fuera del perímetro», no tener sedes
+    # urbanas), y las sedes de fuera del Distrito son las que dice la frase.
+    exige(_VI["bogota"]["margen_urbano_m"] > 0 and _BGU["centro"] == 0 and _BGU["sur"] == 0
+          and _BGU["norte"] == D["colombia"]["puntual"]["n_urbana"],
+          "Bogotá: el perímetro urbano ya no cabe en el tercio norte, y los del sur no están «fuera del perímetro»")
+    exige(sum(_VI["bogota"]["fuera_dc"]) == D["colombia"]["puntual"]["n"] - D["colombia"]["puntual"]["n_dc"]
+          and _BGF["norte"] + _BG_FUERA_SUR == sum(_VI["bogota"]["fuera_dc"]),
+          "Bogotá: las sedes fuera del Distrito por tercio no cuadran con las del dato")
     exige(_VNC1["clase_alta_n"] == _NC1["tam"][-1] and len(_VNC1["zona"]) >= 5 and _VNC1["n"][0] > _VNC1["n"][1],
           "Carolina del Norte: «repartidos por todo el estado, con más en una zona» ya no vale")
     exige(all(f["zona"] in ("sur", "oriente", "suroriente") for f in _DS["mayores"]),
@@ -3685,6 +3959,186 @@ def _claridad(hexa):
         return u / 12.92 if u <= 0.04045 else ((u + 0.055) / 1.055) ** 2.4
     r, g, b = (int(hexa[i:i + 2], 16) for i in (1, 3, 5))
     return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+
+
+# =====================================================================
+# LO QUE DICEN LAS LECTURAS, LOS TÍTULOS Y LAS RESPUESTAS (R2 · T2.3, ronda 2)
+# =====================================================================
+# Los textos del módulo 2 se componen en el navegador: la lectura de cada
+# unidad, el título y los rótulos de cada estado de los mandos. Las guardas
+# de arriba miran el dato; esta mira lo que el JavaScript ESCRIBE con él. Se
+# ejecuta el documento ya ensamblado en Node, con el DOM sustituido por un
+# objeto que todo lo acepta, se piden al registro de cada mapa su lectura de
+# TODAS las unidades y su título y rótulos en cada estado, y se comparan con
+# lo que dice el JSON, escrito aquí por otra vía (Python, sin pasar por el JS).
+# Lo que se compara son cifras y frases que el capítulo afirma: si el código
+# lee la marca del vecino, el corte de la clase siguiente o la etiqueta de
+# otra ventana, la cifra o la frase dejan de cuadrar y el ensamblado para.
+_NODE_LECTURAS = r"""
+const fs = require('fs'), vm = require('vm');
+const html = fs.readFileSync(process.argv[2], 'utf8');
+const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+const nada = () => new Proxy(function () {}, {
+  get: (t, k) => k === Symbol.toPrimitive ? () => '' : k === 'then' ? undefined : nada(),
+  set: () => true, apply: () => nada(), construct: () => nada() });
+const base = { console, Math, JSON, Number, String, Array, Object, Set, Map, WeakMap, Date, RegExp, Error, TypeError,
+  Promise, parseFloat, parseInt, isFinite, isNaN, Symbol, Infinity, NaN, Boolean, Function, Reflect, Proxy, Intl,
+  setTimeout: () => 0, clearTimeout: () => 0, setInterval: () => 0, clearInterval: () => 0,
+  requestAnimationFrame: () => 0, cancelAnimationFrame: () => 0 };
+const ctx = new Proxy(base, { has: () => true,
+  get: (t, k) => (k in t ? t[k] : (k === Symbol.unscopables ? undefined : nada())),
+  set: (t, k, v) => { t[k] = v; return true; } });
+vm.createContext(ctx);
+const errores = [];
+for (const s of scripts) { try { vm.runInContext(s, ctx); } catch (e) { errores.push(String(e).slice(0, 200)); } }
+let out = {};
+try {
+  out = vm.runInContext(`(() => {
+    const G = GEOMAPAS, f = r => typeof r.fuente === 'function' ? r.fuente() : r.fuente;
+    const todas = r => { const d = f(r); const L = []; for (let i = 0; i < geomapaNumUnidades(d); i++) L.push(String(r.lectura(i, d, r))); return L; };
+    const estado = (id, v) => { const r = G[id]; r.controles[0].alPulsar(v);
+      return { titulo: String(r.titulo), etiqueta: String(r.etiqueta),
+               capas: r.capasLineas.map(c => c.etiqueta || ''), leyenda: String(geomapaLeyenda(f(r), r)),
+               lecturas: r.lectura ? todas(r) : [] }; };
+    const o = { bogota: {}, pinos: {}, lect: {}, alt: {} };
+    ['urbano', 'distrito', 'caja'].forEach(v => { o.bogota[v] = estado('cap1-bogota', v); });
+    ['dato', 'caja'].forEach(v => { o.pinos[v] = estado('cap1-pinos-ventana', v); });
+    ['cap1-nc', 'cap1-desercion', 'cap1-meuse', 'cap1-ideam', 'cap1-snow'].forEach(k => { o.lect[k] = todas(G[k]); });
+    Object.keys(G).forEach(k => { o.alt[k] = String(geomapaAlt(f(G[k]), G[k])); });
+    return JSON.stringify(o); })()`, ctx);
+} catch (e) { errores.push('al pedir las lecturas: ' + String(e).slice(0, 300)); }
+process.stdout.write(JSON.stringify({ errores, out: typeof out === 'string' ? JSON.parse(out) : {} }));
+"""
+
+
+def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
+    """Lo que escriben las lecturas, los títulos y las respuestas del módulo 2, contra el JSON."""
+    import shutil, subprocess, tempfile
+    malos = []
+
+    def exige(cond, que):
+        if not cond:
+            malos.append(que)
+
+    node = shutil.which("node") or "/opt/homebrew/bin/node"
+    with tempfile.TemporaryDirectory() as tmp:
+        html = pathlib.Path(tmp) / "cap1.html"
+        html.write_text(doc, encoding="utf-8")
+        guion = pathlib.Path(tmp) / "lecturas.js"
+        guion.write_text(_NODE_LECTURAS, encoding="utf-8")
+        try:
+            r = subprocess.run([node, str(guion), str(html)], capture_output=True, text=True, timeout=120)
+            res = json.loads(r.stdout or "{}")
+        except Exception as e:  # sin Node no hay guarda, y eso para el ensamblado
+            return [f"lecturas: no se pudo ejecutar el documento en Node ({e})"]
+    exige(not res.get("errores"), f"lecturas: el documento no se ejecuta entero en Node: {res.get('errores')}")
+    o = res.get("out") or {}
+    if not o:
+        return malos + ["lecturas: Node no devolvió las lecturas"]
+
+    def miles(x):
+        return f"{int(x):,}".replace(",", " ")
+
+    # --- Bogotá: cada sede, en cada ventana --------------------------------
+    bp, mb = D["colombia"]["puntual"], M["bogota"]
+    donde = {2: "dentro del perímetro urbano, y por tanto del Distrito Capital",
+             1: "en el Distrito Capital, fuera del perímetro urbano", 0: "fuera del Distrito Capital"}
+    cuenta_de = {"urbano": lambda k: k == 2, "distrito": lambda k: k >= 1, "caja": lambda k: True}
+    nombre_de = {"urbano": "del perímetro urbano", "distrito": "del Distrito Capital"}
+    cifras = {"urbano": (bp["n_urbana"], bp["area_urbana_km2"], bp["lambda_urbana"]),
+              "distrito": (bp["n_dc"], bp["area_dc_km2"], bp["lambda_dc"]),
+              "caja": (bp["n"], bp["area_caja_km2"], bp["lambda_caja"])}
+    for v in ("urbano", "distrito", "caja"):
+        e = o["bogota"].get(v, {})
+        lect = e.get("lecturas", [])
+        exige(len(lect) == mb["n"], f"Bogotá ({v}): la lectura no cubre las {mb['n']} sedes")
+        mal = []
+        for i, t in enumerate(lect):
+            k = mb["dentro"][i]
+            pide = f"Sede {miles(i + 1)} de {miles(mb['n'])}: {donde[k]}. "
+            pide += ("Con el rectángulo de las sedes entra en la cuenta, como todas." if v == "caja" else
+                     ("Entra" if cuenta_de[v](k) else "No entra") + f" en la cuenta {nombre_de[v]}.")
+            if t != pide:
+                mal.append((i, t))
+        exige(not mal, f"Bogotá ({v}): {len(mal)} lecturas no dicen el borde o la cuenta del dato, p. ej. {mal[:1]}")
+        nv, av, lv = cifras[v]
+        exige(f"{miles(nv)} sedes en {av:.2f} km², {lv:.5f} por km²" in e.get("titulo", ""),
+              f"Bogotá ({v}): el título no da las sedes, el área y la intensidad de su ventana: «{e.get('titulo')}»")
+        puesto = (e.get("capas") or [""])[-1]
+        if v == "caja":
+            exige("No es una ventana válida" in e.get("titulo", "") and not puesto.startswith("ventana")
+                  and "<span>ventana: el rectángulo" not in e.get("leyenda", ""),
+                  "Bogotá: el rectángulo de las sedes se rotula como ventana, o el título no dice que no lo es")
+        else:
+            exige(puesto.startswith("ventana: "), f"Bogotá ({v}): el borde puesto no se rotula como ventana")
+
+    # --- Pinos: los dos bordes ---------------------------------------------
+    pj = D["puntual_canonico"]["japanesepines"]
+    cifra = lambda x, dec: str(int(x)) if float(x).is_integer() else f"{x:.{dec}f}"
+    for v, (a_, l_) in (("dato", (pj["area"], pj["lambda"])), ("caja", (pj["area_caja"], pj["lambda_caja"]))):
+        e = o["pinos"].get(v, {})
+        exige(f"en un área de {cifra(a_, 3)}, intensidad estimada {cifra(l_, 5)}" in e.get("titulo", ""),
+              f"pinos ({v}): el título no da el área y la intensidad de ese borde: «{e.get('titulo')}»")
+        puesto = (e.get("capas") or [""])[-1]
+        if v == "caja":
+            exige("No es una ventana válida" in e.get("titulo", "") and not puesto.startswith("ventana")
+                  and "Ventana: el rectángulo" not in e.get("etiqueta", "")
+                  and "<span>ventana: el rectángulo" not in e.get("leyenda", ""),
+                  "pinos: el rectángulo de los puntos se rotula como ventana: la eligen los datos")
+        else:
+            exige(puesto.startswith("ventana: "), "pinos: la ventana del dato no se rotula como ventana")
+
+    # --- Los de área: valor y clase de cada unidad --------------------------
+    for k_, clave in (("cap1-nc", "nc"), ("cap1-desercion", "desercion")):
+        g, lect = M[clave], o["lect"].get(k_, [])
+        nk = len(g["cortes"]) - 1
+        mal = [i for i, t in enumerate(lect)
+               if not t.startswith(f"{g['etiquetas'][i]}: {g['valor'][i]:.2f} ")
+               or f"Clase {g['clase'][i]} de {nk}, de {g['cortes'][g['clase'][i] - 1]:.2f} a "
+                  f"{g['cortes'][g['clase'][i]]:.2f}." not in t]
+        exige(len(lect) == g["n"] and not mal,
+              f"{k_}: {len(mal)} lecturas no dan el valor o la clase del dato, p. ej. {[lect[i] for i in mal[:1]]}")
+    gm, lect = M["meuse"], o["lect"].get("cap1-meuse", [])
+    mal = [i for i, t in enumerate(lect)
+           if not t.startswith(f"Punto de muestreo {i + 1} de {gm['n']}: {miles(round(gm['marcas'][i]))} ppm de zinc.")]
+    exige(len(lect) == gm["n"] and not mal, f"meuse: {len(mal)} lecturas no dan el zinc de su punto")
+    gi, lect = M["ideam"], o["lect"].get("cap1-ideam", [])
+    mal = [i for i, t in enumerate(lect)
+           if not t.startswith(f"Estación {i + 1} de {gi['n']}: {gi['marcas'][i]:.1f} °C")]
+    exige(len(lect) == gi["n"] and not mal, f"IDEAM: {len(mal)} lecturas no dan la temperatura de su estación")
+    gs, lect = M["snow"], o["lect"].get("cap1-snow", [])
+    mal = [i for i, t in enumerate(lect)
+           if not t.endswith(f"su bomba más próxima es la de {gs['niveles'][gs['marcas'][i] - 1]}.")]
+    exige(len(lect) == gs["n"] and not mal, f"Snow: {len(mal)} lecturas no dan la bomba de su muerte")
+    exige(not any(" de el " in t for e in o["bogota"].values() for t in e.get("lecturas", [])),
+          "Bogotá: la lectura escribe «de el»")
+
+    # --- Las etiquetas accesibles: el patrón, no la palabra de la leyenda (G-24)
+    for k_, etq in ETIQUETA1.items():
+        exige(PATRON1[k_] in DESC_DE1[k_] and PATRON1[k_] in etq and o["alt"].get(k_) == etq,
+              f"{k_}: la etiqueta accesible no es la que lleva el patrón de su descripción")
+    ley = {k_: M[c].get("leyenda", "") for k_, c in (("cap1-nc", "nc"), ("cap1-desercion", "desercion"),
+                                                      ("cap1-meuse", "meuse"), ("cap1-ideam", "ideam"))}
+    exige(not [k_ for k_, l_ in ley.items() if l_ and l_ in o["alt"].get(k_, "")],
+          "una etiqueta accesible arrastra la palabra de la leyenda")
+
+    # --- Las respuestas a «¿qué es aleatorio aquí?», por tipo ---------------
+    import re as _re3
+    plano = _re3.sub(r"\s+", " ", marcado)
+    resp = {m_.group(1): m_.group(2) for m_ in _re3.finditer(r'<p class="geomapa-pie" id="aleatorio-(\w+)"[^>]*>(.*?)</p>', plano)}
+    tipo = {"pinos": "Lo aleatorio es dónde.", "bogota": "Lo aleatorio es dónde.",
+            "nc": "Lo aleatorio es el valor de cada unidad.", "desercion": "Lo aleatorio es el valor de cada unidad.",
+            "meuse": "Lo aleatorio es el campo entero.", "ideam": "Lo aleatorio es el campo entero."}
+    exige(all(resp.get(k_, "").startswith(f"<strong>{t}</strong>") for k_, t in tipo.items()),
+          "módulo 2: una respuesta a «¿qué es aleatorio aquí?» no es la de su tipo de dato")
+    exige("no es una ventana" in resp.get("pinos", "") and "no vale como ventana" in resp.get("bogota", "")
+          and not any("antes de mirar, y por eso" in t for t in resp.values()),
+          "módulo 2: la respuesta de los puntuales no dice por qué el rectángulo de los puntos no es una ventana, "
+          "o vuelve a atribuir el cambio de λ̂ a que la ventana se fije antes de mirar")
+    exige(f"el área pasa de {pj['area']} a {n(pj['area_caja'], 3)} y" in plano
+          and f"de {pj['lambda']} a {n(pj['lambda_caja'])}, sin que se mueva un pino" in plano,
+          "módulo 2: la prosa no da el área y la intensidad de los dos bordes de los pinos")
+    return malos
 
 
 def guardas_de_t22(plantilla: str, marcado: str) -> list[str]:
@@ -3861,6 +4315,44 @@ def guardas_de_t22(plantilla: str, marcado: str) -> list[str]:
     exige(0 < rt < 0.3 and all(abs(rt - v) > 5e-4 for v in D["n_efectivo"]["rhos"] + [0.001, 0.002, 0.005, 0.03, 0.075, 0.15]),
           "módulo 5: el rho de Colombia coincide con otra posición del deslizador, o queda fuera de su recorrido")
 
+    # --- R2 · T2.3: los bordes de Bogotá, la caja de los pinos y las respuestas --
+    bp, mb = D["colombia"]["puntual"], M["bogota"]
+    bordes = mb.get("bordes", {})
+    exige(set(bordes) == {"urbano", "distrito", "caja"} and all(len(a) >= 8 for v in bordes.values() for a in v[:1]),
+          "Bogotá: el mapa no trae los tres bordes de los que habla la prosa")
+    exige(bp["lambda_urbana"] > bp["lambda_dc"] > bp["lambda_caja"] > 0 and bp["n_urbana"] <= bp["n_dc"] <= bp["n"],
+          "Bogotá: las tres intensidades ya no bajan del perímetro urbano al Distrito y al rectángulo")
+    exige(all(abs(c / a - l) < 1e-6 for c, a, l in ((bp["n_urbana"], bp["area_urbana_km2"], bp["lambda_urbana"]),
+                                                   (bp["n_dc"], bp["area_dc_km2"], bp["lambda_dc"]),
+                                                   (bp["n"], bp["area_caja_km2"], bp["lambda_caja"]))),
+          "Bogotá: una intensidad del título no es sus sedes entre su área")
+    dentro = mb.get("dentro") or []
+    exige(len(dentro) == mb["n"] and set(dentro) <= {0, 1, 2}
+          and sum(v == 2 for v in dentro) == bp["n_urbana"] and sum(v >= 1 for v in dentro) == bp["n_dc"],
+          "Bogotá: lo que la lectura dice de cada sede no cuadra con las sedes de cada ventana")
+    exige(bp["pct_caja_fuera_dc"] > 5, "Bogotá: el rectángulo de las sedes ya no se sale del Distrito y el mapa dice que no es una ventana válida")
+    if bordes.get("caja"):
+        cj_ = bordes["caja"][0]
+        exige(abs(min(cj_[0::2]) - min(mb["pts"][0::2])) <= 1 and abs(max(cj_[0::2]) - max(mb["pts"][0::2])) <= 1
+              and abs(min(cj_[1::2]) - min(mb["pts"][1::2])) <= 1 and abs(max(cj_[1::2]) - max(mb["pts"][1::2])) <= 1,
+              "Bogotá: el rectángulo dibujado no es el que ciñe a las sedes")
+    pj = D["puntual_canonico"]["japanesepines"]
+    exige(pj["area_caja"] < pj["area"] and pj["lambda_caja"] > pj["lambda"]
+          and abs(pj["n"] / pj["area_caja"] - pj["lambda_caja"]) < 1e-6,
+          "pinos: con el rectángulo de los puntos la intensidad ya no sube, o no es sus pinos entre su área")
+    faltan = [k for k in ("pinos", "bogota", "nc", "desercion", "meuse", "ideam")
+              if f'id="aleatorio-{k}" hidden' not in marcado or f"interruptorAleatorio('{k}')" not in GEOMAPAS_JS]
+    exige(not faltan, f"módulo 2: mapas sin su respuesta a «¿qué es aleatorio aquí?», o sin el mando que la enseña: {faltan}")
+    # Un getter copiado con `Object.assign` se queda en su primer valor: el
+    # mapa dejaría de seguir a su mando. Los registros que se amplían con
+    # getters lo hacen con sus descriptores.
+    import re as _re2
+    congelados = [m_.group(1) for m_ in _re2.finditer(r"Object\.assign\(GEOMAPAS\['([^']+)'\], \{(.*?)\n    \}\);", GEOMAPAS_JS, _re2.S)
+                  if _re2.search(r"\bget \w+\(\)", m_.group(2))]
+    exige(not congelados, f"mapas cuyo título o cuyas capas se copian con Object.assign y no siguen a su mando: {congelados}")
+    exige("GEOMAPA_CUALITATIVA[" not in GEOMAPAS_JS + SIMULADORES_JS,
+          "Snow: el capítulo vuelve a escribir en la paleta cualitativa del motor")
+
     # --- G-08: dos paneles ------------------------------------------------------
     exige('data-panel="ee"' in marcado and 'data-panel="cobertura"' in marcado and "yAxisID" not in SIMULADORES_JS,
           "módulo 4: los errores estándar y la cobertura vuelven a compartir lienzo con dos ejes")
@@ -3885,6 +4377,19 @@ GEOMAPAS_JS = (
                      # El título dice qué significa el color en cada vista: es el
                      # título de la leyenda, y va encima de ella (G-20).
                      "      get titulo() { return TITULO1_SNOW[snowModo]; },\n"
+                     # Las celdas de las bombas (G-20), como capas de líneas del
+                     # motor: a trazos las trece y, en la vista de Broad Street,
+                     # la suya con borde naranja. Sin las calles no van.
+                     "      get capasLineas() {\n"
+                     "        const d = GEOMAPAS['cap1-snow'].fuente;\n"
+                     "        if (snowModo === 'sinlineas') return [];\n"
+                     "        const capas = [{ lineas: d.celdas, color: 'rgba(1, 40, 32, 0.6)', ancho: 1, trazo: [5, 4],\n"
+                     "                         cierra: true, etiqueta: 'celda de cada bomba: lo que le queda más cerca' }];\n"
+                     "        if (snowModo === 'broad') capas.push({ lineas: [d.celdas[D1.snow.bomba_broad - 1]],\n"
+                     "          color: GEOMAPA_ACENTO, ancho: 2.2, cierra: true, etiqueta: 'celda de Broad St' });\n"
+                     "        return capas;\n"
+                     "      },\n"
+                     "      get coloresCategoria() { return COLORES1_SNOW; },\n"
                      "      descripcion: () => DESC1_SNOW[snowModo]"),
               tabla=TABLA_SNOW)
     # Los pinos salen DOS veces —módulo 2 como caso nulo, módulo 3 en la
@@ -3996,29 +4501,34 @@ GEOMAPAS_JS = (
     }};
 """ for ident, clave in (("azar", "aleatorio"), ("bloques", "bloques")))
     + COORDS_JS
+    + "    const DESC1_PINOS_VENTANA = " + json.dumps(DESC_PINOS_VENTANA, ensure_ascii=False) + ";\n"
+    + "    const DESC1_BOGOTA = " + json.dumps(DESC_BOGOTA_V, ensure_ascii=False) + ";\n"
+    + M2_JS.replace("__TABLA_PUNTOS__", TABLA_PUNTOS)
+    + "    // La etiqueta accesible con el patrón (G-24), en los siete que no la traían.\n"
+    + "    const ETIQUETA1 = " + json.dumps(ETIQUETA1, ensure_ascii=False) + ";\n"
+    + "    Object.keys(ETIQUETA1).forEach(k => { GEOMAPAS[k].etiqueta = ETIQUETA1[k]; });\n"
     + "    // Lo que se ve en cada estado de los mapas que cambian con un control\n"
       "    // (ver «Describir el mapa» en el ensamblador).\n"
     + "    const DESC1_SNOW = " + json.dumps(_D1_SNOW, ensure_ascii=False) + ";\n"
     + "    const TITULO1_SNOW = " + json.dumps(_T1_SNOW, ensure_ascii=False) + ";\n"
-    # EL NARANJA ES DE BROAD STREET EN LAS DOS VISTAS (R2 · T2.2, G-20). La
-    # paleta cualitativa del motor reparte sus trece colores por orden, y a la
-    # bomba de Broad Street le tocaba el rosa mientras el bermellón iba a otra:
-    # el naranja significaba Broad Street en una vista y otra bomba en la
-    # siguiente. Aquí, y solo en este capítulo, el color de la casilla de Broad
-    # Street pasa a ser el acento del material y su rosa va a la casilla que
-    # tenía el bermellón, que deja de usarse. La guarda de salida comprueba
-    # que la paleta de la plantilla sigue siendo la que esto da por sabida.
-    + "    (function () {\n"
-      "      const iBroad = D1.snow.bomba_broad - 1, iBermellon = GEOMAPA_CUALITATIVA.indexOf('#D55E00');\n"
-      "      if (iBermellon < 0 || iBermellon === iBroad) return;\n"
-      "      GEOMAPA_CUALITATIVA[iBermellon] = GEOMAPA_CUALITATIVA[iBroad];\n"
-      "      GEOMAPA_CUALITATIVA[iBroad] = GEOMAPA_ACENTO;\n"
-      # Y el ámbar de la primera casilla —Oxford Market—, que en la leyenda
-      # quedaba al lado del naranja y se confundía con él, pasa al amarillo
-      # de la misma familia de Okabe e Ito.
-      "      const iAmbar = GEOMAPA_CUALITATIVA.indexOf('#E69F00');\n"
-      "      if (iAmbar >= 0 && iAmbar !== iBroad) GEOMAPA_CUALITATIVA[iAmbar] = '#F0E442';\n"
-      "    })();\n"
+    # EL NARANJA ES DE BROAD STREET EN LAS DOS VISTAS (G-20). La paleta
+    # cualitativa del motor reparte sus trece colores por orden, y a la bomba
+    # de Broad Street le tocaba el rosa mientras el bermellón iba a otra.
+    # Desde R2 · T2.3 el motor admite una lista de colores por mapa
+    # (`coloresCategoria`), y esta es la de Snow: la de la casa con tres
+    # cambios. La casilla de Broad Street lleva el acento; su rosa pasa a la
+    # del bermellón, que deja de usarse; y el ámbar de la primera, que en la
+    # leyenda quedaba junto al naranja, pasa al amarillo. La paleta de la
+    # casa ya no se toca: los demás mapas la usan tal cual.
+    + """    const COLORES1_SNOW = (function () {
+      const lista = GEOMAPA_CUALITATIVA.slice();
+      const iBroad = D1.snow.bomba_broad - 1, iBermellon = lista.indexOf('#D55E00'), iAmbar = lista.indexOf('#E69F00');
+      if (iBermellon >= 0 && iBermellon !== iBroad) lista[iBermellon] = lista[iBroad];
+      lista[iBroad] = GEOMAPA_ACENTO;
+      if (iAmbar >= 0 && iAmbar !== iBroad) lista[iAmbar] = '#F0E442';
+      return lista;
+    })();
+"""
     + "    const DESC1_CAMPO = " + json.dumps(DESC_CAMPO, ensure_ascii=False) + ";\n"
     + "    const DESC1_REAL = " + json.dumps(DESC_REAL, ensure_ascii=False) + ";\n"
     + "    const DESC1_AGREG = " + json.dumps(DESC_AGREG, ensure_ascii=False) + ";\n"
@@ -4323,65 +4833,11 @@ SIMULADORES_JS = r"""
     // 1.1 · El mapa de Snow -------------------------------------------
     SIMULADORES['snow-mapa'] = function (raiz) {
       const s = D1.snow;
-      const d = GEOMAPAS['cap1-snow'].fuente;
       const mapa = () => raiz.querySelector('[data-geomapa="cap1-snow"]');
-      // LAS CELDAS DE LAS TRECE BOMBAS (R2 · T2.2, G-20). La lectura habla de
-      // «la celda de Broad St» y el mapa no la dibujaba. Son los polígonos de
-      // Voronoi que calcula R (`celdas`), cuantizados contra la misma caja que
-      // los puntos. El motor no tiene una segunda capa de líneas, así que se
-      // trazan ENCIMA de lo que él pinta, con el mismo ajuste que devuelve su
-      // `dibuja()`: a trazos finos las trece y, en el modo de Broad Street, la
-      // suya con borde naranja. Sin las calles no van: ese modo existe para
-      // ver la mancha sola.
-      const pintaCeldas = aj => {
-        const m = mapa();
-        if (!aj || !m || !d.celdas || snowModo === 'sinlineas') return;
-        const ctx = m.__geomapa.canvas.getContext('2d');
-        const dpr = window.devicePixelRatio || 1;
-        const traza = c => {
-          ctx.beginPath();
-          for (let i = 0; i < c.length; i += 2) {
-            if (i) ctx.lineTo(aj.x(c[i]), aj.y(c[i + 1]));
-            else ctx.moveTo(aj.x(c[i]), aj.y(c[i + 1]));
-          }
-          ctx.closePath();
-        };
-        ctx.save();
-        ctx.lineJoin = 'round';
-        ctx.setLineDash([5 * dpr, 4 * dpr]);
-        ctx.strokeStyle = 'rgba(1, 40, 32, 0.6)';
-        ctx.lineWidth = dpr;
-        d.celdas.forEach(c => { traza(c); ctx.stroke(); });
-        if (snowModo === 'broad') {
-          ctx.setLineDash([]);
-          ctx.strokeStyle = GEOMAPA_ACENTO;
-          ctx.lineWidth = 2.2 * dpr;
-          traza(d.celdas[s.bomba_broad - 1]);
-          ctx.stroke();
-        }
-        ctx.restore();
-        // Y la leyenda las explica. El motor la reescribe en cada trazo, así
-        // que se añaden después de él, como las celdas.
-        const ley = m.querySelector('.geomapa-leyenda');
-        if (ley && !ley.querySelector('.celdas-snow')) {
-          const entrada = (borde, texto) => `<span class="geomapa-clase celdas-snow">`
-            + `<span class="geomapa-muestra" style="background:transparent;border:${borde}"></span>`
-            + `<span>${texto}</span></span>`;
-          ley.insertAdjacentHTML('beforeend',
-            entrada('1px dashed rgba(1, 40, 32, 0.7)', 'celda de cada bomba: lo que le queda más cerca')
-            + (snowModo === 'broad' ? entrada('2px solid ' + GEOMAPA_ACENTO, 'celda de Broad St') : ''));
-        }
-      };
-      const pinta = () => { const m = mapa(); if (m && m.__geomapa) pintaCeldas(m.__geomapa.dibuja()); };
-      // El motor repinta el mapa por su cuenta cuando cambia de tamaño, y ese
-      // trazo se lleva las celdas. Se vuelven a poner en el cuadro siguiente:
-      // dentro del mismo aviso de tamaño no se puede, porque el del motor
-      // puede llegar después. El primer trazo va por la misma vía: al
-      // construirse el simulador el mapa todavía no existe.
-      let cuadro = 0;
-      const repinta = () => { cancelAnimationFrame(cuadro); cuadro = requestAnimationFrame(pinta); };
-      const vigia = new ResizeObserver(repinta);
-      vigia.observe(mapa());
+      // Las celdas de las bombas y el naranja de Broad Street los pinta el
+      // motor desde R2 · T2.3 (`capasLineas` y `coloresCategoria` en el
+      // registro del mapa): aquí solo queda repintar al cambiar de vista.
+      const pinta = () => { const m = mapa(); if (m && m.__geomapa) m.__geomapa.dibuja(); };
       const lee = () => {
         if (snowModo === 'todas') {
           lectura(raiz, [['bombas', s.n_bombas],
@@ -4403,8 +4859,7 @@ SIMULADORES_JS = r"""
                       ['sinlineas', 'Sin las calles']],
         v => { snowModo = v; pinta(); lee(); }, snowModo);
       lee();
-      // Lo que se destruye al salir del módulo: el vigía y el cuadro pendiente.
-      return [{ destroy() { vigia.disconnect(); cancelAnimationFrame(cuadro); } }];
+      return [];
     };
 
     // 7.1 · El doble conteo, celda a celda -----------------------------
@@ -6308,9 +6763,9 @@ def main() -> int:
                   "meuse", "ideam"]) / 1024
     kb_sim = len(json.dumps(_sim, ensure_ascii=False).encode()) / 1024
     print(f"  geometría {kb_geo:.1f} KB · rejillas simuladas {kb_sim:.1f} KB "
-          f"(presupuesto: 120 KB cada uno)")
-    if kb_geo > 120 or kb_sim > 120:
-        problemas.append("la geometría se sale del presupuesto de 120 KB")
+          f"(presupuesto: {PRESUPUESTO_GEO_KB} KB la geometría, 120 KB las rejillas)")
+    if kb_geo > PRESUPUESTO_GEO_KB or kb_sim > 120:
+        problemas.append(f"la geometría se sale del presupuesto de {PRESUPUESTO_GEO_KB} KB")
 
     # Las DOS rejillas del módulo 4, emparejadas aquí y no de palabra: que
     # cada campo tenga fila de cifras y que las dos traigan la misma
@@ -7329,6 +7784,8 @@ def main() -> int:
     problemas += guardas_de_las_descripciones()
     # R2 · T2.2: lo que las gráficas y los mapas afirman, contra el dato.
     problemas += guardas_de_t22(PLANTILLA.read_text(encoding="utf-8"), marcado)
+    # R2 · T2.3 (ronda 2): lo que el JavaScript escribe con el dato.
+    problemas += guardas_de_lecturas(doc, marcado)
     if problemas:
         for p in problemas:
             print(f"  MAL  {p}")

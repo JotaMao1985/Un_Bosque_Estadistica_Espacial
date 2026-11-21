@@ -2910,7 +2910,10 @@ def main() -> int:
                  for v in M.values())
     a.cierto(kb_geo <= 120, "la geometría cabe en el presupuesto de 120 KB",
              f"{kb_geo:.1f} KB")
-    a.cierto(kb_tot <= 120, "y el conjunto de mapas también", f"{kb_tot:.1f} KB")
+    # 160 y no 120 desde R2 · T2.3: es la alarma del conjunto que ya usa el
+    # generador (geometría más rejillas simuladas); la geometría sola sigue
+    # contra sus 120.
+    a.cierto(kb_tot <= 160, "y el conjunto de mapas no dispara su alarma", f"{kb_tot:.1f} KB")
 
     for k in geograficos:
         g = M[k]
@@ -3079,6 +3082,21 @@ def main() -> int:
         esp = [Counter(fr)[f] for f in ("norte", "centro", "sur")]
         a.cierto(vb["franja"] == ["norte", "centro", "sur"] and vb["n"] == esp,
                  "visto: Bogotá, las sedes por franja", f"{esp}")
+        # R2 · T2.3 (ronda 2): por franja, las sedes del perímetro urbano y las
+        # de fuera del Distrito, punto a punto contra los polígonos (no contra
+        # las columnas del dato), y dónde acaba el perímetro respecto del corte.
+        from shapely import contains_xy as _cxy2
+        _ur = gpd.read_file(PROCESADO / "bogota_ventana_urbana.gpkg").to_crs(cole.crs).geometry.union_all()
+        _dc = gpd.read_file(PROCESADO / "bogota_ventana_dc.gpkg").to_crs(cole.crs).geometry.union_all()
+        _xs, _ys = cole.geometry.x.to_numpy(), cole.geometry.y.to_numpy()
+        _eu, _ed = _cxy2(_ur, _xs, _ys), _cxy2(_dc, _xs, _ys)
+        _urb = [int(sum(1 for f, u in zip(fr, _eu) if f == z and u)) for z in ("norte", "centro", "sur")]
+        _fdc = [int(sum(1 for f, d_ in zip(fr, _ed) if f == z and not d_)) for z in ("norte", "centro", "sur")]
+        a.cierto(vb.get("urbana") == _urb and vb.get("fuera_dc") == _fdc,
+                 "visto: Bogotá, por franja, las sedes urbanas y las de fuera del Distrito",
+                 f"urbanas {_urb} · fuera {_fdc}")
+        a.igual(_ur.bounds[1] - (cj[1] + 2 / 3 * (cj[3] - cj[1])), vb.get("margen_urbano_m"),
+                "visto: Bogotá, a cuántos metros del corte acaba el perímetro urbano", 1e-6)
     else:
         a.cierto(False, "visto: Bogotá, las sedes por franja", "falta el dato o el mapa")
 
@@ -3181,6 +3199,57 @@ def main() -> int:
         a.igual(zm["columnas"] * zm["filas"], zm["n_celdas"], "agregación: y son columnas por filas")
     else:
         a.cierto(False, "agregación: el mapa trae la ventana del acercamiento", "falta `zoom`")
+
+    # --- R2 · T2.3: los bordes de Bogotá y la caja de los pinos -----------------
+    cpu, mbg = D["colombia"]["puntual"], M["bogota"]
+    bx = cole.total_bounds
+    a_caja = float((bx[2] - bx[0]) * (bx[3] - bx[1]) / 1e6)
+    a.igual(a_caja, cpu.get("area_caja_km2"), "Bogotá: el área del rectángulo de las sedes (km²)", 1e-6)
+    a.igual(len(cole) / a_caja, cpu.get("lambda_caja"), "Bogotá: la intensidad con ese rectángulo", 1e-8)
+    v_dc_ = gpd.read_file(PROCESADO / "bogota_ventana_dc.gpkg").to_crs(cole.crs)
+    v_ur_ = gpd.read_file(PROCESADO / "bogota_ventana_urbana.gpkg").to_crs(cole.crs)
+    dc_u, ur_u = v_dc_.geometry.union_all(), v_ur_.geometry.union_all()
+    a.igual(100 * (1 - box(*bx).intersection(dc_u).area / 1e6 / a_caja), cpu.get("pct_caja_fuera_dc"),
+            "Bogotá: la parte del rectángulo que queda fuera del Distrito", 1e-6)
+    bordes = mbg.get("bordes")
+    if isinstance(bordes, dict) and all(bordes.get(k) for k in ("urbano", "distrito", "caja")):
+        from shapely.ops import unary_union as _une
+        def _pol(anillos):
+            return _une([Polygon(_descuantiza(mbg, r_)).buffer(0) for r_ in anillos if len(r_) >= 8])
+        for clave, real in (("urbano", ur_u), ("distrito", dc_u)):
+            dib = _pol(bordes[clave])
+            a.cierto(dib.symmetric_difference(real).area < 0.04 * real.area,
+                     f"Bogotá: el borde «{clave}» dibujado es el de su ventana, simplificado",
+                     f"{100 * dib.symmetric_difference(real).area / real.area:.2f} % de diferencia")
+        # Vértice a vértice y no por área: un solo vértice corrido deja casi
+        # la misma superficie.
+        rc = _descuantiza(mbg, bordes["caja"][0])
+        tol_c = 2 * max(mbg["caja"][2] - mbg["caja"][0], mbg["caja"][3] - mbg["caja"][1]) / mbg["q"]
+        a.cierto(bool(np.all((np.abs(rc[:, 0] - bx[0]) < tol_c) | (np.abs(rc[:, 0] - bx[2]) < tol_c))
+                      and np.all((np.abs(rc[:, 1] - bx[1]) < tol_c) | (np.abs(rc[:, 1] - bx[3]) < tol_c))
+                      and abs(Polygon(rc).area - box(*bx).area) < 0.002 * box(*bx).area),
+                 "Bogotá: el rectángulo dibujado es el que ciñe a las sedes")
+    else:
+        a.cierto(False, "Bogotá: el mapa trae los tres bordes", "falta `bordes` o alguno de los tres")
+    # Lo que la lectura del mapa dice de cada sede: en qué borde cae. Se
+    # rehace con shapely, punto a punto contra los dos polígonos, y no con las
+    # columnas `en_urbana`/`en_ventana_dc` del dato, que son lo que R leyó.
+    dentro_ = mbg.get("dentro")
+    if isinstance(dentro_, list) and len(dentro_) == len(cole):
+        from shapely import contains_xy as _cxy
+        xs_, ys_ = cole.geometry.x.to_numpy(), cole.geometry.y.to_numpy()
+        rehecho = _cxy(ur_u, xs_, ys_).astype(int) + _cxy(dc_u, xs_, ys_).astype(int)
+        malas = int(np.sum(rehecho != np.asarray(dentro_)))
+        a.cierto(malas == 0, "Bogotá: el borde en que cae cada sede, según la lectura del mapa",
+                 f"{malas} de {len(cole)} sedes cambian de borde")
+    else:
+        a.cierto(False, "Bogotá: el mapa trae el borde de cada sede", "falta `dentro` o no tiene una entrada por sede")
+    ppp_ = pd.read_csv(SALIDAS / "cap1_ppp.csv")
+    pin_ = ppp_[ppp_.patron == "japanesepines"]
+    a_pin = float((pin_.x.max() - pin_.x.min()) * (pin_.y.max() - pin_.y.min()))
+    pjc = D["puntual_canonico"]["japanesepines"]
+    a.igual(a_pin, pjc.get("area_caja"), "pinos: el área del rectángulo que ciñe a los puntos", 1e-9)
+    a.igual(len(pin_) / a_pin, pjc.get("lambda_caja"), "pinos: la intensidad con ese rectángulo", 1e-8)
 
     # --- IDEAM: el contorno, las franjas de altitud y los pliegues -----------
     mi_ = M["ideam"]

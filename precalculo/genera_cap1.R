@@ -497,6 +497,18 @@ D$puntual_canonico <- list(
                               "Crick y Ripley, vía spatstat.data")
 )
 
+# R2 · T2.3 · La ventana se puede mover sin mover un pino. El módulo 2 lo
+# dice y el mapa lo deja provocar: la misma nube con su ventana —el cuadrado
+# de lado 1 que viene con el dato— y con el rectángulo que ciñe a los puntos.
+# Cambia el área y con ella la intensidad estimada; los 65 pinos, no.
+local({
+  p <- japanesepines
+  a_caja <- diff(range(p$x)) * diff(range(p$y))
+  stopifnot(a_caja < area.owin(p$window))
+  D$puntual_canonico$japanesepines$area_caja   <<- r10(a_caja)
+  D$puntual_canonico$japanesepines$lambda_caja <<- r10(npoints(p) / a_caja)
+})
+
 # Las anclas de la R corregida contra la implementación de referencia.
 # `clarkevans()` vive en spatstat.explore y devuelve TRES valores —naive,
 # Donnelly y cdf—; aquí se contrasta el segundo contra la fórmula escrita
@@ -618,6 +630,8 @@ a_urb <- area_km2(v_urb)
 n_urb <- sum(cole$en_urbana)
 
 muni_ok <- muni[!is.na(muni$desercion), ]
+# El área, en km², del rectángulo que ciñe a las sedes (R2 · T2.3).
+a_caja_cole <- local({ b <- as.numeric(st_bbox(cole)); (b[3] - b[1]) * (b[4] - b[2]) / 1e6 })
 
 D$colombia <- list(
   puntual = list(
@@ -634,7 +648,17 @@ D$colombia <- list(
     n_dc = as.integer(sum(cole$en_ventana_dc)),
     lambda_dc = r10(sum(cole$en_ventana_dc) / area_km2(v_dc)),
     factor_lambda = r10((n_urb / a_urb) /
-                        (sum(cole$en_ventana_dc) / area_km2(v_dc)))
+                        (sum(cole$en_ventana_dc) / area_km2(v_dc))),
+    # R2 · T2.3 · El tercer borde, el que NO vale: el rectángulo que ciñe a
+    # los puntos. Se sale del Distrito —la región donde el dato es
+    # exhaustivo—, así que su área entra en el denominador sin que nadie haya
+    # buscado sedes en lo que sobra. Se publica para que el mapa lo enseñe
+    # junto a las dos ventanas válidas.
+    area_caja_km2 = r10(a_caja_cole),
+    lambda_caja = r10(nrow(cole) / a_caja_cole),
+    # la parte de ese rectángulo que queda fuera del Distrito
+    pct_caja_fuera_dc = r10(100 * (1 - as.numeric(st_area(st_intersection(
+      st_as_sfc(st_bbox(cole)), st_union(st_geometry(v_dc))))) / 1e6 / a_caja_cole))
   ),
   area = list(
     nombre = "Deserción escolar municipal",
@@ -3224,7 +3248,52 @@ stopifnot(MAPAS$agregacion$zoom$columnas * MAPAS$agregacion$zoom$filas == length
 # costaría 4,4 KB del presupuesto sin decir nada todavía.
 MAPAS$bogota <- geo_puntos(
   st_coordinates(cole),
+  # La caja del mapa es la del Distrito y los puntos juntos: los bordes que
+  # se dibujan encima tienen que caber (R2 · T2.3).
+  caja = as.numeric(st_bbox(c(st_geometry(v_dc), st_as_sfc(st_bbox(cole))))),
   titulo = "Sedes educativas de Bogotá", leyenda = "sede")
+# R2 · T2.3 (G-03). La prosa pide mirar el borde y el mapa no dibujaba
+# ninguno. Van los tres de los que habla: el perímetro urbano y el Distrito
+# Capital, simplificados, y el rectángulo de los puntos. Cada uno es una
+# lista de anillos cuantizados contra la caja del mapa; el navegador enseña
+# uno u otro con un control y escribe la intensidad que R calculó con él.
+stopifnot(st_crs(v_urb) == st_crs(cole), st_crs(v_dc) == st_crs(cole))
+anillos_de <- function(x, presupuesto) {
+  g <- geo_simplifica(st_sf(geom = st_cast(st_union(st_geometry(x)), "POLYGON")),
+                      presupuesto = presupuesto, verbose = FALSE)
+  unlist(lapply(st_geometry(g), function(pp) {
+    partes <- if (inherits(pp, "MULTIPOLYGON")) lapply(pp, function(u) u[[1]]) else list(pp[[1]])
+    lapply(partes, function(m) {
+      qq <- geo_qxy(m[, 1], m[, 2], MAPAS$bogota$caja)
+      as.integer(rbind(qq$x, qq$y))
+    })
+  }), recursive = FALSE)
+}
+bb_cole <- as.numeric(st_bbox(cole))
+MAPAS$bogota$bordes <- list(
+  urbano   = anillos_de(v_urb, 220L),
+  distrito = anillos_de(v_dc, 160L),
+  caja     = list(local({
+    qq <- geo_qxy(bb_cole[c(1, 3, 3, 1, 1)], bb_cole[c(2, 2, 4, 4, 2)], MAPAS$bogota$caja)
+    as.integer(rbind(qq$x, qq$y))
+  })))
+# Lo que la prosa afirma de los tres: el perímetro cae dentro del Distrito,
+# y el rectángulo de los puntos se sale de él.
+stopifnot(as.numeric(st_area(st_difference(st_union(st_geometry(v_urb)), st_union(st_geometry(v_dc))))) <
+            1e-6 * as.numeric(st_area(v_urb)),
+          D$colombia$puntual$pct_caja_fuera_dc > 5,
+          D$colombia$puntual$lambda_urbana > D$colombia$puntual$lambda_dc)
+# Y en qué borde cae cada sede, en el orden de `pts`, para que la lectura del
+# mapa diga si entra en la cuenta de la ventana puesta (R2 · T2.3): 2, dentro
+# del perímetro urbano —y por tanto del Distrito—; 1, en el Distrito y fuera
+# del perímetro; 0, fuera del Distrito. Es la pertenencia que ya trae el dato
+# (`en_urbana`, `en_ventana_dc`), la misma que cuentan `n_urbana` y `n_dc`.
+# Arriba se decía que una marca por sede costaría 4,4 KB sin decir nada; con
+# el conmutador de ventanas dice algo: qué sedes cuenta cada una.
+stopifnot(all(cole$en_urbana <= cole$en_ventana_dc))
+MAPAS$bogota$dentro <- as.integer(cole$en_urbana) + as.integer(cole$en_ventana_dc)
+stopifnot(sum(MAPAS$bogota$dentro == 2L) == D$colombia$puntual$n_urbana,
+          sum(MAPAS$bogota$dentro >= 1L) == D$colombia$puntual$n_dc)
 # El Distrito Capital viene en inglés en la capa de departamentos («Bogota
 # Capital District»), y la tabla de respaldo de este mapa lo publicaba así.
 # Se nombra en español aquí, en el mapa; el CSV de las pestañas no se toca.
@@ -3418,7 +3487,16 @@ D$visto <- list(
                    t_media = r10(mean(t_ideam[fr == f]))))
                })),
   bogota = list(franja = I(c("norte", "centro", "sur")),
-                n = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f), 0L))))
+                n = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f), 0L)),
+                # R2 · T2.3 (ronda 2). Lo que la descripción dice de los tercios,
+                # contado: cuántas sedes de cada uno caen en el perímetro urbano y
+                # cuántas fuera del Distrito; y a cuántos metros al norte del corte
+                # entre el tercio norte y el del medio acaba el perímetro urbano
+                # (positivo: el perímetro cabe entero en el tercio norte).
+                urbana = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f & cole$en_urbana), 0L)),
+                fuera_dc = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f & !cole$en_ventana_dc), 0L)),
+                margen_urbano_m = r10(st_bbox(v_urb)[["ymin"]] -
+                  (MAPAS$bogota$caja[2] + 2 / 3 * (MAPAS$bogota$caja[4] - MAPAS$bogota$caja[2])))))
 message(sprintf("  deserción: de %s (%s) a %s (%s) · NC alta: %s · IDEAM frías: %s · Bogotá: %s",
                 nombre_dep(dep_ok$shapeName[o_dep[1]]), z_dep[o_dep[1]],
                 nombre_dep(dep_ok$shapeName[rev(o_dep)[1]]), z_dep[rev(o_dep)[1]],

@@ -294,6 +294,15 @@ PROHIBIDAS = [
     #   · «la media está cada vez peor estimada» es CIERTO en precisión, así
     #     que no puede ser un distractor, y «sigue bien estimada» confunde
     #     insesgadez con precisión.
+    # --- R2 · T2.3 (ronda 2): la respuesta de los puntuales decía que la
+    # ventana «se fija antes de mirar, y por eso» cambiarla cambia λ̂. Lo
+    # segundo no se sigue de lo primero: λ̂ cambia porque es n/|W|. Y el
+    # rectángulo que ciñe a los puntos se rotulaba «ventana», cuando lo eligen
+    # los datos.
+    ("no atribuye el cambio de λ̂ a que la ventana se fije antes de mirar (módulo 2)", "todo",
+     r"se fija antes de mirar, y por eso"),
+    ("no rotula como ventana el rectángulo que ciñe a los puntos (módulo 2)", "todo",
+     r"'ventana: ' \+ pinos1_nombre\[pinosventana\]|<span>ventana: el rectángulo"),
     ("no llama «recorte» al perímetro urbano (módulo 2)", "todo",
      r"no es una ventana sino un recorte|la otra la de un recorte"),
     ("no dice que el browniano no tiene varianza finita (módulo 6)", "todo",
@@ -489,7 +498,11 @@ def main() -> int:
         var_entorno="CAP1_HTML",
         jsons=["cap1_datos.json", "cap1_soluciones.json"],
         estructurales=ESTRUCTURALES,
-        presupuesto_geomapa_kb=120.0,
+        # 135 KB desde R2 · T2.3, el mismo tope y por la misma cuenta que
+        # `PRESUPUESTO_GEO_KB` del ensamblador: los tres bordes de Bogotá y el
+        # borde de cada sede dejan la geometría incrustada en 127.7 KB, medida
+        # aquí registro a registro.
+        presupuesto_geomapa_kb=135.0,
         # Los cortes de clase que el HTML incrusta salen de AQUÍ, no del
         # JSON de cifras. Va por su propio parámetro para que sus decenas de
         # miles de coordenadas no entren en el índice de la prosa.
