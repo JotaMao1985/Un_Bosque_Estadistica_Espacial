@@ -2345,7 +2345,20 @@
           "pct": 2.1629268293,
           "zona": "centro"
         }
-      ]
+      ],
+      "clase_alta": {
+        "n": 7,
+        "zonas": {
+          "zona": ["centro", "sur", "norte", "oriente"],
+          "n": [3, 2, 1, 1]
+        }
+      }
+    },
+    "meuse": {
+      "top_n": 15,
+      "top_noroeste": 14,
+      "lado": "noroeste",
+      "diagonal": true
     },
     "nc": {
       "clase_alta_n": 20,
@@ -2363,6 +2376,8 @@
         "zona": ["norte", "centro", "oriente"],
         "n": [23, 15, 1]
       },
+      "n_frias": 37,
+      "n_calidas": 39,
       "por_altitud": [
         {
           "desde": 0,

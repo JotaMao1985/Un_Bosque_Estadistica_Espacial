@@ -1126,6 +1126,16 @@ seccion('T2.3', () => {
   ctx = lienzoFalso(600, 600);
   pide(geomapaUnidadEn(ctx, pol, identidad, 1010, 1000.5, 20) === 1, 'T2.3: una unidad diminuta no se puede tocar');
   pide(geomapaUnidadEn(ctx, pol, identidad, 1100, 1100, 20) === -1, 'T2.3: se lee una unidad lejos del alcance del dedo');
+  // El alcance se mide hasta el SEGMENTO, no hasta un vértice: una franja larga y fina se toca por el medio.
+  // (11.2 de largo cabe en lo diminuto con alcance 20; a 19.6 del borde, los vértices quedan a 20.4.)
+  const franja = { modo: 'poligonos', caja: [0, 0, 1, 1], q, geom: [[[0, 1000, 11.2, 1000, 11.2, 1001, 0, 1001]]] };
+  ctx = lienzoFalso(600, 600);
+  pide(geomapaUnidadEn(ctx, franja, identidad, 5.6, 1020.6, 20) === 0,
+       'T2.3: el alcance se mide hasta un vértice y no hasta el borde más cercano');
+  // Y solo vale para las diminutas: junto a una unidad grande, fuera de ella, no se lee nada.
+  ctx = lienzoFalso(600, 600);
+  pide(geomapaUnidadEn(ctx, pol, identidad, 105, 50, 20) === -1,
+       'T2.3: señalar fuera de una unidad grande, junto a su borde, la lee (el mar junto a la costa)');
   // `controla`: el elemento que enseña el interruptor va debajo de su botonera, con aria-controls y aria-expanded.
   const respuesta = { id: 'resp-prueba', hidden: true };
   const getId0 = document.getElementById;
@@ -1142,6 +1152,16 @@ seccion('T2.3', () => {
     pide(respuesta.hidden === false && lee(m, 'botones.0.0.atributos.aria-expanded') === 'true',
          'T2.3: al pulsar, el interruptor no abre lo que controla o no lo dice');
   }
+  // Si la misma raíz se vuelve a iniciar, lo que se movió dentro se saca antes de reescribirla.
+  const sacados = [];
+  m.raiz.contains = el => el === respuesta;
+  m.raiz.after = el => { sacados.push(el); };
+  mainContent.lista = [m.raiz];
+  document.getElementById = id => id === 'resp-prueba' ? respuesta : null;
+  iniciarGeomapas();
+  document.getElementById = getId0;
+  mainContent.lista = [];
+  pide(sacados.includes(respuesta), 'T2.3: al volver a iniciar el mapa, la respuesta que controla se destruye con la raíz');
 });
 
 // =========================== R-B · la tabla ordenable ===========================
@@ -1197,6 +1217,11 @@ def css_ok(texto: str) -> list[str]:
         return ["R-F: la hoja no fija un suelo en px para la letra de `.geomapa-clave`"]
     if float(c.group(1)) < 11:
         return [f"R-F: la clave de los rótulos puede bajar a {c.group(1)} px, menos que el suelo de 11"]
+    # T2.3 (ronda 3): la lectura de un mapa no se justifica. `html p` justifica,
+    # y una línea corta justificada abre huecos de varias letras a 375 px.
+    lec = re.search(r"\.geomapa-lectura \{([^}]*)\}", texto)
+    if not lec or not re.search(r"text-align:\s*left", lec.group(1)):
+        return ["T2.3: la lectura del mapa hereda el `text-align: justify` de los párrafos"]
     return []
 
 
@@ -1588,12 +1613,20 @@ INYECCIONES = [
     ('el contorno del polígono señalado no se pinta',
      "          ctx.lineWidth = 4.5 * dpr; ctx.strokeStyle = '#ffffff'; ctx.stroke(camino);\n          ctx.lineWidth = 2 * dpr; ctx.strokeStyle = geomapaTinta('#012820'); ctx.stroke(camino);",
      '          void camino;', "T2.3"),
+    ('la lectura vuelve a justificarse',
+     '         varias letras a 375 px. */\n      text-align: left;', '         varias letras a 375 px. */', "T2.3"),
+    ('el alcance se mide hasta el primer vértice',
+     'const t = L ? Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / L)) : 0;', 'const t = 0;', "T2.3"),
+    ('el alcance vale para cualquier unidad',
+     '          if (Math.max(x1 - x0, y1 - y0) >= diminuta) continue;\n', '', "T2.3"),
+    ('un segundo inicio destruye lo que controla un mando',
+     "(raiz.__movidos || []).forEach(el => { if (raiz.contains(el) && raiz.after) raiz.after(el); });", '', "T2.3"),
     ('una isla diminuta no se puede tocar',
      'let cerca = -1, dCerca = alcance;', 'let cerca = -1, dCerca = 0;', "T2.3"),
     ('Escape sin nada señalado se lo queda el mapa',
      'if (i === undefined || (i === -1 && senalada < 0)) return;', 'if (i === undefined) return;', "T2.3"),
     ('lo que controla un interruptor se queda lejos de él',
-     'if (el && caja && caja.after) caja.after(el);', '', "T2.3"),
+     'if (el && caja && caja.after) { caja.after(el); raiz.__movidos.push(el); }', 'if (el && caja && caja.after) { raiz.__movidos.push(el); }', "T2.3"),
     ('el interruptor no dice qué controla',
      "${g.controla ? ` aria-controls=\"${escAttr(g.controla)}\"` : ''}", '', "T2.3"),
     ('el interruptor que enseña algo usa aria-pressed',

@@ -3469,12 +3469,33 @@ xy_cole <- st_coordinates(cole)
 fr_cole <- c("sur", "centro", "norte")[findInterval((xy_cole[, 2] - MAPAS$bogota$caja[2]) /
                                                      (MAPAS$bogota$caja[4] - MAPAS$bogota$caja[2]),
                                                      c(1, 2) / 3) + 1]
+# R2 · T2.3 (ronda 3). Lo que las etiquetas y descripciones dicen de la
+# forma, contado aquí para que la frase lo pueda leer:
+#   · la clase más oscura de la deserción, por zona (no solo los 3 mayores);
+#   · cuántas estaciones son «las más frías» y «las más cálidas»;
+#   · de qué lado del eje principal de la nube de meuse caen los puntos del
+#     décimo con más zinc (el normal se orienta hacia el noroeste).
+alta_dep <- MAPAS$desercion$clase == max(MAPAS$desercion$clase)
+lado_zinc <- local({
+  xy <- as.matrix(meuse[, c("x", "y")]); z <- meuse$zinc
+  m <- colMeans(xy); d <- sweep(xy, 2, m)
+  ang <- 0.5 * atan2(2 * sum(d[, 1] * d[, 2]), sum(d[, 1]^2) - sum(d[, 2]^2))
+  nv <- c(-sin(ang), cos(ang)); if (nv[1] > 0 || nv[2] < 0) nv <- -nv
+  top <- order(-z)[seq_len(max(1, length(z) %/% 10))]
+  nw <- sum((d[top, ] %*% nv) > 0)
+  list(top_n = length(top), top_noroeste = as.integer(nw),
+       lado = if (2 * nw > length(top)) "noroeste" else "sureste",
+       diagonal = sum(d[, 1] * d[, 2]) > 0)
+})
 D$visto <- list(
-  desercion = list(mayores = extremo(o_dep[1:3]), menores = extremo(rev(o_dep)[1:3])),
+  desercion = list(mayores = extremo(o_dep[1:3]), menores = extremo(rev(o_dep)[1:3]),
+                   clase_alta = c(list(n = sum(alta_dep)), list(zonas = tabla_zonas(z_dep[alta_dep])))),
+  meuse = lado_zinc,
   nc = c(list(clase_alta_n = sum(alta_nc)), tabla_zonas(z_nc[alta_nc])),
   ideam = list(frias_umbral = r10(q_ideam[1]), calidas_umbral = r10(q_ideam[2]),
                frias = tabla_zonas(z_ideam[t_ideam <= q_ideam[1]]),
                calidas = tabla_zonas(z_ideam[t_ideam >= q_ideam[2]]),
+               n_frias = sum(t_ideam <= q_ideam[1]), n_calidas = sum(t_ideam >= q_ideam[2]),
                # R2 · T2.2 (G-24): la tabla de respaldo del mapa. Las
                # estaciones por franja de altitud de 500 m, [desde, hasta),
                # con cuántas hay y su temperatura media.

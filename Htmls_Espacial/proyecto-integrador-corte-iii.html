@@ -9554,11 +9554,19 @@ table(unidades$lisa)   # con nc, ninguna unidad pasa la corrección: también es
             if (ctx.isPointInPath(geomapaTrazo(ctx, aj, geom[k][j]), x, y)) return k;
           }
         }
-        // Sin acierto por dentro, la unidad cuyo borde pasa más cerca, a menos
-        // de `alcance`: una isla de menos de un píxel (San Andrés a 375 px) no
-        // se puede acertar por dentro con el dedo.
+        // Sin acierto por dentro, la unidad DIMINUTA cuyo borde pasa más cerca,
+        // a menos de `alcance`: una isla de menos de un píxel (San Andrés a
+        // 375 px) no se puede acertar por dentro con el dedo. Solo las
+        // diminutas —la caja de menos de 4/7 del alcance, 8 px de pantalla con
+        // el de 14—: con todas, señalar el mar junto a la costa leía un condado.
         let cerca = -1, dCerca = alcance;
+        const diminuta = alcance * 4 / 7;
         for (let k = geom.length - 1; k >= 0; k--) {
+          let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+          geom[k].forEach(parte => { for (let i = 0; i + 1 < parte.length; i += 2) {
+            const px = aj.x(parte[i]), py = aj.y(parte[i + 1]);
+            if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; } });
+          if (Math.max(x1 - x0, y1 - y0) >= diminuta) continue;
           geom[k].forEach(parte => {
             for (let i = 0; i + 1 < parte.length; i += 2) {
               const j = (i + 2) % parte.length;
@@ -10003,6 +10011,11 @@ table(unidades$lisa)   # con nc, ninguna unidad pasa la corrección: también es
         // La indicación, en la voz impersonal del material, y con los dos
         // caminos: quien no usa ratón tiene que saber que el teclado vale.
         const pista = 'Para leer una unidad: señalarla con el cursor o el dedo, o llevar el foco al mapa con el tabulador y recorrerlo con las flechas.';
+        // Lo que un mando `controla` se movió DENTRO de la raíz la vez anterior:
+        // antes de reescribirla se saca, o el innerHTML lo destruiría y su
+        // botón quedaría controlando un id que ya no existe.
+        (raiz.__movidos || []).forEach(el => { if (raiz.contains(el) && raiz.after) raiz.after(el); });
+        raiz.__movidos = [];
         raiz.innerHTML = `
           ${tit0 ? `<p class="geomapa-titulo">${tit0}</p>` : ''}
           ${htmlMandos}
@@ -10021,7 +10034,8 @@ table(unidades$lisa)   # con nc, ninguna unidad pasa la corrección: también es
           if (!g.controla || typeof document === 'undefined' || !document.getElementById) return;
           const el = document.getElementById(g.controla);
           const caja = raiz.querySelector(`.geomapa-controles[data-grupo="${k}"]`);
-          if (el && caja && caja.after) caja.after(el);
+          if (el && caja && caja.after) { caja.after(el); raiz.__movidos.push(el); }
+          else if (!el) console.warn(`Geomapa ${raiz.dataset.geomapa}: el mando controla «${g.controla}», que no está en la página`);
         });
         const descOculta = raiz.querySelector('.geomapa-descripcion-oculta');
         const descVisible = raiz.querySelector('.geomapa-descripcion');

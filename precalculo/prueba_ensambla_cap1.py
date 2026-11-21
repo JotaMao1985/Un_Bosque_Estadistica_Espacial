@@ -973,6 +973,50 @@ def defectos() -> list[tuple[str, str, str, object]]:
         "' en la cuenta ' + DE1(BOGOTA1_NOMBRE[bogotaVentana])", "' en la cuenta de ' + BOGOTA1_NOMBRE[bogotaVentana]")
     txt("T2.3b: los siete mapas vuelven a la etiqueta del motor", "ensamblador",
         "Object.keys(ETIQUETA1).forEach(k => { GEOMAPAS[k].etiqueta = ETIQUETA1[k]; });", "")
+    # --- R2 · T2.3, ronda 3: las guardas de guardas_de_lecturas, todas en el
+    # inventario, y las frases de forma contra su cifra de R (M–X del verificador).
+    txt("T2.3c: el documento ya no se ejecuta entero (un error al cargar)", "ensamblador",
+        "    let bogotaVentana = 'urbano';\n", "    let bogotaVentana = 'urbano'; null.x;\n")
+    txt("T2.3c: Node devuelve algo que no es JSON", "ensamblador",
+        'res = json.loads(r.stdout or "{}")', 'res = json.loads("{")')
+    txt("T2.3c: Node no devuelve las lecturas", "ensamblador",
+        "out: typeof out === 'string' ? JSON.parse(out) : {} }", "out: {} }")
+    txt("T2.3c: la lectura se deja la última unidad de cada mapa", "ensamblador",
+        "for (let i = 0; i < geomapaNumUnidades(d); i++) L.push(", "for (let i = 0; i < geomapaNumUnidades(d) - 1; i++) L.push(")
+    txt("T2.3c: el borde puesto que sí es ventana deja de rotularse así", "ensamblador",
+        "noValido ? 'borde puesto, que no es una ventana: ' : 'ventana: ';",
+        "noValido ? 'borde puesto, que no es una ventana: ' : 'borde: ';")
+    txt("T2.3c: la temperatura de la lectura con dos decimales", "ensamblador",
+        "${n5(d.marcas[i], 1)} °C de temperatura media anual", "${n5(d.marcas[i], 2)} °C de temperatura media anual")
+    txt("T2.3c: la etiqueta de Carolina del Norte arrastra la leyenda", "ensamblador",
+        '"cap1-nc": f"Tasa de muerte súbita infantil en los', '"cap1-nc": f"por 1 000 nacimientos. Tasa de muerte súbita infantil en los')
+    txt("T2.3c: la deserción alta, en el norte y el occidente (etiqueta y descripción)", "ensamblador",
+        '"cap1-desercion": "valores más altos están en el sur y el oriente del país",',
+        '"cap1-desercion": "valores más altos están en el norte y el occidente del país",',
+        'f"Los tres valores más altos están en el sur y el oriente del país: "',
+        'f"Los tres valores más altos están en el norte y el occidente del país: "')
+    txt("T2.3c: la clase más oscura en otro número de zonas", "ensamblador",
+        "f\"departamentos de {ent(len(_ZD['zona']))} zonas del dibujo.\",",
+        "f\"departamentos de {ent(len(_ZD['zona']) + 1)} zonas del dibujo.\",")
+    txt("T2.3c: el IDEAM dice «las más cálidas»", "ensamblador",
+        "las {ent(_GEO['n'])} estaciones del IDEAM: las más frías,", "las {ent(_GEO['n'])} estaciones del IDEAM: las más cálidas,")
+    txt("T2.3c: la respuesta de Bogotá: el rectángulo cabe en el Distrito", "ensamblador",
+        "y se sale del Distrito, así que su área cuenta suelo donde nadie buscó sedes",
+        "y cabe en el Distrito, así que su área no cuenta suelo de más")
+    txt("T2.3c: la respuesta de los pinos: λ̂ más bajo", "ensamblador",
+        "sale siempre más alto que con la ventana del dato", "sale siempre más bajo que con la ventana del dato")
+    txt("T2.3c: la pregunta deja de controlar su respuesta", "ensamblador",
+        "controla: 'aleatorio-' + ident,", "")
+    txt("T2.3c: la lectura de los pinos con x e y cambiadas", "ensamblador",
+        "en x = ${p[0].toFixed(3)}, y = ${p[1].toFixed(3)}", "en x = ${p[1].toFixed(3)}, y = ${p[0].toFixed(3)}")
+    txt("T2.3c: el zinc alto en el borde sureste", "ensamblador",
+        "alinean a lo largo del borde noroeste de la nube", "alinean a lo largo del borde sureste de la nube")
+    txt("T2.3c: las cálidas de la descripción se quedan sin su última zona", "ensamblador",
+        '+ lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_CA["zona"], _CA["n"])]) + ".")',
+        '+ lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_CA["zona"][:2], _CA["n"][:2])]) + ".")')
+    txt("T2.3c: los tercios dicen «todas dentro del Distrito» siempre", "ensamblador",
+        '    + ("todas dentro del Distrito." if _BG_FUERA_SUR == 0 else',
+        '    + ("todas dentro del Distrito." if True else')
     obj("T2.3b: el perímetro urbano baja del corte de los tercios", "datos",
         lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -3.0))
     obj("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "datos",
@@ -993,6 +1037,23 @@ def defectos() -> list[tuple[str, str, str, object]]:
             ("T2.3b: la respuesta de los pinos deja de decir por qué el rectángulo no vale", "no dice por qué el rectángulo"),
             ("T2.3b: la lectura de Bogotá vuelve a escribir «de el»", "«de el»"),
             ("T2.3b: los siete mapas vuelven a la etiqueta del motor", "la etiqueta accesible no es"),
+            ("T2.3c: el documento ya no se ejecuta entero (un error al cargar)", "no se ejecuta entero en Node"),
+            ("T2.3c: Node devuelve algo que no es JSON", "no se pudo ejecutar el documento en Node"),
+            ("T2.3c: Node no devuelve las lecturas", "Node no devolvió las lecturas"),
+            ("T2.3c: la lectura se deja la última unidad de cada mapa", "la lectura no cubre"),
+            ("T2.3c: el borde puesto que sí es ventana deja de rotularse así", "el borde puesto no se rotula como ventana"),
+            ("T2.3c: la temperatura de la lectura con dos decimales", "no dan la temperatura de su estación"),
+            ("T2.3c: la etiqueta de Carolina del Norte arrastra la leyenda", "arrastra la palabra de la leyenda"),
+            ("T2.3c: la deserción alta, en el norte y el occidente (etiqueta y descripción)", "sitúa los valores más altos"),
+            ("T2.3c: la clase más oscura en otro número de zonas", "el reparto de la clase más oscura"),
+            ("T2.3c: el IDEAM dice «las más cálidas»", "las estaciones extremas"),
+            ("T2.3c: la respuesta de Bogotá: el rectángulo cabe en el Distrito", "la respuesta no dice que el rectángulo se sale"),
+            ("T2.3c: la respuesta de los pinos: λ̂ más bajo", "da un λ̂ más alto"),
+            ("T2.3c: la pregunta deja de controlar su respuesta", "no controla su respuesta"),
+            ("T2.3c: la lectura de los pinos con x e y cambiadas", "no dan las coordenadas de su pino"),
+            ("T2.3c: el zinc alto en el borde sureste", "pone el zinc alto en el borde"),
+            ("T2.3c: los tercios dicen «todas dentro del Distrito» siempre", "la descripción de los tercios"),
+            ("T2.3c: las cálidas de la descripción se quedan sin su última zona", "no reparte las más cálidas"),
             ("T2.3b: el perímetro urbano baja del corte de los tercios", "ya no cabe en el tercio norte"),
             ("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "no cuadran con las del dato"),
             ("T2.3: el mapa de Bogotá pierde un borde", "no trae los tres bordes"),

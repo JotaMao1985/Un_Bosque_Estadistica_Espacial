@@ -3702,9 +3702,17 @@ DESC_NC = (
     + lista_y([f"{nom} ({n(v, 2)})" for v, nom in _nc_top[:2]]) + ".")
 _DS = _VI["desercion"]
 _corto = lambda d: "el archipiélago de San Andrés" if d.startswith("Archipiélago") else d
+# R2 · T2.3 (ronda 3): «lo más oscuro está en el sur y el oriente» era falso
+# para la clase más oscura, que tiene departamentos del centro y del norte.
+# Lo que sí está en el sur y el oriente son los tres valores más altos. La
+# clase más oscura se cuenta por zona, con la tabla que publica R.
+_ZD = _DS["clase_alta"]["zonas"]
 DESC_DESERCION = (
-    f"Lo más oscuro está en el sur y el oriente del país: "
+    f"Los tres valores más altos están en el sur y el oriente del país: "
     + lista_y([f"{_corto(f['departamento'])} ({n(f['pct'], 2)} %)" for f in _DS["mayores"]])
+    + f". La clase más oscura, de {n(M['desercion']['cortes'][-2], 2)} a {n(M['desercion']['cortes'][-1], 2)} %, "
+    f"reúne {ent(_DS['clase_alta']['n'])} departamentos repartidos por el país: "
+    + lista_y([f"{ent(k)} en el {z}" for z, k in zip(_ZD["zona"], _ZD["n"])])
     + ". Lo más claro, en "
     + lista_y([f"{_corto(f['departamento'])} ({n(f['pct'], 2)} %)" for f in _DS["menores"]]) + ".")
 _GC = D["geo_canonico"]
@@ -3721,11 +3729,13 @@ DESC_IDEAM = (
     f"Las {ent(_GEO['n'])} estaciones, con el contorno del país de fondo, coloreadas por su temperatura "
     f"media. Las del archipiélago de San Andrés, arriba a la izquierda, se ven sobre el mar: a esta escala "
     f"las islas son más pequeñas que un punto. La temperatura va de "
-    f"{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo. Las más frías, de {n(_VI['ideam']['frias_umbral'], 1)} °C o menos, caen "
-    f"casi todas en el {_FR['zona'][0]} del dibujo ({ent(_FR['n'][0])}), donde están las más altas: la "
-    f"temperatura cambia {n(_GEO['gradiente'], 1)} °C por cada kilómetro de altura. Las más cálidas, de "
-    f"{n(_VI['ideam']['calidas_umbral'], 1)} °C o más, en el {_CA['zona'][0]} ({ent(_CA['n'][0])}) y en el "
-    f"{_CA['zona'][1]} ({ent(_CA['n'][1])}).")
+    f"{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo. Las "
+    f"{ent(_VI['ideam']['n_frias'])} más frías, de {n(_VI['ideam']['frias_umbral'], 1)} °C o menos, se concentran: "
+    f"{ent(_FR['n'][0])} de {ent(_VI['ideam']['n_frias'])}, en el {_FR['zona'][0]} del dibujo, donde están las más altas: la "
+    f"temperatura cambia {n(_GEO['gradiente'], 1)} °C por cada kilómetro de altura. Las "
+    f"{ent(_VI['ideam']['n_calidas'])} más cálidas, de "
+    f"{n(_VI['ideam']['calidas_umbral'], 1)} °C o más: "
+    + lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_CA["zona"], _CA["n"])]) + ".")
 
 
 # LA ETIQUETA ACCESIBLE DE LOS SIETE MAPAS QUE NO LA TENÍAN (R2 · T2.3, G-24).
@@ -3739,9 +3749,9 @@ PATRON1 = {
     "cap1-secuoyas": "se amontonan en grumos, con mucho vacío entre ellos",
     "cap1-celulas": "se reparten casi como una rejilla, sin parejas pegadas",
     "cap1-nc": f"salen repartidos por todo el estado, con más en el {_VNC1['zona'][0]} del dibujo",
-    "cap1-desercion": "en el sur y el oriente del país",
+    "cap1-desercion": "valores más altos están en el sur y el oriente del país",
     "cap1-meuse": "pegados a la orilla",
-    "cap1-ideam": f"casi todas en el {_FR['zona'][0]} del dibujo",
+    "cap1-ideam": f"{ent(_FR['n'][0])} de {ent(_VI['ideam']['n_frias'])}, en el {_FR['zona'][0]} del dibujo",
 }
 DESC_DE1 = {"cap1-pinos": DESC_PINOS, "cap1-secuoyas": DESC_SECUOYAS, "cap1-celulas": DESC_CELULAS,
             "cap1-nc": DESC_NC, "cap1-desercion": DESC_DESERCION, "cap1-meuse": DESC_MEUSE,
@@ -3756,8 +3766,9 @@ ETIQUETA1 = {
                f"{ent(len(_NC1['tam']))} clases por cuantiles: los de la clase más alta "
                f"{PATRON1['cap1-nc']}.",
     "cap1-desercion": f"Deserción escolar en los {ent(M['desercion']['n'])} departamentos de Colombia, en "
-                      f"{ent(len(M['desercion']['tam']))} clases por cuantiles: lo más alto está "
-                      f"{PATRON1['cap1-desercion']}.",
+                      f"{ent(len(M['desercion']['tam']))} clases por cuantiles: los tres "
+                      f"{PATRON1['cap1-desercion']}, y la clase más alta reúne {ent(_DS['clase_alta']['n'])} "
+                      f"departamentos de {ent(len(_ZD['zona']))} zonas del dibujo.",
     "cap1-meuse": f"Zinc en los {ent(_GC['n'])} puntos de muestreo de la vega del Mosa: los más altos se "
                   f"alinean a lo largo del borde noroeste de la nube, {PATRON1['cap1-meuse']} del río, y el zinc "
                   f"baja al alejarse de ella.",
@@ -3875,7 +3886,7 @@ def guardas_de_las_descripciones() -> list[str]:
     exige(_VNC1["clase_alta_n"] == _NC1["tam"][-1] and len(_VNC1["zona"]) >= 5 and _VNC1["n"][0] > _VNC1["n"][1],
           "Carolina del Norte: «repartidos por todo el estado, con más en una zona» ya no vale")
     exige(all(f["zona"] in ("sur", "oriente", "suroriente") for f in _DS["mayores"]),
-          "deserción: «lo más oscuro en el sur y el oriente» ya no vale")
+          "deserción: «los tres valores más altos, en el sur y el oriente» ya no vale")
     exige(_GC["corr_dist_rio"] < -0.5, "zinc: «se pegan al río» y la correlación con la distancia no es negativa y fuerte")
     # «A lo largo de su borde noroeste»: con los puntos y el zinc del mapa
     # PUBLICADO, el eje principal de la nube y, de los 16 con más zinc (el
@@ -4005,6 +4016,9 @@ try {
     ['dato', 'caja'].forEach(v => { o.pinos[v] = estado('cap1-pinos-ventana', v); });
     ['cap1-nc', 'cap1-desercion', 'cap1-meuse', 'cap1-ideam', 'cap1-snow'].forEach(k => { o.lect[k] = todas(G[k]); });
     Object.keys(G).forEach(k => { o.alt[k] = String(geomapaAlt(f(G[k]), G[k])); });
+    o.controla = {};
+    ['pinos-ventana', 'bogota', 'nc', 'desercion', 'meuse', 'ideam'].forEach(k => {
+      o.controla[k] = (G['cap1-' + k].controles || []).map(g => g.controla || null); });
     return JSON.stringify(o); })()`, ctx);
 } catch (e) { errores.push('al pedir las lecturas: ' + String(e).slice(0, 300)); }
 process.stdout.write(JSON.stringify({ errores, out: typeof out === 'string' ? JSON.parse(out) : {} }));
@@ -4014,11 +4028,9 @@ process.stdout.write(JSON.stringify({ errores, out: typeof out === 'string' ? JS
 def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     """Lo que escriben las lecturas, los títulos y las respuestas del módulo 2, contra el JSON."""
     import shutil, subprocess, tempfile
-    malos = []
-
-    def exige(cond, que):
-        if not cond:
-            malos.append(que)
+    # `problemas.append` y no un `exige` de closure: así cada guarda entra en el
+    # inventario de prueba_ensambla_cap1.py y se ve disparar por su línea.
+    problemas = []
 
     node = shutil.which("node") or "/opt/homebrew/bin/node"
     with tempfile.TemporaryDirectory() as tmp:
@@ -4030,11 +4042,14 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
             r = subprocess.run([node, str(guion), str(html)], capture_output=True, text=True, timeout=120)
             res = json.loads(r.stdout or "{}")
         except Exception as e:  # sin Node no hay guarda, y eso para el ensamblado
-            return [f"lecturas: no se pudo ejecutar el documento en Node ({e})"]
-    exige(not res.get("errores"), f"lecturas: el documento no se ejecuta entero en Node: {res.get('errores')}")
+            problemas.append(f"lecturas: no se pudo ejecutar el documento en Node ({e})")
+            return problemas
+    if not (not res.get("errores")):
+        problemas.append(f"lecturas: el documento no se ejecuta entero en Node: {res.get('errores')}")
     o = res.get("out") or {}
     if not o:
-        return malos + ["lecturas: Node no devolvió las lecturas"]
+        problemas.append("lecturas: Node no devolvió las lecturas")
+        return problemas
 
     def miles(x):
         return f"{int(x):,}".replace(",", " ")
@@ -4051,7 +4066,8 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     for v in ("urbano", "distrito", "caja"):
         e = o["bogota"].get(v, {})
         lect = e.get("lecturas", [])
-        exige(len(lect) == mb["n"], f"Bogotá ({v}): la lectura no cubre las {mb['n']} sedes")
+        if not (len(lect) == mb["n"]):
+            problemas.append(f"Bogotá ({v}): la lectura no cubre las {mb['n']} sedes")
         mal = []
         for i, t in enumerate(lect):
             k = mb["dentro"][i]
@@ -4060,33 +4076,36 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
                      ("Entra" if cuenta_de[v](k) else "No entra") + f" en la cuenta {nombre_de[v]}.")
             if t != pide:
                 mal.append((i, t))
-        exige(not mal, f"Bogotá ({v}): {len(mal)} lecturas no dicen el borde o la cuenta del dato, p. ej. {mal[:1]}")
+        if not (not mal):
+            problemas.append(f"Bogotá ({v}): {len(mal)} lecturas no dicen el borde o la cuenta del dato, p. ej. {mal[:1]}")
         nv, av, lv = cifras[v]
-        exige(f"{miles(nv)} sedes en {av:.2f} km², {lv:.5f} por km²" in e.get("titulo", ""),
-              f"Bogotá ({v}): el título no da las sedes, el área y la intensidad de su ventana: «{e.get('titulo')}»")
+        if not (f"{miles(nv)} sedes en {av:.2f} km², {lv:.5f} por km²" in e.get("titulo", "")):
+            problemas.append(f"Bogotá ({v}): el título no da las sedes, el área y la intensidad de su ventana: «{e.get('titulo')}»")
         puesto = (e.get("capas") or [""])[-1]
         if v == "caja":
-            exige("No es una ventana válida" in e.get("titulo", "") and not puesto.startswith("ventana")
-                  and "<span>ventana: el rectángulo" not in e.get("leyenda", ""),
-                  "Bogotá: el rectángulo de las sedes se rotula como ventana, o el título no dice que no lo es")
+            if not ("No es una ventana válida" in e.get("titulo", "") and not puesto.startswith("ventana")
+                  and "<span>ventana: el rectángulo" not in e.get("leyenda", "")):
+                problemas.append("Bogotá: el rectángulo de las sedes se rotula como ventana, o el título no dice que no lo es")
         else:
-            exige(puesto.startswith("ventana: "), f"Bogotá ({v}): el borde puesto no se rotula como ventana")
+            if not (puesto.startswith("ventana: ")):
+                problemas.append(f"Bogotá ({v}): el borde puesto no se rotula como ventana")
 
     # --- Pinos: los dos bordes ---------------------------------------------
     pj = D["puntual_canonico"]["japanesepines"]
     cifra = lambda x, dec: str(int(x)) if float(x).is_integer() else f"{x:.{dec}f}"
     for v, (a_, l_) in (("dato", (pj["area"], pj["lambda"])), ("caja", (pj["area_caja"], pj["lambda_caja"]))):
         e = o["pinos"].get(v, {})
-        exige(f"en un área de {cifra(a_, 3)}, intensidad estimada {cifra(l_, 5)}" in e.get("titulo", ""),
-              f"pinos ({v}): el título no da el área y la intensidad de ese borde: «{e.get('titulo')}»")
+        if not (f"en un área de {cifra(a_, 3)}, intensidad estimada {cifra(l_, 5)}" in e.get("titulo", "")):
+            problemas.append(f"pinos ({v}): el título no da el área y la intensidad de ese borde: «{e.get('titulo')}»")
         puesto = (e.get("capas") or [""])[-1]
         if v == "caja":
-            exige("No es una ventana válida" in e.get("titulo", "") and not puesto.startswith("ventana")
+            if not ("No es una ventana válida" in e.get("titulo", "") and not puesto.startswith("ventana")
                   and "Ventana: el rectángulo" not in e.get("etiqueta", "")
-                  and "<span>ventana: el rectángulo" not in e.get("leyenda", ""),
-                  "pinos: el rectángulo de los puntos se rotula como ventana: la eligen los datos")
+                  and "<span>ventana: el rectángulo" not in e.get("leyenda", "")):
+                problemas.append("pinos: el rectángulo de los puntos se rotula como ventana: la eligen los datos")
         else:
-            exige(puesto.startswith("ventana: "), "pinos: la ventana del dato no se rotula como ventana")
+            if not (puesto.startswith("ventana: ")):
+                problemas.append("pinos: la ventana del dato no se rotula como ventana")
 
     # --- Los de área: valor y clase de cada unidad --------------------------
     for k_, clave in (("cap1-nc", "nc"), ("cap1-desercion", "desercion")):
@@ -4096,31 +4115,34 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
                if not t.startswith(f"{g['etiquetas'][i]}: {g['valor'][i]:.2f} ")
                or f"Clase {g['clase'][i]} de {nk}, de {g['cortes'][g['clase'][i] - 1]:.2f} a "
                   f"{g['cortes'][g['clase'][i]]:.2f}." not in t]
-        exige(len(lect) == g["n"] and not mal,
-              f"{k_}: {len(mal)} lecturas no dan el valor o la clase del dato, p. ej. {[lect[i] for i in mal[:1]]}")
+        if not (len(lect) == g["n"] and not mal):
+            problemas.append(f"{k_}: {len(mal)} lecturas no dan el valor o la clase del dato, p. ej. {[lect[i] for i in mal[:1]]}")
     gm, lect = M["meuse"], o["lect"].get("cap1-meuse", [])
     mal = [i for i, t in enumerate(lect)
            if not t.startswith(f"Punto de muestreo {i + 1} de {gm['n']}: {miles(round(gm['marcas'][i]))} ppm de zinc.")]
-    exige(len(lect) == gm["n"] and not mal, f"meuse: {len(mal)} lecturas no dan el zinc de su punto")
+    if not (len(lect) == gm["n"] and not mal):
+        problemas.append(f"meuse: {len(mal)} lecturas no dan el zinc de su punto")
     gi, lect = M["ideam"], o["lect"].get("cap1-ideam", [])
     mal = [i for i, t in enumerate(lect)
            if not t.startswith(f"Estación {i + 1} de {gi['n']}: {gi['marcas'][i]:.1f} °C")]
-    exige(len(lect) == gi["n"] and not mal, f"IDEAM: {len(mal)} lecturas no dan la temperatura de su estación")
+    if not (len(lect) == gi["n"] and not mal):
+        problemas.append(f"IDEAM: {len(mal)} lecturas no dan la temperatura de su estación")
     gs, lect = M["snow"], o["lect"].get("cap1-snow", [])
     mal = [i for i, t in enumerate(lect)
            if not t.endswith(f"su bomba más próxima es la de {gs['niveles'][gs['marcas'][i] - 1]}.")]
-    exige(len(lect) == gs["n"] and not mal, f"Snow: {len(mal)} lecturas no dan la bomba de su muerte")
-    exige(not any(" de el " in t for e in o["bogota"].values() for t in e.get("lecturas", [])),
-          "Bogotá: la lectura escribe «de el»")
+    if not (len(lect) == gs["n"] and not mal):
+        problemas.append(f"Snow: {len(mal)} lecturas no dan la bomba de su muerte")
+    if not (not any(" de el " in t for e in o["bogota"].values() for t in e.get("lecturas", []))):
+        problemas.append("Bogotá: la lectura escribe «de el»")
 
     # --- Las etiquetas accesibles: el patrón, no la palabra de la leyenda (G-24)
     for k_, etq in ETIQUETA1.items():
-        exige(PATRON1[k_] in DESC_DE1[k_] and PATRON1[k_] in etq and o["alt"].get(k_) == etq,
-              f"{k_}: la etiqueta accesible no es la que lleva el patrón de su descripción")
+        if not (PATRON1[k_] in DESC_DE1[k_] and PATRON1[k_] in etq and o["alt"].get(k_) == etq):
+            problemas.append(f"{k_}: la etiqueta accesible no es la que lleva el patrón de su descripción")
     ley = {k_: M[c].get("leyenda", "") for k_, c in (("cap1-nc", "nc"), ("cap1-desercion", "desercion"),
                                                       ("cap1-meuse", "meuse"), ("cap1-ideam", "ideam"))}
-    exige(not [k_ for k_, l_ in ley.items() if l_ and l_ in o["alt"].get(k_, "")],
-          "una etiqueta accesible arrastra la palabra de la leyenda")
+    if not (not [k_ for k_, l_ in ley.items() if l_ and l_ in o["alt"].get(k_, "")]):
+        problemas.append("una etiqueta accesible arrastra la palabra de la leyenda")
 
     # --- Las respuestas a «¿qué es aleatorio aquí?», por tipo ---------------
     import re as _re3
@@ -4129,17 +4151,88 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     tipo = {"pinos": "Lo aleatorio es dónde.", "bogota": "Lo aleatorio es dónde.",
             "nc": "Lo aleatorio es el valor de cada unidad.", "desercion": "Lo aleatorio es el valor de cada unidad.",
             "meuse": "Lo aleatorio es el campo entero.", "ideam": "Lo aleatorio es el campo entero."}
-    exige(all(resp.get(k_, "").startswith(f"<strong>{t}</strong>") for k_, t in tipo.items()),
-          "módulo 2: una respuesta a «¿qué es aleatorio aquí?» no es la de su tipo de dato")
-    exige("no es una ventana" in resp.get("pinos", "") and "no vale como ventana" in resp.get("bogota", "")
-          and not any("antes de mirar, y por eso" in t for t in resp.values()),
-          "módulo 2: la respuesta de los puntuales no dice por qué el rectángulo de los puntos no es una ventana, "
+    if not (all(resp.get(k_, "").startswith(f"<strong>{t}</strong>") for k_, t in tipo.items())):
+        problemas.append("módulo 2: una respuesta a «¿qué es aleatorio aquí?» no es la de su tipo de dato")
+    if not ("no es una ventana" in resp.get("pinos", "") and "no vale como ventana" in resp.get("bogota", "")
+          and not any("antes de mirar, y por eso" in t for t in resp.values())):
+        problemas.append("módulo 2: la respuesta de los puntuales no dice por qué el rectángulo de los puntos no es una ventana, "
           "o vuelve a atribuir el cambio de λ̂ a que la ventana se fije antes de mirar")
-    exige(f"el área pasa de {pj['area']} a {n(pj['area_caja'], 3)} y" in plano
-          and f"de {pj['lambda']} a {n(pj['lambda_caja'])}, sin que se mueva un pino" in plano,
-          "módulo 2: la prosa no da el área y la intensidad de los dos bordes de los pinos")
-    return malos
-
+    if not (f"el área pasa de {pj['area']} a {n(pj['area_caja'], 3)} y" in plano
+          and f"de {pj['lambda']} a {n(pj['lambda_caja'])}, sin que se mueva un pino" in plano):
+        problemas.append("módulo 2: la prosa no da el área y la intensidad de los dos bordes de los pinos")
+    # --- R2 · T2.3 (ronda 3) ----------------------------------------------
+    # Cada frase fija que describe una dirección, un sentido o una zona se
+    # LEE y se compara con la cifra de R que dice lo mismo; no con una copia
+    # de sí misma.
+    import re as _re4
+    _ZONAS = r"(nororiente|noroccidente|suroriente|suroccidente|norte|sur|oriente|occidente|centro)"
+    # Deserción: las zonas que nombra la frase de los tres mayores, contra las
+    # zonas de R; y el reparto de la clase más oscura, contra su tabla.
+    _ds = D["visto"]["desercion"]
+    _dichas = set(_re4.findall(r"\bel " + _ZONAS + r"\b", PATRON1["cap1-desercion"]))
+    if not (_dichas == {f_["zona"] for f_ in _ds["mayores"]} and PATRON1["cap1-desercion"] in DESC_DE1["cap1-desercion"]):
+        problemas.append(f"deserción: la frase sitúa los valores más altos en {sorted(_dichas)} y R, en "
+                         f"{sorted({f_['zona'] for f_ in _ds['mayores']})}")
+    _za = _ds["clase_alta"]["zonas"]
+    _rep = lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_za["zona"], _za["n"])])
+    if not (sum(_za["n"]) == _ds["clase_alta"]["n"] == M["desercion"]["tam"][-1]
+            and f"reúne {ent(_ds['clase_alta']['n'])} departamentos repartidos por el país: {_rep}." in DESC_DE1["cap1-desercion"]
+            and f"la clase más alta reúne {ent(_ds['clase_alta']['n'])} departamentos de {ent(len(_za['zona']))} zonas"
+                in ETIQUETA1["cap1-desercion"]):
+        problemas.append("deserción: el reparto de la clase más oscura por zonas no es el que cuenta R")
+    # IDEAM: «las más frías/cálidas, n de N, en el ZONA»: la palabra elige la
+    # tabla de R y la cifra y la zona tienen que ser las de esa tabla; «donde
+    # están las más altas» solo vale para las frías, con la correlación con la
+    # altitud negativa.
+    _vi = D["visto"]["ideam"]
+    _m = _re4.search(r"las más (frías|cálidas), (\d+) de (\d+), en el " + _ZONAS + r" del dibujo(, donde están las más altas)?",
+                     ETIQUETA1["cap1-ideam"])
+    _tab = None if not _m else (_vi["frias"], _vi["n_frias"]) if _m.group(1) == "frías" else (_vi["calidas"], _vi["n_calidas"])
+    if not (_m and _tab and int(_m.group(2)) == _tab[0]["n"][0] and int(_m.group(3)) == _tab[1]
+            and _m.group(4) == _tab[0]["zona"][0] and sum(_tab[0]["n"]) == _tab[1]
+            and (_m.group(5) is None or (_m.group(1) == "frías" and D["colombia"]["geo"]["corr_alt"] < 0))
+            and PATRON1["cap1-ideam"] in DESC_DE1["cap1-ideam"]):
+        problemas.append(f"IDEAM: la etiqueta no dice lo que cuenta R de las estaciones extremas: «{ETIQUETA1['cap1-ideam']}»")
+    _lc = lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_vi["calidas"]["zona"], _vi["calidas"]["n"])])
+    if not (sum(_vi["calidas"]["n"]) == _vi["n_calidas"] and f"más cálidas, de {n(_vi['calidas_umbral'], 1)} °C o más: {_lc}."
+            in DESC_DE1["cap1-ideam"]):
+        problemas.append("IDEAM: la descripción no reparte las más cálidas como R")
+    # Meuse: el borde que nombran la etiqueta y la descripción es el lado del
+    # eje principal donde R encuentra el décimo con más zinc.
+    _vm = D["visto"]["meuse"]
+    _bordes = set(_re4.findall(r"borde (noroeste|sureste|nordeste|suroeste)", ETIQUETA1["cap1-meuse"] + " " + DESC_DE1["cap1-meuse"]))
+    if not (_bordes == {_vm["lado"]} and _vm["top_noroeste"] * 4 >= _vm["top_n"] * 3 and _vm["diagonal"]):
+        problemas.append(f"meuse: la frase pone el zinc alto en el borde {sorted(_bordes)} y R, en el {_vm['lado']}")
+    # Pinos y Bogotá: el sentido de lo que hace el rectángulo, contra sus cifras.
+    _pj = D["puntual_canonico"]["japanesepines"]
+    _sentido = "más alto" if _pj["lambda_caja"] > _pj["lambda"] else "más bajo"
+    if not (_pj["area_caja"] <= _pj["area"] and f"sale siempre {_sentido} que con la ventana del dato" in resp.get("pinos", "")):
+        problemas.append(f"pinos: la respuesta no dice que el rectángulo da un λ̂ {_sentido} que la ventana")
+    _sale = "se sale del Distrito" if D["colombia"]["puntual"]["pct_caja_fuera_dc"] > 0 else "cabe en el Distrito"
+    if not (_sale in resp.get("bogota", "")):
+        problemas.append(f"Bogotá: la respuesta no dice que el rectángulo {_sale} ({n(D['colombia']['puntual']['pct_caja_fuera_dc'])} % fuera)")
+    # La lectura de los pinos: las coordenadas de cada pino, rehechas aquí.
+    _mp = M["japanesepines"]
+    _c = _mp["caja"]; _r = max(_c[2] - _c[0], _c[3] - _c[1])
+    _x0, _y0 = _c[0] + (_c[2] - _c[0]) / 2 - _r / 2, _c[1] + (_c[3] - _c[1]) / 2 - _r / 2
+    for v_ in ("dato", "caja"):
+        _lp = o["pinos"].get(v_, {}).get("lecturas", [])
+        _malp = [i for i, t in enumerate(_lp)
+                 if not t.startswith(f"Pino {i + 1} de {_mp['n']}, en x = {_mp['pts'][2 * i] / _mp['q'] * _r + _x0:.3f}, "
+                                     f"y = {_mp['pts'][2 * i + 1] / _mp['q'] * _r + _y0:.3f}.")]
+        if not (len(_lp) == _mp["n"] and not _malp):
+            problemas.append(f"pinos ({v_}): {len(_malp)} lecturas no dan las coordenadas de su pino")
+    # Los tercios de Bogotá: la frase que se elige, contra las sedes que R cuenta fuera.
+    _fs = sum(D["visto"]["bogota"]["fuera_dc"][1:])
+    _esp = ("todas dentro del Distrito." if _fs == 0 else "dentro del Distrito salvo una, que cae fuera de él." if _fs == 1
+            else f"dentro del Distrito salvo {ent(_fs)}, que caen fuera de él.")
+    if not (DESC_BOGOTA.endswith(_esp)):
+        problemas.append(f"Bogotá: la descripción de los tercios no dice las {_fs} sedes de fuera del Distrito")
+    # Cada pregunta del módulo 2 controla su respuesta (la pone bajo su botón).
+    _sin = [k_ for k_, gs in o.get("controla", {}).items() if f"aleatorio-{k_.replace('-ventana', '')}" not in gs]
+    if not (len(o.get("controla", {})) == 6 and not _sin):
+        problemas.append(f"módulo 2: la pregunta no controla su respuesta en {_sin}")
+    return problemas
 
 def guardas_de_t22(plantilla: str, marcado: str) -> list[str]:
     """Lo que los mapas y gráficos de R2 · T2.2 dan por sabido, contra el dato."""

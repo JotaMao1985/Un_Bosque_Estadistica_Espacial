@@ -1223,6 +1223,14 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0)))
     add("R2 · T2.3 · Bogotá: el perímetro urbano baja del corte", "datos",
         m(lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -5.0)))
+    add("R2 · T2.3 · deserción: la clase más oscura, con otro reparto por zonas", "datos",
+        m(lambda o: o["visto"]["desercion"]["clase_alta"]["zonas"]["n"].__setitem__(0, 4)))
+    add("R2 · T2.3 · IDEAM: las más frías dejan de ser las que son", "datos",
+        m(lambda o: o["visto"]["ideam"].__setitem__("n_frias", 36)))
+    add("R2 · T2.3 · meuse: el zinc alto, del lado sureste", "datos",
+        m(lambda o: o["visto"]["meuse"].__setitem__("lado", "sureste")))
+    add("R2 · T2.3 · meuse: el décimo alto cuenta otro número del lado noroeste", "datos",
+        m(lambda o: o["visto"]["meuse"].__setitem__("top_noroeste", 10)))
     add("R2 · T2.3 · pinos: el área del rectángulo de los puntos cambia", "datos",
         m(lambda o: o["puntual_canonico"]["japanesepines"].__setitem__("area_caja", 0.93)))
     add("R2 · T2.3 · pinos: la intensidad con ese rectángulo cambia", "datos",

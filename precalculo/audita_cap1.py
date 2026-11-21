@@ -3044,6 +3044,13 @@ def main() -> int:
             ok = ok and esp == pub
         a.cierto(ok, "visto: los extremos de la deserción y su zona",
                  f"{filas[0][1]} y {filas[-1][1]}")
+        # R2 · T2.3 (ronda 3): la clase más oscura entera, por zona.
+        ca_ = ds.get("clase_alta") or {}
+        zal = [_zona(_centro(nom[e]).x, _centro(nom[e]).y, md["caja"]) if e in nom else "?"
+               for e, k in zip(md["etiquetas"], md["clase"]) if k == max(md["clase"])]
+        a.cierto(ca_.get("n") == len(zal)
+                 and list(zip((ca_.get("zonas") or {}).get("zona", []), (ca_.get("zonas") or {}).get("n", []))) == _tabla(zal),
+                 "visto: deserción, la clase más oscura por zona", ", ".join(f"{z} {k}" for z, k in _tabla(zal)))
         # Y el nombre del Distrito Capital en español, en todo el mapa: la
         # tabla de respaldo lo publicaba en inglés («Bogota Capital District»).
         a.cierto("Bogotá D. C." in md["etiquetas"] and not any("District" in e for e in md["etiquetas"]),
@@ -3072,8 +3079,29 @@ def main() -> int:
                  and list(zip(vi["calidas"]["zona"], vi["calidas"]["n"])) == ca,
                  "visto: IDEAM, las frías y las cálidas por zona",
                  f"frías {fr[:2]} · cálidas {ca[:2]}")
+        a.cierto(vi.get("n_frias") == int((tt <= q10).sum()) and vi.get("n_calidas") == int((tt >= q90).sum()),
+                 "visto: IDEAM, cuántas son las más frías y las más cálidas",
+                 f"{int((tt <= q10).sum())} y {int((tt >= q90).sum())}")
     else:
         a.cierto(False, "visto: IDEAM, las frías y las cálidas por zona", "falta el dato o el mapa")
+    # R2 · T2.3 (ronda 3): de qué lado del eje principal de la nube de meuse
+    # cae el décimo con más zinc. Con numpy, por la vía de los autovectores
+    # de la covarianza y no por la del ángulo que usa R.
+    vme = V.get("meuse", {})
+    mcsv = pd.read_csv(SALIDAS / "cap1_meuse.csv")
+    xy_m = mcsv[["x", "y"]].to_numpy(float); zm = mcsv.zinc.to_numpy(float)
+    dm = xy_m - xy_m.mean(axis=0)
+    val, vec = np.linalg.eigh(dm.T @ dm)
+    eje = vec[:, np.argmax(val)]
+    nrm = np.array([-eje[1], eje[0]])
+    if nrm[0] > 0 or nrm[1] < 0:
+        nrm = -nrm
+    top = np.argsort(-zm, kind="stable")[:max(1, len(zm) // 10)]
+    nw = int(((dm[top] @ nrm) > 0).sum())
+    a.cierto(vme.get("top_n") == len(top) and vme.get("top_noroeste") == nw
+             and vme.get("lado") == ("noroeste" if 2 * nw > len(top) else "sureste")
+             and vme.get("diagonal") == bool((dm[:, 0] * dm[:, 1]).sum() > 0),
+             "visto: meuse, el lado de la nube donde cae el zinc alto", f"{nw} de {len(top)}")
     vb, mb = V.get("bogota", {}), M.get("bogota", {})
     if vb and mb.get("caja"):
         cj = mb["caja"]
