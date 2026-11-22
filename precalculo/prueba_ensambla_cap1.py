@@ -1051,11 +1051,11 @@ def defectos() -> list[tuple[str, str, str, object]]:
         """({n(f['pct'], 2)} %)" for f in _DS["mayores"]])""",
         """({n(f['pct'], 2)} %)" for f in _DS["menores"]])""")
     txt("T2.3r6: la temperatura va del máximo al mínimo", "ensamblador",
-        "{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo",
-        "{n(_GEO['t_max'], 1)} °C, en violeta oscuro, a {n(_GEO['t_min'], 1)} °C, en amarillo")
+        "{n(_GEO['t_min'], 1)} °C, en azul índigo, a {n(_GEO['t_max'], 1)} °C, en amarillo",
+        "{n(_GEO['t_max'], 1)} °C, en azul índigo, a {n(_GEO['t_min'], 1)} °C, en amarillo")
     txt("T2.3r6: los colores de la temperatura, cruzados", "ensamblador",
-        "{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo",
-        "{n(_GEO['t_min'], 1)} °C, en amarillo, a {n(_GEO['t_max'], 1)} °C, en violeta oscuro")
+        "{n(_GEO['t_min'], 1)} °C, en azul índigo, a {n(_GEO['t_max'], 1)} °C, en amarillo",
+        "{n(_GEO['t_min'], 1)} °C, en amarillo, a {n(_GEO['t_max'], 1)} °C, en azul índigo")
     obj("T2.3r6: R dice que cabe y el margen es negativo", "datos",
         lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -12.5))
     # Las dos ramas nuevas del mensaje de Bogotá, para verlas disparar.
