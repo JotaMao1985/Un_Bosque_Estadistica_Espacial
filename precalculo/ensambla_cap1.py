@@ -4210,6 +4210,22 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     if not (_dichas == _dichas_d == {f_["zona"] for f_ in _ds["mayores"]}):
         problemas.append(f"deserción: la frase sitúa los valores más altos en {sorted(_dichas)} y R, en "
                          f"{sorted({f_['zona'] for f_ in _ds['mayores']})}")
+    # (Ronda 6.) Los tres departamentos que nombra la frase, con su cifra, se
+    # LEEN y tienen que ser los tres valores más altos del mapa que dibuja R
+    # (`M["desercion"]`), no de la lista de `visto` con que se escribe la frase:
+    # llenarla con `menores` pasaba. Y la lista de `visto` cuyas zonas se
+    # comprueban arriba tiene que ser la de esos mismos tres.
+    _gd = M["desercion"]
+    _orden = sorted(zip(_gd["valor"], _gd["etiquetas"]), key=lambda t: -t[0])
+    _top_r = sorted((_corto(e_), n(v_, 2)) for v_, e_ in _orden[:3])
+    _lt = _re4.search(_RX_MAYORES + r" (.+?)\. La clase más oscura", DESC_DE1["cap1-desercion"])
+    _dichos = (sorted((m_.group(1), m_.group(2)) for m_ in
+                      _re4.finditer(r"(?:^|, | y )([^()]+?) \((-?\d+(?:\.\d+)?)\s%\)", _lt.group(2)))
+               if _lt else [])
+    if not (len(_orden) == _gd["n"] >= 4 and _orden[2][0] > _orden[3][0] and _dichos == _top_r
+            and sorted((_corto(f_["departamento"]), n(f_["pct"], 2)) for f_ in _ds["mayores"]) == _top_r):
+        problemas.append(f"deserción: la frase da como los tres valores más altos {_dichos} y los tres más "
+                         f"altos del mapa de R son {_top_r}")
     _za = _ds["clase_alta"]["zonas"]
     _rep = lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_za["zona"], _za["n"])])
     if not (sum(_za["n"]) == _ds["clase_alta"]["n"] == M["desercion"]["tam"][-1]
@@ -4257,6 +4273,28 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
             and _ma and _ma.group(1) == ent(_al["zonas"]["n"][0]) and _ma.group(2) == ent(_al["n"])
             and _ma.group(3) == ent(_al["umbral_m"]) and _ma.group(4) == _al["zonas"]["zona"][0]):
         problemas.append(f"IDEAM: la etiqueta o la descripción no dicen lo que cuenta R de las estaciones extremas: «{ETIQUETA1['cap1-ideam']}»")
+    # (Ronda 6.) «La temperatura va de X °C, en C1, a Y °C, en C2»: X y Y se
+    # leen y tienen que ser, en ese orden, el mínimo y el máximo de las
+    # temperaturas que pinta el mapa de R (`M["ideam"]["marcas"]`), y cada
+    # color, el de su punta de la rampa: el de la primera parada con el mínimo
+    # y el de la última con el máximo. Con `t_min` y `t_max` cruzadas pasaba.
+    import colorsys as _cs6
+
+    def _es_color6(nombre, hexa):
+        h_, l_, _s = _cs6.rgb_to_hls(*(int(hexa[i:i + 2], 16) / 255 for i in (1, 3, 5)))
+        h_ *= 360
+        return {"violeta oscuro": 235 <= h_ <= 300 and l_ < 0.35,
+                "amarillo": 45 <= h_ <= 70 and l_ > 0.5}.get(nombre, False)
+    _tmin6, _tmax6 = min(M["ideam"]["marcas"]), max(M["ideam"]["marcas"])
+    _mt = _re4.search(r"La temperatura va de (-?\d+(?:\.\d+)?) °C, en ([a-záéíóúñ ]+?), a (-?\d+(?:\.\d+)?) °C, "
+                      r"en ([a-záéíóúñ ]+?)\.", DESC_DE1["cap1-ideam"])
+    if not (_mt and _tmin6 < _tmax6 and _mt.group(1) == n(_tmin6, 1) and _mt.group(3) == n(_tmax6, 1)
+            and _es_color6(_mt.group(2), PALETA_TERMICA[0]) and _es_color6(_mt.group(4), PALETA_TERMICA[-1])):
+        _dice6 = (f"va de {_mt.group(1)} °C, en {_mt.group(2)}, a {_mt.group(3)} °C, en {_mt.group(4)}" if _mt
+                  else "no dice de dónde a dónde va la temperatura")
+        problemas.append(f"IDEAM: la descripción {_dice6}, y el mapa de R va de {n(_tmin6, 1)} °C, en la primera "
+                         f"parada de la rampa ({PALETA_TERMICA[0]}), a {n(_tmax6, 1)} °C, en la última "
+                         f"({PALETA_TERMICA[-1]})")
     # «Baja» o «sube», con el signo que publica R; la cifra, sin signo.
     _verbo = "baja" if _vi["baja_por_km"] > 0 else "sube"
     if not (abs(_vi["baja_por_km"] + D["colombia"]["geo"]["gradiente"]) < 1e-6
@@ -4306,9 +4344,20 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     # contra el margen: si cabe, el borde sur del perímetro queda al norte del corte.
     _cb = _re4.search(r"del perímetro urbano, que (no )?cabe entero en ese tercio y acaba", DESC_BOGOTA)
     _cabe_r = D["visto"]["bogota"].get("urbano_en_tercio_norte")
-    if not (_cb and isinstance(_cabe_r, bool) and (_cb.group(1) is None) == _cabe_r and (not _cabe_r or _mg > 0)):
-        problemas.append(f"Bogotá: la descripción dice que el perímetro urbano {'no ' if _cb and _cb.group(1) else ''}cabe "
-                         f"en el tercio norte y R dice {_cabe_r}")
+    # (Ronda 6.) El mensaje nombra lo que choca: la frase contra R, o R contra
+    # su propio margen (cabe, y el margen no es positivo), con el signo.
+    _signo6 = "positivo" if _mg > 0 else "negativo" if _mg < 0 else "cero"
+    if not _cb:
+        problemas.append("Bogotá: la descripción no dice si el perímetro urbano cabe entero en el tercio norte")
+    elif not isinstance(_cabe_r, bool):
+        problemas.append(f"Bogotá: R no publica `urbano_en_tercio_norte` como verdadero o falso (publica {_cabe_r!r})")
+    elif (_cb.group(1) is None) != _cabe_r:
+        problemas.append(f"Bogotá: la descripción dice que el perímetro urbano {'no ' if _cb.group(1) else ''}cabe "
+                         f"en el tercio norte y R (`urbano_en_tercio_norte`) dice {_cabe_r}")
+    elif _cabe_r and not _mg > 0:
+        problemas.append(f"Bogotá: R dice que el perímetro urbano cabe en el tercio norte (`urbano_en_tercio_norte` = "
+                         f"True), pero su margen al corte (`margen_urbano_m`) es {n(_mg, 1)} m, {_signo6}: el borde "
+                         f"sur del perímetro no queda al norte del corte")
     if not (DESC_BOGOTA.endswith(_esp)):
         problemas.append(f"Bogotá: la descripción de los tercios no dice las {_fs} sedes de fuera del Distrito")
     # Cada pregunta del módulo 2 controla su respuesta (la pone bajo su botón).

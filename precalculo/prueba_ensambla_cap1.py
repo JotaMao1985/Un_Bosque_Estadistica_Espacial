@@ -1046,6 +1046,23 @@ def defectos() -> list[tuple[str, str, str, object]]:
         "{'no cabe' if _VI['bogota'].get('urbano_en_tercio_norte') else 'cabe'}")
     obj("T2.3r5: R dice que el perímetro urbano no cabe en el tercio norte", "datos",
         lambda o: o["visto"]["bogota"].__setitem__("urbano_en_tercio_norte", False))
+    # Ronda 6: lo que el verificador coló en la ronda 5.
+    txt("T2.3r6: los tres valores más altos, con los tres más bajos", "ensamblador",
+        """({n(f['pct'], 2)} %)" for f in _DS["mayores"]])""",
+        """({n(f['pct'], 2)} %)" for f in _DS["menores"]])""")
+    txt("T2.3r6: la temperatura va del máximo al mínimo", "ensamblador",
+        "{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo",
+        "{n(_GEO['t_max'], 1)} °C, en violeta oscuro, a {n(_GEO['t_min'], 1)} °C, en amarillo")
+    txt("T2.3r6: los colores de la temperatura, cruzados", "ensamblador",
+        "{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo",
+        "{n(_GEO['t_min'], 1)} °C, en amarillo, a {n(_GEO['t_max'], 1)} °C, en violeta oscuro")
+    obj("T2.3r6: R dice que cabe y el margen es negativo", "datos",
+        lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -12.5))
+    # Las dos ramas nuevas del mensaje de Bogotá, para verlas disparar.
+    txt("T2.3r6: la frase de Bogotá deja de decir si el perímetro cabe en el tercio", "ensamblador",
+        'f"en ese tercio y acaba {n(abs(_MG), 1)} m', 'f"en ese tercio, y acaba {n(abs(_MG), 1)} m')
+    obj("T2.3r6: R deja de publicar si el perímetro cabe en el tercio norte", "datos",
+        lambda o: o["visto"]["bogota"].pop("urbano_en_tercio_norte"))
     obj("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "datos",
         lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0))
     for _nombre, _mensaje in (
@@ -1089,6 +1106,12 @@ def defectos() -> list[tuple[str, str, str, object]]:
             ("T2.3c: las cálidas de la descripción se quedan sin su última zona", "no reparte las más cálidas"),
             ("T2.3b: el perímetro urbano baja del corte de los tercios", "ya no cabe en el tercio norte"),
             ("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "no cuadran con las del dato"),
+            ("T2.3r6: los tres valores más altos, con los tres más bajos", "los tres más altos del mapa de R son"),
+            ("T2.3r6: la temperatura va del máximo al mínimo", "y el mapa de R va de"),
+            ("T2.3r6: los colores de la temperatura, cruzados", "y el mapa de R va de"),
+            ("T2.3r6: R dice que cabe y el margen es negativo", "m, negativo"),
+            ("T2.3r6: la frase de Bogotá deja de decir si el perímetro cabe en el tercio", "no dice si el perímetro urbano cabe"),
+            ("T2.3r6: R deja de publicar si el perímetro cabe en el tercio norte", "como verdadero o falso"),
             ("T2.3: el mapa de Bogotá pierde un borde", "no trae los tres bordes"),
             ("T2.3: la lectura de Bogotá pone una sede urbana en el resto del Distrito", "no cuadra con las sedes de cada ventana"),
             ("T2.3: el Distrito sale más denso que el perímetro urbano", "ya no bajan del perímetro urbano"),
