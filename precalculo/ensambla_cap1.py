@@ -4231,15 +4231,24 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
         orden = sorted(zip(_gd["valor"], _gd["etiquetas"]), key=lambda t: t[0], reverse=cuales == "altos")
         r_ = sorted((_corto(e_), n(v_, 2)) for v_, e_ in orden[:3])
         lt_ = _re4.search(rx_lista, DESC_DE1["cap1-desercion"])
-        dichos_ = (sorted((m_.group(1), m_.group(2)) for m_ in
-                          _re4.finditer(r"(?:^|, | y )([^()]+?) \((-?\d+(?:\.\d+)?)\s%\)", lt_.group("lista")))
+        piezas_ = (list(_re4.finditer(r"(?:^|, | y )([^()]+?) \((-?\d+(?:\.\d+)?)\s%\)", lt_.group("lista")))
                    if lt_ else [])
+        dichos_ = sorted((m_.group(1), m_.group(2)) for m_ in piezas_)
+        # La lista se lee entera: lo que no case con «departamento (cifra %)»
+        # (una cifra con coma, un cuarto departamento metido con «junto con»)
+        # no se salta en silencio.
+        if lt_ and "".join(m_.group(0) for m_ in piezas_) != lt_.group("lista"):
+            problemas.append(f"deserción: la lista de los tres valores más {cuales} no se lee entera como "
+                             f"«departamento (cifra %)» separados por «, » e «y»: «{lt_.group('lista')}»")
         if orden[2][0] == orden[3][0]:
             problemas.append(f"deserción: el tercer valor más {cuales[:-1]} del mapa de R ({orden[2][1]}, {orden[2][0]}) "
                              f"empata con el cuarto ({orden[3][1]}, {orden[3][0]}): «los tres más {cuales}» no está definido")
-        if not (dichos_ == r_
-                and sorted((_corto(f_["departamento"]), n(f_["pct"], 2)) for f_ in lista_visto) == r_):
+        if dichos_ != r_:
             problemas.append(f"deserción: la frase da como los tres valores más {cuales} {dichos_} y los tres más "
+                             f"{cuales} del mapa de R son {r_}")
+        visto_ = sorted((_corto(f_["departamento"]), n(f_["pct"], 2)) for f_ in lista_visto)
+        if visto_ != r_:
+            problemas.append(f"deserción: la lista de `visto` de los tres más {cuales} es {visto_} y los tres más "
                              f"{cuales} del mapa de R son {r_}")
 
     if not (len(_gd["valor"]) == len(_gd["etiquetas"]) == _gd["n"] >= 4):

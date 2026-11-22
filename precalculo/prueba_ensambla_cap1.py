@@ -1073,6 +1073,11 @@ def defectos() -> list[tuple[str, str, str, object]]:
         _MEN, _MEN.replace('_DS["menores"]', '[*_DS["menores"][:2], dict(_DS["menores"][2], '
                            'departamento=_DS["mayores"][0]["departamento"])]'))
 
+    # Ronda 8: la lista se lee entera; un cuarto departamento metido entre dos
+    # elementos («junto con …») se colaba porque `finditer` se lo saltaba.
+    txt("T2.3r8: un cuarto departamento metido en la lista de los tres más bajos", "ensamblador",
+        _MEN, _MEN.replace('_DS["menores"]])', '_DS["menores"]]).replace(" y ", " junto con Caquetá y ", 1)'))
+
     def _empata_cuarto_bajo(o):
         v = o["desercion"]["valor"]
         orden = sorted(range(len(v)), key=v.__getitem__)
@@ -1134,6 +1139,7 @@ def defectos() -> list[tuple[str, str, str, object]]:
             ("T2.3r7: los tres más bajos con un departamento cambiado", "los tres más bajos del mapa de R son"),
             ("T2.3r7: el cuarto valor más bajo del mapa empata con el tercero", "empata con el cuarto"),
             ("T2.3r7: el mapa de la deserción declara un departamento de más", "deserción: el mapa de R trae"),
+            ("T2.3r8: un cuarto departamento metido en la lista de los tres más bajos", "no se lee entera"),
             ("T2.3: el mapa de Bogotá pierde un borde", "no trae los tres bordes"),
             ("T2.3: la lectura de Bogotá pone una sede urbana en el resto del Distrito", "no cuadra con las sedes de cada ventana"),
             ("T2.3: el Distrito sale más denso que el perímetro urbano", "ya no bajan del perímetro urbano"),
