@@ -3744,7 +3744,7 @@ DESC_IDEAM = (
     f"Las {ent(_GEO['n'])} estaciones, con el contorno del país de fondo, coloreadas por su temperatura "
     f"media. Las del archipiélago de San Andrés, arriba a la izquierda, se ven sobre el mar: a esta escala "
     f"las islas son más pequeñas que un punto. La temperatura va de "
-    f"{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo. De las "
+    f"{n(_GEO['t_min'], 1)} °C, en azul índigo, a {n(_GEO['t_max'], 1)} °C, en amarillo. De las "
     f"{ent(_VI['ideam']['n_frias'])} más frías, de {n(_VI['ideam']['frias_umbral'], 1)} °C o menos, "
     f"{_PATRON_IDEAM}: {ent(_AL['zonas']['n'][0])} de las {ent(_AL['n'])} estaciones situadas a "
     f"{ent(_AL['umbral_m'])} m o más están en el {_AL['zonas']['zona'][0]}. La temperatura "
@@ -4314,7 +4314,7 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     def _es_color6(nombre, hexa):
         h_, l_, _s = _cs6.rgb_to_hls(*(int(hexa[i:i + 2], 16) / 255 for i in (1, 3, 5)))
         h_ *= 360
-        return {"violeta oscuro": 235 <= h_ <= 300 and l_ < 0.35,
+        return {"azul índigo": 225 <= h_ <= 265 and l_ < 0.35,
                 "amarillo": 45 <= h_ <= 70 and l_ > 0.5}.get(nombre, False)
     _tmin6, _tmax6 = min(M["ideam"]["marcas"]), max(M["ideam"]["marcas"])
     _mt = _re4.search(r"La temperatura va de (-?\d+(?:\.\d+)?) °C, en ([a-záéíóúñ ]+?), a (-?\d+(?:\.\d+)?) °C, "
@@ -4725,7 +4725,7 @@ GEOMAPAS_JS = (
     # LA TEMPERATURA NO DIVERGE (G-05). Iba con la paleta divergente: el tono
     # neutro caía en la mitad del recorrido, un valor sin significado, y el
     # frío salía naranja. Va con una rampa secuencial propia de este capítulo,
-    # de oscuro a claro y de frío a cálido —violeta, magenta, naranja,
+    # de oscuro a claro y de frío a cálido —índigo, violeta, magenta, naranja,
     # amarillo—, que sigue leyéndose en gris porque la claridad crece de punta
     # a punta; la guarda de salida lo comprueba.
     + "    GEOMAPA_PALETAS.termica = " + json.dumps(PALETA_TERMICA) + ";\n"

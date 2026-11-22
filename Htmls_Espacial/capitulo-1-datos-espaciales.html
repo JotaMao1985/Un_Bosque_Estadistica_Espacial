@@ -12114,7 +12114,7 @@ print(f"con los residuos | 50 bajo el techo: {50 &lt; t_res} | el techo sube: {t
       paleta: 'termica',
       colorLineas: 'rgba(1, 40, 32, 0.45)',
       anchoLineas: 1,
-      descripcion: "Las 361 estaciones, con el contorno del país de fondo, coloreadas por su temperatura media. Las del archipiélago de San Andrés, arriba a la izquierda, se ven sobre el mar: a esta escala las islas son más pequeñas que un punto. La temperatura va de 6.4 °C, en violeta oscuro, a 30.4 °C, en amarillo. De las 37 más frías, de 13.9 °C o menos, 28 están en el centro del dibujo, donde se concentran las estaciones de mayor altitud: 29 de las 37 estaciones situadas a 2 560 m o más están en el centro. La temperatura baja 5.6 °C por cada kilómetro de altura. Las 39 más cálidas, de 28.3 °C o más: 23 en el norte, 15 en el centro y 1 en el oriente.",
+      descripcion: "Las 361 estaciones, con el contorno del país de fondo, coloreadas por su temperatura media. Las del archipiélago de San Andrés, arriba a la izquierda, se ven sobre el mar: a esta escala las islas son más pequeñas que un punto. La temperatura va de 6.4 °C, en azul índigo, a 30.4 °C, en amarillo. De las 37 más frías, de 13.9 °C o menos, 28 están en el centro del dibujo, donde se concentran las estaciones de mayor altitud: 29 de las 37 estaciones situadas a 2 560 m o más están en el centro. La temperatura baja 5.6 °C por cada kilómetro de altura. Las 39 más cálidas, de 28.3 °C o más: 23 en el norte, 15 en el centro y 1 en el oriente.",
       tabla: function (d) {
         const filas = D1.visto.ideam.por_altitud.map(f => `<tr><th scope="row">de ${miles1(f.desde)} a `
           + `menos de ${miles1(f.hasta)} m</th><td>${f.n}</td><td>${n5(f.t_media, 1)}</td></tr>`).join('');
