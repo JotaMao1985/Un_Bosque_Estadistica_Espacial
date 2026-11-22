@@ -8,6 +8,9 @@
 #   precalculo/salidas/cap1_datos.json   todas las cifras de los 12 módulos
 #   precalculo/salidas/cap1_mapas.json   las fuentes de los .geomapa
 #   precalculo/salidas/cap1_dep.csv      un CSV que R y Python leen igual
+#   precalculo/salidas/cap1_snow_calles.csv  las calles del plano de Snow,
+#                                        para que el auditor rehaga la nula
+#                                        de la prueba de aleatorización
 #
 # LA REGLA QUE MANDA (D10): ninguna cifra del capítulo se escribe a mano.
 # Si el texto la argumenta, sale de aquí. Y la regla de publicación de
@@ -195,6 +198,233 @@ D$snow <- list(
   serie_muertes = as.integer(sd_dat$deaths)
 )
 
+# --- A.2 La prueba de aleatorización (R2 · T2.4, C1-01) ---------------
+#
+# El 1/13 de arriba es un reparto ingenuo: supone que a cada bomba le toca
+# la misma parte del plano. Aquí se le pone al argumento de Snow una
+# hipótesis nula que sí se puede defender, y se mide contra ella EL MISMO
+# estadístico que el módulo publica.
+#
+# LA NULA. Cada muerte se recoloca en un punto elegido al azar SOBRE LAS
+# CALLES DEL PLANO, con probabilidad proporcional a la longitud: se sortea
+# un tramo recto con probabilidad proporcional a lo que mide y, dentro de
+# él, una posición uniforme. Lo que esa nula controla es cuánta calle le
+# toca a cada bomba —el área que sirve, medida sobre donde la gente vive y
+# no sobre los patios—. Lo que NO controla, y la prosa lo dice:
+#   · cuánta gente vivía en cada tramo: HistData no trae población;
+#   · quién bebía de qué bomba;
+#   · que las muertes no son independientes: las de una misma casa
+#     comparten todo, y la nula las recoloca una a una.
+# ¿Hay una nula mejor con el dato disponible? No. Uniforme sobre el
+# rectángulo del plano es peor (pone muertes donde no hay calle), y
+# ponderar por población o agrupar por vivienda pide un dato que el
+# paquete no distribuye. Es la más fina que se puede defender.
+#
+# EL ESTADÍSTICO es `pct_mas_cerca_broad`, con la misma distancia euclídea
+# y la misma regla de empates (`max.col(..., "first")`). Se comprueba
+# abajo que la función, aplicada a las muertes reales, devuelve la cifra
+# publicada.
+#
+# LA MEDIA DE LA NULA NO HACE FALTA SIMULARLA: es la fracción de la
+# longitud de calle cuya bomba más próxima es Broad Street, y tiene cuenta
+# exacta. Sobre un tramo recto p(t) = p + t·d, «más cerca de la bomba b0
+# que de la bj» es una desigualdad LINEAL en t, así que la parte del tramo
+# que le toca a b0 es un intervalo [t_lo, t_hi]. Se publica esa cifra
+# exacta como la parte «que le tocaría» a Broad Street, y la simulación
+# tiene que reproducirla dentro de su error de Monte Carlo.
+#
+# Y HAY UN SEGUNDO CONTROL. Como las muertes se recolocan de forma
+# independiente y cada una cae en la parte de Broad Street con la misma
+# probabilidad p, el recuento es Binomial(n, p): la nula tiene forma
+# cerrada. Se simula igualmente, porque la recolocación es el
+# procedimiento que sirve cuando no la hay, y la binomial queda como
+# control de que la simulación está bien montada (media y desviación).
+#
+# B Y LA SEMILLA. El observado queda a más de cuarenta desviaciones
+# típicas de la nula: ningún B razonable va a producir una recolocación
+# que lo iguale, así que el p-valor es la cota 1/(B + 1) y B solo decide
+# tres cosas: esa cota, el error de Monte Carlo de la media (sd/sqrt(B)) y
+# lo liso que sale el histograma de un estadístico discreto con medio
+# centenar de valores posibles. Con B = 9 999 la cota es 1/10 000, la
+# media se conoce a una centésima de punto porcentual y las barras
+# centrales llevan cientos de recolocaciones. Cuesta un par de segundos.
+# La semilla es propia (SEMILLA + 700) y el estado del generador se guarda
+# y se devuelve: nada de lo que viene detrás se mueve.
+estado_rng_a2 <- get(".Random.seed", envir = globalenv())
+
+if (any(table(Snow.streets$street) < 2L))
+  stop("A.2: una calle con menos de dos vértices no es un tramo")
+tramos <- do.call(rbind, lapply(split(Snow.streets, Snow.streets$street), function(s)
+  data.frame(x1 = s$x[-nrow(s)], y1 = s$y[-nrow(s)], x2 = s$x[-1], y2 = s$y[-1])))
+tramos$lon <- sqrt((tramos$x2 - tramos$x1)^2 + (tramos$y2 - tramos$y1)^2)
+if (any(tramos$lon <= 0)) stop("A.2: un tramo de calle de longitud cero")
+LON_CALLES <- sum(tramos$lon)
+
+# El estadístico, escrito una vez y aplicado igual al dato y a la nula.
+n_broad <- function(px, py) {
+  d <- sqrt(outer(px, bombas[, 1], "-")^2 + outer(py, bombas[, 2], "-")^2)
+  sum(max.col(-d, ties.method = "first") == i_broad)
+}
+if (n_broad(muertes[, 1], muertes[, 2]) != D$snow$n_mas_cerca_broad)
+  stop("A.2: el estadístico de la nula no es el que publica el módulo 1")
+
+# La fracción exacta de calle de cada bomba.
+parte_de_calle <- function(k, tramos = get("tramos", envir = globalenv())) {
+  LON_CALLES <- sum(tramos$lon)
+  b0 <- bombas[k, ]; tot <- 0
+  for (i in seq_len(nrow(tramos))) {
+    p <- c(tramos$x1[i], tramos$y1[i])
+    d <- c(tramos$x2[i] - tramos$x1[i], tramos$y2[i] - tramos$y1[i])
+    lo <- 0; hi <- 1
+    for (j in seq_len(nrow(bombas))[-k]) {
+      v <- bombas[j, ] - b0
+      # |p + t d - b0|^2 <= |p + t d - bj|^2   <=>   2 t (d·v) <= |bj|^2 - |b0|^2 - 2 p·v
+      a <- 2 * sum(d * v)
+      c0 <- sum(bombas[j, ]^2) - sum(b0^2) - 2 * sum(p * v)
+      if (a > 0) hi <- min(hi, c0 / a)
+      else if (a < 0) lo <- max(lo, c0 / a)
+      else if (c0 < 0) { hi <- -1; break }
+    }
+    if (hi > lo) tot <- tot + (hi - lo) * tramos$lon[i]
+  }
+  tot / LON_CALLES
+}
+parte_calle <- vapply(seq_len(nrow(bombas)), parte_de_calle, numeric(1))
+if (abs(sum(parte_calle) - 1) > 1e-9)
+  stop("A.2: las partes de calle de las 13 bombas no suman la calle entera")
+p_calle <- parte_calle[i_broad]
+
+NREC <- 9999L
+SEM_REC <- SEMILLA + 700L
+set.seed(SEM_REC)
+n_m <- nrow(muertes)
+k_nula <- vapply(seq_len(NREC), function(b) {
+  s <- sample.int(nrow(tramos), n_m, replace = TRUE, prob = tramos$lon)
+  u <- runif(n_m)
+  n_broad(tramos$x1[s] + u * (tramos$x2[s] - tramos$x1[s]),
+          tramos$y1[s] + u * (tramos$y2[s] - tramos$y1[s]))
+}, numeric(1))
+k_obs <- D$snow$n_mas_cerca_broad
+emc_nula <- sd(k_nula) / sqrt(NREC)                 # en muertes
+
+# CONTROLES, antes de publicar nada.
+if (abs(mean(k_nula) - n_m * p_calle) > 4 * emc_nula)
+  stop(sprintf("A.2: la media de la nula (%.4f muertes) no es la parte exacta de calle (%.4f)",
+               mean(k_nula), n_m * p_calle))
+# La desviación típica, contra la de la binomial. El error relativo de una
+# desviación típica estimada con B valores es ~ 1/sqrt(2B): se dejan 4.
+sd_binom <- sqrt(n_m * p_calle * (1 - p_calle))
+if (abs(sd(k_nula) / sd_binom - 1) > 4 / sqrt(2 * NREC))
+  stop("A.2: la desviación típica de la nula no es la de Binomial(n, p)")
+# Lo que la prosa afirma: ninguna recolocación llega al observado, y ni se
+# acerca. Si dejara de ser cierto, el p-valor ya no sería una cota.
+n_ge <- sum(k_nula >= k_obs)
+if (n_ge != 0L || !(k_obs - max(k_nula) > 10 * sd(k_nula)))
+  stop("A.2: alguna recolocación alcanza o roza el observado; el p-valor no es la cota")
+# Y que a Broad Street le toca MÁS calle que 1/13: la prosa dice «algo
+# más que el reparto ingenuo».
+if (!(p_calle > 1 / nrow(bombas) && k_obs / n_m / p_calle > 1))
+  stop("A.2: la parte de calle de Broad St ya no queda entre 1/13 y el observado")
+
+# --- A.2b La parte de calle depende del MARCO del plano (R2 · T2.4, 2.ª ronda)
+#
+# El plano digitalizado cubre bastante más terreno que las muertes. Cuanta
+# más calle lejana entra en la cuenta, menor es la parte de Broad Street, y
+# con ella cambia «cuántas veces lo que le tocaría». Así que esa razón no
+# es una propiedad del brote: depende de hasta dónde llegan las calles
+# dibujadas. Se mide: se recortan las calles al rectángulo que encierra las
+# muertes, y a ese rectángulo ensanchado 1 y 2 unidades del plano por cada
+# lado, y se rehace la cuenta EXACTA en cada marco. No hace falta simular:
+# con las muertes recolocadas una a una, el recuento es Binomial(n, p), y
+# la distancia del dato a la nula sale de su media y su desviación típica.
+#
+# Lo que la prosa afirma y aquí se guarda: el RECHAZO no depende del marco
+# (el dato queda a más de diez desviaciones típicas también con el más
+# estrecho); el TAMAÑO de la parte explicada, sí.
+recorta_tramos <- function(tr, x0, x1, y0, y1) {
+  # Liang-Barsky: el trozo de cada tramo recto que cae dentro del rectángulo.
+  out <- lapply(seq_len(nrow(tr)), function(i) {
+    dx <- tr$x2[i] - tr$x1[i]; dy <- tr$y2[i] - tr$y1[i]
+    t0 <- 0; t1 <- 1
+    pq <- rbind(c(-dx, tr$x1[i] - x0), c(dx, x1 - tr$x1[i]),
+                c(-dy, tr$y1[i] - y0), c(dy, y1 - tr$y1[i]))
+    for (r in 1:4) {
+      p <- pq[r, 1]; q <- pq[r, 2]
+      if (p == 0) { if (q < 0) return(NULL) }
+      else if (p < 0) t0 <- max(t0, q / p)
+      else t1 <- min(t1, q / p)
+    }
+    if (t1 <= t0) return(NULL)
+    data.frame(x1 = tr$x1[i] + t0 * dx, y1 = tr$y1[i] + t0 * dy,
+               x2 = tr$x1[i] + t1 * dx, y2 = tr$y1[i] + t1 * dy)
+  })
+  out <- do.call(rbind, out)
+  out$lon <- sqrt((out$x2 - out$x1)^2 + (out$y2 - out$y1)^2)
+  out[out$lon > 0, ]
+}
+caja_m <- c(range(muertes[, 1]), range(muertes[, 2]))        # x0, x1, y0, y1
+MARGENES <- c(0, 1, 2)
+un_marco <- function(tr, margen, que) {
+  p <- parte_de_calle(i_broad, tr)
+  list(marco = que, margen = margen,
+       pct_longitud = r10(100 * sum(tr$lon) / LON_CALLES),
+       pct_calle_broad = r10(100 * p),
+       razon_sobre_calle = r10(k_obs / n_m / p),
+       # desviaciones típicas de la binomial entre el dato y lo que la nula espera
+       z_binomial = r10((k_obs - n_m * p) / sqrt(n_m * p * (1 - p))))
+}
+marcos <- c(
+  lapply(MARGENES, function(m) un_marco(
+    recorta_tramos(tramos, caja_m[1] - m, caja_m[2] + m, caja_m[3] - m, caja_m[4] + m), m,
+    if (m == 0) "el rectángulo de las muertes" else sprintf("ese rectángulo y %d más por cada lado", m))),
+  list(un_marco(tramos, NA, "el plano entero")))
+if (abs(marcos[[length(marcos)]]$pct_calle_broad - 100 * p_calle) > 1e-8)
+  stop("A.2b: con el plano entero el marco no devuelve la parte de calle publicada")
+pm <- vapply(marcos, function(m) m$pct_calle_broad, numeric(1))
+zm <- vapply(marcos, function(m) m$z_binomial, numeric(1))
+lm_ <- vapply(marcos, function(m) m$pct_longitud, numeric(1))
+if (!(all(diff(pm) < 0) && all(diff(lm_) > 0) && all(zm > 10) &&
+      marcos[[1]]$razon_sobre_calle > 2 &&
+      marcos[[1]]$razon_sobre_calle < 0.5 * marcos[[length(marcos)]]$razon_sobre_calle))
+  stop("A.2b: la sensibilidad al marco ya no dice lo que la prosa: la parte de calle baja al ",
+       "ensanchar, la razón cambia a más del doble y el rechazo se mantiene en todos")
+
+frec_nula <- tabulate(k_nula - min(k_nula) + 1L, nbins = max(k_nula) - min(k_nula) + 1L)
+D$snow$aleatorizacion <- list(
+  n_recolocaciones = NREC,
+  semilla = SEM_REC,
+  n_tramos = nrow(tramos),
+  # la parte de la longitud de calle cuya bomba más próxima es cada una
+  bombas = as.character(Snow.pumps$label),
+  pct_calle_por_bomba = r10(100 * parte_calle),
+  # la de Broad Street: la media EXACTA de la nula
+  pct_calle_broad = r10(100 * p_calle),
+  razon_sobre_calle = r10(k_obs / n_m / p_calle),
+  # la simulación
+  media_nula_pct = r10(100 * mean(k_nula) / n_m),
+  emc_media_pct  = r10(100 * emc_nula / n_m),
+  sd_nula_pct    = r10(100 * sd(k_nula) / n_m),
+  sd_binomial_pct = r10(100 * sd_binom / n_m),
+  min_nula_n = as.integer(min(k_nula)), max_nula_n = as.integer(max(k_nula)),
+  min_nula_pct = r10(100 * min(k_nula) / n_m), max_nula_pct = r10(100 * max(k_nula) / n_m),
+  # cuántas recolocaciones igualan o superan al observado, y la cota del p
+  n_mayor_o_igual = as.integer(n_ge),
+  p_cota = r10(1 / (NREC + 1)),
+  # a cuántas desviaciones típicas de la nula queda el observado
+  z_observado = r10((k_obs - mean(k_nula)) / sd(k_nula)),
+  # el histograma: muertes más cerca de Broad St en cada recolocación
+  hist_n = as.integer(seq(min(k_nula), max(k_nula))),
+  hist_frec = as.integer(frec_nula),
+  # y lo que la binomial predice para cada barra: B·P(K = k). Es el control
+  # de la simulación, dibujado.
+  hist_binomial = r10(NREC * dbinom(seq(min(k_nula), max(k_nula)), n_m, p_calle)),
+  # A.2b · la misma cuenta con las calles recortadas a tres marcos y al plano
+  caja_muertes = r10(caja_m),
+  caja_calles = r10(c(range(Snow.streets$x), range(Snow.streets$y))),
+  marcos = marcos
+)
+assign(".Random.seed", estado_rng_a2, envir = globalenv())
+
 # =====================================================================
 # B. MÓDULO 2 — Los tres tipos de dato espacial
 #
@@ -266,6 +496,18 @@ D$puntual_canonico <- list(
   cells         = resumen_ppp(cells, "Células biológicas",
                               "Crick y Ripley, vía spatstat.data")
 )
+
+# R2 · T2.3 · La ventana se puede mover sin mover un pino. El módulo 2 lo
+# dice y el mapa lo deja provocar: la misma nube con su ventana —el cuadrado
+# de lado 1 que viene con el dato— y con el rectángulo que ciñe a los puntos.
+# Cambia el área y con ella la intensidad estimada; los 65 pinos, no.
+local({
+  p <- japanesepines
+  a_caja <- diff(range(p$x)) * diff(range(p$y))
+  stopifnot(a_caja < area.owin(p$window))
+  D$puntual_canonico$japanesepines$area_caja   <<- r10(a_caja)
+  D$puntual_canonico$japanesepines$lambda_caja <<- r10(npoints(p) / a_caja)
+})
 
 # Las anclas de la R corregida contra la implementación de referencia.
 # `clarkevans()` vive en spatstat.explore y devuelve TRES valores —naive,
@@ -388,6 +630,8 @@ a_urb <- area_km2(v_urb)
 n_urb <- sum(cole$en_urbana)
 
 muni_ok <- muni[!is.na(muni$desercion), ]
+# El área, en km², del rectángulo que ciñe a las sedes (R2 · T2.3).
+a_caja_cole <- local({ b <- as.numeric(st_bbox(cole)); (b[3] - b[1]) * (b[4] - b[2]) / 1e6 })
 
 D$colombia <- list(
   puntual = list(
@@ -404,7 +648,17 @@ D$colombia <- list(
     n_dc = as.integer(sum(cole$en_ventana_dc)),
     lambda_dc = r10(sum(cole$en_ventana_dc) / area_km2(v_dc)),
     factor_lambda = r10((n_urb / a_urb) /
-                        (sum(cole$en_ventana_dc) / area_km2(v_dc)))
+                        (sum(cole$en_ventana_dc) / area_km2(v_dc))),
+    # R2 · T2.3 · El tercer borde, el que NO vale: el rectángulo que ciñe a
+    # los puntos. Se sale del Distrito —la región donde el dato es
+    # exhaustivo—, así que su área entra en el denominador sin que nadie haya
+    # buscado sedes en lo que sobra. Se publica para que el mapa lo enseñe
+    # junto a las dos ventanas válidas.
+    area_caja_km2 = r10(a_caja_cole),
+    lambda_caja = r10(nrow(cole) / a_caja_cole),
+    # la parte de ese rectángulo que queda fuera del Distrito
+    pct_caja_fuera_dc = r10(100 * (1 - as.numeric(st_area(st_intersection(
+      st_as_sfc(st_bbox(cole)), st_union(st_geometry(v_dc))))) / 1e6 / a_caja_cole))
   ),
   area = list(
     nombre = "Deserción escolar municipal",
@@ -545,6 +799,202 @@ res_alt <- residuals(lm(t_media_anual ~ altitud_m, data = est))
 cor_resid <- correlograma(xy_est, res_alt,
                           c(0, 25, 50, 100, 175, 300, 500, 800) * 1000, escala = 1000)
 
+# --- C.4b La envolvente de permutación (R2 · T2.4, G-16 y C1-13) ------
+#
+# Una sola permutación (C.3) no dice cuánta variación es compatible con el
+# azar: dice qué salió una vez. La envolvente lo dice. Se permutan los
+# valores entre las mismas estaciones y, en cada permutación, se calcula
+# en las siete bandas LA MISMA I que publica spdep (se comprueba abajo
+# contra `moran.test`). De cada banda se guardan los cuantiles del 2,5 y
+# del 97,5 %.
+#
+# ES PUNTUAL: cada banda tiene su propio 95 %. Con siete bandas, que
+# alguna se salga por azar no es raro, y la prosa lo dice.
+#
+# DOS ENVOLVENTES, no una: la de la temperatura y la de sus residuos tras
+# quitar la altitud. La distribución de permutación de I depende de los
+# valores que se permutan (de su curtosis), así que la de una serie no es
+# exactamente la de la otra. Salen casi iguales; se publican las dos y se
+# PARA si la lectura de alguna banda de los residuos —dentro, por encima,
+# por debajo— dependiera de cuál de las dos se le ponga detrás, porque el
+# gráfico las dibuja de una en una.
+#
+# B. Con B = 9 999 los cuantiles son estadísticos de orden exactos: el
+# 250.º y el 9 750.º de los valores ordenados, (B + 1)·0,025 y
+# (B + 1)·0,975, sin interpolar. El error típico de un cuantil estimado es
+# sd·sqrt(p(1 - p)/B)/f(q); con la densidad normal en 1,96 eso es 0,027
+# desviaciones típicas de la banda (con B = 999 sería 0,085, tres veces
+# más). Se exige que la I de cada banda quede a más de DIEZ de esos
+# errores del borde más próximo: lo que la prosa dice de cada banda no lo
+# puede voltear la semilla. Son segundos de cómputo.
+estado_rng_c4b <- get(".Random.seed", envir = globalenv())
+CORTES_KM <- c(0, 25, 50, 100, 175, 300, 500, 800)
+NPERM_ENV <- 9999L
+NIVEL_ENV <- 0.95
+K_LO <- (NPERM_ENV + 1L) * (1 - NIVEL_ENV) / 2
+K_HI <- (NPERM_ENV + 1L) * (1 + NIVEL_ENV) / 2
+# Tienen que ser enteros: si no, el cuantil habría que interpolarlo.
+stopifnot(abs(K_LO - round(K_LO)) < 1e-8, abs(K_HI - round(K_HI)) < 1e-8)
+K_LO <- as.integer(round(K_LO)); K_HI <- as.integer(round(K_HI))
+W_env <- lapply(seq_len(length(CORTES_KM) - 1L), function(i) {
+  nb <- suppressWarnings(dnearneigh(xy_est, CORTES_KM[i] * 1000, CORTES_KM[i + 1] * 1000))
+  list(W = listw2mat(nb2listw(nb, style = "W", zero.policy = TRUE)),
+       n_con = sum(card(nb) > 0))
+})
+# La I de spdep con zero.policy = TRUE, para muchas permutaciones a la vez:
+# cada columna de Z es un reparto, ya centrado.
+I_env <- function(Z, w) (w$n_con / sum(w$W)) * colSums(Z * (w$W %*% Z)) / colSums(Z^2)
+envolvente <- function(z, cor_obs, semilla, que) {
+  zc <- z - mean(z)
+  obs <- vapply(W_env, function(w) I_env(matrix(zc), w), numeric(1))
+  pub <- vapply(cor_obs$bandas, function(b) b$I, numeric(1))
+  if (max(abs(obs - pub)) > 1e-9)
+    stop("C.4b: la I escrita a mano no es la que publica moran.test · ", que)
+  set.seed(semilla)
+  Z <- replicate(NPERM_ENV, sample(zc))
+  P <- vapply(W_env, function(w) I_env(Z, w), numeric(NPERM_ENV))     # NPERM x 7
+  lapply(seq_along(W_env), function(j) {
+    v <- sort(P[, j])
+    lo <- v[K_LO]; hi <- v[K_HI]
+    emc <- sd(v) / sqrt(NPERM_ENV)
+    # La envolvente tiene que estar centrada en la referencia que el
+    # gráfico dibuja: la esperanza por permutación de T1.6.
+    if (abs(mean(v) - cor_obs$bandas[[j]]$esperado) > 4 * emc)
+      stop(sprintf("C.4b: la media por permutación de la banda %d (%s) no es su `esperado`", j, que))
+    # El error típico de los cuantiles, y el margen de la I a su borde.
+    ee_q <- sd(v) * sqrt(0.025 * 0.975 / NPERM_ENV) / dnorm(qnorm(0.975))
+    if (min(abs(obs[j] - lo), abs(obs[j] - hi)) < 10 * ee_q)
+      stop(sprintf("C.4b: la I de la banda %d (%s) queda a menos de diez errores de Monte Carlo del borde de su envolvente; sube NPERM_ENV",
+                   j, que))
+    list(d1 = cor_obs$bandas[[j]]$d1, d2 = cor_obs$bandas[[j]]$d2,
+         lo = r10(lo), hi = r10(hi),
+         media = r10(mean(v)), emc = r10(emc), sd = r10(sd(v)),
+         min = r10(v[1]), max = r10(v[NPERM_ENV]),
+         posicion = if (obs[j] > hi) "encima" else if (obs[j] < lo) "debajo" else "dentro")
+  })
+}
+SEM_ENV_T <- SEMILLA + 3L
+SEM_ENV_R <- SEMILLA + 4L
+env_ideam <- envolvente(est$t_media_anual, cor_ideam, SEM_ENV_T, "temperatura")
+env_resid <- envolvente(res_alt, cor_resid, SEM_ENV_R, "residuos")
+
+# --- C.4c Lo que el eje deja fuera, y de dónde sale la banda negativa ---
+# (R2 · T2.4, 2.ª ronda). Tres cuentas sobre la temperatura.
+#
+# 1. LAS PAREJAS DE MÁS DE 800 KM. El correlograma acaba en 800 km y la red
+#    no. Las parejas que quedan fuera se tratan como una banda más, con la
+#    misma I de spdep y la misma envolvente —las MISMAS permutaciones de la
+#    temperatura: se repite la semilla—, para que la prosa pueda decir cómo
+#    se comportan. No se añade a `ideam$bandas`: el gráfico, las otras dos
+#    series y el preparcial 1 van sobre siete.
+#
+# 2. CUÁNTAS PERMUTACIONES SE SALEN EN ALGUNA BANDA. La envolvente es
+#    puntual; la prosa dice que con siete bandas no es raro que alguna se
+#    salga por azar. Se cuenta: la fracción de las permutaciones que caen
+#    fuera de la franja en al menos una de las siete.
+#
+# 3. LA SUMA DE PRODUCTOS, BANDA A BANDA. Con z centrada, la suma de
+#    z_i z_j sobre TODAS las parejas vale -sum(z^2)/2: en unidades de
+#    sum(z^2)/2, exactamente -1, con cualquier dato. Repartida por bandas
+#    de distancia (pesos binarios: cada pareja cuenta una vez), dice cuánto
+#    aporta cada una. Si las bandas cortas suman mucho en positivo, las
+#    largas tienen que sumar eso mismo más uno en negativo: que haya bandas
+#    negativas es obligado; lo que decide el dato es en cuáles.
+z_t <- est$t_media_anual - mean(est$t_media_anual)
+D_est <- as.matrix(dist(xy_est)) / 1000                       # km
+D_MAX <- max(D_est)
+nb_ext <- suppressWarnings(dnearneigh(xy_est, CORTES_KM[length(CORTES_KM)] * 1000, D_MAX * 1000 + 1))
+w_ext <- list(W = listw2mat(nb2listw(nb_ext, style = "W", zero.policy = TRUE)),
+              n_con = sum(card(nb_ext) > 0))
+I_ext <- I_env(matrix(z_t), w_ext)
+set.seed(SEM_ENV_T)                                           # las mismas permutaciones
+Z_t <- replicate(NPERM_ENV, sample(z_t))
+P_ext <- sort(I_env(Z_t, w_ext))
+P_7 <- vapply(W_env, function(w) I_env(Z_t, w), numeric(NPERM_ENV))
+if (max(abs(apply(P_7, 2, function(v) sort(v)[K_LO]) -
+            vapply(env_ideam, function(e) e$lo, numeric(1)))) > 1e-9)
+  stop("C.4c: repetir la semilla no devuelve las permutaciones de la envolvente de la temperatura")
+lo7 <- vapply(env_ideam, function(e) e$lo, numeric(1))
+hi7 <- vapply(env_ideam, function(e) e$hi, numeric(1))
+alguna_fuera <- mean(rowSums(sweep(P_7, 2, lo7, "<") | sweep(P_7, 2, hi7, ">")) > 0)
+emc_alguna <- sqrt(alguna_fuera * (1 - alguna_fuera) / NPERM_ENV)
+# «No sería raro»: por lo menos una de cada diez, con margen de Monte Carlo.
+if (!(alguna_fuera - 4 * emc_alguna > 0.10))
+  stop("C.4c: menos del 10 % de las permutaciones se sale en alguna banda; «no sería raro» sobra")
+ee_q_ext <- sd(P_ext) * sqrt(0.025 * 0.975 / NPERM_ENV) / dnorm(qnorm(0.975))
+if (min(abs(I_ext - P_ext[K_LO]), abs(I_ext - P_ext[K_HI])) < 10 * ee_q_ext)
+  stop("C.4c: la I de las parejas de más de 800 km queda a menos de diez errores del borde")
+assign(".Random.seed", estado_rng_c4b, envir = globalenv())
+
+n_pares_tot <- nn_est <- nrow(xy_est); n_pares_tot <- nn_est * (nn_est - 1) / 2
+mitad_sz2 <- sum(z_t^2) / 2
+prod_zz <- outer(z_t, z_t)
+arriba <- upper.tri(D_est)
+suma_en <- function(d1, d2) {
+  cual <- arriba & D_est > d1 & D_est <= d2
+  list(n_pares = as.integer(sum(cual)), suma = sum(prod_zz[cual]) / mitad_sz2)
+}
+sumas_b <- lapply(seq_len(length(CORTES_KM) - 1L), function(i) {
+  s <- suma_en(CORTES_KM[i], CORTES_KM[i + 1])
+  # las mismas parejas que cuenta el correlograma
+  if (s$n_pares != cor_ideam$bandas[[i]]$n_pares)
+    stop("C.4c: las parejas de la banda ", i, " no son las del correlograma")
+  list(d1 = CORTES_KM[i], d2 = CORTES_KM[i + 1], n_pares = s$n_pares, suma = r10(s$suma))
+})
+suma_ext <- suma_en(CORTES_KM[length(CORTES_KM)], Inf)
+v_sumas <- c(vapply(sumas_b, function(s) s$suma, numeric(1)), suma_ext$suma)
+if (abs(sum(v_sumas) + 1) > 1e-8)
+  stop("C.4c: las sumas por banda no dan -1: no se han repartido todas las parejas")
+if (sum(vapply(sumas_b, function(s) s$n_pares, integer(1))) + suma_ext$n_pares != n_pares_tot)
+  stop("C.4c: las bandas y lo que queda fuera no reúnen todas las parejas")
+
+posicion_en <- function(cor_obs, env) vapply(seq_along(env), function(j) {
+  I <- cor_obs$bandas[[j]]$I
+  if (I > env[[j]]$hi) "encima" else if (I < env[[j]]$lo) "debajo" else "dentro"
+}, character(1))
+pos_ideam <- vapply(env_ideam, function(e) e$posicion, character(1))
+pos_resid <- vapply(env_resid, function(e) e$posicion, character(1))
+# El gráfico dibuja una envolvente cada vez. Si los residuos se leyeran
+# distinto contra la de la temperatura, el dibujo contradiría a la tabla.
+if (!identical(posicion_en(cor_resid, env_ideam), pos_resid))
+  stop("C.4b: los residuos se leen distinto contra la envolvente de la temperatura que contra la suya")
+# La permutación suelta de C.3 reparte los valores de la temperatura: su
+# envolvente es la de la temperatura. Se publica cuántas bandas se le
+# salen; la prosa lo cita.
+pos_perm <- posicion_en(cor_perm, env_ideam)
+# LO QUE LA PROSA DEL MÓDULO 3 AFIRMA DE LA FORMA, guardado aquí y otra
+# vez en el ensamblador:
+#   · temperatura: por encima en las bandas cortas, UNA por debajo y la
+#     última dentro —«ya no se distingue»—;
+#   · la banda por debajo queda además bajo TODAS las permutaciones.
+n_b <- length(pos_ideam)
+i_debajo <- which(pos_ideam == "debajo")
+if (!(length(i_debajo) == 1L && i_debajo == n_b - 1L && pos_ideam[n_b] == "dentro" &&
+      all(pos_ideam[seq_len(n_b - 2L)] == "encima")))
+  stop("C.4b: la temperatura ya no va «encima … encima, debajo, dentro»; la prosa del módulo 3 lo afirma")
+if (!(cor_ideam$bandas[[i_debajo]]$I < env_ideam[[i_debajo]]$min))
+  stop("C.4b: la banda negativa de la temperatura ya no queda por debajo de todas las permutaciones")
+#   · residuos: por encima en las cuatro primeras, la quinta dentro y las
+#     dos últimas por debajo;
+#   · la permutación suelta, dentro en todas.
+if (!identical(pos_resid, c(rep("encima", n_b - 3L), "dentro", "debajo", "debajo")))
+  stop("C.4b: los residuos ya no van «encima ×4, dentro, debajo, debajo»; la prosa del módulo 3 lo afirma")
+if (any(pos_perm != "dentro"))
+  stop("C.4b: la permutación suelta se sale de la envolvente en alguna banda; la prosa dice que en ninguna")
+# C.4c · lo que la prosa afirma de las sumas: las bandas «por encima»
+# suman en positivo, mucho; todo lo demás suma eso más uno en negativo; y
+# la banda que queda por debajo de la franja se lleva más de la mitad.
+n_enc <- n_b - 2L
+suma_cortas <- sum(v_sumas[seq_len(n_enc)])
+suma_largas <- sum(v_sumas[-seq_len(n_enc)])
+if (!(all(v_sumas[seq_len(n_enc)] > 0) && suma_cortas > 5 &&
+      abs(suma_largas + suma_cortas + 1) < 1e-8 &&
+      all(v_sumas[-seq_len(n_enc)] < 0) && v_sumas[i_debajo] < 0.5 * suma_largas))
+  stop("C.4c: las sumas por banda ya no dicen lo que la prosa del módulo 3")
+pos_ext <- if (I_ext > P_ext[K_HI]) "encima" else if (I_ext < P_ext[K_LO]) "debajo" else "dentro"
+if (pos_ext != "debajo")
+  stop("C.4c: las parejas de más de 800 km ya no quedan por debajo de su franja; la prosa lo dice")
+
 # --- C.5 CONTRAEJEMPLO 3: un patrón regular ---------------------------
 # En `cells` lo cercano NO se parece más: los puntos se repelen. Tobler
 # describe una tendencia empírica dominante, no una ley física.
@@ -565,7 +1015,47 @@ D$tobler <- list(
   ),
   # Cuánta autocorrelación se lleva la altitud, en la banda más corta
   caida_por_altitud_pct = r10(
-    100 * (1 - cor_resid$bandas[[1]]$I / cor_ideam$bandas[[1]]$I))
+    100 * (1 - cor_resid$bandas[[1]]$I / cor_ideam$bandas[[1]]$I)),
+  # C.4b · la envolvente de permutación, banda a banda y puntual
+  envolvente = list(
+    nperm = NPERM_ENV, nivel = NIVEL_ENV,
+    nivel_pct = r10(100 * NIVEL_ENV),
+    cuantil_lo_pct = r10(100 * (1 - NIVEL_ENV) / 2),
+    cuantil_hi_pct = r10(100 * (1 + NIVEL_ENV) / 2),
+    orden_lo = as.integer(K_LO), orden_hi = as.integer(K_HI),
+    semilla_ideam = SEM_ENV_T, semilla_residuos = SEM_ENV_R,
+    ideam = env_ideam,
+    residuos_altitud = env_resid,
+    # cuántas bandas de cada serie caen fuera de su envolvente
+    n_fuera_ideam = as.integer(sum(pos_ideam != "dentro")),
+    n_fuera_residuos = as.integer(sum(pos_resid != "dentro")),
+    # la permutación suelta de C.3, contra la envolvente de la temperatura
+    posicion_permutado = pos_perm,
+    n_fuera_permutado = as.integer(sum(pos_perm != "dentro")),
+    # C.4c · en qué porcentaje de las permutaciones de la temperatura se
+    # sale de la franja al menos una de las siete bandas
+    pct_alguna_fuera = r10(100 * alguna_fuera),
+    emc_alguna_fuera_pct = r10(100 * emc_alguna)
+  ),
+  # C.4c · las parejas que el eje del correlograma deja fuera
+  mas_alla = list(
+    d1 = CORTES_KM[length(CORTES_KM)], d_max = r10(D_MAX),
+    n_pares = suma_ext$n_pares, n_pares_total = as.integer(n_pares_tot),
+    pct_pares = r10(100 * suma_ext$n_pares / n_pares_tot),
+    n_con_vecinos = as.integer(w_ext$n_con),
+    I = r10(I_ext), lo = r10(P_ext[K_LO]), hi = r10(P_ext[K_HI]),
+    media = r10(mean(P_ext)), sd = r10(sd(P_ext)),
+    posicion = pos_ext
+  ),
+  # C.4c · la suma de z_i z_j por banda, en unidades de sum(z^2)/2: todas
+  # las parejas suman exactamente -1
+  sumas = list(
+    bandas = sumas_b,
+    mas_alla = r10(suma_ext$suma),
+    n_bandas_cortas = as.integer(n_enc),
+    cortas = r10(suma_cortas), largas = r10(suma_largas),
+    total = r10(sum(v_sumas))
+  )
 )
 
 # =====================================================================
@@ -600,6 +1090,8 @@ JITTER <- 1e-9
 ALFA <- 0.05
 t_crit <- qt(1 - ALFA / 2, N4 - 1)
 
+PHI_CIEN <- 4          # el alcance del que habla la prosa del módulo 4
+replicas_cien <- NULL
 mc <- lapply(PHIS, function(phi) {
   R <- if (phi <= 0) diag(N4) else exp(-DIST4 / phi)
   L <- t(chol(R + diag(JITTER, N4)))
@@ -610,6 +1102,9 @@ mc <- lapply(PHIS, function(phi) {
   s2     <- (ees * sqrt(N4))^2          # la s^2 que ve el software
   cubre  <- abs(medias) <= t_crit * ees
   cob    <- mean(cubre)
+  # R2 · T2.4: las réplicas del alcance que el módulo destaca se guardan
+  # para dibujar cien de sus intervalos (D.1b). No se sortea nada nuevo.
+  if (phi == PHI_CIEN) replicas_cien <<- list(medias = medias, ees = ees, suma_R = sum(R))
   n_ef   <- N4^2 / sum(R)               # sin redondear: entra en s2_esperada
   list(phi = r10(phi),
        # Correlación entre vecinos inmediatos, que es como se lee phi
@@ -670,6 +1165,54 @@ for (m in mc) {
                  m$phi, m$s2_medida, m$s2_esperada))
 }
 
+# --- D.1b Cien intervalos, para VER la cobertura (R2 · T2.4) -----------
+#
+# El módulo publica que el intervalo ingenuo cubre la media verdadera en
+# una fracción de las réplicas. Aquí se sacan cien de esas mismas réplicas
+# —las cien PRIMERAS de la simulación de phi = 4, sin elegirlas— para
+# dibujar sus intervalos. No hay sorteo nuevo: son columnas de la matriz
+# que ya midió la cobertura, así que el estado del generador no se toca.
+#
+# DOS NÚMEROS QUE NO SON EL MISMO, y la prosa los distingue: cuántos de
+# ESTOS cien cubren, y la cobertura medida sobre las NREP réplicas. El
+# primero es una muestra de cien del segundo; se para si deja de ser
+# compatible con él (tres errores típicos de una proporción con n = 100).
+#
+# Y EL MISMO CENTENAR CON EL ERROR ESTÁNDAR VERDADERO. La varianza de la
+# media se conoce: sigma^2·1'R1/n^2. Con ella el intervalo es
+# media ± z·ee_exacto —cuantil normal y no t, porque ahí no se estima
+# nada—. Las cien medias son las mismas; lo único que cambia es el ancho.
+# Es lo que deja ver que la culpa es del error estándar y no de la media.
+if (is.null(replicas_cien)) stop("D.1b: la rejilla ya no trae phi = ", PHI_CIEN)
+N_CIEN <- 100L
+i_cien <- seq_len(N_CIEN)
+ee_exacto_cien <- sqrt(replicas_cien$suma_R) / N4
+z_crit <- qnorm(1 - ALFA / 2)
+cien_media <- r10(replicas_cien$medias[i_cien])
+cien_semi  <- r10(t_crit * replicas_cien$ees[i_cien])
+semi_exacto <- r10(z_crit * ee_exacto_cien)
+cubre_ing <- abs(replicas_cien$medias) <= t_crit * replicas_cien$ees
+cubre_exa <- abs(replicas_cien$medias) <= z_crit * ee_exacto_cien
+# Lo que el navegador colorea sale de las cifras REDONDEADAS: tiene que
+# dar el mismo recuento que las cifras enteras.
+if (sum(abs(cien_media) <= cien_semi) != sum(cubre_ing[i_cien]) ||
+    sum(abs(cien_media) <= semi_exacto) != sum(cubre_exa[i_cien]))
+  stop("D.1b: el redondeo a 10 decimales cambia qué intervalos cubren")
+cob_cien <- mean(cubre_ing[i_cien]); cob_todas <- mean(cubre_ing)
+if (abs(cob_todas - mc[[which(PHIS == PHI_CIEN)]]$cobertura) > 1e-12)
+  stop("D.1b: la cobertura de las réplicas guardadas no es la publicada")
+if (abs(cob_cien - cob_todas) > 3 * sqrt(cob_todas * (1 - cob_todas) / N_CIEN))
+  stop("D.1b: las cien primeras réplicas no son compatibles con la cobertura publicada")
+cob_exa <- mean(cubre_exa)
+emc_exa <- sqrt(cob_exa * (1 - cob_exa) / NREP)
+if (abs(cob_exa - (1 - ALFA)) > 4 * emc_exa)
+  stop("D.1b: con el error estándar verdadero la cobertura no es la nominal")
+# La prosa dice que con el error estándar verdadero cubren casi todos, y
+# que el intervalo verdadero es varias veces más ancho que el ingenuo.
+if (!(sum(cubre_exa[i_cien]) >= 90L && sum(cubre_ing[i_cien]) <= 40L &&
+      semi_exacto > 4 * max(cien_semi)))
+  stop("D.1b: los cien intervalos ya no muestran lo que la prosa lee en ellos")
+
 D$inferencia <- list(
   n = N4, k = K4, nrep = NREP, jitter = JITTER,
   # La escala de h y la varianza marginal, declaradas para que el capítulo
@@ -678,6 +1221,8 @@ D$inferencia <- list(
   escala_h = "distancia euclídea entre centros de celda, medida en pasos de retícula",
   sigma = 1,
   alfa = ALFA,
+  # el nivel de los intervalos, para que la prosa no lo escriba a mano
+  nivel_pct = r10(100 * (1 - ALFA)),
   t_critico = r10(t_crit),
   rejilla = mc,
   # Las dos cifras con las que cierra el módulo
@@ -688,7 +1233,25 @@ D$inferencia <- list(
   # T2.2 · los dos tramos del puente, para el phi que el módulo destaca
   efecto_diseno_phi4      = r10(mc[[which(PHIS == 4)]]$efecto_diseno),
   inflacion_varianza_phi4 = r10(mc[[which(PHIS == 4)]]$inflacion_varianza),
-  s2_esperada_phi4        = r10(mc[[which(PHIS == 4)]]$s2_esperada)
+  s2_esperada_phi4        = r10(mc[[which(PHIS == 4)]]$s2_esperada),
+  # D.1b · cien intervalos de las réplicas de phi = 4, para dibujarlos
+  cien_ic = list(
+    phi = PHI_CIEN, n = N_CIEN,
+    media = cien_media,
+    # semiancho del intervalo ingenuo de cada réplica: t·s/sqrt(n)
+    semiancho_ingenuo = cien_semi,
+    n_cubren_ingenuo = as.integer(sum(cubre_ing[i_cien])),
+    semiancho_ingenuo_medio = r10(mean(t_crit * replicas_cien$ees[i_cien])),
+    # el mismo centenar con el error estándar verdadero: z·sqrt(1'R1)/n
+    z_critico = r10(z_crit),
+    ee_exacto = r10(ee_exacto_cien),
+    semiancho_exacto = semi_exacto,
+    n_cubren_exacto = as.integer(sum(cubre_exa[i_cien])),
+    razon_semianchos = r10(z_crit * ee_exacto_cien / mean(t_crit * replicas_cien$ees[i_cien])),
+    # y la cobertura de ese intervalo sobre todas las réplicas
+    cobertura_exacto = r10(cob_exa),
+    emc_cobertura_exacto = r10(emc_exa)
+  )
 )
 
 # --- D.2 La réplica sobre dato real -----------------------------------
@@ -2156,6 +2719,13 @@ pl_espacial <- km$cluster
 rmse_al <- rmse_cv(pl_aleatorio)
 rmse_es <- rmse_cv(pl_espacial)
 
+# La vecina más próxima de cada estación (la primera, si hay empate).
+vecina_cv <- apply(as.matrix(dist(xy_cv)) + diag(Inf, n_cv), 1, which.min)
+# Lo que el mapa de los pliegues deja ver, y su descripción afirma.
+if (!(mean(pl_aleatorio == pl_aleatorio[vecina_cv]) < 0.25 &&
+      mean(pl_espacial == pl_espacial[vecina_cv]) > 0.75))
+  stop("J: los dos repartos ya no se separan por dónde queda la vecina más próxima")
+
 D$cv_espacial <- list(
   n = n_cv, k_vecinos = K_VECINOS, n_pliegues = NPLIEGUES,
   variable = "temperatura media anual (°C)",
@@ -2180,6 +2750,13 @@ D$cv_espacial <- list(
   tam_pliegues = as.integer(sort(as.vector(table(pl_espacial)))),
   tam_pliegue_min = as.integer(min(table(pl_espacial))),
   tam_pliegue_max = as.integer(max(table(pl_espacial))),
+  # R2 · T2.2 (G-15): lo que separa los dos repartos, contado. De cada
+  # estación, si su vecina más próxima quedó en su MISMO pliegue —y por
+  # tanto fuera del entrenamiento cuando a ella le toca la prueba—. Con el
+  # reparto al azar casi nunca; por bloques, casi siempre. Es el mecanismo
+  # del módulo: al azar, la vecina de al lado está siempre para ayudar.
+  vecina_en_su_pliegue_aleatoria = as.integer(sum(pl_aleatorio == pl_aleatorio[vecina_cv])),
+  vecina_en_su_pliegue_bloques   = as.integer(sum(pl_espacial == pl_espacial[vecina_cv])),
   frontera = paste("El desarrollo (blockCV, spatialsample, tamaño de bloque",
                    "guiado por el rango del variograma y área de",
                    "aplicabilidad) es del capítulo 10.")
@@ -2495,7 +3072,46 @@ MAPAS$snow <- geo_puntos(
   puntos2 = bombas, etiquetas2 = as.character(Snow.pumps$label),
   resaltado2 = i_broad,
   titulo = "Muertes por cólera y bombas de agua, Soho, 1854",
-  leyenda = "bomba más próxima")
+  # Sin pie de leyenda (R2 · T2.2, G-20): «bomba más próxima» es el TÍTULO de
+  # la leyenda y el motor lo escribía debajo de las entradas. Lo dice el
+  # título del mapa, que el capítulo redacta para cada vista.
+  leyenda = "")
+
+# --- M.1b Las celdas de las trece bombas (R2 · T2.2, G-20) ------------
+# La lectura del simulador habla de «la celda de Broad St» y el mapa no la
+# dibujaba. La celda de una bomba es el conjunto de puntos que la tienen
+# como la más próxima: el polígono de Voronoi de las trece, recortado al
+# marco del mapa. Se construye aquí, con la misma distancia euclídea que
+# `mas_cerca`, y no se toman los polígonos que Tobler distribuye con el
+# dato (`Snow.polygons`), que discrepan de esa asignación en un puñado de
+# muertes (ver arriba, `celda_tobler`).
+#
+# Y SE COMPRUEBA CONTRA LO QUE EL MAPA COLOREA: cada muerte tiene que caer
+# dentro de la celda de la bomba que lleva por marca. Si una sola cayera en
+# otra, el mapa pintaría un punto de un color dentro de la celda de otro.
+caja_snow  <- MAPAS$snow$caja
+marco_snow <- st_as_sfc(st_bbox(c(xmin = caja_snow[1], ymin = caja_snow[2],
+                                  xmax = caja_snow[3], ymax = caja_snow[4])))
+pts_bombas <- st_as_sf(data.frame(x = bombas[, 1], y = bombas[, 2]), coords = c("x", "y"))
+vor_snow <- st_collection_extract(
+  st_voronoi(st_union(pts_bombas), envelope = marco_snow), "POLYGON")
+vor_snow <- st_intersection(vor_snow, marco_snow)
+cual_vor <- unlist(st_intersects(pts_bombas, vor_snow))
+stopifnot(length(cual_vor) == nrow(bombas), !anyDuplicated(cual_vor))
+celdas_snow <- vor_snow[cual_vor]
+pts_muertes <- st_as_sf(data.frame(x = muertes[, 1], y = muertes[, 2]), coords = c("x", "y"))
+en_celda <- st_intersects(pts_muertes, celdas_snow)
+if (!all(vapply(seq_along(en_celda), function(i) mas_cerca[i] %in% en_celda[[i]], logical(1))))
+  stop("M.1b: alguna muerte no cae en la celda de Voronoi de su bomba más próxima")
+# Entre todas cubren el marco, sin solaparse.
+if (abs(sum(as.numeric(st_area(celdas_snow))) - as.numeric(st_area(marco_snow))) >
+    1e-9 * as.numeric(st_area(marco_snow)))
+  stop("M.1b: las trece celdas no reparten el marco del mapa")
+MAPAS$snow$celdas <- unname(lapply(seq_along(celdas_snow), function(k) {
+  m <- st_coordinates(celdas_snow[k])[, 1:2, drop = FALSE]
+  qq <- geo_qxy(m[, 1], m[, 2], caja_snow)
+  as.integer(rbind(qq$x, qq$y))
+}))
 
 # --- M.2 Los tres tipos de dato, canónicos ----------------------------
 # La ventana se LEE del objeto, no se escribe. Escrita a mano estuvo mal
@@ -2534,9 +3150,40 @@ MAPAS$nc <- geo_poligonos(
   titulo = "Tasa de muerte súbita infantil, Carolina del Norte 1974-78",
   leyenda = "por 1 000 nacimientos", verbose = FALSE)
 
+# R2 · T2.2 (G-04). La prosa dice que el mapa «parece manchas de color hasta
+# que uno sabe por dónde va el río», y el río no estaba dibujado. Va como
+# capa de líneas: las dos orillas de `meuse.riv`, el contorno del cauce que
+# `sp` distribuye con el dato, recortadas a un marco que es la caja de los
+# puntos ensanchada un décimo de su lado mayor, para que el meandro del
+# suroeste se vea entero. Y la rampa recorre el logaritmo del zinc: en
+# lineal, con asimetría 1.46, casi todos los puntos caían en los dos tonos
+# más claros.
+data(meuse.riv, package = "sp")
+xy_zinc <- as.matrix(meuse[, c("x", "y")])
+MARGEN_RIO <- 0.10
+lado_meuse <- max(diff(range(xy_zinc[, 1])), diff(range(xy_zinc[, 2])))
+caja_meuse <- c(min(xy_zinc[, 1]), min(xy_zinc[, 2]), max(xy_zinc[, 1]), max(xy_zinc[, 2])) +
+  c(-1, -1, 1, 1) * MARGEN_RIO * lado_meuse
+marco_meuse <- st_as_sfc(st_bbox(c(xmin = caja_meuse[1], ymin = caja_meuse[2],
+                                   xmax = caja_meuse[3], ymax = caja_meuse[4])))
+cauce <- st_sfc(st_polygon(list(meuse.riv)))
+stopifnot(st_is_valid(cauce))
+orillas <- st_cast(st_cast(st_intersection(st_boundary(cauce), marco_meuse), "MULTILINESTRING"),
+                   "LINESTRING")
+lineas_rio <- lapply(seq_along(orillas), function(k) st_coordinates(orillas[k])[, 1:2, drop = FALSE])
+# La distancia de cada punto al cauce dibujado, para poder decir que los
+# valores altos se pegan a ESE río y no a otro: tiene que contar lo mismo
+# que la `dist` del dato, que viene normalizada y es la que usa
+# `corr_dist_rio`.
+d_cauce <- as.numeric(st_distance(st_as_sf(meuse, coords = c("x", "y")), cauce))
+if (cor(d_cauce, meuse$dist) < 0.95 || cor(log(meuse$zinc), d_cauce) > -0.5)
+  stop("M.2: el cauce dibujado no es el río al que se pegan los valores altos de zinc")
 MAPAS$meuse <- geo_puntos(
-  as.matrix(meuse[, c("x", "y")]), marcas = as.numeric(meuse$zinc),
-  titulo = "Zinc en la vega del Mosa", leyenda = "ppm")
+  xy_zinc, marcas = as.numeric(meuse$zinc), caja = caja_meuse,
+  lineas = lineas_rio,
+  titulo = "Zinc en la vega del Mosa",
+  leyenda = "ppm · las dos líneas son las orillas del río")
+MAPAS$meuse$marcas_escala <- "log"
 
 # --- M.2b El mapa del módulo 7: la rejilla encima de los condados -----
 #
@@ -2575,13 +3222,78 @@ MAPAS$agregacion <- geo_poligonos(
                    nrow(nc_ag), nrow(rej_nc)),
   leyenda = "muertes súbitas, 1974-78")
 
+# R2 · T2.2 (G-13). En el teléfono las cinco celdas del caso miden unos
+# 23 × 8 px y sus rótulos —que son la lección del mapa— no caben. El mapa
+# gana una segunda vista, ACERCADA: la misma geometría mirada por una
+# ventana que es la caja de las celdas que toca el condado, ensanchada una
+# celda por cada lado. Aquí solo se calcula la ventana y lo que cae dentro;
+# el navegador reencuadra con ella los mismos vértices, sin geometría nueva.
+bb_caso <- as.numeric(st_bbox(st_geometry(rej_nc)[cel_caso]))
+zoom_ag <- c(max(bb_rej[1], bb_caso[1] - paso_x), max(bb_rej[2], bb_caso[2] - paso_y),
+             min(bb_rej[3], bb_caso[3] + paso_x), min(bb_rej[4], bb_caso[4] + paso_y))
+ctr_rej <- st_coordinates(st_centroid(st_geometry(rej_nc)))
+cel_vista <- which(ctr_rej[, 1] > zoom_ag[1] & ctr_rej[, 1] < zoom_ag[3] &
+                   ctr_rej[, 2] > zoom_ag[2] & ctr_rej[, 2] < zoom_ag[4])
+stopifnot(all(cel_caso %in% cel_vista))
+MAPAS$agregacion$zoom <- list(
+  caja = r10(zoom_ag),
+  n_celdas = length(cel_vista),
+  columnas = as.integer(round((zoom_ag[3] - zoom_ag[1]) / paso_x)),
+  filas    = as.integer(round((zoom_ag[4] - zoom_ag[2]) / paso_y)))
+stopifnot(MAPAS$agregacion$zoom$columnas * MAPAS$agregacion$zoom$filas == length(cel_vista))
+
 # --- M.3 Los tres tipos, colombianos ----------------------------------
 # Sin marcas: el capítulo 1 solo enseña que esto es un patrón puntual.
 # La marca (urbana/rural, sector, jornada) es del capítulo 4, y aquí
 # costaría 4,4 KB del presupuesto sin decir nada todavía.
 MAPAS$bogota <- geo_puntos(
   st_coordinates(cole),
+  # La caja del mapa es la del Distrito y los puntos juntos: los bordes que
+  # se dibujan encima tienen que caber (R2 · T2.3).
+  caja = as.numeric(st_bbox(c(st_geometry(v_dc), st_as_sfc(st_bbox(cole))))),
   titulo = "Sedes educativas de Bogotá", leyenda = "sede")
+# R2 · T2.3 (G-03). La prosa pide mirar el borde y el mapa no dibujaba
+# ninguno. Van los tres de los que habla: el perímetro urbano y el Distrito
+# Capital, simplificados, y el rectángulo de los puntos. Cada uno es una
+# lista de anillos cuantizados contra la caja del mapa; el navegador enseña
+# uno u otro con un control y escribe la intensidad que R calculó con él.
+stopifnot(st_crs(v_urb) == st_crs(cole), st_crs(v_dc) == st_crs(cole))
+anillos_de <- function(x, presupuesto) {
+  g <- geo_simplifica(st_sf(geom = st_cast(st_union(st_geometry(x)), "POLYGON")),
+                      presupuesto = presupuesto, verbose = FALSE)
+  unlist(lapply(st_geometry(g), function(pp) {
+    partes <- if (inherits(pp, "MULTIPOLYGON")) lapply(pp, function(u) u[[1]]) else list(pp[[1]])
+    lapply(partes, function(m) {
+      qq <- geo_qxy(m[, 1], m[, 2], MAPAS$bogota$caja)
+      as.integer(rbind(qq$x, qq$y))
+    })
+  }), recursive = FALSE)
+}
+bb_cole <- as.numeric(st_bbox(cole))
+MAPAS$bogota$bordes <- list(
+  urbano   = anillos_de(v_urb, 220L),
+  distrito = anillos_de(v_dc, 160L),
+  caja     = list(local({
+    qq <- geo_qxy(bb_cole[c(1, 3, 3, 1, 1)], bb_cole[c(2, 2, 4, 4, 2)], MAPAS$bogota$caja)
+    as.integer(rbind(qq$x, qq$y))
+  })))
+# Lo que la prosa afirma de los tres: el perímetro cae dentro del Distrito,
+# y el rectángulo de los puntos se sale de él.
+stopifnot(as.numeric(st_area(st_difference(st_union(st_geometry(v_urb)), st_union(st_geometry(v_dc))))) <
+            1e-6 * as.numeric(st_area(v_urb)),
+          D$colombia$puntual$pct_caja_fuera_dc > 5,
+          D$colombia$puntual$lambda_urbana > D$colombia$puntual$lambda_dc)
+# Y en qué borde cae cada sede, en el orden de `pts`, para que la lectura del
+# mapa diga si entra en la cuenta de la ventana puesta (R2 · T2.3): 2, dentro
+# del perímetro urbano —y por tanto del Distrito—; 1, en el Distrito y fuera
+# del perímetro; 0, fuera del Distrito. Es la pertenencia que ya trae el dato
+# (`en_urbana`, `en_ventana_dc`), la misma que cuentan `n_urbana` y `n_dc`.
+# Arriba se decía que una marca por sede costaría 4,4 KB sin decir nada; con
+# el conmutador de ventanas dice algo: qué sedes cuenta cada una.
+stopifnot(all(cole$en_urbana <= cole$en_ventana_dc))
+MAPAS$bogota$dentro <- as.integer(cole$en_urbana) + as.integer(cole$en_ventana_dc)
+stopifnot(sum(MAPAS$bogota$dentro == 2L) == D$colombia$puntual$n_urbana,
+          sum(MAPAS$bogota$dentro >= 1L) == D$colombia$puntual$n_dc)
 # El Distrito Capital viene en inglés en la capa de departamentos («Bogota
 # Capital District»), y la tabla de respaldo de este mapa lo publicaba así.
 # Se nombra en español aquí, en el mapa; el CSV de las pestañas no se toca.
@@ -2594,53 +3306,94 @@ MAPAS$desercion <- geo_poligonos(
 # 2 decimales en la marca: una temperatura en centésimas de grado es más
 # precisión de la que tiene el dato y de la que distingue una rampa de
 # color, y cada decimal de más son bytes del presupuesto.
+# R2 · T2.2 (G-05). Las estaciones flotaban sin referencia: va de fondo el
+# contorno del país, que es la unión de los departamentos del mapa de
+# deserción, simplificada. Solo los anillos exteriores de cada parte —las
+# islas incluidas—, porque es una silueta y no una capa de unidades.
+pais <- st_union(st_geometry(dep_ok))
+pais <- geo_simplifica(st_sf(geom = st_cast(pais, "POLYGON")), presupuesto = 420L, verbose = FALSE)
+lineas_pais <- unlist(lapply(st_geometry(pais), function(g) {
+  if (inherits(g, "MULTIPOLYGON")) lapply(g, function(pp) pp[[1]][, 1:2, drop = FALSE])
+  else list(g[[1]][, 1:2, drop = FALSE])
+}), recursive = FALSE)
+stopifnot(st_crs(est) == st_crs(dep_ok))
 MAPAS$ideam <- geo_puntos(
   st_coordinates(est), marcas = round(as.numeric(est$t_media_anual), 2),
+  lineas = lineas_pais,
   titulo = "Temperatura media anual, estaciones del IDEAM",
-  leyenda = "°C")
+  leyenda = "°C · de fondo, el contorno del país")
+# R2 · T2.2 (G-15). Los dos repartos de la validación cruzada del módulo 10,
+# estación a estación, para dibujarlos: es lo único que cambia entre las dos
+# barras del simulador. Son los mismos vectores con los que se midió el
+# RMSE; el auditor lo rehace con ellos.
+stopifnot(identical(unname(st_coordinates(est)), unname(xy_cv)))
+MAPAS$ideam$pliegue_aleatorio <- as.integer(pl_aleatorio)
+MAPAS$ideam$pliegue_bloques   <- as.integer(pl_espacial)
 
 # --- M.4 Los campos gaussianos de los simuladores ---------------------
-# Una realización por valor de phi, en 28 x 28. Son la fuente del
-# simulador «campo gaussiano con correlación regulable» del módulo 3-4.
+# Un campo por valor de phi, sobre la MISMA retícula de K4 x K4 que mide
+# las cifras del módulo 4 (R2 · T2.2, G-07). Hasta aquí eran de 28 x 28,
+# con ruido propio, mientras la lectura de debajo hablaba de «las 256
+# celdas»: el mapa no era el campo de la simulación ni decía qué era.
 #
-# 28 y no 32: sobre un lienzo de ~350 px cada celda son 12 px, que se lee
-# igual de bien, y las rejillas juntas bajan casi a la mitad. El
-# presupuesto del capítulo manda sobre la resolución cuando la resolución
-# de más no se ve.
+# AHORA EL DE phi = 4 ES LA RÉPLICA 1 DE LA SIMULACIÓN. El ruido blanco es
+# el de la primera columna de la matriz de D.1 para ese alcance —la misma
+# semilla, los mismos N4 primeros normales— y pasa por el mismo factor de
+# Cholesky, así que el campo es, celda a celda, el primero de los 3 000 que
+# midieron la cobertura y el primero de los cien intervalos de D.1b. Se
+# comprueba abajo contra su media.
+#
+# Y LOS OTROS SEIS PASAN ESE MISMO RUIDO por la correlación de su alcance:
+# así lo único que cambia entre un mapa y el siguiente es phi, no la
+# realización. Sin esto el simulador parecería cambiar de dato al mover el
+# control. No son la réplica 1 de sus propias simulaciones —cada alcance
+# sortea con su semilla—, y el capítulo lo dice.
 #
 # PHIS_VER cubre los SIETE alcances de `inferencia.rejilla` y no cinco
 # (T1.2): el deslizador del módulo 4 recorre las cifras de esa rejilla, y
 # dejar dos posiciones sin campo obligaba a acortar el control justo en
 # los dos extremos que más enseñan — phi = 0 es la imagen de la
 # independencia.
-K8 <- 28L; N8 <- K8^2
-rej8 <- expand.grid(x = seq_len(K8), y = seq_len(K8))
-D8 <- as.matrix(dist(rej8))
-PHIS_VER <- c(0, 0.5, 1, 2, 4, 8, 16)
-set.seed(SEMILLA + 600L)
-# El MISMO ruido blanco para todos los phi: así lo único que cambia entre
-# un mapa y el siguiente es la correlación, no la realización. Sin esto
-# el simulador parecería estar cambiando de dato al mover el control.
-e8 <- rnorm(N8)
-MAPAS$campos <- lapply(PHIS_VER, function(phi) {
-  # phi = 0 es el caso LÍMITE, no un valor más: rho(h) = 0 para todo
-  # h > 0, o sea R = I y el campo ES el ruido blanco de arriba. La
-  # fórmula no sirve ahí —D8/0 da NaN en la diagonal—, así que se
-  # despacha aparte. Y como el ruido es común a todos los phi, el mapa
-  # de phi = 0 enseña literalmente el punto de partida de los otros seis.
-  z <- if (phi == 0) e8 else
-    as.numeric(t(chol(exp(-D8 / phi) + diag(1e-8, N8))) %*% e8)
-  g <- geo_rejilla(matrix(z, K8, K8), caja = c(0, 0, K8, K8),
-                   titulo = sprintf("Campo gaussiano, rango = %g", phi),
-                   leyenda = "z", n_clases = 7, estilo = "equal")
+PHIS_VER <- PHIS
+semilla_antes <- if (exists(".Random.seed", envir = globalenv())) get(".Random.seed", envir = globalenv()) else NULL
+set.seed(SEMILLA + 100L + round(PHI_CIEN * 10))
+e_ver <- rnorm(N4)
+if (!is.null(semilla_antes)) assign(".Random.seed", semilla_antes, envir = globalenv())
+campo_de <- function(phi) {
+  # phi = 0 es el caso LÍMITE: R = I y el campo ES el ruido blanco. Se
+  # despacha como en D.1, con la misma matriz y el mismo jitter.
+  R <- if (phi <= 0) diag(N4) else exp(-DIST4 / phi)
+  as.numeric(t(chol(R + diag(JITTER, N4))) %*% e_ver)
+}
+Z_VER <- lapply(PHIS_VER, campo_de)
+if (abs(mean(Z_VER[[which(PHIS_VER == PHI_CIEN)]]) - replicas_cien$medias[1]) > 1e-12)
+  stop("M.4: el campo de phi = ", PHI_CIEN, " ya no es la réplica 1 de la simulación")
+# UNA SOLA ESCALA PARA LOS SIETE, Y CENTRADA EN CERO (G-06). El proceso
+# tiene media 0: el tono neutro de la paleta divergente tiene que ser el 0,
+# y a igual distancia del 0, igual intensidad. La escala es simétrica,
+# ±(el mayor valor absoluto de los siete), y los cortes son siete clases de
+# anchura igual sobre ella, de modo que la del medio queda centrada en 0.
+A_VER <- max(abs(unlist(Z_VER)))
+cuenta_clases <- function(z, brks) as.integer(table(cut(z, brks, include.lowest = TRUE, right = FALSE)))
+MAPAS$campos <- lapply(seq_along(PHIS_VER), function(j) {
+  phi <- PHIS_VER[j]; z <- Z_VER[[j]]
+  g <- geo_rejilla(matrix(z, K4, K4), caja = c(0, 0, K4, K4),
+                   titulo = sprintf("Campo gaussiano de %d × %d celdas, alcance φ = %g", K4, K4, phi),
+                   leyenda = "z", n_clases = 7, estilo = "equal", escala = c(-A_VER, A_VER))
+  g$centro <- 0
+  g$tam <- cuenta_clases(z, g$cortes)
+  stopifnot(sum(g$tam) == N4)
   g$phi <- r10(phi)
   g$rho_vecino <- r10(if (phi == 0) 0 else exp(-1 / phi))
+  g$media_espacial <- r10(mean(z))
   g$moran <- r10(local({
-    nb <- cell2nb(K8, K8, type = "queen")
+    nb <- cell2nb(K4, K4, type = "queen")
     moran.test(z, nb2listw(nb, style = "W"))$estimate[["Moran I statistic"]]
   }))
   g
 })
+# Lo que la descripción de cada campo afirma: el I de Moran crece con phi.
+stopifnot(!is.unsorted(vapply(MAPAS$campos, function(g) g$moran, numeric(1)), strictly = TRUE))
 
 # --- M.5 Los mapas de las tres realizaciones que se enseñan -----------
 # Las tres primeras del lote de la sección F, en su MISMA rejilla de
@@ -2652,11 +3405,20 @@ MAPAS$campos <- lapply(PHIS_VER, function(phi) {
 # `mean(z)`/`sd(z)` sobre el vector del mapa, y no una copia de
 # `medias_real[i]`: las dos rutas tienen que coincidir y el ensamblador
 # lo exige. Copiarlas de la sección F volvería tautológica esa guarda.
+# R2 · T2.2 (G-06): como los campos de M.4, una sola escala para las tres,
+# simétrica y centrada en la media del proceso, 0. Con cada mapa
+# normalizado contra su propio recorrido, la clase blanca caía en un valor
+# distinto en cada uno y la media de la realización —que es lo que el
+# módulo dice que se mueve— no se veía moverse.
+A_REAL <- max(abs(CAMPOS[, seq_len(N_VISTAS)]))
 MAPAS$realizaciones <- lapply(seq_len(N_VISTAS), function(i) {
   z <- CAMPOS[, i]
   g <- geo_rejilla(matrix(z, K6, K6), caja = c(0, 0, K6, K6),
                    titulo = sprintf("Realización %d del mismo proceso", i),
-                   leyenda = "z", n_clases = 7, estilo = "equal")
+                   leyenda = "z", n_clases = 7, estilo = "equal", escala = c(-A_REAL, A_REAL))
+  g$centro <- 0
+  g$tam <- cuenta_clases(z, g$cortes)
+  stopifnot(sum(g$tam) == N6)
   g$id             <- i
   g$media_espacial <- r10(mean(z))
   g$sd_espacial    <- r10(sd(z))
@@ -2707,14 +3469,74 @@ xy_cole <- st_coordinates(cole)
 fr_cole <- c("sur", "centro", "norte")[findInterval((xy_cole[, 2] - MAPAS$bogota$caja[2]) /
                                                      (MAPAS$bogota$caja[4] - MAPAS$bogota$caja[2]),
                                                      c(1, 2) / 3) + 1]
+# R2 · T2.3 (ronda 3). Lo que las etiquetas y descripciones dicen de la
+# forma, contado aquí para que la frase lo pueda leer:
+#   · la clase más oscura de la deserción, por zona (no solo los 3 mayores);
+#   · cuántas estaciones son «las más frías» y «las más cálidas»;
+#   · de qué lado del eje principal de la nube de meuse caen los puntos del
+#     décimo con más zinc (el normal se orienta hacia el noroeste).
+alta_dep <- MAPAS$desercion$clase == max(MAPAS$desercion$clase)
+lado_zinc <- local({
+  xy <- as.matrix(meuse[, c("x", "y")]); z <- meuse$zinc
+  m <- colMeans(xy); d <- sweep(xy, 2, m)
+  ang <- 0.5 * atan2(2 * sum(d[, 1] * d[, 2]), sum(d[, 1]^2) - sum(d[, 2]^2))
+  nv <- c(-sin(ang), cos(ang)); if (nv[1] > 0 || nv[2] < 0) nv <- -nv
+  top <- order(-z)[seq_len(max(1, length(z) %/% 10))]
+  nw <- sum((d[top, ] %*% nv) > 0)
+  list(top_n = length(top), top_noroeste = as.integer(nw),
+       lado = if (2 * nw > length(top)) "noroeste" else "sureste",
+       diagonal = sum(d[, 1] * d[, 2]) > 0)
+})
 D$visto <- list(
-  desercion = list(mayores = extremo(o_dep[1:3]), menores = extremo(rev(o_dep)[1:3])),
+  desercion = list(mayores = extremo(o_dep[1:3]), menores = extremo(rev(o_dep)[1:3]),
+                   clase_alta = c(list(n = sum(alta_dep)), list(zonas = tabla_zonas(z_dep[alta_dep])))),
+  meuse = lado_zinc,
   nc = c(list(clase_alta_n = sum(alta_nc)), tabla_zonas(z_nc[alta_nc])),
   ideam = list(frias_umbral = r10(q_ideam[1]), calidas_umbral = r10(q_ideam[2]),
                frias = tabla_zonas(z_ideam[t_ideam <= q_ideam[1]]),
-               calidas = tabla_zonas(z_ideam[t_ideam >= q_ideam[2]])),
+               calidas = tabla_zonas(z_ideam[t_ideam >= q_ideam[2]]),
+               n_frias = sum(t_ideam <= q_ideam[1]), n_calidas = sum(t_ideam >= q_ideam[2]),
+               # R2 · T2.3 (ronda 4): «donde se concentran las estaciones de mayor
+               # altitud» con su cifra: el décimo más alto por zona. Y cuánto baja
+               # la temperatura por km, con el signo ya puesto, para escribir «baja».
+               altas = local({
+                 q_a <- quantile(est$altitud_m, 0.9, names = FALSE)
+                 al <- est$altitud_m >= q_a
+                 c(list(umbral_m = r10(q_a), n = sum(al)), list(zonas = tabla_zonas(z_ideam[al])))
+               }),
+               baja_por_km = r10(-coef(lm(t_media_anual ~ altitud_m, data = est))[["altitud_m"]] * 1000),
+               # R2 · T2.2 (G-24): la tabla de respaldo del mapa. Las
+               # estaciones por franja de altitud de 500 m, [desde, hasta),
+               # con cuántas hay y su temperatura media.
+               por_altitud = local({
+                 PASO_ALT <- 500
+                 fr <- floor(est$altitud_m / PASO_ALT)
+                 lapply(sort(unique(fr)), function(f) list(
+                   desde = as.integer(f * PASO_ALT), hasta = as.integer((f + 1) * PASO_ALT),
+                   n = as.integer(sum(fr == f)),
+                   t_media = r10(mean(t_ideam[fr == f]))))
+               })),
   bogota = list(franja = I(c("norte", "centro", "sur")),
-                n = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f), 0L))))
+                n = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f), 0L)),
+                # R2 · T2.3 (ronda 2). Lo que la descripción dice de los tercios,
+                # contado: cuántas sedes de cada uno caen en el perímetro urbano y
+                # cuántas fuera del Distrito; y a cuántos metros al norte del corte
+                # entre el tercio norte y el del medio acaba el perímetro urbano
+                # (positivo: el perímetro cabe entero en el tercio norte).
+                urbana = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f & cole$en_urbana), 0L)),
+                fuera_dc = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f & !cole$en_ventana_dc), 0L)),
+                margen_urbano_m = r10(st_bbox(v_urb)[["ymin"]] -
+                  (MAPAS$bogota$caja[2] + 2 / 3 * (MAPAS$bogota$caja[4] - MAPAS$bogota$caja[2]))),
+                # R2 · T2.3 (ronda 5). «Cabe entero en ese tercio» no lo dice
+                # solo el margen (que mira el borde sur): el tercio norte de la
+                # caja del mapa, como rectángulo, tiene que cubrir el perímetro
+                # urbano entero, también por el este, el oeste y el norte.
+                urbano_en_tercio_norte = local({
+                  cj <- MAPAS$bogota$caja
+                  tercio <- st_as_sfc(st_bbox(c(xmin = cj[1], ymin = cj[2] + 2 / 3 * (cj[4] - cj[2]),
+                                                xmax = cj[3], ymax = cj[4]), crs = st_crs(v_urb)))
+                  isTRUE(st_covers(tercio, st_union(st_geometry(v_urb)), sparse = FALSE)[1, 1])
+                })))
 message(sprintf("  deserción: de %s (%s) a %s (%s) · NC alta: %s · IDEAM frías: %s · Bogotá: %s",
                 nombre_dep(dep_ok$shapeName[o_dep[1]]), z_dep[o_dep[1]],
                 nombre_dep(dep_ok$shapeName[rev(o_dep)[1]]), z_dep[rev(o_dep)[1]],
@@ -2762,6 +3584,13 @@ write.csv(rbind(
   data.frame(tipo = "bomba", etiqueta = as.character(Snow.pumps$label),
              x = r10(Snow.pumps$x), y = r10(Snow.pumps$y))),
   file.path(SALIDAS, "cap1_snow.csv"), row.names = FALSE, fileEncoding = "UTF-8")
+
+# R2 · T2.4: las calles, para que el auditor rehaga en Python la parte de
+# calle de cada bomba (la media exacta de la nula del módulo 1).
+write.csv(data.frame(calle = as.integer(Snow.streets$street),
+                     x = r10(Snow.streets$x), y = r10(Snow.streets$y)),
+          file.path(SALIDAS, "cap1_snow_calles.csv"), row.names = FALSE,
+          fileEncoding = "UTF-8")
 
 write.csv(data.frame(fecha = format(sd_dat$date),
                      ataques = as.integer(sd_dat$attacks),

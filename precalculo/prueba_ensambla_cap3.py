@@ -81,6 +81,16 @@ MUTANTES = [
      ANTES_DE_LA_TABLA, '_m7["area_pct_cont"][_ix[_AMZ]] = 12.0\n' + ANTES_DE_LA_TABLA, "contiguo:"),
     ("el hexágono más oscuro deja de ser casi todo de Bogotá",
      ANTES_DE_LA_TABLA, '_m7["hex_max_aporta_pct"] = 40.0\n' + ANTES_DE_LA_TABLA, "hexbin:"),
+    # Del 2026-11-17: en un cartograma el área es el dato, y la silueta del motor
+    # la falsea. La guarda mira el registro publicado de los cuatro mapas.
+    ("el cartograma no contiguo vuelve a llevar silueta",
+     '''    + geomapa('cap3-carto-ncont', 'dep_ncont', 'verde',
+              ", silueta: false, descripcion: "''', '''    + geomapa('cap3-carto-ncont', 'dep_ncont', 'verde',
+              ", descripcion: "''', "no apaga la silueta"),
+    ("el cartograma contiguo vuelve a llevar silueta",
+     '''    + geomapa('cap3-carto-cont', 'dep_cont', 'verde',
+              ", silueta: false, descripcion: "''', '''    + geomapa('cap3-carto-cont', 'dep_cont', 'verde',
+              ", descripcion: "''', "no apaga la silueta"),
     ("un municipio sin estudiantes aparece en el norte",
      ANTES_DE_LA_TABLA, '_SIN[0]["zona"] = "norte"\n' + ANTES_DE_LA_TABLA, "presencia:"),
 ]

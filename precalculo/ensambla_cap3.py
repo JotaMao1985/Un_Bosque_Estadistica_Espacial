@@ -2298,12 +2298,25 @@ GEOMAPAS_JS = (
       " descripcion: " + json.dumps(DESC_PRESENCIA, ensure_ascii=False) + " };\n"
     + geomapa('cap3-carto', 'dep_coropleto', 'verde', ", get superpuestas() { return cartoSuper; }"
               ", descripcion: () => DESC3_CARTO[cartoSuper[0] || 'nada']")
+    # `silueta: false` EN LOS TRES CARTOGRAMAS, y dicho a mano (R2, T2.1, 2026-11-17).
+    # El motor traza una silueta en tinta alrededor de los coropletos para que la
+    # clase más clara no se pierda contra el fondo. En un cartograma EL ÁREA ES EL
+    # DATO, y un filo de 1 px alrededor de cada unidad la falsea: en el no contiguo
+    # doblaba la tinta a 375 px y hacía crecer de 5 a 8 veces a los departamentos
+    # pequeños; en el de Dorling fundía dos pares de círculos. El motor ya no la
+    # traza donde las unidades no se tocan, pero el contiguo de Dougenik SÍ es un
+    # teselado y la llevaría: aquí no se deja a lo que el motor deduzca.
+    #
+    # El hexbin NO la apaga. Sus celdas son iguales y no codifican nada con el
+    # área; la silueta solo rodea el contorno exterior de la rejilla, y sin ella
+    # los hexágonos de la clase más clara se pierden contra el fondo, que es el
+    # defecto que la silueta vino a arreglar.
     + geomapa('cap3-carto-ncont', 'dep_ncont', 'verde',
-              ", descripcion: " + json.dumps(DESC_NCONT, ensure_ascii=False))
+              ", silueta: false, descripcion: " + json.dumps(DESC_NCONT, ensure_ascii=False))
     + geomapa('cap3-carto-dorling', 'dep_dorling', 'verde',
-              ", descripcion: " + json.dumps(DESC_DORLING, ensure_ascii=False))
+              ", silueta: false, descripcion: " + json.dumps(DESC_DORLING, ensure_ascii=False))
     + geomapa('cap3-carto-cont', 'dep_cont', 'verde',
-              ", descripcion: " + json.dumps(DESC_CONT, ensure_ascii=False))
+              ", silueta: false, descripcion: " + json.dumps(DESC_CONT, ensure_ascii=False))
     + geomapa('cap3-hexbin', 'dep_hexbin', 'naranja',
               ", descripcion: " + json.dumps(DESC_HEXBIN, ensure_ascii=False))
 )
@@ -3173,6 +3186,15 @@ def main() -> int:
         if (f'aria-describedby="lectura-{ident}"' not in lienzo
                 or f'id="lectura-{ident}"' not in caja or 'aria-live="polite"' not in caja):
             problemas.append(f"{ident}: la lectura no es la descripción del lienzo")
+    # LOS MAPAS DONDE EL ÁREA ES EL DATO VAN SIN SILUETA (R2, T2.1, 2026-11-17).
+    # El motor traza una silueta en tinta alrededor de los coropletos; en un
+    # cartograma ese filo cambia el área que el lector compara, que es justo lo
+    # que el mapa mide. Se comprueba en el registro que sale publicado, no en la
+    # intención: una vez ya se publicaron con halo.
+    for _ident in ("cap3-carto-ncont", "cap3-carto-dorling", "cap3-carto-cont"):
+        _reg = re.search(r"GEOMAPAS\['" + re.escape(_ident) + r"'\] = \{.*", doc)
+        if not _reg or "silueta: false" not in _reg.group(0):
+            problemas.append(f"{_ident}: el área es el dato y el registro no apaga la silueta (`silueta: false`)")
     # «DESCRIBIR EL MAPA» (2026-11-02). Cada mapa que el documento usa trae
     # su descripción —los conmutables, una por estado—, y lo que esas frases
     # afirman de la forma se comprueba contra el dato.

@@ -77,6 +77,18 @@ pueden simplificar por debajo de 12 547 vértices, que es su suelo. 400 KB
 es holgado a propósito: el capítulo no va a añadir mapas, y un techo
 ajustado al byte convierte cualquier corrección en un rojo.
 
+SUBIÓ A 870 KB el 2026-11-17, con las reglas compartidas de las gráficas en la plantilla
+(R2, T2.1: la fusión profunda de `crearGraficoLinea`, la leyenda al pie y la letra de la casa en
+todos los gráficos, el suelo de la letra de los rótulos y el color de las marcas del `.geomapa`).
+El documento no cambió una palabra y se pasaba del tope de 760:
+
+  · pesa **769 KB**: 732 de antes y **37 de la plantilla**, casi todo comentario
+    —por qué cada regla, que es lo que evita que se deshaga—;
+  · la cota con el arnés: 769 < 870 < 1081;
+  · 870 deja **101 KB de margen**, y es a propósito más que otras veces. El criterio lo
+    fijó Javier: el peso nunca recorta explicación, y el tope se sube de una vez hasta donde el
+    arnés sigue mordiendo, no de 20 en 20. Quedan rondas de mejora sobre esta misma plantilla.
+
 Uso:  python3 precalculo/audita_texto_cap6.py
 Devuelve 1 si algo falla.
 """
@@ -88,7 +100,7 @@ import sys
 from audita_texto_base import Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP6_KB = 760.0
+TOPE_CAP6_KB = 870.0
 
 # Cifras que NO son resultados: identificadores, años, códigos y versiones.
 ESTRUCTURALES = {

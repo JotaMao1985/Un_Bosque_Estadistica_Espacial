@@ -55,6 +55,21 @@ CIERRA = (
 )
 
 
+# EL CSS DE LA LECTURA (R2 · T2.3, ronda 2). El motor de arriba es solo
+# JavaScript; la caja de la lectura y el anillo de foco del lienzo son CSS,
+# y sin ellos el banco pintaba la lectura justificada y el foco sin marca.
+# Se copia el bloque de la plantilla entre estas dos anclas; si el banco
+# todavía no lo tiene, entra justo antes de `.geomapa-controles`.
+CSS_ABRE = "    /* La lectura de la unidad señalada (R2 · T2.3)"
+CSS_CIERRA = (
+    "    .geomapa-lienzo[tabindex]:focus-visible {\n"
+    "      outline: 3px solid #FF6600;\n"
+    "      outline-offset: 2px;\n"
+    "    }\n"
+)
+CSS_DONDE = "    .geomapa-controles {\n"
+
+
 def extrae(texto: str, abre: str, cierra: str, que: str) -> str:
     """El bloque [abre, cierra] con las dos anclas dentro, exigiendo unicidad."""
     if texto.count(abre) != 1:
@@ -89,6 +104,18 @@ def main() -> int:
     cambio_motor = motor_bueno != motor_viejo
     banco = banco.replace(motor_viejo, motor_bueno)
 
+    # --- El CSS de la lectura ---------------------------------------------
+    css_bueno = extrae(plantilla, CSS_ABRE, CSS_CIERRA, "el CSS de la lectura de la plantilla") + "\n"
+    if CSS_ABRE in banco:
+        css_viejo = extrae(banco, CSS_ABRE, CSS_CIERRA, "el CSS de la lectura del banco") + "\n"
+        cambio_css = css_viejo != css_bueno
+        banco = banco.replace(css_viejo, css_bueno)
+    else:
+        if banco.count(CSS_DONDE) != 1:
+            sys.exit(f"PARADO: `.geomapa-controles` aparece {banco.count(CSS_DONDE)} veces en el banco")
+        cambio_css = True
+        banco = banco.replace(CSS_DONDE, css_bueno + CSS_DONDE)
+
     # --- Los datos ------------------------------------------------------
     lineas = banco.splitlines(keepends=True)
     idx = [i for i, l in enumerate(lineas) if l.startswith("    const DEMO = ")]
@@ -108,6 +135,8 @@ def main() -> int:
     problemas = []
     if banco.count(ABRE) != 1:
         problemas.append("el motor quedó duplicado o desaparecido")
+    if banco.count(CSS_ABRE) != 1 or banco.count(CSS_CIERRA) != 1:
+        problemas.append("el CSS de la lectura quedó duplicado o desaparecido")
     if banco.count("    const DEMO = ") != 1:
         problemas.append("hay más de un `const DEMO`")
     usados = set(re.findall(r'data-geomapa="([^"]+)"', banco))
@@ -125,6 +154,7 @@ def main() -> int:
     print(f"\n=== sincroniza_prueba_geomapa.py ===")
     print(f"  motor: {'ACTUALIZADO' if cambio_motor else 'ya estaba al día'} "
           f"({n_bueno} líneas)")
+    print(f"  CSS de la lectura: {'ACTUALIZADO' if cambio_css else 'ya estaba al día'}")
     print(f"  datos: {'ACTUALIZADOS' if cambio_datos else 'ya estaban al día'} "
           f"({DEMO_JSON.stat().st_size / 1024:.1f} KB)")
     print(f"  {BANCO.relative_to(RAIZ)}  {len(banco) / 1024:.0f} KB · "

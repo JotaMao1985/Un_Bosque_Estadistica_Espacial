@@ -3404,6 +3404,30 @@
 
     /* Los controles de un mapa interactivo reutilizan el aspecto de los
        del simulador para que no parezcan otro componente. */
+    /* La lectura de la unidad señalada (R2 · T2.3): lo que dice el mapa de
+       la unidad que hay bajo el cursor o que se ha elegido con las flechas.
+       Alto mínimo de dos renglones para que el mapa no baile al pasar de una
+       lectura corta a una larga. */
+    .geomapa-lectura {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      color: #012820;
+      margin: 0.5rem 0 0 0;
+      min-height: 2.45rem;
+      /* `html p` justifica, y una línea corta justificada abre huecos de
+         varias letras a 375 px. */
+      text-align: left;
+    }
+
+    .geomapa-lectura.vacia {
+      color: #6b7280;
+    }
+
+    .geomapa-lienzo[tabindex]:focus-visible {
+      outline: 3px solid #FF6600;
+      outline-offset: 2px;
+    }
+
     .geomapa-controles {
       display: flex;
       flex-wrap: wrap;
@@ -5830,8 +5854,17 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       '#4D7C0F'
     ];
 
+    // Las paletas que tienen un CENTRO: un tono neutro en medio y un color a
+    // cada lado. Solo ellas atienden al `centro` del dato (R-C, 2026-11-17).
+    const GEOMAPA_DIVERGENTES = ['divergente', 'frio_caliente'];
+
     const GEOMAPA_ACENTO = '#FF6600';
     const GEOMAPA_APAGADO = 'rgba(1,40,32,.28)';
+    // El filo de un punto y la silueta de un coropleto (R-C): la misma tinta
+    // del material, translúcida. Es lo que separa del fondo `#fbfdfc` al tono
+    // más claro de una rampa (`#e8f3ef`, `#fff0e0`), que sin filo se perdía.
+    const GEOMAPA_FILO = 'rgba(1,40,32,.55)';
+    const GEOMAPA_SILUETA = 'rgba(1,40,32,.42)';
     const GEOMAPA_SIN_DATO = '#e5e7eb';
 
     // ================================================================
@@ -5913,8 +5946,13 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       return geomapaCVD ? geomapaSimulaCVD(color, geomapaCVD) : color;
     }
 
-    function geomapaColorCategoria(k) {
-      return geomapaTinta(GEOMAPA_CUALITATIVA[(k - 1) % GEOMAPA_CUALITATIVA.length]);
+    // `colores` (R2 · T2.3) es la lista que el REGISTRO puede dar en
+    // `coloresCategoria` cuando un color significa algo en ese mapa —el
+    // naranja de la bomba de Broad Street— y no puede tocarle a otra
+    // categoría por orden. Sin ella, la paleta de la casa, como siempre.
+    function geomapaColorCategoria(k, colores) {
+      const lista = Array.isArray(colores) && colores.length ? colores : GEOMAPA_CUALITATIVA;
+      return geomapaTinta(lista[(k - 1) % lista.length]);
     }
 
     function geomapaColor(paleta, t) {
@@ -5926,6 +5964,63 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
       const a = hex(p[i]), b = hex(p[i + 1]);
       return geomapaTinta(`rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`);
+    }
+
+    // ================================================================
+    // EL CENTRO DE UNA PALETA DIVERGENTE (R-C, 2026-11-17)
+    //
+    // Una divergente dice dos cosas a la vez: el TONO, de qué lado de un
+    // valor de referencia cae el dato, y la INTENSIDAD, cuánto se aleja. Sin
+    // saber cuál es ese valor, el motor repartía la rampa entre el mínimo y
+    // el máximo —o entre la primera clase y la última— y el tono neutro caía
+    // donde cayera: en 18.4 °C en un mapa de temperaturas, en la clase de
+    // −0.93 a −0.25 en un campo de media cero. Naranja y verde aparentaban
+    // leer un signo que no leían.
+    //
+    // El centro lo da EL DATO (`centro`, que escribe geo.R: 0 en un campo
+    // centrado, 1 en un cociente, la media si esa es la referencia), nunca
+    // se deduce aquí; y sin él todo sigue exactamente como estaba. Con él:
+    //   · el tono neutro es el centro, y solo el centro;
+    //   · la rampa es SIMÉTRICA: a igual distancia del centro, igual
+    //     intensidad, aunque el dato llegue más lejos por un lado que por el
+    //     otro. El lado corto no alcanza el tono más oscuro, y eso es
+    //     información, no un defecto.
+    // Solo atienden al centro las paletas de `GEOMAPA_DIVERGENTES`: en una
+    // secuencial no hay tono neutro que colocar.
+    // ================================================================
+    function geomapaCentro(paleta, d, capa) {
+      if (!GEOMAPA_DIVERGENTES.includes(paleta)) return null;
+      const c = (capa && capa.centro != null) ? capa.centro : (d ? d.centro : null);
+      return (typeof c === 'number' && isFinite(c)) ? c : null;
+    }
+
+    // Posición en la rampa, 0..1, de un valor `v` dado el centro `c` y la
+    // semiamplitud `semi` (la mayor distancia al centro que hay que pintar).
+    function geomapaTCentrado(v, c, semi) {
+      if (!(semi > 0)) return 0.5;
+      return Math.max(0, Math.min(1, 0.5 + 0.5 * (v - c) / semi));
+    }
+
+    // Posición en la rampa de la clase `k` (1..n) de unos `cortes`. Sin
+    // centro es el reparto de siempre, por ORDEN de clase. Con centro manda
+    // el punto medio de la clase: la que contiene el centro es el tono
+    // neutro, y las demás se alejan de él en proporción a lo que se aleja su
+    // punto medio. Así unos cortes que R no hizo simétricos se pintan igual
+    // con el signo en su sitio; hacerlos simétricos es del capítulo.
+    function geomapaTClase(cortes, k, centro) {
+      const n = cortes.length - 1;
+      if (centro == null) return n > 1 ? (k - 1) / (n - 1) : 0.5;
+      if (cortes[k - 1] < centro && centro < cortes[k]) return 0.5;
+      let semi = 0;
+      for (let j = 1; j <= n; j++) {
+        if (cortes[j - 1] < centro && centro < cortes[j]) continue;
+        semi = Math.max(semi, Math.abs((cortes[j - 1] + cortes[j]) / 2 - centro));
+      }
+      return geomapaTCentrado((cortes[k - 1] + cortes[k]) / 2, centro, semi);
+    }
+
+    function geomapaColorClase(paleta, cortes, k, centro) {
+      return geomapaColor(paleta, geomapaTClase(cortes, k, centro));
     }
 
     // Conmuta el tipo de visión y repinta TODOS los mapas vivos. Es una
@@ -6068,6 +6163,37 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       return ctx.createPattern(c, 'repeat');
     }
 
+    // ¿Comparten frontera las unidades de un mapa de polígonos? Se mira en la
+    // geometría misma: en un teselado —condados, municipios— casi todos los
+    // vértices de una unidad son también de su vecina; en un cartograma no
+    // contiguo o en uno de Dorling, ninguno. Se cuenta qué parte de los
+    // vértices distintos pertenece a dos unidades o más, y el corte va en
+    // GEOMAPA_TESELADO_MIN. Medido en los mapas del material: los teselados dan
+    // de 0.31 (las 20 localidades de Bogotá) a 0.92 (los 1 122 municipios); el
+    // cartograma no contiguo, 0.007, y el de Dorling, 0. Se calcula una vez
+    // por dato y se guarda sin enumerar, como `__geom`.
+    const GEOMAPA_TESELADO_MIN = 0.1;
+    function geomapaFronteraComun(geom) {
+      const duenio = new Map();
+      let comunes = 0;
+      geom.forEach((rasgo, i) => rasgo.forEach(parte => {
+        for (let k = 0; k + 1 < parte.length; k += 2) {
+          const clave = parte[k] * 65536 + parte[k + 1];
+          const j = duenio.get(clave);
+          if (j === undefined) duenio.set(clave, i);
+          else if (j !== i && j !== -1) { duenio.set(clave, -1); comunes++; }
+        }
+      }));
+      return duenio.size ? comunes / duenio.size : 0;
+    }
+    function geomapaEsTeselado(d, geom) {
+      if (d.__teselado === undefined) {
+        Object.defineProperty(d, '__teselado',
+          { value: geomapaFronteraComun(geom) >= GEOMAPA_TESELADO_MIN, enumerable: false });
+      }
+      return d.__teselado;
+    }
+
     function geomapaPintaPoligonos(ctx, d, aj, o) {
       const cp = geomapaCapa(d, o);
       const clase = cp.clase, nCl = cp.cortes ? cp.cortes.length - 1 : 0;
@@ -6081,8 +6207,39 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       // o sin vecinos) va rayado.
       const cat = cp.tipo === 'categoria' && Array.isArray(cp.niveles);
       const nNiv = cat ? cp.niveles.length : 0;
+      const centro = cat ? null : geomapaCentro(o.paleta, d, cp);
       let rayado = null;
       const conBorde = [];
+      // LA SILUETA (R-C, 2026-11-17). El primer tono de las rampas
+      // (`#e8f3ef`, `#fff0e0`) apenas se separa del fondo del marco
+      // (`#fbfdfc`), y con los bordes entre unidades en blanco, un condado
+      // de la clase más baja que diera al mar se quedaba sin orilla. Se
+      // traza TODO el contorno en tinta ANTES de rellenar nada: los rellenos
+      // tapan después la mitad interior de cada trazo y los de los vecinos,
+      // la exterior, así que solo sobrevive lo que no tiene vecino —el
+      // perfil del territorio y de sus islas—. Por dentro el mapa queda
+      // como estaba, con sus bordes blancos.
+      //
+      // SOLO EN UN TESELADO. Donde las unidades no se tocan —un cartograma
+      // no contiguo, uno de Dorling— no hay vecino que tape la mitad exterior
+      // del trazo, y cada unidad se queda con un halo de 1 px todo alrededor.
+      // En esos mapas EL ÁREA ES EL DATO: medido en el módulo 7 del capítulo
+      // 3, el halo doblaba la tinta a 375 px y hacía crecer de 5 a 8 veces a
+      // los departamentos más pequeños. Un mapa que miente en lo que mide es
+      // peor que uno con una orilla pálida, así que por defecto la silueta
+      // solo se traza si las unidades comparten frontera (geomapaEsTeselado);
+      // `silueta: true` y `silueta: false` en el registro mandan sobre eso.
+      // Un cartograma CONTIGUO es un teselado y la llevaría: ahí el registro
+      // tiene que decir `silueta: false`, porque su área también es el dato.
+      if (o.silueta === true || (o.silueta !== false && geomapaEsTeselado(d, geom))) {
+        const dprS = o.dpr || window.devicePixelRatio || 1;
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = geomapaTinta(GEOMAPA_SILUETA);
+        ctx.lineWidth = 2 * dprS;
+        geom.forEach(rasgo => rasgo.forEach(parte => ctx.stroke(geomapaTrazo(ctx, aj, parte))));
+        ctx.restore();
+      }
       // Qué rasgo va resaltado lo puede decir EL DATO (`d.resaltado`, que
       // escribe geo.R) además de la opción de siempre. Los dos conviven y no
       // usan el mismo convenio, a propósito y dicho en voz alta: lo que viene
@@ -6110,7 +6267,8 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         } else {
           const k = clase ? clase[i] : null;
           if (k != null && isFinite(k)) {
-            relleno = geomapaColor(o.paleta, nCl > 1 ? (k - 1) / (nCl - 1) : 0.5);
+            relleno = nCl > 0 ? geomapaColorClase(o.paleta, cp.cortes, k, centro)
+                              : geomapaColor(o.paleta, 0.5);
           } else {
             relleno = geomapaTinta(GEOMAPA_SIN_DATO);
           }
@@ -6141,8 +6299,9 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
           ctx.strokeStyle = geomapaTinta('#012820'); ctx.lineWidth = 2.2 * dpr; ctx.stroke(p);
         }));
       }
-      geomapaPintaLineas(ctx, d, aj, o);
+      const clave = geomapaPintaLineas(ctx, d, aj, o);
       geomapaPintaSuperpuestos(ctx, d, aj, o);
+      return clave;
     }
 
     // Polilíneas SOBRE el coropleto (T2.7 del capítulo 1). El caso que las
@@ -6166,8 +6325,13 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
     //
     // `o.etiquetasLineas` va emparejada con `d.lineas_resaltadas`, no con
     // `d.lineas`: son cinco rótulos para cinco celdas, no cien.
+    // El suelo de la letra de un rótulo pintado DENTRO del lienzo, en px de
+    // pantalla (CSS). 11 es el cuerpo de las marcas de los ejes de los
+    // gráficos: por debajo no se lee en un teléfono.
+    const GEOMAPA_ROTULO_MIN = 11;
+
     function geomapaPintaLineas(ctx, d, aj, o) {
-      if (!d.lineas || !d.lineas.length || o.lineas === false) return;
+      if (!d.lineas || !d.lineas.length || o.lineas === false) return null;
       const dpr = o.dpr || 1;
       const idx = d.lineas_resaltadas || [];
       const res = new Set(idx.map(k => k - 1));       // R es 1-indexado
@@ -6205,12 +6369,34 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       });
 
       // Los rótulos, en el centro de la caja de cada celda resaltada.
+      //
+      // EL SUELO DE LA LETRA ES DE PANTALLA (R-F, 2026-11-17). El lienzo se
+      // dimensiona en píxeles de dispositivo, y el suelo de antes
+      // (`Math.max(9, …)`) se comparaba con ellos: en un teléfono, con
+      // densidad 2, eran 4.5 px de pantalla, y los rótulos de la rejilla
+      // del módulo 7 del capítulo 1 —que son la lección de ese mapa— salían
+      // de 4 a 6 px. Ahora son GEOMAPA_ROTULO_MIN px de pantalla, medidos
+      // con la densidad real (este pintor no recibe `o.dpr` en el modo de
+      // polígonos, así que se le pregunta a la ventana).
+      //
+      // Y UN RÓTULO QUE NO CABE NO SE ENCIMA. Con el suelo en su sitio, a
+      // 375 px una celda de la rejilla mide unos 23 × 8 px y «14.51» mide
+      // 30: cinco rótulos legibles se pisarían entre sí. Cuando alguno no
+      // cabe en su celda, las celdas se NUMERAN —un dígito sí cabe— y el
+      // pintor devuelve la clave (`[número, rótulo]`) para que `dibuja()` la
+      // escriba debajo de la leyenda, a tamaño de texto. O caben todos o se
+      // numeran todos: media rejilla con cifras y media con números no se lee.
+      let clave = null;
       const rot = o.etiquetasLineas;
       if (rot && rot.length) {
-        const px = Math.max(9, Math.min(ctx.canvas.width, ctx.canvas.height) * 0.038);
-        ctx.font = `700 ${px}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+        const dprReal = o.dpr || window.devicePixelRatio || 1;
+        const suelo = GEOMAPA_ROTULO_MIN * dprReal;
+        const px = Math.max(suelo, Math.min(ctx.canvas.width, ctx.canvas.height) * 0.038);
+        const fuente = t => `700 ${t}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+        ctx.font = fuente(px);
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        const celdas = [];
         idx.forEach((k, j) => {
           const texto = rot[j];
           const seg = d.lineas[k - 1];
@@ -6223,14 +6409,27 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
             if (Y < y0) y0 = Y;
             if (Y > y1) y1 = Y;
           }
+          celdas.push({ letrero: String(texto), x0, x1, y0, y1 });
+        });
+        // 0.72 es la altura de las cifras respecto del cuerpo de la letra:
+        // es lo que de verdad ocupa «14.51», que no tiene astas descendentes.
+        const cabe = c => ctx.measureText(c.letrero).width + 2 * dprReal <= c.x1 - c.x0 &&
+                          px * 0.72 <= c.y1 - c.y0;
+        if (!celdas.every(cabe)) {
+          clave = celdas.map((c, j) => [String(j + 1), c.letrero]);
+          celdas.forEach((c, j) => { c.letrero = String(j + 1); });
+          ctx.font = fuente(suelo);
+        }
+        celdas.forEach(c => {
           ctx.strokeStyle = geomapaTinta('rgba(255,255,255,.92)');
           ctx.lineWidth = 3.4 * dpr;
-          ctx.strokeText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+          ctx.strokeText(c.letrero, (c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2);
           ctx.fillStyle = geomapaTinta('#012820');
-          ctx.fillText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+          ctx.fillText(c.letrero, (c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2);
         });
       }
       ctx.restore();
+      return clave;
     }
 
     // Capas de puntos sobre el coropleto: símbolos proporcionales y dot
@@ -6315,18 +6514,101 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         if (o.marcaResaltada != null) {
           return m === o.marcaResaltada ? GEOMAPA_ACENTO : GEOMAPA_APAGADO;
         }
-        return geomapaColorCategoria(m);
+        return geomapaColorCategoria(m, o.coloresCategoria);
       }
       // Numérica. Si R mandó cortes, manda la clasificación de R; si no,
       // rampa continua entre el mínimo y el máximo. Una rampa NO es una
       // clasificación: no hay empates que repartir, así que no hay aquí
       // ningún tercer convenio como el de classInt y mapclassify (A.2).
       if (d.cortes && d.clase) {
-        const nCl = d.cortes.length - 1;
-        return geomapaColor(o.paleta, nCl > 1 ? (d.clase[i] - 1) / (nCl - 1) : 0.5);
+        return geomapaColorClase(o.paleta, d.cortes, d.clase[i], geomapaCentro(o.paleta, d));
       }
+      return geomapaColor(o.paleta, geomapaTRampa(d, m, o));
+    }
+
+    // Posición en la rampa de una marca numérica SIN clasificar (R-C,
+    // 2026-11-17). Por defecto, lineal entre el mínimo y el máximo, como
+    // siempre. El dato puede pedir otras dos cosas, y las pide él (geo.R), no
+    // se adivinan mirando los números:
+    //   · `centro`, con una paleta divergente: rampa simétrica alrededor de
+    //     ese valor (ver geomapaCentro);
+    //   · `marcas_escala: 'log'`: la rampa recorre el logaritmo. Es para la
+    //     variable asimétrica —el zinc del Mosa, de 113 a 1 839 ppm—, que en
+    //     lineal deja casi todos los puntos en los dos tonos más claros y
+    //     gasta la rampa en media docena. Con algún valor que no sea
+    //     positivo no hay logaritmo que tomar y se queda en lineal; la
+    //     leyenda dice cuál de las dos se pintó (geomapaEscalaMarcas).
+    function geomapaEscalaMarcas(d) {
       const r = geomapaRangoMarcas(d);
-      return geomapaColor(o.paleta, r.hi > r.lo ? (m - r.lo) / (r.hi - r.lo) : 0.5);
+      return (d.marcas_escala === 'log' && r.lo > 0 && r.hi > r.lo) ? 'log' : 'lineal';
+    }
+
+    function geomapaTRampa(d, m, o) {
+      const r = geomapaRangoMarcas(d);
+      const c = geomapaCentro(o.paleta, d);
+      if (c != null) return geomapaTCentrado(m, c, Math.max(Math.abs(r.hi - c), Math.abs(r.lo - c)));
+      if (!(r.hi > r.lo)) return 0.5;
+      if (geomapaEscalaMarcas(d) === 'log') return Math.log(m / r.lo) / Math.log(r.hi / r.lo);
+      return (m - r.lo) / (r.hi - r.lo);
+    }
+
+    // El radio de los puntos, en px de PANTALLA (CSS), sin multiplicar aún
+    // por la densidad (R-C, 2026-11-17). Era 2.6 para todo, y 2 209 sedes de
+    // Bogotá a 2.6 px son una mancha maciza donde no se cuenta ni se ve
+    // dónde hay más. Manda, por este orden:
+    //   1. `radio` en el DATO (geo.R): el capítulo sabe qué necesita su mapa;
+    //   2. si no, el número de puntos: hasta 600 se queda en 2.6, y de ahí
+    //      en adelante el ÁREA de cada punto baja en proporción —la tinta
+    //      total no crece con n—, con un suelo de 1.4 px, que es lo menos
+    //      que sigue siendo un punto y no un grano.
+    // La opción `radio` del registro sigue mandando sobre los dos, y sigue
+    // en píxeles de dispositivo, como estaba: quien la usa ya la tiene medida.
+    const GEOMAPA_RADIO = 2.6, GEOMAPA_RADIO_MIN = 1.4, GEOMAPA_RADIO_N = 600;
+    // El radio, en px de pantalla, por debajo del cual un punto va sin filo.
+    const GEOMAPA_FILO_MIN = 2;
+    function geomapaRadioPuntos(d) {
+      if (typeof d.radio === 'number' && d.radio > 0) return d.radio;
+      const n = d.pts ? d.pts.length / 2 : 0;
+      if (n <= GEOMAPA_RADIO_N) return GEOMAPA_RADIO;
+      return Math.max(GEOMAPA_RADIO_MIN, GEOMAPA_RADIO * Math.sqrt(GEOMAPA_RADIO_N / n));
+    }
+
+    // CAPAS DE LÍNEAS CON NOMBRE (R2 · T2.3). `d.lineas` es UNA capa de
+    // fondo, toda del mismo trazo: las calles del Soho. Un mapa de puntos
+    // puede necesitar además otras líneas que significan otra cosa y que
+    // cambian con un control —las celdas de las bombas, los bordes posibles
+    // de una ventana—. El registro las da en `capasLineas`, que como
+    // cualquier opción puede ser un getter:
+    //   [{ lineas: [[x, y, x, y, …], …],   en las unidades cuantizadas del mapa
+    //      color, ancho, trazo: [5, 4],    el estilo; `ancho` en px de pantalla
+    //      cierra: true,                   une el último vértice con el primero
+    //      relleno: 'rgba(…)',             solo si `cierra`
+    //      etiqueta: '…' }]                su entrada en la leyenda; sin ella, no sale
+    // Van ENCIMA de los puntos, en el orden de la lista: son lo que se quiere
+    // leer, no un fondo.
+    function geomapaPintaCapasLineas(ctx, aj, o) {
+      const capas = Array.isArray(o.capasLineas) ? o.capasLineas : [];
+      const dpr = o.dpr || 1;
+      capas.forEach(capa => {
+        if (!capa || !Array.isArray(capa.lineas)) return;
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = geomapaTinta(capa.color || 'rgba(1,40,32,.6)');
+        ctx.lineWidth = (capa.ancho || 1) * dpr;
+        ctx.setLineDash((capa.trazo || []).map(v => v * dpr));
+        capa.lineas.forEach(seg => {
+          ctx.beginPath();
+          for (let i = 0; i < seg.length; i += 2) {
+            const px = aj.x(seg[i]), py = aj.y(seg[i + 1]);
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          if (capa.cierra) ctx.closePath();
+          if (capa.cierra && capa.relleno) { ctx.fillStyle = geomapaTinta(capa.relleno); ctx.fill(); }
+          ctx.stroke();
+        });
+        ctx.restore();
+      });
     }
 
     function geomapaPintaPuntos(ctx, d, aj, o) {
@@ -6356,15 +6638,41 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       }
 
       // ---- capa principal: los puntos, coloreados por su marca ---------
+      // Cada punto lleva un FILO fino en tinta (R-C, 2026-11-17). Sin él, los
+      // puntos claros de una rampa desaparecían contra el fondo, y los que
+      // se solapan se fundían en una mancha: con el filo se cuentan. El filo
+      // se adelgaza con el radio —nunca pasa de un quinto— para que en un
+      // mapa de dos mil puntos no sea él lo que se ve. No lo llevan los
+      // apagados de «ésta contra el resto», que están ahí para no verse. Se
+      // quita con `filo: false`.
+      //
+      // Y NO LO LLEVAN LOS PUNTOS PEQUEÑOS. Por debajo de GEOMAPA_FILO_MIN px
+      // de radio el filo es buena parte del punto, y la tinta oscura le
+      // cambia el tono: medido en las 2 107 sedes de Bogotá, a 1.4 px el
+      // naranja `#FF6600` de la leyenda se veía (223, 92, 2) en el mapa. El
+      // color de un punto tiene que ser el de su muestra en la leyenda; un
+      // mapa de dos mil puntos se lee por su densidad, no punto a punto.
       const r = o.radio || 3;
+      const dprP = o.dpr || 1;
       const plano = o.color || GEOMAPA_ACENTO;
+      const filo = o.filo !== false && r >= GEOMAPA_FILO_MIN * dprP;
+      ctx.strokeStyle = geomapaTinta(GEOMAPA_FILO);
+      ctx.lineWidth = Math.min(0.6 * dprP, r / 5);
+      // `opacidadPuntos` (R2 · T2.3): con miles de puntos opacos, donde hay
+      // diez encimados se ve lo mismo que donde hay uno. Translúcidos, la
+      // tinta se acumula y la densidad se ve. Solo si el registro lo pide.
+      const opaco = !(o.opacidadPuntos > 0 && o.opacidadPuntos < 1);
+      if (!opaco) ctx.globalAlpha = o.opacidadPuntos;
       for (let i = 0; i < d.pts.length; i += 2) {
         const c = geomapaColorMarca(d, i / 2, o);
         ctx.fillStyle = c || plano;
         ctx.beginPath();
         ctx.arc(aj.x(d.pts[i]), aj.y(d.pts[i + 1]), r, 0, Math.PI * 2);
         ctx.fill();
+        if (filo && c !== GEOMAPA_APAGADO) ctx.stroke();
       }
+      if (!opaco) ctx.globalAlpha = 1;
+      geomapaPintaCapasLineas(ctx, aj, o);
 
       // ---- segunda capa: otro tipo de objeto (las 13 bombas) -----------
       // Rombo con borde, no círculo: dos capas que solo se distinguen por
@@ -6473,11 +6781,20 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       const x0 = aj.x(c.x0), x1 = aj.x(c.x1);
       const y0 = aj.y(c.y1), y1 = aj.y(c.y0);          // y invertida
       const cw = (x1 - x0) / d.nx, ch = (y1 - y0) / d.ny;
+      // Con `centro` (y una paleta divergente) la rampa se centra en él y es
+      // simétrica (R-C, ver geomapaCentro). Hace falta el recorrido real,
+      // `rango`, para saber qué valor es cada nivel cuantizado; sin él no
+      // hay con qué centrar y se pinta como siempre.
+      const centro = Array.isArray(d.rango) ? geomapaCentro(o.paleta, d) : null;
+      const lo = centro != null ? d.rango[0] : 0, hi = centro != null ? d.rango[1] : 0;
+      const semi = Math.max(Math.abs(hi - centro), Math.abs(lo - centro));
       for (let r = 0; r < d.ny; r++) {
         for (let cc = 0; cc < d.nx; cc++) {
           const z = zq[r * d.nx + cc];
           if (z < 0) continue;                          // celda sin dato
-          ctx.fillStyle = geomapaColor(o.paleta, z / d.zqmax);
+          ctx.fillStyle = geomapaColor(o.paleta, centro != null
+            ? geomapaTCentrado(lo + (z / d.zqmax) * (hi - lo), centro, semi)
+            : z / d.zqmax);
           // +1 para que no queden costuras blancas entre celdas
           ctx.fillRect(x0 + cc * cw, y0 + r * ch, cw + 1, ch + 1);
         }
@@ -6585,13 +6902,149 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       const q = fuenteCaja.q || d.q || 4096;
       const aj = geomapaAjuste(canvas, geomapaCajaQ(fuenteCaja.caja, q), (o.margen || 6) * dpr);
 
-      if (d.modo === 'poligonos') geomapaPintaPoligonos(ctx, d, aj, o);
-      else if (d.modo === 'puntos') geomapaPintaPuntos(ctx, d, aj, Object.assign({ radio: 2.6 * dpr, dpr: dpr }, o));
+      // Si algún rótulo no cupo en el lienzo, el pintor numeró las celdas y
+      // devuelve la clave; viaja en `aj` para que `dibuja()` la escriba.
+      aj.clave = null;
+      if (d.modo === 'poligonos') aj.clave = geomapaPintaPoligonos(ctx, d, aj, o) || null;
+      else if (d.modo === 'puntos') geomapaPintaPuntos(ctx, d, aj, Object.assign({ radio: geomapaRadioPuntos(d) * dpr, dpr: dpr }, o));
       else if (d.modo === 'grafo') geomapaPintaGrafo(ctx, d, aj, o);
       else if (d.modo === 'rejilla') geomapaPintaRejilla(ctx, d, aj, o);
       else if (d.modo === 'proyeccion') geomapaPintaProyeccion(ctx, d, aj, Object.assign({ dpr: dpr }, o));
       else console.warn(`Geomapa: modo desconocido "${d.modo}"`);
       return aj;
+    }
+
+    // ================================================================
+    // LA LECTURA DE UNA UNIDAD (R2 · T2.3)
+    //
+    // Un mapa dice de cada unidad algo que la leyenda solo dice por clases:
+    // qué condado es y cuánto vale, cuánto zinc hay en ESE punto. El
+    // registro que quiera que se pueda leer da `lectura`, una función
+    // `(i, d, o) => texto` con el índice de la unidad (desde 0); el motor
+    // se encarga de averiguar qué unidad se está señalando y de marcarla.
+    //
+    // HAY DOS CAMINOS Y VALEN LO MISMO. Con el cursor (o el dedo), la unidad
+    // que hay debajo. Con el teclado, el lienzo recibe el foco y las flechas
+    // recorren las unidades una a una, Inicio y Fin van a los extremos y
+    // Escape suelta: quien no usa ratón lee exactamente lo mismo. Las dos
+    // funciones de abajo son lo único que depende del modo del mapa.
+    // ================================================================
+
+    // Cuántas unidades tiene el mapa que se puedan señalar.
+    function geomapaNumUnidades(d) {
+      if (d.modo === 'puntos') return d.pts ? d.pts.length / 2 : 0;
+      if (d.modo === 'poligonos') return geomapaGeom(d).length;
+      if (d.modo === 'rejilla') return (d.nx || 0) * (d.ny || 0);
+      return 0;
+    }
+
+    // El marco de una rejilla en el lienzo, con la misma cuenta que su pintor.
+    function geomapaMarcoRejilla(d, aj) {
+      const c = geomapaCajaQ(d.caja, d.q || 4096);
+      const x0 = aj.x(c.x0), x1 = aj.x(c.x1), y0 = aj.y(c.y1), y1 = aj.y(c.y0);
+      return { x0, y0, cw: (x1 - x0) / d.nx, ch: (y1 - y0) / d.ny };
+    }
+
+    // La unidad que hay en (x, y), en píxeles del lienzo; -1 si ninguna.
+    // En un mapa de puntos, el más próximo dentro de `alcance` píxeles: un
+    // punto de dos píxeles no se acierta con el dedo.
+    function geomapaUnidadEn(ctx, d, aj, x, y, alcance) {
+      if (d.modo === 'puntos') {
+        let mejor = -1, dMejor = alcance * alcance;
+        for (let i = 0; i < d.pts.length; i += 2) {
+          const dx = aj.x(d.pts[i]) - x, dy = aj.y(d.pts[i + 1]) - y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 <= dMejor) { dMejor = d2; mejor = i / 2; }
+        }
+        return mejor;
+      }
+      // De la ÚLTIMA unidad a la primera: el pintor las rellena en orden, así
+      // que donde dos se solapan —una isla dentro de otra, un anillo sin su
+      // hueco— se ve la última, y se lee la que se ve.
+      if (d.modo === 'poligonos') {
+        const geom = geomapaGeom(d);
+        for (let k = geom.length - 1; k >= 0; k--) {
+          for (let j = 0; j < geom[k].length; j++) {
+            if (ctx.isPointInPath(geomapaTrazo(ctx, aj, geom[k][j]), x, y)) return k;
+          }
+        }
+        // Sin acierto por dentro, la unidad DIMINUTA cuyo borde pasa más cerca,
+        // a menos de `alcance`: una isla de menos de un píxel (San Andrés a
+        // 375 px) no se puede acertar por dentro con el dedo. Solo las
+        // diminutas —la caja de menos de 4/7 del alcance, 8 px de pantalla con
+        // el de 14—: con todas, señalar el mar junto a la costa leía un condado.
+        let cerca = -1, dCerca = alcance;
+        const diminuta = alcance * 4 / 7;
+        for (let k = geom.length - 1; k >= 0; k--) {
+          let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+          geom[k].forEach(parte => { for (let i = 0; i + 1 < parte.length; i += 2) {
+            const px = aj.x(parte[i]), py = aj.y(parte[i + 1]);
+            if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; } });
+          if (Math.max(x1 - x0, y1 - y0) >= diminuta) continue;
+          geom[k].forEach(parte => {
+            for (let i = 0; i + 1 < parte.length; i += 2) {
+              const j = (i + 2) % parte.length;
+              const ax = aj.x(parte[i]), ay = aj.y(parte[i + 1]);
+              const vx = aj.x(parte[j]) - ax, vy = aj.y(parte[j + 1]) - ay, L = vx * vx + vy * vy;
+              const t = L ? Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / L)) : 0;
+              const dd = Math.hypot(ax + t * vx - x, ay + t * vy - y);
+              if (dd < dCerca) { dCerca = dd; cerca = k; }
+            }
+          });
+        }
+        return cerca;
+      }
+      if (d.modo === 'rejilla') {
+        const m = geomapaMarcoRejilla(d, aj);
+        const col = Math.floor((x - m.x0) / m.cw), fila = Math.floor((y - m.y0) / m.ch);
+        return (col >= 0 && col < d.nx && fila >= 0 && fila < d.ny) ? fila * d.nx + col : -1;
+      }
+      return -1;
+    }
+
+    // La marca de la unidad señalada: un anillo en un punto, el contorno en
+    // un polígono, el borde en una celda. Doble trazo, blanco debajo y tinta
+    // encima, para que se vea sobre cualquier color del mapa.
+    function geomapaResaltaUnidad(ctx, d, aj, i, o) {
+      const dpr = o.dpr || window.devicePixelRatio || 1;
+      const traza = () => {
+        ctx.lineWidth = 4.5 * dpr; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+        ctx.lineWidth = 2 * dpr; ctx.strokeStyle = geomapaTinta('#012820'); ctx.stroke();
+      };
+      ctx.save();
+      ctx.lineJoin = 'round';
+      if (d.modo === 'puntos') {
+        ctx.beginPath();
+        // `o.radio`, si el registro lo da, va en px de dispositivo (ver
+        // geomapaRadioPuntos); el anillo se separa 4 px de pantalla del punto.
+        const rPunto = o.radio > 0 ? o.radio / dpr : geomapaRadioPuntos(d);
+        ctx.arc(aj.x(d.pts[2 * i]), aj.y(d.pts[2 * i + 1]), (rPunto + 4) * dpr, 0, Math.PI * 2);
+        traza();
+      } else if (d.modo === 'poligonos') {
+        (geomapaGeom(d)[i] || []).forEach(parte => {
+          const camino = geomapaTrazo(ctx, aj, parte);
+          ctx.lineWidth = 4.5 * dpr; ctx.strokeStyle = '#ffffff'; ctx.stroke(camino);
+          ctx.lineWidth = 2 * dpr; ctx.strokeStyle = geomapaTinta('#012820'); ctx.stroke(camino);
+        });
+      } else if (d.modo === 'rejilla') {
+        const m = geomapaMarcoRejilla(d, aj);
+        ctx.beginPath();
+        ctx.rect(m.x0 + (i % d.nx) * m.cw, m.y0 + Math.floor(i / d.nx) * m.ch, m.cw, m.ch);
+        traza();
+      }
+      ctx.restore();
+    }
+
+    // La unidad a la que lleva una tecla desde la `i` (-1 = ninguna), o
+    // `undefined` si la tecla no es de las del mapa. Aparte, para probarla.
+    function geomapaTeclaUnidad(tecla, i, n) {
+      if (!(n > 0)) return undefined;
+      if (tecla === 'ArrowRight' || tecla === 'ArrowDown') return i < 0 ? 0 : (i + 1) % n;
+      if (tecla === 'ArrowLeft' || tecla === 'ArrowUp') return i < 0 ? n - 1 : (i - 1 + n) % n;
+      if (tecla === 'Home') return 0;
+      if (tecla === 'End') return n - 1;
+      if (tecla === 'Escape') return -1;
+      return undefined;
     }
 
     // ---------------- leyenda ----------------
@@ -6637,14 +7090,15 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
             cajas.push(muestra(GEOMAPA_APAGADO, 'el resto'));
           } else {
             d.niveles.forEach((nv, i) => cajas.push(
-              muestra(geomapaColorCategoria(i + 1), esc(nv))));
+              muestra(geomapaColorCategoria(i + 1, o.coloresCategoria), esc(nv))));
           }
         } else if (d.marcas && d.marcas_tipo === 'numero') {
           if (d.cortes) {
             const nc = d.cortes.length - 1;
             const fmt = fmtCon(decimales(d.cortes));
+            const cMarcas = geomapaCentro(o.paleta, d);
             for (let i = 0; i < nc; i++) {
-              cajas.push(muestra(geomapaColor(o.paleta, nc > 1 ? i / (nc - 1) : 0.5),
+              cajas.push(muestra(geomapaColorClase(o.paleta, d.cortes, i + 1, cMarcas),
                 `${fmt(d.cortes[i])} – ${fmt(d.cortes[i + 1])}`));
             }
           } else {
@@ -6652,14 +7106,25 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
             // únicos valores que el lector puede leer del mapa sin mentirse.
             // Poner cajitas de clase aquí sería dibujar unas fronteras que
             // no ha calculado nadie.
+            //
+            // La barra recorre los VALORES, de extremo a extremo, y cada parada
+            // lleva el color que el mapa le da a ese valor: con `centro` el
+            // tono neutro cae donde cae el centro, no en la mitad de la barra.
+            // En escala logarítmica recorre el logaritmo, y lo dice: sin el
+            // aviso, quien lea la mitad de la barra como la media de los
+            // extremos leería mal.
             const r = geomapaRangoMarcas(d);
             const fmt = fmtCon(decimales([r.lo, r.hi]));
+            const log = geomapaEscalaMarcas(d) === 'log' && geomapaCentro(o.paleta, d) == null;
             const paradas = [];
-            for (let i = 0; i <= 10; i++) paradas.push(geomapaColor(o.paleta, i / 10));
+            for (let i = 0; i <= 20; i++) {
+              const v = log ? r.lo * Math.pow(r.hi / r.lo, i / 20) : r.lo + (r.hi - r.lo) * i / 20;
+              paradas.push(geomapaColor(o.paleta, geomapaTRampa(d, v, o)));
+            }
             cajas.push(`<span class="geomapa-rampa">
           <span>${fmt(r.lo)}</span>
           <span class="geomapa-rampa-barra" style="background:linear-gradient(to right,${paradas.join(',')})"></span>
-          <span>${fmt(r.hi)}</span>
+          <span>${fmt(r.hi)}${log ? ' · escala logarítmica' : ''}</span>
         </span>`);
           }
         }
@@ -6674,6 +7139,14 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
           <span>${esc(nRes)}</span>
         </span>`);
         }
+        // Las capas de líneas con nombre, cada una con su trazo (R2 · T2.3).
+        (Array.isArray(o.capasLineas) ? o.capasLineas : []).forEach(capa => {
+          if (!capa || !capa.etiqueta) return;
+          cajas.push(`<span class="geomapa-clase">
+          <span class="geomapa-muestra" style="background:${capa.relleno ? geomapaTinta(capa.relleno) : 'transparent'};border:${Math.max(1, Math.round(capa.ancho || 1))}px ${capa.trazo && capa.trazo.length ? 'dashed' : 'solid'} ${geomapaTinta(capa.color || 'rgba(1,40,32,.6)')}"></span>
+          <span>${esc(capa.etiqueta)}</span>
+        </span>`);
+        });
         if (!cajas.length) return etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '';
         return `<div class="geomapa-leyenda">${cajas.join('')}</div>` +
                (etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '');
@@ -6715,13 +7188,30 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       // capas va vacío, así que los mapas del capítulo 3 se publicaban sin
       // decir en qué se medían. Si la capa no trae la suya, la del raíz.
       let cat = null;
+      // El color de la caja de cada clase es EL MISMO que pinta el mapa, y
+      // sale de la misma función: `tClase(k)` es la posición en la rampa de
+      // la clase k. Con `centro` deja de ser «por orden» (R-C, 2026-11-17).
+      let tClase = k => geomapaTClase(cortes, k, null);
       if (d.modo === 'poligonos') {
         const cp = geomapaCapa(d, o);
         if (cp.tipo === 'categoria' && Array.isArray(cp.niveles)) cat = cp;
-        else if (cp.cortes) cortes = cp.cortes;
+        else if (cp.cortes) {
+          cortes = cp.cortes;
+          const cPol = geomapaCentro(o.paleta, d, cp);
+          tClase = k => geomapaTClase(cortes, k, cPol);
+        }
         if (d.capas && d.capas.length && cp.leyenda) etiqueta = cp.leyenda;
       }
-      if (d.modo === 'rejilla' && d.cortes) cortes = d.cortes;
+      if (d.modo === 'rejilla' && d.cortes) {
+        cortes = d.cortes;
+        // El ráster es continuo: la caja de una clase lleva el color que el
+        // mapa le da a su punto medio, con la misma regla que las celdas.
+        const cRej = Array.isArray(d.rango) ? geomapaCentro(o.paleta, d) : null;
+        if (cRej != null) {
+          const semi = Math.max(Math.abs(d.rango[1] - cRej), Math.abs(d.rango[0] - cRej));
+          tClase = k => geomapaTCentrado((cortes[k - 1] + cortes[k]) / 2, cRej, semi);
+        }
+      }
 
       // Lo que un coropleto puede llevar encima y NO es una clase: el rasgo
       // resaltado y la retícula ajena (T2.7 del cap. 1). Si no se rotulan, el mapa
@@ -6775,7 +7265,7 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
       const fmt = fmtCon(decimales(cortes));
       const cajas = [];
       for (let i = 0; i < n; i++) {
-        cajas.push(muestra(geomapaColor(o.paleta, n > 1 ? i / (n - 1) : 0.5),
+        cajas.push(muestra(geomapaColor(o.paleta, tClase(i + 1)),
           `${fmt(cortes[i])} – ${fmt(cortes[i + 1])}`));
       }
       cajas.push(...extras);
@@ -6911,11 +7401,45 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         // papel sale cerrado, como la tabla de respaldo.
         const conDesc = !!geomapaDescripcion(spec, d);
         const idDesc = conDesc ? geomapaIdLibre(`desc-${raiz.dataset.geomapa}`, raiz) : '';
+        // LOS MANDOS PROPIOS DEL MAPA (R2 · T2.3). `controles` en el registro:
+        //   [{ etiqueta: 'nombre del grupo',
+        //      opciones: [[valor, 'rótulo'], …],
+        //      valor: () => el valor puesto ahora,
+        //      alPulsar: v => { … cambia el estado que el registro lee … } }]
+        // El motor pone los botones, marca el que está puesto y repinta; el
+        // estado es del capítulo, y el registro lo lee con getters, como
+        // siempre. Un grupo con una sola opción es un interruptor: su valor
+        // es `true` o `false`.
+        const grupos = Array.isArray(spec.controles) ? spec.controles : [];
+        const conLectura = typeof spec.lectura === 'function';
+        const escAttr = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        // `controla` (opcional): el id del elemento que el grupo enseña o
+        // esconde. El motor lo pone justo debajo de su botonera —donde se ve
+        // al pulsar, también en el teléfono— y lo anuncia con
+        // `aria-controls`; un interruptor que lo controla dice además si está
+        // abierto con `aria-expanded`, en vez de `aria-pressed`.
+        const htmlMandos = grupos.map((g, k) =>
+          `<div class="geomapa-controles" role="group" aria-label="${escAttr(g.etiqueta || 'Vista del mapa')}" data-grupo="${k}">`
+          + g.opciones.map((op, j) => `<button type="button" class="geomapa-boton" data-opcion="${j}"${g.controla ? ` aria-controls="${escAttr(g.controla)}"` : ''}>${op[1]}</button>`).join('')
+          + '</div>').join('');
+        // La indicación, en la voz impersonal del material, y con los dos
+        // caminos: quien no usa ratón tiene que saber que el teclado vale.
+        const pista = 'Para leer una unidad: señalarla con el cursor o el dedo, o llevar el foco al mapa con el tabulador y recorrerlo con las flechas.';
+        // Lo que un mando `controla` se movió DENTRO de la raíz la vez anterior:
+        // antes de reescribirla se saca, o el innerHTML lo destruiría y su
+        // botón quedaría controlando un id que ya no existe.
+        // Al revés: cada `after` inserta justo detrás de la raíz, así que el
+        // último en salir queda el primero; recorriéndolos del final al
+        // principio vuelven en su orden.
+        (raiz.__movidos || []).slice().reverse().forEach(el => { if (raiz.contains(el) && raiz.after) raiz.after(el); });
+        raiz.__movidos = [];
         raiz.innerHTML = `
           ${tit0 ? `<p class="geomapa-titulo">${tit0}</p>` : ''}
+          ${htmlMandos}
           <div class="geomapa-marco">
-            <canvas class="geomapa-lienzo" role="img" aria-label="${alt.replace(/"/g, '&quot;')}"${conDesc ? ` aria-describedby="${idDesc}"` : ''}></canvas>
+            <canvas class="geomapa-lienzo" role="img"${conLectura ? ' tabindex="0"' : ''} aria-label="${alt.replace(/"/g, '&quot;')}"${conDesc ? ` aria-describedby="${idDesc}"` : ''}></canvas>
           </div>
+          ${conLectura ? `<p class="geomapa-lectura vacia" role="status" aria-live="polite">${pista}</p>` : ''}
           <div class="geomapa-caja-leyenda">${geomapaLeyenda(d, spec)}</div>
           ${conDesc ? `<p class="geomapa-descripcion-oculta" id="${idDesc}" hidden></p>
           <details class="geomapa-tabla geomapa-describe"><summary>Describir el mapa</summary><p class="geomapa-descripcion"></p></details>` : ''}
@@ -6923,9 +7447,19 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
 
         const canvas = raiz.querySelector('.geomapa-lienzo');
         const cajaLeyenda = raiz.querySelector('.geomapa-caja-leyenda');
+        grupos.forEach((g, k) => {
+          if (!g.controla || typeof document === 'undefined' || !document.getElementById) return;
+          const el = document.getElementById(g.controla);
+          const caja = raiz.querySelector(`.geomapa-controles[data-grupo="${k}"]`);
+          if (el && caja && caja.after) { caja.after(el); raiz.__movidos.push(el); }
+          else if (!el) console.warn(`Geomapa ${raiz.dataset.geomapa}: el mando controla «${g.controla}», que no está en la página`);
+        });
         const descOculta = raiz.querySelector('.geomapa-descripcion-oculta');
         const descVisible = raiz.querySelector('.geomapa-descripcion');
         let descActual = null;
+        // Lo que hace falta para leer una unidad entre trazo y trazo.
+        const cajaLectura = raiz.querySelector('.geomapa-lectura');
+        let senalada = -1, ajVivo = null, datoVivo = null, optsVivas = null;
 
         // dibuja() REPINTA LA LEYENDA además del lienzo. Sin esto, un
         // simulador que cambia de fuente deja los rótulos de las clases
@@ -6961,9 +7495,79 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
           const tit = raiz.querySelector('.geomapa-titulo');
           const titNow = opts.titulo || dNow.titulo;
           if (tit && titNow) tit.textContent = titNow;
-          return pintarGeomapa(canvas, dNow, opts);
+          const aj = pintarGeomapa(canvas, dNow, opts);
+          // La unidad señalada y su lectura (R2 · T2.3). Si el dato cambió y
+          // ya no tiene esa unidad, se suelta.
+          if (conLectura) {
+            if (senalada >= geomapaNumUnidades(dNow)) senalada = -1;
+            ajVivo = aj; datoVivo = dNow; optsVivas = opts;
+            if (senalada >= 0 && aj) geomapaResaltaUnidad(canvas.getContext('2d'), dNow, aj, senalada, opts);
+            const texto = senalada >= 0 ? String(spec.lectura(senalada, dNow, opts) || '') : pista;
+            if (cajaLectura.textContent !== texto) cajaLectura.textContent = texto;
+            cajaLectura.classList.toggle('vacia', senalada < 0);
+          }
+          // Los mandos dicen cuál de sus opciones está puesta.
+          raiz.querySelectorAll('.geomapa-controles[data-grupo]').forEach(caja => {
+            const g = grupos[+caja.dataset.grupo];
+            if (!g) return;
+            const ahora = typeof g.valor === 'function' ? g.valor() : g.valor;
+            caja.querySelectorAll('.geomapa-boton').forEach(b => {
+              const op = g.opciones[+b.dataset.opcion];
+              const puesto = g.opciones.length === 1 ? !!ahora : op[0] === ahora;
+              b.classList.toggle('activo', puesto);
+              b.setAttribute(g.controla && g.opciones.length === 1 ? 'aria-expanded' : 'aria-pressed', puesto ? 'true' : 'false');
+            });
+          });
+          // La clave de los rótulos que no cupieron (R-F): debajo de la
+          // leyenda, que se acaba de reescribir arriba, así que no se acumula.
+          if (aj && aj.clave && cajaLeyenda) {
+            const p = document.createElement('p');
+            p.className = 'geomapa-pie geomapa-clave';
+            const fuerte = document.createElement('strong');
+            fuerte.textContent = 'Rótulos por número';
+            p.append(fuerte, ' (a este ancho no caben en el mapa): ' +
+              aj.clave.map(par => `${par[0]} → ${par[1]}`).join(' · '));
+            cajaLeyenda.appendChild(p);
+          }
+          return aj;
         };
         dibuja();
+
+        // Los mandos: un clic cambia el estado del capítulo y repinta.
+        raiz.querySelectorAll('.geomapa-controles[data-grupo]').forEach(caja => {
+          caja.addEventListener('click', ev => {
+            const b = ev.target.closest('.geomapa-boton');
+            const g = grupos[+caja.dataset.grupo];
+            if (!b || !g || b.parentElement !== caja) return;
+            const ahora = typeof g.valor === 'function' ? g.valor() : g.valor;
+            g.alPulsar(g.opciones.length === 1 ? !ahora : g.opciones[+b.dataset.opcion][0]);
+            dibuja();
+          });
+        });
+
+        // La lectura: el cursor o el dedo señalan la unidad que tienen
+        // debajo; el teclado, la siguiente. Los dos escriben lo mismo.
+        if (conLectura) {
+          const senala = i => { if (i !== senalada) { senalada = i; dibuja(); } };
+          const bajo = ev => {
+            if (!ajVivo || !datoVivo) return -1;
+            const r = canvas.getBoundingClientRect();
+            const kx = canvas.width / (r.width || 1), ky = canvas.height / (r.height || 1);
+            return geomapaUnidadEn(canvas.getContext('2d'), datoVivo, ajVivo,
+              (ev.clientX - r.left) * kx, (ev.clientY - r.top) * ky, 14 * kx);
+          };
+          canvas.addEventListener('pointermove', ev => senala(bajo(ev)));
+          canvas.addEventListener('pointerdown', ev => senala(bajo(ev)));
+          canvas.addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse') senala(-1); });
+          canvas.addEventListener('keydown', ev => {
+            const i = geomapaTeclaUnidad(ev.key, senalada, datoVivo ? geomapaNumUnidades(datoVivo) : 0);
+            // Escape sin nada señalado no es del mapa: se deja pasar (cierra
+            // lo que lo contenga, si algo lo usa).
+            if (i === undefined || (i === -1 && senalada < 0)) return;
+            ev.preventDefault();
+            senala(i);
+          });
+        }
 
         // Redibujar al cambiar el tamaño del contenedor: sin esto, el
         // mapa se ve borroso o recortado tras un giro de pantalla.
@@ -7011,14 +7615,18 @@ round(mean(rnorm(200)), 4)   # 0.0117</code></pre>
         return `Demostración de «Describir el mapa»: ${d.n} condados en ${d.tam.length} clases `
           + `de igual número; la tasa más alta es la de ${d.etiquetas[i]}, `
           + `${d.valor[i].toFixed(2)} ${d.leyenda}, en la clase más oscura.`;
-      } };
+      },
+      // `lectura` (R2 · T2.3) en un mapa de polígonos y en uno de rejilla: el
+      // motor averigua la unidad bajo el cursor o la que eligen las flechas.
+      lectura: (i, d) => `${d.etiquetas ? d.etiquetas[i] : 'Unidad ' + (i + 1)}: ${d.valor[i].toFixed(2)} ${d.leyenda}, clase ${d.clase[i]} de ${d.cortes.length - 1}.` };
     GEOMAPAS['puntos']    = { fuente: () => DEMO.puntos[puntosIdx],
       descripcion: () => `Demostración de una descripción que sigue al estado: patrón `
         + `${puntosIdx + 1} de ${DEMO.puntos.length}, «${DEMO.puntos[puntosIdx].titulo}», `
         + `con ${DEMO.puntos[puntosIdx].n} puntos.` };
     GEOMAPAS['grafo']     = { fuente: () => DEMO.grafo,
                               get variante() { return grafoVar; } };
-    GEOMAPAS['rejilla']   = { fuente: () => DEMO.rejilla[rejillaSig], paleta: 'naranja' };
+    GEOMAPAS['rejilla']   = { fuente: () => DEMO.rejilla[rejillaSig], paleta: 'naranja',
+      lectura: (i, d) => `Celda ${i + 1} de ${d.nx * d.ny}: fila ${Math.floor(i / d.nx) + 1} de ${d.ny}, columna ${i % d.nx + 1} de ${d.nx}.` };
     GEOMAPAS['proyeccion'] = { fuente: () => DEMO.proyeccion_mundo,
                                get vista() { return proyIdx; } };
     GEOMAPAS['proyeccion_co'] = { fuente: () => DEMO.proyeccion_colombia,

@@ -168,6 +168,15 @@ def inventario(ruta: pathlib.Path = ENSAMBLADOR) -> list[tuple[int, str]]:
 # ruta apuntando a un archivo que NO EXISTE, que es la única manera de llegar
 # a la guarda que se dispara antes de que haya nada que leer. (T2.2b)
 # =====================================================================
+# nombre de la inyección -> trozo del mensaje de la guarda que TIENE que
+# dispararse. Las guardas de `guardas_de_t22()` no son `problemas.append` y
+# el inventario de arriba no las cuenta: para ellas no basta con que el
+# ensamblado pare, tiene que parar diciendo ESO. Sin esto, una inyección
+# que cazaba otra guarda anterior daba por probada una que nunca se disparó
+# (verificación de R2 · T2.2: tres casos).
+ESPERA: dict[str, str] = {}
+
+
 def defectos() -> list[tuple[str, str, str, object]]:
     """(nombre, superficie, tipo, acción). tipo ∈ {'obj', 'txt', 'falta'}."""
     D: list[tuple[str, str, str, object]] = []
@@ -717,6 +726,468 @@ def defectos() -> list[tuple[str, str, str, object]]:
     # con los datos publicados.
     falta("el JSON de datos no está donde apunta la variable de entorno", "datos")
 
+    # --- R2 · T2.4: las tres gráficas nuevas ------------------------------
+    #
+    # Una inyección por guarda, como en R1. Se atacan las frases que la prosa
+    # pone entre las cifras —«ninguna llega», «la reproducen», «algo más»,
+    # «muy por encima», «ya no se distingue», «en ninguna», «casi la misma»,
+    # «una muestra de ella», «a un lado y a otro»— y el cableado de lo que el
+    # navegador dibuja: el histograma, la franja y los cien segmentos.
+    al_ = lambda o: o["snow"]["aleatorizacion"]                      # noqa: E731
+    ev_ = lambda o: o["tobler"]["envolvente"]                        # noqa: E731
+    ci_ = lambda o: o["inferencia"]["cien_ic"]                       # noqa: E731
+    # Módulo 1.
+    obj("T2.4 m1: el histograma de la nula deja de sumar las recolocaciones", "datos",
+        lambda o: al_(o)["hist_frec"].__setitem__(0, al_(o)["hist_frec"][0] + 1))
+    obj("T2.4 m1: la media publicada de la nula no es la del histograma", "datos",
+        lambda o: al_(o).__setitem__("media_nula_pct", al_(o)["media_nula_pct"] + 0.5))
+    obj("T2.4 m1: el máximo de la nula en porcentaje no es el de su recuento", "datos",
+        lambda o: al_(o).__setitem__("max_nula_pct", 13.5))
+    obj("T2.4 m1: una recolocación pasa a alcanzar al observado", "datos",
+        lambda o: al_(o).__setitem__("n_mayor_o_igual", 1))
+    obj("T2.4 m1: las recolocaciones dejan de reproducir la parte de calle", "datos",
+        lambda o: al_(o).__setitem__("emc_media_pct", 0.001))
+    obj("T2.4 m1: las partes de calle dejan de sumar la calle entera", "datos",
+        lambda o: al_(o)["pct_calle_por_bomba"].__setitem__(0, al_(o)["pct_calle_por_bomba"][0] + 1))
+    obj("T2.4 m1: a Broad St le toca menos calle que el reparto ingenuo", "datos",
+        lambda o: al_(o).__setitem__("pct_calle_broad", 7.0))
+    obj("T2.4 m1: «veces lo que le tocaría por calle» deja de ser su cociente", "datos",
+        lambda o: al_(o).__setitem__("razon_sobre_calle", 6.5))
+    obj("T2.4 m1: el observado deja de quedar lejísimos de la nula", "datos",
+        lambda o: al_(o).__setitem__("z_observado", 4.0))
+    # Módulo 3.
+    obj("T2.4 m3: la envolvente deja de ir sobre las bandas del correlograma", "datos",
+        lambda o: ev_(o)["ideam"][0].__setitem__("d2", 26))
+    obj("T2.4 m3: la posición publicada de una banda no es la de su I", "datos",
+        lambda o: ev_(o)["ideam"][6].__setitem__("posicion", "debajo"))
+    obj("T2.4 m3: la envolvente deja de estar centrada en E[I]", "datos",
+        lambda o: ev_(o)["ideam"][2].__setitem__("media", ev_(o)["ideam"][2]["media"] + 0.01))
+    # El paro duro: sin banda por debajo no hay párrafo que escribir.
+    obj("T2.4 m3: la temperatura se queda sin banda por debajo de la franja", "datos",
+        lambda o: ev_(o)["ideam"][5].__setitem__("posicion", "dentro"))
+    obj("T2.4 m3: la banda negativa ya no queda bajo todas las permutaciones", "datos",
+        lambda o: ev_(o)["ideam"][5].__setitem__("min", -0.09))
+    obj("T2.4 m3: la primera banda deja de quedar «muy por encima»", "datos",
+        lambda o: ev_(o)["ideam"][0].__setitem__("hi", 0.3))
+    obj("T2.4 m3: los residuos dejan de leerse «dentro» entre 175 y 300 km", "datos",
+        lambda o: ev_(o)["residuos_altitud"][4].__setitem__("posicion", "encima"))
+    obj("T2.4 m3: el recuento de bandas fuera no es el de las posiciones", "datos",
+        lambda o: ev_(o).__setitem__("n_fuera_ideam", 5))
+    obj("T2.4 m3: la permutación suelta se sale de la franja", "datos",
+        lambda o: ev_(o).__setitem__("n_fuera_permutado", 1))
+    obj("T2.4 m3: los residuos se leen distinto contra la franja de la temperatura", "datos",
+        lambda o: ev_(o)["ideam"][4].__setitem__("lo", -0.01))
+    obj("T2.4 m3: las dos envolventes dejan de ser «casi la misma»", "datos",
+        lambda o: ev_(o)["residuos_altitud"][0].__setitem__("hi", 0.12))
+    obj("T2.4 m3: los cuantiles del pie de la tabla no son los del nivel", "datos",
+        lambda o: ev_(o).__setitem__("cuantil_lo_pct", 5))
+    # Módulo 4.
+    obj("T2.4 m4: los cien intervalos pasan a ser de otro alcance", "datos",
+        lambda o: ci_(o).__setitem__("phi", 2))
+    obj("T2.4 m4: el recuento publicado no es el de los intervalos dibujados", "datos",
+        lambda o: ci_(o).__setitem__("n_cubren_ingenuo", 30))
+    obj("T2.4 m4: los cien dejan de ser una muestra de la cobertura publicada", "datos",
+        lambda o: next(f for f in o["inferencia"]["rejilla"] if f["phi"] == 4).__setitem__(
+            "cobertura", 0.5))
+    obj("T2.4 m4: el cociente de los dos semianchos deja de cuadrar", "datos",
+        lambda o: ci_(o).__setitem__("razon_semianchos", 6.0))
+    obj("T2.4 m4: con el e.e. verdadero la cobertura ya no es la prometida", "datos",
+        lambda o: ci_(o).__setitem__("cobertura_exacto", 0.90))
+    obj("T2.4 m4: las cien medias caen todas del mismo lado del cero", "datos",
+        lambda o: ci_(o).__setitem__("media", [abs(x) for x in ci_(o)["media"]]))
+    # Segunda ronda de T2.4: el marco del plano, lo que el eje deja fuera, la
+    # suma por bandas, «no es raro», y los dos cocientes del módulo 4.
+    obj("T2.4 r2 m1: la tabla de marcos no acaba en las cifras del titular", "datos",
+        lambda o: al_(o)["marcos"][-1].__setitem__("pct_calle_broad", 8.7))
+    obj("T2.4 r2 m1: en un marco la razón no es el observado entre su parte", "datos",
+        lambda o: al_(o)["marcos"][1].__setitem__("razon_sobre_calle", 4.5))
+    obj("T2.4 r2 m1: la parte de calle deja de bajar al ensanchar el marco", "datos",
+        lambda o: al_(o)["marcos"][0].__setitem__("pct_longitud", 60.0))
+    obj("T2.4 r2 m1: con el marco estrecho el dato deja de quedar lejos", "datos",
+        lambda o: al_(o)["marcos"][0].__setitem__("z_binomial", 4.0))
+    ma_ = lambda o: o["tobler"]["mas_alla"]                          # noqa: E731
+    su_ = lambda o: o["tobler"]["sumas"]                             # noqa: E731
+    obj("T2.4 r2 m3: las parejas de más allá del eje pasan a quedar dentro", "datos",
+        lambda o: ma_(o).__setitem__("posicion", "dentro"))
+    obj("T2.4 r2 m3: las sumas por banda dejan de dar -1", "datos",
+        lambda o: su_(o).__setitem__("mas_alla", -1.9))
+    obj("T2.4 r2 m3: las parejas cortas no son las bandas por encima", "datos",
+        lambda o: su_(o).__setitem__("cortas", 11.0))
+    obj("T2.4 r2 m3: una banda corta pasa a sumar en negativo", "datos",
+        lambda o: (su_(o)["bandas"][0].__setitem__("suma", -1.0),
+                   su_(o)["bandas"][1].__setitem__("suma", su_(o)["bandas"][1]["suma"]
+                                                   + 1.0 + 1.6567309834)))
+    obj("T2.4 r2 m3: casi ninguna permutación se sale en alguna banda", "datos",
+        lambda o: ev_(o).__setitem__("pct_alguna_fuera", 4.0))
+    obj("T2.4 r2 m4: el cociente de semianchos pasa a ser el factor del recuadro", "datos",
+        lambda o: ci_(o).__setitem__(
+            "razon_semianchos", next(f for f in o["inferencia"]["rejilla"] if f["phi"] == 4)["factor"]))
+    obj("T2.4 r2 m4: el nivel escrito deja de ser el de alfa", "datos",
+        lambda o: o["inferencia"].__setitem__("nivel_pct", 90))
+
+    # --- R2 · T2.2: las gráficas y los mapas propios (guardas_de_t22) ----
+    txt("T2.2: la banda del marcador vuelve a medirse en píxeles", "ensamblador",
+        "const x0 = Math.max(a.left, eje.getPixelForValue(i - medio));",
+        "const x0 = x - 10;")
+    obj("T2.2: una bomba de Snow se queda sin celda", "mapas",
+        lambda o: o["snow"]["celdas"].pop())
+    obj("T2.2: dos bombas de Snow se cambian la celda", "mapas",
+        lambda o: o["snow"]["celdas"].__setitem__(slice(5, 7), o["snow"]["celdas"][5:7][::-1]))
+    obj("T2.2: el mapa de Snow vuelve a llevar pie de leyenda", "mapas",
+        lambda o: o["snow"].__setitem__("leyenda", "bomba más próxima"))
+    txt("T2.2: la paleta de la plantilla pierde el bermellón", "plantilla",
+        "'#E69F00', '#56B4E9', '#009E73', '#B8860B', '#0072B2', '#D55E00',",
+        "'#E69F00', '#56B4E9', '#009E73', '#B8860B', '#0072B2', '#D55F00',")
+    txt("T2.2: la paleta de la plantilla ya trae el naranja del acento", "plantilla",
+        "'#CC79A7', '#525252', '#8B4513', '#6A3D9A', '#00868B', '#C71585',",
+        "'#CC79A7', '#525252', '#FF6600', '#6A3D9A', '#00868B', '#C71585',")
+    obj("T2.2: la rampa del zinc vuelve a ser lineal", "mapas",
+        lambda o: o["meuse"].pop("marcas_escala"))
+    obj("T2.2: el Mosa pierde una orilla", "mapas",
+        lambda o: o["meuse"]["lineas"].pop())
+    obj("T2.2: un punto del Mosa se corre diez metros", "mapas",
+        lambda o: o["meuse"]["pts"].__setitem__(0, o["meuse"]["pts"][0] + 10))
+    obj("T2.2: un pino se corre una centésima", "mapas",
+        lambda o: o["japanesepines"]["pts"].__setitem__(0, o["japanesepines"]["pts"][0] + 41))
+    txt("T2.2: la rampa de la temperatura deja de ir de oscuro a claro", "ensamblador",
+        '"#cc4778", "#ed7953"', '"#ed7953", "#cc4778"')
+    txt("T2.2: la plantilla ya trae una paleta termica", "plantilla",
+        "      grises:   ['#f5f5f5',", "      termica: ['#000000', '#ffffff'],\n      grises:   ['#f5f5f5',")
+    obj("T2.2: el mapa del IDEAM pierde el contorno", "mapas",
+        lambda o: o["ideam"].pop("lineas"))
+    obj("T2.2: las franjas de altitud no suman las estaciones", "datos",
+        lambda o: o["visto"]["ideam"]["por_altitud"][0].__setitem__("n", 149))
+    obj("T2.2: un campo pierde el centro", "mapas",
+        lambda o: o["campos"][3].pop("centro"))
+    obj("T2.2: una realización va con escala propia", "mapas",
+        lambda o: o["realizaciones"][1].__setitem__("rango", [-2.0, 2.0]))
+    obj("T2.2: el recuento por clase de un campo no suma", "mapas",
+        lambda o: o["campos"][0]["tam"].__setitem__(0, 99))
+    # 32 × 8 y no 28 × 28: las celdas siguen siendo 256, así que `tam` sigue
+    # sumando y la única guarda que puede saltar es la de la retícula.
+    obj("T2.2: el campo vuelve a la rejilla de 28", "mapas",
+        lambda o: [(g.__setitem__("nx", 32), g.__setitem__("ny", 8)) for g in o["campos"]])
+    obj("T2.2: el campo destacado no es la réplica 1", "mapas",
+        lambda o: o["campos"][4].__setitem__("media_espacial", 0.5))
+    obj("T2.2: el título del campo vuelve a decir «rango»", "mapas",
+        lambda o: o["campos"][4].__setitem__("titulo", "Campo gaussiano, rango = 4"))
+    obj("T2.2: la ventana del acercamiento se sale del mapa", "mapas",
+        lambda o: o["agregacion"]["zoom"]["caja"].__setitem__(2, o["agregacion"]["caja"][2] + 5000))
+    obj("T2.2: el acercamiento declara celdas que no son columnas por filas", "mapas",
+        lambda o: o["agregacion"]["zoom"].__setitem__("n_celdas", 21))
+    obj("T2.2: una celda del caso queda fuera del acercamiento", "mapas",
+        lambda o: o["agregacion"]["zoom"]["caja"].__setitem__(0, o["agregacion"]["zoom"]["caja"][0] + 400000))
+    obj("T2.2: el porcentaje de rechazos ya no cabe en un decimal", "datos",
+        lambda o: o["una_realizacion"].__setitem__("pct_rechaza_ingenuo", 82.04))
+    # Se mueve UN par, no el recuento: con `n_suben` cambiado paraba antes el
+    # `PARADO` que exige que los dos recuentos sumen los pares.
+    obj("T2.2: los pares que se alejan del 0 no son los que cuenta R", "datos",
+        lambda o: next(p for p in o["escala_correlacion"]["pares"]
+                       if 0 < p["r_departamental"] < p["r_municipal"] and not p["invierte_signo"])
+        .__setitem__("r_departamental", 0.95))
+    obj("T2.2: un pliegue se queda sin estaciones", "mapas",
+        lambda o: o["ideam"].__setitem__("pliegue_aleatorio",
+                                         [1 if v == 10 else v for v in o["ideam"]["pliegue_aleatorio"]]))
+    obj("T2.2: los bloques del mapa no tienen los tamaños publicados", "datos",
+        lambda o: o["cv_espacial"]["tam_pliegues"].__setitem__(0, 3))
+    obj("T2.2: la vecina más próxima ya no separa los dos repartos", "datos",
+        lambda o: o["cv_espacial"].__setitem__("vecina_en_su_pliegue_aleatoria", 200))
+    obj("T2.2: la barra de los bloques ya no supera la desviación típica", "datos",
+        lambda o: o["cv_espacial"].__setitem__("sd_variable", 6.0))
+    txt("T2.2: el deslizador de rho pierde el de Colombia", "ensamblador",
+        ".concat([0.001, 0.002, 0.005, 0.03, 0.075, 0.15, rt.implicito]))].sort(",
+        ".concat([0.001, 0.002, 0.005, 0.03, 0.075, 0.15]))].sort(")
+    obj("T2.2: el rho de Colombia cae sobre otra posición del deslizador", "datos",
+        lambda o: o["n_efectivo"]["rho_del_titular"].__setitem__("implicito", 0.02))
+    txt("T2.2: la cobertura vuelve al lienzo de los errores estándar", "ensamblador",
+        'canvas data-panel="cobertura"', 'canvas data-panel="otro"')
+
+    obj("T2.2: los dos recuentos de pares dejan de sumar los pares", "datos",
+        lambda o: o["escala_correlacion"].__setitem__("n_suben", 9))
+    txt("T2.2: el acento de la plantilla deja de ser el naranja", "plantilla",
+        "const GEOMAPA_ACENTO = '#FF6600';", "const GEOMAPA_ACENTO = '#FF6601';")
+    txt("T2.2: la plantilla pierde el ámbar que se cambia por amarillo", "plantilla",
+        "'#E69F00', '#56B4E9',", "'#E69F01', '#56B4E9',")
+    obj("T2.2: las estaciones de San Andrés caen dentro del contorno", "mapas",
+        lambda o: o["ideam"]["lineas"].append([0, 3000, 1000, 3000, 1000, 4096, 0, 4096, 0, 3000]))
+    obj("T2.2: un par sin estrato deja de acercarse al cero", "datos",
+        lambda o: o["escala_correlacion"]["caso_aviso"]["bajan_sin_estrato"][0]
+        .__setitem__("r_departamental_n30", -0.5))
+    # --- R2 · T2.3 ---
+    obj("T2.3: el mapa de Bogotá pierde un borde", "mapas",
+        lambda o: o["bogota"]["bordes"].pop("distrito"))
+    obj("T2.3: el Distrito sale más denso que el perímetro urbano", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__("lambda_dc", 6.5))
+    obj("T2.3: una intensidad de Bogotá no es sus sedes entre su área", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__("area_caja_km2", 4000.0))
+    obj("T2.3: el rectángulo de las sedes cabe en el Distrito", "datos",
+        lambda o: o["colombia"]["puntual"].__setitem__("pct_caja_fuera_dc", 0.0))
+    obj("T2.3: el rectángulo dibujado en Bogotá no ciñe a las sedes", "mapas",
+        lambda o: o["bogota"]["bordes"]["caja"][0].__setitem__(0, o["bogota"]["bordes"]["caja"][0][0] - 200))
+    obj("T2.3: la lectura de Bogotá pone una sede urbana en el resto del Distrito", "mapas",
+        lambda o: o["bogota"]["dentro"].__setitem__(o["bogota"]["dentro"].index(2), 1))
+    obj("T2.3: con el rectángulo de los pinos la intensidad baja", "datos",
+        lambda o: o["puntual_canonico"]["japanesepines"].__setitem__("lambda_caja", 60.0))
+    txt("T2.3: un mapa del módulo 2 pierde su mando de la pregunta", "ensamblador",
+        "controles: [interruptorAleatorio('meuse')],", "controles: [],")
+    txt("T2.3: el capítulo vuelve a escribir en la paleta del motor", "ensamblador",
+        "      const lista = GEOMAPA_CUALITATIVA.slice();",
+        "      const lista = GEOMAPA_CUALITATIVA; GEOMAPA_CUALITATIVA[0] = '#F0E442';")
+    txt("T2.3: el título de Bogotá se copia con Object.assign y se congela", "ensamblador",
+        "    Object.defineProperties(GEOMAPAS['cap1-bogota'], Object.getOwnPropertyDescriptors({",
+        "    Object.assign(GEOMAPAS['cap1-bogota'], {",
+        "      descripcion: () => DESC1_BOGOTA[bogotaVentana]\n    }));",
+        "      descripcion: () => DESC1_BOGOTA[bogotaVentana]\n    });")
+    # --- R2 · T2.3, ronda 2: lo que escriben las lecturas, los títulos y las respuestas
+    # (las diez del verificador, A–J, más las de R1, N1, N3 y los tercios).
+    txt("T2.3b: las tres frases del borde de Bogotá, en orden invertido", "ensamblador",
+        "const BOGOTA1_DONDE = ['fuera del Distrito Capital', 'en el Distrito Capital, fuera del perímetro urbano',\n                           'dentro del perímetro urbano, y por tanto del Distrito Capital'];",
+        "const BOGOTA1_DONDE = ['dentro del perímetro urbano, y por tanto del Distrito Capital', 'en el Distrito Capital, fuera del perímetro urbano',\n                           'fuera del Distrito Capital'];")
+    txt("T2.3b: «entra / no entra» cruzado entre perímetro y Distrito", "ensamblador",
+        "(bogotaVentana === 'distrito' ? k >= 1 : k === 2)", "(bogotaVentana === 'distrito' ? k === 2 : k >= 1)")
+    txt("T2.3b: la respuesta de Carolina del Norte, la de los puntuales", "ensamblador",
+        'id="aleatorio-nc" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es el valor de cada unidad.</strong>',
+        'id="aleatorio-nc" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es dónde.</strong>')
+    txt("T2.3b: la clase se lee con los cortes de la siguiente", "ensamblador",
+        "de ${n5(d.cortes[k - 1], 2)} a `\n        + `${n5(d.cortes[k], 2)}", "de ${n5(d.cortes[k], 2)} a `\n        + `${n5(d.cortes[k + 1], 2)}")
+    txt("T2.3b: el título del perímetro urbano con las sedes del Distrito", "ensamblador",
+        "Con el perímetro urbano por ventana: ${miles1(p.n_urbana)}", "Con el perímetro urbano por ventana: ${miles1(p.n_dc)}")
+    txt("T2.3b: el zinc del punto vecino", "ensamblador",
+        "${miles1(d.marcas[i])} ppm de zinc", "${miles1(d.marcas[(i + 1) % d.n])} ppm de zinc")
+    txt("T2.3b: el título de los pinos con la intensidad de la otra ventana", "ensamblador",
+        "intensidad estimada ${cifra(p.lambda_caja, 5)}", "intensidad estimada ${cifra(p.lambda, 5)}")
+    txt("T2.3b: Snow lee la bomba con los niveles corridos", "ensamblador",
+        "d.niveles[d.marcas[i] - 1]", "d.niveles[d.marcas[i] % d.niveles.length]")
+    txt("T2.3b: la prosa da al rectángulo de los pinos el área de la ventana", "ensamblador",
+        "{n(pc['japanesepines']['area_caja'], 3)} y", "{n(pc['japanesepines']['area'], 3)} y")
+    txt("T2.3b: Bogotá rotula su rectángulo como ventana", "ensamblador",
+        "etiqueta: PUESTO1(bogotaVentana === 'caja') + BOGOTA1_NOMBRE[bogotaVentana]",
+        "etiqueta: 'ventana: ' + BOGOTA1_NOMBRE[bogotaVentana]")
+    txt("T2.3b: los pinos rotulan su rectángulo como ventana", "ensamblador",
+        "etiqueta: PUESTO1(pinosVentana === 'caja') + PINOS1_NOMBRE[pinosVentana]",
+        "etiqueta: 'ventana: ' + PINOS1_NOMBRE[pinosVentana]")
+    txt("T2.3b: la respuesta de los pinos deja de decir por qué el rectángulo no vale", "ensamblador",
+        "El rectángulo que ciñe a los puntos no es una ventana: lo dibujan",
+        "El rectángulo que ciñe a los puntos también sirve: lo dibujan")
+    txt("T2.3b: la lectura de Bogotá vuelve a escribir «de el»", "ensamblador",
+        "' en la cuenta ' + DE1(BOGOTA1_NOMBRE[bogotaVentana])", "' en la cuenta de ' + BOGOTA1_NOMBRE[bogotaVentana]")
+    txt("T2.3b: los siete mapas vuelven a la etiqueta del motor", "ensamblador",
+        "Object.keys(ETIQUETA1).forEach(k => { GEOMAPAS[k].etiqueta = ETIQUETA1[k]; });", "")
+    # --- R2 · T2.3, ronda 3: las guardas de guardas_de_lecturas, todas en el
+    # inventario, y las frases de forma contra su cifra de R (M–X del verificador).
+    txt("T2.3c: el documento ya no se ejecuta entero (un error al cargar)", "ensamblador",
+        "    let bogotaVentana = 'urbano';\n", "    let bogotaVentana = 'urbano'; null.x;\n")
+    txt("T2.3c: Node devuelve algo que no es JSON", "ensamblador",
+        'res = json.loads(r.stdout or "{}")', 'res = json.loads("{")')
+    txt("T2.3c: Node no devuelve las lecturas", "ensamblador",
+        "out: typeof out === 'string' ? JSON.parse(out) : {} }", "out: {} }")
+    txt("T2.3c: la lectura se deja la última unidad de cada mapa", "ensamblador",
+        "for (let i = 0; i < geomapaNumUnidades(d); i++) L.push(", "for (let i = 0; i < geomapaNumUnidades(d) - 1; i++) L.push(")
+    txt("T2.3c: el borde puesto que sí es ventana deja de rotularse así", "ensamblador",
+        "noValido ? 'borde puesto, que no es una ventana: ' : 'ventana: ';",
+        "noValido ? 'borde puesto, que no es una ventana: ' : 'borde: ';")
+    txt("T2.3c: la temperatura de la lectura con dos decimales", "ensamblador",
+        "${n5(d.marcas[i], 1)} °C de temperatura media anual", "${n5(d.marcas[i], 2)} °C de temperatura media anual")
+    txt("T2.3c: la etiqueta de Carolina del Norte arrastra la leyenda", "ensamblador",
+        '"cap1-nc": f"Tasa de muerte súbita infantil en los', '"cap1-nc": f"por 1 000 nacimientos. Tasa de muerte súbita infantil en los')
+    txt("T2.3c: la deserción alta, en el norte y el occidente (etiqueta y descripción)", "ensamblador",
+        '"cap1-desercion": "valores más altos están en el sur y el oriente del país",',
+        '"cap1-desercion": "valores más altos están en el norte y el occidente del país",',
+        'f"Los tres valores más altos están en el sur y el oriente del país: "',
+        'f"Los tres valores más altos están en el norte y el occidente del país: "')
+    txt("T2.3c: la clase más oscura en otro número de zonas", "ensamblador",
+        "f\"departamentos repartidos por {ent(len(_ZD['zona']))} zonas del dibujo, \"",
+        "f\"departamentos repartidos por {ent(len(_ZD['zona']) + 1)} zonas del dibujo, \"")
+    txt("T2.3c: el IDEAM dice «las más cálidas»", "ensamblador",
+        "f\"{ent(_VI['ideam']['n_frias'])} más frías, {PATRON1['cap1-ideam']}.\",",
+        "f\"{ent(_VI['ideam']['n_frias'])} más cálidas, {PATRON1['cap1-ideam']}.\",")
+    txt("T2.3d: el reparto de la clase más oscura, con las zonas al revés", "ensamblador",
+        'for z, k in zip(_ZD["zona"], _ZD["n"])])', 'for z, k in zip(_ZD["zona"][::-1], _ZD["n"])])')
+    txt("T2.3d: las cálidas de la descripción con el número de las frías", "ensamblador",
+        "{ent(_VI['ideam']['n_calidas'])} más cálidas", "{ent(_VI['ideam']['n_frias'])} más cálidas")
+    txt("T2.3d: el perímetro urbano acaba «al sur» del corte", "ensamblador",
+        "{'al norte' if _MG > 0 else 'al sur'} del corte", "{'al sur' if _MG > 0 else 'al norte'} del corte")
+    txt("T2.3d: las frías, donde se concentran las de menor altitud", "ensamblador",
+        'f"de mayor altitud")', 'f"de menor altitud")')
+    txt("T2.3d: la temperatura «sube» con la altura", "ensamblador",
+        "{'baja' if _VI['ideam']['baja_por_km'] > 0 else 'sube'} {n(abs(", "{'sube' if _VI['ideam']['baja_por_km'] > 0 else 'baja'} {n(abs(")
+    txt("T2.3d: las estaciones altas del centro con la cifra de otra zona", "ensamblador",
+        "{ent(_AL['zonas']['n'][0])} de las {ent(_AL['n'])} estaciones situadas a", "{ent(_AL['zonas']['n'][1])} de las {ent(_AL['n'])} estaciones situadas a")
+    txt("T2.3c: la respuesta de Bogotá: el rectángulo cabe en el Distrito", "ensamblador",
+        "y se sale del Distrito, así que su área cuenta suelo donde nadie buscó sedes",
+        "y cabe en el Distrito, así que su área no cuenta suelo de más")
+    txt("T2.3c: la respuesta de los pinos: λ̂ más bajo", "ensamblador",
+        "sale siempre más alto que con la ventana del dato", "sale siempre más bajo que con la ventana del dato")
+    txt("T2.3c: la pregunta deja de controlar su respuesta", "ensamblador",
+        "controla: 'aleatorio-' + ident,", "")
+    txt("T2.3c: la lectura de los pinos con x e y cambiadas", "ensamblador",
+        "en x = ${p[0].toFixed(3)}, y = ${p[1].toFixed(3)}", "en x = ${p[1].toFixed(3)}, y = ${p[0].toFixed(3)}")
+    txt("T2.3c: el zinc alto en el borde sureste", "ensamblador",
+        "alinean a lo largo del borde noroeste de la nube", "alinean a lo largo del borde sureste de la nube")
+    txt("T2.3c: las cálidas de la descripción se quedan sin su última zona", "ensamblador",
+        '+ lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_CA["zona"], _CA["n"])]) + ".")',
+        '+ lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_CA["zona"][:2], _CA["n"][:2])]) + ".")')
+    txt("T2.3c: los tercios dicen «todas dentro del Distrito» siempre", "ensamblador",
+        '    + ("todas dentro del Distrito." if _BG_FUERA_SUR == 0 else',
+        '    + ("todas dentro del Distrito." if True else')
+    obj("T2.3b: el perímetro urbano baja del corte de los tercios", "datos",
+        lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -3.0))
+    # Ronda 5: lo que el verificador coló en la ronda 4.
+    txt("T2.3r5: la etiqueta pone los tres valores «más bajos» en el sur y el oriente", "ensamblador",
+        '"cap1-desercion": "valores más altos están en el sur y el oriente del país",',
+        '"cap1-desercion": "valores más bajos están en el sur y el oriente del país",')
+    txt("T2.3r5: el IDEAM vuelve a «29 de las 37 de 2 560 m o más»", "ensamblador",
+        "de las {ent(_AL['n'])} estaciones situadas a \"\n    f\"{ent(_AL['umbral_m'])} m o más están en el {_AL['zonas']['zona'][0]}.",
+        "de las {ent(_AL['n'])} de \"\n    f\"{ent(_AL['umbral_m'])} m o más.")
+    txt("T2.3r5: el umbral de las más frías es el de las cálidas", "ensamblador",
+        "{n(_VI['ideam']['frias_umbral'], 1)} °C o menos", "{n(_VI['ideam']['calidas_umbral'], 1)} °C o menos")
+    txt("T2.3r5: el perímetro urbano «no cabe» en el tercio norte", "ensamblador",
+        "{'cabe' if _VI['bogota'].get('urbano_en_tercio_norte') else 'no cabe'}",
+        "{'no cabe' if _VI['bogota'].get('urbano_en_tercio_norte') else 'cabe'}")
+    obj("T2.3r5: R dice que el perímetro urbano no cabe en el tercio norte", "datos",
+        lambda o: o["visto"]["bogota"].__setitem__("urbano_en_tercio_norte", False))
+    # Ronda 6: lo que el verificador coló en la ronda 5.
+    txt("T2.3r6: los tres valores más altos, con los tres más bajos", "ensamblador",
+        """({n(f['pct'], 2)} %)" for f in _DS["mayores"]])""",
+        """({n(f['pct'], 2)} %)" for f in _DS["menores"]])""")
+    txt("T2.3r6: la temperatura va del máximo al mínimo", "ensamblador",
+        "{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo",
+        "{n(_GEO['t_max'], 1)} °C, en violeta oscuro, a {n(_GEO['t_min'], 1)} °C, en amarillo")
+    txt("T2.3r6: los colores de la temperatura, cruzados", "ensamblador",
+        "{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo",
+        "{n(_GEO['t_min'], 1)} °C, en amarillo, a {n(_GEO['t_max'], 1)} °C, en violeta oscuro")
+    obj("T2.3r6: R dice que cabe y el margen es negativo", "datos",
+        lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -12.5))
+    # Las dos ramas nuevas del mensaje de Bogotá, para verlas disparar.
+    txt("T2.3r6: la frase de Bogotá deja de decir si el perímetro cabe en el tercio", "ensamblador",
+        'f"en ese tercio y acaba {n(abs(_MG), 1)} m', 'f"en ese tercio, y acaba {n(abs(_MG), 1)} m')
+    obj("T2.3r6: R deja de publicar si el perímetro cabe en el tercio norte", "datos",
+        lambda o: o["visto"]["bogota"].pop("urbano_en_tercio_norte"))
+    # Ronda 7: la frase de los tres más bajos, que no tenía guarda.
+    _MEN = """({n(f['pct'], 2)} %)" for f in _DS["menores"]]) + ".")"""
+    txt("T2.3r7: los tres valores más bajos, con los tres más altos", "ensamblador",
+        _MEN, _MEN.replace('_DS["menores"]', '_DS["mayores"]'))
+    txt("T2.3r7: un valor de los tres más bajos, 0.01 más alto", "ensamblador",
+        _MEN, _MEN.replace("n(f['pct'], 2)", "n(f['pct'] + 0.01, 2)"))
+    txt("T2.3r7: los tres más bajos con un departamento cambiado", "ensamblador",
+        _MEN, _MEN.replace('_DS["menores"]', '[*_DS["menores"][:2], dict(_DS["menores"][2], '
+                           'departamento=_DS["mayores"][0]["departamento"])]'))
+
+    # Ronda 8: la lista se lee entera; un cuarto departamento metido entre dos
+    # elementos («junto con …») se colaba porque `finditer` se lo saltaba.
+    txt("T2.3r8: un cuarto departamento metido en la lista de los tres más bajos", "ensamblador",
+        _MEN, _MEN.replace('_DS["menores"]])', '_DS["menores"]]).replace(" y ", " junto con Caquetá y ", 1)'))
+
+    def _empata_cuarto_bajo(o):
+        v = o["desercion"]["valor"]
+        orden = sorted(range(len(v)), key=v.__getitem__)
+        v[orden[3]] = v[orden[2]]
+    obj("T2.3r7: el cuarto valor más bajo del mapa empata con el tercero", "mapas", _empata_cuarto_bajo)
+    obj("T2.3r7: el mapa de la deserción declara un departamento de más", "mapas",
+        lambda o: o["desercion"].__setitem__("n", o["desercion"]["n"] + 1))
+    obj("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "datos",
+        lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0))
+    for _nombre, _mensaje in (
+            ("T2.3: el título de Bogotá se copia con Object.assign y se congela", "no siguen a su mando"),
+            ("T2.3b: las tres frases del borde de Bogotá, en orden invertido", "no dicen el borde o la cuenta"),
+            ("T2.3b: «entra / no entra» cruzado entre perímetro y Distrito", "no dicen el borde o la cuenta"),
+            ("T2.3b: la respuesta de Carolina del Norte, la de los puntuales", "no es la de su tipo de dato"),
+            ("T2.3b: la clase se lee con los cortes de la siguiente", "no dan el valor o la clase"),
+            ("T2.3b: el título del perímetro urbano con las sedes del Distrito", "el título no da las sedes"),
+            ("T2.3b: el zinc del punto vecino", "no dan el zinc"),
+            ("T2.3b: el título de los pinos con la intensidad de la otra ventana", "no da el área y la intensidad de ese borde"),
+            ("T2.3b: Snow lee la bomba con los niveles corridos", "no dan la bomba"),
+            ("T2.3b: la prosa da al rectángulo de los pinos el área de la ventana", "la prosa no da el área"),
+            ("T2.3b: Bogotá rotula su rectángulo como ventana", "se rotula como ventana"),
+            ("T2.3b: los pinos rotulan su rectángulo como ventana", "se rotula como ventana"),
+            ("T2.3b: la respuesta de los pinos deja de decir por qué el rectángulo no vale", "no dice por qué el rectángulo"),
+            ("T2.3b: la lectura de Bogotá vuelve a escribir «de el»", "«de el»"),
+            ("T2.3b: los siete mapas vuelven a la etiqueta del motor", "la etiqueta accesible no es"),
+            ("T2.3c: el documento ya no se ejecuta entero (un error al cargar)", "no se ejecuta entero en Node"),
+            ("T2.3c: Node devuelve algo que no es JSON", "no se pudo ejecutar el documento en Node"),
+            ("T2.3c: Node no devuelve las lecturas", "Node no devolvió las lecturas"),
+            ("T2.3c: la lectura se deja la última unidad de cada mapa", "la lectura no cubre"),
+            ("T2.3c: el borde puesto que sí es ventana deja de rotularse así", "el borde puesto no se rotula como ventana"),
+            ("T2.3c: la temperatura de la lectura con dos decimales", "no dan la temperatura de su estación"),
+            ("T2.3c: la etiqueta de Carolina del Norte arrastra la leyenda", "arrastra la palabra de la leyenda"),
+            ("T2.3c: la deserción alta, en el norte y el occidente (etiqueta y descripción)", "sitúa los valores más altos"),
+            ("T2.3c: la clase más oscura en otro número de zonas", "la etiqueta no reparte la clase más alta"),
+            ("T2.3d: el reparto de la clase más oscura, con las zonas al revés", "el reparto de la clase más oscura"),
+            ("T2.3d: las cálidas de la descripción con el número de las frías", "el número de las más cálidas"),
+            ("T2.3d: el perímetro urbano acaba «al sur» del corte", "del otro lado del corte"),
+            ("T2.3d: las frías, donde se concentran las de menor altitud", "de las estaciones extremas"),
+            ("T2.3d: la temperatura «sube» con la altura", "con la altura, como dice R"),
+            ("T2.3d: las estaciones altas del centro con la cifra de otra zona", "de las estaciones extremas"),
+            ("T2.3c: el IDEAM dice «las más cálidas»", "las estaciones extremas"),
+            ("T2.3c: la respuesta de Bogotá: el rectángulo cabe en el Distrito", "la respuesta no dice que el rectángulo se sale"),
+            ("T2.3c: la respuesta de los pinos: λ̂ más bajo", "da un λ̂ más alto"),
+            ("T2.3c: la pregunta deja de controlar su respuesta", "no controla su respuesta"),
+            ("T2.3c: la lectura de los pinos con x e y cambiadas", "no dan las coordenadas de su pino"),
+            ("T2.3c: el zinc alto en el borde sureste", "pone el zinc alto en el borde"),
+            ("T2.3c: los tercios dicen «todas dentro del Distrito» siempre", "la descripción de los tercios"),
+            ("T2.3c: las cálidas de la descripción se quedan sin su última zona", "no reparte las más cálidas"),
+            ("T2.3b: el perímetro urbano baja del corte de los tercios", "ya no cabe en el tercio norte"),
+            ("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "no cuadran con las del dato"),
+            ("T2.3r6: los tres valores más altos, con los tres más bajos", "los tres más altos del mapa de R son"),
+            ("T2.3r6: la temperatura va del máximo al mínimo", "y el mapa de R va de"),
+            ("T2.3r6: los colores de la temperatura, cruzados", "y el mapa de R va de"),
+            ("T2.3r6: R dice que cabe y el margen es negativo", "m, negativo"),
+            ("T2.3r6: la frase de Bogotá deja de decir si el perímetro cabe en el tercio", "no dice si el perímetro urbano cabe"),
+            ("T2.3r6: R deja de publicar si el perímetro cabe en el tercio norte", "como verdadero o falso"),
+            ("T2.3r7: los tres valores más bajos, con los tres más altos", "los tres más bajos del mapa de R son"),
+            ("T2.3r7: un valor de los tres más bajos, 0.01 más alto", "los tres más bajos del mapa de R son"),
+            ("T2.3r7: los tres más bajos con un departamento cambiado", "los tres más bajos del mapa de R son"),
+            ("T2.3r7: el cuarto valor más bajo del mapa empata con el tercero", "empata con el cuarto"),
+            ("T2.3r7: el mapa de la deserción declara un departamento de más", "deserción: el mapa de R trae"),
+            ("T2.3r8: un cuarto departamento metido en la lista de los tres más bajos", "no se lee entera"),
+            ("T2.3: el mapa de Bogotá pierde un borde", "no trae los tres bordes"),
+            ("T2.3: la lectura de Bogotá pone una sede urbana en el resto del Distrito", "no cuadra con las sedes de cada ventana"),
+            ("T2.3: el Distrito sale más denso que el perímetro urbano", "ya no bajan del perímetro urbano"),
+            ("T2.3: una intensidad de Bogotá no es sus sedes entre su área", "no es sus sedes entre su área"),
+            ("T2.3: el rectángulo de las sedes cabe en el Distrito", "ya no se sale del Distrito"),
+            ("T2.3: el rectángulo dibujado en Bogotá no ciñe a las sedes", "no es el que ciñe a las sedes"),
+            ("T2.3: con el rectángulo de los pinos la intensidad baja", "la intensidad ya no sube"),
+            ("T2.3: un mapa del módulo 2 pierde su mando de la pregunta", "sin el mando que la enseña"),
+            ("T2.3: el capítulo vuelve a escribir en la paleta del motor", "vuelve a escribir en la paleta"),
+            ("T2.2: el acento de la plantilla deja de ser el naranja", "el acento de la plantilla ya no es el naranja"),
+            ("T2.2: la plantilla pierde el ámbar que se cambia por amarillo", "ya no trae el ámbar"),
+            ("T2.2: las estaciones de San Andrés caen dentro del contorno", "se ven sobre el mar"),
+            ("T2.2: un par sin estrato deja de acercarse al cero", "ya no «se acercan al cero»"),
+            ('T2.2: la banda del marcador vuelve a medirse en píxeles', 'marcador:'),
+            ('T2.2: una bomba de Snow se queda sin celda', 'no hay una celda por bomba'),
+            ('T2.2: dos bombas de Snow se cambian la celda', 'fuera de la celda de la bomba'),
+            ('T2.2: el mapa de Snow vuelve a llevar pie de leyenda', 'pie de leyenda'),
+            ('T2.2: la paleta de la plantilla pierde el bermellón', 'ya no es la que el cambio de color'),
+            ('T2.2: la paleta de la plantilla ya trae el naranja del acento', 'ya trae el naranja del acento'),
+            ('T2.2: la rampa del zinc vuelve a ser lineal', 'ya no recorre el logaritmo'),
+            ('T2.2: el Mosa pierde una orilla', 'las dos orillas'),
+            ('T2.2: un punto del Mosa se corre diez metros', 'Mosa: la tabla de respaldo'),
+            ('T2.2: un pino se corre una centésima', 'japanesepines: la tabla de respaldo'),
+            ('T2.2: la rampa de la temperatura deja de ir de oscuro a claro', 'de oscuro a claro'),
+            ('T2.2: la plantilla ya trae una paleta termica', 'ya trae una paleta «termica»'),
+            ('T2.2: el mapa del IDEAM pierde el contorno', 'no trae el contorno'),
+            ('T2.2: las franjas de altitud no suman las estaciones', 'franjas de altitud'),
+            ('T2.2: un campo pierde el centro', 'simétrica y centrada en 0'),
+            ('T2.2: una realización va con escala propia', 'ya no comparten escala'),
+            ('T2.2: el recuento por clase de un campo no suma', '`tam` no reparte'),
+            ('T2.2: el campo vuelve a la rejilla de 28', 'ya no va en la retícula de la simulación'),
+            ('T2.2: el campo destacado no es la réplica 1', 'ya no es la réplica 1'),
+            ('T2.2: el título del campo vuelve a decir «rango»', 'vuelve a llamar «rango»'),
+            ('T2.2: la ventana del acercamiento se sale del mapa', 'se sale de la caja'),
+            ('T2.2: el acercamiento declara celdas que no son columnas por filas', 'no son columnas por filas'),
+            ('T2.2: una celda del caso queda fuera del acercamiento', 'queda fuera del acercamiento'),
+            ('T2.2: el porcentaje de rechazos ya no cabe en un decimal', 'ya no cabe en un decimal'),
+            ('T2.2: los pares que se alejan del 0 no son los que cuenta R', 'ya no cuentan lo que R publica'),
+            ('T2.2: un pliegue se queda sin estaciones', 'no reparte las estaciones en los pliegues'),
+            ('T2.2: los bloques del mapa no tienen los tamaños publicados', 'no tienen los tamaños publicados'),
+            ('T2.2: la vecina más próxima ya no separa los dos repartos', '«casi nunca» y «casi siempre»'),
+            ('T2.2: la barra de los bloques ya no supera la desviación típica', 'ya no supera la desviación típica'),
+            ('T2.2: el deslizador de rho pierde el de Colombia', 'ya no salen de la rejilla de R'),
+            ('T2.2: el rho de Colombia cae sobre otra posición del deslizador', 'coincide con otra posición'),
+            ('T2.2: la cobertura vuelve al lienzo de los errores estándar', 'vuelven a compartir lienzo'),
+    ):
+        ESPERA[_nombre] = _mensaje
+
     return D
 
 
@@ -914,7 +1385,12 @@ def main() -> int:
         cod, sal, pisadas = corre(tmp, rutas["ensamblador"], rutas)
         vistas |= pisadas
         ms = males(sal)
-        if cod != 0 and ms:
+        if cod != 0 and ms and nombre in ESPERA and not any(ESPERA[nombre] in m for m in ms):
+            # Paró, pero no la guarda que esta inyección existe para probar.
+            colados += 1
+            etiqueta = "OTRA"
+            print(f"      se esperaba un MAL con «{ESPERA[nombre]}»")
+        elif cod != 0 and ms:
             cazados += 1
             etiqueta = "CAZADO"
         elif cod != 0:
@@ -956,9 +1432,10 @@ def main() -> int:
     ANTES = "DESCRIPCIONES = {\n"
     MUT_DESC = [
         ("los pinos sin `descripcion` en el registro",
-         '''geomapa("cap1-pinos", "japanesepines", extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))''',
-         '''geomapa("cap1-pinos", "japanesepines")''', "no trae `descripcion`"),
-        ("la descripción de Bogotá, corta", ANTES, 'DESC_BOGOTA = "Corto."\n' + ANTES, "caracteres"),
+         '''geomapa("cap1-pinos", "japanesepines", tabla=TABLA_PUNTOS,
+              extra="      descripcion: " + json.dumps(DESC_PINOS, ensure_ascii=False))''',
+         '''geomapa("cap1-pinos", "japanesepines", tabla=TABLA_PUNTOS)''', "no trae `descripcion`"),
+        ("la descripción de Bogotá, corta", ANTES, 'DESC_BOGOTA_V["urbano"] = "Corto."\n' + ANTES, "caracteres"),
         ("Snow deja de apiñarse en Broad Street", ANTES, '_SN["pct_mas_cerca_broad"] = 30\n' + ANTES, "Snow:"),
         ("la deserción más alta, en el norte", ANTES, '_DS["mayores"][0]["zona"] = "norte"\n' + ANTES, "deserción:"),
         ("el campo deja de crecer con el alcance", ANTES, 'M["campos"][3]["rho_vecino"] = 0.99\n' + ANTES, "campo:"),

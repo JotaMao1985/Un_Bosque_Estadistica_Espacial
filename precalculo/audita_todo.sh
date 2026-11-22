@@ -302,6 +302,14 @@ fi
 paso "pon_boton_indice.py — el botón al índice, en todas las páginas" \
      python3 precalculo/prueba_boton_indice.py
 
+# Del 2026-11-17 (R2, T2.1): las reglas compartidas de las gráficas, que viven en la plantilla y que
+# ningún auditor de texto ve —un gráfico con la letra del sistema y los rótulos girados pasa todos—. Ejecuta
+# en Node el JavaScript de la plantilla (la fusión profunda de `crearGraficoLinea`, la leyenda al pie en el
+# teléfono, el suelo de la letra de los rótulos, el centro de la paleta divergente, el filo y el radio de
+# los puntos) y le inyecta, uno por uno, el defecto que cada regla arregló. Cuesta 2 s, así que corre también con `--rapido`.
+paso "prueba_plantilla_graficos.py — las reglas compartidas de las gráficas, con inyección" \
+     python3 precalculo/prueba_plantilla_graficos.py
+
 # Desde el 2026-11-03 comprueba también las cifras de la portada, y con
 # `--prueba` se las rompe antes a sí misma: cuesta lo mismo que contarlas.
 paso "cuenta_sitio.py — los totales, y las cifras de la portada" \

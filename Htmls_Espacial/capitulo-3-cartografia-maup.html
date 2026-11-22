@@ -1012,6 +1012,25 @@
       .grafico-wrapper {
         height: 260px;
       }
+
+      /* Gráfico con leyenda en el teléfono (R-E, 2026-11-17). La clase la pone
+         el plugin `leyendaEstrecha` en el padre del lienzo —un
+         `.grafico-wrapper` o un `.quiz-grafico`— cuando el gráfico lleva
+         leyenda, y solo entonces. Es `min-height` y no `height` porque el alto
+         de cada caja va en línea (`style="height:260px"`), y un mínimo es lo
+         único que una regla de hoja le gana a un estilo en línea sin
+         `!important`: la caja de 260 crece a 300 y la de 380 se queda como
+         está. Medido a 375 px: con la leyenda arriba, en cuatro filas, al
+         trazado le quedaban 73–150 px de alto.
+
+         300 px es el suelo de todas. Una leyenda de cuatro o cinco filas se
+         come un tercio de eso, y cuántas filas son no se sabe hasta que el
+         gráfico está dibujado: el plugin lo mide entonces y, si al trazado le
+         faltan píxeles para llegar a su mínimo, deja aquí el alto que hace
+         falta, en `--grafico-alto-minimo`. */
+      .grafico-leyenda-abajo {
+        min-height: max(300px, var(--grafico-alto-minimo, 0px));
+      }
     }
 
     /* Tables - CSS Puro */
@@ -4016,6 +4035,38 @@
       margin: 0.45rem 0 0 0;
     }
 
+    /* La lectura de la unidad señalada (R2 · T2.3): lo que dice el mapa de
+       la unidad que hay bajo el cursor o que se ha elegido con las flechas.
+       Alto mínimo de dos renglones para que el mapa no baile al pasar de una
+       lectura corta a una larga. */
+    .geomapa-lectura {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      color: #012820;
+      margin: 0.5rem 0 0 0;
+      min-height: 2.45rem;
+      /* `html p` justifica, y una línea corta justificada abre huecos de
+         varias letras a 375 px. */
+      text-align: left;
+    }
+
+    .geomapa-lectura.vacia {
+      color: #6b7280;
+    }
+
+    .geomapa-lienzo[tabindex]:focus-visible {
+      outline: 3px solid #FF6600;
+      outline-offset: 2px;
+    }
+
+    /* La clave de los rótulos que no cupieron en el lienzo (R-F). Sustituye a
+       unos rótulos cuyo suelo son 11 px de pantalla, así que no puede medir
+       menos: el pie corriente, a 0.78rem, se queda en 10.9 px. */
+    .geomapa-clave {
+      font-size: max(11px, 0.8125rem);
+      color: #374151;
+    }
+
     .geomapa-tabla {
       margin-top: 0.6rem;
       font-size: 0.8rem;
@@ -6738,7 +6789,7 @@ for u in (0, 30, 300, 1000):
       return new Chart(canvas, {
         type: 'line',
         data: { labels: etiquetas, datasets: datasets },
-        options: Object.assign({
+        options: fusionarOpcionesGrafico({
           responsive: true,
           maintainAspectRatio: false,
           animation: false,
@@ -6768,6 +6819,637 @@ for u in (0, 30, 300, 1000):
             }
           }
         }, opciones)
+      });
+    }
+
+    // La fusión de las opciones de la casa con las del simulador, EN
+    // PROFUNDIDAD (R-D, 2026-11-17). Hasta entonces era un `Object.assign`,
+    // que es superficial: quien pasaba `scales: { y: { title: … } }` para
+    // ponerle título a un eje se llevaba por delante `scales.x` entero —la
+    // letra, `maxRotation: 0`, `maxTicksLimit`, la rejilla apagada— y la letra
+    // de su propio eje y. El gráfico salía con la fuente del sistema y los
+    // rótulos girados 45°, y nadie lo había pedido.
+    //
+    // Tres reglas, y ninguna más:
+    //   1. Dos objetos LITERALES se funden clave a clave; lo que el simulador
+    //      no nombra se queda como lo trae la casa.
+    //   2. Todo lo demás lo decide el simulador y sustituye entero: un número,
+    //      una cadena, `false`, una FUNCIÓN (las opciones «scriptables» de
+    //      Chart.js, que no se pueden fundir con nada) y un ARREGLO
+    //      (`borderDash: [2, 3]` no es «los dos primeros de cuatro»).
+    //   3. `undefined` no borra: es no haber dicho nada. Para quitar algo de la
+    //      casa se dice su contrario (`maxRotation: 50`, `grid: { display:
+    //      true }`), que es lo que se lee en el simulador.
+    //
+    // Y un eje que la casa no conoce (`y2`, `yN`…) hereda la LETRA del eje al
+    // que se parece —Fira Code si es vertical, Montserrat si es horizontal—,
+    // y solo la letra: su rejilla, sus límites y su lado son del simulador.
+    // Literal: `{…}` a secas. Ni un arreglo, ni una función, ni una instancia
+    // de nada (un degradado del lienzo, un `Date`): su prototipo no es el de
+    // los objetos llanos.
+    function esObjetoLiteral(v) {
+      return v !== null && typeof v === 'object' &&
+             Object.getPrototypeOf(v) === Object.prototype;
+    }
+
+    function fusionProfunda(base, extra) {
+      const out = {};
+      Object.keys(base).forEach(k => {
+        out[k] = esObjetoLiteral(base[k]) ? fusionProfunda(base[k], {}) : base[k];
+      });
+      Object.keys(extra || {}).forEach(k => {
+        const v = extra[k];
+        if (v === undefined) return;
+        out[k] = (esObjetoLiteral(v) && esObjetoLiteral(out[k])) ? fusionProfunda(out[k], v) : v;
+      });
+      return out;
+    }
+
+    function fusionarOpcionesGrafico(casa, opciones) {
+      const out = fusionProfunda(casa, opciones || {});
+      const ejes = out.scales || {};
+      Object.keys(ejes).forEach(id => {
+        if (id === 'x' || id === 'y' || !esObjetoLiteral(ejes[id])) return;
+        const e = ejes[id];
+        // El mismo criterio que Chart.js: `axis` si lo dice, luego el lado
+        // (`position`), luego la primera letra del identificador.
+        const vertical = e.axis ? e.axis === 'y'
+          : (e.position === 'left' || e.position === 'right') ? true
+          : (e.position === 'top' || e.position === 'bottom') ? false
+          : id[0] !== 'x';
+        const letra = casa.scales[vertical ? 'y' : 'x'].ticks.font;
+        ejes[id] = fusionProfunda({ ticks: { font: letra } }, e);
+      });
+      return out;
+    }
+
+    // ----------------------------------------------------------------
+    // La leyenda, ABAJO en el teléfono (R-E, 2026-11-17).
+    //
+    // Las cajas de los gráficos tienen el alto fijo, en línea, y la leyenda
+    // de Chart.js va arriba con una muestra de 40 px por serie. A 375 px el
+    // lienzo mide 226 de ancho: cuatro series son cuatro filas, y al trazado
+    // le quedaban entre 73 y 150 px de alto en medio material.
+    //
+    // Es un plugin GLOBAL y no una opción de `crearGraficoLinea` porque la
+    // mayoría de los simuladores de los capítulos 2 a 7 crean su gráfico con
+    // `new Chart` a secas: así el arreglo los alcanza sin tocarlos. En una
+    // pantalla de 640 px o menos —el mismo corte que el resto de la hoja—:
+    //   · la leyenda baja al pie;
+    //   · la muestra de cada serie pasa a 12 px, o a lo que haga falta para
+    //     que quepa un trazo discontinuo entero (ver muestraLeyendaEstrecha);
+    //   · una entrada más ancha que el lienzo se parte en renglones: Chart.js
+    //     centra cada entrada, y la que no cabe empieza fuera del lienzo por
+    //     la izquierda, que es justo donde va su muestra de color (ver
+    //     etiquetasLeyendaEstrecha);
+    //   · el padre del lienzo recibe `.grafico-leyenda-abajo`, que le da un
+    //     alto mínimo de 300 px (ver la hoja);
+    //   · y si aun así, con el gráfico ya dibujado, al TRAZADO le quedan
+    //     menos de GRAFICO_TRAZADO_MIN px de alto —una leyenda de cinco
+    //     filas—, la caja crece lo que falta. La leyenda al pie cuesta 10 px
+    //     que arriba no costaba (el rótulo más alto del eje y ya no se apoya
+    //     en ella), y sin esto los gráficos que ya tenían 300 px de caja
+    //     habrían salido perdiendo.
+    //
+    // LO QUE RESPETA. Un gráfico sin leyenda no se toca, se haya quitado con
+    // `legend: { display: false }` o con `legend: false`. Si el simulador
+    // fijó él una posición que no es `top` (`position: 'right'`) o una
+    // muestra que ya es de 12 px o menos, manda él.
+    //
+    // NO SE ESCRIBE EN LAS OPCIONES DEL GRÁFICO, NI EN UNA COPIA. Las dos
+    // cosas se probaron y las dos rompían algo. Escribir en las opciones del
+    // simulador le cambiaba la leyenda a todos los gráficos que compartían
+    // ese objeto. Darle al gráfico una copia y devolverle el original al
+    // volver a una pantalla ancha perdía todo lo que el simulador hubiera
+    // escrito entre tanto en `grafico.options` —el título de un eje, su tipo,
+    // su máximo—: bastaba girar el teléfono.
+    //
+    // Lo que se hace es NO GUARDAR NADA. En cada trazo, después de que el
+    // plugin de la leyenda de Chart.js haya leído las opciones del gráfico,
+    // a la CAJA de la leyenda —el objeto que la pinta, no las opciones— se
+    // le pone delante un velo: un `Proxy` que contesta `bottom` cuando se le
+    // pregunta la posición, la muestra estrecha cuando se le pregunta el
+    // ancho, y lo demás lo deja pasar tal cual. En el trazo siguiente
+    // Chart.js vuelve a leer las opciones, intactas, y el velo se vuelve a
+    // poner o no según el ancho de ESE momento. No hay estado que devolver,
+    // ni historia: el mismo gráfico con el mismo ancho sale siempre igual,
+    // venga de donde venga, y lo que el simulador escribe en sus opciones es
+    // lo único que hay escrito en ellas.
+    const GRAFICO_ESTRECHO = '(max-width: 640px)';
+    // El alto que se le garantiza al área de trazado en el teléfono, en px.
+    // Es lo que tiene en el escritorio un gráfico corriente de 260 px de caja.
+    const GRAFICO_TRAZADO_MIN = 170;
+
+    // La muestra de la leyenda en el teléfono: 12 px, salvo que alguna serie
+    // vaya a trazos. En 12 px no cabe un patrón `[6, 4]` —se ve una raya, igual
+    // que la serie continua de al lado—, así que se da el ancho de dos trazos y
+    // su hueco, sin pasar de 24. Se calcula en cada trazo, con las series que
+    // haya ENTONCES: muchos simuladores añaden la serie a trazos después de
+    // crear el gráfico.
+    function muestraLeyendaEstrecha(chart) {
+      const series = (chart.config.data && chart.config.data.datasets) || [];
+      let ancho = 12;
+      series.forEach(s => {
+        const d = s && s.borderDash;
+        if (Array.isArray(d) && d.length && d[0] > 0) {
+          ancho = Math.max(ancho, Math.min(24, 2 * d[0] + (d[1] || d[0])));
+        }
+      });
+      return ancho;
+    }
+
+    // Parte en renglones un texto que no cabe en `ancho` px. Devuelve siempre
+    // un arreglo de renglones: uno solo si el texto cabe, o si es una sola
+    // palabra y no hay por dónde partir. Sirve a la leyenda y a los títulos de
+    // los ejes.
+    function partirTextoGrafico(texto, ancho, mide) {
+      if (typeof texto !== 'string' || mide(texto) <= ancho) return [texto];
+      const palabras = texto.split(' ');
+      if (palabras.length < 2) return [texto];
+      const renglones = [];
+      let actual = '';
+      palabras.forEach(p => {
+        const prueba = actual ? actual + ' ' + p : p;
+        if (actual && mide(prueba) > ancho) { renglones.push(actual); actual = p; }
+        else actual = prueba;
+      });
+      if (actual) renglones.push(actual);
+      return renglones;
+    }
+
+    // `generateLabels` de la leyenda, envuelto: las entradas las fabrica quien
+    // las fabricaba (el simulador, el tipo de gráfico o Chart.js) y aquí solo
+    // se parte el texto de las que no caben.
+    //
+    // CADA RENGLÓN ES UNA ENTRADA. Chart.js 4.4 admite un texto de varias
+    // líneas en la leyenda vertical, pero en la horizontal —arriba o al pie—
+    // mide el arreglo como una sola cadena y le da el alto de una línea. Así
+    // que el segundo renglón va como una entrada más, de la misma serie, con
+    // la muestra TRANSPARENTE: ocupa su sitio, y el texto continúa alineado
+    // con el de arriba. Pulsar cualquiera de las dos esconde la serie, y las
+    // dos se tachan juntas, porque comparten `datasetIndex` y `hidden`.
+    //
+    // Y CADA RENGLÓN DE UNA ENTRADA PARTIDA OCUPA SU FILA ENTERA. Chart.js
+    // llena las filas de la leyenda con las entradas que quepan, y un último
+    // renglón corto compartía fila con la entrada siguiente: «…sin» y
+    // «cuadratura ▢ cero» se leían como una sola cosa. Los renglones de una
+    // entrada partida se rellenan por la derecha con espacios duros hasta el
+    // ancho de la fila: nada más cabe a su lado, y los renglones quedan
+    // alineados por la izquierda, uno debajo de otro.
+    function etiquetasLeyendaEstrecha(original, muestra) {
+      return function (chart) {
+        const items = original.call(this, chart) || [];
+        const etq = chart.options.plugins.legend.labels;
+        const letra = Chart.helpers.toFont(etq.font);
+        // lo que ocupa una entrada además de su texto: la muestra, media letra
+        // de separación y el relleno de la leyenda a cada lado
+        const ancho = chart.width - muestra - letra.size / 2 - 2 * (typeof etq.padding === 'number' ? etq.padding : 10);
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.font = letra.string;
+        const mide = t => ctx.measureText(t).width;
+        const duro = mide('\u00a0') || 3;
+        const llena = t => t + '\u00a0'.repeat(Math.max(0, Math.floor((ancho - mide(t)) / duro)));
+        const partidas = [];
+        items.forEach(it => {
+          const renglones = partirTextoGrafico(it.text, ancho, mide);
+          if (renglones.length < 2) { partidas.push(it); return; }
+          renglones.forEach((renglon, k) => {
+            partidas.push(k === 0 ? Object.assign({}, it, { text: llena(renglon) })
+              : Object.assign({}, it, { text: llena(renglon), fillStyle: 'transparent', strokeStyle: 'transparent',
+                                        lineWidth: 0, pointStyle: false, continuacion: true }));
+          });
+        });
+        ctx.restore();
+        return partidas;
+      };
+    }
+
+    // ¿Lleva leyenda el gráfico, y es de los que llenan su caja? Se pregunta
+    // a las opciones tal como están AHORA.
+    function leyendaEstrechaAplica(chart, estrecho) {
+      if (!estrecho || !chart.legend) return false;
+      const crudo = chart.config.options && chart.config.options.plugins;
+      // `legend: false` es quitar la leyenda, igual que `display: false`.
+      if (crudo && crudo.legend === false) return false;
+      const ley = chart.options.plugins && chart.options.plugins.legend;
+      return !!ley && ley.display !== false;
+    }
+
+    // El velo sobre la caja de la leyenda (ver arriba). Va en `beforeUpdate`,
+    // DESPUÉS del de la leyenda de Chart.js —los plugins de la biblioteca se
+    // registran antes que este—, que es quien acaba de darle a la caja sus
+    // opciones y su posición.
+    function velarLeyendaEstrecha(chart, estrecho) {
+      const aplica = leyendaEstrechaAplica(chart, estrecho);
+      const caja = chart.canvas && chart.canvas.parentNode;
+      const estado = chart.$leyendaEstrecha || (chart.$leyendaEstrecha = { caja: null, alto: 0 });
+      // La caja se recuerda AQUÍ: al destruir un gráfico, Chart.js suelta su
+      // lienzo antes de avisar a los plugins, y ya no hay por dónde llegar.
+      if (caja) estado.caja = caja;
+      // Solo crece la caja de un gráfico que llena su caja: con
+      // `maintainAspectRatio` el alto sale del ancho, y un mínimo dejaría
+      // un hueco en blanco debajo.
+      estado.crece = aplica && !!estado.caja && chart.options.maintainAspectRatio === false;
+      if (estado.caja) {
+        if (estado.crece) estado.caja.classList.add('grafico-leyenda-abajo');
+        else soltarCajaGrafico(estado);
+      }
+      if (!aplica) return;
+      const opciones = chart.legend.options;
+      const baja = opciones.position === undefined || opciones.position === 'top';
+      const ancha = typeof opciones.labels.boxWidth === 'number' && opciones.labels.boxWidth > 12;
+      const muestra = ancha ? muestraLeyendaEstrecha(chart) : opciones.labels.boxWidth;
+      const genera = etiquetasLeyendaEstrecha(opciones.labels.generateLabels, typeof muestra === 'number' ? muestra : 12);
+      const etiquetas = new Proxy(opciones.labels, {
+        get(t, k) { return k === 'boxWidth' ? muestra : k === 'generateLabels' ? genera : t[k]; }
+      });
+      chart.legend.options = new Proxy(opciones, {
+        get(t, k) { return k === 'position' && baja ? 'bottom' : k === 'labels' ? etiquetas : t[k]; }
+      });
+      if (baja) chart.legend.position = 'bottom';
+    }
+
+    function soltarCajaGrafico(estado) {
+      if (!estado || !estado.caja) return;
+      estado.caja.classList.remove('grafico-leyenda-abajo');
+      estado.caja.style.removeProperty('--grafico-alto-minimo');
+      estado.alto = 0;
+    }
+
+    // EL GIRO DE LOS RÓTULOS NO SE PELEA CON EL ALTO. Chart.js gira los
+    // rótulos del eje x tanto como el alto del gráfico le deja: a un eje
+    // horizontal le da, como mucho, la mitad del alto del lienzo. Con más
+    // alto, más giro, y un eje más alto. Si la caja crece para darle sitio al
+    // trazado, el eje se queda con el sitio —medido en el módulo 5 del
+    // capítulo 5: los rótulos pasaban de 30° a 50° y la caja de 260 a 406 px
+    // para ganar los mismos 83 de trazado—.
+    //
+    // Así que el giro se calcula SIEMPRE como si el lienzo midiera lo que
+    // mide con el alto que la caja trae escrito (`style="height:260px"`):
+    // el eje decide su giro con la mitad de ESE alto, crezca la caja lo que
+    // crezca. Es una cuenta, no un recuerdo: no depende de cuántas veces se
+    // haya girado el teléfono ni de por qué ancho se haya pasado antes. Se
+    // hace envolviendo el método del EJE —el objeto, no sus opciones—, y se
+    // quita cuando la caja deja de crecer.
+    function acotarGiroGrafico(chart, estado) {
+      const alto0 = estado.crece ? parseFloat(estado.caja.style && estado.caja.style.height) : NaN;
+      const marco = alto0 > 0 ? marcoCajaGrafico(estado.caja) : 0;
+      // la mitad del alto del lienzo, que es lo que Chart.js le da a un eje horizontal
+      const tope = (alto0 - marco) / 2;
+      Object.keys(chart.scales || {}).forEach(id => {
+        const eje = chart.scales[id];
+        if (!(alto0 > 0)) { delete eje.calculateLabelRotation; return; }
+        eje.$altoGiro = tope;
+        if (Object.prototype.hasOwnProperty.call(eje, 'calculateLabelRotation')) return;
+        const propio = eje.calculateLabelRotation;
+        if (typeof propio !== 'function') return;
+        eje.calculateLabelRotation = function () {
+          const real = this.maxHeight;
+          if (this.isHorizontal() && real > this.$altoGiro) this.maxHeight = this.$altoGiro;
+          try { return propio.call(this); } finally { this.maxHeight = real; }
+        };
+      });
+    }
+
+    // El relleno y el borde de la caja, que cuentan en su alto si es `border-box`.
+    function marcoCajaGrafico(caja) {
+      const cs = window.getComputedStyle(caja);
+      const px = v => parseFloat(v) || 0;
+      return cs.boxSizing === 'border-box'
+        ? px(cs.paddingTop) + px(cs.paddingBottom) + px(cs.borderTopWidth) + px(cs.borderBottomWidth)
+        : 0;
+    }
+
+    // Con el gráfico ya compuesto: el alto que la caja necesita para que el
+    // trazado llegue a su mínimo. Es lo que en el lienzo NO es trazado —la
+    // leyenda, los ejes—, que depende del ancho y no del alto, más el mínimo,
+    // más el relleno y el borde de la caja. Se pide SIEMPRE, también cuando
+    // sobra: la hoja se queda con el mayor entre eso y sus 300 px, así que
+    // pedir menos no encoge nada, y en cambio una medida pasajera (una
+    // leyenda que luego pierde una fila, un lienzo a medio medir) no deja la
+    // caja crecida para siempre.
+    //
+    // La cuenta sale del LIENZO y no del alto de la caja, a propósito. Chart.js
+    // no cambia el tamaño del lienzo en el acto: espera al siguiente fotograma
+    // y, si hay una animación en marcha, a que el gráfico se redibuje. En ese
+    // rato la caja ya ha crecido y el lienzo no, y una cuenta hecha con el
+    // alto de la caja pediría otros 30 px a cada `update()` del simulador
+    // —medido: 330, 360, 390…—. Con el alto del lienzo, la cuenta da lo mismo
+    // antes y después de que el lienzo alcance a su caja, y no oscila. Los
+    // 2 px de holgura absorben el redondeo.
+    function asegurarTrazadoGrafico(chart) {
+      const estado = chart.$leyendaEstrecha, a = chart.chartArea;
+      if (!estado || !estado.crece || !estado.caja || !a) return;
+      const alto = Math.ceil(chart.height - (a.bottom - a.top) + GRAFICO_TRAZADO_MIN + marcoCajaGrafico(estado.caja));
+      if (Math.abs(alto - (estado.alto || 0)) > 2) {
+        estado.alto = alto;
+        estado.caja.style.setProperty('--grafico-alto-minimo', alto + 'px');
+      }
+    }
+
+    // EL TÍTULO DE UN EJE CABE EN SU EJE (2026-11-17). Chart.js escribe el
+    // título de un eje en una sola línea, tan larga como sea, centrada en el
+    // eje: si el eje es más corto, el título se sale del lienzo por los dos
+    // lados y se corta —«máximo por km² (escala log)» se leía «por kr»—, y
+    // los de dos ejes apilados se montan uno sobre otro. Con Montserrat, que
+    // es más ancha que la letra por defecto, pasaba en cinco gráficos.
+    //
+    // El título que no cabe en el largo de su eje se parte en renglones:
+    // Chart.js sí sabe pintar un título de varias líneas, y le hace sitio.
+    //
+    // SE DECIDE DENTRO DE LA COMPOSICIÓN, NO DESPUÉS. La primera versión medía
+    // con el gráfico ya compuesto y, si hacía falta partir, lo recomponía. Era
+    // un bucle esperando su caso: partir el título ensancha el eje, eso
+    // estrecha el trazado, eso gira los rótulos del otro eje y lo hace más
+    // alto, eso acorta este… y en el módulo 1 del apéndice A dos composiciones
+    // se alternaban sin fin y colgaban la pestaña. Además la recomposición
+    // llegaba con la animación inicial en marcha y dejaba las barras pintadas
+    // contra la escala vieja.
+    //
+    // Ahora no se recompone nada. Chart.js, al componer, le pregunta a cada
+    // eje cuánto ocupa (`fit`) diciéndole el largo que le toca, y lo repite
+    // las veces que haga falta mientras encaja unos ejes con otros. Ahí mismo
+    // —envolviendo ese método del eje— se parte el título para ESE largo. Y
+    // dentro de una composición SOLO SE PARTE HACIA MÁS ESTRECHO: un título
+    // partido para 150 px no vuelve a una línea porque el eje, al partirlo,
+    // haya ganado unos píxeles. Eso es lo que garantiza que termina: las
+    // maneras de partir un título son tantas como palabras tiene, y nunca se
+    // vuelve a una anterior. En la composición siguiente
+    // se empieza de cero, así que el resultado depende del gráfico y de su
+    // tamaño, no de lo que pasó antes.
+    //
+    // Como con la leyenda, no se escribe en las opciones: el eje lleva delante
+    // un velo que contesta los renglones cuando se le pregunta el texto del
+    // título.
+    const GRAFICO_TITULO_HOLGURA = 16;
+    function partirTituloEje(eje) {
+      const titulo = eje.$titulo;
+      if (!titulo) return;
+      // El largo que Chart.js anuncia en este paso, menos una holgura. Después
+      // de preguntarle a un eje, la composición todavía puede quitarle unos
+      // píxeles —el eje de al lado se ensancha al partir SU título— sin
+      // volver a preguntarle: medido, hasta 7 px. Con GRAFICO_TITULO_HOLGURA
+      // el título cabe también en el largo que le queda al final.
+      const largo = Math.min((eje.isHorizontal() ? eje.maxWidth : eje.maxHeight) - GRAFICO_TITULO_HOLGURA,
+                             eje.$tituloTope);
+      if (!(largo > 0)) return;
+      const ctx = eje.ctx;
+      ctx.save();
+      ctx.font = titulo.letra;
+      const renglones = partirTextoGrafico(titulo.entero, largo, x => ctx.measureText(x).width);
+      ctx.restore();
+      // Solo hacia más estrecho. Se recuerda el largo MENOR para el que se ha
+      // partido en esta composición, y solo se vuelve a partir para uno
+      // menor aún. (Comparar el número de renglones no bastaba: «densidad
+      // estimada de sedes educativas / por» y «densidad estimada de / sedes
+      // educativas por» son dos renglones las dos veces, y la primera mide
+      // 239 px donde la segunda mide 155.)
+      if (largo < eje.$tituloLargo) {
+        eje.$tituloLargo = largo;
+        eje.$tituloRenglones = renglones.length > 1 ? renglones : null;
+      }
+    }
+
+    // UN EJE DE POCAS CATEGORÍAS NO SE SALTA NINGUNA (2026-11-18). Cuando los
+    // rótulos de un eje no caben, Chart.js los gira y, si aun así no caben,
+    // se salta algunos. En un eje de fechas no importa; en un gráfico de tres
+    // barras —Thomas, MatClust, LGCP— desaparecía la del medio, y la prosa
+    // compara las tres. En un eje horizontal de categorías con
+    // GRAFICO_POCAS_CATEGORIAS o menos no se salta ninguna (`autoSkip`
+    // apagado, por el velo del eje).
+    //
+    // Y NINGÚN RÓTULO PISA AL DE AL LADO (2026-11-19). Apagar `autoSkip` a
+    // secas dejaba seis nombres de proyección encimados en un eje que además
+    // tenía prohibido girar: «MercatoWMeollweEdqe…». Hay DOS salidas, y se
+    // elige una entera, nunca una mezcla:
+    //   1. PARTIDOS Y SIN GIRO. Si partiendo por los espacios todos los
+    //      renglones de todos los rótulos caben en su hueco, se parten y el
+    //      eje no gira.
+    //   2. ENTEROS Y GIRADOS. Si alguno no cabe ni partido —una palabra sola
+    //      más ancha que el hueco—, no se parte ninguno, y el eje gira al
+    //      menos lo necesario para que dos rótulos vecinos no se toquen: el
+    //      giro en que el paso entre categorías, visto de lado, iguala el
+    //      alto de un renglón. Ese giro mínimo manda sobre el `maxRotation`
+    //      del simulador y sobre el tope de alto: un rótulo girado de más
+    //      se lee; dos encimados, no.
+    // Partir y girar a la vez era lo peor de los dos: los renglones de un
+    // rótulo girado se intercalan con los del vecino.
+    //
+    // También se hace dentro de la composición, en el momento en que el eje
+    // fabrica sus rótulos y ya sabe su ancho, y no escribe en nada.
+    const GRAFICO_POCAS_CATEGORIAS = 6;
+    function partirRotulosEje(eje, marcas) {
+      eje.$pocas = eje.type === 'category' && eje.isHorizontal() &&
+                   marcas.length >= 2 && marcas.length <= GRAFICO_POCAS_CATEGORIAS;
+      eje.$sinGiro = false;
+      eje.$giroMinimo = 0;
+      if (!eje.$pocas || !(eje.maxWidth > 0)) return;
+      // el paso entre dos categorías, y el hueco de cada una con 6 px de
+      // aire, que es lo que Chart.js pide entre dos rótulos antes de girarlos
+      const paso = eje.maxWidth / marcas.length;
+      const hueco = paso - 6;
+      const letra = Chart.helpers.toFont(eje.options.ticks.font);
+      const ctx = eje.ctx;
+      ctx.save();
+      ctx.font = letra.string;
+      const mide = x => ctx.measureText(String(x)).width;
+      const renglonesDe = m => typeof m.label === 'string' ? partirTextoGrafico(m.label, hueco, mide)
+                             : Array.isArray(m.label) ? m.label : [m.label];
+      const partidos = marcas.map(renglonesDe);
+      const caben = partidos.every(rs => rs.every(r => mide(r) <= hueco));
+      ctx.restore();
+      if (caben) {
+        marcas.forEach((m, k) => { if (typeof m.label === 'string' && partidos[k].length > 1) m.label = partidos[k]; });
+        eje.$sinGiro = true;
+        return;
+      }
+      // enteros: el alto de lo que ya traían (un rótulo puede venir en dos renglones del simulador)
+      const renglones = Math.max(...marcas.map(m => Array.isArray(m.label) ? m.label.length : 1));
+      const alto = renglones * (letra.lineHeight || letra.size * 1.2) + 2;
+      eje.$giroMinimo = alto >= paso ? 90 : Math.ceil(Math.asin(alto / paso) * 180 / Math.PI);
+    }
+
+    // UN SOLO REAJUSTE, Y DENTRO DE LA MISMA COMPOSICIÓN (2026-11-19). La
+    // holgura no bastaba siempre: con un eje que al partir SU título le quita
+    // al otro más de 16 px, quedaban títulos más largos que su eje —23 px en
+    // un gráfico del capítulo 5, hasta 31 en una prueba con 1 560 gráficos
+    // fabricados—. Con el gráfico ya compuesto se mira el largo que le quedó
+    // DE VERDAD a cada eje; si algún título no cabe en él, ese largo pasa a
+    // ser su tope y se compone UNA vez más, en el acto.
+    //
+    // No reabre lo que se cerró. Es síncrono: ocurre dentro del mismo
+    // `update()`, antes de que Chart.js coloque un solo punto, así que no hay
+    // nada pintado contra una composición vieja. Es uno: no hay segundo
+    // intento, pase lo que pase. Y los renglones siguen sin poder disminuir
+    // dentro de la composición, de modo que el reajuste solo puede partir
+    // más, nunca volver atrás.
+    function reajustarTitulosGrafico(chart) {
+      if (!Chart.layouts || typeof Chart.layouts.update !== 'function') return;
+      let falta = false;
+      Object.keys(chart.scales || {}).forEach(id => {
+        const eje = chart.scales[id], titulo = eje.$titulo;
+        if (!titulo) return;
+        const largo = eje.isHorizontal() ? eje.width : eje.height;
+        if (!(largo > 0)) return;
+        const renglones = eje.$tituloRenglones || [titulo.entero];
+        const ctx = eje.ctx;
+        ctx.save();
+        ctx.font = titulo.letra;
+        const ancho = Math.max(...renglones.map(r => ctx.measureText(r).width));
+        ctx.restore();
+        // 2 px de respiro: un título a ras del eje se parte también
+        if (ancho > largo - 2) { eje.$tituloTope = largo - GRAFICO_TITULO_HOLGURA; falta = true; }
+      });
+      if (!falta) return;
+      Chart.layouts.update(chart, chart.width, chart.height, chart._minPadding || 0);
+      // lo que Chart.js hace con cada caja al acabar de componer
+      (chart.boxes || []).forEach(caja => { if (typeof caja.configure === 'function') caja.configure(); });
+    }
+
+    // UN RÓTULO GIRADO NO SE SALE DEL LIENZO (2026-11-19). Un rótulo girado
+    // cuelga de su marca hacia la izquierda. Chart.js le hace sitio al PRIMERO
+    // —le da al eje un relleno por ese lado— y da por hecho que los demás,
+    // que están más a la derecha, caben. No es verdad cuando el segundo es
+    // bastante más largo que el primero: «Web Mercator (3857)» detrás de
+    // «Mercator» se salía 25 px del lienzo, y la pregunta pide leerlo. En un
+    // eje de pocas categorías con los rótulos girados se mira lo que
+    // sobresale CADA uno por la izquierda del eje, y el relleno es el mayor.
+    // Va después de que el eje diga cuánto ocupa, que es cuando ya tiene su
+    // giro y sus medidas, y dentro de la misma composición.
+    function despejarRotulosEje(eje) {
+      if (!eje.$pocas || !(eje.labelRotation > 0) || eje.position === 'top') return;
+      const medidas = typeof eje._getLabelSizes === 'function' ? eje._getLabelSizes() : null;
+      const anchos = medidas && medidas.widths;
+      const marcas = eje.ticks || [];
+      if (!anchos || anchos.length !== marcas.length) return;
+      const giro = eje.labelRotation * Math.PI / 180;
+      const coseno = Math.cos(giro);
+      // el rótulo girado es un rectángulo: por la izquierda asoma su largo y,
+      // además, lo que su alto se echa hacia ese lado al inclinarse
+      const canto = ((medidas.highest && medidas.highest.height) || 14) * Math.sin(giro);
+      let sobresale = 0;
+      marcas.forEach((m, k) => {
+        const centro = eje.getPixelForTick(k) - eje.left;
+        sobresale = Math.max(sobresale, anchos[k] * coseno + canto - centro);
+      });
+      // 3 px de aire, los que deja Chart.js con el primero
+      const relleno = Math.ceil(sobresale + 3);
+      if (relleno > (eje.paddingLeft || 0)) {
+        eje.paddingLeft = relleno;
+        if (eje._margins) eje._margins.left = Math.max(eje._margins.left || 0, relleno);
+      }
+    }
+
+    // El velo de cada eje y los dos métodos envueltos. En cada trazo: Chart.js
+    // acaba de darle al eje sus opciones, intactas; aquí se le pone el velo
+    // delante y se apunta qué título tiene AHORA.
+    function prepararEjesGrafico(chart) {
+      Object.keys(chart.scales || {}).forEach(id => {
+        const eje = chart.scales[id];
+        const opciones = eje.options;
+        if (!opciones) return;
+        const titulo = opciones.title, marcas = opciones.ticks;
+        eje.$tituloRenglones = null;
+        eje.$tituloLargo = Infinity;
+        eje.$tituloTope = Infinity;
+        eje.$pocas = false;
+        eje.$sinGiro = false;
+        eje.$giroMinimo = 0;
+        eje.$titulo = (titulo && titulo.display && typeof titulo.text === 'string')
+          ? { entero: titulo.text, letra: Chart.helpers.toFont(titulo.font).string } : null;
+        const tituloVelado = titulo && new Proxy(titulo, {
+          get(t, k) { return k === 'text' && eje.$tituloRenglones ? eje.$tituloRenglones : t[k]; }
+        });
+        const marcasVeladas = marcas && new Proxy(marcas, {
+          get(t, k) {
+            if (!eje.$pocas) return t[k];
+            if (k === 'autoSkip') return false;
+            if (k === 'minRotation') return eje.$sinGiro ? 0 : Math.max(t[k] || 0, eje.$giroMinimo);
+            if (k === 'maxRotation') return eje.$sinGiro ? 0 : Math.max(t[k] || 0, eje.$giroMinimo);
+            return t[k];
+          }
+        });
+        eje.options = new Proxy(opciones, {
+          get(t, k) { return k === 'title' && tituloVelado ? tituloVelado : k === 'ticks' && marcasVeladas ? marcasVeladas : t[k]; }
+        });
+        if (Object.prototype.hasOwnProperty.call(eje, 'fit')) return;
+        const ocupa = eje.fit, rotula = eje.generateTickLabels;
+        if (typeof ocupa !== 'function' || typeof rotula !== 'function') return;
+        eje.fit = function () { partirTituloEje(this); const r = ocupa.call(this); despejarRotulosEje(this); return r; };
+        eje.generateTickLabels = function (lista) { rotula.call(this, lista); partirRotulosEje(this, lista); };
+      });
+    }
+
+    // LA LETRA DE LA CASA, EN TODOS LOS GRÁFICOS (G-10, 2026-11-17).
+    // `crearGraficoLinea` pone Montserrat y Fira Code, pero casi todos los
+    // simuladores de los capítulos 2 a 7 y del apéndice crean su gráfico con
+    // `new Chart` a secas y salían con la letra por defecto de Chart.js. Se
+    // fija en los valores por defecto de la biblioteca, que es lo que lee
+    // quien no dice nada; quien fija su letra sigue mandando:
+    //   · Montserrat para todo —leyenda, títulos, ventana emergente—;
+    //   · en las marcas de los ejes, a 11 px, Fira Code para las cifras de
+    //     un eje vertical y Montserrat para lo demás: los nombres de un eje
+    //     de categorías, aunque vaya en vertical (las barras horizontales), y
+    //     el eje horizontal.
+    //
+    // EL INTERLINEADO DE LAS CIFRAS NO ES EL DE SIEMPRE, y no es por gusto.
+    // Chart.js decide cuántas marcas caben en un eje vertical por el alto de
+    // renglón de su letra. Al pasar de 12 a 11 px cabían más, y los ejes
+    // salían con el doble de marcas —de 6 a 11 en media docena de gráficos—
+    // y, en uno logarítmico, con «1,000» y «700» encimados. Con 11 px y un
+    // interlineado de 1.32 el renglón mide 14.5 px, una décima más que los
+    // 14.4 que medía a 12 px con el 1.2 por defecto. La décima es a propósito:
+    // el eje horizontal, con la letra más baja, deja al vertical 1 px más de
+    // alto, y varios ejes estaban justo en el borde de ganar una marca (174 px
+    // entre 17.4 son 10 justas). Así los ejes conservan las marcas que tenían.
+    function letraMarcasGrafico(ctx) {
+      const eje = ctx && ctx.scale;
+      const cifras = !!eje && eje.axis === 'y' && eje.type !== 'category';
+      return cifras ? { family: 'Fira Code', size: 11, lineHeight: 1.32 }
+                    : { family: 'Montserrat', size: 11 };
+    }
+
+    // Un lienzo no se repinta solo cuando llega una fuente: el gráfico que se
+    // dibujó antes de que cargara Fira Code se quedaría con la letra de
+    // respaldo, y con los anchos medidos con ella. Se piden las dos y, al
+    // llegar, se recomponen los gráficos que ya estén en pantalla.
+    function recomponerGraficosConLetra() {
+      if (!document.fonts || typeof document.fonts.load !== 'function') return Promise.resolve();
+      return Promise.all([document.fonts.load('11px "Fira Code"'), document.fonts.load('12px Montserrat')])
+        .then(() => Object.values(Chart.instances || {}).forEach(g => {
+          // `stop()` antes: si la fuente llega con la animación inicial en
+          // marcha, la animación seguiría hacia los puntos de la composición
+          // vieja y dejaría las barras fuera de su escala.
+          if (g.canvas && g.canvas.isConnected) { g.stop(); g.update('none'); }
+        }))
+        .catch(() => { /* sin la fuente, el gráfico sigue con la de respaldo */ });
+    }
+
+    // Sin Chart.js (la CDN caída) los gráficos no salen, pero el resto de la
+    // página sí: una referencia suelta aquí la tumbaría entera.
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.font.family = 'Montserrat';
+      Chart.defaults.scale.ticks.font = letraMarcasGrafico;
+      Chart.defaults.plugins.tooltip.bodyFont = { family: 'Fira Code' };
+      recomponerGraficosConLetra();
+
+      const esEstrecho = () => typeof window.matchMedia === 'function' &&
+                               window.matchMedia(GRAFICO_ESTRECHO).matches;
+      Chart.register({
+        id: 'leyendaEstrecha',
+        beforeUpdate(chart) {
+          velarLeyendaEstrecha(chart, esEstrecho());
+          acotarGiroGrafico(chart, chart.$leyendaEstrecha);
+          prepararEjesGrafico(chart);
+        },
+        afterLayout(chart) {
+          reajustarTitulosGrafico(chart);
+          asegurarTrazadoGrafico(chart);
+        },
+        // Un simulador que destruye su gráfico y crea otro en el mismo
+        // lienzo no hereda la caja crecida del anterior.
+        beforeDestroy(chart) { soltarCajaGrafico(chart.$leyendaEstrecha); }
       });
     }
 
@@ -8308,8 +8990,17 @@ for u in (0, 30, 300, 1000):
       '#4D7C0F'
     ];
 
+    // Las paletas que tienen un CENTRO: un tono neutro en medio y un color a
+    // cada lado. Solo ellas atienden al `centro` del dato (R-C, 2026-11-17).
+    const GEOMAPA_DIVERGENTES = ['divergente', 'frio_caliente'];
+
     const GEOMAPA_ACENTO = '#FF6600';
     const GEOMAPA_APAGADO = 'rgba(1,40,32,.28)';
+    // El filo de un punto y la silueta de un coropleto (R-C): la misma tinta
+    // del material, translúcida. Es lo que separa del fondo `#fbfdfc` al tono
+    // más claro de una rampa (`#e8f3ef`, `#fff0e0`), que sin filo se perdía.
+    const GEOMAPA_FILO = 'rgba(1,40,32,.55)';
+    const GEOMAPA_SILUETA = 'rgba(1,40,32,.42)';
     const GEOMAPA_SIN_DATO = '#e5e7eb';
 
     // ================================================================
@@ -8391,8 +9082,13 @@ for u in (0, 30, 300, 1000):
       return geomapaCVD ? geomapaSimulaCVD(color, geomapaCVD) : color;
     }
 
-    function geomapaColorCategoria(k) {
-      return geomapaTinta(GEOMAPA_CUALITATIVA[(k - 1) % GEOMAPA_CUALITATIVA.length]);
+    // `colores` (R2 · T2.3) es la lista que el REGISTRO puede dar en
+    // `coloresCategoria` cuando un color significa algo en ese mapa —el
+    // naranja de la bomba de Broad Street— y no puede tocarle a otra
+    // categoría por orden. Sin ella, la paleta de la casa, como siempre.
+    function geomapaColorCategoria(k, colores) {
+      const lista = Array.isArray(colores) && colores.length ? colores : GEOMAPA_CUALITATIVA;
+      return geomapaTinta(lista[(k - 1) % lista.length]);
     }
 
     function geomapaColor(paleta, t) {
@@ -8404,6 +9100,63 @@ for u in (0, 30, 300, 1000):
       const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
       const a = hex(p[i]), b = hex(p[i + 1]);
       return geomapaTinta(`rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`);
+    }
+
+    // ================================================================
+    // EL CENTRO DE UNA PALETA DIVERGENTE (R-C, 2026-11-17)
+    //
+    // Una divergente dice dos cosas a la vez: el TONO, de qué lado de un
+    // valor de referencia cae el dato, y la INTENSIDAD, cuánto se aleja. Sin
+    // saber cuál es ese valor, el motor repartía la rampa entre el mínimo y
+    // el máximo —o entre la primera clase y la última— y el tono neutro caía
+    // donde cayera: en 18.4 °C en un mapa de temperaturas, en la clase de
+    // −0.93 a −0.25 en un campo de media cero. Naranja y verde aparentaban
+    // leer un signo que no leían.
+    //
+    // El centro lo da EL DATO (`centro`, que escribe geo.R: 0 en un campo
+    // centrado, 1 en un cociente, la media si esa es la referencia), nunca
+    // se deduce aquí; y sin él todo sigue exactamente como estaba. Con él:
+    //   · el tono neutro es el centro, y solo el centro;
+    //   · la rampa es SIMÉTRICA: a igual distancia del centro, igual
+    //     intensidad, aunque el dato llegue más lejos por un lado que por el
+    //     otro. El lado corto no alcanza el tono más oscuro, y eso es
+    //     información, no un defecto.
+    // Solo atienden al centro las paletas de `GEOMAPA_DIVERGENTES`: en una
+    // secuencial no hay tono neutro que colocar.
+    // ================================================================
+    function geomapaCentro(paleta, d, capa) {
+      if (!GEOMAPA_DIVERGENTES.includes(paleta)) return null;
+      const c = (capa && capa.centro != null) ? capa.centro : (d ? d.centro : null);
+      return (typeof c === 'number' && isFinite(c)) ? c : null;
+    }
+
+    // Posición en la rampa, 0..1, de un valor `v` dado el centro `c` y la
+    // semiamplitud `semi` (la mayor distancia al centro que hay que pintar).
+    function geomapaTCentrado(v, c, semi) {
+      if (!(semi > 0)) return 0.5;
+      return Math.max(0, Math.min(1, 0.5 + 0.5 * (v - c) / semi));
+    }
+
+    // Posición en la rampa de la clase `k` (1..n) de unos `cortes`. Sin
+    // centro es el reparto de siempre, por ORDEN de clase. Con centro manda
+    // el punto medio de la clase: la que contiene el centro es el tono
+    // neutro, y las demás se alejan de él en proporción a lo que se aleja su
+    // punto medio. Así unos cortes que R no hizo simétricos se pintan igual
+    // con el signo en su sitio; hacerlos simétricos es del capítulo.
+    function geomapaTClase(cortes, k, centro) {
+      const n = cortes.length - 1;
+      if (centro == null) return n > 1 ? (k - 1) / (n - 1) : 0.5;
+      if (cortes[k - 1] < centro && centro < cortes[k]) return 0.5;
+      let semi = 0;
+      for (let j = 1; j <= n; j++) {
+        if (cortes[j - 1] < centro && centro < cortes[j]) continue;
+        semi = Math.max(semi, Math.abs((cortes[j - 1] + cortes[j]) / 2 - centro));
+      }
+      return geomapaTCentrado((cortes[k - 1] + cortes[k]) / 2, centro, semi);
+    }
+
+    function geomapaColorClase(paleta, cortes, k, centro) {
+      return geomapaColor(paleta, geomapaTClase(cortes, k, centro));
     }
 
     // Conmuta el tipo de visión y repinta TODOS los mapas vivos. Es una
@@ -8546,6 +9299,37 @@ for u in (0, 30, 300, 1000):
       return ctx.createPattern(c, 'repeat');
     }
 
+    // ¿Comparten frontera las unidades de un mapa de polígonos? Se mira en la
+    // geometría misma: en un teselado —condados, municipios— casi todos los
+    // vértices de una unidad son también de su vecina; en un cartograma no
+    // contiguo o en uno de Dorling, ninguno. Se cuenta qué parte de los
+    // vértices distintos pertenece a dos unidades o más, y el corte va en
+    // GEOMAPA_TESELADO_MIN. Medido en los mapas del material: los teselados dan
+    // de 0.31 (las 20 localidades de Bogotá) a 0.92 (los 1 122 municipios); el
+    // cartograma no contiguo, 0.007, y el de Dorling, 0. Se calcula una vez
+    // por dato y se guarda sin enumerar, como `__geom`.
+    const GEOMAPA_TESELADO_MIN = 0.1;
+    function geomapaFronteraComun(geom) {
+      const duenio = new Map();
+      let comunes = 0;
+      geom.forEach((rasgo, i) => rasgo.forEach(parte => {
+        for (let k = 0; k + 1 < parte.length; k += 2) {
+          const clave = parte[k] * 65536 + parte[k + 1];
+          const j = duenio.get(clave);
+          if (j === undefined) duenio.set(clave, i);
+          else if (j !== i && j !== -1) { duenio.set(clave, -1); comunes++; }
+        }
+      }));
+      return duenio.size ? comunes / duenio.size : 0;
+    }
+    function geomapaEsTeselado(d, geom) {
+      if (d.__teselado === undefined) {
+        Object.defineProperty(d, '__teselado',
+          { value: geomapaFronteraComun(geom) >= GEOMAPA_TESELADO_MIN, enumerable: false });
+      }
+      return d.__teselado;
+    }
+
     function geomapaPintaPoligonos(ctx, d, aj, o) {
       const cp = geomapaCapa(d, o);
       const clase = cp.clase, nCl = cp.cortes ? cp.cortes.length - 1 : 0;
@@ -8559,8 +9343,39 @@ for u in (0, 30, 300, 1000):
       // o sin vecinos) va rayado.
       const cat = cp.tipo === 'categoria' && Array.isArray(cp.niveles);
       const nNiv = cat ? cp.niveles.length : 0;
+      const centro = cat ? null : geomapaCentro(o.paleta, d, cp);
       let rayado = null;
       const conBorde = [];
+      // LA SILUETA (R-C, 2026-11-17). El primer tono de las rampas
+      // (`#e8f3ef`, `#fff0e0`) apenas se separa del fondo del marco
+      // (`#fbfdfc`), y con los bordes entre unidades en blanco, un condado
+      // de la clase más baja que diera al mar se quedaba sin orilla. Se
+      // traza TODO el contorno en tinta ANTES de rellenar nada: los rellenos
+      // tapan después la mitad interior de cada trazo y los de los vecinos,
+      // la exterior, así que solo sobrevive lo que no tiene vecino —el
+      // perfil del territorio y de sus islas—. Por dentro el mapa queda
+      // como estaba, con sus bordes blancos.
+      //
+      // SOLO EN UN TESELADO. Donde las unidades no se tocan —un cartograma
+      // no contiguo, uno de Dorling— no hay vecino que tape la mitad exterior
+      // del trazo, y cada unidad se queda con un halo de 1 px todo alrededor.
+      // En esos mapas EL ÁREA ES EL DATO: medido en el módulo 7 del capítulo
+      // 3, el halo doblaba la tinta a 375 px y hacía crecer de 5 a 8 veces a
+      // los departamentos más pequeños. Un mapa que miente en lo que mide es
+      // peor que uno con una orilla pálida, así que por defecto la silueta
+      // solo se traza si las unidades comparten frontera (geomapaEsTeselado);
+      // `silueta: true` y `silueta: false` en el registro mandan sobre eso.
+      // Un cartograma CONTIGUO es un teselado y la llevaría: ahí el registro
+      // tiene que decir `silueta: false`, porque su área también es el dato.
+      if (o.silueta === true || (o.silueta !== false && geomapaEsTeselado(d, geom))) {
+        const dprS = o.dpr || window.devicePixelRatio || 1;
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = geomapaTinta(GEOMAPA_SILUETA);
+        ctx.lineWidth = 2 * dprS;
+        geom.forEach(rasgo => rasgo.forEach(parte => ctx.stroke(geomapaTrazo(ctx, aj, parte))));
+        ctx.restore();
+      }
       // Qué rasgo va resaltado lo puede decir EL DATO (`d.resaltado`, que
       // escribe geo.R) además de la opción de siempre. Los dos conviven y no
       // usan el mismo convenio, a propósito y dicho en voz alta: lo que viene
@@ -8588,7 +9403,8 @@ for u in (0, 30, 300, 1000):
         } else {
           const k = clase ? clase[i] : null;
           if (k != null && isFinite(k)) {
-            relleno = geomapaColor(o.paleta, nCl > 1 ? (k - 1) / (nCl - 1) : 0.5);
+            relleno = nCl > 0 ? geomapaColorClase(o.paleta, cp.cortes, k, centro)
+                              : geomapaColor(o.paleta, 0.5);
           } else {
             relleno = geomapaTinta(GEOMAPA_SIN_DATO);
           }
@@ -8619,8 +9435,9 @@ for u in (0, 30, 300, 1000):
           ctx.strokeStyle = geomapaTinta('#012820'); ctx.lineWidth = 2.2 * dpr; ctx.stroke(p);
         }));
       }
-      geomapaPintaLineas(ctx, d, aj, o);
+      const clave = geomapaPintaLineas(ctx, d, aj, o);
       geomapaPintaSuperpuestos(ctx, d, aj, o);
+      return clave;
     }
 
     // Polilíneas SOBRE el coropleto (T2.7 del capítulo 1). El caso que las
@@ -8644,8 +9461,13 @@ for u in (0, 30, 300, 1000):
     //
     // `o.etiquetasLineas` va emparejada con `d.lineas_resaltadas`, no con
     // `d.lineas`: son cinco rótulos para cinco celdas, no cien.
+    // El suelo de la letra de un rótulo pintado DENTRO del lienzo, en px de
+    // pantalla (CSS). 11 es el cuerpo de las marcas de los ejes de los
+    // gráficos: por debajo no se lee en un teléfono.
+    const GEOMAPA_ROTULO_MIN = 11;
+
     function geomapaPintaLineas(ctx, d, aj, o) {
-      if (!d.lineas || !d.lineas.length || o.lineas === false) return;
+      if (!d.lineas || !d.lineas.length || o.lineas === false) return null;
       const dpr = o.dpr || 1;
       const idx = d.lineas_resaltadas || [];
       const res = new Set(idx.map(k => k - 1));       // R es 1-indexado
@@ -8683,12 +9505,34 @@ for u in (0, 30, 300, 1000):
       });
 
       // Los rótulos, en el centro de la caja de cada celda resaltada.
+      //
+      // EL SUELO DE LA LETRA ES DE PANTALLA (R-F, 2026-11-17). El lienzo se
+      // dimensiona en píxeles de dispositivo, y el suelo de antes
+      // (`Math.max(9, …)`) se comparaba con ellos: en un teléfono, con
+      // densidad 2, eran 4.5 px de pantalla, y los rótulos de la rejilla
+      // del módulo 7 del capítulo 1 —que son la lección de ese mapa— salían
+      // de 4 a 6 px. Ahora son GEOMAPA_ROTULO_MIN px de pantalla, medidos
+      // con la densidad real (este pintor no recibe `o.dpr` en el modo de
+      // polígonos, así que se le pregunta a la ventana).
+      //
+      // Y UN RÓTULO QUE NO CABE NO SE ENCIMA. Con el suelo en su sitio, a
+      // 375 px una celda de la rejilla mide unos 23 × 8 px y «14.51» mide
+      // 30: cinco rótulos legibles se pisarían entre sí. Cuando alguno no
+      // cabe en su celda, las celdas se NUMERAN —un dígito sí cabe— y el
+      // pintor devuelve la clave (`[número, rótulo]`) para que `dibuja()` la
+      // escriba debajo de la leyenda, a tamaño de texto. O caben todos o se
+      // numeran todos: media rejilla con cifras y media con números no se lee.
+      let clave = null;
       const rot = o.etiquetasLineas;
       if (rot && rot.length) {
-        const px = Math.max(9, Math.min(ctx.canvas.width, ctx.canvas.height) * 0.038);
-        ctx.font = `700 ${px}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+        const dprReal = o.dpr || window.devicePixelRatio || 1;
+        const suelo = GEOMAPA_ROTULO_MIN * dprReal;
+        const px = Math.max(suelo, Math.min(ctx.canvas.width, ctx.canvas.height) * 0.038);
+        const fuente = t => `700 ${t}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+        ctx.font = fuente(px);
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        const celdas = [];
         idx.forEach((k, j) => {
           const texto = rot[j];
           const seg = d.lineas[k - 1];
@@ -8701,14 +9545,27 @@ for u in (0, 30, 300, 1000):
             if (Y < y0) y0 = Y;
             if (Y > y1) y1 = Y;
           }
+          celdas.push({ letrero: String(texto), x0, x1, y0, y1 });
+        });
+        // 0.72 es la altura de las cifras respecto del cuerpo de la letra:
+        // es lo que de verdad ocupa «14.51», que no tiene astas descendentes.
+        const cabe = c => ctx.measureText(c.letrero).width + 2 * dprReal <= c.x1 - c.x0 &&
+                          px * 0.72 <= c.y1 - c.y0;
+        if (!celdas.every(cabe)) {
+          clave = celdas.map((c, j) => [String(j + 1), c.letrero]);
+          celdas.forEach((c, j) => { c.letrero = String(j + 1); });
+          ctx.font = fuente(suelo);
+        }
+        celdas.forEach(c => {
           ctx.strokeStyle = geomapaTinta('rgba(255,255,255,.92)');
           ctx.lineWidth = 3.4 * dpr;
-          ctx.strokeText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+          ctx.strokeText(c.letrero, (c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2);
           ctx.fillStyle = geomapaTinta('#012820');
-          ctx.fillText(String(texto), (x0 + x1) / 2, (y0 + y1) / 2);
+          ctx.fillText(c.letrero, (c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2);
         });
       }
       ctx.restore();
+      return clave;
     }
 
     // Capas de puntos sobre el coropleto: símbolos proporcionales y dot
@@ -8793,18 +9650,101 @@ for u in (0, 30, 300, 1000):
         if (o.marcaResaltada != null) {
           return m === o.marcaResaltada ? GEOMAPA_ACENTO : GEOMAPA_APAGADO;
         }
-        return geomapaColorCategoria(m);
+        return geomapaColorCategoria(m, o.coloresCategoria);
       }
       // Numérica. Si R mandó cortes, manda la clasificación de R; si no,
       // rampa continua entre el mínimo y el máximo. Una rampa NO es una
       // clasificación: no hay empates que repartir, así que no hay aquí
       // ningún tercer convenio como el de classInt y mapclassify (A.2).
       if (d.cortes && d.clase) {
-        const nCl = d.cortes.length - 1;
-        return geomapaColor(o.paleta, nCl > 1 ? (d.clase[i] - 1) / (nCl - 1) : 0.5);
+        return geomapaColorClase(o.paleta, d.cortes, d.clase[i], geomapaCentro(o.paleta, d));
       }
+      return geomapaColor(o.paleta, geomapaTRampa(d, m, o));
+    }
+
+    // Posición en la rampa de una marca numérica SIN clasificar (R-C,
+    // 2026-11-17). Por defecto, lineal entre el mínimo y el máximo, como
+    // siempre. El dato puede pedir otras dos cosas, y las pide él (geo.R), no
+    // se adivinan mirando los números:
+    //   · `centro`, con una paleta divergente: rampa simétrica alrededor de
+    //     ese valor (ver geomapaCentro);
+    //   · `marcas_escala: 'log'`: la rampa recorre el logaritmo. Es para la
+    //     variable asimétrica —el zinc del Mosa, de 113 a 1 839 ppm—, que en
+    //     lineal deja casi todos los puntos en los dos tonos más claros y
+    //     gasta la rampa en media docena. Con algún valor que no sea
+    //     positivo no hay logaritmo que tomar y se queda en lineal; la
+    //     leyenda dice cuál de las dos se pintó (geomapaEscalaMarcas).
+    function geomapaEscalaMarcas(d) {
       const r = geomapaRangoMarcas(d);
-      return geomapaColor(o.paleta, r.hi > r.lo ? (m - r.lo) / (r.hi - r.lo) : 0.5);
+      return (d.marcas_escala === 'log' && r.lo > 0 && r.hi > r.lo) ? 'log' : 'lineal';
+    }
+
+    function geomapaTRampa(d, m, o) {
+      const r = geomapaRangoMarcas(d);
+      const c = geomapaCentro(o.paleta, d);
+      if (c != null) return geomapaTCentrado(m, c, Math.max(Math.abs(r.hi - c), Math.abs(r.lo - c)));
+      if (!(r.hi > r.lo)) return 0.5;
+      if (geomapaEscalaMarcas(d) === 'log') return Math.log(m / r.lo) / Math.log(r.hi / r.lo);
+      return (m - r.lo) / (r.hi - r.lo);
+    }
+
+    // El radio de los puntos, en px de PANTALLA (CSS), sin multiplicar aún
+    // por la densidad (R-C, 2026-11-17). Era 2.6 para todo, y 2 209 sedes de
+    // Bogotá a 2.6 px son una mancha maciza donde no se cuenta ni se ve
+    // dónde hay más. Manda, por este orden:
+    //   1. `radio` en el DATO (geo.R): el capítulo sabe qué necesita su mapa;
+    //   2. si no, el número de puntos: hasta 600 se queda en 2.6, y de ahí
+    //      en adelante el ÁREA de cada punto baja en proporción —la tinta
+    //      total no crece con n—, con un suelo de 1.4 px, que es lo menos
+    //      que sigue siendo un punto y no un grano.
+    // La opción `radio` del registro sigue mandando sobre los dos, y sigue
+    // en píxeles de dispositivo, como estaba: quien la usa ya la tiene medida.
+    const GEOMAPA_RADIO = 2.6, GEOMAPA_RADIO_MIN = 1.4, GEOMAPA_RADIO_N = 600;
+    // El radio, en px de pantalla, por debajo del cual un punto va sin filo.
+    const GEOMAPA_FILO_MIN = 2;
+    function geomapaRadioPuntos(d) {
+      if (typeof d.radio === 'number' && d.radio > 0) return d.radio;
+      const n = d.pts ? d.pts.length / 2 : 0;
+      if (n <= GEOMAPA_RADIO_N) return GEOMAPA_RADIO;
+      return Math.max(GEOMAPA_RADIO_MIN, GEOMAPA_RADIO * Math.sqrt(GEOMAPA_RADIO_N / n));
+    }
+
+    // CAPAS DE LÍNEAS CON NOMBRE (R2 · T2.3). `d.lineas` es UNA capa de
+    // fondo, toda del mismo trazo: las calles del Soho. Un mapa de puntos
+    // puede necesitar además otras líneas que significan otra cosa y que
+    // cambian con un control —las celdas de las bombas, los bordes posibles
+    // de una ventana—. El registro las da en `capasLineas`, que como
+    // cualquier opción puede ser un getter:
+    //   [{ lineas: [[x, y, x, y, …], …],   en las unidades cuantizadas del mapa
+    //      color, ancho, trazo: [5, 4],    el estilo; `ancho` en px de pantalla
+    //      cierra: true,                   une el último vértice con el primero
+    //      relleno: 'rgba(…)',             solo si `cierra`
+    //      etiqueta: '…' }]                su entrada en la leyenda; sin ella, no sale
+    // Van ENCIMA de los puntos, en el orden de la lista: son lo que se quiere
+    // leer, no un fondo.
+    function geomapaPintaCapasLineas(ctx, aj, o) {
+      const capas = Array.isArray(o.capasLineas) ? o.capasLineas : [];
+      const dpr = o.dpr || 1;
+      capas.forEach(capa => {
+        if (!capa || !Array.isArray(capa.lineas)) return;
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = geomapaTinta(capa.color || 'rgba(1,40,32,.6)');
+        ctx.lineWidth = (capa.ancho || 1) * dpr;
+        ctx.setLineDash((capa.trazo || []).map(v => v * dpr));
+        capa.lineas.forEach(seg => {
+          ctx.beginPath();
+          for (let i = 0; i < seg.length; i += 2) {
+            const px = aj.x(seg[i]), py = aj.y(seg[i + 1]);
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          if (capa.cierra) ctx.closePath();
+          if (capa.cierra && capa.relleno) { ctx.fillStyle = geomapaTinta(capa.relleno); ctx.fill(); }
+          ctx.stroke();
+        });
+        ctx.restore();
+      });
     }
 
     function geomapaPintaPuntos(ctx, d, aj, o) {
@@ -8834,15 +9774,41 @@ for u in (0, 30, 300, 1000):
       }
 
       // ---- capa principal: los puntos, coloreados por su marca ---------
+      // Cada punto lleva un FILO fino en tinta (R-C, 2026-11-17). Sin él, los
+      // puntos claros de una rampa desaparecían contra el fondo, y los que
+      // se solapan se fundían en una mancha: con el filo se cuentan. El filo
+      // se adelgaza con el radio —nunca pasa de un quinto— para que en un
+      // mapa de dos mil puntos no sea él lo que se ve. No lo llevan los
+      // apagados de «ésta contra el resto», que están ahí para no verse. Se
+      // quita con `filo: false`.
+      //
+      // Y NO LO LLEVAN LOS PUNTOS PEQUEÑOS. Por debajo de GEOMAPA_FILO_MIN px
+      // de radio el filo es buena parte del punto, y la tinta oscura le
+      // cambia el tono: medido en las 2 107 sedes de Bogotá, a 1.4 px el
+      // naranja `#FF6600` de la leyenda se veía (223, 92, 2) en el mapa. El
+      // color de un punto tiene que ser el de su muestra en la leyenda; un
+      // mapa de dos mil puntos se lee por su densidad, no punto a punto.
       const r = o.radio || 3;
+      const dprP = o.dpr || 1;
       const plano = o.color || GEOMAPA_ACENTO;
+      const filo = o.filo !== false && r >= GEOMAPA_FILO_MIN * dprP;
+      ctx.strokeStyle = geomapaTinta(GEOMAPA_FILO);
+      ctx.lineWidth = Math.min(0.6 * dprP, r / 5);
+      // `opacidadPuntos` (R2 · T2.3): con miles de puntos opacos, donde hay
+      // diez encimados se ve lo mismo que donde hay uno. Translúcidos, la
+      // tinta se acumula y la densidad se ve. Solo si el registro lo pide.
+      const opaco = !(o.opacidadPuntos > 0 && o.opacidadPuntos < 1);
+      if (!opaco) ctx.globalAlpha = o.opacidadPuntos;
       for (let i = 0; i < d.pts.length; i += 2) {
         const c = geomapaColorMarca(d, i / 2, o);
         ctx.fillStyle = c || plano;
         ctx.beginPath();
         ctx.arc(aj.x(d.pts[i]), aj.y(d.pts[i + 1]), r, 0, Math.PI * 2);
         ctx.fill();
+        if (filo && c !== GEOMAPA_APAGADO) ctx.stroke();
       }
+      if (!opaco) ctx.globalAlpha = 1;
+      geomapaPintaCapasLineas(ctx, aj, o);
 
       // ---- segunda capa: otro tipo de objeto (las 13 bombas) -----------
       // Rombo con borde, no círculo: dos capas que solo se distinguen por
@@ -8951,11 +9917,20 @@ for u in (0, 30, 300, 1000):
       const x0 = aj.x(c.x0), x1 = aj.x(c.x1);
       const y0 = aj.y(c.y1), y1 = aj.y(c.y0);          // y invertida
       const cw = (x1 - x0) / d.nx, ch = (y1 - y0) / d.ny;
+      // Con `centro` (y una paleta divergente) la rampa se centra en él y es
+      // simétrica (R-C, ver geomapaCentro). Hace falta el recorrido real,
+      // `rango`, para saber qué valor es cada nivel cuantizado; sin él no
+      // hay con qué centrar y se pinta como siempre.
+      const centro = Array.isArray(d.rango) ? geomapaCentro(o.paleta, d) : null;
+      const lo = centro != null ? d.rango[0] : 0, hi = centro != null ? d.rango[1] : 0;
+      const semi = Math.max(Math.abs(hi - centro), Math.abs(lo - centro));
       for (let r = 0; r < d.ny; r++) {
         for (let cc = 0; cc < d.nx; cc++) {
           const z = zq[r * d.nx + cc];
           if (z < 0) continue;                          // celda sin dato
-          ctx.fillStyle = geomapaColor(o.paleta, z / d.zqmax);
+          ctx.fillStyle = geomapaColor(o.paleta, centro != null
+            ? geomapaTCentrado(lo + (z / d.zqmax) * (hi - lo), centro, semi)
+            : z / d.zqmax);
           // +1 para que no queden costuras blancas entre celdas
           ctx.fillRect(x0 + cc * cw, y0 + r * ch, cw + 1, ch + 1);
         }
@@ -9063,13 +10038,149 @@ for u in (0, 30, 300, 1000):
       const q = fuenteCaja.q || d.q || 4096;
       const aj = geomapaAjuste(canvas, geomapaCajaQ(fuenteCaja.caja, q), (o.margen || 6) * dpr);
 
-      if (d.modo === 'poligonos') geomapaPintaPoligonos(ctx, d, aj, o);
-      else if (d.modo === 'puntos') geomapaPintaPuntos(ctx, d, aj, Object.assign({ radio: 2.6 * dpr, dpr: dpr }, o));
+      // Si algún rótulo no cupo en el lienzo, el pintor numeró las celdas y
+      // devuelve la clave; viaja en `aj` para que `dibuja()` la escriba.
+      aj.clave = null;
+      if (d.modo === 'poligonos') aj.clave = geomapaPintaPoligonos(ctx, d, aj, o) || null;
+      else if (d.modo === 'puntos') geomapaPintaPuntos(ctx, d, aj, Object.assign({ radio: geomapaRadioPuntos(d) * dpr, dpr: dpr }, o));
       else if (d.modo === 'grafo') geomapaPintaGrafo(ctx, d, aj, o);
       else if (d.modo === 'rejilla') geomapaPintaRejilla(ctx, d, aj, o);
       else if (d.modo === 'proyeccion') geomapaPintaProyeccion(ctx, d, aj, Object.assign({ dpr: dpr }, o));
       else console.warn(`Geomapa: modo desconocido "${d.modo}"`);
       return aj;
+    }
+
+    // ================================================================
+    // LA LECTURA DE UNA UNIDAD (R2 · T2.3)
+    //
+    // Un mapa dice de cada unidad algo que la leyenda solo dice por clases:
+    // qué condado es y cuánto vale, cuánto zinc hay en ESE punto. El
+    // registro que quiera que se pueda leer da `lectura`, una función
+    // `(i, d, o) => texto` con el índice de la unidad (desde 0); el motor
+    // se encarga de averiguar qué unidad se está señalando y de marcarla.
+    //
+    // HAY DOS CAMINOS Y VALEN LO MISMO. Con el cursor (o el dedo), la unidad
+    // que hay debajo. Con el teclado, el lienzo recibe el foco y las flechas
+    // recorren las unidades una a una, Inicio y Fin van a los extremos y
+    // Escape suelta: quien no usa ratón lee exactamente lo mismo. Las dos
+    // funciones de abajo son lo único que depende del modo del mapa.
+    // ================================================================
+
+    // Cuántas unidades tiene el mapa que se puedan señalar.
+    function geomapaNumUnidades(d) {
+      if (d.modo === 'puntos') return d.pts ? d.pts.length / 2 : 0;
+      if (d.modo === 'poligonos') return geomapaGeom(d).length;
+      if (d.modo === 'rejilla') return (d.nx || 0) * (d.ny || 0);
+      return 0;
+    }
+
+    // El marco de una rejilla en el lienzo, con la misma cuenta que su pintor.
+    function geomapaMarcoRejilla(d, aj) {
+      const c = geomapaCajaQ(d.caja, d.q || 4096);
+      const x0 = aj.x(c.x0), x1 = aj.x(c.x1), y0 = aj.y(c.y1), y1 = aj.y(c.y0);
+      return { x0, y0, cw: (x1 - x0) / d.nx, ch: (y1 - y0) / d.ny };
+    }
+
+    // La unidad que hay en (x, y), en píxeles del lienzo; -1 si ninguna.
+    // En un mapa de puntos, el más próximo dentro de `alcance` píxeles: un
+    // punto de dos píxeles no se acierta con el dedo.
+    function geomapaUnidadEn(ctx, d, aj, x, y, alcance) {
+      if (d.modo === 'puntos') {
+        let mejor = -1, dMejor = alcance * alcance;
+        for (let i = 0; i < d.pts.length; i += 2) {
+          const dx = aj.x(d.pts[i]) - x, dy = aj.y(d.pts[i + 1]) - y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 <= dMejor) { dMejor = d2; mejor = i / 2; }
+        }
+        return mejor;
+      }
+      // De la ÚLTIMA unidad a la primera: el pintor las rellena en orden, así
+      // que donde dos se solapan —una isla dentro de otra, un anillo sin su
+      // hueco— se ve la última, y se lee la que se ve.
+      if (d.modo === 'poligonos') {
+        const geom = geomapaGeom(d);
+        for (let k = geom.length - 1; k >= 0; k--) {
+          for (let j = 0; j < geom[k].length; j++) {
+            if (ctx.isPointInPath(geomapaTrazo(ctx, aj, geom[k][j]), x, y)) return k;
+          }
+        }
+        // Sin acierto por dentro, la unidad DIMINUTA cuyo borde pasa más cerca,
+        // a menos de `alcance`: una isla de menos de un píxel (San Andrés a
+        // 375 px) no se puede acertar por dentro con el dedo. Solo las
+        // diminutas —la caja de menos de 4/7 del alcance, 8 px de pantalla con
+        // el de 14—: con todas, señalar el mar junto a la costa leía un condado.
+        let cerca = -1, dCerca = alcance;
+        const diminuta = alcance * 4 / 7;
+        for (let k = geom.length - 1; k >= 0; k--) {
+          let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+          geom[k].forEach(parte => { for (let i = 0; i + 1 < parte.length; i += 2) {
+            const px = aj.x(parte[i]), py = aj.y(parte[i + 1]);
+            if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; } });
+          if (Math.max(x1 - x0, y1 - y0) >= diminuta) continue;
+          geom[k].forEach(parte => {
+            for (let i = 0; i + 1 < parte.length; i += 2) {
+              const j = (i + 2) % parte.length;
+              const ax = aj.x(parte[i]), ay = aj.y(parte[i + 1]);
+              const vx = aj.x(parte[j]) - ax, vy = aj.y(parte[j + 1]) - ay, L = vx * vx + vy * vy;
+              const t = L ? Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / L)) : 0;
+              const dd = Math.hypot(ax + t * vx - x, ay + t * vy - y);
+              if (dd < dCerca) { dCerca = dd; cerca = k; }
+            }
+          });
+        }
+        return cerca;
+      }
+      if (d.modo === 'rejilla') {
+        const m = geomapaMarcoRejilla(d, aj);
+        const col = Math.floor((x - m.x0) / m.cw), fila = Math.floor((y - m.y0) / m.ch);
+        return (col >= 0 && col < d.nx && fila >= 0 && fila < d.ny) ? fila * d.nx + col : -1;
+      }
+      return -1;
+    }
+
+    // La marca de la unidad señalada: un anillo en un punto, el contorno en
+    // un polígono, el borde en una celda. Doble trazo, blanco debajo y tinta
+    // encima, para que se vea sobre cualquier color del mapa.
+    function geomapaResaltaUnidad(ctx, d, aj, i, o) {
+      const dpr = o.dpr || window.devicePixelRatio || 1;
+      const traza = () => {
+        ctx.lineWidth = 4.5 * dpr; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+        ctx.lineWidth = 2 * dpr; ctx.strokeStyle = geomapaTinta('#012820'); ctx.stroke();
+      };
+      ctx.save();
+      ctx.lineJoin = 'round';
+      if (d.modo === 'puntos') {
+        ctx.beginPath();
+        // `o.radio`, si el registro lo da, va en px de dispositivo (ver
+        // geomapaRadioPuntos); el anillo se separa 4 px de pantalla del punto.
+        const rPunto = o.radio > 0 ? o.radio / dpr : geomapaRadioPuntos(d);
+        ctx.arc(aj.x(d.pts[2 * i]), aj.y(d.pts[2 * i + 1]), (rPunto + 4) * dpr, 0, Math.PI * 2);
+        traza();
+      } else if (d.modo === 'poligonos') {
+        (geomapaGeom(d)[i] || []).forEach(parte => {
+          const camino = geomapaTrazo(ctx, aj, parte);
+          ctx.lineWidth = 4.5 * dpr; ctx.strokeStyle = '#ffffff'; ctx.stroke(camino);
+          ctx.lineWidth = 2 * dpr; ctx.strokeStyle = geomapaTinta('#012820'); ctx.stroke(camino);
+        });
+      } else if (d.modo === 'rejilla') {
+        const m = geomapaMarcoRejilla(d, aj);
+        ctx.beginPath();
+        ctx.rect(m.x0 + (i % d.nx) * m.cw, m.y0 + Math.floor(i / d.nx) * m.ch, m.cw, m.ch);
+        traza();
+      }
+      ctx.restore();
+    }
+
+    // La unidad a la que lleva una tecla desde la `i` (-1 = ninguna), o
+    // `undefined` si la tecla no es de las del mapa. Aparte, para probarla.
+    function geomapaTeclaUnidad(tecla, i, n) {
+      if (!(n > 0)) return undefined;
+      if (tecla === 'ArrowRight' || tecla === 'ArrowDown') return i < 0 ? 0 : (i + 1) % n;
+      if (tecla === 'ArrowLeft' || tecla === 'ArrowUp') return i < 0 ? n - 1 : (i - 1 + n) % n;
+      if (tecla === 'Home') return 0;
+      if (tecla === 'End') return n - 1;
+      if (tecla === 'Escape') return -1;
+      return undefined;
     }
 
     // ---------------- leyenda ----------------
@@ -9115,14 +10226,15 @@ for u in (0, 30, 300, 1000):
             cajas.push(muestra(GEOMAPA_APAGADO, 'el resto'));
           } else {
             d.niveles.forEach((nv, i) => cajas.push(
-              muestra(geomapaColorCategoria(i + 1), esc(nv))));
+              muestra(geomapaColorCategoria(i + 1, o.coloresCategoria), esc(nv))));
           }
         } else if (d.marcas && d.marcas_tipo === 'numero') {
           if (d.cortes) {
             const nc = d.cortes.length - 1;
             const fmt = fmtCon(decimales(d.cortes));
+            const cMarcas = geomapaCentro(o.paleta, d);
             for (let i = 0; i < nc; i++) {
-              cajas.push(muestra(geomapaColor(o.paleta, nc > 1 ? i / (nc - 1) : 0.5),
+              cajas.push(muestra(geomapaColorClase(o.paleta, d.cortes, i + 1, cMarcas),
                 `${fmt(d.cortes[i])} – ${fmt(d.cortes[i + 1])}`));
             }
           } else {
@@ -9130,14 +10242,25 @@ for u in (0, 30, 300, 1000):
             // únicos valores que el lector puede leer del mapa sin mentirse.
             // Poner cajitas de clase aquí sería dibujar unas fronteras que
             // no ha calculado nadie.
+            //
+            // La barra recorre los VALORES, de extremo a extremo, y cada parada
+            // lleva el color que el mapa le da a ese valor: con `centro` el
+            // tono neutro cae donde cae el centro, no en la mitad de la barra.
+            // En escala logarítmica recorre el logaritmo, y lo dice: sin el
+            // aviso, quien lea la mitad de la barra como la media de los
+            // extremos leería mal.
             const r = geomapaRangoMarcas(d);
             const fmt = fmtCon(decimales([r.lo, r.hi]));
+            const log = geomapaEscalaMarcas(d) === 'log' && geomapaCentro(o.paleta, d) == null;
             const paradas = [];
-            for (let i = 0; i <= 10; i++) paradas.push(geomapaColor(o.paleta, i / 10));
+            for (let i = 0; i <= 20; i++) {
+              const v = log ? r.lo * Math.pow(r.hi / r.lo, i / 20) : r.lo + (r.hi - r.lo) * i / 20;
+              paradas.push(geomapaColor(o.paleta, geomapaTRampa(d, v, o)));
+            }
             cajas.push(`<span class="geomapa-rampa">
           <span>${fmt(r.lo)}</span>
           <span class="geomapa-rampa-barra" style="background:linear-gradient(to right,${paradas.join(',')})"></span>
-          <span>${fmt(r.hi)}</span>
+          <span>${fmt(r.hi)}${log ? ' · escala logarítmica' : ''}</span>
         </span>`);
           }
         }
@@ -9152,6 +10275,14 @@ for u in (0, 30, 300, 1000):
           <span>${esc(nRes)}</span>
         </span>`);
         }
+        // Las capas de líneas con nombre, cada una con su trazo (R2 · T2.3).
+        (Array.isArray(o.capasLineas) ? o.capasLineas : []).forEach(capa => {
+          if (!capa || !capa.etiqueta) return;
+          cajas.push(`<span class="geomapa-clase">
+          <span class="geomapa-muestra" style="background:${capa.relleno ? geomapaTinta(capa.relleno) : 'transparent'};border:${Math.max(1, Math.round(capa.ancho || 1))}px ${capa.trazo && capa.trazo.length ? 'dashed' : 'solid'} ${geomapaTinta(capa.color || 'rgba(1,40,32,.6)')}"></span>
+          <span>${esc(capa.etiqueta)}</span>
+        </span>`);
+        });
         if (!cajas.length) return etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '';
         return `<div class="geomapa-leyenda">${cajas.join('')}</div>` +
                (etiqueta ? `<p class="geomapa-pie">${etiqueta}</p>` : '');
@@ -9193,13 +10324,30 @@ for u in (0, 30, 300, 1000):
       // capas va vacío, así que los mapas del capítulo 3 se publicaban sin
       // decir en qué se medían. Si la capa no trae la suya, la del raíz.
       let cat = null;
+      // El color de la caja de cada clase es EL MISMO que pinta el mapa, y
+      // sale de la misma función: `tClase(k)` es la posición en la rampa de
+      // la clase k. Con `centro` deja de ser «por orden» (R-C, 2026-11-17).
+      let tClase = k => geomapaTClase(cortes, k, null);
       if (d.modo === 'poligonos') {
         const cp = geomapaCapa(d, o);
         if (cp.tipo === 'categoria' && Array.isArray(cp.niveles)) cat = cp;
-        else if (cp.cortes) cortes = cp.cortes;
+        else if (cp.cortes) {
+          cortes = cp.cortes;
+          const cPol = geomapaCentro(o.paleta, d, cp);
+          tClase = k => geomapaTClase(cortes, k, cPol);
+        }
         if (d.capas && d.capas.length && cp.leyenda) etiqueta = cp.leyenda;
       }
-      if (d.modo === 'rejilla' && d.cortes) cortes = d.cortes;
+      if (d.modo === 'rejilla' && d.cortes) {
+        cortes = d.cortes;
+        // El ráster es continuo: la caja de una clase lleva el color que el
+        // mapa le da a su punto medio, con la misma regla que las celdas.
+        const cRej = Array.isArray(d.rango) ? geomapaCentro(o.paleta, d) : null;
+        if (cRej != null) {
+          const semi = Math.max(Math.abs(d.rango[1] - cRej), Math.abs(d.rango[0] - cRej));
+          tClase = k => geomapaTCentrado((cortes[k - 1] + cortes[k]) / 2, cRej, semi);
+        }
+      }
 
       // Lo que un coropleto puede llevar encima y NO es una clase: el rasgo
       // resaltado y la retícula ajena (T2.7 del cap. 1). Si no se rotulan, el mapa
@@ -9253,7 +10401,7 @@ for u in (0, 30, 300, 1000):
       const fmt = fmtCon(decimales(cortes));
       const cajas = [];
       for (let i = 0; i < n; i++) {
-        cajas.push(muestra(geomapaColor(o.paleta, n > 1 ? i / (n - 1) : 0.5),
+        cajas.push(muestra(geomapaColor(o.paleta, tClase(i + 1)),
           `${fmt(cortes[i])} – ${fmt(cortes[i + 1])}`));
       }
       cajas.push(...extras);
@@ -9389,11 +10537,45 @@ for u in (0, 30, 300, 1000):
         // papel sale cerrado, como la tabla de respaldo.
         const conDesc = !!geomapaDescripcion(spec, d);
         const idDesc = conDesc ? geomapaIdLibre(`desc-${raiz.dataset.geomapa}`, raiz) : '';
+        // LOS MANDOS PROPIOS DEL MAPA (R2 · T2.3). `controles` en el registro:
+        //   [{ etiqueta: 'nombre del grupo',
+        //      opciones: [[valor, 'rótulo'], …],
+        //      valor: () => el valor puesto ahora,
+        //      alPulsar: v => { … cambia el estado que el registro lee … } }]
+        // El motor pone los botones, marca el que está puesto y repinta; el
+        // estado es del capítulo, y el registro lo lee con getters, como
+        // siempre. Un grupo con una sola opción es un interruptor: su valor
+        // es `true` o `false`.
+        const grupos = Array.isArray(spec.controles) ? spec.controles : [];
+        const conLectura = typeof spec.lectura === 'function';
+        const escAttr = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        // `controla` (opcional): el id del elemento que el grupo enseña o
+        // esconde. El motor lo pone justo debajo de su botonera —donde se ve
+        // al pulsar, también en el teléfono— y lo anuncia con
+        // `aria-controls`; un interruptor que lo controla dice además si está
+        // abierto con `aria-expanded`, en vez de `aria-pressed`.
+        const htmlMandos = grupos.map((g, k) =>
+          `<div class="geomapa-controles" role="group" aria-label="${escAttr(g.etiqueta || 'Vista del mapa')}" data-grupo="${k}">`
+          + g.opciones.map((op, j) => `<button type="button" class="geomapa-boton" data-opcion="${j}"${g.controla ? ` aria-controls="${escAttr(g.controla)}"` : ''}>${op[1]}</button>`).join('')
+          + '</div>').join('');
+        // La indicación, en la voz impersonal del material, y con los dos
+        // caminos: quien no usa ratón tiene que saber que el teclado vale.
+        const pista = 'Para leer una unidad: señalarla con el cursor o el dedo, o llevar el foco al mapa con el tabulador y recorrerlo con las flechas.';
+        // Lo que un mando `controla` se movió DENTRO de la raíz la vez anterior:
+        // antes de reescribirla se saca, o el innerHTML lo destruiría y su
+        // botón quedaría controlando un id que ya no existe.
+        // Al revés: cada `after` inserta justo detrás de la raíz, así que el
+        // último en salir queda el primero; recorriéndolos del final al
+        // principio vuelven en su orden.
+        (raiz.__movidos || []).slice().reverse().forEach(el => { if (raiz.contains(el) && raiz.after) raiz.after(el); });
+        raiz.__movidos = [];
         raiz.innerHTML = `
           ${tit0 ? `<p class="geomapa-titulo">${tit0}</p>` : ''}
+          ${htmlMandos}
           <div class="geomapa-marco">
-            <canvas class="geomapa-lienzo" role="img" aria-label="${alt.replace(/"/g, '&quot;')}"${conDesc ? ` aria-describedby="${idDesc}"` : ''}></canvas>
+            <canvas class="geomapa-lienzo" role="img"${conLectura ? ' tabindex="0"' : ''} aria-label="${alt.replace(/"/g, '&quot;')}"${conDesc ? ` aria-describedby="${idDesc}"` : ''}></canvas>
           </div>
+          ${conLectura ? `<p class="geomapa-lectura vacia" role="status" aria-live="polite">${pista}</p>` : ''}
           <div class="geomapa-caja-leyenda">${geomapaLeyenda(d, spec)}</div>
           ${conDesc ? `<p class="geomapa-descripcion-oculta" id="${idDesc}" hidden></p>
           <details class="geomapa-tabla geomapa-describe"><summary>Describir el mapa</summary><p class="geomapa-descripcion"></p></details>` : ''}
@@ -9401,9 +10583,19 @@ for u in (0, 30, 300, 1000):
 
         const canvas = raiz.querySelector('.geomapa-lienzo');
         const cajaLeyenda = raiz.querySelector('.geomapa-caja-leyenda');
+        grupos.forEach((g, k) => {
+          if (!g.controla || typeof document === 'undefined' || !document.getElementById) return;
+          const el = document.getElementById(g.controla);
+          const caja = raiz.querySelector(`.geomapa-controles[data-grupo="${k}"]`);
+          if (el && caja && caja.after) { caja.after(el); raiz.__movidos.push(el); }
+          else if (!el) console.warn(`Geomapa ${raiz.dataset.geomapa}: el mando controla «${g.controla}», que no está en la página`);
+        });
         const descOculta = raiz.querySelector('.geomapa-descripcion-oculta');
         const descVisible = raiz.querySelector('.geomapa-descripcion');
         let descActual = null;
+        // Lo que hace falta para leer una unidad entre trazo y trazo.
+        const cajaLectura = raiz.querySelector('.geomapa-lectura');
+        let senalada = -1, ajVivo = null, datoVivo = null, optsVivas = null;
 
         // dibuja() REPINTA LA LEYENDA además del lienzo. Sin esto, un
         // simulador que cambia de fuente deja los rótulos de las clases
@@ -9439,9 +10631,79 @@ for u in (0, 30, 300, 1000):
           const tit = raiz.querySelector('.geomapa-titulo');
           const titNow = opts.titulo || dNow.titulo;
           if (tit && titNow) tit.textContent = titNow;
-          return pintarGeomapa(canvas, dNow, opts);
+          const aj = pintarGeomapa(canvas, dNow, opts);
+          // La unidad señalada y su lectura (R2 · T2.3). Si el dato cambió y
+          // ya no tiene esa unidad, se suelta.
+          if (conLectura) {
+            if (senalada >= geomapaNumUnidades(dNow)) senalada = -1;
+            ajVivo = aj; datoVivo = dNow; optsVivas = opts;
+            if (senalada >= 0 && aj) geomapaResaltaUnidad(canvas.getContext('2d'), dNow, aj, senalada, opts);
+            const texto = senalada >= 0 ? String(spec.lectura(senalada, dNow, opts) || '') : pista;
+            if (cajaLectura.textContent !== texto) cajaLectura.textContent = texto;
+            cajaLectura.classList.toggle('vacia', senalada < 0);
+          }
+          // Los mandos dicen cuál de sus opciones está puesta.
+          raiz.querySelectorAll('.geomapa-controles[data-grupo]').forEach(caja => {
+            const g = grupos[+caja.dataset.grupo];
+            if (!g) return;
+            const ahora = typeof g.valor === 'function' ? g.valor() : g.valor;
+            caja.querySelectorAll('.geomapa-boton').forEach(b => {
+              const op = g.opciones[+b.dataset.opcion];
+              const puesto = g.opciones.length === 1 ? !!ahora : op[0] === ahora;
+              b.classList.toggle('activo', puesto);
+              b.setAttribute(g.controla && g.opciones.length === 1 ? 'aria-expanded' : 'aria-pressed', puesto ? 'true' : 'false');
+            });
+          });
+          // La clave de los rótulos que no cupieron (R-F): debajo de la
+          // leyenda, que se acaba de reescribir arriba, así que no se acumula.
+          if (aj && aj.clave && cajaLeyenda) {
+            const p = document.createElement('p');
+            p.className = 'geomapa-pie geomapa-clave';
+            const fuerte = document.createElement('strong');
+            fuerte.textContent = 'Rótulos por número';
+            p.append(fuerte, ' (a este ancho no caben en el mapa): ' +
+              aj.clave.map(par => `${par[0]} → ${par[1]}`).join(' · '));
+            cajaLeyenda.appendChild(p);
+          }
+          return aj;
         };
         dibuja();
+
+        // Los mandos: un clic cambia el estado del capítulo y repinta.
+        raiz.querySelectorAll('.geomapa-controles[data-grupo]').forEach(caja => {
+          caja.addEventListener('click', ev => {
+            const b = ev.target.closest('.geomapa-boton');
+            const g = grupos[+caja.dataset.grupo];
+            if (!b || !g || b.parentElement !== caja) return;
+            const ahora = typeof g.valor === 'function' ? g.valor() : g.valor;
+            g.alPulsar(g.opciones.length === 1 ? !ahora : g.opciones[+b.dataset.opcion][0]);
+            dibuja();
+          });
+        });
+
+        // La lectura: el cursor o el dedo señalan la unidad que tienen
+        // debajo; el teclado, la siguiente. Los dos escriben lo mismo.
+        if (conLectura) {
+          const senala = i => { if (i !== senalada) { senalada = i; dibuja(); } };
+          const bajo = ev => {
+            if (!ajVivo || !datoVivo) return -1;
+            const r = canvas.getBoundingClientRect();
+            const kx = canvas.width / (r.width || 1), ky = canvas.height / (r.height || 1);
+            return geomapaUnidadEn(canvas.getContext('2d'), datoVivo, ajVivo,
+              (ev.clientX - r.left) * kx, (ev.clientY - r.top) * ky, 14 * kx);
+          };
+          canvas.addEventListener('pointermove', ev => senala(bajo(ev)));
+          canvas.addEventListener('pointerdown', ev => senala(bajo(ev)));
+          canvas.addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse') senala(-1); });
+          canvas.addEventListener('keydown', ev => {
+            const i = geomapaTeclaUnidad(ev.key, senalada, datoVivo ? geomapaNumUnidades(datoVivo) : 0);
+            // Escape sin nada señalado no es del mapa: se deja pasar (cierra
+            // lo que lo contenga, si algo lo usa).
+            if (i === undefined || (i === -1 && senalada < 0)) return;
+            ev.preventDefault();
+            senala(i);
+          });
+        }
 
         // Redibujar al cambiar el tamaño del contenedor: sin esto, el
         // mapa se ve borroso o recortado tras un giro de pantalla.
@@ -9508,9 +10770,9 @@ for u in (0, 30, 300, 1000):
     GEOMAPAS['cap3-conteo-tasa-mapa'] = { fuente: MAPA_MUNICIPIOS, paleta: 'verde', get capa() { return ctCapa; }, etiqueta: 'Los 1 122 municipios coloreados por el conteo de estudiantes o por su puntaje medio, según lo que se elija.', tabla: d => tablaCapa(d, ctCapa, null), descripcion: () => DESC3_CT[ctCapa] };
     GEOMAPAS['cap3-presencia'] = { fuente: MAPA_MUNICIPIOS, paleta: 'divergente', capa: 'presencia', etiqueta: 'Los 1 122 municipios, distinguiendo los que aportan al menos un estudiante a la cohorte de los que no aportan ninguno.', tabla: d => tablaCapa(d, 'presencia', null), descripcion: "Casi todo el mapa es verde oscuro: 1 113 municipios aportan al menos un estudiante. Los 9 que no aportan ninguno salen en café, todos en el sur y el oriente del dibujo, en la Amazonía: Puerto Arica, Puerto Alegría y La Victoria, en Amazonas; Taraira, Carurú y Papunaua, en Vaupés; La Guadalupe, Puerto Colombia y Cacahual, en Guainía." };
     GEOMAPAS['cap3-carto'] = { fuente: {"modo": "poligonos", "titulo": "Coropleto", "leyenda": "estudiantes", "crs": 9377, "caja": [3987822.45446486, 1020426.04494123, 5787822.45446486, 3133528.03017526], "q": 4096, "codificacion": "delta", "n": 33, "geom": [[[1619, 2236, 31, -17, 29, 16, 35, -9, -6, 46, 25, -16, 22, 2, 22, -54, 40, 35, 21, 28, 27, 7, 27, -11, 16, 15, 23, 66, -11, 11, 18, 31, 28, 38, -2, 29, 63, 38, 22, 32, 24, 16, -8, 42, 5, 24, -71, -63, -17, 4, -35, 69, -23, 26, 19, 56, -2, 38, -18, 29, -39, 21, -9, 14, -21, -27, -63, -1, -54, -62, -29, -41, -29, 6, -22, -56, -115, 10, -24, 32, 3, 60, 60, 150, -28, 26, -15, 50, -51, -43, -50, -10, 26, -50, 1, -101, -37, 0, 0, 23, -12, 49, 9, -40, -13, -10, -6, -28, -21, -21, 40, -45, 28, -3, 30, -26, 10, -30, 24, -31, -10, -35, -60, 1, 7, -30, -39, -14, 16, -47, 26, -20, -3, -37, 15, -22, 64, -11, 39, 9, 10, -32, 18, -9, 1, -36, 19, -61]], [[1860, 3240, 22, 47, 15, 16, 2, 49, -8, 47, -17, 23, -42, -44, -38, -22, -4, -59, 70, -57]], [[2018, 1900, 9, 35, -9, 19, 7, 32, 24, 33, 0, 56, -35, -24, -2, -48, -14, -82, -26, -14, 1, -26, -17, -40, 5, 3, 40, 54, 17, 2]], [[1719, 3205, 17, -11, 5, -28, 28, -21, 12, -27, 31, -19, 40, -53, 8, -40, 16, -22, 40, -18, 21, -37, -14, -16, 15, -55, -24, -35, -29, -7, -10, -17, 9, -14, 39, -21, 18, -29, 2, -38, -19, -56, 23, -26, 35, -69, 17, -4, 71, 63, 4, 29, 21, 48, 0, 25, -15, 64, 20, 16, 6, 68, -15, 43, 5, 33, -15, 25, -29, 21, -22, -2, -30, 30, -41, 24, -16, -8, -62, 68, 8, 11, -22, 71, 19, 16, -34, 26, 8, 27, -70, 57, 4, 59, -61, -47, 1, -58, -15, -46]], [[1909, 2275, 28, 8, 52, -10, -5, -27, 36, -37, 33, -15, 21, 29, 23, -3, 36, -20, 18, -27, 11, -46, -14, -30, 31, -10, 7, -17, 31, -26, 26, -4, 11, 16, -5, 17, 22, 71, 35, 51, 26, -22, 63, 62, 37, 21, -18, 27, -4, 30, -19, 54, 16, 34, 43, 36, 40, 107, -21, 6, -32, 0, -41, -36, -24, 8, 4, -54, -12, -36, -26, -10, -16, 10, -2, -54, -45, -37, -84, -48, -5, 36, -27, 21, -19, -21, -12, -61, -15, 11, -33, -14, -29, 7, -39, 36, -23, 37, -35, 4, -16, 37, -18, -31, 11, -11, -23, -66, 1, -3]], [[1755, 2072, 19, 72, 34, 3, 16, 26, 25, 8, 44, -6, 15, 25, 8, 63, -7, 12, -1, 3, -16, -15, -27, 11, -27, -7, -21, -28, -40, -35, -22, 54, -22, -2, -25, 16, 6, -46, -35, 9, -29, -16, 2, -24, 25, 4, 20, -19, -58, -49, 5, -25, 88, -10, 23, -24]], [[1600, 1269, 24, 1, 17, -27, 30, -21, 26, 8, 46, -30, 18, 7, 28, -36, 3, -26, 35, 1, 15, -51, 49, -8, 7, -37, 35, -34, 22, 10, 32, -26, 39, -9, 24, -23, 34, -11, 56, -12, 20, -16, 33, 5, 27, -26, 36, 20, 36, -18, 28, 12, 33, -28, 35, 27, 26, -19, 36, 66, 27, 18, 49, -2, 19, 44, 33, 19, 16, -7, 48, 15, -26, 24, -45, -2, -54, 38, -5, 25, -29, 23, -9, 21, -51, 22, -28, 51, -54, 36, -48, -6, 3, -21, -40, -30, -21, 3, -54, 49, -18, 46, -40, 53, -42, 0, -76, 23, -24, 15, -52, 13, 0, 25, -18, 28, -1, 32, -20, 17, 15, 27, 8, 56, -8, 38, -19, -3, -30, 19, -36, -47, -14, -32, -55, -60, -13, -36, -19, -6, -43, -71, -37, -15, -28, -28, -29, 1, -8, -51, -21, -25, 5, -21, 42, -17]], [[1203, 1610, 2, -50, 17, -50, 22, -9, 39, 14, 21, 18, 29, -14, -2, -37, 28, -21, -17, -19, -10, -38, 19, -6, 66, 15, 21, -24, -20, -28, 2, -30, 48, 21, 21, -7, 13, -44, -5, -29, 30, -24, 45, 4, 28, 17, -42, 17, -5, 21, 21, 25, 8, 51, -16, 20, -30, -3, -11, 26, -33, 17, -8, 23, 15, 35, 28, -2, 9, 30, 38, -15, 19, 5, -1, 34, 31, 26, 25, -17, 6, 29, 19, 34, -16, 25, -44, 23, -9, 23, 3, 37, -86, 23, -19, -47, -29, -2, -29, 24, -27, -20, -35, 15, -29, -16, -57, 23, -42, -46, -10, -46, -41, -31]], [[2130, 2702, 33, -16, 27, 26, -3, 48, -14, 26, 18, 41, -23, 6, -20, 53, 19, 29, 20, 92, 48, 79, 12, 3, 25, 64, -6, 14, 18, 42, 2, 68, -18, -7, -40, 17, 21, 33, -30, 21, -15, 28, -65, -6, -1, -56, -12, -25, -50, -14, -37, -48, -4, -21, 20, -28, 32, -30, 8, -35, -50, -9, -21, -21, 32, -22, 20, -47, 20, -25, -15, -26, 15, -25, -5, -33, 15, -43, -6, -68, 30, -85]], [[1538, 2946, 15, -50, 28, -26, -60, -150, -3, -60, 24, -32, 115, -10, 22, 56, 29, -6, 29, 41, 54, 62, 63, 1, 21, 27, 10, 17, -30, 48, -25, -9, -53, 9, -13, 34, -2, 37, 41, 26, -61, 62, -23, 9, -28, 28, -53, 7, -48, -45, -20, -50, -32, -26]], [[1893, 2175, 4, -42, -6, -64, -16, -12, 6, -49, -5, -46, 37, -18, 16, 13, 17, -20, -10, -31, -1, -40, 21, -25, 17, 40, -1, 26, 26, 14, 14, 82, 2, 48, 35, 24, 0, -56, -24, -33, -7, -32, 9, -19, -9, -35, 72, 42, 2, 47, 40, 30, 15, -54, 42, 3, 50, -14, 15, 102, -11, -16, -26, 4, -31, 26, -7, 17, -31, 10, 14, 30, -11, 46, -18, 27, -36, 20, -23, 3, -21, -29, -33, 15, -36, 37, 5, 27, -52, 10, -28, -8, 7, -12, -8, -63, -15, -25]], [[1307, 1910, 22, 34, 42, -4, 23, -19, 79, -28, 39, 21, 12, 24, -25, 42, 38, 24, 38, 74, 14, 2, 15, 45, -26, 59, 41, 52, -19, 61, -1, 36, -18, 9, -10, 32, -39, -9, -64, 11, -15, 22, 3, 37, -26, 20, -16, 47, 39, 14, -7, 30, 60, -1, 10, 35, -24, 31, -10, 30, -30, 26, -28, 3, -40, 45, 21, 21, 6, 28, 13, 10, -9, 40, -31, 34, -25, 13, -20, 38, -23, -31, 24, -49, 15, -13, 17, -64, -28, -4, -40, -67, -16, -16, -48, -9, -20, -52, 47, -48, -11, -26, 56, -37, 26, -34, -29, -89, 26, -29, 15, -61, -16, -21, -36, -7, 24, -64, 3, -71, 13, -40, -10, -76, -36, -34, -1, -28, 16, -19]], [[1613, 1673, 44, -23, 16, -25, -19, -34, -6, -29, -25, 17, -31, -26, 1, -34, -19, -5, -38, 15, -9, -30, -28, 2, -15, -35, 8, -23, 33, -17, 11, -26, 30, 3, 16, -20, 29, -1, 28, 28, 37, 15, 43, 71, 19, 6, 13, 36, 55, 60, 14, 32, 36, 47, 32, 31, 29, 46, 1, 30, 43, 60, -5, -3, -21, 25, -52, -69, 3, -18, -31, -32, -28, 0, -2, 31, -43, -11, -16, 8, -36, -19, -18, -19, -12, -51, -51, -28, -36, 15]], [[2286, 3277, 32, 43, 24, 54, 12, 5, 20, 41, 51, 10, 58, 107, 35, 7, 90, 29, 55, 59, -36, 55, -55, 21, -17, 0, -38, -30, -71, -14, 1, -29, -21, -47, -46, -23, -56, -17, -34, -29, -30, -15, -53, -44, -63, -6, -16, -28, -3, -30, 14, -33, 65, 6, 15, -28, 30, -21, -21, -33, 40, -17, 18, 7]], [[1860, 3240, -8, -27, 34, -26, -19, -16, 22, -71, -8, -11, 62, -68, 16, 8, 41, -24, 30, -30, 22, 2, 29, -21, 15, 26, -20, 25, -20, 47, -32, 22, 21, 21, 50, 9, -8, 35, -32, 30, -20, 28, 4, 21, 37, 48, 50, 14, 12, 25, 1, 56, -14, 33, 3, 30, 16, 28, -60, 3, -26, 14, -34, -1, -21, -32, 5, -25, -30, -19, -51, 7, -53, 21, 17, -23, 8, -47, -2, -49, -15, -16, -22, -47]], [[2123, 1387, 0, 146, 6, 13, 129, 13, 24, 31, 23, 12, 47, 0, 8, 15, 77, 37, 34, -8, 65, 14, 20, -14, 39, 16, 17, -10, 67, 8, -1, 432, -28, -18, -79, -31, -34, -21, -17, 0, -39, -41, -35, 12, -31, -7, -22, -19, -37, -4, -42, 15, -35, 33, -25, 45, -15, -102, -50, 14, -42, -3, -15, 54, -40, -30, -2, -47, -72, -42, -17, -2, -40, -54, -43, -60, -1, -30, -29, -46, -32, -31, 30, -19, 19, 3, 8, -38, -8, -56, -15, -27, 20, -17, 1, -32, 18, -28, 0, -25, 52, -13, 24, -15, 76, -23, 42, 0]], [[1203, 1610, -47, 9, -41, -6, -47, -35, -35, -70, 8, -29, 19, -12, -4, -39, -25, -5, -31, 8, -32, -32, 84, -88, 44, -19, 22, 6, 26, -52, 71, -32, 32, 11, 5, -21, 28, -22, 17, 1, -8, -52, 49, -10, 40, 1, -3, 49, -13, 7, 15, 57, 19, 21, -13, 40, 24, 9, 13, 26, -2, 30, 20, 28, -21, 24, -66, -15, -19, 6, 10, 38, 17, 19, -28, 21, 2, 37, -29, 14, -21, -18, -39, -14, -22, 9, -17, 50, -2, 50]], [[2130, 2702, 27, -33, 33, -11, 29, 19, 48, -8, 33, -50, -4, -45, 29, -32, 36, -4, 11, -16, 24, -8, 41, 36, 32, 0, -26, 45, -6, 29, -49, 3, -11, 21, 1, 99, 25, 42, -7, 41, -57, 57, -24, 104, -46, 10, -5, 31, -36, -24, -41, -1, -20, -92, -19, -29, 20, -53, 23, -6, -18, -41, 14, -26, 3, -48, -27, -26, -33, 16]], [[1673, 1916, 35, 52, 3, 29, 35, 36, 6, 20, -22, -10, -48, 10, -33, -23, -5, -38, 22, -29, -11, -41, 18, -6]], [[1604, 2125, 31, -52, 47, -20, 48, -10, 22, 10, 3, 19, -23, 24, -88, 10, -5, 25, 58, 49, -20, 19, -25, -4, -2, 24, -31, 17, -41, -52, 26, -59]], [[1938, 2386, 16, -37, 35, -4, 23, -37, 39, -36, 29, -7, 33, 14, 15, -11, 12, 61, 19, 21, 27, -21, 5, -36, 84, 48, 45, 37, 2, 54, 16, -10, 26, 10, 12, 36, -4, 54, -11, 16, -36, 4, -29, 32, 4, 45, -33, 50, -48, 8, -29, -19, -33, 11, -27, 33, -30, 85, -20, -16, 15, -64, 0, -25, -21, -48, -4, -29, -5, -24, 8, -42, -24, -16, -22, -32, -63, -38, 2, -29, -28, -38]], [[1691, 3060, 28, -28, 23, -9, 61, -62, -41, -26, 2, -37, 13, -34, 53, -9, 25, 9, 30, -48, 29, 7, 24, 35, -15, 55, 14, 16, -21, 37, -40, 18, -16, 22, -8, 40, -40, 53, -31, 19, -12, 27, -28, 21, -5, 28, -17, 11, -16, -71, 16, -30, -6, -27, -22, -17]], [[1613, 1673, 36, -15, 51, 28, 12, 51, 18, 19, 36, 19, 16, -8, 43, 11, 2, -31, 28, 0, 31, 32, -3, 18, 52, 69, 1, 40, 10, 31, -17, 20, -16, -13, -37, 18, 5, 46, -6, 49, 16, 12, 6, 64, -4, 42, -44, 6, -25, -8, -16, -26, -34, -3, -19, -72, -3, -19, -6, -20, -35, -36, -3, -29, -35, -52, -52, -100, -15, -54, 1, -29, -3, -37, 9, -23]], [[1296, 1733, 57, -23, 29, 16, 35, -15, 27, 20, 29, -24, 29, 2, 19, 47, 86, -23, -1, 29, 15, 54, 52, 100, -18, 6, 11, 41, -22, 29, 5, 38, 33, 23, -47, 20, -31, 52, -15, -45, -14, -2, -38, -74, -38, -24, 25, -42, -12, -24, -39, -21, -79, 28, -23, 19, -42, 4, -22, -34, 36, -43, 22, -2, -1, -38, -25, -18, -8, -26, -31, -27, -4, -23]], [[3032, 2353, -146, 182, -47, -6, -49, 30, -32, 4, -42, -8, -27, -18, -23, 12, -125, 0, -51, -5, -40, -107, -43, -36, -1, -25, 14, -19, 30, -15, 38, 21, 63, 6, 96, 23, 51, -15, 42, 5, 55, -4, 32, 15, 56, -9, 61, -46, 65, 1, 23, 14]], [[2254, 2056, 25, -45, 35, -33, 42, -15, 37, 4, 22, 19, 31, 7, 35, -12, 39, 41, 17, 0, 34, 21, 79, 31, 28, 18, 29, 49, 54, 34, 3, 17, 69, 48, 44, 3, 20, 22, 47, 73, -61, 46, -56, 9, -32, -15, -55, 4, -42, -5, -51, 15, -96, -23, -63, -6, -38, -21, -30, 15, -14, 19, 1, 25, -16, -34, 19, -54, 4, -30, 18, -27, -37, -21, -63, -62, -26, 22, -35, -51, -22, -71, 5, -17]], [[1378, 1122, 7, -18, 50, -10, 25, 10, 32, -15, 37, 5, 0, 29, 22, 12, 39, -13, 69, -69, 38, -1, 14, -16, 64, -21, 16, 18, 28, -11, 31, -29, 32, 5, 11, -31, 33, -10, 40, -33, 118, 33, -34, 11, -24, 23, -39, 9, -32, 26, -22, -10, -35, 34, -7, 37, -49, 8, -15, 51, -35, -1, -3, 26, -28, 36, -18, -7, -46, 30, -26, -8, -30, 21, -17, 27, -24, -1, -28, -17, -45, -4, -30, 24, 5, 29, -13, 44, -21, 7, -48, -21, -13, -26, -24, -9, 13, -40, -19, -21, -15, -57, 13, -7, 3, -49]], [[430, 3767, -7, 0, -3, -10, 4, -6, 6, 16]], [[1966, 924, 26, -59, -1, -33, 79, -32, 8, -20, 40, -4, 21, -19, 26, -55, -16, -24, 44, -22, 27, 10, 22, -27, 3, -35, -13, -46, 22, -23, 32, -16, 59, 18, 57, -29, 53, 19, 15, 14, 29, -6, 18, 37, 82, -19, 29, -21, 41, 9, 31, 27, 69, -32, 7, -25, 55, -4, 25, -13, 9, -21, 31, -2, 3, -21, -141, -221, 48, -18, 29, 16, 37, -27, 1, -23, 26, -12, 26, -28, 106, 575, 4, 101, -11, -31, -48, 35, -55, 17, -18, -2, -18, -28, -38, 28, 17, 18, -6, 32, 2, 59, -42, -1, -17, 25, -32, 2, -16, 14, -19, -17, -15, 56, -22, 22, -55, 13, -48, -15, -16, 7, -33, -19, -19, -44, -49, 2, -27, -18, -36, -66, -26, 19, -35, -27, -33, 28, -28, -12, -36, 18, -36, -20, -27, 26, -33, -5, -20, 16, -56, 12, -118, -33]], [[2946, 1410, 46, 2, 21, 11, 30, -10, 266, 0, -26, 24, 17, 32, 64, -39, 29, 45, 37, 7, 4, 17, 29, 10, 20, -13, 12, -45, 17, 3, 20, -25, -2, -41, 14, -29, -2, -66, 50, 14, -23, 94, -15, 26, -14, 57, -27, 43, 7, 21, -62, 59, -33, 40, -52, 11, 114, 102, -37, 93, -24, -3, -21, 62, -37, -28, -35, 20, -58, -7, -55, -41, -46, -13, -75, -12, -41, 4, -52, -4, -28, -29, -39, -1, 0, -22, -27, -14, -25, 3, -29, -45, -7, -52, -47, -31, -95, -39, 38, -15, 29, -48, 29, -17, 40, -5, 52, 18, 16, -15, -25, -31, -15, -42, 27, -23, 46, -13]], [[2474, 1184, 49, 48, 14, 21, 21, 2, 23, 28, -2, 33, 33, 69, 47, 32, 40, 16, 20, 20, 41, -2, 47, 9, 10, 10, 71, 18, 25, 31, -16, 15, -52, -18, -40, 5, -29, 17, -29, 48, -38, 15, 95, 39, -18, 11, -30, -19, -22, 13, -55, 15, -67, -8, -17, 10, -39, -16, -20, 14, -65, -14, -34, 8, -77, -37, -8, -15, -47, 0, -23, -12, -24, -31, -129, -13, -6, -13, 0, -146, 40, -53, 18, -46, 54, -49, 21, -3, 40, 30, -3, 21, 48, 6, 54, -36, 28, -51, 51, -22]], [[3035, 813, -39, 65, 9, 31, -9, 26, -62, 35, -36, 37, 4, 12, 0, 144, 24, -2, 66, 18, 32, 21, 27, -25, 34, -1, 13, 16, -13, 66, -26, 20, -113, -3, 0, 137, -46, 13, -27, 23, 15, 42, -71, -18, -10, -10, -47, -9, -41, 2, -20, -20, -40, -16, -47, -32, -33, -69, 2, -33, -23, -28, -21, -2, -14, -21, -49, -48, 9, -21, 29, -23, 5, -25, 54, -38, 45, 2, 26, -24, 55, -13, 22, -22, 15, -56, 19, 17, 16, -14, 32, -2, 17, -25, 42, 1, -2, -59, 6, -32, -17, -18, 38, -28, 18, 28, 18, 2, 55, -17, 48, -35, 11, 31]], [[3405, 1912, -19, 40, 7, 28, -21, 35, 9, 39, -9, 93, 11, 47, 38, 26, -3, 36, 10, 42, 38, 38, -10, 38, -35, 21, -47, 6, -41, -27, -15, 8, -108, -16, -10, -7, -86, 19, -41, -31, -23, 14, -18, -8, -23, -14, -65, -1, -47, -73, -20, -22, -44, -3, -69, -48, -3, -17, -54, -34, -29, -49, 1, -432, 55, -15, 22, -13, 30, 19, 18, -11, 47, 31, 7, 52, 29, 45, 25, -3, 27, 14, 0, 22, 39, 1, 28, 29, 52, 4, 41, -4, 75, 12, 46, 13, 55, 41, 58, 7, 35, -20, 37, 28]]], "valor": [144714, 62262, 152536, 54400, 30362, 19852, 7876, 27432, 27128, 44540, 70026, 9620, 26356, 19520, 33708, 23460, 32910, 32622, 11310, 19338, 49756, 22392, 31416, 78698, 6632, 11058, 7748, 1154, 1646, 778, 2098, 868, 1218], "cortes": [778, 7078.4, 19483.6, 28018, 47669.6, 152536], "clase": [5, 5, 5, 5, 4, 3, 2, 3, 3, 4, 5, 2, 3, 3, 4, 3, 4, 4, 2, 2, 5, 3, 4, 5, 1, 2, 2, 1, 1, 1, 1, 1, 1], "estilo": "quantile", "tam": [7, 6, 7, 6, 7], "etiquetas": ["Antioquia", "Atlántico", "Bogotá, D.C.", "Bolívar", "Boyacá", "Caldas", "Caquetá", "Cauca", "Cesar", "Córdoba", "Cundinamarca", "Chocó", "Huila", "La Guajira", "Magdalena", "Meta", "Nariño", "Norte de Santander", "Quindio", "Risaralda", "Santander", "Sucre", "Tolima", "Valle del Cauca", "Arauca", "Casanare", "Putumayo", "Archipiélago de San Andrés, Providencia y Santa Catalina", "Amazonas", "Guainía", "Guaviare", "Vaupés", "Vichada"], "superpuestos": [{"id": "simbolos", "modo": "simbolo", "n": 33, "etiqueta": "Símbolos proporcionales", "pts": [1716, 2526, 1849, 3330, 2011, 1967, 1945, 2915, 2243, 2279, 1770, 2187, 2058, 1213, 1441, 1557, 2155, 3084, 1670, 2834, 2030, 2075, 1421, 2318, 1708, 1593, 2386, 3500, 1998, 3237, 2275, 1759, 1214, 1380, 2291, 2776, 1687, 1997, 1655, 2132, 2161, 2476, 1816, 2985, 1780, 1907, 1508, 1870, 2701, 2450, 2566, 2200, 1649, 1139, 424, 3759, 2589, 711, 3168, 1628, 2453, 1454, 2791, 1181, 3037, 2054], "valor": [144714, 62262, 152536, 54400, 30362, 19852, 7876, 27432, 27128, 44540, 70026, 9620, 26356, 19520, 33708, 23460, 32910, 32622, 11310, 19338, 49756, 22392, 31416, 78698, 6632, 11058, 7748, 1154, 1646, 778, 2098, 868, 1218]}, {"id": "densidad", "modo": "densidad", "n": 535, "etiqueta": "Dot density · 1 punto = 2000 estudiantes", "pts": [1594, 2618, 1822, 2613, 1832, 2759, 1489, 2842, 1506, 2706, 1598, 2440, 1912, 2696, 1971, 2634, 1817, 2492, 1417, 2730, 1800, 2469, 1528, 2530, 1547, 2862, 1465, 2825, 1723, 2594, 1865, 2585, 1688, 2655, 1816, 2545, 1722, 2549, 1715, 2364, 1676, 2583, 1552, 2553, 1849, 2445, 1640, 2375, 1811, 2457, 1771, 2381, 1633, 2355, 1789, 2489, 1778, 2736, 1802, 2668, 1484, 2793, 1918, 2701, 1523, 2625, 1714, 2547, 1808, 2272, 1923, 2522, 1784, 2379, 1588, 2572, 1730, 2579, 1653, 2307, 1592, 2458, 1858, 2670, 1886, 2572, 1812, 2751, 1862, 2415, 1615, 2504, 1823, 2401, 1501, 2513, 1625, 2597, 1761, 2715, 1558, 2449, 1536, 2415, 1581, 2439, 1460, 2442, 1915, 2410, 1763, 2660, 1738, 2699, 1792, 2363, 1898, 2340, 1599, 2461, 1870, 2362, 1862, 2579, 2000, 2523, 1519, 2610, 1738, 2693, 1551, 2440, 1670, 2419, 1926, 2739, 1812, 2762, 1826, 2713, 1788, 2556, 1804, 2660, 1871, 3385, 1827, 3297, 1862, 3354, 1861, 3393, 1803, 3286, 1886, 3295, 1885, 3332, 1794, 3325, 1872, 3393, 1802, 3309, 1832, 3376, 1855, 3397, 1852, 3268, 1872, 3328, 1821, 3345, 1887, 3336, 1891, 3394, 1838, 3329, 1812, 3353, 1802, 3305, 1866, 3401, 1882, 3405, 1861, 3259, 1805, 3288, 1871, 3406, 1852, 3269, 1878, 3274, 1870, 3295, 1863, 3358, 1875, 3375, 1874, 3297, 2008, 1916, 2042, 2058, 2048, 2070, 1983, 1896, 1981, 1909, 2012, 1995, 2028, 2015, 1987, 1887, 2021, 1927, 2024, 2000, 2017, 1971, 2006, 1914, 2039, 2008, 2027, 2044, 2027, 2010, 1986, 1900, 2009, 1903, 2000, 1908, 2034, 2049, 2033, 2017, 2033, 2021, 2045, 2053, 2030, 2012, 1978, 1918, 2004, 1943, 2024, 2016, 2039, 2045, 2021, 1983, 2017, 2008, 1974, 1890, 2019, 1982, 2016, 1976, 1971, 1857, 2019, 1905, 1986, 1886, 2016, 1940, 2022, 1969, 2021, 1938, 2014, 2026, 2006, 1961, 1983, 1878, 1991, 1892, 2042, 2072, 1973, 1865, 2009, 1977, 2034, 2016, 2014, 2035, 1968, 1853, 2021, 1965, 2021, 2022, 1978, 1913, 1981, 1903, 1981, 1894, 2024, 2007, 1990, 1907, 2034, 2010, 2023, 1912, 1997, 1919, 2019, 2011, 2022, 1982, 2019, 1994, 2021, 1933, 2006, 1934, 2048, 2031, 2043, 2039, 2019, 1907, 2045, 2033, 2046, 2056, 1973, 1867, 2041, 2075, 1977, 1870, 2005, 1903, 2016, 2013, 2033, 2012, 2049, 2072, 2018, 2039, 1875, 3128, 2071, 2678, 1795, 3133, 1945, 2792, 2040, 2916, 1920, 2797, 1851, 3149, 2030, 2588, 1938, 2862, 1838, 3205, 2082, 2739, 1954, 2932, 2039, 2659, 1966, 2780, 1782, 3246, 1800, 3146, 2011, 2623, 2079, 2730, 2095, 2835, 1978, 2743, 1804, 3262, 1999, 2747, 2044, 2791, 1785, 3254, 1739, 3272, 2072, 2943, 2039, 2610, 2233, 2225, 2406, 2263, 2377, 2290, 2182, 2155, 1956, 2336, 2276, 2307, 2336, 2240, 2012, 2267, 2226, 2303, 2411, 2473, 2286, 2172, 2169, 2333, 2275, 2277, 2425, 2492, 2168, 2267, 1676, 2221, 1840, 2261, 1651, 2103, 1657, 2196, 1720, 2234, 1717, 2185, 1794, 2176, 1657, 2218, 1749, 2137, 1780, 2149, 1915, 1286, 2169, 1052, 2323, 947, 2089, 1326, 1320, 1669, 1238, 1574, 1539, 1271, 1563, 1346, 1284, 1659, 1402, 1542, 1498, 1370, 1504, 1694, 1271, 1589, 1567, 1726, 1424, 1546, 1374, 1616, 1605, 1675, 1506, 1666, 2149, 2924, 2056, 3177, 2105, 2902, 2154, 2911, 2147, 2747, 2150, 2916, 2246, 3177, 2060, 3095, 2111, 2917, 2177, 3364, 2203, 3032, 2226, 3084, 2177, 3081, 2192, 3071, 1652, 2826, 1586, 2840, 1768, 2874, 1690, 3043, 1733, 2787, 1679, 2756, 1715, 2889, 1731, 3004, 1816, 2834, 1693, 3024, 1622, 2780, 1594, 2798, 1594, 2666, 1752, 2967, 1555, 2763, 1736, 2741, 1610, 2904, 1767, 2980, 1782, 2788, 1635, 2669, 1784, 2789, 1665, 2950, 1980, 2096, 1925, 2067, 2227, 1957, 2096, 1955, 1974, 1969, 1929, 2054, 2079, 2171, 2151, 2057, 2081, 2056, 2067, 2048, 2235, 2004, 2093, 2086, 1932, 2090, 2063, 2146, 2001, 1982, 1923, 2072, 2123, 2098, 1981, 2149, 1996, 2134, 1900, 1985, 1924, 2242, 2063, 2166, 2056, 2104, 2161, 2029, 2214, 2014, 1977, 2140, 2017, 2120, 2091, 2117, 1956, 1997, 2119, 2197, 1924, 2103, 2100, 2143, 2045, 1977, 1899, 1984, 2077, 2060, 1367, 2335, 1365, 2359, 1548, 2348, 1426, 2276, 1398, 2203, 1741, 1551, 1687, 1673, 1662, 1530, 1604, 1521, 1638, 1539, 1533, 1426, 1765, 1720, 1705, 1597, 1638, 1556, 1550, 1457, 1590, 1530, 1819, 1753, 1647, 1492, 2164, 3453, 2326, 3428, 2305, 3495, 2401, 3461, 2628, 3674, 2227, 3475, 2595, 3592, 2212, 3409, 2534, 3674, 2530, 3561, 2040, 3014, 2059, 3019, 1953, 3264, 2069, 3464, 1906, 3358, 2034, 3002, 2047, 3043, 2095, 3293, 2086, 3378, 1915, 3062, 1975, 3070, 2078, 3414, 1987, 3024, 2015, 3364, 2048, 3099, 2053, 3293, 1909, 3302, 2516, 1731, 2412, 1929, 2427, 1715, 2538, 1839, 2152, 1702, 2541, 1818, 2361, 1767, 2414, 1964, 2328, 1686, 2044, 1807, 2096, 1487, 1940, 1572, 1350, 1235, 1345, 1274, 1178, 1585, 1050, 1320, 1270, 1335, 1367, 1398, 1204, 1302, 1324, 1161, 1160, 1297, 1129, 1612, 1136, 1294, 1244, 1323, 1188, 1233, 1296, 1328, 1116, 1460, 1203, 1549, 2265, 2886, 2300, 2743, 2252, 2964, 2364, 2684, 2187, 2943, 2181, 2918, 2259, 2925, 2393, 2575, 2311, 2963, 2212, 2902, 2355, 2814, 2361, 2609, 2378, 2731, 2343, 2647, 2197, 2856, 2252, 2830, 1656, 2036, 1674, 2034, 1722, 2039, 1657, 1928, 1678, 1932, 1676, 2003, 1617, 2233, 1621, 2135, 1608, 2183, 1718, 2053, 1649, 2098, 1625, 2086, 1644, 2211, 1632, 2119, 1667, 2094, 1638, 2220, 2164, 2578, 2297, 2435, 2093, 2757, 2324, 2447, 2163, 2492, 2210, 2349, 2039, 2512, 2108, 2626, 2298, 2419, 2362, 2509, 2185, 2614, 2097, 2703, 2300, 2381, 2353, 2465, 2215, 2580, 2118, 2611, 2201, 2362, 2168, 2511, 2030, 2319, 2118, 2737, 2223, 2425, 2209, 2401, 1982, 2436, 2131, 2385, 2048, 2436, 1911, 2963, 1743, 3021, 1740, 3109, 1812, 2976, 1780, 2945, 1725, 3043, 1763, 3060, 1876, 2982, 1904, 2875, 1802, 2870, 1868, 2872, 1828, 2151, 1841, 1832, 1659, 1718, 1893, 2125, 1890, 2090, 1837, 1807, 1817, 1955, 1684, 1824, 1763, 1937, 1699, 1685, 1886, 1809, 1653, 1768, 1872, 1783, 1835, 2022, 1798, 2125, 1710, 1786, 1626, 2029, 1543, 1861, 1584, 2039, 1560, 1996, 1617, 1816, 1575, 1894, 1317, 1927, 1545, 1988, 1538, 1954, 1382, 1826, 1477, 1775, 1524, 1948, 1345, 1891, 1577, 1833, 1419, 1789, 1450, 1739, 1375, 1764, 1426, 1838, 1367, 1753, 1509, 1787, 1333, 1782, 1586, 1993, 1382, 1728, 1510, 1763, 1607, 1804, 1343, 1803, 1580, 1939, 1567, 2014, 1526, 1909, 1552, 1983, 1608, 1920, 1378, 1923, 1407, 1831, 1434, 1739, 1384, 1848, 1555, 1825, 1486, 1875, 1638, 1971, 1445, 1891, 2793, 2436, 2537, 2502, 2653, 2464, 2487, 1994, 2487, 2203, 2821, 2346, 2480, 2338, 2686, 2380, 2572, 2264, 1548, 1143, 1747, 1098, 1549, 1152, 1433, 1280, 421, 3749, 2663, 842, 3474, 1585, 2556, 1280, 2536, 1120, 2792, 1853]}]}, paleta: 'verde', get superpuestas() { return cartoSuper; }, descripcion: () => DESC3_CARTO[cartoSuper[0] || 'nada'] };
-    GEOMAPAS['cap3-carto-ncont'] = { fuente: {"modo": "poligonos", "titulo": "Cartograma no contiguo (Olson)", "leyenda": "estudiantes", "crs": 9377, "caja": [3987822.45446486, 1020426.04494123, 5787822.45446486, 3133528.03017526], "q": 4096, "codificacion": "delta", "n": 33, "geom": [[[1704, 2478, 3, 0, 3, 3, 2, -2, 4, 0, -1, 7, 4, -2, 3, 0, 4, -8, 2, 3, 4, 2, 0, 2, 3, 3, 4, 1, 5, -2, 3, 3, 1, 6, 2, 4, -2, 1, 2, 5, 3, 2, 2, 4, 0, 5, 2, 1, 8, 5, 3, 5, 4, 2, 0, 3, -1, 4, 0, 4, -11, -10, -2, 0, -3, 6, 0, 5, -3, 0, -3, 4, 1, 6, 2, 3, -1, 6, -3, 4, -6, 4, -1, 2, -3, -4, -5, -1, -5, 1, -4, -5, -5, -5, -4, -7, -5, 1, -3, -8, -18, 1, -4, 5, 1, 10, 2, 6, -1, 1, 3, 4, 2, 6, 2, 1, 1, 5, -2, 4, -2, 0, -2, 5, -1, 2, -4, -3, -3, -1, -1, -2, -8, -1, -1, -3, 3, -2, 3, -3, -1, -4, 1, -3, 0, -9, -6, 0, -3, 3, -1, -4, -3, -3, 6, -5, 0, -2, 5, -1, 5, -4, 1, -4, 3, -2, 1, -3, -2, -6, -4, 1, -5, -1, 1, -4, -6, -3, 0, -4, 2, -3, 4, -3, 0, -6, 2, -3, 10, -2, 6, 1, 2, -5, 3, -1, 1, -4, -1, -2, 3, -7, 1, -4, 2, -1]], [[1858, 3298, 1, 5, 3, 2, 2, 6, 4, 5, 3, 2, -1, 3, 2, 4, -2, 2, 2, 2, 0, 11, -1, 3, 0, 6, 1, 4, -3, 3, -1, 5, -4, 3, -4, 3, -3, -2, -4, 1, -3, -6, -5, -1, -3, -7, -6, -3, -4, -2, 0, -1, -6, -2, -1, -4, -3, -5, 1, -7, 1, -2, -1, -11, 1, -4, 4, -1, 5, -6, 5, 1, 2, -3, 5, -2, 4, -3, 5, -7, 1, 4, 3, 4]], [[2027, 1938, -3, -1, -3, 6, -2, 8, -1, 3, 5, 6, 1, 5, 5, 8, 1, 4, -1, 3, -2, 2, -2, 4, 2, 9, 4, 2, 3, 1, 1, 11, 3, -1, 3, 1, 3, 10, 5, 0, 1, 5, 2, 4, 0, 2, 1, 4, -5, -1, 1, 3, -5, 1, 2, 4, 3, 0, 1, 3, -2, 1, -1, 3, 2, 4, 0, 9, -2, 2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, -2, 4, -5, 0, -5, 2, -5, -2, -1, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, -2, -2, -1, 0, 2, -2, 0, -2, -3, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, -1, 0, -1, -1, -2, -4, -6, -5, -3, -2, -2, 0, 0, 0, 0, 0, -1, 0, 0, -1, 0, 1, -1, 0, -1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -2, 2, -4, -1, 0, -1, -1, 0, 0, 0, 0, -1, 0, -2, 0, -2, -1, -2, -1, -4, -4, 5, -5, 4, -1, 2, -12, -3, -3, 2, -3, 0, -6, -1, -5, -6, -15, -1, -11, 0, -7, 0, -7, 2, -1, 0, -4, -3, -6, -2, -2, -3, -7, 0, -17, -5, -2, -3, 2, -3, 0, -6, 5, -4, -5, -2, -6, 0, -4, -3, -4, 0, -5, -2, -6, 4, -3, 0, -6, -1, -6, -6, -13, -2, -7, -4, -6, -4, -3, 0, -3, -4, -4, 3, -4, 3, 3, 5, -1, 0, 3, 3, 0, -1, 4, 6, 4, 6, 7, 2, 1, 2, -3, 4, 1, 1, 3, -3, 2, 1, 2, -3, 6, 1, 2, 3, -1, 4, 4, 1, 5, 4, 1, -1, 4, 4, 1, 2, 5, 1, 4, 3, 3, 4, 1, 3, -1, 2, 2, 6, 0, 3, 3, 1, 5, -1, 5, 1, 10, 4, 2, -1, 4, 1, 6]], [[1929, 2940, -1, -2, 4, -2, -1, -2, 1, -6, 2, -3, 6, -2, 4, -6, -3, -2, 3, -8, -1, -2, -3, -3, -5, -2, -1, -1, 2, -3, 5, -3, 3, -4, 0, -6, -1, -2, -1, -6, 3, -4, 3, 0, -1, -4, 3, -6, 3, -1, 10, 9, 1, 5, 3, 7, 0, 3, -2, 10, 2, 2, 1, 10, -2, 7, 1, 4, -2, 3, -1, 2, -4, 2, -3, 0, -4, 4, -6, 4, -3, -1, -1, 2, -4, 4, -4, 4, 1, 1, -1, 6, -2, 2, 0, 3, 3, 2, -2, 2, -3, 2, 1, 4, -5, 5, -2, 0, -3, 3, 0, 4, 0, 3, -5, -1, -4, -4, 1, -8, -2, -1, 1, -4, -2, -1, 3, -3, 1, -4, 4, -3, -2, -5, 3, 1, 9, -5]], [[2235, 2257, 5, -6, 3, 0, 3, 9, 2, 1, -1, 2, 4, 6, 3, -2, 7, 7, 5, 3, -2, 3, -4, 1, 3, 2, -2, 7, 1, 3, 3, 3, 3, 2, 4, 12, -3, 1, -5, -1, -3, -3, -2, 1, 0, -6, -1, -5, -3, -1, -2, 1, -1, -6, -5, -4, -10, -6, -3, -1, 3, 5, -4, 3, -2, -3, -1, -7, -2, 1, -4, -1, -3, 0, -1, 2, -4, 3, -3, 4, -2, -1, -2, 2, -2, 4, -2, -4, 1, -1, -2, -8, 3, 1, 6, -1, 0, -4, 4, -4, 4, -2, 2, 4, 3, -1, 4, -2, 3, -3, 1, -6, -2, -3, 3, -1]], [[1769, 2176, 2, 4, 5, 0, 3, 5, 4, 1, 8, -1, 2, 4, 0, 4, 2, 7, -2, 2, -2, -2, -5, 2, -5, -1, -3, -3, 0, -2, -5, -3, -2, -3, -3, 9, -4, 0, -4, 2, 1, -7, -5, 0, -1, 1, -5, -2, 0, -5, 4, 1, 4, -3, -2, -2, -4, 1, 0, -3, -4, -4, 1, -5, 3, -1, 2, 5, 1, -4, 9, -1, 2, -4, 3, 2, -1, 3, 1, 3]], [[2048, 1213, 3, -2, 3, -3, 4, -2, 5, -2, 6, 0, 4, 2, 1, 3, -3, 3, -4, 4, -3, -2, -4, 5, -5, 1, -1, 7, -2, 0, -5, -7, -3, -2, -1, -3, 5, -2]], [[1437, 1542, 2, 1, 2, -3, -2, -2, 1, -3, 4, 2, 2, -1, 1, -4, -1, -3, 3, -2, 5, 0, -2, 6, 2, 2, 0, 3, -1, 4, -3, -1, -1, 3, -3, 2, -1, 2, 2, 3, 2, 0, 1, 3, 4, -2, 1, 4, 6, 4, 2, 3, -1, 3, -4, 2, -2, 6, -7, 2, -2, -5, -3, 0, -3, 2, -2, -2, -4, 2, -3, -2, -4, 3, -2, -1, -3, -4, -1, -4, -4, -2, 0, -6, 2, -5, 2, -1, 6, 3, 2, -1, 0, -4, 3, -2, -3, -5, 6, 0, 1, 0]], [[2158, 3050, 1, 5, -2, 1, -3, 6, 3, 3, 1, 8, -1, 1, 4, 4, 3, 7, 2, 0, 2, 7, 0, 2, 2, 4, 0, 8, -2, -1, -4, 2, 2, 4, -3, 2, -2, 4, -8, -1, 0, -6, -1, -3, -6, -2, -4, -5, 0, -3, 2, -3, 3, -3, 1, -4, -5, -1, -3, -2, 4, -3, 2, -5, 3, -3, -2, -4, 2, -2, -1, -4, 2, -4, -1, -7, 0, -3, 3, -4, -2, -4, 4, 0, 2, -2, 3, 3, -1, 8]], [[1673, 2812, 2, 0, 4, 5, 7, 9, 5, -1, 4, 1, 4, 5, 0, 2, -4, 5, -3, -1, -8, 1, -1, 5, -1, 5, 6, 4, -1, 3, -2, 0, -6, 5, -3, 1, -2, 3, -9, 2, -1, -2, -3, -1, -2, -3, -1, -3, -4, -6, -2, -1, 2, -7, 2, 0, 1, -4, 0, -4, -2, -1, -6, -15, 0, -9, 3, -4, 16, -1, 3, 7, 2, 0]], [[2015, 2048, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, -1, 0, -4, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2, 6, -1, 1, 4, 0, 5, 2, 3, 3, -1, 1, 12, 1, 3, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, 2, 1, 0, 2, 4, 5, 2, -1, 0, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -3, 1, -1, -1, -2, -4, -6, 1, -2, -3, -4, 2, -3, -1, -5, 5, 3, 2, -1, 6, 4, 2, 0, -2, 9, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, -1, 1, 1, 0, 0, 2, -1, -1, -3, 2, -6, 3, -1, 5, 2, 9, -3, 3, 19, -2, -3, -5, 1, -6, 5, -1, 3, -5, 0, -1, 1, 1, 5, 2, 1, -2, 8, -2, 1, -2, 4, -6, 4, -1, 2, -3, -2, -1, -2, -3, -3, -6, 3, -7, 7, 1, 4, -2, 4, -3, -3, -4, 1, -4, -3, -2, -7, 0, -5, -2, -4, 0, -8, -1, -9, 0, -3, -3, -2, 1, -3, -1, -3, 2, -3, -2, -2, -2, -7, 2, 1, 7, -4, 3, 3, 2, -1, 1, -2, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2]], [[1425, 2302, 1, 2, 4, 6, -2, 2, 2, 3, -2, 6, -5, 0, -2, 6, 4, 3, -1, 3, -5, 4, 2, 2, -2, 4, -2, -5, -2, -4, -3, -3, 1, -3, 4, -4, -1, -4, 2, -4, -3, -1, 2, -8, -1, -7, 3, 1, 4, -2, 2, 3]], [[1709, 1611, -2, -6, -4, -4, 0, -3, 1, -1, -2, -4, -1, -4, -3, 2, -2, -2, -2, -1, 0, -4, -2, -1, -3, 2, -2, 0, -1, -4, -4, 1, -1, -5, 1, -3, 4, -2, 1, -3, 4, 0, 3, -3, 4, 2, 2, 2, 4, 2, 6, 9, 2, 1, 2, 4, 7, 8, -1, 3, 2, 1, 9, 9, 3, 6, 0, 4, 3, 5, 2, 4, -6, -4, -3, -4, 0, -2, -3, -4, -4, 0, 0, 4, -5, -1, -2, 1, -5, -3, -2, -2]], [[2376, 3478, 3, 4, 2, 6, 4, 4, 5, 1, 5, 11, 13, 4, 5, 6, -3, 5, -7, 2, -4, -3, -7, -1, 0, -3, -2, -5, -5, -2, -6, -2, -6, -4, -5, -5, -6, 0, -2, -3, -1, -3, 2, -3, 6, 0, 2, -3, 3, -2, -2, -3, 4, -2, 2, 1]], [[1993, 3210, 2, 0, 7, -5, 5, -1, 3, 2, -3, 3, -2, 5, -4, 3, 3, 3, 6, 1, -1, 4, -4, 4, -3, 4, 1, 2, 4, 6, 3, 0, 4, 2, 2, 8, -3, 6, 1, 7, -6, 1, -3, 1, -4, 0, -3, -4, 1, -3, -4, -2, -6, 1, -5, -1, 1, -5, 0, -7, -2, -2, -3, -8, 4, -4, -3, -2, 3, -9, -1, -1, 8, -9, 2, 0]], [[2269, 1748, 5, 0, 2, 2, 7, 3, 7, 0, 7, 0, -1, 24, -8, -4, -2, -2, -5, -1, -4, 1, -3, 3, -1, -5, -5, 1, -8, -4, -5, -6, 0, -2, -3, -4, 3, -1, 0, -5, 1, -7, 8, -2, 2, 0, 0, 7, 3, 2]], [[1219, 1363, -1, -2, 5, -2, -1, -5, 5, -1, 5, 0, -1, 5, -1, 1, 2, 6, 2, 2, -2, 4, 4, 3, 0, 4, 2, 3, -2, 2, -7, -1, -2, 0, 1, 4, 2, 2, -3, 3, 0, 4, -3, 1, -2, -2, -4, -1, -3, 1, -2, 5, 0, 5, -3, -1, -2, 2, -4, -1, -5, -3, -4, -8, 1, -3, 2, -1, 0, -4, -6, 0, -4, -3, 9, -9, 5, -2, 2, 0, 3, -5, 7, -4, 5, 1]], [[2278, 2761, 3, 0, 1, 2, 6, -1, 4, -6, -1, -6, 4, -4, 5, 0, 4, -3, 3, 3, 2, 1, 4, 0, -3, 6, -1, 4, -6, 0, -1, 3, 0, 12, 3, 5, -1, 6, -7, 7, -3, 13, -6, 1, -1, 4, -4, -3, -6, 0, -2, -12, -2, -3, 2, -7, 3, -1, -2, -5, 2, -3, 0, -6, -3, -4, 0, -2, 3, -1]], [[1689, 1985, 3, 5, 1, 7, 2, 2, 1, 4, 6, 3, -1, 2, -3, 1, -5, 2, -4, -1, -3, -2, -6, 1, -2, -3, -1, -7, -1, -3, 5, -2, 1, -5, -2, -4, -1, -7, 3, -1, 5, 3, 2, 5]], [[1651, 2121, -1, -3, 7, -5, 7, -1, 4, 1, 7, -2, 4, 3, -1, 3, -2, 1, -3, 5, -4, 2, -8, 1, -1, 4, -4, -6, -4, 2, -1, 6, 6, 6, 0, 4, 6, -1, 2, 3, -3, 3, -2, 1, -3, -1, -3, 0, 0, 6, -6, 2, -2, 2, -4, -2, 0, -4, -5, -3, -1, -3, 3, -5, 1, -3, 4, -2, -1, -5, 4, -9, 4, 0]], [[2148, 2449, 3, -1, 4, 2, 2, -2, 1, 8, 3, 3, 4, -3, -3, -5, 2, -2, 1, 3, 11, 6, 5, 4, 1, 1, 0, 7, 3, -1, 3, 1, 2, 5, -1, 6, -1, 3, -5, 0, -4, 5, 1, 6, -5, 6, -6, 1, -1, -2, -3, 0, -4, 1, -4, 4, -3, 1, 2, 4, -4, 6, -1, -1, 2, -9, 0, -3, -3, -6, -1, -9, 1, -4, -3, -2, -3, -4, -9, -5, 1, -4, -2, -3, -2, -2, 2, -5, 2, -2, 3, 2, 3, -5, 6, -5]], [[1811, 2979, -3, -2, 1, -3, -1, -2, 2, -5, 8, -2, 4, 2, 5, -7, 4, 1, 3, 3, 0, 2, -2, 8, 2, 2, -3, 6, -6, 3, -2, 3, -1, 6, 1, 2, -4, 2, -3, 4, -5, 3, -3, -1, 1, 5, -4, 3, -1, 4, -1, 1, -4, -10, 3, -4, -3, -8, 3, -3, 3, -1, 6, -6, 2, -1, 1, -3, -3, -2]], [[1772, 1887, 2, 2, 4, 2, 2, -1, 5, 2, 1, -4, 3, 0, 3, 4, 0, 2, 3, 3, 3, 3, 2, 10, -2, 3, -2, -2, -5, 2, 0, 4, 1, 2, -1, 5, 2, 2, 1, 7, 0, 5, -4, 1, -5, -1, -2, -3, -4, 0, -1, -5, -2, -8, -4, -5, 0, -3, -6, -10, -1, -1, -4, -7, -1, -6, 0, -3, -1, -4, 3, -4, 4, -1, 5, 3, 1, 6]], [[1506, 1838, 3, 3, 2, 6, 4, -2, 5, 0, 7, -3, 2, 2, -1, 4, 1, 6, 2, 3, 0, 2, 1, 5, 2, 1, 2, 6, 3, 2, 2, 6, -4, 1, 1, 6, 2, 3, -1, 4, -4, 2, 1, 7, 2, 3, 5, -1, 0, 3, -3, 0, -7, 4, -2, 3, -3, 6, -4, -8, -3, 0, -4, -4, 1, -1, -4, -10, -8, -5, 2, -3, 3, -5, -2, -5, -4, -3, -4, -1, -8, 3, -2, 2, -4, 1, -2, -1, -5, 4, -6, -1, -2, 2, -4, -7, 3, -5, 2, 5, 4, 2, 1, -3, -5, -3, 2, -5, 4, 0, -1, -4, 1, -4, -2, -3, -3, 0, -3, -4, 1, -2, -6, -5, -1, -4, 3, 1, 4, -5, 1, 2, 4, -3, 6, 3, 4, -1, 3, -2, 1, 4, 4, 0, 6, -5, 5, 1]], [[2715, 2450, -4, 5, -2, -1, -3, 2, -16, -1, -3, -6, -2, -2, 2, -3, 3, 1, 8, 2, 3, -1, 10, 1, 3, -3, 5, 1, -4, 5]], [[2554, 2188, 5, 1, 13, 5, 1, 3, 6, 5, 3, 0, 3, 5, -3, 2, -10, 0, -2, 1, -8, -2, -2, -1, -3, -5, -3, -3, -4, -2, -1, -4, 2, -3, 3, -2]], [[1640, 1137, 2, 0, 4, 1, 4, -4, 6, -2, 1, 1, 10, -6, 7, 2, -4, 2, -5, 1, -2, 4, -3, 1, -1, 3, -11, 7, -6, -2, -1, 2, -1, 4, -3, -1, -3, -3, -1, -6, 1, -4, 6, 0]], [[427, 3763, -3, 0, -2, -5, 2, -3, 3, 8], [465, 3847, -3, 0, -1, -3, 4, -1, 0, 4]], [[2588, 709, 4, -2, -1, -2, 2, -2, 1, 9, -5, 3, -3, -2, -4, 1, 3, -6, 3, 1]], [[3172, 1626, -2, 5, -4, -1, -3, -3, 2, -1, 7, 0]], [[2456, 1454, 4, 2, -1, 2, -6, 0, -6, -2, 0, -3, 2, -3, 2, 1, 3, -2, 2, 2, 0, 3]], [[2793, 1178, 0, 6, -4, -1, -2, -2, 4, -3, 2, 0]], [[3041, 2055, 0, 3, -5, -1, -3, -3, 0, -5, 3, 2, 5, 1, 0, 3]]], "valor": [144714, 62262, 152536, 54400, 30362, 19852, 7876, 27432, 27128, 44540, 70026, 9620, 26356, 19520, 33708, 23460, 32910, 32622, 11310, 19338, 49756, 22392, 31416, 78698, 6632, 11058, 7748, 1154, 1646, 778, 2098, 868, 1218], "cortes": [778, 7078.4, 19483.6, 28018, 47669.6, 152536], "clase": [5, 5, 5, 5, 4, 3, 2, 3, 3, 4, 5, 2, 3, 3, 4, 3, 4, 4, 2, 2, 5, 3, 4, 5, 1, 2, 2, 1, 1, 1, 1, 1, 1], "estilo": "quantile", "tam": [7, 6, 7, 6, 7], "etiquetas": ["Antioquia", "Atlántico", "Bogotá, D.C.", "Bolívar", "Boyacá", "Caldas", "Caquetá", "Cauca", "Cesar", "Córdoba", "Cundinamarca", "Chocó", "Huila", "La Guajira", "Magdalena", "Meta", "Nariño", "Norte de Santander", "Quindio", "Risaralda", "Santander", "Sucre", "Tolima", "Valle del Cauca", "Arauca", "Casanare", "Putumayo", "Archipiélago de San Andrés, Providencia y Santa Catalina", "Amazonas", "Guainía", "Guaviare", "Vaupés", "Vichada"]}, paleta: 'verde', descripcion: "Cada departamento encoge alrededor de su centro, sin moverse de su sitio, hasta que su área es proporcional a sus estudiantes. Bogotá, la que más estudiantes tiene por kilómetro cuadrado, conserva su tamaño, y por eso su parte del área dibujada sube del 0.14 % al 14.32 %; todos los demás encogen, y el Amazonas, que ocupa el 9.59 % del mapa, queda en el 0.15 %." };
-    GEOMAPAS['cap3-carto-dorling'] = { fuente: {"modo": "poligonos", "titulo": "Cartograma de Dorling", "leyenda": "estudiantes", "crs": 9377, "caja": [3987822.45446486, 1020426.04494123, 5787822.45446486, 3133528.03017526], "q": 4096, "codificacion": "delta", "n": 33, "geom": [[[1909, 2526, -4, 38, -11, 36, -18, 33, -24, 29, -29, 24, -33, 18, -36, 11, -38, 4, -37, -4, -36, -11, -34, -18, -29, -24, -24, -29, -18, -33, -10, -36, -4, -38, 4, -37, 10, -36, 18, -34, 24, -29, 29, -24, 34, -17, 36, -11, 37, -4, 38, 4, 36, 11, 33, 17, 29, 24, 24, 29, 18, 34, 11, 36, 4, 37]], [[1957, 3342, -3, 24, -7, 24, -12, 22, -15, 19, -19, 16, -22, 11, -24, 8, -25, 2, -24, -2, -24, -8, -22, -11, -19, -16, -15, -19, -12, -22, -7, -24, -3, -24, 3, -25, 7, -23, 12, -22, 15, -19, 19, -16, 22, -12, 24, -7, 24, -2, 25, 2, 24, 7, 22, 12, 19, 16, 15, 19, 12, 22, 7, 23, 3, 25]], [[2228, 1858, -4, 39, -11, 37, -19, 34, -24, 30, -30, 25, -34, 18, -37, 11, -39, 4, -38, -4, -37, -11, -35, -18, -29, -25, -25, -30, -18, -34, -12, -37, -3, -39, 3, -38, 12, -37, 18, -34, 25, -30, 29, -25, 35, -18, 37, -11, 38, -4, 39, 4, 37, 11, 34, 18, 30, 25, 24, 30, 19, 34, 11, 37, 4, 38]], [[2083, 2904, -2, 23, -7, 22, -11, 20, -14, 18, -18, 15, -20, 11, -23, 6, -23, 3, -23, -3, -22, -6, -20, -11, -18, -15, -15, -18, -11, -20, -6, -22, -2, -23, 2, -23, 6, -22, 11, -21, 15, -18, 18, -14, 20, -11, 22, -7, 23, -2, 23, 2, 23, 7, 20, 11, 18, 14, 14, 18, 11, 21, 7, 22, 2, 23]], [[2335, 2281, -2, 17, -5, 17, -8, 15, -11, 13, -13, 11, -15, 8, -17, 5, -17, 2, -17, -2, -17, -5, -15, -8, -13, -11, -11, -13, -8, -15, -5, -17, -2, -17, 2, -17, 5, -17, 8, -15, 11, -13, 13, -11, 15, -8, 17, -5, 17, -2, 17, 2, 17, 5, 15, 8, 13, 11, 11, 13, 8, 15, 5, 17, 2, 17]], [[1848, 2190, -2, 14, -4, 14, -6, 12, -9, 11, -11, 9, -12, 6, -14, 4, -13, 2, -14, -2, -14, -4, -12, -6, -11, -9, -9, -11, -6, -12, -4, -14, -2, -14, 2, -14, 4, -13, 6, -12, 9, -11, 11, -9, 12, -7, 14, -4, 14, -1, 13, 1, 14, 4, 12, 7, 11, 9, 9, 11, 6, 12, 4, 13, 2, 14]], [[2103, 1213, -1, 9, -2, 8, -4, 8, -6, 7, -7, 6, -7, 4, -9, 2, -9, 1, -8, -1, -9, -2, -7, -4, -7, -6, -6, -7, -4, -8, -3, -8, 0, -9, 0, -8, 3, -9, 4, -8, 6, -6, 7, -6, 7, -4, 9, -3, 8, -1, 9, 1, 9, 3, 7, 4, 7, 6, 6, 6, 4, 8, 2, 9, 1, 8]], [[1525, 1557, -2, 16, -5, 16, -7, 14, -11, 13, -13, 10, -14, 8, -16, 5, -16, 1, -16, -1, -16, -5, -15, -8, -12, -10, -11, -13, -7, -14, -5, -16, -2, -16, 2, -17, 5, -15, 7, -15, 11, -13, 12, -10, 15, -8, 16, -5, 16, -1, 16, 1, 16, 5, 14, 8, 13, 10, 11, 13, 7, 15, 5, 15, 2, 17]], [[2239, 3084, -2, 17, -5, 15, -7, 15, -11, 12, -12, 11, -15, 7, -15, 5, -17, 2, -16, -2, -16, -5, -14, -7, -13, -11, -10, -12, -8, -15, -4, -15, -2, -17, 2, -16, 4, -15, 8, -15, 10, -12, 13, -11, 14, -8, 16, -4, 16, -2, 17, 2, 15, 4, 15, 8, 12, 11, 11, 12, 7, 15, 5, 15, 2, 16]], [[1776, 2834, -2, 21, -6, 20, -10, 19, -13, 16, -16, 13, -19, 10, -20, 6, -20, 2, -21, -2, -20, -6, -19, -10, -16, -13, -13, -16, -10, -19, -6, -20, -2, -21, 2, -20, 6, -21, 10, -18, 13, -16, 16, -13, 19, -10, 20, -6, 21, -2, 20, 2, 20, 6, 19, 10, 16, 13, 13, 16, 10, 18, 6, 21, 2, 20]], [[2179, 2189, -3, 27, -8, 25, -12, 23, -17, 20, -20, 17, -23, 12, -25, 8, -26, 2, -26, -2, -25, -8, -24, -12, -20, -17, -17, -20, -12, -23, -7, -25, -3, -27, 3, -26, 7, -25, 12, -23, 17, -20, 20, -17, 24, -12, 25, -8, 26, -2, 26, 2, 25, 8, 23, 12, 20, 17, 17, 20, 12, 23, 8, 25, 3, 26]], [[1471, 2318, -1, 10, -3, 9, -5, 9, -6, 7, -7, 7, -9, 4, -9, 3, -10, 1, -10, -1, -9, -3, -9, -4, -7, -7, -6, -7, -5, -9, -3, -9, -1, -10, 1, -9, 3, -10, 5, -8, 6, -8, 7, -6, 9, -4, 9, -3, 10, -1, 10, 1, 9, 3, 9, 4, 7, 6, 6, 8, 5, 8, 3, 10, 1, 9]], [[1791, 1593, -2, 16, -5, 15, -7, 15, -11, 12, -12, 10, -14, 8, -16, 4, -16, 2, -16, -2, -15, -4, -14, -8, -13, -10, -10, -12, -7, -15, -5, -15, -2, -16, 2, -16, 5, -15, 7, -15, 10, -12, 13, -10, 14, -8, 15, -5, 16, -1, 16, 1, 16, 5, 14, 8, 12, 10, 11, 12, 7, 15, 5, 15, 2, 16]], [[2456, 3500, -1, 14, -4, 14, -7, 12, -8, 10, -11, 9, -12, 7, -14, 4, -13, 1, -14, -1, -13, -4, -13, -7, -10, -9, -9, -10, -7, -12, -4, -14, -1, -14, 1, -13, 4, -14, 7, -12, 9, -10, 10, -9, 13, -7, 13, -4, 14, -1, 13, 1, 14, 4, 12, 7, 11, 9, 8, 10, 7, 12, 4, 14, 1, 13]], [[2109, 3226, -2, 18, -5, 17, -9, 16, -11, 14, -14, 12, -16, 8, -18, 6, -18, 2, -18, -2, -17, -6, -16, -8, -15, -12, -11, -14, -9, -16, -5, -17, -2, -18, 2, -18, 5, -18, 9, -16, 11, -14, 15, -11, 16, -9, 17, -5, 18, -2, 18, 2, 18, 5, 16, 9, 14, 11, 11, 14, 9, 16, 5, 18, 2, 18]], [[2362, 1755, -1, 15, -5, 14, -7, 14, -10, 11, -11, 10, -14, 7, -14, 5, -15, 1, -15, -1, -15, -5, -13, -7, -12, -10, -10, -11, -7, -14, -4, -14, -2, -15, 2, -16, 4, -14, 7, -13, 10, -12, 12, -10, 13, -7, 15, -4, 15, -2, 15, 2, 14, 4, 14, 7, 11, 10, 10, 12, 7, 13, 5, 14, 1, 16]], [[1306, 1380, -2, 18, -5, 17, -8, 16, -12, 14, -14, 11, -16, 9, -17, 5, -18, 2, -18, -2, -17, -5, -16, -9, -13, -11, -12, -14, -8, -16, -6, -17, -1, -18, 1, -18, 6, -17, 8, -16, 12, -14, 13, -11, 16, -9, 17, -5, 18, -2, 18, 2, 17, 5, 16, 9, 14, 11, 12, 14, 8, 16, 5, 17, 2, 18]], [[2382, 2776, -2, 18, -5, 17, -8, 16, -12, 13, -13, 12, -16, 8, -17, 5, -18, 2, -18, -2, -17, -5, -16, -8, -14, -12, -11, -13, -9, -16, -5, -17, -2, -18, 2, -18, 5, -17, 9, -16, 11, -14, 14, -11, 16, -9, 17, -5, 18, -2, 18, 2, 17, 5, 16, 9, 13, 11, 12, 14, 8, 16, 5, 17, 2, 18]], [[1730, 2012, -1, 10, -3, 10, -5, 10, -7, 8, -8, 6, -9, 5, -10, 3, -11, 1, -10, -1, -10, -3, -10, -5, -8, -6, -6, -8, -5, -10, -4, -10, -1, -10, 1, -11, 4, -10, 5, -9, 6, -8, 8, -7, 10, -5, 10, -3, 10, -1, 11, 1, 10, 3, 9, 5, 8, 7, 7, 8, 5, 9, 3, 10, 1, 11]], [[1718, 2132, -2, 14, -4, 13, -6, 12, -9, 11, -11, 9, -12, 6, -13, 4, -14, 2, -13, -2, -14, -4, -12, -6, -10, -9, -9, -11, -7, -12, -4, -13, -1, -14, 1, -13, 4, -13, 7, -13, 9, -10, 10, -9, 12, -7, 14, -4, 13, -1, 14, 1, 13, 4, 12, 7, 11, 9, 9, 10, 6, 13, 4, 13, 2, 13]], [[2274, 2476, -2, 22, -6, 21, -11, 19, -14, 17, -17, 14, -20, 11, -21, 6, -22, 2, -22, -2, -21, -6, -19, -11, -17, -14, -14, -17, -11, -19, -6, -21, -2, -22, 2, -22, 6, -21, 11, -20, 14, -17, 17, -14, 19, -11, 21, -6, 22, -2, 22, 2, 21, 6, 20, 11, 17, 14, 14, 17, 11, 20, 6, 21, 2, 22]], [[1871, 2996, -1, 15, -5, 14, -7, 13, -9, 12, -12, 9, -13, 7, -14, 4, -15, 2, -14, -2, -15, -4, -13, -7, -11, -9, -10, -12, -7, -13, -4, -14, -1, -15, 1, -15, 4, -14, 7, -13, 10, -11, 11, -10, 13, -7, 15, -4, 14, -1, 15, 1, 14, 4, 13, 7, 12, 10, 9, 11, 7, 13, 5, 14, 1, 15]], [[1834, 1886, -2, 17, -5, 17, -8, 15, -11, 14, -14, 11, -15, 8, -17, 5, -18, 2, -17, -2, -17, -5, -15, -8, -14, -11, -11, -14, -8, -15, -6, -17, -1, -17, 1, -18, 6, -17, 8, -15, 11, -14, 14, -11, 15, -8, 17, -5, 17, -2, 18, 2, 17, 5, 15, 8, 14, 11, 11, 14, 8, 15, 5, 17, 2, 18]], [[1650, 1870, -3, 28, -8, 26, -13, 25, -18, 21, -21, 18, -25, 13, -26, 8, -28, 3, -28, -3, -26, -8, -25, -13, -21, -18, -18, -21, -13, -25, -8, -26, -3, -28, 3, -28, 8, -26, 13, -25, 18, -21, 21, -18, 25, -13, 26, -8, 28, -3, 28, 3, 26, 8, 25, 13, 21, 18, 18, 21, 13, 25, 8, 26, 3, 28]], [[2742, 2450, 0, 8, -3, 8, -4, 7, -5, 6, -6, 5, -7, 4, -8, 2, -8, 1, -8, -1, -8, -2, -7, -4, -6, -5, -5, -6, -4, -7, -2, -8, -1, -8, 1, -8, 2, -8, 4, -7, 5, -6, 6, -5, 7, -4, 8, -2, 8, -1, 8, 1, 8, 2, 7, 4, 6, 5, 5, 6, 4, 7, 3, 8, 0, 8]], [[2619, 2200, -1, 10, -3, 10, -5, 9, -7, 9, -8, 6, -9, 5, -10, 3, -10, 1, -11, -1, -10, -3, -9, -5, -8, -6, -7, -9, -5, -9, -3, -10, -1, -10, 1, -10, 3, -10, 5, -10, 7, -8, 8, -6, 9, -5, 10, -3, 11, -1, 10, 1, 10, 3, 9, 5, 8, 6, 7, 8, 5, 10, 3, 10, 1, 10]], [[1694, 1139, -1, 9, -3, 8, -4, 8, -5, 7, -7, 5, -8, 4, -8, 3, -9, 1, -9, -1, -8, -3, -8, -4, -6, -5, -6, -7, -4, -8, -2, -8, -1, -9, 1, -8, 2, -9, 4, -7, 6, -7, 6, -6, 8, -4, 8, -2, 9, -1, 9, 1, 8, 2, 8, 4, 7, 6, 5, 7, 4, 7, 3, 9, 1, 8]], [[441, 3759, 0, 4, -1, 3, -2, 3, -2, 3, -3, 2, -2, 1, -4, 1, -3, 1, -3, -1, -4, -1, -3, -1, -2, -2, -2, -3, -2, -3, -1, -3, 0, -4, 0, -3, 1, -3, 2, -3, 2, -3, 2, -2, 3, -1, 4, -1, 3, -1, 3, 1, 4, 1, 2, 1, 3, 2, 2, 3, 2, 3, 1, 3, 0, 3]], [[2609, 711, 0, 4, -2, 4, -1, 3, -3, 3, -3, 3, -4, 2, -3, 1, -4, 0, -4, 0, -4, -1, -4, -2, -3, -3, -3, -3, -1, -3, -2, -4, 0, -4, 0, -4, 2, -4, 1, -4, 3, -3, 3, -2, 4, -2, 4, -1, 4, -1, 4, 1, 3, 1, 4, 2, 3, 2, 3, 3, 1, 4, 2, 4, 0, 4]], [[3182, 1628, 0, 3, -1, 2, -2, 3, -1, 2, -2, 2, -3, 1, -3, 1, -2, 0, -3, 0, -3, -1, -2, -1, -2, -2, -2, -2, -1, -3, -1, -2, 0, -3, 0, -3, 1, -2, 1, -3, 2, -2, 2, -2, 2, -1, 3, -1, 3, 0, 2, 0, 3, 1, 3, 1, 2, 2, 1, 2, 2, 3, 1, 2, 0, 3]], [[2476, 1454, 0, 5, -1, 4, -2, 4, -3, 4, -4, 3, -4, 2, -4, 1, -5, 1, -4, -1, -5, -1, -4, -2, -3, -3, -3, -4, -2, -4, -1, -4, -1, -5, 1, -4, 1, -4, 2, -4, 3, -4, 3, -3, 4, -2, 5, -1, 4, -1, 5, 1, 4, 1, 4, 2, 4, 3, 3, 4, 2, 4, 1, 4, 0, 4]], [[2806, 1181, 0, 2, -1, 3, -1, 3, -2, 2, -2, 2, -3, 1, -3, 1, -3, 0, -2, 0, -3, -1, -3, -1, -2, -2, -2, -2, -1, -3, -1, -3, 0, -2, 0, -3, 1, -3, 1, -3, 2, -2, 2, -2, 3, -1, 3, -1, 2, 0, 3, 0, 3, 1, 3, 1, 2, 2, 2, 2, 1, 3, 1, 3, 0, 3]], [[3054, 2054, 0, 3, -1, 4, -2, 3, -2, 2, -2, 2, -4, 2, -3, 1, -3, 0, -4, 0, -3, -1, -3, -2, -3, -2, -2, -2, -2, -3, -1, -4, 0, -3, 0, -4, 1, -3, 2, -3, 2, -3, 3, -2, 3, -1, 3, -1, 4, -1, 3, 1, 3, 1, 4, 1, 2, 2, 2, 3, 2, 3, 1, 3, 0, 4]]], "valor": [144714, 62262, 152536, 54400, 30362, 19852, 7876, 27432, 27128, 44540, 70026, 9620, 26356, 19520, 33708, 23460, 32910, 32622, 11310, 19338, 49756, 22392, 31416, 78698, 6632, 11058, 7748, 1154, 1646, 778, 2098, 868, 1218], "cortes": [778, 7078.4, 19483.6, 28018, 47669.6, 152536], "clase": [5, 5, 5, 5, 4, 3, 2, 3, 3, 4, 5, 2, 3, 3, 4, 3, 4, 4, 2, 2, 5, 3, 4, 5, 1, 2, 2, 1, 1, 1, 1, 1, 1], "estilo": "quantile", "tam": [7, 6, 7, 6, 7], "etiquetas": ["Antioquia", "Atlántico", "Bogotá, D.C.", "Bolívar", "Boyacá", "Caldas", "Caquetá", "Cauca", "Cesar", "Córdoba", "Cundinamarca", "Chocó", "Huila", "La Guajira", "Magdalena", "Meta", "Nariño", "Norte de Santander", "Quindio", "Risaralda", "Santander", "Sucre", "Tolima", "Valle del Cauca", "Arauca", "Casanare", "Putumayo", "Archipiélago de San Andrés, Providencia y Santa Catalina", "Amazonas", "Guainía", "Guaviare", "Vaupés", "Vichada"]}, paleta: 'verde', descripcion: "Un círculo por departamento, de área proporcional a sus estudiantes, empujado hasta que no se solape con los vecinos. Los más grandes son Bogotá (14.32 % del área) y Antioquia (13.58 %); el mapa pierde la forma del país y solo conserva, más o menos, dónde está cada uno." };
-    GEOMAPAS['cap3-carto-cont'] = { fuente: {"modo": "poligonos", "titulo": "Cartograma contiguo (Dougenik)", "leyenda": "estudiantes", "crs": 9377, "caja": [3987822.45446486, 1020426.04494123, 5787822.45446486, 3133528.03017526], "q": 4096, "codificacion": "delta", "n": 33, "geom": [[[1325, 2163, -10, 154, -28, 130, 14, 100, 8, 20, 0, 66, 0, -83, 17, -36, 18, 171, -10, 67, 40, 23, 52, 68, 1, -57, 26, -32, -12, -43, -24, -28, -44, -99, -29, -133, -11, -80, -4, -174, 39, 73, 57, 69, 18, 44, 20, 19, 30, 80, 89, 12, 51, 64, 25, 18, 15, 30, 43, 40, 29, 4, 11, 26, 45, 32, 142, -62, 36, 16, 49, -35, 53, -28, 96, -62, 55, -44, 20, -34, -2, -52, 58, -69, 12, -83, 16, -6, 57, 78, -1, -30, 17, -64, -25, -18, -22, -45, -25, -17, -32, -41, 2, -50, -34, -36, -26, -34, 6, -24, -35, -40, -35, -16, -28, 6, -46, -7, -68, -25, -93, -4, -32, 11, -49, 36, -50, 28, -150, 106, -59, 37, -49, 20, -96, 23, -134, 20, -4, 0]], [[1876, 3055, -66, 4, -57, 14, -57, 27, -68, 68, -24, 57, -10, 71, 4, 59, 23, 68, 31, 50, 43, 45, 54, 37, 91, 37, 75, 5, 60, -5, 78, -37, 49, -40, 44, -62, 14, -30, 12, -61, -3, -61, -24, -71, -47, -52, -64, -52, -38, -23, -120, -48]], [[2548, 1062, -71, -52, -1, 0, -3, 84, -11, 48, -30, 84, 0, 17, -28, 88, -17, 89, -4, 74, 21, 79, 48, 72, -4, 22, 35, 14, 50, -6, 56, -33, 74, -26, 47, -45, -23, -22, -49, -79, -28, -69, -17, -111, 10, -73, 14, -54, 41, -41, -12, -11, -76, -30, -22, -19]], [[1609, 3103, -6, 49, -21, 46, -4, 52, 7, 61, 17, 64, 19, 48, -23, -68, -4, -59, 10, -71, 24, -57, 68, -68, 57, -27, 57, -14, 66, -4, 33, -7, 5, -50, 33, -6, 53, 7, 72, -17, 38, 10, 25, -17, 34, 3, 57, -26, 44, -38, 41, -27, 28, 3, 58, -40, 12, -21, 22, -51, 2, -131, -22, -107, -17, -24, 7, -87, 8, -18, -16, -84, -57, -78, -16, 6, -12, 83, -58, 69, 2, 52, -20, 34, -55, 44, -96, 62, -53, 28, -49, 35, 19, 17, 46, -5, 39, -17, 41, 67, -37, 40, -16, 35, 9, 27, -62, 66, -34, 17, -89, 14, -34, 15, -12, 39, -32, 2, -99, 32, -26, 24, -41, 19, -42, 49]], [[2218, 1925, 0, 3, 35, 40, -6, 24, 26, 34, 13, -34, 37, -2, 36, -34, 72, -38, 64, -19, 34, -3, 22, 44, 23, 24, 39, -19, 38, -35, 16, -64, 32, 4, 33, -10, 5, 34, 47, -26, 41, 16, 30, 31, -9, 51, 15, 14, -58, 126, 25, -25, 10, 34, 25, -20, 19, -24, 21, -79, 40, -81, 1, -34, 35, -62, 80, -94, 29, -69, 15, -86, -37, 51, -65, 55, -41, 10, -29, -4, -52, -29, -3, -57, 25, -57, -31, 13, -34, 67, -33, 23, 3, 32, -67, 67, -46, 29, -21, 27, -108, 58, -44, 38, -20, -14, -42, -6, -47, 38, -63, 17, -32, 41, -29, -12, -69, -8]], [[2031, 1751, -77, 52, -87, 47, -55, 22, -10, -13, -78, 17, -27, 27, -46, 29, -92, 47, -27, 20, -42, 47, -128, 84, -33, 33, 134, -20, 96, -23, 49, -20, 59, -37, 150, -106, 50, -28, 49, -36, 32, -11, 93, 4, 68, 25, 46, 7, 28, -6, 35, 16, 0, -3, 9, -7, -26, -51, -26, -26, -19, 4, -64, -12, -24, -24, -37, 2, -30, 13, 30, -73]], [[2042, 1019, -36, 13, 1, 18, 34, -13, 71, -8, 134, 5, 66, -4, 97, -20, 66, -6, 14, -12, 153, 17, 79, -3, 17, -11, -2, -1, -56, -51, -9, -37, 20, -79, -57, 64, -60, 48, -85, 45, -14, 9, -30, 1, -146, -9, -107, 1, -104, 17, -46, 16]], [[1288, 1441, 29, 11, -17, 55, 10, 39, 41, -55, 45, -46, 15, -4, 108, -77, 12, 4, 78, -32, 61, -38, 79, -19, 44, 0, 14, 13, 156, 6, -13, -20, 13, -22, 79, -24, 48, -30, -47, -27, -6, -33, -49, 27, -27, -8, -13, -29, -36, 30, -72, -16, 88, -50, 29, -26, 50, -20, -1, -18, 36, -13, -84, 16, -26, 26, -60, 28, -91, 10, 9, 27, -49, 22, -106, 15, -35, 11, 11, 35, -50, 22, -19, 27, -62, 31, -78, 9, -38, 24, -50, 64, -26, 55]], [[2437, 2426, -23, 6, 12, 35, -15, 73, 22, 107, -2, 131, -22, 51, 2, 40, -28, 47, -30, 17, -33, 53, -51, 25, 15, 16, 75, -3, -18, 41, -44, 41, -18, 6, -29, 35, 16, 38, 46, 54, 30, 0, 27, 25, -3, 65, -13, 22, 57, -15, 26, -46, 28, -26, -1, -48, 44, -13, 13, -58, -2, -74, 15, -25, -14, -42, -1, -34, -20, -18, -16, -79, -7, -18, 13, -98, -22, -51, 5, -44, -11, -31, 30, -14, -19, -73, 18, -47, 25, -9, -18, -33, 4, -33, -30, -25, -33, 29]], [[1426, 2843, 57, 66, 8, 26, 52, 47, 57, -6, 63, -49, 19, 4, 72, -26, 13, -18, -69, -30, 3, -39, 32, -35, 92, -17, 47, 1, 36, -28, 62, -34, 28, -26, -19, -17, -36, -16, -142, 62, -45, -32, -11, -26, -29, -4, -43, -40, -15, -30, -25, -18, -51, -64, -89, -12, -30, -80, -20, -19, -18, -44, -57, -69, -39, -73, 4, 174, 11, 80, 29, 133, 44, 99, 24, 28, 12, 43, -26, 32, -1, 57]], [[2175, 1841, 26, 26, 26, 51, -9, 7, 69, 8, 29, 12, 32, -41, 63, -17, 47, -38, 42, 6, 20, 14, 44, -38, 108, -58, 21, -27, 46, -29, 67, -67, -3, -32, 33, -23, 34, -67, 31, -13, -30, -12, 118, -198, -9, -13, 1, 2, 0, 1, 0, 0, 0, 0, -1, -2, -1, -2, 4, 11, -5, -1, -1, -1, 0, 0, 0, 0, 0, 0, -1, -1, -1, 1, -5, -2, -7, -2, -11, 2, -33, -13, -30, -29, -16, -30, -15, -73, -30, -19, -15, 100, 10, 84, -49, 72, -26, 61, 10, 59, -17, -4, -23, -36, -17, -63, -3, -75, -20, -75, 5, -63, 16, -46, 41, -49, -18, -9, -70, 5, -61, -13, -43, -20, 22, 19, 76, 30, 12, 11, -41, 41, -14, 54, -10, 73, 17, 111, 28, 69, 49, 79, 23, 22, -47, 45, -74, 26, -56, 33, -50, 6, -35, -14, 4, -22, -48, -72, -21, -79, 4, -74, 17, -89, 28, -88, 0, -17, 30, -84, 11, -48, 3, -84, -13, 25, -11, 58, -38, 100, -91, 181, -13, 9, -53, 73, -27, 16, -29, 93, -43, 113, 0, 93, 17, 70]], [[1267, 1945, 8, 66, 38, 122, 2, 41, -65, 155, 15, 18, -4, 75, 3, 75, 17, 9, -11, 105, -12, 64, 33, 5, 18, -47, 0, -66, -8, -20, -14, -100, 28, -130, 10, -154, -5, -10, 16, -147, 16, -66, 16, -37, 51, -71, 88, -71, 28, -42, -25, -12, -59, 42, -17, -5, -60, 58, -25, 33, -27, 54, -14, 43, -4, 75, -24, 11, -13, -73]], [[1963, 1256, 11, 7, 44, -19, 71, 19, 46, -4, 5, 49, 39, 12, 86, -25, 84, -73, 54, -81, 34, -86, 26, -20, 13, -25, 1, 0, -2, -6, -66, 6, -97, 20, -66, 4, -134, -5, -71, 8, -34, 13, -50, 20, -29, 26, -88, 50, 72, 16, 36, -30, 13, 29, 27, 8, 49, -27, 6, 33, 47, 27, -48, 30, -79, 24]], [[2507, 3203, -44, 13, 1, 48, -28, 26, -26, 46, -57, 15, -25, 44, -2, 58, 60, -14, 39, 34, 50, 33, 49, 6, 38, 18, 12, 45, -7, 24, 51, 6, 63, 30, 54, -30, 40, -65, -43, -58, -108, -21, -31, -111, -40, -10, -21, -36, -8, -58, -17, -43]], [[1876, 3055, 120, 48, 38, 23, 64, 52, 47, 52, 24, 71, 3, 61, -12, 61, -14, 30, -44, 62, -49, 40, -78, 37, 80, -34, 55, -38, 76, -62, 19, 9, -21, 38, 31, 9, 50, -35, 61, -26, 2, -58, 25, -44, 13, -22, 3, -65, -27, -25, -30, 0, -46, -54, -16, -38, 29, -35, 18, -6, 44, -41, 18, -41, -75, 3, -15, -16, 51, -25, 33, -53, 30, -17, 28, -47, -2, -40, -12, 21, -58, 40, -28, -3, -41, 27, -44, 38, -57, 26, -34, -3, -25, 17, -38, -10, -72, 17, -53, -7, -33, 6, -5, 50, -33, 7]], [[2475, 1004, 2, 6, 71, 52, 43, 20, 61, 13, 70, -5, 18, 9, -41, 49, -16, 46, -5, 63, 20, 75, 3, 75, 17, 63, 23, 36, 17, 4, -10, -59, 26, -61, 49, -72, -10, -84, 15, -100, 30, 19, 15, 73, 16, 30, 30, 29, 33, 13, 11, -2, 7, 2, 5, 2, 1, -1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 5, 1, -4, -11, -85, -175, -18, -13, 0, 0, -1, 0, -1, -1, -3, -1, -1, -1, -9, -5, -28, -11, -81, -23, -56, -25, -103, -14, -104, -30, -14, 12], [2921, 1488, 72, -57, 58, 28, 38, 69, 6, 8, 5, 2, 0, 0, -113, -230, -116, 195, 30, 12, 20, -27], [3102, 1540, 0, 0, 0, 0, 0, 0]], [[1288, 1441, 26, -55, 50, -64, 38, -24, 78, -9, 62, -31, 19, -27, 50, -22, -11, -35, 35, -11, 106, -15, 49, -22, -9, -27, -75, -70, 32, -30, -72, 0, -78, 7, -15, 33, -55, 17, -9, 16, -51, -1, -34, 9, -81, 34, -51, 51, -25, 1, -60, 30, -55, 47, -53, 56, 27, 25, 35, -15, 37, -4, -17, 41, -21, 15, -16, 34, 20, 65, 35, 25, 89, -44]], [[2437, 2426, 33, -29, 30, 25, -4, 33, 18, 33, -25, 9, -18, 47, 19, 73, -30, 14, 11, 31, -5, 44, 22, 51, -13, 98, 7, 18, 38, -9, 28, 26, 18, -57, 30, 0, 47, -133, 7, -5, 71, -120, 19, -79, -4, -100, 16, -133, 14, -30, 39, -23, 13, -44, 45, -91, -25, 20, -10, -34, -25, 25, -19, 32, -38, 23, -44, 60, -13, 52, -65, 77, -74, 33, -33, -11, -46, 28, -34, 46]], [[2020, 1497, -27, 14, -53, 74, -14, 37, -46, 70, -49, 50, -21, 47, -9, 48, 45, 3, 34, -15, 165, -97, 21, -91, -16, -24, 6, -83, -36, -33]], [[1320, 2153, 5, 10, 4, 0, 33, -33, 128, -84, 42, -47, 27, -20, 92, -47, 46, -29, 27, -27, 78, -17, 10, 13, 55, -22, 87, -47, 77, -52, 14, -23, -165, 97, -34, 15, -44, 11, -72, -7, -83, -36, -55, -8, -84, 19, -69, 43, -35, 34, -26, 40, -22, 57, -24, 127, -12, 33]], [[2273, 2026, 34, 36, -2, 50, 32, 41, 25, 17, 22, 45, 25, 18, -17, 64, 1, 30, 16, 84, -8, 18, -7, 87, 17, 24, 15, -73, -12, -35, 23, -6, 34, -46, 46, -28, 33, 11, 74, -33, 65, -77, 13, -52, 44, -60, 38, -23, 19, -32, 58, -126, -15, -14, 9, -51, -30, -31, -41, -16, -47, 26, -5, -34, -33, 10, -32, -4, -16, 64, -38, 35, -39, 19, -23, -24, -22, -44, -34, 3, -64, 19, -72, 38, -36, 34, -37, 2, -13, 34]], [[1600, 2976, 32, 31, -19, 40, -4, 56, 42, -49, 41, -19, 26, -24, 99, -32, 32, -2, 12, -39, 34, -15, 89, -14, 34, -17, 62, -66, -9, -27, 16, -35, 37, -40, -41, -67, -39, 17, -46, 5, -28, 26, -62, 34, -36, 28, -47, -1, -92, 17, -32, 35, -3, 39, 69, 30, -13, 18, -72, 26, -19, -4, -63, 49]], [[1963, 1256, -13, 22, 13, 20, 28, 61, 14, 62, 16, 38, -1, 38, 36, 33, -6, 83, 16, 24, -21, 91, -14, 23, -30, 73, 30, -13, 37, -2, 24, 24, 64, 12, 19, -4, -17, -70, 0, -93, 43, -113, 29, -93, 27, -16, 53, -73, 13, -9, 91, -181, 38, -100, 11, -58, -26, 20, -34, 86, -54, 81, -84, 73, -86, 25, -39, -12, -5, -49, -46, 4, -71, -19, -44, 19, -11, -7]], [[1310, 1546, -12, 16, 7, 38, -9, 33, 6, 32, -17, 117, -9, 31, -9, 132, 13, 73, 24, -11, 4, -75, 14, -43, 27, -54, 25, -33, 60, -58, 17, 5, 59, -42, 25, 12, -28, 42, -88, 71, -51, 71, -16, 37, -16, 66, -16, 147, 12, -33, 24, -127, 22, -57, 26, -40, 35, -34, 69, -43, 84, -19, 55, 8, 83, 36, 72, 7, 44, -11, -45, -3, 9, -48, 21, -47, 49, -50, 46, -70, 14, -37, 53, -74, 27, -14, 1, -38, -16, -38, -14, -62, -28, -61, -156, -6, -14, -13, -44, 0, -79, 19, -61, 38, -78, 32, -12, -4, -108, 77, -15, 4, -45, 46, -41, 55]], [[3102, 1540, 0, 0, 0, 1, 0, -1], [3102, 1542, 0, 0, 0, 0, 0, 0, 0, 0], [3102, 1542, 0, 0, 0, 0, 0, 0], [3102, 1542, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3102, 1542, 0, 0, 0, 0, 0, 0], [3102, 1542, 1, 0, 0, 0, -1, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3102, 1567, -16, 81, -27, 55, -75, 95, -40, 59, -1, 34, -40, 81, -21, 79, 23, -8, 32, -50, 38, -41, 29, -6, 17, -38, 18, 1, 31, -110, 32, -145, 0, -84, 0, -1, 0, 1, 0, -3, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3105, 1551, 0, -1, 0, 1, 0, 0], [3105, 1551, 0, 0, 0, 0, 0, 0]], [[3102, 1542, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [2931, 1658, 29, 4, 41, -10, 65, -55, 37, -51, -15, 86, -29, 69, -80, 94, -35, 62, 40, -59, 75, -95, 27, -55, 16, -81, 0, 0, 0, 3, 0, -1, 0, 1, 1, -7, 1, -6, 0, -2, 1, -3, 0, 0, -1, 3, 1, -1, 0, -2, 0, -1, -1, -1, 1, 1, 0, 1, 0, 1, 0, 1, 0, -1, 0, -1, 0, -1, 0, 0, 0, -1, -1, -1, 0, -2, 0, -1, 0, 0, -1, -2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, -1, -5, -2, -6, -8, -38, -69, -58, -28, -72, 57, -20, 27, -25, 57, 3, 57, 52, 29]], [[1738, 999, -32, 30, 75, 70, 91, -10, 60, -28, 26, -26, 84, -16, 46, -16, 104, -17, 107, -1, 146, 9, 30, -1, 14, -9, -4, 0, -13, 4, -122, -16, -123, -9, -112, 14, -71, 18, -98, 9, -121, -16, -75, 2, -12, 9]], [[428, 3679, -3, -11, -7, 5, 1, 8, 9, -2]], [[2485, 984, 4, 0, 85, -45, 60, -48, 57, -64, -20, 79, 9, 37, 56, 51, -32, -44, -10, -27, -4, -62, 8, -52, 24, -39, 63, -125, -28, 4, -24, 70, -36, 87, -35, 40, -88, 78, -89, 60]], [[2987, 1263, 1, 2, -1, -3, 0, 1], [2991, 1277, 6, 10, 1, 1, 0, 2, 1, 1, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, -1, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, -2, 0, 0, 1, -2, 0, -3, 0, -3, 0, 0, 0, -2, 0, 0, -9, -18, -22, -76, -22, -36, -39, -40, -32, -20, 218, 425, 0, 0, 0, 0, 0, 0, 0, -3, -1, -6, 0, 1, 0, 0, -1, -1, 0, 0, -2, -13, -1, -6, 2, 9, 0, 1, -3, -14, -2, -9, 0, -2, 0, 0, -1, -6, 0, 0, 1, 6, 1, 5, 1, 5, 0, 1, 0, -2, -1, -5, -1, -5, -1, -5, 0, 0, -1, -1, 0, 0, -5, -19, -5, -15, -4, -8, -5, -12, -4, -10, -8, -15, -14, -26, -1, -1, 0, 0, 0, -1, -12, -20, -2, -3, -18, -29, -1, -1, -1, -1, -2, -4, 0, 0, -1, -1, 2, 4, -3, -7, 0, 1, 0, 0, 0, 1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, -1, 0, -1, 1, -1, 0, -3, 0, -2, 0, -2, -1, -4, -1, -3, -1, -3, -7, -16, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 0, -1, 0, 0, 0, 0, -1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -6, -10, -40, 0, 0, 0, 0, -2, -6, 0, -1, -2, -5, 0, 0, -1, -1, 0, 0, 0, -1, 0, -1, 17, 66, 2, 6, 1, 5], [2988, 1264, 0, 0, 0, 1, 0, 1, 1, 2, 0, 0, -1, -1, 0, -2, 0, 0, 0, -1], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1306, 1, 0, -1, 0, 0, -1, 0, 1], [2998, 1306, 0, 0, 0, 0, 0, 0], [2998, 1306, 0, 1, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0], [3090, 1508, 0, 1, 0, 0, 0, -1], [3091, 1518, 0, 0, 1, 0, -1, 0], [3092, 1521, 0, 0, 0, 0, 0, 0], [3092, 1522, 0, 1, 0, -1, 0, 0], [3010, 1326, 7, 12, 8, 12, 13, 22, 8, 14, 5, 10, 4, 8, 6, 12, 3, 7, 5, 10, 4, 11, 3, 8, 0, 1, 0, 0, -1, -2, -1, -5, -4, -10, -3, -6, -2, -6, -3, -6, -3, -7, -5, -9, -3, -6, -8, -15, -6, -11, -9, -15, -6, -9, -6, -11, -7, -11, 0, 1, 1, 1], [3100, 1538, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, -3, -9, 6, -38, -12, 10, 1, 20, 1, 2, 0, 3, 0, 1, 0, 2, 4, 7, 1, 0, 0, 0, 0, 0], [3095, 1534, 0, 0, 0, 0, 0, 0]], [[2998, 1289, 0, 0, 0, 0, 0, 0], [2998, 1289, 0, 0, 0, 1, 0, -1], [2998, 1290, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2998, 1307, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0], [2998, 1307, 0, 0, 0, 0, 0, 0], [3001, 1312, 0, 0, 0, 0, 1, 3, -3, -7, 0, 1, 0, 0, 0, 1, 0, -1, -1, -2, -1, -2, 0, 0, 0, 0, 2, -9, -4, -11, -7, -11, -24, -71, -37, -56, -33, -31, -18, -13, 0, 0, 217, 423, -1, -2, -10, -50, -24, -63, -27, -50, -23, -37, -5, -8, -2, -4], [2998, 1291, 0, 0, 0, 0, 0, 0], [3010, 1326, 0, 1, -1, -3, 0, 1, 1, 1], [3037, 1370, 1, 2, -1, -1, 0, 0, 0, -1], [3076, 1453, 0, 0, 0, -1, 0, 1], [3083, 1477, 0, 0, 1, 1, -1, -1], [3085, 1486, 0, -2, 0, 0, 0, 2], [3090, 1508, 0, 0, 0, 0, 0, 0], [3090, 1509, 0, 0, 0, 3, 0, -3], [3091, 1516, 0, 2, 0, 0, 0, 0, 1, 0, 0, 3, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, -2, -6, -1, -9, 1, 5, 0, 2], [3093, 1525, 0, 2, 0, 0, 0, -2], [3095, 1534, 0, 0, 0, 0, 0, 0]], [[2704, 950, 32, 44, 2, 1, 23, 57, 31, 15, -79, -123, -12, -47, -3, -88, -8, 52, 4, 62, 10, 27], [2971, 1201, 0, 1, 0, 0, 0, -1], [2976, 1214, 0, 1, 0, 0, 0, 0, 0, -1], [2987, 1262, 0, -1, 0, 1, 0, 0, 0, 0], [2988, 1264, 0, 0, 0, 0, 0, 0], [2988, 1265, 0, 0, 0, -1, 0, 1], [2988, 1267, 0, 0, 0, 0, 0, 0, 0, 0], [2996, 1284, -8, -17, 1, 1, 7, 16], [2998, 1290, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 0, 1, 0, 0, 0, 1, -1, 1, 0, 0, 0, 1, 0, 0, -1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, -1, 0, 0, 0, -1, 1, 0, 0, -1, 0, 0, 0, -1, 0, -1, 0, -1, 0, -2, 0, -1, 0, -2, 0, -1, -1, -1, 0, -2, -1, -1, -6, -10, -1, -5, -2, -6, 1, 5, 1, 4, 1, 2, 2, 3, 4, 6, 1, 3, 0, 0, 0, 1, 0, 0, 0, 0]], [[3092, 1522, -10, -48, -24, -63, -27, -50, -23, -37, -10, -17, -1, -2, 0, 0, 0, 0, 2, -9, -4, -11, -7, -11, -24, -71, -37, -56, -33, -31, 198, 406], [3102, 1540, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 2, 1, 7, 4, 38, 30, 127, 26, 81, 34, 83, 41, 46, -4, -60, -66, -124, -62, -166, -2, -26, -1, -3, -1, -4, -1, -1, 0, -1, -1, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, 0, -1, -1, 0, 0, -1, 0, 0, 2, 2]]], "valor": [144714, 62262, 152536, 54400, 30362, 19852, 7876, 27432, 27128, 44540, 70026, 9620, 26356, 19520, 33708, 23460, 32910, 32622, 11310, 19338, 49756, 22392, 31416, 78698, 6632, 11058, 7748, 1154, 1646, 778, 2098, 868, 1218], "cortes": [778, 7078.4, 19483.6, 28018, 47669.6, 152536], "clase": [5, 5, 5, 5, 4, 3, 2, 3, 3, 4, 5, 2, 3, 3, 4, 3, 4, 4, 2, 2, 5, 3, 4, 5, 1, 2, 2, 1, 1, 1, 1, 1, 1], "estilo": "quantile", "tam": [7, 6, 7, 6, 7], "etiquetas": ["Antioquia", "Atlántico", "Bogotá, D.C.", "Bolívar", "Boyacá", "Caldas", "Caquetá", "Cauca", "Cesar", "Córdoba", "Cundinamarca", "Chocó", "Huila", "La Guajira", "Magdalena", "Meta", "Nariño", "Norte de Santander", "Quindio", "Risaralda", "Santander", "Sucre", "Tolima", "Valle del Cauca", "Arauca", "Casanare", "Putumayo", "Archipiélago de San Andrés, Providencia y Santa Catalina", "Amazonas", "Guainía", "Guaviare", "Vaupés", "Vichada"]}, paleta: 'verde', descripcion: "El país se deforma sin romperse: cada departamento sigue tocando a sus vecinos, pero cambia de tamaño. Antioquia, Valle del Cauca y Cundinamarca crecen, y la Amazonía encoge: el Amazonas pasa del 9.59 % del área al 0.24 %. No llega a ser exacto: Bogotá, con el 14.32 % de los estudiantes, se queda en el 3.40 % del área." };
+    GEOMAPAS['cap3-carto-ncont'] = { fuente: {"modo": "poligonos", "titulo": "Cartograma no contiguo (Olson)", "leyenda": "estudiantes", "crs": 9377, "caja": [3987822.45446486, 1020426.04494123, 5787822.45446486, 3133528.03017526], "q": 4096, "codificacion": "delta", "n": 33, "geom": [[[1704, 2478, 3, 0, 3, 3, 2, -2, 4, 0, -1, 7, 4, -2, 3, 0, 4, -8, 2, 3, 4, 2, 0, 2, 3, 3, 4, 1, 5, -2, 3, 3, 1, 6, 2, 4, -2, 1, 2, 5, 3, 2, 2, 4, 0, 5, 2, 1, 8, 5, 3, 5, 4, 2, 0, 3, -1, 4, 0, 4, -11, -10, -2, 0, -3, 6, 0, 5, -3, 0, -3, 4, 1, 6, 2, 3, -1, 6, -3, 4, -6, 4, -1, 2, -3, -4, -5, -1, -5, 1, -4, -5, -5, -5, -4, -7, -5, 1, -3, -8, -18, 1, -4, 5, 1, 10, 2, 6, -1, 1, 3, 4, 2, 6, 2, 1, 1, 5, -2, 4, -2, 0, -2, 5, -1, 2, -4, -3, -3, -1, -1, -2, -8, -1, -1, -3, 3, -2, 3, -3, -1, -4, 1, -3, 0, -9, -6, 0, -3, 3, -1, -4, -3, -3, 6, -5, 0, -2, 5, -1, 5, -4, 1, -4, 3, -2, 1, -3, -2, -6, -4, 1, -5, -1, 1, -4, -6, -3, 0, -4, 2, -3, 4, -3, 0, -6, 2, -3, 10, -2, 6, 1, 2, -5, 3, -1, 1, -4, -1, -2, 3, -7, 1, -4, 2, -1]], [[1858, 3298, 1, 5, 3, 2, 2, 6, 4, 5, 3, 2, -1, 3, 2, 4, -2, 2, 2, 2, 0, 11, -1, 3, 0, 6, 1, 4, -3, 3, -1, 5, -4, 3, -4, 3, -3, -2, -4, 1, -3, -6, -5, -1, -3, -7, -6, -3, -4, -2, 0, -1, -6, -2, -1, -4, -3, -5, 1, -7, 1, -2, -1, -11, 1, -4, 4, -1, 5, -6, 5, 1, 2, -3, 5, -2, 4, -3, 5, -7, 1, 4, 3, 4]], [[2027, 1938, -3, -1, -3, 6, -2, 8, -1, 3, 5, 6, 1, 5, 5, 8, 1, 4, -1, 3, -2, 2, -2, 4, 2, 9, 4, 2, 3, 1, 1, 11, 3, -1, 3, 1, 3, 10, 5, 0, 1, 5, 2, 4, 0, 2, 1, 4, -5, -1, 1, 3, -5, 1, 2, 4, 3, 0, 1, 3, -2, 1, -1, 3, 2, 4, 0, 9, -2, 2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, -2, 4, -5, 0, -5, 2, -5, -2, -1, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, -2, -2, -1, 0, 2, -2, 0, -2, -3, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, -1, 0, -1, -1, -2, -4, -6, -5, -3, -2, -2, 0, 0, 0, 0, 0, -1, 0, 0, -1, 0, 1, -1, 0, -1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -2, 2, -4, -1, 0, -1, -1, 0, 0, 0, 0, -1, 0, -2, 0, -2, -1, -2, -1, -4, -4, 5, -5, 4, -1, 2, -12, -3, -3, 2, -3, 0, -6, -1, -5, -6, -15, -1, -11, 0, -7, 0, -7, 2, -1, 0, -4, -3, -6, -2, -2, -3, -7, 0, -17, -5, -2, -3, 2, -3, 0, -6, 5, -4, -5, -2, -6, 0, -4, -3, -4, 0, -5, -2, -6, 4, -3, 0, -6, -1, -6, -6, -13, -2, -7, -4, -6, -4, -3, 0, -3, -4, -4, 3, -4, 3, 3, 5, -1, 0, 3, 3, 0, -1, 4, 6, 4, 6, 7, 2, 1, 2, -3, 4, 1, 1, 3, -3, 2, 1, 2, -3, 6, 1, 2, 3, -1, 4, 4, 1, 5, 4, 1, -1, 4, 4, 1, 2, 5, 1, 4, 3, 3, 4, 1, 3, -1, 2, 2, 6, 0, 3, 3, 1, 5, -1, 5, 1, 10, 4, 2, -1, 4, 1, 6]], [[1929, 2940, -1, -2, 4, -2, -1, -2, 1, -6, 2, -3, 6, -2, 4, -6, -3, -2, 3, -8, -1, -2, -3, -3, -5, -2, -1, -1, 2, -3, 5, -3, 3, -4, 0, -6, -1, -2, -1, -6, 3, -4, 3, 0, -1, -4, 3, -6, 3, -1, 10, 9, 1, 5, 3, 7, 0, 3, -2, 10, 2, 2, 1, 10, -2, 7, 1, 4, -2, 3, -1, 2, -4, 2, -3, 0, -4, 4, -6, 4, -3, -1, -1, 2, -4, 4, -4, 4, 1, 1, -1, 6, -2, 2, 0, 3, 3, 2, -2, 2, -3, 2, 1, 4, -5, 5, -2, 0, -3, 3, 0, 4, 0, 3, -5, -1, -4, -4, 1, -8, -2, -1, 1, -4, -2, -1, 3, -3, 1, -4, 4, -3, -2, -5, 3, 1, 9, -5]], [[2235, 2257, 5, -6, 3, 0, 3, 9, 2, 1, -1, 2, 4, 6, 3, -2, 7, 7, 5, 3, -2, 3, -4, 1, 3, 2, -2, 7, 1, 3, 3, 3, 3, 2, 4, 12, -3, 1, -5, -1, -3, -3, -2, 1, 0, -6, -1, -5, -3, -1, -2, 1, -1, -6, -5, -4, -10, -6, -3, -1, 3, 5, -4, 3, -2, -3, -1, -7, -2, 1, -4, -1, -3, 0, -1, 2, -4, 3, -3, 4, -2, -1, -2, 2, -2, 4, -2, -4, 1, -1, -2, -8, 3, 1, 6, -1, 0, -4, 4, -4, 4, -2, 2, 4, 3, -1, 4, -2, 3, -3, 1, -6, -2, -3, 3, -1]], [[1769, 2176, 2, 4, 5, 0, 3, 5, 4, 1, 8, -1, 2, 4, 0, 4, 2, 7, -2, 2, -2, -2, -5, 2, -5, -1, -3, -3, 0, -2, -5, -3, -2, -3, -3, 9, -4, 0, -4, 2, 1, -7, -5, 0, -1, 1, -5, -2, 0, -5, 4, 1, 4, -3, -2, -2, -4, 1, 0, -3, -4, -4, 1, -5, 3, -1, 2, 5, 1, -4, 9, -1, 2, -4, 3, 2, -1, 3, 1, 3]], [[2048, 1213, 3, -2, 3, -3, 4, -2, 5, -2, 6, 0, 4, 2, 1, 3, -3, 3, -4, 4, -3, -2, -4, 5, -5, 1, -1, 7, -2, 0, -5, -7, -3, -2, -1, -3, 5, -2]], [[1437, 1542, 2, 1, 2, -3, -2, -2, 1, -3, 4, 2, 2, -1, 1, -4, -1, -3, 3, -2, 5, 0, -2, 6, 2, 2, 0, 3, -1, 4, -3, -1, -1, 3, -3, 2, -1, 2, 2, 3, 2, 0, 1, 3, 4, -2, 1, 4, 6, 4, 2, 3, -1, 3, -4, 2, -2, 6, -7, 2, -2, -5, -3, 0, -3, 2, -2, -2, -4, 2, -3, -2, -4, 3, -2, -1, -3, -4, -1, -4, -4, -2, 0, -6, 2, -5, 2, -1, 6, 3, 2, -1, 0, -4, 3, -2, -3, -5, 6, 0, 1, 0]], [[2158, 3050, 1, 5, -2, 1, -3, 6, 3, 3, 1, 8, -1, 1, 4, 4, 3, 7, 2, 0, 2, 7, 0, 2, 2, 4, 0, 8, -2, -1, -4, 2, 2, 4, -3, 2, -2, 4, -8, -1, 0, -6, -1, -3, -6, -2, -4, -5, 0, -3, 2, -3, 3, -3, 1, -4, -5, -1, -3, -2, 4, -3, 2, -5, 3, -3, -2, -4, 2, -2, -1, -4, 2, -4, -1, -7, 0, -3, 3, -4, -2, -4, 4, 0, 2, -2, 3, 3, -1, 8]], [[1673, 2812, 2, 0, 4, 5, 7, 9, 5, -1, 4, 1, 4, 5, 0, 2, -4, 5, -3, -1, -8, 1, -1, 5, -1, 5, 6, 4, -1, 3, -2, 0, -6, 5, -3, 1, -2, 3, -9, 2, -1, -2, -3, -1, -2, -3, -1, -3, -4, -6, -2, -1, 2, -7, 2, 0, 1, -4, 0, -4, -2, -1, -6, -15, 0, -9, 3, -4, 16, -1, 3, 7, 2, 0]], [[2015, 2048, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, -1, 0, -4, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2, 6, -1, 1, 4, 0, 5, 2, 3, 3, -1, 1, 12, 1, 3, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, 2, 1, 0, 2, 4, 5, 2, -1, 0, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -3, 1, -1, -1, -2, -4, -6, 1, -2, -3, -4, 2, -3, -1, -5, 5, 3, 2, -1, 6, 4, 2, 0, -2, 9, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, -1, 1, 1, 0, 0, 2, -1, -1, -3, 2, -6, 3, -1, 5, 2, 9, -3, 3, 19, -2, -3, -5, 1, -6, 5, -1, 3, -5, 0, -1, 1, 1, 5, 2, 1, -2, 8, -2, 1, -2, 4, -6, 4, -1, 2, -3, -2, -1, -2, -3, -3, -6, 3, -7, 7, 1, 4, -2, 4, -3, -3, -4, 1, -4, -3, -2, -7, 0, -5, -2, -4, 0, -8, -1, -9, 0, -3, -3, -2, 1, -3, -1, -3, 2, -3, -2, -2, -2, -7, 2, 1, 7, -4, 3, 3, 2, -1, 1, -2, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2]], [[1425, 2302, 1, 2, 4, 6, -2, 2, 2, 3, -2, 6, -5, 0, -2, 6, 4, 3, -1, 3, -5, 4, 2, 2, -2, 4, -2, -5, -2, -4, -3, -3, 1, -3, 4, -4, -1, -4, 2, -4, -3, -1, 2, -8, -1, -7, 3, 1, 4, -2, 2, 3]], [[1709, 1611, -2, -6, -4, -4, 0, -3, 1, -1, -2, -4, -1, -4, -3, 2, -2, -2, -2, -1, 0, -4, -2, -1, -3, 2, -2, 0, -1, -4, -4, 1, -1, -5, 1, -3, 4, -2, 1, -3, 4, 0, 3, -3, 4, 2, 2, 2, 4, 2, 6, 9, 2, 1, 2, 4, 7, 8, -1, 3, 2, 1, 9, 9, 3, 6, 0, 4, 3, 5, 2, 4, -6, -4, -3, -4, 0, -2, -3, -4, -4, 0, 0, 4, -5, -1, -2, 1, -5, -3, -2, -2]], [[2376, 3478, 3, 4, 2, 6, 4, 4, 5, 1, 5, 11, 13, 4, 5, 6, -3, 5, -7, 2, -4, -3, -7, -1, 0, -3, -2, -5, -5, -2, -6, -2, -6, -4, -5, -5, -6, 0, -2, -3, -1, -3, 2, -3, 6, 0, 2, -3, 3, -2, -2, -3, 4, -2, 2, 1]], [[1993, 3210, 2, 0, 7, -5, 5, -1, 3, 2, -3, 3, -2, 5, -4, 3, 3, 3, 6, 1, -1, 4, -4, 4, -3, 4, 1, 2, 4, 6, 3, 0, 4, 2, 2, 8, -3, 6, 1, 7, -6, 1, -3, 1, -4, 0, -3, -4, 1, -3, -4, -2, -6, 1, -5, -1, 1, -5, 0, -7, -2, -2, -3, -8, 4, -4, -3, -2, 3, -9, -1, -1, 8, -9, 2, 0]], [[2269, 1748, 5, 0, 2, 2, 7, 3, 7, 0, 7, 0, -1, 24, -8, -4, -2, -2, -5, -1, -4, 1, -3, 3, -1, -5, -5, 1, -8, -4, -5, -6, 0, -2, -3, -4, 3, -1, 0, -5, 1, -7, 8, -2, 2, 0, 0, 7, 3, 2]], [[1219, 1363, -1, -2, 5, -2, -1, -5, 5, -1, 5, 0, -1, 5, -1, 1, 2, 6, 2, 2, -2, 4, 4, 3, 0, 4, 2, 3, -2, 2, -7, -1, -2, 0, 1, 4, 2, 2, -3, 3, 0, 4, -3, 1, -2, -2, -4, -1, -3, 1, -2, 5, 0, 5, -3, -1, -2, 2, -4, -1, -5, -3, -4, -8, 1, -3, 2, -1, 0, -4, -6, 0, -4, -3, 9, -9, 5, -2, 2, 0, 3, -5, 7, -4, 5, 1]], [[2278, 2761, 3, 0, 1, 2, 6, -1, 4, -6, -1, -6, 4, -4, 5, 0, 4, -3, 3, 3, 2, 1, 4, 0, -3, 6, -1, 4, -6, 0, -1, 3, 0, 12, 3, 5, -1, 6, -7, 7, -3, 13, -6, 1, -1, 4, -4, -3, -6, 0, -2, -12, -2, -3, 2, -7, 3, -1, -2, -5, 2, -3, 0, -6, -3, -4, 0, -2, 3, -1]], [[1689, 1985, 3, 5, 1, 7, 2, 2, 1, 4, 6, 3, -1, 2, -3, 1, -5, 2, -4, -1, -3, -2, -6, 1, -2, -3, -1, -7, -1, -3, 5, -2, 1, -5, -2, -4, -1, -7, 3, -1, 5, 3, 2, 5]], [[1651, 2121, -1, -3, 7, -5, 7, -1, 4, 1, 7, -2, 4, 3, -1, 3, -2, 1, -3, 5, -4, 2, -8, 1, -1, 4, -4, -6, -4, 2, -1, 6, 6, 6, 0, 4, 6, -1, 2, 3, -3, 3, -2, 1, -3, -1, -3, 0, 0, 6, -6, 2, -2, 2, -4, -2, 0, -4, -5, -3, -1, -3, 3, -5, 1, -3, 4, -2, -1, -5, 4, -9, 4, 0]], [[2148, 2449, 3, -1, 4, 2, 2, -2, 1, 8, 3, 3, 4, -3, -3, -5, 2, -2, 1, 3, 11, 6, 5, 4, 1, 1, 0, 7, 3, -1, 3, 1, 2, 5, -1, 6, -1, 3, -5, 0, -4, 5, 1, 6, -5, 6, -6, 1, -1, -2, -3, 0, -4, 1, -4, 4, -3, 1, 2, 4, -4, 6, -1, -1, 2, -9, 0, -3, -3, -6, -1, -9, 1, -4, -3, -2, -3, -4, -9, -5, 1, -4, -2, -3, -2, -2, 2, -5, 2, -2, 3, 2, 3, -5, 6, -5]], [[1811, 2979, -3, -2, 1, -3, -1, -2, 2, -5, 8, -2, 4, 2, 5, -7, 4, 1, 3, 3, 0, 2, -2, 8, 2, 2, -3, 6, -6, 3, -2, 3, -1, 6, 1, 2, -4, 2, -3, 4, -5, 3, -3, -1, 1, 5, -4, 3, -1, 4, -1, 1, -4, -10, 3, -4, -3, -8, 3, -3, 3, -1, 6, -6, 2, -1, 1, -3, -3, -2]], [[1772, 1887, 2, 2, 4, 2, 2, -1, 5, 2, 1, -4, 3, 0, 3, 4, 0, 2, 3, 3, 3, 3, 2, 10, -2, 3, -2, -2, -5, 2, 0, 4, 1, 2, -1, 5, 2, 2, 1, 7, 0, 5, -4, 1, -5, -1, -2, -3, -4, 0, -1, -5, -2, -8, -4, -5, 0, -3, -6, -10, -1, -1, -4, -7, -1, -6, 0, -3, -1, -4, 3, -4, 4, -1, 5, 3, 1, 6]], [[1506, 1838, 3, 3, 2, 6, 4, -2, 5, 0, 7, -3, 2, 2, -1, 4, 1, 6, 2, 3, 0, 2, 1, 5, 2, 1, 2, 6, 3, 2, 2, 6, -4, 1, 1, 6, 2, 3, -1, 4, -4, 2, 1, 7, 2, 3, 5, -1, 0, 3, -3, 0, -7, 4, -2, 3, -3, 6, -4, -8, -3, 0, -4, -4, 1, -1, -4, -10, -8, -5, 2, -3, 3, -5, -2, -5, -4, -3, -4, -1, -8, 3, -2, 2, -4, 1, -2, -1, -5, 4, -6, -1, -2, 2, -4, -7, 3, -5, 2, 5, 4, 2, 1, -3, -5, -3, 2, -5, 4, 0, -1, -4, 1, -4, -2, -3, -3, 0, -3, -4, 1, -2, -6, -5, -1, -4, 3, 1, 4, -5, 1, 2, 4, -3, 6, 3, 4, -1, 3, -2, 1, 4, 4, 0, 6, -5, 5, 1]], [[2715, 2450, -4, 5, -2, -1, -3, 2, -16, -1, -3, -6, -2, -2, 2, -3, 3, 1, 8, 2, 3, -1, 10, 1, 3, -3, 5, 1, -4, 5]], [[2554, 2188, 5, 1, 13, 5, 1, 3, 6, 5, 3, 0, 3, 5, -3, 2, -10, 0, -2, 1, -8, -2, -2, -1, -3, -5, -3, -3, -4, -2, -1, -4, 2, -3, 3, -2]], [[1640, 1137, 2, 0, 4, 1, 4, -4, 6, -2, 1, 1, 10, -6, 7, 2, -4, 2, -5, 1, -2, 4, -3, 1, -1, 3, -11, 7, -6, -2, -1, 2, -1, 4, -3, -1, -3, -3, -1, -6, 1, -4, 6, 0]], [[427, 3763, -3, 0, -2, -5, 2, -3, 3, 8], [465, 3847, -3, 0, -1, -3, 4, -1, 0, 4]], [[2588, 709, 4, -2, -1, -2, 2, -2, 1, 9, -5, 3, -3, -2, -4, 1, 3, -6, 3, 1]], [[3172, 1626, -2, 5, -4, -1, -3, -3, 2, -1, 7, 0]], [[2456, 1454, 4, 2, -1, 2, -6, 0, -6, -2, 0, -3, 2, -3, 2, 1, 3, -2, 2, 2, 0, 3]], [[2793, 1178, 0, 6, -4, -1, -2, -2, 4, -3, 2, 0]], [[3041, 2055, 0, 3, -5, -1, -3, -3, 0, -5, 3, 2, 5, 1, 0, 3]]], "valor": [144714, 62262, 152536, 54400, 30362, 19852, 7876, 27432, 27128, 44540, 70026, 9620, 26356, 19520, 33708, 23460, 32910, 32622, 11310, 19338, 49756, 22392, 31416, 78698, 6632, 11058, 7748, 1154, 1646, 778, 2098, 868, 1218], "cortes": [778, 7078.4, 19483.6, 28018, 47669.6, 152536], "clase": [5, 5, 5, 5, 4, 3, 2, 3, 3, 4, 5, 2, 3, 3, 4, 3, 4, 4, 2, 2, 5, 3, 4, 5, 1, 2, 2, 1, 1, 1, 1, 1, 1], "estilo": "quantile", "tam": [7, 6, 7, 6, 7], "etiquetas": ["Antioquia", "Atlántico", "Bogotá, D.C.", "Bolívar", "Boyacá", "Caldas", "Caquetá", "Cauca", "Cesar", "Córdoba", "Cundinamarca", "Chocó", "Huila", "La Guajira", "Magdalena", "Meta", "Nariño", "Norte de Santander", "Quindio", "Risaralda", "Santander", "Sucre", "Tolima", "Valle del Cauca", "Arauca", "Casanare", "Putumayo", "Archipiélago de San Andrés, Providencia y Santa Catalina", "Amazonas", "Guainía", "Guaviare", "Vaupés", "Vichada"]}, paleta: 'verde', silueta: false, descripcion: "Cada departamento encoge alrededor de su centro, sin moverse de su sitio, hasta que su área es proporcional a sus estudiantes. Bogotá, la que más estudiantes tiene por kilómetro cuadrado, conserva su tamaño, y por eso su parte del área dibujada sube del 0.14 % al 14.32 %; todos los demás encogen, y el Amazonas, que ocupa el 9.59 % del mapa, queda en el 0.15 %." };
+    GEOMAPAS['cap3-carto-dorling'] = { fuente: {"modo": "poligonos", "titulo": "Cartograma de Dorling", "leyenda": "estudiantes", "crs": 9377, "caja": [3987822.45446486, 1020426.04494123, 5787822.45446486, 3133528.03017526], "q": 4096, "codificacion": "delta", "n": 33, "geom": [[[1909, 2526, -4, 38, -11, 36, -18, 33, -24, 29, -29, 24, -33, 18, -36, 11, -38, 4, -37, -4, -36, -11, -34, -18, -29, -24, -24, -29, -18, -33, -10, -36, -4, -38, 4, -37, 10, -36, 18, -34, 24, -29, 29, -24, 34, -17, 36, -11, 37, -4, 38, 4, 36, 11, 33, 17, 29, 24, 24, 29, 18, 34, 11, 36, 4, 37]], [[1957, 3342, -3, 24, -7, 24, -12, 22, -15, 19, -19, 16, -22, 11, -24, 8, -25, 2, -24, -2, -24, -8, -22, -11, -19, -16, -15, -19, -12, -22, -7, -24, -3, -24, 3, -25, 7, -23, 12, -22, 15, -19, 19, -16, 22, -12, 24, -7, 24, -2, 25, 2, 24, 7, 22, 12, 19, 16, 15, 19, 12, 22, 7, 23, 3, 25]], [[2228, 1858, -4, 39, -11, 37, -19, 34, -24, 30, -30, 25, -34, 18, -37, 11, -39, 4, -38, -4, -37, -11, -35, -18, -29, -25, -25, -30, -18, -34, -12, -37, -3, -39, 3, -38, 12, -37, 18, -34, 25, -30, 29, -25, 35, -18, 37, -11, 38, -4, 39, 4, 37, 11, 34, 18, 30, 25, 24, 30, 19, 34, 11, 37, 4, 38]], [[2083, 2904, -2, 23, -7, 22, -11, 20, -14, 18, -18, 15, -20, 11, -23, 6, -23, 3, -23, -3, -22, -6, -20, -11, -18, -15, -15, -18, -11, -20, -6, -22, -2, -23, 2, -23, 6, -22, 11, -21, 15, -18, 18, -14, 20, -11, 22, -7, 23, -2, 23, 2, 23, 7, 20, 11, 18, 14, 14, 18, 11, 21, 7, 22, 2, 23]], [[2335, 2281, -2, 17, -5, 17, -8, 15, -11, 13, -13, 11, -15, 8, -17, 5, -17, 2, -17, -2, -17, -5, -15, -8, -13, -11, -11, -13, -8, -15, -5, -17, -2, -17, 2, -17, 5, -17, 8, -15, 11, -13, 13, -11, 15, -8, 17, -5, 17, -2, 17, 2, 17, 5, 15, 8, 13, 11, 11, 13, 8, 15, 5, 17, 2, 17]], [[1848, 2190, -2, 14, -4, 14, -6, 12, -9, 11, -11, 9, -12, 6, -14, 4, -13, 2, -14, -2, -14, -4, -12, -6, -11, -9, -9, -11, -6, -12, -4, -14, -2, -14, 2, -14, 4, -13, 6, -12, 9, -11, 11, -9, 12, -7, 14, -4, 14, -1, 13, 1, 14, 4, 12, 7, 11, 9, 9, 11, 6, 12, 4, 13, 2, 14]], [[2103, 1213, -1, 9, -2, 8, -4, 8, -6, 7, -7, 6, -7, 4, -9, 2, -9, 1, -8, -1, -9, -2, -7, -4, -7, -6, -6, -7, -4, -8, -3, -8, 0, -9, 0, -8, 3, -9, 4, -8, 6, -6, 7, -6, 7, -4, 9, -3, 8, -1, 9, 1, 9, 3, 7, 4, 7, 6, 6, 6, 4, 8, 2, 9, 1, 8]], [[1525, 1557, -2, 16, -5, 16, -7, 14, -11, 13, -13, 10, -14, 8, -16, 5, -16, 1, -16, -1, -16, -5, -15, -8, -12, -10, -11, -13, -7, -14, -5, -16, -2, -16, 2, -17, 5, -15, 7, -15, 11, -13, 12, -10, 15, -8, 16, -5, 16, -1, 16, 1, 16, 5, 14, 8, 13, 10, 11, 13, 7, 15, 5, 15, 2, 17]], [[2239, 3084, -2, 17, -5, 15, -7, 15, -11, 12, -12, 11, -15, 7, -15, 5, -17, 2, -16, -2, -16, -5, -14, -7, -13, -11, -10, -12, -8, -15, -4, -15, -2, -17, 2, -16, 4, -15, 8, -15, 10, -12, 13, -11, 14, -8, 16, -4, 16, -2, 17, 2, 15, 4, 15, 8, 12, 11, 11, 12, 7, 15, 5, 15, 2, 16]], [[1776, 2834, -2, 21, -6, 20, -10, 19, -13, 16, -16, 13, -19, 10, -20, 6, -20, 2, -21, -2, -20, -6, -19, -10, -16, -13, -13, -16, -10, -19, -6, -20, -2, -21, 2, -20, 6, -21, 10, -18, 13, -16, 16, -13, 19, -10, 20, -6, 21, -2, 20, 2, 20, 6, 19, 10, 16, 13, 13, 16, 10, 18, 6, 21, 2, 20]], [[2179, 2189, -3, 27, -8, 25, -12, 23, -17, 20, -20, 17, -23, 12, -25, 8, -26, 2, -26, -2, -25, -8, -24, -12, -20, -17, -17, -20, -12, -23, -7, -25, -3, -27, 3, -26, 7, -25, 12, -23, 17, -20, 20, -17, 24, -12, 25, -8, 26, -2, 26, 2, 25, 8, 23, 12, 20, 17, 17, 20, 12, 23, 8, 25, 3, 26]], [[1471, 2318, -1, 10, -3, 9, -5, 9, -6, 7, -7, 7, -9, 4, -9, 3, -10, 1, -10, -1, -9, -3, -9, -4, -7, -7, -6, -7, -5, -9, -3, -9, -1, -10, 1, -9, 3, -10, 5, -8, 6, -8, 7, -6, 9, -4, 9, -3, 10, -1, 10, 1, 9, 3, 9, 4, 7, 6, 6, 8, 5, 8, 3, 10, 1, 9]], [[1791, 1593, -2, 16, -5, 15, -7, 15, -11, 12, -12, 10, -14, 8, -16, 4, -16, 2, -16, -2, -15, -4, -14, -8, -13, -10, -10, -12, -7, -15, -5, -15, -2, -16, 2, -16, 5, -15, 7, -15, 10, -12, 13, -10, 14, -8, 15, -5, 16, -1, 16, 1, 16, 5, 14, 8, 12, 10, 11, 12, 7, 15, 5, 15, 2, 16]], [[2456, 3500, -1, 14, -4, 14, -7, 12, -8, 10, -11, 9, -12, 7, -14, 4, -13, 1, -14, -1, -13, -4, -13, -7, -10, -9, -9, -10, -7, -12, -4, -14, -1, -14, 1, -13, 4, -14, 7, -12, 9, -10, 10, -9, 13, -7, 13, -4, 14, -1, 13, 1, 14, 4, 12, 7, 11, 9, 8, 10, 7, 12, 4, 14, 1, 13]], [[2109, 3226, -2, 18, -5, 17, -9, 16, -11, 14, -14, 12, -16, 8, -18, 6, -18, 2, -18, -2, -17, -6, -16, -8, -15, -12, -11, -14, -9, -16, -5, -17, -2, -18, 2, -18, 5, -18, 9, -16, 11, -14, 15, -11, 16, -9, 17, -5, 18, -2, 18, 2, 18, 5, 16, 9, 14, 11, 11, 14, 9, 16, 5, 18, 2, 18]], [[2362, 1755, -1, 15, -5, 14, -7, 14, -10, 11, -11, 10, -14, 7, -14, 5, -15, 1, -15, -1, -15, -5, -13, -7, -12, -10, -10, -11, -7, -14, -4, -14, -2, -15, 2, -16, 4, -14, 7, -13, 10, -12, 12, -10, 13, -7, 15, -4, 15, -2, 15, 2, 14, 4, 14, 7, 11, 10, 10, 12, 7, 13, 5, 14, 1, 16]], [[1306, 1380, -2, 18, -5, 17, -8, 16, -12, 14, -14, 11, -16, 9, -17, 5, -18, 2, -18, -2, -17, -5, -16, -9, -13, -11, -12, -14, -8, -16, -6, -17, -1, -18, 1, -18, 6, -17, 8, -16, 12, -14, 13, -11, 16, -9, 17, -5, 18, -2, 18, 2, 17, 5, 16, 9, 14, 11, 12, 14, 8, 16, 5, 17, 2, 18]], [[2382, 2776, -2, 18, -5, 17, -8, 16, -12, 13, -13, 12, -16, 8, -17, 5, -18, 2, -18, -2, -17, -5, -16, -8, -14, -12, -11, -13, -9, -16, -5, -17, -2, -18, 2, -18, 5, -17, 9, -16, 11, -14, 14, -11, 16, -9, 17, -5, 18, -2, 18, 2, 17, 5, 16, 9, 13, 11, 12, 14, 8, 16, 5, 17, 2, 18]], [[1730, 2012, -1, 10, -3, 10, -5, 10, -7, 8, -8, 6, -9, 5, -10, 3, -11, 1, -10, -1, -10, -3, -10, -5, -8, -6, -6, -8, -5, -10, -4, -10, -1, -10, 1, -11, 4, -10, 5, -9, 6, -8, 8, -7, 10, -5, 10, -3, 10, -1, 11, 1, 10, 3, 9, 5, 8, 7, 7, 8, 5, 9, 3, 10, 1, 11]], [[1718, 2132, -2, 14, -4, 13, -6, 12, -9, 11, -11, 9, -12, 6, -13, 4, -14, 2, -13, -2, -14, -4, -12, -6, -10, -9, -9, -11, -7, -12, -4, -13, -1, -14, 1, -13, 4, -13, 7, -13, 9, -10, 10, -9, 12, -7, 14, -4, 13, -1, 14, 1, 13, 4, 12, 7, 11, 9, 9, 10, 6, 13, 4, 13, 2, 13]], [[2274, 2476, -2, 22, -6, 21, -11, 19, -14, 17, -17, 14, -20, 11, -21, 6, -22, 2, -22, -2, -21, -6, -19, -11, -17, -14, -14, -17, -11, -19, -6, -21, -2, -22, 2, -22, 6, -21, 11, -20, 14, -17, 17, -14, 19, -11, 21, -6, 22, -2, 22, 2, 21, 6, 20, 11, 17, 14, 14, 17, 11, 20, 6, 21, 2, 22]], [[1871, 2996, -1, 15, -5, 14, -7, 13, -9, 12, -12, 9, -13, 7, -14, 4, -15, 2, -14, -2, -15, -4, -13, -7, -11, -9, -10, -12, -7, -13, -4, -14, -1, -15, 1, -15, 4, -14, 7, -13, 10, -11, 11, -10, 13, -7, 15, -4, 14, -1, 15, 1, 14, 4, 13, 7, 12, 10, 9, 11, 7, 13, 5, 14, 1, 15]], [[1834, 1886, -2, 17, -5, 17, -8, 15, -11, 14, -14, 11, -15, 8, -17, 5, -18, 2, -17, -2, -17, -5, -15, -8, -14, -11, -11, -14, -8, -15, -6, -17, -1, -17, 1, -18, 6, -17, 8, -15, 11, -14, 14, -11, 15, -8, 17, -5, 17, -2, 18, 2, 17, 5, 15, 8, 14, 11, 11, 14, 8, 15, 5, 17, 2, 18]], [[1650, 1870, -3, 28, -8, 26, -13, 25, -18, 21, -21, 18, -25, 13, -26, 8, -28, 3, -28, -3, -26, -8, -25, -13, -21, -18, -18, -21, -13, -25, -8, -26, -3, -28, 3, -28, 8, -26, 13, -25, 18, -21, 21, -18, 25, -13, 26, -8, 28, -3, 28, 3, 26, 8, 25, 13, 21, 18, 18, 21, 13, 25, 8, 26, 3, 28]], [[2742, 2450, 0, 8, -3, 8, -4, 7, -5, 6, -6, 5, -7, 4, -8, 2, -8, 1, -8, -1, -8, -2, -7, -4, -6, -5, -5, -6, -4, -7, -2, -8, -1, -8, 1, -8, 2, -8, 4, -7, 5, -6, 6, -5, 7, -4, 8, -2, 8, -1, 8, 1, 8, 2, 7, 4, 6, 5, 5, 6, 4, 7, 3, 8, 0, 8]], [[2619, 2200, -1, 10, -3, 10, -5, 9, -7, 9, -8, 6, -9, 5, -10, 3, -10, 1, -11, -1, -10, -3, -9, -5, -8, -6, -7, -9, -5, -9, -3, -10, -1, -10, 1, -10, 3, -10, 5, -10, 7, -8, 8, -6, 9, -5, 10, -3, 11, -1, 10, 1, 10, 3, 9, 5, 8, 6, 7, 8, 5, 10, 3, 10, 1, 10]], [[1694, 1139, -1, 9, -3, 8, -4, 8, -5, 7, -7, 5, -8, 4, -8, 3, -9, 1, -9, -1, -8, -3, -8, -4, -6, -5, -6, -7, -4, -8, -2, -8, -1, -9, 1, -8, 2, -9, 4, -7, 6, -7, 6, -6, 8, -4, 8, -2, 9, -1, 9, 1, 8, 2, 8, 4, 7, 6, 5, 7, 4, 7, 3, 9, 1, 8]], [[441, 3759, 0, 4, -1, 3, -2, 3, -2, 3, -3, 2, -2, 1, -4, 1, -3, 1, -3, -1, -4, -1, -3, -1, -2, -2, -2, -3, -2, -3, -1, -3, 0, -4, 0, -3, 1, -3, 2, -3, 2, -3, 2, -2, 3, -1, 4, -1, 3, -1, 3, 1, 4, 1, 2, 1, 3, 2, 2, 3, 2, 3, 1, 3, 0, 3]], [[2609, 711, 0, 4, -2, 4, -1, 3, -3, 3, -3, 3, -4, 2, -3, 1, -4, 0, -4, 0, -4, -1, -4, -2, -3, -3, -3, -3, -1, -3, -2, -4, 0, -4, 0, -4, 2, -4, 1, -4, 3, -3, 3, -2, 4, -2, 4, -1, 4, -1, 4, 1, 3, 1, 4, 2, 3, 2, 3, 3, 1, 4, 2, 4, 0, 4]], [[3182, 1628, 0, 3, -1, 2, -2, 3, -1, 2, -2, 2, -3, 1, -3, 1, -2, 0, -3, 0, -3, -1, -2, -1, -2, -2, -2, -2, -1, -3, -1, -2, 0, -3, 0, -3, 1, -2, 1, -3, 2, -2, 2, -2, 2, -1, 3, -1, 3, 0, 2, 0, 3, 1, 3, 1, 2, 2, 1, 2, 2, 3, 1, 2, 0, 3]], [[2476, 1454, 0, 5, -1, 4, -2, 4, -3, 4, -4, 3, -4, 2, -4, 1, -5, 1, -4, -1, -5, -1, -4, -2, -3, -3, -3, -4, -2, -4, -1, -4, -1, -5, 1, -4, 1, -4, 2, -4, 3, -4, 3, -3, 4, -2, 5, -1, 4, -1, 5, 1, 4, 1, 4, 2, 4, 3, 3, 4, 2, 4, 1, 4, 0, 4]], [[2806, 1181, 0, 2, -1, 3, -1, 3, -2, 2, -2, 2, -3, 1, -3, 1, -3, 0, -2, 0, -3, -1, -3, -1, -2, -2, -2, -2, -1, -3, -1, -3, 0, -2, 0, -3, 1, -3, 1, -3, 2, -2, 2, -2, 3, -1, 3, -1, 2, 0, 3, 0, 3, 1, 3, 1, 2, 2, 2, 2, 1, 3, 1, 3, 0, 3]], [[3054, 2054, 0, 3, -1, 4, -2, 3, -2, 2, -2, 2, -4, 2, -3, 1, -3, 0, -4, 0, -3, -1, -3, -2, -3, -2, -2, -2, -2, -3, -1, -4, 0, -3, 0, -4, 1, -3, 2, -3, 2, -3, 3, -2, 3, -1, 3, -1, 4, -1, 3, 1, 3, 1, 4, 1, 2, 2, 2, 3, 2, 3, 1, 3, 0, 4]]], "valor": [144714, 62262, 152536, 54400, 30362, 19852, 7876, 27432, 27128, 44540, 70026, 9620, 26356, 19520, 33708, 23460, 32910, 32622, 11310, 19338, 49756, 22392, 31416, 78698, 6632, 11058, 7748, 1154, 1646, 778, 2098, 868, 1218], "cortes": [778, 7078.4, 19483.6, 28018, 47669.6, 152536], "clase": [5, 5, 5, 5, 4, 3, 2, 3, 3, 4, 5, 2, 3, 3, 4, 3, 4, 4, 2, 2, 5, 3, 4, 5, 1, 2, 2, 1, 1, 1, 1, 1, 1], "estilo": "quantile", "tam": [7, 6, 7, 6, 7], "etiquetas": ["Antioquia", "Atlántico", "Bogotá, D.C.", "Bolívar", "Boyacá", "Caldas", "Caquetá", "Cauca", "Cesar", "Córdoba", "Cundinamarca", "Chocó", "Huila", "La Guajira", "Magdalena", "Meta", "Nariño", "Norte de Santander", "Quindio", "Risaralda", "Santander", "Sucre", "Tolima", "Valle del Cauca", "Arauca", "Casanare", "Putumayo", "Archipiélago de San Andrés, Providencia y Santa Catalina", "Amazonas", "Guainía", "Guaviare", "Vaupés", "Vichada"]}, paleta: 'verde', silueta: false, descripcion: "Un círculo por departamento, de área proporcional a sus estudiantes, empujado hasta que no se solape con los vecinos. Los más grandes son Bogotá (14.32 % del área) y Antioquia (13.58 %); el mapa pierde la forma del país y solo conserva, más o menos, dónde está cada uno." };
+    GEOMAPAS['cap3-carto-cont'] = { fuente: {"modo": "poligonos", "titulo": "Cartograma contiguo (Dougenik)", "leyenda": "estudiantes", "crs": 9377, "caja": [3987822.45446486, 1020426.04494123, 5787822.45446486, 3133528.03017526], "q": 4096, "codificacion": "delta", "n": 33, "geom": [[[1325, 2163, -10, 154, -28, 130, 14, 100, 8, 20, 0, 66, 0, -83, 17, -36, 18, 171, -10, 67, 40, 23, 52, 68, 1, -57, 26, -32, -12, -43, -24, -28, -44, -99, -29, -133, -11, -80, -4, -174, 39, 73, 57, 69, 18, 44, 20, 19, 30, 80, 89, 12, 51, 64, 25, 18, 15, 30, 43, 40, 29, 4, 11, 26, 45, 32, 142, -62, 36, 16, 49, -35, 53, -28, 96, -62, 55, -44, 20, -34, -2, -52, 58, -69, 12, -83, 16, -6, 57, 78, -1, -30, 17, -64, -25, -18, -22, -45, -25, -17, -32, -41, 2, -50, -34, -36, -26, -34, 6, -24, -35, -40, -35, -16, -28, 6, -46, -7, -68, -25, -93, -4, -32, 11, -49, 36, -50, 28, -150, 106, -59, 37, -49, 20, -96, 23, -134, 20, -4, 0]], [[1876, 3055, -66, 4, -57, 14, -57, 27, -68, 68, -24, 57, -10, 71, 4, 59, 23, 68, 31, 50, 43, 45, 54, 37, 91, 37, 75, 5, 60, -5, 78, -37, 49, -40, 44, -62, 14, -30, 12, -61, -3, -61, -24, -71, -47, -52, -64, -52, -38, -23, -120, -48]], [[2548, 1062, -71, -52, -1, 0, -3, 84, -11, 48, -30, 84, 0, 17, -28, 88, -17, 89, -4, 74, 21, 79, 48, 72, -4, 22, 35, 14, 50, -6, 56, -33, 74, -26, 47, -45, -23, -22, -49, -79, -28, -69, -17, -111, 10, -73, 14, -54, 41, -41, -12, -11, -76, -30, -22, -19]], [[1609, 3103, -6, 49, -21, 46, -4, 52, 7, 61, 17, 64, 19, 48, -23, -68, -4, -59, 10, -71, 24, -57, 68, -68, 57, -27, 57, -14, 66, -4, 33, -7, 5, -50, 33, -6, 53, 7, 72, -17, 38, 10, 25, -17, 34, 3, 57, -26, 44, -38, 41, -27, 28, 3, 58, -40, 12, -21, 22, -51, 2, -131, -22, -107, -17, -24, 7, -87, 8, -18, -16, -84, -57, -78, -16, 6, -12, 83, -58, 69, 2, 52, -20, 34, -55, 44, -96, 62, -53, 28, -49, 35, 19, 17, 46, -5, 39, -17, 41, 67, -37, 40, -16, 35, 9, 27, -62, 66, -34, 17, -89, 14, -34, 15, -12, 39, -32, 2, -99, 32, -26, 24, -41, 19, -42, 49]], [[2218, 1925, 0, 3, 35, 40, -6, 24, 26, 34, 13, -34, 37, -2, 36, -34, 72, -38, 64, -19, 34, -3, 22, 44, 23, 24, 39, -19, 38, -35, 16, -64, 32, 4, 33, -10, 5, 34, 47, -26, 41, 16, 30, 31, -9, 51, 15, 14, -58, 126, 25, -25, 10, 34, 25, -20, 19, -24, 21, -79, 40, -81, 1, -34, 35, -62, 80, -94, 29, -69, 15, -86, -37, 51, -65, 55, -41, 10, -29, -4, -52, -29, -3, -57, 25, -57, -31, 13, -34, 67, -33, 23, 3, 32, -67, 67, -46, 29, -21, 27, -108, 58, -44, 38, -20, -14, -42, -6, -47, 38, -63, 17, -32, 41, -29, -12, -69, -8]], [[2031, 1751, -77, 52, -87, 47, -55, 22, -10, -13, -78, 17, -27, 27, -46, 29, -92, 47, -27, 20, -42, 47, -128, 84, -33, 33, 134, -20, 96, -23, 49, -20, 59, -37, 150, -106, 50, -28, 49, -36, 32, -11, 93, 4, 68, 25, 46, 7, 28, -6, 35, 16, 0, -3, 9, -7, -26, -51, -26, -26, -19, 4, -64, -12, -24, -24, -37, 2, -30, 13, 30, -73]], [[2042, 1019, -36, 13, 1, 18, 34, -13, 71, -8, 134, 5, 66, -4, 97, -20, 66, -6, 14, -12, 153, 17, 79, -3, 17, -11, -2, -1, -56, -51, -9, -37, 20, -79, -57, 64, -60, 48, -85, 45, -14, 9, -30, 1, -146, -9, -107, 1, -104, 17, -46, 16]], [[1288, 1441, 29, 11, -17, 55, 10, 39, 41, -55, 45, -46, 15, -4, 108, -77, 12, 4, 78, -32, 61, -38, 79, -19, 44, 0, 14, 13, 156, 6, -13, -20, 13, -22, 79, -24, 48, -30, -47, -27, -6, -33, -49, 27, -27, -8, -13, -29, -36, 30, -72, -16, 88, -50, 29, -26, 50, -20, -1, -18, 36, -13, -84, 16, -26, 26, -60, 28, -91, 10, 9, 27, -49, 22, -106, 15, -35, 11, 11, 35, -50, 22, -19, 27, -62, 31, -78, 9, -38, 24, -50, 64, -26, 55]], [[2437, 2426, -23, 6, 12, 35, -15, 73, 22, 107, -2, 131, -22, 51, 2, 40, -28, 47, -30, 17, -33, 53, -51, 25, 15, 16, 75, -3, -18, 41, -44, 41, -18, 6, -29, 35, 16, 38, 46, 54, 30, 0, 27, 25, -3, 65, -13, 22, 57, -15, 26, -46, 28, -26, -1, -48, 44, -13, 13, -58, -2, -74, 15, -25, -14, -42, -1, -34, -20, -18, -16, -79, -7, -18, 13, -98, -22, -51, 5, -44, -11, -31, 30, -14, -19, -73, 18, -47, 25, -9, -18, -33, 4, -33, -30, -25, -33, 29]], [[1426, 2843, 57, 66, 8, 26, 52, 47, 57, -6, 63, -49, 19, 4, 72, -26, 13, -18, -69, -30, 3, -39, 32, -35, 92, -17, 47, 1, 36, -28, 62, -34, 28, -26, -19, -17, -36, -16, -142, 62, -45, -32, -11, -26, -29, -4, -43, -40, -15, -30, -25, -18, -51, -64, -89, -12, -30, -80, -20, -19, -18, -44, -57, -69, -39, -73, 4, 174, 11, 80, 29, 133, 44, 99, 24, 28, 12, 43, -26, 32, -1, 57]], [[2175, 1841, 26, 26, 26, 51, -9, 7, 69, 8, 29, 12, 32, -41, 63, -17, 47, -38, 42, 6, 20, 14, 44, -38, 108, -58, 21, -27, 46, -29, 67, -67, -3, -32, 33, -23, 34, -67, 31, -13, -30, -12, 118, -198, -9, -13, 1, 2, 0, 1, 0, 0, 0, 0, -1, -2, -1, -2, 4, 11, -5, -1, -1, -1, 0, 0, 0, 0, 0, 0, -1, -1, -1, 1, -5, -2, -7, -2, -11, 2, -33, -13, -30, -29, -16, -30, -15, -73, -30, -19, -15, 100, 10, 84, -49, 72, -26, 61, 10, 59, -17, -4, -23, -36, -17, -63, -3, -75, -20, -75, 5, -63, 16, -46, 41, -49, -18, -9, -70, 5, -61, -13, -43, -20, 22, 19, 76, 30, 12, 11, -41, 41, -14, 54, -10, 73, 17, 111, 28, 69, 49, 79, 23, 22, -47, 45, -74, 26, -56, 33, -50, 6, -35, -14, 4, -22, -48, -72, -21, -79, 4, -74, 17, -89, 28, -88, 0, -17, 30, -84, 11, -48, 3, -84, -13, 25, -11, 58, -38, 100, -91, 181, -13, 9, -53, 73, -27, 16, -29, 93, -43, 113, 0, 93, 17, 70]], [[1267, 1945, 8, 66, 38, 122, 2, 41, -65, 155, 15, 18, -4, 75, 3, 75, 17, 9, -11, 105, -12, 64, 33, 5, 18, -47, 0, -66, -8, -20, -14, -100, 28, -130, 10, -154, -5, -10, 16, -147, 16, -66, 16, -37, 51, -71, 88, -71, 28, -42, -25, -12, -59, 42, -17, -5, -60, 58, -25, 33, -27, 54, -14, 43, -4, 75, -24, 11, -13, -73]], [[1963, 1256, 11, 7, 44, -19, 71, 19, 46, -4, 5, 49, 39, 12, 86, -25, 84, -73, 54, -81, 34, -86, 26, -20, 13, -25, 1, 0, -2, -6, -66, 6, -97, 20, -66, 4, -134, -5, -71, 8, -34, 13, -50, 20, -29, 26, -88, 50, 72, 16, 36, -30, 13, 29, 27, 8, 49, -27, 6, 33, 47, 27, -48, 30, -79, 24]], [[2507, 3203, -44, 13, 1, 48, -28, 26, -26, 46, -57, 15, -25, 44, -2, 58, 60, -14, 39, 34, 50, 33, 49, 6, 38, 18, 12, 45, -7, 24, 51, 6, 63, 30, 54, -30, 40, -65, -43, -58, -108, -21, -31, -111, -40, -10, -21, -36, -8, -58, -17, -43]], [[1876, 3055, 120, 48, 38, 23, 64, 52, 47, 52, 24, 71, 3, 61, -12, 61, -14, 30, -44, 62, -49, 40, -78, 37, 80, -34, 55, -38, 76, -62, 19, 9, -21, 38, 31, 9, 50, -35, 61, -26, 2, -58, 25, -44, 13, -22, 3, -65, -27, -25, -30, 0, -46, -54, -16, -38, 29, -35, 18, -6, 44, -41, 18, -41, -75, 3, -15, -16, 51, -25, 33, -53, 30, -17, 28, -47, -2, -40, -12, 21, -58, 40, -28, -3, -41, 27, -44, 38, -57, 26, -34, -3, -25, 17, -38, -10, -72, 17, -53, -7, -33, 6, -5, 50, -33, 7]], [[2475, 1004, 2, 6, 71, 52, 43, 20, 61, 13, 70, -5, 18, 9, -41, 49, -16, 46, -5, 63, 20, 75, 3, 75, 17, 63, 23, 36, 17, 4, -10, -59, 26, -61, 49, -72, -10, -84, 15, -100, 30, 19, 15, 73, 16, 30, 30, 29, 33, 13, 11, -2, 7, 2, 5, 2, 1, -1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 5, 1, -4, -11, -85, -175, -18, -13, 0, 0, -1, 0, -1, -1, -3, -1, -1, -1, -9, -5, -28, -11, -81, -23, -56, -25, -103, -14, -104, -30, -14, 12], [2921, 1488, 72, -57, 58, 28, 38, 69, 6, 8, 5, 2, 0, 0, -113, -230, -116, 195, 30, 12, 20, -27], [3102, 1540, 0, 0, 0, 0, 0, 0]], [[1288, 1441, 26, -55, 50, -64, 38, -24, 78, -9, 62, -31, 19, -27, 50, -22, -11, -35, 35, -11, 106, -15, 49, -22, -9, -27, -75, -70, 32, -30, -72, 0, -78, 7, -15, 33, -55, 17, -9, 16, -51, -1, -34, 9, -81, 34, -51, 51, -25, 1, -60, 30, -55, 47, -53, 56, 27, 25, 35, -15, 37, -4, -17, 41, -21, 15, -16, 34, 20, 65, 35, 25, 89, -44]], [[2437, 2426, 33, -29, 30, 25, -4, 33, 18, 33, -25, 9, -18, 47, 19, 73, -30, 14, 11, 31, -5, 44, 22, 51, -13, 98, 7, 18, 38, -9, 28, 26, 18, -57, 30, 0, 47, -133, 7, -5, 71, -120, 19, -79, -4, -100, 16, -133, 14, -30, 39, -23, 13, -44, 45, -91, -25, 20, -10, -34, -25, 25, -19, 32, -38, 23, -44, 60, -13, 52, -65, 77, -74, 33, -33, -11, -46, 28, -34, 46]], [[2020, 1497, -27, 14, -53, 74, -14, 37, -46, 70, -49, 50, -21, 47, -9, 48, 45, 3, 34, -15, 165, -97, 21, -91, -16, -24, 6, -83, -36, -33]], [[1320, 2153, 5, 10, 4, 0, 33, -33, 128, -84, 42, -47, 27, -20, 92, -47, 46, -29, 27, -27, 78, -17, 10, 13, 55, -22, 87, -47, 77, -52, 14, -23, -165, 97, -34, 15, -44, 11, -72, -7, -83, -36, -55, -8, -84, 19, -69, 43, -35, 34, -26, 40, -22, 57, -24, 127, -12, 33]], [[2273, 2026, 34, 36, -2, 50, 32, 41, 25, 17, 22, 45, 25, 18, -17, 64, 1, 30, 16, 84, -8, 18, -7, 87, 17, 24, 15, -73, -12, -35, 23, -6, 34, -46, 46, -28, 33, 11, 74, -33, 65, -77, 13, -52, 44, -60, 38, -23, 19, -32, 58, -126, -15, -14, 9, -51, -30, -31, -41, -16, -47, 26, -5, -34, -33, 10, -32, -4, -16, 64, -38, 35, -39, 19, -23, -24, -22, -44, -34, 3, -64, 19, -72, 38, -36, 34, -37, 2, -13, 34]], [[1600, 2976, 32, 31, -19, 40, -4, 56, 42, -49, 41, -19, 26, -24, 99, -32, 32, -2, 12, -39, 34, -15, 89, -14, 34, -17, 62, -66, -9, -27, 16, -35, 37, -40, -41, -67, -39, 17, -46, 5, -28, 26, -62, 34, -36, 28, -47, -1, -92, 17, -32, 35, -3, 39, 69, 30, -13, 18, -72, 26, -19, -4, -63, 49]], [[1963, 1256, -13, 22, 13, 20, 28, 61, 14, 62, 16, 38, -1, 38, 36, 33, -6, 83, 16, 24, -21, 91, -14, 23, -30, 73, 30, -13, 37, -2, 24, 24, 64, 12, 19, -4, -17, -70, 0, -93, 43, -113, 29, -93, 27, -16, 53, -73, 13, -9, 91, -181, 38, -100, 11, -58, -26, 20, -34, 86, -54, 81, -84, 73, -86, 25, -39, -12, -5, -49, -46, 4, -71, -19, -44, 19, -11, -7]], [[1310, 1546, -12, 16, 7, 38, -9, 33, 6, 32, -17, 117, -9, 31, -9, 132, 13, 73, 24, -11, 4, -75, 14, -43, 27, -54, 25, -33, 60, -58, 17, 5, 59, -42, 25, 12, -28, 42, -88, 71, -51, 71, -16, 37, -16, 66, -16, 147, 12, -33, 24, -127, 22, -57, 26, -40, 35, -34, 69, -43, 84, -19, 55, 8, 83, 36, 72, 7, 44, -11, -45, -3, 9, -48, 21, -47, 49, -50, 46, -70, 14, -37, 53, -74, 27, -14, 1, -38, -16, -38, -14, -62, -28, -61, -156, -6, -14, -13, -44, 0, -79, 19, -61, 38, -78, 32, -12, -4, -108, 77, -15, 4, -45, 46, -41, 55]], [[3102, 1540, 0, 0, 0, 1, 0, -1], [3102, 1542, 0, 0, 0, 0, 0, 0, 0, 0], [3102, 1542, 0, 0, 0, 0, 0, 0], [3102, 1542, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3102, 1542, 0, 0, 0, 0, 0, 0], [3102, 1542, 1, 0, 0, 0, -1, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3102, 1567, -16, 81, -27, 55, -75, 95, -40, 59, -1, 34, -40, 81, -21, 79, 23, -8, 32, -50, 38, -41, 29, -6, 17, -38, 18, 1, 31, -110, 32, -145, 0, -84, 0, -1, 0, 1, 0, -3, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3105, 1551, 0, -1, 0, 1, 0, 0], [3105, 1551, 0, 0, 0, 0, 0, 0]], [[3102, 1542, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [3103, 1542, 0, 0, 0, 0, 0, 0], [2931, 1658, 29, 4, 41, -10, 65, -55, 37, -51, -15, 86, -29, 69, -80, 94, -35, 62, 40, -59, 75, -95, 27, -55, 16, -81, 0, 0, 0, 3, 0, -1, 0, 1, 1, -7, 1, -6, 0, -2, 1, -3, 0, 0, -1, 3, 1, -1, 0, -2, 0, -1, -1, -1, 1, 1, 0, 1, 0, 1, 0, 1, 0, -1, 0, -1, 0, -1, 0, 0, 0, -1, -1, -1, 0, -2, 0, -1, 0, 0, -1, -2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, -1, -5, -2, -6, -8, -38, -69, -58, -28, -72, 57, -20, 27, -25, 57, 3, 57, 52, 29]], [[1738, 999, -32, 30, 75, 70, 91, -10, 60, -28, 26, -26, 84, -16, 46, -16, 104, -17, 107, -1, 146, 9, 30, -1, 14, -9, -4, 0, -13, 4, -122, -16, -123, -9, -112, 14, -71, 18, -98, 9, -121, -16, -75, 2, -12, 9]], [[428, 3679, -3, -11, -7, 5, 1, 8, 9, -2]], [[2485, 984, 4, 0, 85, -45, 60, -48, 57, -64, -20, 79, 9, 37, 56, 51, -32, -44, -10, -27, -4, -62, 8, -52, 24, -39, 63, -125, -28, 4, -24, 70, -36, 87, -35, 40, -88, 78, -89, 60]], [[2987, 1263, 1, 2, -1, -3, 0, 1], [2991, 1277, 6, 10, 1, 1, 0, 2, 1, 1, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, -1, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, -2, 0, 0, 1, -2, 0, -3, 0, -3, 0, 0, 0, -2, 0, 0, -9, -18, -22, -76, -22, -36, -39, -40, -32, -20, 218, 425, 0, 0, 0, 0, 0, 0, 0, -3, -1, -6, 0, 1, 0, 0, -1, -1, 0, 0, -2, -13, -1, -6, 2, 9, 0, 1, -3, -14, -2, -9, 0, -2, 0, 0, -1, -6, 0, 0, 1, 6, 1, 5, 1, 5, 0, 1, 0, -2, -1, -5, -1, -5, -1, -5, 0, 0, -1, -1, 0, 0, -5, -19, -5, -15, -4, -8, -5, -12, -4, -10, -8, -15, -14, -26, -1, -1, 0, 0, 0, -1, -12, -20, -2, -3, -18, -29, -1, -1, -1, -1, -2, -4, 0, 0, -1, -1, 2, 4, -3, -7, 0, 1, 0, 0, 0, 1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, -1, 0, -1, 1, -1, 0, -3, 0, -2, 0, -2, -1, -4, -1, -3, -1, -3, -7, -16, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 0, -1, 0, 0, 0, 0, -1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -6, -10, -40, 0, 0, 0, 0, -2, -6, 0, -1, -2, -5, 0, 0, -1, -1, 0, 0, 0, -1, 0, -1, 17, 66, 2, 6, 1, 5], [2988, 1264, 0, 0, 0, 1, 0, 1, 1, 2, 0, 0, -1, -1, 0, -2, 0, 0, 0, -1], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1306, 1, 0, -1, 0, 0, -1, 0, 1], [2998, 1306, 0, 0, 0, 0, 0, 0], [2998, 1306, 0, 1, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0], [3090, 1508, 0, 1, 0, 0, 0, -1], [3091, 1518, 0, 0, 1, 0, -1, 0], [3092, 1521, 0, 0, 0, 0, 0, 0], [3092, 1522, 0, 1, 0, -1, 0, 0], [3010, 1326, 7, 12, 8, 12, 13, 22, 8, 14, 5, 10, 4, 8, 6, 12, 3, 7, 5, 10, 4, 11, 3, 8, 0, 1, 0, 0, -1, -2, -1, -5, -4, -10, -3, -6, -2, -6, -3, -6, -3, -7, -5, -9, -3, -6, -8, -15, -6, -11, -9, -15, -6, -9, -6, -11, -7, -11, 0, 1, 1, 1], [3100, 1538, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, -3, -9, 6, -38, -12, 10, 1, 20, 1, 2, 0, 3, 0, 1, 0, 2, 4, 7, 1, 0, 0, 0, 0, 0], [3095, 1534, 0, 0, 0, 0, 0, 0]], [[2998, 1289, 0, 0, 0, 0, 0, 0], [2998, 1289, 0, 0, 0, 1, 0, -1], [2998, 1290, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2997, 1305, 0, 0, 0, 0, 0, 0], [2998, 1307, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0], [2998, 1307, 0, 0, 0, 0, 0, 0], [3001, 1312, 0, 0, 0, 0, 1, 3, -3, -7, 0, 1, 0, 0, 0, 1, 0, -1, -1, -2, -1, -2, 0, 0, 0, 0, 2, -9, -4, -11, -7, -11, -24, -71, -37, -56, -33, -31, -18, -13, 0, 0, 217, 423, -1, -2, -10, -50, -24, -63, -27, -50, -23, -37, -5, -8, -2, -4], [2998, 1291, 0, 0, 0, 0, 0, 0], [3010, 1326, 0, 1, -1, -3, 0, 1, 1, 1], [3037, 1370, 1, 2, -1, -1, 0, 0, 0, -1], [3076, 1453, 0, 0, 0, -1, 0, 1], [3083, 1477, 0, 0, 1, 1, -1, -1], [3085, 1486, 0, -2, 0, 0, 0, 2], [3090, 1508, 0, 0, 0, 0, 0, 0], [3090, 1509, 0, 0, 0, 3, 0, -3], [3091, 1516, 0, 2, 0, 0, 0, 0, 1, 0, 0, 3, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, -2, -6, -1, -9, 1, 5, 0, 2], [3093, 1525, 0, 2, 0, 0, 0, -2], [3095, 1534, 0, 0, 0, 0, 0, 0]], [[2704, 950, 32, 44, 2, 1, 23, 57, 31, 15, -79, -123, -12, -47, -3, -88, -8, 52, 4, 62, 10, 27], [2971, 1201, 0, 1, 0, 0, 0, -1], [2976, 1214, 0, 1, 0, 0, 0, 0, 0, -1], [2987, 1262, 0, -1, 0, 1, 0, 0, 0, 0], [2988, 1264, 0, 0, 0, 0, 0, 0], [2988, 1265, 0, 0, 0, -1, 0, 1], [2988, 1267, 0, 0, 0, 0, 0, 0, 0, 0], [2996, 1284, -8, -17, 1, 1, 7, 16], [2998, 1290, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 0, 1, 0, 0, 0, 1, -1, 1, 0, 0, 0, 1, 0, 0, -1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, -1, 0, 0, 0, -1, 1, 0, 0, -1, 0, 0, 0, -1, 0, -1, 0, -1, 0, -2, 0, -1, 0, -2, 0, -1, -1, -1, 0, -2, -1, -1, -6, -10, -1, -5, -2, -6, 1, 5, 1, 4, 1, 2, 2, 3, 4, 6, 1, 3, 0, 0, 0, 1, 0, 0, 0, 0]], [[3092, 1522, -10, -48, -24, -63, -27, -50, -23, -37, -10, -17, -1, -2, 0, 0, 0, 0, 2, -9, -4, -11, -7, -11, -24, -71, -37, -56, -33, -31, 198, 406], [3102, 1540, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 2, 1, 7, 4, 38, 30, 127, 26, 81, 34, 83, 41, 46, -4, -60, -66, -124, -62, -166, -2, -26, -1, -3, -1, -4, -1, -1, 0, -1, -1, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, 0, -1, -1, 0, 0, -1, 0, 0, 2, 2]]], "valor": [144714, 62262, 152536, 54400, 30362, 19852, 7876, 27432, 27128, 44540, 70026, 9620, 26356, 19520, 33708, 23460, 32910, 32622, 11310, 19338, 49756, 22392, 31416, 78698, 6632, 11058, 7748, 1154, 1646, 778, 2098, 868, 1218], "cortes": [778, 7078.4, 19483.6, 28018, 47669.6, 152536], "clase": [5, 5, 5, 5, 4, 3, 2, 3, 3, 4, 5, 2, 3, 3, 4, 3, 4, 4, 2, 2, 5, 3, 4, 5, 1, 2, 2, 1, 1, 1, 1, 1, 1], "estilo": "quantile", "tam": [7, 6, 7, 6, 7], "etiquetas": ["Antioquia", "Atlántico", "Bogotá, D.C.", "Bolívar", "Boyacá", "Caldas", "Caquetá", "Cauca", "Cesar", "Córdoba", "Cundinamarca", "Chocó", "Huila", "La Guajira", "Magdalena", "Meta", "Nariño", "Norte de Santander", "Quindio", "Risaralda", "Santander", "Sucre", "Tolima", "Valle del Cauca", "Arauca", "Casanare", "Putumayo", "Archipiélago de San Andrés, Providencia y Santa Catalina", "Amazonas", "Guainía", "Guaviare", "Vaupés", "Vichada"]}, paleta: 'verde', silueta: false, descripcion: "El país se deforma sin romperse: cada departamento sigue tocando a sus vecinos, pero cambia de tamaño. Antioquia, Valle del Cauca y Cundinamarca crecen, y la Amazonía encoge: el Amazonas pasa del 9.59 % del área al 0.24 %. No llega a ser exacto: Bogotá, con el 14.32 % de los estudiantes, se queda en el 3.40 % del área." };
     GEOMAPAS['cap3-hexbin'] = { fuente: {"modo": "poligonos", "titulo": "Hexbin", "leyenda": "estudiantes (reparto por area)", "crs": 9377, "caja": [3987822.45446486, 1020426.04494123, 5787822.45446486, 3133528.03017526], "q": 4096, "codificacion": "delta", "n": 129, "geom": [[[420, 3626, -117, 67, 0, 134, 117, 68, 116, -68, 0, -134, -116, -67]], [[536, 3827, -116, 68, 0, 134, 116, 67, 116, -67, 0, -134, -116, -68]], [[885, 1209, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[1001, 1410, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[1118, 1209, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[1118, 1612, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[1118, 2417, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[1234, 1007, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[1234, 1410, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[1234, 1813, -116, 67, 0, 134, 116, 68, 116, -68, 0, -134, -116, -67]], [[1234, 2216, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[1234, 2619, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[1350, 1209, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[1350, 1612, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[1350, 2014, -116, 68, 0, 134, 116, 67, 116, -67, 0, -134, -116, -68]], [[1350, 2417, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[1350, 2820, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[1466, 1007, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[1466, 1410, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[1466, 1813, -116, 67, 0, 134, 116, 68, 117, -68, 0, -134, -117, -67]], [[1466, 2216, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[1466, 2619, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[1583, 1209, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[1583, 1612, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[1583, 2014, -117, 68, 0, 134, 117, 67, 116, -67, 0, -134, -116, -68]], [[1583, 2417, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[1583, 2820, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[1699, 1007, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[1699, 1410, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[1699, 1813, -116, 67, 0, 134, 116, 68, 116, -68, 0, -134, -116, -67]], [[1699, 2216, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[1699, 2619, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[1699, 3022, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[1815, 806, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[1815, 1209, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[1815, 1612, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[1815, 2014, -116, 68, 0, 134, 116, 67, 117, -67, 0, -134, -117, -68]], [[1815, 2417, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[1815, 2820, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[1815, 3223, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[1932, 604, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[1932, 1007, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[1932, 1410, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[1932, 1813, -117, 67, 0, 134, 117, 68, 116, -68, 0, -134, -116, -67]], [[1932, 2216, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[1932, 2619, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[1932, 3022, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[2048, 806, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2048, 1209, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2048, 1612, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2048, 2014, -116, 68, 0, 134, 116, 67, 116, -67, 0, -134, -116, -68]], [[2048, 2417, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2048, 2820, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2048, 3223, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2164, 604, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[2164, 1007, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[2164, 1410, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[2164, 1813, -116, 67, 0, 134, 116, 68, 117, -68, 0, -134, -117, -67]], [[2164, 2216, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2164, 2619, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2164, 3022, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2164, 3425, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2281, 403, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[2281, 806, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[2281, 1209, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[2281, 1612, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[2281, 2014, -117, 68, 0, 134, 117, 67, 116, -67, 0, -134, -116, -68]], [[2281, 2417, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[2281, 2820, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[2281, 3223, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[2397, 604, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2397, 1007, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2397, 1410, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2397, 1813, -116, 67, 0, 134, 116, 68, 116, -68, 0, -134, -116, -67]], [[2397, 2216, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2397, 2619, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2397, 3022, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2397, 3425, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2513, 403, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2513, 806, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2513, 1209, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2513, 1612, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2513, 2014, -116, 68, 0, 134, 116, 67, 117, -67, 0, -134, -117, -68]], [[2513, 2417, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[2513, 3223, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[2513, 3626, -116, 67, 0, 134, 116, 68, 117, -68, 0, -134, -117, -67]], [[2630, 604, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[2630, 1007, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[2630, 1410, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[2630, 1813, -117, 67, 0, 134, 117, 68, 116, -68, 0, -134, -116, -67]], [[2630, 2216, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[2630, 3425, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[2746, 0, -116, 67, 0, 134, 116, 68, 116, -68, 0, -134, -116, -67]], [[2746, 403, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2746, 806, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2746, 1209, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2746, 1612, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2746, 2014, -116, 68, 0, 134, 116, 67, 116, -67, 0, -134, -116, -68]], [[2746, 2417, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2862, 201, -116, 68, 0, 134, 116, 67, 116, -67, 0, -134, -116, -68]], [[2862, 604, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2862, 1007, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2862, 1410, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[2862, 1813, -116, 67, 0, 134, 116, 68, 116, -68, 0, -134, -116, -67]], [[2862, 2216, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[2978, 0, -116, 67, 0, 134, 116, 68, 117, -68, 0, -134, -117, -67]], [[2978, 403, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2978, 806, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2978, 1209, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2978, 1612, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[2978, 2014, -116, 68, 0, 134, 116, 67, 117, -67, 0, -134, -117, -68]], [[2978, 2417, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[3095, 604, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[3095, 1007, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[3095, 1410, -117, 67, 0, 135, 117, 67, 116, -67, 0, -135, -116, -67]], [[3095, 1813, -117, 67, 0, 134, 117, 68, 116, -68, 0, -134, -116, -67]], [[3095, 2216, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[3211, 1209, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[3211, 1612, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[3211, 2014, -116, 68, 0, 134, 116, 67, 116, -67, 0, -134, -116, -68]], [[3327, 1410, -116, 67, 0, 135, 116, 67, 117, -67, 0, -135, -117, -67]], [[3327, 1813, -116, 67, 0, 134, 116, 68, 117, -68, 0, -134, -117, -67]], [[3327, 2216, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]], [[3444, 1209, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[3444, 1612, -117, 67, 0, 134, 117, 67, 116, -67, 0, -134, -116, -67]], [[3444, 2014, -117, 68, 0, 134, 117, 67, 116, -67, 0, -134, -116, -68]], [[3560, 1410, -116, 67, 0, 135, 116, 67, 116, -67, 0, -135, -116, -67]], [[3560, 2216, -116, 67, 0, 134, 116, 67, 116, -67, 0, -134, -116, -67]], [[3676, 1209, -116, 67, 0, 134, 116, 67, 117, -67, 0, -134, -117, -67]]], "valor": [632.91030477, 521.08969523, 274.94496869, 2730.95069208, 10000.52261289, 2.17499666, 18.32056854, 3190.35886052, 11085.26310914, 1982.11056115, 171.36858364, 193.83413398, 11475.18172367, 20924.19867004, 1583.74193965, 3548.41838972, 494.58049165, 2894.72764605, 11808.77142828, 24049.22119143, 8846.02703496, 17432.01377987, 7543.45216809, 26856.0086666, 25733.02150029, 26213.71948003, 15628.01267427, 2887.20068103, 12963.62189066, 35620.56133083, 28175.91913887, 23525.25405607, 11508.31839265, 674.29191094, 1091.52576731, 15280.50055629, 28593.22687612, 28743.02976191, 25022.72401214, 67804.72708524, 0.47712159, 1376.16070534, 2475.17908059, 138319.1950364, 25720.91523141, 26278.31203325, 20054.78200213, 1076.521266, 1471.96650595, 3446.61181525, 71618.90682308, 23820.62186869, 20783.36144997, 15673.13403107, 118.04128735, 1091.52576731, 2296.18807036, 16601.9110501, 19305.83511904, 18973.92892662, 14326.7401053, 762.90088065, 73.86163409, 750.11806322, 562.65222806, 3427.56700229, 11129.5674991, 19806.77166242, 10795.38339408, 9535.45818798, 188.01741644, 999.52811817, 833.51737053, 3324.98842698, 11371.19269287, 8135.08634274, 16.67731781, 6702.51829096, 90.08900793, 437.45032182, 430.99592024, 3247.0663242, 3126.55698455, 5050.0204678, 42.79242112, 1443.0260493, 188.01741644, 287.10973537, 510.44797802, 2611.47278749, 3247.30459419, 3257.32021543, 5.25899613, 99.78138461, 192.55029451, 216.04536476, 726.53930112, 1498.24530972, 1667.92102904, 111.27472482, 188.94744933, 165.75707828, 213.49775186, 152.45149534, 2887.18514729, 17.7053243, 112.67849722, 89.52198479, 103.12420564, 140.38746098, 152.45149534, 334.87994411, 36.25964582, 28.33442117, 136.70415982, 152.2644053, 260.62441831, 20.40730867, 137.20402898, 152.45149534, 125.43416843, 122.72699705, 97.94958079, 8.20724417, 67.36175998, 34.07467095, 27.19974892, 2.37227456, 6.58005157], "cortes": [0.47712159, 124.35129987, 529.40220179, 3080.19111685, 15419.50540348, 138319.1950364], "clase": [3, 2, 2, 3, 4, 1, 1, 4, 4, 3, 2, 2, 4, 5, 3, 4, 2, 3, 4, 5, 4, 5, 4, 5, 5, 5, 5, 3, 4, 5, 5, 5, 4, 3, 3, 4, 5, 5, 5, 5, 1, 3, 3, 5, 5, 5, 5, 3, 3, 4, 5, 5, 5, 5, 1, 3, 3, 5, 5, 5, 4, 3, 1, 3, 3, 4, 4, 5, 4, 4, 2, 3, 3, 4, 4, 4, 1, 4, 1, 2, 2, 4, 4, 4, 1, 3, 2, 2, 2, 3, 4, 4, 1, 1, 2, 2, 3, 3, 3, 1, 2, 2, 2, 2, 3, 1, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1], "estilo": "quantile", "tam": [26, 26, 25, 26, 26]}, paleta: 'naranja', descripcion: "Son 129 hexágonos iguales, de 120 km de lado, con los estudiantes de cada departamento repartidos según el área que cae en cada uno. El más oscuro suma 138 319 estudiantes, el 82.6 % de ellos de Bogotá, y los 26 de la clase más clara no llegan a 124." };
 
     const TABLAS_RANKING = {};
@@ -9543,10 +10805,15 @@ for u in (0, 30, 300, 1000):
       function formatea(columna, valor) {
         if (columna.tipo === 'texto') return valor === undefined ? '' : String(valor);
         if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) return '—';
+        // La convención del material (R-B, 2026-11-17): punto decimal y
+        // millares con el espacio fino de la prosa, U+202F. Antes era
+        // `toLocaleString('es-CO')`, que escribe «2.621» por dos mil
+        // seiscientos veintiuno y «0,25» por un cuarto: justo al revés que
+        // el resto de la página, donde «2.621» se lee dos coma seis.
         const d = columna.decimales === undefined ? 2 : columna.decimales;
-        return Number(valor).toLocaleString('es-CO', {
-          minimumFractionDigits: d, maximumFractionDigits: d
-        }) + (columna.sufijo || '');
+        const partes = Number(valor).toFixed(d).split('.');
+        partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
+        return partes.join('.') + (columna.sufijo || '');
       }
 
       function dibuja() {

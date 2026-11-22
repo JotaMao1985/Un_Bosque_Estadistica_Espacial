@@ -124,6 +124,18 @@ fuera del presupuesto, y eso se dice en vez de dejar que el 157 de 200 se
 lea como si fuera todo. La comprobación propia `familia()` de abajo les
 pone su propio techo.
 
+SUBIÓ A 1580 KB el 2026-11-17, con las reglas compartidas de las gráficas en la plantilla
+(R2, T2.1: la fusión profunda de `crearGraficoLinea`, la leyenda al pie y la letra de la casa en
+todos los gráficos, el suelo de la letra de los rótulos y el color de las marcas del `.geomapa`).
+El documento no cambió una palabra y se pasaba del tope de 1470:
+
+  · pesa **1476 KB**: 1439 de antes y **37 de la plantilla**, casi todo comentario
+    —por qué cada regla, que es lo que evita que se deshaga—;
+  · la cota con el arnés: 1476 < 1580 < 1788;
+  · 1580 deja **104 KB de margen**, y es a propósito más que otras veces. El criterio lo
+    fijó Javier: el peso nunca recorta explicación, y el tope se sube de una vez hasta donde el
+    arnés sigue mordiendo, no de 20 en 20. Quedan rondas de mejora sobre esta misma plantilla.
+
 Uso:  python3 precalculo/audita_texto_cap5.py
 Devuelve 1 si algo falla.
 """
@@ -136,7 +148,7 @@ import sys
 from audita_texto_base import SALIDAS, Auditor
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP5_KB = 1470.0
+TOPE_CAP5_KB = 1580.0
 # El techo de las siete superficies del deslizador, que el núcleo no ve.
 TOPE_FAMILIA_KB = 200.0
 

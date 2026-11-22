@@ -901,6 +901,350 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["desercion"]["etiquetas"].__setitem__(
             o["desercion"]["etiquetas"].index("Bogotá D. C."), "Bogota Capital District")))
 
+    # --- R2 · T2.4: las tres gráficas nuevas, un mutante por campo --------
+    #
+    # Cada campo que R publica para la prueba de aleatorización (módulo 1),
+    # la envolvente de permutación (módulo 3) y los cien intervalos (módulo
+    # 4) se rompe por separado. Los prefijos «R2 · T2.4» permiten correr solo
+    # esta tanda (`--solo "R2 · T2.4"`).
+    al_ = lambda o: o["snow"]["aleatorizacion"]                      # noqa: E731
+    ev_ = lambda o: o["tobler"]["envolvente"]                        # noqa: E731
+    ci_ = lambda o: o["inferencia"]["cien_ic"]                       # noqa: E731
+    inf_ = lambda o: o["inferencia"]                                 # noqa: E731
+
+    def pon(f, campo, valor):
+        return m(lambda o: f(o).__setitem__(campo, valor(f(o)[campo]) if callable(valor) else valor))
+
+    def en_lista(f, campo, i, valor):
+        return m(lambda o: f(o)[campo].__setitem__(
+            i, valor(f(o)[campo][i]) if callable(valor) else valor))
+
+    # Módulo 1 · snow.aleatorizacion
+    add("R2 · T2.4 · m1: las recolocaciones no son las del histograma", "datos",
+        pon(al_, "n_recolocaciones", lambda v: v - 1))
+    add("R2 · T2.4 · m1: la semilla de la nula es la del guion", "datos",
+        m(lambda o: al_(o).__setitem__("semilla", o["meta"]["semilla"])))
+    add("R2 · T2.4 · m1: los tramos de calle no son los del plano", "datos",
+        pon(al_, "n_tramos", lambda v: v + 3))
+    add("R2 · T2.4 · m1: dos bombas cambian de sitio en la lista", "datos",
+        m(lambda o: al_(o).__setitem__("bombas", al_(o)["bombas"][1:2] + al_(o)["bombas"][0:1]
+                                       + al_(o)["bombas"][2:])))
+    add("R2 · T2.4 · m1: la parte de calle de una bomba cambia", "datos",
+        en_lista(al_, "pct_calle_por_bomba", 3, lambda v: v + 0.4173))
+    add("R2 · T2.4 · m1: la parte de calle de Broad St cambia", "datos",
+        pon(al_, "pct_calle_broad", lambda v: v + 0.4173))
+    add("R2 · T2.4 · m1: el cociente sobre la parte de calle no cuadra", "datos",
+        pon(al_, "razon_sobre_calle", 6.41739))
+    add("R2 · T2.4 · m1: la media de la nula no es la del histograma", "datos",
+        pon(al_, "media_nula_pct", lambda v: v + 0.0041739))
+    add("R2 · T2.4 · m1: el error de Monte Carlo de la nula cambia", "datos",
+        pon(al_, "emc_media_pct", lambda v: v * 3))
+    add("R2 · T2.4 · m1: la desviación típica de la nula cambia", "datos",
+        pon(al_, "sd_nula_pct", lambda v: v * 1.2))
+    add("R2 · T2.4 · m1: la desviación típica binomial cambia", "datos",
+        pon(al_, "sd_binomial_pct", lambda v: v * 1.2))
+    add("R2 · T2.4 · m1: el mínimo de la nula se corre una muerte", "datos",
+        pon(al_, "min_nula_n", lambda v: v + 1))
+    add("R2 · T2.4 · m1: el máximo de la nula se corre una muerte", "datos",
+        pon(al_, "max_nula_n", lambda v: v - 1))
+    add("R2 · T2.4 · m1: el mínimo en porcentaje no es su recuento", "datos",
+        pon(al_, "min_nula_pct", lambda v: v + 0.17301))
+    add("R2 · T2.4 · m1: el máximo en porcentaje no es su recuento", "datos",
+        pon(al_, "max_nula_pct", lambda v: v + 0.17301))
+    add("R2 · T2.4 · m1: una recolocación pasa a alcanzar al observado", "datos",
+        pon(al_, "n_mayor_o_igual", 1))
+    add("R2 · T2.4 · m1: la cota del valor p deja de ser 1/(B + 1)", "datos",
+        pon(al_, "p_cota", 0.0))
+    add("R2 · T2.4 · m1: el observado se acerca a la nula", "datos",
+        pon(al_, "z_observado", 4.17391))
+    add("R2 · T2.4 · m1: el histograma se corre un recuento", "datos",
+        m(lambda o: al_(o).__setitem__("hist_n", [k + 1 for k in al_(o)["hist_n"]])))
+    add("R2 · T2.4 · m1: dos barras del histograma se intercambian", "datos",
+        m(lambda o: al_(o)["hist_frec"].__setitem__(
+            slice(5, 30, 24), [al_(o)["hist_frec"][29], al_(o)["hist_frec"][5]])))
+    add("R2 · T2.4 · m1: la curva binomial se desvía en una barra", "datos",
+        en_lista(al_, "hist_binomial", 20, lambda v: v * 1.05))
+
+    # Módulo 3 · tobler.envolvente
+    add("R2 · T2.4 · m3: la envolvente declara menos permutaciones", "datos",
+        pon(ev_, "nperm", 999))
+    add("R2 · T2.4 · m3: el nivel de la envolvente cambia", "datos", pon(ev_, "nivel", 0.9))
+    add("R2 · T2.4 · m3: el nivel en porcentaje no es el nivel", "datos", pon(ev_, "nivel_pct", 99))
+    add("R2 · T2.4 · m3: el cuantil inferior no es el del nivel", "datos",
+        pon(ev_, "cuantil_lo_pct", 5))
+    add("R2 · T2.4 · m3: el cuantil superior no es el del nivel", "datos",
+        pon(ev_, "cuantil_hi_pct", 95))
+    add("R2 · T2.4 · m3: el estadístico de orden inferior cambia", "datos",
+        pon(ev_, "orden_lo", lambda v: v + 1))
+    add("R2 · T2.4 · m3: el estadístico de orden superior cambia", "datos",
+        pon(ev_, "orden_hi", lambda v: v - 1))
+    add("R2 · T2.4 · m3: las dos envolventes comparten semilla", "datos",
+        m(lambda o: ev_(o).__setitem__("semilla_residuos", ev_(o)["semilla_ideam"])))
+    add("R2 · T2.4 · m3: la semilla de la temperatura es la del guion", "datos",
+        m(lambda o: ev_(o).__setitem__("semilla_ideam", o["meta"]["semilla"])))
+    eb_ = lambda serie, i: (lambda o: ev_(o)[serie][i])              # noqa: E731
+    add("R2 · T2.4 · m3: una banda de la envolvente empieza en otro sitio", "datos",
+        pon(eb_("ideam", 2), "d1", lambda v: v + 5))
+    add("R2 · T2.4 · m3: una banda de la envolvente acaba en otro sitio", "datos",
+        pon(eb_("residuos_altitud", 4), "d2", lambda v: v + 25))
+    add("R2 · T2.4 · m3: el borde inferior de la franja se encoge", "datos",
+        pon(eb_("ideam", 0), "lo", lambda v: v * 0.5))
+    add("R2 · T2.4 · m3: el borde superior de la franja se ensancha", "datos",
+        pon(eb_("residuos_altitud", 3), "hi", lambda v: v * 1.6))
+    add("R2 · T2.4 · m3: la franja deja de estar centrada en E[I]", "datos",
+        pon(eb_("ideam", 5), "media", lambda v: v + 0.001))
+    add("R2 · T2.4 · m3: el error de Monte Carlo de una banda cambia", "datos",
+        pon(eb_("ideam", 1), "emc", lambda v: v * 1.5))
+    add("R2 · T2.4 · m3: la desviación típica de una banda cambia", "datos",
+        pon(eb_("residuos_altitud", 6), "sd", lambda v: v * 1.25))
+    add("R2 · T2.4 · m3: el mínimo de las permutaciones baja hasta el dato", "datos",
+        pon(eb_("ideam", 5), "min", -0.0941739))
+    add("R2 · T2.4 · m3: el máximo de las permutaciones se dispara", "datos",
+        pon(eb_("ideam", 6), "max", 0.0941739))
+    add("R2 · T2.4 · m3: la última banda pasa a quedar «por debajo»", "datos",
+        pon(eb_("ideam", 6), "posicion", "debajo"))
+    add("R2 · T2.4 · m3: los residuos de 175-300 km pasan a «por encima»", "datos",
+        pon(eb_("residuos_altitud", 4), "posicion", "encima"))
+    add("R2 · T2.4 · m3: el recuento de bandas fuera (temperatura) cambia", "datos",
+        pon(ev_, "n_fuera_ideam", 5))
+    add("R2 · T2.4 · m3: el recuento de bandas fuera (residuos) cambia", "datos",
+        pon(ev_, "n_fuera_residuos", 7))
+    add("R2 · T2.4 · m3: la permutación suelta se sale en una banda", "datos",
+        en_lista(ev_, "posicion_permutado", 2, "encima"))
+    add("R2 · T2.4 · m3: el recuento de la permutación suelta cambia", "datos",
+        pon(ev_, "n_fuera_permutado", 1))
+    # Y el dato bajo la envolvente: la I de la banda negativa se mete dentro.
+    add("R2 · T2.4 · m3: la banda negativa se mete en la franja", "datos",
+        m(lambda o: o["tobler"]["ideam"]["bandas"][5].__setitem__("I", -0.0041739)))
+
+    # Módulo 4 · inferencia.cien_ic
+    add("R2 · T2.4 · m4: los cien intervalos son de otro alcance", "datos", pon(ci_, "phi", 2))
+    add("R2 · T2.4 · m4: los cien intervalos dicen ser noventa y nueve", "datos",
+        pon(ci_, "n", 99))
+    add("R2 · T2.4 · m4: una media se va a cinco desviaciones", "datos",
+        en_lista(ci_, "media", 0, 5.41739))
+    add("R2 · T2.4 · m4: un semiancho ingenuo se ensancha", "datos",
+        en_lista(ci_, "semiancho_ingenuo", 0, 3.41739))
+    add("R2 · T2.4 · m4: el recuento ingenuo no es el de sus intervalos", "datos",
+        pon(ci_, "n_cubren_ingenuo", lambda v: v + 1))
+    add("R2 · T2.4 · m4: el semiancho medio no es la media de los cien", "datos",
+        pon(ci_, "semiancho_ingenuo_medio", lambda v: v * 1.1))
+    add("R2 · T2.4 · m4: el cuantil normal cambia", "datos", pon(ci_, "z_critico", 1.6448536))
+    add("R2 · T2.4 · m4: el error estándar verdadero no sale de 1'R1", "datos",
+        pon(ci_, "ee_exacto", lambda v: v * 1.05))
+    add("R2 · T2.4 · m4: el semiancho exacto no es z por el e.e.", "datos",
+        pon(ci_, "semiancho_exacto", lambda v: v * 0.9))
+    add("R2 · T2.4 · m4: el recuento exacto no es el de sus intervalos", "datos",
+        pon(ci_, "n_cubren_exacto", lambda v: v - 1))
+    add("R2 · T2.4 · m4: el cociente de semianchos no cuadra", "datos",
+        pon(ci_, "razon_semianchos", 6.41739))
+    add("R2 · T2.4 · m4: la cobertura exacta deja de ser la nominal", "datos",
+        pon(ci_, "cobertura_exacto", 0.91))
+    add("R2 · T2.4 · m4: el error de la cobertura exacta no es el suyo", "datos",
+        pon(ci_, "emc_cobertura_exacto", lambda v: v * 2))
+
+    # Segunda ronda de T2.4: el marco del plano, las parejas que el eje deja
+    # fuera, la suma por bandas, «alguna banda fuera» y el nivel.
+    mr_ = lambda i: (lambda o: al_(o)["marcos"][i])                  # noqa: E731
+    mx_ = lambda o: o["tobler"]["mas_alla"]                          # noqa: E731
+    sm_ = lambda o: o["tobler"]["sumas"]                             # noqa: E731
+    add("R2 · T2.4 · r2 m1: la caja de las muertes se ensancha", "datos",
+        en_lista(al_, "caja_muertes", 1, lambda v: v + 0.5))
+    add("R2 · T2.4 · r2 m1: la caja de las calles se encoge", "datos",
+        en_lista(al_, "caja_calles", 0, lambda v: v + 0.5))
+    add("R2 · T2.4 · r2 m1: un marco cambia de nombre", "datos",
+        pon(mr_(0), "marco", "el plano entero"))
+    add("R2 · T2.4 · r2 m1: un marco cambia de margen", "datos", pon(mr_(1), "margen", 3))
+    add("R2 · T2.4 · r2 m1: la calle que entra en un marco cambia", "datos",
+        pon(mr_(2), "pct_longitud", lambda v: v + 1.41739))
+    add("R2 · T2.4 · r2 m1: la parte de calle del marco estrecho cambia", "datos",
+        pon(mr_(0), "pct_calle_broad", lambda v: v - 1.41739))
+    add("R2 · T2.4 · r2 m1: la razón de un marco no es su cociente", "datos",
+        pon(mr_(1), "razon_sobre_calle", 4.41739))
+    add("R2 · T2.4 · r2 m1: con el marco estrecho el dato se acerca a la nula", "datos",
+        pon(mr_(0), "z_binomial", 4.17391))
+    add("R2 · T2.4 · r2 m3: lo de más allá del eje empieza en otra distancia", "datos",
+        pon(mx_, "d1", 700))
+    add("R2 · T2.4 · r2 m3: la distancia máxima de la red cambia", "datos",
+        pon(mx_, "d_max", lambda v: v + 41.739))
+    add("R2 · T2.4 · r2 m3: las parejas de más allá del eje cambian", "datos",
+        pon(mx_, "n_pares", lambda v: v + 7))
+    add("R2 · T2.4 · r2 m3: las parejas de la red entera cambian", "datos",
+        pon(mx_, "n_pares_total", lambda v: v + 361))
+    add("R2 · T2.4 · r2 m3: el porcentaje de parejas fuera del eje cambia", "datos",
+        pon(mx_, "pct_pares", 11.41739))
+    add("R2 · T2.4 · r2 m3: no todas las estaciones tienen pareja lejana", "datos",
+        pon(mx_, "n_con_vecinos", lambda v: v - 4))
+    add("R2 · T2.4 · r2 m3: la I de más allá del eje cambia", "datos",
+        pon(mx_, "I", lambda v: v + 0.0141739))
+    add("R2 · T2.4 · r2 m3: el borde inferior de esa franja se encoge", "datos",
+        pon(mx_, "lo", lambda v: v * 0.5))
+    add("R2 · T2.4 · r2 m3: el borde superior de esa franja se ensancha", "datos",
+        pon(mx_, "hi", lambda v: v * 1.6))
+    add("R2 · T2.4 · r2 m3: esa franja deja de centrarse en E[I]", "datos",
+        pon(mx_, "media", lambda v: v + 0.002))
+    add("R2 · T2.4 · r2 m3: la desviación típica de esa franja cambia", "datos",
+        pon(mx_, "sd", lambda v: v * 1.25))
+    add("R2 · T2.4 · r2 m3: lo de más allá del eje pasa a quedar dentro", "datos",
+        pon(mx_, "posicion", "dentro"))
+    sb_ = lambda i: (lambda o: sm_(o)["bandas"][i])                  # noqa: E731
+    add("R2 · T2.4 · r2 m3: una suma va sobre otra banda", "datos", pon(sb_(2), "d2", 110))
+    add("R2 · T2.4 · r2 m3: una suma empieza en otro sitio", "datos", pon(sb_(3), "d1", 90))
+    add("R2 · T2.4 · r2 m3: las parejas de una suma cambian", "datos",
+        pon(sb_(4), "n_pares", lambda v: v + 5))
+    add("R2 · T2.4 · r2 m3: la suma de la banda negativa cambia", "datos",
+        pon(sb_(5), "suma", lambda v: v + 1.41739))
+    add("R2 · T2.4 · r2 m3: la suma de más allá del eje cambia", "datos",
+        pon(sm_, "mas_alla", lambda v: v - 0.41739))
+    add("R2 · T2.4 · r2 m3: las bandas cortas pasan a ser cuatro", "datos",
+        pon(sm_, "n_bandas_cortas", 4))
+    add("R2 · T2.4 · r2 m3: la suma de las bandas cortas cambia", "datos",
+        pon(sm_, "cortas", lambda v: v + 0.41739))
+    add("R2 · T2.4 · r2 m3: la suma de todo lo demás cambia", "datos",
+        pon(sm_, "largas", lambda v: v + 0.41739))
+    add("R2 · T2.4 · r2 m3: el total de las sumas deja de ser -1", "datos", pon(sm_, "total", -0.9))
+    add("R2 · T2.4 · r2 m3: casi ninguna permutación se sale en alguna banda", "datos",
+        pon(ev_, "pct_alguna_fuera", 4.17391))
+    add("R2 · T2.4 · r2 m3: el error de «alguna banda fuera» no es el suyo", "datos",
+        pon(ev_, "emc_alguna_fuera_pct", lambda v: v * 2))
+    add("R2 · T2.4 · r2 m4: el nivel de los intervalos no es el de alfa", "datos",
+        pon(inf_, "nivel_pct", 90))
+
+    # --- R2 · T2.2: las gráficas y los mapas propios del capítulo -------
+    def _cambia(lista, i, j):
+        lista[i], lista[j] = lista[j], lista[i]
+
+    def _otro_pliegue(o, clave):
+        v = o["ideam"][clave]
+        j = next(k for k in range(1, len(v)) if v[k] != v[0])
+        v[0], v[j] = v[j], v[0]
+
+    add("R2 · T2.2 · Snow: desaparecen las celdas de las bombas", "mapas",
+        m(lambda o: o["snow"].pop("celdas")))
+    add("R2 · T2.2 · Snow: dos bombas se cambian la celda", "mapas",
+        m(lambda o: _cambia(o["snow"]["celdas"], 6, 5)))
+    add("R2 · T2.2 · Snow: la celda de Broad St crece hacia un lado", "mapas",
+        m(lambda o: o["snow"]["celdas"][6].__setitem__(0, o["snow"]["celdas"][6][0] + 400)))
+    add("R2 · T2.2 · Snow: falta una celda", "mapas",
+        m(lambda o: o["snow"]["celdas"].pop()))
+    add("R2 · T2.2 · Snow: vuelve el pie de leyenda bajo las entradas", "mapas",
+        m(lambda o: o["snow"].__setitem__("leyenda", "bomba más próxima")))
+    add("R2 · T2.2 · Mosa: la rampa vuelve a ser lineal", "mapas",
+        m(lambda o: o["meuse"].pop("marcas_escala")))
+    add("R2 · T2.2 · Mosa: el marco ya no es el de los puntos", "mapas",
+        m(lambda o: o["meuse"]["caja"].__setitem__(0, o["meuse"]["caja"][0] - 300)))
+    add("R2 · T2.2 · Mosa: se pierde una orilla", "mapas",
+        m(lambda o: o["meuse"]["lineas"].pop()))
+    add("R2 · T2.2 · Mosa: el río dibujado es otro", "mapas",
+        m(lambda o: o["meuse"].__setitem__("lineas", [[4096 - v if i % 2 == 0 else v for i, v in enumerate(l)]
+                                                    for l in o["meuse"]["lineas"]])))
+    add("R2 · T2.2 · m7: la ventana del acercamiento se corre", "mapas",
+        m(lambda o: o["agregacion"]["zoom"]["caja"].__setitem__(0, o["agregacion"]["zoom"]["caja"][0] + 150000)))
+    add("R2 · T2.2 · m7: el acercamiento declara otras celdas", "mapas",
+        m(lambda o: o["agregacion"]["zoom"].__setitem__("n_celdas", 25)))
+    add("R2 · T2.2 · m7: desaparece la ventana del acercamiento", "mapas",
+        m(lambda o: o["agregacion"].pop("zoom")))
+    add("R2 · T2.2 · IDEAM: desaparece el contorno del país", "mapas",
+        m(lambda o: o["ideam"].pop("lineas")))
+    add("R2 · T2.2 · IDEAM: el contorno es de otro sitio", "mapas",
+        m(lambda o: o["ideam"].__setitem__("lineas", [[v // 2 for v in l] for l in o["ideam"]["lineas"]])))
+    add("R2 · T2.2 · IDEAM: una franja de altitud cuenta de más", "datos",
+        m(lambda o: o["visto"]["ideam"]["por_altitud"][2].__setitem__(
+            "n", o["visto"]["ideam"]["por_altitud"][2]["n"] + 1)))
+    add("R2 · T2.2 · IDEAM: la temperatura media de una franja cambia", "datos",
+        m(lambda o: o["visto"]["ideam"]["por_altitud"][4].__setitem__("t_media", 16.41739)))
+    add("R2 · T2.2 · IDEAM: desaparecen las franjas de altitud", "datos",
+        m(lambda o: o["visto"]["ideam"].pop("por_altitud")))
+    add("R2 · T2.2 · m10: dos estaciones se cambian de pliegue al azar", "mapas",
+        m(lambda o: _otro_pliegue(o, "pliegue_aleatorio")))
+    add("R2 · T2.2 · m10: dos estaciones se cambian de bloque", "mapas",
+        m(lambda o: _otro_pliegue(o, "pliegue_bloques")))
+    add("R2 · T2.2 · m10: el mapa pierde un reparto", "mapas",
+        m(lambda o: o["ideam"].pop("pliegue_bloques")))
+    add("R2 · T2.2 · m10: las vecinas en su pliegue, al azar, cambian", "datos",
+        m(lambda o: o["cv_espacial"].__setitem__("vecina_en_su_pliegue_aleatoria", 37)))
+    add("R2 · T2.2 · m10: las vecinas en su bloque cambian", "datos",
+        m(lambda o: o["cv_espacial"].__setitem__("vecina_en_su_pliegue_bloques", 340)))
+    add("R2 · T2.2 · m10: el RMSE aleatorio no es el de sus pliegues", "datos",
+        m(lambda o: (o["cv_espacial"].__setitem__("rmse_aleatoria", o["cv_espacial"]["rmse_aleatoria"] * 1.001),
+                     o["cv_espacial"].__setitem__("razon", o["cv_espacial"]["rmse_bloques"] / (o["cv_espacial"]["rmse_aleatoria"])),
+                     o["cv_espacial"].__setitem__("inflacion_pct", 100 * (o["cv_espacial"]["razon"] - 1)),
+                     o["cv_espacial"].__setitem__("r2_aleatoria", 1 - o["cv_espacial"]["rmse_aleatoria"] ** 2 / o["cv_espacial"]["sd_variable"] ** 2))))
+    add("R2 · T2.2 · m4: un campo pierde el centro de su escala", "mapas",
+        m(lambda o: o["campos"][2].pop("centro")))
+    add("R2 · T2.2 · m4: los cortes de un campo dejan de ser simétricos", "mapas",
+        m(lambda o: o["campos"][4]["cortes"].__setitem__(0, o["campos"][4]["cortes"][0] - 0.5)))
+    add("R2 · T2.2 · m4: un campo va con otra escala que los demás", "mapas",
+        m(lambda o: o["campos"][1].__setitem__("rango", [-3.5, 3.5])))
+    add("R2 · T2.2 · m4: las celdas por clase de un campo cambian", "mapas",
+        m(lambda o: (o["campos"][4]["tam"].__setitem__(2, o["campos"][4]["tam"][2] + 9),
+                     o["campos"][4]["tam"].__setitem__(3, o["campos"][4]["tam"][3] - 9))))
+    add("R2 · T2.2 · m4: un campo pierde su recuento por clase", "mapas",
+        m(lambda o: o["campos"][0].pop("tam")))
+    add("R2 · T2.2 · m4: la media del campo destacado no es la de la réplica 1", "mapas",
+        m(lambda o: o["campos"][4].__setitem__("media_espacial", o["campos"][4]["media_espacial"] + 0.05)))
+    add("R2 · T2.2 · m4: la réplica 1 de los cien intervalos es otra", "datos",
+        m(lambda o: o["inferencia"]["cien_ic"]["media"].__setitem__(
+            0, o["inferencia"]["cien_ic"]["media"][0] + 0.0004)))
+    add("R2 · T2.2 · m4: el I de Moran de un campo no es el de su mapa", "mapas",
+        m(lambda o: o["campos"][5].__setitem__("moran", o["campos"][5]["moran"] + 0.02)))
+    add("R2 · T2.2 · m4: un campo vuelve a la rejilla de 28×28", "mapas",
+        m(lambda o: (o["campos"][3].__setitem__("nx", 28), o["campos"][3].__setitem__("ny", 28))))
+    add("R2 · T2.2 · m6: una realización pierde el centro de su escala", "mapas",
+        m(lambda o: o["realizaciones"][0].__setitem__("centro", 0.3)))
+    add("R2 · T2.2 · m6: las celdas por clase de una realización cambian", "mapas",
+        m(lambda o: (o["realizaciones"][2]["tam"].__setitem__(1, o["realizaciones"][2]["tam"][1] + 12),
+                     o["realizaciones"][2]["tam"].__setitem__(5, o["realizaciones"][2]["tam"][5] - 12))))
+    add("R2 · T2.2 · m6: el recorrido común no es el de las tres", "mapas",
+        m(lambda o: [g.__setitem__("rango", [-3.0, 3.0]) or g.__setitem__(
+            "cortes", [-3.0 + 6.0 * k / 7 for k in range(8)]) for g in o["realizaciones"]]))
+
+    # --- R2 · T2.3: los bordes de Bogotá y la caja de los pinos ----------
+    add("R2 · T2.3 · Bogotá: el área del rectángulo de las sedes cambia", "datos",
+        m(lambda o: o["colombia"]["puntual"].__setitem__("area_caja_km2", 4613.41739)))
+    add("R2 · T2.3 · Bogotá: la intensidad con el rectángulo cambia", "datos",
+        m(lambda o: o["colombia"]["puntual"].__setitem__("lambda_caja", 0.48417)))
+    add("R2 · T2.3 · Bogotá: lo que el rectángulo se sale del Distrito cambia", "datos",
+        m(lambda o: o["colombia"]["puntual"].__setitem__("pct_caja_fuera_dc", 61.7)))
+    add("R2 · T2.3 · Bogotá: el mapa pierde sus bordes", "mapas",
+        m(lambda o: o["bogota"].pop("bordes")))
+    add("R2 · T2.3 · Bogotá: el perímetro urbano y el Distrito se cambian el nombre", "mapas",
+        m(lambda o: o["bogota"]["bordes"].update(urbano=o["bogota"]["bordes"]["distrito"],
+                                                 distrito=o["bogota"]["bordes"]["urbano"])))
+    add("R2 · T2.3 · Bogotá: el rectángulo dibujado no es el de las sedes", "mapas",
+        m(lambda o: o["bogota"]["bordes"]["caja"][0].__setitem__(0, o["bogota"]["bordes"]["caja"][0][0] - 300)))
+    add("R2 · T2.3 · Bogotá: una sede del perímetro urbano se lee como del resto del Distrito", "mapas",
+        m(lambda o: o["bogota"]["dentro"].__setitem__(o["bogota"]["dentro"].index(2), 1)))
+    add("R2 · T2.3 · Bogotá: el mapa pierde el borde de cada sede", "mapas",
+        m(lambda o: o["bogota"].pop("dentro")))
+    add("R2 · T2.3 · Bogotá: una sede urbana en el tercio del medio", "datos",
+        m(lambda o: o["visto"]["bogota"]["urbana"].__setitem__(1, 1)))
+    add("R2 · T2.3 · Bogotá: ninguna sede fuera del Distrito en el tercio del medio", "datos",
+        m(lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0)))
+    add("R2 · T2.3 · Bogotá: el perímetro urbano baja del corte", "datos",
+        m(lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -5.0)))
+    # Ronda 5: «cabe entero en ese tercio» tiene su cifra en R.
+    add("R2 · T2.3r5 · Bogotá: el perímetro urbano deja de caber en el tercio norte", "datos",
+        m(lambda o: o["visto"]["bogota"].__setitem__("urbano_en_tercio_norte", False)))
+    add("R2 · T2.3r5 · Bogotá: se pierde si el perímetro cabe en el tercio norte", "datos",
+        m(lambda o: o["visto"]["bogota"].pop("urbano_en_tercio_norte")))
+    add("R2 · T2.3 · deserción: la clase más oscura, con otro reparto por zonas", "datos",
+        m(lambda o: o["visto"]["desercion"]["clase_alta"]["zonas"]["n"].__setitem__(0, 4)))
+    add("R2 · T2.3 · IDEAM: las más frías dejan de ser las que son", "datos",
+        m(lambda o: o["visto"]["ideam"].__setitem__("n_frias", 36)))
+    add("R2 · T2.3 · IDEAM: las más altas, con otro reparto por zonas", "datos",
+        m(lambda o: o["visto"]["ideam"]["altas"]["zonas"]["n"].__setitem__(0, 30)))
+    add("R2 · T2.3 · IDEAM: la temperatura baja otra cosa por km", "datos",
+        m(lambda o: o["visto"]["ideam"].__setitem__("baja_por_km", 6.1)))
+    add("R2 · T2.3 · meuse: el zinc alto, del lado sureste", "datos",
+        m(lambda o: o["visto"]["meuse"].__setitem__("lado", "sureste")))
+    add("R2 · T2.3 · meuse: el décimo alto cuenta otro número del lado noroeste", "datos",
+        m(lambda o: o["visto"]["meuse"].__setitem__("top_noroeste", 10)))
+    add("R2 · T2.3 · pinos: el área del rectángulo de los puntos cambia", "datos",
+        m(lambda o: o["puntual_canonico"]["japanesepines"].__setitem__("area_caja", 0.93)))
+    add("R2 · T2.3 · pinos: la intensidad con ese rectángulo cambia", "datos",
+        m(lambda o: o["puntual_canonico"]["japanesepines"].__setitem__("lambda_caja", 70.41739)))
+
     return D
 
 
@@ -961,6 +1305,12 @@ def main() -> int:
     vistas_fallar: set[str] = set()
 
     lista = defectos()
+    # `--solo PREFIJO` corre solo los defectos cuyo nombre empieza así: sirve
+    # para probar una tanda nueva sin esperar a las demás. La pasada completa
+    # —sin argumentos— es la que cuenta para dar algo por cerrado.
+    if "--solo" in sys.argv:
+        prefijo = sys.argv[sys.argv.index("--solo") + 1]
+        lista = [d for d in lista if d[0].startswith(prefijo)]
     cazados = 0
     print(f"\n  {len(lista)} defectos que inyectar\n" + "-" * 66)
 
