@@ -3526,7 +3526,17 @@ D$visto <- list(
                 urbana = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f & cole$en_urbana), 0L)),
                 fuera_dc = I(vapply(c("norte", "centro", "sur"), function(f) sum(fr_cole == f & !cole$en_ventana_dc), 0L)),
                 margen_urbano_m = r10(st_bbox(v_urb)[["ymin"]] -
-                  (MAPAS$bogota$caja[2] + 2 / 3 * (MAPAS$bogota$caja[4] - MAPAS$bogota$caja[2])))))
+                  (MAPAS$bogota$caja[2] + 2 / 3 * (MAPAS$bogota$caja[4] - MAPAS$bogota$caja[2]))),
+                # R2 · T2.3 (ronda 5). «Cabe entero en ese tercio» no lo dice
+                # solo el margen (que mira el borde sur): el tercio norte de la
+                # caja del mapa, como rectángulo, tiene que cubrir el perímetro
+                # urbano entero, también por el este, el oeste y el norte.
+                urbano_en_tercio_norte = local({
+                  cj <- MAPAS$bogota$caja
+                  tercio <- st_as_sfc(st_bbox(c(xmin = cj[1], ymin = cj[2] + 2 / 3 * (cj[4] - cj[2]),
+                                                xmax = cj[3], ymax = cj[4]), crs = st_crs(v_urb)))
+                  isTRUE(st_covers(tercio, st_union(st_geometry(v_urb)), sparse = FALSE)[1, 1])
+                })))
 message(sprintf("  deserción: de %s (%s) a %s (%s) · NC alta: %s · IDEAM frías: %s · Bogotá: %s",
                 nombre_dep(dep_ok$shapeName[o_dep[1]]), z_dep[o_dep[1]],
                 nombre_dep(dep_ok$shapeName[rev(o_dep)[1]]), z_dep[rev(o_dep)[1]],

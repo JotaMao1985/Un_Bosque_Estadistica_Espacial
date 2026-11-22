@@ -3134,6 +3134,13 @@ def main() -> int:
                  f"urbanas {_urb} · fuera {_fdc}")
         a.igual(_ur.bounds[1] - (cj[1] + 2 / 3 * (cj[3] - cj[1])), vb.get("margen_urbano_m"),
                 "visto: Bogotá, a cuántos metros del corte acaba el perímetro urbano", 1e-6)
+        # R2 · T2.3 (ronda 5): «cabe entero en ese tercio», con shapely: el
+        # rectángulo del tercio norte de la caja cubre el perímetro urbano.
+        from shapely.geometry import box as _box5
+        _cubre = bool(_box5(cj[0], cj[1] + 2 / 3 * (cj[3] - cj[1]), cj[2], cj[3]).covers(_ur))
+        a.cierto(vb.get("urbano_en_tercio_norte") is _cubre,
+                 "visto: Bogotá, el perímetro urbano cabe entero en el tercio norte de la caja",
+                 f"R {vb.get('urbano_en_tercio_norte')} · shapely {_cubre}")
     else:
         a.cierto(False, "visto: Bogotá, las sedes por franja", "falta el dato o el mapa")
 

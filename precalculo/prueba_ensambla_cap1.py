@@ -1006,13 +1006,13 @@ def defectos() -> list[tuple[str, str, str, object]]:
     txt("T2.3d: las cálidas de la descripción con el número de las frías", "ensamblador",
         "{ent(_VI['ideam']['n_calidas'])} más cálidas", "{ent(_VI['ideam']['n_frias'])} más cálidas")
     txt("T2.3d: el perímetro urbano acaba «al sur» del corte", "ensamblador",
-        "m al norte del corte. El tercio del", "m al sur del corte. El tercio del")
+        "{'al norte' if _MG > 0 else 'al sur'} del corte", "{'al sur' if _MG > 0 else 'al norte'} del corte")
     txt("T2.3d: las frías, donde se concentran las de menor altitud", "ensamblador",
         'f"de mayor altitud")', 'f"de menor altitud")')
     txt("T2.3d: la temperatura «sube» con la altura", "ensamblador",
-        "La temperatura baja {n(_VI['ideam']['baja_por_km'], 1)} °C", "La temperatura sube {n(_VI['ideam']['baja_por_km'], 1)} °C")
+        "{'baja' if _VI['ideam']['baja_por_km'] > 0 else 'sube'} {n(abs(", "{'sube' if _VI['ideam']['baja_por_km'] > 0 else 'baja'} {n(abs(")
     txt("T2.3d: las estaciones altas del centro con la cifra de otra zona", "ensamblador",
-        "{ent(_AL['zonas']['n'][0])} de las {ent(_AL['n'])} de", "{ent(_AL['zonas']['n'][1])} de las {ent(_AL['n'])} de")
+        "{ent(_AL['zonas']['n'][0])} de las {ent(_AL['n'])} estaciones situadas a", "{ent(_AL['zonas']['n'][1])} de las {ent(_AL['n'])} estaciones situadas a")
     txt("T2.3c: la respuesta de Bogotá: el rectángulo cabe en el Distrito", "ensamblador",
         "y se sale del Distrito, así que su área cuenta suelo donde nadie buscó sedes",
         "y cabe en el Distrito, así que su área no cuenta suelo de más")
@@ -1032,6 +1032,20 @@ def defectos() -> list[tuple[str, str, str, object]]:
         '    + ("todas dentro del Distrito." if True else')
     obj("T2.3b: el perímetro urbano baja del corte de los tercios", "datos",
         lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -3.0))
+    # Ronda 5: lo que el verificador coló en la ronda 4.
+    txt("T2.3r5: la etiqueta pone los tres valores «más bajos» en el sur y el oriente", "ensamblador",
+        '"cap1-desercion": "valores más altos están en el sur y el oriente del país",',
+        '"cap1-desercion": "valores más bajos están en el sur y el oriente del país",')
+    txt("T2.3r5: el IDEAM vuelve a «29 de las 37 de 2 560 m o más»", "ensamblador",
+        "de las {ent(_AL['n'])} estaciones situadas a \"\n    f\"{ent(_AL['umbral_m'])} m o más están en el {_AL['zonas']['zona'][0]}.",
+        "de las {ent(_AL['n'])} de \"\n    f\"{ent(_AL['umbral_m'])} m o más.")
+    txt("T2.3r5: el umbral de las más frías es el de las cálidas", "ensamblador",
+        "{n(_VI['ideam']['frias_umbral'], 1)} °C o menos", "{n(_VI['ideam']['calidas_umbral'], 1)} °C o menos")
+    txt("T2.3r5: el perímetro urbano «no cabe» en el tercio norte", "ensamblador",
+        "{'cabe' if _VI['bogota'].get('urbano_en_tercio_norte') else 'no cabe'}",
+        "{'no cabe' if _VI['bogota'].get('urbano_en_tercio_norte') else 'cabe'}")
+    obj("T2.3r5: R dice que el perímetro urbano no cabe en el tercio norte", "datos",
+        lambda o: o["visto"]["bogota"].__setitem__("urbano_en_tercio_norte", False))
     obj("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "datos",
         lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0))
     for _nombre, _mensaje in (

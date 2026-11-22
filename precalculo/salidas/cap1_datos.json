@@ -2443,7 +2443,8 @@
       "n": [2171, 24, 14],
       "urbana": [2107, 0, 0],
       "fuera_dc": [0, 1, 0],
-      "margen_urbano_m": 34.7364817127
+      "margen_urbano_m": 34.7364817127,
+      "urbano_en_tercio_norte": true
     }
   },
   "meta": {

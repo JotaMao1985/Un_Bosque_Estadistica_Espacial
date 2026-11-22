@@ -1223,6 +1223,11 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0)))
     add("R2 · T2.3 · Bogotá: el perímetro urbano baja del corte", "datos",
         m(lambda o: o["visto"]["bogota"].__setitem__("margen_urbano_m", -5.0)))
+    # Ronda 5: «cabe entero en ese tercio» tiene su cifra en R.
+    add("R2 · T2.3r5 · Bogotá: el perímetro urbano deja de caber en el tercio norte", "datos",
+        m(lambda o: o["visto"]["bogota"].__setitem__("urbano_en_tercio_norte", False)))
+    add("R2 · T2.3r5 · Bogotá: se pierde si el perímetro cabe en el tercio norte", "datos",
+        m(lambda o: o["visto"]["bogota"].pop("urbano_en_tercio_norte")))
     add("R2 · T2.3 · deserción: la clase más oscura, con otro reparto por zonas", "datos",
         m(lambda o: o["visto"]["desercion"]["clase_alta"]["zonas"]["n"].__setitem__(0, 4)))
     add("R2 · T2.3 · IDEAM: las más frías dejan de ser las que son", "datos",

@@ -3656,10 +3656,15 @@ _BG = dict(zip(_VI["bogota"]["franja"], _VI["bogota"]["n"]))
 _BGU = dict(zip(_VI["bogota"]["franja"], _VI["bogota"]["urbana"]))
 _BGF = dict(zip(_VI["bogota"]["franja"], _VI["bogota"]["fuera_dc"]))
 _BG_FUERA_SUR = _BGF["centro"] + _BGF["sur"]
+# (Ronda 5.) «Cabe entero» sale de `urbano_en_tercio_norte` (R cubre el
+# perímetro con el tercio norte de la caja), y el lado del corte, del signo
+# del margen, que se escribe sin signo.
+_MG = _VI["bogota"]["margen_urbano_m"]
 DESC_BOGOTA = (
     f"Las {ent(D['colombia']['puntual']['n'])} sedes se apiñan en el tercio norte del dibujo, que es la "
-    f"ciudad: {ent(_BG['norte'])}, entre ellas las {ent(_BGU['norte'])} del perímetro urbano, que cabe entero "
-    f"en ese tercio y acaba {n(_VI['bogota']['margen_urbano_m'], 1)} m al norte del corte. El tercio del "
+    f"ciudad: {ent(_BG['norte'])}, entre ellas las {ent(_BGU['norte'])} del perímetro urbano, que "
+    f"{'cabe' if _VI['bogota'].get('urbano_en_tercio_norte') else 'no cabe'} entero "
+    f"en ese tercio y acaba {n(abs(_MG), 1)} m {'al norte' if _MG > 0 else 'al sur'} del corte. El tercio del "
     f"medio y el del sur, fuera del perímetro, tienen {ent(_BG['centro'])} y {ent(_BG['sur'])}, "
     + ("todas dentro del Distrito." if _BG_FUERA_SUR == 0 else
        "dentro del Distrito salvo una, que cae fuera de él." if _BG_FUERA_SUR == 1 else
@@ -3729,6 +3734,9 @@ _FR, _CA = _VI["ideam"]["frias"], _VI["ideam"]["calidas"]
 # como «las temperaturas más altas». Ahora dice «las estaciones de mayor
 # altitud», con su cifra (el décimo más alto, por zona), y «baja» con el
 # signo que publica R (`baja_por_km`).
+# (Ronda 5.) «29 de las 37 de 2 560 m o más», sin sustantivo, chocaba con
+# «las 37 más frías» de la misma frase: se oía «29 de las 37 más frías». La
+# cifra de las altas lleva ahora «estaciones situadas a» y su zona.
 _AL = _VI["ideam"]["altas"]
 _PATRON_IDEAM = (f"{ent(_FR['n'][0])} están en el {_FR['zona'][0]} del dibujo, donde se concentran las estaciones "
                  f"de mayor altitud")
@@ -3738,8 +3746,9 @@ DESC_IDEAM = (
     f"las islas son más pequeñas que un punto. La temperatura va de "
     f"{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo. De las "
     f"{ent(_VI['ideam']['n_frias'])} más frías, de {n(_VI['ideam']['frias_umbral'], 1)} °C o menos, "
-    f"{_PATRON_IDEAM}: {ent(_AL['zonas']['n'][0])} de las {ent(_AL['n'])} de "
-    f"{ent(_AL['umbral_m'])} m o más. La temperatura baja {n(_VI['ideam']['baja_por_km'], 1)} °C por cada "
+    f"{_PATRON_IDEAM}: {ent(_AL['zonas']['n'][0])} de las {ent(_AL['n'])} estaciones situadas a "
+    f"{ent(_AL['umbral_m'])} m o más están en el {_AL['zonas']['zona'][0]}. La temperatura "
+    f"{'baja' if _VI['ideam']['baja_por_km'] > 0 else 'sube'} {n(abs(_VI['ideam']['baja_por_km']), 1)} °C por cada "
     f"kilómetro de altura. Las "
     f"{ent(_VI['ideam']['n_calidas'])} más cálidas, de "
     f"{n(_VI['ideam']['calidas_umbral'], 1)} °C o más: "
@@ -3886,7 +3895,8 @@ def guardas_de_las_descripciones() -> list[str]:
     # El margen se MIDE: el perímetro urbano tiene que acabar al norte del corte
     # (y por tanto los tercios del sur, «fuera del perímetro», no tener sedes
     # urbanas), y las sedes de fuera del Distrito son las que dice la frase.
-    exige(_VI["bogota"]["margen_urbano_m"] > 0 and _BGU["centro"] == 0 and _BGU["sur"] == 0
+    exige(_VI["bogota"]["margen_urbano_m"] > 0 and _VI["bogota"].get("urbano_en_tercio_norte") is True
+          and _BGU["centro"] == 0 and _BGU["sur"] == 0
           and _BGU["norte"] == D["colombia"]["puntual"]["n_urbana"],
           "Bogotá: el perímetro urbano ya no cabe en el tercio norte, y los del sur no están «fuera del perímetro»")
     exige(sum(_VI["bogota"]["fuera_dc"]) == D["colombia"]["puntual"]["n"] - D["colombia"]["puntual"]["n_dc"]
@@ -4148,8 +4158,17 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     # (Ronda 4.) La deserción no exige la frase literal en la descripción: su
     # guarda propia, más abajo, LEE las zonas de las dos y las compara con R, y
     # «el oriente y el sur» dice lo mismo que «el sur y el oriente».
+    # (Ronda 5.) Pero el resto de la frase sí se exige, con un patrón fijo
+    # aquí y no copiado de PATRON1: «los tres valores más altos están en …
+    # del país», en la etiqueta y en la descripción. Con la excepción a secas,
+    # «más bajos» en PATRON1 pasaba.
+    import re as _re5
+    _ZONAS5 = r"(?:nororiente|noroccidente|suroriente|suroccidente|norte|sur|oriente|occidente|centro)"
+    _RX_MAYORES = (r"\b[Ll]os tres valores más altos están en (el " + _ZONAS5 + r"(?:(?:, | y )el " + _ZONAS5
+                   + r")*) del país[,:]")
     for k_, etq in ETIQUETA1.items():
-        literal = k_ == "cap1-desercion" or PATRON1[k_] in DESC_DE1[k_]
+        literal = (bool(_re5.search(_RX_MAYORES, DESC_DE1[k_]) and _re5.search(_RX_MAYORES, etq))
+                   if k_ == "cap1-desercion" else PATRON1[k_] in DESC_DE1[k_])
         if not (literal and PATRON1[k_] in etq and o["alt"].get(k_) == etq):
             problemas.append(f"{k_}: la etiqueta accesible no es la que lleva el patrón de su descripción")
     ley = {k_: M[c].get("leyenda", "") for k_, c in (("cap1-nc", "nc"), ("cap1-desercion", "desercion"),
@@ -4182,9 +4201,12 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     # Deserción: las zonas que nombra la frase de los tres mayores, contra las
     # zonas de R; y el reparto de la clase más oscura, contra su tabla.
     _ds = D["visto"]["desercion"]
-    _dichas = set(_re4.findall(r"\bel " + _ZONAS + r"\b", PATRON1["cap1-desercion"]))
-    _mdd = _re4.search(r"Los tres valores más altos están en (.*?) del país:", DESC_DE1["cap1-desercion"])
-    _dichas_d = set(_re4.findall(r"\bel " + _ZONAS + r"\b", _mdd.group(1))) if _mdd else set()
+    # (Ronda 5.) Las dos se leen con el mismo patrón entero («los tres valores
+    # más altos están en … del país»), la etiqueta publicada incluida.
+    _mde = _re4.search(_RX_MAYORES, ETIQUETA1["cap1-desercion"])
+    _dichas = set(_re4.findall(r"\bel " + _ZONAS + r"\b", _mde.group(1))) if _mde else {"(sin la frase)"}
+    _mdd = _re4.search(_RX_MAYORES, DESC_DE1["cap1-desercion"])
+    _dichas_d = set(_re4.findall(r"\bel " + _ZONAS + r"\b", _mdd.group(1))) if _mdd else {"(sin la frase)"}
     if not (_dichas == _dichas_d == {f_["zona"] for f_ in _ds["mayores"]}):
         problemas.append(f"deserción: la frase sitúa los valores más altos en {sorted(_dichas)} y R, en "
                          f"{sorted({f_['zona'] for f_ in _ds['mayores']})}")
@@ -4208,24 +4230,37 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     # frías si la temperatura baja con la altura, y su zona tiene que ser la del
     # décimo más alto que cuenta R, y ser mayoría en él.
     _al = _vi["altas"]
-    _rx = (r"[Dd]e las (\d+) más (frías|cálidas)(?:, de [\d.]+ °C o (?:menos|más))?, (\d+) están en el " + _ZONAS
+    # (Ronda 5.) El umbral, si la frase lo da, se lee y tiene que ser el de la
+    # tabla que eligió la palabra («o menos» con las frías, «o más» con las
+    # cálidas); y la descripción lo tiene que dar, como el de las cálidas.
+    _rx = (r"[Dd]e las (\d+) más (frías|cálidas)(?:, de ([\d.]+) °C o (menos|más))?, (\d+) están en el " + _ZONAS
            + r" del dibujo, donde se concentran las estaciones de (mayor|menor) altitud")
     _ok_ideam = True
     for _txt in (ETIQUETA1["cap1-ideam"], DESC_DE1["cap1-ideam"]):
         _m = _re4.search(_rx, _txt)
-        _tab = None if not _m else (_vi["frias"], _vi["n_frias"]) if _m.group(2) == "frías" else (_vi["calidas"], _vi["n_calidas"])
+        _fria = bool(_m) and _m.group(2) == "frías"
+        _tab = None if not _m else (_vi["frias"], _vi["n_frias"], _vi["frias_umbral"]) if _fria else (_vi["calidas"], _vi["n_calidas"], _vi["calidas_umbral"])
         _ok_ideam = _ok_ideam and bool(
-            _m and _tab and int(_m.group(1)) == _tab[1] and int(_m.group(3)) == _tab[0]["n"][0]
-            and _m.group(4) == _tab[0]["zona"][0] and sum(_tab[0]["n"]) == _tab[1]
-            and _m.group(5) == ("mayor" if (_m.group(2) == "frías") == (D["colombia"]["geo"]["corr_alt"] < 0) else "menor")
-            and _m.group(4) == _al["zonas"]["zona"][0] and _al["zonas"]["n"][0] * 2 > _al["n"] == sum(_al["zonas"]["n"]))
+            _m and _tab and int(_m.group(1)) == _tab[1] and int(_m.group(5)) == _tab[0]["n"][0]
+            and (_m.group(3) is None or (_m.group(3) == n(_tab[2], 1) and _m.group(4) == ("menos" if _fria else "más")))
+            and _m.group(6) == _tab[0]["zona"][0] and sum(_tab[0]["n"]) == _tab[1]
+            and _m.group(7) == ("mayor" if _fria == (D["colombia"]["geo"]["corr_alt"] < 0) else "menor")
+            and _m.group(6) == _al["zonas"]["zona"][0] and _al["zonas"]["n"][0] * 2 > _al["n"] == sum(_al["zonas"]["n"]))
+    # (Ronda 5.) La cifra de las de mayor altitud lleva su sustantivo y su zona
+    # («29 de las 37 estaciones situadas a 2 560 m o más están en el centro»):
+    # sin él se oía «29 de las 37 más frías». Se lee y cada pieza va contra R.
+    _rxa = (r"de mayor altitud: (\d+) de las (\d+) estaciones situadas a ([\d\u202f]+) m o más están en el "
+            + _ZONAS + r"\.")
+    _ma = _re4.search(_rxa, DESC_DE1["cap1-ideam"])
     if not (_ok_ideam and PATRON1["cap1-ideam"] in DESC_DE1["cap1-ideam"]
-            and f": {ent(_al['zonas']['n'][0])} de las {ent(_al['n'])} de {ent(_al['umbral_m'])} m o más." in DESC_DE1["cap1-ideam"]):
+            and f"De las {ent(_vi['n_frias'])} más frías, de {n(_vi['frias_umbral'], 1)} °C o menos, " in DESC_DE1["cap1-ideam"]
+            and _ma and _ma.group(1) == ent(_al["zonas"]["n"][0]) and _ma.group(2) == ent(_al["n"])
+            and _ma.group(3) == ent(_al["umbral_m"]) and _ma.group(4) == _al["zonas"]["zona"][0]):
         problemas.append(f"IDEAM: la etiqueta o la descripción no dicen lo que cuenta R de las estaciones extremas: «{ETIQUETA1['cap1-ideam']}»")
-    # «Baja» o «sube», con el signo que publica R.
+    # «Baja» o «sube», con el signo que publica R; la cifra, sin signo.
     _verbo = "baja" if _vi["baja_por_km"] > 0 else "sube"
     if not (abs(_vi["baja_por_km"] + D["colombia"]["geo"]["gradiente"]) < 1e-6
-            and f"La temperatura {_verbo} {n(_vi['baja_por_km'], 1)} °C por cada kilómetro" in DESC_DE1["cap1-ideam"]):
+            and f"La temperatura {_verbo} {n(abs(_vi['baja_por_km']), 1)} °C por cada kilómetro" in DESC_DE1["cap1-ideam"]):
         problemas.append(f"IDEAM: la descripción no dice que la temperatura {_verbo} con la altura, como dice R")
     # Las cálidas, con su número.
     if not (f"Las {ent(_vi['n_calidas'])} más cálidas, de" in DESC_DE1["cap1-ideam"]):
@@ -4264,8 +4299,16 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     _esp = ("todas dentro del Distrito." if _fs == 0 else "dentro del Distrito salvo una, que cae fuera de él." if _fs == 1
             else f"dentro del Distrito salvo {ent(_fs)}, que caen fuera de él.")
     _mg = D["visto"]["bogota"]["margen_urbano_m"]
-    if not (f"acaba {n(_mg, 1)} m {'al norte' if _mg > 0 else 'al sur'} del corte" in DESC_BOGOTA):
+    if not (f"acaba {n(abs(_mg), 1)} m {'al norte' if _mg > 0 else 'al sur'} del corte" in DESC_BOGOTA):
         problemas.append("Bogotá: la descripción pone el final del perímetro urbano del otro lado del corte")
+    # (Ronda 5.) «Cabe / no cabe entero en ese tercio», leído, contra la
+    # cobertura que mide R (el tercio norte de la caja cubre el perímetro) y
+    # contra el margen: si cabe, el borde sur del perímetro queda al norte del corte.
+    _cb = _re4.search(r"del perímetro urbano, que (no )?cabe entero en ese tercio y acaba", DESC_BOGOTA)
+    _cabe_r = D["visto"]["bogota"].get("urbano_en_tercio_norte")
+    if not (_cb and isinstance(_cabe_r, bool) and (_cb.group(1) is None) == _cabe_r and (not _cabe_r or _mg > 0)):
+        problemas.append(f"Bogotá: la descripción dice que el perímetro urbano {'no ' if _cb and _cb.group(1) else ''}cabe "
+                         f"en el tercio norte y R dice {_cabe_r}")
     if not (DESC_BOGOTA.endswith(_esp)):
         problemas.append(f"Bogotá: la descripción de los tercios no dice las {_fs} sedes de fuera del Distrito")
     # Cada pregunta del módulo 2 controla su respuesta (la pone bajo su botón).

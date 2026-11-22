@@ -1148,9 +1148,15 @@ seccion('T2.3', () => {
   const respuesta = { id: 'resp-prueba', hidden: true };
   const getId0 = document.getElementById;
   document.getElementById = id => id === 'resp-prueba' ? respuesta : null;
+  // (Ronda 5.) Con el id en la página, NINGÚN aviso: un console.warn que
+  // saltara siempre pasaba la prueba del aviso de abajo.
+  const avisosSi = [], warnSi = console.warn;
+  console.warn = (...x) => { avisosSi.push(x.join(' ')); };
   m = monta({ fuente: puntos(), controles: [{ etiqueta: 'Pregunta', controla: 'resp-prueba', opciones: [[true, 'Ver']],
     valor: () => !respuesta.hidden, alPulsar: v => { respuesta.hidden = !v; } }] });
+  console.warn = warnSi;
   document.getElementById = getId0;
+  pide(avisosSi.length === 0, 'T2.3: un mando cuyo id SÍ está en la página avisa de todos modos: ' + avisosSi.join(' | '));
   pide(m.cajas[0] && m.cajas[0].despues === respuesta, 'T2.3: lo que enseña el interruptor no se pone debajo de su botonera');
   pide(/aria-controls="resp-prueba"/.test(m.html), 'T2.3: el interruptor no dice qué controla (aria-controls)');
   pide(lee(m, 'botones.0.0.atributos.aria-expanded') === 'false' && lee(m, 'botones.0.0.atributos.aria-pressed') === undefined,
@@ -1654,6 +1660,9 @@ INYECCIONES = [
      'const diminuta = alcance * 4 / 7;', 'const diminuta = alcance * 16 / 7;', "T2.3"),
     ('sin aviso si lo que controla un mando no está',
      "else if (!el) console.warn(`Geomapa ${raiz.dataset.geomapa}: el mando controla «${g.controla}», que no está en la página`);", '', "T2.3"),
+    ('el aviso salta aunque lo que controla el mando sí esté',
+     "else if (!el) console.warn(`Geomapa ${raiz.dataset.geomapa}: el mando controla «${g.controla}», que no está en la página`);",
+     "if (true) console.warn(`Geomapa ${raiz.dataset.geomapa}: el mando controla «${g.controla}», que no está en la página`);", "T2.3"),
     ('lo que se saca de la raíz vuelve en orden invertido',
      '(raiz.__movidos || []).slice().reverse().forEach(', '(raiz.__movidos || []).forEach(', "T2.3"),
     ('una isla diminuta no se puede tocar',
