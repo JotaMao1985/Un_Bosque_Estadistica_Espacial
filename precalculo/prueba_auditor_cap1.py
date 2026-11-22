@@ -1227,6 +1227,10 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["visto"]["desercion"]["clase_alta"]["zonas"]["n"].__setitem__(0, 4)))
     add("R2 · T2.3 · IDEAM: las más frías dejan de ser las que son", "datos",
         m(lambda o: o["visto"]["ideam"].__setitem__("n_frias", 36)))
+    add("R2 · T2.3 · IDEAM: las más altas, con otro reparto por zonas", "datos",
+        m(lambda o: o["visto"]["ideam"]["altas"]["zonas"]["n"].__setitem__(0, 30)))
+    add("R2 · T2.3 · IDEAM: la temperatura baja otra cosa por km", "datos",
+        m(lambda o: o["visto"]["ideam"].__setitem__("baja_por_km", 6.1)))
     add("R2 · T2.3 · meuse: el zinc alto, del lado sureste", "datos",
         m(lambda o: o["visto"]["meuse"].__setitem__("lado", "sureste")))
     add("R2 · T2.3 · meuse: el décimo alto cuenta otro número del lado noroeste", "datos",

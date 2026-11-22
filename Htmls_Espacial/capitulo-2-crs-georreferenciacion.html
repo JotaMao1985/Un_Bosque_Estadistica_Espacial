@@ -10340,7 +10340,10 @@ print(len(gpd.sjoin(cole, locs, predicate="within")))
         // Lo que un mando `controla` se movió DENTRO de la raíz la vez anterior:
         // antes de reescribirla se saca, o el innerHTML lo destruiría y su
         // botón quedaría controlando un id que ya no existe.
-        (raiz.__movidos || []).forEach(el => { if (raiz.contains(el) && raiz.after) raiz.after(el); });
+        // Al revés: cada `after` inserta justo detrás de la raíz, así que el
+        // último en salir queda el primero; recorriéndolos del final al
+        // principio vuelven en su orden.
+        (raiz.__movidos || []).slice().reverse().forEach(el => { if (raiz.contains(el) && raiz.after) raiz.after(el); });
         raiz.__movidos = [];
         raiz.innerHTML = `
           ${tit0 ? `<p class="geomapa-titulo">${tit0}</p>` : ''}

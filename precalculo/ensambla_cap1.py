@@ -3725,14 +3725,22 @@ DESC_MEUSE = (
     f"logaritmo del zinc.")
 _GEO = D["colombia"]["geo"]
 _FR, _CA = _VI["ideam"]["frias"], _VI["ideam"]["calidas"]
+# R2 · T2.3 (ronda 4): «donde están las más altas», leído solo, se entendía
+# como «las temperaturas más altas». Ahora dice «las estaciones de mayor
+# altitud», con su cifra (el décimo más alto, por zona), y «baja» con el
+# signo que publica R (`baja_por_km`).
+_AL = _VI["ideam"]["altas"]
+_PATRON_IDEAM = (f"{ent(_FR['n'][0])} están en el {_FR['zona'][0]} del dibujo, donde se concentran las estaciones "
+                 f"de mayor altitud")
 DESC_IDEAM = (
     f"Las {ent(_GEO['n'])} estaciones, con el contorno del país de fondo, coloreadas por su temperatura "
     f"media. Las del archipiélago de San Andrés, arriba a la izquierda, se ven sobre el mar: a esta escala "
     f"las islas son más pequeñas que un punto. La temperatura va de "
-    f"{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo. Las "
-    f"{ent(_VI['ideam']['n_frias'])} más frías, de {n(_VI['ideam']['frias_umbral'], 1)} °C o menos, se concentran: "
-    f"{ent(_FR['n'][0])} de {ent(_VI['ideam']['n_frias'])}, en el {_FR['zona'][0]} del dibujo, donde están las más altas: la "
-    f"temperatura cambia {n(_GEO['gradiente'], 1)} °C por cada kilómetro de altura. Las "
+    f"{n(_GEO['t_min'], 1)} °C, en violeta oscuro, a {n(_GEO['t_max'], 1)} °C, en amarillo. De las "
+    f"{ent(_VI['ideam']['n_frias'])} más frías, de {n(_VI['ideam']['frias_umbral'], 1)} °C o menos, "
+    f"{_PATRON_IDEAM}: {ent(_AL['zonas']['n'][0])} de las {ent(_AL['n'])} de "
+    f"{ent(_AL['umbral_m'])} m o más. La temperatura baja {n(_VI['ideam']['baja_por_km'], 1)} °C por cada "
+    f"kilómetro de altura. Las "
     f"{ent(_VI['ideam']['n_calidas'])} más cálidas, de "
     f"{n(_VI['ideam']['calidas_umbral'], 1)} °C o más: "
     + lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_CA["zona"], _CA["n"])]) + ".")
@@ -3751,7 +3759,7 @@ PATRON1 = {
     "cap1-nc": f"salen repartidos por todo el estado, con más en el {_VNC1['zona'][0]} del dibujo",
     "cap1-desercion": "valores más altos están en el sur y el oriente del país",
     "cap1-meuse": "pegados a la orilla",
-    "cap1-ideam": f"{ent(_FR['n'][0])} de {ent(_VI['ideam']['n_frias'])}, en el {_FR['zona'][0]} del dibujo",
+    "cap1-ideam": _PATRON_IDEAM,
 }
 DESC_DE1 = {"cap1-pinos": DESC_PINOS, "cap1-secuoyas": DESC_SECUOYAS, "cap1-celulas": DESC_CELULAS,
             "cap1-nc": DESC_NC, "cap1-desercion": DESC_DESERCION, "cap1-meuse": DESC_MEUSE,
@@ -3768,12 +3776,13 @@ ETIQUETA1 = {
     "cap1-desercion": f"Deserción escolar en los {ent(M['desercion']['n'])} departamentos de Colombia, en "
                       f"{ent(len(M['desercion']['tam']))} clases por cuantiles: los tres "
                       f"{PATRON1['cap1-desercion']}, y la clase más alta reúne {ent(_DS['clase_alta']['n'])} "
-                      f"departamentos de {ent(len(_ZD['zona']))} zonas del dibujo.",
+                      f"departamentos repartidos por {ent(len(_ZD['zona']))} zonas del dibujo, "
+                      f"{ent(_ZD['n'][0])} de ellos en el {_ZD['zona'][0]}.",
     "cap1-meuse": f"Zinc en los {ent(_GC['n'])} puntos de muestreo de la vega del Mosa: los más altos se "
                   f"alinean a lo largo del borde noroeste de la nube, {PATRON1['cap1-meuse']} del río, y el zinc "
                   f"baja al alejarse de ella.",
-    "cap1-ideam": f"Temperatura media anual en las {ent(_GEO['n'])} estaciones del IDEAM: las más frías, "
-                  f"{PATRON1['cap1-ideam']}, donde están las más altas.",
+    "cap1-ideam": f"Temperatura media anual en las {ent(_GEO['n'])} estaciones del IDEAM: de las "
+                  f"{ent(_VI['ideam']['n_frias'])} más frías, {PATRON1['cap1-ideam']}.",
 }
 
 def _palabra_campo(rho):
@@ -4136,8 +4145,12 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
         problemas.append("Bogotá: la lectura escribe «de el»")
 
     # --- Las etiquetas accesibles: el patrón, no la palabra de la leyenda (G-24)
+    # (Ronda 4.) La deserción no exige la frase literal en la descripción: su
+    # guarda propia, más abajo, LEE las zonas de las dos y las compara con R, y
+    # «el oriente y el sur» dice lo mismo que «el sur y el oriente».
     for k_, etq in ETIQUETA1.items():
-        if not (PATRON1[k_] in DESC_DE1[k_] and PATRON1[k_] in etq and o["alt"].get(k_) == etq):
+        literal = k_ == "cap1-desercion" or PATRON1[k_] in DESC_DE1[k_]
+        if not (literal and PATRON1[k_] in etq and o["alt"].get(k_) == etq):
             problemas.append(f"{k_}: la etiqueta accesible no es la que lleva el patrón de su descripción")
     ley = {k_: M[c].get("leyenda", "") for k_, c in (("cap1-nc", "nc"), ("cap1-desercion", "desercion"),
                                                       ("cap1-meuse", "meuse"), ("cap1-ideam", "ideam"))}
@@ -4170,29 +4183,53 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     # zonas de R; y el reparto de la clase más oscura, contra su tabla.
     _ds = D["visto"]["desercion"]
     _dichas = set(_re4.findall(r"\bel " + _ZONAS + r"\b", PATRON1["cap1-desercion"]))
-    if not (_dichas == {f_["zona"] for f_ in _ds["mayores"]} and PATRON1["cap1-desercion"] in DESC_DE1["cap1-desercion"]):
+    _mdd = _re4.search(r"Los tres valores más altos están en (.*?) del país:", DESC_DE1["cap1-desercion"])
+    _dichas_d = set(_re4.findall(r"\bel " + _ZONAS + r"\b", _mdd.group(1))) if _mdd else set()
+    if not (_dichas == _dichas_d == {f_["zona"] for f_ in _ds["mayores"]}):
         problemas.append(f"deserción: la frase sitúa los valores más altos en {sorted(_dichas)} y R, en "
                          f"{sorted({f_['zona'] for f_ in _ds['mayores']})}")
     _za = _ds["clase_alta"]["zonas"]
     _rep = lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_za["zona"], _za["n"])])
     if not (sum(_za["n"]) == _ds["clase_alta"]["n"] == M["desercion"]["tam"][-1]
-            and f"reúne {ent(_ds['clase_alta']['n'])} departamentos repartidos por el país: {_rep}." in DESC_DE1["cap1-desercion"]
-            and f"la clase más alta reúne {ent(_ds['clase_alta']['n'])} departamentos de {ent(len(_za['zona']))} zonas"
-                in ETIQUETA1["cap1-desercion"]):
+            and f"reúne {ent(_ds['clase_alta']['n'])} departamentos repartidos por el país: {_rep}." in DESC_DE1["cap1-desercion"]):
         problemas.append("deserción: el reparto de la clase más oscura por zonas no es el que cuenta R")
+    _md = _re4.search(r"reúne (\d+) departamentos repartidos por (\d+) zonas del dibujo, (\d+) de ellos en el " + _ZONAS,
+                      ETIQUETA1["cap1-desercion"])
+    if not (_md and int(_md.group(1)) == _ds["clase_alta"]["n"] and int(_md.group(2)) == len(_za["zona"])
+            and int(_md.group(3)) == _za["n"][0] and _md.group(4) == _za["zona"][0]):
+        problemas.append(f"deserción: la etiqueta no reparte la clase más alta como R: «{ETIQUETA1['cap1-desercion']}»")
     # IDEAM: «las más frías/cálidas, n de N, en el ZONA»: la palabra elige la
     # tabla de R y la cifra y la zona tienen que ser las de esa tabla; «donde
     # están las más altas» solo vale para las frías, con la correlación con la
     # altitud negativa.
     _vi = D["visto"]["ideam"]
-    _m = _re4.search(r"las más (frías|cálidas), (\d+) de (\d+), en el " + _ZONAS + r" del dibujo(, donde están las más altas)?",
-                     ETIQUETA1["cap1-ideam"])
-    _tab = None if not _m else (_vi["frias"], _vi["n_frias"]) if _m.group(1) == "frías" else (_vi["calidas"], _vi["n_calidas"])
-    if not (_m and _tab and int(_m.group(2)) == _tab[0]["n"][0] and int(_m.group(3)) == _tab[1]
+    # (Ronda 4.) La frase entera es obligatoria —su cola ya no es opcional—, en la
+    # etiqueta y en la descripción. Las de MAYOR altitud solo pueden ir con las
+    # frías si la temperatura baja con la altura, y su zona tiene que ser la del
+    # décimo más alto que cuenta R, y ser mayoría en él.
+    _al = _vi["altas"]
+    _rx = (r"[Dd]e las (\d+) más (frías|cálidas)(?:, de [\d.]+ °C o (?:menos|más))?, (\d+) están en el " + _ZONAS
+           + r" del dibujo, donde se concentran las estaciones de (mayor|menor) altitud")
+    _ok_ideam = True
+    for _txt in (ETIQUETA1["cap1-ideam"], DESC_DE1["cap1-ideam"]):
+        _m = _re4.search(_rx, _txt)
+        _tab = None if not _m else (_vi["frias"], _vi["n_frias"]) if _m.group(2) == "frías" else (_vi["calidas"], _vi["n_calidas"])
+        _ok_ideam = _ok_ideam and bool(
+            _m and _tab and int(_m.group(1)) == _tab[1] and int(_m.group(3)) == _tab[0]["n"][0]
             and _m.group(4) == _tab[0]["zona"][0] and sum(_tab[0]["n"]) == _tab[1]
-            and (_m.group(5) is None or (_m.group(1) == "frías" and D["colombia"]["geo"]["corr_alt"] < 0))
-            and PATRON1["cap1-ideam"] in DESC_DE1["cap1-ideam"]):
-        problemas.append(f"IDEAM: la etiqueta no dice lo que cuenta R de las estaciones extremas: «{ETIQUETA1['cap1-ideam']}»")
+            and _m.group(5) == ("mayor" if (_m.group(2) == "frías") == (D["colombia"]["geo"]["corr_alt"] < 0) else "menor")
+            and _m.group(4) == _al["zonas"]["zona"][0] and _al["zonas"]["n"][0] * 2 > _al["n"] == sum(_al["zonas"]["n"]))
+    if not (_ok_ideam and PATRON1["cap1-ideam"] in DESC_DE1["cap1-ideam"]
+            and f": {ent(_al['zonas']['n'][0])} de las {ent(_al['n'])} de {ent(_al['umbral_m'])} m o más." in DESC_DE1["cap1-ideam"]):
+        problemas.append(f"IDEAM: la etiqueta o la descripción no dicen lo que cuenta R de las estaciones extremas: «{ETIQUETA1['cap1-ideam']}»")
+    # «Baja» o «sube», con el signo que publica R.
+    _verbo = "baja" if _vi["baja_por_km"] > 0 else "sube"
+    if not (abs(_vi["baja_por_km"] + D["colombia"]["geo"]["gradiente"]) < 1e-6
+            and f"La temperatura {_verbo} {n(_vi['baja_por_km'], 1)} °C por cada kilómetro" in DESC_DE1["cap1-ideam"]):
+        problemas.append(f"IDEAM: la descripción no dice que la temperatura {_verbo} con la altura, como dice R")
+    # Las cálidas, con su número.
+    if not (f"Las {ent(_vi['n_calidas'])} más cálidas, de" in DESC_DE1["cap1-ideam"]):
+        problemas.append("IDEAM: la descripción no da el número de las más cálidas que cuenta R")
     _lc = lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_vi["calidas"]["zona"], _vi["calidas"]["n"])])
     if not (sum(_vi["calidas"]["n"]) == _vi["n_calidas"] and f"más cálidas, de {n(_vi['calidas_umbral'], 1)} °C o más: {_lc}."
             in DESC_DE1["cap1-ideam"]):
@@ -4226,6 +4263,9 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     _fs = sum(D["visto"]["bogota"]["fuera_dc"][1:])
     _esp = ("todas dentro del Distrito." if _fs == 0 else "dentro del Distrito salvo una, que cae fuera de él." if _fs == 1
             else f"dentro del Distrito salvo {ent(_fs)}, que caen fuera de él.")
+    _mg = D["visto"]["bogota"]["margen_urbano_m"]
+    if not (f"acaba {n(_mg, 1)} m {'al norte' if _mg > 0 else 'al sur'} del corte" in DESC_BOGOTA):
+        problemas.append("Bogotá: la descripción pone el final del perímetro urbano del otro lado del corte")
     if not (DESC_BOGOTA.endswith(_esp)):
         problemas.append(f"Bogotá: la descripción de los tercios no dice las {_fs} sedes de fuera del Distrito")
     # Cada pregunta del módulo 2 controla su respuesta (la pone bajo su botón).

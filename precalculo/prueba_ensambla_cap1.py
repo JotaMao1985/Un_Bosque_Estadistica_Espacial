@@ -996,10 +996,23 @@ def defectos() -> list[tuple[str, str, str, object]]:
         'f"Los tres valores más altos están en el sur y el oriente del país: "',
         'f"Los tres valores más altos están en el norte y el occidente del país: "')
     txt("T2.3c: la clase más oscura en otro número de zonas", "ensamblador",
-        "f\"departamentos de {ent(len(_ZD['zona']))} zonas del dibujo.\",",
-        "f\"departamentos de {ent(len(_ZD['zona']) + 1)} zonas del dibujo.\",")
+        "f\"departamentos repartidos por {ent(len(_ZD['zona']))} zonas del dibujo, \"",
+        "f\"departamentos repartidos por {ent(len(_ZD['zona']) + 1)} zonas del dibujo, \"")
     txt("T2.3c: el IDEAM dice «las más cálidas»", "ensamblador",
-        "las {ent(_GEO['n'])} estaciones del IDEAM: las más frías,", "las {ent(_GEO['n'])} estaciones del IDEAM: las más cálidas,")
+        "f\"{ent(_VI['ideam']['n_frias'])} más frías, {PATRON1['cap1-ideam']}.\",",
+        "f\"{ent(_VI['ideam']['n_frias'])} más cálidas, {PATRON1['cap1-ideam']}.\",")
+    txt("T2.3d: el reparto de la clase más oscura, con las zonas al revés", "ensamblador",
+        'for z, k in zip(_ZD["zona"], _ZD["n"])])', 'for z, k in zip(_ZD["zona"][::-1], _ZD["n"])])')
+    txt("T2.3d: las cálidas de la descripción con el número de las frías", "ensamblador",
+        "{ent(_VI['ideam']['n_calidas'])} más cálidas", "{ent(_VI['ideam']['n_frias'])} más cálidas")
+    txt("T2.3d: el perímetro urbano acaba «al sur» del corte", "ensamblador",
+        "m al norte del corte. El tercio del", "m al sur del corte. El tercio del")
+    txt("T2.3d: las frías, donde se concentran las de menor altitud", "ensamblador",
+        'f"de mayor altitud")', 'f"de menor altitud")')
+    txt("T2.3d: la temperatura «sube» con la altura", "ensamblador",
+        "La temperatura baja {n(_VI['ideam']['baja_por_km'], 1)} °C", "La temperatura sube {n(_VI['ideam']['baja_por_km'], 1)} °C")
+    txt("T2.3d: las estaciones altas del centro con la cifra de otra zona", "ensamblador",
+        "{ent(_AL['zonas']['n'][0])} de las {ent(_AL['n'])} de", "{ent(_AL['zonas']['n'][1])} de las {ent(_AL['n'])} de")
     txt("T2.3c: la respuesta de Bogotá: el rectángulo cabe en el Distrito", "ensamblador",
         "y se sale del Distrito, así que su área cuenta suelo donde nadie buscó sedes",
         "y cabe en el Distrito, así que su área no cuenta suelo de más")
@@ -1045,7 +1058,13 @@ def defectos() -> list[tuple[str, str, str, object]]:
             ("T2.3c: la temperatura de la lectura con dos decimales", "no dan la temperatura de su estación"),
             ("T2.3c: la etiqueta de Carolina del Norte arrastra la leyenda", "arrastra la palabra de la leyenda"),
             ("T2.3c: la deserción alta, en el norte y el occidente (etiqueta y descripción)", "sitúa los valores más altos"),
-            ("T2.3c: la clase más oscura en otro número de zonas", "el reparto de la clase más oscura"),
+            ("T2.3c: la clase más oscura en otro número de zonas", "la etiqueta no reparte la clase más alta"),
+            ("T2.3d: el reparto de la clase más oscura, con las zonas al revés", "el reparto de la clase más oscura"),
+            ("T2.3d: las cálidas de la descripción con el número de las frías", "el número de las más cálidas"),
+            ("T2.3d: el perímetro urbano acaba «al sur» del corte", "del otro lado del corte"),
+            ("T2.3d: las frías, donde se concentran las de menor altitud", "de las estaciones extremas"),
+            ("T2.3d: la temperatura «sube» con la altura", "con la altura, como dice R"),
+            ("T2.3d: las estaciones altas del centro con la cifra de otra zona", "de las estaciones extremas"),
             ("T2.3c: el IDEAM dice «las más cálidas»", "las estaciones extremas"),
             ("T2.3c: la respuesta de Bogotá: el rectángulo cabe en el Distrito", "la respuesta no dice que el rectángulo se sale"),
             ("T2.3c: la respuesta de los pinos: λ̂ más bajo", "da un λ̂ más alto"),

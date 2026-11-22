@@ -1136,6 +1136,14 @@ seccion('T2.3', () => {
   ctx = lienzoFalso(600, 600);
   pide(geomapaUnidadEn(ctx, pol, identidad, 105, 50, 20) === -1,
        'T2.3: señalar fuera de una unidad grande, junto a su borde, la lee (el mar junto a la costa)');
+  // Una unidad de 10 px NO es diminuta con el alcance de 14: fuera de ella, a 5 px, no se lee.
+  const diez = { modo: 'poligonos', caja: [0, 0, 1, 1], q, geom: [[[2000, 2000, 2010, 2000, 2010, 2010, 2000, 2010]]] };
+  ctx = lienzoFalso(600, 600);
+  pide(geomapaUnidadEn(ctx, diez, identidad, 2015, 2005, 14) === -1,
+       'T2.3: una unidad de 10 px toma alcance, y señalar junto a ella la lee');
+  const uno = { modo: 'poligonos', caja: [0, 0, 1, 1], q, geom: [[[2000, 2000, 2001, 2000, 2001, 2001, 2000, 2001]]] };
+  pide(geomapaUnidadEn(ctx, uno, identidad, 2008, 2000.5, 14) === 0,
+       'T2.3: con el alcance de 14, una unidad de 1 px no se puede tocar');
   // `controla`: el elemento que enseña el interruptor va debajo de su botonera, con aria-controls y aria-expanded.
   const respuesta = { id: 'resp-prueba', hidden: true };
   const getId0 = document.getElementById;
@@ -1162,6 +1170,27 @@ seccion('T2.3', () => {
   document.getElementById = getId0;
   mainContent.lista = [];
   pide(sacados.includes(respuesta), 'T2.3: al volver a iniciar el mapa, la respuesta que controla se destruye con la raíz');
+  // Con DOS elementos movidos, vuelven en su orden: cada `after` inserta justo tras la raíz.
+  const r1 = { id: 'resp-1', hidden: true }, r2 = { id: 'resp-2', hidden: true };
+  document.getElementById = id => id === 'resp-1' ? r1 : id === 'resp-2' ? r2 : null;
+  m = monta({ fuente: puntos(), controles: [
+    { etiqueta: 'Uno', controla: 'resp-1', opciones: [[true, 'Uno']], valor: () => !r1.hidden, alPulsar: v => { r1.hidden = !v; } },
+    { etiqueta: 'Dos', controla: 'resp-2', opciones: [[true, 'Dos']], valor: () => !r2.hidden, alPulsar: v => { r2.hidden = !v; } }] });
+  const detras = [];
+  m.raiz.contains = el => el === r1 || el === r2;
+  m.raiz.after = el => { detras.unshift(el); };
+  mainContent.lista = [m.raiz];
+  iniciarGeomapas();
+  mainContent.lista = [];
+  document.getElementById = getId0;
+  pide(detras[0] === r1 && detras[1] === r2, 'T2.3: al volver a iniciar, lo que controlan dos mandos vuelve en orden invertido');
+  // Si lo que controla un mando no está en la página, se avisa.
+  const avisos = [], warn0 = console.warn;
+  console.warn = (...x) => { avisos.push(x.join(' ')); };
+  monta({ fuente: puntos(), controles: [{ etiqueta: 'Nada', controla: 'no-existe', opciones: [[true, 'Ver']],
+    valor: () => false, alPulsar: () => {} }] });
+  console.warn = warn0;
+  pide(avisos.some(t => /no-existe/.test(t)), 'T2.3: un mando que controla un id que no está en la página no avisa');
 });
 
 // =========================== R-B · la tabla ordenable ===========================
@@ -1620,7 +1649,13 @@ INYECCIONES = [
     ('el alcance vale para cualquier unidad',
      '          if (Math.max(x1 - x0, y1 - y0) >= diminuta) continue;\n', '', "T2.3"),
     ('un segundo inicio destruye lo que controla un mando',
-     "(raiz.__movidos || []).forEach(el => { if (raiz.contains(el) && raiz.after) raiz.after(el); });", '', "T2.3"),
+     "(raiz.__movidos || []).slice().reverse().forEach(el => { if (raiz.contains(el) && raiz.after) raiz.after(el); });", '', "T2.3"),
+    ('el umbral de lo diminuto, cuatro veces mayor',
+     'const diminuta = alcance * 4 / 7;', 'const diminuta = alcance * 16 / 7;', "T2.3"),
+    ('sin aviso si lo que controla un mando no está',
+     "else if (!el) console.warn(`Geomapa ${raiz.dataset.geomapa}: el mando controla «${g.controla}», que no está en la página`);", '', "T2.3"),
+    ('lo que se saca de la raíz vuelve en orden invertido',
+     '(raiz.__movidos || []).slice().reverse().forEach(', '(raiz.__movidos || []).forEach(', "T2.3"),
     ('una isla diminuta no se puede tocar',
      'let cerca = -1, dCerca = alcance;', 'let cerca = -1, dCerca = 0;', "T2.3"),
     ('Escape sin nada señalado se lo queda el mapa',

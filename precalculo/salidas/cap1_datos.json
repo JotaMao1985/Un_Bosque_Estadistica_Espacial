@@ -2378,6 +2378,15 @@
       },
       "n_frias": 37,
       "n_calidas": 39,
+      "altas": {
+        "umbral_m": 2560,
+        "n": 37,
+        "zonas": {
+          "zona": ["centro", "suroccidente", "occidente"],
+          "n": [29, 7, 1]
+        }
+      },
+      "baja_por_km": 5.5638752172,
       "por_altitud": [
         {
           "desde": 0,

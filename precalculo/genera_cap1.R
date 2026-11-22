@@ -3496,6 +3496,15 @@ D$visto <- list(
                frias = tabla_zonas(z_ideam[t_ideam <= q_ideam[1]]),
                calidas = tabla_zonas(z_ideam[t_ideam >= q_ideam[2]]),
                n_frias = sum(t_ideam <= q_ideam[1]), n_calidas = sum(t_ideam >= q_ideam[2]),
+               # R2 · T2.3 (ronda 4): «donde se concentran las estaciones de mayor
+               # altitud» con su cifra: el décimo más alto por zona. Y cuánto baja
+               # la temperatura por km, con el signo ya puesto, para escribir «baja».
+               altas = local({
+                 q_a <- quantile(est$altitud_m, 0.9, names = FALSE)
+                 al <- est$altitud_m >= q_a
+                 c(list(umbral_m = r10(q_a), n = sum(al)), list(zonas = tabla_zonas(z_ideam[al])))
+               }),
+               baja_por_km = r10(-coef(lm(t_media_anual ~ altitud_m, data = est))[["altitud_m"]] * 1000),
                # R2 · T2.2 (G-24): la tabla de respaldo del mapa. Las
                # estaciones por franja de altitud de 500 m, [desde, hasta),
                # con cuántas hay y su temperatura media.

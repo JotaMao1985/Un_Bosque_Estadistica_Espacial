@@ -3079,6 +3079,15 @@ def main() -> int:
                  and list(zip(vi["calidas"]["zona"], vi["calidas"]["n"])) == ca,
                  "visto: IDEAM, las frías y las cálidas por zona",
                  f"frías {fr[:2]} · cálidas {ca[:2]}")
+        # Ronda 4: el décimo más alto por zona, y cuánto baja la temperatura por km.
+        alt = est.altitud_m.to_numpy(float)
+        qa = float(np.quantile(alt, 0.9))
+        za = _tabla([z for z, h in zip(zi, alt) if h >= qa])
+        al_ = vi.get("altas") or {}
+        a.cierto(abs(qa - al_.get("umbral_m", -1)) < 1e-6 and al_.get("n") == int((alt >= qa).sum())
+                 and list(zip((al_.get("zonas") or {}).get("zona", []), (al_.get("zonas") or {}).get("n", []))) == za,
+                 "visto: IDEAM, las estaciones más altas por zona", ", ".join(f"{z} {k}" for z, k in za))
+        a.igual(-np.polyfit(alt, tt, 1)[0] * 1000, vi.get("baja_por_km"), "visto: IDEAM, cuánto baja la temperatura por km", 1e-6)
         a.cierto(vi.get("n_frias") == int((tt <= q10).sum()) and vi.get("n_calidas") == int((tt >= q90).sum()),
                  "visto: IDEAM, cuántas son las más frías y las más cálidas",
                  f"{int((tt <= q10).sum())} y {int((tt >= q90).sum())}")
