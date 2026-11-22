@@ -4215,17 +4215,39 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     # (`M["desercion"]`), no de la lista de `visto` con que se escribe la frase:
     # llenarla con `menores` pasaba. Y la lista de `visto` cuyas zonas se
     # comprueban arriba tiene que ser la de esos mismos tres.
+    # (Ronda 7.) La frase de los tres más bajos («Lo más claro, en …») pasa por
+    # la misma guarda, con el mapa ordenado al revés y `visto.menores`: llenarla
+    # con `mayores` publicaba «Lo más claro, en Caquetá (6.73 %), …».
     _gd = M["desercion"]
-    _orden = sorted(zip(_gd["valor"], _gd["etiquetas"]), key=lambda t: -t[0])
-    _top_r = sorted((_corto(e_), n(v_, 2)) for v_, e_ in _orden[:3])
-    _lt = _re4.search(_RX_MAYORES + r" (.+?)\. La clase más oscura", DESC_DE1["cap1-desercion"])
-    _dichos = (sorted((m_.group(1), m_.group(2)) for m_ in
-                      _re4.finditer(r"(?:^|, | y )([^()]+?) \((-?\d+(?:\.\d+)?)\s%\)", _lt.group(2)))
-               if _lt else [])
-    if not (len(_orden) == _gd["n"] >= 4 and _orden[2][0] > _orden[3][0] and _dichos == _top_r
-            and sorted((_corto(f_["departamento"]), n(f_["pct"], 2)) for f_ in _ds["mayores"]) == _top_r):
-        problemas.append(f"deserción: la frase da como los tres valores más altos {_dichos} y los tres más "
-                         f"altos del mapa de R son {_top_r}")
+
+    def _tres_extremos(cuales: str, rx_lista: str, lista_visto: list) -> None:
+        """Lee (departamento, cifra) de la frase y los contrasta con el mapa de R.
+
+        `cuales` es «altos» o «bajos»; `rx_lista` captura la lista de la frase en
+        su grupo `lista`. Los tres tienen que ser los tres extremos de
+        `M["desercion"]` en ese sentido, sin empate con el cuarto, y la lista de
+        `visto` con que se escribe la frase tiene que ser la de esos mismos tres.
+        """
+        orden = sorted(zip(_gd["valor"], _gd["etiquetas"]), key=lambda t: t[0], reverse=cuales == "altos")
+        r_ = sorted((_corto(e_), n(v_, 2)) for v_, e_ in orden[:3])
+        lt_ = _re4.search(rx_lista, DESC_DE1["cap1-desercion"])
+        dichos_ = (sorted((m_.group(1), m_.group(2)) for m_ in
+                          _re4.finditer(r"(?:^|, | y )([^()]+?) \((-?\d+(?:\.\d+)?)\s%\)", lt_.group("lista")))
+                   if lt_ else [])
+        if orden[2][0] == orden[3][0]:
+            problemas.append(f"deserción: el tercer valor más {cuales[:-1]} del mapa de R ({orden[2][1]}, {orden[2][0]}) "
+                             f"empata con el cuarto ({orden[3][1]}, {orden[3][0]}): «los tres más {cuales}» no está definido")
+        if not (dichos_ == r_
+                and sorted((_corto(f_["departamento"]), n(f_["pct"], 2)) for f_ in lista_visto) == r_):
+            problemas.append(f"deserción: la frase da como los tres valores más {cuales} {dichos_} y los tres más "
+                             f"{cuales} del mapa de R son {r_}")
+
+    if not (len(_gd["valor"]) == len(_gd["etiquetas"]) == _gd["n"] >= 4):
+        problemas.append(f"deserción: el mapa de R trae {len(_gd['valor'])} valores y {len(_gd['etiquetas'])} "
+                         f"etiquetas y declara {_gd['n']} departamentos (hacen falta los mismos, y 4 o más)")
+    else:
+        _tres_extremos("altos", _RX_MAYORES + r" (?P<lista>.+?)\. La clase más oscura", _ds["mayores"])
+        _tres_extremos("bajos", r"\. Lo más claro, en (?P<lista>.+?\s%\))\.(?:\s|$)", _ds["menores"])
     _za = _ds["clase_alta"]["zonas"]
     _rep = lista_y([f"{ent(k_)} en el {z_}" for z_, k_ in zip(_za["zona"], _za["n"])])
     if not (sum(_za["n"]) == _ds["clase_alta"]["n"] == M["desercion"]["tam"][-1]
@@ -4347,6 +4369,9 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
     # (Ronda 6.) El mensaje nombra lo que choca: la frase contra R, o R contra
     # su propio margen (cabe, y el margen no es positivo), con el signo.
     _signo6 = "positivo" if _mg > 0 else "negativo" if _mg < 0 else "cero"
+    # (Ronda 7.) El valor crudo, con `:g`: redondeado a un decimal, -0.04 salía
+    # «-0.0 m, negativo».
+    _mg_crudo = f"{_mg:g}"
     if not _cb:
         problemas.append("Bogotá: la descripción no dice si el perímetro urbano cabe entero en el tercio norte")
     elif not isinstance(_cabe_r, bool):
@@ -4356,7 +4381,7 @@ def guardas_de_lecturas(doc: str, marcado: str) -> list[str]:
                          f"en el tercio norte y R (`urbano_en_tercio_norte`) dice {_cabe_r}")
     elif _cabe_r and not _mg > 0:
         problemas.append(f"Bogotá: R dice que el perímetro urbano cabe en el tercio norte (`urbano_en_tercio_norte` = "
-                         f"True), pero su margen al corte (`margen_urbano_m`) es {n(_mg, 1)} m, {_signo6}: el borde "
+                         f"True), pero su margen al corte (`margen_urbano_m`) es {_mg_crudo} m, {_signo6}: el borde "
                          f"sur del perímetro no queda al norte del corte")
     if not (DESC_BOGOTA.endswith(_esp)):
         problemas.append(f"Bogotá: la descripción de los tercios no dice las {_fs} sedes de fuera del Distrito")
