@@ -1174,6 +1174,54 @@ def defectos() -> list[tuple[str, str, str, object]]:
         "sin corrección de borde, con la", "con la corrección de Donnelly, con la")
     txt("T3.3r2 K: el cierre de E[s²] da la esperada como media de las réplicas", "ensamblador",
         "réplicas es {n(r4['s2_medida'])}. Cuanto menor", "réplicas es {n(r4['s2_esperada'])}. Cuanto menor")
+    # --- R3 · T3.4: la crónica de producción y las duraciones medidas ------
+    # Una inyección por guarda de `guardas_de_t34()`, y la de la crónica por
+    # cada palabra que vigila y por cada superficie que lee (prosa y quiz).
+    txt("T3.4: vuelve «el auditor» a la prosa del módulo 6", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "<strong>El auditor del capítulo lo comprueba:</strong>")
+    txt("T3.4: vuelve «el JSON» a la prosa del módulo 2", "ensamblador",
+        "los calcula <code>classInt</code> en R, y son una decisión",
+        "los calcula <code>classInt</code> en R y viajan en el JSON, y son una decisión")
+    txt("T3.4: vuelve «el generador» a la retroalimentación del quiz", "ensamblador",
+        "de las dos está mal: cuadrarlas es parte del método.' },",
+        "de las dos está mal: el generador lo comprueba.' },")
+    # Ronda 2 de la verificación: un agujero, una inyección.
+    txt("T3.4r2 V-04: «Auditor» con mayúscula, a principio de frase", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "Auditor aparte. <strong>Cuadrarlas es parte del método:</strong>")
+    txt("T3.4r2 V-05: el JSON en el aria-label de un lienzo", "ensamblador",
+        'aria-label="Histograma del porcentaje de muertes',
+        'aria-label="Histograma, leído del json, del porcentaje de muertes')
+    txt("T3.4r2 V-09: «El ensamblado se detiene»", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "El ensamblado se detiene si no cuadran. <strong>Cuadrarlas es parte del método:</strong>")
+    txt("T3.4r2 V-09: «La auditoría del capítulo»", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "La auditoría del capítulo lo comprueba. <strong>Cuadrarlas es parte del método:</strong>")
+    txt("T3.4r2 V-09: «En la versión anterior»", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "En la versión anterior de este módulo eran otras. <strong>Cuadrarlas es parte del método:</strong>")
+    txt("T3.4: la duración del módulo 5 se aleja de su medida", "ensamblador",
+        '("Tamaño de muestra efectivo", "14 min")', '("Tamaño de muestra efectivo", "8 min")')
+    txt("T3.4: la barra pierde la duración de un módulo", "ensamblador",
+        '    ("Anatomía de un objeto sf", "5 min"),\n', "")
+    txt("T3.4: el cuestionario del módulo 12 deja de poderse medir", "ensamblador",
+        "    AUTOEVALUACIONES['cap1'] = [", "    AUTOEVALUACIONES['cap1-final'] = [")
+    for _nombre, _mensaje in (
+            ("T3.4: vuelve «el auditor» a la prosa del módulo 6", "crónica de producción en lo que lee"),
+            ("T3.4: vuelve «el JSON» a la prosa del módulo 2", "crónica de producción en lo que lee"),
+            ("T3.4: vuelve «el generador» a la retroalimentación del quiz", "crónica de producción en lo que lee"),
+            ("T3.4: la duración del módulo 5 se aleja de su medida", "se sale de ±15 % de la medida"),
+            ("T3.4: la barra pierde la duración de un módulo", "la barra declara 11 duraciones"),
+            ("T3.4: el cuestionario del módulo 12 deja de poderse medir", "no se pueden medir las duraciones"),
+            ("T3.4r2 V-04: «Auditor» con mayúscula, a principio de frase", "crónica de producción en lo que lee"),
+            ("T3.4r2 V-05: el JSON en el aria-label de un lienzo", "crónica de producción en lo que lee"),
+            ("T3.4r2 V-09: «El ensamblado se detiene»", "crónica de producción en lo que lee"),
+            ("T3.4r2 V-09: «La auditoría del capítulo»", "crónica de producción en lo que lee"),
+            ("T3.4r2 V-09: «En la versión anterior»", "crónica de producción en lo que lee"),
+    ):
+        ESPERA[_nombre] = _mensaje
     for _nombre, _mensaje in (
             ("T2.3: el título de Bogotá se copia con Object.assign y se congela", "no siguen a su mando"),
             ("T2.3b: las tres frases del borde de Bogotá, en orden invertido", "no dicen el borde o la cuenta"),
@@ -1420,8 +1468,9 @@ def main() -> int:
     # ensamblador. Lo estrenó `baraja_opciones.py` el 2026-09-02; el 2026-11-02 se
     # sumó `describe_mapa.py`, las guardas de «Describir el mapa», y el 2026-11-12 los
     # de la capa de fuentes: el ensamblador escribe las citas con `genera_referencias.genera()`.
+    # R3 · T3.4: `mide_duraciones_cap1.py`, que la guarda de las duraciones importa.
     for auxiliar in ("baraja_opciones.py", "pon_boton_indice.py", "describe_mapa.py",
-                     "genera_referencias.py", "fuentes_config.py"):
+                     "genera_referencias.py", "fuentes_config.py", "mide_duraciones_cap1.py"):
         origen = ENSAMBLADOR.parent / auxiliar
         if not origen.exists():
             print(f"PARADO: falta {origen}")
@@ -1578,6 +1627,46 @@ def main() -> int:
             print(f"  MAL  «{nombre_m}» NO para el ensamblado (código {cod_m})")
     igual_html = igual_html and (publicado_antes is None or PUBLICADO.read_bytes() == publicado_antes)
 
+    # --- R3 · T3.4: LOS USOS LEGÍTIMOS NO SALTAN -----------------------
+    # La guarda de la crónica es de palabras, y una guarda de palabras que
+    # salta sobre lo legítimo se acaba desactivando. Se le ponen delante, en
+    # una copia, todos los usos que tiene que dejar pasar a la vez, y el
+    # ensamblado tiene que salir limpio: el generador de números aleatorios en
+    # la prosa, un formato (GeoJSON) y un archivo (versiones.json); «auditor» y
+    # «JSON» en un comentario HTML, en un comentario de JavaScript, dentro de un
+    # bloque de código y en un aviso de consola, que el estudiante no lee.
+    print("\n  T3.4: los usos legítimos de esas palabras no paran el ensamblado")
+    LEGITIMOS = [
+        ("Ocho preguntas de los cuatro tipos.",
+         "Ocho preguntas de los cuatro tipos. <!-- el auditor y el JSON, en un comentario --> Ninguna depende "
+         "del generador de números aleatorios, ni del Generador de números pseudoaleatorios de R, ni de un "
+         "GeoJSON, ni de <code>precalculo/versiones.json</code>."),
+        ("    AUTOEVALUACIONES['cap1-diagnostica'] = [",
+         "    // El auditor lee este JSON; el generador también.\n"
+         "    const _avisoLegitimo = () => console.error('para quien depura: el JSON y el auditor');\n"
+         "    AUTOEVALUACIONES['cap1-diagnostica'] = ["),
+        ('cat(sprintf("%d de %d = %.5f %%\\\\n",',
+         '# el JSON del auditor y su generador, en un comentario de R\ncat(sprintf("%d de %d = %.5f %%\\\\n",'),
+    ]
+    legit = fuente
+    l_inertes = [v for v, _ in LEGITIMOS if legit.count(v) != 1]
+    for viejo, nuevo in LEGITIMOS:
+        legit = legit.replace(viejo, nuevo, 1)
+    copia = tmp / "ensambla_cap1_legitimos.py"
+    copia.write_text(legit, encoding="utf-8")
+    cod_l, sal_l, _ = corre(tmp, copia, dict(limpias))
+    l_ok = cod_l == 0 and not l_inertes and "Ensamblado limpio" in sal_l
+    if l_inertes:
+        print(f"  INERTE  {len(l_inertes)} ancla(s) de los usos legítimos no aparecen una sola vez: "
+              f"{[v[:40] for v in l_inertes]}")
+    elif l_ok:
+        print(f"  OK   {len(LEGITIMOS)} inserciones legítimas a la vez · el ensamblado sale limpio")
+    else:
+        print(f"  MAL  los usos legítimos paran el ensamblado (código {cod_l}):")
+        for m in males(sal_l)[:4]:
+            print(f"      {m[:120]}")
+    igual_html = igual_html and (publicado_antes is None or PUBLICADO.read_bytes() == publicado_antes)
+
     print("\n" + "=" * 70)
     print(f"  {len(MUT_DESC) - d_colados} de {len(MUT_DESC)} mutantes de las descripciones paran el ensamblado")
     print(f"  {cazados} de {cazados + colados} defectos cazados"
@@ -1592,7 +1681,9 @@ def main() -> int:
     print("=" * 70)
 
     shutil.rmtree(tmp, ignore_errors=True)
-    ok = (colados == 0 and inertes == 0 and cod == 0 and intactos and igual_html and d_colados == 0)
+    print(f"  usos legítimos de «auditor», «generador» y «JSON»: {'no saltan' if l_ok else 'SALTAN o inertes'}")
+    ok = (colados == 0 and inertes == 0 and cod == 0 and intactos and igual_html and d_colados == 0
+          and l_ok)
     return 0 if ok else 1
 
 

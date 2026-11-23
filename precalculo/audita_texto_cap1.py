@@ -534,6 +534,39 @@ PROHIBIDAS = [
     ("no presenta el proceso del módulo 6 como no ergódico", "todo",
      r"no son lo mismo: el proceso de arriba|(?:proceso de arriba|este proceso|el proceso del módulo)"
      r" no es ergódico|no ha tenido sitio para converger"),
+    # --- R3 · T3.4 (D7, H-10): la crónica de producción, fuera de lo que lee el
+    # estudiante. Una por forma retirada; la lección de método se queda, dicha
+    # como método. La guarda general —«auditor», «generador», «JSON» en el
+    # texto visible— vive en el ensamblador (`cronica_visible()`); estas
+    # vigilan las frases concretas, también dentro del JavaScript del quiz.
+    ("no vuelve a contar que los cortes viajan en el JSON (módulo 2)", "todo",
+     r"viajan\s+en\s+el\s+json|el\s+navegador\s+solo\s+pinta"),
+    ("no vuelve «las que simula el generador» (módulo 6)", "todo",
+     r"que\s+simula\s+el\s+generador"),
+    ("no vuelve a decir que el generador del capítulo se detiene (módulo 6)", "todo",
+     r"el\s+generador\s+del\s+capítulo"),
+    ("no vuelve la historia de la versión anterior de los mapas (módulo 6)", "todo",
+     r"hasta\s+esta\s+versión|son\s+ahora\s+el\s+mismo\s+experimento"),
+    ("no vuelve «ningún auditor de números» (módulo 6)", "todo",
+     r"ningún\s+auditor\s+de\s+números"),
+    ("no vuelve «el auditor de este capítulo» (módulo 9)", "todo",
+     r"el\s+auditor\s+de\s+este\s+capítulo"),
+    ("no vuelve al quiz «el generador comprueba esa coherencia» (módulo 6)", "todo",
+     r"el\s+generador\s+comprueba\s+esa\s+coherencia"),
+    ("no vuelve al quiz «el auditor del capítulo lleva la lista» (módulo 9)", "todo",
+     r"el\s+auditor\s+del\s+capítulo\s+lleva"),
+    # Y una duración escrita a mano en la prosa: la diagnóstica no dura «cinco
+    # minutos» —son ocho preguntas, 9.6 con la tasa del medidor—, y las
+    # duraciones las da la barra, medidas (mide_duraciones_cap1.py).
+    ("no promete «cinco minutos» a la diagnóstica (módulo 1)", "todo",
+     r"cinco\s+minutos"),
+    # Ronda 2 (V-07): todos los huecos de arriba llevan \s+, porque el
+    # ensamblador parte la prosa en líneas y «que simula\n el generador» se
+    # colaba. Y V-01: `sf` no está debajo de todos los paquetes del curso
+    # —spatstat, terra y classInt no dependen de él—, ni el objeto `sf` «debajo
+    # de los demás». Debajo de sf y de terra están GDAL, GEOS y PROJ.
+    ("no dice que sf está debajo de todos los paquetes, o de los demás (módulos 8 y 9)", "todo",
+     r"debajo\s+de\s+(?:todos|los\s+demás)"),
 ]
 
 # Lo que el DOCUMENTO ENTERO tiene que decir, también fuera de la prosa: la
