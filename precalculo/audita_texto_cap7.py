@@ -165,7 +165,10 @@ FUENTES = [
 # una reescritura, el capítulo deja de decir lo que el plan le encarga —A.28 y
 # A.29 las deciden— y nadie se entera.
 AFIRMACIONES = [
-    # La promesa del capítulo 1 («el capítulo 7 lo desarrolla»)
+    # Lo que el capítulo 1 dejó dicho de E[I]. Hasta R3 · T3.3 era una promesa («el
+    # capítulo 7 hace la cuenta entera»); desde entonces el cap. 1 hace la cuenta en un
+    # panel de su módulo 3, y este capítulo la rehace pieza a pieza y la lleva más lejos.
+    ("remite a la cuenta de E[I] que el capítulo 1 ya hace", "hizo ya la cuenta de su esperanza"),
     ("explica E[I] por la diagonal que W no tiene", "w no tiene diagonal"),
     ("dice que E[I] < 0 necesita el centrado y la diagonal", "hacen falta las dos piezas"),
     ("dice que I se compara con E[I] y no con 0", "se compara con \\(e[i]\\) y no con 0"),
@@ -228,6 +231,10 @@ PROHIBIDAS = [
      r"consigo misma excluida"),
     ("no atribuye al capítulo 1 que I «no vale cero» bajo la nula",
      r"no vale cero\s+cuando no hay autocorrelación"),
+    # R3 · T3.3: el capítulo 1 ya no deja la cuenta de E[I] pendiente —la hace en un
+    # panel de su módulo 3—, así que decirlo sería citarle algo que ya no es verdad.
+    ("no dice que el capítulo 1 dejó pendiente la cuenta de E[I]",
+     r"dejó una cuenta pendiente"),
 ]
 
 # Lo que el CÓDIGO del capítulo no puede dejar de decir: los comentarios son

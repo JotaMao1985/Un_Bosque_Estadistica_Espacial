@@ -159,6 +159,7 @@ def main() -> int:
     import pandas as pd
     import geopandas as gpd
     from scipy.spatial import cKDTree
+    from scipy.stats import norm
     from shapely.geometry import box, MultiPoint, Polygon
     from shapely.ops import voronoi_diagram
     from libpysal.weights import Queen
@@ -451,6 +452,29 @@ def main() -> int:
         a.cierto(pub["clark_evans_donnelly"] < pub["clark_evans"],
                  f"{nombre}: la corrección de borde baja el índice",
                  f"{pub['clark_evans']:.5f} -> {pub['clark_evans_donnelly']:.5f}")
+        # R3 · T3.3 (C1-09): la PRUEBA de Clark-Evans, rehecha aquí. Bajo CSR,
+        # Var(d_i) = (4 - pi)/(4 pi lambda), y la prueba trata las n distancias
+        # como independientes: ee = c/sqrt(n lambda), c = sqrt((4 - pi)/(4 pi)).
+        # La z sin corregir se rehace por dos rutas —desde los puntos y desde
+        # las tres columnas publicadas—, la de Donnelly con la esperanza
+        # corregida de arriba, y los p con la normal (erfc, sin restar de 1).
+        c_ee = math.sqrt((4 - math.pi) / (4 * math.pi))
+        ee = c_ee / math.sqrt(len(sub) * len(sub) / pub["area"])
+        a.igual(ee, pub["nn_ee"], f"{nombre}: error típico de la distancia media bajo CSR", 1e-9)
+        z0 = (nn.mean() - esperada) / ee
+        a.igual(z0, pub["ce_z"], f"{nombre}: z de Clark-Evans, desde los puntos", 1e-6)
+        a.igual((pub["nn_media"] - pub["nn_esperada"]) / pub["nn_ee"], pub["ce_z"],
+                f"{nombre}: z = (observada - esperada) / ee, desde la tabla", 1e-5)
+        a.igual(math.erfc(abs(pub["ce_z"]) / math.sqrt(2)), pub["ce_p"],
+                f"{nombre}: p bilateral de su z", 1e-9)
+        lp = (math.log(2) + float(norm.logsf(abs(pub["ce_z"])))) / math.log(10)
+        a.igual(lp, pub["ce_p_log10"], f"{nombre}: log10 del p, sin hundirse a cero", 1e-6)
+        a.igual(math.ceil(pub["ce_p_log10"]), pub["ce_p_exp"],
+                f"{nombre}: la cota de la tabla es el primer entero sobre log10 p", 0)
+        zD = (nn.mean() - esp_d) / ee
+        a.igual(zD, pub["ce_z_donnelly"], f"{nombre}: z de Clark-Evans con Donnelly", 1e-6)
+        a.igual(math.erfc(abs(pub["ce_z_donnelly"]) / math.sqrt(2)), pub["ce_p_donnelly"],
+                f"{nombre}: p bilateral con Donnelly", 1e-9)
     # El orden de los tres regímenes es el argumento del módulo 3.
     ce = D["tobler"]["clark_evans"]
     a.cierto(ce["redwood"] < ce["japanesepines"] < ce["cells"],
@@ -461,6 +485,21 @@ def main() -> int:
     for k in ("redwood", "japanesepines", "cells"):
         a.igual(ce[k], D["puntual_canonico"][k]["clark_evans"],
                 f"Clark-Evans de {k}, en las dos secciones")
+    # La constante del error típico y el régimen que la tabla lee de la
+    # prueba: agregado y regular por debajo de alfa, con su signo; los pinos,
+    # por encima, con las dos correcciones.
+    cep = D["clark_evans_prueba"]
+    a.igual(math.sqrt((4 - math.pi) / (4 * math.pi)), cep["constante_ee"],
+            "la constante del error típico de Clark-Evans", 1e-9)
+    a.cierto(cep["correccion"] == "none" and cep["alternativa"] == "two.sided",
+             "la tabla publica la prueba sin corrección y bilateral")
+    pcn, alfa = D["puntual_canonico"], D["inferencia"]["alfa"]
+    a.cierto(pcn["redwood"]["ce_z"] < 0 and pcn["redwood"]["ce_p"] < alfa
+             and pcn["cells"]["ce_z"] > 0 and pcn["cells"]["ce_p"] < alfa
+             and pcn["japanesepines"]["ce_p"] >= alfa and pcn["japanesepines"]["ce_p_donnelly"] >= alfa,
+             "la prueba da agregado, compatible con el azar y regular",
+             f"p = {pcn['redwood']['ce_p']:.3g}, {pcn['japanesepines']['ce_p']:.5f}, "
+             f"{pcn['cells']['ce_p']:.3g}")
 
     # =================================================================
     a.titulo("1c · nc.shp, leído por geopandas")
@@ -1845,6 +1884,38 @@ def main() -> int:
     a.cierto(ur["pct_rechaza_ingenuo"] > 50,
              "la mayoría engañaría al análisis ingenuo",
              f"{ur['pct_rechaza_ingenuo']:.5f} %")
+    # R3 · T3.3 (C1-22): la ergodicidad. La desviación típica EXACTA de la
+    # media, rehecha desde la geometría de la retícula y no desde el módulo 4
+    # (con el que, aun así, tiene que coincidir); su error de Monte Carlo; y
+    # la media al rellenar y al ampliar, desde la tabla del techo.
+    _k6 = ur["k"]
+    _xy = np.array([(x, y) for y in range(1, _k6 + 1) for x in range(1, _k6 + 1)], float)
+    _R6 = np.exp(-np.hypot(_xy[:, None, 0] - _xy[None, :, 0],
+                           _xy[:, None, 1] - _xy[None, :, 1]) / ur["phi"])
+    a.igual(ur["n"] ** 2 / _R6.sum(), ur["n_eff"], "módulo 6: n_eff de su retícula", 1e-7)
+    a.igual(ur["n_eff"], D["inferencia"]["rejilla"][i4]["n_eff"],
+            "módulo 6: es la retícula y el alcance del módulo 4", 1e-9)
+    a.igual(1 / math.sqrt(ur["n_eff"]), ur["sd_exacta_de_la_media"],
+            "módulo 6: sd exacta de la media = sigma/sqrt(n_eff)", 1e-9)
+    a.igual(ur["sd_exacta_de_la_media"] / math.sqrt(2 * (ur["n_realizaciones"] - 1)),
+            ur["emc_sd_de_las_medias"], "módulo 6: error de Monte Carlo de la sd medida", 1e-9)
+    a.igual(abs(ur["sd_de_las_medias"] - ur["sd_exacta_de_la_media"]) / ur["emc_sd_de_las_medias"],
+            ur["sd_medida_a_emc"], "módulo 6: a cuántos errores queda la medida", 1e-6)
+    a.cierto(ur["sd_medida_a_emc"] < 4, "módulo 6: la sd medida y la exacta solo difieren por ruido",
+             f"{ur['sd_medida_a_emc']:.5f} errores")
+    erg, tf6 = ur["ergodicidad"], D["n_efectivo"]["techo"]["rejilla"]
+    a.igual(tf6[-1]["k"], erg["k_ultima"], "ergodicidad: la última fila del techo")
+    a.igual(tf6[-1]["n"], erg["n_ultima"], "ergodicidad: y sus observaciones")
+    a.igual(math.sqrt(D["n_efectivo"]["techo"]["rho_inf"]), erg["sd_media_relleno_limite"],
+            "ergodicidad: al rellenar, la sd de la media tiende a sqrt(rho_inf)", 1e-9)
+    a.igual(1 / math.sqrt(tf6[-1]["relleno"]["n_eff"]), erg["sd_media_relleno_ultima"],
+            "ergodicidad: la sd de la media en la última fila del relleno", 1e-9)
+    a.igual(1 / math.sqrt(tf6[-1]["ampliacion"]["n_eff"]), erg["sd_media_ampliacion_ultima"],
+            "ergodicidad: la sd de la media en la última fila de la ampliación", 1e-9)
+    a.cierto(erg["sd_media_relleno_limite"] < erg["sd_media_relleno_ultima"]
+             < ur["sd_exacta_de_la_media"] and erg["sd_media_ampliacion_ultima"]
+             < ur["sd_exacta_de_la_media"],
+             "ergodicidad: rellenar se queda en el límite y ampliar baja la sd")
     vg = ur["variograma"]
     a.igual(len(vg["lags"]), len(vg["teorico"]), "el variograma tiene un teórico por lag")
     for k, h in enumerate(vg["lags"]):

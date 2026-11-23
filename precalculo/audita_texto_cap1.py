@@ -225,6 +225,23 @@ AFIRMACIONES = [
      "sin explicar"),
     ("declara la frontera con el capítulo 10",
      "es del capítulo 10"),
+    # R3 · T3.3: lo que sustituye a las frases retiradas.
+    ("dice que la estacionariedad hace falta pero no basta (módulo 6)",
+     "y hace falta, pero no basta"),
+    ("dice que al promediar sube el valor absoluto de la correlación (módulo 7)",
+     "así que sube su valor absoluto"),
+    # R3 · T3.3, ronda 2 (🔴 de la verificación): la ergodicidad es del proceso.
+    # El del módulo 6 ES ergódico; el contraejemplo de que la estacionariedad no
+    # basta es Z(s) = Y; y la región grande es una condición práctica, no parte
+    # de la definición.
+    ("dice que el proceso del módulo 6 es ergódico (definición)",
+     "en cambio, es ergódico"),
+    ("da el contraejemplo estacionario que no es ergódico (módulo 6)",
+     "que no se acerca a la del proceso por mucho que crezca la región"),
+    ("dice que la región grande no es parte de la definición de ergodicidad (módulo 6)",
+     "no parte de la definición"),
+    ("cierra el panel diciendo que el proceso es ergódico (módulo 6)",
+     "el proceso es estacionario y ergódico"),
 ]
 
 # Si la codificación se rompe, las tildes no desaparecen: se convierten en
@@ -499,6 +516,34 @@ PROHIBIDAS = [
      r"distancia, como en el correlograma del módulo 3"),
     ("no escribe la matriz de correlaciones con la R de Clark-Evans (módulo 4)", "todo",
      r"\^\\top r\\,"),
+    # --- R3 · T3.3: dos frases falsas que los paneles nuevos sustituyen.
+    #   · con una realización la estacionariedad NO es «la única salida» que
+    #     basta: es necesaria, y hace falta además ergodicidad (C1-22);
+    #   · la correlación no es «el cociente entre lo que sobrevive y lo que
+    #     había»: es covarianza entre desviaciones típicas, y lo que sube al
+    #     promediar es |r| (C1-28).
+    ("no dice que con una realización basta suponer estacionariedad (módulo 6)", "todo",
+     r"solo hay una salida:\s*suponer"),
+    ("no describe la correlación como lo que sobrevive entre lo que había (módulo 7)", "todo",
+     r"cociente entre lo que sobrevive"),
+    # --- R3 · T3.3, ronda 2: la ergodicidad es una propiedad del proceso. Ni la
+    # región grande va dentro de su definición, ni el proceso del módulo 6 —con
+    # correlación que decae, ergódico— se presenta como el que no lo es.
+    ("no mete la región grande en la definición de ergodicidad (módulo 6 y quiz)", "todo",
+     r"ergodicidad[^.]{0,60}\b(?:pide|es que)\b[^.]{0,80}región (?:sea )?grande"),
+    ("no presenta el proceso del módulo 6 como no ergódico", "todo",
+     r"no son lo mismo: el proceso de arriba|(?:proceso de arriba|este proceso|el proceso del módulo)"
+     r" no es ergódico|no ha tenido sitio para converger"),
+]
+
+# Lo que el DOCUMENTO ENTERO tiene que decir, también fuera de la prosa: la
+# retroalimentación del cuestionario vive en el JavaScript, que la extracción de
+# prosa descarta (R3 · T3.3, ronda 2).
+AFIRMACIONES_DOC = [
+    ("la retroalimentación del quiz dice que la estacionariedad no basta, por dos razones (módulo 6)",
+     "hace falta, pero no basta, y por dos razones distintas"),
+    ("la retroalimentación del quiz separa la región grande de la ergodicidad (módulo 6)",
+     "la otra es del mapa"),
 ]
 
 
@@ -514,6 +559,8 @@ def prohibidas(a: Auditor) -> None:
         a.exige(m is None, que,
                 "" if m is None else "aparece: «"
                 + ambitos[ambito][max(0, m.start() - 30):m.end() + 20].replace("\n", " ") + "»")
+    for que, clave in AFIRMACIONES_DOC:
+        a.exige(clave in doc, que)
 
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.

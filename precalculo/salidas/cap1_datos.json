@@ -104,7 +104,14 @@
       "clark_evans": 1.0640020553,
       "clark_evans_donnelly": 1.0075072432,
       "area_caja": 0.912,
-      "lambda_caja": 71.2719298246
+      "lambda_caja": 71.2719298246,
+      "nn_ee": 0.0040209477,
+      "ce_z": 0.9871401645,
+      "ce_p": 0.3235739302,
+      "ce_p_log10": -0.4900264761,
+      "ce_p_exp": 0,
+      "ce_z_donnelly": 0.1222811957,
+      "ce_p_donnelly": 0.9026763239
     },
     "redwood": {
       "nombre": "Plántulas de secuoya",
@@ -116,7 +123,14 @@
       "nn_sd": 0.0258998689,
       "nn_esperada": 0.0635000635,
       "clark_evans": 0.6186501573,
-      "clark_evans_donnelly": 0.5849906266
+      "clark_evans_donnelly": 0.5849906266,
+      "nn_ee": 0.0042155097,
+      "ce_z": -5.7444392352,
+      "ce_p": 9.2e-09,
+      "ce_p_log10": -8.0351461269,
+      "ce_p_exp": -8,
+      "ce_z_donnelly": -6.6111680145,
+      "ce_p_donnelly": 0
     },
     "cells": {
       "nombre": "Células biológicas",
@@ -128,8 +142,21 @@
       "nn_sd": 0.0176503299,
       "nn_esperada": 0.077151675,
       "clark_evans": 1.6716795148,
-      "clark_evans_donnelly": 1.5604256061
+      "clark_evans_donnelly": 1.5604256061,
+      "nn_ee": 0.0062228952,
+      "ce_z": 8.3275063376,
+      "ce_p": 0,
+      "ce_p_log10": -16.0832146143,
+      "ce_p_exp": -16,
+      "ce_z_donnelly": 7.4435616736,
+      "ce_p_donnelly": 0
     }
+  },
+  "clark_evans_prueba": {
+    "constante_ee": 0.2613616004,
+    "correccion": "none",
+    "correccion_por_defecto": "Donnelly",
+    "alternativa": "two.sided"
   },
   "area_canonico": {
     "nombre": "SIDS de Carolina del Norte, 1974-78",
@@ -1496,7 +1523,18 @@
       "q05": [0.2142743109, 0.3209898928, 0.3822494401, 0.4302709122, 0.4691613342, 0.4841921118, 0.4963451477, 0.5045240669],
       "q95": [0.3051485846, 0.5237966883, 0.7042336019, 0.8873273286, 1.0348607782, 1.1539911725, 1.2709190474, 1.3905082377]
     },
-    "banda_rel_lag4": 0.717020398
+    "banda_rel_lag4": 0.717020398,
+    "n_eff": 5.1581674595,
+    "sd_exacta_de_la_media": 0.4403036456,
+    "emc_sd_de_las_medias": 0.0098504153,
+    "sd_medida_a_emc": 1.9144102402,
+    "ergodicidad": {
+      "k_ultima": 64,
+      "n_ultima": 4096,
+      "sd_media_relleno_limite": 0.4395067363,
+      "sd_media_relleno_ultima": 0.4395443582,
+      "sd_media_ampliacion_ultima": 0.1443749098
+    }
   },
   "realizaciones_vistas": [
     {

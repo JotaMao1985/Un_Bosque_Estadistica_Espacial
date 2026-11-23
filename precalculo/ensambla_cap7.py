@@ -1078,10 +1078,12 @@ MOD2 = cabecera(
     2, TITULOS[1][0], INGLES[1],
     "Leer la fórmula del I de Moran término a término, saber por qué su valor esperado no es "
     "cero y por qué su rango no es [−1, 1].") + rf"""
-      <p>El capítulo 1, en su módulo 3, presentó la fórmula y dejó una cuenta pendiente: bajo la
-        nula de permutación, lo que queda un poco por debajo de cero es la esperanza \(E[I]\), no el
-        I de cada reparto, y queda ahí por el centrado de los valores. Aquí está la cuenta, empezando
-        por la fórmula entera:</p>
+      <p>El capítulo 1, en su módulo 3, presentó la fórmula e hizo ya la cuenta de su esperanza: bajo
+        la nula de permutación, lo que queda un poco por debajo de cero es \(E[I]\), no el I de cada
+        reparto, y queda ahí por el centrado de los valores y porque W no tiene diagonal. Aquí se
+        rehace leyendo la fórmula pieza a pieza, sobre los tableros de este capítulo, y se sigue hasta
+        donde aquella no llegaba: el rango real del índice y lo que le hace el estilo de W. Primero, la
+        fórmula entera:</p>
 
 {F_MORAN}
       <div class="definition">

@@ -1094,8 +1094,12 @@ def defectos() -> list[tuple[str, str, str, object]]:
     _MORAN_W = r"centrados y la matriz de pesos \\(\\mathbf{{W}}\\)"
     txt("T3.2: la matriz de pesos vuelve a escribirse sin negrita", "ensamblador",
         _MORAN_W, r"centrados y la matriz de pesos \\(W\\)")
+    # R3 · T3.3 añadió dos \mathbf{W} a la prosa (el panel de E[I] del módulo 3):
+    # la inyección los quita también, o la guarda los encontraría y no se dispararía.
     txt("T3.2: la prosa deja de escribir la matriz de pesos en negrita", "ensamblador",
-        _MORAN_W, r"centrados y la matriz de pesos \\(\\mathbf{{M}}\\)")
+        _MORAN_W, r"centrados y la matriz de pesos \\(\\mathbf{{M}}\\)",
+        r"con cualquier \\(\\mathbf{{W}}\\)", r"con cualquier \\(\\mathbf{{M}}\\)",
+        r"ni de \\(\\mathbf{{W}}\\) ni del dato", r"ni de \\(\\mathbf{{M}}\\) ni del dato")
     txt("T3.2: el eje del variograma vuelve a decir «rezago»", "ensamblador",
         "text: 'clase de distancia (pasos de retícula)'", "text: 'rezago (pasos de retícula)'")
     txt("T3.2: vuelve «el I de Moran»", "ensamblador",
@@ -1127,6 +1131,49 @@ def defectos() -> list[tuple[str, str, str, object]]:
     obj("T3.2r2: la fila de ρ dice «correlación» para negarla", "datos",
         lambda o: next(f for f in o["glosario"]["filas"] if f["simbolo"] == "\\rho").__setitem__(
             "nombre", "Coeficiente de retardo espacial (SAR), que no es una correlación"))
+    # --- R3 · T3.3: los paneles de deducción y la ergodicidad --------------
+    # Una inyección por guarda de `guardas_de_t33()`, con su mensaje en ESPERA.
+    txt("T3.3: el panel de la ergodicidad deja de arrancar oculto", "ensamblador",
+        'id="der-ergodicidad" hidden>', 'id="der-ergodicidad">')
+    txt("T3.3: el botón del panel de E[s²] nombra otro id", "ensamblador",
+        'aria-controls="der-s2-esperada"', 'aria-controls="der-s2"')
+    txt("T3.3: el panel de Clark-Evans acaba sin su valor p", "ensamblador",
+        "<strong>{n(pc['japanesepines']['ce_p'])}</strong>.</p>", "<strong>grande</strong>.</p>")
+    txt("T3.3: el módulo 6 deja de decir «ergodicidad»", "ensamblador",
+        "<li><strong>Ergodicidad:</strong>", "<li><strong>Convergencia:</strong>",
+        "estimar; la ergodicidad, que una sola", "estimar; la convergencia, que una sola",
+        "ergodicidad con un solo mapa exige", "convergencia con un solo mapa exige",
+        "No es un fallo de ergodicidad:", "No es un fallo de convergencia:",
+        "y sin ergodicidad la repetición", "y sin convergencia la repetición")
+    txt("T3.3: las células pasan a rotularse «Agregado»", "ensamblador",
+        "<td>Regular</td></tr>", "<td>Agregado</td></tr>")
+    obj("T3.3: con Donnelly el p de los pinos baja", "datos",
+        lambda o: o["puntual_canonico"]["japanesepines"].__setitem__("ce_p_donnelly", 0.2))
+    obj("T3.3: la sd medida se aparta de la exacta más que el ruido", "datos",
+        lambda o: o["una_realizacion"].__setitem__("sd_medida_a_emc", 4.5))
+    obj("T3.3: al rellenar, la sd de la media se aleja de su límite", "datos",
+        lambda o: o["una_realizacion"]["ergodicidad"].__setitem__("sd_media_relleno_ultima", 0.46))
+    obj("T3.3: la ergodicidad apunta a otra fila del techo", "datos",
+        lambda o: o["una_realizacion"]["ergodicidad"].__setitem__("k_ultima", 32))
+    # Ronda 2 (🟡 8 de la verificación): una cifra cambiada de sitio en el texto.
+    # Son los defectos que la verificación coló, con la letra que los dibuja.
+    txt("T3.3r2 A: la z de las secuoyas en la tabla es la de Donnelly", "ensamblador",
+        "<td>{n(pc['redwood']['ce_z'])}</td>", "<td>{n(pc['redwood']['ce_z_donnelly'])}</td>")
+    txt("T3.3r2 B: el límite del relleno y el valor con 4 096, intercambiados", "ensamblador",
+        r"= {n(erg['sd_media_relleno_limite'])}\\): con", r"= {n(erg['sd_media_relleno_ultima'])}\\): con",
+        "ya vale {n(erg['sd_media_relleno_ultima'])},", "ya vale {n(erg['sd_media_relleno_limite'])},")
+    txt("T3.3r2 E: el cierre de E[I] dice −1/(n′ − 1)", "ensamblador",
+        r"\\(-n'/(n(n-1))\\), que es lo que dice", r"\\(-1/(n'-1)\\), que es lo que dice")
+    txt("T3.3r2 G: la nota del borde da el p sin corregir como el de Donnelly", "ensamblador",
+        "{n(pc['japanesepines']['ce_p_donnelly'])}, mientras los valores p",
+        "{n(pc['japanesepines']['ce_p'])}, mientras los valores p")
+    txt("T3.3r2 H: la definición cita la sd de la ampliación", "ensamblador",
+        "{n(ur['sd_de_las_medias'])}, porque la región es finita",
+        "{n(erg['sd_media_ampliacion_ultima'])}, porque la región es finita")
+    txt("T3.3r2 J: el pie de la tabla dice Donnelly", "ensamblador",
+        "sin corrección de borde, con la", "con la corrección de Donnelly, con la")
+    txt("T3.3r2 K: el cierre de E[s²] da la esperada como media de las réplicas", "ensamblador",
+        "réplicas es {n(r4['s2_medida'])}. Cuanto menor", "réplicas es {n(r4['s2_esperada'])}. Cuanto menor")
     for _nombre, _mensaje in (
             ("T2.3: el título de Bogotá se copia con Object.assign y se congela", "no siguen a su mando"),
             ("T2.3b: las tres frases del borde de Bogotá, en orden invertido", "no dicen el borde o la cuenta"),
@@ -1237,6 +1284,24 @@ def defectos() -> list[tuple[str, str, str, object]]:
             ("T3.2r2: «este I de Moran»", "vuelve «el I» de Moran"),
             ("T3.2r2: «el I departamental»", "vuelve «el I» de Moran"),
             ("T3.2r2: la fila de ρ dice «correlación» para negarla", "la fila de ρ del glosario"),
+            ("T3.3: el panel de la ergodicidad deja de arrancar oculto", "no está una sola vez, oculto"),
+            ("T3.3: el botón del panel de E[s²] nombra otro id", "ningún botón de derivación nombra el panel"),
+            ("T3.3: el panel de Clark-Evans acaba sin su valor p", "no lleva la cifra en que acaba"),
+            ("T3.3: el módulo 6 deja de decir «ergodicidad»", "el módulo 6 no dice «ergodicidad»"),
+            ("T3.3: las células pasan a rotularse «Agregado»", "la tabla de Clark-Evans rotula"),
+            ("T3.3: con Donnelly el p de los pinos baja", "con Donnelly el p de los pinos ya no sube"),
+            ("T3.3: la sd medida se aparta de la exacta más que el ruido", "el panel lo llama ruido"),
+            ("T3.3: al rellenar, la sd de la media se aleja de su límite", "ya no está en su límite"),
+            ("T3.3: la ergodicidad apunta a otra fila del techo", "no es la última de la tabla del techo"),
+            ("T3.3r2 A: la z de las secuoyas en la tabla es la de Donnelly", "no da en la fila de"),
+            ("T3.3r2 B: el límite del relleno y el valor con 4 096, intercambiados",
+             "no dice el límite del relleno"),
+            ("T3.3r2 E: el cierre de E[I] dice −1/(n′ − 1)", "el cierre de E[I] ya no dice"),
+            ("T3.3r2 G: la nota del borde da el p sin corregir como el de Donnelly",
+             "la nota del borde no da la z y el p de Donnelly"),
+            ("T3.3r2 H: la definición cita la sd de la ampliación", "la definición de ergodicidad no cita"),
+            ("T3.3r2 J: el pie de la tabla dice Donnelly", "el pie de la tabla de Clark-Evans no dice"),
+            ("T3.3r2 K: el cierre de E[s²] da la esperada como media de las réplicas", "el cierre de E[s²] no da"),
     ):
         ESPERA[_nombre] = _mensaje
 

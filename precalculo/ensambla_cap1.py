@@ -105,6 +105,7 @@ S = json.loads(_ruta("CAP1_SOLUCIONES", SALIDAS / "cap1_soluciones.json")
 sn, pc, ac, gc = D["snow"], D["puntual_canonico"], D["area_canonico"], D["geo_canonico"]
 co, tb, inf = D["colombia"], D["tobler"], D["inferencia"]
 ir, ne, ur = D["inferencia_real"], D["n_efectivo"], D["una_realizacion"]
+erg = ur["ergodicidad"]     # módulo 6 (R3 · T3.3): la media de una realización al rellenar y al ampliar
 rv = D["realizaciones_vistas"]
 vg6 = ur["variograma"]      # módulo 6: teórico en h entero, teórico de la clase, media y banda
 rt = ne["rho_del_titular"]
@@ -139,6 +140,10 @@ mc1 = al["marcos"]               # módulo 1: la parte de calle según el marco 
 ma3 = tb["mas_alla"]             # módulo 3: las parejas que el eje deja fuera
 su3 = tb["sumas"]                # módulo 3: la suma de z_i z_j por banda
 NIVEL4 = f"{inf['nivel_pct']:g}"  # módulo 4: el nivel de los intervalos, de R
+# R3 · T3.3: la prueba de Clark-Evans del módulo 3 (la constante del error típico
+# y la corrección que se publica); las z y los p de cada patrón viven en `pc`.
+cep = D["clark_evans_prueba"]
+ALFA = D["inferencia"]["alfa"]   # el nivel con que la tabla del módulo 3 lee el régimen
 
 
 def n(x, d=5):
@@ -172,6 +177,19 @@ def ent_mate(x):
     Con `\\,`, que es el espacio fino de LaTeX y sí tiene métrica.
     """
     return f"{int(round(float(x))):,}".replace(",", r"\,")
+
+
+def p_ce(f):
+    """El valor p de la prueba de Clark-Evans de un patrón, para la tabla del módulo 3.
+
+    Con cinco decimales un p de 10⁻⁹ se imprimiría «0.00000», que es un cero que
+    no es. Entonces se escribe la cota que R publica, 10 elevado a `ce_p_exp`
+    (el primer entero por encima de log10 p): ni la cifra ni el exponente se
+    calculan aquí.
+    """
+    if round(f["ce_p"], 5) > 0:
+        return n(f["ce_p"])
+    return f"\\(&lt; 10^{{{f['ce_p_exp']}}}\\)"
 
 
 def firma(valor, unidad=""):
@@ -1063,8 +1081,59 @@ MOD3 = cabecera(
           entre las mismas posiciones. Lo que queda un poco por debajo de cero bajo esa nula es
           <strong>\\(E[I]\\)</strong>, no \\(I\\), que en cada reparto sale distinta. Y queda por debajo por el
           <strong>centrado</strong>: los \\(z_i\\) suman cero, así que los productos \\(z_i z_j\\) entre unidades
-          distintas suman \\(-\\sum_i z_i^2\\), y su promedio es negativo con cualquier dato. El capítulo 7 hace
-          la cuenta entera.</p>
+          distintas suman \\(-\\sum_i z_i^2\\), y su promedio es negativo con cualquier dato. La cuenta entera
+          está en el desarrollo de abajo.</p>
+        <div class="derivacion">
+          <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-esperanza-moran">
+            <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+            <span class="derivacion-texto">Ver por qué \\(E[I] = -1/(n-1)\\) con cualquier \\(\\mathbf{{W}}\\)</span>
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div class="derivacion-panel" id="der-esperanza-moran" hidden>
+            <ol class="derivacion-pasos">
+              <li>
+                <p>Bajo la nula de permutación los valores no cambian: se reparten. Un reparto es una
+                  permutación \\(\\pi\\) de las \\(n\\) unidades, todas igual de probables, y la unidad \\(i\\)
+                  recibe el valor \\(z_{{\\pi(i)}}\\). El denominador suma los mismos cuadrados en cualquier
+                  orden, así que no se mueve: lo aleatorio es solo el numerador. Y en el numerador solo hay
+                  pares de unidades distintas, porque \\(w_{{ii}} = 0\\): nadie es vecino de sí mismo.</p>
+                $$I_\\pi = \\frac{{n}}{{S_0}} \\cdot
+                  \\frac{{\\sum_{{i \\neq j}} w_{{ij}}\\, z_{{\\pi(i)}} z_{{\\pi(j)}}}}{{\\sum_k z_k^2}}$$
+              </li>
+              <li>
+                <p>Para dos unidades distintas \\(i \\neq j\\), el par \\((\\pi(i), \\pi(j))\\) es un par
+                  ordenado de índices distintos elegido al azar entre los \\(n(n-1)\\) posibles. La esperanza
+                  del producto es su promedio sobre todos ellos, y no depende de qué dos unidades sean:</p>
+                $$E\\bigl[z_{{\\pi(i)}} z_{{\\pi(j)}}\\bigr] = \\frac{{1}}{{n(n-1)}} \\sum_{{k \\neq l}} z_k z_l$$
+              </li>
+              <li>
+                <p>Aquí entra el <strong>centrado</strong>. Los \\(z_k\\) suman cero, así que el cuadrado de su
+                  suma también es cero, y al desarrollarlo los productos entre índices distintos quedan iguales a
+                  la suma de cuadrados cambiada de signo:</p>
+                $$\\sum_{{k \\neq l}} z_k z_l = \\Bigl(\\sum_k z_k\\Bigr)^2 - \\sum_k z_k^2 = -\\sum_k z_k^2$$
+                $$E\\bigl[z_{{\\pi(i)}} z_{{\\pi(j)}}\\bigr] = -\\frac{{\\sum_k z_k^2}}{{n(n-1)}}$$
+              </li>
+              <li>
+                <p>Queda sumar. Todos los términos del numerador tienen esa misma esperanza, y la suma de sus
+                  pesos es \\(S_0\\) entero, porque fuera de la diagonal está todo:</p>
+                $$E\\Bigl[\\sum_{{i \\neq j}} w_{{ij}}\\, z_{{\\pi(i)}} z_{{\\pi(j)}}\\Bigr] =
+                  -S_0\\, \\frac{{\\sum_k z_k^2}}{{n(n-1)}}$$
+                <p>Al dividir entre \\(\\sum_k z_k^2\\) la suma de cuadrados se cancela; al multiplicar por
+                  \\(n/S_0\\) se cancela \\(S_0\\), y no queda nada ni de \\(\\mathbf{{W}}\\) ni del dato:</p>
+                $$E[I] = \\frac{{n}}{{S_0}} \\cdot S_0 \\cdot \\frac{{-1}}{{n(n-1)}} = -\\frac{{1}}{{n-1}}$$
+              </li>
+            </ol>
+            <p class="derivacion-resultado">Con las {co['geo']['n']} estaciones,
+              \\(E[I] = {n(tb['ideam']['esperado'], 6)}\\). Hacen falta las dos piezas, y se ve dónde entra cada
+              una. Sin el centrado, el paso 3 dejaría \\((\\sum_k z_k)^2 - \\sum_k z_k^2\\) y la esperanza
+              dependería del dato. Con diagonal, cada \\(w_{{ii}}\\) sumaría un término
+              \\(w_{{ii}}\\, z_{{\\pi(i)}}^2\\) de esperanza positiva, \\(w_{{ii}} \\sum_k z_k^2 / n\\), y el paso 4
+              ya no daría \\(-1/(n-1)\\). Cuando todos los pares son vecinos y pesan lo mismo, el paso 2 sobra:
+              \\(I\\) vale \\(-1/(n-1)\\) en cada reparto, no solo en promedio, y el módulo 5 vuelve sobre ese
+              caso. Y si el factor de delante cuenta \\(n'\\) unidades en vez de \\(n\\), la misma cuenta da
+              \\(-n'/(n(n-1))\\), que es lo que dice el último párrafo de este recuadro.</p>
+          </div>
+        </div>
         <p><strong>La I de Moran no es una correlación.</strong> Se lee como una correlación entre cada valor y
           los de sus vecinos, pero no lo es: su rango no es \\([-1, 1]\\), y su referencia bajo la nula es
           \\(E[I]\\), no 0. El módulo 2 del capítulo 7 explica de dónde salen sus extremos.</p>
@@ -1212,15 +1281,16 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           {n(pc['japanesepines']['clark_evans'])}.</p>
       </div>
 
-      <p>Ese denominador no es un convenio ni una constante tabulada: sale de la definición de CSR en cinco pasos,
-        y vale la pena recorrerlos porque por el camino aparecen dos cosas que el curso usa después —la función
-        \\(G\\) del capítulo 4, que asoma sola en el paso 3, y el punto exacto por donde se cuela la ventana
-        infinita del efecto de borde—.</p>
+      <p>Ese denominador no es un convenio ni una constante tabulada: sale de la definición de CSR paso a paso,
+        y los dos últimos pasos dan además su <strong>error típico</strong>, que es lo que la tabla necesita para
+        decir si una \\(R\\) se aparta del 1 más de lo que daría el azar. Vale la pena recorrerlos porque por el
+        camino aparecen dos cosas que el curso usa después —la función \\(G\\) del capítulo 4, que asoma sola en
+        el paso 4, y el punto exacto por donde se cuela la ventana infinita del efecto de borde—.</p>
 
       <div class="derivacion">
         <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-vecino-csr">
           <i class="fas fa-square-root-variable" aria-hidden="true"></i>
-          <span class="derivacion-texto">Ver de dónde sale \\(E[\\bar{{d}}_{{\\min}}] = 1/(2\\sqrt{{\\lambda}})\\)</span>
+          <span class="derivacion-texto">Ver de dónde sale \\(E[\\bar{{d}}_{{\\min}}] = 1/(2\\sqrt{{\\lambda}})\\), y su error típico</span>
           <i class="fas fa-chevron-down" aria-hidden="true"></i>
         </button>
         <div class="derivacion-panel" id="der-vecino-csr" hidden>
@@ -1229,8 +1299,21 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
               <p>Se parte de lo único que afirma CSR, que es una regla sobre <strong>conteos</strong> y no sobre
                 distancias: el número de puntos \\(N(B)\\) que caen en una región \\(B\\) de área \\(|B|\\) es
                 Poisson de media \\(\\lambda|B|\\), y regiones disjuntas no se enteran unas de otras. No se añade
-                nada más en todo el desarrollo.</p>
+                nada más hasta el paso 8; el 9 añade una aproximación, y lo dice.</p>
               $$N(B) \\sim \\text{{Poisson}}(\\lambda\\,|B|)$$
+            </li>
+            <li>
+              <p>El recuadro de arriba definió CSR de otra manera: puntos independientes y uniformes sobre la
+                ventana. Son la misma definición vista desde dos lados, y se comprueba condicionando al total. Si
+                la ventana se parte en regiones disjuntas \\(B_1, \\dots, B_k\\) y se sabe que dentro cayeron
+                \\(N(W) = n\\) puntos, el cociente entre el producto de las \\(k\\) Poisson y la Poisson del total
+                es una multinomial:</p>
+              $$P\\bigl(N(B_1) = n_1, \\dots, N(B_k) = n_k \\mid N(W) = n\\bigr)$$
+              $$= \\frac{{n!}}{{n_1! \\cdots n_k!}} \\prod_{{j=1}}^{{k}} \\left(\\frac{{|B_j|}}{{|W|}}\\right)^{{n_j}}$$
+              <p>Es exactamente lo que dan \\(n\\) puntos tirados uno a uno, independientes, cada uno con
+                probabilidad \\(|B_j|/|W|\\) de caer en \\(B_j\\): dado el número de puntos, un proceso de
+                Poisson homogéneo es eso, \\(n\\) puntos <strong>i.i.d. uniformes</strong> en la ventana. La
+                definición de los conteos deja \\(n\\) al azar; la de los puntos lo fija.</p>
             </li>
             <li>
               <p>La distancia \\(d_i\\) del punto \\(i\\) a su vecino más próximo —la letra del capítulo 4;
@@ -1240,6 +1323,14 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
                 \\(|B_r| = \\pi r^2\\), así que basta pedirle a la Poisson de media \\(\\lambda\\pi r^2\\) la
                 probabilidad de que no salga nadie:</p>
               $$P(d_i > r) = P\\bigl(N(B_r) = 0\\bigr) = e^{{-\\lambda \\pi r^2}}$$
+              <p>Hay un detalle que la cuenta pasa deprisa. El disco no está centrado en un sitio cualquiera, sino
+                en un punto <em>del propio patrón</em>, y lo que se usa es que los demás puntos siguen siendo
+                Poisson de intensidad \\(\\lambda\\) a su alrededor: que se colocan sin saber que ese está ahí. Es
+                el <strong>teorema de Slivnyak</strong>, que el capítulo 4 enuncia en su módulo 7. Con \\(n\\)
+                fijo no hace falta: los otros \\(n-1\\) puntos son independientes del punto \\(i\\) por la
+                definición del paso 2, el disco queda vacío si caen todos fuera de él,
+                \\(P(d_i > r) = (1 - \\pi r^2/|W|)^{{n-1}}\\) con el disco dentro de la ventana, y eso tiende a
+                \\(e^{{-\\lambda\\pi r^2}}\\) cuando la ventana crece con \\(n/|W| = \\lambda\\) fijo.</p>
             </li>
             <li>
               <p>Fíjate en que eso no es un paso intermedio cualquiera: es la <strong>distribución completa</strong>
@@ -1260,16 +1351,47 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
                 integral y no sobrevive ni una constante suelta:</p>
               $$E[d_i] = \\frac{{1}}{{2}}\\sqrt{{\\frac{{\\pi}}{{\\lambda\\pi}}}} = \\frac{{1}}{{2\\sqrt{{\\lambda}}}}$$
             </li>
+            <li>
+              <p>Falta pasar de una distancia a la media de las \\(n\\). La esperanza de una media es la media de
+                las esperanzas —eso es la linealidad—, y si todas las \\(d_i\\) tienen la misma ley, todas tienen
+                la misma esperanza. Que la tengan es otra vez la ventana infinita: todo punto ve alrededor el
+                mismo proceso, y junto al borde eso deja de ser verdad.</p>
+              $$E[\\bar{{d}}_{{\\min}}] = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} E[d_i] = E[d_i] = \\frac{{1}}{{2\\sqrt{{\\lambda}}}}$$
+            </li>
+            <li>
+              <p>Para decidir si una \\(\\bar{{d}}_{{\\min}}\\) observada se aparta de esa esperanza más de lo que
+                daría el azar hace falta su dispersión, y sale de la misma cola. El segundo momento de una
+                variable no negativa es \\(\\int_0^\\infty 2r\\,P(d_i > r)\\,dr\\), y esta integral ya es
+                inmediata. Restando el cuadrado de la media queda la varianza:</p>
+              $$E[d_i^2] = \\int_0^{{\\infty}} 2r\\,e^{{-\\lambda\\pi r^2}}\\, dr = \\frac{{1}}{{\\pi\\lambda}}$$
+              $$\\operatorname{{Var}}(d_i) = \\frac{{1}}{{\\pi\\lambda}} - \\frac{{1}}{{4\\lambda}}
+                = \\frac{{4 - \\pi}}{{4\\pi\\lambda}}$$
+            </li>
+            <li>
+              <p>La desviación típica de una distancia es entonces \\(c/\\sqrt{{\\lambda}}\\), con
+                \\(c = \\sqrt{{(4-\\pi)/(4\\pi)}} = {n(cep['constante_ee'])}\\). Para la media de las \\(n\\) se
+                divide además entre \\(\\sqrt{{n}}\\), y eso trata las \\(n\\) distancias como independientes. No
+                lo son del todo —dos puntos pueden ser cada uno el vecino más próximo del otro, y entonces su
+                distancia cuenta dos veces—, pero es la aproximación que usa la prueba de Clark-Evans: su
+                estadístico \\(z\\) se compara con una normal estándar.</p>
+              $$\\operatorname{{ee}}(\\bar{{d}}_{{\\min}}) = \\frac{{c}}{{\\sqrt{{n\\lambda}}}}, \\qquad
+                z = \\frac{{\\bar{{d}}_{{\\min}} - 1/(2\\sqrt{{\\lambda}})}}{{\\operatorname{{ee}}(\\bar{{d}}_{{\\min}})}}$$
+            </li>
           </ol>
-          <p class="derivacion-resultado">Ese es el denominador de la cuarta columna de la tabla, y la fórmula se
-            lee sola: \\(\\lambda\\) son puntos por unidad de área, luego \\(1/\\sqrt{{\\lambda}}\\) es una
-            distancia —por eso \\(R\\) sale sin unidades por construcción y no por convenio—. La raíz avisa
-            además de que la densidad no se paga en línea recta: al doblar \\(\\lambda\\), la distancia esperada
-            al vecino no cae a la mitad, sino a \\(1/\\sqrt{{2}}\\) de lo que era.</p>
+          <p class="derivacion-resultado">La esperanza del paso 7 es el denominador de la cuarta columna de la
+            tabla, y la fórmula se lee sola: \\(\\lambda\\) son puntos por unidad de área, luego
+            \\(1/\\sqrt{{\\lambda}}\\) es una distancia —por eso \\(R\\) sale sin unidades por construcción y no
+            por convenio—. La raíz avisa además de que la densidad no se paga en línea recta: al doblar
+            \\(\\lambda\\), la distancia esperada al vecino no cae a la mitad, sino a \\(1/\\sqrt{{2}}\\) de lo
+            que era. Y el paso 9 da las dos columnas de la prueba. En los pinos,
+            \\(\\operatorname{{ee}} = {n(pc['japanesepines']['nn_ee'])}\\), y la distancia observada,
+            {n(pc['japanesepines']['nn_media'])}, queda a \\(z = {n(pc['japanesepines']['ce_z'])}\\) errores
+            típicos de la esperada, {n(pc['japanesepines']['nn_esperada'])}: un valor p bilateral de
+            <strong>{n(pc['japanesepines']['ce_p'])}</strong>.</p>
         </div>
       </div>
 
-      <p>Y conviene retener de dónde salió, porque se paga más abajo: el disco del paso 2 se contó
+      <p>Y conviene retener de dónde salió, porque se paga más abajo: el disco del paso 3 se contó
         <strong>entero</strong>, y eso supone que el proceso sigue existiendo más allá del borde de la ventana.
         Para un punto pegado al borde eso es falso —parte de su disco cae donde nadie observó nada—, y de ahí, y
         no de ningún ajuste empírico, viene la corrección que se comenta tras la tabla.</p>
@@ -1279,24 +1401,32 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
 
       <table>
         <caption>Los tres regímenes de un patrón puntual, medidos con el índice de Clark-Evans sobre los datos
-          canónicos de spatstat. La tercera columna dividida entre la cuarta da la quinta.</caption>
+          canónicos de spatstat. La tercera columna dividida entre la cuarta da la quinta. La sexta y la
+          séptima son la prueba de Clark-Evans de <code>clarkevans.test</code>: aproximación normal, bilateral y
+          sin corrección de borde, con la \\(z\\) del paso 9 del desarrollo. El régimen se lee de ella con
+          \\(\\alpha = {ALFA}\\): agregado o regular si el valor p queda por debajo, según el signo de \\(z\\), y
+          compatible con el azar si no.</caption>
         <thead>
           <tr><th scope="col">Patrón</th><th scope="col">n</th><th scope="col">Distancia media al vecino</th>
             <th scope="col">La que daría el azar</th>
-            <th scope="col">Clark-Evans</th><th scope="col">Régimen</th></tr>
+            <th scope="col">Clark-Evans</th><th scope="col">\\(z\\)</th><th scope="col">Valor p</th>
+            <th scope="col">Régimen</th></tr>
         </thead>
         <tbody>
           <tr><th scope="row">{pc['redwood']['nombre']}</th><td>{pc['redwood']['n']}</td>
             <td>{n(pc['redwood']['nn_media'])}</td><td>{n(pc['redwood']['nn_esperada'])}</td>
             <td>{n(pc['redwood']['clark_evans'])}</td>
+            <td>{n(pc['redwood']['ce_z'])}</td><td>{p_ce(pc['redwood'])}</td>
             <td>Agregado</td></tr>
           <tr><th scope="row">{pc['japanesepines']['nombre']}</th><td>{pc['japanesepines']['n']}</td>
             <td>{n(pc['japanesepines']['nn_media'])}</td><td>{n(pc['japanesepines']['nn_esperada'])}</td>
             <td>{n(pc['japanesepines']['clark_evans'])}</td>
+            <td>{n(pc['japanesepines']['ce_z'])}</td><td>{p_ce(pc['japanesepines'])}</td>
             <td>Compatible con el azar</td></tr>
           <tr><th scope="row">{pc['cells']['nombre']}</th><td>{pc['cells']['n']}</td>
             <td>{n(pc['cells']['nn_media'])}</td><td>{n(pc['cells']['nn_esperada'])}</td>
             <td>{n(pc['cells']['clark_evans'])}</td>
+            <td>{n(pc['cells']['ce_z'])}</td><td>{p_ce(pc['cells'])}</td>
             <td>Regular</td></tr>
         </tbody>
       </table>
@@ -1322,14 +1452,22 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           <strong>{n(pc['japanesepines']['clark_evans_donnelly'])}</strong> en los pinos y
           {n(pc['cells']['clark_evans'])} →
           <strong>{n(pc['cells']['clark_evans_donnelly'])}</strong> en las células. Ninguno cambia de régimen, así
-          que la tabla se sostiene —y los pinos quedan aún más pegados al 1 de lo que ya estaban—. Pero fíjate en
+          que la tabla se sostiene —y los pinos quedan aún más pegados al 1 de lo que ya estaban—. La prueba lo
+          confirma. Con la corrección de Donnelly, que es la que <code>clarkevans.test</code> aplica si no se le
+          pide otra en una ventana rectangular, el error típico es el mismo y cambia la esperanza: la \\(z\\) de
+          los pinos baja a {n(pc['japanesepines']['ce_z_donnelly'])} y su valor p sube a
+          {n(pc['japanesepines']['ce_p_donnelly'])}, mientras los valores p de las secuoyas y las células siguen
+          por debajo de \\(\\alpha = {ALFA}\\), con \\(z\\) de {n(pc['redwood']['ce_z_donnelly'])} y
+          {n(pc['cells']['ce_z_donnelly'])}. Pero fíjate en
           el tamaño del ajuste: en las células vale más de una décima. Sobre una ventana pequeña, o con pocos
           puntos, el borde deja de ser un decimal.</p>
       </div>
 
       <div class="warning">
         <p><strong>Y una advertencia sobre la fila del medio.</strong> {n(pc['japanesepines']['clark_evans'])}
-          está cerca de 1, y la tabla dice «compatible con el azar», no «aleatorio». La diferencia no es cautela
+          está cerca de 1, y la tabla dice «compatible con el azar», no «aleatorio». Lo dice con la prueba de
+          Clark-Evans: un valor p bilateral de {n(pc['japanesepines']['ce_p'])}, que con \\(\\alpha = {ALFA}\\) no permite
+          rechazar la aleatoriedad. No rechazarla no es demostrarla, y esa diferencia no es cautela
           retórica: \\(R\\) se construye <em>solo</em> con la distancia al vecino <strong>más próximo</strong>, y de
           ella solo con la media. Es un único número, y en un único número dos estructuras opuestas pueden
           compensarse.</p>
@@ -1480,7 +1618,9 @@ MOD4 = cabecera(
           \\frac{{1}}{{n^2}}\\left[\\sum_i \\operatorname{{Var}}(Z_i)
           + \\sum_{{i \\neq j}} \\operatorname{{Cov}}(Z_i, Z_j)\\right]
           = \\frac{{\\sigma^2}}{{n}}\\left[1 + \\frac{{1}}{{n}}\\sum_{{i \\neq j}} \\rho_{{ij}}\\right]$$</p>
-        <p>Aquí \\(\\rho_{{ij}}\\) es la correlación entre las observaciones \\(i\\) y \\(j\\). El corchete es el
+        <p>Aquí \\(\\rho_{{ij}}\\) es la correlación entre las observaciones \\(i\\) y \\(j\\). La segunda
+          igualdad supone que todas tienen la misma varianza \\(\\sigma^2\\), y el paso tres pide además la
+          misma media; el campo simulado cumple las dos cosas por construcción. El corchete es el
           <strong>efecto de diseño</strong>. Vale 1 cuando la suma de las
           correlaciones se anula —en particular, si todas son cero—. De \\(\\phi = {r4['phi']}\\) a las cifras que publica el módulo hay tres pasos, y conviene
           verlos separados porque el tercero es el que casi nadie cuenta.</p>
@@ -1506,6 +1646,50 @@ MOD4 = cabecera(
           el mismo número porque no miden lo mismo: {n(r4['efecto_diseno'])} es cuánto se ensancha la varianza
           <em>verdadera</em> de la media; {n(r4['inflacion_varianza'])} es cuánto se queda corta la que el programa
           <em>declara</em>. La dependencia cobra dos veces, y la segunda vez no se ve.</p>
+      </div>
+
+      <div class="derivacion">
+        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-s2-esperada">
+          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+          <span class="derivacion-texto">Ver de dónde sale \\(\\mathbb{{E}}[s^2] = \\sigma^2\\,\\frac{{n}}{{n-1}}(1 - 1/n_{{\\text{{eff}}}})\\)</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="derivacion-panel" id="der-s2-esperada" hidden>
+          <ol class="derivacion-pasos">
+            <li>
+              <p>La suma de cuadrados de \\(s^2\\) se parte en dos alrededor de un número \\(\\mu\\). Es
+                álgebra, sin probabilidad, y vale para cualquier \\(\\mu\\): dentro del paréntesis se resta y se
+                suma \\(\\mu\\), y el término cruzado vale \\(-2n(\\bar{{Z}} - \\mu)^2\\) y se junta con el
+                último. Los supuestos entran en el paso siguiente.</p>
+              $$\\sum_i (Z_i - \\bar{{Z}})^2 = \\sum_i (Z_i - \\mu)^2 - n\\,(\\bar{{Z}} - \\mu)^2$$
+            </li>
+            <li>
+              <p>Aquí entran dos supuestos, y son los del campo simulado: todas las celdas tienen la misma
+                media, que es el \\(\\mu\\) del paso 1, y la misma varianza \\(\\sigma^2\\). Al tomar esperanzas,
+                cada \\((Z_i - \\mu)^2\\) da entonces la varianza de una celda, porque la media de
+                cada celda es \\(\\mu\\), y \\((\\bar{{Z}} - \\mu)^2\\) da la varianza de la media, porque
+                la media de \\(\\bar{{Z}}\\) también es \\(\\mu\\). La segunda es la del paso «Dos» del recuadro de
+                arriba,
+                \\(\\sigma^2/n_{{\\text{{eff}}}}\\): es lo que significa que las celdas informen como
+                \\(n_{{\\text{{eff}}}}\\).</p>
+              $$\\mathbb{{E}}\\Bigl[\\sum_i (Z_i - \\bar{{Z}})^2\\Bigr] = \\sum_i \\operatorname{{Var}}(Z_i) -
+                n\\operatorname{{Var}}(\\bar{{Z}})$$
+              $$= n\\sigma^2 - n\\,\\frac{{\\sigma^2}}{{n_{{\\text{{eff}}}}}}
+                = n\\sigma^2\\left(1 - \\frac{{1}}{{n_{{\\text{{eff}}}}}}\\right)$$
+              <p>Sin correlación \\(n_{{\\text{{eff}}}} = n\\) y la suma vale en promedio \\((n-1)\\sigma^2\\):
+                ese \\(n - 1\\) es la razón de dividir entre \\(n - 1\\) y no entre \\(n\\).</p>
+            </li>
+            <li>
+              <p>\\(s^2\\) es esa suma dividida entre \\(n-1\\), y ya está:</p>
+              $$\\mathbb{{E}}[s^2] = \\sigma^2\\,\\frac{{n}}{{n-1}}\\left(1 - \\frac{{1}}{{n_{{\\text{{eff}}}}}}\\right)$$
+            </li>
+          </ol>
+          <p class="derivacion-resultado">Con \\(\\sigma^2 = {inf['sigma']}\\), \\(n = {inf['n']}\\) y
+            \\(n_{{\\text{{eff}}}} = {n(r4['n_eff'])}\\) sale \\(\\mathbb{{E}}[s^2] = {n(r4['s2_esperada'])}\\),
+            y la media de las \\(s^2\\) de las {ent(inf['nrep'])} réplicas es {n(r4['s2_medida'])}. Cuanto menor
+            es \\(n_{{\\text{{eff}}}}\\), más se aleja \\(s^2\\) de \\(\\sigma^2\\): la parte de la
+            variabilidad que la dependencia mete en la media común es justo la que deja de verse entre celdas.</p>
+        </div>
       </div>
 
       <div class="warning">
@@ -2052,9 +2236,9 @@ MOD6 = cabecera(
 
       <div class="definition">
         <h3>Estacionariedad: el supuesto que hace posible estimar algo</h3>
-        <p>Si solo hay una realización, ¿cómo se estima una media o una covarianza? Solo hay una salida: suponer que
+        <p>Si solo hay una realización, ¿cómo se estima una media o una covarianza? El primer paso es suponer que
           <strong>distintas partes del mapa son repeticiones del mismo mecanismo</strong>. Eso es la
-          estacionariedad.</p>
+          estacionariedad, y hace falta, pero no basta: el último punto de la lista dice qué más.</p>
         <ul>
           <li><strong>De segundo orden:</strong> \\(E[Z(s)] = \\mu\\) para todo \\(s\\), y
             \\(\\operatorname{{Cov}}(Z(s), Z(s+h)) = C(h)\\) depende solo de la separación \\(h\\), no de dónde
@@ -2072,14 +2256,90 @@ MOD6 = cabecera(
           <li><strong>Isotropía:</strong> además, que \\(C\\) y \\(\\gamma\\) dependan solo de \\(\\lVert h \\rVert\\)
             y no de la dirección. Es una comodidad, no una ley: la anisotropía del capítulo 9 es lo que pasa cuando
             no se cumple.</li>
+          <li><strong>Ergodicidad:</strong> que los promedios sobre el espacio de <em>una</em> realización
+            converjan a los del proceso cuando la región crece sin límite. Se refiere al <em>proceso</em>, no al
+            mapa. Para la media pide que la covarianza media entre los puntos de la región tienda a cero;
+            en la práctica, que la covarianza decaiga con la distancia. La estacionariedad dice que hay algo fijo
+            que estimar; la ergodicidad, que una sola realización basta para estimarlo, y la primera no da la
+            segunda. El contraejemplo es corto: \\(Z(s) = Y\\) en todo \\(s\\), con \\(Y\\) aleatoria. Es
+            estacionario, con \\(\\rho(h) = 1\\) a toda distancia y \\(\\bar{{\\rho}} = 1\\), y la media de una
+            realización es \\(Y\\), que no se acerca a la del proceso por mucho que crezca la región. El proceso
+            de arriba, en cambio, <strong>es ergódico</strong>: su correlación \\(e^{{-h/\\phi}}\\) decae con la
+            distancia. Aun así la media de una realización se aparta de la del proceso con desviación típica
+            {n(ur['sd_de_las_medias'])}, porque la región es finita y pequeña frente al alcance. Aprovechar la
+            ergodicidad con un solo mapa exige además una región grande frente al alcance: es una condición
+            práctica sobre el diseño, no parte de la definición.</li>
         </ul>
-        <p style="margin-bottom:0;">Sin estacionariedad no hay repetición, y sin repetición no hay estimación. El
-          precio: si la media cambia de sitio a sitio —una <em>tendencia</em>—, lo que se rompe es la primera
+        <p style="margin-bottom:0;">Sin estacionariedad no hay repetición, y sin ergodicidad la repetición no alcanza.
+          El precio de suponer estacionariedad: si la media cambia de sitio a sitio —una <em>tendencia</em>—, lo que se rompe es la primera
           condición de la intrínseca, porque \\(E[Z(s+h) - Z(s)]\\) deja de ser cero. El variograma empírico promedia
           diferencias al cuadrado, y si \\(m(s)\\) es la media en cada sitio, la esperanza de cada sumando ya no es
           \\(\\gamma(h)\\) sino \\(\\gamma(h) + \\tfrac{{1}}{{2}}\\,(m(s+h) - m(s))^2\\). Con una tendencia lineal ese
           término de más crece como \\(h^2\\): el cambio de media se contabiliza como
           dependencia. Es exactamente lo que pasaba con la altitud en el módulo 3.</p>
+      </div>
+
+      <div class="derivacion">
+        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-ergodicidad">
+          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+          <span class="derivacion-texto">Ver por qué la media de una realización converge solo si \\(\\bar{{\\rho}} \\to 0\\)</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="derivacion-panel" id="der-ergodicidad" hidden>
+          <ol class="derivacion-pasos">
+            <li>
+              <p>Se parte de la varianza de la media del módulo 5, que solo pide lo que da la estacionariedad de
+                segundo orden: la misma media y la misma varianza \\(\\sigma^2\\) en todas las observaciones. Se
+                separa en sus dos términos:</p>
+              $$\\operatorname{{Var}}(\\bar{{Z}}) = \\frac{{\\sigma^2}}{{n}} \\bigl[1 + (n-1)\\,\\bar{{\\rho}}\\bigr]
+                = \\frac{{\\sigma^2}}{{n}} + \\sigma^2\\,\\frac{{n-1}}{{n}}\\,\\bar{{\\rho}}$$
+            </li>
+            <li>
+              <p>Al crecer \\(n\\) el primer término se va a cero siempre: es el de la independencia. El segundo
+                se comporta como \\(\\sigma^2\\bar{{\\rho}}\\). Así que la media de una realización converge a
+                la del proceso —su varianza se va a cero— si y solo si la correlación media entre pares se va a
+                cero.</p>
+              $$\\operatorname{{Var}}(\\bar{{Z}}) \\to 0 \\iff \\bar{{\\rho}} \\to 0$$
+            </li>
+            <li>
+              <p>La estacionariedad fija \\(\\rho(h)\\), pero no \\(\\bar{{\\rho}}\\): \\(\\bar{{\\rho}}\\) es el
+                promedio de \\(\\rho(h)\\) sobre los pares que caben en la región, y depende de cómo crezca. Es
+                la tabla del módulo 5, ahora leída en desviaciones típicas de la media. Al
+                <strong>rellenar</strong> el cuadrado de lado {tc['lado_relleno']}, \\(\\bar{{\\rho}}\\) tiende a
+                \\(\\bar{{\\rho}}_\\infty\\) y la desviación típica de la media, a
+                \\(\\sigma\\sqrt{{\\bar{{\\rho}}_\\infty}} = {n(erg['sd_media_relleno_limite'])}\\): con
+                {ent(erg['n_ultima'])} observaciones ya vale {n(erg['sd_media_relleno_ultima'])}, y por mucho que se
+                rellene no bajará de {n(erg['sd_media_relleno_limite'])}.
+                Al <strong>ampliar</strong> la región, \\(\\bar{{\\rho}}\\) tiende a cero porque \\(\\rho(h)\\)
+                decae con la distancia, y con {erg['k_ultima']}×{erg['k_ultima']} celdas la desviación típica ya
+                ha bajado a {n(erg['sd_media_ampliacion_ultima'])}.</p>
+              $$\\text{{rellenar: }} \\operatorname{{sd}}(\\bar{{Z}}) \\to \\sigma\\sqrt{{\\bar{{\\rho}}_\\infty}} > 0$$
+              $$\\text{{ampliar: }} \\operatorname{{sd}}(\\bar{{Z}}) \\to 0$$
+            </li>
+            <li>
+              <p>La retícula de este módulo es la del módulo 4: {ur['k']}×{ur['k']} celdas con
+                \\(\\phi = {ur['phi']}\\) y \\(\\sigma^2 = {inf['sigma']}\\). Sus {ur['n']} celdas informan como
+                \\(n_{{\\text{{eff}}}} = {n(ur['n_eff'])}\\), así que la desviación típica exacta de la media de
+                una realización es</p>
+              $$\\operatorname{{sd}}(\\bar{{Z}}) = \\frac{{\\sigma}}{{\\sqrt{{n_{{\\text{{eff}}}}}}}} = {n(ur['sd_exacta_de_la_media'])}$$
+              <p>Medida sobre las {ent(ur['n_realizaciones'])} realizaciones sale {n(ur['sd_de_las_medias'])}. La
+                desviación típica medida tiene su propio error de Monte Carlo, {n(ur['emc_sd_de_las_medias'])}, y
+                la diferencia es de {n(ur['sd_medida_a_emc'])} errores: ruido de la simulación.</p>
+            </li>
+          </ol>
+          <p class="derivacion-resultado">El proceso es estacionario y ergódico —el paso 3 lo muestra: al
+            ampliar, la desviación típica de la media baja hacia cero—, y aun así una realización se aparta de su
+            media con desviación típica {n(ur['sd_exacta_de_la_media'])}. No es un fallo de ergodicidad: es el
+            precio de una región finita, y esta es pequeña frente al alcance. El
+            {n(ur['pct_rechaza_ingenuo'])}&nbsp;% de rechazos del análisis ingenuo es otro problema, el del
+            módulo 4, y ampliar la región no lo arregla: la media converge, pero el error estándar ingenuo sigue
+            sin contar las correlaciones. La misma cuenta tiene versión
+            continua, sobre una región \\(D\\) y con la covarianza \\(C\\):
+            \\(\\operatorname{{Var}}(\\bar{{Z}}_D) = \\frac{{1}}{{|D|^2}} \\iint_D C(s-u)\\,ds\\,du\\), la
+            covarianza media entre dos puntos de \\(D\\). La media es ergódica si esa covarianza media se va a
+            cero al crecer \\(D\\), y para eso basta que \\(\\int |C(h)|\\,dh\\) sea finita. Estimar la
+            covarianza o el variograma pide la misma idea con más cuenta, y este capítulo no la hace.</p>
+        </div>
       </div>
 
       <div class="warning">
@@ -2250,7 +2510,11 @@ MOD7 = cabecera(
         <p>Descompón cada variable en un componente <em>compartido</em> —que es lo que las correlaciona— y un ruido
           propio de cada celda. Al promediar \\(m\\) celdas, el compartido apenas cambia porque es suave y las celdas
           vecinas tienen casi el mismo valor; el ruido, en cambio, se cancela: su varianza se divide por \\(m\\).
-          La correlación es el cociente entre lo que sobrevive y lo que había, así que sube.</p>
+          La covarianza entre las dos variables es la del componente compartido, y el promedio la reduce poco,
+          porque el compartido es suave. La varianza de cada una es la del compartido más la del ruido, y el
+          promedio divide la del ruido entre \\(m\\). La correlación es la covarianza dividida entre el producto
+          de las dos desviaciones típicas: el numerador encoge poco y el denominador mucho, así que sube su valor
+          absoluto, \\(|r|\\).</p>
         <p style="margin-bottom:0;"><strong>Y ahí está la condición del fenómeno, que es lo que se suele omitir:</strong>
           el efecto necesita que el ruido <em>no</em> tenga estructura espacial. Si el componente independiente
           también fuera un campo suave, promediar se llevaría los dos por igual y no pasaría nada. {ag['mecanismo']}</p>
@@ -6498,8 +6762,12 @@ QUIZ_JS = r"""
         pista: '¿De dónde saldría la «repetición» que toda estimación necesita?',
         opciones: [
           { texto: 'Falso: hace falta suponer estacionariedad', correcta: true,
-            retro: 'Estacionariedad es exactamente suponer que distintas partes del mapa son repeticiones del '
-              + 'mismo mecanismo. Sin esa suposición no hay repetición, y sin repetición no hay estimación.' },
+            retro: 'Estacionariedad es suponer que distintas partes del mapa son repeticiones del mismo '
+              + 'mecanismo, y sin ella no hay repetición. Hace falta, pero no basta, y por dos razones distintas. '
+              + 'Una es del proceso: hace falta además ergodicidad, que los promedios de una realización '
+              + 'converjan a los del proceso cuando la región crece; en la práctica, que la covarianza decaiga '
+              + 'con la distancia. La otra es del mapa: para aprovechar la ergodicidad con una sola realización, '
+              + 'la región tiene que ser grande frente al alcance de la covarianza. Módulo 6.' },
           { texto: 'Verdadero: los datos hablan por sí solos', correcta: false,
             retro: 'Es el problema fundamental de la disciplina, no un tecnicismo. Módulo 6.' }
         ],
@@ -6945,6 +7213,155 @@ def guardas_de_notacion(doc: str) -> list[str]:
             and not re.search(r"\bno\s+(?:es|son|sea)\b[^.]{0,40}correlaci", nom)):
         problemas.append("notación: la fila de ρ del glosario no dice que en este capítulo ρ es una "
                          "correlación, con sus tres marcas")
+    return problemas
+
+
+# =====================================================================
+# R3 · T3.3 · Los paneles de deducción y la ergodicidad
+#
+# Las guardas leen el DOCUMENTO ENSAMBLADO, no una copia de la frase (la
+# lección de R2): que cada panel exista una vez, que su botón lo nombre, que
+# arranque oculto y que su cierre lleve la cifra del JSON en la que acaba. Y
+# lo que la prosa de los módulos 3 y 6 afirma con esas cifras.
+# =====================================================================
+# id del panel -> (qué deduce, [(campo, texto que tiene que estar en su cierre)])
+def _paneles_t33() -> dict[str, tuple[str, list[tuple[str, str]]]]:
+    pj = pc["japanesepines"]
+    return {
+        "der-vecino-csr": ("E[d̄] y el error típico de Clark-Evans", [
+            ("puntual_canonico.japanesepines.nn_ee", n(pj["nn_ee"])),
+            ("puntual_canonico.japanesepines.ce_z", n(pj["ce_z"])),
+            ("puntual_canonico.japanesepines.ce_p", n(pj["ce_p"]))]),
+        "der-esperanza-moran": ("E[I] = −1/(n − 1)", [
+            ("tobler.ideam.esperado", n(tb["ideam"]["esperado"], 6))]),
+        "der-s2-esperada": ("E[s²]", [
+            ("inferencia.rejilla[phi=4].s2_esperada", n(r4["s2_esperada"]))]),
+        "der-ergodicidad": ("la ergodicidad de la media", [
+            ("una_realizacion.sd_exacta_de_la_media", n(ur["sd_exacta_de_la_media"]))]),
+    }
+
+
+def _modulo(marcado: str, num: int) -> str:
+    i = marcado.find(f'<template id="module-{num}">')
+    j = marcado.find("</template>", i)
+    return marcado[i:j] if i >= 0 and j > i else ""
+
+
+def guardas_de_t33(doc: str) -> list[str]:
+    problemas = []
+    fin = doc.rfind("\n  <script>")
+    marcado = doc[:fin if fin > 0 else len(doc)]
+    for pid, (que, cifras) in _paneles_t33().items():
+        abre = f'<div class="derivacion-panel" id="{pid}" hidden>'
+        if marcado.count(f'id="{pid}"') != 1 or marcado.count(abre) != 1:
+            problemas.append(f"T3.3: el panel {pid} ({que}) no está una sola vez, oculto, en el documento")
+            continue
+        if marcado.count(f'aria-expanded="false" aria-controls="{pid}"') != 1:
+            problemas.append(f"T3.3: ningún botón de derivación nombra el panel {pid} en aria-controls")
+        cuerpo = marcado[marcado.index(abre):]
+        m = re.search(r'<p class="derivacion-resultado">(.*?)</p>', cuerpo, re.S)
+        cierre = m.group(1) if m and m.start() < cuerpo.find("</ol>") + 400 else ""
+        faltan = [campo for campo, txt in cifras if txt not in cierre]
+        if faltan:
+            problemas.append(f"T3.3: el cierre del panel {pid} ({que}) no lleva la cifra en que acaba: {faltan}")
+    # El módulo 6 nombra la ergodicidad en su prosa: no en un comentario, ni en
+    # el id del panel (der-ergodicidad), que es marcado y no se lee.
+    m6 = _texto_plano(re.sub(r"<!--.*?-->", " ", _modulo(marcado, 6), flags=re.S))
+    if "ergodicidad" not in m6.lower():
+        problemas.append("T3.3: el módulo 6 no dice «ergodicidad»: con una realización la estacionariedad "
+                         "sola no basta para estimar")
+    # La columna «Régimen» se lee de la prueba: p frente a alfa, y el signo de z.
+    m3 = _modulo(marcado, 3)
+    for k in ("redwood", "japanesepines", "cells"):
+        f = pc[k]
+        esperado = ("Compatible con el azar" if f["ce_p"] >= ALFA
+                    else "Agregado" if f["ce_z"] < 0 else "Regular")
+        fila = re.search(rf'<th scope="row">{re.escape(f["nombre"])}</th>(.*?)</tr>', m3, re.S)
+        celdas = re.findall(r"<td>(.*?)</td>", fila.group(1), re.S) if fila else []
+        if not celdas or celdas[-1].strip() != esperado:
+            problemas.append(f"T3.3: la tabla de Clark-Evans rotula {f['nombre']} como "
+                             f"«{celdas[-1].strip() if celdas else '—'}» y la prueba "
+                             f"(z = {f['ce_z']}, p = {f['ce_p']}, alfa = {ALFA}) dice «{esperado}»")
+    # La nota del borde: con Donnelly el p de los pinos SUBE y los otros dos
+    # siguen por debajo de alfa.
+    if not (pc["japanesepines"]["ce_p_donnelly"] > pc["japanesepines"]["ce_p"]
+            and pc["redwood"]["ce_p_donnelly"] < ALFA and pc["cells"]["ce_p_donnelly"] < ALFA):
+        problemas.append("T3.3: con Donnelly el p de los pinos ya no sube, o las secuoyas o las células ya no "
+                         "quedan por debajo de alfa, y la nota del borde lo dice")
+    # El cierre del módulo 6: la medida y la exacta difieren por ruido; al
+    # rellenar la desviación típica ya está en su límite y al ampliar cae.
+    if ur["sd_medida_a_emc"] >= 4:
+        problemas.append(f"T3.3: la sd medida de las medias queda a {ur['sd_medida_a_emc']} errores de Monte "
+                         f"Carlo de la exacta, y el panel lo llama ruido de la simulación")
+    if not (0 < erg["sd_media_relleno_ultima"] - erg["sd_media_relleno_limite"]
+            < 1e-3 * erg["sd_media_relleno_limite"]
+            and erg["sd_media_ampliacion_ultima"] < ur["sd_exacta_de_la_media"]):
+        problemas.append("T3.3: al rellenar la sd de la media ya no está en su límite, o al ampliar no cae: "
+                         "el panel de la ergodicidad dice que sí")
+    if erg["k_ultima"] != tc["rejilla"][-1]["k"]:
+        problemas.append("T3.3: la última fila de la ergodicidad no es la última de la tabla del techo")
+
+    # --- Ronda 2 (🟡 8 de la verificación): QUÉ cifra hay en cada sitio del
+    # texto. Las de arriba atan campos del JSON entre sí; estas leen el texto.
+    def panel(pid):
+        i = marcado.find(f'id="{pid}"')
+        j = marcado.find('<p class="derivacion-resultado">', i)
+        k = marcado.find("</p>", j)
+        return (marcado[i:j], marcado[j:k]) if i >= 0 and j > i and k > j else ("", "")
+
+    # A · las celdas z y p de cada fila de la tabla de Clark-Evans.
+    for k in ("redwood", "japanesepines", "cells"):
+        f = pc[k]
+        fila = re.search(rf'<th scope="row">{re.escape(f["nombre"])}</th>(.*?)</tr>', m3, re.S)
+        celdas = [c.strip() for c in re.findall(r"<td>(.*?)</td>", fila.group(1), re.S)] if fila else []
+        if len(celdas) < 7 or celdas[4] != n(f["ce_z"]) or celdas[5] != p_ce(f):
+            problemas.append(f"T3.3r2: la tabla de Clark-Evans no da en la fila de {f['nombre']} la z "
+                             f"({n(f['ce_z'])}) y el p ({p_ce(f)}) de la prueba: {celdas[4:6]}")
+    # J · el pie de la tabla dice la corrección que la tabla publica.
+    pie = re.search(r"<caption>Los tres regímenes de un patrón puntual(.*?)</caption>", m3, re.S)
+    pie = " ".join(pie.group(1).split()) if pie else ""
+    if cep["correccion"] != "none" or "sin corrección de borde" not in pie or "Donnelly" in pie:
+        problemas.append("T3.3r2: el pie de la tabla de Clark-Evans no dice «sin corrección de borde», que es "
+                         f"la prueba que publica (correccion = {cep['correccion']})")
+    # G · la nota del borde da la z y el p de Donnelly de los pinos, y la z de
+    # Donnelly de las otras dos.
+    pj, prw, pce_ = pc["japanesepines"], pc["redwood"], pc["cells"]
+    nota = " ".join(m3.split())
+    if not (re.search(rf"de los pinos baja a {re.escape(n(pj['ce_z_donnelly']))} y su valor p sube a "
+                      rf"{re.escape(n(pj['ce_p_donnelly']))},", nota)
+            and re.search(rf"con \\\(z\\\) de {re.escape(n(prw['ce_z_donnelly']))} y "
+                          rf"{re.escape(n(pce_['ce_z_donnelly']))}\.", nota)):
+        problemas.append("T3.3r2: la nota del borde no da la z y el p de Donnelly de los pinos, o la z de "
+                         "Donnelly de las secuoyas y las células")
+    # E · el cierre de E[I]: −1/(n−1) con n, y con n′ delante −n′/(n(n−1)).
+    _, cierre_ei = panel("der-esperanza-moran")
+    if "\\(-n'/(n(n-1))\\)" not in cierre_ei or "n'-1" in cierre_ei.replace(" ", ""):
+        problemas.append("T3.3r2: el cierre de E[I] ya no dice que con n′ delante la cuenta da −n′/(n(n−1)), "
+                         "lo que dice el párrafo de las islas")
+    # K · el cierre de E[s²]: la esperada y la media de las réplicas, cada una en su sitio.
+    _, cierre_s2 = panel("der-s2-esperada")
+    c2 = " ".join(cierre_s2.split())
+    if (f"\\mathbb{{E}}[s^2] = {n(r4['s2_esperada'])}\\)" not in c2
+            or f"réplicas es {n(r4['s2_medida'])}." not in c2):
+        problemas.append("T3.3r2: el cierre de E[s²] no da s2_esperada como esperanza y s2_medida como media "
+                         "de las réplicas")
+    # B · el relleno: el límite, el valor con n_ultima y el «no bajará de» el límite.
+    pasos_erg, _ = panel("der-ergodicidad")
+    pe = " ".join(pasos_erg.split())
+    lim, ult = n(erg["sd_media_relleno_limite"]), n(erg["sd_media_relleno_ultima"])
+    if not (f"= {lim}\\): con" in pe and f"ya vale {ult}," in pe and f"no bajará de {lim}." in pe):
+        problemas.append(f"T3.3r2: el panel de la ergodicidad no dice el límite del relleno ({lim}), el valor "
+                         f"con {erg['n_ultima']} observaciones ({ult}) y que no bajará del límite, en ese orden")
+    # H · la sd de la ampliación vive solo en el paso 3 del panel; la definición
+    # cita la sd de las medias del proceso de arriba.
+    m6t = _modulo(marcado, 6)
+    li = re.search(r"<li><strong>Ergodicidad:</strong>(.*?)</li>", m6t, re.S)
+    li = li.group(1) if li else ""
+    amp = n(erg["sd_media_ampliacion_ultima"])
+    if (n(ur["sd_de_las_medias"]) not in li or amp in li
+            or m6t.count(amp) != pasos_erg.count(amp) or pasos_erg.count(amp) != 1):
+        problemas.append("T3.3r2: la definición de ergodicidad no cita la sd de las medias del proceso de "
+                         "arriba, o la sd de la ampliación aparece fuera del paso 3 del panel")
     return problemas
 
 
@@ -8235,6 +8652,8 @@ def main() -> int:
     problemas += guardas_de_lecturas(doc, marcado)
     # R3 · T3.2: la notación (D6), contra el documento ensamblado.
     problemas += guardas_de_notacion(doc)
+    # R3 · T3.3: los paneles de deducción, la prueba de Clark-Evans y la ergodicidad.
+    problemas += guardas_de_t33(doc)
     if problemas:
         for p in problemas:
             print(f"  MAL  {p}")

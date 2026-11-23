@@ -593,6 +593,53 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["glosario"]["filas"].remove(_fila(o, "m(s)"))))
     add("R3 · T3.2: la fila de la matriz deja de decir cómo la escriben los caps. 6 y 7", "datos",
         m(lambda o: _fila(o, "\\mathbf{W}").__setitem__("nombre", "La matriz de pesos espaciales")))
+    # --- R3 · T3.3: un mutante por cifra nueva -------------------------
+    # La prueba de Clark-Evans del módulo 3 (C1-09) y la ergodicidad del
+    # módulo 6 (C1-22). `--solo "R3 · T3.3"` corre solo esta tanda.
+    def _pc(o, k):
+        return o["puntual_canonico"][k]
+    def _ur(o):
+        return o["una_realizacion"]
+    add("R3 · T3.3: el error típico de los pinos se mueve un 1 %", "datos",
+        m(lambda o: _pc(o, "japanesepines").__setitem__("nn_ee", _pc(o, "japanesepines")["nn_ee"] * 1.01)))
+    add("R3 · T3.3: la z de las secuoyas se aparta de su cuenta", "datos",
+        m(lambda o: _pc(o, "redwood").__setitem__("ce_z", -5.6944392)))
+    add("R3 · T3.3: el p de los pinos no es el de su z", "datos",
+        m(lambda o: _pc(o, "japanesepines").__setitem__("ce_p", 0.3135739)))
+    add("R3 · T3.3: el log10 del p de las células se mueve una unidad", "datos",
+        m(lambda o: _pc(o, "cells").__setitem__("ce_p_log10", -15.0832146)))
+    add("R3 · T3.3: la cota del p de las secuoyas baja un orden", "datos",
+        m(lambda o: _pc(o, "redwood").__setitem__("ce_p_exp", -9)))
+    add("R3 · T3.3: la z de Donnelly de los pinos se aparta de su cuenta", "datos",
+        m(lambda o: _pc(o, "japanesepines").__setitem__("ce_z_donnelly", 0.2222812)))
+    add("R3 · T3.3: el p de Donnelly de los pinos no es el de su z", "datos",
+        m(lambda o: _pc(o, "japanesepines").__setitem__("ce_p_donnelly", 0.8026763)))
+    add("R3 · T3.3: los pinos pasan a rechazar con Donnelly", "datos",
+        m(lambda o: _pc(o, "japanesepines").update(ce_z_donnelly=2.1, ce_p_donnelly=0.0357288)))
+    add("R3 · T3.3: la constante del error típico se mueve", "datos",
+        m(lambda o: o["clark_evans_prueba"].__setitem__("constante_ee", 0.2713616)))
+    add("R3 · T3.3: la tabla dice publicar la prueba con Donnelly", "datos",
+        m(lambda o: o["clark_evans_prueba"].__setitem__("correccion", "Donnelly")))
+    add("R3 · T3.3: el n_eff del módulo 6 deja de ser el de su retícula", "datos",
+        m(lambda o: _ur(o).__setitem__("n_eff", 5.2581675)))
+    add("R3 · T3.3: la sd exacta de la media no es sigma/sqrt(n_eff)", "datos",
+        m(lambda o: _ur(o).__setitem__("sd_exacta_de_la_media", 0.4503036)))
+    add("R3 · T3.3: el error de Monte Carlo de la sd medida se mueve", "datos",
+        m(lambda o: _ur(o).__setitem__("emc_sd_de_las_medias", 0.0108504)))
+    add("R3 · T3.3: la distancia en errores entre medida y exacta se mueve", "datos",
+        m(lambda o: _ur(o).__setitem__("sd_medida_a_emc", 2.9144102)))
+    add("R3 · T3.3: la sd medida se va lejos de la exacta", "datos",
+        m(lambda o: _ur(o).update(sd_de_las_medias=0.3803036, sd_medida_a_emc=6.1197339)))
+    add("R3 · T3.3: el límite del relleno no es sqrt(rho_inf)", "datos",
+        m(lambda o: _ur(o)["ergodicidad"].__setitem__("sd_media_relleno_limite", 0.4295067)))
+    add("R3 · T3.3: la sd de la última fila del relleno se mueve", "datos",
+        m(lambda o: _ur(o)["ergodicidad"].__setitem__("sd_media_relleno_ultima", 0.4495444)))
+    add("R3 · T3.3: la sd de la última fila de la ampliación se mueve", "datos",
+        m(lambda o: _ur(o)["ergodicidad"].__setitem__("sd_media_ampliacion_ultima", 0.1543749)))
+    add("R3 · T3.3: la ergodicidad apunta a otra fila del techo", "datos",
+        m(lambda o: _ur(o)["ergodicidad"].__setitem__("k_ultima", 32)))
+    add("R3 · T3.3: la ergodicidad cuenta mal las observaciones de su fila", "datos",
+        m(lambda o: _ur(o)["ergodicidad"].__setitem__("n_ultima", 4095)))
     add("una hoja del árbol se queda sin capítulo", "datos",
         m(lambda o: o["arbol"]["nodos"][1]["opciones"][0].pop("capitulo")))
     add("el generador dice haber verificado menos anclas", "datos",

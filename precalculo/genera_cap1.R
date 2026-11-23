@@ -530,6 +530,77 @@ local({
   }
 })
 
+# --- B.1b La PRUEBA de Clark-Evans (R3 · T3.3, hallazgo C1-09) ---------
+#
+# La tabla del módulo 3 decía «compatible con el azar» sin ningún
+# contraste. Aquí se hace la prueba que el estudiante va a ejecutar,
+# `clarkevans.test`, con la aproximación normal y bilateral, y se publica
+# su z y su p para cada patrón.
+#
+# QUÉ CORRECCIÓN. La tabla publica la R sin corregir (`naive`), y el panel
+# del módulo 3 deduce justo su denominador, 1/(2 sqrt(lambda)), y su error
+# típico. Con `correction = "none"` la z es (dbar - 1/(2 sqrt(lambda)))/ee
+# y se rehace con una calculadora desde las columnas de la tabla: es la
+# que se publica en ella. `clarkevans.test` aplica Donnelly por defecto en
+# una ventana rectangular, así que se publica también esa z y ese p; la
+# nota del borde los da para la fila que decide, la de los pinos.
+#
+# EL ERROR TÍPICO. Bajo CSR, E[d_i^2] = 1/(pi lambda), luego
+# Var(d_i) = (4 - pi)/(4 pi lambda) y sd(d_i) = C/sqrt(lambda), con
+# C = sqrt((4 - pi)/(4 pi)). La prueba trata las n distancias como
+# independientes, ee = C/sqrt(n lambda) —es el SE.Dobs de
+# `clarkevansCalc`—, y su z es la de la tabla.
+#
+# EL p. Se publica 2 * pnorm(-|z|), que no se hunde a cero en la cola: la
+# función devuelve 2 * (1 - pnorm(|z|)), que en las células da 0 exacto
+# (z mayor que 8). Se comprueba que las dos z son la misma pidiendo que la
+# fórmula de la función, aplicada a la z de aquí, dé su p al bit. Con un p
+# tan pequeño la tabla escribe una cota, 10 elevado a `ce_p_exp`, que es
+# el primer entero por encima de log10(p); el exponente sale de aquí.
+#
+# Sin `ancla()`: las anclas cuentan transcripciones contra la literatura
+# (meta.anclas_verificadas) y esto es un contraste contra la función.
+local({
+  CE_C <- sqrt((4 - pi) / (4 * pi))
+  D$clark_evans_prueba <<- list(
+    constante_ee = r10(CE_C),
+    correccion = "none", correccion_por_defecto = "Donnelly",
+    alternativa = "two.sided")
+  for (nm in c("japanesepines", "redwood", "cells")) {
+    X    <- get(nm)
+    nX   <- npoints(X); aX <- area.owin(X$window); lam <- nX / aX
+    dbar <- mean(nndist(X))
+    E0   <- 0.5 / sqrt(lam)
+    ee   <- CE_C / sqrt(nX * lam)
+    z0   <- (dbar - E0) / ee
+    t0   <- spatstat.explore::clarkevans.test(X, correction = "none",
+                                              alternative = "two.sided")
+    if (abs(unname(t0$statistic) - dbar / E0) > 1e-12 ||
+        abs(t0$p.value - 2 * (1 - pnorm(abs(z0)))) > 1e-12)
+      stop(sprintf("Clark-Evans (%s): la z de la tabla no es la de clarkevans.test", nm))
+    # Donnelly: el mismo ee, la esperanza corregida por el borde.
+    tD   <- spatstat.explore::clarkevans.test(X, correction = "Donnelly",
+                                              alternative = "two.sided")
+    ED   <- dbar / unname(tD$statistic)
+    zD   <- (dbar - ED) / ee
+    if (abs(tD$p.value - 2 * (1 - pnorm(abs(zD)))) > 1e-12)
+      stop(sprintf("Clark-Evans (%s): la z de Donnelly no es la de clarkevans.test", nm))
+    p0 <- 2 * pnorm(-abs(z0)); pD <- 2 * pnorm(-abs(zD))
+    D$puntual_canonico[[nm]]$nn_ee         <<- r10(ee)
+    D$puntual_canonico[[nm]]$ce_z          <<- r10(z0)
+    D$puntual_canonico[[nm]]$ce_p          <<- r10(p0)
+    D$puntual_canonico[[nm]]$ce_p_log10    <<- r10(log10(p0))
+    D$puntual_canonico[[nm]]$ce_p_exp      <<- as.integer(ceiling(log10(p0)))
+    D$puntual_canonico[[nm]]$ce_z_donnelly <<- r10(zD)
+    D$puntual_canonico[[nm]]$ce_p_donnelly <<- r10(pD)
+  }
+  message(sprintf("  · Clark-Evans, z (p): %s",
+                  paste(vapply(c("redwood", "japanesepines", "cells"), function(nm)
+                    sprintf("%s %.3f (%.3g)", nm, D$puntual_canonico[[nm]]$ce_z,
+                            2 * pnorm(-abs(D$puntual_canonico[[nm]]$ce_z))), ""),
+                    collapse = " · ")))
+})
+
 # --- B.2 Dato de área: lo aleatorio es el VALOR en unidades fijas ------
 # Dos lecturas del mismo archivo a propósito: `nc0` es el objeto tal como
 # lo recibe el estudiante y es el que describe el módulo 9; `nc` es el que
@@ -1938,6 +2009,54 @@ D$una_realizacion <- list(
   banda_rel_lag4 = r10((quantile(V[4, ], 0.95) - quantile(V[4, ], 0.05)) /
                          TEO6[4])
 )
+
+# --- F.0 La ERGODICIDAD, con las cifras del módulo (R3 · T3.3, C1-22) ---
+#
+# El módulo decía que con una realización «solo hay una salida: suponer
+# estacionariedad». Es necesaria y no basta: su propio proceso es
+# estacionario por construcción y la media de una realización tiene una
+# desviación típica de 0.42. Lo que falta es que los promedios sobre el
+# espacio converjan, y para la media eso es Var(Zbar) -> 0, es decir
+# rho_medio -> 0 (módulo 5). El panel lo cierra con tres cifras:
+#
+#   · la desviación típica EXACTA de la media de esta retícula,
+#     sigma/sqrt(n_eff), con el n_eff de ESTA rejilla y ESTE phi —no se
+#     divide en la prosa, y no se toma del módulo 4 aunque deba coincidir
+#     con su ee_exacto: se comprueba—. sigma = 1: R6 es la matriz de
+#     correlaciones y el campo se simula con ella tal cual;
+#   · el error de Monte Carlo de la desviación típica medida: las medias
+#     son normales, así que el de una desviación típica muestral es
+#     sd/sqrt(2 (NREAL - 1)); y a cuántos de esos errores queda la medida
+#     de la exacta;
+#   · lo que hace la tabla del módulo 5 con la media: al RELLENAR el
+#     cuadrado su desviación típica tiende a sqrt(rho_inf) y no baja de
+#     ahí; al AMPLIARLO cae (en la última fila, la de k = 64).
+n_eff6  <- N6^2 / sum(R6)
+sd_ex6  <- sqrt(1 / n_eff6)
+emc_sd6 <- sd_ex6 / sqrt(2 * (NREAL - 1))
+if (K6 != K4 || PHI6 != PHI_C ||
+    abs(sd_ex6 - mc[[which(PHIS == PHI6)]]$ee_exacto) > 1e-9)
+  stop("la retícula o el alcance del módulo 6 ya no son los del módulo 4")
+if (abs(sd(medias_real) - sd_ex6) > 4 * emc_sd6)
+  stop(sprintf("la sd de las medias (%.5f) se aparta de la exacta (%.5f) más de 4 errores",
+               sd(medias_real), sd_ex6))
+sd_rel_lim <- sqrt(rho_inf)
+sd_rel_ult <- sqrt(1 / rel_neff[NT])
+sd_amp_ult <- sqrt(1 / amp_neff[NT])
+if (!(sd_rel_ult > sd_rel_lim && sd_amp_ult < sd_ex6 && sd_rel_ult < sd_ex6))
+  stop("la media no se comporta al rellenar y al ampliar como dice el módulo 6")
+D$una_realizacion$n_eff                  <- r10(n_eff6)
+D$una_realizacion$sd_exacta_de_la_media  <- r10(sd_ex6)
+D$una_realizacion$emc_sd_de_las_medias   <- r10(emc_sd6)
+D$una_realizacion$sd_medida_a_emc        <- r10(abs(sd(medias_real) - sd_ex6) / emc_sd6)
+D$una_realizacion$ergodicidad <- list(
+  k_ultima = KS_TECHO[NT], n_ultima = as.integer(KS_TECHO[NT]^2),
+  sd_media_relleno_limite  = r10(sd_rel_lim),
+  sd_media_relleno_ultima  = r10(sd_rel_ult),
+  sd_media_ampliacion_ultima = r10(sd_amp_ult))
+message(sprintf(paste("  · ergodicidad: sd exacta %.5f, medida %.5f (± %.5f) · al rellenar",
+                      "%.5f -> %.5f · al ampliar %.5f"),
+                sd_ex6, sd(medias_real), emc_sd6, sd_rel_ult, sd_rel_lim, sd_amp_ult))
 
 # --- F.1 Las tres realizaciones que el capítulo ENSEÑA -----------------
 #
