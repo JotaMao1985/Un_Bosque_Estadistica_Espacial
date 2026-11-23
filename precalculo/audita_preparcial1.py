@@ -776,11 +776,11 @@ def main() -> int:  # noqa: C901
                  for k in ("lags", "teorico_clase", "media", "q05", "q95")),
              "g_variograma dibuja el teórico de la clase, la media y la banda del capítulo 1")
     a.cierto("teorico" not in gv,
-             "g_variograma no arrastra gamma en el retardo entero como referencia")
+             "g_variograma no arrastra gamma(k), evaluada en la distancia k de la clase, como referencia")
     a.cierto(len(gv.get("teorico_clase", [])) == len(gv["media"])
              and all(abs(m_ - t_) / t_ < 0.02
                      for m_, t_ in zip(gv["media"], gv.get("teorico_clase", []))),
-             "  y la media de las realizaciones va pegada a él en todos los retardos")
+             "  y la media de las realizaciones va pegada a él en todas las clases de distancia")
     pares4 = en_ruta(CAPS["cap3_datos.json"], "m4.pares")
     a.cierto([p["pct_cambian"] for p in pares4] == GRAFICOS["g_discordancia"]["pct"],
              "g_discordancia dibuja los pares del capítulo 3")

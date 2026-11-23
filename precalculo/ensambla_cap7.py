@@ -1078,9 +1078,12 @@ MOD2 = cabecera(
     2, TITULOS[1][0], INGLES[1],
     "Leer la fórmula del I de Moran término a término, saber por qué su valor esperado no es "
     "cero y por qué su rango no es [−1, 1].") + rf"""
-      <p>El capítulo 1 presentó la fórmula y dejó una promesa: que el I de Moran no vale cero
-        cuando no hay autocorrelación, y que el capítulo 7 explicaría por qué. Aquí está, empezando
-        por la fórmula entera:</p>
+      <p>El capítulo 1, en su módulo 3, presentó la fórmula e hizo ya la cuenta de su esperanza: bajo
+        la nula de permutación, lo que queda un poco por debajo de cero es \(E[I]\), no el I de cada
+        reparto, y queda ahí por el centrado de los valores y porque W no tiene diagonal. Aquí se
+        rehace leyendo la fórmula pieza a pieza, sobre los tableros de este capítulo, y se sigue hasta
+        donde aquella no llegaba: el rango real del índice y lo que le hace el estilo de W. Primero, la
+        fórmula entera:</p>
 
 {F_MORAN}
       <div class="definition">
@@ -1125,8 +1128,8 @@ MOD2 = cabecera(
         entre las \(n(n-1)\) parejas posibles, cada pareja de unidades distintas vale en promedio
         \(-\sum_k z_k^2 / [n(n-1)]\). El numerador de I suma \(S_0\) veces esa cantidad —una por
         cada peso de W—, y al multiplicar por \(n/S_0\) y dividir por \(\sum_k z_k^2\) se cancela
-        todo menos \(E[I] = -1/(n-1)\). Ese es «el artefacto de comparar cada unidad consigo misma excluida» del
-        capítulo 1. Con los {ent(C1["n"])} barrios de Columbus, {firma(n(C1["EI"], 6))}; con las
+        todo menos \(E[I] = -1/(n-1)\). Hacen falta las dos piezas: el centrado pone en cero la suma
+        entera, y sin la diagonal lo que queda es negativo. Con los {ent(C1["n"])} barrios de Columbus, {firma(n(C1["EI"], 6))}; con las
         100 celdas del retículo del módulo 1, {n(m1["reticulo"]["EI"], 6)}. Se desvanece al crecer
         \(n\), pero nunca es cero, y por eso un I se compara con \(E[I]\) y no con 0.</p>
 

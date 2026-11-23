@@ -43,7 +43,7 @@
   },
   "e2": {
     "titulo": "El intervalo de confianza que miente",
-    "enunciado": "Con `carga_municipios()`, toma la cobertura neta municipal. Calcula (a) el error estándar de la media suponiendo independencia, por remuestreo de municipios uno a uno, y (b) el mismo error estándar remuestreando DEPARTAMENTOS enteros. Con cada uno construye el intervalo normal al 95 % alrededor de la media de los municipios: la media más y menos el cuantil normal por el error estándar. Después identifica el conjunto de valores de referencia que el intervalo ingenuo descartaría y el de bloques no: ¿sobre qué coberturas objetivo llevarían los dos métodos a conclusiones OPUESTAS?",
+    "enunciado": "Descarga `cap1_municipios.gpkg`: los 1 122 municipios, 1 121 de ellos con su cobertura neta (columna `cobertura`), y el código DIVIPOLA de cada uno (columna `divipola`), cuyos dos primeros dígitos son los que el módulo 4 usa para agrupar por departamento. Toma la cobertura neta municipal. Calcula (a) el error estándar de la media suponiendo independencia, por remuestreo de municipios uno a uno, y (b) el mismo error estándar remuestreando DEPARTAMENTOS enteros. Con cada uno construye el intervalo normal al 95 % alrededor de la media de los municipios: la media más y menos el cuantil normal por el error estándar. Después identifica el conjunto de valores de referencia que el intervalo ingenuo descartaría y el de bloques no: ¿sobre qué coberturas objetivo llevarían los dos métodos a conclusiones OPUESTAS?",
     "pasos": [
       {
         "paso": "Municipios con dato de cobertura",
@@ -71,6 +71,7 @@
       }
     ],
     "solucion": {
+      "archivo": "entrega/datos/cap1_municipios.gpkg",
       "n": 1121,
       "n_bloques": 33,
       "nboot": 4000,
@@ -412,7 +413,7 @@
   },
   "e4": {
     "titulo": "¿Cuál es «la» correlación?",
-    "enunciado": "Toma el puntaje medio de Saber 11 y el porcentaje de hogares con internet, por municipio. Calcula su correlación (a) por municipio, (b) agrupando los municipios en 150 conglomerados espaciales con k-medias sobre sus centroides, y (c) por departamento. Escribe cuál de las tres es la correlación entre puntaje e internet en Colombia.",
+    "enunciado": "Toma el puntaje medio de Saber 11 y el porcentaje de hogares con internet, por municipio: son las columnas `s11_punt_medio` y `s11_pct_internet` de `cap1_municipios.gpkg`, el archivo del ejercicio 2. Calcula su correlación (a) por municipio, (b) agrupando los municipios en 150 conglomerados espaciales con k-medias sobre el punto interior de cada uno, que es la geometría del archivo, y (c) por departamento. Escribe cuál de las tres es la correlación entre puntaje e internet en Colombia.",
     "pasos": [
       {
         "paso": "Municipios con las dos variables",
@@ -432,6 +433,7 @@
       }
     ],
     "solucion": {
+      "archivo": "entrega/datos/cap1_municipios.gpkg",
       "k_intermedia": 150,
       "municipal": {
         "n": 1113,
@@ -455,7 +457,7 @@
     "capitulo": 1,
     "semilla": 2026,
     "n_ejercicios": 4,
-    "generado": "2026-11-17",
+    "generado": "2026-11-23",
     "r": "R version 4.4.1 (2024-06-14)"
   }
 }

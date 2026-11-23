@@ -67,6 +67,8 @@ from baraja_opciones import baraja_documento
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 from pon_boton_indice import aplica as aplica_boton
 import genera_referencias
+import html
+import mide_duraciones_cap1
 SALIDAS = RAIZ / "precalculo" / "salidas"
 
 
@@ -105,6 +107,7 @@ S = json.loads(_ruta("CAP1_SOLUCIONES", SALIDAS / "cap1_soluciones.json")
 sn, pc, ac, gc = D["snow"], D["puntual_canonico"], D["area_canonico"], D["geo_canonico"]
 co, tb, inf = D["colombia"], D["tobler"], D["inferencia"]
 ir, ne, ur = D["inferencia_real"], D["n_efectivo"], D["una_realizacion"]
+erg = ur["ergodicidad"]     # módulo 6 (R3 · T3.3): la media de una realización al rellenar y al ampliar
 rv = D["realizaciones_vistas"]
 vg6 = ur["variograma"]      # módulo 6: teórico en h entero, teórico de la clase, media y banda
 rt = ne["rho_del_titular"]
@@ -139,6 +142,10 @@ mc1 = al["marcos"]               # módulo 1: la parte de calle según el marco 
 ma3 = tb["mas_alla"]             # módulo 3: las parejas que el eje deja fuera
 su3 = tb["sumas"]                # módulo 3: la suma de z_i z_j por banda
 NIVEL4 = f"{inf['nivel_pct']:g}"  # módulo 4: el nivel de los intervalos, de R
+# R3 · T3.3: la prueba de Clark-Evans del módulo 3 (la constante del error típico
+# y la corrección que se publica); las z y los p de cada patrón viven en `pc`.
+cep = D["clark_evans_prueba"]
+ALFA = D["inferencia"]["alfa"]   # el nivel con que la tabla del módulo 3 lee el régimen
 
 
 def n(x, d=5):
@@ -172,6 +179,19 @@ def ent_mate(x):
     Con `\\,`, que es el espacio fino de LaTeX y sí tiene métrica.
     """
     return f"{int(round(float(x))):,}".replace(",", r"\,")
+
+
+def p_ce(f):
+    """El valor p de la prueba de Clark-Evans de un patrón, para la tabla del módulo 3.
+
+    Con cinco decimales un p de 10⁻⁹ se imprimiría «0.00000», que es un cero que
+    no es. Entonces se escribe la cota que R publica, 10 elevado a `ce_p_exp`
+    (el primer entero por encima de log10 p): ni la cifra ni el exponente se
+    calculan aquí.
+    """
+    if round(f["ce_p"], 5) > 0:
+        return n(f["ce_p"])
+    return f"\\(&lt; 10^{{{f['ce_p_exp']}}}\\)"
 
 
 def firma(valor, unidad=""):
@@ -233,6 +253,50 @@ def tabs(etiqueta, r_code, py_code):
 
 
 # =====================================================================
+# R3 · T3.5 (D9, H-07): el extracto de datos y dónde se descarga
+# =====================================================================
+# Los bloques leían `datos/procesado/…` y `precalculo/salidas/…`, que no
+# viajan al sitio, y llamaban a `carga_municipios()`: quien copiaba un bloque
+# desde GitHub Pages no lo podía ejecutar. Ahora leen `entrega/datos/`, que
+# escribe `genera_datos_cap1.R` (lo llama genera_cap1.R), y los tamaños y
+# los conteos que se publican junto a cada enlace vienen de `D["extracto"]`.
+# Cada módulo que lee datos lleva UNA nota, delante de su primer bloque, con
+# los enlaces y la frase de la ruta, como el ejercicio 3. `guardas_de_t35()`
+# comprueba que ningún bloque vuelva a leer lo que no viaja.
+EX = D["extracto"]
+CARPETA_DATOS = EX["carpeta"]
+# La atribución, con la frase que el material ya usa para estos datos (el
+# módulo 1 del Taller 1) y las licencias de `datos/procesado/procedencia.json`.
+ATRIB_IDEAM = ("las estaciones son del <strong>IDEAM</strong> (normales climatológicas, "
+               "CC BY-SA 4.0)")
+ATRIB_DANE = ("del <strong>DANE</strong> (Marco Geoestadístico Nacional) por vía de "
+              "geoBoundaries (CC BY 4.0)")
+
+
+def tam_archivo(f):
+    """El tamaño de un archivo del extracto, en KB o en MB, tal como lo midió R."""
+    return f"{f['mb']}&nbsp;MB" if f["bytes"] >= 1e6 else f"{f['kb']}&nbsp;KB"
+
+
+def enlace_datos(clave):
+    f = EX[clave]
+    return (f'<a href="../{f["ruta"]}" download target="_blank" rel="noopener">'
+            f'<code>{f["archivo"]}</code></a> ({tam_archivo(f)})')
+
+
+def nota_datos(texto, varios=True, cola=""):
+    """La nota de descarga de un módulo: los enlaces y la frase de la ruta."""
+    ruta = ("los busca en <code>{c}/</code>: esa ruta se cambia por la del lugar donde se hayan "
+            "guardado." if varios else
+            "lo busca en <code>{c}/</code>: esa ruta se cambia por la del lugar donde se haya "
+            "guardado.").format(c=CARPETA_DATOS)
+    return f"""      <p class="text-sm nota-datos" style="margin:0 0 0.5rem;">{texto} El código
+        {ruta}{(' ' + cola) if cola else ''}</p>
+
+"""
+
+
+# =====================================================================
 # MÓDULO 1 · El mapa que cambió la epidemiología
 # =====================================================================
 # Abre con la prueba diagnóstica de entrada (decisión de Javier del
@@ -278,7 +342,7 @@ MOD1 = cabecera(
         1854 que todavía abre los libros de la disciplina. Antes del dibujo, ocho preguntas para ti.</p>
 
       <div class="note">
-        <p><strong>Ocho preguntas, cinco minutos, sin nota.</strong> No cuentan para nada y no hace falta que
+        <p><strong>Ocho preguntas, sin nota.</strong> No cuentan para nada y no hace falta que
           sepas las respuestas: están para que veas qué trae el curso y para que, cuando aciertes por intuición,
           sepas que la intuición ya la tenías. Cada retroalimentación te dice a qué módulo ir.</p>
         <p style="margin-bottom:0;">Si fallas muchas, estás exactamente donde tienes que estar en la semana 1.</p>
@@ -417,8 +481,8 @@ MOD1 = cabecera(
       <div class="definition">
         <h3>Y ahora la parte formal: qué es un patrón puntual</h3>
         <p>Lo que acabas de ver es un <strong>patrón puntual</strong>: un conjunto de localizaciones
-          \\(\\{{s_1, \\dots, s_n\\}}\\) dentro de un dominio \\(D\\), donde <strong>lo aleatorio es dónde están los
-          puntos</strong> — y también cuántos hay. No se ha medido nada en cada muerte: la muerte <em>es</em> el
+          \\(\\{{s_1, \\dots, s_n\\}}\\) dentro de la región que se observó, la <em>ventana</em> \\(W\\), donde
+          <strong>lo aleatorio es dónde están los puntos</strong> — y también cuántos hay. No se ha medido nada en cada muerte: la muerte <em>es</em> el
           dato, y su valor es su posición.</p>
         <p style="margin-bottom:0;">Esa frase —«qué es aleatorio»— es la que reparte los diez capítulos del curso, y
           el módulo 2 la usa para separar los tres tipos de dato espacial.</p>
@@ -429,7 +493,11 @@ MOD1 = cabecera(
         <strong>{sn['n_coinciden_tobler']} de {sn['n_muertes']}</strong>. Son dos construcciones distintas de la
         misma idea, y si discreparan habría que averiguar cuál está mal antes de publicar ninguna de las dos.</p>
 
-""" + tabs(
+""" + nota_datos(
+    f"La pestaña de Python lee las muertes y las bombas de un archivo, {enlace_datos('snow')}, porque "
+    "<code>HistData</code> es un paquete de R; la de R no necesita descargar nada.", varios=False,
+    cola="Qué paquetes hay que instalar, y cómo, lo dice el recuadro «Prepara tu entorno» del "
+         "módulo 8.") + tabs(
     "La concentración alrededor de Broad Street, en R y en Python",
     """library(HistData)
 data(Snow.deaths); data(Snow.pumps)
@@ -445,12 +513,12 @@ cat(sprintf("%d de %d = %.5f %%\\n",
             sum(mas_cerca == i_broad), nrow(muertes),
             100 * mean(mas_cerca == i_broad)))
 #&gt; """ + f"{sn['n_mas_cerca_broad']} de {sn['n_muertes']} = {n(sn['pct_mas_cerca_broad'])} %",
-    """# HistData no existe en Python. El precalculo exporta el mismo dato a
-# CSV (cap1_snow.csv) justo para que esta pestana no tenga que fingir.
+    """# HistData no existe en Python: el mismo dato viaja en un CSV
+# (cap1_snow.csv) para que esta pestana no tenga que fingir.
 import pandas as pd, numpy as np
 from scipy.spatial import cKDTree
 
-sw = pd.read_csv("precalculo/salidas/cap1_snow.csv")
+sw = pd.read_csv("entrega/datos/cap1_snow.csv")
 mu = sw[sw.tipo == "muerte"][["x", "y"]].to_numpy()
 bo = sw[sw.tipo == "bomba"]
 i_broad = int(np.flatnonzero(bo.etiqueta.to_numpy() == "Broad St")[0])
@@ -524,6 +592,12 @@ print(f"{(mas_cerca == i_broad).sum()} de {len(mu)} = "
 # barra lateral). `min-content` no crea desplazamiento que el contenido no
 # imponga ya. En escritorio la tabla ocupa sus 812 px, como antes.
 FIJA = "position:sticky; left:0; z-index:1;"
+# R3 · T3.4 (D7): el recuadro del dato de área decía que los cortes «viajan en
+# el JSON: el navegador solo pinta». Es la arquitectura del material, no algo
+# que el estudiante necesite: los cortes los calcula `classInt` en R
+# (precalculo/geo.R), se incrustan en el HTML con su mapa, y el JavaScript no
+# recalcula ninguno. La prosa conserva lo que sí le sirve: quién los calcula y
+# que son una decisión, que es el módulo 1 del capítulo 3.
 MOD2 = cabecera(
     2, "Los tres tipos de dato espacial", "Point, areal, geostatistical",
     "Aprender a preguntar «¿qué es aleatorio aquí?» —y después «¿de qué trozo "
@@ -627,7 +701,8 @@ MOD2 = cabecera(
         <p style="margin-bottom:0;">La tasa de muerte súbita infantil en los {ac['n']} condados de Carolina del
           Norte ({ac['nombre'].split(', ')[-1]}) y la deserción escolar en los {es['n_departamental']} departamentos
           de Colombia. Las unidades no se mueven; lo que varía es lo que se mide en ellas. Los cortes de clase de
-          los dos mapas los calculó <code>classInt</code> en R y viajan en el JSON: el navegador solo pinta.</p>
+          los dos mapas los calcula <code>classInt</code> en R, y son una decisión: el capítulo 3 empieza por
+          cuántos mapas distintos admite un mismo dato según cómo se corte.</p>
       </div>
       <div class="geomapa" data-geomapa="cap1-nc"></div>
       <p class="geomapa-pie" id="aleatorio-nc" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es el valor de cada unidad.</strong> Si se volviera a tomar el dato, cambiarían los valores y, con ellos, los colores. Los límites no: las unidades estaban ahí antes del dato y seguirán después.</p>
@@ -806,9 +881,11 @@ MOD2 = cabecera(
           cambia es <strong>qué es aleatorio</strong>:</p>
         <ul>
           <li><strong>Patrón puntual:</strong> no hay ningún valor \\(Z(s)\\) que observar. Lo aleatorio es el
-            propio conjunto de puntos \\(\\{{s_1, \\dots, s_N\\}}\\) dentro de \\(D\\) —que aquí es fijo: la
-            <em>ventana</em>—, con \\(N\\) también aleatorio. Dicho de otro modo, lo aleatorio es el conteo
-            \\(N(B)\\), el número de puntos que caen en cada región \\(B\\) de la ventana.</li>
+            propio conjunto de puntos \\(\\{{s_1, \\dots, s_N\\}}\\) que caen en la región observada, la
+            <em>ventana</em> \\(W \\subset D\\), que se fija antes de mirar. Cuántos caen también es aleatorio:
+            \\(N\\), en mayúscula, es ese número como variable aleatoria, y \\(n\\) el que se observó. Dicho de
+            otro modo, lo aleatorio es el conteo \\(N(B)\\), el número de puntos que caen en cada región
+            \\(B\\) de la ventana.</li>
           <li><strong>Dato de área:</strong> los índices son un conjunto <em>fijo y numerable</em> de unidades
             \\(A_1, \\dots, A_n\\) —los municipios—, y aleatorio es el valor \\(Z(A_i)\\) de cada una.</li>
           <li><strong>Geoestadístico:</strong> hay un valor \\(Z(s)\\) para <em>todo</em> \\(s \\in D\\) —una
@@ -865,7 +942,13 @@ MOD2 = cabecera(
         archivo sabe; el fenómeno es lo que sabes tú, y no viaja en el archivo. La casilla incómoda es la de arriba
         a la derecha, porque es la que se produce sola: basta con pedir centroides.</p>
 
-""" + tabs(
+""" + nota_datos(
+    "La pestaña de Python lee tres archivos, porque los tres datos vienen en paquetes de R: "
+    f"{enlace_datos('pinos')}, los {EX['pinos']['filas']} pinos de <code>spatstat.data</code>; "
+    f"{enlace_datos('nc')}, los {EX['nc']['filas']} condados de Carolina del Norte que trae <code>sf</code> "
+    "(el módulo 9 abre este archivo por dentro); y "
+    f"{enlace_datos('meuse')}, el zinc de <code>sp</code> con sus coordenadas. La pestaña de R los toma "
+    "de los paquetes.") + tabs(
     "Leer un patrón puntual, un dato de área y uno geoestadístico",
     """library(sf); library(spatstat.geom)
 
@@ -897,27 +980,25 @@ aviso &lt;- tryCatch({ st_centroid(nc[, c("BIR74", "SID74", "NAME")]); "sin avis
                   warning = function(w) conditionMessage(w))
 cat(aviso, "\\n")
 #&gt; st_centroid assumes attributes are constant over geometries""",
-    """import geopandas as gpd, pandas as pd, numpy as np, json
+    """import geopandas as gpd, pandas as pd, numpy as np
 
 # 1) spatstat no existe en Python: pointpats trabaja con el array y la
 #    ventana POR SEPARADO, que es justo la diferencia de diseno que el
 #    modulo 9 comenta. El dato va por CSV.
-pp = pd.read_csv("precalculo/salidas/cap1_ppp.csv")
-jp = pp[pp.patron == "japanesepines"]
+jp = pd.read_csv("entrega/datos/cap1_japanesepines.csv")
 print(f"n = {len(jp)}, area de la ventana = {1.0:.5f}, "
       f"lambda = {len(jp) / 1.0:.5f}")
 #> """ + f"n = {pc['japanesepines']['n']}, area de la ventana = {n(pc['japanesepines']['area'])}, "
     f"lambda = {n(pc['japanesepines']['lambda'])}" + """
 
 # 2) Dato de area: GeoDataFrame, el equivalente de un objeto sf.
-ver = json.load(open("precalculo/versiones.json"))
-nc = gpd.read_file(ver["rutas"]["nc_shp"])
+nc = gpd.read_file("entrega/datos/cap1_nc.gpkg")
 print(f"{len(nc)} unidades, tasa media de SIDS = "
       f"{(1000 * nc.SID74 / nc.BIR74).mean():.5f} por mil")
 #> """ + f"{ac['n']} unidades, tasa media de SIDS = {n(ac['tasa_media'])} por mil" + """
 
 # 3) Geoestadistico.
-me = pd.read_csv("precalculo/salidas/cap1_meuse.csv")
+me = pd.read_csv("entrega/datos/cap1_meuse.csv")
 print(f"n = {len(me)}, zinc medio = {me.zinc.mean():.5f} ppm, "
       f"sd = {me.zinc.std(ddof=1):.5f}")
 #> """ + f"n = {gc['n']}, zinc medio = {n(gc['zinc_media'])} ppm, sd = {n(gc['zinc_sd'])}" + """
@@ -974,10 +1055,25 @@ FILAS_ENV3 = "\n".join(
     f"<td>{n(r['I'])}</td><td>{n(f['lo'])} a {n(f['hi'])}</td><td>{POS3[f['posicion']]}</td></tr>"
     for b, e, r, f in zip(tb["ideam"]["bandas"], env3["ideam"],
                           tb["residuos_altitud"]["bandas"], env3["residuos_altitud"]))
+# R3 · T3.4 (H-03, D8): el módulo hace dos preguntas y ahora lo dice al
+# entrar y en su objetivo. El puente a Clark-Evans decía «La primera ley no
+# vale solo para valores medidos: también describe dónde están las cosas», y
+# eso mezcla la autocorrelación de un atributo con la disposición de unos
+# puntos. Un patrón agregado no prueba dependencia entre puntos: una
+# intensidad inhomogénea los junta con los puntos independientes. El puente
+# nuevo dice que cambia la pregunta y por qué no es la misma ley.
 MOD3 = cabecera(
     3, "La primera ley de Tobler", "Tobler's first law",
     "Medir la primera ley en vez de citarla, con un control que la niega y "
-    "un caso donde lo que parece dependencia es otra cosa.") + f"""
+    "un caso donde lo que parece dependencia es otra cosa. Y, en un patrón "
+    "puntual, medir con el índice de Clark-Evans si los puntos están más juntos "
+    "o más separados de lo que los dejaría el azar.") + f"""
+      <p>El módulo 2 separó los datos espaciales por lo que tienen de aleatorio y por el trozo de espacio del que
+        habla cada número. Este módulo hace dos preguntas que salen de ahí. La primera es de los datos que traen un
+        valor medido en cada sitio: si los valores cercanos se parecen más que los lejanos. La segunda, en la
+        segunda mitad, es de los patrones puntuales, donde no hay valor que comparar: si los puntos están más
+        juntos o más separados de lo que los dejaría el azar.</p>
+
       <p><span data-afirma="c1-m3-01">La cita es de 1970 y es la frase más repetida del área: <em>«todo está
         relacionado con todo lo demás, pero las cosas cercanas están más relacionadas que las lejanas»</em>
         <cite class="cita" data-ref="tobler1970computer" data-via="pebesma2023spatial" data-loc="§15.1"></cite></span>. Dicha así no es una ley: es una impresión.
@@ -1051,8 +1147,8 @@ MOD3 = cabecera(
 
       <div class="definition">
         <h3>El índice de Moran, que es la herramienta de todo el curso</h3>
-        <p>Con \\(n\\) unidades, valores \\(z_i\\) centrados y una matriz de pesos \\(W\\) que declara quién es vecino
-          de quién,</p>
+        <p>Con \\(n\\) unidades, valores \\(z_i\\) centrados y la matriz de pesos \\(\\mathbf{{W}}\\), de
+          elementos \\(w_{{ij}}\\), que declara quién es vecino de quién,</p>
         <p style="text-align:center;">$$I = \\frac{{n}}{{S_0}} \\cdot
           \\frac{{\\sum_i \\sum_j w_{{ij}} z_i z_j}}{{\\sum_i z_i^2}},
           \\qquad S_0 = \\sum_i \\sum_j w_{{ij}}, \\qquad E[I] = -\\frac{{1}}{{n-1}}$$</p>
@@ -1061,8 +1157,62 @@ MOD3 = cabecera(
           entre las mismas posiciones. Lo que queda un poco por debajo de cero bajo esa nula es
           <strong>\\(E[I]\\)</strong>, no \\(I\\), que en cada reparto sale distinta. Y queda por debajo por el
           <strong>centrado</strong>: los \\(z_i\\) suman cero, así que los productos \\(z_i z_j\\) entre unidades
-          distintas suman \\(-\\sum_i z_i^2\\), y su promedio es negativo con cualquier dato. El capítulo 7 hace
-          la cuenta entera.</p>
+          distintas suman \\(-\\sum_i z_i^2\\), y su promedio es negativo con cualquier dato. La cuenta entera
+          está en el desarrollo de abajo.</p>
+        <div class="derivacion">
+          <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-esperanza-moran">
+            <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+            <span class="derivacion-texto">Ver por qué \\(E[I] = -1/(n-1)\\) con cualquier \\(\\mathbf{{W}}\\)</span>
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div class="derivacion-panel" id="der-esperanza-moran" hidden>
+            <ol class="derivacion-pasos">
+              <li>
+                <p>Bajo la nula de permutación los valores no cambian: se reparten. Un reparto es una
+                  permutación \\(\\pi\\) de las \\(n\\) unidades, todas igual de probables, y la unidad \\(i\\)
+                  recibe el valor \\(z_{{\\pi(i)}}\\). El denominador suma los mismos cuadrados en cualquier
+                  orden, así que no se mueve: lo aleatorio es solo el numerador. Y en el numerador solo hay
+                  pares de unidades distintas, porque \\(w_{{ii}} = 0\\): nadie es vecino de sí mismo.</p>
+                $$I_\\pi = \\frac{{n}}{{S_0}} \\cdot
+                  \\frac{{\\sum_{{i \\neq j}} w_{{ij}}\\, z_{{\\pi(i)}} z_{{\\pi(j)}}}}{{\\sum_k z_k^2}}$$
+              </li>
+              <li>
+                <p>Para dos unidades distintas \\(i \\neq j\\), el par \\((\\pi(i), \\pi(j))\\) es un par
+                  ordenado de índices distintos elegido al azar entre los \\(n(n-1)\\) posibles. La esperanza
+                  del producto es su promedio sobre todos ellos, y no depende de qué dos unidades sean:</p>
+                $$E\\bigl[z_{{\\pi(i)}} z_{{\\pi(j)}}\\bigr] = \\frac{{1}}{{n(n-1)}} \\sum_{{k \\neq l}} z_k z_l$$
+              </li>
+              <li>
+                <p>Aquí entra el <strong>centrado</strong>. Los \\(z_k\\) suman cero, así que el cuadrado de su
+                  suma también es cero, y al desarrollarlo los productos entre índices distintos quedan iguales a
+                  la suma de cuadrados cambiada de signo:</p>
+                $$\\sum_{{k \\neq l}} z_k z_l = \\Bigl(\\sum_k z_k\\Bigr)^2 - \\sum_k z_k^2 = -\\sum_k z_k^2$$
+                $$E\\bigl[z_{{\\pi(i)}} z_{{\\pi(j)}}\\bigr] = -\\frac{{\\sum_k z_k^2}}{{n(n-1)}}$$
+              </li>
+              <li>
+                <p>Queda sumar. Todos los términos del numerador tienen esa misma esperanza, y la suma de sus
+                  pesos es \\(S_0\\) entero, porque fuera de la diagonal está todo:</p>
+                $$E\\Bigl[\\sum_{{i \\neq j}} w_{{ij}}\\, z_{{\\pi(i)}} z_{{\\pi(j)}}\\Bigr] =
+                  -S_0\\, \\frac{{\\sum_k z_k^2}}{{n(n-1)}}$$
+                <p>Al dividir entre \\(\\sum_k z_k^2\\) la suma de cuadrados se cancela; al multiplicar por
+                  \\(n/S_0\\) se cancela \\(S_0\\), y no queda nada ni de \\(\\mathbf{{W}}\\) ni del dato:</p>
+                $$E[I] = \\frac{{n}}{{S_0}} \\cdot S_0 \\cdot \\frac{{-1}}{{n(n-1)}} = -\\frac{{1}}{{n-1}}$$
+              </li>
+            </ol>
+            <p class="derivacion-resultado">Con las {co['geo']['n']} estaciones,
+              \\(E[I] = {n(tb['ideam']['esperado'], 6)}\\). Hacen falta las dos piezas, y se ve dónde entra cada
+              una. Sin el centrado, el paso 3 dejaría \\((\\sum_k z_k)^2 - \\sum_k z_k^2\\) y la esperanza
+              dependería del dato. Con diagonal, cada \\(w_{{ii}}\\) sumaría un término
+              \\(w_{{ii}}\\, z_{{\\pi(i)}}^2\\) de esperanza positiva, \\(w_{{ii}} \\sum_k z_k^2 / n\\), y el paso 4
+              ya no daría \\(-1/(n-1)\\). Cuando todos los pares son vecinos y pesan lo mismo, el paso 2 sobra:
+              \\(I\\) vale \\(-1/(n-1)\\) en cada reparto, no solo en promedio, y el módulo 5 vuelve sobre ese
+              caso. Y si el factor de delante cuenta \\(n'\\) unidades en vez de \\(n\\), la misma cuenta da
+              \\(-n'/(n(n-1))\\), que es lo que dice el último párrafo de este recuadro.</p>
+          </div>
+        </div>
+        <p><strong>La I de Moran no es una correlación.</strong> Se lee como una correlación entre cada valor y
+          los de sus vecinos, pero no lo es: su rango no es \\([-1, 1]\\), y su referencia bajo la nula es
+          \\(E[I]\\), no 0. El módulo 2 del capítulo 7 explica de dónde salen sus extremos.</p>
         <p style="margin-bottom:0;">Esa referencia cambia en las bandas donde hay estaciones sin vecinos. En
           la de {b0['d1']}–{b0['d2']} km solo <strong>{b0['n_con_vecinos']}</strong> de las {co['geo']['n']}
           tienen alguna otra a esa distancia. <code>spdep</code> las deja fuera al contar —multiplica por
@@ -1118,11 +1268,14 @@ MOD3 = cabecera(
         </tbody>
       </table>
 
-""" + tabs(
+""" + nota_datos(
+    f"Los dos bloques leen las {EX['estaciones']['filas']} estaciones del archivo del Taller&nbsp;1, "
+    f"{enlace_datos('estaciones')}. Son datos de terceros que se redistribuyen con atribución: "
+    f"{ATRIB_IDEAM}.", varios=False) + tabs(
     "El correlograma por bandas, en R y en Python",
     """library(sf); library(spdep)
 
-est &lt;- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
+est &lt;- st_read("entrega/datos/taller1_estaciones.gpkg", quiet = TRUE)
 
 banda &lt;- function(lo, hi) {
   nb &lt;- dnearneigh(st_coordinates(est), lo * 1000, hi * 1000)
@@ -1138,7 +1291,7 @@ cat(sprintf("0-25 km: I = %.5f   |   500-800 km: I = %.5f\\n",
 # Aqui la I se calcula A MANO, y no con esda, por una razon que el modulo 9
 # desarrolla: los dos programas no cuentan igual las unidades sin vecinos.
 # Escribir la formula deja el convenio a la vista en vez de heredarlo.
-est = gpd.read_file("datos/procesado/colombia_estaciones_clima.gpkg")
+est = gpd.read_file("entrega/datos/taller1_estaciones.gpkg")
 xy = np.c_[est.geometry.x, est.geometry.y]
 t = est.t_media_anual.to_numpy()
 dm = np.sqrt(((xy[:, None, :] - xy[None, :, :]) ** 2).sum(-1)) / 1000
@@ -1166,8 +1319,14 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           <code>zero.policy</code>.</p>
       </div>
 
-      <p>La primera ley no vale solo para valores medidos: también describe <strong>dónde están las cosas</strong>.
-        Aquí están los tres patrones que anunció el módulo 2, uno al lado del otro y sobre ventanas del mismo
+      <p>Aquí el módulo cambia de pregunta. Hasta ahora había un valor medido en cada estación, y se preguntaba si
+        los valores cercanos se parecen. En un patrón puntual no hay valor: el dato es la posición, y lo que se
+        pregunta es cómo están <strong>dispuestos los puntos</strong> —más juntos, más separados o como los dejaría
+        el azar—. No es la primera ley con otros datos. Un patrón agregado no dice por sí solo que los puntos
+        dependan unos de otros: una intensidad que cambia de un sitio a otro también los junta, aunque cada punto
+        se coloque sin mirar a los demás.</p>
+
+      <p>Abajo están los tres patrones que anunció el módulo 2, uno al lado del otro y sobre ventanas del mismo
         tamaño. Los rótulos ya dicen cuál es cuál —no hay adivinanza—; lo que no dice ninguno es <em>cuánto</em>,
         ni con qué se compara para decidirlo.</p>
 
@@ -1207,33 +1366,56 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           {n(pc['japanesepines']['clark_evans'])}.</p>
       </div>
 
-      <p>Ese denominador no es un convenio ni una constante tabulada: sale de la definición de CSR en cinco pasos,
-        y vale la pena recorrerlos porque por el camino aparecen dos cosas que el curso usa después —la función
-        \\(G\\) del capítulo 4, que asoma sola en el paso 3, y el punto exacto por donde se cuela la ventana
-        infinita del efecto de borde—.</p>
+      <p>Ese denominador no es un convenio ni una constante tabulada: sale de la definición de CSR paso a paso,
+        y los dos últimos pasos dan además su <strong>error típico</strong>, que es lo que la tabla necesita para
+        decir si una \\(R\\) se aparta del 1 más de lo que daría el azar. Vale la pena recorrerlos porque por el
+        camino aparecen dos cosas que el curso usa después —la función \\(G\\) del capítulo 4, que asoma sola en
+        el paso 4, y el punto exacto por donde se cuela la ventana infinita del efecto de borde—.</p>
 
       <div class="derivacion">
         <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-vecino-csr">
           <i class="fas fa-square-root-variable" aria-hidden="true"></i>
-          <span class="derivacion-texto">Ver de dónde sale \\(E[\\bar{{d}}_{{\\min}}] = 1/(2\\sqrt{{\\lambda}})\\)</span>
+          <span class="derivacion-texto">Ver de dónde sale \\(E[\\bar{{d}}_{{\\min}}] = 1/(2\\sqrt{{\\lambda}})\\), y su error típico</span>
           <i class="fas fa-chevron-down" aria-hidden="true"></i>
         </button>
         <div class="derivacion-panel" id="der-vecino-csr" hidden>
           <ol class="derivacion-pasos">
             <li>
               <p>Se parte de lo único que afirma CSR, que es una regla sobre <strong>conteos</strong> y no sobre
-                distancias: el número de puntos que caen en una región de área \\(A\\) es Poisson de media
-                \\(\\lambda A\\), y regiones disjuntas no se enteran unas de otras. No se añade nada más en todo
-                el desarrollo.</p>
-              $$N(A) \\sim \\text{{Poisson}}(\\lambda A)$$
+                distancias: el número de puntos \\(N(B)\\) que caen en una región \\(B\\) de área \\(|B|\\) es
+                Poisson de media \\(\\lambda|B|\\), y regiones disjuntas no se enteran unas de otras. No se añade
+                nada más hasta el paso 8; el 9 añade una aproximación, y lo dice.</p>
+              $$N(B) \\sim \\text{{Poisson}}(\\lambda\\,|B|)$$
             </li>
             <li>
-              <p>La distancia \\(D\\) al vecino más próximo no es un conteo, pero su <em>cola</em> sí lo es, y ese
-                es el truco entero: que el vecino esté a más de \\(r\\) es exactamente que el disco de radio
-                \\(r\\) centrado en el punto esté <strong>vacío</strong>. El disco tiene área \\(\\pi r^2\\), así
-                que basta pedirle a la Poisson de media \\(\\lambda\\pi r^2\\) la probabilidad de que no salga
-                nadie:</p>
-              $$P(D > r) = P\\bigl(N(\\pi r^2) = 0\\bigr) = e^{{-\\lambda \\pi r^2}}$$
+              <p>El recuadro de arriba definió CSR de otra manera: puntos independientes y uniformes sobre la
+                ventana. Son la misma definición vista desde dos lados, y se comprueba condicionando al total. Si
+                la ventana se parte en regiones disjuntas \\(B_1, \\dots, B_k\\) y se sabe que dentro cayeron
+                \\(N(W) = n\\) puntos, el cociente entre el producto de las \\(k\\) Poisson y la Poisson del total
+                es una multinomial:</p>
+              $$P\\bigl(N(B_1) = n_1, \\dots, N(B_k) = n_k \\mid N(W) = n\\bigr)$$
+              $$= \\frac{{n!}}{{n_1! \\cdots n_k!}} \\prod_{{j=1}}^{{k}} \\left(\\frac{{|B_j|}}{{|W|}}\\right)^{{n_j}}$$
+              <p>Es exactamente lo que dan \\(n\\) puntos tirados uno a uno, independientes, cada uno con
+                probabilidad \\(|B_j|/|W|\\) de caer en \\(B_j\\): dado el número de puntos, un proceso de
+                Poisson homogéneo es eso, \\(n\\) puntos <strong>i.i.d. uniformes</strong> en la ventana. La
+                definición de los conteos deja \\(n\\) al azar; la de los puntos lo fija.</p>
+            </li>
+            <li>
+              <p>La distancia \\(d_i\\) del punto \\(i\\) a su vecino más próximo —la letra del capítulo 4;
+                \\(\\bar{{d}}_{{\\min}}\\) es la media de las \\(n\\)— no es un conteo, pero su <em>cola</em> sí
+                lo es, y ese es el truco entero: que el vecino esté a más de \\(r\\) es exactamente que el disco
+                \\(B_r\\) de radio \\(r\\) centrado en el punto esté <strong>vacío</strong>. El disco tiene área
+                \\(|B_r| = \\pi r^2\\), así que basta pedirle a la Poisson de media \\(\\lambda\\pi r^2\\) la
+                probabilidad de que no salga nadie:</p>
+              $$P(d_i > r) = P\\bigl(N(B_r) = 0\\bigr) = e^{{-\\lambda \\pi r^2}}$$
+              <p>Hay un detalle que la cuenta pasa deprisa. El disco no está centrado en un sitio cualquiera, sino
+                en un punto <em>del propio patrón</em>, y lo que se usa es que los demás puntos siguen siendo
+                Poisson de intensidad \\(\\lambda\\) a su alrededor: que se colocan sin saber que ese está ahí. Es
+                el <strong>teorema de Slivnyak</strong>, que el capítulo 4 enuncia en su módulo 7. Con \\(n\\)
+                fijo no hace falta: los otros \\(n-1\\) puntos son independientes del punto \\(i\\) por la
+                definición del paso 2, el disco queda vacío si caen todos fuera de él,
+                \\(P(d_i > r) = (1 - \\pi r^2/|W|)^{{n-1}}\\) con el disco dentro de la ventana, y eso tiende a
+                \\(e^{{-\\lambda\\pi r^2}}\\) cuando la ventana crece con \\(n/|W| = \\lambda\\) fijo.</p>
             </li>
             <li>
               <p>Fíjate en que eso no es un paso intermedio cualquiera: es la <strong>distribución completa</strong>
@@ -1245,25 +1427,56 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
             <li>
               <p>Para una variable no negativa la media es el área bajo la cola, así que no hace falta derivar
                 \\(G\\) para conseguir la densidad ni integrar por partes: se integra lo que ya se tiene.</p>
-              $$E[D] = \\int_0^{{\\infty}} P(D > r)\\, dr = \\int_0^{{\\infty}} e^{{-\\lambda \\pi r^2}}\\, dr$$
+              $$E[d_i] = \\int_0^{{\\infty}} P(d_i > r)\\, dr = \\int_0^{{\\infty}} e^{{-\\lambda \\pi r^2}}\\, dr$$
             </li>
             <li>
               <p>Y lo que queda es la integral gaussiana,
                 \\(\\int_0^{{\\infty}} e^{{-a r^2}}\\, dr = \\tfrac{{1}}{{2}}\\sqrt{{\\pi/a}}\\), con
                 \\(a = \\lambda\\pi\\). El \\(\\pi\\) que trajo el área del disco se cancela contra el de la
                 integral y no sobrevive ni una constante suelta:</p>
-              $$E[D] = \\frac{{1}}{{2}}\\sqrt{{\\frac{{\\pi}}{{\\lambda\\pi}}}} = \\frac{{1}}{{2\\sqrt{{\\lambda}}}}$$
+              $$E[d_i] = \\frac{{1}}{{2}}\\sqrt{{\\frac{{\\pi}}{{\\lambda\\pi}}}} = \\frac{{1}}{{2\\sqrt{{\\lambda}}}}$$
+            </li>
+            <li>
+              <p>Falta pasar de una distancia a la media de las \\(n\\). La esperanza de una media es la media de
+                las esperanzas —eso es la linealidad—, y si todas las \\(d_i\\) tienen la misma ley, todas tienen
+                la misma esperanza. Que la tengan es otra vez la ventana infinita: todo punto ve alrededor el
+                mismo proceso, y junto al borde eso deja de ser verdad.</p>
+              $$E[\\bar{{d}}_{{\\min}}] = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} E[d_i] = E[d_i] = \\frac{{1}}{{2\\sqrt{{\\lambda}}}}$$
+            </li>
+            <li>
+              <p>Para decidir si una \\(\\bar{{d}}_{{\\min}}\\) observada se aparta de esa esperanza más de lo que
+                daría el azar hace falta su dispersión, y sale de la misma cola. El segundo momento de una
+                variable no negativa es \\(\\int_0^\\infty 2r\\,P(d_i > r)\\,dr\\), y esta integral ya es
+                inmediata. Restando el cuadrado de la media queda la varianza:</p>
+              $$E[d_i^2] = \\int_0^{{\\infty}} 2r\\,e^{{-\\lambda\\pi r^2}}\\, dr = \\frac{{1}}{{\\pi\\lambda}}$$
+              $$\\operatorname{{Var}}(d_i) = \\frac{{1}}{{\\pi\\lambda}} - \\frac{{1}}{{4\\lambda}}
+                = \\frac{{4 - \\pi}}{{4\\pi\\lambda}}$$
+            </li>
+            <li>
+              <p>La desviación típica de una distancia es entonces \\(c/\\sqrt{{\\lambda}}\\), con
+                \\(c = \\sqrt{{(4-\\pi)/(4\\pi)}} = {n(cep['constante_ee'])}\\). Para la media de las \\(n\\) se
+                divide además entre \\(\\sqrt{{n}}\\), y eso trata las \\(n\\) distancias como independientes. No
+                lo son del todo —dos puntos pueden ser cada uno el vecino más próximo del otro, y entonces su
+                distancia cuenta dos veces—, pero es la aproximación que usa la prueba de Clark-Evans: su
+                estadístico \\(z\\) se compara con una normal estándar.</p>
+              $$\\operatorname{{ee}}(\\bar{{d}}_{{\\min}}) = \\frac{{c}}{{\\sqrt{{n\\lambda}}}}, \\qquad
+                z = \\frac{{\\bar{{d}}_{{\\min}} - 1/(2\\sqrt{{\\lambda}})}}{{\\operatorname{{ee}}(\\bar{{d}}_{{\\min}})}}$$
             </li>
           </ol>
-          <p class="derivacion-resultado">Ese es el denominador de la cuarta columna de la tabla, y la fórmula se
-            lee sola: \\(\\lambda\\) son puntos por unidad de área, luego \\(1/\\sqrt{{\\lambda}}\\) es una
-            distancia —por eso \\(R\\) sale sin unidades por construcción y no por convenio—. La raíz avisa
-            además de que la densidad no se paga en línea recta: al doblar \\(\\lambda\\), la distancia esperada
-            al vecino no cae a la mitad, sino a \\(1/\\sqrt{{2}}\\) de lo que era.</p>
+          <p class="derivacion-resultado">La esperanza del paso 7 es el denominador de la cuarta columna de la
+            tabla, y la fórmula se lee sola: \\(\\lambda\\) son puntos por unidad de área, luego
+            \\(1/\\sqrt{{\\lambda}}\\) es una distancia —por eso \\(R\\) sale sin unidades por construcción y no
+            por convenio—. La raíz avisa además de que la densidad no se paga en línea recta: al doblar
+            \\(\\lambda\\), la distancia esperada al vecino no cae a la mitad, sino a \\(1/\\sqrt{{2}}\\) de lo
+            que era. Y el paso 9 da las dos columnas de la prueba. En los pinos,
+            \\(\\operatorname{{ee}} = {n(pc['japanesepines']['nn_ee'])}\\), y la distancia observada,
+            {n(pc['japanesepines']['nn_media'])}, queda a \\(z = {n(pc['japanesepines']['ce_z'])}\\) errores
+            típicos de la esperada, {n(pc['japanesepines']['nn_esperada'])}: un valor p bilateral de
+            <strong>{n(pc['japanesepines']['ce_p'])}</strong>.</p>
         </div>
       </div>
 
-      <p>Y conviene retener de dónde salió, porque se paga más abajo: el disco del paso 2 se contó
+      <p>Y conviene retener de dónde salió, porque se paga más abajo: el disco del paso 3 se contó
         <strong>entero</strong>, y eso supone que el proceso sigue existiendo más allá del borde de la ventana.
         Para un punto pegado al borde eso es falso —parte de su disco cae donde nadie observó nada—, y de ahí, y
         no de ningún ajuste empírico, viene la corrección que se comenta tras la tabla.</p>
@@ -1273,24 +1486,32 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
 
       <table>
         <caption>Los tres regímenes de un patrón puntual, medidos con el índice de Clark-Evans sobre los datos
-          canónicos de spatstat. La tercera columna dividida entre la cuarta da la quinta.</caption>
+          canónicos de spatstat. La tercera columna dividida entre la cuarta da la quinta. La sexta y la
+          séptima son la prueba de Clark-Evans de <code>clarkevans.test</code>: aproximación normal, bilateral y
+          sin corrección de borde, con la \\(z\\) del paso 9 del desarrollo. El régimen se lee de ella con
+          \\(\\alpha = {ALFA}\\): agregado o regular si el valor p queda por debajo, según el signo de \\(z\\), y
+          compatible con el azar si no.</caption>
         <thead>
           <tr><th scope="col">Patrón</th><th scope="col">n</th><th scope="col">Distancia media al vecino</th>
             <th scope="col">La que daría el azar</th>
-            <th scope="col">Clark-Evans</th><th scope="col">Régimen</th></tr>
+            <th scope="col">Clark-Evans</th><th scope="col">\\(z\\)</th><th scope="col">Valor p</th>
+            <th scope="col">Régimen</th></tr>
         </thead>
         <tbody>
           <tr><th scope="row">{pc['redwood']['nombre']}</th><td>{pc['redwood']['n']}</td>
             <td>{n(pc['redwood']['nn_media'])}</td><td>{n(pc['redwood']['nn_esperada'])}</td>
             <td>{n(pc['redwood']['clark_evans'])}</td>
+            <td>{n(pc['redwood']['ce_z'])}</td><td>{p_ce(pc['redwood'])}</td>
             <td>Agregado</td></tr>
           <tr><th scope="row">{pc['japanesepines']['nombre']}</th><td>{pc['japanesepines']['n']}</td>
             <td>{n(pc['japanesepines']['nn_media'])}</td><td>{n(pc['japanesepines']['nn_esperada'])}</td>
             <td>{n(pc['japanesepines']['clark_evans'])}</td>
+            <td>{n(pc['japanesepines']['ce_z'])}</td><td>{p_ce(pc['japanesepines'])}</td>
             <td>Compatible con el azar</td></tr>
           <tr><th scope="row">{pc['cells']['nombre']}</th><td>{pc['cells']['n']}</td>
             <td>{n(pc['cells']['nn_media'])}</td><td>{n(pc['cells']['nn_esperada'])}</td>
             <td>{n(pc['cells']['clark_evans'])}</td>
+            <td>{n(pc['cells']['ce_z'])}</td><td>{p_ce(pc['cells'])}</td>
             <td>Regular</td></tr>
         </tbody>
       </table>
@@ -1316,14 +1537,22 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           <strong>{n(pc['japanesepines']['clark_evans_donnelly'])}</strong> en los pinos y
           {n(pc['cells']['clark_evans'])} →
           <strong>{n(pc['cells']['clark_evans_donnelly'])}</strong> en las células. Ninguno cambia de régimen, así
-          que la tabla se sostiene —y los pinos quedan aún más pegados al 1 de lo que ya estaban—. Pero fíjate en
+          que la tabla se sostiene —y los pinos quedan aún más pegados al 1 de lo que ya estaban—. La prueba lo
+          confirma. Con la corrección de Donnelly, que es la que <code>clarkevans.test</code> aplica si no se le
+          pide otra en una ventana rectangular, el error típico es el mismo y cambia la esperanza: la \\(z\\) de
+          los pinos baja a {n(pc['japanesepines']['ce_z_donnelly'])} y su valor p sube a
+          {n(pc['japanesepines']['ce_p_donnelly'])}, mientras los valores p de las secuoyas y las células siguen
+          por debajo de \\(\\alpha = {ALFA}\\), con \\(z\\) de {n(pc['redwood']['ce_z_donnelly'])} y
+          {n(pc['cells']['ce_z_donnelly'])}. Pero fíjate en
           el tamaño del ajuste: en las células vale más de una décima. Sobre una ventana pequeña, o con pocos
           puntos, el borde deja de ser un decimal.</p>
       </div>
 
       <div class="warning">
         <p><strong>Y una advertencia sobre la fila del medio.</strong> {n(pc['japanesepines']['clark_evans'])}
-          está cerca de 1, y la tabla dice «compatible con el azar», no «aleatorio». La diferencia no es cautela
+          está cerca de 1, y la tabla dice «compatible con el azar», no «aleatorio». Lo dice con la prueba de
+          Clark-Evans: un valor p bilateral de {n(pc['japanesepines']['ce_p'])}, que con \\(\\alpha = {ALFA}\\) no permite
+          rechazar la aleatoriedad. No rechazarla no es demostrarla, y esa diferencia no es cautela
           retórica: \\(R\\) se construye <em>solo</em> con la distancia al vecino <strong>más próximo</strong>, y de
           ella solo con la media. Es un único número, y en un único número dos estructuras opuestas pueden
           compensarse.</p>
@@ -1378,6 +1607,12 @@ MOD4 = cabecera(
     4, "Por qué se rompe la inferencia clásica", "Broken standard errors",
     "Medir cuánto miente un intervalo de confianza calculado como si las "
     "observaciones fueran independientes. Dos frentes: simulación y dato real.") + f"""
+      <p>El módulo 3 midió que lo cercano se parece: entre estaciones a menos de {b0['d2']} km, la I de Moran de la
+        temperatura vale {n(b0['I'])}, y aun quitada la altitud, que explicaba casi un tercio, la de los residuos
+        sigue en {n(tb['residuos_altitud']['bandas'][0]['I'])}, muy por encima de su franja de permutación. Cuando
+        dos observaciones vecinas se parecen más de lo que daría el azar, contarlas como independientes es contar
+        de más, y eso tiene un precio.</p>
+
       <p>Este es el módulo que justifica el curso. Todo lo que aprendiste en inferencia —el error estándar
         \\(s/\\sqrt{{n}}\\), el intervalo al 95&nbsp;%, el valor p— descansa en un supuesto que en el espacio es casi
         siempre falso: que las observaciones son independientes. La pregunta no es si el supuesto falla, sino
@@ -1452,9 +1687,10 @@ MOD4 = cabecera(
         otro del cero, sin irse hacia ninguno, y cada segmento es mucho más corto que la distancia que separa unas
         medias de otras.</p>
 
-      <p>Con el error estándar verdadero, \\(\\sqrt{{\\mathbf{{1}}^\\top R\\,\\mathbf{{1}}}}/n =
-        {n(ci['ee_exacto'])}\\) —el que sale de sumar todas las correlaciones, como en el recuadro de abajo—, las
-        medias no se mueven: son las mismas {ci['n']}. Cambia el largo de los segmentos, cuyo semiancho pasa de
+      <p>El error estándar verdadero es el que sale de sumar todas las correlaciones, como en el recuadro de
+        abajo: \\(\\sqrt{{\\mathbf{{1}}^\\top \\mathbf{{R}}\\,\\mathbf{{1}}}}/n = {n(ci['ee_exacto'])}\\), donde
+        \\(\\mathbf{{R}}\\) es la matriz de las correlaciones entre celdas. Con él, las medias no se
+        mueven: son las mismas {ci['n']}. Cambia el largo de los segmentos, cuyo semiancho pasa de
         {n(ci['semiancho_ingenuo_medio'])} en promedio a {n(ci['semiancho_exacto'])}, que es
         <strong>{n(ci['razon_semianchos'])} veces</strong> el primero, y entonces cubren el cero
         <strong>{ci['n_cubren_exacto']}</strong> de los {ci['n']}. Ese cociente no es el {n(r4['factor'])} del
@@ -1473,7 +1709,10 @@ MOD4 = cabecera(
           \\frac{{1}}{{n^2}}\\left[\\sum_i \\operatorname{{Var}}(Z_i)
           + \\sum_{{i \\neq j}} \\operatorname{{Cov}}(Z_i, Z_j)\\right]
           = \\frac{{\\sigma^2}}{{n}}\\left[1 + \\frac{{1}}{{n}}\\sum_{{i \\neq j}} \\rho_{{ij}}\\right]$$</p>
-        <p>El corchete es el <strong>factor de inflación por diseño</strong>. Vale 1 cuando la suma de las
+        <p>Aquí \\(\\rho_{{ij}}\\) es la correlación entre las observaciones \\(i\\) y \\(j\\). La segunda
+          igualdad supone que todas tienen la misma varianza \\(\\sigma^2\\), y el paso tres pide además la
+          misma media; el campo simulado cumple las dos cosas por construcción. El corchete es el
+          <strong>efecto de diseño</strong>. Vale 1 cuando la suma de las
           correlaciones se anula —en particular, si todas son cero—. De \\(\\phi = {r4['phi']}\\) a las cifras que publica el módulo hay tres pasos, y conviene
           verlos separados porque el tercero es el que casi nadie cuenta.</p>
         <p><strong>Uno · de \\(\\phi\\) a la correlación.</strong> Como \\(h\\) va en pasos de retícula, dos celdas
@@ -1498,6 +1737,50 @@ MOD4 = cabecera(
           el mismo número porque no miden lo mismo: {n(r4['efecto_diseno'])} es cuánto se ensancha la varianza
           <em>verdadera</em> de la media; {n(r4['inflacion_varianza'])} es cuánto se queda corta la que el programa
           <em>declara</em>. La dependencia cobra dos veces, y la segunda vez no se ve.</p>
+      </div>
+
+      <div class="derivacion">
+        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-s2-esperada">
+          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+          <span class="derivacion-texto">Ver de dónde sale \\(\\mathbb{{E}}[s^2] = \\sigma^2\\,\\frac{{n}}{{n-1}}(1 - 1/n_{{\\text{{eff}}}})\\)</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="derivacion-panel" id="der-s2-esperada" hidden>
+          <ol class="derivacion-pasos">
+            <li>
+              <p>La suma de cuadrados de \\(s^2\\) se parte en dos alrededor de un número \\(\\mu\\). Es
+                álgebra, sin probabilidad, y vale para cualquier \\(\\mu\\): dentro del paréntesis se resta y se
+                suma \\(\\mu\\), y el término cruzado vale \\(-2n(\\bar{{Z}} - \\mu)^2\\) y se junta con el
+                último. Los supuestos entran en el paso siguiente.</p>
+              $$\\sum_i (Z_i - \\bar{{Z}})^2 = \\sum_i (Z_i - \\mu)^2 - n\\,(\\bar{{Z}} - \\mu)^2$$
+            </li>
+            <li>
+              <p>Aquí entran dos supuestos, y son los del campo simulado: todas las celdas tienen la misma
+                media, que es el \\(\\mu\\) del paso 1, y la misma varianza \\(\\sigma^2\\). Al tomar esperanzas,
+                cada \\((Z_i - \\mu)^2\\) da entonces la varianza de una celda, porque la media de
+                cada celda es \\(\\mu\\), y \\((\\bar{{Z}} - \\mu)^2\\) da la varianza de la media, porque
+                la media de \\(\\bar{{Z}}\\) también es \\(\\mu\\). La segunda es la del paso «Dos» del recuadro de
+                arriba,
+                \\(\\sigma^2/n_{{\\text{{eff}}}}\\): es lo que significa que las celdas informen como
+                \\(n_{{\\text{{eff}}}}\\).</p>
+              $$\\mathbb{{E}}\\Bigl[\\sum_i (Z_i - \\bar{{Z}})^2\\Bigr] = \\sum_i \\operatorname{{Var}}(Z_i) -
+                n\\operatorname{{Var}}(\\bar{{Z}})$$
+              $$= n\\sigma^2 - n\\,\\frac{{\\sigma^2}}{{n_{{\\text{{eff}}}}}}
+                = n\\sigma^2\\left(1 - \\frac{{1}}{{n_{{\\text{{eff}}}}}}\\right)$$
+              <p>Sin correlación \\(n_{{\\text{{eff}}}} = n\\) y la suma vale en promedio \\((n-1)\\sigma^2\\):
+                ese \\(n - 1\\) es la razón de dividir entre \\(n - 1\\) y no entre \\(n\\).</p>
+            </li>
+            <li>
+              <p>\\(s^2\\) es esa suma dividida entre \\(n-1\\), y ya está:</p>
+              $$\\mathbb{{E}}[s^2] = \\sigma^2\\,\\frac{{n}}{{n-1}}\\left(1 - \\frac{{1}}{{n_{{\\text{{eff}}}}}}\\right)$$
+            </li>
+          </ol>
+          <p class="derivacion-resultado">Con \\(\\sigma^2 = {inf['sigma']}\\), \\(n = {inf['n']}\\) y
+            \\(n_{{\\text{{eff}}}} = {n(r4['n_eff'])}\\) sale \\(\\mathbb{{E}}[s^2] = {n(r4['s2_esperada'])}\\),
+            y la media de las \\(s^2\\) de las {ent(inf['nrep'])} réplicas es {n(r4['s2_medida'])}. Cuanto menor
+            es \\(n_{{\\text{{eff}}}}\\), más se aleja \\(s^2\\) de \\(\\sigma^2\\): la parte de la
+            variabilidad que la dependencia mete en la media común es justo la que deja de verse entre celdas.</p>
+        </div>
       </div>
 
       <div class="warning">
@@ -1581,13 +1864,21 @@ MOD4 = cabecera(
           contar con {ent(ir['n_departamentos'])} bloques.</p>
       </div>
 
-""" + tabs(
+""" + nota_datos(
+    f"Los dos bloques leen {enlace_datos('municipios')}: los {ent(EX['municipios']['filas'])} municipios, "
+    "cada uno con un punto interior y cinco columnas, "
+    + ", ".join(f"<code>{c}</code>" for c in EX["municipios"]["columnas"][:-1])
+    + f" y <code>{EX['municipios']['columnas'][-1]}</code>. El departamento lo sacan los bloques de los "
+    "dos primeros dígitos de <code>divipola</code>. Son datos de terceros que se redistribuyen con "
+    "atribución: la deserción y la cobertura neta son del <strong>Ministerio de Educación "
+    "Nacional</strong> (CC BY-SA 4.0), los resultados de Saber 11, del <strong>ICFES</strong> "
+    f"(CC BY-SA 4.0), y los municipios, {ATRIB_DANE}.", varios=False) + tabs(
     "El error estándar ingenuo frente al de bloques, sobre la deserción real",
-    """source("precalculo/fuentes.R")
+    """library(sf)
 
-mun &lt;- carga_municipios()
+mun &lt;- st_read("entrega/datos/cap1_municipios.gpkg", quiet = TRUE)
 ok  &lt;- mun[!is.na(mun$desercion), ]
-ok$dpto &lt;- substr(ok$divipola, 1, 2)
+ok$dpto &lt;- substr(ok$divipola, 1, 2)      # el departamento
 bloques &lt;- split(ok$desercion, ok$dpto)
 B &lt;- 4000
 
@@ -1660,9 +1951,9 @@ cat(sprintf("e.e. jackknife: factor %.5f | n efectivo %.5f\\n",
             ee_jk[["factor"]], ee_jk[["n_eff"]]))
 #&gt; """ + f"e.e. jackknife: factor {n(sud['ee_jackknife_factor'])} | n efectivo "
     f"{n(sud['ee_jackknife_n_eff'])}",
-    """import pandas as pd, numpy as np
+    """import geopandas as gpd, numpy as np
 
-mun = pd.read_csv("datos/procesado/municipios_llave.csv", dtype={"divipola": str})
+mun = gpd.read_file("entrega/datos/cap1_municipios.gpkg")
 d = mun.dropna(subset=["desercion"])
 x = d.desercion.to_numpy()
 dep = d.divipola.str[:2].to_numpy()
@@ -1730,7 +2021,8 @@ MOD5 = cabecera(
           \\(j\\) —si solo depende de la distancia que las separa, \\(\\rho(h_{{ij}})\\)— y \\(\\bar{{\\rho}}\\) es su
           <strong>media sobre todos los pares</strong>. La fórmula no es una aproximación ni exige que todos los
           pares se parezcan lo mismo: <strong>es una identidad</strong>. La correlación puede decaer con la
-          distancia, como en el correlograma del módulo 3; a la varianza de la media solo le llega su promedio.</p>
+          distancia, como decae el parecido que el correlograma del módulo 3 mide con la I de Moran —que no es
+          una correlación—; a la varianza de la media solo le llega su promedio.</p>
       </div>
 
       <div class="derivacion">
@@ -1993,13 +2285,27 @@ for rho in (0.01, 0.1):
 # =====================================================================
 # MÓDULO 6 · Estacionariedad, isotropía y una sola realización
 # =====================================================================
+# R3 · T3.4 (D7): tres frases de este módulo contaban la producción.
+#   · «las 1 000 que simula el generador»: era genera_cap1.R, no un generador
+#     de números aleatorios; ahora «que se simularon».
+#   · «El generador del capítulo comprueba esa coherencia y se detiene si los
+#     dos módulos se separan más de tres errores conjuntos»: es cierto
+#     —genera_cap1.R para si m4 y m6 se separan más de 3 errores de Monte
+#     Carlo conjuntos—, pero al estudiante le sirve el método, no el guion:
+#     «Cuadrarlas es parte del método».
+#   · La nota «Por qué el mapa y la curva son ahora el mismo experimento»
+#     contaba que, «hasta esta versión», los tres mapas venían de una
+#     simulación aparte, con otra rejilla y otra semilla, y la curva era de un
+#     campo que no estaba en ningún mapa: las cifras y la prosa eran correctas
+#     y lo que fallaba era el cableado, que ningún auditor de cifras veía. Se
+#     queda la lección («¿son de este dato?»), dicha sin la historia.
 MOD6 = cabecera(
     6, "Estacionariedad, isotropía y una sola realización", "One realization",
     "Ver el problema que hace difícil toda la estadística espacial: del "
     "proceso que se quiere estudiar solo existe una realización.") + f"""
       <p>Mira los tres mapas de abajo. Son <strong>tres realizaciones del mismo proceso</strong>: misma media, misma
         covarianza, mismos parámetros. Y no se parecen. No están escogidas: son <strong>las tres primeras</strong> de
-        las {ent(ur['n_realizaciones'])} que simula el generador, y de ese mismo lote salen la banda del gráfico y
+        las {ent(ur['n_realizaciones'])} que se simularon, y de ese mismo lote salen la banda del gráfico y
         todas las cifras de este módulo. Elegir las tres más distintas habría dado una figura más vistosa y un
         argumento peor.</p>
 
@@ -2009,12 +2315,12 @@ MOD6 = cabecera(
           alcance \\(\\phi = {ur['phi']}\\) sobre {ur['k']}×{ur['k']} celdas. <strong>Cambia de realización</strong> y
           mira moverse las tres cosas a la vez: el mapa, la lectura y —debajo— el variograma <em>de esa</em>
           realización contra el teórico y la banda del 5&nbsp;% al 95&nbsp;%. La curva punteada es el teórico
-          promediado sobre los pares de cada rezago; el texto de debajo del simulador explica por qué no es
-          \\(\\gamma\\) en el rezago entero.</p>
+          promediado sobre los pares de cada clase de distancia; el texto de debajo del simulador explica por
+          qué no es \\(\\gamma(k)\\), evaluada en la distancia \\(k\\) de la clase.</p>
         <div class="simulador-controles"></div>
         <div class="geomapa" data-geomapa="cap1-realizacion"></div>
         <div class="grafico-wrapper" style="height:290px;">
-          <canvas aria-label="Variograma de una realización frente al teórico promediado en cada rezago, con la banda del 5 al 95 por ciento sobre mil realizaciones" role="img"></canvas>
+          <canvas aria-label="Variograma de una realización frente al teórico promediado en cada clase de distancia, con la banda del 5 al 95 por ciento sobre mil realizaciones" role="img"></canvas>
         </div>
         <div class="simulador-lectura"></div>
       </div>
@@ -2035,17 +2341,17 @@ MOD6 = cabecera(
         <p style="margin-bottom:0;">Y aquí conviene ver que ese {n(ur['pct_rechaza_ingenuo'])}&nbsp;% es el módulo 4
           del revés: allí la <em>cobertura</em> con \\(\\phi = {r4['phi']}\\) salía {n(r4['cobertura'])}, o sea un
           {n(ur['pct_rechaza_modulo4'])}&nbsp;% de rechazo. Los dos números miden lo mismo por caminos distintos y se
-          separan {n(ur['discrepancia_con_modulo4'])} puntos, que es poco más de un error de Monte Carlo. El
-          generador del capítulo <strong>comprueba esa coherencia y se detiene</strong> si los dos módulos se
-          separan más de tres errores conjuntos: dos cifras que deberían coincidir y viven a dos módulos de
-          distancia son justo las que nadie compara.</p>
+          separan {n(ur['discrepancia_con_modulo4'])} puntos, que es poco más de un error de Monte Carlo.
+          <strong>Cuadrarlas es parte del método:</strong> si se separaran más de tres errores conjuntos, habría
+          que averiguar cuál de las dos está mal antes de publicar ninguna. Dos cifras que deberían coincidir y
+          viven a dos módulos de distancia son justo las que nadie compara.</p>
       </div>
 
       <div class="definition">
         <h3>Estacionariedad: el supuesto que hace posible estimar algo</h3>
-        <p>Si solo hay una realización, ¿cómo se estima una media o una covarianza? Solo hay una salida: suponer que
+        <p>Si solo hay una realización, ¿cómo se estima una media o una covarianza? El primer paso es suponer que
           <strong>distintas partes del mapa son repeticiones del mismo mecanismo</strong>. Eso es la
-          estacionariedad.</p>
+          estacionariedad, y hace falta, pero no basta: el último punto de la lista dice qué más.</p>
         <ul>
           <li><strong>De segundo orden:</strong> \\(E[Z(s)] = \\mu\\) para todo \\(s\\), y
             \\(\\operatorname{{Cov}}(Z(s), Z(s+h)) = C(h)\\) depende solo de la separación \\(h\\), no de dónde
@@ -2063,14 +2369,90 @@ MOD6 = cabecera(
           <li><strong>Isotropía:</strong> además, que \\(C\\) y \\(\\gamma\\) dependan solo de \\(\\lVert h \\rVert\\)
             y no de la dirección. Es una comodidad, no una ley: la anisotropía del capítulo 9 es lo que pasa cuando
             no se cumple.</li>
+          <li><strong>Ergodicidad:</strong> que los promedios sobre el espacio de <em>una</em> realización
+            converjan a los del proceso cuando la región crece sin límite. Se refiere al <em>proceso</em>, no al
+            mapa. Para la media pide que la covarianza media entre los puntos de la región tienda a cero;
+            en la práctica, que la covarianza decaiga con la distancia. La estacionariedad dice que hay algo fijo
+            que estimar; la ergodicidad, que una sola realización basta para estimarlo, y la primera no da la
+            segunda. El contraejemplo es corto: \\(Z(s) = Y\\) en todo \\(s\\), con \\(Y\\) aleatoria. Es
+            estacionario, con \\(\\rho(h) = 1\\) a toda distancia y \\(\\bar{{\\rho}} = 1\\), y la media de una
+            realización es \\(Y\\), que no se acerca a la del proceso por mucho que crezca la región. El proceso
+            de arriba, en cambio, <strong>es ergódico</strong>: su correlación \\(e^{{-h/\\phi}}\\) decae con la
+            distancia. Aun así la media de una realización se aparta de la del proceso con desviación típica
+            {n(ur['sd_de_las_medias'])}, porque la región es finita y pequeña frente al alcance. Aprovechar la
+            ergodicidad con un solo mapa exige además una región grande frente al alcance: es una condición
+            práctica sobre el diseño, no parte de la definición.</li>
         </ul>
-        <p style="margin-bottom:0;">Sin estacionariedad no hay repetición, y sin repetición no hay estimación. El
-          precio: si la media cambia de sitio a sitio —una <em>tendencia</em>—, lo que se rompe es la primera
+        <p style="margin-bottom:0;">Sin estacionariedad no hay repetición, y sin ergodicidad la repetición no alcanza.
+          El precio de suponer estacionariedad: si la media cambia de sitio a sitio —una <em>tendencia</em>—, lo que se rompe es la primera
           condición de la intrínseca, porque \\(E[Z(s+h) - Z(s)]\\) deja de ser cero. El variograma empírico promedia
           diferencias al cuadrado, y si \\(m(s)\\) es la media en cada sitio, la esperanza de cada sumando ya no es
           \\(\\gamma(h)\\) sino \\(\\gamma(h) + \\tfrac{{1}}{{2}}\\,(m(s+h) - m(s))^2\\). Con una tendencia lineal ese
           término de más crece como \\(h^2\\): el cambio de media se contabiliza como
           dependencia. Es exactamente lo que pasaba con la altitud en el módulo 3.</p>
+      </div>
+
+      <div class="derivacion">
+        <button type="button" class="derivacion-boton" aria-expanded="false" aria-controls="der-ergodicidad">
+          <i class="fas fa-square-root-variable" aria-hidden="true"></i>
+          <span class="derivacion-texto">Ver por qué la media de una realización converge solo si \\(\\bar{{\\rho}} \\to 0\\)</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="derivacion-panel" id="der-ergodicidad" hidden>
+          <ol class="derivacion-pasos">
+            <li>
+              <p>Se parte de la varianza de la media del módulo 5, que solo pide lo que da la estacionariedad de
+                segundo orden: la misma media y la misma varianza \\(\\sigma^2\\) en todas las observaciones. Se
+                separa en sus dos términos:</p>
+              $$\\operatorname{{Var}}(\\bar{{Z}}) = \\frac{{\\sigma^2}}{{n}} \\bigl[1 + (n-1)\\,\\bar{{\\rho}}\\bigr]
+                = \\frac{{\\sigma^2}}{{n}} + \\sigma^2\\,\\frac{{n-1}}{{n}}\\,\\bar{{\\rho}}$$
+            </li>
+            <li>
+              <p>Al crecer \\(n\\) el primer término se va a cero siempre: es el de la independencia. El segundo
+                se comporta como \\(\\sigma^2\\bar{{\\rho}}\\). Así que la media de una realización converge a
+                la del proceso —su varianza se va a cero— si y solo si la correlación media entre pares se va a
+                cero.</p>
+              $$\\operatorname{{Var}}(\\bar{{Z}}) \\to 0 \\iff \\bar{{\\rho}} \\to 0$$
+            </li>
+            <li>
+              <p>La estacionariedad fija \\(\\rho(h)\\), pero no \\(\\bar{{\\rho}}\\): \\(\\bar{{\\rho}}\\) es el
+                promedio de \\(\\rho(h)\\) sobre los pares que caben en la región, y depende de cómo crezca. Es
+                la tabla del módulo 5, ahora leída en desviaciones típicas de la media. Al
+                <strong>rellenar</strong> el cuadrado de lado {tc['lado_relleno']}, \\(\\bar{{\\rho}}\\) tiende a
+                \\(\\bar{{\\rho}}_\\infty\\) y la desviación típica de la media, a
+                \\(\\sigma\\sqrt{{\\bar{{\\rho}}_\\infty}} = {n(erg['sd_media_relleno_limite'])}\\): con
+                {ent(erg['n_ultima'])} observaciones ya vale {n(erg['sd_media_relleno_ultima'])}, y por mucho que se
+                rellene no bajará de {n(erg['sd_media_relleno_limite'])}.
+                Al <strong>ampliar</strong> la región, \\(\\bar{{\\rho}}\\) tiende a cero porque \\(\\rho(h)\\)
+                decae con la distancia, y con {erg['k_ultima']}×{erg['k_ultima']} celdas la desviación típica ya
+                ha bajado a {n(erg['sd_media_ampliacion_ultima'])}.</p>
+              $$\\text{{rellenar: }} \\operatorname{{sd}}(\\bar{{Z}}) \\to \\sigma\\sqrt{{\\bar{{\\rho}}_\\infty}} > 0$$
+              $$\\text{{ampliar: }} \\operatorname{{sd}}(\\bar{{Z}}) \\to 0$$
+            </li>
+            <li>
+              <p>La retícula de este módulo es la del módulo 4: {ur['k']}×{ur['k']} celdas con
+                \\(\\phi = {ur['phi']}\\) y \\(\\sigma^2 = {inf['sigma']}\\). Sus {ur['n']} celdas informan como
+                \\(n_{{\\text{{eff}}}} = {n(ur['n_eff'])}\\), así que la desviación típica exacta de la media de
+                una realización es</p>
+              $$\\operatorname{{sd}}(\\bar{{Z}}) = \\frac{{\\sigma}}{{\\sqrt{{n_{{\\text{{eff}}}}}}}} = {n(ur['sd_exacta_de_la_media'])}$$
+              <p>Medida sobre las {ent(ur['n_realizaciones'])} realizaciones sale {n(ur['sd_de_las_medias'])}. La
+                desviación típica medida tiene su propio error de Monte Carlo, {n(ur['emc_sd_de_las_medias'])}, y
+                la diferencia es de {n(ur['sd_medida_a_emc'])} errores: ruido de la simulación.</p>
+            </li>
+          </ol>
+          <p class="derivacion-resultado">El proceso es estacionario y ergódico —el paso 3 lo muestra: al
+            ampliar, la desviación típica de la media baja hacia cero—, y aun así una realización se aparta de su
+            media con desviación típica {n(ur['sd_exacta_de_la_media'])}. No es un fallo de ergodicidad: es el
+            precio de una región finita, y esta es pequeña frente al alcance. El
+            {n(ur['pct_rechaza_ingenuo'])}&nbsp;% de rechazos del análisis ingenuo es otro problema, el del
+            módulo 4, y ampliar la región no lo arregla: la media converge, pero el error estándar ingenuo sigue
+            sin contar las correlaciones. La misma cuenta tiene versión
+            continua, sobre una región \\(D\\) y con la covarianza \\(C\\):
+            \\(\\operatorname{{Var}}(\\bar{{Z}}_D) = \\frac{{1}}{{|D|^2}} \\iint_D C(s-u)\\,ds\\,du\\), la
+            covarianza media entre dos puntos de \\(D\\). La media es ergódica si esa covarianza media se va a
+            cero al crecer \\(D\\), y para eso basta que \\(\\int |C(h)|\\,dh\\) sea finita. Estimar la
+            covarianza o el variograma pide la misma idea con más cuenta, y este capítulo no la hace.</p>
+        </div>
       </div>
 
       <div class="warning">
@@ -2085,32 +2467,34 @@ MOD6 = cabecera(
 
       <p>El variograma del simulador enseña el otro lado del problema, y por eso <strong>cambia con el
         botón</strong>: cada realización trae el suyo. Antes de leerlo hay que decir contra qué se compara. El
-        estimador promedia, en el rezago \\(k\\), todos los pares de celdas cuya distancia queda a menos de media
-        celda de \\(k\\), y esos pares no están todos a distancia \\(k\\): en el rezago 1 entran los vecinos de lado,
-        a distancia 1, y también los diagonales, a \\(\\sqrt{{2}}\\). La referencia justa de cada rezago no es entonces
+        estimador agrupa los pares por <strong>clases de distancia</strong>: en la clase \\(k\\) promedia todos
+        los pares de celdas cuya distancia queda a menos de media celda de \\(k\\), medida en pasos de
+        retícula, y esos pares no están todos a distancia \\(k\\): en la clase 1 entran los vecinos de lado,
+        a distancia 1, y también los diagonales, a \\(\\sqrt{{2}}\\). La referencia justa de cada clase no es entonces
         \\(\\gamma(k)\\), sino \\(\\gamma\\) promediada sobre esos mismos pares, \\(\\bar\\gamma_k\\), que es la curva
-        punteada del gráfico. En el rezago 1 vale <strong>{n(vg6['teorico_clase'][0])}</strong> frente a
+        punteada del gráfico. En la clase 1 vale <strong>{n(vg6['teorico_clase'][0])}</strong> frente a
         \\(\\gamma(1) = {n(vg6['teorico'][0])}\\), y la media de las {ent(ur['n_realizaciones'])} realizaciones,
         {n(vg6['media'][0])}, cae sobre la primera y no sobre la segunda.</p>
 
-      <p>Contra esa referencia, las tres realizaciones se apartan, en su peor rezago, en
+      <p>Contra esa referencia, las tres realizaciones se apartan, en su peor clase, en
         {n(rv[0]['desvio_rel_max'])}, {n(rv[1]['desvio_rel_max'])} y {n(rv[2]['desvio_rel_max'])} veces su valor
-        —rezagos {ent(rv[0]['lag_desvio_max'])}, {ent(rv[1]['lag_desvio_max'])} y
-        {ent(rv[2]['lag_desvio_max'])}—, y la banda del 5&nbsp;% al 95&nbsp;% en el rezago 4 tiene una anchura de
+        —clases {ent(rv[0]['lag_desvio_max'])}, {ent(rv[1]['lag_desvio_max'])} y
+        {ent(rv[2]['lag_desvio_max'])}—, y la banda del 5&nbsp;% al 95&nbsp;% en la clase 4 tiene una anchura de
         <strong>{n(ur['banda_rel_lag4'])}</strong> veces el valor de referencia. Es tan ancha que las tres caben
-        dentro de ella en los ocho rezagos —en el 4 se apartan {n(rv[0]['desvio_rel_lag4'])},
+        dentro de ella en las ocho clases —en la 4 se apartan {n(rv[0]['desvio_rel_lag4'])},
         {n(rv[1]['desvio_rel_lag4'])} y {n(rv[2]['desvio_rel_lag4'])}—, y conviene no leer eso como un aprobado:
         <strong>caber en la banda no es parecerse al proceso</strong>, porque la banda mide lo que puede pasar, no lo
         que pasó. Con una realización no se puede saber si lo que se ve es el proceso o el azar de esa realización:
         es el problema fundamental de la disciplina, no una limitación del método.</p>
 
       <div class="note">
-        <p style="margin-bottom:0;"><strong>Por qué el mapa y la curva son ahora el mismo experimento.</strong> Hasta
-          esta versión los tres mapas venían de una simulación <em>aparte</em>, con otra rejilla y otra semilla, y la
-          curva de abajo era la de un campo que no estaba en ningún mapa. Las cifras eran todas correctas y la prosa
-          también: lo que estaba mal era el cableado, y eso no lo ve ningún auditor de números. Si alguna vez heredas
-          una figura de otra persona, la pregunta que más rinde no es «¿son correctos estos números?» sino
-          <strong>«¿son de este dato?»</strong>.</p>
+        <p style="margin-bottom:0;"><strong>Por qué el mapa y la curva son el mismo experimento.</strong> El
+          variograma que cambia con el botón es el de la realización que enseña el mapa, y la banda y todas las
+          cifras del módulo salen del mismo lote de {ent(ur['n_realizaciones'])} realizaciones. Si los mapas
+          vinieran de una simulación <em>aparte</em>, con otra rejilla y otra semilla, cada cifra podría ser
+          correcta y la prosa también, y la curva seguiría siendo la de un campo que no está en ningún mapa: un
+          error de cableado, que comprobar los números no ve. Si alguna vez heredas una figura de otra persona, la
+          pregunta que más rinde no es «¿son correctos estos números?» sino <strong>«¿son de este dato?»</strong>.</p>
       </div>
 
 """ + tabs(
@@ -2190,6 +2574,10 @@ MOD7 = cabecera(
     "Primera pincelada del MAUP: la misma variable cambia de valor —y a "
     "veces de signo— según sobre qué unidades se mida. Y, con las unidades "
     "quietas, según cómo se agregue.") + f"""
+      <p>Los módulos 4 a 6 midieron la dependencia entre unidades que estaban dadas: las celdas de una retícula,
+        los municipios. Pero la unidad también se elige, y con ella cambia la cifra. Es el soporte del módulo 2,
+        ahora con consecuencias.</p>
+
       <p>La deserción escolar de los {ent(es['n_municipal'])} municipios colombianos tiene un índice de Moran de
         <strong>{n(es['moran_municipal'])}</strong>: autocorrelación inequívoca, a {n(es['z_municipal'])}
         desviaciones estándar de lo que daría el azar. Agrega esos municipios a los {es['n_departamental']}
@@ -2240,7 +2628,11 @@ MOD7 = cabecera(
         <p>Descompón cada variable en un componente <em>compartido</em> —que es lo que las correlaciona— y un ruido
           propio de cada celda. Al promediar \\(m\\) celdas, el compartido apenas cambia porque es suave y las celdas
           vecinas tienen casi el mismo valor; el ruido, en cambio, se cancela: su varianza se divide por \\(m\\).
-          La correlación es el cociente entre lo que sobrevive y lo que había, así que sube.</p>
+          La covarianza entre las dos variables es la del componente compartido, y el promedio la reduce poco,
+          porque el compartido es suave. La varianza de cada una es la del compartido más la del ruido, y el
+          promedio divide la del ruido entre \\(m\\). La correlación es la covarianza dividida entre el producto
+          de las dos desviaciones típicas: el numerador encoge poco y el denominador mucho, así que sube su valor
+          absoluto, \\(|r|\\).</p>
         <p style="margin-bottom:0;"><strong>Y ahí está la condición del fenómeno, que es lo que se suele omitir:</strong>
           el efecto necesita que el ruido <em>no</em> tenga estructura espacial. Si el componente independiente
           también fuera un campo suave, promediar se llevaría los dos por igual y no pasaría nada. {ag['mecanismo']}</p>
@@ -2386,7 +2778,7 @@ MOD7 = cabecera(
         <strong>{n(agco['dif_media_abs'])}</strong> puntos de media y
         <strong>{n(agco['dif_max'])}</strong> en el departamento donde más.</p>
 
-      <p>Y el titular de este módulo se mueve con ellas. El I de Moran pasa de
+      <p>Y el titular de este módulo se mueve con ellas. La I de Moran pasa de
         <strong>{n(agco['moran_sin_ponderar'])}</strong> a <strong>{n(agco['moran_por_area'])}</strong>
         <em>sin que se mueva una sola frontera</em>. La escala no era la única decisión que se toma al agregar:
         también se decide la regla, y esa suele tomarse sin mirar.</p>
@@ -2399,7 +2791,14 @@ MOD7 = cabecera(
           incorrecto: se elige entre dos aproximaciones, y lo honesto es decir cuál se usó.</p>
       </div>
 
-""" + tabs(
+""" + nota_datos(
+    f"La pestaña de Python del primer bloque lee {enlace_datos('nc')}, el del módulo 2. El segundo bloque "
+    f"lee {enlace_datos('municipios')}, el del módulo 4, y la vecindad de reina de los municipios, "
+    f"{enlace_datos('reina')}, en GAL, un formato de texto que leen <code>spdep</code> y "
+    "<code>libpysal</code>. La vecindad viaja ya calculada porque el polígono municipal completo no "
+    f"viaja: son {ent(EX['poligonos']['vertices'])} vértices y {EX['poligonos']['mb']}&nbsp;MB, y "
+    "simplificarlo para que pese menos podría cambiar los vecinos y, con ellos, la I. El bloque de R "
+    "deja escrita, comentada, la línea que la calculó.") + tabs(
     "Agregar por predicado y agregar repartiendo",
     """library(sf)
 
@@ -2419,11 +2818,10 @@ cat(sprintf("condados = %d | rectangulos = %d\\n", sum(ncp$SID74), por_rect))
 aw &lt;- st_interpolate_aw(ncp["SID74"], rej, extensive = TRUE)
 cat(sprintf("repartido por area = %.5f\\n", sum(aw$SID74, na.rm = TRUE)))
 #&gt; """ + f"repartido por area = {n(agn['total_por_area'])}",
-    """import geopandas as gpd, json
+    """import geopandas as gpd
 from shapely.geometry import box
 
-ver = json.load(open("precalculo/versiones.json"))
-ncp = gpd.read_file(ver["rutas"]["nc_shp"]).to_crs(2264)
+ncp = gpd.read_file("entrega/datos/cap1_nc.gpkg").to_crs(2264)
 x0, y0, x1, y1 = ncp.total_bounds
 dx, dy = (x1 - x0) / 10, (y1 - y0) / 10
 rej = gpd.GeoDataFrame(geometry=[
@@ -2432,7 +2830,7 @@ rej = gpd.GeoDataFrame(geometry=[
 
 # 1) El sjoin por "intersects" hace exactamente lo que aggregate() en R.
 u = gpd.sjoin(ncp[["SID74", "geometry"]], rej, predicate="intersects")
-print(f"condados = {ncp.SID74.sum()} | "
+print(f"condados = {int(ncp.SID74.sum())} | "
       f"rectangulos = {int(u.groupby('index_right').SID74.sum().sum())}")
 #> """ + f"condados = {agn['total_condados']} | rectangulos = {agn['total_rectangulos']}" + """
 
@@ -2444,14 +2842,20 @@ t = gpd.overlay(ncp[["SID74", "geometry"]].assign(a=ncp.geometry.area),
 print(f"repartido por area = {(t.SID74 * t.geometry.area / t.a).sum():.5f}")
 #> """ + f"repartido por area = {n(agn['total_por_area'])}") + tabs(
     "La misma variable a dos escalas",
-    """library(sf); library(spdep); source("precalculo/fuentes.R")
+    """library(sf); library(spdep)
 
-mun &lt;- carga_municipios()
-ok  &lt;- mun[!is.na(mun$desercion), ]
-nb  &lt;- poly2nb(ok, queen = TRUE)
-I_mun &lt;- moran.test(ok$desercion, nb2listw(nb, style = "W", zero.policy = TRUE),
+mun &lt;- st_read("entrega/datos/cap1_municipios.gpkg", quiet = TRUE)
+# La vecindad de reina de todos, calculada sobre los poligonos completos
+# (que no viajan) con
+#   poly2nb(poligonos, queen = TRUE, row.names = divipola)
+# Se lee emparejando por divipola, no por posicion.
+reina &lt;- read.gal("entrega/datos/cap1_municipios_reina.gal",
+                  region.id = mun$divipola)
+ok &lt;- !is.na(mun$desercion)
+nb &lt;- subset(reina, ok)      # solo los vecinos que tienen dato
+I_mun &lt;- moran.test(mun$desercion[ok], nb2listw(nb, style = "W", zero.policy = TRUE),
                     zero.policy = TRUE)$estimate[["Moran I statistic"]]
-cat(sprintf("municipal: n = %d, I = %.5f\\n", nrow(ok), I_mun))
+cat(sprintf("municipal: n = %d, I = %.5f\\n", sum(ok), I_mun))
 #&gt; """ + f"municipal: n = {es['n_municipal']}, I = {n(es['moran_municipal'])}" + """
 
 # Islas y subgrafos: no son un defecto del dato, son el caso trabajado
@@ -2460,36 +2864,185 @@ cat(sprintf("islas = %d, subgrafos = %d, grado medio = %.5f\\n",
             sum(card(nb) == 0), n.comp.nb(nb)$nc, mean(card(nb))))
 #&gt; """ + f"islas = {es['islas_municipal']}, subgrafos = {es['subgrafos_municipal']}, "
     f"grado medio = {n(es['grado_municipal'])}",
-    """import geopandas as gpd, pandas as pd, numpy as np
-from libpysal.weights import Queen
+    """import geopandas as gpd, numpy as np, libpysal
+from libpysal.weights import w_subset
 
-geo = gpd.read_file("datos/procesado/colombia_adm2.gpkg")
-atr = pd.read_csv("datos/procesado/municipios_llave.csv", dtype={"divipola": str})
-mun = geo.merge(atr, on="shapeID")           # la union va por shapeID
-ok = mun.dropna(subset=["desercion"]).reset_index(drop=True)
-
-w = Queen.from_dataframe(ok, use_index=False, silence_warnings=True)
+mun = gpd.read_file("entrega/datos/cap1_municipios.gpkg")
+# La misma vecindad de reina; libpysal toma divipola como identificador.
+reina = libpysal.io.open("entrega/datos/cap1_municipios_reina.gal").read()
+ok = mun.loc[mun.desercion.notna(), "divipola"].tolist()
+w = w_subset(reina, ok, silence_warnings=True)   # solo los que tienen dato
 islas = [i for i, v in w.neighbors.items() if not v]
 print(f"n = {len(ok)}, islas = {len(islas)}, "
       f"grado medio = {np.mean([len(v) for v in w.neighbors.values()]):.5f}")
 #> """ + f"n = {es['n_municipal']}, islas = {es['islas_municipal']}, "
-    f"grado medio = {n(es['grado_municipal'])}") + CIERRE
+    f"grado medio = {n(es['grado_municipal'])}" + """
+
+# Y la I con los pesos de libpysal, escrita a mano como en el modulo 3:
+# estandarizada por filas (style = "W") y con n = los que tienen vecinos,
+# el convenio de spdep con zero.policy = TRUE. Tiene que dar la del bloque
+# de R. (Con los poligonos, libpysal.weights.Queen.from_dataframe() da
+# esta misma vecindad, municipio a municipio.)
+w.transform = "r"
+z = mun.set_index("divipola").loc[ok, "desercion"].to_numpy()
+z = z - z.mean()
+W = w.sparse
+n_con = len(ok) - len(islas)
+print(f"I = {(n_con / W.sum()) * (z @ (W @ z)) / (z @ z):.5f}, la de spdep")
+#> """ + f"I = {n(es['moran_municipal'])}, la de spdep") + CIERRE
 
 
 # =====================================================================
 # MÓDULO 8 · El ecosistema de R espacial
 # =====================================================================
+# R3 · T3.5 (H-07): «Prepara tu entorno». El syllabus pide en la semana 1 la
+# «Instalación del entorno de trabajo en R», y el capítulo no traía ni un
+# `install.packages`. Va en el módulo 8, y no en el 1, porque es el módulo de
+# los paquetes y de la tabla de versiones a la que remite; el módulo 1 deja
+# dicho, junto a su primer bloque, dónde está.
+#
+# Lo que el recuadro dice de las bibliotecas de sistema es SOLO lo que se leyó
+# el 2026-11-23 en la documentación de sf (README de r-spatial/sf y su página
+# de CRAN): que en Windows y macOS CRAN instala el binario, que para macOS pide
+# `type = "binary"` si R intenta compilar, y que en Linux pide GDAL, GEOS y
+# PROJ, con la orden de Ubuntu que se copia aquí. La activación del entorno de
+# Python es la de la documentación de `venv`. Ver diagnostico_cap1/R3_T3.5_estado.md.
+#
+# Las listas de paquetes NO se escriben aquí: `completa_entorno()` las saca, en
+# main(), de los library() y los import de los bloques ya ensamblados, y
+# sustituye las marcas @@…@@. Un bloque que cargue un paquete nuevo lo añade
+# solo a la orden de instalación.
+R_HUMO = """library(HistData); library(sf); library(spatstat.geom)
+library(spatstat.data); library(sp); library(spdep)
+
+mun &lt;- st_read("entrega/datos/cap1_municipios.gpkg", quiet = TRUE)
+cat(sprintf("%d municipios, EPSG:%d, %d con desercion\\n",
+            nrow(mun), st_crs(mun)$epsg, sum(!is.na(mun$desercion))))
+#&gt; """ + (f"{EX['municipios']['filas']} municipios, EPSG:{EX['municipios']['crs_epsg']}, "
+          f"{EX['municipios']['n_desercion']} con desercion")
+PY_HUMO = """import geopandas as gpd, shapely, pandas, numpy, scipy, libpysal
+
+mun = gpd.read_file("entrega/datos/cap1_municipios.gpkg")
+print(f"{len(mun)} municipios, EPSG:{mun.crs.to_epsg()}, "
+      f"{mun.desercion.notna().sum()} con desercion")
+#> """ + (f"{EX['municipios']['filas']} municipios, EPSG:{EX['municipios']['crs_epsg']}, "
+        f"{EX['municipios']['n_desercion']} con desercion")
+# R3 · T3.5, ronda 2. La licencia del extracto la decidió Javier el
+# 2026-11-23: los archivos cap1_* se publican bajo CC BY-SA 4.0, con la
+# atribución que el material ya usa (la frase del Taller 1 y procedencia.json).
+# `guardas_de_t35()` exige esta frase, una vez, dentro del recuadro.
+LICENCIA_EXTRACTO = "se publican bajo la licencia <strong>CC BY-SA 4.0</strong>"
+# Corrección del mismo día: la CC BY-SA 4.0 es SOLO para lo que deriva de los
+# datos del MEN, el ICFES y el DANE/geoBoundaries. Los cuatro archivos que
+# salen de paquetes de R no se pueden relicenciar: van con la licencia de su
+# paquete, el campo License de su DESCRIPTION, leído con packageDescription()
+# el 2026-11-23 (HistData 1.0.0, spatstat.data 3.1.9, sp 2.2.0, sf 1.0.22).
+# Qué permiten esas licencias sobre los datos no se ha leído y no se dice.
+CC_EXTRACTO = ("cap1_municipios.gpkg", "cap1_municipios_reina.gal")
+LICENCIAS_PAQUETES = {
+    "cap1_snow.csv": ("HistData", "GPL"),
+    "cap1_japanesepines.csv": ("spatstat.data", "GPL (&gt;= 2)"),
+    "cap1_meuse.csv": ("sp", "GPL (&gt;= 2)"),
+    "cap1_nc.gpkg": ("sf", "GPL-2 | MIT + file LICENSE"),
+}
+_lic_paq = [f"<code>{f}</code>, de <code>{p}</code> ({lic})" for f, (p, lic) in LICENCIAS_PAQUETES.items()]
+LICENCIAS_PAQUETES_TXT = "; ".join(_lic_paq[:-1]) + "; y " + _lic_paq[-1]
+# La orden que da la documentación de venv para PowerShell. Cada palabra va
+# en un trozo que no se parte: el navegador cortaba en el guion de «-Scope»
+# y en el teléfono se leía «- Scope». Copiada, sigue siendo la misma orden.
+ORDEN_PS = " ".join(f'<span style="white-space:nowrap">{t}</span>' for t in
+                    "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser".split())
+ENTORNO = f"""
+      <div class="definition" id="prepara-tu-entorno">
+        <h3>Prepara tu entorno</h3>
+        <p>Para ejecutar los bloques del capítulo fuera de esta página hacen falta R, o Python, con los paquetes
+          que usan los bloques, y los archivos de datos que leen. No hace falta instalar las versiones de la
+          tabla de arriba: son las que calcularon el material, y sirven para saber con qué se obtuvo una cifra
+          publicada si en otro equipo sale otra.</p>
+        <p><strong>R.</strong> Estas líneas instalan los paquetes de los bloques con todo lo que necesitan. La
+          primera guarda la lista en <code>paq</code>:</p>
+        <pre><code class="language-r arranque">paq &lt;- c(@@PAQUETES_R@@)
+
+# Windows y macOS:
+install.packages(paq,
+  type = "binary")
+
+# Linux, despues de las
+# bibliotecas de abajo:
+install.packages(paq)</code></pre>
+        <p>En Windows y macOS, CRAN distribuye <code>sf</code> ya compilado, y <code>type = "binary"</code> pide
+          ese paquete: es lo que la documentación de <code>sf</code> recomienda en macOS si R intenta compilarlo.
+          En Linux, <code>sf</code> se compila al instalarlo y necesita antes unas bibliotecas del sistema. La
+          documentación de <code>sf</code> y la de <code>s2</code>, un paquete que <code>sf</code> usa, piden
+          GDAL, GEOS, PROJ, SQLite, udunits, cmake, OpenSSL y Abseil. Esta orden de Ubuntu reúne los nombres que
+          dan las dos, y no se ha probado:</p>
+        <pre><code class="language-bash">sudo apt install cmake \\
+  libudunits2-dev \\
+  libgdal-dev \\
+  libgeos-dev \\
+  libproj-dev \\
+  libsqlite3-dev \\
+  libssl-dev \\
+  libabsl-dev</code></pre>
+        <p><strong>Python.</strong> Un entorno virtual, que deja estos módulos aparte de los del sistema. Se crea
+          una vez y se activa en cada sesión con la línea de tu sistema; dentro de él, <code>pip</code> instala
+          los módulos que importan los bloques:</p>
+        <pre><code class="language-bash">python -m venv geo
+
+# macOS y Linux:
+source geo/bin/activate
+# Windows, cmd.exe:
+geo\\Scripts\\activate.bat
+# Windows, PowerShell:
+geo\\Scripts\\Activate.ps1
+
+@@ORDEN_PIP@@</code></pre>
+        <p>En PowerShell, la documentación de <code>venv</code> advierte que puede hacer falta permitir antes el
+          guion de activación, con <code>{ORDEN_PS}</code>. El lado de Windows no se ha probado.</p>
+        <p><strong>Los datos.</strong> Cada módulo enlaza los archivos que leen sus bloques, junto al primero de
+          ellos. Son estos, y el código los busca en <code>{CARPETA_DATOS}/</code>:</p>
+        <ul>
+@@LISTA_DATOS@@
+        </ul>
+        <p>Los dos archivos de los municipios, <code>cap1_municipios.gpkg</code> y
+          <code>cap1_municipios_reina.gal</code>, {LICENCIA_EXTRACTO}, con la atribución de sus fuentes: la
+          deserción y la cobertura neta son del <strong>Ministerio de Educación Nacional</strong> (CC BY-SA 4.0);
+          los resultados de Saber 11, del <strong>ICFES</strong> (CC BY-SA 4.0); y los municipios,
+          {ATRIB_DANE}. Los otros cuatro <code>cap1_*</code> salen de paquetes de R y se distribuyen con la
+          licencia que declara el paquete del que salen: {LICENCIAS_PAQUETES_TXT}. Su origen está en la tabla de
+          procedencia del módulo 12. Los dos <code>taller1_*</code> son los del Taller&nbsp;1, con la atribución
+          que dan los módulos 3 y 10.</p>
+        <p style="margin-bottom:0;"><strong>La prueba.</strong> Si este bloque corre y escribe lo mismo que su
+          última línea, el entorno está listo.</p>
+      </div>
+
+""" + tabs("La prueba del entorno, en R y en Python", R_HUMO, PY_HUMO)
+
 filas_paq = "\n".join(
     f"""          <tr><th scope="row"><code>{p['nombre']}</code></th><td>{p['papel']}</td>
             <td>{p['version']}</td></tr>""" for p in eco["paquetes"])
 
+# R3 · T3.4 (H-02, D8): los módulos 8 y 9 son herramientas entre la escala
+# (7) y la validación cruzada (10). No se renumeran; ganan una entrada que dice
+# por qué están aquí —ya se han usado, y aquí se ve por qué funcionan como
+# funcionan— y el 10 una que vuelve al hilo de la dependencia.
 MOD8 = cabecera(
     8, "El ecosistema de R espacial", "The R-spatial stack",
     "Saber qué paquete resuelve qué pregunta, y por qué el mapa de "
     "paquetes es el mapa de los tres tipos de dato.") + f"""
+      <p>Los módulos anteriores midieron con R, y con Python al lado, y por el camino aparecieron
+        <code>sf</code>, <code>spdep</code>, <code>spatstat</code> y <code>classInt</code> sin que se dijera qué
+        hace cada uno. Este módulo y el siguiente se detienen en las herramientas, ahora que ya se han usado: qué
+        paquete resuelve qué pregunta, qué hay dentro de <code>sf</code> y por qué dos programas
+        pueden dar dos cifras distintas sobre el mismo dato, que ya asomó en el módulo 3. El módulo 10 vuelve
+        después a la dependencia.</p>
+
       <p>El ecosistema parece caótico hasta que se ve que <strong>está organizado por tipo de dato</strong>. Un
-        paquete para patrones puntuales, otro para datos de área, otro para geoestadística, y por debajo de todos,
-        <code>sf</code>, que es quien sabe leer y proyectar la geometría.</p>
+        paquete para patrones puntuales, otro para datos de área, otro para geoestadística. Muchos se apoyan en
+        <code>sf</code>, que es quien sabe leer y proyectar la geometría vectorial: <code>spdep</code>,
+        <code>gstat</code>, <code>tmap</code>, <code>stars</code> y <code>sfdep</code> lo necesitan para
+        funcionar. <code>spatstat</code>, <code>terra</code> y <code>classInt</code> no: van por su cuenta, y
+        <code>spatstat</code> trae su propio objeto.</p>
 
       <p>Antes de la tabla, prueba el árbol: contesta qué es aleatorio en tu dato y adónde te lleva.</p>
 
@@ -2517,8 +3070,9 @@ MOD8 = cabecera(
 
       <div class="definition">
         <h3>Las tres bibliotecas de sistema, que son la parte que de verdad importa</h3>
-        <p>Por debajo de todos los paquetes de R hay tres bibliotecas escritas en C++ que hacen el trabajo pesado, y
-          son las mismas que usan QGIS, PostGIS y GeoPandas:</p>
+        <p>Por debajo de <code>sf</code> y de <code>terra</code> —y, a través de <code>sf</code>, de los paquetes
+          que se apoyan en él— hay tres bibliotecas escritas en C++ que hacen el trabajo pesado, y son las mismas
+          que usan QGIS, PostGIS y GeoPandas:</p>
         <ul>
           <li><strong>GDAL {eco['sistema']['GDAL']}</strong> — leer y escribir formatos. Todos: shapefile,
             GeoPackage, GeoJSON, ráster.</li>
@@ -2539,7 +3093,7 @@ MOD8 = cabecera(
           clase, los cuantiles y hasta el trato de las islas cambian entre versiones, y un material que no dice con
           qué se hizo no es reproducible.</p>
       </div>
-""" + CIERRE
+""" + ENTORNO + CIERRE
 
 
 # =====================================================================
@@ -2547,10 +3101,22 @@ MOD8 = cabecera(
 # =====================================================================
 disc_nc = next(d for d in D["discrepancias"] if d["id"] == "tipo_geometria_nc")
 disc_mor = next(d for d in D["discrepancias"] if d["id"] == "moran_islas")
+# R3 · T3.4 (D7): la nota final decía «El auditor de este capítulo lleva una
+# lista de las diferencias conocidas entre R y Python; si encuentra una que
+# está en la lista, la trata como material didáctico, y si encuentra una que
+# no está, falla». Sigue siendo así —`D["discrepancias"]` y audita_cap1.py—,
+# pero es cómo se produce el material. Al estudiante se le dice el método:
+# quien compara dos programas lleva esa lista, y lo que no está en ella es un
+# error hasta que se explique. La retroalimentación del quiz (módulo 9) dice
+# lo mismo; el texto de la OPCIÓN («si el material las publica») es de R5.
 MOD9 = cabecera(
     9, "Anatomía de un objeto sf", "Inside an sf object",
     "Abrir el objeto por dentro: geometría y atributos en la misma tabla, "
     "las tres clases anidadas, y lo que cuesta cada una.") + f"""
+      <p><code>sf</code> es el objeto sobre el que trabajan <code>spdep</code>, <code>gstat</code> y
+        <code>tmap</code>; <code>spatstat</code> lleva el suyo, el <code>ppp</code>. Este módulo abre el primero
+        por dentro y lo compara con el segundo, que guarda además la ventana.</p>
+
       <p>Un objeto <code>sf</code> es un <code>data.frame</code> con una columna rara. Esa columna guarda la
         geometría, y el resto es una tabla normal, con lo cual todo lo que ya sabes de <code>dplyr</code> sigue
         valiendo. Es la decisión de diseño que hizo que <code>sf</code> se comiera a <code>sp</code>.</p>
@@ -2579,7 +3145,9 @@ MOD9 = cabecera(
           puntual la ventana es parte del dato — el módulo 2 ya midió lo que cuesta olvidarla.</p>
       </div>
 
-""" + tabs(
+""" + nota_datos(
+    f"La pestaña de Python lee {enlace_datos('nc')}, el del módulo 2; la de R, el <code>nc.shp</code> que "
+    "trae <code>sf</code>.", varios=False) + tabs(
     "Abrir el objeto por dentro",
     """library(sf)
 nc &lt;- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
@@ -2595,10 +3163,9 @@ cat(as.character(unique(st_geometry_type(nc))), "\\n")
 cat(sprintf("rasgos con mas de una parte: %d de %d\\n",
             sum(lengths(st_geometry(nc)) &gt; 1), nrow(nc)))
 #&gt; """ + f"rasgos con mas de una parte: {an['nc']['n_partes_multiples']} de {an['nc']['filas']}",
-    """import geopandas as gpd, json
+    """import geopandas as gpd
 
-ver = json.load(open("precalculo/versiones.json"))
-nc = gpd.read_file(ver["rutas"]["nc_shp"])
+nc = gpd.read_file("entrega/datos/cap1_nc.gpkg")
 print(f"filas = {len(nc)}, columnas = {nc.shape[1]}")
 #> """ + f"filas = {an['nc']['filas']}, columnas = {an['nc']['columnas']}" + """
 
@@ -2630,11 +3197,11 @@ print(nc.geom_type.value_counts().to_dict())
       </div>
 
       <div class="note">
-        <p style="margin-bottom:0;"><strong>Las discrepancias se declaran o son errores.</strong> El auditor de este
-          capítulo lleva una lista de las diferencias conocidas entre R y Python; si encuentra una que está en la
-          lista, la trata como material didáctico, y si encuentra una que no está, <strong>falla</strong>. Que una
-          discrepancia documentada y una sin explicar se lean igual sobre un informe es lo que convierte un auditor
-          en un adorno.</p>
+        <p style="margin-bottom:0;"><strong>Las discrepancias se declaran o son errores.</strong> Comparar dos
+          programas exige llevar la lista de las diferencias conocidas, cada una con su causa, como las dos de
+          arriba. Una diferencia que está en la lista es material para entender los dos programas; una que no
+          está es <strong>un error hasta que se explique</strong>. Que una discrepancia documentada y una sin
+          explicar se lean igual sobre un informe es lo que convierte una comparación en un adorno.</p>
       </div>
 """ + CIERRE
 
@@ -2651,6 +3218,11 @@ MOD10 = cabecera(
     "Ver por qué un modelo predictivo con datos espaciales parece mejor de "
     "lo que es, y por qué con esta red de estaciones no queda más remedio "
     "que modelar. Las dos diferencias, medidas sobre dato real.") + f"""
+      <p>Con las herramientas a la vista, el capítulo vuelve a la dependencia para medir una consecuencia que no está
+        en un intervalo sino en la evaluación de una predicción. El módulo 4 midió cuánto se engaña un intervalo cuando las observaciones
+        vecinas se parecen; este mide cuánto se engaña la evaluación de un modelo por la misma razón, y después qué
+        marco de inferencia queda cuando la red de estaciones no se muestreó.</p>
+
       <p>Este módulo es para quien vaya a usar aprendizaje automático con datos que tienen coordenadas, que hoy es
         casi todo el mundo. La conclusión es incómoda: <strong>la validación cruzada aleatoria miente</strong>, y
         miente hacia arriba.</p>
@@ -2661,8 +3233,9 @@ MOD10 = cabecera(
 
       <div class="simulador" data-simulador="cv-espacial">
         <h4><i class="fas fa-scissors" aria-hidden="true"></i> Validación cruzada aleatoria contra por bloques</h4>
-        <p class="simulador-intro">Mismo modelo, mismo dato, mismos {cv['n_pliegues']} pliegues. Lo único que cambia
-          es cómo se reparten, y los dos mapas de debajo lo enseñan: cada estación lleva el color de su
+        <p class="simulador-intro">Mismo modelo, mismo dato y el mismo número de pliegues, {cv['n_pliegues']}. Lo
+          único que cambia es cómo se reparten las estaciones entre ellos —al azar, o en bloques de estaciones
+          cercanas—, y los dos mapas de debajo lo enseñan: cada estación lleva el color de su
           pliegue. En el gráfico del RMSE, la línea de trazos es la desviación típica de la variable, que es
           prácticamente el error que se cometería prediciendo siempre la media: la barra de los bloques la
           pasa por poco, y por eso cada barra lleva su cifra encima.</p>
@@ -2796,12 +3369,16 @@ MOD10 = cabecera(
           {cv['tam_pliegue_max']} estaciones— y eso también es material: un bloque espacial no reparte en partes
           iguales, y quien espere pliegues equilibrados va a llevarse una sorpresa.</p>
       </div>
-""" + tabs(
+
+""" + nota_datos(
+    f"Los dos bloques leen {enlace_datos('estaciones')}, el del módulo 3, y los departamentos del "
+    f"Taller&nbsp;1, {enlace_datos('departamentos')}, para recortar las celdas al contorno del país. Los "
+    f"departamentos son datos de terceros que se redistribuyen con atribución: son {ATRIB_DANE}.") + tabs(
     "Pesar cada estación por el territorio que representa",
     """library(sf)
 
-estac &lt;- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
-pais  &lt;- st_union(st_read("datos/procesado/colombia_adm1.gpkg", quiet = TRUE))
+estac &lt;- st_read("entrega/datos/taller1_estaciones.gpkg", quiet = TRUE)
+pais  &lt;- st_union(st_read("entrega/datos/taller1_departamentos.gpkg", quiet = TRUE))
 
 # Thiessen: cada celda es el territorio mas proximo a una estacion.
 vor &lt;- st_collection_extract(
@@ -2826,8 +3403,8 @@ cat(sprintf("simple = %.5f | ponderada = %.5f | brecha = %.5f\\n",
 from shapely.geometry import MultiPoint
 from shapely.ops import voronoi_diagram
 
-estac = gpd.read_file("datos/procesado/colombia_estaciones_clima.gpkg")
-pais = gpd.read_file("datos/procesado/colombia_adm1.gpkg").geometry.union_all()
+estac = gpd.read_file("entrega/datos/taller1_estaciones.gpkg")
+pais = gpd.read_file("entrega/datos/taller1_departamentos.gpkg").geometry.union_all()
 
 cel = gpd.GeoDataFrame(geometry=list(voronoi_diagram(
     MultiPoint(list(estac.geometry)), envelope=pais.envelope).geoms),
@@ -2860,9 +3437,13 @@ MOD11 = cabecera(
       <div class="glosario-notacion" data-glosario="cap1-notacion"></div>
 
       <div class="note">
-        <p style="margin-bottom:0;">Las columnas <em>Texto guía</em> y <em>En R</em> están para que puedas ir del
-          material al libro y del libro al código sin traducir de cabeza. Si un símbolo del curso no está aquí, es
-          un descuido: dilo.</p>
+        <p>Las columnas <em>Texto guía</em> y <em>En R</em> están para que puedas ir del
+          material al libro y del libro al código sin traducir de cabeza. Donde dice «—», la fila todavía no remite
+          al libro, o el capítulo no ejecuta ninguna función para ese símbolo.</p>
+        <p style="margin-bottom:0;">No tienen fila las letras que una deducción define en el mismo sitio donde
+          las usa —un \\(m\\), un \\(k\\), el \\(t\\) del movimiento browniano— ni las de cualquier curso de
+          estadística, como \\(\\alpha\\), \\(p\\) o \\(H_0\\). Si un símbolo del curso no está aquí, es un
+          descuido: dilo.</p>
       </div>
 """ + CIERRE
 
@@ -2979,6 +3560,21 @@ E3_DATOS = f"""          <p class="text-sm" style="margin:0.25rem 0 0.5rem;"><a 
             haya guardado.</p>
 """
 e3r = e3s["residuos"]
+# R3 · T3.5 (D9): los ejercicios 2 y 4 leen el archivo de municipios del
+# capítulo, y lo enlazan igual que el 3. Hasta aquí el 2 decía «Con
+# carga_municipios()» y el 4 no decía de dónde sacar el dato.
+
+
+def datos_ejercicio(sol, que):
+    f = next(v for v in EX.values() if isinstance(v, dict) and v.get("ruta") == sol["archivo"])
+    return f"""          <p class="text-sm" style="margin:0.25rem 0 0.5rem;"><a href="../{sol['archivo']}" download target="_blank" rel="noopener">
+            Descargar <code>{f['archivo']}</code></a> ({tam_archivo(f)}) — {que} La ruta
+            <code>{sol['archivo']}</code> se cambia por la del lugar donde se haya guardado.</p>
+"""
+
+
+E2_DATOS = datos_ejercicio(S["e2"]["solucion"], "el archivo de municipios de los módulos 4 y 7.")
+E4_DATOS = datos_ejercicio(S["e4"]["solucion"], "el mismo del ejercicio 2.")
 E3_CODIGO = tabs(
     "El ejercicio 3: los dos remuestreos, el tamaño efectivo y lo que implica",
     f"""library(sf)
@@ -3065,10 +3661,81 @@ t_res = techo(res)
 print(f"con los residuos | {e3s['objetivos'][1]} bajo el techo: {{{e3s['objetivos'][1]} &lt; t_res}} | el techo sube: {{t_res &gt; t_temp}}")
 #> con los residuos | {e3s['objetivos'][1]} bajo el techo: {e3r['objetivo_50_alcanzable']} | el techo sube: {e3r['techo_sube']}""")
 
+# R3 · T3.1 (H-01): el arco. El módulo 1 abre con la tesis del curso —qué se
+# rompe cuando una observación sí dice algo de la siguiente, cuánto y qué se
+# hace— y el capítulo acababa sin volver a ella. La síntesis va AQUÍ, al
+# empezar el módulo 12 y antes de la autoevaluación, y no al final del 10:
+#   · reúne cifras de los módulos 4 a 10, no solo del 10, y el 10 ya cierra
+#     con su propia frontera (el capítulo 10) y un bloque de código;
+#   · entre el 10 y el 12 está el glosario, que cortaría el cierre en dos;
+#   · leída antes del cuestionario hace de repaso: el estudiante llega a las
+#     preguntas con las cifras del capítulo juntas.
+# Ronda 2: el error estándar por bloques se queda corto SI los departamentos
+# vecinos se parecen (la condición del m4); los 13 pares son correlaciones de
+# Pearson, no I; los pliegues son el mismo número, no los mismos.
+# Cada cifra es un campo del JSON, interpolada igual que en su módulo y dicha
+# con su referencia: la cobertura de phi = 4 (no un «porcentaje de error»), el
+# factor del error estándar real sobre el que calcula el programa, la t de una
+# muestra bilateral con alfa, el factor de bloques sobre municipios sueltos, el
+# RMSE por bloques frente al de la aleatoria con el mismo número de pliegues
+# (10) y otro reparto: genera_cap1.R sortea uno al azar (SEMILLA + 500) y
+# saca el otro de k-medias sobre las coordenadas (SEMILLA + 501). No son los
+# mismos pliegues, y la prosa no lo dice (ronda 2, V-12).
+#   · La caída de la I al agregar va con la advertencia del módulo 7: ese
+#     porcentaje describe dos cifras con pesos y n distintos y NO mide cuánta
+#     autocorrelación se pierde, y agregar no tiene dirección fija (n_suben y
+#     n_bajan de los 13 pares). Una síntesis que dijera «agregar baja la I»
+#     contradiría la lección del módulo.
+#   · Snow entra por lo que el módulo 1 sí argumenta: la prueba de
+#     aleatorización del capítulo —no de Snow, que no hizo ninguna—
+#     recolocaba cada muerte por separado, como si fueran independientes, y
+#     esa es UNA de las razones para leer su p como cota; la otra, que el m1
+#     da primero, es la resolución de Monte Carlo, 1/(B+1). NO se dice que las muertes «no son localizaciones
+#     independientes»: un racimo alrededor de una bomba lo explica igual una
+#     intensidad que cae con la distancia (primer orden), con puntos
+#     independientes. Confundirlo es enseñar al revés el capítulo 4.
+#   · Ningún capítulo posterior se nombra: las promesas a los caps. 8-10 son
+#     de otra tarea (H-15, H-16).
 MOD12 = cabecera(
     12, "Autoevaluación y ejercicios guiados", "Self-assessment",
     "Comprobar que lo del capítulo se sostiene sin mirar, y resolver cuatro "
     "problemas con la solución calculada en R.") + f"""
+      <div class="definition">
+        <h3>La pregunta del módulo 1, con las cifras del capítulo</h3>
+        <p>El capítulo empezó con una pregunta: qué se rompe cuando una observación sí dice algo de la siguiente,
+          cuánto se rompe y qué se hace entonces. En la media, lo que se rompe es la confianza y no la estimación.
+          Con \\(\\phi = {r4['phi']}\\), el intervalo al {NIVEL4}&nbsp;% que trata las {D['inferencia']['n']} celdas como
+          independientes tiene una cobertura de <strong>{n(r4['cobertura'])}</strong>, porque el error estándar real
+          de la media es <strong>{n(r4['factor'])} veces</strong> el que calcula el programa (módulo 4). La prueba
+          \\(t\\) de ese mismo análisis, bilateral, con \\(\\alpha = {D['inferencia']['alfa']}\\), rechaza
+          \\(H_0\\!: \\mu = {ur['media_del_proceso']}\\) en el <strong>{n(ur['pct_rechaza_ingenuo'])}&nbsp;%</strong>
+          de {ent(ur['n_realizaciones'])} realizaciones de un proceso de media {ur['media_del_proceso']}, cuando
+          debería hacerlo en el {n(ur['pct_esperado_si_valiera'])}&nbsp;% (módulo 6). Con el dato real pasa lo mismo.
+          En la deserción de los {ent(ne['desercion_n'])} municipios, el error estándar que conserva la dependencia
+          dentro de cada departamento es <strong>{n(ir['factor'])} veces</strong> el de remuestrear municipios
+          sueltos; y si los departamentos vecinos se parecen, aun ese se queda corto, porque supone que un
+          departamento no dice nada del de al lado (módulo 4). Para la media, esos municipios informan como el
+          <strong>{n(ne['desercion_pct'])}&nbsp;%</strong> de los que son, una cifra que con
+          {ent(ir['n_departamentos'])} departamentos vale por su orden de magnitud y no por sus decimales (módulos 4
+          y 5).</p>
+        <p>Se rompe también la evaluación de un modelo. Con el mismo modelo y el mismo número de pliegues,
+          {cv['n_pliegues']}, repartidos por bloques espaciales y no al azar, el RMSE de la validación es un
+          <strong>{n(cv['inflacion_pct'])}&nbsp;%</strong> mayor que el que anuncia la aleatoria, y es el que
+          responde a cuánto fiarse en una zona sin medir (módulo 10). Y la propia medida de la dependencia depende
+          de la unidad. La I de Moran de la deserción es {n(es['moran_municipal'])} entre municipios y
+          {n(es['moran_departamental'])} entre departamentos, un {n(es['caida_pct'])}&nbsp;% menor, pero ese
+          porcentaje no mide cuánta autocorrelación se pierde, porque cada I usa su matriz de pesos y su
+          \\(n\\). Y agregar no tiene una dirección fija ni siquiera para la correlación entre dos variables: de
+          los {ec['n_pares']} pares de variables del módulo 7, la correlación de Pearson entre las dos se aleja del
+          cero en {ec['n_suben']} y se acerca en {ec['n_bajan']}.</p>
+        <p style="margin-bottom:0;">Lo que se hace entonces, el capítulo lo deja en su primer paso: remuestrear
+          bloques en vez de unidades sueltas, contar el tamaño efectivo, suponer un proceso estacionario y ergódico
+          y medirlo en una región grande frente a su alcance, declarar la unidad y la regla de agregación, y elegir
+          la validación según la pregunta. Son primeros pasos, no un modelo de la dependencia. Hasta la prueba de
+          aleatorización del módulo 1, sobre el mapa de Snow, recolocaba cada muerte por separado, como si fueran
+          independientes entre sí, y esa es una de las razones para leer su valor p como una cota.</p>
+      </div>
+
       <p>Ocho preguntas de los cuatro tipos. Cada opción lleva su propia retroalimentación —también las
         incorrectas—, así que falla a propósito alguna: se aprende más de la explicación de un error que de la
         confirmación de un acierto.</p>
@@ -3090,7 +3757,7 @@ MOD12 = cabecera(
         <p class="text-sm" style="margin-bottom:0.5rem;">Intenta cada uno <strong>antes</strong> de abrir nada. La
           pista dice por dónde entrar sin dar la respuesta; la solución trae los pasos con sus cifras, calculadas en
           R por <code>precalculo/genera_soluciones.R</code> y no escritas de memoria.</p>
-{ejercicio(1, S['e1'])}{ejercicio(2, S['e2'])}{ejercicio(3, S['e3'], datos=E3_DATOS, codigo=E3_CODIGO)}{ejercicio(4, S['e4'])}
+{ejercicio(1, S['e1'])}{ejercicio(2, S['e2'], datos=E2_DATOS)}{ejercicio(3, S['e3'], datos=E3_DATOS, codigo=E3_CODIGO)}{ejercicio(4, S['e4'], datos=E4_DATOS)}
       </div>
 
       <div class="definition">
@@ -3198,38 +3865,38 @@ MODULOS = (MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6 + MOD7 + MOD8 + MOD9
 # El JSON entero viaja al navegador. Los simuladores y el quiz sacan de
 # ahí sus cifras con `n5()`, así que NINGUNA cifra del JavaScript está
 # escrita: no puede quedarse vieja cuando el precálculo cambie.
-# LAS DURACIONES DE LOS MÓDULOS 1, 3, 4, 7 Y 10 (R2 · T2.2). Los tres
-# primeros crecieron con las gráficas de R2 · T2.4 y seguían anunciando lo
-# de antes; el 7 y el 10 crecieron aquí.
+# LAS DURACIONES SE MIDEN (R3 · T3.4, H-08, D8). Hasta R2 cada ronda sumaba
+# a ojo «un minuto por cada 200 palabras añadidas» desde la duración que el
+# módulo tenía al cerrar R1, y la lectura de estudiante del 2026-11-13 encontró
+# el módulo 2 y el 3 a once minutos de lo declarado. Ahora las mide
+# `precalculo/mide_duraciones_cap1.py` sobre el HTML ensamblado, con las tasas
+# escritas y justificadas en su cabecera (200 palabras/min, ×1.4 en los
+# bloques con fórmula, 2.5 min por simulador, 1 min por mapa, tabla o figura,
+# 7.5 líneas de código por minuto en un solo lenguaje, 1.2 min por pregunta),
+# y `guardas_de_t34()` para el ensamblado si una de las de abajo se sale de
+# ±15 % de su medida. Cada cifra es la medida redondeada al minuto:
 #
-# LA REGLA, para que se pueda rehacer: a la duración que el módulo tenía al
-# cerrar R1 se le suma un minuto por cada 200 palabras de prosa añadidas
-# (redondeando al minuto más próximo), dos por cada simulador nuevo y uno si
-# gana mapas sin ganar simulador.
+#     python3 precalculo/mide_duraciones_cap1.py
 #
-# EL RECUENTO: las palabras de cada `<template id="module-N">` del HTML
-# publicado, quitando los bloques `<pre>`, las fórmulas `\(...\)` y `$$...$$`
-# y las etiquetas, y partiendo por espacios. La referencia es el capítulo del
-# commit cd97da7, el último de R1. Con ese recuento:
-#   módulo 1    993 -> 1 860 palabras (+867) y un simulador más   12 -> 18 min
-#   módulo 3  2 240 -> 3 014 (+774)                               10 -> 14 min
-#   módulo 4  1 512 -> 1 975 (+463) y un simulador más            12 -> 16 min
-#   módulo 7  1 999 -> 2 107 (+108)                               14 -> 15 min
-#   módulo 10 1 254 -> 1 316 (+62) y los dos mapas de pliegues    13 -> 14 min
-# El guion que cuenta está en `diagnostico_cap1/palabras_por_modulo.py`.
+# Son las del CAMINO PRINCIPAL: sin los paneles plegables de deducción, que
+# son opcionales y el medidor da aparte, y, en el módulo 12, leer y hacer el
+# cuestionario y leer los enunciados de los ejercicios, no resolverlos. El
+# total, con y sin los seis paneles, lo imprime el medidor: aquí no se
+# copia, para que no se quede viejo.
 MODULOS_NAV = [
-    ("El mapa que cambió la epidemiología", "18 min"),
-    ("Los tres tipos de dato espacial", "14 min"),
-    ("La primera ley de Tobler", "14 min"),
-    ("Por qué se rompe la inferencia clásica", "16 min"),
-    ("Tamaño de muestra efectivo", "8 min"),
-    ("Estacionariedad y una sola realización", "10 min"),
-    ("Escala, soporte y agregación", "15 min"),
-    ("El ecosistema de R espacial", "8 min"),
-    ("Anatomía de un objeto sf", "8 min"),
+    ("El mapa que cambió la epidemiología", "30 min"),
+    ("Los tres tipos de dato espacial", "31 min"),
+    ("La primera ley de Tobler", "28 min"),
+    ("Por qué se rompe la inferencia clásica", "28 min"),
+    ("Tamaño de muestra efectivo", "14 min"),
+    # R3 · T3.2 (H-20): el mismo título que la cabecera del módulo.
+    ("Estacionariedad, isotropía y una sola realización", "13 min"),
+    ("Escala, soporte y agregación", "22 min"),
+    ("El ecosistema de R espacial", "13 min"),
+    ("Anatomía de un objeto sf", "5 min"),
     ("Dependencia espacial en ciencia de datos", "14 min"),
-    ("Glosario de notación del curso", "5 min"),
-    ("Autoevaluación y ejercicios guiados", "15 min"),
+    ("Glosario de notación del curso", "8 min"),
+    ("Autoevaluación y ejercicios guiados", "19 min"),
 ]
 
 _mods = ",\n".join(
@@ -3808,7 +4475,7 @@ DESC_CAMPO = {
     str(c["phi"]): (
         f"Con alcance {ent(c['phi']) if c['phi'] == int(c['phi']) else n(c['phi'], 1)}, dos celdas vecinas "
         f"de la retícula tienen correlación "
-        f"{n(c['rho_vecino'], 2)} y el I de Moran del mapa es {n(c['moran'], 2)}: "
+        f"{n(c['rho_vecino'], 2)} y la I de Moran del mapa es {n(c['moran'], 2)}: "
         f"{_palabra_campo(c['rho_vecino'])}.")
     for c in M["campos"]}
 DESC_REAL = {
@@ -3930,7 +4597,7 @@ def guardas_de_las_descripciones() -> list[str]:
     rhos = [c["rho_vecino"] for c in M["campos"]]
     morans = [c["moran"] for c in M["campos"]]
     exige(rhos == sorted(rhos) and morans == sorted(morans) and rhos[0] == 0,
-          "campo: la correlación entre vecinas o el I de Moran ya no crecen con el alcance")
+          "campo: la correlación entre vecinas o la I de Moran ya no crecen con el alcance")
     exige({str(r["phi"]) for r in D["inferencia"]["rejilla"]} == set(DESC_CAMPO),
           "campo: los alcances del deslizador no son los que tienen texto")
     exige({str(v["id"]) for v in D["realizaciones_vistas"]} == set(DESC_REAL),
@@ -6044,8 +6711,8 @@ SIMULADORES_JS = r"""
         { label: '', data: v.q95, borderColor: 'rgba(148,163,184,.5)', pointRadius: 0 }
       ], { plugins: { legend: { labels: { filter: it => it.text !== '' } },
                       tooltip: { filter: it => it.dataset.label !== '' } },
-           // Una semivarianza se lee desde cero, y el rezago va en pasos de retícula.
-           scales: { x: { title: { display: true, text: 'rezago (pasos de retícula)' } },
+           // Una semivarianza se lee desde cero, y la clase de distancia va en pasos de retícula.
+           scales: { x: { title: { display: true, text: 'clase de distancia (pasos de retícula)' } },
                      y: { beginAtZero: true, title: { display: true, text: 'semivarianza' } } } });
       // Guarda de ejecución, y la única capaz de ver este descuadre: las
       // cifras del JSON eran correctas y la prosa también: lo que estaba mal
@@ -6084,8 +6751,8 @@ SIMULADORES_JS = r"""
         lectura(raiz, [['realización', r.id],
           ['su media espacial', n5(r.media)], ['la del proceso', u.media_del_proceso],
           ['su sd espacial', n5(r.sd)],
-          ['su variograma se aparta del teórico de la clase', n5(r.desvio_rel_max) + ' (rezago ' + r.lag_desvio_max + ')'],
-          ['rezagos fuera de la banda', r.lags_fuera_banda + ' de ' + v.lags.length],
+          ['su variograma se aparta del teórico de la clase', n5(r.desvio_rel_max) + ' (clase ' + r.lag_desvio_max + ')'],
+          ['clases de distancia fuera de la banda', r.lags_fuera_banda + ' de ' + v.lags.length],
           ['sd de las medias sobre ' + miles1(u.n_realizaciones), n5(u.sd_de_las_medias)],
           // Una proporción sobre mil realizaciones tiene un decimal, no cinco;
           // y el nivel de la prueba se escribe como se eligió (G-21).
@@ -6428,7 +7095,7 @@ QUIZ_JS = r"""
         pregunta: 'Tienes ' + miles1(D1.n_efectivo.caso_quiz.n) + ' observaciones cuya correlación media '
           + 'entre parejas es ' + n5(D1.n_efectivo.caso_quiz.rho, 2) + '. '
           + '¿A cuántas observaciones independientes equivalen para estimar la media?',
-        pista: 'La fórmula es n / (1 + (n-1) rho), con rho la correlación media entre parejas. Haz la cuenta '
+        pista: 'La fórmula es $n_{\\text{eff}} = n/(1 + (n-1)\\,\\bar{\\rho})$, con $\\bar{\\rho}$ la correlación media entre parejas. Haz la cuenta '
           + 'con la cabeza antes de mirar.',
         opciones: [
           { texto: 'Alrededor de ' + D1.n_efectivo.caso_quiz.n_eff_redondo, correcta: true,
@@ -6446,11 +7113,11 @@ QUIZ_JS = r"""
               + ': la correlación no afecta al tamaño de muestra.', correcta: false,
             retro: 'Afecta, y mucho. Ése es justo el módulo 5.' }
         ],
-        retroAcierto: 'Y lo importante es el techo: mientras la correlación media no cambie, n_eff tiende a '
-          + '1/rho. Al añadir datos dentro de la misma región la correlación media tiende a una constante y el '
+        retroAcierto: 'Y lo importante es el techo: mientras la correlación media no cambie, $n_{\\text{eff}}$ tiende a '
+          + '$1/\\bar{\\rho}$. Al añadir datos dentro de la misma región la correlación media tiende a una constante y el '
           + 'tamaño efectivo se estanca; al ampliar la región, si la correlación decae con la distancia, la '
           + 'correlación media baja y no hay techo.',
-        retroFallo: 'Módulo 5. La respuesta corta: con la correlación media fija hay un techo, y está en 1/rho.'
+        retroFallo: 'Módulo 5. La respuesta corta: con la correlación media fija hay un techo, y está en $1/\\bar{\\rho}$.'
       },
       {
         tipo: 'multiple', modulo: 7,
@@ -6483,8 +7150,12 @@ QUIZ_JS = r"""
         pista: '¿De dónde saldría la «repetición» que toda estimación necesita?',
         opciones: [
           { texto: 'Falso: hace falta suponer estacionariedad', correcta: true,
-            retro: 'Estacionariedad es exactamente suponer que distintas partes del mapa son repeticiones del '
-              + 'mismo mecanismo. Sin esa suposición no hay repetición, y sin repetición no hay estimación.' },
+            retro: 'Estacionariedad es suponer que distintas partes del mapa son repeticiones del mismo '
+              + 'mecanismo, y sin ella no hay repetición. Hace falta, pero no basta, y por dos razones distintas. '
+              + 'Una es del proceso: hace falta además ergodicidad, que los promedios de una realización '
+              + 'converjan a los del proceso cuando la región crece; en la práctica, que la covarianza decaiga '
+              + 'con la distancia. La otra es del mapa: para aprovechar la ergodicidad con una sola realización, '
+              + 'la región tiene que ser grande frente al alcance de la covarianza. Módulo 6.' },
           { texto: 'Verdadero: los datos hablan por sí solos', correcta: false,
             retro: 'Es el problema fundamental de la disciplina, no un tecnicismo. Módulo 6.' }
         ],
@@ -6661,7 +7332,7 @@ QUIZ_JS = r"""
       },
       {
         tipo: 'numerica', modulo: 7,
-        pregunta: 'El I de Moran de la deserción pasa de ' + n5(D1.escala.moran_municipal) + ' entre los '
+        pregunta: 'La I de Moran de la deserción pasa de ' + n5(D1.escala.moran_municipal) + ' entre los '
           + D1.escala.n_municipal + ' municipios a ' + n5(D1.escala.moran_departamental) + ' entre los '
           + D1.escala.n_departamental + ' departamentos. ¿Qué porcentaje cae? Dos decimales.',
         respuesta: Number(n5(D1.escala.caida_pct, 2)), tolerancia: 0.05,
@@ -6688,8 +7359,9 @@ QUIZ_JS = r"""
           { texto: 'Con la cobertura del módulo 4: ' + n5(D1.inferencia.cobertura_phi4)
               + ', o sea un ' + n5(D1.una_realizacion.pct_rechaza_modulo4) + ' % de rechazo.', correcta: true,
             retro: 'Se separan ' + n5(D1.una_realizacion.discrepancia_con_modulo4) + ' puntos, algo más de un '
-              + 'error de Monte Carlo. El generador comprueba esa coherencia y se detiene si se rompe.' },
-          { texto: 'Con el I de Moran de la deserción.', correcta: false,
+              + 'error de Monte Carlo. Si se separaran más de tres errores conjuntos, habría que averiguar cuál '
+              + 'de las dos está mal: cuadrarlas es parte del método.' },
+          { texto: 'Con la I de Moran de la deserción.', correcta: false,
             retro: 'Son cosas distintas: una es autocorrelación de un dato real, la otra la tasa de error de un '
               + 'contraste sobre un campo simulado.' },
           { texto: 'Con el n efectivo de los municipios.', correcta: false,
@@ -6710,20 +7382,20 @@ QUIZ_JS = r"""
             correcta: true,
             retro: 'sf dice ' + D1.anatomia.nc.n_multipolygon + ' MULTIPOLYGON y shapely solo '
               + D1.anatomia.nc.n_partes_multiples + '. La geometría es idéntica.' },
-          { texto: 'spdep y esda cuentan distinto las unidades sin vecinos al calcular el I de Moran.',
+          { texto: 'spdep y esda cuentan distinto las unidades sin vecinos al calcular la I de Moran.',
             correcta: true,
             retro: n5(D1.escala.moran_municipal) + ' frente a ' + n5(D1.escala.moran_municipal_n_total)
               + '. Se recupera uno desde el otro multiplicando por (n − islas)/n.' },
           { texto: 'Una discrepancia sin explicar y una documentada valen lo mismo si el material las publica.',
             correcta: false,
-            retro: 'No: el auditor del capítulo lleva la lista de las conocidas y FALLA ante una que no esté. '
-              + 'Ésa es la diferencia entre material didáctico y un error.' },
+            retro: 'No: la documentada tiene su causa dicha y está en la lista de las conocidas; la que no está '
+              + 'en la lista es un error hasta que se explique. Ésa es la diferencia entre material didáctico y un error.' },
           { texto: 'Las discrepancias vienen de que GDAL y GEOS son distintos en cada lenguaje.', correcta: false,
             retro: 'Son las MISMAS bibliotecas: R y Python las llaman a las dos. El desacuerdo está en la capa de '
               + 'arriba. Módulo 8.' }
         ],
         retroAcierto: 'Ante una diferencia, la primera pregunta es «¿estamos midiendo lo mismo?».',
-        retroFallo: 'Las dos ciertas son la del tipo de la CAPA frente al de cada rasgo y la de las unidades sin vecinos en el I de Moran. Módulo 9.'
+        retroFallo: 'Las dos ciertas son la del tipo de la CAPA frente al de cada rasgo y la de las unidades sin vecinos en la I de Moran. Módulo 9.'
       },
       {
         tipo: 'opcion', modulo: 10,
@@ -6758,6 +7430,685 @@ GLOSARIO_JS = (
     + json.dumps({"titulo": D["glosario"]["titulo"], "nota": D["glosario"]["nota"],
                   "columnas": D["glosario"]["columnas"], "filas": D["glosario"]["filas"]},
                  ensure_ascii=False) + ";\n")
+
+
+# =====================================================================
+# R3 · T3.2: la notación del capítulo (D6), leída del documento ensamblado
+# =====================================================================
+# Cuatro convenciones que el capítulo rompía sin que ninguna cifra se
+# moviera: la W que era a la vez ventana y matriz de pesos, el «rezago» que
+# era a la vez la media de los vecinos y una distancia del variograma, «el
+# I de Moran» junto a «la I», y un glosario que no recogía la mitad de los
+# símbolos y le daba a ρ un sentido que el capítulo no usa. Las guardas leen
+# `doc` —el HTML ya ensamblado, plantilla, cuestionario y glosario
+# incluidos— y no una copia de las frases (la lección de R2).
+_FORMULA_PROSA = re.compile(r"\\\((.+?)\\\)|\$\$(.+?)\$\$", re.S)
+_FORMULA_QUIZ = re.compile(r"\$([^$\n]+?)\$")
+# Una W que no es parte de una palabra. Detrás puede ir la y o la z del
+# rezago: «Wy» es W por y, y es justo lo que se busca. La negrita —con o sin
+# llaves, \mathbf, \boldsymbol o \bm— se quita antes de buscar.
+_W_SIN_NEGRITA = re.compile(r"(?<![A-Za-z\\{])W(?![a-xA-Z])")
+_W_NEGRITA = re.compile(r"\\(?:mathbf|boldsymbol|bm)\s*(?:\{\s*W\s*\}|W(?![A-Za-z]))")
+# El papel de una W, leído en la propia fórmula: de matriz si multiplica o se
+# traspone (Wy, Wz, W^\top, W^2, W_{ij}, W + …); de ventana si se mide o se
+# integra o contiene (|W|, \int_W, W \subset, \in W, \cap W).
+_W_MATRIZ = re.compile(r"(?<![A-Za-z\\{_])W\s*(?:[yz](?![A-Za-z])|\^|_\{?[ij]|\\top|[+\-]\s*\\?[A-Za-z])")
+_W_VENTANA = re.compile(r"\|W\||\\int_\{?W|W\s*\\subset|\\in\s*W\b|\\cap\s*W\b|\\subset\s*W\b")
+# Y si la fórmula es una W pelada, la frase que la contiene: una frase que
+# habla de pesos, vecinos, adyacencia o rezago la está usando de matriz.
+_FRASE_MATRIZ = re.compile(r"matri|peso|vecin|adyacen|rezago", re.I)
+_OTRO_CAP = re.compile(r"\bcaps?\.\s*\d")
+# Fin de frase: punto, punto y coma, cierre de interrogación o exclamación,
+# salvo el punto de «cap.» y «caps.».
+_FIN_FRASE = re.compile(r"(?<!\bcap)(?<!caps)[.;!?](?:\s|$)")
+_REZAGO = re.compile(r"\brezagos?\b(?!\s+(?:espacial(?:es)?|de distancia)\b)", re.I)
+# «el I» en masculino, venga detrás lo que venga: «el I de Moran», «el I
+# departamental», «este I». La I tiene que ir en mayúscula y suelta.
+_EL_I = re.compile(r"\b(?:[Ee]l|[Dd]el|[Aa]l|[Uu]n|[Ee]ste|[Ee]se|[Aa]quel|[Oo]tro|[Mm]ismo|[Pp]rimer|"
+                   r"[Úú]ltimo)\s+I\b(?![-_^=(\w]|\.\w)")
+# Un comentario de JavaScript, también a mitad de línea (no el «//» de una URL).
+_COMENTARIO_JS = re.compile(r"(^|[\s;,{}()\]])//.*$", re.M)
+
+
+
+def _sin_espacios(s: str) -> str:
+    """Una fórmula sin espacios ni llaves: «\\hat{\\lambda}» y «\\hat\\lambda» son el mismo símbolo."""
+    return re.sub(r"[\s{}]", "", s)
+
+
+def _texto_plano(s: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", s))
+
+
+# Lo que el glosario tiene que traer si el capítulo lo escribe en una
+# fórmula: (símbolo del glosario, cómo se reconoce en las fórmulas, nombre).
+# Los detectores leen las fórmulas sin espacios ni llaves.
+_GLOSARIO_EXIGE = [
+    ("W", lambda f: "|W|" in f or "\\int_W" in f, "la ventana W"),
+    ("|W|", lambda f: "|W|" in f, "el área de la ventana |W|"),
+    ("n", lambda f: re.search(r"(?<![A-Za-z\\])n(?![A-Za-z])", f), "n"),
+    ("N", lambda f: "s_N" in f, "N, el número aleatorio de puntos"),
+    ("N(B)", lambda f: "N(B" in f, "N(B)"),
+    ("\\hat\\lambda", lambda f: "\\hat\\lambda" in f, "λ̂"),
+    ("d_i", lambda f: re.search(r"(?<![A-Za-z\\])d_i(?![A-Za-z])", f), "d_i"),
+    ("G(r)", lambda f: "G(r)" in f, "G(r)"),
+    ("\\rho(h)", lambda f: "\\rho(h" in f, "ρ(h)"),
+    ("\\rho_ij", lambda f: "\\rho_ij" in f, "ρ_ij"),
+    ("\\bar\\rho", lambda f: "\\bar\\rho" in f, "ρ̄"),
+    ("\\phi", lambda f: "\\phi" in f, "φ"),
+    ("\\sigma^2", lambda f: "\\sigma^2" in f, "σ²"),
+    ("E[I]", lambda f: "E[I]" in f, "E[I]"),
+    ("S_0", lambda f: "S_0" in f, "S_0"),
+    ("w_ij", lambda f: "w_ij" in f, "w_ij"),
+    ("n_\\texteff", lambda f: "n_\\texteff" in f, "n_eff"),
+    ("\\mathbfW", lambda f: "\\mathbfW" in f, "la matriz de pesos en negrita"),
+    ("m(s)", lambda f: "m(s" in f, "m(s), la media que cambia de sitio"),
+]
+
+
+def _papel_w(f: str, antes: str, despues: str) -> str | None:
+    """«matriz», «ventana», «otro capítulo» o None si la fórmula no lleva una W sin negrita.
+
+    Se decide por el papel del símbolo, no por la palabra «ventana» cerca: primero
+    lo que hace la W dentro de la fórmula, y solo si es una W pelada, la frase
+    que la contiene (no los 140 caracteres de antes, que alcanzaban a la frase
+    anterior: «Elegir ventana … En los datos de área, la matriz de pesos \(W\)»
+    pasaba).
+    """
+    g = _W_NEGRITA.sub("", f)
+    if not _W_SIN_NEGRITA.search(g):
+        return None
+    frase = _FIN_FRASE.split(antes)[-1] + " ⟨W⟩ " + _FIN_FRASE.split(despues)[0]
+    if _OTRO_CAP.search(frase):
+        return "otro capítulo"      # «En los caps. 6 y 7 se escribe \(W\)»
+    if _W_MATRIZ.search(g):
+        return "matriz"
+    if _W_VENTANA.search(g):
+        return "ventana"
+    return "matriz" if _FRASE_MATRIZ.search(frase) else "ventana"
+
+
+def guardas_de_notacion(doc: str) -> list[str]:
+    """W, rezago, «la I de Moran» y el glosario, contra el documento ensamblado."""
+    problemas = []
+    fin_marcado = doc.rfind("\n  <script>")
+    fin_marcado = fin_marcado if fin_marcado > 0 else len(doc)
+    marcado = re.sub(r"<pre\b.*?</pre>", " ", doc[:fin_marcado], flags=re.S)
+
+    # Las fórmulas del capítulo —prosa y cuestionario—, cada una con el texto
+    # que la rodea: (fórmula, antes, después). Y aparte, las del glosario.
+    def con_contexto(texto, regex, lado):
+        return [(m.group(1) or (m.group(2) if regex.groups > 1 else "") or "",
+                 _texto_plano(texto[max(0, m.start() - lado):m.start()]),
+                 _texto_plano(texto[m.end():m.end() + lado]))
+                for m in regex.finditer(texto)]
+    cap = con_contexto(marcado, _FORMULA_PROSA, 400)
+    i0 = doc.find("AUTOEVALUACIONES['cap1-diagnostica']")
+    i1 = doc.find("\n    ];\n", doc.find("AUTOEVALUACIONES['cap1'] ="))
+    if i0 >= 0 and i1 > i0:
+        cap += con_contexto(doc[i0:i1].replace("\\\\", "\\"), _FORMULA_QUIZ, 200)
+    g = re.search(r"GLOSARIOS\['cap1-notacion'\] = (\{.*?\});\n", doc)
+    try:
+        filas = json.loads(g.group(1))["filas"] if g else []
+    except (ValueError, KeyError):
+        filas = []
+    glo = []
+    for f in filas:
+        glo.append((f.get("simbolo", ""), "", f.get("nombre", "")))
+        glo += con_contexto(f.get("nombre", ""), _FORMULA_PROSA, 400)
+
+    # 1 · Una W sin negrita solo es la ventana (o la de otro capítulo, dicha
+    # como tal). La matriz de pesos de este capítulo es \mathbf{W}.
+    malas_w = [f for f, antes, despues in cap + glo if _papel_w(f, antes, despues) == "matriz"]
+    if malas_w:
+        problemas.append(f"notación: una W sin negrita hace de matriz de pesos, que en este capítulo es "
+                         f"\\mathbf{{W}}: {malas_w[:3]}")
+    # 2 · La matriz de pesos, en negrita en la prosa (el recuadro de Moran),
+    # no solo en el glosario.
+    corpus = [_sin_espacios(f) for f, _, _ in cap]
+    if not any(_W_NEGRITA.search(f) for f, _, _ in cap):
+        problemas.append("notación: la prosa del capítulo ya no escribe la matriz de pesos como "
+                         "\\mathbf{W}")
+
+    # 3 · «Rezago» solo como «rezago espacial» o «rezago de distancia». Los
+    # comentarios del JavaScript —también los de mitad de línea— no los ve
+    # nadie y se quitan; el marcado se lee entero.
+    visible = doc[:fin_marcado] + _COMENTARIO_JS.sub(r"\1", doc[fin_marcado:])
+    rez = [visible[max(0, m.start() - 40):m.end() + 25].replace("\n", " ")
+           for m in _REZAGO.finditer(visible)]
+    if rez:
+        problemas.append(f"notación: «rezago» que no es «rezago espacial» ni «rezago de distancia» "
+                         f"({len(rez)}): {rez[:3]}")
+
+    # 4 · «la I de Moran», en femenino, en todo el documento.
+    eles = [doc[max(0, m.start() - 30):m.end() + 25].replace("\n", " ") for m in _EL_I.finditer(doc)]
+    if eles:
+        problemas.append(f"notación: vuelve «el I» de Moran, en masculino ({len(eles)}): {eles[:3]}")
+
+    # 5 · El glosario trae una fila para cada símbolo de D6 que el capítulo
+    # escribe en una fórmula, y para la sigla CSR. Sin glosario en el
+    # documento, faltan todas. La fila de ρ, además, dice lo que ρ es aquí:
+    # cita sus tres marcas, dice «correlación» y no lo niega.
+    en_glosario = {_sin_espacios(f.get("simbolo", "")) for f in filas}
+    exige = [(s, any(usa(f) for f in corpus), nombre) for s, usa, nombre in _GLOSARIO_EXIGE]
+    exige.append(("\\textCSR", "CSR" in _texto_plano(marcado), "la sigla CSR"))
+    for simbolo, usado, nombre in exige:
+        if usado and simbolo not in en_glosario:
+            problemas.append(f"notación: el capítulo escribe {nombre} y el glosario no le da fila")
+    rho = next((f for f in filas if _sin_espacios(f.get("simbolo", "")) == "\\rho"), None)
+    nom = rho.get("nombre", "") if rho else ""
+    if not (all(x in _sin_espacios(nom) for x in ("\\rho(h)", "\\rho_ij", "\\bar\\rho"))
+            and "correlación" in nom
+            and not re.search(r"\bno\s+(?:es|son|sea)\b[^.]{0,40}correlaci", nom)):
+        problemas.append("notación: la fila de ρ del glosario no dice que en este capítulo ρ es una "
+                         "correlación, con sus tres marcas")
+    return problemas
+
+
+# =====================================================================
+# R3 · T3.3 · Los paneles de deducción y la ergodicidad
+#
+# Las guardas leen el DOCUMENTO ENSAMBLADO, no una copia de la frase (la
+# lección de R2): que cada panel exista una vez, que su botón lo nombre, que
+# arranque oculto y que su cierre lleve la cifra del JSON en la que acaba. Y
+# lo que la prosa de los módulos 3 y 6 afirma con esas cifras.
+# =====================================================================
+# id del panel -> (qué deduce, [(campo, texto que tiene que estar en su cierre)])
+def _paneles_t33() -> dict[str, tuple[str, list[tuple[str, str]]]]:
+    pj = pc["japanesepines"]
+    return {
+        "der-vecino-csr": ("E[d̄] y el error típico de Clark-Evans", [
+            ("puntual_canonico.japanesepines.nn_ee", n(pj["nn_ee"])),
+            ("puntual_canonico.japanesepines.ce_z", n(pj["ce_z"])),
+            ("puntual_canonico.japanesepines.ce_p", n(pj["ce_p"]))]),
+        "der-esperanza-moran": ("E[I] = −1/(n − 1)", [
+            ("tobler.ideam.esperado", n(tb["ideam"]["esperado"], 6))]),
+        "der-s2-esperada": ("E[s²]", [
+            ("inferencia.rejilla[phi=4].s2_esperada", n(r4["s2_esperada"]))]),
+        "der-ergodicidad": ("la ergodicidad de la media", [
+            ("una_realizacion.sd_exacta_de_la_media", n(ur["sd_exacta_de_la_media"]))]),
+    }
+
+
+def _modulo(marcado: str, num: int) -> str:
+    i = marcado.find(f'<template id="module-{num}">')
+    j = marcado.find("</template>", i)
+    return marcado[i:j] if i >= 0 and j > i else ""
+
+
+def guardas_de_t33(doc: str) -> list[str]:
+    problemas = []
+    fin = doc.rfind("\n  <script>")
+    marcado = doc[:fin if fin > 0 else len(doc)]
+    for pid, (que, cifras) in _paneles_t33().items():
+        abre = f'<div class="derivacion-panel" id="{pid}" hidden>'
+        if marcado.count(f'id="{pid}"') != 1 or marcado.count(abre) != 1:
+            problemas.append(f"T3.3: el panel {pid} ({que}) no está una sola vez, oculto, en el documento")
+            continue
+        if marcado.count(f'aria-expanded="false" aria-controls="{pid}"') != 1:
+            problemas.append(f"T3.3: ningún botón de derivación nombra el panel {pid} en aria-controls")
+        cuerpo = marcado[marcado.index(abre):]
+        m = re.search(r'<p class="derivacion-resultado">(.*?)</p>', cuerpo, re.S)
+        cierre = m.group(1) if m and m.start() < cuerpo.find("</ol>") + 400 else ""
+        faltan = [campo for campo, txt in cifras if txt not in cierre]
+        if faltan:
+            problemas.append(f"T3.3: el cierre del panel {pid} ({que}) no lleva la cifra en que acaba: {faltan}")
+    # El módulo 6 nombra la ergodicidad en su prosa: no en un comentario, ni en
+    # el id del panel (der-ergodicidad), que es marcado y no se lee.
+    m6 = _texto_plano(re.sub(r"<!--.*?-->", " ", _modulo(marcado, 6), flags=re.S))
+    if "ergodicidad" not in m6.lower():
+        problemas.append("T3.3: el módulo 6 no dice «ergodicidad»: con una realización la estacionariedad "
+                         "sola no basta para estimar")
+    # La columna «Régimen» se lee de la prueba: p frente a alfa, y el signo de z.
+    m3 = _modulo(marcado, 3)
+    for k in ("redwood", "japanesepines", "cells"):
+        f = pc[k]
+        esperado = ("Compatible con el azar" if f["ce_p"] >= ALFA
+                    else "Agregado" if f["ce_z"] < 0 else "Regular")
+        fila = re.search(rf'<th scope="row">{re.escape(f["nombre"])}</th>(.*?)</tr>', m3, re.S)
+        celdas = re.findall(r"<td>(.*?)</td>", fila.group(1), re.S) if fila else []
+        if not celdas or celdas[-1].strip() != esperado:
+            problemas.append(f"T3.3: la tabla de Clark-Evans rotula {f['nombre']} como "
+                             f"«{celdas[-1].strip() if celdas else '—'}» y la prueba "
+                             f"(z = {f['ce_z']}, p = {f['ce_p']}, alfa = {ALFA}) dice «{esperado}»")
+    # La nota del borde: con Donnelly el p de los pinos SUBE y los otros dos
+    # siguen por debajo de alfa.
+    if not (pc["japanesepines"]["ce_p_donnelly"] > pc["japanesepines"]["ce_p"]
+            and pc["redwood"]["ce_p_donnelly"] < ALFA and pc["cells"]["ce_p_donnelly"] < ALFA):
+        problemas.append("T3.3: con Donnelly el p de los pinos ya no sube, o las secuoyas o las células ya no "
+                         "quedan por debajo de alfa, y la nota del borde lo dice")
+    # El cierre del módulo 6: la medida y la exacta difieren por ruido; al
+    # rellenar la desviación típica ya está en su límite y al ampliar cae.
+    if ur["sd_medida_a_emc"] >= 4:
+        problemas.append(f"T3.3: la sd medida de las medias queda a {ur['sd_medida_a_emc']} errores de Monte "
+                         f"Carlo de la exacta, y el panel lo llama ruido de la simulación")
+    if not (0 < erg["sd_media_relleno_ultima"] - erg["sd_media_relleno_limite"]
+            < 1e-3 * erg["sd_media_relleno_limite"]
+            and erg["sd_media_ampliacion_ultima"] < ur["sd_exacta_de_la_media"]):
+        problemas.append("T3.3: al rellenar la sd de la media ya no está en su límite, o al ampliar no cae: "
+                         "el panel de la ergodicidad dice que sí")
+    if erg["k_ultima"] != tc["rejilla"][-1]["k"]:
+        problemas.append("T3.3: la última fila de la ergodicidad no es la última de la tabla del techo")
+
+    # --- Ronda 2 (🟡 8 de la verificación): QUÉ cifra hay en cada sitio del
+    # texto. Las de arriba atan campos del JSON entre sí; estas leen el texto.
+    def panel(pid):
+        i = marcado.find(f'id="{pid}"')
+        j = marcado.find('<p class="derivacion-resultado">', i)
+        k = marcado.find("</p>", j)
+        return (marcado[i:j], marcado[j:k]) if i >= 0 and j > i and k > j else ("", "")
+
+    # A · las celdas z y p de cada fila de la tabla de Clark-Evans.
+    for k in ("redwood", "japanesepines", "cells"):
+        f = pc[k]
+        fila = re.search(rf'<th scope="row">{re.escape(f["nombre"])}</th>(.*?)</tr>', m3, re.S)
+        celdas = [c.strip() for c in re.findall(r"<td>(.*?)</td>", fila.group(1), re.S)] if fila else []
+        if len(celdas) < 7 or celdas[4] != n(f["ce_z"]) or celdas[5] != p_ce(f):
+            problemas.append(f"T3.3r2: la tabla de Clark-Evans no da en la fila de {f['nombre']} la z "
+                             f"({n(f['ce_z'])}) y el p ({p_ce(f)}) de la prueba: {celdas[4:6]}")
+    # J · el pie de la tabla dice la corrección que la tabla publica.
+    pie = re.search(r"<caption>Los tres regímenes de un patrón puntual(.*?)</caption>", m3, re.S)
+    pie = " ".join(pie.group(1).split()) if pie else ""
+    if cep["correccion"] != "none" or "sin corrección de borde" not in pie or "Donnelly" in pie:
+        problemas.append("T3.3r2: el pie de la tabla de Clark-Evans no dice «sin corrección de borde», que es "
+                         f"la prueba que publica (correccion = {cep['correccion']})")
+    # G · la nota del borde da la z y el p de Donnelly de los pinos, y la z de
+    # Donnelly de las otras dos.
+    pj, prw, pce_ = pc["japanesepines"], pc["redwood"], pc["cells"]
+    nota = " ".join(m3.split())
+    if not (re.search(rf"de los pinos baja a {re.escape(n(pj['ce_z_donnelly']))} y su valor p sube a "
+                      rf"{re.escape(n(pj['ce_p_donnelly']))},", nota)
+            and re.search(rf"con \\\(z\\\) de {re.escape(n(prw['ce_z_donnelly']))} y "
+                          rf"{re.escape(n(pce_['ce_z_donnelly']))}\.", nota)):
+        problemas.append("T3.3r2: la nota del borde no da la z y el p de Donnelly de los pinos, o la z de "
+                         "Donnelly de las secuoyas y las células")
+    # E · el cierre de E[I]: −1/(n−1) con n, y con n′ delante −n′/(n(n−1)).
+    _, cierre_ei = panel("der-esperanza-moran")
+    if "\\(-n'/(n(n-1))\\)" not in cierre_ei or "n'-1" in cierre_ei.replace(" ", ""):
+        problemas.append("T3.3r2: el cierre de E[I] ya no dice que con n′ delante la cuenta da −n′/(n(n−1)), "
+                         "lo que dice el párrafo de las islas")
+    # K · el cierre de E[s²]: la esperada y la media de las réplicas, cada una en su sitio.
+    _, cierre_s2 = panel("der-s2-esperada")
+    c2 = " ".join(cierre_s2.split())
+    if (f"\\mathbb{{E}}[s^2] = {n(r4['s2_esperada'])}\\)" not in c2
+            or f"réplicas es {n(r4['s2_medida'])}." not in c2):
+        problemas.append("T3.3r2: el cierre de E[s²] no da s2_esperada como esperanza y s2_medida como media "
+                         "de las réplicas")
+    # B · el relleno: el límite, el valor con n_ultima y el «no bajará de» el límite.
+    pasos_erg, _ = panel("der-ergodicidad")
+    pe = " ".join(pasos_erg.split())
+    lim, ult = n(erg["sd_media_relleno_limite"]), n(erg["sd_media_relleno_ultima"])
+    if not (f"= {lim}\\): con" in pe and f"ya vale {ult}," in pe and f"no bajará de {lim}." in pe):
+        problemas.append(f"T3.3r2: el panel de la ergodicidad no dice el límite del relleno ({lim}), el valor "
+                         f"con {erg['n_ultima']} observaciones ({ult}) y que no bajará del límite, en ese orden")
+    # H · la sd de la ampliación vive solo en el paso 3 del panel; la definición
+    # cita la sd de las medias del proceso de arriba.
+    m6t = _modulo(marcado, 6)
+    li = re.search(r"<li><strong>Ergodicidad:</strong>(.*?)</li>", m6t, re.S)
+    li = li.group(1) if li else ""
+    amp = n(erg["sd_media_ampliacion_ultima"])
+    if (n(ur["sd_de_las_medias"]) not in li or amp in li
+            or m6t.count(amp) != pasos_erg.count(amp) or pasos_erg.count(amp) != 1):
+        problemas.append("T3.3r2: la definición de ergodicidad no cita la sd de las medias del proceso de "
+                         "arriba, o la sd de la ampliación aparece fuera del paso 3 del panel")
+    return problemas
+
+
+# =====================================================================
+# R3 · T3.4 · La crónica de producción, fuera (D7), y las duraciones medidas
+#
+# Dos guardas, y las dos leen el DOCUMENTO ENSAMBLADO:
+#
+#   · `cronica_visible()` busca en lo que el estudiante lee —la prosa de los
+#     doce módulos sin comentarios ni bloques de código, y las cadenas del
+#     JavaScript que acaban en pantalla: preguntas, opciones, pistas,
+#     retroalimentaciones y lecturas— las palabras de la producción del
+#     material: «auditor», «ensamblador», «generador» y «JSON». El generador
+#     de números aleatorios es otra cosa y se queda: el módulo 4 lo nombra
+#     para decir que la incertidumbre que pesa no es la suya. «GeoJSON» es un
+#     formato y la frontera de palabra lo deja pasar; `versiones.json`, en
+#     minúscula, es el nombre de un archivo. Quedan fuera las cadenas de los
+#     avisos para quien depura —`console.…(…)`, `mal.push(…)`, `throw new
+#     Error(…)`—, que no ve el estudiante.
+#   · `guardas_de_t34()` compara además la duración que la barra declara para
+#     cada módulo con la que mide `mide_duraciones_cap1.py` sobre este mismo
+#     documento, y para si se sale de ±15 % (el criterio del plan).
+# =====================================================================
+# Ronda 2 de la verificación: sin distinguir mayúsculas («Auditor aparte.» a
+# principio de frase se colaba, V-04); con las otras formas de la misma
+# crónica —«ensamblado», «auditoría», «versión anterior», «primera versión»
+# (V-09)—; y lo legítimo se deja pasar por CONTEXTO, no por mayúscula: el
+# generador de números (pseudo)aleatorios (V-08), y «json» pegado a una letra,
+# un punto o una barra, que es «GeoJSON» o el nombre de un archivo.
+_CRONICA = re.compile(r"\bauditor(?:es|ía|ías)?\b|\bensamblad(?:or|ores|o)\b"
+                      r"|\bgenerador(?:es)?\b(?!\s+de\s+números\s+(?:pseudo)?aleatorios)"
+                      r"|(?<![\w./-])json\b"
+                      r"|\b(?:primera|anterior)\s+versión\b|\bversión\s+anterior\b", re.I)
+# Los atributos que también se leen (o se oyen, con un lector de pantalla), V-05.
+_ATRIBUTOS_LEIDOS = re.compile(r'\b(?:aria-label|title|alt|placeholder)="([^"]*)"')
+_AVISOS_JS = ("console.", "mal.push(", "throw new Error(")
+
+
+def _sin_avisos(js: str) -> str:
+    """El JavaScript sin las llamadas cuyos textos solo ve quien depura."""
+    trozos, i = [], 0
+    while True:
+        cand = [(js.find(p, i), p) for p in _AVISOS_JS]
+        cand = [(j, p) for j, p in cand if j >= 0]
+        if not cand:
+            trozos.append(js[i:])
+            return "".join(trozos)
+        j, _ = min(cand)
+        trozos.append(js[i:j])
+        k = js.find("(", j)
+        prof, comilla, m = 0, None, k
+        while 0 <= m < len(js):
+            c = js[m]
+            if comilla:
+                if c == "\\":
+                    m += 2
+                    continue
+                if c == comilla:
+                    comilla = None
+            elif c in "'\"`":
+                comilla = c
+            elif c == "(":
+                prof += 1
+            elif c == ")":
+                prof -= 1
+                if prof == 0:
+                    break
+            m += 1
+        i = m + 1 if m > 0 else len(js)
+
+
+def _plano(s: str) -> str:
+    """Sin etiquetas y DESPUÉS sin entidades: al revés, un «&lt;» de una fórmula
+    se volvería «<» y se comería el texto hasta el siguiente «>»."""
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", s)).split())
+
+
+def cronica_visible(doc: str) -> list[str]:
+    """Cada aparición de la crónica de producción en lo que el estudiante lee."""
+    fin = doc.rfind("\n  <script>")
+    ini = doc.find('<template id="module-1">')
+    marcado = doc[ini:fin] if 0 <= ini < fin else ""
+    t = re.sub(r"<!--.*?-->", " ", marcado, flags=re.S)
+    t = re.sub(r"<pre\b.*?</pre>", " ", t, flags=re.S)
+    t = re.sub(r"<(script|style)\b.*?</\1>", " ", t, flags=re.S)
+    piezas = [("la prosa", _plano(t))]
+    piezas += [("un atributo leído", _plano(v)) for v in _ATRIBUTOS_LEIDOS.findall(t)]
+    js = re.sub(r"/\*.*?\*/", " ", doc[fin:], flags=re.S)
+    js = _COMENTARIO_JS.sub(r"\1", js)
+    js = _sin_avisos(js)
+    for lit in re.findall(r"'(?:[^'\\\n]|\\.)*'|\"(?:[^\"\\\n]|\\.)*\"|`(?:[^`\\]|\\.)*`", js):
+        piezas.append(("el JavaScript", _plano(lit[1:-1])))
+    return [f"{donde}: «…{texto[max(0, m.start() - 50):m.end() + 30]}…»"
+            for donde, texto in piezas for m in _CRONICA.finditer(texto)]
+
+
+def guardas_de_t34(doc: str) -> list[str]:
+    problemas = []
+    for h in cronica_visible(doc):
+        problemas.append(f"T3.4: crónica de producción en lo que lee el estudiante, {h}")
+    # Medir no puede reventar: una excepción aquí se llevaría por delante el
+    # informe de todas las guardas anteriores (la lección de T1.3.i).
+    try:
+        medidas = mide_duraciones_cap1.mide(doc)
+        decl = mide_duraciones_cap1.declaradas(doc)
+    except (SystemExit, Exception) as ex:   # noqa: BLE001
+        problemas.append(f"T3.4: no se pueden medir las duraciones del documento: {ex}")
+        return problemas
+    if len(decl) != len(medidas):
+        problemas.append(f"T3.4: la barra declara {len(decl)} duraciones para {len(medidas)} módulos")
+    for e, d in zip(medidas, decl):
+        med = e["min_principal"]
+        if abs(d - med) > mide_duraciones_cap1.TOLERANCIA * med:
+            problemas.append(f"T3.4: la duración declarada del módulo {e['modulo']} ({d} min) se sale de "
+                             f"±15 % de la medida ({med:.1f} min, mide_duraciones_cap1.py)")
+    return problemas
+
+
+# =====================================================================
+# R3 · T3.5 (D9, H-07): el entorno y el extracto
+# =====================================================================
+# Los bloques que se EJECUTAN (los mismos que lee verifica_bloques.py: la
+# clase exacta, sin «arranque»).
+_BLOQUE_EJECUTABLE = re.compile(r'<pre><code class="language-(r|python)">(.*?)</code></pre>', re.S)
+_TODO_BLOQUE = re.compile(r'<pre><code class="language-[^"]*">(.*?)</code></pre>', re.S)
+_R_BASE = {"base", "stats", "utils", "graphics", "grDevices", "methods", "datasets", "tools", "grid",
+           "parallel", "splines", "stats4", "tcltk", "compiler"}
+# El nombre con que se importa un módulo y el que pide pip. Un import que no
+# esté aquí PARA el ensamblado: la orden publicada no se adivina.
+_PIP = {"geopandas": "geopandas", "shapely": "shapely", "pandas": "pandas", "numpy": "numpy",
+        "scipy": "scipy", "libpysal": "libpysal", "esda": "esda", "pointpats": "pointpats"}
+# Lo que no viaja al sitio y por eso ningún bloque puede leer. Ronda 2 (V-02):
+# cualquier ruta de `datos/` que no sea `entrega/datos/`, no solo `procesado`;
+# y se mira el código SIN sus comentarios, que pueden nombrarlo (V-F).
+_NO_VIAJA = (re.compile(r"(?<!entrega/)\bdatos/"), re.compile(r"precalculo/"),
+             re.compile(r"\bsource\("), re.compile(r"carga_municipios"),
+             re.compile(r"versiones\.json"))
+# Cargar un paquete de R: library(), require() y requireNamespace(). Ronda 2
+# (V-07): con `character.only = TRUE` o sin comillas en requireNamespace() el
+# nombre puede ser una variable, y entonces la orden de instalación no lo
+# sabría: se exige un literal entre comillas.
+_CARGA_R = re.compile(r'\b(library|require|requireNamespace)\(([^()]*)\)')
+_RUTA_DATOS = re.compile(r'entrega/datos/[\w.-]+')
+
+
+def _sin_comentarios(codigo: str) -> str:
+    return "\n".join(l for l in codigo.splitlines() if not l.lstrip().startswith("#"))
+
+
+def paquetes_de_los_bloques(doc: str) -> tuple[list[str], list[str]]:
+    """Los paquetes de R y los módulos de Python que cargan los bloques, en el
+    orden en que aparecen por primera vez."""
+    r, py = [], []
+    for lang, cuerpo in _BLOQUE_EJECUTABLE.findall(doc):
+        c = _sin_comentarios(html.unescape(cuerpo))
+        if lang == "r":
+            hallados = []
+            for m in _CARGA_R.finditer(c):
+                args = [x.strip() for x in m.group(2).split(",")]
+                lit = re.fullmatch(r'["\']([A-Za-z][\w.]*)["\']', args[0])
+                desnudo = re.fullmatch(r'[A-Za-z][\w.]*', args[0])
+                calculado = any(re.match(r"character\.only\s*=\s*(TRUE|T)\b", x) for x in args[1:])
+                if lit:
+                    hallados.append((m.start(), lit.group(1)))
+                elif desnudo and not calculado and m.group(1) != "requireNamespace":
+                    hallados.append((m.start(), args[0]))
+                else:
+                    sys.exit(f"PARADO: un bloque carga un paquete por un nombre calculado "
+                             f"({m.group(0)[:60]}): la orden de instalación no puede saber cuál es")
+            for m in re.finditer(r'\bpackage\s*=\s*"([A-Za-z][\w.]*)"|\b([A-Za-z][\w.]*)::', c):
+                hallados.append((m.start(), next(g for g in m.groups() if g)))
+            for _, p in sorted(hallados):
+                if p not in _R_BASE and p not in r:
+                    r.append(p)
+            continue
+        for l in c.splitlines():
+            de = re.match(r'\s*from\s+([\w.]+)\s+import\b', l)
+            im = re.match(r'\s*import\s+(.+)', l)
+            nombres = [de.group(1)] if de else (
+                [x.strip().split(" as ")[0] for x in im.group(1).split(",")] if im else [])
+            for x in nombres:
+                top = x.split(".")[0].strip()
+                if top and top not in sys.stdlib_module_names and top not in py:
+                    py.append(top)
+    return r, py
+
+
+def _modulos_del_doc(doc: str) -> list[tuple[int, str]]:
+    return [(int(m.group(1)), m.group(2)) for m in
+            re.finditer(r'<template id="module-(\d+)">(.*?)</template>', doc, re.S)]
+
+
+def _y(xs: list[str]) -> str:
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " y " + xs[-1]
+
+
+ANCHO_TELEFONO = 24
+
+
+def completa_entorno(doc: str) -> str:
+    """Rellena las marcas del recuadro del módulo 8 desde los bloques ya ensamblados."""
+    r, py = paquetes_de_los_bloques(doc)
+    raros = [m for m in py if m not in _PIP]
+    if raros:
+        sys.exit(f"PARADO: los bloques importan {raros}, que no tienen nombre de pip declarado en _PIP")
+    # El vector y la orden de pip, partidos a ANCHO_TELEFONO columnas: a 375 px
+    # caben 24 caracteres en un bloque del recuadro abierto (medido en la
+    # ronda 2, V-06: 247 px a 8.4 px por carácter, menos 42 de relleno), y
+    # una línea más larga obliga a desplazar el bloque de lado.
+    vector, actual = [], "paq <- c("
+    for k, p in enumerate(r):
+        pieza = f'"{p}"' + ("," if k < len(r) - 1 else ")")
+        candidato = actual + ("" if actual.endswith("(") else " ") + pieza
+        if len(candidato) > ANCHO_TELEFONO and not actual.endswith("("):
+            vector.append(actual)
+            actual = "  " + pieza
+        else:
+            actual = candidato
+    vector.append(actual)
+    doc = doc.replace("paq &lt;- c(@@PAQUETES_R@@)", "\n".join(vector).replace("<", "&lt;"))
+    pip, actual = [], "pip install"
+    for m in py:
+        if actual != "pip install" and len(actual) + 1 + len(_PIP[m]) > ANCHO_TELEFONO:
+            pip.append(actual)
+            actual = "pip install"
+        actual += " " + _PIP[m]
+    pip.append(actual)
+    doc = doc.replace("@@ORDEN_PIP@@", "\n".join(pip))
+    filas = []
+    for clave in ("snow", "pinos", "nc", "meuse", "estaciones", "municipios", "reina", "departamentos"):
+        f = EX[clave]
+        donde = [str(k) for k, cuerpo in _modulos_del_doc(doc)
+                 if k != 8 and f'href="../{f["ruta"]}"' in cuerpo]
+        if not donde:
+            sys.exit(f"PARADO: ningún módulo enlaza {f['archivo']}, y el recuadro del módulo 8 lo lista")
+        filas.append(f"          <li>{enlace_datos(clave)}, "
+                     f"{'módulo' if len(donde) == 1 else 'módulos'} {_y(donde)}</li>")
+    return doc.replace("@@LISTA_DATOS@@", "\n".join(filas))
+
+
+def _enunciado_de(doc: str, k: int) -> str:
+    """Del número del ejercicio k a su panel de pista: el enunciado y su descarga."""
+    i = doc.find(f'<span class="ejercicio-numero">{k}.</span>')
+    j = doc.find(f'id="cap1-e{k}-pista"', i)
+    return doc[i:j] if 0 <= i < j else ""
+
+
+def guardas_de_t35(doc: str) -> list[str]:
+    problemas = []
+    raiz_repo = pathlib.Path(os.environ.get("ESPACIAL_RAIZ") or RAIZ)
+    # 1. Ningún bloque lee lo que no viaja al sitio.
+    for cuerpo in _TODO_BLOQUE.findall(doc):
+        c = _sin_comentarios(html.unescape(cuerpo))
+        for vetado in _NO_VIAJA:
+            if vetado.search(c):
+                primera = next((l for l in c.splitlines() if vetado.search(l)), "").strip()
+                problemas.append(f"T3.5: un bloque lee «{vetado.pattern}», que no viaja al sitio: "
+                                 f"{primera[:70]}")
+    # 2. Lo que leen los bloques está en el extracto, en el disco, enlazado y fuera del .gitignore.
+    rutas_ex = {v["ruta"]: v for v in EX.values() if isinstance(v, dict) and "ruta" in v}
+    leidas = sorted({m for _, cuerpo in _BLOQUE_EJECUTABLE.findall(doc)
+                     for m in _RUTA_DATOS.findall(html.unescape(cuerpo))})
+    if not leidas:
+        problemas.append("T3.5: ningún bloque lee el extracto; la comprobación de rutas no tiene sujeto")
+    for ruta in leidas:
+        if ruta not in rutas_ex:
+            problemas.append(f"T3.5: un bloque lee {ruta}, que no está en el extracto")
+        if not (raiz_repo / ruta).is_file():
+            problemas.append(f"T3.5: un bloque lee {ruta}, que no está en el disco")
+        if f'href="../{ruta}"' not in doc:
+            problemas.append(f"T3.5: un bloque lee {ruta} y el capítulo no lo enlaza")
+    for ruta, f in rutas_ex.items():
+        p = raiz_repo / ruta
+        if p.is_file() and p.stat().st_size != f["bytes"]:
+            problemas.append(f"T3.5: {f['archivo']} pesa {p.stat().st_size} B y el capítulo publica "
+                             f"{f['bytes']}: el extracto cambió sin regenerar el capítulo")
+        try:
+            ig = subprocess.run(["git", "check-ignore", "-q", ruta], cwd=str(raiz_repo),
+                                capture_output=True, text=True)
+            if ig.returncode == 0:
+                problemas.append(f"T3.5: {ruta} está en el .gitignore y no llegará al sitio")
+            elif ig.returncode != 1:
+                print(f"  AVISO  git check-ignore no respondió para {ruta}: no se comprueba")
+        except OSError:
+            print("  AVISO  sin git: no se comprueba el .gitignore del extracto")
+    # 3. Una nota de descarga por módulo, y solo en los que leen datos. El 8
+    #    no la lleva: su recuadro lista todos los archivos. El 12 enlaza el suyo
+    #    debajo de cada enunciado.
+    for k, cuerpo in _modulos_del_doc(doc):
+        notas = cuerpo.count('class="text-sm nota-datos"')
+        lee = sorted({m for _, b in _BLOQUE_EJECUTABLE.findall(cuerpo)
+                      for m in _RUTA_DATOS.findall(html.unescape(b))})
+        if notas > 1:
+            problemas.append(f"T3.5: el módulo {k} lleva {notas} notas de descarga; va una por módulo")
+        if k not in (8, 12) and lee and notas != 1:
+            problemas.append(f"T3.5: el módulo {k} lee {lee} y no lleva su nota de descarga")
+        # Ronda 2 (V-03): la nota enlaza lo que leen los bloques de SU módulo.
+        nota = re.search(r'<p class="text-sm nota-datos"[^>]*>(.*?)</p>', cuerpo, re.S)
+        if k not in (8, 12) and nota:
+            for ruta in lee:
+                if f'href="../{ruta}"' not in nota.group(1):
+                    problemas.append(f"T3.5: la nota del módulo {k} no enlaza {ruta}, que leen sus bloques")
+        if k not in (8, 12) and notas and cuerpo.find('class="text-sm nota-datos"') > cuerpo.find("<pre><code"):
+            problemas.append(f"T3.5: la nota de descarga del módulo {k} va detrás de su primer bloque")
+    # 4b. La licencia del extracto (decisión de Javier, ronda 2): una vez, en el
+    #     recuadro, con la atribución de las fuentes de los cap1_*.
+    i_r = doc.find('id="prepara-tu-entorno"')
+    recuadro = doc[i_r:doc.find("</div>", doc.find("<strong>La prueba.</strong>", i_r))] if i_r >= 0 else ""
+    if doc.count(LICENCIA_EXTRACTO) != 1 or LICENCIA_EXTRACTO not in recuadro:
+        problemas.append("T3.5: la licencia del extracto (CC BY-SA 4.0) no está una sola vez, en el recuadro")
+    else:
+        parrafo = recuadro[recuadro.rfind("<p>", 0, recuadro.find(LICENCIA_EXTRACTO)):]
+        parrafo = parrafo[:parrafo.find("</p>")]
+        for fuente in ("Ministerio de Educación Nacional", "ICFES", "DANE", "geoBoundaries"):
+            if fuente not in parrafo:
+                problemas.append(f"T3.5: la frase de la licencia del extracto no nombra «{fuente}»")
+        # El reparto: la CC BY-SA cubre los dos archivos de los municipios y
+        # NADA más; cada archivo de un paquete de R va con la licencia de su
+        # paquete, y ninguno cae en la frase de la CC BY-SA.
+        antes_cc = parrafo[:parrafo.find(LICENCIA_EXTRACTO)]
+        for f in CC_EXTRACTO:
+            if f"<code>{f}</code>" not in antes_cc:
+                problemas.append(f"T3.5: la licencia CC BY-SA del extracto no nombra {f}")
+        if "cap1_*" in antes_cc or any(f in antes_cc for f in LICENCIAS_PAQUETES):
+            problemas.append("T3.5: la licencia CC BY-SA del extracto cubre archivos de paquetes de R, que "
+                             "van con la licencia de su paquete")
+        for f, (paq, lic) in LICENCIAS_PAQUETES.items():
+            if f"<code>{f}</code>, de <code>{paq}</code> ({lic})" not in parrafo:
+                problemas.append(f"T3.5: {f} no lleva la licencia de {paq} ({html.unescape(lic)})")
+    # 4. El recuadro: relleno, y la prueba carga todo lo que manda instalar.
+    # Ninguna línea de los bloques del recuadro se sale a 375 px (V-06).
+    for cuerpo in _TODO_BLOQUE.findall(recuadro):
+        largas = [l for l in html.unescape(cuerpo).splitlines() if len(l) > ANCHO_TELEFONO]
+        if largas:
+            problemas.append(f"T3.5: el recuadro tiene líneas de más de {ANCHO_TELEFONO} caracteres, que "
+                             f"en el teléfono se desplazan de lado: {largas[0][:40]!r}")
+    if "@@" in doc:
+        problemas.append("T3.5: queda una marca @@…@@ sin rellenar en el recuadro del entorno")
+    r, py = paquetes_de_los_bloques(doc)
+    i = doc.find('id="prepara-tu-entorno"')
+    # Solo lo que queda del módulo 8: si la prueba se pierde, no vale la del 9.
+    prueba = _BLOQUE_EJECUTABLE.findall(doc[i:doc.find("</template>", i)])[:2] if i >= 0 else []
+    if len(prueba) != 2:
+        problemas.append("T3.5: el recuadro «Prepara tu entorno» no lleva su prueba en R y en Python")
+    else:
+        carga_r = set(re.findall(r'\blibrary\(([\w.]+)\)', html.unescape(prueba[0][1])))
+        _, carga_py = paquetes_de_los_bloques(f'<pre><code class="language-python">{prueba[1][1]}</code></pre>')
+        if set(r) - carga_r:
+            problemas.append(f"T3.5: la prueba del entorno no carga {sorted(set(r) - carga_r)}, "
+                             f"que la orden manda instalar")
+        if set(py) - set(carga_py):
+            problemas.append(f"T3.5: la prueba del entorno no importa {sorted(set(py) - set(carga_py))}")
+    for k in ("e2", "e4"):
+        if "carga_municipios" in S[k]["enunciado"] or S[k]["solucion"].get("archivo") not in rutas_ex:
+            problemas.append(f"T3.5: el ejercicio {k[1]} no lee el archivo de municipios del extracto")
+        elif f'href="../{S[k]["solucion"]["archivo"]}"' not in _enunciado_de(doc, int(k[1])):
+            problemas.append(f"T3.5: el ejercicio {k[1]} no enlaza la descarga de su archivo")
+    return problemas
 
 
 # =====================================================================
@@ -6837,6 +8188,8 @@ def main() -> int:
         "  <!-- MÓDULO 1 · Cajas y tipografía",
         "\n  <script>", MODULOS.lstrip("\n") + "\n  <script>",
         "los doce módulos", max_lineas=600)
+    # R3 · T3.5: las listas del recuadro del entorno, desde los bloques.
+    doc = completa_entorno(doc)
 
     # --- 4. Los mapas ---------------------------------------------------
     vieja = [l for l in doc.splitlines() if l.startswith("    GEOMAPAS['demo-mapa'] =")]
@@ -7152,7 +8505,10 @@ def main() -> int:
         problemas.append(f"el ejercicio 3 enlaza {g3['archivo']}, que no está en el repo")
     if not g3["archivo"].startswith("entrega/datos/"):
         problemas.append(f"el ejercicio 3 lee {g3['archivo']}, que no es un archivo publicado")
-    if f'href="../{g3["archivo"]}"' not in doc:
+    # El enlace, DENTRO del ejercicio: desde R3 · T3.5 el mismo archivo lo
+    # enlazan también los módulos 3, 8 y 10, y buscarlo en todo el documento
+    # dejaba pasar un ejercicio sin su descarga.
+    if f'href="../{g3["archivo"]}"' not in _enunciado_de(doc, 3):
         problemas.append("el ejercicio 3 no enlaza la descarga de su archivo")
     if not (0 < g3["n_eff"] < g3["n"] and g3["rho_medio"] > 0):
         problemas.append("ejercicio 3: el remuestreo por bloques no ensancha, y todo el "
@@ -7407,7 +8763,7 @@ def main() -> int:
                                  f"módulo publica {k6}×{k6} — la intro mentiría")
             if len(fila.get("variograma", [])) != n_lags:
                 problemas.append(f"{quien}: su variograma trae "
-                                 f"{len(fila.get('variograma', []))} rezagos y la banda "
+                                 f"{len(fila.get('variograma', []))} clases de distancia y la banda "
                                  f"{n_lags}: se dibujarían sobre ejes distintos")
     # La prosa AFIRMA que las tres caben dentro de la banda en los ocho
     # rezagos, y esa frase es lo único del módulo que no sale de una cifra
@@ -7418,7 +8774,7 @@ def main() -> int:
     fuera = [(f["id"], f["lags_fuera_banda"]) for f in rv if f.get("lags_fuera_banda")]
     if fuera:
         problemas.append(f"la prosa del módulo 6 dice que las tres caben dentro de la banda "
-                         f"en los ocho rezagos, y {fuera} se salen: hay que reescribirla")
+                         f"en las ocho clases de distancia, y {fuera} se salen: hay que reescribirla")
     # Las medias de las tres vistas SON las tres primeras de medias_muestra,
     # que R escribe por su lado. Si el capítulo dejara de enseñar las tres
     # primeras sin decirlo, esto es lo que se pondría rojo.
@@ -7443,7 +8799,7 @@ def main() -> int:
         problemas.append(f"dos de los variogramas del módulo 6 se separan {sep:.5f} como "
                          f"máximo: el botón no cambiaría la curva a la vista")
     print(f"  módulo 6: {len(mr)} mapas de {k6}×{k6} emparejados con sus filas por media "
-          f"y sd · {n_lags} rezagos por curva · las curvas se separan {sep:.5f}")
+          f"y sd · {n_lags} clases de distancia por curva · las curvas se separan {sep:.5f}")
 
     # ----------------------------------------------------------------
     # R1 · T1.4. Las afirmaciones nuevas de los módulos 2, 6 y 10 y de la
@@ -7479,14 +8835,14 @@ def main() -> int:
     # volviera a medirlos contra gamma en h entero la frase no saldría.
     tcl, ten, vme = vg6.get("teorico_clase", []), vg6["teorico"], vg6["media"]
     if len(tcl) != n_lags:
-        problemas.append(f"módulo 6: el teórico de la clase trae {len(tcl)} rezagos y la "
+        problemas.append(f"módulo 6: el teórico de la clase trae {len(tcl)} clases de distancia y la "
                          f"banda {n_lags}: la curva punteada no se podría dibujar")
     else:
         if n(tcl[0]) == n(ten[0]):
-            problemas.append("módulo 6: en el rezago 1 el teórico de la clase y gamma(1) se "
+            problemas.append("módulo 6: en la clase 1 el teórico de la clase y gamma(1) se "
                              "publican iguales, y la prosa los distingue")
         if not abs(vme[0] - tcl[0]) < 0.1 * abs(vme[0] - ten[0]):
-            problemas.append(f"módulo 6: la media de las realizaciones en el rezago 1 "
+            problemas.append(f"módulo 6: la media de las realizaciones en la clase 1 "
                              f"({vme[0]}) ya no cae sobre el teórico de la clase ({tcl[0]}) "
                              f"y lejos de gamma(1) ({ten[0]}), como dice la prosa")
         for fila in rv:
@@ -8045,6 +9401,14 @@ def main() -> int:
     problemas += guardas_de_t22(PLANTILLA.read_text(encoding="utf-8"), marcado)
     # R2 · T2.3 (ronda 2): lo que el JavaScript escribe con el dato.
     problemas += guardas_de_lecturas(doc, marcado)
+    # R3 · T3.2: la notación (D6), contra el documento ensamblado.
+    problemas += guardas_de_notacion(doc)
+    # R3 · T3.3: los paneles de deducción, la prueba de Clark-Evans y la ergodicidad.
+    problemas += guardas_de_t33(doc)
+    # R3 · T3.4: la crónica de producción fuera de lo que se lee, y las duraciones medidas.
+    problemas += guardas_de_t34(doc)
+    # R3 · T3.5: el extracto y el entorno.
+    problemas += guardas_de_t35(doc)
     if problemas:
         for p in problemas:
             print(f"  MAL  {p}")

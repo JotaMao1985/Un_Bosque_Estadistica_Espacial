@@ -225,6 +225,23 @@ AFIRMACIONES = [
      "sin explicar"),
     ("declara la frontera con el capítulo 10",
      "es del capítulo 10"),
+    # R3 · T3.3: lo que sustituye a las frases retiradas.
+    ("dice que la estacionariedad hace falta pero no basta (módulo 6)",
+     "y hace falta, pero no basta"),
+    ("dice que al promediar sube el valor absoluto de la correlación (módulo 7)",
+     "así que sube su valor absoluto"),
+    # R3 · T3.3, ronda 2 (🔴 de la verificación): la ergodicidad es del proceso.
+    # El del módulo 6 ES ergódico; el contraejemplo de que la estacionariedad no
+    # basta es Z(s) = Y; y la región grande es una condición práctica, no parte
+    # de la definición.
+    ("dice que el proceso del módulo 6 es ergódico (definición)",
+     "en cambio, es ergódico"),
+    ("da el contraejemplo estacionario que no es ergódico (módulo 6)",
+     "que no se acerca a la del proceso por mucho que crezca la región"),
+    ("dice que la región grande no es parte de la definición de ergodicidad (módulo 6)",
+     "no parte de la definición"),
+    ("cierra el panel diciendo que el proceso es ergódico (módulo 6)",
+     "el proceso es estacionario y ergódico"),
 ]
 
 # Si la codificación se rompe, las tildes no desaparecen: se convierten en
@@ -468,6 +485,98 @@ PROHIBIDAS = [
     # Los pares se alejan del cero o se acercan a él.
     ("no cuenta los pares reales como «suben» y «bajan» (módulo 7)", "todo",
      r"suben\b.{0,60}\bbajan\b|agregar no siempre sube la correlación"),
+    # --- R3 · T3.2: la notación (D6). Las formas retiradas que eran erróneas,
+    # no solo de estilo:
+    #   · la matriz de pesos con la misma W que la ventana;
+    #   · ρ en el glosario como solo el coeficiente del SAR, cuando en este
+    #     capítulo es siempre una correlación;
+    #   · «el I de Moran», que convivía con «la I»;
+    #   · los «rezagos» del variograma, que chocaban con el rezago espacial
+    #     W y del glosario: son clases de distancia;
+    #   · la distancia al vecino llamada D, la letra del dominio, y el conteo
+    #     N(A), con la A de los datos de área;
+    #   · la D del dominio convertida en la ventana a mitad del párrafo;
+    #   · el correlograma de Moran leído como la caída de una correlación;
+    #   · la R de la matriz de correlaciones, que es la letra de Clark-Evans
+    #     y no estaba definida.
+    ("no escribe la matriz de pesos sin negrita (D6)", "todo",
+     r"matriz de pesos \\\(w\\\)"),
+    ("no le da a ρ en el glosario solo el sentido del SAR (D6)", "todo",
+     r'"nombre": "coeficiente de retardo espacial \(sar\)'),
+    ("no escribe «el I de Moran» (D6)", "todo",
+     r"\b(?:el|del|al|un|este|ese|aquel|otro|mismo|primer|último) i\b(?![-_^=(\w]|\.\w)"),
+    ("no llama «rezago» a una clase de distancia del variograma (módulo 6)", "todo",
+     r"en el rezago (?:\d|\\\(k)|rezago \(pasos de retícula\)|rezagos fuera de la banda|en cada rezago|"
+     r"peor rezago|los ocho rezagos"),
+    ("no llama D a la distancia al vecino ni N(A) al conteo (módulo 3)", "todo",
+     r"p\(d (?:>|&gt;) r\)|e\[d\] =|n\(a\) \\sim"),
+    ("no convierte el dominio D en la ventana (módulo 2)", "todo",
+     r"dentro de \\\(d\\\) —que aquí es fijo"),
+    ("no lee el correlograma de Moran como la caída de una correlación (módulo 5)", "todo",
+     r"distancia, como en el correlograma del módulo 3"),
+    ("no escribe la matriz de correlaciones con la R de Clark-Evans (módulo 4)", "todo",
+     r"\^\\top r\\,"),
+    # --- R3 · T3.3: dos frases falsas que los paneles nuevos sustituyen.
+    #   · con una realización la estacionariedad NO es «la única salida» que
+    #     basta: es necesaria, y hace falta además ergodicidad (C1-22);
+    #   · la correlación no es «el cociente entre lo que sobrevive y lo que
+    #     había»: es covarianza entre desviaciones típicas, y lo que sube al
+    #     promediar es |r| (C1-28).
+    ("no dice que con una realización basta suponer estacionariedad (módulo 6)", "todo",
+     r"solo hay una salida:\s*suponer"),
+    ("no describe la correlación como lo que sobrevive entre lo que había (módulo 7)", "todo",
+     r"cociente entre lo que sobrevive"),
+    # --- R3 · T3.3, ronda 2: la ergodicidad es una propiedad del proceso. Ni la
+    # región grande va dentro de su definición, ni el proceso del módulo 6 —con
+    # correlación que decae, ergódico— se presenta como el que no lo es.
+    ("no mete la región grande en la definición de ergodicidad (módulo 6 y quiz)", "todo",
+     r"ergodicidad[^.]{0,60}\b(?:pide|es que)\b[^.]{0,80}región (?:sea )?grande"),
+    ("no presenta el proceso del módulo 6 como no ergódico", "todo",
+     r"no son lo mismo: el proceso de arriba|(?:proceso de arriba|este proceso|el proceso del módulo)"
+     r" no es ergódico|no ha tenido sitio para converger"),
+    # --- R3 · T3.4 (D7, H-10): la crónica de producción, fuera de lo que lee el
+    # estudiante. Una por forma retirada; la lección de método se queda, dicha
+    # como método. La guarda general —«auditor», «generador», «JSON» en el
+    # texto visible— vive en el ensamblador (`cronica_visible()`); estas
+    # vigilan las frases concretas, también dentro del JavaScript del quiz.
+    ("no vuelve a contar que los cortes viajan en el JSON (módulo 2)", "todo",
+     r"viajan\s+en\s+el\s+json|el\s+navegador\s+solo\s+pinta"),
+    ("no vuelve «las que simula el generador» (módulo 6)", "todo",
+     r"que\s+simula\s+el\s+generador"),
+    ("no vuelve a decir que el generador del capítulo se detiene (módulo 6)", "todo",
+     r"el\s+generador\s+del\s+capítulo"),
+    ("no vuelve la historia de la versión anterior de los mapas (módulo 6)", "todo",
+     r"hasta\s+esta\s+versión|son\s+ahora\s+el\s+mismo\s+experimento"),
+    ("no vuelve «ningún auditor de números» (módulo 6)", "todo",
+     r"ningún\s+auditor\s+de\s+números"),
+    ("no vuelve «el auditor de este capítulo» (módulo 9)", "todo",
+     r"el\s+auditor\s+de\s+este\s+capítulo"),
+    ("no vuelve al quiz «el generador comprueba esa coherencia» (módulo 6)", "todo",
+     r"el\s+generador\s+comprueba\s+esa\s+coherencia"),
+    ("no vuelve al quiz «el auditor del capítulo lleva la lista» (módulo 9)", "todo",
+     r"el\s+auditor\s+del\s+capítulo\s+lleva"),
+    # Y una duración escrita a mano en la prosa: la diagnóstica no dura «cinco
+    # minutos» —son ocho preguntas, 9.6 con la tasa del medidor—, y las
+    # duraciones las da la barra, medidas (mide_duraciones_cap1.py).
+    ("no promete «cinco minutos» a la diagnóstica (módulo 1)", "todo",
+     r"cinco\s+minutos"),
+    # Ronda 2 (V-07): todos los huecos de arriba llevan \s+, porque el
+    # ensamblador parte la prosa en líneas y «que simula\n el generador» se
+    # colaba. Y V-01: `sf` no está debajo de todos los paquetes del curso
+    # —spatstat, terra y classInt no dependen de él—, ni el objeto `sf` «debajo
+    # de los demás». Debajo de sf y de terra están GDAL, GEOS y PROJ.
+    ("no dice que sf está debajo de todos los paquetes, o de los demás (módulos 8 y 9)", "todo",
+     r"debajo\s+de\s+(?:todos|los\s+demás)"),
+]
+
+# Lo que el DOCUMENTO ENTERO tiene que decir, también fuera de la prosa: la
+# retroalimentación del cuestionario vive en el JavaScript, que la extracción de
+# prosa descarta (R3 · T3.3, ronda 2).
+AFIRMACIONES_DOC = [
+    ("la retroalimentación del quiz dice que la estacionariedad no basta, por dos razones (módulo 6)",
+     "hace falta, pero no basta, y por dos razones distintas"),
+    ("la retroalimentación del quiz separa la región grande de la ergodicidad (módulo 6)",
+     "la otra es del mapa"),
 ]
 
 
@@ -483,6 +592,8 @@ def prohibidas(a: Auditor) -> None:
         a.exige(m is None, que,
                 "" if m is None else "aparece: «"
                 + ambitos[ambito][max(0, m.start() - 30):m.end() + 20].replace("\n", " ") + "»")
+    for que, clave in AFIRMACIONES_DOC:
+        a.exige(clave in doc, que)
 
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.

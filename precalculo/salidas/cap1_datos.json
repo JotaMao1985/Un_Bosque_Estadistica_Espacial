@@ -104,7 +104,14 @@
       "clark_evans": 1.0640020553,
       "clark_evans_donnelly": 1.0075072432,
       "area_caja": 0.912,
-      "lambda_caja": 71.2719298246
+      "lambda_caja": 71.2719298246,
+      "nn_ee": 0.0040209477,
+      "ce_z": 0.9871401645,
+      "ce_p": 0.3235739302,
+      "ce_p_log10": -0.4900264761,
+      "ce_p_exp": 0,
+      "ce_z_donnelly": 0.1222811957,
+      "ce_p_donnelly": 0.9026763239
     },
     "redwood": {
       "nombre": "Plántulas de secuoya",
@@ -116,7 +123,14 @@
       "nn_sd": 0.0258998689,
       "nn_esperada": 0.0635000635,
       "clark_evans": 0.6186501573,
-      "clark_evans_donnelly": 0.5849906266
+      "clark_evans_donnelly": 0.5849906266,
+      "nn_ee": 0.0042155097,
+      "ce_z": -5.7444392352,
+      "ce_p": 9.2e-09,
+      "ce_p_log10": -8.0351461269,
+      "ce_p_exp": -8,
+      "ce_z_donnelly": -6.6111680145,
+      "ce_p_donnelly": 0
     },
     "cells": {
       "nombre": "Células biológicas",
@@ -128,8 +142,21 @@
       "nn_sd": 0.0176503299,
       "nn_esperada": 0.077151675,
       "clark_evans": 1.6716795148,
-      "clark_evans_donnelly": 1.5604256061
+      "clark_evans_donnelly": 1.5604256061,
+      "nn_ee": 0.0062228952,
+      "ce_z": 8.3275063376,
+      "ce_p": 0,
+      "ce_p_log10": -16.0832146143,
+      "ce_p_exp": -16,
+      "ce_z_donnelly": 7.4435616736,
+      "ce_p_donnelly": 0
     }
+  },
+  "clark_evans_prueba": {
+    "constante_ee": 0.2613616004,
+    "correccion": "none",
+    "correccion_por_defecto": "Donnelly",
+    "alternativa": "two.sided"
   },
   "area_canonico": {
     "nombre": "SIDS de Carolina del Norte, 1974-78",
@@ -1496,7 +1523,18 @@
       "q05": [0.2142743109, 0.3209898928, 0.3822494401, 0.4302709122, 0.4691613342, 0.4841921118, 0.4963451477, 0.5045240669],
       "q95": [0.3051485846, 0.5237966883, 0.7042336019, 0.8873273286, 1.0348607782, 1.1539911725, 1.2709190474, 1.3905082377]
     },
-    "banda_rel_lag4": 0.717020398
+    "banda_rel_lag4": 0.717020398,
+    "n_eff": 5.1581674595,
+    "sd_exacta_de_la_media": 0.4403036456,
+    "emc_sd_de_las_medias": 0.0098504153,
+    "sd_medida_a_emc": 1.9144102402,
+    "ergodicidad": {
+      "k_ultima": 64,
+      "n_ultima": 4096,
+      "sd_media_relleno_limite": 0.4395067363,
+      "sd_media_relleno_ultima": 0.4395443582,
+      "sd_media_ampliacion_ultima": 0.1443749098
+    }
   },
   "realizaciones_vistas": [
     {
@@ -1624,7 +1662,7 @@
   "discrepancias": [
     {
       "id": "moran_islas",
-      "que": "El I de Moran de la deserción municipal",
+      "que": "La I de Moran de la deserción municipal",
       "valor_r": 0.3809079276,
       "valor_python": 0.3815887282,
       "diferencia": 0.0006808006,
@@ -1633,7 +1671,7 @@
     },
     {
       "id": "moran_islas_dep",
-      "que": "El I de Moran de la deserción departamental",
+      "que": "La I de Moran de la deserción departamental",
       "valor_r": 0.0635960159,
       "valor_python": 0.0655833914,
       "diferencia": 0.0019873755,
@@ -2130,7 +2168,7 @@
       },
       {
         "simbolo": "D",
-        "nombre": "El dominio de estudio",
+        "nombre": "El dominio de estudio, \\(D \\subset \\mathbb{R}^2\\). En un patrón puntual, la región que de verdad se observa es la ventana \\(W\\). En el cap. 6, \\(D\\) es la matriz diagonal de los grados, \\(\\operatorname{diag}(d_1, \\dots, d_n)\\)",
         "guia": "Bivand §1.2",
         "en_r": "st_bbox()"
       },
@@ -2139,6 +2177,102 @@
         "nombre": "El valor del proceso en la localización s",
         "guia": "Bivand §8.1",
         "en_r": "x$variable"
+      },
+      {
+        "simbolo": "A_i",
+        "nombre": "La unidad \\(i\\) de un dato de área (un municipio, un condado); \\(Z(A_i)\\) es su valor. En el cap. 6, \\(A\\) sin subíndice es la matriz de adyacencia binaria, de elementos \\(a_{ij}\\)",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "n",
+        "nombre": "El número de observaciones: unidades, estaciones o puntos. En un patrón puntual, los puntos que se observaron",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "N",
+        "nombre": "En un patrón puntual, el número de puntos como variable aleatoria; \\(n\\) es el valor que se observó",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "W",
+        "nombre": "La ventana: la región observada de un patrón puntual, \\(W \\subset D\\). Solo en patrones puntuales; la matriz de pesos es \\(\\mathbf{W}\\)",
+        "guia": "—",
+        "en_r": "x$window"
+      },
+      {
+        "simbolo": "|W|",
+        "nombre": "El área de la ventana",
+        "guia": "—",
+        "en_r": "spatstat.geom::area()"
+      },
+      {
+        "simbolo": "N(B)",
+        "nombre": "El número de puntos que caen en una región \\(B\\) de área \\(|B|\\); bajo CSR es Poisson de media \\(\\lambda|B|\\). En el módulo 1, en cambio, \\(B\\) es el número de recolocaciones de la prueba de Snow. En el cap. 6, \\(N(i)\\) es el conjunto de los vecinos de \\(i\\)",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\lambda",
+        "nombre": "Intensidad de un patrón puntual: los puntos esperados por unidad de área. Si el proceso es homogéneo, \\(E[N(B)] = \\lambda|B|\\). Es del proceso y no se observa",
+        "guia": "Baddeley §6.2",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\lambda(s)",
+        "nombre": "La intensidad en el sitio \\(s\\), cuando el proceso no es homogéneo",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\hat{\\lambda}",
+        "nombre": "El estimador de la intensidad, \\(\\hat{\\lambda} = n/|W|\\): depende de la ventana",
+        "guia": "—",
+        "en_r": "spatstat.geom::intensity()"
+      },
+      {
+        "simbolo": "\\text{CSR}",
+        "nombre": "Aleatoriedad espacial completa (<em>complete spatial randomness<\/em>): puntos independientes y uniformes sobre la ventana. Es la hipótesis nula de los patrones puntuales",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "d_i",
+        "nombre": "La distancia del punto \\(i\\) a su vecino más próximo, con la letra del cap. 4. En el cap. 6, \\(d_i = \\sum_j a_{ij}\\) es el grado de \\(i\\): cuántos vecinos tiene",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\bar{d}_{\\min}",
+        "nombre": "Distancia media al vecino más próximo",
+        "guia": "Baddeley §8.2",
+        "en_r": "mean(spatstat.geom::nndist())"
+      },
+      {
+        "simbolo": "R",
+        "nombre": "Índice de Clark-Evans: lo observado frente a lo que daría el azar",
+        "guia": "Baddeley §8.2",
+        "en_r": "spatstat.explore::clarkevans()['naive']"
+      },
+      {
+        "simbolo": "G(r)",
+        "nombre": "La función \\(G\\): la probabilidad de que el vecino más próximo esté a \\(r\\) o menos. Bajo CSR, \\(G(r) = 1 - e^{-\\lambda\\pi r^2}\\)",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "F(r),\\ K(r),\\ g(r)",
+        "nombre": "Las otras funciones de resumen de un patrón puntual, que define el cap. 4. En el módulo 4 de este capítulo, \\(K\\) sin argumento es el número de bloques del <em>jackknife<\/em>",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "r",
+        "nombre": "Una distancia, en \\(G(r)\\) y en la deducción de Clark-Evans. En el módulo 7 (\\(|r|\\)) y en la deducción del módulo 5, una correlación muestral",
+        "guia": "—",
+        "en_r": "—"
       },
       {
         "simbolo": "h",
@@ -2159,52 +2293,130 @@
         "en_r": "gstat::variogram()"
       },
       {
-        "simbolo": "\\lambda",
-        "nombre": "Intensidad de un patrón puntual",
-        "guia": "Baddeley §6.2",
-        "en_r": "spatstat.geom::intensity()"
+        "simbolo": "\\bar{\\gamma}_k",
+        "nombre": "El semivariograma teórico promediado sobre los pares de la clase de distancia \\(k\\): la referencia del variograma empírico en una retícula (módulo 6)",
+        "guia": "—",
+        "en_r": "—"
       },
       {
-        "simbolo": "\\bar{d}_{\\min}",
-        "nombre": "Distancia media al vecino más próximo",
-        "guia": "Baddeley §8.2",
-        "en_r": "mean(spatstat.geom::nndist())"
+        "simbolo": "\\mu",
+        "nombre": "La media del proceso, \\(E[Z(s)]\\)",
+        "guia": "—",
+        "en_r": "—"
       },
       {
-        "simbolo": "R",
-        "nombre": "Índice de Clark-Evans: lo observado frente a lo que daría el azar",
-        "guia": "Baddeley §8.2",
-        "en_r": "spatstat.explore::clarkevans()['naive']"
+        "simbolo": "m(s)",
+        "nombre": "La media del proceso en el sitio \\(s\\), cuando cambia de un sitio a otro: una tendencia (módulo 6)",
+        "guia": "—",
+        "en_r": "—"
       },
       {
-        "simbolo": "W",
-        "nombre": "Matriz de pesos espaciales",
+        "simbolo": "\\sigma^2",
+        "nombre": "La varianza del proceso: la de cada observación",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\bar{Z}",
+        "nombre": "La media muestral de las observaciones \\(Z_i\\)",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "s^2",
+        "nombre": "La varianza muestral; \\(s/\\sqrt{n}\\) es el error estándar clásico de la media",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\rho(h)",
+        "nombre": "La correlación entre dos observaciones separadas una distancia \\(h\\). En este capítulo, \\(\\rho(h) = e^{-h/\\phi}\\)",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\phi",
+        "nombre": "El alcance del modelo exponencial \\(\\rho(h) = e^{-h/\\phi}\\): su parámetro de escala. No es el alcance práctico",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\rho_{ij}",
+        "nombre": "La correlación entre las observaciones \\(i\\) y \\(j\\); si solo depende de la distancia, \\(\\rho(h_{ij})\\)",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\bar{\\rho}",
+        "nombre": "La correlación media entre pares, \\(\\frac{1}{n(n-1)}\\sum_{i \\neq j} \\rho_{ij}\\); \\(\\bar{\\rho}_\\infty\\) es su límite al rellenar una región fija",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\mathbf{R}",
+        "nombre": "La matriz de las correlaciones \\(\\rho_{ij}\\) (módulo 4)",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\rho",
+        "nombre": "Sin marca, este capítulo no la usa: aquí \\(\\rho\\) es siempre una correlación, \\(\\rho(h)\\), \\(\\rho_{ij}\\) o \\(\\bar{\\rho}\\). En el cap. 5, \\(\\rho(z)\\) es la intensidad en función de una covariable (<code>rhohat<\/code>). En el modelo SAR, que el árbol del módulo 8 sitúa en el cap. 8, todavía sin publicar, es el coeficiente del rezago espacial",
+        "guia": "Bivand §9.4",
+        "en_r": "spatialreg::lagsarlm()"
+      },
+      {
+        "simbolo": "n_{\\text{eff}}",
+        "nombre": "Tamaño de muestra efectivo; \\(n/n_{\\text{eff}}\\) es el efecto de diseño",
+        "guia": "Cressie §1.3",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\mathbf{W}",
+        "nombre": "La matriz de pesos espaciales, de elementos \\(w_{ij}\\). En los caps. 6 y 7 se escribe \\(W\\), sin negrita",
         "guia": "Bivand §9.2",
         "en_r": "spdep::nb2listw()"
       },
       {
-        "simbolo": "Wy",
+        "simbolo": "w_{ij}",
+        "nombre": "El peso con que \\(j\\) entra en la vecindad de \\(i\\): el elemento \\((i, j)\\) de \\(\\mathbf{W}\\)",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "\\mathbf{W}y",
         "nombre": "Rezago espacial: la media de los vecinos",
         "guia": "Bivand §9.3",
         "en_r": "spdep::lag.listw()"
       },
       {
+        "simbolo": "S_0",
+        "nombre": "La suma de todos los pesos, \\(\\sum_i \\sum_j w_{ij}\\), como en el cap. 7. El cap. 6 llama \\(S_0\\) a la suma de la adyacencia binaria, \\(\\sum_i \\sum_j a_{ij}\\)",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
+        "simbolo": "z_i",
+        "nombre": "El valor de la unidad \\(i\\), centrado en la media. En el módulo 7, \\(z\\) sin subíndice es el estadístico estandarizado de la prueba de Moran",
+        "guia": "—",
+        "en_r": "—"
+      },
+      {
         "simbolo": "I",
-        "nombre": "Índice de Moran (autocorrelación global)",
+        "nombre": "Índice de Moran (autocorrelación global). Se lee como una correlación entre vecinos, pero no lo es: su rango no es [−1, 1]",
         "guia": "Bivand §9.3",
         "en_r": "spdep::moran.test()"
       },
       {
-        "simbolo": "n_{\\text{eff}}",
-        "nombre": "Tamaño de muestra efectivo",
-        "guia": "Cressie §1.3",
+        "simbolo": "E[I]",
+        "nombre": "El valor esperado de \\(I\\) bajo la nula de permutación, \\(-1/(n-1)\\): la referencia de \\(I\\), en vez de 0",
+        "guia": "—",
         "en_r": "—"
       },
       {
-        "simbolo": "\\rho",
-        "nombre": "Coeficiente de retardo espacial (SAR)",
-        "guia": "Bivand §9.4",
-        "en_r": "spatialreg::lagsarlm()"
+        "simbolo": "n'",
+        "nombre": "Las unidades con algún vecino en una banda de distancia, que son las que cuenta <code>spdep<\/code> (módulo 3)",
+        "guia": "—",
+        "en_r": "—"
       },
       {
         "simbolo": "G_i^*",
@@ -2451,9 +2663,151 @@
     "capitulo": 1,
     "titulo": "Datos espaciales y la primera ley de la geografía",
     "semana": 1,
-    "generado": "2026-11-21",
+    "generado": "2026-11-23",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "anclas_verificadas": 29
+  },
+  "extracto": {
+    "carpeta": "entrega/datos",
+    "municipios": {
+      "archivo": "cap1_municipios.gpkg",
+      "ruta": "entrega/datos/cap1_municipios.gpkg",
+      "que": "municipios",
+      "filas": 1122,
+      "columnas": [
+        "divipola",
+        "desercion",
+        "cobertura",
+        "s11_punt_medio",
+        "s11_pct_internet"
+      ],
+      "bytes": 253952,
+      "kb": 254,
+      "mb": 0.3,
+      "n_desercion": 1121,
+      "n_cobertura": 1121,
+      "crs_epsg": 9377
+    },
+    "reina": {
+      "archivo": "cap1_municipios_reina.gal",
+      "ruta": "entrega/datos/cap1_municipios_reina.gal",
+      "que": "vecindad de reina",
+      "filas": 1122,
+      "columnas": [],
+      "bytes": 48476,
+      "kb": 48,
+      "mb": 0
+    },
+    "snow": {
+      "archivo": "cap1_snow.csv",
+      "ruta": "entrega/datos/cap1_snow.csv",
+      "que": "Snow",
+      "filas": 591,
+      "columnas": [
+        "tipo",
+        "etiqueta",
+        "x",
+        "y"
+      ],
+      "bytes": 19382,
+      "kb": 19,
+      "mb": 0
+    },
+    "pinos": {
+      "archivo": "cap1_japanesepines.csv",
+      "ruta": "entrega/datos/cap1_japanesepines.csv",
+      "que": "japanesepines",
+      "filas": 65,
+      "columnas": [
+        "x",
+        "y"
+      ],
+      "bytes": 658,
+      "kb": 1,
+      "mb": 0
+    },
+    "meuse": {
+      "archivo": "cap1_meuse.csv",
+      "ruta": "entrega/datos/cap1_meuse.csv",
+      "que": "meuse",
+      "filas": 155,
+      "columnas": [
+        "x",
+        "y",
+        "zinc"
+      ],
+      "bytes": 2821,
+      "kb": 3,
+      "mb": 0
+    },
+    "nc": {
+      "archivo": "cap1_nc.gpkg",
+      "ruta": "entrega/datos/cap1_nc.gpkg",
+      "que": "nc",
+      "filas": 100,
+      "columnas": [
+        "AREA",
+        "PERIMETER",
+        "CNTY_",
+        "CNTY_ID",
+        "NAME",
+        "FIPS",
+        "FIPSNO",
+        "CRESS_ID",
+        "BIR74",
+        "SID74",
+        "NWBIR74",
+        "BIR79",
+        "SID79",
+        "NWBIR79"
+      ],
+      "bytes": 163840,
+      "kb": 164,
+      "mb": 0.2
+    },
+    "estaciones": {
+      "archivo": "taller1_estaciones.gpkg",
+      "ruta": "entrega/datos/taller1_estaciones.gpkg",
+      "que": "reutilizado del Taller 1",
+      "filas": 361,
+      "columnas": [
+        "codigo",
+        "estacion",
+        "municipio",
+        "departamento",
+        "altitud_m",
+        "t_media_anual",
+        "en_territorio",
+        "categoria"
+      ],
+      "bytes": 155648,
+      "kb": 156,
+      "mb": 0.2
+    },
+    "departamentos": {
+      "archivo": "taller1_departamentos.gpkg",
+      "ruta": "entrega/datos/taller1_departamentos.gpkg",
+      "que": "reutilizado del Taller 1",
+      "filas": 33,
+      "columnas": [
+        "shapeName",
+        "shapeISO",
+        "shapeID",
+        "shapeGroup",
+        "shapeType"
+      ],
+      "bytes": 5214208,
+      "kb": 5214,
+      "mb": 5.2
+    },
+    "poligonos": {
+      "archivo": "colombia_adm2.gpkg",
+      "bytes": 81678336,
+      "mb": 81.7,
+      "vertices": 5031858
+    },
+    "bytes_nuevos": 489129,
+    "mb_nuevos": 0.5
   }
 }

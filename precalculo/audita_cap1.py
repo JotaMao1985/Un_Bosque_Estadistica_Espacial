@@ -63,6 +63,7 @@ import json
 import math
 import os
 import pathlib
+import re
 import sys
 import warnings
 
@@ -158,6 +159,7 @@ def main() -> int:
     import pandas as pd
     import geopandas as gpd
     from scipy.spatial import cKDTree
+    from scipy.stats import norm
     from shapely.geometry import box, MultiPoint, Polygon
     from shapely.ops import voronoi_diagram
     from libpysal.weights import Queen
@@ -450,6 +452,29 @@ def main() -> int:
         a.cierto(pub["clark_evans_donnelly"] < pub["clark_evans"],
                  f"{nombre}: la corrección de borde baja el índice",
                  f"{pub['clark_evans']:.5f} -> {pub['clark_evans_donnelly']:.5f}")
+        # R3 · T3.3 (C1-09): la PRUEBA de Clark-Evans, rehecha aquí. Bajo CSR,
+        # Var(d_i) = (4 - pi)/(4 pi lambda), y la prueba trata las n distancias
+        # como independientes: ee = c/sqrt(n lambda), c = sqrt((4 - pi)/(4 pi)).
+        # La z sin corregir se rehace por dos rutas —desde los puntos y desde
+        # las tres columnas publicadas—, la de Donnelly con la esperanza
+        # corregida de arriba, y los p con la normal (erfc, sin restar de 1).
+        c_ee = math.sqrt((4 - math.pi) / (4 * math.pi))
+        ee = c_ee / math.sqrt(len(sub) * len(sub) / pub["area"])
+        a.igual(ee, pub["nn_ee"], f"{nombre}: error típico de la distancia media bajo CSR", 1e-9)
+        z0 = (nn.mean() - esperada) / ee
+        a.igual(z0, pub["ce_z"], f"{nombre}: z de Clark-Evans, desde los puntos", 1e-6)
+        a.igual((pub["nn_media"] - pub["nn_esperada"]) / pub["nn_ee"], pub["ce_z"],
+                f"{nombre}: z = (observada - esperada) / ee, desde la tabla", 1e-5)
+        a.igual(math.erfc(abs(pub["ce_z"]) / math.sqrt(2)), pub["ce_p"],
+                f"{nombre}: p bilateral de su z", 1e-9)
+        lp = (math.log(2) + float(norm.logsf(abs(pub["ce_z"])))) / math.log(10)
+        a.igual(lp, pub["ce_p_log10"], f"{nombre}: log10 del p, sin hundirse a cero", 1e-6)
+        a.igual(math.ceil(pub["ce_p_log10"]), pub["ce_p_exp"],
+                f"{nombre}: la cota de la tabla es el primer entero sobre log10 p", 0)
+        zD = (nn.mean() - esp_d) / ee
+        a.igual(zD, pub["ce_z_donnelly"], f"{nombre}: z de Clark-Evans con Donnelly", 1e-6)
+        a.igual(math.erfc(abs(pub["ce_z_donnelly"]) / math.sqrt(2)), pub["ce_p_donnelly"],
+                f"{nombre}: p bilateral con Donnelly", 1e-9)
     # El orden de los tres regímenes es el argumento del módulo 3.
     ce = D["tobler"]["clark_evans"]
     a.cierto(ce["redwood"] < ce["japanesepines"] < ce["cells"],
@@ -460,6 +485,21 @@ def main() -> int:
     for k in ("redwood", "japanesepines", "cells"):
         a.igual(ce[k], D["puntual_canonico"][k]["clark_evans"],
                 f"Clark-Evans de {k}, en las dos secciones")
+    # La constante del error típico y el régimen que la tabla lee de la
+    # prueba: agregado y regular por debajo de alfa, con su signo; los pinos,
+    # por encima, con las dos correcciones.
+    cep = D["clark_evans_prueba"]
+    a.igual(math.sqrt((4 - math.pi) / (4 * math.pi)), cep["constante_ee"],
+            "la constante del error típico de Clark-Evans", 1e-9)
+    a.cierto(cep["correccion"] == "none" and cep["alternativa"] == "two.sided",
+             "la tabla publica la prueba sin corrección y bilateral")
+    pcn, alfa = D["puntual_canonico"], D["inferencia"]["alfa"]
+    a.cierto(pcn["redwood"]["ce_z"] < 0 and pcn["redwood"]["ce_p"] < alfa
+             and pcn["cells"]["ce_z"] > 0 and pcn["cells"]["ce_p"] < alfa
+             and pcn["japanesepines"]["ce_p"] >= alfa and pcn["japanesepines"]["ce_p_donnelly"] >= alfa,
+             "la prueba da agregado, compatible con el azar y regular",
+             f"p = {pcn['redwood']['ce_p']:.3g}, {pcn['japanesepines']['ce_p']:.5f}, "
+             f"{pcn['cells']['ce_p']:.3g}")
 
     # =================================================================
     a.titulo("1c · nc.shp, leído por geopandas")
@@ -1844,6 +1884,38 @@ def main() -> int:
     a.cierto(ur["pct_rechaza_ingenuo"] > 50,
              "la mayoría engañaría al análisis ingenuo",
              f"{ur['pct_rechaza_ingenuo']:.5f} %")
+    # R3 · T3.3 (C1-22): la ergodicidad. La desviación típica EXACTA de la
+    # media, rehecha desde la geometría de la retícula y no desde el módulo 4
+    # (con el que, aun así, tiene que coincidir); su error de Monte Carlo; y
+    # la media al rellenar y al ampliar, desde la tabla del techo.
+    _k6 = ur["k"]
+    _xy = np.array([(x, y) for y in range(1, _k6 + 1) for x in range(1, _k6 + 1)], float)
+    _R6 = np.exp(-np.hypot(_xy[:, None, 0] - _xy[None, :, 0],
+                           _xy[:, None, 1] - _xy[None, :, 1]) / ur["phi"])
+    a.igual(ur["n"] ** 2 / _R6.sum(), ur["n_eff"], "módulo 6: n_eff de su retícula", 1e-7)
+    a.igual(ur["n_eff"], D["inferencia"]["rejilla"][i4]["n_eff"],
+            "módulo 6: es la retícula y el alcance del módulo 4", 1e-9)
+    a.igual(1 / math.sqrt(ur["n_eff"]), ur["sd_exacta_de_la_media"],
+            "módulo 6: sd exacta de la media = sigma/sqrt(n_eff)", 1e-9)
+    a.igual(ur["sd_exacta_de_la_media"] / math.sqrt(2 * (ur["n_realizaciones"] - 1)),
+            ur["emc_sd_de_las_medias"], "módulo 6: error de Monte Carlo de la sd medida", 1e-9)
+    a.igual(abs(ur["sd_de_las_medias"] - ur["sd_exacta_de_la_media"]) / ur["emc_sd_de_las_medias"],
+            ur["sd_medida_a_emc"], "módulo 6: a cuántos errores queda la medida", 1e-6)
+    a.cierto(ur["sd_medida_a_emc"] < 4, "módulo 6: la sd medida y la exacta solo difieren por ruido",
+             f"{ur['sd_medida_a_emc']:.5f} errores")
+    erg, tf6 = ur["ergodicidad"], D["n_efectivo"]["techo"]["rejilla"]
+    a.igual(tf6[-1]["k"], erg["k_ultima"], "ergodicidad: la última fila del techo")
+    a.igual(tf6[-1]["n"], erg["n_ultima"], "ergodicidad: y sus observaciones")
+    a.igual(math.sqrt(D["n_efectivo"]["techo"]["rho_inf"]), erg["sd_media_relleno_limite"],
+            "ergodicidad: al rellenar, la sd de la media tiende a sqrt(rho_inf)", 1e-9)
+    a.igual(1 / math.sqrt(tf6[-1]["relleno"]["n_eff"]), erg["sd_media_relleno_ultima"],
+            "ergodicidad: la sd de la media en la última fila del relleno", 1e-9)
+    a.igual(1 / math.sqrt(tf6[-1]["ampliacion"]["n_eff"]), erg["sd_media_ampliacion_ultima"],
+            "ergodicidad: la sd de la media en la última fila de la ampliación", 1e-9)
+    a.cierto(erg["sd_media_relleno_limite"] < erg["sd_media_relleno_ultima"]
+             < ur["sd_exacta_de_la_media"] and erg["sd_media_ampliacion_ultima"]
+             < ur["sd_exacta_de_la_media"],
+             "ergodicidad: rellenar se queda en el límite y ampliar baja la sd")
     vg = ur["variograma"]
     a.igual(len(vg["lags"]), len(vg["teorico"]), "el variograma tiene un teórico por lag")
     for k, h in enumerate(vg["lags"]):
@@ -1883,7 +1955,7 @@ def main() -> int:
     gbar = [suma_g[h] / cuenta[h] for h in vg["lags"]]
     tc_ok = (len(vg.get("teorico_clase", [])) == len(vg["lags"])
              and len(vg.get("n_pares", [])) == len(vg["lags"]))
-    a.cierto(tc_ok, "el variograma trae un teórico de clase y un número de pares por rezago")
+    a.cierto(tc_ok, "el variograma trae un teórico de clase y un número de pares por clase de distancia")
     if tc_ok:
         for k, h in enumerate(vg["lags"]):
             a.igual(cuenta[h], vg["n_pares"][k], f"pares de la clase {h}, contados en la retícula")
@@ -1903,12 +1975,12 @@ def main() -> int:
         # γ(1) NO son la misma cifra, y la media de las réplicas distingue.
         a.cierto(abs(vg["media"][0] - vg["teorico_clase"][0])
                  < 0.1 * abs(vg["media"][0] - vg["teorico"][0]),
-                 "en el rezago 1 la media cae sobre el teórico de la clase y no sobre γ(1)",
+                 "en la clase 1 la media cae sobre el teórico de la clase y no sobre γ(1)",
                  f"media {vg['media'][0]:.5f}, de clase {vg['teorico_clase'][0]:.5f}, "
                  f"γ(1) = {vg['teorico'][0]:.5f}")
     a.igual((vg["q95"][vg["lags"].index(4)] - vg["q05"][vg["lags"].index(4)])
             / gbar[vg["lags"].index(4)], ur["banda_rel_lag4"],
-            "el ancho de la banda en el rezago 4, relativo al teórico de su clase", 1e-7)
+            "el ancho de la banda en la clase 4, relativo al teórico de su clase", 1e-7)
     a.cierto(ur["banda_rel_lag4"] > 0.2,
              "una sola realización se desvía del proceso",
              f"{ur['banda_rel_lag4']:.5f}")
@@ -1978,13 +2050,13 @@ def main() -> int:
         # se pasa a la siguiente, en vez de estrellarse contra un IndexError y
         # dejar el informe a medias.
         if len(fila.get("variograma", [])) != len(vg["lags"]):
-            a.cierto(False, f"{q}: su variograma trae un valor por rezago",
+            a.cierto(False, f"{q}: su variograma trae un valor por clase de distancia",
                      f"{len(fila.get('variograma', []))} de {len(vg['lags'])}")
             continue
         curvas.append(fila["variograma"])
         for k, h in enumerate(vg["lags"]):
             a.igual(propio[k], fila["variograma"][k],
-                    f"{q}: su variograma en el rezago {h}", 5e-3)
+                    f"{q}: su variograma en la clase {h}", 5e-3)
         # Y las cifras que la prosa y la lectura estrenan sobre esa curva.
         # Contra el teórico DE LA CLASE, rehecho arriba desde la retícula
         # (`gbar`), no contra el que publica R ni contra γ en h entero.
@@ -1992,18 +2064,18 @@ def main() -> int:
                for k in range(len(vg["lags"]))]
         a.igual(max(rel), fila["desvio_rel_max"], f"{q}: su desvío relativo máximo", 1e-7)
         a.igual(vg["lags"][rel.index(max(rel))], fila["lag_desvio_max"],
-                f"{q}: y el rezago en que se da")
-        a.igual(rel[i_lag4], fila["desvio_rel_lag4"], f"{q}: su desvío en el rezago 4", 1e-7)
+                f"{q}: y la clase de distancia en que se da")
+        a.igual(rel[i_lag4], fila["desvio_rel_lag4"], f"{q}: su desvío en la clase 4", 1e-7)
         a.igual(sum(1 for k in range(len(vg["lags"]))
                     if not vg["q05"][k] <= fila["variograma"][k] <= vg["q95"][k]),
-                fila["lags_fuera_banda"], f"{q}: los rezagos que se le salen de la banda")
+                fila["lags_fuera_banda"], f"{q}: las clases de distancia que se le salen de la banda")
     # Que las tres se distingan A LA VISTA. Sin esto, tres curvas iguales
     # pasarían todo lo anterior y el botón volvería a mover solo el mapa.
     sep = min((max(abs(x - y) for x, y in zip(curvas[i], curvas[j]))
                for i in range(len(curvas)) for j in range(i + 1, len(curvas))), default=0.0)
     a.cierto(len(curvas) > 1 and sep > 0.01,
              "las curvas del simulador se separan a la vista",
-             f"{sep:.5f} en el rezago que más las separa, sobre {len(curvas)} curvas")
+             f"{sep:.5f} en la clase de distancia que más las separa, sobre {len(curvas)} curvas")
 
     # =================================================================
     a.titulo("6 · Tobler: los correlogramas")
@@ -2454,8 +2526,37 @@ def main() -> int:
     simbolos = [f["simbolo"] for f in gl["filas"]]
     a.cierto(len(simbolos) == len(set(simbolos)), "ningún símbolo repetido",
              f"{len(simbolos)} filas")
-    a.cierto(len(gl["filas"]) >= 10, "el glosario cubre la notación del curso",
+    # R3 · T3.2: de 15 filas a una por cada símbolo que el capítulo escribe en
+    # una fórmula. La cota de abajo es la de hoy menos holgura para retirar
+    # alguna; lo que de verdad ata el glosario a la prosa es la lista de D6.
+    a.cierto(len(gl["filas"]) >= 40, "el glosario cubre la notación del curso",
              f"{len(gl['filas'])} entradas")
+    # La lista que el encargo de R3 · T3.2 exige (D6): cada símbolo con su
+    # fila. Se compara sin espacios ni llaves, que KaTeX ignora.
+    norma = lambda s: re.sub(r"[\s{}]", "", s)                       # noqa: E731
+    por_simbolo = {norma(f["simbolo"]): f for f in gl["filas"]}
+    D6 = {"W": "la ventana", "|W|": "el área de la ventana", "n": "n, observado",
+          "N": "N, aleatorio", "N(B)": "N(B)", "\\hat\\lambda": "λ̂",
+          "\\rho(h)": "ρ(h)", "\\rho_ij": "ρ_ij", "\\bar\\rho": "ρ̄", "\\phi": "φ",
+          "\\sigma^2": "σ²", "E[I]": "E[I]", "S_0": "S_0", "w_ij": "w_ij", "G(r)": "G(r)",
+          "\\textCSR": "la sigla CSR", "n_\\texteff": "n_eff", "\\mathbfW": "la matriz de pesos",
+          "\\mathbfWy": "el rezago espacial", "d_i": "la distancia al vecino, d_i",
+          "m(s)": "la media que cambia de sitio, m(s)"}
+    for simb, que in D6.items():
+        a.cierto(simb in por_simbolo, f"glosario: {que} tiene su fila", simb)
+    a.cierto("ventana" in por_simbolo.get("W", {}).get("nombre", ""),
+             "glosario: la W sin negrita es la ventana")
+    a.cierto(not any(k in por_simbolo for k in ("Wy", "Wz")),
+             "glosario: el rezago espacial se escribe con la matriz en negrita")
+    # Que diga «correlación» no basta: «…que no es una correlación» también lo
+    # dice (verificación de R3 · T3.2). Se exigen sus tres marcas y que no lo niegue.
+    nom_rho = por_simbolo.get("\\rho", {}).get("nombre", "")
+    a.cierto(all(x in norma(nom_rho) for x in ("\\rho(h)", "\\rho_ij", "\\bar\\rho"))
+             and "correlación" in nom_rho
+             and not re.search(r"\bno\s+(?:es|son|sea)\b[^.]{0,40}correlaci", nom_rho),
+             "glosario: la fila de ρ dice que en este capítulo ρ es una correlación")
+    a.cierto("caps. 6 y 7" in por_simbolo.get("\\mathbfW", {}).get("nombre", ""),
+             "glosario: la fila de la matriz dice cómo la escriben los caps. 6 y 7")
     for f in gl["filas"]:
         a.cierto(all(k in f and str(f[k]).strip() for k in claves),
                  f"la fila «{f['simbolo']}» trae sus cuatro columnas")
@@ -3407,6 +3508,110 @@ def main() -> int:
     a.cierto(len(c4) == 1 and abs(c4[0].get("media_espacial", 9) - inf_["cien_ic"]["media"][0]) < 1e-7,
              "campo: el del alcance destacado es la réplica 1 de la simulación",
              f"{c4[0].get('media_espacial') if c4 else '—'} frente a {inf_['cien_ic']['media'][0]}")
+
+    # =================================================================
+    a.titulo("11d · El extracto que viaja (R3 · T3.5)")
+    # =================================================================
+    # `genera_datos_cap1.R` escribe en `entrega/datos/` lo que leen los
+    # bloques y los ejercicios desde fuera, y sus propias anclas lo releen en
+    # R. Aquí se rehace en Python desde las fuentes, por otro camino: la
+    # vecindad de reina con libpysal sobre los polígonos completos, el punto
+    # interior contra su polígono, y cada tamaño que el capítulo publica
+    # contra el archivo en el disco.
+    import shapely
+    import libpysal
+    from libpysal.weights import w_subset
+    EX = D["extracto"]
+    ENTREGA = RAIZ
+    for clave in ("municipios", "reina", "snow", "pinos", "meuse", "nc", "estaciones",
+                  "departamentos"):
+        f = EX[clave]
+        ruta_f = ENTREGA / f["ruta"]
+        if not ruta_f.is_file():
+            a.cierto(False, f"extracto: {f['archivo']} está en el disco", "no está")
+            continue
+        b_ = ruta_f.stat().st_size
+        a.cierto(b_ == f["bytes"] and f["kb"] == round(b_ / 1e3) and abs(f["mb"] - round(b_ / 1e6, 1)) < 1e-9,
+                 f"extracto: el tamaño de {f['archivo'][:24]}",
+                 f"{b_} B en el disco, {f['bytes']} publicados ({f['kb']} KB, {f['mb']} MB)")
+    a.cierto(f"{EX['carpeta']}/" == "entrega/datos/", "extracto: la carpeta es la que se publica", EX["carpeta"])
+
+    em = gpd.read_file(ENTREGA / EX["municipios"]["ruta"])
+    adm2 = gpd.read_file(PROCESADO / "colombia_adm2.gpkg")
+    llave2 = pd.read_csv(PROCESADO / "municipios_llave.csv", dtype={"divipola": str})
+    s11 = pd.read_csv(PROCESADO / "municipios_saber11.csv", dtype={"divipola": str})
+    ref = adm2[["shapeID", "geometry"]].merge(llave2, on="shapeID", how="left").merge(s11, on="divipola", how="left")
+    a.igual(len(em), len(adm2), "extracto: municipios, los de la MGN")
+    a.igual(len(em), EX["municipios"]["filas"], "extracto: municipios, los publicados")
+    a.cierto(list(em.divipola) == list(ref.divipola), "extracto: el orden de las filas es el de la MGN",
+             "los remuestreos sortean posiciones")
+    a.cierto(em.crs.to_epsg() == EX["municipios"]["crs_epsg"] == 9377, "extracto: EPSG:9377",
+             str(em.crs.to_epsg()))
+    cols = [c for c in em.columns if c != "geometry"]
+    a.cierto(cols == list(EX["municipios"]["columnas"]), "extracto: las columnas publicadas, y solo esas",
+             ", ".join(cols))
+    iguales = all(np.allclose(em[c].to_numpy(float), ref[c].to_numpy(float), equal_nan=True, rtol=0, atol=0)
+                  for c in ("desercion", "cobertura", "s11_punt_medio", "s11_pct_internet"))
+    a.cierto(iguales, "extracto: los valores son los de datos/procesado", "las cuatro columnas numéricas")
+    a.igual(int(em.desercion.notna().sum()), EX["municipios"]["n_desercion"], "extracto: con deserción")
+    a.igual(int(em.cobertura.notna().sum()), EX["municipios"]["n_cobertura"], "extracto: con cobertura")
+    dentro = shapely.contains(ref.geometry.values, em.geometry.values) | shapely.touches(
+        ref.geometry.values, em.geometry.values)
+    a.cierto(bool(dentro.all()) and (em.geom_type == "Point").all(),
+             "extracto: cada punto cae en su municipio", f"{int(dentro.sum())} de {len(em)}")
+    a.igual(int(shapely.get_num_coordinates(adm2.geometry.values).sum()), EX["poligonos"]["vertices"],
+            "extracto: vértices del polígono que no viaja")
+    a.cierto(abs(EX["poligonos"]["mb"] - round((PROCESADO / "colombia_adm2.gpkg").stat().st_size / 1e6, 1)) < 1e-9,
+             "extracto: los MB del polígono que no viaja", str(EX["poligonos"]["mb"]))
+
+    # La vecindad del GAL contra la que calcula libpysal sobre el polígono.
+    gal = libpysal.io.open(str(ENTREGA / EX["reina"]["ruta"])).read()
+    a.cierto(list(gal.id_order) == list(em.divipola), "extracto: el GAL lleva divipola, en orden",
+             f"{gal.n} identificadores")
+    w_todo = Queen.from_dataframe(ref, use_index=False, silence_warnings=True)
+    ids = list(ref.divipola)
+    mismos = all(set(gal.neighbors[ids[i]]) == {ids[j] for j in w_todo.neighbors[i]} for i in range(len(ids)))
+    a.cierto(mismos, "extracto: la reina de R es la de libpysal", f"{len(ids)} municipios")
+    ok_ids = list(em.loc[em.desercion.notna(), "divipola"])
+    w_ok = w_subset(gal, ok_ids, silence_warnings=True)
+    a.igual(len(w_ok.islands), esc["islas_municipal"], "extracto: islas, desde el GAL")
+    a.igual(np.mean([len(v) for v in w_ok.neighbors.values()]), esc["grado_municipal"],
+            "extracto: grado medio, desde el GAL", 1e-7)
+
+    # Lo de Python que en R viene en un paquete.
+    a.cierto(pd.read_csv(ENTREGA / EX["snow"]["ruta"]).equals(pd.read_csv(SALIDAS / "cap1_snow.csv")),
+             "extracto: Snow es el CSV del capítulo")
+    pp_ = pd.read_csv(SALIDAS / "cap1_ppp.csv")
+    pinos = pd.read_csv(ENTREGA / EX["pinos"]["ruta"])
+    a.cierto(np.allclose(pinos[["x", "y"]].to_numpy(),
+                         pp_[pp_.patron == "japanesepines"][["x", "y"]].to_numpy(), rtol=0, atol=0),
+             "extracto: los pinos son los del capítulo", f"{len(pinos)} puntos")
+    me_ = pd.read_csv(ENTREGA / EX["meuse"]["ruta"])
+    a.cierto(me_.equals(pd.read_csv(SALIDAS / "cap1_meuse.csv")[["x", "y", "zinc"]]),
+             "extracto: meuse, con x, y y zinc", ", ".join(me_.columns))
+    ncx = gpd.read_file(ENTREGA / EX["nc"]["ruta"])
+    nco = gpd.read_file(ver["rutas"]["nc_shp"])
+    a.cierto(bool(ncx.geometry.geom_equals_exact(nco.geometry, tolerance=0).all())
+             and ncx.drop(columns="geometry").equals(nco.drop(columns="geometry")),
+             "extracto: nc es el nc.shp de sf, sin tocar")
+    a.cierto(ncx.geom_type.value_counts().to_dict() == nco.geom_type.value_counts().to_dict(),
+             "extracto: nc conserva el tipo de cada rasgo",
+             str(ncx.geom_type.value_counts().to_dict()))
+
+    # Los dos del Taller 1 que el capítulo reutiliza, contra su fuente.
+    et = gpd.read_file(ENTREGA / EX["estaciones"]["ruta"])
+    ep = gpd.read_file(PROCESADO / "colombia_estaciones_clima.gpkg")
+    a.cierto(bool(et.geometry.geom_equals_exact(ep.geometry, tolerance=0).all())
+             and np.array_equal(et.t_media_anual.to_numpy(), ep.t_media_anual.to_numpy()),
+             "extracto: las estaciones del Taller 1 son las del IDEAM")
+    dt = gpd.read_file(ENTREGA / EX["departamentos"]["ruta"])
+    dp = gpd.read_file(PROCESADO / "colombia_adm1.gpkg")
+    a.cierto(bool(dt.geometry.geom_equals_exact(dp.geometry, tolerance=0).all()),
+             "extracto: los departamentos del Taller 1, los de ADM1")
+    for k in ("e2", "e4"):
+        a.cierto(S[k]["solucion"]["archivo"] == EX["municipios"]["ruta"]
+                 and "carga_municipios" not in S[k]["enunciado"],
+                 f"extracto: el ejercicio {k[1]} lee el archivo de municipios")
 
     # =================================================================
     a.titulo("12 · Formato, codificación y redondeo")

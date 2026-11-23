@@ -165,8 +165,12 @@ FUENTES = [
 # una reescritura, el capítulo deja de decir lo que el plan le encarga —A.28 y
 # A.29 las deciden— y nadie se entera.
 AFIRMACIONES = [
-    # La promesa del capítulo 1 («el capítulo 7 lo desarrolla»)
+    # Lo que el capítulo 1 dejó dicho de E[I]. Hasta R3 · T3.3 era una promesa («el
+    # capítulo 7 hace la cuenta entera»); desde entonces el cap. 1 hace la cuenta en un
+    # panel de su módulo 3, y este capítulo la rehace pieza a pieza y la lleva más lejos.
+    ("remite a la cuenta de E[I] que el capítulo 1 ya hace", "hizo ya la cuenta de su esperanza"),
     ("explica E[I] por la diagonal que W no tiene", "w no tiene diagonal"),
+    ("dice que E[I] < 0 necesita el centrado y la diagonal", "hacen falta las dos piezas"),
     ("dice que I se compara con E[I] y no con 0", "se compara con \\(e[i]\\) y no con 0"),
     ("dice que el máximo de I puede pasar de 1", "el máximo puede pasar de 1"),
     ("dice que B, C y U dan el mismo I", "b, c y u son la misma"),
@@ -216,6 +220,21 @@ AFIRMACIONES = [
     ("declara que la z de Gi* de esda por filas está mal", "sale mal"),
     ("declara que el capítulo no puede separar el problema de los números pequeños",
      "no puede separar aquí"),
+]
+
+# Lo que el capítulo no puede volver a decir del capítulo 1. R1 (T1.6) retiró
+# del cap. 1 «I no vale cero bajo la nula» (es E[I], no I) y «el artefacto de
+# comparar cada unidad consigo misma excluida» (el mecanismo es el centrado);
+# el módulo 2 de aquí las seguía citando como si el cap. 1 las dijera.
+PROHIBIDAS = [
+    ("no cita del capítulo 1 una frase que ya no dice («consigo misma excluida»)",
+     r"consigo misma excluida"),
+    ("no atribuye al capítulo 1 que I «no vale cero» bajo la nula",
+     r"no vale cero\s+cuando no hay autocorrelación"),
+    # R3 · T3.3: el capítulo 1 ya no deja la cuenta de E[I] pendiente —la hace en un
+    # panel de su módulo 3—, así que decirlo sería citarle algo que ya no es verdad.
+    ("no dice que el capítulo 1 dejó pendiente la cuenta de E[I]",
+     r"dejó una cuenta pendiente"),
 ]
 
 # Lo que el CÓDIGO del capítulo no puede dejar de decir: los comentarios son
@@ -306,6 +325,12 @@ def main() -> int:
     a.temario(DEBE_CUBRIR)
     a.fuentes(FUENTES)
     a.afirmaciones(AFIRMACIONES)
+    print("\n=== Lo que el capítulo no puede volver a decir ============")
+    llano = re.sub(r"\s+", " ", a.texto_plano)
+    for que, patron in PROHIBIDAS:
+        m = re.search(patron, llano)
+        a.exige(m is None, que, "" if m is None else "aparece: «"
+                + llano[max(0, m.start() - 30):m.end() + 20] + "»")
     codigo = html.unescape(a.cuerpo).lower()
     for que, clave in AFIRMACIONES_CODIGO:
         a.exige(clave in codigo, que)

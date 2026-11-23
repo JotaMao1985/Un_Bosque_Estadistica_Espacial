@@ -67,6 +67,13 @@ CAMPOS = [
     # bloque invisible es peor que uno mal contado.
     ("bloq. R",     lambda h, m: len(re.findall(r'class="language-r[" ]', h))),
     ("bloq. Py",    lambda h, m: len(re.findall(r'class="language-python[" ]', h))),
+    # Los de arranque, aparte: se cuentan arriba (un bloque invisible es peor
+    # que uno mal contado), pero no entran en los PARES que promete la
+    # portada. Un bloque de arranque prepara el entorno —el `install.packages`
+    # del recuadro «Prepara tu entorno» del cap. 1, cuya mitad de Python es
+    # una orden de shell— y no tiene por qué tener gemelo en el otro lenguaje.
+    ("arr. R",      lambda h, m: len(re.findall(r'class="language-r arranque[" ]', h))),
+    ("arr. Py",     lambda h, m: len(re.findall(r'class="language-python arranque[" ]', h))),
     # Las DOS formas: los bloques de R escriben `#&gt;` escapado y los de
     # Python `#>` a pelo. Contar solo una daba 14 donde hay 26, y un
     # contador que informa de menos es tan inútil como uno que informa de
@@ -233,10 +240,11 @@ def revisa_portada(texto: str, cuentas: dict[str, dict[str, int]],
             rotulo = base + plural
             vistas += 1
             if base == "bloques R/Python":
-                real = c["bloq. R"]
-                if c["bloq. R"] != c["bloq. Py"]:
+                par_r, par_py = c["bloq. R"] - c["arr. R"], c["bloq. Py"] - c["arr. Py"]
+                real = par_r
+                if par_r != par_py:
                     informe.append(f"⚠ {nombre}: «bloques R/Python» promete pares y tiene "
-                                   f"{c['bloq. R']} de R y {c['bloq. Py']} de Python")
+                                   f"{par_r} de R y {par_py} de Python (sin los de arranque)")
                     problemas.append(f"{nombre} sin bloques pareados")
                     malas += 1
                     continue
@@ -266,8 +274,8 @@ def revisa_portada(texto: str, cuentas: dict[str, dict[str, int]],
         if rotulo == "capítulos":
             real = len(capitulos)
         elif rotulo == "bloques en R y Python":
-            real = suma.get("bloq. R", 0)
-            if suma.get("bloq. R") != suma.get("bloq. Py"):
+            real = suma.get("bloq. R", 0) - suma.get("arr. R", 0)
+            if real != suma.get("bloq. Py", 0) - suma.get("arr. Py", 0):
                 informe.append("⚠ el bloque de entrada promete pares de R y Python y no los hay")
                 problemas.append("bloque de entrada sin bloques pareados")
                 malas += 1
@@ -312,6 +320,20 @@ def prueba(texto: str, cuentas: dict[str, dict[str, int]], capitulos: list[str])
         print(f"  {'OK ' if cazado else 'MAL'}  «{nombre}» → "
               + ("cazado" if cazado else f"pasa ({problemas or 'sin problemas'})"))
         fallos += 0 if cazado else 1
+
+    # Los pares, por las cuentas y no por la portada: un bloque de R de más
+    # rompe la promesa; uno de arranque de más, no.
+    cap = capitulos[0]
+    for nombre, extra, debe in [
+            ("un bloque de R sin gemelo en Python", {"bloq. R": 1}, True),
+            ("un bloque de arranque de R (uso legítimo)", {"bloq. R": 1, "arr. R": 1}, False)]:
+        otras = {n: dict(c) for n, c in cuentas.items()}
+        for campo, mas in extra.items():
+            otras[cap][campo] += mas
+        salta = any("pareados" in p for p in revisa_portada(texto, otras, capitulos)[1])
+        bien = salta == debe
+        print(f"  {'OK ' if bien else 'MAL'}  «{nombre}» → " + ("salta" if salta else "no salta"))
+        fallos += 0 if bien else 1
     return fallos
 
 

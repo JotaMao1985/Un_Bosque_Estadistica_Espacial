@@ -530,6 +530,77 @@ local({
   }
 })
 
+# --- B.1b La PRUEBA de Clark-Evans (R3 · T3.3, hallazgo C1-09) ---------
+#
+# La tabla del módulo 3 decía «compatible con el azar» sin ningún
+# contraste. Aquí se hace la prueba que el estudiante va a ejecutar,
+# `clarkevans.test`, con la aproximación normal y bilateral, y se publica
+# su z y su p para cada patrón.
+#
+# QUÉ CORRECCIÓN. La tabla publica la R sin corregir (`naive`), y el panel
+# del módulo 3 deduce justo su denominador, 1/(2 sqrt(lambda)), y su error
+# típico. Con `correction = "none"` la z es (dbar - 1/(2 sqrt(lambda)))/ee
+# y se rehace con una calculadora desde las columnas de la tabla: es la
+# que se publica en ella. `clarkevans.test` aplica Donnelly por defecto en
+# una ventana rectangular, así que se publica también esa z y ese p; la
+# nota del borde los da para la fila que decide, la de los pinos.
+#
+# EL ERROR TÍPICO. Bajo CSR, E[d_i^2] = 1/(pi lambda), luego
+# Var(d_i) = (4 - pi)/(4 pi lambda) y sd(d_i) = C/sqrt(lambda), con
+# C = sqrt((4 - pi)/(4 pi)). La prueba trata las n distancias como
+# independientes, ee = C/sqrt(n lambda) —es el SE.Dobs de
+# `clarkevansCalc`—, y su z es la de la tabla.
+#
+# EL p. Se publica 2 * pnorm(-|z|), que no se hunde a cero en la cola: la
+# función devuelve 2 * (1 - pnorm(|z|)), que en las células da 0 exacto
+# (z mayor que 8). Se comprueba que las dos z son la misma pidiendo que la
+# fórmula de la función, aplicada a la z de aquí, dé su p al bit. Con un p
+# tan pequeño la tabla escribe una cota, 10 elevado a `ce_p_exp`, que es
+# el primer entero por encima de log10(p); el exponente sale de aquí.
+#
+# Sin `ancla()`: las anclas cuentan transcripciones contra la literatura
+# (meta.anclas_verificadas) y esto es un contraste contra la función.
+local({
+  CE_C <- sqrt((4 - pi) / (4 * pi))
+  D$clark_evans_prueba <<- list(
+    constante_ee = r10(CE_C),
+    correccion = "none", correccion_por_defecto = "Donnelly",
+    alternativa = "two.sided")
+  for (nm in c("japanesepines", "redwood", "cells")) {
+    X    <- get(nm)
+    nX   <- npoints(X); aX <- area.owin(X$window); lam <- nX / aX
+    dbar <- mean(nndist(X))
+    E0   <- 0.5 / sqrt(lam)
+    ee   <- CE_C / sqrt(nX * lam)
+    z0   <- (dbar - E0) / ee
+    t0   <- spatstat.explore::clarkevans.test(X, correction = "none",
+                                              alternative = "two.sided")
+    if (abs(unname(t0$statistic) - dbar / E0) > 1e-12 ||
+        abs(t0$p.value - 2 * (1 - pnorm(abs(z0)))) > 1e-12)
+      stop(sprintf("Clark-Evans (%s): la z de la tabla no es la de clarkevans.test", nm))
+    # Donnelly: el mismo ee, la esperanza corregida por el borde.
+    tD   <- spatstat.explore::clarkevans.test(X, correction = "Donnelly",
+                                              alternative = "two.sided")
+    ED   <- dbar / unname(tD$statistic)
+    zD   <- (dbar - ED) / ee
+    if (abs(tD$p.value - 2 * (1 - pnorm(abs(zD)))) > 1e-12)
+      stop(sprintf("Clark-Evans (%s): la z de Donnelly no es la de clarkevans.test", nm))
+    p0 <- 2 * pnorm(-abs(z0)); pD <- 2 * pnorm(-abs(zD))
+    D$puntual_canonico[[nm]]$nn_ee         <<- r10(ee)
+    D$puntual_canonico[[nm]]$ce_z          <<- r10(z0)
+    D$puntual_canonico[[nm]]$ce_p          <<- r10(p0)
+    D$puntual_canonico[[nm]]$ce_p_log10    <<- r10(log10(p0))
+    D$puntual_canonico[[nm]]$ce_p_exp      <<- as.integer(ceiling(log10(p0)))
+    D$puntual_canonico[[nm]]$ce_z_donnelly <<- r10(zD)
+    D$puntual_canonico[[nm]]$ce_p_donnelly <<- r10(pD)
+  }
+  message(sprintf("  · Clark-Evans, z (p): %s",
+                  paste(vapply(c("redwood", "japanesepines", "cells"), function(nm)
+                    sprintf("%s %.3f (%.3g)", nm, D$puntual_canonico[[nm]]$ce_z,
+                            2 * pnorm(-abs(D$puntual_canonico[[nm]]$ce_z))), ""),
+                    collapse = " · ")))
+})
+
 # --- B.2 Dato de área: lo aleatorio es el VALOR en unidades fijas ------
 # Dos lecturas del mismo archivo a propósito: `nc0` es el objeto tal como
 # lo recibe el estudiante y es el que describe el módulo 9; `nc` es el que
@@ -1939,6 +2010,54 @@ D$una_realizacion <- list(
                          TEO6[4])
 )
 
+# --- F.0 La ERGODICIDAD, con las cifras del módulo (R3 · T3.3, C1-22) ---
+#
+# El módulo decía que con una realización «solo hay una salida: suponer
+# estacionariedad». Es necesaria y no basta: su propio proceso es
+# estacionario por construcción y la media de una realización tiene una
+# desviación típica de 0.42. Lo que falta es que los promedios sobre el
+# espacio converjan, y para la media eso es Var(Zbar) -> 0, es decir
+# rho_medio -> 0 (módulo 5). El panel lo cierra con tres cifras:
+#
+#   · la desviación típica EXACTA de la media de esta retícula,
+#     sigma/sqrt(n_eff), con el n_eff de ESTA rejilla y ESTE phi —no se
+#     divide en la prosa, y no se toma del módulo 4 aunque deba coincidir
+#     con su ee_exacto: se comprueba—. sigma = 1: R6 es la matriz de
+#     correlaciones y el campo se simula con ella tal cual;
+#   · el error de Monte Carlo de la desviación típica medida: las medias
+#     son normales, así que el de una desviación típica muestral es
+#     sd/sqrt(2 (NREAL - 1)); y a cuántos de esos errores queda la medida
+#     de la exacta;
+#   · lo que hace la tabla del módulo 5 con la media: al RELLENAR el
+#     cuadrado su desviación típica tiende a sqrt(rho_inf) y no baja de
+#     ahí; al AMPLIARLO cae (en la última fila, la de k = 64).
+n_eff6  <- N6^2 / sum(R6)
+sd_ex6  <- sqrt(1 / n_eff6)
+emc_sd6 <- sd_ex6 / sqrt(2 * (NREAL - 1))
+if (K6 != K4 || PHI6 != PHI_C ||
+    abs(sd_ex6 - mc[[which(PHIS == PHI6)]]$ee_exacto) > 1e-9)
+  stop("la retícula o el alcance del módulo 6 ya no son los del módulo 4")
+if (abs(sd(medias_real) - sd_ex6) > 4 * emc_sd6)
+  stop(sprintf("la sd de las medias (%.5f) se aparta de la exacta (%.5f) más de 4 errores",
+               sd(medias_real), sd_ex6))
+sd_rel_lim <- sqrt(rho_inf)
+sd_rel_ult <- sqrt(1 / rel_neff[NT])
+sd_amp_ult <- sqrt(1 / amp_neff[NT])
+if (!(sd_rel_ult > sd_rel_lim && sd_amp_ult < sd_ex6 && sd_rel_ult < sd_ex6))
+  stop("la media no se comporta al rellenar y al ampliar como dice el módulo 6")
+D$una_realizacion$n_eff                  <- r10(n_eff6)
+D$una_realizacion$sd_exacta_de_la_media  <- r10(sd_ex6)
+D$una_realizacion$emc_sd_de_las_medias   <- r10(emc_sd6)
+D$una_realizacion$sd_medida_a_emc        <- r10(abs(sd(medias_real) - sd_ex6) / emc_sd6)
+D$una_realizacion$ergodicidad <- list(
+  k_ultima = KS_TECHO[NT], n_ultima = as.integer(KS_TECHO[NT]^2),
+  sd_media_relleno_limite  = r10(sd_rel_lim),
+  sd_media_relleno_ultima  = r10(sd_rel_ult),
+  sd_media_ampliacion_ultima = r10(sd_amp_ult))
+message(sprintf(paste("  · ergodicidad: sd exacta %.5f, medida %.5f (± %.5f) · al rellenar",
+                      "%.5f -> %.5f · al ampliar %.5f"),
+                sd_ex6, sd(medias_real), emc_sd6, sd_rel_ult, sd_rel_lim, sd_amp_ult))
+
 # --- F.1 Las tres realizaciones que el capítulo ENSEÑA -----------------
 #
 # T1.3. Aquí y no en la sección M, que es donde vivían, porque el defecto
@@ -2255,7 +2374,7 @@ D$escala <- list(
 D$discrepancias <- list(
   list(
     id = "moran_islas",
-    que = "El I de Moran de la deserción municipal",
+    que = "La I de Moran de la deserción municipal",
     valor_r = r10(mi_mun$estimate[["Moran I statistic"]]),
     valor_python = r10(I_con_n_total(muni_ok$desercion, lw_mun)),
     diferencia = r10(abs(I_con_n_total(muni_ok$desercion, lw_mun) -
@@ -2269,7 +2388,7 @@ D$discrepancias <- list(
   ),
   list(
     id = "moran_islas_dep",
-    que = "El I de Moran de la deserción departamental",
+    que = "La I de Moran de la deserción departamental",
     valor_r = r10(mi_dep$estimate[["Moran I statistic"]]),
     valor_python = r10(I_con_n_total(dep_ok$desercion, lw_dep)),
     diferencia = r10(abs(I_con_n_total(dep_ok$desercion, lw_dep) -
@@ -2979,19 +3098,39 @@ D$glosario <- list(
     list(clave = "guia",    titulo = "Texto guía", tipo = "referencia"),
     list(clave = "en_r",    titulo = "En R",    tipo = "codigo")
   ),
+  # R3 · T3.2 (2026-11-22): una fila por cada símbolo que el capítulo 1
+  # escribe en una fórmula, recogida recorriendo las fórmulas del HTML
+  # ensamblado y no de memoria. Las filas nuevas llevan «—» en «Texto
+  # guía»: ningún localizador se inventa (las citas son de R4). En «En R»
+  # solo van funciones que el propio capítulo ejecuta en sus bloques; si no
+  # hay ninguna, «—». Las convenciones son las de D6: la ventana W en
+  # cursiva y solo en patrones puntuales, la matriz de pesos en negrita, ρ
+  # siempre con su marca y «rezago» solo para el espacial. `ensambla_cap1.py`
+  # (guardas_de_notacion) exige estas filas leyendo el documento ensamblado.
   filas = list(
+    # --- El dominio y los tres tipos de dato --------------------------------
     list(simbolo = "s", nombre = "Una localización del dominio", guia = "Bivand §1.2", en_r = "st_coordinates()"),
-    list(simbolo = "D", nombre = "El dominio de estudio", guia = "Bivand §1.2", en_r = "st_bbox()"),
+    list(simbolo = "D", nombre = "El dominio de estudio, \\(D \\subset \\mathbb{R}^2\\). En un patrón puntual, la región que de verdad se observa es la ventana \\(W\\). En el cap. 6, \\(D\\) es la matriz diagonal de los grados, \\(\\operatorname{diag}(d_1, \\dots, d_n)\\)", guia = "Bivand §1.2", en_r = "st_bbox()"),
     list(simbolo = "Z(s)", nombre = "El valor del proceso en la localización s", guia = "Bivand §8.1", en_r = "x$variable"),
-    list(simbolo = "h", nombre = "Vector (o distancia) de separación entre dos localizaciones", guia = "Bivand §8.4", en_r = "st_distance()"),
-    list(simbolo = "C(h)", nombre = "Covarianza entre dos puntos separados h", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
-    list(simbolo = "\\gamma(h)", nombre = "Semivariograma", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
+    list(simbolo = "A_i", nombre = "La unidad \\(i\\) de un dato de área (un municipio, un condado); \\(Z(A_i)\\) es su valor. En el cap. 6, \\(A\\) sin subíndice es la matriz de adyacencia binaria, de elementos \\(a_{ij}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "n", nombre = "El número de observaciones: unidades, estaciones o puntos. En un patrón puntual, los puntos que se observaron", guia = "—", en_r = "—"),
+    # --- Patrones puntuales ---------------------------------------------------
+    list(simbolo = "N", nombre = "En un patrón puntual, el número de puntos como variable aleatoria; \\(n\\) es el valor que se observó", guia = "—", en_r = "—"),
+    list(simbolo = "W", nombre = "La ventana: la región observada de un patrón puntual, \\(W \\subset D\\). Solo en patrones puntuales; la matriz de pesos es \\(\\mathbf{W}\\)", guia = "—", en_r = "x$window"),
+    list(simbolo = "|W|", nombre = "El área de la ventana", guia = "—", en_r = "spatstat.geom::area()"),
+    list(simbolo = "N(B)", nombre = "El número de puntos que caen en una región \\(B\\) de área \\(|B|\\); bajo CSR es Poisson de media \\(\\lambda|B|\\). En el módulo 1, en cambio, \\(B\\) es el número de recolocaciones de la prueba de Snow. En el cap. 6, \\(N(i)\\) es el conjunto de los vecinos de \\(i\\)", guia = "—", en_r = "—"),
     # §6.2 «Estimating homogeneous intensity», no §5.3. La referencia vieja
     # mandaba al estudiante a §5.3, que es «Complete spatial randomness»:
     # una sección real y del tema, pero no la de este símbolo. Corregido
     # contra el índice que los autores publican en book.spatstat.org, donde
     # 6 es Intensity, 7 Correlation y 8 Spacing. (2026-08-10)
-    list(simbolo = "\\lambda", nombre = "Intensidad de un patrón puntual", guia = "Baddeley §6.2", en_r = "spatstat.geom::intensity()"),
+    # R3 · T3.2: `intensity()` pasa a la fila de \hat\lambda, que es lo que
+    # devuelve. λ es del proceso y no se calcula: se estima.
+    list(simbolo = "\\lambda", nombre = "Intensidad de un patrón puntual: los puntos esperados por unidad de área. Si el proceso es homogéneo, \\(E[N(B)] = \\lambda|B|\\). Es del proceso y no se observa", guia = "Baddeley §6.2", en_r = "—"),
+    list(simbolo = "\\lambda(s)", nombre = "La intensidad en el sitio \\(s\\), cuando el proceso no es homogéneo", guia = "—", en_r = "—"),
+    list(simbolo = "\\hat{\\lambda}", nombre = "El estimador de la intensidad, \\(\\hat{\\lambda} = n/|W|\\): depende de la ventana", guia = "—", en_r = "spatstat.geom::intensity()"),
+    list(simbolo = "\\text{CSR}", nombre = "Aleatoriedad espacial completa (<em>complete spatial randomness</em>): puntos independientes y uniformes sobre la ventana. Es la hipótesis nula de los patrones puntuales", guia = "—", en_r = "—"),
+    list(simbolo = "d_i", nombre = "La distancia del punto \\(i\\) a su vecino más próximo, con la letra del cap. 4. En el cap. 6, \\(d_i = \\sum_j a_{ij}\\) es el grado de \\(i\\): cuántos vecinos tiene", guia = "—", en_r = "—"),
     # Los dos que estrena el módulo 3 de este capítulo. Van juntos porque
     # el segundo es el primero dividido por su valor esperado bajo CSR.
     list(simbolo = "\\bar{d}_{\\min}", nombre = "Distancia media al vecino más próximo", guia = "Baddeley §8.2", en_r = "mean(spatstat.geom::nndist())"),
@@ -3000,11 +3139,39 @@ D$glosario <- list(
     # la tabla del módulo 3. Sin el índice, quien ejecute la celda ve tres
     # números y dos no cuadran con el material.
     list(simbolo = "R", nombre = "Índice de Clark-Evans: lo observado frente a lo que daría el azar", guia = "Baddeley §8.2", en_r = "spatstat.explore::clarkevans()['naive']"),
-    list(simbolo = "W", nombre = "Matriz de pesos espaciales", guia = "Bivand §9.2", en_r = "spdep::nb2listw()"),
-    list(simbolo = "Wy", nombre = "Rezago espacial: la media de los vecinos", guia = "Bivand §9.3", en_r = "spdep::lag.listw()"),
-    list(simbolo = "I", nombre = "Índice de Moran (autocorrelación global)", guia = "Bivand §9.3", en_r = "spdep::moran.test()"),
-    list(simbolo = "n_{\\text{eff}}", nombre = "Tamaño de muestra efectivo", guia = "Cressie §1.3", en_r = "—"),
-    list(simbolo = "\\rho", nombre = "Coeficiente de retardo espacial (SAR)", guia = "Bivand §9.4", en_r = "spatialreg::lagsarlm()"),
+    list(simbolo = "G(r)", nombre = "La función \\(G\\): la probabilidad de que el vecino más próximo esté a \\(r\\) o menos. Bajo CSR, \\(G(r) = 1 - e^{-\\lambda\\pi r^2}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "F(r),\\ K(r),\\ g(r)", nombre = "Las otras funciones de resumen de un patrón puntual, que define el cap. 4. En el módulo 4 de este capítulo, \\(K\\) sin argumento es el número de bloques del <em>jackknife</em>", guia = "—", en_r = "—"),
+    list(simbolo = "r", nombre = "Una distancia, en \\(G(r)\\) y en la deducción de Clark-Evans. En el módulo 7 (\\(|r|\\)) y en la deducción del módulo 5, una correlación muestral", guia = "—", en_r = "—"),
+    # --- Geoestadística y dependencia ----------------------------------------
+    list(simbolo = "h", nombre = "Vector (o distancia) de separación entre dos localizaciones", guia = "Bivand §8.4", en_r = "st_distance()"),
+    list(simbolo = "C(h)", nombre = "Covarianza entre dos puntos separados h", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
+    list(simbolo = "\\gamma(h)", nombre = "Semivariograma", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
+    list(simbolo = "\\bar{\\gamma}_k", nombre = "El semivariograma teórico promediado sobre los pares de la clase de distancia \\(k\\): la referencia del variograma empírico en una retícula (módulo 6)", guia = "—", en_r = "—"),
+    list(simbolo = "\\mu", nombre = "La media del proceso, \\(E[Z(s)]\\)", guia = "—", en_r = "—"),
+    list(simbolo = "m(s)", nombre = "La media del proceso en el sitio \\(s\\), cuando cambia de un sitio a otro: una tendencia (módulo 6)", guia = "—", en_r = "—"),
+    list(simbolo = "\\sigma^2", nombre = "La varianza del proceso: la de cada observación", guia = "—", en_r = "—"),
+    list(simbolo = "\\bar{Z}", nombre = "La media muestral de las observaciones \\(Z_i\\)", guia = "—", en_r = "—"),
+    list(simbolo = "s^2", nombre = "La varianza muestral; \\(s/\\sqrt{n}\\) es el error estándar clásico de la media", guia = "—", en_r = "—"),
+    list(simbolo = "\\rho(h)", nombre = "La correlación entre dos observaciones separadas una distancia \\(h\\). En este capítulo, \\(\\rho(h) = e^{-h/\\phi}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "\\phi", nombre = "El alcance del modelo exponencial \\(\\rho(h) = e^{-h/\\phi}\\): su parámetro de escala. No es el alcance práctico", guia = "—", en_r = "—"),
+    list(simbolo = "\\rho_{ij}", nombre = "La correlación entre las observaciones \\(i\\) y \\(j\\); si solo depende de la distancia, \\(\\rho(h_{ij})\\)", guia = "—", en_r = "—"),
+    list(simbolo = "\\bar{\\rho}", nombre = "La correlación media entre pares, \\(\\frac{1}{n(n-1)}\\sum_{i \\neq j} \\rho_{ij}\\); \\(\\bar{\\rho}_\\infty\\) es su límite al rellenar una región fija", guia = "—", en_r = "—"),
+    list(simbolo = "\\mathbf{R}", nombre = "La matriz de las correlaciones \\(\\rho_{ij}\\) (módulo 4)", guia = "—", en_r = "—"),
+    # La fila de ρ dejó de decir solo «coeficiente de retardo espacial (SAR)»
+    # (R3 · T3.2): en este capítulo ρ es siempre una correlación. El SAR va
+    # en el cap. 8, que no existe todavía en Htmls_Espacial/: se dice como lo
+    # que es, una previsión del árbol de decisión del módulo 8.
+    list(simbolo = "\\rho", nombre = "Sin marca, este capítulo no la usa: aquí \\(\\rho\\) es siempre una correlación, \\(\\rho(h)\\), \\(\\rho_{ij}\\) o \\(\\bar{\\rho}\\). En el cap. 5, \\(\\rho(z)\\) es la intensidad en función de una covariable (<code>rhohat</code>). En el modelo SAR, que el árbol del módulo 8 sitúa en el cap. 8, todavía sin publicar, es el coeficiente del rezago espacial", guia = "Bivand §9.4", en_r = "spatialreg::lagsarlm()"),
+    list(simbolo = "n_{\\text{eff}}", nombre = "Tamaño de muestra efectivo; \\(n/n_{\\text{eff}}\\) es el efecto de diseño", guia = "Cressie §1.3", en_r = "—"),
+    # --- Datos de área ---------------------------------------------------------
+    list(simbolo = "\\mathbf{W}", nombre = "La matriz de pesos espaciales, de elementos \\(w_{ij}\\). En los caps. 6 y 7 se escribe \\(W\\), sin negrita", guia = "Bivand §9.2", en_r = "spdep::nb2listw()"),
+    list(simbolo = "w_{ij}", nombre = "El peso con que \\(j\\) entra en la vecindad de \\(i\\): el elemento \\((i, j)\\) de \\(\\mathbf{W}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "\\mathbf{W}y", nombre = "Rezago espacial: la media de los vecinos", guia = "Bivand §9.3", en_r = "spdep::lag.listw()"),
+    list(simbolo = "S_0", nombre = "La suma de todos los pesos, \\(\\sum_i \\sum_j w_{ij}\\), como en el cap. 7. El cap. 6 llama \\(S_0\\) a la suma de la adyacencia binaria, \\(\\sum_i \\sum_j a_{ij}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "z_i", nombre = "El valor de la unidad \\(i\\), centrado en la media. En el módulo 7, \\(z\\) sin subíndice es el estadístico estandarizado de la prueba de Moran", guia = "—", en_r = "—"),
+    list(simbolo = "I", nombre = "Índice de Moran (autocorrelación global). Se lee como una correlación entre vecinos, pero no lo es: su rango no es [−1, 1]", guia = "Bivand §9.3", en_r = "spdep::moran.test()"),
+    list(simbolo = "E[I]", nombre = "El valor esperado de \\(I\\) bajo la nula de permutación, \\(-1/(n-1)\\): la referencia de \\(I\\), en vez de 0", guia = "—", en_r = "—"),
+    list(simbolo = "n'", nombre = "Las unidades con algún vecino en una banda de distancia, que son las que cuenta <code>spdep</code> (módulo 3)", guia = "—", en_r = "—"),
     list(simbolo = "G_i^*", nombre = "Estadístico de Getis-Ord local", guia = "Bivand §9.3", en_r = "spdep::localG()")
   )
 )
@@ -3608,6 +3775,16 @@ write.csv(data.frame(x = meuse$x, y = meuse$y, zinc = meuse$zinc,
                      dist = r10(meuse$dist), elev = r10(meuse$elev)),
           file.path(SALIDAS, "cap1_meuse.csv"), row.names = FALSE,
           fileEncoding = "UTF-8")
+
+# R3 · T3.5 (D9): el extracto que leen los bloques de código y los
+# ejercicios desde fuera del repositorio, en `entrega/datos/`. Va AQUÍ, al
+# final, por dos razones: sus anclas rehacen desde lo escrito las cifras de
+# D (la I municipal, los errores estándar del módulo 4, Snow, meuse, nc), y
+# no toca el generador de números de nadie. Lo que mide —filas, columnas,
+# bytes— entra en `D$extracto`, de donde el capítulo saca los tamaños y los
+# conteos que publica junto a cada enlace. Ver precalculo/genera_datos_cap1.R.
+source(file.path(AQUI, "genera_datos_cap1.R"))
+D$extracto <- extracto_cap1(D)
 
 write_json(D, file.path(SALIDAS, "cap1_datos.json"),
            auto_unbox = TRUE, digits = 10, pretty = TRUE, na = "null")

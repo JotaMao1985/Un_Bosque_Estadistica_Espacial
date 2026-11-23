@@ -94,6 +94,15 @@
 !/entrega/datos/taller1_municipios.gpkg
 !/entrega/datos/taller1_departamentos.gpkg
 
+# El extracto del capítulo 1 (R3 · T3.5, decisión D9): lo que leen sus bloques
+# de código y sus ejercicios desde fuera de este equipo, 0,5 MB. Lo escribe
+# `precalculo/genera_datos_cap1.R`, al que llama `genera_cap1.R`. Los CSV y el
+# GAL no caen en ninguna regla de arriba; los dos GeoPackage sí, y por eso se
+# reactivan aquí de uno en uno. Las estaciones y los departamentos son los dos
+# del Taller 1 de arriba, que el capítulo reutiliza sin reescribir.
+!/entrega/datos/cap1_municipios.gpkg
+!/entrega/datos/cap1_nc.gpkg
+
 # El caché de cómputo del capítulo 3: 33 MB de .rds que `genera_cap3.R` rehace
 # solo si faltan. Cae DENTRO de `!/precalculo/`, así que hay que excluirlo aparte.
 precalculo/cache/

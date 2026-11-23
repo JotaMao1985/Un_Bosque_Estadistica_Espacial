@@ -212,7 +212,7 @@ def defectos() -> list[tuple[str, str, str, object]]:
     txt("las dos autoevaluaciones se quedan en una", "ensamblador",
         'data-quiz="cap1-diagnostica"', 'data-quiz="cap1"')
     txt("un lienzo se queda sin aria-label", "ensamblador",
-        'aria-label="Variograma de una realización frente al teórico promediado en cada rezago, con la banda '
+        'aria-label="Variograma de una realización frente al teórico promediado en cada clase de distancia, con la banda '
         'del 5 al 95 por ciento sobre mil realizaciones" role="img"', 'role="img"')
     txt("una plantilla abre y no cierra", "ensamblador",
         "</template>\n", "\n")
@@ -1087,6 +1087,245 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: o["desercion"].__setitem__("n", o["desercion"]["n"] + 1))
     obj("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "datos",
         lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0))
+    # --- R3 · T3.2: la notación (D6), contra el documento ensamblado -----
+    # Una inyección por guarda de `guardas_de_notacion()`, cada una con el
+    # mensaje que tiene que salir (abajo, en ESPERA): la del eje y la del
+    # género entran por el ensamblador; las del glosario, por el JSON.
+    _MORAN_W = r"centrados y la matriz de pesos \\(\\mathbf{{W}}\\)"
+    txt("T3.2: la matriz de pesos vuelve a escribirse sin negrita", "ensamblador",
+        _MORAN_W, r"centrados y la matriz de pesos \\(W\\)")
+    # R3 · T3.3 añadió dos \mathbf{W} a la prosa (el panel de E[I] del módulo 3):
+    # la inyección los quita también, o la guarda los encontraría y no se dispararía.
+    txt("T3.2: la prosa deja de escribir la matriz de pesos en negrita", "ensamblador",
+        _MORAN_W, r"centrados y la matriz de pesos \\(\\mathbf{{M}}\\)",
+        r"con cualquier \\(\\mathbf{{W}}\\)", r"con cualquier \\(\\mathbf{{M}}\\)",
+        r"ni de \\(\\mathbf{{W}}\\) ni del dato", r"ni de \\(\\mathbf{{M}}\\) ni del dato")
+    txt("T3.2: el eje del variograma vuelve a decir «rezago»", "ensamblador",
+        "text: 'clase de distancia (pasos de retícula)'", "text: 'rezago (pasos de retícula)'")
+    txt("T3.2: vuelve «el I de Moran»", "ensamblador",
+        "se mueve con ellas. La I de Moran pasa de", "se mueve con ellas. El I de Moran pasa de")
+    obj("T3.2: el glosario pierde la fila de λ̂", "datos",
+        lambda o: o["glosario"].__setitem__(
+            "filas", [f for f in o["glosario"]["filas"] if f["simbolo"] != "\\hat{\\lambda}"]))
+    obj("T3.2: el glosario pierde la sigla CSR", "datos",
+        lambda o: o["glosario"].__setitem__(
+            "filas", [f for f in o["glosario"]["filas"] if f["simbolo"] != "\\text{CSR}"]))
+    obj("T3.2: la fila de ρ vuelve a ser solo el SAR", "datos",
+        lambda o: next(f for f in o["glosario"]["filas"] if f["simbolo"] == "\\rho").__setitem__(
+            "nombre", "Coeficiente de retardo espacial (SAR)"))
+    obj("T3.2: la fila del rezago espacial vuelve a «Wy»", "datos",
+        lambda o: next(f for f in o["glosario"]["filas"] if f["simbolo"] == "\\mathbf{W}y").__setitem__(
+            "simbolo", "Wy"))
+    # Ronda 2 de T3.2, tras la verificación independiente: los defectos que
+    # se colaban. La matriz W justo después de «ventana» (la excepción miraba
+    # la palabra y no el papel del símbolo), «el I» sin «de Moran» detrás, y la
+    # fila de ρ que dice «correlación» para negarla.
+    txt("T3.2r2: la matriz de pesos W, justo después de «ventana»", "ensamblador",
+        "sin sedes. Elegir ventana es elegir qué región se describe. El capítulo 4",
+        "sin sedes. Elegir ventana es elegir qué región se describe. En los datos de área, la matriz de "
+        "pesos \\\\(W\\\\) declara quién es vecino. El capítulo 4")
+    txt("T3.2r2: «este I de Moran»", "ensamblador",
+        "se mueve con ellas. La I de Moran pasa de", "se mueve con ellas. Este I de Moran pasa de")
+    txt("T3.2r2: «el I departamental»", "ensamblador",
+        "Si la I departamental", "Si el I departamental")
+    obj("T3.2r2: la fila de ρ dice «correlación» para negarla", "datos",
+        lambda o: next(f for f in o["glosario"]["filas"] if f["simbolo"] == "\\rho").__setitem__(
+            "nombre", "Coeficiente de retardo espacial (SAR), que no es una correlación"))
+    # --- R3 · T3.3: los paneles de deducción y la ergodicidad --------------
+    # Una inyección por guarda de `guardas_de_t33()`, con su mensaje en ESPERA.
+    txt("T3.3: el panel de la ergodicidad deja de arrancar oculto", "ensamblador",
+        'id="der-ergodicidad" hidden>', 'id="der-ergodicidad">')
+    txt("T3.3: el botón del panel de E[s²] nombra otro id", "ensamblador",
+        'aria-controls="der-s2-esperada"', 'aria-controls="der-s2"')
+    txt("T3.3: el panel de Clark-Evans acaba sin su valor p", "ensamblador",
+        "<strong>{n(pc['japanesepines']['ce_p'])}</strong>.</p>", "<strong>grande</strong>.</p>")
+    txt("T3.3: el módulo 6 deja de decir «ergodicidad»", "ensamblador",
+        "<li><strong>Ergodicidad:</strong>", "<li><strong>Convergencia:</strong>",
+        "estimar; la ergodicidad, que una sola", "estimar; la convergencia, que una sola",
+        "ergodicidad con un solo mapa exige", "convergencia con un solo mapa exige",
+        "No es un fallo de ergodicidad:", "No es un fallo de convergencia:",
+        "y sin ergodicidad la repetición", "y sin convergencia la repetición")
+    txt("T3.3: las células pasan a rotularse «Agregado»", "ensamblador",
+        "<td>Regular</td></tr>", "<td>Agregado</td></tr>")
+    obj("T3.3: con Donnelly el p de los pinos baja", "datos",
+        lambda o: o["puntual_canonico"]["japanesepines"].__setitem__("ce_p_donnelly", 0.2))
+    obj("T3.3: la sd medida se aparta de la exacta más que el ruido", "datos",
+        lambda o: o["una_realizacion"].__setitem__("sd_medida_a_emc", 4.5))
+    obj("T3.3: al rellenar, la sd de la media se aleja de su límite", "datos",
+        lambda o: o["una_realizacion"]["ergodicidad"].__setitem__("sd_media_relleno_ultima", 0.46))
+    obj("T3.3: la ergodicidad apunta a otra fila del techo", "datos",
+        lambda o: o["una_realizacion"]["ergodicidad"].__setitem__("k_ultima", 32))
+    # Ronda 2 (🟡 8 de la verificación): una cifra cambiada de sitio en el texto.
+    # Son los defectos que la verificación coló, con la letra que los dibuja.
+    txt("T3.3r2 A: la z de las secuoyas en la tabla es la de Donnelly", "ensamblador",
+        "<td>{n(pc['redwood']['ce_z'])}</td>", "<td>{n(pc['redwood']['ce_z_donnelly'])}</td>")
+    txt("T3.3r2 B: el límite del relleno y el valor con 4 096, intercambiados", "ensamblador",
+        r"= {n(erg['sd_media_relleno_limite'])}\\): con", r"= {n(erg['sd_media_relleno_ultima'])}\\): con",
+        "ya vale {n(erg['sd_media_relleno_ultima'])},", "ya vale {n(erg['sd_media_relleno_limite'])},")
+    txt("T3.3r2 E: el cierre de E[I] dice −1/(n′ − 1)", "ensamblador",
+        r"\\(-n'/(n(n-1))\\), que es lo que dice", r"\\(-1/(n'-1)\\), que es lo que dice")
+    txt("T3.3r2 G: la nota del borde da el p sin corregir como el de Donnelly", "ensamblador",
+        "{n(pc['japanesepines']['ce_p_donnelly'])}, mientras los valores p",
+        "{n(pc['japanesepines']['ce_p'])}, mientras los valores p")
+    txt("T3.3r2 H: la definición cita la sd de la ampliación", "ensamblador",
+        "{n(ur['sd_de_las_medias'])}, porque la región es finita",
+        "{n(erg['sd_media_ampliacion_ultima'])}, porque la región es finita")
+    txt("T3.3r2 J: el pie de la tabla dice Donnelly", "ensamblador",
+        "sin corrección de borde, con la", "con la corrección de Donnelly, con la")
+    txt("T3.3r2 K: el cierre de E[s²] da la esperada como media de las réplicas", "ensamblador",
+        "réplicas es {n(r4['s2_medida'])}. Cuanto menor", "réplicas es {n(r4['s2_esperada'])}. Cuanto menor")
+    # --- R3 · T3.4: la crónica de producción y las duraciones medidas ------
+    # Una inyección por guarda de `guardas_de_t34()`, y la de la crónica por
+    # cada palabra que vigila y por cada superficie que lee (prosa y quiz).
+    txt("T3.4: vuelve «el auditor» a la prosa del módulo 6", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "<strong>El auditor del capítulo lo comprueba:</strong>")
+    txt("T3.4: vuelve «el JSON» a la prosa del módulo 2", "ensamblador",
+        "los calcula <code>classInt</code> en R, y son una decisión",
+        "los calcula <code>classInt</code> en R y viajan en el JSON, y son una decisión")
+    txt("T3.4: vuelve «el generador» a la retroalimentación del quiz", "ensamblador",
+        "de las dos está mal: cuadrarlas es parte del método.' },",
+        "de las dos está mal: el generador lo comprueba.' },")
+    # Ronda 2 de la verificación: un agujero, una inyección.
+    txt("T3.4r2 V-04: «Auditor» con mayúscula, a principio de frase", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "Auditor aparte. <strong>Cuadrarlas es parte del método:</strong>")
+    txt("T3.4r2 V-05: el JSON en el aria-label de un lienzo", "ensamblador",
+        'aria-label="Histograma del porcentaje de muertes',
+        'aria-label="Histograma, leído del json, del porcentaje de muertes')
+    txt("T3.4r2 V-09: «El ensamblado se detiene»", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "El ensamblado se detiene si no cuadran. <strong>Cuadrarlas es parte del método:</strong>")
+    txt("T3.4r2 V-09: «La auditoría del capítulo»", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "La auditoría del capítulo lo comprueba. <strong>Cuadrarlas es parte del método:</strong>")
+    txt("T3.4r2 V-09: «En la versión anterior»", "ensamblador",
+        "<strong>Cuadrarlas es parte del método:</strong>",
+        "En la versión anterior de este módulo eran otras. <strong>Cuadrarlas es parte del método:</strong>")
+    txt("T3.4: la duración del módulo 5 se aleja de su medida", "ensamblador",
+        '("Tamaño de muestra efectivo", "14 min")', '("Tamaño de muestra efectivo", "8 min")')
+    txt("T3.4: la barra pierde la duración de un módulo", "ensamblador",
+        '    ("Anatomía de un objeto sf", "5 min"),\n', "")
+    txt("T3.4: el cuestionario del módulo 12 deja de poderse medir", "ensamblador",
+        "    AUTOEVALUACIONES['cap1'] = [", "    AUTOEVALUACIONES['cap1-final'] = [")
+    # --- R3 · T3.5: el extracto que viaja y el recuadro del entorno ----------
+    # Una inyección por guarda de `guardas_de_t35()` y por cada paro de
+    # `completa_entorno()`, con el mensaje que TIENE que salir.
+    txt("T3.5: el módulo 4 vuelve a carga_municipios()", "ensamblador",
+        '"""library(sf)\n\nmun &lt;- st_read("entrega/datos/cap1_municipios.gpkg", quiet = TRUE)\nok  &lt;-',
+        '"""source("precalculo/fuentes.R")\n\nmun &lt;- carga_municipios()\nok  &lt;-')
+    txt("T3.5: la guarda de rutas se queda sin sujeto", "ensamblador",
+        "_RUTA_DATOS = re.compile(r'entrega/datos/", "_RUTA_DATOS = re.compile(r'entrega/datoz/")
+    txt("T3.5: un bloque lee un archivo que no está en el extracto", "ensamblador",
+        'est = gpd.read_file("entrega/datos/taller1_estaciones.gpkg")',
+        'est = gpd.read_file("entrega/datos/taller1_estaciones_bis.gpkg")')
+    obj("T3.5: el extracto cambia de tamaño sin regenerar el capítulo", "datos",
+        lambda o: o["extracto"]["snow"].__setitem__("bytes", o["extracto"]["snow"]["bytes"] + 1))
+    obj("T3.5: un archivo del extracto cae en el .gitignore", "datos",
+        lambda o: o["extracto"]["reina"].__setitem__("ruta", "datos/procesado/municipios_llave.csv"))
+    txt("T3.5: el módulo 9 lleva dos notas de descarga", "ensamblador",
+        '"trae <code>sf</code>.", varios=False) + tabs(',
+        '"trae <code>sf</code>.", varios=False) + nota_datos("Otra nota.") + tabs(')
+    txt("T3.5: el módulo 9 pierde su nota de descarga", "ensamblador",
+        '""" + nota_datos(\n    f"La pestaña de Python lee {enlace_datos(\'nc\')}, el del módulo 2; la de R, el '
+        '<code>nc.shp</code> que "\n    "trae <code>sf</code>.", varios=False) + tabs(',
+        '""" + tabs(')
+    txt("T3.5: la nota del módulo 10 queda detrás de un bloque", "ensamblador",
+        '""" + nota_datos(\n    f"Los dos bloques leen {enlace_datos(\'estaciones\')}, el del módulo 3',
+        '""" + tabs("x", "1", "2") + nota_datos(\n    f"Los dos bloques leen {enlace_datos(\'estaciones\')}, el del módulo 3')
+    txt("T3.5: el recuadro del entorno se queda sin rellenar", "ensamblador",
+        "    doc = completa_entorno(doc)\n", "")
+    txt("T3.5: el recuadro del entorno pierde su prueba", "ensamblador",
+        ' + tabs("La prueba del entorno, en R y en Python", R_HUMO, PY_HUMO)', "")
+    txt("T3.5: la prueba de R no carga un paquete que se manda instalar", "ensamblador",
+        "library(spatstat.data); library(sp); library(spdep)", "library(sp); library(spdep)")
+    txt("T3.5: la prueba de Python no importa un módulo que se manda instalar", "ensamblador",
+        "import geopandas as gpd, shapely, pandas, numpy, scipy, libpysal\n",
+        "import geopandas as gpd, shapely, pandas, numpy, scipy\n")
+    obj("T3.5: el ejercicio 4 vuelve a carga_municipios()", "soluciones",
+        lambda o: o["e4"].__setitem__("enunciado", o["e4"]["enunciado"] + " Con carga_municipios()."))
+    txt("T3.5: un bloque importa un módulo sin nombre de pip", "ensamblador",
+        "import geopandas as gpd, numpy as np, libpysal\n",
+        "import geopandas as gpd, numpy as np, libpysal, modulo_raro\n")
+    txt("T3.5: el ejercicio 2 pierde el enlace de descarga", "ensamblador",
+        "{ejercicio(2, S['e2'], datos=E2_DATOS)}", "{ejercicio(2, S['e2'])}")
+    txt("T3.5: un archivo del recuadro no lo enlaza ningún módulo", "ensamblador",
+        """ + nota_datos(\n    f"La pestaña de Python lee las muertes y las bombas de un archivo""",
+        """ + (lambda *a, **k: "")(\n    f"La pestaña de Python lee las muertes y las bombas de un archivo""")
+    # Ronda 2 de T3.5: la licencia y los diez 🟡 de la verificación.
+    txt("T3.5r2: el recuadro pierde la licencia del extracto", "ensamblador",
+        "{LICENCIA_EXTRACTO}, con la atribución de sus", "se publican, con la atribución de sus")
+    txt("T3.5r2: la frase de la licencia olvida al ICFES", "ensamblador",
+        "los resultados de Saber 11, del <strong>ICFES</strong> (CC BY-SA 4.0); y los", "y los")
+    txt("T3.5r2 V-02: el M10 lee de datos/, fuera de procesado", "ensamblador",
+        'estac &lt;- st_read("entrega/datos/taller1_estaciones.gpkg", quiet = TRUE)',
+        'estac &lt;- st_read("datos/unidades.gpkg", quiet = TRUE)')
+    txt("T3.5r2 V-03: la nota del M9 enlaza otro archivo", "ensamblador",
+        "f\"La pestaña de Python lee {enlace_datos('nc')}, el del módulo 2; la de R",
+        "f\"La pestaña de Python lee {enlace_datos('snow')}, el del módulo 2; la de R")
+    txt("T3.5r2 V-07: un bloque carga un paquete con require()", "ensamblador",
+        "n_eff &lt;- function(n, rho) n / (1 + (n - 1) * rho)",
+        "require(spatstat.explore)\nn_eff &lt;- function(n, rho) n / (1 + (n - 1) * rho)")
+    txt("T3.5r2 V-07: un bloque carga un paquete por nombre calculado", "ensamblador",
+        "n_eff &lt;- function(n, rho) n / (1 + (n - 1) * rho)",
+        "library(p, character.only = TRUE)\nn_eff &lt;- function(n, rho) n / (1 + (n - 1) * rho)")
+    txt("T3.5r2 V-06: un comentario del recuadro no cabe en el teléfono", "ensamblador",
+        "# Windows y macOS:\ninstall.packages(paq,",
+        "# Windows y macOS, con los binarios de CRAN:\ninstall.packages(paq,")
+    # Corrección de la ronda 2: la CC BY-SA solo para los dos archivos de los
+    # municipios; los cuatro de paquetes de R, con la licencia de su paquete.
+    txt("T3.5r2: la CC BY-SA vuelve a cubrir todos los cap1_*", "ensamblador",
+        "Los dos archivos de los municipios, <code>cap1_municipios.gpkg</code> y\n"
+        "          <code>cap1_municipios_reina.gal</code>, {LICENCIA_EXTRACTO}",
+        "Los archivos <code>cap1_*</code> de esta lista {LICENCIA_EXTRACTO}")
+    txt("T3.5r2: los archivos de los paquetes pierden su licencia", "ensamblador",
+        "licencia que declara el paquete del que salen: {LICENCIAS_PAQUETES_TXT}.",
+        "licencia que declara el paquete del que salen.")
+    for _nombre, _mensaje in (
+            ("T3.5r2: la CC BY-SA vuelve a cubrir todos los cap1_*", "cubre archivos de paquetes de R"),
+            ("T3.5r2: los archivos de los paquetes pierden su licencia", "no lleva la licencia de"),
+            ("T3.5r2: el recuadro pierde la licencia del extracto", "no está una sola vez, en el recuadro"),
+            ("T3.5r2: la frase de la licencia olvida al ICFES", "no nombra «ICFES»"),
+            ("T3.5r2 V-02: el M10 lee de datos/, fuera de procesado", "que no viaja al sitio"),
+            ("T3.5r2 V-03: la nota del M9 enlaza otro archivo", "no enlaza entrega/datos/cap1_nc.gpkg"),
+            ("T3.5r2 V-07: un bloque carga un paquete con require()", "la prueba del entorno no carga"),
+            ("T3.5r2 V-07: un bloque carga un paquete por nombre calculado", "nombre calculado"),
+            ("T3.5r2 V-06: un comentario del recuadro no cabe en el teléfono", "en el teléfono se desplazan"),
+    ):
+        ESPERA[_nombre] = _mensaje
+    for _nombre, _mensaje in (
+            ("T3.5: el módulo 4 vuelve a carga_municipios()", "que no viaja al sitio"),
+            ("T3.5: la guarda de rutas se queda sin sujeto", "ningún bloque lee el extracto"),
+            ("T3.5: un bloque lee un archivo que no está en el extracto", "que no está en el extracto"),
+            ("T3.5: el extracto cambia de tamaño sin regenerar el capítulo", "el extracto cambió sin regenerar"),
+            ("T3.5: un archivo del extracto cae en el .gitignore", "está en el .gitignore"),
+            ("T3.5: el módulo 9 lleva dos notas de descarga", "va una por módulo"),
+            ("T3.5: el módulo 9 pierde su nota de descarga", "no lleva su nota de descarga"),
+            ("T3.5: la nota del módulo 10 queda detrás de un bloque", "va detrás de su primer bloque"),
+            ("T3.5: el recuadro del entorno se queda sin rellenar", "sin rellenar"),
+            ("T3.5: el recuadro del entorno pierde su prueba", "no lleva su prueba"),
+            ("T3.5: la prueba de R no carga un paquete que se manda instalar", "la prueba del entorno no carga"),
+            ("T3.5: la prueba de Python no importa un módulo que se manda instalar", "no importa"),
+            ("T3.5: el ejercicio 4 vuelve a carga_municipios()", "no lee el archivo de municipios"),
+            ("T3.5: un bloque importa un módulo sin nombre de pip", "no tienen nombre de pip"),
+            ("T3.5: un archivo del recuadro no lo enlaza ningún módulo", "ningún módulo enlaza"),
+            ("T3.5: el ejercicio 2 pierde el enlace de descarga", "no enlaza la descarga de su archivo"),
+    ):
+        ESPERA[_nombre] = _mensaje
+    for _nombre, _mensaje in (
+            ("T3.4: vuelve «el auditor» a la prosa del módulo 6", "crónica de producción en lo que lee"),
+            ("T3.4: vuelve «el JSON» a la prosa del módulo 2", "crónica de producción en lo que lee"),
+            ("T3.4: vuelve «el generador» a la retroalimentación del quiz", "crónica de producción en lo que lee"),
+            ("T3.4: la duración del módulo 5 se aleja de su medida", "se sale de ±15 % de la medida"),
+            ("T3.4: la barra pierde la duración de un módulo", "la barra declara 11 duraciones"),
+            ("T3.4: el cuestionario del módulo 12 deja de poderse medir", "no se pueden medir las duraciones"),
+            ("T3.4r2 V-04: «Auditor» con mayúscula, a principio de frase", "crónica de producción en lo que lee"),
+            ("T3.4r2 V-05: el JSON en el aria-label de un lienzo", "crónica de producción en lo que lee"),
+            ("T3.4r2 V-09: «El ensamblado se detiene»", "crónica de producción en lo que lee"),
+            ("T3.4r2 V-09: «La auditoría del capítulo»", "crónica de producción en lo que lee"),
+            ("T3.4r2 V-09: «En la versión anterior»", "crónica de producción en lo que lee"),
+    ):
+        ESPERA[_nombre] = _mensaje
     for _nombre, _mensaje in (
             ("T2.3: el título de Bogotá se copia con Object.assign y se congela", "no siguen a su mando"),
             ("T2.3b: las tres frases del borde de Bogotá, en orden invertido", "no dicen el borde o la cuenta"),
@@ -1185,6 +1424,36 @@ def defectos() -> list[tuple[str, str, str, object]]:
             ('T2.2: el deslizador de rho pierde el de Colombia', 'ya no salen de la rejilla de R'),
             ('T2.2: el rho de Colombia cae sobre otra posición del deslizador', 'coincide con otra posición'),
             ('T2.2: la cobertura vuelve al lienzo de los errores estándar', 'vuelven a compartir lienzo'),
+            ("T3.2: la matriz de pesos vuelve a escribirse sin negrita", "una W sin negrita hace de matriz de pesos"),
+            ("T3.2: la prosa deja de escribir la matriz de pesos en negrita", "ya no escribe la matriz de pesos"),
+            ("T3.2: el eje del variograma vuelve a decir «rezago»", "«rezago» que no es «rezago espacial»"),
+            ("T3.2: vuelve «el I de Moran»", "vuelve «el I» de Moran"),
+            ("T3.2: el glosario pierde la fila de λ̂", "escribe λ̂ y el glosario no le da fila"),
+            ("T3.2: el glosario pierde la sigla CSR", "la sigla CSR y el glosario no le da fila"),
+            ("T3.2: la fila de ρ vuelve a ser solo el SAR", "la fila de ρ del glosario"),
+            ("T3.2: la fila del rezago espacial vuelve a «Wy»", "una W sin negrita hace de matriz de pesos"),
+            ("T3.2r2: la matriz de pesos W, justo después de «ventana»", "una W sin negrita hace de matriz de pesos"),
+            ("T3.2r2: «este I de Moran»", "vuelve «el I» de Moran"),
+            ("T3.2r2: «el I departamental»", "vuelve «el I» de Moran"),
+            ("T3.2r2: la fila de ρ dice «correlación» para negarla", "la fila de ρ del glosario"),
+            ("T3.3: el panel de la ergodicidad deja de arrancar oculto", "no está una sola vez, oculto"),
+            ("T3.3: el botón del panel de E[s²] nombra otro id", "ningún botón de derivación nombra el panel"),
+            ("T3.3: el panel de Clark-Evans acaba sin su valor p", "no lleva la cifra en que acaba"),
+            ("T3.3: el módulo 6 deja de decir «ergodicidad»", "el módulo 6 no dice «ergodicidad»"),
+            ("T3.3: las células pasan a rotularse «Agregado»", "la tabla de Clark-Evans rotula"),
+            ("T3.3: con Donnelly el p de los pinos baja", "con Donnelly el p de los pinos ya no sube"),
+            ("T3.3: la sd medida se aparta de la exacta más que el ruido", "el panel lo llama ruido"),
+            ("T3.3: al rellenar, la sd de la media se aleja de su límite", "ya no está en su límite"),
+            ("T3.3: la ergodicidad apunta a otra fila del techo", "no es la última de la tabla del techo"),
+            ("T3.3r2 A: la z de las secuoyas en la tabla es la de Donnelly", "no da en la fila de"),
+            ("T3.3r2 B: el límite del relleno y el valor con 4 096, intercambiados",
+             "no dice el límite del relleno"),
+            ("T3.3r2 E: el cierre de E[I] dice −1/(n′ − 1)", "el cierre de E[I] ya no dice"),
+            ("T3.3r2 G: la nota del borde da el p sin corregir como el de Donnelly",
+             "la nota del borde no da la z y el p de Donnelly"),
+            ("T3.3r2 H: la definición cita la sd de la ampliación", "la definición de ergodicidad no cita"),
+            ("T3.3r2 J: el pie de la tabla dice Donnelly", "el pie de la tabla de Clark-Evans no dice"),
+            ("T3.3r2 K: el cierre de E[s²] da la esperada como media de las réplicas", "el cierre de E[s²] no da"),
     ):
         ESPERA[_nombre] = _mensaje
 
@@ -1303,8 +1572,9 @@ def main() -> int:
     # ensamblador. Lo estrenó `baraja_opciones.py` el 2026-09-02; el 2026-11-02 se
     # sumó `describe_mapa.py`, las guardas de «Describir el mapa», y el 2026-11-12 los
     # de la capa de fuentes: el ensamblador escribe las citas con `genera_referencias.genera()`.
+    # R3 · T3.4: `mide_duraciones_cap1.py`, que la guarda de las duraciones importa.
     for auxiliar in ("baraja_opciones.py", "pon_boton_indice.py", "describe_mapa.py",
-                     "genera_referencias.py", "fuentes_config.py"):
+                     "genera_referencias.py", "fuentes_config.py", "mide_duraciones_cap1.py"):
         origen = ENSAMBLADOR.parent / auxiliar
         if not origen.exists():
             print(f"PARADO: falta {origen}")
@@ -1461,6 +1731,49 @@ def main() -> int:
             print(f"  MAL  «{nombre_m}» NO para el ensamblado (código {cod_m})")
     igual_html = igual_html and (publicado_antes is None or PUBLICADO.read_bytes() == publicado_antes)
 
+    # --- R3 · T3.4: LOS USOS LEGÍTIMOS NO SALTAN -----------------------
+    # La guarda de la crónica es de palabras, y una guarda de palabras que
+    # salta sobre lo legítimo se acaba desactivando. Se le ponen delante, en
+    # una copia, todos los usos que tiene que dejar pasar a la vez, y el
+    # ensamblado tiene que salir limpio: el generador de números aleatorios en
+    # la prosa, un formato (GeoJSON) y un archivo (versiones.json); «auditor» y
+    # «JSON» en un comentario HTML, en un comentario de JavaScript, dentro de un
+    # bloque de código y en un aviso de consola, que el estudiante no lee.
+    print("\n  T3.4: los usos legítimos de esas palabras no paran el ensamblado")
+    LEGITIMOS = [
+        ("Ocho preguntas de los cuatro tipos.",
+         "Ocho preguntas de los cuatro tipos. <!-- el auditor y el JSON, en un comentario --> Ninguna depende "
+         "del generador de números aleatorios, ni del Generador de números pseudoaleatorios de R, ni de un "
+         "GeoJSON, ni de <code>precalculo/versiones.json</code>."),
+        ("    AUTOEVALUACIONES['cap1-diagnostica'] = [",
+         "    // El auditor lee este JSON; el generador también.\n"
+         "    const _avisoLegitimo = () => console.error('para quien depura: el JSON y el auditor');\n"
+         "    AUTOEVALUACIONES['cap1-diagnostica'] = ["),
+        ('cat(sprintf("%d de %d = %.5f %%\\\\n",',
+         '# el JSON del auditor y su generador, en un comentario de R\ncat(sprintf("%d de %d = %.5f %%\\\\n",'),
+        # R3 · T3.5r2 (V-F): un comentario que NOMBRA lo que no viaja no es leerlo.
+        ("banda &lt;- function(lo, hi) {",
+         "# Sin source() ni datos/procesado: todo sale de entrega/datos.\nbanda &lt;- function(lo, hi) {"),
+    ]
+    legit = fuente
+    l_inertes = [v for v, _ in LEGITIMOS if legit.count(v) != 1]
+    for viejo, nuevo in LEGITIMOS:
+        legit = legit.replace(viejo, nuevo, 1)
+    copia = tmp / "ensambla_cap1_legitimos.py"
+    copia.write_text(legit, encoding="utf-8")
+    cod_l, sal_l, _ = corre(tmp, copia, dict(limpias))
+    l_ok = cod_l == 0 and not l_inertes and "Ensamblado limpio" in sal_l
+    if l_inertes:
+        print(f"  INERTE  {len(l_inertes)} ancla(s) de los usos legítimos no aparecen una sola vez: "
+              f"{[v[:40] for v in l_inertes]}")
+    elif l_ok:
+        print(f"  OK   {len(LEGITIMOS)} inserciones legítimas a la vez · el ensamblado sale limpio")
+    else:
+        print(f"  MAL  los usos legítimos paran el ensamblado (código {cod_l}):")
+        for m in males(sal_l)[:4]:
+            print(f"      {m[:120]}")
+    igual_html = igual_html and (publicado_antes is None or PUBLICADO.read_bytes() == publicado_antes)
+
     print("\n" + "=" * 70)
     print(f"  {len(MUT_DESC) - d_colados} de {len(MUT_DESC)} mutantes de las descripciones paran el ensamblado")
     print(f"  {cazados} de {cazados + colados} defectos cazados"
@@ -1475,7 +1788,9 @@ def main() -> int:
     print("=" * 70)
 
     shutil.rmtree(tmp, ignore_errors=True)
-    ok = (colados == 0 and inertes == 0 and cod == 0 and intactos and igual_html and d_colados == 0)
+    print(f"  usos legítimos de «auditor», «generador» y «JSON»: {'no saltan' if l_ok else 'SALTAN o inertes'}")
+    ok = (colados == 0 and inertes == 0 and cod == 0 and intactos and igual_html and d_colados == 0
+          and l_ok)
     return 0 if ok else 1
 
 
