@@ -3510,6 +3510,110 @@ def main() -> int:
              f"{c4[0].get('media_espacial') if c4 else '—'} frente a {inf_['cien_ic']['media'][0]}")
 
     # =================================================================
+    a.titulo("11d · El extracto que viaja (R3 · T3.5)")
+    # =================================================================
+    # `genera_datos_cap1.R` escribe en `entrega/datos/` lo que leen los
+    # bloques y los ejercicios desde fuera, y sus propias anclas lo releen en
+    # R. Aquí se rehace en Python desde las fuentes, por otro camino: la
+    # vecindad de reina con libpysal sobre los polígonos completos, el punto
+    # interior contra su polígono, y cada tamaño que el capítulo publica
+    # contra el archivo en el disco.
+    import shapely
+    import libpysal
+    from libpysal.weights import w_subset
+    EX = D["extracto"]
+    ENTREGA = RAIZ
+    for clave in ("municipios", "reina", "snow", "pinos", "meuse", "nc", "estaciones",
+                  "departamentos"):
+        f = EX[clave]
+        ruta_f = ENTREGA / f["ruta"]
+        if not ruta_f.is_file():
+            a.cierto(False, f"extracto: {f['archivo']} está en el disco", "no está")
+            continue
+        b_ = ruta_f.stat().st_size
+        a.cierto(b_ == f["bytes"] and f["kb"] == round(b_ / 1e3) and abs(f["mb"] - round(b_ / 1e6, 1)) < 1e-9,
+                 f"extracto: el tamaño de {f['archivo'][:24]}",
+                 f"{b_} B en el disco, {f['bytes']} publicados ({f['kb']} KB, {f['mb']} MB)")
+    a.cierto(f"{EX['carpeta']}/" == "entrega/datos/", "extracto: la carpeta es la que se publica", EX["carpeta"])
+
+    em = gpd.read_file(ENTREGA / EX["municipios"]["ruta"])
+    adm2 = gpd.read_file(PROCESADO / "colombia_adm2.gpkg")
+    llave2 = pd.read_csv(PROCESADO / "municipios_llave.csv", dtype={"divipola": str})
+    s11 = pd.read_csv(PROCESADO / "municipios_saber11.csv", dtype={"divipola": str})
+    ref = adm2[["shapeID", "geometry"]].merge(llave2, on="shapeID", how="left").merge(s11, on="divipola", how="left")
+    a.igual(len(em), len(adm2), "extracto: municipios, los de la MGN")
+    a.igual(len(em), EX["municipios"]["filas"], "extracto: municipios, los publicados")
+    a.cierto(list(em.divipola) == list(ref.divipola), "extracto: el orden de las filas es el de la MGN",
+             "los remuestreos sortean posiciones")
+    a.cierto(em.crs.to_epsg() == EX["municipios"]["crs_epsg"] == 9377, "extracto: EPSG:9377",
+             str(em.crs.to_epsg()))
+    cols = [c for c in em.columns if c != "geometry"]
+    a.cierto(cols == list(EX["municipios"]["columnas"]), "extracto: las columnas publicadas, y solo esas",
+             ", ".join(cols))
+    iguales = all(np.allclose(em[c].to_numpy(float), ref[c].to_numpy(float), equal_nan=True, rtol=0, atol=0)
+                  for c in ("desercion", "cobertura", "s11_punt_medio", "s11_pct_internet"))
+    a.cierto(iguales, "extracto: los valores son los de datos/procesado", "las cuatro columnas numéricas")
+    a.igual(int(em.desercion.notna().sum()), EX["municipios"]["n_desercion"], "extracto: con deserción")
+    a.igual(int(em.cobertura.notna().sum()), EX["municipios"]["n_cobertura"], "extracto: con cobertura")
+    dentro = shapely.contains(ref.geometry.values, em.geometry.values) | shapely.touches(
+        ref.geometry.values, em.geometry.values)
+    a.cierto(bool(dentro.all()) and (em.geom_type == "Point").all(),
+             "extracto: cada punto cae en su municipio", f"{int(dentro.sum())} de {len(em)}")
+    a.igual(int(shapely.get_num_coordinates(adm2.geometry.values).sum()), EX["poligonos"]["vertices"],
+            "extracto: vértices del polígono que no viaja")
+    a.cierto(abs(EX["poligonos"]["mb"] - round((PROCESADO / "colombia_adm2.gpkg").stat().st_size / 1e6, 1)) < 1e-9,
+             "extracto: los MB del polígono que no viaja", str(EX["poligonos"]["mb"]))
+
+    # La vecindad del GAL contra la que calcula libpysal sobre el polígono.
+    gal = libpysal.io.open(str(ENTREGA / EX["reina"]["ruta"])).read()
+    a.cierto(list(gal.id_order) == list(em.divipola), "extracto: el GAL lleva divipola, en orden",
+             f"{gal.n} identificadores")
+    w_todo = Queen.from_dataframe(ref, use_index=False, silence_warnings=True)
+    ids = list(ref.divipola)
+    mismos = all(set(gal.neighbors[ids[i]]) == {ids[j] for j in w_todo.neighbors[i]} for i in range(len(ids)))
+    a.cierto(mismos, "extracto: la reina de R es la de libpysal", f"{len(ids)} municipios")
+    ok_ids = list(em.loc[em.desercion.notna(), "divipola"])
+    w_ok = w_subset(gal, ok_ids, silence_warnings=True)
+    a.igual(len(w_ok.islands), esc["islas_municipal"], "extracto: islas, desde el GAL")
+    a.igual(np.mean([len(v) for v in w_ok.neighbors.values()]), esc["grado_municipal"],
+            "extracto: grado medio, desde el GAL", 1e-7)
+
+    # Lo de Python que en R viene en un paquete.
+    a.cierto(pd.read_csv(ENTREGA / EX["snow"]["ruta"]).equals(pd.read_csv(SALIDAS / "cap1_snow.csv")),
+             "extracto: Snow es el CSV del capítulo")
+    pp_ = pd.read_csv(SALIDAS / "cap1_ppp.csv")
+    pinos = pd.read_csv(ENTREGA / EX["pinos"]["ruta"])
+    a.cierto(np.allclose(pinos[["x", "y"]].to_numpy(),
+                         pp_[pp_.patron == "japanesepines"][["x", "y"]].to_numpy(), rtol=0, atol=0),
+             "extracto: los pinos son los del capítulo", f"{len(pinos)} puntos")
+    me_ = pd.read_csv(ENTREGA / EX["meuse"]["ruta"])
+    a.cierto(me_.equals(pd.read_csv(SALIDAS / "cap1_meuse.csv")[["x", "y", "zinc"]]),
+             "extracto: meuse, con x, y y zinc", ", ".join(me_.columns))
+    ncx = gpd.read_file(ENTREGA / EX["nc"]["ruta"])
+    nco = gpd.read_file(ver["rutas"]["nc_shp"])
+    a.cierto(bool(ncx.geometry.geom_equals_exact(nco.geometry, tolerance=0).all())
+             and ncx.drop(columns="geometry").equals(nco.drop(columns="geometry")),
+             "extracto: nc es el nc.shp de sf, sin tocar")
+    a.cierto(ncx.geom_type.value_counts().to_dict() == nco.geom_type.value_counts().to_dict(),
+             "extracto: nc conserva el tipo de cada rasgo",
+             str(ncx.geom_type.value_counts().to_dict()))
+
+    # Los dos del Taller 1 que el capítulo reutiliza, contra su fuente.
+    et = gpd.read_file(ENTREGA / EX["estaciones"]["ruta"])
+    ep = gpd.read_file(PROCESADO / "colombia_estaciones_clima.gpkg")
+    a.cierto(bool(et.geometry.geom_equals_exact(ep.geometry, tolerance=0).all())
+             and np.array_equal(et.t_media_anual.to_numpy(), ep.t_media_anual.to_numpy()),
+             "extracto: las estaciones del Taller 1 son las del IDEAM")
+    dt = gpd.read_file(ENTREGA / EX["departamentos"]["ruta"])
+    dp = gpd.read_file(PROCESADO / "colombia_adm1.gpkg")
+    a.cierto(bool(dt.geometry.geom_equals_exact(dp.geometry, tolerance=0).all()),
+             "extracto: los departamentos del Taller 1, los de ADM1")
+    for k in ("e2", "e4"):
+        a.cierto(S[k]["solucion"]["archivo"] == EX["municipios"]["ruta"]
+                 and "carga_municipios" not in S[k]["enunciado"],
+                 f"extracto: el ejercicio {k[1]} lee el archivo de municipios")
+
+    # =================================================================
     a.titulo("12 · Formato, codificación y redondeo")
     # =================================================================
     for nombre, ruta in (("datos", ruta_d), ("mapas", ruta_m), ("soluciones", ruta_s)):

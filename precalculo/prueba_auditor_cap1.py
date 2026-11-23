@@ -593,6 +593,38 @@ def defectos() -> list[tuple[str, str, str, object]]:
         m(lambda o: o["glosario"]["filas"].remove(_fila(o, "m(s)"))))
     add("R3 · T3.2: la fila de la matriz deja de decir cómo la escriben los caps. 6 y 7", "datos",
         m(lambda o: _fila(o, "\\mathbf{W}").__setitem__("nombre", "La matriz de pesos espaciales")))
+    # --- R3 · T3.5: el extracto que viaja -------------------------------
+    # Los tamaños, los conteos y las rutas que el capítulo publica junto a
+    # cada enlace (`D["extracto"]`), contra el disco y contra el polígono que
+    # no viaja. `--solo "R3 · T3.5"` corre solo esta tanda.
+    def _ex(o, k):
+        return o["extracto"][k]
+    add("R3 · T3.5: el tamaño publicado del GAL se aparta un byte", "datos",
+        m(lambda o: _ex(o, "reina").__setitem__("bytes", _ex(o, "reina")["bytes"] + 1)))
+    add("R3 · T3.5: los KB de los municipios se redondean mal", "datos",
+        m(lambda o: _ex(o, "municipios").__setitem__("kb", _ex(o, "municipios")["kb"] + 1)))
+    add("R3 · T3.5: los MB de los departamentos, con otro decimal", "datos",
+        m(lambda o: _ex(o, "departamentos").__setitem__("mb", 5.3)))
+    add("R3 · T3.5: un municipio de más en el extracto", "datos",
+        m(lambda o: _ex(o, "municipios").__setitem__("filas", _ex(o, "municipios")["filas"] + 1)))
+    add("R3 · T3.5: uno menos con deserción", "datos",
+        m(lambda o: _ex(o, "municipios").__setitem__("n_desercion", _ex(o, "municipios")["n_desercion"] - 1)))
+    add("R3 · T3.5: una columna que el archivo no trae", "datos",
+        m(lambda o: _ex(o, "municipios")["columnas"].append("shapeID")))
+    add("R3 · T3.5: otra proyección declarada", "datos",
+        m(lambda o: _ex(o, "municipios").__setitem__("crs_epsg", 4326)))
+    add("R3 · T3.5: los vértices del polígono que no viaja", "datos",
+        m(lambda o: o["extracto"]["poligonos"].__setitem__("vertices", o["extracto"]["poligonos"]["vertices"] - 1)))
+    add("R3 · T3.5: los MB del polígono que no viaja", "datos",
+        m(lambda o: o["extracto"]["poligonos"].__setitem__("mb", 81.6)))
+    add("R3 · T3.5: el archivo de los municipios cambia de ruta", "datos",
+        m(lambda o: _ex(o, "municipios").__setitem__("ruta", "entrega/datos/cap1_municipio.gpkg")))
+    add("R3 · T3.5: la carpeta publicada deja de ser entrega/datos", "datos",
+        m(lambda o: o["extracto"].__setitem__("carpeta", "datos/procesado")))
+    add("R3 · T3.5: el ejercicio 2 vuelve a carga_municipios()", "soluciones",
+        m(lambda o: o["e2"].__setitem__("enunciado", "Con `carga_municipios()`, " + o["e2"]["enunciado"])))
+    add("R3 · T3.5: el ejercicio 4 lee otro archivo", "soluciones",
+        m(lambda o: o["e4"]["solucion"].__setitem__("archivo", "datos/procesado/colombia_adm2.gpkg")))
     # --- R3 · T3.3: un mutante por cifra nueva -------------------------
     # La prueba de Clark-Evans del módulo 3 (C1-09) y la ergodicidad del
     # módulo 6 (C1-22). `--solo "R3 · T3.3"` corre solo esta tanda.

@@ -253,6 +253,50 @@ def tabs(etiqueta, r_code, py_code):
 
 
 # =====================================================================
+# R3 · T3.5 (D9, H-07): el extracto de datos y dónde se descarga
+# =====================================================================
+# Los bloques leían `datos/procesado/…` y `precalculo/salidas/…`, que no
+# viajan al sitio, y llamaban a `carga_municipios()`: quien copiaba un bloque
+# desde GitHub Pages no lo podía ejecutar. Ahora leen `entrega/datos/`, que
+# escribe `genera_datos_cap1.R` (lo llama genera_cap1.R), y los tamaños y
+# los conteos que se publican junto a cada enlace vienen de `D["extracto"]`.
+# Cada módulo que lee datos lleva UNA nota, delante de su primer bloque, con
+# los enlaces y la frase de la ruta, como el ejercicio 3. `guardas_de_t35()`
+# comprueba que ningún bloque vuelva a leer lo que no viaja.
+EX = D["extracto"]
+CARPETA_DATOS = EX["carpeta"]
+# La atribución, con la frase que el material ya usa para estos datos (el
+# módulo 1 del Taller 1) y las licencias de `datos/procesado/procedencia.json`.
+ATRIB_IDEAM = ("las estaciones son del <strong>IDEAM</strong> (normales climatológicas, "
+               "CC BY-SA 4.0)")
+ATRIB_DANE = ("del <strong>DANE</strong> (Marco Geoestadístico Nacional) por vía de "
+              "geoBoundaries (CC BY 4.0)")
+
+
+def tam_archivo(f):
+    """El tamaño de un archivo del extracto, en KB o en MB, tal como lo midió R."""
+    return f"{f['mb']}&nbsp;MB" if f["bytes"] >= 1e6 else f"{f['kb']}&nbsp;KB"
+
+
+def enlace_datos(clave):
+    f = EX[clave]
+    return (f'<a href="../{f["ruta"]}" download target="_blank" rel="noopener">'
+            f'<code>{f["archivo"]}</code></a> ({tam_archivo(f)})')
+
+
+def nota_datos(texto, varios=True, cola=""):
+    """La nota de descarga de un módulo: los enlaces y la frase de la ruta."""
+    ruta = ("los busca en <code>{c}/</code>: esa ruta se cambia por la del lugar donde se hayan "
+            "guardado." if varios else
+            "lo busca en <code>{c}/</code>: esa ruta se cambia por la del lugar donde se haya "
+            "guardado.").format(c=CARPETA_DATOS)
+    return f"""      <p class="text-sm nota-datos" style="margin:0 0 0.5rem;">{texto} El código
+        {ruta}{(' ' + cola) if cola else ''}</p>
+
+"""
+
+
+# =====================================================================
 # MÓDULO 1 · El mapa que cambió la epidemiología
 # =====================================================================
 # Abre con la prueba diagnóstica de entrada (decisión de Javier del
@@ -449,7 +493,11 @@ MOD1 = cabecera(
         <strong>{sn['n_coinciden_tobler']} de {sn['n_muertes']}</strong>. Son dos construcciones distintas de la
         misma idea, y si discreparan habría que averiguar cuál está mal antes de publicar ninguna de las dos.</p>
 
-""" + tabs(
+""" + nota_datos(
+    f"La pestaña de Python lee las muertes y las bombas de un archivo, {enlace_datos('snow')}, porque "
+    "<code>HistData</code> es un paquete de R; la de R no necesita descargar nada.", varios=False,
+    cola="Qué paquetes hay que instalar, y cómo, lo dice el recuadro «Prepara tu entorno» del "
+         "módulo 8.") + tabs(
     "La concentración alrededor de Broad Street, en R y en Python",
     """library(HistData)
 data(Snow.deaths); data(Snow.pumps)
@@ -465,12 +513,12 @@ cat(sprintf("%d de %d = %.5f %%\\n",
             sum(mas_cerca == i_broad), nrow(muertes),
             100 * mean(mas_cerca == i_broad)))
 #&gt; """ + f"{sn['n_mas_cerca_broad']} de {sn['n_muertes']} = {n(sn['pct_mas_cerca_broad'])} %",
-    """# HistData no existe en Python. El precalculo exporta el mismo dato a
-# CSV (cap1_snow.csv) justo para que esta pestana no tenga que fingir.
+    """# HistData no existe en Python: el mismo dato viaja en un CSV
+# (cap1_snow.csv) para que esta pestana no tenga que fingir.
 import pandas as pd, numpy as np
 from scipy.spatial import cKDTree
 
-sw = pd.read_csv("precalculo/salidas/cap1_snow.csv")
+sw = pd.read_csv("entrega/datos/cap1_snow.csv")
 mu = sw[sw.tipo == "muerte"][["x", "y"]].to_numpy()
 bo = sw[sw.tipo == "bomba"]
 i_broad = int(np.flatnonzero(bo.etiqueta.to_numpy() == "Broad St")[0])
@@ -894,7 +942,13 @@ MOD2 = cabecera(
         archivo sabe; el fenómeno es lo que sabes tú, y no viaja en el archivo. La casilla incómoda es la de arriba
         a la derecha, porque es la que se produce sola: basta con pedir centroides.</p>
 
-""" + tabs(
+""" + nota_datos(
+    "La pestaña de Python lee tres archivos, porque los tres datos vienen en paquetes de R: "
+    f"{enlace_datos('pinos')}, los {EX['pinos']['filas']} pinos de <code>spatstat.data</code>; "
+    f"{enlace_datos('nc')}, los {EX['nc']['filas']} condados de Carolina del Norte que trae <code>sf</code> "
+    "(el módulo 9 abre este archivo por dentro); y "
+    f"{enlace_datos('meuse')}, el zinc de <code>sp</code> con sus coordenadas. La pestaña de R los toma "
+    "de los paquetes.") + tabs(
     "Leer un patrón puntual, un dato de área y uno geoestadístico",
     """library(sf); library(spatstat.geom)
 
@@ -926,27 +980,25 @@ aviso &lt;- tryCatch({ st_centroid(nc[, c("BIR74", "SID74", "NAME")]); "sin avis
                   warning = function(w) conditionMessage(w))
 cat(aviso, "\\n")
 #&gt; st_centroid assumes attributes are constant over geometries""",
-    """import geopandas as gpd, pandas as pd, numpy as np, json
+    """import geopandas as gpd, pandas as pd, numpy as np
 
 # 1) spatstat no existe en Python: pointpats trabaja con el array y la
 #    ventana POR SEPARADO, que es justo la diferencia de diseno que el
 #    modulo 9 comenta. El dato va por CSV.
-pp = pd.read_csv("precalculo/salidas/cap1_ppp.csv")
-jp = pp[pp.patron == "japanesepines"]
+jp = pd.read_csv("entrega/datos/cap1_japanesepines.csv")
 print(f"n = {len(jp)}, area de la ventana = {1.0:.5f}, "
       f"lambda = {len(jp) / 1.0:.5f}")
 #> """ + f"n = {pc['japanesepines']['n']}, area de la ventana = {n(pc['japanesepines']['area'])}, "
     f"lambda = {n(pc['japanesepines']['lambda'])}" + """
 
 # 2) Dato de area: GeoDataFrame, el equivalente de un objeto sf.
-ver = json.load(open("precalculo/versiones.json"))
-nc = gpd.read_file(ver["rutas"]["nc_shp"])
+nc = gpd.read_file("entrega/datos/cap1_nc.gpkg")
 print(f"{len(nc)} unidades, tasa media de SIDS = "
       f"{(1000 * nc.SID74 / nc.BIR74).mean():.5f} por mil")
 #> """ + f"{ac['n']} unidades, tasa media de SIDS = {n(ac['tasa_media'])} por mil" + """
 
 # 3) Geoestadistico.
-me = pd.read_csv("precalculo/salidas/cap1_meuse.csv")
+me = pd.read_csv("entrega/datos/cap1_meuse.csv")
 print(f"n = {len(me)}, zinc medio = {me.zinc.mean():.5f} ppm, "
       f"sd = {me.zinc.std(ddof=1):.5f}")
 #> """ + f"n = {gc['n']}, zinc medio = {n(gc['zinc_media'])} ppm, sd = {n(gc['zinc_sd'])}" + """
@@ -1216,11 +1268,14 @@ MOD3 = cabecera(
         </tbody>
       </table>
 
-""" + tabs(
+""" + nota_datos(
+    f"Los dos bloques leen las {EX['estaciones']['filas']} estaciones del archivo del Taller&nbsp;1, "
+    f"{enlace_datos('estaciones')}. Son datos de terceros que se redistribuyen con atribución: "
+    f"{ATRIB_IDEAM}.", varios=False) + tabs(
     "El correlograma por bandas, en R y en Python",
     """library(sf); library(spdep)
 
-est &lt;- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
+est &lt;- st_read("entrega/datos/taller1_estaciones.gpkg", quiet = TRUE)
 
 banda &lt;- function(lo, hi) {
   nb &lt;- dnearneigh(st_coordinates(est), lo * 1000, hi * 1000)
@@ -1236,7 +1291,7 @@ cat(sprintf("0-25 km: I = %.5f   |   500-800 km: I = %.5f\\n",
 # Aqui la I se calcula A MANO, y no con esda, por una razon que el modulo 9
 # desarrolla: los dos programas no cuentan igual las unidades sin vecinos.
 # Escribir la formula deja el convenio a la vista en vez de heredarlo.
-est = gpd.read_file("datos/procesado/colombia_estaciones_clima.gpkg")
+est = gpd.read_file("entrega/datos/taller1_estaciones.gpkg")
 xy = np.c_[est.geometry.x, est.geometry.y]
 t = est.t_media_anual.to_numpy()
 dm = np.sqrt(((xy[:, None, :] - xy[None, :, :]) ** 2).sum(-1)) / 1000
@@ -1809,13 +1864,21 @@ MOD4 = cabecera(
           contar con {ent(ir['n_departamentos'])} bloques.</p>
       </div>
 
-""" + tabs(
+""" + nota_datos(
+    f"Los dos bloques leen {enlace_datos('municipios')}: los {ent(EX['municipios']['filas'])} municipios, "
+    "cada uno con un punto interior y cinco columnas, "
+    + ", ".join(f"<code>{c}</code>" for c in EX["municipios"]["columnas"][:-1])
+    + f" y <code>{EX['municipios']['columnas'][-1]}</code>. El departamento lo sacan los bloques de los "
+    "dos primeros dígitos de <code>divipola</code>. Son datos de terceros que se redistribuyen con "
+    "atribución: la deserción y la cobertura neta son del <strong>Ministerio de Educación "
+    "Nacional</strong> (CC BY-SA 4.0), los resultados de Saber 11, del <strong>ICFES</strong> "
+    f"(CC BY-SA 4.0), y los municipios, {ATRIB_DANE}.", varios=False) + tabs(
     "El error estándar ingenuo frente al de bloques, sobre la deserción real",
-    """source("precalculo/fuentes.R")
+    """library(sf)
 
-mun &lt;- carga_municipios()
+mun &lt;- st_read("entrega/datos/cap1_municipios.gpkg", quiet = TRUE)
 ok  &lt;- mun[!is.na(mun$desercion), ]
-ok$dpto &lt;- substr(ok$divipola, 1, 2)
+ok$dpto &lt;- substr(ok$divipola, 1, 2)      # el departamento
 bloques &lt;- split(ok$desercion, ok$dpto)
 B &lt;- 4000
 
@@ -1888,9 +1951,9 @@ cat(sprintf("e.e. jackknife: factor %.5f | n efectivo %.5f\\n",
             ee_jk[["factor"]], ee_jk[["n_eff"]]))
 #&gt; """ + f"e.e. jackknife: factor {n(sud['ee_jackknife_factor'])} | n efectivo "
     f"{n(sud['ee_jackknife_n_eff'])}",
-    """import pandas as pd, numpy as np
+    """import geopandas as gpd, numpy as np
 
-mun = pd.read_csv("datos/procesado/municipios_llave.csv", dtype={"divipola": str})
+mun = gpd.read_file("entrega/datos/cap1_municipios.gpkg")
 d = mun.dropna(subset=["desercion"])
 x = d.desercion.to_numpy()
 dep = d.divipola.str[:2].to_numpy()
@@ -2728,7 +2791,14 @@ MOD7 = cabecera(
           incorrecto: se elige entre dos aproximaciones, y lo honesto es decir cuál se usó.</p>
       </div>
 
-""" + tabs(
+""" + nota_datos(
+    f"La pestaña de Python del primer bloque lee {enlace_datos('nc')}, el del módulo 2. El segundo bloque "
+    f"lee {enlace_datos('municipios')}, el del módulo 4, y la vecindad de reina de los municipios, "
+    f"{enlace_datos('reina')}, en GAL, un formato de texto que leen <code>spdep</code> y "
+    "<code>libpysal</code>. La vecindad viaja ya calculada porque el polígono municipal completo no "
+    f"viaja: son {ent(EX['poligonos']['vertices'])} vértices y {EX['poligonos']['mb']}&nbsp;MB, y "
+    "simplificarlo para que pese menos podría cambiar los vecinos y, con ellos, la I. El bloque de R "
+    "deja escrita, comentada, la línea que la calculó.") + tabs(
     "Agregar por predicado y agregar repartiendo",
     """library(sf)
 
@@ -2748,11 +2818,10 @@ cat(sprintf("condados = %d | rectangulos = %d\\n", sum(ncp$SID74), por_rect))
 aw &lt;- st_interpolate_aw(ncp["SID74"], rej, extensive = TRUE)
 cat(sprintf("repartido por area = %.5f\\n", sum(aw$SID74, na.rm = TRUE)))
 #&gt; """ + f"repartido por area = {n(agn['total_por_area'])}",
-    """import geopandas as gpd, json
+    """import geopandas as gpd
 from shapely.geometry import box
 
-ver = json.load(open("precalculo/versiones.json"))
-ncp = gpd.read_file(ver["rutas"]["nc_shp"]).to_crs(2264)
+ncp = gpd.read_file("entrega/datos/cap1_nc.gpkg").to_crs(2264)
 x0, y0, x1, y1 = ncp.total_bounds
 dx, dy = (x1 - x0) / 10, (y1 - y0) / 10
 rej = gpd.GeoDataFrame(geometry=[
@@ -2761,7 +2830,7 @@ rej = gpd.GeoDataFrame(geometry=[
 
 # 1) El sjoin por "intersects" hace exactamente lo que aggregate() en R.
 u = gpd.sjoin(ncp[["SID74", "geometry"]], rej, predicate="intersects")
-print(f"condados = {ncp.SID74.sum()} | "
+print(f"condados = {int(ncp.SID74.sum())} | "
       f"rectangulos = {int(u.groupby('index_right').SID74.sum().sum())}")
 #> """ + f"condados = {agn['total_condados']} | rectangulos = {agn['total_rectangulos']}" + """
 
@@ -2773,14 +2842,20 @@ t = gpd.overlay(ncp[["SID74", "geometry"]].assign(a=ncp.geometry.area),
 print(f"repartido por area = {(t.SID74 * t.geometry.area / t.a).sum():.5f}")
 #> """ + f"repartido por area = {n(agn['total_por_area'])}") + tabs(
     "La misma variable a dos escalas",
-    """library(sf); library(spdep); source("precalculo/fuentes.R")
+    """library(sf); library(spdep)
 
-mun &lt;- carga_municipios()
-ok  &lt;- mun[!is.na(mun$desercion), ]
-nb  &lt;- poly2nb(ok, queen = TRUE)
-I_mun &lt;- moran.test(ok$desercion, nb2listw(nb, style = "W", zero.policy = TRUE),
+mun &lt;- st_read("entrega/datos/cap1_municipios.gpkg", quiet = TRUE)
+# La vecindad de reina de todos, calculada sobre los poligonos completos
+# (que no viajan) con
+#   poly2nb(poligonos, queen = TRUE, row.names = divipola)
+# Se lee emparejando por divipola, no por posicion.
+reina &lt;- read.gal("entrega/datos/cap1_municipios_reina.gal",
+                  region.id = mun$divipola)
+ok &lt;- !is.na(mun$desercion)
+nb &lt;- subset(reina, ok)      # solo los vecinos que tienen dato
+I_mun &lt;- moran.test(mun$desercion[ok], nb2listw(nb, style = "W", zero.policy = TRUE),
                     zero.policy = TRUE)$estimate[["Moran I statistic"]]
-cat(sprintf("municipal: n = %d, I = %.5f\\n", nrow(ok), I_mun))
+cat(sprintf("municipal: n = %d, I = %.5f\\n", sum(ok), I_mun))
 #&gt; """ + f"municipal: n = {es['n_municipal']}, I = {n(es['moran_municipal'])}" + """
 
 # Islas y subgrafos: no son un defecto del dato, son el caso trabajado
@@ -2789,25 +2864,160 @@ cat(sprintf("islas = %d, subgrafos = %d, grado medio = %.5f\\n",
             sum(card(nb) == 0), n.comp.nb(nb)$nc, mean(card(nb))))
 #&gt; """ + f"islas = {es['islas_municipal']}, subgrafos = {es['subgrafos_municipal']}, "
     f"grado medio = {n(es['grado_municipal'])}",
-    """import geopandas as gpd, pandas as pd, numpy as np
-from libpysal.weights import Queen
+    """import geopandas as gpd, numpy as np, libpysal
+from libpysal.weights import w_subset
 
-geo = gpd.read_file("datos/procesado/colombia_adm2.gpkg")
-atr = pd.read_csv("datos/procesado/municipios_llave.csv", dtype={"divipola": str})
-mun = geo.merge(atr, on="shapeID")           # la union va por shapeID
-ok = mun.dropna(subset=["desercion"]).reset_index(drop=True)
-
-w = Queen.from_dataframe(ok, use_index=False, silence_warnings=True)
+mun = gpd.read_file("entrega/datos/cap1_municipios.gpkg")
+# La misma vecindad de reina; libpysal toma divipola como identificador.
+reina = libpysal.io.open("entrega/datos/cap1_municipios_reina.gal").read()
+ok = mun.loc[mun.desercion.notna(), "divipola"].tolist()
+w = w_subset(reina, ok, silence_warnings=True)   # solo los que tienen dato
 islas = [i for i, v in w.neighbors.items() if not v]
 print(f"n = {len(ok)}, islas = {len(islas)}, "
       f"grado medio = {np.mean([len(v) for v in w.neighbors.values()]):.5f}")
 #> """ + f"n = {es['n_municipal']}, islas = {es['islas_municipal']}, "
-    f"grado medio = {n(es['grado_municipal'])}") + CIERRE
+    f"grado medio = {n(es['grado_municipal'])}" + """
+
+# Y la I con los pesos de libpysal, escrita a mano como en el modulo 3:
+# estandarizada por filas (style = "W") y con n = los que tienen vecinos,
+# el convenio de spdep con zero.policy = TRUE. Tiene que dar la del bloque
+# de R. (Con los poligonos, libpysal.weights.Queen.from_dataframe() da
+# esta misma vecindad, municipio a municipio.)
+w.transform = "r"
+z = mun.set_index("divipola").loc[ok, "desercion"].to_numpy()
+z = z - z.mean()
+W = w.sparse
+n_con = len(ok) - len(islas)
+print(f"I = {(n_con / W.sum()) * (z @ (W @ z)) / (z @ z):.5f}, la de spdep")
+#> """ + f"I = {n(es['moran_municipal'])}, la de spdep") + CIERRE
 
 
 # =====================================================================
 # MÓDULO 8 · El ecosistema de R espacial
 # =====================================================================
+# R3 · T3.5 (H-07): «Prepara tu entorno». El syllabus pide en la semana 1 la
+# «Instalación del entorno de trabajo en R», y el capítulo no traía ni un
+# `install.packages`. Va en el módulo 8, y no en el 1, porque es el módulo de
+# los paquetes y de la tabla de versiones a la que remite; el módulo 1 deja
+# dicho, junto a su primer bloque, dónde está.
+#
+# Lo que el recuadro dice de las bibliotecas de sistema es SOLO lo que se leyó
+# el 2026-11-23 en la documentación de sf (README de r-spatial/sf y su página
+# de CRAN): que en Windows y macOS CRAN instala el binario, que para macOS pide
+# `type = "binary"` si R intenta compilar, y que en Linux pide GDAL, GEOS y
+# PROJ, con la orden de Ubuntu que se copia aquí. La activación del entorno de
+# Python es la de la documentación de `venv`. Ver diagnostico_cap1/R3_T3.5_estado.md.
+#
+# Las listas de paquetes NO se escriben aquí: `completa_entorno()` las saca, en
+# main(), de los library() y los import de los bloques ya ensamblados, y
+# sustituye las marcas @@…@@. Un bloque que cargue un paquete nuevo lo añade
+# solo a la orden de instalación.
+R_HUMO = """library(HistData); library(sf); library(spatstat.geom)
+library(spatstat.data); library(sp); library(spdep)
+
+mun &lt;- st_read("entrega/datos/cap1_municipios.gpkg", quiet = TRUE)
+cat(sprintf("%d municipios, EPSG:%d, %d con desercion\\n",
+            nrow(mun), st_crs(mun)$epsg, sum(!is.na(mun$desercion))))
+#&gt; """ + (f"{EX['municipios']['filas']} municipios, EPSG:{EX['municipios']['crs_epsg']}, "
+          f"{EX['municipios']['n_desercion']} con desercion")
+PY_HUMO = """import geopandas as gpd, shapely, pandas, numpy, scipy, libpysal
+
+mun = gpd.read_file("entrega/datos/cap1_municipios.gpkg")
+print(f"{len(mun)} municipios, EPSG:{mun.crs.to_epsg()}, "
+      f"{mun.desercion.notna().sum()} con desercion")
+#> """ + (f"{EX['municipios']['filas']} municipios, EPSG:{EX['municipios']['crs_epsg']}, "
+        f"{EX['municipios']['n_desercion']} con desercion")
+# R3 · T3.5, ronda 2. La licencia del extracto la decidió Javier el
+# 2026-11-23: los archivos cap1_* se publican bajo CC BY-SA 4.0, con la
+# atribución que el material ya usa (la frase del Taller 1 y procedencia.json).
+# `guardas_de_t35()` exige esta frase, una vez, dentro del recuadro.
+LICENCIA_EXTRACTO = "se publican bajo la licencia <strong>CC BY-SA 4.0</strong>"
+# Corrección del mismo día: la CC BY-SA 4.0 es SOLO para lo que deriva de los
+# datos del MEN, el ICFES y el DANE/geoBoundaries. Los cuatro archivos que
+# salen de paquetes de R no se pueden relicenciar: van con la licencia de su
+# paquete, el campo License de su DESCRIPTION, leído con packageDescription()
+# el 2026-11-23 (HistData 1.0.0, spatstat.data 3.1.9, sp 2.2.0, sf 1.0.22).
+# Qué permiten esas licencias sobre los datos no se ha leído y no se dice.
+CC_EXTRACTO = ("cap1_municipios.gpkg", "cap1_municipios_reina.gal")
+LICENCIAS_PAQUETES = {
+    "cap1_snow.csv": ("HistData", "GPL"),
+    "cap1_japanesepines.csv": ("spatstat.data", "GPL (&gt;= 2)"),
+    "cap1_meuse.csv": ("sp", "GPL (&gt;= 2)"),
+    "cap1_nc.gpkg": ("sf", "GPL-2 | MIT + file LICENSE"),
+}
+_lic_paq = [f"<code>{f}</code>, de <code>{p}</code> ({lic})" for f, (p, lic) in LICENCIAS_PAQUETES.items()]
+LICENCIAS_PAQUETES_TXT = "; ".join(_lic_paq[:-1]) + "; y " + _lic_paq[-1]
+# La orden que da la documentación de venv para PowerShell. Cada palabra va
+# en un trozo que no se parte: el navegador cortaba en el guion de «-Scope»
+# y en el teléfono se leía «- Scope». Copiada, sigue siendo la misma orden.
+ORDEN_PS = " ".join(f'<span style="white-space:nowrap">{t}</span>' for t in
+                    "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser".split())
+ENTORNO = f"""
+      <div class="definition" id="prepara-tu-entorno">
+        <h3>Prepara tu entorno</h3>
+        <p>Para ejecutar los bloques del capítulo fuera de esta página hacen falta R, o Python, con los paquetes
+          que usan los bloques, y los archivos de datos que leen. No hace falta instalar las versiones de la
+          tabla de arriba: son las que calcularon el material, y sirven para saber con qué se obtuvo una cifra
+          publicada si en otro equipo sale otra.</p>
+        <p><strong>R.</strong> Estas líneas instalan los paquetes de los bloques con todo lo que necesitan. La
+          primera guarda la lista en <code>paq</code>:</p>
+        <pre><code class="language-r arranque">paq &lt;- c(@@PAQUETES_R@@)
+
+# Windows y macOS:
+install.packages(paq,
+  type = "binary")
+
+# Linux, despues de las
+# bibliotecas de abajo:
+install.packages(paq)</code></pre>
+        <p>En Windows y macOS, CRAN distribuye <code>sf</code> ya compilado, y <code>type = "binary"</code> pide
+          ese paquete: es lo que la documentación de <code>sf</code> recomienda en macOS si R intenta compilarlo.
+          En Linux, <code>sf</code> se compila al instalarlo y necesita antes unas bibliotecas del sistema. La
+          documentación de <code>sf</code> y la de <code>s2</code>, un paquete que <code>sf</code> usa, piden
+          GDAL, GEOS, PROJ, SQLite, udunits, cmake, OpenSSL y Abseil. Esta orden de Ubuntu reúne los nombres que
+          dan las dos, y no se ha probado:</p>
+        <pre><code class="language-bash">sudo apt install cmake \\
+  libudunits2-dev \\
+  libgdal-dev \\
+  libgeos-dev \\
+  libproj-dev \\
+  libsqlite3-dev \\
+  libssl-dev \\
+  libabsl-dev</code></pre>
+        <p><strong>Python.</strong> Un entorno virtual, que deja estos módulos aparte de los del sistema. Se crea
+          una vez y se activa en cada sesión con la línea de tu sistema; dentro de él, <code>pip</code> instala
+          los módulos que importan los bloques:</p>
+        <pre><code class="language-bash">python -m venv geo
+
+# macOS y Linux:
+source geo/bin/activate
+# Windows, cmd.exe:
+geo\\Scripts\\activate.bat
+# Windows, PowerShell:
+geo\\Scripts\\Activate.ps1
+
+@@ORDEN_PIP@@</code></pre>
+        <p>En PowerShell, la documentación de <code>venv</code> advierte que puede hacer falta permitir antes el
+          guion de activación, con <code>{ORDEN_PS}</code>. El lado de Windows no se ha probado.</p>
+        <p><strong>Los datos.</strong> Cada módulo enlaza los archivos que leen sus bloques, junto al primero de
+          ellos. Son estos, y el código los busca en <code>{CARPETA_DATOS}/</code>:</p>
+        <ul>
+@@LISTA_DATOS@@
+        </ul>
+        <p>Los dos archivos de los municipios, <code>cap1_municipios.gpkg</code> y
+          <code>cap1_municipios_reina.gal</code>, {LICENCIA_EXTRACTO}, con la atribución de sus fuentes: la
+          deserción y la cobertura neta son del <strong>Ministerio de Educación Nacional</strong> (CC BY-SA 4.0);
+          los resultados de Saber 11, del <strong>ICFES</strong> (CC BY-SA 4.0); y los municipios,
+          {ATRIB_DANE}. Los otros cuatro <code>cap1_*</code> salen de paquetes de R y se distribuyen con la
+          licencia que declara el paquete del que salen: {LICENCIAS_PAQUETES_TXT}. Su origen está en la tabla de
+          procedencia del módulo 12. Los dos <code>taller1_*</code> son los del Taller&nbsp;1, con la atribución
+          que dan los módulos 3 y 10.</p>
+        <p style="margin-bottom:0;"><strong>La prueba.</strong> Si este bloque corre y escribe lo mismo que su
+          última línea, el entorno está listo.</p>
+      </div>
+
+""" + tabs("La prueba del entorno, en R y en Python", R_HUMO, PY_HUMO)
+
 filas_paq = "\n".join(
     f"""          <tr><th scope="row"><code>{p['nombre']}</code></th><td>{p['papel']}</td>
             <td>{p['version']}</td></tr>""" for p in eco["paquetes"])
@@ -2883,7 +3093,7 @@ MOD8 = cabecera(
           clase, los cuantiles y hasta el trato de las islas cambian entre versiones, y un material que no dice con
           qué se hizo no es reproducible.</p>
       </div>
-""" + CIERRE
+""" + ENTORNO + CIERRE
 
 
 # =====================================================================
@@ -2935,7 +3145,9 @@ MOD9 = cabecera(
           puntual la ventana es parte del dato — el módulo 2 ya midió lo que cuesta olvidarla.</p>
       </div>
 
-""" + tabs(
+""" + nota_datos(
+    f"La pestaña de Python lee {enlace_datos('nc')}, el del módulo 2; la de R, el <code>nc.shp</code> que "
+    "trae <code>sf</code>.", varios=False) + tabs(
     "Abrir el objeto por dentro",
     """library(sf)
 nc &lt;- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
@@ -2951,10 +3163,9 @@ cat(as.character(unique(st_geometry_type(nc))), "\\n")
 cat(sprintf("rasgos con mas de una parte: %d de %d\\n",
             sum(lengths(st_geometry(nc)) &gt; 1), nrow(nc)))
 #&gt; """ + f"rasgos con mas de una parte: {an['nc']['n_partes_multiples']} de {an['nc']['filas']}",
-    """import geopandas as gpd, json
+    """import geopandas as gpd
 
-ver = json.load(open("precalculo/versiones.json"))
-nc = gpd.read_file(ver["rutas"]["nc_shp"])
+nc = gpd.read_file("entrega/datos/cap1_nc.gpkg")
 print(f"filas = {len(nc)}, columnas = {nc.shape[1]}")
 #> """ + f"filas = {an['nc']['filas']}, columnas = {an['nc']['columnas']}" + """
 
@@ -3158,12 +3369,16 @@ MOD10 = cabecera(
           {cv['tam_pliegue_max']} estaciones— y eso también es material: un bloque espacial no reparte en partes
           iguales, y quien espere pliegues equilibrados va a llevarse una sorpresa.</p>
       </div>
-""" + tabs(
+
+""" + nota_datos(
+    f"Los dos bloques leen {enlace_datos('estaciones')}, el del módulo 3, y los departamentos del "
+    f"Taller&nbsp;1, {enlace_datos('departamentos')}, para recortar las celdas al contorno del país. Los "
+    f"departamentos son datos de terceros que se redistribuyen con atribución: son {ATRIB_DANE}.") + tabs(
     "Pesar cada estación por el territorio que representa",
     """library(sf)
 
-estac &lt;- st_read("datos/procesado/colombia_estaciones_clima.gpkg", quiet = TRUE)
-pais  &lt;- st_union(st_read("datos/procesado/colombia_adm1.gpkg", quiet = TRUE))
+estac &lt;- st_read("entrega/datos/taller1_estaciones.gpkg", quiet = TRUE)
+pais  &lt;- st_union(st_read("entrega/datos/taller1_departamentos.gpkg", quiet = TRUE))
 
 # Thiessen: cada celda es el territorio mas proximo a una estacion.
 vor &lt;- st_collection_extract(
@@ -3188,8 +3403,8 @@ cat(sprintf("simple = %.5f | ponderada = %.5f | brecha = %.5f\\n",
 from shapely.geometry import MultiPoint
 from shapely.ops import voronoi_diagram
 
-estac = gpd.read_file("datos/procesado/colombia_estaciones_clima.gpkg")
-pais = gpd.read_file("datos/procesado/colombia_adm1.gpkg").geometry.union_all()
+estac = gpd.read_file("entrega/datos/taller1_estaciones.gpkg")
+pais = gpd.read_file("entrega/datos/taller1_departamentos.gpkg").geometry.union_all()
 
 cel = gpd.GeoDataFrame(geometry=list(voronoi_diagram(
     MultiPoint(list(estac.geometry)), envelope=pais.envelope).geoms),
@@ -3345,6 +3560,21 @@ E3_DATOS = f"""          <p class="text-sm" style="margin:0.25rem 0 0.5rem;"><a 
             haya guardado.</p>
 """
 e3r = e3s["residuos"]
+# R3 · T3.5 (D9): los ejercicios 2 y 4 leen el archivo de municipios del
+# capítulo, y lo enlazan igual que el 3. Hasta aquí el 2 decía «Con
+# carga_municipios()» y el 4 no decía de dónde sacar el dato.
+
+
+def datos_ejercicio(sol, que):
+    f = next(v for v in EX.values() if isinstance(v, dict) and v.get("ruta") == sol["archivo"])
+    return f"""          <p class="text-sm" style="margin:0.25rem 0 0.5rem;"><a href="../{sol['archivo']}" download target="_blank" rel="noopener">
+            Descargar <code>{f['archivo']}</code></a> ({tam_archivo(f)}) — {que} La ruta
+            <code>{sol['archivo']}</code> se cambia por la del lugar donde se haya guardado.</p>
+"""
+
+
+E2_DATOS = datos_ejercicio(S["e2"]["solucion"], "el archivo de municipios de los módulos 4 y 7.")
+E4_DATOS = datos_ejercicio(S["e4"]["solucion"], "el mismo del ejercicio 2.")
 E3_CODIGO = tabs(
     "El ejercicio 3: los dos remuestreos, el tamaño efectivo y lo que implica",
     f"""library(sf)
@@ -3527,7 +3757,7 @@ MOD12 = cabecera(
         <p class="text-sm" style="margin-bottom:0.5rem;">Intenta cada uno <strong>antes</strong> de abrir nada. La
           pista dice por dónde entrar sin dar la respuesta; la solución trae los pasos con sus cifras, calculadas en
           R por <code>precalculo/genera_soluciones.R</code> y no escritas de memoria.</p>
-{ejercicio(1, S['e1'])}{ejercicio(2, S['e2'])}{ejercicio(3, S['e3'], datos=E3_DATOS, codigo=E3_CODIGO)}{ejercicio(4, S['e4'])}
+{ejercicio(1, S['e1'])}{ejercicio(2, S['e2'], datos=E2_DATOS)}{ejercicio(3, S['e3'], datos=E3_DATOS, codigo=E3_CODIGO)}{ejercicio(4, S['e4'], datos=E4_DATOS)}
       </div>
 
       <div class="definition">
@@ -3654,19 +3884,19 @@ MODULOS = (MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6 + MOD7 + MOD8 + MOD9
 # total, con y sin los seis paneles, lo imprime el medidor: aquí no se
 # copia, para que no se quede viejo.
 MODULOS_NAV = [
-    ("El mapa que cambió la epidemiología", "29 min"),
-    ("Los tres tipos de dato espacial", "30 min"),
+    ("El mapa que cambió la epidemiología", "30 min"),
+    ("Los tres tipos de dato espacial", "31 min"),
     ("La primera ley de Tobler", "28 min"),
     ("Por qué se rompe la inferencia clásica", "28 min"),
     ("Tamaño de muestra efectivo", "14 min"),
     # R3 · T3.2 (H-20): el mismo título que la cabecera del módulo.
     ("Estacionariedad, isotropía y una sola realización", "13 min"),
-    ("Escala, soporte y agregación", "21 min"),
-    ("El ecosistema de R espacial", "6 min"),
+    ("Escala, soporte y agregación", "22 min"),
+    ("El ecosistema de R espacial", "13 min"),
     ("Anatomía de un objeto sf", "5 min"),
     ("Dependencia espacial en ciencia de datos", "14 min"),
     ("Glosario de notación del curso", "8 min"),
-    ("Autoevaluación y ejercicios guiados", "18 min"),
+    ("Autoevaluación y ejercicios guiados", "19 min"),
 ]
 
 _mods = ",\n".join(
@@ -7640,6 +7870,248 @@ def guardas_de_t34(doc: str) -> list[str]:
 
 
 # =====================================================================
+# R3 · T3.5 (D9, H-07): el entorno y el extracto
+# =====================================================================
+# Los bloques que se EJECUTAN (los mismos que lee verifica_bloques.py: la
+# clase exacta, sin «arranque»).
+_BLOQUE_EJECUTABLE = re.compile(r'<pre><code class="language-(r|python)">(.*?)</code></pre>', re.S)
+_TODO_BLOQUE = re.compile(r'<pre><code class="language-[^"]*">(.*?)</code></pre>', re.S)
+_R_BASE = {"base", "stats", "utils", "graphics", "grDevices", "methods", "datasets", "tools", "grid",
+           "parallel", "splines", "stats4", "tcltk", "compiler"}
+# El nombre con que se importa un módulo y el que pide pip. Un import que no
+# esté aquí PARA el ensamblado: la orden publicada no se adivina.
+_PIP = {"geopandas": "geopandas", "shapely": "shapely", "pandas": "pandas", "numpy": "numpy",
+        "scipy": "scipy", "libpysal": "libpysal", "esda": "esda", "pointpats": "pointpats"}
+# Lo que no viaja al sitio y por eso ningún bloque puede leer. Ronda 2 (V-02):
+# cualquier ruta de `datos/` que no sea `entrega/datos/`, no solo `procesado`;
+# y se mira el código SIN sus comentarios, que pueden nombrarlo (V-F).
+_NO_VIAJA = (re.compile(r"(?<!entrega/)\bdatos/"), re.compile(r"precalculo/"),
+             re.compile(r"\bsource\("), re.compile(r"carga_municipios"),
+             re.compile(r"versiones\.json"))
+# Cargar un paquete de R: library(), require() y requireNamespace(). Ronda 2
+# (V-07): con `character.only = TRUE` o sin comillas en requireNamespace() el
+# nombre puede ser una variable, y entonces la orden de instalación no lo
+# sabría: se exige un literal entre comillas.
+_CARGA_R = re.compile(r'\b(library|require|requireNamespace)\(([^()]*)\)')
+_RUTA_DATOS = re.compile(r'entrega/datos/[\w.-]+')
+
+
+def _sin_comentarios(codigo: str) -> str:
+    return "\n".join(l for l in codigo.splitlines() if not l.lstrip().startswith("#"))
+
+
+def paquetes_de_los_bloques(doc: str) -> tuple[list[str], list[str]]:
+    """Los paquetes de R y los módulos de Python que cargan los bloques, en el
+    orden en que aparecen por primera vez."""
+    r, py = [], []
+    for lang, cuerpo in _BLOQUE_EJECUTABLE.findall(doc):
+        c = _sin_comentarios(html.unescape(cuerpo))
+        if lang == "r":
+            hallados = []
+            for m in _CARGA_R.finditer(c):
+                args = [x.strip() for x in m.group(2).split(",")]
+                lit = re.fullmatch(r'["\']([A-Za-z][\w.]*)["\']', args[0])
+                desnudo = re.fullmatch(r'[A-Za-z][\w.]*', args[0])
+                calculado = any(re.match(r"character\.only\s*=\s*(TRUE|T)\b", x) for x in args[1:])
+                if lit:
+                    hallados.append((m.start(), lit.group(1)))
+                elif desnudo and not calculado and m.group(1) != "requireNamespace":
+                    hallados.append((m.start(), args[0]))
+                else:
+                    sys.exit(f"PARADO: un bloque carga un paquete por un nombre calculado "
+                             f"({m.group(0)[:60]}): la orden de instalación no puede saber cuál es")
+            for m in re.finditer(r'\bpackage\s*=\s*"([A-Za-z][\w.]*)"|\b([A-Za-z][\w.]*)::', c):
+                hallados.append((m.start(), next(g for g in m.groups() if g)))
+            for _, p in sorted(hallados):
+                if p not in _R_BASE and p not in r:
+                    r.append(p)
+            continue
+        for l in c.splitlines():
+            de = re.match(r'\s*from\s+([\w.]+)\s+import\b', l)
+            im = re.match(r'\s*import\s+(.+)', l)
+            nombres = [de.group(1)] if de else (
+                [x.strip().split(" as ")[0] for x in im.group(1).split(",")] if im else [])
+            for x in nombres:
+                top = x.split(".")[0].strip()
+                if top and top not in sys.stdlib_module_names and top not in py:
+                    py.append(top)
+    return r, py
+
+
+def _modulos_del_doc(doc: str) -> list[tuple[int, str]]:
+    return [(int(m.group(1)), m.group(2)) for m in
+            re.finditer(r'<template id="module-(\d+)">(.*?)</template>', doc, re.S)]
+
+
+def _y(xs: list[str]) -> str:
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " y " + xs[-1]
+
+
+ANCHO_TELEFONO = 24
+
+
+def completa_entorno(doc: str) -> str:
+    """Rellena las marcas del recuadro del módulo 8 desde los bloques ya ensamblados."""
+    r, py = paquetes_de_los_bloques(doc)
+    raros = [m for m in py if m not in _PIP]
+    if raros:
+        sys.exit(f"PARADO: los bloques importan {raros}, que no tienen nombre de pip declarado en _PIP")
+    # El vector y la orden de pip, partidos a ANCHO_TELEFONO columnas: a 375 px
+    # caben 24 caracteres en un bloque del recuadro abierto (medido en la
+    # ronda 2, V-06: 247 px a 8.4 px por carácter, menos 42 de relleno), y
+    # una línea más larga obliga a desplazar el bloque de lado.
+    vector, actual = [], "paq <- c("
+    for k, p in enumerate(r):
+        pieza = f'"{p}"' + ("," if k < len(r) - 1 else ")")
+        candidato = actual + ("" if actual.endswith("(") else " ") + pieza
+        if len(candidato) > ANCHO_TELEFONO and not actual.endswith("("):
+            vector.append(actual)
+            actual = "  " + pieza
+        else:
+            actual = candidato
+    vector.append(actual)
+    doc = doc.replace("paq &lt;- c(@@PAQUETES_R@@)", "\n".join(vector).replace("<", "&lt;"))
+    pip, actual = [], "pip install"
+    for m in py:
+        if actual != "pip install" and len(actual) + 1 + len(_PIP[m]) > ANCHO_TELEFONO:
+            pip.append(actual)
+            actual = "pip install"
+        actual += " " + _PIP[m]
+    pip.append(actual)
+    doc = doc.replace("@@ORDEN_PIP@@", "\n".join(pip))
+    filas = []
+    for clave in ("snow", "pinos", "nc", "meuse", "estaciones", "municipios", "reina", "departamentos"):
+        f = EX[clave]
+        donde = [str(k) for k, cuerpo in _modulos_del_doc(doc)
+                 if k != 8 and f'href="../{f["ruta"]}"' in cuerpo]
+        if not donde:
+            sys.exit(f"PARADO: ningún módulo enlaza {f['archivo']}, y el recuadro del módulo 8 lo lista")
+        filas.append(f"          <li>{enlace_datos(clave)}, "
+                     f"{'módulo' if len(donde) == 1 else 'módulos'} {_y(donde)}</li>")
+    return doc.replace("@@LISTA_DATOS@@", "\n".join(filas))
+
+
+def _enunciado_de(doc: str, k: int) -> str:
+    """Del número del ejercicio k a su panel de pista: el enunciado y su descarga."""
+    i = doc.find(f'<span class="ejercicio-numero">{k}.</span>')
+    j = doc.find(f'id="cap1-e{k}-pista"', i)
+    return doc[i:j] if 0 <= i < j else ""
+
+
+def guardas_de_t35(doc: str) -> list[str]:
+    problemas = []
+    raiz_repo = pathlib.Path(os.environ.get("ESPACIAL_RAIZ") or RAIZ)
+    # 1. Ningún bloque lee lo que no viaja al sitio.
+    for cuerpo in _TODO_BLOQUE.findall(doc):
+        c = _sin_comentarios(html.unescape(cuerpo))
+        for vetado in _NO_VIAJA:
+            if vetado.search(c):
+                primera = next((l for l in c.splitlines() if vetado.search(l)), "").strip()
+                problemas.append(f"T3.5: un bloque lee «{vetado.pattern}», que no viaja al sitio: "
+                                 f"{primera[:70]}")
+    # 2. Lo que leen los bloques está en el extracto, en el disco, enlazado y fuera del .gitignore.
+    rutas_ex = {v["ruta"]: v for v in EX.values() if isinstance(v, dict) and "ruta" in v}
+    leidas = sorted({m for _, cuerpo in _BLOQUE_EJECUTABLE.findall(doc)
+                     for m in _RUTA_DATOS.findall(html.unescape(cuerpo))})
+    if not leidas:
+        problemas.append("T3.5: ningún bloque lee el extracto; la comprobación de rutas no tiene sujeto")
+    for ruta in leidas:
+        if ruta not in rutas_ex:
+            problemas.append(f"T3.5: un bloque lee {ruta}, que no está en el extracto")
+        if not (raiz_repo / ruta).is_file():
+            problemas.append(f"T3.5: un bloque lee {ruta}, que no está en el disco")
+        if f'href="../{ruta}"' not in doc:
+            problemas.append(f"T3.5: un bloque lee {ruta} y el capítulo no lo enlaza")
+    for ruta, f in rutas_ex.items():
+        p = raiz_repo / ruta
+        if p.is_file() and p.stat().st_size != f["bytes"]:
+            problemas.append(f"T3.5: {f['archivo']} pesa {p.stat().st_size} B y el capítulo publica "
+                             f"{f['bytes']}: el extracto cambió sin regenerar el capítulo")
+        try:
+            ig = subprocess.run(["git", "check-ignore", "-q", ruta], cwd=str(raiz_repo),
+                                capture_output=True, text=True)
+            if ig.returncode == 0:
+                problemas.append(f"T3.5: {ruta} está en el .gitignore y no llegará al sitio")
+            elif ig.returncode != 1:
+                print(f"  AVISO  git check-ignore no respondió para {ruta}: no se comprueba")
+        except OSError:
+            print("  AVISO  sin git: no se comprueba el .gitignore del extracto")
+    # 3. Una nota de descarga por módulo, y solo en los que leen datos. El 8
+    #    no la lleva: su recuadro lista todos los archivos. El 12 enlaza el suyo
+    #    debajo de cada enunciado.
+    for k, cuerpo in _modulos_del_doc(doc):
+        notas = cuerpo.count('class="text-sm nota-datos"')
+        lee = sorted({m for _, b in _BLOQUE_EJECUTABLE.findall(cuerpo)
+                      for m in _RUTA_DATOS.findall(html.unescape(b))})
+        if notas > 1:
+            problemas.append(f"T3.5: el módulo {k} lleva {notas} notas de descarga; va una por módulo")
+        if k not in (8, 12) and lee and notas != 1:
+            problemas.append(f"T3.5: el módulo {k} lee {lee} y no lleva su nota de descarga")
+        # Ronda 2 (V-03): la nota enlaza lo que leen los bloques de SU módulo.
+        nota = re.search(r'<p class="text-sm nota-datos"[^>]*>(.*?)</p>', cuerpo, re.S)
+        if k not in (8, 12) and nota:
+            for ruta in lee:
+                if f'href="../{ruta}"' not in nota.group(1):
+                    problemas.append(f"T3.5: la nota del módulo {k} no enlaza {ruta}, que leen sus bloques")
+        if k not in (8, 12) and notas and cuerpo.find('class="text-sm nota-datos"') > cuerpo.find("<pre><code"):
+            problemas.append(f"T3.5: la nota de descarga del módulo {k} va detrás de su primer bloque")
+    # 4b. La licencia del extracto (decisión de Javier, ronda 2): una vez, en el
+    #     recuadro, con la atribución de las fuentes de los cap1_*.
+    i_r = doc.find('id="prepara-tu-entorno"')
+    recuadro = doc[i_r:doc.find("</div>", doc.find("<strong>La prueba.</strong>", i_r))] if i_r >= 0 else ""
+    if doc.count(LICENCIA_EXTRACTO) != 1 or LICENCIA_EXTRACTO not in recuadro:
+        problemas.append("T3.5: la licencia del extracto (CC BY-SA 4.0) no está una sola vez, en el recuadro")
+    else:
+        parrafo = recuadro[recuadro.rfind("<p>", 0, recuadro.find(LICENCIA_EXTRACTO)):]
+        parrafo = parrafo[:parrafo.find("</p>")]
+        for fuente in ("Ministerio de Educación Nacional", "ICFES", "DANE", "geoBoundaries"):
+            if fuente not in parrafo:
+                problemas.append(f"T3.5: la frase de la licencia del extracto no nombra «{fuente}»")
+        # El reparto: la CC BY-SA cubre los dos archivos de los municipios y
+        # NADA más; cada archivo de un paquete de R va con la licencia de su
+        # paquete, y ninguno cae en la frase de la CC BY-SA.
+        antes_cc = parrafo[:parrafo.find(LICENCIA_EXTRACTO)]
+        for f in CC_EXTRACTO:
+            if f"<code>{f}</code>" not in antes_cc:
+                problemas.append(f"T3.5: la licencia CC BY-SA del extracto no nombra {f}")
+        if "cap1_*" in antes_cc or any(f in antes_cc for f in LICENCIAS_PAQUETES):
+            problemas.append("T3.5: la licencia CC BY-SA del extracto cubre archivos de paquetes de R, que "
+                             "van con la licencia de su paquete")
+        for f, (paq, lic) in LICENCIAS_PAQUETES.items():
+            if f"<code>{f}</code>, de <code>{paq}</code> ({lic})" not in parrafo:
+                problemas.append(f"T3.5: {f} no lleva la licencia de {paq} ({html.unescape(lic)})")
+    # 4. El recuadro: relleno, y la prueba carga todo lo que manda instalar.
+    # Ninguna línea de los bloques del recuadro se sale a 375 px (V-06).
+    for cuerpo in _TODO_BLOQUE.findall(recuadro):
+        largas = [l for l in html.unescape(cuerpo).splitlines() if len(l) > ANCHO_TELEFONO]
+        if largas:
+            problemas.append(f"T3.5: el recuadro tiene líneas de más de {ANCHO_TELEFONO} caracteres, que "
+                             f"en el teléfono se desplazan de lado: {largas[0][:40]!r}")
+    if "@@" in doc:
+        problemas.append("T3.5: queda una marca @@…@@ sin rellenar en el recuadro del entorno")
+    r, py = paquetes_de_los_bloques(doc)
+    i = doc.find('id="prepara-tu-entorno"')
+    # Solo lo que queda del módulo 8: si la prueba se pierde, no vale la del 9.
+    prueba = _BLOQUE_EJECUTABLE.findall(doc[i:doc.find("</template>", i)])[:2] if i >= 0 else []
+    if len(prueba) != 2:
+        problemas.append("T3.5: el recuadro «Prepara tu entorno» no lleva su prueba en R y en Python")
+    else:
+        carga_r = set(re.findall(r'\blibrary\(([\w.]+)\)', html.unescape(prueba[0][1])))
+        _, carga_py = paquetes_de_los_bloques(f'<pre><code class="language-python">{prueba[1][1]}</code></pre>')
+        if set(r) - carga_r:
+            problemas.append(f"T3.5: la prueba del entorno no carga {sorted(set(r) - carga_r)}, "
+                             f"que la orden manda instalar")
+        if set(py) - set(carga_py):
+            problemas.append(f"T3.5: la prueba del entorno no importa {sorted(set(py) - set(carga_py))}")
+    for k in ("e2", "e4"):
+        if "carga_municipios" in S[k]["enunciado"] or S[k]["solucion"].get("archivo") not in rutas_ex:
+            problemas.append(f"T3.5: el ejercicio {k[1]} no lee el archivo de municipios del extracto")
+        elif f'href="../{S[k]["solucion"]["archivo"]}"' not in _enunciado_de(doc, int(k[1])):
+            problemas.append(f"T3.5: el ejercicio {k[1]} no enlaza la descarga de su archivo")
+    return problemas
+
+
+# =====================================================================
 # El ensamblado
 # =====================================================================
 def reemplaza_region(texto, abre, cierra, nuevo, que, max_lineas, min_lineas=0):
@@ -7716,6 +8188,8 @@ def main() -> int:
         "  <!-- MÓDULO 1 · Cajas y tipografía",
         "\n  <script>", MODULOS.lstrip("\n") + "\n  <script>",
         "los doce módulos", max_lineas=600)
+    # R3 · T3.5: las listas del recuadro del entorno, desde los bloques.
+    doc = completa_entorno(doc)
 
     # --- 4. Los mapas ---------------------------------------------------
     vieja = [l for l in doc.splitlines() if l.startswith("    GEOMAPAS['demo-mapa'] =")]
@@ -8031,7 +8505,10 @@ def main() -> int:
         problemas.append(f"el ejercicio 3 enlaza {g3['archivo']}, que no está en el repo")
     if not g3["archivo"].startswith("entrega/datos/"):
         problemas.append(f"el ejercicio 3 lee {g3['archivo']}, que no es un archivo publicado")
-    if f'href="../{g3["archivo"]}"' not in doc:
+    # El enlace, DENTRO del ejercicio: desde R3 · T3.5 el mismo archivo lo
+    # enlazan también los módulos 3, 8 y 10, y buscarlo en todo el documento
+    # dejaba pasar un ejercicio sin su descarga.
+    if f'href="../{g3["archivo"]}"' not in _enunciado_de(doc, 3):
         problemas.append("el ejercicio 3 no enlaza la descarga de su archivo")
     if not (0 < g3["n_eff"] < g3["n"] and g3["rho_medio"] > 0):
         problemas.append("ejercicio 3: el remuestreo por bloques no ensancha, y todo el "
@@ -8930,6 +9407,8 @@ def main() -> int:
     problemas += guardas_de_t33(doc)
     # R3 · T3.4: la crónica de producción fuera de lo que se lee, y las duraciones medidas.
     problemas += guardas_de_t34(doc)
+    # R3 · T3.5: el extracto y el entorno.
+    problemas += guardas_de_t35(doc)
     if problemas:
         for p in problemas:
             print(f"  MAL  {p}")

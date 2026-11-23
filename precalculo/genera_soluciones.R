@@ -132,7 +132,13 @@ solucion_cap1 <- function() {
   # a la misma conclusión sustantiva?
   # -------------------------------------------------------------------
   message("  E2 · El e.e. de la cobertura neta")
-  muni <- carga_municipios()
+  # R3 · T3.5 (D9): el dato es el extracto PÚBLICO del capítulo, no
+  # `carga_municipios()` sobre `datos/procesado/`, que no viaja: un ejercicio
+  # que el estudiante no puede ejecutar no es un ejercicio. Mismas filas, en
+  # el mismo orden y con los mismos valores (las anclas de
+  # `genera_datos_cap1.R` lo comprueban), así que las cifras no cambian.
+  ARCHIVO_MUN <- "entrega/datos/cap1_municipios.gpkg"
+  muni <- st_read(ARCHIVO_MUN, quiet = TRUE)
   muni$dpto <- substr(muni$divipola, 1, 2)
   cob <- muni[!is.na(muni$cobertura), ]
   bloques <- split(cob$cobertura, cob$dpto)
@@ -191,7 +197,13 @@ solucion_cap1 <- function() {
   E$e2 <- list(
     titulo = "El intervalo de confianza que miente",
     enunciado = paste(
-      "Con `carga_municipios()`, toma la cobertura neta municipal.",
+      # Ronda 2 (V-08): no todos traen cobertura; los dos conteos, de R.
+      paste0("Descarga `cap1_municipios.gpkg`: los ", fino2(nrow(muni)),
+             " municipios, ", fino2(n), " de ellos con su cobertura neta",
+             " (columna `cobertura`), y el código DIVIPOLA de cada uno",
+             " (columna `divipola`), cuyos dos primeros dígitos son los que el",
+             " módulo 4 usa para agrupar por departamento."),
+      "Toma la cobertura neta municipal.",
       "Calcula (a) el error estándar de la media suponiendo",
       "independencia, por remuestreo de municipios uno a uno, y (b) el",
       "mismo error estándar remuestreando DEPARTAMENTOS enteros. Con",
@@ -211,6 +223,7 @@ solucion_cap1 <- function() {
       list(paso = "Factor de subestimación", valor = r10(ee_b / ee_i))
     ),
     solucion = list(
+      archivo = ARCHIVO_MUN,
       n = as.integer(n), n_bloques = as.integer(length(bloques)), nboot = NB,
       media = r10(media),
       ee_iid = r10(ee_i), ee_bloques = r10(ee_b),
@@ -704,9 +717,10 @@ solucion_cap1 <- function() {
 
   # La escala intermedia se construye agrupando municipios por CERCANÍA,
   # no por división administrativa: así el ejercicio separa lo que es
-  # efecto de la escala de lo que es efecto de la frontera concreta.
-  cen <- suppressWarnings(st_coordinates(
-    st_point_on_surface(st_geometry(muni[ok, ]))))
+  # efecto de la escala de lo que es efecto de la frontera concreta. El
+  # punto de cada municipio es su punto interior (`st_point_on_surface`
+  # del polígono completo), que el extracto ya trae como geometría.
+  cen <- st_coordinates(st_geometry(muni[ok, ]))
   set.seed(SEMILLA + 950L)
   K_INTERMEDIA <- 150L
   grupos <- kmeans(cen, centers = K_INTERMEDIA, nstart = 25,
@@ -726,9 +740,12 @@ solucion_cap1 <- function() {
     titulo = "¿Cuál es «la» correlación?",
     enunciado = paste(
       "Toma el puntaje medio de Saber 11 y el porcentaje de hogares con",
-      "internet, por municipio. Calcula su correlación (a) por",
+      "internet, por municipio: son las columnas `s11_punt_medio` y",
+      "`s11_pct_internet` de `cap1_municipios.gpkg`, el archivo del",
+      "ejercicio 2. Calcula su correlación (a) por",
       "municipio, (b) agrupando los municipios en 150 conglomerados",
-      "espaciales con k-medias sobre sus centroides, y (c) por",
+      "espaciales con k-medias sobre el punto interior de cada uno, que es",
+      "la geometría del archivo, y (c) por",
       "departamento. Escribe cuál de las tres es la correlación entre",
       "puntaje e internet en Colombia."),
     pasos = list(
@@ -740,6 +757,7 @@ solucion_cap1 <- function() {
            valor = esc_dep$r)
     ),
     solucion = list(
+      archivo = ARCHIVO_MUN,
       k_intermedia = K_INTERMEDIA,
       municipal = esc_mun, conglomerado = esc_int, departamental = esc_dep,
       subida_mun_dep_pct = r10(100 * (esc_dep$r / esc_mun$r - 1)),

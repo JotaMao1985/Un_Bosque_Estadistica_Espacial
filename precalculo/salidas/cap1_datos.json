@@ -2663,9 +2663,151 @@
     "capitulo": 1,
     "titulo": "Datos espaciales y la primera ley de la geografía",
     "semana": 1,
-    "generado": "2026-11-22",
+    "generado": "2026-11-23",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "anclas_verificadas": 29
+  },
+  "extracto": {
+    "carpeta": "entrega/datos",
+    "municipios": {
+      "archivo": "cap1_municipios.gpkg",
+      "ruta": "entrega/datos/cap1_municipios.gpkg",
+      "que": "municipios",
+      "filas": 1122,
+      "columnas": [
+        "divipola",
+        "desercion",
+        "cobertura",
+        "s11_punt_medio",
+        "s11_pct_internet"
+      ],
+      "bytes": 253952,
+      "kb": 254,
+      "mb": 0.3,
+      "n_desercion": 1121,
+      "n_cobertura": 1121,
+      "crs_epsg": 9377
+    },
+    "reina": {
+      "archivo": "cap1_municipios_reina.gal",
+      "ruta": "entrega/datos/cap1_municipios_reina.gal",
+      "que": "vecindad de reina",
+      "filas": 1122,
+      "columnas": [],
+      "bytes": 48476,
+      "kb": 48,
+      "mb": 0
+    },
+    "snow": {
+      "archivo": "cap1_snow.csv",
+      "ruta": "entrega/datos/cap1_snow.csv",
+      "que": "Snow",
+      "filas": 591,
+      "columnas": [
+        "tipo",
+        "etiqueta",
+        "x",
+        "y"
+      ],
+      "bytes": 19382,
+      "kb": 19,
+      "mb": 0
+    },
+    "pinos": {
+      "archivo": "cap1_japanesepines.csv",
+      "ruta": "entrega/datos/cap1_japanesepines.csv",
+      "que": "japanesepines",
+      "filas": 65,
+      "columnas": [
+        "x",
+        "y"
+      ],
+      "bytes": 658,
+      "kb": 1,
+      "mb": 0
+    },
+    "meuse": {
+      "archivo": "cap1_meuse.csv",
+      "ruta": "entrega/datos/cap1_meuse.csv",
+      "que": "meuse",
+      "filas": 155,
+      "columnas": [
+        "x",
+        "y",
+        "zinc"
+      ],
+      "bytes": 2821,
+      "kb": 3,
+      "mb": 0
+    },
+    "nc": {
+      "archivo": "cap1_nc.gpkg",
+      "ruta": "entrega/datos/cap1_nc.gpkg",
+      "que": "nc",
+      "filas": 100,
+      "columnas": [
+        "AREA",
+        "PERIMETER",
+        "CNTY_",
+        "CNTY_ID",
+        "NAME",
+        "FIPS",
+        "FIPSNO",
+        "CRESS_ID",
+        "BIR74",
+        "SID74",
+        "NWBIR74",
+        "BIR79",
+        "SID79",
+        "NWBIR79"
+      ],
+      "bytes": 163840,
+      "kb": 164,
+      "mb": 0.2
+    },
+    "estaciones": {
+      "archivo": "taller1_estaciones.gpkg",
+      "ruta": "entrega/datos/taller1_estaciones.gpkg",
+      "que": "reutilizado del Taller 1",
+      "filas": 361,
+      "columnas": [
+        "codigo",
+        "estacion",
+        "municipio",
+        "departamento",
+        "altitud_m",
+        "t_media_anual",
+        "en_territorio",
+        "categoria"
+      ],
+      "bytes": 155648,
+      "kb": 156,
+      "mb": 0.2
+    },
+    "departamentos": {
+      "archivo": "taller1_departamentos.gpkg",
+      "ruta": "entrega/datos/taller1_departamentos.gpkg",
+      "que": "reutilizado del Taller 1",
+      "filas": 33,
+      "columnas": [
+        "shapeName",
+        "shapeISO",
+        "shapeID",
+        "shapeGroup",
+        "shapeType"
+      ],
+      "bytes": 5214208,
+      "kb": 5214,
+      "mb": 5.2
+    },
+    "poligonos": {
+      "archivo": "colombia_adm2.gpkg",
+      "bytes": 81678336,
+      "mb": 81.7,
+      "vertices": 5031858
+    },
+    "bytes_nuevos": 489129,
+    "mb_nuevos": 0.5
   }
 }

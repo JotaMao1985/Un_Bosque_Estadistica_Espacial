@@ -236,6 +236,14 @@ fi
 paso "verifica_bloques.py — los bloques de código y sus #>" \
      python3 precalculo/verifica_bloques.py --todos
 
+# Del 2026-11-23 (R3 · T3.5 del capítulo 1, decisión D9): los bloques del capítulo 1 se ejecutan
+# además DESDE FUERA, cada uno solo, en un temporal que solo tiene `entrega/datos/`: sin `datos/`,
+# sin `precalculo/` y sin la precarga de paquetes. Un bloque que vuelva a leer lo que no viaja al
+# sitio, o que dependa de otro bloque, se cae aquí aunque sus cifras sean buenas. Solo el capítulo
+# 1: los demás todavía leen `datos/procesado/`. Cuesta ~45 s: corre también con `--rapido`.
+paso "verifica_bloques.py --fuera — los bloques del capítulo 1 corren solo con entrega/datos/" \
+     python3 precalculo/verifica_bloques.py --html Htmls_Espacial/capitulo-1-datos-espaciales.html --fuera
+
 # Del 2026-10-02: la animación 2D del rezago (capítulo 6, módulo 10). `prueba_rezago2d.py` compara
 # la aritmética de `anim2d/rezago2d.js` con `spdep` y prueba sin DOM la máquina de `anim2d.js` (el
 # repo no tiene jsdom); `prueba_mutaciones_anim2d.py` les inyecta 61 defectos a las dos animaciones 2D

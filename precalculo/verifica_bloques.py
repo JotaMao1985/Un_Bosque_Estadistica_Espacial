@@ -42,9 +42,24 @@ QUÉ CAMBIA RESPECTO A LA VERSIÓN DE DISEÑO DE EXPERIMENTOS
     verificador que sale limpio porque no había nada que comprobar es
     exactamente la falsa calma que T0.5 existe para impedir.
 
+LA PRUEBA DESDE FUERA (`--fuera`, R3 · T3.5 del capítulo 1)
+
+  La corrida normal se hace en la carpeta del curso, con `datos/` y
+  `precalculo/` a mano: comprueba las CIFRAS, no que un estudiante pueda
+  ejecutar el bloque. `--fuera` comprueba eso otro. Copia `entrega/datos/`
+  —lo único que se publica de datos— a un directorio temporal FUERA del
+  repositorio, y ejecuta allí CADA bloque en su propio proceso, sin la
+  precarga de paquetes de arriba y sin la sesión encadenada: así lo hace
+  quien copia un bloque desde la página. Un bloque que lea `datos/`,
+  `precalculo/` o un objeto de otro bloque, o que se olvide de su
+  `library()`, falla aquí aunque sus cifras sean buenas. Con `--rlib` y
+  `--python` se corre contra una biblioteca de R o un intérprete recién
+  instalados, que es como se prueba la orden de instalación del módulo 8.
+
 Uso:
     python3 precalculo/verifica_bloques.py --html Htmls_Espacial/prueba-auditoria.html
     python3 precalculo/verifica_bloques.py --todos
+    python3 precalculo/verifica_bloques.py --html Htmls_Espacial/capitulo-1-datos-espaciales.html --fuera
 Devuelve 1 si alguna cifra anunciada no aparece en la salida real.
 """
 from __future__ import annotations
@@ -52,7 +67,9 @@ from __future__ import annotations
 import argparse
 import html as html_mod
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -179,6 +196,94 @@ def corre(bloques, lang, cabecera, comando, sufijo, sep_fmt):
             "guion": ruta}
 
 
+def enlazados(textos):
+    """Los archivos de `entrega/datos/` que el documento ENLAZA para descargar."""
+    rutas = set()
+    for _, texto in textos:
+        rutas |= set(re.findall(r'href="\.\./(entrega/datos/[^"]+)"', texto))
+    return sorted(rutas)
+
+
+def corre_fuera(bloques, rlib=None, python=None, archivos=()):
+    """Cada bloque, solo, en un temporal que solo tiene lo que el documento
+    enlaza de `entrega/datos/` (ronda 2: antes se copiaba la carpeta entera, y
+    un bloque que leyera un archivo de otro taller no se habría notado)."""
+    fuera = Path(tempfile.mkdtemp(prefix="verifica_fuera_"))
+    (fuera / "entrega" / "datos").mkdir(parents=True)
+    for ruta in archivos:
+        shutil.copy2(RAIZ / ruta, fuera / ruta)
+    print(f"Directorio de trabajo: {fuera}")
+    print(f"  contiene solo los {len(archivos)} archivos que el documento enlaza: "
+          f"{', '.join(Path(r).name for r in archivos)}")
+    entorno = dict(os.environ)
+    if rlib:
+        # Una biblioteca de R recién instalada: la única que se ve, además de
+        # la de base del propio R.
+        entorno["R_LIBS_USER"] = entorno["R_LIBS_SITE"] = str(Path(rlib).resolve())
+    py = python or python_geo()
+    salidas = {}
+    for i, b in enumerate(bloques):
+        sufijo = ".R" if b["lang"] == "r" else ".py"
+        guion = fuera / f"bloque_{i:02d}{sufijo}"
+        guion.write_text(("options(warn = 1)\n" if b["lang"] == "r" else "")
+                         + limpia(b["codigo"]) + "\n", encoding="utf-8")
+        cmd = ([str(RSCRIPT), "--vanilla"] if b["lang"] == "r" else [py]) + [guion.name]
+        res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(fuera),
+                             env=entorno, timeout=3600)
+        salidas[i] = (res.returncode, res.stdout + "\n" + res.stderr)
+    return fuera, salidas
+
+
+def lineas_anunciadas(codigo):
+    """Las líneas `#>` del bloque, sin la marca: lo que el bloque promete escribir."""
+    fuera = []
+    for linea in codigo.splitlines():
+        s = linea.strip()
+        for marca in ("#>", "#&gt;"):
+            if s.startswith(marca):
+                fuera.append(s[len(marca):].strip())
+    return fuera
+
+
+def main_fuera(bloques, rlib, python, textos):
+    ejecutables = [b for b in bloques if not b["arranque"]]
+    fuera, salidas = corre_fuera(ejecutables, rlib, python, enlazados(textos))
+    total_ok = total = lineas_ok = lineas_total = 0
+    malos = 0
+    for i, b in enumerate(ejecutables):
+        cod, salida = salidas[i]
+        esp = esperados(b["codigo"])
+        vistos = set(NUM_RE.findall(salida))
+        faltan = [e for e in esp if not aparece(e, salida, vistos)]
+        # Ronda 2 (V-01): además de los números, la LÍNEA entera, literal. Un
+        # «667» anunciado que sale «667.0» pasa por números y no es lo que el
+        # estudiante ve en su pantalla.
+        hechas = {l.strip() for l in salida.splitlines()}
+        prometidas = lineas_anunciadas(b["codigo"])
+        no_literal = [f"línea: {l}" for l in prometidas if l not in hechas]
+        lineas_total += len(prometidas)
+        lineas_ok += len(prometidas) - len(no_literal)
+        total += len(esp)
+        total_ok += len(esp) - len(faltan)
+        n_num = len(esp) - len(faltan)
+        faltan += no_literal
+        primera = next((l for l in b["codigo"].splitlines() if l.strip()), "").strip()
+        estado = "OK  " if cod == 0 and not faltan else "MAL "
+        print(f"  {estado} bloque {i:2d} ({b['lang']:6s}) {n_num:3d}/{len(esp):<3d} "
+              f"código {cod} · {primera[:60]}")
+        if estado == "MAL ":
+            malos += 1
+            if faltan:
+                print(f"         NO aparecen: {faltan}")
+            for l in salida.strip().splitlines()[-12:]:
+                print("         " + l)
+    shutil.rmtree(fuera, ignore_errors=True)
+    print(f"\n=== DESDE FUERA: {len(ejecutables) - malos} de {len(ejecutables)} bloques corren solos; "
+          f"{total_ok} de {total} cifras, lógicos y cadenas anunciados aparecen; "
+          f"{lineas_ok} de {lineas_total} líneas #> salen literales ===")
+    return 0 if malos == 0 and total_ok == total and lineas_ok == lineas_total else 1
+
+
 def capitulos():
     for d in FUENTES:
         rutas = sorted(d.glob("*.html"))
@@ -192,7 +297,15 @@ def main():
     ap.add_argument("--html", default=None, help="HTML a verificar")
     ap.add_argument("--todos", action="store_true",
                     help="verifica todos los .html publicados")
+    ap.add_argument("--fuera", action="store_true",
+                    help="cada bloque solo, en un temporal con solo entrega/datos/")
+    ap.add_argument("--rlib", default=None,
+                    help="con --fuera: la biblioteca de R que se usa (instalación limpia)")
+    ap.add_argument("--python", default=None,
+                    help="con --fuera: el intérprete de Python que se usa (entorno limpio)")
     args = ap.parse_args()
+    if args.fuera and not args.html:
+        raise SystemExit("ABORTA: --fuera va con --html <capítulo>")
 
     if args.html:
         p = Path(args.html)
@@ -239,6 +352,8 @@ def main():
         print("   decir que el capítulo esté bien. Un 0 de 0 en verde es")
         print("   una mentira por omisión.")
         return 1
+    if args.fuera:
+        return main_fuera(bloques, args.rlib, args.python, textos)
 
     resultados = {}
     # Los paquetes del curso, precargados. Si un bloque se olvida de su

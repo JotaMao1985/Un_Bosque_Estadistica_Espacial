@@ -3776,6 +3776,16 @@ write.csv(data.frame(x = meuse$x, y = meuse$y, zinc = meuse$zinc,
           file.path(SALIDAS, "cap1_meuse.csv"), row.names = FALSE,
           fileEncoding = "UTF-8")
 
+# R3 · T3.5 (D9): el extracto que leen los bloques de código y los
+# ejercicios desde fuera del repositorio, en `entrega/datos/`. Va AQUÍ, al
+# final, por dos razones: sus anclas rehacen desde lo escrito las cifras de
+# D (la I municipal, los errores estándar del módulo 4, Snow, meuse, nc), y
+# no toca el generador de números de nadie. Lo que mide —filas, columnas,
+# bytes— entra en `D$extracto`, de donde el capítulo saca los tamaños y los
+# conteos que publica junto a cada enlace. Ver precalculo/genera_datos_cap1.R.
+source(file.path(AQUI, "genera_datos_cap1.R"))
+D$extracto <- extracto_cap1(D)
+
 write_json(D, file.path(SALIDAS, "cap1_datos.json"),
            auto_unbox = TRUE, digits = 10, pretty = TRUE, na = "null")
 write_json(MAPAS, file.path(SALIDAS, "cap1_mapas.json"),

@@ -1208,6 +1208,110 @@ def defectos() -> list[tuple[str, str, str, object]]:
         '    ("Anatomía de un objeto sf", "5 min"),\n', "")
     txt("T3.4: el cuestionario del módulo 12 deja de poderse medir", "ensamblador",
         "    AUTOEVALUACIONES['cap1'] = [", "    AUTOEVALUACIONES['cap1-final'] = [")
+    # --- R3 · T3.5: el extracto que viaja y el recuadro del entorno ----------
+    # Una inyección por guarda de `guardas_de_t35()` y por cada paro de
+    # `completa_entorno()`, con el mensaje que TIENE que salir.
+    txt("T3.5: el módulo 4 vuelve a carga_municipios()", "ensamblador",
+        '"""library(sf)\n\nmun &lt;- st_read("entrega/datos/cap1_municipios.gpkg", quiet = TRUE)\nok  &lt;-',
+        '"""source("precalculo/fuentes.R")\n\nmun &lt;- carga_municipios()\nok  &lt;-')
+    txt("T3.5: la guarda de rutas se queda sin sujeto", "ensamblador",
+        "_RUTA_DATOS = re.compile(r'entrega/datos/", "_RUTA_DATOS = re.compile(r'entrega/datoz/")
+    txt("T3.5: un bloque lee un archivo que no está en el extracto", "ensamblador",
+        'est = gpd.read_file("entrega/datos/taller1_estaciones.gpkg")',
+        'est = gpd.read_file("entrega/datos/taller1_estaciones_bis.gpkg")')
+    obj("T3.5: el extracto cambia de tamaño sin regenerar el capítulo", "datos",
+        lambda o: o["extracto"]["snow"].__setitem__("bytes", o["extracto"]["snow"]["bytes"] + 1))
+    obj("T3.5: un archivo del extracto cae en el .gitignore", "datos",
+        lambda o: o["extracto"]["reina"].__setitem__("ruta", "datos/procesado/municipios_llave.csv"))
+    txt("T3.5: el módulo 9 lleva dos notas de descarga", "ensamblador",
+        '"trae <code>sf</code>.", varios=False) + tabs(',
+        '"trae <code>sf</code>.", varios=False) + nota_datos("Otra nota.") + tabs(')
+    txt("T3.5: el módulo 9 pierde su nota de descarga", "ensamblador",
+        '""" + nota_datos(\n    f"La pestaña de Python lee {enlace_datos(\'nc\')}, el del módulo 2; la de R, el '
+        '<code>nc.shp</code> que "\n    "trae <code>sf</code>.", varios=False) + tabs(',
+        '""" + tabs(')
+    txt("T3.5: la nota del módulo 10 queda detrás de un bloque", "ensamblador",
+        '""" + nota_datos(\n    f"Los dos bloques leen {enlace_datos(\'estaciones\')}, el del módulo 3',
+        '""" + tabs("x", "1", "2") + nota_datos(\n    f"Los dos bloques leen {enlace_datos(\'estaciones\')}, el del módulo 3')
+    txt("T3.5: el recuadro del entorno se queda sin rellenar", "ensamblador",
+        "    doc = completa_entorno(doc)\n", "")
+    txt("T3.5: el recuadro del entorno pierde su prueba", "ensamblador",
+        ' + tabs("La prueba del entorno, en R y en Python", R_HUMO, PY_HUMO)', "")
+    txt("T3.5: la prueba de R no carga un paquete que se manda instalar", "ensamblador",
+        "library(spatstat.data); library(sp); library(spdep)", "library(sp); library(spdep)")
+    txt("T3.5: la prueba de Python no importa un módulo que se manda instalar", "ensamblador",
+        "import geopandas as gpd, shapely, pandas, numpy, scipy, libpysal\n",
+        "import geopandas as gpd, shapely, pandas, numpy, scipy\n")
+    obj("T3.5: el ejercicio 4 vuelve a carga_municipios()", "soluciones",
+        lambda o: o["e4"].__setitem__("enunciado", o["e4"]["enunciado"] + " Con carga_municipios()."))
+    txt("T3.5: un bloque importa un módulo sin nombre de pip", "ensamblador",
+        "import geopandas as gpd, numpy as np, libpysal\n",
+        "import geopandas as gpd, numpy as np, libpysal, modulo_raro\n")
+    txt("T3.5: el ejercicio 2 pierde el enlace de descarga", "ensamblador",
+        "{ejercicio(2, S['e2'], datos=E2_DATOS)}", "{ejercicio(2, S['e2'])}")
+    txt("T3.5: un archivo del recuadro no lo enlaza ningún módulo", "ensamblador",
+        """ + nota_datos(\n    f"La pestaña de Python lee las muertes y las bombas de un archivo""",
+        """ + (lambda *a, **k: "")(\n    f"La pestaña de Python lee las muertes y las bombas de un archivo""")
+    # Ronda 2 de T3.5: la licencia y los diez 🟡 de la verificación.
+    txt("T3.5r2: el recuadro pierde la licencia del extracto", "ensamblador",
+        "{LICENCIA_EXTRACTO}, con la atribución de sus", "se publican, con la atribución de sus")
+    txt("T3.5r2: la frase de la licencia olvida al ICFES", "ensamblador",
+        "los resultados de Saber 11, del <strong>ICFES</strong> (CC BY-SA 4.0); y los", "y los")
+    txt("T3.5r2 V-02: el M10 lee de datos/, fuera de procesado", "ensamblador",
+        'estac &lt;- st_read("entrega/datos/taller1_estaciones.gpkg", quiet = TRUE)',
+        'estac &lt;- st_read("datos/unidades.gpkg", quiet = TRUE)')
+    txt("T3.5r2 V-03: la nota del M9 enlaza otro archivo", "ensamblador",
+        "f\"La pestaña de Python lee {enlace_datos('nc')}, el del módulo 2; la de R",
+        "f\"La pestaña de Python lee {enlace_datos('snow')}, el del módulo 2; la de R")
+    txt("T3.5r2 V-07: un bloque carga un paquete con require()", "ensamblador",
+        "n_eff &lt;- function(n, rho) n / (1 + (n - 1) * rho)",
+        "require(spatstat.explore)\nn_eff &lt;- function(n, rho) n / (1 + (n - 1) * rho)")
+    txt("T3.5r2 V-07: un bloque carga un paquete por nombre calculado", "ensamblador",
+        "n_eff &lt;- function(n, rho) n / (1 + (n - 1) * rho)",
+        "library(p, character.only = TRUE)\nn_eff &lt;- function(n, rho) n / (1 + (n - 1) * rho)")
+    txt("T3.5r2 V-06: un comentario del recuadro no cabe en el teléfono", "ensamblador",
+        "# Windows y macOS:\ninstall.packages(paq,",
+        "# Windows y macOS, con los binarios de CRAN:\ninstall.packages(paq,")
+    # Corrección de la ronda 2: la CC BY-SA solo para los dos archivos de los
+    # municipios; los cuatro de paquetes de R, con la licencia de su paquete.
+    txt("T3.5r2: la CC BY-SA vuelve a cubrir todos los cap1_*", "ensamblador",
+        "Los dos archivos de los municipios, <code>cap1_municipios.gpkg</code> y\n"
+        "          <code>cap1_municipios_reina.gal</code>, {LICENCIA_EXTRACTO}",
+        "Los archivos <code>cap1_*</code> de esta lista {LICENCIA_EXTRACTO}")
+    txt("T3.5r2: los archivos de los paquetes pierden su licencia", "ensamblador",
+        "licencia que declara el paquete del que salen: {LICENCIAS_PAQUETES_TXT}.",
+        "licencia que declara el paquete del que salen.")
+    for _nombre, _mensaje in (
+            ("T3.5r2: la CC BY-SA vuelve a cubrir todos los cap1_*", "cubre archivos de paquetes de R"),
+            ("T3.5r2: los archivos de los paquetes pierden su licencia", "no lleva la licencia de"),
+            ("T3.5r2: el recuadro pierde la licencia del extracto", "no está una sola vez, en el recuadro"),
+            ("T3.5r2: la frase de la licencia olvida al ICFES", "no nombra «ICFES»"),
+            ("T3.5r2 V-02: el M10 lee de datos/, fuera de procesado", "que no viaja al sitio"),
+            ("T3.5r2 V-03: la nota del M9 enlaza otro archivo", "no enlaza entrega/datos/cap1_nc.gpkg"),
+            ("T3.5r2 V-07: un bloque carga un paquete con require()", "la prueba del entorno no carga"),
+            ("T3.5r2 V-07: un bloque carga un paquete por nombre calculado", "nombre calculado"),
+            ("T3.5r2 V-06: un comentario del recuadro no cabe en el teléfono", "en el teléfono se desplazan"),
+    ):
+        ESPERA[_nombre] = _mensaje
+    for _nombre, _mensaje in (
+            ("T3.5: el módulo 4 vuelve a carga_municipios()", "que no viaja al sitio"),
+            ("T3.5: la guarda de rutas se queda sin sujeto", "ningún bloque lee el extracto"),
+            ("T3.5: un bloque lee un archivo que no está en el extracto", "que no está en el extracto"),
+            ("T3.5: el extracto cambia de tamaño sin regenerar el capítulo", "el extracto cambió sin regenerar"),
+            ("T3.5: un archivo del extracto cae en el .gitignore", "está en el .gitignore"),
+            ("T3.5: el módulo 9 lleva dos notas de descarga", "va una por módulo"),
+            ("T3.5: el módulo 9 pierde su nota de descarga", "no lleva su nota de descarga"),
+            ("T3.5: la nota del módulo 10 queda detrás de un bloque", "va detrás de su primer bloque"),
+            ("T3.5: el recuadro del entorno se queda sin rellenar", "sin rellenar"),
+            ("T3.5: el recuadro del entorno pierde su prueba", "no lleva su prueba"),
+            ("T3.5: la prueba de R no carga un paquete que se manda instalar", "la prueba del entorno no carga"),
+            ("T3.5: la prueba de Python no importa un módulo que se manda instalar", "no importa"),
+            ("T3.5: el ejercicio 4 vuelve a carga_municipios()", "no lee el archivo de municipios"),
+            ("T3.5: un bloque importa un módulo sin nombre de pip", "no tienen nombre de pip"),
+            ("T3.5: un archivo del recuadro no lo enlaza ningún módulo", "ningún módulo enlaza"),
+            ("T3.5: el ejercicio 2 pierde el enlace de descarga", "no enlaza la descarga de su archivo"),
+    ):
+        ESPERA[_nombre] = _mensaje
     for _nombre, _mensaje in (
             ("T3.4: vuelve «el auditor» a la prosa del módulo 6", "crónica de producción en lo que lee"),
             ("T3.4: vuelve «el JSON» a la prosa del módulo 2", "crónica de producción en lo que lee"),
@@ -1647,6 +1751,9 @@ def main() -> int:
          "    AUTOEVALUACIONES['cap1-diagnostica'] = ["),
         ('cat(sprintf("%d de %d = %.5f %%\\\\n",',
          '# el JSON del auditor y su generador, en un comentario de R\ncat(sprintf("%d de %d = %.5f %%\\\\n",'),
+        # R3 · T3.5r2 (V-F): un comentario que NOMBRA lo que no viaja no es leerlo.
+        ("banda &lt;- function(lo, hi) {",
+         "# Sin source() ni datos/procesado: todo sale de entrega/datos.\nbanda &lt;- function(lo, hi) {"),
     ]
     legit = fuente
     l_inertes = [v for v, _ in LEGITIMOS if legit.count(v) != 1]
