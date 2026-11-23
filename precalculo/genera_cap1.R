@@ -2255,7 +2255,7 @@ D$escala <- list(
 D$discrepancias <- list(
   list(
     id = "moran_islas",
-    que = "El I de Moran de la deserción municipal",
+    que = "La I de Moran de la deserción municipal",
     valor_r = r10(mi_mun$estimate[["Moran I statistic"]]),
     valor_python = r10(I_con_n_total(muni_ok$desercion, lw_mun)),
     diferencia = r10(abs(I_con_n_total(muni_ok$desercion, lw_mun) -
@@ -2269,7 +2269,7 @@ D$discrepancias <- list(
   ),
   list(
     id = "moran_islas_dep",
-    que = "El I de Moran de la deserción departamental",
+    que = "La I de Moran de la deserción departamental",
     valor_r = r10(mi_dep$estimate[["Moran I statistic"]]),
     valor_python = r10(I_con_n_total(dep_ok$desercion, lw_dep)),
     diferencia = r10(abs(I_con_n_total(dep_ok$desercion, lw_dep) -
@@ -2979,19 +2979,39 @@ D$glosario <- list(
     list(clave = "guia",    titulo = "Texto guía", tipo = "referencia"),
     list(clave = "en_r",    titulo = "En R",    tipo = "codigo")
   ),
+  # R3 · T3.2 (2026-11-22): una fila por cada símbolo que el capítulo 1
+  # escribe en una fórmula, recogida recorriendo las fórmulas del HTML
+  # ensamblado y no de memoria. Las filas nuevas llevan «—» en «Texto
+  # guía»: ningún localizador se inventa (las citas son de R4). En «En R»
+  # solo van funciones que el propio capítulo ejecuta en sus bloques; si no
+  # hay ninguna, «—». Las convenciones son las de D6: la ventana W en
+  # cursiva y solo en patrones puntuales, la matriz de pesos en negrita, ρ
+  # siempre con su marca y «rezago» solo para el espacial. `ensambla_cap1.py`
+  # (guardas_de_notacion) exige estas filas leyendo el documento ensamblado.
   filas = list(
+    # --- El dominio y los tres tipos de dato --------------------------------
     list(simbolo = "s", nombre = "Una localización del dominio", guia = "Bivand §1.2", en_r = "st_coordinates()"),
-    list(simbolo = "D", nombre = "El dominio de estudio", guia = "Bivand §1.2", en_r = "st_bbox()"),
+    list(simbolo = "D", nombre = "El dominio de estudio, \\(D \\subset \\mathbb{R}^2\\). En un patrón puntual, la región que de verdad se observa es la ventana \\(W\\). En el cap. 6, \\(D\\) es la matriz diagonal de los grados, \\(\\operatorname{diag}(d_1, \\dots, d_n)\\)", guia = "Bivand §1.2", en_r = "st_bbox()"),
     list(simbolo = "Z(s)", nombre = "El valor del proceso en la localización s", guia = "Bivand §8.1", en_r = "x$variable"),
-    list(simbolo = "h", nombre = "Vector (o distancia) de separación entre dos localizaciones", guia = "Bivand §8.4", en_r = "st_distance()"),
-    list(simbolo = "C(h)", nombre = "Covarianza entre dos puntos separados h", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
-    list(simbolo = "\\gamma(h)", nombre = "Semivariograma", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
+    list(simbolo = "A_i", nombre = "La unidad \\(i\\) de un dato de área (un municipio, un condado); \\(Z(A_i)\\) es su valor. En el cap. 6, \\(A\\) sin subíndice es la matriz de adyacencia binaria, de elementos \\(a_{ij}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "n", nombre = "El número de observaciones: unidades, estaciones o puntos. En un patrón puntual, los puntos que se observaron", guia = "—", en_r = "—"),
+    # --- Patrones puntuales ---------------------------------------------------
+    list(simbolo = "N", nombre = "En un patrón puntual, el número de puntos como variable aleatoria; \\(n\\) es el valor que se observó", guia = "—", en_r = "—"),
+    list(simbolo = "W", nombre = "La ventana: la región observada de un patrón puntual, \\(W \\subset D\\). Solo en patrones puntuales; la matriz de pesos es \\(\\mathbf{W}\\)", guia = "—", en_r = "x$window"),
+    list(simbolo = "|W|", nombre = "El área de la ventana", guia = "—", en_r = "spatstat.geom::area()"),
+    list(simbolo = "N(B)", nombre = "El número de puntos que caen en una región \\(B\\) de área \\(|B|\\); bajo CSR es Poisson de media \\(\\lambda|B|\\). En el módulo 1, en cambio, \\(B\\) es el número de recolocaciones de la prueba de Snow. En el cap. 6, \\(N(i)\\) es el conjunto de los vecinos de \\(i\\)", guia = "—", en_r = "—"),
     # §6.2 «Estimating homogeneous intensity», no §5.3. La referencia vieja
     # mandaba al estudiante a §5.3, que es «Complete spatial randomness»:
     # una sección real y del tema, pero no la de este símbolo. Corregido
     # contra el índice que los autores publican en book.spatstat.org, donde
     # 6 es Intensity, 7 Correlation y 8 Spacing. (2026-08-10)
-    list(simbolo = "\\lambda", nombre = "Intensidad de un patrón puntual", guia = "Baddeley §6.2", en_r = "spatstat.geom::intensity()"),
+    # R3 · T3.2: `intensity()` pasa a la fila de \hat\lambda, que es lo que
+    # devuelve. λ es del proceso y no se calcula: se estima.
+    list(simbolo = "\\lambda", nombre = "Intensidad de un patrón puntual: los puntos esperados por unidad de área. Si el proceso es homogéneo, \\(E[N(B)] = \\lambda|B|\\). Es del proceso y no se observa", guia = "Baddeley §6.2", en_r = "—"),
+    list(simbolo = "\\lambda(s)", nombre = "La intensidad en el sitio \\(s\\), cuando el proceso no es homogéneo", guia = "—", en_r = "—"),
+    list(simbolo = "\\hat{\\lambda}", nombre = "El estimador de la intensidad, \\(\\hat{\\lambda} = n/|W|\\): depende de la ventana", guia = "—", en_r = "spatstat.geom::intensity()"),
+    list(simbolo = "\\text{CSR}", nombre = "Aleatoriedad espacial completa (<em>complete spatial randomness</em>): puntos independientes y uniformes sobre la ventana. Es la hipótesis nula de los patrones puntuales", guia = "—", en_r = "—"),
+    list(simbolo = "d_i", nombre = "La distancia del punto \\(i\\) a su vecino más próximo, con la letra del cap. 4. En el cap. 6, \\(d_i = \\sum_j a_{ij}\\) es el grado de \\(i\\): cuántos vecinos tiene", guia = "—", en_r = "—"),
     # Los dos que estrena el módulo 3 de este capítulo. Van juntos porque
     # el segundo es el primero dividido por su valor esperado bajo CSR.
     list(simbolo = "\\bar{d}_{\\min}", nombre = "Distancia media al vecino más próximo", guia = "Baddeley §8.2", en_r = "mean(spatstat.geom::nndist())"),
@@ -3000,11 +3020,39 @@ D$glosario <- list(
     # la tabla del módulo 3. Sin el índice, quien ejecute la celda ve tres
     # números y dos no cuadran con el material.
     list(simbolo = "R", nombre = "Índice de Clark-Evans: lo observado frente a lo que daría el azar", guia = "Baddeley §8.2", en_r = "spatstat.explore::clarkevans()['naive']"),
-    list(simbolo = "W", nombre = "Matriz de pesos espaciales", guia = "Bivand §9.2", en_r = "spdep::nb2listw()"),
-    list(simbolo = "Wy", nombre = "Rezago espacial: la media de los vecinos", guia = "Bivand §9.3", en_r = "spdep::lag.listw()"),
-    list(simbolo = "I", nombre = "Índice de Moran (autocorrelación global)", guia = "Bivand §9.3", en_r = "spdep::moran.test()"),
-    list(simbolo = "n_{\\text{eff}}", nombre = "Tamaño de muestra efectivo", guia = "Cressie §1.3", en_r = "—"),
-    list(simbolo = "\\rho", nombre = "Coeficiente de retardo espacial (SAR)", guia = "Bivand §9.4", en_r = "spatialreg::lagsarlm()"),
+    list(simbolo = "G(r)", nombre = "La función \\(G\\): la probabilidad de que el vecino más próximo esté a \\(r\\) o menos. Bajo CSR, \\(G(r) = 1 - e^{-\\lambda\\pi r^2}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "F(r),\\ K(r),\\ g(r)", nombre = "Las otras funciones de resumen de un patrón puntual, que define el cap. 4. En el módulo 4 de este capítulo, \\(K\\) sin argumento es el número de bloques del <em>jackknife</em>", guia = "—", en_r = "—"),
+    list(simbolo = "r", nombre = "Una distancia, en \\(G(r)\\) y en la deducción de Clark-Evans. En el módulo 7 (\\(|r|\\)) y en la deducción del módulo 5, una correlación muestral", guia = "—", en_r = "—"),
+    # --- Geoestadística y dependencia ----------------------------------------
+    list(simbolo = "h", nombre = "Vector (o distancia) de separación entre dos localizaciones", guia = "Bivand §8.4", en_r = "st_distance()"),
+    list(simbolo = "C(h)", nombre = "Covarianza entre dos puntos separados h", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
+    list(simbolo = "\\gamma(h)", nombre = "Semivariograma", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
+    list(simbolo = "\\bar{\\gamma}_k", nombre = "El semivariograma teórico promediado sobre los pares de la clase de distancia \\(k\\): la referencia del variograma empírico en una retícula (módulo 6)", guia = "—", en_r = "—"),
+    list(simbolo = "\\mu", nombre = "La media del proceso, \\(E[Z(s)]\\)", guia = "—", en_r = "—"),
+    list(simbolo = "m(s)", nombre = "La media del proceso en el sitio \\(s\\), cuando cambia de un sitio a otro: una tendencia (módulo 6)", guia = "—", en_r = "—"),
+    list(simbolo = "\\sigma^2", nombre = "La varianza del proceso: la de cada observación", guia = "—", en_r = "—"),
+    list(simbolo = "\\bar{Z}", nombre = "La media muestral de las observaciones \\(Z_i\\)", guia = "—", en_r = "—"),
+    list(simbolo = "s^2", nombre = "La varianza muestral; \\(s/\\sqrt{n}\\) es el error estándar clásico de la media", guia = "—", en_r = "—"),
+    list(simbolo = "\\rho(h)", nombre = "La correlación entre dos observaciones separadas una distancia \\(h\\). En este capítulo, \\(\\rho(h) = e^{-h/\\phi}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "\\phi", nombre = "El alcance del modelo exponencial \\(\\rho(h) = e^{-h/\\phi}\\): su parámetro de escala. No es el alcance práctico", guia = "—", en_r = "—"),
+    list(simbolo = "\\rho_{ij}", nombre = "La correlación entre las observaciones \\(i\\) y \\(j\\); si solo depende de la distancia, \\(\\rho(h_{ij})\\)", guia = "—", en_r = "—"),
+    list(simbolo = "\\bar{\\rho}", nombre = "La correlación media entre pares, \\(\\frac{1}{n(n-1)}\\sum_{i \\neq j} \\rho_{ij}\\); \\(\\bar{\\rho}_\\infty\\) es su límite al rellenar una región fija", guia = "—", en_r = "—"),
+    list(simbolo = "\\mathbf{R}", nombre = "La matriz de las correlaciones \\(\\rho_{ij}\\) (módulo 4)", guia = "—", en_r = "—"),
+    # La fila de ρ dejó de decir solo «coeficiente de retardo espacial (SAR)»
+    # (R3 · T3.2): en este capítulo ρ es siempre una correlación. El SAR va
+    # en el cap. 8, que no existe todavía en Htmls_Espacial/: se dice como lo
+    # que es, una previsión del árbol de decisión del módulo 8.
+    list(simbolo = "\\rho", nombre = "Sin marca, este capítulo no la usa: aquí \\(\\rho\\) es siempre una correlación, \\(\\rho(h)\\), \\(\\rho_{ij}\\) o \\(\\bar{\\rho}\\). En el cap. 5, \\(\\rho(z)\\) es la intensidad en función de una covariable (<code>rhohat</code>). En el modelo SAR, que el árbol del módulo 8 sitúa en el cap. 8, todavía sin publicar, es el coeficiente del rezago espacial", guia = "Bivand §9.4", en_r = "spatialreg::lagsarlm()"),
+    list(simbolo = "n_{\\text{eff}}", nombre = "Tamaño de muestra efectivo; \\(n/n_{\\text{eff}}\\) es el efecto de diseño", guia = "Cressie §1.3", en_r = "—"),
+    # --- Datos de área ---------------------------------------------------------
+    list(simbolo = "\\mathbf{W}", nombre = "La matriz de pesos espaciales, de elementos \\(w_{ij}\\). En los caps. 6 y 7 se escribe \\(W\\), sin negrita", guia = "Bivand §9.2", en_r = "spdep::nb2listw()"),
+    list(simbolo = "w_{ij}", nombre = "El peso con que \\(j\\) entra en la vecindad de \\(i\\): el elemento \\((i, j)\\) de \\(\\mathbf{W}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "\\mathbf{W}y", nombre = "Rezago espacial: la media de los vecinos", guia = "Bivand §9.3", en_r = "spdep::lag.listw()"),
+    list(simbolo = "S_0", nombre = "La suma de todos los pesos, \\(\\sum_i \\sum_j w_{ij}\\), como en el cap. 7. El cap. 6 llama \\(S_0\\) a la suma de la adyacencia binaria, \\(\\sum_i \\sum_j a_{ij}\\)", guia = "—", en_r = "—"),
+    list(simbolo = "z_i", nombre = "El valor de la unidad \\(i\\), centrado en la media. En el módulo 7, \\(z\\) sin subíndice es el estadístico estandarizado de la prueba de Moran", guia = "—", en_r = "—"),
+    list(simbolo = "I", nombre = "Índice de Moran (autocorrelación global). Se lee como una correlación entre vecinos, pero no lo es: su rango no es [−1, 1]", guia = "Bivand §9.3", en_r = "spdep::moran.test()"),
+    list(simbolo = "E[I]", nombre = "El valor esperado de \\(I\\) bajo la nula de permutación, \\(-1/(n-1)\\): la referencia de \\(I\\), en vez de 0", guia = "—", en_r = "—"),
+    list(simbolo = "n'", nombre = "Las unidades con algún vecino en una banda de distancia, que son las que cuenta <code>spdep</code> (módulo 3)", guia = "—", en_r = "—"),
     list(simbolo = "G_i^*", nombre = "Estadístico de Getis-Ord local", guia = "Bivand §9.3", en_r = "spdep::localG()")
   )
 )

@@ -212,7 +212,7 @@ def defectos() -> list[tuple[str, str, str, object]]:
     txt("las dos autoevaluaciones se quedan en una", "ensamblador",
         'data-quiz="cap1-diagnostica"', 'data-quiz="cap1"')
     txt("un lienzo se queda sin aria-label", "ensamblador",
-        'aria-label="Variograma de una realización frente al teórico promediado en cada rezago, con la banda '
+        'aria-label="Variograma de una realización frente al teórico promediado en cada clase de distancia, con la banda '
         'del 5 al 95 por ciento sobre mil realizaciones" role="img"', 'role="img"')
     txt("una plantilla abre y no cierra", "ensamblador",
         "</template>\n", "\n")
@@ -1087,6 +1087,46 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: o["desercion"].__setitem__("n", o["desercion"]["n"] + 1))
     obj("T2.3b: las sedes de fuera del Distrito no cuadran por tercio", "datos",
         lambda o: o["visto"]["bogota"]["fuera_dc"].__setitem__(1, 0))
+    # --- R3 · T3.2: la notación (D6), contra el documento ensamblado -----
+    # Una inyección por guarda de `guardas_de_notacion()`, cada una con el
+    # mensaje que tiene que salir (abajo, en ESPERA): la del eje y la del
+    # género entran por el ensamblador; las del glosario, por el JSON.
+    _MORAN_W = r"centrados y la matriz de pesos \\(\\mathbf{{W}}\\)"
+    txt("T3.2: la matriz de pesos vuelve a escribirse sin negrita", "ensamblador",
+        _MORAN_W, r"centrados y la matriz de pesos \\(W\\)")
+    txt("T3.2: la prosa deja de escribir la matriz de pesos en negrita", "ensamblador",
+        _MORAN_W, r"centrados y la matriz de pesos \\(\\mathbf{{M}}\\)")
+    txt("T3.2: el eje del variograma vuelve a decir «rezago»", "ensamblador",
+        "text: 'clase de distancia (pasos de retícula)'", "text: 'rezago (pasos de retícula)'")
+    txt("T3.2: vuelve «el I de Moran»", "ensamblador",
+        "se mueve con ellas. La I de Moran pasa de", "se mueve con ellas. El I de Moran pasa de")
+    obj("T3.2: el glosario pierde la fila de λ̂", "datos",
+        lambda o: o["glosario"].__setitem__(
+            "filas", [f for f in o["glosario"]["filas"] if f["simbolo"] != "\\hat{\\lambda}"]))
+    obj("T3.2: el glosario pierde la sigla CSR", "datos",
+        lambda o: o["glosario"].__setitem__(
+            "filas", [f for f in o["glosario"]["filas"] if f["simbolo"] != "\\text{CSR}"]))
+    obj("T3.2: la fila de ρ vuelve a ser solo el SAR", "datos",
+        lambda o: next(f for f in o["glosario"]["filas"] if f["simbolo"] == "\\rho").__setitem__(
+            "nombre", "Coeficiente de retardo espacial (SAR)"))
+    obj("T3.2: la fila del rezago espacial vuelve a «Wy»", "datos",
+        lambda o: next(f for f in o["glosario"]["filas"] if f["simbolo"] == "\\mathbf{W}y").__setitem__(
+            "simbolo", "Wy"))
+    # Ronda 2 de T3.2, tras la verificación independiente: los defectos que
+    # se colaban. La matriz W justo después de «ventana» (la excepción miraba
+    # la palabra y no el papel del símbolo), «el I» sin «de Moran» detrás, y la
+    # fila de ρ que dice «correlación» para negarla.
+    txt("T3.2r2: la matriz de pesos W, justo después de «ventana»", "ensamblador",
+        "sin sedes. Elegir ventana es elegir qué región se describe. El capítulo 4",
+        "sin sedes. Elegir ventana es elegir qué región se describe. En los datos de área, la matriz de "
+        "pesos \\\\(W\\\\) declara quién es vecino. El capítulo 4")
+    txt("T3.2r2: «este I de Moran»", "ensamblador",
+        "se mueve con ellas. La I de Moran pasa de", "se mueve con ellas. Este I de Moran pasa de")
+    txt("T3.2r2: «el I departamental»", "ensamblador",
+        "Si la I departamental", "Si el I departamental")
+    obj("T3.2r2: la fila de ρ dice «correlación» para negarla", "datos",
+        lambda o: next(f for f in o["glosario"]["filas"] if f["simbolo"] == "\\rho").__setitem__(
+            "nombre", "Coeficiente de retardo espacial (SAR), que no es una correlación"))
     for _nombre, _mensaje in (
             ("T2.3: el título de Bogotá se copia con Object.assign y se congela", "no siguen a su mando"),
             ("T2.3b: las tres frases del borde de Bogotá, en orden invertido", "no dicen el borde o la cuenta"),
@@ -1185,6 +1225,18 @@ def defectos() -> list[tuple[str, str, str, object]]:
             ('T2.2: el deslizador de rho pierde el de Colombia', 'ya no salen de la rejilla de R'),
             ('T2.2: el rho de Colombia cae sobre otra posición del deslizador', 'coincide con otra posición'),
             ('T2.2: la cobertura vuelve al lienzo de los errores estándar', 'vuelven a compartir lienzo'),
+            ("T3.2: la matriz de pesos vuelve a escribirse sin negrita", "una W sin negrita hace de matriz de pesos"),
+            ("T3.2: la prosa deja de escribir la matriz de pesos en negrita", "ya no escribe la matriz de pesos"),
+            ("T3.2: el eje del variograma vuelve a decir «rezago»", "«rezago» que no es «rezago espacial»"),
+            ("T3.2: vuelve «el I de Moran»", "vuelve «el I» de Moran"),
+            ("T3.2: el glosario pierde la fila de λ̂", "escribe λ̂ y el glosario no le da fila"),
+            ("T3.2: el glosario pierde la sigla CSR", "la sigla CSR y el glosario no le da fila"),
+            ("T3.2: la fila de ρ vuelve a ser solo el SAR", "la fila de ρ del glosario"),
+            ("T3.2: la fila del rezago espacial vuelve a «Wy»", "una W sin negrita hace de matriz de pesos"),
+            ("T3.2r2: la matriz de pesos W, justo después de «ventana»", "una W sin negrita hace de matriz de pesos"),
+            ("T3.2r2: «este I de Moran»", "vuelve «el I» de Moran"),
+            ("T3.2r2: «el I departamental»", "vuelve «el I» de Moran"),
+            ("T3.2r2: la fila de ρ dice «correlación» para negarla", "la fila de ρ del glosario"),
     ):
         ESPERA[_nombre] = _mensaje
 

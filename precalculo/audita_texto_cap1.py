@@ -468,6 +468,37 @@ PROHIBIDAS = [
     # Los pares se alejan del cero o se acercan a él.
     ("no cuenta los pares reales como «suben» y «bajan» (módulo 7)", "todo",
      r"suben\b.{0,60}\bbajan\b|agregar no siempre sube la correlación"),
+    # --- R3 · T3.2: la notación (D6). Las formas retiradas que eran erróneas,
+    # no solo de estilo:
+    #   · la matriz de pesos con la misma W que la ventana;
+    #   · ρ en el glosario como solo el coeficiente del SAR, cuando en este
+    #     capítulo es siempre una correlación;
+    #   · «el I de Moran», que convivía con «la I»;
+    #   · los «rezagos» del variograma, que chocaban con el rezago espacial
+    #     W y del glosario: son clases de distancia;
+    #   · la distancia al vecino llamada D, la letra del dominio, y el conteo
+    #     N(A), con la A de los datos de área;
+    #   · la D del dominio convertida en la ventana a mitad del párrafo;
+    #   · el correlograma de Moran leído como la caída de una correlación;
+    #   · la R de la matriz de correlaciones, que es la letra de Clark-Evans
+    #     y no estaba definida.
+    ("no escribe la matriz de pesos sin negrita (D6)", "todo",
+     r"matriz de pesos \\\(w\\\)"),
+    ("no le da a ρ en el glosario solo el sentido del SAR (D6)", "todo",
+     r'"nombre": "coeficiente de retardo espacial \(sar\)'),
+    ("no escribe «el I de Moran» (D6)", "todo",
+     r"\b(?:el|del|al|un|este|ese|aquel|otro|mismo|primer|último) i\b(?![-_^=(\w]|\.\w)"),
+    ("no llama «rezago» a una clase de distancia del variograma (módulo 6)", "todo",
+     r"en el rezago (?:\d|\\\(k)|rezago \(pasos de retícula\)|rezagos fuera de la banda|en cada rezago|"
+     r"peor rezago|los ocho rezagos"),
+    ("no llama D a la distancia al vecino ni N(A) al conteo (módulo 3)", "todo",
+     r"p\(d (?:>|&gt;) r\)|e\[d\] =|n\(a\) \\sim"),
+    ("no convierte el dominio D en la ventana (módulo 2)", "todo",
+     r"dentro de \\\(d\\\) —que aquí es fijo"),
+    ("no lee el correlograma de Moran como la caída de una correlación (módulo 5)", "todo",
+     r"distancia, como en el correlograma del módulo 3"),
+    ("no escribe la matriz de correlaciones con la R de Clark-Evans (módulo 4)", "todo",
+     r"\^\\top r\\,"),
 ]
 
 

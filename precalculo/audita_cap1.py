@@ -63,6 +63,7 @@ import json
 import math
 import os
 import pathlib
+import re
 import sys
 import warnings
 
@@ -1883,7 +1884,7 @@ def main() -> int:
     gbar = [suma_g[h] / cuenta[h] for h in vg["lags"]]
     tc_ok = (len(vg.get("teorico_clase", [])) == len(vg["lags"])
              and len(vg.get("n_pares", [])) == len(vg["lags"]))
-    a.cierto(tc_ok, "el variograma trae un teórico de clase y un número de pares por rezago")
+    a.cierto(tc_ok, "el variograma trae un teórico de clase y un número de pares por clase de distancia")
     if tc_ok:
         for k, h in enumerate(vg["lags"]):
             a.igual(cuenta[h], vg["n_pares"][k], f"pares de la clase {h}, contados en la retícula")
@@ -1903,12 +1904,12 @@ def main() -> int:
         # γ(1) NO son la misma cifra, y la media de las réplicas distingue.
         a.cierto(abs(vg["media"][0] - vg["teorico_clase"][0])
                  < 0.1 * abs(vg["media"][0] - vg["teorico"][0]),
-                 "en el rezago 1 la media cae sobre el teórico de la clase y no sobre γ(1)",
+                 "en la clase 1 la media cae sobre el teórico de la clase y no sobre γ(1)",
                  f"media {vg['media'][0]:.5f}, de clase {vg['teorico_clase'][0]:.5f}, "
                  f"γ(1) = {vg['teorico'][0]:.5f}")
     a.igual((vg["q95"][vg["lags"].index(4)] - vg["q05"][vg["lags"].index(4)])
             / gbar[vg["lags"].index(4)], ur["banda_rel_lag4"],
-            "el ancho de la banda en el rezago 4, relativo al teórico de su clase", 1e-7)
+            "el ancho de la banda en la clase 4, relativo al teórico de su clase", 1e-7)
     a.cierto(ur["banda_rel_lag4"] > 0.2,
              "una sola realización se desvía del proceso",
              f"{ur['banda_rel_lag4']:.5f}")
@@ -1978,13 +1979,13 @@ def main() -> int:
         # se pasa a la siguiente, en vez de estrellarse contra un IndexError y
         # dejar el informe a medias.
         if len(fila.get("variograma", [])) != len(vg["lags"]):
-            a.cierto(False, f"{q}: su variograma trae un valor por rezago",
+            a.cierto(False, f"{q}: su variograma trae un valor por clase de distancia",
                      f"{len(fila.get('variograma', []))} de {len(vg['lags'])}")
             continue
         curvas.append(fila["variograma"])
         for k, h in enumerate(vg["lags"]):
             a.igual(propio[k], fila["variograma"][k],
-                    f"{q}: su variograma en el rezago {h}", 5e-3)
+                    f"{q}: su variograma en la clase {h}", 5e-3)
         # Y las cifras que la prosa y la lectura estrenan sobre esa curva.
         # Contra el teórico DE LA CLASE, rehecho arriba desde la retícula
         # (`gbar`), no contra el que publica R ni contra γ en h entero.
@@ -1992,18 +1993,18 @@ def main() -> int:
                for k in range(len(vg["lags"]))]
         a.igual(max(rel), fila["desvio_rel_max"], f"{q}: su desvío relativo máximo", 1e-7)
         a.igual(vg["lags"][rel.index(max(rel))], fila["lag_desvio_max"],
-                f"{q}: y el rezago en que se da")
-        a.igual(rel[i_lag4], fila["desvio_rel_lag4"], f"{q}: su desvío en el rezago 4", 1e-7)
+                f"{q}: y la clase de distancia en que se da")
+        a.igual(rel[i_lag4], fila["desvio_rel_lag4"], f"{q}: su desvío en la clase 4", 1e-7)
         a.igual(sum(1 for k in range(len(vg["lags"]))
                     if not vg["q05"][k] <= fila["variograma"][k] <= vg["q95"][k]),
-                fila["lags_fuera_banda"], f"{q}: los rezagos que se le salen de la banda")
+                fila["lags_fuera_banda"], f"{q}: las clases de distancia que se le salen de la banda")
     # Que las tres se distingan A LA VISTA. Sin esto, tres curvas iguales
     # pasarían todo lo anterior y el botón volvería a mover solo el mapa.
     sep = min((max(abs(x - y) for x, y in zip(curvas[i], curvas[j]))
                for i in range(len(curvas)) for j in range(i + 1, len(curvas))), default=0.0)
     a.cierto(len(curvas) > 1 and sep > 0.01,
              "las curvas del simulador se separan a la vista",
-             f"{sep:.5f} en el rezago que más las separa, sobre {len(curvas)} curvas")
+             f"{sep:.5f} en la clase de distancia que más las separa, sobre {len(curvas)} curvas")
 
     # =================================================================
     a.titulo("6 · Tobler: los correlogramas")
@@ -2454,8 +2455,37 @@ def main() -> int:
     simbolos = [f["simbolo"] for f in gl["filas"]]
     a.cierto(len(simbolos) == len(set(simbolos)), "ningún símbolo repetido",
              f"{len(simbolos)} filas")
-    a.cierto(len(gl["filas"]) >= 10, "el glosario cubre la notación del curso",
+    # R3 · T3.2: de 15 filas a una por cada símbolo que el capítulo escribe en
+    # una fórmula. La cota de abajo es la de hoy menos holgura para retirar
+    # alguna; lo que de verdad ata el glosario a la prosa es la lista de D6.
+    a.cierto(len(gl["filas"]) >= 40, "el glosario cubre la notación del curso",
              f"{len(gl['filas'])} entradas")
+    # La lista que el encargo de R3 · T3.2 exige (D6): cada símbolo con su
+    # fila. Se compara sin espacios ni llaves, que KaTeX ignora.
+    norma = lambda s: re.sub(r"[\s{}]", "", s)                       # noqa: E731
+    por_simbolo = {norma(f["simbolo"]): f for f in gl["filas"]}
+    D6 = {"W": "la ventana", "|W|": "el área de la ventana", "n": "n, observado",
+          "N": "N, aleatorio", "N(B)": "N(B)", "\\hat\\lambda": "λ̂",
+          "\\rho(h)": "ρ(h)", "\\rho_ij": "ρ_ij", "\\bar\\rho": "ρ̄", "\\phi": "φ",
+          "\\sigma^2": "σ²", "E[I]": "E[I]", "S_0": "S_0", "w_ij": "w_ij", "G(r)": "G(r)",
+          "\\textCSR": "la sigla CSR", "n_\\texteff": "n_eff", "\\mathbfW": "la matriz de pesos",
+          "\\mathbfWy": "el rezago espacial", "d_i": "la distancia al vecino, d_i",
+          "m(s)": "la media que cambia de sitio, m(s)"}
+    for simb, que in D6.items():
+        a.cierto(simb in por_simbolo, f"glosario: {que} tiene su fila", simb)
+    a.cierto("ventana" in por_simbolo.get("W", {}).get("nombre", ""),
+             "glosario: la W sin negrita es la ventana")
+    a.cierto(not any(k in por_simbolo for k in ("Wy", "Wz")),
+             "glosario: el rezago espacial se escribe con la matriz en negrita")
+    # Que diga «correlación» no basta: «…que no es una correlación» también lo
+    # dice (verificación de R3 · T3.2). Se exigen sus tres marcas y que no lo niegue.
+    nom_rho = por_simbolo.get("\\rho", {}).get("nombre", "")
+    a.cierto(all(x in norma(nom_rho) for x in ("\\rho(h)", "\\rho_ij", "\\bar\\rho"))
+             and "correlación" in nom_rho
+             and not re.search(r"\bno\s+(?:es|son|sea)\b[^.]{0,40}correlaci", nom_rho),
+             "glosario: la fila de ρ dice que en este capítulo ρ es una correlación")
+    a.cierto("caps. 6 y 7" in por_simbolo.get("\\mathbfW", {}).get("nombre", ""),
+             "glosario: la fila de la matriz dice cómo la escriben los caps. 6 y 7")
     for f in gl["filas"]:
         a.cierto(all(k in f and str(f[k]).strip() for k in claves),
                  f"la fila «{f['simbolo']}» trae sus cuatro columnas")

@@ -571,6 +571,28 @@ def defectos() -> list[tuple[str, str, str, object]]:
     add("dos filas del glosario comparten símbolo", "datos",
         m(lambda o: o["glosario"]["filas"][3].__setitem__(
             "simbolo", o["glosario"]["filas"][2]["simbolo"])))
+    # R3 · T3.2: la lista de D6 y lo que cada fila tiene que decir.
+    def _fila(o, simbolo):
+        return next(f for f in o["glosario"]["filas"] if f["simbolo"] == simbolo)
+    add("R3 · T3.2: el glosario vuelve a sus quince filas", "datos",
+        m(lambda o: o["glosario"].__setitem__("filas", o["glosario"]["filas"][:15])))
+    add("R3 · T3.2: el glosario pierde la fila de la ventana", "datos",
+        m(lambda o: o["glosario"]["filas"].remove(_fila(o, "W"))))
+    add("R3 · T3.2: el glosario pierde la fila de d_i", "datos",
+        m(lambda o: o["glosario"]["filas"].remove(_fila(o, "d_i"))))
+    add("R3 · T3.2: la W sin negrita vuelve a ser la matriz de pesos", "datos",
+        m(lambda o: _fila(o, "W").__setitem__("nombre", "Matriz de pesos espaciales")))
+    add("R3 · T3.2: el rezago espacial vuelve a «Wy»", "datos",
+        m(lambda o: _fila(o, "\\mathbf{W}y").__setitem__("simbolo", "Wy")))
+    add("R3 · T3.2: la fila de ρ vuelve a ser solo el SAR", "datos",
+        m(lambda o: _fila(o, "\\rho").__setitem__("nombre", "Coeficiente de retardo espacial (SAR)")))
+    add("R3 · T3.2: la fila de ρ dice «correlación» para negarla", "datos",
+        m(lambda o: _fila(o, "\\rho").__setitem__(
+            "nombre", "Coeficiente de retardo espacial (SAR), que no es una correlación")))
+    add("R3 · T3.2: el glosario pierde la fila de m(s)", "datos",
+        m(lambda o: o["glosario"]["filas"].remove(_fila(o, "m(s)"))))
+    add("R3 · T3.2: la fila de la matriz deja de decir cómo la escriben los caps. 6 y 7", "datos",
+        m(lambda o: _fila(o, "\\mathbf{W}").__setitem__("nombre", "La matriz de pesos espaciales")))
     add("una hoja del árbol se queda sin capítulo", "datos",
         m(lambda o: o["arbol"]["nodos"][1]["opciones"][0].pop("capitulo")))
     add("el generador dice haber verificado menos anclas", "datos",

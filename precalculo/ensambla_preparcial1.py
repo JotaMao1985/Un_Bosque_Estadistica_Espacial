@@ -1341,25 +1341,25 @@ BLOQUE_D = [
 
     preg("grafico", "cap1", 6,
          f"El gráfico traza el variograma teórico de un proceso —promediado sobre los pares "
-         f"que agrupa cada retardo— y, encima, lo que devuelven "
+         f"que agrupa cada clase de distancia— y, encima, lo que devuelven "
          f"{c('realiz_n')} realizaciones suyas: la media de todas ellas y la banda entre los "
          f"percentiles 5 y 95. ¿Qué se lee?",
-         "Fíjate en cuánto se abre la banda a medida que crece el retardo, y en dónde cae la "
+         "Fíjate en cuánto se abre la banda a medida que crece la clase de distancia, y en dónde cae la "
          "media.",
          alto=250,
-         descripcionGrafico=f"Variograma con cuatro líneas sobre los retardos "
+         descripcionGrafico=f"Variograma con cuatro líneas sobre las clases de distancia "
                             f"{ent(GR['g_variograma']['lags'][0])} a "
                             f"{ent(GR['g_variograma']['lags'][-1])}. El teórico, promediado sobre "
-                            f"los pares de cada retardo, va de "
+                            f"los pares de cada clase, va de "
                             f"{n(GR['g_variograma']['teorico_clase'][0], 4)} a "
                             f"{n(GR['g_variograma']['teorico_clase'][-1], 4)}; la media de "
                             f"{c('realiz_n')} realizaciones, de "
                             f"{n(GR['g_variograma']['media'][0], 4)} a "
                             f"{n(GR['g_variograma']['media'][-1], 4)}. Las otras dos son los "
                             f"percentiles 5 y 95 de las realizaciones, dibujados como dos líneas "
-                            f"sin relleno entre ellas: en el primer retardo valen "
+                            f"sin relleno entre ellas: en la primera clase valen "
                             f"{n(GR['g_variograma']['q05'][0], 4)} y "
-                            f"{n(GR['g_variograma']['q95'][0], 4)}, y en el último "
+                            f"{n(GR['g_variograma']['q95'][0], 4)}, y en la última "
                             f"{n(GR['g_variograma']['q05'][-1], 4)} y "
                             f"{n(GR['g_variograma']['q95'][-1], 4)}",
          dibujar="""canvas => {
@@ -1379,23 +1379,23 @@ BLOQUE_D = [
           }""",
          opciones=[
              op("Que una sola realización puede quedar muy lejos del variograma del proceso, y "
-                "tanto más cuanto mayor es el retardo.", True,
+                "tanto más cuanto mayor es la clase de distancia.", True,
                 "La banda dice lo que le puede pasar a una realización, y se abre conforme "
-                "crece el retardo. Con un solo mapa —que es lo que siempre se tiene— se está en "
+                "crece la clase de distancia. Con un solo mapa —que es lo que siempre se tiene— se está en "
                 "algún punto de esa banda, sin saber en cuál."),
-             op("Que el estimador del variograma está sesgado en los retardos grandes.", False,
+             op("Que el estimador del variograma está sesgado en las clases de distancia grandes.", False,
                 "El sesgo que propone no está en el gráfico: la media de las realizaciones va "
-                "pegada al teórico en todos los retardos, también en los grandes. Lo que crece "
+                "pegada al teórico en todas las clases, también en las grandes. Lo que crece "
                 "ahí es la dispersión, que es varianza y no sesgo, y no crece por falta de "
                 "pares. Crece porque cada diferencia al cuadrado varía más cuanto mayor es la "
                 "semivarianza, y porque en un mapa que mide pocas veces el alcance de la "
-                "correlación las diferencias a retardo largo dependen de unas pocas "
+                "correlación las diferencias a distancia larga dependen de unas pocas "
                 "fluctuaciones grandes y están muy correlacionadas entre sí: promediar muchas "
-                "estabiliza poco. El teórico se dibuja promediado en cada retardo porque el "
-                "estimador agrupa los pares que caen a media unidad de él —en el primero, los "
+                "estabiliza poco. El teórico se dibuja promediado en cada clase porque el "
+                "estimador agrupa los pares cuya distancia queda a menos de media unidad de la de la clase —en la primera, los "
                 "vecinos de al lado y los de la diagonal—, no solo los que están a esa "
                 "distancia exacta."),
-             op("Que el proceso deja de ser estacionario a partir de cierto retardo.", False,
+             op("Que el proceso deja de ser estacionario a partir de cierta clase de distancia.", False,
                 "El proceso simulado es estacionario por construcción. Confundir la apertura de "
                 "la banda con una pérdida de estacionariedad es leer una propiedad del estimador "
                 "como si fuera del proceso."),

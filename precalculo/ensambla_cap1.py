@@ -417,8 +417,8 @@ MOD1 = cabecera(
       <div class="definition">
         <h3>Y ahora la parte formal: qué es un patrón puntual</h3>
         <p>Lo que acabas de ver es un <strong>patrón puntual</strong>: un conjunto de localizaciones
-          \\(\\{{s_1, \\dots, s_n\\}}\\) dentro de un dominio \\(D\\), donde <strong>lo aleatorio es dónde están los
-          puntos</strong> — y también cuántos hay. No se ha medido nada en cada muerte: la muerte <em>es</em> el
+          \\(\\{{s_1, \\dots, s_n\\}}\\) dentro de la región que se observó, la <em>ventana</em> \\(W\\), donde
+          <strong>lo aleatorio es dónde están los puntos</strong> — y también cuántos hay. No se ha medido nada en cada muerte: la muerte <em>es</em> el
           dato, y su valor es su posición.</p>
         <p style="margin-bottom:0;">Esa frase —«qué es aleatorio»— es la que reparte los diez capítulos del curso, y
           el módulo 2 la usa para separar los tres tipos de dato espacial.</p>
@@ -806,9 +806,11 @@ MOD2 = cabecera(
           cambia es <strong>qué es aleatorio</strong>:</p>
         <ul>
           <li><strong>Patrón puntual:</strong> no hay ningún valor \\(Z(s)\\) que observar. Lo aleatorio es el
-            propio conjunto de puntos \\(\\{{s_1, \\dots, s_N\\}}\\) dentro de \\(D\\) —que aquí es fijo: la
-            <em>ventana</em>—, con \\(N\\) también aleatorio. Dicho de otro modo, lo aleatorio es el conteo
-            \\(N(B)\\), el número de puntos que caen en cada región \\(B\\) de la ventana.</li>
+            propio conjunto de puntos \\(\\{{s_1, \\dots, s_N\\}}\\) que caen en la región observada, la
+            <em>ventana</em> \\(W \\subset D\\), que se fija antes de mirar. Cuántos caen también es aleatorio:
+            \\(N\\), en mayúscula, es ese número como variable aleatoria, y \\(n\\) el que se observó. Dicho de
+            otro modo, lo aleatorio es el conteo \\(N(B)\\), el número de puntos que caen en cada región
+            \\(B\\) de la ventana.</li>
           <li><strong>Dato de área:</strong> los índices son un conjunto <em>fijo y numerable</em> de unidades
             \\(A_1, \\dots, A_n\\) —los municipios—, y aleatorio es el valor \\(Z(A_i)\\) de cada una.</li>
           <li><strong>Geoestadístico:</strong> hay un valor \\(Z(s)\\) para <em>todo</em> \\(s \\in D\\) —una
@@ -1051,8 +1053,8 @@ MOD3 = cabecera(
 
       <div class="definition">
         <h3>El índice de Moran, que es la herramienta de todo el curso</h3>
-        <p>Con \\(n\\) unidades, valores \\(z_i\\) centrados y una matriz de pesos \\(W\\) que declara quién es vecino
-          de quién,</p>
+        <p>Con \\(n\\) unidades, valores \\(z_i\\) centrados y la matriz de pesos \\(\\mathbf{{W}}\\), de
+          elementos \\(w_{{ij}}\\), que declara quién es vecino de quién,</p>
         <p style="text-align:center;">$$I = \\frac{{n}}{{S_0}} \\cdot
           \\frac{{\\sum_i \\sum_j w_{{ij}} z_i z_j}}{{\\sum_i z_i^2}},
           \\qquad S_0 = \\sum_i \\sum_j w_{{ij}}, \\qquad E[I] = -\\frac{{1}}{{n-1}}$$</p>
@@ -1063,6 +1065,9 @@ MOD3 = cabecera(
           <strong>centrado</strong>: los \\(z_i\\) suman cero, así que los productos \\(z_i z_j\\) entre unidades
           distintas suman \\(-\\sum_i z_i^2\\), y su promedio es negativo con cualquier dato. El capítulo 7 hace
           la cuenta entera.</p>
+        <p><strong>La I de Moran no es una correlación.</strong> Se lee como una correlación entre cada valor y
+          los de sus vecinos, pero no lo es: su rango no es \\([-1, 1]\\), y su referencia bajo la nula es
+          \\(E[I]\\), no 0. El módulo 2 del capítulo 7 explica de dónde salen sus extremos.</p>
         <p style="margin-bottom:0;">Esa referencia cambia en las bandas donde hay estaciones sin vecinos. En
           la de {b0['d1']}–{b0['d2']} km solo <strong>{b0['n_con_vecinos']}</strong> de las {co['geo']['n']}
           tienen alguna otra a esa distancia. <code>spdep</code> las deja fuera al contar —multiplica por
@@ -1222,18 +1227,19 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           <ol class="derivacion-pasos">
             <li>
               <p>Se parte de lo único que afirma CSR, que es una regla sobre <strong>conteos</strong> y no sobre
-                distancias: el número de puntos que caen en una región de área \\(A\\) es Poisson de media
-                \\(\\lambda A\\), y regiones disjuntas no se enteran unas de otras. No se añade nada más en todo
-                el desarrollo.</p>
-              $$N(A) \\sim \\text{{Poisson}}(\\lambda A)$$
+                distancias: el número de puntos \\(N(B)\\) que caen en una región \\(B\\) de área \\(|B|\\) es
+                Poisson de media \\(\\lambda|B|\\), y regiones disjuntas no se enteran unas de otras. No se añade
+                nada más en todo el desarrollo.</p>
+              $$N(B) \\sim \\text{{Poisson}}(\\lambda\\,|B|)$$
             </li>
             <li>
-              <p>La distancia \\(D\\) al vecino más próximo no es un conteo, pero su <em>cola</em> sí lo es, y ese
-                es el truco entero: que el vecino esté a más de \\(r\\) es exactamente que el disco de radio
-                \\(r\\) centrado en el punto esté <strong>vacío</strong>. El disco tiene área \\(\\pi r^2\\), así
-                que basta pedirle a la Poisson de media \\(\\lambda\\pi r^2\\) la probabilidad de que no salga
-                nadie:</p>
-              $$P(D > r) = P\\bigl(N(\\pi r^2) = 0\\bigr) = e^{{-\\lambda \\pi r^2}}$$
+              <p>La distancia \\(d_i\\) del punto \\(i\\) a su vecino más próximo —la letra del capítulo 4;
+                \\(\\bar{{d}}_{{\\min}}\\) es la media de las \\(n\\)— no es un conteo, pero su <em>cola</em> sí
+                lo es, y ese es el truco entero: que el vecino esté a más de \\(r\\) es exactamente que el disco
+                \\(B_r\\) de radio \\(r\\) centrado en el punto esté <strong>vacío</strong>. El disco tiene área
+                \\(|B_r| = \\pi r^2\\), así que basta pedirle a la Poisson de media \\(\\lambda\\pi r^2\\) la
+                probabilidad de que no salga nadie:</p>
+              $$P(d_i > r) = P\\bigl(N(B_r) = 0\\bigr) = e^{{-\\lambda \\pi r^2}}$$
             </li>
             <li>
               <p>Fíjate en que eso no es un paso intermedio cualquiera: es la <strong>distribución completa</strong>
@@ -1245,14 +1251,14 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
             <li>
               <p>Para una variable no negativa la media es el área bajo la cola, así que no hace falta derivar
                 \\(G\\) para conseguir la densidad ni integrar por partes: se integra lo que ya se tiene.</p>
-              $$E[D] = \\int_0^{{\\infty}} P(D > r)\\, dr = \\int_0^{{\\infty}} e^{{-\\lambda \\pi r^2}}\\, dr$$
+              $$E[d_i] = \\int_0^{{\\infty}} P(d_i > r)\\, dr = \\int_0^{{\\infty}} e^{{-\\lambda \\pi r^2}}\\, dr$$
             </li>
             <li>
               <p>Y lo que queda es la integral gaussiana,
                 \\(\\int_0^{{\\infty}} e^{{-a r^2}}\\, dr = \\tfrac{{1}}{{2}}\\sqrt{{\\pi/a}}\\), con
                 \\(a = \\lambda\\pi\\). El \\(\\pi\\) que trajo el área del disco se cancela contra el de la
                 integral y no sobrevive ni una constante suelta:</p>
-              $$E[D] = \\frac{{1}}{{2}}\\sqrt{{\\frac{{\\pi}}{{\\lambda\\pi}}}} = \\frac{{1}}{{2\\sqrt{{\\lambda}}}}$$
+              $$E[d_i] = \\frac{{1}}{{2}}\\sqrt{{\\frac{{\\pi}}{{\\lambda\\pi}}}} = \\frac{{1}}{{2\\sqrt{{\\lambda}}}}$$
             </li>
           </ol>
           <p class="derivacion-resultado">Ese es el denominador de la cuarta columna de la tabla, y la fórmula se
@@ -1452,9 +1458,10 @@ MOD4 = cabecera(
         otro del cero, sin irse hacia ninguno, y cada segmento es mucho más corto que la distancia que separa unas
         medias de otras.</p>
 
-      <p>Con el error estándar verdadero, \\(\\sqrt{{\\mathbf{{1}}^\\top R\\,\\mathbf{{1}}}}/n =
-        {n(ci['ee_exacto'])}\\) —el que sale de sumar todas las correlaciones, como en el recuadro de abajo—, las
-        medias no se mueven: son las mismas {ci['n']}. Cambia el largo de los segmentos, cuyo semiancho pasa de
+      <p>El error estándar verdadero es el que sale de sumar todas las correlaciones, como en el recuadro de
+        abajo: \\(\\sqrt{{\\mathbf{{1}}^\\top \\mathbf{{R}}\\,\\mathbf{{1}}}}/n = {n(ci['ee_exacto'])}\\), donde
+        \\(\\mathbf{{R}}\\) es la matriz de las correlaciones entre celdas. Con él, las medias no se
+        mueven: son las mismas {ci['n']}. Cambia el largo de los segmentos, cuyo semiancho pasa de
         {n(ci['semiancho_ingenuo_medio'])} en promedio a {n(ci['semiancho_exacto'])}, que es
         <strong>{n(ci['razon_semianchos'])} veces</strong> el primero, y entonces cubren el cero
         <strong>{ci['n_cubren_exacto']}</strong> de los {ci['n']}. Ese cociente no es el {n(r4['factor'])} del
@@ -1473,7 +1480,8 @@ MOD4 = cabecera(
           \\frac{{1}}{{n^2}}\\left[\\sum_i \\operatorname{{Var}}(Z_i)
           + \\sum_{{i \\neq j}} \\operatorname{{Cov}}(Z_i, Z_j)\\right]
           = \\frac{{\\sigma^2}}{{n}}\\left[1 + \\frac{{1}}{{n}}\\sum_{{i \\neq j}} \\rho_{{ij}}\\right]$$</p>
-        <p>El corchete es el <strong>factor de inflación por diseño</strong>. Vale 1 cuando la suma de las
+        <p>Aquí \\(\\rho_{{ij}}\\) es la correlación entre las observaciones \\(i\\) y \\(j\\). El corchete es el
+          <strong>efecto de diseño</strong>. Vale 1 cuando la suma de las
           correlaciones se anula —en particular, si todas son cero—. De \\(\\phi = {r4['phi']}\\) a las cifras que publica el módulo hay tres pasos, y conviene
           verlos separados porque el tercero es el que casi nadie cuenta.</p>
         <p><strong>Uno · de \\(\\phi\\) a la correlación.</strong> Como \\(h\\) va en pasos de retícula, dos celdas
@@ -1730,7 +1738,8 @@ MOD5 = cabecera(
           \\(j\\) —si solo depende de la distancia que las separa, \\(\\rho(h_{{ij}})\\)— y \\(\\bar{{\\rho}}\\) es su
           <strong>media sobre todos los pares</strong>. La fórmula no es una aproximación ni exige que todos los
           pares se parezcan lo mismo: <strong>es una identidad</strong>. La correlación puede decaer con la
-          distancia, como en el correlograma del módulo 3; a la varianza de la media solo le llega su promedio.</p>
+          distancia, como decae el parecido que el correlograma del módulo 3 mide con la I de Moran —que no es
+          una correlación—; a la varianza de la media solo le llega su promedio.</p>
       </div>
 
       <div class="derivacion">
@@ -2009,12 +2018,12 @@ MOD6 = cabecera(
           alcance \\(\\phi = {ur['phi']}\\) sobre {ur['k']}×{ur['k']} celdas. <strong>Cambia de realización</strong> y
           mira moverse las tres cosas a la vez: el mapa, la lectura y —debajo— el variograma <em>de esa</em>
           realización contra el teórico y la banda del 5&nbsp;% al 95&nbsp;%. La curva punteada es el teórico
-          promediado sobre los pares de cada rezago; el texto de debajo del simulador explica por qué no es
-          \\(\\gamma\\) en el rezago entero.</p>
+          promediado sobre los pares de cada clase de distancia; el texto de debajo del simulador explica por
+          qué no es \\(\\gamma(k)\\), evaluada en la distancia \\(k\\) de la clase.</p>
         <div class="simulador-controles"></div>
         <div class="geomapa" data-geomapa="cap1-realizacion"></div>
         <div class="grafico-wrapper" style="height:290px;">
-          <canvas aria-label="Variograma de una realización frente al teórico promediado en cada rezago, con la banda del 5 al 95 por ciento sobre mil realizaciones" role="img"></canvas>
+          <canvas aria-label="Variograma de una realización frente al teórico promediado en cada clase de distancia, con la banda del 5 al 95 por ciento sobre mil realizaciones" role="img"></canvas>
         </div>
         <div class="simulador-lectura"></div>
       </div>
@@ -2085,20 +2094,21 @@ MOD6 = cabecera(
 
       <p>El variograma del simulador enseña el otro lado del problema, y por eso <strong>cambia con el
         botón</strong>: cada realización trae el suyo. Antes de leerlo hay que decir contra qué se compara. El
-        estimador promedia, en el rezago \\(k\\), todos los pares de celdas cuya distancia queda a menos de media
-        celda de \\(k\\), y esos pares no están todos a distancia \\(k\\): en el rezago 1 entran los vecinos de lado,
-        a distancia 1, y también los diagonales, a \\(\\sqrt{{2}}\\). La referencia justa de cada rezago no es entonces
+        estimador agrupa los pares por <strong>clases de distancia</strong>: en la clase \\(k\\) promedia todos
+        los pares de celdas cuya distancia queda a menos de media celda de \\(k\\), medida en pasos de
+        retícula, y esos pares no están todos a distancia \\(k\\): en la clase 1 entran los vecinos de lado,
+        a distancia 1, y también los diagonales, a \\(\\sqrt{{2}}\\). La referencia justa de cada clase no es entonces
         \\(\\gamma(k)\\), sino \\(\\gamma\\) promediada sobre esos mismos pares, \\(\\bar\\gamma_k\\), que es la curva
-        punteada del gráfico. En el rezago 1 vale <strong>{n(vg6['teorico_clase'][0])}</strong> frente a
+        punteada del gráfico. En la clase 1 vale <strong>{n(vg6['teorico_clase'][0])}</strong> frente a
         \\(\\gamma(1) = {n(vg6['teorico'][0])}\\), y la media de las {ent(ur['n_realizaciones'])} realizaciones,
         {n(vg6['media'][0])}, cae sobre la primera y no sobre la segunda.</p>
 
-      <p>Contra esa referencia, las tres realizaciones se apartan, en su peor rezago, en
+      <p>Contra esa referencia, las tres realizaciones se apartan, en su peor clase, en
         {n(rv[0]['desvio_rel_max'])}, {n(rv[1]['desvio_rel_max'])} y {n(rv[2]['desvio_rel_max'])} veces su valor
-        —rezagos {ent(rv[0]['lag_desvio_max'])}, {ent(rv[1]['lag_desvio_max'])} y
-        {ent(rv[2]['lag_desvio_max'])}—, y la banda del 5&nbsp;% al 95&nbsp;% en el rezago 4 tiene una anchura de
+        —clases {ent(rv[0]['lag_desvio_max'])}, {ent(rv[1]['lag_desvio_max'])} y
+        {ent(rv[2]['lag_desvio_max'])}—, y la banda del 5&nbsp;% al 95&nbsp;% en la clase 4 tiene una anchura de
         <strong>{n(ur['banda_rel_lag4'])}</strong> veces el valor de referencia. Es tan ancha que las tres caben
-        dentro de ella en los ocho rezagos —en el 4 se apartan {n(rv[0]['desvio_rel_lag4'])},
+        dentro de ella en las ocho clases —en la 4 se apartan {n(rv[0]['desvio_rel_lag4'])},
         {n(rv[1]['desvio_rel_lag4'])} y {n(rv[2]['desvio_rel_lag4'])}—, y conviene no leer eso como un aprobado:
         <strong>caber en la banda no es parecerse al proceso</strong>, porque la banda mide lo que puede pasar, no lo
         que pasó. Con una realización no se puede saber si lo que se ve es el proceso o el azar de esa realización:
@@ -2386,7 +2396,7 @@ MOD7 = cabecera(
         <strong>{n(agco['dif_media_abs'])}</strong> puntos de media y
         <strong>{n(agco['dif_max'])}</strong> en el departamento donde más.</p>
 
-      <p>Y el titular de este módulo se mueve con ellas. El I de Moran pasa de
+      <p>Y el titular de este módulo se mueve con ellas. La I de Moran pasa de
         <strong>{n(agco['moran_sin_ponderar'])}</strong> a <strong>{n(agco['moran_por_area'])}</strong>
         <em>sin que se mueva una sola frontera</em>. La escala no era la única decisión que se toma al agregar:
         también se decide la regla, y esa suele tomarse sin mirar.</p>
@@ -2860,9 +2870,13 @@ MOD11 = cabecera(
       <div class="glosario-notacion" data-glosario="cap1-notacion"></div>
 
       <div class="note">
-        <p style="margin-bottom:0;">Las columnas <em>Texto guía</em> y <em>En R</em> están para que puedas ir del
-          material al libro y del libro al código sin traducir de cabeza. Si un símbolo del curso no está aquí, es
-          un descuido: dilo.</p>
+        <p>Las columnas <em>Texto guía</em> y <em>En R</em> están para que puedas ir del
+          material al libro y del libro al código sin traducir de cabeza. Donde dice «—», la fila todavía no remite
+          al libro, o el capítulo no ejecuta ninguna función para ese símbolo.</p>
+        <p style="margin-bottom:0;">No tienen fila las letras que una deducción define en el mismo sitio donde
+          las usa —un \\(m\\), un \\(k\\), el \\(t\\) del movimiento browniano— ni las de cualquier curso de
+          estadística, como \\(\\alpha\\), \\(p\\) o \\(H_0\\). Si un símbolo del curso no está aquí, es un
+          descuido: dilo.</p>
       </div>
 """ + CIERRE
 
@@ -3223,7 +3237,8 @@ MODULOS_NAV = [
     ("La primera ley de Tobler", "14 min"),
     ("Por qué se rompe la inferencia clásica", "16 min"),
     ("Tamaño de muestra efectivo", "8 min"),
-    ("Estacionariedad y una sola realización", "10 min"),
+    # R3 · T3.2 (H-20): el mismo título que la cabecera del módulo.
+    ("Estacionariedad, isotropía y una sola realización", "10 min"),
     ("Escala, soporte y agregación", "15 min"),
     ("El ecosistema de R espacial", "8 min"),
     ("Anatomía de un objeto sf", "8 min"),
@@ -3808,7 +3823,7 @@ DESC_CAMPO = {
     str(c["phi"]): (
         f"Con alcance {ent(c['phi']) if c['phi'] == int(c['phi']) else n(c['phi'], 1)}, dos celdas vecinas "
         f"de la retícula tienen correlación "
-        f"{n(c['rho_vecino'], 2)} y el I de Moran del mapa es {n(c['moran'], 2)}: "
+        f"{n(c['rho_vecino'], 2)} y la I de Moran del mapa es {n(c['moran'], 2)}: "
         f"{_palabra_campo(c['rho_vecino'])}.")
     for c in M["campos"]}
 DESC_REAL = {
@@ -3930,7 +3945,7 @@ def guardas_de_las_descripciones() -> list[str]:
     rhos = [c["rho_vecino"] for c in M["campos"]]
     morans = [c["moran"] for c in M["campos"]]
     exige(rhos == sorted(rhos) and morans == sorted(morans) and rhos[0] == 0,
-          "campo: la correlación entre vecinas o el I de Moran ya no crecen con el alcance")
+          "campo: la correlación entre vecinas o la I de Moran ya no crecen con el alcance")
     exige({str(r["phi"]) for r in D["inferencia"]["rejilla"]} == set(DESC_CAMPO),
           "campo: los alcances del deslizador no son los que tienen texto")
     exige({str(v["id"]) for v in D["realizaciones_vistas"]} == set(DESC_REAL),
@@ -6044,8 +6059,8 @@ SIMULADORES_JS = r"""
         { label: '', data: v.q95, borderColor: 'rgba(148,163,184,.5)', pointRadius: 0 }
       ], { plugins: { legend: { labels: { filter: it => it.text !== '' } },
                       tooltip: { filter: it => it.dataset.label !== '' } },
-           // Una semivarianza se lee desde cero, y el rezago va en pasos de retícula.
-           scales: { x: { title: { display: true, text: 'rezago (pasos de retícula)' } },
+           // Una semivarianza se lee desde cero, y la clase de distancia va en pasos de retícula.
+           scales: { x: { title: { display: true, text: 'clase de distancia (pasos de retícula)' } },
                      y: { beginAtZero: true, title: { display: true, text: 'semivarianza' } } } });
       // Guarda de ejecución, y la única capaz de ver este descuadre: las
       // cifras del JSON eran correctas y la prosa también: lo que estaba mal
@@ -6084,8 +6099,8 @@ SIMULADORES_JS = r"""
         lectura(raiz, [['realización', r.id],
           ['su media espacial', n5(r.media)], ['la del proceso', u.media_del_proceso],
           ['su sd espacial', n5(r.sd)],
-          ['su variograma se aparta del teórico de la clase', n5(r.desvio_rel_max) + ' (rezago ' + r.lag_desvio_max + ')'],
-          ['rezagos fuera de la banda', r.lags_fuera_banda + ' de ' + v.lags.length],
+          ['su variograma se aparta del teórico de la clase', n5(r.desvio_rel_max) + ' (clase ' + r.lag_desvio_max + ')'],
+          ['clases de distancia fuera de la banda', r.lags_fuera_banda + ' de ' + v.lags.length],
           ['sd de las medias sobre ' + miles1(u.n_realizaciones), n5(u.sd_de_las_medias)],
           // Una proporción sobre mil realizaciones tiene un decimal, no cinco;
           // y el nivel de la prueba se escribe como se eligió (G-21).
@@ -6428,7 +6443,7 @@ QUIZ_JS = r"""
         pregunta: 'Tienes ' + miles1(D1.n_efectivo.caso_quiz.n) + ' observaciones cuya correlación media '
           + 'entre parejas es ' + n5(D1.n_efectivo.caso_quiz.rho, 2) + '. '
           + '¿A cuántas observaciones independientes equivalen para estimar la media?',
-        pista: 'La fórmula es n / (1 + (n-1) rho), con rho la correlación media entre parejas. Haz la cuenta '
+        pista: 'La fórmula es $n_{\\text{eff}} = n/(1 + (n-1)\\,\\bar{\\rho})$, con $\\bar{\\rho}$ la correlación media entre parejas. Haz la cuenta '
           + 'con la cabeza antes de mirar.',
         opciones: [
           { texto: 'Alrededor de ' + D1.n_efectivo.caso_quiz.n_eff_redondo, correcta: true,
@@ -6446,11 +6461,11 @@ QUIZ_JS = r"""
               + ': la correlación no afecta al tamaño de muestra.', correcta: false,
             retro: 'Afecta, y mucho. Ése es justo el módulo 5.' }
         ],
-        retroAcierto: 'Y lo importante es el techo: mientras la correlación media no cambie, n_eff tiende a '
-          + '1/rho. Al añadir datos dentro de la misma región la correlación media tiende a una constante y el '
+        retroAcierto: 'Y lo importante es el techo: mientras la correlación media no cambie, $n_{\\text{eff}}$ tiende a '
+          + '$1/\\bar{\\rho}$. Al añadir datos dentro de la misma región la correlación media tiende a una constante y el '
           + 'tamaño efectivo se estanca; al ampliar la región, si la correlación decae con la distancia, la '
           + 'correlación media baja y no hay techo.',
-        retroFallo: 'Módulo 5. La respuesta corta: con la correlación media fija hay un techo, y está en 1/rho.'
+        retroFallo: 'Módulo 5. La respuesta corta: con la correlación media fija hay un techo, y está en $1/\\bar{\\rho}$.'
       },
       {
         tipo: 'multiple', modulo: 7,
@@ -6661,7 +6676,7 @@ QUIZ_JS = r"""
       },
       {
         tipo: 'numerica', modulo: 7,
-        pregunta: 'El I de Moran de la deserción pasa de ' + n5(D1.escala.moran_municipal) + ' entre los '
+        pregunta: 'La I de Moran de la deserción pasa de ' + n5(D1.escala.moran_municipal) + ' entre los '
           + D1.escala.n_municipal + ' municipios a ' + n5(D1.escala.moran_departamental) + ' entre los '
           + D1.escala.n_departamental + ' departamentos. ¿Qué porcentaje cae? Dos decimales.',
         respuesta: Number(n5(D1.escala.caida_pct, 2)), tolerancia: 0.05,
@@ -6689,7 +6704,7 @@ QUIZ_JS = r"""
               + ', o sea un ' + n5(D1.una_realizacion.pct_rechaza_modulo4) + ' % de rechazo.', correcta: true,
             retro: 'Se separan ' + n5(D1.una_realizacion.discrepancia_con_modulo4) + ' puntos, algo más de un '
               + 'error de Monte Carlo. El generador comprueba esa coherencia y se detiene si se rompe.' },
-          { texto: 'Con el I de Moran de la deserción.', correcta: false,
+          { texto: 'Con la I de Moran de la deserción.', correcta: false,
             retro: 'Son cosas distintas: una es autocorrelación de un dato real, la otra la tasa de error de un '
               + 'contraste sobre un campo simulado.' },
           { texto: 'Con el n efectivo de los municipios.', correcta: false,
@@ -6710,7 +6725,7 @@ QUIZ_JS = r"""
             correcta: true,
             retro: 'sf dice ' + D1.anatomia.nc.n_multipolygon + ' MULTIPOLYGON y shapely solo '
               + D1.anatomia.nc.n_partes_multiples + '. La geometría es idéntica.' },
-          { texto: 'spdep y esda cuentan distinto las unidades sin vecinos al calcular el I de Moran.',
+          { texto: 'spdep y esda cuentan distinto las unidades sin vecinos al calcular la I de Moran.',
             correcta: true,
             retro: n5(D1.escala.moran_municipal) + ' frente a ' + n5(D1.escala.moran_municipal_n_total)
               + '. Se recupera uno desde el otro multiplicando por (n − islas)/n.' },
@@ -6723,7 +6738,7 @@ QUIZ_JS = r"""
               + 'arriba. Módulo 8.' }
         ],
         retroAcierto: 'Ante una diferencia, la primera pregunta es «¿estamos midiendo lo mismo?».',
-        retroFallo: 'Las dos ciertas son la del tipo de la CAPA frente al de cada rasgo y la de las unidades sin vecinos en el I de Moran. Módulo 9.'
+        retroFallo: 'Las dos ciertas son la del tipo de la CAPA frente al de cada rasgo y la de las unidades sin vecinos en la I de Moran. Módulo 9.'
       },
       {
         tipo: 'opcion', modulo: 10,
@@ -6758,6 +6773,179 @@ GLOSARIO_JS = (
     + json.dumps({"titulo": D["glosario"]["titulo"], "nota": D["glosario"]["nota"],
                   "columnas": D["glosario"]["columnas"], "filas": D["glosario"]["filas"]},
                  ensure_ascii=False) + ";\n")
+
+
+# =====================================================================
+# R3 · T3.2: la notación del capítulo (D6), leída del documento ensamblado
+# =====================================================================
+# Cuatro convenciones que el capítulo rompía sin que ninguna cifra se
+# moviera: la W que era a la vez ventana y matriz de pesos, el «rezago» que
+# era a la vez la media de los vecinos y una distancia del variograma, «el
+# I de Moran» junto a «la I», y un glosario que no recogía la mitad de los
+# símbolos y le daba a ρ un sentido que el capítulo no usa. Las guardas leen
+# `doc` —el HTML ya ensamblado, plantilla, cuestionario y glosario
+# incluidos— y no una copia de las frases (la lección de R2).
+_FORMULA_PROSA = re.compile(r"\\\((.+?)\\\)|\$\$(.+?)\$\$", re.S)
+_FORMULA_QUIZ = re.compile(r"\$([^$\n]+?)\$")
+# Una W que no es parte de una palabra. Detrás puede ir la y o la z del
+# rezago: «Wy» es W por y, y es justo lo que se busca. La negrita —con o sin
+# llaves, \mathbf, \boldsymbol o \bm— se quita antes de buscar.
+_W_SIN_NEGRITA = re.compile(r"(?<![A-Za-z\\{])W(?![a-xA-Z])")
+_W_NEGRITA = re.compile(r"\\(?:mathbf|boldsymbol|bm)\s*(?:\{\s*W\s*\}|W(?![A-Za-z]))")
+# El papel de una W, leído en la propia fórmula: de matriz si multiplica o se
+# traspone (Wy, Wz, W^\top, W^2, W_{ij}, W + …); de ventana si se mide o se
+# integra o contiene (|W|, \int_W, W \subset, \in W, \cap W).
+_W_MATRIZ = re.compile(r"(?<![A-Za-z\\{_])W\s*(?:[yz](?![A-Za-z])|\^|_\{?[ij]|\\top|[+\-]\s*\\?[A-Za-z])")
+_W_VENTANA = re.compile(r"\|W\||\\int_\{?W|W\s*\\subset|\\in\s*W\b|\\cap\s*W\b|\\subset\s*W\b")
+# Y si la fórmula es una W pelada, la frase que la contiene: una frase que
+# habla de pesos, vecinos, adyacencia o rezago la está usando de matriz.
+_FRASE_MATRIZ = re.compile(r"matri|peso|vecin|adyacen|rezago", re.I)
+_OTRO_CAP = re.compile(r"\bcaps?\.\s*\d")
+# Fin de frase: punto, punto y coma, cierre de interrogación o exclamación,
+# salvo el punto de «cap.» y «caps.».
+_FIN_FRASE = re.compile(r"(?<!\bcap)(?<!caps)[.;!?](?:\s|$)")
+_REZAGO = re.compile(r"\brezagos?\b(?!\s+(?:espacial(?:es)?|de distancia)\b)", re.I)
+# «el I» en masculino, venga detrás lo que venga: «el I de Moran», «el I
+# departamental», «este I». La I tiene que ir en mayúscula y suelta.
+_EL_I = re.compile(r"\b(?:[Ee]l|[Dd]el|[Aa]l|[Uu]n|[Ee]ste|[Ee]se|[Aa]quel|[Oo]tro|[Mm]ismo|[Pp]rimer|"
+                   r"[Úú]ltimo)\s+I\b(?![-_^=(\w]|\.\w)")
+# Un comentario de JavaScript, también a mitad de línea (no el «//» de una URL).
+_COMENTARIO_JS = re.compile(r"(^|[\s;,{}()\]])//.*$", re.M)
+
+
+
+def _sin_espacios(s: str) -> str:
+    """Una fórmula sin espacios ni llaves: «\\hat{\\lambda}» y «\\hat\\lambda» son el mismo símbolo."""
+    return re.sub(r"[\s{}]", "", s)
+
+
+def _texto_plano(s: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", s))
+
+
+# Lo que el glosario tiene que traer si el capítulo lo escribe en una
+# fórmula: (símbolo del glosario, cómo se reconoce en las fórmulas, nombre).
+# Los detectores leen las fórmulas sin espacios ni llaves.
+_GLOSARIO_EXIGE = [
+    ("W", lambda f: "|W|" in f or "\\int_W" in f, "la ventana W"),
+    ("|W|", lambda f: "|W|" in f, "el área de la ventana |W|"),
+    ("n", lambda f: re.search(r"(?<![A-Za-z\\])n(?![A-Za-z])", f), "n"),
+    ("N", lambda f: "s_N" in f, "N, el número aleatorio de puntos"),
+    ("N(B)", lambda f: "N(B" in f, "N(B)"),
+    ("\\hat\\lambda", lambda f: "\\hat\\lambda" in f, "λ̂"),
+    ("d_i", lambda f: re.search(r"(?<![A-Za-z\\])d_i(?![A-Za-z])", f), "d_i"),
+    ("G(r)", lambda f: "G(r)" in f, "G(r)"),
+    ("\\rho(h)", lambda f: "\\rho(h" in f, "ρ(h)"),
+    ("\\rho_ij", lambda f: "\\rho_ij" in f, "ρ_ij"),
+    ("\\bar\\rho", lambda f: "\\bar\\rho" in f, "ρ̄"),
+    ("\\phi", lambda f: "\\phi" in f, "φ"),
+    ("\\sigma^2", lambda f: "\\sigma^2" in f, "σ²"),
+    ("E[I]", lambda f: "E[I]" in f, "E[I]"),
+    ("S_0", lambda f: "S_0" in f, "S_0"),
+    ("w_ij", lambda f: "w_ij" in f, "w_ij"),
+    ("n_\\texteff", lambda f: "n_\\texteff" in f, "n_eff"),
+    ("\\mathbfW", lambda f: "\\mathbfW" in f, "la matriz de pesos en negrita"),
+    ("m(s)", lambda f: "m(s" in f, "m(s), la media que cambia de sitio"),
+]
+
+
+def _papel_w(f: str, antes: str, despues: str) -> str | None:
+    """«matriz», «ventana», «otro capítulo» o None si la fórmula no lleva una W sin negrita.
+
+    Se decide por el papel del símbolo, no por la palabra «ventana» cerca: primero
+    lo que hace la W dentro de la fórmula, y solo si es una W pelada, la frase
+    que la contiene (no los 140 caracteres de antes, que alcanzaban a la frase
+    anterior: «Elegir ventana … En los datos de área, la matriz de pesos \(W\)»
+    pasaba).
+    """
+    g = _W_NEGRITA.sub("", f)
+    if not _W_SIN_NEGRITA.search(g):
+        return None
+    frase = _FIN_FRASE.split(antes)[-1] + " ⟨W⟩ " + _FIN_FRASE.split(despues)[0]
+    if _OTRO_CAP.search(frase):
+        return "otro capítulo"      # «En los caps. 6 y 7 se escribe \(W\)»
+    if _W_MATRIZ.search(g):
+        return "matriz"
+    if _W_VENTANA.search(g):
+        return "ventana"
+    return "matriz" if _FRASE_MATRIZ.search(frase) else "ventana"
+
+
+def guardas_de_notacion(doc: str) -> list[str]:
+    """W, rezago, «la I de Moran» y el glosario, contra el documento ensamblado."""
+    problemas = []
+    fin_marcado = doc.rfind("\n  <script>")
+    fin_marcado = fin_marcado if fin_marcado > 0 else len(doc)
+    marcado = re.sub(r"<pre\b.*?</pre>", " ", doc[:fin_marcado], flags=re.S)
+
+    # Las fórmulas del capítulo —prosa y cuestionario—, cada una con el texto
+    # que la rodea: (fórmula, antes, después). Y aparte, las del glosario.
+    def con_contexto(texto, regex, lado):
+        return [(m.group(1) or (m.group(2) if regex.groups > 1 else "") or "",
+                 _texto_plano(texto[max(0, m.start() - lado):m.start()]),
+                 _texto_plano(texto[m.end():m.end() + lado]))
+                for m in regex.finditer(texto)]
+    cap = con_contexto(marcado, _FORMULA_PROSA, 400)
+    i0 = doc.find("AUTOEVALUACIONES['cap1-diagnostica']")
+    i1 = doc.find("\n    ];\n", doc.find("AUTOEVALUACIONES['cap1'] ="))
+    if i0 >= 0 and i1 > i0:
+        cap += con_contexto(doc[i0:i1].replace("\\\\", "\\"), _FORMULA_QUIZ, 200)
+    g = re.search(r"GLOSARIOS\['cap1-notacion'\] = (\{.*?\});\n", doc)
+    try:
+        filas = json.loads(g.group(1))["filas"] if g else []
+    except (ValueError, KeyError):
+        filas = []
+    glo = []
+    for f in filas:
+        glo.append((f.get("simbolo", ""), "", f.get("nombre", "")))
+        glo += con_contexto(f.get("nombre", ""), _FORMULA_PROSA, 400)
+
+    # 1 · Una W sin negrita solo es la ventana (o la de otro capítulo, dicha
+    # como tal). La matriz de pesos de este capítulo es \mathbf{W}.
+    malas_w = [f for f, antes, despues in cap + glo if _papel_w(f, antes, despues) == "matriz"]
+    if malas_w:
+        problemas.append(f"notación: una W sin negrita hace de matriz de pesos, que en este capítulo es "
+                         f"\\mathbf{{W}}: {malas_w[:3]}")
+    # 2 · La matriz de pesos, en negrita en la prosa (el recuadro de Moran),
+    # no solo en el glosario.
+    corpus = [_sin_espacios(f) for f, _, _ in cap]
+    if not any(_W_NEGRITA.search(f) for f, _, _ in cap):
+        problemas.append("notación: la prosa del capítulo ya no escribe la matriz de pesos como "
+                         "\\mathbf{W}")
+
+    # 3 · «Rezago» solo como «rezago espacial» o «rezago de distancia». Los
+    # comentarios del JavaScript —también los de mitad de línea— no los ve
+    # nadie y se quitan; el marcado se lee entero.
+    visible = doc[:fin_marcado] + _COMENTARIO_JS.sub(r"\1", doc[fin_marcado:])
+    rez = [visible[max(0, m.start() - 40):m.end() + 25].replace("\n", " ")
+           for m in _REZAGO.finditer(visible)]
+    if rez:
+        problemas.append(f"notación: «rezago» que no es «rezago espacial» ni «rezago de distancia» "
+                         f"({len(rez)}): {rez[:3]}")
+
+    # 4 · «la I de Moran», en femenino, en todo el documento.
+    eles = [doc[max(0, m.start() - 30):m.end() + 25].replace("\n", " ") for m in _EL_I.finditer(doc)]
+    if eles:
+        problemas.append(f"notación: vuelve «el I» de Moran, en masculino ({len(eles)}): {eles[:3]}")
+
+    # 5 · El glosario trae una fila para cada símbolo de D6 que el capítulo
+    # escribe en una fórmula, y para la sigla CSR. Sin glosario en el
+    # documento, faltan todas. La fila de ρ, además, dice lo que ρ es aquí:
+    # cita sus tres marcas, dice «correlación» y no lo niega.
+    en_glosario = {_sin_espacios(f.get("simbolo", "")) for f in filas}
+    exige = [(s, any(usa(f) for f in corpus), nombre) for s, usa, nombre in _GLOSARIO_EXIGE]
+    exige.append(("\\textCSR", "CSR" in _texto_plano(marcado), "la sigla CSR"))
+    for simbolo, usado, nombre in exige:
+        if usado and simbolo not in en_glosario:
+            problemas.append(f"notación: el capítulo escribe {nombre} y el glosario no le da fila")
+    rho = next((f for f in filas if _sin_espacios(f.get("simbolo", "")) == "\\rho"), None)
+    nom = rho.get("nombre", "") if rho else ""
+    if not (all(x in _sin_espacios(nom) for x in ("\\rho(h)", "\\rho_ij", "\\bar\\rho"))
+            and "correlación" in nom
+            and not re.search(r"\bno\s+(?:es|son|sea)\b[^.]{0,40}correlaci", nom)):
+        problemas.append("notación: la fila de ρ del glosario no dice que en este capítulo ρ es una "
+                         "correlación, con sus tres marcas")
+    return problemas
 
 
 # =====================================================================
@@ -7407,7 +7595,7 @@ def main() -> int:
                                  f"módulo publica {k6}×{k6} — la intro mentiría")
             if len(fila.get("variograma", [])) != n_lags:
                 problemas.append(f"{quien}: su variograma trae "
-                                 f"{len(fila.get('variograma', []))} rezagos y la banda "
+                                 f"{len(fila.get('variograma', []))} clases de distancia y la banda "
                                  f"{n_lags}: se dibujarían sobre ejes distintos")
     # La prosa AFIRMA que las tres caben dentro de la banda en los ocho
     # rezagos, y esa frase es lo único del módulo que no sale de una cifra
@@ -7418,7 +7606,7 @@ def main() -> int:
     fuera = [(f["id"], f["lags_fuera_banda"]) for f in rv if f.get("lags_fuera_banda")]
     if fuera:
         problemas.append(f"la prosa del módulo 6 dice que las tres caben dentro de la banda "
-                         f"en los ocho rezagos, y {fuera} se salen: hay que reescribirla")
+                         f"en las ocho clases de distancia, y {fuera} se salen: hay que reescribirla")
     # Las medias de las tres vistas SON las tres primeras de medias_muestra,
     # que R escribe por su lado. Si el capítulo dejara de enseñar las tres
     # primeras sin decirlo, esto es lo que se pondría rojo.
@@ -7443,7 +7631,7 @@ def main() -> int:
         problemas.append(f"dos de los variogramas del módulo 6 se separan {sep:.5f} como "
                          f"máximo: el botón no cambiaría la curva a la vista")
     print(f"  módulo 6: {len(mr)} mapas de {k6}×{k6} emparejados con sus filas por media "
-          f"y sd · {n_lags} rezagos por curva · las curvas se separan {sep:.5f}")
+          f"y sd · {n_lags} clases de distancia por curva · las curvas se separan {sep:.5f}")
 
     # ----------------------------------------------------------------
     # R1 · T1.4. Las afirmaciones nuevas de los módulos 2, 6 y 10 y de la
@@ -7479,14 +7667,14 @@ def main() -> int:
     # volviera a medirlos contra gamma en h entero la frase no saldría.
     tcl, ten, vme = vg6.get("teorico_clase", []), vg6["teorico"], vg6["media"]
     if len(tcl) != n_lags:
-        problemas.append(f"módulo 6: el teórico de la clase trae {len(tcl)} rezagos y la "
+        problemas.append(f"módulo 6: el teórico de la clase trae {len(tcl)} clases de distancia y la "
                          f"banda {n_lags}: la curva punteada no se podría dibujar")
     else:
         if n(tcl[0]) == n(ten[0]):
-            problemas.append("módulo 6: en el rezago 1 el teórico de la clase y gamma(1) se "
+            problemas.append("módulo 6: en la clase 1 el teórico de la clase y gamma(1) se "
                              "publican iguales, y la prosa los distingue")
         if not abs(vme[0] - tcl[0]) < 0.1 * abs(vme[0] - ten[0]):
-            problemas.append(f"módulo 6: la media de las realizaciones en el rezago 1 "
+            problemas.append(f"módulo 6: la media de las realizaciones en la clase 1 "
                              f"({vme[0]}) ya no cae sobre el teórico de la clase ({tcl[0]}) "
                              f"y lejos de gamma(1) ({ten[0]}), como dice la prosa")
         for fila in rv:
@@ -8045,6 +8233,8 @@ def main() -> int:
     problemas += guardas_de_t22(PLANTILLA.read_text(encoding="utf-8"), marcado)
     # R2 · T2.3 (ronda 2): lo que el JavaScript escribe con el dato.
     problemas += guardas_de_lecturas(doc, marcado)
+    # R3 · T3.2: la notación (D6), contra el documento ensamblado.
+    problemas += guardas_de_notacion(doc)
     if problemas:
         for p in problemas:
             print(f"  MAL  {p}")
