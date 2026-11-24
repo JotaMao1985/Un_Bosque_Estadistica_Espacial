@@ -17,6 +17,20 @@ baddeley2015spatial:
   procedencia: Biblioteca personal de Javier (confirmado por él el 2026-11-12). El nombre del archivo
     original no es el de la biblioteca, y el texto no lleva marcas de ningún sitio de descarga.
   sha256: 128f4afda81de571ed0ae96e0b09af17078ac50ce18030bde680edada89cf432
+cressie1993statistics:
+  archivo: cressie1993statistics.pdf
+  desfase: null
+  edicion_comprobada: 'Portada interior (p. 2 del PDF): «Statistics for Spatial Data, Revised Edition», Noel A.
+    C. Cressie, Wiley-Interscience. Página de derechos (p. 3 del PDF): «Copyright © 1993 by John Wiley & Sons,
+    Inc.». Es la edición revisada de 1993 que pide el programa (ISBN impreso 9780471002550, obras.tsv).'
+  nota: 'El desfase no es constante: baja de 17 a 8 a lo largo del libro (17 en las pp. 19–43 del PDF, 16 en
+    las 52–225, 15 en las 227–290, 14 en las 292–393, 12 en las 402–585, 10 en las 596–733, 9 en las 739–894).
+    Se cita por el número impreso en el encabezado de la página, como en Snow.'
+  paginas: 908
+  paginas_sin_texto: 0
+  procedencia: PDF entregado por Javier el 2026-11-23 (archivo cressie1993.pdf en la carpeta del curso), copiado
+    al corpus con el nombre de su clave.
+  sha256: 77c10aa84765979b61ee2569ddc7ad096466efcafef305a7afd2f80cb99cdb6d
 mas2018analisis:
   archivo: mas2018analisis.pdf
   desfase: 10

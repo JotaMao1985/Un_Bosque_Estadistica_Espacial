@@ -1,0 +1,54 @@
+{
+  "_que": "Lo que el pie «Referencias Bibliográficas» lleva y Zotero no puede decir. Lo lee precalculo/genera_referencias.py (que escribe el pie en plantilla/plantilla-capitulo.html) y lo comprueba precalculo/audita_citas.py (F15). Los datos bibliográficos NO van aquí: salen de referencias.json. Es JSON, sin comentarios, porque los ensambladores corren con un Python sin PyYAML: cada decisión lleva su `motivo` como campo. R4 · T4.3, 2026-11-23.",
+  "orden": [
+    "pebesma2023spatial",
+    "bivand2013applied",
+    "baddeley2015spatial",
+    "anselin2014modern",
+    "cressie1993statistics",
+    "giraldo-henao-2011",
+    "moraga2019geospatial"
+  ],
+  "_orden": "El orden del pie que se venía publicando: el texto guía primero. Tiene que nombrar a todas las básicas de Zotero, a las adicionales y a las líneas sin alta, y a nadie más: si Zotero gana una básica, el generador para hasta que se ordene aquí.",
+  "adicionales": {
+    "moraga2019geospatial": {
+      "motivo": "Decisión de Javier (2026-11-23): el pie conserva las siete obras que ya publicaba. En Zotero es de rol `complementaria` (subcolección «2 Complementaria») y así se queda: el rol sale de la subcolección, cambiarlo sería escribir en Zotero y además la convertiría en básica para todo lo demás que lee el rol."
+    }
+  },
+  "anotaciones": {
+    "pebesma2023spatial": {
+      "destacado": "Texto guía del curso.",
+      "rotulo": "Versión en línea de lectura libre:",
+      "url": "https://r-spatial.org/book/",
+      "visible": "r-spatial.org/book",
+      "instantanea": "index",
+      "motivo": "Lo que el pie ya decía. Que es el texto guía lo fija el curso (propia). El enlace es el de la instantánea leída el 2026-11-12 (instantaneas.yml)."
+    },
+    "moraga2019geospatial": {
+      "rotulo": "Acceso abierto (CC BY-NC-ND 4.0):",
+      "url": "https://www.paulamoraga.com/book-geospatial/",
+      "visible": "paulamoraga.com/book-geospatial",
+      "instantanea": "index",
+      "evidencia": "licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License",
+      "motivo": "Lo que el pie ya decía. La licencia se contrasta contra la portada en línea del libro, instantánea «index» del 2026-11-12: `evidencia` es el literal que el auditor busca en ella."
+    }
+  },
+  "sin_alta": {
+    "giraldo-henao-2011": {
+      "html": "Giraldo Henao, R. (2011). <em>Estadística espacial: notas de clase</em>. Universidad Nacional de Colombia. [Español]",
+      "motivo": "SIN ALTA en Zotero: no tiene DOI ni ISBN, y no hay ejemplar (obras.tsv y por_conseguir.md: el repositorio de la UNAL no devolvió el PDF). La línea es la que el pie traía escrita a mano, copiada tal cual el 2026-11-23: nadie la ha contrastado contra una portada.",
+      "para_el_alta": "Conseguir un ejemplar, darla de alta en Zotero copiando la portada (`origen: portada`, bibliografia/README.md), en la subcolección «1 Básica», exportar, y entonces borrar esta línea y poner su clave en `orden`: el generador para si la clave ya está en referencias.json y esta línea sigue aquí."
+    }
+  },
+  "congelados": {
+    "taller-1-caps-1-2.html": "Repartido: no se reensambla. Conserva el pie escrito a mano con que se repartió, que dice «Baddeley … (2015)».",
+    "taller-2-cap-4.html": "Repartido: no se reensambla. Conserva el pie escrito a mano con que se repartió, que dice «Baddeley … (2015)».",
+    "taller-3-sig-caps-1-5.html": "Repartido: no se reensambla. Conserva el pie escrito a mano con que se repartió, que dice «Baddeley … (2015)»."
+  },
+  "vetados": [
+    {
+      "patron": "Baddeley[^<]*\\(2015\\)",
+      "motivo": "Decisión de Javier (2026-11-12, enmiendas.yml): Baddeley, Rubak y Turner se cita por el año de copyright, 2016."
+    }
+  ]
+}

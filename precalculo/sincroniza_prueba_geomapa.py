@@ -16,13 +16,19 @@ memoria se incumple: en T1.2 el motor del banco de pruebas y el de la
 plantilla ya habían empezado a separarse, y un banco de pruebas que
 prueba una versión vieja del componente no prueba nada.
 
-Esto lo hace mecánico. Dos sustituciones, las dos con anclas exactas:
+Esto lo hace mecánico. Tres sustituciones (y el CSS de la lectura), con anclas exactas:
 
   1. EL MOTOR — desde `const GEOMAPAS = {};` hasta el final de
      `destruirGeomapas()`. Se copia literalmente de la plantilla, que es
      la fuente de verdad del componente.
   2. LOS DATOS — la línea `const DEMO = ...;`, que se rehace desde
      `precalculo/demo_geomapa.json`.
+
+  3. EL PIE «Referencias Bibliográficas» (R4 · T4.3, 2026-11-23) — la
+     lista del pie, que en la plantilla escribe `genera_referencias.py`
+     desde Zotero. El banco la traía copiada a mano de la plantilla de
+     T0.3, con «Baddeley … (2015)»; ahora se copia de la plantilla, y
+     `audita_citas.py` (F15) comprueba que es la que el guion escribiría.
 
 Las guardas son las de `ensambla_cap1.py`, y por el mismo motivo: cada
 ancla tiene que aparecer EXACTAMENTE UNA VEZ, y la región sustituida
@@ -68,6 +74,13 @@ CSS_CIERRA = (
     "    }\n"
 )
 CSS_DONDE = "    .geomapa-controles {\n"
+
+
+# EL PIE. Las dos anclas rodean la lista en la plantilla y en el banco, tenga o
+# no los marcadores `PIE-REFERENCIAS`: el título del pie y la franja del
+# «Diseñado por». Lo que hay entre las dos se copia de la plantilla.
+PIE_ABRE = '<i class="fas fa-book-open" aria-hidden="true"></i> Referencias Bibliográficas\n      </h3>\n'
+PIE_CIERRA = '      <div class="mt-6 pt-6 border-t border-white/20 text-center">\n'
 
 
 def extrae(texto: str, abre: str, cierra: str, que: str) -> str:
@@ -116,6 +129,15 @@ def main() -> int:
         cambio_css = True
         banco = banco.replace(CSS_DONDE, css_bueno + CSS_DONDE)
 
+    # --- El pie ---------------------------------------------------------
+    pie_bueno = extrae(plantilla, PIE_ABRE, PIE_CIERRA, "el pie de la plantilla")
+    pie_viejo = extrae(banco, PIE_ABRE, PIE_CIERRA, "el pie del banco")
+    if "<!--PIE-REFERENCIAS:inicio-->" not in pie_bueno or pie_bueno.count("<li ") < 1:
+        sys.exit("PARADO: el pie de la plantilla no trae los marcadores PIE-REFERENCIAS con su lista "
+                 "(python3 precalculo/genera_referencias.py plantilla/plantilla-capitulo.html)")
+    cambio_pie = pie_bueno != pie_viejo
+    banco = banco.replace(pie_viejo, pie_bueno)
+
     # --- Los datos ------------------------------------------------------
     lineas = banco.splitlines(keepends=True)
     idx = [i for i, l in enumerate(lineas) if l.startswith("    const DEMO = ")]
@@ -137,6 +159,8 @@ def main() -> int:
         problemas.append("el motor quedó duplicado o desaparecido")
     if banco.count(CSS_ABRE) != 1 or banco.count(CSS_CIERRA) != 1:
         problemas.append("el CSS de la lectura quedó duplicado o desaparecido")
+    if banco.count("<!--PIE-REFERENCIAS:inicio-->") != 1 or banco.count("<!--PIE-REFERENCIAS:fin-->") != 1:
+        problemas.append("el pie quedó duplicado o desaparecido")
     if banco.count("    const DEMO = ") != 1:
         problemas.append("hay más de un `const DEMO`")
     usados = set(re.findall(r'data-geomapa="([^"]+)"', banco))
@@ -155,6 +179,7 @@ def main() -> int:
     print(f"  motor: {'ACTUALIZADO' if cambio_motor else 'ya estaba al día'} "
           f"({n_bueno} líneas)")
     print(f"  CSS de la lectura: {'ACTUALIZADO' if cambio_css else 'ya estaba al día'}")
+    print(f"  pie: {'ACTUALIZADO' if cambio_pie else 'ya estaba al día'}")
     print(f"  datos: {'ACTUALIZADOS' if cambio_datos else 'ya estaban al día'} "
           f"({DEMO_JSON.stat().st_size / 1024:.1f} KB)")
     print(f"  {BANCO.relative_to(RAIZ)}  {len(banco) / 1024:.0f} KB · "

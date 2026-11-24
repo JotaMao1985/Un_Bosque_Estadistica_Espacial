@@ -31,13 +31,42 @@ Y tres pares de marcadores, que este guion rellena:
     <!--REFERENCIAS-CAPITULO:inicio--> … <!--REFERENCIAS-CAPITULO:fin-->
         todas las obras citadas en el capítulo.
     <!--PIE-REFERENCIAS:inicio--> … <!--PIE-REFERENCIAS:fin-->
-        la bibliografía básica del curso (rol `basica` en zotero.lock.json).
+        la bibliografía básica del curso (rol `basica` en zotero.lock.json),
+        más lo que declare `bibliografia/pie.json` (ver «EL PIE», abajo).
+
+EL PIE (R4 · T4.3, 2026-11-23). El pie «Referencias Bibliográficas» lo llevan
+TODOS los documentos, porque viene de `plantilla/plantilla-capitulo.html`. Por
+eso este guion se pasa sobre la PLANTILLA MISMA:
+
+    python3 precalculo/genera_referencias.py plantilla/plantilla-capitulo.html
+
+y después se reensambla cada documento, que hereda el pie ya escrito. Hacerlo
+en cada ensamblador habría sido tocar doce guiones para escribir doce veces el
+mismo bloque, y la plantilla —que también se abre en el navegador— se habría
+quedado con el pie vacío. `audita_citas.py` (F15) comprueba que la plantilla y
+cada documento publicado llevan exactamente el pie que este guion escribiría.
+
+Zotero decide QUÉ obras son básicas y CÓMO se escribe cada una. Lo que Zotero
+no puede decir vive en `bibliografia/pie.json`, declarado y con su motivo:
+
+  · `orden`        en qué orden salen (el texto guía, primero);
+  · `adicionales`  obras que entran al pie sin ser de rol `basica`;
+  · `anotaciones`  lo que el pie dice de una obra y APA no trae: que es el
+                   texto guía, su versión de lectura libre, su licencia;
+  · `sin_alta`     líneas FIJAS de obras que no están en Zotero, con el motivo
+                   y lo que falta para darlas de alta;
+  · `congelados`   documentos repartidos que no se reensamblan y conservan el
+                   pie con que se repartieron;
+  · `vetados`      lo que el pie no puede volver a decir.
+
+Sin `pie.json` el pie son las básicas, por orden alfabético y sin más.
 
 Es idempotente: volver a correrlo sobre un archivo ya generado no cambia nada.
 `audita_citas.py` (F02) se apoya en eso para comprobar que el HTML publicado
 es exactamente el que este guion escribiría.
 
-Uso:  python3 precalculo/genera_referencias.py                 # los 6 capítulos
+Uso:  python3 precalculo/genera_referencias.py                 # los capítulos
+      python3 precalculo/genera_referencias.py plantilla/plantilla-capitulo.html   # el pie
       python3 precalculo/genera_referencias.py ruta/al.html …
       python3 precalculo/genera_referencias.py --comprobar     # no escribe
 
@@ -77,6 +106,7 @@ def marcadores(nombre: str) -> re.Pattern:
 RE_FUENTES_MODULO = marcadores("FUENTES-MODULO")
 RE_REFS_CAPITULO = marcadores("REFERENCIAS-CAPITULO")
 RE_PIE = marcadores("PIE-REFERENCIAS")
+PIE_CAMPOS = ("orden", "adicionales", "anotaciones", "sin_alta", "congelados", "vetados")
 
 
 class ErrorDeCita(Exception):
@@ -146,6 +176,128 @@ def pandoc(biblioteca: dict[str, dict], claves: list[str]) -> tuple[dict, dict, 
     if faltan:
         raise ErrorDeCita(f"pandoc no devolvió cita o entrada para: {', '.join(faltan)}")
     return autores, anios, entradas
+
+
+def carga_pie(directorio: pathlib.Path | None = None) -> dict:
+    """`pie.json` de esa bibliografía, o un pie sin nada declarado si no existe.
+
+    Es JSON y no YAML porque los ensambladores corren con el Python de geo_env,
+    que no trae PyYAML; por eso los motivos van como campos y no como comentarios.
+    """
+    ruta = (directorio or BIB) / "pie.json"
+    dato = json.loads(ruta.read_text("utf-8")) if ruta.exists() else {}
+    return {campo: dato.get(campo) or ([] if campo in ("orden", "vetados") else {})
+            for campo in PIE_CAMPOS}
+
+
+def claves_del_pie(biblioteca: dict[str, dict], candado: dict[str, dict], pie: dict) -> list[str]:
+    """Las claves del pie, en su orden. Las de `sin_alta` no están en Zotero."""
+    if pie["orden"]:
+        return list(pie["orden"])
+    return [c for c, o in candado.items() if o["rol"] == "basica"]
+
+
+def problemas_del_pie(biblioteca: dict[str, dict], candado: dict[str, dict], pie: dict) -> list[str]:
+    """Lo que hace que `pie.json` no se pueda aplicar. Vacío si está bien.
+
+    Lo que se vigila es que nada entre o salga del pie EN SILENCIO: una obra
+    que Zotero pasa a básica y nadie ordenó, una línea fija de una obra que ya
+    tiene alta, una anotación sobre una obra que ya no está.
+    """
+    p: list[str] = []
+    basicas = {c for c, o in candado.items() if o["rol"] == "basica"}
+    adicionales, sin_alta = set(pie["adicionales"]), set(pie["sin_alta"])
+    for c in sorted(adicionales):
+        if c not in biblioteca:
+            p.append(f"pie.json: la adicional «{c}» no está en referencias.json")
+        elif c in basicas:
+            p.append(f"pie.json: «{c}» ya es de rol `basica` en Zotero; sobra en `adicionales`")
+        if not str((pie["adicionales"][c] or {}).get("motivo", "")).strip():
+            p.append(f"pie.json: la adicional «{c}» no dice su `motivo`")
+    for c in sorted(sin_alta):
+        ficha = pie["sin_alta"][c] or {}
+        if c in biblioteca:
+            p.append(f"pie.json: «{c}» ya está en referencias.json; su línea fija de `sin_alta` sobra")
+        for campo in ("html", "motivo", "para_el_alta"):
+            if not str(ficha.get(campo, "")).strip():
+                p.append(f"pie.json: la línea sin alta «{c}» no trae `{campo}`")
+    if pie["orden"]:
+        orden = pie["orden"]
+        if len(set(orden)) != len(orden):
+            p.append("pie.json: `orden` repite una clave")
+        debidas = basicas | adicionales | sin_alta
+        for c in sorted(debidas - set(orden)):
+            p.append(f"pie.json: «{c}» tiene que estar en el pie y no aparece en `orden`")
+        for c in sorted(set(orden) - debidas):
+            p.append(f"pie.json: «{c}» está en `orden` y no es básica, ni adicional, ni línea sin alta")
+    elif adicionales or sin_alta:
+        p.append("pie.json: hay `adicionales` o `sin_alta` y falta `orden`")
+    for c, nota in sorted(pie["anotaciones"].items()):
+        if c not in biblioteca or c not in claves_del_pie(biblioteca, candado, pie):
+            p.append(f"pie.json: la anotación de «{c}» es de una obra que no está en el pie")
+        nota = nota or {}
+        if not (nota.get("destacado") or nota.get("url")):
+            p.append(f"pie.json: la anotación de «{c}» no dice nada (`destacado` o `url`)")
+        if nota.get("url") and not (nota.get("rotulo") and nota.get("visible")):
+            p.append(f"pie.json: el enlace de la anotación de «{c}» pide `rotulo` y `visible`")
+    for veto in pie["vetados"]:
+        try:
+            re.compile(veto["patron"])
+        except (KeyError, TypeError, re.error):
+            p.append(f"pie.json: un `vetados` no trae un `patron` que sea expresión regular: {veto!r}")
+        if not str((veto or {}).get("motivo", "") if isinstance(veto, dict) else "").strip():
+            p.append(f"pie.json: un `vetados` no dice su `motivo`: {veto!r}")
+    return p
+
+
+def lista_pie(entradas: dict[str, str], claves: list[str], pie: dict, sangria: str) -> str:
+    """El `<ul>` del pie, con el marcado que el pie ha tenido siempre.
+
+    No es `lista()`: el pie va sobre el verde oscuro de `.usta-header`, y ahí
+    un enlace con el color por defecto no se lee. Título y enlaces van en
+    `text-gold`; `min-w-0 break-words` deja partir un DOI en el teléfono.
+    La clase `pie-referencias` no tiene CSS: es el asa con que el auditor de
+    prosa (`audita_texto_base.py`) saca el pie de lo que lee como cifras, igual
+    que saca `ul.lista-fuentes`. Sin ella los dígitos de cada DOI salían como
+    cifras sin respaldo en los doce documentos.
+    """
+    s = sangria
+    filas = []
+    for c in claves:
+        fija = c in pie["sin_alta"]
+        cuerpo = pie["sin_alta"][c]["html"].strip() if fija else entradas[c]
+        cuerpo = cuerpo.replace("<em>", '<em class="text-gold">')
+        cuerpo = cuerpo.replace('<a href="', '<a class="underline text-gold" target="_blank" rel="noopener" href="')
+        nota = pie["anotaciones"].get(c) or {}
+        if nota.get("destacado"):
+            cuerpo += f' <strong>{html.escape(nota["destacado"], quote=False)}</strong>'
+        if nota.get("url"):
+            cuerpo += (f' {html.escape(nota["rotulo"], quote=False)} <a class="underline text-gold" target="_blank" '
+                       f'rel="noopener" href="{html.escape(nota["url"], quote=True)}">'
+                       f'{html.escape(nota["visible"], quote=False)}</a>.')
+        marca = " data-sin-alta" if fija else ""
+        filas.append(
+            f'\n{s}  <li id="pie-{c}" class="flex items-start gap-2"{marca}>'
+            f'\n{s}    <i class="fas fa-bookmark text-secondary mt-1" aria-hidden="true"></i>'
+            f'\n{s}    <span class="min-w-0 break-words">{cuerpo}</span>'
+            f'\n{s}  </li>'
+        )
+    return f'\n{s}<ul class="pie-referencias space-y-3 text-white/90 text-sm">{"".join(filas)}\n{s}</ul>\n{s}'
+
+
+def genera_pie(biblioteca: dict[str, dict], candado: dict[str, dict], sangria: str,
+               pie: dict | None = None) -> str:
+    """Lo que va entre los dos marcadores del pie."""
+    pie = carga_pie() if pie is None else pie
+    problemas = problemas_del_pie(biblioteca, candado, pie)
+    if problemas:
+        raise ErrorDeCita("; ".join(problemas))
+    claves = claves_del_pie(biblioteca, candado, pie)
+    en_zotero = [c for c in claves if c not in pie["sin_alta"]]
+    _, _, entradas = pandoc(biblioteca, en_zotero)
+    if not pie["orden"]:
+        claves = sorted(claves, key=lambda c: re.sub(r"<[^>]+>", "", entradas[c]).lower())
+    return lista_pie(entradas, claves, pie, sangria)
 
 
 def enlaces_nuevos(entrada: str) -> str:
@@ -248,12 +400,9 @@ def genera(texto: str, biblioteca: dict[str, dict], candado: dict[str, dict]) ->
     texto = RE_REFS_CAPITULO.sub(capitulo, texto)
 
     if RE_PIE.search(texto):
-        basicas = [c for c, o in candado.items() if o["rol"] == "basica"]
-        _, _, del_pie = pandoc(biblioteca, basicas)
-
         def pie(m: re.Match) -> str:
             s = sangria_de(texto, m.start())
-            return m.group("abre") + lista(del_pie, basicas, "pie-", s) + m.group("cierra")
+            return m.group("abre") + genera_pie(biblioteca, candado, s) + m.group("cierra")
 
         texto = RE_PIE.sub(pie, texto)
     return texto

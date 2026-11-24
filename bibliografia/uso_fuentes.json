@@ -1,7 +1,7 @@
 {
   "norma": 1,
   "curso": 20929,
-  "generado": "2026-11-12",
+  "generado": "2026-11-23",
   "obras": {
     "anselin1988spatial": {
       "rol": "primaria",
@@ -134,8 +134,8 @@
     },
     "cressie1993statistics": {
       "rol": "basica",
-      "ejemplar": false,
-      "edicion_comprobada": null,
+      "ejemplar": true,
+      "edicion_comprobada": "Portada interior (p. 2 del PDF): «Statistics for Spatial Data, Revised Edition», Noel A. C. Cressie, Wiley-Interscience. Página de derechos (p. 3 del PDF): «Copyright © 1993 by John Wiley & Sons, Inc.». Es la edición revisada de 1993 que pide el programa (ISBN impreso 9780471002550, obras.tsv).",
       "capitulos": [
         1
       ],
