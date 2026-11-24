@@ -379,6 +379,18 @@ def i_seccion_inexistente(b):
     regenera(b)
 
 
+def i_sin_secciones_con_secciones(b):
+    # (20929) `sin_secciones` sobre una página que SÍ tiene secciones numeradas.
+    edita_registro(b, 1, "c1-m1-02", lambda e: e["fuentes"][0].update(loc="", sin_secciones=True))
+    cambia(b / CAP1, ' data-loc="§2"', '')
+    regenera(b)
+
+
+def i_sin_secciones_con_localizador(b):
+    # (20929) Declarar `sin_secciones` y a la vez dar localizador.
+    edita_registro(b, 1, "c1-m1-02", lambda e: e["fuentes"][0].update(sin_secciones=True))
+
+
 def i_instantanea_cambiada(b):
     (b / BIB / "_local" / "web" / "gomez1990metodo" / "pagina.txt").write_text(PAGINA_WEB + "añadido\n", "utf-8")
 
@@ -405,6 +417,27 @@ def i_desfase_que_no_cuadra(b):
     hoja = b / BIB / "_local" / "texto" / "perez2020series" / "p0005.txt"
     hoja.write_text(hoja.read_text("utf-8").replace("        3   Suavizado", "        7   Suavizado"), "utf-8")
     edita_yaml(b / BIB / "ejemplares.yml", lambda d: d["perez2020series"].update(desfase=None))
+
+
+def i_tramo_que_no_cuadra(b):
+    # (20929) Ejemplar de desfase variable: el encabezado no se lee y el tramo dice otra página.
+    hoja = b / BIB / "_local" / "texto" / "perez2020series" / "p0005.txt"
+    hoja.write_text(hoja.read_text("utf-8").replace("        3   Suavizado", "        S   Suavizado"), "utf-8")
+    edita_yaml(b / BIB / "ejemplares.yml", lambda d: d["perez2020series"].update(desfase=None, tramos=[[1, 10, 4]]))
+
+
+def i_seccion_inexistente_en_lista(b):
+    # (20929) Una sección que no existe, escondida junto a otra que sí.
+    edita_registro(b, 1, "c1-m1-02", lambda e: e["fuentes"][0].update(loc="§9; §2"))
+    cambia(b / CAP1, 'data-loc="§2"', 'data-loc="§9; §2"')
+    regenera(b)
+
+
+def i_pagina_inexistente_en_lista(b):
+    # (20929) Una página que el ejemplar no tiene, escondida junto a la buena.
+    edita_registro(b, 1, "c1-m1-01", lambda e: e["fuentes"][0].update(loc="p. 2383; p. 3"))
+    cambia(b / CAP1, 'data-loc="p. 3"', 'data-loc="p. 2383; p. 3"')
+    regenera(b)
 
 
 def i_autoverificacion(b):
@@ -526,11 +559,17 @@ INYECCIONES = [
     ("localizador con una sección que la página no tiene", i_seccion_inexistente, {"F05"}),
     # La anotación del pie se apoya en esa misma instantánea (`evidencia`): F15 es legítimo.
     ("instantánea web distinta de la registrada", i_instantanea_cambiada, {"F05", "F15"}),
+    ("`sin_secciones` sobre una página con secciones", i_sin_secciones_con_secciones, {"F05"}),
+    # La página de juguete sí tiene secciones, así que F05 también es legítimo.
+    ("`sin_secciones` con localizador", i_sin_secciones_con_localizador, {"F04", "F05"}),
     ("la página no está en la caché", i_cache_ausente, {"F05"}),
     ("el ejemplar no es el de Zotero", i_otro_ejemplar, {"F06"}),
     ("se leyó una edición y se cita otra", i_edicion_cruzada, {"F07"}),
     ("portada del ejemplar sin comprobar", i_portada_sin_comprobar, {"F07"}),
     ("la página impresa no cuadra con la del PDF", i_desfase_que_no_cuadra, {"F07"}),
+    ("tramo de desfase que no cuadra con la página", i_tramo_que_no_cuadra, {"F07"}),
+    ("página inexistente junto a una que sí existe", i_pagina_inexistente_en_lista, {"F07"}),
+    ("sección inexistente junto a una que sí existe", i_seccion_inexistente_en_lista, {"F05"}),
     ("quien verifica es quien redactó", i_autoverificacion, {"F08"}),
     ("la prosa cambió después del contraste", i_prosa_cambiada, {"F09"}),
     ("cita literal de más de 25 palabras", i_cita_larga, {"F11"}),

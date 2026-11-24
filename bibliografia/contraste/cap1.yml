@@ -6,53 +6,592 @@ capitulo: 1
 afirmaciones:
 - id: c1-m1-01
   tipo: historica
-  afirmacion: 'Snow, Soho 1854: dibuja los muertos en un plano con las bombas'
-  hash_texto: 8ca6a275b6cd805b
+  afirmacion: 'El dibujo llega después, y no como hallazgo sino como documento: Snow ya traía su hipótesis antes
+    de pisar el Soho, y preparó el mapa cuando la bomba estaba fue'
+  hash_texto: ba69306c5593e5fb
   veredicto: con-matiz
-  nota: 'La p. 261 respalda el núcleo: Snow, Soho, cólera de 1854 y un análisis espacial de los muertos
-    frente a las bombas de agua (allí, una teselación de Dirichlet que muestra la cercanía a la bomba
-    de Broad Street). NO aparecen en esa página: «poco más de un mes», la teoría del aire viciado (miasma),
-    que Snow «sospecha del agua» sin «con qué demostrarlo», ni que mapear «no era un método»; esos elementos
-    necesitan otra fuente. Además, Pebesma y Bivand (2023, §15.1) matizan el relato: Snow ya tenía una
-    hipótesis firme y el mapa se preparó después de inhabilitar la bomba, como documentación.'
-  redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
-  verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
-  fecha: 2026-11-12
-  fuentes:
-  - clave: baddeley2015spatial
-    loc: p. 261
-    clase: PDF
-    pagina_pdf: 280
-    cita: people who died in the Soho cholera epidemic of 1854 lived closer to the infected Broad Street
-      pump than to any other water pump.
-- id: c1-m3-01
-  tipo: atribucion
-  afirmacion: la primera ley es una cita de Tobler (1970)
-  hash_texto: ce646e7e54db4b6f
-  veredicto: con-matiz
-  nota: El §15.1 reporta la frase de Tobler y la fecha 1970 (Tobler 1970; también vía la cita de Olsson,
-    «Tobler (1970, 236)»), y la traducción es fiel. Que sea «la frase más repetida del área» no lo dice
-    la fuente; es una valoración del curso sin respaldo en el §15.1.
-  redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
-  verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
-  fecha: 2026-11-12
+  nota: 'Respalda la primera oración de la marca (el dibujo llega después, como documento; Snow ya traía su hipótesis;
+    el mapa se preparó con la bomba inutilizada). La frase sigue «as documentation that his hypothesis held». Pebesma
+    y Bivand lo atribuyen a Brody et al. (2000), y la prosa solo les atribuye lo que dicen. La segunda oración de
+    la marca (la mayoría vivía más cerca de Broad Street) no está aquí: la respalda la fila de Baddeley. El pasaje
+    cae en §15.1 (la instantánea es el capítulo 15 entero). Leve. El núcleo está: la mayoría de los muertos vivía
+    más cerca de la bomba de Broad Street que de cualquier otra («than to any other water pump»). Difiere el instrumento:
+    Baddeley dice que Snow usó una teselación de Dirichlet, y la prosa dice «con él» (el mapa de los muertos) sin
+    nombrar la teselación; Baddeley no habla del plano de puntos. Respalda solo la segunda oración de la marca;
+    la primera es de Pebesma y Bivand.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
   fuentes:
   - clave: pebesma2023spatial
     loc: §15.1
     clase: WEB
     instantanea: 15-Measures
-    cita: Tobler’s first law of geography, “Everything is related to everything else, but near things
-      are more related than distant things”
+    cita: Snow had a strong working hypothesis prior to
+  - clave: baddeley2015spatial
+    loc: p. 261
+    clase: PDF
+    pagina_pdf: 280
+    cita: Dirichlet tessellation to show that the majority of people who died in the Soho cholera
+- id: c1-m1-02
+  tipo: atribucion
+  afirmacion: La investigación de la que salió es uno de los ejemplos más conocidos del análisis espacial
+  hash_texto: c90016089674e99a
+  veredicto: respaldada
+  nota: Moraga lo dice de la investigación del brote de 1854, que es el sujeto de la prosa. Moraga añade que Snow
+    usó un mapa para ilustrar el agrupamiento de muertes alrededor de una bomba.
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: moraga2019geospatial
+    loc: §1.1
+    clase: WEB
+    instantanea: sec-intro
+    cita: John Snow’s cholera-outbreak investigation in London in 1854 provides one of the most famous examples
+      of spatial analysis.
+- id: c1-m1-03
+  tipo: historica
+  afirmacion: Londres, verano de 1854. En el Soho, la tabla que John Snow publicó del brote cuenta 616 muertes de
+    cólera en seis semanas, y en su plano no entraron las que no
+  hash_texto: bce5c241a926eefe
+  veredicto: respaldada
+  nota: 'Las tres partes están. 616: la Tabla I (p. 49, p0063; la hoja no trae número legible, pero p0062 es la
+    p. 48 y p0064 la p. 50) totaliza 616 en las dos columnas, y la suma de la columna «Deaths» da 616. Seis semanas:
+    p. 46 (p0060) dice «the six weeks from 19th August to 30th September», el mismo rango de fechas de la tabla.
+    Plano sin las muertes de casa desconocida: p. 50 (p0064), la cita. Snow dice «some deaths», la prosa «las que
+    no tenían número de casa conocido».'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: snow1855mode
+    loc: p. 46; pp. 49–50
+    clase: PDF
+    pagina_pdf: 64
+    cita: some deaths which were omitted from the map on account of the number of the house not being known, are
+      included in the table
+- id: c1-m1-04
+  tipo: historica
+  afirmacion: 'La explicación que Snow tenía por el mejor intento anterior al suyo culpaba al aire: efluvios del
+    enfermo que otros respiraban'
+  hash_texto: 8b8c709cb66e445b
+  veredicto: respaldada
+  nota: 'Snow abre la frase con «The best attempt at explaining the phenomena of cholera, which previously existed,
+    was probably that which supposed…»: la mejor explicación previa, con su «probably», y los efluvios del enfermo
+    inhalados por otros. La prosa conserva el hedge («tenía por»). «Aire» resume «surrounding air».'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: snow1855mode
+    loc: p. 113
+    clase: PDF
+    pagina_pdf: 129
+    cita: was probably that which supposed that the disease was communicated by effluvia given off from the patient
+      into the surrounding air
+- id: c1-m1-05
+  tipo: historica
+  afirmacion: Snow sospecha del agua de la bomba de Broad Street. El examen del agua no lo saca de dudas, y lo que
+    lo decide es preguntar, muerte por muerte, de qué bomba beb
+  hash_texto: f32206c0dc59ff42
+  veredicto: respaldada
+  nota: Snow sospecha de la bomba (p. 39), el examen del agua lo deja dudando, y la indagación en detalle de las
+    83 muertes sobre dónde bebían (pp. 39–40) le muestra que ninguna otra circunstancia o agente era común al área
+    salvo el agua de esa bomba.
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: snow1855mode
+    loc: pp. 39–40
+    clase: PDF
+    pagina_pdf: 51
+    cita: Further inquiry, however, showed me that there was no other circumstance or agent common to the circumscribed
+      locality
+- id: c1-m1-06
+  tipo: definicion
+  afirmacion: lo aleatorio es dónde están los puntos
+  hash_texto: 2551af20c1ab4e5c
+  veredicto: respaldada
+  nota: Moraga define el patrón puntual por un dominio D aleatorio cuyo conjunto de índices son las localizaciones
+    de los eventos. Es lo que dice la marca. §2.1.3 «Point patterns» es la subsección correcta.
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: moraga2019geospatial
+    loc: §2.1.3
+    clase: WEB
+    instantanea: sec-spatialdataandCRS
+    cita: the domain \(D\) in point patterns is random. Its index set gives the locations of random events that
+      are the spatial point pattern.
+- id: c1-m1-07
+  tipo: historica
+  afirmacion: El 8 de septiembre de 1854 la parroquia retiró el mango de la bomba de Broad Street, al día siguiente
+    de que Snow le expusiera lo que había averiguado
+  hash_texto: a4fdb01a0b0990e3
+  veredicto: respaldada
+  nota: 'Snow expone el jueves 7 de septiembre a la Junta de Guardianes de St. James lo averiguado y el mango se
+    retira al día siguiente (p. 40); la p. 51 fecha la retirada el 8 de septiembre. Snow usa la pasiva: que fue
+    la parroquia quien lo retiró se infiere del contexto.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: snow1855mode
+    loc: p. 40; p. 51
+    clase: PDF
+    pagina_pdf: 52
+    cita: In consequence of what I said, the handle of the pump was removed on the following day.
+- id: c1-m1-08
+  tipo: historica
+  afirmacion: 'Los ataques ya venían cayendo, y el propio Snow lo escribe: habían disminuido tanto antes de que
+    se dejara de usar el agua que no se puede decidir si el pozo se'
+  hash_texto: f8cf4ce7678a1c38
+  veredicto: con-matiz
+  nota: 'Leve. Casi todo está, en pp. 51–52 (la hoja p0066 se lee «62» en el OCR, es la p. 52): los ataques caían
+    cada día («the fresh attacks continued to become less numerous every day»); habían disminuido tanto antes de
+    dejar de usar el agua que es imposible decidir si el pozo seguía contaminado; y «the mortality was much diminished,
+    as I said before, by the flight of the population, which commenced soon after the outbreak». La cita copia la
+    primera parte (p. 51; sigue en p. 52). Lo que no es de Snow es el cierre «otra cosa que la curva no separa»:
+    Snow no habla de la curva; es lectura del curso, coherente con lo que él escribe.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: snow1855mode
+    loc: pp. 51–52
+    clase: PDF
+    pagina_pdf: 65
+    cita: the attacks had so far diminished before the use of the water was stopped, that it is impossible to decide
+      whether the well
+- id: c1-m1-09
+  tipo: historica
+  afirmacion: entre beber el agua y enfermar pasa un tiempo, que Snow cifra, en general, entre veinticuatro y cuarenta
+    y ocho horas
+  hash_texto: 7f61e2ae4499b9f9
+  veredicto: respaldada
+  nota: Snow lo dice del período de incubación del cólera, que es el tiempo entre tragar el veneno y enfermar.
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: snow1855mode
+    loc: p. 16
+    clase: PDF
+    pagina_pdf: 28
+    cita: it is shown to be in general only from twenty-four to forty-eight hours.
+- id: c1-m1-10
+  tipo: atribucion
+  afirmacion: 'Que Snow dedujera del mapa la causa del cólera es un relato inexacto: ya traía su hipótesis, y el
+    mapa la documentó después'
+  hash_texto: c1d004dbb8cc44fa
+  veredicto: respaldada
+  nota: 'Pebesma y Bivand dicen que la creencia de que Snow indujo del mapa la causa del cólera «is inaccurate»
+    y dan las dos razones que da la prosa: ya traía la hipótesis y el mapa se preparó después, como documentación
+    («as documentation that his hypothesis held»). Pebesma y Bivand lo toman de Brody et al. (2000).'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §15.1
+    clase: WEB
+    instantanea: 15-Measures
+    cita: 'it is inaccurate: Snow had a strong working'
+- id: c1-m1-11
+  tipo: dato
+  afirmacion: Según la ayuda del paquete , el plano lo digitalizó en 1992 Rusty Dodson, del NCGIA, a partir del
+    mapa que trae Snow on Cholera (Oxford University Press, 1936),
+  hash_texto: 3e0497b53f86f07c
+  veredicto: respaldada
+  nota: 'La ayuda dice que los datos se digitalizaron por primera vez en 1992 por Rusty Dodson, del NCGIA, desde
+    el mapa del libro «Snow on Cholera...», Oxford University Press, 1936, y su campo Source da a Tobler (1994):
+    las tres partes de la frase están en la ayuda.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B5
+  fecha: 2026-11-24
+  fuentes:
+  - clave: friendly2009histdata
+    loc: ''
+    clase: WEB
+    instantanea: ayuda-Snow-1.0.0
+    sin_secciones: true
+    cita: first digitized in 1992 by Rusty Dodson of the NCGIA, Santa Barbara, from the map included in the book
+      by John Snow
+- id: c1-m1-12
+  tipo: dato
+  afirmacion: 'El paquete trae, junto a las muertes y las bombas, los vértices del polígono de Thiessen de cada
+    bomba: el área que queda más cerca de ella que de cualquier otr'
+  hash_texto: 317143e9a4b4c08c
+  veredicto: respaldada
+  nota: Snow.polygons es una lista de 13 data frames con los vértices del polígono de Thiessen de cada bomba, y
+    la ayuda define ese polígono como el área más cercana a esa bomba que a cualquier otra. Respalda las tres partes
+    de la frase (muertes y bombas van en Snow.deaths y Snow.pumps de la misma ayuda).
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: friendly2009histdata
+    loc: ''
+    clase: WEB
+    instantanea: ayuda-Snow-1.0.0
+    sin_secciones: true
+    cita: giving the vertices of Thiessen (Voronoi) polygons containing each pump. Their boundaries define the area
+      that is closest to each pump
+- id: c1-m2-01
+  tipo: resultado
+  afirmacion: El ojo es mal juez de si un patrón es aleatorio, y por eso hace falta algún análisis objetivo
+  hash_texto: 0f94e657349af9b9
+  veredicto: respaldada
+  nota: La «question» es si las larvas de la figura 1.2 muestran territorialidad, es decir, un espaciamiento mayor
+    que el de puntos esparcidos completamente al azar; la frase respalda la prosa.
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 4
+    clase: PDF
+    pagina_pdf: 23
+    cita: 'The human eye is not very good at judging this question: some kind of objective'
+- id: c1-m2-02
+  tipo: resultado
+  afirmacion: 'Lo nulo es este patrón medido con esa distancia, no el bosque: en un conjunto mayor de pinos negros
+    japoneses, un análisis detallado encontró que la densidad ca'
+  hash_texto: 274c07fd2eb84a6f
+  veredicto: respaldada
+  nota: 'Respalda: el análisis detallado de los 204 pinos negros japoneses (10 × 10 m) halló variación espacial
+    de la densidad y tendencia a no crecer juntos. Baddeley dice «suggesting» competencia (la prosa, «señal de»);
+    «conjunto mayor» corresponde al conjunto completo (full Japanese Pines, p. 244); la primera cláusula de la prosa
+    («lo nulo es…») es del curso, no de Baddeley.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 4
+    clase: PDF
+    pagina_pdf: 23
+    cita: and also a tendency for trees to avoid growing close together, suggesting competition between neighbouring
+- id: c1-m2-03
+  tipo: definicion
+  afirmacion: la ventana de un patrón puntual se toma como una región sobre la que el dato es exhaustivo -aquella
+    donde se puede afirmar que no falta ningún punto-
+  hash_texto: a07ce6e886833ba7
+  veredicto: respaldada
+  nota: Pebesma dice «exhaustive, or complete»; «aquella donde se puede afirmar que no falta ningún punto» es glosa
+    fiel de «complete».
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.2
+    clase: WEB
+    instantanea: 10-Models
+    cita: in their observation window, the area for which
+- id: c1-m2-04
+  tipo: definicion
+  afirmacion: es la falacia ecológica, en la que una asociación medida entre agregados lleva a conclusiones distintas
+    de las que daría la misma medida entre individuos
+  hash_texto: 3d0455f10c381020
+  veredicto: respaldada
+  nota: Respaldada, incluida la comparación con la misma medida a nivel individual; Moraga continúa «based on the
+    same variables measured at the individual level».
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: moraga2019geospatial
+    loc: §5.5
+    clase: WEB
+    instantanea: sec-arealdatatheory
+    cita: ecological fallacy which occurs when estimated associations obtained from analysis of variables measured
+      at the aggregated level lead to conclusions different from analysis
+- id: c1-m2-05
+  tipo: definicion
+  afirmacion: En el marco de este curso -el basado en el modelo, que el módulo 10 separa del basado en el diseño-
+    lo aleatorio es el propio campo \(Z(\cdot)\), del que el dat
+  hash_texto: e27fffe223244347
+  veredicto: respaldada
+  nota: 'Cressie fija el marco: campo aleatorio {Z(s): s en D} del que el dato es una realización, modelo de «superpoblación»
+    usado en todo el libro, con el enfoque basado en el diseño solo en la §2.3. Dominio fijo en el caso geoestadístico:
+    en la misma p. 8, «Part I (Chapters 2 through 5): Geostatistical data. D is a fixed subset of». Cressie dice
+    «superpopulation model», no «basado en el modelo»; el par modelo/diseño es el de la frase. Cressie supone además,
+    en general, D aleatorio (patrones puntuales); la prosa solo afirma lo geoestadístico.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 8
+    clase: PDF
+    pagina_pdf: 25
+    cita: This "superpopulation" model for spatial data is used exclusively throughout the book, although brief
+      discussion
+- id: c1-m2-06
+  tipo: regla
+  afirmacion: 'Su segunda fila reparte los métodos por tipo de dato, como hacen : unos para los puntos en su ventana,
+    otros para las áreas que cubren el territorio y otros par'
+  hash_texto: 5520070755c13dff
+  veredicto: respaldada
+  nota: '§10.2 reparte por tipo de dato: áreas que cubren la región (caps. 14–17), puntos en su ventana de observación
+    (cap. 11) y datos geoestadísticos con observaciones de soporte puntual (caps. 12–13). «Campo continuo» no aparece
+    en la sección: es glosa.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.2
+    clase: WEB
+    instantanea: 10-Models
+    cita: Methods for areal data (Chapters 14-17) are devised
+- id: c1-m2-07
+  tipo: atribucion
+  afirmacion: 'la introducen ya en el capítulo 1 de su libro y la desarrollan en el 5: la llaman el soporte del
+    dato.'
+  hash_texto: e6504d8c967f0773
+  veredicto: respaldada
+  nota: '§1.6 «Support» introduce el término en el capítulo 1 y la sección termina con «Chapter 5 discusses this
+    further»; el capítulo 5 se titula «Attributes and Support» (instantánea 05-Attributes: §5.1 «Attribute-geometry
+    relationships and support»). La cita da el nombre de «soporte»; la frase del capítulo 5 está al final del mismo
+    párrafo de §1.6.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §1.6; cap. 5
+    clase: WEB
+    instantanea: 01-hello
+    cita: The spatial area an attribute value refers to
+- id: c1-m2-08
+  tipo: definicion
+  afirmacion: 'Soporte puntual: el valor vale en cada punto de la geometría'
+  hash_texto: 3d1e824a5bceabf1
+  veredicto: respaldada
+  nota: Soporte puntual = valor constante en cada punto de la geometría. Pebesma y Bivand dan como ejemplo de constante
+    «land use or bedrock type of a polygon», y definen el soporte de bloque en la misma frase.
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §1.6
+    clase: WEB
+    instantanea: 01-hello
+    cita: constant properties have “point” support (they apply to
+- id: c1-m2-09
+  tipo: resultado
+  afirmacion: 'el soporte no lo decide la geometría: entre los tipos de geometría y los tipos de fenómeno no hay
+    correspondencia simple'
+  hash_texto: 7e521c4ece82393b
+  veredicto: respaldada
+  nota: '§5.1: el mismo tipo de geometría puede llevar un campo (uso del suelo) o un agregado (densidad de población)
+    y no hay correspondencia simple entre geometría y tipo de fenómeno; el soporte depende del atributo.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §5.1
+    clase: WEB
+    instantanea: 05-Attributes
+    cita: raster pixels and polygons may reflect fields of
+- id: c1-m2-10
+  tipo: resultado
+  afirmacion: 'Pintarla tal cual sería pintar, sobre todo, cuántos niños nacieron en cada condado: es el riesgo
+    de llevar una variable extensiva a un mapa de coropletas, que l'
+  hash_texto: 569c886989bb6c77
+  veredicto: respaldada
+  nota: Pebesma lo dice de una variable extensiva en un mapa de coropletas. Que lo mostrado en la figura 1.1 sean
+    los nacimientos por condado (BIR74) está en §1.1.
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.2
+    clase: WEB
+    instantanea: 10-Models
+    cita: the signal shown is actually the size of
+- id: c1-m2-11
+  tipo: regla
+  afirmacion: 'En un dato de salud el denominador es la población de cada unidad, no su superficie: los conteos
+    se pasan a tasas dividiendo por ella'
+  hash_texto: 6562958550baed94
+  veredicto: con-matiz
+  nota: 'Leve. El núcleo está (en datos de salud, en vez de dividir por el área del polígono se divide por la población
+    del polígono). Difiere el grado: la obra dice «usually», la prosa lo da sin matiz («el denominador es», «los
+    conteos se pasan»). Además la obra dice «probabilities or incidence rates», no solo tasas.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.2
+    clase: WEB
+    instantanea: 10-Models
+    cita: observations are usually converted to probabilities or incidence
+- id: c1-m2-12
+  tipo: atribucion
+  afirmacion: En los tres casos hay un dominio \(D \subset \mathbb{R}^2\) y algo aleatorio sobre él. Lo que cambia
+    es qué es aleatorio, y los tres son casos de un mismo model
+  hash_texto: 6abb0d2ba6b4b127
+  veredicto: respaldada
+  nota: 'Cressie define {Z(s): s ∈ D} y recorre qué es aleatorio en cada parte: Z con D fijo (geoestadística y retículo)
+    y D proceso puntual (patrones puntuales), con la parte II terminando en la p. 9. Cressie escribe ℝᵈ; fijar d
+    = 2 es del curso.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: pp. 8–9
+    clase: PDF
+    pagina_pdf: 25
+    cita: the three seemingly distinct parts of this book alluded to earlier treat special cases of
+- id: c1-m2-13
+  tipo: resultado
+  afirmacion: Lo que un dato de bloque sí admite es pasar a otras áreas -la interpolación areal, un cambio de soporte-,
+    y eso obliga a suponer cómo se reparte el valor dentro
+  hash_texto: d8012ddbb9fc4f45
+  veredicto: respaldada
+  nota: '§5.4: la interpolación areal mueve información de cualquier área de origen a cualquier área de destino
+    y solo tiene sentido si se cumplen esos supuestos; las fórmulas están en §5.3.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §5.4
+    clase: WEB
+    instantanea: 05-Attributes
+    cita: over the source regions extensive variables need to
+- id: c1-m2-14
+  tipo: atribucion
+  afirmacion: 'separan el fenómeno -lo que hay en el mundo: un campo, un objeto o un agregado- de la geometría con
+    la que se guarda, y avisan de que entre los dos no hay corre'
+  hash_texto: d79652dfae400242
+  veredicto: respaldada
+  nota: §5.1 lista tres tipos de fenómeno (campos, objetos, agregados) y avisa de que los tipos de geometría no
+    se corresponden con ellos de forma simple. Pebesma atribuye la tipología de fenómenos a Scheider et al. 2016.
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §5.1
+    clase: WEB
+    instantanea: 05-Attributes
+    cita: but that different spatial geometry types (points, lines,
+- id: c1-m2-15
+  tipo: resultado
+  afirmacion: cada cociente \(n/|W|\) estima la intensidad media de su propia región, \(\frac{1}{|W|}\int_W \lambda(s)\,ds\),
+    donde \(\lambda(s)\) es la intensidad en cada si
+  hash_texto: 0b43648ab9f7c287
+  veredicto: con-matiz
+  nota: 'Leve. Están las dos partes de fondo: p. 164 (p0183), el cociente conteo/área es la «average intensity in
+    each quadrat, which is a simple estimate of the intensity function»; y p. 162 (p0181), ec. (6.3), E[n(X∩B)]
+    es la integral de λ(u) sobre B. Lo que Baddeley no imprime es la fórmula (1/|W|)∫_W λ(s) ds como el estimando
+    del cociente: sale de dividir (6.3) entre |W|, es derivación del curso. Baddeley dice que estima «the intensity
+    function», no la media de λ sobre la región.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 162; p. 164
+    clase: PDF
+    pagina_pdf: 183
+    cita: If the quadrat counts are divided by the areas of the corresponding quadrats, we obtain
+- id: c1-m2-16
+  tipo: definicion
+  afirmacion: 'Soporte de bloque: el valor resume la geometría entera'
+  hash_texto: a220a5e038020b97
+  veredicto: respaldada
+  nota: 'Soporte de bloque = propiedad agregada sobre la geometría; la lista previa de §1.6 lo dice así: «a single
+    value that is an aggregate over all points of the geometry», con el ejemplo del número de nacimientos de un
+    condado. «Resume la geometría entera» es fiel.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §1.6
+    clase: WEB
+    instantanea: 01-hello
+    cita: aggregate properties have “block” (or area, or line)
+- id: c1-m2-17
+  tipo: dato
+  afirmacion: brinzales de pino negro japonés en un cuadrado de un bosque natural, que recogió Numata (1961) y que
+    el paquete toma de un libro de Diggle
+  hash_texto: 4f455b2e20060e36
+  veredicto: respaldada
+  nota: 'Respalda brinzales de pino negro japonés, el cuadrado en un bosque natural y la recogida por Numata (1961).
+    Que el paquete lo toma de un libro de Diggle: «Source: Diggle (2003), obtained from Numata (1961)», y «textbook
+    of Diggle (2003)».'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2017spatstatdata
+    loc: ''
+    clase: WEB
+    instantanea: ayuda-japanesepines-3.1.9
+    sin_secciones: true
+    cita: saplings of Japanese black pine (Pinus thunbergii) in a square sampling region in a natural forest. The
+      observations were originally collected by Numata (1961).
+- id: c1-m2-18
+  tipo: dato
+  afirmacion: Las muestras se tomaron en una llanura de inundación del Mosa, cerca del pueblo de Stein, en los Países
+    Bajos, y el dato trae para cada punto una clase de frecu
+  hash_texto: 3c68d845d089a2a0
+  veredicto: respaldada
+  nota: Respalda la llanura de inundación del Mosa, cerca de Stein, en los Países Bajos («NL»; las referencias de
+    la ayuda dicen «the Netherlands»). La columna ffreq es «flooding frequency class» (1 = una vez cada dos años;
+    2 = una vez cada diez; 3 = una vez cada 50).
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2005sp
+    loc: ''
+    clase: WEB
+    instantanea: ayuda-meuse-2.2.0
+    sin_secciones: true
+    cita: collected in a flood plain of the river Meuse, near the village of Stein (NL)
+- id: c1-m3-01
+  tipo: atribucion
+  afirmacion: 'La cita es de 1970: "todo está relacionado con todo lo demás, pero las cosas cercanas están más relacionadas
+    que las lejanas"'
+  hash_texto: 9672377e832fde46
+  veredicto: respaldada
+  nota: 'Segunda mano (Tobler no tiene ejemplar local). Pebesma §15.1 cita a Tobler (1970, 236 [la paginación es
+    la de un artículo de congreso]) con esa frase, y su lista de referencias da Tobler 1970, Economic Geography
+    46: 234–40. Pebesma añade que esa «primera ley» nunca se cumple de forma absoluta; la prosa no afirma lo contrario.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §15.1
+    clase: WEB
+    instantanea: 15-Measures
+    cita: everything is related to everything else, but near
     segunda_mano_de: tobler1970computer
 - id: c1-m3-02
   tipo: definicion
   afirmacion: 'índice de Clark-Evans: R = d̄min/E[d̄min], sin unidades, referencia 1'
   hash_texto: 7e91b429bdcec5d6
   veredicto: respaldada
-  nota: La p. 258 define R como la media de las distancias al vecino más cercano dividida entre E[D] =
-    1/(2√λ) bajo un proceso de Poisson, la atribuye a Clark y Evans [155], dice que es adimensional y
-    que R = 1 corresponde al azar, R > 1 a regularidad y R < 1 a agrupamiento. La fuente usa «suggests»
-    (sugiere), y el curso lo enuncia como lectura del cociente, lo que es consistente con la definición.
+  nota: La p. 258 define R como la media de las distancias al vecino más cercano dividida entre E[D] = 1/(2√λ) bajo
+    un proceso de Poisson, la atribuye a Clark y Evans [155], dice que es adimensional y que R = 1 corresponde al
+    azar, R > 1 a regularidad y R < 1 a agrupamiento. La fuente usa «suggests» (sugiere), y el curso lo enuncia
+    como lectura del cociente, lo que es consistente con la definición.
   redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
   verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
   fecha: 2026-11-12
@@ -61,17 +600,1262 @@ afirmaciones:
     loc: p. 258
     clase: PDF
     pagina_pdf: 277
-    cita: the value R = 1 is consistent with a completely random pattern; R > 1 suggests regularity, while
-      R < 1 suggests clustering.
+    cita: the value R = 1 is consistent with a completely random pattern; R > 1
     segunda_mano_de: clark1954distance
+- id: c1-m3-03
+  tipo: definicion
+  afirmacion: 'El mismo nombre designa otra cosa en geoestadística, y es la cantidad que usan los analistas de series
+    de tiempo: la función de autocorrelación de un proceso es'
+  hash_texto: bb985fb902b5b8f7
+  veredicto: respaldada
+  nota: 'Cressie §2.3.2: ρ(h) = C(h)/C(0) (covariograma entre su valor en 0, o sea la varianza) se llama correlograma
+    «also known as an autocorrelation function», y es la cantidad que los analistas de series de tiempo usan tradicionalmente.
+    La hoja p0083 no trae número legible en el OCR («S3»); p0082 es la p. 66 y p0084 la p. 68.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 67
+    clase: PDF
+    pagina_pdf: 83
+    cita: a correlogram (also known as an autocorrelation function). It is this quantity that is traditionally
+- id: c1-m3-04
+  tipo: definicion
+  afirmacion: Con \(n\) unidades, valores \(z_i\) centrados y la matriz de pesos \(\mathbf{W}\), de elementos \(w_{ij}\),
+    que declara quién es vecino de quién, el índice es e
+  hash_texto: a17b77871a2d6ce0
+  veredicto: respaldada
+  nota: 'Pebesma §15.1 da I = n Σ(2) w_ij z_i z_j / (S0 Σ z_i²), con z_i = x_i − x̄, w_ij los pesos espaciales y
+    S0 = Σ(2) w_ij: es el cociente de la prosa. Dos cosas que la página no trae y la fórmula del capítulo sí: sus
+    sumas excluyen i = j (Σ(2)), mientras el capítulo escribe ΣΣ sin la restricción (declara w_ii = 0 más abajo),
+    y E[I] = −1/(n−1) no está en §15.1 (allí E(I) es genérico, «for the chosen assumptions»); eso lo demuestra el
+    propio capítulo.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §15.1
+    clase: WEB
+    instantanea: 15-Measures
+    cita: \(w_{ij}\) are the spatial weights, and \(S_0 =
+- id: c1-m3-05
+  tipo: resultado
+  afirmacion: 'No es una rareza de este dato: una variable que se deja fuera del modelo y que varía en el espacio
+    se suma a la dependencia espacial que se mide'
+  hash_texto: b93a9836f8cc6275
+  veredicto: respaldada
+  nota: 'Cressie (p. 25, viñeta sobre variables explicativas) lo dice en general, no de un dato concreto: una variable
+    omitida que varía en el espacio contribuye a la dependencia espacial. La prosa lo usa como afirmación general.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 25
+    clase: PDF
+    pagina_pdf: 42
+    cita: A missed variable that is itself varying spatially will contribute to the spatial dependence
+- id: c1-m3-06
+  tipo: definicion
+  afirmacion: El capítulo 9 le pone remedio metiendo la covariable en la media del modelo, como una tendencia lineal;
+    al predecir así, krige() avisa en su salida de que usa k
+  hash_texto: 121966fcdc0dbe4f
+  veredicto: respaldada
+  nota: '§12.7 «Trend models»: la covariable entra en un modelo de regresión lineal para la tendencia («we can use
+    them in a linear regression model for the trend») y krige() con esa fórmula imprime «[using universal kriging]».
+    «El capítulo 9» es la referencia interna del curso, no de Pebesma y Bivand.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §12.7
+    clase: WEB
+    instantanea: 12-Interpolation
+    cita: kr <- krige(NO2 ~ sqrt(pop_dens), no2.sf, grd["pop_dens"], vr.m)
+- id: c1-m3-07
+  tipo: resultado
+  afirmacion: De la pregunta contraria, si unos puntos están más separados de lo que los dejaría el azar, se ha
+    escrito que el ojo la juzga mal y que hace falta un análisis o
+  hash_texto: 3116173324cf51ab
+  veredicto: respaldada
+  nota: 'La pregunta de las larvas del patinador de agua (p. 3, p0022: si el espaciamiento es mayor que si los puntos
+    se hubieran esparcido al azar) y la frase de la p. 4 (p0023): el ojo no es bueno juzgándolo y hace falta un
+    análisis objetivo. Coincide con la marca («más separados de lo que los dejaría el azar», «el ojo la juzga mal»).'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: pp. 3–4
+    clase: PDF
+    pagina_pdf: 23
+    cita: 'The human eye is not very good at judging this question: some kind of objective'
+- id: c1-m3-08
+  tipo: resultado
+  afirmacion: En un proceso de Poisson, lo que se ve desde uno de sus puntos, quitado ese punto, tiene la misma
+    distribución que el proceso
+  hash_texto: 2a106c9ffe797049
+  veredicto: respaldada
+  nota: La distribución de Palm reducida en u es la de X \ u bajo Pu (p. 294, §8.12.4, p0313), y la p. 295 dice
+    que para un proceso de Poisson coincide con la distribución usual del proceso. Es lo que dice la marca. Baddeley
+    no nombra aquí el teorema de Slivnyak (el nombre está fuera de la marca).
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: pp. 294–295
+    clase: PDF
+    pagina_pdf: 314
+    cita: for a Poisson point process, the reduced Palm distribution is identical to the usual distribution
+- id: c1-m3-09
+  tipo: atribucion
+  afirmacion: 'La prueba lleva el nombre del índice, no la firma de sus autores: Clark y Evans lo pensaron como
+    una medida de cuánto se aparta un patrón del azar, no para cont'
+  hash_texto: 576acb7a6dea2e12
+  veredicto: respaldada
+  nota: 'Segunda mano (Clark y Evans 1954 no tiene ejemplar local): Cressie (p. 605) dice que ni Clark y Evans (1954)
+    ni Pielou (1959) pretendían que sus estadísticos (A y C) se usaran para probar CSR con una aproximación normal,
+    sino como índices de la desviación respecto de CSR. Añade que Clark y Evans sugieren una prueba basada en el
+    estadístico B de Skellam (χ²); la prosa no lo contradice.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 605
+    clase: PDF
+    pagina_pdf: 615
+    cita: to test for csr using a normal approximation. They were intended as indices for measuring
+    segunda_mano_de: clark1954distance
+- id: c1-m3-10
+  tipo: resultado
+  afirmacion: En una finita, un punto pegado al borde puede tener su vecino de verdad fuera del cuadrado, donde
+    nadie lo midió; la distancia que se le apunta es la del vecino
+  hash_texto: 1a69f239b8963e95
+  veredicto: respaldada
+  nota: 'Baddeley (pp. 258–259): sin corrección de borde R tiene sesgo positivo, porque para un punto cercano al
+    borde el vecino verdadero puede estar fuera de la ventana y las distancias observadas tienden a ser mayores
+    que las verdaderas. El «numerador» de R es la media de las d_i (ec. 8.1).'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: pp. 258–259
+    clase: PDF
+    pagina_pdf: 278
+    cita: actually lie outside the window. Hence observed nearest-neighbour distances tend to be larger than the
+- id: c1-m3-11
+  tipo: resultado
+  afirmacion: La de Donnelly para el estadístico de Clark y Evans es un ajuste empírico, y no se generaliza a regiones
+    de forma arbitraria
+  hash_texto: 4e514b19ec8b5e64
+  veredicto: respaldada
+  nota: 'Cressie: Donnelly (1978) y Doguwa y Upton (1988) dan correcciones a los dos primeros momentos del estadístico
+    de Clark y Evans y de su análogo punto-evento; «their results are empirical and do not generalize to arbitrarily
+    shaped sampling regions nor to nonregular point sampling». La cita conserva el corte de línea del OCR («empiri-
+    cal»). La prosa dice lo de Donnelly; la obra lo dice de Donnelly y de Doguwa y Upton.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 607
+    clase: PDF
+    pagina_pdf: 617
+    cita: their results are empirical and do not generalize to arbitrarily shaped sampling regions
+- id: c1-m3-12
+  tipo: definicion
+  afirmacion: Los imprime con las etiquetas naive, Donnelly y cdf, y su argumento correction elige la corrección
+    de borde
+  hash_texto: 6d7e701b6e4e97f3
+  veredicto: respaldada
+  nota: La p. 259 muestra clarkevans(redwood) con las tres etiquetas «naive Donnelly cdf» y los tres valores, y
+    dice que el argumento correction elige una corrección de borde (de «clarkevans and clarkevans.test»).
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 259
+    clase: PDF
+    pagina_pdf: 278
+    cita: The argument correction specifies an edge correction to be applied.
+- id: c1-m3-13
+  tipo: resultado
+  afirmacion: 'Es un único número, y esa es la debilidad de los índices de este tipo: comprimen toda la información
+    espacial en una cifra y mezclan lo que pasa a escalas disti'
+  hash_texto: 103777f10d6e11f6
+  veredicto: respaldada
+  nota: 'Baddeley (p. 260), sobre la distancia media al vecino, el índice de Clark-Evans y el de Hopkins-Skellam:
+    comprimen toda la información espacial en un solo número, mezclando información de escalas y de lugares distintos.
+    La prosa nombra solo las escalas; la página añade los lugares.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 260
+    clase: PDF
+    pagina_pdf: 279
+    cita: Their main weakness is that they compress all the spatial information into a single number,
+- id: c1-m3-14
+  tipo: resultado
+  afirmacion: 'No es un escenario rebuscado: un análisis detallado de un bosque de pinos negros japoneses encontró
+    las dos cosas a la vez, variación de la densidad y árboles q'
+  hash_texto: 6e3ccfcdfcb2a15d
+  veredicto: respaldada
+  nota: 'Baddeley (p. 4): un análisis detallado de las plántulas y juveniles de pino negro japonés (Pinus thunbergii,
+    ventana de 10 × 10 m en un bosque natural; refs. [513, 516, 55]) concluyó que hay a la vez variación espacial
+    de la densidad y tendencia de los árboles a no crecer juntos.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 4
+    clase: PDF
+    pagina_pdf: 23
+    cita: there is spatial variation in the density of the forest, and also a tendency for
+- id: c1-m3-15
+  tipo: resultado
+  afirmacion: 'Y no es lo que pasa con las secuoyas de la tabla: sus grupos se atribuyen a la propagación desde
+    un árbol padre que ya murió'
+  hash_texto: f20181db7a0ce580
+  veredicto: con-matiz
+  nota: 'En la p. 189 (encabezado de la hoja; Figura 6.27) el libro dice que los grupos de las secuoyas, plántulas
+    y brotes del subconjunto de Ripley de datos de Strauss, «are thought to have arisen» por propagación desde un
+    árbol padre ya muerto, y eso respalda la segunda mitad de la frase. No está «Y no es lo que pasa»: el libro
+    no habla de repulsión ni de dos escalas en las secuoyas, así que esa negación es la contraposición del capítulo
+    y no de la obra.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B5
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 189
+    clase: PDF
+    pagina_pdf: 208
+    cita: Clusters of points, clearly visible in the plot, are thought to have arisen by propagation
+- id: c1-m3-16
+  tipo: resultado
+  afirmacion: Cuando los puntos son los centros de objetos de tamaño apreciable, encontrar que están repartidos
+    con regularidad, o que se inhiben, puede ser solo un artefacto
+  hash_texto: 533be0c82821cbd9
+  veredicto: respaldada
+  nota: En p. 146 (supuestos del análisis) dice que, si los puntos son centros de regiones como células de una imagen
+    de microscopio, que los centros salgan regulares o inhibidos podría ser solo un artefacto del tamaño no nulo
+    de las células; en p. 210 (§7.3.5.2), que la regularidad aparente puede ser un artefacto de tratar como puntos
+    ideales células de tamaño apreciable. Respalda las dos mitades de la frase.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 146; p. 210
+    clase: PDF
+    pagina_pdf: 165
+    cita: a finding that the centres are regular or inhibited could simply be an artefact caused
+- id: c1-m3-17
+  tipo: dato
+  afirmacion: Los 42 puntos de esa fila son centros de células biológicas en un corte histológico
+  hash_texto: 9170667cc7ffcc34
+  veredicto: respaldada
+  nota: 'p. 93 (PDF p0112) lo dice para el conjunto cells; la figura 6.1 de la p. 157 (PDF p0176) rotula «biological
+    cell centres in histological section». El 42 no está en esas páginas: es el conteo de la fila de la tabla del
+    capítulo.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 93; p. 157
+    clase: PDF
+    pagina_pdf: 112
+    cita: giving the locations of the centres of biological cells observed in a histological section
+- id: c1-m4-01
+  tipo: regla
+  afirmacion: 'Con datos espaciales ese supuesto a menudo no es realista: la dependencia espacial está en todas
+    partes, y con ella los procedimientos clásicos rinden mal'
+  hash_texto: 508deab58ef09429
+  veredicto: respaldada
+  nota: 'Dos partes, dos páginas. p. 25 (p0042): «it is often more realistic to abandon the independence assumption»
+    con datos espaciales o temporales, y las inferencias clásicas pueden ser muy engañosas. p. 22 (p0039): «the
+    generally poor performance of classical statistical-inference procedures in the presence of spatial dependence»
+    y «the ubiquity of such spatial dependence». La prosa conserva el «a menudo».'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 22; p. 25
+    clase: PDF
+    pagina_pdf: 42
+    cita: where it is often more realistic to abandon the independence assumption, classical inferences can be
+- id: c1-m4-02
+  tipo: resultado
+  afirmacion: Lo segundo es un remuestreo por bloques. Con datos dependientes, aplicar a ciegas el remuestreo clásico
+    puede dar respuestas incorrectas, y lo que se propone en
+  hash_texto: a34aa60a0885dd71
+  veredicto: respaldada
+  nota: 'Cressie (p. 491): aplicar a ciegas el jackknife y el bootstrap clásicos a datos dependientes puede dar
+    respuestas incorrectas; (p. 492) divide D en subregiones congruentes y remuestrea regiones (dos esquemas de
+    Hall 1985a; Künsch 1989 para series). «Congruentes» es la palabra de Cressie; «mismo tamaño y forma» es su sentido
+    geométrico, que la página no glosa. Cressie dice que la validez del estimador por bloques «queda por demostrar».'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: pp. 491–492
+    clase: PDF
+    pagina_pdf: 503
+    cita: Blind application of the classical jackknife and bootstrap techniques to dependent data can give incorrect
+- id: c1-m4-03
+  tipo: definicion
+  afirmacion: 'El jackknife clásico recalcula el estimador quitando una observación cada vez; aquí lo que se quita
+    es un bloque entero, y de esa versión espacial, que elimina '
+  hash_texto: 447b0ef2ead7f968
+  veredicto: respaldada
+  nota: 'Cressie (p. 489): el jackknife básico (delete-1) usa el estimador sobre la muestra sin la i-ésima observación;
+    (p. 492): el jackknife espacial análogo implicaría eliminar una subregión y cerrar las restantes, «aunque está
+    lejos de ser obvio cómo hacerlo» (p. 491: para series, se eliminan subseries).'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 489; p. 492
+    clase: PDF
+    pagina_pdf: 504
+    cita: The analogous spatial jackknife would involve deleting a subregion and closing up the remaining subregions
+- id: c1-m5-01
+  tipo: definicion
+  afirmacion: Se define \(n_{\text{eff}}\) como el número de observaciones independientes que darían la misma varianza
+    de la media que las \(n\) observaciones correlacionadas
+  hash_texto: 085da3433b3797fc
+  veredicto: respaldada
+  nota: La ecuación (1.3.5) var(Z̄) = σ0²/n′ está al final de la p. 14 (p0031); en la p. 15 (p0032) n′, ec. (1.3.6),
+    «can be interpreted as the equivalent number of independent observations», con el ejemplo n = 10, ρ = 0.26 →
+    n′ = 6.2 («6 independent observations achieve approximately the same precision as 10 correlated observations»).
+    Cressie lo hace para su AR(1) de la ec. (1.3.3); la prosa da la definición general.
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: pp. 14–15
+    clase: PDF
+    pagina_pdf: 32
+    cita: can be interpreted as the equivalent number of independent observations
+- id: c1-m6-01
+  tipo: definicion
+  afirmacion: 'Pide dos cosas: que la media sea la misma en todas partes, \(E[Z(s)] = \mu\), y que la varianza de
+    las diferencias dependa solo de la separación, \(\tfrac{1}{2}'
+  hash_texto: b819794727fcc11b
+  veredicto: respaldada
+  nota: 'Definición de proceso intrínsecamente estacionario (p. 60, continúa en p. 61, p0077: «be intrinsically
+    stationary»): cumple (2.3.2) E(Z(s)) = μ para todo s (p. 53, p0069) y (2.3.4) var(Z(s1) − Z(s2)) = 2γ(s1 − s2)
+    (p. 58, p0074). La prosa escribe ½ Var(Z(s+h) − Z(s)) = γ(h), equivalente. Las dos condiciones son las de la
+    marca. La p0077 trae «S3» en el encabezado (OCR); p0076 es la p. 60.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: pp. 60–61
+    clase: PDF
+    pagina_pdf: 76
+    cita: 'Definition. Suppose (Z(s): s e D } satisfies (2.3.2) and (2.3.4)'
+- id: c1-m6-02
+  tipo: resultado
+  afirmacion: Todo proceso estacionario de segundo orden es intrínseco, con \(\gamma(h) = C(0) - C(h)\), pero no
+    al revés. Un ejemplo es el movimiento browniano
+  hash_texto: 84c08e7138d77781
+  veredicto: respaldada
+  nota: 'p. 67 (p0083): si Z es estacionario de segundo orden, var(Z(s1) − Z(s2)) = 2{C(0) − C(s1 − s2)}, que es
+    intrínseco con 2γ(h) = 2(C(0) − C(h)) (ec. 2.3.23). p. 68 (p0084), la cita: la clase de los de segundo orden
+    está estrictamente contenida en la de los intrínsecos (el «pero no al revés»), y el ejemplo es el movimiento
+    browniano d-dimensional isótropo (Lévy), con 2γ definido y C no. Todo coincide con la marca.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: pp. 67–68
+    clase: PDF
+    pagina_pdf: 84
+    cita: The class of all second-order stationary processes is strictly contained in the class of all
+- id: c1-m6-03
+  tipo: regla
+  afirmacion: 'Más general no quiere decir obligatoria: suponer una u otra es a menudo cuestión de gusto de quien
+    modela'
+  hash_texto: 85bd23fa87cc04f1
+  veredicto: respaldada
+  nota: 'Cressie (p. 70): es a menudo cuestión de gusto que el modelador asuma estacionariedad intrínseca o de segundo
+    orden. En §2.4.1 argumenta después que conviene preferir la estimación del variograma; «más general no quiere
+    decir obligatoria» es la glosa del capítulo y no contradice la página.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 70
+    clase: PDF
+    pagina_pdf: 86
+    cita: It is often a matter of taste whether the statistical modeler chooses to assume intrinsic
+- id: c1-m6-04
+  tipo: definicion
+  afirmacion: 'que los promedios sobre el espacio de una realización converjan a los del proceso cuando la región
+    crece sin límite: es la propiedad que deja estimar esperanzas'
+  hash_texto: 738748975639b1f5
+  veredicto: respaldada
+  nota: 'p. 53 (p0069), la cita: la ergodicidad deja estimar esperanzas sobre el espacio Ω con promedios espaciales.
+    p. 57 (p0073): la definición se generaliza a procesos con índice espacial continuo con datos en {z(s): 0 < ||s||
+    < H} y H tendiendo a infinito (la región crece sin límite), y se dice que los estadísticos usan solo la parte
+    de la ergodicidad que garantiza que la media y las covarianzas muestrales converjan a las poblacionales. La
+    misma p. 57 añade que nadie ha generalizado la ergodicidad al caso de una muestra finita en una realización
+    continua: no contradice la marca, que habla de la propiedad con región creciente.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 53; p. 57
+    clase: PDF
+    pagina_pdf: 69
+    cita: this property allows expectations over the Ω space to be estimated by spatial averages.
+- id: c1-m6-05
+  tipo: resultado
+  afirmacion: El variograma empírico promedia diferencias al cuadrado, y si \(m(s)\) es la media en cada sitio,
+    la esperanza de cada sumando ya no es \(\gamma(h)\) sino \(\ga
+  hash_texto: 2708864ecf1b2872
+  veredicto: respaldada
+  nota: 'Cressie (p. 69): si Z(s) = μ(s) + δ(s) con δ intrínseco de media cero y μ no constante, E(Z(s1) − Z(s2))²
+    = 2γ(s1 − s2) + (μ(s1) − μ(s2))², que no es función de s1 − s2; dividido entre 2 da la expresión de la prosa.
+    El OCR de la fórmula está estropeado, pero el texto que la rodea y el planteamiento lo confirman.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 69
+    clase: PDF
+    pagina_pdf: 85
+    cita: is a zero-mean intrinsically stationary stochastic process with variogram 2γ, and the mean μ(·) is
+- id: c1-m6-06
+  tipo: definicion
+  afirmacion: El estimador agrupa los pares por clases de distancia, como un histograma agrupa los datos de una
+    variable
+  hash_texto: a2301130f2b1f2ab
+  veredicto: respaldada
+  nota: 'Cressie (p. 70): con datos irregulares el estimador se suaviza promediando los pares de una región de tolerancia
+    T(h(j)) alrededor de cada h(j); que las regiones sean disjuntas es directamente análogo al suavizado por histograma
+    de un lote univariado. Cressie habla de regiones de tolerancia en R^d (no solo de distancia) y dice «a menudo»
+    disjuntas; la prosa lo simplifica a clases de distancia.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 70
+    clase: PDF
+    pagina_pdf: 86
+    cita: this is directly analogous to histogram smoothing of a univariate batch of data.
+- id: c1-m6-07
+  tipo: resultado
+  afirmacion: Con una realización no se puede saber si lo que se ve es el proceso o el azar de esa realización,
+    y sin algún supuesto más sobre el proceso no hay inferencia po
+  hash_texto: 892e774265ca48f3
+  veredicto: respaldada
+  nota: 'Cressie (p. 53): hay que hacer supuestos adicionales sobre Z; de lo contrario los datos son un muestreo
+    incompleto de una sola realización, lo que hace imposible la inferencia. «No se puede saber si lo que se ve
+    es el proceso o el azar de esa realización» es paráfrasis del capítulo; y «es el problema fundamental de la
+    disciplina», que sigue fuera del span, no es frase de la página.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo A
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda A2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 53
+    clase: PDF
+    pagina_pdf: 69
+    cita: Otherwise, the data represent an incomplete sampling of a single realization, making inference impossible.
+- id: c1-m7-01
+  tipo: resultado
+  afirmacion: 'Es lo que hace moran.test si no se le pide otra cosa: sus argumentos valen por defecto randomisation
+    = TRUE y alternative = "greater"'
+  hash_texto: 6cc135fdbf4ea58d
+  veredicto: respaldada
+  nota: 'La salida de args(moran.test) en §15.2 muestra randomisation = TRUE y alternative = "greater"; el texto
+    añade: «The default for the randomisation argument is TRUE». La cita lleva los # del bloque de código tal como
+    están en el archivo.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §15.2
+    clase: WEB
+    instantanea: 15-Measures
+    cita: function (x, listw, randomisation = TRUE, zero.policy =
+- id: c1-m7-02
+  tipo: definicion
+  afirmacion: 'Se llama así a que las conclusiones pueden cambiar cuando los mismos datos se agregan a otro nivel
+    espacial, y junta dos efectos. El de escala es el de arriba: '
+  hash_texto: 4a42f8210d4638ea
+  veredicto: respaldada
+  nota: 'En §5.5 Moraga define el MAUP como el problema por el que las conclusiones pueden cambiar al agregar los
+    mismos datos a otro nivel, con dos efectos: el de escala o agregación (los mismos datos en áreas cada vez mayores)
+    y el de agrupación o zonificación (formaciones alternativas de las áreas, con otra forma, a la misma escala
+    o a una parecida). Las tres partes de la frase están.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: moraga2019geospatial
+    loc: §5.5
+    clase: WEB
+    instantanea: sec-arealdatatheory
+    cita: alternative formations of the areas leading to differences in area shape at the same or similar scales
+- id: c1-m7-03
+  tipo: resultado
+  afirmacion: Que la correlación entre dos variables se aleje de cero cuanto más se agrega es lo que se observa
+    de ordinario, y a esa dependencia de la correlación respecto d
+  hash_texto: 6452d260da7c1f48
+  veredicto: respaldada
+  nota: Cressie dice que, típicamente, cuanto mayor la agregación, más lejos de cero queda la correlación muestral
+    entre las variables agregadas, y que esa dependencia de la correlación respecto del soporte «a veces» se ha
+    llamado problema de la unidad de área modificable. Coincide con «de ordinario» y «también se la ha llamado».
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 285
+    clase: PDF
+    pagina_pdf: 299
+    cita: This dependence of correlation on support has sometimes been called the modifiable areal unit problem.
+- id: c1-m7-04
+  tipo: resultado
+  afirmacion: 'Tampoco es una rareza de este dato: agregando de varias maneras unas mismas observaciones de áreas
+    pequeñas se ha obtenido un recorrido amplio de coeficientes d'
+  hash_texto: 095e83c30baf6d2e
+  veredicto: respaldada
+  nota: 'Cressie cuenta que Openshaw y Taylor (1979) hicieron varios experimentos agregando de varias maneras observaciones
+    fijas de áreas pequeñas y obtuvieron un recorrido amplio de coeficientes positivos y negativos. Es resultado
+    de esos autores, que Cressie reporta: la prosa no los nombra y Cressie no da cifras del recorrido.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 285
+    clase: PDF
+    pagina_pdf: 299
+    cita: of positive a n d negative correlation coefficients c o u l d be produced.
+- id: c1-m7-05
+  tipo: dato
+  afirmacion: 'El ejemplo no es de este curso: es el de , con la misma rejilla sobre los mismos condados y los mismos
+    dos totales'
+  hash_texto: 82f9157e82df64f6
+  veredicto: respaldada
+  nota: 'El ejemplo de §5.2 es el de los condados de Carolina del Norte (nc, SID74) sobre una rejilla de rectángulos
+    y sus dos totales, 667 y 2621. Las 100 celdas no se declaran en el texto: se deducen del código (etiquetas 10
+    × 10 con st_make_grid(nc)); el 667, el 100 y el 2621 coinciden con los del JSON del capítulo.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §5.2
+    clase: WEB
+    instantanea: 05-Attributes
+    cita: '# sid74_sum_counties sid74_sum_rectangles # 667 2621'
+- id: c1-m7-06
+  tipo: resultado
+  afirmacion: 'Agregar por grupos -todos los municipios de un departamento- asigna cada unidad a exactamente un
+    grupo. De ahí sale una propiedad: la suma de las sumas es la su'
+  hash_texto: ac4f685080e054c8
+  veredicto: respaldada
+  nota: En §5.2 cada registro se asigna a un solo grupo, la suma de las sumas por grupo es la suma de los datos
+    sin agrupar, y la geometría nueva es la unión de las geometrías de los registros del grupo. Respalda todas las
+    partes.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §5.2
+    clase: WEB
+    instantanea: 05-Attributes
+    cita: for variables that reflect amount, nothing gets lost
+- id: c1-m7-07
+  tipo: definicion
+  afirmacion: 'La herramienta se llama interpolación ponderada por área: mira cuánto solapa cada unidad de origen
+    con cada una de destino y pesa con ese solape el valor del or'
+  hash_texto: 2ae6a972a383f742
+  veredicto: respaldada
+  nota: '§5.3 define la interpolación ponderada por área (area-weighted interpolation) exactamente así: considera
+    el área de solape entre geometrías de origen y destino y la usa para ponderar los valores del origen hacia el
+    destino.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §5.3
+    clase: WEB
+    instantanea: 05-Attributes
+    cita: it considers the area of overlap of the
+- id: c1-m7-08
+  tipo: definicion
+  afirmacion: 'Al conteo -extensivo- le toca la parte proporcional del origen que lo cede: el área del trozo entre
+    el área del origen. A la tasa -intensiva- le corresponde un '
+  hash_texto: 8c7e040fe1aca120
+  veredicto: respaldada
+  nota: 'Ec. 5.2: variable extensiva, parte |A_ij|/|S_i| del valor del origen, suponiéndola uniforme en el origen.
+    Ec. 5.3: variable intensiva, promedio ponderado con |A_ij|/|T_j|, suponiéndola constante en cada origen. El
+    libro ejemplifica lo intensivo con la densidad de población, no con «tasa» (que es intensiva). Esa parte del
+    texto es el subapartado que el propio libro cita como §5.3.1.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §5.3
+    clase: WEB
+    instantanea: 05-Attributes
+    cita: For an intensive variable, under the assumption that
+- id: c1-m8-01
+  tipo: regla
+  afirmacion: 'Son los mismos tres grupos en que reparten sus capítulos de métodos: unos para los patrones puntuales,
+    otros para los datos geoestadísticos y otros para los dat'
+  hash_texto: 69992b043c70c8fd
+  veredicto: respaldada
+  nota: 'En §10.2 el libro nombra los capítulos por tipo de dato: el 11 para los patrones puntuales («Chapter 11
+    deals in principle with point support observations»; su título es Point Pattern Analysis), el 12 y el 13 para
+    los geoestadísticos y el 14 al 17 para los de área («Methods for areal data (Chapters 14-17)»). Son los tres
+    grupos de la prosa. La sección los menciona al hablar del soporte, no como una clasificación declarada de capítulos
+    de métodos.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.2
+    clase: WEB
+    instantanea: 10-Models
+    cita: Geostatistical data (Chapters 12 and 13) usually start
+- id: c1-m8-02
+  tipo: definicion
+  afirmacion: 'Están escritas en C o en C++ y no son de R: las desarrollan, las mantienen y las usan comunidades
+    grandes y en su mayoría distintas de la de R. La lista complet'
+  hash_texto: 987d6f805b3260e4
+  veredicto: respaldada
+  nota: 'La lista del libro en §1.7 es «GDAL, GEOS, PROJ, liblwgeom, s2geometry, NetCDF, udunits2»: de ella salen
+    s2geometry, liblwgeom, NetCDF y udunits2 como las que faltan. El libro no llama «completa» a su lista; lo dice
+    la prosa.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §1.7
+    clase: WEB
+    instantanea: 01-hello
+    cita: all developed, maintained, and used by (spatial) data
+- id: c1-m8-03
+  tipo: atribucion
+  afirmacion: Fuera de R la usan Python, QGIS, PostGIS y más de un centenar de proyectos
+  hash_texto: 78c15a91df586219
+  veredicto: respaldada
+  nota: '§1.7, en el apartado de GDAL: además de en R, se usa en Python, QGIS, PostGIS y en más de otros 100 proyectos
+    de software. La prosa lo atribuye a GDAL («la»), que es lo correcto.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §1.7
+    clase: WEB
+    instantanea: 01-hello
+    cita: besides for R it is being used in
+- id: c1-m8-04
+  tipo: definicion
+  afirmacion: El reparto de papeles -GDAL lee y escribe, GEOS mide y opera en el plano, PROJ convierte coordenadas
+    de un sistema de referencia a otro- es el que describen
+  hash_texto: b2ce560225344d55
+  veredicto: respaldada
+  nota: '§1.7: GEOS «does this for flat, two-dimensional space» (medidas, predicados, geometrías nuevas) y PROJ
+    «converts spatial coordinates from one coordinate reference system to another», casi literal. Lo de GDAL (leer
+    y escribir) lo dice dentro de su descripción de «biblioteca de bibliotecas», no como una definición suelta.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §1.7
+    clase: WEB
+    instantanea: 01-hello
+    cita: in order to read and write these data,
+- id: c1-m8-05
+  tipo: resultado
+  afirmacion: Con coordenadas proyectadas, sf hace las operaciones geométricas con GEOS. Con coordenadas elipsoidales
+    -longitud y latitud- las hace, si no se le pide otra cos
+  hash_texto: 29e1089cfdc57146
+  veredicto: respaldada
+  nota: '§7.1: sf ejecuta operaciones geométricas con GEOS (coordenadas proyectadas) o con s2geometry (coordenadas
+    elipsoidales). §7.3: por defecto usa s2geometry, se puede apagar con sf_use_s2(FALSE) y GEOS es para geometría
+    cartesiana y s2geometry para esférica.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §7.1; §7.3
+    clase: WEB
+    instantanea: 07-Introsf
+    cita: By default, sf uses geometrical operations from the
+- id: c1-m8-06
+  tipo: definicion
+  afirmacion: 'Para ir de la tabla al libro: en están, por ese orden, sf, stars, los cortes de clase de classInt
+    y tmap.'
+  hash_texto: 29ed9ddc050c3a00
+  veredicto: respaldada
+  nota: 'En ese orden: §7.1 es «Package sf», §7.4 «Package stars», §8.2 incluye el apartado «Colour breaks: classInt»
+    y §8.5 es «Maps with tmap». Los cuatro localizadores son correctos.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §7.1; §7.4; §8.2; §8.5
+    clase: WEB
+    instantanea: 08-Plotting
+    cita: R package classInt (Bivand 2022) provides a number
+- id: c1-m8-07
+  tipo: dato
+  afirmacion: Instalado así, en binario, sf trae dentro una copia de las bibliotecas externas que necesita, con
+    sus dependencias
+  hash_texto: 2e87248664982dfc
+  veredicto: respaldada
+  nota: '§1.7: cuando sf se instala en forma binaria desde CRAN, trae una copia de todas las bibliotecas externas
+    necesarias y sus dependencias (hasta unos 100 Mb). Respalda la frase entera.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §1.7
+    clase: WEB
+    instantanea: 01-hello
+    cita: it includes a copy of all the required
+- id: c1-m8-08
+  tipo: dato
+  afirmacion: En Windows y macOS, instalar sf desde CRAN trae el paquete ya compilado, salvo que R esté configurado
+    para instalar desde el código fuente. Para macOS, su docum
+  hash_texto: 34a9809f2d2678b1
+  veredicto: respaldada
+  nota: 'El README de sf lo dice así, y para macOS añade «strongly encouraged to install the sf binary packages
+    from CRAN» y «install.packages("sf", type = "binary")» si R intenta instalar desde el código fuente. La recomendación
+    del README lleva una excepción que la prosa omite: «unless they are familiar with compilers, linking, C++ source
+    code, and homebrew». La instantánea es la de sf 1.1-3; la referencia del capítulo dice versión 1.0.22.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2016sf
+    loc: ''
+    clase: WEB
+    instantanea: readme
+    sin_secciones: true
+    cita: This will install binary packages on Windows and MacOS, unless you configured R such that it tries to
+      install source packages
+- id: c1-m8-09
+  tipo: atribucion
+  afirmacion: La página de sf en CRAN declara como requisitos GDAL, GEOS, PROJ y SQLite, y su documentación da para
+    Ubuntu los paquetes libudunits2-dev, libgdal-dev, libgeos-
+  hash_texto: 78eab6ae39252eb4
+  veredicto: respaldada
+  nota: La página de CRAN declara GDAL, GEOS, PROJ y sqlite3; el README, para Ubuntu, da «libudunits2-dev libgdal-dev
+    libgeos-dev libproj-dev libsqlite3-dev». Coincide con las dos mitades de la frase. La instantánea es la de sf
+    1.1-3; la referencia del capítulo dice versión 1.0.22.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2016sf
+    loc: ''
+    clase: WEB
+    instantanea: cran
+    sin_secciones: true
+    cita: 'SystemRequirements: GDAL (>= 2.0.1), GEOS (>= 3.4.0), PROJ (>= 4.8.0), sqlite3'
+- id: c1-m8-10
+  tipo: atribucion
+  afirmacion: s2, un paquete que sf usa, declara en CRAN cmake, OpenSSL y Abseil, y su README da para Debian y Ubuntu
+    libssl-dev y libabsl-dev
+  hash_texto: 76ffb274bd1fa8ca
+  veredicto: respaldada
+  nota: 'La página de CRAN de s2 declara cmake, OpenSSL y Abseil en SystemRequirements (con versiones mínimas que
+    la prosa omite) y lista a sf entre los Reverse imports, de modo que «un paquete que sf usa» también se apoya
+    aquí. Aviso: la instantánea es s2 1.1.13 (publicada 2026-09-28) y la referencia del capítulo dice Versión 1.1.9.
+    El README (rama main de GitHub) da para Debian y Ubuntu exactamente libssl-dev y libabsl-dev, y no menciona
+    cmake (la prosa atribuye cmake solo a CRAN, bien repartido). También dice que sf usa s2 por defecto en casi
+    todas sus operaciones con coordenadas elipsoidales. La instantánea no trae número de versión, y la referencia
+    del capítulo dice 1.1.9.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B4
+  fecha: 2026-11-24
+  fuentes:
+  - clave: dunnington2016s2
+    loc: ''
+    clase: WEB
+    instantanea: cran
+    sin_secciones: true
+    cita: 'SystemRequirements: cmake, OpenSSL >= 1.0.1, Abseil >= 20230802.0'
+  - clave: dunnington2016s2
+    loc: ''
+    clase: WEB
+    instantanea: readme
+    sin_secciones: true
+    cita: 'Debian/Ubuntu: apt-get install libssl-dev libabsl-dev'
+- id: c1-m9-01
+  tipo: definicion
+  afirmacion: 'Un objeto sf es un data.frame -o un tibble- con al menos una columna rara: una columna-lista que
+    guarda la geometría de cada fila'
+  hash_texto: bcbb173e8969ca52
+  veredicto: respaldada
+  nota: 'En §7.1: «Package sf represents sets of simple features in sf objects, a sub-class of a data.frame or tibble»,
+    con «at least one geometry list-column». «Rara» es palabra de la prosa; el libro dice que la columna tiene una
+    estructura más compleja que los vectores básicos.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §7.1
+    clase: WEB
+    instantanea: 07-Introsf
+    cita: sf objects contain at least one geometry list-column
+- id: c1-m9-02
+  tipo: historica
+  afirmacion: 'Y no es un accidente: sf se hizo para suceder y reemplazar a sp, con tres propósitos declarados.
+    Acercar el análisis espacial en R a los estándares, apoyarlo en'
+  hash_texto: 7f326c52e59a911f
+  veredicto: respaldada
+  nota: '§7.1 enuncia los tres propósitos: acercarse a los enfoques basados en estándares de la industria y el código
+    abierto, apoyarse en versiones más modernas de la pila geoespacial de código abierto e integrarse con el tidyverse.
+    Detalle: el libro dice que sf sucede y reemplaza a sp, rgeos y las partes vectoriales de rgdal; la prosa nombra
+    solo sp, sin ser falso.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §7.1
+    clase: WEB
+    instantanea: 07-Introsf
+    cita: Intended to succeed and replace R packages sp,
+- id: c1-m9-03
+  tipo: definicion
+  afirmacion: 'La anidación es la del paquete: un objeto sf lleva al menos una columna-lista de clase sfc, cada
+    elemento de esa columna es un sfg, y el sistema de referencia e'
+  hash_texto: a1860ed408e17e8b
+  veredicto: respaldada
+  nota: '§7.1: sf contiene al menos una columna-lista de clase sfc cuyos elementos son objetos de clase sfg; y la
+    columna sfc lleva como metadatos, en atributos, el sistema de referencia (crs), la caja (bbox), la precisión
+    y el número de geometrías vacías.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §7.1
+    clase: WEB
+    instantanea: 07-Introsf
+    cita: at least one geometry list-column of class sfc,
+- id: c1-m9-04
+  tipo: resultado
+  afirmacion: 'Un patrón puntual tiene ventana de observación, y un ppp es eso: los puntos y su ventana. Si se crea
+    desde unos puntos sin decir cuál es, se toma su caja'
+  hash_texto: e6ecc52296e9e179
+  veredicto: respaldada
+  nota: '§11.1: los patrones puntuales tienen ventana de observación; un ppp de spatstat contiene puntos y una ventana
+    (owin); al hacer as.ppp sobre puntos sf sin ventana, se usa la caja de los puntos. El libro lo muestra con as.ppp
+    sobre puntos sf, que es el caso de la prosa.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B1
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §11.1
+    clase: WEB
+    instantanea: 11-PointPattern
+    cita: where we see that the bounding box of
+- id: c1-m10-01
+  tipo: resultado
+  afirmacion: 'No es un defecto de ningún programa: esa validación supone observaciones independientes, que con
+    datos espaciales a menudo no es un supuesto razonable, y sus ci'
+  hash_texto: 6e8cbe4e6659e9f2
+  veredicto: respaldada
+  nota: §10.1 dice que la validación cruzada ingenua supone observaciones independientes y que eso a menudo no es
+    razonable con datos espaciales (correlación espacial, agrupamiento de la muestra). §10.5 añade que las estadísticas
+    de validación cruzada aleatoria simple pueden ser «over-optimistic» como medida de desempeño de la predicción
+    espacial. Los dos localizadores son los correctos.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.1; §10.5
+    clase: WEB
+    instantanea: 10-Models
+    cita: Such cross-validation approaches assume independent observations, which is
+- id: c1-m10-02
+  tipo: definicion
+  afirmacion: De las validaciones adaptadas, como la validación cruzada espacial, se dice que pueden dar medidas
+    más pertinentes de lo que acierta una predicción
+  hash_texto: 5a3d5a4b3c4208d4
+  veredicto: respaldada
+  nota: El libro dice «may help getting», que la prosa vierte como «se dice que pueden dar»; el atenuante se conserva.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.5
+    clase: WEB
+    instantanea: 10-Models
+    cita: Adaptive cross-validation measures such as spatial cross-validation may
+- id: c1-m10-03
+  tipo: resultado
+  afirmacion: Cuando la muestra se sorteó sobre la zona, suponer que las observaciones son independientes puede
+    estar justificado, y el marco del diseño permite predecir el v
+  hash_texto: 75e22523745165fd
+  veredicto: respaldada
+  nota: La suposición es la de independencia de la muestra («Many simple predictive approaches [...] assume sample
+    data to be independent»), «may be justified» bajo el marco del diseño; y ese marco «affords predicting values
+    for a new randomly chosen location». La prosa omite que el mismo marco excluye predecir en sitios fijos; no
+    lo afirma.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.5
+    clase: WEB
+    instantanea: 10-Models
+    cita: When samples are collected by spatially random sampling
+- id: c1-m10-04
+  tipo: atribucion
+  afirmacion: lo aleatorio es el muestreo. Exige que el dato venga de un muestreo probabilístico, con probabilidades
+    de inclusión conocidas y positivas. A cambio no hace falt
+  hash_texto: 461235b0f5c1bd88
+  veredicto: respaldada
+  nota: 'Todo está en §10.4: el enfoque de diseño exige muestreo probabilístico con probabilidad de inclusión conocida
+    y positiva, los estimadores «only need these inclusion probabilities to estimate mean values with standard errors»,
+    no se ajusta ningún modelo, y con muestra aleatoria simple se usa la media muestral sin ponderar.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.4
+    clase: WEB
+    instantanea: 10-Models
+    cita: given a simple random sample, the unweighted sample
+- id: c1-m10-05
+  tipo: resultado
+  afirmacion: En el estimador de Horvitz-Thompson cada elemento de la muestra se pesa por el inverso de su probabilidad
+    de muestreo
+  hash_texto: cc1a99182cd086c4
+  veredicto: respaldada
+  nota: 'Baddeley presenta Horvitz-Thompson, en la sección de la línea de base de rhohat, como otra estrategia para
+    corregir el sesgo de muestreo «originating from sample surveys»: cada ítem se pesa por el recíproco de su probabilidad
+    de muestreo, que es lo que dice la prosa. En el estimador de rho de spatstat ese factor es 1/B(x_i).'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 181
+    clase: PDF
+    pagina_pdf: 200
+    cita: Horvitz-Thompson estimator [341] in which each item in the sample is weighted by the reciprocal
+- id: c1-m10-06
+  tipo: resultado
+  afirmacion: 'Y algo que sorprende: en un muestreo aleatorio simple, dos extracciones distintas son (casi) incorreladas
+    aunque el campo de debajo sea suave, porque lo que se '
+  hash_texto: 1021ceb4ba23058b
+  veredicto: respaldada
+  nota: 'Respalda lo central: creer que dos observaciones cercanas siempre están correlacionadas es un malentendido
+    (la obra lo atribuye a Brus 2021a) y solo vale en el marco del modelo; bajo el diseño, las variables aleatorias
+    de dos extracciones son «design-independent», porque lo que se repite son los sorteos. «(casi)» y «aunque el
+    campo de debajo sea suave» son glosa del curso: la obra no dice «casi» ni habla de suavidad, y ninguna cosa
+    la contradice.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.4
+    clase: WEB
+    instantanea: 10-Models
+    cita: is that the two are always spatially correlated,
+- id: c1-m10-07
+  tipo: atribucion
+  afirmacion: lo aleatorio es el proceso. Se supone que lo observado es una realización de \(Z(s)\) y se postula
+    su estructura de covarianza. No exige saber cómo se eligieron
+  hash_texto: b44d2a05f0a66fa9
+  veredicto: respaldada
+  nota: '§10.4: el enfoque basado en el modelo toma z(s) como realización de una superpoblación Z(s) con una covarianza
+    postulada, «makes no assumptions about how z(s) was sampled spatially», y la inferencia es condicional a que
+    el modelo postulado valga.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.4
+    clase: WEB
+    instantanea: 10-Models
+    cita: inference is conditional to the validity of the
+- id: c1-m10-08
+  tipo: atribucion
+  afirmacion: 'Es el que hace falta para predecir en un punto concreto, o cuando el dato no salió de un sorteo:
+    el marco del diseño da promedios de áreas, no interpolaciones'
+  hash_texto: 7f479fd9adf53400
+  veredicto: respaldada
+  nota: '§10.5: el marco del diseño «rules out making predictions for fixed locations» y solo da promedios de las
+    áreas muestreadas, «but not spatial interpolations»; para predecir en lugares fijos o con datos no muestreados
+    al azar hace falta el enfoque basado en el modelo. §10.4 repite las dos condiciones en su lista.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.5
+    clase: WEB
+    instantanea: 10-Models
+    cita: In case predictions for fixed locations are required,
+- id: c1-m10-09
+  tipo: atribucion
+  afirmacion: 'Las dos situaciones pueden darse a la vez sin contradicción: son consecuencia del marco en que se
+    elige trabajar, y cuál se elige depende del propósito del estu'
+  hash_texto: ebd6420dd61e8610
+  veredicto: respaldada
+  nota: '§10.4 lo dice así. Las «dos situaciones» de la obra son la correlación bajo el marco del modelo y la independencia
+    bajo el del diseño. También respalda la segunda parte: la elección entre marcos depende del propósito del estudio
+    y de cómo se recogieron los datos.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §10.4
+    clase: WEB
+    instantanea: 10-Models
+    cita: Both situations can coexist without contradiction and are
+- id: c1-m10-10
+  tipo: atribucion
+  afirmacion: Entre los métodos de inferencia basados en el modelo y los basados en el diseño hay una controversia
+    en la teoría clásica del muestreo
+  hash_texto: f4f0b31fe675bba9
+  veredicto: respaldada
+  nota: En la p. 52 (§2.3, PDF p0068) Cressie escribe que hay una controversia paralela en la teoría clásica del
+    muestreo entre los métodos de inferencia basados en el modelo y los basados en el diseño, y remite a Hansen
+    et al. (1983). La cita conserva el corte de línea «design- based» del archivo.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 52
+    clase: PDF
+    pagina_pdf: 68
+    cita: There is a parallel controversy in classical sampling theory, between model-based and designbased methods
+      of
+- id: c1-m11-01
+  tipo: atribucion
+  afirmacion: ': la localización \(s\), el conjunto \(D\) sobre el que varía y el proceso \(Z(s)\), que es el modelo
+    general del libro.'
+  hash_texto: a0208ad6e453c82f
+  veredicto: respaldada
+  nota: '§1.1, subsección «The General Spatial Model» (p. 8 impresa; la sección empieza en la p. 7, pdf 24): la
+    localización s, el conjunto índice D y el campo aleatorio {Z(s): s en D}, modelo que el libro usa «exclusively
+    throughout the book».'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: §1.1
+    clase: PDF
+    pagina_pdf: 25
+    cita: suppose that the potential datum Z(s) at spatial location s is a random quantity
+- id: c1-m11-02
+  tipo: atribucion
+  afirmacion: ': el número equivalente de observaciones independientes, que aquí se escribe \(n_{\text{eff}}\)'
+  hash_texto: b233dc84e1cbc301
+  veredicto: respaldada
+  nota: En §1.3 (p. 15 impresa, PDF p0032) n' de la ecuación (1.3.6) se interpreta como el número equivalente de
+    observaciones independientes. El OCR deforma la ecuación. La sección 1.3 empieza en la p. 13 según el índice
+    (p0005).
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: §1.3
+    clase: PDF
+    pagina_pdf: 32
+    cita: can be interpreted as the equivalent number of independent observations (see Section 4.6.2)
+- id: c1-m11-03
+  tipo: atribucion
+  afirmacion: ': la covarianza estacionaria \(C(h)\), o covariograma.'
+  hash_texto: b4ed678b71adddde
+  veredicto: respaldada
+  nota: 'p. 53 impresa (el OCR da «S3»), §2.3 «Stationary Processes»: la covarianza estacionaria cov(Z(s1), Z(s2))
+    = C(s1 - s2), ec. (2.3.3), llamada covariograma. Cressie la escribe C(s1 - s2); la forma C(h) aparece en la
+    p. 58.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: §2.3
+    clase: PDF
+    pagina_pdf: 69
+    cita: The function C( ) is called a covariogram or a stationary covariance
+- id: c1-m11-04
+  tipo: atribucion
+  afirmacion: ': el variograma, que depende solo del incremento entre dos localizaciones -la \(h\) de la tabla-,
+    y su mitad, el semivariograma \(\gamma(h)\).'
+  hash_texto: 7592ffdef69fa7cf
+  veredicto: respaldada
+  nota: 'p. 58 impresa, §2.3.1 «Variogram» (el OCR da «23.1»): ec. (2.3.4), 2γ(·) es función solo del incremento
+    s1 - s2 y se llama variograma; γ(·) es el semivariograma, su mitad.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: §2.3.1
+    clase: PDF
+    pagina_pdf: 74
+    cita: has been called a variogram [and γ ( · ) has been called a semivariogram]
+- id: c1-m11-05
+  tipo: atribucion
+  afirmacion: ': la intensidad \(\lambda\), los puntos esperados por unidad de área, y cómo se estima.'
+  hash_texto: 294c375efbea0293
+  veredicto: respaldada
+  nota: §6.2 «Estimating homogeneous intensity» empieza en la p. 159 (pdf 178); la definición de λ y su estimador
+    n(x)/|W| (ec. 6.2), insesgado bajo intensidad homogénea, están en la p. 160 (pdf 179).
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: §6.2
+    clase: PDF
+    pagina_pdf: 179
+    cita: The intensity λ is the expected number of points per unit area.
+- id: c1-m11-06
+  tipo: atribucion
+  afirmacion: ': las distancias al vecino más próximo y el índice de Clark-Evans.'
+  hash_texto: e5a6db9a6de571bc
+  veredicto: respaldada
+  nota: §8.2.1 (p. 255 impresa, pdf 274) define la distancia al vecino más próximo; §8.2.2 (p. 258, pdf 277) presenta
+    el índice de Clark-Evans R, ec. (8.1). La cita es de la p. 258.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: §8.2
+    clase: PDF
+    pagina_pdf: 277
+    cita: Clark and Evans [155] proposed taking the average of the nearest-neighbour distances
+- id: c1-m11-07
+  tipo: atribucion
+  afirmacion: ': la matriz de vecindad y sus elementos \(w_{ij}\), que conectan las áreas y se pueden leer como
+    pesos.'
+  hash_texto: 90aefad31cfddc67
+  veredicto: respaldada
+  nota: En §5.1 el elemento (i, j) de la matriz de vecindad W, w_ij, «spatially connects areas i and j in some fashion»,
+    y los elementos de W «can be viewed as weights». Ambas mitades están.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: moraga2019geospatial
+    loc: §5.1
+    clase: WEB
+    instantanea: sec-arealdatatheory
+    cita: and its elements can be viewed as weights
+- id: c1-m11-08
+  tipo: atribucion
+  afirmacion: ': la fórmula de la I de Moran y su prueba.'
+  hash_texto: 99d4cfb616230bad
+  veredicto: respaldada
+  nota: '§15.1 da la fórmula de I (n por la suma de w_ij z_i z_j, sobre S_0 por la suma de z_i al cuadrado), con
+    la remisión a Cliff y Ord 1981, p. 17, y su prueba: el estadístico Z(I) = (I - E(I))/sqrt(Var(I)) con moran.test,
+    bajo normalidad o aleatorización.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §15.1
+    clase: WEB
+    instantanea: 15-Measures
+    cita: For reference, Moran’s \(I\) is given as (Cliff
+- id: c1-m11-09
+  tipo: atribucion
+  afirmacion: ': el estadístico local de Getis-Ord y su forma \(G_i^*\).'
+  hash_texto: d0c6561dbb7f3bfc
+  veredicto: respaldada
+  nota: 'Subsección «Local Getis-Ord G_i» de §15.3: la medida local G_i (Getis y Ord 1992, 1996) se informa como
+    desviado estándar y puede tomar la forma G*_i insertando los propios sitios como vecinos con include.self.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §15.3
+    clase: WEB
+    instantanea: 15-Measures
+    cita: may also take the \(G^*_i\) form where self-neighbours
+- id: c1-m11-10
+  tipo: atribucion
+  afirmacion: ': el modelo de rezago espacial y su coeficiente, que allí se escribe con un subíndice.'
+  hash_texto: 7fc118ec2def58ec
+  veredicto: respaldada
+  nota: §17.1 define el modelo de rezago espacial (SLM, a menudo SAR) y escribe su coeficiente con subíndice, \rho_{Lag},
+    junto a \rho_{Err} del modelo de error, en la ecuación del modelo general anidado. El SLM sale de ese con gamma
+    = 0 y \rho_{Err} = 0; no se escribe aparte.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2023spatial
+    loc: §17.1
+    clase: WEB
+    instantanea: 17-Econometrics
+    cita: A model with a spatial process in the
 - id: c1-m12-01
   tipo: atribucion
   afirmacion: 'Pebesma y Bivand: §1.6 el soporte, §7.1 la anatomía de sf'
   hash_texto: 9ad9e534e1f0ed14
   veredicto: respaldada
-  nota: 'El §1.6 («Support») trata justamente el soporte de un atributo espacial (puntual, de bloque,
-    identidad), y el §7.1 («Package sf») describe la estructura de un objeto sf: subclase de data.frame,
-    columna de geometría sfc con objetos sfg y sus metadatos (sf_column, agr, crs, bbox).'
+  nota: 'El §1.6 («Support») trata justamente el soporte de un atributo espacial (puntual, de bloque, identidad),
+    y el §7.1 («Package sf») describe la estructura de un objeto sf: subclase de data.frame, columna de geometría
+    sfc con objetos sfg y sus metadatos (sf_column, agr, crs, bbox).'
   redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
   verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
   fecha: 2026-11-12
@@ -80,21 +1864,19 @@ afirmaciones:
     loc: §1.6
     clase: WEB
     instantanea: 01-hello
-    cita: The spatial area an attribute value refers to is called its support
+    cita: The spatial area an attribute value refers to
   - clave: pebesma2023spatial
     loc: §7.1
     clase: WEB
     instantanea: 07-Introsf
-    cita: Package sf represents sets of simple features in sf objects, a sub-class of a data.frame or
-      tibble.
+    cita: Package sf represents sets of simple features in
 - id: c1-m12-02
   tipo: atribucion
   afirmacion: 'Baddeley et al.: cap. 3 ppp y ventana, cap. 6 intensidad'
   hash_texto: bfaa791a74d7a344
   veredicto: respaldada
-  nota: El cap. 3 (impresas pp. 49–80) introduce el objeto de clase "ppp" en el §3.3 (p. 54) y la ventana
-    de observación, clase "owin", en el §3.5 (p. 61). El cap. 6 (desde p. 157) se titula «Intensity» y
-    está dedicado entero a ella.
+  nota: El cap. 3 (impresas pp. 49–80) introduce el objeto de clase "ppp" en el §3.3 (p. 54) y la ventana de observación,
+    clase "owin", en el §3.5 (p. 61). El cap. 6 (desde p. 157) se titula «Intensity» y está dedicado entero a ella.
   redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
   verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
   fecha: 2026-11-12
@@ -103,23 +1885,21 @@ afirmaciones:
     loc: cap. 3
     clase: PDF
     pagina_pdf: 73
-    cita: A spatial point pattern in two-dimensional space is stored in spatstat as an object of class
-      "ppp" (for ‘planar point pattern’).
+    cita: A spatial point pattern in two-dimensional space is stored in spatstat as an object of
   - clave: baddeley2015spatial
     loc: cap. 6
     clase: PDF
     pagina_pdf: 176
-    cita: Investigation of the intensity of a point pattern is one of the first and most important steps
-      in data analysis.
+    cita: Investigation of the intensity of a point pattern is one of the first and most
 - id: c1-m12-03
   tipo: atribucion
   afirmacion: llamar «ley» a la de Tobler es prematuro (Olsson, recogido por Pebesma y Bivand)
   hash_texto: 87173ba27c7d542c
   veredicto: respaldada
-  nota: El §15.1 recoge la cita de Olsson (1970, p. 228) según la cual elevar la frase de Tobler al rango
-    de «primera ley» es, en el mejor caso, prematuro; los autores la suscriben («It is not and has never
-    been the case that ... always holds absolutely»). El juicio de «prematuro» es de Olsson, citado por
-    Pebesma y Bivand, y el verbo «recogen» lo refleja bien.
+  nota: El §15.1 recoge la cita de Olsson (1970, p. 228) según la cual elevar la frase de Tobler al rango de «primera
+    ley» es, en el mejor caso, prematuro; los autores la suscriben («It is not and has never been the case that
+    ... always holds absolutely»). El juicio de «prematuro» es de Olsson, citado por Pebesma y Bivand, y el verbo
+    «recogen» lo refleja bien.
   redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
   verificado_por: verificadores de contexto limpio Sonnet 5.5 y Opus 5.5 (mismo veredicto)
   fecha: 2026-11-12
@@ -128,15 +1908,14 @@ afirmaciones:
     loc: §15.1
     clase: WEB
     instantanea: 15-Measures
-    cita: the elevation of this statement to the status of ‘the first law of geography’ is at best premature.
+    cita: the elevation of this statement to the status
 - id: c1-m12-04
   tipo: atribucion
   afirmacion: 'Moraga §1.1: el caso de Snow, ejemplo conocido del análisis espacial'
   hash_texto: d83c657fe65d0116
   veredicto: respaldada
-  nota: 'Reverificado tras corregir la frase (antes decía «origen de la epidemiología espacial», que la
-    fuente no dice): §1.1 presenta la investigación de Snow como uno de los ejemplos más famosos de análisis
-    espacial.'
+  nota: 'Reverificado tras corregir la frase (antes decía «origen de la epidemiología espacial», que la fuente no
+    dice): §1.1 presenta la investigación de Snow como uno de los ejemplos más famosos de análisis espacial.'
   redactado_por: sesión maestra (Opus 5.5) y, antes, el capítulo original
   verificado_por: verificador de contexto limpio Sonnet 5.5
   fecha: 2026-11-12
@@ -145,5 +1924,214 @@ afirmaciones:
     loc: §1.1
     clase: WEB
     instantanea: sec-intro
-    cita: John Snow’s cholera-outbreak investigation in London in 1854 provides one of the most famous
-      examples of spatial analysis.
+    cita: John Snow’s cholera-outbreak investigation in London in 1854 provides one of the most famous examples
+      of spatial analysis.
+- id: c1-m12-05
+  tipo: resultado
+  afirmacion: 'No es un escrúpulo: discretizar las coordenadas es una de las causas corrientes de los puntos duplicados,
+    y puede fabricar una regularidad aparente que es un ar'
+  hash_texto: 20c1493e0e811105
+  veredicto: respaldada
+  nota: 'p. 146 (pdf 165): los puntos duplicados se deben, entre otras causas, a la discretización del sistema de
+    coordenadas. p. 210 (pdf 229, §7.3.5.2): «Apparent spatial regularity can occur as an artefact of the treatment
+    of data», por ejemplo si las coordenadas se discretizan. Cubre las dos mitades de la frase y los dos localizadores
+    son los correctos.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 146; p. 210
+    clase: PDF
+    pagina_pdf: 165
+    cita: Duplicate points do commonly occur, through data entry errors, discretisation of the spatial coordinate
+      system
+- id: c1-m12-06
+  tipo: atribucion
+  afirmacion: ', el modelo general del que los tres tipos de dato son casos particulares'
+  hash_texto: 541890cab84290b5
+  veredicto: respaldada
+  nota: 'Respalda el modelo general (1.1.1), {Z(s): s en D}, y que las tres partes del libro son casos particulares.
+    Cressie enumera cuatro casos en esas tres partes: geoestadísticos (Parte I), de retícula (II), patrones puntuales
+    (cap. 8) y objetos (cap. 9); los tres del curso son los tres primeros. «Va con más profundidad que este curso»
+    queda fuera de la marca y no se juzgó.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: §1.1
+    clase: PDF
+    pagina_pdf: 25
+    cita: the three seemingly distinct parts of this book alluded to earlier treat special cases of
+- id: c1-m12-07
+  tipo: dato
+  afirmacion: Las secuoyas son un dato de , del que tomó el subconjunto que se usa
+  hash_texto: c776d6333ef620a5
+  veredicto: respaldada
+  nota: 'Leída en Baddeley et al. (2016), p. 189 (fig. 6.27): los datos de las secuoyas son un subconjunto de Ripley
+    [572] de un conjunto de Strauss [643]. [643] es D. J. Strauss, «A model for clustering», Biometrika, 1975 (bibliografía
+    de Baddeley, p. 786 impresa, pdf 805). Sin ejemplar de Strauss: segunda mano, como dice el data-via. Leída en
+    Baddeley et al. (2016), p. 189 (fig. 6.27): Ripley [572] aporta el subconjunto de las secuoyas. [572] es B.
+    D. Ripley, «Modelling spatial patterns», JRSS B, 1977 (bibliografía de Baddeley, p. 783 impresa, pdf 802). Sin
+    ejemplar de Ripley 1977: segunda mano, como dice el data-via.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 189
+    clase: PDF
+    pagina_pdf: 208
+    cita: the California redwood seedlings and saplings data (Ripley’s [572] subset of a dataset of Strauss
+    segunda_mano_de: strauss1975model
+  - clave: baddeley2015spatial
+    loc: p. 189
+    clase: PDF
+    pagina_pdf: 208
+    cita: the California redwood seedlings and saplings data (Ripley’s [572] subset of a dataset of Strauss
+    segunda_mano_de: ripley1977modelling
+- id: c1-m12-08
+  tipo: dato
+  afirmacion: Las células vienen de y de un libro posterior del mismo autor
+  hash_texto: 1b9a2cd2a61605ee
+  veredicto: respaldada
+  nota: 'Fig. 6.1 (p. 157): los centros de células biológicas llevan las referencias [572, 575]. [572] es Ripley
+    1977 (Modelling spatial patterns, bibliografía p. 783) y [575] es Ripley, Spatial Statistics, Wiley, 1981: un
+    libro posterior del mismo autor. La obra los cita como fuentes del patrón.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B2
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 157
+    clase: PDF
+    pagina_pdf: 176
+    cita: 'Left: biological cell centres in histological section [572, 575].'
+    segunda_mano_de: ripley1977modelling
+- id: c1-m12-09
+  tipo: dato
+  afirmacion: 'Los conteos de Carolina del Norte son los de 1974 a 1978: los analiza, y dice que los habían presentado
+    y ampliado otros trabajos'
+  hash_texto: 8d9f5b7d95309749
+  veredicto: respaldada
+  nota: 'p. 390 (PDF p0402): los conteos de muertes súbitas del lactante y de nacidos vivos de 1974-1978 los presentó
+    Atkinson y los ampliaron otros trabajos, algunos con Cressie como coautor; «The 1974-1978 data are analyzed
+    in this section». La p. 383 (PDF p0395) es el resumen del capítulo 6, que anuncia ese análisis para Carolina
+    del Norte 1974-1978.'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: cressie1993statistics
+    loc: p. 383; p. 390
+    clase: PDF
+    pagina_pdf: 402
+    cita: were presented by Atkinson (1978) and augmented by Symons et al. (1983), Cressie and Read
+- id: c1-m12-10
+  tipo: dato
+  afirmacion: Según la ayuda de HistData , el plano de Snow lo digitalizó Dodson en 1992, y el paquete da como fuente
+    a Tobler (1994)
+  hash_texto: 20d9b367d239933e
+  veredicto: respaldada
+  nota: La ayuda da en Source a Tobler (1994) y dice que los datos «were first digitized in 1992 by Rusty Dodson
+    of the NCGIA»; la frase atribuye a la ayuda exactamente eso. La ayuda añade que los sitios de los archivos «seem
+    to be down», cosa que la frase no dice y que no la contradice.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B5
+  fecha: 2026-11-24
+  fuentes:
+  - clave: friendly2009histdata
+    loc: ''
+    clase: WEB
+    instantanea: ayuda-Snow-1.0.0
+    sin_secciones: true
+    cita: Tobler, W. (1994). Snow's Cholera Map
+- id: c1-m12-11
+  tipo: dato
+  afirmacion: Según la de spatstat.data , los pinos los recogió Numata (1961)
+  hash_texto: 8fe6ad6973b08413
+  veredicto: respaldada
+  nota: La ayuda de japanesepines dice que las observaciones las recogió originalmente Numata (1961); lo que se
+    recogió son 65 plántulas de pino negro japonés, y el campo Source da a Diggle (2003) como fuente inmediata «obtained
+    from Numata (1961)», sin contradecir la frase. La cláusula siguiente del capítulo («no es el trabajo posterior
+    del mismo autor que cita el libro de Baddeley…») queda fuera del data-afirma y esta ayuda no la trata, así que
+    no se juzga aquí.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B5
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2017spatstatdata
+    loc: ''
+    clase: WEB
+    instantanea: ayuda-japanesepines-3.1.9
+    sin_secciones: true
+    cita: The observations were originally collected by Numata (1961).
+- id: c1-m12-12
+  tipo: dato
+  afirmacion: las registraron Crick y Ripley
+  hash_texto: bf3cdda65be9964c
+  veredicto: respaldada
+  nota: 'La ayuda de cells lo dice así, y en «Source»: «Crick and Ripley, see Ripley (1977)».'
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2017spatstatdata
+    loc: ''
+    clase: WEB
+    instantanea: ayuda-cells-3.1.9
+    sin_secciones: true
+    cita: The data were recorded by F.H.C. Crick and B.D. Ripley
+- id: c1-m12-13
+  tipo: dato
+  afirmacion: Los datos del Mosa los tomaron en campo Van Rijn y Rikken, cuyo informe es de 1993, y los preparó
+    para R Pebesma; la ayuda da también como referencia el libro d
+  hash_texto: 2e5012d91725e24e
+  veredicto: respaldada
+  nota: En References la ayuda lista a Rikken y Van Rijn (1993, informe de campo) y a Burrough y McDonnell (1998,
+    Principles of Geographical Information Systems). Respalda todas las partes.
+  redactado_por: redactor de R4 (Fable 5.2), tramo B
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B3
+  fecha: 2026-11-24
+  fuentes:
+  - clave: pebesma2005sp
+    loc: ''
+    clase: WEB
+    instantanea: ayuda-meuse-2.2.0
+    sin_secciones: true
+    cita: Field data were collected by Ruud van Rijn and Mathieu Rikken; compiled for R by Edzer Pebesma
+- id: c1-m12-14
+  tipo: atribucion
+  afirmacion: no es el trabajo posterior del mismo autor que cita el libro de Baddeley, donde el conjunto descrito
+    es mayor
+  hash_texto: a1d6553376610615
+  veredicto: con-matiz
+  nota: 'Respalda que el libro describe el conjunto completo de los pinos, de una parcela de 10 m de lado, recogido
+    por Numata [503] (la obra de 1964, v. p. 779). No dice aquí que sea mayor que el de spatstat.data: la página
+    no menciona japanesepines ni cuenta puntos; el recuento (204 pinos en 10 × 10 m) está en la p. 4 (fila aparte),
+    y el contraste con los 65 pinos de 5,7 m viene de la ayuda, no de Baddeley. La referencia [503] es M. Numata,
+    1964 (Bull. Choshi Marine Lab. 6:27–37), posterior al 1961 que da la ayuda y con otro título, volumen y páginas:
+    el libro cita un trabajo posterior del mismo autor. Que [503] sea la fuente del conjunto mayor lo dicen la p.
+    244 y la p. 4, no esta página. Fila adicional, fuera del cite actual (que dice p. 244; p. 779): es la única
+    página de Baddeley que da el tamaño del conjunto, 204 pinos en 10 × 10 m, atribuido a Numata [503]; frente a
+    los 65 pinos en 5,7 × 5,7 m de la ayuda, sustenta el «mayor». Conviene añadirla al localizador.'
+  redactado_por: sesión maestra (Opus 5.5)
+  verificado_por: verificador de contexto limpio Sonnet 5.5, tanda B6
+  fecha: 2026-11-24
+  fuentes:
+  - clave: baddeley2015spatial
+    loc: p. 4; p. 244; p. 779
+    clase: PDF
+    pagina_pdf: 263
+    cita: the full dataset of Japanese Black Pine seedlings and saplings in a 10 metre square
+  - clave: baddeley2015spatial
+    loc: p. 4; p. 244; p. 779
+    clase: PDF
+    pagina_pdf: 798
+    cita: Chiba prefecture, VI (in Japanese). Bulletin of the Choshi Marine Laboratory, (6):27–37, 1964. Chiba University.
+  - clave: baddeley2015spatial
+    loc: p. 4; p. 244; p. 779
+    clase: PDF
+    pagina_pdf: 23
+    cita: 204 Japanese black pine (Pinus Thunbergii) seedlings and saplings recorded in a 10 × 10

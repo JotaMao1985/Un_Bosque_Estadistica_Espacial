@@ -273,6 +273,49 @@
     "type": "book"
   },
   {
+    "DOI": "10.32614/cran.package.spatstat.data",
+    "URL": "https://CRAN.R-project.org/package=spatstat.data",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          23
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Baddeley",
+        "given": "Adrian"
+      },
+      {
+        "family": "Turner",
+        "given": "Rolf"
+      },
+      {
+        "family": "Rubak",
+        "given": "Ege"
+      }
+    ],
+    "id": "baddeley2017spatstatdata",
+    "issued": {
+      "date-parts": [
+        [
+          "2017",
+          9,
+          14
+        ]
+      ]
+    },
+    "note": "Versión instalada y leída: 3.1.9 (ayuda local de R, 2026-11-23).",
+    "publisher": "The R Foundation",
+    "source": "DataCite (doi.org, CSL-JSON)",
+    "title": "spatstat.data: Datasets for 'spatstat' Family",
+    "type": "software",
+    "version": "3.1.9"
+  },
+  {
     "DOI": "10.2307/1427858",
     "ISSN": "0001-8678, 1475-6064",
     "URL": "https://www.cambridge.org/core/product/identifier/S0001867800027762/type/journal_article",
@@ -956,6 +999,49 @@
     "volume": "37"
   },
   {
+    "DOI": "10.32614/cran.package.s2",
+    "URL": "https://CRAN.R-project.org/package=s2",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          23
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Dunnington",
+        "given": "Dewey"
+      },
+      {
+        "family": "Pebesma",
+        "given": "Edzer"
+      },
+      {
+        "family": "Rubak",
+        "given": "Ege"
+      }
+    ],
+    "id": "dunnington2016s2",
+    "issued": {
+      "date-parts": [
+        [
+          "2016",
+          11,
+          4
+        ]
+      ]
+    },
+    "note": "Versión instalada y leída: 1.1.9 (ayuda local de R, 2026-11-23).",
+    "publisher": "The R Foundation",
+    "source": "DataCite (doi.org, CSL-JSON)",
+    "title": "s2: Spherical Geometry Operators Using the S2 Geometry Library",
+    "type": "software",
+    "version": "1.1.9"
+  },
+  {
     "DOI": "10.1137/1114019",
     "ISSN": "0040-585X, 1095-7219",
     "URL": "https://epubs.siam.org/doi/10.1137/1114019",
@@ -992,6 +1078,53 @@
     "title": "Non-Parametric Estimation of a Multivariate Probability Density",
     "type": "article-journal",
     "volume": "14"
+  },
+  {
+    "DOI": "10.32614/cran.package.histdata",
+    "URL": "https://CRAN.R-project.org/package=HistData",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          23
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Friendly",
+        "given": "Michael"
+      },
+      {
+        "family": "Dray",
+        "given": "Stephane"
+      },
+      {
+        "family": "Li",
+        "given": "Peter"
+      },
+      {
+        "family": "Bellhouse",
+        "given": "David"
+      }
+    ],
+    "id": "friendly2009histdata",
+    "issued": {
+      "date-parts": [
+        [
+          "2009",
+          11,
+          13
+        ]
+      ]
+    },
+    "note": "Versión instalada y leída: 1.0.0 (ayuda local de R, 2026-11-23).",
+    "publisher": "The R Foundation",
+    "source": "DataCite (doi.org, CSL-JSON)",
+    "title": "HistData: Data Sets from the History of Statistics and Data Visualization",
+    "type": "software",
+    "version": "1.0.0"
   },
   {
     "DOI": "10.2307/2986645",
@@ -1455,6 +1588,80 @@
     "title": "On Estimation of a Probability Density Function and Mode",
     "type": "article-journal",
     "volume": "33"
+  },
+  {
+    "DOI": "10.32614/cran.package.sp",
+    "URL": "https://CRAN.R-project.org/package=sp",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          23
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Pebesma",
+        "given": "Edzer"
+      },
+      {
+        "family": "Bivand",
+        "given": "Roger"
+      }
+    ],
+    "id": "pebesma2005sp",
+    "issued": {
+      "date-parts": [
+        [
+          "2005",
+          4,
+          28
+        ]
+      ]
+    },
+    "note": "Versión instalada y leída: 2.2.0 (ayuda local de R, 2026-11-23).",
+    "publisher": "The R Foundation",
+    "source": "DataCite (doi.org, CSL-JSON)",
+    "title": "sp: Classes and Methods for Spatial Data",
+    "type": "software",
+    "version": "2.2.0"
+  },
+  {
+    "DOI": "10.32614/cran.package.sf",
+    "URL": "https://CRAN.R-project.org/package=sf",
+    "accessed": {
+      "date-parts": [
+        [
+          "2026",
+          11,
+          23
+        ]
+      ]
+    },
+    "author": [
+      {
+        "family": "Pebesma",
+        "given": "Edzer"
+      }
+    ],
+    "id": "pebesma2016sf",
+    "issued": {
+      "date-parts": [
+        [
+          "2016",
+          10,
+          26
+        ]
+      ]
+    },
+    "note": "Versión instalada y leída: 1.0.22 (ayuda local de R, 2026-11-23).",
+    "publisher": "The R Foundation",
+    "source": "DataCite (doi.org, CSL-JSON)",
+    "title": "sf: Simple Features for R",
+    "type": "software",
+    "version": "1.0.22"
   },
   {
     "DOI": "10.32614/RJ-2018-009",

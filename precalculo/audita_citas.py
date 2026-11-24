@@ -325,7 +325,17 @@ def f04_esquema(registro: dict, nombre: str, capitulo: int) -> list[Hallazgo]:
             h.append(Hallazgo("F04", donde, f"veredicto `{veredicto}` sin `motivo`"))
         for n, f in enumerate(fuentes, start=1):
             aqui = f"{donde} · fuente {n}"
+            # (20929) Una instantánea sin secciones numeradas —la ayuda de un paquete de R, un
+            # README, una página de CRAN— es ella misma el sitio de la cita: el vocabulario
+            # cerrado de la norma no tiene forma para ella. Esa fuente declara
+            # `sin_secciones: true` y `loc: ""`, y F05 comprueba que de verdad no las tiene.
+            # Pendiente de llevarlo a la norma común (Vault/Estandar/Capa de fuentes.md).
+            sin_secciones = f.get("sin_secciones") is True and f.get("clase") in ("WEB", "DOC")
             for campo in ("clave", "loc", "clase", "cita"):
+                if campo == "loc" and sin_secciones:
+                    if f.get("loc"):
+                        h.append(Hallazgo("F04", aqui, "declara `sin_secciones` y lleva localizador"))
+                    continue
                 if not f.get(campo):
                     h.append(Hallazgo("F04", aqui, f"falta `{campo}`"))
             if f.get("loc") and not localizador_valido(f["loc"]):
@@ -380,10 +390,28 @@ def f05_cita_literal(bib: Biblioteca, f: dict, donde: str, sin_cache: bool,
         sitio = f"instantánea «{f.get('instantanea')}»"
         if texto is not None and not coincide:
             return [Hallazgo("F05", donde, f"la {sitio} no es la registrada en instantaneas.yml (sha256)")]
+        if texto is not None and f.get("sin_secciones") is True and any(
+                re.match(r"^\d+(?:\.\d+)*\s{1,4}[A-ZÁÉÍÓÚ¿]", l) for l in texto.splitlines()):
+            return [Hallazgo("F05", donde, f"la {sitio} de «{clave}» tiene secciones numeradas: "
+                                          "no vale `sin_secciones`, lleva localizador")]
         if texto is not None:
-            texto, falta = seccion_de(texto, str(f.get("loc") or ""))
-            if falta:
+            # (20929) Con varias secciones («§7.1; §7.3»), la cita tiene que estar en UNA de
+            # las que esta instantánea contiene; las de otra instantánea no cuentan aquí.
+            partes = [p for p in str(f.get("loc") or "").split("; ") if p.startswith("§")] or [""]
+            acotados = [seccion_de(texto, p) for p in partes]
+            presentes = [t for t, falta in acotados if not falta]
+            if not presentes:
+                falta = acotados[0][1]
                 return [Hallazgo("F05", donde, f"la sección §{falta} no está en la {sitio} de «{clave}»")]
+            # Las secciones que no están en esta instantánea tienen que estar en otra de la misma
+            # obra: un «§99.9; §8.2» no pasa por llevar al lado una sección que sí existe.
+            otras = [n for n in (bib.instantaneas.get(clave) or {}) if n != str(f.get("instantanea"))]
+            for (_, falta) in acotados:
+                if falta and not any(
+                        (t := bib.texto_instantanea(clave, n)[0]) is not None and not seccion_de(t, f"§{falta}")[1]
+                        for n in otras):
+                    return [Hallazgo("F05", donde, f"la sección §{falta} no está en ninguna instantánea de «{clave}»")]
+            texto = "\n".join(presentes)
             sitio = f"{f.get('loc')} de la {sitio}"
     if texto is None:
         cuenta["sin_cache"] += 1
@@ -430,19 +458,35 @@ def f06_f07_ejemplar(bib: Biblioteca, f: dict, donde: str) -> list[Hallazgo]:
     # el pie de la página. El `desfase` del ejemplar (página del PDF − página
     # impresa) solo sirve de respaldo, porque no siempre es constante: un PDF
     # sin las páginas en blanco de fin de capítulo lo va cambiando.
-    m = re.search(r"\bpp?\.\s*(\d+)", str(f.get("loc") or ""))
+    # (20929) El localizador puede nombrar varias páginas («p. 383; p. 390») o un rango
+    # («pp. 489–492»): la cita tiene que estar en UNA de ellas, no necesariamente en la
+    # primera. Y un ejemplar de desfase variable (Cressie, Snow) puede declarar sus
+    # `tramos` [[pdf_desde, pdf_hasta, desfase], …], medidos sobre los encabezados que el
+    # OCR sí leyó: el respaldo de una hoja cuyo encabezado salió roto («S3» por 53).
+    impresas: list[int] = []
+    for a, b in re.findall(r"\bpp?\.\s*(\d+)(?:\s*[–-]\s*(\d+))?", str(f.get("loc") or "")):
+        impresas += list(range(int(a), int(b or a) + 1)) if int(b or a) - int(a) <= 40 else [int(a)]
     pagina = f.get("pagina_pdf")
-    if m and isinstance(pagina, int):
-        impresa = m.group(1)
+    total = ficha.get("paginas")
+    if isinstance(total, int) and any(n < 1 or n > total for n in impresas):
+        h.append(Hallazgo("F07", donde, f"el localizador «{f.get('loc')}» nombra una página que el ejemplar de "
+                                        f"«{clave}» no tiene ({total} páginas)"))
+    if impresas and isinstance(pagina, int):
         hoja = bib.local / "texto" / clave / f"p{pagina:04d}.txt"
         lineas = [l for l in hoja.read_text("utf-8").splitlines() if l.strip()] if hoja.is_file() else []
         bordes = " ".join(lineas[:1] + lineas[-1:])
-        en_el_borde = re.search(rf"(?<!\d){impresa}(?!\d)", bordes) is not None
         desfase = ficha.get("desfase")
-        por_desfase = isinstance(desfase, int) and int(impresa) + desfase == pagina
-        if lineas and not en_el_borde and not por_desfase:
-            h.append(Hallazgo("F07", donde, f"la página {pagina} del PDF de «{clave}» no lleva el número {impresa} "
-                                            "en el encabezado ni en el pie: el localizador no es de esa página"))
+        tramos = [t for t in ficha.get("tramos") or [] if t[0] <= pagina <= t[1]]
+
+        def cuadra(n: int) -> bool:
+            return (re.search(rf"(?<!\d){n}(?!\d)", bordes) is not None
+                    or (isinstance(desfase, int) and n + desfase == pagina)
+                    or any(n + t[2] == pagina for t in tramos))
+        if lineas and not any(cuadra(n) for n in impresas):
+            dicho = ", ".join(map(str, impresas[:6])) + ("…" if len(impresas) > 6 else "")
+            h.append(Hallazgo("F07", donde, f"la página {pagina} del PDF de «{clave}» no es ninguna de las que "
+                                            f"dice el localizador ({dicho}): ni por su encabezado o pie, "
+                                            "ni por el desfase del ejemplar"))
     return h
 
 

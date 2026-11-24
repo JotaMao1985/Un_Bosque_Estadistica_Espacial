@@ -227,6 +227,21 @@ CIERRE = """    </div>
   </template>
 """
 
+# R4 · T4.2 (2026-11-23). La lista de fuentes de cada módulo que cita. La
+# escribe `genera_referencias.genera()` entre los dos marcadores, con las
+# obras de las <cite class="cita"> de ESE módulo, y cada cita enlaza a su
+# entrada (`#ref-mN-clave`): solo el módulo abierto está en el DOM, así que
+# la lista del capítulo, que vive en el módulo 12, no sirve de destino.
+# Va en los módulos que citan y no en `CIERRE`: un módulo sin citas se
+# quedaría con el título y la lista vacía.
+FUENTES_MODULO = """
+      <aside class="fuentes-modulo" style="margin-top:1.5rem; border-top:1px solid #d9e2dd; padding-top:0.75rem;">
+        <h4 style="margin:0;">Fuentes citadas en este módulo</h4>
+        <!--FUENTES-MODULO:inicio--><!--FUENTES-MODULO:fin-->
+      </aside>
+"""
+CIERRE_FUENTES = FUENTES_MODULO + CIERRE
+
 
 def tabs(etiqueta, r_code, py_code):
     """Un par de pestañas R/Python.
@@ -339,7 +354,8 @@ MOD1 = cabecera(
         entero.</p>
 
       <p>Este capítulo es el mapa de los otros nueve, y no empieza por una definición sino por un dibujo de
-        1854 que todavía abre los libros de la disciplina. Antes del dibujo, ocho preguntas para ti.</p>
+        1854. <span data-afirma="c1-m1-02">La investigación de la que salió es uno de los ejemplos más conocidos
+        del análisis espacial <cite class="cita" data-ref="moraga2019geospatial" data-loc="§1.1"></cite></span>. Antes del dibujo, ocho preguntas para ti.</p>
 
       <div class="note">
         <p><strong>Ocho preguntas, sin nota.</strong> No cuentan para nada y no hace falta que
@@ -362,15 +378,26 @@ MOD1 = cabecera(
 
       <p>Sea cual sea el resultado, el capítulo empieza igual. Ninguna de esas ocho preguntas se contesta de
         memoria: todas se contestan mirando un dato y midiendo, que es lo único que este curso va a pedirte. Y
-        la primera vez que alguien contestó una de ellas —si un puñado de puntos sobre un plano está diciendo
-        algo o es casualidad— no había estadística espacial que valiera: había un médico, un brote y un
-        plano.</p>
+        una de ellas —si un puñado de puntos sobre un plano está diciendo algo o es casualidad— es la que el
+        capítulo le hace enseguida a un plano de 1854, el de un brote de cólera en Londres. Con una advertencia
+        que el módulo sostiene más abajo: a quien lo dibujó, el plano no le sirvió para descubrir la causa del
+        brote, sino para documentar lo que ya había averiguado.</p>
 
-      <p><span data-afirma="c1-m1-01">Londres, verano de 1854. En el Soho mueren <strong>{sn['n_muertes']}</strong> personas de cólera en poco más
-        de un mes. La teoría médica del momento culpa al aire viciado. John Snow sospecha del agua, no tiene con qué
-        demostrarlo, y hace algo que entonces no era un método: <em>dibuja los muertos en un plano</em>, con las
-        <strong>{sn['n_bombas']}</strong> bombas públicas del barrio encima
-        <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 261"></cite></span>.</p>
+      <p><span data-afirma="c1-m1-03">Londres, verano de 1854. En el Soho, la tabla que John Snow publicó
+        del brote cuenta <strong>{sn['muertes_tabla']}</strong> muertes de cólera en seis semanas, y en su
+        plano no entraron las que no tenían número de casa conocido
+        <cite class="cita" data-ref="snow1855mode" data-loc="p. 46; pp. 49–50"></cite></span>. El plano, tal como hoy está
+        digitalizado, sitúa <strong>{sn['n_muertes']}</strong>. <span data-afirma="c1-m1-04">La explicación que Snow tenía por el mejor intento
+        anterior al suyo culpaba al aire: efluvios del enfermo que otros respiraban
+        <cite class="cita" data-ref="snow1855mode" data-loc="p. 113"></cite></span>. Es lo que aquí se llama el aire viciado. <span data-afirma="c1-m1-05">Snow sospecha del agua de la bomba de Broad
+        Street. El examen del agua no lo saca de dudas, y lo que lo decide es preguntar, muerte por muerte, de
+        qué bomba bebía cada uno: no encuentra nada más que tengan en común
+        <cite class="cita" data-ref="snow1855mode" data-loc="pp. 39–40"></cite></span>. <span data-afirma="c1-m1-01">El dibujo llega después, y no como
+        hallazgo sino como documento: Snow ya traía su hipótesis antes de pisar el Soho, y preparó el mapa
+        cuando la bomba estaba fuera de servicio <cite class="cita" data-ref="pebesma2023spatial" data-loc="§15.1"></cite>. Con él enseña que
+        la mayoría de los muertos vivía más cerca de la bomba de Broad Street que de ninguna otra
+        <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 261"></cite></span>. El plano <em>dibuja los muertos</em>, casa por
+        casa, y en su versión digitalizada trae encima <strong>{sn['n_bombas']}</strong> bombas públicas.</p>
 
       <p>Ese plano es el primer objeto de este curso, y conviene mirarlo antes de definir nada. Ponlo en
         <em>Broad Street contra el resto</em> y fíjate en dónde cae la mancha.</p>
@@ -378,8 +405,9 @@ MOD1 = cabecera(
       <div class="simulador" data-simulador="snow-mapa">
         <h4><i class="fas fa-map-location-dot" aria-hidden="true"></i> El mapa de Snow, capa a capa</h4>
         <p class="simulador-intro">Las <strong>{sn['n_segmentos']}</strong> calles del Soho de fondo, las
-          {sn['n_muertes']} muertes digitalizadas por Dodson y Tobler (NCGIA, 1992) y las {sn['n_bombas']} bombas en
-          rombo. Conmuta entre colorear por bomba más próxima y resaltar solo Broad Street. Las líneas a
+          {sn['n_muertes']} muertes y las {sn['n_bombas']} bombas, estas en rombo. <span data-afirma="c1-m1-11">Según
+          la ayuda del paquete <cite class="cita" data-ref="friendly2009histdata"></cite>, el plano lo digitalizó en 1992 Rusty Dodson, del NCGIA, a partir del mapa que trae <em>Snow on
+          Cholera</em> (Oxford University Press, 1936), y el paquete lo toma de Tobler (1994)</span>. Conmuta entre colorear por bomba más próxima y resaltar solo Broad Street. Las líneas a
           trazos parten el plano en las celdas de las bombas: dentro de cada celda, la bomba más próxima es
           la suya.</p>
         <div class="simulador-controles"></div>
@@ -482,14 +510,17 @@ MOD1 = cabecera(
         <h3>Y ahora la parte formal: qué es un patrón puntual</h3>
         <p>Lo que acabas de ver es un <strong>patrón puntual</strong>: un conjunto de localizaciones
           \\(\\{{s_1, \\dots, s_n\\}}\\) dentro de la región que se observó, la <em>ventana</em> \\(W\\), donde
-          <strong>lo aleatorio es dónde están los puntos</strong> — y también cuántos hay. No se ha medido nada en cada muerte: la muerte <em>es</em> el
+          <span data-afirma="c1-m1-06"><strong>lo aleatorio es dónde están los puntos</strong>
+          <cite class="cita" data-ref="moraga2019geospatial" data-loc="§2.1.3"></cite></span> — y también cuántos hay. No se ha medido nada en cada muerte: la muerte <em>es</em> el
           dato, y su valor es su posición.</p>
         <p style="margin-bottom:0;">Esa frase —«qué es aleatorio»— es la que reparte los diez capítulos del curso, y
           el módulo 2 la usa para separar los tres tipos de dato espacial.</p>
       </div>
 
       <p>La asignación de cada muerte a su bomba se calcula por distancia euclídea, y se contrasta con los polígonos
-        de Thiessen que Tobler distribuye con el dato: coinciden en
+        de Thiessen que acompañan al dato en <code>HistData</code>. <span data-afirma="c1-m1-12">El paquete trae,
+        junto a las muertes y las bombas, los vértices del polígono de Thiessen de cada bomba: el área que
+        queda más cerca de ella que de cualquier otra <cite class="cita" data-ref="friendly2009histdata"></cite></span>. Coinciden en
         <strong>{sn['n_coinciden_tobler']} de {sn['n_muertes']}</strong>. Son dos construcciones distintas de la
         misma idea, y si discreparan habría que averiguar cuál está mal antes de publicar ninguna de las dos.</p>
 
@@ -527,14 +558,21 @@ _, mas_cerca = cKDTree(bo[["x", "y"]].to_numpy()).query(mu)
 print(f"{(mas_cerca == i_broad).sum()} de {len(mu)} = "
       f"{100 * (mas_cerca == i_broad).mean():.5f} %")
 #> """ + f"{sn['n_mas_cerca_broad']} de {sn['n_muertes']} = {n(sn['pct_mas_cerca_broad'])} %") + f"""
-      <p>Hay una segunda mitad de la historia, y es la que suele contarse mal. El 8 de septiembre de 1854 la
-        parroquia retiró el mango de la bomba de Broad Street, y el brote se apagó. La lectura cómoda es que lo apagó
+      <p>Hay una segunda mitad de la historia, y es la que suele contarse mal. <span data-afirma="c1-m1-07">El 8 de septiembre de 1854 la
+        parroquia retiró el mango de la bomba de Broad Street, al día siguiente de que Snow le expusiera lo que
+        había averiguado <cite class="cita" data-ref="snow1855mode" data-loc="p. 40; p. 51"></cite></span>, y el brote se apagó. La lectura cómoda es que lo apagó
         la retirada del mango. El dato no permite atribuírselo: el
         <strong>{n(sn['pct_ataques_antes_mango'])}&nbsp;%</strong> de los ataques había ocurrido <em>antes</em> de
         ese día, y desde el pico del {sn['fecha_pico']} —{sn['ataques_pico']} ataques— hasta el
         {sn['fecha_mango']} —{sn['ataques_dia_mango']}— ya habían caído un
-        <strong>{n(sn['caida_hasta_mango_pct'])}&nbsp;%</strong>. Los ataques ya venían cayendo. Tampoco permite
-        decir lo contrario, que la retirada no sirviera de nada: entre beber el agua y enfermar pasa un tiempo, así
+        <strong>{n(sn['caida_hasta_mango_pct'])}&nbsp;%</strong>. <span data-afirma="c1-m1-08">Los ataques ya venían cayendo, y
+        el propio Snow lo escribe: habían disminuido tanto antes de que se dejara de usar el agua que no se
+        puede decidir si el pozo seguía contaminado. Anota además que la mortalidad bajó mucho por la huida de
+        la población, que empezó poco después del brote: otra cosa que la curva no separa
+        <cite class="cita" data-ref="snow1855mode" data-loc="pp. 51–52"></cite></span>. Tampoco permite
+        decir lo contrario, que la retirada no sirviera de nada: <span data-afirma="c1-m1-09">entre beber el
+        agua y enfermar pasa un tiempo, que Snow cifra, en general, entre veinticuatro y cuarenta y ocho horas
+        <cite class="cita" data-ref="snow1855mode" data-loc="p. 16"></cite></span>, así
         que parte de los ataques de los días siguientes corresponde a exposiciones anteriores a la retirada, y la
         curva no puede medir su efecto.</p>
 
@@ -555,11 +593,14 @@ print(f"{(mas_cerca == i_broad).sum()} de {len(mu)} = "
         <p><strong>Lo que el mapa NO demuestra, y es la lección de método.</strong> El patrón demuestra una
           concentración alrededor de un punto. No distingue el agua de cualquier otra cosa que estuviera en esa
           esquina: una fábrica, una taberna, una parada. El argumento de Snow es <strong>geométrico</strong>, y lo
-          que lo convierte en evidencia sobre el agua es el mecanismo que él ya sospechaba, no el mapa solo.</p>
+          que lo convierte en evidencia sobre el agua es el mecanismo que él ya sospechaba, no el mapa solo.
+          <span data-afirma="c1-m1-10">Que Snow dedujera del mapa la causa del cólera es un relato inexacto: ya
+          traía su hipótesis, y el mapa la documentó después
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§15.1"></cite></span>.</p>
         <p style="margin-bottom:0;">Guarda esa distinción. Vuelve en el capítulo 3 con la falacia ecológica y en el 8
           con los tres orígenes posibles de la dependencia espacial, que llevan a tres modelos distintos.</p>
       </div>
-""" + CIERRE
+""" + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -617,8 +658,9 @@ MOD2 = cabecera(
         <strong>{n(pc['cells']['nn_media'])}</strong> en las células. El primero está agregado, el
         segundo no se distingue del azar y el tercero es más regular que el azar —y contra qué hay que comparar
         esas tres distancias para poder afirmarlo es exactamente lo que mide el módulo 3—. Tres imágenes
-        parecidas, tres procesos distintos. Si el ojo no separa tres patrones <em>del mismo tipo</em>, con más
-        razón no va a separar los tres tipos entre sí.</p>
+        parecidas, tres procesos distintos. <span data-afirma="c1-m2-01">El ojo es mal juez de si un patrón es
+        aleatorio, y por eso hace falta algún análisis objetivo <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 4"></cite></span>. Si no separa tres
+        patrones <em>del mismo tipo</em>, con más razón no va a separar los tres tipos entre sí.</p>
 
       <p>Vienen seis mapas, que en realidad son <strong>tres pares</strong>: cada tipo dos veces, con su caso
         canónico de la literatura y su gemelo colombiano. Míralos antes de leer lo que va debajo de cada uno, y
@@ -627,18 +669,24 @@ MOD2 = cabecera(
 
       <div class="definition">
         <h3>1 · Patrón puntual — lo aleatorio es <em>dónde</em></h3>
-        <p style="margin-bottom:0;">Los {pc['japanesepines']['n']} pinos de Numata (1961) sobre su ventana unitaria,
-          y las {ent(co['puntual']['n'])} sedes educativas de Bogotá. En los dos casos no se ha medido nada en cada
+        <p style="margin-bottom:0;">Los {pc['japanesepines']['n']} pinos japoneses sobre su ventana unitaria
+          —<span data-afirma="c1-m2-17">brinzales de pino negro japonés en un cuadrado de un bosque natural, que
+          recogió Numata (1961) y que el paquete toma de un libro de Diggle
+          <cite class="cita" data-ref="baddeley2017spatstatdata"></cite></span>—, y las {ent(co['puntual']['n'])} sedes educativas de Bogotá. En los dos casos no se ha medido nada en cada
           punto: el punto <em>es</em> el dato.</p>
       </div>
       <div class="geomapa" data-geomapa="cap1-pinos-ventana"></div>
       <p class="geomapa-pie" id="aleatorio-pinos" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es dónde.</strong> Si se volviera a tomar el dato, los pinos caerían en otros sitios y podrían ser más o menos. La ventana, no: es la región donde se contaron, y se fija antes de mirarlos. Como \\(\\hat{{\\lambda}} = n/|W|\\), cambiar de ventana cambia la intensidad estimada sin mover un pino. El rectángulo que ciñe a los puntos no es una ventana: lo dibujan los propios pinos, así que es tan aleatorio como ellos, y por construcción no deja ninguno fuera. Por eso su \\(\\hat{{\\lambda}}\\) sale siempre más alto que con la ventana del dato, que lo contiene.</p>
 
-      <p>Los pinos son el <strong>caso nulo</strong>, y por eso son el canónico. Su distancia media al vecino más
+      <p>Los pinos son aquí el <strong>caso nulo</strong>, el canónico. Su distancia media al vecino más
         próximo —<strong>{n(pc['japanesepines']['nn_media'])}</strong> en unidades de la ventana— es
         prácticamente la que daría tirar los {pc['japanesepines']['n']} puntos al azar sobre el cuadrado, que es
-        <strong>{n(pc['japanesepines']['nn_esperada'])}</strong>. No hay nada que explicar en
-        este mapa, y esa es exactamente su función: es la referencia contra la que se mide todo lo demás. Fíjate,
+        <strong>{n(pc['japanesepines']['nn_esperada'])}</strong>. Medido así, no hay nada que explicar en
+        este mapa, y esa es exactamente su función: es la referencia contra la que se mide todo lo demás.
+        <span data-afirma="c1-m2-02">Lo nulo es este patrón medido con esa distancia, no el bosque: en un conjunto
+        mayor de pinos negros japoneses, un análisis detallado encontró que la densidad cambia de un sitio a otro
+        y que los árboles tienden a no crecer juntos, señal de competencia entre vecinos
+        <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 4"></cite></span>. Fíjate,
         eso sí, en que la ventana viene <em>con</em> el dato: área {pc['japanesepines']['area']}. De ahí sale la
         primera cifra que se le calcula a cualquier patrón puntual.</p>
 
@@ -682,9 +730,9 @@ MOD2 = cabecera(
         explicar. Y conviene mirar el borde, que es donde este mapa se pone interesante:
         <strong>{ent(co['puntual']['n_urbana'])}</strong> de las {ent(co['puntual']['n'])} caen dentro del
         perímetro urbano y <strong>{ent(co['puntual']['n_dc'])}</strong> dentro del Distrito Capital. El mismo
-        patrón admite al menos tres bordes distintos, y elegir no es cuestión de gusto: la <em>ventana</em> de un
-        patrón puntual es, por definición, una región sobre la que el dato es <strong>exhaustivo</strong> —aquella
-        donde se puede afirmar que no falta ningún punto—. Con ese criterio valen las dos que se acaban de
+        patrón admite al menos tres bordes distintos, y elegir no es cuestión de gusto: <span data-afirma="c1-m2-03">la <em>ventana</em> de un
+        patrón puntual se toma como una región sobre la que el dato es <strong>exhaustivo</strong> —aquella
+        donde se puede afirmar que no falta ningún punto— <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.2"></cite></span>. Con ese criterio valen las dos que se acaban de
         nombrar, el perímetro urbano y el Distrito: si el dato es exhaustivo en el Distrito, lo es en cualquier
         región contenida en él, y el perímetro urbano lo está. Lo que no vale es una ventana que se salga de la
         región donde el dato es exhaustivo, porque el área que sobra entra en el denominador sin que nadie haya
@@ -727,8 +775,9 @@ MOD2 = cabecera(
         depende de cuántos nazcan —la sección de <em>soporte</em>, más abajo en este módulo, le pone las dos cifras
         a esa frase—, y por eso la brecha se queda en un decimal que no le molesta a nadie. Cuando sí depende,
         cuando las unidades grandes tienen valores sistemáticamente distintos de las pequeñas, esa misma grieta se
-        ensancha hasta invertir conclusiones: es la <strong>falacia ecológica</strong>, y con el MAUP forma el
-        capítulo 3 entero.</p>
+        ensancha hasta invertir conclusiones: <span data-afirma="c1-m2-04">es la <strong>falacia ecológica</strong>,
+        en la que una asociación medida entre agregados lleva a conclusiones distintas de las que daría la misma
+        medida entre individuos <cite class="cita" data-ref="moraga2019geospatial" data-loc="§5.5"></cite></span>. Con el MAUP forma el capítulo 3 entero.</p>
 
       <div class="geomapa" data-geomapa="cap1-desercion"></div>
       <p class="geomapa-pie" id="aleatorio-desercion" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es el valor de cada unidad.</strong> Si se volviera a tomar el dato, cambiarían los valores y, con ellos, los colores. Los límites no: las unidades estaban ahí antes del dato y seguirán después.</p>
@@ -757,10 +806,14 @@ MOD2 = cabecera(
         mapa son sus orillas. El zinc va de
         <strong>{gc['zinc_min']}</strong> a <strong>{ent(gc['zinc_max'])}</strong> ppm, con media
         <strong>{n(gc['zinc_media'])}</strong> y desviación <strong>{n(gc['zinc_sd'])}</strong>, y con una
-        asimetría de <strong>{n(gc['asimetria_zinc'])}</strong> que es la razón de que en este dato se trabaje
-        siempre con el logaritmo —el capítulo 9 lo hará—. El patrón tampoco es un capricho: la correlación del zinc
-        con la distancia al río vale <strong>{n(gc['corr_dist_rio'])}</strong>. Lo que estás viendo es una llanura
-        de inundación, y el metal lo trajeron las crecidas.</p>
+        asimetría de <strong>{n(gc['asimetria_zinc'])}</strong> que es la razón de que el capítulo 9 trabaje
+        este dato con el logaritmo. <span data-afirma="c1-m2-18">Las muestras se tomaron en una llanura de
+        inundación del Mosa, cerca del pueblo de Stein, en los Países Bajos, y el dato trae para cada punto
+        una clase de frecuencia de inundación <cite class="cita" data-ref="pebesma2005sp"></cite></span>. El patrón
+        tampoco es un capricho: la correlación del zinc
+        con la distancia al río vale <strong>{n(gc['corr_dist_rio'])}</strong>. Cuanto más cerca del río, más
+        zinc: es lo que se vería si el metal lo dejaran las crecidas sobre la vega, y la correlación, sola, no
+        llega a probarlo.</p>
 
       <div class="geomapa" data-geomapa="cap1-ideam"></div>
       <p class="geomapa-pie" id="aleatorio-ideam" hidden style="font-size:0.9rem;color:#012820;margin:0.25rem 0 1rem 0;"><strong>Lo aleatorio es el campo entero.</strong> Si se volviera a tomar el dato, cambiarían los valores: en los puntos medidos y en todos los demás, donde también hay un valor que nadie midió. Los sitios donde se mide se toman como fijos.</p>
@@ -773,10 +826,11 @@ MOD2 = cabecera(
         realidad «lo cercano está a la misma altura», y la cifra incomoda.</p>
 
       <p>Lo que comparten: entre dos estaciones <em>hay</em> temperatura, y entre dos puntos de la vega <em>hay</em>
-        zinc. Simplemente no se midieron. En el marco de este curso —el <em>basado en el modelo</em>, que el
-        módulo 10 separa del basado en el diseño— lo aleatorio es el propio campo \\(Z(\\cdot)\\): el mapa entero
-        de temperaturas es una realización de un proceso, y las \\(n\\) localizaciones donde se mide se toman como
-        fijas. Si se volviera a tomar el dato, lo que saldría distinto serían <strong>los valores</strong>, en esos
+        zinc. Simplemente no se midieron. <span data-afirma="c1-m2-05">En el marco de este curso —el <em>basado en el modelo</em>, que el
+        módulo 10 separa del basado en el diseño— lo aleatorio es el propio campo \\(Z(\\cdot)\\), del que el dato es
+        una realización, y en el caso geoestadístico el dominio \\(D\\) es fijo
+        <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 8"></cite></span>. El mapa entero de temperaturas es una realización
+        de un proceso, y las \\(n\\) localizaciones donde se mide se toman también como fijas. Si se volviera a tomar el dato, lo que saldría distinto serían <strong>los valores</strong>, en esos
         puntos y en todos los demás. Que haya un valor en todo punto, y no solo donde se midió, es lo que da
         permiso para predecir, y es justo lo que los otros dos tipos no tienen. La otra lectura —el campo quieto
         y lo aleatorio, dónde se mide— es la del muestreo, y se deja para el módulo 10.</p>
@@ -785,7 +839,9 @@ MOD2 = cabecera(
         colores— y sin embargo la pregunta «¿qué saldría distinto si volviéramos a tomar el dato?» los ha partido
         limpiamente en tres: cambian las <em>posiciones</em>, cambian los <em>valores</em> sobre unidades fijas, o
         cambian los valores de un <em>campo</em> que existe en todo punto y se observa en unos pocos. La tabla
-        resume lo que acabas de hacer.</p>
+        resume lo que acabas de hacer. <span data-afirma="c1-m2-06">Su segunda fila reparte los métodos por tipo de
+        dato, como hacen <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.2" data-modo="narrativa"></cite>: unos para los puntos en su ventana, otros para las
+        áreas que cubren el territorio y otros para lo que se mide en puntos de un campo continuo.</span></p>
 
       <!-- Los tres tipos van en las COLUMNAS y los cinco atributos en las filas,
            que es la transpuesta de como se escribiría de primeras. Dos razones.
@@ -831,21 +887,25 @@ MOD2 = cabecera(
       </table>
 
       <p>Y ahora la segunda pregunta, que la tabla deja sin hacer y que decide tanto como la primera. No es «¿qué es
-        aleatorio?» sino <strong>«¿de qué trozo de la unidad habla el número?»</strong>. Pebesma y Bivand la
-        introducen ya en el capítulo 1 de su libro y le dedican el 5 entero: la llaman el <em>soporte</em> del
-        dato.</p>
+        aleatorio?» sino <strong>«¿de qué trozo de la unidad habla el número?»</strong>. <span data-afirma="c1-m2-07"><cite class="cita" data-ref="pebesma2023spatial" data-loc="§1.6; cap. 5" data-modo="narrativa"></cite> la
+        introducen ya en el capítulo 1 de su libro y la desarrollan en el 5: la llaman el <em>soporte</em> del
+        dato.</span></p>
 
       <div class="definition">
         <h3>El soporte: a qué parte de la geometría se refiere el valor</h3>
         <ul>
-          <li><strong>Soporte puntual:</strong> el valor vale en <em>cada punto</em> de la geometría. El tipo de
+          <li><span data-afirma="c1-m2-08"><strong>Soporte puntual:</strong> el valor vale en <em>cada punto</em> de la geometría
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§1.6"></cite></span>. El tipo de
             suelo de un polígono de un mapa de suelos es el mismo en el centro que en el borde, y lo sigue siendo
             en cualquier trozo que recortes.</li>
-          <li><strong>Soporte de bloque:</strong> el valor <em>resume</em> la geometría entera. La tasa de SIDS de
+          <li><span data-afirma="c1-m2-16"><strong>Soporte de bloque:</strong> el valor <em>resume</em> la geometría entera
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§1.6"></cite></span>. La tasa de SIDS de
             un condado no está en ningún punto del condado: está en el condado, y no sobrevive a que lo partas.</li>
         </ul>
         <p style="margin-bottom:0;">Y aquí está lo que hay que destapar, porque es lo que rompe la lectura fácil de
-          la tabla de arriba: <strong>el soporte no lo decide la geometría</strong>. Un mapa de suelos y el de
+          la tabla de arriba: <span data-afirma="c1-m2-09"><strong>el soporte no lo decide la geometría</strong>:
+          entre los tipos de geometría y los tipos de fenómeno no hay correspondencia simple
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§5.1"></cite></span>. Un mapa de suelos y el de
           Carolina del Norte se guardan igual —polígonos— y uno tiene soporte puntual y el otro de bloque.
           «Polígono» no significa «dato de área», y el Mosa lo enseña por el otro lado: se dibuja con puntos y no es
           un patrón puntual.</p>
@@ -854,7 +914,9 @@ MOD2 = cabecera(
       <p>El soporte no es vocabulario: se paga en el mapa, y se puede medir. La variable que Carolina del Norte trae
         de fábrica no es la tasa sino el <strong>conteo</strong> de muertes por condado
         —{ac['sid74_total']} en total—, que es <em>extensiva</em>: crece con la unidad.
-        Pintarla tal cual sería pintar, sobre todo, cuántos niños nacieron en cada condado. La correlación entre el
+        <span data-afirma="c1-m2-10">Pintarla tal cual sería pintar, sobre todo, cuántos niños nacieron en cada
+        condado: es el riesgo de llevar una variable extensiva a un mapa de coropletas, que lo que se acabe
+        viendo sea el tamaño de las unidades <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.2"></cite></span>. La correlación entre el
         conteo y los nacimientos vale <strong>{n(sop['cor_conteo_nacimientos'])}</strong>; dividir por los
         nacimientos —volverla <em>intensiva</em>— la deja en
         <strong>{n(sop['cor_tasa_nacimientos'])}</strong>. Por eso el mapa que has mirado es una tasa y no un
@@ -862,13 +924,18 @@ MOD2 = cabecera(
 
       <p>Hay un segundo paso, y es donde la receta de manual se queda corta. «Divide por el área» es lo que suele
         decirse para pasar de extensiva a intensiva, y en este dato <em>no</em> es lo correcto: el conteo sigue al
-        área bastante menos —<strong>{n(sop['cor_conteo_area'])}</strong>— que a los nacimientos. En un dato de
-        salud el denominador es la población en riesgo, no la superficie. Y no es un denominador disimuladamente
+        área bastante menos —<strong>{n(sop['cor_conteo_area'])}</strong>— que a los nacimientos.
+        <span data-afirma="c1-m2-11">En un dato de salud el denominador es la población de cada unidad, no su
+        superficie: los conteos se pasan a tasas dividiendo por ella
+        <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.2"></cite></span>. Aquí esa población, la que está en riesgo,
+        son los nacimientos. Y no es un denominador disimuladamente
         constante: entre el condado que más nacimientos aporta y el que menos hay un factor de
         <strong>{n(sop['razon_nacimientos'])}</strong>. Eso mueve el soporte de sitio: la tasa de un condado ya no
         resume un territorio sino una población, y ahí queda un cabo suelto que conviene ver desde ahora. Dos
-        condados separados por ese factor no conocen su tasa con la misma precisión —el pequeño la tiene mucho peor
-        estimada—, y sin embargo el mapa los pinta con el mismo derecho. Pintar bien no es lo mismo que saber.</p>
+        condados separados por ese factor no conocen su tasa con la misma precisión. Si las muertes de un condado
+        son un conteo de Poisson, de media igual a su tasa por sus nacimientos, la varianza de la tasa estimada es
+        la tasa dividida entre los nacimientos: a menos nacimientos, más varianza. El pequeño la tiene mucho peor
+        estimada, y sin embargo el mapa los pinta con el mismo derecho. Pintar bien no es lo mismo que saber.</p>
 
       <p>Conviene separar los dos filos, porque es fácil confundirlos. El módulo 7 mide qué pasa cuando se
         <em>cambia de unidades</em> —el mismo fenómeno sobre municipios o sobre departamentos—; el soporte es qué
@@ -877,8 +944,9 @@ MOD2 = cabecera(
 
       <div class="definition">
         <h3>La formalización, ahora que ya has visto los seis mapas</h3>
-        <p>En los tres casos hay un dominio \\(D \\subset \\mathbb{{R}}^2\\) y algo aleatorio sobre él. Lo que
-          cambia es <strong>qué es aleatorio</strong>:</p>
+        <p data-afirma="c1-m2-12">En los tres casos hay un dominio \\(D \\subset \\mathbb{{R}}^2\\) y algo aleatorio sobre él. Lo que
+          cambia es <strong>qué es aleatorio</strong>, y los tres son casos de un mismo modelo
+          <cite class="cita" data-ref="cressie1993statistics" data-loc="pp. 8–9"></cite>:</p>
         <ul>
           <li><strong>Patrón puntual:</strong> no hay ningún valor \\(Z(s)\\) que observar. Lo aleatorio es el
             propio conjunto de puntos \\(\\{{s_1, \\dots, s_N\\}}\\) que caen en la región observada, la
@@ -893,11 +961,15 @@ MOD2 = cabecera(
             localizaciones, que se toman como fijas.</li>
         </ul>
         <p style="margin-bottom:0;">De ahí sale una consecuencia que conviene tener presente desde ya: en el caso
-          geoestadístico <strong>tiene sentido predecir dónde no se ha medido</strong>, y en el de área no. Preguntar
-          «¿cuánta deserción hay entre dos municipios?» no significa nada — y ahora se puede decir <em>por qué</em>,
+          geoestadístico <strong>tiene sentido predecir en un punto donde no se ha medido</strong>, y en el de área no. Preguntar
+          «¿cuánta deserción hay en un punto entre dos municipios?» no significa nada — y ahora se puede decir <em>por qué</em>,
           que es mejor que decirlo por decreto: la deserción de un municipio tiene <strong>soporte de bloque</strong>,
           así que no hay ninguna función definida sobre los puntos que se pueda interpolar. \\(Z(A_i)\\) no es
-          \\(Z(s)\\) evaluada en ningún \\(s\\); es otra cosa que se escribe parecido.</p>
+          \\(Z(s)\\) evaluada en ningún \\(s\\); es otra cosa que se escribe parecido.
+          <span data-afirma="c1-m2-13">Lo que un dato de bloque sí admite es pasar a <em>otras áreas</em> —la
+          interpolación areal, un cambio de soporte—, y eso obliga a suponer cómo se reparte el valor dentro de
+          cada unidad: de manera uniforme si la variable es extensiva, constante si es intensiva
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§5.4"></cite></span>.</p>
       </div>
 
       <div class="warning">
@@ -909,9 +981,9 @@ MOD2 = cabecera(
       </div>
 
       <p>Falta rematarlo por el lado que más caro sale en la práctica, que no es confundir los tres tipos entre sí:
-        es <strong>leer el tipo en la geometría del archivo</strong>. Pebesma y Bivand separan el <em>fenómeno</em>
+        es <strong>leer el tipo en la geometría del archivo</strong>. <span data-afirma="c1-m2-14"><cite class="cita" data-ref="pebesma2023spatial" data-loc="§5.1" data-modo="narrativa"></cite> separan el <em>fenómeno</em>
         —lo que hay en el mundo: un campo, un objeto o un agregado— de la <em>geometría</em> con la que se guarda, y
-        avisan de que entre los dos no hay correspondencia simple. La tabla lo enseña de la única forma convincente:
+        avisan de que entre los dos no hay correspondencia simple.</span> La tabla lo enseña de la única forma convincente:
         no tiene ni una casilla vacía.</p>
 
       <table>
@@ -982,9 +1054,9 @@ cat(aviso, "\\n")
 #&gt; st_centroid assumes attributes are constant over geometries""",
     """import geopandas as gpd, pandas as pd, numpy as np
 
-# 1) spatstat no existe en Python: pointpats trabaja con el array y la
-#    ventana POR SEPARADO, que es justo la diferencia de diseno que el
-#    modulo 9 comenta. El dato va por CSV.
+# 1) spatstat.data no existe en Python: el dato va por CSV, y la
+#    ventana, que en R viaja dentro del objeto, aqui se escribe aparte
+#    (el cuadrado unidad).
 jp = pd.read_csv("entrega/datos/cap1_japanesepines.csv")
 print(f"n = {len(jp)}, area de la ventana = {1.0:.5f}, "
       f"lambda = {len(jp) / 1.0:.5f}")
@@ -1021,13 +1093,14 @@ print([str(w.message).split(".")[0] for w in ws])
           Distrito Capital completo ({n(co['puntual']['area_dc_km2'], 1)} km², Sumapaz incluido). Mismo dato, y
           un factor de <strong>{n(co['puntual']['factor_lambda'])}</strong> según dónde se ponga el borde.
           Y no son dos estimaciones rivales de lo mismo, ni una buena y otra mala: las dos ventanas son válidas, y
-          cada cociente \\(n/|W|\\) estima la intensidad <em>media</em> de su propia región,
+          <span data-afirma="c1-m2-15">cada cociente \\(n/|W|\\) estima la intensidad <em>media</em> de su propia región,
           \\(\\frac{{1}}{{|W|}}\\int_W \\lambda(s)\\,ds\\), donde \\(\\lambda(s)\\) es la intensidad en cada
-          sitio. El factor no mide un error: mide cuánto cambia la intensidad de un sitio a otro —la
+          sitio: el número esperado de puntos de una región es la integral de \\(\\lambda(s)\\) sobre ella
+          <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 162; p. 164"></cite></span>. El factor no mide un error: mide cuánto cambia la intensidad de un sitio a otro —la
           <em>inhomogeneidad</em> del patrón—, porque el Distrito añade al perímetro un territorio extenso y casi
           sin sedes. Elegir ventana es elegir qué región se describe. El capítulo 4 empieza justo ahí.</p>
       </div>
-""" + CIERRE
+""" + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -1074,11 +1147,16 @@ MOD3 = cabecera(
         segunda mitad, es de los patrones puntuales, donde no hay valor que comparar: si los puntos están más
         juntos o más separados de lo que los dejaría el azar.</p>
 
-      <p><span data-afirma="c1-m3-01">La cita es de 1970 y es la frase más repetida del área: <em>«todo está
+      <p><span data-afirma="c1-m3-01">La cita es de 1970: <em>«todo está
         relacionado con todo lo demás, pero las cosas cercanas están más relacionadas que las lejanas»</em>
         <cite class="cita" data-ref="tobler1970computer" data-via="pebesma2023spatial" data-loc="§15.1"></cite></span>. Dicha así no es una ley: es una impresión.
-        Lo que la convierte en algo utilizable es que se puede <strong>medir</strong>, y medirla es lo que hace el
-        correlograma.</p>
+        Lo que la convierte en algo utilizable es que se puede <strong>medir</strong>, y aquí se mide con un
+        <em>correlograma</em>: la I de Moran calculada por bandas de distancia. <span data-afirma="c1-m3-03">El
+        mismo nombre designa otra cosa en geoestadística, y es la cantidad que usan los analistas de series de
+        tiempo: la función de autocorrelación de un proceso estacionario, la covarianza a cada separación
+        dividida entre la varianza
+        <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 67"></cite></span>. El de este módulo hace el mismo papel con otro estadístico, y no es el mismo
+        objeto.</p>
 
       <p>Toma las <strong>{co['geo']['n']}</strong> estaciones climáticas del IDEAM con normal 1991-2020. Agrupa
         todas las parejas de estaciones por su distancia y calcula, banda a banda, cuánto se parecen sus
@@ -1147,8 +1225,9 @@ MOD3 = cabecera(
 
       <div class="definition">
         <h3>El índice de Moran, que es la herramienta de todo el curso</h3>
-        <p>Con \\(n\\) unidades, valores \\(z_i\\) centrados y la matriz de pesos \\(\\mathbf{{W}}\\), de
-          elementos \\(w_{{ij}}\\), que declara quién es vecino de quién,</p>
+        <p data-afirma="c1-m3-04">Con \\(n\\) unidades, valores \\(z_i\\) centrados y la matriz de pesos \\(\\mathbf{{W}}\\), de
+          elementos \\(w_{{ij}}\\), que declara quién es vecino de quién, el índice es el cociente que sigue
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§15.1"></cite>:</p>
         <p style="text-align:center;">$$I = \\frac{{n}}{{S_0}} \\cdot
           \\frac{{\\sum_i \\sum_j w_{{ij}} z_i z_j}}{{\\sum_i z_i^2}},
           \\qquad S_0 = \\sum_i \\sum_j w_{{ij}}, \\qquad E[I] = -\\frac{{1}}{{n-1}}$$</p>
@@ -1229,13 +1308,17 @@ MOD3 = cabecera(
         <p><strong>Y aquí el capítulo se muerde la cola, con dos decimales de por medio.</strong> Buena parte de esa
           dependencia no es dependencia: es una <em>covariable disfrazada</em>. La temperatura en Colombia la manda
           la altitud —corr = <strong>{n(co['geo']['corr_alt'])}</strong>, un gradiente de
-          <strong>{n(co['geo']['gradiente'])}</strong> °C por cada 1 000 m, que es exactamente el rango físico
-          esperable—. Al quitarla, la I de la primera banda baja de {n(tb['ideam']['bandas'][0]['I'])} a
+          <strong>{n(co['geo']['gradiente'])}</strong> °C por cada 1 000 m—. Al quitarla, la I de la primera banda baja de {n(tb['ideam']['bandas'][0]['I'])} a
           <strong>{n(tb['residuos_altitud']['bandas'][0]['I'])}</strong>: un
           <strong>{n(tb['caida_por_altitud_pct'])}&nbsp;%</strong> menos.</p>
         <p style="margin-bottom:0;">Queda dependencia —{n(tb['residuos_altitud']['bandas'][0]['I'])} sigue siendo
           mucho—, pero casi un tercio de lo que parecía «lo cercano se parece» era «lo cercano está a la misma
-          altura». El capítulo 9 le pone nombre a esto: <em>kriging con deriva externa</em>.</p>
+          altura». <span data-afirma="c1-m3-05">No es una rareza de este dato: una variable que se deja fuera del
+          modelo y que varía en el espacio se suma a la dependencia espacial que se mide
+          <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 25"></cite></span>. <span data-afirma="c1-m3-06">El capítulo 9 le pone remedio metiendo la
+          covariable en la media del modelo, como una tendencia lineal; al predecir así, <code>krige()</code>
+          avisa en su salida de que usa <em>kriging universal</em>
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§12.7"></cite></span>.</p>
       </div>
 
       <p>El control es la otra mitad del argumento. Permutando las temperaturas entre las mismas estaciones
@@ -1338,9 +1421,12 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
 
       <p>Detente en el del medio, que es el que enseña algo sobre quien mira. Ese es el patrón compatible con el
         azar, y tiene huecos y tiene grumos —el azar los produce—; puestos a ordenar los tres a ojo, es fácil
-        ponerlo del lado de la agregación. Un patrón aleatorio no se ve repartido: se ve apelotonado, porque
-        repartido es justo lo que <em>no</em> es. Por eso la pregunta «¿está agrupado?» no se contesta mirando, y
-        por eso hace falta un número.</p>
+        ponerlo del lado de la agregación. Un patrón aleatorio no se ve repartido, porque
+        repartido es justo lo que <em>no</em> es: se ve con grumos y con huecos. Por
+        eso la pregunta «¿está agrupado?» no se contesta mirando. <span data-afirma="c1-m3-07">De la pregunta
+        contraria, si unos puntos están más separados de lo que los dejaría el azar, se ha escrito que el ojo
+        la juzga mal y que hace falta un análisis objetivo
+        <cite class="cita" data-ref="baddeley2015spatial" data-loc="pp. 3–4"></cite></span>. Con esta pasa lo mismo: hace falta un número.</p>
 
       <div class="definition">
         <h3>El índice de Clark-Evans, que pone ese número</h3>
@@ -1410,8 +1496,10 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
               $$P(d_i > r) = P\\bigl(N(B_r) = 0\\bigr) = e^{{-\\lambda \\pi r^2}}$$
               <p>Hay un detalle que la cuenta pasa deprisa. El disco no está centrado en un sitio cualquiera, sino
                 en un punto <em>del propio patrón</em>, y lo que se usa es que los demás puntos siguen siendo
-                Poisson de intensidad \\(\\lambda\\) a su alrededor: que se colocan sin saber que ese está ahí. Es
-                el <strong>teorema de Slivnyak</strong>, que el capítulo 4 enuncia en su módulo 7. Con \\(n\\)
+                Poisson de intensidad \\(\\lambda\\) a su alrededor: que se colocan sin saber que ese está ahí. <span data-afirma="c1-m3-08">En un
+                proceso de Poisson, lo que se ve desde uno de sus puntos, quitado ese punto, tiene la misma
+                distribución que el proceso <cite class="cita" data-ref="baddeley2015spatial" data-loc="pp. 294–295"></cite></span>. Es el resultado
+                que el capítulo 4 enuncia en su módulo 7 con el nombre de <strong>teorema de Slivnyak</strong>. Con \\(n\\)
                 fijo no hace falta: los otros \\(n-1\\) puntos son independientes del punto \\(i\\) por la
                 definición del paso 2, el disco queda vacío si caen todos fuera de él,
                 \\(P(d_i > r) = (1 - \\pi r^2/|W|)^{{n-1}}\\) con el disco dentro de la ventana, y eso tiende a
@@ -1457,8 +1545,11 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
                 \\(c = \\sqrt{{(4-\\pi)/(4\\pi)}} = {n(cep['constante_ee'])}\\). Para la media de las \\(n\\) se
                 divide además entre \\(\\sqrt{{n}}\\), y eso trata las \\(n\\) distancias como independientes. No
                 lo son del todo —dos puntos pueden ser cada uno el vecino más próximo del otro, y entonces su
-                distancia cuenta dos veces—, pero es la aproximación que usa la prueba de Clark-Evans: su
-                estadístico \\(z\\) se compara con una normal estándar.</p>
+                distancia cuenta dos veces—, pero es la aproximación que usa <code>clarkevans.test</code>: su
+                estadístico \\(z\\) se compara con una normal estándar. <span data-afirma="c1-m3-09">La
+                prueba lleva el nombre del índice, no la firma de sus autores: Clark y Evans lo pensaron como
+                una medida de cuánto se aparta un patrón del azar, no para contrastarlo con una aproximación
+                normal <cite class="cita" data-ref="clark1954distance" data-via="cressie1993statistics" data-loc="p. 605"></cite></span>.</p>
               $$\\operatorname{{ee}}(\\bar{{d}}_{{\\min}}) = \\frac{{c}}{{\\sqrt{{n\\lambda}}}}, \\qquad
                 z = \\frac{{\\bar{{d}}_{{\\min}} - 1/(2\\sqrt{{\\lambda}})}}{{\\operatorname{{ee}}(\\bar{{d}}_{{\\min}})}}$$
             </li>
@@ -1478,8 +1569,9 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
 
       <p>Y conviene retener de dónde salió, porque se paga más abajo: el disco del paso 3 se contó
         <strong>entero</strong>, y eso supone que el proceso sigue existiendo más allá del borde de la ventana.
-        Para un punto pegado al borde eso es falso —parte de su disco cae donde nadie observó nada—, y de ahí, y
-        no de ningún ajuste empírico, viene la corrección que se comenta tras la tabla.</p>
+        Para un punto pegado al borde eso es falso —parte de su disco cae donde nadie observó nada—, y de ahí
+        viene la necesidad de corregir. De dónde sale la corrección misma es otra cuestión, y la nota que sigue
+        a la tabla la contesta.</p>
 
       <p>La tabla hace esa misma división para los tres. Lleva a propósito la columna del denominador, que suele
         omitirse: sin ella el índice hay que creérselo, y con ella se comprueba con una calculadora.</p>
@@ -1522,15 +1614,31 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
         Comparar las distancias observadas entre sí sería comparar tres densidades distintas; dividir cada una por
         la suya es lo que las vuelve comparables.</p>
 
+      <p><strong>Y una cautela sobre la tercera fila.</strong> «Regular» describe cómo están repartidos los
+        puntos, no por qué. <span data-afirma="c1-m3-17">Los {pc['cells']['n']} puntos de esa fila son centros de
+        células biológicas en un corte histológico <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 93; p. 157"></cite></span>, y una célula ocupa sitio: dos
+        centros no pueden quedar más cerca de lo que ese tamaño deja. <span data-afirma="c1-m3-16">Cuando los
+        puntos son los centros de objetos de tamaño apreciable, encontrar que están repartidos con regularidad,
+        o que se inhiben, puede ser solo un artefacto de ese tamaño: de tratar como puntos ideales lo que no lo
+        es <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 146; p. 210"></cite></span>. La tabla mide bien, y los centros están más
+        separados de lo que daría el azar. Lo que no puede decir es si detrás hay algo más que el sitio que
+        ocupa cada célula: para afirmar que se repelen haría falta descontar antes su tamaño.</p>
+
       <div class="note">
-        <p><strong>Si ejecutas <code>clarkevans()</code> vas a ver tres números, no uno.</strong> La tabla publica
-          el que la función llama <code>naive</code>, que es la división de arriba tal cual. Los otros dos
+        <p><strong>Si ejecutas <code>clarkevans()</code> vas a ver tres números, no uno.</strong> <span data-afirma="c1-m3-12">Los imprime
+          con las etiquetas <code>naive</code>, <code>Donnelly</code> y <code>cdf</code>, y su argumento
+          <code>correction</code> elige la corrección de borde <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 259"></cite></span>. La tabla publica
+          el <code>naive</code>, que es la división de arriba tal cual: tercera columna entre cuarta. Los otros dos
           corrigen el <strong>efecto de borde</strong>, y conviene saber de qué va porque reaparece en todo el
           capítulo 4. La fórmula \\(E[\\bar{{d}}_{{\\min}}] = 1/(2\\sqrt{{\\lambda}})\\) vale para una ventana
-          infinita. En una finita, un punto pegado al borde puede tener su vecino de verdad <em>fuera</em> del
+          infinita. <span data-afirma="c1-m3-10">En una finita, un punto pegado al borde puede tener su vecino de verdad <em>fuera</em> del
           cuadrado, donde nadie lo midió; la distancia que se le apunta es la del vecino de dentro, que está más
-          lejos. El numerador sale inflado, y \\(R\\) con él.</p>
-        <p style="margin-bottom:0;">La corrección de Donnelly (1978) lo compensa, y en los tres patrones el índice
+          lejos. El numerador sale inflado, y \\(R\\) con él <cite class="cita" data-ref="baddeley2015spatial" data-loc="pp. 258–259"></cite></span>.</p>
+        <p style="margin-bottom:0;">La corrección que la función llama
+          <code>Donnelly</code> lo compensa. El borde explica por qué hace falta corregir; de dónde sale la
+          corrección es otra cosa. <span data-afirma="c1-m3-11">La de Donnelly para el estadístico de Clark y Evans
+          es un ajuste empírico, y no se generaliza a regiones de forma arbitraria
+          <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 607"></cite></span>. En los tres patrones el índice
           <strong>baja</strong>: {n(pc['redwood']['clark_evans'])} →
           <strong>{n(pc['redwood']['clark_evans_donnelly'])}</strong> en las secuoyas,
           {n(pc['japanesepines']['clark_evans'])} →
@@ -1554,11 +1662,18 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
           Clark-Evans: un valor p bilateral de {n(pc['japanesepines']['ce_p'])}, que con \\(\\alpha = {ALFA}\\) no permite
           rechazar la aleatoriedad. No rechazarla no es demostrarla, y esa diferencia no es cautela
           retórica: \\(R\\) se construye <em>solo</em> con la distancia al vecino <strong>más próximo</strong>, y de
-          ella solo con la media. Es un único número, y en un único número dos estructuras opuestas pueden
+          ella solo con la media. <span data-afirma="c1-m3-13">Es un único número, y esa es la debilidad de los
+          índices de este tipo: comprimen toda la información espacial en una cifra y mezclan lo que pasa a
+          escalas distintas <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 260"></cite></span>. En un único número dos estructuras opuestas pueden
           compensarse.</p>
-        <p style="margin-bottom:0;">El caso que lo rompe es corriente en ecología, que es de donde salen las
-          secuoyas: árboles que compiten con el de al lado y por eso se separan a corta distancia, pero que
-          crecen en manchas grandes marcadas por el suelo o la humedad. Las dos cosas tiran de \\(R\\) en sentidos
+        <p style="margin-bottom:0;">El caso que lo rompe se arma con dos mecanismos a dos escalas, y va aquí
+          como escenario, no como dato: árboles que compiten con el de al lado y por eso se separan a corta
+          distancia, pero que crecen en manchas grandes marcadas por el suelo o la humedad.
+          <span data-afirma="c1-m3-14">No es un escenario rebuscado: un análisis detallado de un bosque de pinos
+          negros japoneses encontró las dos cosas a la vez, variación de la densidad y árboles que tienden a no
+          crecer juntos <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 4"></cite></span>. <span data-afirma="c1-m3-15">Y no es lo que pasa con las secuoyas
+          de la tabla: sus grupos se atribuyen a la propagación desde un árbol padre que ya murió
+          <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 189"></cite></span>. Las dos cosas tiran de \\(R\\) en sentidos
           opuestos. La repulsión alarga la distancia al vecino más próximo y <em>sube</em> \\(R\\). Las manchas
           hacen lo contrario, aunque sean mucho mayores que esa distancia: concentran los puntos, la densidad
           dentro de cada mancha es mayor que la del conjunto de la ventana —que es la que entra en la distancia
@@ -1574,7 +1689,7 @@ print(f"0-25 km: I = {banda(0, 25):.5f}   |   "
         un solo número—. El capítulo 4 sustituye este único número por las funciones \\(G\\), \\(F\\), \\(K\\) y \\(g\\),
         que dicen a qué distancia ocurre cada cosa en vez de resumirlo todo en un escalar, y son exactamente la
         herramienta que le falta a la advertencia de arriba.</p>
-""" + CIERRE
+""" + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -1614,8 +1729,10 @@ MOD4 = cabecera(
         de más, y eso tiene un precio.</p>
 
       <p>Este es el módulo que justifica el curso. Todo lo que aprendiste en inferencia —el error estándar
-        \\(s/\\sqrt{{n}}\\), el intervalo al 95&nbsp;%, el valor p— descansa en un supuesto que en el espacio es casi
-        siempre falso: que las observaciones son independientes. La pregunta no es si el supuesto falla, sino
+        \\(s/\\sqrt{{n}}\\), el intervalo al 95&nbsp;%, el valor p— descansa en un supuesto: que las observaciones
+        son independientes. <span data-afirma="c1-m4-01">Con datos espaciales ese supuesto a menudo no es realista: la dependencia
+        espacial está en todas partes, y con ella los procedimientos clásicos rinden mal
+        <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 22; p. 25"></cite></span>. La pregunta no es si el supuesto falla, sino
         <strong>cuánto</strong>.</p>
 
       <p>Primer frente, la simulación, porque es donde se conoce la respuesta. Se generan campos gaussianos sobre una
@@ -1794,7 +1911,12 @@ MOD4 = cabecera(
         escolar de los <strong>{ent(ir['n_municipios'])}</strong> municipios colombianos tiene media
         {n(ir['media'])}&nbsp;%. Su error estándar se estima dos veces por remuestreo con
         {ent(ir['nboot'])} réplicas: remuestreando <em>municipios sueltos</em> —que es suponer independencia— y
-        remuestreando <strong>departamentos enteros</strong>, que conserva la dependencia dentro de cada uno.</p>
+        remuestreando <strong>departamentos enteros</strong>, que conserva la dependencia dentro de cada uno.
+        <span data-afirma="c1-m4-02">Lo segundo es un remuestreo por bloques. Con datos dependientes, aplicar a
+        ciegas el remuestreo clásico puede dar respuestas incorrectas, y lo que se propone en su lugar es
+        remuestrear subregiones enteras, que en esa propuesta son congruentes: del mismo tamaño y la misma forma
+        <cite class="cita" data-ref="cressie1993statistics" data-loc="pp. 491–492"></cite></span>. Los departamentos no lo son, y esa diferencia tiene una consecuencia que
+        se mide más abajo.</p>
 
       <table>
         <caption>Error estándar de la deserción media municipal por dos remuestreos, y el intervalo al 95 % que
@@ -1847,8 +1969,10 @@ MOD4 = cabecera(
         <p>Ese recorrido mide la <strong>sensibilidad a un solo departamento</strong>, no la incertidumbre, y como
           medida de la incertidumbre se queda corto. Cada uno de esos {ent(ir['n_departamentos'])} cálculos
           comparte con cualquier otro todos sus departamentos menos uno, así que sus resultados se parecen entre
-          sí mucho más de lo que se parecerían {ent(ir['n_departamentos'])} estimaciones independientes. El
-          <em>jackknife</em> repone lo que falta: toma la dispersión de los \\(K = {ir['n_departamentos']}\\)
+          sí mucho más de lo que se parecerían {ent(ir['n_departamentos'])} estimaciones independientes. <span data-afirma="c1-m4-03">El
+          <em>jackknife</em> clásico recalcula el estimador quitando una observación cada vez; aquí lo que se
+          quita es un bloque entero, y de esa versión espacial, que elimina una subregión, se advierte que dista
+          de ser obvio cómo hacerla <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 489; p. 492"></cite></span>. Con esa reserva, repone lo que falta: toma la dispersión de los \\(K = {ir['n_departamentos']}\\)
           valores \\(f_i\\) alrededor de su media y la amplía con el número de bloques,</p>
         <p style="text-align:center;">$$\\widehat{{ee}}_{{\\text{{jk}}}} =
           \\sqrt{{\\frac{{K-1}}{{K}} \\sum_{{i=1}}^{{K}} \\left(f_i - \\bar{{f}}\\right)^2}}$$</p>
@@ -1983,7 +2107,7 @@ print(f"n = {len(x)}, {len(grupos)} bloques, "
           pasa de verdad. Publicar solo el primero sería enseñar un montaje; publicar solo el segundo dejaría la
           duda de si el efecto es otra cosa.</p>
       </div>
-""" + CIERRE
+""" + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -2012,8 +2136,9 @@ MOD5 = cabecera(
 
       <div class="definition">
         <h3>Qué cuenta el tamaño efectivo</h3>
-        <p>Se define \\(n_{{\\text{{eff}}}}\\) como el número de observaciones <em>independientes</em> que darían la
-          misma varianza de la media que las \\(n\\) observaciones correlacionadas que se tienen. Si todas tienen
+        <p><span data-afirma="c1-m5-01">Se define \\(n_{{\\text{{eff}}}}\\) como el número de observaciones <em>independientes</em> que darían la
+          misma varianza de la media que las \\(n\\) observaciones correlacionadas que se tienen
+          <cite class="cita" data-ref="cressie1993statistics" data-loc="pp. 14–15"></cite></span>. Si todas tienen
           la misma varianza, ese número tiene fórmula cerrada:</p>
         <p style="text-align:center;">$$n_{{\\text{{eff}}}} = \\frac{{n}}{{1 + (n-1)\\,\\bar{{\\rho}}}}$$</p>
         <p style="text-align:center;">$$\\bar{{\\rho}} = \\frac{{1}}{{n(n-1)}} \\sum_{{i \\neq j}} \\rho_{{ij}}$$</p>
@@ -2279,7 +2404,7 @@ for rho in (0.01, 0.1):
           f"(techo {1/rho:.5f})")
 #> """ + f"rho = 0.01 -> n = 1000 da n_eff = {n(ne['rejilla'][-1]['n_eff'][1])} (techo {n(100)})"
     + """
-#> """ + f"rho = 0.10 -> n = 1000 da n_eff = {n(ne['rejilla'][-1]['n_eff'][4])} (techo {n(10)})") + CIERRE
+#> """ + f"rho = 0.10 -> n = 1000 da n_eff = {n(ne['rejilla'][-1]['n_eff'][4])} (techo {n(10)})") + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -2356,21 +2481,25 @@ MOD6 = cabecera(
           <li><strong>De segundo orden:</strong> \\(E[Z(s)] = \\mu\\) para todo \\(s\\), y
             \\(\\operatorname{{Cov}}(Z(s), Z(s+h)) = C(h)\\) depende solo de la separación \\(h\\), no de dónde
             estén los dos puntos.</li>
-          <li><strong>Intrínseca:</strong> más débil, y por eso más usada. No pide nada del proceso en sí, solo
-            de sus <em>diferencias</em>, y pide dos cosas: que su media sea cero,
-            \\(E[Z(s+h) - Z(s)] = 0\\), y que su varianza dependa solo de la separación,
-            \\(\\tfrac{{1}}{{2}}\\operatorname{{Var}}(Z(s+h) - Z(s)) = \\gamma(h)\\). Todo proceso estacionario de
-            segundo orden es intrínseco, con \\(\\gamma(h) = C(0) - C(h)\\), pero no al revés. El ejemplo de siempre
-            es el movimiento browniano en la recta: tiene varianza finita en cada punto,
+          <li><strong>Intrínseca:</strong> más débil, y por eso más general. <span data-afirma="c1-m6-01">Pide dos cosas: que la media sea la misma
+            en todas partes, \\(E[Z(s)] = \\mu\\), y que la varianza de las <em>diferencias</em> dependa solo de
+            la separación,
+            \\(\\tfrac{{1}}{{2}}\\operatorname{{Var}}(Z(s+h) - Z(s)) = \\gamma(h)\\)
+            <cite class="cita" data-ref="cressie1993statistics" data-loc="pp. 60–61"></cite></span>. De la primera sale que las diferencias tienen
+            media cero, \\(E[Z(s+h) - Z(s)] = 0\\); lo que ya no se pide es una covarianza \\(C(h)\\). <span data-afirma="c1-m6-02">Todo proceso estacionario de
+            segundo orden es intrínseco, con \\(\\gamma(h) = C(0) - C(h)\\), pero no al revés. Un ejemplo
+            es el movimiento browniano <cite class="cita" data-ref="cressie1993statistics" data-loc="pp. 67–68"></cite></span>. En la recta tiene varianza finita en cada punto,
             \\(\\operatorname{{Var}}B(t) = t\\), pero esa varianza crece con \\(t\\), así que no existe una \\(C(h)\\)
             que valga igual en todas partes y el proceso no es estacionario de segundo orden. Sus diferencias, en
             cambio, cumplen las dos condiciones, con \\(\\gamma(h) = |h|/2\\). Por eso el variograma es más general
-            que la covarianza.</li>
+            que la covarianza. <span data-afirma="c1-m6-03">Más general no quiere decir obligatoria: suponer una
+            u otra es a menudo cuestión de gusto de quien modela <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 70"></cite></span>.</li>
           <li><strong>Isotropía:</strong> además, que \\(C\\) y \\(\\gamma\\) dependan solo de \\(\\lVert h \\rVert\\)
             y no de la dirección. Es una comodidad, no una ley: la anisotropía del capítulo 9 es lo que pasa cuando
             no se cumple.</li>
-          <li><strong>Ergodicidad:</strong> que los promedios sobre el espacio de <em>una</em> realización
-            converjan a los del proceso cuando la región crece sin límite. Se refiere al <em>proceso</em>, no al
+          <li><strong>Ergodicidad:</strong> <span data-afirma="c1-m6-04">que los promedios sobre el espacio de <em>una</em> realización
+            converjan a los del proceso cuando la región crece sin límite: es la propiedad que deja estimar
+            esperanzas con promedios espaciales <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 53; p. 57"></cite></span>. Se refiere al <em>proceso</em>, no al
             mapa. Para la media pide que la covarianza media entre los puntos de la región tienda a cero;
             en la práctica, que la covarianza decaiga con la distancia. La estacionariedad dice que hay algo fijo
             que estimar; la ergodicidad, que una sola realización basta para estimarlo, y la primera no da la
@@ -2385,9 +2514,10 @@ MOD6 = cabecera(
         </ul>
         <p style="margin-bottom:0;">Sin estacionariedad no hay repetición, y sin ergodicidad la repetición no alcanza.
           El precio de suponer estacionariedad: si la media cambia de sitio a sitio —una <em>tendencia</em>—, lo que se rompe es la primera
-          condición de la intrínseca, porque \\(E[Z(s+h) - Z(s)]\\) deja de ser cero. El variograma empírico promedia
+          condición de la intrínseca, porque \\(E[Z(s+h) - Z(s)]\\) deja de ser cero. <span data-afirma="c1-m6-05">El variograma empírico promedia
           diferencias al cuadrado, y si \\(m(s)\\) es la media en cada sitio, la esperanza de cada sumando ya no es
-          \\(\\gamma(h)\\) sino \\(\\gamma(h) + \\tfrac{{1}}{{2}}\\,(m(s+h) - m(s))^2\\). Con una tendencia lineal ese
+          \\(\\gamma(h)\\) sino \\(\\gamma(h) + \\tfrac{{1}}{{2}}\\,(m(s+h) - m(s))^2\\)
+          <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 69"></cite></span>. Con una tendencia lineal ese
           término de más crece como \\(h^2\\): el cambio de media se contabiliza como
           dependencia. Es exactamente lo que pasaba con la altitud en el módulo 3.</p>
       </div>
@@ -2450,7 +2580,10 @@ MOD6 = cabecera(
             continua, sobre una región \\(D\\) y con la covarianza \\(C\\):
             \\(\\operatorname{{Var}}(\\bar{{Z}}_D) = \\frac{{1}}{{|D|^2}} \\iint_D C(s-u)\\,ds\\,du\\), la
             covarianza media entre dos puntos de \\(D\\). La media es ergódica si esa covarianza media se va a
-            cero al crecer \\(D\\), y para eso basta que \\(\\int |C(h)|\\,dh\\) sea finita. Estimar la
+            cero al crecer \\(D\\), y para eso basta que \\(\\int |C(h)|\\,dh\\) sea finita: con \\(u\\) fijo,
+            la integral de \\(|C(s-u)|\\) sobre los \\(s\\) de \\(D\\) no pasa de la de \\(|C(h)|\\) sobre el
+            plano entero, así que la covarianza media no pasa de \\(\\frac{{1}}{{|D|}}\\int |C(h)|\\,dh\\), que se
+            va a cero cuando \\(|D|\\) crece. Estimar la
             covarianza o el variograma pide la misma idea con más cuenta, y este capítulo no la hace.</p>
         </div>
       </div>
@@ -2466,8 +2599,9 @@ MOD6 = cabecera(
       </div>
 
       <p>El variograma del simulador enseña el otro lado del problema, y por eso <strong>cambia con el
-        botón</strong>: cada realización trae el suyo. Antes de leerlo hay que decir contra qué se compara. El
-        estimador agrupa los pares por <strong>clases de distancia</strong>: en la clase \\(k\\) promedia todos
+        botón</strong>: cada realización trae el suyo. Antes de leerlo hay que decir contra qué se compara. <span data-afirma="c1-m6-06">El
+        estimador agrupa los pares por <strong>clases de distancia</strong>, como un histograma agrupa los datos
+        de una variable <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 70"></cite></span>: en la clase \\(k\\) promedia todos
         los pares de celdas cuya distancia queda a menos de media celda de \\(k\\), medida en pasos de
         retícula, y esos pares no están todos a distancia \\(k\\): en la clase 1 entran los vecinos de lado,
         a distancia 1, y también los diagonales, a \\(\\sqrt{{2}}\\). La referencia justa de cada clase no es entonces
@@ -2484,8 +2618,9 @@ MOD6 = cabecera(
         dentro de ella en las ocho clases —en la 4 se apartan {n(rv[0]['desvio_rel_lag4'])},
         {n(rv[1]['desvio_rel_lag4'])} y {n(rv[2]['desvio_rel_lag4'])}—, y conviene no leer eso como un aprobado:
         <strong>caber en la banda no es parecerse al proceso</strong>, porque la banda mide lo que puede pasar, no lo
-        que pasó. Con una realización no se puede saber si lo que se ve es el proceso o el azar de esa realización:
-        es el problema fundamental de la disciplina, no una limitación del método.</p>
+        que pasó. <span data-afirma="c1-m6-07">Con una realización no se puede saber si lo que se ve es el proceso o el azar de esa realización, y
+        sin algún supuesto más sobre el proceso no hay inferencia posible <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 53"></cite></span>:
+        es un problema de fondo, no una limitación del método.</p>
 
       <div class="note">
         <p style="margin-bottom:0;"><strong>Por qué el mapa y la curva son el mismo experimento.</strong> El
@@ -2528,7 +2663,7 @@ L = np.linalg.cholesky(S + 1e-9 * np.eye(n))
 
 medias = np.array([(L @ rng.standard_normal(n)).mean() for _ in range(1000)])
 print(f"media del proceso = 0 | sd de las medias = {medias.std(ddof=1):.1f}")
-#> """ + f"media del proceso = 0 | sd de las medias = {n(ur['sd_de_las_medias'], 1)}") + CIERRE
+#> """ + f"media del proceso = 0 | sd de las medias = {n(ur['sd_de_las_medias'], 1)}") + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -2583,8 +2718,10 @@ MOD7 = cabecera(
         desviaciones estándar de lo que daría el azar. Agrega esos municipios a los {es['n_departamental']}
         departamentos y la misma variable da <strong>{n(es['moran_departamental'])}</strong>, a
         {n(es['z_departamental'])} desviaciones: ya no se distingue del azar
-        (p&nbsp;=&nbsp;{n(es['p_departamental'])}, en la prueba de Moran bajo aleatorización y a una cola, la de
-        la autocorrelación positiva, que es la que hace <code>moran.test</code>).</p>
+        (p&nbsp;=&nbsp;{n(es['p_departamental'])}). Es la prueba de Moran bajo aleatorización y a una cola, la
+        de la autocorrelación positiva. <span data-afirma="c1-m7-01">Es lo que hace <code>moran.test</code> si no
+        se le pide otra cosa: sus argumentos valen por defecto <code>randomisation = TRUE</code> y
+        <code>alternative = "greater"</code> <cite class="cita" data-ref="pebesma2023spatial" data-loc="§15.2"></cite></span>.</p>
 
       <p>La I departamental es un <strong>{n(es['caida_pct'])}&nbsp;%</strong> menor que la municipal. Ese
         porcentaje describe las dos cifras, pero no mide cuánta autocorrelación «se pierde» al agregar: las dos I
@@ -2602,7 +2739,11 @@ MOD7 = cabecera(
 
       <p>No se ha cambiado el dato, ni la variable, ni el país. Se ha cambiado <strong>la unidad de análisis</strong>,
         y la unidad de análisis es una <strong>decisión de modelado</strong>, no de presentación. Eso es el
-        <em>problema de la unidad de área modificable</em> —el MAUP—, y es lo que el capítulo 3 desarrolla entero.</p>
+        <em>problema de la unidad de área modificable</em> —el MAUP—, y es lo que el capítulo 3 desarrolla entero.
+        <span data-afirma="c1-m7-02">Se llama así a que las conclusiones pueden cambiar cuando los mismos datos
+        se agregan a otro nivel espacial, y junta dos efectos. El de escala es el de arriba: los mismos datos
+        en unidades cada vez mayores. El de zonificación aparece al formar las unidades de otra manera, con otra forma, a la
+        misma escala o a una parecida <cite class="cita" data-ref="moraga2019geospatial" data-loc="§5.5"></cite></span>.</p>
 
       <div class="simulador" data-simulador="agregacion">
         <h4><i class="fas fa-object-group" aria-hidden="true"></i> Agregar cambia la correlación</h4>
@@ -2624,8 +2765,12 @@ MOD7 = cabecera(
         celdas: un <strong>{n(ag['subida_pct'])}&nbsp;%</strong> más.</p>
 
       <div class="definition">
-        <h3>Por qué sube: el efecto Gehlke–Biehl</h3>
-        <p>Descompón cada variable en un componente <em>compartido</em> —que es lo que las correlaciona— y un ruido
+        <h3>Por qué sube al agregar: lo que el promedio le hace al ruido</h3>
+        <p><span data-afirma="c1-m7-03">Que la correlación entre dos variables se aleje de cero cuanto más se
+          agrega es lo que se observa de ordinario, y a esa dependencia de la correlación respecto del soporte
+          también se la ha llamado problema de la unidad de área modificable
+          <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 285"></cite></span>. El mecanismo se puede escribir.
+          Descompón cada variable en un componente <em>compartido</em> —que es lo que las correlaciona— y un ruido
           propio de cada celda. Al promediar \\(m\\) celdas, el compartido apenas cambia porque es suave y las celdas
           vecinas tienen casi el mismo valor; el ruido, en cambio, se cancela: su varianza se divide por \\(m\\).
           La covarianza entre las dos variables es la del componente compartido, y el promedio la reduce poco,
@@ -2633,14 +2778,18 @@ MOD7 = cabecera(
           promedio divide la del ruido entre \\(m\\). La correlación es la covarianza dividida entre el producto
           de las dos desviaciones típicas: el numerador encoge poco y el denominador mucho, así que sube su valor
           absoluto, \\(|r|\\).</p>
-        <p style="margin-bottom:0;"><strong>Y ahí está la condición del fenómeno, que es lo que se suele omitir:</strong>
+        <p style="margin-bottom:0;"><strong>Y ahí está la condición del fenómeno:</strong>
           el efecto necesita que el ruido <em>no</em> tenga estructura espacial. Si el componente independiente
           también fuera un campo suave, promediar se llevaría los dos por igual y no pasaría nada. {ag['mecanismo']}</p>
       </div>
 
       <div class="warning">
         <p><strong>Ahora la parte incómoda: agregar no siempre infla.</strong> La versión corta de esta lección —«al
-          agregar, la correlación se hace más fuerte»— es falsa, y basta el dato colombiano para verlo. Sobre
+          agregar, la correlación se hace más fuerte»— no es una ley: describe lo que pasa de ordinario, y basta el
+          dato colombiano para ver que no pasa siempre. <span data-afirma="c1-m7-04">Tampoco es una rareza de
+          este dato: agregando de varias maneras unas mismas observaciones de áreas pequeñas se ha obtenido
+          un recorrido amplio de coeficientes de correlación, positivos y negativos
+          <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 285"></cite></span>. Sobre
           {ec['n_variables']} variables municipales, los {ec['n_pares']} pares con correlación apreciable se reparten
           así al pasar de municipio a departamento: en <strong>{ec['n_suben']}</strong> la correlación <strong>se
           aleja del cero</strong> —se hace más fuerte, sea positiva o negativa— y en
@@ -2710,7 +2859,10 @@ MOD7 = cabecera(
         del Norte, ponles encima una rejilla de {agn['n_celdas']} rectángulos que no tiene nada que ver con sus
         fronteras, y suma las muertes de cada rectángulo con la orden más natural del mundo: la que empareja
         por «se tocan». Eran <strong>{agn['total_condados']}</strong> muertes. Salen
-        <strong>{ent(agn['total_rectangulos'])}</strong>, un <strong>{n(agn['inflacion_pct'])}&nbsp;%</strong> más.</p>
+        <strong>{ent(agn['total_rectangulos'])}</strong>, un <strong>{n(agn['inflacion_pct'])}&nbsp;%</strong> más.
+        <span data-afirma="c1-m7-05">El ejemplo no es de este curso: es el de
+        <cite class="cita" data-ref="pebesma2023spatial" data-loc="§5.2" data-modo="narrativa"></cite>, con la misma rejilla sobre los mismos
+        condados y los mismos dos totales</span>.</p>
         <p style="margin-bottom:0;">No hay ningún fallo de programación. <strong>{cc['nombre']}</strong> toca
         {cc['n_celdas_toca']} rectángulos y aporta sus {cc['sids']} muertes <em>enteras</em> a los
         {cc['n_celdas_toca']}, porque «intersecta» es cierto {cc['n_celdas_toca']} veces: donde había
@@ -2752,22 +2904,30 @@ MOD7 = cabecera(
 
       <div class="definition">
         <h3>La prueba que separa una agregación buena de una rota</h3>
-        <p>Agregar por <em>grupos</em> —todos los municipios de un departamento— asigna cada unidad a exactamente
-          un grupo. De ahí sale una propiedad que conviene usar como control de rutina: <strong>la suma de las
-          sumas es la suma</strong>. No se pierde nada y no se inventa nada, y la geometría del grupo es la unión
-          de las que lo forman.</p>
+        <p><span data-afirma="c1-m7-06">Agregar por <em>grupos</em> —todos los municipios de un departamento— asigna cada unidad a exactamente
+          un grupo. De ahí sale una propiedad: <strong>la suma de las sumas es la suma</strong>. Para las
+          variables que son cantidades no se pierde nada y no se inventa nada, y la geometría del grupo es la
+          unión de las que lo forman <cite class="cita" data-ref="pebesma2023spatial" data-loc="§5.2"></cite></span>. Conviene
+          usarla como control de rutina.</p>
         <p style="margin-bottom:0;">En cuanto el destino <em>no</em> es una unión de los originales —una rejilla,
           una cuenca, un área metropolitana, una localidad que parte municipios— esa garantía se cae, y hay que
-          <strong>repartir</strong> en vez de emparejar. La herramienta se llama <em>interpolación ponderada por
-          área</em>: a cada trozo de solape le toca su parte proporcional. Sobre los mismos rectángulos de antes
+          <strong>repartir</strong> en vez de emparejar. <span data-afirma="c1-m7-07">La herramienta se llama
+          <em>interpolación ponderada por área</em>: mira cuánto solapa cada unidad de origen con cada una de
+          destino y pesa con ese solape el valor del origen
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§5.3"></cite></span>. A cada trozo de solape le toca su parte
+          proporcional. Sobre los mismos rectángulos de antes
           devuelve <strong>{n(agn['total_por_area'])}</strong> muertes —el total exacto—, y que lo devuelva no es
           una casualidad: es la comprobación de que está bien hecha.</p>
       </div>
 
       <p>Con una bifurcación que hay que decir en voz alta, porque es la del módulo 2 otra vez: repartir un
-        <em>conteo</em> y repartir una <em>tasa</em> no se hacen igual. Al conteo —extensivo— le toca la parte
-        proporcional del origen que lo cede; a la tasa —intensiva— le corresponde un promedio ponderado sobre el
-        destino. Pedir la que no era no da error: da un número, y el número es plausible.</p>
+        <em>conteo</em> y repartir una <em>tasa</em> no se hacen igual. <span data-afirma="c1-m7-08">Al conteo
+        —extensivo— le toca la parte proporcional del origen que lo cede: el área del trozo entre el área del
+        origen. A la tasa —intensiva— le corresponde un promedio ponderado sobre el destino: el área del trozo
+        entre el área del destino. Las dos reglas suponen algo. La primera, que el conteo está repartido de
+        manera uniforme dentro de cada origen; la segunda, que la tasa es constante dentro de él
+        <cite class="cita" data-ref="pebesma2023spatial" data-loc="§5.3"></cite></span>. Pedir la que no era no da error: da un
+        número, y el número es plausible.</p>
 
       <p><strong>Y ahora lo mismo, aplicado a este capítulo.</strong> La deserción departamental de más arriba —la
         que da I&nbsp;=&nbsp;{n(es['moran_departamental'])}— se calculó promediando las tasas municipales
@@ -2785,9 +2945,11 @@ MOD7 = cabecera(
 
       <div class="note">
         <p style="margin-bottom:0;"><strong>Ninguna de las dos es «la buena», y conviene decirlo antes de que
-          alguien elija la que le convenga.</strong> Una tasa de deserción se debería ponderar por
-          <strong>matrícula</strong>, que es su denominador —lo que el módulo 2 midió sobre Carolina del Norte—, y
-          esta base no la trae. Así que entre las dos que sí se pueden calcular no se elige entre lo correcto y lo
+          alguien elija la que le convenga.</strong> Una tasa es un cociente, y la de un departamento es la
+          suma de los numeradores de sus municipios entre la suma de sus denominadores. Eso es lo mismo que
+          promediar las tasas municipales con el denominador como peso: la deserción se debería ponderar por
+          <strong>matrícula</strong> —es lo que el módulo 2 midió sobre Carolina del Norte—, y esta base no la
+          trae. Así que entre las dos que sí se pueden calcular no se elige entre lo correcto y lo
           incorrecto: se elige entre dos aproximaciones, y lo honesto es decir cuál se usó.</p>
       </div>
 
@@ -2834,9 +2996,9 @@ print(f"condados = {int(ncp.SID74.sum())} | "
       f"rectangulos = {int(u.groupby('index_right').SID74.sum().sum())}")
 #> """ + f"condados = {agn['total_condados']} | rectangulos = {agn['total_rectangulos']}" + """
 
-# 2) geopandas no trae st_interpolate_aw, asi que la formula se escribe a
-#    mano — que ademas es la del libro: peso = area del trozo / area del
-#    origen, por ser una variable extensiva.
+# 2) Aqui el reparto se escribe a mano, con la regla del conteo de mas
+#    arriba: peso = area del trozo / area del origen, por ser una
+#    variable extensiva.
 t = gpd.overlay(ncp[["SID74", "geometry"]].assign(a=ncp.geometry.area),
                 rej, how="intersection")
 print(f"repartido por area = {(t.SID74 * t.geometry.area / t.a).sum():.5f}")
@@ -2889,7 +3051,7 @@ z = z - z.mean()
 W = w.sparse
 n_con = len(ok) - len(islas)
 print(f"I = {(n_con / W.sum()) * (z @ (W @ z)) / (z @ z):.5f}, la de spdep")
-#> """ + f"I = {n(es['moran_municipal'])}, la de spdep") + CIERRE
+#> """ + f"I = {n(es['moran_municipal'])}, la de spdep") + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -2939,12 +3101,16 @@ LICENCIA_EXTRACTO = "se publican bajo la licencia <strong>CC BY-SA 4.0</strong>"
 # el 2026-11-23 (HistData 1.0.0, spatstat.data 3.1.9, sp 2.2.0, sf 1.0.22).
 # Qué permiten esas licencias sobre los datos no se ha leído y no se dice.
 CC_EXTRACTO = ("cap1_municipios.gpkg", "cap1_municipios_reina.gal")
+# R4 · T4.2 (A-148): el diccionario estaba escrito a mano. Ahora lo publica
+# genera_cap1.R (`ecosistema.licencias_datos`), que le pregunta a cada paquete
+# su campo License; aquí solo se le da forma.
 LICENCIAS_PAQUETES = {
-    "cap1_snow.csv": ("HistData", "GPL"),
-    "cap1_japanesepines.csv": ("spatstat.data", "GPL (&gt;= 2)"),
-    "cap1_meuse.csv": ("sp", "GPL (&gt;= 2)"),
-    "cap1_nc.gpkg": ("sf", "GPL-2 | MIT + file LICENSE"),
+    l["archivo"]: (l["paquete"], html.escape(l["licencia"], quote=False))
+    for l in D["ecosistema"]["licencias_datos"]
 }
+if sorted(LICENCIAS_PAQUETES) != ["cap1_japanesepines.csv", "cap1_meuse.csv", "cap1_nc.gpkg", "cap1_snow.csv"]:
+    sys.exit("PARADO: `ecosistema.licencias_datos` no trae los cuatro archivos del extracto que salen de "
+             "paquetes de R")
 _lic_paq = [f"<code>{f}</code>, de <code>{p}</code> ({lic})" for f, (p, lic) in LICENCIAS_PAQUETES.items()]
 LICENCIAS_PAQUETES_TXT = "; ".join(_lic_paq[:-1]) + "; y " + _lic_paq[-1]
 # La orden que da la documentación de venv para PowerShell. Cada palabra va
@@ -2970,11 +3136,20 @@ install.packages(paq,
 # Linux, despues de las
 # bibliotecas de abajo:
 install.packages(paq)</code></pre>
-        <p>En Windows y macOS, CRAN distribuye <code>sf</code> ya compilado, y <code>type = "binary"</code> pide
-          ese paquete: es lo que la documentación de <code>sf</code> recomienda en macOS si R intenta compilarlo.
-          En Linux, <code>sf</code> se compila al instalarlo y necesita antes unas bibliotecas del sistema. La
-          documentación de <code>sf</code> y la de <code>s2</code>, un paquete que <code>sf</code> usa, piden
-          GDAL, GEOS, PROJ, SQLite, udunits, cmake, OpenSSL y Abseil. Esta orden de Ubuntu reúne los nombres que
+        <p><span data-afirma="c1-m8-08">En Windows y macOS, instalar <code>sf</code> desde CRAN trae el paquete ya
+          compilado, salvo que R esté configurado para instalar desde el código fuente. Para macOS, su
+          documentación recomienda vivamente el binario y, si R intenta compilar, pedirlo con
+          <code>type = "binary"</code> <cite class="cita" data-ref="pebesma2016sf"></cite></span>.
+          <span data-afirma="c1-m8-07">Instalado así, en binario, <code>sf</code> trae dentro una copia de las
+          bibliotecas externas que necesita, con sus dependencias <cite class="cita" data-ref="pebesma2023spatial" data-loc="§1.7"></cite></span>:
+          por eso ahí no hay que instalar nada más. En Linux, <code>sf</code> se compila al instalarlo y necesita antes unas bibliotecas del sistema.
+          <span data-afirma="c1-m8-09">La página de <code>sf</code> en CRAN declara como requisitos GDAL, GEOS,
+          PROJ y SQLite, y su documentación da para Ubuntu los paquetes <code>libudunits2-dev</code>,
+          <code>libgdal-dev</code>, <code>libgeos-dev</code>, <code>libproj-dev</code> y
+          <code>libsqlite3-dev</code> <cite class="cita" data-ref="pebesma2016sf"></cite></span>.
+          <span data-afirma="c1-m8-10"><code>s2</code>, un paquete que <code>sf</code> usa, declara en CRAN cmake,
+          OpenSSL y Abseil, y su README da para Debian y Ubuntu <code>libssl-dev</code> y <code>libabsl-dev</code>
+          <cite class="cita" data-ref="dunnington2016s2"></cite></span>. Esta orden de Ubuntu reúne los nombres que
           dan las dos, y no se ha probado:</p>
         <pre><code class="language-bash">sudo apt install cmake \\
   libudunits2-dev \\
@@ -3026,6 +3201,15 @@ filas_paq = "\n".join(
 # (7) y la validación cruzada (10). No se renumeran; ganan una entrada que dice
 # por qué están aquí —ya se han usado, y aquí se ve por qué funcionan como
 # funcionan— y el 10 una que vuelve al hilo de la dependencia.
+# R4 · T4.2 (A-144): qué paquete necesita `sf` lo dice el DESCRIPTION de cada
+# uno, leído en R (`ecosistema.necesitan_sf`). La frase decía cinco y son
+# seis: faltaba spatialreg. Lo que la prosa añade —que spatstat trae su
+# propio objeto— exige que spatstat esté entre los que no lo necesitan.
+if "spatstat" not in eco["sin_sf"] or not eco["necesitan_sf"]:
+    sys.exit("PARADO: el módulo 8 dice que spatstat va por su cuenta y que otros paquetes necesitan sf; "
+             "`ecosistema` ya no lo sostiene")
+_NECESITAN_SF = _une([f"<code>{p}</code>" for p in eco["necesitan_sf"]])
+_SIN_SF = _une([f"<code>{p}</code>" for p in eco["sin_sf"]])
 MOD8 = cabecera(
     8, "El ecosistema de R espacial", "The R-spatial stack",
     "Saber qué paquete resuelve qué pregunta, y por qué el mapa de "
@@ -3037,12 +3221,15 @@ MOD8 = cabecera(
         pueden dar dos cifras distintas sobre el mismo dato, que ya asomó en el módulo 3. El módulo 10 vuelve
         después a la dependencia.</p>
 
-      <p>El ecosistema parece caótico hasta que se ve que <strong>está organizado por tipo de dato</strong>. Un
-        paquete para patrones puntuales, otro para datos de área, otro para geoestadística. Muchos se apoyan en
-        <code>sf</code>, que es quien sabe leer y proyectar la geometría vectorial: <code>spdep</code>,
-        <code>gstat</code>, <code>tmap</code>, <code>stars</code> y <code>sfdep</code> lo necesitan para
-        funcionar. <code>spatstat</code>, <code>terra</code> y <code>classInt</code> no: van por su cuenta, y
-        <code>spatstat</code> trae su propio objeto.</p>
+      <p>El ecosistema parece caótico hasta que se ordena <strong>por tipo de dato</strong>, que es como lo
+        ordena este curso: <code>spatstat</code> para patrones puntuales, <code>spdep</code> para datos de área,
+        <code>gstat</code> para geoestadística. <span data-afirma="c1-m8-01">Son los mismos tres grupos en que
+        <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.2" data-modo="narrativa"></cite> reparten sus capítulos
+        de métodos: unos para los patrones puntuales, otros para los datos geoestadísticos y otros para los
+        datos de área</span>. Muchos paquetes
+        se apoyan en <code>sf</code>, que es quien sabe leer y proyectar la geometría vectorial: de los de la
+        tabla de abajo, {_NECESITAN_SF} lo declaran entre los paquetes que necesitan para funcionar.
+        {_SIN_SF} no: van por su cuenta, y <code>spatstat</code> trae su propio objeto.</p>
 
       <p>Antes de la tabla, prueba el árbol: contesta qué es aleatorio en tu dato y adónde te lleva.</p>
 
@@ -3068,32 +3255,56 @@ MOD8 = cabecera(
         </tbody>
       </table>
 
+      <p data-afirma="c1-m8-06">Para ir de la tabla al libro: en <cite class="cita" data-ref="pebesma2023spatial" data-loc="§7.1; §7.4; §8.2; §8.5" data-modo="narrativa"></cite>
+        están, por ese orden, <code>sf</code>, <code>stars</code>, los cortes de clase de <code>classInt</code>
+        y <code>tmap</code>.</p>
+
       <div class="definition">
-        <h3>Las tres bibliotecas de sistema, que son la parte que de verdad importa</h3>
-        <p>Por debajo de <code>sf</code> y de <code>terra</code> —y, a través de <code>sf</code>, de los paquetes
-          que se apoyan en él— hay tres bibliotecas escritas en C++ que hacen el trabajo pesado, y son las mismas
-          que usan QGIS, PostGIS y GeoPandas:</p>
+        <h3>Las bibliotecas de sistema, que son la parte que de verdad importa</h3>
+        <p>Por debajo de <code>sf</code> —y, a través de él, de los paquetes que se apoyan en él— hay
+          bibliotecas de sistema que hacen el trabajo pesado. <span data-afirma="c1-m8-02">Están escritas en C
+          o en C++ y no son de R: las desarrollan, las mantienen y las usan comunidades grandes y en su mayoría distintas de la de R.
+          La lista completa es más larga que la de aquí; trae también s2geometry, de la que se habla abajo,
+          y otras como liblwgeom, NetCDF y udunits2 <cite class="cita" data-ref="pebesma2023spatial" data-loc="§1.7"></cite></span>.
+          <code>terra</code>, que no pasa por <code>sf</code>, enlaza por su cuenta las tres de abajo:
+          <code>terra::gdal(lib = "all")</code> las lista. Son las que este capítulo ve trabajar, con la
+          versión con la que se calculó:</p>
         <ul>
           <li><strong>GDAL {eco['sistema']['GDAL']}</strong> — leer y escribir formatos. Todos: shapefile,
-            GeoPackage, GeoJSON, ráster.</li>
-          <li><strong>GEOS {eco['sistema']['GEOS']}</strong> — las operaciones geométricas planas: intersecar,
-            unir, medir, validar.</li>
+            GeoPackage, GeoJSON, ráster. <span data-afirma="c1-m8-03">Fuera de R la usan Python, QGIS, PostGIS
+            y más de un centenar de proyectos <cite class="cita" data-ref="pebesma2023spatial" data-loc="§1.7"></cite></span>.</li>
+          <li><strong>GEOS {eco['sistema']['GEOS']}</strong> — las operaciones geométricas en el plano: medir
+            una longitud, un área o una distancia; contestar un predicado, como si dos geometrías se tocan; y
+            construir una geometría nueva, como una intersección.</li>
           <li><strong>PROJ {eco['sistema']['PROJ']}</strong> — las transformaciones entre sistemas de referencia.
             Es el capítulo 2 entero.</li>
         </ul>
-        <p style="margin-bottom:0;">Que R y Python den el mismo resultado en una intersección no es casualidad ni
-          suerte: es que están llamando <em>a la misma biblioteca</em>. Y cuando no lo dan —los cuantiles del
-          capítulo 3, la I de Moran del módulo 9— es porque el desacuerdo está en la capa de arriba, no en la
-          geometría.</p>
+        <p><span data-afirma="c1-m8-04">El reparto de papeles —GDAL lee y escribe, GEOS mide y opera en el
+          plano, PROJ convierte coordenadas de un sistema de referencia a otro— es el que describen
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§1.7" data-modo="narrativa"></cite></span>.</p>
+        <p><strong>¿Llaman R y Python a la misma biblioteca? Depende de las coordenadas.</strong>
+          <span data-afirma="c1-m8-05">Con coordenadas proyectadas, <code>sf</code> hace las operaciones
+          geométricas con GEOS. Con coordenadas elipsoidales —longitud y latitud— las hace, si no se le pide
+          otra cosa, con s2geometry, que trabaja sobre la esfera
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§7.1; §7.3"></cite></span>. GeoPandas opera con
+          <code>shapely</code>, que es GEOS: opera siempre sobre el plano. Así que R y Python llaman a la misma
+          biblioteca para leer y escribir, para proyectar, y para la geometría <em>mientras el dato esté
+          proyectado</em>. Es el caso de los bloques de este capítulo que intersecan y reparten: los del módulo
+          7 proyectan antes los condados de Carolina del Norte, así que las dos pestañas operan sobre el mismo plano y con la misma biblioteca. Con
+          el dato en longitud y latitud, <code>sf</code> opera sobre la esfera y GeoPandas sobre el plano, y
+          una misma área o una misma intersección pueden no coincidir.</p>
+        <p style="margin-bottom:0;">Los desacuerdos entre R y Python que este material declara —los
+          cuantiles del capítulo 3 y, en el módulo 9, el tipo de geometría y la I de Moran— no vienen de ahí: están en la capa de arriba,
+          no en la geometría.</p>
       </div>
 
       <div class="note">
         <p style="margin-bottom:0;"><strong>Este material se calculó con {eco['r_version']}</strong>, y las versiones
-          de la tabla están congeladas en <code>precalculo/versiones.json</code>. No es burocracia: los cortes de
-          clase, los cuantiles y hasta el trato de las islas cambian entre versiones, y un material que no dice con
-          qué se hizo no es reproducible.</p>
+          de la tabla están congeladas en <code>precalculo/versiones.json</code>. No es burocracia: lo que devuelve
+          una función puede cambiar de una versión a otra —un valor por defecto, un convenio como el de las
+          unidades sin vecinos—, y un material que no dice con qué se hizo no es reproducible.</p>
       </div>
-""" + ENTORNO + CIERRE
+""" + ENTORNO + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -3117,9 +3328,14 @@ MOD9 = cabecera(
         <code>tmap</code>; <code>spatstat</code> lleva el suyo, el <code>ppp</code>. Este módulo abre el primero
         por dentro y lo compara con el segundo, que guarda además la ventana.</p>
 
-      <p>Un objeto <code>sf</code> es un <code>data.frame</code> con una columna rara. Esa columna guarda la
-        geometría, y el resto es una tabla normal, con lo cual todo lo que ya sabes de <code>dplyr</code> sigue
-        valiendo. Es la decisión de diseño que hizo que <code>sf</code> se comiera a <code>sp</code>.</p>
+      <p><span data-afirma="c1-m9-01">Un objeto <code>sf</code> es un <code>data.frame</code> —o un
+        <code>tibble</code>— con al menos una columna rara: una columna-lista que guarda la geometría de cada fila
+        <cite class="cita" data-ref="pebesma2023spatial" data-loc="§7.1"></cite></span>. El resto es una tabla normal, con lo cual
+        todo lo que ya sabes de <code>dplyr</code> sigue valiendo. <span data-afirma="c1-m9-02">Y no es un
+        accidente: <code>sf</code> se hizo para suceder y reemplazar a <code>sp</code>, con tres propósitos
+        declarados. Acercar el análisis espacial en R a los estándares, apoyarlo en versiones más modernas de
+        las bibliotecas de código abierto, y permitir que se integre con el tidyverse
+        <cite class="cita" data-ref="pebesma2023spatial" data-loc="§7.1"></cite></span>.</p>
 
       <p>Los {an['nc']['filas']} condados de <code>nc</code> ocupan {ent(an['nc']['bytes_sf'])} bytes en memoria.
         De ellos, <strong>{ent(an['nc']['bytes_geometria'])}</strong> son geometría —el
@@ -3138,10 +3354,17 @@ MOD9 = cabecera(
             <code>{an['clases']['sf']}</code>. Fíjate en que también es un <code>data.frame</code>: por eso
             <code>nrow()</code>, <code>$</code> y <code>merge()</code> funcionan sin más.</li>
         </ul>
+        <p data-afirma="c1-m9-03">La anidación es la del paquete: un objeto <code>sf</code> lleva al menos una
+          columna-lista de clase <code>sfc</code>, cada elemento de esa columna es un <code>sfg</code>, y el
+          sistema de referencia es un atributo de la columna
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§7.1"></cite>.</p>
         <p style="margin-bottom:0;">Y el <code>ppp</code> de <code>spatstat</code> es otra cosa: los
           {an['ppp']['n']} pinos japoneses ocupan {ent(an['ppp']['bytes'])} bytes e incluyen
           <strong>la ventana de observación</strong> ({an['ppp']['ventana_tipo']}, área
-          {n(an['ppp']['ventana_area'])}). Un <code>sf</code> de puntos no sabe cuál es su ventana, y para un patrón
+          {n(an['ppp']['ventana_area'])}). <span data-afirma="c1-m9-04">Un patrón puntual tiene ventana de
+          observación, y un <code>ppp</code> es eso: los puntos y su ventana. Si se crea desde unos puntos sin
+          decir cuál es, se toma su caja <cite class="cita" data-ref="pebesma2023spatial" data-loc="§11.1"></cite></span>.
+          Un <code>sf</code> de puntos no sabe cuál es su ventana, y para un patrón
           puntual la ventana es parte del dato — el módulo 2 ya midió lo que cuesta olvidarla.</p>
       </div>
 
@@ -3203,7 +3426,7 @@ print(nc.geom_type.value_counts().to_dict())
           está es <strong>un error hasta que se explique</strong>. Que una discrepancia documentada y una sin
           explicar se lean igual sobre un informe es lo que convierte una comparación en un adorno.</p>
       </div>
-""" + CIERRE
+""" + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -3213,6 +3436,22 @@ print(nc.geom_type.value_counts().to_dict())
 # desarrollo se remite al capítulo 10. La frontera está declarada dentro
 # del propio JSON (`cv_espacial.frontera`), no solo en el plan, para que no
 # se pierda al retomar.
+# R4 · T4.2 (A-103): «la Amazonía y la Orinoquía, que son enormes, bajas y
+# calientes» era geografía sin cifra. `diseno_modelo.mayores` la mide: las
+# estaciones con la celda de Thiessen mayor. La prosa dice que están más
+# bajas y más calientes que la red, y se para si deja de ser verdad.
+my = dm["mayores"]
+# Ronda 3 (V1): «deja casi vacías las bajas» era falso. Lo que la prosa dice
+# ahora —que las estaciones de abajo son pocas para lo que cubren— sale de
+# `diseno_modelo.bajas`, y se para si deja de ser verdad.
+bj = dm["bajas"]
+if not (bj["pct_area"] > bj["pct_red"] and bj["razon_territorio"] > 1 and 0 < bj["n"] < dm["n"]):
+    sys.exit("PARADO: el módulo 10 dice que las estaciones bajas son pocas para el territorio que "
+             "representan; `diseno_modelo.bajas` ya no lo sostiene")
+if not (my["alt_media"] < dm["alt_media_area"] < dm["alt_media_simple"]
+        and my["t_media"] > dm["t_media_area"] > dm["t_media_simple"] and my["pct_area"] > 25):
+    sys.exit("PARADO: el módulo 10 dice que las estaciones con más territorio son bajas y calientes y "
+             "representan buena parte del país; `diseno_modelo.mayores` ya no lo sostiene")
 MOD10 = cabecera(
     10, "Dependencia espacial en ciencia de datos", "Spatial leakage",
     "Ver por qué un modelo predictivo con datos espaciales parece mejor de "
@@ -3221,11 +3460,16 @@ MOD10 = cabecera(
       <p>Con las herramientas a la vista, el capítulo vuelve a la dependencia para medir una consecuencia que no está
         en un intervalo sino en la evaluación de una predicción. El módulo 4 midió cuánto se engaña un intervalo cuando las observaciones
         vecinas se parecen; este mide cuánto se engaña la evaluación de un modelo por la misma razón, y después qué
-        marco de inferencia queda cuando la red de estaciones no se muestreó.</p>
+        marco de inferencia queda cuando la red de estaciones no salió de un sorteo.</p>
 
       <p>Este módulo es para quien vaya a usar aprendizaje automático con datos que tienen coordenadas, que hoy es
-        casi todo el mundo. La conclusión es incómoda: <strong>la validación cruzada aleatoria miente</strong>, y
-        miente hacia arriba.</p>
+        casi todo el mundo. La conclusión es incómoda: <strong>la validación cruzada aleatoria puede mentir</strong>,
+        y cuando miente lo hace hacia arriba. <span data-afirma="c1-m10-01">No es un defecto de ningún programa:
+        esa validación supone observaciones independientes, que con datos espaciales a menudo no es un supuesto
+        razonable, y sus cifras pueden pecar de optimistas cuando se toman como medida de lo bien que se
+        predice en el espacio <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.1; §10.5"></cite></span>. «Puede» no es
+        cortesía: cuánto miente depende del dato y de para qué se quiera el modelo, y aquí se mide en un
+        caso.</p>
 
       <p>El experimento, con las {cv['n']} estaciones del IDEAM: predecir la {cv['variable']} de cada estación a
         partir de sus {cv['k_vecinos']} vecinas más próximas, y evaluar con {cv['n_pliegues']} pliegues de dos
@@ -3276,45 +3520,79 @@ MOD10 = cabecera(
           <strong>interpolando entre vecinos que ya ha visto</strong>.</p>
         <p style="margin-bottom:0;">Con bloques espaciales, el pliegue de prueba es una <em>región entera</em> que el
           modelo no ha visto. Eso es lo que de verdad pasa cuando se aplica el modelo a una zona nueva, que es para
-          lo que suele querer usarse.</p>
+          lo que suele querer usarse. Aquí se toma como una forma de validación cruzada espacial.
+          <span data-afirma="c1-m10-02">De las validaciones adaptadas, como la validación cruzada espacial, se
+          dice que pueden dar medidas más pertinentes de lo que acierta una predicción
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.5"></cite></span>.</p>
       </div>
 
       <div class="warning">
         <p style="margin-bottom:0;"><strong>Y la advertencia simétrica, que también hay que dar.</strong> La
           validación por bloques no es «la buena» siempre: es la que responde a la pregunta <em>«¿cuánto me fío en
-          una zona donde no he medido?»</em>. Si la pregunta fuera <em>«¿cuánto me fío rellenando huecos entre
-          estaciones existentes?»</em>, la aleatoria sería la adecuada. Elegir el reparto es declarar a qué pregunta
+          una zona donde no he medido?»</em>. Si la pregunta fuera <em>«¿cuánto me fío en sitios que se parecen a
+          los de la muestra, como los huecos entre estaciones que ya existen?»</em>, la aleatoria es la que más
+          se le acerca. Esa respuesta tiene respaldo, pero en un caso que no es el de esta red.
+          <span data-afirma="c1-m10-03">Cuando la muestra se sorteó sobre la zona, suponer que las observaciones
+          son independientes puede estar justificado, y el marco del diseño permite predecir el valor de un
+          sitio nuevo elegido también al azar <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.5"></cite></span>. Elegir el reparto es declarar a qué pregunta
           se responde, y hacerlo por defecto es responder a la que no era.</p>
       </div>
 
       <p>Esa advertencia tiene nombre, y conviene ponérselo porque debajo no hay una preferencia de método sino
-        <strong>dos marcos de inferencia distintos</strong>. Pebesma y Bivand los separan así:</p>
+        <strong>dos marcos de inferencia distintos</strong>, el basado en el diseño y el basado en el
+        modelo:</p>
 
       <div class="definition">
         <h3>Basado en el diseño y basado en el modelo</h3>
         <ul>
-          <li><strong>Basado en el diseño:</strong> lo aleatorio es <em>el muestreo</em>. Exige que el dato venga de
-            un muestreo probabilístico, con probabilidades de inclusión conocidas y positivas. A cambio no hace
-            falta postular ningún modelo: sumar cada observación dividida por su probabilidad de inclusión, y
-            dividir esa suma por el tamaño de la población —el estimador de Horvitz–Thompson—, estima sin sesgo
-            la media poblacional. La media muestral sin ponderar, en general,
-            solo es insesgada cuando todas las probabilidades son iguales; si no lo son, se
-            sesga hacia lo que el diseño sobrerrepresenta. Y algo que sorprende: en un muestreo aleatorio simple,
+          <li><strong>Basado en el diseño:</strong> <span data-afirma="c1-m10-04">lo aleatorio es <em>el
+            muestreo</em>. Exige que el dato venga de un muestreo probabilístico, con probabilidades de inclusión
+            conocidas y positivas. A cambio no hace falta postular ningún modelo: con esas probabilidades basta
+            para estimar medias con su error estándar, y con una muestra aleatoria simple la media poblacional
+            se estima con la media muestral sin ponderar
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.4"></cite></span>. Cuando las probabilidades no son
+            iguales, cada observación entra con un peso. <span data-afirma="c1-m10-05">En el estimador de
+            Horvitz–Thompson cada elemento de la muestra se pesa por el inverso de su probabilidad de muestreo
+            <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 181"></cite></span>. Para la media, se suma cada
+            observación dividida por su probabilidad de inclusión y esa suma se divide por el tamaño de la
+            población, no por la suma de los pesos.
+            Es insesgado, y se ve sin fórmulas: cada unidad de la población entra en la muestra con su
+            probabilidad de inclusión y, cuando entra, pesa el inverso de esa probabilidad, así que en promedio
+            sobre todos los sorteos aporta su valor exactamente una vez. La media muestral sin ponderar, en
+            general, solo es insesgada cuando todas las probabilidades son iguales; si no lo son, se
+            sesga hacia lo que el diseño sobrerrepresenta.
+            <span data-afirma="c1-m10-06">Y algo que sorprende: en un muestreo aleatorio simple,
             dos extracciones distintas son (casi) incorreladas aunque el campo de debajo sea suave, porque lo que
-            se repite al imaginar otra muestra no son ellas sino los sorteos. Es una propiedad de ese diseño y no
+            se repite al imaginar otra muestra no son ellas sino los sorteos. Creer que dos observaciones cercanas están siempre correlacionadas es un malentendido:
+            eso solo pasa cuando se trabaja en el marco del modelo
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.4"></cite></span>. Es una propiedad de ese diseño y no
             de todos: si lo que se sortea son conglomerados de sitios vecinos, dos extracciones del mismo
-            conglomerado sí están correlacionadas.</li>
-          <li><strong>Basado en el modelo:</strong> lo aleatorio es <em>el proceso</em>. Se supone que lo observado
-            es una realización de \\(Z(s)\\) y se postula su estructura de covarianza. No exige saber cómo se
-            eligieron las localizaciones — y es el único que permite predecir en un punto concreto.</li>
+            conglomerado sí están correlacionadas, porque caen siempre juntas: salga el conglomerado que salga,
+            las dos están una al lado de la otra, y sobre un campo suave cuando una es alta la otra también.</li>
+          <li><strong>Basado en el modelo:</strong> <span data-afirma="c1-m10-07">lo aleatorio es <em>el
+            proceso</em>. Se supone que lo observado es una realización de \\(Z(s)\\) y se postula su estructura
+            de covarianza. No exige saber cómo se eligieron las localizaciones, y a cambio todo lo que se
+            concluye depende de que el modelo postulado valga
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.4"></cite></span>. <span data-afirma="c1-m10-08">Es el
+            que hace falta para predecir en un punto concreto, o cuando el dato no salió de un sorteo: el marco
+            del diseño da promedios de áreas, no interpolaciones
+            <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.5"></cite></span>.</li>
         </ul>
-        <p style="margin-bottom:0;">No compiten: responden a preguntas distintas y ambos pueden ser válidos sobre el
-          mismo dato. Lo que no se puede es usar uno y reclamar las garantías del otro.</p>
+        <p style="margin-bottom:0;"><span data-afirma="c1-m10-09">Las dos situaciones pueden darse a la vez sin
+          contradicción: son consecuencia del marco en que se elige trabajar, y cuál se elige depende del
+          propósito del estudio y de cómo se recogió el dato
+          <cite class="cita" data-ref="pebesma2023spatial" data-loc="§10.4"></cite></span>. Responden a preguntas distintas, y lo
+          que no se puede es usar uno y reclamar las garantías del otro. Que no compitan es una manera de verlo, no un acuerdo cerrado.
+          <span data-afirma="c1-m10-10">Entre los métodos de inferencia basados en el modelo y los basados en
+          el diseño hay una controversia en la teoría clásica del muestreo
+          <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 52"></cite></span>.</p>
       </div>
 
-      <p>Y aquí está lo que decide cuál te toca, que no es una preferencia: <strong>la red del IDEAM no se
-        muestreó, se ubicó</strong> — donde había cómo llegar y a quién servir. Sin probabilidades de inclusión, el
-        marco basado en el diseño sencillamente no está disponible. Se puede medir lo que eso cuesta. Reparte
+      <p>Y aquí está lo que decide cuál te toca, que no es una preferencia: <strong>la red del IDEAM no trae
+        probabilidades de inclusión</strong>. El dato no dice que las estaciones se sortearan, y lo que se mide
+        a continuación es que su reparto no se parece al de un sorteo de igual probabilidad. Por qué está cada
+        estación donde está, este dato no lo cuenta, y el capítulo no lo supone. Sin probabilidades de
+        inclusión, el marco basado en el diseño sencillamente no está disponible. Se puede medir lo que eso cuesta. Reparte
         Colombia en polígonos de Thiessen, uno por estación: el área de cada polígono es el territorio que esa
         estación representa. Esas áreas no saldrían iguales ni con un muestreo de igual probabilidad, así que
         hace falta una referencia. En {ent(ru['n_muestras'])} muestras de {ent(ru['n_puntos'])} puntos repartidos
@@ -3345,8 +3623,15 @@ MOD10 = cabecera(
 
       <p>La brecha es de <strong>{n(dm['brecha_c'])}&nbsp;°C</strong>, y la segunda columna dice por qué. Las
         estaciones están, en promedio, a <strong>{n(dm['alt_media_simple'])}</strong> m, pero el territorio que
-        representan está a <strong>{n(dm['alt_media_area'])}</strong> m: la red sobremuestrea la cordillera y deja
-        casi vacías la Amazonía y la Orinoquía, que son enormes, bajas y calientes. Promediar las
+        representan está a <strong>{n(dm['alt_media_area'])}</strong> m: la red sobremuestrea las tierras altas. Abajo hay estaciones, pero
+        pocas para lo que cubren: las {ent(bj['n'])} que están por debajo de {ent(bj['umbral_m'])} m son el
+        <strong>{n(bj['pct_red'])}&nbsp;%</strong> de la red y representan el
+        <strong>{n(bj['pct_area'])}&nbsp;%</strong> del territorio. A cada una le toca, de media,
+        {n(bj['razon_territorio'])} veces el territorio de una de las de arriba. Y el reparto es más desigual
+        todavía en el extremo: las {my['k']} estaciones con las celdas mayores —están en
+        {_une(my['departamentos'])}— representan ellas solas el <strong>{n(my['pct_area'])}&nbsp;%</strong> del territorio, y están a
+        {n(my['alt_media'])} m y {n(my['t_media'])}&nbsp;°C de media; ninguna pasa de {ent(my['alt_max'])} m.
+        Promediar las
         {dm['n']} estaciones como si fueran una muestra aleatoria del país no estima la temperatura de Colombia:
         estima la temperatura de donde el IDEAM puso estaciones. El módulo 2 ya lo había dicho sin cifra —«estás
         viendo la cordillera, no el clima»—; esto es la cifra.</p>
@@ -3420,7 +3705,7 @@ t = estac.t_media_anual.to_numpy()
 print(f"simple = {t.mean():.5f} | ponderada = {(t * a).sum() / a.sum():.5f} | "
       f"brecha = {(t * a).sum() / a.sum() - t.mean():.5f}")
 #> """ + f"simple = {n(dm['t_media_simple'])} | ponderada = {n(dm['t_media_area'])} | "
-    f"brecha = {n(dm['brecha_c'])}") + CIERRE
+    f"brecha = {n(dm['brecha_c'])}") + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -3445,7 +3730,40 @@ MOD11 = cabecera(
           estadística, como \\(\\alpha\\), \\(p\\) o \\(H_0\\). Si un símbolo del curso no está aquí, es un
           descuido: dilo.</p>
       </div>
-""" + CIERRE
+
+      <div class="references">
+        <h3><i class="fas fa-book-open mr-2" aria-hidden="true"></i>A qué remite la columna «Texto guía»</h3>
+        <p>La columna da el apellido y la sección. Estas son las obras y lo que cada sección trae; todas se
+          leyeron para escribir la tabla.</p>
+        <ul style="margin-bottom:0;">
+          <li data-afirma="c1-m11-01"><cite class="cita" data-ref="cressie1993statistics" data-loc="§1.1" data-modo="narrativa"></cite>: la localización
+            \\(s\\), el conjunto \\(D\\) sobre el que varía y el proceso \\(Z(s)\\), que es el modelo general
+            del libro.</li>
+          <li><span data-afirma="c1-m11-02"><cite class="cita" data-ref="cressie1993statistics" data-loc="§1.3" data-modo="narrativa"></cite>: el número
+            equivalente de observaciones independientes, que aquí se escribe \\(n_{{\\text{{eff}}}}\\)</span>.
+            El nombre «efecto de diseño» para \\(n/n_{{\\text{{eff}}}}\\), que la tabla da en la misma fila, no
+            es de esa sección: lo pone este capítulo en el módulo 4.</li>
+          <li data-afirma="c1-m11-03"><cite class="cita" data-ref="cressie1993statistics" data-loc="§2.3" data-modo="narrativa"></cite>: la covarianza
+            estacionaria \\(C(h)\\), o covariograma.</li>
+          <li data-afirma="c1-m11-04"><cite class="cita" data-ref="cressie1993statistics" data-loc="§2.3.1" data-modo="narrativa"></cite>: el
+            variograma, que depende solo del incremento entre dos localizaciones —la \\(h\\) de la tabla—, y
+            su mitad, el semivariograma \\(\\gamma(h)\\).</li>
+          <li data-afirma="c1-m11-05"><cite class="cita" data-ref="baddeley2015spatial" data-loc="§6.2" data-modo="narrativa"></cite>: la intensidad
+            \\(\\lambda\\), los puntos esperados por unidad de área, y cómo se estima.</li>
+          <li data-afirma="c1-m11-06"><cite class="cita" data-ref="baddeley2015spatial" data-loc="§8.2" data-modo="narrativa"></cite>: las distancias
+            al vecino más próximo y el índice de Clark-Evans.</li>
+          <li data-afirma="c1-m11-07"><cite class="cita" data-ref="moraga2019geospatial" data-loc="§5.1" data-modo="narrativa"></cite>: la matriz
+            de vecindad y sus elementos \\(w_{{ij}}\\), que conectan las áreas y se pueden leer como
+            pesos.</li>
+          <li data-afirma="c1-m11-08"><cite class="cita" data-ref="pebesma2023spatial" data-loc="§15.1" data-modo="narrativa"></cite>: la fórmula de
+            la I de Moran y su prueba.</li>
+          <li data-afirma="c1-m11-09"><cite class="cita" data-ref="pebesma2023spatial" data-loc="§15.3" data-modo="narrativa"></cite>: el estadístico
+            local de Getis-Ord y su forma \\(G_i^*\\).</li>
+          <li data-afirma="c1-m11-10"><cite class="cita" data-ref="pebesma2023spatial" data-loc="§17.1" data-modo="narrativa"></cite>: el modelo de
+            rezago espacial y su coeficiente, que allí se escribe con un subíndice.</li>
+        </ul>
+      </div>
+""" + CIERRE_FUENTES
 
 
 # =====================================================================
@@ -3773,7 +4091,8 @@ MOD12 = cabecera(
           </thead>
           <tbody>
             <tr><th scope="row">Muertes y bombas de Soho, 1854</th><td>{sn['n_muertes']} y {sn['n_bombas']}</td>
-              <td>John Snow, digitalizado por <strong>Dodson</strong> y <strong>Tobler</strong> (NCGIA, 1992)</td>
+              <td>John Snow; digitalizado por <strong>Dodson</strong> (NCGIA, 1992) y tomado de
+                <strong>Tobler</strong> (1994)</td>
               <td><code>HistData</code></td></tr>
             <tr><th scope="row">{pc['japanesepines']['nombre']}</th><td>{pc['japanesepines']['n']}</td>
               <td><strong>{pc['japanesepines']['fuente'].split(', vía')[0]}</strong></td>
@@ -3802,11 +4121,35 @@ MOD12 = cabecera(
               <td>datos.gov.co</td></tr>
           </tbody>
         </table>
+        <p>La columna «Origen» de los conjuntos clásicos repite lo que dice de cada uno la ayuda del paquete
+          que lo distribuye; lo que se pudo leer además en los libros va con su cita.
+          <span data-afirma="c1-m12-10">Según la ayuda de <code>HistData</code>
+          <cite class="cita" data-ref="friendly2009histdata"></cite>, el plano de Snow lo digitalizó Dodson en 1992, y el
+          paquete da como fuente a Tobler (1994)</span>.
+          <span data-afirma="c1-m12-11">Según la de <code>spatstat.data</code>
+          <cite class="cita" data-ref="baddeley2017spatstatdata"></cite>, los pinos los recogió Numata (1961)</span>; <span data-afirma="c1-m12-14">no es el trabajo
+          posterior del mismo autor que cita el libro de Baddeley, donde el conjunto descrito es mayor
+          <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 4; p. 244; p. 779"></cite></span>.
+          <span data-afirma="c1-m12-07">Las secuoyas son un dato de
+          <cite class="cita" data-ref="strauss1975model" data-via="baddeley2015spatial" data-loc="p. 189" data-modo="narrativa"></cite>, del que
+          <cite class="cita" data-ref="ripley1977modelling" data-via="baddeley2015spatial" data-loc="p. 189" data-modo="narrativa"></cite> tomó el
+          subconjunto que se usa</span>. <span data-afirma="c1-m12-08">Las células vienen de
+          <cite class="cita" data-ref="ripley1977modelling" data-via="baddeley2015spatial" data-loc="p. 157" data-modo="narrativa"></cite> y de un libro
+          posterior del mismo autor</span>; <span data-afirma="c1-m12-12">las registraron Crick y Ripley
+          <cite class="cita" data-ref="baddeley2017spatstatdata"></cite></span>. <span data-afirma="c1-m12-09">Los conteos de Carolina del
+          Norte son los de 1974 a 1978: <cite class="cita" data-ref="cressie1993statistics" data-loc="p. 383; p. 390" data-modo="narrativa"></cite>
+          los analiza, y dice que los habían presentado y ampliado otros trabajos</span>.
+          <span data-afirma="c1-m12-13">Los datos del Mosa los tomaron en campo Van Rijn y Rikken, cuyo
+          informe es de 1993, y los preparó para R Pebesma; la ayuda da también como referencia el libro de
+          Burrough y McDonnell <cite class="cita" data-ref="pebesma2005sp"></cite></span>.</p>
         <p style="margin-bottom:0;">Una fuente <strong>descartada</strong>, y se dice por qué: las sedes educativas
           nacionales del Ministerio de Educación Nacional traen coordenadas con dos decimales —1.1 km de
           resolución—, y en Bogotá las sedes con coordenada colapsaban en unos pocos cientos de posiciones
           distintas. Eso no es un patrón puntual, es una retícula de redondeo, y las funciones del capítulo 4
-          estarían midiendo el redondeo. No se construye material sobre coordenadas que no se sostienen, por
+          estarían midiendo el redondeo. <span data-afirma="c1-m12-05">No es un escrúpulo: discretizar las
+          coordenadas es una de las causas corrientes de los puntos duplicados, y puede fabricar una
+          regularidad aparente que es un artefacto del tratamiento del dato
+          <cite class="cita" data-ref="baddeley2015spatial" data-loc="p. 146; p. 210"></cite></span>. No se construye material sobre coordenadas que no se sostienen, por
           conveniente que sea el resto de sus campos.</p>
       </div>
 
@@ -3824,10 +4167,14 @@ MOD12 = cabecera(
           <li data-afirma="c1-m12-02"><cite class="cita" data-ref="baddeley2015spatial" data-loc="cap. 3" data-modo="narrativa"></cite>,
             el objeto <code>ppp</code> y la ventana, y
             <cite class="cita" data-ref="baddeley2015spatial" data-loc="cap. 6" data-modo="narrativa"></cite>, la intensidad.</li>
-          <li><cite class="cita" data-ref="cressie1993statistics" data-modo="narrativa"></cite>, para la teoría de los tres
-            tipos de dato con más profundidad que este curso.</li>
+          <li><span data-afirma="c1-m12-06"><cite class="cita" data-ref="cressie1993statistics" data-loc="§1.1" data-modo="narrativa"></cite>, el modelo
+            general del que los tres tipos de dato son casos particulares</span>. Va con más profundidad que
+            este curso.</li>
           <li><cite class="cita" data-ref="bivand2013applied" data-modo="narrativa"></cite>, el ecosistema de paquetes
             de R espacial.</li>
+          <li><cite class="cita" data-ref="gehlke1934certain" data-modo="narrativa"></cite>, un artículo temprano
+            sobre lo que agrupar unidades le hace al tamaño de un coeficiente de correlación, el asunto del
+            módulo 7. Va como lectura: no se ha podido consultar para este capítulo.</li>
           <li><cite class="cita" data-ref="tobler1970computer" data-modo="narrativa"></cite>, el artículo de la primera ley.
             <span data-afirma="c1-m12-03">Que llamarla «ley» es prematuro lo recogen
             <cite class="cita" data-ref="pebesma2023spatial" data-loc="§15.1" data-modo="narrativa"></cite>.</span></li>
@@ -3846,7 +4193,7 @@ MOD12 = cabecera(
         <code>sf</code>. Ahí se mide lo que cuesta cada equivocación al poner un dato en su
         sitio, que es el paso que todo este capítulo daba por hecho.</p>
       </div>
-""" + CIERRE
+""" + CIERRE_FUENTES
 
 # El enlace de arriba NO es cosmético. `enlaces()` de audita_texto_base
 # está escrita para ARMARSE SOLA en cuanto aparece un hermano publicado
@@ -3884,19 +4231,19 @@ MODULOS = (MOD1 + MOD2 + MOD3 + MOD4 + MOD5 + MOD6 + MOD7 + MOD8 + MOD9
 # total, con y sin los seis paneles, lo imprime el medidor: aquí no se
 # copia, para que no se quede viejo.
 MODULOS_NAV = [
-    ("El mapa que cambió la epidemiología", "30 min"),
-    ("Los tres tipos de dato espacial", "31 min"),
-    ("La primera ley de Tobler", "28 min"),
-    ("Por qué se rompe la inferencia clásica", "28 min"),
+    ("El mapa que cambió la epidemiología", "32 min"),
+    ("Los tres tipos de dato espacial", "33 min"),
+    ("La primera ley de Tobler", "31 min"),
+    ("Por qué se rompe la inferencia clásica", "29 min"),
     ("Tamaño de muestra efectivo", "14 min"),
     # R3 · T3.2 (H-20): el mismo título que la cabecera del módulo.
-    ("Estacionariedad, isotropía y una sola realización", "13 min"),
-    ("Escala, soporte y agregación", "22 min"),
-    ("El ecosistema de R espacial", "13 min"),
-    ("Anatomía de un objeto sf", "5 min"),
-    ("Dependencia espacial en ciencia de datos", "14 min"),
-    ("Glosario de notación del curso", "8 min"),
-    ("Autoevaluación y ejercicios guiados", "19 min"),
+    ("Estacionariedad, isotropía y una sola realización", "14 min"),
+    ("Escala, soporte y agregación", "24 min"),
+    ("El ecosistema de R espacial", "16 min"),
+    ("Anatomía de un objeto sf", "6 min"),
+    ("Dependencia espacial en ciencia de datos", "18 min"),
+    ("Glosario de notación del curso", "10 min"),
+    ("Autoevaluación y ejercicios guiados", "21 min"),
 ]
 
 _mods = ",\n".join(
@@ -5767,7 +6114,7 @@ SIMULADORES_JS = r"""
       const lee = () => {
         if (snowModo === 'todas') {
           lectura(raiz, [['bombas', s.n_bombas],
-            ['un color por bomba', 'trece categorías: más de las que una paleta cualitativa separa'],
+            ['un color por bomba', 'una categoría por bomba: en este mapa cuesta distinguirlas todas de un vistazo'],
             ['en naranja', 'Broad Street: sus muertes y su rombo, como en la otra vista'],
             ['a trazos', 'la celda de cada bomba: lo que le queda más cerca que cualquier otra']]);
         } else if (snowModo === 'sinlineas') {
@@ -7132,7 +7479,7 @@ QUIZ_JS = r"""
             retro: 'De los ' + D1.escala_correlacion.n_pares + ' pares reales del capítulo, en '
               + D1.escala_correlacion.n_suben + ' la correlación se aleja del cero al agregar y en '
               + D1.escala_correlacion.n_bajan + ' se acerca a él: se cuenta su valor absoluto. '
-              + 'Cambiar de signo también puede pasar —el capítulo 3 lo cuenta con Robinson—, pero el único '
+              + 'Cambiar de signo también puede pasar —el capítulo 3 vuelve sobre ello con la falacia ecológica—, pero el único '
               + 'par del módulo que lo hace, ' + D1.escala_correlacion.caso_aviso.a_corta + ' × '
               + D1.escala_correlacion.caso_aviso.b_corta + ', no aguanta el barrido.' },
           { texto: 'La cifra departamental es la buena, porque tiene menos ruido.', correcta: false,
@@ -7157,7 +7504,7 @@ QUIZ_JS = r"""
               + 'con la distancia. La otra es del mapa: para aprovechar la ergodicidad con una sola realización, '
               + 'la región tiene que ser grande frente al alcance de la covarianza. Módulo 6.' },
           { texto: 'Verdadero: los datos hablan por sí solos', correcta: false,
-            retro: 'Es el problema fundamental de la disciplina, no un tecnicismo. Módulo 6.' }
+            retro: 'Es un problema de fondo, no un tecnicismo. Módulo 6.' }
         ],
         retroAcierto: 'Y el precio de suponerla se ve en el módulo 3: una tendencia no declarada —la altitud— se '
           + 'contabiliza como dependencia.',
@@ -7180,7 +7527,7 @@ QUIZ_JS = r"""
             retro: 'El R² del ejemplo pasa de ' + n5(D1.cv_espacial.r2_aleatoria) + ' a '
               + n5(D1.cv_espacial.r2_bloques) + '. No es igual. Módulo 10.' },
           { texto: 'Depende del algoritmo: con árboles no pasa.', correcta: false,
-            retro: 'Pasa con cualquier algoritmo. La fuga la pone el reparto de los pliegues, no el modelo.' }
+            retro: 'No depende de que sean árboles. La fuga la pone el reparto de los pliegues, y alcanza a todo método que trate las observaciones como independientes: la mayoría de los de aprendizaje automático lo hace.' }
         ],
         retroAcierto: 'Y el remedio no es "usar siempre bloques": es saber a qué pregunta responde cada reparto.',
         retroFallo: 'Módulo 10.'
@@ -7259,7 +7606,7 @@ QUIZ_JS = r"""
             retro: 'Están bien: coinciden con los polígonos de Thiessen en '
               + D1.snow.n_coinciden_tobler + ' de ' + D1.snow.n_muertes + '.' },
           { texto: 'Que la teoría del aire viciado era la correcta.', correcta: false,
-            retro: 'Nada de esto rehabilita el miasma. Lo que dice es que ESTE dato no prueba lo que se le atribuye.' }
+            retro: 'Nada de esto rehabilita la teoría del aire viciado. Lo que dice es que ESTE dato no prueba lo que se le atribuye.' }
         ],
         retroAcierto: 'El argumento de Snow es geométrico: una concentración alrededor de un punto.',
         retroFallo: 'Módulo 1, la segunda mitad.'
@@ -7282,7 +7629,7 @@ QUIZ_JS = r"""
             retro: 'No desaparece: queda ' + n5(D1.tobler.residuos_altitud.bandas[0].I) + ', que sigue siendo '
               + 'mucho. Baja, no se anula.' }
         ],
-        retroAcierto: 'Y eso anuncia el capítulo 9: el kriging con deriva externa.',
+        retroAcierto: 'Y eso anuncia el capítulo 9: el kriging universal, con la covariable en la media.',
         retroFallo: 'Las dos ciertas son que buena parte de la dependencia la explica la altitud y que permutar las temperaturas entre las mismas estaciones desploma la I. Módulo 3.'
       },
       {
@@ -7391,8 +7738,9 @@ QUIZ_JS = r"""
             retro: 'No: la documentada tiene su causa dicha y está en la lista de las conocidas; la que no está '
               + 'en la lista es un error hasta que se explique. Ésa es la diferencia entre material didáctico y un error.' },
           { texto: 'Las discrepancias vienen de que GDAL y GEOS son distintos en cada lenguaje.', correcta: false,
-            retro: 'Son las MISMAS bibliotecas: R y Python las llaman a las dos. El desacuerdo está en la capa de '
-              + 'arriba. Módulo 8.' }
+            retro: 'GDAL y GEOS son las mismas bibliotecas en los dos lenguajes, no una por lenguaje. Las dos '
+              + 'discrepancias de este módulo están en la capa de arriba. Donde R sí puede usar otra biblioteca '
+              + 'es con longitud y latitud, que sf opera con s2. Módulo 8.' }
         ],
         retroAcierto: 'Ante una diferencia, la primera pregunta es «¿estamos midiendo lo mismo?».',
         retroFallo: 'Las dos ciertas son la del tipo de la CAPA frente al de cada rasgo y la de las unidades sin vecinos en la I de Moran. Módulo 9.'
@@ -7405,7 +7753,8 @@ QUIZ_JS = r"""
         opciones: [
           { texto: 'Falso: depende de la pregunta', correcta: true,
             retro: 'La de bloques responde a «¿cuánto me fío en una zona donde no he medido?». Si la pregunta '
-              + 'fuera rellenar huecos entre estaciones existentes, la aleatoria sería la adecuada.' },
+              + 'fuera por sitios que se parecen a los de la muestra, como los huecos entre estaciones que ya '
+              + 'existen, la aleatoria es la que más se le acerca.' },
           { texto: 'Verdadero: con coordenadas, siempre bloques', correcta: false,
             retro: 'Es la conclusión fácil de un módulo que se pasa midiendo lo mal que sale la aleatoria. Pero '
               + 'elegir el reparto es declarar a qué pregunta se responde, y hacerlo por defecto es responder a '

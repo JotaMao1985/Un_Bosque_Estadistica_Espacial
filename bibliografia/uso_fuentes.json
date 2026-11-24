@@ -1,7 +1,7 @@
 {
   "norma": 1,
   "curso": 20929,
-  "generado": "2026-11-23",
+  "generado": "2026-11-24",
   "obras": {
     "anselin1988spatial": {
       "rol": "primaria",
@@ -58,10 +58,22 @@
       "capitulos": [
         1
       ],
+      "citas": 20,
+      "afirmaciones": {
+        "con-matiz": 4,
+        "respaldada": 18
+      }
+    },
+    "baddeley2017spatstatdata": {
+      "rol": "datos",
+      "ejemplar": true,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
       "citas": 3,
       "afirmaciones": {
-        "con-matiz": 1,
-        "respaldada": 2
+        "respaldada": 3
       }
     },
     "bedford1997remark": {
@@ -121,7 +133,7 @@
       "capitulos": [
         1
       ],
-      "citas": 1,
+      "citas": 2,
       "afirmaciones": {}
     },
     "cox1981reflexive": {
@@ -139,8 +151,10 @@
       "capitulos": [
         1
       ],
-      "citas": 1,
-      "afirmaciones": {}
+      "citas": 25,
+      "afirmaciones": {
+        "respaldada": 26
+      }
     },
     "cronie2018non": {
       "rol": "primaria",
@@ -206,6 +220,18 @@
       "citas": 0,
       "afirmaciones": {}
     },
+    "dunnington2016s2": {
+      "rol": "datos",
+      "ejemplar": true,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 1,
+      "afirmaciones": {
+        "respaldada": 1
+      }
+    },
     "epanechnikov1969non": {
       "rol": "primaria",
       "ejemplar": false,
@@ -213,6 +239,18 @@
       "capitulos": [],
       "citas": 0,
       "afirmaciones": {}
+    },
+    "friendly2009histdata": {
+      "rol": "datos",
+      "ejemplar": true,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 3,
+      "afirmaciones": {
+        "respaldada": 3
+      }
     },
     "geary1954contiguity": {
       "rol": "primaria",
@@ -226,8 +264,10 @@
       "rol": "primaria",
       "ejemplar": false,
       "edicion_comprobada": null,
-      "capitulos": [],
-      "citas": 0,
+      "capitulos": [
+        1
+      ],
+      "citas": 1,
       "afirmaciones": {}
     },
     "getis1992analysis": {
@@ -277,9 +317,9 @@
       "capitulos": [
         1
       ],
-      "citas": 1,
+      "citas": 6,
       "afirmaciones": {
-        "respaldada": 1
+        "respaldada": 6
       }
     },
     "moran1950notes": {
@@ -314,6 +354,30 @@
       "citas": 0,
       "afirmaciones": {}
     },
+    "pebesma2005sp": {
+      "rol": "datos",
+      "ejemplar": true,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 2,
+      "afirmaciones": {
+        "respaldada": 2
+      }
+    },
+    "pebesma2016sf": {
+      "rol": "datos",
+      "ejemplar": true,
+      "edicion_comprobada": null,
+      "capitulos": [
+        1
+      ],
+      "citas": 2,
+      "afirmaciones": {
+        "respaldada": 2
+      }
+    },
     "pebesma2018simple": {
       "rol": "datos",
       "ejemplar": false,
@@ -329,10 +393,10 @@
       "capitulos": [
         1
       ],
-      "citas": 3,
+      "citas": 44,
       "afirmaciones": {
-        "con-matiz": 1,
-        "respaldada": 2
+        "con-matiz": 2,
+        "respaldada": 42
       }
     },
     "peng2008statistical": {
@@ -355,8 +419,10 @@
       "rol": "primaria",
       "ejemplar": false,
       "edicion_comprobada": null,
-      "capitulos": [],
-      "citas": 0,
+      "capitulos": [
+        1
+      ],
+      "citas": 2,
       "afirmaciones": {}
     },
     "roberts2017crossvalidation": {
@@ -435,9 +501,14 @@
       "rol": "primaria",
       "ejemplar": true,
       "edicion_comprobada": "Portada (p. 5 del PDF): «Second Edition, much Enlarged», London, John Churchill, MDCCCLV (1855). Prefacio a la segunda edición en la p. 7 del PDF.",
-      "capitulos": [],
-      "citas": 0,
-      "afirmaciones": {}
+      "capitulos": [
+        1
+      ],
+      "citas": 6,
+      "afirmaciones": {
+        "respaldada": 5,
+        "con-matiz": 1
+      }
     },
     "snyder1987map": {
       "rol": "primaria",
@@ -451,8 +522,10 @@
       "rol": "primaria",
       "ejemplar": false,
       "edicion_comprobada": null,
-      "capitulos": [],
-      "citas": 0,
+      "capitulos": [
+        1
+      ],
+      "citas": 1,
       "afirmaciones": {}
     },
     "tobler1970computer": {

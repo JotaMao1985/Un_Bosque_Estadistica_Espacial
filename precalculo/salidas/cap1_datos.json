@@ -160,7 +160,7 @@
   },
   "area_canonico": {
     "nombre": "SIDS de Carolina del Norte, 1974-78",
-    "fuente": "Cressie (1993) / Bivand, Pebesma y Gómez-Rubio (2013), vía sf",
+    "fuente": "Analizados en Cressie (1993), vía sf",
     "n": 100,
     "sid74_total": 667,
     "bir74_total": 329962,
@@ -2057,7 +2057,46 @@
       "GDAL": "3.8.5",
       "GEOS": "3.13.0",
       "PROJ": "9.5.1"
-    }
+    },
+    "necesitan_sf": [
+      "spdep",
+      "gstat",
+      "tmap",
+      "spatialreg",
+      "stars",
+      "sfdep"
+    ],
+    "sin_sf": [
+      "spatstat",
+      "terra",
+      "classInt"
+    ],
+    "licencias_datos": [
+      {
+        "archivo": "cap1_snow.csv",
+        "paquete": "HistData",
+        "licencia": "GPL",
+        "version": "1.0.0"
+      },
+      {
+        "archivo": "cap1_japanesepines.csv",
+        "paquete": "spatstat.data",
+        "licencia": "GPL (>= 2)",
+        "version": "3.1.9"
+      },
+      {
+        "archivo": "cap1_meuse.csv",
+        "paquete": "sp",
+        "licencia": "GPL (>= 2)",
+        "version": "2.2.0"
+      },
+      {
+        "archivo": "cap1_nc.gpkg",
+        "paquete": "sf",
+        "licencia": "GPL-2 | MIT + file LICENSE",
+        "version": "1.0.22"
+      }
+    ]
   },
   "anatomia": {
     "nc": {
@@ -2121,6 +2160,30 @@
     "brecha_c": 2.5694814919,
     "alt_media_simple": 1097.2576177285,
     "alt_media_area": 478.9926127487,
+    "bajas": {
+      "umbral_m": 200,
+      "n": 90,
+      "pct_red": 24.9307479224,
+      "pct_area": 60.0122279192,
+      "razon_territorio": 4.5189685968
+    },
+    "mayores": {
+      "k": 10,
+      "pct_area": 39.5304975517,
+      "alt_media": 140.7,
+      "alt_max": 248,
+      "t_media": 26.36,
+      "departamentos": [
+        "Amazonas",
+        "Arauca",
+        "Guainía",
+        "Guaviare",
+        "Meta",
+        "Putumayo",
+        "Vaupés",
+        "Vichada"
+      ]
+    },
     "referencia_uniforme": {
       "n_muestras": 1000,
       "n_puntos": 361,
@@ -2136,7 +2199,7 @@
   },
   "glosario": {
     "titulo": "Notación de Estadística Espacial",
-    "nota": "La notación unificada de los diez capítulos. La columna «Texto guía» remite a Bivand, Pebesma y Gómez-Rubio (2013) para datos de área y geoestadística, y a Baddeley, Rubak y Turner (2015) para patrones puntuales.",
+    "nota": "La notación unificada de los diez capítulos. La columna «Texto guía» remite a Cressie (1993) para el modelo general, la covarianza y el variograma; a Pebesma y Bivand (2023) y a Moraga (2019) para datos de área; y a Baddeley, Rubak y Turner (2016) para patrones puntuales.",
     "columnas": [
       {
         "clave": "simbolo",
@@ -2163,19 +2226,19 @@
       {
         "simbolo": "s",
         "nombre": "Una localización del dominio",
-        "guia": "Bivand §1.2",
+        "guia": "Cressie §1.1",
         "en_r": "st_coordinates()"
       },
       {
         "simbolo": "D",
         "nombre": "El dominio de estudio, \\(D \\subset \\mathbb{R}^2\\). En un patrón puntual, la región que de verdad se observa es la ventana \\(W\\). En el cap. 6, \\(D\\) es la matriz diagonal de los grados, \\(\\operatorname{diag}(d_1, \\dots, d_n)\\)",
-        "guia": "Bivand §1.2",
+        "guia": "Cressie §1.1",
         "en_r": "st_bbox()"
       },
       {
         "simbolo": "Z(s)",
         "nombre": "El valor del proceso en la localización s",
-        "guia": "Bivand §8.1",
+        "guia": "Cressie §1.1",
         "en_r": "x$variable"
       },
       {
@@ -2277,19 +2340,19 @@
       {
         "simbolo": "h",
         "nombre": "Vector (o distancia) de separación entre dos localizaciones",
-        "guia": "Bivand §8.4",
+        "guia": "Cressie §2.3.1",
         "en_r": "st_distance()"
       },
       {
         "simbolo": "C(h)",
         "nombre": "Covarianza entre dos puntos separados h",
-        "guia": "Bivand §8.4",
+        "guia": "Cressie §2.3",
         "en_r": "gstat::variogram()"
       },
       {
         "simbolo": "\\gamma(h)",
         "nombre": "Semivariograma",
-        "guia": "Bivand §8.4",
+        "guia": "Cressie §2.3.1",
         "en_r": "gstat::variogram()"
       },
       {
@@ -2361,7 +2424,7 @@
       {
         "simbolo": "\\rho",
         "nombre": "Sin marca, este capítulo no la usa: aquí \\(\\rho\\) es siempre una correlación, \\(\\rho(h)\\), \\(\\rho_{ij}\\) o \\(\\bar{\\rho}\\). En el cap. 5, \\(\\rho(z)\\) es la intensidad en función de una covariable (<code>rhohat<\/code>). En el modelo SAR, que el árbol del módulo 8 sitúa en el cap. 8, todavía sin publicar, es el coeficiente del rezago espacial",
-        "guia": "Bivand §9.4",
+        "guia": "Pebesma §17.1",
         "en_r": "spatialreg::lagsarlm()"
       },
       {
@@ -2373,19 +2436,19 @@
       {
         "simbolo": "\\mathbf{W}",
         "nombre": "La matriz de pesos espaciales, de elementos \\(w_{ij}\\). En los caps. 6 y 7 se escribe \\(W\\), sin negrita",
-        "guia": "Bivand §9.2",
+        "guia": "Moraga §5.1",
         "en_r": "spdep::nb2listw()"
       },
       {
         "simbolo": "w_{ij}",
         "nombre": "El peso con que \\(j\\) entra en la vecindad de \\(i\\): el elemento \\((i, j)\\) de \\(\\mathbf{W}\\)",
-        "guia": "—",
+        "guia": "Moraga §5.1",
         "en_r": "—"
       },
       {
         "simbolo": "\\mathbf{W}y",
         "nombre": "Rezago espacial: la media de los vecinos",
-        "guia": "Bivand §9.3",
+        "guia": "—",
         "en_r": "spdep::lag.listw()"
       },
       {
@@ -2403,7 +2466,7 @@
       {
         "simbolo": "I",
         "nombre": "Índice de Moran (autocorrelación global). Se lee como una correlación entre vecinos, pero no lo es: su rango no es [−1, 1]",
-        "guia": "Bivand §9.3",
+        "guia": "Pebesma §15.1",
         "en_r": "spdep::moran.test()"
       },
       {
@@ -2421,7 +2484,7 @@
       {
         "simbolo": "G_i^*",
         "nombre": "Estadístico de Getis-Ord local",
-        "guia": "Bivand §9.3",
+        "guia": "Pebesma §15.3",
         "en_r": "spdep::localG()"
       }
     ]
@@ -2663,7 +2726,7 @@
     "capitulo": 1,
     "titulo": "Datos espaciales y la primera ley de la geografía",
     "semana": 1,
-    "generado": "2026-11-23",
+    "generado": "2026-11-24",
     "semilla": 2026,
     "r": "R version 4.4.1 (2024-06-14)",
     "anclas_verificadas": 29

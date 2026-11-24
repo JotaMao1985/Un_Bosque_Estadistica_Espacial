@@ -31,6 +31,15 @@ cressie1993statistics:
   procedencia: PDF entregado por Javier el 2026-11-23 (archivo cressie1993.pdf en la carpeta del curso), copiado
     al corpus con el nombre de su clave.
   sha256: 77c10aa84765979b61ee2569ddc7ad096466efcafef305a7afd2f80cb99cdb6d
+  tramos:
+  - [19, 43, 17]
+  - [52, 225, 16]
+  - [227, 290, 15]
+  - [292, 393, 14]
+  - [402, 585, 12]
+  - [596, 733, 10]
+  - [739, 894, 9]
+  - [896, 908, 8]
 mas2018analisis:
   archivo: mas2018analisis.pdf
   desfase: 10
@@ -57,3 +66,7 @@ snow1855mode:
   procedencia: Escaneo de la Wellcome Library en archive.org (https://archive.org/details/b28985266),
     marca de dominio público; descargado el 2026-11-12 con autorización de Javier.
   sha256: d72c12480a292aee9968629a8f6be999db8a0f5592b52118b455756eeb0f01c1
+  tramos:
+  - [14, 59, 12]
+  - [60, 90, 14]
+  - [91, 214, 16]

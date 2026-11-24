@@ -65,7 +65,7 @@ import yaml
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from fuentes_config import ALMACEN_ZOTERO as ALMACEN, BIB, CORPUS as LOCAL, RAIZ  # noqa: E402
-MANUALES = ("edicion_comprobada", "desfase", "procedencia", "nota")
+MANUALES = ("edicion_comprobada", "desfase", "tramos", "procedencia", "nota")
 AGENTE = "auditor-bibliografico/0.1"
 
 

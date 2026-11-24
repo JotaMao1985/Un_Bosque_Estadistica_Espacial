@@ -491,18 +491,174 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
          "las dos ventanas son válidas, y",
          "una es la de una ventana y la otra la de un recorte, y"),
         ("el módulo 6 vuelve a poner al browniano como proceso sin varianza finita",
-         "pero no al revés. El ejemplo de siempre",
-         "y un proceso puede ser intrínseco sin tener varianza finita. El ejemplo de siempre"),
+         "pero no al revés. Un ejemplo",
+         "y un proceso puede ser intrínseco sin tener varianza finita. Un ejemplo"),
         ("el módulo 6 vuelve a decir «el movimiento browniano lo es»",
-         "pero no al revés. El ejemplo de siempre",
-         "pero no al revés —el movimiento browniano lo es—. El ejemplo de siempre"),
+         "pero no al revés. Un ejemplo",
+         "pero no al revés —el movimiento browniano lo es—. Un ejemplo"),
+        # --- R4 · T4.2, tramo A (2026-11-23): lo que el corpus contradice.
+        # Una inyección por frase retirada, y una por la que la sustituye.
+        ("el módulo 1 vuelve a dar a Snow por «la primera vez»",
+         "una de ellas —si un puñado",
+         "la primera vez que alguien contestó una de ellas —si un puñado"),
+        ("el módulo 1 vuelve a decir que dibujar los muertos «no era un método»",
+         "El dibujo llega después, y no como",
+         "Snow hace algo que entonces no era un método, y no como"),
+        ("el módulo 1 vuelve a decir que Snow no tenía con qué demostrarlo",
+         "Snow sospecha del agua de la bomba de Broad",
+         "Snow sospecha del agua, no tiene con qué demostrarlo, y mira la bomba de Broad"),
+        ("el módulo 3 vuelve a negar que la corrección de borde sea un ajuste empírico",
+         "viene la necesidad de corregir",
+         "y no de ningún ajuste empírico, viene la corrección"),
+        ("el módulo 3 deja de decir que la corrección de borde es un ajuste empírico",
+         "es un ajuste empírico, y no se generaliza",
+         "se deduce del borde, y se generaliza"),
+        ("el módulo 3 vuelve a atribuir la aproximación normal a la prueba de Clark-Evans",
+         "pero es la aproximación que usa <code>clarkevans.test</code>",
+         "pero es la aproximación que usa la prueba de Clark-Evans"),
+        ("el módulo 6 vuelve a decir que la intrínseca es «más usada»",
+         "más débil, y por eso más general",
+         "más débil, y por eso más usada"),
+        # --- R4 · T4.2, tramo A, ronda 2 (2026-11-24): lo que la prosa
+        # atribuía de más a la obra citada, una inyección por frase.
+        ("el módulo 1 vuelve a poner en Snow «poco más de un mes»",
+         "muertes de cólera en seis semanas", "muertes de cólera en poco más de un mes"),
+        ("el módulo 3 vuelve a atribuir a Baddeley que el ojo juzga mal «¿está agrupado?»",
+         "no se contesta mirando. <span",
+         "no se contesta mirando: el ojo la juzga mal, y hace falta un análisis objetivo. <span"),
+        ("el módulo 3 vuelve a meter el nombre de Slivnyak dentro de lo citado",
+         "con el nombre de <strong>teorema de Slivnyak</strong>.",
+         "y es el <strong>teorema de Slivnyak</strong>, que el capítulo 4 enuncia en su módulo 7."),
+        ("el módulo 4 vuelve a decir «casi siempre falso»",
+         "a menudo no es realista", "es casi siempre falso"),
+        ("el módulo 6 vuelve a decir que la intrínseca no pide nada del proceso",
+         "Pide dos cosas: que la media sea la misma",
+         "No pide nada del proceso en sí. Pide dos cosas: que la media sea la misma"),
+        ("el módulo 6 vuelve a llamar a la realización única el problema fundamental de la disciplina",
+         "es un problema de fondo, no una limitación",
+         "es el problema fundamental de la disciplina, no una limitación"),
+        # R4 · T4.2, tramo B: el texto de partida de estos dos cambió (la frase
+        # del diseño lleva ahora sus citas); el defecto inyectado es el mismo.
         ("el módulo 10 vuelve a decir que la media muestral estima la poblacional, y punto",
-         "ningún modelo: sumar cada observación",
-         "ningún modelo: la media muestral estima la media poblacional, y punto. Cabe sumar cada "
-         "observación"),
+         "iguales, cada observación entra con un peso.",
+         "iguales, da igual: la media muestral estima la media poblacional, y punto."),
         ("el módulo 10 vuelve a describir Horvitz–Thompson como una media ponderada",
-         "ningún modelo: sumar cada observación dividida por su probabilidad de inclusión, y",
-         "ningún modelo: basta ponderar cada observación por la inversa de su probabilidad, y"),
+         "iguales, cada observación entra con un peso.",
+         "iguales, basta ponderar cada observación por la inversa de su probabilidad."),
+        # --- R4 · T4.2, tramo B (2026-11-23): módulos 3 y 7 a 12. Una
+        # inyección por frase retirada y una por la que la sustituye.
+        ("el módulo 3 da la regularidad de las células por repulsión, sin el aviso del tamaño",
+         "puede ser solo un artefacto de ese tamaño",
+         "es la prueba de que las células se repelen"),
+        ("el módulo 7 vuelve a llamar «efecto Gehlke–Biehl» a lo que hace agregar",
+         "<h3>Por qué sube al agregar: lo que el promedio le hace al ruido</h3>",
+         "<h3>Por qué sube al agregar: el efecto Gehlke–Biehl</h3>"),
+        ("el módulo 7 pierde el porqué de que agregar suba la correlación",
+         "<h3>Por qué sube al agregar: lo que el promedio le hace al ruido</h3>",
+         "<h3>Lo que el promedio le hace al ruido</h3>"),
+        ("el módulo 7 vuelve a dar por falsa la versión corta del MAUP",
+         "se hace más fuerte»— no es una ley: describe",
+         "se hace más fuerte»— es falsa: describe"),
+        ("el módulo 7 deja de decir que la versión corta no es una ley",
+         "no es una ley: describe lo que pasa de ordinario",
+         "es lo que pasa de ordinario"),
+        ("el módulo 8 vuelve a decir que R y Python llaman a la misma biblioteca, sin más",
+         "<strong>¿Llaman R y Python a la misma biblioteca? Depende de las coordenadas.</strong>",
+         "<strong>R y Python dan lo mismo porque están llamando <em>a la misma biblioteca</em>.</strong>"),
+        ("el cuestionario vuelve a decir que son las MISMAS bibliotecas, sin más",
+         "GDAL y GEOS son las mismas bibliotecas en los dos lenguajes, no una por lenguaje.",
+         "Son las MISMAS bibliotecas: R y Python las llaman a las dos."),
+        ("el módulo 8 vuelve a contar tres bibliotecas de sistema",
+         "<h3>Las bibliotecas de sistema, que son",
+         "<h3>Las tres bibliotecas de sistema, que son"),
+        ("el módulo 8 deja de decir que con longitud y latitud sf opera con s2",
+         "con s2geometry, que trabaja sobre la esfera",
+         "con GEOS, igual que en el plano"),
+        ("el módulo 9 vuelve a decir que sf se comió a sp por una decisión de diseño",
+         "se hizo para suceder y reemplazar a",
+         "es la decisión de diseño que hizo que se comiera a"),
+        ("el módulo 10 vuelve a decir que la validación cruzada aleatoria miente, sin el «puede»",
+         "la validación cruzada aleatoria puede mentir</strong>",
+         "la validación cruzada aleatoria miente</strong>"),
+        ("el módulo 10 vuelve a decir por qué se puso cada estación donde está",
+         "El dato no dice que las estaciones se sortearan",
+         "La red se ubicó donde había cómo llegar y a quién servir"),
+        ("el glosario vuelve a dar sección a una obra sin ejemplar",
+         '"guia": "Cressie §1.1"', '"guia": "Bivand §1.2"'),
+        # --- R4 · T4.2, tramo B, ronda 2 (2026-11-24): una inyección por
+        # atribución retirada tras la verificación y la ayuda de los paquetes.
+        ("el módulo 12 vuelve a decir que Tobler digitalizó el plano de Snow",
+         "digitalizado por <strong>Dodson</strong> (NCGIA, 1992) y tomado de",
+         "digitalizado por <strong>Dodson</strong> y <strong>Tobler</strong> (NCGIA, 1992), de"),
+        ("el módulo 7 vuelve a decir que la zonificación no cambia el tamaño",
+         "al formar las unidades de otra manera, con otra forma, a la",
+         "al cambiar la forma de las unidades sin cambiar su tamaño, a la"),
+        ("el módulo 8 vuelve a atribuir el orden de los capítulos a Pebesma §10.2",
+         "Son los mismos tres grupos en que", "Es también el orden de los capítulos en que"),
+        ("el módulo 10 vuelve a definir la validación espacial como reparto por bloques",
+         "Aquí se toma como una forma de validación cruzada espacial.",
+         "Repartir así es una forma de validación cruzada espacial."),
+        ("el módulo 10 vuelve a dar garantía a la validación aleatoria",
+         "Esa respuesta tiene respaldo, pero en un caso que no es el de esta red.",
+         "Garantía, solo la tiene en un caso que no es el de esta red."),
+        ("el módulo 10 vuelve a llamar vieja a la controversia",
+         "hay una controversia en la teoría clásica del muestreo",
+         "hay una controversia vieja en la teoría clásica del muestreo"),
+        ("el glosario vuelve a remitir la matriz de pesos a Pebesma §14.5",
+         '"guia": "Moraga §5.1"', '"guia": "Pebesma §14.5"'),
+        # --- R4, ronda 3 (V5, 2026-11-24). Las PROHIBIDAS de R4 cazaban solo la
+        # frase vieja literal: volver a decir lo retirado con otras palabras
+        # pasaba limpio. Se anclaron a la atribución o a la afirmación falsa, y
+        # aquí va una paráfrasis por guarda tocada. Todas entran por el mismo
+        # sitio, el párrafo que abre el módulo 1 tras la diagnóstica.
+        ("paráfrasis: la validación aleatoria «siempre miente»",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>La validación cruzada aleatoria siempre miente. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: la validación «al azar» miente",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>La validación cruzada al azar miente. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: tres bibliotecas, sin más",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>Debajo hay tres bibliotecas que hacen el trabajo pesado. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: R y Python llaman siempre a la misma biblioteca",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>R y Python llaman siempre a la misma biblioteca. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: el efecto de Gehlke y Biehl",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>Es el efecto de Gehlke y Biehl. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: la corrección de Donnelly no es un ajuste empírico",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>La corrección de Donnelly no es un ajuste empírico. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: la aproximación normal la propusieron Clark y Evans",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>La aproximación normal la propusieron Clark y Evans. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: la red del IDEAM se puso donde había carreteras",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>La red del IDEAM se puso donde había carreteras y gente a quien servir. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: la primera vez que se contestó una pregunta espacial",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>Fue la primera vez que se contestó una pregunta espacial. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: al agregar, la correlación siempre se hace más fuerte",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>Al agregar, la correlación siempre se hace más fuerte. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: Tobler digitalizó el plano",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>El plano lo digitalizó Dodson, y antes Tobler digitalizó las bombas. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: sf se comió a sp",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>Así fue como sf se comió a sp. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: la zonificación no cambia el tamaño",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>El efecto de zonificación cambia la forma de las unidades sin cambiar su tamaño. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: el reparto por bloques es la validación cruzada espacial",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>El reparto por bloques es la validación cruzada espacial. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: la aleatoria tiene garantía",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>Con una muestra sorteada, la validación aleatoria tiene garantía. Sea cual sea el resultado, el capítulo empieza igual."),
+        ("paráfrasis: la independencia es casi siempre falsa",
+         "<p>Sea cual sea el resultado, el capítulo empieza igual.",
+         "<p>El supuesto de independencia es, en el espacio, casi siempre falso. Sea cual sea el resultado, el capítulo empieza igual."),
         ("el módulo 10 vuelve a leer el IC de la mediana como lo que movería otra semilla",
          "veces la menor, y en",
          "veces la menor —otra semilla la movería poco—, y en"),
@@ -536,16 +692,16 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
          "que observar. Lo aleatorio es el",
          "que observar: aleatorio es el propio conjunto de índices. Lo aleatorio es el"),
         ("la formalización vuelve a poner un Z(s) en los tres tipos",
-         "<p>En los tres casos hay un dominio",
-         r"<p>En los tres casos hay un proceso \(Z(s)\) sobre un dominio"),
+         '<p data-afirma="c1-m2-12">En los tres casos hay un dominio',
+         r'<p data-afirma="c1-m2-12">En los tres casos hay un proceso \(Z(s)\) sobre un dominio'),
         ("el tipo geoestadístico vuelve a ser «dónde lo miramos»",
          "serían <strong>los valores</strong>", "sería <strong>dónde lo miramos</strong>"),
         ("el módulo 3 vuelve a decir que la agregación apenas pesa",
          "Las dos cosas tiran de",
          "La agregación de lejos apenas pesa en la cuenta. Las dos cosas tiran de"),
         ("el módulo 3 vuelve a decir que R es ciego a lo que pase más allá",
-         "Es un único número, y en un único número",
-         "Es ciego a todo lo que pase más allá. Es un único número, y en un único número"),
+         "En un único número dos estructuras opuestas",
+         "Es ciego a todo lo que pase más allá. En un único número dos estructuras opuestas"),
         ("el módulo 3 vuelve a decir que I no vale cero bajo la nula",
          "Lo que queda un poco por debajo de cero bajo esa nula es",
          "Fíjate en que I no vale cero bajo la hipótesis nula. Lo que queda por debajo es"),
@@ -574,12 +730,13 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         # --- R3 · T3.3, ronda 2: la ergodicidad es del proceso (🔴 de la
         # verificación), y la retroalimentación del quiz lo separa del mapa (🟡 8, C).
         ("el módulo 6 mete la región grande en la definición de ergodicidad",
-         "<li><strong>Ergodicidad:</strong> que los promedios",
-         "<li><strong>Ergodicidad:</strong> la ergodicidad pide que la región sea grande frente al alcance; "
-         "que los promedios"),
+         '<li><strong>Ergodicidad:</strong> <span data-afirma="c1-m6-04">que los promedios',
+         '<li><strong>Ergodicidad:</strong> <span data-afirma="c1-m6-04">la ergodicidad pide que la región sea '
+         'grande frente al alcance; que los promedios'),
         ("el módulo 6 presenta su proceso como no ergódico",
-         "<li><strong>Ergodicidad:</strong> que los promedios",
-         "<li><strong>Ergodicidad:</strong> el proceso de arriba no es ergódico; que los promedios"),
+         '<li><strong>Ergodicidad:</strong> <span data-afirma="c1-m6-04">que los promedios',
+         '<li><strong>Ergodicidad:</strong> <span data-afirma="c1-m6-04">el proceso de arriba no es ergódico; '
+         'que los promedios'),
         ("el módulo 6 deja de decir que su proceso es ergódico",
          "<strong>es ergódico</strong>", "<strong>es casi ergódico</strong>"),
         ("el módulo 6 pierde el contraejemplo estacionario y no ergódico",
@@ -625,8 +782,8 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         ("la diagnóstica vuelve a prometer «cinco\\n minutos», partido",
          "Ocho preguntas, sin nota.", "Ocho preguntas, cinco\n          minutos, sin nota."),
         ("el módulo 8 vuelve a poner sf debajo de todos los paquetes",
-         "Por debajo de <code>sf</code> y de <code>terra</code>",
-         "Por debajo de todos los paquetes de R, y en particular de <code>sf</code> y de <code>terra</code>"),
+         "Por debajo de <code>sf</code> —y, a través de él",
+         "Por debajo de todos los paquetes de R, y en particular de <code>sf</code> —y, a través de él"),
         ("el módulo 9 vuelve a poner sf debajo de los demás",
          "lleva el suyo, el <code>ppp</code>.",
          "lleva el suyo, el <code>ppp</code>, aunque sf está debajo de los demás."),
@@ -708,7 +865,7 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
         ("el módulo 2 deja de decir que el factor mide la inhomogeneidad",
          "<em>inhomogeneidad</em> del patrón", "<em>diferencia</em> del patrón"),
         ("la intrínseca pierde su condición de media",
-         "que su media sea cero,", "que sean estacionarias,"),
+         "que la media sea la misma", "que el proceso sea el mismo"),
         ("el módulo 6 deja de decir contra qué referencia se compara el variograma",
          "promediada sobre esos mismos pares", "evaluada en esa misma clase"),
         ("el módulo 10 deja de decir cuándo es insesgada la media sin ponderar",
@@ -814,6 +971,38 @@ def defectos_cap1() -> list[tuple[str, str, str]]:
          r"const miles1 = x => String(Math.round(Number(x))).replace(/\B(?=(\d{3})+$)/g, '\u202f');",
          "const miles1 = x => Number(x).toLocaleString('es-CO');"),
     ]
+
+
+def legitimos_cap1() -> list[tuple[str, str, str]]:
+    """Frases que NO son el error y que las PROHIBIDAS no pueden bloquear.
+
+    R4, ronda 3 (V5): tres guardas saltaban con frases inocuas. Cada entrada
+    se inyecta igual que un defecto y el auditor tiene que seguir limpio.
+    """
+    ancla = "<p>Sea cual sea el resultado, el capítulo empieza igual."
+    def uso(nombre, frase):
+        return (nombre, ancla, f"<p>{frase} Sea cual sea el resultado, el capítulo empieza igual.")
+    return [
+        uso("«sin cambiar su tamaño», dicho de una ventana",
+            "Se puede mover la ventana sin cambiar su tamaño."),
+        uso("«el orden de los capítulos», dicho del curso",
+            "El orden de los capítulos del curso sigue el de los tipos de dato."),
+        uso("«casi siempre falso», dicho de otra cosa",
+            "Que un mapa bonito sea un mapa correcto es casi siempre falso."),
+        uso("«la misma biblioteca», con su condición",
+            "Con el dato proyectado, R y Python llaman a la misma biblioteca."),
+        uso("«puede mentir», con el «puede»",
+            "La validación cruzada al azar puede mentir."),
+        uso("«es un ajuste empírico», afirmado",
+            "La corrección de Donnelly es un ajuste empírico."),
+        uso("Gehlke y Biehl, nombrados como lectura",
+            "El artículo de Gehlke y Biehl queda como lectura."),
+        uso("Clark y Evans y la aproximación normal, negada",
+            "Clark y Evans no pensaron su índice para una aproximación normal."),
+    ]
+
+
+LEGITIMOS = {"cap1": legitimos_cap1}
 
 
 def defectos_cap2() -> list[tuple[str, str, str]]:
@@ -2333,6 +2522,26 @@ def prueba(clave: str) -> tuple[int, int]:
             vistas_fallar |= nombres(salida, "MAL")
             print(f"  {'OK ' if ok else 'MAL'}  {nombre_d}")
             print(f"        {resumen(salida)}")
+
+        # --- USOS LEGÍTIMOS (R4, ronda 3): frases que no son el error. Aquí
+        # el acierto es que el auditor NO salte; cuentan como una prueba más.
+        legitimos = LEGITIMOS[clave]() if clave in LEGITIMOS else []
+        for nombre_d, busca, pone in legitimos:
+            if original.count(busca) < 1:
+                print(f"  MAL  uso legítimo · {nombre_d}")
+                print(f"        el texto a sustituir no aparece: {busca[:74]!r}")
+                continue
+            copia.write_text(original.replace(busca, pone, 1), encoding="utf-8")
+            codigo, salida = corre(clave, copia)
+            ok = codigo == 0
+            cazados += ok
+            print(f"  {'OK ' if ok else 'MAL'}  uso legítimo, no salta · {nombre_d}")
+            print(f"        {resumen(salida)}")
+            if not ok:
+                for linea in salida.strip().splitlines():
+                    if linea.strip().startswith("- "):
+                        print(f"        {linea.strip()[:200]}")
+        defectos = list(defectos) + list(legitimos)
 
         # --- CONTROL FINAL: el capítulo original sigue limpio.
         shutil.copy(capitulo, copia)

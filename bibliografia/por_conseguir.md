@@ -1,6 +1,6 @@
 # Obras por conseguir · Estadística Espacial (20929)
 
-Estado al 2026-11-12 (58 obras en Zotero). Mientras una obra no tenga **ejemplar local** (PDF propio o de biblioteca, o
+Estado al 2026-11-24 (63 obras en Zotero). Mientras una obra no tenga **ejemplar local** (PDF propio o de biblioteca, o
 instantánea web registrada), la norma común solo la deja aparecer como lectura recomendada, sin
 localizador, o como cita de segunda mano (`data-via`). El auditor lo hace cumplir (F14).
 
@@ -13,15 +13,28 @@ localizador, o como cita de segunda mano (`data-via`). El auditor lo hace cumpli
 | `moraga2019geospatial` | Instantánea de 5 capítulos de paulamoraga.com/book-geospatial | Ídem |
 | `snow1855mode` | Escaneo de la Wellcome Library (archive.org), dominio público | OCR con erratas; desfase variable por las láminas |
 | `mas2018analisis` | PDF de acceso abierto de la editorial | Desfase 10 |
+| `cressie1993statistics` | PDF entregado por Javier el 2026-11-23, ed. revisada de 1993, 908 pp. | Desfase variable: se cita por la página impresa; `tramos` en `ejemplares.yml` |
+| `friendly2009histdata`, `baddeley2017spatstatdata`, `pebesma2005sp` | Ayuda local de R (HistData 1.0.0, spatstat.data 3.1.9, sp 2.2.0), 2026-11-23 | Instantáneas sin secciones: `sin_secciones` en el registro. Alta en Zotero por DOI de CRAN |
+| `pebesma2016sf`, `dunnington2016s2` | Página de CRAN y README, 2026-11-23 | Ídem. La instantánea de CRAN es la versión de ese día (sf 1.1-3, s2 1.1.13), no la instalada |
 
 ## Prioridad para el capítulo 1
 
 | Obra | Por qué | Vía sugerida |
 |---|---|---|
-| Cressie (1993), `cressie1993statistics` | La caja de lecturas dice que §1.1–1.3 «es la fuente de casi todo este capítulo» | Biblioteca UnBosque (Wiley Online Library) |
 | Tobler (1970), `tobler1970computer` | La primera ley, módulo 3; la caja de lecturas opina sobre su «contexto original» | JSTOR por la biblioteca |
 | Clark y Evans (1954), `clark1954distance` | Índice R del módulo 6 | JSTOR por la biblioteca |
 | Bivand, Pebesma y Gómez-Rubio (2013), `bivand2013applied` | Lecturas del cap. 1 | SpringerLink por la biblioteca |
+
+| Roberts et al. (2017), `roberts2017crossvalidation` | Validación cruzada por bloques, m10 | Acceso cerrado (OpenAlex, 2026-11-23): biblioteca (Wiley) |
+| Documentación de `venv` (Python) | Recuadro del entorno, m8 (PowerShell) | Ya está en Zotero (otro curso): falta añadirla a la colección 20929 (arrastre en Zotero) |
+
+## Citadas de segunda mano o nombradas sin cita (R4, cap. 1)
+
+El capítulo las nombra apoyándose en la obra leída, sin `data-via` propio, porque no tienen alta. Darlas de alta
+permitiría citarlas con `data-via`:
+Donnelly (1978) · Numata (1964) · Brody et al. (2000) · Cliff y Ord (1981) · Hall (1985) · Openshaw y Taylor (1979) ·
+Openshaw (1984) · Yule y Kendall (1950) · Atkinson (1978) · Symons et al. (1983) · Ripley (1981) · Brus (2021) ·
+Horvitz y Thompson (año por leer) · Hansen et al. (1983) · Rikken y Van Rijn (1993). Los años son los que dan las obras leídas.
 
 ## Resto del curso
 

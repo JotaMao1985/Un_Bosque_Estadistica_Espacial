@@ -21,7 +21,12 @@ Qué comprueba, por encima:
   · que la codificación no se haya roto (las tildes son el canario);
   · que los enlaces relativos existan.
 
-EL TOPE DE PESO ES 1000 KB desde el 2026-11-14, por orden de Javier: lo que
+EL TOPE DE PESO ES 1300 KB desde el 2026-11-23 (R4 · T4.2: las citas generadas y las
+listas de fuentes de cada módulo llevaron el capítulo de 1000 a 1028 KB al cerrar
+el tramo A, y a unos 1080 KB con el tramo B y las rondas de verificación; con el
+tope en 1000 no cabía. La cota del arnés es el tamaño más 312 KB, y 1300 queda
+por debajo de ella: el peso de hoy lo imprime este auditor). Era de 1000 KB desde el
+2026-11-14, por orden de Javier: lo que
 importa es la calidad de la información y de las explicaciones, no el tamaño.
 La historia, para no repetirla: 700 de la casa, 730 el 2026-11-02 (los mapas
 descritos) y, con la reescritura del módulo 5 (R1 · T1.1: dos deducciones, la
@@ -96,7 +101,10 @@ DEBE_CUBRIR = [
     ("el problema de la realización única", "una sola realización"),
     ("el variograma", "variograma"),
     ("la escala y el MAUP", "maup"),
-    ("el efecto Gehlke y Biehl", "gehlke"),
+    # R4 · T4.2: era («el efecto Gehlke y Biehl», «gehlke»). El epónimo se fue
+    # —ninguna obra con ejemplar lo nombra— y lo que el módulo 7 tiene que
+    # seguir cubriendo es el mecanismo, que va bajo este título.
+    ("por qué agregar sube la correlación", "por qué sube al agregar"),
     ("el ecosistema de paquetes", "ecosistema"),
     ("la anatomía de un objeto sf", "sfg"),
     ("la ventana de observación de un ppp", "ventana de observación"),
@@ -130,7 +138,10 @@ AFIRMACIONES = [
     ("dice que el factor entre las dos intensidades mide la inhomogeneidad",
      "inhomogeneidad"),
     ("da la condición de media de la estacionariedad intrínseca",
-     "que su media sea cero"),
+     # R4 · T4.2, ronda 2: la condición se escribe como Cressie (1993, pp. 60–61),
+     # media constante del proceso; que las diferencias tengan media cero es su
+     # consecuencia. Antes la clave era «que su media sea cero».
+     "que la media sea la misma"),
     ("dice que la referencia del variograma es el teórico promediado en la clase",
      "promediada sobre esos mismos pares"),
     ("dice que sin ponderar la media solo es insesgada con probabilidades iguales",
@@ -215,7 +226,7 @@ AFIRMACIONES = [
      "no siempre"),
     ("dice que el cambio de signo del estrato no aguanta el barrido",
      "no que le dé la vuelta"),
-    ("declara la condición del efecto Gehlke-Biehl",
+    ("declara la condición para que agregar suba la correlación",
      "no tenga estructura espacial"),
     ("dice que la unidad de análisis es una decisión de modelado",
      "decisión de modelado"),
@@ -567,6 +578,141 @@ PROHIBIDAS = [
     # de los demás». Debajo de sf y de terra están GDAL, GEOS y PROJ.
     ("no dice que sf está debajo de todos los paquetes, o de los demás (módulos 8 y 9)", "todo",
      r"debajo\s+de\s+(?:todos|los\s+demás)"),
+    # --- R4 · T4.2, tramo A (2026-11-23): lo que el corpus contradice o no
+    # sostiene en los módulos 1, 3 y 6. Cada frase se contrastó contra un
+    # pasaje leído, y ninguna es una cifra:
+    #   · «la primera vez que alguien contestó» una pregunta espacial y «no
+    #     era un método»: Cressie (1993, p. 7) da mapas de datos de 1686;
+    #   · Snow no «sospechaba sin tener con qué demostrarlo» y por eso dibujó:
+    #     ya traía la hipótesis, indagó muerte por muerte (Snow, 1855, pp. 39–40)
+    #     y el plano se preparó después, como documento (Pebesma y Bivand,
+    #     2023, §15.1);
+    #   · la corrección de borde de `clarkevans` SÍ es un ajuste empírico
+    #     (Cressie, 1993, p. 607): el borde explica por qué hay que corregir,
+    #     no de dónde sale la corrección;
+    #   · la aproximación normal no es de Clark y Evans, que no pensaron su
+    #     índice para esa prueba (Cressie, 1993, p. 605): es la de
+    #     `clarkevans.test`;
+    #   · la estacionariedad intrínseca es más general, no «más usada»:
+    #     elegir es a menudo cuestión de gusto (Cressie, 1993, p. 70).
+    ("no da a Snow por «la primera vez», ni dice que dibujar los muertos «no era un método» (módulo 1)",
+     "todo", r"primera\s+vez\s+que\s+(?:alguien\s+|se\s+)?contest|entonces\s+no\s+era\s+un\s+método"),
+    ("no dice que Snow sospechaba del agua sin tener con qué demostrarlo (módulo 1)", "todo",
+     r"no\s+tiene\s+con\s+qué\s+demostrarlo"),
+    ("no niega que la corrección de borde de Clark-Evans sea un ajuste empírico (módulo 3)", "todo",
+     r"\bno\s+(?:es|de|sale\s+de)\s+(?:ningún|un)\s+ajuste\s+empírico"),
+    ("no atribuye la aproximación normal a «la prueba de Clark-Evans» (módulo 3)", "todo",
+     r"aproximación\s+que\s+usa\s+la\s+prueba\s+de\s+clark-evans"
+     r"|aproximación\s+normal\s+(?:la\s+)?(?:propusieron|es\s+de|de)\s+clark\s+y\s+evans"
+     r"|clark\s+y\s+evans\s+propusieron\s+la\s+aproximación"),
+    ("no dice que la estacionariedad intrínseca es «más usada» (módulo 6)", "todo",
+     r"por\s+eso\s+más\s+usada"),
+    # --- R4 · T4.2, tramo A, ronda 2 (2026-11-24): lo que dos verificadores
+    # de contexto limpio dieron como «con matiz» porque la prosa decía más
+    # que el pasaje citado. Cada frase atribuía a la obra algo que no dice:
+    #   · Snow (1855, p. 46) habla de seis semanas, no de «poco más de un mes»;
+    #   · Baddeley et al. (2016, p. 4) dicen que el ojo juzga mal OTRA
+    #     pregunta (si unas larvas están más separadas que al azar), no
+    #     «¿está agrupado?»;
+    #   · Baddeley et al. (2016, pp. 294–295) dan el resultado sin llamarlo
+    #     «teorema de Slivnyak»: el nombre no puede ir dentro de lo citado;
+    #   · Cressie (1993, pp. 22 y 25) dice que la dependencia es ubicua y que
+    #     «a menudo» no es realista suponer independencia, no «casi siempre
+    #     falso»;
+    #   · Cressie (1993, pp. 60–61) pide a la intrínseca media constante: no
+    #     es que «no pida nada del proceso en sí»;
+    #   · «el problema fundamental de la disciplina» no está en Cressie (p. 53).
+    ("no pone en Snow «poco más de un mes» (módulo 1)", "todo",
+     r"cólera\s+en\s+poco\s+más\s+de\s+un\s+mes"),
+    ("no atribuye a Baddeley que el ojo juzgue mal «¿está agrupado?» (módulo 3)", "todo",
+     r"el\s+ojo\s+la\s+juzga\s+mal,\s+y\s+hace\s+falta"),
+    ("no mete el nombre «teorema de Slivnyak» dentro de lo que se cita de Baddeley (módulo 3)", "todo",
+     r"teorema\s+de\s+slivnyak</strong>,\s+que\s+el\s+capítulo\s+4\s+enuncia"),
+    ("no dice que la independencia es «casi siempre falsa» en el espacio (módulo 4)", "todo",
+     # Atada al supuesto de independencia: «casi siempre falso» dicho de otra
+     # cosa no es este error.
+     r"(?:independ|supuesto)[\s\S]{0,160}?casi\s+siempre\s+fals[oa]"),
+    ("no dice que la intrínseca «no pide nada del proceso en sí» (módulo 6)", "todo",
+     r"no\s+pide\s+nada\s+del\s+proceso\s+en\s+sí"),
+    ("no llama a la realización única «el problema fundamental de la disciplina» (módulo 6 y cuestionario)",
+     "todo", r"problema\s+fundamental\s+de\s+la\s+disciplina"),
+    # --- R4 · T4.2, tramo B (2026-11-23): módulos 7 a 12. Como arriba, cada
+    # frase se contrastó contra un pasaje leído:
+    #   · «el efecto Gehlke–Biehl»: ninguna obra con ejemplar nombra a esos
+    #     autores; Cressie (1993, p. 285) da el fenómeno sin epónimo. Y «al
+    #     agregar, la correlación se hace más fuerte» no «es falsa»: es lo
+    #     que pasa de ordinario («Typically»), y no una ley;
+    #   · «la misma biblioteca»: con longitud y latitud sf opera con s2 y
+    #     GeoPandas con GEOS (Pebesma y Bivand, 2023, §7.1 y §7.3); y no son
+    #     «tres» las bibliotecas de sistema (§1.7 da siete);
+    #   · «la validación cruzada aleatoria miente»: Pebesma y Bivand (2023,
+    #     §10.5) dicen que sus cifras «may be over-optimistic», no que lo sean;
+    #   · que la red del IDEAM se ubicó «donde había cómo llegar y a quién
+    #     servir» no lo dice ni el dato ni ninguna obra leída;
+    #   · «sf se comió a sp» por ser un data.frame: Pebesma y Bivand (2023,
+    #     §7.1) dan la intención de reemplazarlo y otros tres motivos;
+    #   · «Bivand §…» en el glosario: Bivand, Pebesma y Gómez-Rubio (2013) no
+    #     tiene ejemplar local, y una obra sin ejemplar no lleva sección (D10).
+    ("no llama «efecto Gehlke–Biehl» a lo que agregar le hace a la correlación (módulo 7)", "todo",
+     # La raíz, como epónimo de un efecto o de un hallazgo. La lectura
+     # recomendada de la caja del módulo 12 («Gehlke y Biehl (1934)») no salta.
+     r"efecto\s+(?:de\s+)?gehlke|(?:ley|hallazgo|resultado|fenómeno)\s+de\s+gehlke"),
+    ("no da por «falsa» la versión corta del MAUP: es lo corriente, y no una ley (módulo 7)", "todo",
+     r"se\s+hace\s+más\s+fuerte»—\s+es\s+falsa"
+     r"|correlación\s+siempre\s+se\s+hace\s+más\s+fuerte|correlación\s+se\s+hace\s+siempre\s+más\s+fuerte"
+     r"|agregar\s+siempre\s+(?:infla|refuerza|sube)"),
+    ("no dice que R y Python llaman siempre «a la misma biblioteca» (módulos 8 y 12)", "todo",
+     # Con «siempre» o con «están llamando»: «llaman a la misma biblioteca para
+     # leer y escribir» es lo que el módulo 8 dice hoy, y es cierto.
+     r"están\s+llamando\s+(?:<em>)?a\s+la\s+misma\s+biblioteca"
+     r"|llam\w+\s+siempre\s+(?:<em>)?a\s+la\s+misma\s+biblioteca"
+     r"|son\s+las\s+mismas\s+bibliotecas:\s+r\s+y\s+python"),
+    ("no dice que las bibliotecas de sistema son tres (módulo 8)", "todo",
+     r"\btres\s+bibliotecas\b"),
+    ("no dice que la validación cruzada aleatoria «miente», sin el «puede» (módulo 10)", "todo",
+     r"validación\s+(?:cruzada\s+)?(?:aleatoria|al\s+azar)\s+(?:siempre\s+)?miente"),
+    ("no dice por qué está cada estación del IDEAM donde está (módulo 10)", "todo",
+     r"donde\s+había\s+(?:cómo\s+llegar|carreteras|acceso)"
+     r"|se\s+(?:ubicó|puso|instaló|ubicaron|pusieron|instalaron)\s+donde\s+había"),
+    ("no dice que sf «se comió» a sp por una decisión de diseño (módulo 9)", "todo",
+     r"se\s+comi(?:era|ó)\s+a\s+(?:<code>)?sp\b"),
+    ("el glosario no da sección a Bivand et al. (2013), que no tiene ejemplar (módulo 11)", "todo",
+     # Atado a la columna del glosario: la plantilla trae «Bivand §8.4» en un
+     # comentario de su JavaScript, que no es texto del estudiante.
+     r'"guia":\s*"bivand'),
+    # --- R4 · T4.2, tramo B, ronda 2 (2026-11-24): atribuciones que los
+    # verificadores encontraron más fuertes que el pasaje, o que la ayuda de
+    # los paquetes desmiente. Dentro de una marca solo va lo que dice la obra:
+    #   · la ayuda de HistData dice que el plano lo digitalizó Dodson (1992) y
+    #     da a Tobler (1994) como fuente: Tobler no lo digitalizó;
+    #   · Moraga (2019, §5.5) dice del efecto de zonificación «at the same or
+    #     similar scales», no «sin cambiar su tamaño»;
+    #   · Pebesma y Bivand (2023, §10.2) nombran los tres grupos de capítulos,
+    #     no su orden; no definen la validación cruzada espacial como reparto
+    #     por bloques (§10.5), y de la aleatoria con muestra sorteada dicen
+    #     «may be justified», no que haya garantía;
+    #   · Cressie (1993, p. 52) no llama «vieja» a la controversia entre el
+    #     modelo y el diseño;
+    #   · Pebesma y Bivand (2023, §14.5) no escriben W ni w_ij ni definen el
+    #     rezago: la fila de la matriz remite a Moraga (2019, §5.1).
+    ("no dice que Tobler digitalizó el plano de Snow (módulos 1 y 12)", "todo",
+     r"digitalizad[oa]s?\s+por\s+(?:<strong>)?dodson(?:</strong>)?\s+y\s"
+     r"|tobler\s+(?:lo\s+|las\s+)?digitaliz|digitaliz\w+\s+(?:por\s+)?(?:<strong>)?tobler"),
+    ("no dice que la zonificación cambia la forma «sin cambiar su tamaño» (módulo 7)", "todo",
+     # Dentro de la frase de la zonificación: «sin cambiar su tamaño» dicho de
+     # una ventana o de un mapa no es este error.
+     r"zonificaci[^.]{0,200}sin\s+cambiar\s+(?:su|de)\s+tamaño"),
+    ("no atribuye a Pebesma §10.2 el orden de los capítulos (módulo 8)", "todo",
+     # Solo cuando se atribuye: «el orden de los capítulos» seguido de la cita.
+     r"orden\s+de\s+los\s+capítulos[\s\S]{0,160}?pebesma"),
+    ("no da el reparto por bloques como definición de la validación cruzada espacial (módulo 10)", "todo",
+     r"(?:repartir|el\s+reparto)\s+(?:así|por\s+bloques)\s+es\s+(?:una\s+forma\s+de\s+|la\s+)validación"),
+    ("no dice que la validación aleatoria tiene «garantía» con una muestra sorteada (módulo 10)", "todo",
+     r"garantía,\s+solo\s+la\s+tiene|aleatoria\s+(?:tiene|da)\s+garantía"),
+    ("no llama «vieja» a la controversia entre el modelo y el diseño (módulo 10)", "todo",
+     r"controversia\s+vieja"),
+    ("el glosario no remite la matriz de pesos ni el rezago a Pebesma §14.5 (módulo 11)", "todo",
+     r'"guia":\s*"pebesma §14\.5"'),
 ]
 
 # Lo que el DOCUMENTO ENTERO tiene que decir, también fuera de la prosa: la
@@ -577,6 +723,19 @@ AFIRMACIONES_DOC = [
      "hace falta, pero no basta, y por dos razones distintas"),
     ("la retroalimentación del quiz separa la región grande de la ergodicidad (módulo 6)",
      "la otra es del mapa"),
+    # R4 · T4.2: lo que sustituye al «no de ningún ajuste empírico», que no
+    # puede desaparecer en silencio (Cressie, 1993, p. 607).
+    ("la nota de Clark-Evans dice que la corrección de borde es un ajuste empírico (módulo 3)",
+     "es un ajuste empírico, y no se generaliza"),
+    # R4 · T4.2, tramo B: lo que sustituye a las frases retiradas de arriba.
+    ("el módulo 3 avisa de que la regularidad de las células puede ser un artefacto de su tamaño",
+     "puede ser solo un artefacto de ese tamaño"),
+    ("el módulo 7 dice que la versión corta del MAUP no es una ley",
+     "no es una ley: describe lo que pasa de ordinario"),
+    ("el módulo 8 dice que con longitud y latitud sf opera con s2geometry",
+     "con s2geometry, que trabaja sobre la esfera"),
+    ("el módulo 10 dice que la validación cruzada aleatoria PUEDE mentir",
+     "la validación cruzada aleatoria puede mentir"),
 ]
 
 
@@ -597,7 +756,7 @@ def prohibidas(a: Auditor) -> None:
 
 
 # El tope de peso de ESTE capítulo. La aritmética, en el encabezado.
-TOPE_CAP1_KB = 1000.0
+TOPE_CAP1_KB = 1300.0
 
 ORDENES = [r"\frac", r"\lambda", r"\rho", r"\gamma", r"\sum", r"\text",
            r"\operatorname", r"\mathbb", r"\bar", r"\lVert"]
