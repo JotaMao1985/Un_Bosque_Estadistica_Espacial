@@ -484,6 +484,16 @@ def defectos() -> list[tuple[str, str, str, object]]:
         lambda o: o["diseno_modelo"]["referencia_uniforme"].__setitem__("razon_p05", 91.73941))
     obj("la red deja de estar muy por encima de la referencia uniforme", "datos",
         lambda o: o["diseno_modelo"].__setitem__("razon_areas", 917.3941))
+    # --- R4 · T4.2, tramo B: los tres paros nuevos, con el dato que los dispara.
+    obj("R4: las estaciones con más territorio dejan de ser las bajas", "datos",
+        lambda o: o["diseno_modelo"]["mayores"].__setitem__("alt_media", 1407.0))
+    obj("R4r3: las estaciones bajas dejan de estar submuestreadas", "datos",
+        lambda o: o["diseno_modelo"]["bajas"].__setitem__("pct_area", 9.99))
+    obj("R4: spatstat pasa a necesitar sf", "datos",
+        lambda o: (o["ecosistema"]["sin_sf"].remove("spatstat"),
+                   o["ecosistema"]["necesitan_sf"].append("spatstat")))
+    obj("R4: el precálculo deja de publicar la licencia de un archivo del extracto", "datos",
+        lambda o: o["ecosistema"]["licencias_datos"].pop())
     obj("«veces la mediana» deja de ser el cociente de sus dos cifras", "datos",
         lambda o: o["diseno_modelo"]["referencia_uniforme"].__setitem__(
             "red_sobre_mediana", 41.73941))
@@ -1205,7 +1215,7 @@ def defectos() -> list[tuple[str, str, str, object]]:
     txt("T3.4: la duración del módulo 5 se aleja de su medida", "ensamblador",
         '("Tamaño de muestra efectivo", "14 min")', '("Tamaño de muestra efectivo", "8 min")')
     txt("T3.4: la barra pierde la duración de un módulo", "ensamblador",
-        '    ("Anatomía de un objeto sf", "5 min"),\n', "")
+        '    ("Anatomía de un objeto sf", "6 min"),\n', "")
     txt("T3.4: el cuestionario del módulo 12 deja de poderse medir", "ensamblador",
         "    AUTOEVALUACIONES['cap1'] = [", "    AUTOEVALUACIONES['cap1-final'] = [")
     # --- R3 · T3.5: el extracto que viaja y el recuadro del entorno ----------
@@ -1291,6 +1301,11 @@ def defectos() -> list[tuple[str, str, str, object]]:
             ("T3.5r2 V-07: un bloque carga un paquete con require()", "la prueba del entorno no carga"),
             ("T3.5r2 V-07: un bloque carga un paquete por nombre calculado", "nombre calculado"),
             ("T3.5r2 V-06: un comentario del recuadro no cabe en el teléfono", "en el teléfono se desplazan"),
+            ("R4: las estaciones con más territorio dejan de ser las bajas", "`diseno_modelo.mayores` ya no lo sostiene"),
+            ("R4: spatstat pasa a necesitar sf", "`ecosistema` ya no lo sostiene"),
+            ("R4r3: las estaciones bajas dejan de estar submuestreadas", "`diseno_modelo.bajas` ya no lo sostiene"),
+            ("R4: el precálculo deja de publicar la licencia de un archivo del extracto",
+             "no trae los cuatro archivos del extracto"),
     ):
         ESPERA[_nombre] = _mensaje
     for _nombre, _mensaje in (

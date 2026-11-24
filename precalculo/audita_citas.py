@@ -50,6 +50,13 @@ Qué comprueba, por capítulo:
        localizador es de ella, y la fuente del registro es la obra leída
   F14  una obra sin ejemplar local (ni ficha en ejemplares.yml ni instantánea)
        no lleva localizador: solo lectura recomendada o `data-via`
+  F15  el pie «Referencias Bibliográficas» de TODO documento publicado y de
+       la plantilla es el que escribe genera_referencias.py: lleva sus
+       marcadores, nadie lo tecleó, y no dice nada de lo vetado en
+       bibliografia/pie.json («Baddeley … (2015)»). Lo que pie.json añade a
+       Zotero se comprueba: el enlace de una anotación es el de una
+       instantánea leída y su `evidencia` está en ella. Los documentos
+       repartidos que no se reensamblan se declaran en `congelados`
   A01  aviso, no falla: apellidos de la biblioteca en la prosa sin <cite>
 
 Uso:  python3 precalculo/audita_citas.py                # los 6 capítulos
@@ -318,7 +325,17 @@ def f04_esquema(registro: dict, nombre: str, capitulo: int) -> list[Hallazgo]:
             h.append(Hallazgo("F04", donde, f"veredicto `{veredicto}` sin `motivo`"))
         for n, f in enumerate(fuentes, start=1):
             aqui = f"{donde} · fuente {n}"
+            # (20929) Una instantánea sin secciones numeradas —la ayuda de un paquete de R, un
+            # README, una página de CRAN— es ella misma el sitio de la cita: el vocabulario
+            # cerrado de la norma no tiene forma para ella. Esa fuente declara
+            # `sin_secciones: true` y `loc: ""`, y F05 comprueba que de verdad no las tiene.
+            # Pendiente de llevarlo a la norma común (Vault/Estandar/Capa de fuentes.md).
+            sin_secciones = f.get("sin_secciones") is True and f.get("clase") in ("WEB", "DOC")
             for campo in ("clave", "loc", "clase", "cita"):
+                if campo == "loc" and sin_secciones:
+                    if f.get("loc"):
+                        h.append(Hallazgo("F04", aqui, "declara `sin_secciones` y lleva localizador"))
+                    continue
                 if not f.get(campo):
                     h.append(Hallazgo("F04", aqui, f"falta `{campo}`"))
             if f.get("loc") and not localizador_valido(f["loc"]):
@@ -373,10 +390,28 @@ def f05_cita_literal(bib: Biblioteca, f: dict, donde: str, sin_cache: bool,
         sitio = f"instantánea «{f.get('instantanea')}»"
         if texto is not None and not coincide:
             return [Hallazgo("F05", donde, f"la {sitio} no es la registrada en instantaneas.yml (sha256)")]
+        if texto is not None and f.get("sin_secciones") is True and any(
+                re.match(r"^\d+(?:\.\d+)*\s{1,4}[A-ZÁÉÍÓÚ¿]", l) for l in texto.splitlines()):
+            return [Hallazgo("F05", donde, f"la {sitio} de «{clave}» tiene secciones numeradas: "
+                                          "no vale `sin_secciones`, lleva localizador")]
         if texto is not None:
-            texto, falta = seccion_de(texto, str(f.get("loc") or ""))
-            if falta:
+            # (20929) Con varias secciones («§7.1; §7.3»), la cita tiene que estar en UNA de
+            # las que esta instantánea contiene; las de otra instantánea no cuentan aquí.
+            partes = [p for p in str(f.get("loc") or "").split("; ") if p.startswith("§")] or [""]
+            acotados = [seccion_de(texto, p) for p in partes]
+            presentes = [t for t, falta in acotados if not falta]
+            if not presentes:
+                falta = acotados[0][1]
                 return [Hallazgo("F05", donde, f"la sección §{falta} no está en la {sitio} de «{clave}»")]
+            # Las secciones que no están en esta instantánea tienen que estar en otra de la misma
+            # obra: un «§99.9; §8.2» no pasa por llevar al lado una sección que sí existe.
+            otras = [n for n in (bib.instantaneas.get(clave) or {}) if n != str(f.get("instantanea"))]
+            for (_, falta) in acotados:
+                if falta and not any(
+                        (t := bib.texto_instantanea(clave, n)[0]) is not None and not seccion_de(t, f"§{falta}")[1]
+                        for n in otras):
+                    return [Hallazgo("F05", donde, f"la sección §{falta} no está en ninguna instantánea de «{clave}»")]
+            texto = "\n".join(presentes)
             sitio = f"{f.get('loc')} de la {sitio}"
     if texto is None:
         cuenta["sin_cache"] += 1
@@ -423,19 +458,35 @@ def f06_f07_ejemplar(bib: Biblioteca, f: dict, donde: str) -> list[Hallazgo]:
     # el pie de la página. El `desfase` del ejemplar (página del PDF − página
     # impresa) solo sirve de respaldo, porque no siempre es constante: un PDF
     # sin las páginas en blanco de fin de capítulo lo va cambiando.
-    m = re.search(r"\bpp?\.\s*(\d+)", str(f.get("loc") or ""))
+    # (20929) El localizador puede nombrar varias páginas («p. 383; p. 390») o un rango
+    # («pp. 489–492»): la cita tiene que estar en UNA de ellas, no necesariamente en la
+    # primera. Y un ejemplar de desfase variable (Cressie, Snow) puede declarar sus
+    # `tramos` [[pdf_desde, pdf_hasta, desfase], …], medidos sobre los encabezados que el
+    # OCR sí leyó: el respaldo de una hoja cuyo encabezado salió roto («S3» por 53).
+    impresas: list[int] = []
+    for a, b in re.findall(r"\bpp?\.\s*(\d+)(?:\s*[–-]\s*(\d+))?", str(f.get("loc") or "")):
+        impresas += list(range(int(a), int(b or a) + 1)) if int(b or a) - int(a) <= 40 else [int(a)]
     pagina = f.get("pagina_pdf")
-    if m and isinstance(pagina, int):
-        impresa = m.group(1)
+    total = ficha.get("paginas")
+    if isinstance(total, int) and any(n < 1 or n > total for n in impresas):
+        h.append(Hallazgo("F07", donde, f"el localizador «{f.get('loc')}» nombra una página que el ejemplar de "
+                                        f"«{clave}» no tiene ({total} páginas)"))
+    if impresas and isinstance(pagina, int):
         hoja = bib.local / "texto" / clave / f"p{pagina:04d}.txt"
         lineas = [l for l in hoja.read_text("utf-8").splitlines() if l.strip()] if hoja.is_file() else []
         bordes = " ".join(lineas[:1] + lineas[-1:])
-        en_el_borde = re.search(rf"(?<!\d){impresa}(?!\d)", bordes) is not None
         desfase = ficha.get("desfase")
-        por_desfase = isinstance(desfase, int) and int(impresa) + desfase == pagina
-        if lineas and not en_el_borde and not por_desfase:
-            h.append(Hallazgo("F07", donde, f"la página {pagina} del PDF de «{clave}» no lleva el número {impresa} "
-                                            "en el encabezado ni en el pie: el localizador no es de esa página"))
+        tramos = [t for t in ficha.get("tramos") or [] if t[0] <= pagina <= t[1]]
+
+        def cuadra(n: int) -> bool:
+            return (re.search(rf"(?<!\d){n}(?!\d)", bordes) is not None
+                    or (isinstance(desfase, int) and n + desfase == pagina)
+                    or any(n + t[2] == pagina for t in tramos))
+        if lineas and not any(cuadra(n) for n in impresas):
+            dicho = ", ".join(map(str, impresas[:6])) + ("…" if len(impresas) > 6 else "")
+            h.append(Hallazgo("F07", donde, f"la página {pagina} del PDF de «{clave}» no es ninguna de las que "
+                                            f"dice el localizador ({dicho}): ni por su encabezado o pie, "
+                                            "ni por el desfase del ejemplar"))
     return h
 
 
@@ -622,9 +673,110 @@ def f10_red(bib: Biblioteca, htmls: list[pathlib.Path]) -> list[Hallazgo]:
 
 
 # --------------------------------------------------------------------------- #
+# F15 — el pie
+# --------------------------------------------------------------------------- #
+RE_FOOTER = re.compile(r"<footer\b.*?</footer>", re.S)
+
+
+def f15_pie(bib: Biblioteca, dir_sitio: pathlib.Path, plantilla: pathlib.Path | None,
+            sin_cache: bool) -> list[Hallazgo]:
+    """El pie de TODO documento, no solo de los capítulos (R4 · T4.3).
+
+    F02 ya compara el pie de `capitulo-*.html`, pero el pie lo llevan también
+    los preparciales, el apéndice, la guía del proyecto y los bancos, y antes
+    de esto era una lista escrita a mano en la plantilla que nadie contrastaba
+    (decía «Baddeley … (2015)» con la decisión de citar 2016 ya tomada).
+    """
+    h: list[Hallazgo] = []
+    genera_referencias.BIB = bib.dir
+    pie = genera_referencias.carga_pie(bib.dir)
+    problemas = genera_referencias.problemas_del_pie(bib.referencias, bib.candado, pie)
+    for que in problemas:
+        h.append(Hallazgo("F15", "pie.json", que.removeprefix("pie.json: ")))
+
+    # Lo que pie.json añade a Zotero, contra una fuente leída.
+    for clave, nota in sorted(pie["anotaciones"].items()):
+        nota, donde = nota or {}, f"pie.json · anotación de {clave}"
+        if not nota.get("url"):
+            continue
+        nombre = str(nota.get("instantanea") or "")
+        registrada = ((bib.instantaneas.get(clave) or {}).get(nombre) or {}).get("url", "")
+        if not registrada:
+            h.append(Hallazgo("F15", donde, f"el enlace no se apoya en ninguna instantánea leída "
+                                            f"(`instantanea: {nombre or '—'}` no está en instantaneas.yml)"))
+            continue
+        if not registrada.startswith(nota["url"]):
+            h.append(Hallazgo("F15", donde, f"el enlace {nota['url']} no es el de la instantánea «{nombre}» "
+                                            f"({registrada})"))
+        evidencia = nota.get("evidencia")
+        if not evidencia:
+            continue
+        if len(normaliza(evidencia).split()) > MAX_PALABRAS_CITA:
+            h.append(Hallazgo("F15", donde, f"la `evidencia` pasa de {MAX_PALABRAS_CITA} palabras"))
+        texto, coincide = bib.texto_instantanea(clave, nombre)
+        if texto is None:
+            if not sin_cache:
+                h.append(Hallazgo("F15", donde, f"no está en la caché la instantánea «{nombre}» de «{clave}»: "
+                                                "no comprobable aquí (extrae_fuente.py, o --sin-cache)"))
+        elif not coincide:
+            h.append(Hallazgo("F15", donde, f"la instantánea «{nombre}» no es la registrada en instantaneas.yml (sha256)"))
+        elif normaliza(evidencia) not in normaliza(texto):
+            h.append(Hallazgo("F15", donde, f"la `evidencia` NO está en la instantánea «{nombre}» de «{clave}»"))
+
+    vetados = []
+    for veto in pie["vetados"]:
+        try:
+            vetados.append((re.compile(veto["patron"]), veto.get("motivo", "")))
+        except (KeyError, TypeError, re.error):
+            pass                                # ya lo dijo problemas_del_pie
+
+    congelados = pie["congelados"]
+    documentos = sorted(dir_sitio.glob("*.html"))
+    for nombre in sorted(congelados):
+        if not (dir_sitio / nombre).is_file():
+            h.append(Hallazgo("F15", "pie.json", f"el documento congelado «{nombre}» no existe"))
+    if plantilla is not None and plantilla.is_file():
+        documentos.append(plantilla)
+    for ruta in documentos:
+        texto = ruta.read_text("utf-8")
+        pies = RE_FOOTER.findall(texto)
+        marcados = list(genera_referencias.RE_PIE.finditer(texto))
+        if ruta.name in congelados and ruta != plantilla:
+            if marcados:
+                h.append(Hallazgo("F15", ruta.name, "está en `congelados` de pie.json y ya trae el pie generado: "
+                                                    "la excepción sobra"))
+            continue
+        if not pies and not marcados:
+            continue                            # un documento sin pie no tiene nada que comprobar
+        if len(marcados) != 1 or not any(marcados[0].group(0) in p for p in pies):
+            h.append(Hallazgo("F15", ruta.name, "el pie no lleva los marcadores PIE-REFERENCIAS (una vez, dentro "
+                                                "de <footer>): está escrito a mano o viene de una plantilla vieja"))
+        elif not problemas:
+            m = marcados[0]
+            try:
+                esperado = genera_referencias.genera_pie(
+                    bib.referencias, bib.candado, genera_referencias.sangria_de(texto, m.start()), pie)
+                if m.group("dentro") != esperado:
+                    h.append(Hallazgo("F15", ruta.name, "el pie no es el que escribe genera_referencias.py "
+                                                        "(tecleado, o desfasado de Zotero o de pie.json)"))
+            except genera_referencias.ErrorDeCita as e:
+                h.append(Hallazgo("F15", ruta.name, str(e)))
+        # Fuera de los marcadores el pie no lleva ninguna lista: una segunda lista es una tecleada.
+        for p in pies:
+            resto = genera_referencias.RE_PIE.sub("", p)
+            if re.search(r"<(?:ul|ol|li)\b", resto):
+                h.append(Hallazgo("F15", ruta.name, "el pie trae una lista fuera de los marcadores PIE-REFERENCIAS"))
+            for patron, motivo in vetados:
+                dicho = patron.search(p)
+                if dicho:
+                    h.append(Hallazgo("F15", ruta.name, f"el pie dice «{dicho.group(0)}», vetado en pie.json: {motivo}"))
+    return h
+
+
+# --------------------------------------------------------------------------- #
 def audita(dir_bib: pathlib.Path, dir_sitio: pathlib.Path, *, red: bool = False,
-           sin_cache: bool = False, dir_ensamblado: pathlib.Path | None = None
-           ) -> tuple[list[Hallazgo], dict]:
+           sin_cache: bool = False, dir_ensamblado: pathlib.Path | None = None,
+           plantilla: pathlib.Path | None = None) -> tuple[list[Hallazgo], dict]:
     bib = Biblioteca.carga(dir_bib)
     cuenta = {"veredictos": {}, "comprobadas": 0, "sin_cache": 0, "sin_guion": 0,
               "palabras": {}, "a01": {}, "capitulos": 0, "citas": 0}
@@ -641,6 +793,7 @@ def audita(dir_bib: pathlib.Path, dir_sitio: pathlib.Path, *, red: bool = False,
         cuenta["capitulos"] += 1
         h += audita_capitulo(bib, ruta_html, registro, nombre, capitulo, sin_cache, cuenta, dir_ensamblado)
         cuenta["citas"] += len(lee_html(ruta_html.read_text("utf-8")).citas)
+    h += f15_pie(bib, dir_sitio, plantilla, sin_cache)
     for clave, palabras in cuenta["palabras"].items():
         if palabras > TOPE_PALABRAS_OBRA:
             h.append(Hallazgo("F11", str(clave), f"{palabras} palabras citadas de una sola obra (tope {TOPE_PALABRAS_OBRA})"))
@@ -742,7 +895,9 @@ def main() -> int:
         return 1
 
     hallazgos, cuenta = audita(args.bib, args.sitio, red=args.red, sin_cache=args.sin_cache,
-                               dir_ensamblado=RAIZ / "precalculo" if args.bib == BIB else None)
+                               dir_ensamblado=RAIZ / "precalculo" if args.bib == BIB else None,
+                               plantilla=(RAIZ / "plantilla" / "plantilla-capitulo.html"
+                                          if args.bib == BIB and args.sitio == SITIO else None))
     fallas = [x for x in hallazgos if not x.aviso]
     for x in hallazgos:
         print(x)

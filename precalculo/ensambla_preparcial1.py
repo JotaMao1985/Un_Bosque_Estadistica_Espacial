@@ -588,7 +588,7 @@ BLOQUE_A = [
          opciones=[
              op("Que con una sola realización no se puede separar lo que dice el proceso de lo "
                 "que dice esa realización concreta.", True,
-                f"Es el problema fundamental del capítulo 1. Las {c('realiz_n')} realizaciones "
+                f"Es el problema de fondo del módulo 6 del capítulo 1. Las {c('realiz_n')} realizaciones "
                 "existen en la simulación para <em>medir</em> esa variabilidad; en un mapa "
                 "real solo se ve una, y no viene marcada como típica o atípica."),
              op("Que el estimador de la media está sesgado.", False,

@@ -2427,6 +2427,33 @@ def main() -> int:
     a.igual(hv.mean(), dm["alt_media_simple"], "altitud media de las estaciones", 1e-7)
     a.igual((hv * av).sum() / av.sum(), dm["alt_media_area"],
             "  y la del territorio que representan", 1e-7)
+    # R4 · T4.2 (A-103): las estaciones con la celda mayor, que es lo que la
+    # prosa pone donde decía «la Amazonía y la Orinoquía, enormes, bajas y
+    # calientes». Se rehacen aquí con las áreas de Python.
+    my = dm["mayores"]
+    o_my = np.argsort(-av)[:my["k"]]
+    a.igual(100 * av[o_my].sum() / av.sum(), my["pct_area"],
+            f"las {my['k']} celdas mayores: su parte del territorio (%)", 1e-6)
+    a.igual(hv[o_my].mean(), my["alt_media"], "  su altitud media", 1e-7)
+    a.igual(hv[o_my].max(), my["alt_max"], "  la más alta de ellas", 1e-7)
+    a.igual(tv[o_my].mean(), my["t_media"], "  su temperatura media", 1e-8)
+    a.cierto(sorted(set(est.departamento.to_numpy()[o_my])) == sorted(my["departamentos"]),
+             "  y sus departamentos", ", ".join(my["departamentos"]))
+    a.cierto(my["alt_media"] < dm["alt_media_area"] and my["t_media"] > dm["t_media_area"],
+             "  son más bajas y más calientes que el territorio en conjunto",
+             f"{my['alt_media']:.5f} m y {my['t_media']:.5f} °C")
+    # R4, ronda 3 (V1): las estaciones por debajo del umbral, que es lo que la
+    # prosa pone donde decía «deja casi vacías las bajas».
+    bj = dm["bajas"]
+    b_bj = hv < bj["umbral_m"]
+    a.igual(int(b_bj.sum()), bj["n"], f"estaciones por debajo de {bj['umbral_m']} m")
+    a.igual(100 * b_bj.mean(), bj["pct_red"], "  su parte de la red (%)", 1e-8)
+    a.igual(100 * av[b_bj].sum() / av.sum(), bj["pct_area"], "  su parte del territorio (%)", 1e-6)
+    a.igual((av[b_bj].sum() / b_bj.sum()) / (av[~b_bj].sum() / (~b_bj).sum()), bj["razon_territorio"],
+            "  el territorio por estación, abajo frente a arriba", 1e-6)
+    a.cierto(bj["pct_area"] > bj["pct_red"] and 0.1 * dm["n"] < bj["n"],
+             "  las bajas están submuestreadas, no vacías",
+             f"{bj['n']} estaciones, {bj['pct_red']:.5f} % de la red para el {bj['pct_area']:.5f} % del país")
     # Las tres afirmaciones que hace la prosa, comprobadas como tales.
     a.cierto(dm["razon_areas"] > 1000,
              "la red NO es una muestra de igual probabilidad",

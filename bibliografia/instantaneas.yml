@@ -1,5 +1,38 @@
 # Páginas web leídas: URL, fecha de consulta y huella del texto guardado.
 # El texto vive en bibliografia/_local/web/ (fuera de git).
+baddeley2017spatstatdata:
+  ayuda-cells-3.1.9:
+    consulta: '2026-11-23'
+    palabras: 149
+    sha256: 37ce687d43e0a101938f91e967ee3fb35951bd5b5e158fe217dead3735851a9e
+    url: https://CRAN.R-project.org/package=spatstat.data
+  ayuda-japanesepines-3.1.9:
+    consulta: '2026-11-23'
+    palabras: 182
+    sha256: 7cc1f801a538eb18152124c1dfc428202912424983bcde39502d3750d7bfe098
+    url: https://CRAN.R-project.org/package=spatstat.data
+  ayuda-redwood-3.1.9:
+    consulta: '2026-11-23'
+    palabras: 311
+    sha256: 2187235468ffb186ace713756d4a23cb1b6bb1fcc6b12fd2eb94b10f8feda326
+    url: https://CRAN.R-project.org/package=spatstat.data
+dunnington2016s2:
+  cran:
+    consulta: '2026-11-23'
+    palabras: 232
+    sha256: 32dbbd7d3a0a87c4cb408050d6344023d39ade39ba786c1eae7e1ed136262f74
+    url: https://cran.r-project.org/web/packages/s2/index.html
+  readme:
+    consulta: '2026-11-23'
+    palabras: 973
+    sha256: d127ed6314d129b627597ef5c5138b6e8ef5d49f3f4e5d7bd2af0fb79eea7e88
+    url: https://github.com/r-spatial/s2/blob/main/README.md
+friendly2009histdata:
+  ayuda-Snow-1.0.0:
+    consulta: '2026-11-23'
+    palabras: 984
+    sha256: 4e46229c0ae8c2b8e920b62da65c09c1e34b83f2c18d8c16c73e9864fc220222
+    url: https://CRAN.R-project.org/package=HistData
 moraga2019geospatial:
   index:
     consulta: '2026-11-12'
@@ -26,6 +59,23 @@ moraga2019geospatial:
     palabras: 3626
     sha256: 29f3fa607a0d581b66e2f2f513a7228eef7cc08895038642b342e32e5da4c0b6
     url: https://www.paulamoraga.com/book-geospatial/sec-spatialdataandCRS.html
+pebesma2005sp:
+  ayuda-meuse-2.2.0:
+    consulta: '2026-11-23'
+    palabras: 552
+    sha256: 3485ed6c0cfb28d88f035fc4d43f33f2345929985d710a0fcbf3a0237f5476c2
+    url: https://CRAN.R-project.org/package=sp
+pebesma2016sf:
+  cran:
+    consulta: '2026-11-23'
+    palabras: 1703
+    sha256: dd7ef06ca0d9ceac7ed81b37cddcb314b44cdd3cbb97996e48dc6ece53dc0419
+    url: https://cran.r-project.org/web/packages/sf/index.html
+  readme:
+    consulta: '2026-11-23'
+    palabras: 1161
+    sha256: 4dc7a5edd22b7b366c00b74da22ed56e0f67c7727c16e0ca889ab79c4928e72f
+    url: https://github.com/r-spatial/sf/blob/main/README.md
 pebesma2023spatial:
   01-hello:
     consulta: '2026-11-12'

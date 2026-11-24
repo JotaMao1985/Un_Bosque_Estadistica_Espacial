@@ -16,6 +16,7 @@ con **(20929)**.
 | Metadatos de la obra y su PDF | Zotero, `Docencia › 20929 Estadística Espacial` | los traductores de Zotero, desde un DOI o un ISBN |
 | Instantánea de la biblioteca | `referencias.json` (CSL-JSON), `claves.json`, `zotero.lock.json` | `precalculo/exporta_zotero.py` |
 | Lo que Zotero no trajo | `enmiendas.yml`, cada una con su evidencia | a mano, con URL y fecha |
+| Lo que el pie lleva y Zotero no dice **(20929)** | `pie.json`: orden, obras adicionales, anotaciones, líneas sin alta, documentos congelados, vetos | a mano, cada entrada con su `motivo` |
 | Cómo se encontró cada identificador | `obras.tsv` | la búsqueda en Crossref, Open Library o la editorial |
 | Obras que faltan y cómo conseguirlas | `por_conseguir.md` | quien dirige la fase |
 | Ejemplar leído (huella, portada) | `ejemplares.yml` | `precalculo/extrae_fuente.py` + una mirada a la portada |
@@ -89,6 +90,33 @@ nombre que el capítulo no demuestra. **No la exigen:** lo demostrado en el prop
 cifras del precálculo, los escenarios inventados (declarados como tales). Un epónimo (índice de
 Moran, función K de Ripley) no es una cita.
 
+## El pie «Referencias Bibliográficas» **(20929)**
+
+Lo llevan todos los documentos, porque viene de `plantilla/plantilla-capitulo.html`. Desde el
+2026-11-23 no se teclea: `genera_referencias.py` lo escribe **en la plantilla**, entre
+`<!--PIE-REFERENCIAS:inicio-->` y `<!--PIE-REFERENCIAS:fin-->`, y cada documento lo hereda al
+reensamblarse.
+
+- **Qué obras:** las de rol `basica` de Zotero (subcolección `1 Básica`), más las `adicionales`
+  de `pie.json`. El texto de cada una es el de `referencias.json`, en APA 7.
+- **Lo que APA no trae** («Texto guía del curso», la versión de lectura libre, la licencia) va en
+  `anotaciones`. Un enlace tiene que ser el de una instantánea de `instantaneas.yml`, y una
+  licencia lleva su `evidencia`: el literal que el auditor busca en esa instantánea.
+- **Una obra sin alta en Zotero** va en `sin_alta` como línea fija, con el `motivo` y lo que
+  falta `para_el_alta`. El día que su clave aparece en `referencias.json`, el generador para
+  hasta que se borre la línea fija.
+- **Los documentos repartidos** que no se reensamblan (los tres talleres) están en `congelados`
+  y conservan el pie con que se repartieron.
+
+Al cambiar una básica en Zotero, una enmienda o `pie.json`:
+
+1. `python3 precalculo/exporta_zotero.py` (si el cambio fue en Zotero);
+2. `python3 precalculo/genera_referencias.py plantilla/plantilla-capitulo.html`;
+3. reensamblar todos los documentos que salen de la plantilla, menos los congelados, y
+   `python3 precalculo/sincroniza_prueba_geomapa.py` para el banco del `.geomapa`;
+4. `python3 precalculo/audita_citas.py`: F15 compara la plantilla y cada documento publicado con
+   lo que el guion escribiría, y no deja pasar lo vetado («Baddeley … (2015)»).
+
 ## Los guiones
 
 | Guion | Qué hace |
@@ -96,7 +124,7 @@ Moran, función K de Ripley) no es una cita.
 | `precalculo/fuentes_config.py` | las rutas, una sola vez |
 | `precalculo/exporta_zotero.py` | Zotero → `referencias.json`. `--comprobar` no escribe |
 | `precalculo/extrae_fuente.py` | PDF y páginas web → texto en el corpus, y su huella |
-| `precalculo/genera_referencias.py` | escribe las citas, las listas de fuentes y el pie; lo llama el ensamblador |
-| `precalculo/audita_citas.py` | la cita literal está en la fuente, la edición es la leída, quien verifica no redactó, la prosa no cambió, ninguna obra sin ejemplar lleva localizador… |
+| `precalculo/genera_referencias.py` | escribe las citas y las listas de fuentes (lo llama el ensamblador) y el pie (sobre la plantilla) |
+| `precalculo/audita_citas.py` | la cita literal está en la fuente, la edición es la leída, quien verifica no redactó, la prosa no cambió, ninguna obra sin ejemplar lleva localizador, el pie de todo documento es el generado (F15)… |
 | `precalculo/prueba_audita_citas.py` | inyecta defectos y exige que cada uno salte con su código |
 | `precalculo/linea_base_citas.py` | clasifica las menciones de autor y año que ya están en la prosa |

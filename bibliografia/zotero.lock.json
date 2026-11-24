@@ -51,6 +51,13 @@
       "tipo": "book",
       "zotero": "7E8TEADL"
     },
+    "baddeley2017spatstatdata": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "datos",
+      "tipo": "computerProgram",
+      "zotero": "9FFF47WQ"
+    },
     "bedford1997remark": {
       "adjuntos": [],
       "etiquetas": [],
@@ -175,12 +182,26 @@
       "tipo": "journalArticle",
       "zotero": "RVPPNYVT"
     },
+    "dunnington2016s2": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "datos",
+      "tipo": "computerProgram",
+      "zotero": "JKB2FMNB"
+    },
     "epanechnikov1969non": {
       "adjuntos": [],
       "etiquetas": [],
       "rol": "primaria",
       "tipo": "journalArticle",
       "zotero": "JDH3BVDB"
+    },
+    "friendly2009histdata": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "datos",
+      "tipo": "computerProgram",
+      "zotero": "QJAB3P3L"
     },
     "geary1954contiguity": {
       "adjuntos": [],
@@ -267,6 +288,20 @@
       "rol": "primaria",
       "tipo": "journalArticle",
       "zotero": "H5HF5RQS"
+    },
+    "pebesma2005sp": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "datos",
+      "tipo": "computerProgram",
+      "zotero": "67U24DA3"
+    },
+    "pebesma2016sf": {
+      "adjuntos": [],
+      "etiquetas": [],
+      "rol": "datos",
+      "tipo": "computerProgram",
+      "zotero": "XPNEXIEG"
     },
     "pebesma2018simple": {
       "adjuntos": [],

@@ -257,7 +257,14 @@ class Auditor:
         # audita_citas.py. Sin esto, los dígitos de un DOI salían como cifras sin respaldo.
         prosa = re.sub(r'<cite class="cita".*?</cite>', " ", prosa, flags=re.S)
         prosa = re.sub(r'<ul class="lista-fuentes">.*?</ul>', " ", prosa, flags=re.S)
-        con_formulas = prosa
+        # El pie «Referencias Bibliográficas» (R4 · T4.3) lo escribe desde el 2026-11-23 el mismo
+        # guion, con sus DOI, y lo audita audita_citas.py (F15): sale de donde se leen las CIFRAS,
+        # por lo mismo que las listas de arriba. Pero NO de donde se buscan las frases, y es
+        # deliberado: `fuentes()` («cita a baddeley», «cita a giraldo») se cumple en varios capítulos
+        # SOLO porque el pie nombra a esos autores —medido al retirarlo: 14 comprobaciones de los
+        # capítulos 1, 4, 5 y 6 caían—. Esa comprobación ya era así con el pie escrito a mano; lo que
+        # hay que saber es que hoy no prueba que el capítulo cite a nadie.
+        con_formulas = re.sub(r'<ul class="pie-referencias[^"]*">.*?</ul>', " ", prosa, flags=re.S)
         prosa = re.sub(r"\$\$.*?\$\$", " ", prosa, flags=re.S)
         prosa = re.sub(r"\$[^$]*\$", " ", prosa)
         prosa = re.sub(r"<svg.*?</svg>", " ", prosa, flags=re.S)

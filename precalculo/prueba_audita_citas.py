@@ -4,7 +4,8 @@ prueba_audita_citas.py — el auditor de citas, puesto a prueba
 
 Material de Estadística Espacial 2026-II (20929). Portado de Series de Tiempo
 (20948), con tres inyecciones nuevas para F13 y F14 (segunda mano y obras sin
-ejemplar), que la norma común pide y Series no tenía.
+ejemplar), que la norma común pide y Series no tenía, y doce para F15 (R4 ·
+T4.3): el pie «Referencias Bibliográficas» de todo documento y de la plantilla.
 
 Un auditor que nunca ha visto un defecto no demuestra nada al salir en verde.
 Este arnés construye en una carpeta temporal un capítulo mínimo, correcto, con
@@ -97,6 +98,47 @@ HTML_CAP3 = """<!DOCTYPE html>
 """
 
 
+# F15 — el pie lo llevan todos los documentos, no solo los capítulos: un
+# documento que no es capítulo (F02 no lo mira), la plantilla, y uno repartido
+# que conserva su pie escrito a mano y está declarado en `congelados`.
+HTML_OTRO = """<!DOCTYPE html>
+<html lang="es">
+<body>
+  <footer>
+    <h3>Referencias Bibliográficas</h3>
+    <!--PIE-REFERENCIAS:inicio--><!--PIE-REFERENCIAS:fin-->
+    <div>Diseñado por alguien</div>
+  </footer>
+</body>
+</html>
+"""
+HTML_CONGELADO = """<!DOCTYPE html>
+<html lang="es">
+<body>
+  <footer>
+    <ul><li>Soto, C. (2015). <em>Puntos en el plano</em>. Editorial de Prueba.</li></ul>
+  </footer>
+</body>
+</html>
+"""
+PIE = {
+    "orden": ["perez2020series", "soto2016puntos", "apuntes-sin-alta", "gomez1990metodo"],
+    "adicionales": {"gomez1990metodo": {"motivo": "el pie ya la traía"}},
+    "anotaciones": {
+        "perez2020series": {"destacado": "Texto guía del curso."},
+        "gomez1990metodo": {"rotulo": "En línea:", "url": "https://ejemplo.invalid/", "visible": "ejemplo.invalid",
+                            "instantanea": "pagina", "evidencia": CITA_2},
+    },
+    "sin_alta": {"apuntes-sin-alta": {"html": "Mora, D. (2011). <em>Apuntes de clase</em>. Universidad de Prueba.",
+                                      "motivo": "sin DOI ni ISBN, sin ejemplar",
+                                      "para_el_alta": "conseguir la portada"}},
+    "congelados": {"taller-9-prueba.html": "repartido: no se reensambla"},
+    "vetados": [{"patron": "Soto[^<]*\\(2015\\)", "motivo": "se cita el año de copyright, 2016"}],
+}
+CON_PIE = ("Htmls_Espacial/capitulo-1-prueba.html", "Htmls_Espacial/preparcial-prueba.html",
+           "plantilla/plantilla-capitulo.html")
+
+
 def sha(dato: bytes) -> str:
     return hashlib.sha256(dato).hexdigest()
 
@@ -126,6 +168,10 @@ def construye(base: pathlib.Path) -> None:
         {"id": "diaz1975nota", "type": "article-journal", "title": "Una nota sobre filtros",
          "container-title": "Revista Vieja", "issued": {"date-parts": [[1975]]},
          "author": [{"family": "Díaz", "given": "Pablo"}]},
+        # Básica y sin citar en la prosa: solo sale en el pie (F15).
+        {"id": "soto2016puntos", "type": "book", "title": "Puntos en el plano",
+         "publisher": "Editorial de Prueba", "issued": {"date-parts": [[2016]]},
+         "author": [{"family": "Soto", "given": "Carla"}]},
     ]
     (bib / "referencias.json").write_text(json.dumps(referencias, ensure_ascii=False), "utf-8")
     candado = {"obras": {
@@ -133,8 +179,10 @@ def construye(base: pathlib.Path) -> None:
         "gomez1990metodo": {"rol": "primaria", "adjuntos": []},
         "lopez1980datos": {"rol": "primaria", "adjuntos": []},
         "diaz1975nota": {"rol": "primaria", "adjuntos": []},
+        "soto2016puntos": {"rol": "basica", "adjuntos": []},
     }}
     (bib / "zotero.lock.json").write_text(json.dumps(candado), "utf-8")
+    (bib / "pie.json").write_text(json.dumps(PIE, ensure_ascii=False), "utf-8")
     (bib / "ejemplares.yml").write_text(yaml.safe_dump({
         "perez2020series": {"archivo": "perez.pdf", "sha256": "f" * 64, "paginas": 9,
                             "edicion_comprobada": "Segunda edición, 2020", "desfase": 2,
@@ -154,6 +202,11 @@ def construye(base: pathlib.Path) -> None:
     cap1 = genera_referencias.genera(HTML_CAP1, biblioteca, candado["obras"])
     (sitio / "capitulo-1-prueba.html").write_text(cap1, "utf-8")
     (sitio / "capitulo-3-prueba.html").write_text(HTML_CAP3, "utf-8")
+    otro = genera_referencias.genera(HTML_OTRO, biblioteca, candado["obras"])
+    (sitio / "preparcial-prueba.html").write_text(otro, "utf-8")
+    (sitio / "taller-9-prueba.html").write_text(HTML_CONGELADO, "utf-8")
+    (base / "plantilla").mkdir()
+    (base / "plantilla" / "plantilla-capitulo.html").write_text(otro, "utf-8")
     (base / "precalculo" / "ensambla_cap3.py").write_text(f"MODULOS = {HTML_CAP3!r}\n", "utf-8")
     (base / "precalculo" / "ensambla_cap1.py").write_text(f"MODULOS = {HTML_CAP1!r}\n", "utf-8")
 
@@ -226,7 +279,26 @@ def regenera(base: pathlib.Path) -> None:
     ruta.write_text(genera_referencias.genera(ruta.read_text("utf-8"), referencias, candado), "utf-8")
 
 
+def regenera_pies(base: pathlib.Path) -> None:
+    """Como reensamblar todo: cada documento con pie vuelve a salir del guion."""
+    bib = base / "bibliografia"
+    genera_referencias.BIB = bib
+    referencias = {r["id"]: r for r in json.loads((bib / "referencias.json").read_text("utf-8"))}
+    candado = json.loads((bib / "zotero.lock.json").read_text("utf-8"))["obras"]
+    for nombre in CON_PIE:
+        ruta = base / nombre
+        ruta.write_text(genera_referencias.genera(ruta.read_text("utf-8"), referencias, candado), "utf-8")
+
+
+def edita_json(ruta: pathlib.Path, cambio) -> None:
+    dato = json.loads(ruta.read_text("utf-8"))
+    cambio(dato)
+    ruta.write_text(json.dumps(dato, ensure_ascii=False), "utf-8")
+
+
 CAP1 = "Htmls_Espacial/capitulo-1-prueba.html"
+OTRO = "Htmls_Espacial/preparcial-prueba.html"
+PLANTILLA = "plantilla/plantilla-capitulo.html"
 BIB = "bibliografia"
 
 
@@ -307,6 +379,18 @@ def i_seccion_inexistente(b):
     regenera(b)
 
 
+def i_sin_secciones_con_secciones(b):
+    # (20929) `sin_secciones` sobre una página que SÍ tiene secciones numeradas.
+    edita_registro(b, 1, "c1-m1-02", lambda e: e["fuentes"][0].update(loc="", sin_secciones=True))
+    cambia(b / CAP1, ' data-loc="§2"', '')
+    regenera(b)
+
+
+def i_sin_secciones_con_localizador(b):
+    # (20929) Declarar `sin_secciones` y a la vez dar localizador.
+    edita_registro(b, 1, "c1-m1-02", lambda e: e["fuentes"][0].update(sin_secciones=True))
+
+
 def i_instantanea_cambiada(b):
     (b / BIB / "_local" / "web" / "gomez1990metodo" / "pagina.txt").write_text(PAGINA_WEB + "añadido\n", "utf-8")
 
@@ -333,6 +417,27 @@ def i_desfase_que_no_cuadra(b):
     hoja = b / BIB / "_local" / "texto" / "perez2020series" / "p0005.txt"
     hoja.write_text(hoja.read_text("utf-8").replace("        3   Suavizado", "        7   Suavizado"), "utf-8")
     edita_yaml(b / BIB / "ejemplares.yml", lambda d: d["perez2020series"].update(desfase=None))
+
+
+def i_tramo_que_no_cuadra(b):
+    # (20929) Ejemplar de desfase variable: el encabezado no se lee y el tramo dice otra página.
+    hoja = b / BIB / "_local" / "texto" / "perez2020series" / "p0005.txt"
+    hoja.write_text(hoja.read_text("utf-8").replace("        3   Suavizado", "        S   Suavizado"), "utf-8")
+    edita_yaml(b / BIB / "ejemplares.yml", lambda d: d["perez2020series"].update(desfase=None, tramos=[[1, 10, 4]]))
+
+
+def i_seccion_inexistente_en_lista(b):
+    # (20929) Una sección que no existe, escondida junto a otra que sí.
+    edita_registro(b, 1, "c1-m1-02", lambda e: e["fuentes"][0].update(loc="§9; §2"))
+    cambia(b / CAP1, 'data-loc="§2"', 'data-loc="§9; §2"')
+    regenera(b)
+
+
+def i_pagina_inexistente_en_lista(b):
+    # (20929) Una página que el ejemplar no tiene, escondida junto a la buena.
+    edita_registro(b, 1, "c1-m1-01", lambda e: e["fuentes"][0].update(loc="p. 2383; p. 3"))
+    cambia(b / CAP1, 'data-loc="p. 3"', 'data-loc="p. 2383; p. 3"')
+    regenera(b)
 
 
 def i_autoverificacion(b):
@@ -375,6 +480,65 @@ def i_segunda_mano_sin_marcar(b):
     edita_registro(b, 1, "c1-m1-05", lambda e: e["fuentes"][0].pop("segunda_mano_de"))
 
 
+# --- F15: el pie ----------------------------------------------------------- #
+def i_pie_tecleado(b):
+    cambia(b / OTRO, "Soto, C. (2016)", "Soto, C. (2014)")
+
+
+def i_pie_a_mano_sin_marcadores(b):
+    cambia(b / OTRO, "<!--PIE-REFERENCIAS:inicio-->", "")
+    cambia(b / OTRO, "<!--PIE-REFERENCIAS:fin-->", "")
+
+
+def i_pie_de_capitulo_tecleado(b):
+    cambia(b / CAP1, "Soto, C. (2016)", "Soto, C. (2014)")
+
+
+def i_lista_fuera_de_los_marcadores(b):
+    cambia(b / OTRO, "<div>Diseñado por alguien</div>", "<ul><li>Otra obra, de memoria.</li></ul>")
+
+
+def i_plantilla_desfasada(b):
+    cambia(b / PLANTILLA, "Texto guía del curso.", "Texto de consulta.")
+
+
+def i_pie_vuelve_a_lo_vetado(b):
+    # El caso de «Baddeley … (2015)»: la instantánea pierde la enmienda del año y TODO se
+    # regenera bien. El pie es el que el guion escribe, y aun así dice lo que no puede decir.
+    def cambio(d):
+        next(r for r in d if r["id"] == "soto2016puntos")["issued"] = {"date-parts": [[2015]]}
+    edita_json(b / BIB / "referencias.json", cambio)
+    regenera_pies(b)
+
+
+def i_enlace_que_no_es_de_la_instantanea(b):
+    edita_json(b / BIB / "pie.json", lambda d: d["anotaciones"]["gomez1990metodo"].update(url="https://otro.invalid/"))
+    regenera_pies(b)
+
+
+def i_licencia_que_la_fuente_no_dice(b):
+    edita_json(b / BIB / "pie.json",
+               lambda d: d["anotaciones"]["gomez1990metodo"].update(evidencia="El ajuste es de dominio público"))
+
+
+def i_sin_alta_sin_motivo(b):
+    edita_json(b / BIB / "pie.json", lambda d: d["sin_alta"]["apuntes-sin-alta"].pop("para_el_alta"))
+
+
+def i_basica_sin_sitio_en_el_pie(b):
+    edita_json(b / BIB / "pie.json", lambda d: d["orden"].remove("soto2016puntos"))
+
+
+def i_linea_fija_de_obra_con_alta(b):
+    edita_json(b / BIB / "referencias.json", lambda d: d.append(
+        {"id": "apuntes-sin-alta", "type": "book", "title": "Apuntes de clase",
+         "issued": {"date-parts": [[2011]]}, "author": [{"family": "Mora", "given": "Diana"}]}))
+
+
+def i_congelado_ya_generado(b):
+    shutil.copy(b / OTRO, b / "Htmls_Espacial" / "taller-9-prueba.html")
+
+
 INYECCIONES = [
     # La clave cambiada tampoco coincide ya con la fuente registrada: F03 es legítimo.
     ("clave que no existe en la biblioteca", i_clave_inexistente, {"F01", "F03"}),
@@ -393,12 +557,19 @@ INYECCIONES = [
     ("cita literal buscada en otra página", i_pagina_equivocada, {"F05"}),
     ("cita literal en otra sección de la misma página web", i_seccion_equivocada, {"F05"}),
     ("localizador con una sección que la página no tiene", i_seccion_inexistente, {"F05"}),
-    ("instantánea web distinta de la registrada", i_instantanea_cambiada, {"F05"}),
+    # La anotación del pie se apoya en esa misma instantánea (`evidencia`): F15 es legítimo.
+    ("instantánea web distinta de la registrada", i_instantanea_cambiada, {"F05", "F15"}),
+    ("`sin_secciones` sobre una página con secciones", i_sin_secciones_con_secciones, {"F05"}),
+    # La página de juguete sí tiene secciones, así que F05 también es legítimo.
+    ("`sin_secciones` con localizador", i_sin_secciones_con_localizador, {"F04", "F05"}),
     ("la página no está en la caché", i_cache_ausente, {"F05"}),
     ("el ejemplar no es el de Zotero", i_otro_ejemplar, {"F06"}),
     ("se leyó una edición y se cita otra", i_edicion_cruzada, {"F07"}),
     ("portada del ejemplar sin comprobar", i_portada_sin_comprobar, {"F07"}),
     ("la página impresa no cuadra con la del PDF", i_desfase_que_no_cuadra, {"F07"}),
+    ("tramo de desfase que no cuadra con la página", i_tramo_que_no_cuadra, {"F07"}),
+    ("página inexistente junto a una que sí existe", i_pagina_inexistente_en_lista, {"F07"}),
+    ("sección inexistente junto a una que sí existe", i_seccion_inexistente_en_lista, {"F05"}),
     ("quien verifica es quien redactó", i_autoverificacion, {"F08"}),
     ("la prosa cambió después del contraste", i_prosa_cambiada, {"F09"}),
     ("cita literal de más de 25 palabras", i_cita_larga, {"F11"}),
@@ -410,12 +581,29 @@ INYECCIONES = [
     ("segunda mano sin `segunda_mano_de` en el registro", i_segunda_mano_sin_marcar, {"F03"}),
     # Con página deja de ser una lectura: es una cita fuera de afirmación, y de una obra sin ejemplar.
     ("lectura recomendada de una obra sin ejemplar con página", i_lectura_con_localizador, {"F03", "F14"}),
+    # F15 — el pie. F02 solo mira los capítulos: lo que le pase al pie de cualquier otro
+    # documento, o a la plantilla, solo lo ve F15.
+    ("pie tecleado en un documento que no es capítulo", i_pie_tecleado, {"F15"}),
+    ("pie escrito a mano, sin marcadores", i_pie_a_mano_sin_marcadores, {"F15"}),
+    # En un capítulo el pie tecleado lo ven los dos: F02 (el HTML no es el regenerado) y F15.
+    ("pie de un capítulo tecleado", i_pie_de_capitulo_tecleado, {"F02", "F15"}),
+    ("lista escrita a mano en el pie, fuera de los marcadores", i_lista_fuera_de_los_marcadores, {"F15"}),
+    ("pie de la plantilla desfasado", i_plantilla_desfasada, {"F15"}),
+    ("el pie, bien generado, vuelve a decir lo vetado", i_pie_vuelve_a_lo_vetado, {"F15"}),
+    ("anotación con un enlace que no es el de la instantánea", i_enlace_que_no_es_de_la_instantanea, {"F15"}),
+    ("anotación con una licencia que la instantánea no dice", i_licencia_que_la_fuente_no_dice, {"F15"}),
+    # Con pie.json mal, el generador PARA (ErrorDeCita): por eso el capítulo da también F02.
+    ("línea sin alta que no dice qué falta para el alta", i_sin_alta_sin_motivo, {"F02", "F15"}),
+    ("obra básica de Zotero sin sitio en el pie", i_basica_sin_sitio_en_el_pie, {"F02", "F15"}),
+    ("línea fija de una obra que ya tiene alta", i_linea_fija_de_obra_con_alta, {"F02", "F15"}),
+    ("documento congelado que ya trae el pie generado", i_congelado_ya_generado, {"F15"}),
 ]
 
 
 def codigos(base: pathlib.Path, **opciones) -> set[str]:
     hallazgos, _ = audita_citas.audita(base / BIB, base / "Htmls_Espacial",
-                                       dir_ensamblado=base / "precalculo", **opciones)
+                                       dir_ensamblado=base / "precalculo",
+                                       plantilla=base / PLANTILLA, **opciones)
     return {x.codigo for x in hallazgos if not x.aviso}
 
 

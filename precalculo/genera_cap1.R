@@ -622,7 +622,12 @@ nc_area_km2 <- as.numeric(st_area(st_transform(nc, 32617))) / 1e6
 
 D$area_canonico <- list(
   nombre = "SIDS de Carolina del Norte, 1974-78",
-  fuente = "Cressie (1993) / Bivand, Pebesma y Gómez-Rubio (2013), vía sf",
+  # R4 · T4.2 (A-041): antes «Cressie (1993) / Bivand, Pebesma y Gómez-Rubio
+  # (2013), vía sf». Lo que se leyó: Cressie (1993, p. 390) analiza estos
+  # conteos y dice que los presentaron y ampliaron trabajos anteriores; que
+  # el nc de sf venga de Bivand et al. (2013) no está en ninguna obra con
+  # ejemplar. La tabla del módulo 12 da el origen con su cita.
+  fuente = "Analizados en Cressie (1993), vía sf",
   n = nrow(nc),
   sid74_total = as.integer(sum(nc$SID74)),
   bir74_total = as.integer(sum(nc$BIR74)),
@@ -2744,6 +2749,33 @@ D$ecosistema <- list(
                  PROJ = sf_extSoftVersion()[["PROJ"]])
 )
 
+# R4 · T4.2 (A-144). Qué paquetes de la tabla necesitan `sf` para funcionar
+# NO se escribe a mano: se lee del DESCRIPTION de cada uno (Depends, Imports
+# y LinkingTo; Suggests no cuenta, porque el paquete funciona sin él). La
+# prosa del módulo 8 decía cinco y son seis: faltaba spatialreg.
+depende_de_sf <- function(p) {
+  d <- packageDescription(p)
+  campos <- unlist(d[c("Depends", "Imports", "LinkingTo")], use.names = FALSE)
+  if (is.null(campos)) return(FALSE)
+  nombres <- trimws(sub("\\(.*$", "", unlist(strsplit(gsub("\\s+", " ", campos), ","))))
+  "sf" %in% nombres
+}
+otros_ <- setdiff(vapply(paquetes, function(p) p$nombre, character(1)), "sf")
+usan_sf_ <- vapply(otros_, depende_de_sf, logical(1))
+D$ecosistema$necesitan_sf <- as.list(otros_[usan_sf_])
+D$ecosistema$sin_sf       <- as.list(otros_[!usan_sf_])
+
+# R4 · T4.2 (A-148). La licencia de los cuatro archivos del extracto que
+# salen de paquetes de R es el campo License de su DESCRIPTION. Estaba
+# escrita a mano en el ensamblador (LICENCIAS_PAQUETES): es un hecho del
+# mundo que puede cambiar con la versión, así que se pregunta aquí.
+D$ecosistema$licencias_datos <- lapply(
+  list(c("cap1_snow.csv", "HistData"), c("cap1_japanesepines.csv", "spatstat.data"),
+       c("cap1_meuse.csv", "sp"), c("cap1_nc.gpkg", "sf")),
+  function(x) list(archivo = x[1], paquete = x[2],
+                   licencia = gsub("\\s+", " ", packageDescription(x[2])$License),
+                   version = as.character(packageVersion(x[2]))))
+
 # =====================================================================
 # I. MÓDULO 9 — Anatomía de un objeto sf (y del ppp)
 # =====================================================================
@@ -3058,6 +3090,35 @@ D$diseno_modelo <- list(
   # estaciones están mucho más arriba que el territorio que representan.
   alt_media_simple = r10(mean(est$altitud_m)),
   alt_media_area   = r10(sum(est$altitud_m * area_vor) / sum(area_vor)),
+  # R4 · T4.2 (A-103): «la Amazonía y la Orinoquía, que son enormes, bajas y
+  # calientes» era una afirmación geográfica sin cifra. Se mide: las K
+  # estaciones con la celda mayor, qué parte del país representan, a qué
+  # altitud y temperatura están y en qué departamentos.
+  # Ronda 3 (V1): «deja casi vacías las bajas» era falso. Bajo 200 m hay una
+  # de cada cuatro estaciones; lo que pasa es que representan mucho más
+  # territorio del que les tocaría. Se publica la cuenta: cuántas estaciones
+  # hay por debajo del umbral, qué parte de la red son, qué parte del país
+  # representan y cuántas veces el territorio de una de las de arriba le toca
+  # a cada una.
+  bajas = local({
+    U <- 200
+    b <- est$altitud_m < U
+    list(umbral_m = U,
+         n = as.integer(sum(b)),
+         pct_red = r10(100 * mean(b)),
+         pct_area = r10(100 * sum(area_vor[b]) / sum(area_vor)),
+         razon_territorio = r10((sum(area_vor[b]) / sum(b)) / (sum(area_vor[!b]) / sum(!b))))
+  }),
+  mayores = local({
+    K <- 10L
+    o <- order(area_vor, decreasing = TRUE)[seq_len(K)]
+    list(k = K,
+         pct_area = r10(100 * sum(area_vor[o]) / sum(area_vor)),
+         alt_media = r10(mean(est$altitud_m[o])),
+         alt_max = r10(max(est$altitud_m[o])),
+         t_media = r10(mean(t_ideam[o])),
+         departamentos = as.list(sort(unique(est$departamento[o]))))
+  }),
   # La referencia contra la que se lee `razon_areas` (J.2b).
   referencia_uniforme = list(
     n_muestras = N_REF, n_puntos = nrow(est), semilla = SEMILLA_REF,
@@ -3083,10 +3144,20 @@ message("K · El glosario de notación")
 
 D$glosario <- list(
   titulo = "Notación de Estadística Espacial",
+  # R4 · T4.2 (D10, A-105 a A-121). La columna remitía a «Bivand §…»: Bivand,
+  # Pebesma y Gómez-Rubio (2013), una obra sin ejemplar local, y la norma no
+  # deja darle sección a lo que no se ha leído. Cada fila remite ahora a un
+  # pasaje leído el 2026-11-23 en una obra con ejemplar: Cressie (1993) por
+  # su numeración de secciones, Pebesma y Bivand (2023) y Baddeley, Rubak y
+  # Turner, que se cita por 2016, el año de la página de derechos (A-106).
+  # Ronda 2 (verificación): Pebesma §14.5 no escribe W ni w_ij ni define el
+  # valor rezagado. La fila de la matriz remite a Moraga (2019, §5.1), que
+  # sí define W y sus elementos; la del rezago se queda en «—».
   nota = paste("La notación unificada de los diez capítulos. La columna",
-               "«Texto guía» remite a Bivand, Pebesma y Gómez-Rubio (2013)",
-               "para datos de área y geoestadística, y a Baddeley, Rubak y",
-               "Turner (2015) para patrones puntuales."),
+               "«Texto guía» remite a Cressie (1993) para el modelo general,",
+               "la covarianza y el variograma; a Pebesma y Bivand (2023) y",
+               "a Moraga (2019) para datos de área; y a Baddeley, Rubak y",
+               "Turner (2016) para patrones puntuales."),
   columnas = list(
     list(clave = "simbolo", titulo = "Símbolo", tipo = "mate"),
     list(clave = "nombre",  titulo = "Qué es",  tipo = "texto"),
@@ -3109,9 +3180,9 @@ D$glosario <- list(
   # (guardas_de_notacion) exige estas filas leyendo el documento ensamblado.
   filas = list(
     # --- El dominio y los tres tipos de dato --------------------------------
-    list(simbolo = "s", nombre = "Una localización del dominio", guia = "Bivand §1.2", en_r = "st_coordinates()"),
-    list(simbolo = "D", nombre = "El dominio de estudio, \\(D \\subset \\mathbb{R}^2\\). En un patrón puntual, la región que de verdad se observa es la ventana \\(W\\). En el cap. 6, \\(D\\) es la matriz diagonal de los grados, \\(\\operatorname{diag}(d_1, \\dots, d_n)\\)", guia = "Bivand §1.2", en_r = "st_bbox()"),
-    list(simbolo = "Z(s)", nombre = "El valor del proceso en la localización s", guia = "Bivand §8.1", en_r = "x$variable"),
+    list(simbolo = "s", nombre = "Una localización del dominio", guia = "Cressie §1.1", en_r = "st_coordinates()"),
+    list(simbolo = "D", nombre = "El dominio de estudio, \\(D \\subset \\mathbb{R}^2\\). En un patrón puntual, la región que de verdad se observa es la ventana \\(W\\). En el cap. 6, \\(D\\) es la matriz diagonal de los grados, \\(\\operatorname{diag}(d_1, \\dots, d_n)\\)", guia = "Cressie §1.1", en_r = "st_bbox()"),
+    list(simbolo = "Z(s)", nombre = "El valor del proceso en la localización s", guia = "Cressie §1.1", en_r = "x$variable"),
     list(simbolo = "A_i", nombre = "La unidad \\(i\\) de un dato de área (un municipio, un condado); \\(Z(A_i)\\) es su valor. En el cap. 6, \\(A\\) sin subíndice es la matriz de adyacencia binaria, de elementos \\(a_{ij}\\)", guia = "—", en_r = "—"),
     list(simbolo = "n", nombre = "El número de observaciones: unidades, estaciones o puntos. En un patrón puntual, los puntos que se observaron", guia = "—", en_r = "—"),
     # --- Patrones puntuales ---------------------------------------------------
@@ -3143,9 +3214,9 @@ D$glosario <- list(
     list(simbolo = "F(r),\\ K(r),\\ g(r)", nombre = "Las otras funciones de resumen de un patrón puntual, que define el cap. 4. En el módulo 4 de este capítulo, \\(K\\) sin argumento es el número de bloques del <em>jackknife</em>", guia = "—", en_r = "—"),
     list(simbolo = "r", nombre = "Una distancia, en \\(G(r)\\) y en la deducción de Clark-Evans. En el módulo 7 (\\(|r|\\)) y en la deducción del módulo 5, una correlación muestral", guia = "—", en_r = "—"),
     # --- Geoestadística y dependencia ----------------------------------------
-    list(simbolo = "h", nombre = "Vector (o distancia) de separación entre dos localizaciones", guia = "Bivand §8.4", en_r = "st_distance()"),
-    list(simbolo = "C(h)", nombre = "Covarianza entre dos puntos separados h", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
-    list(simbolo = "\\gamma(h)", nombre = "Semivariograma", guia = "Bivand §8.4", en_r = "gstat::variogram()"),
+    list(simbolo = "h", nombre = "Vector (o distancia) de separación entre dos localizaciones", guia = "Cressie §2.3.1", en_r = "st_distance()"),
+    list(simbolo = "C(h)", nombre = "Covarianza entre dos puntos separados h", guia = "Cressie §2.3", en_r = "gstat::variogram()"),
+    list(simbolo = "\\gamma(h)", nombre = "Semivariograma", guia = "Cressie §2.3.1", en_r = "gstat::variogram()"),
     list(simbolo = "\\bar{\\gamma}_k", nombre = "El semivariograma teórico promediado sobre los pares de la clase de distancia \\(k\\): la referencia del variograma empírico en una retícula (módulo 6)", guia = "—", en_r = "—"),
     list(simbolo = "\\mu", nombre = "La media del proceso, \\(E[Z(s)]\\)", guia = "—", en_r = "—"),
     list(simbolo = "m(s)", nombre = "La media del proceso en el sitio \\(s\\), cuando cambia de un sitio a otro: una tendencia (módulo 6)", guia = "—", en_r = "—"),
@@ -3161,18 +3232,18 @@ D$glosario <- list(
     # (R3 · T3.2): en este capítulo ρ es siempre una correlación. El SAR va
     # en el cap. 8, que no existe todavía en Htmls_Espacial/: se dice como lo
     # que es, una previsión del árbol de decisión del módulo 8.
-    list(simbolo = "\\rho", nombre = "Sin marca, este capítulo no la usa: aquí \\(\\rho\\) es siempre una correlación, \\(\\rho(h)\\), \\(\\rho_{ij}\\) o \\(\\bar{\\rho}\\). En el cap. 5, \\(\\rho(z)\\) es la intensidad en función de una covariable (<code>rhohat</code>). En el modelo SAR, que el árbol del módulo 8 sitúa en el cap. 8, todavía sin publicar, es el coeficiente del rezago espacial", guia = "Bivand §9.4", en_r = "spatialreg::lagsarlm()"),
+    list(simbolo = "\\rho", nombre = "Sin marca, este capítulo no la usa: aquí \\(\\rho\\) es siempre una correlación, \\(\\rho(h)\\), \\(\\rho_{ij}\\) o \\(\\bar{\\rho}\\). En el cap. 5, \\(\\rho(z)\\) es la intensidad en función de una covariable (<code>rhohat</code>). En el modelo SAR, que el árbol del módulo 8 sitúa en el cap. 8, todavía sin publicar, es el coeficiente del rezago espacial", guia = "Pebesma §17.1", en_r = "spatialreg::lagsarlm()"),
     list(simbolo = "n_{\\text{eff}}", nombre = "Tamaño de muestra efectivo; \\(n/n_{\\text{eff}}\\) es el efecto de diseño", guia = "Cressie §1.3", en_r = "—"),
     # --- Datos de área ---------------------------------------------------------
-    list(simbolo = "\\mathbf{W}", nombre = "La matriz de pesos espaciales, de elementos \\(w_{ij}\\). En los caps. 6 y 7 se escribe \\(W\\), sin negrita", guia = "Bivand §9.2", en_r = "spdep::nb2listw()"),
-    list(simbolo = "w_{ij}", nombre = "El peso con que \\(j\\) entra en la vecindad de \\(i\\): el elemento \\((i, j)\\) de \\(\\mathbf{W}\\)", guia = "—", en_r = "—"),
-    list(simbolo = "\\mathbf{W}y", nombre = "Rezago espacial: la media de los vecinos", guia = "Bivand §9.3", en_r = "spdep::lag.listw()"),
+    list(simbolo = "\\mathbf{W}", nombre = "La matriz de pesos espaciales, de elementos \\(w_{ij}\\). En los caps. 6 y 7 se escribe \\(W\\), sin negrita", guia = "Moraga §5.1", en_r = "spdep::nb2listw()"),
+    list(simbolo = "w_{ij}", nombre = "El peso con que \\(j\\) entra en la vecindad de \\(i\\): el elemento \\((i, j)\\) de \\(\\mathbf{W}\\)", guia = "Moraga §5.1", en_r = "—"),
+    list(simbolo = "\\mathbf{W}y", nombre = "Rezago espacial: la media de los vecinos", guia = "—", en_r = "spdep::lag.listw()"),
     list(simbolo = "S_0", nombre = "La suma de todos los pesos, \\(\\sum_i \\sum_j w_{ij}\\), como en el cap. 7. El cap. 6 llama \\(S_0\\) a la suma de la adyacencia binaria, \\(\\sum_i \\sum_j a_{ij}\\)", guia = "—", en_r = "—"),
     list(simbolo = "z_i", nombre = "El valor de la unidad \\(i\\), centrado en la media. En el módulo 7, \\(z\\) sin subíndice es el estadístico estandarizado de la prueba de Moran", guia = "—", en_r = "—"),
-    list(simbolo = "I", nombre = "Índice de Moran (autocorrelación global). Se lee como una correlación entre vecinos, pero no lo es: su rango no es [−1, 1]", guia = "Bivand §9.3", en_r = "spdep::moran.test()"),
+    list(simbolo = "I", nombre = "Índice de Moran (autocorrelación global). Se lee como una correlación entre vecinos, pero no lo es: su rango no es [−1, 1]", guia = "Pebesma §15.1", en_r = "spdep::moran.test()"),
     list(simbolo = "E[I]", nombre = "El valor esperado de \\(I\\) bajo la nula de permutación, \\(-1/(n-1)\\): la referencia de \\(I\\), en vez de 0", guia = "—", en_r = "—"),
     list(simbolo = "n'", nombre = "Las unidades con algún vecino en una banda de distancia, que son las que cuenta <code>spdep</code> (módulo 3)", guia = "—", en_r = "—"),
-    list(simbolo = "G_i^*", nombre = "Estadístico de Getis-Ord local", guia = "Bivand §9.3", en_r = "spdep::localG()")
+    list(simbolo = "G_i^*", nombre = "Estadístico de Getis-Ord local", guia = "Pebesma §15.3", en_r = "spdep::localG()")
   )
 )
 
